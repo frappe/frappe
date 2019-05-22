@@ -14,7 +14,7 @@ frappe.views.WebFormList = class WebFormList {
 	}
 
 	refresh() {
-		this.table && Array.from(this.table.tBodies).forEach(o_o => o_o.remove());
+		this.table && Array.from(this.table.tBodies).forEach(tbody => tbody.remove());
 		this.rows = [];
 		this.page_length = 20;
 		this.web_list_start = 0;
@@ -27,7 +27,44 @@ frappe.views.WebFormList = class WebFormList {
 	}
 
 	make_filters() {
-		console.log("making_filters");
+		this.filters = {}
+		const filter_area = document.getElementById('list-filters');
+
+		frappe.call('frappe.website.doctype.web_form.web_form.get_web_form_filters', {
+			web_form_name: this.web_form_name
+		}).then(response => {
+			let fields = response.message;
+			fields.forEach(field => {
+				let col = document.createElement('div.col-sm-4')
+				col.classList.add('col', 'col-sm-3')
+				filter_area.appendChild(col)
+
+				frappe.ui.form.make_control({
+					df: {
+						fieldtype: field.fieldtype,
+						fieldname: field.fieldname,
+						label: __(field.label),
+						input_class: 'input-xs',
+						onchange: (event) => {
+							this.add_filter(field.fieldname, event.target.value, field.fieldtype)
+						}
+					},
+					parent: col,
+					render_input: 1,
+				})
+			})
+		})
+	}
+
+	add_filter(field, value, fieldtype) {
+		if (!value && field in this.filters) {
+			delete this.filters[field]
+		}
+		else {
+			if (fieldtype === 'Data') value = ['like', value + '%']
+			Object.assign(this.filters, Object.fromEntries([[field, value]]))
+		}
+		this.refresh();
 	}
 
 	get_list_view_fields() {
@@ -47,7 +84,7 @@ frappe.views.WebFormList = class WebFormList {
 				doctype: this.doctype,
 				fields: this.fields_list.map(df => df.fieldname),
 				limit_start: this.web_list_start,
-				web_form_name: this.web_form_name
+				...this.filters
 			}
 		});
 	}
@@ -158,9 +195,9 @@ frappe.views.WebFormList = class WebFormList {
 			() => (window.location.href = window.location.pathname + "?new=1")
 		);
 
-		if (this.rows.length >= this.page_length) addButton(footer, "more", "secondary", false, "More", () =>
-			this.more()
-		);
+		if (!(this.rows.length < this.page_length)) {
+			addButton(footer, "more", "secondary", false, "More", () =>  this.more());
+		}
 
 		function addButton(wrapper, id, type, hidden, name, action) {
 			const button = document.createElement("button");

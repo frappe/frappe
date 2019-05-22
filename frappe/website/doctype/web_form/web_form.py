@@ -507,6 +507,11 @@ def check_webform_perm(doctype, name):
 		if doc.has_webform_permission():
 			return True
 
+@frappe.whitelist(allow_guest=True)
+def get_web_form_filters(web_form_name):
+	web_form = frappe.get_doc("Web Form", web_form_name)
+	return [field for field in web_form.web_form_fields if field.show_in_filter]
+
 def get_web_form_list(doctype, txt, filters, limit_start, limit_page_length=20, order_by=None):
 	from frappe.www.list import get_list
 	if not filters:
