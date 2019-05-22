@@ -10,7 +10,44 @@ from frappe.utils.response import build_response
 from frappe import _
 from six.moves.urllib.parse import urlparse, urlencode
 import base64
+from frappe.utils import get_request_session
 
+@frappe.whitelist()
+def post_translation(data):
+	result = []
+	session = get_request_session()
+	login(session)
+
+	try:
+		response = session.post(
+			"{host}/api/method/webnotes_app.api.add_translation".format(host=frappe.conf.api_host),
+			data = data
+		)
+		response.raise_for_status()
+		if response.json().get("message") == "Already exists":
+			frappe.msgprint("Translation already exists")
+		elif response.json().get("message") == "Added to contribution list":
+			frappe.msgprint("Translation successfully contributed")
+	except:
+		raise Exception
+	finally:
+		logout(session)
+
+def login(session):
+	r = session.post('{host}/'.format(host=frappe.conf.api_host), data={
+		'cmd': 'login',
+		'usr': frappe.conf.api_username,
+		'pwd': frappe.conf.api_password
+	})
+
+	try:
+		if not r.json().get('message') == "Logged In":
+			raise Exception
+	except json.decoder.JSONDecodeError:
+		raise Exception
+
+def logout(session):
+	session.get('{host}/?cmd=logout'.format(host=frappe.conf.api_host))
 
 def handle():
 	"""
