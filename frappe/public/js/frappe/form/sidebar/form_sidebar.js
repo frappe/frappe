@@ -1,4 +1,13 @@
-frappe.provide("frappe.ui.form");
+
+
+import './assign_to';
+import './attachments';
+import './share';
+import './review';
+import './document_follow';
+import './user_image';
+import './form_viewers';
+
 frappe.ui.form.Sidebar = Class.extend({
 	init: function(opts) {
 		$.extend(this, opts);

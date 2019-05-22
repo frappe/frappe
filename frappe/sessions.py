@@ -305,6 +305,7 @@ class Session:
 			expiry = self.get_expiry_in_seconds(session_data.get("session_expiry"))
 
 			if self.time_diff > expiry:
+				print('deleting...')
 				self.delete_session()
 				data = None
 
@@ -318,7 +319,7 @@ class Session:
 			SELECT `user`, `sessiondata`
 			FROM `tabSessions` WHERE `sid`=%s AND
 			(NOW() - lastupdate) < %s
-			""", (self.sid, get_expiry_period(self.device)))
+			""", (self.sid, get_expiry_period(self.device)), debug=1)
 
 		if rec:
 			data = frappe._dict(eval(rec and rec[0][1] or '{}'))

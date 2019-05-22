@@ -1,5 +1,17 @@
 frappe.provide('frappe.ui.form');
 
+import './quick_entry';
+import './toolbar';
+import './dashboard';
+import './workflow';
+import './save';
+import './print';
+import './success_action';
+import './script_manager';
+import './script_helpers';
+import './sidebar/form_sidebar';
+import './footer/footer';
+
 frappe.ui.form.Controller = Class.extend({
 	init: function(opts) {
 		$.extend(this, opts);
@@ -283,7 +295,9 @@ frappe.ui.form.Form = class FrappeForm {
 		// record switch
 		if(this.docname != docname && (!this.meta.in_dialog || this.in_form) && !this.meta.istable) {
 			frappe.utils.scroll_to(0);
-			this.print_preview.hide();
+			if (this.print_preview) {
+				this.print_preview.hide();
+			}
 		}
 		// reset visible columns, since column headings can change in different docs
 		this.grids.forEach(grid_obj => grid_obj.grid.visible_columns = null);
@@ -425,8 +439,8 @@ frappe.ui.form.Form = class FrappeForm {
 			}
 		}
 
-		if(this.meta.autoname && this.meta.autonathis.substr(0,6)=='field:' && !this.doc.__islocal) {
-			var fn = this.meta.autonathis.substr(6);
+		if(this.meta.autoname && this.meta.autoname.substr(0,6)=='field:' && !this.doc.__islocal) {
+			var fn = this.meta.autoname.substr(6);
 
 			if (this.doc[fn]) {
 				this.toggle_display(fn, false);
@@ -643,7 +657,7 @@ frappe.ui.form.Form = class FrappeForm {
 
 	// HELPERS
 
-	enable_save = function() {
+	enable_save() {
 		this.save_disabled = false;
 		this.toolbar.set_primary_action();
 	}
@@ -1189,7 +1203,7 @@ frappe.ui.form.Form = class FrappeForm {
 		return frappe.ui.form.get_open_grid_form();
 	}
 
-	get_title = function() {
+	get_title() {
 		if(this.meta.title_field) {
 			return this.doc[this.meta.title_field];
 		} else {
@@ -1215,7 +1229,7 @@ frappe.ui.form.Form = class FrappeForm {
 		return selected;
 	}
 
-	set_indicator_formatter = function(fieldname, get_color, get_text) {
+	set_indicator_formatter(fieldname, get_color, get_text) {
 		// get doctype from parent
 		var doctype;
 		if(frappe.meta.docfield_map[this.doctype][fieldname]) {

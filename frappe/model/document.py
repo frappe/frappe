@@ -1241,7 +1241,7 @@ class Document(BaseDocument):
 		file_lock.delete_lock(self.get_signature())
 
 	# validation helpers
-	def validate_from_to_dates(from_date_field, to_date_field):
+	def validate_from_to_dates(self, from_date_field, to_date_field):
 		'''
 		Generic validation to verify date sequence
 		'''

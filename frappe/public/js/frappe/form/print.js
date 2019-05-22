@@ -1,4 +1,4 @@
-frappe.provide("frappe.ui.form");
+
 
 frappe.ui.form.PrintPreview = Class.extend({
 	init: function (opts) {
@@ -55,34 +55,24 @@ frappe.ui.form.PrintPreview = Class.extend({
 		});
 
 		this.wrapper.find(".btn-print-print").click(function () {
-			if (me.is_old_style()) {
-				me.print_old_style();
-			} else {
-				me.printit();
-			}
+			me.printit();
 		});
 
 		this.wrapper.find(".btn-print-preview").click(function () {
-			if (me.is_old_style()) {
-				me.new_page_preview_old_style();
-			} else {
-				me.new_page_preview();
-			}
+			me.new_page_preview();
 		});
 
 		this.wrapper.find(".btn-download-pdf").click(function () {
-			if (!me.is_old_style()) {
-				var w = window.open(
-					frappe.urllib.get_full_url("/api/method/frappe.utils.print_format.download_pdf?"
-						+ "doctype=" + encodeURIComponent(me.frm.doc.doctype)
-						+ "&name=" + encodeURIComponent(me.frm.doc.name)
-						+ "&format=" + me.selected_format()
-						+ "&no_letterhead=" + (me.with_letterhead() ? "0" : "1")
-						+ (me.lang_code ? ("&_lang=" + me.lang_code) : ""))
-				);
-				if (!w) {
-					frappe.msgprint(__("Please enable pop-ups")); return;
-				}
+			var w = window.open(
+				frappe.urllib.get_full_url("/api/method/frappe.utils.print_format.download_pdf?"
+					+ "doctype=" + encodeURIComponent(me.frm.doc.doctype)
+					+ "&name=" + encodeURIComponent(me.frm.doc.name)
+					+ "&format=" + me.selected_format()
+					+ "&no_letterhead=" + (me.with_letterhead() ? "0" : "1")
+					+ (me.lang_code ? ("&_lang=" + me.lang_code) : ""))
+			);
+			if (!w) {
+				frappe.msgprint(__("Please enable pop-ups")); return;
 			}
 		});
 
@@ -149,12 +139,7 @@ frappe.ui.form.PrintPreview = Class.extend({
  	},
 	multilingual_preview: function () {
 		var me = this;
-		if (this.is_old_style()) {
-			me.wrapper.find(".btn-print-preview").toggle(true);
-			me.wrapper.find(".btn-download-pdf").toggle(false);
-			me.set_style();
-			me.preview_old_style();
-		} else if (this.is_raw_printing()) {
+		if (this.is_raw_printing()) {
 			me.wrapper.find(".btn-print-preview").toggle(false);
 			me.wrapper.find(".btn-download-pdf").toggle(false);
 			me.preview();
@@ -345,50 +330,14 @@ frappe.ui.form.PrintPreview = Class.extend({
 			return {};
 		}
 	},
-	preview_old_style: function () {
-		var me = this;
-		this.with_old_style({
-			format: me.print_sel.val(),
-			callback: function (html) {
-				me.wrapper.find(".print-format").html('<div class="alert alert-warning">'
-					+ __("Warning: This Print Format is in old style and cannot be generated via the API.")
-					+ '</div>'
-					+ html);
-			},
-			no_letterhead: !this.with_letterhead(),
-			only_body: true,
-			no_heading: true
-		});
-	},
 	refresh_print_options: function () {
 		this.print_formats = frappe.meta.get_print_formats(this.frm.doctype);
 		return this.print_sel
 			.empty().add_options(this.print_formats);
 
 	},
-	with_old_style: function (opts) {
-		frappe.require("/assets/js/print_format_v3.min.js", function () {
-			_p.build(opts.format, opts.callback, opts.no_letterhead, opts.only_body, opts.no_heading);
-		});
-	},
-	print_old_style: function () {
-		var me = this;
-		frappe.require("/assets/js/print_format_v3.min.js", function () {
-			_p.build(me.print_sel.val(), _p.go,
-				!me.with_letterhead());
-		});
-	},
-	new_page_preview_old_style: function () {
-		var me = this;
-		frappe.require("/assets/js/print_format_v3.min.js", function () {
-			_p.build(me.print_sel.val(), _p.preview, !me.with_letterhead());
-		});
-	},
 	selected_format: function () {
 		return this.print_sel.val() || this.frm.meta.default_print_format || "Standard";
-	},
-	is_old_style: function (format) {
-		return this.get_print_format(format).print_format_type === "Client";
 	},
 	is_raw_printing: function (format) {
 		return this.get_print_format(format).raw_printing === 1;

@@ -1,7 +1,7 @@
 // Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
+import './linked_with';
 
-frappe.provide("frappe.ui.form");
 frappe.ui.form.Toolbar = Class.extend({
 	init: function(opts) {
 		$.extend(this, opts);

@@ -30,12 +30,12 @@
 		"public/js/lib/md5.min.js",
 		"public/js/frappe/provide.js",
 		"public/js/frappe/format.js",
-		"public/js/frappe/misc/number_format.js",
-		"public/js/frappe/misc/utils.js",
-		"public/js/frappe/misc/common.js",
+		"public/js/frappe/utils/number_format.js",
+		"public/js/frappe/utils/utils.js",
+		"public/js/frappe/utils/common.js",
 		"public/js/frappe/ui/messages.js",
 		"public/js/frappe/translate.js",
-		"public/js/frappe/misc/pretty_date.js",
+		"public/js/frappe/utils/pretty_date.js",
 		"public/js/lib/microtemplate.js",
 		"public/js/frappe/query_string.js",
 
@@ -48,7 +48,7 @@
 		"public/js/frappe/model/perm.js",
 
 		"website/js/website.js",
-		"public/js/frappe/misc/rating_icons.html",
+		"public/js/frappe/utils/rating_icons.html",
 		"public/js/frappe/socketio_client.js"
 	],
 	"js/bootstrap-4-web.min.js": [
@@ -56,45 +56,7 @@
 	],
 	"js/control.min.js": [
 		"public/js/frappe/ui/capture.js",
-		"public/js/frappe/form/controls/base_control.js",
-		"public/js/frappe/form/controls/base_input.js",
-		"public/js/frappe/form/controls/data.js",
-		"public/js/frappe/form/controls/int.js",
-		"public/js/frappe/form/controls/float.js",
-		"public/js/frappe/form/controls/currency.js",
-		"public/js/frappe/form/controls/date.js",
-		"public/js/frappe/form/controls/time.js",
-		"public/js/frappe/form/controls/datetime.js",
-		"public/js/frappe/form/controls/date_range.js",
-		"public/js/frappe/form/controls/select.js",
-		"public/js/frappe/form/controls/link.js",
-		"public/js/frappe/form/controls/dynamic_link.js",
-		"public/js/frappe/form/controls/text.js",
-		"public/js/frappe/form/controls/code.js",
-		"public/js/frappe/form/controls/text_editor.js",
-		"public/js/frappe/form/controls/comment.js",
-		"public/js/frappe/form/controls/check.js",
-		"public/js/frappe/form/controls/image.js",
-		"public/js/frappe/form/controls/attach.js",
-		"public/js/frappe/form/controls/attach_image.js",
-		"public/js/frappe/form/controls/table.js",
-		"public/js/frappe/form/controls/color.js",
-		"public/js/frappe/form/controls/signature.js",
-		"public/js/frappe/form/controls/password.js",
-		"public/js/frappe/form/controls/read_only.js",
-		"public/js/frappe/form/controls/button.js",
-		"public/js/frappe/form/controls/html.js",
-		"public/js/frappe/form/controls/markdown_editor.js",
-		"public/js/frappe/form/controls/html_editor.js",
-		"public/js/frappe/form/controls/heading.js",
-		"public/js/frappe/form/controls/autocomplete.js",
-		"public/js/frappe/form/controls/barcode.js",
-		"public/js/frappe/form/controls/geolocation.js",
-		"public/js/frappe/form/controls/multiselect.js",
-		"public/js/frappe/form/controls/multicheck.js",
-		"public/js/frappe/form/controls/table_multiselect.js",
-		"public/js/frappe/form/controls/multiselect_pills.js",
-		"public/js/frappe/form/controls/rating.js"
+		"public/js/frappe/form/controls/control.js"
 	],
 	"js/dialog.min.js": [
 		"public/js/frappe/dom.js",
@@ -177,7 +139,7 @@
 
 		"public/js/frappe/request.js",
 		"public/js/frappe/socketio_client.js",
-		"public/js/frappe/misc/utils.js",
+		"public/js/frappe/utils/utils.js",
 		"public/js/frappe/event_emitter.js",
 		"public/js/frappe/router.js",
 		"public/js/frappe/router_history.js",
@@ -185,9 +147,6 @@
 		"public/js/frappe/roles_editor.js",
 		"public/js/lib/microtemplate.js",
 
-		"public/js/legacy/globals.js",
-		"public/js/legacy/datatype.js",
-		"public/js/legacy/dom.js",
 		"public/js/legacy/handler.js",
 
 		"public/js/frappe/ui/page.html",
@@ -214,18 +173,20 @@
 		"public/js/frappe/model/user_settings.js",
 
 		"public/js/lib/md5.min.js",
-		"public/js/frappe/misc/user.js",
-		"public/js/frappe/misc/common.js",
-		"public/js/frappe/misc/pretty_date.js",
-		"public/js/frappe/misc/test_utils.js",
-		"public/js/frappe/misc/tools.js",
-		"public/js/frappe/misc/datetime.js",
-		"public/js/frappe/misc/number_format.js",
-		"public/js/frappe/misc/help.js",
-		"public/js/frappe/misc/help_links.js",
-		"public/js/frappe/misc/address_and_contact.js",
-		"public/js/frappe/misc/preview_email.js",
-		"public/js/frappe/misc/file_manager.js",
+		"public/js/frappe/utils/user.js",
+		"public/js/frappe/utils/common.js",
+		"public/js/frappe/utils/urllib.js",
+		"public/js/frappe/utils/pretty_date.js",
+		"public/js/frappe/utils/test_utils.js",
+		"public/js/frappe/utils/tools.js",
+		"public/js/frappe/utils/jquery_plugins.js",
+		"public/js/frappe/utils/datetime.js",
+		"public/js/frappe/utils/number_format.js",
+		"public/js/frappe/utils/help.js",
+		"public/js/frappe/utils/help_links.js",
+		"public/js/frappe/utils/address_and_contact.js",
+		"public/js/frappe/utils/preview_email.js",
+		"public/js/frappe/utils/file_manager.js",
 
 		"public/js/frappe/ui/upload.html",
 		"public/js/frappe/upload.js",
@@ -257,11 +218,11 @@
 		"public/js/frappe/query_string.js",
 
 		"public/js/frappe/ui/comment.js",
-		"public/js/frappe/misc/rating_icons.html",
+		"public/js/frappe/utils/rating_icons.html",
 
 		"public/js/frappe/chat.js",
 		"public/js/frappe/social/social_factory.js",
-		"public/js/frappe/misc/energy_point_utils.js"
+		"public/js/frappe/utils/energy_point_utils.js"
 	],
 	"css/module.min.css": [
 		"public/less/module.less"
@@ -270,7 +231,6 @@
 		"public/less/form_grid.less"
 	],
 	"js/form.min.js": [
-		"public/js/frappe/form/document_follow.js",
 		"public/js/frappe/form/templates/print_layout.html",
 		"public/js/frappe/form/templates/users_in_sidebar.html",
 		"public/js/frappe/form/templates/set_sharing.html",
@@ -278,31 +238,13 @@
 		"public/js/frappe/form/templates/form_dashboard.html",
 		"public/js/frappe/form/templates/form_document_flow.html",
 		"public/js/frappe/form/templates/form_links.html",
+		"public/js/frappe/form/templates/attachment.html",
+		"public/js/frappe/form/templates/form_footer.html",
+		"public/js/frappe/form/templates/timeline.html",
+		"public/js/frappe/form/templates/timeline_item.html",
+		"public/js/frappe/form/controls/control.js",
 		"public/js/frappe/views/formview.js",
-		"public/js/legacy/form.js",
-		"public/js/legacy/client_script_helpers.js",
-		"public/js/frappe/form/toolbar.js",
-		"public/js/frappe/form/dashboard.js",
-		"public/js/frappe/form/save.js",
-		"public/js/frappe/form/script_manager.js",
-		"public/js/frappe/form/linked_with.js",
-		"public/js/frappe/form/workflow.js",
-		"public/js/frappe/form/print.js",
-		"public/js/frappe/form/form_sidebar.js",
-		"public/js/frappe/form/user_image.js",
-		"public/js/frappe/form/share.js",
-		"public/js/frappe/form/review.js",
-		"public/js/frappe/form/form_viewers.js",
-		"public/js/frappe/form/footer/attachment.html",
-		"public/js/frappe/form/footer/form_footer.html",
-		"public/js/frappe/form/footer/timeline.html",
-		"public/js/frappe/form/footer/timeline_item.html",
-		"public/js/frappe/form/footer/footer.js",
-		"public/js/frappe/form/footer/attachments.js",
-		"public/js/frappe/form/footer/timeline.js",
-		"public/js/frappe/form/footer/assign_to.js",
-		"public/js/frappe/form/quick_entry.js",
-		"public/js/frappe/form/success_action.js",
+		"public/js/frappe/form/form.js",
 		"public/js/frappe/meta_tag.js"
 	],
 	"css/list.min.css": [
@@ -369,7 +311,7 @@
 		"public/js/frappe/ui/group_by/group_by.js"
 	],
 	"js/web_form.min.js": [
-		"public/js/frappe/misc/datetime.js",
+		"public/js/frappe/utils/datetime.js",
 		"website/js/web_form.js",
 		"public/js/lib/datepicker/datepicker.min.js",
 		"public/js/lib/datepicker/datepicker.en.js"
@@ -382,11 +324,6 @@
 		"public/less/awesomplete.less",
 		"public/less/form_grid.less",
 		"public/less/controls.less"
-	],
-	"js/print_format_v3.min.js": [
-		"public/js/legacy/layout.js",
-		"public/js/legacy/print_table.js",
-		"public/js/legacy/print_format.js"
 	],
 	"frappe/css/email.css": [
 		"public/less/email.less"
