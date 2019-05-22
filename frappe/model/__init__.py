@@ -111,8 +111,15 @@ def delete_fields(args_dict, delete=0):
 			fields_need_to_delete = set(fields) & set(existing_fields)
 			if not fields_need_to_delete:
 				continue
+
+			if frappe.conf.db_type == 'mariadb':
+				# mariadb implicitly commits before DDL, make it explicit
+				frappe.db.commit()
+
 			query = "ALTER TABLE `tab%s` " % dt + \
 				", ".join(["DROP COLUMN `%s`" % f for f in fields_need_to_delete])
 			frappe.db.sql(query)
-		# commit the results to db
-		frappe.db.commit()
+
+		if frappe.conf.db_type == 'postgres':
+			# commit the results to db
+			frappe.db.commit()
