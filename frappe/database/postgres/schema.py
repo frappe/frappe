@@ -40,7 +40,20 @@ class PostgresTable(DBTable):
 			query.append("ADD COLUMN `{}` {}".format(col.fieldname, col.get_definition()))
 
 		for col in self.change_type:
-			query.append("ALTER COLUMN `{}` TYPE {}".format(col.fieldname, get_definition(col.fieldtype, precision=col.precision, length=col.length)))
+			using_clause = ""
+			if col.fieldtype in ("Datetime"):
+				# The USING option of SET DATA TYPE can actually specify any expression
+				# involving the old values of the row
+				# read more https://www.postgresql.org/docs/9.1/sql-altertable.html
+				using_clause = "USING {}::timestamp without time zone".format(col.fieldname)
+			elif col.fieldtype in ("Check"):
+				using_clause = "USING {}::smallint".format(col.fieldname)
+
+			query.append("ALTER COLUMN {0} TYPE {1} {2}".format(
+				col.fieldname,
+				get_definition(col.fieldtype, precision=col.precision, length=col.length),
+				using_clause)
+			)
 
 		for col in self.set_default:
 			if col.fieldname=="name":
