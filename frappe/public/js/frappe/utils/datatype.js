@@ -13,7 +13,7 @@ window.cint = function(v, def) {
 		return 0;
 	v = v + '';
 	if (v !== "0") v = lstrip(v, ['0']);
-	v = parseInt(v);
+	v = parseInt(v); // eslint-ignore-line
 	if (isNaN(v)) v = def === undefined ? 0 : def;
 	return v;
 };
