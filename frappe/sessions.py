@@ -102,7 +102,7 @@ def get_expired_sessions():
 		expired += frappe.db.sql_list("""SELECT `sid`
 				FROM `tabSessions`
 				WHERE (NOW() - `lastupdate`) > %s
-				AND device = %s""", (get_expiry_period(device), device))
+				AND device = %s""", (get_expiry_in_seconds(device = device), device))
 
 	return expired
 
@@ -319,7 +319,7 @@ class Session:
 			SELECT `user`, `sessiondata`
 			FROM `tabSessions` WHERE `sid`=%s AND
 			(NOW() - lastupdate) < %s
-			""", (self.sid, get_expiry_period(self.device)), debug=1)
+			""", (self.sid, get_expiry_in_seconds(device = self.device)), debug=1)
 
 		if rec:
 			data = frappe._dict(eval(rec and rec[0][1] or '{}'))
