@@ -116,10 +116,10 @@ def set_route(context):
 			quoted(context.doc.name))
 
 def prepare_filters(doctype, controller, kwargs):
-	import ast
+	import json
 	for key in kwargs.keys():
 		try:
-			kwargs[key] = ast.literal_eval(kwargs[key])
+			kwargs[key] = json.loads(kwargs[key])
 		except ValueError:
 			pass
 	filters = frappe._dict(kwargs)
