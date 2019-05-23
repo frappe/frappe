@@ -24,36 +24,58 @@ class TestUserPermission(unittest.TestCase):
 		created = add_user_permissions(param)
 		self.assertEquals(created, 1)
 
+	def test_for_apply_to_all_on_update_from_apply_all(self):
+		user = create_user('test_bulk_creation_update@example.com')
+		param = get_params(user, 'User', user.name)
+
+		check = add_user_permissions(param)
+
+		self.assertIsNotNone(check)
+
+		is_created = add_user_permissions(param)
+		self.assertEquals(is_created, 0)
+
 	def test_for_applicable_on_update_from_apply_to_all(self):
 		''' Update User Permission from all to some applicable Doctypes'''
 		user = create_user('test_bulk_creation_update@example.com')
-		param = get_params(user, 'User', user.name , applicable = ["Chat Room", "Chat Message"])
-		create = add_user_permissions(param)
+		param = get_params(user,'User', user.name, applicable = ["Chat Room", "Chat Message"])
+
+		check = add_user_permissions(get_params(user, 'User', user.name))
+
+		self.assertIsNotNone(check)
+
+		is_created = add_user_permissions(param)
 		frappe.db.commit()
 
 		removed_apply_to_all = frappe.db.exists("User Permission", get_exists_param(user))
-		created_applicable_first = frappe.db.exists("User Permission", get_exists_param(user, applicable = "Chat Room"))
-		created_applicable_second = frappe.db.exists("User Permission", get_exists_param(user, applicable = "Chat Message"))
+		is_created_applicable_first = frappe.db.exists("User Permission", get_exists_param(user, applicable = "Chat Room"))
+		is_created_applicable_second = frappe.db.exists("User Permission", get_exists_param(user, applicable = "Chat Message"))
 
 		self.assertIsNone(removed_apply_to_all)
-		self.assertIsNotNone(created_applicable_first)
-		self.assertIsNotNone(created_applicable_second)
-		self.assertEquals(create, 1)
+		self.assertIsNotNone(is_created_applicable_first)
+		self.assertIsNotNone(is_created_applicable_second)
+		self.assertEquals(is_created, 1)
 
 	def test_for_apply_to_all_on_update_from_applicable(self):
 		''' Update User Permission from some to all applicable Doctypes'''
 		user = create_user('test_bulk_creation_update@example.com')
-		param = get_params(user, 'User', user.name)
-		created = add_user_permissions(param)
-		created_apply_to_all = frappe.db.exists("User Permission", get_exists_param(user))
+		param = get_params(user, 'User', user.name,)
+
+		check = add_user_permissions(get_params(user, 'User', user.name, applicable = ["Chat Room", "Chat Message"]))
+
+		self.assertIsNotNone(check)
+
+		is_created = add_user_permissions(param)
+		is_created_apply_to_all = frappe.db.exists("User Permission", get_exists_param(user))
 		removed_applicable_first = frappe.db.exists("User Permission", get_exists_param(user, applicable = "Chat Room"))
 		removed_applicable_second = frappe.db.exists("User Permission", get_exists_param(user, applicable = "Chat Message"))
 
 
-		self.assertIsNotNone(created_apply_to_all)
+		self.assertIsNotNone(is_created_apply_to_all)
 		self.assertIsNone(removed_applicable_first)
 		self.assertIsNone(removed_applicable_second)
-		self.assertEquals(created, 1)
+		self.assertEquals(is_created, 1)
+
 
 def create_user(email):
 	''' create user with role system manager '''
