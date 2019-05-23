@@ -297,7 +297,7 @@ frappe.get_modal = function(title, content) {
 	                    </div>
 	                    <div class="col-xs-5">
 							<div class="text-right buttons">
-								<button type="button" class="btn btn-default btn-sm btn-modal-minimize">
+								<button type="button" class="btn btn-default btn-sm btn-modal-minimize hide">
 									<i class="octicon octicon-chevron-down" style="padding: 1px 0px;"></i>
 								</button>
 	            				<button type="button" class="btn btn-default btn-sm btn-modal-close"
