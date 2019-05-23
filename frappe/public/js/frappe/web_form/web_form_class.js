@@ -15,6 +15,7 @@ frappe.ui.WebForm = class WebForm extends frappe.ui.FieldGroup {
 		this.set_field_values();
 		if (this.allow_delete) this.setup_delete_button();
 		this.setup_primary_action();
+		$('.link-btn').remove()
 	}
 
 	set_field_values() {

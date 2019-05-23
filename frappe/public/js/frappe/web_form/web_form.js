@@ -65,12 +65,6 @@ frappe.ready(function() {
 					return data;
 				};
 
-				df.options = null;
-
-				if (form_data.hasOwnProperty(df.fieldname)) {
-					df.fields = form_data[df.fieldname];
-				}
-
 				if (df.fieldtype === "Attach") {
 					df.is_private = true;
 				}
@@ -93,6 +87,7 @@ frappe.ready(function() {
 
 				return df;
 			}
+			if (df.fieldtype === "Link") df.only_select = true;
 		});
 
 		return form_data;

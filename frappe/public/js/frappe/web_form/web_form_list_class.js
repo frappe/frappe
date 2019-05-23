@@ -11,6 +11,7 @@ frappe.views.WebFormList = class WebFormList {
 		this.refresh();
 		this.make_actions();
 		this.make_filters();
+		$('.link-btn').remove()
 	}
 
 	refresh() {
@@ -28,6 +29,7 @@ frappe.views.WebFormList = class WebFormList {
 
 	make_filters() {
 		this.filters = {}
+		this.filter_input = []
 		const filter_area = document.getElementById('list-filters');
 
 		frappe.call('frappe.website.doctype.web_form.web_form.get_web_form_filters', {
@@ -39,19 +41,21 @@ frappe.views.WebFormList = class WebFormList {
 				col.classList.add('col', 'col-sm-3')
 				filter_area.appendChild(col)
 
-				frappe.ui.form.make_control({
+				let input = frappe.ui.form.make_control({
 					df: {
 						fieldtype: field.fieldtype,
 						fieldname: field.fieldname,
+						options: field.options,
+						only_select: true,
 						label: __(field.label),
-						input_class: 'input-xs',
 						onchange: (event) => {
-							this.add_filter(field.fieldname, event.target.value, field.fieldtype)
+							this.add_filter(field.fieldname, input.value, field.fieldtype)
 						}
 					},
 					parent: col,
 					render_input: 1,
 				})
+				this.filter_input.push(input)
 			})
 		})
 	}
