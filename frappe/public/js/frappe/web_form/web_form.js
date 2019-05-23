@@ -1,8 +1,18 @@
 frappe.ready(function() {
 	const { web_form_doctype, doc_name, web_form_name } = web_form_settings;
 	const wrapper = $(".web-form-wrapper");
-
-	if (web_form_settings.is_list) {
+	if (web_form_settings.login_required && frappe.session.user === "Guest") {
+		const login_required = new frappe.ui.Dialog({
+			title: __("Not Permitted"),
+			primary_action_label: __("Login"),
+			primary_action: () => {
+				window.location.replace('/login?redirect-to=/' + web_form_name)
+			}
+		});
+		login_required.set_message(__("You are not permitted to access this page."));
+		login_required.show();
+	}
+	else if (web_form_settings.is_list) {
 		web_form_list = new frappe.views.WebFormList({
 			parent: wrapper,
 			doctype: web_form_doctype,
