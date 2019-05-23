@@ -54,8 +54,8 @@ def unfollow_document(doctype, doc_name, user):
 		return 1
 	return 0
 
-def get_message(doc_name, doctype, frequency):
-	activity_list = get_version(doctype, doc_name, frequency) + get_comments(doctype, doc_name, frequency)
+def get_message(doc_name, doctype, frequency, user):
+	activity_list = get_version(doctype, doc_name, frequency, user) + get_comments(doctype, doc_name, frequency, user)
 	return sorted(activity_list, key=lambda k: k["time"], reverse=True)
 
 def send_email_alert(receiver, docinfo, timeline):
@@ -98,7 +98,7 @@ def send_document_follow_mails(frequency):
 		valid_document_follows = []
 		if user_frequency == frequency:
 			for d in grouped_by_user[user]:
-				content = get_message(d.ref_docname, d.ref_doctype, frequency)
+				content = get_message(d.ref_docname, d.ref_doctype, frequency, user)
 				if content:
 					message = message + content
 					valid_document_follows.append({
@@ -107,13 +107,13 @@ def send_document_follow_mails(frequency):
 						"reference_url": get_url_to_form(d.ref_doctype, d.ref_docname)
 					})
 
-			if message:
+			if message and frappe.db.get_value("User", user, "document_follow_notify", ignore=True):
 				send_email_alert(user, valid_document_follows, message)
 
 
-def get_version(doctype, doc_name, frequency):
+def get_version(doctype, doc_name, frequency, user):
 	timeline = []
-	filters = get_filters("docname", doc_name, frequency)
+	filters = get_filters("docname", doc_name, frequency, user)
 	version = frappe.get_all("Version",
 		filters=filters,
 		fields=["ref_doctype", "data", "modified", "modified", "modified_by"]
@@ -134,9 +134,9 @@ def get_version(doctype, doc_name, frequency):
 
 	return timeline
 
-def get_comments(doctype, doc_name, frequency):
+def get_comments(doctype, doc_name, frequency, user):
 	timeline = []
-	filters = get_filters("reference_name", doc_name, frequency)
+	filters = get_filters("reference_name", doc_name, frequency, user)
 	comments = frappe.get_all("Comment",
 		filters=filters,
 		fields=["content", "modified", "modified_by", "comment_type"]
@@ -255,26 +255,29 @@ def send_daily_updates():
 def send_weekly_updates():
 	send_document_follow_mails("Weekly")
 
-def get_filters(search_by, name, frequency):
+def get_filters(search_by, name, frequency, user):
 	filters = []
 
 	if frequency == "Weekly":
 		filters = [
 			[search_by, "=", name],
 			["modified", ">", frappe.utils.add_days(frappe.utils.nowdate(),-7)],
-			["modified", "<", frappe.utils.nowdate()]
+			["modified", "<", frappe.utils.nowdate()],
+			["modified_by", "!=", user]
 		]
 	elif frequency == "Daily":
 		filters = [
 			[search_by, "=", name],
 			["modified", ">", frappe.utils.add_days(frappe.utils.nowdate(),-1)],
-			["modified", "<", frappe.utils.nowdate()]
+			["modified", "<", frappe.utils.nowdate()],
+			["modified_by", "!=", user]
 		]
 	elif frequency == "Hourly":
 		filters = [
 			[search_by, "=", name],
-			["modified", ">", frappe.utils.add_to_date(frappe.utils.now_datetime(), 0, 0, 0, -1)],
-			["modified", "<", frappe.utils.now_datetime()]
+			["modified", ">", frappe.utils.add_to_date(frappe.utils.now_datetime(), hours=-1)],
+			["modified", "<", frappe.utils.now_datetime()],
+			["modified_by", "!=", user]
 		]
 
 	return filters

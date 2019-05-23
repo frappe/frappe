@@ -197,10 +197,15 @@ frappe.request.call = function(opts) {
 		async: opts.async,
 		headers: Object.assign({
 			"X-Frappe-CSRF-Token": frappe.csrf_token,
-			"Accept": "application/json"
+			"Accept": "application/json",
+ 			"X-Frappe-CMD": (opts.args && opts.args.cmd  || '') || ''
 		}, opts.headers),
 		cache: false
 	};
+
+	if (opts.args && opts.args.doctype) {
+		ajax_args.headers["X-Frappe-Doctype"] = opts.args.doctype;
+	}
 
 	frappe.last_request = ajax_args.data;
 
@@ -380,14 +385,16 @@ frappe.after_ajax = function(fn) {
 
 frappe.request.report_error = function(xhr, request_opts) {
 	var data = JSON.parse(xhr.responseText);
+	var exc;
 	if (data.exc) {
-		var exc = (JSON.parse(data.exc) || []).join("\n");
-		var locals = (JSON.parse(data.locals) || []).join("\n");
+		try {
+			exc = (JSON.parse(data.exc) || []).join("\n");
+		} catch (e) {
+			exc = data.exc;
+		}
 		delete data.exc;
-		delete data.locals;
 	} else {
-		var exc = "";
-		locals = "";
+		exc = "";
 	}
 
 	var show_communication = function() {

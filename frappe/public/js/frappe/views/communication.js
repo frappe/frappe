@@ -549,6 +549,7 @@ frappe.views.CommunicationComposer = Class.extend({
 				print_format: print_format,
 				sender: form_values.sender,
 				sender_full_name: form_values.sender?frappe.user.full_name():undefined,
+				email_template: form_values.email_template,
 				attachments: selected_attachments,
 				_lang : me.lang_code,
 				read_receipt:form_values.send_read_receipt,

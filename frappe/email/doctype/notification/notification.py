@@ -126,9 +126,14 @@ def get_context(context):
 			self.send_a_slack_msg(doc, context)
 
 		if self.set_property_after_alert:
-			frappe.db.set_value(doc.doctype, doc.name, self.set_property_after_alert,
-				self.property_value, update_modified = False)
-			doc.set(self.set_property_after_alert, self.property_value)
+			allow_update = True
+			if doc.docstatus == 1 and not doc.meta.get_field(self.set_property_after_alert).allow_on_submit:
+				allow_update = False
+
+			if allow_update:
+				frappe.db.set_value(doc.doctype, doc.name, self.set_property_after_alert,
+					self.property_value, update_modified = False)
+				doc.set(self.set_property_after_alert, self.property_value)
 
 	def send_an_email(self, doc, context):
 		from email.utils import formataddr
@@ -150,6 +155,7 @@ def get_context(context):
 			reference_doctype = doc.doctype,
 			reference_name = doc.name,
 			attachments = attachments,
+			expose_recipients="header",
 			print_letterhead = ((attachments
 				and attachments[0].get('print_letterhead')) or False))
 

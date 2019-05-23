@@ -84,7 +84,6 @@ def get_allowed_functions_for_jenv():
 	import frappe
 	import frappe.utils
 	import frappe.utils.data
-	from frappe.utils.autodoc import automodule, get_version
 	from frappe.model.document import get_controller
 	from frappe.website.utils import (get_shade, get_toc, get_next_link)
 	from frappe.modules import scrub
@@ -144,11 +143,6 @@ def get_allowed_functions_for_jenv():
 		},
 		'style': {
 			'border_color': '#d1d8dd'
-		},
-		"autodoc": {
-			"get_version": get_version,
-			"automodule": automodule,
-			"get_controller": get_controller
 		},
 		'get_toc': get_toc,
 		'get_next_link': get_next_link,

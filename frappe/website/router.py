@@ -16,6 +16,7 @@ def resolve_route(path):
 
 	The only exceptions are `/about` and `/contact` these will be searched in Web Pages
 	first before checking the standard pages."""
+
 	if path not in ("about", "contact"):
 		context = get_page_info_from_template(path)
 		if context:

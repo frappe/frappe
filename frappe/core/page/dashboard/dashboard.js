@@ -60,7 +60,12 @@ class Dashboard {
 	show_dashboard(current_dashboard_name) {
 		if(this.dashboard_name !== current_dashboard_name) {
 			this.dashboard_name = current_dashboard_name;
-			this.page.set_title(this.dashboard_name);
+			let title = this.dashboard_name;
+			if (!this.dashboard_name.toLowerCase().includes(__('dashboard'))) {
+				// ensure dashboard title has "dashboard"
+				title = __('{0} Dashboard', [title]);
+			}
+			this.page.set_title(title);
 			this.set_dropdown();
 			this.container.empty();
 			this.refresh();

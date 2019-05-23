@@ -124,7 +124,7 @@ frappe.Application = Class.extend({
 				}
 			}
 		}
-
+		this.link_preview = new frappe.ui.LinkPreview();
 	},
 
 	setup_frappe_vue() {
@@ -269,7 +269,10 @@ frappe.Application = Class.extend({
 	refresh_notifications: function() {
 		var me = this;
 		if(frappe.session_alive && frappe.boot && frappe.boot.home_page !== 'setup-wizard') {
-			return frappe.call({
+			if (this._refresh_notifications) {
+				this._refresh_notifications.abort();
+			}
+			this._refresh_notifications = frappe.call({
 				type: 'GET',
 				method: "frappe.desk.notifications.get_notifications",
 				callback: function(r) {

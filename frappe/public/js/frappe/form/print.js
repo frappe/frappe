@@ -88,26 +88,42 @@ frappe.ui.form.PrintPreview = Class.extend({
 
 		this.wrapper.find(".btn-print-edit").on("click", function () {
 			let print_format = me.get_print_format();
-			if (print_format && print_format.name) {
-				if (print_format.print_format_builder) {
-					frappe.set_route("print-format-builder", print_format.name);
-				} else {
-					frappe.set_route("Form", "Print Format", print_format.name);
-				}
-			} else {
-				// start a new print format
-				frappe.prompt({
-					fieldname: "print_format_name", fieldtype: "Data", reqd: 1,
-					label: "New Print Format Name"
-				}, function (data) {
-					frappe.route_options = {
-						make_new: true,
-						doctype: me.frm.doctype,
-						name: data.print_format_name
-					};
-					frappe.set_route("print-format-builder");
-				}, __("New Custom Print Format"), __("Start"));
+			let is_custom_format = print_format.name
+				&& print_format.print_format_builder
+				&& print_format.standard === 'No';
+			let is_standard_but_editable = print_format.name && print_format.custom_format;
+
+			if (is_standard_but_editable) {
+				frappe.set_route("Form", "Print Format", print_format.name);
+				return;
 			}
+			if (is_custom_format) {
+				frappe.set_route("print-format-builder", print_format.name);
+				return;
+			}
+			// start a new print format
+			frappe.prompt([
+				{
+					label: __("New Print Format Name"),
+					fieldname: "print_format_name",
+					fieldtype: "Data",
+					reqd: 1,
+				},
+				{
+					label: __('Based On'),
+					fieldname: 'based_on',
+					fieldtype: 'Read Only',
+					default: print_format.name || 'Standard'
+				}
+			], (data) => {
+				frappe.route_options = {
+					make_new: true,
+					doctype: me.frm.doctype,
+					name: data.print_format_name,
+					based_on: data.based_on
+				};
+				frappe.set_route("print-format-builder");
+			}, __("New Custom Print Format"), __("Start"));
 		});
 
 		$(document).on('new-print-format', (e) => {
@@ -128,13 +144,8 @@ frappe.ui.form.PrintPreview = Class.extend({
 	},
 	set_default_print_language: function () {
  		var print_format = this.get_print_format();
-
- 		if (print_format.default_print_language) {
- 			this.lang_code = print_format.default_print_language;
- 			this.language_sel.val(this.lang_code);
- 		} else {
-			this.language_sel.val(frappe.boot.lang);
-		}
+		this.lang_code = print_format.default_print_language || frappe.boot.lang;
+		this.language_sel.val(this.lang_code);
  	},
 	multilingual_preview: function () {
 		var me = this;
@@ -257,7 +268,10 @@ frappe.ui.form.PrintPreview = Class.extend({
 		}
 	},
 	get_print_html: function (callback) {
-		frappe.call({
+		if (this._req) {
+			this._req.abort();
+		}
+		this._req = frappe.call({
 			method: "frappe.www.printview.get_html_and_style",
 			args: {
 				doc: this.frm.doc,
@@ -289,7 +303,7 @@ frappe.ui.form.PrintPreview = Class.extend({
 		});
 	},
 	get_mapped_printer: function () {
-		// returns a list of "print format: printer" mapping filtered by the current print format 
+		// returns a list of "print format: printer" mapping filtered by the current print format
 		let print_format_printer_map = this.get_print_format_printer_map();
 		if (print_format_printer_map[this.frm.doctype]) {
 			return print_format_printer_map[this.frm.doctype].filter(
@@ -554,7 +568,7 @@ frappe.ui.form.qz_init = function () {
 				});
 				qz.api.setSha256Type(function (data) {
 					// Codacy fix
-					/*global sha256*/ 
+					/*global sha256*/
 					return sha256(data);
 				});
 				resolve();

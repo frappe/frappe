@@ -25,7 +25,7 @@ class PreparedReport(Document):
 		self.status = "Queued"
 		self.report_start_time = frappe.utils.now()
 
-	def after_insert(self):
+	def enqueue_report(self):
 		enqueue(
 			run_background,
 			prepared_report=self.name, timeout=6000
@@ -54,14 +54,14 @@ def run_background(prepared_report):
 		instance.status = "Completed"
 		instance.columns = json.dumps(result["columns"])
 		instance.report_end_time = frappe.utils.now()
-		instance.save()
+		instance.save(ignore_permissions=True)
 
 	except Exception:
 		frappe.log_error(frappe.get_traceback())
 		instance = frappe.get_doc("Prepared Report", prepared_report)
 		instance.status = "Error"
 		instance.error_message = frappe.get_traceback()
-		instance.save()
+		instance.save(ignore_permissions=True)
 
 	frappe.publish_realtime(
 		'report_generated',

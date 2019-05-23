@@ -387,7 +387,7 @@ class EmailAccount(Document):
 			communication._seen = json.dumps(users)
 
 		communication.flags.in_receive = True
-		communication.insert(ignore_permissions = 1)
+		communication.insert(ignore_permissions=True)
 
 		# save attachments
 		communication._attachments = email.save_attachments_in_doc(communication)
@@ -470,7 +470,7 @@ class EmailAccount(Document):
 				parent = frappe.db.get_all(self.append_to, filters={
 					self.sender_field: email.from_email,
 					self.subject_field: ("like", "%{0}%".format(subject)),
-					"creation": (">", (get_datetime() - relativedelta(days=10)).strftime(DATE_FORMAT))
+					"creation": (">", (get_datetime() - relativedelta(days=60)).strftime(DATE_FORMAT))
 				}, fields="name")
 
 				# match only subject field
@@ -479,7 +479,7 @@ class EmailAccount(Document):
 				if not parent and len(subject) > 10 and is_system_user(email.from_email):
 					parent = frappe.db.get_all(self.append_to, filters={
 						self.subject_field: ("like", "%{0}%".format(subject)),
-						"creation": (">", (get_datetime() - relativedelta(days=10)).strftime(DATE_FORMAT))
+						"creation": (">", (get_datetime() - relativedelta(days=60)).strftime(DATE_FORMAT))
 					}, fields="name")
 
 			if parent:

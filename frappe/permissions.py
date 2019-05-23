@@ -25,16 +25,18 @@ def print_has_permission_check_logs(func):
 		frappe.flags['has_permission_check_logs'] = []
 		result = func(*args, **kwargs)
 		self_perm_check = True if not kwargs.get('user') else kwargs.get('user') == frappe.session.user
+		raise_exception = False if kwargs.get('raise_exception') == False else True
+
 		# print only if access denied
 		# and if user is checking his own permission
-		if not result and self_perm_check:
-			msgprint(('<br>').join(frappe.flags.get('has_permission_check_logs')))
+		if not result and self_perm_check and raise_exception:
+			msgprint(('<br>').join(frappe.flags.get('has_permission_check_logs', [])))
 		frappe.flags.pop('has_permission_check_logs', None)
 		return result
 	return inner
 
 @print_has_permission_check_logs
-def has_permission(doctype, ptype="read", doc=None, verbose=False, user=None):
+def has_permission(doctype, ptype="read", doc=None, verbose=False, user=None, raise_exception=True):
 	"""Returns True if user has permission `ptype` for given `doctype`.
 	If `doc` is passed, it also checks user, share and owner permissions.
 

@@ -16,7 +16,6 @@ from faker import Faker
 # public
 from .exceptions import *
 from .utils.jinja import (get_jenv, get_template, render_template, get_email_from_template, get_jloader)
-from .utils.error import get_frame_locals
 
 # Hamless for Python 3
 # For Python 2 set default encoding to utf-8
@@ -188,15 +187,20 @@ def connect(site=None, db_name=None):
 	local.db = get_db(user=db_name or local.conf.db_name)
 	set_user("Administrator")
 
-def connect_read_only():
+def connect_replica():
 	from frappe.database import get_db
+	user = local.conf.db_name
+	password = local.conf.db_password
 
-	local.read_only_db = get_db(host=local.conf.slave_host, user=local.conf.slave_db_name,
-		password=local.conf.slave_db_password)
+	if local.conf.different_credentials_for_replica:
+		user = local.conf.replica_db_name
+		password = local.conf.replica_db_password
+
+	local.replica_db = get_db(host=local.conf.replica_host, user=user, password=password)
 
 	# swap db connections
-	local.master_db = local.db
-	local.db = local.read_only_db
+	local.primary_db = local.db
+	local.db = local.replica_db
 
 def get_site_config(sites_path=None, site_path=None):
 	"""Returns `site_config.json` combined with `sites/common_site_config.json`.
@@ -274,7 +278,7 @@ def errprint(msg):
 	if not request or (not "cmd" in local.form_dict) or conf.developer_mode:
 		print(msg)
 
-	error_log.append({"exc": msg, "locals": get_frame_locals()})
+	error_log.append({"exc": msg})
 
 def log(msg):
 	"""Add to `debug_log`.
@@ -496,16 +500,17 @@ def whitelist(allow_guest=False, xss_safe=False):
 def read_only():
 	def innfn(fn):
 		def wrapper_fn(*args, **kwargs):
-			if conf.use_slave_for_read_only:
-				connect_read_only()
+			if conf.read_from_replica:
+				connect_replica()
+
 			try:
 				retval = fn(*args, **get_newargs(fn, kwargs))
 			except:
 				raise
 			finally:
-				if local and hasattr(local, 'master_db'):
+				if local and hasattr(local, 'primary_db'):
 					local.db.close()
-					local.db = local.master_db
+					local.db = local.primary_db
 
 			return retval
 		return wrapper_fn
@@ -1329,14 +1334,15 @@ def format(*args, **kwargs):
 	import frappe.utils.formatters
 	return frappe.utils.formatters.format_value(*args, **kwargs)
 
-def get_print(doctype=None, name=None, print_format=None, style=None, html=None, as_pdf=False, doc=None, output = None, no_letterhead = 0):
+def get_print(doctype=None, name=None, print_format=None, style=None, html=None, as_pdf=False, doc=None, output = None, no_letterhead = 0, password=None):
 	"""Get Print Format for given document.
 
 	:param doctype: DocType of document.
 	:param name: Name of document.
 	:param print_format: Print Format name. Default 'Standard',
 	:param style: Print Format style.
-	:param as_pdf: Return as PDF. Default False."""
+	:param as_pdf: Return as PDF. Default False.
+	:param password: Password to encrypt the pdf with. Default None"""
 	from frappe.website.render import build_page
 	from frappe.utils.pdf import get_pdf
 
@@ -1347,15 +1353,19 @@ def get_print(doctype=None, name=None, print_format=None, style=None, html=None,
 	local.form_dict.doc = doc
 	local.form_dict.no_letterhead = no_letterhead
 
+	options = None
+	if password:
+		options = {'password': password}
+
 	if not html:
 		html = build_page("printview")
 
 	if as_pdf:
-		return get_pdf(html, output = output)
+		return get_pdf(html, output = output, options = options)
 	else:
 		return html
 
-def attach_print(doctype, name, file_name=None, print_format=None, style=None, html=None, doc=None, lang=None, print_letterhead=True):
+def attach_print(doctype, name, file_name=None, print_format=None, style=None, html=None, doc=None, lang=None, print_letterhead=True, password=None):
 	from frappe.utils import scrub_urls
 
 	if not file_name: file_name = name
@@ -1374,12 +1384,12 @@ def attach_print(doctype, name, file_name=None, print_format=None, style=None, h
 	if int(print_settings.send_print_as_pdf or 0):
 		out = {
 			"fname": file_name + ".pdf",
-			"fcontent": get_print(doctype, name, print_format=print_format, style=style, html=html, as_pdf=True, doc=doc, no_letterhead=no_letterhead)
+			"fcontent": get_print(doctype, name, print_format=print_format, style=style, html=html, as_pdf=True, doc=doc, no_letterhead=no_letterhead, password=password)
 		}
 	else:
 		out = {
 			"fname": file_name + ".html",
-			"fcontent": scrub_urls(get_print(doctype, name, print_format=print_format, style=style, html=html, doc=doc, no_letterhead=no_letterhead)).encode("utf-8")
+			"fcontent": scrub_urls(get_print(doctype, name, print_format=print_format, style=style, html=html, doc=doc, no_letterhead=no_letterhead, password=password)).encode("utf-8")
 		}
 
 	local.flags.ignore_print_permissions = False

@@ -625,19 +625,30 @@ def setup_help(context):
 	print_in_app_help_deprecation()
 
 @click.command('rebuild-global-search')
+@click.option('--static-pages', is_flag=True, default=False, help='Rebuild global search for static pages')
 @pass_context
-def rebuild_global_search(context):
+def rebuild_global_search(context, static_pages=False):
 	'''Setup help table in the current site (called after migrate)'''
-	from frappe.utils.global_search import (get_doctypes_with_global_search, rebuild_for_doctype)
+	from frappe.utils.global_search import (get_doctypes_with_global_search, rebuild_for_doctype,
+		get_routes_to_index, add_route_to_global_search, sync_global_search)
 
 	for site in context.sites:
 		try:
 			frappe.init(site)
 			frappe.connect()
-			doctypes = get_doctypes_with_global_search()
-			for i, doctype in enumerate(doctypes):
-				rebuild_for_doctype(doctype)
-				update_progress_bar('Rebuilding Global Search', i, len(doctypes))
+
+			if static_pages:
+				routes = get_routes_to_index()
+				for i, route in enumerate(routes):
+					add_route_to_global_search(route)
+					frappe.local.request = None
+					update_progress_bar('Rebuilding Global Search', i, len(routes))
+				sync_global_search()
+			else:
+				doctypes = get_doctypes_with_global_search()
+				for i, doctype in enumerate(doctypes):
+					rebuild_for_doctype(doctype)
+					update_progress_bar('Rebuilding Global Search', i, len(doctypes))
 
 		finally:
 			frappe.destroy()

@@ -518,6 +518,13 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				return formatters[fieldname](value, df, doc);
 			} else if (df.fieldtype === 'Code') {
 				return value;
+			} else if (df.fieldtype === 'Percent') {
+				return `<div class="progress level" style="margin: 0px;">
+						<div class="progress-bar progress-bar-success" role="progressbar"
+							aria-valuenow="${value}"
+							aria-valuemin="0" aria-valuemax="100" style="width: ${Math.round(value)}%;">
+						</div>
+					</div>`;
 			} else {
 				return frappe.format(value, df, null, doc);
 			}
@@ -639,14 +646,23 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 	get_count_str() {
 		const current_count = this.data.length;
+		const filters = this.get_filters_for_args();
+		const with_child_table_filter = filters.some(filter => {
+			return filter[0] !== this.doctype;
+		});
+
+		const fields = [
+			// cannot break this line as it adds extra \n's and \t's which breaks the query
+			`count(${with_child_table_filter ? 'distinct': ''}${frappe.model.get_full_column_name('name', this.doctype)}) AS total_count`
+		];
 
 		return frappe.call({
 			type: 'GET',
 			method: this.method,
 			args: {
 				doctype: this.doctype,
-				filters: this.get_filters_for_args(),
-				fields: [`count(${frappe.model.get_full_column_name('name', this.doctype)}) as total_count`],
+				filters,
+				fields,
 			}
 		}).then(r => {
 			this.total_count = r.message.values[0][0] || current_count;
@@ -694,7 +710,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				</span>
 			</span>
 			<span class="level-item ${seen} ellipsis" title="${escaped_subject}">
-				<a class="ellipsis" href="${this.get_form_link(doc)}" title="${escaped_subject}">
+				<a class="ellipsis" href="${this.get_form_link(doc)}" title="${escaped_subject}" data-doctype="${this.doctype}" data-name="${doc.name}">
 				${subject}
 				</a>
 			</span>

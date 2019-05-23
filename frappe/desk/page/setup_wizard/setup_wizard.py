@@ -389,7 +389,7 @@ def make_records(records, debug=False):
 			# pass DuplicateEntryError and continue
 			if e.args and e.args[0]==doc.doctype and e.args[1]==doc.name:
 				# make sure DuplicateEntryError is for the exact same doc and not a related doc
-				pass
+				frappe.clear_messages()
 			else:
 				raise
 
