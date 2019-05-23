@@ -62,7 +62,7 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 		}
 
 		if (this.minimizable) {
-			this.get_minimize_btn().on('click', () => this.toggle_minimize());
+			this.get_minimize_btn().removeClass('hide').on('click', () => this.toggle_minimize());
 		}
 
 		var me = this;
@@ -188,7 +188,8 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 		this.get_close_btn().trigger("click");
 	}
 	toggle_minimize() {
-		this.$wrapper.closest('.modal').toggleClass('modal-minimize');
+		let modal = this.$wrapper.closest('.modal').toggleClass('modal-minimize');
+		modal.attr('tabindex') ? modal.removeAttr('tabindex') : modal.attr('tabindex', -1);
 		this.get_minimize_btn().find('i').toggleClass('octicon-chevron-down').toggleClass('octicon-chevron-up');
 		this.is_minimized = !this.is_minimized;
 	}
