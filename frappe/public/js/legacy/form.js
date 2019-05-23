@@ -146,6 +146,7 @@ _f.Frm.prototype.setup_drag_drop = function() {
 				doctype: me.doctype,
 				docname: me.docname,
 				files: dataTransfer.files,
+				folder: 'Home/Attachments',
 				on_success(file_doc) {
 					me.attachments.attachment_uploaded(file_doc);
 				}
