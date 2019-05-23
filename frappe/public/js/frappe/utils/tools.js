@@ -56,7 +56,7 @@ frappe.markdown = function(txt) {
 		var txt1 = [];
 		$.each(txt.split("\n"), function(i, t) {
 			txt1.push(t.substr(whitespace_len));
-		})
+		});
 		txt = txt1.join("\n");
 	}
 

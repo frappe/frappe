@@ -1,7 +1,7 @@
 frappe.urllib = {
 	// get argument from url
 	get_arg: function(name) {
-		name = name.replace(/[\[]/,"\\\[").replace(/[\]]/,"\\\]");
+		name = name.replace(/[[]/, "\\[").replace(/[\]]/,"\\]");
 		var regexS = "[\\?&]"+name+"=([^&#]*)";
 		var regex = new RegExp( regexS );
 		var results = regex.exec( window.location.href );
@@ -13,7 +13,7 @@ frappe.urllib = {
 
 	// returns url dictionary
 	get_dict: function() {
-		var d = {}
+		var d = {};
 		var t = window.location.href.split('?')[1];
 		if(!t) return d;
 
@@ -31,9 +31,9 @@ frappe.urllib = {
 	// returns the base url with http + domain + path (-index.cgi or # or ?)
 	get_base_url: function() {
 		// var url= (frappe.base_url || window.location.href).split('#')[0].split('?')[0].split('desk')[0];
-		var url = (frappe.base_url || window.location.origin)
-		if(url.substr(url.length-1, 1)=='/') url = url.substr(0, url.length-1)
-		return url
+		var url = (frappe.base_url || window.location.origin);
+		if(url.substr(url.length-1, 1)=='/') url = url.substr(0, url.length-1);
+		return url;
 	},
 
 	// returns absolute url

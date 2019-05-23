@@ -500,7 +500,7 @@ frappe.ui.form.Form = class FrappeForm {
 		}).then(() => {
 			me.show_success_action();
 		}).catch((e) => {
-			console.error(e);
+			console.error(e); // eslint-disable-line
 		});
 	}
 
@@ -929,10 +929,6 @@ frappe.ui.form.Form = class FrappeForm {
 		}
 	}
 
-	set_print_heading(txt) {
-		this.pformat[this.docname] = txt;
-	}
-
 	show_success_action() {
 		const route = frappe.get_route();
 		if (route[0] !== 'Form') return;
@@ -1027,7 +1023,7 @@ frappe.ui.form.Form = class FrappeForm {
 	toggle_enable(fnames, enable) {
 		this.field_map(fnames, function(field) {
 			field.read_only = enable ? 0 : 1;
-		})
+		});
 	}
 
 	toggle_reqd(fnames, mandatory) {
@@ -1346,11 +1342,11 @@ frappe.validated = 0;
 // Proxy for frappe.validated
 Object.defineProperty(window, 'validated', {
 	get: function() {
-		console.warn('Please use `frappe.validated` instead of `validated`. It will be deprecated soon.');
+		console.warn('Please use `frappe.validated` instead of `validated`. It will be deprecated soon.'); // eslint-disable-line
 		return frappe.validated;
 	},
 	set: function(value) {
-		console.warn('Please use `frappe.validated` instead of `validated`. It will be deprecated soon.');
+		console.warn('Please use `frappe.validated` instead of `validated`. It will be deprecated soon.'); // eslint-disable-line
 		frappe.validated = value;
 		return frappe.validated;
 	}
