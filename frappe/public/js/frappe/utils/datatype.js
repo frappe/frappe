@@ -4,7 +4,7 @@
 window.cstr = function(s) {
 	if(s==null)return '';
 	return s+'';
-}
+};
 
 window.cint = function(v, def) {
 	if (v === true)
@@ -16,7 +16,7 @@ window.cint = function(v, def) {
 	v = parseInt(v);
 	if (isNaN(v)) v = def === undefined ? 0 : def;
 	return v;
-}
+};
 
 // to title case
 window.toTitle = function(str){
@@ -28,21 +28,21 @@ window.toTitle = function(str){
 	}
 
 	return word_out.join(" ");
-}
+};
 
 window.is_null = function(v) {
 	if(v===null || v===undefined || cstr(v).trim()==="") return true;
-}
+};
 
 window.copy_dict = function(d) {
 	var n = {};
 	for(var k in d) n[k] = d[k];
 	return n;
-}
+};
 
 window.validate_email = function(txt) {
 	return frappe.utils.validate_type(txt, "email");
-}
+};
 
 window.nth = function(number) {
 	number = cint(number);
@@ -51,7 +51,7 @@ window.nth = function(number) {
 	if((number+'').substr(-1)=='2') s = 'nd';
 	if((number+'').substr(-1)=='3') s = 'rd';
 	return number+s;
-}
+};
 
 window.has_words = function(list, item) {
 	if(!item) return true;
@@ -61,7 +61,7 @@ window.has_words = function(list, item) {
 			return true;
 	}
 	return false;
-}
+};
 
 window.has_common = function(list1, list2) {
 	if(!list1 || !list2) return false;
@@ -69,4 +69,4 @@ window.has_common = function(list1, list2) {
 		if(in_list(list2, list1[i]))return true;
 	}
 	return false;
-}
+};
