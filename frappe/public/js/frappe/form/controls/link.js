@@ -173,7 +173,6 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 					}
 
 					if(!me.df.only_select) {
-						console.log(me.df)
 						if(frappe.model.can_create(doctype)
 							&& me.df.fieldtype !== "Dynamic Link") {
 							// new item
