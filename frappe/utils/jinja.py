@@ -10,7 +10,7 @@ def get_jenv():
 
 		# frappe will be loaded last, so app templates will get precedence
 		jenv = Environment(loader = get_jloader(),
-			undefined=DebugUndefined)
+			undefined=DebugUndefined, extensions=['jinja2.ext.do'])
 		set_filters(jenv)
 
 		jenv.globals.update(get_allowed_functions_for_jenv())
