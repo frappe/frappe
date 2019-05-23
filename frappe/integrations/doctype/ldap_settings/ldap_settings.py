@@ -160,7 +160,7 @@ def create_user(params):
 			"language": "",
 			"user_type": "System User",
 			"roles": [{
-				"role": _("Blogger")
+				"role": _("Customer")
 			}]
 		})
 
