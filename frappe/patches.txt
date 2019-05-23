@@ -1,4 +1,6 @@
-frappe.patches.v12_0.remove_deprecated_fields_from_doctype #3
+frappe.patches.v12_0.remove_deprecated_fields_from_doctype #4
+execute:frappe.reload_doc('core', 'doctype', 'communication_link')
+execute:frappe.reload_doc('core', 'doctype', 'communication')
 execute:frappe.db.sql("""update `tabPatch Log` set patch=replace(patch, '.4_0.', '.v4_0.')""") #2014-05-12
 frappe.patches.v5_0.convert_to_barracuda_and_utf8mb4
 execute:frappe.utils.global_search.setup_global_search_table()
@@ -241,6 +243,4 @@ frappe.patches.v12_0.reset_home_settings
 frappe.patches.v12_0.update_print_format_type
 frappe.patches.v11_0.remove_doctype_user_permissions_for_page_and_report #2019-05-01
 frappe.patches.v12_0.remove_feedback_rating
-execute:frappe.reload_doc('core', 'doctype', 'communication_link')
-execute:frappe.reload_doc('core', 'doctype', 'communication')
 frappe.patches.v12_0.move_timeline_links_to_dynamic_links
