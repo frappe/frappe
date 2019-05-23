@@ -1224,10 +1224,10 @@ forwarded@~0.1.2:
   resolved "https://registry.yarnpkg.com/forwarded/-/forwarded-0.1.2.tgz#98c23dab1175657b8c0573e8ceccd91b0ff18c84"
   integrity sha1-mMI9qxF1ZXuMBXPozszZGw/xjIQ=
 
-frappe-datatable@^1.13.0:
-  version "1.13.0"
-  resolved "https://registry.yarnpkg.com/frappe-datatable/-/frappe-datatable-1.13.0.tgz#b0b283664e946aeedf1ec6a4e678bac98b274a34"
-  integrity sha512-Vmtkzgtk7fQ4RTuNNHtAE3doeIKg8m1YUVP5K8srS2eYepPQLmR1HIzBWcMlzkXPNOyYIEEmWK+hZ0l///Ka8w==
+frappe-datatable@^1.13.1:
+  version "1.13.1"
+  resolved "https://registry.yarnpkg.com/frappe-datatable/-/frappe-datatable-1.13.1.tgz#dbfa27fe735832cea54a0b35e3d3bfb839778c8d"
+  integrity sha512-FOC8dpsOSI+KnF5sBrYja9b2Y+3qUvYy/H6108QchKSvXYvuWVr/uuLk2N5xlz38PWU3d7n5lK0dkx+zXTKJ0w==
   dependencies:
     hyperlist "^1.0.0-beta"
     lodash "^4.17.5"
@@ -3578,9 +3578,9 @@ sort-keys@^1.0.0:
     is-plain-obj "^1.0.0"
 
 sortablejs@^1.7.0:
-  version "1.7.0"
-  resolved "https://registry.yarnpkg.com/sortablejs/-/sortablejs-1.7.0.tgz#80a2b2370abd568e1cec8c271131ef30a904fa28"
-  integrity sha1-gKKyNwq9Vo4c7IwnETHvMKkE+ig=
+  version "1.9.0"
+  resolved "https://registry.yarnpkg.com/sortablejs/-/sortablejs-1.9.0.tgz#2d1e74ae6bac2cb4ad0622908f340848969eb88d"
+  integrity sha512-Ot6bYJ6PoqPmpsqQYXjn1+RKrY2NWQvQt/o4jfd/UYwVWndyO5EPO8YHbnm5HIykf8ENsm4JUrdAvolPT86yYA==
 
 source-map@0.6.*, source-map@^0.6.1, source-map@~0.6.0, source-map@~0.6.1:
   version "0.6.1"
