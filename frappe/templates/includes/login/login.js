@@ -66,7 +66,7 @@ login.bind_events = function() {
 		}
 	});
 
-	{% if ldap_settings %}
+	{% if ldap_settings.enabled %}
 		$(".btn-ldap-login").on("click", function(){
 			var args = {};
 			args.cmd = "{{ ldap_settings.method }}";
@@ -174,6 +174,8 @@ login.login_handlers = (function() {
 			if(data.message == 'Logged In'){
 				login.set_indicator("{{ _("Success") }}", 'green');
 				window.location.href = frappe.utils.get_url_arg("redirect-to") || data.home_page;
+			} else if(data.message == 'Password Reset'){
+				window.location.href = data.redirect_to;
 			} else if(data.message=="No App") {
 				login.set_indicator("{{ _("Success") }}", 'green');
 				if(localStorage) {

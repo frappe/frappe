@@ -387,7 +387,7 @@ class EmailAccount(Document):
 			communication._seen = json.dumps(users)
 
 		communication.flags.in_receive = True
-		communication.insert(ignore_permissions = 1)
+		communication.insert(ignore_permissions=True)
 
 		# save attachments
 		communication._attachments = email.save_attachments_in_doc(communication)
