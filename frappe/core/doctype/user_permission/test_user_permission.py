@@ -8,6 +8,9 @@ import frappe
 import unittest
 
 class TestUserPermission(unittest.TestCase):
+	def setUp(self):
+		frappe.db.sql("Delete from `tabUser Permission` where user='test_bulk_creation_update@example.com'")
+
 	def test_apply_to_all(self):
 		''' Create User permission for User having access to all applicable Doctypes'''
 		user = get_user()
@@ -19,11 +22,13 @@ class TestUserPermission(unittest.TestCase):
 		user = get_user()
 		param = get_params(user, apply_to_all=1)
 
-		check = add_user_permissions(param)
-
-		self.assertIsNotNone(check)
-
+		# Initially create User Permission document with apply_to_all checked
 		is_created = add_user_permissions(param)
+
+		self.assertEquals(is_created, 1)
+		is_created = add_user_permissions(param)
+
+		# User Permission should not be changed
 		self.assertEquals(is_created, 0)
 
 	def test_for_applicable_on_update_from_apply_to_all(self):
@@ -31,10 +36,10 @@ class TestUserPermission(unittest.TestCase):
 		user = get_user()
 		param = get_params(user, applicable = ["Chat Room", "Chat Message"])
 
-		check = add_user_permissions(get_params(user, apply_to_all= 1))
+		# Initially create User Permission document with apply_to_all checked
+		is_created = add_user_permissions(get_params(user, apply_to_all= 1))
 
-		self.assertIsNotNone(check)
-
+		self.assertEquals(is_created, 1)
 		is_created = add_user_permissions(param)
 		frappe.db.commit()
 
@@ -42,7 +47,10 @@ class TestUserPermission(unittest.TestCase):
 		is_created_applicable_first = frappe.db.exists("User Permission", get_exists_param(user, applicable = "Chat Room"))
 		is_created_applicable_second = frappe.db.exists("User Permission", get_exists_param(user, applicable = "Chat Message"))
 
+		# Check that apply_to_all is removed
 		self.assertIsNone(removed_apply_to_all)
+
+		# Check that User Permissions for applicable is created
 		self.assertIsNotNone(is_created_applicable_first)
 		self.assertIsNotNone(is_created_applicable_second)
 		self.assertEquals(is_created, 1)
@@ -52,17 +60,20 @@ class TestUserPermission(unittest.TestCase):
 		user = get_user()
 		param = get_params(user, apply_to_all = 1)
 
-		check = add_user_permissions(get_params(user, applicable = ["Chat Room", "Chat Message"]))
+		# create User permissions that with applicable
+		is_created = add_user_permissions(get_params(user, applicable = ["Chat Room", "Chat Message"]))
 
-		self.assertIsNotNone(check)
+		self.assertEquals(is_created, 1)
 
 		is_created = add_user_permissions(param)
 		is_created_apply_to_all = frappe.db.exists("User Permission", get_exists_param(user))
 		removed_applicable_first = frappe.db.exists("User Permission", get_exists_param(user, applicable = "Chat Room"))
 		removed_applicable_second = frappe.db.exists("User Permission", get_exists_param(user, applicable = "Chat Message"))
 
-
+		# To check that a User permission with apply_to_all exists
 		self.assertIsNotNone(is_created_apply_to_all)
+
+		# Check that all User Permission with applicable is removed
 		self.assertIsNone(removed_applicable_first)
 		self.assertIsNone(removed_applicable_second)
 		self.assertEquals(is_created, 1)
