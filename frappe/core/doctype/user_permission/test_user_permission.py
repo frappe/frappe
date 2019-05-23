@@ -9,7 +9,7 @@ import unittest
 
 class TestUserPermission(unittest.TestCase):
 	def setUp(self):
-		frappe.db.sql("Delete from `tabUser Permission` where user='test_bulk_creation_update@example.com'")
+		frappe.db.sql("DELETE FROM `tabUser Permission` WHERE `user`='test_bulk_creation_update@example.com'")
 
 	def test_default_user_permission_validation(self):
 		user = create_user('test_default_permission@example.com')
