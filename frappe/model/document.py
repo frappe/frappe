@@ -1198,9 +1198,8 @@ class Document(BaseDocument):
 		communications = frappe.get_list("Communication", filters={"reference_doctype": self.doctype, "reference_name": self.name})
 		for communication in communications:
 			communication = frappe.get_doc("Communication", communication.name)
-			if communication.communication_medium == "Email":
-				# duplicate entries will be handled by deduplicate links in communication
-				communication.add_link(link_doctype=timeline_doctype, link_name=timeline_name, autosave=True)
+			# duplicate entries will be handled by deduplicate links in communication
+			communication.add_link(link_doctype=timeline_doctype, link_name=timeline_name, autosave=True)
 
 	def queue_action(self, action, **kwargs):
 		'''Run an action in background. If the action has an inner function,
