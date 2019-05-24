@@ -156,7 +156,7 @@ frappe.ui.form.PrintPreview = Class.extend({
 			return;
 		} else {
 			// show
-			if(!frappe.model.can_print(this.frm.doc.doctype, this)) {
+			if(!frappe.model.can_print(this.frm.doc.doctype, this.frm)) {
 				frappe.msgprint(__("You are not allowed to print this document"));
 				return;
 			}
