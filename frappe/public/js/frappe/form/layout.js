@@ -1,6 +1,5 @@
 import '../class';
 
-frappe.provide("frappe.ui.form");
 frappe.ui.form.Layout = Class.extend({
 	init: function(opts) {
 		this.views = {};

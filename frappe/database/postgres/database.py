@@ -30,6 +30,7 @@ class PostgresDatabase(Database):
 	REGEX_CHARACTER = '~'
 
 	def setup_type_map(self):
+		self.db_type = 'postgres'
 		self.type_map = {
 			'Currency':		('decimal', '18,6'),
 			'Int':			('bigint', None),
