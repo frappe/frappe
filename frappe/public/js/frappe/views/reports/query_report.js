@@ -644,7 +644,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			const format_cell = (value, row, column, data) => {
 				value = frappe.format(value, column,
 					{for_print: false, always_show_decimals: true}, data);
-				if (data && data._isGroupTotal) {
+				if (data && data._bold) {
 					value = $(`<span>${value}</span>`);
 					var $value = $(value).css("font-weight", "bold");
 					value = $value.wrap("<p></p>").parent().html();

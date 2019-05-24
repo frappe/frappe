@@ -520,58 +520,83 @@ def get_user_match_filters(doctypes, user):
 	return match_filters
 
 
-def group_report_data(rows_to_group, group_by, total_fields=None, calculate_totals=None, postprocess_group=None,
-		parent_groups=None):
+def group_report_data(rows_to_group, group_by, group_by_labels=None, total_fields=None, totals_only=False,
+		calculate_totals=None, postprocess_group=None, parent_grouped_by=None):
+	def get_grouped_by_map(group):
+		res = parent_grouped_by.copy()
+		if isinstance(group_field, (list, tuple)):
+			for i, f in enumerate(group_field):
+				res[f] = group[i]
+		else:
+			res[group_field] = group
+		return res
+
 	if not group_by:
 		return rows_to_group
 	if not isinstance(group_by, list):
 		group_by = [group_by]
-	if not parent_groups:
-		parent_groups = []
+	if not group_by_labels:
+		group_by_labels = {}
+	if not parent_grouped_by:
+		parent_grouped_by = OrderedDict()
 
-	group_fieldname = group_by[0]
+	group_field = group_by[0]
+	group_label = group_by_labels.get(group_field) if group_by_labels.get(group_field) else frappe.unscrub(cstr(group_field))
 	group_rows = OrderedDict()
-	group_totals = {}
+	group_totals = OrderedDict()
 
 	for row in rows_to_group:
-		group = row.get(group_fieldname) if group_fieldname else None
-		group_rows.setdefault(group, []).append(row)
+		if not group_field:
+			group_value = None
+		elif isinstance(group_field, (list, tuple)):
+			group_value = tuple(map(lambda f: row.get(f), group_field))
+		else:
+			group_value = row.get(group_field)
+
+		group_rows.setdefault(group_value, []).append(row)
 
 		if total_fields:
-			group_totals.setdefault(group, {})
+			group_totals.setdefault(group_value, {})
 			for total_field in total_fields:
-				group_totals[group].setdefault(total_field, 0)
-				group_totals[group][total_field] += row[total_field]
+				group_totals[group_value].setdefault(total_field, 0)
+				group_totals[group_value][total_field] += row[total_field]
 
 	if calculate_totals and callable(calculate_totals):
-		for group in group_rows.keys():
-			grouped_by_list = parent_groups[:]
-			grouped_by_list.append(frappe._dict({"fieldname": group_fieldname, "value": group}))
+		for group_value in group_rows.keys():
+			grouped_by_map = get_grouped_by_map(group_value)
+			group_totals[group_value] = calculate_totals(group_rows[group_value], group_field, group_value, grouped_by_map)
 
-			group_totals[group] = calculate_totals(group_rows[group], grouped_by_list)
+	if totals_only:
+		return group_totals.values()
 
 	out = []
 
-	for group, rows in iteritems(group_rows):
-		grouped_by_list = parent_groups[:]
-		grouped_by_list.append(frappe._dict({"fieldname": group_fieldname, "value": group}))
-
+	for group_value, rows in iteritems(group_rows):
+		grouped_by_map = get_grouped_by_map(group_value)
 		group_object = frappe._dict({
 			"_isGroup": 1,
-			"rows": group_report_data(rows, group_by[1:],
+			"group_field": group_field,
+			"group_label": group_label,
+			"group_value": group_value,
+			"rows": group_report_data(rows, group_by[1:], group_by_labels=group_by_labels, totals_only=totals_only,
 				total_fields=total_fields, calculate_totals=calculate_totals, postprocess_group=postprocess_group,
-				parent_groups=grouped_by_list)
+				parent_grouped_by=grouped_by_map)
 		})
 
-		for g in grouped_by_list:
-			if g.fieldname != 'rows':
-				group_object[g.fieldname] = g.value
+		for f, g in iteritems(grouped_by_map):
+			if f not in group_object:
+				group_object[f] = g
 
-		if group_totals.get(group):
-			group_object['totals'] = group_totals.get(group)
+		if group_totals.get(group_value):
+			group_total_row = group_totals.get(group_value)
+			group_total_row['_bold'] = 1
+			group_object['totals'] = group_total_row
 
 		if postprocess_group and callable(postprocess_group):
-			postprocess_group(group_object, grouped_by_list)
+			postprocess_group(group_object, grouped_by_map)
+
+		if group_object.totals:
+			group_object.totals['_isGroupTotal'] = 1
 
 		if group_object.rows or group_object.totals:
 			out.append(group_object)
