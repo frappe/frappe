@@ -8,7 +8,7 @@ from __future__ import unicode_literals
 
 def setup_database(force, source_sql=None, verbose=None):
 	import frappe
-	if frappe.conf.db_type == 'postgres':
+	if frappe.db.db_type == 'postgres':
 		import frappe.database.postgres.setup_db
 		return frappe.database.postgres.setup_db.setup_database(force, source_sql, verbose)
 	else:
@@ -17,7 +17,7 @@ def setup_database(force, source_sql=None, verbose=None):
 
 def drop_user_and_database(db_name, root_login=None, root_password=None):
 	import frappe
-	if frappe.conf.db_type == 'postgres':
+	if frappe.db.db_type == 'postgres':
 		pass
 	else:
 		import frappe.database.mariadb.setup_db
@@ -25,7 +25,7 @@ def drop_user_and_database(db_name, root_login=None, root_password=None):
 
 def get_db(host=None, user=None, password=None, port=None):
 	import frappe
-	if frappe.conf.db_type == 'postgres':
+	if frappe.db.db_type == 'postgres':
 		import frappe.database.postgres.database
 		return frappe.database.postgres.database.PostgresDatabase(host, user, password, port=port)
 	else:
@@ -34,7 +34,7 @@ def get_db(host=None, user=None, password=None, port=None):
 
 def setup_help_database(help_db_name):
 	import frappe
-	if frappe.conf.db_type == 'postgres':
+	if frappe.db.db_type == 'postgres':
 		import frappe.database.postgres.setup_db
 		return frappe.database.postgres.setup_db.setup_help_database(help_db_name)
 	else:
