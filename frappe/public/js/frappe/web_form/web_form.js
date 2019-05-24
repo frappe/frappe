@@ -65,6 +65,8 @@ frappe.ready(function() {
 					return data;
 				};
 
+				df.fields = form_data[df.fieldname];
+
 				if (df.fieldtype === "Attach") {
 					df.is_private = true;
 				}
