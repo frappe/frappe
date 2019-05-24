@@ -1,4 +1,13 @@
-frappe.provide("frappe.ui.form");
+
+
+import './assign_to';
+import './attachments';
+import './share';
+import './review';
+import './document_follow';
+import './user_image';
+import './form_viewers';
+
 frappe.ui.form.Sidebar = Class.extend({
 	init: function(opts) {
 		$.extend(this, opts);
@@ -163,5 +172,23 @@ frappe.ui.form.Sidebar = Class.extend({
 				frm: this.frm
 			});
 		}
+	},
+
+	reload_docinfo: function(callback) {
+		frappe.call({
+			method: "frappe.desk.form.load.get_docinfo",
+			args: {
+				doctype: this.doctype,
+				name: this.doc.name
+			},
+			callback: (r) => {
+				// docinfo will be synced
+				if(callback) callback(r.docinfo);
+				this.frm.timeline.refresh();
+				this.frm.assign_to.refresh();
+				this.frm.attachments.refresh();
+			}
+		});
 	}
+
 });

@@ -367,7 +367,7 @@ class BaseDocument(object):
 
 	def show_unique_validation_message(self, e):
 		# TODO: Find a better way to extract fieldname
-		if frappe.conf.db_type != 'postgres':
+		if frappe.db.db_type != 'postgres':
 			fieldname = str(e).split("'")[-2]
 			label = None
 

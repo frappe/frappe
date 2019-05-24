@@ -5,7 +5,7 @@ from __future__ import unicode_literals, print_function
 import frappe
 import time
 from frappe import _, msgprint
-from frappe.utils import flt, cstr, now, get_datetime_str, file_lock
+from frappe.utils import flt, cstr, now, get_datetime_str, file_lock, date_diff
 from frappe.utils.background_jobs import enqueue
 from frappe.model.base_document import BaseDocument, get_controller
 from frappe.model.naming import set_new_name
@@ -1195,8 +1195,9 @@ class Document(BaseDocument):
 			return
 
 		# update timeline doc in communication if it is different than current timeline doc
-		communication = frappe.get_doc("Communication", {"reference_doctype": self.doctype, "reference_name": self.name})
-		if communication.communication_medium == "Email":
+		communications = frappe.get_list("Communication", filters={"reference_doctype": self.doctype, "reference_name": self.name})
+		for communication in communications:
+			communication = frappe.get_doc("Communication", communication.name)
 			# duplicate entries will be handled by deduplicate links in communication
 			communication.add_link(link_doctype=timeline_doctype, link_name=timeline_name, autosave=True)
 
@@ -1238,6 +1239,17 @@ class Document(BaseDocument):
 	def unlock(self):
 		'''Delete the lock file for this document'''
 		file_lock.delete_lock(self.get_signature())
+
+	# validation helpers
+	def validate_from_to_dates(self, from_date_field, to_date_field):
+		'''
+		Generic validation to verify date sequence
+		'''
+		if date_diff(self.get(to_date_field), self.get(from_date_field)) < 0:
+			frappe.throw(_('{0} must be after {1}').format(
+				frappe.bold(self.meta.get_label(to_date_field)),
+				frappe.bold(self.meta.get_label(from_date_field)),
+			), frappe.exceptions.InvalidDates)
 
 def execute_action(doctype, name, action, **kwargs):
 	'''Execute an action on a document (called by background worker)'''

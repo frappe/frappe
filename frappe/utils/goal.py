@@ -9,7 +9,7 @@ from frappe import _
 def get_monthly_results(goal_doctype, goal_field, date_col, filter_str, aggregation = 'sum'):
 	'''Get monthly aggregation values for given field of doctype'''
 	# TODO: move to ORM?
-	if(frappe.conf.db_type == 'postgres'):
+	if(frappe.db.db_type == 'postgres'):
 		month_year_format_query = '''to_char("{}", 'MM-YYYY')'''.format(date_col)
 	else:
 		month_year_format_query = 'date_format(`{}`, "%m-%Y")'.format(date_col)

@@ -1,6 +1,8 @@
 // Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
+import './datatype';
+
 if (!window.frappe) window.frappe = {};
 
 function flt(v, decimals, number_format) {
@@ -25,18 +27,6 @@ function flt(v, decimals, number_format) {
 
 	if (decimals != null)
 		return _round(v, decimals);
-	return v;
-}
-
-function cint(v, def) {
-	if (v === true)
-		return 1;
-	if (v === false)
-		return 0;
-	v = v + '';
-	if (v !== "0") v = lstrip(v, ['0']);
-	v = parseInt(v);
-	if (isNaN(v)) v = def === undefined ? 0 : def;
 	return v;
 }
 
@@ -199,19 +189,8 @@ function precision(fieldname, doc) {
 }
 
 function in_list(list, item) {
-	if (!list) return false;
-	for (var i = 0, j = list.length; i < j; i++)
-		if (list[i] == item) return true;
-	return false;
+	return list.includes(item);
 }
-
-// Proxy for in_list
-Object.defineProperty(window, 'inList', {
-	get: function() {
-		console.warn('Please use `in_list` instead of `inList`. It will be deprecated soon.');
-		return in_list;
-	}
-});
 
 function remainder(numerator, denominator, precision) {
 	precision = cint(precision);
@@ -242,11 +221,19 @@ function round_based_on_smallest_currency_fraction(value, currency, precision) {
 	return value;
 }
 
+function fmt_money(v, format){
+	// deprecated!
+	// for backward compatibility
+	return format_currency(v, format);
+}
+
+
 Object.assign(window, {
 	flt,
 	cint,
 	strip_number_groups,
 	format_currency,
+	fmt_money,
 	get_currency_symbol,
 	get_number_format,
 	get_number_format_info,

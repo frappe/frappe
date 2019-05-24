@@ -222,12 +222,6 @@ frappe.ui.toolbar.clear_cache = function() {
 	return false;
 };
 
-frappe.ui.toolbar.download_backup = function() {
-	frappe.msgprint(__("Your download is being built, this may take a few moments..."));
-	$c('frappe.utils.backups.get_backup',{},function(r,rt) {});
-	return false;
-};
-
 frappe.ui.toolbar.show_about = function() {
 	try {
 		frappe.ui.misc.about();

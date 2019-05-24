@@ -155,6 +155,7 @@ def get_context(context):
 			reference_doctype = doc.doctype,
 			reference_name = doc.name,
 			attachments = attachments,
+			expose_recipients="header",
 			print_letterhead = ((attachments
 				and attachments[0].get('print_letterhead')) or False))
 

@@ -1,7 +1,7 @@
 // Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
-frappe.provide("frappe.ui.form");
+
 
 frappe.ui.form.Share = Class.extend({
 	init: function(opts) {
@@ -75,7 +75,7 @@ frappe.ui.form.Share = Class.extend({
 
 		d.onhide = function() {
 			// reload comments
-			if(me.dirty) me.frm.reload_docinfo();
+			if(me.dirty) me.frm.sidebar.reload_docinfo();
 		}
 
 		d.show();
