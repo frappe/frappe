@@ -19,9 +19,6 @@ month_map = {'Monthly': 1, 'Quarterly': 3, 'Half-yearly': 6, 'Yearly': 12}
 
 
 class AutoRepeat(Document):
-	def onload(self):
-		self.set_onload("auto_repeat_schedule", self.get_auto_repeat_schedule())
-
 	def validate(self):
 		self.update_status()
 		self.validate_reference_doctype()
@@ -46,6 +43,9 @@ class AutoRepeat(Document):
 
 	def on_submit(self):
 		self.update_auto_repeat_id()
+
+	def on_cancel(self):
+		self.update_status()
 
 	def on_update_after_submit(self):
 		self.validate_dates()
@@ -108,6 +108,9 @@ class AutoRepeat(Document):
 
 		if status and status != 'Resumed':
 			self.status = status
+
+		if self.docstatus == 2:
+			self.db_set("status", self.status)
 
 	def get_auto_repeat_schedule(self):
 		schedule_details = []
