@@ -24,7 +24,7 @@ def install_db(root_login="root", root_password=None, db_name=None, source_sql=N
 	db_type=None):
 
 	if not db_type:
-		db_type = frappe.db.db_type or 'mariadb'
+		db_type = frappe.conf.db_type or 'mariadb'
 
 
 	make_conf(db_name, site_config=site_config, db_type=db_type)
