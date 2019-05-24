@@ -101,7 +101,7 @@ def to_csv(data):
 	return writer.getvalue()
 
 def build_csv_response(data, filename):
-	frappe.response["result"] = cstr(to_csv(args.data))
+	frappe.response["result"] = cstr(to_csv(data))
 	frappe.response["doctype"] = filename
 	frappe.response["type"] = "csv"
 

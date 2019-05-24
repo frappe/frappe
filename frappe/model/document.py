@@ -1245,10 +1245,10 @@ class Document(BaseDocument):
 		'''
 		Generic validation to verify date sequence
 		'''
-		if date_diff(self.get(from_date_field), self.get(to_date_field)) < 0:
+		if date_diff(self.get(to_date_field), self.get(from_date_field)) < 0:
 			frappe.throw(_('{0} must be after {1}').format(
-				frappe.bold(frappe.meta.get_label(to_date_field)),
-				frappe.bold(frappe.meta.get_label(from_date_field)),
+				frappe.bold(self.meta.get_label(to_date_field)),
+				frappe.bold(self.meta.get_label(from_date_field)),
 			), frappe.exceptions.InvalidDates)
 
 def execute_action(doctype, name, action, **kwargs):
