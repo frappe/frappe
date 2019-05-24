@@ -237,57 +237,22 @@ def export_query():
 	if "csrf_token" in data:
 		del data["csrf_token"]
 
-	if isinstance(data.get("filters"), string_types):
-		filters = json.loads(data["filters"])
 	if isinstance(data.get("report_name"), string_types):
 		report_name = data["report_name"]
 	if isinstance(data.get("file_format_type"), string_types):
 		file_format_type = data["file_format_type"]
 
-	if isinstance(data.get("visible_idx"), string_types):
-		visible_idx = json.loads(data.get("visible_idx"))
-	else:
-		visible_idx = None
-
 	if file_format_type == "Excel":
-		data = run(report_name, filters)
-		data = frappe._dict(data)
-		columns = get_columns_dict(data.columns)
+		columns = json.loads(data.columns) if isinstance(data.columns, string_types) else data.columns
+		report_data = json.loads(data.data) if isinstance(data.data, string_types) else data.data
 
 		from frappe.utils.xlsxutils import make_xlsx
-		xlsx_data = build_xlsx_data(columns, data, visible_idx)
+		xlsx_data = [columns] + report_data
 		xlsx_file = make_xlsx(xlsx_data, "Query Report")
 
 		frappe.response['filename'] = report_name + '.xlsx'
 		frappe.response['filecontent'] = xlsx_file.getvalue()
 		frappe.response['type'] = 'binary'
-
-
-def build_xlsx_data(columns, data, visible_idx):
-	result = [[]]
-
-	# add column headings
-	for idx in range(len(data.columns)):
-		result[0].append(columns[idx]["label"])
-
-	# build table from result
-	for i, row in enumerate(data.result):
-		# only pick up rows that are visible in the report
-		if i in visible_idx:
-			row_data = []
-
-			if isinstance(row, dict) and row:
-				for idx in range(len(data.columns)):
-					label = columns[idx]["label"]
-					fieldname = columns[idx]["fieldname"]
-
-					row_data.append(row.get(fieldname, row.get(label, "")))
-			else:
-				row_data = row
-
-			result.append(row_data)
-
-	return result
 
 
 def get_report_module_dotted_path(module, report_name):
