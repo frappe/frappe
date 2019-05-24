@@ -167,7 +167,7 @@ frappe.views.WebFormList = class WebFormList {
 			let row_element = tbody.insertRow();
 			row_element.setAttribute("id", data_item.name);
 
-			let row = new frappe.ui.WebFromListRow({
+			let row = new frappe.ui.WebFormListRow({
 				row: row_element,
 				doc: data_item,
 				columns: this.columns,
@@ -267,7 +267,7 @@ frappe.views.WebFormList = class WebFormList {
 	}
 };
 
-frappe.ui.WebFromListRow = class WebFromListRow {
+frappe.ui.WebFormListRow = class WebFormListRow {
 	constructor({ row, doc, columns, serial_number, events, options }) {
 		Object.assign(this, { row, doc, columns, serial_number, events });
 		this.make_row();
