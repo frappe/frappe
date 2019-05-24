@@ -1,3 +1,5 @@
+execute:frappe.reload_doc('core', 'doctype', 'communication_link')
+execute:frappe.reload_doc('core', 'doctype', 'communication')
 frappe.patches.v12_0.remove_deprecated_fields_from_doctype #3
 execute:frappe.db.sql("""update `tabPatch Log` set patch=replace(patch, '.4_0.', '.v4_0.')""") #2014-05-12
 frappe.patches.v5_0.convert_to_barracuda_and_utf8mb4
@@ -232,8 +234,6 @@ execute:frappe.delete_doc('Page', 'applications', ignore_missing=True)
 frappe.patches.v11_0.set_missing_creation_and_modified_value_for_user_permissions
 frappe.patches.v11_0.set_default_letter_head_source
 frappe.patches.v12_0.set_primary_key_in_series
-execute:frappe.reload_doc('core', 'doctype', 'communication_link')
-execute:frappe.reload_doc('core', 'doctype', 'communication')
 execute:frappe.delete_doc("Page", "modules", ignore_missing=True)
 frappe.patches.v11_0.set_default_letter_head_source
 frappe.patches.v12_0.setup_comments_from_communications
