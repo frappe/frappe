@@ -319,7 +319,7 @@ class Session:
 			SELECT `user`, `sessiondata`
 			FROM `tabSessions` WHERE `sid`=%s AND
 			(NOW() - lastupdate) < %s
-			""", (self.sid, get_expiry_period_for_query(self.device)), debug=1)
+			""", (self.sid, get_expiry_period_for_query(self.device)))
 
 		if rec:
 			data = frappe._dict(eval(rec and rec[0][1] or '{}'))
