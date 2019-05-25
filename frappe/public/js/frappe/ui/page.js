@@ -434,8 +434,10 @@ frappe.ui.Page = Class.extend({
 		}
 		let $li;
 		if(shortcut) {
-			$li = $('<li><a class="grey-link dropdown-item" href="#" onClick="return false;"><span class="menu-item-label">'
-									+ label + '</span><span class="text-muted std-shortcut">'+shortcut+'</span></a><li>');
+			$li = $(`<li><a class="grey-link dropdown-item" href="#" onClick="return false;">
+						<span class="menu-item-label">${label}</span>
+						<span class="text-muted std-shortcut">${shortcut}</span>
+					</a><li>`);
 			this.keyboard_shortcut(shortcut, $li.find('a'), 'keyup.shortcut', true);
 			shortcut = shortcut.replace(/ /g,'').toLowerCase();
 		} else {

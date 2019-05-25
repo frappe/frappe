@@ -784,9 +784,9 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 				if(this.list_items.length) {
 					if(e.which === DOWN) {
-						this.nav_down();
+						this.nav('down');
 					} else if(e.which === UP) {
-						this.nav_up();
+						this.nav('up');
 					} else if(e.which === ENTER ) {
 						this.nav_enter(is_list_nav, is_image_view);
 					} else if(e.which === SPACE && this.selected) {
@@ -809,44 +809,27 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		this.selected = element.removeClass(new_class);
 	}
 
-	nav_down() {
-
+	nav(dir) {
+		let index = dir === 'up' ? this.list_items.length-1 : 0;
 		if(this.selected && this.selected.is(':visible')) {
 			this.remove_selected_class(this.next_index, this.selected);
-			this.next_index++;
+			if( dir==='up' ) {
+				if(this.next_index > 0) this.next_index--;
+			} else {
+				this.next_index++;
+			}			
 			this.next_el = this.list_items.eq(this.next_index);
 
 			if(this.next_el.length > 0) {
 				this.add_selected_class(this.next_index, this.next_el);
 			} else {
-				this.add_selected_class(0, this.list_items.eq(0));
+				this.add_selected_class(index, this.list_items.eq(index));
 				this.next_index = 0;
 			}
 
 		} else {
-			this.add_selected_class(0, this.list_items.eq(0));
+			this.add_selected_class(index, this.list_items.eq(index));
 			this.next_index = 0;
-		}
-
-	}
-
-	nav_up() {
-
-		if(this.selected && this.selected.is(':visible')) {
-			this.remove_selected_class(this.next_index, this.selected);
-	
-			if(this.next_index>0) this.next_index--;
-			this.next_el = this.list_items.eq(this.next_index);
-			if(this.next_el.length > 0) {
-				this.add_selected_class(this.next_index, this.next_el);
-			} else {
-				this.add_selected_class(this.list_items.length-1, this.list_items.eq(this.list_items.list.length - 1));
-				this.next_index = this.list_items.length - 1;
-			}
-
-		} else {
-			this.add_selected_class(this.list_items.length-1, this.list_items.eq(this.list_items.list.length - 1));
-			this.next_index = this.list_items.length - 1;
 		}
 
 	}
