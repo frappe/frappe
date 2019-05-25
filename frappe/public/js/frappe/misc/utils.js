@@ -710,6 +710,18 @@ Object.assign(frappe.utils, {
 		return groups_added;
 	},
 
+	print_report_groups: function(rows, print_group_function, page_break_groups, _p) {
+		let groups = [];
+		frappe.utils.group_report_data_in_printable_format(rows, groups);
+
+		$.each(groups, (i, d) => {
+			print_group_function(d.rows, d.group || {});
+			if (page_break_groups) {
+				_p.push("<div class='page-break'></div>");
+			}
+		});
+	},
+
 	deep_equal(a, b) {
 		return deep_equal(a, b);
 	}
