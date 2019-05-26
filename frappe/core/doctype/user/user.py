@@ -4,7 +4,7 @@
 from __future__ import unicode_literals, print_function
 import frappe
 from frappe.model.document import Document
-from frappe.utils import cint, has_gravatar, format_datetime, now_datetime, get_formatted_email
+from frappe.utils import cint, has_gravatar, format_datetime, now_datetime, get_formatted_email, today
 from frappe import throw, msgprint, _
 from frappe.utils.password import update_password as _update_password
 from frappe.desk.notifications import clear_notifications
@@ -218,13 +218,17 @@ class User(Document):
 	def validate_reset_password(self):
 		pass
 
-	def reset_password(self, send_email=False):
+	def reset_password(self, send_email=False, password_expired=False):
 		from frappe.utils import random_string, get_url
 
 		key = random_string(32)
 		self.db_set("reset_password_key", key)
-		link = get_url("/update-password?key=" + key)
 
+		url = "/update-password?key=" + key
+		if password_expired:
+			url = "/update-password?key=" + key + '&password_expired=true'
+
+		link = get_url(url)
 		if send_email:
 			self.password_reset_mail(link)
 
@@ -590,6 +594,9 @@ def update_password(new_password, logout_all_sessions=0, key=None, old_password=
 		frappe.cache().hdel('redirect_after_login', user)
 
 	frappe.local.login_manager.login_as(user)
+
+	frappe.db.set_value("User", user,
+		'last_password_reset_date', today())
 
 	if user_doc.user_type == "System User":
 		return "/desk"

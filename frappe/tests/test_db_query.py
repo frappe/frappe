@@ -178,7 +178,7 @@ class TestReportview(unittest.TestCase):
 			limit_start=0, limit_page_length=1)
 		self.assertTrue('creation' in data[0])
 
-		if frappe.conf.db_type != 'postgres':
+		if frappe.db.db_type != 'postgres':
 			# datediff function does not exist in postgres
 			data = DatabaseQuery("DocType").execute(fields=["name", "issingle",
 				"datediff(modified, creation) as date_diff"], limit_start=0, limit_page_length=1)

@@ -164,7 +164,7 @@ def get_communication_data(doctype, name, start=0, limit=20, after=None, fields=
 			C.name, C.communication_type, C.communication_medium,
 			C.comment_type, C.communication_date, C.content,
 			C.sender, C.sender_full_name, C.cc, C.bcc,
-			C.creation, C.subject, C.delivery_status,
+			C.creation AS creation, C.subject, C.delivery_status,
 			C._liked_by, C.reference_doctype, C.reference_name,
 			C.read_by_recipient, C.rating
 		'''
@@ -204,7 +204,7 @@ def get_communication_data(doctype, name, start=0, limit=20, after=None, fields=
 		SELECT *
 		FROM (({part1}) UNION ({part2})) AS combined
 		{group_by}
-		ORDER BY combined.creation DESC
+		ORDER BY creation DESC
 		LIMIT %(limit)s
 		OFFSET %(start)s
 	'''.format(part1=part1, part2=part2, group_by=(group_by or '')), dict(

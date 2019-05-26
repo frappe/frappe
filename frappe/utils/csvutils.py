@@ -100,6 +100,10 @@ def to_csv(data):
 
 	return writer.getvalue()
 
+def build_csv_response(data, filename):
+	frappe.response["result"] = cstr(to_csv(data))
+	frappe.response["doctype"] = filename
+	frappe.response["type"] = "csv"
 
 class UnicodeWriter:
 	def __init__(self, encoding="utf-8"):

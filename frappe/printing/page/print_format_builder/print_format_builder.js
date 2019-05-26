@@ -130,15 +130,21 @@ frappe.PrintFormatBuilder = Class.extend({
 		});
 	},
 	setup_new_print_format: function(doctype, name, based_on) {
-		frappe.call('frappe.printing.page.print_format_builder.print_format_builder.create_custom_format', {
-			doctype,
-			name,
-			based_on
-		}).then((r) => {
-			frappe.model.with_doc('Print Format', r.message.name)
-				.then(() => $(document).trigger({ type: 'new-print-format', print_format: r.message.name }));
-			this.print_format = r.message;
-			this.refresh();
+		frappe.call({
+			method: 'frappe.printing.page.print_format_builder.print_format_builder.create_custom_format',
+			args: {
+				doctype: doctype,
+				name: name,
+				based_on: based_on
+			},
+			callback: (r) => {
+				if(!r.exc) {
+					if(r.message) {
+						this.print_format = r.message;
+						this.refresh();
+					}
+				}
+			},
 		});
 	},
 	setup_print_format: function() {

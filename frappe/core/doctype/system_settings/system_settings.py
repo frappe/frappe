@@ -7,7 +7,7 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.model import no_value_fields
 from frappe.translate import set_default_language
-from frappe.utils import cint
+from frappe.utils import cint, today
 from frappe.utils.momentjs import get_all_timezones
 from frappe.twofactor import toggle_two_factor_auth
 
@@ -35,6 +35,11 @@ class SystemSettings(Document):
 			self.bypass_2fa_for_retricted_ip_users = 0
 			self.bypass_restrict_ip_check_if_2fa_enabled = 0
 
+		frappe.flags.update_last_reset_password_date = False
+		if (self.force_user_to_reset_password and
+			not cint(frappe.db.get_single_value("System Settings", "force_user_to_reset_password"))):
+			frappe.flags.update_last_reset_password_date = True
+
 	def on_update(self):
 		for df in self.meta.get("fields"):
 			if df.fieldtype not in no_value_fields:
@@ -46,6 +51,16 @@ class SystemSettings(Document):
 		frappe.cache().delete_value('system_settings')
 		frappe.cache().delete_value('time_zone')
 		frappe.local.system_settings = {}
+
+		if frappe.flags.update_last_reset_password_date:
+			update_last_reset_password_date()
+
+def update_last_reset_password_date():
+	frappe.db.sql(""" UPDATE `tabUser`
+		SET
+			last_password_reset_date = %s
+		WHERE
+			last_password_reset_date is null or last_password_reset_date = ''""", today())
 
 @frappe.whitelist()
 def load():

@@ -1,7 +1,7 @@
 // Copyright (c) 2019, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
-frappe.provide("frappe.ui.form");
+
 
 frappe.ui.form.Review = class Review {
 	constructor({parent, frm}) {
