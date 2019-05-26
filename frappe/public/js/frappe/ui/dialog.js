@@ -192,6 +192,7 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 		modal.attr('tabindex') ? modal.removeAttr('tabindex') : modal.attr('tabindex', -1);
 		this.get_minimize_btn().find('i').toggleClass('octicon-chevron-down').toggleClass('octicon-chevron-up');
 		this.is_minimized = !this.is_minimized;
+		this.on_minimize_toggle && this.on_minimize_toggle(this.is_minimized);
 	}
 };
 

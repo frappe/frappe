@@ -290,12 +290,12 @@ frappe.get_modal = function(title, content) {
 		<div class="modal-dialog">
 			<div class="modal-content">
 				<div class="modal-header">
-	                <div class="row">
-	                    <div class="col-xs-7">
+	                <div class="flex justify-between">
+	                    <div class="fill-width">
 							<span class="indicator hidden"></span>
 	                        <h4 class="modal-title" style="font-weight: bold;">${title}</h4>
 	                    </div>
-	                    <div class="col-xs-5">
+	                    <div>
 							<div class="text-right buttons">
 								<button type="button" class="btn btn-default btn-sm btn-modal-minimize hide">
 									<i class="octicon octicon-chevron-down" style="padding: 1px 0px;"></i>
