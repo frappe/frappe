@@ -926,7 +926,6 @@ class Document(BaseDocument):
 
 		self.run_method('on_change')
 
-		self.update_timeline_doc()
 		self.clear_cache()
 		self.notify_update()
 
@@ -1183,23 +1182,6 @@ class Document(BaseDocument):
 			return self.get("__onload", frappe._dict())
 
 		return self.get('__onload')[key]
-
-	def update_timeline_doc(self):
-		if frappe.flags.in_install or not self.meta.get("timeline_field"):
-			return
-
-		timeline_doctype = self.meta.get_link_doctype(self.meta.timeline_field)
-		timeline_name = self.get(self.meta.timeline_field)
-
-		if not (timeline_doctype and timeline_name):
-			return
-
-		# update timeline doc in communication if it is different than current timeline doc
-		communications = frappe.get_list("Communication", filters={"reference_doctype": self.doctype, "reference_name": self.name})
-		for communication in communications:
-			communication = frappe.get_doc("Communication", communication.name)
-			# duplicate entries will be handled by deduplicate links in communication
-			communication.add_link(link_doctype=timeline_doctype, link_name=timeline_name, autosave=True)
 
 	def queue_action(self, action, **kwargs):
 		'''Run an action in background. If the action has an inner function,
