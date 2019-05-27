@@ -145,4 +145,8 @@ export default {
 .drag-handle {
   font-size: 12px;
 }
+
+.selected {
+  background: #f5f7fa;
+}
 </style>

@@ -24,7 +24,7 @@
 <script>
 import DeskSection from './DeskSection.vue';
 import { generate_route } from './utils';
-
+import { keyboard_nav } from './utils';
 export default {
 	components: {
 		DeskSection
@@ -48,6 +48,7 @@ export default {
 	},
 	created() {
 		this.fetch_home_settings();
+		keyboard_nav();
 	},
 	methods: {
 		fetch_home_settings() {
@@ -124,7 +125,7 @@ export default {
 
 			d.show();
 		}
-	}
+	},
 }
 </script>
 
