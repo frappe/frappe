@@ -450,17 +450,7 @@ frappe.views.CommunicationComposer = Class.extend({
 
 
 		if(form_values.attach_document_print) {
-			if (cur_frm.print_preview.is_old_style(form_values.select_print_format || "")) {
-				cur_frm.print_preview.with_old_style({
-					format: form_values.select_print_format,
-					callback: function(print_html) {
-						me.send_email(btn, form_values, selected_attachments, print_html);
-					}
-				});
-			} else {
-				me.send_email(btn, form_values, selected_attachments, null, form_values.select_print_format || "");
-			}
-
+			me.send_email(btn, form_values, selected_attachments, null, form_values.select_print_format || "");
 		} else {
 			me.send_email(btn, form_values, selected_attachments);
 		}
