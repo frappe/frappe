@@ -81,4 +81,8 @@ a {
   font-size: 12px;
   text-decoration: none;
 }
+
+.selected {
+  background: #f5f7fa;
+}
 </style>
