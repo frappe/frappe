@@ -136,13 +136,13 @@ export default class Grid {
 			var dirty = false;
 
 			let tasks = [];
-			me.get_selected().forEach((docname) => {
+			me.get_selected_children().forEach((doc) => {
 				tasks.push(() => {
 					if (!me.frm) {
 						me.df.data = me.get_data()
-						me.df.data = me.df.data.filter((row)=> row.name != docname);
+						me.df.data = me.df.data.filter((row)=> row.idx != doc.idx);
 					}
-					me.grid_rows_by_docname[docname].remove();
+					me.grid_rows_by_docname[doc.name].remove();
 					dirty = true;
 				});
 				tasks.push(() => frappe.timeout(0.1));
@@ -488,7 +488,7 @@ export default class Grid {
 				if (!this.df.data) {
 					this.df.data = this.get_data() || [];
 				}
-				this.df.data.push({name: "batch " + (this.df.data.length+1), idx: this.df.data.length+1, __islocal: true});
+				this.df.data.push({idx: this.df.data.length+1, __islocal: true});
 				this.refresh();
 			}
 

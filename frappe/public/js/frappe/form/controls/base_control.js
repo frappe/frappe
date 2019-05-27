@@ -190,7 +190,7 @@ frappe.ui.form.Control = Class.extend({
 		}
 	},
 	set_model_value: function(value) {
-		if(this.doctype && this.docname) {
+		if(this.frm) {
 			this.last_value = value;
 			return frappe.model.set_value(this.doctype, this.docname, this.df.fieldname,
 				value, this.df.fieldtype);
