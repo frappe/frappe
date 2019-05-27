@@ -171,7 +171,7 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 						return;
 					}
 
-					if(!me.df.only_select) {
+					if(!me.df.only_select && me.frm) {
 						if(frappe.model.can_create(doctype)) {
 							// new item
 							r.results.push({
