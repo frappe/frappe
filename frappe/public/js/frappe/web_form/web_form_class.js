@@ -1,4 +1,5 @@
 frappe.provide("frappe.ui");
+frappe.provide("frappe.web_form");
 
 window.web_form = null;
 
@@ -8,14 +9,20 @@ frappe.ui.WebForm = class WebForm extends frappe.ui.FieldGroup {
 		super();
 		Object.assign(this, opts);
 		window.web_form = this;
+		frappe.web_form = this;
 	}
 
-	make(opts) {
+	make() {
 		super.make();
 		this.set_field_values();
 		if (this.allow_delete) this.setup_delete_button();
 		this.setup_primary_action();
-		$('.link-btn').remove()
+		$('.link-btn').remove();
+	}
+
+	on(fieldname, handler) {
+		let field = web_form.fields_dict[fieldname];
+		field.input.addEventListener('focus', () => handler(field, field.value))
 	}
 
 	set_field_values() {
@@ -55,6 +62,7 @@ frappe.ui.WebForm = class WebForm extends frappe.ui.FieldGroup {
 	}
 
 	save() {
+		this.validate && this.validate()
 		// Handle data
 		let data = this.get_values();
 		if (this.doc) {

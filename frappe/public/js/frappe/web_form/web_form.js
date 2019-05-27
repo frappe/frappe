@@ -34,11 +34,14 @@ frappe.ready(function() {
 				doc: data.doc,
 				...data.web_form,
 			});
-
-			web_form.make();
-		});
+			web_form.make()
+		})
 	}
-	document.querySelector("body").style.display = "block";
+	setTimeout(() => {
+		document.querySelector("body").style.display = "block";
+		frappe.init_client_script && frappe.init_client_script();
+		frappe.web_form.after_load && frappe.web_form.after_load();
+	}, 500);
 
 	function get_data() {
 		return frappe.call({
