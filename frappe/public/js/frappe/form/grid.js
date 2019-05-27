@@ -314,7 +314,7 @@ export default class Grid {
 		} else {
 			// use non-doc specific docfield
 			if(this.df.options) {
-				this.df = frappe.meta.get_docfield(this.df.options, this.df.fieldname);
+				this.df = frappe.meta.get_docfield(this.df.options, this.df.fieldname) || this.df || null;
 			}
 		}
 
