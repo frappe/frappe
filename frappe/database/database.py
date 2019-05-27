@@ -178,10 +178,10 @@ class Database(object):
 				frappe.errprint(("Execution time: {0} sec").format(round(time_end - time_start, 2)))
 
 		except Exception as e:
-			if(frappe.db.db_type == 'postgres'):
+			if frappe.db and frappe.db.db_type == 'postgres':
 				self.rollback()
 
-			if frappe.db.db_type == 'mariadb' and self.is_syntax_error(e):
+			if frappe.db and frappe.db.db_type == 'mariadb' and self.is_syntax_error(e):
 				frappe.errprint('Syntax error in query:')
 				frappe.errprint(query)
 
