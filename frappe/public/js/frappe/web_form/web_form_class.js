@@ -61,16 +61,19 @@ frappe.ui.WebForm = class WebForm extends frappe.ui.FieldGroup {
 		document.querySelector(".web-form-actions").appendChild(delete_button);
 	}
 
+	get_values() {
+		let values = super.get_values()
+		values.doctype = this.doc_type;
+		values.name = this.doc_name;
+		values.web_form_name = this.name;
+		return values
+	}
+
 	save() {
 		this.validate && this.validate()
-		// Handle data
+
 		let data = this.get_values();
-		if (this.doc) {
-			Object.keys(data).forEach(field => (this.doc[field] = data[field]));
-			data = this.doc;
-		}
 		if (!data || window.saving) return;
-		data.doctype = this.doc_type;
 
 		// Save
 		window.saving = true;

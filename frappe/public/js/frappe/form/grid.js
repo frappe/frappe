@@ -139,6 +139,7 @@ export default class Grid {
 			me.get_selected().forEach((docname) => {
 				tasks.push(() => {
 					if (!me.frm) {
+						me.df.data = me.get_data()
 						me.df.data = me.df.data.filter((row)=> row.name != docname);
 					}
 					me.grid_rows_by_docname[docname].remove();
@@ -485,9 +486,9 @@ export default class Grid {
 				this.refresh();
 			} else {
 				if (!this.df.data) {
-					this.df.data = [];
+					this.df.data = this.get_data() || [];
 				}
-				this.df.data.push({name: "batch " + (this.df.data.length+1), idx: this.df.data.length+1});
+				this.df.data.push({name: "batch " + (this.df.data.length+1), idx: this.df.data.length+1, __islocal: true});
 				this.refresh();
 			}
 
