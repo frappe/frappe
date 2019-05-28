@@ -15,7 +15,11 @@ frappe.views.WebFormList = class WebFormList {
 	}
 
 	refresh() {
-		this.table && Array.from(this.table.tBodies).forEach(tbody => tbody.remove());
+		if (this.table) {
+			Array.from(this.table.tBodies).forEach(tbody => tbody.remove());
+			let check = document.getElementById('select-all')
+			check.checked = false;
+		}
 		this.rows = [];
 		this.page_length = 20;
 		this.web_list_start = 0;
@@ -140,6 +144,7 @@ frappe.views.WebFormList = class WebFormList {
 
 		let checkbox = document.createElement("input");
 		checkbox.type = "checkbox";
+		checkbox.id = "select-all";
 		checkbox.onclick = event =>
 			this.toggle_select_all(event.target.checked);
 
