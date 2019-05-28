@@ -7,7 +7,7 @@ frappe.ui.form.on('Translation', {
 		if(frm.is_new()) return;
 		frm.add_custom_button('Contribute', function() {
 			frappe.call({
-				method: 'frappe.core.doctype.translation.translation.send_translation',
+				method: 'frappe.core.doctype.translation.translation.contribute_translation',
 				args: {
 					"language": frm.doc.language,
 					"contributor": frm.doc.owner,

@@ -7,7 +7,6 @@ import frappe
 from frappe.model.document import Document
 from frappe.translate import clear_cache
 from frappe.utils import strip_html_tags, is_html
-from frappe.api import post_translation
 import json
 
 class Translation(Document):
@@ -25,7 +24,7 @@ class Translation(Document):
 		clear_cache()
 
 @frappe.whitelist()
-def send_translation(language, contributor, source_name, target_name):
+def contribute_translation(language, contributor, source_name, target_name):
 	data = {"data": json.dumps({
 		"language": language,
 		"contributor": contributor,
@@ -33,4 +32,12 @@ def send_translation(language, contributor, source_name, target_name):
 		"target_name": target_name,
 		"posting_date": frappe.utils.nowdate()
 	})}
-	post_translation(data=data)
+	from frappe.integrations.utils import make_post_request
+	try:
+		response = make_post_request(url="https://translate.erpnext.xyz/api/method/webnotes_app.api.add_translation", data=data)
+	except:
+		frappe.msgprint("Something went wrong while contributing translation. Please check error log for more details")
+	if response.get("message") == "Already exists":
+		frappe.msgprint("Translation already exists")
+	elif response.get("message") == "Added to contribution list":
+		frappe.msgprint("Translation successfully contributed")
