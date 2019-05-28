@@ -69,8 +69,8 @@ frappe.ui.WebForm = class WebForm extends frappe.ui.FieldGroup {
 		);
 	}
 
-	get_values() {
-		let values = super.get_values();
+	get_values(ignore_errors) {
+		let values = super.get_values(ignore_errors);
 		values.doctype = this.doc_type;
 		values.name = this.doc_name;
 		values.web_form_name = this.name;
@@ -80,7 +80,7 @@ frappe.ui.WebForm = class WebForm extends frappe.ui.FieldGroup {
 	save() {
 		this.validate && this.validate();
 
-		let data = this.get_values();
+		let data = this.get_values(this.allow_incomplete);
 		if (!data || window.saving) return;
 
 		// Save
