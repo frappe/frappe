@@ -509,7 +509,8 @@ _f.Frm.prototype.make_new = function(doctype) {
 
 			// set link fields (if found)
 			frappe.get_meta(doctype).fields.forEach(function(df) {
-				if(df.fieldtype==='Link' && df.options==="DocType") {
+				if(df.fieldtype==='Select' && df.options
+					&& in_list(df.options.split("\n"), me.doctype)) {
 					new_doc[df.fieldname] = me.doctype;
 				}
 
