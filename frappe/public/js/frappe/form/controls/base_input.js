@@ -77,6 +77,9 @@ frappe.ui.form.ControlInput = frappe.ui.form.Control.extend({
 			if(me.frm) {
 				me.value = frappe.model.get_value(me.doctype, me.docname, me.df.fieldname);
 			}
+			else if(me.doc) {
+				me.value = me.doc[me.df.fieldname];
+			}
 
 			if(me.disp_status=="Write") {
 				me.disp_area && $(me.disp_area).toggle(false);
