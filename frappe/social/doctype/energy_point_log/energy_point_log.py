@@ -131,26 +131,44 @@ def get_energy_points(user):
 @frappe.whitelist()
 def get_user_energy_and_review_points(user=None, from_date=None, as_dict=True):
 	conditions = ''
-	values = []
+	given_points_condition = ''
+	values = frappe._dict()
 	if user:
-		conditions = 'WHERE `user` = %s'
-		values.append(user)
+		conditions = 'WHERE `user` = %(user)s'
+		values.user = user
 	if from_date:
 		conditions += 'WHERE' if not conditions else 'AND'
-		conditions += ' `creation` >= %s'
-		values.append(from_date)
+		given_points_condition += "AND `creation` >= %(from_date)s"
+		conditions += " `creation` >= %(from_date)s OR `type`='Review'"
+		values.from_date = from_date
 
 	points_list =  frappe.db.sql("""
-		SELECT
-			SUM(CASE WHEN `type`!= 'Review' THEN `points` ELSE 0 END) as energy_points,
-			SUM(CASE WHEN `type`='Review' THEN `points` ELSE 0 END) as review_points,
-			SUM(CASE WHEN `type`='Review' and `points` < 0 THEN ABS(`points`) ELSE 0 END) as given_points,
+		SELECT SUM(CASE
+					WHEN `type` != 'Review'
+					THEN `points`
+					ELSE 0
+				END) AS energy_points,
+			SUM(CASE
+					WHEN `type` = 'Review'
+					THEN `points`
+					ELSE 0
+				END) AS review_points,
+			SUM(CASE
+				WHEN `type`='Review'
+				AND `points` < 0
+				{given_points_condition}
+				THEN ABS(`points`)
+				ELSE 0
+			END) as given_points,
 			`user`
 		FROM `tabEnergy Point Log`
 		{conditions}
 		GROUP BY `user`
 		ORDER BY `energy_points` DESC
-	""".format(conditions=conditions), values=tuple(values), as_dict=1)
+	""".format(
+		conditions=conditions,
+		given_points_condition=given_points_condition
+	), values=values, as_dict=1, debug=1)
 
 	if not as_dict:
 		return points_list
