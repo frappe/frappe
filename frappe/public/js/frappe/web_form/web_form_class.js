@@ -49,7 +49,7 @@ frappe.ui.WebForm = class WebForm extends frappe.ui.FieldGroup {
 
 	setup_primary_action() {
 		this.add_button(web_form.button_label || "Save", "primary", () =>
-			this.save()
+			this.save(this.accept_payment && !this.doc.paid)
 		);
 	}
 
@@ -77,7 +77,7 @@ frappe.ui.WebForm = class WebForm extends frappe.ui.FieldGroup {
 		return values;
 	}
 
-	save() {
+	save(accept_payment) {
 		this.validate && this.validate();
 
 		let data = this.get_values(this.allow_incomplete);
@@ -92,7 +92,8 @@ frappe.ui.WebForm = class WebForm extends frappe.ui.FieldGroup {
 			method: "frappe.website.doctype.web_form.web_form.accept",
 			args: {
 				data: data,
-				web_form: this.name
+				web_form: this.name,
+				for_payment: accept_payment
 			},
 			callback: response => {
 				// Check for any exception in response
@@ -131,6 +132,10 @@ frappe.ui.WebForm = class WebForm extends frappe.ui.FieldGroup {
 	}
 
 	handle_success(data) {
+		if (this.accept_payment && !this.doc.paid) {
+			window.location.href = data;
+		}
+
 		const success_dialog = new frappe.ui.Dialog({
 			title: __("Saved Successfully"),
 			secondary_action: () => {
