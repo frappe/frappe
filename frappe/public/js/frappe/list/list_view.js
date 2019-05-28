@@ -1130,9 +1130,9 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 					name: action,
 					action: () => {
 						frappe.xcall('frappe.model.workflow.bulk_workflow_approval', {
-							docs: this.get_checked_items(),
-							action: action,
-							doctype: this.doctype
+							docnames: this.get_checked_items(true),
+							doctype: this.doctype,
+							action: action
 						});
 					},
 					is_workflow_action: true

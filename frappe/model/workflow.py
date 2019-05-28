@@ -168,13 +168,12 @@ def get_workflow_field_value(workflow_name, field):
 	return value
 
 @frappe.whitelist()
-def bulk_workflow_approval(docs, action, doctype):
-	docs = json.loads(docs)
-	for (i, doc) in enumerate(docs, 1):
-		doc['doctype'] = doctype
+def bulk_workflow_approval(docnames, doctype, action):
+	docnames = json.loads(docnames)
+	for (i, docname) in enumerate(docnames, 1):
 		try:
-			show_progress(docs, _('Approving {0}').format(doctype), i, doc.get('name'))
-			apply_workflow(doc, action)
+			show_progress(docnames, _('Approving {0}').format(doctype), i, docname)
+			apply_workflow(frappe.get_doc(doctype, docname), action)
 		except frappe.ValidationError:
 			pass
 
