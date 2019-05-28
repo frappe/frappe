@@ -21,7 +21,7 @@ def get_workflow_name(doctype):
 	return workflow_name
 
 @frappe.whitelist()
-def get_transitions(doc, workflow = None):
+def get_transitions(doc, workflow = None, raise_exception=False):
 	'''Return list of possible transitions for the given doc'''
 	doc = frappe.get_doc(frappe.parse_json(doc))
 
@@ -36,7 +36,10 @@ def get_transitions(doc, workflow = None):
 	current_state = doc.get(workflow.workflow_state_field)
 
 	if not current_state:
-		frappe.throw(_('Workflow State not set'), WorkflowStateError)
+		if raise_exception:
+			raise WorkflowStateError
+		else:
+			frappe.throw(_('Workflow State not set'), WorkflowStateError)
 
 	transitions = []
 	for transition in workflow.transitions:
@@ -179,18 +182,22 @@ def bulk_workflow_approval(docs, action, doctype):
 def get_common_transition_actions(docs, doctype):
 	common_actions = []
 	docs = json.loads(docs)
-	for (i, doc) in enumerate(docs, 1):
-		doc['doctype'] = doctype
-		actions = [t.get('action') for t in get_transitions(doc) if has_approval_access(frappe.session.user, doc, t)]
-		if not actions: return []
-		common_actions = actions if i == 1 else set(common_actions).intersection(actions)
-		if not common_actions: return []
+	try:
+		for (i, doc) in enumerate(docs, 1):
+			doc['doctype'] = doctype
+			actions = [t.get('action') for t in get_transitions(doc, raise_exception=True) \
+				if has_approval_access(frappe.session.user, doc, t)]
+			if not actions: return []
+			common_actions = actions if i == 1 else set(common_actions).intersection(actions)
+			if not common_actions: return []
+	except WorkflowStateError:
+		pass
 
 	return common_actions
 
 def show_progress(docnames, message, i, description):
 	n = len(docnames)
-	if n >= 10:
+	if n >= 5:
 		frappe.publish_progress(
 			float(i) * 100 / n,
 			title = message,

@@ -128,7 +128,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			if (item.class) {
 				$item.addClass(item.class);
 			}
-			if (item.is_workflow_action) {
+			if (item.is_workflow_action && $item) {
 				// can be used to dynamically show or hide action
 				this.workflow_action_items[item.name] = $item;
 			}
@@ -1135,7 +1135,6 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 							doctype: this.doctype
 						});
 					},
-					standard: true,
 					is_workflow_action: true
 				});
 			});
