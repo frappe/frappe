@@ -28,6 +28,13 @@
 <div id="datatable" class="pt-3"></div>
 <div class="list-view-footer text-right"></div>
 {% endif %}
+{% if allow_comments and not frappe.form_dict.new and not is_list -%}
+<div class="comments">
+	<br><br>
+	<h3>{{ _("Comments") }}</h3>
+	{% include 'templates/includes/comments/comments.html' %}
+</div>
+{%- endif %}
 {% endblock %}
 
 {% block script %}
