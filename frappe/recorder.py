@@ -30,7 +30,7 @@ def sql(*args, **kwargs):
 
 	stack = list(get_current_stack_frames())
 
-	if frappe.conf.db_type == 'postgres':
+	if frappe.db.db_type == 'postgres':
 		query = frappe.db._cursor.query
 	else:
 		query = frappe.db._cursor._executed

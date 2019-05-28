@@ -129,7 +129,7 @@ class DocType(Document):
 					link_fieldname, source_fieldname = df.fetch_from.split('.', 1)
 					link_df = new_meta.get_field(link_fieldname)
 
-					if frappe.conf.db_type == 'postgres':
+					if frappe.db.db_type == 'postgres':
 						update_query = '''
 							UPDATE `tab{doctype}`
 							SET `{fieldname}` = source.`{source_fieldname}`

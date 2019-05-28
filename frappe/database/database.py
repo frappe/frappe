@@ -178,10 +178,11 @@ class Database(object):
 				frappe.errprint(("Execution time: {0} sec").format(round(time_end - time_start, 2)))
 
 		except Exception as e:
-			if(frappe.conf.db_type == 'postgres'):
+			if frappe.conf.db_type == 'postgres':
 				self.rollback()
 
-			if frappe.conf.db_type == 'mariadb' and self.is_syntax_error(e):
+			elif self.is_syntax_error(e):
+				# only for mariadb
 				frappe.errprint('Syntax error in query:')
 				frappe.errprint(query)
 
@@ -729,6 +730,7 @@ class Database(object):
 	def commit(self):
 		"""Commit current transaction. Calls SQL `COMMIT`."""
 		self.sql("commit")
+
 		frappe.local.rollback_observers = []
 		self.flush_realtime_log()
 		enqueue_jobs_after_commit()
@@ -910,7 +912,7 @@ class Database(object):
 		return self.is_missing_column(e) or self.is_missing_table(e)
 
 	def multisql(self, sql_dict, values=(), **kwargs):
-		current_dialect = frappe.conf.db_type or 'mariadb'
+		current_dialect = frappe.db.db_type or 'mariadb'
 		query = sql_dict.get(current_dialect)
 		return self.sql(query, values, **kwargs)
 

@@ -88,11 +88,7 @@ frappe.render_grid = function(opts) {
 	// build context
 	if(opts.grid) {
 		opts.columns = opts.grid.getColumns();
-		if(opts.report && opts.report.dataView) {
-			opts.data = frappe.slickgrid_tools.get_filtered_items(opts.report.dataView);
-		} else if(opts.grid) {
-			opts.data = opts.grid.getData().getItems();
-		}
+		opts.data = opts.grid.getData().getItems();
 	}
 
 	// show landscape view if columns more than 10

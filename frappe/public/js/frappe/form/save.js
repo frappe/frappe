@@ -1,7 +1,7 @@
 // Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
-frappe.provide("frappe.ui.form");
+
 
 frappe.ui.form.save = function (frm, action, callback, btn) {
 	$(btn).prop("disabled", true);
@@ -185,7 +185,10 @@ frappe.ui.form.save = function (frm, action, callback, btn) {
 			throw "saving";
 		}
 
-		frappe.ui.form.remove_old_form_route();
+		// ensure we remove new docs routes ONLY
+		if ( frm.is_new() ) {
+			frappe.ui.form.remove_old_form_route();
+		}
 		frappe.ui.form.is_saving = true;
 
 		return frappe.call({
@@ -224,14 +227,9 @@ frappe.ui.form.save = function (frm, action, callback, btn) {
 }
 
 frappe.ui.form.remove_old_form_route = () => {
-	let index = -1;
-	let current_route = frappe.get_route();
-	frappe.route_history.map((arr, i) => {
-		if (arr.join("/") === current_route.join("/")) {
-			index = i;
-		}
-	});
-	frappe.route_history.splice(index, 1);
+	let current_route = frappe.get_route().join("/");
+	frappe.route_history = frappe.route_history
+		.filter((route) => route.join("/") !== current_route);
 }
 
 frappe.ui.form.update_calling_link = (newdoc) => {

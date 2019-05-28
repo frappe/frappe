@@ -9,7 +9,7 @@ import './socketio_client'
 import './ui/dialog'
 import './ui/capture'
 
-import './misc/user'
+import './utils/user'
 
 /* eslint semi: "never" */
 // Fuck semicolons - https://mislav.net/2010/05/semicolons

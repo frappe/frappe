@@ -102,7 +102,7 @@ def get_expired_sessions():
 		expired += frappe.db.sql_list("""SELECT `sid`
 				FROM `tabSessions`
 				WHERE (NOW() - `lastupdate`) > %s
-				AND device = %s""", (get_expiry_period(device), device))
+				AND device = %s""", (get_expiry_period_for_query(device), device))
 
 	return expired
 
@@ -302,9 +302,10 @@ class Session:
 			# set user for correct timezone
 			self.time_diff = frappe.utils.time_diff_in_seconds(frappe.utils.now(),
 				session_data.get("last_updated"))
-			expiry = self.get_expiry_in_seconds(session_data.get("session_expiry"))
+			expiry = get_expiry_in_seconds(session_data.get("session_expiry"))
 
 			if self.time_diff > expiry:
+				print('deleting...')
 				self.delete_session()
 				data = None
 
@@ -318,7 +319,7 @@ class Session:
 			SELECT `user`, `sessiondata`
 			FROM `tabSessions` WHERE `sid`=%s AND
 			(NOW() - lastupdate) < %s
-			""", (self.sid, get_expiry_period(self.device)))
+			""", (self.sid, get_expiry_period_for_query(self.device)))
 
 		if rec:
 			data = frappe._dict(eval(rec and rec[0][1] or '{}'))
@@ -328,12 +329,6 @@ class Session:
 			data = None
 
 		return data
-
-	def get_expiry_in_seconds(self, expiry):
-		if not expiry:
-			return 3600
-		parts = expiry.split(":")
-		return (cint(parts[0]) * 3600) + (cint(parts[1]) * 60) + cint(parts[2])
 
 	def delete_session(self):
 		delete_session(self.sid, reason="Session Expired")
@@ -380,6 +375,18 @@ class Session:
 		frappe.cache().hset("session", self.sid, self.data)
 
 		return updated_in_db
+
+def get_expiry_period_for_query(device=None):
+	if frappe.db.db_type == 'postgres':
+		return get_expiry_period(device)
+	else:
+		return get_expiry_in_seconds(device=device)
+
+def get_expiry_in_seconds(expiry=None, device=None):
+	if not expiry:
+		expiry = get_expiry_period(device)
+	parts = expiry.split(":")
+	return (cint(parts[0]) * 3600) + (cint(parts[1]) * 60) + cint(parts[2])
 
 def get_expiry_period(device="desktop"):
 	if device=="mobile":
