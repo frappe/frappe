@@ -12,19 +12,24 @@ frappe.ready(function() {
 		login_required.set_message(__("You are not permitted to access this page."));
 		login_required.show();
 	}
+
 	else if (web_form_settings.is_list) {
 		web_form_list = new frappe.views.WebFormList({
 			parent: wrapper,
 			doctype: web_form_doctype,
-			web_form_name: web_form_name
+			web_form_name: web_form_name,
+			settings: web_form_settings
 		})
-	} else {
+	}
+
+	else {
 		// If editing is not allowed redirect to a new form
 		if (web_form_settings.doc_name && web_form_settings.allow_edit === 0) {
 			window.location.replace(window.location.pathname + "?new=1")
 		}
 		get_data().then(res => {
 			const data = setup_fields(res.message);
+			data.web_form.is_new = web_form_settings.is_new;
 			data.doc = res.message.doc
 			data.web_form.doc_name = web_form_settings.doc_name
 
@@ -37,6 +42,7 @@ frappe.ready(function() {
 			web_form.make()
 		})
 	}
+
 	setTimeout(() => {
 		document.querySelector("body").style.display = "block";
 		frappe.init_client_script && frappe.init_client_script();

@@ -250,11 +250,13 @@ frappe.views.WebFormList = class WebFormList {
 	}
 
 	toggle_delete() {
+		if (!this.settings.allow_delete) return
 		let btn = document.getElementById("delete-rows");
 		btn.hidden = !this.get_selected().length;
 	}
 
 	delete_rows() {
+		if (!this.settings.allow_delete) return
 		frappe
 			.call({
 				type: "POST",

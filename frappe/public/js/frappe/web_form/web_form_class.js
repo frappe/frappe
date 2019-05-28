@@ -14,7 +14,7 @@ frappe.ui.WebForm = class WebForm extends frappe.ui.FieldGroup {
 	make() {
 		super.make();
 		this.set_field_values();
-		this.set_form_description();
+		if (this.introduction_text) this.set_form_description(this.introduction_text);
 		if (this.allow_print && !this.is_new) this.setup_print_button();
 		if (this.allow_delete && !this.is_new) this.setup_delete_button();
 		if (this.is_new) this.setup_cancel_button();
@@ -34,9 +34,9 @@ frappe.ui.WebForm = class WebForm extends frappe.ui.FieldGroup {
 		else return;
 	}
 
-	set_form_description() {
+	set_form_description(intro) {
 		let intro_wrapper = document.getElementById('introduction');
-		intro_wrapper.innerHTML = this.introduction_text;
+		intro_wrapper.innerHTML = intro;
 	}
 
 	add_button(name, type, action) {
