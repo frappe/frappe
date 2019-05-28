@@ -78,10 +78,13 @@ frappe.workflow = {
 		}
 		return state;
 	},
+	get_all_transitions(doctype) {
+		return frappe.workflow.workflows[doctype].transitions || [];
+	},
 	get_all_transition_actions(doctype) {
-		const transitions = frappe.workflow.workflows[doctype].transitions || [];
+		const transitions = this.get_all_transitions(doctype);
 		return transitions.map(transition => {
 			return transition.action;
 		});
-	}
+	},
 };

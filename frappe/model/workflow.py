@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 import frappe
 from frappe.utils import cint
 from frappe import _
+import json
 
 class WorkflowStateError(frappe.ValidationError): pass
 class WorkflowTransitionError(frappe.ValidationError): pass
@@ -52,7 +53,6 @@ def get_transitions(doc, workflow = None):
 				if not success:
 					continue
 			transitions.append(transition.as_dict())
-	print(transitions)
 	return transitions
 
 @frappe.whitelist()
@@ -149,7 +149,7 @@ def get_workflow(doctype):
 def has_approval_access(user, doc, transition):
 	return (user == 'Administrator'
 		or transition.get('allow_self_approval')
-		or user != doc.owner)
+		or user != doc.get('owner'))
 
 def get_workflow_state_field(workflow_name):
 	return get_workflow_field_value(workflow_name, 'workflow_state_field')
@@ -166,11 +166,33 @@ def get_workflow_field_value(workflow_name, field):
 
 @frappe.whitelist()
 def bulk_workflow_approval(docs, action, doctype):
-	import json
 	docs = json.loads(docs)
-	for doc in docs:
+	for (i, doc) in enumerate(docs, 1):
 		doc['doctype'] = doctype
 		try:
+			show_progress(docs, _('Approving {0}').format(doctype), i, doc.get('name'))
 			apply_workflow(doc, action)
-		except Exception as e:
-			print(e)
+		except frappe.ValidationError:
+			pass
+
+@frappe.whitelist()
+def get_common_transition_actions(docs, doctype):
+	common_actions = []
+	docs = json.loads(docs)
+	for (i, doc) in enumerate(docs, 1):
+		doc['doctype'] = doctype
+		actions = [t.get('action') for t in get_transitions(doc) if has_approval_access(frappe.session.user, doc, t)]
+		if not actions: return []
+		common_actions = actions if i == 1 else set(common_actions).intersection(actions)
+		if not common_actions: return []
+
+	return common_actions
+
+def show_progress(docnames, message, i, description):
+	n = len(docnames)
+	if n >= 10:
+		frappe.publish_progress(
+			float(i) * 100 / n,
+			title = message,
+			description = description
+		)
