@@ -50,6 +50,7 @@ window.web_form_settings = {
 	web_form_doctype: 	"{{ doc_type }}",
 	web_form_name: 		"{{ name }}",
 	allow_edit:         {{ allow_edit }},
+	allow_delete:       {{ allow_delete }},
 	is_new: 			{{ 1 if frappe.form_dict.new else 0 }},
 	is_read_only: 		{{ 1 if read_only else 0 }},
 	doc_name: 			"{{ frappe.form_dict.name or "" }}",

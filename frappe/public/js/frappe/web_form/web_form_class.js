@@ -3,7 +3,6 @@ frappe.provide("frappe.web_form");
 
 window.web_form = null;
 
-
 frappe.ui.WebForm = class WebForm extends frappe.ui.FieldGroup {
 	constructor(opts) {
 		super();
@@ -15,14 +14,18 @@ frappe.ui.WebForm = class WebForm extends frappe.ui.FieldGroup {
 	make() {
 		super.make();
 		this.set_field_values();
-		if (this.allow_delete) this.setup_delete_button();
+		if (this.allow_print && !this.is_new) this.setup_print_button();
+		if (this.allow_delete && !this.is_new) this.setup_delete_button();
+		if (this.is_new) this.setup_cancel_button();
 		this.setup_primary_action();
-		$('.link-btn').remove();
+		$(".link-btn").remove();
 	}
 
 	on(fieldname, handler) {
 		let field = web_form.fields_dict[fieldname];
-		field.input.addEventListener('focus', () => handler(field, field.value))
+		field.input.addEventListener("focus", () =>
+			handler(field, field.value)
+		);
 	}
 
 	set_field_values() {
@@ -30,47 +33,46 @@ frappe.ui.WebForm = class WebForm extends frappe.ui.FieldGroup {
 		else return;
 	}
 
+	add_button(name, type, action) {
+		const button = document.createElement("button");
+		button.classList.add("btn", "btn-" + type, "btn-sm", "ml-2");
+		button.innerHTML = name;
+		button.onclick = action;
+		document.querySelector(".web-form-actions").appendChild(button);
+	}
+
 	setup_primary_action() {
-		const primary_action_button = document.createElement("button");
-		primary_action_button.classList.add(
-			"btn",
-			"btn-primary",
-			"primary-action",
-			"btn-form-submit",
-			"btn-sm",
-			"ml-2"
+		this.add_button(web_form.button_label || "Save", "primary", () =>
+			this.save()
 		);
-		primary_action_button.innerText = web_form.button_label || "Save";
-		primary_action_button.onclick = () => this.save();
-		document
-			.querySelector(".web-form-actions")
-			.appendChild(primary_action_button);
+	}
+
+	setup_cancel_button() {
+		this.add_button("Cancel", "light", () => this.cancel());
 	}
 
 	setup_delete_button() {
-		const delete_button = document.createElement("button");
-		delete_button.classList.add(
-			"btn",
-			"btn-secondary",
-			"button-delete",
-			"btn-sm",
-			"ml-2"
+		this.add_button("Delete", "danger", () => this.delete());
+	}
+
+	setup_print_button() {
+		this.add_button(
+			'<i class="fa fa-print" aria-hidden="true"></i>',
+			"light",
+			() => this.print()
 		);
-		delete_button.innerText = "Delete";
-		delete_button.onclick = () => this.delete();
-		document.querySelector(".web-form-actions").appendChild(delete_button);
 	}
 
 	get_values() {
-		let values = super.get_values()
+		let values = super.get_values();
 		values.doctype = this.doc_type;
 		values.name = this.doc_name;
 		values.web_form_name = this.name;
-		return values
+		return values;
 	}
 
 	save() {
-		this.validate && this.validate()
+		this.validate && this.validate();
 
 		let data = this.get_values();
 		if (!data || window.saving) return;
@@ -103,12 +105,23 @@ frappe.ui.WebForm = class WebForm extends frappe.ui.FieldGroup {
 	delete() {
 		frappe.call({
 			type: "POST",
-			method: "frappe.website.doctype.web_form.webform.delete",
+			method: "frappe.website.doctype.web_form.web_form.delete",
 			args: {
 				web_form_name: this.name,
 				docname: this.doc.name
 			}
 		});
+	}
+
+	print() {
+		window.location.href = `/printview?
+			doctype=${this.doc_type}
+			&name=${this.doc_name}
+			&format=${this.print_format || "Standard"}`;
+	}
+
+	cancel() {
+		window.location.href = window.location.pathname;
 	}
 
 	handle_success(data) {
@@ -131,5 +144,4 @@ frappe.ui.WebForm = class WebForm extends frappe.ui.FieldGroup {
 		success_dialog.set_message(success_message);
 		success_dialog.show();
 	}
-
 };
