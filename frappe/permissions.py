@@ -30,7 +30,7 @@ def print_has_permission_check_logs(func):
 		# print only if access denied
 		# and if user is checking his own permission
 		if not result and self_perm_check and raise_exception:
-			msgprint(('<br>').join(frappe.flags.get('has_permission_check_logs')))
+			msgprint(('<br>').join(frappe.flags.get('has_permission_check_logs', [])))
 		frappe.flags.pop('has_permission_check_logs', None)
 		return result
 	return inner

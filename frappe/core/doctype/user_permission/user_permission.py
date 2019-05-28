@@ -158,12 +158,17 @@ def add_user_permissions(data):
 	data = frappe._dict(data)
 
 	d = check_applicable_doc_perm(data.user, data.doctype, data.docname)
-	exists = frappe.db.exists("User Permission", {"user": data.user, "allow": data.doctype, "for_value": data.docname, "apply_to_all_doctypes": 1})
+	exists = frappe.db.exists("User Permission", {
+		"user": data.user,
+		"allow": data.doctype,
+		"for_value": data.docname,
+		"apply_to_all_doctypes": 1
+	})
 	if data.apply_to_all_doctypes == 1 and not exists:
 		remove_applicable(d, data.user, data.doctype, data.docname)
 		insert_user_perm(data.user, data.doctype, data.docname, apply_to_all = 1)
 		return 1
-	else:
+	elif len(data.applicable_doctypes) > 0 and data.apply_to_all_doctypes != 1:
 		remove_apply_to_all(data.user, data.doctype, data.docname)
 		update_applicable(d, data.applicable_doctypes, data.user, data.doctype, data.docname)
 		for applicable in data.applicable_doctypes :
