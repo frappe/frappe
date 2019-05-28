@@ -97,7 +97,10 @@ def get_page_info_from_doctypes(path=None):
 		values = []
 		controller = get_controller(doctype)
 		meta = frappe.get_meta(doctype)
-		condition_field = meta.is_published_field or controller.website.condition_field
+
+		condition_field = (meta.is_published_field or
+		# custom doctypes dont have controllers and no website attribute
+			(controller.website.condition_field if not meta.custom else None))
 
 		if condition_field:
 			condition ="where {0}=1".format(condition_field)
