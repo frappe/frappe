@@ -52,7 +52,7 @@ def get_transitions(doc, workflow = None):
 				if not success:
 					continue
 			transitions.append(transition.as_dict())
-
+	print(transitions)
 	return transitions
 
 @frappe.whitelist()
@@ -163,3 +163,14 @@ def get_workflow_field_value(workflow_name, field):
 		value = frappe.db.get_value("Workflow", workflow_name, field)
 		frappe.cache().hset('workflow_' + workflow_name, field, value)
 	return value
+
+@frappe.whitelist()
+def bulk_workflow_approval(docs, action, doctype):
+	import json
+	docs = json.loads(docs)
+	for doc in docs:
+		doc['doctype'] = doctype
+		try:
+			apply_workflow(doc, action)
+		except Exception as e:
+			print(e)

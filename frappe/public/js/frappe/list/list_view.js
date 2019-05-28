@@ -70,8 +70,6 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		// build menu items
 		this.menu_items = this.menu_items.concat(this.get_menu_items());
 
-		this.actions_menu_items = this.get_actions_menu_items();
-
 		if (this.view_user_settings.filters && this.view_user_settings.filters.length) {
 			// Priority 1: saved filters
 			const saved_filters = this.view_user_settings.filters;
@@ -91,7 +89,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 
 	get_list_view_settings() {
-		return frappe.call("frappe.desk.listview.get_list_settings", {doctype: this.doctype}).then(doc => this.list_view_settings = doc.message || {});
+		return frappe.call("frappe.desk.listview.get_list_settings", {doctype: this.doctype})
+			.then(doc => this.list_view_settings = doc.message || {});
 	}
 
 	on_sort_change(sort_by, sort_order) {
@@ -119,7 +118,11 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 
 	set_actions_menu_items() {
-		this.actions_menu_items.map(item => {
+		this.actions_menu_items = this.get_actions_menu_items();
+		this.get_workflow_actions_menu_items();
+
+		const actions = this.actions_menu_items.concat(this.workflow_actions_menu_items);
+		actions.map(item => {
 			const $item = this.page.add_actions_menu_item(item.label, item.action, item.standard);
 			if (item.class) {
 				$item.addClass(item.class);
@@ -1110,6 +1113,62 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				d.hide();
 			});
 		});
+	}
+
+	get_workflow_actions_menu_items() {
+		if (this.workflow_action_setup) return
+		if (frappe.model.has_workflow(this.doctype)) {
+			this.workflow_actions_menu_items = [];
+			const actions = frappe.workflow.get_all_transition_actions(this.doctype);
+			actions.forEach(action => {
+				this.workflow_actions_menu_items.push({
+					label: __(action),
+					action: () => {
+						frappe.xcall('frappe.model.workflow.bulk_workflow_approval', {
+							docs: this.get_checked_items(),
+							action: action,
+							doctype: this.doctype
+						});
+					},
+					standard: true,
+					is_workflow_action: true
+				});
+			});
+		}
+		this.workflow_action_setup = true;
+		// const check_requirement = () => {
+		// 	const checked_items = this.get_checked_items();
+		// 	const doc_states = [];
+		// 	checked_items.forEach(doc => {
+		// 		doc.doctype = this.doctype;
+		// 		doc_states.push(frappe.workflow.get_state(doc));
+		// 	});
+
+		// 	const all_docs_have_same_state = frappe.utils.unique(doc_states).length === 1;
+
+		// 	if (all_docs_have_same_state) {
+		// 		this.actions_menu_items.push({
+		// 			label: __('Next Action'),
+		// 			action: () => {
+		// 				frappe.msgprint('IN');
+		// 			},
+		// 			standard: true
+		// 		});
+		// 	}
+		// };
+
+		// if (!this.transitions) {
+		// 	frappe.workflow.get_transitions(this.doctype)
+		// 		.then(transitions => {
+		// 			this.transitions = transitions;
+		// 			check_requirement();
+		// 		});
+		// } else {
+		// 	check_requirement();
+		// }
+		// check_requirement();
+		console.log('--');
+
 	}
 
 	get_actions_menu_items() {
