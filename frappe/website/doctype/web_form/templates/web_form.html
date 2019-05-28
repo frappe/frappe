@@ -21,13 +21,36 @@
 
 {% block page_content %}
 <div role="form" class="web-form-wrapper" data-web-form="{{ name }}" data-owner="{{ doc.owner }}">
+	<div id="introduction" class="text-muted"></div>
 	<hr>
 </div>
+
 {% if is_list %}
 <div id="list-filters" class="row"></div>
 <div id="datatable" class="pt-3"></div>
 <div class="list-view-footer text-right"></div>
 {% endif %}
+
+{% if show_attachments and not frappe.form_dict.new and attachements%}
+<div class="attachments">
+	<h3>{{ _("Attachments") }}</h3>
+	{% for attachment in attachments %}
+	<div class="attachment">
+		<a class="no-underline attachment-link" href="{{ attachment.file_url }}" target="blank">
+			<div class="row">
+				<div class="col-9">
+					<span class="file-name">{{ attachment.file_name }}</span>
+				</div>
+				<div class="col-3">
+					<span class="pull-right file-size">{{ attachment.file_size }}</span>
+				</div>
+			</div>
+		</a>
+	</div>
+	{% endfor %}
+</div>
+{%- endif %}
+
 {% if allow_comments and not frappe.form_dict.new and not is_list -%}
 <div class="comments">
 	<br><br>
