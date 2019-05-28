@@ -507,7 +507,7 @@ def extract_messages_from_code(code, is_py=False):
 	:param is_py: include messages in triple quotes e.g. `_('''message''')`"""
 	try:
 		code = frappe.as_unicode(render_include(code))
-	except (TemplateError, ImportError, InvalidIncludePath):
+	except (TemplateError, ImportError, InvalidIncludePath, IOError):
 		# Exception will occur when it encounters John Resig's microtemplating code
 		pass
 
