@@ -131,8 +131,8 @@ frappe.ui.form.Toolbar = Class.extend({
 		}
 
 		// email attach link
-		this.page.add_menu_item(__("Attach Link"), function() {
-			frappe.msgprint(__("+" + me.frm.doc.doctype + "+"+ me.frm.doc.name));
+		this.page.add_menu_item(__("Get Attach Link"), function() {
+			me.get_attach_link(me.frm);
 		}, true);
 
 		// Linked With
@@ -227,6 +227,24 @@ frappe.ui.form.Toolbar = Class.extend({
 			});
 		}
 		this.frm.linked_with.show();
+	},
+	get_attach_link: function(frm) {
+		let d = new frappe.ui.Dialog({
+			title: 'Get Email with Link',
+			fields: [{
+					"fieldtype": "Data",
+					"label": __("Email"),
+					"fieldname": "email",
+				},
+			],
+			primary_action: function(values) {
+				let email = values.email;
+				d.hide();
+				frappe.msgprint(__("{0}+{1}+{2}@{3}", [email.split("@")[0], frm.doc.doctype, frm.doc.name, email.split("@")[1]]));
+			},
+			primary_action_label: "Get"
+		});
+		d.show();
 	},
 	set_primary_action: function(dirty) {
 		if (!dirty) {
