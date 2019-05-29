@@ -40,88 +40,154 @@ function generate_route(item) {
 	return route;
 }
 
+
 function keyboard_nav() {
-	let mod_nav_obj = {}, dropdown_nav_obj = {};
+	let nav_obj = {}, dropdown_nav_obj = {};
+	nav_obj.changed = false;
+	var {UP, DOWN, LEFT, RIGHT, ENTER, SPACE} = frappe.ui.keyCode;
+	check_width_change(nav_obj);
 	$(document).on('keydown.nav',(e)=> {
+		if(!in_list([UP, DOWN, LEFT, RIGHT, ENTER, SPACE], e.which)) {
+			return;
+		}
 
 		if($('.modules-section').is(':visible')) {
 			if ($('[role="listbox"]').is(":visible") || $('.dropdown-menu').is(':visible') 
 				|| $('.modal').is(':visible') || $('input:focus').length > 0) {
 					return;
-			} 
+			}
 			if($('.module-dropdown').is(':visible')) {
-				if(!dropdown_nav_obj.li || !dropdown_nav_obj.li.is(':visible')) {
-					dropdown_nav_obj.li = $('.module-dropdown li').filter(':visible');
-					dropdown_nav_obj.liSelected = null;
-				}
-				object_nav(e, true, dropdown_nav_obj,'a');
+				navigate(e, dropdown_nav_obj,$('.module-dropdown li').filter(':visible'), 'a', true);
 			} else {
-				let $section_list = $('.modules-section');
-				if(e.which === 77) {
-					add_selected_class(mod_nav_obj, $section_list, 0);
-				} else if(e.which === 68) {
-					add_selected_class(mod_nav_obj, $section_list, 1);
-				} else if(e.which === 80) {
-					add_selected_class(mod_nav_obj, $section_list, 2);
-				} else if(e.which === 65) {
-					add_selected_class(mod_nav_obj, $section_list, 3);
-				}
-				else {
-					object_nav(e, false, mod_nav_obj, $('.module-box-link'));
-				}
+				navigate(e, nav_obj, $('.module-box'), '.module-box-link', false);
 			}
 		}
 
 	})
 }
 
-function object_nav(e, is_dropdown, nav_obj, enter_el) {
-	if(e.which === 40 && nav_obj.li){
-		nav(true, nav_obj);
-	} else if(e.which === 38 && nav_obj.li) {
-		nav(false, nav_obj)
-	} else if(e.which === 13 && nav_obj.liSelected && enter_el) {
-		window.location.href = nav_obj.liSelected.find(enter_el).attr('href');
-		reset_nav_obj(nav_obj);
-	} else if(e.which === 32) {
-		e.preventDefault();
-		if(!is_dropdown) {
-			if(nav_obj.liSelected) nav_obj.liSelected.find('.octicon-chevron-down').click();
+function navigate(e, nav_obj, $el, enter_el, is_dropdown) {
+	if(e.which>=37 && e.which <=40) {
+		navigate_directions(e, nav_obj, $el);
+	}
+	else {
+		if(e.which === 13 && nav_obj.selected) {
+			nav_enter(nav_obj,enter_el);
 		}
-		else {
-			$('body').click();
-			if(nav_obj.liSelected) {
-				reset_nav_obj(nav_obj);
-			}
+		if(e.which === 32) {
+			e.preventDefault();
+			nav_space(nav_obj, is_dropdown);
+		}
+	}
+}
+
+function navigate_directions(e, nav_obj, $el) {
+	if(!nav_obj.grid || nav_obj.changed) {
+		nav_obj.position = { x: 0, y: 0 }
+		populate_grid(nav_obj, $el);
+		add_selected_class(nav_obj);
+		nav_obj.changed = false;
+	} else {
+		if (e.which === 37) // left
+			nav_left(nav_obj);
+		else if (e.which === 38) // up
+			nav_up(nav_obj);
+		else if (e.which === 39) // right
+			nav_right(nav_obj);
+		else if (e.which === 40) // down
+			nav_down(nav_obj);
+		add_selected_class(nav_obj);
+	}
+}
+
+function check_width_change(nav_obj) {
+	$(document).on('change',()=> {		
+		nav_obj.changed = true;
+	})
+
+	$(window).resize(() => {
+		nav_obj.changed = true;
+	});
+}
+
+function populate_grid(nav_obj, $el) {
+	nav_obj.grid = [];
+	let el_top = $el.eq(0).offset().top;
+	let row_ar = [];
+	$el.each(function (i,v) {
+		if($(v).offset().top === el_top) {
+			row_ar.push($(v));
+		} else {
+			el_top = $(v).offset().top;
+			nav_obj.grid.push(row_ar);
+			row_ar = [$(v)];
+		}
+		
+	});
+	nav_obj.grid.push(row_ar);
+}
+
+
+function nav_left(nav_obj) {
+    nav_obj.position.x--;
+    if (nav_obj.position.x < 0)
+        nav_obj.position.x = 0;
+}
+
+function nav_up(nav_obj) {
+	if(nav_obj.position.y > 0) {
+		let init_pos = nav_obj.position.y;
+		nav_obj.position.y--;
+		while(!nav_obj.grid[nav_obj.position.y][nav_obj.position.x] && nav_obj.position.y > 0) {
+			nav_obj.position.y--;
+		}
+		if(!nav_obj.grid[nav_obj.position.y][nav_obj.position.x]) nav_obj.position.y=init_pos;
+	}
+}
+
+function nav_right(nav_obj) {
+    nav_obj.position.x++;
+    if (nav_obj.position.x >= nav_obj.grid[nav_obj.position.y].length)
+		nav_obj.position.x = nav_obj.grid[nav_obj.position.y].length - 1;
+}
+
+function nav_down(nav_obj) {
+	if(nav_obj.position.y < nav_obj.grid.length-1) {
+		let init_pos = nav_obj.position.y;
+		nav_obj.position.y++;
+		while(!nav_obj.grid[nav_obj.position.y][nav_obj.position.x] && nav_obj.position.y < nav_obj.grid.length-1) {
+			nav_obj.position.y++;
+		}
+		if(!nav_obj.grid[nav_obj.position.y][nav_obj.position.x]) nav_obj.position.y=init_pos;
+	}
+}
+
+function add_selected_class(nav_obj) {
+	if(nav_obj.selected) nav_obj.selected.removeClass('selected');
+	nav_obj.selected = nav_obj.grid[nav_obj.position.y][nav_obj.position.x]
+	nav_obj.selected.addClass('selected');
+}
+
+function nav_enter(nav_obj, $el) {
+	window.location.href = nav_obj.selected.find($el).attr('href');
+}
+
+function nav_space(nav_obj, is_dropdown) {
+	if(!is_dropdown) {
+		if(nav_obj.selected) nav_obj.selected.find('.octicon-chevron-down').click();
+	}
+	else {
+		$('body').click();
+		if(nav_obj.selected) {
+			reset_nav_obj(nav_obj);
 		}
 	}
 }
 
 function reset_nav_obj(nav_obj) {
-	nav_obj.liSelected.removeClass('selected');
-	nav_obj.li=null;
-	nav_obj.liSelected=null;
-}
-
-function nav(is_down, nav_obj) {
-	if(nav_obj.liSelected){
-		nav_obj.liSelected.removeClass('selected');
-		nav_obj.next = is_down ? nav_obj.liSelected.next(): nav_obj.liSelected.prev();
-		if(nav_obj.next.length > 0){
-			nav_obj.liSelected = nav_obj.next.addClass('selected');
-		}else{
-			nav_obj.liSelected = nav_obj.li.eq(0).addClass('selected');
-		}
-	}else{
-		nav_obj.liSelected = is_down ? nav_obj.li.eq(0).addClass('selected') : nav_obj.li.last().addClass('selected');
-	}
-}
-
-function add_selected_class(obj, $section_list, index) {
-	obj.li = $section_list.eq(index).find('.module-box');
-	if(obj.liSelected) obj.liSelected.removeClass('selected');
-	obj.liSelected = obj.li.eq(0);
-	obj.liSelected.addClass('selected');
+	nav_obj.selected.removeClass('selected');
+	nav_obj.grid = null;
+	nav_obj.position = { x: 0, y: 0};
 }
 
 export {

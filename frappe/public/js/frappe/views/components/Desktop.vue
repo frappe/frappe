@@ -48,6 +48,8 @@ export default {
 	},
 	created() {
 		this.fetch_home_settings();
+	},
+	mounted() {
 		keyboard_nav();
 	},
 	methods: {
