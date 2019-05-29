@@ -85,13 +85,13 @@ frappe.ui.Page = Class.extend({
 
 		$(document).on('keydown', null, 'alt', (e)=> {
 			e.stopImmediatePropagation();
-
+			let $page = $(frappe.container.page);
 			//Get list of elements
-			let buttons = $('.page-actions').find('button').filter(':visible');
-			menu_list = $('.menu-btn-group').find('ul li a').filter(':visible');
-			actions_list = $('.actions-btn-group').find('ul li a').filter(':visible');
-			sidebar_list = $(".list-sidebar li:not('.divider') a:not('.disabled')").filter(':visible');
-			form_sidebar = $('.form-sidebar a:not(".close")').filter(':visible');
+			let buttons = $page.find('.page-actions button').filter(':visible');
+			menu_list = $page.find('.menu-btn-group ul li a').filter(':visible');
+			actions_list = $page.find('.actions-btn-group ul li a').filter(':visible');
+			sidebar_list = $page.find(".list-sidebar li:not('.divider') a:not('.disabled')").filter(':visible');
+			form_sidebar = $page.find('.form-sidebar a:not(".close")').filter(':visible');
 			navbar_breadcrumbs = $('#navbar-breadcrumbs a').filter(':visible');
 
 			$.merge(buttons, navbar_breadcrumbs);
@@ -101,17 +101,17 @@ frappe.ui.Page = Class.extend({
 			}
 			//For form view
 			if(form_sidebar.length) {
-				dashboard_list = $('.transactions a').filter(':visible');
+				dashboard_list = $page.find('.transactions a').filter(':visible');
 				$.merge(buttons, form_sidebar);
 				$.merge(buttons, dashboard_list);
 			}
 			//Underline list of elements in menu dropdown
 			if(menu_list.length) {
-				menu_list = menu_list.add($('.menu-btn-group').filter(':visible').find('button'));
+				menu_list = menu_list.add($page.find('.menu-btn-group').filter(':visible').find('button'));
 				el_list = this.underline_alt_elements(menu_list, '.menu-item-label, .menu-btn-group-label');
 			//Underline list of elements in actions dropdown
 			} else if(actions_list.length) {
-				actions_list.add($('.actions-btn-group').filter(':visible'));
+				actions_list.add($page.find('.actions-btn-group').filter(':visible'));
 				el_list = this.underline_alt_elements(actions_list,'.menu-item-label');
 			//Undeline all other elements-sidebar, navbar breadcrumbs, dashboard
 			} else {
