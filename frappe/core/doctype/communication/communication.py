@@ -235,6 +235,9 @@ class Communication(Document):
 			if commit:
 				frappe.db.commit()
 
+	def set_email_links(self):
+		add_email_link(self, [self.sender, self.recipients, self.cc, self.bcc])
+
 	# Timeline Links
 	def set_timeline_links(self):
 		contacts = get_contacts([self.sender, self.recipients, self.cc, self.bcc])
@@ -351,3 +354,18 @@ def add_contact_links_to_communication(communication, contact_name):
 	if contact_links:
 		for contact_link in contact_links:
 			communication.add_link(contact_link.link_doctype, contact_link.link_name)
+
+def add_email_link(communication, email_strings):
+	delimiter = "+"
+	email_addrs = []
+
+	for email_string in email_strings:
+		if email_string:
+			for email in email_string.split(","):
+				if delimiter in email:
+					email = email.split("@")[0]
+					doctype = email.split(delimiter)[1]
+					docname = email.split(delimiter)[2]
+
+					if frappe.db.exists(doctype, docname):
+						communication.add_link(doctype, docname)

@@ -130,6 +130,11 @@ frappe.ui.form.Toolbar = Class.extend({
 				me.frm.email_doc();}, true);
 		}
 
+		// email attach link
+		this.page.add_menu_item(__("Attach Link"), function() {
+			frappe.msgprint(__("+" + me.frm.doc.doctype + "+"+ me.frm.doc.name));
+		}, true);
+
 		// Linked With
 		if(!me.frm.meta.issingle) {
 			this.page.add_menu_item(__('Links'), function() {
