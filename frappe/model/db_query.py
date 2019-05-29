@@ -381,7 +381,7 @@ class DatabaseQuery(object):
 
 		elif f.operator.lower() in ('in', 'not in'):
 			values = f.value or ''
-			if not isinstance(values, (list, tuple)):
+			if isinstance(values, frappe.string_types):
 				values = values.split(",")
 
 			fallback = "''"
