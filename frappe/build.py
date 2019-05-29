@@ -26,8 +26,11 @@ def setup():
 		except ImportError: pass
 	app_paths = [os.path.dirname(pymodule.__file__) for pymodule in pymodules]
 
-def bundle(no_compress, make_copy=False, restore=False, verbose=False):
-	"""concat / minify js files"""
+def bundle(no_compress, app=None, make_copy=False, restore=False, verbose=False):
+	"""concat / minify js files
+
+	app argument is here to support newer bench command (bench build --app xxxx)
+	"""
 	# build js files
 	setup()
 
