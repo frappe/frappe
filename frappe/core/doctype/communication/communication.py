@@ -60,6 +60,7 @@ class Communication(Document):
 		validate_email(self)
 
 		if self.communication_medium == "Email":
+			self.set_email_links()
 			self.set_timeline_links()
 			self.deduplicate_timeline_links()
 
@@ -331,6 +332,7 @@ def get_contacts(email_strings):
 
 	contacts = []
 	for email in email_addrs:
+		email = get_email_without_link(email)
 		contact_name = frappe.db.get_value('Contact', {'email_id': email})
 
 		if not contact_name:
@@ -369,3 +371,12 @@ def add_email_link(communication, email_strings):
 
 					if frappe.db.exists(doctype, docname):
 						communication.add_link(doctype, docname)
+
+def get_email_without_link(email):
+	# returns email address with doctype links
+	# returns admin@example.com for email admin+doctype+docname@example.com
+
+	email_id = email.split("@")[0].split("+")[0]
+	email_host = email.split("@")[1]
+
+	return "{0}@{1}".format(email_id, email_host)
