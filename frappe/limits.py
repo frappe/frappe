@@ -5,7 +5,8 @@ from frappe.utils import now_datetime, getdate, flt, cint, get_fullname
 from frappe.installer import update_site_config
 from frappe.utils.data import formatdate
 from frappe.utils.user import get_enabled_system_users, disable_users
-import os, subprocess
+import os, subprocess, json
+from frappe.utils.__init__ import get_site_info
 from six.moves.urllib.parse import parse_qsl, urlsplit, urlunsplit, urlencode
 from six import string_types
 
@@ -235,3 +236,10 @@ def get_database_size():
 		FROM information_schema.TABLES WHERE table_schema = %s GROUP BY table_schema''', db_name, as_dict=True)
 
 	return flt(db_size[0].get('database_size'), 2)
+
+def update_site_usage():
+	data = get_site_info()
+	# exists = os.path.isfile(frappe.get_site_path("site_data.json"))
+	with open(os.path.join(frappe.get_site_path(), 'site_data.json'), 'w') as outfile:
+		json.dump(data, outfile)
+		outfile.close()

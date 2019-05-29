@@ -3,6 +3,8 @@
 
 from __future__ import unicode_literals
 
+import json
+import os
 import frappe
 import frappe.translate
 import frappe.modules.patch_handler
@@ -23,30 +25,41 @@ def migrate(verbose=True, rebuild_website=False):
 	- sync fixtures
 	- sync desktop icons
 	- sync web pages (from /www)'''
-	frappe.flags.in_migrate = True
-	clear_global_cache()
 
-	# run patches
-	frappe.modules.patch_handler.run_all()
-	# sync
-	frappe.model.sync.sync_all(verbose=verbose)
-	frappe.translate.clear_cache()
-	sync_fixtures()
-	sync_customizations()
-	sync_desktop_icons()
-	sync_languages()
+	touched_tables_file = frappe.get_site_path('touched_tables.json')
+	if os.path.exists(touched_tables_file):
+		os.remove(touched_tables_file)
 
-	frappe.get_doc('Portal Settings', 'Portal Settings').sync_menu()
+	try:
+		frappe.flags.touched_tables = set()
+		frappe.flags.in_migrate = True
+		clear_global_cache()
 
-	# syncs statics
-	render.clear_cache()
+		# run patches
+		frappe.modules.patch_handler.run_all()
+		# sync
+		frappe.model.sync.sync_all(verbose=verbose)
+		frappe.translate.clear_cache()
+		sync_fixtures()
+		sync_customizations()
+		sync_desktop_icons()
+		sync_languages()
 
-	# add static pages to global search
-	router.sync_global_search()
+		frappe.get_doc('Portal Settings', 'Portal Settings').sync_menu()
 
-	frappe.db.commit()
+		# syncs statics
+		render.clear_cache()
 
-	clear_notifications()
+		# add static pages to global search
+		router.sync_global_search()
 
-	frappe.publish_realtime("version-update")
-	frappe.flags.in_migrate = False
+		frappe.db.commit()
+
+		clear_notifications()
+
+		frappe.publish_realtime("version-update")
+		frappe.flags.in_migrate = False
+	finally:
+		with open(touched_tables_file, 'w') as f:
+			json.dump(list(frappe.flags.touched_tables), f, sort_keys=True, indent=4)
+		frappe.flags.touched_tables.clear()
