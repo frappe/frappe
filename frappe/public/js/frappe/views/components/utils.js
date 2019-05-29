@@ -50,16 +50,16 @@ function keyboard_nav() {
 		if(!in_list([UP, DOWN, LEFT, RIGHT, ENTER, SPACE], e.which)) {
 			return;
 		}
-
-		if($('.modules-section').is(':visible')) {
+		let $page = $(frappe.container.page);
+		if($page.find('.modules-section').is(':visible')) {
 			if ($('[role="listbox"]').is(":visible") || $('.dropdown-menu').is(':visible') 
 				|| $('.modal').is(':visible') || $('input:focus').length > 0) {
 					return;
 			}
-			if($('.module-dropdown').is(':visible')) {
-				navigate(e, dropdown_nav_obj,$('.module-dropdown li').filter(':visible'), 'a', true);
+			if($page.find('.module-dropdown').is(':visible')) {
+				navigate(e, dropdown_nav_obj,$page.find('.module-dropdown li').filter(':visible'), 'a', true);
 			} else {
-				navigate(e, nav_obj, $('.module-box'), '.module-box-link', false);
+				navigate(e, nav_obj, $page.find('.module-box'), '.module-box-link', false);
 			}
 		}
 
