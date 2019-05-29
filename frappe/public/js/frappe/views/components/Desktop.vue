@@ -23,8 +23,8 @@
 
 <script>
 import DeskSection from './DeskSection.vue';
-import { generate_route } from './utils';
-import { keyboard_nav } from './utils';
+import { generate_route, keyboard_nav } from './utils';
+
 export default {
 	components: {
 		DeskSection

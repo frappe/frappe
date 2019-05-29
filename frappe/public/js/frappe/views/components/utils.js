@@ -44,7 +44,9 @@ function generate_route(item) {
 function keyboard_nav() {
 	let nav_obj = {}, dropdown_nav_obj = {};
 	nav_obj.changed = false;
+
 	var {UP, DOWN, LEFT, RIGHT, ENTER, SPACE} = frappe.ui.keyCode;
+	//Setup events for change in module grid
 	check_width_change(nav_obj);
 	$(document).on('keydown.nav',(e)=> {
 		if(!in_list([UP, DOWN, LEFT, RIGHT, ENTER, SPACE], e.which)) {
@@ -57,23 +59,27 @@ function keyboard_nav() {
 					return;
 			}
 			if($page.find('.module-dropdown').is(':visible')) {
+				//Dropdown navigation
 				navigate(e, dropdown_nav_obj,$page.find('.module-dropdown li').filter(':visible'), 'a', true);
 			} else {
+				//Module navigation
 				navigate(e, nav_obj, $page.find('.module-box'), '.module-box-link', false);
 			}
 		}
 
-	})
+	});
 }
 
 function navigate(e, nav_obj, $el, enter_el, is_dropdown) {
+	// UP, DOWN, LEFT, RIGHT
 	if(e.which>=37 && e.which <=40) {
 		navigate_directions(e, nav_obj, $el);
-	}
-	else {
+	} else {
+		//ENTER
 		if(e.which === 13 && nav_obj.selected) {
 			nav_enter(nav_obj,enter_el);
 		}
+		//SPACE
 		if(e.which === 32) {
 			e.preventDefault();
 			nav_space(nav_obj, is_dropdown);
@@ -82,25 +88,29 @@ function navigate(e, nav_obj, $el, enter_el, is_dropdown) {
 }
 
 function navigate_directions(e, nav_obj, $el) {
+
+	//Initilaize module grid
 	if(!nav_obj.grid || nav_obj.changed) {
 		nav_obj.position = { x: 0, y: 0 }
 		populate_grid(nav_obj, $el);
 		add_selected_class(nav_obj);
 		nav_obj.changed = false;
 	} else {
-		if (e.which === 37) // left
+		if (e.which === 37)
 			nav_left(nav_obj);
-		else if (e.which === 38) // up
+		else if (e.which === 38)
 			nav_up(nav_obj);
-		else if (e.which === 39) // right
+		else if (e.which === 39)
 			nav_right(nav_obj);
-		else if (e.which === 40) // down
+		else if (e.which === 40)
 			nav_down(nav_obj);
 		add_selected_class(nav_obj);
 	}
 }
 
 function check_width_change(nav_obj) {
+
+	//If cards shown or hiddem
 	$(document).on('change',()=> {		
 		nav_obj.changed = true;
 	})
@@ -138,10 +148,13 @@ function nav_up(nav_obj) {
 	if(nav_obj.position.y > 0) {
 		let init_pos = nav_obj.position.y;
 		nav_obj.position.y--;
-		while(!nav_obj.grid[nav_obj.position.y][nav_obj.position.x] && nav_obj.position.y > 0) {
+		while(!nav_obj.grid[nav_obj.position.y][nav_obj.position.x] 
+			&& nav_obj.position.y > 0) {
 			nav_obj.position.y--;
 		}
-		if(!nav_obj.grid[nav_obj.position.y][nav_obj.position.x]) nav_obj.position.y=init_pos;
+		if(!nav_obj.grid[nav_obj.position.y][nav_obj.position.x]) {
+			nav_obj.position.y=init_pos;
+		}
 	}
 }
 
@@ -155,10 +168,13 @@ function nav_down(nav_obj) {
 	if(nav_obj.position.y < nav_obj.grid.length-1) {
 		let init_pos = nav_obj.position.y;
 		nav_obj.position.y++;
-		while(!nav_obj.grid[nav_obj.position.y][nav_obj.position.x] && nav_obj.position.y < nav_obj.grid.length-1) {
+		while(!nav_obj.grid[nav_obj.position.y][nav_obj.position.x] 
+			&& nav_obj.position.y < nav_obj.grid.length-1) {
 			nav_obj.position.y++;
 		}
-		if(!nav_obj.grid[nav_obj.position.y][nav_obj.position.x]) nav_obj.position.y=init_pos;
+		if(!nav_obj.grid[nav_obj.position.y][nav_obj.position.x]) {
+			nav_obj.position.y=init_pos;
+		}
 	}
 }
 
@@ -174,9 +190,10 @@ function nav_enter(nav_obj, $el) {
 
 function nav_space(nav_obj, is_dropdown) {
 	if(!is_dropdown) {
+		//Open dropdown
 		if(nav_obj.selected) nav_obj.selected.find('.octicon-chevron-down').click();
-	}
-	else {
+	} else {
+		//Close dropdown and reset dropdown navigation
 		$('body').click();
 		if(nav_obj.selected) {
 			reset_nav_obj(nav_obj);
