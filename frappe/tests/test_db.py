@@ -46,6 +46,11 @@ class TestDB(unittest.TestCase):
 		self.assertIn('tabToDo', frappe.flags.touched_tables)
 
 		frappe.flags.touched_tables = set()
+		frappe.db.sql("UPDATE tabToDo SET description = 'Updated Description'")
+		self.assertNotIn('tabToDo SET', frappe.flags.touched_tables)
+		self.assertIn('tabToDo', frappe.flags.touched_tables)
+
+		frappe.flags.touched_tables = set()
 		todo.delete()
 		self.assertIn('tabToDo', frappe.flags.touched_tables)
 
