@@ -175,9 +175,10 @@ frappe.ui.LinkPreview = class {
 			animation: false,
 		});
 
-		if(!this.is_link) {
-			this.element.data('bs.popover').tip().addClass('control-field-popover');
-		}
+		const $popover = this.element.data('bs.popover').tip();
+
+		$popover.addClass('link-preview-popover');
+		$popover.toggleClass('control-field-popover', this.is_link);
 
 		this.$links.push(this.element);
 
