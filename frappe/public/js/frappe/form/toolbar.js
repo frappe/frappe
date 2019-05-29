@@ -232,15 +232,16 @@ frappe.ui.form.Toolbar = Class.extend({
 		let d = new frappe.ui.Dialog({
 			title: 'Get Email with Link',
 			fields: [{
-					"fieldtype": "Data",
-					"label": __("Email"),
-					"fieldname": "email",
-				},
-			],
+				"fieldtype": "Data",
+				"label": __("Email"),
+				"fieldname": "email",
+			}],
 			primary_action: function(values) {
 				let email = values.email;
+				let doctype = frm.doc.doctype.split(" ").join(".");
+				let name = frm.doc.name.split(" ").join(".");
 				d.hide();
-				frappe.msgprint(__("{0}+{1}+{2}@{3}", [email.split("@")[0], frm.doc.doctype, frm.doc.name, email.split("@")[1]]));
+				frappe.msgprint(__("{0}+{1}+{2}@{3}", [email.split("@")[0], doctype, name, email.split("@")[1]]));
 			},
 			primary_action_label: "Get"
 		});

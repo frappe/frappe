@@ -54,6 +54,8 @@ class Communication(Document):
 			self.seen = 1
 			self.sent_or_received = "Sent"
 
+		self.validate_email_for_spaces()
+
 		self.set_status()
 		self.set_sender_full_name()
 
@@ -236,6 +238,33 @@ class Communication(Document):
 			if commit:
 				frappe.db.commit()
 
+	def validate_email_for_spaces(self):
+		validated_emails = []
+
+		if self.sender:
+			for email in self.sender.split(","):
+				validated_emails.append(email.strip().replace(" ", "."))
+
+			self.sender = ",".join(validated_emails)
+
+		if self.recipients:
+			for email in self.recipients.split(","):
+				validated_emails.append(email.strip().replace(" ", "."))
+
+			self.recipients = ",".join(validated_emails)
+
+		if self.cc:
+			for email in self.cc.split(","):
+				validated_emails.append(email.strip().replace(" ", "."))
+
+			self.cc = ",".join(validated_emails)
+
+		if self.bcc:
+			for email in self.bcc.split(","):
+				validated_emails.append(email.strip().replace(" ", "."))
+
+			self.bcc = ",".join(validated_emails)
+
 	def set_email_links(self):
 		add_email_link(self, [self.sender, self.recipients, self.cc, self.bcc])
 
@@ -359,18 +388,23 @@ def add_contact_links_to_communication(communication, contact_name):
 
 def add_email_link(communication, email_strings):
 	delimiter = "+"
-	email_addrs = []
 
 	for email_string in email_strings:
 		if email_string:
 			for email in email_string.split(","):
 				if delimiter in email:
 					email = email.split("@")[0]
-					doctype = email.split(delimiter)[1]
-					docname = email.split(delimiter)[2]
+					links = email.split(delimiter)[1:]
 
-					if frappe.db.exists(doctype, docname):
-						communication.add_link(doctype, docname)
+					for idx in range(0, len(links)):
+						if idx%2 == 0:
+							try:
+								doctype = links[idx].replace(".", " ")
+								name = links[idx+1].replace(".", " ")
+								if doctype and name and frappe.db.exists(doctype, name):
+									communication.add_link(doctype, name)
+							except IndexError:
+								pass
 
 def get_email_without_link(email):
 	# returns email address with doctype links

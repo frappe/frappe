@@ -171,3 +171,26 @@ class TestCommunication(unittest.TestCase):
 
 		self.assertIn(comm_note_1.name, data)
 		self.assertIn(comm_note_2.name, data)
+
+	def test_link_in_email(self):
+		frappe.delete_doc_if_exists("Note", "test document link in email")
+
+		note = frappe.get_doc({
+			"doctype": "Note",
+			"title": "test document link in email",
+			"content": "test document link in email"
+		}).insert(ignore_permissions=True)
+
+		comm = frappe.get_doc({
+			"doctype": "Communication",
+			"communication_medium": "Email",
+			"subject": "Document Link in Email",
+			"sender": "comm_sender+{0}+{1}@example.com".format("Note", note.name),
+			"recipients": "comm_recipient@example.com",
+		}).insert(ignore_permissions=True)
+
+		doc_links = []
+		for timeline_link in comm.timeline_links:
+			doc_links.append((timeline_link.link_doctype, timeline_link.link_name))
+
+		self.assertIn(("Note", note.name), doc_links)
