@@ -112,10 +112,9 @@ class OAuthWebRequestValidator(RequestValidator):
 	def validate_response_type(self, client_id, response_type, client, request, *args, **kwargs):
 		# Clients should only be allowed to use one type of response type, the
 		# one associated with their one allowed grant type.
-		# In this case it must be "code".
+		# In this case it must be "code" or "token".
 		allowed_response_types = [client.response_type.lower(),
-			"code token", "code id_token", "code token id_token",
-			"code+token", "code+id_token", "code+token id_token"]
+			"code", "token"]
 
 		return (response_type in allowed_response_types)
 
@@ -136,9 +135,6 @@ class OAuthWebRequestValidator(RequestValidator):
 		frappe.db.commit()
 
 	def authenticate_client(self, request, *args, **kwargs):
-
-		cookie_dict = get_cookie_dict_from_headers(request)
-
 		#Get ClientID in URL
 		if request.client_id:
 			oc = frappe.get_doc("OAuth Client", request.client_id)
@@ -155,7 +151,7 @@ class OAuthWebRequestValidator(RequestValidator):
 		except Exception as e:
 			print("Failed body authentication: Application %s does not exist".format(cid=request.client_id))
 
-		return frappe.session.user == unquote(cookie_dict.get('user_id', "Guest"))
+		return validate_client(request, oc)
 
 	def authenticate_client_id(self, client_id, request, *args, **kwargs):
 		cli_id = frappe.db.get_value('OAuth Client', client_id, 'name')
@@ -443,3 +439,10 @@ def delete_oauth2_data():
 		frappe.delete_doc("OAuth Bearer Token", token["name"])
 	if commit_code or commit_token:
 		frappe.db.commit()
+
+def validate_client(request, oauth_client):
+	if oauth_client.client_authentication == "Request Body":
+		return request.client_secret == oauth_client.client_secret
+	elif oauth_client.client_authentication == "Public Client":
+		return request.client_id == oauth_client.client_id
+	return False
