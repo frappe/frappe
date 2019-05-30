@@ -12,7 +12,7 @@ def get_jenv():
 		jenv = Environment(loader = get_jloader(),
 			undefined=DebugUndefined)
 		set_filters(jenv)
-
+		add_jinja_extensions(jenv)
 		jenv.globals.update(get_allowed_functions_for_jenv())
 
 		frappe.local.jenv = jenv
@@ -230,3 +230,14 @@ def get_jenv_customization(customizable_type):
 					for data in jenv_customizable_definition:
 						split_data = data.split(":")
 						yield split_data[0], split_data[1]
+
+# Adds extensions after the environment was created
+def add_jinja_extensions(jenv):
+	import frappe
+	if getattr(frappe.local, "site", None):
+		for app in frappe.get_installed_apps():
+			hooks = frappe.get_hooks(app_name=app).get("jenv", {}).get("add_extension") or []
+			for f in hooks:
+				# update jinja extensions using jenv.add_extension method
+				# https://github.com/pallets/jinja/blob/master/jinja2/environment.py#L342
+				frappe.get_attr(f)(jenv)
