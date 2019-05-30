@@ -836,7 +836,7 @@ frappe.views.ListView = frappe.ui.BaseList.extend({
 
 	get_checked_items: function () {
 		var names = this.$page.find('.list-row-checkbox:checked').map(function (i, item) {
-			return cstr($(item).data().name);
+			return cstr(unescape($(item).data().name));
 		}).toArray();
 
 		return this.data.filter(function (doc) {

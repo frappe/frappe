@@ -1,5 +1,5 @@
 {% if (_checkbox) { %}
-<input class="list-row-checkbox hidden-xs" type="checkbox" data-name="{{name}}">
+<input class="list-row-checkbox hidden-xs" type="checkbox" data-name="{{ escape(name) }}">
 {% } %}
 {% if (!_hide_activity) { %}
 <span class="liked-by" data-liked-by=\'{{ JSON.stringify(_liked_by) }}\'>
