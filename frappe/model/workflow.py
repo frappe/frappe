@@ -172,7 +172,7 @@ def bulk_workflow_approval(docnames, doctype, action):
 	docnames = json.loads(docnames)
 	for (i, docname) in enumerate(docnames, 1):
 		try:
-			show_progress(docnames, _('Approving {0}').format(doctype), i, docname)
+			show_progress(docnames, _('Applying: {0}').format(action), i, docname)
 			apply_workflow(frappe.get_doc(doctype, docname), action)
 		except frappe.ValidationError:
 			pass
