@@ -17,3 +17,9 @@ class OAuthClient(Document):
 		if self.grant_type == "Authorization Code" and self.response_type != "Code" or \
 			self.grant_type == "Implicit" and self.response_type != "Token":
 			frappe.throw(_("Combination of Grant Type (<code>{0}</code>) and Response Type (<code>{1}</code>) not allowed".format(self.grant_type, self.response_type)))
+
+@frappe.whitelist()
+def generate_secret(client_id):
+	oauth_client = frappe.get_doc("OAuth Client", client_id)
+	oauth_client.client_secret = frappe.generate_hash(length=10)
+	oauth_client.save()
