@@ -5,7 +5,7 @@ from __future__ import unicode_literals
 import frappe, json
 import frappe.desk.form.meta
 import frappe.desk.form.load
-from frappe.utils.html_utils import clean_email_html, sanitize_html
+from frappe.utils.html_utils import sanitize_html
 from frappe.desk.form.document_follow import follow_document
 
 from frappe import _
