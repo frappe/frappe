@@ -210,6 +210,9 @@ def add_data_to_custom_columns(columns, result):
 	data = []
 	for row in result:
 		row_obj = {}
+		if isinstance(row, tuple):
+			row = list(row)
+
 		if isinstance(row, list):
 			for idx, column in enumerate(columns):
 				if column.get('link_field'):
