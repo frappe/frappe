@@ -59,6 +59,7 @@ frappe.ui.form.MultiSelectDialog = Class.extend({
 			{ fieldtype: "Button", fieldname: "more_btn", label: __("More"),
 				click: function(){
 					me.start += 20;
+					frappe.flags.auto_scroll = true;
 					me.get_results();
 				}
 			}
@@ -117,10 +118,12 @@ frappe.ui.form.MultiSelectDialog = Class.extend({
 		});
 
 		this.$parent.find('.input-with-feedback').on('change', (e) => {
+			frappe.flags.auto_scroll = false;
 			this.get_results();
 		});
 
 		this.$parent.find('[data-fieldname="date_range"]').on('blur', (e) => {
+			frappe.flags.auto_scroll = false;
 			this.get_results();
 		});
 
@@ -128,6 +131,7 @@ frappe.ui.form.MultiSelectDialog = Class.extend({
 			var $this = $(this);
 			clearTimeout($this.data('timeout'));
 			$this.data('timeout', setTimeout(function() {
+				frappe.flags.auto_scroll = false;
 				me.get_results();
 			}, 300));
 		});
@@ -176,11 +180,17 @@ frappe.ui.form.MultiSelectDialog = Class.extend({
 		var me = this;
 
 		var more_btn = me.dialog.fields_dict.more_btn.$wrapper;
+
+		// Make empty result set if filter is set
+		if (!frappe.flags.auto_scroll) {
+			this.$results.empty();
+		}
+
 		if(results.length === 0) {
 			this.$results.empty();
 			more_btn.hide();
 			return;
-		} else {
+		} else if(more) {
 			more_btn.show();
 		}
 
@@ -188,7 +198,9 @@ frappe.ui.form.MultiSelectDialog = Class.extend({
 			me.$results.append(me.make_list_row(result));
 		});
 
-		this.$results.animate({scrollTop: me.$results.prop('scrollHeight')}, 500);
+		if (frappe.flags.auto_scroll) {
+			this.$results.animate({scrollTop: me.$results.prop('scrollHeight')}, 500);
+		}
 	},
 
 	get_results: function() {
