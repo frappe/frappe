@@ -715,7 +715,6 @@ def validate_fields(meta):
 	for d in fields:
 		if not d.permlevel: d.permlevel = 0
 		if d.fieldtype != "Table": d.allow_bulk_edit = 0
-		if d.fieldtype == "Barcode": d.ignore_xss_filter = 1
 		if not d.fieldname:
 			d.fieldname = d.fieldname.lower()
 
