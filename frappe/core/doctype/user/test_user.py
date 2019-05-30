@@ -268,21 +268,38 @@ class TestUser(unittest.TestCase):
 		self.assertEqual(result['feedback']['password_policy_validation_passed'], True)
 
 	def test_comment_mentions(self):
-		user_name = "@test.comment@example.com"
-		self.assertEqual(extract_mentions(user_name)[0], "test.comment@example.com")
-		user_name = "@test.comment@test-example.com"
-		self.assertEqual(extract_mentions(user_name)[0], "test.comment@test-example.com")
-		user_name = "Testing comment, @test-user please check."
-		self.assertEqual(extract_mentions(user_name)[0], "test-user")
-		user_name = "Testing comment, @test.user@example.com please check."
-		self.assertEqual(extract_mentions(user_name)[0], "test.user@example.com")
-		user_name = "<div>@test_user@example.com and @test.again@example1.com</div><div>This is a test.</div>"
-		self.assertEqual(extract_mentions(user_name)[0], "test_user@example.com")
-		self.assertEqual(extract_mentions(user_name)[1], "test.again@example1.com")
-		user_name = "<div>@user@example.com</a> Test @test-comment@xyz.com</div><div>Test for comment mentions @test@abc.com</div>"
-		self.assertEqual(extract_mentions(user_name)[0], "user@example.com")
-		self.assertEqual(extract_mentions(user_name)[1], "test-comment@xyz.com")
-		self.assertEqual(extract_mentions(user_name)[2], "test@abc.com")
+		comment = '''
+			<span class="mention" data-id="test.comment@example.com" data-value="Test" data-denotation-char="@">
+				<span><span class="ql-mention-denotation-char">@</span>Test</span>
+			</span>
+		'''
+		self.assertEqual(extract_mentions(comment)[0], "test.comment@example.com")
+
+		comment = '''
+			<div>
+				Testing comment,
+				<span class="mention" data-id="test.comment@example.com" data-value="Test" data-denotation-char="@">
+					<span><span class="ql-mention-denotation-char">@</span>Test</span>
+				</span>
+				please check
+			</div>
+		'''
+		self.assertEqual(extract_mentions(comment)[0], "test.comment@example.com")
+		comment = '''
+			<div>
+				Testing comment for
+				<span class="mention" data-id="test_user@example.com" data-value="Test" data-denotation-char="@">
+					<span><span class="ql-mention-denotation-char">@</span>Test</span>
+				</span>
+				and
+				<span class="mention" data-id="test.again@example1.com" data-value="Test" data-denotation-char="@">
+					<span><span class="ql-mention-denotation-char">@</span>Test</span>
+				</span>
+				please check
+			</div>
+		'''
+		self.assertEqual(extract_mentions(comment)[0], "test_user@example.com")
+		self.assertEqual(extract_mentions(comment)[1], "test.again@example1.com")
 
 def delete_contact(user):
 	frappe.db.sql("DELETE FROM `tabContact` WHERE `email_id`= %s", user)
