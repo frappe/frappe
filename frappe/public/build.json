@@ -33,6 +33,7 @@
 		"public/js/frappe/utils/number_format.js",
 		"public/js/frappe/utils/utils.js",
 		"public/js/frappe/utils/common.js",
+		"public/js/frappe/utils/jquery_plugins.js",
 		"public/js/frappe/ui/messages.js",
 		"public/js/frappe/translate.js",
 		"public/js/frappe/utils/pretty_date.js",
