@@ -494,8 +494,9 @@ def get_messages_from_file(path):
 	apps_path = get_bench_dir()
 	if os.path.exists(path):
 		with open(path, 'r') as sourcefile:
-			return [(os.path.relpath(" +".join([path, str(pos)]), apps_path),
-					message) for pos, message in  extract_messages_from_code(sourcefile.read(), path.endswith(".py"))]
+			data = [(os.path.relpath(path, apps_path),
+					message) for message in  extract_messages_from_code(sourcefile.read(), path.endswith(".py"))]
+			return data
 	else:
 		# print "Translate: {0} missing".format(os.path.abspath(path))
 		return []
@@ -535,7 +536,7 @@ def pos_to_line_no(messages, code):
 		while newline_i < len(newlines) and pos > newlines[newline_i]:
 			line+=1
 			newline_i+= 1
-		ret.append((line, message))
+		ret.append((message))
 	return ret
 
 def read_csv_file(path):
