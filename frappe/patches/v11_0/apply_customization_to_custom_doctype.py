@@ -30,7 +30,7 @@ def execute():
 			property_setter_map[prop.field_name] = prop
 			frappe.db.sql('DELETE FROM `tabProperty Setter` WHERE `name`=%s', prop.name)
 
-		meta = frappe.get_doc('DocType', doctype.name)
+		meta = frappe.get_meta(doctype.name)
 
 		for df in meta.fields:
 			ps = property_setter_map.get(df.fieldname, None)
