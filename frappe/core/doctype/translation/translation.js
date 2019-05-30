@@ -14,7 +14,7 @@ frappe.ui.form.on('Translation', {
 					"source_name": frm.doc.source_name,
 					"target_name": frm.doc.target_name,
 				}
-			})
+			});
 		}).addClass('btn-primary');
 	}
 });

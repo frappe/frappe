@@ -10,7 +10,6 @@ from frappe.utils.response import build_response
 from frappe import _
 from six.moves.urllib.parse import urlparse, urlencode
 import base64
-from frappe.utils import get_request_session
 
 def handle():
 	"""

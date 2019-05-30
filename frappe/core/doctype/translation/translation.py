@@ -35,7 +35,7 @@ def contribute_translation(language, contributor, source_name, target_name):
 	from frappe.integrations.utils import make_post_request
 	try:
 		response = make_post_request(url=frappe.get_hooks("translation_contribution_url")[0], data=data)
-	except:
+	except Exception:
 		frappe.msgprint("Something went wrong while contributing translation. Please check error log for more details")
 	if response.get("message") == "Already exists":
 		frappe.msgprint("Translation already exists")

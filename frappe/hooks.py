@@ -18,7 +18,7 @@ app_email = "info@frappe.io"
 
 docs_app = "frappe_io"
 
-translation_contribution_url = "https://translate.erpnext.xyz/api/method/webnotes_app.api.add_translation"
+translation_contribution_url = "https://translate.erpnext.xyz/api/method/translator.api.add_translation"
 
 before_install = "frappe.utils.install.before_install"
 after_install = "frappe.utils.install.after_install"
