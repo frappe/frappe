@@ -241,27 +241,21 @@ class Communication(Document):
 	def validate_email_for_spaces(self):
 		validated_emails = []
 
-		if self.sender:
-			for email in self.sender.split(","):
-				validated_emails.append(email.strip().replace(" ", "."))
-
-			self.sender = ",".join(validated_emails)
-
 		if self.recipients:
 			for email in self.recipients.split(","):
-				validated_emails.append(email.strip().replace(" ", "."))
+				validated_emails.append(quote_link(email.strip()))
 
 			self.recipients = ",".join(validated_emails)
 
 		if self.cc:
 			for email in self.cc.split(","):
-				validated_emails.append(email.strip().replace(" ", "."))
+				validated_emails.append(quote_link(email.strip()))
 
 			self.cc = ",".join(validated_emails)
 
 		if self.bcc:
 			for email in self.bcc.split(","):
-				validated_emails.append(email.strip().replace(" ", "."))
+				validated_emails.append(quote_link(email.strip()))
 
 			self.bcc = ",".join(validated_emails)
 
@@ -399,8 +393,8 @@ def add_email_link(communication, email_strings):
 					for idx in range(0, len(links)):
 						if idx%2 == 0:
 							try:
-								doctype = links[idx].replace(".", " ")
-								name = links[idx+1].replace(".", " ")
+								doctype = unquote_link(links[idx])
+								name = unquote_link(links[idx+1])
 								if doctype and name and frappe.db.exists(doctype, name):
 									communication.add_link(doctype, name)
 							except IndexError:
@@ -414,3 +408,9 @@ def get_email_without_link(email):
 	email_host = email.split("@")[1]
 
 	return "{0}@{1}".format(email_id, email_host)
+
+def quote_link(email):
+	return email.strip().replace(" ", "%20")
+
+def unquote_link(d):
+	return d.strip().replace("%20", " ")
