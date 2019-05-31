@@ -496,7 +496,7 @@ def group_report_data(rows_to_group, group_by, group_by_labels=None, total_field
 			res[group_field] = group
 		return res
 
-	if not group_by:
+	if not group_by and group_by is not None:
 		return rows_to_group
 	if not isinstance(group_by, list):
 		group_by = [group_by]
