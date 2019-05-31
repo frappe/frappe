@@ -1143,6 +1143,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 
 	toggle_workflow_actions() {
+		if (!frappe.model.has_workflow(this.doctype)) return;
 		const checked_items = this.get_checked_items();
 		frappe.xcall('frappe.model.workflow.get_common_transition_actions', {
 			docs: checked_items,
