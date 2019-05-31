@@ -54,8 +54,6 @@ class Communication(Document):
 			self.seen = 1
 			self.sent_or_received = "Sent"
 
-		self.validate_email_for_spaces()
-
 		self.set_status()
 		self.set_sender_full_name()
 
@@ -238,27 +236,6 @@ class Communication(Document):
 			if commit:
 				frappe.db.commit()
 
-	def validate_email_for_spaces(self):
-		validated_emails = []
-
-		if self.recipients:
-			for email in self.recipients.split(","):
-				validated_emails.append(quote_link(email.strip()))
-
-			self.recipients = ",".join(validated_emails)
-
-		if self.cc:
-			for email in self.cc.split(","):
-				validated_emails.append(quote_link(email.strip()))
-
-			self.cc = ",".join(validated_emails)
-
-		if self.bcc:
-			for email in self.bcc.split(","):
-				validated_emails.append(quote_link(email.strip()))
-
-			self.bcc = ",".join(validated_emails)
-
 	def set_email_links(self):
 		add_email_link(self, [self.sender, self.recipients, self.cc, self.bcc])
 
@@ -414,3 +391,5 @@ def quote_link(email):
 
 def unquote_link(d):
 	return d.strip().replace("%20", " ")
+
+# test+ToDo+asdf%20%40asdf@gmail.com

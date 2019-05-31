@@ -13,7 +13,11 @@ frappe.ui.form.Timeline = class Timeline {
 	make() {
 		var me = this;
 		this.wrapper = $(frappe.render_template("timeline",
-			{doctype: me.frm.doctype, allow_events_in_timeline: me.frm.meta.allow_events_in_timeline})).appendTo(me.parent);
+			{
+				doctype: me.frm.doctype,
+				allow_events_in_timeline: me.frm.meta.allow_events_in_timeline,
+				email_link: this.get_active_email_link()
+			})).appendTo(me.parent);
 
 		this.list = this.wrapper.find(".timeline-items");
 
@@ -107,6 +111,20 @@ frappe.ui.form.Timeline = class Timeline {
 				}
 				new frappe.views.CommunicationComposer(args)
 			});
+	}
+
+	get_active_email_link() {
+		var me = this;
+		frappe.db.get_value("Email Account", {"enable_incoming": 1,"email_link": 1}, "email_id", (r) => {
+			if (r.email_id) {
+				let doctype = encodeURI(me.frm.doctype);
+				let name = encodeURI(me.frm.docname);
+				console.log(r.email_id.split("@")[0] +"+"+ doctype +"+"+ name +"@"+ r.email_id.split("@")[1]);
+				return r.email_id.split("@")[0] +"+"+ doctype +"+"+ name +"@"+ r.email_id.split("@")[1];
+			} else {
+				return ""
+			}
+		});
 	}
 
 	setup_interaction_button() {

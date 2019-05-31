@@ -75,6 +75,9 @@ class EmailAccount(Document):
 				if self.enable_incoming or (self.enable_outgoing and not self.no_smtp_authentication):
 					frappe.throw(_("Password is required or select Awaiting Password"))
 
+		if self.email_link and not frappe.db.exists("Email Account", {"email_link": 1}):
+			frappe.throw(_("Email Link can be activated only for one Email Account."))
+
 		if self.notify_if_unreplied:
 			if not self.send_notification_to:
 				frappe.throw(_("{0} is mandatory").format(self.meta.get_label("send_notification_to")))
