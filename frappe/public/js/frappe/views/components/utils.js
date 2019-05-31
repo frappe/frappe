@@ -56,7 +56,7 @@ function keyboard_nav() {
 		if($page.find('.modules-section').is(':visible')) {
 			if ($('[role="listbox"]').is(":visible") || $('.dropdown-menu').is(':visible') 
 				|| $('.modal').is(':visible') || $('input:focus').length > 0) {
-					return;
+				return;
 			}
 			if($page.find('.module-dropdown').is(':visible')) {
 				//Dropdown navigation
@@ -91,7 +91,7 @@ function navigate_directions(e, nav_obj, $el) {
 
 	//Initilaize module grid
 	if(!nav_obj.grid || nav_obj.changed) {
-		nav_obj.position = { x: 0, y: 0 }
+		nav_obj.position = { x: 0, y: 0 };
 		populate_grid(nav_obj, $el);
 		add_selected_class(nav_obj);
 		nav_obj.changed = false;
@@ -113,7 +113,7 @@ function check_width_change(nav_obj) {
 	//If cards shown or hiddem
 	$(document).on('change',()=> {		
 		nav_obj.changed = true;
-	})
+	});
 
 	$(window).resize(() => {
 		nav_obj.changed = true;
@@ -139,9 +139,9 @@ function populate_grid(nav_obj, $el) {
 
 
 function nav_left(nav_obj) {
-    nav_obj.position.x--;
-    if (nav_obj.position.x < 0)
-        nav_obj.position.x = 0;
+	nav_obj.position.x--;
+	if (nav_obj.position.x < 0)
+		nav_obj.position.x = 0;
 }
 
 function nav_up(nav_obj) {
@@ -159,8 +159,8 @@ function nav_up(nav_obj) {
 }
 
 function nav_right(nav_obj) {
-    nav_obj.position.x++;
-    if (nav_obj.position.x >= nav_obj.grid[nav_obj.position.y].length)
+	nav_obj.position.x++;
+	if(nav_obj.position.x >= nav_obj.grid[nav_obj.position.y].length)
 		nav_obj.position.x = nav_obj.grid[nav_obj.position.y].length - 1;
 }
 
@@ -180,7 +180,7 @@ function nav_down(nav_obj) {
 
 function add_selected_class(nav_obj) {
 	if(nav_obj.selected) nav_obj.selected.removeClass('selected');
-	nav_obj.selected = nav_obj.grid[nav_obj.position.y][nav_obj.position.x]
+	nav_obj.selected = nav_obj.grid[nav_obj.position.y][nav_obj.position.x];
 	nav_obj.selected.addClass('selected');
 }
 
