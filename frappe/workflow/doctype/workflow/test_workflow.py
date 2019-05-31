@@ -5,44 +5,12 @@ from __future__ import unicode_literals
 import frappe
 import unittest
 from frappe.utils import random_string
-from frappe.model.workflow import apply_workflow, WorkflowTransitionError, WorkflowPermissionError
+from frappe.model.workflow import apply_workflow, WorkflowTransitionError, WorkflowPermissionError, get_common_transition_actions
 
 class TestWorkflow(unittest.TestCase):
 	def setUp(self):
 		if not getattr(self, 'workflow', None):
-			frappe.get_doc(dict(doctype='Role',
-				role_name='Test Approver')).insert(ignore_if_duplicate=True)
-
-			if frappe.db.exists('Workflow', 'Test ToDo'):
-				self.workflow = frappe.get_doc('Workflow', 'Test ToDo')
-				self.workflow.save()
-			else:
-				self.workflow = frappe.new_doc('Workflow')
-				self.workflow.workflow_name = 'Test ToDo'
-				self.workflow.document_type = 'ToDo'
-				self.workflow.workflow_state_field = 'workflow_state'
-				self.workflow.is_active = 1
-				self.workflow.send_email_alert = 0
-				self.workflow.append('states', dict(
-					state = 'Pending', allow_edit = 'All'
-				))
-				self.workflow.append('states', dict(
-					state = 'Approved', allow_edit = 'Test Approver',
-					update_field = 'status', update_value = 'Closed'
-				))
-				self.workflow.append('states', dict(
-					state = 'Rejected', allow_edit = 'Test Approver'
-				))
-				self.workflow.append('transitions', dict(
-					state = 'Pending', action='Approve', next_state = 'Approved', allowed='Test Approver', allow_self_approval= 1
-				))
-				self.workflow.append('transitions', dict(
-					state = 'Pending', action='Reject', next_state = 'Rejected', allowed='Test Approver', allow_self_approval= 1
-				))
-				self.workflow.append('transitions', dict(
-					state = 'Rejected', action='Review', next_state = 'Pending', allowed='All', allow_self_approval= 1
-				))
-				self.workflow.insert()
+			self.workflow = create_todo_workflow()
 		frappe.set_user('Administrator')
 
 	def test_default_condition(self):
@@ -82,6 +50,10 @@ class TestWorkflow(unittest.TestCase):
 		self.workflow.transitions[0].condition = ''
 		self.workflow.save()
 
+
+	def test_get_common_transition_actions():
+		actions = get_common_transition_actions(['asdf', 'asdf', 'asf'], 'ToDo')
+
 	def test_if_workflow_actions_were_processed(self):
 		frappe.db.sql('delete from `tabWorkflow Action`')
 		user = frappe.get_doc('User', 'test2@example.com')
@@ -99,3 +71,38 @@ class TestWorkflow(unittest.TestCase):
 		self.assertEqual(len(workflow_actions), 1)
 		self.assertEqual(workflow_actions[0].status, 'Completed')
 		frappe.set_user('Administrator')
+
+def create_todo_workflow():
+	if frappe.db.exists('Workflow', 'Test ToDo'):
+		return frappe.get_doc('Workflow', 'Test ToDo')
+	else:
+		frappe.get_doc(dict(doctype='Role',
+			role_name='Test Approver')).insert(ignore_if_duplicate=True)
+		workflow = frappe.new_doc('Workflow')
+		workflow.workflow_name = 'Test ToDo'
+		workflow.document_type = 'ToDo'
+		workflow.workflow_state_field = 'workflow_state'
+		workflow.is_active = 1
+		workflow.send_email_alert = 0
+		workflow.append('states', dict(
+			state = 'Pending', allow_edit = 'All'
+		))
+		workflow.append('states', dict(
+			state = 'Approved', allow_edit = 'Test Approver',
+			update_field = 'status', update_value = 'Closed'
+		))
+		workflow.append('states', dict(
+			state = 'Rejected', allow_edit = 'Test Approver'
+		))
+		workflow.append('transitions', dict(
+			state = 'Pending', action='Approve', next_state = 'Approved', allowed='Test Approver', allow_self_approval= 1
+		))
+		workflow.append('transitions', dict(
+			state = 'Pending', action='Reject', next_state = 'Rejected', allowed='Test Approver', allow_self_approval= 1
+		))
+		workflow.append('transitions', dict(
+			state = 'Rejected', action='Review', next_state = 'Pending', allowed='All', allow_self_approval= 1
+		))
+		workflow.insert(ignore_permissions=True)
+
+		return workflow
