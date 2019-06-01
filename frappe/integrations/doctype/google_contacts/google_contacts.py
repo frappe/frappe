@@ -8,7 +8,6 @@ import requests
 from frappe.model.document import Document
 from frappe import _
 from frappe.utils import get_request_site_address
-import json
 
 SCOPES = 'https://www.googleapis.com/auth/contacts'
 REQUEST = 'https://people.googleapis.com/v1/people/me/connections'

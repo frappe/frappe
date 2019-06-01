@@ -14,7 +14,7 @@ frappe.ui.form.on('Google Contacts', {
 						method: "frappe.integrations.doctype.google_contacts.google_contacts.sync",
 					}).then(() => {
 						frappe.hide_progress();
-						frappe.msgprint(__("Google Contacts Synced."))
+						frappe.msgprint(__("Google Contacts Synced."));
 					});
 				} else {
 					frappe.throw("Allow Contacts Access for Syncing.");
