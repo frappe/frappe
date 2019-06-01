@@ -9,6 +9,7 @@ from frappe import throw, msgprint, _
 from frappe.utils.password import update_password as _update_password
 from frappe.desk.notifications import clear_notifications
 from frappe.utils.user import get_system_managers
+from bs4 import BeautifulSoup
 import frappe.permissions
 import frappe.share
 import re
@@ -943,11 +944,13 @@ def notify_admin_access_to_system_manager(login_manager=None):
 		)
 
 def extract_mentions(txt):
-	"""Find all instances of @name in the string.
-	The mentions will be separated by non-word characters or may appear at the start of the string"""
-	txt = txt.replace("<div>", "<div> ")
-	txt = re.sub(r'(<[a-zA-Z\/][^>]*>)', '', txt)
-	return re.findall(r'(?:[^\w\.\-\@]|^)@([\w\.\-\@]*)', txt)
+	"""Find all instances of @mentions in the html."""
+	soup = BeautifulSoup(txt, 'html.parser')
+	emails = []
+	for mention in soup.find_all(class_='mention'):
+		email = mention['data-id']
+		emails.append(email)
+	return emails
 
 def handle_password_test_fail(result):
 	suggestions = result['feedback']['suggestions'][0] if result['feedback']['suggestions'] else ''

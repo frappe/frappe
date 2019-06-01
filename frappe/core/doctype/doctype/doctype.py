@@ -203,6 +203,9 @@ class DocType(Document):
 							d.fieldname = d.fieldname + '_column'
 					else:
 						d.fieldname = d.fieldtype.lower().replace(" ","_") + "_" + str(d.idx)
+				else:
+					if d.fieldname in restricted:
+						frappe.throw(_("Fieldname {0} is restricted").format(d.fieldname), InvalidFieldNameError)
 
 				d.fieldname = re.sub('''['",./%@()<>{}]''', '', d.fieldname)
 
@@ -799,7 +802,6 @@ def validate_fields(meta):
 	for d in fields:
 		if not d.permlevel: d.permlevel = 0
 		if d.fieldtype not in table_fields: d.allow_bulk_edit = 0
-		if d.fieldtype == "Barcode": d.ignore_xss_filter = 1
 		if not d.fieldname:
 			d.fieldname = d.fieldname.lower()
 

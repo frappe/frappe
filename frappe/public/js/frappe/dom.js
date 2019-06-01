@@ -290,28 +290,31 @@ frappe.get_modal = function(title, content) {
 		<div class="modal-dialog">
 			<div class="modal-content">
 				<div class="modal-header">
-	                <div class="row">
-	                    <div class="col-xs-7">
+					<div class="flex justify-between">
+						<div class="fill-width">
 							<span class="indicator hidden"></span>
-	                        <h4 class="modal-title" style="font-weight: bold;">${title}</h4>
-	                    </div>
-	                    <div class="col-xs-5">
-	                        <div class="text-right buttons">
-	            				<button type="button" class="btn btn-default btn-sm btn-modal-close"
-	                                data-dismiss="modal">
+							<h4 class="modal-title" style="font-weight: bold;">${title}</h4>
+						</div>
+						<div>
+							<div class="text-right buttons">
+								<button type="button" class="btn btn-default btn-sm btn-modal-minimize hide">
+									<i class="octicon octicon-chevron-down" style="padding: 1px 0px;"></i>
+								</button>
+								<button type="button" class="btn btn-default btn-sm btn-modal-close" data-dismiss="modal">
 									<i class="octicon octicon-x visible-xs" style="padding: 1px 0px;"></i>
-									<span class="hidden-xs">${__("Close")}</span></button>
-	            				<button type="button" class="btn btn-primary btn-sm hide">
-	                                ${__("Confirm")}</button>
-	                        </div>
-	                    </div>
-	                </div>
+									<span class="hidden-xs">${__("Close")}</span>
+								</button>
+								<button type="button" class="btn btn-primary btn-sm hide">
+									${__("Confirm")}
+								</button>
+							</div>
+						</div>
+					</div>
 				</div>
-				<div class="modal-body ui-front">${content}
-				</div>
+				<div class="modal-body ui-front">${content}</div>
 			</div>
 		</div>
-	</div>`)
+	</div>`);
 };
 
 frappe.is_online = function() {

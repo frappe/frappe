@@ -405,24 +405,6 @@ frappe.ui.form.Timeline = class Timeline {
 				c.content_html = frappe.utils.strip_whitespace(c.content_html);
 			}
 
-			// bold @mentions
-			if(c.comment_type==="Comment" &&
-				// avoid adding <b> tag a 2nd time
-				!c.content_html.match(/(^|\W)<b>(@[^\s]+)<\/b>/)
-			) {
-				/*
-					Replace the email ids by only displaying the string which
-					occurs before the second `@` to enhance the mentions.
-					Eg.
-					@abc@a-example.com will be converted to
-					@abc with the below line of code.
-				*/
-
-				c.content_html = c.content_html.replace(/(<[a][^>]*>)/g, "");
-				// bold the @mentions
-				c.content_html = c.content_html.replace(/(@[^\s@]*)@[^\s@|<]*/g, "<b>$1</b>");
-			}
-
 			if (this.is_communication_or_comment(c)) {
 				c.user_content = true;
 				if (!$.isArray(c._liked_by)) {
@@ -782,7 +764,12 @@ frappe.ui.form.Timeline = class Timeline {
 			.filter(user => !["Administrator", "Guest"].includes(user));
 		valid_users = valid_users
 			.filter(user => frappe.boot.user_info[user].allowed_in_mentions==1);
-		return valid_users.map(user => frappe.boot.user_info[user].name);
+		return valid_users.map(user => {
+			return {
+				id: frappe.boot.user_info[user].name,
+				value: frappe.boot.user_info[user].fullname,
+			}
+		});
 	}
 
 	setup_comment_like() {
