@@ -13,6 +13,7 @@ frappe.ui.form.on('Google Contacts', {
 					frappe.call({
 						method: "frappe.integrations.doctype.google_contacts.google_contacts.sync",
 						callback: function() {
+							frappe.hide_progress();
 							frappe.msgprint(__("Google Contacts Synced."));
 						}
 					});

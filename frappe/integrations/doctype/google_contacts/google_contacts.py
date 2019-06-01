@@ -8,6 +8,7 @@ import requests
 from frappe.model.document import Document
 from frappe import _
 from frappe.utils import get_request_site_address
+import json
 
 SCOPES = 'https://www.googleapis.com/auth/contacts'
 REQUEST = 'https://people.googleapis.com/v1/people/me/connections'
@@ -86,8 +87,9 @@ def sync():
 		frappe.throw(e)
 
 	connections = r.get('connections')
-	for connection in connections:
+	for idx, connection in enumerate(connections):
 		for name in connection.get('names'):
+			show_progress(len(connections), "Google Contacts", idx, name.get('displayName'))
 			for email in connection.get('emailAddresses'):
 				if not frappe.db.exists("Contact", {"email_id": email.get('value')}):
 					contact = frappe.get_doc({
@@ -99,3 +101,11 @@ def sync():
 					contact.insert(ignore_permissions=True)
 
 	frappe.db.set_value("Google Contacts", None, "access_authorised", 0)
+
+def show_progress(length, message, i, description):
+	if length > 5:
+		frappe.publish_progress(
+			float(i) * 100 / length,
+			title = message,
+			description = description
+		)
