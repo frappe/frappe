@@ -12,10 +12,9 @@ frappe.ui.form.on('Google Contacts', {
 					});
 					frappe.call({
 						method: "frappe.integrations.doctype.google_contacts.google_contacts.sync",
-						callback: function() {
-							frappe.hide_progress();
-							frappe.msgprint(__("Google Contacts Synced."));
-						}
+					}).then(() => {
+						frappe.hide_progress();
+						frappe.msgprint(__("Google Contacts Synced."))
 					});
 				} else {
 					frappe.throw("Allow Contacts Access for Syncing.");
