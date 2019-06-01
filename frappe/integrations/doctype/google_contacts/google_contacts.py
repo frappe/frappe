@@ -81,9 +81,9 @@ def sync():
 
 	try:
 		r = r.json()
-	except:
+	except Exception as e:
 		# if request doesn't return json show HTML ask permissions or to identify the error on google side
-		frappe.throw(r.text)
+		frappe.throw(e)
 
 	connections = r.get('connections')
 	for connection in connections:
