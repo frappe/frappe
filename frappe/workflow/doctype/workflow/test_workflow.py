@@ -9,6 +9,7 @@ from frappe.model.workflow import apply_workflow, WorkflowTransitionError, Workf
 
 class TestWorkflow(unittest.TestCase):
 	def setUp(self):
+		frappe.db.sql('DELETE FROM `tabToDo`')
 		if not getattr(self, 'workflow', None):
 			self.workflow = create_todo_workflow()
 		frappe.set_user('Administrator')
@@ -50,9 +51,24 @@ class TestWorkflow(unittest.TestCase):
 		self.workflow.transitions[0].condition = ''
 		self.workflow.save()
 
+	def test_get_common_transition_actions(self):
+		todo1 = frappe.get_doc(dict(doctype='ToDo', description='workflow ' + random_string(10))).insert()
+		todo2 = frappe.get_doc(dict(doctype='ToDo', description='workflow ' + random_string(10))).insert()
+		todo3 = frappe.get_doc(dict(doctype='ToDo', description='workflow ' + random_string(10))).insert()
+		todo4 = frappe.get_doc(dict(doctype='ToDo', description='workflow ' + random_string(10))).insert()
 
-	def test_get_common_transition_actions():
-		actions = get_common_transition_actions(['asdf', 'asdf', 'asf'], 'ToDo')
+		actions = get_common_transition_actions([todo1, todo2, todo3, todo4], 'ToDo')
+		self.assertSetEqual(set(actions), set(['Approve', 'Reject']))
+
+		apply_workflow(todo1, 'Reject')
+		apply_workflow(todo2, 'Reject')
+		apply_workflow(todo3, 'Approve')
+
+		actions = get_common_transition_actions([todo1, todo2, todo3], 'ToDo')
+		self.assertListEqual(actions, [])
+
+		actions = get_common_transition_actions([todo1, todo2], 'ToDo')
+		self.assertListEqual(actions, ['Review'])
 
 	def test_if_workflow_actions_were_processed(self):
 		frappe.db.sql('delete from `tabWorkflow Action`')
@@ -74,7 +90,7 @@ class TestWorkflow(unittest.TestCase):
 
 def create_todo_workflow():
 	if frappe.db.exists('Workflow', 'Test ToDo'):
-		return frappe.get_doc('Workflow', 'Test ToDo')
+		return frappe.get_doc('Workflow', 'Test ToDo').save(ignore_permissions=True)
 	else:
 		frappe.get_doc(dict(doctype='Role',
 			role_name='Test Approver')).insert(ignore_if_duplicate=True)

@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 import frappe
 from frappe.utils import cint
 from frappe import _
+from six import string_types
 import json
 
 class WorkflowStateError(frappe.ValidationError): pass
@@ -180,10 +181,12 @@ def bulk_workflow_approval(docnames, doctype, action):
 @frappe.whitelist()
 def get_common_transition_actions(docs, doctype):
 	common_actions = []
-	docs = json.loads(docs)
+	if isinstance(docs, string_types):
+		docs = json.loads(docs)
 	try:
 		for (i, doc) in enumerate(docs, 1):
-			doc['doctype'] = doctype
+			if not doc.get('doctype'):
+				doc['doctype'] = doctype
 			actions = [t.get('action') for t in get_transitions(doc, raise_exception=True) \
 				if has_approval_access(frappe.session.user, doc, t)]
 			if not actions: return []
@@ -192,7 +195,7 @@ def get_common_transition_actions(docs, doctype):
 	except WorkflowStateError:
 		pass
 
-	return common_actions
+	return list(common_actions)
 
 def show_progress(docnames, message, i, description):
 	n = len(docnames)
