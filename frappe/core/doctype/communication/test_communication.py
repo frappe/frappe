@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 
 import frappe
 import unittest
+from six.moves.urllib.parse import quote
 test_records = frappe.get_test_records('Communication')
 
 
@@ -185,7 +186,7 @@ class TestCommunication(unittest.TestCase):
 			"doctype": "Communication",
 			"communication_medium": "Email",
 			"subject": "Document Link in Email",
-			"sender": "comm_sender+{0}+{1}@example.com".format("Note", note.name),
+			"sender": "comm_sender+{0}+{1}@example.com".format(quote("Note"), quote(note.name)),
 			"recipients": "comm_recipient@example.com",
 		}).insert(ignore_permissions=True)
 
