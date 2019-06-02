@@ -14,7 +14,7 @@ frappe.ui.form.Timeline = class Timeline {
 		var me = this;
 		this.wrapper = $(frappe.render_template("timeline",{doctype: me.frm.doctype,allow_events_in_timeline: me.frm.meta.allow_events_in_timeline})).appendTo(me.parent);
 
-		this.get_active_email_link()
+		this.get_active_email_link();
 		this.list = this.wrapper.find(".timeline-items");
 
 		this.comment_area = frappe.ui.form.make_control({
@@ -116,10 +116,10 @@ frappe.ui.form.Timeline = class Timeline {
 				let email_link =  r.email_id.split("@")[0] +"+"+ encodeURI(me.frm.doctype) +"+"+ encodeURI(me.frm.docname)
 					+"@"+ r.email_id.split("@")[1];
 
-				$('.timeline-email-import').append("Send an email to \
-					<a> \
-						<b>"+ email_link +"</b> \
-					</a> to link it here.");
+				$('.email-import').remove();
+				$('.timeline-email-import').append("<p class='email-import'> \
+						Send an email to <a> <b>"+ email_link +"</b> </a> to link it here. \
+					</p>");
 			}
 		});
 	}

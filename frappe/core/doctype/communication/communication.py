@@ -13,6 +13,7 @@ from frappe.utils.bot import BotReply
 from frappe.utils import parse_addr
 from frappe.core.doctype.comment.comment import update_comment_in_doc
 from email.utils import parseaddr
+from six.moves.urllib.parse import unquote
 from collections import Counter
 
 exclude_from_linked_with = True
@@ -364,13 +365,14 @@ def add_email_link(communication, email_strings):
 			for email in email_string.split(","):
 				if delimiter in email:
 					email = email.split("@")[0]
-					links = email.split(delimiter)[1:]
+					links = email.split(delimiter)[1:] # first value on split is always going to be email id so ignore it
+					length = len(links)
 
-					for idx in range(0, len(links)):
+					for idx in range(0, length):
 						if idx%2 == 0:
 							try:
-								doctype = unquote_link(links[idx])
-								name = unquote_link(links[idx+1])
+								doctype = unquote(links[idx])
+								name = unquote(links[idx+1])
 								if doctype and name and frappe.db.exists(doctype, name):
 									communication.add_link(doctype, name)
 							except IndexError:
@@ -384,11 +386,3 @@ def get_email_without_link(email):
 	email_host = email.split("@")[1]
 
 	return "{0}@{1}".format(email_id, email_host)
-
-def quote_link(email):
-	return email.strip().replace(" ", "%20")
-
-def unquote_link(d):
-	return d.strip().replace("%20", " ")
-
-# test+ToDo+asdf%20%40asdf@gmail.com
