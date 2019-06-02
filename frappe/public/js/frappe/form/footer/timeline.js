@@ -12,13 +12,9 @@ frappe.ui.form.Timeline = class Timeline {
 
 	make() {
 		var me = this;
-		this.wrapper = $(frappe.render_template("timeline",
-			{
-				doctype: me.frm.doctype,
-				allow_events_in_timeline: me.frm.meta.allow_events_in_timeline,
-				email_link: this.get_active_email_link()
-			})).appendTo(me.parent);
+		this.wrapper = $(frappe.render_template("timeline",{doctype: me.frm.doctype,allow_events_in_timeline: me.frm.meta.allow_events_in_timeline})).appendTo(me.parent);
 
+		this.get_active_email_link()
 		this.list = this.wrapper.find(".timeline-items");
 
 		this.comment_area = frappe.ui.form.make_control({
@@ -115,14 +111,15 @@ frappe.ui.form.Timeline = class Timeline {
 
 	get_active_email_link() {
 		var me = this;
-		frappe.db.get_value("Email Account", {"enable_incoming": 1,"email_link": 1}, "email_id", (r) => {
-			if (r.email_id) {
-				let doctype = encodeURI(me.frm.doctype);
-				let name = encodeURI(me.frm.docname);
-				console.log(r.email_id.split("@")[0] +"+"+ doctype +"+"+ name +"@"+ r.email_id.split("@")[1]);
-				return r.email_id.split("@")[0] +"+"+ doctype +"+"+ name +"@"+ r.email_id.split("@")[1];
-			} else {
-				return ""
+		frappe.db.get_value("Email Account", {"enable_incoming": 1, "email_link": 1}, "email_id", (r) => {
+			if (r && r.email_id) {
+				let email_link =  r.email_id.split("@")[0] +"+"+ encodeURI(me.frm.doctype) +"+"+ encodeURI(me.frm.docname)
+					+"@"+ r.email_id.split("@")[1];
+
+				$('.timeline-email-import').append("Send an email to \
+					<a> \
+						<b>"+ email_link +"</b> \
+					</a> to link it here.");
 			}
 		});
 	}
