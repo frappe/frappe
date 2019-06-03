@@ -4,8 +4,8 @@ context('List View', () => {
 		cy.visit('/desk');
 		cy.window().its('frappe').then(frappe => {
 			frappe.call("frappe.tests.test_utils.setup_workflow");
-			cy.reload();
 		});
+		cy.clear_cache();
 	});
 	it('enables "Actions" button', () => {
 		const actions = ['Approve', 'Reject', 'Edit', 'Assign To', 'Print','Delete'];
