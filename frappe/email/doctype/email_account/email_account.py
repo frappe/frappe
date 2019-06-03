@@ -86,7 +86,7 @@ class EmailAccount(Document):
 			if self.append_to not in valid_doctypes:
 				frappe.throw(_("Append To can be one of {0}").format(comma_or(valid_doctypes)))
 
-		if self.email_link and not frappe.db.get_value("Email Account", {"email_link": 1}) == self.name:
+		if self.email_link and frappe.db.get_value("Email Account", {"email_link": 1}) == self.name:
 			frappe.throw(_("Email Link can be activated only for one Email Account."))
 
 	def on_update(self):
