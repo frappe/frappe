@@ -155,3 +155,4 @@ def setup_workflow():
   from frappe.workflow.doctype.workflow.test_workflow import create_todo_workflow
   create_todo_workflow()
   create_todo_records()
+  frappe.clear_cache()
