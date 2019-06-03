@@ -16,7 +16,7 @@ class TestWorkflow(unittest.TestCase):
 
 	def test_default_condition(self):
 		'''test default condition is set'''
-		todo = frappe.get_doc(dict(doctype='ToDo', description='workflow ' + random_string(10))).insert()
+		todo = create_new_todo()
 
 		# default condition is set
 		self.assertEqual(todo.workflow_state, 'Pending')
@@ -52,10 +52,10 @@ class TestWorkflow(unittest.TestCase):
 		self.workflow.save()
 
 	def test_get_common_transition_actions(self):
-		todo1 = frappe.get_doc(dict(doctype='ToDo', description='workflow ' + random_string(10))).insert()
-		todo2 = frappe.get_doc(dict(doctype='ToDo', description='workflow ' + random_string(10))).insert()
-		todo3 = frappe.get_doc(dict(doctype='ToDo', description='workflow ' + random_string(10))).insert()
-		todo4 = frappe.get_doc(dict(doctype='ToDo', description='workflow ' + random_string(10))).insert()
+		todo1 = create_new_todo()
+		todo2 = create_new_todo()
+		todo3 = create_new_todo()
+		todo4 = create_new_todo()
 
 		actions = get_common_transition_actions([todo1, todo2, todo3, todo4], 'ToDo')
 		self.assertSetEqual(set(actions), set(['Approve', 'Reject']))
@@ -122,3 +122,6 @@ def create_todo_workflow():
 		workflow.insert(ignore_permissions=True)
 
 		return workflow
+
+def create_new_todo():
+	return frappe.get_doc(dict(doctype='ToDo', description='workflow ' + random_string(10))).insert()
