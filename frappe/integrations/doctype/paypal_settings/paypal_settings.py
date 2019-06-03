@@ -351,7 +351,7 @@ def update_integration_request_status(token, data, status, error=False, doc=None
 
 def get_redirect_uri(doc, token, payerid):
 	data = json.loads(doc.data)
-	
+
 	if data.get("subscription_details") or data.get("subscription_id"):
 		return get_url("{0}.create_recurring_profile?token={1}&payerid={2}".format(api_path, token, payerid))
 	else:
@@ -366,7 +366,11 @@ def manage_recurring_payment_profile_status(profile_id, action, args, url):
 
 	response = make_post_request(url, data=args)
 
-	if response.get("ACK")[0] != "Success":
+	# error code 11556 indicates profile is not in active state(or already cancelled)
+	# thus could not cancel the subscription.
+	# thus raise an exception only if the error code is not equal to 11556
+
+	if response.get("ACK")[0] != "Success" and response.get("L_ERRORCODE0", [])[0] != '11556':
 		frappe.throw(_("Failed while amending subscription"))
 
 @frappe.whitelist(allow_guest=True)
