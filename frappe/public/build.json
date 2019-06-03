@@ -238,6 +238,7 @@
 		"public/js/frappe/form/templates/form_dashboard.html",
 		"public/js/frappe/form/templates/form_document_flow.html",
 		"public/js/frappe/form/templates/form_links.html",
+		"public/js/frappe/form/templates/report_links.html",
 		"public/js/frappe/form/templates/attachment.html",
 		"public/js/frappe/form/templates/form_footer.html",
 		"public/js/frappe/form/templates/timeline.html",

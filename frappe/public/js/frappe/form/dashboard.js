@@ -153,7 +153,8 @@ frappe.ui.form.Dashboard = Class.extend({
 
 		var show = false;
 
-		if(this.data && (this.data.transactions || []).length) {
+		if(this.data && ((this.data.transactions || []).length
+			|| (this.data.reports || []).length)) {
 			if(this.data.docstatus && this.frm.doc.docstatus !== this.data.docstatus) {
 				// limited docstatus
 				return;
@@ -263,9 +264,17 @@ frappe.ui.form.Dashboard = Class.extend({
 		$(frappe.render_template('form_links', this.data))
 			.appendTo(this.transactions_area)
 
+		$(frappe.render_template('report_links', this.data))
+			.appendTo(this.transactions_area)
+
 		// bind links
 		this.transactions_area.find(".badge-link").on('click', function() {
 			me.open_document_list($(this).parent());
+		});
+
+		// bind reports
+		this.transactions_area.find(".report-link").on('click', function() {
+			me.open_report($(this).parent());
 		});
 
 		// bind open notifications
@@ -279,6 +288,11 @@ frappe.ui.form.Dashboard = Class.extend({
 		});
 
 		this.data_rendered = true;
+	},
+	open_report: function($link) {
+		let report = $link.attr('data-report')
+		frappe.route_options[this.data.fieldname] = this.frm.doc.name;
+		frappe.set_route("query-report", report)
 	},
 	open_document_list: function($link, show_open) {
 		// show document list with filters
