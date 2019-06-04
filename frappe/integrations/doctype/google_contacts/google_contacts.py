@@ -57,7 +57,6 @@ def google_callback(code=None):
 
 			if 'refresh_token' in r:
 				frappe.db.set_value("Google Contacts", None, "refresh_token", r.get("refresh_token"))
-				frappe.db.set_value("Google Contacts", None, "access_authorised", 1)
 
 			frappe.db.commit()
 			frappe.local.response["type"] = "redirect"
@@ -99,7 +98,8 @@ def sync():
 					})
 					contact.insert(ignore_permissions=True)
 
-	frappe.db.set_value("Google Contacts", None, "access_authorised", 0)
+	frappe.db.set_value("Google Contacts", None, "authorization_code", None)
+	frappe.db.set_value("Google Contacts", None, "refresh_token", None)
 
 def show_progress(length, message, i, description):
 	if length > 5:

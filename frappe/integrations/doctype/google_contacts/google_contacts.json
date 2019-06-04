@@ -10,7 +10,6 @@
   "google_credentials",
   "client_id",
   "client_secret",
-  "access_authorised",
   "allow_contacts_access",
   "authorization_code",
   "refresh_token"
@@ -39,13 +38,6 @@
    "label": "Client Secret"
   },
   {
-   "default": "0",
-   "fieldname": "access_authorised",
-   "fieldtype": "Check",
-   "label": "Access Authorised",
-   "read_only": 1
-  },
-  {
    "fieldname": "allow_contacts_access",
    "fieldtype": "Button",
    "label": "Allow Contacts Access"
@@ -71,7 +63,7 @@
  ],
  "in_create": 1,
  "issingle": 1,
- "modified": "2019-06-01 16:58:00.867815",
+ "modified": "2019-06-04 14:17:28.553516",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Google Contacts",

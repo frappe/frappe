@@ -5,7 +5,7 @@ frappe.ui.form.on('Google Contacts', {
 	refresh: function(frm) {
 		if (frm.doc.enable && frm.doc.client_id && frm.doc.client_secret) {
 			frm.add_custom_button(__('Sync Contacts'), function () {
-				if (frm.doc.access_authorised) {
+				if (frm.doc.authorization_code && frm.doc.refresh_token) {
 					frappe.show_alert({
 						indicator: 'green',
 						message: __('Syncing')
