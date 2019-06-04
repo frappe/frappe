@@ -345,15 +345,11 @@ def make_test_objects(doctype, test_records=None, verbose=None, reset=False):
 		docstatus = d.docstatus
 
 		d.docstatus = 0
+		d.run_method("before_test_insert")
+		d.insert()
 
-		try:
-			d.run_method("before_test_insert")
-			d.insert()
-
-			if docstatus == 1:
-				d.submit()
-		except Exception as e:
-			raise
+		if docstatus == 1:
+			d.submit()
 
 		records.append(d.name)
 
