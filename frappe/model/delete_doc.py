@@ -10,7 +10,6 @@ import frappe.defaults
 from frappe.utils.file_manager import remove_all
 from frappe.utils.password import delete_all_passwords_for
 from frappe import _
-from frappe.model.naming import revert_series_if_last
 from frappe.utils.global_search import delete_for_document
 from six import string_types, integer_types
 
@@ -87,7 +86,6 @@ def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reloa
 					check_if_doc_is_linked(doc)
 					check_if_doc_is_dynamically_linked(doc)
 
-			update_naming_series(doc)
 			delete_from_table(doctype, name, ignore_doctypes, doc)
 			doc.run_method("after_delete")
 
@@ -119,15 +117,6 @@ def add_to_deleted_document(doc):
 			data=doc.as_json(),
 			owner=frappe.session.user
 		)).db_insert()
-
-def update_naming_series(doc):
-	if doc.meta.autoname:
-		if doc.meta.autoname.startswith("naming_series:") \
-			and getattr(doc, "naming_series", None):
-			revert_series_if_last(doc.naming_series, doc.name)
-
-		elif doc.meta.autoname.split(":")[0] not in ("Prompt", "field", "hash"):
-			revert_series_if_last(doc.meta.autoname, doc.name)
 
 def delete_from_table(doctype, name, ignore_doctypes, doc):
 	if doctype!="DocType" and doctype==name:

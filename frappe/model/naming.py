@@ -169,24 +169,6 @@ def getseries(key, digits, doctype=''):
 	return ('%0'+str(digits)+'d') % current
 
 
-def revert_series_if_last(key, name):
-	if ".#" in key:
-		prefix, hashes = key.rsplit(".", 1)
-		if "#" not in hashes:
-			return
-	else:
-		prefix = key
-
-	if '.' in prefix:
-		prefix = parse_naming_series(prefix.split('.'))
-
-	count = cint(name.replace(prefix, ""))
-	current = frappe.db.sql("select `current` from `tabSeries` where name=%s for update", (prefix,))
-
-	if current and current[0][0]==count:
-		frappe.db.sql("update tabSeries set current=current-1 where name=%s", prefix)
-
-
 def get_default_naming_series(doctype):
 	"""get default value for `naming_series` property"""
 	naming_series = frappe.get_meta(doctype).get_field("naming_series").options or ""
