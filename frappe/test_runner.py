@@ -13,7 +13,6 @@ import frappe.utils.scheduler
 import cProfile, pstats
 from six import StringIO
 from six.moves import reload_module
-from frappe.model.naming import revert_series_if_last
 
 unittest_runner = unittest.TextTestRunner
 
@@ -319,11 +318,6 @@ def make_test_objects(doctype, test_records=None, verbose=None, reset=False):
 	'''Make test objects from given list of `test_records` or from `test_records.json`'''
 	records = []
 
-	def revert_naming(d):
-		if getattr(d, 'naming_series', None):
-			revert_series_if_last(d.naming_series, d.name)
-
-
 	if test_records is None:
 		test_records = frappe.get_test_records(doctype)
 
@@ -358,15 +352,8 @@ def make_test_objects(doctype, test_records=None, verbose=None, reset=False):
 
 			if docstatus == 1:
 				d.submit()
-
-		except frappe.NameError:
-			revert_naming(d)
-
 		except Exception as e:
-			if d.flags.ignore_these_exceptions_in_test and e.__class__ in d.flags.ignore_these_exceptions_in_test:
-				revert_naming(d)
-			else:
-				raise
+			raise
 
 		records.append(d.name)
 
