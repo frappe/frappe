@@ -2,10 +2,12 @@
 # MIT License. See license.txt
 from __future__ import unicode_literals
 
-import frappe, unittest, os
-from frappe.utils import cint
-from frappe.model.naming import make_autoname, parse_naming_series
+import os
+import unittest
+
+import frappe
 from frappe.utils.testutils import add_custom_field, clear_custom_fields
+
 
 class TestDocument(unittest.TestCase):
 	def test_get_return_empty_list_for_table_field_if_none(self):
