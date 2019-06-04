@@ -7,7 +7,7 @@ import frappe
 from frappe.utils import now_datetime
 
 from frappe.model.naming import getseries
-from frappe.model.naming import append_number_if_name_exists, revert_series_if_last
+from frappe.model.naming import append_number_if_name_exists
 
 class TestNaming(unittest.TestCase):
 	def tearDown(self):
@@ -60,37 +60,3 @@ class TestNaming(unittest.TestCase):
 
 		self.assertEqual(todo.name, 'TODO-{month}-{status}-{series}'.format(
 			month=now_datetime().strftime('%m'), status=todo.status, series=series))
-
-	def test_revert_series(self):
-		from datetime import datetime
-		year = datetime.now().year
-
-		series = 'TEST-{}-'.format(year)
-		key = 'TEST-.YYYY.-'
-		name = 'TEST-{}-00001'.format(year)
-		frappe.db.sql("""INSERT INTO `tabSeries` (name, current) values (%s, 1)""", (series,))
-		revert_series_if_last(key, name)
-		count = frappe.db.sql("""SELECT current from `tabSeries` where name = %s""", series, as_dict=True)[0]
-
-		self.assertEqual(count.get('current'), 0)
-		frappe.db.sql("""delete from `tabSeries` where name = %s""", series)
-
-		series = 'TEST-{}-'.format(year)
-		key = 'TEST-.YYYY.-.#####'
-		name = 'TEST-{}-00002'.format(year)
-		frappe.db.sql("""INSERT INTO `tabSeries` (name, current) values (%s, 2)""", (series,))
-		revert_series_if_last(key, name)
-		count = frappe.db.sql("""SELECT current from `tabSeries` where name = %s""", series, as_dict=True)[0]
-
-		self.assertEqual(count.get('current'), 1)
-		frappe.db.sql("""delete from `tabSeries` where name = %s""", series)
-
-		series = 'TEST-'
-		key = 'TEST-'
-		name = 'TEST-00003'
-		frappe.db.sql("""INSERT INTO `tabSeries` (name, current) values (%s, 3)""", (series,))
-		revert_series_if_last(key, name)
-		count = frappe.db.sql("""SELECT current from `tabSeries` where name = %s""", series, as_dict=True)[0]
-
-		self.assertEqual(count.get('current'), 2)
-		frappe.db.sql("""delete from `tabSeries` where name = %s""", series)
