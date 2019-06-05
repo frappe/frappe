@@ -53,14 +53,14 @@ function keyboard_nav() {
 			return;
 		}
 		let $page = $(frappe.container.page);
+		let $navbar = $('.navbar');
 		if($page.find('.modules-section').is(':visible')) {
-			if ($('[role="listbox"]').is(":visible") || $('.dropdown-menu').is(':visible') 
-				|| $('.modal').is(':visible') || $('input:focus').length > 0) {
+			if ($navbar.find('[role="listbox"]').is(":visible") || $navbar.find('.dropdown-menu').is(':visible')) {
 				return;
 			}
 			if($page.find('.module-dropdown').is(':visible')) {
 				//Dropdown navigation
-				navigate(e, dropdown_nav_obj,$page.find('.module-dropdown li').filter(':visible'), 'a', true);
+				navigate(e, dropdown_nav_obj ,$page.find('.module-dropdown li').filter(':visible'), 'a', true);
 			} else {
 				//Module navigation
 				navigate(e, nav_obj, $page.find('.module-box'), '.module-box-link', false);
