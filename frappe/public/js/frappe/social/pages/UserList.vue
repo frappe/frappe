@@ -31,7 +31,7 @@
 						<span class="rank-column">{{ index + 1 }}</span>
 						<span v-html="get_avatar(user.name)"></span>
 						<span>
-							<a @click="go_to_profile_page(user.name)">{{ user.fullname }}</a>
+							<a @click.stop="go_to_profile_page(user.name)">{{ user.fullname }}</a>
 							<div
 								class="text-muted text-medium"
 								:class="{'italic': !user.bio}"
