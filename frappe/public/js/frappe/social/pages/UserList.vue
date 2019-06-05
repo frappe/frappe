@@ -21,11 +21,9 @@
 			<li class="user-card user-list-header text-medium">
 				<span class="rank-column">#</span>
 				<span class="user-details text-muted">{{ __('User') }}</span>
-				<span
-					class="flex-20 text-muted"
-					v-for="title in ['Energy Points', 'Review Points', 'Points Given']"
-					:key="title"
-				>{{ __(title) }}</span>
+				<span class="flex-20 text-muted" >{{ __('Energy Points') }}</span>
+				<span class="flex-20 text-muted" >{{ __('Review Points') }}</span>
+				<span class="flex-20 text-muted" >{{ __('Points Given') }}</span>
 			</li>
 			<li v-for="(user, index) in filtered_users" :key="user.name">
 				<div class="user-card" @click="toggle_log(user.name)">
@@ -37,7 +35,7 @@
 							<div
 								class="text-muted text-medium"
 								:class="{'italic': !user.bio}"
-							>{{ frappe.ellipsis(user.bio, 100) || 'No Bio'}}</div>
+							>{{ frappe.ellipsis(user.bio, 100) || __('No Bio')}}</div>
 						</span>
 					</span>
 					<span
