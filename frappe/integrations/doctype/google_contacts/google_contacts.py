@@ -94,12 +94,9 @@ def sync():
 						"doctype": "Contact",
 						"first_name": name.get('givenName'),
 						"last_name": name.get('familyName'),
-						"email_id": email.get('value')
-					})
-					contact.insert(ignore_permissions=True)
-
-	frappe.db.set_value("Google Contacts", None, "authorization_code", None)
-	frappe.db.set_value("Google Contacts", None, "refresh_token", None)
+						"email_id": email.get('value'),
+						"source": "Google Contacts"
+					})	.insert(ignore_permissions=True)
 
 def show_progress(length, message, i, description):
 	if length > 5:
