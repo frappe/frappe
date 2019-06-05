@@ -47,13 +47,14 @@ frappe.ui.Page = Class.extend({
 
 	keyboard_shortcut(shortcut, element, namespace, is_std) {
 		let shortcut_key = shortcut.replace(/ /g,'').toLowerCase();
+		let $page = $(frappe.container.page);
 		//For standard shortcuts
 		if(is_std) {
 			if(frappe.ui.keys.handlers[shortcut_key]) return;
 			frappe.ui.keys.on(shortcut_key,(e)=> {
 				e.preventDefault();
-				if($('.form-layout').is(':visible')) {
-					$('.menu-btn-group').find('a.grey-link').each((i,v)=> {
+				if($page.find('.form-layout').is(':visible')) {
+					$page.find('.menu-btn-group').find('a.grey-link').each((i,v)=> {
 						if(v.textContent == element.get(0).textContent) {
 							element = $(v);
 						}
@@ -172,7 +173,7 @@ frappe.ui.Page = Class.extend({
 			if(element.$el.is(':visible')) {
 				this.keyboard_shortcut(element.shortcut, element.$el, 'keyup.underline');
 			}
-		})
+		});
 
 		return el_list;
 	},

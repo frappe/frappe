@@ -762,13 +762,16 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		this.next_index = 0;
 
 		$(document).off('keydown.list').on('keydown.list', null, (e)=> {
+			let $page = $(frappe.container.page);
+			let $navbar = $('.navbar');
 			var {UP, DOWN, ENTER, SPACE} = frappe.ui.keyCode;
 			if(!in_list([UP, DOWN, ENTER, SPACE], e.which)) {
 				return;
 			}
 			//If any other keyboard navigable list(like dropdown) is open, set is_list_nav to false
-			if ($('[role="listbox"]').is(":visible") || $('.dropdown-menu').is(':visible') 
-				|| $('.modal').is(':visible') || $('input:focus').length > 0) {
+			if ($navbar.find('[role="listbox"]').is(":visible") || $navbar.find('.dropdown-menu').is(':visible') 
+				|| $page.find('.dropdown-menu').is(':visible')  || $('.modal').is(':visible') 
+				|| $navbar.find('input:focus').length > 0 || $page.find('input:focus').length > 0) {
 				is_list_nav = false;
 			} else {
 				is_list_nav = true;

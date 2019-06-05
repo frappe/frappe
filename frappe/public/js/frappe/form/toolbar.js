@@ -364,7 +364,8 @@ frappe.ui.form.Toolbar = Class.extend({
 	},
 
 	setup_modal() {
-		if(!$('.form-layout').is(':visible')) {
+		let $page = $(frappe.container.page);
+		if(!$page.find('.form-layout').is(':visible')) {
 			return;	
 		}
 
@@ -390,7 +391,7 @@ frappe.ui.form.Toolbar = Class.extend({
 		dialog.set_primary_action("Go", () => {
 			let field = dialog.get_values().go_to_field;
 			let element = fields.find( f=> f.label == field);
-			let $el = $("[data-fieldname="+element.fieldname+"]");
+			let $el = $page.find("[data-fieldname="+element.fieldname+"]");
 			if(element.section_body.hasClass('hide')) {
 				element.section_body.removeClass('hide');
 			}
@@ -408,8 +409,8 @@ frappe.ui.form.Toolbar = Class.extend({
 
 	get_section_fields() {
 		let fields = [];
-		let current_page = $('.page-container').filter(':visible');
-		current_page.get(0).frm.layout.sections.forEach((section)=> {
+		let $current_page = $(frappe.container.page);
+		$current_page.get(0).frm.layout.sections.forEach((section)=> {
 			section.fields_list.forEach((f)=> {
 				if(f.df.fieldtype!=='Section Break' && !f.df.hidden && f.disp_status!=='None' && f.df.label) {
 					let field = {};
