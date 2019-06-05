@@ -74,7 +74,8 @@ class LDAPSettings(Document):
 			result["method"] = "frappe.integrations.doctype.ldap_settings.ldap_settings.login"
 		return result
 
-	def update_user_fields(self,
+	@classmethod
+	def update_user_fields(cls,
 						   user,
 						   user_data):
 		updatable_data = {key:value for key, value in user_data.items() if key != 'email'}
@@ -109,7 +110,7 @@ class LDAPSettings(Document):
 		user = None
 		if frappe.db.exists("User", user_data['email']):
 			user = frappe.get_doc("User", user_data['email'])
-			self.update_user_fields(user=user,user_data=user_data)
+			LDAPSettings.update_user_fields(user=user,user_data=user_data)
 		else:
 			doc = user_data
 			doc.update({
