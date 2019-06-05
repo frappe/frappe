@@ -14,16 +14,18 @@
 				<span class="flex-40"></span>
 				<span class="flex-20 text-muted">
 					<select class="form-control" data-toggle="tooltip" title="Period" v-model="period">
-						<option v-for="value in period_options" :key="value" :value="value">{{ value }}</option>
+						<option v-for="value in period_options" :key="value" :value="value">
+							{{ value }}
+						</option>
 					</select>
 				</span>
 			</li>
 			<li class="user-card user-list-header text-medium">
 				<span class="rank-column">#</span>
 				<span class="user-details text-muted">{{ __('User') }}</span>
-				<span class="flex-20 text-muted" >{{ __('Energy Points') }}</span>
-				<span class="flex-20 text-muted" >{{ __('Review Points') }}</span>
-				<span class="flex-20 text-muted" >{{ __('Points Given') }}</span>
+				<span class="flex-20 text-muted">{{ __('Energy Points') }}</span>
+				<span class="flex-20 text-muted">{{ __('Review Points') }}</span>
+				<span class="flex-20 text-muted">{{ __('Points Given') }}</span>
 			</li>
 			<li v-for="(user, index) in filtered_users" :key="user.name">
 				<div class="user-card" @click="toggle_log(user.name)">
@@ -31,11 +33,13 @@
 						<span class="rank-column">{{ index + 1 }}</span>
 						<span v-html="get_avatar(user.name)"></span>
 						<span>
-							<a @click.stop="go_to_profile_page(user.name)">{{ user.fullname }}</a>
+							<a @click.stop="go_to_profile_page(user.name)">
+								{{ user.fullname }}
+							</a>
 							<div
 								class="text-muted text-medium"
 								:class="{'italic': !user.bio}"
-							>{{ frappe.ellipsis(user.bio, 100) || __('No Bio')}}</div>
+							>{{ frappe.ellipsis(user.bio, 100) || __('No Bio') }}</div>
 						</span>
 					</span>
 					<span
@@ -52,7 +56,9 @@
 					:key="user.name + user.energy_points"
 				></energy-point-history>
 			</li>
-			<li class="user-card text-muted" v-if="!filtered_users.length">{{__('No user found')}}</li>
+			<li class="user-card text-muted" v-if="!filtered_users.length">
+				{{ __('No user found') }}
+			</li>
 		</ul>
 	</div>
 </template>
