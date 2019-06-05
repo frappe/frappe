@@ -352,7 +352,7 @@ frappe.request.report_error = function(xhr, request_opts) {
 	}
 
 	if (exc) {
-		var error_report_email = (frappe.boot.error_report_email || []).join(", ");
+		var error_report_email = frappe.boot.error_report_email;
 		var error_message = '<div>\
 			<pre style="max-height: 300px; margin-top: 7px;">'
 				+ exc.replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</pre>'
