@@ -14,8 +14,10 @@ frappe.ui.form.Timeline = class Timeline {
 		var me = this;
 		this.wrapper = $(frappe.render_template("timeline",{doctype: me.frm.doctype,allow_events_in_timeline: me.frm.meta.allow_events_in_timeline})).appendTo(me.parent);
 
+		this.set_active_email_link();
 		this.get_active_email_link();
 		this.list = this.wrapper.find(".timeline-items");
+		this.email_link = this.wrapper.find(".timeline-email-import")
 
 		this.comment_area = frappe.ui.form.make_control({
 			parent: this.wrapper.find('.timeline-head'),
@@ -72,6 +74,20 @@ frappe.ui.form.Timeline = class Timeline {
 			});
 		});
 
+		this.email_link.on("click", ".copy-to-clipboard", function() {
+			let text = $(".click-to-copy").text();
+
+			let input = $("<input>");
+			$("body").append(input);
+			input.val(text).select();
+			document.execCommand("copy");
+			input.remove();
+
+			frappe.show_alert({
+				indicator: 'green',
+				message: __('Email copied.')
+			});
+		});
 	}
 
 	setup_email_button() {
@@ -109,19 +125,28 @@ frappe.ui.form.Timeline = class Timeline {
 			});
 	}
 
-	get_active_email_link() {
-		var me = this;
-		frappe.db.get_value("Email Account", {"enable_incoming": 1, "email_link": 1}, "email_id", (r) => {
-			if (r && r.email_id) {
-				let email_link =  r.email_id.split("@")[0] +"+"+ encodeURI(me.frm.doctype) +"+"+ encodeURI(me.frm.docname)
-					+"@"+ r.email_id.split("@")[1];
-
-				$('.email-import').remove();
-				$('.timeline-email-import').append("<p class='email-import'> \
-						Send an email to <a> <b>"+ email_link +"</b> </a> to link it here. \
-					</p>");
+	set_active_email_link() {
+		frappe.realtime.on('email_link', (message) => {
+			if (message != 'null') {
+				$('.timeline-email-import').removeClass("hide");
+				localStorage.setItem("email_link", JSON.parse(message));
+			} else {
+				$('.timeline-email-import').addClass("hide");
+				localStorage.removeItem("email_link");
 			}
 		});
+	}
+
+	get_active_email_link() {
+		var me = this;
+		let email_id = localStorage.getItem("email_link");
+
+		if (email_id && email_id != 'null') {
+			email_id =  email_id.split("@")[0] +"+"+ encodeURI(me.frm.doctype) +"+"+ encodeURI(me.frm.docname)
+				+"@"+ email_id.split("@")[1];
+
+			$(".timeline-email-import-link").text(email_id);
+		}
 	}
 
 	setup_interaction_button() {

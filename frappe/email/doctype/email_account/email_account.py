@@ -86,13 +86,11 @@ class EmailAccount(Document):
 			if self.append_to not in valid_doctypes:
 				frappe.throw(_("Append To can be one of {0}").format(comma_or(valid_doctypes)))
 
-		if self.email_link and frappe.db.get_value("Email Account", {"email_link": 1}) == self.name:
-			frappe.throw(_("Email Link can be activated only for one Email Account."))
-
 	def on_update(self):
 		"""Check there is only one default of each type."""
 		from frappe.core.doctype.user.user import setup_user_email_inbox
 
+		self.check_email_link()
 		self.there_must_be_only_one_default()
 		setup_user_email_inbox(email_account=self.name, awaiting_password=self.awaiting_password,
 			email_id=self.email_id, enable_outgoing=self.enable_outgoing)
@@ -641,6 +639,22 @@ class EmailAccount(Document):
 
 		frappe.db.sql(""" update `tabCommunication` set seen={seen}
 			where name in ({docnames})""".format(docnames=docnames, seen=seen))
+
+	def check_email_link(self):
+		email_id = None
+		if self.email_link:
+			if self.enable_incoming:
+				email_id = self.email_id
+
+				for email_account in frappe.get_list("Email Account", filters={"email_link": 1}):
+					if email_account.name==self.name:
+						continue
+
+					frappe.throw(_("Email Link can be activated only for one Email Account."))
+			else:
+				frappe.throw(_("Email Link can be activated only if Incoming is enabled."))
+
+		frappe.publish_realtime('email_link', message=json.dumps(email_id))
 
 @frappe.whitelist()
 def get_append_to(doctype=None, txt=None, searchfield=None, start=None, page_len=None, filters=None):
