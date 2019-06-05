@@ -69,7 +69,7 @@ frappe.ui.form.PrintPreview = Class.extend({
 					frappe.urllib.get_full_url("/api/method/frappe.utils.print_format.download_pdf?"
 						+ "doctype=" + encodeURIComponent(me.frm.doc.doctype)
 						+ "&name=" + encodeURIComponent(me.frm.doc.name)
-						+ "&format=" + me.selected_format()
+						+ "&format=" + encodeURIComponent(me.selected_format())
 						+ "&no_letterhead=" + (me.with_letterhead() ? "0" : "1")
 						+ (me.lang_code ? ("&_lang=" + me.lang_code) : ""))
 				);
@@ -213,7 +213,7 @@ frappe.ui.form.PrintPreview = Class.extend({
 			+ "doctype=" + encodeURIComponent(me.frm.doc.doctype)
 			+ "&name=" + encodeURIComponent(me.frm.doc.name)
 			+ (printit ? "&trigger_print=1" : "")
-			+ "&format=" + me.selected_format()
+			+ "&format=" + encodeURIComponent(me.selected_format())
 			+ "&no_letterhead=" + (me.with_letterhead() ? "0" : "1")
 			+ (me.lang_code ? ("&_lang=" + me.lang_code) : "")));
 		if (!w) {
