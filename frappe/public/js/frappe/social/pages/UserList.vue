@@ -29,8 +29,8 @@
 			</li>
 			<li v-for="(user, index) in filtered_users" :key="user.name">
 				<div class="user-card" @click="toggle_log(user.name)">
+					<span class="rank-column">{{ index + 1 }}</span>
 					<span class="user-details flex">
-						<span class="rank-column">{{ index + 1 }}</span>
 						<span v-html="get_avatar(user.name)"></span>
 						<span>
 							<a @click.stop="go_to_profile_page(user.name)">
