@@ -17,7 +17,7 @@ frappe.ui.form.Timeline = class Timeline {
 		this.set_active_email_link();
 		this.get_active_email_link();
 		this.list = this.wrapper.find(".timeline-items");
-		this.email_link = this.wrapper.find(".timeline-email-import")
+		this.email_link = this.wrapper.find(".timeline-email-import");
 
 		this.comment_area = frappe.ui.form.make_control({
 			parent: this.wrapper.find('.timeline-head'),
