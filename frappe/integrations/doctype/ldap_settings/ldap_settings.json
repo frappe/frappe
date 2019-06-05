@@ -249,7 +249,7 @@
    "bold": 0,
    "collapsible": 0,
    "columns": 0,
-   "default": "Customer",
+   "default": "Blogger",
    "fetch_if_empty": 0,
    "fieldname": "default_role",
    "fieldtype": "Link",
