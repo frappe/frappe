@@ -15,7 +15,7 @@ rauth>=0.6.2
 requests
 redis==2.10.6
 selenium
-babel
+babel==2.6.0
 ipython
 html2text==2016.9.19
 email_reply_parser

@@ -28,12 +28,12 @@
 				>{{ __(title) }}</span>
 			</li>
 			<li v-for="(user, index) in filtered_users" :key="user.name">
-				<div class="user-card" @click="toggle_log(user.name)">
-					<span class="user-details flex">
+				<div class="user-card">
+					<span class="user-details flex" @click="go_to_profile_page(user.name)">
 						<span class="rank-column">{{ index + 1 }}</span>
 						<span v-html="get_avatar(user.name)"></span>
 						<span>
-							<a @click="go_to_profile_page(user.name)">{{ user.fullname }}</a>
+							{{ user.fullname }}
 							<div
 								class="text-muted text-medium"
 								:class="{'italic': !user.bio}"
@@ -44,6 +44,7 @@
 						class="text-muted text-nowrap flex-20"
 						v-for="key in ['energy_points', 'review_points', 'given_points']"
 						:key="key"
+						@click="toggle_log(user.name)"
 					>{{ user[key] }}</span>
 				</div>
 				<energy-point-history
@@ -59,11 +60,7 @@
 	</div>
 </template>
 <script>
-import EnergyPointHistory from '../components/EnergyPointHistory.vue';
 export default {
-	components: {
-		EnergyPointHistory
-	},
 	data() {
 		return {
 			users: [],
@@ -168,11 +165,7 @@ export default {
 				});
 		},
 		toggle_log(user) {
-			if (this.show_log_for === user) {
-				this.show_log_for = null;
-			} else {
-				this.show_log_for = user;
-			}
+			frappe.set_route('List', 'Energy Point Log', {user:user});
 		}
 	}
 };

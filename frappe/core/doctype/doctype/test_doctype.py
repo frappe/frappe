@@ -6,7 +6,7 @@ from __future__ import unicode_literals
 import frappe
 import unittest
 from frappe.core.doctype.doctype.doctype import UniqueFieldnameError, IllegalMandatoryError, DoctypeLinkError, WrongOptionsDoctypeLinkError,\
- HiddenAndMandatoryWithoutDefaultError, CannotIndexedError
+ HiddenAndMandatoryWithoutDefaultError, CannotIndexedError, InvalidFieldNameError
 
 # test_records = frappe.get_test_records('DocType')
 
@@ -240,6 +240,16 @@ class TestDocType(unittest.TestCase):
 		field_2.fieldtype = 'Data'
 
 		self.assertRaises(UniqueFieldnameError, doc.insert)
+
+	def test_fieldname_is_not_name(self):
+		doc = self.new_doctype('Test Name Field')
+		field_1 = doc.append('fields', {})
+		field_1.label  = 'Name'
+		field_1.fieldtype = 'Data'
+		doc.insert()
+		self.assertEqual(doc.fields[1].fieldname, "name1")
+		doc.fields[1].fieldname  = 'name'
+		self.assertRaises(InvalidFieldNameError, doc.save)
 
 	def test_illegal_mandatory_validation(self):
 		doc = self.new_doctype('Test Illegal mandatory')

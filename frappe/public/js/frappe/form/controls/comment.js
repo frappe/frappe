@@ -82,12 +82,7 @@ frappe.ui.form.ControlComment = frappe.ui.form.ControlTextEditor.extend({
 			return null;
 		}
 
-		const at_values = this.mentions.map((value, i) => {
-			return {
-				id: i,
-				value
-			};
-		});
+		const at_values = this.mentions.slice();
 
 		return {
 			allowedChars: /^[A-Za-z0-9_]*$/,

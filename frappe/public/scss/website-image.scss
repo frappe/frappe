@@ -82,3 +82,7 @@ img:after {
 .website-image[src*="no-image.jpg"] {
 	padding: 46% 0;
 }
+
+.object-fit-cover {
+	object-fit: cover;
+}
