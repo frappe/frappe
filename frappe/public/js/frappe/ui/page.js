@@ -132,8 +132,8 @@ frappe.ui.Page = Class.extend({
 
 	underline_alt_elements($list, selector) {
 		//If list of elements greater than 30, underline only 1st 30
-		if($list.length > 30) {
-			$list = $list.slice(0,30);
+		if($list.length > 20) {
+			$list = $list.slice(0,20);
 		}
 
 		//[S,C,H] - already exist as shorcuts with Alt
