@@ -90,13 +90,13 @@ def sync():
 			show_progress(len(connections), "Google Contacts", idx, name.get('displayName'))
 			for email in connection.get('emailAddresses'):
 				if not frappe.db.exists("Contact", {"email_id": email.get('value')}):
-					contact = frappe.get_doc({
+					frappe.get_doc({
 						"doctype": "Contact",
 						"first_name": name.get('givenName'),
 						"last_name": name.get('familyName'),
 						"email_id": email.get('value'),
 						"source": "Google Contacts"
-					})	.insert(ignore_permissions=True)
+					}).insert(ignore_permissions=True)
 
 def show_progress(length, message, i, description):
 	if length > 5:
