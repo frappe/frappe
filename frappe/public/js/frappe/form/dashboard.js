@@ -293,14 +293,14 @@ frappe.ui.form.Dashboard = Class.extend({
 	},
 	open_report: function($link) {
 
-		let report = $link.attr('data-report')
+		let report = $link.attr('data-report');
 
 		let fieldname = this.data.non_standard_fieldnames
 			? (this.data.non_standard_fieldnames[report] || this.data.fieldname)
 			: this.data.fieldname;
 
 		frappe.route_options[fieldname] = this.frm.doc.name;
-		frappe.set_route("query-report", report)
+		frappe.set_route("query-report", report);
 	},
 	open_document_list: function($link, show_open) {
 		// show document list with filters
