@@ -85,18 +85,21 @@ def sync():
 		frappe.throw(e)
 
 	connections = r.get('connections')
-	for idx, connection in enumerate(connections):
-		for name in connection.get('names'):
-			show_progress(len(connections), "Google Contacts", idx, name.get('displayName'))
-			for email in connection.get('emailAddresses'):
-				if not frappe.db.exists("Contact", {"email_id": email.get('value')}):
-					frappe.get_doc({
-						"doctype": "Contact",
-						"first_name": name.get('givenName'),
-						"last_name": name.get('familyName'),
-						"email_id": email.get('value'),
-						"source": "Google Contacts"
-					}).insert(ignore_permissions=True)
+	if connections:
+		for idx, connection in enumerate(connections):
+			for name in connection.get('names'):
+				show_progress(len(connections), "Google Contacts", idx, name.get('displayName'))
+				for email in connection.get('emailAddresses'):
+					if not frappe.db.exists("Contact", {"email_id": email.get('value')}):
+						frappe.get_doc({
+							"doctype": "Contact",
+							"first_name": name.get('givenName'),
+							"last_name": name.get('familyName'),
+							"email_id": email.get('value'),
+							"source": "Google Contacts"
+						}).insert(ignore_permissions=True)
+
+		return enumerate(connections)
 
 def show_progress(length, message, i, description):
 	if length > 5:
