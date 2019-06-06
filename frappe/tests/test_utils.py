@@ -149,3 +149,10 @@ def create_todo_records():
 		"date": add_to_date(now(), months=-2),
 		"description": "this is fourth todo"
 	}).insert()
+
+@frappe.whitelist()
+def setup_workflow():
+  from frappe.workflow.doctype.workflow.test_workflow import create_todo_workflow
+  create_todo_workflow()
+  create_todo_records()
+  frappe.clear_cache()

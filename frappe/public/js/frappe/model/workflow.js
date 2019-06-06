@@ -69,5 +69,22 @@ frappe.workflow = {
 				return d.update_field;
 			}));
 		return update_fields;
-	}
+	},
+	get_state(doc) {
+		const state_field = this.get_state_fieldname(doc.doctype);
+		let state = doc[state_field];
+		if (!state) {
+			state = this.get_default_state(doc.doctype, doc.docstatus);
+		}
+		return state;
+	},
+	get_all_transitions(doctype) {
+		return frappe.workflow.workflows[doctype].transitions || [];
+	},
+	get_all_transition_actions(doctype) {
+		const transitions = this.get_all_transitions(doctype);
+		return transitions.map(transition => {
+			return transition.action;
+		});
+	},
 };

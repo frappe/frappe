@@ -312,8 +312,12 @@ def capture_payment(is_sandbox=False, sanbox_response=None):
 				data = json.loads(doc.data)
 				settings = controller.get_settings(data)
 
-				resp = make_post_request("https://api.razorpay.com/v1/payments/{0}/capture".format(data.get("razorpay_payment_id")),
+				resp = make_get_request("https://api.razorpay.com/v1/payments/{0}".format(data.get("razorpay_payment_id")),
 					auth=(settings.api_key, settings.api_secret), data={"amount": data.get("amount")})
+
+				if resp.get('status') == "authorized":
+					resp = make_post_request("https://api.razorpay.com/v1/payments/{0}/capture".format(data.get("razorpay_payment_id")),
+						auth=(settings.api_key, settings.api_secret), data={"amount": data.get("amount")})
 
 			if resp.get("status") == "captured":
 				frappe.db.set_value("Integration Request", doc.name, "status", "Completed")
