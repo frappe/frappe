@@ -26,8 +26,8 @@
   "department",
   "designation",
   "column_break_17",
-  "unsubscribed",
-  "source"
+  "source",
+  "unsubscribed"
  ],
  "fields": [
   {
@@ -174,7 +174,7 @@
  "icon": "fa fa-user",
  "idx": 1,
  "image_field": "image",
- "modified": "2019-06-05 15:41:01.486851",
+ "modified": "2019-06-06 14:26:24.464237",
  "modified_by": "Administrator",
  "module": "Contacts",
  "name": "Contact",
