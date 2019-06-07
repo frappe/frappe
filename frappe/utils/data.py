@@ -261,6 +261,12 @@ def format_datetime(datetime_string, format_string=None):
 def get_weekdays():
 	return ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
 
+def get_weekday(datetime=None):
+	if not datetime:
+		datetime = now_datetime()
+	weekdays = get_weekdays()
+	return weekdays[datetime.weekday()]
+
 def global_date_format(date, format="long"):
 	"""returns localized date in the form of January 1, 2012"""
 	date = getdate(date)
