@@ -53,7 +53,7 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 	},
 	get_reference_doctype() {
 		// this is used to get the context in which link field is loaded
-		if (this.doctype) return this.doctype
+		if (this.doctype) return this.doctype;
 		else {
 			return frappe.get_route && frappe.get_route()[0] === 'List' ? frappe.get_route()[1] : null;
 		}
