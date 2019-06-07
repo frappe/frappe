@@ -107,7 +107,6 @@ def is_web_form(path):
 	return bool(frappe.get_all("Web Form", filters={'route': path}))
 
 def render_web_form(path):
-	web_form_name = frappe.get_all("Web Form", filters={'route': path})[0].name
 	data = render_page(path)
 	return data
 

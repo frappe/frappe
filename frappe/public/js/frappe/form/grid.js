@@ -139,7 +139,7 @@ export default class Grid {
 			me.get_selected_children().forEach((doc) => {
 				tasks.push(() => {
 					if (!me.frm) {
-						me.df.data = me.get_data()
+						me.df.data = me.get_data();
 						me.df.data = me.df.data.filter((row)=> row.idx != doc.idx);
 					}
 					me.grid_rows_by_docname[doc.name].remove();
@@ -780,4 +780,4 @@ export default class Grid {
 		// hide all custom buttons
 		this.grid_buttons.find('.btn-custom').addClass('hidden');
 	}
-};
+}

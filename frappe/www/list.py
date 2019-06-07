@@ -116,7 +116,6 @@ def set_route(context):
 			quoted(context.doc.name))
 
 def prepare_filters(doctype, controller, kwargs):
-	import json
 	for key in kwargs.keys():
 		try:
 			kwargs[key] = json.loads(kwargs[key])

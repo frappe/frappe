@@ -23,7 +23,7 @@ frappe.ui.WebForm = class WebForm extends frappe.ui.FieldGroup {
 	}
 
 	on(fieldname, handler) {
-		let field = web_form.fields_dict[fieldname];
+		let field = this.fields_dict[fieldname];
 		field.input.addEventListener("focus", () =>
 			handler(field, field.value)
 		);
@@ -48,7 +48,7 @@ frappe.ui.WebForm = class WebForm extends frappe.ui.FieldGroup {
 	}
 
 	setup_primary_action() {
-		this.add_button(web_form.button_label || "Save", "primary", () =>
+		this.add_button(this.button_label || "Save", "primary", () =>
 			this.save(this.accept_payment && !this.doc.paid)
 		);
 	}
