@@ -267,18 +267,20 @@ frappe.ui.form.Toolbar = Class.extend({
 		}
 
 		// Expand all sections
-		let section_fields = me.frm.meta.fields.filter((field) => field.fieldtype == "Section Break" && field.collapsible == 1);
+		let section_fields = this.frm.meta.fields.filter((field) => field.fieldtype == "Section Break" && field.collapsible == 1);
 		if(section_fields.length != 0) {
 			this.page.add_menu_item(__("Expand Sections"), function () {
-				for (let section of section_fields) {
-					me.frm.get_field(section.fieldname).collapse(false);
-				}
+				me.toggleSectionBreaks(section_fields, false);
 			}, true);
+			this.page.add_action_icon("fa fa-angle-double-down fa-lg", function() {
+				me.toggleSectionBreaks(section_fields, false);
+			});
 			this.page.add_menu_item(__("Collapse Sections"), function () {
-				for (let section of section_fields) {
-					me.frm.get_field(section.fieldname).collapse(true);
-				}
+				me.toggleSectionBreaks(section_fields, true);
 			}, true);
+			this.page.add_action_icon("fa fa-angle-double-up fa-lg", function() {
+				me.toggleSectionBreaks(section_fields, true);
+			});
 		}
 
 		// feedback
@@ -508,5 +510,11 @@ frappe.ui.form.Toolbar = Class.extend({
 		});
 
 		dialog.show();
+	},
+
+	toggleSectionBreaks: function(section_fields, collapse_state) {
+		for (let section of section_fields) {
+			this.frm.get_field(section.fieldname).collapse(collapse_state);
+		}
 	}
 })
