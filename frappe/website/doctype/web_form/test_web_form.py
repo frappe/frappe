@@ -22,12 +22,12 @@ class TestWebForm(unittest.TestCase):
 	def test_basic(self):
 		frappe.set_user("Guest")
 		html = build_page("manage-events")
-		self.assertTrue('<div class="login-required">' in html)
+		self.assertTrue('You are not permitted to access this page.' in html)
 
 	def test_logged_in(self):
 		frappe.set_user("Administrator")
 		html = build_page("manage-events")
-		self.assertFalse('<div class="login-required">' in html)
+		self.assertFalse('You are not permitted to access this page.' in html)
 		self.assertTrue('"/manage-events?new=1"' in html)
 
 	def test_accept(self):
