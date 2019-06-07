@@ -101,6 +101,8 @@ def sync():
 
 		return enumerate(connections)
 
+	return "No" # If no Google Contacts to sync
+
 def show_progress(length, message, i, description):
 	if length > 5:
 		frappe.publish_progress(
