@@ -169,6 +169,24 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 
 					if(!me.df.only_select) {
 						if(frappe.model.can_create(doctype)) {
+
+							if (args.filters) {
+								let filter_string = [];
+								for (let [key, value] of Object.entries(args.filters)) {
+									filter_string.push(frappe.model.unscrub(key) + " as " + value);
+								}
+
+								filter_string = "Filters applied for " + filter_string.join(", ");
+
+								r.results.push({
+									label: "<span class='text-muted' style='line-height: 15px'>"
+										+ __("{0}", [filter_string])
+										+ "</span>",
+									value: "",
+									action: undefined
+								});
+							}
+
 							// new item
 							r.results.push({
 								label: "<span class='text-primary link-option'>"
