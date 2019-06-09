@@ -6,7 +6,7 @@ import frappe
 import json
 
 from frappe.model.document import Document
-from frappe.utils import get_fullname
+from frappe.utils import get_fullname, getdate
 
 subject_field = "description"
 sender_field = "sender"
@@ -112,3 +112,28 @@ def new_todo(description):
 		'doctype': 'ToDo',
 		'description': description
 	}).insert()
+
+def send_todo_summary():
+	open_todos = frappe.db.get_all('ToDo',
+		fields=['description', 'date', 'reference_type', 'reference_name', 'owner'],
+		filters={'status': 'Open'},
+		order_by='date asc'
+	)
+
+	open_todos_by_user = frappe._dict()
+	for todo in open_todos:
+		if todo.reference_type and todo.reference_name:
+			todo.link_to_form = frappe.utils.get_link_to_form(todo.reference_type, todo.reference_name,
+				frappe._('Open {0}').format(todo.reference_type))
+		open_todos_by_user.setdefault(todo.owner, []).append(todo)
+
+	for user, todos in open_todos_by_user.items():
+		frappe.sendmail(
+			subject=frappe._('Open ToDos'),
+			recipients=user,
+			template="todo_summary",
+			args={
+				'todos': todos,
+				'title': frappe._('{0} Open ToDos').format(len(todos))
+			}
+		)

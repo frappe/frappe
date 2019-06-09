@@ -187,7 +187,8 @@ scheduler_events = {
 		"frappe.utils.change_log.check_for_update",
 		"frappe.desk.doctype.route_history.route_history.flush_old_route_records",
 		"frappe.desk.form.document_follow.send_weekly_updates",
-		"frappe.social.doctype.energy_point_log.energy_point_log.send_weekly_summary"
+		"frappe.social.doctype.energy_point_log.energy_point_log.send_weekly_summary",
+		"frappe.desk.doctype.todo.todo.send_todo_summary"
 	],
 	"monthly": [
 		"frappe.email.doctype.auto_email_report.auto_email_report.send_monthly",

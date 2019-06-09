@@ -1,0 +1,16 @@
+<h3>{{ title }}</h3>
+
+<table class="table table-bordered">
+	<tr>
+		<th>{{ _('Description') }}</th>
+		<th>{{ _('Due Date') }}</th>
+		<th>{{ _('Reference') }}</th>
+	</tr>
+{% for todo in todos %}
+	<tr>
+		<td>{{ todo.description }}</td>
+		<td>{{ frappe.format(todo.date, {'fieldtype': 'Date'}) }}</td>
+		<td>{{ todo.link_to_form }}</td>
+	</tr>
+{% endfor %}
+</table>

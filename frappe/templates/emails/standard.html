@@ -22,12 +22,16 @@
 						<td valign="top">
 							<table class="email-body" border="0" cellpadding="0" cellspacing="0" width="100%">
 								<tr>
+									{% if header %}
 									<td width="15"></td>
+									{% endif %}
 									<td valign="top">
 										<p>{{ content }}</p>
 										<p>{{ signature }}</p>
 									</td>
+									{% if header %}
 									<td width="15"></td>
+									{% endif %}
 								</tr>
 							</table>
 						</td>
