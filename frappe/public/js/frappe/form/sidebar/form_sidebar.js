@@ -178,8 +178,8 @@ frappe.ui.form.Sidebar = Class.extend({
 		frappe.call({
 			method: "frappe.desk.form.load.get_docinfo",
 			args: {
-				doctype: this.doctype,
-				name: this.doc.name
+				doctype: this.frm.doctype,
+				name: this.frm.docname
 			},
 			callback: (r) => {
 				// docinfo will be synced
