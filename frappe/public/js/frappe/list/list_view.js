@@ -762,6 +762,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		this.next_index = 0;
 
 		$(document).off('keydown.list').on('keydown.list', null, (e)=> {
+			let key = frappe.ui.keys.get_key(e);
 			let $page = $(frappe.container.page);
 			let $navbar = $('.navbar');
 			var {UP, DOWN, ENTER, SPACE} = frappe.ui.keyCode;
@@ -786,13 +787,19 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				this.list_items = this.list_items.add($('.list-paging-area').find('.btn').filter(':visible'));
 
 				if(this.list_items.length) {
-					if(e.which === DOWN) {
+					if(key === 'shift+down') {
 						this.nav('down');
-					} else if(e.which === UP) {
+						this.nav_space();
+					} else if(key === 'shift+up') {
+						this.nav_space();
 						this.nav('up');
-					} else if(e.which === ENTER ) {
+					} else if(key === 'down') {
+						this.nav('down');
+					} else if(key === 'up') {
+						this.nav('up');
+					} else if(key === 'enter' ) {
 						this.nav_enter(is_list_nav, is_image_view);
-					} else if(e.which === SPACE && this.selected) {
+					} else if(key === 'space' && this.selected) {
 						e.preventDefault();
 						this.nav_space();
 					}
@@ -854,7 +861,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 
 	nav_space() {
-		this.selected.find('.list-row-checkbox').click();
+		if(this.selected) this.selected.find('.list-row-checkbox').click();
 	}
 
 	setup_filterable() {
