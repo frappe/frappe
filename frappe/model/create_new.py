@@ -60,23 +60,14 @@ def set_user_and_static_default_values(doc):
 			allowed_records = get_allowed_docs_for_doctype(doctype_user_permissions, df.parent)
 
 			user_default_value = get_user_default_value(df, defaults, doctype_user_permissions, allowed_records)
-			if user_default_value != None:
-				# do not set default if the field on which current field is dependent is not set
-				if is_dependent_field_set(df.depends_on, doc):
-					doc.set(df.fieldname, user_default_value)
+			if user_default_value is not None:
+				doc.set(df.fieldname, user_default_value)
+
 			else:
 				if df.fieldname != doc.meta.title_field:
 					static_default_value = get_static_default_value(df, doctype_user_permissions, allowed_records)
-					if static_default_value != None and is_dependent_field_set(df.depends_on, doc):
+					if static_default_value is not None:
 						doc.set(df.fieldname, static_default_value)
-
-
-def is_dependent_field_set(fieldname, doc):
-	value_dict = doc.as_dict()
-	if not fieldname: return True
-	# to check if fieldname passed is valid
-	if fieldname not in value_dict: return True
-	return value_dict[fieldname]
 
 def get_user_default_value(df, defaults, doctype_user_permissions, allowed_records):
 	# don't set defaults for "User" link field using User Permissions!
