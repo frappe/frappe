@@ -8,7 +8,6 @@ frappe.ui.form.on("Print Format", "onload", function(frm) {
 frappe.ui.form.on("Print Format", {
 	refresh: function(frm) {
 		frm.set_intro("");
-		frm.toggle_enable(["html", "doc_type", "module"], false);
 		if (frappe.session.user==="Administrator" || frm.doc.standard==="No") {
 			frm.toggle_enable(["html", "doc_type", "module"], true);
 			frm.enable_save();
