@@ -197,7 +197,7 @@ export default class GridRow {
 			this.row_index = $(
 				`<div class="row-index sortable-handle col col-xs-1">
 					${this.row_check_html}
-				<span>${txt}</span></div>`)
+				<span class="hidden-xs">${txt}</span></div>`)
 				.appendTo(this.row)
 				.on('click', function(e) {
 					if(!$(e.target).hasClass('grid-row-check')) {
