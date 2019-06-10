@@ -40,15 +40,11 @@ body {
 		}
 
 		.page-title .indicator {
-			display: none;
+			position: absolute;
+    		left: 5px;
 			margin-top: 12px;
 		}
 
-		.page-actions {
-			padding-top: 20px !important;
-			padding-bottom: 0px !important;
-			padding-left: 0px !important;
-		}
 
 		.page-head .sub-heading {
 			font-weight: normal;
@@ -119,7 +115,7 @@ body {
 
 	.navbar-nav {
 		margin: 0px;
-		margin-right: -15px;
+		margin-right: -10px;
 	}
 
 	.sidebar .form-group {
@@ -200,7 +196,7 @@ body {
 	body[data-route="desktop"] {
 		.navbar .navbar-home {
 			// display: none !important;
-			padding: 8px 10px;
+			padding: 8px 12px;
 			&:before {
 				display: none;
 			}
@@ -217,9 +213,6 @@ body {
 	body[data-sidebar="0"] {
 		.toggle-sidebar {
 			display: none !important;
-		}
-		#navbar-breadcrumbs, .navbar-home {
-			margin-left: 15px !important;
 		}
 	}
 }
