@@ -256,13 +256,17 @@ def get_prepared_report_result(report, filters, dn="", user=None):
 			data = json.loads(uncompressed_content)
 			if data:
 				columns = json.loads(doc.columns) if doc.columns else data[0]
+
 				for column in columns:
-					column["label"] = _(column["label"])
+					if isinstance(column, dict):
+						column["label"] = _(column["label"])
+
 				latest_report_data = {
 					"columns": columns,
 					"result": data
 				}
 		except Exception:
+			frappe.log_error(frappe.get_traceback())
 			frappe.delete_doc("Prepared Report", doc.name)
 			frappe.db.commit()
 			doc = None
