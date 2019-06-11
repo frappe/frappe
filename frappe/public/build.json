@@ -7,7 +7,8 @@
 		"node_modules/highlight.js/styles/zenburn.css",
 		"public/less/form.less",
 		"public/less/chat.less",
-		"node_modules/frappe-datatable/dist/frappe-datatable.css"
+		"node_modules/frappe-datatable/dist/frappe-datatable.css",
+		"node_modules/frappe-charts/dist/frappe-charts.min.css"
 	],
 	"css/frappe-web-b4.css": [
 		"public/css/font-awesome.css",
@@ -93,7 +94,8 @@
 		"public/less/controls.less",
 		"public/less/chat.less",
 		"public/less/filters.less",
-		"public/less/social.less"
+		"public/less/social.less",
+		"node_modules/frappe-charts/dist/frappe-charts.min.css"
 	],
 	"css/frappe-rtl.css": [
 		"public/css/bootstrap-rtl.css",
@@ -118,7 +120,6 @@
 		"public/js/frappe/translate.js",
 		"public/js/lib/datepicker/datepicker.min.js",
 		"public/js/lib/datepicker/locale-all.js",
-		"public/js/lib/frappe-charts/frappe-charts.min.iife.js",
 		"public/js/lib/leaflet/leaflet.js",
 		"public/js/lib/leaflet/leaflet.draw.js",
 		"public/js/lib/leaflet/L.Control.Locate.js",
@@ -298,7 +299,8 @@
 		"public/less/report.less",
 		"node_modules/frappe-datatable/dist/frappe-datatable.css",
 		"public/less/frappe-datatable.less",
-		"public/css/tree_grid.css"
+		"public/css/tree_grid.css",
+		"node_modules/frappe-charts/dist/frappe-charts.min.css"
 	],
 	"js/report.min.js": [
 		"public/js/lib/clusterize.min.js",

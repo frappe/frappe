@@ -2,6 +2,7 @@
  * frappe.views.ReportView
  */
 import DataTable from 'frappe-datatable';
+import { Chart } from 'node_modules/frappe-charts/dist/frappe-charts.esm.js';
 
 frappe.provide('frappe.views');
 
