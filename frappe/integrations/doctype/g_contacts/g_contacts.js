@@ -1,7 +1,7 @@
 // Copyright (c) 2019, Frappe Technologies and contributors
 // For license information, please see license.txt
 
-frappe.ui.form.on('Google Contacts', {
+frappe.ui.form.on('G Contacts', {
 	refresh: function(frm) {
 		frm.set_value("user", frappe.session.user);
 	},

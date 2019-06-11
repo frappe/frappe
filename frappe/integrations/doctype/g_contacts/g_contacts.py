@@ -13,7 +13,7 @@ SCOPES = 'https://www.googleapis.com/auth/contacts'
 REQUEST = 'https://people.googleapis.com/v1/people/me/connections'
 PARAMS = {'personFields': 'names,emailAddresses'}
 
-class GoogleContacts(Document):
+class GContacts(Document):
 
 	def get_access_token(self):
 		if not self.refresh_token:
@@ -36,7 +36,7 @@ class GoogleContacts(Document):
 
 @frappe.whitelist()
 def google_callback(doc, code=None):
-	doc = frappe.get_doc("Google Contacts", doc)
+	doc = frappe.get_doc("G Contacts", doc)
 
 	redirect_uri = get_request_site_address(True) + "?cmd=frappe.integrations.doctype.google_contacts.google_contacts.google_callback"
 
@@ -55,10 +55,10 @@ def google_callback(doc, code=None):
 			}
 			r = requests.post('https://www.googleapis.com/oauth2/v4/token', data=data).json()
 
-			frappe.db.set_value("Google Contacts", doc.name, "authorization_code", code)
+			frappe.db.set_value("G Contacts", doc.name, "authorization_code", code)
 
 			if 'refresh_token' in r:
-				frappe.db.set_value("Google Contacts", doc.name, "refresh_token", r.get("refresh_token"))
+				frappe.db.set_value("G Contacts", doc.name, "refresh_token", r.get("refresh_token"))
 
 			frappe.db.commit()
 			frappe.local.response["type"] = "redirect"
@@ -70,12 +70,12 @@ def google_callback(doc, code=None):
 @frappe.whitelist()
 def sync(doc=None):
 
-	filters = {"enable": 1}
+	filters = {}
 
 	if doc:
 		filters.update({"name": doc})
 
-	google_contacts = frappe.get_list("Google Contacts", filters=filters)
+	google_contacts = frappe.get_list("G Contacts", filters=filters)
 
 	for google_contact in google_contacts:
 		doc = frappe.get_doc("Google Contacts", google_contact.name)
