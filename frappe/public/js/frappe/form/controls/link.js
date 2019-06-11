@@ -172,7 +172,7 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 						for (let [key, value] of Object.entries(args.filters)) {
 
 							if (Array.isArray(value)){
-								filter_string.push(frappe.model.unscrub(key) + " "+value[0]+" "+value[1] )
+								filter_string.push(frappe.model.unscrub(key) + " "+value[0]+" "+value[1]);
 							} else {
 								filter_string.push(frappe.model.unscrub(key) + " as " + value);
 							}
