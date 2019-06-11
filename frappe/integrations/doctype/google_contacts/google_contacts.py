@@ -85,12 +85,14 @@ def sync():
 		frappe.throw(e)
 
 	connections = r.get('connections')
+	contacts_updated = 0
 	if connections:
 		for idx, connection in enumerate(connections):
 			for name in connection.get('names'):
 				show_progress(len(connections), "Google Contacts", idx, name.get('displayName'))
 				for email in connection.get('emailAddresses'):
 					if not frappe.db.exists("Contact", {"email_id": email.get('value')}):
+						contacts_updated += 1
 						frappe.get_doc({
 							"doctype": "Contact",
 							"first_name": name.get('givenName'),
@@ -99,9 +101,9 @@ def sync():
 							"source": "Google Contacts"
 						}).insert(ignore_permissions=True)
 
-		return enumerate(connections)
+		return "{} Google Contacts synced.".format(contacts_updated) if contacts_updated > 0 else "No new Google Contacts synced."
 
-	return "No" # If no Google Contacts to sync
+	return "No Google Contacts present to sync." # If no Google Contacts to sync
 
 def show_progress(length, message, i, description):
 	if length > 5:
