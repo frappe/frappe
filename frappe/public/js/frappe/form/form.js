@@ -1186,8 +1186,8 @@ frappe.ui.form.Form = class FrappeForm {
 		this.perm = perm;
 	}
 
-	trigger(event) {
-		return this.script_manager.trigger(event);
+	trigger(event, doctype, docname) {
+		return this.script_manager.trigger(event, doctype, docname);
 	}
 
 	get_formatted(fieldname) {
