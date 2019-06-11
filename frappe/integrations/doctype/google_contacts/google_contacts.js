@@ -26,6 +26,9 @@ frappe.ui.form.on('Google Contacts', {
 	allow_contacts_access: function(frm) {
 		frappe.call({
 			method: "frappe.integrations.doctype.google_contacts.google_contacts.google_callback",
+			args: {
+				"doc": frm.doc.name
+			},
 			callback: function(r) {
 				if(!r.exc) {
 					frm.save();
