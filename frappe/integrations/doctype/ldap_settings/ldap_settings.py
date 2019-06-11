@@ -91,19 +91,19 @@ class LDAPSettings(Document):
 		needed_roles = set()
 		needed_roles.add(self.default_role)
 
+		lower_groups = [g.lower() for g in additional_groups]
+
 		all_mapped_roles = {r.erpnext_role for r in self.ldap_groups}
-		matched_roles  =  {r.erpnext_role for r in self.ldap_groups if r.ldap_group in additional_groups}
+		matched_roles  =  {r.erpnext_role for r in self.ldap_groups if r.ldap_group.lower() in lower_groups}
 		unmatched_roles = all_mapped_roles.difference(matched_roles)
 		needed_roles.update(matched_roles)
 		roles_to_remove = current_roles.intersection(unmatched_roles)
 
-		if not current_roles.issubset(needed_roles):
+		if not needed_roles.issubset(current_roles):
 			missing_roles = needed_roles.difference(current_roles)
-			for r in missing_roles:
-				user.add_roles(r)
+			user.add_roles(*missing_roles)
 
-		for r in roles_to_remove:
-			user.remove_roles(r)
+		user.remove_roles(*roles_to_remove)
 
 
 	def create_or_update_user(self, user_data, groups=None):
@@ -122,7 +122,8 @@ class LDAPSettings(Document):
 					"role": self.default_role
 				}]
 			})
-			user = frappe.get_doc(doc).insert(ignore_permissions=True)
+			user = frappe.get_doc(doc)
+			user.insert(ignore_permissions=True)
 		self.sync_roles(user,groups)
 		return user
 
@@ -172,7 +173,7 @@ class LDAPSettings(Document):
 
 			groups=None
 			if self.ldap_group_field:
-				groups = user[self.ldap_group_field]
+				groups = getattr(user,self.ldap_group_field).values
 			return self.create_or_update_user(self.convert_ldap_entry_to_dict(user),groups=groups)
 		else:
 			frappe.throw(_("Invalid username or password"))
