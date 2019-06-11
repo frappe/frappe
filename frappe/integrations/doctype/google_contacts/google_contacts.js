@@ -16,36 +16,11 @@ frappe.ui.form.on('Google Contacts', {
 					args: {
 						"doc": frm.doc.name
 					},
-				}).then(() => {
+				}).then((r) => {
 					frappe.hide_progress();
-					frappe.msgprint(__("Google Contacts Synced."))
+					frappe.msgprint(__("{0}", [r.message]));
 				});
 			});
 		}
 	},
-	allow_contacts_access: function(frm) {
-		frappe.call({
-			method: "frappe.integrations.doctype.google_contacts.google_contacts.google_callback",
-			args: {
-				"doc": frm.doc.name
-			},
-			callback: function(r) {
-				if(!r.exc) {
-					frm.save();
-					window.open(r.message.url);
-				}
-			}
-		});
-	},
-	sync: function(frm) {
-		frappe.call({
-			method: "frappe.integrations.doctype.google_contacts.google_contacts.google_callback",
-			callback: function(r) {
-				if(!r.exc) {
-					frm.save();
-					window.open(r.message.url);
-				}
-			}
-		});
-	}
 });

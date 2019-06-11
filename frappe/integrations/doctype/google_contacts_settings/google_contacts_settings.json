@@ -1,0 +1,74 @@
+{
+ "creation": "2019-06-12 00:35:37.592274",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "enable",
+  "google_credentials",
+  "client_id",
+  "client_secret",
+  "allow_contacts_access",
+  "authorization_code",
+  "refresh_token"
+ ],
+ "fields": [
+  {
+   "default": "0",
+   "fieldname": "enable",
+   "fieldtype": "Check",
+   "label": "Enable"
+  },
+  {
+   "fieldname": "google_credentials",
+   "fieldtype": "Section Break",
+   "label": "Google Credentials"
+  },
+  {
+   "fieldname": "client_id",
+   "fieldtype": "Data",
+   "label": "Client ID"
+  },
+  {
+   "fieldname": "client_secret",
+   "fieldtype": "Data",
+   "label": "Client Secret"
+  },
+  {
+   "fieldname": "allow_contacts_access",
+   "fieldtype": "Button",
+   "label": "Allow Contacts Access"
+  },
+  {
+   "fieldname": "authorization_code",
+   "fieldtype": "Data",
+   "label": "Authorization Code"
+  },
+  {
+   "fieldname": "refresh_token",
+   "fieldtype": "Data",
+   "label": "Refresh Token"
+  }
+ ],
+ "issingle": 1,
+ "modified": "2019-06-12 00:35:37.592274",
+ "modified_by": "Administrator",
+ "module": "Integrations",
+ "name": "Google Contacts Settings",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "quick_entry": 1,
+ "sort_field": "modified",
+ "sort_order": "ASC",
+ "track_changes": 1
+}
