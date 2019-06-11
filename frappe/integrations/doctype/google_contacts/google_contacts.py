@@ -21,8 +21,8 @@ class GoogleContacts(Document):
 
 		data = {
 			'client_id': self.client_id,
-			'client_secret': self.client_secret #get_password(fieldname='client_secret', raise_exception=False),
-			'refresh_token': self.refresh_token #get_password(fieldname='refresh_token', raise_exception=False),
+			'client_secret': self.client_secret, #get_password(fieldname='client_secret', raise_exception=False),
+			'refresh_token': self.refresh_token, #get_password(fieldname='refresh_token', raise_exception=False),
 			'grant_type': "refresh_token",
 			'scope': SCOPES
 		}
@@ -49,7 +49,7 @@ def google_callback(doc, code=None):
 			data = {
 				'code': code,
 				'client_id': doc.client_id,
-				'client_secret': doc.client_secret #get_password(fieldname='client_secret', raise_exception=False),
+				'client_secret': doc.client_secret, #get_password(fieldname='client_secret', raise_exception=False),
 				'redirect_uri': redirect_uri,
 				'grant_type': 'authorization_code'
 			}
