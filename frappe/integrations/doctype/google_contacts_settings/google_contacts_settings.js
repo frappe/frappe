@@ -4,7 +4,7 @@
 frappe.ui.form.on('Google Contacts Settings', {
 	allow_contacts_access: function(frm) {
 		frappe.call({
-			method: "frappe.integrations.doctype.google_contacts.google_contacts.google_callback",
+			method: "frappe.integrations.doctype.google_contacts_settings.google_contacts_settings.google_callback",
 			callback: function(r) {
 				if(!r.exc) {
 					frm.save();
