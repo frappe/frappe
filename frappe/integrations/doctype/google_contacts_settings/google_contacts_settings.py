@@ -36,7 +36,7 @@ class GoogleContactsSettings(Document):
 def google_callback(code=None):
 	doc = frappe.get_doc("Google Contacts Settings")
 
-	redirect_uri = get_request_site_address(True) + "?cmd=frappe.integrations.doctype.google_contacts.google_contacts.google_callback"
+	redirect_uri = get_request_site_address(True) + "?cmd=frappe.integrations.doctype.google_contacts_settings.google_contacts_settings.google_callback"
 
 	if code is None:
 		return {
