@@ -639,10 +639,10 @@ Object.assign(frappe.utils, {
 			if (callNow) func.apply(context, args);
 		};
 	},
-	get_form_link: function(doctype, name, html = false) {
+	get_form_link: function(doctype, name, html = false, display_text = null) {
 		const route = ['#Form', doctype, name].join('/');
 		if (html) {
-			return `<a href="${route}">${name}</a>`;
+			return `<a href="${route}">${display_text || name}</a>`;
 		}
 		return route;
 	},
