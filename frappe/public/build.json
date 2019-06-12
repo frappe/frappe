@@ -301,8 +301,7 @@
 		"public/less/report.less",
 		"node_modules/frappe-datatable/dist/frappe-datatable.css",
 		"public/less/frappe-datatable.less",
-		"public/css/tree_grid.css",
-		"node_modules/frappe-charts/dist/frappe-charts.min.css"
+		"public/css/tree_grid.css"
 	],
 	"js/report.min.js": [
 		"public/js/lib/clusterize.min.js",
