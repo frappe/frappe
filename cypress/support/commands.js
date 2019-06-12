@@ -66,6 +66,12 @@ Cypress.Commands.add('go_to_list', (doctype) => {
 	cy.visit(`/desk#List/${doctype}/List`);
 });
 
+Cypress.Commands.add('clear_cache', () => {
+	cy.window().its('frappe').then(frappe => {
+		frappe.ui.toolbar.clear_cache();
+	});
+});
+
 Cypress.Commands.add('dialog', (title, fields) => {
 	cy.window().then(win => {
 		var d = new win.frappe.ui.Dialog({

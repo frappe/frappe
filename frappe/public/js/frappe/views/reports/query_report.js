@@ -347,6 +347,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 				this.render_datatable();
 			} else {
+				this.data = [];
 				this.toggle_nothing_to_show(true);
 			}
 
@@ -484,13 +485,9 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		return options;
 	}
 
-	render_chart(options, height=200) {
-		Object.assign(options, {
-			height: height
-		});
-
+	render_chart(options) {
 		this.$chart.empty();
-		this.chart = new Chart(this.$chart[0], options);
+		this.chart = new frappe.Chart(this.$chart[0], options);
 		this.$chart.show();
 	}
 
@@ -541,12 +538,8 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			const values = dialog.get_values(true);
 			let options = make_chart_options(values);
 
-			Object.assign(options, {
-				height: 150
-			});
-
 			wrapper.empty();
-			new Chart(wrapper[0], options);
+			new frappe.Chart(wrapper[0], options);
 			wrapper.find('.chart-container .title, .chart-container .sub-title').hide();
 			wrapper.show();
 		}
@@ -585,7 +578,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 					fieldname: 'chart_type',
 					label: 'Type of Chart',
 					fieldtype: 'Select',
-					options: ['Bar', 'Line', 'Percentage', 'Pie'],
+					options: ['Bar', 'Line', 'Percentage', 'Pie', 'Donut'],
 					default: 'Bar',
 					onchange: preview_chart
 				},
@@ -922,12 +915,21 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	}
 
 	get_data_for_print() {
-		const indices = this.datatable.datamanager.getFilteredRowIndices();
-		let rows = indices.map(i => this.data[i]);
+		if (!this.data.length) {
+			return [];
+		}
+
+		const rows = this.datatable.datamanager.rowViewOrder.map(index => {
+			if (this.datatable.bodyRenderer.visibleRowIndices.includes(index)) {
+				return this.data[index];
+			}
+		}).filter(Boolean);
+
 		let totalRow = this.datatable.bodyRenderer.getTotalRow().reduce((row, cell) => {
 			row[cell.column.id] = cell.content;
 			return row;
 		}, {});
+
 		rows.push(totalRow);
 		return rows;
 	}

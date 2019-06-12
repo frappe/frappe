@@ -100,6 +100,7 @@ frappe.ui.form.on('Dashboard Chart', {
 								// nothing is mandatory
 								_df.reqd = 0;
 								_df.default = null;
+								_df.depends_on = null;
 								_df.read_only = 0;
 								_df.permlevel = 1;
 								_df.hidden = 0;

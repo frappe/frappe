@@ -431,7 +431,7 @@ frappe.request.report_error = function(xhr, request_opts) {
 	}
 
 	if (exc) {
-		var error_report_email = (frappe.boot.error_report_email || []).join(", ");
+		var error_report_email = frappe.boot.error_report_email;
 
 		request_opts = frappe.request.cleanup_request_opts(request_opts);
 

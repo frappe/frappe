@@ -70,8 +70,6 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		// build menu items
 		this.menu_items = this.menu_items.concat(this.get_menu_items());
 
-		this.actions_menu_items = this.get_actions_menu_items();
-
 		if (this.view_user_settings.filters && this.view_user_settings.filters.length) {
 			// Priority 1: saved filters
 			const saved_filters = this.view_user_settings.filters;
@@ -91,7 +89,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 
 	get_list_view_settings() {
-		return frappe.call("frappe.desk.listview.get_list_settings", {doctype: this.doctype}).then(doc => this.list_view_settings = doc.message || {});
+		return frappe.call("frappe.desk.listview.get_list_settings", {doctype: this.doctype})
+			.then(doc => this.list_view_settings = doc.message || {});
 	}
 
 	on_sort_change(sort_by, sort_order) {
@@ -119,10 +118,19 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 
 	set_actions_menu_items() {
-		this.actions_menu_items.map(item => {
+		this.actions_menu_items = this.get_actions_menu_items();
+		this.workflow_action_menu_items = this.get_workflow_action_menu_items();
+		this.workflow_action_items = {};
+
+		const actions = this.actions_menu_items.concat(this.workflow_action_menu_items);
+		actions.map(item => {
 			const $item = this.page.add_actions_menu_item(item.label, item.action, item.standard);
 			if (item.class) {
 				$item.addClass(item.class);
+			}
+			if (item.is_workflow_action && $item) {
+				// can be used to dynamically show or hide action
+				this.workflow_action_items[item.name] = $item;
 			}
 		});
 	}
@@ -185,7 +193,6 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			}
 		}, interval);
 	}
-
 
 	set_primary_action() {
 		if (this.can_create) {
@@ -341,6 +348,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		if (toggle) {
 			this.page.show_actions_menu();
 			this.page.clear_primary_action();
+			this.toggle_workflow_actions();
 		} else {
 			this.page.hide_actions_menu();
 			this.set_primary_action();
@@ -1112,6 +1120,41 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		});
 	}
 
+	get_workflow_action_menu_items() {
+		const workflow_actions = [];
+		if (frappe.model.has_workflow(this.doctype)) {
+			const actions = frappe.workflow.get_all_transition_actions(this.doctype);
+			actions.forEach(action => {
+				workflow_actions.push({
+					label: __(action),
+					name: action,
+					action: () => {
+						frappe.xcall('frappe.model.workflow.bulk_workflow_approval', {
+							docnames: this.get_checked_items(true),
+							doctype: this.doctype,
+							action: action
+						});
+					},
+					is_workflow_action: true
+				});
+			});
+		}
+		return workflow_actions;
+	}
+
+	toggle_workflow_actions() {
+		if (!frappe.model.has_workflow(this.doctype)) return;
+		const checked_items = this.get_checked_items();
+		frappe.xcall('frappe.model.workflow.get_common_transition_actions', {
+			docs: checked_items,
+			doctype: this.doctype
+		}).then(actions => {
+			Object.keys(this.workflow_action_items).forEach((key) => {
+				this.workflow_action_items[key].toggle(actions.includes(key));
+			});
+		});
+	}
+
 	get_actions_menu_items() {
 		const doctype = this.doctype;
 		const actions_menu_items = [];
@@ -1220,12 +1263,12 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			actions_menu_items.push(bulk_printing());
 		}
 
-		// Bulk submit
+		// bulk submit
 		if (frappe.model.is_submittable(doctype) && has_submit_permission(doctype)) {
 			actions_menu_items.push(bulk_submit());
 		}
 
-		// Bulk cancel
+		// bulk cancel
 		if (frappe.model.can_cancel(doctype)) {
 			actions_menu_items.push(bulk_cancel());
 		}

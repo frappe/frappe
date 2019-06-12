@@ -6,19 +6,22 @@
  "field_order": [
   "user",
   "type",
+  "points",
   "rule",
+  "column_break_5",
   "reference_doctype",
   "reference_name",
-  "points",
-  "reason",
   "reverted",
-  "revert_of"
+  "revert_of",
+  "section_break_10",
+  "reason"
  ],
  "fields": [
   {
    "fieldname": "user",
    "fieldtype": "Link",
    "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "User",
    "options": "User",
    "read_only": 1,
@@ -28,7 +31,7 @@
   {
    "fieldname": "type",
    "fieldtype": "Select",
-   "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Type",
    "options": "Auto\nAppreciation\nCriticism\nReview\nRevert",
    "read_only": 1,
@@ -37,6 +40,7 @@
   {
    "fieldname": "rule",
    "fieldtype": "Link",
+   "in_standard_filter": 1,
    "label": "Rule",
    "options": "Energy Point Rule",
    "read_only": 1
@@ -45,6 +49,7 @@
    "fieldname": "reference_doctype",
    "fieldtype": "Link",
    "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Reference Doctype",
    "options": "DocType",
    "read_only": 1,
@@ -67,6 +72,7 @@
   {
    "fieldname": "reason",
    "fieldtype": "Text",
+   "in_list_view": 1,
    "label": "Reason",
    "read_only": 1
   },
@@ -84,10 +90,18 @@
    "label": "Revert Of",
    "options": "Energy Point Log",
    "read_only": 1
+  },
+  {
+   "fieldname": "column_break_5",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_10",
+   "fieldtype": "Section Break"
   }
  ],
  "in_create": 1,
- "modified": "2019-05-02 15:28:02.857792",
+ "modified": "2019-06-05 11:18:45.286367",
  "modified_by": "Administrator",
  "module": "Social",
  "name": "Energy Point Log",
@@ -95,10 +109,12 @@
  "permissions": [
   {
    "read": 1,
+   "report": 1,
    "role": "System Manager"
   },
   {
    "read": 1,
+   "report": 1,
    "role": "All"
   }
  ],
