@@ -15,24 +15,23 @@ class LDAPSettings(Document):
 
 		if not self.flags.ignore_mandatory:
 			if self.ldap_search_string and self.ldap_search_string.endswith("={0}"):
-				self.connect_to_ldap(
-					base_dn=self.base_dn,
-					password=self.get_password(raise_exception=False))
+				self.connect_to_ldap(base_dn=self.base_dn, password=self.get_password(raise_exception=False))
 			else:
 				frappe.throw(_("LDAP Search String needs to end with a placeholder, eg sAMAccountName={0}"))
 
-
-	def connect_to_ldap(self, base_dn, password):
+	def connect_to_ldap(self,
+						base_dn,
+						password):
 		try:
 			import ldap3
 			import ssl
 
 			if self.require_trusted_certificate == 'Yes':
 				tls_configuration = ldap3.Tls(validate=ssl.CERT_REQUIRED,
-											  version=ssl.PROTOCOL_TLSv1)
+											version=ssl.PROTOCOL_TLSv1)
 			else:
 				tls_configuration = ldap3.Tls(validate=ssl.CERT_NONE,
-											  version=ssl.PROTOCOL_TLSv1)
+											version=ssl.PROTOCOL_TLSv1)
 
 			if self.local_private_key_file:
 				tls_configuration.private_key_file = self.local_private_key_file
@@ -42,7 +41,7 @@ class LDAPSettings(Document):
 				tls_configuration.ca_certs_file = self.local_ca_certs_file
 
 			server = ldap3.Server(host=self.ldap_server_url,
-								  tls=tls_configuration)
+								tls=tls_configuration)
 			bind_type = ldap3.AUTO_BIND_TLS_BEFORE_BIND if self.ssl_tls_mode == "StartTLS" else True
 
 			conn = ldap3.Connection(server=server,
@@ -76,12 +75,12 @@ class LDAPSettings(Document):
 
 	@classmethod
 	def update_user_fields(cls,
-						   user,
-						   user_data):
-		updatable_data = {key:value for key, value in user_data.items() if key != 'email'}
+						user,
+						user_data):
+		updatable_data = {key: value for key, value in user_data.items() if key != 'email'}
 
 		for key, value in updatable_data.items():
-			setattr(user, key,  value)
+			setattr(user, key, value)
 		user.save(ignore_permissions=True)
 
 	def sync_roles(self, user, additional_groups=None):
@@ -94,7 +93,7 @@ class LDAPSettings(Document):
 		lower_groups = [g.lower() for g in additional_groups]
 
 		all_mapped_roles = {r.erpnext_role for r in self.ldap_groups}
-		matched_roles  =  {r.erpnext_role for r in self.ldap_groups if r.ldap_group.lower() in lower_groups}
+		matched_roles = {r.erpnext_role for r in self.ldap_groups if r.ldap_group.lower() in lower_groups}
 		unmatched_roles = all_mapped_roles.difference(matched_roles)
 		needed_roles.update(matched_roles)
 		roles_to_remove = current_roles.intersection(unmatched_roles)
@@ -105,12 +104,11 @@ class LDAPSettings(Document):
 
 		user.remove_roles(*roles_to_remove)
 
-
 	def create_or_update_user(self, user_data, groups=None):
 		user = None
 		if frappe.db.exists("User", user_data['email']):
 			user = frappe.get_doc("User", user_data['email'])
-			LDAPSettings.update_user_fields(user=user,user_data=user_data)
+			LDAPSettings.update_user_fields(user=user, user_data=user_data)
 		else:
 			doc = user_data
 			doc.update({
@@ -124,13 +122,13 @@ class LDAPSettings(Document):
 			})
 			user = frappe.get_doc(doc)
 			user.insert(ignore_permissions=True)
-		self.sync_roles(user,groups)
+		self.sync_roles(user, groups)
 		return user
 
 	def get_ldap_attributes(self):
 		ldap_attributes = [self.ldap_email_field,
-						   self.ldap_username_field,
-						   self.ldap_first_name_field]
+						self.ldap_username_field,
+						self.ldap_first_name_field]
 
 		if self.ldap_group_field:
 			ldap_attributes.append(self.ldap_group_field)
@@ -150,8 +148,8 @@ class LDAPSettings(Document):
 		return ldap_attributes
 
 	def authenticate(self,
-					 username,
-					 password):
+					username,
+					password):
 
 		if not self.enabled:
 			frappe.throw(_("LDAP is not enabled."))
@@ -159,7 +157,7 @@ class LDAPSettings(Document):
 		user_filter = self.ldap_search_string.format(username)
 		ldap_attributes = self.get_ldap_attributes()
 
-		conn = self.connect_to_ldap(self.base_dn,self.get_password(raise_exception=False))
+		conn = self.connect_to_ldap(self.base_dn, self.get_password(raise_exception=False))
 
 		conn.search(search_base=self.organizational_unit,
 					search_filter="({0})".format(user_filter),
@@ -169,24 +167,23 @@ class LDAPSettings(Document):
 			user = conn.entries[0]
 			# only try and connect as the user, once we have their fqdn entry.
 			self.connect_to_ldap(base_dn=user.entry_dn,
-								 password=password)
+								password=password)
 
-			groups=None
+			groups = None
 			if self.ldap_group_field:
-				groups = getattr(user,self.ldap_group_field).values
-			return self.create_or_update_user(self.convert_ldap_entry_to_dict(user),groups=groups)
+				groups = getattr(user, self.ldap_group_field).values
+			return self.create_or_update_user(self.convert_ldap_entry_to_dict(user), groups=groups)
 		else:
 			frappe.throw(_("Invalid username or password"))
 
-
-	def convert_ldap_entry_to_dict(self,user_entry):
+	def convert_ldap_entry_to_dict(self, user_entry):
 		data = {
 			'username': user_entry[self.ldap_username_field].value,
 			'email': user_entry[self.ldap_email_field].value,
 			'first_name': user_entry[self.ldap_first_name_field].value
 		}
 
-		#optional fields
+		# optional fields
 
 		if self.ldap_middle_name_field:
 			data['middle_name'] = user_entry[self.ldap_middle_name_field].value
