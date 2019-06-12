@@ -158,8 +158,7 @@ class LDAPSettings(Document):
 		if len(conn.entries) == 1 and conn.entries[0]:
 			user = conn.entries[0]
 			# only try and connect as the user, once we have their fqdn entry.
-			self.connect_to_ldap(base_dn=user.entry_dn,
-								 password=password)
+			self.connect_to_ldap(base_dn=user.entry_dn, password=password)
 
 			groups = None
 			if self.ldap_group_field:
