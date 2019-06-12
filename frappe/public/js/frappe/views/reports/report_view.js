@@ -54,8 +54,8 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 
 	setup_charts_area() {
 		this.$charts_wrapper = $(`<div class="charts-wrapper hidden">
-			<div><button class="btn btn-default btn-xs btn-chart-configure pull-right"
-				style="margin-right: 15px">Configure</button></div>
+			<div class="text-right"><button class="btn btn-default btn-xs btn-chart-configure"
+				style="margin-right: 15px; margin-top: 15px">Configure</button></div>
 			<div class="charts-inner-wrapper"></div>
 		</div>`);
 		this.$result.append(this.$charts_wrapper);
@@ -425,7 +425,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 				{
 					label: __('Chart Type'),
 					fieldtype: 'Select',
-					options: ['Bar', 'Line', 'Pie', 'Percentage'],
+					options: ['Bar', 'Line', 'Pie', 'Percentage', 'Donut'],
 					fieldname: 'chart_type',
 					default: defaults.chart_type ?
 						frappe.utils.to_title_case(defaults.chart_type) :
@@ -486,11 +486,10 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 
 		this.$charts_wrapper.removeClass('hidden');
 
-		this.chart = new Chart(this.$charts_wrapper.find('.charts-inner-wrapper')[0], {
+		this.chart = new frappe.Chart(this.$charts_wrapper.find('.charts-inner-wrapper')[0], {
 			title: __("{0} Chart", [this.doctype]),
 			data: data,
 			type: args.chart_type,
-			height: 150,
 			colors: ['#70E078', 'light-blue', 'orange', 'red'],
 
 			format_tooltip_x: value => value.doc.name,
