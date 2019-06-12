@@ -25,7 +25,7 @@ class LDAPSettings(Document):
 			import ssl
 
 			if self.require_trusted_certificate == 'Yes':
-				tls_configuration = ldap3.Tls(validate=ssl.CERT_REQUIRED,	version=ssl.PROTOCOL_TLSv1)
+				tls_configuration = ldap3.Tls(validate=ssl.CERT_REQUIRED, version=ssl.PROTOCOL_TLSv1)
 			else:
 				tls_configuration = ldap3.Tls(validate=ssl.CERT_NONE, version=ssl.PROTOCOL_TLSv1)
 
@@ -71,7 +71,7 @@ class LDAPSettings(Document):
 
 	@classmethod
 	def update_user_fields(cls, user, user_data):
-		
+
 		updatable_data = {key: value for key, value in user_data.items() if key != 'email'}
 
 		for key, value in updatable_data.items():
@@ -121,9 +121,7 @@ class LDAPSettings(Document):
 		return user
 
 	def get_ldap_attributes(self):
-		ldap_attributes = [self.ldap_email_field,
-						self.ldap_username_field,
-						self.ldap_first_name_field]
+		ldap_attributes = [self.ldap_email_field, self.ldap_username_field, self.ldap_first_name_field]
 
 		if self.ldap_group_field:
 			ldap_attributes.append(self.ldap_group_field)
@@ -160,8 +158,7 @@ class LDAPSettings(Document):
 		if len(conn.entries) == 1 and conn.entries[0]:
 			user = conn.entries[0]
 			# only try and connect as the user, once we have their fqdn entry.
-			self.connect_to_ldap(base_dn=user.entry_dn,
-								password=password)
+			self.connect_to_ldap(base_dn=user.entry_dn, password=password)
 
 			groups = None
 			if self.ldap_group_field:
