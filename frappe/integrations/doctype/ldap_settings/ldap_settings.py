@@ -19,19 +19,15 @@ class LDAPSettings(Document):
 			else:
 				frappe.throw(_("LDAP Search String needs to end with a placeholder, eg sAMAccountName={0}"))
 
-	def connect_to_ldap(self,
-						base_dn,
-						password):
+	def connect_to_ldap(self, base_dn, password):
 		try:
 			import ldap3
 			import ssl
 
 			if self.require_trusted_certificate == 'Yes':
-				tls_configuration = ldap3.Tls(validate=ssl.CERT_REQUIRED,
-											version=ssl.PROTOCOL_TLSv1)
+				tls_configuration = ldap3.Tls(validate=ssl.CERT_REQUIRED, version=ssl.PROTOCOL_TLSv1)
 			else:
-				tls_configuration = ldap3.Tls(validate=ssl.CERT_NONE,
-											version=ssl.PROTOCOL_TLSv1)
+				tls_configuration = ldap3.Tls(validate=ssl.CERT_NONE, version=ssl.PROTOCOL_TLSv1)
 
 			if self.local_private_key_file:
 				tls_configuration.private_key_file = self.local_private_key_file
@@ -40,16 +36,16 @@ class LDAPSettings(Document):
 			if self.local_ca_certs_file:
 				tls_configuration.ca_certs_file = self.local_ca_certs_file
 
-			server = ldap3.Server(host=self.ldap_server_url,
-								tls=tls_configuration)
+			server = ldap3.Server(host=self.ldap_server_url, tls=tls_configuration)
 			bind_type = ldap3.AUTO_BIND_TLS_BEFORE_BIND if self.ssl_tls_mode == "StartTLS" else True
 
-			conn = ldap3.Connection(server=server,
-									user=base_dn,
-									password=password,
-									auto_bind=bind_type,
-									read_only=True,
-									raise_exceptions=True)
+			conn = ldap3.Connection(
+				server=server,
+				user=base_dn,
+				password=password,
+				auto_bind=bind_type,
+				read_only=True,
+				raise_exceptions=True)
 
 			return conn
 
@@ -74,9 +70,8 @@ class LDAPSettings(Document):
 		return result
 
 	@classmethod
-	def update_user_fields(cls,
-						user,
-						user_data):
+	def update_user_fields(cls, user, user_data):
+
 		updatable_data = {key: value for key, value in user_data.items() if key != 'email'}
 
 		for key, value in updatable_data.items():
@@ -127,8 +122,8 @@ class LDAPSettings(Document):
 
 	def get_ldap_attributes(self):
 		ldap_attributes = [self.ldap_email_field,
-						self.ldap_username_field,
-						self.ldap_first_name_field]
+						   self.ldap_username_field,
+						   self.ldap_first_name_field]
 
 		if self.ldap_group_field:
 			ldap_attributes.append(self.ldap_group_field)
@@ -147,9 +142,7 @@ class LDAPSettings(Document):
 
 		return ldap_attributes
 
-	def authenticate(self,
-					username,
-					password):
+	def authenticate(self, username, password):
 
 		if not self.enabled:
 			frappe.throw(_("LDAP is not enabled."))
@@ -159,15 +152,16 @@ class LDAPSettings(Document):
 
 		conn = self.connect_to_ldap(self.base_dn, self.get_password(raise_exception=False))
 
-		conn.search(search_base=self.organizational_unit,
-					search_filter="({0})".format(user_filter),
-					attributes=ldap_attributes)
+		conn.search(
+			search_base=self.organizational_unit,
+			search_filter="({0})".format(user_filter),
+			attributes=ldap_attributes)
 
 		if len(conn.entries) == 1 and conn.entries[0]:
 			user = conn.entries[0]
 			# only try and connect as the user, once we have their fqdn entry.
 			self.connect_to_ldap(base_dn=user.entry_dn,
-								password=password)
+								 password=password)
 
 			groups = None
 			if self.ldap_group_field:
