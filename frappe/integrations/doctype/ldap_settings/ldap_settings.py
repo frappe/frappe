@@ -121,9 +121,7 @@ class LDAPSettings(Document):
 		return user
 
 	def get_ldap_attributes(self):
-		ldap_attributes = [self.ldap_email_field,
-						   self.ldap_username_field,
-						   self.ldap_first_name_field]
+		ldap_attributes = [self.ldap_email_field, self.ldap_username_field, self.ldap_first_name_field]
 
 		if self.ldap_group_field:
 			ldap_attributes.append(self.ldap_group_field)
