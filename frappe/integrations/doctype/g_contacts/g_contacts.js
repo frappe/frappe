@@ -1,7 +1,7 @@
 // Copyright (c) 2019, Frappe Technologies and contributors
 // For license information, please see license.txt
 
-frappe.ui.form.on('Google Contacts', {
+frappe.ui.form.on('G Contacts', {
 	refresh: function(frm) {
 		frm.set_value("user", frappe.session.user);
 
@@ -12,7 +12,7 @@ frappe.ui.form.on('Google Contacts', {
 					message: __('Syncing')
 				});
 				frappe.call({
-					method: "frappe.integrations.doctype.google_contacts.google_contacts.sync",
+					method: "frappe.integrations.doctype.g_contacts.g_contacts.sync",
 					args: {
 						"doc": frm.doc.name
 					},
@@ -25,7 +25,10 @@ frappe.ui.form.on('Google Contacts', {
 	},
 	allow_contacts_access: function(frm) {
 		frappe.call({
-			method: "frappe.integrations.doctype.google_contacts.google_contacts.google_callback",
+			method: "frappe.integrations.doctype.g_contacts.g_contacts.authenticate_access",
+			args: {
+				"doc": frm.doc.name
+			},
 			callback: function(r) {
 				if(!r.exc) {
 					frm.save();

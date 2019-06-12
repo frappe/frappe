@@ -13,19 +13,24 @@ SCOPES = 'https://www.googleapis.com/auth/contacts'
 REQUEST = 'https://people.googleapis.com/v1/people/me/connections'
 PARAMS = {'personFields': 'names,emailAddresses'}
 
-class GoogleContacts(Document):
+class GContacts(Document):
 
 	def validate(self):
-		if not frappe.db.exists("Google Contacts", {"user", self.user}):
+		if not frappe.db.exists("G Contacts", {"user", self.user}):
 			frappe.throw(_("Google Contacts Integration for User already exists."))
 
 	def get_access_token(self):
+		gcontacts = frappe.get_doc("G Contacts Settings")
+
+		if not gcontacts.enable:
+			frappe.throw(_("Google Contacts Integration is disabled."))
+
 		if not self.refresh_token:
-			raise frappe.ValidationError(_("Google Contacts is not configured."))
+			raise frappe.ValidationError(_("Enable Google Contacts access."))
 
 		data = {
-			'client_id': self.client_id,
-			'client_secret': self.client_secret, #get_password(fieldname='client_secret', raise_exception=False),
+			'client_id': gcontacts.client_id,
+			'client_secret': gcontacts.client_secret, #get_password(fieldname='client_secret', raise_exception=False),
 			'refresh_token': self.refresh_token, #get_password(fieldname='refresh_token', raise_exception=False),
 			'grant_type': "refresh_token",
 			'scope': SCOPES
@@ -40,20 +45,12 @@ class GoogleContacts(Document):
 
 @frappe.whitelist()
 def authenticate_access(doc):
-	pass
-
-@frappe.whitelist()
-def google_callback(doc=None, code=None):
-	if doc:
-		doc = frappe.get_doc("Google Contacts", doc)
-
+	doc = frappe.get_doc("G Contacts", doc)
 	redirect_uri = get_request_site_address(True) + "?cmd=frappe.integrations.doctype.google_contacts.google_contacts.google_callback"
 
-	if code is None:
-		return {
-			'url': 'https://accounts.google.com/o/oauth2/v2/auth?access_type=offline&response_type=code&prompt=consent&client_id={}&include_granted_scopes=true&scope={}&redirect_uri={}'.format(doc.client_id, SCOPES, redirect_uri)
-		}
-	else:
+	code = google_callback(client_id=doc.client_id, redirect_uri=redirect_uri)
+
+	if code:
 		try:
 			data = {
 				'code': code,
@@ -64,17 +61,27 @@ def google_callback(doc=None, code=None):
 			}
 			r = requests.post('https://www.googleapis.com/oauth2/v4/token', data=data).json()
 
-			frappe.db.set_value("Google Contacts", None, "authorization_code", code)
+			frappe.db.set_value("G Contacts", doc.name, "authorization_code", code)
 
 			if 'refresh_token' in r:
-				frappe.db.set_value("Google Contacts", None, "refresh_token", r.get("refresh_token"))
+				frappe.db.set_value("G Contacts", doc.name, "refresh_token", r.get("refresh_token"))
 
 			frappe.db.commit()
 			frappe.local.response["type"] = "redirect"
-			frappe.local.response["location"] = "/desk#Form/Google%20Contacts"
-			return
+			frappe.local.response["location"] = "/desk#Form/G%20Contacts/{}".format(doc.name)
+
+			frappe.msgprint(_("Google Contacts has been configured."))
 		except Exception as e:
 			frappe.throw(e.message)
+
+@frappe.whitelist()
+def google_callback(client_id=None, redirect_uri=None, code=None):
+	if code is None:
+		return {
+			'url': 'https://accounts.google.com/o/oauth2/v2/auth?access_type=offline&response_type=code&prompt=consent&client_id={}&include_granted_scopes=true&scope={}&redirect_uri={}'.format(client_id, SCOPES, redirect_uri)
+		}
+	else:
+		return code
 
 @frappe.whitelist()
 def sync(contact=None):

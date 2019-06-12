@@ -1,15 +1,13 @@
 {
- "creation": "2019-06-12 00:35:37.592274",
+ "autoname": "format:GC-{user}",
+ "creation": "2019-06-12 12:13:49.851510",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
   "enable",
   "google_credentials",
   "client_id",
-  "client_secret",
-  "allow_contacts_access",
-  "authorization_code",
-  "refresh_token"
+  "client_secret"
  ],
  "fields": [
   {
@@ -26,34 +24,23 @@
   {
    "fieldname": "client_id",
    "fieldtype": "Data",
-   "label": "Client ID"
+   "in_list_view": 1,
+   "label": "Client ID",
+   "reqd": 1
   },
   {
    "fieldname": "client_secret",
    "fieldtype": "Data",
-   "label": "Client Secret"
-  },
-  {
-   "fieldname": "allow_contacts_access",
-   "fieldtype": "Button",
-   "label": "Allow Contacts Access"
-  },
-  {
-   "fieldname": "authorization_code",
-   "fieldtype": "Data",
-   "label": "Authorization Code"
-  },
-  {
-   "fieldname": "refresh_token",
-   "fieldtype": "Data",
-   "label": "Refresh Token"
+   "in_list_view": 1,
+   "label": "Client Secret",
+   "reqd": 1
   }
  ],
  "issingle": 1,
- "modified": "2019-06-12 00:35:37.592274",
+ "modified": "2019-06-12 12:13:49.851510",
  "modified_by": "Administrator",
  "module": "Integrations",
- "name": "Google Contacts Settings",
+ "name": "G Contacts Settings",
  "owner": "Administrator",
  "permissions": [
   {
