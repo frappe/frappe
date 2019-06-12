@@ -8,7 +8,6 @@
 		"public/less/form.less",
 		"public/less/chat.less",
 		"node_modules/frappe-datatable/dist/frappe-datatable.css",
-		"node_modules/frappe-charts/dist/frappe-charts.min.css"
 	],
 	"css/frappe-web-b4.css": [
 		"public/css/font-awesome.css",
@@ -224,7 +223,6 @@
 		"public/js/frappe/chat.js",
 		"public/js/frappe/social/social_factory.js",
 		"public/js/frappe/utils/energy_point_utils.js",
-
 		"public/js/lib/chart.js"
 	],
 	"css/module.min.css": [
