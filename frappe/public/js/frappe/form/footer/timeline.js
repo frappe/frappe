@@ -2,6 +2,7 @@
 // MIT License. See license.txt
 
 frappe.provide('frappe.timeline');
+frappe.provide('frappe.email.automatic_linking');
 frappe.separator_element = '<div>---</div>';
 
 frappe.ui.form.Timeline = class Timeline {
@@ -12,10 +13,11 @@ frappe.ui.form.Timeline = class Timeline {
 
 	make() {
 		var me = this;
-		this.wrapper = $(frappe.render_template("timeline",{doctype: me.frm.doctype,allow_events_in_timeline: me.frm.meta.allow_events_in_timeline})).appendTo(me.parent);
+		this.wrapper = $(frappe.render_template("timeline",{
+			doctype: me.frm.doctype,allow_events_in_timeline: me.frm.meta.allow_events_in_timeline
+		})).appendTo(me.parent);
 
 		this.set_active_email_link();
-		this.get_active_email_link();
 		this.list = this.wrapper.find(".timeline-items");
 		this.email_link = this.wrapper.find(".timeline-email-import");
 
@@ -76,17 +78,7 @@ frappe.ui.form.Timeline = class Timeline {
 
 		this.email_link.on("click", ".copy-to-clipboard", function() {
 			let text = $(".click-to-copy").text();
-
-			let input = $("<input>");
-			$("body").append(input);
-			input.val(text).select();
-			document.execCommand("copy");
-			input.remove();
-
-			frappe.show_alert({
-				indicator: 'green',
-				message: __('Email copied.')
-			});
+			frappe.utils.copy_to_clipboard(text);
 		});
 	}
 
@@ -126,27 +118,35 @@ frappe.ui.form.Timeline = class Timeline {
 	}
 
 	set_active_email_link() {
-		frappe.realtime.on('email_link', (message) => {
-			if (message != 'null') {
-				$('.timeline-email-import').removeClass("hide");
-				localStorage.setItem("email_link", JSON.parse(message));
-			} else {
-				$('.timeline-email-import').addClass("hide");
-				localStorage.removeItem("email_link");
-			}
-		});
-	}
-
-	get_active_email_link() {
 		var me = this;
-		let email_id = localStorage.getItem("email_link");
 
-		if (email_id && email_id != 'null') {
-			email_id =  email_id.split("@")[0] +"+"+ encodeURI(me.frm.doctype) +"+"+ encodeURI(me.frm.docname)
-				+"@"+ email_id.split("@")[1];
-
-			$(".timeline-email-import-link").text(email_id);
+		if (!frappe.email.automatic_linking){
+			frappe.call({
+				method: "frappe.client.get_value",
+				args: {
+					doctype: "Email Account",
+					filters: {"enable_incoming": 1, "enable_automatic_linking": 1},
+					fieldname: "email_id"
+				},
+				callback: function(r) {
+					if (r.message) {
+						frappe.email.automatic_linking = r.message.email_id;
+					} else {
+						frappe.email.automatic_linking = null;
+					}
+				}
+			});
 		}
+
+		// if (frappe.email.automatic_linking) {
+		// 	let email_id = frappe.email.automatic_linking;
+		// 	email_id =  email_id.split("@")[0] +"+"+ encodeURIComponent(me.frm.doctype) +"+"+ encodeURIComponent(me.frm.docname)
+		// 		+"@"+ email_id.split("@")[1];
+
+		// 	$(".timeline-email-import-link").text(email_id);
+		// } else {
+		// 	$('.timeline-email-import').addClass("hide");
+		// }
 	}
 
 	setup_interaction_button() {

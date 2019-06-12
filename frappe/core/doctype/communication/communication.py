@@ -61,7 +61,7 @@ class Communication(Document):
 		validate_email(self)
 
 		if self.communication_medium == "Email":
-			self.set_email_links()
+			self.parse_email_for_timeline_links()
 			self.set_timeline_links()
 			self.deduplicate_timeline_links()
 
@@ -237,8 +237,8 @@ class Communication(Document):
 			if commit:
 				frappe.db.commit()
 
-	def set_email_links(self):
-		add_email_link(self, [self.sender, self.recipients, self.cc, self.bcc])
+	def parse_email_for_timeline_links(self):
+		parse_email(self, [self.recipients, self.cc, self.bcc])
 
 	# Timeline Links
 	def set_timeline_links(self):
@@ -357,7 +357,13 @@ def add_contact_links_to_communication(communication, contact_name):
 		for contact_link in contact_links:
 			communication.add_link(contact_link.link_doctype, contact_link.link_name)
 
-def add_email_link(communication, email_strings):
+def parse_email(communication, email_strings):
+	"""
+		Parse email to add timeline links.
+		When automatic email linking is enabled, an email from email_strings can contain
+		a doctype and docname ie in the format `admin+doctype+docname@example.com`,
+		the email is parsed and doctype and docname is extracted and timeline link is added.
+	"""
 	delimiter = "+"
 
 	for email_string in email_strings:
@@ -365,23 +371,18 @@ def add_email_link(communication, email_strings):
 			for email in email_string.split(","):
 				if delimiter in email:
 					email = email.split("@")[0]
-					links = email.split(delimiter)[1:] # first value on split is always going to be email id so ignore it
-					length = len(links)
 
-					for idx in range(0, length):
-						if idx%2 == 0:
-							try:
-								doctype = unquote(links[idx])
-								name = unquote(links[idx+1])
-								if doctype and name and frappe.db.exists(doctype, name):
-									communication.add_link(doctype, name)
-							except IndexError:
-								pass
+					doctype = unquote(email.split(delimiter)[1])
+					docname = unquote(email.split(delimiter)[2])
+
+					if doctype and docname and frappe.db.exists(doctype, docname):
+						communication.add_link(doctype, name)
 
 def get_email_without_link(email):
-	# returns email address with doctype links
-	# returns admin@example.com for email admin+doctype+docname@example.com
-
+	"""
+		returns email address without doctype links
+		returns admin@example.com for email admin+doctype+docname@example.com
+	"""
 	email_id = email.split("@")[0].split("+")[0]
 	email_host = email.split("@")[1]
 

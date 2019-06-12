@@ -27,7 +27,7 @@
   "email_sync_option",
   "initial_sync_count",
   "section_break_12",
-  "email_link",
+  "enable_automatic_linking",
   "section_break_13",
   "notify_if_unreplied",
   "unreplied_for_mins",
@@ -372,19 +372,19 @@
    "read_only": 1
   },
   {
-   "default": "0",
-   "description": "Allow Document Details in Email Id to link Emails.",
-   "fieldname": "email_link",
-   "fieldtype": "Check",
-   "label": "Email Link"
-  },
-  {
    "fieldname": "section_break_12",
    "fieldtype": "Section Break"
+  },
+  {
+   "default": "0",
+   "description": "Allow Document Details in Email Id to link Emails.",
+   "fieldname": "enable_automatic_linking",
+   "fieldtype": "Check",
+   "label": "Enable Automatic Linking in Documents"
   }
  ],
  "icon": "fa fa-inbox",
- "modified": "2019-05-31 15:00:08.693459",
+ "modified": "2019-06-12 16:59:07.116025",
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Email Account",
