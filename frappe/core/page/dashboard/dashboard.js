@@ -3,7 +3,6 @@
 
 frappe.provide('frappe.dashboards');
 frappe.provide('frappe.dashboards.chart_sources');
-import { Chart } from 'node_modules/frappe-charts/dist/frappe-charts.esm.js';
 
 
 frappe.pages['dashboard'].on_page_load = function(wrapper) {
@@ -239,7 +238,7 @@ class DashboardChart {
 		this.chart_container.find('.chart-loading-state').addClass('hide');
 
 		if(!this.chart) {
-			this.chart = new Chart(this.chart_container.find(".chart-wrapper")[0], chart_args);
+			this.chart = new frappe.Chart(this.chart_container.find(".chart-wrapper")[0], chart_args);
 		} else {
 			this.chart.update(this.data);
 		}

@@ -2,7 +2,6 @@
 // License: See license.txt
 
 frappe.provide("frappe.activity");
-import { Chart } from 'node_modules/frappe-charts/dist/frappe-charts.esm.js';
 
 frappe.pages['activity'].on_page_load = function(wrapper) {
 	var me = this;
@@ -143,9 +142,8 @@ frappe.activity.render_heatmap = function(page) {
 		method: "frappe.desk.page.activity.activity.get_heatmap_data",
 		callback: function(r) {
 			if(r.message) {
-				var heatmap = new Chart(".heatmap", {
+				var heatmap = new frappe.Chart(".heatmap", {
 					type: 'heatmap',
-					height: 100,
 					start: new Date(moment().subtract(1, 'year').toDate()),
 					countLabel: "actions",
 					discreteDomains: 0,

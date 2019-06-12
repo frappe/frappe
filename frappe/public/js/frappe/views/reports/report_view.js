@@ -2,7 +2,6 @@
  * frappe.views.ReportView
  */
 import DataTable from 'frappe-datatable';
-import { Chart } from 'node_modules/frappe-charts/dist/frappe-charts.esm.js';
 
 frappe.provide('frappe.views');
 
@@ -487,7 +486,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 
 		this.$charts_wrapper.removeClass('hidden');
 
-		this.chart = new Chart(this.$charts_wrapper.find('.charts-inner-wrapper')[0], {
+		this.chart = new frappe.Chart(this.$charts_wrapper.find('.charts-inner-wrapper')[0], {
 			title: __("{0} Chart", [this.doctype]),
 			data: data,
 			type: args.chart_type,

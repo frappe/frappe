@@ -1,6 +1,5 @@
 // Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
-import { Chart } from 'node_modules/frappe-charts/dist/frappe-charts.esm.js';
 
 frappe.ui.form.Dashboard = Class.extend({
 	init: function(opts) {
@@ -402,7 +401,7 @@ frappe.ui.form.Dashboard = Class.extend({
 	// heatmap
 	render_heatmap: function() {
 		if(!this.heatmap) {
-			this.heatmap = new Chart("#heatmap-" + frappe.model.scrub(this.frm.doctype), {
+			this.heatmap = new frappe.Chart("#heatmap-" + frappe.model.scrub(this.frm.doctype), {
 				type: 'heatmap',
 				start: new Date(moment().subtract(1, 'year').toDate()),
 				count_label: "interactions",
@@ -478,7 +477,7 @@ frappe.ui.form.Dashboard = Class.extend({
 		});
 		this.show();
 
-		this.chart = new Chart('.form-graph', args);
+		this.chart = new frappe.Chart('.form-graph', args);
 		if(!this.chart) {
 			this.hide();
 		}

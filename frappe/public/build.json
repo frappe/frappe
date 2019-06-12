@@ -223,7 +223,9 @@
 
 		"public/js/frappe/chat.js",
 		"public/js/frappe/social/social_factory.js",
-		"public/js/frappe/utils/energy_point_utils.js"
+		"public/js/frappe/utils/energy_point_utils.js",
+
+		"public/js/lib/chart.js"
 	],
 	"css/module.min.css": [
 		"public/less/module.less"

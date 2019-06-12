@@ -1,7 +1,6 @@
 // Copyright (c) 2018, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 import DataTable from 'frappe-datatable';
-import { Chart } from 'node_modules/frappe-charts/dist/frappe-charts.esm.js';
 
 frappe.provide('frappe.views');
 frappe.provide('frappe.query_reports');
@@ -488,7 +487,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 	render_chart(options) {
 		this.$chart.empty();
-		this.chart = new Chart(this.$chart[0], options);
+		this.chart = new frappe.Chart(this.$chart[0], options);
 		this.$chart.show();
 	}
 
@@ -540,7 +539,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			let options = make_chart_options(values);
 
 			wrapper.empty();
-			new Chart(wrapper[0], options);
+			new frappe.Chart(wrapper[0], options);
 			wrapper.find('.chart-container .title, .chart-container .sub-title').hide();
 			wrapper.show();
 		}
