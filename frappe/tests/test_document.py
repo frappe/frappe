@@ -2,9 +2,11 @@
 # MIT License. See license.txt
 from __future__ import unicode_literals
 
-import frappe, unittest, os
-from frappe.utils import cint
-from frappe.model.naming import revert_series_if_last, make_autoname, parse_naming_series
+import os
+import unittest
+
+import frappe
+
 
 class TestDocument(unittest.TestCase):
 	def test_get_return_empty_list_for_table_field_if_none(self):
@@ -218,21 +220,3 @@ class TestDocument(unittest.TestCase):
 		after_update = frappe.db.get_value(doctype, name, 'idx')
 
 		self.assertEqual(before_update + new_count, after_update)
-
-	def test_naming_series(self):
-		data = ["TEST-", "TEST/17-18/.test_data./.####", "TEST.YYYY.MM.####"]
-
-		for series in data:
-			name = make_autoname(series)
-			prefix = series
-
-			if ".#" in series:
-				prefix = series.rsplit('.',1)[0]
-
-			prefix = parse_naming_series(prefix)
-			old_current = frappe.db.get_value('Series', prefix, "current", order_by="name")
-
-			revert_series_if_last(series, name)
-			new_current = cint(frappe.db.get_value('Series', prefix, "current", order_by="name"))
-
-			self.assertEqual(cint(old_current) - 1, new_current)
