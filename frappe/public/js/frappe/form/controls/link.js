@@ -185,8 +185,7 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 								label: "<span class='text-muted disable-select' style='line-height: 20px;'>"
 									+ __("{0}", [filter_string])
 									+ "</span>",
-								value: "",
-								action: undefined
+								value: ""
 							});
 						}
 					}
