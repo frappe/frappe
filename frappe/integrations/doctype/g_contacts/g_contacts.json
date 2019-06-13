@@ -39,7 +39,7 @@
    "label": "Refresh Token"
   }
  ],
- "modified": "2019-06-12 12:15:00.558905",
+ "modified": "2019-06-13 20:32:39.700801",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "G Contacts",
@@ -56,7 +56,6 @@
    "write": 1
   }
  ],
- "quick_entry": 1,
  "sort_field": "modified",
  "sort_order": "ASC",
  "track_changes": 1

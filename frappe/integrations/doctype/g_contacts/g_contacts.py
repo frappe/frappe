@@ -16,7 +16,7 @@ PARAMS = {'personFields': 'names,emailAddresses'}
 class GContacts(Document):
 
 	def validate(self):
-		if not frappe.db.exists("G Contacts", {"user", self.user}):
+		if frappe.db.exists("G Contacts", {"user", self.user}):
 			frappe.throw(_("Google Contacts Integration for User already exists."))
 
 	def get_access_token(self):

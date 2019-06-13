@@ -114,7 +114,12 @@ def get_data():
 				},
 				{
 					"type": "doctype",
-					"name": "Google Contacts",
+					"name": "G Contacts Settings",
+					"description": _("Google Contacts Settings"),
+				},
+				{
+					"type": "doctype",
+					"name": "G Contacts",
 					"description": _("Sync Google Contacts"),
 				},
 			]
