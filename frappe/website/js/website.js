@@ -374,8 +374,8 @@ $.extend(frappe, {
 // Utility functions
 
 window.valid_email = function(id) {
-	// eslint-disable-next-line
-	return (id.toLowerCase().search("[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?")==-1) ? 0 : 1;
+	// eslint-disable-next-line 
+	return (/[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/.test(id.toLowerCase())== 'false')? 0 : 1; 
 }
 
 window.validate_email = valid_email;
