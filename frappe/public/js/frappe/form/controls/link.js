@@ -171,22 +171,24 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 						let filter_string = [];
 						for (let [key, value] of Object.entries(args.filters)) {
 
-							if (Array.isArray(value)){
-								filter_string.push("<b>"+frappe.model.unscrub(key)+"</b> "+value[0]+" <b>"+value[1]+"</b>");
-							} else {
-								filter_string.push("<b>"+frappe.model.unscrub(key)+"</b> as <b>" + value+"</b>");
+							if (Array.isArray(value) && value[1]){
+								filter_string.push(`<b>${frappe.model.unscrub(key)}</b> ${value[0]} <b>${value[1]}</b>`);
+							} else if (value) {
+								filter_string.push(`<b>${frappe.model.unscrub(key)}</b> as <b>${value}</b>`);
 							}
 						}
 
-						filter_string = "Filters applied for " + filter_string.join(", ");
+						if (filter_string.length > 0) {
+							filter_string = "Filters applied for " + filter_string.join(", ");
 
-						r.results.push({
-							label: "<span class='text-muted disable-select' style='line-height: 20px;'>"
-								+ __("{0}", [filter_string])
-								+ "</span>",
-							value: "",
-							action: undefined
-						});
+							r.results.push({
+								label: "<span class='text-muted disable-select' style='line-height: 20px;'>"
+									+ __("{0}", [filter_string])
+									+ "</span>",
+								value: "",
+								action: undefined
+							});
+						}
 					}
 
 					if(!me.df.only_select) {
