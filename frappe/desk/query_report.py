@@ -243,11 +243,13 @@ def get_prepared_report_result(report, filters, dn="", user=None):
 	else:
 		# Only look for completed prepared reports with given filters.
 		doc_list = frappe.get_all("Prepared Report",
-			filters={"status": "Completed",
+			filters={
+				"status": "Completed",
 				"filters": json.dumps(filters),
 				"owner": user,
 				"report_name": report.report_name
-		})
+			}
+		)
 
 		if doc_list:
 			# Get latest
