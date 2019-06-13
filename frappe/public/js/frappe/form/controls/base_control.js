@@ -40,7 +40,7 @@ frappe.ui.form.Control = Class.extend({
 			return this.df.get_status(this);
 		}
 
-		if(!this.doctype && !this.docname) {
+		if((!this.doctype && !this.docname) || this.df.parenttype === 'Web Form') {
 			// like in case of a dialog box
 			if (cint(this.df.hidden)) {
 				// eslint-disable-next-line
