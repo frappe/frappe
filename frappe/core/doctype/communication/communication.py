@@ -376,7 +376,7 @@ def parse_email(communication, email_strings):
 					docname = unquote(email.split(delimiter)[2])
 
 					if doctype and docname and frappe.db.exists(doctype, docname):
-						communication.add_link(doctype, name)
+						communication.add_link(doctype, docname)
 
 def get_email_without_link(email):
 	"""

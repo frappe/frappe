@@ -124,7 +124,7 @@ frappe.ui.form.Timeline = class Timeline {
 					frappe.email.automatic_linking = {};
 				}
 				this.display_automatic_linking();
-			})
+			});
 		} else {
 			this.display_automatic_linking();
 		}

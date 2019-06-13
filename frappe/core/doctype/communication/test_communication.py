@@ -186,8 +186,8 @@ class TestCommunication(unittest.TestCase):
 			"doctype": "Communication",
 			"communication_medium": "Email",
 			"subject": "Document Link in Email",
-			"sender": "comm_sender+{0}+{1}@example.com".format(quote("Note"), quote(note.name)),
-			"recipients": "comm_recipient@example.com",
+			"sender": "comm_sender@example.com",
+			"recipients": "comm_recipient+{0}+{1}@example.com".format(quote("Note"), quote(note.name)),
 		}).insert(ignore_permissions=True)
 
 		doc_links = []
