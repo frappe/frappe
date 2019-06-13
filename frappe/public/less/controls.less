@@ -94,3 +94,40 @@
 		color: @text-light;
 	}
 }
+
+.multiselect-list {
+	.dropdown-menu {
+		width: 100%;
+	}
+
+	li {
+		padding: 9px 11.8px;
+	}
+
+	.selectable-item {
+		cursor: pointer;
+		display: flex;
+		justify-content: space-between;
+
+		.octicon-check {
+			display: none;
+		}
+	}
+
+	.selectable-item.selected {
+		background-color: @light-yellow;
+
+		.octicon-check {
+			display: inline-block;
+		}
+	}
+
+	.selectable-item:hover, .selectable-item.highlighted {
+		background-color: @btn-bg;
+	}
+
+	.selectable-items {
+		max-height: 200px;
+		overflow: auto;
+	}
+}
