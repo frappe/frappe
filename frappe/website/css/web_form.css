@@ -100,5 +100,5 @@ table {
 }
 
 .grid-body .data-row {
-    font-size: inherit !important;
+    font-size: inherit;
 }

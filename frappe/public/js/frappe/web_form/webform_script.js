@@ -34,7 +34,7 @@ frappe.ready(function() {
 	}
 
 	function show_form() {
-		if (web_form_settings.doc_name && web_form_settings.allow_edit == 0) {
+		if (web_form_settings.doc_name && web_form_settings.allow_edit === 0) {
 			window.location.replace(window.location.pathname + "?new=1")
 		}
 
