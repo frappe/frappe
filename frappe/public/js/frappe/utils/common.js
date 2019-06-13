@@ -1,7 +1,7 @@
 // common file between desk and website
 
-frappe.avatar = function(user, css_class, title) {
-	if(user) {
+frappe.avatar = function (user, css_class, title, image_url = null) {
+	if (user) {
 		// desk
 		var user_info = frappe.user_info(user);
 	} else {
@@ -11,21 +11,21 @@ frappe.avatar = function(user, css_class, title) {
 			fullname: frappe.get_cookie("full_name"),
 			abbr: frappe.get_abbr(frappe.get_cookie("full_name")),
 			color: frappe.get_palette(frappe.get_cookie("full_name"))
-		}
+		};
 	}
 
-	if(!title) {
+	if (!title) {
 		title = user_info.fullname;
 	}
 
-	if(!css_class) {
+	if (!css_class) {
 		css_class = "avatar-small";
 	}
 
-	if(user_info.image) {
+	if (user_info.image || image_url) {
+		image_url = image_url || user_info.image;
 
-		var image = (window.cordova && user_info.image.indexOf('http')===-1) ?
-			frappe.base_url + user_info.image : user_info.image;
+		const image = (window.cordova && image_url.indexOf('http') === -1) ? frappe.base_url + image_url : image_url;
 
 		return `<span class="avatar ${css_class}" title="${title}">
 				<span class="avatar-frame" style='background-image: url("${image}")'
@@ -33,15 +33,15 @@ frappe.avatar = function(user, css_class, title) {
 			</span>`;
 	} else {
 		var abbr = user_info.abbr;
-		if(css_class==='avatar-small' || css_class=='avatar-xs') {
+		if (css_class === 'avatar-small' || css_class == 'avatar-xs') {
 			abbr = abbr.substr(0, 1);
 		}
 		return `<span class="avatar ${css_class}" title="${title}">
 			<div class="standard-image" style="background-color: ${user_info.color};">
 				${abbr}</div>
-		</span>`
+		</span>`;
 	}
-}
+};
 
 frappe.ui.scroll = function(element, animate, additional_offset) {
 	var header_offset = $(".navbar").height() + $(".page-head").height();
@@ -75,7 +75,6 @@ frappe.get_abbr = function(txt, max_length) {
 			// continue
 			return true;
 		}
-87
 		abbr += w.trim()[0];
 	});
 

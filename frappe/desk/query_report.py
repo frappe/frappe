@@ -209,6 +209,9 @@ def add_data_to_custom_columns(columns, result):
 	data = []
 	for row in result:
 		row_obj = {}
+		if isinstance(row, tuple):
+			row = list(row)
+
 		if isinstance(row, list):
 			for idx, column in enumerate(columns):
 				if column.get('link_field'):
@@ -252,8 +255,11 @@ def get_prepared_report_result(report, filters, dn="", user=None):
 			uncompressed_content = gzip_decompress(compressed_content)
 			data = json.loads(uncompressed_content)
 			if data:
+				columns = json.loads(doc.columns) if doc.columns else data[0]
+				for column in columns:
+					column["label"] = _(column["label"])
 				latest_report_data = {
-					"columns": json.loads(doc.columns) if doc.columns else data[0],
+					"columns": columns,
 					"result": data
 				}
 		except Exception:

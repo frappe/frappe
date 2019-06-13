@@ -193,3 +193,12 @@ class DashboardChart(Document):
 	def on_update(self):
 		frappe.cache().delete_key('chart-data:{}'.format(self.name))
 
+	def validate(self):
+		if self.chart_type != 'Custom':
+			self.check_required_field()
+
+	def check_required_field(self):
+		if not self.based_on:
+			frappe.throw("Time series based on is required to create a dashboard chart")
+		if not self.document_type:
+			frappe.throw("Document type is required to create a dashboard chart")

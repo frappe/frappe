@@ -46,8 +46,8 @@ def get_data():
 				},
 				{
 					"type": "doctype",
-					"name": "Blog Settings",
-					"description": _("Write titles and introductions to your blog."),
+					"name": "Blogger",
+					"description": _("A user who posts blogs."),
 				},
 				{
 					"type": "doctype",

@@ -30,7 +30,7 @@ class DropboxSettings(Document):
 
 @frappe.whitelist()
 def take_backup():
-	"Enqueue longjob for taking backup to dropbox"
+	"""Enqueue longjob for taking backup to dropbox"""
 	enqueue("frappe.integrations.doctype.dropbox_settings.dropbox_settings.take_backup_to_dropbox", queue='long', timeout=1500)
 	frappe.msgprint(_("Queued for backup. It may take a few minutes to an hour."))
 
@@ -61,8 +61,11 @@ def take_backup_to_dropbox(retry_count=0, upload_db_backup=True):
 			enqueue("frappe.integrations.doctype.dropbox_settings.dropbox_settings.take_backup_to_dropbox",
 				queue='long', timeout=1500, **args)
 	except Exception:
-		file_and_error = [" - ".join(f) for f in zip(did_not_upload, error_log)]
-		error_message = ("\n".join(file_and_error) + "\n" + frappe.get_traceback())
+		if isinstance(error_log, str):
+			error_message = error_log + "\n" + frappe.get_traceback()
+		else:
+			file_and_error = [" - ".join(f) for f in zip(did_not_upload, error_log)]
+			error_message = ("\n".join(file_and_error) + "\n" + frappe.get_traceback())
 		frappe.errprint(error_message)
 		send_email(False, "Dropbox", error_message)
 

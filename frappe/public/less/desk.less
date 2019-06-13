@@ -464,27 +464,6 @@ li.user-progress {
 	border-radius: 0px;
 }
 
-// like pop-over
-.liked-by-popover {
-	.popover-content {
-		padding: 0px;
-		overflow: scroll;
-		max-height: 150px;
-	}
-	min-width: 100px;
-	ul {
-		margin: 0px;
-		li {
-			padding: 10px;
-			cursor: pointer;
-			&:hover {
-				background: @btn-bg;
-			}
-		}
-	}
-
-}
-
 .screenshot {
 	border: 1px solid @border-color;
 	box-shadow: 1px 1px 7px rgba(0,0,0,0.15);
@@ -1074,6 +1053,27 @@ img.img-loading:after {
 	}
 }
 
+// like pop-over
+.liked-by-popover {
+	.popover-content {
+		padding: 0px;
+		overflow: scroll;
+		max-height: 150px;
+	}
+	min-width: 100px;
+	ul {
+		margin: 0px;
+		li {
+			padding: 10px;
+			cursor: pointer;
+			&:hover {
+				background: @btn-bg;
+			}
+		}
+	}
+
+}
+
 body.full-width {
 	@media (min-width: @screen-md) {
 		.container {
@@ -1086,4 +1086,22 @@ body.full-width {
 
 .whitespace-nowrap {
 	white-space: nowrap;
+}
+
+.modal-minimize {
+	position: initial;
+	.modal-backdrop {
+		display: none;
+	}
+	.modal-dialog {
+		z-index: 101;
+		position: fixed;
+		right: 15px;
+		bottom: 0;
+		margin: 0;
+		max-width: 500px;
+	}
+	.modal-body {
+		display: none;
+	}
 }

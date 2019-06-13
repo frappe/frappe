@@ -21,6 +21,7 @@ frappe.ui.LinkPreview = class {
 				}
 			}
 		});
+		this.handle_popover_hide();
 
 	}
 
@@ -58,7 +59,6 @@ frappe.ui.LinkPreview = class {
 				this.show_popover(e);
 			}, 1000);
 		}
-		this.handle_popover_hide();
 	}
 
 	create_popover(e, preview_fields) {
@@ -88,6 +88,11 @@ frappe.ui.LinkPreview = class {
 	}
 
 	show_popover(e) {
+
+		this.default_timeout = setTimeout(()=> {
+			this.clear_all_popovers();
+		}, 10000);
+
 		if(!this.is_link) {
 			var left = e.pageX;
 			this.element.popover('show');
@@ -104,13 +109,18 @@ frappe.ui.LinkPreview = class {
 			if (!$('.popover:hover').length) {
 				this.link_hovered = false;
 			}
-			if(this.data_timeout) {
-				clearTimeout(this.data_timeout);
+			if(!this.link_hovered) {
+				if(this.data_timeout) {
+					clearTimeout(this.data_timeout);
+				}
+				if (this.popover_timeout) {
+					clearTimeout(this.popover_timeout);
+				}
+				if(this.default_timeout) {
+					clearTimeout(this.default_timeout);
+				}
+				this.clear_all_popovers();
 			}
-			if (this.popover_timeout) {
-				clearTimeout(this.popover_timeout);
-			}
-			if(!this.link_hovered) this.clear_all_popovers();
 		});
 
 		$(window).on('hashchange', () => {
@@ -175,9 +185,10 @@ frappe.ui.LinkPreview = class {
 			animation: false,
 		});
 
-		if(!this.is_link) {
-			this.element.data('bs.popover').tip().addClass('control-field-popover');
-		}
+		const $popover = this.element.data('bs.popover').tip();
+
+		$popover.addClass('link-preview-popover');
+		$popover.toggleClass('control-field-popover', this.is_link);
 
 		this.$links.push(this.element);
 
