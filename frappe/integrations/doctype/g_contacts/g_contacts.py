@@ -46,18 +46,18 @@ class GContacts(Document):
 @frappe.whitelist()
 def authenticate_access(g_contact):
 	g_contact_settings = frappe.get_doc("G Contacts Settings")
-	g_contact = frappe.get_doc("G Contacts", doc)
+	g_contact = frappe.get_doc("G Contacts", g_contact)
+
 	redirect_uri = get_request_site_address(True) + "?cmd=frappe.integrations.doctype.google_contacts.google_contacts.google_callback"
 
-	code = google_callback(client_id=g_contact_settings.client_id, redirect_uri=redirect_uri)
-
-
-	if code:
-		frappe.db.set_value("G Contacts", g_contact.name, "authorization_code", code)
-
+	if not g_contact.authorization_code:
+		frappe.flags.g_contact = g_contact.name
+		code = google_callback(client_id=g_contact_settings.client_id, redirect_uri=redirect_uri)
+		return code
+	else:
 		try:
 			data = {
-				'code': code,
+				'code': g_contact.authorization_code,
 				'client_id': g_contact_settings.client_id,
 				'client_secret': g_contact_settings.client_secret, #get_password(fieldname='client_secret', raise_exception=False),
 				'redirect_uri': redirect_uri,
@@ -83,7 +83,8 @@ def google_callback(client_id=None, redirect_uri=None, code=None):
 			'url': 'https://accounts.google.com/o/oauth2/v2/auth?access_type=offline&response_type=code&prompt=consent&client_id={}&include_granted_scopes=true&scope={}&redirect_uri={}'.format(client_id, SCOPES, redirect_uri)
 		}
 	else:
-		return code
+		frappe.db.set_value("G Contacts", frappe.flags.g_contact, "authorization_code", code)
+		authenticate_access(frappe.flags.g_contact)
 
 @frappe.whitelist()
 def sync(contact=None):
