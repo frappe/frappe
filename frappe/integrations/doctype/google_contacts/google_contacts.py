@@ -56,7 +56,7 @@ def authenticate_access(g_contact):
 	redirect_uri = get_request_site_address(True) + "?cmd=frappe.integrations.doctype.google_contacts.google_contacts.google_callback"
 
 	if not google_contact.authorization_code:
-		frappe.flags.google_contact = google_contact.name
+		frappe.cache().hset("google_contacts", "google_contact", google_contact.name)
 		return google_callback(client_id=google_settings.client_id, redirect_uri=redirect_uri)
 	else:
 		try:
@@ -90,8 +90,11 @@ def google_callback(client_id=None, redirect_uri=None, code=None):
 			'url': 'https://accounts.google.com/o/oauth2/v2/auth?access_type=offline&response_type=code&prompt=consent&client_id={}&include_granted_scopes=true&scope={}&redirect_uri={}'.format(client_id, SCOPES, redirect_uri)
 		}
 	else:
-		frappe.db.set_value("Google Contacts", frappe.flags.google_contact, "authorization_code", code)
-		authenticate_access(frappe.flags.google_contact)
+		google_contact = frappe.cache().hget("google_contacts", "google_contact")
+		frappe.db.set_value("Google Contacts", google_contact, "authorization_code", code)
+		frappe.db.commit()
+
+		authenticate_access(google_contact)
 
 # @frappe.whitelist()
 # def sync(g_contact=None):
