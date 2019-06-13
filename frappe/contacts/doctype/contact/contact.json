@@ -9,6 +9,7 @@
  "field_order": [
   "contact_section",
   "first_name",
+  "middle_name",
   "last_name",
   "email_id",
   "user",
@@ -25,6 +26,7 @@
   "more_info",
   "department",
   "designation",
+  "description",
   "column_break_17",
   "source",
   "unsubscribed"
@@ -169,12 +171,22 @@
    "fieldname": "source",
    "fieldtype": "Data",
    "label": "Source"
+  },
+  {
+   "fieldname": "middle_name",
+   "fieldtype": "Data",
+   "label": "Middle Name"
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Small Text",
+   "label": "Description"
   }
  ],
  "icon": "fa fa-user",
  "idx": 1,
  "image_field": "image",
- "modified": "2019-06-06 14:26:24.464237",
+ "modified": "2019-06-14 01:52:56.302665",
  "modified_by": "Administrator",
  "module": "Contacts",
  "name": "Contact",
