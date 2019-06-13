@@ -3,7 +3,7 @@ frappe.provide("frappe.views");
 
 window.web_form_list = null;
 
-frappe.views.WebFormList = class WebFormList {
+frappe.ui.WebFormList = class WebFormList {
 	constructor(opts) {
 		Object.assign(this, opts);
 		window.web_form_list = this;

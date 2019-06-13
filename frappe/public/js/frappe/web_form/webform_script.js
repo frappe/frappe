@@ -25,7 +25,7 @@ frappe.ready(function() {
 	}
 
 	function show_grid() {
-		web_form_list = new frappe.views.WebFormList({
+		web_form_list = new frappe.ui.WebFormList({
 			parent: wrapper,
 			doctype: web_form_doctype,
 			web_form_name: web_form_name,
