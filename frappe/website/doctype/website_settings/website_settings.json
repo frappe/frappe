@@ -2,6 +2,7 @@
  "creation": "2013-04-30 12:58:46",
  "doctype": "DocType",
  "document_type": "Other",
+ "engine": "InnoDB",
  "field_order": [
   "sb0",
   "home_page",
@@ -108,7 +109,8 @@
    "description": "Brand is what appears on the top-left of the toolbar. If it is an image, make sure it\nhas a transparent background and use the &lt;img /&gt; tag. Keep size as 200px x 30px",
    "fieldname": "brand_html",
    "fieldtype": "Code",
-   "label": "Brand HTML"
+   "label": "Brand HTML",
+   "options": "HTML"
   },
   {
    "fieldname": "set_banner_from_image",
@@ -122,6 +124,7 @@
    "label": "Top Bar"
   },
   {
+   "default": "0",
    "fieldname": "navbar_search",
    "fieldtype": "Check",
    "label": "Include Search in Top Bar"
@@ -142,7 +145,8 @@
    "description": "Banner is above the Top Menu Bar.",
    "fieldname": "banner_html",
    "fieldtype": "Code",
-   "label": "Banner HTML"
+   "label": "Banner HTML",
+   "options": "HTML"
   },
   {
    "collapsible": 1,
@@ -168,6 +172,7 @@
    "options": "Top Bar Item"
   },
   {
+   "default": "0",
    "fieldname": "hide_footer_signup",
    "fieldtype": "Check",
    "label": "Hide Footer Signup"
@@ -208,6 +213,7 @@
    "read_only": 1
   },
   {
+   "default": "0",
    "description": "Disable Customer Signup link in Login page",
    "fieldname": "disable_signup",
    "fieldtype": "Check",
@@ -238,6 +244,7 @@
    "label": "Chat"
   },
   {
+   "default": "0",
    "fieldname": "chat_enable",
    "fieldtype": "Check",
    "label": "Enable Chat"
@@ -286,7 +293,7 @@
  "idx": 1,
  "issingle": 1,
  "max_attachments": 10,
- "modified": "2019-05-07 11:24:10.031140",
+ "modified": "2019-06-12 17:16:37.452872",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Website Settings",
@@ -307,6 +314,7 @@
    "role": "All"
   }
  ],
+ "sort_field": "modified",
  "sort_order": "ASC",
  "track_changes": 1
 }
