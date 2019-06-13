@@ -660,13 +660,18 @@ Object.assign(frappe.utils, {
 	},
 
 	report_column_total: function(values, column, type) {
-		if (column.column.fieldtype == "Percent" || type === "mean") {
-			return values.reduce((a, b) => a + flt(b)) / values.length;
-		} else if (column.column.fieldtype == "Int") {
-			return values.reduce((a, b) => a + cint(b));
-		} else if (frappe.model.is_numeric_field(column.column.fieldtype)) {
-			return values.reduce((a, b) => a + flt(b));
-		} else {
+		if (values.length > 0) {
+			if (column.column.fieldtype == "Percent" || type === "mean") {
+				return values.reduce((a, b) => a + flt(b)) / values.length;
+			} else if (column.column.fieldtype == "Int") {
+				return values.reduce((a, b) => a + cint(b));
+			} else if (frappe.model.is_numeric_field(column.column.fieldtype)) {
+				return values.reduce((a, b) => a + flt(b));
+			} else {
+				return null;
+			}
+		}
+		else {
 			return null;
 		}
 	},
