@@ -92,6 +92,7 @@ frappe.ui.form.ControlMultiSelectList = frappe.ui.form.ControlData.extend({
 		} else {
 			this.values = this.values.filter(val => val !== value);
 		}
+		this.parse_validate_and_set_in_model('');
 		this.update_status();
 	},
 
