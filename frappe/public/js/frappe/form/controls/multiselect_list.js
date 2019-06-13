@@ -3,7 +3,7 @@ frappe.ui.form.ControlMultiSelectList = frappe.ui.form.ControlData.extend({
 		let template  = `
 			<div class="multiselect-list dropdown">
 				<div class="form-control cursor-pointer dropdown-toggle input-sm" data-toggle="dropdown">
-					<span class="status-text"></span>
+					<span class="status-text ellipsis"></span>
 				</div>
 				<ul class="dropdown-menu">
 					<li class="dropdown-input-wrapper">
