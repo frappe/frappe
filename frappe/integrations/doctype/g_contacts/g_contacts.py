@@ -20,7 +20,7 @@ class GContacts(Document):
 			frappe.throw(_("Google Contacts Integration for User already exists."))
 
 	def get_access_token(self):
-		gcontacts = frappe.get_doc("G Contacts Settings")
+		g_contact_settings = frappe.get_doc("G Contacts Settings")
 
 		if not gcontacts.enable:
 			frappe.throw(_("Google Contacts Integration is disabled."))
@@ -29,8 +29,8 @@ class GContacts(Document):
 			raise frappe.ValidationError(_("Enable Google Contacts access."))
 
 		data = {
-			'client_id': gcontacts.client_id,
-			'client_secret': gcontacts.client_secret, #get_password(fieldname='client_secret', raise_exception=False),
+			'client_id': g_contact_settings.client_id,
+			'client_secret': g_contact_settings.client_secret, #get_password(fieldname='client_secret', raise_exception=False),
 			'refresh_token': self.refresh_token, #get_password(fieldname='refresh_token', raise_exception=False),
 			'grant_type': "refresh_token",
 			'scope': SCOPES
@@ -44,14 +44,17 @@ class GContacts(Document):
 		return r.get('access_token')
 
 @frappe.whitelist()
-def authenticate_access(doc):
+def authenticate_access(g_contact):
 	g_contact_settings = frappe.get_doc("G Contacts Settings")
 	g_contact = frappe.get_doc("G Contacts", doc)
 	redirect_uri = get_request_site_address(True) + "?cmd=frappe.integrations.doctype.google_contacts.google_contacts.google_callback"
 
 	code = google_callback(client_id=g_contact_settings.client_id, redirect_uri=redirect_uri)
 
+
 	if code:
+		frappe.db.set_value("G Contacts", g_contact.name, "authorization_code", code)
+
 		try:
 			data = {
 				'code': code,
@@ -61,8 +64,6 @@ def authenticate_access(doc):
 				'grant_type': 'authorization_code'
 			}
 			r = requests.post('https://www.googleapis.com/oauth2/v4/token', data=data).json()
-
-			frappe.db.set_value("G Contacts", g_contact.name, "authorization_code", code)
 
 			if 'refresh_token' in r:
 				frappe.db.set_value("G Contacts", g_contact.name, "refresh_token", r.get("refresh_token"))

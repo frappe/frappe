@@ -24,10 +24,11 @@ frappe.ui.form.on('G Contacts', {
 		}
 	},
 	allow_contacts_access: function(frm) {
+		console.log(frm.doc.name);
 		frappe.call({
 			method: "frappe.integrations.doctype.g_contacts.g_contacts.authenticate_access",
 			args: {
-				"doc": frm.doc.name
+				"g_contact": frm.doc.name
 			},
 			callback: function(r) {
 				if(!r.exc) {
