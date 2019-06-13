@@ -98,3 +98,7 @@ table {
 .table > tbody > tr:hover {
 	background-color: rgb(247, 250, 252);
 }
+
+.grid-body .data-row {
+    font-size: inherit !important;
+}
