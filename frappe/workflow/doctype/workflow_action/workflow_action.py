@@ -5,7 +5,7 @@ from __future__ import unicode_literals
 import frappe
 from frappe.model.document import Document
 from frappe.utils.background_jobs import enqueue
-from frappe.utils import get_url, get_datetime
+from frappe.utils import get_url, get_datetime, cint
 from frappe.desk.form.utils import get_pdf_link
 from frappe.utils.verified_command import get_signed_params, verify_request
 from frappe import _
@@ -143,10 +143,23 @@ def update_completed_workflow_actions(doc, user=None):
 		(user, doc.get('doctype'), doc.get('name'), user))
 
 def get_next_possible_transitions(workflow_name, state):
-	return frappe.get_all('Workflow Transition',
-		fields=['allowed', 'action', 'state', 'allow_self_approval'],
+	transitions = frappe.get_all('Workflow Transition',
+		fields=['allowed', 'action', 'state', 'allow_self_approval', 'next_state'],
 		filters=[['parent', '=', workflow_name],
 		['state', '=', state]])
+
+	transitions_to_return = []
+
+	for transition in transitions:
+		next_docstatus = get_state_docstatus(workflow_name, transition.next_state)
+
+		# skip transitions if current state's docstatus is 1 and next state will set docstatus as 2
+		# (which will be mostly an optional transition for a doc like cancelling leaves etc.)
+		if cint(next_docstatus) == 2:
+			continue
+		transitions_to_return.append(transition)
+
+	return transitions_to_return
 
 def get_users_next_action_data(transitions, doc):
 	user_data_map = {}
@@ -287,3 +300,8 @@ def get_email_template(doc):
 	if not template_name: return
 	return frappe.get_doc('Email Template', template_name)
 
+def get_state_docstatus(workflow_name, state):
+	return frappe.get_cached_value('Workflow Document State', {
+		'parent': workflow_name,
+		'state': state
+	}, 'doc_status')
