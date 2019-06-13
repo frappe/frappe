@@ -377,14 +377,13 @@
   },
   {
    "default": "0",
-   "description": "Allow Document Details in Email Id to link Emails.",
    "fieldname": "enable_automatic_linking",
    "fieldtype": "Check",
    "label": "Enable Automatic Linking in Documents"
   }
  ],
  "icon": "fa fa-inbox",
- "modified": "2019-06-12 16:59:07.116025",
+ "modified": "2019-06-13 18:05:51.526016",
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Email Account",

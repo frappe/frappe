@@ -13,11 +13,9 @@ frappe.ui.form.Timeline = class Timeline {
 
 	make() {
 		var me = this;
-		this.wrapper = $(frappe.render_template("timeline",{
-			doctype: me.frm.doctype,allow_events_in_timeline: me.frm.meta.allow_events_in_timeline
-		})).appendTo(me.parent);
+		this.wrapper = $(frappe.render_template("timeline",{doctype: me.frm.doctype,allow_events_in_timeline: me.frm.meta.allow_events_in_timeline})).appendTo(me.parent);
 
-		this.set_active_email_link();
+		this.set_automatic_linking();
 		this.list = this.wrapper.find(".timeline-items");
 		this.email_link = this.wrapper.find(".timeline-email-import");
 
@@ -77,7 +75,7 @@ frappe.ui.form.Timeline = class Timeline {
 		});
 
 		this.email_link.on("click", ".copy-to-clipboard", function() {
-			let text = $(".click-to-copy").text();
+			let text = $(".copy-to-clipboard").text();
 			frappe.utils.copy_to_clipboard(text);
 		});
 	}
@@ -117,36 +115,32 @@ frappe.ui.form.Timeline = class Timeline {
 			});
 	}
 
-	set_active_email_link() {
-		var me = this;
-
-		if (!frappe.email.automatic_linking){
-			frappe.call({
-				method: "frappe.client.get_value",
-				args: {
-					doctype: "Email Account",
-					filters: {"enable_incoming": 1, "enable_automatic_linking": 1},
-					fieldname: "email_id"
-				},
-				callback: function(r) {
-					if (r.message) {
-						frappe.email.automatic_linking = r.message.email_id;
-					} else {
-						frappe.email.automatic_linking = null;
-					}
+	set_automatic_linking() {
+		if (Object.keys(frappe.email.automatic_linking).length === 0){
+			frappe.db.get_value("Email Account", {"enable_incoming": 1, "enable_automatic_linking": 1}, "email_id", (r) => {
+				if (r && r.email_id) {
+					frappe.email.automatic_linking = r.email_id;
+				} else {
+					frappe.email.automatic_linking = {};
 				}
-			});
+				this.display_automatic_linking();
+			})
+		} else {
+			this.display_automatic_linking();
 		}
+	}
 
-		// if (frappe.email.automatic_linking) {
-		// 	let email_id = frappe.email.automatic_linking;
-		// 	email_id =  email_id.split("@")[0] +"+"+ encodeURIComponent(me.frm.doctype) +"+"+ encodeURIComponent(me.frm.docname)
-		// 		+"@"+ email_id.split("@")[1];
+	display_automatic_linking() {
+		var me = this;
+		if (Object.keys(frappe.email.automatic_linking).length !== 0){
+			let email_id = frappe.email.automatic_linking;
+			email_id =  email_id.split("@")[0] +"+"+ encodeURIComponent(me.frm.doctype) +"+"+ encodeURIComponent(me.frm.docname)
+				+"@"+ email_id.split("@")[1];
 
-		// 	$(".timeline-email-import-link").text(email_id);
-		// } else {
-		// 	$('.timeline-email-import').addClass("hide");
-		// }
+			$(".timeline-email-import-link").text(email_id);
+		} else {
+			$('.timeline-email-import').addClass("hide");
+		}
 	}
 
 	setup_interaction_button() {
