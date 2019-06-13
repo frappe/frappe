@@ -45,30 +45,31 @@ class GContacts(Document):
 
 @frappe.whitelist()
 def authenticate_access(doc):
-	doc = frappe.get_doc("G Contacts", doc)
+	g_contact_settings = frappe.get_doc("G Contacts Settings")
+	g_contact = frappe.get_doc("G Contacts", doc)
 	redirect_uri = get_request_site_address(True) + "?cmd=frappe.integrations.doctype.google_contacts.google_contacts.google_callback"
 
-	code = google_callback(client_id=doc.client_id, redirect_uri=redirect_uri)
+	code = google_callback(client_id=g_contact_settings.client_id, redirect_uri=redirect_uri)
 
 	if code:
 		try:
 			data = {
 				'code': code,
-				'client_id': doc.client_id,
-				'client_secret': doc.client_secret, #get_password(fieldname='client_secret', raise_exception=False),
+				'client_id': g_contact_settings.client_id,
+				'client_secret': g_contact_settings.client_secret, #get_password(fieldname='client_secret', raise_exception=False),
 				'redirect_uri': redirect_uri,
 				'grant_type': 'authorization_code'
 			}
 			r = requests.post('https://www.googleapis.com/oauth2/v4/token', data=data).json()
 
-			frappe.db.set_value("G Contacts", doc.name, "authorization_code", code)
+			frappe.db.set_value("G Contacts", g_contact.name, "authorization_code", code)
 
 			if 'refresh_token' in r:
-				frappe.db.set_value("G Contacts", doc.name, "refresh_token", r.get("refresh_token"))
+				frappe.db.set_value("G Contacts", g_contact.name, "refresh_token", r.get("refresh_token"))
 
 			frappe.db.commit()
 			frappe.local.response["type"] = "redirect"
-			frappe.local.response["location"] = "/desk#Form/G%20Contacts/{}".format(doc.name)
+			frappe.local.response["location"] = "/desk#Form/G%20Contacts/{}".format(g_contact.name)
 
 			frappe.msgprint(_("Google Contacts has been configured."))
 		except Exception as e:
