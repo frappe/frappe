@@ -89,6 +89,11 @@ def get_data():
 			"items": [
 				{
 					"type": "doctype",
+					"name": "Google Settings",
+					"description": _("Google API Settings."),
+				},
+				{
+					"type": "doctype",
 					"name": "Google Maps Settings",
 					"description": _("Google Maps integration"),
 				},
@@ -114,14 +119,9 @@ def get_data():
 				},
 				{
 					"type": "doctype",
-					"name": "G Contacts Settings",
-					"description": _("Google Contacts Settings"),
-				},
-				{
-					"type": "doctype",
-					"name": "G Contacts",
-					"description": _("Sync Google Contacts"),
-				},
+					"name": "Google Contacts",
+					"description": _("Google Contacts Integration."),
+				}
 			]
 		}
 	]

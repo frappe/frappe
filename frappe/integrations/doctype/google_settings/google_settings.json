@@ -1,6 +1,6 @@
 {
  "autoname": "format:GC-{user}",
- "creation": "2019-06-12 12:13:49.851510",
+ "creation": "2019-06-14 00:08:37.255003",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
@@ -37,10 +37,10 @@
   }
  ],
  "issingle": 1,
- "modified": "2019-06-12 12:13:49.851510",
+ "modified": "2019-06-14 00:08:37.255003",
  "modified_by": "Administrator",
  "module": "Integrations",
- "name": "G Contacts Settings",
+ "name": "Google Settings",
  "owner": "Administrator",
  "permissions": [
   {

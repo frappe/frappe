@@ -14,7 +14,7 @@ frappe.ui.form.on('Google Contacts', {
 				frappe.call({
 					method: "frappe.integrations.doctype.google_contacts.google_contacts.sync",
 					args: {
-						"doc": frm.doc.name
+						"g_contact": frm.doc.name
 					},
 				}).then((r) => {
 					frappe.hide_progress();
@@ -24,8 +24,12 @@ frappe.ui.form.on('Google Contacts', {
 		}
 	},
 	allow_contacts_access: function(frm) {
+		console.log(frm.doc.name);
 		frappe.call({
-			method: "frappe.integrations.doctype.google_contacts.google_contacts.google_callback",
+			method: "frappe.integrations.doctype.google_contacts.google_contacts.authenticate_access",
+			args: {
+				"g_contact": frm.doc.name
+			},
 			callback: function(r) {
 				if(!r.exc) {
 					frm.save();

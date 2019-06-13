@@ -1,14 +1,11 @@
 {
  "autoname": "format:GC-{user}",
- "creation": "2019-06-12 11:49:48.810191",
+ "creation": "2019-06-14 00:09:39.441961",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
   "enable",
   "user",
-  "google_credentials",
-  "client_id",
-  "client_secret",
   "allow_contacts_access",
   "authorization_code",
   "refresh_token"
@@ -24,26 +21,8 @@
    "fieldname": "user",
    "fieldtype": "Link",
    "label": "User",
-   "options": "User"
-  },
-  {
-   "fieldname": "google_credentials",
-   "fieldtype": "Section Break",
-   "label": "Google Credentials"
-  },
-  {
-   "fieldname": "client_id",
-   "fieldtype": "Data",
-   "in_list_view": 1,
-   "label": "Client ID",
-   "reqd": 1
-  },
-  {
-   "fieldname": "client_secret",
-   "fieldtype": "Data",
-   "in_list_view": 1,
-   "label": "Client Secret",
-   "reqd": 1
+   "options": "User",
+   "read_only": 1
   },
   {
    "fieldname": "allow_contacts_access",
@@ -61,7 +40,7 @@
    "label": "Refresh Token"
   }
  ],
- "modified": "2019-06-12 11:53:41.895134",
+ "modified": "2019-06-14 00:09:39.441961",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Google Contacts",
@@ -78,7 +57,6 @@
    "write": 1
   }
  ],
- "quick_entry": 1,
  "sort_field": "modified",
  "sort_order": "ASC",
  "track_changes": 1
