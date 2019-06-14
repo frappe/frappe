@@ -26,10 +26,10 @@
   "links",
   "more_info",
   "department",
-  "description",
+  "unsubscribed",
   "column_break_17",
   "source",
-  "unsubscribed"
+  "google_contacts_description"
  ],
  "fields": [
   {
@@ -178,15 +178,16 @@
    "label": "Middle Name"
   },
   {
-   "fieldname": "description",
+   "depends_on": "eval:doc.source==\"Google Contacts\"",
+   "fieldname": "google_contacts_description",
    "fieldtype": "Small Text",
-   "label": "Description"
+   "label": "Google Contacts Description"
   }
  ],
  "icon": "fa fa-user",
  "idx": 1,
  "image_field": "image",
- "modified": "2019-06-14 14:56:40.972585",
+ "modified": "2019-06-14 20:35:45.300869",
  "modified_by": "Administrator",
  "module": "Contacts",
  "name": "Contact",

@@ -16,6 +16,9 @@ PARAMS = {'personFields': 'names,emailAddresses,organizations'}
 class GoogleContacts(Document):
 
 	def validate(self):
+		if not frappe.db.get_value("Google Settings", None, "enable") == 1:
+			frappe.throw(_("Enable Google API in Google Settings."))
+
 		if self.enable and not self.email_id:
 			frappe.throw(_("Email Address cannot be empty."))
 
@@ -144,8 +147,8 @@ def sync(g_contact=None):
 								"middle_name": name.get('middleName') if name.get('middleName') else "",
 								"last_name": name.get('familyName') if name.get('familyName') else "",
 								"email_id": email.get('value') if email.get('value') else "",
-								"description": connection.get('organizations')[0].get('name') if connection.get('organizations') else "",
 								"designation": connection.get('organizations')[0].get('title') if connection.get('organizations') else "",
+								"google_contacts_description": connection.get('organizations')[0].get('name') if connection.get('organizations') else "",
 								"source": "Google Contacts"
 							}).insert(ignore_permissions=True)
 			if g_contact:
