@@ -10,7 +10,7 @@ from frappe.desk.form.utils import get_pdf_link
 from frappe.utils.verified_command import get_signed_params, verify_request
 from frappe import _
 from frappe.model.workflow import apply_workflow, get_workflow_name, \
-	has_approval_access, get_workflow_state_field, send_email_alert
+	has_approval_access, get_workflow_state_field, send_email_alert, get_workflow_field_value
 from frappe.desk.notifications import clear_doctype_notifications
 from frappe.utils.user import get_users_with_role
 
@@ -151,11 +151,9 @@ def get_next_possible_transitions(workflow_name, state):
 	transitions_to_return = []
 
 	for transition in transitions:
-		next_docstatus = get_state_docstatus(workflow_name, transition.next_state)
-
-		# skip transitions if current state's docstatus is 1 and next state will set docstatus as 2
-		# (which will be mostly an optional transition for a doc like cancelling leaves etc.)
-		if cint(next_docstatus) == 2:
+		is_next_state_optional = get_state_optional_field_value(workflow_name, transition.next_state)
+		# skip transition if next state of the transition is optional
+		if is_next_state_optional:
 			continue
 		transitions_to_return.append(transition)
 
@@ -300,8 +298,8 @@ def get_email_template(doc):
 	if not template_name: return
 	return frappe.get_doc('Email Template', template_name)
 
-def get_state_docstatus(workflow_name, state):
+def get_state_optional_field_value(workflow_name, state):
 	return frappe.get_cached_value('Workflow Document State', {
 		'parent': workflow_name,
 		'state': state
-	}, 'doc_status')
+	}, 'is_state_optional')
