@@ -68,7 +68,9 @@ class WebsiteTheme(Document):
 		stderr = process.communicate()[1]
 
 		if stderr:
-			frappe.throw('<pre>{stderr}</pre>'.format(stderr=frappe.safe_encode(stderr)))
+			stderr = frappe.safe_decode(stderr)
+			stderr = stderr.replace('\n', '<br>')
+			frappe.throw('<div style="font-family: monospace;">{stderr}</div>'.format(stderr=stderr))
 		else:
 			self.theme_url = '/assets/css/' + file_name
 
