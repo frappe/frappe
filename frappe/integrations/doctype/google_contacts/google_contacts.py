@@ -16,8 +16,11 @@ PARAMS = {'personFields': 'names,emailAddresses'}
 class GoogleContacts(Document):
 
 	def validate(self):
-		if frappe.db.exists("Google Contacts", {"user", self.user}):
-			frappe.throw(_("Google Contacts Integration for User already exists."))
+		if self.enable and not self.email_id:
+			frappe.throw(_("Email Address cannot be empty."))
+
+		if self.enable and frappe.db.exists("Google Contacts", {"email_id", self.email_id}):
+			frappe.throw(_("Google Contacts Integration for {} already exists.".format(self.email_id)))
 
 	def get_access_token(self):
 		google_settings = frappe.get_doc("Google Settings")
@@ -107,7 +110,6 @@ def sync(g_contact=None):
 
 	for google_contact in google_contacts:
 		doc = frappe.get_doc("Google Contacts", google_contact.name)
-
 		access_token = doc.get_access_token()
 
 		headers = {'Authorization': 'Bearer {}'.format(access_token)}
@@ -115,7 +117,7 @@ def sync(g_contact=None):
 		try:
 			r = requests.get(REQUEST, headers=headers, params=PARAMS)
 		except Exception as e:
-			frappe.throw(e.message)
+			frappe.throw(e)
 
 		try:
 			r = r.json()

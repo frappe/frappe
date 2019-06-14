@@ -1,5 +1,4 @@
 {
- "autoname": "format:GC-{user}",
  "creation": "2019-06-14 00:08:37.255003",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -17,6 +16,7 @@
    "label": "Enable"
   },
   {
+   "depends_on": "eval: doc.enable",
    "fieldname": "google_credentials",
    "fieldtype": "Section Break",
    "label": "Google Credentials"
@@ -25,19 +25,17 @@
    "fieldname": "client_id",
    "fieldtype": "Data",
    "in_list_view": 1,
-   "label": "Client ID",
-   "reqd": 1
+   "label": "Client ID"
   },
   {
    "fieldname": "client_secret",
    "fieldtype": "Data",
    "in_list_view": 1,
-   "label": "Client Secret",
-   "reqd": 1
+   "label": "Client Secret"
   }
  ],
  "issingle": 1,
- "modified": "2019-06-14 00:08:37.255003",
+ "modified": "2019-06-14 13:53:59.059582",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Google Settings",
@@ -50,6 +48,16 @@
    "print": 1,
    "read": 1,
    "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "All",
    "share": 1,
    "write": 1
   }
