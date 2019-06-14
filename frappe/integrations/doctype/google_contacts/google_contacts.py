@@ -11,7 +11,7 @@ from frappe.utils import get_request_site_address
 
 SCOPES = 'https://www.googleapis.com/auth/contacts'
 REQUEST = 'https://people.googleapis.com/v1/people/me/connections'
-PARAMS = {'personFields': 'names,emailAddresses'}
+PARAMS = {'personFields': 'names,emailAddresses,organizations'}
 
 class GoogleContacts(Document):
 
@@ -132,16 +132,20 @@ def sync(g_contact=None):
 		if connections:
 			for idx, connection in enumerate(connections):
 				for name in connection.get('names'):
-					if g_contact:
+					if g_contact: # Show progress only if Google Contacts synced manually
 						show_progress(len(connections), "Google Contacts", idx, name.get('displayName'))
 					for email in connection.get('emailAddresses'):
 						if not frappe.db.exists("Contact", {"email_id": email.get('value')}):
 							contacts_updated += 1
 							frappe.get_doc({
 								"doctype": "Contact",
-								"first_name": name.get('givenName'),
-								"last_name": name.get('familyName'),
-								"email_id": email.get('value'),
+								"salutation": name.get('honorificPrefix') if name.get('honorificPrefix') else "",
+								"first_name": name.get('givenName') if name.get('givenName') else "",
+								"middle_name": name.get('middleName') if name.get('middleName') else "",
+								"last_name": name.get('familyName') if name.get('familyName') else "",
+								"email_id": email.get('value') if name.get('value') else "",
+								"description": connection.get('organizations')[0].get('name') if connection.get('organizations') else "",
+								"designation": connection.get('organizations')[0].get('title') if connection.get('organizations') else "",
 								"source": "Google Contacts"
 							}).insert(ignore_permissions=True)
 			if g_contact:
