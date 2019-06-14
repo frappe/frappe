@@ -67,7 +67,7 @@ def get_feed_match_conditions(user=None, doctype='Comment'):
 	user_permissions = frappe.permissions.get_user_permissions(user)
 	can_read = frappe.get_user().get_can_read()
 
-	can_read_doctypes = ["'{}'".format(doctype) for doctype in
+	can_read_doctypes = ["'{}'".format(dt) for dt in
 		list(set(can_read) - set(list(user_permissions)))]
 
 	if can_read_doctypes:

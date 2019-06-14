@@ -233,8 +233,19 @@ frappe.ui.form.remove_old_form_route = () => {
 }
 
 frappe.ui.form.update_calling_link = (newdoc) => {
-	if (frappe._from_link && newdoc.doctype === frappe._from_link.df.options) {
-		var doc = frappe.get_doc(frappe._from_link.doctype, frappe._from_link.docname);
+	if (!frappe._from_link) return;
+	var doc = frappe.get_doc(frappe._from_link.doctype, frappe._from_link.docname);
+
+	let is_valid_doctype = () => {
+		if (frappe._from_link.df.fieldtype==='Link') {
+			return newdoc.doctype === frappe._from_link.df.options;
+		} else {
+			// dynamic link, type is dynamic
+			return newdoc.doctype === doc[frappe._from_link.df.options];
+		}
+	};
+
+	if (is_valid_doctype()) {
 		// set value
 		if (doc && doc.parentfield) {
 			//update values for child table

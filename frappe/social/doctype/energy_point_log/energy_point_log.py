@@ -241,10 +241,9 @@ def send_summary(timespan):
 
 	if not is_energy_point_enabled():
 		return
-
-	from_date = frappe.utils.add_days(None, -7)
+	from_date = frappe.utils.add_to_date(None, weeks=-1)
 	if timespan == 'Monthly':
-		from_date = frappe.utils.add_days(None, -30)
+		from_date = frappe.utils.add_to_date(None, months=-1)
 
 	user_points = get_user_energy_and_review_points(from_date=from_date, as_dict=False)
 
