@@ -143,7 +143,7 @@ def sync(g_contact=None):
 								"first_name": name.get('givenName') if name.get('givenName') else "",
 								"middle_name": name.get('middleName') if name.get('middleName') else "",
 								"last_name": name.get('familyName') if name.get('familyName') else "",
-								"email_id": email.get('value') if name.get('value') else "",
+								"email_id": email.get('value') if email.get('value') else "",
 								"description": connection.get('organizations')[0].get('name') if connection.get('organizations') else "",
 								"designation": connection.get('organizations')[0].get('title') if connection.get('organizations') else "",
 								"source": "Google Contacts"
