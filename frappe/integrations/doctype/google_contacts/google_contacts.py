@@ -9,9 +9,9 @@ from frappe.model.document import Document
 from frappe import _
 from frappe.utils import get_request_site_address
 
-SCOPES = 'https://www.googleapis.com/auth/contacts'
-REQUEST = 'https://people.googleapis.com/v1/people/me/connections'
-PARAMS = {'personFields': 'names,emailAddresses,organizations'}
+SCOPES = "https://www.googleapis.com/auth/contacts"
+REQUEST = "https://people.googleapis.com/v1/people/me/connections"
+PARAMS = {"personFields": "names,emailAddresses,organizations,phoneNumbers"}
 
 class GoogleContacts(Document):
 
@@ -35,19 +35,19 @@ class GoogleContacts(Document):
 			raise frappe.ValidationError(_("Enable Google Contacts access."))
 
 		data = {
-			'client_id': google_settings.client_id,
-			'client_secret': google_settings.client_secret, #get_password(fieldname='client_secret', raise_exception=False),
-			'refresh_token': self.refresh_token, #get_password(fieldname='refresh_token', raise_exception=False),
-			'grant_type': "refresh_token",
-			'scope': SCOPES
+			"client_id": google_settings.client_id,
+			"client_secret": google_settings.client_secret, #get_password(fieldname="client_secret", raise_exception=False),
+			"refresh_token": self.refresh_token, #get_password(fieldname="refresh_token", raise_exception=False),
+			"grant_type": "refresh_token",
+			"scope": SCOPES
 		}
 
 		try:
-			r = requests.post('https://www.googleapis.com/oauth2/v4/token', data=data).json()
+			r = requests.post("https://www.googleapis.com/oauth2/v4/token", data=data).json()
 		except requests.exceptions.HTTPError:
 			frappe.throw(_("Something went wrong during the token generation. Please request again an authorization code."))
 
-		return r.get('access_token')
+		return r.get("access_token")
 
 @frappe.whitelist()
 def authenticate_access(g_contact):
@@ -67,15 +67,15 @@ def authenticate_access(g_contact):
 	else:
 		try:
 			data = {
-				'code': google_contact.authorization_code,
-				'client_id': google_settings.client_id,
-				'client_secret': google_settings.client_secret, #get_password(fieldname='client_secret', raise_exception=False),
-				'redirect_uri': redirect_uri,
-				'grant_type': 'authorization_code'
+				"code": google_contact.authorization_code,
+				"client_id": google_settings.client_id,
+				"client_secret": google_settings.client_secret, #get_password(fieldname="client_secret", raise_exception=False),
+				"redirect_uri": redirect_uri,
+				"grant_type": "authorization_code"
 			}
-			r = requests.post('https://www.googleapis.com/oauth2/v4/token', data=data).json()
+			r = requests.post("https://www.googleapis.com/oauth2/v4/token", data=data).json()
 
-			if 'refresh_token' in r:
+			if "refresh_token" in r:
 				frappe.db.set_value("Google Contacts", google_contact.name, "refresh_token", r.get("refresh_token"))
 
 			frappe.db.commit()
@@ -93,7 +93,7 @@ def google_callback(client_id=None, redirect_uri=None, code=None):
 	"""
 	if code is None:
 		return {
-			'url': 'https://accounts.google.com/o/oauth2/v2/auth?access_type=offline&response_type=code&prompt=consent&client_id={}&include_granted_scopes=true&scope={}&redirect_uri={}'.format(client_id, SCOPES, redirect_uri)
+			"url": "https://accounts.google.com/o/oauth2/v2/auth?access_type=offline&response_type=code&prompt=consent&client_id={}&include_granted_scopes=true&scope={}&redirect_uri={}".format(client_id, SCOPES, redirect_uri)
 		}
 	else:
 		google_contact = frappe.cache().hget("google_contacts", "google_contact")
@@ -115,7 +115,7 @@ def sync(g_contact=None):
 		doc = frappe.get_doc("Google Contacts", google_contact.name)
 		access_token = doc.get_access_token()
 
-		headers = {'Authorization': 'Bearer {}'.format(access_token)}
+		headers = {"Authorization": "Bearer {}".format(access_token)}
 
 		try:
 			r = requests.get(REQUEST, headers=headers, params=PARAMS)
@@ -128,28 +128,32 @@ def sync(g_contact=None):
 			# if request doesn't return json show HTML ask permissions or to identify the error on google side
 			frappe.throw(e)
 
-		connections = r.get('connections')
+		connections = r.get("connections")
 		contacts_updated = 0
 
 		frappe.db.set_value("Google Contacts", doc.name, "last_sync_on", frappe.utils.now_datetime())
 		if connections:
 			for idx, connection in enumerate(connections):
-				for name in connection.get('names'):
+
+				for name in connection.get("names"):
 					if g_contact: # Show progress only if Google Contacts synced manually
-						show_progress(len(connections), "Google Contacts", idx, name.get('displayName'))
-					for email in connection.get('emailAddresses'):
-						if not frappe.db.exists("Contact", {"email_id": email.get('value')}):
+						show_progress(len(connections), "Google Contacts", idx, name.get("displayName"))
+
+					for email in connection.get("emailAddresses"):
+						if not frappe.db.exists("Contact", {"email_id": email.get("value")}):
 							contacts_updated += 1
 							frappe.get_doc({
 								"doctype": "Contact",
-								"salutation": name.get('honorificPrefix') if name.get('honorificPrefix') else "",
-								"first_name": name.get('givenName') if name.get('givenName') else "",
-								"middle_name": name.get('middleName') if name.get('middleName') else "",
-								"last_name": name.get('familyName') if name.get('familyName') else "",
-								"email_id": email.get('value') if email.get('value') else "",
-								"designation": connection.get('organizations')[0].get('title') if connection.get('organizations') else "",
-								"google_contacts_description": connection.get('organizations')[0].get('name') if connection.get('organizations') else "",
-								"source": "Google Contacts"
+								"salutation": name.get("honorificPrefix") if name.get("honorificPrefix") else "",
+								"first_name": name.get("givenName") if name.get("givenName") else "",
+								"middle_name": name.get("middleName") if name.get("middleName") else "",
+								"last_name": name.get("familyName") if name.get("familyName") else "",
+								"email_id": email.get("value") if email.get("value") else "",
+								"designation": connection.get("organizations")[0].get("title") if connection.get("organizations") else "",
+								"phone": connection.get("phoneNumbers")[0].get("value") if connection.get("phoneNumbers")[0] else "",
+								"mobile_no": connection.get("phoneNumbers")[1].get("value") if connection.get("phoneNumbers")[1] else "",
+								"source": "Google Contacts",
+								"google_contacts_description": connection.get("organizations")[0].get("name") if connection.get("organizations") else ""
 							}).insert(ignore_permissions=True)
 			if g_contact:
 				return "{} Google Contacts synced.".format(contacts_updated) if contacts_updated > 0 else "No new Google Contacts synced."
