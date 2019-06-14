@@ -674,7 +674,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 			return Object.assign(column, {
 				id: column.fieldname,
-				name: column.label,
+				name: __(column.label),
 				width: parseInt(column.width) || null,
 				editable: false,
 				compareValue: compareFn,
