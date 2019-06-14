@@ -16,7 +16,7 @@ PARAMS = {"personFields": "names,emailAddresses,organizations,phoneNumbers"}
 class GoogleContacts(Document):
 
 	def validate(self):
-		if not frappe.db.get_value("Google Settings", None, "enable") == 1:
+		if not frappe.db.get_value("Google Settings", None, "enable"):
 			frappe.throw(_("Enable Google API in Google Settings."))
 
 		if self.enable and not self.email_id:
