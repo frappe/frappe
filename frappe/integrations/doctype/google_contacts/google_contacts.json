@@ -5,10 +5,11 @@
  "engine": "InnoDB",
  "field_order": [
   "enable",
-  "google_contacts",
-  "user",
+  "sb_00",
   "email_id",
   "allow_contacts_access",
+  "cb_00",
+  "user",
   "last_sync_on",
   "authorization_code",
   "refresh_token"
@@ -35,12 +36,14 @@
   },
   {
    "fieldname": "authorization_code",
-   "fieldtype": "Data",
+   "fieldtype": "Password",
+   "hidden": 1,
    "label": "Authorization Code"
   },
   {
    "fieldname": "refresh_token",
-   "fieldtype": "Data",
+   "fieldtype": "Password",
+   "hidden": 1,
    "label": "Refresh Token"
   },
   {
@@ -59,12 +62,16 @@
   },
   {
    "depends_on": "eval:doc.enable",
-   "fieldname": "google_contacts",
+   "fieldname": "sb_00",
    "fieldtype": "Section Break",
    "label": "Google Contacts"
+  },
+  {
+   "fieldname": "cb_00",
+   "fieldtype": "Column Break"
   }
  ],
- "modified": "2019-06-14 13:56:27.931744",
+ "modified": "2019-06-15 02:13:40.534286",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Google Contacts",

@@ -36,8 +36,8 @@ class GoogleContacts(Document):
 
 		data = {
 			"client_id": google_settings.client_id,
-			"client_secret": google_settings.client_secret, #get_password(fieldname="client_secret", raise_exception=False),
-			"refresh_token": self.refresh_token, #get_password(fieldname="refresh_token", raise_exception=False),
+			"client_secret": google_settings.get_password(fieldname="client_secret", raise_exception=False),
+			"refresh_token": self.get_password(fieldname="refresh_token", raise_exception=False),
 			"grant_type": "refresh_token",
 			"scope": SCOPES
 		}
@@ -69,7 +69,7 @@ def authenticate_access(g_contact):
 			data = {
 				"code": google_contact.authorization_code,
 				"client_id": google_settings.client_id,
-				"client_secret": google_settings.client_secret, #get_password(fieldname="client_secret", raise_exception=False),
+				"client_secret": google_settings.get_password(fieldname="client_secret", raise_exception=False),
 				"redirect_uri": redirect_uri,
 				"grant_type": "authorization_code"
 			}
@@ -132,6 +132,7 @@ def sync(g_contact=None):
 		contacts_updated = 0
 
 		frappe.db.set_value("Google Contacts", doc.name, "last_sync_on", frappe.utils.now_datetime())
+
 		if connections:
 			for idx, connection in enumerate(connections):
 
