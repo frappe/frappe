@@ -76,7 +76,7 @@
   },
   {
    "default": "0",
-   "description": "If the state is set optional then workflow action will not be created for transition to this state. ",
+   "description": "Workflow Action is not created for optional states",
    "fieldname": "is_optional_state",
    "fieldtype": "Check",
    "label": "Is Optional State"
