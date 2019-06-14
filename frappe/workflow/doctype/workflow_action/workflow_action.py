@@ -5,7 +5,7 @@ from __future__ import unicode_literals
 import frappe
 from frappe.model.document import Document
 from frappe.utils.background_jobs import enqueue
-from frappe.utils import get_url, get_datetime, cint
+from frappe.utils import get_url, get_datetime
 from frappe.desk.form.utils import get_pdf_link
 from frappe.utils.verified_command import get_signed_params, verify_request
 from frappe import _
