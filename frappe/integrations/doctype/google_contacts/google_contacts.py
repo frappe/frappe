@@ -144,10 +144,11 @@ def sync(g_contact=None):
 								"email_id": email.get('value'),
 								"source": "Google Contacts"
 							}).insert(ignore_permissions=True)
+			if g_contact:
+				return "{} Google Contacts synced.".format(contacts_updated) if contacts_updated > 0 else "No new Google Contacts synced."
 
-			return "{} Google Contacts synced.".format(contacts_updated) if contacts_updated > 0 else "No new Google Contacts synced."
-
-		return "No Google Contacts present to sync." # If no Google Contacts to sync
+		if g_contact:
+			return "No Google Contacts present to sync." # If no Google Contacts to sync
 
 def show_progress(length, message, i, description):
 	if length > 5:
