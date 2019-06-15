@@ -372,18 +372,19 @@
    "read_only": 1
   },
   {
-   "fieldname": "section_break_12",
-   "fieldtype": "Section Break"
+    "fieldname": "section_break_12",
+    "fieldtype": "Section Break"
   },
   {
    "default": "0",
+   "description": "For more information, <a class=\"text-muted\" href=\"https://erpnext.com/docs/user/manual/en/setting-up/email/linking-emails-to-document\">click here</a>.",
    "fieldname": "enable_automatic_linking",
    "fieldtype": "Check",
    "label": "Enable Automatic Linking in Documents"
   }
  ],
  "icon": "fa fa-inbox",
- "modified": "2019-06-13 18:05:51.526016",
+ "modified": "2019-06-15 19:03:55.283524",
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Email Account",

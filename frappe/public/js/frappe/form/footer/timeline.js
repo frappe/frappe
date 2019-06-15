@@ -2,7 +2,7 @@
 // MIT License. See license.txt
 
 frappe.provide('frappe.timeline');
-frappe.provide('frappe.email.automatic_linking');
+frappe.provide('frappe.email');
 frappe.separator_element = '<div>---</div>';
 
 frappe.ui.form.Timeline = class Timeline {
@@ -15,7 +15,7 @@ frappe.ui.form.Timeline = class Timeline {
 		var me = this;
 		this.wrapper = $(frappe.render_template("timeline",{doctype: me.frm.doctype,allow_events_in_timeline: me.frm.meta.allow_events_in_timeline})).appendTo(me.parent);
 
-		this.set_automatic_linking();
+		this.set_automatic_link_email();
 		this.list = this.wrapper.find(".timeline-items");
 		this.email_link = this.wrapper.find(".timeline-email-import");
 
@@ -115,25 +115,25 @@ frappe.ui.form.Timeline = class Timeline {
 			});
 	}
 
-	set_automatic_linking() {
-		if (Object.keys(frappe.email.automatic_linking).length === 0){
+	set_automatic_link_email() {
+		if (!frappe.email.automatic_link_email){
 			frappe.db.get_value("Email Account", {"enable_incoming": 1, "enable_automatic_linking": 1}, "email_id", (r) => {
 				if (r && r.email_id) {
-					frappe.email.automatic_linking = r.email_id;
+					frappe.email.automatic_link_email = r.email_id;
 				} else {
-					frappe.email.automatic_linking = {};
+					frappe.email.automatic_link_email = null;
 				}
-				this.display_automatic_linking();
+				this.display_automatic_link_email();
 			});
 		} else {
-			this.display_automatic_linking();
+			this.display_automatic_link_email();
 		}
 	}
 
-	display_automatic_linking() {
+	display_automatic_link_email() {
 		var me = this;
-		if (Object.keys(frappe.email.automatic_linking).length !== 0){
-			let email_id = frappe.email.automatic_linking;
+		if (frappe.email.automatic_link_email){
+			let email_id = frappe.email.automatic_link_email;
 			email_id =  email_id.split("@")[0] +"+"+ encodeURIComponent(me.frm.doctype) +"+"+ encodeURIComponent(me.frm.docname)
 				+"@"+ email_id.split("@")[1];
 

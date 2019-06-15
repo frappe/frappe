@@ -714,7 +714,7 @@ Object.assign(frappe.utils, {
 
 		frappe.show_alert({
 			indicator: 'green',
-			message: __('Copied to Clipboard.')
+			message: __('Copied to clipboard.')
 		});
 	}
 });
