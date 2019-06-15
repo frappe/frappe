@@ -23,10 +23,10 @@ frappe.ui.form.on('Google Contacts', {
 			});
 		}
 	},
-	allow_contacts_access: function(frm) {
+	authorize_google_contacts_access: function(frm) {
 		console.log(frm.doc.name);
 		frappe.call({
-			method: "frappe.integrations.doctype.google_contacts.google_contacts.authenticate_access",
+			method: "frappe.integrations.doctype.google_contacts.google_contacts.authorize_access",
 			args: {
 				"g_contact": frm.doc.name
 			},

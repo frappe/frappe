@@ -7,7 +7,7 @@
   "enable",
   "sb_00",
   "email_id",
-  "allow_contacts_access",
+  "authorize_google_contacts_access",
   "cb_00",
   "user",
   "last_sync_on",
@@ -27,12 +27,6 @@
    "label": "User",
    "options": "User",
    "read_only": 1
-  },
-  {
-   "depends_on": "eval:!doc.__islocal",
-   "fieldname": "allow_contacts_access",
-   "fieldtype": "Button",
-   "label": "Allow Contacts Access"
   },
   {
    "fieldname": "authorization_code",
@@ -69,9 +63,15 @@
   {
    "fieldname": "cb_00",
    "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "eval:!doc.__islocal",
+   "fieldname": "authorize_google_contacts_access",
+   "fieldtype": "Button",
+   "label": "Authorize Google Contacts Access"
   }
  ],
- "modified": "2019-06-15 02:13:40.534286",
+ "modified": "2019-06-15 13:06:27.401740",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Google Contacts",

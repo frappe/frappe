@@ -50,7 +50,7 @@ class GoogleContacts(Document):
 		return r.get("access_token")
 
 @frappe.whitelist()
-def authenticate_access(g_contact):
+def authorize_access(g_contact):
 	"""
 		If no Authorization code get it from Google and then request for Refresh Token.
 		Google Contact Name is set to flags to set_value after Authorization Code is obtained.
@@ -100,7 +100,7 @@ def google_callback(client_id=None, redirect_uri=None, code=None):
 		frappe.db.set_value("Google Contacts", google_contact, "authorization_code", code)
 		frappe.db.commit()
 
-		authenticate_access(google_contact)
+		authorize_access(google_contact)
 
 @frappe.whitelist()
 def sync(g_contact=None):
