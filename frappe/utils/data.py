@@ -182,6 +182,9 @@ def get_first_day(dt, d_years=0, d_months=0):
 
 	return datetime.date(year, month + 1, 1)
 
+def get_first_day_of_week(dt):
+	return dt - datetime.timedelta(days=dt.weekday())
+
 def get_last_day(dt):
 	"""
 	 Returns last day of the month using:

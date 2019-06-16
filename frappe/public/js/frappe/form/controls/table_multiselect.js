@@ -12,6 +12,12 @@ frappe.ui.form.ControlTableMultiSelect = frappe.ui.form.ControlLink.extend({
 		// used as an internal model to store values
 		this.rows = [];
 
+		this.$input_area.on('click', (e) => {
+			if (e.target === this.$input_area.get(0)) {
+				this.$input.focus();
+			}
+		});
+
 		this.$input_area.on('click', '.btn-remove', (e) => {
 			const $target = $(e.currentTarget);
 			const $value = $target.closest('.tb-selected-value');
