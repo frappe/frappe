@@ -116,44 +116,6 @@ class TestUser(unittest.TestCase):
 
 		self.assertTrue("System Manager" in [d.role for d in me.get("roles")])
 
-	# def test_user_limit_for_site(self):
-	# 	update_limits({'users': get_total_users()})
-
-	# 	# reload site config
-	# 	from frappe import _dict
-	# 	frappe.local.conf = _dict(frappe.get_site_config())
-
-	# 	# Create a new user
-	# 	user = frappe.new_doc('User')
-	# 	user.email = 'test_max_users@example.com'
-	# 	user.first_name = 'Test_max_user'
-
-	# 	self.assertRaises(MaxUsersReachedError, user.add_roles, 'System Manager')
-
-	# 	if frappe.db.exists('User', 'test_max_users@example.com'):
-	# 		delete_contact('test_max_users@example.com')
-	# 		frappe.delete_doc('User', 'test_max_users@example.com')
-
-	# 	# Clear the user limit
-	# 	clear_limit('users')
-
-	# def test_user_limit_for_site_with_simultaneous_sessions(self):
-	# 	clear_limit('users')
-
-	# 	# make sure this user counts
-	# 	user = frappe.get_doc('User', 'test@example.com')
-	# 	user.add_roles('Website Manager')
-	# 	user.save()
-
-	# 	update_limits({'users': get_total_users()})
-
-	# 	user.simultaneous_sessions = user.simultaneous_sessions + 1
-
-	# 	self.assertRaises(MaxUsersReachedError, user.save)
-
-		# Clear the user limit
-		clear_limit('users')
-
 	# def test_deny_multiple_sessions(self):
 	#	from frappe.installer import update_site_config
 	# 	clear_limit('users')
