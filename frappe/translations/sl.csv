@@ -65,6 +65,7 @@ apps/frappe/frappe/templates/includes/contact.js,"You seem to have written your 
 DocType: Website Settings,Website Settings,Nastavitve spletnega mesta
 apps/frappe/frappe/config/core.py,Background Email Queue,Ozadje e-pošte za e-pošto
 apps/frappe/frappe/utils/data.py,{0} and {1},{0} in {1}
+apps/frappe/frappe/email/smtp.py,Please setup default Email Account from Setup &gt; Email &gt; Email Account,Nastavite privzeti e-poštni račun v meniju Nastavitve&gt; E-pošta&gt; E-poštni račun
 apps/frappe/frappe/public/js/frappe/views/kanban/kanban_view.js,There was an error saving filters,Pri shranjevanju filtrov je prišlo do napake
 apps/frappe/frappe/public/js/frappe/ui/messages.js,Enter your password,Vnesite svoje geslo
 apps/frappe/frappe/core/doctype/file/file.py,Cannot delete Home and Attachments folders,Mapah domače in priloge ni mogoče izbrisati
@@ -161,7 +162,6 @@ DocType: Energy Point Rule,Energy Point Rule,Pravilo energetske točke
 apps/frappe/frappe/integrations/doctype/social_login_key/social_login_key.py,Please enter Client ID before social login is enabled,"Vnesite ID stranke, preden je omogočena socialna prijava"
 DocType: Communication,Has  Attachment,Ima priponko
 DocType: User,Email Signature,Podpis za e-pošto
-apps/frappe/frappe/public/js/frappe/utils/pretty_date.js,&gt; {0} year(s) ago,&gt; {0} let nazaj
 ,Addresses And Contacts,Naslovi in stiki
 apps/frappe/frappe/public/js/frappe/views/kanban/kanban_view.js,This Kanban Board will be private,Ta Kanban odbor bo zaseben
 DocType: Data Migration Run,Current Mapping,Trenutna preslikava
@@ -320,6 +320,7 @@ apps/frappe/frappe/core/doctype/communication/communication.js,Mark as {0},Ozna�
 apps/frappe/frappe/public/js/frappe/chat.js,Discard,Zavrzi
 DocType: Website Settings,Select an image of approx width 150px with a transparent background for best results.,Za boljše rezultate izberite sliko približno širine 150 px s prozornim ozadjem.
 apps/frappe/frappe/core/doctype/error_snapshot/error_snapshot_list.js,Relapsed,Ponovno
+apps/frappe/frappe/public/js/frappe/form/controls/multiselect_list.js,{0} values selected,Izbranih je bilo {0} vrednosti
 DocType: Blog Post,Email Sent,Email poslan
 DocType: Communication,Read by Recipient On,Branje s prejemnikom je vklopljeno
 DocType: User,Allow user to login only after this hour (0-24),"Dovoli uporabniku, da se prijavi šele po tej uri (0-24)"
@@ -398,7 +399,6 @@ apps/frappe/frappe/contacts/report/addresses_and_contacts/addresses_and_contacts
 DocType: Email Account,ProTip: Add <code>Reference: {{ reference_doctype }} {{ reference_name }}</code> to send document reference,ProTip: Dodaj <code>Reference: {{ reference_doctype }} {{ reference_name }}</code> za pošiljanje sklica dokumenta
 DocType: LDAP Settings,LDAP First Name Field,Polje z imenom LDAP
 apps/frappe/frappe/email/doctype/email_account/email_account_list.js,Default Sending and Inbox,Privzeto pošiljanje in Prejeto
-apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Setup &gt; Customize Form,Nastavitev&gt; Prilagodi obrazec
 apps/frappe/frappe/core/doctype/data_export/exporter.py,"For updating, you can update only selective columns.",Za posodabljanje lahko posodobite le izbirne stolpce.
 apps/frappe/frappe/core/doctype/doctype/doctype.py,Default for 'Check' type of field must be either '0' or '1',Privzeto za polje »Preveri« mora biti »0« ali »1«
 apps/frappe/frappe/public/js/frappe/form/templates/set_sharing.html,Share this document with,Delite ta dokument z
@@ -448,6 +448,7 @@ DocType: Print Settings,Fonts,Pisave
 DocType: Notification,Channel,Kanal
 DocType: Communication,Opened,Odprto
 DocType: Workflow Transition,Conditions,Pogoji
+apps/frappe/frappe/config/website.py,A user who posts blogs.,"Uporabnik, ki objavlja spletne dnevnike."
 apps/frappe/frappe/www/login.html,Don't have an account? Sign up,Nimate računa? Prijavite se
 apps/frappe/frappe/utils/file_manager.py,Added {0},Dodano {0}
 DocType: Newsletter,Create and Send Newsletters,Ustvarite in pošljite glasila
@@ -580,7 +581,6 @@ apps/frappe/frappe/public/js/frappe/list/list_sidebar.html,Configure Charts,Konf
 apps/frappe/frappe/utils/data.py,Operator must be one of {0},Operater mora biti eden od {0}
 apps/frappe/frappe/core/doctype/doctype/doctype.py,If Owner,Če je lastnik
 DocType: Data Migration Run,Trigger Name,Trigger Name
-apps/frappe/frappe/config/website.py,Write titles and introductions to your blog.,V svoj spletni dnevnik napišite naslove in predstavitve.
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js,Remove Field,Odstrani polje
 apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,Collapse All,Strniti vse
 apps/frappe/frappe/website/doctype/website_theme/website_theme.js,Background Color,Barva ozadja
@@ -630,6 +630,8 @@ DocType: Dashboard Chart,Bar,Bar
 DocType: SMS Settings,Enter url parameter for message,Vnesite parameter URL za sporočilo
 apps/frappe/frappe/public/js/frappe/form/print.js,New Custom Print Format,Nova oblika po meri za tiskanje
 apps/frappe/frappe/desk/form/save.py,{0} {1} already exists,{0} {1} že obstaja
+DocType: Workflow Document State,Is Optional State,Je neobvezna država
+apps/frappe/frappe/public/js/frappe/ui/toolbar/search.js,<p>No results found for '</p>,<p> Ni rezultatov za » </p>
 DocType: Address,Purchase User,Nakup uporabnika
 DocType: Data Migration Run,Insert,Vstavi
 DocType: Web Form,Route to Success Link,Pot do povezave do uspeha
@@ -651,6 +653,7 @@ apps/frappe/frappe/public/js/frappe/form/templates/print_layout.html,Settings...
 apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py,Number of DB backups cannot be less than 1,Število varnostnih kopij DB ne sme biti manjše od 1
 DocType: Workflow State,ban-circle,ban-krog
 DocType: Data Export,Excel,Excel
+DocType: Web Page,"Header, Breadcrumbs and Meta Tags","Header, Breadcrumbs in Meta Tags"
 apps/frappe/frappe/public/js/frappe/request.js,Support Email Address Not Specified,E-poštni naslov za podporo ni določen
 DocType: Comment,Published,Objavljeno
 DocType: Website Slideshow,"Note: For best results,  images must be of the same size and width must be greater than height.",Opomba: Za najboljše rezultate morajo biti slike iste velikosti in širine večje od višine.
@@ -1092,6 +1095,7 @@ DocType: User,Last Active,Zadnja aktivna
 apps/frappe/frappe/twofactor.py,Verification code has been sent to your registered email address.,Potrditvena koda je bila poslana na vaš registrirani e-poštni naslov.
 DocType: OAuth Client,Grant Type,Vrsta odobritve
 apps/frappe/frappe/core/doctype/file/file.py,Same file has already been attached to the record,Ista datoteka je že bila priložena zapisu
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Setup &gt; User Permissions,Nastavitve&gt; Uporabniška dovoljenja
 DocType: Assignment Rule,"Simple Python Expression, Example: status == 'Open' and type == 'Bug'","Enostaven izraz Python, Primer: status == &#39;Odpri&#39; in vnesite == &#39;Bug&#39;"
 apps/frappe/frappe/templates/includes/integrations/stripe_checkout.js,Processing...,Obravnavati...
 apps/frappe/frappe/public/js/frappe/views/reports/report_view.js,Report:,Poročilo:
@@ -1139,7 +1143,6 @@ apps/frappe/frappe/public/js/frappe/form/link_selector.js,No Results,Ni rezultat
 apps/frappe/frappe/core/doctype/user_permission/user_permission_list.js,{0} records deleted,{0} zapisov je izbrisanih
 apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py,Something went wrong while generating dropbox access token. Please check error log for more details.,Pri ustvarjanju žetona za dostop do predala je prišlo do napake. Za več podrobnosti preverite dnevnik napak.
 apps/frappe/frappe/public/js/frappe/ui/filters/filter.js,Descendants Of,Potomci Of
-apps/frappe/frappe/contacts/doctype/address/address.py,No default Address Template found. Please create a new one from Setup &gt; Printing and Branding &gt; Address Template.,Ni najdene privzete predloge naslova. Ustvarite novo v meniju Nastavitev&gt; Tiskanje in označevanje&gt; Predloga naslova.
 apps/frappe/frappe/public/js/frappe/form/layout.js,Hide details,Skrij podrobnosti
 apps/frappe/frappe/website/doctype/website_theme/website_theme.js,Font Styles,Slogi pisave
 apps/frappe/frappe/limits.py,Your subscription will expire on {0}.,Vaša naročnina bo potekla {0}.
@@ -1228,6 +1231,7 @@ apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js,Sa
 DocType: OAuth Client,OAuth Client,Odjemalec OAuth
 DocType: System Settings,Disable Standard Email Footer,Onemogoči standardno e-poštno nogo
 apps/frappe/frappe/www/printview.py,Print Format {0} is disabled,Print Format {0} je onemogočen
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Setup &gt; User,Nastavitev&gt; Uporabnik
 apps/frappe/frappe/desk/page/backups/backups.py,Queued for backup. You will receive an email with the download link,V čakalni vrsti za varnostno kopijo. Prejeli boste e-poštno sporočilo s povezavo za prenos
 apps/frappe/frappe/www/third_party_apps.html,Third Party Apps,Aplikacije tretjih oseb
 DocType: Country,Geo,Geo
@@ -1345,7 +1349,6 @@ apps/frappe/frappe/templates/pages/integrations/stripe_checkout.html,Your paymen
 apps/frappe/frappe/public/js/frappe/views/file/file_view.js,Import Zip,Uvozno kodo
 DocType: Contact,Gender,Spol
 DocType: Workflow State,thumbs-down,palce dol
-DocType: Web Page,SEO,SEO
 apps/frappe/frappe/utils/background_jobs.py,Queue should be one of {0},Čakalna vrsta mora biti ena od {0}
 apps/frappe/frappe/email/doctype/notification/notification.py,Cannot set Notification on Document Type {0},Obvestila o vrsti dokumenta {0} ni mogoče nastaviti
 apps/frappe/frappe/core/doctype/user/user.py,Adding System Manager to this User as there must be atleast one System Manager,"Dodajanje upravitelja sistema temu uporabniku, saj mora biti vsaj en sistemski upravitelj"
@@ -1461,6 +1464,7 @@ apps/frappe/frappe/public/js/frappe/ui/filters/filter.js,Not Equals,Ne enako
 apps/frappe/frappe/public/js/frappe/model/model.js,Document Status,Stanje dokumenta
 DocType: Note,Seen By Table,Glej tabelo
 apps/frappe/frappe/core/page/usage_info/usage_info.js,{0} available out of {1},{0} je na voljo iz {1}
+apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,"For comparison, use &gt;5, &lt;10 or =324. For ranges, use 5:10 (for values between 5 &amp; 10).","Za primerjavo uporabite&gt; 5, &lt;10 ali = 324. Za območja uporabite 5:10 (za vrednosti med 5 in 10)."
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js,Select Document Type or Role to start.,Izberite Vrsta dokumenta ali Vloga za začetek.
 DocType: S3 Backup Settings,us-west-2,us-west-2
 DocType: DocType,Is Single,Je enkraten
@@ -1561,6 +1565,7 @@ DocType: DocField,Display,Zaslon
 apps/frappe/frappe/core/doctype/communication/communication.js,Reply All,Odgovori vsem
 DocType: Calendar View,Subject Field,Področje predmeta
 apps/frappe/frappe/core/doctype/system_settings/system_settings.py,Session Expiry must be in format {0},Potek seje mora biti v formatu {0}
+apps/frappe/frappe/model/workflow.py,Applying: {0},Uporaba: {0}
 DocType: Workflow State,zoom-in,približaj
 apps/frappe/frappe/printing/doctype/print_settings/print_settings.py,Failed to connect to server,Povezava s strežnikom ni uspela
 apps/frappe/frappe/public/js/frappe/form/controls/date.js,Date {0} must be in format: {1},Datum {0} mora biti v obliki: {1}
@@ -1594,7 +1599,6 @@ DocType: GSuite Settings,GSuite Settings,Nastavitve za GSuite
 DocType: Integration Request,Remote,Oddaljeno
 DocType: File,Thumbnail URL,URL sličice
 apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,Download Report,Prenesi poročilo
-apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Setup &gt; User,Nastavitev&gt; Uporabnik
 apps/frappe/frappe/modules/utils.py,Customizations for <b>{0}</b> exported to:<br>{1},"Prilagoditve za <b>{0},</b> izvožene v: <br> {1}"
 DocType: GCalendar Account,Calendar Name,Ime koledarja
 apps/frappe/frappe/templates/emails/new_user.html,Your login id is,Vaš ID za prijavo je
@@ -1644,6 +1648,7 @@ apps/frappe/frappe/custom/doctype/custom_script/custom_script.js,Go to {0},Pojdi
 apps/frappe/frappe/core/doctype/doctype/doctype.py,Image field must be a valid fieldname,Polje Slika mora biti veljavno ime polja
 apps/frappe/frappe/www/third_party_apps.py,You need to be logged in to access this page,Za dostop do te strani morate biti prijavljeni
 DocType: Assignment Rule,Example: {{ subject }},Primer: {{subject}}
+apps/frappe/frappe/core/doctype/doctype/doctype.py,Fieldname {0} is restricted,Ime polja {0} je omejeno
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.py,You cannot unset 'Read Only' for field {0},Ne morete izključiti možnosti »Samo za branje« za polje {0}
 DocType: Social Login Key,Enable Social Login,Omogoči prijavo v družbo
 DocType: Workflow,Rules defining transition of state in the workflow.,"Pravila, ki določajo prehod stanja v delovnem procesu."
@@ -1706,6 +1711,7 @@ DocType: System Settings,Choose authentication method to be used by all users,"I
 DocType: Error Snapshot,Parent Error Snapshot,Posnetek starševskih napak
 DocType: GCalendar Account,GCalendar Account,Račun GCalendar
 DocType: Language,Language Name,Ime jezika
+DocType: Workflow Document State,Workflow Action is not created for optional states,Ukrep delovnega toka ni ustvarjen za izbirna stanja
 DocType: Customize Form,Customize Form,Prilagodi obrazec
 DocType: DocType,Image Field,Polje slike
 apps/frappe/frappe/public/js/frappe/form/link_selector.js,Added {0} ({1}),Dodano {0} ({1})
@@ -1764,7 +1770,6 @@ apps/frappe/frappe/data_migration/doctype/data_migration_run/data_migration_run.
 apps/frappe/frappe/core/doctype/doctype/doctype.py,Not in Developer Mode! Set in site_config.json or make 'Custom' DocType.,Ni v načinu za razvijalce! Nastavite ga v site_config.json ali pa naredite &#39;Custom&#39; DocType.
 apps/frappe/frappe/templates/emails/energy_points_summary.html,gained {0} points,pridobil {0} točk
 DocType: Web Form,Success Message,Sporočilo o uspehu
-apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,"For comparison, use &gt;5, &lt;10 or =324. For ranges, use 5:10 (for values between 5 &amp; 10).","Za primerjavo uporabite&gt; 5, &lt;10 ali = 324. Za območja uporabite 5:10 (za vrednosti med 5 in 10)."
 DocType: Blog Post,"Description for listing page, in plain text, only a couple of lines. (max 140 characters)","Opis strani za vnos v navadnem besedilu, le nekaj vrstic. (največ 140 znakov)"
 apps/frappe/frappe/core/report/permitted_documents_for_user/permitted_documents_for_user.js,Show Permissions,Prikaži dovoljenja
 DocType: DocType,Restrict To Domain,Omeji na domeno
@@ -1877,7 +1882,6 @@ apps/frappe/frappe/public/js/frappe/views/communication.js,Enter Email Recipient
 DocType: User,Interest,Zanimanje
 DocType: Bulk Update,Limit,Omejitev
 DocType: Print Settings,Print taxes with zero amount,Natisnite davke z ničelno vrednostjo
-apps/frappe/frappe/email/smtp.py,Email Account not setup. Please create a new Email Account from Setup &gt; Email &gt; Email Account,E-poštni račun ni nastavljen. Ustvarite nov e-poštni račun iz možnosti Nastavitve&gt; E-pošta&gt; E-poštni račun
 DocType: Workflow State,Book,Knjiga
 DocType: S3 Backup Settings,Access Key ID,Dostop do ID ključa
 DocType: Chat Message,URLs,URL-ji
@@ -1901,6 +1905,7 @@ DocType: Chat Message,Type,Vrsta
 apps/frappe/frappe/model/delete_doc.py,{0} {1}: Submitted Record cannot be deleted.,{0} {1}: Predloženega zapisa ni mogoče izbrisati.
 DocType: GSuite Settings,refresh_token,refresh_token
 DocType: Custom DocPerm,Amend,Spremeni se
+apps/frappe/frappe/contacts/doctype/address/address.py,No default Address Template found. Please create a new one from Setup &gt; Printing and Branding &gt; Address Template.,Ni najdene privzete predloge naslova. Ustvarite novo v meniju Nastavitev&gt; Tiskanje in označevanje&gt; Predloga naslova.
 DocType: Custom DocPerm,Export,Izvoz
 DocType: Web Form Field,Show in filter,Prikaži v filtru
 apps/frappe/frappe/templates/emails/recurring_document_failed.html,It is necessary to take this action today itself for the above mentioned recurring,Danes je treba to dejanje sprejeti že za zgoraj omenjene ponavljajoče se ukrepe
@@ -2166,7 +2171,6 @@ apps/frappe/frappe/core/doctype/deleted_document/deleted_document.py,Cancelled D
 DocType: Desktop Icon,Desktop Icon,Ikona namizja
 apps/frappe/frappe/public/js/frappe/form/footer/timeline.js,cancelled this document,ta dokument je bil preklican
 apps/frappe/frappe/public/js/frappe/form/multi_select_dialog.js,Date Range,Časovno obdobje
-apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Setup &gt; User Permissions,Nastavitve&gt; Uporabniška dovoljenja
 apps/frappe/frappe/public/js/frappe/utils/energy_point_utils.js,{0} appreciated {1},{0} je cenjeno {1}
 apps/frappe/frappe/core/doctype/version/version_view.html,Values Changed,Spremenjene vrednosti
 apps/frappe/frappe/email/doctype/notification/notification.py,Error in Notification,Napaka v obvestilu
@@ -2281,6 +2285,7 @@ DocType: Workflow State,plane,ravnino
 apps/frappe/frappe/utils/nestedset.py,Nested set error. Please contact the Administrator.,Ugnezdena nastavljena napaka. Obrnite se na skrbnika.
 apps/frappe/frappe/core/doctype/prepared_report/prepared_report.js,Show Report,Pokaži poročilo
 DocType: Auto Repeat,Auto Repeat Schedule,Samodejno ponavljanje urnika
+apps/frappe/frappe/social/doctype/energy_point_log/energy_point_log_list.js,View Ref,Pogled Ref
 DocType: Address,Office,Urad
 DocType: LDAP Settings,StartTLS,StartTLS
 apps/frappe/frappe/public/js/frappe/utils/pretty_date.js,{0} days ago,{0} dni nazaj
@@ -2500,6 +2505,7 @@ DocType: Custom DocPerm,Role and Level,Vloga in raven
 apps/frappe/frappe/config/website.py,Content web page.,Spletna stran z vsebino.
 DocType: Auto Repeat,Recipients,Prejemniki
 DocType: Data Migration Run,Data Migration Run,Zaženi selitev podatkov
+apps/frappe/frappe/email/smtp.py,Email Account not setup. Please create a new Email Account from Setup &gt; Email &gt; Email Account,E-poštni račun ni nastavljen. Ustvarite nov e-poštni račun iz možnosti Nastavitve&gt; E-pošta&gt; E-poštni račun
 apps/frappe/frappe/desk/doctype/auto_repeat/auto_repeat.py,New {0}: #{1},Novo {0}: # {1}
 apps/frappe/frappe/utils/file_manager.py,Removed {0},Odstranjeno {0}
 apps/frappe/frappe/public/js/frappe/views/interaction.js,The attachments could not be correctly linked to the new document,Priloge niso bile pravilno povezane z novim dokumentom
@@ -2536,7 +2542,6 @@ DocType: Data Migration Mapping,Data Migration Mapping,Preslikava preseljevanja 
 DocType: Data Import,Partially Successful,Delno uspešno
 DocType: Communication,Error,Napaka
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.py,Fieldtype cannot be changed from {0} to {1} in row {2},Tipa polja ni mogoče spremeniti iz {0} v {1} v vrstici {2}
-apps/frappe/frappe/public/js/frappe/form/print.js,"Error connecting to QZ Tray Application...<br><br> You need to have QZ Tray application installed and running, to use the Raw Print feature.<br><br><a href=""https://qz.io/download/"" target=""_blank"">Click here to Download and install QZ Tray</a>.<br> <a href=""https://erpnext.com/docs/user/manual/en/setting-up/print/raw-printing"" target=""_blank"">Click here to learn more about Raw Printing</a>.","Napaka pri povezovanju s aplikacijo za pladenj QZ ... <br><br> Če želite uporabljati funkcijo Raw Print, morate namestiti in zagnati aplikacijo QZ Tray. <br><br> <a href=""https://qz.io/download/"" target=""_blank"">Kliknite tukaj za prenos in namestitev QZ pladnja</a> . <br> <a href=""https://erpnext.com/docs/user/manual/en/setting-up/print/raw-printing"" target=""_blank"">Kliknite tukaj, če želite izvedeti več o Raw Printing</a> ."
 apps/frappe/frappe/public/js/frappe/ui/capture.js,Take Photo,Vzemite fotografijo
 apps/frappe/frappe/utils/password_strength.py,Avoid years that are associated with you.,"Izogibajte se let, ki so povezane z vami."
 DocType: Web Form,Allow Incomplete Forms,Dovoli nedokončane obrazce
@@ -2763,6 +2768,7 @@ apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js,Will be your login ID,
 apps/frappe/frappe/desk/doctype/auto_repeat/auto_repeat.py,Recurring Documents Failed,Ponavljajoči se dokumenti niso uspeli
 apps/frappe/frappe/config/settings.py,List of backups available for download,"Seznam varnostnih kopij, ki so na voljo za prenos"
 DocType: DocType,Hide Sidebar and Menu,Skrij stransko vrstico in meni
+apps/frappe/frappe/public/js/frappe/utils/pretty_date.js,&gt; {0} year(s) ago,&gt; {0} let nazaj
 DocType: View Log,Reference Name,Referenčno ime
 apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,Create Chart,Ustvari grafikon
 DocType: Auto Repeat,Desk,Pisalna miza
@@ -2830,6 +2836,7 @@ apps/frappe/frappe/public/js/frappe/views/inbox/inbox_view.js,No Emails,Ni e-po�
 apps/frappe/frappe/website/doctype/web_form/web_form.py,Following fields are missing:,Manjkajo naslednja polja:
 DocType: Workflow State,resize-full,spreminjanje velikosti
 apps/frappe/frappe/utils/response.py,You don't have permission to access this file,Nimate dovoljenja za dostop do te datoteke
+apps/frappe/frappe/public/js/frappe/form/print.js,"Error connecting to QZ Tray Application...<br><br> You need to have QZ Tray application installed and running, to use the Raw Print feature.<br><br><a href=""https://qz.io/download/"" target=""_blank"">Click here to Download and install QZ Tray</a>.<br> <a href=""https://erpnext.com/docs/user/manual/en/setting-up/print/raw-printing"" target=""_blank"">Click here to learn more about Raw Printing</a>.","Napaka pri povezovanju s aplikacijo za pladenj QZ ... <br><br> Če želite uporabljati funkcijo Raw Print, morate namestiti in zagnati aplikacijo QZ Tray. <br><br> <a href=""https://qz.io/download/"" target=""_blank"">Kliknite tukaj za prenos in namestitev QZ pladnja</a> . <br> <a href=""https://erpnext.com/docs/user/manual/en/setting-up/print/raw-printing"" target=""_blank"">Kliknite tukaj, če želite izvedeti več o Raw Printing</a> ."
 apps/frappe/frappe/public/js/frappe/form/footer/timeline.js,changed values for {0},spremenjene vrednosti za {0}
 apps/frappe/frappe/public/js/frappe/views/kanban/kanban_view.js,Project,Projekt
 apps/frappe/frappe/desk/form/assign_to.py,Shared with user {0} with read access,V skupni rabi z uporabnikom {0} z dostopom za branje
@@ -2845,6 +2852,7 @@ apps/frappe/frappe/utils/password_strength.py,This is a very common password.,To
 DocType: Personal Data Deletion Request,Pending Approval,Čaka na odobritev
 apps/frappe/frappe/public/js/frappe/views/interaction.js,The document could not be correctly assigned,Dokumenta ni bilo mogoče pravilno dodeliti
 apps/frappe/frappe/permissions.py,Not allowed for {0}: {1},Ni dovoljeno za {0}: {1}
+apps/frappe/frappe/public/js/frappe/form/controls/multiselect_list.js,No values to show,Ni vrednosti za prikaz
 DocType: Personal Data Download Request,Personal Data Download Request,Zahteva za prenos osebnih podatkov
 apps/frappe/frappe/core/doctype/docshare/docshare.py,{0} shared this document with {1},{0} je dal ta dokument v skupno rabo z {1}
 apps/frappe/frappe/public/js/frappe/form/link_selector.js,Select {0},Izberite {0}
@@ -2860,7 +2868,6 @@ apps/frappe/frappe/public/js/frappe/utils/energy_point_utils.js,{0} criticized o
 apps/frappe/frappe/email/queue.py,This email was sent to {0} and copied to {1},To e-poštno sporočilo je bilo poslano na {0} in kopirano v {1}
 apps/frappe/frappe/email/smtp.py,Invalid login or password,Neveljavna prijava ali geslo
 DocType: Social Login Key,Social Login Key,Socialni ključ za prijavo
-apps/frappe/frappe/email/smtp.py,Please setup default Email Account from Setup &gt; Email &gt; Email Account,Nastavite privzeti e-poštni račun iz možnosti Nastavitve&gt; E-pošta&gt; E-poštni račun
 apps/frappe/frappe/public/js/frappe/views/kanban/kanban_view.js,Filters saved,Filtri so shranjeni
 DocType: Currency,"How should this currency be formatted? If not set, will use system defaults","Kako bi bilo treba oblikovati to valuto? Če ni nastavljen, bo uporabil sistemske privzete vrednosti"
 apps/frappe/frappe/workflow/doctype/workflow_action/workflow_action.py,{0}: {1} is set to state {2},{0}: {1} je nastavljeno na stanje {2}
@@ -3272,6 +3279,7 @@ DocType: System Settings,Your organization name and address for the email footer
 apps/frappe/frappe/templates/includes/contact.js,"Please enter both your email and message so that we \
 				can get back to you. Thanks!","Vnesite e-pošto in sporočilo, da vam bomo lahko odgovorili. Hvala!"
 apps/frappe/frappe/public/js/frappe/form/print.js,Attempting to launch QZ Tray...,Poskus zagona QZ pladnja ...
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Setup &gt; Customize Form,Nastavitev&gt; Prilagodi obrazec
 apps/frappe/frappe/model/rename_doc.py,"Another {0} with name {1} exists, select another name","Obstaja drugo {0} z imenom {1}, izberite drugo ime"
 DocType: Chat Profile,Offline,Brez povezave
 DocType: User,Security Settings,Varnostne nastavitve
@@ -3299,7 +3307,6 @@ apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,"If
 DocType: Workflow State,folder-close,folder-close
 DocType: Data Migration Run,Pull Update,Povlecite posodobitev
 apps/frappe/frappe/model/rename_doc.py,merged {0} into {1},združenih {0} v {1}
-apps/frappe/frappe/public/js/frappe/ui/toolbar/search.js,<p>No results found for '</p>,<p> Ni rezultatov za » </p>
 DocType: SMS Settings,Enter url parameter for receiver nos,Vnesite parameter URL za sprejemnike št
 apps/frappe/frappe/utils/jinja.py,Syntax error in template,Napaka v sintaksi v predlogi
 apps/frappe/frappe/email/doctype/auto_email_report/auto_email_report.py,Please set filters value in Report Filter table.,V tabeli filtrov poročil nastavite vrednost filtrov.
@@ -3326,7 +3333,6 @@ DocType: Help Article,Intermediate,Vmesni
 DocType: Module Def,Module Name,Ime modula
 DocType: OAuth Authorization Code,Expiration time,Čas trajanja
 apps/frappe/frappe/config/settings.py,"Set default format, page size, print style etc.","Nastavite privzeto obliko, velikost strani, slog tiskanja itd."
-apps/frappe/frappe/desk/like.py,You cannot like something that you created,"Ne moreš biti všeč nekaj, kar si ustvaril"
 DocType: System Settings,Session Expiry,Prenehanje seje
 DocType: DocType,Auto Name,Samodejno ime
 apps/frappe/frappe/public/js/frappe/views/interaction.js,Select Attachments,Izberite Priloge

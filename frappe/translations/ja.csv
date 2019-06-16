@@ -65,6 +65,7 @@ apps/frappe/frappe/templates/includes/contact.js,"You seem to have written your 
 DocType: Website Settings,Website Settings,ウェブサイト設定
 apps/frappe/frappe/config/core.py,Background Email Queue,バックグラウンド電子メールキュー
 apps/frappe/frappe/utils/data.py,{0} and {1},{0}と{1}
+apps/frappe/frappe/email/smtp.py,Please setup default Email Account from Setup &gt; Email &gt; Email Account,[設定]&gt; [メール]&gt; [メールアカウント]からデフォルトのメールアカウントを設定してください。
 apps/frappe/frappe/public/js/frappe/views/kanban/kanban_view.js,There was an error saving filters,フィルタの保存中にエラーが発生しました
 apps/frappe/frappe/public/js/frappe/ui/messages.js,Enter your password,パスワードを入力してください
 apps/frappe/frappe/core/doctype/file/file.py,Cannot delete Home and Attachments folders,ホームフォルダと添付ファイルフォルダを削除できない
@@ -161,7 +162,6 @@ DocType: Energy Point Rule,Energy Point Rule,エネルギーポイントルー�
 apps/frappe/frappe/integrations/doctype/social_login_key/social_login_key.py,Please enter Client ID before social login is enabled,ソーシャルログインを有効にする前にクライアントIDを入力してください
 DocType: Communication,Has  Attachment,添付ファイルあり
 DocType: User,Email Signature,電子メールの署名
-apps/frappe/frappe/public/js/frappe/utils/pretty_date.js,&gt; {0} year(s) ago,&gt; {0}年前
 ,Addresses And Contacts,住所と連絡先
 apps/frappe/frappe/public/js/frappe/views/kanban/kanban_view.js,This Kanban Board will be private,このかんばん理事会は非公開になります
 DocType: Data Migration Run,Current Mapping,現在のマッピング
@@ -320,6 +320,7 @@ apps/frappe/frappe/core/doctype/communication/communication.js,Mark as {0},{0}�
 apps/frappe/frappe/public/js/frappe/chat.js,Discard,捨てる
 DocType: Website Settings,Select an image of approx width 150px with a transparent background for best results.,最良の結果を得るには、背景が透明な約幅150ピクセルの画像を選択してください。
 apps/frappe/frappe/core/doctype/error_snapshot/error_snapshot_list.js,Relapsed,再発
+apps/frappe/frappe/public/js/frappe/form/controls/multiselect_list.js,{0} values selected,{0}個の値が選択されました
 DocType: Blog Post,Email Sent,メール送信
 DocType: Communication,Read by Recipient On,受信者による読み取り
 DocType: User,Allow user to login only after this hour (0-24),この時間（0-24）以降にのみユーザーにログインを許可する
@@ -398,7 +399,6 @@ apps/frappe/frappe/contacts/report/addresses_and_contacts/addresses_and_contacts
 DocType: Email Account,ProTip: Add <code>Reference: {{ reference_doctype }} {{ reference_name }}</code> to send document reference,ヒント：ドキュメント参照を送信するための<code>Reference: {{ reference_doctype }} {{ reference_name }}</code>を追加します
 DocType: LDAP Settings,LDAP First Name Field,LDAP名フィールド
 apps/frappe/frappe/email/doctype/email_account/email_account_list.js,Default Sending and Inbox,デフォルトの送信と受信トレイ
-apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Setup &gt; Customize Form,設定&gt;フォームのカスタマイズ
 apps/frappe/frappe/core/doctype/data_export/exporter.py,"For updating, you can update only selective columns.",更新する場合は、選択列のみを更新できます。
 apps/frappe/frappe/core/doctype/doctype/doctype.py,Default for 'Check' type of field must be either '0' or '1',&#39;Check&#39;タイプのフィールドのデフォルトは &#39;0&#39;または &#39;1&#39;でなければなりません
 apps/frappe/frappe/public/js/frappe/form/templates/set_sharing.html,Share this document with,この文書を共有する
@@ -448,6 +448,7 @@ DocType: Print Settings,Fonts,フォント
 DocType: Notification,Channel,チャネル
 DocType: Communication,Opened,開いた
 DocType: Workflow Transition,Conditions,条件
+apps/frappe/frappe/config/website.py,A user who posts blogs.,ブログを投稿したユーザー。
 apps/frappe/frappe/www/login.html,Don't have an account? Sign up,アカウントを持っていませんか？サインアップ
 apps/frappe/frappe/utils/file_manager.py,Added {0},{0}を追加しました
 DocType: Newsletter,Create and Send Newsletters,ニュースレターを作成して送信する
@@ -581,7 +582,6 @@ apps/frappe/frappe/public/js/frappe/list/list_sidebar.html,Configure Charts,チ�
 apps/frappe/frappe/utils/data.py,Operator must be one of {0},演算子は{0}のいずれかでなければなりません
 apps/frappe/frappe/core/doctype/doctype/doctype.py,If Owner,オーナーの方
 DocType: Data Migration Run,Trigger Name,トリガー名
-apps/frappe/frappe/config/website.py,Write titles and introductions to your blog.,ブログにタイトルや紹介文を書いてください。
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js,Remove Field,フィールドを削除
 apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,Collapse All,すべて折りたたむ
 apps/frappe/frappe/website/doctype/website_theme/website_theme.js,Background Color,背景色
@@ -631,6 +631,8 @@ DocType: Dashboard Chart,Bar,バー
 DocType: SMS Settings,Enter url parameter for message,メッセージのURLパラメータを入力してください
 apps/frappe/frappe/public/js/frappe/form/print.js,New Custom Print Format,新しいカスタム印刷フォーマット
 apps/frappe/frappe/desk/form/save.py,{0} {1} already exists,{0} {1}は既に存在します
+DocType: Workflow Document State,Is Optional State,オプションの状態です
+apps/frappe/frappe/public/js/frappe/ui/toolbar/search.js,<p>No results found for '</p>,<p> &#39;の検索結果はありません</p>
 DocType: Address,Purchase User,購入ユーザー
 DocType: Data Migration Run,Insert,インサート
 DocType: Web Form,Route to Success Link,成功リンクへの経路
@@ -652,6 +654,7 @@ apps/frappe/frappe/public/js/frappe/form/templates/print_layout.html,Settings...
 apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py,Number of DB backups cannot be less than 1,DBバックアップの数を1未満にすることはできません
 DocType: Workflow State,ban-circle,禁止輪
 DocType: Data Export,Excel,エクセル
+DocType: Web Page,"Header, Breadcrumbs and Meta Tags",ヘッダ、ブレッドクラム、メタタグ
 apps/frappe/frappe/public/js/frappe/request.js,Support Email Address Not Specified,指定されていないサポートEメールアドレス
 DocType: Comment,Published,公開済み
 DocType: Website Slideshow,"Note: For best results,  images must be of the same size and width must be greater than height.",注意：最良の結果を得るには、画像は同じサイズで、幅は高さよりも大きい必要があります。
@@ -1092,6 +1095,7 @@ DocType: User,Last Active,最後にログインした時
 apps/frappe/frappe/twofactor.py,Verification code has been sent to your registered email address.,確認コードがあなたの登録されたEメールアドレスに送られました。
 DocType: OAuth Client,Grant Type,交付金の種類
 apps/frappe/frappe/core/doctype/file/file.py,Same file has already been attached to the record,同じファイルがすでにレコードに添付されています
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Setup &gt; User Permissions,設定&gt;ユーザ権限
 DocType: Assignment Rule,"Simple Python Expression, Example: status == 'Open' and type == 'Bug'",単純なPython表現、例：status == &#39;Open&#39;、type == &#39;Bug&#39;
 apps/frappe/frappe/templates/includes/integrations/stripe_checkout.js,Processing...,処理...
 apps/frappe/frappe/public/js/frappe/views/reports/report_view.js,Report:,報告書：
@@ -1139,7 +1143,6 @@ apps/frappe/frappe/public/js/frappe/form/link_selector.js,No Results,結果が�
 apps/frappe/frappe/core/doctype/user_permission/user_permission_list.js,{0} records deleted,{0}レコードが削除されました
 apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py,Something went wrong while generating dropbox access token. Please check error log for more details.,dropboxアクセストークンを生成中に何か問題が発生しました。詳細についてはエラーログを確認してください。
 apps/frappe/frappe/public/js/frappe/ui/filters/filter.js,Descendants Of,の子孫
-apps/frappe/frappe/contacts/doctype/address/address.py,No default Address Template found. Please create a new one from Setup &gt; Printing and Branding &gt; Address Template.,デフォルトのアドレステンプレートが見つかりません。 [設定]&gt; [印刷とブランド]&gt; [住所テンプレート]から新しいものを作成してください。
 apps/frappe/frappe/public/js/frappe/form/layout.js,Hide details,詳細を隠す
 apps/frappe/frappe/website/doctype/website_theme/website_theme.js,Font Styles,フォントスタイル
 apps/frappe/frappe/limits.py,Your subscription will expire on {0}.,サブスクリプションは{0}に期限切れになります。
@@ -1228,6 +1231,7 @@ apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js,Sa
 DocType: OAuth Client,OAuth Client,OAuthクライアント
 DocType: System Settings,Disable Standard Email Footer,標準メールフッターを無効にする
 apps/frappe/frappe/www/printview.py,Print Format {0} is disabled,印刷フォーマット{0}は無効です
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Setup &gt; User,設定&gt;ユーザー
 apps/frappe/frappe/desk/page/backups/backups.py,Queued for backup. You will receive an email with the download link,バックアップ待ちダウンロードリンクを記載したEメールが届きます。
 apps/frappe/frappe/www/third_party_apps.html,Third Party Apps,サードパーティのアプリ
 DocType: Country,Geo,ジオ
@@ -1345,7 +1349,6 @@ apps/frappe/frappe/templates/pages/integrations/stripe_checkout.html,Your paymen
 apps/frappe/frappe/public/js/frappe/views/file/file_view.js,Import Zip,郵便番号をインポート
 DocType: Contact,Gender,性別
 DocType: Workflow State,thumbs-down,拒絶
-DocType: Web Page,SEO,SEO
 apps/frappe/frappe/utils/background_jobs.py,Queue should be one of {0},キューは{0}のいずれかでなければなりません
 apps/frappe/frappe/email/doctype/notification/notification.py,Cannot set Notification on Document Type {0},文書タイプ{0}に通知を設定できません
 apps/frappe/frappe/core/doctype/user/user.py,Adding System Manager to this User as there must be atleast one System Manager,少なくとも1つのシステムマネージャが必要であるため、このユーザにシステムマネージャを追加する
@@ -1463,6 +1466,7 @@ DocType: Note,Seen By Table,テーブルから見た
 apps/frappe/frappe/email/doctype/email_account/email_account.py,"Email ID must be unique, Email Account already exists \
 				for {0}",メールIDは一意である必要があります、メールアカウントは既に存在します\ for {0}
 apps/frappe/frappe/core/page/usage_info/usage_info.js,{0} available out of {1},{1}から{0}が利用可能です
+apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,"For comparison, use &gt;5, &lt;10 or =324. For ranges, use 5:10 (for values between 5 &amp; 10).",比較のために、&gt; 5、&lt;10、または= 324を使用してください。範囲には、5：10を使用します（5と10の間の値の場合）。
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js,Select Document Type or Role to start.,開始する文書タイプまたは役割を選択してください。
 DocType: S3 Backup Settings,us-west-2,私たち西2
 DocType: DocType,Is Single,独身だ
@@ -1563,6 +1567,7 @@ DocType: DocField,Display,表示
 apps/frappe/frappe/core/doctype/communication/communication.js,Reply All,全員に返信
 DocType: Calendar View,Subject Field,件名フィールド
 apps/frappe/frappe/core/doctype/system_settings/system_settings.py,Session Expiry must be in format {0},セッションの有効期限は{0}の形式でなければなりません
+apps/frappe/frappe/model/workflow.py,Applying: {0},適用：{0}
 DocType: Workflow State,zoom-in,ズームイン
 apps/frappe/frappe/printing/doctype/print_settings/print_settings.py,Failed to connect to server,サーバーへの接続に失敗しました
 apps/frappe/frappe/public/js/frappe/form/controls/date.js,Date {0} must be in format: {1},日付{0}は次の形式でなければなりません：{1}
@@ -1596,7 +1601,6 @@ DocType: GSuite Settings,GSuite Settings,GSuiteの設定
 DocType: Integration Request,Remote,リモート
 DocType: File,Thumbnail URL,サムネイルURL
 apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,Download Report,レポートをダウンロードする
-apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Setup &gt; User,設定&gt;ユーザー
 apps/frappe/frappe/modules/utils.py,Customizations for <b>{0}</b> exported to:<br>{1},<b>{0}の</b>カスタマイズ内容のエクスポート先： <br> {1}
 DocType: GCalendar Account,Calendar Name,カレンダー名
 apps/frappe/frappe/templates/emails/new_user.html,Your login id is,あなたのログインIDは
@@ -1646,6 +1650,7 @@ apps/frappe/frappe/custom/doctype/custom_script/custom_script.js,Go to {0},{0}�
 apps/frappe/frappe/core/doctype/doctype/doctype.py,Image field must be a valid fieldname,画像フィールドは有効なフィールド名である必要があります
 apps/frappe/frappe/www/third_party_apps.py,You need to be logged in to access this page,このページにアクセスするにはログインする必要があります
 DocType: Assignment Rule,Example: {{ subject }},例：{{subject}}
+apps/frappe/frappe/core/doctype/doctype/doctype.py,Fieldname {0} is restricted,フィールド名{0}は制限されています
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.py,You cannot unset 'Read Only' for field {0},フィールド{0}の「読み取り専用」の設定を解除することはできません
 DocType: Social Login Key,Enable Social Login,ソーシャルログインを有効にする
 DocType: Workflow,Rules defining transition of state in the workflow.,ワークフロー内の状態の遷移を定義する規則
@@ -1708,6 +1713,7 @@ DocType: System Settings,Choose authentication method to be used by all users,�
 DocType: Error Snapshot,Parent Error Snapshot,親エラースナップショット
 DocType: GCalendar Account,GCalendar Account,GCalendarアカウント
 DocType: Language,Language Name,言語名
+DocType: Workflow Document State,Workflow Action is not created for optional states,オプションの状態のワークフローアクションは作成されません
 DocType: Customize Form,Customize Form,フォームをカスタマイズ
 DocType: DocType,Image Field,画像フィールド
 apps/frappe/frappe/public/js/frappe/form/link_selector.js,Added {0} ({1}),{0}を追加しました（{1}）
@@ -1766,7 +1772,6 @@ apps/frappe/frappe/data_migration/doctype/data_migration_run/data_migration_run.
 apps/frappe/frappe/core/doctype/doctype/doctype.py,Not in Developer Mode! Set in site_config.json or make 'Custom' DocType.,開発者モードではありません。 site_config.jsonで設定するか、「カスタム」DocTypeを作成します。
 apps/frappe/frappe/templates/emails/energy_points_summary.html,gained {0} points,{0}ポイント獲得
 DocType: Web Form,Success Message,成功メッセージ
-apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,"For comparison, use &gt;5, &lt;10 or =324. For ranges, use 5:10 (for values between 5 &amp; 10).",比較のために、&gt; 5、&lt;10、または= 324を使用してください。範囲には、5：10を使用します（5と10の間の値の場合）。
 DocType: Blog Post,"Description for listing page, in plain text, only a couple of lines. (max 140 characters)",リストページの説明（プレーンテキスト）、数行のみ。 （最大140文字）
 apps/frappe/frappe/core/report/permitted_documents_for_user/permitted_documents_for_user.js,Show Permissions,権限を表示
 DocType: DocType,Restrict To Domain,ドメインに制限
@@ -1879,7 +1884,6 @@ apps/frappe/frappe/public/js/frappe/views/communication.js,Enter Email Recipient
 DocType: User,Interest,興味
 DocType: Bulk Update,Limit,限定
 DocType: Print Settings,Print taxes with zero amount,ゼロ金額で税金を印刷する
-apps/frappe/frappe/email/smtp.py,Email Account not setup. Please create a new Email Account from Setup &gt; Email &gt; Email Account,メールアカウントが設定されていません。 [設定]&gt; [メール]&gt; [メールアカウント]から新しいメールアカウントを作成してください。
 DocType: Workflow State,Book,本
 DocType: S3 Backup Settings,Access Key ID,アクセスキーID
 DocType: Chat Message,URLs,URL
@@ -1903,6 +1907,7 @@ DocType: Chat Message,Type,タイプ
 apps/frappe/frappe/model/delete_doc.py,{0} {1}: Submitted Record cannot be deleted.,{0} {1}：送信されたレコードは削除できません。
 DocType: GSuite Settings,refresh_token,refresh_token
 DocType: Custom DocPerm,Amend,修正する
+apps/frappe/frappe/contacts/doctype/address/address.py,No default Address Template found. Please create a new one from Setup &gt; Printing and Branding &gt; Address Template.,デフォルトのアドレステンプレートが見つかりません。 [設定]&gt; [印刷とブランド]&gt; [住所テンプレート]から新しいものを作成してください。
 DocType: Custom DocPerm,Export,輸出する
 DocType: Web Form Field,Show in filter,フィルタで表示
 apps/frappe/frappe/templates/emails/recurring_document_failed.html,It is necessary to take this action today itself for the above mentioned recurring,上記の繰り返しのために今日それ自身でこの行動をとる必要があります
@@ -2168,7 +2173,6 @@ apps/frappe/frappe/core/doctype/deleted_document/deleted_document.py,Cancelled D
 DocType: Desktop Icon,Desktop Icon,デスクトップアイコン
 apps/frappe/frappe/public/js/frappe/form/footer/timeline.js,cancelled this document,この文書をキャンセルしました
 apps/frappe/frappe/public/js/frappe/form/multi_select_dialog.js,Date Range,期間
-apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Setup &gt; User Permissions,設定&gt;ユーザ権限
 apps/frappe/frappe/public/js/frappe/utils/energy_point_utils.js,{0} appreciated {1},{0}感謝しています{1}
 apps/frappe/frappe/core/doctype/version/version_view.html,Values Changed,変更された値
 apps/frappe/frappe/email/doctype/notification/notification.py,Error in Notification,通知エラー
@@ -2283,6 +2287,7 @@ DocType: Workflow State,plane,飛行機
 apps/frappe/frappe/utils/nestedset.py,Nested set error. Please contact the Administrator.,入れ子集合エラー管理者に連絡してください。
 apps/frappe/frappe/core/doctype/prepared_report/prepared_report.js,Show Report,レポートを表示
 DocType: Auto Repeat,Auto Repeat Schedule,自動繰り返しスケジュール
+apps/frappe/frappe/social/doctype/energy_point_log/energy_point_log_list.js,View Ref,参照を見る
 DocType: Address,Office,事務所
 DocType: LDAP Settings,StartTLS,StartTLS
 apps/frappe/frappe/public/js/frappe/utils/pretty_date.js,{0} days ago,{0}日前
@@ -2500,6 +2505,7 @@ DocType: Custom DocPerm,Role and Level,役割とレベル
 apps/frappe/frappe/config/website.py,Content web page.,コンテンツWebページ
 DocType: Auto Repeat,Recipients,受信者
 DocType: Data Migration Run,Data Migration Run,データ移行実行
+apps/frappe/frappe/email/smtp.py,Email Account not setup. Please create a new Email Account from Setup &gt; Email &gt; Email Account,メールアカウントが設定されていません。 [設定]&gt; [メール]&gt; [メールアカウント]から新しいメールアカウントを作成してください。
 apps/frappe/frappe/desk/doctype/auto_repeat/auto_repeat.py,New {0}: #{1},新しい{0}：＃{1}
 apps/frappe/frappe/utils/file_manager.py,Removed {0},{0}を削除しました
 apps/frappe/frappe/public/js/frappe/views/interaction.js,The attachments could not be correctly linked to the new document,添付ファイルを新しい文書に正しくリンクできませんでした
@@ -2536,7 +2542,6 @@ DocType: Data Migration Mapping,Data Migration Mapping,データ移行マッピ�
 DocType: Data Import,Partially Successful,部分的に成功しました
 DocType: Communication,Error,エラー
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.py,Fieldtype cannot be changed from {0} to {1} in row {2},行{2}のフィールドタイプを{0}から{1}に変更することはできません
-apps/frappe/frappe/public/js/frappe/form/print.js,"Error connecting to QZ Tray Application...<br><br> You need to have QZ Tray application installed and running, to use the Raw Print feature.<br><br><a href=""https://qz.io/download/"" target=""_blank"">Click here to Download and install QZ Tray</a>.<br> <a href=""https://erpnext.com/docs/user/manual/en/setting-up/print/raw-printing"" target=""_blank"">Click here to learn more about Raw Printing</a>.","QZトレイアプリケーションへの接続中にエラーが発生しました... <br><br> Raw Print機能を使用するには、QZトレイアプリケーションをインストールして実行している必要があります。 <br><br> <a href=""https://qz.io/download/"" target=""_blank"">QZトレイをダウンロードしてインストールするには、ここをクリックしてください</a> 。 <br> <a href=""https://erpnext.com/docs/user/manual/en/setting-up/print/raw-printing"" target=""_blank"">Raw印刷の詳細については、ここをクリックしてください</a> 。"
 apps/frappe/frappe/public/js/frappe/ui/capture.js,Take Photo,写真を撮る
 apps/frappe/frappe/utils/password_strength.py,Avoid years that are associated with you.,あなたに関連付けられている年を避けます。
 DocType: Web Form,Allow Incomplete Forms,不完全なフォームを許可する
@@ -2763,6 +2768,7 @@ apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js,Will be your login ID,
 apps/frappe/frappe/desk/doctype/auto_repeat/auto_repeat.py,Recurring Documents Failed,定期的なドキュメントの失敗
 apps/frappe/frappe/config/settings.py,List of backups available for download,ダウンロード可能なバックアップのリスト
 DocType: DocType,Hide Sidebar and Menu,サイドバーとメニューを隠す
+apps/frappe/frappe/public/js/frappe/utils/pretty_date.js,&gt; {0} year(s) ago,&gt; {0}年前
 DocType: View Log,Reference Name,参照名
 apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,Create Chart,チャートを作成
 DocType: Auto Repeat,Desk,机
@@ -2830,6 +2836,7 @@ apps/frappe/frappe/public/js/frappe/views/inbox/inbox_view.js,No Emails,メー�
 apps/frappe/frappe/website/doctype/web_form/web_form.py,Following fields are missing:,以下のフィールドがありません。
 DocType: Workflow State,resize-full,リサイズフル
 apps/frappe/frappe/utils/response.py,You don't have permission to access this file,このファイルにアクセスする権限がありません
+apps/frappe/frappe/public/js/frappe/form/print.js,"Error connecting to QZ Tray Application...<br><br> You need to have QZ Tray application installed and running, to use the Raw Print feature.<br><br><a href=""https://qz.io/download/"" target=""_blank"">Click here to Download and install QZ Tray</a>.<br> <a href=""https://erpnext.com/docs/user/manual/en/setting-up/print/raw-printing"" target=""_blank"">Click here to learn more about Raw Printing</a>.","QZトレイアプリケーションへの接続中にエラーが発生しました... <br><br> Raw Print機能を使用するには、QZトレイアプリケーションをインストールして実行している必要があります。 <br><br> <a href=""https://qz.io/download/"" target=""_blank"">QZトレイをダウンロードしてインストールするには、ここをクリックしてください</a> 。 <br> <a href=""https://erpnext.com/docs/user/manual/en/setting-up/print/raw-printing"" target=""_blank"">Raw印刷の詳細については、ここをクリックしてください</a> 。"
 apps/frappe/frappe/public/js/frappe/form/footer/timeline.js,changed values for {0},{0}の値を変更しました
 apps/frappe/frappe/public/js/frappe/views/kanban/kanban_view.js,Project,プロジェクト
 apps/frappe/frappe/desk/form/assign_to.py,Shared with user {0} with read access,読み取りアクセス権を持つユーザー{0}と共有
@@ -2845,6 +2852,7 @@ apps/frappe/frappe/utils/password_strength.py,This is a very common password.,�
 DocType: Personal Data Deletion Request,Pending Approval,承認待ちの
 apps/frappe/frappe/public/js/frappe/views/interaction.js,The document could not be correctly assigned,文書を正しく割り当てることができませんでした
 apps/frappe/frappe/permissions.py,Not allowed for {0}: {1},{0}には使用できません：{1}
+apps/frappe/frappe/public/js/frappe/form/controls/multiselect_list.js,No values to show,表示する値がありません
 DocType: Personal Data Download Request,Personal Data Download Request,個人データダウンロード要求
 apps/frappe/frappe/core/doctype/docshare/docshare.py,{0} shared this document with {1},{0}がこの文書を{1}と共有しました
 apps/frappe/frappe/public/js/frappe/form/link_selector.js,Select {0},{0}を選択
@@ -2860,7 +2868,6 @@ apps/frappe/frappe/public/js/frappe/utils/energy_point_utils.js,{0} criticized o
 apps/frappe/frappe/email/queue.py,This email was sent to {0} and copied to {1},このメールは{0}に送信され、{1}にコピーされました
 apps/frappe/frappe/email/smtp.py,Invalid login or password,無効なログインまたはパスワード
 DocType: Social Login Key,Social Login Key,ソーシャルログインキー
-apps/frappe/frappe/email/smtp.py,Please setup default Email Account from Setup &gt; Email &gt; Email Account,[設定]&gt; [メール]&gt; [メールアカウント]からデフォルトのメールアカウントを設定してください。
 apps/frappe/frappe/public/js/frappe/views/kanban/kanban_view.js,Filters saved,保存したフィルタ
 DocType: Currency,"How should this currency be formatted? If not set, will use system defaults",この通貨はどのようにフォーマットされるべきですか？設定されていない場合、システムデフォルトを使用します
 apps/frappe/frappe/workflow/doctype/workflow_action/workflow_action.py,{0}: {1} is set to state {2},{0}：{1}は状態{2}に設定されています
@@ -3272,6 +3279,7 @@ DocType: System Settings,Your organization name and address for the email footer
 apps/frappe/frappe/templates/includes/contact.js,"Please enter both your email and message so that we \
 				can get back to you. Thanks!",私たちがあなたに戻ることができるようにあなたの電子メールとメッセージの両方を入力してください。ありがとうございます。
 apps/frappe/frappe/public/js/frappe/form/print.js,Attempting to launch QZ Tray...,QZトレイを起動しようとしています...
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Setup &gt; Customize Form,設定&gt;フォームのカスタマイズ
 apps/frappe/frappe/model/rename_doc.py,"Another {0} with name {1} exists, select another name",{1}という名前の別の{0}が存在します。別の名前を選択してください
 DocType: Chat Profile,Offline,オフライン
 DocType: User,Security Settings,セキュリティ設定
@@ -3299,7 +3307,6 @@ apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,"If
 DocType: Workflow State,folder-close,フォルダを閉じる
 DocType: Data Migration Run,Pull Update,プルアップデート
 apps/frappe/frappe/model/rename_doc.py,merged {0} into {1},{0}を{1}にマージしました
-apps/frappe/frappe/public/js/frappe/ui/toolbar/search.js,<p>No results found for '</p>,<p> &#39;の検索結果はありません</p>
 DocType: SMS Settings,Enter url parameter for receiver nos,受信機番号のURLパラメータを入力
 apps/frappe/frappe/utils/jinja.py,Syntax error in template,テンプレート内の構文エラー
 apps/frappe/frappe/email/doctype/auto_email_report/auto_email_report.py,Please set filters value in Report Filter table.,レポートフィルタテーブルにフィルタ値を設定してください。
@@ -3326,7 +3333,6 @@ DocType: Help Article,Intermediate,中級
 DocType: Module Def,Module Name,モジュール名
 DocType: OAuth Authorization Code,Expiration time,有効期限
 apps/frappe/frappe/config/settings.py,"Set default format, page size, print style etc.",デフォルトフォーマット、ページサイズ、印刷スタイルなどを設定します。
-apps/frappe/frappe/desk/like.py,You cannot like something that you created,あなたが作ったものは好きになれません
 DocType: System Settings,Session Expiry,セッション期限
 DocType: DocType,Auto Name,オートネーム
 apps/frappe/frappe/public/js/frappe/views/interaction.js,Select Attachments,添付ファイルを選択
