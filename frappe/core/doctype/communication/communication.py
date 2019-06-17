@@ -13,6 +13,7 @@ from frappe.utils.bot import BotReply
 from frappe.utils import parse_addr
 from frappe.core.doctype.comment.comment import update_comment_in_doc
 from email.utils import parseaddr
+from six.moves.urllib.parse import unquote
 from collections import Counter
 
 exclude_from_linked_with = True
@@ -60,6 +61,7 @@ class Communication(Document):
 		validate_email(self)
 
 		if self.communication_medium == "Email":
+			self.parse_email_for_timeline_links()
 			self.set_timeline_links()
 			self.deduplicate_timeline_links()
 
@@ -235,6 +237,9 @@ class Communication(Document):
 			if commit:
 				frappe.db.commit()
 
+	def parse_email_for_timeline_links(self):
+		parse_email(self, [self.recipients, self.cc, self.bcc])
+
 	# Timeline Links
 	def set_timeline_links(self):
 		contacts = get_contacts([self.sender, self.recipients, self.cc, self.bcc])
@@ -327,6 +332,7 @@ def get_contacts(email_strings):
 
 	contacts = []
 	for email in email_addrs:
+		email = get_email_without_link(email)
 		contact_name = frappe.db.get_value('Contact', {'email_id': email})
 
 		if not contact_name:
@@ -350,3 +356,34 @@ def add_contact_links_to_communication(communication, contact_name):
 	if contact_links:
 		for contact_link in contact_links:
 			communication.add_link(contact_link.link_doctype, contact_link.link_name)
+
+def parse_email(communication, email_strings):
+	"""
+		Parse email to add timeline links.
+		When automatic email linking is enabled, an email from email_strings can contain
+		a doctype and docname ie in the format `admin+doctype+docname@example.com`,
+		the email is parsed and doctype and docname is extracted and timeline link is added.
+	"""
+	delimiter = "+"
+
+	for email_string in email_strings:
+		if email_string:
+			for email in email_string.split(","):
+				if delimiter in email:
+					email = email.split("@")[0]
+
+					doctype = unquote(email.split(delimiter)[1])
+					docname = unquote(email.split(delimiter)[2])
+
+					if doctype and docname and frappe.db.exists(doctype, docname):
+						communication.add_link(doctype, docname)
+
+def get_email_without_link(email):
+	"""
+		returns email address without doctype links
+		returns admin@example.com for email admin+doctype+docname@example.com
+	"""
+	email_id = email.split("@")[0].split("+")[0]
+	email_host = email.split("@")[1]
+
+	return "{0}@{1}".format(email_id, email_host)
