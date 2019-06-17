@@ -171,15 +171,16 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 					if (args.filters) {
 						let filter_string = [];
 
-						if (Array.isArray(args.filters))
-						{
+						if (Array.isArray(args.filters)) {
 							let filters = args.filters;
+
 							let mapping = {
 								'=': 'as',
 								'!=': 'not equal to',
 								'in': 'in',
 								'not in': 'not in'
 							}
+
 							filters.forEach((filter) => {
 								filter_string.push(`<b>${frappe.model.unscrub(filter[1])}</b> ${mapping[filter[2]]} <b>${filter[3]}</b>`);
 							});
