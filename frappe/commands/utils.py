@@ -7,10 +7,11 @@ from frappe.commands import pass_context, get_site
 from frappe.utils import update_progress_bar
 
 @click.command('build')
+@click.option('--app', help='Build assets for app')
 @click.option('--make-copy', is_flag=True, default=False, help='Copy the files instead of symlinking')
 @click.option('--restore', is_flag=True, default=False, help='Copy the files instead of symlinking with force')
 @click.option('--verbose', is_flag=True, default=False, help='Verbose')
-def build(make_copy=False, restore = False, verbose=False):
+def build(app=None, make_copy=False, restore = False, verbose=False):
 	"Minify + concatenate JS and CSS files, build translations"
 	import frappe.build
 	import frappe
