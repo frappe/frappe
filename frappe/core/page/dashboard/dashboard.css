@@ -6,12 +6,15 @@
 }
 
 .chart-container {
-    padding: 15px;
+    margin: 15px;
+    margin-top: 30px;
+    margin-left: 0px;
 }
 
-.chart-container > .title {
+.frappe-chart > text.title {
     margin: 0px;
-    font-size: 14px;
+    font-size: 14px !important;
+    font-weight: bold;
 }
 
 .chart-loading-state {
