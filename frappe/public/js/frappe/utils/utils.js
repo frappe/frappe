@@ -703,6 +703,19 @@ Object.assign(frappe.utils, {
 		let parts = dataURI.split(',');
 		const encoded_data = parts[1];
 		return decodeURIComponent(escape(atob(encoded_data)));
+	},
+	copy_to_clipboard(string) {
+		let input = $("<input>");
+		$("body").append(input);
+		input.val(string).select();
+
+		document.execCommand("copy");
+		input.remove();
+
+		frappe.show_alert({
+			indicator: 'green',
+			message: __('Copied to clipboard.')
+		});
 	}
 });
 

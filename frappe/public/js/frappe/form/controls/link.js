@@ -167,14 +167,23 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 						return;
 					}
 
+					// show filter description in awesomplete
 					if (args.filters) {
 						let filter_string = [];
-						for (let [key, value] of Object.entries(args.filters)) {
 
-							if (Array.isArray(value) && value[1]){
-								filter_string.push(`<b>${frappe.model.unscrub(key)}</b> ${value[0]} <b>${value[1]}</b>`);
-							} else if (value) {
-								filter_string.push(`<b>${frappe.model.unscrub(key)}</b> as <b>${value}</b>`);
+						if (Array.isArray(args.filters)) {
+							let filters = args.filters;
+
+							filters.forEach((filter) => {
+								filter_string.push(`<b>${frappe.model.unscrub(filter[1])}</b> ${filter[2]} <b>${filter[3]}</b>`);
+							});
+						} else {
+							for (let [key, value] of Object.entries(args.filters)) {
+								if (Array.isArray(value) && value[1]) {
+									filter_string.push(`<b>${frappe.model.unscrub(key)}</b> ${value[0]} <b>${value[1]}</b>`);
+								} else if (value) {
+									filter_string.push(`<b>${frappe.model.unscrub(key)}</b> as <b>${value}</b>`);
+								}
 							}
 						}
 

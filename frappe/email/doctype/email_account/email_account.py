@@ -90,6 +90,7 @@ class EmailAccount(Document):
 		"""Check there is only one default of each type."""
 		from frappe.core.doctype.user.user import setup_user_email_inbox
 
+		self.check_automatic_linking_email_account()
 		self.there_must_be_only_one_default()
 		setup_user_email_inbox(email_account=self.name, awaiting_password=self.awaiting_password,
 			email_id=self.email_id, enable_outgoing=self.enable_outgoing)
@@ -638,6 +639,14 @@ class EmailAccount(Document):
 
 		frappe.db.sql(""" update `tabCommunication` set seen={seen}
 			where name in ({docnames})""".format(docnames=docnames, seen=seen))
+
+	def check_automatic_linking_email_account(self):
+		if self.enable_automatic_linking:
+			if not self.enable_incoming:
+				frappe.throw(_("Automatic Linking can be activated only if Incoming is enabled."))
+
+			if frappe.db.exists("Email Account", {"enable_automatic_linking": 1, "name": ('!=', self.name)}):
+				frappe.throw(_("Automatic Linking can be activated only for one Email Account."))
 
 @frappe.whitelist()
 def get_append_to(doctype=None, txt=None, searchfield=None, start=None, page_len=None, filters=None):
