@@ -160,7 +160,6 @@ scheduler_events = {
 		"frappe.desk.doctype.auto_repeat.auto_repeat.make_auto_repeat_entry",
 		"frappe.deferred_insert.save_to_db",
 		"frappe.desk.form.document_follow.send_hourly_updates",
-		"frappe.integrations.doctype.google_contacts.google_contacts.sync",
 	],
 	"daily": [
 		"frappe.email.queue.clear_outbox",
