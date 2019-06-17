@@ -178,7 +178,10 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 								'=': 'as',
 								'!=': 'not equal to',
 								'in': 'in',
-								'not in': 'not in'
+								'not in': 'not in',
+								'like': 'like',
+								'not like': 'not like',
+								'Between': 'Between'
 							};
 
 							filters.forEach((filter) => {
