@@ -24,7 +24,6 @@ frappe.ui.form.on('Google Contacts', {
 		}
 	},
 	authorize_google_contacts_access: function(frm) {
-		console.log(frm.doc.name);
 		frappe.call({
 			method: "frappe.integrations.doctype.google_contacts.google_contacts.authorize_access",
 			args: {
