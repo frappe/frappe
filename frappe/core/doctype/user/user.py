@@ -205,7 +205,7 @@ class User(Document):
 						if frappe.session.user != 'Guest':
 							msgprint(_("Welcome email sent"))
 						return
-			else:
+			elif self.enabled:
 				self.email_new_password(new_password)
 
 		except frappe.OutgoingEmailError:
