@@ -5,7 +5,7 @@
 from __future__ import unicode_literals
 import frappe, json
 from frappe.core.page.dashboard.dashboard import cache_source, get_from_date_from_timespan
-from frappe.utils import nowdate, add_to_date, getdate, get_last_day
+from frappe.utils import nowdate, add_to_date, getdate, get_last_day, formatdate
 from frappe.model.document import Document
 
 @frappe.whitelist()
@@ -59,7 +59,7 @@ def get(chart_name, from_date=None, to_date=None, refresh = None):
 	result = add_missing_values(result, timegrain, from_date, to_date)
 
 	return {
-		"labels": [r[0].strftime('%Y-%m-%d') for r in result],
+		"labels": [formatdate(r[0].strftime('%Y-%m-%d')) for r in result],
 		"datasets": [{
 			"name": chart.name,
 			"values": [r[1] for r in result]
