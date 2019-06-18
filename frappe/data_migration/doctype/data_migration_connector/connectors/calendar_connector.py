@@ -7,6 +7,7 @@ from googleapiclient.errors import HttpError
 import time
 from datetime import datetime
 from frappe.utils import add_days, add_years
+from frappe.desk.doctype.event.event import has_permission
 
 class CalendarConnector(BaseConnection):
 	def __init__(self, connector):
@@ -64,24 +65,21 @@ class CalendarConnector(BaseConnection):
 
 	def insert(self, doctype, doc):
 		if doctype == 'Events':
-			from frappe.desk.doctype.event.event import has_permission
 			d = frappe.get_doc("Event", doc["name"])
 			if has_permission(d, self.account.name):
-				if doc["start_datetime"] >= datetime.now():
-					try:
-						doctype = "Event"
-						e = self.insert_events(doctype, doc)
-						return e
-					except Exception:
-						frappe.log_error(frappe.get_traceback(), "GCalendar Synchronization Error")
+				try:
+					doctype = "Event"
+					e = self.insert_events(doctype, doc)
+					return e
+				except Exception:
+					frappe.log_error(frappe.get_traceback(), "GCalendar Synchronization Error")
 
 
 	def update(self, doctype, doc, migration_id):
 		if doctype == 'Events':
-			from frappe.desk.doctype.event.event import has_permission
 			d = frappe.get_doc("Event", doc["name"])
 			if has_permission(d, self.account.name):
-				if doc["start_datetime"] >= datetime.now() and migration_id is not None:
+				if migration_id is not None:
 					try:
 						doctype = "Event"
 						return self.update_events(doctype, doc, migration_id)
@@ -217,23 +215,23 @@ class CalendarConnector(BaseConnection):
 
 		day = []
 		if e.repeat_on == "Every Day":
-			if e.monday is not None:
+			if e.monday == 1:
 				day.append("MO")
-			if e.tuesday is not None:
+			if e.tuesday == 1:
 				day.append("TU")
-			if e.wednesday is not None:
+			if e.wednesday == 1:
 				day.append("WE")
-			if e.thursday is not None:
+			if e.thursday == 1:
 				day.append("TH")
-			if e.friday is not None:
+			if e.friday == 1:
 				day.append("FR")
-			if e.saturday is not None:
+			if e.saturday == 1:
 				day.append("SA")
-			if e.sunday is not None:
+			if e.sunday == 1:
 				day.append("SU")
 
 			day = "BYDAY=" + ",".join(str(d) for d in day)
-			frequency = "FREQ=DAILY"
+			frequency = "FREQ=WEEKLY"
 
 		elif e.repeat_on == "Every Week":
 			frequency = "FREQ=WEEKLY"

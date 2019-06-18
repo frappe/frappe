@@ -6,7 +6,7 @@ from __future__ import unicode_literals
 import frappe
 import unittest
 from frappe.core.doctype.doctype.doctype import UniqueFieldnameError, IllegalMandatoryError, DoctypeLinkError, WrongOptionsDoctypeLinkError,\
- HiddenAndMandatoryWithoutDefaultError, CannotIndexedError, InvalidFieldNameError
+ HiddenAndMandatoryWithoutDefaultError, CannotIndexedError, InvalidFieldNameError, CannotCreateStandardDoctypeError
 
 # test_records = frappe.get_test_records('DocType')
 
