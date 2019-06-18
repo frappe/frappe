@@ -383,7 +383,7 @@ frappe.ui.form.Timeline = class Timeline {
 		c.comment_on = comment_when(communication_date);
 		c.futur_date = communication_date > frappe.datetime.now_datetime() ? true : false;
 		if(!c.fullname) {
-			c.fullname = c.sender_full_name || frappe.user.full_name(c.sender);
+			c.fullname = c.owner || frappe.user.full_name(c.sender);
 		}
 
 		if(c.attachments && typeof c.attachments==="string")
@@ -553,7 +553,7 @@ frappe.ui.form.Timeline = class Timeline {
 
 	cast_comment_as_communication(c) {
 		c.sender = c.comment_email;
-		c.sender_full_name = c.comment_by;
+		c.owner = c.comment_by;
 		c.communication_type = 'Comment';
 	}
 

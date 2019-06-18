@@ -163,7 +163,7 @@ def get_communication_data(doctype, name, start=0, limit=20, after=None, fields=
 		fields = '''
 			C.name, C.communication_type, C.communication_medium,
 			C.comment_type, C.communication_date, C.content,
-			C.sender, C.sender_full_name, C.cc, C.bcc,
+			C.sender, C.owner, C.cc, C.bcc,
 			C.creation AS creation, C.subject, C.delivery_status,
 			C._liked_by, C.reference_doctype, C.reference_name,
 			C.read_by_recipient, C.rating
