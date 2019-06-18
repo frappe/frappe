@@ -4,7 +4,7 @@
 from __future__ import unicode_literals
 
 import unittest, frappe
-from frappe.utils import getdate
+from frappe.utils import getdate, formatdate
 from frappe.desk.doctype.dashboard_chart.dashboard_chart import (get,
 	get_period_ending)
 
@@ -56,7 +56,8 @@ class TestDashboardChart(unittest.TestCase):
 
 		result = get(chart_name ='Test Dashboard Chart', refresh = 1)
 		for idx in range(13):
-			month = str(cur_date.year) + '-' + str(cur_date.strftime('%m')) + '-' + str(calendar.monthrange(cur_date.year, cur_date.month)[1])
+			month = datetime(int(cur_date.year), int(cur_date.strftime('%m')), int(calendar.monthrange(cur_date.year, cur_date.month)[1]))
+			month = formatdate(month.strftime('%Y-%m-%d'))
 			self.assertEqual(result.get('labels')[idx], month)
 			cur_date += relativedelta(months=1)
 
@@ -87,7 +88,8 @@ class TestDashboardChart(unittest.TestCase):
 
 		result = get(chart_name ='Test Empty Dashboard Chart', refresh = 1)
 		for idx in range(13):
-			month = str(cur_date.year) + '-' + str(cur_date.strftime('%m')) + '-' + str(calendar.monthrange(cur_date.year, cur_date.month)[1])
+			month = datetime(int(cur_date.year), int(cur_date.strftime('%m')), int(calendar.monthrange(cur_date.year, cur_date.month)[1]))
+			month = formatdate(month.strftime('%Y-%m-%d'))
 			self.assertEqual(result.get('labels')[idx], month)
 			cur_date += relativedelta(months=1)
 
@@ -118,7 +120,8 @@ class TestDashboardChart(unittest.TestCase):
 
 		result = get(chart_name ='Test Empty Dashboard Chart 2', refresh = 1)
 		for idx in range(13):
-			month = str(cur_date.year) + '-' + str(cur_date.strftime('%m')) + '-' + str(calendar.monthrange(cur_date.year, cur_date.month)[1])
+			month = datetime(int(cur_date.year), int(cur_date.strftime('%m')), int(calendar.monthrange(cur_date.year, cur_date.month)[1]))
+			month = formatdate(month.strftime('%Y-%m-%d'))
 			self.assertEqual(result.get('labels')[idx], month)
 			cur_date += relativedelta(months=1)
 
