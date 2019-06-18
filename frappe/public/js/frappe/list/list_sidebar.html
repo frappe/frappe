@@ -1,18 +1,22 @@
+<ul class="list-unstyled sidebar-menu visible-sm visible-xs">
+	<li>
+		<a class="navbar-home" href="#">
+			<img class="app-logo" src="{{ frappe.app.logo_url }}">
+		</a>
+	</li>
+</ul>
 <ul class="list-unstyled sidebar-menu user-actions hide">
 	<li class="divider"></li>
 </ul>
 <ul class="list-unstyled sidebar-menu standard-actions">
 	{% if frappe.model.can_get_report(doctype) %}
-	<li class="visible-sm visible-xs">
-		<a class="navbar-home " href="#"><img class="erpnext-icon" src="http://group.local:8000/assets/erpnext/images/erp-icon.svg"></a>
-	</li>
 	<li class="divider visible-sm visible-xs"></li>
 	<li class="list-link">
 		<div class="btn-group">
 			<a class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
 				{{ __("Reports") }} <span class="caret"></span>
 			</a>
-			<ul class="dropdown-menu reports-dropdown" style="max-height: 300px; overflow-y: auto;">
+			<ul class="dropdown-menu reports-dropdown">
 				<li><a href="#List/{{ doctype }}/Report">{{ __("Report Builder") }}</a></li>
 			</ul>
 		</div>
