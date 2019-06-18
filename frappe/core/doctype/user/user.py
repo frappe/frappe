@@ -15,7 +15,6 @@ import frappe.share
 import re
 import json
 
-from frappe.limits import get_limits
 from frappe.website.utils import is_signup_enabled
 from frappe.utils.background_jobs import enqueue
 
