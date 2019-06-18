@@ -50,3 +50,24 @@ def get_user_assignments_and_count(doctype, current_filters):
 		limit 50""".format(subquery_condition = subquery_condition), as_dict=True)
 
 	return todo_list
+
+@frappe.whitelist()
+def get_group_by_count(doctype, current_filters, field):
+	current_filters = json.loads(current_filters)
+	subquery= ''
+	if current_filters:
+		subquery = frappe.get_all(doctype,
+			filters=current_filters, return_query = True)
+		subquery = subquery[subquery.index('where'):subquery.index('order')]
+
+	group_by_list = frappe.db.sql("""select `tab{doctype}`.{field} as name, count(*) as count
+		from
+			`tab{doctype}`
+		{subquery}
+		group by
+			`tab{doctype}`.{field}
+		order by
+			count desc
+		limit 50""".format(subquery= subquery, doctype = doctype, field = field), as_dict=True)
+
+	return group_by_list

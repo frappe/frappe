@@ -24,6 +24,12 @@ frappe.views.ListSidebar = class ListSidebar {
 			.html(sidebar_content)
 			.appendTo(this.page.sidebar.empty());
 
+		this.group_by_fields = [];
+		this.user_settings = frappe.get_user_settings(this.doctype);
+		if(this.user_settings.group_by_fields) {
+			this.group_by_fields = this.user_settings.group_by_fields;
+			this.add_group_by_dropdown_fields(this.group_by_fields);
+		}
 		this.setup_reports();
 		this.setup_list_filter();
 		this.setup_views();
@@ -31,6 +37,7 @@ frappe.views.ListSidebar = class ListSidebar {
 		this.setup_calendar_view();
 		this.setup_email_inbox();
 		this.setup_keyboard_shortcuts();
+		this.setup_list_group_by();
 
 		let limits = frappe.boot.limits;
 
@@ -264,6 +271,98 @@ frappe.views.ListSidebar = class ListSidebar {
 		let html = $('<li class="assigned"><a class="badge-hover" href="#" onclick="return false;" role="assigned-item"><span class="assigned-user">'
 					+ name + '</span><span class="badge pull-right" style="position:relative">' + count + '</span></a></li>');
 		return html;
+	}
+
+	setup_list_group_by() {
+		let d = new frappe.ui.Dialog ({
+			title: __("Add Filter By"),
+			fields: this.get_group_by_dropdown_fields()
+		});
+		d.set_primary_action("Add", (values) => {
+			this.page.sidebar.find('.group-by-field').remove();
+			let fields = values[this.doctype];
+			delete values[this.doctype];
+			if(!fields) {
+				frappe.model.user_settings.save(this.doctype,'group_by_fields',null);
+			} else {
+				this.add_group_by_dropdown_fields(fields);
+				frappe.model.user_settings.save(this.doctype,'group_by_fields',fields);
+			}
+			d.hide();
+		});
+		this.page.sidebar.find(".add-list-group-by a ").on("click", () => {
+			d.show();
+		});
+	}
+
+	get_group_by_count(field, dropdown) {
+		dropdown.find('.group-by-loading').show();
+		dropdown.find('.group-by-item').remove();
+		let current_filters = this.list_view.get_filters_for_args();
+		frappe.call('frappe.desk.listview.get_group_by_count',
+			{doctype: this.doctype, current_filters: current_filters, field: field}).then((data) => {
+			dropdown.find('.group-by-loading').hide();
+			let field_list = data.message.filter(field => field.count!==0 );
+			field_list.forEach((f) => {
+				if(f.name === null) {
+					f.name = 'Not Specified'
+				}
+				this.get_html_for_group_by(f.name, f.count).appendTo(dropdown);
+			});
+
+			dropdown.find("li a").on("click", (e) => {;
+				let value = $(e.currentTarget).find($('.group-by-value')).text().trim();
+				let fieldname = $(e.currentTarget).parents('.group-by-field').children('a').attr('data-fieldname');
+
+				this.list_view.filter_area.remove(fieldname);
+				if(value === 'Not Specified') {
+					this.list_view.filter_area.add(this.doctype, fieldname, "like", '');
+				}
+				else this.list_view.filter_area.add(this.doctype, fieldname, "like", `%${value}%`);
+			});
+		});
+	}
+
+	add_group_by_dropdown_fields(fields) {
+		if(fields) {
+			fields.forEach((field)=> {
+				let field_label = frappe.meta.get_label(this.doctype, field);
+				this.list_group_by_dropdown = $(frappe.render_template("list_sidebar_group_by", {
+					field_label: field_label,
+					group_by_field: field,
+				}));
+
+				this.list_group_by_dropdown.on('click', (e)=> {
+					this.get_group_by_count(field, $(e.currentTarget).find('.group-by-dropdown'));
+				})
+				this.list_group_by_dropdown.insertBefore(this.page.sidebar.find('.add-list-group-by'));
+			})
+		}
+	}
+
+	get_html_for_group_by(name, count) {
+		if (count > 99) count='99+';
+		let html = $('<li class="group-by-item"><a class="badge-hover"><span class="group-by-value">'
+					+ name + '</span><span class="badge pull-right" style="position:relative">' + count + '</span></a></li>');
+		return html;
+	}
+
+	get_group_by_dropdown_fields() {
+		let group_by_fields = [];
+		let fields = this.list_view.meta.fields.filter((f)=> ["Select", "Link"].includes(f.fieldtype));
+		group_by_fields.push({
+			label: __(this.doctype),
+			fieldname: this.doctype,
+			fieldtype: 'MultiCheck',
+			columns: 2,
+			options: fields
+				.map(df => ({
+					label: __(df.label),
+					value: df.fieldname,
+					checked: this.group_by_fields.includes(df.fieldname)
+				}))
+		});
+		return group_by_fields;
 	}
 
 	setup_upgrade_box() {
