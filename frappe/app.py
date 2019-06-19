@@ -109,7 +109,9 @@ def init_request(request):
 		raise NotFound
 
 	if frappe.local.conf.get('maintenance_mode'):
-		raise frappe.SessionStopped
+		frappe.local.db = frappe.database.get_db(user = frappe.local.conf.db_name, \
+			password = getattr(frappe.local.conf, 'db_password', ''))
+		raise frappe.SessionStopped('Session Stopped')
 
 	make_form_dict(request)
 
