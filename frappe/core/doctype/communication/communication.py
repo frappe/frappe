@@ -56,7 +56,6 @@ class Communication(Document):
 			self.sent_or_received = "Sent"
 
 		self.set_status()
-		self.set_sender_full_name()
 
 		validate_email(self)
 
@@ -64,6 +63,8 @@ class Communication(Document):
 			self.parse_email_for_timeline_links()
 			self.set_timeline_links()
 			self.deduplicate_timeline_links()
+
+		self.set_sender_full_name()
 
 	def validate_reference(self):
 		if self.reference_doctype and self.reference_name:
@@ -160,7 +161,7 @@ class Communication(Document):
 				if sender_name == sender_email:
 					sender_name = None
 				self.sender = sender_email
-				self.sender_full_name = sender_name or get_fullname(frappe.session.user) if frappe.session.user!='Administrator' else None
+				self.sender_full_name = frappe.db.exists("Contact", {"email_id": sender_email}) or sender_email
 
 	def send(self, print_html=None, print_format=None, attachments=None,
 		send_me_a_copy=False, recipients=None):
