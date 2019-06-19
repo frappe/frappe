@@ -16,7 +16,7 @@
    "label": "Enable"
   },
   {
-   "depends_on": "eval: doc.enable",
+   "depends_on": "enable",
    "fieldname": "google_credentials",
    "fieldtype": "Section Break",
    "label": "Google Credentials"
@@ -35,7 +35,7 @@
   }
  ],
  "issingle": 1,
- "modified": "2019-06-15 02:10:34.950834",
+ "modified": "2019-06-19 15:28:05.957380",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Google Settings",

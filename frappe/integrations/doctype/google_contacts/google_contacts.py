@@ -16,14 +16,8 @@ PARAMS = {"personFields": "names,emailAddresses,organizations,phoneNumbers"}
 class GoogleContacts(Document):
 
 	def validate(self):
-		if not frappe.db.get_value("Google Settings", None, "enable"):
+		if not frappe.db.get_single_value("Google Settings", "enable"):
 			frappe.throw(_("Enable Google API in Google Settings."))
-
-		if self.enable and not self.email_id:
-			frappe.throw(_("Email Address cannot be empty."))
-
-		if self.enable and frappe.db.exists("Google Contacts", {"email_id", self.email_id}):
-			frappe.throw(_("Google Contacts Integration for {} already exists.".format(self.email_id)))
 
 	def get_access_token(self):
 		google_settings = frappe.get_doc("Google Settings")
@@ -32,7 +26,8 @@ class GoogleContacts(Document):
 			frappe.throw(_("Google Contacts Integration is disabled."))
 
 		if not self.refresh_token:
-			raise frappe.ValidationError(_("Enable Google Contacts access."))
+			button_label = frappe.bold(_('Allow Google Contacts Access'))
+			raise frappe.ValidationError(_("Click on {0} to generate Refresh Token.").format(button_label))
 
 		data = {
 			"client_id": google_settings.client_id,
@@ -45,7 +40,8 @@ class GoogleContacts(Document):
 		try:
 			r = requests.post("https://www.googleapis.com/oauth2/v4/token", data=data).json()
 		except requests.exceptions.HTTPError:
-			frappe.throw(_("Something went wrong during the token generation. Please request again an authorization code."))
+			button_label = frappe.bold(_('Allow Google Contacts Access'))
+			frappe.throw(_("Something went wrong during the token generation. Click on {0} to generate a new one.").format(button_label))
 
 		return r.get("access_token")
 
@@ -78,7 +74,6 @@ def authorize_access(g_contact, reauthorize=None):
 			if "refresh_token" in r:
 				frappe.db.set_value("Google Contacts", google_contact.name, "refresh_token", r.get("refresh_token"))
 
-			frappe.db.commit()
 			frappe.local.response["type"] = "redirect"
 			frappe.local.response["location"] = "/desk#Form/Google%20Contacts/{}".format(google_contact.name)
 
@@ -98,7 +93,6 @@ def google_callback(client_id=None, redirect_uri=None, code=None):
 	else:
 		google_contact = frappe.cache().hget("google_contacts", "google_contact")
 		frappe.db.set_value("Google Contacts", google_contact, "authorization_code", code)
-		frappe.db.commit()
 
 		authorize_access(google_contact)
 
@@ -137,8 +131,7 @@ def sync(g_contact=None):
 			for idx, connection in enumerate(connections):
 
 				for name in connection.get("names"):
-					if g_contact: # Show progress only if Google Contacts synced manually
-						show_progress(len(connections), "Google Contacts", idx, name.get("displayName"))
+					frappe.publish_realtime('import_google_contacts', dict(progress=idx, total=len(connections)))
 
 					for email in connection.get("emailAddresses"):
 						if not frappe.db.exists("Contact", {"email_id": email.get("value")}):
@@ -157,15 +150,7 @@ def sync(g_contact=None):
 								"google_contacts_description": connection.get("organizations")[0].get("name") if connection.get("organizations") else ""
 							}).insert(ignore_permissions=True)
 			if g_contact:
-				return "{} Google Contacts synced.".format(contacts_updated) if contacts_updated > 0 else "No new Google Contacts synced."
+				return _("{0} Google Contacts synced.").format(contacts_updated) if contacts_updated > 0 else _("No new Google Contacts synced.")
 
 		if g_contact:
-			return "No Google Contacts present to sync." # If no Google Contacts to sync
-
-def show_progress(length, message, i, description):
-	if length > 5:
-		frappe.publish_progress(
-			float(i) * 100 / length,
-			title = message,
-			description = description
-		)
+			return _("No Google Contacts present to sync.") # If no Google Contacts to sync

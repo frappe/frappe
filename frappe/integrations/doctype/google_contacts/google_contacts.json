@@ -52,10 +52,11 @@
    "fieldtype": "Data",
    "in_list_view": 1,
    "label": "Email Address",
-   "options": "Email"
+   "options": "Email",
+   "reqd": 1
   },
   {
-   "depends_on": "eval:doc.enable",
+   "depends_on": "enable",
    "fieldname": "sb_00",
    "fieldtype": "Section Break",
    "label": "Google Contacts"
@@ -71,7 +72,7 @@
    "label": "Authorize Google Contacts Access"
   }
  ],
- "modified": "2019-06-15 13:06:27.401740",
+ "modified": "2019-06-19 15:26:24.494101",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Google Contacts",
