@@ -38,7 +38,6 @@ def get_context(context):
 				"icon": icon
 			})
 			context["social_login"] = True
-
 	ldap_settings = get_ldap_client_settings()
 	context["ldap_settings"] = ldap_settings
 

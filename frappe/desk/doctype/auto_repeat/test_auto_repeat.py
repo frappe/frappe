@@ -8,7 +8,7 @@ import unittest
 import frappe
 from frappe.custom.doctype.custom_field.custom_field import create_custom_field
 from frappe.desk.doctype.auto_repeat.auto_repeat import get_auto_repeat_entries, create_repeated_entries, disable_auto_repeat
-from frappe.utils import today, add_days, getdate
+from frappe.utils import today, add_days, getdate, add_months
 
 
 def add_custom_fields():
@@ -44,8 +44,8 @@ class TestAutoRepeat(unittest.TestCase):
 		self.assertEqual(todo.get('description'), new_todo.get('description'))
 
 	def test_monthly_auto_repeat(self):
-		start_date = '2018-01-01'
-		end_date = '2018-12-31'
+		start_date = today()
+		end_date = add_months(start_date, 12)
 
 		todo = frappe.get_doc(
 			dict(doctype='ToDo', description='test recurring todo', assigned_by='Administrator')).insert()
@@ -103,7 +103,7 @@ def make_auto_repeat(**args):
 		'reference_document': args.reference_document or frappe.db.get_value('ToDo', {'docstatus': 1}, 'name'),
 		'frequency': args.frequency or 'Daily',
 		'start_date': args.start_date or add_days(today(), -1),
-		'end_date': args.end_date or add_days(today(), 1),
+		'end_date': args.end_date or add_days(today(), 2),
 		'submit_on_creation': args.submit_on_creation or 0,
 		'notify_by_email': args.notify or 0,
 		'recipients': args.recipients or "",

@@ -369,7 +369,7 @@ def manage_recurring_payment_profile_status(profile_id, action, args, url):
 
 	# error code 11556 indicates profile is not in active state(or already cancelled)
 	# thus could not cancel the subscription.
-	# thus raise exception only if error code not quals to 11556
+	# thus raise an exception only if the error code is not equal to 11556
 
 	if response.get("ACK")[0] != "Success" and response.get("L_ERRORCODE0", [])[0] != '11556':
 		frappe.throw(_("Failed while amending subscription"))
