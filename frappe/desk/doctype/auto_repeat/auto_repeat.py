@@ -5,6 +5,7 @@
 from __future__ import unicode_literals
 import frappe
 import calendar
+import json
 from frappe import _
 from frappe.desk.form import assign_to
 from frappe.utils.jinja import validate_template
@@ -327,13 +328,26 @@ def assign_task_to_owner(name, msg, users):
 		assign_to.add(args)
 
 @frappe.whitelist()
-def make_auto_repeat(doctype, docname):
+def make_auto_repeat(doctype, docname, submit = False, opts = None):
 	doc = frappe.new_doc('Auto Repeat')
-
-	reference_doc = frappe.get_doc(doctype, docname)
 	doc.reference_doctype = doctype
 	doc.reference_document = docname
-	doc.start_date = reference_doc.get('posting_date') or reference_doc.get('transaction_date')
+
+	if opts:
+		opts = json.loads(opts)
+		doc.update({
+			'start_date': opts['start_date'],
+			'end_date': opts['end_date'],
+			'frequency': opts['frequency']
+		})
+
+	else:
+		reference_doc = frappe.get_doc(doctype, docname)
+		doc.start_date = reference_doc.get('posting_date') or reference_doc.get('transaction_date')
+
+	if submit:
+		doc.submit()
+
 	return doc
 
 @frappe.whitelist()

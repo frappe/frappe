@@ -372,8 +372,8 @@
    "read_only": 1
   },
   {
-    "fieldname": "section_break_12",
-    "fieldtype": "Section Break"
+   "fieldname": "section_break_12",
+   "fieldtype": "Section Break"
   },
   {
    "default": "0",
@@ -384,7 +384,7 @@
   }
  ],
  "icon": "fa fa-inbox",
- "modified": "2019-06-15 19:03:55.283524",
+ "modified": "2019-06-19 21:24:09.698855",
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Email Account",
