@@ -129,12 +129,11 @@ def sync(g_contact=None):
 
 		if connections:
 			for idx, connection in enumerate(connections):
-				frappe.publish_realtime('import_google_contacts', dict(progress=idx, total=r.get("totalPeople")), user=frappe.session.user)
+				frappe.publish_realtime('import_google_contacts', dict(progress=idx+1, total=r.get("totalPeople")), user=frappe.session.user)
 
 				for name in connection.get("names"):
 					if name.get("metadata").get("primary"):
-
-						for idx, email in connection.get("emailAddresses"):
+						for email in connection.get("emailAddresses"):
 							if not frappe.db.exists("Contact", {"email_id": email.get("value")}):
 								contacts_updated += 1
 
