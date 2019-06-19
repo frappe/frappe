@@ -33,7 +33,8 @@ class EnergyPointLog(Document):
 def get_alert_dict(doc):
 	alert_dict = frappe._dict()
 	owner_name = get_fullname(doc.owner)
-	doc_link = get_link_to_form(doc.reference_doctype, doc.reference_name)
+	if doc.reference_doctype:
+		doc_link = get_link_to_form(doc.reference_doctype, doc.reference_name)
 	points = doc.points
 	bold_points = frappe.bold(doc.points)
 	if doc.type == 'Auto':
