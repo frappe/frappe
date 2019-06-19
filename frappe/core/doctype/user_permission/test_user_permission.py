@@ -68,7 +68,7 @@ class TestUserPermission(unittest.TestCase):
 	def test_for_apply_to_all_on_update_from_applicable(self):
 		''' Update User Permission from some to all applicable Doctypes'''
 		user = create_user('test_bulk_creation_update@example.com')
-		param = get_params(user, 'User', user.name,)
+		param = get_params(user, 'User', user.name)
 
 		# create User permissions that with applicable
 		is_created = add_user_permissions(get_params(user, 'User', user.name, applicable = ["Chat Room", "Chat Message"]))
@@ -87,7 +87,6 @@ class TestUserPermission(unittest.TestCase):
 		self.assertIsNone(removed_applicable_first)
 		self.assertIsNone(removed_applicable_second)
 		self.assertEquals(is_created, 1)
-
 
 def create_user(email):
 	''' create user with role system manager '''

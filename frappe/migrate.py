@@ -76,4 +76,3 @@ def migrate(verbose=True, rebuild_website=False):
 		with open(touched_tables_file, 'w') as f:
 			json.dump(list(frappe.flags.touched_tables), f, sort_keys=True, indent=4)
 		frappe.flags.touched_tables.clear()
-

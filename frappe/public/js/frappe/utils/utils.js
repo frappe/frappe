@@ -716,6 +716,9 @@ Object.assign(frappe.utils, {
 			indicator: 'green',
 			message: __('Copied to clipboard.')
 		});
+	},
+	is_rtl() {
+		return ["ar", "he", "fa"].includes(frappe.boot.lang);
 	}
 });
 
@@ -736,4 +739,3 @@ if (!Array.prototype.uniqBy) {
 		}
 	});
 }
-
