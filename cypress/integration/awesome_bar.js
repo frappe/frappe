@@ -6,7 +6,7 @@ context('Awesome Bar', () => {
 	});
 
 	beforeEach(() => {
-		cy.get('.navbar-home').click();
+		cy.get('.navbar-header .navbar-home').click();
 	});
 
 	it('navigates to doctype list', () => {

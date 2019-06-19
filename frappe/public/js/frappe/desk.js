@@ -42,7 +42,10 @@ frappe.Application = Class.extend({
 		this.setup_frappe_vue();
 		this.load_bootinfo();
 		this.load_user_permissions();
-		this.make_nav_bar();
+		this.set_app_logo_url()
+			.then(() => {
+				this.make_nav_bar();
+			});
 		this.set_favicon();
 		this.setup_analytics();
 		this.set_fullwidth_if_enabled();
@@ -455,6 +458,13 @@ frappe.Application = Class.extend({
 		var link = $('link[type="image/x-icon"]').remove().attr("href");
 		$('<link rel="shortcut icon" href="' + link + '" type="image/x-icon">').appendTo("head");
 		$('<link rel="icon" href="' + link + '" type="image/x-icon">').appendTo("head");
+	},
+
+	set_app_logo_url: function() {
+		return frappe.call('frappe.client.get_hooks', { hook: 'app_logo_url' })
+			.then(r => {
+				frappe.app.logo_url = (r.message || []).slice(-1)[0];
+			});
 	},
 
 	trigger_primary_action: function() {
