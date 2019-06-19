@@ -129,28 +129,39 @@ def sync(g_contact=None):
 
 		if connections:
 			for idx, connection in enumerate(connections):
+				frappe.publish_realtime('import_google_contacts', dict(progress=idx, total=r.get("totalPeople")), user=frappe.session.user)
 
 				for name in connection.get("names"):
-					frappe.publish_realtime('import_google_contacts', dict(progress=idx, total=len(connections)))
+					if name.get("metadata").get("primary"):
 
-					for email in connection.get("emailAddresses"):
-						if not frappe.db.exists("Contact", {"email_id": email.get("value")}):
-							contacts_updated += 1
-							frappe.get_doc({
-								"doctype": "Contact",
-								"salutation": name.get("honorificPrefix") if name.get("honorificPrefix") else "",
-								"first_name": name.get("givenName") if name.get("givenName") else "",
-								"middle_name": name.get("middleName") if name.get("middleName") else "",
-								"last_name": name.get("familyName") if name.get("familyName") else "",
-								"email_id": email.get("value") if email.get("value") else "",
-								"designation": connection.get("organizations")[0].get("title") if connection.get("organizations") else "",
-								"phone": connection.get("phoneNumbers")[0].get("value") if connection.get("phoneNumbers")[0] else "",
-								"mobile_no": connection.get("phoneNumbers")[1].get("value") if connection.get("phoneNumbers")[1] else "",
-								"source": "Google Contacts",
-								"google_contacts_description": connection.get("organizations")[0].get("name") if connection.get("organizations") else ""
-							}).insert(ignore_permissions=True)
+						for idx, email in connection.get("emailAddresses"):
+							if not frappe.db.exists("Contact", {"email_id": email.get("value")}):
+								contacts_updated += 1
+
+								frappe.get_doc({
+									"doctype": "Contact",
+									"salutation": name.get("honorificPrefix") if name.get("honorificPrefix") else "",
+									"first_name": name.get("givenName") if name.get("givenName") else "",
+									"middle_name": name.get("middleName") if name.get("middleName") else "",
+									"last_name": name.get("familyName") if name.get("familyName") else "",
+									"email_id": email.get("value") if email.get("value") else "",
+									"designation": get_indexed_value(connection.get("organizations"), 0, "title"),
+									"phone": get_indexed_value(connection.get("phoneNumbers"), 0, "value"),
+									"mobile_no": get_indexed_value(connection.get("phoneNumbers"), 1, "value"),
+									"source": "Google Contacts",
+									"google_contacts_description": get_indexed_value(connection.get("organizations"), 0, "name")
+								}).insert(ignore_permissions=True)
 			if g_contact:
 				return _("{0} Google Contacts synced.").format(contacts_updated) if contacts_updated > 0 else _("No new Google Contacts synced.")
 
 		if g_contact:
 			return _("No Google Contacts present to sync.") # If no Google Contacts to sync
+
+def get_indexed_value(d, index, key):
+	if not d:
+		return ""
+
+	try:
+		return d[index].get(key)
+	except IndexError:
+		return ""
