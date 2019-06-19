@@ -19,11 +19,19 @@ frappe.ui.Filter = class {
 			[">=", ">="],
 			["<=", "<="],
 			["Between", __("Between")],
+			["Previous", __("Previous")],
+			["Next", __("Next")]
+		];
+
+		this.nested_set_conditions = [
 			["descendants of", __("Descendants Of")],
 			["not descendants of", __("Not Descendants Of")],
 			["ancestors of", __("Ancestors Of")],
 			["not ancestors of", __("Not Ancestors Of")]
 		];
+
+		this.conditions.push(...this.nested_set_conditions);
+
 		this.invalid_condition_map = {
 			Date: ['like', 'not like'],
 			Datetime: ['like', 'not like'],
@@ -199,7 +207,7 @@ frappe.ui.Filter = class {
 	make_field(df, old_fieldtype) {
 		let old_text = this.field ? this.field.get_value() : null;
 		this.hide_invalid_conditions(df.fieldtype, df.original_type);
-		this.hide_nested_set_conditions(df);
+		this.toggle_nested_set_conditions(df);
 		let field_area = this.filter_edit_area.find('.filter-field').empty().get(0);
 		let f = frappe.ui.form.make_control({
 			df: df,
@@ -305,18 +313,11 @@ frappe.ui.Filter = class {
 		}
 	}
 
-	hide_nested_set_conditions(df) {
-		if ( !( df.fieldtype == "Link" && frappe.boot.nested_set_doctypes.includes(df.options))) {
-			this.filter_edit_area.find(`.condition option[value="descendants of"]`).hide();
-			this.filter_edit_area.find(`.condition option[value="not descendants of"]`).hide();
-			this.filter_edit_area.find(`.condition option[value="ancestors of"]`).hide();
-			this.filter_edit_area.find(`.condition option[value="not ancestors of"]`).hide();
-		}else {
-			this.filter_edit_area.find(`.condition option[value="descendants of"]`).show();
-			this.filter_edit_area.find(`.condition option[value="not descendants of"]`).show();
-			this.filter_edit_area.find(`.condition option[value="ancestors of"]`).show();
-			this.filter_edit_area.find(`.condition option[value="not ancestors of"]`).show();
-		}
+	toggle_nested_set_conditions(df) {
+		let show_condition = df.fieldtype === "Link" && frappe.boot.nested_set_doctypes.includes(df.options);
+		this.nested_set_conditions.forEach(condition => {
+			this.filter_edit_area.find(`.condition option[value="${condition[0]}"]`).toggle(show_condition);
+		});
 	}
 };
 
