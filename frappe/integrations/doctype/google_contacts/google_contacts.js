@@ -4,7 +4,6 @@
 frappe.ui.form.on('Google Contacts', {
 	refresh: function(frm) {
 		frm.set_value("user", frappe.session.user);
-		this.display_import_status();
 
 		if (frm.doc.refresh_token) {
 			frm.add_custom_button(__('Sync Contacts'), function () {
@@ -23,6 +22,7 @@ frappe.ui.form.on('Google Contacts', {
 				});
 			});
 		}
+		display_import_status(frm);
 	},
 	authorize_google_contacts_access: function(frm) {
 		let reauthorize = 0;
@@ -43,16 +43,17 @@ frappe.ui.form.on('Google Contacts', {
 				}
 			}
 		});
-	},
-	display_import_status: function(frm) {
-		frappe.realtime.on('import_google_contacts', (data) => {
-			if (data.progress) {
-				frm.dashboard.show_progress('Import Google Contacts', data.progress / data.total * 100,
-					__('Importing {0} of {1}', [data.progress, data.total]));
-				if (data.progress === data.total) {
-					frm.dashboard.hide_progress('Import Google Contacts');
-				}
-			}
-		});
 	}
 });
+
+function display_import_status(frm) {
+	frappe.realtime.on('import_google_contacts', (data) => {
+		if (data.progress) {
+			frm.dashboard.show_progress('Import Google Contacts', data.progress / data.total * 100,
+				__('Importing {0} of {1}', [data.progress, data.total]));
+			if (data.progress === data.total) {
+				frm.dashboard.hide_progress('Import Google Contacts');
+			}
+		}
+	});
+}
