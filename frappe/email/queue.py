@@ -80,7 +80,7 @@ def send(recipients=None, sender=None, subject=None, message=None, text_content=
 	recipients = list(set(recipients))
 	cc = list(set(cc))
 
-	all_ids = recipients + cc
+	all_ids = tuple(recipients + cc)
 
 	unsubscribed = frappe.db.sql_list('''
 		SELECT
