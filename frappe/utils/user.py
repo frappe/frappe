@@ -315,7 +315,6 @@ def disable_users(limits=None):
 		user_list = ['Administrator', 'Guest']
 		if system_manager:
 			user_list.append(system_manager[-1])
-
 		#exclude system manager from active user list
 		# active_users =  frappe.db.sql_list("""select name from tabUser
 		# 	where name not in ('Administrator', 'Guest', %s) and user_type = 'System User' and enabled=1

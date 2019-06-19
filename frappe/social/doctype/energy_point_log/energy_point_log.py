@@ -7,7 +7,7 @@ import frappe
 from frappe import _
 import json
 from frappe.model.document import Document
-from frappe.utils import cint, get_fullname, getdate
+from frappe.utils import cint, get_fullname, getdate, get_link_to_form
 
 class EnergyPointLog(Document):
 	def validate(self):
@@ -33,7 +33,8 @@ class EnergyPointLog(Document):
 def get_alert_dict(doc):
 	alert_dict = frappe._dict()
 	owner_name = get_fullname(doc.owner)
-	doc_link = frappe.get_desk_link(doc.reference_doctype, doc.reference_name)
+	if doc.reference_doctype:
+		doc_link = get_link_to_form(doc.reference_doctype, doc.reference_name)
 	points = doc.points
 	bold_points = frappe.bold(doc.points)
 	if doc.type == 'Auto':
