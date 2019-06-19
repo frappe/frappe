@@ -36,10 +36,11 @@ frappe.ui.Filter = class {
 			Date: ['like', 'not like'],
 			Datetime: ['like', 'not like'],
 			Data: ['Between', 'Previous', 'Next'],
-			Select: ['like', 'not like'],
-			Link: ["Between", 'Previous', 'Next'],
+			Select: ['like', 'not like', 'Between', 'Previous', 'Next'],
+			Link: ["Between", 'Previous', 'Next', '>', '<', '>=', '<='],
 			Currency: ["Between", 'Previous', 'Next'],
-			Color: ["Between", 'Previous', 'Next']
+			Color: ["Between", 'Previous', 'Next'],
+			Check: this.conditions.map(c => c[0]).filter(c => c !== '=')
 		};
 		this.make();
 		this.make_select();
@@ -232,7 +233,7 @@ frappe.ui.Filter = class {
 
 	make_field(df, old_fieldtype) {
 		let old_text = this.field ? this.field.get_value() : null;
-		this.hide_invalid_conditions(df.fieldtype, df.original_type);
+		this.hide_invalid_conditions(df.original_type);
 		this.toggle_nested_set_conditions(df);
 		let field_area = this.filter_edit_area.find('.filter-field').empty().get(0);
 		let f = frappe.ui.form.make_control({
@@ -328,9 +329,8 @@ frappe.ui.Filter = class {
 			: __("use % as wildcard"))+'</div>');
 	}
 
-	hide_invalid_conditions(fieldtype, original_type) {
-		let invalid_conditions = this.invalid_condition_map[fieldtype] ||
-			this.invalid_condition_map[original_type] || [];
+	hide_invalid_conditions(fieldtype) {
+		let invalid_conditions = this.invalid_condition_map[fieldtype] || [];
 
 		for (let condition of this.conditions) {
 			this.filter_edit_area.find(`.condition option[value="${condition[0]}"]`).toggle(
