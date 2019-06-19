@@ -18,6 +18,7 @@ frappe.ui.form.ControlMultiSelectList = frappe.ui.form.ControlData.extend({
 		this.$list_wrapper = $(template);
 		this.$input = $('<input>');
 		this.$list_wrapper.prependTo(this.input_area);
+		this.$filter_input = this.$list_wrapper.find('input');
 		this.$list_wrapper.on('click', '.dropdown-menu', e => {
 			e.stopPropagation();
 		});
@@ -25,21 +26,27 @@ frappe.ui.form.ControlMultiSelectList = frappe.ui.form.ControlData.extend({
 			let $target = $(e.currentTarget);
 			this.toggle_select_item($target);
 		});
-		this.$list_wrapper.on('input', 'input', e => {
-			let txt = e.target.value;
-			let filtered_options = this._options.filter(opt => {
-				let match = false;
-				if (this.values.includes(opt.value)) {
-					return true;
-				}
-				match = Awesomplete.FILTER_CONTAINS(opt.label, txt);
-				if (!match) {
-					match = Awesomplete.FILTER_CONTAINS(opt.value, txt);
-				}
-				return match;
-			});
-			this.set_selectable_items(filtered_options);
-		});
+		this.$list_wrapper.on('input', 'input', frappe.utils.debounce((e) => {
+			this.set_options()
+				.then(() => {
+					let txt = e.target.value;
+					let filtered_options = this._options.filter(opt => {
+						let match = false;
+						if (this.values.includes(opt.value)) {
+							return true;
+						}
+						match = Awesomplete.FILTER_CONTAINS(opt.label, txt);
+						if (!match) {
+							match = Awesomplete.FILTER_CONTAINS(opt.value, txt);
+						}
+						return match;
+					});
+					let options = this._selected_values
+						.concat(filtered_options)
+						.uniqBy(opt => opt.value);
+					this.set_selectable_items(options);
+				});
+		}, 300));
 		this.$list_wrapper.on('keydown', 'input', e => {
 			if (e.key === 'ArrowDown') {
 				this.highlight_item(1);
@@ -92,8 +99,21 @@ frappe.ui.form.ControlMultiSelectList = frappe.ui.form.ControlData.extend({
 		} else {
 			this.values = this.values.filter(val => val !== value);
 		}
+		this.update_selected_values(value);
 		this.parse_validate_and_set_in_model('');
 		this.update_status();
+	},
+
+	update_selected_values(value) {
+		this._selected_values = this._selected_values || [];
+		let option = this._options.find(opt => opt.value === value);
+		if (option) {
+			if (this.values.includes(value)) {
+				this._selected_values.push(option);
+			} else {
+				this._selected_values = this._selected_values.filter(opt => opt.value !== value);
+			}
+		}
 	},
 
 	update_status() {
@@ -136,7 +156,8 @@ frappe.ui.form.ControlMultiSelectList = frappe.ui.form.ControlData.extend({
 		}
 
 		if (this.df.get_data) {
-			let value = this.df.get_data();
+			let txt = this.$filter_input.val();
+			let value = this.df.get_data(txt);
 			if (!value) {
 				this._options = [];
 			} else if (value.then) {
