@@ -326,8 +326,6 @@
 		"website/css/web_form.css",
 		"public/less/quill.less",
 		"public/css/octicons/octicons.css",
-		"public/less/datepicker.less",
-		"public/less/awesomplete.less",
 		"public/less/form_grid.less",
 		"public/less/controls.less",
 		"node_modules/frappe-datatable/dist/frappe-datatable.css"
