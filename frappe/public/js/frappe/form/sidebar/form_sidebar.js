@@ -77,6 +77,27 @@ frappe.ui.form.Sidebar = Class.extend({
 			this.refresh_like();
 			frappe.ui.form.set_user_image(this.frm);
 		}
+
+		if(this.frm.doc.auto_repeat){
+			const me = this;
+			frappe.call({
+				method: "frappe.client.get_value",
+				args:{
+					doctype: "Auto Repeat",
+					filters: {
+						name: this.frm.doc.auto_repeat
+					},
+					fieldname: ["frequency"]
+				},
+			 	callback: function(res){
+					me.sidebar.find(".auto-repeat-status").html(__("Repeats {0}",
+						["<stong>" + res.message.frequency + "</strong>"]));
+					me.sidebar.find(".auto-repeat-status").on("click", function(){
+						frappe.set_route("Form", "Auto Repeat", me.frm.doc.auto_repeat);
+					})
+				}
+			});
+		}
 	},
 
 	refresh_comments: function() {
