@@ -40,7 +40,8 @@ class AssignmentRule(Document):
 			doctype = doc.get('doctype'),
 			name = doc.get('name'),
 			description = frappe.render_template(self.description, doc),
-			assignment_rule = self.name
+			assignment_rule = self.name,
+			notify = True
 		))
 
 		# set for reference in round robin
