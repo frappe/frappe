@@ -157,12 +157,15 @@
    "fieldname": "auto_repeat",
    "fieldtype": "Link",
    "label": "Auto Repeat",
-   "options": "Auto Repeat"
+   "no_copy": 1,
+   "options": "Auto Repeat",
+   "print_hide": 1,
+   "read_only": 1
   }
  ],
  "icon": "fa fa-check",
  "idx": 2,
- "modified": "2019-06-19 21:24:26.912661",
+ "modified": "2019-06-20 09:25:58.326858",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "ToDo",
