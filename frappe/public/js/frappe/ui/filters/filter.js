@@ -207,7 +207,7 @@ frappe.ui.Filter = class {
 
 	make_field(df, old_fieldtype) {
 		let old_text = this.field ? this.field.get_value() : null;
-		this.hide_invalid_conditions(df.original_type);
+		this.hide_invalid_conditions(df.fieldtype, df.original_type);
 		this.toggle_nested_set_conditions(df);
 		let field_area = this.filter_edit_area.find('.filter-field').empty().get(0);
 		let f = frappe.ui.form.make_control({
@@ -303,8 +303,9 @@ frappe.ui.Filter = class {
 			: __("use % as wildcard"))+'</div>');
 	}
 
-	hide_invalid_conditions(fieldtype) {
-		let invalid_conditions = this.invalid_condition_map[fieldtype] || [];
+	hide_invalid_conditions(fieldtype, original_type) {
+		let invalid_conditions = this.invalid_condition_map[original_type]
+			|| this.invalid_condition_map[fieldtype] || [];
 
 		for (let condition of this.conditions) {
 			this.filter_edit_area.find(`.condition option[value="${condition[0]}"]`).toggle(
