@@ -18,6 +18,10 @@ def remove_attach():
 	file_name = frappe.form_dict.get('file_name')
 	frappe.delete_doc('File', fid)
 
+@frappe.whitelist()
+def get_doc_list(doctype, list_filters, sort_order):
+    doc_list = frappe.get_list(doctype,filters=list_filters, order_by = sort_order)
+    return doc_list
 
 @frappe.whitelist()
 def validate_link():

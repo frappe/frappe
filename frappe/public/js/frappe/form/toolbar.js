@@ -125,6 +125,16 @@ frappe.ui.form.Toolbar = Class.extend({
 			}
 		}
 
+		if(!this.frm.doc.__islocal && !this.frm.meta.issingle) {
+			var me = this;
+			this.arrow_icon = this.page.add_action_icon("fa fa-chevron-left navigate-doc", function() {
+				me.frm.navigate_doc('prev')
+			});
+			this.arrow_icon = this.page.add_action_icon("fa fa-chevron-right navigate-doc", function() {
+				me.frm.navigate_doc('next')
+			});
+		}
+
 		// email
 		if(frappe.model.can_email(null, me.frm) && me.frm.doc.docstatus < 2) {
 			this.page.add_menu_item(__("Email"), function() {

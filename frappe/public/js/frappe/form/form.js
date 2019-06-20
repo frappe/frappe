@@ -35,6 +35,7 @@ frappe.ui.form.Form = class FrappeForm {
 		this.pformat = {};
 		this.fetch_dict = {};
 		this.parent = parent;
+		this.set_doc_list();
 
 		this.setup_meta(doctype);
 
@@ -795,6 +796,37 @@ frappe.ui.form.Form = class FrappeForm {
 
 	print_doc() {
 		this.print_preview.toggle();
+	}
+
+	navigate_doc(dir) {
+		if(this.list_settings !== frappe.get_user_settings(this.doctype)['List']) {
+			this.set_doc_list();
+		} else {
+			let current_index = this.doc_list_map[this.docname];
+			let next_index = dir==='next' ? current_index+1 : current_index -1;
+			if(next_index >= this.doc_list.length) {
+				frappe.msgprint("No further records")
+			} else if(next_index < 0) {
+				frappe.msgprint("No previous records")
+			} else {
+				let next_doc = this.doc_list[next_index];
+				let route_str = 'Form/'+this.doctype +'/'+next_doc;
+				frappe.set_route(route_str);
+			}
+		} 
+	}
+
+	set_doc_list() {
+		this.list_settings = frappe.get_user_settings(this.doctype)['List'];
+		let list_filters = this.list_settings.filters;
+		let sort_order = 'modified ' + this.list_settings.sort_order;
+		frappe.call('frappe.desk.form.utils.get_doc_list', {doctype: this.doctype, list_filters: list_filters, sort_order: sort_order }).then((data) => {
+			this.doc_list = data.message.map(f=> f.name);
+			this.doc_list_map = {};
+			for(var i = 0; i < this.doc_list.length; i++) {
+				this.doc_list_map[this.doc_list[i]] = i;
+			}
+		});
 	}
 
 	rename_doc() {
