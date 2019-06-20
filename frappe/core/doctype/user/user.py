@@ -152,7 +152,7 @@ class User(Document):
 		if new_password and not self.flags.in_insert:
 			_update_password(user=self.name, pwd=new_password, logout_all_sessions=self.logout_all_sessions)
 
-			if self.send_password_update_notification:
+			if self.send_password_update_notification and self.enabled:
 				self.password_update_mail(new_password)
 				frappe.msgprint(_("New password emailed"))
 
