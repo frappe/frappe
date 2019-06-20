@@ -355,6 +355,8 @@ def get_context(context):
 def accept(web_form, data, for_payment=False):
 	'''Save the web form'''
 	data = frappe._dict(json.loads(data))
+	for_payment = frappe.parse_json(for_payment)
+
 	files = []
 	files_to_delete = []
 
@@ -447,7 +449,7 @@ def accept(web_form, data, for_payment=False):
 	if for_payment:
 		return web_form.get_payment_gateway_url(doc)
 	else:
-		return doc.as_dict()
+		return doc
 
 @frappe.whitelist()
 def delete(web_form_name, docname):
