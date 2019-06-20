@@ -129,6 +129,9 @@ def now_datetime():
 def get_timestamp(date):
 	return time.mktime(getdate(date).timetuple())
 
+def get_time_in_timedelta(time):
+	return datetime.timedelta(hours=time.hour, minutes=time.minute, seconds=time.second)
+
 def get_eta(from_time, percent_complete):
 	diff = time_diff(now_datetime(), from_time).total_seconds()
 	return str(datetime.timedelta(seconds=(100 - percent_complete) / percent_complete * diff))
