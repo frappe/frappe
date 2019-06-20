@@ -101,7 +101,7 @@ class AutoRepeat(Document):
 			'2': 'Cancelled'
 		}[cstr(self.docstatus or 0)]
 
-		if status and status != 'Resumed':
+		if status:
 			self.status = status
 
 		if self.docstatus == 2:
@@ -172,7 +172,7 @@ def get_auto_repeat_entries(date):
 		where docstatus = 1 and next_schedule_date <=%s
 			and reference_document is not null and reference_document != ''
 			and next_schedule_date <= ifnull(end_date, '2199-12-31')
-			and disabled = 0 and status != 'Stopped' """, (date), as_dict=1)
+			and disabled = 0 and status != 'Cancelled' """, (date), as_dict=1)
 
 def create_documents(data, schedule_date):
 	try:
@@ -349,19 +349,6 @@ def make_auto_repeat(doctype, docname, submit = False, opts = None):
 		doc.submit()
 
 	return doc
-
-@frappe.whitelist()
-def stop_resume_auto_repeat(auto_repeat, status):
-	doc = frappe.get_doc('Auto Repeat', auto_repeat)
-	frappe.msgprint(_("Auto Repeat has been {0}").format(status))
-	if status == 'Resumed':
-		doc.next_schedule_date = get_next_schedule_date(today(),
-			doc.frequency, doc.repeat_on_day)
-
-	doc.update_status(status)
-	doc.save()
-
-	return doc.status
 
 def auto_repeat_doctype_query(doctype, txt, searchfield, start, page_len, filters):
 	return frappe.db.sql("""select parent from `tabDocField`

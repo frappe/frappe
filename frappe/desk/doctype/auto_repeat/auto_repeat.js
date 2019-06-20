@@ -40,45 +40,13 @@ frappe.ui.form.on('Auto Repeat', {
 					frappe.set_route("List", frm.doc.reference_doctype);
 				}
 			);
-
-			if(frm.doc.status != 'Stopped') {
-				frm.add_custom_button(__("Stop"),
-					function() {
-						frm.events.stop_resume_auto_repeat(frm, "Stopped");
-					}
-				);
-			}
-
-			if(frm.doc.status == 'Stopped') {
-				frm.add_custom_button(__("Restart"),
-					function() {
-						frm.events.stop_resume_auto_repeat(frm, "Resumed");
-					}
-				);
-			}
 		}
 
-		frm.toggle_display('auto_repeat_schedule', !in_list(['Stopped', 'Cancelled'], frm.doc.status));
-		if(frm.doc.start_date && !in_list(['Stopped', 'Cancelled'], frm.doc.status)){
+		frm.toggle_display('auto_repeat_schedule', !in_list(['Cancelled'], frm.doc.status));
+		if(frm.doc.start_date && !in_list(['Cancelled'], frm.doc.status)){
 			frappe.auto_repeat.render_schedule(frm);
 		}
 
-	},
-
-	stop_resume_auto_repeat: function(frm, status) {
-		frappe.call({
-			method: "frappe.desk.doctype.auto_repeat.auto_repeat.stop_resume_auto_repeat",
-			args: {
-				auto_repeat: frm.doc.name,
-				status: status
-			},
-			callback: function(r) {
-				if(r.message) {
-					frm.set_value("status", r.message);
-					frm.reload_doc();
-				}
-			}
-		});
 	},
 
 	template: function(frm) {

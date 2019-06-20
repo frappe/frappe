@@ -261,17 +261,6 @@ frappe.utils.xss_sanitise = function (string, options) {
 frappe.utils.new_auto_repeat_prompt = function(frm) {
 	const fields = [
 		{
-			'fieldname': 'start_date',
-			'fieldtype': 'Date',
-			'label': __('Start Date'),
-			'default': frappe.datetime.nowdate()
-		},
-		{
-			'fieldname': 'end_date',
-			'fieldtype': 'Date',
-			'label': __('End Date')
-		},
-		{
 			'fieldname': 'frequency',
 			'fieldtype': 'Select',
 			'label': __('Frequency'),
@@ -284,6 +273,17 @@ frappe.utils.new_auto_repeat_prompt = function(frm) {
 				{'label': __('Half-yearly'), 'value': 'Half-yearly'},
 				{'label': __('Yearly'), 'value': 'Yearly'}
 			]
+		},
+		{
+			'fieldname': 'start_date',
+			'fieldtype': 'Date',
+			'label': __('Start Date'),
+			'default': frappe.datetime.nowdate()
+		},
+		{
+			'fieldname': 'end_date',
+			'fieldtype': 'Date',
+			'label': __('End Date')
 		}
 	];
 	frappe.prompt(fields, function(values) {
