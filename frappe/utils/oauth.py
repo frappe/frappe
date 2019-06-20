@@ -267,6 +267,11 @@ def update_oauth_user(user, data, provider):
 		save = True
 		user.set_social_login_userid(provider, userid="/".join(data["sub"].split("/")[-2:]))
 
+	elif not user.get_social_login_userid(provider):
+		save = True
+		user_id_property = frappe.db.get_value("Social Login Key", provider, "user_id_property") or "sub"
+		user.set_social_login_userid(provider, userid=data[user_id_property])
+
 	if save:
 		user.flags.ignore_permissions = True
 		user.flags.no_welcome_mail = True
