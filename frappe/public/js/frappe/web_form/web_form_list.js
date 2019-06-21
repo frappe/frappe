@@ -299,8 +299,9 @@ frappe.ui.WebFormListRow = class WebFormListRow {
 
 		this.columns.forEach(field => {
 			let cell = this.row.insertCell();
-			let formatter = frappe.form.get_formatter(field.fieldtype)
-			cell.innerHTML = this.doc[field.fieldname] && formatter(this.doc[field.fieldname]) || "";
+			let formatter = frappe.form.get_formatter(field.fieldtype);
+			cell.innerHTML = this.doc[field.fieldname] &&
+				formatter(this.doc[field.fieldname], field, {only_value: 1}, this.doc) || "";
 		});
 
 		this.row.onclick = () => this.events.onEdit();

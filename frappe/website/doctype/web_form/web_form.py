@@ -572,7 +572,7 @@ def get_in_list_view_fields(doctype):
 
 	def get_field_df(fieldname):
 		if fieldname == 'name':
-			return { 'fieldname': 'name', 'fieldtype': 'Data' }
+			return { 'label': 'Name', 'fieldname': 'name', 'fieldtype': 'Data' }
 		return meta.get_field(fieldname).as_dict()
 
 	return [get_field_df(f) for f in fields]

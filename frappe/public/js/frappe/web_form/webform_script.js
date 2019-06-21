@@ -46,7 +46,7 @@ frappe.ready(function() {
 			let web_form = new frappe.ui.WebForm({
 				parent: wrapper,
 				fields: data.web_form.web_form_fields,
-				doc: res.message.doc,
+				doc: res.message.doc || {},
 				...data.web_form,
 			});
 

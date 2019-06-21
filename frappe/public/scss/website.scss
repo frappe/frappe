@@ -127,8 +127,16 @@ h4.modal-title {
 	@extend .d-sm-none;
 }
 
+.form-section {
+	margin-right: -45px;
+}
+
 .form-section .section-body {
-	width:100%;
+	width: 100%;
 	padding: 15px;
 	@extend .row;
+}
+
+.pull-right {
+	float: right;
 }
