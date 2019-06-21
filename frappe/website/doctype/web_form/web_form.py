@@ -557,7 +557,25 @@ def get_form_data(doctype, docname=None, web_form_name=None):
 
 @frappe.whitelist()
 def get_in_list_view_fields(doctype):
-	return [df.as_dict() for df in frappe.get_meta(doctype).fields if df.in_list_view]
+	meta = frappe.get_meta(doctype)
+	fields = []
+
+	if meta.title_field:
+		fields.append(meta.title_field)
+	else:
+		fields.append('name')
+
+	if meta.has_field('status'):
+		fields.append('status')
+
+	fields += [df.fieldname for df in meta.fields if df.in_list_view and df.fieldname not in fields]
+
+	def get_field_df(fieldname):
+		if fieldname == 'name':
+			return { 'fieldname': 'name', 'fieldtype': 'Data' }
+		return meta.get_field(fieldname).as_dict()
+
+	return [get_field_df(f) for f in fields]
 
 @frappe.whitelist(allow_guest=True)
 def get_link_options(web_form_name, doctype, allow_read_on_all_link_options=False):
