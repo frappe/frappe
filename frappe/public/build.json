@@ -324,7 +324,6 @@
 	"css/web_form.css": [
 		"public/less/list.less",
 		"website/css/web_form.css",
-		"public/less/quill.less",
 		"public/css/octicons/octicons.css",
 		"public/less/form_grid.less",
 		"public/less/controls.less",
