@@ -33,7 +33,6 @@
 		"public/js/frappe/utils/number_format.js",
 		"public/js/frappe/utils/utils.js",
 		"public/js/frappe/utils/common.js",
-		"public/js/frappe/utils/jquery_plugins.js",
 		"public/js/frappe/ui/messages.js",
 		"public/js/frappe/translate.js",
 		"public/js/frappe/utils/pretty_date.js",
@@ -50,8 +49,7 @@
 
 		"website/js/website.js",
 		"public/js/frappe/utils/rating_icons.html",
-		"public/js/frappe/socketio_client.js",
-		"public/js/frappe/utils/jquery_plugins.js"
+		"public/js/frappe/socketio_client.js"
 	],
 	"js/bootstrap-4-web.min.js": [
 		"website/js/bootstrap-4.js"
