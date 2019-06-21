@@ -521,6 +521,11 @@ frappe.ui.Page = Class.extend({
 	},
 	add_field: function(df) {
 		this.show_form();
+
+		if (!df.placeholder) {
+			df.placeholder = df.label;
+		}
+
 		var f = frappe.ui.form.make_control({
 			df: df,
 			parent: this.page_form,

@@ -5,6 +5,7 @@ frappe.ui.form.ControlCode = frappe.ui.form.ControlText.extend({
 	},
 
 	make_ace_editor() {
+		if (this.editor) return;
 		this.ace_editor_target = $('<div class="ace-editor-target"></div>')
 			.appendTo(this.input_area);
 

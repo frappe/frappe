@@ -36,6 +36,7 @@ import './multiselect';
 import './multicheck';
 import './table_multiselect';
 import './multiselect_pills';
+import './multiselect_list';
 import './rating';
 
 frappe.ui.form.make_control = function (opts) {

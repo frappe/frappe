@@ -314,14 +314,16 @@ frappe.ui.form.Toolbar = Class.extend({
 		var p = this.frm.perm[0];
 		var has_workflow = this.has_workflow();
 
-		if(has_workflow) {
+		if (docstatus === 2 && p[AMEND]) {
+			this.page.set_secondary_action(__('Amend'), function () {
+				me.frm.amend_doc();
+			}, 'fa fa-pencil', true);
+		} else if (has_workflow) {
 			return;
-		} else if(docstatus==1 && p[CANCEL]) {
-			this.page.set_secondary_action(__('Cancel'), function() {
-				me.frm.savecancel(this) }, 'fa fa-ban-circle');
-		} else if(docstatus==2 && p[AMEND]) {
-			this.page.set_secondary_action(__('Amend'), function() {
-				me.frm.amend_doc() }, 'fa fa-pencil', true);
+		} else if (docstatus === 1 && p[CANCEL]) {
+			this.page.set_secondary_action(__('Cancel'), function () {
+				me.frm.savecancel(this);
+			}, 'fa fa-ban-circle');
 		}
 	},
 	add_update_button_on_dirty: function() {

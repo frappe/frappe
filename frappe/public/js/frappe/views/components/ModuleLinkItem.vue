@@ -92,7 +92,6 @@ a:hover, a:focus {
 
 .link-content {
 	flex: 1;
-	font-size: 1.1em;
 }
 
 .popover {

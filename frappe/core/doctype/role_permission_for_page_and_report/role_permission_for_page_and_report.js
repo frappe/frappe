@@ -9,16 +9,22 @@ frappe.ui.form.on('Role Permission for Page and Report', {
 	refresh: function(frm) {
 		frm.disable_save();
 		frm.role_area.hide();
-
-		frm.add_custom_button(__("Reset to defaults"), function() {
-			frm.trigger("reset_roles");
-		});
-
-		frm.add_custom_button(__("Update"), function() {
-			frm.trigger("update_report_page_data");
-		}).addClass('btn-primary');
+		frm.events.add_custom_buttons(frm);
 	},
-	
+
+	add_custom_buttons: function(frm) {
+		frm.clear_custom_buttons();
+		if(frm.doc.set_role_for && frm.doc[frappe.model.scrub(frm.doc.set_role_for)]) {
+			frm.add_custom_button(__("Reset to defaults"), function() {
+				frm.trigger("reset_roles");
+			});
+
+			frm.add_custom_button(__("Update"), function() {
+				frm.trigger("update_report_page_data");
+			}).addClass('btn-primary');
+		}
+	},
+
 	onload: function(frm) {
 		if(!frm.roles_editor) {
 			frm.role_area = $('<div style="min-height: 300px">')
@@ -48,14 +54,20 @@ frappe.ui.form.on('Role Permission for Page and Report', {
 	},
 
 	page: function(frm) {
+		frm.events.add_custom_buttons(frm);
 		if(frm.doc.page) {
 			frm.trigger("set_report_page_data");
+		} else {
+			frm.trigger("set_role_for");
 		}
 	},
 
 	report: function(frm){
+		frm.events.add_custom_buttons(frm);
 		if(frm.doc.report) {
 			frm.trigger("set_report_page_data");
+		} else {
+			frm.trigger("set_role_for");
 		}
 	},
 
@@ -107,7 +119,7 @@ frappe.ui.form.on('Role Permission for Page and Report', {
 		if(!frm.doc.set_role_for){
 			frappe.throw(__("Mandatory field: set role for"))
 		}
-		
+
 		if(frm.doc.set_role_for && !frm.doc[frm.doc.set_role_for.toLocaleLowerCase()]) {
 			frappe.throw(__("Mandatory field: {0}", [frm.doc.set_role_for]))
 		}

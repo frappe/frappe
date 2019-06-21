@@ -1,17 +1,20 @@
 .chart-wrapper {
     border: 1px solid #d1d8dd;
     border-radius: 4px;
-    height: 340px;
+    height: 320px;
     margin: 15px 0;
+    padding-left: 15px;
+    padding-right: 15px;
 }
 
 .chart-container {
-    padding: 15px;
+    margin-top: 30px;
 }
 
-.chart-container > .title {
+.frappe-chart > text.title {
     margin: 0px;
-    font-size: 14px;
+    font-size: 14px !important;
+    font-weight: bold;
 }
 
 .chart-loading-state {

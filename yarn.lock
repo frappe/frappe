@@ -1753,10 +1753,15 @@ fragment-cache@^0.2.1:
   dependencies:
     map-cache "^0.2.2"
 
-frappe-datatable@^1.13.2:
-  version "1.13.2"
-  resolved "https://registry.yarnpkg.com/frappe-datatable/-/frappe-datatable-1.13.2.tgz#8b36c7cfc0ea660fc72eea8b1ae3c5dcc2a7d67d"
-  integrity sha512-4PyPDX22K4e4S3WGlLQx3oyxIW+ENsbGiN9L6aUpmjU+fOCC7J/FfSwGKdua2f+4yD+2ObpkyJYazBl3inAeCA==
+frappe-charts@^1.2.2:
+  version "1.2.2"
+  resolved "https://registry.yarnpkg.com/frappe-charts/-/frappe-charts-1.2.2.tgz#2af592c1dfce07554b8278ad2fb330922fbcd5d8"
+  integrity sha512-TrZ/JPqvr/RWHKW0fneh3dDzKPm3d+oDEMJj8aREbOWXNhOOIwfonp0uLwo8hxyGEZPwpDAKqs0154GgahSXkA==
+
+frappe-datatable@^1.13.3:
+  version "1.13.3"
+  resolved "https://registry.yarnpkg.com/frappe-datatable/-/frappe-datatable-1.13.3.tgz#14036f3eb40ddec9a1cd303747e7d6378b3a596d"
+  integrity sha512-9uSk35ELiwRPrR1OZeSR+MdN82Vz32vssw8z/YYPYAbJTjqpraMVsjztBbqfIyDYTmxnG0MHSWp8HOgxeTphqA==
   dependencies:
     hyperlist "^1.0.0-beta"
     lodash "^4.17.5"
@@ -1787,9 +1792,9 @@ fs.realpath@^1.0.0:
   integrity sha1-FQStJSMVjKpA20onh8sBQRmU6k8=
 
 fstream@^1.0.0, fstream@^1.0.2:
-  version "1.0.11"
-  resolved "https://registry.yarnpkg.com/fstream/-/fstream-1.0.11.tgz#5c1fb1f117477114f0632a0eb4b71b3cb0fd3171"
-  integrity sha1-XB+x8RdHcRTwYyoOtLcbPLD9MXE=
+  version "1.0.12"
+  resolved "https://registry.yarnpkg.com/fstream/-/fstream-1.0.12.tgz#4e8ba8ee2d48be4f7d0de505455548eae5932045"
+  integrity sha512-WvJ193OHa0GHPEL+AycEJgxvBEwyfRkN1vhjca23OaPVMCaLCXTd5qAu82AjTcgP1UJmytkOKb63Ypde7raDIg==
   dependencies:
     graceful-fs "^4.1.2"
     inherits "~2.0.0"
@@ -1880,10 +1885,22 @@ glob@7.1.2:
     once "^1.3.0"
     path-is-absolute "^1.0.0"
 
-glob@^7.0.0, glob@^7.0.3, glob@^7.1.2, glob@^7.1.3, glob@~7.1.1:
+glob@^7.0.0, glob@^7.0.3, glob@^7.1.2, glob@~7.1.1:
   version "7.1.3"
   resolved "https://registry.yarnpkg.com/glob/-/glob-7.1.3.tgz#3960832d3f1574108342dafd3a67b332c0969df1"
   integrity sha512-vcfuiIxogLV4DlGBHIUOwI0IbrJ8HWPc4MU7HzviGeNho/UJDfi6B5p3sHeWIQ0KGIU0Jpxi5ZHxemQfLkkAwQ==
+  dependencies:
+    fs.realpath "^1.0.0"
+    inflight "^1.0.4"
+    inherits "2"
+    minimatch "^3.0.4"
+    once "^1.3.0"
+    path-is-absolute "^1.0.0"
+
+glob@^7.1.3:
+  version "7.1.4"
+  resolved "https://registry.yarnpkg.com/glob/-/glob-7.1.4.tgz#aa608a2f6c577ad357e1ae5a5c26d9a8d1969255"
+  integrity sha512-hkLPepehmnKk41pUGm3sYxoFs/umurYfYJCerbXEyFIWcAzvpipAgVkBqqT9RBKMGjnq6kMuyYwha6csxbiM1A==
   dependencies:
     fs.realpath "^1.0.0"
     inflight "^1.0.4"

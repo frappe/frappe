@@ -10,6 +10,7 @@ app_icon = "octicon octicon-circuit-board"
 app_color = "orange"
 source_link = "https://github.com/frappe/frappe"
 app_license = "MIT"
+app_logo_url = '/assets/frappe/images/frappe-framework-logo.png'
 
 develop_version = '12.x.x-develop'
 
@@ -159,7 +160,7 @@ scheduler_events = {
 		"frappe.limits.update_site_usage",
 		"frappe.desk.doctype.auto_repeat.auto_repeat.make_auto_repeat_entry",
 		"frappe.deferred_insert.save_to_db",
-		"frappe.desk.form.document_follow.send_hourly_updates"
+		"frappe.desk.form.document_follow.send_hourly_updates",
 	],
 	"daily": [
 		"frappe.email.queue.clear_outbox",
@@ -175,7 +176,8 @@ scheduler_events = {
 		"frappe.core.doctype.activity_log.activity_log.clear_authentication_logs",
 		"frappe.website.doctype.personal_data_deletion_request.personal_data_deletion_request.remove_unverified_record",
 		"frappe.desk.form.document_follow.send_daily_updates",
-		"frappe.social.doctype.energy_point_settings.energy_point_settings.allocate_review_points"
+		"frappe.social.doctype.energy_point_settings.energy_point_settings.allocate_review_points",
+		"frappe.integrations.doctype.google_contacts.google_contacts.sync",
 	],
 	"daily_long": [
 		"frappe.integrations.doctype.dropbox_settings.dropbox_settings.take_backups_daily",

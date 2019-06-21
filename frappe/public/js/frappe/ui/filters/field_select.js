@@ -112,7 +112,7 @@ frappe.ui.FieldSelect = Class.extend({
 		var main_table_fields = std_filters.concat(frappe.meta.docfield_list[me.doctype]);
 		$.each(frappe.utils.sort(main_table_fields, "label", "string"), function(i, df) {
 			// show fields where user has read access and if report hide flag is not set
-			if(frappe.perm.has_perm(me.doctype, df.permlevel, "read") && !df.report_hide)
+			if(frappe.perm.has_perm(me.doctype, df.permlevel, "read"))
 				me.add_field_option(df);
 		});
 
@@ -122,7 +122,7 @@ frappe.ui.FieldSelect = Class.extend({
 				var child_table_fields = [].concat(frappe.meta.docfield_list[table_df.options]);
 				$.each(frappe.utils.sort(child_table_fields, "label", "string"), function(i, df) {
 					// show fields where user has read access and if report hide flag is not set
-					if(frappe.perm.has_perm(me.doctype, df.permlevel, "read") && !df.report_hide)
+					if(frappe.perm.has_perm(me.doctype, df.permlevel, "read"))
 						me.add_field_option(df);
 				});
 			}
