@@ -13,7 +13,6 @@ frappe.views.ListSidebar = class ListSidebar {
 	constructor(opts) {
 		$.extend(this, opts);
 		this.make();
-		this.get_stats();
 		this.cat_tags = [];
 	}
 
@@ -45,13 +44,14 @@ frappe.views.ListSidebar = class ListSidebar {
 			this.setup_upgrade_box();
 		}
 
-		if(this.doctype !== 'ToDo') {
-			$('.assigned-to').show();
+		if (this.list_view.list_view_settings && this.list_view.list_view_settings.disable_sidebar_stats) {
+			this.sidebar.find('.sidebar-stat').remove();
+		} else {
+			this.sidebar.find('.list-stats').on('click', (e) => {
+				$(e.currentTarget).find('.stat-link').remove();
+				this.get_stats();
+			});
 		}
-		$('.assigned-to').on('click', () => {
-			$('.assigned').remove();
-			this.setup_assigned_to();
-		});
 
 	}
 
@@ -232,31 +232,6 @@ frappe.views.ListSidebar = class ListSidebar {
 		});
 	}
 
-	setup_assigned_to() {
-		$('.assigned-loading').show();
-		let dropdown = this.page.sidebar.find('.assigned-dropdown');
-		let current_filters = this.list_view.get_filters_for_args();
-
-		frappe.call('frappe.desk.listview.get_user_assignments_and_count', {doctype: this.doctype, current_filters: current_filters}).then((data) => {
-			$('.assigned-loading').hide();
-			let current_user  = data.message.find(user => user.name === frappe.session.user);
-			if(current_user) {
-				let current_user_count = current_user.count;
-				this.get_html_for_assigned(frappe.session.user, current_user_count).appendTo(dropdown);
-			}
-			let user_list = data.message.filter(user => !['Guest', frappe.session.user, 'Administrator'].includes(user.name) && user.count!==0 );
-			user_list.forEach((user) => {
-				this.get_html_for_assigned(user.name, user.count).appendTo(dropdown);
-			});
-			$(".assigned-dropdown li a").on("click", (e) => {
-				let assigned_user = $(e.currentTarget).find($('.assigned-user')).text();
-				if(assigned_user === 'Me') assigned_user = frappe.session.user;
-				this.list_view.filter_area.remove('_assign');
-				this.list_view.filter_area.add(this.list_view.doctype, "_assign", "like", `%${assigned_user}%`);
-			});
-		});
-	}
-
 	setup_keyboard_shortcuts() {
 		this.sidebar.find('.list-link > a, .list-link > .btn-group > a').each((i, el) => {
 			frappe.ui.keys
@@ -265,21 +240,14 @@ frappe.views.ListSidebar = class ListSidebar {
 		});
 	}
 
-	get_html_for_assigned(name, count) {
-		if (name === frappe.session.user) name='Me';
-		if (count > 99) count='99+';
-		let html = $('<li class="assigned"><a class="badge-hover" href="#" onclick="return false;" role="assigned-item"><span class="assigned-user">'
-					+ name + '</span><span class="badge pull-right" style="position:relative">' + count + '</span></a></li>');
-		return html;
-	}
-
 	setup_list_group_by() {
+		this.add_group_by_dropdown_fields(['assigned_to']);
 		let d = new frappe.ui.Dialog ({
 			title: __("Add Filter By"),
 			fields: this.get_group_by_dropdown_fields()
 		});
 		d.set_primary_action("Add", (values) => {
-			this.page.sidebar.find('.group-by-field').remove();
+			this.page.sidebar.find('.group-by-field a').not("[data-fieldname='assigned_to']").remove();
 			let fields = values[this.doctype];
 			delete values[this.doctype];
 			if(!fields) {
@@ -290,59 +258,104 @@ frappe.views.ListSidebar = class ListSidebar {
 			}
 			d.hide();
 		});
+
 		this.page.sidebar.find(".add-list-group-by a ").on("click", () => {
 			d.show();
 		});
 	}
 
 	get_group_by_count(field, dropdown) {
-		dropdown.find('.group-by-loading').show();
-		dropdown.find('.group-by-item').remove();
-		let current_filters = this.list_view.get_filters_for_args();
+		let current_filters = this.list_view.get_filters_for_args(), field_list;
 		frappe.call('frappe.desk.listview.get_group_by_count',
 			{doctype: this.doctype, current_filters: current_filters, field: field}).then((data) => {
 			dropdown.find('.group-by-loading').hide();
-			let field_list = data.message.filter(field => field.count!==0 );
+			if(field === 'assigned_to') {
+				let current_user  = data.message.find(user => user.name === frappe.session.user);
+				if(current_user) {
+					let current_user_count = current_user.count;
+					this.get_html_for_group_by('Me', current_user_count).appendTo(dropdown);
+				}
+				field_list = data.message.filter(user => !['Guest', frappe.session.user, 'Administrator'].includes(user.name) && user.count!==0 );
+			} else {
+				field_list = data.message.filter(field => field.count!==0 );
+			}
 			field_list.forEach((f) => {
 				if(f.name === null) {
-					f.name = 'Not Specified'
+					f.name = 'Not Specified';
 				}
 				this.get_html_for_group_by(f.name, f.count).appendTo(dropdown);
 			});
+			if(field_list.length) {
+				this.setup_dropdown_search(dropdown, '.group-by-value');
+			} else {
+				dropdown.find('.dropdown-search').hide();
+			}
+			this.setup_group_by_filter(dropdown, field);
+		});
+	}
 
-			dropdown.find("li a").on("click", (e) => {;
-				let value = $(e.currentTarget).find($('.group-by-value')).text().trim();
-				let fieldname = $(e.currentTarget).parents('.group-by-field').children('a').attr('data-fieldname');
+	setup_group_by_filter(dropdown, field) {
+		dropdown.find("li a").on("click", (e) => {
+			let value = $(e.currentTarget).find($('.group-by-value')).text().trim();
+			let fieldname = field === 'assigned_to'? '_assign': field;
+			this.list_view.filter_area.remove(field);
+			if(value === 'Not Specified') {
+				this.list_view.filter_area.add(this.doctype, fieldname, "like", '');
+			} else {
+				if(value === 'Me') value = frappe.session.user;
+				this.list_view.filter_area.add(this.doctype, fieldname, "like", `%${value}%`);
+			}
+		});
+	}
 
-				this.list_view.filter_area.remove(fieldname);
-				if(value === 'Not Specified') {
-					this.list_view.filter_area.add(this.doctype, fieldname, "like", '');
+	setup_dropdown_search(dropdown, text_class) {
+		let $dropdown_search = dropdown.find('.dropdown-search').show();
+		let $search_input = $dropdown_search.find('.dropdown-search-input');
+		$search_input.focus();
+		$dropdown_search.on('click',(e)=>{
+			e.stopPropagation();
+		});
+		let $elements = dropdown.find('li');
+		$dropdown_search.on('keyup',()=> {
+			let text_filter = $search_input.find('.dropdown-search-input').val().toLowerCase();
+			let text;
+			for (var i = 0; i < $elements.length; i++) {
+				text = $elements.eq(i).find(text_class).text();
+				if (text.toLowerCase().indexOf(text_filter) > -1) {
+					$elements.eq(i).css('display','');
+				} else {
+					$elements.eq(i).css('display','none');
 				}
-				else this.list_view.filter_area.add(this.doctype, fieldname, "like", `%${value}%`);
-			});
+			}
+		});
+		dropdown.parent().on('hide.bs.dropdown',()=> {
+			$dropdown_search.val('');
 		});
 	}
 
 	add_group_by_dropdown_fields(fields) {
 		if(fields) {
 			fields.forEach((field)=> {
-				let field_label = frappe.meta.get_label(this.doctype, field);
+				let field_label = field === 'assigned_to'? 'Assigned To': frappe.meta.get_label(this.doctype, field);
 				this.list_group_by_dropdown = $(frappe.render_template("list_sidebar_group_by", {
 					field_label: field_label,
 					group_by_field: field,
 				}));
 
 				this.list_group_by_dropdown.on('click', (e)=> {
-					this.get_group_by_count(field, $(e.currentTarget).find('.group-by-dropdown'));
-				})
-				this.list_group_by_dropdown.insertBefore(this.page.sidebar.find('.add-list-group-by'));
-			})
+					let dropdown = $(e.currentTarget).find('.group-by-dropdown');
+					dropdown.find('.group-by-loading').show();
+					dropdown.find('.group-by-item').remove();
+					this.get_group_by_count(field, dropdown);
+				});
+				this.list_group_by_dropdown.insertAfter(this.page.sidebar.find('.list-group-by-label'));
+			});
 		}
 	}
 
 	get_html_for_group_by(name, count) {
 		if (count > 99) count='99+';
-		let html = $('<li class="group-by-item"><a class="badge-hover"><span class="group-by-value">'
+		let html = $('<li class="group-by-item"><a class="badge-hover" href="#" onclick="return false;"><span class="group-by-value">'
 					+ name + '</span><span class="badge pull-right" style="position:relative">' + count + '</span></a></li>');
 		return html;
 	}
@@ -401,9 +414,6 @@ frappe.views.ListSidebar = class ListSidebar {
 
 	get_stats() {
 		var me = this;
-		if (this.list_view.list_view_settings && this.list_view.list_view_settings.disable_sidebar_stats) {
-			return;
-		}
 		frappe.call({
 			method: 'frappe.desk.reportview.get_sidebar_stats',
 			type: 'GET',
@@ -436,6 +446,8 @@ frappe.views.ListSidebar = class ListSidebar {
 					//render normal stats
 					me.render_stat("_user_tags", (r.message.stats || {})["_user_tags"]);
 				}
+				let stats_dropdown = me.sidebar.find('.list-stats-dropdown');
+				me.setup_dropdown_search(stats_dropdown,'.stat-label');
 			}
 		});
 	}
@@ -498,7 +510,7 @@ frappe.views.ListSidebar = class ListSidebar {
 						me.list_view.refresh();
 					});
 			})
-			.insertBefore(this.sidebar.find(".close-sidebar-button"));
+			.appendTo(this.sidebar.find(".list-stats-dropdown"));
 	}
 
 	set_fieldtype(df) {

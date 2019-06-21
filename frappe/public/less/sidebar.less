@@ -126,9 +126,6 @@ body[data-route^="Module"] .main-menu {
 		}
 	}
 
-	.stat-link {
-		margin-bottom: 0.5em;
-	}
 
 	a.close {
 		position: absolute;
@@ -374,14 +371,14 @@ body[data-route^="Module"] .main-menu {
 }
 
 
-.sidebar-left .list-sidebar {
-	.stat-label,
-	.stat-no-records {
-		.sidebar-padding;
+.list-sidebar {
+	.group-by-dropdown, .list-stats-dropdown {
+		max-height: 300px; 
+		overflow-y: auto;
+		max-width: 200px;
 	}
-
-	.stat-label {
-		margin-bottom: -10px;
+	.dropdown-search {
+		padding: 8px;
 	}
 }
 

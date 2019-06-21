@@ -57,23 +57,29 @@
 	{% } %}
 </ul>
 <ul class="list-unstyled sidebar-menu list-group-by">
-	<!-- <li class="h6 group-by-title">{%= __("Group By") %}</li> -->
-	<label class="control-label" style="margin-bottom: 0px;font-size: 10px;">FILTER BY</label>
-	<li class="assigned-to list-link" style="display: none">
-		<a class = "dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-			{%= __("Assigned To") %} <span class="caret"></span>
-		</a>
-		<ul class="dropdown-menu assigned-dropdown" style="max-height: 300px; overflow-y: auto;" role="menu">
-			<li><div class="list-loading text-center assigned-loading text-muted">
-				{%= (__("Loading") + "..." ) %}
-			</div>
-			</li>
-		</ul>
-	</li>
+	<label class="control-label list-group-by-label" style="margin-bottom:0px; font-size: 10px;">FILTER BY</label>
 	<li class="add-list-group-by list-link" style="margin-top: 10px">
 		<a class="add-group-by hidden-xs text-muted">{{ __("Add Fields") }}
-			<!-- <span class="small"><i class="fa fa-plus"></i></span> -->
 		</a>
+	</li>
+</ul>
+
+<ul class="list-unstyled sidebar-menu sidebar-stat">
+	<label class="control-label stat-label" style="margin-bottom:0px;font-size: 10px;">TAGS</label>
+	<li class="list-stats list-link">
+		<div class="btn-group">
+			<a class = "dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" href="#" onclick="return false;">
+				{{ __("Tags") }}<span class="caret"></span>
+			</a>
+			<ul class="dropdown-menu list-stats-dropdown" role="menu">
+				<div class="dropdown-search">
+					<input type="text" placeholder="Search" class="form-control dropdown-search-input input-xs">
+				</div>
+			</ul>
+		</div>
+	</li>
+	<li class="list-link" style="margin-top: 10px;">
+		<a class="list-tag-preview hidden-xs text-muted">{{ __("Show tags") }}</a>
 	</li>
 </ul>
 <ul class="list-unstyled sidebar-menu charts-menu hide">
