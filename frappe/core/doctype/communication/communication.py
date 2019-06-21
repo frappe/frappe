@@ -165,7 +165,7 @@ class Communication(Document):
 				if sender_name == sender_email:
 					sender_name = None
 				self.sender = sender_email
-				self.sender_full_name = sender_name or get_fullname(frappe.session.user) if frappe.session.user!='Administrator' else None
+				self.sender_full_name = sender_name or frappe.db.exists("Contact", {"email_id": sender_email}) or sender_email
 
 	def send(self, print_html=None, print_format=None, attachments=None,
 		send_me_a_copy=False, recipients=None):
