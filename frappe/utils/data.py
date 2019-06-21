@@ -130,6 +130,9 @@ def get_timestamp(date):
 	return time.mktime(getdate(date).timetuple())
 
 def get_time_in_timedelta(time):
+	"""
+		Converts datetime.time(10, 36, 55, 961454) to datetime.timedelta(seconds=38215)
+	"""
 	return datetime.timedelta(hours=time.hour, minutes=time.minute, seconds=time.second)
 
 def get_eta(from_time, percent_complete):
