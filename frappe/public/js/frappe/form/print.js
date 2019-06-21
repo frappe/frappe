@@ -157,7 +157,7 @@ frappe.ui.form.PrintPreview = Class.extend({
 	},
 	set_default_print_language: function () {
  		var print_format = this.get_print_format();
-		this.lang_code = print_format.default_print_language || frappe.boot.lang;
+		this.lang_code = print_format.default_print_language || this.frm.doc.language || frappe.boot.lang;;
 		this.language_sel.val(this.lang_code);
  	},
 	multilingual_preview: function () {
