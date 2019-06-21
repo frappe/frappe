@@ -343,7 +343,10 @@ def rounded(num, precision=0):
 	if not precision and decimal_part == 0.5:
 		num = floor if (floor % 2 == 0) else floor + 1
 	else:
-		num = round(num)
+		if decimal_part == 0.5:
+			num = floor + 1
+		else:
+			num = round(num)
 
 	return (num / multiplier) if precision else num
 
