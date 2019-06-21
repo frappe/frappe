@@ -1,13 +1,10 @@
 frappe.provide("frappe.ui");
 frappe.provide("frappe.web_form");
 
-window.web_form = null;
-
-frappe.ui.WebForm = class WebForm extends frappe.ui.FieldGroup {
+export default class WebForm extends frappe.ui.FieldGroup {
 	constructor(opts) {
 		super();
 		Object.assign(this, opts);
-		window.web_form = this;
 		frappe.web_form = this;
 	}
 

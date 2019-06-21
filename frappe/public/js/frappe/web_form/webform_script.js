@@ -1,3 +1,6 @@
+import WebFormList from './web_form_list'
+import WebForm from './web_form'
+
 frappe.ready(function() {
 	const { web_form_doctype, doc_name, web_form_name } = web_form_settings;
 	const wrapper = $(".web-form-wrapper");
@@ -25,7 +28,7 @@ frappe.ready(function() {
 	}
 
 	function show_grid() {
-		web_form_list = new frappe.ui.WebFormList({
+		new WebFormList({
 			parent: wrapper,
 			doctype: web_form_doctype,
 			web_form_name: web_form_name,
@@ -43,7 +46,7 @@ frappe.ready(function() {
 			data.web_form.is_new = web_form_settings.is_new;
 			data.web_form.doc_name = web_form_settings.doc_name
 
-			let web_form = new frappe.ui.WebForm({
+			let web_form = new WebForm({
 				parent: wrapper,
 				fields: data.web_form.web_form_fields,
 				doc: res.message.doc || {},

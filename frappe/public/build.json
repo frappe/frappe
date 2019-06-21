@@ -313,8 +313,6 @@
 	],
 	"js/web_form.min.js": [
 		"public/js/frappe/misc/datetime.js",
-		"public/js/frappe/web_form/web_form.js",
-		"public/js/frappe/web_form/web_form_list.js",
 		"public/js/frappe/web_form/webform_script.js",
 		"public/js/lib/datepicker/datepicker.min.js",
 		"public/js/lib/datepicker/datepicker.en.js"

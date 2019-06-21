@@ -1,12 +1,11 @@
 frappe.provide("frappe.ui");
 frappe.provide("frappe.views");
+frappe.provide("frappe.web_form_list");
 
-window.web_form_list = null;
-
-frappe.ui.WebFormList = class WebFormList {
+export default class WebFormList {
 	constructor(opts) {
 		Object.assign(this, opts);
-		window.web_form_list = this;
+		frappe.web_form_list = this;
 		this.wrapper = document.getElementById("datatable");
 		this.refresh();
 		this.make_actions();
@@ -176,7 +175,7 @@ frappe.ui.WebFormList = class WebFormList {
 				row: row_element,
 				doc: data_item,
 				columns: this.columns,
-				serial_number: web_form_list.rows.length + 1,
+				serial_number: this.rows.length + 1,
 				events: {
 					onEdit: () => this.open_form(data_item.name),
 					onSelect: () => this.toggle_delete()
