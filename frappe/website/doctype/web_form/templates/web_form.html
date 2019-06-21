@@ -31,9 +31,9 @@
 <div class="list-view-footer text-right"></div>
 {% endif %}
 
-{% if show_attachments and not frappe.form_dict.new and attachements%}
+{% if show_attachments and not frappe.form_dict.new and attachments %}
 <div class="attachments">
-	<h3>{{ _("Attachments") }}</h3>
+	<h5>{{ _("Attachments") }}</h5>
 	{% for attachment in attachments %}
 	<div class="attachment">
 		<a class="no-underline attachment-link" href="{{ attachment.file_url }}" target="blank">
