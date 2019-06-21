@@ -6,7 +6,7 @@ import os
 import unittest
 
 import frappe
-from frappe.utils.testutils import add_custom_field, clear_custom_fields
+from frappe.model.utils.link_count import update_link_count
 
 
 class TestDocument(unittest.TestCase):
@@ -192,8 +192,6 @@ class TestDocument(unittest.TestCase):
 			# cannot run this test reliably in travis due to its handling
 			# of parallelism
 			return
-
-		from frappe.model.utils.link_count import update_link_count
 
 		update_link_count()
 
