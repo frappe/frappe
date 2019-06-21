@@ -153,4 +153,4 @@ export default class WebForm extends frappe.ui.FieldGroup {
 		success_dialog.set_message(success_message);
 		success_dialog.show();
 	}
-};
+}
