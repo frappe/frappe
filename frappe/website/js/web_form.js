@@ -4,6 +4,7 @@ import make_datatable from './grid_list';
 frappe.ready(function() {
 	if(web_form_settings.is_list) {
 		$('body').show();
+		$('body').addClass('show');
 		if($('.web-form-list').length) {
 			make_datatable('.web-form-list', web_form_settings.web_form_doctype);
 		}
@@ -35,6 +36,7 @@ frappe.ready(function() {
 
 	setTimeout(() => {
 		$('body').css('display', 'block');
+		$('body').addClass('show');
 
 		// remove footer save button if form height is less than window height
 		if($('.webform-wrapper').height() < window.innerHeight) {
