@@ -664,7 +664,16 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				}
 			}
 
+			let prev_data;
+
 			const format_cell = (value, row, column, data) => {
+
+				if(data) {
+					prev_data = data;
+				} else {
+					data = prev_data;
+				}
+
 				return frappe.format(value, column,
 					{for_print: false, always_show_decimals: true}, data);
 			};
