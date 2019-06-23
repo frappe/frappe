@@ -1753,10 +1753,10 @@ fragment-cache@^0.2.1:
   dependencies:
     map-cache "^0.2.2"
 
-frappe-charts@^1.2.0:
-  version "1.2.0"
-  resolved "https://registry.yarnpkg.com/frappe-charts/-/frappe-charts-1.2.0.tgz#05616e656825e6736b5f617a16c6e1a8ce76d0c2"
-  integrity sha512-yj47OIDaU9BCpV3gpcLE1rG5r0gCPPr3DUzwxG2DQj9vGLcLRHmNixmsF9pXZOOiOy1M/UeBrCL7l9I0JoGzMQ==
+frappe-charts@^1.2.2:
+  version "1.2.2"
+  resolved "https://registry.yarnpkg.com/frappe-charts/-/frappe-charts-1.2.2.tgz#2af592c1dfce07554b8278ad2fb330922fbcd5d8"
+  integrity sha512-TrZ/JPqvr/RWHKW0fneh3dDzKPm3d+oDEMJj8aREbOWXNhOOIwfonp0uLwo8hxyGEZPwpDAKqs0154GgahSXkA==
 
 frappe-datatable@^1.13.3:
   version "1.13.3"

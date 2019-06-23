@@ -227,13 +227,13 @@ class DashboardChart {
 			"Bar": "bar",
 		};
 		let chart_args = {
-			title: this.chart_doc.chart_name.bold(),
+			title: this.chart_doc.chart_name,
 			data: this.data,
 			type: chart_type_map[this.chart_doc.type],
 			colors: [this.chart_doc.color || "light-blue"],
 			axisOptions: {
 				xIsSeries: this.chart_doc.timeseries
-			},
+			}
 		};
 		this.chart_container.find('.chart-loading-state').addClass('hide');
 

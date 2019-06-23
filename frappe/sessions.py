@@ -231,6 +231,7 @@ class Session:
 			self.insert_session_record()
 
 			# update user
+			user = frappe.get_doc("User", self.data['user'])
 			frappe.db.sql("""UPDATE `tabUser`
 				SET
 					last_login = %(now)s,
@@ -241,7 +242,8 @@ class Session:
 					'ip': frappe.local.request_ip,
 					'name': self.data['user']
 				})
-
+			user.run_notifications("before_change")
+			user.run_notifications("on_update")
 			frappe.db.commit()
 
 	def insert_session_record(self):

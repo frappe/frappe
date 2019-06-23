@@ -5,7 +5,7 @@
 				<i class="octicon octicon-three-bars"></i>
 			</a>
 			<a class="navbar-brand navbar-home hidden-xs hidden-sm" href="#">
-				<img src="/assets/frappe/images/frappe-framework-logo.png">
+				<img class="app-logo" src="{{ frappe.app.logo_url }}">
 			</a>
 			<ul class="nav navbar-nav" id="navbar-breadcrumbs">
 			</ul>
@@ -80,7 +80,7 @@
 							<div class="input-group" style="width: 100%">
 								<input id="modal-search" type="text" class="form-control"
 								placeholder="{%= __("Search or type a command") %}" aria-haspopup="true">
-								<button type="reset" class="close"><i class="octicon octicon-x"></i></button>
+								<button type="reset" class="close" data-dismiss="modal"><i class="octicon octicon-x"></i></button>
 							</div>
 						</form>
 					</div>
