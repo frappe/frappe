@@ -638,6 +638,9 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	}
 
 	prepare_columns(columns) {
+
+		let currency_options = {};
+
 		return columns.map(column => {
 			if (typeof column === 'string') {
 				if (column.includes(':')) {
@@ -664,14 +667,12 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				}
 			}
 
-			let prev_data;
-
 			const format_cell = (value, row, column, data) => {
 
-				if(data) {
-					prev_data = data;
-				} else {
-					data = prev_data;
+				if (column.fieldtype === 'Currency' && data && data[column.options]) {
+					currency_options[column.options] = data[column.options];
+				} else if (column.fieldtype === 'Currency' && (!data) && currency_options[column.options]) {
+					data = currency_options;
 				}
 
 				return frappe.format(value, column,
