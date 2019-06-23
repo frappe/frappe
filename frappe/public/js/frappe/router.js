@@ -198,6 +198,4 @@ $(window).on('hashchange', function() {
 	frappe.route.trigger('change');
 });
 
-
-
 frappe.utils.make_event_emitter(frappe.route);
