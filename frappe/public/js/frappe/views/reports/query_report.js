@@ -99,7 +99,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			// different report
 			this.load_report();
 		}
-		else if (frappe.route_options){
+		else if (frappe.has_route_options()) {
 			// filters passed through routes
 			// so refresh report again
 			this.refresh_report();
