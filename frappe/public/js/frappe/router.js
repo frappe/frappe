@@ -175,6 +175,9 @@ frappe.set_re_route = function() {
 	frappe.re_route[tmp] = window.location.hash;
 };
 
+frappe.has_route_options = function() {
+	return Boolean(Object.keys(frappe.route_options || {}).length);
+}
 
 frappe._cur_route = null;
 
