@@ -634,6 +634,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 	prepare_columns(columns) {
 
+		// options for dynamic currency
 		let currency_options = {};
 
 		return columns.map(column => {
@@ -663,6 +664,11 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			}
 
 			const format_cell = (value, row, column, data) => {
+
+				// sometimes currency if fetched dynamically from a column in reports
+				// since total row doesn't have any data, currecny is fetched from sysdefaults
+				// which causes mismatch in data and total row currecny
+				// so in such cases currency will be fetched from currency_options
 
 				if (column.fieldtype === 'Currency' && data && data[column.options]) {
 					currency_options[column.options] = data[column.options];
