@@ -174,6 +174,7 @@ def create_repeated_entries(data):
 		if schedule_date and not frappe.db.get_value('Auto Repeat', data.name, 'disabled'):
 			frappe.db.set_value('Auto Repeat', data.name, 'next_schedule_date', schedule_date)
 			frappe.db.commit()
+    #if end_date is not specified and scheduled date is today's date update next schedule date when scheduled task is run
 	if schedule_date == getdate(today()) and not frappe.db.get_value('Auto Repeat', data.name, 'disabled'):
 		schedule_date = get_next_schedule_date(schedule_date, data.frequency, data.repeat_on_day)
 		frappe.db.set_value('Auto Repeat', data.name, 'next_schedule_date', schedule_date)
