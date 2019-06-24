@@ -575,7 +575,7 @@ def write_csv_file(path, app_messages, lang_dict):
 			t = lang_dict.get(m, '')
 			# strip whitespaces
 			t = re.sub('{\s?([0-9]+)\s?}', "{\g<1>}", t)
-			w.writerow([p.encode('utf-8') if p else '', m.encode('utf-8'), t.encode('utf-8')])
+			w.writerow([p if p else '', m, t])
 
 def get_untranslated(lang, untranslated_file, get_all=False):
 	"""Returns all untranslated strings for a language and writes in a file
