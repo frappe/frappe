@@ -369,7 +369,10 @@ frappe.views.CommunicationComposer = Class.extend({
 
 		let args = {
 			folder: 'Home/Attachments',
-			on_success: attachment => this.attachments.push(attachment)
+			on_success: attachment => {
+				this.attachments.push(attachment);
+				this.render_attach();
+			}
 		};
 
 		if(this.frm) {
@@ -482,7 +485,7 @@ frappe.views.CommunicationComposer = Class.extend({
 	},
 
 	save_as_draft: function() {
-		if (this.dialog) {
+		if (this.dialog && this.frm) {
 			try {
 				let message = this.dialog.get_value('content');
 				message = message.split(frappe.separator_element)[0];
