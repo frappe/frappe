@@ -117,17 +117,25 @@ class AutoRepeat(Document):
 			start_date_copy = today_copy
 
 		if not self.end_date:
-			days = 60 if self.frequency in ['Daily', 'Weekly'] else 365
-			end_date_copy = add_days(today_copy, days)
-
-		while (getdate(start_date_copy) < getdate(end_date_copy)):
+			# days = 60 if self.frequency in ['Daily', 'Weekly'] else 365
+			# end_date_copy = add_days(today_copy, days)
 			start_date_copy = get_next_schedule_date(start_date_copy, self.frequency, self.repeat_on_day)
 			row = {
-				"reference_document" : self.reference_document,
-				"frequency" : self.frequency,
-				"next_scheduled_date" : start_date_copy
+				"reference_document": self.reference_document,
+				"frequency": self.frequency,
+				"next_schedule_date": start_date_copy
 			}
 			schedule_details.append(row)
+
+		if self.end_date:
+			while (getdate(start_date_copy) < getdate(end_date_copy)):
+				start_date_copy = get_next_schedule_date(start_date_copy, self.frequency, self.repeat_on_day)
+				row = {
+					"reference_document" : self.reference_document,
+					"frequency" : self.frequency,
+					"next_scheduled_date" : start_date_copy
+				}
+				schedule_details.append(row)
 
 		return schedule_details
 
@@ -166,6 +174,10 @@ def create_repeated_entries(data):
 		if schedule_date and not frappe.db.get_value('Auto Repeat', data.name, 'disabled'):
 			frappe.db.set_value('Auto Repeat', data.name, 'next_schedule_date', schedule_date)
 			frappe.db.commit()
+	if schedule_date == getdate(today()) and not frappe.db.get_value('Auto Repeat', data.name, 'disabled'):
+		schedule_date = get_next_schedule_date(schedule_date, data.frequency, data.repeat_on_day)
+		frappe.db.set_value('Auto Repeat', data.name, 'next_schedule_date', schedule_date)
+		frappe.db.commit()
 
 def get_auto_repeat_entries(date):
 	return frappe.db.sql(""" select * from `tabAuto Repeat`
@@ -337,14 +349,18 @@ def make_auto_repeat(doctype, docname, submit = False, opts = None):
 		opts = json.loads(opts)
 		doc.update({
 			'start_date': opts['start_date'],
-			'end_date': opts['end_date'],
 			'frequency': opts['frequency']
 		})
+		if 'end_date' in opts:
+			doc.update({
+				'end_date': opts['end_date']
+			})
 
 	else:
 		reference_doc = frappe.get_doc(doctype, docname)
 		doc.start_date = reference_doc.get('posting_date') or reference_doc.get('transaction_date')
 
+	doc.save()
 	if submit:
 		doc.submit()
 

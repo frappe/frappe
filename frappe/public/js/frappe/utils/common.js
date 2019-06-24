@@ -278,6 +278,7 @@ frappe.utils.new_auto_repeat_prompt = function(frm) {
 			'fieldname': 'start_date',
 			'fieldtype': 'Date',
 			'label': __('Start Date'),
+			'reqd': 1,
 			'default': frappe.datetime.nowdate()
 		},
 		{
@@ -294,9 +295,9 @@ frappe.utils.new_auto_repeat_prompt = function(frm) {
 					'docname': frm.doc.name,
 					'submit': true,
 					'opts': {
+						'frequency': values['frequency'],
 						'start_date': values['start_date'],
-						'end_date': values['end_date'],
-						'frequency': values['frequency']
+						'end_date': values['end_date']
 					}
 				},
 				callback: function (r) {
@@ -305,6 +306,7 @@ frappe.utils.new_auto_repeat_prompt = function(frm) {
 							'message': __("Successfully created repeating task"),
 							'indicator': 'green'
 						});
+						frm.reload_doc();
 					}
 				}
 			});
