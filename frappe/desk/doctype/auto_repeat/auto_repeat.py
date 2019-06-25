@@ -41,6 +41,7 @@ class AutoRepeat(Document):
 
 	def on_cancel(self):
 		self.update_status()
+		frappe.get_doc(self.reference_doctype, self.reference_document).notify_update()
 
 	def on_update_after_submit(self):
 		self.validate_dates()
@@ -166,19 +167,16 @@ def make_auto_repeat_entry(date=None):
 			frappe.enqueue(enqueued_method, data=data)
 
 def create_repeated_entries(data):
+	current_date = getdate(today())
+
 	schedule_date = getdate(data.next_schedule_date)
-	while schedule_date <= getdate(today()) and not frappe.db.get_value('Auto Repeat', data.name, 'disabled'):
+	while schedule_date <= current_date and not frappe.db.get_value('Auto Repeat', data.name, 'disabled'):
 		create_documents(data, schedule_date)
 		schedule_date = get_next_schedule_date(schedule_date, data.frequency, data.repeat_on_day)
 
 		if schedule_date and not frappe.db.get_value('Auto Repeat', data.name, 'disabled'):
 			frappe.db.set_value('Auto Repeat', data.name, 'next_schedule_date', schedule_date)
 			frappe.db.commit()
-    #if end_date is not specified and scheduled date is today's date update next schedule date when scheduled task is run
-	if schedule_date == getdate(today()) and not frappe.db.get_value('Auto Repeat', data.name, 'disabled'):
-		schedule_date = get_next_schedule_date(schedule_date, data.frequency, data.repeat_on_day)
-		frappe.db.set_value('Auto Repeat', data.name, 'next_schedule_date', schedule_date)
-		frappe.db.commit()
 
 def get_auto_repeat_entries(date):
 	return frappe.db.sql(""" select * from `tabAuto Repeat`

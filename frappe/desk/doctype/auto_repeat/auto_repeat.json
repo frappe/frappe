@@ -53,7 +53,7 @@
    "fieldname": "reference_doctype",
    "fieldtype": "Link",
    "in_list_view": 1,
-   "label": "Reference Doctype",
+   "label": "Reference Document Type",
    "options": "DocType",
    "reqd": 1
   },
@@ -249,7 +249,7 @@
   }
  ],
  "is_submittable": 1,
- "modified": "2019-06-20 15:50:53.821960",
+ "modified": "2019-06-25 11:22:33.367868",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Auto Repeat",
