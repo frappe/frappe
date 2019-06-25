@@ -15,8 +15,12 @@ from frappe.utils.html_utils import get_icon_html
 no_cache = True
 
 def get_context(context):
+	redirect_to = frappe.local.request.args.get("redirect-to")
+
 	if frappe.session.user != "Guest":
-		frappe.local.flags.redirect_location = "/" if frappe.session.data.user_type=="Website User" else "/desk"
+		if not redirect_to:
+			redirect_to = "/" if frappe.session.data.user_type=="Website User" else "/desk"
+		frappe.local.flags.redirect_location = redirect_to
 		raise frappe.Redirect
 
 	# get settings from site config
@@ -34,7 +38,7 @@ def get_context(context):
 			context.provider_logins.append({
 				"name": provider,
 				"provider_name": frappe.get_value("Social Login Key", provider, "provider_name"),
-				"auth_url": get_oauth2_authorize_url(provider),
+				"auth_url": get_oauth2_authorize_url(provider, redirect_to),
 				"icon": icon
 			})
 			context["social_login"] = True
