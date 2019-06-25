@@ -17,6 +17,10 @@ export default class WebForm extends frappe.ui.FieldGroup {
 		if (this.is_new) this.setup_cancel_button();
 		this.setup_primary_action();
 		$(".link-btn").remove();
+
+		// webform client script
+		frappe.init_client_script && frappe.init_client_script();
+		frappe.web_form.after_load && frappe.web_form.after_load();
 	}
 
 	on(fieldname, handler) {

@@ -536,7 +536,13 @@ def make_route_string(parameters):
 
 @frappe.whitelist(allow_guest=True)
 def get_form_data(doctype, docname=None, web_form_name=None):
+	web_form = frappe.get_doc('Web Form', web_form_name)
+
+	if web_form.login_required and frappe.session.user == 'Guest':
+		frappe.throw(_("Not Permitted"), frappe.PermissionError)
+
 	out = frappe._dict()
+	out.web_form = web_form
 
 	if docname:
 		doc = frappe.get_doc(doctype, docname)
@@ -544,8 +550,6 @@ def get_form_data(doctype, docname=None, web_form_name=None):
 			out.doc = doc
 		else:
 			frappe.throw(_("Not permitted"), frappe.PermissionError)
-
-	out.web_form = frappe.get_doc('Web Form', web_form_name)
 
 	# For Table fields, server-side processing for meta
 	for field in out.web_form.web_form_fields:

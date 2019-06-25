@@ -6,7 +6,6 @@
 <h2>{{ _(title) }}</h2>
 {% endblock %}
 
-
 {% block breadcrumbs %}
 {% if has_header and login_required %}
 {% include "templates/includes/breadcrumbs.html" %}
@@ -14,93 +13,87 @@
 {% endblock %}
 
 {% block header_actions %}
-<div class="web-form-actions" style="display: block;">
-</div>
+{% if is_list %}
 <div class="list-view-actions"></div>
+{% else %}
+<div class="web-form-actions"></div>
+{% endif %}
 {% endblock %}
+
+{% macro container_attributes() %}
+data-web-form="{{ name }}" data-web-form-doctype="{{ doc_type }}" data-login-required="{{ frappe.utils.cint(login_required and frappe.session.user=='Guest') }}" data-is-list="{{ frappe.utils.cint(is_list) }}" data-allow-delete="{{ allow_delete }}"
+{% endmacro %}
 
 {% block page_content %}
-<div role="form" class="web-form-wrapper" data-web-form="{{ name }}" data-owner="{{ doc.owner }}">
-	<div id="introduction" class="text-muted"></div>
-	<hr>
-</div>
-
-{% if is_list %}
-<div id="list-filters" class="row"></div>
-<div id="datatable" class="pt-3"></div>
-<div class="list-view-footer text-right"></div>
-{% endif %}
-
-{% if show_attachments and not frappe.form_dict.new and attachments %}
-<div class="attachments">
-	<h5>{{ _("Attachments") }}</h5>
-	{% for attachment in attachments %}
-	<div class="attachment">
-		<a class="no-underline attachment-link" href="{{ attachment.file_url }}" target="blank">
-			<div class="row">
-				<div class="col-9">
-					<span class="file-name">{{ attachment.file_name }}</span>
-				</div>
-				<div class="col-3">
-					<span class="pull-right file-size">{{ attachment.file_size }}</span>
-				</div>
-			</div>
-		</a>
+<div role="form" class="web-form-wrapper" {{ container_attributes() }}>
+	{% if is_list %}
+	{# web form list #}
+	<div id="list-filters" class="row"></div>
+	<div id="datatable" class="pt-3"></div>
+	<div class="list-view-footer text-right"></div>
+	{% else %}
+	{# web form #}
+	<div role="form">
+		<div id="introduction" class="text-muted"></div>
+		<hr>
 	</div>
-	{% endfor %}
-</div>
-{%- endif %}
 
-{% if allow_comments and not frappe.form_dict.new and not is_list -%}
-<div class="comments">
-	<br><br>
-	<h3>{{ _("Comments") }}</h3>
-	{% include 'templates/includes/comments/comments.html' %}
+	{% if show_attachments and not frappe.form_dict.new and attachments %}
+	<div class="attachments">
+		<h5>{{ _("Attachments") }}</h5>
+		{% for attachment in attachments %}
+		<div class="attachment">
+			<a class="no-underline attachment-link" href="{{ attachment.file_url }}" target="blank">
+				<div class="row">
+					<div class="col-9">
+						<span class="file-name">{{ attachment.file_name }}</span>
+					</div>
+					<div class="col-3">
+						<span class="pull-right file-size">{{ attachment.file_size }}</span>
+					</div>
+				</div>
+			</a>
+		</div>
+		{% endfor %}
+	</div>
+	{% endif %} {# attachments #}
+
+	{% if allow_comments and not frappe.form_dict.new and not is_list -%}
+	<div class="comments">
+		<h3>{{ _("Comments") }}</h3>
+		{% include 'templates/includes/comments/comments.html' %}
+	</div>
+	{%- endif %} {# comments #}
+
+	{% endif %}
 </div>
-{%- endif %}
-{% endblock %}
+{% endblock page_content %}
 
 {% block script %}
-<script type="text/javascript" src="/assets/js/dialog.min.js"></script>
-<script type="text/javascript" src="/assets/js/control.min.js"></script>
-<script type="text/javascript" src="/assets/js/moment-bundle.min.js"></script>
-
 <script>
-window.web_form_settings = {
-	allow_incomplete: 	{{ allow_incomplete or 0 }},
-	success_link: 		"{{ success_url or "/" }}",
-	datepicker_format: 	"{{ frappe.date_format }}",
-	web_form_doctype: 	"{{ doc_type }}",
-	web_form_name: 		"{{ name }}",
-	allow_edit:         {{ allow_edit }},
-	allow_delete:       {{ allow_delete }},
-	is_new: 			{{ 1 if frappe.form_dict.new else 0 }},
-	is_read_only: 		{{ 1 if read_only else 0 }},
-	doc_name: 			"{{ frappe.form_dict.name or "" }}",
-	login_required: 	{{ 1 if login_required else 0 }},
-	route_to_success_link: 	{{ 1 if route_to_success_link else 0 }},
-	max_attachment_size:{{ max_attachment_size }},
-	moment_date_format: "{{ frappe.date_format.upper() }}",
-	is_list: {{ frappe.utils.cint(is_list) }}
-}
 frappe.boot = {
 	sysdefaults: {
-		float_precision: {{ frappe.get_system_settings('float_precision') or 3 }},
+		float_precision: parseInt("{{ frappe.get_system_settings('float_precision') or 3 }}"),
 		date_format: "{{ frappe.get_system_settings('date_format') or 'yyyy-mm-dd' }}",
 	}
 };
+// for backward compatibility of some libs
+frappe.sys_defaults = frappe.boot.sysdefaults;
 
-{% if show_attachments and not frappe.form_dict.new -%}
 $(".file-size").each(function() {
 	$(this).text(frappe.form.formatters.FileSize($(this).text()));
 });
-{%- endif %}
-
-// for backward compatibility of some libs
-frappe.sys_defaults = frappe.boot.sysdefaults;
-{% if row_template %}web_form_settings.web_form_row_template = "{{ row_template }}";{% endif %}
 </script>
-
+{% if is_list %}
+{# web form list #}
+<script type="text/javascript" src="/assets/js/dialog.min.js"></script>
+<script type="text/javascript" src="/assets/js/web_form.min.js"></script>
+<script type="text/javascript" src="/assets/js/bootstrap-4-web.min.js"></script>
+{% else %}
+{# web form #}
+<script type="text/javascript" src="/assets/js/dialog.min.js"></script>
+<script type="text/javascript" src="/assets/js/control.min.js"></script>
+<script type="text/javascript" src="/assets/js/moment-bundle.min.js"></script>
 <script type="text/javascript" src="/assets/frappe/node_modules/vue/dist/vue.js"></script>
 <script>
 	Vue.prototype.__ = window.__;
@@ -109,21 +102,23 @@ frappe.sys_defaults = frappe.boot.sysdefaults;
 <script type="text/javascript" src="/assets/js/web_form.min.js"></script>
 <script type="text/javascript" src="/assets/js/bootstrap-4-web.min.js"></script>
 <script>
-{% if script is defined %}
-{{ script }}
-{% endif %}
 
 {% if client_script %}
 frappe.init_client_script = () => {
-	{{ client_script }}
+	try {
+		{{ client_script }}
+	} catch(e) {
+		console.error('Error in web form client script');
+		console.error(e);
+	}
 }
 {% endif %}
 </script>
-{% endblock %}
+{% endif %}
+{% endblock script %}
 
 {% block style %}
+{% if not is_list %}
 <link type="text/css" rel="stylesheet" href="/assets/css/web_form.css">
-<style>
-{% if style is defined %}{{ style }}{% endif %}
-</style>
+{% endif %}
 {% endblock %}
