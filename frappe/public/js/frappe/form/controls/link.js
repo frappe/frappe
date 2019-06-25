@@ -54,7 +54,10 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 	},
 	get_reference_doctype() {
 		// this is used to get the context in which link field is loaded
-		return this.doctype || frappe.get_route()[0] === 'List' ? frappe.get_route()[1] : null;
+		if (this.doctype) return this.doctype;
+		else {
+			return frappe.get_route && frappe.get_route()[0] === 'List' ? frappe.get_route()[1] : null;
+		}
 	},
 	setup_buttons: function() {
 		if(this.only_input && !this.with_link_btn) {
@@ -153,7 +156,7 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 				'txt': term,
 				'doctype': doctype,
 				'ignore_user_permissions': me.df.ignore_user_permissions,
-				'reference_doctype': me.get_reference_doctype()
+				'reference_doctype': me.get_reference_doctype() || ""
 			};
 
 			me.set_custom_query(args);
@@ -200,7 +203,7 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 						}
 					}
 
-					if(!me.df.only_select) {
+					if(!me.df.only_select && me.frm) {
 						if(frappe.model.can_create(doctype)) {
 							// new item
 							r.results.push({

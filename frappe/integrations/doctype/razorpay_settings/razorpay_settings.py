@@ -240,8 +240,8 @@ class RazorpaySettings(Document):
 
 		status = frappe.flags.integration_request.status_code
 
-		redirect_to = data.get('notes', {}).get('redirect_to') or None
-		redirect_message = data.get('notes', {}).get('redirect_message') or None
+		redirect_to = data.get('redirect_to') or None
+		redirect_message = data.get('redirect_message') or None
 
 		if self.flags.status_changed_to in ("Authorized", "Verified", "Completed"):
 			if self.data.reference_doctype and self.data.reference_docname:

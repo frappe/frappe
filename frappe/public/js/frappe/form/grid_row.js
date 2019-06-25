@@ -27,11 +27,6 @@ export default class GridRow {
 				}
 			});
 
-		// no checkboxes if too small
-		// if(this.is_too_small()) {
-		// 	this.row_check_html = '';
-		// }
-
 		if(this.grid.template && !this.grid.meta.editable_grid) {
 			this.render_template();
 		} else {

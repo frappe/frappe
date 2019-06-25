@@ -117,6 +117,11 @@ def set_route(context):
 			quoted(context.doc.name))
 
 def prepare_filters(doctype, controller, kwargs):
+	for key in kwargs.keys():
+		try:
+			kwargs[key] = json.loads(kwargs[key])
+		except ValueError:
+			pass
 	filters = frappe._dict(kwargs)
 	meta = frappe.get_meta(doctype)
 
