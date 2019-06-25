@@ -341,7 +341,7 @@ def build_xlsx_data(columns, data, visible_idx):
 					fieldname = columns[idx]["fieldname"]
 					cell_value = row.get(fieldname, row.get(label, ""))
 					if 'indent' in row and idx == 0:
-						cell_value = ('    ' * cint(row.indent)) + cell_value
+						cell_value = ('    ' * cint(row['indent'])) + cell_value
 					row_data.append(cell_value)
 			else:
 				row_data = row
