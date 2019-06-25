@@ -308,7 +308,8 @@ frappe.ui.form.PrintPreview = Class.extend({
 			args: {
 				doc: this.frm.doc,
 				print_format: this.selected_format(),
-				no_letterhead: !this.with_letterhead() ? 1 : 0
+				no_letterhead: !this.with_letterhead() ? 1 : 0,
+				_lang: this.lang_code,
 			},
 			callback: function (r) {
 				if (!r.exc) {
