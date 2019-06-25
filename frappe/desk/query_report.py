@@ -336,15 +336,17 @@ def build_xlsx_data(columns, data, visible_idx):
 	# build table from result
 	for i, row in enumerate(data.result):
 		# only pick up rows that are visible in the report
-		if str(i) in visible_idx:
+		if i in visible_idx:
 			row_data = []
 
 			if isinstance(row, dict) and row:
 				for idx in range(len(data.columns)):
 					label = columns[idx]["label"]
 					fieldname = columns[idx]["fieldname"]
-
-					row_data.append(row.get(fieldname, row.get(label, "")))
+					cell_value = row.get(fieldname, row.get(label, ""))
+					if 'indent' in row and idx == 0:
+						cell_value = ('    ' * cint(row['indent'])) + cell_value
+					row_data.append(cell_value)
 			else:
 				row_data = row
 

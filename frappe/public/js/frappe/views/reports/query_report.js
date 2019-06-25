@@ -865,22 +865,12 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				fieldtype: 'Select',
 				options: ['Excel', 'CSV'],
 				default: 'Excel',
-				reqd: 1,
-				onchange: () => {
-					this.export_dialog.set_df_property('with_indentation',
-						'hidden', this.export_dialog.get_value('file_format') !== 'CSV');
-				}
-			},
-			{
-				label: __('With Group Indentation'),
-				fieldname: 'with_indentation',
-				fieldtype: 'Check',
-				hidden: 1
+				reqd: 1
 			}
-		], ({ file_format, with_indentation }) => {
+		], ({ file_format }) => {
 			if (file_format === 'CSV') {
 				const column_row = this.columns.map(col => col.label);
-				const data = this.get_data_for_csv(with_indentation);
+				const data = this.get_data_for_csv();
 				const out = [column_row].concat(data);
 
 				frappe.tools.downloadify(out, null, this.report_name);
@@ -890,10 +880,9 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 					filters = Object.assign(frappe.urllib.get_dict("prepared_report_name"), filters);
 				}
 
-				let rows = this.datatable.datamanager.rows;
-				let visible_index = this.get_visible_rows(rows);
-				if (visible_index.length + 1 === this.data.length) {
-					visible_index.push(visible_index.length);
+				const visible_idx = this.datatable.bodyRenderer.visibleRowIndices;
+				if (visible_idx.length + 1 === this.data.length) {
+					visible_idx.push(visible_idx.length);
 				}
 
 				const args = {
@@ -901,7 +890,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 					report_name: this.report_name,
 					file_format_type: file_format,
 					filters: filters,
-					visible_idx: visible_index,
+					visible_idx,
 				};
 
 				open_url_post(frappe.request.url, args);
@@ -909,38 +898,19 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		}, __('Export Report: '+ this.report_name), __('Download'));
 	}
 
-	get_visible_rows(rows){
-		let visible_index = [];
-		for (let i in rows ){
-			if (rows[i][1].indent == 0 ){
-				visible_index.push(i);
-			}else{
-				if(rows[i].meta.isTreeNodeClose == false && rows[i][1] && rows[i].meta.isLeaf == false){
-					visible_index.push(i);
-				}
-				if(rows[i].meta.isLeaf == true && rows[i-1].meta.isTreeNodeClose == false){
-					visible_index.push(i);
-				}
-			}
-
-		}
-		return visible_index;
-	}
-
-	get_data_for_csv(with_indentation = false) {
-
-		const indices = this.datatable.datamanager.getFilteredRowIndices();
+	get_data_for_csv() {
+		const indices = this.datatable.bodyRenderer.visibleRowIndices;
 		const rows = indices.map(i => this.datatable.datamanager.getRow(i));
 		return rows.map(row => {
 			const standard_column_count = this.datatable.datamanager.getStandardColumnCount();
 			return row
 				.slice(standard_column_count)
 				.map((cell, i) => {
-				if (with_indentation && i === 0) {
-					return '   '.repeat(row.meta.indent) + cell.content;
-				}
-				return cell.content;
-			});
+					if (i === 0) {
+						return '   '.repeat(row.meta.indent) + (cell.content || '');
+					}
+					return cell.content || '';
+				});
 		});
 	}
 
