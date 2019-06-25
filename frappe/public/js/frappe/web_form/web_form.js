@@ -27,7 +27,7 @@ export default class WebForm extends frappe.ui.FieldGroup {
 		let field = this.fields_dict[fieldname];
 		field.df.change = () => {
 			handler(field, field.value);
-		}
+		};
 	}
 
 	set_field_values() {
