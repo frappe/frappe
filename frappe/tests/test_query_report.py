@@ -32,7 +32,7 @@ class TestQueryReport(unittest.TestCase):
 		]
 
 		# Define the visible rows
-		visible_idx = [0, 2, 3]
+		visible_idx = ['0', '2', '3]
 
 		# Build the result
 		xlsx_data = build_xlsx_data(columns, data, visible_idx)
