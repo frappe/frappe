@@ -496,7 +496,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	}
 
 	get_possible_chart_options() {
-		const columns = this.raw_data.columns;
+		const columns = this.columns;
 		const rows =  this.raw_data.result.filter(value => Object.keys(value).length);
 		const has_total_row = this.raw_data.add_total_row;
 		const first_row = Array.isArray(rows[0]) ? rows[0] : Object.values(rows[0]);
@@ -509,7 +509,12 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		}, []);
 
 		function get_column_values(column_name) {
-			return rows.map(row => row[column_name]);
+			if (Array.isArray(rows[0])) {
+				let column_index = columns.findIndex(column => column.label == column_name);
+				return rows.map(row => row[column_index]);
+			} else {
+				return rows.map(row => row[column_name]);
+			}
 		}
 
 		function make_chart_options({ y_field, x_field, chart_type, color }) {
