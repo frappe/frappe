@@ -899,21 +899,24 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	}
 
 	get_visible_rows(rows){
-		let visible_index = [];
-		for (let i in rows ){
-			if (rows[i][1].indent == 0 ){
-				visible_index.push(i);
-			}else{
-				if(rows[i].meta.isTreeNodeClose == false && rows[i][1] && rows[i].meta.isLeaf == false){
-					visible_index.push(i);
+		let x = rows.reduce((result, row, index) => {
+			if (row[1].indent == 0){
+				result.push(index);
+			} else {
+				if(row.meta.isTreeNodeClose == false && row[1] && row.meta.isLeaf == false){
+					result.push(index);
 				}
-				if(rows[i].meta.isLeaf == true && rows[i-1].meta.isTreeNodeClose == false){
-					visible_index.push(i);
+				if(row.meta.isLeaf == true && rows[index-1].meta.isTreeNodeClose == false){
+					result.push(index);
 				}
-			}
+				if(row.meta.isTreeNodeClose == true && rows[index-1].meta.isTreeNodeClose == false){
+					result.push(index);
+				}
 
-		}
-		return visible_index;
+			}
+			return result;
+		}, []);
+		return x;
 	}
 
 	get_data_for_csv(with_indentation = false) {
