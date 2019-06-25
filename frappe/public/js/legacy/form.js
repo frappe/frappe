@@ -714,18 +714,15 @@ _f.Frm.prototype._save = function(save_action, callback, btn, on_error, resolve,
 	if((!this.meta.in_dialog || this.in_form) && !this.meta.istable) {
 		frappe.utils.scroll_to(0);
 	}
-	var after_save = function (r) {
-		// init add comment promise to handle promise chain on success or fail
-		let add_new_comment = Promise.resolve();
-
+	var after_save = function(r) {
 		if (!r.exc) {
 			if (["Save", "Update", "Amend"].indexOf(save_action) !== -1) {
 				frappe.utils.play_sound("click");
 			}
 
 			me.script_manager.trigger("after_save");
-			// wait for comment promise to resolve
-			add_new_comment = me.timeline.comment_area.submit();
+			// submit comment if entered
+			me.timeline.comment_area.submit();
 			me.refresh();
 		} else {
 			if (on_error) {
@@ -735,8 +732,7 @@ _f.Frm.prototype._save = function(save_action, callback, btn, on_error, resolve,
 		}
 
 		callback && callback(r);
-		// chains the save promise with add new comment promise
-		resolve(add_new_comment);
+		resolve();
 	};
 
 	var fail = () => {
