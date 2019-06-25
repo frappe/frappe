@@ -25,8 +25,9 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 		this.$input.on("focus", function() {
 			setTimeout(function() {
 				if(me.$input.val() && me.get_options()) {
-					me.$link.toggle(true);
-					me.$link_open.attr('href', '#Form/' + me.get_options() + '/' + me.$input.val());
+					let doctype = me.get_options();
+					let name = me.$input.val();
+					me.$link_open.attr('href', frappe.utils.get_form_link(doctype, name));
 				}
 
 				if(!me.$input.val()) {
