@@ -336,7 +336,7 @@ def build_xlsx_data(columns, data, visible_idx):
 	# build table from result
 	for i, row in enumerate(data.result):
 		# only pick up rows that are visible in the report
-		if i in visible_idx:
+		if str(i) in visible_idx:
 			row_data = []
 
 			if isinstance(row, dict) and row:

@@ -890,9 +890,10 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 					filters = Object.assign(frappe.urllib.get_dict("prepared_report_name"), filters);
 				}
 
-				const visible_idx = this.datatable.datamanager.getFilteredRowIndices();
-				if (visible_idx.length + 1 === this.data.length) {
-					visible_idx.push(visible_idx.length);
+				let rows = this.datatable.datamanager.rows;
+				let visible_index = this.get_visible_rows(rows);
+				if (visible_index.length + 1 === this.data.length) {
+					visible_index.push(visible_index.length);
 				}
 
 				const args = {
@@ -900,12 +901,30 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 					report_name: this.report_name,
 					file_format_type: file_format,
 					filters: filters,
-					visible_idx: visible_idx,
+					visible_idx: visible_index,
 				};
 
 				open_url_post(frappe.request.url, args);
 			}
 		}, __('Export Report: '+ this.report_name), __('Download'));
+	}
+
+	get_visible_rows(rows){
+		let visible_index = [];
+		for (let i in rows ){
+			if (rows[i][1].indent == 0 ){
+				visible_index.push(i);
+			}else{
+				if(rows[i].meta.isTreeNodeClose == false && rows[i][1] && rows[i].meta.isLeaf == false){
+					visible_index.push(i);
+				}
+				if(rows[i].meta.isLeaf == true && rows[i-1].meta.isTreeNodeClose == false){
+					visible_index.push(i);
+				}
+			}
+
+		}
+		return visible_index;
 	}
 
 	get_data_for_csv(with_indentation = false) {
