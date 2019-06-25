@@ -132,10 +132,12 @@ class RazorpaySettings(Document):
 
 		subscription_details = {
 			"plan_id": kwargs.get('subscription_details').get("plan_id"),
-			"start_at": cint(start_date),
 			"total_count": kwargs.get('subscription_details').get("billing_frequency"),
 			"customer_notify": kwargs.get('subscription_details').get("customer_notify")
 		}
+
+		if start_date:
+			subscription_details['start_at'] = cint(start_date)
 
 		if kwargs.get('addons'):
 			convert_rupee_to_paisa(**kwargs)
