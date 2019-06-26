@@ -866,22 +866,12 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				fieldtype: 'Select',
 				options: ['Excel', 'CSV'],
 				default: 'Excel',
-				reqd: 1,
-				onchange: () => {
-					this.export_dialog.set_df_property('with_indentation',
-						'hidden', this.export_dialog.get_value('file_format') !== 'CSV');
-				}
-			},
-			{
-				label: __('With Group Indentation'),
-				fieldname: 'with_indentation',
-				fieldtype: 'Check',
-				hidden: 1
+				reqd: 1
 			}
-		], ({ file_format, with_indentation }) => {
+		], ({ file_format }) => {
 			if (file_format === 'CSV') {
 				const column_row = this.columns.map(col => col.label);
-				const data = this.get_data_for_csv(with_indentation);
+				const data = this.get_data_for_csv();
 				const out = [column_row].concat(data);
 
 				frappe.tools.downloadify(out, null, this.report_name);
@@ -891,7 +881,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 					filters = Object.assign(frappe.urllib.get_dict("prepared_report_name"), filters);
 				}
 
-				const visible_idx = this.datatable.datamanager.getFilteredRowIndices();
+				const visible_idx = this.datatable.bodyRenderer.visibleRowIndices;
 				if (visible_idx.length + 1 === this.data.length) {
 					visible_idx.push(visible_idx.length);
 				}
@@ -901,7 +891,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 					report_name: this.report_name,
 					file_format_type: file_format,
 					filters: filters,
-					visible_idx: visible_idx,
+					visible_idx,
 				};
 
 				open_url_post(frappe.request.url, args);
@@ -909,20 +899,19 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		}, __('Export Report: '+ this.report_name), __('Download'));
 	}
 
-	get_data_for_csv(with_indentation = false) {
-
-		const indices = this.datatable.datamanager.getFilteredRowIndices();
+	get_data_for_csv() {
+		const indices = this.datatable.bodyRenderer.visibleRowIndices;
 		const rows = indices.map(i => this.datatable.datamanager.getRow(i));
 		return rows.map(row => {
 			const standard_column_count = this.datatable.datamanager.getStandardColumnCount();
 			return row
 				.slice(standard_column_count)
 				.map((cell, i) => {
-				if (with_indentation && i === 0) {
-					return '   '.repeat(row.meta.indent) + cell.content;
-				}
-				return cell.content;
-			});
+					if (i === 0) {
+						return '   '.repeat(row.meta.indent) + (cell.content || '');
+					}
+					return cell.content || '';
+				});
 		});
 	}
 
