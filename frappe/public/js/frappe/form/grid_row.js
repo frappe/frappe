@@ -27,11 +27,6 @@ export default class GridRow {
 				}
 			});
 
-		// no checkboxes if too small
-		// if(this.is_too_small()) {
-		// 	this.row_check_html = '';
-		// }
-
 		if(this.grid.template && !this.grid.meta.editable_grid) {
 			this.render_template();
 		} else {
@@ -197,7 +192,7 @@ export default class GridRow {
 			this.row_index = $(
 				`<div class="row-index sortable-handle col col-xs-1">
 					${this.row_check_html}
-				<span>${txt}</span></div>`)
+				<span class="hidden-xs">${txt}</span></div>`)
 				.appendTo(this.row)
 				.on('click', function(e) {
 					if(!$(e.target).hasClass('grid-row-check')) {

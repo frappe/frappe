@@ -19,6 +19,7 @@ def get_context(context, **dict_params):
 	context.meta = frappe.get_meta(doctype)
 	context.update(get_list_context(context, doctype) or {})
 	context.doctype = doctype
+	context.title = context.doctype
 	context.txt = frappe.local.form_dict.txt
 	context.update(get(**frappe.local.form_dict))
 
@@ -116,6 +117,11 @@ def set_route(context):
 			quoted(context.doc.name))
 
 def prepare_filters(doctype, controller, kwargs):
+	for key in kwargs.keys():
+		try:
+			kwargs[key] = json.loads(kwargs[key])
+		except ValueError:
+			pass
 	filters = frappe._dict(kwargs)
 	meta = frappe.get_meta(doctype)
 

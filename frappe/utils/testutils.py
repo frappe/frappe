@@ -4,15 +4,13 @@ from __future__ import unicode_literals
 
 import frappe
 
-def add_custom_field(doctype, fieldname, fieldtype='Data', options=None, default=None, depends_on=None):
+def add_custom_field(doctype, fieldname, fieldtype='Data', options=None):
 	frappe.get_doc({
 		"doctype": "Custom Field",
 		"dt": doctype,
 		"fieldname": fieldname,
 		"fieldtype": fieldtype,
-		"options": options,
-		"default": default,
-		"depends_on": depends_on
+		"options": options
 	}).insert()
 
 def clear_custom_fields(doctype):

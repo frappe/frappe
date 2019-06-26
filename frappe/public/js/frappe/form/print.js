@@ -121,6 +121,29 @@ frappe.ui.form.PrintPreview = Class.extend({
 			if (e.print_format) {
 				this.print_sel.val(e.print_format);
 			}
+			// start a new print format
+			frappe.prompt([
+				{
+					label: __("New Print Format Name"),
+					fieldname: "print_format_name",
+					fieldtype: "Data",
+					reqd: 1,
+				},
+				{
+					label: __('Based On'),
+					fieldname: 'based_on',
+					fieldtype: 'Read Only',
+					default: print_format.name || 'Standard'
+				}
+			], function (data) {
+				frappe.route_options = {
+					make_new: true,
+					doctype: me.frm.doctype,
+					name: data.print_format_name,
+					based_on: data.based_on
+				};
+				frappe.set_route("print-format-builder");
+			}, __("New Custom Print Format"), __("Start"));
 		});
 	},
 	set_user_lang: function () {
@@ -448,7 +471,10 @@ frappe.ui.get_print_settings = function (pdf, callback, letter_head) {
 		fieldtype: "Select",
 		fieldname: "orientation",
 		label: __("Orientation"),
-		options: "Landscape\nPortrait",
+		options: [
+			{ "value": "Landscape", "label": __("Landscape") },
+			{ "value": "Portrait", "label": __("Portrait") }
+		],
 		default: "Landscape"
 	}];
 
@@ -578,4 +604,3 @@ frappe.ui.form.qz_fail = function (e) {
 		indicator: 'red'
 	}, 20);
 }
-

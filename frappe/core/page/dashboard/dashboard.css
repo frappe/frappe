@@ -1,14 +1,14 @@
 .chart-wrapper {
     border: 1px solid #d1d8dd;
     border-radius: 4px;
-    height: 340px;
+    height: 320px;
     margin: 15px 0;
+    padding-left: 15px;
+    padding-right: 15px;
 }
 
 .chart-container {
-    margin: 15px;
     margin-top: 30px;
-    margin-left: 0px;
 }
 
 .frappe-chart > text.title {

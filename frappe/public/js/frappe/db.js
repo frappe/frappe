@@ -98,5 +98,21 @@ frappe.db = {
 				args: Object.assign(args, { doctype })
 			}).then(r => resolve(r.message));
 		});
+	},
+	get_link_options(doctype, txt = '', filters={}) {
+		return new Promise(resolve => {
+			frappe.call({
+				type: 'GET',
+				method: 'frappe.desk.search.search_link',
+				args: {
+					doctype,
+					txt,
+					filters
+				},
+				callback(r) {
+					resolve(r.results);
+				}
+			});
+		});
 	}
 };

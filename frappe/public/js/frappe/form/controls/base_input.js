@@ -74,8 +74,11 @@ frappe.ui.form.ControlInput = frappe.ui.form.Control.extend({
 
 		if (me.disp_status != "None") {
 			// refresh value
-			if(me.doctype && me.docname) {
+			if(me.frm) {
 				me.value = frappe.model.get_value(me.doctype, me.docname, me.df.fieldname);
+			}
+			else if(me.doc) {
+				me.value = me.doc[me.df.fieldname];
 			}
 
 			if(me.disp_status=="Write") {

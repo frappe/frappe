@@ -374,7 +374,7 @@ $.extend(frappe, {
 // Utility functions
 
 window.valid_email = function(id) {
-	// eslint-disable-next-line 
+	// eslint-disable-next-line
 	return /[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/.test(id.toLowerCase());
 }
 

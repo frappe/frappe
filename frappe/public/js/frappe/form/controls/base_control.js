@@ -40,7 +40,7 @@ frappe.ui.form.Control = Class.extend({
 			return this.df.get_status(this);
 		}
 
-		if(!this.doctype && !this.docname) {
+		if((!this.doctype && !this.docname) || this.df.parenttype === 'Web Form') {
 			// like in case of a dialog box
 			if (cint(this.df.hidden)) {
 				// eslint-disable-next-line
@@ -180,7 +180,7 @@ frappe.ui.form.Control = Class.extend({
 		}
 	},
 	set_model_value: function(value) {
-		if(this.doctype && this.docname) {
+		if(this.frm) {
 			this.last_value = value;
 			return frappe.model.set_value(this.doctype, this.docname, this.df.fieldname,
 				value, this.df.fieldtype);

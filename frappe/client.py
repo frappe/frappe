@@ -361,6 +361,10 @@ def attach_file(filename=None, filedata=None, doctype=None, docname=None, folder
 
 	return _file.as_dict()
 
+@frappe.whitelist()
+def get_hooks(hook, app_name=None):
+	return frappe.get_hooks(hook, app_name)
+
 def check_parent_permission(parent, child_doctype):
 	if parent:
 		# User may pass fake parent and get the information from the child table

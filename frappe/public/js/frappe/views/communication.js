@@ -253,6 +253,8 @@ frappe.views.CommunicationComposer = Class.extend({
 			$.extend(last_edited_communication, {
 				sender: me.dialog.get_value("sender"),
 				recipients: me.dialog.get_value("recipients"),
+				cc: me.dialog.get_value("cc"),
+				bcc: me.dialog.get_value("bcc"),
 				subject: me.dialog.get_value("subject"),
 				content: me.dialog.get_value("content"),
 			});
@@ -265,6 +267,8 @@ frappe.views.CommunicationComposer = Class.extend({
 					me.dialog.set_value("sender", last_edited_communication.sender || "");
 					me.dialog.set_value("subject", last_edited_communication.subject || "");
 					me.dialog.set_value("recipients", last_edited_communication.recipients || "");
+					me.dialog.set_value("cc", last_edited_communication.cc || "");
+					me.dialog.set_value("bcc", last_edited_communication.bcc || "");
 					me.dialog.set_value("content", last_edited_communication.content || "");
 				}
 			}

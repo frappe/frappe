@@ -3,7 +3,7 @@
  "allow_import": 0, 
  "allow_rename": 0, 
  "beta": 0, 
- "creation": "2015-03-18 09:41:20.216319", 
+ "creation": "2015-03-18 09:41:20.216320", 
  "custom": 0, 
  "docstatus": 0, 
  "doctype": "DocType", 
@@ -35,7 +35,7 @@
    "remember_last_selected_value": 0, 
    "report_hide": 0, 
    "reqd": 1, 
-   "search_index": 0, 
+   "search_index": 1, 
    "set_only_once": 0, 
    "unique": 0
   }, 

@@ -640,6 +640,8 @@ Object.assign(frappe.utils, {
 		};
 	},
 	get_form_link: function(doctype, name, html = false, display_text = null) {
+		doctype = encodeURIComponent(doctype);
+		name = encodeURIComponent(name);
 		const route = ['#Form', doctype, name].join('/');
 		if (html) {
 			return `<a href="${route}">${display_text || name}</a>`;
@@ -716,6 +718,9 @@ Object.assign(frappe.utils, {
 			indicator: 'green',
 			message: __('Copied to clipboard.')
 		});
+	},
+	is_rtl() {
+		return ["ar", "he", "fa"].includes(frappe.boot.lang);
 	}
 });
 
@@ -736,4 +741,3 @@ if (!Array.prototype.uniqBy) {
 		}
 	});
 }
-
