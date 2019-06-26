@@ -129,13 +129,13 @@ frappe.ui.form.Toolbar = Class.extend({
 		if(frappe.model.can_email(null, me.frm) && me.frm.doc.docstatus < 2) {
 			this.page.add_menu_item(__("Email"), function() {
 				me.frm.email_doc();
-			}, true, 'Shift + Ctrl + E');
+			}, true, 'Ctrl+E');
 		}
 
-		// go to field modal		
-		this.page.add_menu_item(__("Go to field"), function() {
+		// go to field modal
+		this.page.add_menu_item(__("Jump to field"), function() {
 			me.setup_modal();
-		}, true, 'Shift + Ctrl + M');
+		}, true, 'Ctrl+J');
 
 		// Linked With
 		if(!me.frm.meta.issingle) {
@@ -168,7 +168,7 @@ frappe.ui.form.Toolbar = Class.extend({
 			&& frappe.model.can_delete(me.frm.doctype)) {
 			this.page.add_menu_item(__("Delete"), function() {
 				me.frm.savetrash();
-			}, true, 'Shift + Ctrl + D');
+			}, true, 'Shift+Ctrl+D');
 		}
 
 		if(frappe.user_roles.includes("System Manager") && me.frm.meta.issingle === 0) {
@@ -188,9 +188,9 @@ frappe.ui.form.Toolbar = Class.extend({
 
 		// New
 		if(p[CREATE] && !this.frm.meta.issingle) {
-			this.page.add_menu_item(__("New {0} (Ctrl+B)", [__(me.frm.doctype)]), function() {
+			this.page.add_menu_item(__("New {0}", [__(me.frm.doctype)]), function() {
 				frappe.new_doc(me.frm.doctype, true);
-			}, true);
+			}, true, 'Ctrl+B');
 		}
 	},
 	can_save: function() {
@@ -366,7 +366,7 @@ frappe.ui.form.Toolbar = Class.extend({
 	setup_modal() {
 		let $page = $(frappe.container.page);
 		if(!$page.find('.form-layout').is(':visible')) {
-			return;	
+			return;
 		}
 
 		let fields = this.get_section_fields();
@@ -376,7 +376,7 @@ frappe.ui.form.Toolbar = Class.extend({
 		});
 
 		let dialog = new frappe.ui.Dialog({
-			title: __('Go to Field'),
+			title: __('Jump to Field'),
 			fields: [
 				{
 					fieldtype: 'Select',

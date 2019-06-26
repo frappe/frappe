@@ -770,8 +770,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				return;
 			}
 			//If any other keyboard navigable list(like dropdown) is open, set is_list_nav to false
-			if ($navbar.find('[role="listbox"]').is(":visible") || $navbar.find('.dropdown-menu').is(':visible') 
-				|| $page.find('.dropdown-menu').is(':visible')  || $('.modal').is(':visible') 
+			if ($navbar.find('[role="listbox"]').is(":visible") || $navbar.find('.dropdown-menu').is(':visible')
+				|| $page.find('.dropdown-menu').is(':visible')  || $('.modal').is(':visible')
 				|| $navbar.find('input:focus').length > 0 || $page.find('input:focus').length > 0) {
 				is_list_nav = false;
 			} else {
@@ -804,7 +804,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 						this.nav_space();
 					}
 				}
-			
+
 			}
 		});
 	}
@@ -827,7 +827,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				if(this.next_index > 0) this.next_index--;
 			} else {
 				this.next_index++;
-			}			
+			}
 			this.next_el = this.list_items.eq(this.next_index);
 
 			if(this.next_el.length > 0) {
@@ -1178,7 +1178,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 					}
 				},
 				standard: true,
-				shortcut: 'Ctrl + J',
+				shortcut: 'Ctrl+J',
 			});
 		}
 
@@ -1186,14 +1186,15 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			label: __('Toggle Sidebar'),
 			action: () => this.toggle_side_bar(),
 			standard: true,
-			shortcut: 'Ctrl + K',
+			shortcut: 'Ctrl+K',
 		});
 
 		items.push({
 			label: __('Share URL'),
 			action: () => this.share_url(),
 			standard: true,
-			shortcut: 'Shift + Ctrl + A',
+
+			shortcut: 'Shift+Ctrl+A',
 		});
 
 		if (frappe.user.has_role('System Manager') && frappe.boot.developer_mode === 1) {
