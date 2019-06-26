@@ -423,6 +423,22 @@ frappe.views.CommunicationComposer = Class.extend({
 					.appendTo(attach)
 			});
 		}
+		this.select_attachments();
+	},
+	select_attachments:function(){
+		let me = this;
+		if(me.dialog.display) {
+			let wrapper = $(me.dialog.fields_dict.select_attachments.wrapper);
+
+			// find already checked items
+			var checked_items = wrapper.find('[data-file-name]:not(:checked)').map(function() {
+				return $(this).attr("data-file-name");
+			});
+
+			$.each(checked_items, function(i, filename) {
+				wrapper.find('[data-file-name="'+ filename +'"]').prop("checked", true);
+			});
+		}
 	},
 	setup_email: function() {
 		// email
