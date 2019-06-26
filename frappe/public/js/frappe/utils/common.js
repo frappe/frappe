@@ -288,30 +288,30 @@ frappe.utils.new_auto_repeat_prompt = function(frm) {
 		}
 	];
 	frappe.prompt(fields, function(values) {
-			frappe.call({
-				method: "frappe.desk.doctype.auto_repeat.auto_repeat.make_auto_repeat",
-				args: {
-					'doctype': frm.doc.doctype,
-					'docname': frm.doc.name,
-					'submit': true,
-					'opts': {
-						'frequency': values['frequency'],
-						'start_date': values['start_date'],
-						'end_date': values['end_date']
-					}
-				},
-				callback: function (r) {
-					if (r.message) {
-						frappe.show_alert({
-							'message': __("Successfully created repeating task"),
-							'indicator': 'green'
-						});
-						frm.reload_doc();
-					}
+		frappe.call({
+			method: "frappe.desk.doctype.auto_repeat.auto_repeat.make_auto_repeat",
+			args: {
+				'doctype': frm.doc.doctype,
+				'docname': frm.doc.name,
+				'submit': true,
+				'opts': {
+					'frequency': values['frequency'],
+					'start_date': values['start_date'],
+					'end_date': values['end_date']
 				}
-			});
-		},
-		__('Auto Repeat'),
-		__('Submit')
+			},
+			callback: function (r) {
+				if (r.message) {
+					frappe.show_alert({
+						'message': __("Successfully created repeating task"),
+						'indicator': 'green'
+					});
+					frm.reload_doc();
+				}
+			}
+		});
+	},
+	__('Auto Repeat'),
+	__('Submit')
 	);
 }
