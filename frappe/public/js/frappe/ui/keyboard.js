@@ -186,6 +186,20 @@ frappe.ui.keys.add_shortcut({
 	description: __('Help')
 });
 
+frappe.ui.keys.on('shift+>',()=> {
+	var route = frappe.get_route();
+	if(route[0]==='Form') {
+		$('.next-doc').click();
+	}
+});
+
+frappe.ui.keys.on('shift+<',()=> {
+	var route = frappe.get_route();
+	if(route[0]==='Form') {
+		$('.prev-doc').click();
+	}
+});
+
 frappe.ui.keys.on('escape', function(e) {
 	close_grid_and_dialog();
 });
@@ -237,7 +251,9 @@ frappe.ui.keys.key_map = {
 	114: 'f3',
 	115: 'f4',
 	116: 'f5',
-	191: '/'
+	191: '/',
+	188: '<',
+	190: '>'
 }
 
 'abcdefghijklmnopqrstuvwxyz'.split('').forEach((letter, i) => {

@@ -193,13 +193,12 @@ frappe.ui.form.Toolbar = Class.extend({
 			}, true, 'Ctrl+B');
 		}
 
-		//Navigate
+		// Navigate
 		if(!this.frm.doc.__islocal && !issingle) {
-			var me = this;
-			this.page.add_action_icon("fa fa-chevron-left navigate-doc", function() {
+			this.page.add_action_icon("fa fa-chevron-left prev-doc", function() {
 				me.frm.navigate_doc(1);
 			});
-			this.page.add_action_icon("fa fa-chevron-right navigate-doc", function() {
+			this.page.add_action_icon("fa fa-chevron-right next-doc", function() {
 				me.frm.navigate_doc(0);
 			});
 		}

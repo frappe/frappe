@@ -798,7 +798,7 @@ frappe.ui.form.Form = class FrappeForm {
 	}
 
 	navigate_doc(prev) {
-		let list_settings = frappe.get_user_settings(this.doctype)['List']
+		let list_settings = frappe.get_user_settings(this.doctype)['List'];
 		let filters = list_settings.filters;
 		let sort_order = list_settings.sort_order;
 		let sort_field = list_settings.sort_by;
@@ -807,7 +807,7 @@ frappe.ui.form.Form = class FrappeForm {
 			if(data.message) {
 				frappe.set_route('Form',this.doctype, data.message);
 			}
-		})
+		});
 	}
 
 	rename_doc() {

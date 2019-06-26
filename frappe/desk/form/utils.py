@@ -19,11 +19,6 @@ def remove_attach():
 	frappe.delete_doc('File', fid)
 
 @frappe.whitelist()
-def get(doctype, list_filters, sort_order, index):
-    doc_list = frappe.get_list(doctype,filters=list_filters, order_by = sort_order, limit_start=index, limit_page_length=1)
-    return doc_list
-
-@frappe.whitelist()
 def validate_link():
 	"""validate link when updated by user"""
 	import frappe
