@@ -314,7 +314,7 @@ frappe.ui.Page = Class.extend({
 			}
 			$li = $(`<li><a class="grey-link dropdown-item" href="#" onClick="return false;">
 				<span class="menu-item-label">${label}</span>
-				<span class="text-muted std-shortcut">${shortcut_label}</span>
+				<span class="text-muted pull-right">${shortcut_label}</span>
 			</a><li>`);
 			shortcut = shortcut.toLowerCase();
 			frappe.ui.keys.add_shortcut(shortcut, $li.find('a'), label, this);
