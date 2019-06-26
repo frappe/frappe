@@ -185,7 +185,11 @@ def connect(site=None, db_name=None):
 		init(site)
 
 	local.db = get_db(user=db_name or local.conf.db_name)
+	# set_user will override form_dict to an empty one.
+	# So we have to repopulate it.
+	form_dict = local.form_dict
 	set_user("Administrator")
+	local.form_dict = form_dict
 
 def connect_replica():
 	from frappe.database import get_db
