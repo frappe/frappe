@@ -131,7 +131,7 @@ class AutoRepeat(Document):
 				"next_schedule_date": start_date_copy
 			}
 			schedule_details.append(row)
-			
+
 		if self.end_date:
 			while (getdate(start_date_copy) < getdate(end_date_copy)):
 				start_date_copy = get_next_schedule_date(start_date_copy, self.frequency, self.repeat_on_day)
