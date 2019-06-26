@@ -125,16 +125,6 @@ frappe.ui.form.Toolbar = Class.extend({
 			}
 		}
 
-		if(!this.frm.doc.__islocal && !this.frm.meta.issingle) {
-			var me = this;
-			this.arrow_icon = this.page.add_action_icon("fa fa-chevron-left navigate-doc", function() {
-				me.frm.navigate_doc('prev')
-			});
-			this.arrow_icon = this.page.add_action_icon("fa fa-chevron-right navigate-doc", function() {
-				me.frm.navigate_doc('next')
-			});
-		}
-
 		// email
 		if(frappe.model.can_email(null, me.frm) && me.frm.doc.docstatus < 2) {
 			this.page.add_menu_item(__("Email"), function() {
@@ -201,6 +191,17 @@ frappe.ui.form.Toolbar = Class.extend({
 			this.page.add_menu_item(__("New {0}", [__(me.frm.doctype)]), function() {
 				frappe.new_doc(me.frm.doctype, true);
 			}, true, 'Ctrl+B');
+		}
+
+		//Navigate
+		if(!this.frm.doc.__islocal && !issingle) {
+			var me = this;
+			this.page.add_action_icon("fa fa-chevron-left navigate-doc", function() {
+				me.frm.navigate_doc(1);
+			});
+			this.page.add_action_icon("fa fa-chevron-right navigate-doc", function() {
+				me.frm.navigate_doc(0);
+			});
 		}
 	},
 	can_save: function() {

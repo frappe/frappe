@@ -19,8 +19,8 @@ def remove_attach():
 	frappe.delete_doc('File', fid)
 
 @frappe.whitelist()
-def get_doc_list(doctype, list_filters, sort_order):
-    doc_list = frappe.get_list(doctype,filters=list_filters, order_by = sort_order)
+def get(doctype, list_filters, sort_order, index):
+    doc_list = frappe.get_list(doctype,filters=list_filters, order_by = sort_order, limit_start=index, limit_page_length=1)
     return doc_list
 
 @frappe.whitelist()
@@ -88,27 +88,23 @@ def update_comment(name, content):
 	doc.save(ignore_permissions=True)
 
 @frappe.whitelist()
-def get_next(doctype, value, prev, filters=None, order_by="modified desc"):
+def get_next(doctype, value, prev, filters, sort_order, sort_field):
 
-	prev = not int(prev)
-	sort_field, sort_order = order_by.split(" ")
-
+	prev = int(prev)
 	if not filters: filters = []
 	if isinstance(filters, string_types):
 		filters = json.loads(filters)
 
-	# condition based on sort order
-	condition = ">" if sort_order.lower()=="desc" else "<"
+	# # condition based on sort order
+	condition = ">" if sort_order.lower() == "asc" else "<"
 
 	# switch the condition
 	if prev:
-		condition = "<" if condition==">" else "<"
-	else:
-		sort_order = "asc" if sort_order.lower()=="desc" else "desc"
+		sort_order = "asc" if sort_order.lower() == "desc" else "desc"
+		condition = "<" if condition == ">" else ">"
 
-	# add condition for next or prev item
-	if not order_by[0] in [f[1] for f in filters]:
-		filters.append([doctype, sort_field, condition, value])
+	# # add condition for next or prev item
+	filters.append([doctype, sort_field, condition, frappe.get_value(doctype, value, sort_field)])
 
 	res = frappe.get_list(doctype,
 		fields = ["name"],
