@@ -715,19 +715,22 @@ _f.Frm.prototype._save = function(save_action, callback, btn, on_error, resolve,
 		frappe.utils.scroll_to(0);
 	}
 	var after_save = function(r) {
-		if(!r.exc) {
-			if (["Save", "Update", "Amend"].indexOf(save_action)!==-1) {
+		if (!r.exc) {
+			if (["Save", "Update", "Amend"].indexOf(save_action) !== -1) {
 				frappe.utils.play_sound("click");
 			}
 
 			me.script_manager.trigger("after_save");
+			// submit comment if entered
+			me.timeline.comment_area.submit();
 			me.refresh();
 		} else {
-			if(on_error) {
+			if (on_error) {
 				on_error();
 				reject();
 			}
 		}
+
 		callback && callback(r);
 		resolve();
 	};

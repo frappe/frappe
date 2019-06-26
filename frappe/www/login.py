@@ -8,15 +8,19 @@ from frappe.utils.oauth import get_oauth2_authorize_url, get_oauth_keys, login_v
 import json
 from frappe import _
 from frappe.auth import LoginManager
-from frappe.integrations.doctype.ldap_settings.ldap_settings import get_ldap_client_settings
+from frappe.integrations.doctype.ldap_settings.ldap_settings import LDAPSettings
 from frappe.utils.password import get_decrypted_password
 from frappe.utils.html_utils import get_icon_html
 
 no_cache = True
 
 def get_context(context):
+	redirect_to = frappe.local.request.args.get("redirect-to")
+
 	if frappe.session.user != "Guest":
-		frappe.local.flags.redirect_location = "/" if frappe.session.data.user_type=="Website User" else "/desk"
+		if not redirect_to:
+			redirect_to = "/" if frappe.session.data.user_type=="Website User" else "/desk"
+		frappe.local.flags.redirect_location = redirect_to
 		raise frappe.Redirect
 
 	# get settings from site config
@@ -34,11 +38,11 @@ def get_context(context):
 			context.provider_logins.append({
 				"name": provider,
 				"provider_name": frappe.get_value("Social Login Key", provider, "provider_name"),
-				"auth_url": get_oauth2_authorize_url(provider),
+				"auth_url": get_oauth2_authorize_url(provider, redirect_to),
 				"icon": icon
 			})
 			context["social_login"] = True
-	ldap_settings = get_ldap_client_settings()
+	ldap_settings = LDAPSettings.get_ldap_client_settings()
 	context["ldap_settings"] = ldap_settings
 
 	login_name_placeholder = [_("Email address")]

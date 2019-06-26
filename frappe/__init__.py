@@ -23,7 +23,7 @@ if sys.version[0] == '2':
 	reload(sys)
 	sys.setdefaultencoding("utf-8")
 
-__version__ = '11.1.36'
+__version__ = '11.1.37'
 __title__ = "Frappe Framework"
 
 local = Local()
@@ -339,6 +339,10 @@ def msgprint(msg, title=None, raise_exception=0, as_table=False, indicator=None,
 		out.alert = 1
 
 	message_log.append(json.dumps(out))
+
+	if raise_exception and hasattr(raise_exception, '__name__'):
+		local.response['exc_type'] = raise_exception.__name__
+
 	_raise_exception()
 
 def clear_messages():

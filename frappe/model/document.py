@@ -1141,14 +1141,12 @@ class Document(BaseDocument):
 			user = frappe.session.user
 
 		if self.meta.track_seen:
-			if self._seen:
-				_seen = json.loads(self._seen)
-			else:
-				_seen = []
+			_seen = self.get('_seen') or []
+			_seen = frappe.parse_json(_seen)
 
 			if user not in _seen:
 				_seen.append(user)
-				self.db_set('_seen', json.dumps(_seen), update_modified=False)
+				frappe.db.set_value(self.doctype, self.name, '_seen', json.dumps(_seen), update_modified=False)
 				frappe.local.flags.commit = True
 
 	def add_viewed(self, user=None):
