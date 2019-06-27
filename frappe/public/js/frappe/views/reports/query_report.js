@@ -510,7 +510,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 		function get_column_values(column_name) {
 			if (Array.isArray(rows[0])) {
-				let column_index = columns.findIndex(column => column.label == column_name);
+				let column_index = columns.findIndex(column => column.fieldname == column_name);
 				return rows.map(row => row[column_index]);
 			} else {
 				return rows.map(row => row[column_name]);
