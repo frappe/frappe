@@ -134,7 +134,7 @@ frappe.ui.form.Toolbar = Class.extend({
 
 		// go to field modal
 		this.page.add_menu_item(__("Jump to field"), function() {
-			me.setup_modal();
+			me.show_jump_to_field_dialog();
 		}, true, 'Ctrl+J');
 
 		// Linked With
@@ -363,65 +363,52 @@ frappe.ui.form.Toolbar = Class.extend({
 		$(this.frm.wrapper).attr("data-state", this.frm.doc.__unsaved ? "dirty" : "clean");
 	},
 
-	setup_modal() {
-		let $page = $(frappe.container.page);
-		if(!$page.find('.form-layout').is(':visible')) {
-			return;
-		}
+	show_jump_to_field_dialog() {
+		let visible_fields_filter = f =>
+			!['Section Break', 'Column Break'].includes(f.df.fieldtype)
+			&& !f.df.hidden
+			&& f.disp_status !== 'None';
 
-		let fields = this.get_section_fields();
-		let field_labels =  [];
-		fields.forEach((f)=> {
-			field_labels.push(f.label);
-		});
+		let fields = this.frm.fields
+			.filter(visible_fields_filter)
+			.map(f => ({ label: f.df.label, value: f.df.fieldname }));
 
 		let dialog = new frappe.ui.Dialog({
-			title: __('Jump to Field'),
+			title: __('Jump to field'),
 			fields: [
 				{
-					fieldtype: 'Select',
-					fieldname: 'go_to_field',
-					label: 'Select Field',
-					options: field_labels,
+					fieldtype: 'Autocomplete',
+					fieldname: 'fieldname',
+					label: __('Select Field'),
+					options: fields,
 					reqd: 1
 				}
-			]
-		});
+			],
+			primary_action_label: __('Go'),
+			primary_action: ({ fieldname }) => {
+				dialog.hide();
+				let field = this.frm.get_field(fieldname);
+				if (!field) return;
 
-		dialog.set_primary_action("Go", () => {
-			let field = dialog.get_values().go_to_field;
-			let element = fields.find( f=> f.label == field);
-			let $el = $page.find("[data-fieldname="+element.fieldname+"]");
-			if(element.section_body.hasClass('hide')) {
-				element.section_body.removeClass('hide');
+				let $el = field.$wrapper;
+
+				// uncollapse section
+				if (field.section.is_collapsed()) {
+					field.section.collapse(false);
+				}
+
+				// scroll to input
+				frappe.utils.scroll_to($el);
+
+				// highlight input
+				$el.addClass('has-error');
+				setTimeout(() => {
+					$el.removeClass('has-error');
+					$el.find('input, select, textarea').focus();
+				}, 1000);
 			}
-			frappe.utils.scroll_to($el.eq(0));
-			$el.addClass('has-error');
-			setTimeout(function(){
-				$el.removeClass('has-error');
-				$el.find('input').focus();
-			},1000);
-			dialog.hide();
 		});
 
 		dialog.show();
-	},
-
-	get_section_fields() {
-		let fields = [];
-		let $current_page = $(frappe.container.page);
-		$current_page.get(0).frm.layout.sections.forEach((section)=> {
-			section.fields_list.forEach((f)=> {
-				if(f.df.fieldtype!=='Section Break' && !f.df.hidden && f.disp_status!=='None' && f.df.label) {
-					let field = {};
-					field.fieldname = f.df.fieldname;
-					field.label = f.df.label;
-					field.section_body = section.body;
-					field.section = section.df.label;
-					fields.push(field);
-				}
-			})
-		})
-		return fields;
 	}
 })
