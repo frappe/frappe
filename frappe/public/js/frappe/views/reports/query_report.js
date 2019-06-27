@@ -555,7 +555,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			else {
 				wrapper[0].innerHTML = `<div class="flex justify-center align-center text-muted" style="height: 120px; display: flex;">
 					<div>Please select X and Y fields</div>
-				</div>`
+				</div>`;
 			}
 		}
 
