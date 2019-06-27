@@ -777,11 +777,11 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			} else {
 				is_list_nav = true;
 				//For image view
-				if($('.image-view-container').is(':visible')) {
+				if($page.find('.image-view-container').is(':visible')) {
 					is_image_view = true;
-					this.list_items = $('.image-view-item').filter(':visible');
+					this.list_items = $page.find('.image-view-item').filter(':visible');
 				} else {
-					this.list_items = $('.list-row-container').filter(':visible');
+					this.list_items = $page.find('.list-row-container').filter(':visible');
 				}
 				//Add paging buttons to list items
 				this.list_items = this.list_items.add($('.list-paging-area').find('.btn').filter(':visible'));
