@@ -108,6 +108,9 @@ def get_list_data(doctype, txt=None, limit_start=0, fields=None, cmd=None, limit
 
 def set_route(context):
 	'''Set link for the list item'''
+	print(context)
+	print(context.doc.doctype)
+	print(context.doc.name)
 	if context.web_form_name:
 		context.route = "{0}?name={1}".format(context.pathname, quoted(context.doc.name))
 	elif context.doc and getattr(context.doc, 'route', None):
