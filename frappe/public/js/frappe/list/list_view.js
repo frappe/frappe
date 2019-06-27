@@ -1193,8 +1193,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			label: __('Share URL'),
 			action: () => this.share_url(),
 			standard: true,
-
-			shortcut: 'Shift+Ctrl+A',
+			shortcut: 'Ctrl+L',
 		});
 
 		if (frappe.user.has_role('System Manager') && frappe.boot.developer_mode === 1) {
