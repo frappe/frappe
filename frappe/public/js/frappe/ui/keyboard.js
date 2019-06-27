@@ -1,3 +1,5 @@
+import './alt_keyboard_shortcuts';
+
 frappe.provide('frappe.ui.keys.handlers');
 
 frappe.ui.keys.setup = function() {
@@ -17,126 +19,8 @@ frappe.ui.keys.setup = function() {
 	});
 }
 
-let shortcut_groups = new WeakMap();
-frappe.ui.keys.shortcut_groups = shortcut_groups;
-
-frappe.ui.keys.get_shortcut_group = (parent) => {
-	// parent must be an object
-	if (!shortcut_groups.has(parent)) {
-		shortcut_groups.set(parent, new frappe.ui.keys.AltShortcutGroup());
-	}
-	return shortcut_groups.get(parent);
-}
-
-frappe.ui.keys.AltShortcutGroup = class AltShortcutGroup {
-	constructor() {
-		this.shortcuts_dict = {};
-		this.$current_dropdown = null;
-		this.bind_events();
-	}
-
-	bind_events() {
-		$(document).on('keydown', (e) => {
-			let key = (frappe.ui.keys.key_map[e.which] || '').toLowerCase();
-
-			if (key === 'alt') {
-				if (this.$current_dropdown) {
-					this.$current_dropdown.addClass('alt-pressed');
-					$(document.body).removeClass('alt-pressed');
-				} else {
-					$(document.body).addClass('alt-pressed');
-					this.$current_dropdown && this.$current_dropdown.removeClass('alt-pressed');
-				}
-			}
-
-			if (key && e.altKey && key in this.shortcuts_dict) {
-				let shortcut = this.shortcuts_dict[key];
-				let is_visible = shortcut.$target.is(':visible');
-				if (!is_visible) return;
-
-				if (this.$current_dropdown) {
-					let is_open = this.$current_dropdown.is('.open');
-					let is_child = $.contains(this.$current_dropdown[0], shortcut.$target[0]);
-					if (is_open && is_child) {
-						shortcut.$target[0].click();
-					}
-					return;
-				}
-				shortcut.$target[0].click();
-			}
-		});
-		$(document).on('keyup', (e) => {
-			if (e.key === 'Alt') {
-				if (this.$current_dropdown) {
-					this.$current_dropdown.removeClass('alt-pressed');
-				}
-				$(document.body).removeClass('alt-pressed');
-			}
-		});
-		$(document).on('show.bs.dropdown', (e) => {
-			let $target = $(e.target);
-			if ($target.is('.dropdown, .btn-group')) {
-				this.$current_dropdown = $target;
-			}
-		});
-		$(document).on('hide.bs.dropdown', () => {
-			this.$current_dropdown = null;
-		});
-	}
-
-	add($target, $text_el) {
-		if (!$text_el) {
-			$text_el = $target;
-		}
-		let text_content = $text_el.text().trim();
-		let letters = text_content.split('');
-		// first unused letter
-		let shortcut_letter = letters.find(letter => {
-			letter = letter.toLowerCase();
-			let is_valid_char = letter >= 'a' && letter <= 'z';
-			let is_taken = letter in this.shortcuts_dict;
-			return !is_taken && is_valid_char;
-		});
-		if (!shortcut_letter) {
-			return;
-		}
-		for (let key in this.shortcuts_dict) {
-			let shortcut = this.shortcuts_dict[key];
-			if (shortcut.text === text_content) {
-				shortcut.$target = $target;
-				shortcut.$text_el = $text_el;
-				this.underline_text(shortcut);
-				return;
-			}
-		}
-
-		let shortcut = {
-			$target,
-			$text_el,
-			letter: shortcut_letter,
-			text: text_content
-		};
-		this.shortcuts_dict[shortcut_letter.toLowerCase()] = shortcut;
-		this.underline_text(shortcut);
-	}
-
-	underline_text(shortcut) {
-		shortcut.$text_el.attr('data-label', shortcut.text);
-		let underline_el_found = false;
-		let text_html = shortcut.text.split('').map(letter => {
-			if (letter === shortcut.letter && !underline_el_found) {
-				letter = `<span class="alt-underline">${letter}</span>`;
-				underline_el_found = true;
-			}
-			return letter;
-		}).join('');
-		let original_text_html = shortcut.$text_el.html();
-		text_html = original_text_html.replace(shortcut.text.trim(), text_html.trim());
-		shortcut.$text_el.html(text_html);
-	}
-}
-
 let standard_shortcuts = [];
+frappe.ui.keys.standard_shortcuts = standard_shortcuts;
 frappe.ui.keys.add_shortcut = (shortcut, action, description, page) => {
 	if (action instanceof jQuery) {
 		let $target = action;
@@ -150,7 +34,15 @@ frappe.ui.keys.add_shortcut = (shortcut, action, description, page) => {
 			action(e);
 		}
 	});
-	standard_shortcuts.push({ shortcut, action, description, page });
+	let existing_shortcut_index = standard_shortcuts.findIndex(
+		s => s.shortcut === shortcut
+	);
+	let new_shortcut = { shortcut, action, description, page };
+	if (existing_shortcut_index === -1) {
+		standard_shortcuts.push(new_shortcut);
+	} else {
+		standard_shortcuts[existing_shortcut_index] = new_shortcut;
+	}
 }
 
 frappe.ui.keys.show_keyboard_shortcut_dialog = () => {
