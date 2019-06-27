@@ -510,7 +510,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 		function get_column_values(column_name) {
 			if (Array.isArray(rows[0])) {
-				let column_index = columns.findIndex(column => column.label == column_name);
+				let column_index = columns.findIndex(column => column.fieldname == column_name);
 				return rows.map(row => row[column_index]);
 			} else {
 				return rows.map(row => row[column_name]);
@@ -545,12 +545,18 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		function preview_chart() {
 			const wrapper = $(dialog.fields_dict["chart_preview"].wrapper);
 			const values = dialog.get_values(true);
-			let options = make_chart_options(values);
-
-			wrapper.empty();
-			new frappe.Chart(wrapper[0], options);
-			wrapper.find('.chart-container .title, .chart-container .sub-title').hide();
-			wrapper.show();
+			if (values.x_field && values.y_field) {
+				let options = make_chart_options(values);
+				wrapper.empty();
+				new frappe.Chart(wrapper[0], options);
+				wrapper.find('.chart-container .title, .chart-container .sub-title').hide();
+				wrapper.show();
+			}
+			else {
+				wrapper[0].innerHTML = `<div class="flex justify-center align-center text-muted" style="height: 120px; display: flex;">
+					<div>Please select X and Y fields</div>
+				</div>`;
+			}
 		}
 
 		function get_options(fields) {
