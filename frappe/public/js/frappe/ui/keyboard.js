@@ -31,6 +31,7 @@ frappe.ui.keys.get_shortcut_group = (parent) => {
 frappe.ui.keys.AltShortcutGroup = class AltShortcutGroup {
 	constructor() {
 		this.shortcuts_dict = {};
+		this.used_characters = ['s','h'];
 		this.$current_dropdown = null;
 		this.bind_events();
 	}
@@ -55,6 +56,7 @@ frappe.ui.keys.AltShortcutGroup = class AltShortcutGroup {
 				if (!is_visible) return;
 
 				if (this.$current_dropdown) {
+					this.$current_dropdown.removeClass('alt-pressed');
 					let is_open = this.$current_dropdown.is('.open');
 					let is_child = $.contains(this.$current_dropdown[0], shortcut.$target[0]);
 					if (is_open && is_child) {
@@ -94,7 +96,7 @@ frappe.ui.keys.AltShortcutGroup = class AltShortcutGroup {
 		let shortcut_letter = letters.find(letter => {
 			letter = letter.toLowerCase();
 			let is_valid_char = letter >= 'a' && letter <= 'z';
-			let is_taken = letter in this.shortcuts_dict;
+			let is_taken = letter in this.shortcuts_dict || this.used_characters.includes(letter);
 			return !is_taken && is_valid_char;
 		});
 		if (!shortcut_letter) {
@@ -256,7 +258,7 @@ frappe.ui.keys.add_shortcut('shift+/', function() {
 	frappe.ui.keys.show_keyboard_shortcut_dialog();
 }, __('Keyboard Shortcuts'));
 
-frappe.ui.keys.on('alt+h', function(e) {
+frappe.ui.keys.add_shortcut('alt+h', function(e) {
 	e.preventDefault();
 	$('.dropdown-help a').eq(0).click();
 }, __('Help'));
