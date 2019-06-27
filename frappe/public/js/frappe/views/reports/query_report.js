@@ -344,6 +344,13 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				if(chart_options) {
 					this.render_chart(chart_options);
 				}
+				else {
+					this.$chart.empty();
+					if (this.chart_fields) {
+						const chart_options = this.make_chart_options(this.chart_fields);
+						chart_options && this.render_chart(chart_options);
+					}
+				}
 
 				this.render_datatable();
 			} else {
@@ -495,18 +502,32 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		this.$chart.show();
 	}
 
-	get_possible_chart_options() {
-		const columns = this.columns;
-		const rows =  this.raw_data.result.filter(value => Object.keys(value).length);
-		const has_total_row = this.raw_data.add_total_row;
-		const first_row = Array.isArray(rows[0]) ? rows[0] : Object.values(rows[0]);
+	make_chart_options({ y_field, x_field, chart_type, color }) {
+		const type = chart_type.toLowerCase();
+		const colors = color ? [color] : undefined;
 
-		const indices = first_row.reduce((accumulator, current_value, current_index) => {
-			if (Number.isFinite(current_value)) {
-				accumulator.push(current_index);
-			}
-			return accumulator;
-		}, []);
+		let columns = this.columns;
+		let rows =  this.raw_data.result.filter(value => Object.keys(value).length);
+
+		let labels = get_column_values(x_field);
+
+		let dataset_values = get_column_values(y_field).map(d => Number(d));
+
+		if(this.raw_data.add_total_row) {
+			labels = labels.slice(0, -1);
+			dataset_values = dataset_values.slice(0, -1);
+		}
+
+		return {
+			data: {
+				labels: labels,
+				datasets: [
+					{ values: dataset_values }
+				]
+			},
+			type: type,
+			colors: colors
+		};
 
 		function get_column_values(column_name) {
 			if (Array.isArray(rows[0])) {
@@ -516,37 +537,26 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				return rows.map(row => row[column_name]);
 			}
 		}
+	}
 
-		function make_chart_options({ y_field, x_field, chart_type, color }) {
-			const type = chart_type.toLowerCase();
-			const colors = color ? [color] : undefined;
+	get_possible_chart_options() {
+		const columns = this.columns;
+		const rows =  this.raw_data.result.filter(value => Object.keys(value).length);
+		const first_row = Array.isArray(rows[0]) ? rows[0] : Object.values(rows[0]);
+		const me = this
 
-			let labels = get_column_values(x_field);
-
-			let dataset_values = get_column_values(y_field).map(d => Number(d));
-
-			if(has_total_row) {
-				labels = labels.slice(0, -1);
-				dataset_values = dataset_values.slice(0, -1);
+		const indices = first_row.reduce((accumulator, current_value, current_index) => {
+			if (Number.isFinite(current_value)) {
+				accumulator.push(current_index);
 			}
-
-			return {
-				data: {
-					labels: labels,
-					datasets: [
-						{ values: dataset_values }
-					]
-				},
-				type: type,
-				colors: colors
-			};
-		}
+			return accumulator;
+		}, []);
 
 		function preview_chart() {
 			const wrapper = $(dialog.fields_dict["chart_preview"].wrapper);
 			const values = dialog.get_values(true);
 			if (values.x_field && values.y_field) {
-				let options = make_chart_options(values);
+				let options = me.make_chart_options(values);
 				wrapper.empty();
 				new frappe.Chart(wrapper[0], options);
 				wrapper.find('.chart-container .title, .chart-container .sub-title').hide();
@@ -617,7 +627,8 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			],
 			primary_action_label: __('Create'),
 			primary_action: (values) => {
-				let options = make_chart_options(values);
+				let options = me.make_chart_options(values);
+				me.chart_fields = values
 
 				let x_field_label = numeric_fields.filter((field) => field.fieldname == values.y_field)[0].label;
 				let y_field_label = non_numeric_fields.filter((field) => field.fieldname == values.x_field)[0].label;
