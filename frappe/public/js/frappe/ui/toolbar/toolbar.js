@@ -208,6 +208,7 @@ $.extend(frappe.ui.toolbar, {
 	},
 	show_shortcuts () {
 		frappe.ui.keys.show_keyboard_shortcut_dialog();
+		return false;
 	},
 });
 
