@@ -5,6 +5,7 @@ frappe.ui.form.PrintPreview = Class.extend({
 		$.extend(this, opts);
 		this.make();
 		this.bind_events();
+		this.setup_keyboard_shortcuts();
 	},
 	make: function () {
 		this.wrapper = this.frm.page.add_view("print", frappe.render_template("print_layout", {}));
@@ -144,6 +145,11 @@ frappe.ui.form.PrintPreview = Class.extend({
 				};
 				frappe.set_route("print-format-builder");
 			}, __("New Custom Print Format"), __("Start"));
+		});
+	},
+	setup_keyboard_shortcuts() {
+		this.wrapper.find('.print-toolbar a.btn-default').each((i, el) => {
+			frappe.ui.keys.get_shortcut_group(this.frm.page).add($(el));
 		});
 	},
 	set_user_lang: function () {
