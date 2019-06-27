@@ -61,7 +61,7 @@ frappe.ui.form.Sidebar = Class.extend({
 		// add assignment shortcut
 		let assignment_link = this.sidebar.find('.add-assignment');
 		frappe.ui.keys
-			.get_shortcut_group(this.page.wrapper[0])
+			.get_shortcut_group(this.page)
 			.add(assignment_link);
 	},
 

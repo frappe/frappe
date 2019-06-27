@@ -253,7 +253,7 @@ frappe.views.ListSidebar = class ListSidebar {
 	setup_keyboard_shortcuts() {
 		this.sidebar.find('.list-link > a, .list-link > .btn-group > a').each((i, el) => {
 			frappe.ui.keys
-				.get_shortcut_group(this.page.wrapper[0])
+				.get_shortcut_group(this.page)
 				.add($(el));
 		});
 	}

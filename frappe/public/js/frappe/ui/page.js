@@ -174,7 +174,7 @@ frappe.ui.Page = Class.extend({
 		// alt shortcuts
 		let text_span = btn.find('span');
 		frappe.ui.keys
-			.get_shortcut_group(this.wrapper[0])
+			.get_shortcut_group(this)
 			.add(btn, text_span.length ? text_span : btn);
 	},
 
