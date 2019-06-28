@@ -141,7 +141,6 @@ def get_context(context):
 			if self.allow_edit:
 				if self.allow_multiple:
 					if not frappe.form_dict.name and not frappe.form_dict.new:
-						pass
 						# list data is queried via JS
 						context.is_list = True
 				else:
