@@ -338,7 +338,7 @@ frappe.ui.Page = Class.extend({
 			if(!this.divider.length) {
 				this.divider = $('<li class="divider user-action"></li>').prependTo(parent);
 			}
-			$li.addClass("user-action").insertBefore(this.divider).addClass('visible-xs');
+			$li.addClass("user-action").insertBefore(this.divider);
 		}
 
 		// alt shortcut
