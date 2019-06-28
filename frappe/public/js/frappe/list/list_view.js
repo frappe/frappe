@@ -492,7 +492,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 	get_list_row_html_skeleton(left = '', right = '') {
 		return `
-			<div class="list-row-container">
+			<div class="list-row-container" tabindex="1">
 				<div class="level list-row small">
 					<div class="level-left ellipsis">
 						${left}
@@ -754,115 +754,65 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		this.setup_like();
 		this.setup_realtime_updates();
 		this.setup_action_handler();
-		this.setup_list_keyboard_nav();
-	}
+        this.setup_keyboard_navigation();
+    }
 
-	setup_list_keyboard_nav() {
-		let is_list_nav, is_image_view;
-		this.next_index = 0;
+    setup_keyboard_navigation() {
+        let focus_first_row = () => {
+            this.$result.find('.list-row-container:first').focus();
+        }
+        let focus_next = () => {
+            $(document.activeElement).next().focus();
+        }
+        let focus_prev = () => {
+            $(document.activeElement).prev().focus();
+        }
+        let list_row_focused = () => {
+            return $(document.activeElement).is('.list-row-container');
+        }
+        let check_row = ($row) => {
+            let $input = $row.find('input[type=checkbox]');
+            $input.click();
+        }
 
-		$(document).off('keydown.list').on('keydown.list', null, (e)=> {
-			let key = frappe.ui.keys.get_key(e);
-			let $page = $(frappe.container.page);
-			let $navbar = $('.navbar');
-			var {UP, DOWN, ENTER, SPACE} = frappe.ui.keyCode;
-			if(!in_list([UP, DOWN, ENTER, SPACE], e.which)) {
-				return;
-			}
-			//If any other keyboard navigable list(like dropdown) is open, set is_list_nav to false
-			if ($navbar.find('[role="listbox"]').is(":visible") || $navbar.find('.dropdown-menu').is(':visible')
-				|| $page.find('.dropdown-menu').is(':visible')  || $('.modal').is(':visible')
-				|| $navbar.find('input:focus').length > 0 || $page.find('input:focus').length > 0) {
-				is_list_nav = false;
-			} else {
-				is_list_nav = true;
-				//For image view
-				if($page.find('.image-view-container').is(':visible')) {
-					is_image_view = true;
-					this.list_items = $page.find('.image-view-item').filter(':visible');
-				} else {
-					this.list_items = $page.find('.list-row-container').filter(':visible');
-				}
-				//Add paging buttons to list items
-				this.list_items = this.list_items.add($('.list-paging-area').find('.btn').filter(':visible'));
+        $(document).on('keydown', (e) => {
+            let { UP, DOWN, ENTER, SPACE } = frappe.ui.keyCode;
+            let key = frappe.ui.keys.get_key(e);
+            if (![UP, DOWN, ENTER, SPACE].includes(e.which)) return;
+            if (!this.page.wrapper.is(':visible')) return;
+            let $list_row = list_row_focused() ? $(document.activeElement) : null;
 
-				if(this.list_items.length) {
-					if(key === 'shift+down') {
-						this.nav('down');
-						this.nav_space();
-					} else if(key === 'shift+up') {
-						this.nav_space();
-						this.nav('up');
-					} else if(key === 'down') {
-						this.nav('down');
-					} else if(key === 'up') {
-						this.nav('up');
-					} else if(key === 'enter' ) {
-						this.nav_enter(is_list_nav, is_image_view);
-					} else if(key === 'space' && this.selected) {
-						e.preventDefault();
-						this.nav_space();
-					}
-				}
+            if ([UP, DOWN].includes(e.which)) {
+                e.preventDefault();
 
-			}
-		});
-	}
+                if (!$list_row) {
+                    focus_first_row();
+                } else {
+                    if (key === 'shift+down') {
+                        check_row($list_row);
+                        focus_next();
+                    } else if (key === 'shift+up') {
+                        check_row($list_row);
+                        focus_prev();
+                    } else if (key === 'down') {
+                        focus_next();
+                    } else if (key === 'up') {
+                        focus_prev();
+                    }
+                }
+                return;
+            }
 
-	add_selected_class(index, element) {
-		let new_class = this.list_items.eq(index).is('button') ? 'page-btn-selected': 'list-selected';
-		this.selected = element.addClass(new_class);
-	}
-
-	remove_selected_class(index, element) {
-		let new_class = this.list_items.eq(index).is('button') ? 'page-btn-selected': 'list-selected';
-		this.selected = element.removeClass(new_class);
-	}
-
-	nav(dir) {
-		let index = dir === 'up' ? this.list_items.length-1 : 0;
-		if(this.selected && this.selected.is(':visible')) {
-			this.remove_selected_class(this.next_index, this.selected);
-			if( dir==='up' ) {
-				if(this.next_index > 0) this.next_index--;
-			} else {
-				this.next_index++;
-			}
-			this.next_el = this.list_items.eq(this.next_index);
-
-			if(this.next_el.length > 0) {
-				this.add_selected_class(this.next_index, this.next_el);
-			} else {
-				this.add_selected_class(index, this.list_items.eq(index));
-				this.next_index = 0;
-			}
-
-		} else {
-			this.add_selected_class(index, this.list_items.eq(index));
-			this.next_index = 0;
-		}
-
-	}
-
-	nav_enter(is_list_nav, is_image_view) {
-		if(is_list_nav && this.selected && this.selected.is(':visible')) {
-			if(is_image_view) {
-				let image_link = this.selected.find('.list-subject a').get(0);
-				if(image_link) window.location.href = image_link.href;
-			}
-			if(this.selected.is('button') ) {
-				this.selected.click();
-				this.selected.removeClass('btn-selected');
-			} else {
-				this.selected.find('.list-row').click();
-			}
-			this.next_index = -1;
-		}
-	}
-
-	nav_space() {
-		if(this.selected) this.selected.find('.list-row-checkbox').click();
-	}
+            if ($list_row) {
+                e.preventDefault();
+                if (key === 'enter') {
+                    $list_row.find('a[data-name]')[0].click();
+                } else if (key === 'space') {
+                    check_row($list_row);
+                }
+            }
+        });
+    }
 
 	setup_filterable() {
 		// filterable events
