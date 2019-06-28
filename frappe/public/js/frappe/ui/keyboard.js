@@ -154,11 +154,11 @@ frappe.ui.keys.add_shortcut('alt+h', function(e) {
 }, __('Help'));
 
 frappe.ui.keys.on('escape', function(e) {
-    close_grid_and_dialog();
+	close_grid_and_dialog();
 });
 
 frappe.ui.keys.on('esc', function(e) {
-    close_grid_and_dialog();
+	close_grid_and_dialog();
 });
 
 frappe.ui.keys.on('enter', function(e) {
@@ -177,7 +177,7 @@ frappe.ui.keys.on('ctrl+up', function(e) {
 	grid_row && grid_row.toggle_view(false, function() { grid_row.open_prev() });
 });
 
-frappe.ui.keys.add_shortcut('shift+ctrl+r', function(e) {
+frappe.ui.keys.add_shortcut('shift+ctrl+r', function() {
 	frappe.ui.toolbar.clear_cache();
 }, __('Clear Cache and Reload'));
 
@@ -238,7 +238,7 @@ function close_grid_and_dialog() {
 
 // blur when escape is pressed on dropdowns
 $(document).on('keydown', '.dropdown-toggle', (e) => {
-    if (e.which === frappe.ui.keyCode.ESCAPE) {
-        $(e.currentTarget).blur();
-    }
-})
+	if (e.which === frappe.ui.keyCode.ESCAPE) {
+		$(e.currentTarget).blur();
+	}
+});

@@ -272,7 +272,7 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 		return +className.replace(/[^\d]/g, '');
 	},
 
-    set_focus() {
-        this.quill.focus();
-    }
+	set_focus() {
+		this.quill.focus();
+	}
 });

@@ -43,11 +43,11 @@ frappe.ui.keys.bind_shortcut_group_event = () => {
 		}
 
 		if (key && e.altKey) {
-            let shortcut = get_shortcut_for_key(key);
-            if (shortcut) {
-                e.preventDefault();
-                shortcut.$target[0].click();
-            }
+			let shortcut = get_shortcut_for_key(key);
+			if (shortcut) {
+				e.preventDefault();
+				shortcut.$target[0].click();
+			}
 			highlight_alt_shortcuts();
 		}
 	});
@@ -69,7 +69,7 @@ function get_shortcut_for_key(key) {
 	let shortcuts = shortcut_group_list
 		.filter(shortcut_group => key in shortcut_group.shortcuts_dict)
 		.map(shortcut_group => shortcut_group.shortcuts_dict[key])
-		.filter(shortcut => shortcut.$target.is(':visible'))
+		.filter(shortcut => shortcut.$target.is(':visible'));
 
 	let shortcut = null;
 
@@ -164,7 +164,7 @@ frappe.ui.keys.AltShortcutGroup = class AltShortcutGroup {
 	is_taken(letter) {
 		let is_in_global_shortcut = frappe.ui.keys.standard_shortcuts
 			.filter(s => !s.page)
-            .some(s => s.shortcut === `alt+${letter}`);
+			.some(s => s.shortcut === `alt+${letter}`);
 		return letter in this.shortcuts_dict || is_in_global_shortcut;
 	}
-}
+};

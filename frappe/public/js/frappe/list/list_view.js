@@ -754,65 +754,65 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		this.setup_like();
 		this.setup_realtime_updates();
 		this.setup_action_handler();
-        this.setup_keyboard_navigation();
-    }
+		this.setup_keyboard_navigation();
+	}
 
-    setup_keyboard_navigation() {
-        let focus_first_row = () => {
-            this.$result.find('.list-row-container:first').focus();
-        }
-        let focus_next = () => {
-            $(document.activeElement).next().focus();
-        }
-        let focus_prev = () => {
-            $(document.activeElement).prev().focus();
-        }
-        let list_row_focused = () => {
-            return $(document.activeElement).is('.list-row-container');
-        }
-        let check_row = ($row) => {
-            let $input = $row.find('input[type=checkbox]');
-            $input.click();
-        }
+	setup_keyboard_navigation() {
+		let focus_first_row = () => {
+			this.$result.find('.list-row-container:first').focus();
+		};
+		let focus_next = () => {
+			$(document.activeElement).next().focus();
+		};
+		let focus_prev = () => {
+			$(document.activeElement).prev().focus();
+		};
+		let list_row_focused = () => {
+			return $(document.activeElement).is('.list-row-container');
+		};
+		let check_row = ($row) => {
+			let $input = $row.find('input[type=checkbox]');
+			$input.click();
+		};
 
-        $(document).on('keydown', (e) => {
-            let { UP, DOWN, ENTER, SPACE } = frappe.ui.keyCode;
-            let key = frappe.ui.keys.get_key(e);
-            if (![UP, DOWN, ENTER, SPACE].includes(e.which)) return;
-            if (!this.page.wrapper.is(':visible')) return;
-            let $list_row = list_row_focused() ? $(document.activeElement) : null;
+		$(document).on('keydown', (e) => {
+			let { UP, DOWN, ENTER, SPACE } = frappe.ui.keyCode;
+			let key = frappe.ui.keys.get_key(e);
+			if (![UP, DOWN, ENTER, SPACE].includes(e.which)) return;
+			if (!this.page.wrapper.is(':visible')) return;
+			let $list_row = list_row_focused() ? $(document.activeElement) : null;
 
-            if ([UP, DOWN].includes(e.which)) {
-                e.preventDefault();
+			if ([UP, DOWN].includes(e.which)) {
+				e.preventDefault();
 
-                if (!$list_row) {
-                    focus_first_row();
-                } else {
-                    if (key === 'shift+down') {
-                        check_row($list_row);
-                        focus_next();
-                    } else if (key === 'shift+up') {
-                        check_row($list_row);
-                        focus_prev();
-                    } else if (key === 'down') {
-                        focus_next();
-                    } else if (key === 'up') {
-                        focus_prev();
-                    }
-                }
-                return;
-            }
+				if (!$list_row) {
+					focus_first_row();
+				} else {
+					if (key === 'shift+down') {
+						check_row($list_row);
+						focus_next();
+					} else if (key === 'shift+up') {
+						check_row($list_row);
+						focus_prev();
+					} else if (key === 'down') {
+						focus_next();
+					} else if (key === 'up') {
+						focus_prev();
+					}
+				}
+				return;
+			}
 
-            if ($list_row) {
-                e.preventDefault();
-                if (key === 'enter') {
-                    $list_row.find('a[data-name]')[0].click();
-                } else if (key === 'space') {
-                    check_row($list_row);
-                }
-            }
-        });
-    }
+			if ($list_row) {
+				e.preventDefault();
+				if (key === 'enter') {
+					$list_row.find('a[data-name]')[0].click();
+				} else if (key === 'space') {
+					check_row($list_row);
+				}
+			}
+		});
+	}
 
 	setup_filterable() {
 		// filterable events
