@@ -1,11 +1,20 @@
 frappe.provide("frappe.ui");
 frappe.provide("frappe.web_form");
+import EventEmitterMixin from '../../frappe/event_emitter';
 
 export default class WebForm extends frappe.ui.FieldGroup {
 	constructor(opts) {
 		super();
 		Object.assign(this, opts);
 		frappe.web_form = this;
+		frappe.web_form.events = {};
+		Object.assign(frappe.web_form.events, EventEmitterMixin);
+	}
+
+	prepare(web_form_doc, doc) {
+		Object.assign(this, web_form_doc);
+		this.fields = web_form_doc.web_form_fields;
+		this.doc = doc;
 	}
 
 	make() {
@@ -20,7 +29,7 @@ export default class WebForm extends frappe.ui.FieldGroup {
 
 		// webform client script
 		frappe.init_client_script && frappe.init_client_script();
-		frappe.web_form.after_load && frappe.web_form.after_load();
+		frappe.web_form.events.trigger('after_load');
 	}
 
 	on(fieldname, handler) {
@@ -102,6 +111,7 @@ export default class WebForm extends frappe.ui.FieldGroup {
 				if (!response.exc) {
 					// Success
 					this.handle_success(response.message);
+					frappe.web_form.events.trigger('after_save');
 				}
 			},
 			always: function() {
