@@ -135,7 +135,6 @@
    "options": "User"
   },
   {
-   "fetch_from": "assigned_by.full_name",
    "fieldname": "assigned_by_full_name",
    "fieldtype": "Read Only",
    "label": "Assigned By Full Name"
@@ -165,7 +164,7 @@
  ],
  "icon": "fa fa-check",
  "idx": 2,
- "modified": "2019-06-20 09:25:58.326858",
+ "modified": "2019-06-28 13:24:21.013752",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "ToDo",

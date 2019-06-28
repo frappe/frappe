@@ -531,15 +531,17 @@ class DocType(Document):
 	def make_repeatable(self):
 		"""If allow_auto_repeat is set, add auto_repeat docfield."""
 		if self.allow_auto_repeat:
-			self.append("fields", {
-				"label": "Auto Repeat",
-				"fieldtype": "Link",
-				"fieldname": "auto_repeat",
-				"options": "Auto Repeat",
-				"read_only": 1,
-				"print_hide": 1,
-				"no_copy": 1
-			})
+			if not frappe.db.sql("""select name from tabDocField
+				where fieldname = 'auto_repeat' and parent = %s""", self.name):
+					self.append("fields", {
+						"label": "Auto Repeat",
+						"fieldtype": "Link",
+						"fieldname": "auto_repeat",
+						"options": "Auto Repeat",
+						"read_only": 1,
+						"print_hide": 1,
+						"no_copy": 1
+					})
 
 	def get_max_idx(self):
 		"""Returns the highest `idx`"""
