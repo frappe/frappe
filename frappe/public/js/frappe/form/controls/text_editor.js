@@ -270,6 +270,9 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 	getListLevel(el) {
 		const className = el.className || '0';
 		return +className.replace(/[^\d]/g, '');
-	}
+	},
 
+	set_focus() {
+		this.quill.focus();
+	}
 });
