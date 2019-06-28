@@ -154,11 +154,11 @@ frappe.ui.keys.add_shortcut('alt+h', function(e) {
 }, __('Help'));
 
 frappe.ui.keys.on('escape', function(e) {
-	close_grid_and_dialog();
+    close_grid_and_dialog();
 });
 
 frappe.ui.keys.on('esc', function(e) {
-	close_grid_and_dialog();
+    close_grid_and_dialog();
 });
 
 frappe.ui.keys.on('enter', function(e) {
@@ -235,3 +235,10 @@ function close_grid_and_dialog() {
 		return false;
 	}
 }
+
+// blur when escape is pressed on dropdowns
+$(document).on('keydown', '.dropdown-toggle', (e) => {
+    if (e.which === frappe.ui.keyCode.ESCAPE) {
+        $(e.currentTarget).blur();
+    }
+})
