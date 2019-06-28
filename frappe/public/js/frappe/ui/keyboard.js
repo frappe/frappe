@@ -30,8 +30,12 @@ frappe.ui.keys.add_shortcut = (shortcut, action, description, page) => {
 	}
 	frappe.ui.keys.on(shortcut, (e) => {
 		if (!page || page.wrapper.is(':visible')) {
-			e.preventDefault();
-			action(e);
+			let prevent_default = action(e);
+			// prevent default if true is explicitly returned
+			// or nothing returned (undefined)
+			if (prevent_default || prevent_default === undefined) {
+				e.preventDefault();
+			}
 		}
 	});
 	let existing_shortcut_index = standard_shortcuts.findIndex(

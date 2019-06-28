@@ -774,44 +774,62 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			let $input = $row.find('input[type=checkbox]');
 			$input.click();
 		};
+		let get_list_row_if_focused = () =>
+			list_row_focused() ? $(document.activeElement) : null;
 
-		$(document).on('keydown', (e) => {
-			let { UP, DOWN, ENTER, SPACE } = frappe.ui.keyCode;
-			let key = frappe.ui.keys.get_key(e);
-			if (![UP, DOWN, ENTER, SPACE].includes(e.which)) return;
-			if (!this.page.wrapper.is(':visible')) return;
-			let $list_row = list_row_focused() ? $(document.activeElement) : null;
+		let is_current_page = () => this.page.wrapper.is(':visible');
+		let is_input_focused = () => $(document.activeElement).is('input');
 
-			if ([UP, DOWN].includes(e.which)) {
-				e.preventDefault();
+		let handle_navigation = (direction) => {
+			if (!is_current_page() || is_input_focused()) return false;
 
-				if (!$list_row) {
-					focus_first_row();
-				} else {
-					if (key === 'shift+down') {
-						check_row($list_row);
-						focus_next();
-					} else if (key === 'shift+up') {
-						check_row($list_row);
-						focus_prev();
-					} else if (key === 'down') {
-						focus_next();
-					} else if (key === 'up') {
-						focus_prev();
-					}
-				}
-				return;
-			}
-
+			let $list_row = get_list_row_if_focused();
 			if ($list_row) {
-				e.preventDefault();
-				if (key === 'enter') {
-					$list_row.find('a[data-name]')[0].click();
-				} else if (key === 'space') {
-					check_row($list_row);
-				}
+				direction === 'down' ? focus_next() : focus_prev();
+			} else {
+				focus_first_row();
 			}
-		});
+		}
+
+		frappe.ui.keys.add_shortcut('down', () => {
+			return handle_navigation('down');
+		}, __('Navigate list down'), this.page);
+
+		frappe.ui.keys.add_shortcut('up', () => {
+			return handle_navigation('up');
+		}, __('Navigate list up'), this.page);
+
+		frappe.ui.keys.add_shortcut('shift+down', () => {
+			if (!is_current_page() || is_input_focused()) return false;
+			let $list_row = get_list_row_if_focused();
+			check_row($list_row);
+			focus_next();
+		}, __('Select multiple list items'), this.page);
+
+		frappe.ui.keys.add_shortcut('shift+up', () => {
+			if (!is_current_page() || is_input_focused()) return false;
+			let $list_row = get_list_row_if_focused();
+			check_row($list_row);
+			focus_prev();
+		}, __('Select multiple list items'), this.page);
+
+		frappe.ui.keys.add_shortcut('enter', () => {
+			let $list_row = get_list_row_if_focused();
+			if ($list_row) {
+				$list_row.find('a[data-name]')[0].click();
+				return true;
+			}
+			return false;
+		}, __('Open list item'), this.page);
+
+		frappe.ui.keys.add_shortcut('space', () => {
+			let $list_row = get_list_row_if_focused();
+			if ($list_row) {
+				check_row($list_row);
+				return true;
+			}
+			return false;
+		}, __('Select list item'), this.page);
 	}
 
 	setup_filterable() {
