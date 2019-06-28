@@ -1,31 +1,27 @@
 # -*- coding: utf-8 -*-
-# Copyright (c) 2017, Frappe Technologies and contributors
+# Copyright (c) 2019, Frappe Technologies and contributors
 # For license information, please see license.txt
 
 from __future__ import unicode_literals
-
 import frappe
-from frappe import _
 from frappe.model.document import Document
 
-
-class GoogleMapsSettings(Document):
+class GoogleMaps(Document):
 	def validate(self):
-		if self.enabled:
-			if not self.client_key:
-				frappe.throw(_("Client key is required"))
-			if not self.home_address:
-				frappe.throw(_("Home Address is required"))
+		if self.enable and not frappe.db.get_single_value("Google Settings", "enable"):
+			frappe.throw(_("Enable Google API in Google Settings."))
 
 	def get_client(self):
-		if not self.enabled:
+		if not self.enable:
 			frappe.throw(_("Google Maps integration is not enabled"))
 
 		import googlemaps
 
 		try:
-			client = googlemaps.Client(key=self.client_key)
+			client_id = frappe.db.get_single_value("Google Settings", "client_id")
+			client = googlemaps.Client(key=client_id)
 		except Exception as e:
 			frappe.throw(e.message)
 
 		return client
+
