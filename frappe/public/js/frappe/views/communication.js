@@ -369,7 +369,10 @@ frappe.views.CommunicationComposer = Class.extend({
 
 		let args = {
 			folder: 'Home/Attachments',
-			on_success: attachment => this.attachments.push(attachment)
+			on_success: attachment => {
+				this.attachments.push(attachment);
+				this.render_attach();
+			}
 		};
 
 		if(this.frm) {
@@ -418,6 +421,21 @@ frappe.views.CommunicationComposer = Class.extend({
 					+		'<i class="fa fa-share" style="vertical-align: middle; margin-left: 3px;"></i>'
 					+ '</label></p>', f))
 					.appendTo(attach)
+			});
+		}
+		this.select_attachments();
+	},
+	select_attachments:function(){
+		let me = this;
+		if(me.dialog.display) {
+			let wrapper = $(me.dialog.fields_dict.select_attachments.wrapper);
+
+			let unchecked_items = wrapper.find('[data-file-name]:not(:checked)').map(function() {
+				return $(this).attr("data-file-name");
+			});
+
+			$.each(unchecked_items, function(i, filename) {
+				wrapper.find('[data-file-name="'+ filename +'"]').prop("checked", true);
 			});
 		}
 	},
@@ -482,7 +500,7 @@ frappe.views.CommunicationComposer = Class.extend({
 	},
 
 	save_as_draft: function() {
-		if (this.dialog) {
+		if (this.dialog && this.frm) {
 			try {
 				let message = this.dialog.get_value('content');
 				message = message.split(frappe.separator_element)[0];
