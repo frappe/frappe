@@ -91,6 +91,7 @@ export default class WebFormList {
 				doctype: this.doctype,
 				fields: this.fields_list.map(df => df.fieldname),
 				limit_start: this.web_list_start,
+				web_form_name: this.web_form_name,
 				...this.filters
 			}
 		});
