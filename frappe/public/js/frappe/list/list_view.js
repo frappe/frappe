@@ -789,7 +789,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			} else {
 				focus_first_row();
 			}
-		}
+		};
 
 		frappe.ui.keys.add_shortcut('down', () => {
 			return handle_navigation('down');

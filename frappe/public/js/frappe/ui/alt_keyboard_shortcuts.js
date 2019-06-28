@@ -10,7 +10,7 @@ frappe.ui.keys.get_shortcut_group = (parent) => {
 		shortcut_groups.set(parent, new frappe.ui.keys.AltShortcutGroup());
 	}
 	return shortcut_groups.get(parent);
-}
+};
 
 let listener_added = false;
 let $current_dropdown = null;
