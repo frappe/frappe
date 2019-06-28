@@ -73,6 +73,7 @@ def authorize_access(g_contact, reauthorize=None):
 
 			if "refresh_token" in r:
 				frappe.db.set_value("Google Contacts", google_contact.name, "refresh_token", r.get("refresh_token"))
+				frappe.db.commit()
 
 			frappe.local.response["type"] = "redirect"
 			frappe.local.response["location"] = "/desk#Form/Google%20Contacts/{}".format(google_contact.name)
@@ -93,6 +94,7 @@ def google_callback(client_id=None, redirect_uri=None, code=None):
 	else:
 		google_contact = frappe.cache().hget("google_contacts", "google_contact")
 		frappe.db.set_value("Google Contacts", google_contact, "authorization_code", code)
+		frappe.db.commit()
 
 		authorize_access(google_contact)
 
