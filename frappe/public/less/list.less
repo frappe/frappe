@@ -64,7 +64,12 @@
 .list-row-container {
 	border-bottom: 1px solid @border-color;
 	display: flex;
-	flex-direction: column;
+    flex-direction: column;
+    outline: none;
+
+    &:focus {
+        background-color: @light-yellow;
+    }
 }
 
 .list-row {
@@ -88,14 +93,6 @@
 	.level-right {
 		flex: 1;
 	}
-}
-
-.list-selected {
-	background-color: @panel-bg;
-}
-
-.page-btn-selected {
-	background: #cfdce5;
 }
 
 .list-row-head {
