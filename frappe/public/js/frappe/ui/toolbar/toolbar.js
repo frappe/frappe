@@ -206,7 +206,8 @@ $.extend(frappe.ui.toolbar, {
 		let fullwidth = JSON.parse(localStorage.container_fullwidth || 'false');
 		$(document.body).toggleClass('full-width', fullwidth);
 	},
-	show_shortcuts () {
+	show_shortcuts (e) {
+		e.preventDefault();
 		frappe.ui.keys.show_keyboard_shortcut_dialog();
 		return false;
 	},

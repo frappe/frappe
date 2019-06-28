@@ -148,7 +148,7 @@ frappe.ui.keys.add_shortcut('shift+/', function() {
 	frappe.ui.keys.show_keyboard_shortcut_dialog();
 }, __('Keyboard Shortcuts'));
 
-frappe.ui.keys.on('alt+h', function(e) {
+frappe.ui.keys.add_shortcut('alt+h', function(e) {
 	e.preventDefault();
 	$('.dropdown-help a').eq(0).click();
 }, __('Help'));

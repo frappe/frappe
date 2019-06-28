@@ -118,8 +118,7 @@ frappe.ui.keys.AltShortcutGroup = class AltShortcutGroup {
 		let shortcut_letter = letters.find(letter => {
 			letter = letter.toLowerCase();
 			let is_valid_char = letter >= 'a' && letter <= 'z';
-			let is_taken = letter in this.shortcuts_dict;
-			return !is_taken && is_valid_char;
+			return !this.is_taken() && is_valid_char;
 		});
 		if (!shortcut_letter) {
 			return;
@@ -157,5 +156,12 @@ frappe.ui.keys.AltShortcutGroup = class AltShortcutGroup {
 		let original_text_html = shortcut.$text_el.html();
 		text_html = original_text_html.replace(shortcut.text.trim(), text_html.trim());
 		shortcut.$text_el.html(text_html);
+	}
+
+	is_taken(letter) {
+		let is_in_global_shortcut = frappe.ui.keys.standard_shortcuts
+			.filter(s => !s.page)
+			.some(s => s.shortcut === `alt+${letter}`);
+		return letter in this.shortcuts_dict || is_in_global_shortcut;
 	}
 }
