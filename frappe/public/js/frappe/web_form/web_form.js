@@ -136,7 +136,7 @@ export default class WebForm extends frappe.ui.FieldGroup {
 	print() {
 		window.location.href = `/printview?
 			doctype=${this.doc_type}
-			&name=${this.doc_name}
+			&name=${this.doc.name}
 			&format=${this.print_format || "Standard"}`;
 	}
 
