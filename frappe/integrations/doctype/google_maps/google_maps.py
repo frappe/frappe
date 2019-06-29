@@ -8,7 +8,7 @@ from frappe.model.document import Document
 
 class GoogleMaps(Document):
 	def validate(self):
-		if self.enabled:
+		if self.enable:
 			if not frappe.db.get_single_value("Google Settings", "enable"):
 				frappe.throw(_("Enable Google Settings for Google Maps Integration."))
 
@@ -16,7 +16,7 @@ class GoogleMaps(Document):
 				frappe.throw(_("Enter API Key for Google Maps Integration in Google Settings."))
 
 	def get_client(self):
-		if not self.enabled:
+		if not self.enable:
 			frappe.throw(_("Google Maps Integration is not enabled."))
 
 		import googlemaps

@@ -5,7 +5,8 @@
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
-  "enabled",
+  "enable",
+  "sb_00",
   "entity_type",
   "address",
   "cb_00",
@@ -13,15 +14,10 @@
  ],
  "fields": [
   {
-   "default": "0",
-   "fieldname": "enabled",
-   "fieldtype": "Check",
-   "label": "Enabled"
-  },
-  {
    "fieldname": "entity_type",
    "fieldtype": "Select",
-   "label": "Entity Type"
+   "label": "Entity Type",
+   "options": "Driver"
   },
   {
    "fieldname": "address",
@@ -38,9 +34,21 @@
    "fieldtype": "Dynamic Link",
    "label": "Entity",
    "options": "entity_type"
+  },
+  {
+   "depends_on": "eval: doc.enable",
+   "fieldname": "sb_00",
+   "fieldtype": "Section Break",
+   "label": "Google Maps"
+  },
+  {
+   "default": "0",
+   "fieldname": "enable",
+   "fieldtype": "Check",
+   "label": "Enable"
   }
  ],
- "modified": "2019-06-29 13:23:16.714233",
+ "modified": "2019-06-29 21:58:34.405715",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Google Maps",
@@ -57,7 +65,6 @@
    "write": 1
   }
  ],
- "quick_entry": 1,
  "sort_field": "modified",
  "sort_order": "DESC",
  "track_changes": 1
