@@ -132,10 +132,12 @@ class RazorpaySettings(Document):
 
 		subscription_details = {
 			"plan_id": kwargs.get('subscription_details').get("plan_id"),
-			"start_at": cint(start_date),
 			"total_count": kwargs.get('subscription_details').get("billing_frequency"),
 			"customer_notify": kwargs.get('subscription_details').get("customer_notify")
 		}
+
+		if start_date:
+			subscription_details['start_at'] = cint(start_date)
 
 		if kwargs.get('addons'):
 			convert_rupee_to_paisa(**kwargs)
@@ -238,8 +240,8 @@ class RazorpaySettings(Document):
 
 		status = frappe.flags.integration_request.status_code
 
-		redirect_to = data.get('notes', {}).get('redirect_to') or None
-		redirect_message = data.get('notes', {}).get('redirect_message') or None
+		redirect_to = data.get('redirect_to') or None
+		redirect_message = data.get('redirect_message') or None
 
 		if self.flags.status_changed_to in ("Authorized", "Verified", "Completed"):
 			if self.data.reference_doctype and self.data.reference_docname:

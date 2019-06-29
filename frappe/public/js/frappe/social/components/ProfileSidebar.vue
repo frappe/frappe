@@ -23,6 +23,12 @@
 			v-if="can_edit_profile"
 			@click="edit_profile()"
 		>{{ __('Edit Profile') }}</a>
+		<a
+			class="edit-profile-link"
+			v-if="can_edit_user"
+			@click="edit_user()"
+		>{{ __('User Settings') }}</a>
+
 	</div>
 </template>
 <script>
@@ -34,6 +40,7 @@ export default {
 		return {
 			user: frappe.user_info(this.user_id),
 			can_edit_profile: frappe.social.is_session_user_page(),
+			can_edit_user: frappe.session.user === this.user_id,
 			energy_points: 0
 		};
 	},
@@ -43,6 +50,9 @@ export default {
 		});
 	},
 	methods: {
+		edit_user() {
+			frappe.set_route('Form', 'User', this.user_id);
+		},
 		edit_profile() {
 			const edit_profile_dialog = new frappe.ui.Dialog({
 				title: __('Edit Profile'),
@@ -51,13 +61,11 @@ export default {
 						fieldtype: 'Attach Image',
 						fieldname: 'user_image',
 						label: 'Profile Image',
-						reqd: 1
 					},
 					{
 						fieldtype: 'Data',
 						fieldname: 'interest',
 						label: 'Interests',
-						reqd: 1
 					},
 					{
 						fieldtype: 'Column Break'
@@ -66,13 +74,11 @@ export default {
 						fieldtype: 'Attach Image',
 						fieldname: 'banner_image',
 						label: 'Banner Image',
-						reqd: 1
 					},
 					{
 						fieldtype: 'Data',
 						fieldname: 'location',
 						label: 'Location',
-						reqd: 1
 					},
 					{
 						fieldtype: 'Section Break',
@@ -82,7 +88,6 @@ export default {
 						fieldtype: 'Small Text',
 						fieldname: 'bio',
 						label: 'Bio',
-						reqd: 1
 					}
 				],
 				primary_action: values => {

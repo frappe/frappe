@@ -24,6 +24,8 @@
 					{%= __("Settings") %}</span>
 				<b class="caret hidden-xs hidden-sm"></b></a>
 				<ul class="dropdown-menu" id="toolbar-user" role="menu">
+					<li><a href="#social/profile/{%= encodeURIComponent(frappe.session.user) %}">
+						{%= __("My Profile") %}</a></li>
 					<li><a href="#Form/User/{%= encodeURIComponent(frappe.session.user) %}">
 						{%= __("My Settings") %}</a></li>
 					<li class="navbar-reload">
@@ -55,6 +57,8 @@
 					<li class="divider documentation-links"></li>
 					<li><a href="#" onclick="return frappe.ui.toolbar.show_about();">
 						{%= __("About") %}</a></li>
+					<li><a href="#" onclick="return frappe.ui.toolbar.show_shortcuts(event);">
+						{%= __("Keyboard Shortcuts") %}</a></li>
 				</ul>
 			</li>
 
@@ -64,7 +68,7 @@
 			<!-- end frappe.chat -->
 
 			<li class="dropdown dropdown-navbar-new-comments dropdown-mobile">
-				<a class="btn dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+				<a class="btn dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true" href="#" onclick="return false;">
 					<span class="navbar-new-comments">0</span>
 				</a>
 				<ul class="dropdown-menu" id="dropdown-notification" role="menu" style="max-height: 480px; overflow-y: auto;">

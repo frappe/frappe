@@ -226,6 +226,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		this.setup_events();
 		this.settings.onload && this.settings.onload(this);
 		this.show_restricted_list_indicator_if_applicable();
+
 	}
 
 	setup_freeze_area() {
@@ -491,7 +492,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 	get_list_row_html_skeleton(left = '', right = '') {
 		return `
-			<div class="list-row-container">
+			<div class="list-row-container" tabindex="1">
 				<div class="level list-row small">
 					<div class="level-left ellipsis">
 						${left}
@@ -753,6 +754,82 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		this.setup_like();
 		this.setup_realtime_updates();
 		this.setup_action_handler();
+		this.setup_keyboard_navigation();
+	}
+
+	setup_keyboard_navigation() {
+		let focus_first_row = () => {
+			this.$result.find('.list-row-container:first').focus();
+		};
+		let focus_next = () => {
+			$(document.activeElement).next().focus();
+		};
+		let focus_prev = () => {
+			$(document.activeElement).prev().focus();
+		};
+		let list_row_focused = () => {
+			return $(document.activeElement).is('.list-row-container');
+		};
+		let check_row = ($row) => {
+			let $input = $row.find('input[type=checkbox]');
+			$input.click();
+		};
+		let get_list_row_if_focused = () =>
+			list_row_focused() ? $(document.activeElement) : null;
+
+		let is_current_page = () => this.page.wrapper.is(':visible');
+		let is_input_focused = () => $(document.activeElement).is('input');
+
+		let handle_navigation = (direction) => {
+			if (!is_current_page() || is_input_focused()) return false;
+
+			let $list_row = get_list_row_if_focused();
+			if ($list_row) {
+				direction === 'down' ? focus_next() : focus_prev();
+			} else {
+				focus_first_row();
+			}
+		};
+
+		frappe.ui.keys.add_shortcut('down', () => {
+			return handle_navigation('down');
+		}, __('Navigate list down'), this.page);
+
+		frappe.ui.keys.add_shortcut('up', () => {
+			return handle_navigation('up');
+		}, __('Navigate list up'), this.page);
+
+		frappe.ui.keys.add_shortcut('shift+down', () => {
+			if (!is_current_page() || is_input_focused()) return false;
+			let $list_row = get_list_row_if_focused();
+			check_row($list_row);
+			focus_next();
+		}, __('Select multiple list items'), this.page);
+
+		frappe.ui.keys.add_shortcut('shift+up', () => {
+			if (!is_current_page() || is_input_focused()) return false;
+			let $list_row = get_list_row_if_focused();
+			check_row($list_row);
+			focus_prev();
+		}, __('Select multiple list items'), this.page);
+
+		frappe.ui.keys.add_shortcut('enter', () => {
+			let $list_row = get_list_row_if_focused();
+			if ($list_row) {
+				$list_row.find('a[data-name]')[0].click();
+				return true;
+			}
+			return false;
+		}, __('Open list item'), this.page);
+
+		frappe.ui.keys.add_shortcut('space', () => {
+			let $list_row = get_list_row_if_focused();
+			if ($list_row) {
+				check_row($list_row);
+				return true;
+			}
+			return false;
+		}, __('Select list item'), this.page);
 	}
 
 	setup_filterable() {
@@ -1068,20 +1145,23 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 						});
 					}
 				},
-				standard: true
+				standard: true,
+				shortcut: 'Ctrl+J',
 			});
 		}
 
 		items.push({
 			label: __('Toggle Sidebar'),
 			action: () => this.toggle_side_bar(),
-			standard: true
+			standard: true,
+			shortcut: 'Ctrl+K',
 		});
 
 		items.push({
 			label: __('Share URL'),
 			action: () => this.share_url(),
-			standard: true
+			standard: true,
+			shortcut: 'Ctrl+L',
 		});
 
 		if (frappe.user.has_role('System Manager') && frappe.boot.developer_mode === 1) {

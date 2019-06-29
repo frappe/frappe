@@ -148,6 +148,16 @@
 	.heatmap {
 		display: flex;
 		justify-content: center;
+
+		// excessive whitespace around the chart
+		.chart-container {
+			margin: 0px;
+		}
+
+		// don't show the less..more legend
+		.chart-legend {
+			display: none;
+		}
 	}
 
 	@media (max-width: @screen-sm) {

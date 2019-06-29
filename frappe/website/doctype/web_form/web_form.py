@@ -355,14 +355,14 @@ def get_context(context):
 def accept(web_form, data, for_payment=False):
 	'''Save the web form'''
 	data = frappe._dict(json.loads(data))
+	for_payment = frappe.parse_json(for_payment)
+
 	files = []
 	files_to_delete = []
 
 	web_form = frappe.get_doc("Web Form", web_form)
-	if data.doctype != web_form.doc_type:
-		frappe.throw(_("Invalid Request"))
 
-	elif data.name and not web_form.allow_edit:
+	if data.name and not web_form.allow_edit:
 		frappe.throw(_("You are not allowed to update this Web Form Document"))
 
 	frappe.flags.in_web_form = True
@@ -449,7 +449,7 @@ def accept(web_form, data, for_payment=False):
 	if for_payment:
 		return web_form.get_payment_gateway_url(doc)
 	else:
-		return doc.as_dict()
+		return doc
 
 @frappe.whitelist()
 def delete(web_form_name, docname):
@@ -509,6 +509,11 @@ def check_webform_perm(doctype, name):
 		if doc.has_webform_permission():
 			return True
 
+@frappe.whitelist(allow_guest=True)
+def get_web_form_filters(web_form_name):
+	web_form = frappe.get_doc("Web Form", web_form_name)
+	return [field for field in web_form.web_form_fields if field.show_in_filter]
+
 def get_web_form_list(doctype, txt, filters, limit_start, limit_page_length=20, order_by=None):
 	from frappe.www.list import get_list
 	if not filters:
@@ -531,7 +536,16 @@ def make_route_string(parameters):
 
 @frappe.whitelist(allow_guest=True)
 def get_form_data(doctype, docname=None, web_form_name=None):
+	web_form = frappe.get_doc('Web Form', web_form_name)
+
+	if web_form.login_required and frappe.session.user == 'Guest':
+		frappe.throw(_("Not Permitted"), frappe.PermissionError)
+
 	out = frappe._dict()
+	out.web_form = web_form
+
+	if frappe.session.user != 'Guest' and not docname:
+		docname = frappe.db.get_value(doctype, {"owner": frappe.session.user}, "name")
 
 	if docname:
 		doc = frappe.get_doc(doctype, docname)
@@ -540,27 +554,35 @@ def get_form_data(doctype, docname=None, web_form_name=None):
 		else:
 			frappe.throw(_("Not permitted"), frappe.PermissionError)
 
-	out.web_form = frappe.get_doc('Web Form', web_form_name)
-
 	# For Table fields, server-side processing for meta
 	for field in out.web_form.web_form_fields:
 		if field.fieldtype == "Table":
 			field.fields = get_in_list_view_fields(field.options)
 			out.update({field.fieldname: field.fields})
 
-		if field.fieldtype == "Link":
-			field.fieldtype = "Autocomplete"
-			field.options = get_link_options(
-				web_form_name,
-				field.options,
-				field.allow_read_on_all_link_options
-			)
-
 	return out
 
 @frappe.whitelist()
 def get_in_list_view_fields(doctype):
-	return [df.as_dict() for df in frappe.get_meta(doctype).fields if df.in_list_view]
+	meta = frappe.get_meta(doctype)
+	fields = []
+
+	if meta.title_field:
+		fields.append(meta.title_field)
+	else:
+		fields.append('name')
+
+	if meta.has_field('status'):
+		fields.append('status')
+
+	fields += [df.fieldname for df in meta.fields if df.in_list_view and df.fieldname not in fields]
+
+	def get_field_df(fieldname):
+		if fieldname == 'name':
+			return { 'label': 'Name', 'fieldname': 'name', 'fieldtype': 'Data' }
+		return meta.get_field(fieldname).as_dict()
+
+	return [get_field_df(f) for f in fields]
 
 @frappe.whitelist(allow_guest=True)
 def get_link_options(web_form_name, doctype, allow_read_on_all_link_options=False):
