@@ -43,12 +43,13 @@
   },
   {
    "default": "0",
+   "description": "Uses Google Maps Directions API to optimize routes.",
    "fieldname": "enable",
    "fieldtype": "Check",
    "label": "Enable"
   }
  ],
- "modified": "2019-06-29 21:58:34.405715",
+ "modified": "2019-06-29 22:12:37.531852",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Google Maps",
