@@ -94,8 +94,8 @@ def get_data():
 				},
 				{
 					"type": "doctype",
-					"name": "Google Maps Settings",
-					"description": _("Google Maps integration"),
+					"name": "Google Maps",
+					"description": _("Google Maps Integration"),
 				},
 				{
 					"type": "doctype",

@@ -1,22 +1,46 @@
 {
- "creation": "2019-06-28 23:49:38.545917",
+ "autoname": "format:GM-{entity}",
+ "creation": "2019-06-29 13:03:45.935466",
  "doctype": "DocType",
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
-  "enable"
+  "enabled",
+  "entity_type",
+  "address",
+  "cb_00",
+  "entity"
  ],
  "fields": [
   {
    "default": "0",
-   "description": "Google Maps integration is used to optimize routes.",
-   "fieldname": "enable",
+   "fieldname": "enabled",
    "fieldtype": "Check",
-   "label": "Enable"
+   "label": "Enabled"
+  },
+  {
+   "fieldname": "entity_type",
+   "fieldtype": "Select",
+   "label": "Entity Type"
+  },
+  {
+   "fieldname": "address",
+   "fieldtype": "Link",
+   "label": "Address",
+   "options": "Address"
+  },
+  {
+   "fieldname": "cb_00",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "entity",
+   "fieldtype": "Dynamic Link",
+   "label": "Entity",
+   "options": "entity_type"
   }
  ],
- "issingle": 1,
- "modified": "2019-06-28 23:49:38.545917",
+ "modified": "2019-06-29 13:23:16.714233",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Google Maps",
