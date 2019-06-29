@@ -29,7 +29,10 @@ frappe.ui.keys.add_shortcut = (shortcut, action, description, page) => {
 		}
 	}
 	frappe.ui.keys.on(shortcut, (e) => {
-		if (!page || page.wrapper.is(':visible')) {
+		let $focused_element = $(document.activeElement);
+		let is_input_focused = $focused_element.is('input, select, textarea, [contenteditable=true]');
+
+		if (!is_input_focused && (!page || page.wrapper.is(':visible'))) {
 			let prevent_default = action(e);
 			// prevent default if true is explicitly returned
 			// or nothing returned (undefined)
