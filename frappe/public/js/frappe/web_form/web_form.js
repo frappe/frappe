@@ -104,6 +104,7 @@ export default class WebForm extends frappe.ui.FieldGroup {
 			args: {
 				data: data,
 				web_form: this.name,
+				docname: this.doc.name,
 				for_payment
 			},
 			callback: response => {
