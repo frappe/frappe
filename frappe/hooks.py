@@ -135,9 +135,6 @@ doc_events = {
 		"on_change": [
 			"frappe.social.doctype.energy_point_rule.energy_point_rule.process_energy_points"
 		],
-	},
-	"Email Group Member": {
-		"validate": "frappe.email.doctype.email_group.email_group.restrict_email_group"
 	}
 }
 
