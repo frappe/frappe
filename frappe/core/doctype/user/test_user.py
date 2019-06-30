@@ -8,7 +8,6 @@ import requests
 from frappe.model.delete_doc import delete_doc
 from frappe.utils.data import today, add_to_date
 from frappe import _dict
-from frappe.limits import update_limits, clear_limit
 from frappe.utils import get_url
 from frappe.core.doctype.user.user import get_total_users
 from frappe.core.doctype.user.user import MaxUsersReachedError, test_password_strength
@@ -146,25 +145,6 @@ class TestUser(unittest.TestCase):
 	# 	# first connection should fail
 	# 	test_request(conn1)
 
-	def test_site_expiry(self):
-		user = frappe.get_doc('User', 'test@example.com')
-		user.enabled = 1
-		user.new_password = 'Eastern_43A1W'
-		user.save()
-
-		update_limits({'expiry': add_to_date(today(), days=-1), 'support_email': 'support@example.com'})
-		frappe.local.conf = _dict(frappe.get_site_config())
-
-		frappe.db.commit()
-
-		res = requests.post(get_url(), params={'cmd': 'login', 'usr':
-			'test@example.com', 'pwd': 'Eastern_43A1W', 'device': 'desktop'})
-
-		# While site is expired status code returned is 417 Failed Expectation
-		self.assertEqual(res.status_code, 417)
-
-		clear_limit("expiry")
-		frappe.local.conf = _dict(frappe.get_site_config())
 
 	def test_delete_user(self):
 		new_user = frappe.get_doc(dict(doctype='User', email='test-for-delete@example.com',
