@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 from unittest import TestCase
 from dateutil.relativedelta import relativedelta
 from frappe.utils.scheduler import (enqueue_applicable_events, restrict_scheduler_events_if_dormant,
-	get_enabled_scheduler_events, disable_scheduler_on_expiry)
+	get_enabled_scheduler_events)
 from frappe import _dict
 from frappe.utils.background_jobs import enqueue
 from frappe.utils import now_datetime, today, add_days, add_to_date
