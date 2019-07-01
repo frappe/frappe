@@ -84,8 +84,10 @@ $(".file-size").each(function() {
 	$(this).text(frappe.form.formatters.FileSize($(this).text()));
 });
 </script>
+
 {% if is_list %}
 {# web form list #}
+<script type="text/javascript" src="/assets/js/moment-bundle.min.js"></script>
 <script type="text/javascript" src="/assets/js/dialog.min.js"></script>
 <script type="text/javascript" src="/assets/js/web_form.min.js"></script>
 <script type="text/javascript" src="/assets/js/bootstrap-4-web.min.js"></script>

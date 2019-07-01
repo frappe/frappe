@@ -352,7 +352,7 @@ def get_context(context):
 
 
 @frappe.whitelist(allow_guest=True)
-def accept(web_form, data, for_payment=False):
+def accept(web_form, data, docname=None, for_payment=False):
 	'''Save the web form'''
 	data = frappe._dict(json.loads(data))
 	for_payment = frappe.parse_json(for_payment)
@@ -368,9 +368,9 @@ def accept(web_form, data, for_payment=False):
 	frappe.flags.in_web_form = True
 	meta = frappe.get_meta(data.doctype)
 
-	if data.name:
+	if docname:
 		# update
-		doc = frappe.get_doc(data.doctype, data.name)
+		doc = frappe.get_doc(data.doctype, docname)
 	else:
 		# insert
 		doc = frappe.new_doc(data.doctype)
@@ -544,7 +544,7 @@ def get_form_data(doctype, docname=None, web_form_name=None):
 	out = frappe._dict()
 	out.web_form = web_form
 
-	if frappe.session.user != 'Guest' and not docname:
+	if frappe.session.user != 'Guest' and not docname and not web_form.allow_multiple:
 		docname = frappe.db.get_value(doctype, {"owner": frappe.session.user}, "name")
 
 	if docname:
