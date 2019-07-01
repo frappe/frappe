@@ -26,9 +26,7 @@ context('List View', () => {
 			}).as('update-list');
 			cy.wrap(elements).contains('Approve').click();
 			cy.wait(['@bulk-approval', '@update-list']);
-			cy.get('.list-row-container:visible').each(el => {
-				cy.wrap(el).contains('Approved');
-			});
+			cy.get('.list-row-container:visible').should('contain', 'Approved');
 		});
 	});
 });

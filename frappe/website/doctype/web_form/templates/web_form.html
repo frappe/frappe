@@ -113,6 +113,10 @@ frappe.init_client_script = () => {
 	}
 }
 {% endif %}
+
+{% if script is defined %}
+	{{ script }}
+{% endif %}
 </script>
 {% endif %}
 {% endblock script %}
@@ -121,4 +125,10 @@ frappe.init_client_script = () => {
 {% if not is_list %}
 <link type="text/css" rel="stylesheet" href="/assets/css/web_form.css">
 {% endif %}
+
+<style>
+{% if style is defined %}
+	{{ style }}
+{% endif %}
+</style>
 {% endblock %}

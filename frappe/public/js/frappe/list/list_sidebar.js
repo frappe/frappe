@@ -30,6 +30,7 @@ frappe.views.ListSidebar = class ListSidebar {
 		this.setup_kanban_boards();
 		this.setup_calendar_view();
 		this.setup_email_inbox();
+		this.setup_keyboard_shortcuts();
 
 		let limits = frappe.boot.limits;
 
@@ -249,10 +250,18 @@ frappe.views.ListSidebar = class ListSidebar {
 		});
 	}
 
+	setup_keyboard_shortcuts() {
+		this.sidebar.find('.list-link > a, .list-link > .btn-group > a').each((i, el) => {
+			frappe.ui.keys
+				.get_shortcut_group(this.page)
+				.add($(el));
+		});
+	}
+
 	get_html_for_assigned(name, count) {
 		if (name === frappe.session.user) name='Me';
 		if (count > 99) count='99+';
-		let html = $('<li class="assigned"><a class="badge-hover" role="assigned-item"><span class="assigned-user">' 
+		let html = $('<li class="assigned"><a class="badge-hover" href="#" onclick="return false;" role="assigned-item"><span class="assigned-user">'
 					+ name + '</span><span class="badge pull-right" style="position:relative">' + count + '</span></a></li>');
 		return html;
 	}

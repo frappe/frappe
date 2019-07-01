@@ -36,6 +36,9 @@ Object.assign(frappe.utils, {
 		}
 		return true;
 	},
+	is_mac: function() {
+		return window.navigator.platform === 'MacIntel';
+	},
 	is_xs: function() {
 		return $(document).width() < 768;
 	},

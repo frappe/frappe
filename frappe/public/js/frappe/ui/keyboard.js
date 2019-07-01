@@ -1,3 +1,5 @@
+import './alt_keyboard_shortcuts';
+
 frappe.provide('frappe.ui.keys.handlers');
 
 frappe.ui.keys.setup = function() {
@@ -15,6 +17,86 @@ frappe.ui.keys.setup = function() {
 			return out;
 		}
 	});
+}
+
+let standard_shortcuts = [];
+frappe.ui.keys.standard_shortcuts = standard_shortcuts;
+frappe.ui.keys.add_shortcut = (shortcut, action, description, page) => {
+	if (action instanceof jQuery) {
+		let $target = action;
+		action = () => {
+			$target[0].click();
+		}
+	}
+	frappe.ui.keys.on(shortcut, (e) => {
+		let $focused_element = $(document.activeElement);
+		let is_input_focused = $focused_element.is('input, select, textarea, [contenteditable=true]');
+
+		if (!is_input_focused && (!page || page.wrapper.is(':visible'))) {
+			let prevent_default = action(e);
+			// prevent default if true is explicitly returned
+			// or nothing returned (undefined)
+			if (prevent_default || prevent_default === undefined) {
+				e.preventDefault();
+			}
+		}
+	});
+	let existing_shortcut_index = standard_shortcuts.findIndex(
+		s => s.shortcut === shortcut
+	);
+	let new_shortcut = { shortcut, action, description, page };
+	if (existing_shortcut_index === -1) {
+		standard_shortcuts.push(new_shortcut);
+	} else {
+		standard_shortcuts[existing_shortcut_index] = new_shortcut;
+	}
+}
+
+frappe.ui.keys.show_keyboard_shortcut_dialog = () => {
+	let global_shortcuts = standard_shortcuts.filter(shortcut => !shortcut.page);
+	let current_page_shortcuts = standard_shortcuts.filter(
+		shortcut => shortcut.page && shortcut.page === window.cur_page.page.page);
+
+	function generate_shortcuts_html(shortcuts, heading) {
+		if (!shortcuts.length) {
+			return '';
+		}
+		let html = shortcuts.map(shortcut => {
+			let shortcut_label = shortcut.shortcut
+				.split('+')
+				.map(frappe.utils.to_title_case)
+				.join('+');
+			if (frappe.utils.is_mac()) {
+				shortcut_label = shortcut_label.replace('Ctrl', '⌘');
+			}
+			return `<tr>
+				<td width="40%"><kbd>${shortcut_label}</kbd></td>
+				<td width="60%">${shortcut.description || ''}</td>
+			</tr>`;
+		}).join('');
+		html = `<h5 style="margin: 0;">${heading}</h5>
+			<table style="margin-top: 10px;" class="table table-bordered">
+				${html}
+			</table>`;
+		return html;
+	}
+
+	let global_shortcuts_html = generate_shortcuts_html(global_shortcuts, __('Global Shortcuts'));
+	let current_page_shortcuts_html = generate_shortcuts_html(current_page_shortcuts, __('Page Shortcuts'));
+
+	let dialog = new frappe.ui.Dialog({
+		title: __('Keyboard Shortcuts'),
+	});
+
+	dialog.$body.append(global_shortcuts_html);
+	dialog.$body.append(current_page_shortcuts_html);
+	dialog.$body.append(`
+		<div class="text-muted">
+			${__('Press Alt Key to trigger additional shortcuts in Menu and Sidebar')}
+		</div>
+	`);
+
+	dialog.show();
 }
 
 frappe.ui.keys.get_key = function(e) {
@@ -47,26 +129,36 @@ frappe.ui.keys.on = function(key, handler) {
 	frappe.ui.keys.handlers[key].push(handler);
 }
 
-frappe.ui.keys.on('ctrl+s', function(e) {
+frappe.ui.keys.add_shortcut('ctrl+s', function(e) {
 	frappe.app.trigger_primary_action();
 	e.preventDefault();
 	return false;
-});
+}, __('Trigger Primary Action'));
 
-frappe.ui.keys.on('ctrl+g', function(e) {
+frappe.ui.keys.add_shortcut('ctrl+g', function(e) {
 	$("#navbar-search").focus();
 	e.preventDefault();
 	return false;
-});
+}, __('Open Awesomebar'));
 
-frappe.ui.keys.on('ctrl+b', function(e) {
-	var route = frappe.get_route();
-	if(route[0]==='Form' || route[0]==='List') {
-		frappe.new_doc(route[1], true);
-		e.preventDefault();
-		return false;
-	}
-});
+frappe.ui.keys.add_shortcut('ctrl+h', function(e) {
+	e.preventDefault();
+	$('.navbar-home img').click();
+}, __('Home'));
+
+frappe.ui.keys.add_shortcut('alt+s', function(e) {
+	e.preventDefault();
+	$('.dropdown-navbar-user a').eq(0).click();
+}, __('Settings'));
+
+frappe.ui.keys.add_shortcut('shift+/', function() {
+	frappe.ui.keys.show_keyboard_shortcut_dialog();
+}, __('Keyboard Shortcuts'));
+
+frappe.ui.keys.add_shortcut('alt+h', function(e) {
+	e.preventDefault();
+	$('.dropdown-help a').eq(0).click();
+}, __('Help'));
 
 frappe.ui.keys.on('escape', function(e) {
 	close_grid_and_dialog();
@@ -92,9 +184,9 @@ frappe.ui.keys.on('ctrl+up', function(e) {
 	grid_row && grid_row.toggle_view(false, function() { grid_row.open_prev() });
 });
 
-frappe.ui.keys.on('shift+ctrl+r', function(e) {
+frappe.ui.keys.add_shortcut('shift+ctrl+r', function() {
 	frappe.ui.toolbar.clear_cache();
-});
+}, __('Clear Cache and Reload'));
 
 frappe.ui.keys.key_map = {
 	8: 'backspace',
@@ -114,8 +206,13 @@ frappe.ui.keys.key_map = {
 	113: 'f2',
 	114: 'f3',
 	115: 'f4',
-	116: 'f5'
+	116: 'f5',
+	191: '/'
 }
+
+'abcdefghijklmnopqrstuvwxyz'.split('').forEach((letter, i) => {
+	frappe.ui.keys.key_map[65 + i] = letter;
+});
 
 // keyCode map
 frappe.ui.keyCode = {
@@ -145,3 +242,10 @@ function close_grid_and_dialog() {
 		return false;
 	}
 }
+
+// blur when escape is pressed on dropdowns
+$(document).on('keydown', '.dropdown-toggle', (e) => {
+	if (e.which === frappe.ui.keyCode.ESCAPE) {
+		$(e.currentTarget).blur();
+	}
+});

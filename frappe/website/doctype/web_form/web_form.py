@@ -544,6 +544,9 @@ def get_form_data(doctype, docname=None, web_form_name=None):
 	out = frappe._dict()
 	out.web_form = web_form
 
+	if frappe.session.user != 'Guest' and not docname:
+		docname = frappe.db.get_value(doctype, {"owner": frappe.session.user}, "name")
+
 	if docname:
 		doc = frappe.get_doc(doctype, docname)
 		if has_web_form_permission(doctype, docname, ptype='read'):

@@ -117,9 +117,9 @@ frappe.ui.form.Timeline = class Timeline {
 
 	set_automatic_link_email() {
 		if (!frappe.email.automatic_link_email){
-			frappe.db.get_value("Email Account", {"enable_incoming": 1, "enable_automatic_linking": 1}, "email_id", (r) => {
-				if (r && r.email_id) {
-					frappe.email.automatic_link_email = r.email_id;
+			frappe.call("frappe.email.doctype.email_account.email_account.get_automatic_email_link").then((r) => {
+				if (r && r.message) {
+					frappe.email.automatic_link_email = r.message;
 				} else {
 					frappe.email.automatic_link_email = null;
 				}
