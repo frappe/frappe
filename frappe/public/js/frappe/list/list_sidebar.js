@@ -32,11 +32,9 @@ frappe.views.ListSidebar = class ListSidebar {
 		this.setup_email_inbox();
 		this.setup_keyboard_shortcuts();
 
-		let limits = frappe.boot.limits;
-
-		if (limits.upgrade_url && limits.expiry && !frappe.flags.upgrade_dismissed) {
-			this.setup_upgrade_box();
-		}
+		// do not remove
+		// used to trigger custom scripts
+		$(document).trigger('list_sidebar_setup');
 
 		if(this.doctype !== 'ToDo') {
 			$('.assigned-to').show();
@@ -266,35 +264,6 @@ frappe.views.ListSidebar = class ListSidebar {
 		return html;
 	}
 
-	setup_upgrade_box() {
-		let upgrade_list = $(`<ul class="list-unstyled sidebar-menu"></ul>`).appendTo(this.sidebar);
-
-		// Show Renew/Upgrade button,
-		// if account is holding one user free plan or
-		// if account's expiry date within range of 30 days from today's date
-
-		let upgrade_date = frappe.datetime.add_days(frappe.datetime.get_today(), 30);
-		if (frappe.boot.limits.users === 1 || upgrade_date >= frappe.boot.limits.expiry) {
-			let upgrade_box = $(`<div class="border" style="
-					padding: 0px 10px;
-					border-radius: 3px;
-				">
-				<a><i class="octicon octicon-x pull-right close" style="margin-top: 10px;"></i></a>
-				<h5>Go Premium</h5>
-				<p>Upgrade to a premium plan with more users, storage and priority support.</p>
-				<button class="btn btn-xs btn-default btn-upgrade" style="margin-bottom: 10px;"> Renew / Upgrade </button>
-				</div>`).appendTo(upgrade_list);
-
-			upgrade_box.find('.btn-upgrade').on('click', () => {
-				frappe.set_route('usage-info');
-			});
-
-			upgrade_box.find('.close').on('click', () => {
-				upgrade_list.remove();
-				frappe.flags.upgrade_dismissed = 1;
-			});
-		}
-	}
 
 	get_cat_tags() {
 		return this.cat_tags;
