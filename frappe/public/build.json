@@ -312,7 +312,7 @@
 		"public/js/frappe/ui/group_by/group_by.js"
 	],
 	"js/web_form.min.js": [
-		"public/js/frappe/misc/datetime.js",
+		"public/js/frappe/utils/datetime.js",
 		"public/js/frappe/web_form/webform_script.js",
 		"public/js/lib/datepicker/datepicker.min.js",
 		"public/js/lib/datepicker/datepicker.en.js"
