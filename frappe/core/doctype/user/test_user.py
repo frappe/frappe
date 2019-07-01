@@ -169,26 +169,6 @@ class TestUser(unittest.TestCase):
 		frappe.delete_doc('User', new_user.name)
 		self.assertFalse(frappe.db.exists('User', new_user.name))
 
-	def test_deactivate_additional_users(self):
-		update_limits({'users': get_total_users()+1})
-
-		if not frappe.db.exists("User", "test_deactivate_additional_users@example.com"):
-			user = frappe.new_doc('User')
-			user.email = 'test_deactivate_additional_users@example.com'
-			user.first_name = 'Test Deactivate Additional Users'
-			user.add_roles("System Manager")
-
-		#update limits
-		update_limits({"users": get_total_users()-1})
-		self.assertEqual(frappe.db.get_value("User", "test_deactivate_additional_users@example.com", "enabled"), 0)
-
-		if frappe.db.exists("User", "test_deactivate_additional_users@example.com"):
-			delete_contact('test_deactivate_additional_users@example.com')
-			frappe.delete_doc('User', 'test_deactivate_additional_users@example.com')
-
-		# Clear the user limit
-		clear_limit('users')
-
 	def test_password_strength(self):
 		# Test Password without Password Strenth Policy
 		frappe.db.set_value("System Settings", "System Settings", "enable_password_policy", 0)
