@@ -73,7 +73,6 @@ context('Control Link', () => {
 			cy.get('.frappe-control[data-fieldname=link] input').focus();
 			cy.get('.frappe-control[data-fieldname=link] .link-btn').click();
 			cy.location('hash').should('eq', `#Form/ToDo/${todos[0]}`);
-		})
-
+		});
 	});
 });

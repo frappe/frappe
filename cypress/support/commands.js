@@ -49,8 +49,8 @@ Cypress.Commands.add('call', (method, args) => {
 		}).then(res => {
 			expect(res.status).eq(200);
 			return res.body;
-		})
-	})
+		});
+	});
 });
 
 Cypress.Commands.add('create_records', (doc) => {
