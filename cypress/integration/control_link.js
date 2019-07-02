@@ -41,7 +41,7 @@ context('Control Link', () => {
 			cy.get('@todos').then(todos => {
 				let value = dialog.get_value('link');
 				expect(value).to.eq(todos[0]);
-			})
+			});
 		});
 	});
 
