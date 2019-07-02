@@ -74,8 +74,8 @@ frappe.ui.form.Timeline = class Timeline {
 			});
 		});
 
-		this.email_link.on("click", ".copy-to-clipboard", function() {
-			let text = $(".copy-to-clipboard").text();
+		this.email_link.on("click", function(e) {
+			let text = $(e.currentTarget).find(".copy-to-clipboard").text();
 			frappe.utils.copy_to_clipboard(text);
 		});
 	}
