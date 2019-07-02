@@ -5,7 +5,7 @@ from __future__ import unicode_literals
 import unittest
 
 from frappe.utils import evaluate_filters, money_in_words, scrub_urls, get_url
-from frappe.utils import ceil, floor, now
+from frappe.utils import ceil, floor
 
 class TestFilters(unittest.TestCase):
 	def test_simple_dict(self):
