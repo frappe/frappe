@@ -3,7 +3,7 @@ context('List View', () => {
 		cy.login('Administrator', 'qwe');
 		cy.visit('/desk');
 		cy.window().its('frappe').then(frappe => {
-			frappe.call("frappe.tests.test_utils.setup_workflow");
+			frappe.call("frappe.tests.ui_test_helpers.setup_workflow");
 		});
 		cy.clear_cache();
 	});

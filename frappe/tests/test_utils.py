@@ -123,36 +123,3 @@ class TestHTMLUtils(unittest.TestCase):
 		clean = clean_email_html(sample)
 		self.assertTrue('<h1>Hello</h1>' in clean)
 		self.assertTrue('<a href="http://test.com">text</a>' in clean)
-
-@frappe.whitelist()
-def create_todo_records():
-	if frappe.db.get_all('ToDo', {'description': 'this is first todo'}):
-		return
-
-	frappe.get_doc({
-		"doctype": "ToDo",
-		"date": add_to_date(now(), days=3),
-		"description": "this is first todo"
-	}).insert()
-	frappe.get_doc({
-		"doctype": "ToDo",
-		"date": add_to_date(now(), days=-3),
-		"description": "this is second todo"
-	}).insert()
-	frappe.get_doc({
-		"doctype": "ToDo",
-		"date": add_to_date(now(), months=2),
-		"description": "this is third todo"
-	}).insert()
-	frappe.get_doc({
-		"doctype": "ToDo",
-		"date": add_to_date(now(), months=-2),
-		"description": "this is fourth todo"
-	}).insert()
-
-@frappe.whitelist()
-def setup_workflow():
-  from frappe.workflow.doctype.workflow.test_workflow import create_todo_workflow
-  create_todo_workflow()
-  create_todo_records()
-  frappe.clear_cache()

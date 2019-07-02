@@ -35,6 +35,29 @@ Cypress.Commands.add('login', (email, password) => {
 	});
 });
 
+Cypress.Commands.add('call', (method, args) => {
+	return cy.window().its('frappe.csrf_token').then(csrf_token => {
+		return cy.request({
+			url: `/api/method/${method}`,
+			method: 'POST',
+			body: args,
+			headers: {
+				'Accept': 'application/json',
+				'Content-Type': 'application/json',
+				'X-Frappe-CSRF-Token': csrf_token
+			}
+		}).then(res => {
+			expect(res.status).eq(200);
+			return res.body;
+		})
+	})
+});
+
+Cypress.Commands.add('create_records', (doc) => {
+	return cy.call('frappe.tests.ui_test_helpers.create_if_not_exists', { doc })
+		.then(r => r.message)
+})
+
 Cypress.Commands.add('fill_field', (fieldname, value, fieldtype='Data') => {
 	let selector = `.form-control[data-fieldname="${fieldname}"]`;
 
@@ -72,15 +95,9 @@ Cypress.Commands.add('clear_cache', () => {
 	});
 });
 
-Cypress.Commands.add('dialog', (title, fields) => {
-	cy.window().then(win => {
-		var d = new win.frappe.ui.Dialog({
-			title: title,
-			fields: fields,
-			primary_action: function(){
-				d.hide();
-			}
-		});
+Cypress.Commands.add('dialog', (opts) => {
+	return cy.window().then(win => {
+		var d = new win.frappe.ui.Dialog(opts);
 		d.show();
 		return d;
 	});
