@@ -186,20 +186,6 @@ frappe.ui.keys.add_shortcut({
 	description: __('Help')
 });
 
-frappe.ui.keys.on('shift+>',()=> {
-	var route = frappe.get_route();
-	if(route[0]==='Form') {
-		$('.next-doc').click();
-	}
-});
-
-frappe.ui.keys.on('shift+<',()=> {
-	var route = frappe.get_route();
-	if(route[0]==='Form') {
-		$('.prev-doc').click();
-	}
-});
-
 frappe.ui.keys.on('escape', function(e) {
 	close_grid_and_dialog();
 });

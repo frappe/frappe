@@ -87,6 +87,9 @@ frappe.ui.form.Form = class FrappeForm {
 			page: this.page
 		});
 
+		// navigate records keyboard shortcuts
+		this.add_nav_keyboard_shortcuts();
+
 		// print layout
 		this.setup_print_layout();
 
@@ -110,6 +113,16 @@ frappe.ui.form.Form = class FrappeForm {
 		this.setup_file_drop();
 
 		this.setup_done = true;
+	}
+
+	add_nav_keyboard_shortcuts() {
+		frappe.ui.keys.add_shortcut('shift+>', () => {
+			this.$wrapper.find('.next-doc').click();
+		}, __('Go to next record'), this.page);
+
+		frappe.ui.keys.add_shortcut('shift+<', () => {
+			this.$wrapper.find('.prev-doc').click();
+		}, __('Go to prev record'), this.page);
 	}
 
 	setup_print_layout() {
@@ -797,13 +810,14 @@ frappe.ui.form.Form = class FrappeForm {
 		this.print_preview.toggle();
 	}
 
-	navigate_doc(prev) {
+	navigate_records(prev) {
 		let list_settings = frappe.get_user_settings(this.doctype)['List'];
 		let filters = list_settings.filters;
 		let sort_order = list_settings.sort_order;
 		let sort_field = list_settings.sort_by;
 
-		frappe.call('frappe.desk.form.utils.get_next', {doctype: this.doctype, value: this.docname, filters: filters, prev: prev, sort_order: sort_order, sort_field: sort_field}).then((data)=> {
+		frappe.call('frappe.desk.form.utils.get_next', {doctype: this.doctype, value: this.docname, 
+			filters: filters, prev: prev, sort_order: sort_order, sort_field: sort_field}).then((data)=> {
 			if(data.message) {
 				frappe.set_route('Form',this.doctype, data.message);
 			}
