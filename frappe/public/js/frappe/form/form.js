@@ -116,13 +116,19 @@ frappe.ui.form.Form = class FrappeForm {
 	}
 
 	add_nav_keyboard_shortcuts() {
-		frappe.ui.keys.add_shortcut('shift+>', () => {
-			this.$wrapper.find('.next-doc').click();
-		}, __('Go to next record'), this.page);
+		frappe.ui.keys.add_shortcut({
+			shortcut: 'shift+>',
+			action: ()=>this.$wrapper.find('.next-doc').click(),
+			page: this.page,
+			description: __('Go to next record')
+		});
 
-		frappe.ui.keys.add_shortcut('shift+<', () => {
-			this.$wrapper.find('.prev-doc').click();
-		}, __('Go to prev record'), this.page);
+		frappe.ui.keys.add_shortcut({
+			shortcut: 'shift+<',
+			action: ()=>this.$wrapper.find('.prev-doc').click(),
+			page: this.page,
+			description: __('Go to prev record')
+		});
 	}
 
 	setup_print_layout() {
