@@ -5,7 +5,7 @@ context('Control Link', () => {
 		cy.create_records({
 			doctype: 'ToDo',
 			description: 'this is a test todo for link'
-		}).as('todos')
+		}).as('todos');
 	});
 
 	function get_dialog_with_link() {
@@ -32,15 +32,15 @@ context('Control Link', () => {
 			.focus()
 			.type('todo for li')
 			.type('n', { delay: 600 })
-			.type('k', { delay: 700 })
+			.type('k', { delay: 700 });
 		cy.wait('@search_link');
 		cy.get('.frappe-control[data-fieldname=link] ul').should('be.visible');
-		cy.get('.frappe-control[data-fieldname=link] input').type('{downarrow}{enter}', { delay: 100 })
+		cy.get('.frappe-control[data-fieldname=link] input').type('{downarrow}{enter}', { delay: 100 });
 		cy.get('.frappe-control[data-fieldname=link] input').blur();
 		cy.get('@dialog').then(dialog => {
 			cy.get('@todos').then(todos => {
 				let value = dialog.get_value('link');
-				expect(value).to.eq(todos[0])
+				expect(value).to.eq(todos[0]);
 			})
 		});
 	});
@@ -57,7 +57,7 @@ context('Control Link', () => {
 		cy.wait('@validate_link');
 		cy.get('@dialog').then(dialog => {
 			let value = dialog.get_value('link');
-			expect(value).to.eq('')
+			expect(value).to.eq('');
 		});
 	});
 
@@ -68,7 +68,7 @@ context('Control Link', () => {
 		cy.route('GET', '/api/method/frappe.desk.form.utils.validate_link*').as('validate_link');
 
 		cy.get('@todos').then(todos => {
-			cy.get('.frappe-control[data-fieldname=link] input').type(todos[0]).blur()
+			cy.get('.frappe-control[data-fieldname=link] input').type(todos[0]).blur();
 			cy.wait('@validate_link');
 			cy.get('.frappe-control[data-fieldname=link] input').focus();
 			cy.get('.frappe-control[data-fieldname=link] .link-btn').click();

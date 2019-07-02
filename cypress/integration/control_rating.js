@@ -30,7 +30,7 @@ context('Control Rating', () => {
 	});
 
 	it('hover on the star', () => {
-		get_dialog_with_rating()
+		get_dialog_with_rating();
 
 		cy.get('div.rating')
 			.children('i.fa')

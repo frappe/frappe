@@ -55,8 +55,8 @@ Cypress.Commands.add('call', (method, args) => {
 
 Cypress.Commands.add('create_records', (doc) => {
 	return cy.call('frappe.tests.ui_test_helpers.create_if_not_exists', { doc })
-		.then(r => r.message)
-})
+		.then(r => r.message);
+});
 
 Cypress.Commands.add('fill_field', (fieldname, value, fieldtype='Data') => {
 	let selector = `.form-control[data-fieldname="${fieldname}"]`;
