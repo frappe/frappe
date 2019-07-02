@@ -22,7 +22,7 @@ context('Control Link', () => {
 		});
 	}
 
-	it('should set the value properly', () => {
+	it('should set the valid value', () => {
 		get_dialog_with_link().as('dialog');
 
 		cy.server();
@@ -45,7 +45,7 @@ context('Control Link', () => {
 		});
 	});
 
-	it('should unset invalid value', () => {
+	it.only('should unset invalid value', () => {
 		get_dialog_with_link().as('dialog');
 
 		cy.server();
@@ -55,10 +55,7 @@ context('Control Link', () => {
 			.type('invalid value', { delay: 100 })
 			.blur();
 		cy.wait('@validate_link');
-		cy.get('@dialog').then(dialog => {
-			let value = dialog.get_value('link');
-			expect(value).to.eq('');
-		});
+		cy.get('.frappe-control[data-fieldname=link] input').should('have.value', '');
 	});
 
 	it('should route to form on arrow click', () => {
