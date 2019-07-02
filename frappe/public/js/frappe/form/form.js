@@ -816,7 +816,7 @@ frappe.ui.form.Form = class FrappeForm {
 		let sort_order = list_settings.sort_order;
 		let sort_field = list_settings.sort_by;
 
-		frappe.call('frappe.desk.form.utils.get_next', {doctype: this.doctype, value: this.docname, 
+		frappe.call('frappe.desk.form.utils.get_next', {doctype: this.doctype, value: this.docname,
 			filters: filters, prev: prev, sort_order: sort_order, sort_field: sort_field}).then((data)=> {
 			if(data.message) {
 				frappe.set_route('Form',this.doctype, data.message);
