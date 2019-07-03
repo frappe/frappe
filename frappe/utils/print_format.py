@@ -104,7 +104,7 @@ def print_by_server(doctype, name, print_format=None, doc=None, no_letterhead=0)
 	try:
 		import cups
 	except ImportError:
-		frappe.throw("You need to install pycups to use this feature!")
+		frappe.throw(_("You need to install pycups to use this feature!"))
 		return
 	try:
 		cups.setServer(print_settings.server_ip)

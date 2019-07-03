@@ -160,7 +160,7 @@ frappe.listview_settings['User Permission'] = {
 			return data;
 		}
 		if(data.apply_to_all_doctypes == 0 && !("applicable_doctypes" in data)) {
-			frappe.throw("Please select applicable Doctypes");
+			frappe.throw(__("Please select applicable Doctypes"));
 		}
 		return data;
 	},

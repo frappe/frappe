@@ -15,7 +15,7 @@ frappe.ui.form.on('Success Action', {
 	validate: (frm) => {
 		const checked_actions = frm.action_multicheck.get_checked_options();
 		if (checked_actions.length < 2) {
-			frappe.msgprint('Select atleast 2 actions');
+			frappe.msgprint(__('Select atleast 2 actions'));
 		} else {
 			return true;
 		}

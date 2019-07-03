@@ -37,7 +37,7 @@ frappe.ui.form.ControlTable = frappe.ui.form.Control.extend({
 			if (data.length === 1 & data[0].length === 1) return;
 			if (data.length > 100){
 				data = data.slice(0, 100);
-				frappe.msgprint('for performance, only the first 100 rows processed!');
+				frappe.msgprint(__('For performance, only the first 100 rows were processed.'));
 			}
 			var fieldnames = [];
 			var get_field = function(name_or_label){
@@ -87,7 +87,7 @@ frappe.ui.form.ControlTable = frappe.ui.form.Control.extend({
 			});
 			frappe.hide_progress();
 			return false; // Prevent the default handler from running.
-		})		
+		})
 	},
 	refresh_input: function() {
 		this.grid.refresh();
