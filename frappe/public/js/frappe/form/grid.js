@@ -449,9 +449,6 @@ export default class Grid {
 	}
 	toggle_checkboxes(enable) {
 		this.wrapper.find(".grid-row-check").prop('disabled', !enable)
-		check_boxes.each((item) => {
-			check_boxes[item].disabled = !enable;
-		})
 	}
 	get_docfield(fieldname) {
 		return frappe.meta.get_docfield(this.doctype, fieldname, this.frm ? this.frm.docname : null);
