@@ -118,16 +118,16 @@ frappe.ui.form.Form = class FrappeForm {
 	add_nav_keyboard_shortcuts() {
 		frappe.ui.keys.add_shortcut({
 			shortcut: 'shift+>',
-			action: ()=>this.$wrapper.find('.next-doc').click(),
+			action: () => this.navigate_records(0),
 			page: this.page,
 			description: __('Go to next record')
 		});
 
 		frappe.ui.keys.add_shortcut({
 			shortcut: 'shift+<',
-			action: ()=>this.$wrapper.find('.prev-doc').click(),
+			action: () => this.navigate_records(1),
 			page: this.page,
-			description: __('Go to prev record')
+			description: __('Go to previous record')
 		});
 	}
 
@@ -818,14 +818,18 @@ frappe.ui.form.Form = class FrappeForm {
 
 	navigate_records(prev) {
 		let list_settings = frappe.get_user_settings(this.doctype)['List'];
-		let filters = list_settings.filters;
-		let sort_order = list_settings.sort_order;
-		let sort_field = list_settings.sort_by;
+		let args = {
+			doctype: this.doctype,
+			value: this.docname,
+			filters: list_settings.filters,
+			sort_order: list_settings.sort_order,
+			sort_field: list_settings.sort_by,
+			prev,
+		};
 
-		frappe.call('frappe.desk.form.utils.get_next', {doctype: this.doctype, value: this.docname,
-			filters: filters, prev: prev, sort_order: sort_order, sort_field: sort_field}).then((data)=> {
-			if(data.message) {
-				frappe.set_route('Form',this.doctype, data.message);
+		frappe.call('frappe.desk.form.utils.get_next', args).then(r => {
+			if (r.message) {
+				frappe.set_route('Form', this.doctype, r.message);
 			}
 		});
 	}
