@@ -14,13 +14,12 @@ from frappe.utils import today, add_days, getdate, add_months
 def add_custom_fields():
 	df = dict(
 		fieldname='auto_repeat', label='Auto Repeat', fieldtype='Link', insert_after='sender',
-		options='Auto Repeat')
+		options='Auto Repeat', hidden=1, print_hide=1, read_only=1)
 	create_custom_field('ToDo', df)
-
 
 class TestAutoRepeat(unittest.TestCase):
 	def setUp(self):
-		if not frappe.db.sql("SELECT `name` FROM `tabCustom Field` WHERE `name`='auto_repeat'"):
+		if not frappe.db.sql("SELECT `fieldname` FROM `tabCustom Field` WHERE `fieldname`='auto_repeat' and `dt`=%s", "Todo"):
 			add_custom_fields()
 
 	def test_daily_auto_repeat(self):
@@ -51,8 +50,10 @@ class TestAutoRepeat(unittest.TestCase):
 			dict(doctype='ToDo', description='test recurring todo', assigned_by='Administrator')).insert()
 
 		self.monthly_auto_repeat('ToDo', todo.name, start_date, end_date)
+		#test without end_date
+		self.monthly_auto_repeat('ToDo', todo.name, start_date)
 
-	def monthly_auto_repeat(self, doctype, docname, start_date, end_date):
+	def monthly_auto_repeat(self, doctype, docname, start_date, end_date=""):
 		def get_months(start, end):
 			diff = (12 * end.year + end.month) - (12 * start.year + start.month)
 			return diff + 1
@@ -103,7 +104,7 @@ def make_auto_repeat(**args):
 		'reference_document': args.reference_document or frappe.db.get_value('ToDo', {'docstatus': 1}, 'name'),
 		'frequency': args.frequency or 'Daily',
 		'start_date': args.start_date or add_days(today(), -1),
-		'end_date': args.end_date or add_days(today(), 2),
+		'end_date': args.end_date or "",
 		'submit_on_creation': args.submit_on_creation or 0,
 		'notify_by_email': args.notify or 0,
 		'recipients': args.recipients or "",

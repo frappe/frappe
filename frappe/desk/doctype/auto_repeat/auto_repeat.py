@@ -5,6 +5,7 @@
 from __future__ import unicode_literals
 import frappe
 import calendar
+import json
 from frappe import _
 from frappe.desk.form import assign_to
 from frappe.utils.jinja import validate_template
@@ -46,6 +47,7 @@ class AutoRepeat(Document):
 
 	def on_cancel(self):
 		self.update_status()
+		frappe.get_doc(self.reference_doctype, self.reference_document).notify_update()
 
 	def on_update_after_submit(self):
 		self.validate_dates()
@@ -106,7 +108,7 @@ class AutoRepeat(Document):
 			'2': 'Cancelled'
 		}[cstr(self.docstatus or 0)]
 
-		if status and status != 'Resumed':
+		if status:
 			self.status = status
 
 		if self.docstatus == 2:
@@ -122,18 +124,23 @@ class AutoRepeat(Document):
 			start_date_copy = today_copy
 
 		if not self.end_date:
-			days = 60 if self.frequency in ['Daily', 'Weekly'] else 365
-			end_date_copy = add_days(today_copy, days)
-
-		start_date_copy = get_next_schedule_date(start_date_copy, self.frequency, self.repeat_on_day)
-		while (getdate(start_date_copy) < getdate(end_date_copy)):
+			start_date_copy = get_next_schedule_date(start_date_copy, self.frequency, self.repeat_on_day)
 			row = {
-				"reference_document" : self.reference_document,
-				"frequency" : self.frequency,
-				"next_scheduled_date" : start_date_copy
+				"reference_document": self.reference_document,
+				"frequency": self.frequency,
+				"next_schedule_date": start_date_copy
 			}
 			schedule_details.append(row)
-			start_date_copy = get_next_schedule_date(start_date_copy, self.frequency, self.repeat_on_day)
+
+		if self.end_date:
+			while (getdate(start_date_copy) < getdate(end_date_copy)):
+				start_date_copy = get_next_schedule_date(start_date_copy, self.frequency, self.repeat_on_day)
+				row = {
+					"reference_document" : self.reference_document,
+					"frequency" : self.frequency,
+					"next_scheduled_date" : start_date_copy
+				}
+				schedule_details.append(row)
 
 		return schedule_details
 
@@ -164,8 +171,9 @@ def make_auto_repeat_entry(date=None):
 			frappe.enqueue(enqueued_method, data=data)
 
 def create_repeated_entries(data):
+	current_date = getdate(today())
 	schedule_date = getdate(data.next_schedule_date)
-	while schedule_date <= getdate(today()) and not frappe.db.get_value('Auto Repeat', data.name, 'disabled'):
+	while schedule_date <= current_date and not frappe.db.get_value('Auto Repeat', data.name, 'disabled'):
 		create_documents(data, schedule_date)
 		schedule_date = get_next_schedule_date(schedule_date, data.frequency, data.repeat_on_day)
 
@@ -178,7 +186,7 @@ def get_auto_repeat_entries(date):
 		where docstatus = 1 and next_schedule_date <=%s
 			and reference_document is not null and reference_document != ''
 			and next_schedule_date <= ifnull(end_date, '2199-12-31')
-			and disabled = 0 and status != 'Stopped' """, (date), as_dict=1)
+			and disabled = 0 and status != 'Cancelled' """, (date), as_dict=1)
 
 def create_documents(data, schedule_date):
 	try:
@@ -334,13 +342,30 @@ def assign_task_to_owner(name, msg, users):
 		assign_to.add(args)
 
 @frappe.whitelist()
-def make_auto_repeat(doctype, docname):
+def make_auto_repeat(doctype, docname, submit = False, opts = None):
 	doc = frappe.new_doc('Auto Repeat')
-
-	reference_doc = frappe.get_doc(doctype, docname)
 	doc.reference_doctype = doctype
 	doc.reference_document = docname
-	doc.start_date = reference_doc.get('posting_date') or reference_doc.get('transaction_date')
+
+	if opts:
+		opts = json.loads(opts)
+		doc.update({
+			'start_date': opts['start_date'],
+			'frequency': opts['frequency']
+		})
+		if 'end_date' in opts:
+			doc.update({
+				'end_date': opts['end_date']
+			})
+
+	else:
+		reference_doc = frappe.get_doc(doctype, docname)
+		doc.start_date = reference_doc.get('posting_date') or reference_doc.get('transaction_date')
+
+	doc.save()
+	if submit:
+		doc.submit()
+
 	return doc
 
 @frappe.whitelist()
