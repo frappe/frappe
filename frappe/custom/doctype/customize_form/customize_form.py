@@ -111,7 +111,7 @@ class CustomizeForm(Document):
 		translation = self.get_name_translation()
 		self.label = translation.target_name if translation else ''
 
-		"""If allow_auto_repeat is set, add auto_repeat custom field."""
+		#If allow_auto_repeat is set, add auto_repeat custom field.
 		if self.allow_auto_repeat:
 			if not frappe.db.sql("SELECT `fieldname` FROM `tabCustom Field` WHERE `fieldname`='auto_repeat' and `dt`=%s",self.doc_type):
 				insert_after = self.fields[len(self.fields) - 1].fieldname
