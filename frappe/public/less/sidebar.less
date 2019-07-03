@@ -372,8 +372,18 @@ body[data-route^="Module"] .main-menu {
 
 
 .list-sidebar {
+	.list-sidebar-label {
+		color: @text-muted;
+		text-transform: uppercase;
+		margin-bottom: 0;
+	}
+
+	.group-by-count {
+		position:relative
+	}
+
 	.group-by-dropdown, .list-stats-dropdown {
-		max-height: 300px; 
+		max-height: 300px;
 		overflow-y: auto;
 		max-width: 200px;
 	}

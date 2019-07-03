@@ -2,18 +2,19 @@
 frappe.provide('frappe.views');
 
 frappe.views.ListGroupBy = class ListGroupBy {
-
     constructor(opts) {
-        $.extend(this, opts);
+		$.extend(this, opts);
+		this.make_wrapper();
+
         this.user_settings = frappe.get_user_settings(this.doctype);
-        this.group_by_fields = [];
+        this.group_by_fields = ['assigned_to'];
         if(this.user_settings.group_by_fields) {
-			this.group_by_fields = this.user_settings.group_by_fields;
-			this.add_group_by_dropdown_fields(this.group_by_fields);
-        }
-        this.add_group_by_dropdown_fields(['assigned_to']);
-        this.make_group_by_fields_modal();
-        console.log(this);
+			this.group_by_fields = this.group_by_fields.concat(this.user_settings.group_by_fields);
+		}
+		this.render_group_by_items();
+		this.make_group_by_fields_modal();
+		this.setup_dropdown();
+		this.setup_filter_by();
     }
 
     make_group_by_fields_modal() {
@@ -21,51 +22,81 @@ frappe.views.ListGroupBy = class ListGroupBy {
 			title: __("Add Filter By"),
 			fields: this.get_group_by_dropdown_fields()
 		});
-		d.set_primary_action("Add", (values) => {
-			this.page.sidebar.find('.group-by-field a').not("[data-fieldname='assigned_to']").remove();
-			let fields = values[this.doctype];
-			delete values[this.doctype];
-			if(!fields) {
-				frappe.model.user_settings.save(this.doctype,'group_by_fields',null);
-			} else {
-				this.add_group_by_dropdown_fields(fields);
-				frappe.model.user_settings.save(this.doctype,'group_by_fields',fields);
-			}
+		d.set_primary_action("Add", ({ group_by_fields }) => {
+			frappe.model.user_settings.save(this.doctype, 'group_by_fields', group_by_fields || null);
+			this.group_by_fields = group_by_fields ? ['assigned_to', ...group_by_fields] : ['assigned_to'];
+			this.render_group_by_items();
 			d.hide();
 		});
 
 		this.page.sidebar.find(".add-list-group-by a ").on("click", () => {
 			d.show();
 		});
-    }
+	}
 
-    add_group_by_dropdown_fields(fields) {
-		if(fields) {
-            console.log('jere');
-			fields.forEach((field)=> {
-				let field_label = field === 'assigned_to'? 'Assigned To': frappe.meta.get_label(this.doctype, field);
-				this.list_group_by_dropdown = $(frappe.render_template("list_sidebar_group_by", {
-					field_label: field_label,
-					group_by_field: field,
-				}));
+	make_wrapper() {
+		this.$wrapper = this.sidebar.sidebar.find('.list-group-by');
+		let html = `
+			<li class="list-sidebar-label">
+				${__('Filter By')}
+			</li>
+			<div class="list-group-by-fields">
+			</div>
+			<li class="add-list-group-by list-link">
+				<a class="add-group-by hidden-xs text-muted">
+					${__("Add Fields")} <i class="octicon octicon-plus" style="margin-left: 2px;"></i>
+				</a>
+			</li>
+		`;
+		this.$wrapper.html(html);
+	}
 
-				this.list_group_by_dropdown.on('click', (e)=> {
-					let dropdown = $(e.currentTarget).find('.group-by-dropdown');
-					dropdown.find('.group-by-loading').show();
-					dropdown.find('.group-by-item').remove();
-					this.get_group_by_count(field, dropdown);
-				});
-				this.list_group_by_dropdown.insertAfter(this.page.sidebar.find('.list-group-by-label'));
-			});
+	render_group_by_items() {
+		let get_item_html = (fieldname) => {
+			let label = fieldname === 'assigned_to'
+				? __('Assigned To')
+				: frappe.meta.get_label(this.doctype, fieldname);
+
+			return `<li class="group-by-field list-link">
+				<div class="btn-group">
+					<a class = "dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
+					data-label="${label}" data-fieldname="${fieldname}" href="#" onclick="return false;">
+						${__(label)}<span class="caret"></span>
+					</a>
+					<ul class="dropdown-menu group-by-dropdown" role="menu">
+						<li><div class="list-loading text-center group-by-loading text-muted">
+							${__("Loading...")}
+							</div>
+						</li>
+					</ul>
+				</div>
+			</li>`;
 		}
-    }
-    
+		let html = this.group_by_fields.map(get_item_html).join('');
+		this.$wrapper.find('.list-group-by-fields').html(html);
+	}
+
+	setup_dropdown() {
+		this.$wrapper.on('click', '.group-by-field', (e)=> {
+			let dropdown = $(e.currentTarget).find('.group-by-dropdown');
+			let fieldname = $(e.currentTarget).find('a').attr('data-fieldname');
+			this.get_group_by_count(fieldname).then((field_count_list)=> {
+				if(field_count_list.length) {
+					this.render_dropdown_items(field_count_list, dropdown);
+					this.sidebar.setup_dropdown_search(dropdown, '.group-by-value');
+				} else {
+					dropdown.find('.group-by-loading').hide();
+				}
+			});
+		});
+	}
+
     get_group_by_dropdown_fields() {
 		let group_by_fields = [];
 		let fields = this.list_view.meta.fields.filter((f)=> ["Select", "Link"].includes(f.fieldtype));
 		group_by_fields.push({
 			label: __(this.doctype),
-			fieldname: this.doctype,
+			fieldname: 'group_by_fields',
 			fieldtype: 'MultiCheck',
 			columns: 2,
 			options: fields
@@ -78,38 +109,49 @@ frappe.views.ListGroupBy = class ListGroupBy {
 		return group_by_fields;
 	}
 
-	get_group_by_count(field, dropdown) {
-		let current_filters = this.list_view.get_filters_for_args(), field_list;
-		frappe.call('frappe.desk.listview.get_group_by_count',
-			{doctype: this.doctype, current_filters: current_filters, field: field}).then((data) => {
-			dropdown.find('.group-by-loading').hide();
+	get_group_by_count(field) {
+		let field_list = [];
+		let args =  {
+			doctype: this.doctype,
+			current_filters: this.list_view.get_filters_for_args(),
+			field: field,
+		}
+		return frappe.call('frappe.desk.listview.get_group_by_count', args).then((data) => {
 			if(field === 'assigned_to') {
 				let current_user  = data.message.find(user => user.name === frappe.session.user);
 				if(current_user) {
-					let current_user_count = current_user.count;
-					this.get_html_for_group_by('Me', current_user_count).appendTo(dropdown);
+					field_list = [{'name':'Me', 'count':current_user.count}];
 				}
-				field_list = data.message.filter(user => !['Guest', frappe.session.user, 'Administrator'].includes(user.name) && user.count!==0 );
+				field_list = field_list.concat(
+					data.message.filter(user => !['Guest', frappe.session.user, 'Administrator'].includes(user.name) && user.count!==0)
+				);
 			} else {
-				field_list = data.message.filter(field => field.count!==0 );
+				field_list = data.message.filter(field => field.count!==0);
 			}
-			field_list.forEach((f) => {
-				if(f.name === null) {
-					f.name = 'Not Specified';
-				}
-				this.get_html_for_group_by(f.name, f.count).appendTo(dropdown);
-			});
-			if(field_list.length) {
-				this.sidebar.setup_dropdown_search(dropdown, '.group-by-value');
-			} else {
-				dropdown.find('.dropdown-search').hide();
-			}
-			this.setup_group_by_filter(dropdown, field);
+			return field_list;
 		});
 	}
 
-	setup_group_by_filter(dropdown, field) {
-		dropdown.find("li a").on("click", (e) => {
+	render_dropdown_items(fields, dropdown) {
+		let get_dropdown_html = (field) => {
+			let name = field.name === null ? 'Not Specified': field.name;
+			return `<li class="group-by-item"><a class="badge-hover" href="#" onclick="return false;">
+				<span class="group-by-value">${name} </span>
+				<span class="badge pull-right group-by-count"> ${field.count} </span>
+				</a></li>`;
+		}
+		let standard_html = `
+			<div class="dropdown-search">
+				<input type="text" placeholder="Search" class="form-control dropdown-search-input input-xs">
+			</div>
+		`;
+		let dropdown_html = standard_html + fields.map(get_dropdown_html).join('');
+		dropdown.html(dropdown_html);
+	}
+
+	setup_filter_by() {
+		this.$wrapper.on("click", ".group-by-item", (e) => {
+			let field = $(e.currentTarget).parents('.group-by-field').find('a').attr('data-fieldname');å
 			let value = $(e.currentTarget).find($('.group-by-value')).text().trim();
 			let fieldname = field === 'assigned_to'? '_assign': field;
 			this.list_view.filter_area.remove(field);
@@ -120,13 +162,6 @@ frappe.views.ListGroupBy = class ListGroupBy {
 				this.list_view.filter_area.add(this.doctype, fieldname, "like", `%${value}%`);
 			}
 		});
-	}
-
-	get_html_for_group_by(name, count) {
-		if (count > 99) count='99+';
-		let html = $('<li class="group-by-item"><a class="badge-hover" href="#" onclick="return false;"><span class="group-by-value">'
-					+ name + '</span><span class="badge pull-right" style="position:relative">' + count + '</span></a></li>');
-		return html;
 	}
 
 }

@@ -3,8 +3,6 @@
 from __future__ import unicode_literals
 
 import frappe
-import json
-
 
 @frappe.whitelist()
 def get_list_settings(doctype):
@@ -22,19 +20,19 @@ def set_list_settings(doctype, values):
 		doc = frappe.new_doc("List View Setting")
 		doc.name = doctype
 		frappe.clear_messages()
-	doc.update(json.loads(values))
+	doc.update(frappe.parse_json(values))
 	doc.save()
 
 
 @frappe.whitelist()
 def get_group_by_count(doctype, current_filters, field):
-	current_filters = json.loads(current_filters)
+	current_filters = frappe.parse_json(current_filters)
 	subquery_condition = ''
-	subquery = frappe.get_all(doctype,
-		filters=current_filters, return_query = True)
+
+	subquery = frappe.get_all(doctype, filters=current_filters, return_query = True)
 	if field == 'assigned_to':
 		subquery_condition = ' and `tabToDo`.reference_name in ({subquery})'.format(subquery = subquery)
-		group_by_list = frappe.db.sql("""select `tabToDo`.owner as name, count(*) as count
+		return frappe.db.sql("""select `tabToDo`.owner as name, count(*) as count
 			from
 				`tabToDo`, `tabUser`
 			where
@@ -48,16 +46,11 @@ def get_group_by_count(doctype, current_filters, field):
 				count desc
 			limit 50""".format(subquery_condition = subquery_condition), as_dict=True)
 	else :
-		if current_filters:
-			subquery_condition = subquery[subquery.index('where'):subquery.index('order')]
-		group_by_list = frappe.db.sql("""select `tab{doctype}`.{field} as name, count(*) as count
-			from
-				`tab{doctype}`
-			{subquery_condition}
-			group by
-				`tab{doctype}`.{field}
-			order by
-				count desc
-			limit 50""".format(subquery_condition = subquery_condition, doctype = doctype, field = field), as_dict=True)
+		return frappe.db.get_list(doctype,
+			filters=current_filters,
+			group_by=field,
+			fields=['count(*) as count', field + ' as name'],
+			order_by='count desc',
+			limit=50,
+		)
 
-	return group_by_list

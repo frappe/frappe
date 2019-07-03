@@ -277,7 +277,6 @@
 		"public/js/frappe/list/list_sidebar.html",
 		"public/js/frappe/list/list_sidebar_stat.html",
 		"public/js/frappe/list/list_sidebar_group_by.js",
-		"public/js/frappe/list/list_sidebar_group_by.html",
 		"public/js/frappe/list/list_view_permission_restrictions.html",
 
 		"public/js/frappe/views/gantt/gantt_view.js",
