@@ -128,7 +128,7 @@ class AutoRepeat(Document):
 			row = {
 				"reference_document": self.reference_document,
 				"frequency": self.frequency,
-				"next_schedule_date": start_date_copy
+				"next_scheduled_date": start_date_copy
 			}
 			schedule_details.append(row)
 
