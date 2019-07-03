@@ -192,6 +192,16 @@ frappe.ui.form.Toolbar = Class.extend({
 				frappe.new_doc(me.frm.doctype, true);
 			}, true, 'Ctrl+B');
 		}
+
+		// Navigate
+		if(!this.frm.is_new() && !issingle) {
+			this.page.add_action_icon("fa fa-chevron-left prev-doc", function() {
+				me.frm.navigate_records(1);
+			});
+			this.page.add_action_icon("fa fa-chevron-right next-doc", function() {
+				me.frm.navigate_records(0);
+			});
+		}
 	},
 	can_save: function() {
 		return this.get_docstatus()===0;
