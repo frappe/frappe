@@ -253,7 +253,7 @@ export default class Grid {
 
 		// toolbar
 		this.setup_toolbar();
-		if (this.display_status == 'Read') this.toggle_checkboxes(false);
+		this.toggle_checkboxes(this.display_status !== 'Read');
 		else this.toggle_checkboxes(true);
 
 		// sortable
