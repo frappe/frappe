@@ -448,7 +448,7 @@ export default class Grid {
 		this.refresh();
 	}
 	toggle_checkboxes(enable) {
-		let check_boxes = this.wrapper.find(".grid-row-check")
+		this.wrapper.find(".grid-row-check").prop('disabled', !enable)
 		check_boxes.each((item) => {
 			check_boxes[item].disabled = !enable;
 		})
