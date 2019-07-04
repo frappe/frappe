@@ -12,6 +12,9 @@ addons:
   hosts:
     - test_site
 
+git:
+  depth: 1
+
 cache:
   - pip
 
