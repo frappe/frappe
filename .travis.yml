@@ -6,12 +6,10 @@ python:
   - 3.6
   - 2.7
 
-services:
-  - mysql
-
 addons:
   hosts:
     - test_site
+  mariadb: 10.3
 
 git:
   depth: 1
@@ -32,9 +30,6 @@ install:
 
   - mysql -u root -e "SET GLOBAL character_set_server = 'utf8mb4'"
   - mysql -u root -e "SET GLOBAL collation_server = 'utf8mb4_unicode_ci'"
-  - mysql -u root -e "SET GLOBAL innodb_file_format=Barracuda"
-  - mysql -u root -e "SET GLOBAL innodb_file_per_table=ON"
-  - mysql -u root -e "SET GLOBAL innodb_large_prefix=1"
 
   - mysql -u root -e "CREATE DATABASE test_frappe"
   - mysql -u root -e "CREATE USER 'test_frappe'@'localhost' IDENTIFIED BY 'test_frappe'"
