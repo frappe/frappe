@@ -10,7 +10,7 @@ services:
 
 install:
   - cd ~
-  - source ~/.nvm/nvm.sh
+  - source ./.nvm/nvm.sh
   - nvm install v8.10.0
 
   - git clone https://github.com/adityahase/bench --depth 1 --branch faster
@@ -25,7 +25,7 @@ install:
   - mysql -u root -ptravis -e "FLUSH PRIVILEGES"
 
 before_script:
-  - cd ~/frappe-bench
+  - cd ./frappe-bench
   - bench start &
   - sleep 10
   - bench --site test_site reinstall --yes
