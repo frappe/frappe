@@ -8,6 +8,10 @@ python:
 services:
   - mysql
 
+addons:
+  hosts:
+    - test_site
+
 cache:
   - pip
 
