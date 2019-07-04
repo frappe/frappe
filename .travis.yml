@@ -48,6 +48,7 @@ before_script:
   - bench start &
   - bench --site test_site reinstall --yes
   - bench --site test_site scheduler disable
+  - bench build --app frappe
 
 script:
   - bench --site test_site run-tests --coverage
