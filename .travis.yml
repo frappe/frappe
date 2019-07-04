@@ -2,20 +2,32 @@ language: python
 dist: trusty
 sudo: required
 
-python:
-  - 3.6
-  - 2.7
-
 addons:
   hosts:
     - test_site
   mariadb: 10.3
+  postgresql: 9.5
 
 git:
   depth: 1
 
 cache:
   - pip
+
+matrix:
+  include:
+  - name: "Python 3.6 MariaDB"
+    python: 3.6
+    env: DB=MariaDB
+  - name: "Python 3.6 PostgreSQL"
+    python: 3.6
+    env: DB=PostgreSQL
+  - name: "Cypress"
+    python: 3.6
+    env: DB=MariaDB
+  - name: "Python 2.7 MariaDB"
+    python: 2.7
+    env: DB=MariaDB
 
 install:
   - cd ~
