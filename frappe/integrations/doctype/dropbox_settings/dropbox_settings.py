@@ -104,7 +104,8 @@ def backup_to_dropbox(upload_db_backup=True):
 		dropbox_settings['access_token'] = access_token['oauth2_token']
 		set_dropbox_access_token(access_token['oauth2_token'])
 
-	dropbox_client = dropbox.Dropbox(dropbox_settings['access_token'])
+	# Wait for 60 seconds before throwing ReadTimeout, in case server doesn't respond
+	dropbox_client = dropbox.Dropbox(dropbox_settings['access_token'], timeout=60)
 
 	if upload_db_backup:
 		backup = new_backup(ignore_files=True)
