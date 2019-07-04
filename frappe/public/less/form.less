@@ -200,6 +200,19 @@
 	}
 }
 
+.frappe-rtl .inline-graph {
+	direction: ltr;
+	display: block;
+	transform: scaleX(-1);
+	.inline-graph-count {
+		transform: scaleX(-1);
+		text-align: right;
+	}
+	.inline-graph-half:first-child .inline-graph-count {
+		text-align: left;
+	}
+}
+
 .progress-area {
 	padding-top: 15px;
 	padding-bottom: 15px;
