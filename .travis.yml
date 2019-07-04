@@ -12,6 +12,7 @@ install:
   - source ~/.nvm/nvm.sh
   - nvm install v8.10.0
 
+  - git clone https://github.com/frappe/bench --depth 1
   - pip install -e ~/bench
 
   - rm $TRAVIS_BUILD_DIR/.git/shallow
