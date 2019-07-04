@@ -3,30 +3,10 @@ dist: trusty
 sudo: required
 
 python:
-  - 2.7
   - 3.6
-
-env:
-  - DB=mariadb
-  - DB=postgres
-  - TEST_TYPE=ui
 
 services:
   - mysql
-
-addons:
-  postgresql: "9.5"
-  hosts:
-    - test_site
-    - test_site_postgres
-    - test_site_ui
-
-matrix:
-  exclude:
-  - python: 2.7
-    env: DB=postgres
-  - python: 2.7
-    env: TEST_TYPE=ui
 
 install:
   - $TRAVIS_BUILD_DIR/.travis/install.sh
