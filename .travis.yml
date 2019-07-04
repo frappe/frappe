@@ -34,12 +34,13 @@ install:
 
 before_script:
   - cd ./frappe-bench
+
   - sed -i 's/redis_socketio:/# redis_socketio:/g' Procfile
   - sed -i 's/socketio:/# socketio:/g' Procfile
   - sed -i 's/watch:/# watch:/g' Procfile
   - sed -i 's/schedule:/# schedule:/g' Procfile
+
   - bench start &
-  - sleep 10
   - bench --site test_site reinstall --yes
   - bench --site test_site scheduler disable
 
