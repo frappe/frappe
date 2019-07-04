@@ -25,6 +25,12 @@ import 'cypress-file-upload';
 // -- This is will overwrite an existing command --
 // Cypress.Commands.overwrite("visit", (originalFn, url, options) => { ... });
 Cypress.Commands.add('login', (email, password) => {
+	if (!email) {
+		email = 'Administrator';
+	}
+	if (!password) {
+		password = Cypress.config('adminPassword');
+	}
 	cy.request({
 		url: '/api/method/login',
 		method: 'POST',

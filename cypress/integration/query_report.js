@@ -1,6 +1,6 @@
 context('Form', () => {
 	before(() => {
-		cy.login('Administrator', 'qwe');
+		cy.login();
 		cy.visit('/desk');
 	});
 

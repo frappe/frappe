@@ -1,6 +1,6 @@
 context('List View', () => {
 	before(() => {
-		cy.login('Administrator', 'qwe');
+		cy.login();
 		cy.visit('/desk');
 		cy.window().its('frappe').then(frappe => {
 			frappe.call("frappe.tests.ui_test_helpers.setup_workflow");
