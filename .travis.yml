@@ -15,13 +15,11 @@ install:
   - git clone https://github.com/adityahase/bench --depth 1 --branch faster
   - pip install -e ./bench
 
-  - rm $TRAVIS_BUILD_DIR/.git/shallow
   - cd ~/ && bench init frappe-bench --skip-assets --python $(which python) --frappe-path $TRAVIS_BUILD_DIR
   - cp -r $TRAVIS_BUILD_DIR/test_sites/test_site ~/frappe-bench/sites/
 
 before_script:
   - cd ~/frappe-bench
-  - sed -i 's/9000/9001/g' sites/common_site_config.json
   - bench start &
   - sleep 10
 
