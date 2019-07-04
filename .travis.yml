@@ -4,6 +4,7 @@ sudo: required
 
 python:
   - 3.6
+  - 2.7
 
 services:
   - mysql
