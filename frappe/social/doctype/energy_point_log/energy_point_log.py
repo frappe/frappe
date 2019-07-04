@@ -214,6 +214,8 @@ def revert(name, reason):
 	if doc_to_revert.type != 'Auto':
 		frappe.throw(_('This document cannot be reverted'))
 
+	if doc_to_revert.reverted: return
+
 	doc_to_revert.reverted = 1
 	doc_to_revert.save(ignore_permissions=True)
 
