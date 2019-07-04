@@ -12,7 +12,6 @@ install:
   - source ~/.nvm/nvm.sh
   - nvm install v8.10.0
 
-  - pip install python-coveralls
 
   - wget https://raw.githubusercontent.com/frappe/bench/master/playbooks/install.py
 
@@ -41,4 +40,5 @@ script:
 
 
 after_script:
+  - pip install python-coveralls
   - coveralls -b apps/frappe -d ../../sites/.coverage
