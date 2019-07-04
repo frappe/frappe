@@ -8,6 +8,9 @@ python:
 services:
   - mysql
 
+cache:
+  - pip
+
 install:
   - cd ~
   - source ./.nvm/nvm.sh
