@@ -19,6 +19,12 @@ install:
   - bench init frappe-bench --skip-assets --python $(which python) --frappe-path $TRAVIS_BUILD_DIR
   - cp -r $TRAVIS_BUILD_DIR/test_sites/test_site ~/frappe-bench/sites/
 
+  - mysql -u root -e "SET GLOBAL character_set_server = 'utf8mb4'"
+  - mysql -u root -e "SET GLOBAL collation_server = 'utf8mb4_unicode_ci'"
+  - mysql -u root -e "SET GLOBAL innodb_file_format=Barracuda"
+  - mysql -u root -e "SET GLOBAL innodb_file_per_table=ON"
+  - mysql -u root -e "SET GLOBAL innodb_large_prefix=1"
+
   - mysql -u root -e "CREATE DATABASE test_frappe"
   - mysql -u root -e "CREATE USER 'test_frappe'@'localhost' IDENTIFIED BY 'test_frappe'"
   - mysql -u root -e "GRANT ALL PRIVILEGES ON \`test_frappe\`.* TO 'test_frappe'@'localhost'"
