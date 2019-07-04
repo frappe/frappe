@@ -9,13 +9,14 @@ services:
   - mysql
 
 install:
+  - cd ~
   - source ~/.nvm/nvm.sh
   - nvm install v8.10.0
 
   - git clone https://github.com/adityahase/bench --depth 1 --branch faster
   - pip install -e ./bench
 
-  - cd ~/ && bench init frappe-bench --skip-assets --python $(which python) --frappe-path $TRAVIS_BUILD_DIR
+  - bench init frappe-bench --skip-assets --python $(which python) --frappe-path $TRAVIS_BUILD_DIR
   - cp -r $TRAVIS_BUILD_DIR/test_sites/test_site ~/frappe-bench/sites/
 
   - mysql -u root -ptravis -e "CREATE DATABASE test_frappe"
