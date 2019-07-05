@@ -23,7 +23,7 @@ context('Login', () => {
 
 	it('logs in using correct credentials', () => {
 		cy.get('#login_email').type('Administrator');
-		cy.get('#login_password').type('qwe');
+		cy.get('#login_password').type(Cypress.config('adminPassword'));
 
 		cy.get('.btn-login').click();
 		cy.location('pathname').should('eq', '/desk');

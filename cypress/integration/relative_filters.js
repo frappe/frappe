@@ -1,10 +1,10 @@
 context('Relative Timeframe', () => {
 	beforeEach(() => {
-		cy.login('Administrator', 'qwe');
+		cy.login();
 		cy.visit('/desk');
 	});
 	before(() => {
-		cy.login('Administrator', 'qwe');
+		cy.login();
 		cy.visit('/desk');
 		cy.window().its('frappe').then(frappe => {
 			frappe.call("frappe.tests.ui_test_helpers.create_todo_records");

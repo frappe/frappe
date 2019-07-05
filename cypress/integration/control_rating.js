@@ -1,6 +1,6 @@
 context('Control Rating', () => {
 	before(() => {
-		cy.login('Administrator', 'qwe');
+		cy.login();
 		cy.visit('/desk');
 	});
 

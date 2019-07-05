@@ -1,6 +1,6 @@
 context('List View Settings', () => {
 	beforeEach(() => {
-		cy.login('Administrator', 'qwe');
+		cy.login();
 		cy.visit('/desk');
 	});
 	it('Default settings', () => {
@@ -14,13 +14,13 @@ context('List View Settings', () => {
 		cy.get('button').contains('Menu').click();
 		cy.get('.dropdown-menu li').filter(':visible').contains('Settings').click();
 		cy.get('.modal-dialog').should('contain', 'Settings');
-		
+
 		cy.get('input[data-fieldname="disable_count"]').check({force: true});
 		cy.get('input[data-fieldname="disable_sidebar_stats"]').check({force: true});
 		cy.get('button').filter(':visible').contains('Save').click();
-		
+
 		cy.reload();
-		
+
 		cy.get('.list-count').should('be.empty');
 		cy.get('.list-sidebar .sidebar-stat').should('not.exist');
 

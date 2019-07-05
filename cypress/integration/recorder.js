@@ -1,6 +1,6 @@
 context('Recorder', () => {
 	before(() => {
-		cy.login('Administrator', 'qwe');
+		cy.login();
 	});
 
 	it('Navigate to Recorder', () => {
