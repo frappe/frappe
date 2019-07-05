@@ -468,14 +468,17 @@ def run_ui_tests(context, app, headless=False):
 	site = get_site(context)
 	app_base_path = os.path.abspath(os.path.join(frappe.get_app_path(app), '..'))
 	site_url = frappe.utils.get_site_url(site)
+	admin_password = frappe.get_conf(site).admin_password
 
 	# override baseUrl using env variable
 	site_env = 'CYPRESS_baseUrl={}'.format(site_url)
+	password_env = 'CYPRESS_adminPassword={}'.format(admin_password) if admin_password else ''
 
 	# run for headless mode
 	run_or_open = 'run' if headless else 'open'
 
-	frappe.commands.popen(site_env + ' yarn run cypress ' + run_or_open, cwd=app_base_path)
+	parts = dict(site_env=site_env, password_env=password_env, run_or_open=run_or_open)
+	frappe.commands.popen('{site_env} {password_env} yarn run cypress {run_or_open}'.format(parts), cwd=app_base_path)
 
 @click.command('run-setup-wizard-ui-test')
 @click.option('--app', help="App to run tests on, leave blank for all apps")
