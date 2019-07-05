@@ -11,6 +11,7 @@ from frappe.auth import LoginManager
 from frappe.integrations.doctype.ldap_settings.ldap_settings import LDAPSettings
 from frappe.utils.password import get_decrypted_password
 from frappe.utils.html_utils import get_icon_html
+from frappe.integrations.oauth2_logins import decoder_compat
 
 no_cache = True
 
@@ -59,7 +60,7 @@ def get_context(context):
 
 @frappe.whitelist(allow_guest=True)
 def login_via_google(code, state):
-	login_via_oauth2("google", code, state, decoder=json.loads)
+	login_via_oauth2("google", code, state, decoder=decoder_compat)
 
 @frappe.whitelist(allow_guest=True)
 def login_via_github(code, state):
@@ -67,15 +68,15 @@ def login_via_github(code, state):
 
 @frappe.whitelist(allow_guest=True)
 def login_via_facebook(code, state):
-	login_via_oauth2("facebook", code, state, decoder=json.loads)
+	login_via_oauth2("facebook", code, state, decoder=decoder_compat)
 
 @frappe.whitelist(allow_guest=True)
 def login_via_frappe(code, state):
-	login_via_oauth2("frappe", code, state, decoder=json.loads)
+	login_via_oauth2("frappe", code, state, decoder=decoder_compat)
 
 @frappe.whitelist(allow_guest=True)
 def login_via_office365(code, state):
-	login_via_oauth2_id_token("office_365", code, state, decoder=json.loads)
+	login_via_oauth2_id_token("office_365", code, state, decoder=decoder_compat)
 
 @frappe.whitelist(allow_guest=True)
 def login_oauth_user(data=None, provider=None, state=None, email_id=None, key=None, generate_login_token=False):
