@@ -3,8 +3,12 @@
 # For license information, please see license.txt
 
 from __future__ import unicode_literals
-# import frappe
+import frappe
+from frappe import _
 from frappe.model.document import Document
 
 class GoogleSettings(Document):
-	pass
+
+	def validate(self):
+		if (self.client_id and not self.client_secret) or (not self.client_id and self.client_secret):
+			frappe.throw(_("Set Client ID and Client Secret for Google Integrations."))
