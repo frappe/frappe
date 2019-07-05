@@ -142,7 +142,7 @@ def prepare_filters(doctype, controller, kwargs):
 
 	return filters
 
-def get_list_context(context, doctype, web_form_name):
+def get_list_context(context, doctype, web_form_name=None):
 	from frappe.modules import load_doctype_module
 
 	list_context = context or frappe._dict()
