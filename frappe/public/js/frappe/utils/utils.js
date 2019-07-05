@@ -36,6 +36,9 @@ Object.assign(frappe.utils, {
 		}
 		return true;
 	},
+	is_mac: function() {
+		return window.navigator.platform === 'MacIntel';
+	},
 	is_xs: function() {
 		return $(document).width() < 768;
 	},
@@ -640,11 +643,12 @@ Object.assign(frappe.utils, {
 		};
 	},
 	get_form_link: function(doctype, name, html = false, display_text = null) {
+		display_text = display_text || name;
 		doctype = encodeURIComponent(doctype);
 		name = encodeURIComponent(name);
 		const route = ['#Form', doctype, name].join('/');
 		if (html) {
-			return `<a href="${route}">${display_text || name}</a>`;
+			return `<a href="${route}">${display_text}</a>`;
 		}
 		return route;
 	},

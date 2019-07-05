@@ -120,15 +120,22 @@ frappe.ui.form.Toolbar = Class.extend({
 				this.page.add_menu_item(__("Print"), function() {
 					me.frm.print_doc();}, true);
 				this.print_icon = this.page.add_action_icon("fa fa-print", function() {
-					me.frm.print_doc();});
+					me.frm.print_doc();
+				});
 			}
 		}
 
 		// email
 		if(frappe.model.can_email(null, me.frm) && me.frm.doc.docstatus < 2) {
 			this.page.add_menu_item(__("Email"), function() {
-				me.frm.email_doc();}, true);
+				me.frm.email_doc();
+			}, true, 'Ctrl+E');
 		}
+
+		// go to field modal
+		this.page.add_menu_item(__("Jump to field"), function() {
+			me.show_jump_to_field_dialog();
+		}, true, 'Ctrl+J');
 
 		// Linked With
 		if(!me.frm.meta.issingle) {
@@ -140,24 +147,28 @@ frappe.ui.form.Toolbar = Class.extend({
 		// copy
 		if(in_list(frappe.boot.user.can_create, me.frm.doctype) && !me.frm.meta.allow_copy) {
 			this.page.add_menu_item(__("Duplicate"), function() {
-				me.frm.copy_doc();}, true);
+				me.frm.copy_doc();
+			}, true);
 		}
 
 		// rename
 		if(this.can_rename()) {
 			this.page.add_menu_item(__("Rename"), function() {
-				me.frm.rename_doc();}, true);
+				me.frm.rename_doc();
+			}, true);
 		}
 
 		// reload
 		this.page.add_menu_item(__("Reload"), function() {
-			me.frm.reload_doc();}, true);
+			me.frm.reload_doc();
+		}, true);
 
 		// delete
 		if((cint(me.frm.doc.docstatus) != 1) && !me.frm.doc.__islocal
 			&& frappe.model.can_delete(me.frm.doctype)) {
 			this.page.add_menu_item(__("Delete"), function() {
-				me.frm.savetrash();}, true);
+				me.frm.savetrash();
+			}, true, 'Shift+Ctrl+D');
 		}
 
 		if(frappe.user_roles.includes("System Manager") && me.frm.meta.issingle === 0) {
@@ -177,8 +188,19 @@ frappe.ui.form.Toolbar = Class.extend({
 
 		// New
 		if(p[CREATE] && !this.frm.meta.issingle) {
-			this.page.add_menu_item(__("New {0} (Ctrl+B)", [__(me.frm.doctype)]), function() {
-				frappe.new_doc(me.frm.doctype, true);}, true);
+			this.page.add_menu_item(__("New {0}", [__(me.frm.doctype)]), function() {
+				frappe.new_doc(me.frm.doctype, true);
+			}, true, 'Ctrl+B');
+		}
+
+		// Navigate
+		if(!this.frm.is_new() && !issingle) {
+			this.page.add_action_icon("fa fa-chevron-left prev-doc", function() {
+				me.frm.navigate_records(1);
+			});
+			this.page.add_action_icon("fa fa-chevron-right next-doc", function() {
+				me.frm.navigate_records(0);
+			});
 		}
 	},
 	can_save: function() {
@@ -349,5 +371,54 @@ frappe.ui.form.Toolbar = Class.extend({
 		}
 
 		$(this.frm.wrapper).attr("data-state", this.frm.doc.__unsaved ? "dirty" : "clean");
+	},
+
+	show_jump_to_field_dialog() {
+		let visible_fields_filter = f =>
+			!['Section Break', 'Column Break'].includes(f.df.fieldtype)
+			&& !f.df.hidden
+			&& f.disp_status !== 'None';
+
+		let fields = this.frm.fields
+			.filter(visible_fields_filter)
+			.map(f => ({ label: f.df.label, value: f.df.fieldname }));
+
+		let dialog = new frappe.ui.Dialog({
+			title: __('Jump to field'),
+			fields: [
+				{
+					fieldtype: 'Autocomplete',
+					fieldname: 'fieldname',
+					label: __('Select Field'),
+					options: fields,
+					reqd: 1
+				}
+			],
+			primary_action_label: __('Go'),
+			primary_action: ({ fieldname }) => {
+				dialog.hide();
+				let field = this.frm.get_field(fieldname);
+				if (!field) return;
+
+				let $el = field.$wrapper;
+
+				// uncollapse section
+				if (field.section.is_collapsed()) {
+					field.section.collapse(false);
+				}
+
+				// scroll to input
+				frappe.utils.scroll_to($el);
+
+				// highlight input
+				$el.addClass('has-error');
+				setTimeout(() => {
+					$el.removeClass('has-error');
+					$el.find('input, select, textarea').focus();
+				}, 1000);
+			}
+		});
+
+		dialog.show();
 	}
 })

@@ -42,6 +42,12 @@ frappe.ready(function() {
 	}
 
 	function show_form() {
+		let web_form = new WebForm({
+			parent: wrapper,
+			is_new,
+			web_form_name: webform_name,
+		});
+
 		get_data().then(r => {
 			const data = setup_fields(r.message);
 			let web_form_doc = data.web_form;
@@ -51,15 +57,7 @@ frappe.ready(function() {
 				return;
 			}
 
-			let web_form = new WebForm({
-				parent: wrapper,
-				fields: data.web_form.web_form_fields,
-				doc: r.message.doc || {},
-				is_new,
-				web_form_name: webform_name,
-				...web_form_doc,
-			});
-
+			web_form.prepare(web_form_doc, r.message.doc || {});
 			web_form.make();
 		})
 

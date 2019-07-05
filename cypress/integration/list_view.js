@@ -1,9 +1,9 @@
 context('List View', () => {
 	before(() => {
-		cy.login('Administrator', 'qwe');
+		cy.login();
 		cy.visit('/desk');
 		cy.window().its('frappe').then(frappe => {
-			frappe.call("frappe.tests.test_utils.setup_workflow");
+			frappe.call("frappe.tests.ui_test_helpers.setup_workflow");
 		});
 		cy.clear_cache();
 	});
@@ -26,9 +26,7 @@ context('List View', () => {
 			}).as('update-list');
 			cy.wrap(elements).contains('Approve').click();
 			cy.wait(['@bulk-approval', '@update-list']);
-			cy.get('.list-row-container:visible').each(el => {
-				cy.wrap(el).contains('Approved');
-			});
+			cy.get('.list-row-container:visible').should('contain', 'Approved');
 		});
 	});
 });

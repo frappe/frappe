@@ -91,6 +91,7 @@ export default class WebFormList {
 				doctype: this.doctype,
 				fields: this.fields_list.map(df => df.fieldname),
 				limit_start: this.web_list_start,
+				web_form_name: this.web_form_name,
 				...this.filters
 			}
 		});
@@ -105,7 +106,7 @@ export default class WebFormList {
 		this.web_list_start += this.page_length
 		this.fetch_data().then((res) => {
 			if (res.message.length === 0) {
-				frappe.msgprint("No more items to display")
+				frappe.msgprint(__("No more items to display"))
 			}
 			this.append_rows(res.message)
 		})

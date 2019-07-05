@@ -125,6 +125,17 @@ frappe.ui.Page = Class.extend({
 		if(this.make_page) {
 			this.make_page();
 		}
+
+		// keyboard shortcuts
+		let menu_btn = this.menu_btn_group.find('button');
+		frappe.ui.keys
+			.get_shortcut_group(this.page_actions[0])
+			.add(menu_btn, menu_btn.find('.menu-btn-group-label'));
+
+		let action_btn = this.actions_btn_group.find('button');
+		frappe.ui.keys
+			.get_shortcut_group(this.page_actions[0])
+			.add(action_btn, action_btn.find('.actions-btn-group-label'));
 	},
 
 	set_indicator: function(label, color) {
@@ -164,6 +175,12 @@ frappe.ui.Page = Class.extend({
 		if (opts.working_label) {
 			btn.attr("data-working-label", opts.working_label);
 		}
+
+		// alt shortcuts
+		let text_span = btn.find('span');
+		frappe.ui.keys
+			.get_shortcut_group(this)
+			.add(btn, text_span.length ? text_span : btn);
 	},
 
 	set_primary_action: function(label, click, icon, working_label) {
@@ -173,8 +190,8 @@ frappe.ui.Page = Class.extend({
 			icon: icon,
 			working_label: working_label
 		});
-
 		return this.btn_primary;
+
 	},
 
 	set_secondary_action: function(label, click, icon, working_label) {
@@ -212,8 +229,14 @@ frappe.ui.Page = Class.extend({
 
 	//--- Menu --//
 
-	add_menu_item: function(label, click, standard) {
-		return this.add_dropdown_item(label, click, standard, this.menu);
+	add_menu_item: function(label, click, standard, shortcut) {
+		return this.add_dropdown_item({
+			label,
+			click,
+			standard,
+			parent: this.menu,
+			shortcut
+		});
 	},
 
 	clear_menu: function() {
@@ -248,11 +271,22 @@ frappe.ui.Page = Class.extend({
 
 
 	add_action_item: function(label, click, standard) {
-		return this.add_dropdown_item(label, click, standard, this.actions);
+		return this.add_dropdown_item({
+			label,
+			click,
+			standard,
+			parent: this.actions
+		});
 	},
 
 	add_actions_menu_item: function(label, click, standard) {
-		return this.add_dropdown_item(label, click, standard, this.actions, false);
+		return this.add_dropdown_item({
+			label,
+			click,
+			standard,
+			parent: this.actions,
+			show_parent: false
+		});
 	},
 
 	clear_actions_menu: function() {
@@ -269,20 +303,40 @@ frappe.ui.Page = Class.extend({
 	* @param {function} click - function to be called when `label` is clicked
 	* @param {Boolean} standard
 	* @param {object} parent - DOM object representing the parent of the drop down item lists
+	* @param {string} shortcut - Keyboard shortcut associated with the element
 	* @param {Boolean} show_parent - Whether to show the dropdown button if dropdown item is added
 	*/
-	add_dropdown_item: function(label, click, standard, parent, show_parent=true) {
-		let item_selector = 'li > a.grey-link';
-		if(show_parent) {
+	add_dropdown_item: function({label, click, standard, parent, shortcut, show_parent=true}) {
+		if (show_parent) {
 			parent.parent().removeClass("hide");
 		}
 
-		var $li = $('<li><a class="grey-link">'+ label +'</a><li>'),
-			$link = $li.find("a").on("click", click);
+		let $li;
+		if (shortcut) {
+			let shortcut_label = shortcut;
+			if (frappe.utils.is_mac()) {
+				shortcut_label = shortcut.replace('Ctrl', '⌘');
+			}
+			$li = $(`<li><a class="grey-link dropdown-item" href="#" onClick="return false;">
+				<span class="menu-item-label">${label}</span>
+				<span class="text-muted pull-right">${shortcut_label}</span>
+			</a><li>`);
+			shortcut = shortcut.toLowerCase();
+			frappe.ui.keys.add_shortcut({
+				shortcut,
+				target: $li.find('a'),
+				description: label,
+				page: this
+			});
+		} else {
+			$li = $(`<li><a class="grey-link dropdown-item" href="#" onClick="return false;">
+				<span class="menu-item-label">${label}</span></a><li>`);
+		}
+		var $link = $li.find("a").on("click", click);
 
-		if (this.is_in_group_button_dropdown(parent, item_selector, label)) return;
+		if (this.is_in_group_button_dropdown(parent, 'li > a.grey-link', label)) return;
 
-		if(standard) {
+		if (standard) {
 			$li.appendTo(parent);
 		} else {
 			this.divider = parent.find(".divider");
@@ -291,6 +345,11 @@ frappe.ui.Page = Class.extend({
 			}
 			$li.addClass("user-action").insertBefore(this.divider);
 		}
+
+		// alt shortcut
+		frappe.ui.keys
+			.get_shortcut_group(parent.get(0))
+			.add($link, $link.find('.menu-item-label'));
 
 		return $link;
 	},
@@ -328,7 +387,7 @@ frappe.ui.Page = Class.extend({
 			$group = $('<div class="btn-group" data-label="'+encodeURIComponent(label)+'" style="margin-left: 10px;">\
 				<button type="button" class="btn btn-default dropdown-toggle btn-xs" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">\
 				'+label+' <span class="caret"></span></button>\
-				<ul class="dropdown-menu" style="margin-top: -8px;"></ul></div>').appendTo(this.inner_toolbar);
+				<ul role="menu" class="dropdown-menu" style="margin-top: -8px;"></ul></div>').appendTo(this.inner_toolbar);
 		}
 		return $group;
 	},
@@ -376,7 +435,7 @@ frappe.ui.Page = Class.extend({
 			$(this.inner_toolbar).removeClass("hide");
 
 			if (!this.is_in_group_button_dropdown($group.find(".dropdown-menu"), 'li', label)) {
-				return $('<li><a data-label="'+encodeURIComponent(label)+'">'+label+'</a></li>')
+				return $('<li><a href="#" onclick="return false;" data-label="'+encodeURIComponent(label)+'">'+label+'</a></li>')
 					.on('click', _action)
 					.appendTo($group.find(".dropdown-menu"));
 			}
