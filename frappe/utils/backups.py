@@ -122,7 +122,7 @@ class BackupGenerator:
 																						   "System Settings",
 																						   "confirm_password_encryption",
 																						   False)
-				cmd_string = """mysqldump --single-transaction --quick --lock-tables=false -u %(user)s -p%(password)s %(db_name)s -h %(db_host)s --triggers --routines | openssl enc -aes-256-cbc -k %(encryption_password)s > %(backup_path_db)s""" % args
+				cmd_string = """mysqldump --single-transaction --quick --lock-tables=false -u %(user)s -p%(password)s %(db_name)s -h %(db_host)s --triggers --routines | openssl enc -aes-256-cbc -salt -k %(encryption_password)s > %(backup_path_db)s""" % args
 			else:
 				cmd_string = """mysqldump --single-transaction --quick --lock-tables=false -u %(user)s -p%(password)s %(db_name)s -h %(db_host)s > %(backup_path_db)s """ % args
 
@@ -137,7 +137,7 @@ class BackupGenerator:
 																						   "confirm_password_encryption",
 																						   False)
 
-				cmd_string = """mysqldump --single-transaction --quick --lock-tables=false -u %(user)s -p%(password)s %(db_name)s -h %(db_host)s --triggers --routines | openssl enc -aes-256-cbc -k %(encryption_password)s > %(backup_path_db)s""" % args
+				cmd_string = """mysqldump --single-transaction --quick --lock-tables=false -u %(user)s -p%(password)s %(db_name)s -h %(db_host)s --triggers --routines | openssl enc -aes-256-cbc -salt -k %(encryption_password)s > %(backup_path_db)s""" % args
 
 		else:
 			cmd_string = """mysqldump --single-transaction --quick --lock-tables=false -u %(user)s -p%(password)s %(db_name)s -h %(db_host)s > %(backup_path_db)s """ % args
