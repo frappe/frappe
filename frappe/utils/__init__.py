@@ -316,6 +316,12 @@ def get_backups_path():
 def get_request_site_address(full_address=False):
 	return get_url(full_address=full_address)
 
+def get_site_url(site):
+	return 'http://{site}:{port}'.format(
+		site=site,
+		port=frappe.get_conf(site).webserver_port
+	)
+
 def encode_dict(d, encoding="utf-8"):
 	for key in d:
 		if isinstance(d[key], string_types) and isinstance(d[key], text_type):
