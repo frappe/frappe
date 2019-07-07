@@ -1,0 +1,145 @@
+{
+ "autoname": "field:user",
+ "creation": "2019-07-06 17:54:09.450100",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "enable",
+  "sb_00",
+  "user",
+  "calendar_name",
+  "section_break_3",
+  "allow_google_access",
+  "section_break_4",
+  "refresh_token",
+  "authorization_code",
+  "column_break_6",
+  "session_token",
+  "state",
+  "section_break_9",
+  "gcalendar_id",
+  "next_sync_token"
+ ],
+ "fields": [
+  {
+   "default": "1",
+   "fieldname": "enable",
+   "fieldtype": "Check",
+   "label": "Enable"
+  },
+  {
+   "depends_on": "eval: doc.enable",
+   "fieldname": "sb_00",
+   "fieldtype": "Section Break",
+   "label": "Google Calendar"
+  },
+  {
+   "fieldname": "user",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "User",
+   "options": "User",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "description": "The name that will appear in Google Calendar",
+   "fieldname": "calendar_name",
+   "fieldtype": "Data",
+   "label": "Calendar Name",
+   "reqd": 1
+  },
+  {
+   "depends_on": "eval:doc.enabled",
+   "fieldname": "section_break_3",
+   "fieldtype": "Section Break"
+  },
+  {
+   "depends_on": "eval:!doc.__islocal",
+   "fieldname": "allow_google_access",
+   "fieldtype": "Button",
+   "label": "Allow GCalendar Access"
+  },
+  {
+   "fieldname": "section_break_4",
+   "fieldtype": "Section Break",
+   "hidden": 1
+  },
+  {
+   "fieldname": "refresh_token",
+   "fieldtype": "Data",
+   "label": "Refresh Token"
+  },
+  {
+   "fieldname": "authorization_code",
+   "fieldtype": "Data",
+   "label": "Authorization Code"
+  },
+  {
+   "fieldname": "column_break_6",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "session_token",
+   "fieldtype": "Data",
+   "label": "Session Token"
+  },
+  {
+   "fieldname": "state",
+   "fieldtype": "Data",
+   "label": "State"
+  },
+  {
+   "fieldname": "section_break_9",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "gcalendar_id",
+   "fieldtype": "Data",
+   "label": "Google Calendar ID",
+   "read_only": 1
+  },
+  {
+   "fieldname": "next_sync_token",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Next Sync Token"
+  }
+ ],
+ "modified": "2019-07-06 17:54:09.450100",
+ "modified_by": "Administrator",
+ "module": "Integrations",
+ "name": "Google Calendar",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "if_owner": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "All",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}
