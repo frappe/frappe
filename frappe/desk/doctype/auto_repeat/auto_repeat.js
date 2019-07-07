@@ -30,8 +30,8 @@ frappe.ui.form.on('Auto Repeat', {
 	refresh: function(frm) {
 		//if document is not saved do not show schedule and document link
 		if(!frm.doc.__unsaved) {
-				let label = __('View {0}', [__(frm.doc.reference_doctype)]);
-				frm.add_custom_button(__(label),
+			let label = __('View {0}', [__(frm.doc.reference_doctype)]);
+			frm.add_custom_button(__(label),
 					function() {
 						frappe.route_options = {
 							"auto_repeat": frm.doc.name,
@@ -39,7 +39,7 @@ frappe.ui.form.on('Auto Repeat', {
 						frappe.set_route("List", frm.doc.reference_doctype);
 					}
 				);
-				frappe.auto_repeat.render_schedule(frm);
+			frappe.auto_repeat.render_schedule(frm);
 		}
 	},
 

@@ -5,7 +5,6 @@
 from __future__ import unicode_literals
 import frappe
 import calendar
-import json
 from frappe import _
 from frappe.desk.form import assign_to
 from frappe.utils.jinja import validate_template
