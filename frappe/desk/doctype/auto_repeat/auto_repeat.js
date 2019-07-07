@@ -6,7 +6,7 @@ frappe.ui.form.on('Auto Repeat', {
 	setup: function(frm) {
 		frm.fields_dict['reference_doctype'].get_query = function() {
 			return {
-				query: "frappe.desk.doctype.auto_repeat.auto_repeat.auto_repeat_doctype_query"
+				query: "frappe.desk.doctype.auto_repeat.auto_repeat.get_auto_repeat_doctypes"
 			};
 		};
 
@@ -28,25 +28,19 @@ frappe.ui.form.on('Auto Repeat', {
 	},
 
 	refresh: function(frm) {
-
-		if(frm.doc.docstatus == 1) {
-
-			let label = __('View {0}', [__(frm.doc.reference_doctype)]);
-			frm.add_custom_button(__(label),
-				function() {
-					frappe.route_options = {
-						"auto_repeat": frm.doc.name,
-					};
-					frappe.set_route("List", frm.doc.reference_doctype);
-				}
-			);
+		//if document is not saved do not show schedule and document link
+		if(!frm.doc.__unsaved) {
+				let label = __('View {0}', [__(frm.doc.reference_doctype)]);
+				frm.add_custom_button(__(label),
+					function() {
+						frappe.route_options = {
+							"auto_repeat": frm.doc.name,
+						};
+						frappe.set_route("List", frm.doc.reference_doctype);
+					}
+				);
+				frappe.auto_repeat.render_schedule(frm);
 		}
-
-		frm.toggle_display('auto_repeat_schedule', !in_list(['Cancelled'], frm.doc.status));
-		if(frm.doc.start_date && !in_list(['Cancelled'], frm.doc.status)){
-			frappe.auto_repeat.render_schedule(frm);
-		}
-
 	},
 
 	template: function(frm) {

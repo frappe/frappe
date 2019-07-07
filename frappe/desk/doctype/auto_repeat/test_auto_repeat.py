@@ -51,9 +51,10 @@ class TestAutoRepeat(unittest.TestCase):
 
 		self.monthly_auto_repeat('ToDo', todo.name, start_date, end_date)
 		#test without end_date
+		todo = frappe.get_doc(dict(doctype='ToDo', description='test recurring todo without end_date', assigned_by='Administrator')).insert()
 		self.monthly_auto_repeat('ToDo', todo.name, start_date)
 
-	def monthly_auto_repeat(self, doctype, docname, start_date, end_date=""):
+	def monthly_auto_repeat(self, doctype, docname, start_date, end_date = None):
 		def get_months(start, end):
 			diff = (12 * end.year + end.month) - (12 * start.year + start.month)
 			return diff + 1
@@ -101,18 +102,14 @@ def make_auto_repeat(**args):
 	doc = frappe.get_doc({
 		'doctype': 'Auto Repeat',
 		'reference_doctype': args.reference_doctype or 'ToDo',
-		'reference_document': args.reference_document or frappe.db.get_value('ToDo', {'docstatus': 1}, 'name'),
+		'reference_document': args.reference_document or frappe.db.get_value('ToDo', 'name'),
 		'frequency': args.frequency or 'Daily',
 		'start_date': args.start_date or add_days(today(), -1),
 		'end_date': args.end_date or "",
-		'submit_on_creation': args.submit_on_creation or 0,
 		'notify_by_email': args.notify or 0,
 		'recipients': args.recipients or "",
 		'subject': args.subject or "",
 		'message': args.message or ""
 	}).insert(ignore_permissions=True)
-
-	if not args.do_not_submit:
-		doc.submit()
 
 	return doc

@@ -181,6 +181,7 @@ scheduler_events = {
 		"frappe.desk.form.document_follow.send_daily_updates",
 		"frappe.social.doctype.energy_point_settings.energy_point_settings.allocate_review_points",
 		"frappe.integrations.doctype.google_contacts.google_contacts.sync",
+		"frappe.desk.doctype.auto_repeat.auto_repeat.set_auto_repeat_as_completed"
 	],
 	"daily_long": [
 		"frappe.integrations.doctype.dropbox_settings.dropbox_settings.take_backups_daily",

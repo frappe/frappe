@@ -293,12 +293,9 @@ frappe.utils.new_auto_repeat_prompt = function(frm) {
 			args: {
 				'doctype': frm.doc.doctype,
 				'docname': frm.doc.name,
-				'submit': true,
-				'opts': {
-					'frequency': values['frequency'],
-					'start_date': values['start_date'],
-					'end_date': values['end_date']
-				}
+				'frequency': values['frequency'],
+				'start_date': values['start_date'],
+				'end_date': values['end_date']
 			},
 			callback: function (r) {
 				if (r.message) {
@@ -312,6 +309,6 @@ frappe.utils.new_auto_repeat_prompt = function(frm) {
 		});
 	},
 	__('Auto Repeat'),
-	__('Submit')
+	__('Save')
 	);
 }

@@ -533,7 +533,8 @@ class DocType(Document):
 		"""If allow_auto_repeat is set, add auto_repeat custom field."""
 		if self.allow_auto_repeat:
 			if not frappe.db.sql("SELECT `fieldname` FROM `tabCustom Field` WHERE `fieldname`='auto_repeat' and `dt`=%s",self.name):
-				df = dict(fieldname='auto_repeat', label='Auto Repeat', fieldtype='Link', options='Auto Repeat')
+				insert_after = self.fields[len(self.fields) - 1].fieldname
+				df = dict(fieldname='auto_repeat', label='Auto Repeat', fieldtype='Link', options='Auto Repeat', insert_after=insert_after, read_only=1, no_copy=1, print_hide=1)
 				create_custom_field(self.name, df)
 
 	def get_max_idx(self):
