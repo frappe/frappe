@@ -93,8 +93,9 @@ def _new_site(db_name, site, mariadb_root_username=None, mariadb_root_password=N
 @click.option('--install-app', multiple=True, help='Install app after installation')
 @click.option('--with-public-files', help='Restores the public files of the site, given path to its tar file')
 @click.option('--with-private-files', help='Restores the private files of the site, given path to its tar file')
+@click.option('--decrypt-password', help='Password for the encrypted SQL file')
 @pass_context
-def restore(context, sql_file_path, mariadb_root_username=None, mariadb_root_password=None, db_name=None, verbose=None, install_app=None, admin_password=None, force=None, with_public_files=None, with_private_files=None):
+def restore(context, sql_file_path, mariadb_root_username=None, mariadb_root_password=None, db_name=None, verbose=None, install_app=None, admin_password=None, force=None, with_public_files=None, with_private_files=None, decrypt_password=None):
 	"Restore site database from an sql file"
 	from frappe.installer import extract_sql_gzip, extract_tar_files
 	# Extract the gzip file if user has passed *.sql.gz file instead of *.sql file
@@ -105,8 +106,18 @@ def restore(context, sql_file_path, mariadb_root_username=None, mariadb_root_pas
 			print('Invalid path {0}'.format(sql_file_path[3:]))
 			sys.exit(1)
 
-	if sql_file_path.endswith('sql.gz'):
+	if sql_file_path.endswith('sql.gz') or sql_file_path.endswith('enc.gz'):
 		sql_file_path = extract_sql_gzip(os.path.abspath(sql_file_path))
+
+	if sql_file_path.endswith('.enc') and not decrypt_password:
+		print('Decrypt encrypted sql file using --decrypt-password option.')
+		sys.exit(1)
+
+	if sql_file_path.endswith('.enc') and decrypt_password:
+		output_file_name = sql_file_path.replace(".xb.enc", ".sql")
+		os.system(
+			"openssl aes-256-cbc -d -in " + sql_file_path + " -out " + output_file_name + " -k " + decrypt_password)
+		sql_file_path = output_file_name
 
 	site = get_site(context)
 	frappe.init(site=site)
@@ -114,7 +125,7 @@ def restore(context, sql_file_path, mariadb_root_username=None, mariadb_root_pas
 		mariadb_root_password=mariadb_root_password, admin_password=admin_password,
 		verbose=context.verbose, install_apps=install_app, source_sql=sql_file_path,
 		force=context.force)
-
+	os.system("rm " + sql_file_path)
 	# Extract public and/or private files to the restored site, if user has given the path
 	if with_public_files:
 		public = extract_tar_files(site, with_public_files, 'public')
@@ -293,16 +304,20 @@ def use(site, sites_path='.'):
 
 @click.command('backup')
 @click.option('--with-files', default=False, is_flag=True, help="Take backup with files")
+@click.option('--encrypt', default=False, is_flag=True, help="Encrypt dumped sql file")
 @pass_context
 def backup(context, with_files=False, backup_path_db=None, backup_path_files=None,
-	backup_path_private_files=None, quiet=False):
+	backup_path_private_files=None, quiet=False, encrypt=False):
 	"Backup"
 	from frappe.utils.backups import scheduled_backup
 	verbose = context.verbose
+	automated_backup = False
+	if len(context.sites) != 1:
+		automated_backup = True
 	for site in context.sites:
 		frappe.init(site=site)
 		frappe.connect()
-		odb = scheduled_backup(ignore_files=not with_files, backup_path_db=backup_path_db, backup_path_files=backup_path_files, backup_path_private_files=backup_path_private_files, force=True)
+		odb = scheduled_backup(ignore_files=not with_files, backup_path_db=backup_path_db, backup_path_files=backup_path_files, backup_path_private_files=backup_path_private_files, force=True, encrypt=encrypt, automated_backup=automated_backup)
 		if verbose:
 			from frappe.utils import now
 			print("database backup taken -", odb.backup_path_db, "- on", now())
@@ -615,3 +630,4 @@ commands = [
 	start_recording,
 	stop_recording,
 ]
+
