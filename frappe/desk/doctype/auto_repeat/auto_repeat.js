@@ -32,13 +32,13 @@ frappe.ui.form.on('Auto Repeat', {
 		if(!frm.doc.__unsaved) {
 			let label = __('View {0}', [__(frm.doc.reference_doctype)]);
 			frm.add_custom_button(__(label),
-					function() {
-						frappe.route_options = {
-							"auto_repeat": frm.doc.name,
-						};
-						frappe.set_route("List", frm.doc.reference_doctype);
-					}
-				);
+				function() {
+					frappe.route_options = {
+						"auto_repeat": frm.doc.name,
+					};
+					frappe.set_route("List", frm.doc.reference_doctype);
+				}
+			);
 			frappe.auto_repeat.render_schedule(frm);
 		}
 	},
