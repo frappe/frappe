@@ -35,7 +35,7 @@ before_script:
 
 
   - cd ~/frappe-bench
-  - ./env/bin/pip3 install ldap3
+  - ./env/bin/pip install ldap3
   - bench use test_site
   - bench reinstall --yes
   - bench scheduler disable
