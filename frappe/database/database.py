@@ -924,7 +924,7 @@ class Database(object):
 				conditions=conditions
 			), values)
 		else:
-			frappe.throw('No conditions provided')
+			frappe.throw(_('No conditions provided'))
 
 	def log_touched_tables(self, query, values=None):
 		if values:

@@ -564,10 +564,7 @@ def browse(context, site):
 	site = site.lower()
 
 	if site in frappe.utils.get_sites():
-		webbrowser.open('http://{site}:{port}'.format(
-			site=site,
-			port=frappe.get_conf(site).webserver_port
-		), new=2)
+		webbrowser.open(frappe.utils.get_site_url(site), new=2)
 	else:
 		click.echo("\nSite named \033[1m{}\033[0m doesn't exist\n".format(site))
 

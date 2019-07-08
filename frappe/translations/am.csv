@@ -4,12 +4,14 @@ apps/frappe/frappe/model/naming.py,Name cannot contain special characters like {
 apps/frappe/frappe/website/doctype/website_theme/website_theme.js,Enable Gradients,ቀስቀዮችን አንቃ
 DocType: DocType,Default Sort Order,ነባሪ ትዕዛዝ አደራደር
 apps/frappe/frappe/public/js/frappe/views/reports/report_view.js,Showing only Numeric fields from Report,ከሪፖርት ብቻ የቁጥር መስኮችን ብቻ በማሳየት ላይ
+apps/frappe/frappe/public/js/frappe/ui/keyboard.js,Press Alt Key to trigger additional shortcuts in Menu and Sidebar,ምናሌ እና የጎን አሞሌ ውስጥ ተጨማሪ አቋራጮችን ለማስነሳት Alt ቁልፍን ይጫኑ
 DocType: Workflow State,folder-open,አቃፊ-ክፍት
 DocType: Customize Form,Is Table,ሰንጠረዥ ነው
 apps/frappe/frappe/utils/csvutils.py,Unable to open attached file. Did you export it as CSV?,የተያያዘውን ፋይል መክፈት አልተቻለም. እንደ CSV ወደውከው ነው?
 DocType: DocField,No Copy,ምንም ቅጂ የለም
 DocType: Custom Field,Default Value,ነባሪ እሴት
 apps/frappe/frappe/email/doctype/email_account/email_account.py,Append To is mandatory for incoming mails,ለገቢ መልእክቶች ተገዢ መሆን ግዴታ ነው
+apps/frappe/frappe/integrations/doctype/google_contacts/google_contacts.js,Sync Contacts,እውቂያዎችን አመሳስል
 DocType: Data Migration Mapping Detail,Data Migration Mapping Detail,የውሂብ ጎዳና ማዛመጃ ዝርዝር
 apps/frappe/frappe/public/js/frappe/form/templates/form_sidebar.html,Unfollow,አለመከተል
 apps/frappe/frappe/public/js/frappe/form/print.js,"PDF printing via ""Raw Print"" is not yet supported. Please remove the printer mapping in Printer Settings and try again.",በ &quot;ቀጥታ እትም&quot; በኩል የፒ.ዲ. ማተም ገና አይደገፍም. እባክዎ በአታሚ ቅንብሮች ውስጥ የአታሚውን ማዘጋጃ ያስወግዱ እና እንደገና ይሞክሩ.
@@ -68,8 +70,10 @@ apps/frappe/frappe/utils/data.py,{0} and {1},{0} እና {1}
 apps/frappe/frappe/public/js/frappe/views/kanban/kanban_view.js,There was an error saving filters,ማጣሪያዎችን በማስቀመጥ ላይ ስህተት ነበር
 apps/frappe/frappe/public/js/frappe/ui/messages.js,Enter your password,የይለፍ ቃልዎን ያስገቡ
 apps/frappe/frappe/core/doctype/file/file.py,Cannot delete Home and Attachments folders,የቤት እና የአባሪ ሰነዶች አቃፊን መሰረዝ አልተቻለም
+DocType: Email Account,Enable Automatic Linking in Documents,በሰነዶች ውስጥ በራስ-ሰር ማገናኘት ያንቁ
 DocType: Contact Us Settings,Settings for Contact Us Page,እኛን ለማነጋገር ገጽ ቅንጅቶች
 DocType: Social Login Key,Social Login Provider,የማኅበራዊ ድጋፍ አቅራቢ
+DocType: Email Account,"For more information, <a class=""text-muted"" href=""https://erpnext.com/docs/user/manual/en/setting-up/email/linking-emails-to-document"">click here</a>.","ለተጨማሪ መረጃ, <a class=""text-muted"" href=""https://erpnext.com/docs/user/manual/en/setting-up/email/linking-emails-to-document"">እዚህ ይጫኑ</a> ."
 DocType: Transaction Log,Previous Hash,ቀዳሚ እሽግ
 DocType: Notification,Value Changed,እሴት ተለውጧል
 DocType: Report,Report Type,የሪፖርት ዓይነት
@@ -161,7 +165,6 @@ DocType: Energy Point Rule,Energy Point Rule,የኃይል ገደብ መመሪያ
 apps/frappe/frappe/integrations/doctype/social_login_key/social_login_key.py,Please enter Client ID before social login is enabled,ማህበራዊ መግቢያ ከመንቃቱ በፊት እባክዎ የደንበኛ መታወቂያ ያስገቡ
 DocType: Communication,Has  Attachment,ዓባሪ አለው
 DocType: User,Email Signature,የኢሜል ፊርማ
-apps/frappe/frappe/public/js/frappe/utils/pretty_date.js,&gt; {0} year(s) ago,&gt; {0} ዓመቱ (ዓመታት) በፊት
 ,Addresses And Contacts,አድራሻዎች እና አድራሻዎች
 apps/frappe/frappe/public/js/frappe/views/kanban/kanban_view.js,This Kanban Board will be private,ይህ የካንካን ቦርድ የግል ይሆናል
 DocType: Data Migration Run,Current Mapping,የአሁኑ ካርታ
@@ -209,6 +212,7 @@ apps/frappe/frappe/email/doctype/email_account/email_account.js,"You are selecti
 				of Communication (emails).","የማመሳሰል አማራጭን እንደ ሁሉም እየመረጡ ነው, ሁሉንም \ ያነበውን እንዲሁም ያልተነበበ መልዕክት ከአገልጋይ ይቀይራል. ይህ የኮሙኒኬሽን (ኢሜል) ብዜት ሊፈጥር ይችላል."
 apps/frappe/frappe/core/page/dashboard/dashboard.js,Last synced {0},ለመጨረሻ ጊዜ የተመሳሰለው {0}
 apps/frappe/frappe/core/doctype/data_import/importer.py,Cannot change header content,የአርዕስት ይዘት መለወጥ አይቻልም
+apps/frappe/frappe/public/js/frappe/ui/toolbar/search.js,<p>No results found for '</p>,<p> ምንም ውጤቶች ለ &#39; </p>
 apps/frappe/frappe/model/base_document.py,Not allowed to change {0} after submission,ካስረከቡ በኋላ {0} እንዲቀይሩ አይፈቀድም
 apps/frappe/frappe/public/js/frappe/desk.js,"The application has been updated to a new version, please refresh this page","መተግበሪያው ወደ አዲስ ስሪት ተዘምኗል, እባክዎ ይህንን ገጽ ያድሱ"
 DocType: User,User Image,የተጠቃሚ ምስል
@@ -320,6 +324,7 @@ apps/frappe/frappe/core/doctype/communication/communication.js,Mark as {0},እ�
 apps/frappe/frappe/public/js/frappe/chat.js,Discard,አስወግድ
 DocType: Website Settings,Select an image of approx width 150px with a transparent background for best results.,ለተሻሉ ውጤቶች የበስተጀርባ ስፋት 150 ፒክሰል የሆነ ምስላዊ ምስል ይምረጡ.
 apps/frappe/frappe/core/doctype/error_snapshot/error_snapshot_list.js,Relapsed,ዘጋግቷል
+apps/frappe/frappe/public/js/frappe/form/controls/multiselect_list.js,{0} values selected,{0} ዋጋዎች ተመርጠዋል
 DocType: Blog Post,Email Sent,ኢሜይል ተልኳል
 DocType: Communication,Read by Recipient On,በ ተቀባይ ላይ ያንብቡ
 DocType: User,Allow user to login only after this hour (0-24),ከዚህ ሰዓት በኋላ ከዚህ በኋላ ብቻ እንድሚጠቀም ይፍቀዱ (0-24)
@@ -341,7 +346,7 @@ apps/frappe/frappe/core/doctype/doctype/doctype.py,{0}: Cannot set Amend without
 DocType: File,old_parent,አዛውንት_ወላጅ
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js,Module to Export,ወደ ውጪ የሚልከው ሞዱል
 DocType: DocType,Fields,መስኮች
-apps/frappe/frappe/public/js/frappe/form/print.js,You are not allowed to print this document,ይህን ሰነድ ለማተም አልተፈቀደልዎትም
+apps/frappe/frappe/public/js/legacy/form.js,You are not allowed to print this document,ይህን ሰነድ ለማተም አልተፈቀደልዎትም
 apps/frappe/frappe/public/js/frappe/model/model.js,Parent,ወላጅ
 apps/frappe/frappe/app.py,"Your session has expired, please login again to continue.","ክፍለ-ጊዜዎ ጊዜው አልፎበታል, ለመቀጠል እባክዎ በድጋሚ ይግቡ."
 DocType: Assignment Rule,Priority,ቅድሚያ
@@ -368,10 +373,12 @@ apps/frappe/frappe/core/doctype/user/user.js,Reset OTP Secret,የ OTP ሚስጥ�
 DocType: DocType,UPPER CASE,ዋናው ጉዳይ
 apps/frappe/frappe/contacts/doctype/contact/contact.py,Please set Email Address,እባክዎ የኢሜይል አድራሻውን ያዘጋጁ
 DocType: Communication,Marked As Spam,እንደ አይፈለጌ መልእክት ምልክት ተደርጎበታል
+DocType: Google Contacts,Email Address whose Google Contacts are to be synced.,የ Google እውቂያዎችዎ እንዲመሳሰሉ የኢሜይል አድራሻ.
 apps/frappe/frappe/email/doctype/email_group/email_group.js,Import Subscribers,ተመዝጋቢዎችን አስመጣ
 apps/frappe/frappe/public/js/frappe/list/list_filter.js,Save Filter,ማጣሪያን አስቀምጥ
 DocType: Address,Preferred Shipping Address,የተመረጠው መላኪያ አድራሻ
 DocType: GCalendar Account,The name that will appear in Google Calendar,በ Google ቀን መቁጠሪያ ውስጥ የሚታይ
+apps/frappe/frappe/integrations/doctype/google_contacts/google_contacts.py,Click on {0} to generate Refresh Token.,አድስ ቶክን ለማመንጨት {0} ላይ ጠቅ ያድርጉ.
 DocType: Email Account,Disable SMTP server authentication,የ SMTP አገልጋይ ማረጋገጫ አሰናክል
 DocType: Email Account,Total number of emails to sync in initial sync process ,በመጀመሪያው የማመሳሰል ሂደት ውስጥ ለማመሳሰል ጠቅላላ የኢሜይሎች ቁጥር
 DocType: System Settings,Enable Password Policy,የይለፍ ቃል መመሪያን ያንቁ
@@ -388,6 +395,7 @@ DocType: Web Page,Insert Code,ኮድ አስገባ
 apps/frappe/frappe/public/js/frappe/ui/filters/filter.js,Not In,አይደለም
 DocType: Auto Repeat,Start Date,የመጀመሪያ ቀን
 apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,Set Chart,ገበታ አዘጋጅ
+DocType: Website Theme,Theme JSON,ገጽታ JSON
 apps/frappe/frappe/www/list.py,My Account,አካውንቴ
 DocType: DocType,Is Published Field,የታተመ መስክ ነው
 DocType: DocField,Set non-standard precision for a Float or Currency field,ለሐወታ ወይም ለምርጫ መስክ መደበኛ ያልሆነ ደረጃን ያዘጋጁ
@@ -398,7 +406,6 @@ apps/frappe/frappe/contacts/report/addresses_and_contacts/addresses_and_contacts
 DocType: Email Account,ProTip: Add <code>Reference: {{ reference_doctype }} {{ reference_name }}</code> to send document reference,ProTip: <code>Reference: {{ reference_doctype }} {{ reference_name }}</code> ማከል <code>Reference: {{ reference_doctype }} {{ reference_name }}</code> የሰነድ ማጣቀሻ ለመላክ
 DocType: LDAP Settings,LDAP First Name Field,LDAP የመጀመሪያ ስም መስክ
 apps/frappe/frappe/email/doctype/email_account/email_account_list.js,Default Sending and Inbox,ነባሪ መላክ እና የገቢ መልዕክት ሳጥን
-apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Setup &gt; Customize Form,ማዋቀር&gt; ፎርሙን ያበጁ
 apps/frappe/frappe/core/doctype/data_export/exporter.py,"For updating, you can update only selective columns.","ለማዘመን, የተመረጡ ዓምዶችን ብቻ ማዘመን ይችላሉ."
 apps/frappe/frappe/core/doctype/doctype/doctype.py,Default for 'Check' type of field must be either '0' or '1',ለ &#39;Check&#39; የሚባሉት መስመሮች በ &lt;0 &#39;ወይም&#39; 1 &#39;መሆን አለባቸው
 apps/frappe/frappe/public/js/frappe/form/templates/set_sharing.html,Share this document with,ይህን ሰነድ አጋራ በ
@@ -440,16 +447,19 @@ apps/frappe/frappe/model/document.py,One of,አንድ
 DocType: Domain Settings,Domains HTML,ጎራዎች ኤች ቲ ኤም ኤል
 DocType: Blog Settings,Blog Settings,የብሎግ ቅንብሮች
 apps/frappe/frappe/core/doctype/doctype/doctype.py,"DocType's name should start with a letter and it can only consist of letters, numbers, spaces and underscores","የዶክመንቱ ስም በደብዳቤ መጀመር አለበት እና ቁጥሮች, ቁጥሮች, ክፍተቶች እና ሰረዘዘብጦች ብቻ ሊኖረው ይችላል"
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Setup &gt; User Permissions,ማዋቀር&gt; የተጠቃሚ ፈቃዶች
 DocType: Communication,Integrations can use this field to set email delivery status,ውህደቶች የኢሜል ማቅረቢያ ሁኔታን ለማዘጋጀት በዚህ መስክ ሊጠቀሙበት ይችላሉ
 apps/frappe/frappe/config/integrations.py,Stripe payment gateway settings,የጭብጥ ክፍያ ጉብኝት ቅንብሮች
 DocType: Print Settings,Fonts,ቅርጸ ቁምፊዎች
 DocType: Notification,Channel,ሰርጥ
 DocType: Communication,Opened,ተከፍቷል
 DocType: Workflow Transition,Conditions,ሁኔታዎች
+apps/frappe/frappe/config/website.py,A user who posts blogs.,ጦማሮችን የሚለጥፍ ተጠቃሚ.
 apps/frappe/frappe/www/login.html,Don't have an account? Sign up,መለያ የለህም? ክፈት
 apps/frappe/frappe/utils/file_manager.py,Added {0},ታክሏል {0}
 DocType: Newsletter,Create and Send Newsletters,ጋዜጣዎችን ይፍጠሩ እና ይላኩ
 DocType: Website Settings,Footer Items,የግርጌ ጽሁፎች
+apps/frappe/frappe/email/smtp.py,Please setup default Email Account from Setup &gt; Email &gt; Email Account,እባክዎ ከቅንብር&gt; ኢሜይል&gt; ኢሜይል መለያ ነባሪ የኢሜይል መለያ ያቀናብሩ
 DocType: Website Slideshow Item,Website Slideshow Item,የድርጣቢያ የስላይድ ትዕይንት ንጥል
 apps/frappe/frappe/config/integrations.py,Register OAuth Client App,የ OAuth ደንበኛ መተግበሪያን ያስመዝግቡት
 DocType: Error Snapshot,Frames,ክፈፎች
@@ -490,7 +500,6 @@ apps/frappe/frappe/core/page/permission_manager/permission_manager.js,"Level 0 i
 								higher levels for field level permissions.","ደረጃ 0 ለሰነዱ ደረጃ ፍቃዶች, የመስክ የፍቃድ ፍቃዶች ከፍ ያለ ደረጃዎች ነው."
 DocType: Address,City/Town,ከተማ / ከተማ
 DocType: Email Account,GMail,GMail
-apps/frappe/frappe/website/doctype/website_theme/website_theme.js,"This will reset your current theme, are you sure you want to continue?","ይህ የአሁኑን ገጽታዎን ዳግም ያስጀምረዋል, እርግጠኛ ነዎት መቀጠል ይፈልጋሉ?"
 apps/frappe/frappe/public/js/frappe/form/save.js,Mandatory fields required in {0},የግማሽ መስኮች በ {0} ውስጥ ያስፈልጋል
 apps/frappe/frappe/email/doctype/email_account/email_account.py,Error while connecting to email account {0},ወደ ኢሜይል መለያ እየተገናኘ ሳለ ስህተት ተፈጥሯል {0}
 apps/frappe/frappe/templates/emails/recurring_document_failed.html,An error occured while creating recurring,ተደጋጋሚነትን በመፍጠር ላይ ስህተት አጋጥሟል
@@ -526,7 +535,7 @@ DocType: Event,Event Category,የክስተት ምድብ
 apps/frappe/frappe/public/js/frappe/views/kanban/kanban_view.js,Columns based on,በ ላይ የተመረኮዘ ዓምዶች
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder_layout.html,Edit Heading,ርእስ ማስተካከል
 DocType: Communication,Received,ደርሷል
-apps/frappe/frappe/www/desk.py,You are not permitted to access this page.,ይህን ገጽ ለመድረስ አልተፈቀደልዎትም.
+apps/frappe/frappe/public/js/frappe/web_form/webform_script.js,You are not permitted to access this page.,ይህን ገጽ ለመድረስ አልተፈቀደልዎትም.
 DocType: User Social Login,User Social Login,የተጠቃሚ ማህበራዊ መግቢያ
 apps/frappe/frappe/core/doctype/report/report.js,Write a Python file in the same folder where this is saved and return column and result.,በተመሳሳዩ ተመሳሳይ አቃፊ ውስጥ የ Python ፋይል ፃፍ እና ዓምድ እና ውጤትን በመመለስ.
 DocType: Contact,Purchase Manager,የግዢ አደራጅ
@@ -579,7 +588,6 @@ apps/frappe/frappe/public/js/frappe/list/list_sidebar.html,Configure Charts,ገ�
 apps/frappe/frappe/utils/data.py,Operator must be one of {0},ኦፕሬተር ከ {0} ውስጥ መሆን አለበት.
 apps/frappe/frappe/core/doctype/doctype/doctype.py,If Owner,ባለቤት
 DocType: Data Migration Run,Trigger Name,የጉዞ ስም
-apps/frappe/frappe/config/website.py,Write titles and introductions to your blog.,ወደ ጦማርዎ ርዕሶችን እና መግቢያዎችን ይጻፉ.
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js,Remove Field,መስክ አስወግድ
 apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,Collapse All,ሁሉንም ሰብስብ
 apps/frappe/frappe/website/doctype/website_theme/website_theme.js,Background Color,ጀርባ ቀለም
@@ -629,6 +637,7 @@ DocType: Dashboard Chart,Bar,ባር
 DocType: SMS Settings,Enter url parameter for message,ለመልዕክት የዩ አር ኤል ግቤት ያስገቡ
 apps/frappe/frappe/public/js/frappe/form/print.js,New Custom Print Format,አዲስ ብጁ ማተም ቅርጸት
 apps/frappe/frappe/desk/form/save.py,{0} {1} already exists,{0} {1} አስቀድሞም ይገኛል
+DocType: Workflow Document State,Is Optional State,አማራጭ ሁኔታ ነው
 DocType: Address,Purchase User,የግዢ ተጠቃሚ
 DocType: Data Migration Run,Insert,አስገባ
 DocType: Web Form,Route to Success Link,ለስኬት አገናኝ መንገድ
@@ -636,13 +645,14 @@ apps/frappe/frappe/core/doctype/user/user.py,Username {0} already exists,የተ�
 DocType: File,Is Home Folder,የቤት አቃፊ ነው
 apps/frappe/frappe/core/doctype/data_export/exporter.py,Type:,ተይብ
 DocType: Post,Is Pinned,ተሰክቷል
-apps/frappe/frappe/public/js/frappe/form/form.js,No permission to '{0}' {1},ወደ «{0}» ፍቃድ አይሰጥም {1}
+apps/frappe/frappe/public/js/legacy/form.js,No permission to '{0}' {1},ወደ «{0}» ፍቃድ አይሰጥም {1}
 DocType: Patch Log,Patch Log,የፓኬት ማስታወሻ
 DocType: Print Format,Print Format Builder,የህትመት ቅርጸት ገንቢ
 DocType: System Settings,"If enabled, all users can login from any IP Address using Two Factor Auth. This can also be set only for specific user(s) in User Page",ከነቃ ሁሉም ተጠቃሚዎች የሁለት ዋስትናን ማረጋገጫ በመጠቀም በማንኛውም የማንኛውም IP አድራሻ መግባት ይችላሉ. ይሄ በተጠቃሚ ገጽ ውስጥ ለተወሰኑ ለተጠቃሚዎች (ዎች) ሊዋቀር ይችላል
 apps/frappe/frappe/utils/data.py,only.,ብቻ.
 apps/frappe/frappe/email/doctype/notification/notification.py,The Condition '{0}' is invalid,የ &quot;{0}&quot; ሁኔታ ልክ አይደለም
 DocType: Auto Email Report,Day of Week,የሳምንቱ ቀን
+apps/frappe/frappe/integrations/doctype/google_contacts/google_contacts.py,Enable Google API in Google Settings.,Google ኤፒአይ በ Google ቅንብሮች ውስጥ አንቃ.
 DocType: DocField,Text Editor,የጽሑፍ አርታኢ
 apps/frappe/frappe/public/js/frappe/views/file/file_view.js,Cut,ቁረጥ
 apps/frappe/frappe/public/js/frappe/ui/toolbar/navbar.html,Search or type a command,ትእዛዝ ይፈልጉ ወይም ይተይቡ
@@ -650,6 +660,7 @@ apps/frappe/frappe/public/js/frappe/form/templates/print_layout.html,Settings...
 apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py,Number of DB backups cannot be less than 1,የ DB መጠባበቂያዎች ቁጥር ከ 1 ያነሰ መሆን አይችልም
 DocType: Workflow State,ban-circle,አግድ-ክበብ
 DocType: Data Export,Excel,Excel
+DocType: Web Page,"Header, Breadcrumbs and Meta Tags","ራስጌ, Breadcrumbs እና Meta መለያዎች"
 apps/frappe/frappe/public/js/frappe/request.js,Support Email Address Not Specified,የድጋፍ ኢሜይል አድራሻ አልተገለጸም
 DocType: Comment,Published,ታትሟል
 DocType: Website Slideshow,"Note: For best results,  images must be of the same size and width must be greater than height.","ማሳሰቢያ: ለምርጥ ውጤቶች, ምስሎቹ ተመሳሳይ መጠን እና ስፋት ከ ቁመት በላይ መሆን አለባቸው."
@@ -740,6 +751,7 @@ DocType: System Settings,Scheduler Last Event,መርሐግብር የመጨረሻ
 apps/frappe/frappe/config/users_and_permissions.py,Report of all document shares,የሁሉም ዶክሜንት ማጋራቶች ሪፖርት
 DocType: Website Sidebar Item,Website Sidebar Item,የድርጣቢያ የጎን አሞሌ ንጥል
 apps/frappe/frappe/desk/doctype/todo/todo_list.js,To Do,ለመስራት
+DocType: Google Settings,Google Settings,የ Google ቅንብሮች
 apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js,"Select your Country, Time Zone and Currency","የእርስዎን አገር, የሰዓት ሰቅ እና ምንዛሬ ይምረጡ"
 DocType: SMS Settings,"Enter static url parameters here (Eg. sender=ERPNext, username=ERPNext, password=1234 etc.)","የተጣራ ዩአርኤል መመጠኛዎችን እዚህ ያስገቡ (ለምሳሌ, ላኪ = ERPNext, የተጠቃሚ ስም = ERPNext, ይለፍ ቃል = 1234 ወዘተ)"
 apps/frappe/frappe/public/js/frappe/views/inbox/inbox_view.js,No Email Account,ምንም የኢሜይል መለያ የለም
@@ -792,6 +804,7 @@ apps/frappe/frappe/model/base_document.py,"{0} {1} cannot be ""{2}"". It should 
 DocType: OAuth Bearer Token,OAuth Bearer Token,OAuth ቤዢን ተለዋጭ ስም
 ,Setup Wizard,የማዋቀር አዋቂ
 apps/frappe/frappe/public/js/frappe/views/reports/report_view.js,Toggle Chart,ገበታን ቀያይር
+apps/frappe/frappe/integrations/doctype/google_contacts/google_contacts.js,Syncing,ማመሳሰል
 DocType: Data Migration Run,Current Mapping Action,የአሁኑ የካርታ ስራ እርምጃ
 DocType: Email Account,Initial Sync Count,የመጀመሪያው ማመሳሰል ቆጠራ
 apps/frappe/frappe/config/website.py,Settings for Contact Us Page.,እኛን ለማነጋገር ገጽ ቅንጅቶች.
@@ -831,6 +844,7 @@ apps/frappe/frappe/website/doctype/website_settings/website_settings.py,Invalid 
 DocType: Print Format,Print Format Type,የህትመት ዓይነት
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js,No Permissions set for this criteria.,ለዚህ መስፈርት ምንም ፍቃዶች አልተሰጡም.
 apps/frappe/frappe/public/js/frappe/views/treeview.js,Expand All,ሁሉንም ዘርጋ
+apps/frappe/frappe/contacts/doctype/address/address.py,No default Address Template found. Please create a new one from Setup &gt; Printing and Branding &gt; Address Template.,ምንም ነባሪ የአድራሻ አብነት አልተገኘም. እባክዎ ከአዋፕ&gt; ማተም እና ብራንድ&gt; የአድራሻ አብነት አዲስ አንድ ያድርጉ.
 DocType: Tag Doc Category,Tag Doc Category,የመታወቂያ ሰነድ ምድብ
 DocType: Data Import,Generated File,የተፈጠረ ፋይል
 apps/frappe/frappe/desk/doctype/note/note_list.js,Notes,ማስታወሻዎች
@@ -838,7 +852,7 @@ apps/frappe/frappe/public/js/frappe/ui/toolbar/user_progress_dialog.js,Mark as D
 apps/frappe/frappe/core/doctype/doctype/doctype.py,Timeline field must be a Link or Dynamic Link,የጊዜ መስመር መስክ አገናኝ ወይም ተለዋዋጭ አገናኝ መሆን አለበት
 DocType: Email Account,Notifications and bulk mails will be sent from this outgoing server.,ማሳወቂያዎች እና የጅምላ መልዕክቶች ከዚህ ወጪ አገልጋይ ይላካሉ.
 apps/frappe/frappe/utils/password_strength.py,This is a top-100 common password.,ይህ እጅግ በጣም-100 የተለመደ ይለፍ ቃል ነው.
-apps/frappe/frappe/public/js/frappe/form/form.js,Permanently Submit {0}?,በቋሚነት {0} ይላኩ?
+apps/frappe/frappe/public/js/legacy/form.js,Permanently Submit {0}?,በቋሚነት {0} ይላኩ?
 apps/frappe/frappe/model/rename_doc.py,"{0} {1} does not exist, select a new target to merge","{0} {1} አይገኝም, ለማዋሃድ አዲስ ዒላማ ይምረጡ"
 DocType: Energy Point Rule,Multiplier Field,የብዜት መስክ
 DocType: Workflow,Workflow State Field,የስራ ፍሰት ሁኔታ መስክ
@@ -878,6 +892,7 @@ apps/frappe/frappe/desk/doctype/auto_repeat/auto_repeat.py,Add custom field Auto
 apps/frappe/frappe/social/doctype/energy_point_log/energy_point_log.py,{0} appreciated your work on {1} with {2} points,{0} ስራዎን በ {1} ከ {2} ነጥቦች ጋር በአድናቆትታል
 DocType: Auto Email Report,Zero means send records updated at anytime,ዜሮ ማለት በማንኛውም ሰዓት የተዘመኑ ሰነዶችን ይላኩ
 apps/frappe/frappe/model/document.py,Value cannot be changed for {0},እሴት ለ {0} ሊቀየር አይችልም.
+apps/frappe/frappe/config/integrations.py,Google API Settings.,የ Google ኤፒአይ ቅንብሮች.
 DocType: System Settings,Force User to Reset Password,የይለፍ ቃል ዳግም ለማስጀመር ተጠቃሚ አስገድድ
 apps/frappe/frappe/core/doctype/report/report.js,Report Builder reports are managed directly by the report builder. Nothing to do.,የሪፖርትን ሪፖርቶች በቀጥታ በሪፖርቱ ገንቢ ነው የሚተዳደረው. ምንም የማደርገው የለም.
 apps/frappe/frappe/public/js/frappe/ui/filters/filters.js,Edit Filter,ማጣሪያን ያርትዑ
@@ -931,7 +946,7 @@ apps/frappe/frappe/templates/emails/recurring_document_failed.html,for the,ለ
 DocType: S3 Backup Settings,eu-north-1,ኢ-ሰሜን-1
 apps/frappe/frappe/core/doctype/doctype/doctype.py,"{0}: Only one rule allowed with the same Role, Level and {1}","{0}: በተመሳሳዩ ሚና, ደረጃ እና {1} ውስጥ አንድ ህግ ብቻ ነው የተፈቀደው."
 apps/frappe/frappe/website/doctype/web_form/web_form.py,You are not allowed to update this Web Form Document,ይህን የድር ቅጽ ሰነድ ለማዘመን አይችሉም
-apps/frappe/frappe/public/js/frappe/form/form.js,Maximum Attachment Limit for this record reached.,የዚህ መዝገብ ከፍተኛው ገደብ ገደብ ላይ ተደርሷል.
+apps/frappe/frappe/public/js/legacy/form.js,Maximum Attachment Limit for this record reached.,የዚህ መዝገብ ከፍተኛው ገደብ ገደብ ላይ ተደርሷል.
 apps/frappe/frappe/core/doctype/communication/communication.py,Please make sure the Reference Communication Docs are not circularly linked.,እባክዎ የማጣቀሻ ግንኙነቶች ሰነዶች አማካይነት አልተገናኙም.
 DocType: DocField,Allow in Quick Entry,በፈጣን መግቢያ ውስጥ ፍቀድ
 DocType: Error Snapshot,Locals,የአካባቢዎች
@@ -962,7 +977,6 @@ apps/frappe/frappe/website/doctype/website_theme/website_theme.js,Default theme 
 apps/frappe/frappe/core/doctype/data_export/exporter.py,There is no data to be exported,ወደ ውጪ መላክ ምንም ውሂብ የለም
 DocType: Error Snapshot,Exception Type,የተለየ አይነት
 apps/frappe/frappe/core/doctype/user/user.py,OTP secret can only be reset by the Administrator.,OTP ሚስጥር በአስተዳዳሪው ብቻ ነው ሊጀምር የሚችለው.
-DocType: Web Form Field,Page Break,ገጽ ዕረፍት
 DocType: Website Script,Website Script,የድር ጣቢያ ስክሪፕት
 DocType: Integration Request,Subscription Notification,የደንበኝነት ምዝገባ ማሳወቂያ
 DocType: DocType,Quick Entry,ፈጣን መግቢያ
@@ -979,6 +993,7 @@ DocType: Notification,Set Property After Alert,ከማንቂያ በኋላ ንብ�
 apps/frappe/frappe/__init__.py,Thank you,አመሰግናለሁ
 apps/frappe/frappe/config/integrations.py,Slack Webhooks for internal integration,ለውስጣዊ ውህደት የተራገፉ የድር ማንበቦች
 apps/frappe/frappe/config/settings.py,Import Data,ውሂብ አስመጣ
+DocType: Translation,Contributed Translation Doctype Name,የተበረከተ የትርጉም ሥራ ስም
 DocType: Social Login Key,Office 365,Office 365
 apps/frappe/frappe/desk/report/todo/todo.py,ID,መታወቂያ
 DocType: Review Level,Review Level,የክለሳ ደረጃ
@@ -997,7 +1012,6 @@ apps/frappe/frappe/utils/password.py,Password cannot be more than 100 characters
 apps/frappe/frappe/social/doctype/energy_point_settings/energy_point_settings.js,Successfully Done,በተሳካ ሁኔታ ተከናውኗል
 apps/frappe/frappe/core/page/dashboard/dashboard.js,{0} List,{0} ዝርዝር
 apps/frappe/frappe/public/js/frappe/form/sidebar/review.js,Appreciate,አድናቆት
-apps/frappe/frappe/public/js/frappe/form/toolbar.js,New {0} (Ctrl+B),አዲስ {0} (Ctrl + B)
 DocType: Contact,Is Primary Contact,ዋና እውቅተኛ ነው
 DocType: Print Format,Raw Commands,ጥሬ እቃዎች
 apps/frappe/frappe/config/settings.py,Stylesheets for Print Formats,የፎክስ አቀማመጦች ለህትመት ቅርጸቶች
@@ -1038,6 +1052,7 @@ apps/frappe/frappe/config/core.py,Errors in Background Events,በበስተጀር
 apps/frappe/frappe/public/js/frappe/ui/toolbar/search_utils.js,Find {0} in {1},{0} በ {1} ውስጥ ያግኙ
 DocType: Email Account,Use SSL,ኤስኤስኤል ተጠቀም
 DocType: DocField,In Standard Filter,በመደበኛ ማጣሪያ ውስጥ
+apps/frappe/frappe/integrations/doctype/google_contacts/google_contacts.py,No Google Contacts present to sync.,ምንም የ Google እውቂያዎች ለማመሳሰል አይገኙም.
 DocType: Data Migration Run,Total Pages,ጠቅላላ ገጾች
 apps/frappe/frappe/core/doctype/doctype/doctype.py,{0}: Field '{1}' cannot be set as Unique as it has non-unique values,{0}: መስክ &lt;{1}&gt; ልዩ ያልሆኑ እሴቶች አሉት እንደ ልዩ ማድረግ አይቻልም
 DocType: Note,"If enabled, users will be notified every time they login. If not enabled, users will only be notified once.",ከነቃ ተጠቃሚዎች በመለያ በሚገቡበት ጊዜ ሁሉ እንዲያውቁ ይደረጋል. ካልነቁ ተጠቃሚዎች አንድ ጊዜ ብቻ ማሳወቂያ ይደርሳቸዋል.
@@ -1058,7 +1073,7 @@ DocType: Assignment Rule,Automation,አውቶማቲክ
 apps/frappe/frappe/public/js/frappe/views/file/file_view.js,Unzipping files...,ፋይሎችን በመገልበጥ ላይ ...
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js,Search for '{0}',ስለ «{0}» ይፈልጉ
 apps/frappe/frappe/public/js/frappe/views/translation_manager.js,Something went wrong,የሆነ ስህተት ተከስቷል
-apps/frappe/frappe/public/js/frappe/form/form.js,Please save before attaching.,እባክዎ ከማያያዝዎ በፊት ያስቀምጡ.
+apps/frappe/frappe/public/js/legacy/form.js,Please save before attaching.,እባክዎ ከማያያዝዎ በፊት ያስቀምጡ.
 DocType: Version,Table HTML,ሰንጠረዥ ኤች.ቲ.
 apps/frappe/frappe/public/js/frappe/ui/toolbar/search_utils.js,hub,hub
 DocType: Page,Standard,መደበኛ
@@ -1136,12 +1151,13 @@ apps/frappe/frappe/public/js/frappe/form/link_selector.js,No Results,ምንም �
 apps/frappe/frappe/core/doctype/user_permission/user_permission_list.js,{0} records deleted,{0} መዝገቦች ተሰርዘዋል
 apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py,Something went wrong while generating dropbox access token. Please check error log for more details.,የ dropbox መዳረሻ ማስመሰያ በማመንጨት ላይ የሆነ ስህተት ተከስቷል. እባክዎ ለተጨማሪ ዝርዝሮች ስህተትን ይመልከቱ.
 apps/frappe/frappe/public/js/frappe/ui/filters/filter.js,Descendants Of,የዝርያዎች
-apps/frappe/frappe/contacts/doctype/address/address.py,No default Address Template found. Please create a new one from Setup &gt; Printing and Branding &gt; Address Template.,ምንም ነባሪ የአድራሻ አብነት አልተገኘም. እባክዎ ከአዋፕ&gt; ማተም እና ብራንድ&gt; የአድራሻ አብነት አዲስ አንድ ያድርጉ.
+apps/frappe/frappe/integrations/doctype/google_contacts/google_contacts.py,Google Contacts has been configured.,የ Google እውቂያዎች ተዋቅረዋል.
 apps/frappe/frappe/public/js/frappe/form/layout.js,Hide details,ዝርዝሮችን ደብቅ
 apps/frappe/frappe/website/doctype/website_theme/website_theme.js,Font Styles,ቅርጸ ቁምፊዎች
 apps/frappe/frappe/limits.py,Your subscription will expire on {0}.,የደንበኝነት ምዝገባዎ በ {0} ላይ ጊዜው ያልፍበታል.
 apps/frappe/frappe/email/doctype/email_account/email_account.py,Authentication failed while receiving emails from Email Account {0}. Message from server: {1},ከኢሜይል መለያ {0} ኢሜይሎች ሲደርሱ ማረጋገጥ አልተሳካም. ከአገልጋዩ መልዕክት: {1}
 apps/frappe/frappe/social/doctype/energy_point_log/energy_point_log.py,Stats based on last week's performance (from {0} to {1}),ባለፈው ሳምንት አፈጻጸም (ከ {0} እስከ {1}) ላይ የተመሠረቱ ስታቲስቲክስ
+apps/frappe/frappe/email/doctype/email_account/email_account.py,Automatic Linking can be activated only if Incoming is enabled.,በራስ ሰር ማገናኘት ገቢን የነቃ ከሆነ ብቻ ገቢር ማድረግ ይቻላል.
 DocType: Website Settings,Title Prefix,የርዕስ ቅድመ ቅጥያ
 apps/frappe/frappe/www/qrcode.html,Authentication Apps you can use are: ,የማረጋገጫ መተግበሪያዎች እነዚህን መጠቀም ይችላሉ:
 DocType: Bulk Update,Max 500 records at a time,በአንድ ጊዜ ከፍተኛ 500 ሪኮርድ
@@ -1174,7 +1190,7 @@ DocType: Auto Email Report,Report Filters,ማጣሪያዎችን ሪፖርት አ
 apps/frappe/frappe/core/doctype/data_import/data_import.js,Select Columns,አምዶች ይምረጡ
 DocType: Event,Participants,ተሳታፊዎች
 DocType: Auto Repeat,Amended From,የተሻሻለው ከ
-apps/frappe/frappe/website/doctype/web_form/templates/web_form.html,Your information has been submitted,የእርስዎ መረጃ ገቢ ተደርጓል
+apps/frappe/frappe/public/js/frappe/web_form/web_form.js,Your information has been submitted,የእርስዎ መረጃ ገቢ ተደርጓል
 DocType: Help Category,Help Category,የእገዛ ምድብ
 apps/frappe/frappe/public/js/frappe/ui/filters/filter.js,1 month,1 ወር
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder_start.html,Select an existing format to edit or start a new format.,አዲስ ቅርጸት ለማርትዕ ወይም ለመጀመር አሁን ያለ ቅርጸት ይምረጡ.
@@ -1221,7 +1237,7 @@ apps/frappe/frappe/core/doctype/doctype/doctype.py,{0}: Cannot set Assign Amend 
 DocType: Milestone Tracker,Field to Track,ለመከታተል መስክ
 DocType: User,Generate Keys,ቁልፎችን ያፈጥሩ
 DocType: Comment,Unshared,አልተጋራም
-apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js,Saved,ተቀምጧል
+DocType: Translation,Saved,ተቀምጧል
 DocType: OAuth Client,OAuth Client,OAuth ደንበኛ
 DocType: System Settings,Disable Standard Email Footer,መደበኛ ኢሜይል እግርን ያሰናክሉ
 apps/frappe/frappe/www/printview.py,Print Format {0} is disabled,የህትመት ቅርጸት {0} ተሰናክሏል
@@ -1252,6 +1268,7 @@ apps/frappe/frappe/public/js/frappe/model/model.js,Last Updated On,በመጨረ�
 DocType: Data Import,Action,ድርጊት
 apps/frappe/frappe/integrations/doctype/google_maps_settings/google_maps_settings.py,Client key is required,የደንበኛ ቁልፍ ያስፈልጋል
 DocType: Chat Profile,Notifications,ማሳወቂያዎች
+DocType: Translation,Contributed,የተበረከተ
 DocType: System Settings,mm/dd/yyyy,ወር / ቀን / ዓመት
 DocType: Report,Custom Report,ብጁ ሪፖርት
 DocType: Workflow State,info-sign,መረጃ-ምልክት
@@ -1268,6 +1285,7 @@ apps/frappe/frappe/public/js/frappe/form/sidebar/form_viewers.js,{0} are current
 DocType: Contact,Contact,እውቅያ
 DocType: LDAP Settings,LDAP Username Field,የ LDAP Username መስክ
 apps/frappe/frappe/database/mariadb/schema.py,"{0} field cannot be set as unique in {1}, as there are non-unique existing values","{0} መስክ በ {1} ልዩ መሆን አይቻልም, ልዩ ያልሆኑ ነባር እሴቶች አሉ"
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Setup &gt; Customize Form,ማዋቀር&gt; ፎርሙን ያበጁ
 DocType: User,Social Logins,ማህበራዊ ምግቦች
 DocType: Workflow State,Trash,መጣያ
 DocType: Stripe Settings,Secret Key,የምሥጢር ቁልፍ
@@ -1325,6 +1343,7 @@ DocType: DocType,Title Field,የርእስ መስክ
 apps/frappe/frappe/email/smtp.py,Could not connect to outgoing email server,ከወጪ የኢሜይል አገልጋይ ጋር መገናኘት አልተቻለም
 DocType: File,File URL,ፋይል URL
 DocType: Help Article,Likes,መውደዶች
+apps/frappe/frappe/integrations/doctype/google_contacts/google_contacts.py,Google Contacts Integration is disabled.,የ Google እውቂያዎች ውህደት ተሰናክሏል.
 apps/frappe/frappe/utils/response.py,You need to be logged in and have System Manager Role to be able to access backups.,ምትኬዎችን ለመድረስ መግባት እና የስርዓት አቀናባሪ ሚና አለዎት.
 apps/frappe/frappe/core/doctype/error_snapshot/error_snapshot_list.js,First Level,የመጀመሪያ ደረጃ
 DocType: Blogger,Short Name,አጭር ስም
@@ -1342,12 +1361,12 @@ apps/frappe/frappe/templates/pages/integrations/stripe_checkout.html,Your paymen
 apps/frappe/frappe/public/js/frappe/views/file/file_view.js,Import Zip,ዚፕ ያስመጡ
 DocType: Contact,Gender,ፆታ
 DocType: Workflow State,thumbs-down,ደባሪ
-DocType: Web Page,SEO,መ
 apps/frappe/frappe/utils/background_jobs.py,Queue should be one of {0},ወረፋ ከ {0} ውስጥ መሆን አለበት
 apps/frappe/frappe/core/doctype/user/user.py,Adding System Manager to this User as there must be atleast one System Manager,የስርዓት አስተዳዳሪ መሆን አለበት ምክንያቱም በዚህ ስርዓት ላይ የስርዓት አስተዳዳሪን ማከል
 apps/frappe/frappe/core/doctype/user/user.py,Welcome email sent,የእንኳን ደህና መጡ ኢሜይል ተልኳል
 DocType: Transaction Log,Chaining Hash,አጫፍ
 DocType: Contact,Maintenance Manager,የጥገና አስተዳዳሪ
+apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,"For comparison, use &gt;5, &lt;10 or =324. For ranges, use 5:10 (for values between 5 &amp; 10).","ለማነጻጸር, &lt;5, &lt;10 ወይም = 324&gt; ይጠቀሙ. ለክፍሎች, 5:10 ይጠቀሙ (በ 5 እና 10 መካከል ያሉ እሴቶች ላለው)."
 apps/frappe/frappe/utils/bot.py,show,አሳይ
 apps/frappe/frappe/public/js/frappe/list/list_view.js,Share URL,URL አጋራ
 apps/frappe/frappe/core/doctype/data_import/importer.py,Unsupported File Format,የማይደገፍ የፋይል ቅርጸት
@@ -1369,7 +1388,7 @@ DocType: Communication,Notification,ማሳወቂያ
 DocType: Data Import,Show only errors,ስህተቶች ብቻ አሳይ
 DocType: Energy Point Log,Review,ግምገማ
 apps/frappe/frappe/core/doctype/version/version_view.html,Rows Removed,ረድፎች ተወግደዋል
-DocType: GSuite Settings,Google Credentials,የ Google ምስክርነቶች
+DocType: Google Settings,Google Credentials,የ Google ምስክርነቶች
 apps/frappe/frappe/www/login.html,Or login with,ወይም በመለያ ይግቡ
 apps/frappe/frappe/model/document.py,Record does not exist,መዝገብ አይገኝም
 apps/frappe/frappe/public/js/frappe/views/reports/report_view.js,New Report name,አዲስ የሪፖርት ስም
@@ -1394,6 +1413,7 @@ DocType: Desktop Icon,List,ዝርዝር
 DocType: Workflow State,th-large,ታል
 apps/frappe/frappe/core/doctype/doctype/doctype.py,{0}: Cannot set Assign Submit if not Submittable,{0}: የማይታዘዝ ከሆነ ምደባን ማቀናበር አይቻልም
 apps/frappe/frappe/public/js/frappe/form/linked_with.js,Not Linked to any record,ለማንኛውም መዝገብ አልተገናኘም
+apps/frappe/frappe/public/js/frappe/form/print.js,"Error connecting to QZ Tray Application...<br><br> You need to have QZ Tray application installed and running, to use the Raw Print feature.<br><br><a href=""https://qz.io/download/"" target=""_blank"">Click here to Download and install QZ Tray</a>.<br> <a href=""https://erpnext.com/docs/user/manual/en/setting-up/print/raw-printing"" target=""_blank"">Click here to learn more about Raw Printing</a>.","ከ QZ ትሪ ትግበራ ጋር መገናኘት ላይ ስህተት ... <br><br> የ Raw Print ባህሪን ለመጠቀም የ QZ Tray ትግበራ መጫንና ማሄድ ያስፈልግዎታል. <br><br> <a href=""https://qz.io/download/"" target=""_blank"">QZ Tray ን ያውርዱና ይጫኑ</a> . <br> <a href=""https://erpnext.com/docs/user/manual/en/setting-up/print/raw-printing"" target=""_blank"">ስለ ጥሬ ማተሚያ ተጨማሪ ለማወቅ እዚህ ጠቅ ያድርጉ</a> ."
 DocType: Chat Message,Content,ይዘት
 DocType: Workflow Transition,Allow Self Approval,ራስን ማጽደቅ ፍቀድ
 apps/frappe/frappe/www/qrcode.py,Page has expired!,ገፁ ጊዜው አልፎበታል!
@@ -1410,6 +1430,7 @@ DocType: Workflow State,hand-right,በቀኝ-ቀኝ
 DocType: Website Settings,Banner is above the Top Menu Bar.,ሰንደቅ ከከፍተኛ Menu አሞሌ በላይ ነው.
 apps/frappe/frappe/www/update-password.html,Invalid Password,የተሳሳተ የሚስጥርቃል
 apps/frappe/frappe/utils/data.py,1 month ago,ከ 1 ወር በፊት
+apps/frappe/frappe/integrations/doctype/google_contacts/google_contacts.py,Allow Google Contacts Access,የ Google እውቂያዎች ይድረሱ
 DocType: OAuth Client,App Client ID,የመተግበሪያ ደንበኛ መታወቂያ
 DocType: DocField,Currency,ምንዛሬ
 DocType: Website Settings,Banner,ሰንደቅ
@@ -1421,7 +1442,7 @@ apps/frappe/frappe/utils/goal.py,Goal,ግብ
 DocType: Print Style,CSS,CSS
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,"If a Role does not have access at Level 0, then higher levels are meaningless.","ሚና በደረጃ 0 ላይ ከሌለ, ከፍ ያለ ደረጃዎች ትርጉም አይሰጡም."
 DocType: ToDo,Reference Type,የማጣቀሻ አይነት
-apps/frappe/frappe/public/js/frappe/form/form.js,"Allowing DocType, DocType. Be careful!","DocType, Doc Type. ተጥንቀቅ!"
+apps/frappe/frappe/public/js/legacy/form.js,"Allowing DocType, DocType. Be careful!","DocType, Doc Type. ተጥንቀቅ!"
 DocType: Domain Settings,Domain Settings,የጎራ ቅንጅቶች
 DocType: Auto Email Report,Dynamic Report Filters,ተለዋዋጭ ሪፖርት ማጣሪያዎች
 DocType: Energy Point Log,Appreciation,አድናቂ
@@ -1463,6 +1484,7 @@ apps/frappe/frappe/core/page/permission_manager/permission_manager.js,Select Doc
 DocType: S3 Backup Settings,us-west-2,እኛ-ምዕራብ-2
 DocType: DocType,Is Single,ነጠላ ነው
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder_start.html,Create a New Format,አዲስ ቅርጸት ይፍጠሩ
+DocType: Google Contacts,Authorize Google Contacts Access,የ Google እውቂያዎች መዳረሻ ይፍቀዱ
 DocType: S3 Backup Settings,Endpoint URL,የመጨረሻ ነጥብ ዩአርኤል
 DocType: Social Login Key,Google,ጉግል
 DocType: Contact,Department,መምሪያ
@@ -1477,7 +1499,7 @@ apps/frappe/frappe/public/js/frappe/list/list_view.js,Assign To,መድብ ለ
 DocType: List Filter,List Filter,ዝርዝር ማጣሪያ
 DocType: Dashboard Chart Link,Chart,ሰንጠረዥ
 apps/frappe/frappe/core/page/permission_manager/permission_manager.py,Cannot Remove,ማስወገድ አይቻልም
-apps/frappe/frappe/public/js/frappe/form/form.js,Submit this document to confirm,ለማረጋገጥ ይህን ሰነድ ያስገቡ
+apps/frappe/frappe/public/js/legacy/form.js,Submit this document to confirm,ለማረጋገጥ ይህን ሰነድ ያስገቡ
 apps/frappe/frappe/public/js/frappe/form/controls/data.js,{0} already exists. Select another name,{0} አስቀድሞም ይገኛል. ሌላ ስም ይምረጡ
 apps/frappe/frappe/public/js/frappe/model/create_new.js,You have unsaved changes in this form. Please save before you continue.,በዚህ ቅጽ ውስጥ ያልተቀመጡ ለውጦች አሉዎት. እባክዎ ከመቀጠልዎ በፊት ያስቀምጡ.
 apps/frappe/frappe/model/document.py,Action Failed,እርምጃ አልተሳካም
@@ -1559,6 +1581,7 @@ DocType: DocField,Display,ማሳያ
 apps/frappe/frappe/core/doctype/communication/communication.js,Reply All,ለሁሉም መልስ
 DocType: Calendar View,Subject Field,የትምህርት መስክ
 apps/frappe/frappe/core/doctype/system_settings/system_settings.py,Session Expiry must be in format {0},የጊዜ ማብቂያ በ ቅርጸት {0} መሆን አለበት
+apps/frappe/frappe/model/workflow.py,Applying: {0},በማመልከት ላይ: {0}
 DocType: Workflow State,zoom-in,አቅርብ
 apps/frappe/frappe/printing/doctype/print_settings/print_settings.py,Failed to connect to server,ከአገልጋይ ጋር መገናኘት አልተሳካም
 apps/frappe/frappe/public/js/frappe/form/controls/date.js,Date {0} must be in format: {1},ቀን {0} በ ቅርፀት መሆን አለበት {1}
@@ -1570,8 +1593,11 @@ apps/frappe/frappe/public/js/frappe/form/print.js,Cannot have multiple printers 
 apps/frappe/frappe/core/doctype/file/test_file.py,Test_Folder,Test_Folder
 DocType: Workflow State,Icon will appear on the button,አዶው አዝራሩ ላይ ይታያል
 DocType: Role Permission for Page and Report,Set Role For,ሚና ለ
+apps/frappe/frappe/email/doctype/email_account/email_account.py,Automatic Linking can be activated only for one Email Account.,ራስ-ሰር ማገናኘት በአንድ የኢሜል አካውንት ብቻ ሊነቃ ይችላል.
 apps/frappe/frappe/public/js/frappe/views/inbox/inbox_view.js,No Email Accounts Assigned,ምንም የኢሜይል መለያዎች አልተመደቡም
+apps/frappe/frappe/email/smtp.py,Email Account not setup. Please create a new Email Account from Setup &gt; Email &gt; Email Account,የኢሜይል መለያ ማዋቀር አይደለም. እባክዎ ከቅንብር&gt; ኢሜይል&gt; ኢሜይል መለያ አዲስ የኢሜይል አድራሻ ይፍጠሩ
 apps/frappe/frappe/patches/v6_19/comment_feed_communication.py,Assignment,ምደባ
+DocType: Google Contacts,Last Sync On,የመጨረሻው አስምር በርቷል
 apps/frappe/frappe/public/js/frappe/utils/energy_point_utils.js,gained by {0} via automatic rule {1},በ {0} በራስ-ሰር መመሪያ በኩል ተገኝቷል {1}
 apps/frappe/frappe/config/website.py,Portal,መግቢያ
 apps/frappe/frappe/templates/emails/auto_reply.html,Thank you for your email,ኢሜል ስላደረግክልኝ አመሰግናለሁ
@@ -1592,7 +1618,6 @@ DocType: GSuite Settings,GSuite Settings,የጂኤስኪዎች ቅንጅቶች
 DocType: Integration Request,Remote,ሩቅ
 DocType: File,Thumbnail URL,ድንክዬ ዩአርኤል
 apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,Download Report,ሪፖርት አውርድ
-apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Setup &gt; User,አዘጋጅ&gt; ተጠቃሚ
 apps/frappe/frappe/modules/utils.py,Customizations for <b>{0}</b> exported to:<br>{1},ወደ <b>{5}</b> የታከሉ ብጁነቶች ወደ: <br> {1}
 DocType: GCalendar Account,Calendar Name,የቀን መቁጠሪያ ስም
 apps/frappe/frappe/templates/emails/new_user.html,Your login id is,የመግቢያ መታወቂያዎ
@@ -1642,6 +1667,7 @@ apps/frappe/frappe/custom/doctype/custom_script/custom_script.js,Go to {0},ወ�
 apps/frappe/frappe/core/doctype/doctype/doctype.py,Image field must be a valid fieldname,የምስል መስኩ ትክክለኛ የመስክ ስም መሆን አለበት
 apps/frappe/frappe/www/third_party_apps.py,You need to be logged in to access this page,ይህን ገጽ ለመድረስ መግባት አለብህ
 DocType: Assignment Rule,Example: {{ subject }},ለምሳሌ: {{ትምህርት}}
+apps/frappe/frappe/core/doctype/doctype/doctype.py,Fieldname {0} is restricted,የመስክ ስም {0} የተገደበ ነው
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.py,You cannot unset 'Read Only' for field {0},ለመስክ {0} ለ &#39;ተነባቢ ብቻ&#39; ማስተካከል አይችሉም
 DocType: Social Login Key,Enable Social Login,ማህበራዊ መግቢያን አንቃ
 DocType: Workflow,Rules defining transition of state in the workflow.,በስራው ፍሰት ውስጥ የስቴት ሽግግርን የሚገልጹ ደንቦች.
@@ -1662,10 +1688,10 @@ DocType: Website Settings,Route Redirects,የመሄጃ አቅጣጫዎች
 apps/frappe/frappe/public/js/frappe/ui/toolbar/search_utils.js,Email Inbox,የኢሜይል ገቢ መልዕክት ሳጥን
 apps/frappe/frappe/core/doctype/deleted_document/deleted_document.py,restored {0} as {1},{0} እንደ {1} ወደነበረበት ተመልሷል
 DocType: Assignment Rule,Automatically Assign Documents to Users,ሰነዶችን ለተጠቃሚዎች በራስ-ሰር መድብ
+apps/frappe/frappe/public/js/frappe/ui/keyboard.js,Open Awesomebar,አሪፍ አሞሌ ክፈት
 apps/frappe/frappe/config/settings.py,Email Templates for common queries.,የተለመዱ መጠይቆችን የኢሜል አብነቶች.
 DocType: Letter Head,Letter Head Based On,በመነሻ ላይ የተጻፈ ደብዳቤ
 apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py,Please close this window,እባክዎ ይህን መስኮት ይዝጉ
-apps/frappe/frappe/website/doctype/web_form/templates/web_form.html,Payment Complete,ክፍያ ተጠናቋል
 DocType: Contact,Designation,ዝርዝር
 DocType: Webhook,Webhook,Webhook
 DocType: Website Route Meta,Meta Tags,Meta መለያዎች
@@ -1704,6 +1730,7 @@ DocType: System Settings,Choose authentication method to be used by all users,�
 DocType: Error Snapshot,Parent Error Snapshot,የወላጅ ስህተት ቅጽበተ-ፎቶ
 DocType: GCalendar Account,GCalendar Account,የ GCalendar መለያ
 DocType: Language,Language Name,የቋንቋ ስም
+DocType: Workflow Document State,Workflow Action is not created for optional states,የስራ ፍሰት እርምጃ ለተለዋጭ ደረጃዎች አልተፈጠረም
 DocType: Customize Form,Customize Form,ቅጹን አብጅ
 DocType: DocType,Image Field,የምስል መስክ
 apps/frappe/frappe/public/js/frappe/form/link_selector.js,Added {0} ({1}),የታከለው {0} ({1})
@@ -1745,6 +1772,7 @@ apps/frappe/frappe/integrations/doctype/google_maps_settings/google_maps_setting
 DocType: Custom DocPerm,Apply this rule if the User is the Owner,ተጠቃሚው ባለቤት ከሆነ ይህን ህግ ይጠቀሙ
 DocType: About Us Settings,Org History Heading,የኦርግ ታሪክ ራስጌ
 apps/frappe/frappe/integrations/doctype/stripe_settings/stripe_settings.py,Server Error,የአገልጋይ ስህተት
+DocType: Contact,Google Contacts Description,የ Google እውቂያዎች ዝርዝር
 apps/frappe/frappe/core/doctype/role/role.py,Standard roles cannot be renamed,መደበኛ ሚናዎች ዳግም መሰየም አይቻልም
 DocType: Review Level,Review Points,የክለሳ ነጥቦችን
 apps/frappe/frappe/public/js/frappe/views/kanban/kanban_view.js,Missing parameter Kanban Board Name,የጎደለ መለኪያ የካንቦን ቦርድ ስም
@@ -1762,7 +1790,6 @@ apps/frappe/frappe/data_migration/doctype/data_migration_run/data_migration_run.
 apps/frappe/frappe/core/doctype/doctype/doctype.py,Not in Developer Mode! Set in site_config.json or make 'Custom' DocType.,በገንቢ ሁነታ ውስጥ አይደለም! በ site_config.json ውስጥ አዘጋጅ ወይም &#39;ብጁ አድርግ&#39; Doc Type.
 apps/frappe/frappe/templates/emails/energy_points_summary.html,gained {0} points,{0} ነጥቦች አግኝቷል
 DocType: Web Form,Success Message,የስኬት መልዕክት
-apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,"For comparison, use &gt;5, &lt;10 or =324. For ranges, use 5:10 (for values between 5 &amp; 10).","ለማነጻጸር, &lt;5, &lt;10 ወይም = 324&gt; ይጠቀሙ. ለክፍሎች, 5:10 ይጠቀሙ (በ 5 እና 10 መካከል ያሉ እሴቶች ላለው)."
 DocType: Blog Post,"Description for listing page, in plain text, only a couple of lines. (max 140 characters)","ለዝርዝር ገጽ ገለፃ, በግልጽ ጽሑፍ, የተወሰኑ መስመሮች ብቻ. (ቢበዛ 140 ቁምፊዎች)"
 apps/frappe/frappe/core/report/permitted_documents_for_user/permitted_documents_for_user.js,Show Permissions,ፍቃዶችን አሳይ
 DocType: DocType,Restrict To Domain,ወደ ጎራ ገድብ
@@ -1784,6 +1811,7 @@ apps/frappe/frappe/public/js/frappe/ui/filters/filter.js,Not Ancestors Of,የቀ
 apps/frappe/frappe/public/js/frappe/form/link_selector.js,Set Quantity,እሴት ያዘጋጁ
 DocType: Auto Repeat,End Date,የማብቂያ ቀን
 DocType: Workflow Transition,Next State,ቀጣይ ሁኔታ
+apps/frappe/frappe/integrations/doctype/google_contacts/google_contacts.py,{0} Google Contacts synced.,{0} የ Google እውቂያዎች ተመሳስሏል.
 DocType: System Settings,Is First Startup,የመጀመሪያው ጅምር ነው
 apps/frappe/frappe/public/js/frappe/change_log.html,updated to {0},ወደ {0} ዘምኗል
 apps/frappe/frappe/public/js/frappe/form/grid_row.js,Move To,አንቀሳቅስ ወደ
@@ -1833,6 +1861,7 @@ apps/frappe/frappe/public/js/frappe/model/meta.js,Warning: Unable to find {0} in
 apps/frappe/frappe/public/js/frappe/views/calendar/calendar.js,{0} Calendar,{0} የቀን መቁጠሪያ
 apps/frappe/frappe/core/doctype/data_export/exporter.py,Data Import Template,የውሂብ አስመጪ አብነት
 DocType: Workflow State,hand-left,በእጅ-ግራ
+apps/frappe/frappe/public/js/frappe/list/list_view.js,Select multiple list items,በርካታ የዝርዝር ንጥሎችን ይምረጡ
 apps/frappe/frappe/core/page/usage_info/usage_info.html,Backup Size:,የምትኬ መጠን:
 apps/frappe/frappe/public/js/frappe/views/inbox/inbox_view.js,Linked with {0},ከ {0} ጋር የተገናኘ
 DocType: Braintree Settings,Private Key,የግል ቁልፍ
@@ -1875,13 +1904,13 @@ apps/frappe/frappe/public/js/frappe/views/communication.js,Enter Email Recipient
 DocType: User,Interest,ፍላጎት
 DocType: Bulk Update,Limit,ገደብ
 DocType: Print Settings,Print taxes with zero amount,በዜሮ መጠን ግብር ያትሙ
-apps/frappe/frappe/email/smtp.py,Email Account not setup. Please create a new Email Account from Setup &gt; Email &gt; Email Account,የኢሜይል መለያ ማዋቀር አይደለም. እባክዎ ከቅንብር&gt; ኢሜይል&gt; ኢሜይል መለያ አዲስ የኢሜይል አድራሻ ይፍጠሩ
 DocType: Workflow State,Book,መጽሐፍ
 DocType: S3 Backup Settings,Access Key ID,የመዳረሻ መታወቂያ ይድረሱ
 DocType: Chat Message,URLs,URLs
 apps/frappe/frappe/utils/password_strength.py,Names and surnames by themselves are easy to guess.,ስሞች እና የአብ ርዝሞች በራሳቸው ለመገመት ቀላል ናቸው.
 apps/frappe/frappe/public/js/frappe/ui/toolbar/search_utils.js,Report {0},ሪፖርት {0}
 DocType: About Us Settings,Team Members Heading,የቡድን አባላት ጭምር
+apps/frappe/frappe/public/js/frappe/list/list_view.js,Select list item,የዝርዝር ንጥል ይምረጡ
 apps/frappe/frappe/workflow/doctype/workflow_action/workflow_action.py,Document {0} has been set to state {1} by {2},ሰነድ {0} {1} በ {2} ውስጥ እንዲገለጽ ተዘጋጅቷል
 DocType: Address Template,Address Template,የአድራሻ ደብተር
 DocType: Workflow State,step-backward,ወደ ኋላ
@@ -1905,6 +1934,7 @@ apps/frappe/frappe/templates/emails/recurring_document_failed.html,It is necessa
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js,Export Custom Permissions,ብጁ ፍቃዶችን ወደ ውጪ ላክ
 apps/frappe/frappe/public/js/frappe/form/workflow.js,None: End of Workflow,ምንም: የስራ ፍሰት መጨረሻ
 DocType: Version,Version,ስሪት
+apps/frappe/frappe/public/js/frappe/list/list_view.js,Open list item,የዝርዝር ንጥል ክፈት
 apps/frappe/frappe/public/js/frappe/ui/filters/filter.js,6 months,6 ወራት
 DocType: Chat Message,Group,ቡድን
 apps/frappe/frappe/utils/file_manager.py,There is some problem with the file url: {0},በፋይሉ url ላይ ችግር አለ: {0}
@@ -1960,6 +1990,7 @@ apps/frappe/frappe/public/js/frappe/ui/filters/filter.js,1 year,1 ዓመት
 apps/frappe/frappe/social/doctype/energy_point_log/energy_point_log.py,{0} reverted your points on {1},{0} ነጥቦችዎን በ {1} ላይ አድሽረዋል
 DocType: Workflow State,arrow-down,ቀስት-ታች
 DocType: Data Import,Ignore encoding errors,የኮድ የማስገር ስህተቶችን ችላ በል
+apps/frappe/frappe/public/js/frappe/form/print.js,Landscape,ውበት
 DocType: Letter Head,Letter Head Name,የመለያ ፊደላት ስም
 DocType: Web Form,Client Script,የደንበኛ ስክሪፕት
 DocType: Assignment Rule,Higher priority rule will be applied first,ከፍ ያለ ቅድሚያ የሚሰጠው መመሪያ በመጀመሪያ ይተገበራል
@@ -2004,6 +2035,7 @@ DocType: Kanban Board Column,Green,አረንጓዴ
 apps/frappe/frappe/core/doctype/data_export/exporter.py,Only mandatory fields are necessary for new records. You can delete non-mandatory columns if you wish.,ለአዲስ መዛግብት አስገዳጅ መስኮቶች ብቻ አስፈላጊ ናቸው. አስፈላጊ ከሆነ የማያቆሙ ዓምዶችን መሰረዝ ይችላሉ.
 apps/frappe/frappe/core/doctype/language/language.py,"{0} must begin and end with a letter and can only contain letters,
 				hyphen or underscore.","{0} በደብዳቤ መጀመር እና ማጠናቀቅ አለበት እና ፊደሎችን, አቆራኝ ወይም ሰረዘዘብጥ ብቻ መያዝ ይችላል."
+apps/frappe/frappe/public/js/frappe/ui/keyboard.js,Trigger Primary Action,ተቀዳሚ እርምጃ ይፍጠሩ
 apps/frappe/frappe/core/doctype/user/user.js,Create User Email,የተጠቃሚ ኢሜይል ይፍጠሩ
 apps/frappe/frappe/core/doctype/doctype/doctype.py,Sort field {0} must be a valid fieldname,መስክ ደርድር {0} ትክክለኛ የመስክ ስም መሆን አለበት
 DocType: Auto Email Report,Filter Meta,Meta ማጣሪያ
@@ -2033,6 +2065,7 @@ apps/frappe/frappe/custom/doctype/customize_form/customize_form.js,Sync on Migra
 DocType: DocType,Timeline Field,የጊዜ መስመር መስክ
 apps/frappe/frappe/core/page/dashboard/dashboard.js,Loading...,በመጫን ላይ ...
 DocType: Auto Email Report,Half Yearly,ግማሽ ዓመት
+apps/frappe/frappe/public/js/frappe/ui/toolbar/navbar.html,My Profile,የግል ማህደሬ
 apps/frappe/frappe/email/doctype/notification/notification.js,Last Modified Date,መጨረሻ የተሻሻለው ቀን
 DocType: Contact,First Name,የመጀመሪያ ስም
 DocType: Post,Comments,አስተያየቶች
@@ -2055,6 +2088,7 @@ apps/frappe/frappe/custom/doctype/custom_field/custom_field.js,Fieldname which w
 DocType: File,Content Hash,ይዘት ሃሽ
 apps/frappe/frappe/website/doctype/blog_post/blog_post.py,Posts by {0},ልጥፎች በ {0}
 apps/frappe/frappe/desk/doctype/todo/todo.py,{0} assigned {1}: {2},{0} የተመደበው {1}: {2}
+apps/frappe/frappe/integrations/doctype/google_contacts/google_contacts.py,No new Google Contacts synced.,ምንም አዲስ የ Google እውቂያዎች አልተሰመሩም.
 DocType: Workflow State,globe,ሉል
 apps/frappe/frappe/public/js/frappe/ui/group_by/group_by.js,Average of {0},አማካኝ የ {0}
 apps/frappe/frappe/core/doctype/error_log/error_log_list.js,Clear Error Logs,የጥያቄ ስህተት ማስታወሻዎች
@@ -2080,6 +2114,8 @@ DocType: Workflow State,Inverse,በተቃራኒ
 DocType: Activity Log,Closed,ዝግ
 DocType: Report,Query,ጥያቄ
 DocType: Notification,Days After,ቀኖች በኋላ
+apps/frappe/frappe/public/js/frappe/ui/keyboard.js,Page Shortcuts,የገፅ አቋራጭ
+apps/frappe/frappe/public/js/frappe/form/print.js,Portrait,ፎቶግራፍ
 apps/frappe/frappe/public/js/frappe/request.js,Request Timed Out,ጥያቄው ጊዜው አልፏል
 DocType: System Settings,Email Footer Address,የኢሜይል ፊደል አድራሻ
 apps/frappe/frappe/social/doctype/energy_point_log/energy_point_log.py,Energy point update,የኃይል ማመንጫ አዘምን
@@ -2107,6 +2143,7 @@ For Select, enter list of Options, each on a new line.","ለጎራዎቹ, DocTyp
 apps/frappe/frappe/public/js/frappe/utils/pretty_date.js,1 minute ago,ከ 1 ደቂቃ በፊት
 apps/frappe/frappe/www/third_party_apps.html,No Active Sessions,ምንም ንቁ ክፍለ ጊዜዎች የሉም
 apps/frappe/frappe/model/base_document.py,Row,ረድፍ
+DocType: Contact,Middle Name,የአባት ስም
 apps/frappe/frappe/public/js/frappe/request.js,Please try again,እባክዎ ዳግም ይሞክሩ
 DocType: Dashboard Chart,Chart Options,የገበታ አማራጮች
 DocType: Data Migration Run,Push Failed,ግፋ አልተሳካም
@@ -2135,6 +2172,7 @@ DocType: System Settings,Note: Multiple sessions will be allowed in case of mobi
 DocType: Workflow State,resize-small,መጠን ይቀንሱ
 DocType: Comment,Relinked,ዳግም ተገናኝቷል
 DocType: Role Permission for Page and Report,Roles HTML,ሚናዎች HTML
+apps/frappe/frappe/public/js/frappe/form/toolbar.js,Go,ሂድ
 apps/frappe/frappe/public/js/frappe/form/workflow.js,Workflow will start after saving.,የስራ ፍሰቱ ከተቀመጠ በኋላ ይጀምራል.
 DocType: Translation,"If your data is in HTML, please copy paste the exact HTML code with the tags.",የእርስዎ ውሂብ በኤችቲኤምኤል ከሆነ እባክዎን ትክክለኛውን የኤች.ቲ.ኤም.ኤል ኮድ በመለያዎቹ ላይ ይለጥፉ.
 apps/frappe/frappe/utils/password_strength.py,Dates are often easy to guess.,ቀናቶች ለመገመት ብዙ ጊዜ ቀላል ናቸው.
@@ -2163,7 +2201,6 @@ apps/frappe/frappe/core/doctype/deleted_document/deleted_document.py,Cancelled D
 DocType: Desktop Icon,Desktop Icon,ዴስክቶፕ አዶ
 apps/frappe/frappe/public/js/frappe/form/footer/timeline.js,cancelled this document,ይህን ሰነድ ሰርዘዋል
 apps/frappe/frappe/public/js/frappe/form/multi_select_dialog.js,Date Range,የቀን ክልል
-apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Setup &gt; User Permissions,ማዋቀር&gt; የተጠቃሚ ፈቃዶች
 apps/frappe/frappe/public/js/frappe/utils/energy_point_utils.js,{0} appreciated {1},{0} በደንብ የተደገፈ {1}
 apps/frappe/frappe/core/doctype/version/version_view.html,Values Changed,እሴቶች ተለውጠዋል
 apps/frappe/frappe/email/doctype/notification/notification.py,Error in Notification,በማሳወቂያ ውስጥ ስህተት
@@ -2228,6 +2265,7 @@ apps/frappe/frappe/core/doctype/role_permission_for_page_and_report/role_permiss
 apps/frappe/frappe/core/doctype/user_permission/user_permission_list.js,Bulk Delete,በጅምላ ሰርዝ
 DocType: DocShare,Document Name,ሰነድ ስም
 apps/frappe/frappe/config/customization.py,Add your own translations,የራስዎን ትርጉሞች ያክሉ
+apps/frappe/frappe/public/js/frappe/list/list_view.js,Navigate list down,ዝርዝር ወደታች አስስ
 DocType: S3 Backup Settings,eu-central-1,ኢ-ማእከላዊ-1
 DocType: Auto Repeat,Yearly,ዓመታዊ
 apps/frappe/frappe/public/js/frappe/model/model.js,Rename,እንደገና ይሰይሙ
@@ -2278,6 +2316,7 @@ DocType: Workflow State,plane,አውሮፕላን
 apps/frappe/frappe/utils/nestedset.py,Nested set error. Please contact the Administrator.,የተሰመረ የመነሻ ስህተት. እባክዎ አስተዳዳሪውን ያነጋግሩ.
 apps/frappe/frappe/core/doctype/prepared_report/prepared_report.js,Show Report,ሪፖርት ያሳዩ
 DocType: Auto Repeat,Auto Repeat Schedule,ራስ-ሰር ረገም መርሐግብር
+apps/frappe/frappe/social/doctype/energy_point_log/energy_point_log_list.js,View Ref,ማጣቀሻውን ይመልከቱ
 DocType: Address,Office,ጽ / ቤት
 DocType: LDAP Settings,StartTLS,TLS ን ይጀምሩ
 apps/frappe/frappe/public/js/frappe/utils/pretty_date.js,{0} days ago,ከ {0} ቀናት በፊት
@@ -2311,7 +2350,7 @@ apps/frappe/frappe/public/js/frappe/ui/field_group.js,Missing Values Required,�
 apps/frappe/frappe/public/js/frappe/ui/toolbar/navbar.html,My Settings,የእኔ ቅንብሮች
 apps/frappe/frappe/chat/doctype/chat_room/chat_room.py,Group name cannot be empty.,የቡድን ስም ባዶ ሊሆን አይችልም.
 DocType: Workflow State,road,መንገድ
-DocType: Website Route Redirect,Source,ምንጭ
+DocType: Contact,Source,ምንጭ
 apps/frappe/frappe/www/third_party_apps.html,Active Sessions,ንቁ ክፍለ ጊዜዎች
 apps/frappe/frappe/core/doctype/doctype/doctype.py,There can be only one Fold in a form,በቅጽበት አንድ ብቻ የታጠፈ ሊኖር ይችላል
 apps/frappe/frappe/public/js/frappe/chat.js,New Chat,አዲስ ውይይት
@@ -2333,6 +2372,7 @@ apps/frappe/frappe/public/js/frappe/form/templates/form_sidebar.html,Under Devel
 apps/frappe/frappe/integrations/doctype/social_login_key/social_login_key.py,Please enter Authorize URL,እባክዎ ዩ አር ኤል ፍቃድ ያስገቡ
 DocType: Email Account,Send Notification to,ማሳወቂያ ላክ
 apps/frappe/frappe/config/integrations.py,Dropbox backup settings,የ Dropbox ምትኬ ቅንብሮች
+apps/frappe/frappe/integrations/doctype/google_contacts/google_contacts.py,Something went wrong during the token generation. Click on {0} to generate a new one.,በማስመሰያው ትውልድ ውስጥ የሆነ ችግር ተፈጥሯል. አዲስ ለመፍጠር በ {0} ላይ ጠቅ ያድርጉ.
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js,Remove all customizations?,ሁሉም ብጁነቶች ይወገዱ?
 apps/frappe/frappe/core/doctype/page/page.py,Only Administrator can edit,አስተዳዳሪ ብቻ ማስተካከል ይችላል
 DocType: Auto Repeat,Reference Document,የማጣቀሻ ሰነድ
@@ -2357,6 +2397,7 @@ apps/frappe/frappe/templates/emails/new_user.html,A new account has been created
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Roles can be set for users from their User page.,ከ ተጠቃሚው ገፅ ለተጠቃሚዎች ሊሰሩ ይችላሉ.
 DocType: Website Settings,Include Search in Top Bar,በከፍተኛ አሞሌ ውስጥ ፍለጋን ያካትቱ
 apps/frappe/frappe/desk/doctype/auto_repeat/auto_repeat.py,[Urgent] Error while creating recurring %s for %s,[አስቸኳይ] ለ% s ተደጋጋሚ% s በመፍጠር ላይ ሳለ ስህተት
+apps/frappe/frappe/public/js/frappe/ui/keyboard.js,Global Shortcuts,አለም አቀፍ አቋራጮች
 DocType: Help Article,Author,ደራሲ
 DocType: Webhook,on_cancel,on_cancel
 apps/frappe/frappe/client.py,No document found for given filters,ለተሰጣቸው ማጣሪያዎች ምንም ሰነድ አልተገኘም
@@ -2392,10 +2433,11 @@ apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js,Create a new recor
 apps/frappe/frappe/model/base_document.py,"{0}, Row {1}","{0}, ረድፍ {1}"
 apps/frappe/frappe/core/doctype/data_export/exporter.py,"If you are uploading new records, ""Naming Series"" becomes mandatory, if present.","አዳዲስ መዝገቦችን እየሰቀሉ ከሆነ, &quot;የስምሪት ስሞች&quot; መገደብ ግዴታ ነው."
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js,Edit Properties,ባህሪያትን ያርትዑ
-apps/frappe/frappe/public/js/frappe/form/form.js,Cannot open instance when its {0} is open,{0} ክፍት በሚሆንበት ጊዜ ገላጭ መክፈት አይቻልም
+apps/frappe/frappe/public/js/legacy/form.js,Cannot open instance when its {0} is open,{0} ክፍት በሚሆንበት ጊዜ ገላጭ መክፈት አይቻልም
 DocType: Activity Log,Timeline Name,የጊዜ መስመር ስም
 DocType: Comment,Workflow,የስራ ፍሰት
 apps/frappe/frappe/integrations/oauth2.py,Please set Base URL in Social Login Key for Frappe,እባክዎን ቤይ ዩአርኤስን ለማሸጋገር ማህበራዊ ቁልፍ ቁልፍ ያዘጋጁ
+apps/frappe/frappe/public/js/frappe/ui/keyboard.js,Keyboard Shortcuts,የቁልፍ ሰሌዳ አቋራጮች
 DocType: Portal Settings,Custom Menu Items,ብጁ ምናሌ ንጥሎች
 apps/frappe/frappe/public/js/frappe/dom.js,Connection lost. Some features might not work.,ግንኙነት ጠፍቷል. አንዳንድ ባህሪያት ላይሰሩ ይችላሉ.
 apps/frappe/frappe/integrations/doctype/ldap_settings/ldap_settings.py,LDAP is not enabled.,LDAP አልነቃም.
@@ -2457,6 +2499,7 @@ apps/frappe/frappe/core/doctype/version/version_view.html,Rows Added,ረድፎ�
 DocType: DocType,Setup,አዘገጃጀት
 apps/frappe/frappe/public/js/frappe/views/interaction.js,{0} created successfully,{0} በተሳካ ሁኔታ ተፈጥሯል
 apps/frappe/frappe/www/update-password.html,New Password,አዲስ የይለፍ ቃል
+apps/frappe/frappe/public/js/frappe/form/toolbar.js,Select Field,መስክ ይምረጡ
 apps/frappe/frappe/email/doctype/email_account/email_account.py,Leave this conversation,ይህን ውይይት ተወው
 DocType: About Us Settings,Team Members,የቡድን አባላት
 DocType: Blog Settings,Writers Introduction,ፀሐፊዎች መግቢያ
@@ -2526,13 +2569,12 @@ DocType: Chat Room,Name,ስም
 DocType: Communication,Email Template,የኢሜይል አብነት
 DocType: Energy Point Settings,Review Levels,የክለሳ ደረጃዎች
 DocType: Print Format,Raw Printing,ጥሬ ማተሚያ
-apps/frappe/frappe/public/js/frappe/form/form.js,Cannot open {0} when its instance is open,አካሄዶ በሚከፈትበት ጊዜ {0} መክፈት አይቻልም
+apps/frappe/frappe/public/js/legacy/form.js,Cannot open {0} when its instance is open,አካሄዶ በሚከፈትበት ጊዜ {0} መክፈት አይቻልም
 DocType: DocType,"Make ""name"" searchable in Global Search",«ስም» በ Global Search ውስጥ ሊፈለግ የሚችል
 DocType: Data Migration Mapping,Data Migration Mapping,የውሂብ ጎዳና ማዛመጃ
 DocType: Data Import,Partially Successful,በከፊል ስኬታማ
 DocType: Communication,Error,ስህተት
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.py,Fieldtype cannot be changed from {0} to {1} in row {2},የመስክ አይነት በ {0} ውስጥ {0} በረድፍ {2} ውስጥ ሊለወጥ አይችልም.
-apps/frappe/frappe/public/js/frappe/form/print.js,"Error connecting to QZ Tray Application...<br><br> You need to have QZ Tray application installed and running, to use the Raw Print feature.<br><br><a href=""https://qz.io/download/"" target=""_blank"">Click here to Download and install QZ Tray</a>.<br> <a href=""https://erpnext.com/docs/user/manual/en/setting-up/print/raw-printing"" target=""_blank"">Click here to learn more about Raw Printing</a>.","ከ QZ ትሪ ትግበራ ጋር መገናኘት ላይ ስህተት ... <br><br> የ Raw Print ባህሪን ለመጠቀም የ QZ Tray ትግበራ መጫንና ማሄድ ያስፈልግዎታል. <br><br> <a href=""https://qz.io/download/"" target=""_blank"">QZ Tray ን ያውርዱና ይጫኑ</a> . <br> <a href=""https://erpnext.com/docs/user/manual/en/setting-up/print/raw-printing"" target=""_blank"">ስለ ጥሬ ማተሚያ ተጨማሪ ለማወቅ እዚህ ጠቅ ያድርጉ</a> ."
 apps/frappe/frappe/public/js/frappe/ui/capture.js,Take Photo,ፎቶ አንሳ
 apps/frappe/frappe/utils/password_strength.py,Avoid years that are associated with you.,ከእርስዎ ጋር የተቆራኙ ብዙ አመታትን ያስወግዱ.
 DocType: Web Form,Allow Incomplete Forms,ያልተሟሉ ቅጾችን ፍቀድ
@@ -2628,7 +2670,6 @@ DocType: DocType,Open a dialog with mandatory fields to create a new record quic
 DocType: Footer Item,"Select target = ""_blank"" to open in a new page.",በአዲስ ገጽ ለመክፈት target = &quot;_blank&quot; ይምረጡ.
 DocType: Portal Settings,Portal Menu,የመግቢያ ምናሌ
 DocType: Website Settings,Landing Page,የማረፊያ ገጽ
-apps/frappe/frappe/website/doctype/web_form/templates/web_form.html,Please sign-up or login to begin,እባክዎ ለመመዝገብ ይመዝገቡ ወይም ለመጀመር ይግቡ
 DocType: Contact Us Settings,"Contact options, like ""Sales Query, Support Query"" etc each on a new line or separated by commas.","እንደ &quot;ሽያጭ መጠይቅ, የድጋፍ ጥያቄ&quot; ወዘተ የመሳሰሉ የእውቅያ አማራጮች በእያንዳንዱ መስመር ላይ ወይም በነጠላ ሰረዝ በመለየት."
 apps/frappe/frappe/twofactor.py,Verfication Code,የማረጋገጫ ኮድ
 apps/frappe/frappe/email/doctype/email_unsubscribe/email_unsubscribe.py,{0} already unsubscribed,{0} አስቀድሞ ከደንበኝነት ምዝገባ ወጥቷል
@@ -2714,6 +2755,7 @@ DocType: Data Migration Plan Mapping,Data Migration Plan Mapping,የውሂብ �
 DocType: Address,Sales User,የሽያጭ ተጠቃሚ
 apps/frappe/frappe/config/customization.py,"Change field properties (hide, readonly, permission etc.)","የመስክ ባህሪያትን ለውጥ (ተደብቆ, ንባብ, ፍቃድ, ወዘተ)"
 DocType: Property Setter,Field Name,የመስክ ስም
+apps/frappe/frappe/integrations/doctype/ldap_settings/ldap_settings.py,Customer,ደንበኛ
 DocType: Print Settings,Font Size,የቅርጸ ቁምፊ መጠን
 DocType: User,Last Password Reset Date,የመጨረሻው የይለፍ ቃል ዳግም ያስጀምሩ
 DocType: System Settings,Date and Number Format,የቀን እና የቁጥር ቅርጸት
@@ -2779,6 +2821,7 @@ apps/frappe/frappe/public/js/frappe/views/treeview.js,Group Node,የቡድን �
 apps/frappe/frappe/public/js/frappe/model/model.js,Merge with existing,አሁን ካለው ጋር አዋህድ
 DocType: Blog Post,Blog Intro,የጦማር መግቢያ
 apps/frappe/frappe/core/doctype/comment/comment.py,New Mention,አዲስ ጭብጥ
+apps/frappe/frappe/public/js/frappe/form/toolbar.js,Jump to field,ወደ መስኩ ይዝለሉ
 DocType: Prepared Report,Report Name,ስም ሪፖርት አድርግ
 apps/frappe/frappe/model/document.py,Please refresh to get the latest document.,የቅርብ ጊዜውን ሰነድ ለማግኘት እባክህ አድስ.
 apps/frappe/frappe/core/doctype/communication/communication.js,Close,ገጠመ
@@ -2788,10 +2831,13 @@ apps/frappe/frappe/config/integrations.py,Webhooks calling API requests into web
 DocType: Communication,Event,ክስተት
 DocType: Social Login Key,Access Token URL,የመድረሻ ተለዋጭ ስም
 apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py,Please set Dropbox access keys in your site config,እባክዎን የ Dropbox መዳረሻ ቁልፎችዎን በጣቢያዎ ውቅር ያዘጋጁ
+DocType: Google Contacts,Google Contacts,የ Google እውቂያዎች
 DocType: User,Reset Password Key,የይለፍ ቃል ቁልፍ ዳግም አስጀምር
 apps/frappe/frappe/social/doctype/energy_point_rule/energy_point_rule.js,Modified By,የተሻሻለው በ
 DocType: User,Bio,የህይወት ታሪክ
 apps/frappe/frappe/limits.py,"To renew, {0}.","ለማደስ, {0}."
+apps/frappe/frappe/public/js/frappe/web_form/web_form.js,Saved Successfully,በተሳካ ሁኔታ ተቀምጧል
+apps/frappe/frappe/public/js/frappe/form/templates/timeline.html,Send an email to {0} to link it here.,እዚህ ጋር ለማገናኘት ኢሜል ወደ {0} ይላኩ.
 DocType: File,Folder,አቃፊ
 DocType: DocField,Perm Level,Perm Level
 DocType: Print Settings,Page Settings,የገፅ ቅንብሮች
@@ -2821,6 +2867,7 @@ DocType: Workflow State,remove-sign,አስወግድ
 DocType: Dashboard Chart,Full,ሙሉ
 DocType: DocType,User Cannot Create,ተጠቃሚ መፍጠር አልተቻለም
 apps/frappe/frappe/social/doctype/energy_point_log/energy_point_log.py,You gained {0} point,{0} ነጥብ አግኝተዋል
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Setup &gt; User,አዘጋጅ&gt; ተጠቃሚ
 DocType: Top Bar Item,"If you set this, this Item will come in a drop-down under the selected parent.",ይህንን ካቀናበሩ ይህ ንጥል በተመረጠው ወላጅ ውስጥ በተቆልቋይ ውስጥ ይወጣል.
 apps/frappe/frappe/public/js/frappe/views/inbox/inbox_view.js,No Emails,ምንም ኢሜይሎች የሉም
 apps/frappe/frappe/website/doctype/web_form/web_form.py,Following fields are missing:,የሚከተሉ መስኮች ጠፍተዋል:
@@ -2834,13 +2881,14 @@ apps/frappe/frappe/desk/doctype/calendar_view/calendar_view.js,Show Calendar,የ
 DocType: Web Form,Web Form Fields,የድር ቅጽ መስኮች
 DocType: Desktop Icon,_doctype,_doctype
 apps/frappe/frappe/config/website.py,User editable form on Website.,የተጠቃሚ አርትዕ በድረገፅ ላይ.
-apps/frappe/frappe/public/js/frappe/form/form.js,Permanently Cancel {0}?,እስከመጨረሻው {0} ይጥፋ?
+apps/frappe/frappe/public/js/legacy/form.js,Permanently Cancel {0}?,እስከመጨረሻው {0} ይጥፋ?
 apps/frappe/frappe/custom/doctype/custom_field/custom_field.js,Option 3,አማራጭ 3
 apps/frappe/frappe/public/js/frappe/views/reports/report_view.js,Totals,ድምሮች
 apps/frappe/frappe/utils/password_strength.py,This is a very common password.,ይህ በጣም የተለመደ የይለፍ ቃል ነው.
 DocType: Personal Data Deletion Request,Pending Approval,በመጠባበቅ ላይ ያለ ማጽደቅ
 apps/frappe/frappe/public/js/frappe/views/interaction.js,The document could not be correctly assigned,ሰነዱ በትክክል አልተመደበም
 apps/frappe/frappe/permissions.py,Not allowed for {0}: {1},ለ {0} አይፈቀድም: {1}
+apps/frappe/frappe/public/js/frappe/form/controls/multiselect_list.js,No values to show,ምንም የሚታዩ ዋጋዎች የሉም
 DocType: Personal Data Download Request,Personal Data Download Request,የግል ውሂብ አውርድ ጥያቄ
 apps/frappe/frappe/core/doctype/docshare/docshare.py,{0} shared this document with {1},{0} ይህንን ሰነድ ከ {1} ጋር አጋርቷል
 apps/frappe/frappe/public/js/frappe/form/link_selector.js,Select {0},ይምረጡ {0}
@@ -2855,7 +2903,6 @@ DocType: Custom DocPerm,Delete,ሰርዝ
 apps/frappe/frappe/email/queue.py,This email was sent to {0} and copied to {1},ይህ ኢሜይል ወደ {0} ተልኳል እና ወደ {1} ተቀድቷል
 apps/frappe/frappe/email/smtp.py,Invalid login or password,ልክ ያልሆነ መግቢያ ወይም የይለፍ ቃል
 DocType: Social Login Key,Social Login Key,የማኅበራዊ ቁልፍ ቁልፍ
-apps/frappe/frappe/email/smtp.py,Please setup default Email Account from Setup &gt; Email &gt; Email Account,እባክዎ ከቅንብር&gt; ኢሜይል&gt; ኢሜይል መለያ ነባሪ የኢሜይል መለያ ያቀናብሩ
 apps/frappe/frappe/public/js/frappe/views/kanban/kanban_view.js,Filters saved,ማጣሪያዎች ተቀምጠዋል
 DocType: Currency,"How should this currency be formatted? If not set, will use system defaults",ይህ ምንዛሬ እንዴት ይዘጋጅ? ካልተዋቀረ የስርዓት ነባሮችን ይጠቀማል
 apps/frappe/frappe/workflow/doctype/workflow_action/workflow_action.py,{0}: {1} is set to state {2},{0}: {1} ለመግለጽ ተዋቅሯል {2}
@@ -2981,6 +3028,7 @@ DocType: User,Location,አካባቢ
 apps/frappe/frappe/core/page/dashboard/dashboard.js,No Data,ምንም ውሂብ የለም
 DocType: Website Meta Tag,Website Meta Tag,የድር ጣቢያ ዲበባ
 DocType: Workflow State,film,ፊልም
+apps/frappe/frappe/public/js/frappe/utils/utils.js,Copied to clipboard.,ወደ ቅንጥብ ሰሌዳ ተቀድቷል.
 apps/frappe/frappe/integrations/utils.py,{0} Settings not found,{0} ቅንጅቶች አልተገኙም
 apps/frappe/frappe/custom/doctype/custom_field/custom_field.py,Label is mandatory,መሰየሚያ የግዴታ ነው
 DocType: Webhook,Webhook Headers,Webhook ራስጌዎች
@@ -3187,7 +3235,7 @@ DocType: Address,Address Line 1,አድራሻ መስመር 1
 apps/frappe/frappe/core/doctype/user_permission/user_permission_list.js,For Document Type,ለፋይሉ ዓይነት
 apps/frappe/frappe/model/base_document.py,Data missing in table,በሰንጠረዥ ውስጥ ውሂብ ይጎድላል
 apps/frappe/frappe/utils/bot.py,Could not identify {0},{0} ን መለየት አልተቻለም
-apps/frappe/frappe/public/js/frappe/form/form.js,This form has been modified after you have loaded it,ይህ ቅጽ ከጫኑት በኋላ ተለውጧል
+apps/frappe/frappe/public/js/legacy/form.js,This form has been modified after you have loaded it,ይህ ቅጽ ከጫኑት በኋላ ተለውጧል
 apps/frappe/frappe/www/login.html,Back to Login,ወደ መግቢያ ተመለስ
 apps/frappe/frappe/public/js/frappe/ui/filters/filter.js,Not Set,አልተዘጋጀም
 DocType: Data Migration Mapping,Pull,ይጎትቱ
@@ -3254,6 +3302,7 @@ DocType: Data Migration Mapping Detail,Child Table Mapping,የህፃን ገበ�
 apps/frappe/frappe/public/js/frappe/desk.js,Email Account setup please enter your password for: ,የኢሜይል መለያ ማዋቀር እባክዎ ለእዚህ ይለፍ ቃል ያስገቡ:
 apps/frappe/frappe/database/database.py,Too many writes in one request. Please send smaller requests,በአንድ ጥያቄ ውስጥ በጣም ብዙ ፅሁፎች. እባክዎ ትናንሽ ጥያቄዎችን ይላኩ
 DocType: Social Login Key,Salesforce,የሽያጭ ኃይል
+apps/frappe/frappe/integrations/doctype/google_contacts/google_contacts.js,Importing {0} of {1},{0} የ {1} አስመጪ
 DocType: User,Tile,ሰቅል
 apps/frappe/frappe/chat/doctype/chat_room/chat_room.py,{0} room must have atmost one user.,{0} ክፍሉ አንድ ተጠቃሚ ሊኖረው ይገባል.
 DocType: Email Rule,Is Spam,አይፈለጌ መልዕክት ነው
@@ -3290,7 +3339,6 @@ apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,"If
 DocType: Workflow State,folder-close,አቃፊ-በቅርብ
 DocType: Data Migration Run,Pull Update,ዝማኔን ጎትት
 apps/frappe/frappe/model/rename_doc.py,merged {0} into {1},{0} ወደ {1} ተዋህዷል
-apps/frappe/frappe/public/js/frappe/ui/toolbar/search.js,<p>No results found for '</p>,<p> ምንም ውጤቶች ለ &#39; </p>
 DocType: SMS Settings,Enter url parameter for receiver nos,ለዩቲዩብ የዩ.አር.ኤል. ግቤ ያስገቡ
 apps/frappe/frappe/utils/jinja.py,Syntax error in template,በአብነት ውስጥ የአገባብ ስህተት
 apps/frappe/frappe/email/doctype/auto_email_report/auto_email_report.py,Please set filters value in Report Filter table.,እባክዎ በ ሪፖርት ማጣሪያ ሰንጠረዥ ውስጥ የማጣሪያ እሴት ያዋቅሩ.
@@ -3303,6 +3351,7 @@ apps/frappe/frappe/chat/__init__.py,"Sorry, you're not authorized.","ይቅር�
 DocType: System Settings,In Days,በቆየ ቀን
 DocType: Report,Add Total Row,ጠቅላላ ረድፍ አክል
 apps/frappe/frappe/public/js/frappe/desk.js,Session Start Failed,የክፍለ ጊዜ ጀምር አልተሳካም
+DocType: Translation,Verified,የተረጋገጠ
 DocType: Print Format,Custom HTML Help,ብጁ የኤች ቲ ኤም ኤል እገዛ
 DocType: Address,Preferred Billing Address,የተመረጠ የክፍያ መጠየቂያ አድራሻ
 apps/frappe/frappe/public/js/frappe/list/list_sidebar.html,Assigned To,የተመደበለት ለ
@@ -3317,7 +3366,6 @@ DocType: Help Article,Intermediate,መካከለኛ
 DocType: Module Def,Module Name,የሞዱል ስም
 DocType: OAuth Authorization Code,Expiration time,ጊዜ የሚያልፍበት ጊዜ
 apps/frappe/frappe/config/settings.py,"Set default format, page size, print style etc.","ነባሪ ቅርጸት, የገፅ መጠን, የህትመት አይነት ወዘተ."
-apps/frappe/frappe/desk/like.py,You cannot like something that you created,የፈጠርካቸውን አንድ ነገር አልወደዱትም
 DocType: System Settings,Session Expiry,የጊዜ ማብቂያ
 DocType: DocType,Auto Name,የመኪና ስም
 apps/frappe/frappe/public/js/frappe/views/interaction.js,Select Attachments,አባሪዎችን ይምረጡ
@@ -3345,6 +3393,7 @@ apps/frappe/frappe/templates/includes/search_template.html,No matching records. 
 DocType: Page,System Page,የስርዓት ገጽ
 DocType: Dropbox Settings,Note: By default emails for failed backups are sent.,ማሳሰቢያ: በነባሪ ኢሜሎች ለተሳኩ ምትኬዎች ተልከዋል.
 DocType: Custom DocPerm,Custom DocPerm,ብጁ DocPerm
+DocType: Translation,PR sent,PR ተልኳል
 DocType: Tag Doc Category,Doctype to Assign Tags,መለያዎችን ለመመደብ አስረግሚ
 DocType: Address,Warehouse,የመጋዘን
 apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py,Dropbox Setup,የጃኮፕ ሳጥን ማዋቀር
@@ -3412,7 +3461,6 @@ apps/frappe/frappe/core/doctype/report/report.js,[Label]:[Field Type]/[Options]:
 apps/frappe/frappe/public/js/frappe/form/controls/comment.js,Ctrl+Enter to add comment,አስተያየት ለማከል Ctrl + Enter ይጫኑ
 apps/frappe/frappe/public/js/frappe/ui/filters/filters.js,Field {0} is not selectable.,መስክ {0} ሊመረጥ አይችልም.
 DocType: User,Birth Date,የልደት ቀን
-apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,With Group Indentation,በቡድን ማጣበቂያ
 DocType: List View Setting,Disable Count,ቆጠራ ያሰናክሉ
 DocType: Contact Us Settings,Email ID,የኢሜይል መታወቂያ
 apps/frappe/frappe/utils/password.py,Incorrect User or Password,የተሳሳተ ተጠቃሚ ወይም የይለፍ ቃል
@@ -3447,6 +3495,7 @@ DocType: Website Settings,&lt;head&gt; HTML,&lt;ራስ&gt; HTML
 DocType: Custom DocPerm,This role update User Permissions for a user,ይህ ለተጠቃሚዎች የተጠቃሚ ፍቃዶችን ይግዙ
 DocType: Website Theme,Theme,ገጽታ
 DocType: Web Form,Show Sidebar,የጎን አሞሌን አሳይ
+apps/frappe/frappe/config/integrations.py,Google Contacts Integration.,የ Google እውቂያዎች ውህደት.
 apps/frappe/frappe/email/doctype/email_account/email_account_list.js,Default Inbox,ነባሪ የገቢ መልዕክት ሳጥን
 apps/frappe/frappe/www/login.py,Invalid Login Token,ልክ ያልሆነ የመግቢያ አስመስሎ
 apps/frappe/frappe/website/doctype/website_slideshow/website_slideshow.js,First set the name and save the record.,በመጀመሪያ ስም አስቀምጠው መዝገቡን ያስቀምጡ.
@@ -3474,7 +3523,7 @@ apps/frappe/frappe/core/doctype/user_permission/user_permission_list.js,Add / Up
 apps/frappe/frappe/templates/emails/recurring_document_failed.html,Please correct the,እባክዎ ያስተካክሉ
 DocType: Top Bar Item,Top Bar Item,የላይኛው የቤል አይነት
 ,Role Permissions Manager,የባለቤት ፍቃዶች አስተዳዳሪ
-apps/frappe/frappe/website/js/web_form.js,There were errors. Please report this.,ስህተቶች ነበሩ. እባክዎ ይህን ሪፖርት ያድርጉ.
+apps/frappe/frappe/public/js/frappe/utils/pretty_date.js,&gt; {0} year(s) ago,&gt; {0} ዓመቱ (ዓመታት) በፊት
 apps/frappe/frappe/desk/page/setup_wizard/install_fixtures.py,Female,ሴት
 DocType: System Settings,OTP Issuer Name,ኦቲፒ ስም አጻጻፍ ስም
 apps/frappe/frappe/public/js/frappe/form/sidebar/assign_to.js,Add to To Do,To Do To Add
@@ -3574,6 +3623,7 @@ apps/frappe/frappe/config/settings.py,"Language, Date and Time settings","ቋን
 apps/frappe/frappe/model/document.py,none of,ምንም
 DocType: Desktop Icon,Page,ገጽ
 DocType: Workflow State,plus-sign,ተጨማሪ-ምልክት
+apps/frappe/frappe/public/js/frappe/ui/keyboard.js,Clear Cache and Reload,መሸጎጫ እና ድጋሚ አስቀምጥ
 apps/frappe/frappe/core/doctype/user/user.py,Cannot Update: Incorrect / Expired Link.,ማዘመን አይችልም: ትክክል ያልሆነ / ጊዜው ያለፈበት አገናኝ.
 DocType: Kanban Board Column,Yellow,ቢጫ
 DocType: Customize Form Field,Number of columns for a field in a Grid (Total Columns in a grid should be less than 11),በፍርግርግ ውስጥ ለመስክ ለምደባ መስመሮች ብዛት (በጠቅላላው ዓምድ ውስጥ ያሉት ጠቅላላ አምዶች ከ 11 ያነሱ መሆን አለባቸው)
@@ -3588,6 +3638,7 @@ apps/frappe/frappe/public/js/frappe/list/list_sidebar.html,New Kanban Board,ኒ 
 DocType: Activity Log,Date,ቀን
 DocType: Communication,Communication Type,የግንኙነት አይነት
 apps/frappe/frappe/core/doctype/data_import/importer.py,Parent Table,ወላጅ ሰንጠረዥ
+apps/frappe/frappe/public/js/frappe/list/list_view.js,Navigate list up,ዝርዝር ወደላይ አስስ
 DocType: System Settings,Show Full Error and Allow Reporting of Issues to the Developer,ሙሉ ስህተቶችን አሳይ እና ችግሮችን ለገንቢ ሪፖርት ይፍቀዱ
 DocType: Customize Form Field,"This field will appear only if the fieldname defined here has value OR the rules are true (examples): 
 myfield
@@ -3609,7 +3660,6 @@ DocType: Notification Recipient,Email By Role,በኢሜይል በኢሜይል
 apps/frappe/frappe/email/doctype/email_group/email_group.py,Please Upgrade to add more than {0} subscribers,ከ {0} ተመዝጋቢዎች በላይ ለማከል እባክዎ ያሻሽሉ
 apps/frappe/frappe/email/queue.py,This email was sent to {0},ይህ ኢሜይል ወደ {0} ተልኳል
 DocType: User,Represents a User in the system.,በስርዓቱ ውስጥ ተጠቃሚን ይወክላል.
-apps/frappe/frappe/website/doctype/web_form/templates/web_form.html,Page {0},ገጽ {0}
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js,Start new Format,አዲስ ቅርጸት ይጀምሩ
 apps/frappe/frappe/public/js/frappe/form/controls/comment.js,Add a comment,አስተያየት አክል
 apps/frappe/frappe/public/js/frappe/list/list_view.js,{0} of {1},{0} of {1}

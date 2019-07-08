@@ -384,7 +384,7 @@ class DocType(Document):
 					os.path.join(new_path, fname.replace(frappe.scrub(old), frappe.scrub(new)))])
 
 		self.rename_inside_controller(new, old, new_path)
-		frappe.msgprint('Renamed files and replaced code in controllers, please check!')
+		frappe.msgprint(_('Renamed files and replaced code in controllers, please check!'))
 
 	def rename_inside_controller(self, new, old, new_path):
 		for fname in ('{}.js', '{}.py', '{}_list.js', '{}_calendar.js', 'test_{}.py', 'test_{}.js'):

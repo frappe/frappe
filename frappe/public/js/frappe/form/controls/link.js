@@ -125,7 +125,7 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 				if(!d.label) {	d.label = d.value; }
 
 				var _label = (me.translate_values) ? __(d.label) : d.label;
-				var html = "<strong>" + _label + "</strong>";
+				var html = d.html || "<strong>" + _label + "</strong>";
 				if(d.description && d.value!==d.description) {
 					html += '<br><span class="small">' + __(d.description) + '</span>';
 				}
@@ -174,32 +174,12 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 
 					// show filter description in awesomplete
 					if (args.filters) {
-						let filter_string = [];
-
-						if (Array.isArray(args.filters)) {
-							let filters = args.filters;
-
-							filters.forEach((filter) => {
-								filter_string.push(`<b>${frappe.model.unscrub(filter[1])}</b> ${filter[2]} <b>${filter[3]}</b>`);
-							});
-						} else {
-							for (let [key, value] of Object.entries(args.filters)) {
-								if (Array.isArray(value) && value[1]) {
-									filter_string.push(`<b>${frappe.model.unscrub(key)}</b> ${value[0]} <b>${value[1]}</b>`);
-								} else if (value) {
-									filter_string.push(`<b>${frappe.model.unscrub(key)}</b> as <b>${value}</b>`);
-								}
-							}
-						}
-
-						if (filter_string.length > 0) {
-							filter_string = "Filters applied for " + filter_string.join(", ");
-
+						let filter_string = me.get_filter_description(args.filters);
+						if (filter_string) {
 							r.results.push({
-								label: "<span class='text-muted disable-select' style='line-height: 20px;'>"
-									+ __("{0}", [filter_string])
-									+ "</span>",
-								value: ""
+								html: `<span class="text-muted">${filter_string}</span>`,
+								value: '',
+								action: () => {}
 							});
 						}
 					}
@@ -234,7 +214,7 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 					me.awesomplete.list = me.$input.cache[doctype][term];
 				}
 			});
-		}, 618));
+		}, 500));
 
 		this.$input.on("blur", function() {
 			if(me.selected) {
@@ -250,8 +230,6 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 		this.$input.on("awesomplete-open", function() {
 			me.$wrapper.css({"z-index": 100});
 			me.$wrapper.find('ul').css({"z-index": 100});
-			me.$wrapper.find('.disable-select').parents('li').css({"pointer-events": "none"});
-			me.$wrapper.find('.disable-select').unwrap();
 			me.autocomplete_open = true;
 		});
 
@@ -297,6 +275,58 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 			}
 		});
 	},
+
+	get_filter_description(filters) {
+		let doctype = this.get_options();
+		let filter_array = [];
+		let meta = null;
+
+		frappe.model.with_doctype(doctype, () => {
+			meta = frappe.get_meta(doctype);
+		});
+
+		// convert object style to array
+		if (!Array.isArray(filters)) {
+			for (let fieldname in filters) {
+				let value = filters[fieldname];
+				if (!Array.isArray(value)) {
+					value = ['=', value];
+				}
+				filter_array.push([fieldname, ...value]); // fieldname, operator, value
+			}
+		} else {
+			filter_array = filters;
+		}
+
+		// add doctype if missing
+		filter_array = filter_array.map(filter => {
+			if (filter.length === 3) {
+				return [doctype, ...filter]; // doctype, fieldname, operator, value
+			}
+			return filter;
+		});
+
+		function get_filter_description(filter) {
+			let doctype = filter[0];
+			let fieldname = filter[1];
+			let label = meta
+				? frappe.meta.get_docfield(doctype, fieldname).label
+				: frappe.model.unscrub(fieldname);
+
+			let value = filter[3] == null || filter[3] === ''
+				? __('empty')
+				: String(filter[3]);
+
+			return [__(label).bold(), filter[2], value.bold()].join(' ');
+		}
+
+		let filter_string = filter_array
+			.map(get_filter_description)
+			.join(', ');
+
+		return __('Filters applied for {0}', [filter_string]);
+	},
+
 	set_custom_query: function(args) {
 		var set_nulls = function(obj) {
 			$.each(obj, function(key, value) {

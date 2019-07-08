@@ -4,6 +4,7 @@
 
 from __future__ import unicode_literals
 import frappe, json
+from frappe import _
 from frappe.core.page.dashboard.dashboard import cache_source, get_from_date_from_timespan
 from frappe.utils import nowdate, add_to_date, getdate, get_last_day, formatdate
 from frappe.model.document import Document
@@ -199,6 +200,6 @@ class DashboardChart(Document):
 
 	def check_required_field(self):
 		if not self.based_on:
-			frappe.throw("Time series based on is required to create a dashboard chart")
+			frappe.throw(_("Time series based on is required to create a dashboard chart"))
 		if not self.document_type:
-			frappe.throw("Document type is required to create a dashboard chart")
+			frappe.throw(_("Document type is required to create a dashboard chart"))
