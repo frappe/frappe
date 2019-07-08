@@ -16,6 +16,8 @@ install:
   - nvm install 10
 
   - pip install python-coveralls
+    # needed to install for ldap testing
+  - pip install ldap3
 
   - wget https://raw.githubusercontent.com/frappe/bench/master/playbooks/install.py
 
@@ -30,6 +32,7 @@ before_script:
   - mysql -u root -ptravis -e 'create database test_frappe'
   - echo "USE mysql;\nCREATE USER 'test_frappe'@'localhost' IDENTIFIED BY 'test_frappe';\nFLUSH PRIVILEGES;\n" | mysql -u root -ptravis
   - echo "USE mysql;\nGRANT ALL PRIVILEGES ON \`test_frappe\`.* TO 'test_frappe'@'localhost';\n" | mysql -u root -ptravis
+
 
 
   - cd ~/frappe-bench
