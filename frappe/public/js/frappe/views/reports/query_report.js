@@ -889,11 +889,16 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				options: ['Excel', 'CSV'],
 				default: 'Excel',
 				reqd: 1
+			},
+			{
+				label: __("Include indentation"),
+				fieldname: "include_indentation",
+				fieldtype: "Check",
 			}
-		], ({ file_format }) => {
+		], ({ file_format, include_indentation }) => {
 			if (file_format === 'CSV') {
 				const column_row = this.columns.map(col => col.label);
-				const data = this.get_data_for_csv();
+				const data = this.get_data_for_csv(include_indentation);
 				const out = [column_row].concat(data);
 
 				frappe.tools.downloadify(out, null, this.report_name);
@@ -914,6 +919,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 					file_format_type: file_format,
 					filters: filters,
 					visible_idx,
+					include_indentation,
 				};
 
 				open_url_post(frappe.request.url, args);
@@ -921,7 +927,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		}, __('Export Report: '+ this.report_name), __('Download'));
 	}
 
-	get_data_for_csv() {
+	get_data_for_csv(include_indentation) {
 		const indices = this.datatable.bodyRenderer.visibleRowIndices;
 		const rows = indices.map(i => this.datatable.datamanager.getRow(i));
 		return rows.map(row => {
@@ -929,8 +935,8 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			return row
 				.slice(standard_column_count)
 				.map((cell, i) => {
-					if (i === 0) {
-						return '   '.repeat(row.meta.indent) + (cell.content || '');
+					if (include_indentation === 1 && i===0) {
+						cell.content = '   '.repeat(row.meta.indent) + (cell.content || '');
 					}
 					return cell.content || '';
 				});
