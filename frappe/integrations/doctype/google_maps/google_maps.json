@@ -1,5 +1,5 @@
 {
- "autoname": "format:GM-{entity}",
+ "autoname": "format:Maps-{entity}",
  "creation": "2019-06-29 13:03:45.935466",
  "doctype": "DocType",
  "editable_grid": 1,
@@ -7,18 +7,11 @@
  "field_order": [
   "enable",
   "sb_00",
-  "entity_type",
-  "address",
+  "driver",
   "cb_00",
-  "entity"
+  "address"
  ],
  "fields": [
-  {
-   "fieldname": "entity_type",
-   "fieldtype": "Select",
-   "label": "Entity Type",
-   "options": "Driver"
-  },
   {
    "fieldname": "address",
    "fieldtype": "Link",
@@ -28,12 +21,6 @@
   {
    "fieldname": "cb_00",
    "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "entity",
-   "fieldtype": "Dynamic Link",
-   "label": "Entity",
-   "options": "entity_type"
   },
   {
    "depends_on": "eval: doc.enable",
@@ -47,9 +34,15 @@
    "fieldname": "enable",
    "fieldtype": "Check",
    "label": "Enable"
+  },
+  {
+   "fieldname": "driver",
+   "fieldtype": "Link",
+   "label": "Driver",
+   "options": "Driver"
   }
  ],
- "modified": "2019-06-29 22:12:37.531852",
+ "modified": "2019-07-08 20:20:12.885960",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Google Maps",
