@@ -16,8 +16,7 @@ install:
   - nvm install 10
 
   - pip install python-coveralls
-    # needed to install for ldap testing
-  - pip install ldap3
+
 
   - wget https://raw.githubusercontent.com/frappe/bench/master/playbooks/install.py
 
@@ -36,6 +35,7 @@ before_script:
 
 
   - cd ~/frappe-bench
+  - ./env/bin/pip3 install ldap3
   - bench use test_site
   - bench reinstall --yes
   - bench scheduler disable
