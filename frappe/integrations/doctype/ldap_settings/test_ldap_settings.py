@@ -32,7 +32,9 @@ class NonCommittingTestCase(unittest.TestCase):
 		pass
 
 	def setUp(self):
-		frappe.connect(site=os.environ.get("site"))
+		if not frappe.db:
+			frappe.connect(site=os.environ.get("site"))
+
 		# monkey patch the commit, so that records do not get saved to the database.
 		frappe.db.commit = self.non_commit
 		# create a new transaction for each test, so that we can maintain state.
@@ -81,6 +83,7 @@ class TestLDAPSettings(NonCommittingTestCase):
 			settings.save()
 		self.assertEqual("LDAP Search String needs to end with a placeholder, eg sAMAccountName={0}",
 			                 str(cm.exception))
+
 
 	def test_validation_enabling_ldap_must_try_to_connect_to_ldap(self):
 		with patch("frappe.integrations.doctype.ldap_settings.ldap_settings.LDAPSettings.connect_to_ldap") as mocked_connect_to_ldap:
