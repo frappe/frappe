@@ -1239,11 +1239,12 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			});
 			actions.map(item => {
 				const $item = me.page.add_actions_menu_item(item.action, 
-					() => {frappe.xcall('frappe.model.workflow.bulk_workflow_approval', {
-						docnames: me.get_checked_items(true),
-						doctype: me.doctype,
-						action: item.action,
-						transition: item.transition
+					() => {
+						frappe.xcall('frappe.model.workflow.bulk_workflow_approval', {
+							docnames: me.get_checked_items(true),
+							doctype: me.doctype,
+							action: item.action,
+							transition: item.transition
 						});
 					},
 					true);			
