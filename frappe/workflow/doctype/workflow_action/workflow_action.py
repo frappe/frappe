@@ -10,7 +10,7 @@ from frappe.desk.form.utils import get_pdf_link
 from frappe.utils.verified_command import get_signed_params, verify_request
 from frappe import _
 from frappe.model.workflow import apply_workflow, get_workflow, get_transitions,\
-	has_approval_access, get_workflow_state_field, send_email_alert, get_workflow_field_value
+	has_approval_access, get_workflow_state_field, send_email_alert
 from frappe.desk.notifications import clear_doctype_notifications
 from frappe.utils.user import get_users_with_role
 
@@ -52,7 +52,7 @@ def create_workflow_actions(workflow, doc, user = None, possible_actions=None, a
 	next_possible_transitions = get_transitions(doc)
 
 	if not next_possible_transitions:
-		current_state = doc.get(workflow.workflow_state_field)		
+		current_state = doc.get(workflow.workflow_state_field)
 		user = user or frappe.session.user
 		if hasattr(doc,'workflow_action') and doc.workflow_action == 'Reject':
 			user = doc.owner
@@ -68,11 +68,11 @@ def create_workflow_actions(workflow, doc, user = None, possible_actions=None, a
 
 	user_data_map = get_users_next_action_data(next_possible_transitions, doc, user)
 
-	if not user_data_map: 
+	if not user_data_map:
 		frappe.throw(_('Can not determine next user per workflow definion'))
 		return
 
-	create_workflow_actions_for_users(user_data_map, doc, actions=possible_actions, 
+	create_workflow_actions_for_users(user_data_map, doc, actions=possible_actions,
 		action_source= action_source, previous_user=previous_user, comment=comment)
 
 	if send_email_alert(workflow.name):
@@ -173,12 +173,12 @@ def get_users_next_action_data(transitions, doc, user =None):
 				if '.' in transition.doc_field:
 					parent_field, sub_field = transition.doc_field.split('.')
 					users = [child.get(sub_field) for child in doc.get(parent_field)]
-				else: 
+				else:
 					user = doc.get(transition.doc_field)
 					if not user:
 						continue
 					else:
-						users = doc.get(transition.doc_field).split(';')				
+						users = doc.get(transition.doc_field).split(';')
 			elif  transition.assign_user_mode == 'User From Workflow':
 				users = transition.user.split(';')
 			elif transition.assign_user_mode in ['Role From Doc Field','Role From Workflow']:
@@ -211,19 +211,19 @@ def get_users_next_action_data(transitions, doc, user =None):
 
 
 def create_workflow_actions_for_users(users, doc, actions=None, action_source=None, previous_user=None, comment=None):
-	def get_delegate(type, user):
+	def get_delegate(delegate_type, user):
 		cur_time = datetime.datetime.now()
-		filters={'type':type, 
-		              'delegator': user, 
+		filters={'type':delegate_type,
+		              'delegator': user,
 		              'valid_from': ('<', cur_time), 'valid_to': ('>', cur_time),
 		              'active':1}
-		delegatee = frappe.get_list('Delegation', filters = filters,fields='delegatee', 
+		delegatee = frappe.get_list('Delegation', filters = filters,fields='delegatee',
 						ignore_permissions=True, as_list=1)
-		if delegatee:			
-			return delegatee[0][0]	
+		if delegatee:
+			return delegatee[0][0]
 	for user, v in users.items():
 		if not user:
-			continue		
+			continue
 		agent = get_delegate('Pre-Check', user)
 		if agent:
 			previous_user , action_source, user = user, 'Pre-Check', agent
@@ -335,7 +335,7 @@ def get_common_email_args(doc):
 		subject = frappe.render_template(email_template.subject, vars(doc))
 		response = frappe.render_template(email_template.response, vars(doc))
 	else:
-		
+
 		response = _('{0}: {1}'.format(doctype, docname))
 		subject = '% required for %s' %(_('Workflow Action'), response)
 	common_args = {
