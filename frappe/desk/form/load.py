@@ -101,7 +101,7 @@ def get_docinfo(doc=None, doctype=None, name=None):
 		"energy_point_logs": get_point_logs(doc.doctype, doc.name),
 		"milestones": get_milestones(doc.doctype, doc.name),
 		"is_document_followed": is_document_followed(doc.doctype, doc.name, frappe.session.user),
-		"workflow": frappe.model.workflow.get_workflow(doc) or {}		
+		"workflow": frappe.model.workflow.get_workflow(doc) or {}
 	}
 
 def get_milestones(doctype, name):
