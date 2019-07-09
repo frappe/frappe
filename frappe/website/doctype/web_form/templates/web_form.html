@@ -84,7 +84,7 @@ $(".file-size").each(function() {
 	$(this).text(frappe.form.formatters.FileSize($(this).text()));
 });
 </script>
-
+<script type="text/javascript" src="/assets/js/control.min.js"></script>
 {% if is_list %}
 {# web form list #}
 <script type="text/javascript" src="/assets/js/moment-bundle.min.js"></script>
@@ -94,7 +94,6 @@ $(".file-size").each(function() {
 {% else %}
 {# web form #}
 <script type="text/javascript" src="/assets/js/dialog.min.js"></script>
-<script type="text/javascript" src="/assets/js/control.min.js"></script>
 <script type="text/javascript" src="/assets/js/moment-bundle.min.js"></script>
 <script type="text/javascript" src="/assets/frappe/node_modules/vue/dist/vue.js"></script>
 <script>
