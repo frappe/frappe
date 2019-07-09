@@ -12,6 +12,8 @@ import sys
 import ldap3
 import ssl
 
+TEST_EMAIL = 'billy@test.com'
+
 
 def set_dummy_ldap_settings(settings):
 	settings.ldap_server_url = "ldap://whatever.whatever:389"
@@ -27,25 +29,7 @@ def set_dummy_ldap_settings(settings):
 
 
 
-class NonCommittingTestCase(unittest.TestCase):
-	def non_commit(self):
-		pass
-
-	def setUp(self):
-		if not frappe.db:
-			frappe.connect(site=os.environ.get("site"))
-
-		# monkey patch the commit, so that records do not get saved to the database.
-		frappe.db.commit = self.non_commit
-		# create a new transaction for each test, so that we can maintain state.
-		frappe.db.begin()
-
-	def tearDown(self):
-		# rollback any changes that may have affected the database
-		frappe.db.rollback()
-
-
-class TestNoLDAP3ModuleTests(NonCommittingTestCase):
+class TestNoLDAP3ModuleTests(unittest.TestCase):
 	def setUp(self):
 		super().setUp()
 		self.tmpldap = sys.modules['ldap3']
@@ -65,14 +49,20 @@ class TestNoLDAP3ModuleTests(NonCommittingTestCase):
 
 
 
-class TestLDAPSettings(NonCommittingTestCase):
+class TestLDAPSettings(unittest.TestCase):
 
 	def setUp(self):
-		super().setUp()
+		pass
 
 
 	def tearDown(self):
-		super().tearDown()
+		settings = get_doc("LDAP Settings")
+		if settings:
+			settings.delete()
+
+
+
+
 
 
 	def test_validation_ldap_search_string_needs_to_contain_a_placeholder_for_format(self):
@@ -187,7 +177,7 @@ class TestLDAPSettings(NonCommittingTestCase):
 	def test_authenticating_ldap_user_creates_user_if_not_in_database(self):
 		with patch(
 				"frappe.integrations.doctype.ldap_settings.ldap_settings.LDAPSettings.connect_to_ldap") as mm_conn_ldap:
-			new_user_email = 'billy@test.com'
+			new_user_email = TEST_EMAIL
 			new_user_first_name = 'Billy'
 			new_user_username = 'bill'
 
@@ -240,7 +230,7 @@ class TestLDAPSettings(NonCommittingTestCase):
 	def test_authenticating_ldap_user_with_no_group_field_creates_user_if_not_in_database(self):
 		with patch(
 				"frappe.integrations.doctype.ldap_settings.ldap_settings.LDAPSettings.connect_to_ldap") as mm_conn_ldap:
-			new_user_email = 'billy@test.com'
+			new_user_email = TEST_EMAIL
 			new_user_first_name = 'Billy'
 			new_user_username = 'bill'
 
@@ -393,7 +383,7 @@ class TestLDAPSettings(NonCommittingTestCase):
 	def test_authenticating_ldap_user_updates_user_if_in_database(self):
 		with patch(
 				"frappe.integrations.doctype.ldap_settings.ldap_settings.LDAPSettings.connect_to_ldap") as mm_conn_ldap:
-			new_user_email = 'billy@test.com'
+			new_user_email = TEST_EMAIL
 			new_user_first_name = 'Billy'
 			new_user_username = 'bill'
 
