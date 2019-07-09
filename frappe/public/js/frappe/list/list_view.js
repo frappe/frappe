@@ -119,7 +119,6 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 	set_actions_menu_items() {
 		this.actions_menu_items = this.get_actions_menu_items();
-		this.workflow_action_menu_items = this.get_workflow_action_menu_items();
 		this.workflow_action_items = {};
 
 		const actions = this.actions_menu_items.concat(this.workflow_action_menu_items);
@@ -1227,40 +1226,32 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		});
 	}
 
-	get_workflow_action_menu_items() {
-		const workflow_actions = [];
-		if (frappe.model.has_workflow(this.doctype)) {
-			const actions = frappe.workflow.get_all_transition_actions(this.doctype);
-			actions.forEach(action => {
-				workflow_actions.push({
-					label: __(action),
-					name: action,
-					action: () => {
-						frappe.xcall('frappe.model.workflow.bulk_workflow_approval', {
-							docnames: this.get_checked_items(true),
-							doctype: this.doctype,
-							action: action
-						});
-					},
-					is_workflow_action: true
-				});
-			});
-		}
-		return workflow_actions;
-	}
 
 	toggle_workflow_actions() {
-		if (!frappe.model.has_workflow(this.doctype)) return;
 		const checked_items = this.get_checked_items();
+		var me=this;
 		frappe.xcall('frappe.model.workflow.get_common_transition_actions', {
 			docs: checked_items,
 			doctype: this.doctype
 		}).then(actions => {
-			Object.keys(this.workflow_action_items).forEach((key) => {
-				this.workflow_action_items[key].toggle(actions.includes(key));
+			me.workflow_action_items  && Object.keys(me.workflow_action_items).forEach((key) => {
+				me.workflow_action_items[key].remove();
+			});
+			actions.map(item => {
+				const $item = me.page.add_actions_menu_item(item.action, 
+					() => {frappe.xcall('frappe.model.workflow.bulk_workflow_approval', {
+						docnames: me.get_checked_items(true),
+						doctype: me.doctype,
+						action: item.action,
+						transition: item.transition
+						});
+					},
+					true);			
+				me.workflow_action_items[item.transition] = $item;			
 			});
 		});
 	}
+
 
 	get_actions_menu_items() {
 		const doctype = this.doctype;
