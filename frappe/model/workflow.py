@@ -240,9 +240,6 @@ def validate_workflow(doc):
 			frappe.throw(_('Workflow State transition not allowed from {0} to {1}').format(bold_current, bold_next),
 				WorkflowPermissionError)
 
-def get_workflow(doctype):
-	return frappe.get_doc('Workflow', get_workflow_name(doctype))
-
 def has_approval_access(user, doc, transition):
 	return (user == 'Administrator'
 		or transition.get('allow_self_approval')
@@ -280,7 +277,6 @@ def bulk_workflow_approval(docnames, doctype, action, transition):
 
 @frappe.whitelist()
 def get_common_transition_actions(docs, doctype):
-	common_actions = []
 	if isinstance(docs, string_types):
 		docs = json.loads(docs)
 	try:
