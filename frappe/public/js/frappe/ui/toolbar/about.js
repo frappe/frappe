@@ -26,6 +26,8 @@ frappe.ui.misc.about = function() {
 						show_versions(r.message);
 					}
 				})
+			} else {
+				show_versions(frappe.versions);
 			}
 		};
 
