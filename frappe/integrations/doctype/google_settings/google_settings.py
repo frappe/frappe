@@ -10,5 +10,5 @@ from frappe.model.document import Document
 class GoogleSettings(Document):
 
 	def validate(self):
-		if (self.client_id and not self.client_secret) or (not self.client_id and self.client_secret):
+		if not (self.client_id and self.client_secret):
 			frappe.throw(_("Set Client ID and Client Secret for Google Integrations."))
