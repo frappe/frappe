@@ -13,7 +13,7 @@ from six import iteritems, string_types
 from werkzeug.exceptions import NotFound, Forbidden
 import hashlib, json
 from frappe.model import optional_fields, table_fields
-from frappe.model.workflow import validate_workflow
+from frappe.model.workflow import validate_workflow, get_workflow
 from frappe.utils.global_search import update_global_search
 from frappe.integrations.doctype.webhook import run_webhooks
 from frappe.desk.form.document_follow import follow_document
@@ -228,6 +228,11 @@ class Document(BaseDocument):
 		self.run_before_save_methods()
 		self._validate()
 		self.set_docstatus()
+		if hasattr(self, 'workflow_def'):
+			workflow = get_workflow(self)
+			if workflow:
+				self.workflow_def = workflow.name
+		
 		self.flags.in_insert = False
 
 		# follow document on document creation
@@ -481,8 +486,9 @@ class Document(BaseDocument):
 	def validate_workflow(self):
 		'''Validate if the workflow transition is valid'''
 		if frappe.flags.in_install == 'frappe': return
-		if self.meta.get_workflow():
+		if get_workflow(self):
 			validate_workflow(self)
+
 
 	def validate_set_only_once(self):
 		'''Validate that fields are not changed if not in insert'''
