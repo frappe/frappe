@@ -69,7 +69,7 @@ def get_oauth2_authorize_url(provider, redirect_to):
 	# relative to absolute url
 	data = {
 		"redirect_uri": get_redirect_uri(provider),
-		"state": base64.b64encode(bytes(json.dumps(state)).encode("utf-8"))
+		"state": base64.b64encode(bytes(json.dumps(state).encode("utf-8")))
 	}
 
 	oauth2_providers = get_oauth2_providers()
