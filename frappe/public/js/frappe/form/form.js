@@ -70,7 +70,7 @@ frappe.ui.form.Form = class FrappeForm {
 	setup() {
 		this.fields = [];
 		this.fields_dict = {};
-		this.state_fieldname = frappe.workflow.get_state_fieldname(this.doctype);
+		this.state_fieldname = frappe.workflow.get_state_fieldname(this.doc);
 
 		// wrapper
 		this.wrapper = this.parent;
@@ -269,7 +269,7 @@ frappe.ui.form.Form = class FrappeForm {
 			}
 
 			// read only (workflow)
-			this.read_only = frappe.workflow.is_read_only(this.doctype, this.docname);
+			this.read_only = frappe.workflow.is_read_only(this.doc);
 			if (this.read_only) this.set_read_only(true);
 
 			// check if doctype is already open
@@ -663,8 +663,8 @@ frappe.ui.form.Form = class FrappeForm {
 		// Allow submit, write, cancel and create permissions for read only documents that are assigned by
 		// workflows if the user already have those permissions. This is to allow for users to
 		// continue through the workflow states and to allow execution of functions like Duplicate.
-		if ((frappe.workflow.is_read_only(this.doctype, this.docname) && (perms["write"] ||
-			perms["create"] || perms["submit"] || perms["cancel"])) || !frappe.workflow.is_read_only(this.doctype, this.docname)) {
+		if ((frappe.workflow.is_read_only(this.doc) && (perms["write"] ||
+			perms["create"] || perms["submit"] || perms["cancel"])) || !frappe.workflow.is_read_only(this.doc)) {
 			allowed_for_workflow = true;
 		}
 
@@ -730,7 +730,7 @@ frappe.ui.form.Form = class FrappeForm {
 			&& this.perm[0] && this.perm[0].submit
 			&& !this.is_dirty()
 			&& !this.is_new()
-			&& !frappe.model.has_workflow(this.doctype) // show only if no workflow
+			&& !this.doc.workflow_def // show only if no workflow		   
 			&& this.doc.docstatus===0) {
 			this.dashboard.add_comment(__('Submit this document to confirm'), 'blue', true);
 		}
