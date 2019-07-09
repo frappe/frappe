@@ -232,7 +232,7 @@ class Document(BaseDocument):
 			workflow = get_workflow(self)
 			if workflow:
 				self.workflow_def = workflow.name
-		
+
 		self.flags.in_insert = False
 
 		# follow document on document creation
