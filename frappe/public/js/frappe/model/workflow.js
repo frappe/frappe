@@ -40,13 +40,13 @@ frappe.workflow = {
 		if(state_fieldname) {
 			//var doc = locals[doctype][name];
 			var state = doc[state_fieldname] || this.get_default_state(doc, doc.docstatus);
-			var filters={'status':['!=','Completed'],'reference_doctype':doc.doctype,'reference_name':doc.name,'user':frappe.session.user}
+			var filters={'status':['!=','Completed'],'reference_doctype':doc.doctype,'reference_name':doc.name,'user':frappe.session.user};
 			return frappe.db.get_value('Workflow Action',filters,'user').then((r) => {
 				var allow_edit = state ? this.get_document_state(doc, state) && this.get_document_state(doc, state).allow_edit : null;			
 				if((!frappe.user_roles.includes(allow_edit)) || (!r.message)) {
 					return true;
 				}	
-			})			
+			});			
 		}
 		return false;
 	},
