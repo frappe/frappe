@@ -11,6 +11,16 @@ frappe.breadcrumbs = {
 		"Dashboard Chart Source": "Customization",
 	},
 
+	module_map: {
+		'Core': 'Settings',
+		'Email': 'Settings',
+		'Custom': 'Settings',
+		'Workflow': 'Settings',
+		'Printing': 'Settings',
+		'Automation': 'Settings',
+		'Setup': 'Settings',
+	},
+
 	set_doctype_module: function(doctype, module) {
 		localStorage["preferred_breadcrumbs:" + doctype] = module;
 	},
@@ -73,8 +83,8 @@ frappe.breadcrumbs = {
 		}
 
 		if(breadcrumbs.module) {
-			if(in_list(["Core", "Email", "Custom", "Workflow", "Print"], breadcrumbs.module)) {
-				breadcrumbs.module = "Setup";
+			if (frappe.breadcrumbs.module_map[breadcrumbs.module]) {
+				breadcrumbs.module = frappe.breadcrumbs.module_map[breadcrumbs.module];
 			}
 
 			if(frappe.get_module(breadcrumbs.module)) {
