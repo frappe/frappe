@@ -29,7 +29,7 @@ frappe.ui.form.on('Auto Repeat', {
 
 	refresh: function(frm) {
 		//if document is not saved do not show schedule and document link
-		if(!frm.doc.__unsaved) {
+		if (!frm.is_dirty()) {
 			let label = __('View {0}', [__(frm.doc.reference_doctype)]);
 			frm.add_custom_button(__(label),
 				function() {

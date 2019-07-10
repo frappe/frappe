@@ -202,7 +202,7 @@ frappe.ui.form.Toolbar = Class.extend({
 	},
 	can_repeat: function() {
 		return this.frm.meta.allow_auto_repeat
-			&& !this.frm.doc.__islocal
+			&& !this.frm.is_new()
 			&& !this.frm.doc.auto_repeat;
 	},
 	can_save: function() {

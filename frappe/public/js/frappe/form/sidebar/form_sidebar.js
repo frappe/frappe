@@ -89,8 +89,8 @@ frappe.ui.form.Sidebar = Class.extend({
 		}
 	},
 
-	show_auto_repeat_status: function(){
-		if(this.frm.meta.allow_auto_repeat && this.frm.doc.auto_repeat){
+	show_auto_repeat_status: function() {
+		if (this.frm.meta.allow_auto_repeat && this.frm.doc.auto_repeat) {
 			const me = this;
 			frappe.call({
 				method: "frappe.client.get_value",
@@ -101,7 +101,7 @@ frappe.ui.form.Sidebar = Class.extend({
 					},
 					fieldname: ["frequency"]
 				},
-				callback: function(res){
+				callback: function(res) {
 					me.sidebar.find(".auto-repeat-status").html(__("Repeats {0}", [res.message.frequency]));
 					me.sidebar.find(".auto-repeat-status").on("click", function(){
 						frappe.set_route("Form", "Auto Repeat", me.frm.doc.auto_repeat);
