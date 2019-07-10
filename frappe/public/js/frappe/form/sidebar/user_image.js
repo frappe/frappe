@@ -68,6 +68,16 @@ frappe.ui.form.setup_user_image_event = function(frm) {
 		});
 	}
 
+	frm.sidebar.image_wrapper.on('click', ':not(.sidebar-image-actions)', (e) => {
+		let $target = $(e.currentTarget);
+		if ($target.is('a.dropdown-toggle, .dropdown')) {
+			return;
+		}
+		let dropdown = frm.sidebar.image_wrapper.find('.sidebar-image-actions .dropdown');
+		dropdown.toggleClass('open');
+		e.stopPropagation();
+	});
+
 	// bind click on image_wrapper
 	frm.sidebar.image_wrapper.on('click', '.sidebar-image-change, .sidebar-image-remove', function(e) {
 		let $target = $(e.currentTarget);
