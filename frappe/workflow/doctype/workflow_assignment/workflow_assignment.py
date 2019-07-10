@@ -27,7 +27,7 @@ class WorkflowAssignment(Document):
 					"fieldtype": "Link",
 					"options": options,
 					"owner": "Administrator"
-				}).save()		
+				}).save()
 			created_fields.append(field)
 
 		frappe.clear_cache(doctype=self.document_type)
