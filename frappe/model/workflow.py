@@ -141,7 +141,7 @@ def apply_workflow(doc, action, transition_name=None, possible_actions=None,
 
 	if not has_approval_access(user, doc, transition):
 		frappe.throw(_("Self approval is not allowed"))
-	
+
 	is_pre_check_action = action_source and action_source in ['Pre-Check', 'Add Additional Check']
 	if (transition.multi_user_action_mode == 'All' and other_user_open_action_count(doc, transition.state, user)>0) or \
                 (is_pre_check_action):
