@@ -231,8 +231,8 @@ def create_workflow_actions_for_users(users, doc, actions=None, action_source=No
 			agent = get_delegate('Delegate', user)
 			if agent:
 				previous_user, action_source, user = user, 'Delegate', agent
-		actions = actions or ';'.join(['%s:%s:%s' %(i['action_name'],i['transition'],i['allow_self_approval']) 
-						for i in v['possible_actions']])
+		actions = actions or ';'.join(['%s:%s:%s' %(i['action_name'],i['transition'],i['allow_self_approval'])
+						 for i in v['possible_actions']])
 		frappe.get_doc({
 			'doctype': 'Workflow Action',
 			'reference_doctype': doc.get('doctype'),
