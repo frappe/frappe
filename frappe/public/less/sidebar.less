@@ -126,9 +126,6 @@ body[data-route^="Module"] .main-menu {
 		}
 	}
 
-	.stat-link {
-		margin-bottom: 0.5em;
-	}
 
 	a.close {
 		position: absolute;
@@ -387,14 +384,25 @@ body[data-route^="Module"] .main-menu {
 }
 
 
-.sidebar-left .list-sidebar {
-	.stat-label,
-	.stat-no-records {
-		.sidebar-padding;
+.list-sidebar {
+	.list-sidebar-label {
+		color: @text-muted;
+		text-transform: uppercase;
+		margin-bottom: 0;
+		font-size: @text-small;
 	}
 
-	.stat-label {
-		margin-bottom: -10px;
+	.group-by-count {
+		position:relative
+	}
+
+	.group-by-dropdown, .list-stats-dropdown {
+		max-height: 300px;
+		overflow-y: auto;
+		max-width: 200px;
+	}
+	.dropdown-search {
+		padding: 8px;
 	}
 }
 
