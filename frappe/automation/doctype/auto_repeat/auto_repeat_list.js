@@ -5,7 +5,7 @@ frappe.listview_settings['Auto Repeat'] = {
 			"Active": "green",
 			"Disabled": "red",
 			"Completed": "blue",
-		}
+		};
 		return [__(doc.status), colors[doc.status], "status,=," + doc.status];
 	}
 };
