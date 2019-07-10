@@ -6,7 +6,7 @@ frappe.ui.form.on('Auto Repeat', {
 	setup: function(frm) {
 		frm.fields_dict['reference_doctype'].get_query = function() {
 			return {
-				query: "frappe.desk.doctype.auto_repeat.auto_repeat.get_auto_repeat_doctypes"
+				query: "frappe.automation.doctype.auto_repeat.auto_repeat.get_auto_repeat_doctypes"
 			};
 		};
 
@@ -57,7 +57,7 @@ frappe.ui.form.on('Auto Repeat', {
 
 	get_contacts: function(frm) {
 		frappe.call({
-			method: "frappe.desk.doctype.auto_repeat.auto_repeat.get_contacts",
+			method: "frappe.automation.doctype.auto_repeat.auto_repeat.get_contacts",
 			args: {
 				reference_doctype: frm.doc.reference_doctype,
 				reference_name: frm.doc.reference_document
@@ -74,7 +74,7 @@ frappe.ui.form.on('Auto Repeat', {
 	preview_message: function(frm) {
 		if (frm.doc.message) {
 			frappe.call({
-				method: "frappe.desk.doctype.auto_repeat.auto_repeat.generate_message_preview",
+				method: "frappe.automation.doctype.auto_repeat.auto_repeat.generate_message_preview",
 				args: {
 					reference_dt: frm.doc.reference_doctype,
 					reference_doc: frm.doc.reference_document,

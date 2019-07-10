@@ -289,7 +289,7 @@ frappe.utils.new_auto_repeat_prompt = function(frm) {
 	];
 	frappe.prompt(fields, function(values) {
 		frappe.call({
-			method: "frappe.desk.doctype.auto_repeat.auto_repeat.make_auto_repeat",
+			method: "frappe.automation.doctype.auto_repeat.auto_repeat.make_auto_repeat",
 			args: {
 				'doctype': frm.doc.doctype,
 				'docname': frm.doc.name,

@@ -7,7 +7,7 @@ import unittest
 
 import frappe
 from frappe.custom.doctype.custom_field.custom_field import create_custom_field
-from frappe.desk.doctype.auto_repeat.auto_repeat import get_auto_repeat_entries, create_repeated_entries, disable_auto_repeat
+from frappe.automation.doctype.auto_repeat.auto_repeat import get_auto_repeat_entries, create_repeated_entries, disable_auto_repeat
 from frappe.utils import today, add_days, getdate, add_months
 
 

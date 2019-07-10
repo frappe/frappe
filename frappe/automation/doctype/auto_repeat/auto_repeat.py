@@ -165,7 +165,7 @@ def get_next_schedule_date(start_date, frequency, repeat_on_day, end_date = None
 	return next_date
 
 def make_auto_repeat_entry(date=None):
-	enqueued_method = 'frappe.desk.doctype.auto_repeat.auto_repeat.create_repeated_entries'
+	enqueued_method = 'frappe.automation.doctype.auto_repeat.auto_repeat.create_repeated_entries'
 	jobs = get_jobs()
 
 	if not jobs or enqueued_method not in jobs[frappe.local.site]:
