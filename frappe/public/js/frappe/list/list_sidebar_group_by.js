@@ -80,8 +80,8 @@ frappe.views.ListGroupBy = class ListGroupBy {
 		this.$wrapper.on('click', '.group-by-field', (e)=> {
 			let dropdown = $(e.currentTarget).find('.group-by-dropdown');
 			let fieldname = $(e.currentTarget).find('a').attr('data-fieldname');
-			this.get_group_by_count(fieldname).then((field_count_list)=> {
-				if(field_count_list.length) {
+			this.get_group_by_count(fieldname).then(field_count_list => {
+				if (field_count_list.length) {
 					this.render_dropdown_items(field_count_list, dropdown);
 					this.sidebar.setup_dropdown_search(dropdown, '.group-by-value');
 				} else {
@@ -110,39 +110,39 @@ frappe.views.ListGroupBy = class ListGroupBy {
 	}
 
 	get_group_by_count(field) {
-		let field_list = [];
 		let args =  {
 			doctype: this.doctype,
 			current_filters: this.list_view.get_filters_for_args(),
 			field: field,
 		};
-		return frappe.call('frappe.desk.listview.get_group_by_count', args).then((data) => {
-			if(field === 'assigned_to') {
-				let current_user  = data.message.find(user => user.name === frappe.session.user);
-				if(current_user) {
-					field_list = [{'name':'Me', 'count':current_user.count}];
-				}
-				field_list = field_list.concat(
-					data.message.filter(user => !['Guest', frappe.session.user, 'Administrator'].includes(user.name) && user.count!==0)
-				);
-			} else {
-				field_list = data.message.filter(field => field.count!==0);
+		return frappe.call('frappe.desk.listview.get_group_by_count', args).then((r) => {
+			let field_counts = r.message || [];
+			field_counts = field_counts.filter(f => f.count !== 0);
+			if (field === 'assigned_to') {
+				field_counts = field_counts.filter(f => !['Guest', 'Administrator'].includes(f.name));
 			}
-			return field_list;
+			return field_counts;
 		});
 	}
 
 	render_dropdown_items(fields, dropdown) {
 		let get_dropdown_html = (field) => {
-			let name = field.name === null ? 'Not Specified': field.name;
-			return `<li class="group-by-item"><a class="badge-hover" href="#" onclick="return false;">
-				<span class="group-by-value">${name} </span>
-				<span class="badge pull-right group-by-count"> ${field.count} </span>
-				</a></li>`;
+			let label = field.name == null ? __('Not Specified') : field.name;
+			if (label === frappe.session.user) {
+				label = __('Me');
+			}
+			let value = field.name == null ? '' : encodeURIComponent(field.name);
+
+			return `<li class="group-by-item" data-value="${value}">
+				<a class="badge-hover" href="#" onclick="return false;">
+					<span class="group-by-value">${label}</span>
+					<span class="badge pull-right group-by-count">${field.count}</span>
+				</a>
+			</li>`;
 		};
 		let standard_html = `
 			<div class="dropdown-search">
-				<input type="text" placeholder="Search" class="form-control dropdown-search-input input-xs">
+				<input type="text" placeholder="${__('Search')}" class="form-control dropdown-search-input input-xs">
 			</div>
 		`;
 		let dropdown_html = standard_html + fields.map(get_dropdown_html).join('');
@@ -150,17 +150,25 @@ frappe.views.ListGroupBy = class ListGroupBy {
 	}
 
 	setup_filter_by() {
-		this.$wrapper.on("click", ".group-by-item", (e) => {
-			let field = $(e.currentTarget).parents('.group-by-field').find('a').attr('data-fieldname');
-			let value = $(e.currentTarget).find($('.group-by-value')).text().trim();
-			let fieldname = field === 'assigned_to'? '_assign': field;
-			this.list_view.filter_area.remove(field);
-			if(value === 'Not Specified') {
-				this.list_view.filter_area.add(this.doctype, fieldname, "like", '');
-			} else {
-				if(value === 'Me') value = frappe.session.user;
-				this.list_view.filter_area.add(this.doctype, fieldname, "like", `%${value}%`);
+		this.$wrapper.on('click', '.group-by-item', (e) => {
+			let $target = $(e.currentTarget);
+			let fieldname = $target.parents('.group-by-field').find('a').data('fieldname');
+			let value = decodeURIComponent($target.data('value').trim());
+			fieldname = fieldname === 'assigned_to' ? '_assign': fieldname;
+
+			this.list_view.filter_area.remove(fieldname);
+
+			let operator = '=';
+			if (value === '') {
+				operator = 'is';
+				value = 'not set';
 			}
+			if (fieldname === '_assign') {
+				operator = 'like';
+				value = `%${value}%`;
+			}
+
+			this.list_view.filter_area.add(this.doctype, fieldname, operator, value);
 		});
 	}
 
