@@ -78,7 +78,7 @@ def get_transitions(doc, workflow = None, raise_exception=False):
 @frappe.whitelist()
 def get_user_actions(doc, workflow = None, user =None):
 	'''Return user possible actions'''
-	
+
 	doc = frappe.get_doc(frappe.parse_json(doc))
 	if not workflow:
 		workflow = get_workflow(doc)
