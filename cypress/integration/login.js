@@ -23,7 +23,7 @@ context('Login', () => {
 
 	it('logs in using correct credentials', () => {
 		cy.get('#login_email').type('Administrator');
-		cy.get('#login_password').type('qwer');
+		cy.get('#login_password').type(Cypress.config('adminPassword'));
 
 		cy.get('.btn-login').click();
 		cy.location('pathname').should('eq', '/desk');
@@ -32,7 +32,7 @@ context('Login', () => {
 
 	it('shows invalid login if incorrect credentials', () => {
 		cy.get('#login_email').type('Administrator');
-		cy.get('#login_password').type('admin');
+		cy.get('#login_password').type('qwer');
 
 		cy.get('.btn-login').click();
 		cy.get('.page-card-head').contains('Invalid Login. Try again.');
