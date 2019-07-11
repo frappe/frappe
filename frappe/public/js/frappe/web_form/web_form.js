@@ -44,6 +44,12 @@ export default class WebForm extends frappe.ui.FieldGroup {
 		else return;
 	}
 
+	set_default_values() {
+		let values = frappe.utils.get_query_params();
+		delete values.new;
+		this.set_values(values);
+	}
+
 	set_form_description(intro) {
 		let intro_wrapper = document.getElementById('introduction');
 		intro_wrapper.innerHTML = intro;
