@@ -239,11 +239,15 @@ def setup_source(page_info):
 
 	if page_info.template.endswith('.md'):
 		# extract frontmatter block if exists
-		# values will be used to update page_info
-		res = Frontmatter.read(source)
-		if res['attributes']:
-			page_info.update(res['attributes'])
-			source = res['body']
+		try:
+			# values will be used to update page_info
+			res = Frontmatter.read(source)
+			if res['attributes']:
+				page_info.update(res['attributes'])
+				source = res['body']
+		except Exception as e:
+			print('Error parsing ' + page_info.template)
+			print(e)
 
 		source = frappe.utils.md_to_html(source)
 
