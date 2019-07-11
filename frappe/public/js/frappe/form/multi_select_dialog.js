@@ -156,6 +156,7 @@ frappe.ui.form.MultiSelectDialog = Class.extend({
 			clearTimeout($this.data('timeout'));
 			$this.data('timeout', setTimeout(function() {
 				frappe.flags.auto_scroll = false;
+				me.empty_list();
 				me.get_results();
 			}, 300));
 		});
@@ -221,7 +222,7 @@ frappe.ui.form.MultiSelectDialog = Class.extend({
 		}
 
 		if(results.length === 0) {
-			this.$results.empty();
+			this.empty_list();
 			more_btn.hide();
 			return;
 		} else if(more) {
@@ -235,6 +236,10 @@ frappe.ui.form.MultiSelectDialog = Class.extend({
 		if (frappe.flags.auto_scroll) {
 			this.$results.animate({scrollTop: me.$results.prop('scrollHeight')}, 500);
 		}
+	},
+
+	empty_list: function() {
+		this.$results.find('.list-item-container').remove();
 	},
 
 	get_results: function() {
