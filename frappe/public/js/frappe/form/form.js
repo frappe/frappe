@@ -540,7 +540,9 @@ frappe.ui.form.Form = class FrappeForm {
 
 				me.script_manager.trigger("after_save");
 				// submit comment if entered
-				me.timeline.comment_area.submit();
+				if (me.timeline) {
+					me.timeline.comment_area.submit();
+				}
 				me.refresh();
 			} else {
 				if(on_error) {
