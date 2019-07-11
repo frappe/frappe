@@ -1,10 +1,6 @@
 context('Form', () => {
 	before(() => {
-<<<<<<< 2f0409571bf1fd8bee7deec61f9a13d543b48017
 		cy.login();
-=======
-		cy.login('Administrator', Cypress.config('adminPassword'));
->>>>>>> fix(tests): add tests for change handler
 		cy.visit('/desk');
 	});
 
@@ -21,7 +17,7 @@ context('Form', () => {
 	it.only('server side change handlers', () => {
 		cy.visit('/desk#Form/Event/New Event 1');
 		cy.fill_field('subject', 'test with handler', 'Data').blur();
-		cy.fill_field('starts_on', '01-01-2019 12:00:00', 'Datetime').blur();
+		cy.fill_field('starts_on', '2019-01-01 12:00:00', 'Datetime').blur();
 		cy.get_input('repeat_this_event').check({force: true});
 		cy.fill_field('repeat_on', 'Every Day', 'Select').blur();
 		cy.get_input('monday').should('be.checked');
