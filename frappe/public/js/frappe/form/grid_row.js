@@ -606,7 +606,7 @@ export default class GridRow {
 		}
 	}
 
-	get_visible_columns(blacklist) {
+	get_visible_columns(blacklist=[]) {
 		var me = this;
 		var visible_columns = $.map(this.docfields, function(df) {
 			var visible = !df.hidden && df.in_list_view && me.grid.frm.get_perm(df.permlevel, "read")
