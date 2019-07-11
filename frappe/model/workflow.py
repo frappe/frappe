@@ -119,7 +119,7 @@ def apply_workflow(doc, action, transition_name=None, possible_actions=None,
 		action_msg = 'Forwarded' if action =='Forward' else 'Requested Additional Check'
 		doc.add_comment('Workflow', _('%s by %s to %s' %(action_msg, user, next_user) ))
 		return doc
-	
+
 	if transition_name:
 		transition = frappe.get_doc('Workflow Transition', transition_name)
 	else:
