@@ -35,6 +35,20 @@ frappe.ui.form.MultiSelectDialog = Class.extend({
 		if(!this.date_field) {
 			this.date_field = "transaction_date";
 		}
+
+		// setters can be defined as a dict or a list of fields
+		// setters define the additional filters that get applied
+		// for selection
+
+		// CASE 1: DocType name and fieldname is the same, example "customer" and "customer"
+		// setters define the filters applied in the modal
+		// if the fieldnames and doctypes are consistently named,
+		// pass a dict with the setter key and value, for example
+		// {customer: [customer_name]}
+
+		// CASE 2: if the fieldname of the target is different,
+		// then pass a list of fields with appropriate fieldname
+
 		if($.isArray(this.setters)) {
 			for (let df of this.setters) {
 				fields.push(df, {fieldtype: "Column Break"});
@@ -142,6 +156,7 @@ frappe.ui.form.MultiSelectDialog = Class.extend({
 			clearTimeout($this.data('timeout'));
 			$this.data('timeout', setTimeout(function() {
 				frappe.flags.auto_scroll = false;
+				me.empty_list();
 				me.get_results();
 			}, 300));
 		});
@@ -207,7 +222,7 @@ frappe.ui.form.MultiSelectDialog = Class.extend({
 		}
 
 		if(results.length === 0) {
-			this.$results.empty();
+			this.empty_list();
 			more_btn.hide();
 			return;
 		} else if(more) {
@@ -221,6 +236,10 @@ frappe.ui.form.MultiSelectDialog = Class.extend({
 		if (frappe.flags.auto_scroll) {
 			this.$results.animate({scrollTop: me.$results.prop('scrollHeight')}, 500);
 		}
+	},
+
+	empty_list: function() {
+		this.$results.find('.list-item-container').remove();
 	},
 
 	get_results: function() {
