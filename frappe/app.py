@@ -25,6 +25,7 @@ from frappe.utils.error import make_error_snapshot
 from frappe.core.doctype.comment.comment import update_comments_in_parent_after_request
 from frappe import _
 import frappe.recorder
+import pydevd_pycharm
 
 local_manager = LocalManager([frappe.local])
 
@@ -52,6 +53,17 @@ def application(request):
 		init_request(request)
 
 		frappe.recorder.record()
+
+		if frappe.local.conf and frappe.local.conf.pycharm_debugger:
+			debug_config = frappe._dict(frappe.local.conf.pycharm_debugger or {})
+			if debug_config.get("enabled"):
+				pydevd_pycharm.settrace(
+					host=debug_config.get("host"),
+					port=debug_config.get("port"),
+					stdoutToServer=debug_config.get("stdoutToServer"),
+					stderrToServer=debug_config.get("stderrToServer"),
+					suspend=debug_config.get("suspend")
+				)
 
 		if frappe.local.form_dict.cmd:
 			response = frappe.handler.handle()
