@@ -35,7 +35,7 @@ def get_workflow(doc):
 				if evaluate_condition(assignment.eval_condition, doc) and \
 					  (not hasattr(doc, 'company') or not assignment.company or \
 					(hasattr(doc,'company') and doc.get('company') == assignment.company)):
-					
+
 					return frappe.get_doc('Workflow', assignment.workflow)
 		else:
 			workflow = frappe.cache().hget('workflow', doc)
