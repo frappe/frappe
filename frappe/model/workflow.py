@@ -115,7 +115,7 @@ def apply_workflow(doc, action, transition_name=None, possible_actions=None,
 			create_workflow_actions, update_completed_workflow_actions)
 		update_completed_workflow_actions(doc, user, action)
 		create_workflow_actions(workflow, doc, next_user,possible_actions, action, user, comment=comment)
-		
+
 		action_msg = 'Forwarded' if action =='Forward' else 'Requested Additional Check'
 		doc.add_comment('Workflow', _('%s by %s to %s' %(action_msg, user, next_user) ))
 		return doc
