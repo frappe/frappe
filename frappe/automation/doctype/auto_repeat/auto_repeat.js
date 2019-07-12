@@ -31,16 +31,15 @@ frappe.ui.form.on('Auto Repeat', {
 		//if document is not saved do not show schedule and document link
 		if (!frm.is_dirty()) {
 			let label = __('View {0}', [__(frm.doc.reference_doctype)]);
-			frm.add_custom_button(__(label),
-				function() {
-					frappe.route_options = {
-						"auto_repeat": frm.doc.name,
-					};
-					frappe.set_route("List", frm.doc.reference_doctype);
-				}
+			frm.add_custom_button(__(label), () =>
+					frappe.set_route("List", frm.doc.reference_doctype, { auto_repeat: frm.doc.name })
 			);
-			frappe.auto_repeat.render_schedule(frm);
 		}
+		frappe.auto_repeat.render_schedule(frm);
+	},
+
+	repeat_on_day: function(frm) {
+
 	},
 
 	template: function(frm) {
@@ -94,12 +93,20 @@ frappe.ui.form.on('Auto Repeat', {
 });
 
 frappe.auto_repeat.render_schedule = function(frm) {
-	frappe.call({
-		method: "get_auto_repeat_schedule",
-		doc: frm.doc
-	}).done((r) => {
-		var wrapper = $(frm.fields_dict["auto_repeat_schedule"].wrapper);
-		wrapper.html(frappe.render_template ("auto_repeat_schedule", {"schedule_details" : r.message || []}  ));
-		frm.refresh_fields();
-	});
+	if (!frm.is_dirty() && frm.doc.status !== 'Disabled') {
+		frappe.call({
+			method: "get_auto_repeat_schedule",
+			doc: frm.doc
+		}).done((r) => {
+			frm.dashboard.wrapper.empty();
+			frm.dashboard.add_section(
+				frappe.render_template("auto_repeat_schedule", {
+					schedule_details : r.message || []
+				})
+			)
+			frm.dashboard.show();
+		});
+	} else {
+		frm.dashboard.hide();
+	}
 };
