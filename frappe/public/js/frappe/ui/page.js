@@ -139,7 +139,10 @@ frappe.ui.Page = Class.extend({
 	},
 
 	set_indicator: function(label, color) {
-		this.clear_indicator().removeClass("hide").html(`<span class='hidden-xs hidden-sm'>${label}</span>`).addClass(color);
+		this.clear_indicator().removeClass("hide").html(`<span>${label}</span>`).addClass(color);
+		if(this.$title_area.find('.title-image').is(':visible')) {
+			$(this.indicator).css('left', '70px');
+		}
 	},
 
 	add_action_icon: function(icon, click) {
