@@ -78,7 +78,7 @@ class LDAPSettings(Document):
 			setattr(user, key, value)
 		user.save(ignore_permissions=True)
 
-	def sync_roles(self, user, additional_groups=None):
+	def sync_roles(self, user, additional_groups=[]):
 
 		current_roles = set([d.role for d in user.get("roles")])
 
@@ -99,7 +99,7 @@ class LDAPSettings(Document):
 
 		user.remove_roles(*roles_to_remove)
 
-	def create_or_update_user(self, user_data, groups=None):
+	def create_or_update_user(self, user_data, groups=[]):
 		user = None
 		if frappe.db.exists("User", user_data['email']):
 			user = frappe.get_doc("User", user_data['email'])
@@ -160,7 +160,7 @@ class LDAPSettings(Document):
 			# only try and connect as the user, once we have their fqdn entry.
 			self.connect_to_ldap(base_dn=user.entry_dn, password=password)
 
-			groups = None
+			groups = []
 			if self.ldap_group_field:
 				groups = getattr(user, self.ldap_group_field).values
 			return self.create_or_update_user(self.convert_ldap_entry_to_dict(user), groups=groups)
