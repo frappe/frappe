@@ -135,7 +135,7 @@ frappe.views.ListGroupBy = class ListGroupBy {
 
 			return `<li class="group-by-item" data-value="${value}">
 				<a class="badge-hover" href="#" onclick="return false;">
-					<span class="group-by-value">${label}</span>
+					<span class="group-by-value" data-name="${field.name}">${label}</span>
 					<span class="badge pull-right group-by-count">${field.count}</span>
 				</a>
 			</li>`;
