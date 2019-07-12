@@ -150,27 +150,23 @@ class LDAPSettings(Document):
 
 		conn = self.connect_to_ldap(self.base_dn, self.get_password(raise_exception=False))
 
-		try:
-			conn.search(
-				search_base=self.organizational_unit,
-				search_filter="({0})".format(user_filter),
-				attributes=ldap_attributes)
+		conn.search(
+			search_base=self.organizational_unit,
+			search_filter="({0})".format(user_filter),
+			attributes=ldap_attributes)
 
-			if len(conn.entries) == 1 and conn.entries[0]:
-				user = conn.entries[0]
-				# only try and connect as the user, once we have their fqdn entry.
-				self.connect_to_ldap(base_dn=user.entry_dn, password=password)
+		if len(conn.entries) == 1 and conn.entries[0]:
+			user = conn.entries[0]
+			# only try and connect as the user, once we have their fqdn entry.
+			self.connect_to_ldap(base_dn=user.entry_dn, password=password)
 
-				groups = None
-				if self.ldap_group_field:
-					groups = getattr(user, self.ldap_group_field).values
-					
-				return self.create_or_update_user(self.convert_ldap_entry_to_dict(user), groups=groups)
-			else:
-				frappe.throw(_("Invalid username or password"))
+			groups = None
+			if self.ldap_group_field:
+				groups = getattr(user, self.ldap_group_field).values
 
-		except Exception as ex:
-			frappe.throw(_(str(ex)))
+			return self.create_or_update_user(self.convert_ldap_entry_to_dict(user), groups=groups)
+		else:
+			frappe.throw(_("Invalid username or password"))
 
 	def convert_ldap_entry_to_dict(self, user_entry):
 		data = {
