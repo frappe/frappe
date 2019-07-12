@@ -1955,7 +1955,7 @@ class extends Component {
 				const content = message.content
 
 				if ( message.type === "File" ) {
-					item.subtitle = `📁 ${content.name}`
+					item.subtitle = `📁 ${content.name || content.path}`
 				} else {
 					item.subtitle = props.last_message.content
 				}
@@ -2396,7 +2396,7 @@ class extends Component {
 						h("small","",
 							props.type === "File" ?
 								h("a", { class: "no-decoration", href: content.path, target: "_blank" },
-									h(frappe.components.FontAwesome, { type: "file", fixed: true }), ` ${content.name}`
+									h(frappe.components.FontAwesome, { type: "file", fixed: true }), ` ${content.name || content.path}`
 								)
 								:
 								content
