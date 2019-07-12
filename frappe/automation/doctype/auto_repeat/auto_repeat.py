@@ -142,8 +142,6 @@ def get_next_schedule_date(start_date, frequency, repeat_on_day, repeat_on_last_
 		days = 7 if frequency == 'Weekly' else 1
 		next_date = add_days(start_date, days)
 
-	# if end_date and getdate(next_date) > getdate(end_date):
-	# 	next_date = None
 	return next_date
 
 def make_auto_repeat_entry():
@@ -176,11 +174,6 @@ def get_auto_repeat_entries(date=None):
 		['next_schedule_date', '<=', date],
 		['status', '=', 'Active']
 	])
-	# return frappe.db.sql(""" select * from `tabAuto Repeat`
-	# 		where next_schedule_date <=%s
-	# 		and reference_document is not null and reference_document != ''
-	# 		and next_schedule_date <= ifnull(end_date, '2199-12-31')
-	# 		and disabled = 0 and status != 'Disabled' """, (date), as_dict=1)
 
 def set_auto_repeat_as_completed():
 	auto_repeat = frappe.get_all("Auto Repeat", filters = {'status': ['!=', 'Disabled']})
