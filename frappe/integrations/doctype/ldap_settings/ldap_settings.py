@@ -85,7 +85,7 @@ class LDAPSettings(Document):
 		needed_roles = set()
 		needed_roles.add(self.default_role)
 
-		lower_groups = [g.lower() for g in additional_groups] if additional_groups != None else []
+		lower_groups = [g.lower() for g in additional_groups or []]
 
 		all_mapped_roles = {r.erpnext_role for r in self.ldap_groups}
 		matched_roles = {r.erpnext_role for r in self.ldap_groups if r.ldap_group.lower() in lower_groups}
