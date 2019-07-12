@@ -6,7 +6,7 @@ context('List View Settings', () => {
 	it('Default settings', () => {
 		cy.visit('/desk#List/DocType/List');
 		cy.get('.list-count').should('contain', "20 of");
-		cy.get('.sidebar-stat').should('contain', "No Tags");
+		cy.get('.sidebar-stat').should('contain', "Tags");
 	});
 	it('disable count and sidebar stats then verify', () => {
 		cy.visit('/desk#List/DocType/List');

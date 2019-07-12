@@ -70,6 +70,7 @@ frappe.ui.form.ControlMultiSelectList = frappe.ui.form.ControlData.extend({
 		this.set_input_attributes();
 		this.values = [];
 		this._options = [];
+		this._selected_values = [];
 		this.highlighted = -1;
 	},
 
