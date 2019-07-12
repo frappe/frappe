@@ -254,7 +254,7 @@ frappe.views.ListSidebar = class ListSidebar {
 		$dropdown_search.on('keyup',()=> {
 			let text_filter = $search_input.val().toLowerCase();
 			// Replace trailing and leading spaces
-			text_filter = text_filter.replace(/^\s+|\s+$/g, '')
+			text_filter = text_filter.replace(/^\s+|\s+$/g, '');
 			let text;
 			for (var i = 0; i < $elements.length; i++) {
 				let text_element = $elements.eq(i).find(text_class);
