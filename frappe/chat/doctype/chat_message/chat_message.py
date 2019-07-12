@@ -126,6 +126,7 @@ def get_new_chat_message(user, room, content, type = "Content"):
 		mentions  = json.loads(mess.mentions),
 		creation  = mess.creation,
 		seen      = json.loads(mess._seen) if mess._seen else [ ],
+		type      = mess.type,
 	)
 
 	return resp
