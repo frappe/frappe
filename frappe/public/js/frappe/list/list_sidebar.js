@@ -262,8 +262,7 @@ frappe.views.ListSidebar = class ListSidebar {
 				let text = text_element.text().toLowerCase();
 				// Search data-name since label for current user is 'Me'
 				let name = text_element.data('name').toLowerCase();
-
-				if (text.search(text_filter) || name.search(text_filter)) {
+				if (text.includes(text_filter) || name.includes(text_filter)) {
 					$elements.eq(i).css('display','');
 				} else {
 					$elements.eq(i).css('display','none');
