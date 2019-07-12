@@ -110,11 +110,16 @@ frappe.views.ListGroupBy = class ListGroupBy {
 	}
 
 	get_group_by_count(field) {
+		let current_filters = this.list_view.get_filters_for_args()
+		current_filters = current_filters.filter((f_arr) => !f_arr.includes(field === 'assigned_to' ? '_assign': field))
+
 		let args =  {
 			doctype: this.doctype,
-			current_filters: this.list_view.get_filters_for_args(),
+			current_filters: current_filters,
 			field: field,
 		};
+
+
 		return frappe.call('frappe.desk.listview.get_group_by_count', args).then((r) => {
 			let field_counts = r.message || [];
 			field_counts = field_counts.filter(f => f.count !== 0);
