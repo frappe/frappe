@@ -19,10 +19,10 @@ frappe.views.ListGroupBy = class ListGroupBy {
 
 	make_group_by_fields_modal() {
 		let d = new frappe.ui.Dialog ({
-			title: __("Add Filter By"),
+			title: __("Select Filters"),
 			fields: this.get_group_by_dropdown_fields()
 		});
-		d.set_primary_action("Add", ({ group_by_fields }) => {
+		d.set_primary_action("Save", ({ group_by_fields }) => {
 			frappe.model.user_settings.save(this.doctype, 'group_by_fields', group_by_fields || null);
 			this.group_by_fields = group_by_fields ? ['assigned_to', ...group_by_fields] : ['assigned_to'];
 			this.render_group_by_items();
