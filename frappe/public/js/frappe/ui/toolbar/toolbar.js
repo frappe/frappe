@@ -15,6 +15,8 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 		awesome_bar.setup("#navbar-search");
 		awesome_bar.setup("#modal-search");
 
+		let energy_points_notifications = new frappe.ui.EnergyPointsNotifications();
+
 		this.make();
 	},
 
