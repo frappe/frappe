@@ -31,7 +31,7 @@ frappe.ui.keys.add_shortcut = ({shortcut, action, description, page, target, con
 	if (!condition) {
 		condition = () => true;
 	}
-	frappe.ui.keys.on(shortcut, (e) => {
+	let handler = (e) => {
 		let $focused_element = $(document.activeElement);
 		let is_input_focused = $focused_element.is('input, select, textarea, [contenteditable=true]');
 		if (is_input_focused && !ignore_inputs) return;
@@ -45,7 +45,15 @@ frappe.ui.keys.add_shortcut = ({shortcut, action, description, page, target, con
 				e.preventDefault();
 			}
 		}
-	});
+	};
+	// monkey patch page to handler
+	handler.page = page;
+	// remove handler with the same page attached to it
+	frappe.ui.keys.off(shortcut, page);
+	// attach new handler
+	frappe.ui.keys.on(shortcut, handler);
+
+	// update standard shortcut list
 	let existing_shortcut_index = standard_shortcuts.findIndex(
 		s => s.shortcut === shortcut
 	);
@@ -140,6 +148,15 @@ frappe.ui.keys.on = function(key, handler) {
 		frappe.ui.keys.handlers[key] = [];
 	}
 	frappe.ui.keys.handlers[key].push(handler);
+}
+
+frappe.ui.keys.off = function(key, page) {
+	let handlers = frappe.ui.keys.handlers[key];
+	if (!handlers || handlers.length === 0) return;
+	frappe.ui.keys.handlers[key] = handlers.filter(h => {
+		if (!page) return false;
+		return h.page !== page;
+	});
 }
 
 frappe.ui.keys.add_shortcut({
