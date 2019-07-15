@@ -8,10 +8,12 @@ from frappe.model.document import Document
 from frappe.utils.password import validate_password
 from six.moves.urllib.parse import unquote
 from frappe import _
+from datetime import timedelta
 
 class SessionExpiredError(frappe.AuthenticationError): pass
 class InvalidIPError(frappe.AuthenticationError): pass
 class InvalidLoginHour(frappe.AuthenticationError): pass
+class TooManyFailedLogins(frappe.AuthenticationError): pass
 
 def get_session(sid=None):
 	'''Return the session object from the `sid` parameter or cookie'''
@@ -38,7 +40,7 @@ class Session(Document):
 	def login(self, user, password):
 		self.set_user_and_password(user, password)
 		self.check_if_enabled()
-		self.check_consecutive_logins()
+		self.check_if_locked_due_to_multiple_failed_attempts()
 		self.validate_password()
 		self.validate_ip_address()
 		self.validate_hour()
@@ -67,15 +69,28 @@ class Session(Document):
 			self.user = None
 			self.fail('User disabled or missing')
 
-	def check_consecutive_logins(self):
-		pass
+	def check_if_locked_due_to_multiple_failed_attempts(self):
+		allowed_attempts = frappe.get_system_settings('allow_consecutive_login_attempts')
+		if allowed_attempts:
+			cool_down_seconds = frappe.get_system_settings('allow_login_after_fail')
+			# restrictions exist, find out how many failed attempts in the last X seconds
+			failed_attempts = frappe.db.count('Session',
+				dict(
+					user=self.user,
+					status='Login Failed',
+					creation=['>', frappe.utils.now_datetime() - timedelta(seconds = cool_down_seconds)]
+				))
+
+			if failed_attempts >= allowed_attempts:
+				frappe.throw(_("Your account has been locked and will resume after {0} seconds").format(cool_down_seconds), TooManyFailedLogins)
 
 	def validate_password(self):
-		self.user = validate_password(self.user, self.password)
-		self.insert(ignore_permissions=True)
+		# check if password is valid
+		if not validate_password(self.user, self.password):
+			self.fail('Incorrect User or Password')
 
-		if not self.user:
-			self.fail('Incorrect Password')
+		self.status = 'Active'
+		self.insert(ignore_permissions=True)
 
 	def validate_ip_address(self):
 		user = frappe.get_cached_doc("User", self.user)

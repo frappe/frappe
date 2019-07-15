@@ -4,10 +4,11 @@
 from __future__ import unicode_literals
 
 import frappe
+import time
 import unittest
 
 from frappe.core.doctype.session.session import (login, get_session, SessionExpiredError,
-	InvalidIPError, InvalidLoginHour)
+	InvalidIPError, InvalidLoginHour, TooManyFailedLogins)
 
 class TestSession(unittest.TestCase):
 	def test_login(self):
@@ -62,6 +63,28 @@ class TestSession(unittest.TestCase):
 		frappe.flags.test_current_hour = 8
 		self.assertRaises(InvalidLoginHour, login, 'user_restricted_after@example.com', 'pass1')
 
+	def test_too_many_logins(self):
+		frappe.db.set_value('System Settings', None, 'allow_consecutive_login_attempts', 3)
+		frappe.db.set_value('System Settings', None, 'allow_login_after_fail', 3)
+
+		user = get_user('user1@example.com', 'pass1')
+
+		# try to lock out
+		self.assertRaises(frappe.AuthenticationError, login, 'user1@example.com', 'pass3')
+		self.assertRaises(frappe.AuthenticationError, login, 'user1@example.com', 'pass3')
+		self.assertRaises(frappe.AuthenticationError, login, 'user1@example.com', 'pass3')
+		self.assertRaises(TooManyFailedLogins, login, 'user1@example.com', 'pass3')
+
+		# try correct password too
+		self.assertRaises(TooManyFailedLogins, login, 'user1@example.com', 'pass1')
+
+		time.sleep(3)
+
+		# allowed after cool down period
+		session = login('user1@example.com', 'pass1')
+		self.assertEqual(session.status, "Active")
+
+		frappe.db.set_value('System Settings', None, 'allow_consecutive_login_attempts', 0)
 
 def get_user(name, password, properties=None):
 	if frappe.db.exists('User', name):
