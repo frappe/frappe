@@ -32,7 +32,7 @@ frappe.ui.form.on('Auto Repeat', {
 		if (!frm.is_dirty()) {
 			let label = __('View {0}', [__(frm.doc.reference_doctype)]);
 			frm.add_custom_button(__(label), () =>
-					frappe.set_route("List", frm.doc.reference_doctype, { auto_repeat: frm.doc.name })
+				frappe.set_route("List", frm.doc.reference_doctype, { auto_repeat: frm.doc.name })
 			);
 		}
 		frappe.auto_repeat.render_schedule(frm);
@@ -59,12 +59,11 @@ frappe.ui.form.on('Auto Repeat', {
 			},
 			callback: function(r) {
 				if (r.message) {
-					console.log(r.message);
 					frm.set_value("recipients", r.message.join());
 					frm.refresh_field("recipients");
 				}
 				else {
-					msgprint("No Contacts linked to Reference Document", "Message");
+					frappe.msgprint("No Contacts linked to Reference Document", "Message");
 				}
 			}
 		});
@@ -103,7 +102,7 @@ frappe.auto_repeat.render_schedule = function(frm) {
 				frappe.render_template("auto_repeat_schedule", {
 					schedule_details : r.message || []
 				})
-			)
+			);
 			frm.dashboard.show();
 		});
 	} else {

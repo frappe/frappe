@@ -4,7 +4,6 @@
 
 from __future__ import unicode_literals
 import frappe
-import calendar
 from frappe import _
 from frappe.desk.form import assign_to
 from frappe.utils.jinja import validate_template
@@ -33,9 +32,10 @@ class AutoRepeat(Document):
 
 	def before_insert(self):
 		if not frappe.flags.in_test:
+			start_date = self.start_date
 			today_date = today()
-			if self.start_date <= today_date:
-				self.start_date = today_date
+			if start_date <= today_date:
+				start_date = today_date
 
 	def after_save(self):
 		frappe.get_doc(self.reference_doctype, self.reference_document).notify_update()
@@ -176,7 +176,7 @@ class AutoRepeat(Document):
 	def set_auto_repeat_period(self, new_doc):
 		mcount = month_map.get(self.frequency)
 		if mcount and new_doc.meta.get_field('from_date') and new_doc.meta.get_field('to_date'):
-			last_ref_doc = frappe.db.get_all(doctype = self.reference_doctype, 
+			last_ref_doc = frappe.db.get_all(doctype = self.reference_doctype,
 				fields = ['name', 'from_date', 'to_date'],
 				filters = [
 					['auto_repeat', '=', self.name],
@@ -184,7 +184,7 @@ class AutoRepeat(Document):
 				],
 				order_by = 'creation desc',
 				limit = 1)
-				
+
 			if not last_ref_doc:
 				return
 
@@ -283,7 +283,7 @@ def get_next_date(dt, mcount, day=None):
 	dt += relativedelta(months=mcount, day=day)
 	return dt
 
-#called through hooks 
+#called through hooks
 def make_auto_repeat_entry():
 	enqueued_method = 'frappe.automation.doctype.auto_repeat.auto_repeat.create_repeated_entries'
 	jobs = get_jobs()
@@ -335,7 +335,7 @@ def make_auto_repeat(doctype, docname, frequency, start_date, end_date = None):
 	doc.save()
 	return doc
 
-# method for reference_doctype filter 
+#method for reference_doctype filter
 def get_auto_repeat_doctypes(doctype, txt, searchfield, start, page_len, filters):
 	repeatable_docs = []
 	docs = [d for d in frappe.db.get_values("DocType", {"issingle": 0, "istable": 0, "hide_toolbar": 0})]
@@ -372,12 +372,14 @@ def get_contacts(reference_doctype, reference_name):
 
 @frappe.whitelist()
 def update_reference(docname, reference):
+	result = ""
 	try:
 		frappe.db.set_value("Auto Repeat", docname, "reference_document", reference)
-		return "success"
+		result = "success"
 	except Exception as e:
 		raise e
-		return "error"
+		result = "error"
+	return result
 
 @frappe.whitelist()
 def generate_message_preview(reference_dt, reference_doc, message=None, subject=None):
