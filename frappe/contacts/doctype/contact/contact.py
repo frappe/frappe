@@ -28,6 +28,13 @@ class Contact(Document):
 			self.name = self.name + '-' + link.link_name.strip()
 			break
 
+	def on_update(self):
+		doc = self.get_doc_before_save()
+		for field in ['mobile_no', 'phone']:
+			old_number = doc.get(field)
+			if old_number and old_number != self.get(field):
+				frappe.cache().hdel('contact_with_number', old_number)
+
 	def validate(self):
 		if self.email_id:
 			self.email_id = self.email_id.strip()
@@ -161,3 +168,20 @@ def contact_query(doctype, txt, searchfield, start, page_len, filters):
 			'link_name': link_name,
 			'link_doctype': link_doctype
 		})
+
+
+def get_contact_with_phone_number(number):
+	if not number: return
+
+	contact = frappe.cache().hget('contact_with_number', number)
+	if contact: return contact
+
+	contacts = frappe.get_all('Contact', or_filters={
+		'phone': ['like', '%{}'.format(number)],
+		'mobile_no': ['like', '%{}'.format(number)]
+	}, limit=1)
+
+	contact = contacts[0].name if contacts else None
+	frappe.cache().hset('contact_with_number', number, contact)
+
+	return contact
