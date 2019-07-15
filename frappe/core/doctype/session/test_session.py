@@ -64,8 +64,10 @@ class TestSession(unittest.TestCase):
 		self.assertRaises(InvalidLoginHour, login, 'user_restricted_after@example.com', 'pass1')
 
 	def test_too_many_logins(self):
-		frappe.db.set_value('System Settings', None, 'allow_consecutive_login_attempts', 3)
-		frappe.db.set_value('System Settings', None, 'allow_login_after_fail', 3)
+		system_settings = frappe.get_doc('System Settings')
+		system_settings.allow_consecutive_login_attempts = 3
+		system_settings.allow_login_after_fail = 3
+		system_settings.save()
 
 		user = get_user('user1@example.com', 'pass1')
 
@@ -84,7 +86,8 @@ class TestSession(unittest.TestCase):
 		session = login('user1@example.com', 'pass1')
 		self.assertEqual(session.status, "Active")
 
-		frappe.db.set_value('System Settings', None, 'allow_consecutive_login_attempts', 0)
+		system_settings.allow_consecutive_login_attempts = 0
+		system_settings.save()
 
 def get_user(name, password, properties=None):
 	if frappe.db.exists('User', name):

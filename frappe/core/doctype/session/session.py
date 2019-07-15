@@ -15,6 +15,15 @@ class InvalidIPError(frappe.AuthenticationError): pass
 class InvalidLoginHour(frappe.AuthenticationError): pass
 class TooManyFailedLogins(frappe.AuthenticationError): pass
 
+# TODO
+# [ ] - stop simultaneous logins
+# [ ] - forced password change
+# [ ] - build response
+# [ ] - custom home page
+# [ ] - expiry
+# [ ] - cookies
+# [ ] - cache
+
 def get_session(sid=None):
 	'''Return the session object from the `sid` parameter or cookie'''
 	if not sid:
