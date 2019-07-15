@@ -21,17 +21,21 @@ frappe.ui.keys.setup = function() {
 
 let standard_shortcuts = [];
 frappe.ui.keys.standard_shortcuts = standard_shortcuts;
-frappe.ui.keys.add_shortcut = ({shortcut, action, description, page, target, ignore_inputs = false} = {}) => {
+frappe.ui.keys.add_shortcut = ({shortcut, action, description, page, target, condition, ignore_inputs = false} = {}) => {
 	if (target instanceof jQuery) {
 		let $target = target;
 		action = () => {
 			$target[0].click();
 		}
 	}
+	if (!condition) {
+		condition = () => true;
+	}
 	frappe.ui.keys.on(shortcut, (e) => {
 		let $focused_element = $(document.activeElement);
 		let is_input_focused = $focused_element.is('input, select, textarea, [contenteditable=true]');
 		if (is_input_focused && !ignore_inputs) return;
+		if (!condition()) return;
 
 		if (!page || page.wrapper.is(':visible')) {
 			let prevent_default = action(e);
@@ -45,7 +49,7 @@ frappe.ui.keys.add_shortcut = ({shortcut, action, description, page, target, ign
 	let existing_shortcut_index = standard_shortcuts.findIndex(
 		s => s.shortcut === shortcut
 	);
-	let new_shortcut = { shortcut, action, description, page };
+	let new_shortcut = { shortcut, action, description, page, condition };
 	if (existing_shortcut_index === -1) {
 		standard_shortcuts.push(new_shortcut);
 	} else {
@@ -54,6 +58,8 @@ frappe.ui.keys.add_shortcut = ({shortcut, action, description, page, target, ign
 }
 
 frappe.ui.keys.show_keyboard_shortcut_dialog = () => {
+	if (frappe.ui.keys.is_dialog_shown) return;
+
 	let global_shortcuts = standard_shortcuts.filter(shortcut => !shortcut.page);
 	let current_page_shortcuts = standard_shortcuts.filter(
 		shortcut => shortcut.page && shortcut.page === window.cur_page.page.page);
@@ -62,19 +68,21 @@ frappe.ui.keys.show_keyboard_shortcut_dialog = () => {
 		if (!shortcuts.length) {
 			return '';
 		}
-		let html = shortcuts.map(shortcut => {
-			let shortcut_label = shortcut.shortcut
-				.split('+')
-				.map(frappe.utils.to_title_case)
-				.join('+');
-			if (frappe.utils.is_mac()) {
-				shortcut_label = shortcut_label.replace('Ctrl', '⌘');
-			}
-			return `<tr>
-				<td width="40%"><kbd>${shortcut_label}</kbd></td>
-				<td width="60%">${shortcut.description || ''}</td>
-			</tr>`;
-		}).join('');
+		let html = shortcuts
+			.filter(s => s.condition ? s.condition() : true)
+			.map(shortcut => {
+				let shortcut_label = shortcut.shortcut
+					.split('+')
+					.map(frappe.utils.to_title_case)
+					.join('+');
+				if (frappe.utils.is_mac()) {
+					shortcut_label = shortcut_label.replace('Ctrl', '⌘');
+				}
+				return `<tr>
+					<td width="40%"><kbd>${shortcut_label}</kbd></td>
+					<td width="60%">${shortcut.description || ''}</td>
+				</tr>`;
+			}).join('');
 		html = `<h5 style="margin: 0;">${heading}</h5>
 			<table style="margin-top: 10px;" class="table table-bordered">
 				${html}
@@ -87,6 +95,9 @@ frappe.ui.keys.show_keyboard_shortcut_dialog = () => {
 
 	let dialog = new frappe.ui.Dialog({
 		title: __('Keyboard Shortcuts'),
+		on_hide() {
+			frappe.ui.keys.is_dialog_shown = false;
+		}
 	});
 
 	dialog.$body.append(global_shortcuts_html);
@@ -98,6 +109,7 @@ frappe.ui.keys.show_keyboard_shortcut_dialog = () => {
 	`);
 
 	dialog.show();
+	frappe.ui.keys.is_dialog_shown = true;
 }
 
 frappe.ui.keys.get_key = function(e) {
@@ -157,7 +169,7 @@ frappe.ui.keys.add_shortcut({
 		e.preventDefault();
 		$('.navbar-home img').click();
 	},
-	description: __('Home')
+	description: __('Navigate Home')
 });
 
 frappe.ui.keys.add_shortcut({
@@ -166,7 +178,7 @@ frappe.ui.keys.add_shortcut({
 		e.preventDefault();
 		$('.dropdown-navbar-user a').eq(0).click();
 	},
-	description: __('Settings')
+	description: __('Open Settings')
 });
 
 frappe.ui.keys.add_shortcut({
@@ -174,7 +186,7 @@ frappe.ui.keys.add_shortcut({
 	action: function() {
 		frappe.ui.keys.show_keyboard_shortcut_dialog();
 	},
-	description: __('Keyboard Shortcuts')
+	description: __('Show Keyboard Shortcuts')
 });
 
 frappe.ui.keys.add_shortcut({
@@ -183,7 +195,7 @@ frappe.ui.keys.add_shortcut({
 		e.preventDefault();
 		$('.dropdown-help a').eq(0).click();
 	},
-	description: __('Help')
+	description: __('Open Help')
 });
 
 frappe.ui.keys.on('escape', function(e) {
