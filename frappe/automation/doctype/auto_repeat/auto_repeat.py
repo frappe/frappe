@@ -290,7 +290,7 @@ def make_auto_repeat_entry():
 	jobs = get_jobs()
 
 	if not jobs or enqueued_method not in jobs[frappe.local.site]:
-		date = today()
+		date = getdate(today())
 		data = get_auto_repeat_entries(date)
 		frappe.enqueue(enqueued_method, data=data)
 
@@ -309,7 +309,8 @@ def create_repeated_entries(data):
 				frappe.db.set_value('Auto Repeat', doc.name, 'next_schedule_date', schedule_date)
 
 def get_auto_repeat_entries(date=None):
-	date = getdate(today())
+	if not date:
+		date = getdate(today())
 	return frappe.db.get_all('Auto Repeat', filters=[
 		['next_schedule_date', '<=', date],
 		['status', '=', 'Active']

@@ -28,7 +28,7 @@ class TestAutoRepeat(unittest.TestCase):
 
 		doc = make_auto_repeat(reference_document=todo.name)
 		self.assertEqual(doc.next_schedule_date, today())
-		data = get_auto_repeat_entries(today())
+		data = get_auto_repeat_entries(getdate(today()))
 		create_repeated_entries(data)
 		frappe.db.commit()
 
@@ -65,7 +65,7 @@ class TestAutoRepeat(unittest.TestCase):
 
 		doc.disable_auto_repeat()
 
-		data = get_auto_repeat_entries(today())
+		data = get_auto_repeat_entries(getdate(today()))
 		create_repeated_entries(data)
 		docnames = frappe.get_all(doc.reference_doctype, {'auto_repeat': doc.name})
 		self.assertEqual(len(docnames), 1)
@@ -74,7 +74,7 @@ class TestAutoRepeat(unittest.TestCase):
 		doc.db_set('disabled', 0)
 
 		months = get_months(getdate(start_date), getdate(today()))
-		data = get_auto_repeat_entries(today())
+		data = get_auto_repeat_entries(getdate(today()))
 		create_repeated_entries(data)
 
 		docnames = frappe.get_all(doc.reference_doctype, {'auto_repeat': doc.name})
@@ -86,7 +86,7 @@ class TestAutoRepeat(unittest.TestCase):
 
 		doc = make_auto_repeat(reference_document=todo.name, notify=1, recipients="test@domain.com", subject="New ToDo",
 			message="A new ToDo has just been created for you")
-		data = get_auto_repeat_entries(today())
+		data = get_auto_repeat_entries(getdate(today()))
 		create_repeated_entries(data)
 		frappe.db.commit()
 
