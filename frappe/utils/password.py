@@ -55,7 +55,7 @@ def set_encrypted_password(doctype, name, pwd, fieldname='password'):
 			on_duplicate_update=frappe.db.get_on_duplicate_update(['doctype', 'name', 'fieldname'])
 		), { 'doctype': doctype, 'name': name, 'fieldname': fieldname, 'pwd': encrypt(pwd) })
 
-def check_password(user, pwd, doctype='User', fieldname='password'):
+def validate_password(user, pwd, doctype='User', fieldname='password'):
 	'''Checks if user and password are correct, else raises frappe.AuthenticationError'''
 
 	auth = frappe.db.sql("""select `name`, `password` from `__Auth`
@@ -63,7 +63,7 @@ def check_password(user, pwd, doctype='User', fieldname='password'):
 		{'doctype': doctype, 'name': user, 'fieldname': fieldname}, as_dict=True)
 
 	if not auth or not passlibctx.verify(pwd, auth[0].password):
-		raise frappe.AuthenticationError(_('Incorrect User or Password'))
+		return False
 
 	# lettercase agnostic
 	user = auth[0].name
@@ -71,6 +71,15 @@ def check_password(user, pwd, doctype='User', fieldname='password'):
 
 	if not passlibctx.needs_update(auth[0].password):
 		update_password(user, pwd, doctype, fieldname)
+
+	return user
+
+def check_password(user, pwd, doctype='User', fieldname='password'):
+	'''Checks if user and password are correct, else raises frappe.AuthenticationError'''
+
+	user = validate_password(user, pwd, doctype, fieldname)
+	if not user:
+		raise frappe.AuthenticationError
 
 	return user
 

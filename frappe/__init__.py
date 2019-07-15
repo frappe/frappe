@@ -16,6 +16,7 @@ from faker import Faker
 # public
 from .exceptions import *
 from .utils.jinja import (get_jenv, get_template, render_template, get_email_from_template, get_jloader)
+from .utils import cstr, cint
 
 # Hamless for Python 3
 # For Python 2 set default encoding to utf-8
