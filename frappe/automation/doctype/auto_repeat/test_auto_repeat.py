@@ -7,7 +7,7 @@ import unittest
 
 import frappe
 from frappe.custom.doctype.custom_field.custom_field import create_custom_field
-from frappe.automation.doctype.auto_repeat.auto_repeat import get_auto_repeat_entries, create_repeated_entries, disable_auto_repeat
+from frappe.automation.doctype.auto_repeat.auto_repeat import get_auto_repeat_entries, create_repeated_entries
 from frappe.utils import today, add_days, getdate, add_months
 
 
@@ -63,7 +63,7 @@ class TestAutoRepeat(unittest.TestCase):
 			reference_doctype=doctype, frequency='Monthly',	reference_document=docname, start_date=start_date,
 			end_date=end_date)
 
-		disable_auto_repeat(doc)
+		doc.disable_auto_repeat()
 
 		data = get_auto_repeat_entries(today())
 		create_repeated_entries(data)

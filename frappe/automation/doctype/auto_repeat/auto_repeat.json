@@ -135,7 +135,7 @@
    "label": "Recipients"
   },
   {
-   "depends_on": "eval: doc.notify_by_email",
+   "depends_on": "eval: doc.notify_by_email && doc.reference_doctype && doc.reference_document",
    "fieldname": "get_contacts",
    "fieldtype": "Button",
    "label": "Get Contacts"
@@ -162,7 +162,7 @@
    "label": "Message"
   },
   {
-   "depends_on": "eval: doc.notify_by_email",
+   "depends_on": "eval: doc.notify_by_email && doc.reference_doctype && doc.reference_document",
    "fieldname": "preview_message",
    "fieldtype": "Button",
    "label": "Preview Message"
@@ -195,7 +195,7 @@
    "label": "Repeat on Last Day of the Month"
   }
  ],
- "modified": "2019-07-12 00:32:16.451714",
+ "modified": "2019-07-15 13:45:40.678161",
  "modified_by": "Administrator",
  "module": "Automation",
  "name": "Auto Repeat",

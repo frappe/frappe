@@ -38,10 +38,6 @@ frappe.ui.form.on('Auto Repeat', {
 		frappe.auto_repeat.render_schedule(frm);
 	},
 
-	repeat_on_day: function(frm) {
-
-	},
-
 	template: function(frm) {
 		if (frm.doc.template) {
 			frappe.model.with_doc("Email Template", frm.doc.template, () => {
@@ -62,9 +58,13 @@ frappe.ui.form.on('Auto Repeat', {
 				reference_name: frm.doc.reference_document
 			},
 			callback: function(r) {
-				if(r.message) {
+				if (r.message) {
+					console.log(r.message);
 					frm.set_value("recipients", r.message.join());
 					frm.refresh_field("recipients");
+				}
+				else {
+					msgprint("No Contacts linked to Reference Document", "Message");
 				}
 			}
 		});
