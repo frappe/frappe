@@ -287,7 +287,7 @@ class Database:
 		executed in one transaction. This is to ensure that writes are always flushed otherwise this
 		could cause the system to hang."""
 		if self.transaction_writes and \
-			query and query.strip().split()[0].lower() in ['start', 'alter', 'drop', 'create', "begin", "truncate"]:
+			query and query.strip().split()[0].lower() in ['start', 'alter', 'drop', 'create', "begin", "truncate", "lock"]:
 			raise Exception('This statement can cause implicit commit')
 
 		if query and query.strip().lower() in ('commit', 'rollback'):
