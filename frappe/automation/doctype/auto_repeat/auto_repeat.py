@@ -56,8 +56,9 @@ class AutoRepeat(Document):
 			frappe.db.set_value(self.reference_doctype, self.reference_document, 'auto_repeat', '')
 
 	def validate_reference_doctype(self):
-		if not frappe.get_meta(self.reference_doctype).allow_auto_repeat:
-			frappe.throw(_("Enable Allow Auto Repeat for the doctype {0} in Customize Form").format(self.reference_doctype))
+		if not frappe.flags.in_test:
+			if not frappe.get_meta(self.reference_doctype).allow_auto_repeat:
+				frappe.throw(_("Enable Allow Auto Repeat for the doctype {0} in Customize Form").format(self.reference_doctype))
 
 	def validate_dates(self):
 		self.validate_from_to_dates('start_date', 'end_date')
@@ -308,7 +309,7 @@ def create_repeated_entries(data):
 				frappe.db.set_value('Auto Repeat', doc.name, 'next_schedule_date', schedule_date)
 
 def get_auto_repeat_entries(date=None):
-	date = today()
+	date = getdate(today())
 	return frappe.db.get_all('Auto Repeat', filters=[
 		['next_schedule_date', '<=', date],
 		['status', '=', 'Active']
