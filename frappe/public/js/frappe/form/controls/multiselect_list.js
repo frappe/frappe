@@ -107,6 +107,7 @@ frappe.ui.form.ControlMultiSelectList = frappe.ui.form.ControlData.extend({
 	},
 
 	set_value(value) {
+		if (!value) return Promise.resolve();
 		if (typeof value === 'string') {
 			value = [value];
 		}
