@@ -111,13 +111,13 @@ class PostgresDatabase(Database):
 
 	def format_date(self, date):
 		if not date:
-			return '0001-01-01::DATE'
+			return '0001-01-01'
 
 		if isinstance(date, frappe.string_types):
 			if ':' not in date:
-				date = date + '::DATE'
+				date = date
 		else:
-			date = date.strftime('%Y-%m-%d') + '::DATE'
+			date = date.strftime('%Y-%m-%d')
 
 		return date
 
