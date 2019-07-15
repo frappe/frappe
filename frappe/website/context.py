@@ -213,7 +213,8 @@ def add_sidebar_data(context):
 
 
 def add_metatags(context):
-	tags = context.get("metatags")
+	tags = frappe._dict(context.get("metatags") or {})
+
 	if tags:
 		if not "twitter:card" in tags:
 			tags["twitter:card"] = "summary_large_image"
@@ -260,8 +261,10 @@ def add_metatags(context):
 		and frappe.db.exists('Website Route Meta', route))
 
 	if route_exists:
-		context.setdefault('metatags', frappe._dict({}))
 		website_route_meta = frappe.get_doc('Website Route Meta', route)
 		for meta_tag in website_route_meta.meta_tags:
 			d = meta_tag.get_meta_dict()
-			context.metatags.update(d)
+			tags.update(d)
+
+	# update tags in context
+	context.metatags = tags
