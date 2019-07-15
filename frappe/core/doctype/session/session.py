@@ -13,20 +13,19 @@ class SessionExpiredError(frappe.AuthenticationError): pass
 class InvalidIPError(frappe.AuthenticationError): pass
 class InvalidLoginHour(frappe.AuthenticationError): pass
 
-def get_session(user=None, password=None, sid=None):
+def get_session(sid=None):
 	'''Return the session object from the `sid` parameter or cookie'''
 	if not sid:
 		sid = get_session_id()
 
-	if sid:
-		if frappe.db.exists('Session', dict(name=sid, status='Active')):
-			# active session exists, return it
-			return frappe.get_doc('Session', sid)
-		else:
-			raise SessionExpiredError
+	if frappe.db.exists('Session', dict(name=sid, status='Active')):
+		# active session exists, return it
+		return frappe.get_doc('Session', sid)
 	else:
-		# start a new session
-		return frappe.get_doc(dict(doctype='Session')).login(user, password)
+		raise SessionExpiredError
+
+def login(user=None, password=None):
+	return frappe.get_doc(dict(doctype='Session')).login(user, password)
 
 def get_session_id():
 	sid = frappe.cstr(frappe.form_dict.get('sid'))
@@ -148,7 +147,7 @@ class Session(Document):
 		if frappe.get_system_settings('allow_login_using_user_name'):
 			self.user = frappe.db.get_value("User", filters={"username": self.user}) or self.user
 
-	def trigger_event(self, name):
+	def trigger_event(self, event):
 		for method in frappe.get_hooks().get(event, []):
 			frappe.call(frappe.get_attr(method), login_manager=self)
 
