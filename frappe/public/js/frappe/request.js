@@ -80,6 +80,11 @@ frappe.call = function(opts) {
 	let url = opts.url;
 	if (!url) {
 		url = '/api/method/' + args.cmd;
+		if (window.cordova) {
+			let host = frappe.request.url;
+			host = host.slice(0, host.length - 1);
+			url = host + url;
+		}
 		delete args.cmd;
 	}
 
