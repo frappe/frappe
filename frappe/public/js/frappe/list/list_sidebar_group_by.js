@@ -163,19 +163,20 @@ frappe.views.ListGroupBy = class ListGroupBy {
 			let value = decodeURIComponent($target.data('value').trim());
 			fieldname = fieldname === 'assigned_to' ? '_assign': fieldname;
 
-			this.list_view.filter_area.remove(fieldname);
+			return this.list_view.filter_area.remove(fieldname)
+				.then(() => {
+					let operator = '=';
+					if (value === '') {
+						operator = 'is';
+						value = 'not set';
+					}
+					if (fieldname === '_assign') {
+						operator = 'like';
+						value = `%${value}%`;
+					}
 
-			let operator = '=';
-			if (value === '') {
-				operator = 'is';
-				value = 'not set';
-			}
-			if (fieldname === '_assign') {
-				operator = 'like';
-				value = `%${value}%`;
-			}
-
-			this.list_view.filter_area.add(this.doctype, fieldname, operator, value);
+					return this.list_view.filter_area.add(this.doctype, fieldname, operator, value);
+				});
 		});
 	}
 
