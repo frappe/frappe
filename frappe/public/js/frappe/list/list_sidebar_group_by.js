@@ -152,6 +152,10 @@ frappe.views.ListGroupBy = class ListGroupBy {
 				<input type="text" placeholder="${__('Search')}" class="form-control dropdown-search-input input-xs">
 			</div>
 		`;
+
+		// Sort and set frappe.session.user on top of the list
+		fields.sort((item) => item.name ===  frappe.session.user ? -1 : 1)
+
 		let dropdown_html = standard_html + fields.map(get_dropdown_html).join('');
 		dropdown.html(dropdown_html);
 	}
