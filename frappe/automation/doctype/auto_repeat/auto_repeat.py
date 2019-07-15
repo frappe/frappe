@@ -377,8 +377,8 @@ def update_reference(docname, reference):
 		frappe.db.set_value("Auto Repeat", docname, "reference_document", reference)
 		result = "success"
 	except Exception as e:
-		raise e
 		result = "error"
+		raise e
 	return result
 
 @frappe.whitelist()
