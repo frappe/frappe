@@ -218,7 +218,7 @@ frappe.ui.form.MultiSelectDialog = Class.extend({
 
 		// Make empty result set if filter is set
 		if (!frappe.flags.auto_scroll) {
-			this.$results.splice(1, this.$results.length);
+			this.empty_list();
 		}
 
 		if(results.length === 0) {
