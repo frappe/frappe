@@ -11,7 +11,7 @@ from frappe.utils.verified_command import get_signed_params
 
 class PersonalDataDownloadRequest(Document):
 	def after_insert(self):
-		personal_data = get_user_data(frappe.session.user)
+		personal_data = get_user_data(self.user)
 		self.generate_file_and_send_mail(personal_data)
 
 	def generate_file_and_send_mail(self, personal_data):
