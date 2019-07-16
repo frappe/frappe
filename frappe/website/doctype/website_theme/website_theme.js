@@ -3,6 +3,7 @@
 
 frappe.ui.form.on('Website Theme', {
 	refresh(frm) {
+		frm.clear_custom_buttons();
 		frm.toggle_display(["module", "custom"], !frappe.boot.developer_mode);
 
 		frm.trigger('setup_configure_theme');
@@ -116,7 +117,7 @@ frappe.ui.form.on('Website Theme', {
 					// show set as default button
 					if (!frm.is_new() && !frm.is_dirty()) {
 						frm.add_custom_button(__('Set as Default Theme'), () => {
-							frm.call('set_as_default');
+							frm.call('set_as_default').then(() => frm.trigger('refresh'));
 						});
 					}
 				}
