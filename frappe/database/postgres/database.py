@@ -113,10 +113,7 @@ class PostgresDatabase(Database):
 		if not date:
 			return '0001-01-01'
 
-		if isinstance(date, frappe.string_types):
-			if ':' not in date:
-				date = date
-		else:
+		if not isinstance(date, frappe.string_types):
 			date = date.strftime('%Y-%m-%d')
 
 		return date
