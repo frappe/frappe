@@ -63,7 +63,7 @@ class TestSession(unittest.TestCase):
 		frappe.flags.test_current_hour = 8
 		self.assertRaises(InvalidLoginHour, login, 'user_restricted_after@example.com', 'pass1')
 
-	def test_too_many_logins(self):
+	def test_too_failed_many_logins(self):
 		system_settings = frappe.get_doc('System Settings')
 		system_settings.allow_consecutive_login_attempts = 3
 		system_settings.allow_login_after_fail = 3
@@ -88,6 +88,38 @@ class TestSession(unittest.TestCase):
 
 		system_settings.allow_consecutive_login_attempts = 0
 		system_settings.save()
+
+	def test_deny_multiple_sessions(self):
+		system_settings = frappe.get_doc('System Settings')
+		system_settings.deny_multiple_sessions = 1
+		system_settings.save()
+
+		user = get_user('user1@example.com', 'pass1')
+
+		# try to lock out
+		session1 = login('user1@example.com', 'pass1')
+		session2 = login('user1@example.com', 'pass1')
+
+		self.assertEqual(session1.get_status(), 'Expired')
+		self.assertEqual(session2.get_status(), 'Active')
+
+		# allow 3 sessions sessions
+		frappe.db.set_value('User', 'user1@example.com', 'simultaneous_sessions', 3)
+
+		session1 = login('user1@example.com', 'pass1')
+		session2 = login('user1@example.com', 'pass1')
+		session3 = login('user1@example.com', 'pass1')
+		session4 = login('user1@example.com', 'pass1')
+
+		# only first status expired
+		self.assertEqual(session1.get_status(), 'Expired')
+		self.assertEqual(session2.get_status(), 'Active')
+		self.assertEqual(session3.get_status(), 'Active')
+		self.assertEqual(session4.get_status(), 'Active')
+
+		system_settings.deny_multiple_sessions = 0
+		system_settings.save()
+
 
 def get_user(name, password, properties=None):
 	if frappe.db.exists('User', name):

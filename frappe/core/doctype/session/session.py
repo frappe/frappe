@@ -16,7 +16,7 @@ class InvalidLoginHour(frappe.AuthenticationError): pass
 class TooManyFailedLogins(frappe.AuthenticationError): pass
 
 # TODO
-# [ ] - stop simultaneous logins
+# [x] - stop simultaneous logins
 # [ ] - forced password change
 # [ ] - build response
 # [ ] - custom home page
@@ -53,18 +53,19 @@ class Session(Document):
 		self.validate_password()
 		self.validate_ip_address()
 		self.validate_hour()
+		self.deny_multiple_sessions()
 
 		return self
 
 	def logout(self):
 		self.status = 'Logged Out'
-		self.save(ignore_permissions=True)
+		self.save(force=True)
 
 	def fail(self, message):
 		'''Log status, update session status as failed and commit'''
 		frappe.local.response['message'] = message
 		self.status = 'Login Failed'
-		self.save(ignore_permissions=True)
+		self.save(force=True)
 		frappe.db.commit()
 		raise frappe.AuthenticationError
 
@@ -99,7 +100,35 @@ class Session(Document):
 			self.fail('Incorrect User or Password')
 
 		self.status = 'Active'
-		self.insert(ignore_permissions=True)
+		self.insert(force=True)
+
+	def deny_multiple_sessions(self):
+		'''Logout all parallel sessions other than this one and others allowed'''
+		if not (frappe.cint(frappe.conf.get("deny_multiple_sessions")) or frappe.cint(frappe.db.get_system_setting('deny_multiple_sessions'))):
+			return
+
+		additional_sessions_allowed = (frappe.get_cached_doc('User', self.user).simultaneous_sessions or 1) - 1
+
+		# get all active sessions except this one
+		for session in frappe.get_all('Session', dict(
+			user=self.user,
+			status='Active',
+			name=('!=', self.name)),
+			device = self.device,
+			order_by='creation desc'):
+
+			if additional_sessions_allowed:
+				# additional sessions allowed, so let this be
+				# and reduce count by 1
+				additional_sessions_allowed -= 1
+				continue
+
+			self.expire_session(session.name)
+
+	def expire_session(self, name):
+		session = frappe.get_doc('Session', name)
+		session.status = 'Expired'
+		session.save(force=True)
 
 	def validate_ip_address(self):
 		user = frappe.get_cached_doc("User", self.user)
@@ -174,5 +203,9 @@ class Session(Document):
 	def trigger_event(self, event):
 		for method in frappe.get_hooks().get(event, []):
 			frappe.call(frappe.get_attr(method), login_manager=self)
+
+	def get_status(self):
+		'''get latest status from the database'''
+		return frappe.db.get_value('Session', self.name, 'status')
 
 

@@ -191,7 +191,7 @@ class Document(BaseDocument):
 		frappe.flags.error_message = _('Insufficient Permission for {0}').format(self.doctype)
 		raise frappe.PermissionError
 
-	def insert(self, ignore_permissions=None, ignore_links=None, ignore_if_duplicate=False, ignore_mandatory=None):
+	def insert(self, ignore_permissions=None, ignore_links=None, ignore_if_duplicate=False, ignore_mandatory=None, force=True):
 		"""Insert the document in the database (as a new document).
 		This will check for user permissions and execute `before_insert`,
 		`validate`, `on_update`, `after_insert` methods if they are written.
@@ -202,8 +202,8 @@ class Document(BaseDocument):
 
 		self.flags.notifications_executed = []
 
-		if ignore_permissions!=None:
-			self.flags.ignore_permissions = ignore_permissions
+		if ignore_permissions or force:
+			self.flags.ignore_permissions = True
 
 		if ignore_links!=None:
 			self.flags.ignore_links = ignore_links
@@ -270,7 +270,7 @@ class Document(BaseDocument):
 		"""Wrapper for _save"""
 		return self._save(*args, **kwargs)
 
-	def _save(self, ignore_permissions=None, ignore_version=None):
+	def _save(self, ignore_permissions=False, ignore_version=False, ignore_validate=False, force=False):
 		"""Save the current document in the database in the **DocType**'s table or
 		`tabSingles` (for single types).
 
@@ -284,11 +284,14 @@ class Document(BaseDocument):
 
 		self.flags.notifications_executed = []
 
-		if ignore_permissions!=None:
-			self.flags.ignore_permissions = ignore_permissions
+		if ignore_permissions or force:
+			self.flags.ignore_permissions = True
 
-		if ignore_version!=None:
-			self.flags.ignore_version = ignore_version
+		if ignore_validate:
+			self.flags.ignore_validate = True
+
+		if ignore_version:
+			self.flags.ignore_version = True
 
 		if self.get("__islocal") or not self.get("name"):
 			self.insert()
