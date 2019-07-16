@@ -27,10 +27,10 @@ class PersonalDataDeletionRequest(Document):
 			subject=_("Confirm Deletion of Data"),
 			template="delete_data_confirmation",
 			args={
-				'email':self.email,
-				'name':self.name,
-				'host_name':host_name,
-				'link':url
+				'email': self.email,
+				'name': self.name,
+				'host_name': host_name,
+				'link': url
 			},
 			header=[_("Confirm Deletion of Data"), "green"]
 		)

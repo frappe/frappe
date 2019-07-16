@@ -31,14 +31,14 @@ class PersonalDataDownloadRequest(Document):
 			"?" + get_signed_params({"file_url": f.file_url})
 		host_name = frappe.local.site
 		frappe.sendmail(
-			recipients=frappe.session.user,
+			recipients=self.user,
 			subject=_("Download Your Data"),
 			template="download_data",
 			args={
-				'user':frappe.session.user,
-				'user_name':self.user_name,
-				'link':file_link,
-				'host_name':host_name
+				'user': self.user,
+				'user_name': self.user_name,
+				'link': file_link,
+				'host_name': host_name
 			},
 			header=[_("Download Your Data"), "green"]
 		)
