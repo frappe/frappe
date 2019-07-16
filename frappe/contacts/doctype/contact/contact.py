@@ -172,5 +172,5 @@ def get_contact_with_phone_number(number):
 	}, limit=1)
 
 	contact = contacts[0].name if contacts else None
-	
+
 	return contact
