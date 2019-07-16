@@ -113,7 +113,7 @@ def confirm_deletion(email, name, host_name):
 	if doc.status == 'Pending Verification':
 		doc.status = 'Pending Approval'
 		doc.save(ignore_permissions=True)
-		doc.notify_system_managers(doc)
+		doc.notify_system_managers()
 		frappe.db.commit()
 		frappe.respond_as_web_page(_("Confirmed"),
 			_("The process for deletion of {0} data associated with {1} has been initiated.").format(host_name, email),
