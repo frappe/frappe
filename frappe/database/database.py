@@ -553,6 +553,10 @@ class Database(object):
 		val = val[0][0] if val else None
 
 		df = frappe.get_meta(doctype).get_field(fieldname)
+
+		if not df:
+			frappe.throw(_('Invalid field name: {0}').format(frappe.bold(fieldname)), self.InvalidColumnName)
+
 		if df.fieldtype in frappe.model.numeric_fieldtypes:
 			val = cint(val)
 
