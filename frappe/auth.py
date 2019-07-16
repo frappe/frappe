@@ -38,7 +38,7 @@ class HTTPRequest:
 		else:
 			frappe.local.request_ip = '127.0.0.1'
 
-		# language
+		# Set browser language
 		self.set_lang()
 
 		# load cookies
@@ -50,10 +50,8 @@ class HTTPRequest:
 		# login
 		frappe.local.login_manager = LoginManager()
 
-		if frappe.form_dict._lang:
-			lang = get_lang_code(frappe.form_dict._lang)
-			if lang:
-				frappe.local.lang = lang
+		# Set user defined language
+		self.set_user_lang()
 
 		self.validate_csrf_token()
 
@@ -82,8 +80,46 @@ class HTTPRequest:
 				frappe.throw(_("Invalid Request"), frappe.CSRFTokenError)
 
 	def set_lang(self):
+		"""Set language based on browser default language"""
 		from frappe.translate import guess_language
 		frappe.local.lang = guess_language()
+
+	def set_user_lang(self):
+		"""Set language defined by user with ?_lang (only for actual page) or ?_set_lang (define user language)"""
+		site_enabled_languages = frappe.get_hooks('translated_languages_for_website')
+		languages = site_enabled_languages or frappe.translate.get_all_languages()
+		lang = None
+
+		# If available languages are defined and browser language is not there change to first one as default
+		if site_enabled_languages and frappe.local.lang not in site_enabled_languages:
+			frappe.local.lang = site_enabled_languages[0]
+
+		# If user pass ?_set_lang=XX change user (Guest and logged) language
+		if frappe.form_dict._set_lang:
+			language_set = get_lang_code(frappe.form_dict._set_lang)
+			# If language is allowed by app hook or full language list
+			if language_set and language_set in languages:
+				# If "Guest", set session variable _set_lang into cache
+				if frappe.session.user == 'Guest':
+					frappe.cache().hset('lang_set', frappe.session.user, language_set)
+				# If user logged set settings and clear user cache
+				else:
+					frappe.db.set_value('User', frappe.session.user, "language", language_set)
+					frappe.db.commit()
+					frappe.clear_cache(frappe.session.user)
+				lang = language_set
+
+		# If "Guest" user (not logged) and ?_lang=XX not defined and there is session language from previous setting us it
+		if frappe.session.user == 'Guest' and frappe.form_dict._lang == None and frappe.cache().hget('lang_set', frappe.session.user):
+			lang = frappe.cache().hget('lang_set', frappe.session.user)
+
+		# If user pass ?_lang=XX change currently loaded page language
+		if frappe.form_dict._lang:
+			lang = get_lang_code(frappe.form_dict._lang)
+
+		# If language, set it to local container
+		if lang and lang in languages:
+			frappe.local.lang = lang
 
 	def get_db_name(self):
 		"""get database name from conf"""
