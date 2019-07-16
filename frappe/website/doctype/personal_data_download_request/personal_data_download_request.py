@@ -11,11 +11,8 @@ from frappe.utils.verified_command import get_signed_params
 
 class PersonalDataDownloadRequest(Document):
 	def after_insert(self):
-		if frappe.session.user in ['Administrator', 'Guest']:
-			frappe.throw(_("This user cannot request to download data"))
-		else:
-			personal_data = get_user_data(frappe.session.user)
-			self.generate_file_and_send_mail(personal_data)
+		personal_data = get_user_data(frappe.session.user)
+		self.generate_file_and_send_mail(personal_data)
 
 	def generate_file_and_send_mail(self, personal_data):
 		"""generate the file link for download"""

@@ -15,10 +15,7 @@ class PersonalDataDeletionRequest(Document):
 		validate_email_address(self.email, throw=True)
 
 	def after_insert(self):
-		if self.email in ['Administrator', 'Guest']:
-			frappe.throw(_("This user's data cannot be requested for deletion"))
-		else:
-			self.send_verification_mail()
+		self.send_verification_mail()
 
 	def send_verification_mail(self):
 		host_name = frappe.local.site
