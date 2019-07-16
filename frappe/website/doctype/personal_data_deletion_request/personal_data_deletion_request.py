@@ -50,7 +50,6 @@ class PersonalDataDeletionRequest(Document):
 			header=[_("Approval Required"), "green"]
 		)
 
-
 	def anonymize_data(self):
 		""" mask user data with non identifiable data """
 		frappe.only_for('System Manager')
