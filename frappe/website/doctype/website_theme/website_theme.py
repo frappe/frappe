@@ -79,12 +79,11 @@ class WebsiteTheme(Document):
 	def use_theme(self):
 		use_theme(self.name)
 
-@frappe.whitelist()
-def use_theme(theme):
-	website_settings = frappe.get_doc("Website Settings", "Website Settings")
-	website_settings.website_theme = theme
-	website_settings.ignore_validate = True
-	website_settings.save()
+	def set_as_default(self):
+		website_settings = frappe.get_doc('Website Settings')
+		website_settings.website_theme = self.name
+		website_settings.ignore_validate = True
+		website_settings.save()
 
 def add_website_theme(context):
 	context.theme = frappe._dict()
