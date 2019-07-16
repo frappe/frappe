@@ -42,7 +42,7 @@ class PersonalDataDeletionRequest(Document):
 		frappe.sendmail(
 			recipients=system_managers,
 			subject=_("User {0} has requested for data deletion").format(self.email),
-			template="delete_deletion_approval",
+			template="data_deletion_approval",
 			args={
 				'user': self.email,
 				'url': frappe.utils.get_url(self.get_url())
