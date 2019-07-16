@@ -141,7 +141,8 @@ def get_context(context):
 			if self.allow_edit:
 				if self.allow_multiple:
 					if not frappe.form_dict.name and not frappe.form_dict.new:
-						self.build_as_list(context)
+						# list data is queried via JS
+						context.is_list = True
 				else:
 					if frappe.session.user != 'Guest' and not frappe.form_dict.name:
 						frappe.form_dict.name = frappe.db.get_value(self.doc_type, {"owner": frappe.session.user}, "name")
@@ -194,38 +195,6 @@ def get_context(context):
 			if self.allow_comments:
 				context.comment_list = get_comment_list(context.doc.doctype,
 					context.doc.name)
-
-	def build_as_list(self, context):
-		'''Web form is a list, show render as list.html'''
-		from frappe.www.list import get_context as get_list_context
-
-		# set some flags to make list.py/list.html happy
-		frappe.form_dict.web_form_name = self.name
-		frappe.form_dict.doctype = self.doc_type
-		frappe.flags.web_form = self
-
-		self.update_params_from_form_dict(context)
-		self.update_list_context(context)
-		get_list_context(context)
-		context.is_list = True
-
-	def update_params_from_form_dict(self, context):
-		'''Copy params from list view to new view'''
-		context.params_from_form_dict = ''
-
-		params = {}
-		for key, value in iteritems(frappe.form_dict):
-			if frappe.get_meta(self.doc_type).get_field(key):
-				params[key] = value
-
-		if params:
-			context.params_from_form_dict = '&' + urlencode(params)
-
-
-	def update_list_context(self, context):
-		'''update list context for stanard modules'''
-		if hasattr(self, 'web_form_module') and hasattr(self.web_form_module, 'get_list_context'):
-			self.web_form_module.get_list_context(context)
 
 	def get_payment_gateway_url(self, doc):
 		if self.accept_payment:
@@ -334,10 +303,11 @@ def get_context(context):
 
 	def set_web_form_module(self):
 		'''Get custom web form module if exists'''
+		self.web_form_module = self.get_web_form_module()
+
+	def get_web_form_module(self):
 		if self.is_standard:
-			self.web_form_module = get_doc_module(self.module, self.doctype, self.name)
-		else:
-			self.web_form_module = None
+			return get_doc_module(self.module, self.doctype, self.name)
 
 	def validate_mandatory(self, doc):
 		'''Validate mandatory web form fields'''
@@ -513,16 +483,6 @@ def check_webform_perm(doctype, name):
 def get_web_form_filters(web_form_name):
 	web_form = frappe.get_doc("Web Form", web_form_name)
 	return [field for field in web_form.web_form_fields if field.show_in_filter]
-
-def get_web_form_list(doctype, txt, filters, limit_start, limit_page_length=20, order_by=None):
-	from frappe.www.list import get_list
-	if not filters:
-		filters = {}
-
-	filters["owner"] = frappe.session.user
-
-	return get_list(doctype, txt, filters, limit_start, limit_page_length, order_by=order_by,
-		ignore_permissions=True)
 
 def make_route_string(parameters):
 	route_string = ""

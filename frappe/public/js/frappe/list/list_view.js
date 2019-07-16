@@ -160,7 +160,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			this.meta.track_seen ? '_seen' : null,
 			this.sort_by,
 			'enabled',
-			'disabled'
+			'disabled',
+			'color'
 		);
 
 		fields.forEach(f => this._add_field(f));
@@ -791,45 +792,71 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			}
 		};
 
-		frappe.ui.keys.add_shortcut('down', () => {
-			return handle_navigation('down');
-		}, __('Navigate list down'), this.page);
+		frappe.ui.keys.add_shortcut({
+			shortcut: 'down',
+			action: () => handle_navigation('down'),
+			description: __('Navigate list down'),
+			page: this.page
+		});
 
-		frappe.ui.keys.add_shortcut('up', () => {
-			return handle_navigation('up');
-		}, __('Navigate list up'), this.page);
+		frappe.ui.keys.add_shortcut({
+			shortcut: 'up',
+			action: () => handle_navigation('up'),
+			description: __('Navigate list up'),
+			page: this.page
+		});
 
-		frappe.ui.keys.add_shortcut('shift+down', () => {
-			if (!is_current_page() || is_input_focused()) return false;
-			let $list_row = get_list_row_if_focused();
-			check_row($list_row);
-			focus_next();
-		}, __('Select multiple list items'), this.page);
-
-		frappe.ui.keys.add_shortcut('shift+up', () => {
-			if (!is_current_page() || is_input_focused()) return false;
-			let $list_row = get_list_row_if_focused();
-			check_row($list_row);
-			focus_prev();
-		}, __('Select multiple list items'), this.page);
-
-		frappe.ui.keys.add_shortcut('enter', () => {
-			let $list_row = get_list_row_if_focused();
-			if ($list_row) {
-				$list_row.find('a[data-name]')[0].click();
-				return true;
-			}
-			return false;
-		}, __('Open list item'), this.page);
-
-		frappe.ui.keys.add_shortcut('space', () => {
-			let $list_row = get_list_row_if_focused();
-			if ($list_row) {
+		frappe.ui.keys.add_shortcut({
+			shortcut: 'shift+down',
+			action: () => {
+				if (!is_current_page() || is_input_focused()) return false;
+				let $list_row = get_list_row_if_focused();
 				check_row($list_row);
-				return true;
-			}
-			return false;
-		}, __('Select list item'), this.page);
+				focus_next();
+			},
+			description: __('Select multiple list items'),
+			page: this.page
+		});
+
+		frappe.ui.keys.add_shortcut({
+			shortcut: 'shift+up',
+			action: () => {
+				if (!is_current_page() || is_input_focused()) return false;
+				let $list_row = get_list_row_if_focused();
+				check_row($list_row);
+				focus_prev();
+			},
+			description: __('Select multiple list items'),
+			page: this.page
+		});
+
+		frappe.ui.keys.add_shortcut({
+			shortcut: 'enter',
+			action: () => {
+				let $list_row = get_list_row_if_focused();
+				if ($list_row) {
+					$list_row.find('a[data-name]')[0].click();
+					return true;
+				}
+				return false;
+			},
+			description: __('Open list item'),
+			page: this.page
+		});
+
+		frappe.ui.keys.add_shortcut({
+			shortcut: 'space',
+			action: () => {
+				let $list_row = get_list_row_if_focused();
+				if ($list_row) {
+					check_row($list_row);
+					return true;
+				}
+				return false;
+			},
+			description: __('Select list item'),
+			page: this.page
+		});
 	}
 
 	setup_filterable() {

@@ -118,6 +118,34 @@ class TestEnergyPointLog(unittest.TestCase):
 		# no points for admin
 		self.assertEquals(points_after_closing_todo, 0)
 
+	def test_revert_points_on_cancelled_doc(self):
+		frappe.set_user('test@example.com')
+		create_energy_point_rule_for_todo()
+		created_todo = create_a_todo()
+		created_todo.status = 'Closed'
+		created_todo.save()
+
+		energy_point_logs = frappe.get_all('Energy Point Log')
+
+		self.assertEquals(len(energy_point_logs), 1)
+
+		# for submit and cancel permission
+		frappe.set_user('Administrator')
+		# submit
+		created_todo.docstatus = 1
+		created_todo.save()
+
+		# cancel
+		created_todo.docstatus = 2
+		created_todo.save()
+
+		energy_point_logs = frappe.get_all('Energy Point Log', fields=['reference_name', 'type', 'reverted'])
+
+		self.assertListEqual(energy_point_logs, [
+			{'reference_name': created_todo.name, 'type': 'Revert', 'reverted': 0},
+			{'reference_name': created_todo.name, 'type': 'Auto', 'reverted': 1}
+		])
+
 def create_energy_point_rule_for_todo(multiplier_field=None):
 	name = 'ToDo Closed'
 	point_rule = frappe.db.get_all(

@@ -2,6 +2,7 @@
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
+from frappe import _
 """
 record of files
 
@@ -446,7 +447,7 @@ class File(NestedSet):
 	def validate_url(self, df=None):
 		if self.file_url:
 			if not self.file_url.startswith(("http://", "https://", "/files/", "/private/files/")):
-				frappe.throw("URL must start with 'http://' or 'https://'")
+				frappe.throw(_("URL must start with 'http://' or 'https://'"))
 				return
 
 			self.file_url = unquote(self.file_url)

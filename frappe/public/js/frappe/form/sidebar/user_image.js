@@ -4,6 +4,7 @@ frappe.ui.form.set_user_image = function(frm) {
 	var image_field = frm.meta.image_field;
 	var image = frm.doc[image_field];
 	var title_image = frm.page.$title_area.find('.title-image');
+	var image_actions = frm.sidebar.image_wrapper.find('.sidebar-image-actions');
 
 
 	image_section.toggleClass('hide', image_field ? false : true);
@@ -32,6 +33,8 @@ frappe.ui.form.set_user_image = function(frm) {
 			.css("background-image", 'url("' + image + '")')
 			.html('');
 
+		image_actions.find('.sidebar-image-change, .sidebar-image-remove').show();
+
 	} else {
 		image_section
 			.find(".sidebar-image")
@@ -51,6 +54,8 @@ frappe.ui.form.set_user_image = function(frm) {
 			.css({'background-color': frappe.get_palette(title)})
 			.html(frappe.get_abbr(title));
 
+		image_actions.find('.sidebar-image-change').show();
+		image_actions.find('.sidebar-image-remove').hide();
 	}
 
 }
@@ -63,12 +68,27 @@ frappe.ui.form.setup_user_image_event = function(frm) {
 		});
 	}
 
-	// bind click on image_wrapper
-	frm.sidebar.image_wrapper.on('click', function() {
-		var field = frm.get_field(frm.meta.image_field);
-		if(!field.$input) {
-			field.make_input();
+	frm.sidebar.image_wrapper.on('click', ':not(.sidebar-image-actions)', (e) => {
+		let $target = $(e.currentTarget);
+		if ($target.is('a.dropdown-toggle, .dropdown')) {
+			return;
 		}
-		field.$input.trigger('click');
+		let dropdown = frm.sidebar.image_wrapper.find('.sidebar-image-actions .dropdown');
+		dropdown.toggleClass('open');
+		e.stopPropagation();
+	});
+
+	// bind click on image_wrapper
+	frm.sidebar.image_wrapper.on('click', '.sidebar-image-change, .sidebar-image-remove', function(e) {
+		let $target = $(e.currentTarget);
+		var field = frm.get_field(frm.meta.image_field);
+		if ($target.is('.sidebar-image-change')) {
+			if(!field.$input) {
+				field.make_input();
+			}
+			field.$input.trigger('click');
+		} else {
+			field.set_value('').then(() => frm.save());
+		}
 	});
 }

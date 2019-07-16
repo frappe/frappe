@@ -1,13 +1,13 @@
 context('Relative Timeframe', () => {
 	beforeEach(() => {
-		cy.login('Administrator', 'qwe');
+		cy.login();
 		cy.visit('/desk');
 	});
 	before(() => {
-		cy.login('Administrator', 'qwe');
+		cy.login();
 		cy.visit('/desk');
 		cy.window().its('frappe').then(frappe => {
-			frappe.call("frappe.tests.test_utils.create_todo_records");
+			frappe.call("frappe.tests.ui_test_helpers.create_todo_records");
 		});
 	});
 	it('set relative filter for Previous and check list', () => {

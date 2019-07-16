@@ -1,16 +1,18 @@
 // common file between desk and website
 
 frappe.avatar = function (user, css_class, title, image_url = null) {
+	let user_info;
 	if (user) {
 		// desk
-		var user_info = frappe.user_info(user);
+		user_info = frappe.user_info(user);
 	} else {
 		// website
+		let full_name = title || frappe.get_cookie("full_name");
 		user_info = {
-			image: frappe.get_cookie("user_image"),
-			fullname: frappe.get_cookie("full_name"),
-			abbr: frappe.get_abbr(frappe.get_cookie("full_name")),
-			color: frappe.get_palette(frappe.get_cookie("full_name"))
+			image: image_url === null ? frappe.get_cookie("user_image") : image_url,
+			fullname: full_name,
+			abbr: frappe.get_abbr(full_name),
+			color: frappe.get_palette(full_name)
 		};
 	}
 

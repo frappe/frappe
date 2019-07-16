@@ -71,7 +71,7 @@ class Event(Document):
 		communication.communication_date = self.starts_on
 		communication.reference_doctype = self.doctype
 		communication.reference_name = self.name
-		communication.communication_medium = communication_mapping[self.event_category] if self.event_category else ""
+		communication.communication_medium = communication_mapping.get(self.event_category) if self.event_category else ""
 		communication.status = "Linked"
 		communication.add_link(participant.reference_doctype, participant.reference_docname)
 		communication.save(ignore_permissions=True)

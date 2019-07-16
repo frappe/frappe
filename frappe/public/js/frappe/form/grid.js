@@ -253,6 +253,7 @@ export default class Grid {
 
 		// toolbar
 		this.setup_toolbar();
+		this.toggle_checkboxes(this.display_status !== 'Read');
 
 		// sortable
 		if(this.frm && this.is_sortable() && !this.sortable_setup_done) {
@@ -444,6 +445,9 @@ export default class Grid {
 	toggle_display(fieldname, show) {
 		this.get_docfield(fieldname).hidden = show ? 0 : 1;
 		this.refresh();
+	}
+	toggle_checkboxes(enable) {
+		this.wrapper.find(".grid-row-check").prop('disabled', !enable)
 	}
 	get_docfield(fieldname) {
 		return frappe.meta.get_docfield(this.doctype, fieldname, this.frm ? this.frm.docname : null);
