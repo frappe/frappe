@@ -991,11 +991,12 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			{
 				label: __('Print'),
 				action: () => {
-					frappe.ui.get_print_settings(
+					let dialog = frappe.ui.get_print_settings(
 						false,
 						print_settings => this.print_report(print_settings),
 						this.report_doc.letter_head
 					);
+					this.add_portrait_warning(dialog);
 				},
 				condition: () => frappe.model.can_print(this.report_doc.ref_doctype),
 				standard: true
@@ -1003,11 +1004,13 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			{
 				label: __('PDF'),
 				action: () => {
-					frappe.ui.get_print_settings(
+					let dialog = frappe.ui.get_print_settings(
 						false,
 						print_settings => this.pdf_report(print_settings),
 						this.report_doc.letter_head
 					);
+
+					this.add_portrait_warning(dialog);
 				},
 				condition: () => frappe.model.can_print(this.report_doc.ref_doctype),
 				standard: true
@@ -1138,6 +1141,18 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				standard: true
 			}
 		];
+	}
+
+	add_portrait_warning(dialog) {
+		if (this.columns.length > 10) {
+			dialog.set_df_property('orientation', 'change', () => {
+				let value = dialog.get_value('orientation');
+				let description = value === 'Portrait'
+					? __('Report with more than 10 columns looks better in Landscape mode.')
+					: '';
+				dialog.set_df_property('orientation', 'description', description);
+			});
+		}
 	}
 
 	add_custom_column(custom_column, custom_data, link_field, column_field, insert_after) {
