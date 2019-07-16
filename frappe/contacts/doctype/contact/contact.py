@@ -29,6 +29,7 @@ class Contact(Document):
 			break
 
 	def on_update(self):
+		if self.is_new(): return
 		doc = self.get_doc_before_save()
 		for field in ['mobile_no', 'phone']:
 			old_number = doc.get(field)
