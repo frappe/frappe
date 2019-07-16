@@ -41,9 +41,11 @@ frappe.ui.EnergyPointsNotifications = Class.extend({
             let new_item = r[0];
             this.dropdown_items.unshift(new_item);
             if(this.dropdown_items.length > this.max_length) {
+                this.$dropdown_list.find('.recent-points-item').last().remove();
                 this.dropdown_items.pop();
             }
-            this.render_energy_points_dropdown();
+            let new_item_html = this.get_dropdown_item_html(new_item);
+            $(new_item_html).insertAfter(this.$dropdown_list.find('.points-date-range').eq(0));
         });
     },
 
@@ -81,10 +83,11 @@ frappe.ui.EnergyPointsNotifications = Class.extend({
     },
 
     render_energy_points_dropdown: function() {
-        let header_html = `<li class="points-updates-header">
-            <span class="points-updates-title bold text-muted">${__('Energy Points')}</span>
-            <a href="#social/users" class="points-leaderboard text-muted hidden-xs">${__('Leaderboard')}</a>
-        </li>`;
+        let header_html =
+            `<li class="points-updates-header">
+                <span class="points-updates-title bold text-muted">${__('Energy Points')}</span>
+                <a href="#social/users" class="points-leaderboard text-muted hidden-xs">${__('Leaderboard')}</a>
+            </li>`;
         let body_html = '';
         if(this.dropdown_items.length) {
             let date_range= this.get_energy_points_date_range(this.dropdown_items[0].creation);
