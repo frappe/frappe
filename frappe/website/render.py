@@ -136,7 +136,9 @@ def build_response(path, data, http_status_code, headers=None):
 
 def render_page_by_language(path):
 	translated_languages = frappe.get_hooks("translated_languages_for_website")
-	user_lang = guess_language(translated_languages)
+	user_lang = frappe.lang
+	if translated_languages and user_lang not in translated_languages:
+		user_lang = translated_languages[0]
 	if translated_languages and user_lang in translated_languages:
 		try:
 			if path and path != "index":
