@@ -1,26 +1,27 @@
 
-frappe.ui.EnergyPointsNotifications = Class.extend({
+frappe.ui.EnergyPointsNotifications = class {
 
-    init: function() {
+    constructor() {
         this.$dropdown = $('.navbar').find('.dropdown-energy-points');
         this.$dropdown_list = this.$dropdown.find('.recent-points-list');
         this.$notification_indicator = this.$dropdown.find('.energy-points-notification');
         this.max_length = 20;
-        this.render_energy_points_notifications();
-        this.bind_events();
-    },
+        this.setup_energy_points_notifications();
+    }
 
-    render_energy_points_notifications: function() {
+    setup_energy_points_notifications() {
         this.get_energy_points_list(this.max_length).then(user_points_list=> {
             this.dropdown_items = user_points_list;
             this.render_energy_points_dropdown();
             if(this.$dropdown_list.find('.unseen').length) {
                 this.$notification_indicator.show();
             }
-        })
-    },
+        });
 
-    bind_events: function() {
+        this.bind_events();
+    }
+
+    bind_events() {
         frappe.realtime.on('energy_points_notification', () => {
             this.$dropdown.find('.energy-points-notification').show();
             this.update_dropdown();
@@ -33,10 +34,10 @@ frappe.ui.EnergyPointsNotifications = Class.extend({
 
         this.$dropdown.on('show.bs.dropdown',()=> {
             this.check_seen();
-        })
-    },
+        });
+    }
 
-    update_dropdown: function() {
+    update_dropdown() {
         this.get_energy_points_list(1).then(r=> {
             let new_item = r[0];
             this.dropdown_items.unshift(new_item);
@@ -47,18 +48,18 @@ frappe.ui.EnergyPointsNotifications = Class.extend({
             let new_item_html = this.get_dropdown_item_html(new_item);
             $(new_item_html).insertAfter(this.$dropdown_list.find('.points-date-range').eq(0));
         });
-    },
+    }
 
-    check_seen: function() {
+    check_seen() {
         this.dropdown_items.forEach(item=> {
             if(item.seen === 0) {
                 frappe.xcall('frappe.social.doctype.energy_point_log.energy_point_log.set_notification_as_seen', {field: item});
                 item.seen = 1;
             }
-        })
-    },
+        });
+    }
 
-    get_energy_points_date_range: function(date) {
+    get_energy_points_date_range(date) {
         let current_date = frappe.datetime.now_date();
         let prev_week = frappe.datetime.add_days(current_date, -7);
         let prev_month = frappe.datetime.add_months(frappe.datetime.now_date(),-1);
@@ -71,24 +72,25 @@ frappe.ui.EnergyPointsNotifications = Class.extend({
         } else  {
             return 'Older';
         }
-    },
+    }
 
-    get_energy_points_list: function(limit) {
+    get_energy_points_list(limit) {
         return frappe.db.get_list('Energy Point Log',
             {filters: {user: frappe.session.user, type:['not in',['Review']]},
             fields:['name','user', 'points', 'reference_doctype', 'reference_name', 'reason', 'type', 'seen', 'rule', 'owner', 'creation'],
             limit:limit, order_by:'creation desc'}).then((energy_points_list)=> {
                 return energy_points_list;
         });
-    },
+    }
 
-    render_energy_points_dropdown: function() {
+    render_energy_points_dropdown() {
         let header_html =
             `<li class="points-updates-header">
                 <span class="points-updates-title bold text-muted">${__('Energy Points')}</span>
                 <a href="#social/users" class="points-leaderboard text-muted hidden-xs">${__('Leaderboard')}</a>
             </li>`;
         let body_html = '';
+
         if(this.dropdown_items.length) {
             let date_range= this.get_energy_points_date_range(this.dropdown_items[0].creation);
             body_html += `<li class="points-date-range text-muted">${__(date_range)}</li>`;
@@ -104,19 +106,33 @@ frappe.ui.EnergyPointsNotifications = Class.extend({
         } else {
             body_html += `<li><a href="#" onclick = "return false" class="text-muted text-center">${__('No activity')}</a></li>`
         }
+
         let dropdown_html = header_html + body_html;
         this.$dropdown_list.html(dropdown_html);
-    },
+    }
 
-    get_dropdown_item_html: function(field) {
+    get_dropdown_item_html(field) {
         let doc_link = frappe.utils.get_form_link(field.reference_doctype,field.reference_name);
-        let owner_name = frappe.user.full_name(field.owner).trim();
-        owner_name = this.truncate_value(owner_name);
         let link_html_string = field.seen? `<a href=${doc_link}>`: `<a href=${doc_link} class="unseen">`;
         let points_html= field.type === 'Auto' || field.type === 'Appreciation'
             ? `<div class="points-update positive-points">+${__(field.points)}</div>`
             : `<div class="points-update negative-points">${__(field.points)}</div>`;
+        let message_html = this.get_message_html(field);
 
+        let item_html = `<li class="recent-points-item">
+                            ${link_html_string}
+                            ${points_html}
+                            <div class="points-reason">
+                                ${message_html}
+                            </div>
+                            </a>
+                        </li>`;
+        return item_html;
+    }
+
+    get_message_html(field) {
+        let owner_name = frappe.user.full_name(field.owner).trim();
+        owner_name = this.truncate_value(owner_name);
         let message_html = '';
         if(field.type === 'Auto' ) {
             message_html = `For ${__(field.rule)} <span class="points-reason-name text-muted">${__(field.reference_name)}</span>`;
@@ -133,20 +149,11 @@ frappe.ui.EnergyPointsNotifications = Class.extend({
             message_html = `${message}<span class="points-reason-name text-muted">${__(field.reference_name)}</span>
                 <span class="hidden-xs">${__(reason_string)} </span>`;
         }
+        return message_html;
+    }
 
-        let item_html = `<li class="recent-points-item">
-                            ${link_html_string}
-                            ${points_html}
-                            <div class="points-reason">
-                                ${message_html}
-                            </div>
-                            </a>
-                        </li>`;
-        return item_html;
-    },
-
-    truncate_value: function(str) {
+    truncate_value(str) {
         if(str.length > 50) str = str.slice(0,50) + '...';
         return str;
     }
-})
+}
