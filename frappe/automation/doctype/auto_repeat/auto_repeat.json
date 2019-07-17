@@ -1,7 +1,7 @@
 {
  "allow_import": 1,
  "allow_rename": 1,
- "autoname": "naming_series:",
+ "autoname": "format:AUT-AR-{#####}",
  "creation": "2018-03-09 11:22:31.192349",
  "doctype": "DocType",
  "editable_grid": 1,
@@ -12,7 +12,6 @@
   "section_break_3",
   "reference_doctype",
   "reference_document",
-  "naming_series",
   "column_break_5",
   "start_date",
   "end_date",
@@ -37,12 +36,6 @@
   {
    "fieldname": "section_break_1",
    "fieldtype": "Section Break"
-  },
-  {
-   "fieldname": "naming_series",
-   "fieldtype": "Select",
-   "label": "Series",
-   "options": "AUT-AR-.#####.-"
   },
   {
    "fieldname": "reference_doctype",
@@ -195,7 +188,7 @@
    "label": "Repeat on Last Day of the Month"
   }
  ],
- "modified": "2019-07-15 13:45:40.678161",
+ "modified": "2019-07-17 11:30:51.412317",
  "modified_by": "Administrator",
  "module": "Automation",
  "name": "Auto Repeat",
