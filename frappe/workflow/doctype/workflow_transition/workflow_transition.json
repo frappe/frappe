@@ -8,10 +8,12 @@
   "state",
   "action",
   "next_state",
+   "column_break_4",
   "assign_user_mode",
   "user",
   "doc_field",
   "allowed",
+   "column_break_5",
   "multi_user_action_mode",
   "allow_self_approval",
   "is_approve",
@@ -121,6 +123,14 @@
    "fieldname": "is_approve",
    "fieldtype": "Check",
    "label": "Is Approve"
+  },
+  {
+   "fieldname": "column_break_4",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_5",
+   "fieldtype": "Column Break"
   }
  ],
  "idx": 1,
