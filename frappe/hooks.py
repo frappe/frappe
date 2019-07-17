@@ -237,6 +237,7 @@ setup_wizard_exception = "frappe.desk.page.setup_wizard.setup_wizard.email_setup
 before_write_file = "frappe.limits.validate_space_limit"
 
 before_migrate = ['frappe.patches.v11_0.sync_user_permission_doctype_before_migrate.execute']
+after_migrate = ['frappe.website.doctype.website_theme.website_theme.generate_theme_files_if_not_exist']
 
 otp_methods = ['OTP App','Email','SMS']
 user_privacy_documents = [
