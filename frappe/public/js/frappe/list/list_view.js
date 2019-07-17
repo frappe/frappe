@@ -655,7 +655,9 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 
 	get_count_str() {
-		const current_count = this.data.length;
+		let current_count = this.data.length;
+		let count_without_children = this.data.uniqBy(d => d.name).length;
+
 		const filters = this.get_filters_for_args();
 		const with_child_table_filter = filters.some(filter => {
 			return filter[0] !== this.doctype;
@@ -676,7 +678,10 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			}
 		}).then(r => {
 			this.total_count = r.message.values[0][0] || current_count;
-			const str = __('{0} of {1}', [current_count, this.total_count]);
+			let str = __('{0} of {1}', [current_count, this.total_count]);
+			if (count_without_children !== current_count) {
+				str = __('{0} of {1} ({2} rows with children)', [count_without_children, this.total_count, current_count]);
+			}
 			return str;
 		});
 	}
