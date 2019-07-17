@@ -28,13 +28,21 @@ frappe.ui.form.on('Auto Repeat', {
 	},
 
 	refresh: function(frm) {
-		//if document is not saved do not show schedule and document link
+		// auto repeat message
+		if (frm.is_new()) {
+			let customize_form_link = `<a href="#Form/Customize Form">${__('Customize Form')}</a>`;
+			frm.dashboard.set_headline(__('To configure Auto Repeat, enable "Allow Auto Repeat" from {0}.', [customize_form_link]));
+		}
+
+		// view document button
 		if (!frm.is_dirty()) {
 			let label = __('View {0}', [__(frm.doc.reference_doctype)]);
-			frm.add_custom_button(__(label), () =>
+			frm.add_custom_button(label, () =>
 				frappe.set_route("List", frm.doc.reference_doctype, { auto_repeat: frm.doc.name })
 			);
 		}
+
+		// auto repeat schedule
 		frappe.auto_repeat.render_schedule(frm);
 	},
 
@@ -51,22 +59,7 @@ frappe.ui.form.on('Auto Repeat', {
 	},
 
 	get_contacts: function(frm) {
-		frappe.call({
-			method: "frappe.automation.doctype.auto_repeat.auto_repeat.get_contacts",
-			args: {
-				reference_doctype: frm.doc.reference_doctype,
-				reference_name: frm.doc.reference_document
-			},
-			callback: function(r) {
-				if (r.message) {
-					frm.set_value("recipients", r.message.join());
-					frm.refresh_field("recipients");
-				}
-				else {
-					frappe.msgprint("No Contacts linked to Reference Document", "Message");
-				}
-			}
-		});
+		frm.call('fetch_linked_contacts');
 	},
 
 	preview_message: function(frm) {
@@ -80,7 +73,7 @@ frappe.ui.form.on('Auto Repeat', {
 					message: frm.doc.message
 				},
 				callback: function(r) {
-					if(r.message) {
+					if (r.message) {
 						frappe.msgprint(r.message.message, r.message.subject)
 					}
 				}

@@ -223,6 +223,21 @@ class AutoRepeat(Document):
 		make(doctype=new_doc.doctype, name=new_doc.name, recipients=self.recipients,
 						subject=subject, content=message, attachments=attachments, send_email=1)
 
+	def fetch_linked_contacts(self):
+		if self.reference_doctype and self.reference_document:
+			res = frappe.db.get_all('Contact',
+				fields=['email_id'],
+				filters=[
+					['Dynamic Link', 'link_doctype', '=', self.reference_doctype],
+					['Dynamic Link', 'link_name', '=', self.reference_document]
+				])
+
+			email_ids = list(set([d.email_id for d in res]))
+			if not email_ids:
+				frappe.msgprint(_('No contacts linked to document'), alert=True)
+			else:
+				self.recipients = ', '.join(email_ids)
+
 	def disable_auto_repeat(self):
 		frappe.db.set_value('Auto Repeat', self.name, 'disabled', 1)
 
@@ -345,32 +360,6 @@ def get_auto_repeat_doctypes(doctype, txt, searchfield, start, page_len, filters
 		if frappe.get_meta(dt[0]).allow_auto_repeat == 1:
 			repeatable_docs.append([dt[0]])
 	return repeatable_docs
-
-@frappe.whitelist()
-def get_contacts(reference_doctype, reference_name):
-	docfields = frappe.get_meta(reference_doctype).fields
-
-	contact_fields = []
-	for field in docfields:
-		if field.fieldtype == "Link" and field.options == "Contact":
-			contact_fields.append(field.fieldname)
-
-	if contact_fields:
-		contacts = []
-		for contact_field in contact_fields:
-			contacts.append(frappe.db.get_value(reference_doctype, reference_name, contact_field))
-	else:
-		return
-
-	if contacts:
-		emails = []
-		for contact in contacts:
-			emails.append(frappe.db.get_value("Contact", contact, "email_id"))
-
-		return emails
-	else:
-		return
-
 
 @frappe.whitelist()
 def update_reference(docname, reference):
