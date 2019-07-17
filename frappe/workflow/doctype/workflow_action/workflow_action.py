@@ -60,8 +60,8 @@ def create_workflow_actions(workflow, doc, user = None, possible_actions=None, a
 			next_possible_transitions = [frappe._dict({'action':'Start', 'is_approve':0,
 				'name':'', 'allow_self_approval':1})]
 		else:
-			email_args = {'recipients': [d.get('owner')],
-				'subject': 'Workflow %s %s finished' %(doc.doctype,doc.name)
+			email_args = {'recipients': [doc.owner],
+				'subject': 'Workflow for %s %s finished' %(doc.doctype,doc.name)
 			}
 			enqueue(method=frappe.sendmail, queue='short', **email_args )
 			return
