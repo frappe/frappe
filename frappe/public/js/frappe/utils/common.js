@@ -302,7 +302,7 @@ frappe.utils.new_auto_repeat_prompt = function(frm) {
 			callback: function (r) {
 				if (r.message) {
 					frappe.show_alert({
-						'message': __("Successfully created repeating task"),
+						'message': __("Auto Repeat created for this document"),
 						'indicator': 'green'
 					});
 					frm.reload_doc();

@@ -135,12 +135,13 @@ class AutoRepeat(Document):
 			new_doc = self.make_new_document()
 			if self.notify_by_email and self.recipients:
 				self.send_notification(new_doc)
-
 		except Exception:
-			frappe.log_error(frappe.get_traceback(), _("Recurring document creation failure"))
+			error_log = frappe.log_error(frappe.get_traceback(), _("Auto Repeat Document Creation Failure"))
+
 			self.disable_auto_repeat()
+
 			if self.reference_document and not frappe.flags.in_test:
-				self.notify_error_to_user()
+				self.notify_error_to_user(error_log)
 
 	def make_new_document(self):
 		reference_doc = frappe.get_doc(self.reference_doctype, self.reference_document)
@@ -206,22 +207,22 @@ class AutoRepeat(Document):
 		message = self.message or ''
 
 		if not self.subject:
-			subject = _("New {0}: #{1}").format(new_doc.doctype, new_doc.name)
+			subject = _("New {0}: {1}").format(new_doc.doctype, new_doc.name)
 		elif "{" in self.subject:
 			subject = frappe.render_template(self.subject, {'doc': new_doc})
 
 		if not self.message:
-			message = _("Please find attached {0} #{1}").format(new_doc.doctype, new_doc.name)
+			message = _("Please find attached {0}: {1}").format(new_doc.doctype, new_doc.name)
 		elif "{" in self.message:
 			message = frappe.render_template(self.message, {'doc': new_doc})
 
 		print_format = self.print_format or 'Standard'
 
 		attachments = [frappe.attach_print(new_doc.doctype, new_doc.name,
-							file_name=new_doc.name, print_format=print_format)]
+			file_name=new_doc.name, print_format=print_format)]
 
 		make(doctype=new_doc.doctype, name=new_doc.name, recipients=self.recipients,
-						subject=subject, content=message, attachments=attachments, send_email=1)
+			subject=subject, content=message, attachments=attachments, send_email=1)
 
 	def fetch_linked_contacts(self):
 		if self.reference_doctype and self.reference_document:
@@ -241,43 +242,26 @@ class AutoRepeat(Document):
 	def disable_auto_repeat(self):
 		frappe.db.set_value('Auto Repeat', self.name, 'disabled', 1)
 
-	def notify_error_to_user(self):
-		party = ''
-		party_type = ''
+	def notify_error_to_user(self, error_log):
+		recipients = get_system_managers(only_name=True) + self.owner
+		subject = _("Auto Repeat Document Creation Failed")
 
-		if self.reference_doctype in ['Sales Order', 'Sales Invoice', 'Delivery Note']:
-			party_type = 'customer'
-		elif self.reference_doctype in ['Purchase Order', 'Purchase Invoice', 'Purchase Receipt']:
-			party_type = 'supplier'
+		form_link = frappe.utils.get_link_to_form(self.reference_doctype, self.reference_document)
+		auto_repeat_failed_for = _('Auto Repeat failed for {0}').format(form_link)
 
-		if party_type:
-			party = frappe.db.get_value(self.reference_doctype, self.reference_document, party_type)
+		error_log_link =frappe.utils.get_link_to_form(error_log.reference_doctype, error_log.reference_document)
+		error_log_message = _('Check the Error Log for more information: {0}').format(error_log_link)
 
-		recipients = get_system_managers(only_name=True)
-		frappe.sendmail(recipients + [frappe.db.get_value("User", self.owner, "email")],
-						subject=_("[Urgent] Error while creating recurring %s for %s" % (self.reference_doctype, self.reference_document)),
-						message=frappe.get_template("templates/emails/recurring_document_failed.html").render({
-							"type": _(self.reference_doctype),
-							"name": self.reference_document,
-							"party": party or "",
-							"auto_repeat": self.name
-						}))
-
-		try:
-			self.assign_task_to_owner(recipients)
-		except Exception:
-			frappe.log_error(frappe.get_traceback(), _("Recurring Documents Failed"))
-
-	def assign_task_to_owner(self, owners):
-		for owner in owners:
-			args = {
-				'doctype': 'Auto Repeat',
-				'assign_to': owner,
-				'name':	self.name,
-				'description': _('Recurring Documents Failed'),
-				'priority': 'High'
-			}
-			assign_to.add(args)
+		frappe.sendmail(
+			recipients=recipients,
+			subject=subject,
+			template="auto_repeat_fail",
+			args={
+				'auto_repeat_failed_for': auto_repeat_failed_for,
+				'error_log_message': error_log_message
+			},
+			header=[subject, 'red']
+		)
 
 
 def get_next_schedule_date(start_date, frequency, repeat_on_day, repeat_on_last_day = False, end_date = None):
@@ -354,12 +338,19 @@ def make_auto_repeat(doctype, docname, frequency, start_date, end_date = None):
 
 #method for reference_doctype filter
 def get_auto_repeat_doctypes(doctype, txt, searchfield, start, page_len, filters):
-	repeatable_docs = []
-	docs = [d for d in frappe.db.get_values("DocType", {"issingle": 0, "istable": 0, "hide_toolbar": 0})]
-	for dt in docs:
-		if frappe.get_meta(dt[0]).allow_auto_repeat == 1:
-			repeatable_docs.append([dt[0]])
-	return repeatable_docs
+	res = frappe.db.get_all('Property Setter', {
+		'property': 'allow_auto_repeat',
+		'value': '1',
+	}, ['doc_type'])
+	docs = [r.doc_type for r in res]
+
+	res = frappe.db.get_all('DocType', {
+		'allow_auto_repeat': 1,
+	}, ['name'])
+	docs += [r.name for r in res]
+	docs = set(list(docs))
+
+	return [[d] for d in docs]
 
 @frappe.whitelist()
 def update_reference(docname, reference):
