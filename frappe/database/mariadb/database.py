@@ -268,7 +268,7 @@ class MariaDBDatabase(Database):
 				self.sql("""alter table `tab%s`
 					add unique `%s`(%s)""" % (doctype, constraint_name, ", ".join(fields)))
 
-	def updatedb(self, doctype, meta=None):
+	def updatedb(self, doctype, meta=None, base_doctype=None):
 		"""
 		Syncs a `DocType` to the table
 		* creates if required
@@ -280,7 +280,7 @@ class MariaDBDatabase(Database):
 			raise Exception('Wrong doctype {0} in updatedb'.format(doctype))
 
 		if not res[0][0]:
-			db_table = MariaDBTable(doctype, meta)
+			db_table = MariaDBTable(doctype, meta, base_doctype)
 			db_table.validate()
 
 			self.commit()
