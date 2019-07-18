@@ -210,7 +210,7 @@ class PostgresDatabase(Database):
 				"full_path" text)''')
 		self.sql('''CREATE INDEX IF NOT EXISTS "help_index" ON "help" ("path")''')
 
-	def updatedb(self, doctype, meta=None):
+	def updatedb(self, doctype, meta=None, base_doctype=None):
 		"""
 		Syncs a `DocType` to the table
 		* creates if required
@@ -222,7 +222,7 @@ class PostgresDatabase(Database):
 			raise Exception('Wrong doctype {0} in updatedb'.format(doctype))
 
 		if not res[0][0]:
-			db_table = PostgresTable(doctype, meta)
+			db_table = PostgresTable(doctype, meta, base_doctype)
 			db_table.validate()
 
 			self.commit()
