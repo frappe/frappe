@@ -58,7 +58,12 @@ frappe.views.FormFactory = class FormFactory extends frappe.views.Factory {
 
 		frappe.model.with_doc(dt, dn, function(dn, r) {
 			if(r && r['403']) return; // not permitted
-
+			// in the backend, auto switched to user's authorized doctype variant, hence switch here
+			if (r && r.docs && r.docs[0].doctype != dt)
+			{
+				frappe.set_route("Form", r.docs[0].doctype, dn);
+				return;
+			}
 			if(!(locals[dt] && locals[dt][dn])) {
 				// doc not found, but starts with New,
 				// make a new doc and set it
