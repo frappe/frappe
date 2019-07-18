@@ -793,6 +793,11 @@ def validate_fields(meta):
 
 	fields = meta.get("fields")
 	fieldname_list = [d.fieldname for d in fields]
+	if meta.get('filter') and meta.get('base_doctype'):
+		try:
+			frappe.get_list(meta.get('base_doctype'), filters = [meta.get('filter')], limit=1)
+		except Exception as e:
+			frappe.throw(_('Incorrect filter {0}').format(str(e)))
 
 	not_allowed_in_list_view = list(copy.copy(no_value_fields))
 	not_allowed_in_list_view.append("Attach Image")
@@ -992,3 +997,15 @@ def check_if_fieldname_conflicts_with_methods(doctype, fieldname):
 
 def clear_linked_doctype_cache():
 	frappe.cache().delete_value('linked_doctypes_without_ignore_user_permissions_enabled')
+	
+def get_base_doctype(doctype, txt, searchfield, start, page_len, filters):
+	return frappe.db.sql("""select name from `tabDocType`
+		where (base_doctype is null or base_doctype= name) and name like %(txt)s
+		order by if(locate(%(_txt)s, name), locate(%(_txt)s, name), 99999),
+			idx desc,
+			name asc
+		limit {start}, {page_len}""".format(start=start,
+			page_len=page_len), {
+				"txt": "%{0}%".format(txt),
+				"_txt": txt.replace('%', '')
+			})	
