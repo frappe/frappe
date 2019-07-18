@@ -136,7 +136,7 @@ def delete_from_table(doctype, name, ignore_doctypes, doc):
 	if doctype!="DocType" and doctype==name:
 		frappe.db.sql("delete from `tabSingles` where `doctype`=%s", name)
 	else:
-		frappe.db.sql("delete from `tab{0}` where `name`=%s".format(doctype), name)
+		frappe.db.sql("delete from `tab{0}` where `name`=%s".format(frappe.get_base_doctype(doctype)), name)
 
 	# get child tables
 	if doc:
@@ -160,7 +160,7 @@ def delete_from_table(doctype, name, ignore_doctypes, doc):
 	# delete from child tables
 	for t in list(set(tables)):
 		if t not in ignore_doctypes:
-			frappe.db.sql("delete from `tab%s` where parenttype=%s and parent = %s" % (t, '%s', '%s'), (doctype, name))
+			frappe.db.sql("delete from `tab%s` where parenttype=%s and parent = %s" % (t, '%s', '%s'), (frappe.get_base_doctype(doctype), name))
 
 def update_flags(doc, flags=None, ignore_permissions=False):
 	if ignore_permissions:
