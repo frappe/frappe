@@ -79,7 +79,7 @@ frappe.boot = {
 };
 // for backward compatibility of some libs
 frappe.sys_defaults = frappe.boot.sysdefaults;
-frappe.boot.lang_dict = {{ lang_dict }};
+frappe._messages = {{ translated_messages }};
 $(".file-size").each(function() {
 	$(this).text(frappe.form.formatters.FileSize($(this).text()));
 });
