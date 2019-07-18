@@ -76,7 +76,13 @@ frappe.ui.form.ScriptManager = Class.extend({
 
 		let tasks = [];
 		let handlers = this.get_handlers(event_name, doctype);
-
+		//auto trigger base doctype's js, kind of inheritance
+		let meta = this.frm.meta		
+		if (meta.base_doctype && meta.base_doctype != doctype){
+			let base_doctype_handlers = this.get_handlers(event_name, meta.base_doctype);
+			handlers.old_style.concat(base_doctype_handlers.old_style);
+			handlers.new_style.concat(base_doctype_handlers.new_style);
+		}
 		// helper for child table
 		this.frm.selected_doc = frappe.get_doc(doctype, name);
 
@@ -154,7 +160,13 @@ frappe.ui.form.ScriptManager = Class.extend({
 		if(cs) {
 			var tmp = eval(cs);
 		}
-
+		// load base doctype's js to be triggered on event, kind of inherit
+		if (doctype.base_doctype && doctype.base_doctype != doctype.name){
+			var base_doctype_js = doctype.__base_doctype_js;
+			if(base_doctype_js) {
+				var tmp = eval(base_doctype_js);
+			}	
+		}
 		if(doctype.__custom_js) {
 			try {
 				eval(doctype.__custom_js);
