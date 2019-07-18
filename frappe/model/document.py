@@ -156,7 +156,7 @@ class Document(BaseDocument):
 
 		for df in table_fields:
 			children = frappe.db.get_values(df.options,
-				{"parent": self.name, "parenttype": self.doctype, "parentfield": df.fieldname},
+				{"parent": self.name, "parenttype": frappe.get_base_doctype(self.doctype), "parentfield": df.fieldname},
 				"*", as_dict=True, order_by="idx asc")
 			if children:
 				self.set(df.fieldname, children)
@@ -358,7 +358,8 @@ class Document(BaseDocument):
 			d.db_update()
 			rows.append(d.name)
 
-		if df.options in (self.flags.ignore_children_type or []):
+		base_doctype = frappe.get_base_doctype(df.options)
+		if base_doctype in (self.flags.ignore_children_type or []):
 			# do not delete rows for this because of flags
 			# hack for docperm :(
 			return
@@ -367,18 +368,18 @@ class Document(BaseDocument):
 			# select rows that do not match the ones in the document
 			deleted_rows = frappe.db.sql("""select name from `tab{0}` where parent=%s
 				and parenttype=%s and parentfield=%s
-				and name not in ({1})""".format(df.options, ','.join(['%s'] * len(rows))),
+				and name not in ({1})""".format(base_doctype, ','.join(['%s'] * len(rows))),
 					[self.name, self.doctype, fieldname] + rows)
 			if len(deleted_rows) > 0:
 				# delete rows that do not match the ones in the document
-				frappe.db.sql("""delete from `tab{0}` where name in ({1})""".format(df.options,
+				frappe.db.sql("""delete from `tab{0}` where name in ({1})""".format(base_doctype,
 					','.join(['%s'] * len(deleted_rows))), tuple(row[0] for row in deleted_rows))
 
 		else:
 			# no rows found, delete all rows
 			frappe.db.sql("""delete from `tab{0}` where parent=%s
-				and parenttype=%s and parentfield=%s""".format(df.options),
-				(self.name, self.doctype, fieldname))
+				and parenttype=%s and parentfield=%s""".format(base_doctype),
+				(self.name, frappe.get_base_doctype(self.doctype), fieldname))
 
 	def get_doc_before_save(self):
 		return getattr(self, '_doc_before_save', None)
@@ -634,7 +635,7 @@ class Document(BaseDocument):
 					conflict = True
 			else:
 				tmp = frappe.db.sql("""select modified, docstatus from `tab{0}`
-					where name = %s for update""".format(self.doctype), self.name, as_dict=True)
+					where name = %s for update""".format(frappe.get_base_doctype(self.doctype)), self.name, as_dict=True)
 
 				if not tmp:
 					frappe.throw(_("Record does not exist"))
