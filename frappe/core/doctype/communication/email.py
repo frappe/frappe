@@ -529,7 +529,7 @@ def update_mins_to_first_communication(parent, communication):
 		if frappe.db.get_all('User', filters={'email': communication.sender,
 			'user_type': 'System User', 'enabled': 1}, limit=1):
 			first_responded_on = communication.creation
-			if parent.meta.has_field('first_responded_on'):
+			if parent.meta.has_field('first_responded_on') and communication.sent_or_received == "Sent":
 				parent.db_set('first_responded_on', first_responded_on)
 			parent.db_set('mins_to_first_response', round(time_diff_in_seconds(first_responded_on, parent.creation) / 60), 2)
 
