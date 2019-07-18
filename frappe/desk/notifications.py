@@ -255,8 +255,8 @@ def get_open_count(doctype, name, items=[]):
 		return {
 			'count': []
 		}
-
-	frappe.has_permission(doc=frappe.get_doc(doctype, name), throw=True)
+	# redundent check, not applicable to docvariant auto switch feature
+	#frappe.has_permission(doc=frappe.get_doc(doctype, name), throw=True)
 
 	meta = frappe.get_meta(doctype)
 	links = meta.get_dashboard_data()
