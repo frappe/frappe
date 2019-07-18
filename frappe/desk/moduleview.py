@@ -208,6 +208,15 @@ def apply_permissions(data):
 				or item.type=="help"):
 
 				new_items.append(item)
+			# auto switch to user's authorized doctype variant, no need to adapt/change module view
+			if (item.type=="doctype" and item.name not in user.can_read):
+				doctype = item.name
+				meta = frappe.get_meta(doctype)
+				if (not meta.base_doctype and doctype != meta.base_doctype):
+					doctype_variant_with_read = frappe.get_doctype_variant_with_read(doctype)
+					if doctype_variant_with_read:
+						item.name = doctype_variant_with_read
+						new_items.append(item)
 
 		if new_items:
 			new_section = section.copy()
