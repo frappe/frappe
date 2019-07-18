@@ -583,7 +583,7 @@ class Database(object):
 		order_by = ("order by " + order_by) if order_by else ""
 
 		r = self.sql("select {0} from `tab{1}` {2} {3} {4}"
-			.format(fl, doctype, "where" if conditions else "", conditions, order_by), values,
+			.format(fl, frappe.get_base_doctype(doctype), "where" if conditions else "", conditions, order_by), values,
 			as_dict=as_dict, debug=debug, update=update)
 
 		return r
@@ -644,7 +644,7 @@ class Database(object):
 				set_values.append('`{0}`=%({0})s'.format(key))
 
 			self.sql("""update `tab{0}`
-				set {1} where {2}""".format(dt, ', '.join(set_values), conditions),
+				set {1} where {2}""".format(frappe.get_base_doctype(dt), ', '.join(set_values), conditions),
 				values, debug=debug)
 
 		else:
@@ -673,7 +673,7 @@ class Database(object):
 		"""Update the modified timestamp of this document."""
 		modified = now()
 		self.sql("""update `tab{doctype}` set `modified`=%s
-			where name=%s""".format(doctype=doctype), (modified, docname))
+			where name=%s""".format(doctype=frappe.get_base_doctype(doctype)), (modified, docname))
 		return modified
 
 	@staticmethod
@@ -765,7 +765,7 @@ class Database(object):
 
 	def a_row_exists(self, doctype):
 		"""Returns True if atleast one row exists."""
-		return self.sql("select name from `tab{doctype}` limit 1".format(doctype=doctype))
+		return self.sql("select name from `tab{doctype}` limit 1".format(doctype=frappe.get_base_doctype(doctype)))
 
 	def exists(self, dt, dn=None, cache=False):
 		"""Returns true if document exists.
@@ -799,7 +799,7 @@ class Database(object):
 		if filters:
 			conditions, filters = self.build_conditions(filters)
 			count = self.sql("""select count(*)
-				from `tab%s` where %s""" % (dt, conditions), filters, debug=debug)[0][0]
+				from `tab%s` where %s""" % (frappe.get_base_doctype(dt), conditions), filters, debug=debug)[0][0]
 			return count
 		else:
 			count = self.sql("""select count(*)
@@ -833,7 +833,7 @@ class Database(object):
 		from dateutil.relativedelta import relativedelta
 
 		return self.sql("""select count(name) from `tab{doctype}`
-			where creation >= %s""".format(doctype=doctype),
+			where creation >= %s""".format(doctype=frappe.get_base_doctype(doctype)),
 			now_datetime() - relativedelta(minutes=minutes))[0][0]
 
 	def get_db_table_columns(self, table):
@@ -845,7 +845,7 @@ class Database(object):
 
 	def get_table_columns(self, doctype):
 		"""Returns list of column names from given doctype."""
-		columns = self.get_db_table_columns('tab' + doctype)
+		columns = self.get_db_table_columns('tab' + frappe.get_base_doctype(doctype))
 		if not columns:
 			raise self.TableMissingError
 		return columns
@@ -856,7 +856,7 @@ class Database(object):
 
 	def get_column_type(self, doctype, column):
 		return self.sql('''SELECT column_type FROM INFORMATION_SCHEMA.COLUMNS
-			WHERE table_name = 'tab{0}' AND column_name = '{1}' '''.format(doctype, column))[0][0]
+			WHERE table_name = 'tab{0}' AND column_name = '{1}' '''.format(frappe.get_base_doctype(doctype), column))[0][0]
 
 	def has_index(self, table_name, index_name):
 		pass
@@ -920,7 +920,7 @@ class Database(object):
 		if conditions:
 			conditions, values = self.build_conditions(conditions)
 			return self.sql("DELETE FROM `tab{doctype}` where {conditions}".format(
-				doctype=doctype,
+				doctype=frappe.get_base_doctype(doctype),
 				conditions=conditions
 			), values)
 		else:
