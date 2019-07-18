@@ -13,6 +13,11 @@
 
 frappe.ui.form.on('DocType', {
 	refresh: function(frm) {
+		frm.set_query('base_doctype', function(doc) {
+			return {
+				query: "frappe.core.doctype.doctype.doctype.get_base_doctype",
+			}
+		});
 		if(frappe.session.user !== "Administrator" || !frappe.boot.developer_mode) {
 			if(frm.is_new()) {
 				frm.set_value("custom", 1);
