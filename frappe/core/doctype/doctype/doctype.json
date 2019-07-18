@@ -20,6 +20,8 @@
   "track_views",
   "custom",
   "beta",
+  "base_doctype",
+  "filter",
   "fields_section_break",
   "fields",
   "sb1",
@@ -417,6 +419,17 @@
    "fieldname": "show_preview_popup",
    "fieldtype": "Check",
    "label": "Show Preview Popup"
+  },
+  {
+   "fieldname": "base_doctype",
+   "fieldtype": "Link",
+   "label": "Base DocType",
+   "options": "DocType"
+  },
+  {
+   "fieldname": "filter",
+   "fieldtype": "Data",
+   "label": "Filter"
   }
  ],
  "icon": "fa fa-bolt",
