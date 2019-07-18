@@ -316,7 +316,7 @@ class BaseDocument(object):
 		try:
 			frappe.db.sql("""INSERT INTO `tab{doctype}` ({columns})
 					VALUES ({values})""".format(
-					doctype = self.doctype,
+					doctype =  frappe.get_base_doctype(self.doctype),
 					columns = ", ".join(["`"+c+"`" for c in columns]),
 					values = ", ".join(["%s"] * len(columns))
 				), list(d.values()))
@@ -356,7 +356,7 @@ class BaseDocument(object):
 		try:
 			frappe.db.sql("""UPDATE `tab{doctype}`
 				SET {values} WHERE `name`=%s""".format(
-					doctype = self.doctype,
+					doctype =  frappe.get_base_doctype(self.doctype),
 					values = ", ".join(["`"+c+"`=%s" for c in columns])
 				), list(d.values()) + [name])
 		except Exception as e:
