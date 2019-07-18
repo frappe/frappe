@@ -168,6 +168,7 @@ def init(site, sites_path=None, new_site=False):
 	local.cache = {}
 	local.document_cache = {}
 	local.meta_cache = {}
+	local.base_doctype_cache = {}
 	local.form_dict = _dict()
 	local.session = _dict()
 
@@ -713,6 +714,23 @@ def get_cached_value(doctype, name, fieldname, as_dict=False):
 	if as_dict:
 		return _dict(zip(fieldname, values))
 	return values
+
+def get_doctype_variant_with_read(base_doctype, user=None):
+	user = user or session.user
+	for doctype in db.sql('select name from tabDocType where base_doctype =%s', (base_doctype,)):
+		if has_permission(doctype[0], "read", user=user, throw=0):
+			return doctype[0]
+
+def get_base_doctype(doctype):
+	if not local.base_doctype_cache.get(doctype):
+		base_doctype = cache().hget("base_doctype", doctype)
+		if not base_doctype:
+			res = db.sql("select base_doctype from `tabDocType` where name=%s", (doctype,))
+			if res:
+				cache().hset('base_doctype', doctype, res[0][0])
+		local.base_doctype_cache[doctype] = base_doctype
+
+	return local.base_doctype_cache[doctype] or doctype
 
 def get_doc(*args, **kwargs):
 	"""Return a `frappe.model.document.Document` object of the given type and name.
