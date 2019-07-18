@@ -63,7 +63,7 @@ class FormMeta(Meta):
 			"__linked_with", "__messages", "__print_formats", "__workflow_docs",
 			"__form_grid_templates", "__listview_template", "__tree_js",
 			"__dashboard", "__kanban_column_fields", '__templates',
-			'__custom_js'):
+			'__custom_js','__base_doctype_dashboard', '__base_doctype_js'):
 			d[k] = self.get(k)
 
 		# d['fields'] = d.get('fields', [])
@@ -105,6 +105,10 @@ class FormMeta(Meta):
 		self.add_code_via_hook("doctype_tree_js", "__tree_js")
 		self.add_code_via_hook("doctype_calendar_js", "__calendar_js")
 		self.add_html_templates(path)
+
+		if self.base_doctype and self.base_doctype != self.name:
+			path = os.path.join(get_module_path(self.module), 'doctype', scrub(self.base_doctype))
+			self._add_code(os.path.join(path, scrub(self.base_doctype) + '.js'), '__base_doctype_js')		
 
 	def _add_code(self, path, fieldname):
 		js = get_js(path)
@@ -199,6 +203,15 @@ class FormMeta(Meta):
 		if self.custom:
 			return
 		self.set('__dashboard', self.get_dashboard_data())
+		if self.base_doctype and self.base_doctype != self.name:
+			data = frappe._dict()
+			try:
+				module = frappe.modules.load_doctype_module(self.base_doctype, suffix='_dashboard')
+				if hasattr(module, 'get_data'):
+					data = frappe._dict(module.get_data())
+					self.set('__base_doctype_dashboard', data)
+			except ImportError:
+				pass
 
 	def load_kanban_meta(self):
 		self.load_kanban_column_fields()
