@@ -7,7 +7,7 @@
     <div class="modules-container" :class="{'dragging': dragging}" ref="modules-container">
       <desk-module-box
         v-for="(module, index) in modules"
-        :key="module.name"
+        :key="module.module_name"
         :index="index"
         v-bind="module"
 		@customize="show_module_card_customize_dialog(module)"

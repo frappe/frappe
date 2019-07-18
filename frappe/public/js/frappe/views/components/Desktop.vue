@@ -84,29 +84,42 @@ export default {
 							options,
 							columns: 2
 						}
-					});
+					}).filter(f => f.options.length > 0);
+
+					let old_values = null;
+
 					const d = new frappe.ui.Dialog({
 						title: __('Show / Hide Cards'),
-						fields: fields.filter(f => f.options.length > 0),
+						fields: fields,
 						primary_action_label: __('Save'),
 						primary_action: (values) => {
-							d.hide();
 
-							let modules_by_category = {};
+							let category_map = {};
 							for (let category of this.module_categories) {
-								let modules = values[category] || [];
-								modules_by_category[category] = this.get_modules_for_category(category)
-									.map(m => m.module_name)
-									.filter(m => modules.includes(m));
-							}
+								let old_modules = old_values[category] || [];
+								let new_modules = values[category] || [];
 
-							frappe.call('frappe.desk.moduleview.update_modules_for_desktop', {
-								modules_by_category
-							}).then(r => this.update_desktop_settings(r.message));
+								let removed = old_modules.filter(module => !new_modules.includes(module));
+								let added = new_modules.filter(module => !old_modules.includes(module));
+
+								category_map[category] = { added, removed };
+ 							}
+
+							frappe.call({
+								method: 'frappe.desk.moduleview.update_hidden_modules',
+								args: { category_map },
+								btn: d.get_primary_btn()
+							}).then(r => {
+								this.update_desktop_settings(r.message)
+								d.hide();
+							});
 						}
 					});
 
 					d.show();
+
+					// deepcopy
+					old_values = JSON.parse(JSON.stringify(d.get_values()));
 				});
 		}
 	}

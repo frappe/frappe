@@ -307,8 +307,7 @@ def get_links(app, module):
 def get_desktop_settings():
 	from frappe.config import get_modules_from_all_apps_for_user
 	all_modules = get_modules_from_all_apps_for_user()
-	home_settings = frappe.db.get_value('User', frappe.session.user, 'home_settings')
-	home_settings = frappe.parse_json(home_settings or '{}')
+	home_settings = get_home_settings()
 
 	modules_by_name = {}
 	for m in all_modules:
@@ -329,7 +328,7 @@ def get_desktop_settings():
 
 		if module.module_name in user_saved_links_by_module:
 			user_links = frappe.parse_json(user_saved_links_by_module[module.module_name])
-			module.links = [module_links_by_label[l] for l in user_links]
+			module.links = [module_links_by_label[l] for l in user_links if l in module_links_by_label]
 
 		return module
 
@@ -342,26 +341,32 @@ def get_desktop_settings():
 			user_modules_by_category[category] = [apply_user_saved_links(m) \
 				for m in all_modules if m['category'] == category]
 
+	# filter out hidden modules
+	if home_settings.hidden_modules:
+		for category in user_modules_by_category:
+			hidden_modules = home_settings.hidden_modules or []
+			modules = user_modules_by_category[category]
+			user_modules_by_category[category] = [module for module in modules if module.module_name not in hidden_modules]
+
 	return user_modules_by_category
 
 @frappe.whitelist()
-def update_modules_for_desktop(modules_by_category):
-	modules_by_category = frappe.parse_json(modules_by_category)
+def update_hidden_modules(category_map):
+	category_map = frappe.parse_json(category_map)
 	home_settings = get_home_settings()
 
-	user_modules_by_category = home_settings.modules_by_category or {}
+	saved_hidden_modules = home_settings.hidden_modules or []
 
-	for category in modules_by_category:
-		new_user_modules = modules_by_category[category]
-		user_modules = user_modules_by_category.get(category, [{'name': m, 'hidden': False} for m in new_user_modules])
-		for module in user_modules:
-			module['hidden'] = module['name'] not in new_user_modules
-		user_modules_by_category[category] = user_modules
+	for category in category_map:
+		config = frappe._dict(category_map[category])
+		saved_hidden_modules += config.removed or []
+		saved_hidden_modules = [d for d in saved_hidden_modules if d not in (config.added or [])]
 
-	home_settings.modules_by_category = user_modules_by_category
+	home_settings.hidden_modules = saved_hidden_modules
+	set_home_settings(home_settings)
 
-	frappe.db.set_value('User', frappe.session.user, 'home_settings', json.dumps(home_settings))
 	return get_desktop_settings()
+
 
 @frappe.whitelist()
 def update_modules_order(module_category, modules):
@@ -370,8 +375,8 @@ def update_modules_order(module_category, modules):
 
 	home_settings.modules_by_category = home_settings.modules_by_category or {}
 	home_settings.modules_by_category[module_category] = modules
-	frappe.db.set_value('User', frappe.session.user, 'home_settings', json.dumps(home_settings))
 
+	set_home_settings(home_settings)
 
 @frappe.whitelist()
 def update_links_for_module(module_name, links):
@@ -381,7 +386,8 @@ def update_links_for_module(module_name, links):
 	home_settings.setdefault('links_by_module', {})
 	home_settings['links_by_module'].setdefault(module_name, None)
 	home_settings['links_by_module'][module_name] = links
-	frappe.db.set_value('User', frappe.session.user, 'home_settings', json.dumps(home_settings))
+
+	set_home_settings(home_settings)
 
 	return get_desktop_settings()
 
@@ -391,28 +397,32 @@ def get_options_for_show_hide_cards():
 	all_modules = get_modules_from_all_apps_for_user()
 	home_settings = get_home_settings()
 
-
-	visible_modules_by_category = home_settings.modules_by_category or {}
-	visible_modules = []
-	for category in visible_modules_by_category:
-		visible_modules += visible_modules_by_category[category]
+	hidden_modules = home_settings.hidden_modules or []
 
 	options = []
 	for module in all_modules:
 		module = frappe._dict(module)
-		checked = module.category not in visible_modules_by_category or module.module_name in visible_modules
 		options.append({
 			'category': module.category,
 			'label': module.label,
 			'value': module.module_name,
-			'checked': checked
+			'checked': module.module_name not in hidden_modules
 		})
 
 	return options
 
+def set_home_settings(home_settings):
+	frappe.cache().hset('home_settings', frappe.session.user, home_settings)
+	frappe.db.set_value('User', frappe.session.user, 'home_settings', json.dumps(home_settings))
+
+@frappe.whitelist()
 def get_home_settings():
-	home_settings = frappe.db.get_value("User", frappe.session.user, 'home_settings')
-	return frappe.parse_json(home_settings or '{}')
+	def get_from_db():
+		settings = frappe.db.get_value("User", frappe.session.user, 'home_settings')
+		return frappe.parse_json(settings or '{}')
+
+	home_settings = frappe.cache().hget('home_settings', frappe.session.user, get_from_db)
+	return home_settings
 
 
 def get_module_link_items_from_list(app, module, list_of_link_names):
