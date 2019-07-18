@@ -4,6 +4,7 @@
 
 from __future__ import unicode_literals
 import frappe, os
+from frappe import _
 from frappe.model.document import Document
 from frappe.modules.export_file import export_to_files
 from frappe.modules import get_module_path, scrub

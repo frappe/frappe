@@ -5,7 +5,7 @@ from __future__ import unicode_literals, print_function
 import frappe
 import time
 from frappe import _, msgprint
-from frappe.utils import flt, cstr, now, get_datetime_str, file_lock
+from frappe.utils import flt, cstr, now, get_datetime_str, file_lock, date_diff
 from frappe.utils.background_jobs import enqueue
 from frappe.model.base_document import BaseDocument, get_controller
 from frappe.model.naming import set_new_name
@@ -926,7 +926,6 @@ class Document(BaseDocument):
 
 		self.run_method('on_change')
 
-		self.update_timeline_doc()
 		self.clear_cache()
 		self.notify_update()
 
@@ -1138,14 +1137,12 @@ class Document(BaseDocument):
 			user = frappe.session.user
 
 		if self.meta.track_seen:
-			if self._seen:
-				_seen = json.loads(self._seen)
-			else:
-				_seen = []
+			_seen = self.get('_seen') or []
+			_seen = frappe.parse_json(_seen)
 
 			if user not in _seen:
 				_seen.append(user)
-				self.db_set('_seen', json.dumps(_seen), update_modified=False)
+				frappe.db.set_value(self.doctype, self.name, '_seen', json.dumps(_seen), update_modified=False)
 				frappe.local.flags.commit = True
 
 	def add_viewed(self, user=None):
@@ -1183,30 +1180,6 @@ class Document(BaseDocument):
 			return self.get("__onload", frappe._dict())
 
 		return self.get('__onload')[key]
-
-	def update_timeline_doc(self):
-		if frappe.flags.in_install or not self.meta.get("timeline_field"):
-			return
-
-		timeline_doctype = self.meta.get_link_doctype(self.meta.timeline_field)
-		timeline_name = self.get(self.meta.timeline_field)
-
-		if not (timeline_doctype and timeline_name):
-			return
-
-		# update timeline doc in communication if it is different than current timeline doc
-		frappe.db.sql("""update `tabCommunication`
-			set timeline_doctype=%(timeline_doctype)s, timeline_name=%(timeline_name)s
-			where
-				reference_doctype=%(doctype)s and reference_name=%(name)s
-				and (timeline_doctype is null or timeline_doctype != %(timeline_doctype)s
-					or timeline_name is null or timeline_name != %(timeline_name)s)""",
-				{
-					"doctype": self.doctype,
-					"name": self.name,
-					"timeline_doctype": timeline_doctype,
-					"timeline_name": timeline_name
-				})
 
 	def queue_action(self, action, **kwargs):
 		'''Run an action in background. If the action has an inner function,
@@ -1246,6 +1219,17 @@ class Document(BaseDocument):
 	def unlock(self):
 		'''Delete the lock file for this document'''
 		file_lock.delete_lock(self.get_signature())
+
+	# validation helpers
+	def validate_from_to_dates(self, from_date_field, to_date_field):
+		'''
+		Generic validation to verify date sequence
+		'''
+		if date_diff(self.get(to_date_field), self.get(from_date_field)) < 0:
+			frappe.throw(_('{0} must be after {1}').format(
+				frappe.bold(self.meta.get_label(to_date_field)),
+				frappe.bold(self.meta.get_label(from_date_field)),
+			), frappe.exceptions.InvalidDates)
 
 def execute_action(doctype, name, action, **kwargs):
 	'''Execute an action on a document (called by background worker)'''

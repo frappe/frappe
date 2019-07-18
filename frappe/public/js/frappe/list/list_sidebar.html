@@ -1,14 +1,22 @@
+<ul class="list-unstyled sidebar-menu visible-sm visible-xs">
+	<li>
+		<a class="navbar-home" href="#">
+			<img class="app-logo" src="{{ frappe.app.logo_url }}">
+		</a>
+	</li>
+</ul>
 <ul class="list-unstyled sidebar-menu user-actions hide">
 	<li class="divider"></li>
 </ul>
 <ul class="list-unstyled sidebar-menu standard-actions">
 	{% if frappe.model.can_get_report(doctype) %}
+	<li class="divider visible-sm visible-xs"></li>
 	<li class="list-link">
 		<div class="btn-group">
-			<a class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+			<a class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" href="#" onclick="return false;">
 				{{ __("Reports") }} <span class="caret"></span>
 			</a>
-			<ul class="dropdown-menu reports-dropdown" style="max-height: 300px; overflow-y: auto;">
+			<ul class="dropdown-menu reports-dropdown" role="menu">
 				<li><a href="#List/{{ doctype }}/Report">{{ __("Report Builder") }}</a></li>
 			</ul>
 		</div>
@@ -27,37 +35,47 @@
 		<a href="#List/{%= doctype %}/Calendar">{%= __("Calendar") %}</a></li>
 	<li class="hide list-link" data-view="Kanban">
 		<div class="btn-group">
-			<a class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+			<a class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" href="#" onclick="return false;">
 				{{ __("Kanban") }} <span class="caret"></span>
 			</a>
-			<ul class="dropdown-menu kanban-dropdown" style="max-height: 300px; overflow-y: auto;">
-				<li class="new-kanban-board"><a>{{ __("New Kanban Board") }}</a></li>
+			<ul class="dropdown-menu kanban-dropdown" style="max-height: 300px; overflow-y: auto;" role="menu">
+				<li class="new-kanban-board"><a href="#" onclick="return false;">{{ __("New Kanban Board") }}</a></li>
 			</ul>
 		</div>
 	</li>
 	<li class="hide list-link" data-view="Inbox">
 		<div class="btn-group">
-			<a class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+			<a class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" href="#" onclick="return false;">
 				{{ __("Email Inbox") }} <span class="caret"></span>
 			</a>
-			<ul class="dropdown-menu email-account-dropdown" style="max-height: 300px; overflow-y: auto;">
+			<ul class="dropdown-menu email-account-dropdown" style="max-height: 300px; overflow-y: auto;" role="menu">
 			</ul>
 		</div>
-	</li>
-	<li class="assigned-to" style="display: none">
-		<a class = "dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-			{%= __("Assigned To") %} <span class="caret"></span>
-		</a>
-		<ul class="dropdown-menu assigned-dropdown" style="max-height: 300px; overflow-y: auto;">
-			<li><div class="list-loading text-center assigned-loading text-muted">
-				{%= (__("Loading") + "..." ) %}
-			</div>
-			</li>
-		</ul>
 	</li>
 	{% if(frappe.help.has_help(doctype)) { %}
 	<li><a class="help-link list-link" data-doctype="{{ doctype }}">{{ __("Help") }}</a></li>
 	{% } %}
+</ul>
+<ul class="list-unstyled sidebar-menu list-group-by">
+</ul>
+
+<ul class="list-unstyled sidebar-menu sidebar-stat">
+	<li class="list-sidebar-label stat-label">{{ __("Tags") }}</li>
+	<li class="list-stats list-link">
+		<div class="btn-group">
+			<a class = "dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" href="#" onclick="return false;">
+				{{ __("Tags") }}<span class="caret"></span>
+			</a>
+			<ul class="dropdown-menu list-stats-dropdown" role="menu">
+				<div class="dropdown-search">
+					<input type="text" placeholder="Search" class="form-control dropdown-search-input input-xs">
+				</div>
+			</ul>
+		</div>
+	</li>
+	<li class="list-link" style="margin-top: 10px;">
+		<a class="list-tag-preview hidden-xs text-muted">{{ __("Show tags") }}</a>
+	</li>
 </ul>
 <ul class="list-unstyled sidebar-menu charts-menu hide">
 	<li class="h6">{%= __("Charts") %}</li>

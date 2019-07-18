@@ -2,6 +2,8 @@
 	<div class="profile-sidebar flex flex-column">
 		<div class="user-details">
 			<h3>{{ user.fullname }}</h3>
+			<p><a @click="view_energy_point_list(user)" class="text-muted">
+				{{ __("Energy Points") }}: {{ energy_points }}</a></p>
 			<p>{{ user.bio }}</p>
 			<div class="location" v-if="user.location">
 				<span class="text-muted">
@@ -21,6 +23,12 @@
 			v-if="can_edit_profile"
 			@click="edit_profile()"
 		>{{ __('Edit Profile') }}</a>
+		<a
+			class="edit-profile-link"
+			v-if="can_edit_user"
+			@click="edit_user()"
+		>{{ __('User Settings') }}</a>
+
 	</div>
 </template>
 <script>
@@ -31,10 +39,20 @@ export default {
 	data() {
 		return {
 			user: frappe.user_info(this.user_id),
-			can_edit_profile: frappe.social.is_session_user_page()
+			can_edit_profile: frappe.social.is_session_user_page(),
+			can_edit_user: frappe.session.user === this.user_id,
+			energy_points: 0
 		};
 	},
+	mounted() {
+		frappe.xcall('frappe.social.doctype.energy_point_log.energy_point_log.get_user_energy_and_review_points', {user: this.user_id}).then(r => {
+			this.energy_points = r[this.user_id].energy_points;
+		});
+	},
 	methods: {
+		edit_user() {
+			frappe.set_route('Form', 'User', this.user_id);
+		},
 		edit_profile() {
 			const edit_profile_dialog = new frappe.ui.Dialog({
 				title: __('Edit Profile'),
@@ -43,13 +61,11 @@ export default {
 						fieldtype: 'Attach Image',
 						fieldname: 'user_image',
 						label: 'Profile Image',
-						reqd: 1
 					},
 					{
 						fieldtype: 'Data',
 						fieldname: 'interest',
 						label: 'Interests',
-						reqd: 1
 					},
 					{
 						fieldtype: 'Column Break'
@@ -58,13 +74,11 @@ export default {
 						fieldtype: 'Attach Image',
 						fieldname: 'banner_image',
 						label: 'Banner Image',
-						reqd: 1
 					},
 					{
 						fieldtype: 'Data',
 						fieldname: 'location',
 						label: 'Location',
-						reqd: 1
 					},
 					{
 						fieldtype: 'Section Break',
@@ -74,7 +88,6 @@ export default {
 						fieldtype: 'Small Text',
 						fieldname: 'bio',
 						label: 'Bio',
-						reqd: 1
 					}
 				],
 				primary_action: values => {
@@ -104,6 +117,9 @@ export default {
 				bio: this.user.bio
 			});
 			edit_profile_dialog.show();
+		},
+		view_energy_point_list(user) {
+			frappe.set_route('List', 'Energy Point Log', {user:user.name});
 		}
 	}
 };

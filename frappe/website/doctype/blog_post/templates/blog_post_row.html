@@ -1,27 +1,34 @@
 {%- set post = doc -%}
 <div class="web-list-item blog-list-item my-5">
 	<div class="row">
-		<div class="col-12 col-md-7">
-			<h4><a href="/{{ post.route }}" class="text-dark">{{ post.title }}</a></h4>
-			{% if post.cover_image %}
-			<p>
-				<img  class="blogpost-cover-img" src="{{ post.cover_image }}" alt="{{post.title}} - Cover Image">
-			</p>
-			{% endif %}
-			<p class="post-description text-muted">{{ post.intro }}</p>
-			<p class="text-muted small">
-				<a class="text-muted" href="/blog?blogger={{ post.blogger }}">{{ post.full_name }}</a>
-				&middot;
-				{{ frappe.format_date(post.published_on) }}
-				{% if post.comments %}
-                &middot;
-                {% if post.comments == 1 %}
-                {{ _('1 comment') }}
-                {% else %}
-				{{ _('{0} comments').format(post.comments) }}
-                {% endif %}
-				{% endif %}
-			</p>
+		<div class="col-12 col-md-8">
+			<div class="row">
+				<div class="col-9 d-flex flex-column justify-content-between">
+					<div>
+						<div class="text-muted small text-uppercase">{{ post.category.title }}</div>
+						<h4><a href="/{{ post.route }}" class="text-dark">{{ post.title }}</a></h4>
+						<p class="post-description text-muted">{{ post.intro }}</p>
+					</div>
+					<div class="text-muted small">
+						<a class="text-muted" href="/blog?blogger={{ post.blogger }}">{{ post.full_name }}</a>
+						&middot;
+						{{ frappe.format_date(post.published_on) }}
+						{% if post.comments %}
+						&middot;
+						{% if post.comments == 1 %}
+						{{ _('1 comment') }}
+						{% else %}
+						{{ _('{0} comments').format(post.comments) }}
+						{% endif %}
+						{% endif %}
+					</div>
+				</div>
+				<div class="col-3">
+					{% if post.cover_image %}
+					<img  class="website-image-medium object-fit-cover" src="{{ post.cover_image }}" alt="{{post.title}} - Cover Image">
+					{% endif %}
+				</div>
+			</div>
 		</div>
 	</div>
 </div>

@@ -90,6 +90,7 @@ class EmailAccount(Document):
 		"""Check there is only one default of each type."""
 		from frappe.core.doctype.user.user import setup_user_email_inbox
 
+		self.check_automatic_linking_email_account()
 		self.there_must_be_only_one_default()
 		setup_user_email_inbox(email_account=self.name, awaiting_password=self.awaiting_password,
 			email_id=self.email_id, enable_outgoing=self.enable_outgoing)
@@ -387,7 +388,7 @@ class EmailAccount(Document):
 			communication._seen = json.dumps(users)
 
 		communication.flags.in_receive = True
-		communication.insert(ignore_permissions = 1)
+		communication.insert(ignore_permissions=True)
 
 		# save attachments
 		communication._attachments = email.save_attachments_in_doc(communication)
@@ -639,6 +640,14 @@ class EmailAccount(Document):
 		frappe.db.sql(""" update `tabCommunication` set seen={seen}
 			where name in ({docnames})""".format(docnames=docnames, seen=seen))
 
+	def check_automatic_linking_email_account(self):
+		if self.enable_automatic_linking:
+			if not self.enable_incoming:
+				frappe.throw(_("Automatic Linking can be activated only if Incoming is enabled."))
+
+			if frappe.db.exists("Email Account", {"enable_automatic_linking": 1, "name": ('!=', self.name)}):
+				frappe.throw(_("Automatic Linking can be activated only for one Email Account."))
+
 @frappe.whitelist()
 def get_append_to(doctype=None, txt=None, searchfield=None, start=None, page_len=None, filters=None):
 	if not txt: txt = ""
@@ -731,3 +740,7 @@ def get_max_email_uid(email_account):
 	else:
 		max_uid = cint(result[0].get("uid", 0)) + 1
 		return max_uid
+
+@frappe.whitelist()
+def get_automatic_email_link():
+	return frappe.db.get_value("Email Account", {"enable_incoming": 1, "enable_automatic_linking": 1}, "email_id")

@@ -8,11 +8,12 @@ from frappe.model.document import Document
 from frappe.utils import validate_email_address, get_fullname, strip_html, cstr
 from frappe.core.doctype.communication.email import (validate_email,
 	notify, _notify, update_parent_mins_to_first_response)
-from frappe.core.utils import get_parent_doc, set_timeline_doc
+from frappe.core.utils import get_parent_doc
 from frappe.utils.bot import BotReply
 from frappe.utils import parse_addr
 from frappe.core.doctype.comment.comment import update_comment_in_doc
-
+from email.utils import parseaddr
+from six.moves.urllib.parse import unquote
 from collections import Counter
 
 exclude_from_linked_with = True
@@ -55,10 +56,15 @@ class Communication(Document):
 			self.sent_or_received = "Sent"
 
 		self.set_status()
-		self.set_sender_full_name()
 
 		validate_email(self)
-		set_timeline_doc(self)
+
+		if self.communication_medium == "Email":
+			self.parse_email_for_timeline_links()
+			self.set_timeline_links()
+			self.deduplicate_timeline_links()
+
+		self.set_sender_full_name()
 
 	def validate_reference(self):
 		if self.reference_doctype and self.reference_name:
@@ -79,6 +85,7 @@ class Communication(Document):
 						circular_linking = True
 						break
 					doc = get_parent_doc(doc)
+
 				if circular_linking:
 					frappe.throw(_("Please make sure the Reference Communication Docs are not circularly linked."), frappe.CircularLinkingError)
 
@@ -154,7 +161,7 @@ class Communication(Document):
 				if sender_name == sender_email:
 					sender_name = None
 				self.sender = sender_email
-				self.sender_full_name = sender_name or get_fullname(frappe.session.user) if frappe.session.user!='Administrator' else None
+				self.sender_full_name = sender_name or frappe.db.exists("Contact", {"email_id": sender_email}) or sender_email
 
 	def send(self, print_html=None, print_format=None, attachments=None,
 		send_me_a_copy=False, recipients=None):
@@ -231,25 +238,68 @@ class Communication(Document):
 			if commit:
 				frappe.db.commit()
 
+	def parse_email_for_timeline_links(self):
+		parse_email(self, [self.recipients, self.cc, self.bcc])
+
+	# Timeline Links
+	def set_timeline_links(self):
+		contacts = get_contacts([self.sender, self.recipients, self.cc, self.bcc])
+		for contact_name in contacts:
+			self.add_link('Contact', contact_name)
+
+			#link contact's dynamic links to communication
+			add_contact_links_to_communication(self, contact_name)
+
+	def deduplicate_timeline_links(self):
+		if self.timeline_links:
+			links, duplicate = [], False
+
+			for l in self.timeline_links:
+				t = (l.link_doctype, l.link_name)
+				if not t in links:
+					links.append(t)
+				else:
+					duplicate = True
+
+			if duplicate:
+				del self.timeline_links[:] # make it python 2 compatible as list.clear() is python 3 only
+				for l in links:
+					self.add_link(link_doctype=l[0], link_name=l[1])
+
+	def add_link(self, link_doctype, link_name, autosave=False):
+		self.append("timeline_links",
+			{
+				"link_doctype": link_doctype,
+				"link_name": link_name
+			}
+		)
+
+		if autosave:
+			self.save(ignore_permissions=True)
+
+	def get_links(self):
+		return self.timeline_links
+
+	def remove_link(self, link_doctype, link_name, autosave=False, ignore_permissions=True):
+		for l in self.timeline_links:
+			if l.link_doctype == link_doctype and l.link_name == link_name:
+				self.timeline_links.remove(l)
+
+		if autosave:
+			self.save(ignore_permissions=ignore_permissions)
 
 def on_doctype_update():
 	"""Add indexes in `tabCommunication`"""
 	frappe.db.add_index("Communication", ["reference_doctype", "reference_name"])
-	frappe.db.add_index("Communication", ["timeline_doctype", "timeline_name"])
-	frappe.db.add_index("Communication", ["link_doctype", "link_name"])
 	frappe.db.add_index("Communication", ["status", "communication_type"])
 
 def has_permission(doc, ptype, user):
 	if ptype=="read":
-		if (doc.reference_doctype == "Communication" and doc.reference_name == doc.name) \
-			or (doc.timeline_doctype == "Communication" and doc.timeline_name == doc.name):
-				return
+		if doc.reference_doctype == "Communication" and doc.reference_name == doc.name:
+			return
 
 		if doc.reference_doctype and doc.reference_name:
 			if frappe.has_permission(doc.reference_doctype, ptype="read", doc=doc.reference_name):
-				return True
-		if doc.timeline_doctype and doc.timeline_name:
-			if frappe.has_permission(doc.timeline_doctype, ptype="read", doc=doc.timeline_name):
 				return True
 
 def get_permission_query_conditions_for_communication(user):
@@ -265,8 +315,76 @@ def get_permission_query_conditions_for_communication(user):
 			distinct=True, order_by="idx")
 
 		if not accounts:
-			return """tabCommunication.communication_medium!='Email'"""
+			return """`tabCommunication`.communication_medium!='Email'"""
 
 		email_accounts = [ '"%s"'%account.get("email_account") for account in accounts ]
-		return """tabCommunication.email_account in ({email_accounts})"""\
+		return """`tabCommunication`.email_account in ({email_accounts})"""\
 			.format(email_accounts=','.join(email_accounts))
+
+def get_contacts(email_strings):
+	email_addrs = []
+
+	for email_string in email_strings:
+		if email_string:
+			for email in email_string.split(","):
+				parsed_email = parseaddr(email)[1]
+				if parsed_email:
+					email_addrs.append(parsed_email)
+
+	contacts = []
+	for email in email_addrs:
+		email = get_email_without_link(email)
+		contact_name = frappe.db.get_value('Contact', {'email_id': email})
+
+		if not contact_name:
+			contact = frappe.get_doc({
+					"doctype": "Contact",
+					"first_name": frappe.unscrub(email.split("@")[0]),
+					"email_id": email
+				}).insert(ignore_permissions=True)
+			contact_name = contact.name
+
+		contacts.append(contact_name)
+
+	return contacts
+
+def add_contact_links_to_communication(communication, contact_name):
+	contact_links = frappe.get_list("Dynamic Link", filters={
+			"parenttype": "Contact",
+			"parent": contact_name
+		}, fields=["link_doctype", "link_name"])
+
+	if contact_links:
+		for contact_link in contact_links:
+			communication.add_link(contact_link.link_doctype, contact_link.link_name)
+
+def parse_email(communication, email_strings):
+	"""
+		Parse email to add timeline links.
+		When automatic email linking is enabled, an email from email_strings can contain
+		a doctype and docname ie in the format `admin+doctype+docname@example.com`,
+		the email is parsed and doctype and docname is extracted and timeline link is added.
+	"""
+	delimiter = "+"
+
+	for email_string in email_strings:
+		if email_string:
+			for email in email_string.split(","):
+				if delimiter in email:
+					email = email.split("@")[0]
+
+					doctype = unquote(email.split(delimiter)[1])
+					docname = unquote(email.split(delimiter)[2])
+
+					if doctype and docname and frappe.db.exists(doctype, docname):
+						communication.add_link(doctype, docname)
+
+def get_email_without_link(email):
+	"""
+		returns email address without doctype links
+		returns admin@example.com for email admin+doctype+docname@example.com
+	"""
+	email_id = email.split("@")[0].split("+")[0]
+	email_host = email.split("@")[1]
+
+	return "{0}@{1}".format(email_id, email_host)

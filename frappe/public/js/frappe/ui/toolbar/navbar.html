@@ -5,7 +5,7 @@
 				<i class="octicon octicon-three-bars"></i>
 			</a>
 			<a class="navbar-brand navbar-home hidden-xs hidden-sm" href="#">
-				<img src="/assets/frappe/images/frappe-framework-logo.png">
+				<img class="app-logo" src="{{ frappe.app.logo_url }}">
 			</a>
 			<ul class="nav navbar-nav" id="navbar-breadcrumbs">
 			</ul>
@@ -24,6 +24,8 @@
 					{%= __("Settings") %}</span>
 				<b class="caret hidden-xs hidden-sm"></b></a>
 				<ul class="dropdown-menu" id="toolbar-user" role="menu">
+					<li><a href="#social/profile/{%= encodeURIComponent(frappe.session.user) %}">
+						{%= __("My Profile") %}</a></li>
 					<li><a href="#Form/User/{%= encodeURIComponent(frappe.session.user) %}">
 						{%= __("My Settings") %}</a></li>
 					<li class="navbar-reload">
@@ -55,6 +57,8 @@
 					<li class="divider documentation-links"></li>
 					<li><a href="#" onclick="return frappe.ui.toolbar.show_about();">
 						{%= __("About") %}</a></li>
+					<li><a href="#" onclick="return frappe.ui.toolbar.show_shortcuts(event);">
+						{%= __("Keyboard Shortcuts") %}</a></li>
 				</ul>
 			</li>
 
@@ -64,7 +68,7 @@
 			<!-- end frappe.chat -->
 
 			<li class="dropdown dropdown-navbar-new-comments dropdown-mobile">
-				<a class="btn dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+				<a class="btn dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true" href="#" onclick="return false;">
 					<span class="navbar-new-comments">0</span>
 				</a>
 				<ul class="dropdown-menu" id="dropdown-notification" role="menu" style="max-height: 480px; overflow-y: auto;">
@@ -80,7 +84,7 @@
 							<div class="input-group" style="width: 100%">
 								<input id="modal-search" type="text" class="form-control"
 								placeholder="{%= __("Search or type a command") %}" aria-haspopup="true">
-								<button type="reset" class="close"><i class="octicon octicon-x"></i></button>
+								<button type="reset" class="close" data-dismiss="modal"><i class="octicon octicon-x"></i></button>
 							</div>
 						</form>
 					</div>

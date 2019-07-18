@@ -8,7 +8,7 @@ from frappe.utils.oauth import get_oauth2_authorize_url, get_oauth_keys, login_v
 import json
 from frappe import _
 from frappe.auth import LoginManager
-from frappe.integrations.doctype.ldap_settings.ldap_settings import get_ldap_settings
+from frappe.integrations.doctype.ldap_settings.ldap_settings import get_ldap_client_settings
 from frappe.utils.password import get_decrypted_password
 from frappe.utils.html_utils import get_icon_html
 
@@ -38,8 +38,7 @@ def get_context(context):
 				"icon": icon
 			})
 			context["social_login"] = True
-
-	ldap_settings = get_ldap_settings()
+	ldap_settings = get_ldap_client_settings()
 	context["ldap_settings"] = ldap_settings
 
 	login_name_placeholder = [_("Email address")]

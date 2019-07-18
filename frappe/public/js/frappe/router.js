@@ -183,6 +183,9 @@ frappe.set_re_route = function() {
 	frappe.re_route[tmp] = window.location.hash;
 };
 
+frappe.has_route_options = function() {
+	return Boolean(Object.keys(frappe.route_options || {}).length);
+}
 
 frappe._cur_route = null;
 
@@ -195,7 +198,11 @@ $(window).on('hashchange', function() {
 
 	// hide open dialog
 	if(window.cur_dialog && cur_dialog.hide_on_page_refresh) {
-		cur_dialog.hide();
+		if (!cur_dialog.minimizable) {
+			cur_dialog.hide();
+		} else if (!cur_dialog.is_minimized) {
+			cur_dialog.toggle_minimize();
+		}
 	}
 
 	frappe.route();

@@ -1,8 +1,8 @@
 @import "variables.less";
 @import "mixins.less";
-@import "common.less";
 @import "awesomplete.less";
 @import "datepicker.less";
+@import "quill.less";
 
 .unit-checkbox {
 	color: #36414c;
@@ -92,5 +92,42 @@
 	}
 	.star-click {
 		color: @text-light;
+	}
+}
+
+.multiselect-list {
+	.dropdown-menu {
+		width: 100%;
+	}
+
+	li {
+		padding: 9px 11.8px;
+	}
+
+	.selectable-item {
+		cursor: pointer;
+		display: flex;
+		justify-content: space-between;
+
+		.octicon-check {
+			display: none;
+		}
+	}
+
+	.selectable-item.selected {
+		background-color: @light-yellow;
+
+		.octicon-check {
+			display: inline-block;
+		}
+	}
+
+	.selectable-item:hover, .selectable-item.highlighted {
+		background-color: @btn-bg;
+	}
+
+	.selectable-items {
+		max-height: 200px;
+		overflow: auto;
 	}
 }

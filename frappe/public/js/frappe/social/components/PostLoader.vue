@@ -16,13 +16,13 @@
 		</div>
 		<div
 			v-show="loading_posts && posts.length"
-			class="text-center padding">
+			class="text-center text-muted padding">
 			{{ __('Fetching posts...') }}
 		</div>
 		<div
 			v-show="posts.length && !loading_posts && !more_posts_available"
-			class="text-center padding">
-			{{ __("That's all folks") }}
+			class="text-center text-muted padding">
+			{{ __("No more posts") }}
 		</div>
 	</div>
 </template>

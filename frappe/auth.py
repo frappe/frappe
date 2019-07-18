@@ -8,7 +8,7 @@ from frappe import _
 import frappe
 import frappe.database
 import frappe.utils
-from frappe.utils import cint, flt, get_datetime, datetime
+from frappe.utils import cint, flt, get_datetime, datetime, date_diff, today
 import frappe.utils.user
 from frappe import conf
 from frappe.sessions import Session, clear_sessions, delete_session
@@ -124,6 +124,12 @@ class LoginManager:
 		frappe.clear_cache(user = frappe.form_dict.get('usr'))
 		user, pwd = get_cached_user_pass()
 		self.authenticate(user=user, pwd=pwd)
+		if self.force_user_to_reset_password():
+			doc = frappe.get_doc("User", self.user)
+			frappe.local.response["redirect_to"] = doc.reset_password(send_email=False, password_expired=True)
+			frappe.local.response["message"] = "Password Reset"
+			return False
+
 		if should_run_2fa(self.user):
 			authenticate_for_2factor(self.user)
 			if not confirm_otp_token(self):
@@ -208,6 +214,22 @@ class LoginManager:
 
 		self.check_if_enabled(user)
 		self.user = self.check_password(user, pwd)
+
+	def force_user_to_reset_password(self):
+		if not self.user:
+			return
+
+		reset_pwd_after_days = cint(frappe.db.get_single_value("System Settings",
+			"force_user_to_reset_password"))
+
+		if reset_pwd_after_days:
+			last_password_reset_date = frappe.db.get_value("User",
+				self.user, "last_password_reset_date")  or today()
+
+			last_pwd_reset_days = date_diff(today(), last_password_reset_date)
+
+			if last_pwd_reset_days > reset_pwd_after_days:
+				return True
 
 	def check_if_enabled(self, user):
 		"""raise exception if user not enabled"""

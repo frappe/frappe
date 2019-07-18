@@ -182,6 +182,9 @@ def get_first_day(dt, d_years=0, d_months=0):
 
 	return datetime.date(year, month + 1, 1)
 
+def get_first_day_of_week(dt):
+	return dt - datetime.timedelta(days=dt.weekday())
+
 def get_last_day(dt):
 	"""
 	 Returns last day of the month using:
@@ -261,6 +264,12 @@ def format_datetime(datetime_string, format_string=None):
 def get_weekdays():
 	return ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
 
+def get_weekday(datetime=None):
+	if not datetime:
+		datetime = now_datetime()
+	weekdays = get_weekdays()
+	return weekdays[datetime.weekday()]
+
 def global_date_format(date, format="long"):
 	"""returns localized date in the form of January 1, 2012"""
 	date = getdate(date)
@@ -331,6 +340,7 @@ def ceil(s):
 
 def cstr(s, encoding='utf-8'):
 	return frappe.as_unicode(s, encoding)
+
 def rounded(num, precision=0):
 	"""round method for round halfs to nearest even algorithm aka banker's rounding - compatible with python3"""
 	precision = cint(precision)
@@ -345,7 +355,10 @@ def rounded(num, precision=0):
 	if not precision and decimal_part == 0.5:
 		num = floor if (floor % 2 == 0) else floor + 1
 	else:
-		num = round(num)
+		if decimal_part == 0.5:
+			num = floor + 1
+		else:
+			num = round(num)
 
 	return (num / multiplier) if precision else num
 

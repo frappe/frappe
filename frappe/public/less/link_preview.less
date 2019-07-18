@@ -1,11 +1,10 @@
-.popover {
+.link-preview-popover {
     border-radius: 0;
     max-width: 100%;
     .popover-content {
         padding: 0;
         .preview-popover-header {
-            background: #f7fafc;
-            padding: 10px;
+            padding: 15px;
 
             .preview-header {
                 display: inline-block;
@@ -34,19 +33,16 @@
         }
 
         .preview-table {
-            margin: 10px;
+            padding: 15px;
+            padding-bottom: 5px;
             max-width: 330px;
             min-width: 200px;
-        }
 
-        .preview-field {
-            td {
-                padding: 3px;
-                vertical-align: top;
-            }
-
-            .field-name {
-                width: 39%;
+            .preview-field {
+                padding-bottom: 10px;
+                .preview-label {
+                    padding-bottom: 4px;
+                }
             }
         }
     }

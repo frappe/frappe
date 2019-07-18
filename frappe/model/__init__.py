@@ -76,27 +76,50 @@ def delete_fields(args_dict, delete=0):
 		args_dict = { dt: [field names] }
 	"""
 	import frappe.utils
-	for dt in list(args_dict):
+	for dt in args_dict:
 		fields = args_dict[dt]
-		if not fields: continue
+		if not fields:
+			continue
 
-		frappe.db.sql("""\
+		frappe.db.sql("""
 			DELETE FROM `tabDocField`
-			WHERE parent=%s AND fieldname IN (%s)
-		""" % ('%s', ", ".join(['"' + f + '"' for f in fields])), dt)
+			WHERE parent='%s' AND fieldname IN (%s)
+		""" % (dt, ", ".join(["'{}'".format(f) for f in fields])))
 
-		# Delete the data / column only if delete is specified
-		if not delete: continue
+		# Delete the data/column only if delete is specified
+		if not delete:
+			continue
 
 		if frappe.db.get_value("DocType", dt, "issingle"):
-			frappe.db.sql("""\
+			frappe.db.sql("""
 				DELETE FROM `tabSingles`
-				WHERE doctype=%s AND field IN (%s)
-			""" % ('%s', ", ".join(['"' + f + '"' for f in fields])), dt)
+				WHERE doctype='%s' AND field IN (%s)
+			""" % (dt, ", ".join(["'{}'".format(f) for f in fields])))
 		else:
-			existing_fields = frappe.db.sql("desc `tab%s`" % dt)
+			existing_fields = frappe.db.multisql({
+					"mariadb": "DESC `tab%s`" % dt,
+					"postgres": """
+						SELECT
+ 							COLUMN_NAME
+						FROM
+ 							information_schema.COLUMNS
+						WHERE
+ 							TABLE_NAME = 'tab%s';
+					""" % dt,
+				})
 			existing_fields = existing_fields and [e[0] for e in existing_fields] or []
+			fields_need_to_delete = set(fields) & set(existing_fields)
+			if not fields_need_to_delete:
+				continue
+
+			if frappe.db.db_type == 'mariadb':
+				# mariadb implicitly commits before DDL, make it explicit
+				frappe.db.commit()
+
 			query = "ALTER TABLE `tab%s` " % dt + \
-				", ".join(["DROP COLUMN `%s`" % f for f in fields if f in existing_fields])
-			frappe.db.commit()
+				", ".join(["DROP COLUMN `%s`" % f for f in fields_need_to_delete])
 			frappe.db.sql(query)
+
+		if frappe.db.db_type == 'postgres':
+			# commit the results to db
+			frappe.db.commit()

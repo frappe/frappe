@@ -57,11 +57,7 @@
 		{% include "templates/includes/banner_extension.html" ignore missing %}
 
 		{% if banner_html -%}
-		<div class="container">
-			<div class="banner">
-				{{ banner_html or "" }}
-			</div>
-		</div>
+		{{ banner_html or "" }}
 		{%- endif %}
 	{%- endblock -%}
 

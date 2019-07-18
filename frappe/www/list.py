@@ -19,6 +19,7 @@ def get_context(context, **dict_params):
 	context.meta = frappe.get_meta(doctype)
 	context.update(get_list_context(context, doctype) or {})
 	context.doctype = doctype
+	context.title = context.doctype
 	context.txt = frappe.local.form_dict.txt
 	context.update(get(**frappe.local.form_dict))
 
@@ -69,7 +70,7 @@ def get(doctype, txt=None, limit_start=0, limit=20, pathname=None, **kwargs):
 	}
 
 @frappe.whitelist(allow_guest=True)
-def get_list_data(doctype, txt=None, limit_start=0, fields=None, cmd=None, limit=20, **kwargs):
+def get_list_data(doctype, txt=None, limit_start=0, fields=None, cmd=None, limit=20, web_form_name=None, **kwargs):
 	"""Returns processed HTML page for a standard listing."""
 	limit_start = cint(limit_start)
 
@@ -81,7 +82,7 @@ def get_list_data(doctype, txt=None, limit_start=0, fields=None, cmd=None, limit
 	meta = frappe.get_meta(doctype)
 
 	filters = prepare_filters(doctype, controller, kwargs)
-	list_context = get_list_context(frappe._dict(), doctype)
+	list_context = get_list_context(frappe._dict(), doctype, web_form_name)
 	list_context.title_field = getattr(controller, 'website',
 		{}).get('page_title_field', meta.title_field or 'name')
 
@@ -116,6 +117,11 @@ def set_route(context):
 			quoted(context.doc.name))
 
 def prepare_filters(doctype, controller, kwargs):
+	for key in kwargs.keys():
+		try:
+			kwargs[key] = json.loads(kwargs[key])
+		except ValueError:
+			pass
 	filters = frappe._dict(kwargs)
 	meta = frappe.get_meta(doctype)
 
@@ -136,38 +142,35 @@ def prepare_filters(doctype, controller, kwargs):
 
 	return filters
 
-def get_list_context(context, doctype):
+def get_list_context(context, doctype, web_form_name=None):
 	from frappe.modules import load_doctype_module
-	from frappe.website.doctype.web_form.web_form import get_web_form_list
 
 	list_context = context or frappe._dict()
 	meta = frappe.get_meta(doctype)
 
-	if not meta.custom:
-		# custom doctypes don't have modules
-		module = load_doctype_module(doctype)
+	def update_context_from_module(module, list_context):
+		# call the user defined method `get_list_context`
+		# from the python module
 		if hasattr(module, "get_list_context"):
 			out = frappe._dict(module.get_list_context(list_context) or {})
 			if out:
 				list_context = out
+		return list_context
+
+	# get context from the doctype module
+	if not meta.custom:
+		# custom doctypes don't have modules
+		module = load_doctype_module(doctype)
+		list_context = update_context_from_module(module, list_context)
+
+	# get context from web form module
+	if web_form_name:
+		web_form = frappe.get_doc('Web Form', web_form_name)
+		list_context = update_context_from_module(web_form.get_web_form_module(), list_context)
 
 	# get path from '/templates/' folder of the doctype
 	if not list_context.row_template:
 		list_context.row_template = meta.get_row_template()
-
-	# is web form, show the default web form filters
-	# which is only the owner
-	if frappe.form_dict.web_form_name:
-		list_context.web_form_name = frappe.form_dict.web_form_name
-		if not list_context.get("get_list"):
-			list_context.get_list = get_web_form_list
-
-		if not frappe.flags.web_form:
-			# update list context from web_form
-			frappe.flags.web_form = frappe.get_doc('Web Form', frappe.form_dict.web_form_name)
-
-		if frappe.flags.web_form.is_standard:
-			frappe.flags.web_form.update_list_context(list_context)
 
 	return list_context
 

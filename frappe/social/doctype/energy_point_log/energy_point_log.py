@@ -7,7 +7,7 @@ import frappe
 from frappe import _
 import json
 from frappe.model.document import Document
-from frappe.utils import cint, get_fullname, getdate
+from frappe.utils import cint, get_fullname, getdate, get_link_to_form
 
 class EnergyPointLog(Document):
 	def validate(self):
@@ -31,36 +31,52 @@ class EnergyPointLog(Document):
 		frappe.publish_realtime('update_points', after_commit=True)
 
 def get_alert_dict(doc):
-	alert_dict = frappe._dict({
-		'message': '',
-		'indicator': 'green'
-	})
+	alert_dict = frappe._dict()
 	owner_name = get_fullname(doc.owner)
-	doc_link = frappe.get_desk_link(doc.reference_doctype, doc.reference_name)
-	points = frappe.bold(doc.points)
+	if doc.reference_doctype:
+		doc_link = get_link_to_form(doc.reference_doctype, doc.reference_name)
+	points = doc.points
+	bold_points = frappe.bold(doc.points)
 	if doc.type == 'Auto':
-		alert_dict.message=_('You gained {} points').format(points)
+		if points == 1:
+			message = _('You gained {0} point')
+		else:
+			message = _('You gained {0} points')
+		alert_dict.message = message.format(bold_points)
+		alert_dict.indicator = 'green'
 	elif doc.type == 'Appreciation':
-		alert_dict.message = _('{} appreciated your work on {} with {} points').format(
+		if points == 1:
+			message = _('{0} appreciated your work on {1} with {2} point')
+		else:
+			message = _('{0} appreciated your work on {1} with {2} points')
+		alert_dict.message = message.format(
 			owner_name,
 			doc_link,
-			points
+			bold_points
 		)
+		alert_dict.indicator = 'green'
 	elif doc.type == 'Criticism':
-		alert_dict.message = _('{} criticized your work on {} with {} points').format(
+		if points == 1:
+			message = _('{0} criticized your work on {1} with {2} point')
+		else:
+			message = _('{0} criticized your work on {1} with {2} points')
+
+		alert_dict.message = message.format(
 			owner_name,
 			doc_link,
-			points
+			bold_points
 		)
 		alert_dict.indicator = 'red'
 	elif doc.type == 'Revert':
-		alert_dict.message = _('{} reverted your points on {}').format(
+		if points == 1:
+			message = _('{0} reverted your point on {1}')
+		else:
+			message = _('{0} reverted your points on {1}')
+		alert_dict.message = message.format(
 			owner_name,
 			doc_link,
 		)
 		alert_dict.indicator = 'red'
-	else:
-		alert_dict = {}
 
 	return alert_dict
 
@@ -116,26 +132,35 @@ def get_energy_points(user):
 @frappe.whitelist()
 def get_user_energy_and_review_points(user=None, from_date=None, as_dict=True):
 	conditions = ''
-	values = []
+	given_points_condition = ''
+	values = frappe._dict()
 	if user:
-		conditions = 'WHERE `user` = %s'
-		values.append(user)
+		conditions = 'WHERE `user` = %(user)s'
+		values.user = user
 	if from_date:
 		conditions += 'WHERE' if not conditions else 'AND'
-		conditions += ' `creation` >= %s'
-		values.append(from_date)
+		given_points_condition += "AND `creation` >= %(from_date)s"
+		conditions += " `creation` >= %(from_date)s OR `type`='Review'"
+		values.from_date = from_date
 
 	points_list =  frappe.db.sql("""
 		SELECT
-			SUM(CASE WHEN `type`!= 'Review' THEN `points` ELSE 0 END) as energy_points,
-			SUM(CASE WHEN `type`='Review' THEN `points` ELSE 0 END) as review_points,
-			SUM(CASE WHEN `type`='Review' and `points` < 0 THEN ABS(`points`) ELSE 0 END) as given_points,
+			SUM(CASE WHEN `type` != 'Review' THEN `points` ELSE 0 END) AS energy_points,
+			SUM(CASE WHEN `type` = 'Review' THEN `points` ELSE 0 END) AS review_points,
+			SUM(CASE
+				WHEN `type`='Review' AND `points` < 0 {given_points_condition}
+				THEN ABS(`points`)
+				ELSE 0
+			END) as given_points,
 			`user`
 		FROM `tabEnergy Point Log`
 		{conditions}
 		GROUP BY `user`
 		ORDER BY `energy_points` DESC
-	""".format(conditions=conditions), values=values or (), as_dict=1)
+	""".format(
+		conditions=conditions,
+		given_points_condition=given_points_condition
+	), values=values, as_dict=1)
 
 	if not as_dict:
 		return points_list
@@ -189,6 +214,8 @@ def revert(name, reason):
 	if doc_to_revert.type != 'Auto':
 		frappe.throw(_('This document cannot be reverted'))
 
+	if doc_to_revert.reverted: return
+
 	doc_to_revert.reverted = 1
 	doc_to_revert.save(ignore_permissions=True)
 
@@ -217,10 +244,9 @@ def send_summary(timespan):
 
 	if not is_energy_point_enabled():
 		return
-
-	from_date = frappe.utils.add_days(None, -7)
+	from_date = frappe.utils.add_to_date(None, weeks=-1)
 	if timespan == 'Monthly':
-		from_date = frappe.utils.add_days(None, -30)
+		from_date = frappe.utils.add_to_date(None, months=-1)
 
 	user_points = get_user_energy_and_review_points(from_date=from_date, as_dict=False)
 
@@ -245,7 +271,7 @@ def send_summary(timespan):
 
 def get_footer_message(timespan):
 	if timespan == 'Monthly':
-		return _("Stats based on last month's performance (from {} to {})")
+		return _("Stats based on last month's performance (from {0} to {1})")
 	else:
-		return _("Stats based on last week's performance (from {} to {})")
+		return _("Stats based on last week's performance (from {0} to {1})")
 

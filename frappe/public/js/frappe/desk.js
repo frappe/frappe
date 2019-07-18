@@ -42,7 +42,10 @@ frappe.Application = Class.extend({
 		this.setup_frappe_vue();
 		this.load_bootinfo();
 		this.load_user_permissions();
-		this.make_nav_bar();
+		this.set_app_logo_url()
+			.then(() => {
+				this.make_nav_bar();
+			});
 		this.set_favicon();
 		this.setup_analytics();
 		this.set_fullwidth_if_enabled();
@@ -457,6 +460,18 @@ frappe.Application = Class.extend({
 		$('<link rel="icon" href="' + link + '" type="image/x-icon">').appendTo("head");
 	},
 
+	set_app_logo_url: function() {
+		return frappe.call('frappe.client.get_hooks', { hook: 'app_logo_url' })
+			.then(r => {
+				frappe.app.logo_url = (r.message || []).slice(-1)[0];
+				if (window.cordova) {
+					let host = frappe.request.url;
+					host = host.slice(0, host.length - 1);
+					frappe.app.logo_url = host + frappe.app.logo_url;
+				}
+			});
+	},
+
 	trigger_primary_action: function() {
 		if(window.cur_dialog && cur_dialog.display) {
 			// trigger primary
@@ -469,7 +484,7 @@ frappe.Application = Class.extend({
 	},
 
 	set_rtl: function() {
-		if (["ar", "he", "fa"].indexOf(frappe.boot.lang) >= 0) {
+		if (frappe.utils.is_rtl()) {
 			var ls = document.createElement('link');
 			ls.rel="stylesheet";
 			ls.href= "assets/css/frappe-rtl.css";

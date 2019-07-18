@@ -142,12 +142,11 @@ _f.Frm.prototype.setup_drag_drop = function() {
 				throw "attach error";
 			}
 
-			new frappe.ui.FileUploader({
-				doctype: me.doctype,
-				docname: me.docname,
+			frappe.upload.make({
+				args: me.attachments.get_args(),
 				files: dataTransfer.files,
-				on_success(file_doc) {
-					me.attachments.attachment_uploaded(file_doc);
+				callback: function(attachment, r) {
+					me.attachments.attachment_uploaded(attachment, r);
 				}
 			});
 		});
@@ -214,9 +213,7 @@ _f.Frm.prototype.watch_model_updates = function() {
 	});
 
 	// on table fields
-	var table_fields = frappe.get_children("DocType", me.doctype, "fields", {
-		fieldtype: ["in", frappe.model.table_fields]
-	});
+	var table_fields = frappe.get_children("DocType", me.doctype, "fields", {fieldtype:"Table"});
 
 	// using $.each to preserve df via closure
 	$.each(table_fields, function(i, df) {
@@ -349,7 +346,7 @@ _f.Frm.prototype.refresh_header = function(is_a_different_doc) {
 		&& !this.is_new()
 		&& !frappe.model.has_workflow(this.doctype) // show only if no workflow
 		&& this.doc.docstatus===0) {
-		this.dashboard.add_comment(__('Submit this document to confirm'), 'blue', true);
+		this.dashboard.add_comment(__('Submit this document to confirm'), 'orange', true);
 	}
 
 	this.clear_custom_buttons();
@@ -618,7 +615,7 @@ _f.Frm.prototype.trigger_link_fields = function() {
 	// trigger link fields which have default values set
 	if (this.is_new() && this.doc.__run_link_triggers) {
 		$.each(this.fields_dict, function(fieldname, field) {
-			if (field.df.fieldtype=="Link" && this.doc[fieldname]) {
+			if (in_list(['Link', 'Dynamic Link'], field.df.fieldtype) && this.doc[fieldname]) {
 				// triggers add fetch, sets value in model and runs triggers
 				field.set_value(this.doc[fieldname]);
 			}
@@ -718,19 +715,24 @@ _f.Frm.prototype._save = function(save_action, callback, btn, on_error, resolve,
 		frappe.utils.scroll_to(0);
 	}
 	var after_save = function(r) {
-		if(!r.exc) {
-			if (["Save", "Update", "Amend"].indexOf(save_action)!==-1) {
+		if (!r.exc) {
+			if (["Save", "Update", "Amend"].indexOf(save_action) !== -1) {
 				frappe.utils.play_sound("click");
 			}
 
 			me.script_manager.trigger("after_save");
+			// submit comment if entered
+			if (me.timeline) {
+				me.timeline.comment_area.submit();
+			}
 			me.refresh();
 		} else {
-			if(on_error) {
+			if (on_error) {
 				on_error();
 				reject();
 			}
 		}
+
 		callback && callback(r);
 		resolve();
 	};
@@ -921,8 +923,8 @@ _f.Frm.prototype.get_perm = function(permlevel, access_type) {
 };
 
 
-_f.Frm.prototype.set_intro = function(txt, color) {
-	this.dashboard.set_headline_alert(txt, color);
+_f.Frm.prototype.set_intro = function(txt) {
+	this.dashboard.set_headline_alert(txt);
 };
 
 _f.Frm.prototype.set_footnote = function(txt) {

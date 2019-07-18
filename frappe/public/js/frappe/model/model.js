@@ -55,7 +55,7 @@ $.extend(frappe.model, {
 				if(frappe.get_route()[0]==="Form" && cur_frm.doc.doctype===doc.doctype && cur_frm.doc.name===doc.name) {
 					if(!frappe.ui.form.is_saving && data.modified!=cur_frm.doc.modified) {
 						doc.__needs_refresh = true;
-						cur_frm.show_if_needs_refresh();
+						cur_frm.check_doctype_conflict();
 					}
 				} else {
 					if(!doc.__unsaved) {
@@ -389,7 +389,7 @@ $.extend(frappe.model, {
 				tasks.push(() => frappe.model.trigger(key, value, doc));
 			} else {
 				// execute link triggers (want to reselect to execute triggers)
-				if(fieldtype=="Link" && doc) {
+				if(in_list(["Link", "Dynamic Link"], fieldtype) && doc) {
 					tasks.push(() => frappe.model.trigger(key, value, doc));
 				}
 			}

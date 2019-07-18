@@ -37,6 +37,7 @@ CREATE TABLE "tabDocField" (
   "unique" smallint NOT NULL DEFAULT 0,
   "no_copy" smallint NOT NULL DEFAULT 0,
   "allow_on_submit" smallint NOT NULL DEFAULT 0,
+  "show_preview_popup" smallint NOT NULL DEFAULT 0,
   "trigger" varchar(255) DEFAULT NULL,
   "collapsible_depends_on" text,
   "depends_on" text,

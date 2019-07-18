@@ -33,7 +33,7 @@ frappe.get_modal = function(title, content) {
 						${content}
 					</div>
 					<div class="modal-footer hidden">
-						<button type="button" class="btn btn-primary hidden"></button>
+						<button type="button" class="btn btn-sm btn-primary hidden"></button>
 					</div>
 				</div>
 			</div>

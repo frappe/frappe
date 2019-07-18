@@ -11,7 +11,6 @@ from frappe import _
 from six.moves.urllib.parse import urlparse, urlencode
 import base64
 
-
 def handle():
 	"""
 	Handler for `/api` methods

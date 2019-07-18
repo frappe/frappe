@@ -1,6 +1,5 @@
 import '../class';
 
-frappe.provide("frappe.ui.form");
 frappe.ui.form.Layout = Class.extend({
 	init: function(opts) {
 		this.views = {};
@@ -147,6 +146,7 @@ frappe.ui.form.Layout = Class.extend({
 
 		this.section.fields_list.push(fieldobj);
 		this.section.fields_dict[df.fieldname] = fieldobj;
+		fieldobj.section = this.section;
 	},
 
 	init_field: function(df, render = false) {
@@ -636,8 +636,9 @@ frappe.ui.form.Section = Class.extend({
 				f.refresh();
 			}
 		});
-
-
+	},
+	is_collapsed() {
+		return this.body.hasClass('hide');
 	},
 	has_missing_mandatory: function() {
 		var missing_mandatory = false;

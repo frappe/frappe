@@ -1,13 +1,3 @@
-frappe.ui.form.make_control = function (opts) {
-	var control_class_name = "Control" + opts.df.fieldtype.replace(/ /g, "");
-	if(frappe.ui.form[control_class_name]) {
-		return new frappe.ui.form[control_class_name](opts);
-	} else {
-		// eslint-disable-next-line
-		console.log("Invalid Control Name: " + opts.df.fieldtype);
-	}
-};
-
 frappe.ui.form.Control = Class.extend({
 	init: function(opts) {
 		$.extend(this, opts);
@@ -50,7 +40,7 @@ frappe.ui.form.Control = Class.extend({
 			return this.df.get_status(this);
 		}
 
-		if(!this.doctype && !this.docname) {
+		if((!this.doctype && !this.docname) || this.df.parenttype === 'Web Form') {
 			// like in case of a dialog box
 			if (cint(this.df.hidden)) {
 				// eslint-disable-next-line
@@ -190,7 +180,7 @@ frappe.ui.form.Control = Class.extend({
 		}
 	},
 	set_model_value: function(value) {
-		if(this.doctype && this.docname) {
+		if(this.frm) {
 			this.last_value = value;
 			return frappe.model.set_value(this.doctype, this.docname, this.df.fieldname,
 				value, this.df.fieldtype);

@@ -1,0 +1,109 @@
+import WebFormList from './web_form_list'
+import WebForm from './web_form'
+
+frappe.ready(function() {
+	let wrapper = $(".web-form-wrapper");
+	let is_list = parseInt(wrapper.data('is-list'));
+	let webform_doctype = wrapper.data('web-form-doctype');
+	let webform_name = wrapper.data('web-form');
+	let login_required = parseInt(wrapper.data('login-required'));
+	let allow_delete = parseInt(wrapper.data('allow-delete'));
+	let query_params = frappe.utils.get_query_params();
+	let doc_name = query_params.name || '';
+	let is_new = query_params.new;
+
+	if (login_required) show_login_prompt();
+	else if (is_list) show_grid();
+	else show_form(webform_doctype, webform_name, is_new);
+
+	document.querySelector("body").style.display = "block";
+
+	function show_login_prompt() {
+		const login_required = new frappe.ui.Dialog({
+			title: __("Not Permitted"),
+			primary_action_label: __("Login"),
+			primary_action: () => {
+				window.location.replace('/login?redirect-to=' + window.location.pathname);
+			}
+		});
+		login_required.set_message(__("You are not permitted to access this page."));
+		login_required.show();
+	}
+
+	function show_grid() {
+		new WebFormList({
+			parent: wrapper,
+			doctype: webform_doctype,
+			web_form_name: webform_name,
+			settings: {
+				allow_delete
+			}
+		})
+	}
+
+	function show_form() {
+		let web_form = new WebForm({
+			parent: wrapper,
+			is_new,
+			web_form_name: webform_name,
+		});
+
+		get_data().then(r => {
+			const data = setup_fields(r.message);
+			let web_form_doc = data.web_form;
+
+			if (web_form_doc.doc_name && web_form_doc.allow_edit === 0) {
+				window.location.replace(window.location.pathname + "?new=1");
+				return;
+			}
+
+			web_form.prepare(web_form_doc, r.message.doc || {});
+			web_form.make();
+			web_form.set_default_values();
+		})
+
+		function get_data() {
+			return frappe.call({
+				method: "frappe.website.doctype.web_form.web_form.get_form_data",
+				args: {
+					doctype: webform_doctype,
+					docname: doc_name,
+					web_form_name: webform_name
+				},
+				freeze: true
+			});
+		}
+
+		function setup_fields(form_data) {
+			form_data.web_form.web_form_fields.map(df => {
+				if (df.fieldtype === "Table") {
+					df.get_data = () => {
+						let data = [];
+						if (form_data.doc) {
+							data = form_data.doc[df.fieldname];
+						}
+						return data;
+					};
+
+					df.fields = form_data[df.fieldname];
+
+					if (df.fieldtype === "Attach") {
+						df.is_private = true;
+					}
+
+					df.is_web_form = true;
+
+					delete df.parent;
+					delete df.parentfield;
+					delete df.parenttype;
+					delete df.doctype;
+
+					return df;
+				}
+				if (df.fieldtype === "Link") df.only_select = true;
+			});
+
+			return form_data;
+		}
+	}
+});

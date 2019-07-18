@@ -157,16 +157,17 @@ def _reinstall(site, admin_password=None, mariadb_root_username=None, mariadb_ro
 		admin_password=admin_password)
 
 @click.command('install-app')
-@click.argument('app')
+@click.argument('apps', nargs=-1)
 @pass_context
-def install_app(context, app):
-	"Install a new app to site"
+def install_app(context, apps):
+	"Install a new app to site, supports multiple apps"
 	from frappe.installer import install_app as _install_app
 	for site in context.sites:
 		frappe.init(site=site)
 		frappe.connect()
 		try:
-			_install_app(app, verbose=context.verbose)
+			for app in apps:
+				_install_app(app, verbose=context.verbose)
 		finally:
 			frappe.destroy()
 
@@ -229,6 +230,7 @@ def migrate(context, rebuild_website=False):
 		finally:
 			frappe.destroy()
 
+	print("Compiling Python Files...")
 	compileall.compile_dir('../apps', quiet=1, rx=re.compile('.*node_modules.*'))
 
 @click.command('run-patch')
@@ -562,10 +564,7 @@ def browse(context, site):
 	site = site.lower()
 
 	if site in frappe.utils.get_sites():
-		webbrowser.open('http://{site}:{port}'.format(
-			site=site,
-			port=frappe.get_conf(site).webserver_port
-		), new=2)
+		webbrowser.open(frappe.utils.get_site_url(site), new=2)
 	else:
 		click.echo("\nSite named \033[1m{}\033[0m doesn't exist\n".format(site))
 

@@ -126,9 +126,6 @@ body[data-route^="Module"] .main-menu {
 		}
 	}
 
-	.stat-link {
-		margin-bottom: 0.5em;
-	}
 
 	a.close {
 		position: absolute;
@@ -188,19 +185,32 @@ body[data-route^="Module"] .main-menu {
 			border-radius: 6px;
 		}
 
-		.sidebar-image-wrapper:after {
-		    content: '\A';
-		    position: absolute;
-		    width: 100%; height:100%;
-		    top:0; left:0;
-		    background: #fff;
-		    opacity: 0;
-		    transition: all 0.5s;
-		    -webkit-transition: all 0.6s;
+		.sidebar-image-wrapper {
+			position: relative;
 		}
 
-		.sidebar-image-wrapper:hover:after {
-		    opacity: 0.5;
+		.sidebar-image, .sidebar-standard-image {
+			transition: opacity 0.3s;
+		}
+
+		.sidebar-image-wrapper:hover {
+			.sidebar-image, .sidebar-standard-image {
+				opacity: 0.5;
+			}
+			.sidebar-image-actions {
+				display: block;
+			}
+		}
+
+		.sidebar-image-actions {
+			display: none;
+			position: absolute;
+			top: 50%;
+			right: 0;
+			left: 0;
+			transform: translateY(-50%);
+			text-align: center;
+			z-index: 1;
 		}
 
 	}
@@ -321,6 +331,10 @@ body[data-route^="Module"] .main-menu {
 					height: 0;
 				}
 			}
+
+			.sidebar-menu {
+				padding: 2px 0px 5px 0px;
+			}
 		}
 
 		@media (max-width: 767px) {
@@ -356,15 +370,39 @@ body[data-route^="Module"] .main-menu {
 		}
 	}
 }
+.overlay-sidebar {
+	ul.dropdown-menu {
+		li {
+			padding:0 !important;
+		}
 
-.sidebar-left .list-sidebar {
-	.stat-label,
-	.stat-no-records {
-		.sidebar-padding;
+		.badge {
+			top: 0;
+			right: 0;
+		}
+	}
+}
+
+
+.list-sidebar {
+	.list-sidebar-label {
+		color: @text-muted;
+		text-transform: uppercase;
+		margin-bottom: 0;
+		font-size: @text-small;
 	}
 
-	.stat-label {
-		margin-bottom: -10px;
+	.group-by-count {
+		position:relative
+	}
+
+	.group-by-dropdown, .list-stats-dropdown {
+		max-height: 300px;
+		overflow-y: auto;
+		max-width: 200px;
+	}
+	.dropdown-search {
+		padding: 8px;
 	}
 }
 
@@ -427,5 +465,12 @@ body[data-route^="Module"] .main-menu {
 	}
 	.subject, .body {
 		padding: 12px;
+	}
+}
+
+@media screen and (min-width: @screen-md) {
+	.reports-dropdown {
+		max-height: 300px;
+		overflow-y: auto;
 	}
 }

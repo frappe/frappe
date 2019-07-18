@@ -1,9 +1,25 @@
+<ul class="list-unstyled sidebar-menu visible-sm visible-xs">
+	<li>
+		<a class="navbar-home" href="#">
+			<img class="app-logo" src="{{ frappe.app.logo_url }}">
+		</a>
+	</li>
+</ul>
 <ul class="list-unstyled sidebar-menu user-actions hidden"></ul>
 <ul class="list-unstyled sidebar-menu sidebar-image-section hidden-xs hidden-sm hide">
 	<li class="sidebar-image-wrapper">
 		<div class="sidebar-image"></div>
 		<div class="sidebar-standard-image">
 			<div class="standard-image"></div>
+		</div>
+		<div class="sidebar-image-actions">
+			<div class="dropdown">
+				<a href="#" class="dropdown-toggle" data-toggle="dropdown">{{ __("Change") }}</a>
+				<ul class="dropdown-menu" role="menu">
+					<li><a class="sidebar-image-change">{{ __("Upload") }}</a></li>
+					<li><a class="sidebar-image-remove">{{ __("Remove") }}</a></li>
+				</ul>
+			</div>
 		</div>
 	</li>
 </ul>
@@ -25,6 +41,7 @@
 	<li class="rating-icons"></li>
 </ul>
 <ul class="list-unstyled sidebar-menu">
+	<li class="divider visible-sm visible-xs"></li>
 	<li style="position: relative;">
 		<a class="sidebar-comments badge-hover">
 			<span>{%= __("Comments") %}</span>
@@ -63,6 +80,9 @@
 <ul class="list-unstyled sidebar-menu">
 	<li class="h6 viewers-label">{%= __("Currently Viewing") %}</li>
 	<li class="form-viewers"></li>
+</ul>
+<ul class="list-unstyled sidebar-menu">
+	<a><li class="auto-repeat-status"><li></a>
 </ul>
 <ul class="list-unstyled sidebar-menu">
 	<li class="liked-by-parent">

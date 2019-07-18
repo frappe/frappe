@@ -148,6 +148,16 @@
 	.heatmap {
 		display: flex;
 		justify-content: center;
+
+		// excessive whitespace around the chart
+		.chart-container {
+			margin: 0px;
+		}
+
+		// don't show the less..more legend
+		.chart-legend {
+			display: none;
+		}
 	}
 
 	@media (max-width: @screen-sm) {
@@ -202,6 +212,19 @@
 			float: right;
 			border-radius: 3px 0px 0px 3px;
 		}
+	}
+}
+
+.frappe-rtl .inline-graph {
+	direction: ltr;
+	display: block;
+	transform: scaleX(-1);
+	.inline-graph-count {
+		transform: scaleX(-1);
+		text-align: right;
+	}
+	.inline-graph-half:first-child .inline-graph-count {
+		text-align: left;
 	}
 }
 
@@ -371,6 +394,16 @@ h6.uppercase, .h6.uppercase {
 	.timeline-item-content {
 		max-height: 400px;
 		overflow: auto;
+	}
+}
+
+.timeline-item-content .mention {
+	background-color: transparent;
+	padding: 0;
+	font-weight: bold;
+
+	span {
+		margin: 0;
 	}
 }
 
@@ -831,6 +864,9 @@ select.form-control {
 		.section-head {
 			padding: 15px 15px 15px 0px;
 		}
+		.section-body {
+			margin-top: -15px;
+		}
 		.section-body .form-column:first-child{
 			.radio, .checkbox{
 				margin-top: 0;
@@ -851,14 +887,6 @@ select.form-control {
 	.form-section {
 		padding-left: 0px !important;
 		padding-right: 0px !important;
-	}
-
-	.form-grid {
-		margin-left: -17px;
-		margin-right: -17px;
-		border-left: none !important;
-		border-right: none !important;
-		border-radius: none;
 	}
 
 	// forms
@@ -893,6 +921,8 @@ select.form-control {
 		.frappe-control[data-fieldtype="Table"] {
 			padding: 0px 15px;
 			margin-top: -1px;
+			margin-left: -17px;
+			margin-right: -17px;
 			border-bottom: none;
 
 			label {
@@ -900,19 +930,9 @@ select.form-control {
 			}
 		}
 
-		// .form-section:last-child .form-column:last-child .frappe-control:last-child {
-		// 	border-bottom: none;
-		// }
-
 		.form-control {
-			border: none;
-			border-bottom: 1px solid @border-color;
-			box-shadow: none;
-			background-color: inherit;
 			height: auto;
-			padding: 0px;
 			margin-bottom: 7px;
-			border-radius: 0px;
 
 			// make all fields left-aligned!
 			text-align: left !important;
@@ -921,10 +941,6 @@ select.form-control {
 		.form-control:focus {
 			box-shadow: none;
 		}
-
-		// select.form-control {
-		// 	text-indent: -2px;
-		// }
 	}
 }
 

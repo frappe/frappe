@@ -16,6 +16,8 @@ frappe.patches.v8_0.drop_is_custom_from_docperm
 execute:frappe.reload_doc('core', 'doctype', 'module_def') #2017-09-22
 execute:frappe.reload_doc('core', 'doctype', 'version') #2017-04-01
 execute:frappe.reload_doc('email', 'doctype', 'document_follow')
+execute:frappe.reload_doc('core', 'doctype', 'communication_link')
+execute:frappe.reload_doc('core', 'doctype', 'communication')
 frappe.patches.v11_0.replicate_old_user_permissions
 frappe.patches.v11_0.reload_and_rename_view_log #2019-01-03
 frappe.patches.v7_1.rename_scheduler_log_to_error_log
@@ -240,4 +242,8 @@ frappe.patches.v12_0.replace_null_values_in_tables
 frappe.patches.v12_0.reset_home_settings
 frappe.patches.v12_0.update_print_format_type
 frappe.patches.v11_0.remove_doctype_user_permissions_for_page_and_report #2019-05-01
+frappe.patches.v11_0.apply_customization_to_custom_doctype
 frappe.patches.v12_0.remove_feedback_rating
+frappe.patches.v12_0.move_form_attachments_to_attachments_folder
+frappe.patches.v12_0.move_timeline_links_to_dynamic_links
+frappe.patches.v12_0.delete_feedback_request_if_exists #1

@@ -63,7 +63,7 @@ frappe.ui.FieldGroup = frappe.ui.form.Layout.extend({
 	},
 	catch_enter_as_submit: function() {
 		var me = this;
-		$(this.body).find('input[type="text"], input[type="password"]').keypress(function(e) {
+		$(this.body).find('input[type="text"], input[type="password"], select').keypress(function(e) {
 			if(e.which==13) {
 				if(me.has_primary_action) {
 					e.preventDefault();

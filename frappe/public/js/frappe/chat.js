@@ -9,7 +9,7 @@ import './socketio_client'
 import './ui/dialog'
 import './ui/capture'
 
-import './misc/user'
+import './utils/user'
 
 /* eslint semi: "never" */
 // Fuck semicolons - https://mislav.net/2010/05/semicolons
@@ -2743,7 +2743,7 @@ frappe.chat.setup  = () => {
 		frappe.chat.profile.create('enable_chat').then(({ enable_chat }) => {
 			frappe.log.info(`Chat Profile created for User ${frappe.session.user}.`)
 
-			if ( 'desk' in frappe ) { // same as desk?
+			if ( 'desk' in frappe && frappe.sys_defaults ) { // same as desk?
 				const should_render = Boolean(parseInt(frappe.sys_defaults.enable_chat)) && enable_chat
 				frappe.chat.render(should_render)
 			}

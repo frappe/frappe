@@ -178,10 +178,11 @@ class Database(object):
 				frappe.errprint(("Execution time: {0} sec").format(round(time_end - time_start, 2)))
 
 		except Exception as e:
-			if(frappe.conf.db_type == 'postgres'):
+			if frappe.conf.db_type == 'postgres':
 				self.rollback()
 
-			if frappe.conf.db_type == 'mariadb' and self.is_syntax_error(e):
+			elif self.is_syntax_error(e):
+				# only for mariadb
 				frappe.errprint('Syntax error in query:')
 				frappe.errprint(query)
 
@@ -552,6 +553,10 @@ class Database(object):
 		val = val[0][0] if val else None
 
 		df = frappe.get_meta(doctype).get_field(fieldname)
+
+		if not df:
+			frappe.throw(_('Invalid field name: {0}').format(frappe.bold(fieldname)), self.InvalidColumnName)
+
 		if df.fieldtype in frappe.model.numeric_fieldtypes:
 			val = cint(val)
 
@@ -729,6 +734,7 @@ class Database(object):
 	def commit(self):
 		"""Commit current transaction. Calls SQL `COMMIT`."""
 		self.sql("commit")
+
 		frappe.local.rollback_observers = []
 		self.flush_realtime_log()
 		enqueue_jobs_after_commit()
@@ -910,7 +916,7 @@ class Database(object):
 		return self.is_missing_column(e) or self.is_missing_table(e)
 
 	def multisql(self, sql_dict, values=(), **kwargs):
-		current_dialect = frappe.conf.db_type or 'mariadb'
+		current_dialect = frappe.db.db_type or 'mariadb'
 		query = sql_dict.get(current_dialect)
 		return self.sql(query, values, **kwargs)
 
@@ -922,18 +928,32 @@ class Database(object):
 				conditions=conditions
 			), values)
 		else:
-			frappe.throw('No conditions provided')
+			frappe.throw(_('No conditions provided'))
 
 	def log_touched_tables(self, query, values=None):
 		if values:
 			query = frappe.safe_decode(self._cursor.mogrify(query, values))
 		if query.strip().lower().split()[0] in ('insert', 'delete', 'update', 'alter'):
-			# ([`\"']?) Captures ', " or ` at the begining of the table name (if provided)
+			# single_word_regex is designed to match following patterns
+			# `tabXxx`, tabXxx and "tabXxx"
+
+			# multi_word_regex is designed to match following patterns
+			# `tabXxx Xxx` and "tabXxx Xxx"
+
+			# ([`"]?) Captures " or ` at the begining of the table name (if provided)
+			# \1 matches the first captured group (quote character) at the end of the table name
+			# multi word table name must have surrounding quotes.
+
 			# (tab([A-Z]\w+)( [A-Z]\w+)*) Captures table names that start with "tab"
 			# and are continued with multiple words that start with a captital letter
 			# e.g. 'tabXxx' or 'tabXxx Xxx' or 'tabXxx Xxx Xxx' and so on
-			# \1 matches the first captured group (quote character) at the end of the table name
-			tables = [groups[1] for groups in re.findall(r'([`"\']?)(tab([A-Z]\w+)( [A-Z]\w+)*)\1', query)]
+
+			single_word_regex = r'([`"]?)(tab([A-Z]\w+))\1'
+			multi_word_regex = r'([`"])(tab([A-Z]\w+)( [A-Z]\w+)+)\1'
+			tables = []
+			for regex in (single_word_regex, multi_word_regex):
+				tables += [groups[1] for groups in re.findall(regex, query)]
+
 			if frappe.flags.touched_tables is None:
 				frappe.flags.touched_tables = set()
 			frappe.flags.touched_tables.update(tables)

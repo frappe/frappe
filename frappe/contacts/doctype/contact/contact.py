@@ -161,3 +161,16 @@ def contact_query(doctype, txt, searchfield, start, page_len, filters):
 			'link_name': link_name,
 			'link_doctype': link_doctype
 		})
+
+
+def get_contact_with_phone_number(number):
+	if not number: return
+
+	contacts = frappe.get_all('Contact', or_filters={
+		'phone': ['like', '%{}'.format(number)],
+		'mobile_no': ['like', '%{}'.format(number)]
+	}, limit=1)
+
+	contact = contacts[0].name if contacts else None
+
+	return contact

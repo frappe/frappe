@@ -120,6 +120,10 @@ frappe.search.AwesomeBar = Class.extend({
 		$input.on("awesomplete-selectcomplete", function(e) {
 			$input.val("");
 		});
+
+		$input.on("keydown", null, 'esc', function() {
+			$input.blur();
+		});
 		frappe.search.utils.setup_recent();
 	},
 
@@ -160,6 +164,7 @@ frappe.search.AwesomeBar = Class.extend({
 		this.make_global_search(txt);
 		this.make_search_in_current(txt);
 		this.make_calculator(txt);
+		this.make_random(txt);
 	},
 
 	build_options: function(txt) {
@@ -268,4 +273,16 @@ frappe.search.AwesomeBar = Class.extend({
 			}
 		}
 	},
+
+	make_random: function(txt) {
+		if(txt.toLowerCase().includes('random')) {
+			this.options.push({
+				label: "Generate Random Password",
+				value: frappe.utils.get_random(16),
+				onclick: function() {
+					frappe.msgprint(frappe.utils.get_random(16), "Result");
+				}
+			})
+		}
+	}
 });

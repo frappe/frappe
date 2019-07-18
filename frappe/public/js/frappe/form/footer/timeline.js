@@ -2,6 +2,7 @@
 // MIT License. See license.txt
 
 frappe.provide('frappe.timeline');
+frappe.provide('frappe.email');
 frappe.separator_element = '<div>---</div>';
 
 frappe.ui.form.Timeline = class Timeline {
@@ -12,10 +13,11 @@ frappe.ui.form.Timeline = class Timeline {
 
 	make() {
 		var me = this;
-		this.wrapper = $(frappe.render_template("timeline",
-			{doctype: me.frm.doctype, allow_events_in_timeline: me.frm.meta.allow_events_in_timeline})).appendTo(me.parent);
+		this.wrapper = $(frappe.render_template("timeline",{doctype: me.frm.doctype,allow_events_in_timeline: me.frm.meta.allow_events_in_timeline})).appendTo(me.parent);
 
+		this.set_automatic_link_email();
 		this.list = this.wrapper.find(".timeline-items");
+		this.email_link = this.wrapper.find(".timeline-email-import");
 
 		this.comment_area = frappe.ui.form.make_control({
 			parent: this.wrapper.find('.timeline-head'),
@@ -28,7 +30,7 @@ frappe.ui.form.Timeline = class Timeline {
 			render_input: true,
 			only_input: true,
 			on_submit: (val) => {
-				val && this.insert_comment(val, this.comment_area.button);
+				strip_html(val) && this.insert_comment(val, this.comment_area.button);
 			}
 		});
 
@@ -72,6 +74,10 @@ frappe.ui.form.Timeline = class Timeline {
 			});
 		});
 
+		this.email_link.on("click", function(e) {
+			let text = $(e.currentTarget).find(".copy-to-clipboard").text();
+			frappe.utils.copy_to_clipboard(text);
+		});
 	}
 
 	setup_email_button() {
@@ -107,6 +113,34 @@ frappe.ui.form.Timeline = class Timeline {
 				}
 				new frappe.views.CommunicationComposer(args)
 			});
+	}
+
+	set_automatic_link_email() {
+		if (!frappe.email.automatic_link_email){
+			frappe.call("frappe.email.doctype.email_account.email_account.get_automatic_email_link").then((r) => {
+				if (r && r.message) {
+					frappe.email.automatic_link_email = r.message;
+				} else {
+					frappe.email.automatic_link_email = null;
+				}
+				this.display_automatic_link_email();
+			});
+		} else {
+			this.display_automatic_link_email();
+		}
+	}
+
+	display_automatic_link_email() {
+		var me = this;
+		if (frappe.email.automatic_link_email){
+			let email_id = frappe.email.automatic_link_email;
+			email_id =  email_id.split("@")[0] +"+"+ encodeURIComponent(me.frm.doctype) +"+"+ encodeURIComponent(me.frm.docname)
+				+"@"+ email_id.split("@")[1];
+
+			$(".timeline-email-import-link").text(email_id);
+		} else {
+			$('.timeline-email-import').addClass("hide");
+		}
 	}
 
 	setup_interaction_button() {
@@ -385,24 +419,6 @@ frappe.ui.form.Timeline = class Timeline {
 			} else {
 				c.content_html = c.content;
 				c.content_html = frappe.utils.strip_whitespace(c.content_html);
-			}
-
-			// bold @mentions
-			if(c.comment_type==="Comment" &&
-				// avoid adding <b> tag a 2nd time
-				!c.content_html.match(/(^|\W)<b>(@[^\s]+)<\/b>/)
-			) {
-				/*
-					Replace the email ids by only displaying the string which
-					occurs before the second `@` to enhance the mentions.
-					Eg.
-					@abc@a-example.com will be converted to
-					@abc with the below line of code.
-				*/
-
-				c.content_html = c.content_html.replace(/(<[a][^>]*>)/g, "");
-				// bold the @mentions
-				c.content_html = c.content_html.replace(/(@[^\s@]*)@[^\s@|<]*/g, "<b>$1</b>");
 			}
 
 			if (this.is_communication_or_comment(c)) {
@@ -764,7 +780,12 @@ frappe.ui.form.Timeline = class Timeline {
 			.filter(user => !["Administrator", "Guest"].includes(user));
 		valid_users = valid_users
 			.filter(user => frappe.boot.user_info[user].allowed_in_mentions==1);
-		return valid_users.map(user => frappe.boot.user_info[user].name);
+		return valid_users.map(user => {
+			return {
+				id: frappe.boot.user_info[user].name,
+				value: frappe.boot.user_info[user].fullname,
+			}
+		});
 	}
 
 	setup_comment_like() {

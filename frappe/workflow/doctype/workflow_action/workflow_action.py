@@ -10,7 +10,7 @@ from frappe.desk.form.utils import get_pdf_link
 from frappe.utils.verified_command import get_signed_params, verify_request
 from frappe import _
 from frappe.model.workflow import apply_workflow, get_workflow_name, \
-	has_approval_access, get_workflow_state_field, send_email_alert
+	has_approval_access, get_workflow_state_field, send_email_alert, get_workflow_field_value
 from frappe.desk.notifications import clear_doctype_notifications
 from frappe.utils.user import get_users_with_role
 
@@ -143,10 +143,21 @@ def update_completed_workflow_actions(doc, user=None):
 		(user, doc.get('doctype'), doc.get('name'), user))
 
 def get_next_possible_transitions(workflow_name, state):
-	return frappe.get_all('Workflow Transition',
-		fields=['allowed', 'action', 'state', 'allow_self_approval'],
+	transitions = frappe.get_all('Workflow Transition',
+		fields=['allowed', 'action', 'state', 'allow_self_approval', 'next_state'],
 		filters=[['parent', '=', workflow_name],
 		['state', '=', state]])
+
+	transitions_to_return = []
+
+	for transition in transitions:
+		is_next_state_optional = get_state_optional_field_value(workflow_name, transition.next_state)
+		# skip transition if next state of the transition is optional
+		if is_next_state_optional:
+			continue
+		transitions_to_return.append(transition)
+
+	return transitions_to_return
 
 def get_users_next_action_data(transitions, doc):
 	user_data_map = {}
@@ -287,3 +298,8 @@ def get_email_template(doc):
 	if not template_name: return
 	return frappe.get_doc('Email Template', template_name)
 
+def get_state_optional_field_value(workflow_name, state):
+	return frappe.get_cached_value('Workflow Document State', {
+		'parent': workflow_name,
+		'state': state
+	}, 'is_optional_state')

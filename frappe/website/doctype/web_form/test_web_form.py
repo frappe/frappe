@@ -19,17 +19,6 @@ class TestWebForm(unittest.TestCase):
 		frappe.conf.disable_website_cache = False
 		frappe.local.path = None
 
-	def test_basic(self):
-		frappe.set_user("Guest")
-		html = build_page("manage-events")
-		self.assertTrue('<div class="login-required">' in html)
-
-	def test_logged_in(self):
-		frappe.set_user("Administrator")
-		html = build_page("manage-events")
-		self.assertFalse('<div class="login-required">' in html)
-		self.assertTrue('"/manage-events?new=1"' in html)
-
 	def test_accept(self):
 		frappe.set_user("Administrator")
 		accept(web_form='manage-events', data=json.dumps({
@@ -56,7 +45,7 @@ class TestWebForm(unittest.TestCase):
 		self.assertNotEquals(frappe.db.get_value("Event",
 			self.event_name, "description"), doc.get('description'))
 
-		accept(web_form='manage-events', data=json.dumps(doc))
+		accept(web_form='manage-events', docname=self.event_name, data=json.dumps(doc))
 
 		self.assertEqual(frappe.db.get_value("Event",
 			self.event_name, "description"), doc.get('description'))
