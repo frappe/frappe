@@ -10,9 +10,9 @@ from frappe.utils import cstr, cint, flt
 class InvalidColumnName(frappe.ValidationError): pass
 
 class DBTable:
-	def __init__(self, doctype, meta=None):
+	def __init__(self, doctype, meta=None,base_doctype=None):
 		self.doctype = doctype
-		self.table_name = 'tab{}'.format(doctype)
+		self.table_name = 'tab{}'.format(base_doctype or doctype)
 		self.meta = meta or frappe.get_meta(doctype)
 		self.columns = {}
 		self.current_columns = {}
