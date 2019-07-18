@@ -190,9 +190,13 @@ frappe.ui.form.Dashboard = Class.extend({
 	},
 
 	init_data: function() {
+		let base_doctype= this.frm.meta.base_doctype
 		this.data = this.frm.meta.__dashboard || {};
 		if(!this.data.transactions) this.data.transactions = [];
 		if(!this.data.internal_links) this.data.internal_links = {};
+		if ((!this.data.transactions.length) && (!this.data.internal_links.length) && base_doctype){
+			this.data = this.frm.meta.__base_doctype_dashboard || {};
+		};			
 		this.filter_permissions();
 	},
 
@@ -356,7 +360,7 @@ frappe.ui.form.Dashboard = Class.extend({
 			type: "GET",
 			method: method,
 			args: {
-				doctype: this.frm.doctype,
+				doctype: this.frm.meta.base_doctype || this.frm.doctype,
 				name: this.frm.doc.name,
 				items: items
 			},
