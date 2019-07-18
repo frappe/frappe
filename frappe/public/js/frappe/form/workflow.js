@@ -49,7 +49,6 @@ frappe.ui.form.States = Class.extend({
 	},
 
 	refresh: function() {
-		const me = this;
 		// hide if its not yet saved
 		if(this.frm.doc.__islocal) {
 			this.set_default_state();
@@ -58,8 +57,6 @@ frappe.ui.form.States = Class.extend({
 
 		// state text
 		const state = this.get_state();
-
-		let doctype = this.frm.doctype;
 
 		if(state) {
 			// show actions from that state
@@ -70,8 +67,6 @@ frappe.ui.form.States = Class.extend({
 	show_actions: function() {
 		var added = false;
 		var me = this;
-
-		this.frm.page.clear_actions_menu();
 
 		// if the loaded doc is dirty, don't show workflow buttons
 		if (this.frm.doc.__unsaved===1) {
@@ -90,7 +85,8 @@ frappe.ui.form.States = Class.extend({
 		}
 
 		frappe.workflow.get_transitions(this.frm.doc).then(transitions => {
-			$.each(transitions, function(i, d) {
+			this.frm.page.clear_actions_menu();
+			transitions.forEach(d => {
 				if(frappe.user_roles.includes(d.allowed) && has_approval_access(d)) {
 					added = true;
 					me.frm.page.add_action_item(__(d.action), function() {
