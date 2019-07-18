@@ -239,6 +239,12 @@ def make_boilerplate(template, doc, opts=None):
 	if not os.path.exists(target_file_path):
 		if not opts:
 			opts = {}
+		if doc.base_doctype and doc.base_doctype != doc.name:
+			baseclass = doc.base_doctype.replace(" ", "").replace("-", "")
+			importclause = 'from %s import %s' %(get_module_name(doc.base_doctype, doc.module), baseclass)
+		else:
+			baseclass = 'Document'
+			importclause ='from frappe.model.document import Document'			
 
 		with open(target_file_path, 'w') as target:
 			with open(os.path.join(get_module_path("core"), "doctype", scrub(doc.doctype),
@@ -247,6 +253,8 @@ def make_boilerplate(template, doc, opts=None):
 					frappe.utils.cstr(source.read()).format(
 						app_publisher=app_publisher,
 						year=frappe.utils.nowdate()[:4],
+						baseclass=baseclass,
+						importclause =importclause,						
 						classname=doc.name.replace(" ", ""),
 						doctype=doc.name, **opts)
 				))
