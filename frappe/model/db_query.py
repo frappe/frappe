@@ -21,6 +21,7 @@ from frappe.utils import flt, cint, get_time, make_filter_tuple, get_filter, add
 class DatabaseQuery(object):
 	def __init__(self, doctype, user=None):
 		self.doctype = doctype
+		self.base_doctype = frappe.get_base_doctype(doctype)
 		self.tables = []
 		self.conditions = []
 		self.or_conditions = []
@@ -38,8 +39,12 @@ class DatabaseQuery(object):
 		ignore_ifnull=False, save_user_settings=False, save_user_settings_fields=False,
 		update=None, add_total_row=None, user_settings=None, reference_doctype=None, return_query=False):
 		if not ignore_permissions and not frappe.has_permission(self.doctype, "read", user=user):
-			frappe.flags.error_message = _('Insufficient Permission for {0}').format(frappe.bold(self.doctype))
-			raise frappe.PermissionError(self.doctype)
+			doctype_variant_with_read = frappe.get_doctype_variant_with_read(self.base_doctype, user)
+			if doctype_variant_with_read:
+				self.doctype = doctype_variant_with_read
+			else:
+				frappe.flags.error_message = _('Insufficient Permission for {0}').format(frappe.bold(self.doctype))
+				raise frappe.PermissionError(self.doctype)
 
 		# filters and fields swappable
 		# its hard to remember what comes first
@@ -56,7 +61,7 @@ class DatabaseQuery(object):
 		if fields:
 			self.fields = fields
 		else:
-			self.fields =  ["`tab{0}`.`name`".format(self.doctype)]
+			self.fields =  ["`tab{0}`.`name`".format(self.base_doctype)]
 
 		if start: limit_start = start
 		if page_length: limit_page_length = page_length
@@ -108,8 +113,15 @@ class DatabaseQuery(object):
 		args = self.prepare_args()
 		args.limit = self.add_limit()
 
+		doctype_filter = frappe.get_meta(self.doctype).filter
+
 		if args.conditions:
 			args.conditions = "where " + args.conditions
+			if doctype_filter:
+				args.conditions += 'and ' + doctype_filter
+		elif doctype_filter:
+			args.conditions = "where " + doctype_filter
+			
 
 		if self.distinct:
 			args.fields = 'distinct ' + args.fields
@@ -240,6 +252,15 @@ class DatabaseQuery(object):
 
 			_is_query(field)
 
+	def replace_with_base_doctype(self, f):
+		index_start = f.find('`tab')
+		if index_start >=0:
+			index_end = f.find('`.')
+			if index_end >=0:
+				doctype = f[index_start+4: index_end]
+				base_doctype=frappe.get_base_doctype(doctype)
+				f = f[0:index_start+4] + base_doctype + f[index_end:]
+		return f
 
 	def extract_tables(self):
 		"""extract tables from fields"""
@@ -248,6 +269,9 @@ class DatabaseQuery(object):
 		# add tables from fields
 		if self.fields:
 			for f in self.fields:
+				f = self.replace_with_base_doctype(f)
+				fields.append(f)
+
 				if ( not ("tab" in f and "." in f) ) or ("locate(" in f) or ("strpos(" in f) or ("count(" in f):
 					continue
 
@@ -339,7 +363,7 @@ class DatabaseQuery(object):
 
 		f = get_filter(self.doctype, f)
 
-		tname = ('`tab' + f.doctype + '`')
+		tname = ('`tab' + frappe.get_base_doctype(f.doctype) + '`')
 		if not tname in self.tables:
 			self.append_table(tname)
 
@@ -533,7 +557,7 @@ class DatabaseQuery(object):
 		else:
 			#if has if_owner permission skip user perm check
 			if role_permissions.get("if_owner", {}).get("read"):
-				self.match_conditions.append("`tab{0}`.`owner` = {1}".format(self.doctype,
+				self.match_conditions.append("`tab{0}`.`owner` = {1}".format(self.base_doctype,
 					frappe.db.escape(self.user, percent=False)))
 			# add user permission only if role has read perm
 			elif role_permissions.get("read"):
@@ -562,7 +586,7 @@ class DatabaseQuery(object):
 			return self.match_filters
 
 	def get_share_condition(self):
-		return """`tab{0}`.name in ({1})""".format(self.doctype, ", ".join(["%s"] * len(self.shared))) % \
+		return """`tab{0}`.name in ({1})""".format(self.base_doctype, ", ".join(["%s"] * len(self.shared))) % \
 			tuple([frappe.db.escape(s, percent=False) for s in self.shared])
 
 	def add_user_permissions(self, user_permissions):
@@ -584,7 +608,7 @@ class DatabaseQuery(object):
 			if df.get('ignore_user_permissions'): continue
 
 			empty_value_condition = "ifnull(`tab{doctype}`.`{fieldname}`, '')=''".format(
-				doctype=self.doctype, fieldname=df.get('fieldname')
+				doctype=self.base_doctype, fieldname=df.get('fieldname')
 			)
 
 			if user_permission_values:
@@ -613,7 +637,7 @@ class DatabaseQuery(object):
 
 				if docs:
 					condition += "`tab{doctype}`.`{fieldname}` in ({values})".format(
-						doctype=self.doctype,
+						doctype=self.base_doctype,
 						fieldname=df.get('fieldname'),
 						values=", ".join(
 							[(frappe.db.escape(doc, percent=False)) for doc in docs])
@@ -667,13 +691,13 @@ class DatabaseQuery(object):
 					# `idx desc, modified desc`
 					# will covert to
 					# `tabItem`.`idx` desc, `tabItem`.`modified` desc
-					args.order_by = ', '.join(['`tab{0}`.`{1}` {2}'.format(self.doctype,
+					args.order_by = ', '.join(['`tab{0}`.`{1}` {2}'.format(self.base_doctype,
 						f.split()[0].strip(), f.split()[1].strip()) for f in meta.sort_field.split(',')])
 				else:
 					sort_field = meta.sort_field or 'modified'
 					sort_order = (meta.sort_field and meta.sort_order) or 'desc'
 
-					args.order_by = "`tab{0}`.`{1}` {2}".format(self.doctype, sort_field or "modified", sort_order or "desc")
+					args.order_by = "`tab{0}`.`{1}` {2}".format(self.base_doctype, sort_field or "modified", sort_order or "desc")
 
 				# draft docs always on top
 				if meta.is_submittable:
@@ -728,6 +752,7 @@ def get_order_by(doctype, meta):
 	order_by = ""
 
 	sort_field = sort_order = None
+	doctype = frappe.get_base_doctype(doctype)	
 	if meta.sort_field and ',' in meta.sort_field:
 		# multiple sort given in doctype definition
 		# Example:
