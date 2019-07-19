@@ -339,7 +339,7 @@ def get_desktop_settings():
 				for m in user_modules]
 		else:
 			user_modules_by_category[category] = [apply_user_saved_links(m) \
-				for m in all_modules if m['category'] == category]
+				for m in all_modules if m.get('category') == category]
 
 	# filter out hidden modules
 	if home_settings.hidden_modules:
