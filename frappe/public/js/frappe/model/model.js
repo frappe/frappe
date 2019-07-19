@@ -314,11 +314,12 @@ $.extend(frappe.model, {
 		// return true if property has value
 		var val = locals[dt] && locals[dt][dn] && locals[dt][dn][fn];
 		var df = frappe.meta.get_docfield(dt, fn, dn);
+		var base_doctype = cur_frm ? cur_frm.meta.base_doctype : dt
 
 		if(frappe.model.table_fields.includes(df.fieldtype)) {
 			var ret = false;
 			$.each(locals[df.options] || {}, function(k,d) {
-				if(d.parent==dn && d.parenttype==dt && d.parentfield==df.fieldname) {
+				if(d.parent==dn && (d.parenttype==dt || d.parenttype==base_doctype) && d.parentfield==df.fieldname) {
 					ret = true;
 					return false;
 				}
