@@ -510,7 +510,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 				return this.set_control_value(doctype, docname, fieldname, value)
 					.then((updated_doc) => {
 						const _data = this.data.filter(b => b.name === updated_doc.name)
-							.find(a => (doctype != updated_doc.doctype && a[doctype + ":name"] == docname) || doctype == updated_doc.doctype)
+							.find(a => (doctype != updated_doc.doctype && a[doctype + ":name"] == docname) || doctype == updated_doc.doctype);
 
 						for (let field in _data) {
 							if (field.includes(':')) {
