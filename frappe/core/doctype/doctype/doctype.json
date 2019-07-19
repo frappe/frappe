@@ -23,6 +23,7 @@
   "base_doctype",
   "filter",
   "fields_section_break",
+  "inherit_base_doctype",
   "fields",
   "sb1",
   "autoname",
@@ -430,6 +431,14 @@
    "fieldname": "filter",
    "fieldtype": "Data",
    "label": "Filter"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:doc.base_doctype",
+   "description": "adopt fields from base doctype, use fieldname as matching key to override the attribute as necessary",
+   "fieldname": "inherit_base_doctype",
+   "fieldtype": "Check",
+   "label": "Inherit Base DocType"
   }
  ],
  "icon": "fa fa-bolt",
