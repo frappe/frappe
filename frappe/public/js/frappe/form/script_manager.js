@@ -20,7 +20,7 @@ frappe.ui.form.on = frappe.ui.form.on_change = function(doctype, fieldname, hand
 
 		// add last handler to events so it can be called as
 		// frm.events.handler(frm)
-		if(cur_frm && cur_frm.doctype===doctype) {
+		if(cur_frm && (cur_frm.doctype===doctype || cur_frm.meta.base_doctype===doctype)) {
 			cur_frm.events[fieldname] = handler;
 		}
 	}
@@ -45,7 +45,7 @@ frappe.ui.form.off = function(doctype, fieldname, handler) {
 		frappe.ui.form.handlers[doctype][fieldname] = [];
 	}
 
-	if(cur_frm && cur_frm.doctype===doctype && cur_frm.events[fieldname]) {
+	if(cur_frm && (cur_frm.doctype===doctype || cur_frm.meta.base_doctype===doctype) && cur_frm.events[fieldname]) {
 		delete cur_frm.events[fieldname];
 	}
 
