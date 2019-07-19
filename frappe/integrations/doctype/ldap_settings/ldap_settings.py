@@ -84,7 +84,7 @@ class LDAPSettings(Document):
 
 		needed_roles = set()
 
-		lower_groups = [g.lower() for g in additional_groups]
+		lower_groups = [g.lower() for g in additional_groups or []]
 
 		all_mapped_roles = {r.erpnext_role for r in self.ldap_groups}
 		matched_roles = {r.erpnext_role for r in self.ldap_groups if r.ldap_group.lower() in lower_groups}
@@ -169,6 +169,7 @@ class LDAPSettings(Document):
 			groups = None
 			if self.ldap_group_field:
 				groups = getattr(user, self.ldap_group_field).values
+
 			return self.create_or_update_user(self.convert_ldap_entry_to_dict(user), groups=groups)
 		else:
 			frappe.throw(_("Invalid username or password"))
