@@ -48,7 +48,7 @@ class DbManager:
 		if not host:
 			host = self.get_current_host()
 
-                if (frappe.conf.get('rds_db') or 0) == 1:
+		if (frappe.conf.get('rds_db') or 0) == 1:
 			self.db.sql("GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, DROP, INDEX, ALTER, CREATE TEMPORARY TABLES, CREATE VIEW, EVENT, TRIGGER, SHOW VIEW, CREATE ROUTINE, ALTER ROUTINE, EXECUTE ON `%s`.* TO '%s'@'%s';" % (target, user, host))
 		else:
 			self.db.sql("GRANT ALL PRIVILEGES ON `%s`.* TO '%s'@'%s';" % (target, user, host))
