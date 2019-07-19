@@ -695,7 +695,7 @@ class Document(BaseDocument):
 		"""Updates `parent` and `parenttype` property in all children."""
 		for d in self.get_all_children():
 			d.parent = self.name
-			d.parenttype = self.doctype
+			d.parenttype = self.meta.base_doctype or self.doctype
 
 	def set_name_in_children(self):
 		# Set name for any new children
