@@ -90,19 +90,21 @@ class HTTPRequest:
 		languages = site_enabled_languages or frappe.translate.get_all_languages()
 		lang = None
 
-		def clear_url_languages():
+		def clean_url_language_parameters():
 			frappe.form_dict._lang = None
 			frappe.form_dict._set_lang = None
 
 		# 0. Browser language defined into frappe.local.lang by "set_lang" method
 
-		# 1. By path: /en/...
+		# 1. By path: /en/... or /en-GB/
 		# - Only for actual request
 		path = frappe.local.request.path
-		if len(path) >= 4 and path[3] == '/' and path[1:3] in site_enabled_languages:
+		if len(path) >= 4 and path[3] == '/' and path[1:3] in languages:
 			frappe.local.request.path = path[3:]
 			lang = path[1:3]
-			# clear_url_languages()
+		elif len(path) >= 7 and path[3] == '-' and path[6] == '/' and path[1:6] in languages:
+			frappe.local.request.path = path[6:]
+			lang = path[1:6]
 
 		# 2. By url ?_set_lang=en
 		# - Keep language for next requests because it set it as user language (Guest and logged)
@@ -142,7 +144,7 @@ class HTTPRequest:
 		if lang and lang in languages:
 			frappe.local.lang = lang
 
-		clear_url_languages()
+		clean_url_language_parameters()
 
 	def get_db_name(self):
 		"""get database name from conf"""
