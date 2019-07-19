@@ -87,6 +87,23 @@ class Meta(Document):
 	def load_from_db(self):
 		try:
 			super(Meta, self).load_from_db()
+			if self.inherit_base_doctype and self.base_doctype:
+				base_meta = frappe.get_meta(self.base_doctype)
+				base_fields = base_meta.get('fields')
+				self.title_field = self.title_field or base_meta.title_field
+				self.search_fields = self.search_fields or base_meta.search_fields
+				if not self.fields:
+					self.fields = base_fields
+				else:
+					fields=[]
+					for f in base_fields:
+						field = self.get_field(f.fieldname) or f
+						#keep sequence & parent which frappe.model.meta.js rely on
+						field.idx = f.idx		
+						field.parent = self.name if f.parent else ''
+						fields.append(field)
+					self.fields = fields
+			
 		except frappe.DoesNotExistError:
 			if self.doctype=="DocType" and self.name in self.special_doctypes:
 				self.__dict__.update(load_doctype_from_file(self.name))
