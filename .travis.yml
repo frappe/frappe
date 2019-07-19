@@ -17,6 +17,7 @@ install:
 
   - pip install python-coveralls
 
+
   - wget https://raw.githubusercontent.com/frappe/bench/master/playbooks/install.py
 
   - sudo python install.py --develop --user travis --without-bench-setup
@@ -32,7 +33,9 @@ before_script:
   - echo "USE mysql;\nGRANT ALL PRIVILEGES ON \`test_frappe\`.* TO 'test_frappe'@'localhost';\n" | mysql -u root -ptravis
 
 
+
   - cd ~/frappe-bench
+  - ./env/bin/pip install ldap3
   - bench use test_site
   - bench reinstall --yes
   - bench scheduler disable

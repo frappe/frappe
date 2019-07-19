@@ -83,9 +83,8 @@ class LDAPSettings(Document):
 		current_roles = set([d.role for d in user.get("roles")])
 
 		needed_roles = set()
-		needed_roles.add(self.default_role)
 
-		lower_groups = [g.lower() for g in additional_groups]
+		lower_groups = [g.lower() for g in additional_groups or []]
 
 		all_mapped_roles = {r.erpnext_role for r in self.ldap_groups}
 		matched_roles = {r.erpnext_role for r in self.ldap_groups if r.ldap_group.lower() in lower_groups}
@@ -97,13 +96,16 @@ class LDAPSettings(Document):
 			missing_roles = needed_roles.difference(current_roles)
 			user.add_roles(*missing_roles)
 
-		user.remove_roles(*roles_to_remove)
+		if len(roles_to_remove) > 0:
+			user.remove_roles(*roles_to_remove)
 
 	def create_or_update_user(self, user_data, groups=None):
 		user = None
 		if frappe.db.exists("User", user_data['email']):
 			user = frappe.get_doc("User", user_data['email'])
 			LDAPSettings.update_user_fields(user=user, user_data=user_data)
+			# always add the default role.
+			user.add_roles(self.default_role)
 		else:
 			doc = user_data
 			doc.update({
@@ -117,7 +119,8 @@ class LDAPSettings(Document):
 			})
 			user = frappe.get_doc(doc)
 			user.insert(ignore_permissions=True)
-		self.sync_roles(user, groups)
+		if self.ldap_group_field:
+			self.sync_roles(user, groups)
 		return user
 
 	def get_ldap_attributes(self):
@@ -150,10 +153,13 @@ class LDAPSettings(Document):
 
 		conn = self.connect_to_ldap(self.base_dn, self.get_password(raise_exception=False))
 
-		conn.search(
-			search_base=self.organizational_unit,
-			search_filter="({0})".format(user_filter),
-			attributes=ldap_attributes)
+		try:
+			conn.search(
+				search_base=self.organizational_unit,
+				search_filter="({0})".format(user_filter),
+				attributes=ldap_attributes)
+		except Exception as ex:
+			frappe.throw(_(str(ex)))
 
 		if len(conn.entries) == 1 and conn.entries[0]:
 			user = conn.entries[0]
@@ -163,6 +169,7 @@ class LDAPSettings(Document):
 			groups = None
 			if self.ldap_group_field:
 				groups = getattr(user, self.ldap_group_field).values
+
 			return self.create_or_update_user(self.convert_ldap_entry_to_dict(user), groups=groups)
 		else:
 			frappe.throw(_("Invalid username or password"))
