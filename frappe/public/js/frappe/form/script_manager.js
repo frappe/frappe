@@ -77,11 +77,11 @@ frappe.ui.form.ScriptManager = Class.extend({
 		let tasks = [];
 		let handlers = this.get_handlers(event_name, doctype);
 		//auto trigger base doctype's js, kind of inheritance
-		let meta = this.frm.meta		
+		let meta = this.frm.meta;	
 		if (meta.base_doctype && meta.base_doctype != doctype){
 			let base_doctype_handlers = this.get_handlers(event_name, meta.base_doctype);
-			handlers.old_style.concat(base_doctype_handlers.old_style);
-			handlers.new_style.concat(base_doctype_handlers.new_style);
+			handlers.old_style = handlers.old_style.concat(base_doctype_handlers.old_style);
+			handlers.new_style = handlers.new_style.concat(base_doctype_handlers.new_style);
 		}
 		// helper for child table
 		this.frm.selected_doc = frappe.get_doc(doctype, name);
