@@ -15,10 +15,7 @@ class PersonalDataDeletionRequest(Document):
 		validate_email_address(self.email, throw=True)
 
 	def after_insert(self):
-		if self.email in ['Administrator', 'Guest']:
-			frappe.throw(_("This user's data cannot be requested for deletion"))
-		else:
-			self.send_verification_mail()
+		self.send_verification_mail()
 
 	def send_verification_mail(self):
 		host_name = frappe.local.site
@@ -30,12 +27,27 @@ class PersonalDataDeletionRequest(Document):
 			subject=_("Confirm Deletion of Data"),
 			template="delete_data_confirmation",
 			args={
-				'email':self.email,
-				'name':self.name,
-				'host_name':host_name,
-				'link':url
+				'email': self.email,
+				'name': self.name,
+				'host_name': host_name,
+				'link': url
 			},
 			header=[_("Confirm Deletion of Data"), "green"]
+		)
+
+	def notify_system_managers(self):
+		from frappe.utils.user import get_system_managers
+		system_managers = get_system_managers(only_name=True)
+
+		frappe.sendmail(
+			recipients=system_managers,
+			subject=_("User {0} has requested for data deletion").format(self.email),
+			template="data_deletion_approval",
+			args={
+				'user': self.email,
+				'url': frappe.utils.get_url(self.get_url())
+			},
+			header=[_("Approval Required"), "green"]
 		)
 
 	def anonymize_data(self):
@@ -100,6 +112,7 @@ def confirm_deletion(email, name, host_name):
 	if doc.status == 'Pending Verification':
 		doc.status = 'Pending Approval'
 		doc.save(ignore_permissions=True)
+		doc.notify_system_managers()
 		frappe.db.commit()
 		frappe.respond_as_web_page(_("Confirmed"),
 			_("The process for deletion of {0} data associated with {1} has been initiated.").format(host_name, email),

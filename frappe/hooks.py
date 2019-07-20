@@ -161,7 +161,6 @@ scheduler_events = {
 		"frappe.desk.page.backups.backups.delete_downloadable_backups",
 		"frappe.limits.update_space_usage",
 		"frappe.limits.update_site_usage",
-		"frappe.desk.doctype.auto_repeat.auto_repeat.make_auto_repeat_entry",
 		"frappe.deferred_insert.save_to_db",
 		"frappe.desk.form.document_follow.send_hourly_updates",
 	],
@@ -181,6 +180,8 @@ scheduler_events = {
 		"frappe.desk.form.document_follow.send_daily_updates",
 		"frappe.social.doctype.energy_point_settings.energy_point_settings.allocate_review_points",
 		"frappe.integrations.doctype.google_contacts.google_contacts.sync",
+		"frappe.automation.doctype.auto_repeat.auto_repeat.make_auto_repeat_entry",
+		"frappe.automation.doctype.auto_repeat.auto_repeat.set_auto_repeat_as_completed"
 	],
 	"daily_long": [
 		"frappe.integrations.doctype.dropbox_settings.dropbox_settings.take_backups_daily",
@@ -236,6 +237,7 @@ setup_wizard_exception = "frappe.desk.page.setup_wizard.setup_wizard.email_setup
 before_write_file = "frappe.limits.validate_space_limit"
 
 before_migrate = ['frappe.patches.v11_0.sync_user_permission_doctype_before_migrate.execute']
+after_migrate = ['frappe.website.doctype.website_theme.website_theme.generate_theme_files_if_not_exist']
 
 otp_methods = ['OTP App','Email','SMS']
 user_privacy_documents = [

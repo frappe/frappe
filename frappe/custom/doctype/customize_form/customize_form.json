@@ -4,6 +4,7 @@
  "doctype": "DocType",
  "document_type": "Document",
  "editable_grid": 1,
+ "engine": "InnoDB",
  "field_order": [
   "doc_type",
   "properties",
@@ -16,6 +17,7 @@
   "quick_entry",
   "track_changes",
   "track_views",
+  "allow_auto_repeat",
   "image_view",
   "column_break_5",
   "title_field",
@@ -59,17 +61,20 @@
    "label": "Max Attachments"
   },
   {
+   "default": "0",
    "fieldname": "allow_copy",
    "fieldtype": "Check",
    "label": "Hide Copy"
   },
   {
+   "default": "0",
    "fieldname": "istable",
    "fieldtype": "Check",
    "label": "Is Table",
    "read_only": 1
   },
   {
+   "default": "0",
    "depends_on": "istable",
    "fieldname": "editable_grid",
    "fieldtype": "Check",
@@ -82,11 +87,13 @@
    "label": "Quick Entry"
   },
   {
+   "default": "0",
    "fieldname": "track_changes",
    "fieldtype": "Check",
    "label": "Track Changes"
   },
   {
+   "default": "0",
    "depends_on": "eval: doc.image_field",
    "fieldname": "image_view",
    "fieldtype": "Check",
@@ -150,16 +157,23 @@
    "options": "Customize Form Field"
   },
   {
+   "default": "0",
    "fieldname": "track_views",
    "fieldtype": "Check",
    "label": "Track Views"
+  },
+  {
+   "default": "0",
+   "fieldname": "allow_auto_repeat",
+   "fieldtype": "Check",
+   "label": "Allow Auto Repeat"
   }
  ],
  "hide_toolbar": 1,
  "icon": "fa fa-glass",
  "idx": 1,
  "issingle": 1,
- "modified": "2019-05-13 18:54:40.610862",
+ "modified": "2019-07-01 22:50:50.372465",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Customize Form",
@@ -177,6 +191,7 @@
  ],
  "quick_entry": 1,
  "search_fields": "doc_type",
+ "sort_field": "modified",
  "sort_order": "DESC",
  "track_changes": 1
 }

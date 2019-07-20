@@ -120,14 +120,16 @@ frappe.ui.form.Form = class FrappeForm {
 			shortcut: 'shift+>',
 			action: () => this.navigate_records(0),
 			page: this.page,
-			description: __('Go to next record')
+			description: __('Go to next record'),
+			condition: () => !this.is_new()
 		});
 
 		frappe.ui.keys.add_shortcut({
 			shortcut: 'shift+<',
 			action: () => this.navigate_records(1),
 			page: this.page,
-			description: __('Go to previous record')
+			description: __('Go to previous record'),
+			condition: () => !this.is_new()
 		});
 	}
 
@@ -540,7 +542,9 @@ frappe.ui.form.Form = class FrappeForm {
 
 				me.script_manager.trigger("after_save");
 				// submit comment if entered
-				me.timeline.comment_area.submit();
+				if (me.timeline) {
+					me.timeline.comment_area.submit();
+				}
 				me.refresh();
 			} else {
 				if(on_error) {

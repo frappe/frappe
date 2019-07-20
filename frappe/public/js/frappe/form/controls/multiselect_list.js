@@ -69,6 +69,8 @@ frappe.ui.form.ControlMultiSelectList = frappe.ui.form.ControlData.extend({
 
 		this.set_input_attributes();
 		this.values = [];
+		this._options = [];
+		this._selected_values = [];
 		this.highlighted = -1;
 	},
 
@@ -104,6 +106,20 @@ frappe.ui.form.ControlMultiSelectList = frappe.ui.form.ControlData.extend({
 		this.update_status();
 	},
 
+	set_value(value) {
+		if (!value) return Promise.resolve();
+		if (typeof value === 'string') {
+			value = [value];
+		}
+		this.values = value;
+		this.values.forEach(value => {
+			this.update_selected_values(value);
+		});
+		this.parse_validate_and_set_in_model('');
+		this.update_status();
+		return Promise.resolve();
+	},
+
 	update_selected_values(value) {
 		this._selected_values = this._selected_values || [];
 		let option = this._options.find(opt => opt.value === value);
@@ -122,7 +138,8 @@ frappe.ui.form.ControlMultiSelectList = frappe.ui.form.ControlData.extend({
 			text = this.get_placeholder_text();
 		} else if (this.values.length === 1) {
 			let val = this.values[0];
-			text = this._options.find(opt => opt.value === val).label;
+			let option = this._options.find(opt => opt.value === val);
+			text = option ? option.label : val;
 		} else {
 			text = __('{0} values selected', [this.values.length]);
 		}

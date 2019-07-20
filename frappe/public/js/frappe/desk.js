@@ -464,6 +464,11 @@ frappe.Application = Class.extend({
 		return frappe.call('frappe.client.get_hooks', { hook: 'app_logo_url' })
 			.then(r => {
 				frappe.app.logo_url = (r.message || []).slice(-1)[0];
+				if (window.cordova) {
+					let host = frappe.request.url;
+					host = host.slice(0, host.length - 1);
+					frappe.app.logo_url = host + frappe.app.logo_url;
+				}
 			});
 	},
 

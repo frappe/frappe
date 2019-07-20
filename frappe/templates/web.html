@@ -4,6 +4,7 @@
 {% block content %}
 
 {% macro main_content() %}
+<div class="page-content-wrapper">
 	<!-- breadcrumbs -->
 	<div class="page-breadcrumbs">
 		{% block breadcrumbs %}
@@ -11,6 +12,7 @@
 		{% endblock %}
 	</div>
 
+	{% block page_container %}
 	<main class="container my-5">
 		<div class="d-flex justify-content-between align-items-center">
 			<div class="page-header">
@@ -27,7 +29,13 @@
 		<div class="page_content">
 			{%- block page_content -%}{%- endblock -%}
 		</div>
+
+		<div class="page-footer">
+			{%- block page_footer -%}{%- endblock -%}
+		</div>
 	</main>
+	{% endblock %}
+</div>
 {% endmacro %}
 
 {% macro container_attributes() %}
