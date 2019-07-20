@@ -108,7 +108,7 @@ class FormMeta(Meta):
 
 		if self.base_doctype and self.base_doctype != self.name:
 			path = os.path.join(get_module_path(self.module), 'doctype', scrub(self.base_doctype))
-			self._add_code(os.path.join(path, scrub(self.base_doctype) + '.js'), '__base_doctype_js')		
+			self._add_code(os.path.join(path, scrub(self.base_doctype) + '.js'), '__base_doctype_js')
 
 	def _add_code(self, path, fieldname):
 		js = get_js(path)
