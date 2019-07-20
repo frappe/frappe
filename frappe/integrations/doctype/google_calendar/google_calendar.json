@@ -8,17 +8,16 @@
   "enable",
   "sb_00",
   "user",
+  "allow_calendar_access",
+  "cb_00",
   "calendar_name",
   "section_break_3",
-  "allow_google_access",
   "section_break_4",
   "refresh_token",
   "authorization_code",
   "column_break_6",
   "session_token",
-  "state",
-  "section_break_9",
-  "gcalendar_id",
+  "google_calendar_id",
   "next_sync_token"
  ],
  "fields": [
@@ -56,15 +55,8 @@
    "fieldtype": "Section Break"
   },
   {
-   "depends_on": "eval:!doc.__islocal",
-   "fieldname": "allow_google_access",
-   "fieldtype": "Button",
-   "label": "Allow GCalendar Access"
-  },
-  {
    "fieldname": "section_break_4",
-   "fieldtype": "Section Break",
-   "hidden": 1
+   "fieldtype": "Section Break"
   },
   {
    "fieldname": "refresh_token",
@@ -86,28 +78,29 @@
    "label": "Session Token"
   },
   {
-   "fieldname": "state",
+   "fieldname": "next_sync_token",
    "fieldtype": "Data",
-   "label": "State"
+   "hidden": 1,
+   "label": "Next Sync Token"
   },
   {
-   "fieldname": "section_break_9",
-   "fieldtype": "Section Break"
+   "depends_on": "eval:!doc.__islocal",
+   "fieldname": "allow_calendar_access",
+   "fieldtype": "Button",
+   "label": "Allow Calendar Access"
   },
   {
-   "fieldname": "gcalendar_id",
+   "fieldname": "google_calendar_id",
    "fieldtype": "Data",
    "label": "Google Calendar ID",
    "read_only": 1
   },
   {
-   "fieldname": "next_sync_token",
-   "fieldtype": "Data",
-   "hidden": 1,
-   "label": "Next Sync Token"
+   "fieldname": "cb_00",
+   "fieldtype": "Column Break"
   }
  ],
- "modified": "2019-07-06 17:54:09.450100",
+ "modified": "2019-07-20 22:12:22.389101",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Google Calendar",

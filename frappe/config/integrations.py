@@ -116,6 +116,11 @@ def get_data():
 					"type": "doctype",
 					"name": "Google Contacts",
 					"description": _("Google Contacts Integration."),
+				},
+				{
+					"type": "doctype",
+					"name": "Google Calendar",
+					"description": _("Google Calendar Integration."),
 				}
 			]
 		}
