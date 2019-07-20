@@ -121,7 +121,7 @@ class DatabaseQuery(object):
 				args.conditions += 'and ' + doctype_filter
 		elif doctype_filter:
 			args.conditions = "where " + doctype_filter
-			
+
 
 		if self.distinct:
 			args.fields = 'distinct ' + args.fields
@@ -251,8 +251,8 @@ class DatabaseQuery(object):
 				_raise_exception()
 
 			_is_query(field)
-
-	def replace_with_base_doctype(self, f):
+	@classmethod
+	def replace_with_base_doctype(cls, f):
 		index_start = f.find('`tab')
 		if index_start >=0:
 			index_end = f.find('`.')
@@ -752,7 +752,7 @@ def get_order_by(doctype, meta):
 	order_by = ""
 
 	sort_field = sort_order = None
-	doctype = frappe.get_base_doctype(doctype)	
+	doctype = frappe.get_base_doctype(doctype)
 	if meta.sort_field and ',' in meta.sort_field:
 		# multiple sort given in doctype definition
 		# Example:
