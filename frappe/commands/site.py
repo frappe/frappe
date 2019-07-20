@@ -281,6 +281,12 @@ def reload_doctype(context, doctype):
 		finally:
 			frappe.destroy()
 
+@click.command('add-to-hosts')
+@pass_context
+def add_to_hosts(context):
+	"Add site to hosts"
+	for site in context.sites:
+		frappe.commands.popen('echo 127.0.0.1\t{0} | sudo tee -a /etc/hosts'.format(site))
 
 @click.command('use')
 @click.argument('site')
@@ -615,4 +621,5 @@ commands = [
 	browse,
 	start_recording,
 	stop_recording,
+	add_to_hosts
 ]
