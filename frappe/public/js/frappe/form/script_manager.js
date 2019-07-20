@@ -164,7 +164,7 @@ frappe.ui.form.ScriptManager = Class.extend({
 		if (doctype.base_doctype && doctype.base_doctype != doctype.name){
 			var base_doctype_js = doctype.__base_doctype_js;
 			if(base_doctype_js) {
-				var tmp = eval(base_doctype_js);
+				eval(base_doctype_js);
 			}	
 		}
 		if(doctype.__custom_js) {
