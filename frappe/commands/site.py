@@ -40,7 +40,7 @@ def _new_site(db_name, site, mariadb_root_username=None, mariadb_root_password=N
 	reinstall=False, db_type=None):
 	"""Install a new Frappe site"""
 
-	if os.path.exists(site):
+	if not force and os.path.exists(site):
 		print('Site {0} already exists'.format(site))
 		sys.exit(1)
 
