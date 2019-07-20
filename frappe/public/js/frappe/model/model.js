@@ -184,7 +184,8 @@ $.extend(frappe.model, {
 					},
 					callback: function(r) {
 						callback && callback(name, r);
-						if (r && r.docs){doctype = r.docs[0].doctype}
+						if (r && r.docs){doctype = r.docs[0].doctype;
+								}
 						resolve(frappe.get_doc(doctype, name));
 					}
 				});
@@ -314,7 +315,7 @@ $.extend(frappe.model, {
 		// return true if property has value
 		var val = locals[dt] && locals[dt][dn] && locals[dt][dn][fn];
 		var df = frappe.meta.get_docfield(dt, fn, dn);
-		var base_doctype = cur_frm ? cur_frm.meta.base_doctype : dt
+		var base_doctype = cur_frm ? cur_frm.meta.base_doctype : dt;
 
 		if(frappe.model.table_fields.includes(df.fieldtype)) {
 			var ret = false;
