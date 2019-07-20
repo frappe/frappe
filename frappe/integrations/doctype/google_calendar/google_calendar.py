@@ -4,14 +4,12 @@
 
 from __future__ import unicode_literals
 import frappe
+import requests
+from frappe import _
 from frappe.model.document import Document
+from frappe.utils import get_request_site_address
 
 SCOPES = 'https://www.googleapis.com/auth/calendar'
-AUTHORIZATION_BASE_URL = "https://accounts.google.com/o/oauth2/v2/auth"
-
-SCOPES = "https://www.googleapis.com/auth/contacts"
-REQUEST = "https://people.googleapis.com/v1/people/me/connections"
-PARAMS = {"personFields": "names,emailAddresses,organizations,phoneNumbers"}
 
 class GoogleCalendar(Document):
 
