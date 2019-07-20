@@ -11,7 +11,7 @@ frappe.ui.form.on('Google Calendar', {
 		frappe.call({
 			method: "frappe.integrations.doctype.google_calendar.google_calendar.authorize_access",
 			args: {
-				"g_contact": frm.doc.name,
+				"g_calendar": frm.doc.name,
 				"reauthorize": reauthorize
 			},
 			callback: function(r) {
