@@ -99,11 +99,11 @@ class Meta(Document):
 					for f in base_fields:
 						field = self.get_field(f.fieldname) or f
 						#keep sequence & parent which frappe.model.meta.js rely on
-						field.idx = f.idx		
+						field.idx = f.idx
 						field.parent = self.name if f.parent else ''
 						fields.append(field)
 					self.fields = fields
-			
+
 		except frappe.DoesNotExistError:
 			if self.doctype=="DocType" and self.name in self.special_doctypes:
 				self.__dict__.update(load_doctype_from_file(self.name))
