@@ -358,12 +358,13 @@ def uninstall(context, app, dry_run=False, yes=False):
 @click.option('--root-login', default='root')
 @click.option('--root-password')
 @click.option('--archived-sites-path')
+@click.option('--no-backup', is_flag=True, default=False)
 @click.option('--force', help='Force drop-site even if an error is encountered', is_flag=True, default=False)
-def drop_site(site, root_login='root', root_password=None, archived_sites_path=None, force=False):
-	_drop_site(site, root_login, root_password, archived_sites_path, force)
+def drop_site(site, root_login='root', root_password=None, archived_sites_path=None, force=False, no_backup=False):
+	_drop_site(site, root_login, root_password, archived_sites_path, force, no_backup)
 
 
-def _drop_site(site, root_login='root', root_password=None, archived_sites_path=None, force=False):
+def _drop_site(site, root_login='root', root_password=None, archived_sites_path=None, force=False, no_backup=False):
 	"Remove site from database and filesystem"
 	from frappe.database import drop_user_and_database
 	from frappe.utils.backups import scheduled_backup
@@ -372,7 +373,8 @@ def _drop_site(site, root_login='root', root_password=None, archived_sites_path=
 	frappe.connect()
 
 	try:
-		scheduled_backup(ignore_files=False, force=True)
+		if not no_backup:
+			scheduled_backup(ignore_files=False, force=True)
 	except Exception as err:
 		if force:
 			pass
