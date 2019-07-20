@@ -38,7 +38,7 @@ def getdoc(doctype, name, user=None):
 				doctype_variant_with_read = frappe.get_doctype_variant_with_read(doctype, user)
 				if doctype_variant_with_read:
 					return getdoc(doctype_variant_with_read, name, user)
-			
+
 			frappe.flags.error_message = _('Insufficient Permission for {0}').format(frappe.bold(doctype + ' ' + name))
 			raise frappe.PermissionError(("read", doctype, name))
 
