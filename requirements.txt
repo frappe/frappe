@@ -62,3 +62,4 @@ psycopg2==2.7.5
 psycopg2-binary==2.7.5
 sqlparse==0.2.4
 Pygments==2.2.0
+frontmatter

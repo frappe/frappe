@@ -1758,10 +1758,10 @@ frappe-charts@^1.2.3:
   resolved "https://registry.yarnpkg.com/frappe-charts/-/frappe-charts-1.2.3.tgz#ee1840864cfe5c9371b61f8ec9b8624633fdc84d"
   integrity sha512-nHDCERSKni0JDT/0eooGpR3nE/NBKcAJEgbZfjojoA5D3jK4cT6B4kRT3m9EgIqMkwPllZncWUPp0zYtN8WSsQ==
 
-frappe-datatable@^1.13.4:
-  version "1.13.4"
-  resolved "https://registry.yarnpkg.com/frappe-datatable/-/frappe-datatable-1.13.4.tgz#eadebef82a4f80665a8e0e205b79cf190a2f36d7"
-  integrity sha512-HucWgz4giFbGNHSOHHX+Q1glgATDIs0ujyj+yl1EmyS5vYqZxY+9Up+vGJaE+ssc1bGZoPEPWbk1euSGfU6H5A==
+frappe-datatable@^1.13.5:
+  version "1.13.5"
+  resolved "https://registry.yarnpkg.com/frappe-datatable/-/frappe-datatable-1.13.5.tgz#6f507fe7a84c22b1eab6b08e7b6fccbcdf7bb936"
+  integrity sha512-k3Y8ScfxSD6Kj3Ch98kY2EWBnHUm0oPuPZonkslq4w5689iUhduy/ZynmLgOYDVjXXajBZG3oh5ycnx1gCwY5Q==
   dependencies:
     hyperlist "^1.0.0-beta"
     lodash "^4.17.5"

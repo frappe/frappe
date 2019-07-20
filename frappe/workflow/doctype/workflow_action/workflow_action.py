@@ -302,4 +302,4 @@ def get_state_optional_field_value(workflow_name, state):
 	return frappe.get_cached_value('Workflow Document State', {
 		'parent': workflow_name,
 		'state': state
-	}, 'is_state_optional')
+	}, 'is_optional_state')

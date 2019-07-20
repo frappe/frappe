@@ -309,9 +309,8 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 		function get_filter_description(filter) {
 			let doctype = filter[0];
 			let fieldname = filter[1];
-			let label = meta
-				? frappe.meta.get_docfield(doctype, fieldname).label
-				: frappe.model.unscrub(fieldname);
+			let docfield = frappe.meta.get_docfield(doctype, fieldname);
+			let label = docfield ? docfield.label : frappe.model.unscrub(fieldname);
 
 			let value = filter[3] == null || filter[3] === ''
 				? __('empty')

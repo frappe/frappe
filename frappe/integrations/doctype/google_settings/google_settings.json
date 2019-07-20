@@ -6,7 +6,8 @@
   "enable",
   "google_credentials",
   "client_id",
-  "client_secret"
+  "client_secret",
+  "api_key"
  ],
  "fields": [
   {
@@ -32,10 +33,15 @@
    "fieldtype": "Password",
    "in_list_view": 1,
    "label": "Client Secret"
+  },
+  {
+   "fieldname": "api_key",
+   "fieldtype": "Data",
+   "label": "API Key"
   }
  ],
  "issingle": 1,
- "modified": "2019-06-19 15:28:05.957380",
+ "modified": "2019-06-29 13:26:33.201060",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Google Settings",

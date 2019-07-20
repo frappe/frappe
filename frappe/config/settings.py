@@ -169,11 +169,27 @@ def get_data():
 					"name": "Workflow Action",
 					"description": _("Actions for workflow (e.g. Approve, Cancel).")
 				},
+			]
+		},
+		{
+			"label": _("Automation"),
+			"icon": "fa fa-random",
+			"items": [
 				{
 					"type": "doctype",
 					"name": "Assignment Rule",
 					"description": _("Set up rules for user assignments.")
-				}
+				},
+				{
+					"type": "doctype",
+					"name": "Milestone",
+					"description": _("Tracks milestones on the lifecycle of a document if it undergoes multiple stages.")
+				},
+				{
+					"type": "doctype",
+					"name": "Auto Repeat",
+					"description": _("Automatically generates recurring documents.")
+				},
 			]
 		},
 	]

@@ -14,7 +14,8 @@
 				v-if="get_modules_for_category(category).length"
 				:category="category"
 				:modules="get_modules_for_category(category)"
-				@update_home_settings="hs => update_modules_with_home_settings(hs)"
+				@update-desktop-settings="update_desktop_settings"
+				@module-order-change="update_module_order"
 			>
 			</desk-section>
 		</div>
@@ -30,99 +31,96 @@ export default {
 		DeskSection
 	},
 	data() {
-		let modules_list = frappe.boot.allowed_modules
-			.filter(d => (d.type==='module' || d.category==='Places') && !d.blocked)
-			.map(d => {
-				d.links = (d.links || []).map(link => {
-					link.route = generate_route(link);
-					return link;
-				});
-				return d;
-			});
-
 		return {
 			module_categories: ['Modules', 'Domains', 'Places', 'Administration'],
-			modules: modules_list,
+			modules: [],
 			home_settings_fetched: false
 		};
 	},
 	created() {
-		this.fetch_home_settings();
+		this.fetch_desktop_settings();
 	},
 	methods: {
-		fetch_home_settings() {
-			return frappe.db.get_value('User', user, 'home_settings')
+		fetch_desktop_settings() {
+			frappe.call('frappe.desk.moduleview.get_desktop_settings')
 				.then(r => {
-					let home_settings = JSON.parse(r.message.home_settings || '{}');
-					this.update_modules_with_home_settings(home_settings);
-					this.home_settings_fetched = true;
+					if (r.message) {
+						this.update_desktop_settings(r.message);
+						this.home_settings_fetched = true;
+					}
 				});
 		},
-		update_modules_with_home_settings(home_settings) {
-			this.modules = this.modules.map(m => {
-				let hidden_modules = home_settings.hidden_modules || [];
-				m.hidden = hidden_modules.includes(m.module_name);
-
-				let links = home_settings.links && home_settings.links[m.module_name];
-
-				if (links) {
-					links = JSON.parse(links);
-
-					let default_links = m.links.map(link => link.name);
-					m.links = m.links.map(link => {
-						link.hidden = !links.includes(link.name);
+		update_desktop_settings(desktop_settings) {
+			this.modules = this.add_routes_for_module_links(desktop_settings);
+		},
+		add_routes_for_module_links(user_settings) {
+			for (let category in user_settings) {
+				user_settings[category] = user_settings[category].map(m => {
+					m.links = (m.links || []).map(link => {
+						link.route = generate_route(link);
 						return link;
 					});
-					let new_links = links
-						.filter(link => !default_links.includes(link))
-						.filter(Boolean)
-						.map(link => {
-							let new_link = { name: link, label: link, type: 'doctype' };
-							new_link.route = generate_route(new_link);
-							return new_link;
-						});
-					m.links = m.links.concat(new_links);
-				}
-
-				return m;
-			});
+					return m;
+				});
+			}
+			return user_settings;
+		},
+		update_module_order({ module_category, modules }) {
+			frappe.call('frappe.desk.moduleview.update_modules_order', { module_category, modules });
 		},
 		get_modules_for_category(category) {
-			return this.modules.filter(m => m.category === category && !m.hidden);
+			return this.modules[category] || [];
 		},
 		show_hide_cards_dialog() {
-			let fields = this.module_categories.map(category => {
-				let modules = this.modules.filter(m => m.category === category);
-				let options = modules.map(
-					m => ({ label: m.label, value: m.module_name, checked: !m.hidden })
-				);
-				return {
-					label: category,
-					fieldname: category,
-					fieldtype: 'MultiCheck',
-					options,
-					columns: 2
-				}
-			});
-			const d = new frappe.ui.Dialog({
-				title: __('Show / Hide Cards'),
-				fields: fields.filter(f => f.options.length > 0),
-				primary_action_label: __('Save'),
-				primary_action: (values) => {
-					let all_modules = this.modules.map(m => m.module_name);
-					let modules_to_show = Object.keys(values).map(k => values[k]).flatMap(m => m);
-					let modules_to_hide = all_modules.filter(m => !modules_to_show.includes(m));
-					d.hide();
+			frappe.call('frappe.desk.moduleview.get_options_for_show_hide_cards')
+				.then(r => {
+					let module_options = r.message;
+					let fields = this.module_categories.map(category => {
+						let options = module_options.filter(m => m.category === category);
+						return {
+							label: category,
+							fieldname: category,
+							fieldtype: 'MultiCheck',
+							options,
+							columns: 2
+						}
+					}).filter(f => f.options.length > 0);
 
-					frappe.call('frappe.desk.moduleview.hide_modules_from_desktop', {
-						modules: modules_to_hide
-					})
-					.then(r => r.message)
-					.then(hs => this.update_modules_with_home_settings(hs));
-				}
-			});
+					let old_values = null;
 
-			d.show();
+					const d = new frappe.ui.Dialog({
+						title: __('Show / Hide Cards'),
+						fields: fields,
+						primary_action_label: __('Save'),
+						primary_action: (values) => {
+
+							let category_map = {};
+							for (let category of this.module_categories) {
+								let old_modules = old_values[category] || [];
+								let new_modules = values[category] || [];
+
+								let removed = old_modules.filter(module => !new_modules.includes(module));
+								let added = new_modules.filter(module => !old_modules.includes(module));
+
+								category_map[category] = { added, removed };
+ 							}
+
+							frappe.call({
+								method: 'frappe.desk.moduleview.update_hidden_modules',
+								args: { category_map },
+								btn: d.get_primary_btn()
+							}).then(r => {
+								this.update_desktop_settings(r.message)
+								d.hide();
+							});
+						}
+					});
+
+					d.show();
+
+					// deepcopy
+					old_values = JSON.parse(JSON.stringify(d.get_values()));
+				});
 		}
 	}
 }

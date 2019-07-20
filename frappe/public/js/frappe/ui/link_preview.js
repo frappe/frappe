@@ -1,7 +1,7 @@
 frappe.ui.LinkPreview = class {
 
 	constructor() {
-		this.$links = [];
+		this.popovers_list = [];
 		this.LINK_CLASSES = 'a[data-doctype], input[data-fieldtype="Link"], .popover';
 		this.popover_timeout = null;
 		this.setup_events();
@@ -104,7 +104,7 @@ frappe.ui.LinkPreview = class {
 	}
 
 	handle_popover_hide() {
-		$(document.body).on('mouseout', this.LINK_CLASSES, () => {
+		$(document).on('mouseout', this.LINK_CLASSES, () => {
 			// To allow popover to be hovered on
 			if (!$('.popover:hover').length) {
 				this.link_hovered = false;
@@ -129,7 +129,7 @@ frappe.ui.LinkPreview = class {
 	}
 
 	clear_all_popovers() {
-		this.$links.forEach($el => $el.popover('hide'));
+		this.popovers_list.forEach($el => $el.hide());
 	}
 
 	get_preview_fields() {
@@ -190,7 +190,7 @@ frappe.ui.LinkPreview = class {
 		$popover.addClass('link-preview-popover');
 		$popover.toggleClass('control-field-popover', this.is_link);
 
-		this.$links.push(this.element);
+		this.popovers_list.push(this.element.data('bs.popover'));
 
 	}
 

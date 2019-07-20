@@ -37,6 +37,7 @@
   "allow_rename",
   "allow_import",
   "allow_events_in_timeline",
+  "allow_auto_repeat",
   "view_settings",
   "title_field",
   "search_fields",
@@ -81,6 +82,7 @@
    "search_index": 1
   },
   {
+   "default": "0",
    "depends_on": "eval:!doc.istable",
    "description": "Once submitted, submittable documents cannot be changed. They can only be Cancelled and Amended.",
    "fieldname": "is_submittable",
@@ -88,6 +90,7 @@
    "label": "Is Submittable"
   },
   {
+   "default": "0",
    "description": "Child Tables are shown as a Grid in other DocTypes",
    "fieldname": "istable",
    "fieldtype": "Check",
@@ -97,6 +100,7 @@
    "oldfieldtype": "Check"
   },
   {
+   "default": "0",
    "depends_on": "eval:!doc.istable",
    "description": "Single Types have only one record no tables associated. Values are stored in tabSingles",
    "fieldname": "issingle",
@@ -135,6 +139,7 @@
    "label": "Track Changes"
   },
   {
+   "default": "0",
    "depends_on": "eval:!doc.istable",
    "description": "If enabled, the document is marked as seen, the first time a user opens it",
    "fieldname": "track_seen",
@@ -150,11 +155,13 @@
    "label": "Track Views"
   },
   {
+   "default": "0",
    "fieldname": "custom",
    "fieldtype": "Check",
    "label": "Custom?"
   },
   {
+   "default": "0",
    "fieldname": "beta",
    "fieldtype": "Check",
    "label": "Beta"
@@ -236,6 +243,7 @@
    "fieldtype": "Column Break"
   },
   {
+   "default": "0",
    "fieldname": "hide_toolbar",
    "fieldtype": "Check",
    "label": "Hide Sidebar and Menu",
@@ -243,6 +251,7 @@
    "oldfieldtype": "Check"
   },
   {
+   "default": "0",
    "fieldname": "allow_copy",
    "fieldtype": "Check",
    "label": "Hide Copy",
@@ -250,6 +259,7 @@
    "oldfieldtype": "Check"
   },
   {
+   "default": "0",
    "fieldname": "allow_rename",
    "fieldtype": "Check",
    "label": "Allow Rename",
@@ -257,14 +267,22 @@
    "oldfieldtype": "Check"
   },
   {
+   "default": "0",
    "fieldname": "allow_import",
    "fieldtype": "Check",
    "label": "Allow Import (via Data Import Tool)"
   },
   {
+   "default": "0",
    "fieldname": "allow_events_in_timeline",
    "fieldtype": "Check",
    "label": "Allow events in timeline"
+  },
+  {
+   "default": "0",
+   "fieldname": "allow_auto_repeat",
+   "fieldtype": "Check",
+   "label": "Allow Auto Repeat"
   },
   {
    "collapsible": 1,
@@ -329,6 +347,13 @@
    "label": "Color"
   },
   {
+   "default": "0",
+   "fieldname": "show_preview_popup",
+   "fieldtype": "Check",
+   "label": "Show Preview Popup"
+  },
+  {
+   "default": "0",
    "fieldname": "show_name_in_global_search",
    "fieldtype": "Check",
    "label": "Make \"name\" searchable in Global Search"
@@ -354,6 +379,7 @@
    "options": "Domain"
   },
   {
+   "default": "0",
    "fieldname": "read_only",
    "fieldtype": "Check",
    "label": "User Cannot Search",
@@ -361,6 +387,7 @@
    "oldfieldtype": "Check"
   },
   {
+   "default": "0",
    "fieldname": "in_create",
    "fieldtype": "Check",
    "label": "User Cannot Create",
@@ -411,17 +438,11 @@
    "fieldtype": "Select",
    "label": "Database Engine",
    "options": "InnoDB\nMyISAM"
-  },
-  {
-   "default": "0",
-   "fieldname": "show_preview_popup",
-   "fieldtype": "Check",
-   "label": "Show Preview Popup"
   }
  ],
  "icon": "fa fa-bolt",
  "idx": 6,
- "modified": "2019-05-16 14:58:33.405381",
+ "modified": "2019-07-04 23:23:17.174960",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocType",
