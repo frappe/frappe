@@ -244,7 +244,7 @@ def make_boilerplate(template, doc, opts=None):
 			importclause = 'from %s import %s' %(get_module_name(doc.base_doctype, doc.module), baseclass)
 		else:
 			baseclass = 'Document'
-			importclause ='from frappe.model.document import Document'			
+			importclause ='from frappe.model.document import Document'
 
 		with open(target_file_path, 'w') as target:
 			with open(os.path.join(get_module_path("core"), "doctype", scrub(doc.doctype),
@@ -254,7 +254,7 @@ def make_boilerplate(template, doc, opts=None):
 						app_publisher=app_publisher,
 						year=frappe.utils.nowdate()[:4],
 						baseclass=baseclass,
-						importclause =importclause,						
+						importclause =importclause,
 						classname=doc.name.replace(" ", ""),
 						doctype=doc.name, **opts)
 				))
