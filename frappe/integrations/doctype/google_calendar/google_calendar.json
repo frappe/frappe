@@ -8,7 +8,7 @@
   "enable",
   "sb_00",
   "user",
-  "allow_calendar_access",
+  "authorize_google_calendar_access",
   "cb_00",
   "calendar_name",
   "section_break_3",
@@ -84,12 +84,6 @@
    "label": "Next Sync Token"
   },
   {
-   "depends_on": "eval:!doc.__islocal",
-   "fieldname": "allow_calendar_access",
-   "fieldtype": "Button",
-   "label": "Allow Calendar Access"
-  },
-  {
    "fieldname": "google_calendar_id",
    "fieldtype": "Data",
    "label": "Google Calendar ID",
@@ -98,9 +92,15 @@
   {
    "fieldname": "cb_00",
    "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "eval:!doc.__islocal",
+   "fieldname": "authorize_google_calendar_access",
+   "fieldtype": "Button",
+   "label": "Authorize Google Calendar Access"
   }
  ],
- "modified": "2019-07-20 22:12:22.389101",
+ "modified": "2019-07-20 22:28:32.989673",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Google Calendar",
