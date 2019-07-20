@@ -254,8 +254,8 @@ def get_sidebar_stats(stats, doctype, filters=[]):
 @frappe.whitelist()
 @frappe.read_only()
 def get_stats(stats, doctype, filters=[]):
-	doctype = frappe.get_base_doctype(doctype)
 	"""get tag info"""
+	doctype = frappe.get_base_doctype(doctype)	
 	import json
 	tags = json.loads(stats)
 	if filters:
