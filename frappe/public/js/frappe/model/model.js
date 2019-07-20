@@ -186,7 +186,7 @@ $.extend(frappe.model, {
 						callback && callback(name, r);
 						if (r && r.docs){
 							doctype = r.docs[0].doctype;
-								}
+						}
 						resolve(frappe.get_doc(doctype, name));
 					}
 				});
