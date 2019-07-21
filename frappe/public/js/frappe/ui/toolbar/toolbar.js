@@ -252,7 +252,7 @@ frappe.ui.toolbar.setup_session_defaults = function() {
 					'click': () => {
 						frappe.set_route('Form', 'Session Default Settings', 'Session Default Settings');
 					}
-				}
+				};
 			}
 			frappe.prompt(fields, function(values) {
 				frappe.call({
@@ -266,15 +266,14 @@ frappe.ui.toolbar.setup_session_defaults = function() {
 								'message': __('Session Defaults Saved'),
 								'indicator': 'green'
 							});
-						}
-						else {
+						}	else {
 							frappe.show_alert({
 								'message': __('An error occurred while setting Session Defaults'),
 								'indicator': 'red'
 							});
 						}
 					}
-				})
+				});
 			},
 			__('Session Defaults'),
 			__('Save'),
