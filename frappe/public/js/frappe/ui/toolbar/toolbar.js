@@ -235,3 +235,50 @@ frappe.ui.toolbar.show_about = function() {
 	}
 	return false;
 };
+
+frappe.ui.toolbar.setup_session_defaults = function() {
+	let fields = [];
+	frappe.call({
+		method: 'frappe.core.doctype.session_default_settings.session_default_settings.get_session_default_values',
+		callback: function (data) {
+			fields = JSON.parse(data.message);
+			let perms = frappe.perm.get_perm('Session Default Settings');
+			//add settings button only if user is a System Manager or has permission on 'Session Default Settings'
+			if ((in_list(frappe.user_roles, 'System Manager')) || (perms[0].read == 1))  {
+				fields[fields.length] = {
+					'fieldname': 'settings',
+					'fieldtype': 'Button',
+					'label': __('Settings'),
+					'click': () => {
+						frappe.set_route('Form', 'Session Default Settings', 'Session Default Settings');
+					}
+				}
+			}
+			frappe.prompt(fields, function(values) {
+				frappe.call({
+					method: 'frappe.core.doctype.session_default_settings.session_default_settings.set_session_default_values',
+					args: {
+						default_values: JSON.stringify(values)
+					},
+					callback: function(data) {
+						if (data.message == "success") {
+							frappe.show_alert({
+								'message': __('Session Defaults Saved'),
+								'indicator': 'green'
+							});
+						}
+						else {
+							frappe.show_alert({
+								'message': __('An error occurred while setting Session Defaults'),
+								'indicator': 'red'
+							});
+						}
+					}
+				})
+			},
+			__('Session Defaults'),
+			__('Save'),
+			);
+		}
+	});
+};
