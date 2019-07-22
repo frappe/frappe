@@ -304,9 +304,9 @@ frappe.ui.form.MultiSelectDialog = Class.extend({
 					});
 
 					// Preselect oldest entry
-					// if (me.start < 1) {
-					// 	results[0].checked = 1;
-					// }
+					if (me.start < 1 && r.values.length === 1) {
+						results[0].checked = 1;
+					}
 				}
 				me.render_result_list(results, more);
 			}
