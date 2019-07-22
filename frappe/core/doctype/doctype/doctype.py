@@ -373,7 +373,8 @@ class DocType(Document):
 			frappe.db.sql("""update tabSingles set value=%s
 				where doctype=%s and field='name' and value = %s""", (new, new, old))
 		else:
-			frappe.db.sql("rename table `tab%s` to `tab%s`" % (old, new))
+			if not self.base_doctype and self.name != self.base_doctype:			
+				frappe.db.sql("rename table `tab%s` to `tab%s`" % (old, new))
 
 	def rename_files_and_folders(self, old, new):
 		# move files
