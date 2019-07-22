@@ -201,7 +201,7 @@ frappe.ui.form.MultiSelectDialog = Class.extend({
 
 		let $row = $(`<div class="list-item">
 			<div class="list-item__content" style="flex: 0 0 10px;">
-				<input type="checkbox" class="list-row-check" ${result.checked ? 'checked' : ''}>
+				<input type="checkbox" class="list-row-check">
 			</div>
 			${contents}
 		</div>`);
