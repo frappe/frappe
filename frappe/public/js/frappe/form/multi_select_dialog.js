@@ -291,7 +291,6 @@ frappe.ui.form.MultiSelectDialog = Class.extend({
 						if(me.date_field in result) {
 							result["Date"] = result[me.date_field]
 						}
-						result.checked = 0;
 						result.parsed_date = Date.parse(result["Date"]);
 						results.push(result);
 					});
