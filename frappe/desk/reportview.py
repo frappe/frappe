@@ -185,6 +185,10 @@ def append_totals_row(data):
 		for i in range(len(row)):
 			if isinstance(row[i], (float, int)):
 				totals[i] = (totals[i] or 0) + row[i]
+
+	if not isinstance(totals[0], (int, float)):
+		totals[0] = 'Total'
+
 	data.append(totals)
 
 	return data
