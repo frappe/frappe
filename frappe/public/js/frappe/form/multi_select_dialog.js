@@ -201,7 +201,7 @@ frappe.ui.form.MultiSelectDialog = Class.extend({
 
 		let $row = $(`<div class="list-item">
 			<div class="list-item__content" style="flex: 0 0 10px;">
-				<input type="checkbox" class="list-row-check">
+				<input type="checkbox" class="list-row-check" ${result.checked ? 'checked' : ''}>
 			</div>
 			${contents}
 		</div>`);
@@ -291,6 +291,7 @@ frappe.ui.form.MultiSelectDialog = Class.extend({
 						if(me.date_field in result) {
 							result["Date"] = result[me.date_field]
 						}
+						result.checked = 0;
 						result.parsed_date = Date.parse(result["Date"]);
 						results.push(result);
 					});
@@ -303,9 +304,9 @@ frappe.ui.form.MultiSelectDialog = Class.extend({
 					});
 
 					// Preselect oldest entry
-					if (me.start < 1) {
-						results[0].checked = 1;
-					}
+					// if (me.start < 1) {
+					// 	results[0].checked = 1;
+					// }
 				}
 				me.render_result_list(results, more);
 			}
