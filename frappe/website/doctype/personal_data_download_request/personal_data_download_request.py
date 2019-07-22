@@ -12,7 +12,10 @@ from frappe.utils.verified_command import get_signed_params
 class PersonalDataDownloadRequest(Document):
 	def after_insert(self):
 		personal_data = get_user_data(self.user)
-		self.generate_file_and_send_mail(personal_data)
+
+		frappe.enqueue_doc(self.doctype, self.name, 'generate_file_and_send_mail', queue='short', {
+			'personal_data': personal_data
+		})
 
 	def generate_file_and_send_mail(self, personal_data):
 		"""generate the file link for download"""
