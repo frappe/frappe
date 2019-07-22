@@ -16,10 +16,11 @@ def rename_doc(doctype, old, new, force=False, merge=False, ignore_permissions=F
 		Renames a doc(dt, old) to doc(dt, new) and
 		updates all linked fields of type "Link"
 	"""
-	if not frappe.db.exists(doctype, old):
+	base_doctype = frappe.get_base_doctype(doctype)
+	if not frappe.db.exists(base_doctype, old):
 		return
 
-	if ignore_if_exists and frappe.db.exists(doctype, new):
+	if ignore_if_exists and frappe.db.exists(base_doctype, new):
 		return
 
 	if old==new:
@@ -37,16 +38,21 @@ def rename_doc(doctype, old, new, force=False, merge=False, ignore_permissions=F
 	new = (out.get("new") or new) if isinstance(out, dict) else (out or new)
 
 	if doctype != "DocType":
-		new = validate_rename(doctype, new, meta, merge, force, ignore_permissions)
+		new = validate_rename(base_doctype, new, meta, merge, force, ignore_permissions)
 
 	if not merge:
-		rename_parent_and_child(doctype, old, new, meta)
+		rename_parent_and_child(base_doctype, old, new, meta)
 
 	# update link fields' values
 	link_fields = get_link_fields(doctype)
 	update_link_field_values(link_fields, old, new, doctype)
 
 	rename_dynamic_links(doctype, old, new)
+	# also updat the base doctype link as needed
+	if doctype != base_doctype:
+		link_fields = get_link_fields(base_doctype)
+		update_link_field_values(link_fields, old, new, base_doctype)
+		rename_dynamic_links(base_doctype, old, new)
 
 	# save the user settings in the db
 	update_user_settings(old, new, link_fields)
@@ -211,7 +217,7 @@ def update_link_field_values(link_fields, old, new, doctype):
 		else:
 			# because the table hasn't been renamed yet!
 			parent = field['parent'] if field['parent']!=new else old
-
+			parent = frappe.get_base_doctype(parent)
 			frappe.db.sql("""
 				update `tab{table_name}` set `{fieldname}`=%s
 				where `{fieldname}`=%s""".format(
