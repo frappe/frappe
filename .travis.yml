@@ -20,15 +20,25 @@ matrix:
   - name: "Python 3.6 MariaDB"
     python: 3.6
     env: DB=mariadb TYPE=server
+    script: bench --site test_site run-tests --coverage
+
   - name: "Python 3.6 PostgreSQL"
     python: 3.6
     env: DB=postgres TYPE=server
+    script: bench --site test_site run-tests --coverage
+
   - name: "Cypress"
     python: 3.6
     env: DB=mariadb TYPE=ui
+    before_script:
+      - bench setup requirements --node
+      - bench --site test_site execute frappe.utils.install.complete_setup_wizard
+    script: bench --site test_site run-ui-tests frappe
+
   - name: "Python 2.7 MariaDB"
     python: 2.7
     env: DB=mariadb TYPE=server
+    script: bench --site test_site run-tests --coverage
 
 install:
   - cd ~
@@ -61,7 +71,7 @@ install:
   - sudo mv /tmp/wkhtmltox/bin/wkhtmltopdf /usr/local/bin/wkhtmltopdf
   - sudo chmod o+x /usr/local/bin/wkhtmltopdf
 
-before_script:
+after_install:
   - cd ./frappe-bench
 
   - sed -i 's/redis_socketio:/# redis_socketio:/g' Procfile
@@ -74,15 +84,6 @@ before_script:
   - bench --site test_site scheduler disable
   - bench build --app frappe
 
-script:
-  - |
-    if [ $TYPE == "server" ]; then
-      bench --site test_site run-tests --coverage
-    else
-      bench setup requirements --node
-      bench --site test_site execute frappe.utils.install.complete_setup_wizard
-      bench --site test_site run-ui-tests
-    fi
 
 after_script:
   - pip install python-coveralls
