@@ -457,7 +457,7 @@ class File(NestedSet):
 				return
 
 			self.file_url = unquote(self.file_url)
-			self.file_size = frappe.form_dict.file_size
+			self.file_size = frappe.form_dict.file_size or self.file_size
 
 
 	def get_uploaded_content(self):
