@@ -188,14 +188,20 @@ class File(NestedSet):
 			# check duplicate name
 
 			# check duplicate assignement
-			n_records = frappe.db.sql("""select name from `tabFile`
-				where content_hash=%s
-				and name!=%s
-				and attached_to_doctype=%s
-				and attached_to_name=%s""", (self.content_hash, self.name, self.attached_to_doctype,
-					self.attached_to_name))
-			if len(n_records) > 0:
-				self.duplicate_entry = n_records[0][0]
+			filters = {
+				'content_hash': self.content_hash,
+				'is_private': self.is_private,
+				'name': ('!=', self.name)
+			}
+			if self.attached_to_doctype and self.attached_to_name:
+				filters.update({
+					'attached_to_doctype': self.attached_to_doctype,
+					'attached_to_name': self.attached_to_name
+				})
+			duplicate_file = frappe.db.get_value('File', filters)
+
+			if duplicate_file:
+				self.duplicate_entry = duplicate_file
 				frappe.throw(_("Same file has already been attached to the record"),
 					frappe.DuplicateEntryError)
 
@@ -451,7 +457,7 @@ class File(NestedSet):
 				return
 
 			self.file_url = unquote(self.file_url)
-			self.file_size = frappe.form_dict.file_size
+			self.file_size = frappe.form_dict.file_size or self.file_size
 
 
 	def get_uploaded_content(self):
