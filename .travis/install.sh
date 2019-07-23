@@ -2,8 +2,6 @@
 
 set -e
 
-sudo rm /etc/apt/sources.list.d/mongodb*.list
-sudo rm /etc/apt/sources.list.d/docker.list
 sudo apt-get install hhvm && rm -rf /home/travis/.kiex/
 sudo apt-get purge -y mysql-common mysql-server mysql-client
 source ~/.nvm/nvm.sh
