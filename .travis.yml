@@ -32,10 +32,11 @@ matrix:
     python: 3.6
     env: DB=mariadb
     before_script:
-      - bench setup requirements --node
-      - bench build --app frappe
       - bench --site test_site execute frappe.utils.install.complete_setup_wizard
-    script: bench --site test_site run-ui-tests frappe --headless
+      - cd apps/frappe
+      - yarn
+    script:
+      - yarn cypress:run
 
   - name: "Python 2.7 MariaDB"
     python: 2.7
