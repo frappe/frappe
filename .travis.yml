@@ -13,6 +13,7 @@ git:
 
 cache:
   - pip
+  - yarn
 
 matrix:
   include:
