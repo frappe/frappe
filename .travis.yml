@@ -19,17 +19,17 @@ matrix:
   include:
   - name: "Python 3.6 MariaDB"
     python: 3.6
-    env: DB=mariadb TYPE=server
+    env: DB=mariadb
     script: cd ~/frappe-bench && bench --site test_site run-tests --coverage
 
   - name: "Python 3.6 PostgreSQL"
     python: 3.6
-    env: DB=postgres TYPE=server
+    env: DB=postgres
     script: cd ~/frappe-bench && bench --site test_site run-tests --coverage
 
   - name: "Cypress"
     python: 3.6
-    env: DB=mariadb TYPE=ui
+    env: DB=mariadb
     before_script:
       - cd ~/frappe-bench
       - bench setup requirements --node
@@ -38,7 +38,7 @@ matrix:
 
   - name: "Python 2.7 MariaDB"
     python: 2.7
-    env: DB=mariadb TYPE=server
+    env: DB=mariadb
     script: cd ~/frappe-bench && bench --site test_site run-tests --coverage
 
 install:
