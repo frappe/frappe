@@ -404,7 +404,7 @@ def get_options_for_show_hide_cards():
 		module = frappe._dict(module)
 		options.append({
 			'category': module.category,
-			'label': module.label,
+			'label': module.label or module.module_name,
 			'value': module.module_name,
 			'checked': module.module_name not in hidden_modules
 		})
