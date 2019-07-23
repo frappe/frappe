@@ -86,43 +86,61 @@ class HTTPRequest:
 
 	def set_user_lang(self):
 		"""Redefine language based on user actions: beginning of url (/xx/...), ?_lang or ?_set_lang"""
-		site_enabled_languages = frappe.get_hooks('translated_languages_for_website')
+		# Set "by_path_enabled" as "website" configurable
+		by_path_enabled = frappe.get_hooks('languages_for_website_by_path') or False
+		# Set "site_enabled_languages" as "website" configurable
+		site_enabled_languages = frappe.get_hooks('translated_languages_for_website') or None
 		languages = site_enabled_languages or frappe.translate.get_all_languages()
 		lang = None
 
 		def clean_url_language_parameters():
-			frappe.form_dict._lang = None
-			frappe.form_dict._set_lang = None
+			if frappe.form_dict._lang:
+				frappe.form_dict.pop('_lang')
+			if frappe.form_dict._set_lang:
+				frappe.form_dict.pop('_set_lang')
+
+		def set_as_user_language(language=None):
+			if language:
+				# If "Guest", set session variable _set_lang into cache
+				if frappe.session.user == 'Guest':
+					frappe.cache().hset('lang_set', frappe.session.user, language)
+				# If user logged set settings and clear user cache
+				else:
+					frappe.db.set_value('User', frappe.session.user, "language", language)
+					frappe.db.commit()
+					frappe.clear_cache(frappe.session.user)
 
 		# 0. Browser language defined into frappe.local.lang by "set_lang" method
 
 		# 1. By path: /en/... or /en-GB/
 		# - Only for actual request
-		path = frappe.local.request.path
-		if len(path) >= 4 and path[3] == '/' and path[1:3] in languages:
-			frappe.local.request.path = path[3:]
-			lang = path[1:3]
-		elif len(path) >= 7 and path[3] == '-' and path[6] == '/' and path[1:6] in languages:
-			frappe.local.request.path = path[6:]
-			lang = path[1:6]
+		if by_path_enabled:
+			path = frappe.local.request.path
+			# - Short language format: /en/
+			if len(path) >= 4 and path[3] == '/' and path[1:3] in languages:
+				frappe.local.request.path = path[3:]
+				lang = path[1:3]
+			# - Long language format: /en-GB/
+			elif len(path) >= 7 and path[3] == '-' and path[6] == '/' and path[1:6] in languages:
+				frappe.local.request.path = path[6:]
+				lang = path[1:6]
+			# - Default language if no defined
+			elif site_enabled_languages:
+				lang = site_enabled_languages[0]
+			# if lang and set_user_language_by_path:
+			# 	set_as_user_language(lang)
 
-		# 2. By url ?_set_lang=en
-		# - Keep language for next requests because it set it as user language (Guest and logged)
-		elif frappe.form_dict._set_lang:
+		# 2. By url ?_set_lang=en or ?_set_lang=English
+		# - For actual and next requests
+		# - Set it as user language for Guest and logged user
+		if frappe.form_dict._set_lang:
 			language_set = get_lang_code(frappe.form_dict._set_lang)
 			# If language is allowed by app hook or full language list
 			if language_set and language_set in languages:
-				# If "Guest", set session variable _set_lang into cache
-				if frappe.session.user == 'Guest':
-					frappe.cache().hset('lang_set', frappe.session.user, language_set)
-				# If user logged set settings and clear user cache
-				else:
-					frappe.db.set_value('User', frappe.session.user, "language", language_set)
-					frappe.db.commit()
-					frappe.clear_cache(frappe.session.user)
 				lang = language_set
+				set_as_user_language(language_set)
 
-		# 3. By url ?_lang=en
+		# 3. By url ?_lang=en or ?_lang=English
 		# - Only for actual request
 		elif frappe.form_dict._lang:
 			language_set = get_lang_code(frappe.form_dict._lang)
@@ -132,12 +150,11 @@ class HTTPRequest:
 
 		# 4. If "Guest" user (not logged) and there is session language from previous request
 		# - Only for actual request
-		elif frappe.session.user == 'Guest' and frappe.cache().hget('lang_set', frappe.session.user):
+		if not lang and frappe.session.user == 'Guest' and frappe.cache().hget('lang_set', frappe.session.user):
 			lang = frappe.cache().hget('lang_set', frappe.session.user)
 
-		# If not language defined yet or browser detected language is not into available languages
-		# use default one from available languages
-		if site_enabled_languages and (not lang or frappe.local.lang not in site_enabled_languages):
+		# If not language defined yet use default one from available languages
+		if not lang and site_enabled_languages:
 			lang = site_enabled_languages[0]
 
 		# If language, set it to local container
