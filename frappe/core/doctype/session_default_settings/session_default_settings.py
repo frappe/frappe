@@ -4,6 +4,7 @@
 
 from __future__ import unicode_literals
 import frappe
+from frappe import _
 import json
 from frappe.model.document import Document
 
@@ -20,14 +21,15 @@ def get_session_default_values():
 			'fieldname': reference_doctype,
 			'fieldtype': 'Link',
 			'options': default_values.ref_doctype,
-			'label': 'Default ' + default_values.ref_doctype,
+			'label': _('Default {0}').format(_(default_values.ref_doctype)),
 			'default': frappe.defaults.get_user_default(reference_doctype)
 		})
 	return json.dumps(fields)
 
 @frappe.whitelist()
 def set_session_default_values(default_values):
-	default_values = json.loads(default_values)
+	if not frappe.flags.in_test:
+		default_values = json.loads(default_values)
 	for entry in default_values:
 		try:
 			frappe.defaults.set_user_default(entry, default_values.get(entry))
@@ -39,6 +41,4 @@ def set_session_default_values(default_values):
 def clear_session_defaults():
 	settings = frappe.get_single('Session Default Settings').session_defaults
 	for entry in settings:
-		document_type = frappe.db.get_value('Session Default', entry.name, 'ref_doctype')
-		frappe.defaults.clear_user_default(frappe.scrub(document_type
-		))
+		frappe.defaults.clear_user_default(frappe.scrub(entry.ref_doctype))

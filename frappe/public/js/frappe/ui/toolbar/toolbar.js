@@ -258,7 +258,7 @@ frappe.ui.toolbar.setup_session_defaults = function() {
 				frappe.call({
 					method: 'frappe.core.doctype.session_default_settings.session_default_settings.set_session_default_values',
 					args: {
-						default_values: JSON.stringify(values)
+						default_values: values,
 					},
 					callback: function(data) {
 						if (data.message == "success") {
@@ -266,6 +266,7 @@ frappe.ui.toolbar.setup_session_defaults = function() {
 								'message': __('Session Defaults Saved'),
 								'indicator': 'green'
 							});
+							frappe.clear_cache();
 						}	else {
 							frappe.show_alert({
 								'message': __('An error occurred while setting Session Defaults'),
