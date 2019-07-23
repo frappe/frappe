@@ -172,6 +172,11 @@ def get_context(context):
 			context.max_attachment_size = get_max_file_size() / 1024 / 1024
 
 		context.show_in_grid = self.show_in_grid
+		self.load_translations(context)
+
+	def load_translations(self, context):
+		translated_messages = frappe.translate.get_dict('doctype', self.doc_type)
+		context.translated_messages = frappe.as_json(translated_messages)
 
 	def load_document(self, context):
 		'''Load document `doc` and `layout` properties for template'''
