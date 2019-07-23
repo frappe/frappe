@@ -18,16 +18,16 @@ matrix:
   include:
   - name: "Python 3.6 MariaDB"
     python: 3.6
-    env: DB=mariadb
+    env: DB=mariadb TYPE=server
   - name: "Python 3.6 PostgreSQL"
     python: 3.6
-    env: DB=postgres
+    env: DB=postgres TYPE=server
   - name: "Cypress"
     python: 3.6
-    env: DB=mariadb
+    env: DB=mariadb TYPE=ui
   - name: "Python 2.7 MariaDB"
     python: 2.7
-    env: DB=mariadb
+    env: DB=mariadb TYPE=server
 
 install:
   - cd ~
@@ -74,7 +74,14 @@ before_script:
   - bench build --app frappe
 
 script:
-  - bench --site test_site run-tests --coverage
+  - |
+    if [ $TYPE == "server" ]; then
+      bench --site test_site run-tests --coverage
+    else
+      bench setup requirements --node
+      bench --site test_site execute frappe.utils.install.complete_setup_wizard
+      bench --site test_site run-ui-tests
+    fi
 
 after_script:
   - pip install python-coveralls
