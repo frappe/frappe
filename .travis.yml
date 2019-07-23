@@ -34,7 +34,7 @@ matrix:
     before_script:
       - bench setup requirements --node
       - bench --site test_site execute frappe.utils.install.complete_setup_wizard
-    script: bench --site test_site run-ui-tests frappe
+    script: bench --site test_site run-ui-tests frappe --headless
 
   - name: "Python 2.7 MariaDB"
     python: 2.7
