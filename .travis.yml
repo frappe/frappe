@@ -18,16 +18,16 @@ matrix:
   include:
   - name: "Python 3.6 MariaDB"
     python: 3.6
-    env: DB=MariaDB
+    env: DB=mariadb
   - name: "Python 3.6 PostgreSQL"
     python: 3.6
-    env: DB=PostgreSQL
+    env: DB=postgres
   - name: "Cypress"
     python: 3.6
-    env: DB=MariaDB
+    env: DB=mariadb
   - name: "Python 2.7 MariaDB"
     python: 2.7
-    env: DB=MariaDB
+    env: DB=mariadb
 
 install:
   - cd ~
@@ -38,7 +38,9 @@ install:
   - pip install -e ./bench
 
   - bench init frappe-bench --skip-assets --python $(which python) --frappe-path $TRAVIS_BUILD_DIR
-  - cp -r $TRAVIS_BUILD_DIR/test_sites/test_site ~/frappe-bench/sites/
+
+  - mkdir ~/frappe-bench/sites/test_site
+  - cp $TRAVIS_BUILD_DIR/test_sites/$DB.json ~/frappe-bench/sites/test_site/site_config.json
 
   - mysql -u root -e "SET GLOBAL character_set_server = 'utf8mb4'"
   - mysql -u root -e "SET GLOBAL collation_server = 'utf8mb4_unicode_ci'"
