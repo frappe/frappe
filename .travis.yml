@@ -33,6 +33,7 @@ matrix:
     env: DB=mariadb
     before_script:
       - bench setup requirements --node
+      - bench build --app frappe
       - bench --site test_site execute frappe.utils.install.complete_setup_wizard
     script: bench --site test_site run-ui-tests frappe --headless
 
