@@ -16,7 +16,6 @@
   "refresh_token",
   "authorization_code",
   "column_break_6",
-  "session_token",
   "google_calendar_id",
   "next_sync_token"
  ],
@@ -73,11 +72,6 @@
    "fieldtype": "Column Break"
   },
   {
-   "fieldname": "session_token",
-   "fieldtype": "Data",
-   "label": "Session Token"
-  },
-  {
    "fieldname": "next_sync_token",
    "fieldtype": "Data",
    "hidden": 1,
@@ -100,7 +94,7 @@
    "label": "Authorize Google Calendar Access"
   }
  ],
- "modified": "2019-07-20 22:28:32.989673",
+ "modified": "2019-07-24 15:02:00.233602",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Google Calendar",
