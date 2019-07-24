@@ -39,8 +39,12 @@ install:
 
   - cd ~/frappe-bench
   - ./env/bin/pip install ldap3
-  - bench --site test_site scheduler disable
-  - sed -i 's/9000/9001/g' sites/common_site_config.json
+
+  - sed -i 's/watch:/# watch:/g' Procfile
+  - sed -i 's/schedule:/# schedule:/g' Procfile
+  - sed -i 's/socketio:/# socketio:/g' Procfile
+  - sed -i 's/redis_socketio:/# redis_socketio:/g' Procfile
+
   - bench start &
   - bench --site test_site reinstall --yes
 
