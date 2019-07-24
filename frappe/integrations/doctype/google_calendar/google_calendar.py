@@ -173,11 +173,11 @@ def get_events(doc, method=None, page_length=10):
 
 	while True:
 		try:
-			events = self.google_calendar.events().list(calendarId=account.google_calendar_id, maxResults=page_length,
+			events = google_calendar.events().list(calendarId=account.google_calendar_id, maxResults=page_length,
 				singleEvents=False, showDeleted=True, syncToken=account.next_sync_token or None).execute()
 		except HttpError as err:
 			if err.resp.status in [410]:
-				events = self.google_calendar.events().list(calendarId=account.google_calendar_id, maxResults=page_length,
+				events = google_calendar.events().list(calendarId=account.google_calendar_id, maxResults=page_length,
 					singleEvents=False, showDeleted=True, timeMin=add_years(None, -1).strftime("%Y-%m-%dT%H:%M:%SZ")).execute()
 			else:
 				frappe.log_error(err.resp, "Google Calendar Events Fetch Error.")
