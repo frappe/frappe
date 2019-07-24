@@ -154,7 +154,7 @@ frappe.views.ListGroupBy = class ListGroupBy {
 		`;
 
 		// Sort and set frappe.session.user on top of the list
-		fields.sort((item) => item.name ===  frappe.session.user ? -1 : 1)
+		fields.sort((item) => item.name ===  frappe.session.user ? -1 : 1);
 
 		let dropdown_html = standard_html + fields.map(get_dropdown_html).join('');
 		dropdown.html(dropdown_html);
