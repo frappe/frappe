@@ -19,16 +19,15 @@ install:
   - sudo python install.py --develop --user travis --without-bench-setup
   - sudo pip install -e ~/bench
 
-  - rm $TRAVIS_BUILD_DIR/.git/shallow
-  - cd ~/ && bench init frappe-bench --python $(which python) --frappe-path $TRAVIS_BUILD_DIR
-  - cp -r $TRAVIS_BUILD_DIR/test_sites/test_site ~/frappe-bench/sites/
+  - cd ~/
+  - bench init frappe-bench --skip-assets --python $(which python) --frappe-path $TRAVIS_BUILD_DIR
 
-before_script:
+  - mkdir ~/frappe-bench/sites/test_site
+  - cp $TRAVIS_BUILD_DIR/.travis/site_config.json ~/frappe-bench/sites/test_site/site_config.json
+
   - mysql -u root -ptravis -e 'create database test_frappe'
   - echo "USE mysql;\nCREATE USER 'test_frappe'@'localhost' IDENTIFIED BY 'test_frappe';\nFLUSH PRIVILEGES;\n" | mysql -u root -ptravis
   - echo "USE mysql;\nGRANT ALL PRIVILEGES ON \`test_frappe\`.* TO 'test_frappe'@'localhost';\n" | mysql -u root -ptravis
-
-
 
   - cd ~/frappe-bench
   - ./env/bin/pip install ldap3
