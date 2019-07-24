@@ -10,6 +10,12 @@ addons:
     - test_site
   mariadb: 10.3
 
+git:
+  depth: 1
+
+cache:
+  - pip
+
 install:
   - cd ~
   - nvm install 10
