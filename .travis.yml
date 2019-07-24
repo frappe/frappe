@@ -81,7 +81,6 @@ install:
 
   - bench start &
   - bench --site test_site reinstall --yes
-  - bench --site test_site scheduler disable
   - bench build --app frappe
 
 after_script:
