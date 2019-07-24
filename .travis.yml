@@ -12,8 +12,6 @@ install:
   - cd ~
   - nvm install 10
 
-  - pip install python-coveralls
-
   - git clone https://github.com/frappe/bench --depth 1
   - pip install -e ./bench
 
@@ -50,4 +48,5 @@ script:
   - bench run-tests --coverage
 
 after_script:
+  - pip install python-coveralls
   - coveralls -b apps/frappe -d ../../sites/.coverage
