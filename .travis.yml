@@ -20,27 +20,23 @@ matrix:
   include:
   - name: "Python 3.6 MariaDB"
     python: 3.6
-    env: DB=mariadb
+    env: DB=mariadb TYPE=server
     script: bench --site test_site run-tests --coverage
 
   - name: "Python 3.6 PostgreSQL"
     python: 3.6
-    env: DB=postgres
+    env: DB=postgres TYPE=server
     script: bench --site test_site run-tests --coverage
 
   - name: "Cypress"
     python: 3.6
-    env: DB=mariadb
-    before_script:
-      - bench --site test_site execute frappe.utils.install.complete_setup_wizard
-      - bench setup requirements --node
-      - bench build --app frappe
-    script:
-      - bench --site test_site run-ui-tests frappe --headless
+    env: DB=mariadb TYPE=ui
+    before_script: bench --site test_site execute frappe.utils.install.complete_setup_wizard
+    script: bench --site test_site run-ui-tests frappe --headless
 
   - name: "Python 2.7 MariaDB"
     python: 2.7
-    env: DB=mariadb
+    env: DB=mariadb TYPE=server
     script: bench --site test_site run-tests --coverage
 
 install:
@@ -78,6 +74,11 @@ install:
 
   - sed -i 's/watch:/# watch:/g' Procfile
   - sed -i 's/schedule:/# schedule:/g' Procfile
+
+  - if [ $TYPE == "server" ]; then sed -i 's/socketio:/# socketio:/g' Procfile; fi
+  - if [ $TYPE == "server" ]; then sed -i 's/redis_socketio:/# redis_socketio:/g' Procfile; fi
+
+  - if [ $TYPE == "ui" ]; then bench setup requirements --node; fi
 
   - bench start &
   - bench --site test_site reinstall --yes
