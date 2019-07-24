@@ -71,7 +71,7 @@ def render_template(template, context, is_path=None, safe_render=True):
 		or (template.endswith('.html') and '\n' not in template)):
 		return get_jenv().get_template(template).render(context)
 	else:
-		if safe_render and ".__" in template:
+		if safe_render and "__" in template:
 			throw("Illegal template")
 		try:
 			return get_jenv().from_string(template).render(context)
