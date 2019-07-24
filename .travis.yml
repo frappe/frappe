@@ -5,6 +5,10 @@ python:
   - "2.7"
   - "3.6"
 
+addons:
+  hosts:
+    - test_site
+
 services:
   - mysql
 
@@ -37,15 +41,14 @@ install:
 
   - cd ~/frappe-bench
   - ./env/bin/pip install ldap3
-  - bench use test_site
-  - bench reinstall --yes
-  - bench scheduler disable
+  - bench --site test_site reinstall --yes
+  - bench --site test_site scheduler disable
   - sed -i 's/9000/9001/g' sites/common_site_config.json
   - bench start &
   - sleep 10
 
 script:
-  - bench run-tests --coverage
+  - bench --site test_site run-tests --coverage
 
 after_script:
   - pip install python-coveralls
