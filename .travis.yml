@@ -39,11 +39,10 @@ install:
 
   - cd ~/frappe-bench
   - ./env/bin/pip install ldap3
-  - bench --site test_site reinstall --yes
   - bench --site test_site scheduler disable
   - sed -i 's/9000/9001/g' sites/common_site_config.json
   - bench start &
-  - sleep 10
+  - bench --site test_site reinstall --yes
 
 script:
   - bench --site test_site run-tests --coverage
