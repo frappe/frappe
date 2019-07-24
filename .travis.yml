@@ -8,9 +8,7 @@ python:
 addons:
   hosts:
     - test_site
-
-services:
-  - mysql
+  mariadb: 10.3
 
 install:
   - cd ~
