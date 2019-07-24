@@ -147,8 +147,6 @@
 		"public/js/frappe/roles_editor.js",
 		"public/js/frappe/microtemplate.js",
 
-		"public/js/legacy/handler.js",
-
 		"public/js/frappe/ui/page.html",
 		"public/js/frappe/ui/page.js",
 		"public/js/frappe/ui/slides.js",
