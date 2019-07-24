@@ -2,14 +2,17 @@
 
 set -e
 
-sudo rm /etc/apt/sources.list.d/mongodb*.list
-sudo rm /etc/apt/sources.list.d/docker.list
+#sudo rm /etc/apt/sources.list.d/mongodb*.list
+#sudo rm /etc/apt/sources.list.d/docker.list
+
+sudo apt-get update
 sudo apt-get install hhvm && rm -rf /home/travis/.kiex/
 sudo apt-get purge -y mysql-common mysql-server mysql-client
+sudo apt-get install libmysqlclient-dev
 source ~/.nvm/nvm.sh
 nvm install v8.10.0
 
-pip install python-coveralls
+sudo pip install --upgrade pyOpenSSL==16.2.0
 
 wget https://raw.githubusercontent.com/frappe/bench/master/playbooks/install.py
 
