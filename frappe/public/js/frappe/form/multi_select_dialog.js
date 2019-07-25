@@ -217,7 +217,7 @@ frappe.ui.form.MultiSelectDialog = Class.extend({
 
 		// Make empty result set if filter is set
 		if (!frappe.flags.auto_scroll) {
-			this.$results.splice(1, this.$results.length);
+			this.empty_list();
 		}
 
 		if(results.length === 0) {
@@ -304,7 +304,7 @@ frappe.ui.form.MultiSelectDialog = Class.extend({
 					});
 
 					// Preselect oldest entry
-					if (me.start < 1) {
+					if (me.start < 1 && r.values.length === 1) {
 						results[0].checked = 1;
 					}
 				}

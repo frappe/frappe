@@ -36,7 +36,7 @@
 		"public/js/frappe/ui/messages.js",
 		"public/js/frappe/translate.js",
 		"public/js/frappe/utils/pretty_date.js",
-		"public/js/lib/microtemplate.js",
+		"public/js/frappe/microtemplate.js",
 		"public/js/frappe/query_string.js",
 
 		"public/js/frappe/ui/dropzone.js",
@@ -145,9 +145,7 @@
 		"public/js/frappe/router_history.js",
 		"public/js/frappe/defaults.js",
 		"public/js/frappe/roles_editor.js",
-		"public/js/lib/microtemplate.js",
-
-		"public/js/legacy/handler.js",
+		"public/js/frappe/microtemplate.js",
 
 		"public/js/frappe/ui/page.html",
 		"public/js/frappe/ui/page.js",

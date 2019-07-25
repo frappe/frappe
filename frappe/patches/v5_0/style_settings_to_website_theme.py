@@ -25,7 +25,7 @@ def migrate_style_settings():
 	website_theme.no_sidebar = cint(frappe.db.get_single_value("Website Settings", "no_sidebar"))
 
 	website_theme.save()
-	website_theme.use_theme()
+	website_theme.set_as_default()
 
 def map_color_fields(style_settings, website_theme):
 	color_fields_map = {
