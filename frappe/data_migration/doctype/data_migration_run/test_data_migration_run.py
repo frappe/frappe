@@ -107,7 +107,7 @@ def create_plan():
 		'doctype': 'Data Migration Connector',
 		'connector_name': 'Local Connector',
 		'connector_type': 'Frappe',
-		'hostname': 'http://localhost:8000',
+		'hostname': frappe.conf.host_name,
 		'username': 'Administrator',
 		'password': 'admin'
 	}).insert()
