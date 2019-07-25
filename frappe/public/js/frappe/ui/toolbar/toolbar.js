@@ -272,6 +272,7 @@ frappe.ui.toolbar.setup_session_defaults = function() {
 								'message': __('Session Defaults Saved'),
 								'indicator': 'green'
 							});
+							frappe.ui.toolbar.clear_cache();
 						}	else {
 							frappe.show_alert({
 								'message': __('An error occurred while setting Session Defaults'),
