@@ -598,7 +598,7 @@ class FilterArea {
 		}
 
 		const doctype_fields = this.list_view.meta.fields;
-
+		let session_defaults = frappe.db.get_single_value('Session Default Settings', 'session_defaults');
 		fields = fields.concat(doctype_fields.filter(
 			df => df.in_standard_filter &&
 				frappe.model.is_value_type(df.fieldtype)
@@ -617,7 +617,7 @@ class FilterArea {
 					options = options.join("\n");
 				}
 			}
-			let default_value = fieldtype === 'Link' ? frappe.defaults.get_user_default(options) : null;
+			let default_value = ((fieldtype === 'Link') && (session_defaults.ref_doctype === options)) ? frappe.defaults.get_user_default(options) : null;
 			return {
 				fieldtype: fieldtype,
 				label: __(df.label),
