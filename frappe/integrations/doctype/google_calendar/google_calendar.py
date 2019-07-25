@@ -12,20 +12,31 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.utils import get_request_site_address
 from googleapiclient.errors import HttpError
+from frappe.utils import add_days, add_years
 
 SCOPES = "https://www.googleapis.com/auth/calendar/v3"
 
 class GoogleCalendar(Document):
 
-	def validate(self):
-		if not frappe.db.get_single_value("Google Settings", "enable"):
+	def validate_google_settings(self):
+		google_settings = frappe.get_single("Google Settings")
+		if not google_settings.enable:
 			frappe.throw(_("Enable Google API in Google Settings."))
 
-	def get_access_token(self):
-		google_settings = frappe.get_doc("Google Settings")
+		if not google_settings.client_id or not google_settings.client_secret:
+			frappe.throw(_("Enter Client Id and Client Secret in Google Settings."))
 
-		if not google_settings.enable:
-			frappe.throw(_("Google Calendar Integration is disabled."))
+		return google_settings
+
+	def validate(self):
+		self.validate_google_settings()
+
+		if frappe.db.exists("Google Calendar", {"user": self.user, "calendar_name": self.calendar_name}) and \
+			not frappe.db.get_value("Google Calendar", {"user": self.user, "calendar_name": self.calendar_name}, "name") == self.name:
+			frappe.throw(_("Google Calendar already exists for user {0} and name {1}").format(self.user, self.calendar_name))
+
+	def get_access_token(self):
+		google_settings = self.validate_google_settings()
 
 		if not self.refresh_token:
 			button_label = frappe.bold(_("Allow Google Calendar Access"))
@@ -130,96 +141,152 @@ def get_credentials(g_calendar):
 
 	check_remote_calendar(account, google_calendar)
 
+	account.load_from_db()
 	return google_calendar, account
 
 def check_remote_calendar(account, google_calendar):
-	def _create_calendar():
+	def _create_calendar(account):
 		calendar = {
 			"summary": account.calendar_name,
-			"timeZone": frappe.db.get_value("System Settings", None, "time_zone")
+			"timeZone": frappe.db.get_single_value("System Settings", "time_zone")
 		}
 		try:
 			created_calendar = google_calendar.calendars().insert(body=calendar).execute()
-			frappe.db.set_value("Google Calendar", account.name, "google_calendar_id", created_calendar["id"])
+			frappe.db.set_value("Google Calendar", account.name, "google_calendar_id", created_calendar.get("id"))
 			frappe.db.commit()
 		except Exception:
 			frappe.log_error(frappe.get_traceback())
 
 	try:
-		if not account.google_calendar_id:
+		if account.google_calendar_id:
 			try:
+				account.load_from_db()
 				google_calendar.calendars().get(calendarId=account.google_calendar_id).execute()
 			except Exception:
 				frappe.log_error(frappe.get_traceback())
 		else:
-			_create_calendar()
+			_create_calendar(account)
 	except HttpError as err:
-		if err.resp.status in [403, 500, 503]:
+		if err.resp.status in [403, 404, 500, 503]:
 			time.sleep(5)
-		elif err.resp.status in [404]:
-			_create_calendar()
-		else: raise
+			_create_calendar(account)
+		else:
+			frappe.log_error(frappe.get_traceback(), _("Google Calendar Synchronization Error."))
+
 
 def get_events(doc, method=None, page_length=10):
 	"""
 		Sync Events with Google Calendar
 	"""
+	if not doc.pull_from_google_calendar:
+		return
+
 	google_calendar, account = get_credentials(doc.name)
 	page_token = None
 	results = []
-	events = {
-		"items": []
-	}
 
+	print("1")
 	while True:
 		try:
+			"""
+				API Response
+				{
+					'kind': 'calendar#events',
+					'etag': '"etag"',
+					'summary': 'Test Calendar',
+					'updated': '2019-07-24T17:46:24.366Z',
+					'timeZone': 'Asia/Kolkata',
+					'accessRole': 'owner',
+					'defaultReminders': [],
+					'nextSyncToken': 'nextSyncToken',
+					'items': [
+						{
+							'kind': 'calendar#event',
+							'etag': '"etag"',
+							'id': 'id',
+							'status': 'confirmed',
+							'htmlLink': 'https://www.google.com/calendar/event?eid=eid',
+							'created': '2019-07-24T17:46:24.000Z',
+							'updated': '2019-07-24T17:46:24.366Z',
+							'summary': 'qusk',
+							'creator': {
+								'email': 'himanshu@iwebnotes.com'
+							},
+							'organizer': {
+								'email': 'calendar_id',
+								'displayName': 'Test Calendar',
+								'self': True
+							},
+							'start': {
+								'dateTime': '2019-07-26T20:00:00+05:30'
+							},
+							'end': {
+								'dateTime': '2019-07-26T21:00:00+05:30'
+							},
+							'iCalUID': 'UID',
+							'sequence': 0,
+							'recurrence': ['RRULE:FREQ=DAILY'],
+							'reminders': {
+								'useDefault': True
+							}
+						}
+					]
+				}
+			"""
 			events = google_calendar.events().list(calendarId=account.google_calendar_id, maxResults=page_length,
 				singleEvents=False, showDeleted=True, syncToken=account.next_sync_token or None).execute()
+			print("2")
+			print(events)
 		except HttpError as err:
-			if err.resp.status in [410]:
+			if err.resp.status in [404, 410]:
 				events = google_calendar.events().list(calendarId=account.google_calendar_id, maxResults=page_length,
 					singleEvents=False, showDeleted=True, timeMin=add_years(None, -1).strftime("%Y-%m-%dT%H:%M:%SZ")).execute()
+				print("3")
+				print(events)
 			else:
 				frappe.log_error(err.resp, "Google Calendar Events Fetch Error.")
 
-		for event in events["items"]:
-			event.update({"account": account.name})
-			event.update({"calendar_tz": events["timeZone"]})
+		for event in events.get("items"):
 			results.append(event)
-			page_token = events.get("nextPageToken")
 
-		if not page_token:
+		if not events.get("nextPageToken"):
 			if events.get("nextSyncToken"):
 				frappe.db.set_value("Google Calendar", account.name, "next_sync_token", events.get("nextSyncToken"))
 				frappe.db.commit()
 			break
 
-	for idx, event in enumerate(list(results)):
+	print(results)
+	for idx, event in enumerate(results):
 		frappe.publish_realtime('import_google_calendar', dict(progress=idx+1, total=len(list(results))), user=frappe.session.user)
-
-		frappe.get_doc({
-			"doctype": "Event",
-			"description": event.get("description"),
-			"start_datetime": event.get("start_on"),
-			"end_datetime": event.get("ends_on"),
-			"all_day": event.get("all_day"),
-			"repeat_this_event": event.get("repeat_this_event"),
-			"repeat_on": event.get("repeat_on"),
-			"repeat_till": event.get("repeat_till"),
-			"sunday": event.get("sunday"),
-			"monday": event.get("monday"),
-			"tuesday": event.get("tuesday"),
-			"wednesday": event.get("wednesday"),
-			"thursday": event.get("thursday"),
-			"friday": event.get("friday"),
-			"saturday": event.get("saturday"),
-			"google_calendar_id": event.get("id")
-		}).insert()
+		return_recurrence(event.get("recurrence"))
+		# if not frappe.db.exists("Event", {"subject": event.get("summary")}):
+		# 	frappe.get_doc({
+		# 		"doctype": "Event",
+		# 		"subject": event.get("summary"),
+		# 		"description": event.get("description"),
+		# 		"start_on": event.get("start").get("dateTime"),
+		# 		"ends_on": event.get("end").get("dateTime"),
+		# 		"all_day": event.get("all_day"),
+		# 		"repeat_this_event": event.get("repeat_this_event"),
+		# 		"repeat_on": event.get("repeat_on"),
+		# 		"repeat_till": event.get("repeat_till"),
+		# 		"sunday": event.get("sunday"),
+		# 		"monday": event.get("monday"),
+		# 		"tuesday": event.get("tuesday"),
+		# 		"wednesday": event.get("wednesday"),
+		# 		"thursday": event.get("thursday"),
+		# 		"friday": event.get("friday"),
+		# 		"saturday": event.get("saturday"),
+		# 		"google_calendar_id": event.get("id")
+		# 	}).insert(ignore_permissions=True)
 
 def insert_events(doc, method=None):
 	"""
 		Insert Events with Google Calendar
 	"""
+	if not doc.push_to_google_calendar:
+		return
+
 	google_calendar, account = get_credentials(doc.name)
 
 	event = {
@@ -227,20 +294,19 @@ def insert_events(doc, method=None):
 		"description": doc.description
 	}
 
-	dates = self.return_dates(doc)
+	dates = return_dates(doc)
 	event.update(dates)
 
 	if migration_id:
 		event.update({"id": doc.name})
 
 	if doc.repeat_this_event != 0:
-		recurrence = self.return_recurrence(doctype, doc)
+		recurrence = return_recurrence(doc)
 		if recurrence:
 			event.update({"recurrence": ["RRULE:" + str(recurrence)]})
 
 	try:
 		remote_event = google_calendar.events().insert(calendarId=account.google_calendar_id, body=event).execute()
-		return {self.name_field: remote_event["id"]}
 	except Exception:
 		frappe.log_error(frappe.get_traceback(), _("Google Calendar Synchronization Error."))
 
@@ -260,22 +326,21 @@ def update_events(doc, method=None):
 		if doc.event_type == "Cancel":
 			event.update({"status": "cancelled"})
 
-		dates = self.return_dates(doc)
+		dates = return_dates(doc)
 		event.update(dates)
 
 		if doc.repeat_this_event != 0:
-			recurrence = self.return_recurrence(doctype, doc)
+			recurrence = return_recurrence(doc)
 			if recurrence:
 				event.update({"recurrence": ["RRULE:" + str(recurrence)]})
 
 		try:
 			updated_event = google_calendar.events().update(calendarId=account.google_calendar_id, eventId=doc.name, body=event).execute()
-			return {self.name_field: updated_event["id"]}
 		except Exception as e:
 			frappe.log_error(e, "Google Calendar Synchronization Error.")
 	except HttpError as err:
 		if err.resp.status in [404]:
-			self.insert_events(doctype, doc)
+			pass
 		else:
 			frappe.log_error(err.resp, "Google Calendar Synchronization Error.")
 
@@ -318,8 +383,7 @@ def return_dates(doc):
 			}
 		}
 
-def return_recurrence(doc):
-	e = frappe.get_doc("Event", doc.name)
+def return_recurrence_for_google_calendar(recurrence):
 	if not e.repeat_till:
 		end_date = datetime.combine(e.repeat_till, datetime.min.time()).strftime("UNTIL=%Y%m%dT%H%M%SZ")
 	else:
@@ -359,3 +423,145 @@ def return_recurrence(doc):
 	elements = [frequency, end_date, wst, day]
 
 	return ";".join(str(e) for e in elements if e is not None and not not e)
+
+def parse_recurrence(recureence):
+	pass
+
+
+"""
+	- Recurrence Daily
+	{
+		'kind': 'calendar#events',
+		'etag': '"p32k8vl58mj7u60g"',
+		'summary': 'Test Calendar',
+		'updated': '2019-07-25T06:09:34.681Z',
+		'timeZone': 'Asia/Kolkata',
+		'accessRole': 'owner',
+		'defaultReminders': [],
+		'nextSyncToken': 'CKiP1Ki0z-MCEKiP1Ki0z-MCGAU=',
+		'items': [
+			{
+				'kind': 'calendar#event',
+				'etag': '"3128069949362000"',
+				'id': '6okmku7u8o4itknb7l1alu94ns',
+				'status': 'confirmed',
+				'htmlLink': 'https://www.google.com/calendar/event?eid=Nm9rbWt1N3U4bzRpdGtuYjdsMWFsdTk0bnNfMjAxOTA3MjdUMDYzMDAwWiBpd2Vibm90ZXMuY29tX2hqODFkZDA4aHJwaWNsbWY0anI3OWJzNG44QGc',
+				'created': '2019-07-25T06:08:21.000Z',
+				'updated': '2019-07-25T06:09:34.681Z',
+				'summary': 'asdf',
+				'creator': {
+					'email': 'himanshu@iwebnotes.com'
+				},
+				'organizer': {
+					'email': 'iwebnotes.com_hj81dd08hrpiclmf4jr79bs4n8@group.calendar.google.com',
+					'displayName': 'Test Calendar',
+					'self': True
+				},
+				'start': {
+					'dateTime': '2019-07-27T12:00:00+05:30',
+					'timeZone': 'Asia/Kolkata'
+				},
+				'end': {
+					'dateTime': '2019-07-27T13:00:00+05:30',
+					'timeZone': 'Asia/Kolkata'
+				},
+				'recurrence': ['RRULE:FREQ=DAILY'],
+				'iCalUID': '6okmku7u8o4itknb7l1alu94ns@google.com',
+				'sequence': 1,
+				'reminders': {
+					'useDefault': True
+				}
+			}
+		]
+	}
+	- Recurrence Weekly
+	{
+		'kind': 'calendar#events',
+		'etag': '"p320afgm8nv7u60g"',
+		'summary': 'Test Calendar',
+		'updated': '2019-07-25T06:59:54.288Z',
+		'timeZone': 'Asia/Kolkata',
+		'accessRole': 'owner',
+		'defaultReminders': [],
+		'nextSyncToken': 'CICnwsi_z-MCEICnwsi_z-MCGAU=',
+		'items': [
+			{
+				'kind': 'calendar#event',
+				'etag': '"3128075988576000"',
+				'id': '33n5br0htu51suqih4k8990181',
+				'status': 'confirmed',
+				'htmlLink': 'https://www.google.com/calendar/event?eid=MzNuNWJyMGh0dTUxc3VxaWg0azg5OTAxODFfMjAxOTA3MjVUMTIzMDAwWiBpd2Vibm90ZXMuY29tX25mOHAyaTFnazU5NDI2dTBsNzA4amU0OWVjQGc',
+				'created': '2019-07-25T06:59:47.000Z',
+				'updated': '2019-07-25T06:59:54.288Z',
+				'summary': 'Event',
+				'creator': {
+					'email': 'himanshu@iwebnotes.com'
+				},
+				'organizer': {
+					'email': 'iwebnotes.com_nf8p2i1gk59426u0l708je49ec@group.calendar.google.com',
+					'displayName': 'Test Calendar',
+					'self': True
+				},
+				'start': {
+					'dateTime': '2019-07-25T18:00:00+05:30',
+					'timeZone': 'Asia/Kolkata'
+				},
+				'end': {
+					'dateTime': '2019-07-25T19:00:00+05:30',
+					'timeZone': 'Asia/Kolkata'
+				},
+				'recurrence': ['RRULE:FREQ=WEEKLY;BYDAY=TH'],
+				'iCalUID': '33n5br0htu51suqih4k8990181@google.com',
+				'sequence': 1,
+				'reminders': {
+					'useDefault': True
+				}
+			}
+		]
+	}
+	- Recurrence Monthly on a Day
+	{
+		'kind': 'calendar#events',
+		'etag': '"p32oajev9ob7u60g"',
+		'summary': 'Test Calendar',
+		'updated': '2019-07-25T07:14:28.686Z',
+		'timeZone': 'Asia/Kolkata',
+		'accessRole': 'owner',
+		'defaultReminders': [],
+		'nextSyncToken': 'CLCpu-nCz-MCELCpu-nCz-MCGAU=',
+		'items': [
+			{
+				'kind': 'calendar#event',
+				'etag': '"3128077737372000"',
+				'id': '4up16101ptr37i5594asp0e692',
+				'status': 'confirmed',
+				'htmlLink': 'https://www.google.com/calendar/event?eid=NHVwMTYxMDFwdHIzN2k1NTk0YXNwMGU2OTJfMjAxOTA3MjVUMTMzMDAwWiBpd2Vibm90ZXMuY29tX25mOHAyaTFnazU5NDI2dTBsNzA4amU0OWVjQGc',
+				'created': '2019-07-25T07:14:08.000Z',
+				'updated': '2019-07-25T07:14:28.686Z',
+				'summary': 'monthly 4 thusday',
+				'creator': {
+					'email': 'himanshu@iwebnotes.com'
+				},
+				'organizer': {
+					'email': 'iwebnotes.com_nf8p2i1gk59426u0l708je49ec@group.calendar.google.com',
+					'displayName': 'Test Calendar',
+					'self': True
+				},
+				'start': {
+					'dateTime': '2019-07-25T19:00:00+05:30',
+					'timeZone': 'Asia/Kolkata'
+				},
+				'end': {
+					'dateTime': '2019-07-25T20:00:00+05:30',
+					'timeZone': 'Asia/Kolkata'
+				},
+				'recurrence': ['RRULE:FREQ=MONTHLY;BYDAY=4TH'],
+				'iCalUID': '4up16101ptr37i5594asp0e692@google.com',
+				'sequence': 1,
+				'reminders': {
+					'useDefault': True
+				}
+			}
+		]
+	}
+"""
