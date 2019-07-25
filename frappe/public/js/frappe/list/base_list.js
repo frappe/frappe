@@ -617,12 +617,14 @@ class FilterArea {
 					options = options.join("\n");
 				}
 			}
+			let default_value = fieldtype === 'Link' ? frappe.defaults.get_user_default(options) : null
 			return {
 				fieldtype: fieldtype,
 				label: __(df.label),
 				options: options,
 				fieldname: df.fieldname,
 				condition: condition,
+				default: default_value,
 				onchange: () => this.refresh_list_view(),
 				ignore_link_validation: fieldtype === 'Dynamic Link'
 			};
