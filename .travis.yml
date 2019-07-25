@@ -54,8 +54,4 @@ install:
   - bench build --app frappe
 
 script:
-  - bench --site test_site run-tests --coverage
-
-after_script:
-  - pip install python-coveralls
-  - coveralls -b apps/frappe -d ../../sites/.coverage
+  - bench --site test_site run-tests
