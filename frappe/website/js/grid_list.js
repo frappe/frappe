@@ -10,7 +10,7 @@ export default function make_datatable(container, doctype) {
 			<thead>
 				<tr>
 					<th><input type="checkbox" class="select-all pull-left"></th>
-					<th>${__(Sr)}</th>
+					<th>${__('Sr')}</th>
 				</tr>
 			</thead>
 			<tbody></tbody>
