@@ -9,6 +9,7 @@ import json
 
 from frappe.utils import (getdate, cint, add_months, date_diff, add_days,
 	nowdate, get_datetime_str, cstr, get_datetime, now_datetime, format_datetime)
+from frappe import _
 from frappe.model.document import Document
 from frappe.utils.user import get_enabled_system_users
 from frappe.desk.reportview import get_filters_cond
@@ -18,18 +19,15 @@ communication_mapping = {"": "Event", "Event": "Event", "Meeting": "Meeting", "C
 
 class Event(Document):
 	def validate(self):
-		if not self.starts_on:
-			self.starts_on = now_datetime()
-
 		if self.starts_on and self.ends_on and get_datetime(self.starts_on) > get_datetime(self.ends_on):
-			frappe.msgprint(frappe._("Event end must be after start"), raise_exception=True)
+			frappe.throw(_("Event's End On cannot be before Start On."))
 
 		if self.starts_on == self.ends_on:
 			# this scenario doesn't make sense i.e. it starts and ends at the same second!
 			self.ends_on = None
 
-		if getdate(self.starts_on) != getdate(self.ends_on) and self.repeat_on == "Every Day":
-			frappe.msgprint(frappe._("Every day events should finish on the same day."), raise_exception=True)
+		if getdate(self.starts_on) != getdate(self.ends_on) and self.repeat_on == "Daily":
+			frappe.throw(_("Daily Events should finish on the Same Day."))
 
 	def on_update(self):
 		self.sync_communication()
@@ -38,17 +36,18 @@ class Event(Document):
 		communications = frappe.get_all("Communication", dict(reference_doctype=self.doctype, reference_name=self.name))
 		if communications:
 			for communication in communications:
-				frappe.get_doc("Communication", communication.name).delete()
+				frappe.delete_doc_if_exists("Communication", communication.name)
 
 	def sync_communication(self):
 		if self.event_participants:
 			for participant in self.event_participants:
-				comms = frappe.get_list("Communication", filters=[
+				filters = [
 					["Communication", "reference_doctype", "=", self.doctype],
 					["Communication", "reference_name", "=", self.name],
 					["Communication Link", "link_doctype", "=", participant.reference_doctype],
 					["Communication Link", "link_name", "=", participant.reference_docname]
-				], fields=["name"])
+				]
+				comms = frappe.get_list("Communication", filters=filters, fields=["name"])
 
 				if comms:
 					for comm in comms:
@@ -82,12 +81,14 @@ def delete_communication(event, reference_doctype, reference_docname):
 	if isinstance(event, string_types):
 		event = json.loads(event)
 
-	comms = frappe.get_list("Communication", filters=[
+	filters = [
 		["Communication", "reference_doctype", "=", event.get("doctype")],
 		["Communication", "reference_name", "=", event.get("name")],
 		["Communication Link", "link_doctype", "=", deleted_participant.reference_doctype],
 		["Communication Link", "link_name", "=", deleted_participant.reference_docname]
-	], fields=["name"])
+	]
+
+	comms = frappe.get_list("Communication", filters=filters, fields=["name"])
 
 	if comms:
 		deletion = []
@@ -139,8 +140,10 @@ def send_event_digest():
 def get_events(start, end, user=None, for_reminder=False, filters=None):
 	if not user:
 		user = frappe.session.user
+
 	if isinstance(filters, string_types):
 		filters = json.loads(filters)
+
 	events = frappe.db.sql("""select `name`, subject, description, color,
 		starts_on, ends_on, owner, all_day, event_type, repeat_this_event, repeat_on,repeat_till,
 		monday, tuesday, wednesday, thursday, friday, saturday, sunday
@@ -190,24 +193,27 @@ def get_events(start, end, user=None, for_reminder=False, filters=None):
 				e.ends_on = get_datetime_str(e.ends_on)
 
 			event_start, time_str = get_datetime_str(e.starts_on).split(" ")
-			if cstr(e.repeat_till) == "":
-				repeat = "3000-01-01"
-			else:
-				repeat = e.repeat_till
-			if e.repeat_on=="Every Year":
+
+			repeat = "3000-01-01" if cstr(e.repeat_till) == "" else e.repeat_till
+
+			if e.repeat_on == "Yearly":
 				start_year = cint(start.split("-")[0])
 				end_year = cint(end.split("-")[0])
+
+				# creates a string with date (27) and month (07) eg: 07-27
 				event_start = "-".join(event_start.split("-")[1:])
 
 				# repeat for all years in period
 				for year in range(start_year, end_year+1):
 					date = str(year) + "-" + event_start
 					if getdate(date) >= getdate(start) and getdate(date) <= getdate(end) and getdate(date) <= getdate(repeat):
+
 						add_event(e, date)
 
 				remove_events.append(e)
 
-			if e.repeat_on=="Every Month":
+			if e.repeat_on=="Monthly":
+				# creates a string with date (27) and month (07) and year (2019) eg: 2019-07-27
 				date = start.split("-")[0] + "-" + start.split("-")[1] + "-" + event_start.split("-")[2]
 
 				# last day of month issue, start from prev month!
@@ -221,12 +227,13 @@ def get_events(start, end, user=None, for_reminder=False, filters=None):
 				for i in range(int(date_diff(end, start) / 30) + 3):
 					if getdate(date) >= getdate(start) and getdate(date) <= getdate(end) \
 						and getdate(date) <= getdate(repeat) and getdate(date) >= getdate(event_start):
+
 						add_event(e, date)
 					date = add_months(start_from, i+1)
 
 				remove_events.append(e)
 
-			if e.repeat_on=="Every Week":
+			if e.repeat_on=="Weekly":
 				weekday = getdate(event_start).weekday()
 				# monday is 0
 				start_weekday = getdate(start).weekday()
@@ -236,19 +243,21 @@ def get_events(start, end, user=None, for_reminder=False, filters=None):
 
 				for cnt in range(int(date_diff(end, start) / 7) + 3):
 					if getdate(date) >= getdate(start) and getdate(date) <= getdate(end) \
-						and getdate(date) <= getdate(repeat) and getdate(date) >= getdate(event_start):
-						add_event(e, date)
+						and getdate(date) <= getdate(repeat) and getdate(date) >= getdate(event_start) and e[weekdays[getdate(date).weekday()]]:
 
+						add_event(e, date)
 					date = add_days(date, 7)
 
 				remove_events.append(e)
 
-			if e.repeat_on=="Every Day":
+			if e.repeat_on=="Daily":
+
 				for cnt in range(date_diff(end, start) + 1):
 					date = add_days(start, cnt)
-					if getdate(date) >= getdate(event_start) and getdate(date) <= getdate(end) \
-						and getdate(date) <= getdate(repeat) and e[weekdays[getdate(date).weekday()]]:
+					if getdate(date) >= getdate(event_start) and getdate(date) <= getdate(end) and getdate(date) <= getdate(repeat):
+
 						add_event(e, date)
+
 				remove_events.append(e)
 
 	for e in remove_events:
