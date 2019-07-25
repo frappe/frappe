@@ -617,7 +617,7 @@ class FilterArea {
 					options = options.join("\n");
 				}
 			}
-			let default_value = fieldtype === 'Link' ? frappe.defaults.get_user_default(options) : null
+			let default_value = fieldtype === 'Link' ? frappe.defaults.get_user_default(options) : null;
 			return {
 				fieldtype: fieldtype,
 				label: __(df.label),
