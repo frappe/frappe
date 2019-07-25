@@ -62,7 +62,7 @@ def popen(command, *args, **kwargs):
 
 	return_ = proc.wait()
 
-	if raise_err:
+	if return_ and raise_err:
 		raise subprocess.CalledProcessError(return_, command)
 
 	return return_
