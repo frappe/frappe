@@ -6,6 +6,7 @@ from __future__ import unicode_literals
 import frappe
 import unittest
 import json
+from time import sleep
 from frappe.website.doctype.personal_data_download_request.personal_data_download_request import get_user_data
 
 
@@ -23,11 +24,13 @@ class TestRequestPersonalData(unittest.TestCase):
 		frappe.set_user('test_privacy@example.com')
 		download_request = frappe.get_doc({"doctype": 'Personal Data Download Request', 'user': 'test_privacy@example.com'})
 		download_request.save(ignore_permissions=True)
+		sleep(1)
 		frappe.set_user('Administrator')
 
-		f = frappe.get_all('File',
-			{'attached_to_doctype':'Personal Data Download Request', 'attached_to_name': download_request.name},
-			['*'])
+		f = frappe.get_all('File', {
+				'attached_to_doctype':'Personal Data Download Request',
+				'attached_to_name': download_request.name
+			}, ['*'])
 		self.assertEqual(len(f), 1)
 
 		email_queue = frappe.db.sql("""SELECT *
