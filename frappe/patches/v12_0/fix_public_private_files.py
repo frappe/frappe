@@ -23,8 +23,8 @@ def generate_file(file_name):
 		new_doc.is_private = file_doc.is_private
 		new_doc.file_name = file_doc.file_name
 		# to create copy of file in right location
-		# if the file doc is private file will be created in /private folder
-		# if the file doc is public file will be created in /files folder
+		# if the file doc is private then the file will be created in /private folder
+		# if the file doc is public then the file will be created in /files folder
 		new_doc.save_file(content=file_doc.get_content(), ignore_existing_file_check=True)
 
 		file_doc.file_url = new_doc.file_url
