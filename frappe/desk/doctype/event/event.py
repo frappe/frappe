@@ -22,14 +22,12 @@ class Event(Document):
 		if not self.starts_on:
 			self.starts_on = now_datetime()
 
-		if self.starts_on and self.ends_on and get_datetime(self.starts_on) > get_datetime(self.ends_on):
-			frappe.throw(_("Event's End On cannot be before Start On."))
+		self.validate_from_to_dates("starts_on", "ends_on")
 
-		if self.starts_on == self.ends_on:
-			# this scenario doesn't make sense i.e. it starts and ends at the same second!
-			self.ends_on = None
+		# if start == end this scenario doesn't make sense i.e. it starts and ends at the same second!
+		self.ends_on = None if self.starts_on == self.ends_on else self.ends_on
 
-		if getdate(self.starts_on) != getdate(self.ends_on) and self.repeat_on == "Daily":
+		if self.repeat_on == "Daily" and getdate(self.starts_on) != getdate(self.ends_on):
 			frappe.throw(_("Daily Events should finish on the Same Day."))
 
 	def on_update(self):
@@ -62,9 +60,9 @@ class Event(Document):
 						self.create_communication(participant)
 
 	def create_communication(self, participant):
-			communication = frappe.new_doc("Communication")
-			self.update_communication(participant, communication)
-			self.communication = communication.name
+		communication = frappe.new_doc("Communication")
+		self.update_communication(participant, communication)
+		self.communication = communication.name
 
 	def update_communication(self, participant, communication):
 		communication.communication_medium = "Event"
@@ -115,7 +113,6 @@ def has_permission(doc, user):
 		return True
 
 	return False
-
 
 def send_event_digest():
 	today = nowdate()
@@ -216,16 +213,16 @@ def get_events(start, end, user=None, for_reminder=False, filters=None):
 
 		enddate = add_days(date,int(date_diff(e.ends_on.split(" ")[0], e.starts_on.split(" ")[0]))) \
 			if (e.starts_on and e.ends_on) else date
+
 		new_event.starts_on = date + " " + e.starts_on.split(" ")[1]
-		if e.ends_on:
-			new_event.ends_on = enddate + " " + e.ends_on.split(" ")[1]
+		new_event.ends_on = new_event.ends_on = enddate + " " + e.ends_on.split(" ")[1] if e.ends_on else None
+
 		add_events.append(new_event)
 
 	for e in events:
 		if e.repeat_this_event:
 			e.starts_on = get_datetime_str(e.starts_on)
-			if e.ends_on:
-				e.ends_on = get_datetime_str(e.ends_on)
+			e.ends_on = get_datetime_str(e.ends_on) if e.ends_on else None
 
 			event_start, time_str = get_datetime_str(e.starts_on).split(" ")
 
@@ -242,12 +239,11 @@ def get_events(start, end, user=None, for_reminder=False, filters=None):
 				for year in range(start_year, end_year+1):
 					date = str(year) + "-" + event_start
 					if getdate(date) >= getdate(start) and getdate(date) <= getdate(end) and getdate(date) <= getdate(repeat):
-
 						add_event(e, date)
 
 				remove_events.append(e)
 
-			if e.repeat_on=="Monthly":
+			if e.repeat_on == "Monthly":
 				# creates a string with date (27) and month (07) and year (2019) eg: 2019-07-27
 				date = start.split("-")[0] + "-" + start.split("-")[1] + "-" + event_start.split("-")[2]
 
@@ -262,35 +258,25 @@ def get_events(start, end, user=None, for_reminder=False, filters=None):
 				for i in range(int(date_diff(end, start) / 30) + 3):
 					if getdate(date) >= getdate(start) and getdate(date) <= getdate(end) \
 						and getdate(date) <= getdate(repeat) and getdate(date) >= getdate(event_start):
-
 						add_event(e, date)
+
 					date = add_months(start_from, i+1)
-
 				remove_events.append(e)
 
-			if e.repeat_on=="Weekly":
-				weekday = getdate(event_start).weekday()
-				# monday is 0
-				start_weekday = getdate(start).weekday()
-
-				# start from nearest weeday after last monday
-				date = add_days(start, weekday - start_weekday)
-
-				for cnt in range(int(date_diff(end, start) / 7) + 3):
+			if e.repeat_on == "Weekly":
+				for cnt in range(date_diff(end, start) + 1):
+					date = add_days(start, cnt)
 					if getdate(date) >= getdate(start) and getdate(date) <= getdate(end) \
-						and getdate(date) <= getdate(repeat) and getdate(date) >= getdate(event_start) and e[weekdays[getdate(date).weekday()]]:
-
+						and getdate(date) <= getdate(repeat) and getdate(date) >= getdate(event_start) \
+						and e[weekdays[getdate(date).weekday()]]:
 						add_event(e, date)
-					date = add_days(date, 7)
 
 				remove_events.append(e)
 
-			if e.repeat_on=="Daily":
-
+			if e.repeat_on == "Daily":
 				for cnt in range(date_diff(end, start) + 1):
 					date = add_days(start, cnt)
 					if getdate(date) >= getdate(event_start) and getdate(date) <= getdate(end) and getdate(date) <= getdate(repeat):
-
 						add_event(e, date)
 
 				remove_events.append(e)
