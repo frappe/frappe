@@ -33,9 +33,15 @@
 		{% for row in data %}
 		<tr>
 			{% for col in columns %}
-			<td {{- get_alignment(col) }}>
-				{{- frappe.format(row[col.fieldname], col, row) -}}
-			</td>
+				{% if row[col.fieldname] == 'Total' %}
+					<td {{- get_alignment(col) }}> 
+						{{- row[col.fieldname] -}}
+					</td>
+				{% else %}
+					<td {{- get_alignment(col) }}> 
+						{{- frappe.format(row[col.fieldname], col, row) -}}
+					</td>
+				{% endif %}
 			{% endfor %}
 		</td>
 		{% endfor %}
