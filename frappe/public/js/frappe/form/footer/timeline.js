@@ -424,6 +424,7 @@ frappe.ui.form.Timeline = class Timeline {
 				c.content_html = frappe.markdown(__(c.content));
 			} else {
 				c.content_html = c.content;
+				c.content_html = c.content_html.replace("href", " target='_blank' href");
 				c.content_html = frappe.utils.strip_whitespace(c.content_html);
 			}
 
