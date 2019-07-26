@@ -59,6 +59,9 @@ Object.assign(frappe.utils, {
 	strip_whitespace: function(html) {
 		return (html || "").replace(/<p>\s*<\/p>/g, "").replace(/<br>(\s*<br>\s*)+/g, "<br><br>");
 	},
+	change_url_target: function(html){
+		return html.replace("href", " target='_blank' href");
+	},
 	encode_tags: function(html) {
 		var tagsToReplace = {
 			'&': '&amp;',
