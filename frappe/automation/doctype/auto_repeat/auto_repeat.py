@@ -326,7 +326,9 @@ def set_auto_repeat_as_completed():
 			doc.save()
 
 @frappe.whitelist()
-def make_auto_repeat(doctype, docname, frequency = 'Daily', start_date = today(), end_date = None):
+def make_auto_repeat(doctype, docname, frequency = 'Daily', start_date = None, end_date = None):
+	if not start_date:
+		start_date = getdate(today())
 	doc = frappe.new_doc('Auto Repeat')
 	doc.reference_doctype = doctype
 	doc.reference_document = docname
