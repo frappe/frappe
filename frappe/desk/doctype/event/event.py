@@ -22,7 +22,8 @@ class Event(Document):
 		if not self.starts_on:
 			self.starts_on = now_datetime()
 
-		self.validate_from_to_dates("starts_on", "ends_on")
+		if self.starts_on and self.ends_on:
+			self.validate_from_to_dates("starts_on", "ends_on")
 
 		# if start == end this scenario doesn't make sense i.e. it starts and ends at the same second!
 		self.ends_on = None if self.starts_on == self.ends_on else self.ends_on
