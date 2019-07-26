@@ -473,7 +473,7 @@ class File(NestedSet):
 		return None
 
 
-	def save_file(self, content=None, decode=False):
+	def save_file(self, content=None, decode=False, ignore_existing_file_check=False):
 		file_exists = False
 		self.content = content
 		if decode:
@@ -490,12 +490,15 @@ class File(NestedSet):
 		self.content_hash = get_content_hash(self.content)
 		self.content_type = mimetypes.guess_type(self.file_name)[0]
 
+		_file = False
+
 		# check if a file exists with the same content hash and is also in the same folder (public or private)
-		_file = frappe.get_value("File", {
-				"content_hash": self.content_hash,
-				"is_private": self.is_private
-			},
-			["file_url"])
+		if not ignore_existing_file_check:
+			_file = frappe.get_value("File", {
+					"content_hash": self.content_hash,
+					"is_private": self.is_private
+				},
+				["file_url"])
 
 		if _file:
 			self.file_url  = _file
