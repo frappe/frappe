@@ -154,7 +154,7 @@ export default class WebFormList {
 		add_heading(row, "Sr.");
 		this.columns.forEach(col => {
 			let th = document.createElement("th");
-			let text = document.createTextNode(col.label);
+			let text = document.createTextNode(__(col.label));
 			th.appendChild(text);
 			row.appendChild(th);
 		});
