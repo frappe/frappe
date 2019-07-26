@@ -598,7 +598,6 @@ class FilterArea {
 		}
 
 		const doctype_fields = this.list_view.meta.fields;
-
 		fields = fields.concat(doctype_fields.filter(
 			df => df.in_standard_filter &&
 				frappe.model.is_value_type(df.fieldtype)
@@ -617,12 +616,17 @@ class FilterArea {
 					options = options.join("\n");
 				}
 			}
+			let default_value = (fieldtype === 'Link') ? frappe.defaults.get_user_default(options) : null;
+			if (['__default', '__global'].includes(default_value)) {
+				default_value = null;
+			}
 			return {
 				fieldtype: fieldtype,
 				label: __(df.label),
 				options: options,
 				fieldname: df.fieldname,
 				condition: condition,
+				default: default_value,
 				onchange: () => this.refresh_list_view(),
 				ignore_link_validation: fieldtype === 'Dynamic Link'
 			};
