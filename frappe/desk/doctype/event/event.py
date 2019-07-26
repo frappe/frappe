@@ -19,6 +19,9 @@ communication_mapping = {"": "Event", "Event": "Event", "Meeting": "Meeting", "C
 
 class Event(Document):
 	def validate(self):
+		if not self.starts_on:
+			self.starts_on = now_datetime()
+
 		if self.starts_on and self.ends_on and get_datetime(self.starts_on) > get_datetime(self.ends_on):
 			frappe.throw(_("Event's End On cannot be before Start On."))
 

@@ -39,7 +39,7 @@ class TestGlobalSearch(unittest.TestCase):
 			frappe.get_doc(dict(
 				doctype='Event',
 				subject=text,
-				repeat_on='Every Month',
+				repeat_on='Monthly',
 				starts_on=frappe.utils.now_datetime())).insert()
 
 		global_search.sync_global_search()
@@ -70,13 +70,13 @@ class TestGlobalSearch(unittest.TestCase):
 
 	def test_update_fields(self):
 		self.insert_test_events()
-		results = global_search.search('Every Month')
+		results = global_search.search('Monthly')
 		self.assertEqual(len(results), 0)
 		doctype = "Event"
 		from frappe.custom.doctype.property_setter.property_setter import make_property_setter
 		make_property_setter(doctype, "repeat_on", "in_global_search", 1, "Int")
 		global_search.rebuild_for_doctype(doctype)
-		results = global_search.search('Every Month')
+		results = global_search.search('Monthly')
 		self.assertEqual(len(results), 3)
 
 	def test_delete_doc(self):
