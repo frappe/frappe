@@ -45,7 +45,7 @@ def get(chart_name, from_date=None, to_date=None, refresh = None):
 	'''.format(
 		unit_function = get_unit_function(chart.based_on, timegrain),
 		datefield = chart.based_on,
-		aggregate_function = chart.chart_type,
+		aggregate_function = get_aggregate_function(chart.chart_type),
 		value_field = chart.value_based_on or '1',
 		doctype = chart.document_type,
 		conditions = conditions,
@@ -66,6 +66,13 @@ def get(chart_name, from_date=None, to_date=None, refresh = None):
 			"values": [r[1] for r in result]
 		}]
 	}
+
+def get_aggregate_function(chart_type):
+	return {
+		"Sum": "SUM",
+		"Count": "COUNT",
+		"Average": "AVG"
+	}[chart_type]
 
 def convert_to_dates(data, timegrain):
 	result = []
