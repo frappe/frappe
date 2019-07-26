@@ -10,7 +10,7 @@ export default function make_datatable(container, doctype) {
 			<thead>
 				<tr>
 					<th><input type="checkbox" class="select-all pull-left"></th>
-					<th>Sr</th>
+					<th>${__('Sr')}</th>
 				</tr>
 			</thead>
 			<tbody></tbody>
@@ -18,7 +18,7 @@ export default function make_datatable(container, doctype) {
 		let headrow = table.find('thead tr');
 		for (let i=0; i<docfields.length; i++) {
 			let df = docfields[i];
-			$(`<th>${df.label}</th>`).appendTo(headrow);
+			$(`<th>${__(df.label)}</th>`).appendTo(headrow);
 			colnames.push(df.fieldname);
 		}
 

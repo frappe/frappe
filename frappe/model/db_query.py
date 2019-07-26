@@ -234,6 +234,9 @@ class DatabaseQuery(object):
 
 			_is_query(field)
 
+			invalid_characters_regex = r".*[^a-zA-Z0-9-_ ,`'\"\*\.\(\)].*"
+			if re.match(invalid_characters_regex, field):
+				frappe.throw(_("Illegal characters in SQL query"))
 
 	def extract_tables(self):
 		"""extract tables from fields"""
@@ -635,6 +638,9 @@ class DatabaseQuery(object):
 		if 'select' in _lower and ' from ' in _lower:
 			frappe.throw(_('Cannot use sub-query in order by'))
 
+		invalid_characters_regex = r".*[^a-z0-9-_ ,`'\"\.\(\)].*"
+		if re.match(invalid_characters_regex, _lower):
+			frappe.throw(_("Illegal characters in SQL query"))
 
 		for field in parameters.split(","):
 			if "." in field and field.strip().startswith("`tab"):
