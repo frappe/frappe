@@ -33,7 +33,7 @@ class AutoRepeat(Document):
 	def before_insert(self):
 		if not frappe.flags.in_test:
 			start_date = self.start_date
-			today_date = today()
+			today_date = getdate(today())
 			if start_date <= today_date:
 				start_date = today_date
 
