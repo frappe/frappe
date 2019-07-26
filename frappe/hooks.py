@@ -80,6 +80,8 @@ on_session_creation = [
 	"frappe.utils.scheduler.reset_enabled_scheduler_events",
 ]
 
+on_logout = "frappe.core.doctype.session_default_settings.session_default_settings.clear_session_defaults"
+
 # permissions
 
 permission_query_conditions = {
