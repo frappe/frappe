@@ -277,7 +277,8 @@ def get_events(doc, method=None, page_length=10):
 		# 		"thursday": event.get("thursday"),
 		# 		"friday": event.get("friday"),
 		# 		"saturday": event.get("saturday"),
-		# 		"google_calendar_id": event.get("id")
+		# 		"google_calendar_id": account.google_calendar_id,
+		# 		"google_event_id": event.get("id"),
 		# 	}).insert(ignore_permissions=True)
 
 def insert_events(doc, method=None):
