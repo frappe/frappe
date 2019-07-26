@@ -61,7 +61,8 @@ class AutoRepeat(Document):
 				frappe.throw(_("Enable Allow Auto Repeat for the doctype {0} in Customize Form").format(self.reference_doctype))
 
 	def validate_dates(self):
-		self.validate_from_to_dates('start_date', 'end_date')
+		if self.end_date:
+			self.validate_from_to_dates('start_date', 'end_date')
 
 		if self.end_date == self.start_date:
 			frappe.throw(_('{0} should not be same as {1}').format(frappe.bold('End Date'), frappe.bold('Start Date')))
