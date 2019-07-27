@@ -111,7 +111,7 @@
    "fieldtype": "Select",
    "in_global_search": 1,
    "label": "Repeat On",
-   "options": "\nEvery Day\nEvery Week\nEvery Month\nEvery Year"
+   "options": "\nDaily\nWeekly\nMonthly\nYearly"
   },
   {
    "depends_on": "repeat_this_event",
@@ -126,49 +126,49 @@
   },
   {
    "default": "0",
-   "depends_on": "eval:doc.repeat_this_event && doc.repeat_on===\"Every Day\"",
+   "depends_on": "eval:doc.repeat_this_event && doc.repeat_on===\"Weekly\"",
    "fieldname": "monday",
    "fieldtype": "Check",
    "label": "Monday"
   },
   {
    "default": "0",
-   "depends_on": "eval:doc.repeat_this_event && doc.repeat_on===\"Every Day\"",
+   "depends_on": "eval:doc.repeat_this_event && doc.repeat_on===\"Weekly\"",
    "fieldname": "tuesday",
    "fieldtype": "Check",
    "label": "Tuesday"
   },
   {
    "default": "0",
-   "depends_on": "eval:doc.repeat_this_event && doc.repeat_on===\"Every Day\"",
+   "depends_on": "eval:doc.repeat_this_event && doc.repeat_on===\"Weekly\"",
    "fieldname": "wednesday",
    "fieldtype": "Check",
    "label": "Wednesday"
   },
   {
    "default": "0",
-   "depends_on": "eval:doc.repeat_this_event && doc.repeat_on===\"Every Day\"",
+   "depends_on": "eval:doc.repeat_this_event && doc.repeat_on===\"Weekly\"",
    "fieldname": "thursday",
    "fieldtype": "Check",
    "label": "Thursday"
   },
   {
    "default": "0",
-   "depends_on": "eval:doc.repeat_this_event && doc.repeat_on===\"Every Day\"",
+   "depends_on": "eval:doc.repeat_this_event && doc.repeat_on===\"Weekly\"",
    "fieldname": "friday",
    "fieldtype": "Check",
    "label": "Friday"
   },
   {
    "default": "0",
-   "depends_on": "eval:doc.repeat_this_event && doc.repeat_on===\"Every Day\"",
+   "depends_on": "eval:doc.repeat_this_event && doc.repeat_on===\"Weekly\"",
    "fieldname": "saturday",
    "fieldtype": "Check",
    "label": "Saturday"
   },
   {
    "default": "0",
-   "depends_on": "eval:doc.repeat_this_event && doc.repeat_on===\"Every Day\"",
+   "depends_on": "eval:doc.repeat_this_event && doc.repeat_on===\"Weekly\"",
    "fieldname": "sunday",
    "fieldtype": "Check",
    "label": "Sunday"
@@ -220,7 +220,7 @@
  ],
  "icon": "fa fa-calendar",
  "idx": 1,
- "modified": "2019-07-27 11:12:03.573491",
+ "modified": "2019-07-27 12:28:43.144932",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Event",
