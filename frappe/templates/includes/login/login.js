@@ -272,11 +272,11 @@ var request_otp = function(r){
 	$('.login-content').empty().append($('<div>').attr({'id':'twofactor_div'}).html(
 		'<form class="form-verify">\
 			<div class="page-card-head">\
-				<span class="indicator blue" data-text="Verification">Verification</span>\
+				<span class="indicator blue" data-text="Verification">{{ _("Verification") }}</span>\
 			</div>\
 			<div id="otp_div"></div>\
-			<input type="text" id="login_token" autocomplete="off" class="form-control" placeholder="Verification Code" required="" autofocus="">\
-			<button class="btn btn-sm btn-primary btn-block" id="verify_token">Verify</button>\
+			<input type="text" id="login_token" autocomplete="off" class="form-control" placeholder={{ _("Verification Code") }} required="" autofocus="">\
+			<button class="btn btn-sm btn-primary btn-block" id="verify_token">{{ _("Verify") }}</button>\
 		</form>'));
 	// add event handler for submit button
 	verify_token();
@@ -287,11 +287,11 @@ var continue_otp_app = function(setup, qrcode){
 	var qrcode_div = $('<div class="text-muted" style="padding-bottom: 15px;"></div>');
 
 	if (setup){
-		direction = $('<div>').attr('id','qr_info').text('Enter Code displayed in OTP App.');
+		direction = $('<div>').attr('id','qr_info').text(_('Enter Code displayed in OTP App.'));
 		qrcode_div.append(direction);
 		$('#otp_div').prepend(qrcode_div);
 	} else {
-		direction = $('<div>').attr('id','qr_info').text('OTP setup using OTP App was not completed. Please contact Administrator.');
+		direction = $('<div>').attr('id','qr_info').text(_('OTP setup using OTP App was not completed. Please contact Administrator.'));
 		qrcode_div.append(direction);
 		$('#otp_div').prepend(qrcode_div);
 	}
@@ -305,7 +305,7 @@ var continue_sms = function(setup, prompt){
 		sms_div.append(prompt)
 		$('#otp_div').prepend(sms_div);
 	} else {
-		direction = $('<div>').attr('id','qr_info').text(prompt || 'SMS was not sent. Please contact Administrator.');
+		direction = $('<div>').attr('id','qr_info').text(prompt || _('SMS was not sent. Please contact Administrator.'));
 		sms_div.append(direction);
 		$('#otp_div').prepend(sms_div)
 	}
@@ -319,7 +319,7 @@ var continue_email = function(setup, prompt){
 		email_div.append(prompt)
 		$('#otp_div').prepend(email_div);
 	} else {
-		var direction = $('<div>').attr('id','qr_info').text(prompt || 'Verification code email not sent. Please contact Administrator.');
+		var direction = $('<div>').attr('id','qr_info').text(prompt || _('Verification code email not sent. Please contact Administrator.'));
 		email_div.append(direction);
 		$('#otp_div').prepend(email_div);
 	}
