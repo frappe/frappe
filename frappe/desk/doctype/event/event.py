@@ -28,7 +28,7 @@ class Event(Document):
 		if self.starts_on and self.ends_on:
 			self.validate_from_to_dates("starts_on", "ends_on")
 
-		if self.repeat_on == "Daily" and getdate(self.starts_on) != getdate(self.ends_on):
+		if self.repeat_on == "Daily" and self.ends_on and getdate(self.starts_on) != getdate(self.ends_on):
 			frappe.throw(_("Daily Events should finish on the Same Day."))
 
 	def on_update(self):
@@ -194,6 +194,7 @@ def get_events(start, end, user=None, for_reminder=False, filters=None):
 						AND `tabDocShare`.user=%(user)s
 				)
 			)
+		AND `tabEvent`.status='Open'
 		ORDER BY `tabEvent`.starts_on""".format(
 			filter_condition=get_filters_cond('Event', filters, []),
 			reminder_condition="AND coalesce(`tabEvent`.send_reminder, 0)=1" if for_reminder else ""
