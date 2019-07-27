@@ -309,3 +309,12 @@ def delete_events(ref_type, ref_name, delete_event=False):
 					frappe.db.sql("DELETE FROM `tabEvent` WHERE `name` = %(name)s", {'name': participation.parent})
 
 				frappe.db.sql("DELETE FROM `tabEvent Participants ` WHERE `name` = %(name)s", {'name': participation.name})
+
+# Close events if ends_on or repeat_till is less than now_datetime
+def set_status_of_events():
+	events = frappe.get_list("Event", filters={"status": "Open"}, fields=["name", "ends_on", "repeat_till"])
+	for event in events:
+		if (event.ends_on and getdate(event.ends_on) < getdate(nowdate())) \
+			or (event.repeat_till and getdate(event.repeat_till) < getdate(nowdate())):
+
+			frappe.db.set_value("Event", event.name, "status", "Closed")
