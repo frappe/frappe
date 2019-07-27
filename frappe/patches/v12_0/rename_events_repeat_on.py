@@ -12,10 +12,7 @@ def execute():
 	frappe.reload_doc("desk", "doctype", "event")
 
 	for daily_event in daily_events:
-		"""
-			Initially Daily Events had option to choose days, but now Weekly does,
-			so just changing from Daily -> Weekly does the job
-		"""
+		# Initially Daily Events had option to choose days, but now Weekly does, so just changing from Daily -> Weekly does the job
 		frappe.db.set_value("Event", daily_event.name, "repeat_on", "Weekly")
 
 	for weekly_event in weekly_events:
