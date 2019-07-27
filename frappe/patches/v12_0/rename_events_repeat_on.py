@@ -19,9 +19,7 @@ def execute():
 		frappe.db.set_value("Event", daily_event.name, "repeat_on", "Weekly")
 
 	for weekly_event in weekly_events:
-		"""
-			Set WeekDay based on the starts_on so that event can repeat Weekly
-		"""
+		# Set WeekDay based on the starts_on so that event can repeat Weekly
 		frappe.db.set_value("Event", weekly_event.name, "repeat_on", "Weekly")
 		frappe.db.set_value("Event", weekly_event.name, weekdays[get_datetime(weekly_event.starts_on).weekday()], 1)
 
