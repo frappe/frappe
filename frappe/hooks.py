@@ -143,9 +143,9 @@ doc_events = {
 		"validate": "frappe.email.doctype.email_group.email_group.restrict_email_group"
 	},
 	"Event": {
-		"after_insert": "frappe.integrations.doctype.google_calendar.google_calendar.insert_events",
-		"on_update": "frappe.integrations.doctype.google_calendar.google_calendar.update_events",
-		"on_trash": "frappe.integrations.doctype.google_calendar.google_calendar.delete_events",
+		"after_insert": "frappe.integrations.doctype.google_calendar.google_calendar.google_calendar_get_events",
+		"on_update": "frappe.integrations.doctype.google_calendar.google_calendar.google_calendar_update_events",
+		"on_trash": "frappe.integrations.doctype.google_calendar.google_calendar.google_calendar_delete_events",
 	}
 }
 
