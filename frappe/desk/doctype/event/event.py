@@ -22,11 +22,11 @@ class Event(Document):
 		if not self.starts_on:
 			self.starts_on = now_datetime()
 
-		if self.starts_on and self.ends_on:
-			self.validate_from_to_dates("starts_on", "ends_on")
-
 		# if start == end this scenario doesn't make sense i.e. it starts and ends at the same second!
 		self.ends_on = None if self.starts_on == self.ends_on else self.ends_on
+
+		if self.starts_on and self.ends_on:
+			self.validate_from_to_dates("starts_on", "ends_on")
 
 		if self.repeat_on == "Daily" and getdate(self.starts_on) != getdate(self.ends_on):
 			frappe.throw(_("Daily Events should finish on the Same Day."))
