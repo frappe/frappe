@@ -300,6 +300,10 @@ frappe.ui.form.MultiSelectDialog = Class.extend({
 						return a.parsed_date - b.parsed_date;
 					});
 
+					// Preselect oldest entry
+					if (me.start < 1 && r.values.length === 1) {
+						results[0].checked = 1;
+					}
 				}
 				me.render_result_list(results, more);
 			}
