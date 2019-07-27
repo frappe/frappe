@@ -13,11 +13,13 @@
   "reference_document",
   "private_file_section",
   "file_type",
-  "action",
+  "method",
   "report_information_section",
   "report_name",
   "filters",
-  "page"
+  "raw_information_log_section",
+  "page",
+  "data_snapshot"
  ],
  "fields": [
   {
@@ -25,51 +27,54 @@
    "fieldtype": "Link",
    "in_list_view": 1,
    "label": "Export From",
-   "options": "DocType"
+   "options": "DocType",
+   "read_only": 1
   },
   {
    "fieldname": "user",
    "fieldtype": "Link",
    "label": "User ",
-   "options": "User"
+   "options": "User",
+   "read_only": 1
   },
   {
    "default": "Now",
    "fieldname": "timestamp",
    "fieldtype": "Datetime",
-   "label": "Timestamp"
+   "label": "Timestamp",
+   "read_only": 1
   },
   {
    "fieldname": "reference_document",
    "fieldtype": "Dynamic Link",
    "in_list_view": 1,
    "label": "Reference Document",
-   "options": "export_from"
-  },
-  {
-   "fieldname": "action",
-   "fieldtype": "Data",
-   "label": "Action"
+   "options": "export_from",
+   "read_only": 1
   },
   {
    "fieldname": "file_type",
    "fieldtype": "Data",
-   "label": "File Type"
+   "label": "File Type",
+   "read_only": 1
   },
   {
    "fieldname": "filters",
    "fieldtype": "Data",
-   "label": "Filters"
+   "label": "Filters",
+   "read_only": 1
   },
   {
    "fieldname": "report_name",
    "fieldtype": "Data",
-   "label": "Report Name"
+   "label": "Report Name",
+   "read_only": 1
   },
   {
    "fieldname": "page",
    "fieldtype": "HTML Editor",
-   "label": "HTML Page"
+   "label": "HTML Page",
+   "read_only": 1
   },
   {
    "fieldname": "log_data_section",
@@ -89,9 +94,26 @@
    "fieldname": "report_information_section",
    "fieldtype": "Section Break",
    "label": "Report Information"
+  },
+  {
+   "fieldname": "raw_information_log_section",
+   "fieldtype": "Section Break",
+   "label": "RAW Information Log"
+  },
+  {
+   "fieldname": "data_snapshot",
+   "fieldtype": "Long Text",
+   "label": "Data Snapshot",
+   "read_only": 1
+  },
+  {
+   "fieldname": "method",
+   "fieldtype": "Data",
+   "label": "Method",
+   "read_only": 1
   }
  ],
- "modified": "2019-07-26 18:30:58.232733",
+ "modified": "2019-07-28 03:53:49.921539",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Access Log",
@@ -113,7 +135,6 @@
  "quick_entry": 1,
  "sort_field": "modified",
  "sort_order": "DESC",
- "track_changes": 1,
  "track_seen": 1,
  "track_views": 1
 }
