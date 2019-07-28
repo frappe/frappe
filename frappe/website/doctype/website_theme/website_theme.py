@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 import frappe
 from frappe import _
 from frappe.model.document import Document
+from os.path import join as join_path, exists as path_exists
 
 class WebsiteTheme(Document):
 	def validate(self):
@@ -55,7 +56,6 @@ class WebsiteTheme(Document):
 
 	def generate_bootstrap_theme(self):
 		from subprocess import Popen, PIPE
-		from os.path import join as join_path
 
 		file_name = frappe.scrub(self.name) + '_' + frappe.generate_hash('Website Theme', 8) + '.css'
 		output_path = join_path(frappe.utils.get_bench_path(), 'sites', 'assets', 'css', file_name)
@@ -76,15 +76,17 @@ class WebsiteTheme(Document):
 
 		frappe.msgprint(_('Compiled Successfully'), alert=True)
 
-	def use_theme(self):
-		use_theme(self.name)
+	def generate_theme_if_not_exist(self):
+		bench_path = frappe.utils.get_bench_path()
+		theme_path = join_path(bench_path, 'sites', self.theme_url[1:])
+		if not path_exists(theme_path):
+			self.generate_bootstrap_theme()
 
-@frappe.whitelist()
-def use_theme(theme):
-	website_settings = frappe.get_doc("Website Settings", "Website Settings")
-	website_settings.website_theme = theme
-	website_settings.ignore_validate = True
-	website_settings.save()
+	def set_as_default(self):
+		website_settings = frappe.get_doc('Website Settings')
+		website_settings.website_theme = self.name
+		website_settings.ignore_validate = True
+		website_settings.save()
 
 def add_website_theme(context):
 	context.theme = frappe._dict()
@@ -99,4 +101,15 @@ def get_active_theme():
 		try:
 			return frappe.get_doc("Website Theme", website_theme)
 		except frappe.DoesNotExistError:
+			pass
+
+def generate_theme_files_if_not_exist():
+	print('Generating Website Theme Files...')
+	themes = frappe.get_all('Website Theme')
+	for theme in themes:
+		doc = frappe.get_doc('Website Theme', theme.name)
+		try:
+			doc.generate_theme_if_not_exist()
+			doc.save()
+		except Exception:
 			pass

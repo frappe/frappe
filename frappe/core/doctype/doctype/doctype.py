@@ -13,6 +13,7 @@ from frappe.utils import now, cint
 from frappe.model import no_value_fields, default_fields, data_fieldtypes, table_fields
 from frappe.model.document import Document
 from frappe.custom.doctype.property_setter.property_setter import make_property_setter
+from frappe.custom.doctype.custom_field.custom_field import create_custom_field
 from frappe.desk.notifications import delete_notification_count_for
 from frappe.modules import make_boilerplate, get_doc_path
 from frappe.database.schema import validate_column_name, validate_column_length
@@ -47,7 +48,8 @@ class DocType(Document):
 		- Validate series
 		- Check fieldnames (duplication etc)
 		- Clear permission table for child tables
-		- Add `amended_from` and `amended_by` if Amendable"""
+		- Add `amended_from` and `amended_by` if Amendable
+		- Add custom field `auto_repeat` if Repeatable"""
 
 		self.check_developer_mode()
 
@@ -76,6 +78,7 @@ class DocType(Document):
 			validate_permissions(self)
 
 		self.make_amendable()
+		self.make_repeatable()
 		self.validate_website()
 
 		if not self.is_new():
@@ -384,7 +387,7 @@ class DocType(Document):
 					os.path.join(new_path, fname.replace(frappe.scrub(old), frappe.scrub(new)))])
 
 		self.rename_inside_controller(new, old, new_path)
-		frappe.msgprint('Renamed files and replaced code in controllers, please check!')
+		frappe.msgprint(_('Renamed files and replaced code in controllers, please check!'))
 
 	def rename_inside_controller(self, new, old, new_path):
 		for fname in ('{}.js', '{}.py', '{}_list.js', '{}_calendar.js', 'test_{}.py', 'test_{}.js'):
@@ -525,6 +528,14 @@ class DocType(Document):
 						"print_hide": 1,
 						"no_copy": 1
 					})
+
+	def make_repeatable(self):
+		"""If allow_auto_repeat is set, add auto_repeat custom field."""
+		if self.allow_auto_repeat:
+			if not frappe.db.exists('Custom Field', {'fieldname': 'auto_repeat', 'dt': self.name}):
+				insert_after = self.fields[len(self.fields) - 1].fieldname
+				df = dict(fieldname='auto_repeat', label='Auto Repeat', fieldtype='Link', options='Auto Repeat', insert_after=insert_after, read_only=1, no_copy=1, print_hide=1)
+				create_custom_field(self.name, df)
 
 	def get_max_idx(self):
 		"""Returns the highest `idx`"""

@@ -42,6 +42,10 @@ frappe.ui.keys.bind_shortcut_group_event = () => {
 			highlight_alt_shortcuts();
 		}
 
+		if (e.shiftKey || e.ctrlKey || e.metaKey) {
+			return;
+		}
+
 		if (key && e.altKey) {
 			let shortcut = get_shortcut_for_key(key);
 			if (shortcut) {

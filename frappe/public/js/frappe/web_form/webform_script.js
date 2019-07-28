@@ -59,6 +59,7 @@ frappe.ready(function() {
 
 			web_form.prepare(web_form_doc, r.message.doc || {});
 			web_form.make();
+			web_form.set_default_values();
 		})
 
 		function get_data() {

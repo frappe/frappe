@@ -66,15 +66,26 @@ def take_backups_if(freq):
 
 
 @frappe.whitelist()
-def take_backups_s3():
+def take_backups_s3(retry_count=0):
 	try:
 		backup_to_s3()
 		send_email(True, "S3 Backup Settings")
+	except JobTimeoutException:
+		if retry_count < 2:
+			args = {
+				"retry_count" :retry_count + 1
+			}
+			enqueue("frappe.integrations.doctype.s3_backup_settings.s3_backup_settings.take_backups_s3",
+				queue='long', timeout=1500, **args)
+		else:
+			notify()
 	except Exception:
-		error_message = frappe.get_traceback()
-		frappe.errprint(error_message)
-		send_email(False, "S3 Backup Settings", error_message)
+		notify()
 
+def notify():
+	error_message = frappe.get_traceback()
+	frappe.errprint(error_message)
+	send_email(False, "S3 Backup Settings", error_message)
 
 def send_email(success, service_name, error_status=None):
 	if success:
@@ -134,6 +145,7 @@ def upload_file_to_s3(filename, folder, conn, bucket):
 		conn.upload_file(filename, bucket, destpath)
 
 	except Exception as e:
+		frappe.log_error()
 		print("Error uploading: %s" % (e))
 
 

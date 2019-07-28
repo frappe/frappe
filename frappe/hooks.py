@@ -18,8 +18,8 @@ app_email = "info@frappe.io"
 
 docs_app = "frappe_io"
 
-translation_contribution_url = "https://translate.erpnext.xyz/api/method/translator.api.add_translation"
-translation_contribution_status = "https://translate.erpnext.xyz/api/method/translator.api.translation_status"
+translation_contribution_url = "https://translate.erpnext.com/api/method/translator.api.add_translation"
+translation_contribution_status = "https://translate.erpnext.com/api/method/translator.api.translation_status"
 
 before_install = "frappe.utils.install.before_install"
 after_install = "frappe.utils.install.after_install"
@@ -77,6 +77,8 @@ on_session_creation = [
 	"frappe.core.doctype.user.user.notify_admin_access_to_system_manager",
 	"frappe.utils.scheduler.reset_enabled_scheduler_events",
 ]
+
+on_logout = "frappe.core.doctype.session_default_settings.session_default_settings.clear_session_defaults"
 
 # permissions
 
@@ -173,6 +175,8 @@ scheduler_events = {
 		"frappe.desk.form.document_follow.send_daily_updates",
 		"frappe.social.doctype.energy_point_settings.energy_point_settings.allocate_review_points",
 		"frappe.integrations.doctype.google_contacts.google_contacts.sync",
+		"frappe.automation.doctype.auto_repeat.auto_repeat.make_auto_repeat_entry",
+		"frappe.automation.doctype.auto_repeat.auto_repeat.set_auto_repeat_as_completed"
 	],
 	"daily_long": [
 		"frappe.integrations.doctype.dropbox_settings.dropbox_settings.take_backups_daily",
@@ -227,6 +231,7 @@ bot_parsers = [
 setup_wizard_exception = "frappe.desk.page.setup_wizard.setup_wizard.email_setup_wizard_exception"
 
 before_migrate = ['frappe.patches.v11_0.sync_user_permission_doctype_before_migrate.execute']
+after_migrate = ['frappe.website.doctype.website_theme.website_theme.generate_theme_files_if_not_exist']
 
 otp_methods = ['OTP App','Email','SMS']
 user_privacy_documents = [

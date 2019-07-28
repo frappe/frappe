@@ -493,6 +493,15 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 		if (!(options && options.data && options.data.labels && options.data.labels.length > 0)) return;
 
+		if (options.fieldtype) {
+			options.tooltipOptions = {
+				formatTooltipY: d => frappe.format(d, {
+					fieldtype: options.fieldtype,
+					options: options.options
+				})
+			};
+		}
+
 		return options;
 	}
 
@@ -889,11 +898,16 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				options: ['Excel', 'CSV'],
 				default: 'Excel',
 				reqd: 1
+			},
+			{
+				label: __("Include indentation"),
+				fieldname: "include_indentation",
+				fieldtype: "Check",
 			}
-		], ({ file_format }) => {
+		], ({ file_format, include_indentation }) => {
 			if (file_format === 'CSV') {
 				const column_row = this.columns.map(col => col.label);
-				const data = this.get_data_for_csv();
+				const data = this.get_data_for_csv(include_indentation);
 				const out = [column_row].concat(data);
 
 				frappe.tools.downloadify(out, null, this.report_name);
@@ -914,6 +928,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 					file_format_type: file_format,
 					filters: filters,
 					visible_idx,
+					include_indentation,
 				};
 
 				open_url_post(frappe.request.url, args);
@@ -921,7 +936,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		}, __('Export Report: '+ this.report_name), __('Download'));
 	}
 
-	get_data_for_csv() {
+	get_data_for_csv(include_indentation) {
 		const indices = this.datatable.bodyRenderer.visibleRowIndices;
 		const rows = indices.map(i => this.datatable.datamanager.getRow(i));
 		return rows.map(row => {
@@ -929,8 +944,8 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			return row
 				.slice(standard_column_count)
 				.map((cell, i) => {
-					if (i === 0) {
-						return '   '.repeat(row.meta.indent) + (cell.content || '');
+					if (include_indentation && i===0) {
+						cell.content = '   '.repeat(row.meta.indent) + (cell.content || '');
 					}
 					return cell.content || '';
 				});
@@ -976,11 +991,12 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			{
 				label: __('Print'),
 				action: () => {
-					frappe.ui.get_print_settings(
+					let dialog = frappe.ui.get_print_settings(
 						false,
 						print_settings => this.print_report(print_settings),
 						this.report_doc.letter_head
 					);
+					this.add_portrait_warning(dialog);
 				},
 				condition: () => frappe.model.can_print(this.report_doc.ref_doctype),
 				standard: true
@@ -988,11 +1004,13 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			{
 				label: __('PDF'),
 				action: () => {
-					frappe.ui.get_print_settings(
+					let dialog = frappe.ui.get_print_settings(
 						false,
 						print_settings => this.pdf_report(print_settings),
 						this.report_doc.letter_head
 					);
+
+					this.add_portrait_warning(dialog);
 				},
 				condition: () => frappe.model.can_print(this.report_doc.ref_doctype),
 				standard: true
@@ -1123,6 +1141,18 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				standard: true
 			}
 		];
+	}
+
+	add_portrait_warning(dialog) {
+		if (this.columns.length > 10) {
+			dialog.set_df_property('orientation', 'change', () => {
+				let value = dialog.get_value('orientation');
+				let description = value === 'Portrait'
+					? __('Report with more than 10 columns looks better in Landscape mode.')
+					: '';
+				dialog.set_df_property('orientation', 'description', description);
+			});
+		}
 	}
 
 	add_custom_column(custom_column, custom_data, link_field, column_field, insert_after) {

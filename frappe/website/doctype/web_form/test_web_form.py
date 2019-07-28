@@ -45,7 +45,7 @@ class TestWebForm(unittest.TestCase):
 		self.assertNotEquals(frappe.db.get_value("Event",
 			self.event_name, "description"), doc.get('description'))
 
-		accept(web_form='manage-events', data=json.dumps(doc))
+		accept(web_form='manage-events', docname=self.event_name, data=json.dumps(doc))
 
 		self.assertEqual(frappe.db.get_value("Event",
 			self.event_name, "description"), doc.get('description'))

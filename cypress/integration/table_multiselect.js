@@ -1,6 +1,6 @@
 context('Table MultiSelect', () => {
 	beforeEach(() => {
-		cy.login('Administrator', 'qwe');
+		cy.login();
 	});
 
 	let name = 'table multiselect' + Math.random().toString().slice(2, 8);

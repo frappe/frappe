@@ -1,16 +1,18 @@
 // common file between desk and website
 
 frappe.avatar = function (user, css_class, title, image_url = null) {
+	let user_info;
 	if (user) {
 		// desk
-		var user_info = frappe.user_info(user);
+		user_info = frappe.user_info(user);
 	} else {
 		// website
+		let full_name = title || frappe.get_cookie("full_name");
 		user_info = {
-			image: frappe.get_cookie("user_image"),
-			fullname: frappe.get_cookie("full_name"),
-			abbr: frappe.get_abbr(frappe.get_cookie("full_name")),
-			color: frappe.get_palette(frappe.get_cookie("full_name"))
+			image: image_url === null ? frappe.get_cookie("user_image") : image_url,
+			fullname: full_name,
+			abbr: frappe.get_abbr(full_name),
+			color: frappe.get_palette(full_name)
 		};
 	}
 
@@ -256,4 +258,59 @@ frappe.utils.xss_sanitise = function (string, options) {
 	}
 
 	return sanitised;
+}
+
+frappe.utils.new_auto_repeat_prompt = function(frm) {
+	const fields = [
+		{
+			'fieldname': 'frequency',
+			'fieldtype': 'Select',
+			'label': __('Frequency'),
+			'reqd': 1,
+			'options': [
+				{'label': __('Daily'), 'value': 'Daily'},
+				{'label': __('Weekly'), 'value': 'Weekly'},
+				{'label': __('Monthly'), 'value': 'Monthly'},
+				{'label': __('Quarterly'), 'value': 'Quarterly'},
+				{'label': __('Half-yearly'), 'value': 'Half-yearly'},
+				{'label': __('Yearly'), 'value': 'Yearly'}
+			]
+		},
+		{
+			'fieldname': 'start_date',
+			'fieldtype': 'Date',
+			'label': __('Start Date'),
+			'reqd': 1,
+			'default': frappe.datetime.nowdate()
+		},
+		{
+			'fieldname': 'end_date',
+			'fieldtype': 'Date',
+			'label': __('End Date')
+		}
+	];
+	frappe.prompt(fields, function(values) {
+		frappe.call({
+			method: "frappe.automation.doctype.auto_repeat.auto_repeat.make_auto_repeat",
+			args: {
+				'doctype': frm.doc.doctype,
+				'docname': frm.doc.name,
+				'frequency': values['frequency'],
+				'start_date': values['start_date'],
+				'end_date': values['end_date']
+			},
+			callback: function (r) {
+				if (r.message) {
+					frappe.show_alert({
+						'message': __("Auto Repeat created for this document"),
+						'indicator': 'green'
+					});
+					frm.reload_doc();
+				}
+			}
+		});
+	},
+	__('Auto Repeat'),
+	__('Save')
+	);
 }

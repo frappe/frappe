@@ -553,6 +553,10 @@ class Database(object):
 		val = val[0][0] if val else None
 
 		df = frappe.get_meta(doctype).get_field(fieldname)
+
+		if not df:
+			frappe.throw(_('Invalid field name: {0}').format(frappe.bold(fieldname)), self.InvalidColumnName)
+
 		if df.fieldtype in frappe.model.numeric_fieldtypes:
 			val = cint(val)
 
@@ -924,7 +928,7 @@ class Database(object):
 				conditions=conditions
 			), values)
 		else:
-			frappe.throw('No conditions provided')
+			frappe.throw(_('No conditions provided'))
 
 	def log_touched_tables(self, query, values=None):
 		if values:

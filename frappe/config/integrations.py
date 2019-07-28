@@ -94,11 +94,6 @@ def get_data():
 				},
 				{
 					"type": "doctype",
-					"name": "Google Maps Settings",
-					"description": _("Google Maps integration"),
-				},
-				{
-					"type": "doctype",
 					"name": "GCalendar Settings",
 					"description": _("Configure your google calendar integration"),
 				},

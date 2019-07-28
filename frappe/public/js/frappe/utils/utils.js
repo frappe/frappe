@@ -643,11 +643,12 @@ Object.assign(frappe.utils, {
 		};
 	},
 	get_form_link: function(doctype, name, html = false, display_text = null) {
+		display_text = display_text || name;
 		doctype = encodeURIComponent(doctype);
 		name = encodeURIComponent(name);
 		const route = ['#Form', doctype, name].join('/');
 		if (html) {
-			return `<a href="${route}">${display_text || name}</a>`;
+			return `<a href="${route}">${display_text}</a>`;
 		}
 		return route;
 	},

@@ -36,7 +36,7 @@
 		"public/js/frappe/ui/messages.js",
 		"public/js/frappe/translate.js",
 		"public/js/frappe/utils/pretty_date.js",
-		"public/js/lib/microtemplate.js",
+		"public/js/frappe/microtemplate.js",
 		"public/js/frappe/query_string.js",
 
 		"public/js/frappe/ui/dropzone.js",
@@ -145,9 +145,7 @@
 		"public/js/frappe/router_history.js",
 		"public/js/frappe/defaults.js",
 		"public/js/frappe/roles_editor.js",
-		"public/js/lib/microtemplate.js",
-
-		"public/js/legacy/handler.js",
+		"public/js/frappe/microtemplate.js",
 
 		"public/js/frappe/ui/page.html",
 		"public/js/frappe/ui/page.js",
@@ -276,6 +274,7 @@
 		"public/js/frappe/list/list_sidebar.js",
 		"public/js/frappe/list/list_sidebar.html",
 		"public/js/frappe/list/list_sidebar_stat.html",
+		"public/js/frappe/list/list_sidebar_group_by.js",
 		"public/js/frappe/list/list_view_permission_restrictions.html",
 
 		"public/js/frappe/views/gantt/gantt_view.js",
@@ -312,7 +311,7 @@
 		"public/js/frappe/ui/group_by/group_by.js"
 	],
 	"js/web_form.min.js": [
-		"public/js/frappe/misc/datetime.js",
+		"public/js/frappe/utils/datetime.js",
 		"public/js/frappe/web_form/webform_script.js",
 		"public/js/lib/datepicker/datepicker.min.js",
 		"public/js/lib/datepicker/datepicker.en.js"

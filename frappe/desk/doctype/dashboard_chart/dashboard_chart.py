@@ -4,6 +4,7 @@
 
 from __future__ import unicode_literals
 import frappe, json
+from frappe import _
 from frappe.core.page.dashboard.dashboard import cache_source, get_from_date_from_timespan
 from frappe.utils import nowdate, add_to_date, getdate, get_last_day, formatdate
 from frappe.model.document import Document
@@ -44,7 +45,7 @@ def get(chart_name, from_date=None, to_date=None, refresh = None):
 	'''.format(
 		unit_function = get_unit_function(chart.based_on, timegrain),
 		datefield = chart.based_on,
-		aggregate_function = chart.chart_type,
+		aggregate_function = get_aggregate_function(chart.chart_type),
 		value_field = chart.value_based_on or '1',
 		doctype = chart.document_type,
 		conditions = conditions,
@@ -65,6 +66,14 @@ def get(chart_name, from_date=None, to_date=None, refresh = None):
 			"values": [r[1] for r in result]
 		}]
 	}
+
+def get_aggregate_function(chart_type):
+	return {
+		"Sum": "SUM",
+		"Count": "COUNT",
+		"Average": "AVG"
+	}[chart_type]
+
 
 def convert_to_dates(data, timegrain):
 	result = []
@@ -199,6 +208,6 @@ class DashboardChart(Document):
 
 	def check_required_field(self):
 		if not self.based_on:
-			frappe.throw("Time series based on is required to create a dashboard chart")
+			frappe.throw(_("Time series based on is required to create a dashboard chart"))
 		if not self.document_type:
-			frappe.throw("Document type is required to create a dashboard chart")
+			frappe.throw(_("Document type is required to create a dashboard chart"))
