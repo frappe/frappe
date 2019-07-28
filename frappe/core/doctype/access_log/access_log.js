@@ -10,9 +10,9 @@ frappe.ui.form.on('Access Log', {
 				try {
 					frappe.set_route('query-report', frm.doc.report_name, frm.doc.filters ? JSON.parse(frm.doc.filters) : '');
 				} catch (err) {
-					frappe.throw(__(err + ' has occurred'))
+					frappe.throw(__(err + ' has occurred'));
 				}
 			}
-		})
+		});
 	}
 });
