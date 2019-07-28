@@ -292,12 +292,12 @@ def google_calendar_insert_events(doc, method=None):
 
 	try:
 		pass
-		# google_calendar.events().insert(calendarId=account.google_calendar_id, body=event).execute()
+		google_calendar.events().insert(calendarId=account.google_calendar_id, body=event).execute()
 		# frappe.db.set_value("Event", doc.name, "google_calendar_event", 1, update_modified=False)
 		# frappe.db.set_value("Event", doc.name, "google_calendar_id", account.google_calendar_id, update_modified=False)
 		# frappe.db.set_value("Event", doc.name, "google_calendar_event_id", event.get("id"), update_modified=False)
 	except HttpError as e:
-		frappe.log_error(frappe.get_traceback(), _("Google Calendar - Could not insert event in Google Calendar."))
+		frappe.log_error(e, _("Google Calendar - Could not insert event in Google Calendar."))
 
 def google_calendar_update_events(doc, method=None):
 	# Update Events with Google Calendar
@@ -325,7 +325,7 @@ def google_calendar_update_events(doc, method=None):
 
 	try:
 		google_calendar.events().update(calendarId=account.google_calendar_id, eventId=doc.google_calendar_event_id, body=event).execute()
-	except Exception as e:
+	except HttpError as e:
 		frappe.log_error(e, "Google Calendar - Could not update event in Google Calendar.")
 
 def google_calendar_delete_events(doc, method=None):
@@ -395,7 +395,7 @@ def google_calendar_to_repeat_on(start, end, recurrence=None):
 			# Only Set starts_on for the event to repeat monthly
 			start_date = parse_recurrence(int(repeat_day_week_number), repeat_day_name)
 			repeat_on["starts_on"] = start_date
-			repeat_on["ends_on"] = add_to_date(minutes=5)
+			repeat_on["ends_on"] = add_to_date(start_date, minutes=5)
 			repeat_on["repeat_till"] = None
 
 	return repeat_on
