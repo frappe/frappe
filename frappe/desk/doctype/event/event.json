@@ -16,6 +16,7 @@
   "starts_on",
   "ends_on",
   "all_day",
+  "google_calendar_event",
   "section_break_13",
   "repeat_on",
   "repeat_till",
@@ -214,7 +215,7 @@
   },
   {
    "collapsible": 1,
-   "depends_on": "eval:doc.google_calendar_id && doc.google_event_id",
+   "depends_on": "eval:doc.google_calendar_event",
    "fieldname": "sb_00",
    "fieldtype": "Section Break",
    "label": "Google Calendar"
@@ -234,11 +235,18 @@
    "fieldtype": "Data",
    "label": "Google Calendar Event Id",
    "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "google_calendar_event",
+   "fieldtype": "Check",
+   "label": "Google Calendar Event",
+   "read_only": 1
   }
  ],
  "icon": "fa fa-calendar",
  "idx": 1,
- "modified": "2019-07-28 01:36:01.689757",
+ "modified": "2019-07-28 14:22:27.221143",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Event",

@@ -210,7 +210,6 @@ def check_remote_calendar(account, google_calendar):
 		else:
 			frappe.log_error(frappe.get_traceback(), _("Google Calendar Synchronization Error."))
 
-
 def google_calendar_get_events(g_calendar, method=None, page_length=10):
 	# Get Events from Google Calendar
 	google_calendar, account = get_credentials({"name": g_calendar})
@@ -258,7 +257,6 @@ def google_calendar_get_events(g_calendar, method=None, page_length=10):
 				"google_event_id": event.get("id"),
 			}
 			calendar_event.update(google_calendar_to_repeat_on(recurrence=event.get('recurrence')[0], start=event.get('start'), end=event.get('end')))
-			print(calendar_event)
 			# frappe.get_doc(event).insert(ignore_permissions=True)
 
 		# If any synced Google Calendar Event is cancelled, then close the Event
@@ -282,9 +280,10 @@ def google_calendar_insert_events(doc, method=None):
 		return
 
 	event = {
-		"summary": doc.summary,
+		"summary": doc.subject,
 		"description": doc.description,
-		"id": str(uuid.uuid5(uuid.NAMESPACE_DNS, doc.name))
+		"id": str(uuid.uuid5(uuid.NAMESPACE_DNS, doc.name)),
+		"google_calendar_event": 1
 	}
 	event.update(google_calendar_format_date(get_datetime(doc.starts_on), get_datetime(doc.ends_on)))
 
@@ -292,17 +291,23 @@ def google_calendar_insert_events(doc, method=None):
 		event.update({"recurrence": unparse_recurrence(doc)})
 
 	try:
-		google_calendar.events().insert(calendarId=account.google_calendar_id, body=event).execute()
-		doc.google_calendar_id = account.google_calendar_id
-		doc.google_calendar_event_id = event.get("id")
-		doc.save(ignore_permissions=True)
-	except Exception:
+		# google_calendar.events().insert(calendarId=account.google_calendar_id, body=event).execute()
+		# frappe.db.set_value("Event", doc.name, "google_calendar_event", 1, update_modified=False)
+		# frappe.db.set_value("Event", doc.name, "google_calendar_id", account.google_calendar_id, update_modified=False)
+		# frappe.db.set_value("Event", doc.name, "google_calendar_event_id", event.get("id"), update_modified=False)
+	except HttpError as e:
 		frappe.log_error(frappe.get_traceback(), _("Google Calendar - Could not insert event in Google Calendar."))
 
 def google_calendar_update_events(doc, method=None):
-	"""
-		Update Events with Google Calendar
-	"""
+	# Update Events with Google Calendar
+
+	# Workaround to avoid triggering updation when Event is being inserted since
+	# creation and modified are same when inserting doc
+	print("doc.modified, doc.creation")
+	print(doc.modified, doc.creation)
+	if doc.modified == doc.creation:
+		return
+
 	if not frappe.db.exists("Google Calendar", {"user": frappe.session.user}):
 		return
 
@@ -374,20 +379,29 @@ def google_calendar_to_repeat_on(start, end, recurrence=None):
 
 		if repeat_days and repeat_on["repeat_on"] == "Every Month":
 			repeat_days = repeat_days.split("=")[1]
+			repeat_day_week_number, repeat_day_name = None, None
+
 			for num in ["1", "2", "3", "4", "5"]:
-				repeat_day_number = num if num in repeat_days else None
+				if num in repeat_days:
+					repeat_day_week_number = num
+					break
 
 			for day in ["MO","TU","WE","TH","FR","SA","SU"]:
-				repeat_day_name = google_calendar_days.get(day) if day in repeat_days else None
+				if day in repeat_days:
+					repeat_day_name = google_calendar_days.get(day)
+					break
 
-			repeat_on["starts_on"] = parse_recurrence(int(repeat_day_number), google_calendar_days.get(repeat_day_name))
-			repeat_on["ends_on"] = None
+			# Only Set starts_on for the event to repeat monthly
+			start_date = parse_recurrence(int(repeat_day_week_number), repeat_day_name)
+			repeat_on["starts_on"] = start_date
+			repeat_on["ends_on"] = add_to_date(minutes=5)
+			repeat_on["repeat_till"] = None
 
 	return repeat_on
 
 def google_calendar_format_date(all_day, starts_on, ends_on=None):
 	if not ends_on:
-		ends_on = ends_on + timedelta(minutes=5)
+		ends_on = starts_on + timedelta(minutes=10)
 
 	date_format = {
 		"start": {
@@ -410,7 +424,7 @@ def google_calendar_format_date(all_day, starts_on, ends_on=None):
 
 	return date_format
 
-def parse_recurrence(repeat_day_number, repeat_day_name):
+def parse_recurrence(repeat_day_week_number, repeat_day_name):
 	# Returns (repeat_on) exact date for combination eg 4TH viz. 4th thursday of a month
 	weekdays = get_weekdays()
 	current_date = now_datetime()
@@ -423,8 +437,11 @@ def parse_recurrence(repeat_day_number, repeat_day_name):
 
 	# One the day is set ir Thursday, now set the week number
 	while not isset_day_number:
-		isset_day_number = True if get_week_number(current_date) == repeat_day_number else False
-		current_date = add_to_date(current_date, weeks=1) if not isset_day_number else current_date
+		week_number = get_week_number(current_date)
+		isset_day_number = True if week_number == repeat_day_week_number else False
+		# check if  current_date week number is greater or smaller than repeat_day week number
+		weeks = 1 if week_number < repeat_day_week_number else -1
+		current_date = add_to_date(current_date, weeks=weeks) if not isset_day_number else current_date
 
 	return current_date
 
@@ -437,7 +454,7 @@ def unparse_recurrence(doc):
 		repeat_days = [framework_days.get(day.lower()) for day in weekdays if doc.get(day.lower())]
 		recurrence = recurrence + "BYDAY=" + ",".join(repeat_days)
 	elif doc.repeat_on == "Every Month":
-		week_number = str(get_week_number(doc.starts_on))
+		week_number = str(get_week_number(get_datetime(doc.starts_on)))
 		week_day = weekdays[get_datetime(doc.starts_on).weekday()].lower()
 		recurrence = recurrence + "BYDAY=" + week_number + framework_days.get(week_day)
 
@@ -467,8 +484,7 @@ def get_indexed_value(d, index):
 		return None
 
 """
-	API Responses
-	- Recurrence Daily
+	API Response
 	{
 		'kind': 'calendar#events',
 		'etag': '"etag"',
@@ -483,7 +499,7 @@ def get_indexed_value(d, index):
 				'kind': 'calendar#event',
 				'etag': '"etag"',
 				'id': 'id',
-				'status': 'confirmed',
+				'status': 'confirmed' or 'cancelled',
 				'htmlLink': 'link',
 				'created': '2019-07-25T06:08:21.000Z',
 				'updated': '2019-07-25T06:09:34.681Z',
@@ -497,14 +513,14 @@ def get_indexed_value(d, index):
 					'self': True
 				},
 				'start': {
-					'dateTime': '2019-07-27T12:00:00+05:30',
+					'dateTime': '2019-07-27T12:00:00+05:30', (if all day event the its 'date' instead of 'dateTime')
 					'timeZone': 'Asia/Kolkata'
 				},
 				'end': {
-					'dateTime': '2019-07-27T13:00:00+05:30',
+					'dateTime': '2019-07-27T13:00:00+05:30', (if all day event the its 'date' instead of 'dateTime')
 					'timeZone': 'Asia/Kolkata'
 				},
-				'recurrence': ['RRULE:FREQ=DAILY'],
+				'recurrence': *recurrence,
 				'iCalUID': 'uid',
 				'sequence': 1,
 				'reminders': {
@@ -513,137 +529,9 @@ def get_indexed_value(d, index):
 			}
 		]
 	}
-	- Recurrence Weekly on a Day
-	{
-		'kind': 'calendar#events',
-		'etag': '"etag"',
-		'summary': 'Test Calendar',
-		'updated': '2019-07-25T06:59:54.288Z',
-		'timeZone': 'Asia/Kolkata',
-		'accessRole': 'owner',
-		'defaultReminders': [],
-		'nextSyncToken': 'token',
-		'items': [
-			{
-				'kind': 'calendar#event',
-				'etag': '"etag"',
-				'id': 'id',
-				'status': 'confirmed',
-				'htmlLink': 'link',
-				'created': '2019-07-25T06:59:47.000Z',
-				'updated': '2019-07-25T06:59:54.288Z',
-				'summary': 'Event',
-				'creator': {
-					'email': 'email'
-				},
-				'organizer': {
-					'email': 'email',
-					'displayName': 'Test Calendar',
-					'self': True
-				},
-				'start': {
-					'dateTime': '2019-07-25T18:00:00+05:30',
-					'timeZone': 'Asia/Kolkata'
-				},
-				'end': {
-					'dateTime': '2019-07-25T19:00:00+05:30',
-					'timeZone': 'Asia/Kolkata'
-				},
-				'recurrence': ['RRULE:FREQ=WEEKLY;BYDAY=TH'],
-				'iCalUID': 'uid',
-				'sequence': 1,
-				'reminders': {
-					'useDefault': True
-				}
-			}
-		]
-	}
-	- Recurrence Monthly on a Day
-	{
-		'kind': 'calendar#events',
-		'etag': '"etag"',
-		'summary': 'Test Calendar',
-		'updated': '2019-07-25T07:14:28.686Z',
-		'timeZone': 'Asia/Kolkata',
-		'accessRole': 'owner',
-		'defaultReminders': [],
-		'nextSyncToken': 'token',
-		'items': [
-			{
-				'kind': 'calendar#event',
-				'etag': '"etag"',
-				'id': 'id',
-				'status': 'confirmed',
-				'htmlLink': 'link',
-				'created': '2019-07-25T07:14:08.000Z',
-				'updated': '2019-07-25T07:14:28.686Z',
-				'summary': 'monthly 4 thusday',
-				'creator': {
-					'email': 'email'
-				},
-				'organizer': {
-					'email': 'email',
-					'displayName': 'Test Calendar',
-					'self': True
-				},
-				'start': {
-					'dateTime': '2019-07-25T19:00:00+05:30',
-					'timeZone': 'Asia/Kolkata'
-				},
-				'end': {
-					'dateTime': '2019-07-25T20:00:00+05:30',
-					'timeZone': 'Asia/Kolkata'
-				},
-				'recurrence': ['RRULE:FREQ=MONTHLY;BYDAY=4TH'],
-				'iCalUID': 'uid',
-				'sequence': 1,
-				'reminders': {
-					'useDefault': True
-				}
-			}
-		]
-	}
-	- Daily Event: All Day (if an event is all day, then start and end has just date and not dateTime with timeZone)
-	{
-		'kind': 'calendar#events',
-		'etag': '"etag"',
-		'summary': 'Test Calendar',
-		'updated': '2019-07-27T07:20:50.494Z',
-		'timeZone': 'Asia/Kolkata',
-		'accessRole': 'owner',
-		'defaultReminders': [],
-		'nextSyncToken': 'tag',
-		'items': [
-			{
-				'kind': 'calendar#event',
-				'etag': '"etag"',
-				'id': 'id',
-				'status': 'confirmed',
-				'htmlLink': 'link',
-				'created': '2019-07-27T07:20:42.000Z',
-				'updated': '2019-07-27T07:20:50.494Z',
-				'summary': 'qwe',
-				'creator': {
-					'email': 'email'
-				},
-				'organizer': {
-					'email': 'email',
-					'displayName': 'Test Calendar',
-					'self': True
-				},
-				'start': {
-					'date': '2019-07-27'
-				},
-				'end': {
-					'date': '2019-07-28'
-				},
-				'recurrence': ['RRULE:FREQ=DAILY'],
-				'iCalUID': 'uid',
-				'sequence': 1,
-				'reminders': {
-					'useDefault': True
-				}
-			}
-		]
-	}
+	*recurrence
+		- Daily Event: ['RRULE:FREQ=DAILY']
+		- Weekly Event: ['RRULE:FREQ=WEEKLY;BYDAY=MO,TU,TH']
+		- Monthly Event: ['RRULE:FREQ=MONTHLY;BYDAY=4TH']
+		- Yearly Event: ['RRULE:FREQ=YEARLY;']
 """
