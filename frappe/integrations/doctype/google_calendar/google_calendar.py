@@ -8,12 +8,14 @@ import requests
 import googleapiclient.discovery
 import google.oauth2.credentials
 import time
+import uuid
 from frappe import _
 from frappe.model.document import Document
 from frappe.utils import get_request_site_address
 from googleapiclient.errors import HttpError
-from frappe.utils import add_days, add_years, get_datetime
+from frappe.utils import add_days, add_years, get_datetime, get_weekdays, now_datetime, add_to_date, get_time_zone
 from dateutil import parser
+from datetime import timedelta
 
 SCOPES = "https://www.googleapis.com/auth/calendar/v3"
 
@@ -26,7 +28,7 @@ google_calendar_frequencies = {
 
 google_calendar_days = {
 	"MO": "monday",
-	"TU": "tuesday"
+	"TU": "tuesday",
 	"WE": "wednesday",
 	"TH": "thursday",
 	"FR": "friday",
@@ -35,15 +37,15 @@ google_calendar_days = {
 }
 
 framework_frequencies = {
-	"Every Day": "RRULE:FREQ=DAILY",
-	"Every Week": "RRULE:FREQ=WEEKLY",
-	"Every Month": "RRULE:FREQ=MONTHLY",
-	"Every Year": "RRULE:FREQ=YEARLY"
+	"Every Day": "RRULE:FREQ=DAILY;",
+	"Every Week": "RRULE:FREQ=WEEKLY;",
+	"Every Month": "RRULE:FREQ=MONTHLY;",
+	"Every Year": "RRULE:FREQ=YEARLY;"
 }
 
 framework_days = {
 	"monday": "MO",
-	"tuesday": "TU"
+	"tuesday": "TU",
 	"wednesday": "WE",
 	"thursday": "TH",
 	"friday": "FR",
@@ -156,7 +158,7 @@ def sync(g_calendar=None):
 	google_calendars = frappe.get_list("Google Calendar", filters=filters)
 
 	for g in google_calendars:
-		google_calendar_get_events(frappe.get_doc("Google Calendar", g.name))
+		google_calendar_get_events(g.name)
 
 def get_credentials(g_calendar):
 	google_settings = frappe.get_doc("Google Settings")
@@ -168,7 +170,7 @@ def get_credentials(g_calendar):
 		"token_uri": "https://www.googleapis.com/oauth2/v4/token",
 		"client_id": google_settings.client_id,
 		"client_secret": google_settings.get_password(fieldname="client_secret", raise_exception=False),
-		"scopes":"https://www.googleapis.com/auth/calendar"
+		"scopes": SCOPES
 	}
 
 	credentials = google.oauth2.credentials.Credentials(**credentials_dict)
@@ -209,30 +211,26 @@ def check_remote_calendar(account, google_calendar):
 			frappe.log_error(frappe.get_traceback(), _("Google Calendar Synchronization Error."))
 
 
-def google_calendar_get_events(doc, method=None, page_length=10):
-	"""
-		Sync Events with Google Calendar
-	"""
-	if not doc.pull_from_google_calendar:
+def google_calendar_get_events(g_calendar, method=None, page_length=10):
+	# Get Events from Google Calendar
+	google_calendar, account = get_credentials({"name": g_calendar})
+
+	if not account.pull_from_google_calendar:
 		return
 
-	google_calendar, account = get_credentials(doc.name)
-	page_token = None
 	results = []
-
-	print("1")
 	while True:
 		try:
 			# API Response listed at EOF
 			events = google_calendar.events().list(calendarId=account.google_calendar_id, maxResults=page_length,
 				singleEvents=False, showDeleted=True, syncToken=account.next_sync_token or None).execute()
-			print("2")
+			print("try")
 			print(events)
 		except HttpError as err:
 			if err.resp.status in [404, 410]:
 				events = google_calendar.events().list(calendarId=account.google_calendar_id, maxResults=page_length,
 					singleEvents=False, showDeleted=True, timeMin=add_years(None, -1).strftime("%Y-%m-%dT%H:%M:%SZ")).execute()
-				print("3")
+				print("except")
 				print(events)
 			else:
 				frappe.log_error(err.resp, "Google Calendar Events Fetch Error.")
@@ -246,24 +244,57 @@ def google_calendar_get_events(doc, method=None, page_length=10):
 				frappe.db.commit()
 			break
 
-	print(results)
+	# results = [
+	# 	{
+	# 		'kind': 'calendar#event',
+	# 		'etag': '"etag"',
+	# 		'id': 'id',
+	# 		'status': 'confirmed',
+	# 		'htmlLink': 'link',
+	# 		'created': '2019-07-25T06:08:21.000Z',
+	# 		'updated': '2019-07-25T06:09:34.681Z',
+	# 		'summary': 'asdf',
+	# 		'creator': {
+	# 			'email': 'email'
+	# 		},
+	# 		'organizer': {
+	# 			'email': 'email',
+	# 			'displayName': 'Test Calendar',
+	# 			'self': True
+	# 		},
+	# 		'start': {
+	# 			'dateTime': '2019-07-27T12:00:00+05:30',
+	# 			'timeZone': 'Asia/Kolkata'
+	# 		},
+	# 		'end': {
+	# 			'dateTime': '2019-07-27T13:00:00+05:30',
+	# 			'timeZone': 'Asia/Kolkata'
+	# 		},
+	# 		'recurrence': ['RRULE:FREQ=WEEKLY;BYDAY=SU,MO,WE,SA'],
+	# 		'iCalUID': 'uid',
+	# 		'sequence': 1,
+	# 		'reminders': {
+	# 			'useDefault': True
+	# 		}
+	# 	}
+	# ]
 	for idx, event in enumerate(results):
 		frappe.publish_realtime('import_google_calendar', dict(progress=idx+1, total=len(list(results))), user=frappe.session.user)
 
 		# If Google Calendar Event if confirmed, then create an Event
-		if event.get("status") == "confirmed" not frappe.db.exists("Event", {"google_calendar_id": account.google_calendar_id, "google_event_id": event.get("id")):
-			event = {
+		if event.get("status") == "confirmed" and not frappe.db.exists("Event", {"google_calendar_id": account.google_calendar_id, "google_event_id": event.get("id")}):
+			calendar_event = {
 				"doctype": "Event",
 				"subject": event.get("summary"),
 				"description": event.get("description"),
 				"google_calendar_id": account.google_calendar_id,
 				"google_event_id": event.get("id"),
 			}
-			event.update(get_repeat_on(event.get('recurrence')[0], event.get('start'), event.get('end')))
+			calendar_event.update(google_calendar_to_repeat_on(recurrence=event.get('recurrence')[0], start=event.get('start'), end=event.get('end')))
+			print(calendar_event)
+			# frappe.get_doc(event).insert(ignore_permissions=True)
 
-			frappe.get_doc(event).insert(ignore_permissions=True)
-
-		# If Google Calendar Event if cancelled, then delete the Event
+		# If anysynced Google Calendar Event is cancelled, then close the Event
 		if event.get("status") == "cancelled":
 			# Close the issue status once new PR is merged
 			# frappe.db.set_value("Event", {"google_calendar_id": account.google_calendar_id, "google_event_id": event.get("id")}, "status", "Closed")
@@ -271,86 +302,85 @@ def google_calendar_get_events(doc, method=None, page_length=10):
 
 def google_calendar_insert_events(doc, method=None):
 	"""
-		Insert Events with Google Calendar
+		Insert Events to Google Calendar
+		UUID algorithm used minimize the risk of id collisions such as one described in RFC4122.
+		https://developers.google.com/calendar/v3/reference/events/insert
 	"""
-	if not doc.push_to_google_calendar:
+	if not frappe.db.exists("Google Calendar", {"user": frappe.session.user}):
 		return
 
-	google_calendar, account = get_credentials(doc.name)
+	google_calendar, account = get_credentials({"user": frappe.session.user})
+
+	if not account.push_to_google_calendar:
+		return
 
 	event = {
 		"summary": doc.summary,
-		"description": doc.description
+		"description": doc.description,
+		"id": str(uuid.uuid5(uuid.NAMESPACE_DNS, doc.name))
 	}
+	event.update(google_calendar_format_date(get_datetime(doc.starts_on), get_datetime(doc.ends_on)))
 
-	dates = return_dates(doc)
-	event.update(dates)
-
-	if migration_id:
-		event.update({"id": doc.name})
-
-	if doc.repeat_this_event != 0:
-		recurrence = return_recurrence(doc)
-		if recurrence:
-			event.update({"recurrence": ["RRULE:" + str(recurrence)]})
+	if doc.repeat_on:
+		event.update({"recurrence": unparse_recurrence(doc)})
 
 	try:
-		remote_event = google_calendar.events().insert(calendarId=account.google_calendar_id, body=event).execute()
+		google_calendar.events().insert(calendarId=account.google_calendar_id, body=event).execute()
+		doc.google_calendar_id = account.google_calendar_id
+		doc.google_calendar_event_id = event.get("id")
+		doc.save(ignore_permissions=True)
 	except Exception:
-		frappe.log_error(frappe.get_traceback(), _("Google Calendar Synchronization Error."))
+		frappe.log_error(frappe.get_traceback(), _("Google Calendar - Could not insert event in Google Calendar."))
 
 def google_calendar_update_events(doc, method=None):
 	"""
 		Update Events with Google Calendar
 	"""
-	google_calendar, account = get_credentials(doc.name)
+	if not frappe.db.exists("Google Calendar", {"user": frappe.session.user}):
+		return
+
+	google_calendar, account = get_credentials({"user": frappe.session.user})
+
+	event = google_calendar.events().get(calendarId=account.google_calendar_id, eventId=doc.google_calendar_event_id).execute()
+	event["summary"] = doc.summary
+	event["description"] = doc.description
+	event["recurrence"] = unparse_recurrence(doc)
+	event.update(google_calendar_format_date(get_datetime(doc.starts_on), get_datetime(doc.ends_on)))
+
+	if doc.event_type == "Cancelled" or doc.status == "Closed":
+		event["status"] = "cancelled"
 
 	try:
-		event = google_calendar.events().get(calendarId=account.google_calendar_id, eventId=doc.name).execute()
-		event = {
-			"summary": doc.summary,
-			"description": doc.description
-		}
-
-		if doc.event_type == "Cancel":
-			event.update({"status": "cancelled"})
-
-		dates = return_dates(doc)
-		event.update(dates)
-
-		if doc.repeat_this_event != 0:
-			recurrence = return_recurrence(doc)
-			if recurrence:
-				event.update({"recurrence": ["RRULE:" + str(recurrence)]})
-
-		try:
-			updated_event = google_calendar.events().update(calendarId=account.google_calendar_id, eventId=doc.name, body=event).execute()
-		except Exception as e:
-			frappe.log_error(e, "Google Calendar Synchronization Error.")
-	except HttpError as err:
-		if err.resp.status in [404]:
-			pass
-		else:
-			frappe.log_error(err.resp, "Google Calendar Synchronization Error.")
+		google_calendar.events().update(calendarId=account.google_calendar_id, eventId=doc.google_calendar_event_id, body=event).execute()
+	except Exception as e:
+		frappe.log_error(e, "Google Calendar - Could not update event in Google Calendar.")
 
 def google_calendar_delete_events(doc, method=None):
 	"""
 		Delete Events with Google Calendar
 	"""
-	google_calendar, account = get_credentials(doc.name)
+	if not frappe.db.exists("Google Calendar", {"user": frappe.session.user}):
+		return
+
+	google_calendar, account = get_credentials({"user": frappe.session.user})
 
 	try:
 		google_calendar.events().delete(calendarId=account.google_calendar_id, eventId=doc.name).execute()
-	except HttpError as err:
-		if err.resp.status in [410]:
-			pass
+	except Exception as e
+		frappe.log_error(e, "Google Calendar - Could not delete event from Google Calendar.")
 
-def get_repeat_on(recurence, start, end):
+def google_calendar_to_repeat_on(start, end, recurrence=None):
+	"""
+		recurrence is in the form ['RRULE:FREQ=WEEKLY;BYDAY=MO,TU,TH']
+		has the frequency and then the days on which the event recurs
+
+		Both have been mapped in a dict for easier mapping.
+	"""
 	repeat_on = {
-		"start_on": get_datetime(start.get("date")) if start.get("date") else parser.parse(start.get("dateTime")).utcnow(),
-		"ends_on" get_datetime(end.get("date")) if end.get("date") else parser.parse(end.get("dateTime")).utcnow(),
+		"starts_on": get_datetime(start.get("date")) if start.get("date") else parser.parse(start.get("dateTime")).utcnow(),
+		"ends_on": get_datetime(end.get("date")) if end.get("date") else parser.parse(end.get("dateTime")).utcnow(),
 		"all_day": 1 if start.get("date") else 0,
-		"repeat_this_event": 1 if recurence else 0,
+		"repeat_this_event": 1 if recurrence else 0,
 		"repeat_on": None,
 		"repeat_till": None,
 		"sunday": 0,
@@ -362,103 +392,116 @@ def get_repeat_on(recurence, start, end):
 		"saturday": 0,
 	}
 
+	# recurrence rule "RRULE:FREQ=WEEKLY;BYDAY=MO,TU,TH"
 	if recurrence:
-		"""
-			recurrence is in the form ['RRULE:FREQ=WEEKLY;BYDAY=MO,TU,TH']
-			has the frequency and then the days on which the event recurs
+		# google_calendar_frequency = RRULE:FREQ=WEEKLY, repeat_days = BYDAY=MO,TU,TH
+		google_calendar_frequency =  get_indexed_value(recurrence, 0)
+		repeat_days = get_indexed_value(recurrence, 1)
 
-			Both have been mapped in a dict for easier mapping.
-
-			After the first split on ';',
-			google_calendar_frequency = 'RRULE:FREQ=WEEKLY'
-			repeat_days = 'BYDAY=MO,TU,TH' which is further split on '=' and then on ',' which results in
-			repeat_days = ['MO', 'TU', 'TH']
-		"""
-		google_calendar_frequency, repeat_days = recurence.split(";")
 		repeat_on["repeat_on"] = google_calendar_frequencies.get(google_calendar_frequency)
 		repeat_on["repeat_till"] = get_datetime(end.get("date")) if end.get("date") else parser.parse(end.get("dateTime")).utcnow()
 
-		if repeat_days:
+		if repeat_days and repeat_on["repeat_on"] == "Every Week":
 			repeat_days = repeat_days.split("=")[1].split(",")
-
 			for repeat_day in repeat_days:
-				repeat_on[google_calendar_days.get(repeat_day)] = 1
+				repeat_on[google_calendar_days[repeat_day]] = 1
+
+		if repeat_days and repeat_on["repeat_on"] == "Every Month":
+			repeat_days = repeat_days.split("=")[1]
+			for num in ["1", "2", "3", "4", "5"]:
+				repeat_day_number = num if num in repeat_days else None
+
+			for day in ["MO","TU","WE","TH","FR","SA","SU"]:
+				repeat_day_name = google_calendar_days.get(day) if day in repeat_days else None
+
+			repeat_on["starts_on"] = parse_recurrence(int(repeat_day_number), google_calendar_days.get(repeat_day_name))
+			repeat_on["ends_on"] = None
 
 	return repeat_on
 
-def return_dates(doc):
-	timezone = frappe.db.get_single_value("System Settings", "time_zone")
-	if not doc.end_datetime:
-		doc.end_datetime = doc.start_datetime
-	if doc.all_day == 1:
-		return {
-			"start": {
-				"date": doc.start_datetime.date().isoformat(),
-				"timeZone": timezone,
+def google_calendar_format_date(all_day, starts_on, ends_on=None):
+	if not ends_on:
+		ends_on = ends_on + timedelta(minutes=5)
+
+	date_format = {
+		"start": {
+			"dateTime": starts_on.isoformat(),
+			"timeZone": get_time_zone(),
 			},
-			"end": {
-				"date": add_days(doc.end_datetime.date(), 1).isoformat(),
-				"timeZone": timezone,
-			}
+		"end": {
+			"dateTime": ends_on.isoformat(),
+			"timeZone": get_time_zone(),
 		}
-	else:
-		return {
-			"start": {
-				"dateTime": doc.start_datetime.isoformat(),
-				"timeZone": timezone,
-			},
-			"end": {
-				"dateTime": doc.end_datetime.isoformat(),
-				"timeZone": timezone,
-			}
-		}
+	}
 
-def return_recurrence_for_google_calendar(recurrence):
-	if not e.repeat_till:
-		end_date = datetime.combine(e.repeat_till, datetime.min.time()).strftime("UNTIL=%Y%m%dT%H%M%SZ")
-	else:
-		end_date = None
+	if all_day:
+		# If all_day event, Google Calendar takes date as a parameter and not dateTime
+		date_format["start"].pop("dateTime")
+		date_format["end"].pop("dateTime")
 
-	day = []
-	if e.repeat_on == "Every Day":
-		if e.monday == 1:
-			day.append("MO")
-		if e.tuesday == 1:
-			day.append("TU")
-		if e.wednesday == 1:
-			day.append("WE")
-		if e.thursday == 1:
-			day.append("TH")
-		if e.friday == 1:
-			day.append("FR")
-		if e.saturday == 1:
-			day.append("SA")
-		if e.sunday == 1:
-			day.append("SU")
+		date_format["start"].update({"date": starts_on.date().isoformat()})
+		date_format["end"].update({"date": ends_on.date().isoformat()})
 
-		day = "BYDAY=" + ",".join(str(d) for d in day)
-		frequency = "FREQ=WEEKLY"
+	return date_format
 
-	elif e.repeat_on == "Every Week":
-		frequency = "FREQ=WEEKLY"
-	elif e.repeat_on == "Every Month":
-		frequency = "FREQ=MONTHLY;BYDAY=SU,MO,TU,WE,TH,FR,SA;BYSETPOS=-1"
-		end_date = datetime.combine(add_days(e.repeat_till, 1), datetime.min.time()).strftime("UNTIL=%Y%m%dT%H%M%SZ")
-	elif e.repeat_on == "Every Year":
-		frequency = "FREQ=YEARLY"
-	else:
+def parse_recurrence(repeat_day_number, repeat_day_name):
+	# Returns (repeat_on) exact date for combination eg 4TH viz. 4th thursday of a month
+	weekdays = get_weekdays()
+	current_date = now_datetime()
+	isset_day_name, isset_day_number = False, False
+
+	# Set the proper day ie if recurrence is 4TH, then align the day to Thursday
+	while not isset_day_name:
+		isset_day_name = True if weekdays[current_date.weekday()].lower() == repeat_day_name else False
+		current_date = add_days(current_date, 1) if not isset_day_name else current_date
+
+	# One the day is set ir Thursday, now set the week number
+	while not isset_day_number:
+		isset_day_number = True if get_week_number(current_date) == repeat_day_number else False
+		current_date = add_to_date(current_date, weeks=1) if not isset_day_number else current_date
+
+	return current_date
+
+def unparse_recurrence(doc):
+	# Returns recurrence in Google Calendar format
+	recurrence = framework_frequencies.get(doc.repeat_on)
+	weekdays = get_weekdays()
+
+	if doc.repeat_on == "Every Week":
+		repeat_days = [framework_days.get(day.lower()) for day in weekdays if doc.get(day.lower())]
+		recurrence = recurrence + "BYDAY=" + ",".join(repeat_days)
+	elif doc.repeat_on == "Every Month":
+		week_number = str(get_week_number(doc.starts_on))
+		week_day = weekdays[get_datetime(doc.starts_on).weekday()].lower()
+		recurrence = recurrence + "BYDAY=" + week_number + framework_days.get(week_day)
+
+	return [recurrence]
+
+def get_week_number(dt):
+	"""
+		Returns the week number of the month for the specified date.
+		https://stackoverflow.com/questions/3806473/python-week-number-of-the-month/16804556
+	"""
+	from math import ceil
+	first_day = dt.replace(day=1)
+
+	dom = dt.day
+	adjusted_dom = dom + first_day.weekday()
+
+	return int(ceil(adjusted_dom/7.0))
+
+def get_indexed_value(d, index):
+	# Returns value from string based on index
+	if not d:
 		return None
 
-	wst = "WKST=SU"
-	elements = [frequency, end_date, wst, day]
-
-	return ";".join(str(e) for e in elements if e is not None and not not e)
-
-def parse_recurrence(recureence):
-	pass
-
+	try:
+		return d.split(";")[index]
+	except IndexError:
+		return None
 
 """
+	API Responses
 	- Recurrence Daily
 	{
 		'kind': 'calendar#events',

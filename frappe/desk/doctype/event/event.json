@@ -36,7 +36,7 @@
   "sb_00",
   "google_calendar_id",
   "cb_00",
-  "google_event_id"
+  "google_calendar_event_id"
  ],
  "fields": [
   {
@@ -230,15 +230,15 @@
    "fieldtype": "Column Break"
   },
   {
-   "fieldname": "google_event_id",
+   "fieldname": "google_calendar_event_id",
    "fieldtype": "Data",
-   "label": "Google Event Id",
+   "label": "Google Calendar Event Id",
    "read_only": 1
   }
  ],
  "icon": "fa fa-calendar",
  "idx": 1,
- "modified": "2019-07-27 12:39:19.246328",
+ "modified": "2019-07-28 01:36:01.689757",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Event",
