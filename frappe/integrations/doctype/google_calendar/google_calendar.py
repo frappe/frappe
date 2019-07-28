@@ -219,6 +219,7 @@ def google_calendar_get_events(g_calendar, method=None, page_length=10):
 		return
 
 	results = []
+
 	while True:
 		try:
 			# API Response listed at EOF
@@ -244,42 +245,8 @@ def google_calendar_get_events(g_calendar, method=None, page_length=10):
 				frappe.db.commit()
 			break
 
-	# results = [
-	# 	{
-	# 		'kind': 'calendar#event',
-	# 		'etag': '"etag"',
-	# 		'id': 'id',
-	# 		'status': 'confirmed',
-	# 		'htmlLink': 'link',
-	# 		'created': '2019-07-25T06:08:21.000Z',
-	# 		'updated': '2019-07-25T06:09:34.681Z',
-	# 		'summary': 'asdf',
-	# 		'creator': {
-	# 			'email': 'email'
-	# 		},
-	# 		'organizer': {
-	# 			'email': 'email',
-	# 			'displayName': 'Test Calendar',
-	# 			'self': True
-	# 		},
-	# 		'start': {
-	# 			'dateTime': '2019-07-27T12:00:00+05:30',
-	# 			'timeZone': 'Asia/Kolkata'
-	# 		},
-	# 		'end': {
-	# 			'dateTime': '2019-07-27T13:00:00+05:30',
-	# 			'timeZone': 'Asia/Kolkata'
-	# 		},
-	# 		'recurrence': ['RRULE:FREQ=WEEKLY;BYDAY=SU,MO,WE,SA'],
-	# 		'iCalUID': 'uid',
-	# 		'sequence': 1,
-	# 		'reminders': {
-	# 			'useDefault': True
-	# 		}
-	# 	}
-	# ]
 	for idx, event in enumerate(results):
-		frappe.publish_realtime('import_google_calendar', dict(progress=idx+1, total=len(list(results))), user=frappe.session.user)
+		frappe.publish_realtime('import_google_calendar', dict(progress=idx+1, total=len(results)), user=frappe.session.user)
 
 		# If Google Calendar Event if confirmed, then create an Event
 		if event.get("status") == "confirmed" and not frappe.db.exists("Event", {"google_calendar_id": account.google_calendar_id, "google_event_id": event.get("id")}):
@@ -294,7 +261,7 @@ def google_calendar_get_events(g_calendar, method=None, page_length=10):
 			print(calendar_event)
 			# frappe.get_doc(event).insert(ignore_permissions=True)
 
-		# If anysynced Google Calendar Event is cancelled, then close the Event
+		# If any synced Google Calendar Event is cancelled, then close the Event
 		if event.get("status") == "cancelled":
 			# Close the issue status once new PR is merged
 			# frappe.db.set_value("Event", {"google_calendar_id": account.google_calendar_id, "google_event_id": event.get("id")}, "status", "Closed")
@@ -356,17 +323,16 @@ def google_calendar_update_events(doc, method=None):
 		frappe.log_error(e, "Google Calendar - Could not update event in Google Calendar.")
 
 def google_calendar_delete_events(doc, method=None):
-	"""
-		Delete Events with Google Calendar
-	"""
+	# Delete Events from Google Calendar
+
 	if not frappe.db.exists("Google Calendar", {"user": frappe.session.user}):
 		return
 
 	google_calendar, account = get_credentials({"user": frappe.session.user})
 
 	try:
-		google_calendar.events().delete(calendarId=account.google_calendar_id, eventId=doc.name).execute()
-	except Exception as e
+		google_calendar.events().delete(calendarId=account.google_calendar_id, eventId=doc.google_calendar_event_id).execute()
+	except Exception as e:
 		frappe.log_error(e, "Google Calendar - Could not delete event from Google Calendar.")
 
 def google_calendar_to_repeat_on(start, end, recurrence=None):
