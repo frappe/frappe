@@ -255,6 +255,12 @@ frappe.ui.toolbar.setup_session_defaults = function() {
 				};
 			}
 			frappe.prompt(fields, function(values) {
+				//if default is not set for a particular field in prompt
+				fields.forEach(function(d) {
+					if (!values[d.fieldname]) {
+						values[d.fieldname] = "";
+					}
+				});
 				frappe.call({
 					method: 'frappe.core.doctype.session_default_settings.session_default_settings.set_session_default_values',
 					args: {
@@ -266,7 +272,7 @@ frappe.ui.toolbar.setup_session_defaults = function() {
 								'message': __('Session Defaults Saved'),
 								'indicator': 'green'
 							});
-							frappe.clear_cache();
+							frappe.ui.toolbar.clear_cache();
 						}	else {
 							frappe.show_alert({
 								'message': __('An error occurred while setting Session Defaults'),
