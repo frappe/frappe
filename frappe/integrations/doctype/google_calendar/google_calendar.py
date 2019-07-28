@@ -291,6 +291,7 @@ def google_calendar_insert_events(doc, method=None):
 		event.update({"recurrence": unparse_recurrence(doc)})
 
 	try:
+		pass
 		# google_calendar.events().insert(calendarId=account.google_calendar_id, body=event).execute()
 		# frappe.db.set_value("Event", doc.name, "google_calendar_event", 1, update_modified=False)
 		# frappe.db.set_value("Event", doc.name, "google_calendar_id", account.google_calendar_id, update_modified=False)
