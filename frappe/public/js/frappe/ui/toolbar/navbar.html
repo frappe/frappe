@@ -28,6 +28,8 @@
 						{%= __("My Profile") %}</a></li>
 					<li><a href="#Form/User/{%= encodeURIComponent(frappe.session.user) %}">
 						{%= __("My Settings") %}</a></li>
+					<li><a href="#" onclick="return frappe.ui.toolbar.setup_session_defaults();">
+							{%= __("Session Defaults") %}</a></li>
 					<li class="navbar-reload">
 						<a href="#" onclick="return frappe.ui.toolbar.clear_cache();">
 						{%= __("Reload") %}</a></li>

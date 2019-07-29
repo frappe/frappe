@@ -214,7 +214,9 @@ class CalendarConnector(BaseConnection):
 			end_date = None
 
 		day = []
-		if e.repeat_on == "Every Day":
+		if e.repeat_on == "Daily":
+			frequency = "FREQ=DAILY"
+		elif e.repeat_on == "Weekly":
 			if e.monday == 1:
 				day.append("MO")
 			if e.tuesday == 1:
@@ -232,13 +234,10 @@ class CalendarConnector(BaseConnection):
 
 			day = "BYDAY=" + ",".join(str(d) for d in day)
 			frequency = "FREQ=WEEKLY"
-
-		elif e.repeat_on == "Every Week":
-			frequency = "FREQ=WEEKLY"
-		elif e.repeat_on == "Every Month":
+		elif e.repeat_on == "Monthly":
 			frequency = "FREQ=MONTHLY;BYDAY=SU,MO,TU,WE,TH,FR,SA;BYSETPOS=-1"
 			end_date = datetime.combine(add_days(e.repeat_till, 1), datetime.min.time()).strftime('UNTIL=%Y%m%dT%H%M%SZ')
-		elif e.repeat_on == "Every Year":
+		elif e.repeat_on == "Yearly":
 			frequency = "FREQ=YEARLY"
 		else:
 			return None
