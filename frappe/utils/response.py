@@ -168,7 +168,7 @@ def download_private_file(path):
 
 	files = frappe.db.get_all('File', {'file_url': path})
 	can_access = False
-  	
+  
 	# this file might be attached to multiple documents
 	# if the file is accessible from any one of those documents
 	# then it should be downloadable
