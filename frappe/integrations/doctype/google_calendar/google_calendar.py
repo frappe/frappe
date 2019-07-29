@@ -370,7 +370,7 @@ def google_calendar_to_repeat_on(start, end, recurrence=None):
 
 	# recurrence rule "RRULE:FREQ=WEEKLY;BYDAY=MO,TU,TH"
 	if recurrence:
-		# google_calendar_frequency = RRULE:FREQ=WEEKLY, repeat_days = BYDAY=MO,TU,TH, until = 20191028
+		# google_calendar_frequency = RRULE:FREQ=WEEKLY, byday = BYDAY=MO,TU,TH, until = 20191028
 		google_calendar_frequency, until, byday = get_recurrence_parameter(recurrence)
 		repeat_on["repeat_on"] = google_calendar_frequencies.get(google_calendar_frequency)
 
@@ -378,23 +378,23 @@ def google_calendar_to_repeat_on(start, end, recurrence=None):
 			repeat_on["ends_on"] = None
 			repeat_on["repeat_till"] = datetime.strptime(until, '%Y%m%d') if until else None
 
-		if repeat_days and repeat_on["repeat_on"] == "Weekly":
+		if byday and repeat_on["repeat_on"] == "Weekly":
 			repeat_on["repeat_till"] = datetime.strptime(until, '%Y%m%d') if until else None
-			repeat_days = repeat_days.split("=")[1].split(",")
-			for repeat_day in repeat_days:
+			byday = byday.split("=")[1].split(",")
+			for repeat_day in byday:
 				repeat_on[google_calendar_days[repeat_day]] = 1
 
-		if repeat_days and repeat_on["repeat_on"] == "Monthly":
-			repeat_days = repeat_days.split("=")[1]
+		if byday and repeat_on["repeat_on"] == "Monthly":
+			byday = byday.split("=")[1]
 			repeat_day_week_number, repeat_day_name = None, None
 
 			for num in ["1", "2", "3", "4", "5"]:
-				if num in repeat_days:
+				if num in byday:
 					repeat_day_week_number = num
 					break
 
 			for day in ["MO","TU","WE","TH","FR","SA","SU"]:
-				if day in repeat_days:
+				if day in byday:
 					repeat_day_name = google_calendar_days.get(day)
 					break
 
@@ -462,8 +462,8 @@ def unparse_recurrence(doc):
 	weekdays = get_weekdays()
 
 	if doc.repeat_on == "Weekly":
-		repeat_days = [framework_days.get(day.lower()) for day in weekdays if doc.get(day.lower())]
-		recurrence = recurrence + "BYDAY=" + ",".join(repeat_days)
+		byday = [framework_days.get(day.lower()) for day in weekdays if doc.get(day.lower())]
+		recurrence = recurrence + "BYDAY=" + ",".join(byday)
 	elif doc.repeat_on == "Monthly":
 		week_number = str(get_week_number(get_datetime(doc.starts_on)))
 		week_day = weekdays[get_datetime(doc.starts_on).weekday()].lower()
