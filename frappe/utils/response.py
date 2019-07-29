@@ -180,9 +180,9 @@ def download_private_file(path):
 
 	if not can_access:
 		raise Forbidden(_("You don't have permission to access this file"))
-	
+
 	make_access_log(doctype='File', document=path, file_type=os.path.splitext(path)[-1][1:])
-	
+
 	return send_private_file(path.split("/private", 1)[1])
 
 
