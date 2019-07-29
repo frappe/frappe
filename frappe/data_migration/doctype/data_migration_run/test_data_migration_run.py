@@ -18,7 +18,7 @@ class TestDataMigrationRun(unittest.TestCase):
 		frappe.get_doc(dict(
 			doctype='Event',
 			subject=event_subject,
-			repeat_on='Every Month',
+			repeat_on='Monthly',
 			starts_on=frappe.utils.now_datetime()
 		)).insert()
 
