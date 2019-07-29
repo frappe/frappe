@@ -3,12 +3,18 @@
 # For license information, please see license.txt
 
 from __future__ import unicode_literals
+
+import datetime
+import json
+from time import sleep
+
+import requests
+from six.moves.urllib.parse import urlparse
+
 import frappe
-import json, requests
 from frappe import _
 from frappe.model.document import Document
-from six.moves.urllib.parse import urlparse
-from time import sleep
+
 
 class Webhook(Document):
 	def autoname(self):
@@ -57,6 +63,8 @@ def enqueue_webhook(doc, webhook):
 		for w in webhook.webhook_data:
 			for k, v in doc.as_dict().items():
 				if k == w.fieldname:
+					if isinstance(v, datetime.datetime):
+						v = frappe.utils.get_datetime_str(v)
 					data[w.key] = v
 	for i in range(3):
 		try:
