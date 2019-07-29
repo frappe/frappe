@@ -157,7 +157,6 @@ scheduler_events = {
 		"frappe.oauth.delete_oauth2_data",
 		"frappe.integrations.doctype.razorpay_settings.razorpay_settings.capture_payment",
 		"frappe.twofactor.delete_all_barcodes_for_users",
-		"frappe.integrations.doctype.gcalendar_settings.gcalendar_settings.sync",
 		"frappe.website.doctype.web_page.web_page.check_publish_status",
 		'frappe.utils.global_search.sync_global_search'
 	],
