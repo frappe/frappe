@@ -23,7 +23,7 @@ def make_access_log(doctype=None, method=None, file_type=None, document=None, fi
         'doctype': 'Access Log',
         'name': "AL-{}-{}".format(user_name, frappe.generate_hash(length=5)),
         'user': user.first_name,
-        'export_from': doctype,
+        'export_from': frappe.get_doc('DocType', doctype),
         'reference_document': document,
         'file_type': file_type,
         'report_name': report_name,
