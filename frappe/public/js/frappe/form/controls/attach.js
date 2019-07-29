@@ -37,6 +37,7 @@ frappe.ui.form.ControlAttach = frappe.ui.form.ControlData.extend({
 			this.dataurl = null;
 			this.fileobj = null;
 			this.set_input(null);
+			this.parse_validate_and_set_in_model(null);
 			this.refresh();
 		}
 	},
@@ -92,7 +93,6 @@ frappe.ui.form.ControlAttach = frappe.ui.form.ControlData.extend({
 			this.frm.attachments.update_attachment(attachment);
 			this.frm.doc.docstatus == 1 ? this.frm.save('Update') : this.frm.save();
 		}
-		this.value = attachment.file_url;
-		this.refresh();
+		this.set_value(attachment.file_url);
 	},
 });
