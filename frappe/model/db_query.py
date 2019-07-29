@@ -111,8 +111,12 @@ class DatabaseQuery(object):
 		if self.distinct:
 			args.fields = 'distinct ' + args.fields
 
-		query = """select %(fields)s from %(tables)s %(conditions)s
-			%(group_by)s %(order_by)s %(limit)s""" % args
+		query = """select %(fields)s
+			from %(tables)s
+			%(conditions)s
+			%(group_by)s
+			%(order_by)s
+			%(limit)s""" % args
 
 		return frappe.db.sql(query, as_dict=not self.as_list, debug=self.debug, update=self.update)
 
@@ -234,6 +238,11 @@ class DatabaseQuery(object):
 
 			_is_query(field)
 
+			if re.compile(r".*/\*.*").match(field):
+				frappe.throw(_('Illegal SQL Query'))
+
+			if re.compile(r".*\s(union).*\s").match(field.lower()):
+				frappe.throw(_('Illegal SQL Query'))
 
 	def extract_tables(self):
 		"""extract tables from fields"""
@@ -635,6 +644,8 @@ class DatabaseQuery(object):
 		if 'select' in _lower and ' from ' in _lower:
 			frappe.throw(_('Cannot use sub-query in order by'))
 
+		if re.compile(r".*[^a-z0-9-_ ,`'\"\.\(\)].*").match(_lower):
+			frappe.throw(_('Illegal SQL Query'))
 
 		for field in parameters.split(","):
 			if "." in field and field.strip().startswith("`tab"):
