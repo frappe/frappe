@@ -55,25 +55,15 @@ framework_days = {
 
 class GoogleCalendar(Document):
 
-	def validate_google_settings(self):
-		google_settings = frappe.get_single("Google Settings")
-		if not google_settings.enable:
-			frappe.throw(_("Enable Google API in Google Settings."))
-
-		if not google_settings.client_id or not google_settings.client_secret:
-			frappe.throw(_("Enter Client Id and Client Secret in Google Settings."))
-
-		return google_settings
-
 	def validate(self):
-		self.validate_google_settings()
+		validate_google_settings()
 
 		if frappe.db.exists("Google Calendar", {"user": self.user, "calendar_name": self.calendar_name}) and \
 			not frappe.db.get_value("Google Calendar", {"user": self.user, "calendar_name": self.calendar_name}, "name") == self.name:
 			frappe.throw(_("Google Calendar already exists for user {0} and name {1}").format(self.user, self.calendar_name))
 
 	def get_access_token(self):
-		google_settings = self.validate_google_settings()
+		google_settings = validate_google_settings()
 
 		if not self.refresh_token:
 			button_label = frappe.bold(_("Allow Google Calendar Access"))
@@ -94,6 +84,16 @@ class GoogleCalendar(Document):
 			frappe.throw(_("Something went wrong during the token generation. Click on {0} to generate a new one.").format(button_label))
 
 		return r.get("access_token")
+
+def validate_google_settings():
+	google_settings = frappe.get_single("Google Settings")
+	if not google_settings.enable:
+		frappe.throw(_("Enable Google API in Google Settings."))
+
+	if not google_settings.client_id or not google_settings.client_secret:
+		frappe.throw(_("Enter Client Id and Client Secret in Google Settings."))
+
+	return google_settings
 
 @frappe.whitelist()
 def authorize_access(g_calendar, reauthorize=None):
@@ -304,12 +304,12 @@ def google_calendar_insert_events(doc, method=None):
 
 def google_calendar_update_events(doc, method=None):
 	# Update Events with Google Calendar
-	# Workaround to avoid triggering updation when Event is being inserted since
-	# creation and modified are same when inserting doc
 
 	if not frappe.db.exists("Google Calendar", {"user": frappe.session.user}):
 		return
 
+	# Workaround to avoid triggering updation when Event is being inserted since
+	# creation and modified are same when inserting doc
 	if doc.modified == doc.creation:
 		return
 
