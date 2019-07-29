@@ -17,9 +17,9 @@
   "report_information_section",
   "report_name",
   "filters",
+  "show_report",
   "raw_information_log_section",
-  "page",
-  "data_snapshot"
+  "page"
  ],
  "fields": [
   {
@@ -46,10 +46,9 @@
   },
   {
    "fieldname": "reference_document",
-   "fieldtype": "Dynamic Link",
+   "fieldtype": "Data",
    "in_list_view": 1,
    "label": "Reference Document",
-   "options": "export_from",
    "read_only": 1
   },
   {
@@ -101,19 +100,18 @@
    "label": "RAW Information Log"
   },
   {
-   "fieldname": "data_snapshot",
-   "fieldtype": "Long Text",
-   "label": "Data Snapshot",
-   "read_only": 1
-  },
-  {
    "fieldname": "method",
    "fieldtype": "Data",
    "label": "Method",
    "read_only": 1
+  },
+  {
+   "fieldname": "show_report",
+   "fieldtype": "Button",
+   "label": "Show Report"
   }
  ],
- "modified": "2019-07-28 03:53:49.921539",
+ "modified": "2019-07-29 16:00:12.344022",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Access Log",

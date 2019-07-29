@@ -3,16 +3,20 @@
 
 frappe.ui.form.on('Access Log', {
 	refresh: function (frm) {
-		frm.fields_dict.report_name.$input_wrapper.on("click", function () {
-			if (frm.doc.report_name.includes('/')) {
-				frappe.set_route(frm.doc.report_name);
-			} else {
-				try {
-					frappe.set_route('query-report', frm.doc.report_name, frm.doc.filters ? JSON.parse(frm.doc.filters) : '');
-				} catch (err) {
-					frappe.throw(__(err + ' has occurred'));
-				}
+		if (!frm.doc.report_name) {
+			frm.toggle_display('show_report');
+		}
+	},
+
+	show_report: function (frm) {
+		if (frm.doc.report_name.includes('/')) {
+			frappe.set_route(frm.doc.report_name);
+		} else {
+			try {
+				frappe.set_route('query-report', frm.doc.report_name, frm.doc.filters ? JSON.parse(frm.doc.filters) : '');
+			} catch (err) {
+				frappe.throw(__(err + ' has occurred'));
 			}
-		});
+		}
 	}
 });

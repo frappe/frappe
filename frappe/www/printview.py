@@ -7,6 +7,7 @@ import frappe, os, copy, json, re
 from frappe import _
 
 from frappe.modules import get_doc_path
+from frappe.core.doctype.access_log.access_log import make_access_log
 from frappe.utils import cint, strip_html
 from six import string_types
 
@@ -33,6 +34,8 @@ def get_context(context):
 
 	print_format = get_print_format_doc(None, meta = meta)
 
+	make_access_log(doctype=frappe.form_dict.doctype, document=frappe.form_dict.name, file_type='PDF', method='Print')
+	
 	return {
 		"body": get_rendered_template(doc, print_format = print_format,
 			meta=meta, trigger_print = frappe.form_dict.trigger_print,

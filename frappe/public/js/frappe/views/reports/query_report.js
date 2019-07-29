@@ -818,11 +818,23 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		frappe.breadcrumbs.add(ref_doctype.module);
 	}
 
+	make_access_log (method, file_format) {
+		frappe.call("frappe.core.doctype.access_log.access_log.make_access_log",
+			{
+				doctype: this.doctype || '',
+				report_name: this.report_name,
+				filters: this.get_filter_values(),
+				file_type: this.format || file_format,
+				method: method
+			});
+	}
+
 	print_report(print_settings) {
 		const custom_format = this.report_settings.html_format || null;
 		const filters_html = this.get_filters_html_for_print();
 		const landscape = print_settings.orientation == 'Landscape';
-
+		this.make_access_log('Print', custom_format);
+		
 		frappe.render_grid({
 			template: custom_format,
 			title: __(this.report_name),
@@ -884,6 +896,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	}
 
 	export_report() {
+		this.make_access_log('Export', file_format);
 		if (this.export_dialog) {
 			this.export_dialog.clear();
 			this.export_dialog.show();
