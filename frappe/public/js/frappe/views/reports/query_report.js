@@ -896,7 +896,6 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	}
 
 	export_report() {
-		this.make_access_log('Export', file_format);
 		if (this.export_dialog) {
 			this.export_dialog.clear();
 			this.export_dialog.show();
@@ -918,6 +917,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				fieldtype: "Check",
 			}
 		], ({ file_format, include_indentation }) => {
+			this.make_access_log('Export', file_format);
 			if (file_format === 'CSV') {
 				const column_row = this.columns.map(col => col.label);
 				const data = this.get_data_for_csv(include_indentation);
