@@ -153,7 +153,7 @@ export default class WebFormList {
 
 		add_heading(row, __("Sr"));
 		this.columns.forEach(col => {
-			add_heading(row, __(col.label))
+			add_heading(row, __(col.label));
 		});
 
 		function add_heading(row, label) {
