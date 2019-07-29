@@ -162,11 +162,19 @@ def download_backup(path):
 
 def download_private_file(path):
 	"""Checks permissions and sends back private file"""
-	try:
-		_file = frappe.get_doc("File", {"file_url": path})
-		_file.is_downloadable()
 
-	except frappe.PermissionError:
+	files = frappe.db.get_all('File', {'file_url': path})
+	can_access = False
+	# this file might be attached to multiple documents
+	# if the file is accessible from any one of those documents
+	# then it should be downloadable
+	for f in files:
+		_file = frappe.get_doc("File", f)
+		can_access = _file.is_downloadable()
+		if can_access:
+			break
+
+	if not can_access:
 		raise Forbidden(_("You don't have permission to access this file"))
 
 	return send_private_file(path.split("/private", 1)[1])
