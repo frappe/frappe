@@ -151,12 +151,9 @@ export default class WebFormList {
 		th.appendChild(checkbox);
 		row.appendChild(th);
 
-		add_heading(row, "Sr.");
+		add_heading(row, __("Sr"));
 		this.columns.forEach(col => {
-			let th = document.createElement("th");
-			let text = document.createTextNode(__(col.label));
-			th.appendChild(text);
-			row.appendChild(th);
+			add_heading(row, __(col.label));
 		});
 
 		function add_heading(row, label) {
@@ -301,7 +298,7 @@ frappe.ui.WebFormListRow = class WebFormListRow {
 			let cell = this.row.insertCell();
 			let formatter = frappe.form.get_formatter(field.fieldtype);
 			cell.innerHTML = this.doc[field.fieldname] &&
-				formatter(this.doc[field.fieldname], field, {only_value: 1}, this.doc) || "";
+				__(formatter(this.doc[field.fieldname], field, {only_value: 1}, this.doc)) || "";
 		});
 
 		this.row.onclick = () => this.events.onEdit();
