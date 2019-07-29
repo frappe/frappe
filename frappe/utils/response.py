@@ -168,8 +168,8 @@ def download_private_file(path):
 
 	files = frappe.db.get_all('File', {'file_url': path})
 	can_access = False
-	make_access_log(doctype='File', document=path, file_type=os.path.splitext(path)[-1][1:])
-  # this file might be attached to multiple documents
+  	
+	# this file might be attached to multiple documents
 	# if the file is accessible from any one of those documents
 	# then it should be downloadable
 	for f in files:
@@ -180,7 +180,9 @@ def download_private_file(path):
 
 	if not can_access:
 		raise Forbidden(_("You don't have permission to access this file"))
-
+	
+	make_access_log(doctype='File', document=path, file_type=os.path.splitext(path)[-1][1:])
+	
 	return send_private_file(path.split("/private", 1)[1])
 
 
