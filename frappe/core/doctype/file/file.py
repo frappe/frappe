@@ -569,7 +569,7 @@ class File(NestedSet):
 			if has_permission(self, 'read'):
 				return True
 
-			raise frappe.PermissionError
+			return False
 
 	def get_extension(self):
 		'''returns split filename and extension'''
