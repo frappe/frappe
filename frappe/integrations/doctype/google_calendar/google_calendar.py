@@ -113,7 +113,7 @@ def authorize_access(g_calendar, reauthorize=None):
 	else:
 		try:
 			data = {
-				"code": google_calendar.authorization_code,
+				"code": google_calendar.get_password(fieldname="authorization_code", raise_exception=False),
 				"client_id": google_settings.client_id,
 				"client_secret": google_settings.get_password(fieldname="client_secret", raise_exception=False),
 				"redirect_uri": redirect_uri,
@@ -166,7 +166,7 @@ def get_credentials(g_calendar):
 
 	credentials_dict = {
 		"token": account.get_access_token(),
-		"refresh_token": account.refresh_token,
+		"refresh_token": account.get_password(fieldname="refresh_token", raise_exception=False),
 		"token_uri": "https://www.googleapis.com/oauth2/v4/token",
 		"client_id": google_settings.client_id,
 		"client_secret": google_settings.get_password(fieldname="client_secret", raise_exception=False),
@@ -222,18 +222,15 @@ def google_calendar_get_events(g_calendar, method=None, page_length=10):
 	while True:
 		try:
 			# API Response listed at EOF
+			sync_token = account.get_password(fieldname="next_sync_token", raise_exception=False) or None
 			events = google_calendar.events().list(calendarId=account.google_calendar_id, maxResults=page_length,
-				singleEvents=False, showDeleted=True, syncToken=account.next_sync_token or None).execute()
-			print("try")
-			print(events)
+				singleEvents=False, showDeleted=True, syncToken=sync_token).execute()
 		except HttpError as err:
 			if err.resp.status in [404, 410]:
 				events = google_calendar.events().list(calendarId=account.google_calendar_id, maxResults=page_length,
 					singleEvents=False, showDeleted=True, timeMin=add_years(None, -1).strftime("%Y-%m-%dT%H:%M:%SZ")).execute()
-				print("except")
-				print(events)
 			else:
-				frappe.log_error(err.resp, "Google Calendar Events Fetch Error.")
+				frappe.log_error(err, "Google Calendar - Could not fetch event from Google Calendar.")
 
 		for event in events.get("items"):
 			results.append(event)
@@ -258,6 +255,7 @@ def google_calendar_get_events(g_calendar, method=None, page_length=10):
 				"doctype": "Event",
 				"subject": event.get("summary"),
 				"description": event.get("description"),
+				"google_calendar_event": 1,
 				"google_calendar_id": account.google_calendar_id,
 				"google_calendar_event_id": event.get("id"),
 			}
@@ -339,6 +337,9 @@ def google_calendar_delete_events(doc, method=None):
 		return
 
 	google_calendar, account = get_credentials({"user": frappe.session.user})
+
+	if not account.push_to_google_calendar:
+		return
 
 	try:
 		google_calendar.events().delete(calendarId=account.google_calendar_id, eventId=doc.google_calendar_event_id).execute()

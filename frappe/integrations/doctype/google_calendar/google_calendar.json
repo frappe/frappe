@@ -16,10 +16,9 @@
   "cb_01",
   "push_to_google_calendar",
   "section_break_3",
+  "google_calendar_id",
   "refresh_token",
   "authorization_code",
-  "column_break_6",
-  "google_calendar_id",
   "next_sync_token"
  ],
  "fields": [
@@ -57,21 +56,19 @@
   },
   {
    "fieldname": "refresh_token",
-   "fieldtype": "Data",
+   "fieldtype": "Password",
+   "hidden": 1,
    "label": "Refresh Token"
   },
   {
    "fieldname": "authorization_code",
-   "fieldtype": "Data",
+   "fieldtype": "Password",
+   "hidden": 1,
    "label": "Authorization Code"
   },
   {
-   "fieldname": "column_break_6",
-   "fieldtype": "Column Break"
-  },
-  {
    "fieldname": "next_sync_token",
-   "fieldtype": "Data",
+   "fieldtype": "Password",
    "hidden": 1,
    "label": "Next Sync Token"
   },
@@ -113,7 +110,7 @@
    "label": "Push to Google Calendar"
   }
  ],
- "modified": "2019-07-25 11:21:58.509798",
+ "modified": "2019-07-29 21:06:29.674579",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Google Calendar",
