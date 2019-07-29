@@ -73,10 +73,10 @@ def get_recurrence_event_fields_value(recur_rule, starts_on):
 	for _str in recur_rule.split(";"):
 		if "RRULE:FREQ" in _str:
 			repeat_every = _str.split("=")[1]
-			if repeat_every == "DAILY": repeat_on = "Every Day"
-			elif repeat_every == "WEEKLY": repeat_on = "Every Week"
-			elif repeat_every == "MONTHLY": repeat_on = "Every Month"
-			else: repeat_on = "Every Year"
+			if repeat_every == "DAILY": repeat_on = "Daily"
+			elif repeat_every == "WEEKLY": repeat_on = "Weekly"
+			elif repeat_every == "MONTHLY": repeat_on = "Monthly"
+			else: repeat_on = "Yearly"
 		elif "UNTIL" in _str:
 			# get repeat till
 			date = parse(_str.split("=")[1])
@@ -96,7 +96,7 @@ def get_recurrence_event_fields_value(recur_rule, starts_on):
 				"friday": 1 if "FR" in days else 0,
 				"saturday": 1 if "SA" in days else 0,
 			})
-			repeat_on = "Every Day"
+			repeat_on = "Weekly"
 
 	recurrence = {
 		"repeat_on": repeat_on,
@@ -112,16 +112,16 @@ def get_recurrence_event_fields_value(recur_rule, starts_on):
 
 def get_repeat_till_date(date, count=None, repeat_on=None):
 	if count:
-		if repeat_on == "Every Day":
+		if repeat_on == "Daily":
 			# add days
 			date = date + timedelta(days=int(count))
-		elif repeat_on == "Every Week":
+		elif repeat_on == "Weekly":
 			# add weeks
 			date = date + timedelta(weeks=int(count))
-		elif repeat_on == "Every Month":
+		elif repeat_on == "Monthly":
 			# add months
 			date = add_months(date, int(count))
-		elif repeat_on == "Every Year":
+		elif repeat_on == "Yearly":
 			# add years
 			date = add_months(date, int(count) * 12)
 		else:
