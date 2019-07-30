@@ -6,7 +6,7 @@ from __future__ import unicode_literals
 import frappe
 import unittest
 import json
-from time import sleep
+import time
 from frappe.website.doctype.personal_data_download_request.personal_data_download_request import get_user_data
 
 
@@ -22,18 +22,28 @@ class TestRequestPersonalData(unittest.TestCase):
 
 	def test_file_and_email_creation(self):
 		frappe.set_user('test_privacy@example.com')
-		download_request = frappe.get_doc({"doctype": 'Personal Data Download Request', 'user': 'test_privacy@example.com'})
+		download_request = frappe.get_doc({
+			"doctype": 'Personal Data Download Request',
+			'user': 'test_privacy@example.com'
+		})
 		download_request.save(ignore_permissions=True)
-		sleep(1)
+
 		frappe.set_user('Administrator')
 
-		f = frappe.get_all('File', {
+		file_count = 0
+		timeout = time.time() + 3 # 3 secs
+		while True:
+			file_count = frappe.db.count('File', {
 				'attached_to_doctype':'Personal Data Download Request',
 				'attached_to_name': download_request.name
-			}, ['*'])
-		self.assertEqual(len(f), 1)
+			})
 
-		email_queue = frappe.db.sql("""SELECT *
+			if file_count or time.time() > timeout:
+				break
+
+		self.assertEqual(file_count, 1)
+
+		email_queue = frappe.db.sql("""SELECT `message`
 			FROM `tabEmail Queue`
 			ORDER BY `creation` DESC""", as_dict=True)
 		self.assertTrue("Subject: Download Your Data" in email_queue[0].message)
