@@ -14,7 +14,7 @@ class PersonalDataDownloadRequest(Document):
 		personal_data = get_user_data(self.user)
 
 		frappe.enqueue_doc(self.doctype, self.name, 'generate_file_and_send_mail',
-			queue='short', personal_data=personal_data)
+			queue='short', personal_data=personal_data, now=frappe.flags.in_test)
 
 	def generate_file_and_send_mail(self, personal_data):
 		"""generate the file link for download"""

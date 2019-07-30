@@ -30,22 +30,17 @@ class TestRequestPersonalData(unittest.TestCase):
 
 		frappe.set_user('Administrator')
 
-		file_count = 0
-		timeout = time.time() + 3 # 3 secs
-		while True:
-			file_count = frappe.db.count('File', {
-				'attached_to_doctype':'Personal Data Download Request',
-				'attached_to_name': download_request.name
-			})
-
-			if file_count or time.time() > timeout:
-				break
+		file_count = frappe.db.count('File', {
+			'attached_to_doctype':'Personal Data Download Request',
+			'attached_to_name': download_request.name
+		})
 
 		self.assertEqual(file_count, 1)
 
-		email_queue = frappe.db.sql("""SELECT `message`
-			FROM `tabEmail Queue`
-			ORDER BY `creation` DESC""", as_dict=True)
+		email_queue = frappe.get_all('Email Queue',
+			fields=['message'],
+			order_by="creation DESC",
+			limit=1)
 		self.assertTrue("Subject: Download Your Data" in email_queue[0].message)
 
 		frappe.db.sql("delete from `tabEmail Queue`")
