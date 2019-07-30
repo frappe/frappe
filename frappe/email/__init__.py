@@ -89,7 +89,7 @@ def get_cached_contacts(txt):
 	if not txt:
 		return contacts
 
-	match = [d for d in contacts if (d.value and (txt in d.value or txt in d.description))]
+	match = [d for d in contacts if (d.value and ((d.value and txt in d.value) or (d.description and txt in d.description)))]
 	return match
 
 def update_contact_cache(contacts):
