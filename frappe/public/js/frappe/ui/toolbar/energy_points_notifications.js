@@ -75,11 +75,10 @@ frappe.ui.EnergyPointsNotifications = class {
 	}
 
 	get_energy_points_list(limit) {
-		return frappe.db.get_list('Energy Point Log',
-			{filters: {user: frappe.session.user, type:['not in',['Review']]},
+		return frappe.db.get_list('Energy Point Log', {filters: {user: frappe.session.user, type:['not in',['Review']]},
 			fields:['name','user', 'points', 'reference_doctype', 'reference_name', 'reason', 'type', 'seen', 'rule', 'owner', 'creation'],
 			limit:limit, order_by:'creation desc'}).then((energy_points_list)=> {
-				return energy_points_list;
+			return energy_points_list;
 		});
 	}
 
@@ -104,7 +103,7 @@ frappe.ui.EnergyPointsNotifications = class {
 				if(item_html) body_html += item_html;
 			});
 		} else {
-			body_html += `<li><a href="#" onclick = "return false" class="text-muted text-center">${__('No activity')}</a></li>`
+			body_html += `<li><a href="#" onclick = "return false" class="text-muted text-center">${__('No activity')}</a></li>`;
 		}
 
 		let dropdown_html = header_html + body_html;
@@ -141,7 +140,7 @@ frappe.ui.EnergyPointsNotifications = class {
 			if(field.type === 'Appreciation') {
 				message = `${__(owner_name)} appreciated your work on `;
 			} else if(field.type === 'Criticism') {
-				message =  `${__(owner_name)} criticized your work on `
+				message =  `${__(owner_name)} criticized your work on `;
 			} else if(field.type === 'Revert') {
 				message =  `${__(owner_name)} reverted your points on `;
 			}
@@ -156,4 +155,4 @@ frappe.ui.EnergyPointsNotifications = class {
 		if(str.length > 50) str = str.slice(0,50) + '...';
 		return str;
 	}
-}
+};
