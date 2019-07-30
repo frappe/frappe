@@ -247,3 +247,5 @@ frappe.patches.v12_0.remove_feedback_rating
 frappe.patches.v12_0.move_form_attachments_to_attachments_folder
 frappe.patches.v12_0.move_timeline_links_to_dynamic_links
 frappe.patches.v12_0.delete_feedback_request_if_exists #1
+frappe.patches.v12_0.rename_events_repeat_on
+frappe.patches.v12_0.fix_public_private_files

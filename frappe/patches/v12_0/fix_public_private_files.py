@@ -31,3 +31,5 @@ def generate_file(file_name):
 		file_doc.save()
 	except IOError:
 		pass
+	except Exception as e:
+		print(e)
