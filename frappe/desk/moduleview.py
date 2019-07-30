@@ -336,7 +336,7 @@ def get_desktop_settings():
 		if category in user_saved_modules_by_category:
 			user_modules = user_saved_modules_by_category[category]
 			user_modules_by_category[category] = [apply_user_saved_links(modules_by_name[m]) \
-				for m in user_modules]
+				for m in user_modules if modules_by_name.get(m)]
 		else:
 			user_modules_by_category[category] = [apply_user_saved_links(m) \
 				for m in all_modules if m.get('category') == category]
