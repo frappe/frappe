@@ -55,7 +55,7 @@ export default function make_datatable(container, doctype) {
 				});
 			for (let fieldname of colnames) {
 				let val = data[i][fieldname];
-				$(`<td>${truncate(val)}</td>`).appendTo(tablerow);
+				$(`<td>${__(truncate(val))}</td>`).appendTo(tablerow);
 			}
 		}
 
