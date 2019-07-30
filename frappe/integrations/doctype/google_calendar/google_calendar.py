@@ -212,6 +212,7 @@ def check_remote_calendar(account, google_calendar):
 
 def google_calendar_get_events(g_calendar, method=None, page_length=10):
 	# Get Events from Google Calendar
+
 	google_calendar, account = get_credentials({"name": g_calendar})
 
 	if not account.pull_from_google_calendar:
@@ -226,7 +227,7 @@ def google_calendar_get_events(g_calendar, method=None, page_length=10):
 			events = google_calendar.events().list(calendarId=account.google_calendar_id, maxResults=page_length,
 				singleEvents=False, showDeleted=True, syncToken=sync_token).execute()
 		except HttpError as err:
-			if err.resp.status in [404, 410]:
+			if err.resp.status in [400, 404, 410]:
 				events = google_calendar.events().list(calendarId=account.google_calendar_id, maxResults=page_length,
 					singleEvents=False, showDeleted=True, timeMin=add_years(None, -1).strftime("%Y-%m-%dT%H:%M:%SZ")).execute()
 			else:
@@ -258,25 +259,29 @@ def google_calendar_get_events(g_calendar, method=None, page_length=10):
 				"google_calendar_event": 1,
 				"google_calendar_id": account.google_calendar_id,
 				"google_calendar_event_id": event.get("id"),
+				"owner": event.get("creator").get("email")
 			}
 			calendar_event.update(google_calendar_to_repeat_on(recurrence=recurrence, start=event.get('start'), end=event.get('end')))
-
 			frappe.get_doc(calendar_event).insert(ignore_permissions=True)
-
-		# If any synced Google Calendar Event is cancelled, then close the Event
-		if event.get("status") == "cancelled":
+		elif event.get("status") == "cancelled":
+			# If any synced Google Calendar Event is cancelled, then close the Event
 			frappe.db.set_value("Event", {"google_calendar_id": account.google_calendar_id, "google_calendar_event_id": event.get("id")}, "status", "Closed")
+		else:
+			pass
 
 def google_calendar_insert_events(doc, method=None):
-	"""
-		Insert Events to Google Calendar
-		UUID algorithm used minimize the risk of id collisions such as one described in RFC4122.
-		https://developers.google.com/calendar/v3/reference/events/insert
-	"""
-	if not frappe.db.exists("Google Calendar", {"user": frappe.session.user}):
+	# Insert Events to Google Calendar
+
+	def _google_calendar_insert_events(google_calendar, account, event, doc):
+		event = google_calendar.events().insert(calendarId=account.google_calendar_id, body=event).execute()
+		frappe.db.set_value("Event", doc.name, "google_calendar_event", 1, update_modified=False)
+		frappe.db.set_value("Event", doc.name, "google_calendar_id", account.google_calendar_id, update_modified=False)
+		frappe.db.set_value("Event", doc.name, "google_calendar_event_id", event.get("id"), update_modified=False)
+
+	if not frappe.db.exists("Google Calendar", {"user": doc.owner or frappe.session.user}):
 		return
 
-	google_calendar, account = get_credentials({"user": frappe.session.user})
+	google_calendar, account = get_credentials({"user": doc.owner or frappe.session.user})
 
 	if not account.push_to_google_calendar:
 		return
@@ -284,7 +289,6 @@ def google_calendar_insert_events(doc, method=None):
 	event = {
 		"summary": doc.subject,
 		"description": doc.description,
-		"id": str(uuid.uuid5(uuid.NAMESPACE_DNS, doc.name)),
 		"google_calendar_event": 1
 	}
 	event.update(google_calendar_format_date(get_datetime(doc.starts_on), get_datetime(doc.ends_on)))
@@ -293,17 +297,30 @@ def google_calendar_insert_events(doc, method=None):
 		event.update({"recurrence": unparse_recurrence(doc)})
 
 	try:
-		google_calendar.events().insert(calendarId=account.google_calendar_id, body=event).execute()
-		frappe.db.set_value("Event", doc.name, "google_calendar_event", 1, update_modified=False)
-		frappe.db.set_value("Event", doc.name, "google_calendar_id", account.google_calendar_id, update_modified=False)
-		frappe.db.set_value("Event", doc.name, "google_calendar_event_id", event.get("id"), update_modified=False)
-	except HttpError as e:
-		frappe.log_error(e, _("Google Calendar - Could not insert event in Google Calendar."))
+		_google_calendar_insert_events(google_calendar, account, event, doc)
+	except HttpError as err:
+		if err.resp.status in [400, 404, 410]:
+			_google_calendar_insert_events(google_calendar, account, event, doc)
+		else:
+			frappe.log_error(err, _("Google Calendar - Could not insert event in Google Calendar."))
+
 
 def google_calendar_update_events(doc, method=None):
 	# Update Events with Google Calendar
 
-	if not frappe.db.exists("Google Calendar", {"user": frappe.session.user}):
+	def _google_calendar_update_events(google_calendar, account, doc):
+		event = google_calendar.events().get(calendarId=account.google_calendar_id, eventId=doc.google_calendar_event_id).execute()
+		event["summary"] = doc.subject
+		event["description"] = doc.description
+		event["recurrence"] = unparse_recurrence(doc)
+		event.update(google_calendar_format_date(get_datetime(doc.starts_on), get_datetime(doc.ends_on)))
+
+		if doc.event_type == "Cancelled" or doc.status == "Closed":
+			event["status"] = "cancelled"
+
+		google_calendar.events().update(calendarId=account.google_calendar_id, eventId=doc.google_calendar_event_id, body=event).execute()
+
+	if not frappe.db.exists("Google Calendar", {"user": doc.owner or frappe.session.user}):
 		return
 
 	# Workaround to avoid triggering updation when Event is being inserted since
@@ -311,40 +328,43 @@ def google_calendar_update_events(doc, method=None):
 	if doc.modified == doc.creation:
 		return
 
-	google_calendar, account = get_credentials({"user": frappe.session.user})
+	google_calendar, account = get_credentials({"user": doc.owner or frappe.session.user})
 
 	if not account.push_to_google_calendar:
 		return
 
-	event = google_calendar.events().get(calendarId=account.google_calendar_id, eventId=doc.google_calendar_event_id).execute()
-	event["summary"] = doc.subject
-	event["description"] = doc.description
-	event["recurrence"] = unparse_recurrence(doc)
-	event.update(google_calendar_format_date(get_datetime(doc.starts_on), get_datetime(doc.ends_on)))
-
-	if doc.event_type == "Cancelled" or doc.status == "Closed":
-		event["status"] = "cancelled"
-
 	try:
-		google_calendar.events().update(calendarId=account.google_calendar_id, eventId=doc.google_calendar_event_id, body=event).execute()
-	except HttpError as e:
-		frappe.log_error(e, "Google Calendar - Could not update event in Google Calendar.")
+		_google_calendar_update_events(google_calendar, account, doc)
+	except HttpError as err:
+		if err.resp.status in [400, 404, 410]:
+			_google_calendar_update_events(google_calendar, account, doc)
+		else:
+			frappe.log_error(err, "Google Calendar - Could not update Event {0} in Google Calendar.".format(doc.name))
 
 def google_calendar_delete_events(doc, method=None):
 	# Delete Events from Google Calendar
 
-	if not frappe.db.exists("Google Calendar", {"user": frappe.session.user}):
+	def _google_calendar_delete_events(google_calendar, account, doc):
+		events = google_calendar.events().get(calendarId=account.google_calendar_id, eventId=doc.google_calendar_event_id).execute()
+		events["recurrence"] = None
+		events["status"] = "cancelled"
+		google_calendar.events().update(calendarId=account.google_calendar_id, eventId=doc.google_calendar_event_id, body=event).execute()
+
+	if not frappe.db.exists("Google Calendar", {"user": doc.owner or frappe.session.user}):
 		return
 
-	google_calendar, account = get_credentials({"user": frappe.session.user})
+	google_calendar, account = get_credentials({"user": doc.owner or frappe.session.user})
 
 	if not account.push_to_google_calendar:
 		return
 
 	try:
-		google_calendar.events().delete(calendarId=account.google_calendar_id, eventId=doc.google_calendar_event_id).execute()
-	except Exception as e:
-		frappe.log_error(e, "Google Calendar - Could not delete event from Google Calendar.")
+		_google_calendar_delete_events(google_calendar, account, doc)
+	except Exception as err:
+		if err.resp.status in [400, 404, 410]:
+			_google_calendar_delete_events(google_calendar, account, doc)
+		else:
+			frappe.log_error(err, "Google Calendar - Could not delete Event {0} from Google Calendar.".format(doc.name))
 
 def google_calendar_to_repeat_on(start, end, recurrence=None):
 	"""

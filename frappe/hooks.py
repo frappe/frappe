@@ -169,6 +169,7 @@ scheduler_events = {
 		"frappe.limits.update_site_usage",
 		"frappe.deferred_insert.save_to_db",
 		"frappe.desk.form.document_follow.send_hourly_updates",
+		"frappe.integrations.doctype.google_calendar.google_calendar.sync"
 	],
 	"daily": [
 		"frappe.email.queue.clear_outbox",
