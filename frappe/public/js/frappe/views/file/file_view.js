@@ -296,13 +296,6 @@ frappe.views.FileView = class FileView extends frappe.views.ListView {
 		`;
 	}
 
-	make_new_doc() {
-		new frappe.ui.FileUploader({
-			folder: this.current_folder,
-			on_success: () => this.refresh()
-		});
-	}
-
 	setup_events() {
 		super.setup_events();
 		this.setup_drag_drop();
