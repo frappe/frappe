@@ -68,6 +68,7 @@ def get_form_params():
 
 	# queries must always be server side
 	data.query = None
+	data.strict = None
 
 	return data
 
