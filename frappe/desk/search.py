@@ -152,7 +152,8 @@ def search_widget(doctype, txt, query=None, searchfield=None, start=0,
 				order_by=order_by,
 				ignore_permissions=ignore_permissions,
 				reference_doctype=reference_doctype,
-				as_list=not as_dict)
+				as_list=not as_dict,
+				strict=False)
 
 			if doctype in UNTRANSLATED_DOCTYPES:
 				values = tuple([v for v in list(values) if re.search(txt+".*", (_(v.name) if as_dict else _(v[0])), re.IGNORECASE)])
