@@ -1,0 +1,25 @@
+<div class="user-profile">
+    <div class="user-image-container">
+        {% if user_image %}
+            {{user_image}}
+        {% endif %}
+    </div>
+    <div class="profile-details">
+        {% if user_bio %}
+        <p class="user-bio">{{user_bio}}</p>
+        {% endif %}
+        <p class="user-energy-points text-muted">Energy Points: <span class="energy-points">{{energy_points}}</span></p>
+        <p class="user-energy-points text-muted">Rank: <span class="rank">{{rank}}</span></p>
+        {% if user_location %}
+        <p class="user-location text-muted"><span class="interest-icon"><i class="fa fa-map-marker"></i></span>{{user_location}}</p>
+        {% endif %}
+        {% if user_interest %}
+        <p class="user-interests text-muted"><span class="interest-icon"><i class="fa fa-puzzle-piece"></i></span>{{user_interest}}</p>
+        {% endif %}
+    </div>
+    <div class="profile-links">
+        <p><a class="edit-profile-link">Edit Profile</a></p>
+        <p><a class="user-settings-link">User Settings</a></p>
+        <p><a class="leaderboard-link" href="#social/users">Leaderboard</a></p>
+    </div>
+</div>

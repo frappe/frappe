@@ -1,0 +1,104 @@
+.user-image-container {
+    margin-top: 7px;
+    padding-bottom: 100%;
+}
+
+.standard-image {
+    font-size: 72px;
+}
+
+.profile-details {
+    margin: -5px 5px;
+}
+
+.profile-links {
+    margin: 30px 5px;
+}
+
+.user-initial {
+    font-size: 72px;
+}
+
+.chart-column-container{
+    border: 1px solid #d1d8dd;
+    border-radius: 4px;
+    margin: 30px 0;
+    padding: 5px 15px;
+}
+
+.heatmap-container {
+    height: 180px
+}
+.performance-heatmap .chart-container {
+    margin: 0 auto;
+}
+
+.performance-heatmap .frappe-chart .chart-legend {
+    display: none;
+}
+
+.percentage-chart-container {
+    height: 170px;
+}
+/* .performance-graphs .chart-column-container {
+    width: 95%;
+} */
+
+.performance-graphs {
+    margin: 15px 30px;
+}
+
+.recent-activity {
+    margin: 30px;
+    font-size: 12px;
+}
+
+.show-more-activity {
+    text-align: center;
+    margin-top: 30px;
+}
+
+.positive-points {
+    color: #45A163;
+}
+
+.negative-points {
+    color: #e42121;
+}
+
+.points-reason {
+    display: flow-root;
+}
+
+.points-update {
+	float: left;
+    text-align: right;
+    margin-right: 15px;
+    width: 3%;
+}
+
+.recent-points-item {
+    margin: 15px;
+}
+
+.interest-icon {
+    margin-right: 5px;
+}
+
+.chart-filter {
+    position: relative;
+    left: 10px;
+    top: 5px;
+    margin-right: 5px;
+    z-index: 1;
+}
+
+.filter-label {
+    margin-right: 4px;
+}
+
+.performance-title {
+    position: relative;
+    left: 30px;
+    top: 20px;
+}

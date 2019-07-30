@@ -11,12 +11,12 @@ from frappe.model.document import Document
 
 @frappe.whitelist()
 @cache_source
-def get(chart_name, from_date=None, to_date=None, refresh = None):
-	chart = frappe.get_doc('Dashboard Chart', chart_name)
+def get(chart, cache, from_date=None, to_date=None, refresh = None):
 
+	chart = frappe.parse_json(chart)
 	timespan = chart.timespan
 	timegrain = chart.time_interval
-	filters = json.loads(chart.filters_json)
+	filters = json.loads(chart['filters_json'])
 
 	# don't include cancelled documents
 	filters['docstatus'] = ('<', 2)
