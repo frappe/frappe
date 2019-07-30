@@ -35,7 +35,7 @@ class DatabaseQuery(object):
 		ignore_permissions=False, user=None, with_comment_count=False,
 		join='left join', distinct=False, start=None, page_length=None, limit=None,
 		ignore_ifnull=False, save_user_settings=False, save_user_settings_fields=False,
-		update=None, add_total_row=None, user_settings=None):
+		update=None, add_total_row=None, user_settings=None, strict=True):
 		if not ignore_permissions and not frappe.has_permission(self.doctype, "read", user=user):
 			frappe.flags.error_message = _('Insufficient Permission for {0}').format(frappe.bold(self.doctype))
 			raise frappe.PermissionError(self.doctype)
@@ -79,6 +79,7 @@ class DatabaseQuery(object):
 		self.update = update
 		self.user_settings_fields = copy.deepcopy(self.fields)
 		#self.debug = True
+		self.strict = strict
 
 		if user_settings:
 			self.user_settings = json.loads(user_settings)
@@ -231,11 +232,12 @@ class DatabaseQuery(object):
 
 			_is_query(field)
 
-			if re.compile(r".*/\*.*").match(field):
-				frappe.throw(_('Illegal SQL Query'))
+			if self.strict:
+				if re.compile(r".*/\*.*").match(field):
+					frappe.throw(_('Illegal SQL Query'))
 
-			if re.compile(r".*\s(union).*\s").match(field.lower()):
-				frappe.throw(_('Illegal SQL Query'))
+				if re.compile(r".*\s(union).*\s").match(field.lower()):
+					frappe.throw(_('Illegal SQL Query'))
 
 	def extract_tables(self):
 		"""extract tables from fields"""
@@ -631,6 +633,7 @@ def get_list(doctype, *args, **kwargs):
 	'''wrapper for DatabaseQuery'''
 	kwargs.pop('cmd', None)
 	kwargs.pop('ignore_permissions', None)
+	kwargs.pop('strict', None)
 
 	# If doctype is child table
 	if frappe.is_table(doctype):
