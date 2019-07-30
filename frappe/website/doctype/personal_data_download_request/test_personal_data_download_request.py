@@ -6,7 +6,6 @@ from __future__ import unicode_literals
 import frappe
 import unittest
 import json
-import time
 from frappe.website.doctype.personal_data_download_request.personal_data_download_request import get_user_data
 
 
