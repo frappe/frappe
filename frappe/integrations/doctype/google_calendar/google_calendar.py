@@ -259,8 +259,7 @@ def google_calendar_get_events(g_calendar, method=None, page_length=10):
 				"description": event.get("description"),
 				"google_calendar_event": 1,
 				"google_calendar_id": account.google_calendar_id,
-				"google_calendar_event_id": event.get("id"),
-				"owner": event.get("creator").get("email")
+				"google_calendar_event_id": event.get("id")
 			}
 			calendar_event.update(google_calendar_to_repeat_on(recurrence=recurrence, start=event.get('start'), end=event.get('end')))
 			frappe.get_doc(calendar_event).insert(ignore_permissions=True)
