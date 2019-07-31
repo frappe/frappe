@@ -26,7 +26,10 @@ reflags = {
 @frappe.whitelist()
 def export_data(doctype=None, parent_doctype=None, all_doctypes=True, with_data=False,
 		select_columns=None, file_type='CSV', template=False, filters=None):
-	make_access_log(doctype=doctype, file_type=file_type, page=select_columns, _filters=filters, method=parent_doctype)
+	_doctype = doctype
+	if isinstance(_doctype, list):
+		_doctype = _doctype[0]
+	make_access_log(doctype=_doctype, file_type=file_type, page=select_columns, filters=filters, method=parent_doctype)
 	exporter = DataExporter(doctype=doctype, parent_doctype=parent_doctype, all_doctypes=all_doctypes, with_data=with_data,
 		select_columns=select_columns, file_type=file_type, template=template, filters=filters)
 	exporter.build_response()

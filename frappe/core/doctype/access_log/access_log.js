@@ -6,9 +6,6 @@ frappe.ui.form.on('Access Log', {
 		if (frm.doc.hasOwnProperty('report_name') && frm.doc.report_name != 'Backup') {
 			frm.set_df_property('show_report', 'hidden', 0);
 		}
-		if (frappe.db.exists(frm.doc.export_from, frm.doc.reference_document)) {
-			frm.set_df_property('show_document', 'hidden', 0);
-		}
 	},
 
 	show_document: function (frm) {
@@ -20,7 +17,7 @@ frappe.ui.form.on('Access Log', {
 			frappe.set_route(frm.doc.report_name);
 		} else {
 			try {
-				frappe.set_route('query-report', frm.doc.report_name, frm.doc._filters ? JSON.parse(frm.doc._filters) : '');
+				frappe.set_route('query-report', frm.doc.report_name, frm.doc.filters ? JSON.parse(frm.doc.filters) : '');
 			} catch (err) {
 				frappe.throw(__(err + ' has occurred'));
 			}

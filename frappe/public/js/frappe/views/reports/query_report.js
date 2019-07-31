@@ -823,8 +823,8 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			{
 				doctype: this.doctype || '',
 				report_name: this.report_name,
-				_filters: this.get_filter_values(),
-				file_type: this.format || this.file_format ? this.file_format.length < 10 : '',
+				filters: this.get_filter_values(),
+				file_type: file_format,
 				method: method
 			});
 	}
@@ -833,7 +833,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		const custom_format = this.report_settings.html_format || null;
 		const filters_html = this.get_filters_html_for_print();
 		const landscape = print_settings.orientation == 'Landscape';
-		this.make_access_log('Print', custom_format);
+		this.make_access_log('Print', 'PDF');
 		frappe.render_grid({
 			template: custom_format,
 			title: __(this.report_name),

@@ -12,18 +12,13 @@ class AccessLog(Document):
 
 
 @frappe.whitelist()
-def make_access_log(
-		doctype=None, document=None,
-		method=None, file_type=None,
-		report_name=None, _filters=None,
-		page=None
-	):
+def make_access_log(doctype=None, document=None, method=None, file_type=None,
+		report_name=None, filters=None, page=None):
 
 	user = frappe.session.user
 
 	doc = frappe.get_doc({
 		'doctype': 'Access Log',
-		'name': "AL-{}-{}".format(user, frappe.generate_hash(length=5)),
 		'user': user,
 		'export_from': doctype,
 		'reference_document': document,
@@ -31,7 +26,7 @@ def make_access_log(
 		'report_name': report_name,
 		'page': page,
 		'method': method,
-		'_filters': _filters
+		'filters': filters
 	})
 	doc.insert(ignore_permissions=True)
 
