@@ -37,6 +37,7 @@
   "event_participants",
   "sb_00",
   "google_calendar_id",
+  "synced_from_google_calendar",
   "cb_00",
   "google_calendar_event_id"
  ],
@@ -252,11 +253,18 @@
    "fieldtype": "Check",
    "label": "Google Calendar Event",
    "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "synced_from_google_calendar",
+   "fieldtype": "Check",
+   "label": "Synced from Google Calendar",
+   "read_only": 1
   }
  ],
  "icon": "fa fa-calendar",
  "idx": 1,
- "modified": "2019-07-28 14:22:27.221143",
+ "modified": "2019-07-31 11:01:08.920725",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Event",

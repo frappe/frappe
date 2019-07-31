@@ -28,7 +28,7 @@ frappe.ui.form.on('Google Calendar', {
 					},
 				}).then((r) => {
 					frappe.hide_progress();
-					frappe.msgprint(r.message);
+					frappe.msgprint("Google Calendar Events Synced");
 				});
 			});
 		}
