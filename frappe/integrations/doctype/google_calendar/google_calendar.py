@@ -212,6 +212,25 @@ def check_remote_calendar(account, google_calendar):
 
 def google_calendar_get_events(g_calendar, method=None, page_length=10):
 	# Get Events from Google Calendar
+	def _insert_event(account, event, recurrence=None):
+		calendar_event = {
+			"doctype": "Event",
+			"subject": event.get("summary"),
+			"description": event.get("description"),
+			"google_calendar_event": 1,
+			"google_calendar_id": account.google_calendar_id,
+			"google_calendar_event_id": event.get("id"),
+			"synced_from_google_calendar": 1
+		}
+		calendar_event.update(google_calendar_to_repeat_on(recurrence=recurrence, start=event.get('start'), end=event.get('end')))
+		frappe.get_doc(calendar_event).insert(ignore_permissions=True)
+
+	def _update_event(account, event, recurrence=None):
+		calendar_event = frappe.get_doc("Event", {"google_calendar_event_id": event.get("id")})
+		calendar_event.subject = event.get("summary")
+		calendar_event.description = event.get("description")
+		calendar_event.update(google_calendar_to_repeat_on(recurrence=recurrence, start=event.get('start'), end=event.get('end')))
+		calendar_event.save(ignore_permissions=True)
 
 	google_calendar, account = get_credentials({"name": g_calendar})
 
@@ -219,7 +238,6 @@ def google_calendar_get_events(g_calendar, method=None, page_length=10):
 		return
 
 	results = []
-
 	while True:
 		try:
 			# API Response listed at EOF
@@ -255,17 +273,10 @@ def google_calendar_get_events(g_calendar, method=None, page_length=10):
 				except IndexError:
 					pass
 
-			calendar_event = {
-				"doctype": "Event",
-				"subject": event.get("summary"),
-				"description": event.get("description"),
-				"google_calendar_event": 1,
-				"google_calendar_id": account.google_calendar_id,
-				"google_calendar_event_id": event.get("id"),
-				"synced_from_google_calendar": 1
-			}
-			calendar_event.update(google_calendar_to_repeat_on(recurrence=recurrence, start=event.get('start'), end=event.get('end')))
-			frappe.get_doc(calendar_event).insert(ignore_permissions=True)
+			if not frappe.db.exists("Event", {"google_calendar_event_id": event.get("id")}):
+				_insert_event(account, event, recurrence)
+			else:
+				_update_event(account, event, recurrence)
 		elif event.get("status") == "cancelled":
 			# If any synced Google Calendar Event is cancelled, then close the Event
 			frappe.db.set_value("Event", {"google_calendar_id": account.google_calendar_id, "google_calendar_event_id": event.get("id")}, "status", "Closed")
