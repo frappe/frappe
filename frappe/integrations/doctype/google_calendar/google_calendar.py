@@ -182,36 +182,28 @@ def get_credentials(g_calendar):
 	return google_calendar, account
 
 def check_remote_calendar(account, google_calendar):
+
 	def _create_calendar(account):
 		calendar = {
 			"summary": account.calendar_name,
 			"timeZone": frappe.db.get_single_value("System Settings", "time_zone")
 		}
-		try:
-			created_calendar = google_calendar.calendars().insert(body=calendar).execute()
-			frappe.db.set_value("Google Calendar", account.name, "google_calendar_id", created_calendar.get("id"))
-			frappe.db.commit()
-		except Exception:
-			frappe.log_error(frappe.get_traceback())
+		created_calendar = google_calendar.calendars().insert(body=calendar).execute()
+		frappe.db.set_value("Google Calendar", account.name, "google_calendar_id", created_calendar.get("id"))
+		frappe.db.commit()
 
+	account.load_from_db()
 	try:
 		if account.google_calendar_id:
-			try:
-				account.load_from_db()
-				google_calendar.calendars().get(calendarId=account.google_calendar_id).execute()
-			except Exception:
-				frappe.log_error(frappe.get_traceback())
+			google_calendar.calendars().get(calendarId=account.google_calendar_id).execute()
 		else:
 			_create_calendar(account)
 	except HttpError as err:
-		if err.resp.status in [403, 404, 410, 500, 503]:
-			time.sleep(5)
-			_create_calendar(account)
-		else:
-			frappe.log_error(frappe.get_traceback(), _("Google Calendar - Could not create Calendar for {0}.").format(account.name))
+		frappe.throw(_("Google Calendar - Could not create Calendar for {0}, error code {1}.").format(account.name, err.resp.status))
 
 def google_calendar_get_events(g_calendar, method=None, page_length=10):
 	# Get Events from Google Calendar
+
 	def _insert_event(account, event, recurrence=None):
 		calendar_event = {
 			"doctype": "Event",
@@ -245,12 +237,7 @@ def google_calendar_get_events(g_calendar, method=None, page_length=10):
 			events = google_calendar.events().list(calendarId=account.google_calendar_id, maxResults=page_length,
 				singleEvents=False, showDeleted=True, syncToken=sync_token).execute()
 		except HttpError as err:
-			if err.resp.status in [400, 404, 410, 500, 503]:
-				time.sleep(5)
-				events = google_calendar.events().list(calendarId=account.google_calendar_id, maxResults=page_length,
-					singleEvents=False, showDeleted=True, timeMin=add_years(None, -1).strftime("%Y-%m-%dT%H:%M:%SZ")).execute()
-			else:
-				frappe.throw(_("Google Calendar - Could not fetch event from Google Calendar."))
+			frappe.throw(_("Google Calendar - Could not fetch event from Google Calendar, error code {0}.").format(err.resp.status))
 
 		for event in events.get("items"):
 			results.append(event)
@@ -313,12 +300,7 @@ def google_calendar_insert_events(doc, method=None):
 	try:
 		_google_calendar_insert_events(google_calendar, account, event, doc)
 	except HttpError as err:
-		if err.resp.status in [400, 404, 410, 500, 503]:
-			time.sleep(2)
-			_google_calendar_insert_events(google_calendar, account, event, doc)
-		else:
-			frappe.throw(_("Google Calendar - Could not insert event in Google Calendar {0}."),format(account.name))
-
+		frappe.throw(_("Google Calendar - Could not insert event in Google Calendar {0}, error code {1}."),format(account.name, err.resp.status))
 
 def google_calendar_update_events(doc, method=None):
 	# Update Events with Google Calendar
@@ -348,11 +330,7 @@ def google_calendar_update_events(doc, method=None):
 	try:
 		_google_calendar_update_events(google_calendar, account, doc)
 	except HttpError as err:
-		if err.resp.status in [400, 404, 410, 500, 503]:
-			time.sleep(2)
-			_google_calendar_update_events(google_calendar, account, doc)
-		else:
-			frappe.throw(_("Google Calendar - Could not update Event {0} in Google Calendar.").format(doc.name))
+		frappe.throw(_("Google Calendar - Could not update Event {0} in Google Calendar, error code {1}.").format(doc.name, err.resp.status))
 
 def google_calendar_delete_events(doc, method=None):
 	# Delete Events from Google Calendar
@@ -374,11 +352,7 @@ def google_calendar_delete_events(doc, method=None):
 	try:
 		_google_calendar_delete_events(google_calendar, account, doc)
 	except HttpError as err:
-		if err.resp.status in [400, 404, 410, 500, 503]:
-			time.sleep(2)
-			_google_calendar_delete_events(google_calendar, account, doc)
-		else:
-			frappe.throw(_("Google Calendar - Could not delete Event {0} from Google Calendar.").format(doc.name))
+		frappe.throw(_("Google Calendar - Could not delete Event {0} from Google Calendar, error code {1}.").format(doc.name, err.resp.status))
 
 def google_calendar_to_repeat_on(start, end, recurrence=None):
 	"""
