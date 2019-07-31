@@ -136,6 +136,11 @@ doc_events = {
 		"on_change": [
 			"frappe.social.doctype.energy_point_rule.energy_point_rule.process_energy_points"
 		],
+	},
+	"Event": {
+		"after_insert": "frappe.integrations.doctype.google_calendar.google_calendar.google_calendar_insert_events",
+		"on_update": "frappe.integrations.doctype.google_calendar.google_calendar.google_calendar_update_events",
+		"on_trash": "frappe.integrations.doctype.google_calendar.google_calendar.google_calendar_delete_events",
 	}
 }
 
