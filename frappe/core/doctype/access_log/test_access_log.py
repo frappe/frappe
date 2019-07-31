@@ -1,16 +1,21 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) 2019, Frappe Technologies and Contributors
 # See license.txt
-from __future__ import unicode_literals
 
-# import frappe
+# imports - standard imports
+from __future__ import unicode_literals
+import json
 import unittest
+
+# imports - module imports
+import frappe
 from frappe.core.doctype.access_log.access_log import make_access_log
 
 
 class TestAccessLog(unittest.TestCase):
-    def test_make_full_access_log(self):
-        html_temp = """
+	def test_make_full_access_log(self):
+		self.maxDiff = None
+		html_temp = """
 			<!DOCTYPE html>
 			<html>
 			<head>
@@ -77,13 +82,27 @@ class TestAccessLog(unittest.TestCase):
 			</body>
 			</html>
 		"""
-        erpnext_fields = {"from_date": "2019-06-30", "to_date": "2019-07-31", "party": [],
-                          "group_by": "Group by Voucher (Consolidated)", "cost_center": [], "project": []}
+		erpnext_fields = {"from_date": "2019-06-30", "to_date": "2019-07-31", "party": [],
+						  "group_by": "Group by Voucher (Consolidated)", "cost_center": [], "project": []}
 
-        make_access_log(doctype='User',
-                        document='Test Document',
-                        report_name='General Ledger',
-                        page=html_temp,
-                        file_type='CSV',
-                        method='Test Method',
-                        filters=erpnext_fields)
+		test_input = frappe._dict(doctype='User',
+								  document='Test Document',
+								  report_name='General Ledger',
+								  page=html_temp,
+								  file_type='CSV',
+								  method='Test Method',
+								  filters=erpnext_fields)
+
+		make_access_log(doctype=test_input.doctype,
+						document=test_input.document,
+						report_name=test_input.report_name,
+						page=test_input.page,
+						file_type=test_input.file_type,
+						method=test_input.method,
+						filters=test_input.filters)
+
+		last_doc = frappe.get_last_doc('Access Log')
+		self.assertEqual(last_doc.filters, json.dumps(test_input.filters))
+		self.assertDictEqual(eval(last_doc.filters), test_input.filters)
+		self.assertEqual(test_input.doctype, last_doc.export_from)
+		self.assertEqual(test_input.document, last_doc.reference_document)

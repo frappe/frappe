@@ -2,7 +2,11 @@
 # Copyright (c) 2019, Frappe Technologies and contributors
 # For license information, please see license.txt
 
+# imports - standard imports
 from __future__ import unicode_literals
+import json
+
+# imports - module imports
 import frappe
 from frappe.model.document import Document
 
@@ -26,7 +30,7 @@ def make_access_log(doctype=None, document=None, method=None, file_type=None,
 		'report_name': report_name,
 		'page': page,
 		'method': method,
-		'filters': filters
+		'filters': json.dumps(filters)
 	})
 	doc.insert(ignore_permissions=True)
 
