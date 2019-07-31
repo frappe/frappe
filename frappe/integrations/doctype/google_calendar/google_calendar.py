@@ -248,10 +248,12 @@ def google_calendar_get_events(g_calendar, method=None, page_length=10):
 
 		# If Google Calendar Event if confirmed, then create an Event
 		if event.get("status") == "confirmed":
-			try:
-				recurrence = event.get('recurrence')[0]
-			except IndexError:
-				recurrence = None
+			recurrence = None
+			if event.get('recurrence'):
+				try:
+					recurrence = event.get('recurrence')[0]
+				except IndexError:
+					pass
 
 			calendar_event = {
 				"doctype": "Event",
@@ -292,7 +294,7 @@ def google_calendar_insert_events(doc, method=None):
 		"description": doc.description,
 		"google_calendar_event": 1
 	}
-	event.update(google_calendar_format_date(get_datetime(doc.starts_on), get_datetime(doc.ends_on)))
+	event.update(google_calendar_format_date(doc.all_day, get_datetime(doc.starts_on), get_datetime(doc.ends_on)))
 
 	if doc.repeat_on:
 		event.update({"recurrence": unparse_recurrence(doc)})
@@ -315,7 +317,7 @@ def google_calendar_update_events(doc, method=None):
 		event["summary"] = doc.subject
 		event["description"] = doc.description
 		event["recurrence"] = unparse_recurrence(doc)
-		event.update(google_calendar_format_date(get_datetime(doc.starts_on), get_datetime(doc.ends_on)))
+		event.update(google_calendar_format_date(doc.all_day, get_datetime(doc.starts_on), get_datetime(doc.ends_on)))
 
 		if doc.event_type == "Cancelled" or doc.status == "Closed":
 			event["status"] = "cancelled"
@@ -410,7 +412,7 @@ def google_calendar_to_repeat_on(start, end, recurrence=None):
 			byday = byday.split("=")[1]
 			repeat_day_week_number, repeat_day_name = None, None
 
-			for num in ["1", "2", "3", "4", "5"]:
+			for num in ["-2", "-1", "1", "2", "3", "4", "5"]:
 				if num in byday:
 					repeat_day_week_number = num
 					break
@@ -459,6 +461,12 @@ def google_calendar_format_date(all_day, starts_on, ends_on=None):
 
 def parse_recurrence(repeat_day_week_number, repeat_day_name):
 	# Returns (repeat_on) exact date for combination eg 4TH viz. 4th thursday of a month
+
+	if repeat_day_week_number < 0:
+		# Consider a month with 5 weeks and event is to be repeated in last week of every month, google caledar considers
+		# a month has 4 weeks and hence itll return -1 for a month with 5 weeks.
+		repeat_day_week_number = 4
+
 	weekdays = get_weekdays()
 	current_date = now_datetime()
 	isset_day_name, isset_day_number = False, False
@@ -572,6 +580,7 @@ def get_recurrence_parameter(recurrence):
 		- Daily Event: ['RRULE:FREQ=DAILY']
 		- Weekly Event: ['RRULE:FREQ=WEEKLY;BYDAY=MO,TU,TH']
 		- Monthly Event: ['RRULE:FREQ=MONTHLY;BYDAY=4TH']
+			- BYDAY: -2, -1, 1, 2, 3, 4 with weekdays (-2 edge case for April 2017 had 6 weeks in a month)
 		- Yearly Event: ['RRULE:FREQ=YEARLY;']
 		- Custom Event: ['RRULE:FREQ=WEEKLY;WKST=SU;UNTIL=20191028;BYDAY=MO,WE']
 """
