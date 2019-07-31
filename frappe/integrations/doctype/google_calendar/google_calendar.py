@@ -541,8 +541,7 @@ def get_recurrence_parameter(recurrence):
 
 	return frequency, until, byday
 
-"""
-	API Response
+"""API Response
 	{
 		'kind': 'calendar#events',
 		'etag': '"etag"',
@@ -593,5 +592,4 @@ def get_recurrence_parameter(recurrence):
 		- Monthly Event: ['RRULE:FREQ=MONTHLY;BYDAY=4TH']
 			- BYDAY: -2, -1, 1, 2, 3, 4 with weekdays (-2 edge case for April 2017 had 6 weeks in a month)
 		- Yearly Event: ['RRULE:FREQ=YEARLY;']
-		- Custom Event: ['RRULE:FREQ=WEEKLY;WKST=SU;UNTIL=20191028;BYDAY=MO,WE']
-"""
+		- Custom Event: ['RRULE:FREQ=WEEKLY;WKST=SU;UNTIL=20191028;BYDAY=MO,WE']"""

@@ -26,7 +26,7 @@ frappe.ui.form.on('Google Calendar', {
 					args: {
 						"g_contact": frm.doc.name
 					},
-				}).then((r) => {
+				}).then(() => {
 					frappe.hide_progress();
 					frappe.msgprint("Google Calendar Events Synced");
 				});
