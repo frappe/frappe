@@ -6,17 +6,18 @@
  "engine": "InnoDB",
  "field_order": [
   "log_data_section",
-  "timestamp",
   "export_from",
-  "column_break_3",
   "user",
+  "show_document",
+  "column_break_3",
   "reference_document",
+  "timestamp",
   "private_file_section",
   "file_type",
   "method",
   "report_information_section",
   "report_name",
-  "filters",
+  "_filters",
   "show_report",
   "raw_information_log_section",
   "page"
@@ -24,7 +25,7 @@
  "fields": [
   {
    "fieldname": "export_from",
-   "fieldtype": "Link",
+   "fieldtype": "Data",
    "in_list_view": 1,
    "label": "Export From",
    "options": "DocType",
@@ -55,12 +56,6 @@
    "fieldname": "file_type",
    "fieldtype": "Data",
    "label": "File Type",
-   "read_only": 1
-  },
-  {
-   "fieldname": "filters",
-   "fieldtype": "Data",
-   "label": "Filters",
    "read_only": 1
   },
   {
@@ -108,10 +103,23 @@
   {
    "fieldname": "show_report",
    "fieldtype": "Button",
+   "hidden": 1,
    "label": "Show Report"
+  },
+  {
+   "fieldname": "show_document",
+   "fieldtype": "Button",
+   "hidden": 1,
+   "label": "Show Document"
+  },
+  {
+   "fieldname": "_filters",
+   "fieldtype": "Data",
+   "label": "Filters",
+   "read_only": 1
   }
  ],
- "modified": "2019-07-29 19:53:03.928950",
+ "modified": "2019-07-31 08:58:28.577988",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Access Log",
