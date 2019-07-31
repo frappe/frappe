@@ -8,7 +8,7 @@ import requests
 import googleapiclient.discovery
 import google.oauth2.credentials
 import time
-import uuid
+
 from frappe import _
 from frappe.model.document import Document
 from frappe.utils import get_request_site_address
@@ -576,4 +576,3 @@ def get_recurrence_parameter(recurrence):
 		- Monthly Event: ['RRULE:FREQ=MONTHLY;BYDAY=4TH']
 		- Yearly Event: ['RRULE:FREQ=YEARLY;']
 		- Custom Event: ['RRULE:FREQ=WEEKLY;WKST=SU;UNTIL=20191028;BYDAY=MO,WE']
-"""
