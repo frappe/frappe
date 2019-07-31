@@ -7,13 +7,12 @@ import frappe
 import requests
 import googleapiclient.discovery
 import google.oauth2.credentials
-import time
 
 from frappe import _
 from frappe.model.document import Document
 from frappe.utils import get_request_site_address
 from googleapiclient.errors import HttpError
-from frappe.utils import add_days, add_years, get_datetime, get_weekdays, now_datetime, add_to_date, get_time_zone
+from frappe.utils import add_days, get_datetime, get_weekdays, now_datetime, add_to_date, get_time_zone
 from dateutil import parser
 from datetime import datetime, timedelta
 
