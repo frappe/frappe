@@ -3,7 +3,7 @@ import frappe.utils
 from collections import defaultdict
 from rq import Worker, Connection
 from frappe.utils.background_jobs import get_redis_conn, get_queue, get_queue_list
-from frappe.utils.scheduler import is_scheduler_disabled
+from frappe.utils.scheduler import is_scheduler_disabled, is_scheduler_inactive
 from six import iteritems
 
 
@@ -107,8 +107,19 @@ def doctor(site=None):
 	for s in sites:
 		frappe.init(s)
 		frappe.connect()
+
 		if is_scheduler_disabled():
 			print("Scheduler disabled for", s)
+
+		if frappe.local.conf.maintenance_mode:
+			print("Maintenance mode on for", s)
+
+		if frappe.local.conf.pause_scheduler:
+			print("Scheduler paused for", s)
+
+		if is_scheduler_inactive():
+			print("Scheduler inactive for", s)
+
 		frappe.destroy()
 
 	# TODO improve this
