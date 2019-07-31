@@ -9,11 +9,11 @@ from frappe.core.doctype.access_log.access_log import make_access_log
 
 
 class TestAccessLog(unittest.TestCase):
-    def test_make_backup_download_log(self):
-        self.assertTrue(make_access_log(backup=True))
+	def test_make_backup_download_log(self):
+		make_access_log(report_name='Backup')
 
-    def test_make_pdf_log(self):
-        html_temp = """
+	def test_make_pdf_log(self):
+		html_temp = """
 			<!DOCTYPE html>
 			<html>
 			<head>
@@ -80,12 +80,11 @@ class TestAccessLog(unittest.TestCase):
 			</body>
 			</html>
 		"""
-        self.assertTrue(make_access_log(doctype='Test DocType',
-                                        document='Test Document', page=html_temp))
+		make_access_log(doctype='Test DocType',
+						document='Test Document', page=html_temp)
 
 	def test_make_report_print_log(self):
 		erpnext_fields = {"from_date": "2019-06-30", "to_date": "2019-07-31", "party": [],
-							"group_by": "Group by Voucher (Consolidated)", "cost_center": [], "project": []}
+						  "group_by": "Group by Voucher (Consolidated)", "cost_center": [], "project": []}
 
-		self.assertTrue(make_access_log(
-			report_name='General Ledger', _filters=erpnext_fields))
+		make_access_log(report_name='General Ledger', _filters=erpnext_fields)

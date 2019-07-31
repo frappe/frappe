@@ -12,7 +12,7 @@ frappe.ui.form.on('Access Log', {
 	},
 
 	show_document: function (frm) {
-		frappe.set_route('Form', frm.doc.export_from, frm.doc.reference_document)
+		frappe.set_route('Form', frm.doc.export_from, frm.doc.reference_document);
 	},
 
 	show_report: function (frm) {

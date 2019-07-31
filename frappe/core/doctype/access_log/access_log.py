@@ -8,36 +8,32 @@ from frappe.model.document import Document
 
 
 class AccessLog(Document):
-    pass
+	pass
 
 
 @frappe.whitelist()
 def make_access_log(
-        doctype=None, document=None,
-        method=None, file_type=None,
-        report_name=None, _filters=None,
-        page=None, backup=False
-    ):
+		doctype=None, document=None,
+		method=None, file_type=None,
+		report_name=None, _filters=None,
+		page=None
+	):
 
-    user = frappe.get_user().load_user()
-    user_name = user.username if user.username else user.first_name
+	user = frappe.session.user
 
-    if backup:
-        report_name = 'Backup'
+	doc = frappe.get_doc({
+		'doctype': 'Access Log',
+		'name': "AL-{}-{}".format(user, frappe.generate_hash(length=5)),
+		'user': user,
+		'export_from': doctype,
+		'reference_document': document,
+		'file_type': file_type,
+		'report_name': report_name,
+		'page': page,
+		'method': method,
+		'_filters': _filters
+	})
+	doc.insert(ignore_permissions=True)
 
-    doc = frappe.get_doc({
-        'doctype': 'Access Log',
-        'name': "AL-{}-{}".format(user_name, frappe.generate_hash(length=5)),
-        'user': user.email if user.email else user.first_name,
-        'export_from': doctype,
-        'reference_document': document,
-        'file_type': file_type,
-        'report_name': report_name,
-        'page': page,
-        'method': method,
-        '_filters': _filters
-    })
-    doc.insert()
-
-    # `frappe.db.commit` added because insert doesnt `commit` when called in GET requests
-    frappe.db.commit()
+	# `frappe.db.commit` added because insert doesnt `commit` when called in GET requests like `printview`
+	frappe.db.commit()

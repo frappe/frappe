@@ -157,7 +157,7 @@ def redirect():
 def download_backup(path):
 	try:
 		frappe.only_for(("System Manager", "Administrator"))
-		make_access_log(backup=True)
+		make_access_log(report_name='Backup')
 	except frappe.PermissionError:
 		raise Forbidden(_("You need to be logged in and have System Manager Role to be able to access backups."))
 
