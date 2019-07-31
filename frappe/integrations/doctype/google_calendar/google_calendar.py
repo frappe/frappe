@@ -222,14 +222,14 @@ def google_calendar_get_events(g_calendar, method=None, page_length=10):
 			"google_calendar_event_id": event.get("id"),
 			"synced_from_google_calendar": 1
 		}
-		calendar_event.update(google_calendar_to_repeat_on(recurrence=recurrence, start=event.get('start'), end=event.get('end')))
+		calendar_event.update(google_calendar_to_repeat_on(recurrence=recurrence, start=event.get("start"), end=event.get("end")))
 		frappe.get_doc(calendar_event).insert(ignore_permissions=True)
 
 	def _update_event(account, event, recurrence=None):
 		calendar_event = frappe.get_doc("Event", {"google_calendar_event_id": event.get("id")})
 		calendar_event.subject = event.get("summary")
 		calendar_event.description = event.get("description")
-		calendar_event.update(google_calendar_to_repeat_on(recurrence=recurrence, start=event.get('start'), end=event.get('end')))
+		calendar_event.update(google_calendar_to_repeat_on(recurrence=recurrence, start=event.get("start"), end=event.get("end")))
 		calendar_event.save(ignore_permissions=True)
 
 	google_calendar, account = get_credentials({"name": g_calendar})
@@ -262,14 +262,14 @@ def google_calendar_get_events(g_calendar, method=None, page_length=10):
 			break
 
 	for idx, event in enumerate(results):
-		frappe.publish_realtime('import_google_calendar', dict(progress=idx+1, total=len(results)), user=frappe.session.user)
+		frappe.publish_realtime("import_google_calendar", dict(progress=idx+1, total=len(results)), user=frappe.session.user)
 
 		# If Google Calendar Event if confirmed, then create an Event
 		if event.get("status") == "confirmed":
 			recurrence = None
-			if event.get('recurrence'):
+			if event.get("recurrence"):
 				try:
-					recurrence = event.get('recurrence')[0]
+					recurrence = event.get("recurrence")[0]
 				except IndexError:
 					pass
 
@@ -411,10 +411,10 @@ def google_calendar_to_repeat_on(start, end, recurrence=None):
 
 		if repeat_on["repeat_on"] == "Daily":
 			repeat_on["ends_on"] = None
-			repeat_on["repeat_till"] = datetime.strptime(until, '%Y%m%d') if until else None
+			repeat_on["repeat_till"] = datetime.strptime(until, "%Y%m%d") if until else None
 
 		if byday and repeat_on["repeat_on"] == "Weekly":
-			repeat_on["repeat_till"] = datetime.strptime(until, '%Y%m%d') if until else None
+			repeat_on["repeat_till"] = datetime.strptime(until, "%Y%m%d") if until else None
 			byday = byday.split("=")[1].split(",")
 			for repeat_day in byday:
 				repeat_on[google_calendar_days[repeat_day]] = 1
@@ -437,11 +437,11 @@ def google_calendar_to_repeat_on(start, end, recurrence=None):
 			start_date = parse_recurrence(int(repeat_day_week_number), repeat_day_name)
 			repeat_on["starts_on"] = start_date
 			repeat_on["ends_on"] = add_to_date(start_date, minutes=5)
-			repeat_on["repeat_till"] = datetime.strptime(until, '%Y%m%d') if until else None
+			repeat_on["repeat_till"] = datetime.strptime(until, "%Y%m%d") if until else None
 
 		if repeat_on["repeat_till"] == "Yearly":
 			repeat_on["ends_on"] = None
-			repeat_on["repeat_till"] = datetime.strptime(until, '%Y%m%d') if until else None
+			repeat_on["repeat_till"] = datetime.strptime(until, "%Y%m%d") if until else None
 
 	return repeat_on
 
