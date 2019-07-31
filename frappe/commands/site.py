@@ -115,7 +115,7 @@ def restore(context, sql_file_path, mariadb_root_username=None, mariadb_root_pas
 
 	if sql_file_path.endswith('.enc') and decrypt_password:
 		output_file_name = sql_file_path.replace(".xb.enc", ".sql")
-		os.system(
+		frappe.utils.execute_in_shell(
 			"openssl aes-256-cbc -d -in " + sql_file_path + " -out " + output_file_name + " -k " + decrypt_password)
 		sql_file_path = output_file_name
 
@@ -125,7 +125,7 @@ def restore(context, sql_file_path, mariadb_root_username=None, mariadb_root_pas
 		mariadb_root_password=mariadb_root_password, admin_password=admin_password,
 		verbose=context.verbose, install_apps=install_app, source_sql=sql_file_path,
 		force=context.force)
-	os.system("rm " + sql_file_path)
+	frappe.utils.execute_in_shell("rm " + sql_file_path)
 	# Extract public and/or private files to the restored site, if user has given the path
 	if with_public_files:
 		public = extract_tar_files(site, with_public_files, 'public')
