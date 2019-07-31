@@ -17,7 +17,7 @@ from frappe.core.doctype.language.language import sync_languages
 from frappe.modules.utils import sync_customizations
 from frappe.utils import global_search
 
-def migrate(verbose=True, rebuild_website=False):
+def migrate(verbose=True, rebuild_website=False, skip_failing=False):
 	'''Migrate all apps to the latest version, will:
 	- run before migrate hooks
 	- run patches
@@ -45,7 +45,7 @@ def migrate(verbose=True, rebuild_website=False):
 				frappe.get_attr(fn)()
 
 		# run patches
-		frappe.modules.patch_handler.run_all()
+		frappe.modules.patch_handler.run_all(skip_failing)
 		# sync
 		frappe.model.sync.sync_all(verbose=verbose)
 		frappe.translate.clear_cache()
