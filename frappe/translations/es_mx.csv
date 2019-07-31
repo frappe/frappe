@@ -1,0 +1,29 @@
+DocType: Currency,Smallest circulating fraction unit (coin). For e.g. 1 cent for USD and it should be entered as 0.01,"Fracción más pequeña de circulación (moneda). Por ejemplo, 1 centavo por USD y debe ser ingresado como 0.01"
+DocType: System Settings,"If Apply Strict User Permission is checked and User Permission is defined for a DocType for a User, then all the documents where value of the link is blank, will not be shown to that User","Si está activado Aplicar Permiso de Usuario Estricto y se ha definido el Permiso de Usuario para un DocType para un Usuario, todos los documentos en los que el valor del enlace esté en blanco no se mostrarán a ese Usuario"
+apps/frappe/frappe/core/doctype/system_settings/system_settings.py,Please select Minimum Password Score,Por favor selecciona la Puntuación Mínima de la Contraseña
+DocType: Currency,Smallest Currency Fraction Value,Valor de la fracción de moneda más pequeña
+DocType: Address Template,"<h4>Default Template</h4>
+<p>Uses <a href=""http://jinja.pocoo.org/docs/templates/"">Jinja Templating</a> and all the fields of Address (including Custom Fields if any) will be available</p>
+<pre><code>{{ address_line1 }}&lt;br&gt;
+{% if address_line2 %}{{ address_line2 }}&lt;br&gt;{% endif -%}
+{{ city }}&lt;br&gt;
+{% if state %}{{ state }}&lt;br&gt;{% endif -%}
+{% if pincode %} PIN:  {{ pincode }}&lt;br&gt;{% endif -%}
+{{ country }}&lt;br&gt;
+{% if phone %}Phone: {{ phone }}&lt;br&gt;{% endif -%}
+{% if fax %}Fax: {{ fax }}&lt;br&gt;{% endif -%}
+{% if email_id %}Email: {{ email_id }}&lt;br&gt;{% endif -%}
+</code></pre>","<h4> Por defecto la plantilla <!-- h4--> 
+ <p> <a href=""http://jinja.pocoo.org/docs/templates/""> Jinja Templating </a> y todos los campos de la Dirección ( incluyendo campos personalizados en su caso) estará disponible <!-- p--> 
+ </p><pre> <code> {{address_line1}} &amp; lt; br &amp; gt; 
+ {% if address_line2%} {{address_line2}} &amp; lt; br &amp; gt; { endif% -%} 
+ {{ciudad}} &amp; lt; br &amp; gt; 
+ {% if%} Estado {{Estado}} &amp; lt; br &amp; gt; {% endif -%} {% if 
+ código PIN%} PIN: {{código PIN}} &amp; lt; br &amp; gt; {% endif -%} 
+ {{país}} &amp; lt; br &amp; gt; 
+ {% if teléfono%} Teléfono: {{teléfono}} &amp; lt; br &amp; gt; { % endif -%} 
+ {% if fax%} Fax: {{fax}} &amp; lt; br &amp; gt; {% endif -%} 
+ {% if email_ID%} Email: {{email_ID}} &amp; lt; br &amp; gt ; {% endif -%} 
+ <!-- code--> <!-- pre--></code></pre></h4>"
+DocType: Data Migration Plan,Postprocess Method,Método de Postproceso
+DocType: Website Settings,&lt;head&gt; HTML,&lt;head&gt; HTML
