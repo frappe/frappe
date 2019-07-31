@@ -30,7 +30,9 @@ export default {
 		}
 	},
 	mounted() {
-		this.setup_sortable();
+		if (!frappe.utils.is_mobile()) {
+			this.setup_sortable();
+		}
 	},
 	methods: {
 		setup_sortable() {
