@@ -10,14 +10,16 @@
   "subject",
   "event_category",
   "event_type",
+  "color",
   "send_reminder",
   "repeat_this_event",
   "column_break_4",
   "starts_on",
   "ends_on",
   "status",
+  "google_calendar",
   "all_day",
-  "google_calendar_event",
+  "sync_with_google_calendar",
   "section_break_13",
   "repeat_on",
   "repeat_till",
@@ -30,8 +32,6 @@
   "saturday",
   "sunday",
   "section_break_8",
-  "color",
-  "section_break_6",
   "description",
   "participants",
   "event_participants",
@@ -190,10 +190,6 @@
    "label": "Color"
   },
   {
-   "fieldname": "section_break_6",
-   "fieldtype": "Section Break"
-  },
-  {
    "fieldname": "description",
    "fieldtype": "Text Editor",
    "in_global_search": 1,
@@ -226,15 +222,16 @@
   },
   {
    "collapsible": 1,
-   "depends_on": "eval:doc.google_calendar_event",
+   "depends_on": "eval:doc.google_calendar",
    "fieldname": "sb_00",
    "fieldtype": "Section Break",
    "label": "Google Calendar"
   },
   {
+   "fetch_from": "google_calendar.google_calendar_id",
    "fieldname": "google_calendar_id",
    "fieldtype": "Data",
-   "label": "Google Calendar Id",
+   "label": "Google Calendar ID",
    "read_only": 1
   },
   {
@@ -244,14 +241,7 @@
   {
    "fieldname": "google_calendar_event_id",
    "fieldtype": "Data",
-   "label": "Google Calendar Event Id",
-   "read_only": 1
-  },
-  {
-   "default": "0",
-   "fieldname": "google_calendar_event",
-   "fieldtype": "Check",
-   "label": "Google Calendar Event",
+   "label": "Google Calendar Event ID",
    "read_only": 1
   },
   {
@@ -260,11 +250,24 @@
    "fieldtype": "Check",
    "label": "Synced from Google Calendar",
    "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "sync_with_google_calendar",
+   "fieldtype": "Check",
+   "label": "Sync with Google Calendar"
+  },
+  {
+   "depends_on": "eval:doc.sync_with_google_calendar",
+   "fieldname": "google_calendar",
+   "fieldtype": "Link",
+   "label": "Google Calendar",
+   "options": "Google Calendar"
   }
  ],
  "icon": "fa fa-calendar",
  "idx": 1,
- "modified": "2019-07-31 11:01:08.920725",
+ "modified": "2019-08-01 13:19:05.145607",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Event",

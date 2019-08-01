@@ -209,6 +209,7 @@ def google_calendar_get_events(g_calendar, method=None, page_length=10):
 			"subject": event.get("summary"),
 			"description": event.get("description"),
 			"google_calendar_event": 1,
+			"google_calendar": account.google_calendar,
 			"google_calendar_id": account.google_calendar_id,
 			"google_calendar_event_id": event.get("id"),
 			"synced_from_google_calendar": 1
@@ -274,14 +275,13 @@ def google_calendar_insert_events(doc, method=None):
 
 	def _google_calendar_insert_events(google_calendar, account, event, doc):
 		event = google_calendar.events().insert(calendarId=account.google_calendar_id, body=event).execute()
-		frappe.db.set_value("Event", doc.name, "google_calendar_event", 1, update_modified=False)
-		frappe.db.set_value("Event", doc.name, "google_calendar_id", account.google_calendar_id, update_modified=False)
 		frappe.db.set_value("Event", doc.name, "google_calendar_event_id", event.get("id"), update_modified=False)
 
-	if not frappe.db.exists("Google Calendar", {"user": doc.owner or frappe.session.user}) or doc.synced_from_google_calendar:
+	if not frappe.db.exists("Google Calendar", {"name": doc.google_calendar}) or doc.synced_from_google_calendar \
+		or not doc.sync_with_google_calendar:
 		return
 
-	google_calendar, account = get_credentials({"user": doc.owner or frappe.session.user})
+	google_calendar, account = get_credentials({"name": doc.google_calendar})
 
 	if not account.push_to_google_calendar:
 		return
@@ -318,10 +318,11 @@ def google_calendar_update_events(doc, method=None):
 
 	# Workaround to avoid triggering updation when Event is being inserted since
 	# creation and modified are same when inserting doc
-	if not frappe.db.exists("Google Calendar", {"user": doc.owner or frappe.session.user}) or doc.modified == doc.creation:
+	if not frappe.db.exists("Google Calendar", {"name": doc.google_calendar}) or doc.modified == doc.creation \
+		or not doc.sync_with_google_calendar:
 		return
 
-	google_calendar, account = get_credentials({"user": doc.owner or frappe.session.user})
+	google_calendar, account = get_credentials({"name": doc.google_calendar})
 
 	if not account.push_to_google_calendar:
 		return
@@ -340,10 +341,10 @@ def google_calendar_delete_events(doc, method=None):
 		event["status"] = "cancelled"
 		google_calendar.events().update(calendarId=account.google_calendar_id, eventId=doc.google_calendar_event_id, body=event).execute()
 
-	if not frappe.db.exists("Google Calendar", {"user": doc.owner or frappe.session.user}):
+	if not frappe.db.exists("Google Calendar", {"name": doc.google_calendar}):
 		return
 
-	google_calendar, account = get_credentials({"user": doc.owner or frappe.session.user})
+	google_calendar, account = get_credentials({"name": doc.google_calendar})
 
 	if not account.push_to_google_calendar:
 		return

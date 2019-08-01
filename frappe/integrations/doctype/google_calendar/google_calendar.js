@@ -1,25 +1,27 @@
 // Copyright (c) 2019, Frappe Technologies and contributors
 // For license information, please see license.txt
 
-frappe.ui.form.on('Google Calendar', {
+frappe.ui.form.on("Google Calendar", {
 	refresh: function(frm) {
-		frm.set_value("user", frappe.session.user);
+		if (frm.is_new()) {
+			frm.dashboard.set_headline(__("To use Google Calendar, enable <a href='#Form/Google Settings'>Google Settings</a>."));
+		}
 
-		frappe.realtime.on('import_google_calendar', (data) => {
+		frappe.realtime.on("import_google_calendar", (data) => {
 			if (data.progress) {
-				frm.dashboard.show_progress('Syncing Google Calendar', data.progress / data.total * 100,
-					__('Syncing {0} of {1}', [data.progress, data.total]));
+				frm.dashboard.show_progress("Syncing Google Calendar", data.progress / data.total * 100,
+					__("Syncing {0} of {1}", [data.progress, data.total]));
 				if (data.progress === data.total) {
-					frm.dashboard.hide_progress('Sync Google Calendar');
+					frm.dashboard.hide_progress("Sync Google Calendar");
 				}
 			}
 		});
 
 		if (frm.doc.refresh_token) {
-			frm.add_custom_button(__('Sync Calendar'), function () {
+			frm.add_custom_button(__("Sync Calendar"), function () {
 				frappe.show_alert({
-					indicator: 'green',
-					message: __('Syncing')
+					indicator: "green",
+					message: __("Syncing")
 				});
 				frappe.call({
 					method: "frappe.integrations.doctype.google_calendar.google_calendar.sync",
