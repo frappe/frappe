@@ -16,7 +16,7 @@ from frappe.utils import add_days, get_datetime, get_weekdays, now_datetime, add
 from dateutil import parser
 from datetime import datetime, timedelta
 
-SCOPES = "https://www.googleapis.com/auth/calendar/v3"
+SCOPES = "https://www.googleapis.com/auth/calendar"
 
 google_calendar_frequencies = {
 	"RRULE:FREQ=DAILY": "Daily",
@@ -169,7 +169,7 @@ def get_credentials(g_calendar):
 		"token_uri": "https://www.googleapis.com/oauth2/v4/token",
 		"client_id": google_settings.client_id,
 		"client_secret": google_settings.get_password(fieldname="client_secret", raise_exception=False),
-		"scopes": SCOPES
+		"scopes": "https://www.googleapis.com/auth/calendar/v3"
 	}
 
 	credentials = google.oauth2.credentials.Credentials(**credentials_dict)
