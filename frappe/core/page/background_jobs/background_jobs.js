@@ -13,6 +13,12 @@ frappe.pages['background_jobs'].on_page_load = function(wrapper) {
 
 frappe.pages['background_jobs'].on_page_show = function(wrapper) {
 	frappe.pages.background_jobs.refresh_jobs();
+	frappe.call({
+		method: 'frappe.core.page.background_jobs.background_jobs.get_scheduler_status',
+		callback: function(r) {
+			frappe.pages.background_jobs.page.set_indicator(...r.message);
+		}
+	});
 }
 
 frappe.pages.background_jobs.refresh_jobs = function() {
