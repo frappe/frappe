@@ -118,29 +118,24 @@ class BackupGenerator:
 				file_name = file_name[4]
 				file_name = file_name.replace('.sql', '.xb.enc')
 				args['backup_path_db'] = args['backup_path_db'].replace(args['backup_path_db'].split('/')[4], file_name)
-				args['encryption_password'] = frappe.utils.password.get_decrypted_password("System Settings",
-																						   "System Settings",
-																						   "confirm_password_encryption",
-																						   False)
+				args['encryption_password'] = frappe.utils.password.get_decrypted_password("System Settings","System Settings","password_encryption",False)
 				cmd_string = """mysqldump --single-transaction --quick --lock-tables=false -u %(user)s -p%(password)s %(db_name)s -h %(db_host)s --triggers --routines | openssl enc -aes-256-cbc -salt -k %(encryption_password)s > %(backup_path_db)s""" % args
 			else:
 				cmd_string = """mysqldump --single-transaction --quick --lock-tables=false -u %(user)s -p%(password)s %(db_name)s -h %(db_host)s > %(backup_path_db)s """ % args
 
-		elif hasattr(frappe.get_doc("System Settings"), "enable_backup_encryption"):
+		elif automated_backup:
 			if frappe.get_doc("System Settings").enable_backup_encryption:
 				file_name = args['backup_path_db'].split('/')
 				file_name = file_name[4]
 				file_name = file_name.replace('.sql', '.xb.enc')
 				args['backup_path_db'] = args['backup_path_db'].replace(args['backup_path_db'].split('/')[4], file_name)
-				args['encryption_password'] = frappe.utils.password.get_decrypted_password("System Settings",
-																						   "System Settings",
-																						   "confirm_password_encryption",
-																						   False)
+				args['encryption_password'] = frappe.utils.password.get_decrypted_password("System Settings","System Settings","password_encryption",False)
 
 				cmd_string = """mysqldump --single-transaction --quick --lock-tables=false -u %(user)s -p%(password)s %(db_name)s -h %(db_host)s --triggers --routines | openssl enc -aes-256-cbc -salt -k %(encryption_password)s > %(backup_path_db)s""" % args
 
-		else:
-			cmd_string = """mysqldump --single-transaction --quick --lock-tables=false -u %(user)s -p%(password)s %(db_name)s -h %(db_host)s > %(backup_path_db)s """ % args
+			else:
+				cmd_string = """mysqldump --single-transaction --quick --lock-tables=false -u %(user)s -p%(password)s %(db_name)s -h %(db_host)s > %(backup_path_db)s """ % args
+
 		err, out = frappe.utils.execute_in_shell(cmd_string)
 
 		cmd_string = 'gzip %(backup_path_db)s '% args
@@ -282,3 +277,4 @@ if __name__ == "__main__":
 
 	if cmd == "delete_temp_backups":
 		delete_temp_backups()
+
