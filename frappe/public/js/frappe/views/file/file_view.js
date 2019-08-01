@@ -354,7 +354,7 @@ frappe.views.FileView.grid_view = frappe.get_user_settings('File').grid_view || 
 
 function redirect_to_home_if_invalid_route() {
 	const route = frappe.get_route();
-	if (route[2] !== 'Home') {
+	if (route[2] === 'List') {
 		// if the user somehow redirects to List/File/List
 		// redirect back to Home
 		frappe.set_route('List', 'File', 'Home');
