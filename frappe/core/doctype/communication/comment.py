@@ -9,7 +9,7 @@ from frappe.core.doctype.user.user import extract_mentions
 from frappe.utils import get_fullname, get_link_to_form
 from frappe.website.render import clear_cache
 from frappe.model.db_schema import add_column
-from frappe.exceptions import ImplicitCommitError
+from frappe.exceptions import ImplicitCommitError, DataTooLongException
 
 def on_trash(doc):
 	if doc.communication_type != "Comment":
@@ -146,6 +146,8 @@ def update_comments_in_parent(reference_doctype, reference_name, _comments):
 			# missing column and in request, add column and update after commit
 			frappe.local._comments = (getattr(frappe.local, "_comments", [])
 				+ [(reference_doctype, reference_name, _comments)])
+		elif e.args[0] == 1406:
+			raise DataTooLongException
 		else:
 			raise ImplicitCommitError
 
