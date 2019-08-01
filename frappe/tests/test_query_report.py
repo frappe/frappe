@@ -35,7 +35,7 @@ class TestQueryReport(unittest.TestCase):
 		visible_idx = [0, 2, 3]
 
 		# Build the result
-		xlsx_data = build_xlsx_data(columns, data, visible_idx)
+		xlsx_data = build_xlsx_data(columns, data, visible_idx, include_indentation=0)
 
 		self.assertEqual(type(xlsx_data), list)
 		self.assertEqual(len(xlsx_data), 4)  # columns + data

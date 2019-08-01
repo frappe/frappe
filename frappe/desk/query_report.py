@@ -307,6 +307,7 @@ def export_query():
 	if isinstance(data.get("file_format_type"), string_types):
 		file_format_type = data["file_format_type"]
 
+	include_indentation = data["include_indentation"]
 	if isinstance(data.get("visible_idx"), string_types):
 		visible_idx = json.loads(data.get("visible_idx"))
 	else:
@@ -318,7 +319,7 @@ def export_query():
 		columns = get_columns_dict(data.columns)
 
 		from frappe.utils.xlsxutils import make_xlsx
-		xlsx_data = build_xlsx_data(columns, data, visible_idx)
+		xlsx_data = build_xlsx_data(columns, data, visible_idx, include_indentation)
 		xlsx_file = make_xlsx(xlsx_data, "Query Report")
 
 		frappe.response['filename'] = report_name + '.xlsx'
@@ -326,7 +327,7 @@ def export_query():
 		frappe.response['type'] = 'binary'
 
 
-def build_xlsx_data(columns, data, visible_idx):
+def build_xlsx_data(columns, data, visible_idx,include_indentation):
 	result = [[]]
 
 	# add column headings
@@ -344,7 +345,7 @@ def build_xlsx_data(columns, data, visible_idx):
 					label = columns[idx]["label"]
 					fieldname = columns[idx]["fieldname"]
 					cell_value = row.get(fieldname, row.get(label, ""))
-					if 'indent' in row and idx == 0:
+					if cint(include_indentation) and 'indent' in row and idx == 0:
 						cell_value = ('    ' * cint(row['indent'])) + cell_value
 					row_data.append(cell_value)
 			else:

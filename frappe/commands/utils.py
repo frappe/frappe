@@ -459,26 +459,26 @@ def run_tests(context, app=None, module=None, doctype=None, test=(),
 		sys.exit(ret)
 
 @click.command('run-ui-tests')
-@click.option('--app', help="App to run tests on, leave blank for all apps")
-@click.option('--test', help="Path to the specific test you want to run")
-@click.option('--test-list', help="Path to the txt file with the list of test cases")
-@click.option('--profile', is_flag=True, default=False)
+@click.argument('app')
+@click.option('--headless', is_flag=True, help="Run UI Test in headless mode")
 @pass_context
-def run_ui_tests(context, app=None, test=False, test_list=False, profile=False):
+def run_ui_tests(context, app, headless=False):
 	"Run UI tests"
-	import frappe.test_runner
 
 	site = get_site(context)
-	frappe.init(site=site)
-	frappe.connect()
+	app_base_path = os.path.abspath(os.path.join(frappe.get_app_path(app), '..'))
+	site_url = frappe.utils.get_site_url(site)
+	admin_password = frappe.get_conf(site).admin_password
 
-	ret = frappe.test_runner.run_ui_tests(app=app, test=test, test_list=test_list, verbose=context.verbose,
-		profile=profile)
-	if len(ret.failures) == 0 and len(ret.errors) == 0:
-		ret = 0
+	# override baseUrl using env variable
+	site_env = 'CYPRESS_baseUrl={}'.format(site_url)
+	password_env = 'CYPRESS_adminPassword={}'.format(admin_password) if admin_password else ''
 
-	if os.environ.get('CI'):
-		sys.exit(ret)
+	# run for headless mode
+	run_or_open = 'run' if headless else 'open'
+	command = '{site_env} {password_env} yarn run cypress {run_or_open}'
+	formatted_command = command.format(site_env=site_env, password_env=password_env, run_or_open=run_or_open)
+	frappe.commands.popen(formatted_command, cwd=app_base_path, raise_err=True)
 
 @click.command('run-setup-wizard-ui-test')
 @click.option('--app', help="App to run tests on, leave blank for all apps")

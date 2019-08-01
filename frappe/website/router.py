@@ -231,11 +231,23 @@ def get_page_info(path, app, start, basepath=None, app_path=None, fname=None):
 
 def setup_source(page_info):
 	'''Get the HTML source of the template'''
+	from frontmatter import Frontmatter
+
 	jenv = frappe.get_jenv()
 	source = jenv.loader.get_source(jenv, page_info.template)[0]
 	html = ''
 
 	if page_info.template.endswith('.md'):
+		# extract frontmatter block if exists
+		try:
+			# values will be used to update page_info
+			res = Frontmatter.read(source)
+			if res['attributes']:
+				page_info.update(res['attributes'])
+				source = res['body']
+		except Exception as e:
+			pass
+
 		source = frappe.utils.md_to_html(source)
 
 		if not page_info.show_sidebar:
@@ -277,7 +289,7 @@ def extend_from_base_template(page_info, source):
 	'''
 
 	if (('</body>' not in source) and ('{% block' not in source)
-		and ('<!-- base_template:' not in source)):
+		and ('<!-- base_template:' not in source)) and 'base_template' not in page_info:
 		page_info.only_content = True
 		source = '''{% extends "templates/web.html" %}
 			{% block page_content %}\n''' + source + '\n{% endblock %}'
@@ -298,16 +310,13 @@ def load_properties_from_source(page_info):
 	if not page_info.title:
 		page_info.title = extract_title(page_info.source, page_info.route)
 
-	custom_base_template = extract_comment_tag(page_info.source, 'base_template')
+	base_template = extract_comment_tag(page_info.source, 'base_template')
+	if base_template:
+		page_info.base_template = base_template
 
-	page_info.meta_tags = frappe._dict()
-
-	page_info.meta_tags.name = extract_comment_tag(page_info.source, 'meta:name')
-	page_info.meta_tags.description = extract_comment_tag(page_info.source, 'meta:description')
-
-	if custom_base_template:
+	if page_info.base_template:
 		page_info.source = '''{{% extends "{0}" %}}
-			{{% block page_content %}}{1}{{% endblock %}}'''.format(custom_base_template, page_info.source)
+			{{% block page_content %}}{1}{{% endblock %}}'''.format(page_info.base_template, page_info.source)
 		page_info.no_cache = 1
 
 	if "<!-- no-breadcrumbs -->" in page_info.source:

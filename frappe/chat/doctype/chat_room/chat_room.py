@@ -73,8 +73,11 @@ class ChatRoom(Document):
 		if not self.is_new():
 			before = self.get_doc_before_save()
 			after  = self
+			diff = None
 
-			diff   = dictify(get_diff(before, after))
+			if before:
+				diff = dictify(get_diff(before, after))
+
 			if diff:
 				update = { }
 				for changed in diff.changed:

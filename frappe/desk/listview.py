@@ -3,8 +3,6 @@
 from __future__ import unicode_literals
 
 import frappe
-import json
-
 
 @frappe.whitelist()
 def get_list_settings(doctype):
@@ -22,31 +20,37 @@ def set_list_settings(doctype, values):
 		doc = frappe.new_doc("List View Setting")
 		doc.name = doctype
 		frappe.clear_messages()
-	doc.update(json.loads(values))
+	doc.update(frappe.parse_json(values))
 	doc.save()
 
+
 @frappe.whitelist()
-def get_user_assignments_and_count(doctype, current_filters):
-
+def get_group_by_count(doctype, current_filters, field):
+	current_filters = frappe.parse_json(current_filters)
 	subquery_condition = ''
-	if current_filters:
-		# get the subquery
-		subquery = frappe.get_all(doctype,
-			filters=current_filters, return_query = True)
+
+	subquery = frappe.get_all(doctype, filters=current_filters, return_query = True)
+	if field == 'assigned_to':
 		subquery_condition = ' and `tabToDo`.reference_name in ({subquery})'.format(subquery = subquery)
+		return frappe.db.sql("""select `tabToDo`.owner as name, count(*) as count
+			from
+				`tabToDo`, `tabUser`
+			where
+				`tabToDo`.status='Open' and
+				`tabToDo`.owner = `tabUser`.name and
+				`tabUser`.user_type = 'System User'
+				{subquery_condition}
+			group by
+				`tabToDo`.owner
+			order by
+				count desc
+			limit 50""".format(subquery_condition = subquery_condition), as_dict=True)
+	else :
+		return frappe.db.get_list(doctype,
+			filters=current_filters,
+			group_by=field,
+			fields=['count(*) as count', field + ' as name'],
+			order_by='count desc',
+			limit=50,
+		)
 
-	todo_list = frappe.db.sql("""select `tabToDo`.owner as name, count(*) as count
-		from
-			`tabToDo`, `tabUser`
-		where
-			`tabToDo`.status='Open' and
-			`tabToDo`.owner = `tabUser`.name and
-			`tabUser`.user_type = 'System User' 
-			{subquery_condition}
-		group by
-			`tabToDo`.owner
-		order by
-			count desc
-		limit 50""".format(subquery_condition = subquery_condition), as_dict=True)
-
-	return todo_list

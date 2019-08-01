@@ -12,6 +12,15 @@
 		<div class="sidebar-standard-image">
 			<div class="standard-image"></div>
 		</div>
+		<div class="sidebar-image-actions">
+			<div class="dropdown">
+				<a href="#" class="dropdown-toggle" data-toggle="dropdown">{{ __("Change") }}</a>
+				<ul class="dropdown-menu" role="menu">
+					<li><a class="sidebar-image-change">{{ __("Upload") }}</a></li>
+					<li><a class="sidebar-image-remove">{{ __("Remove") }}</a></li>
+				</ul>
+			</div>
+		</div>
 	</li>
 </ul>
 {% if frm.meta.beta %}
@@ -71,6 +80,9 @@
 <ul class="list-unstyled sidebar-menu">
 	<li class="h6 viewers-label">{%= __("Currently Viewing") %}</li>
 	<li class="form-viewers"></li>
+</ul>
+<ul class="list-unstyled sidebar-menu">
+	<a><li class="auto-repeat-status"><li></a>
 </ul>
 <ul class="list-unstyled sidebar-menu">
 	<li class="liked-by-parent">

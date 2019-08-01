@@ -1,6 +1,6 @@
 context('Control Link', () => {
 	beforeEach(() => {
-		cy.login('Administrator', 'qwe');
+		cy.login();
 		cy.visit('/desk');
 		cy.create_records({
 			doctype: 'ToDo',
