@@ -98,7 +98,7 @@ def validate_google_settings():
 def authorize_access(g_calendar, reauthorize=None):
 	"""
 		If no Authorization code get it from Google and then request for Refresh Token.
-		Google Contact Name is set to flags to set_value after Authorization Code is obtained.
+		Google Calendar Name is set to flags to set_value after Authorization Code is obtained.
 	"""
 
 	google_settings = frappe.get_doc("Google Settings")
@@ -203,28 +203,7 @@ def check_remote_calendar(account, google_calendar):
 def google_calendar_get_events(g_calendar, method=None, page_length=10):
 	# Get Events from Google Calendar
 
-	def _insert_event(account, event, recurrence=None):
-		calendar_event = {
-			"doctype": "Event",
-			"subject": event.get("summary"),
-			"description": event.get("description"),
-			"google_calendar_event": 1,
-			"google_calendar": account.google_calendar,
-			"google_calendar_id": account.google_calendar_id,
-			"google_calendar_event_id": event.get("id"),
-			"synced_from_google_calendar": 1
-		}
-		calendar_event.update(google_calendar_to_repeat_on(recurrence=recurrence, start=event.get("start"), end=event.get("end")))
-		frappe.get_doc(calendar_event).insert(ignore_permissions=True)
-
-	def _update_event(account, event, recurrence=None):
-		calendar_event = frappe.get_doc("Event", {"google_calendar_event_id": event.get("id")})
-		calendar_event.subject = event.get("summary")
-		calendar_event.description = event.get("description")
-		calendar_event.update(google_calendar_to_repeat_on(recurrence=recurrence, start=event.get("start"), end=event.get("end")))
-		calendar_event.save(ignore_permissions=True)
-
-	google_calendar, account = get_credentials({"name": g_calendar})
+	google_calendar, account = get_credentials(g_calendar)
 
 	if not account.pull_from_google_calendar:
 		return
@@ -261,27 +240,52 @@ def google_calendar_get_events(g_calendar, method=None, page_length=10):
 					pass
 
 			if not frappe.db.exists("Event", {"google_calendar_event_id": event.get("id")}):
-				_insert_event(account, event, recurrence)
+				insert_event_to_calendar(account, event, recurrence)
 			else:
-				_update_event(account, event, recurrence)
+				update_event_in_calendar(account, event, recurrence)
 		elif event.get("status") == "cancelled":
 			# If any synced Google Calendar Event is cancelled, then close the Event
 			frappe.db.set_value("Event", {"google_calendar_id": account.google_calendar_id, "google_calendar_event_id": event.get("id")}, "status", "Closed")
 		else:
 			pass
 
+def insert_event_to_calendar(account, event, recurrence=None):
+	# Inserts new Event in Frappe Calendar
+
+	calendar_event = {
+		"doctype": "Event",
+		"subject": event.get("summary"),
+		"description": event.get("description"),
+		"google_calendar_event": 1,
+		"google_calendar": account.name,
+		"google_calendar_id": account.google_calendar_id,
+		"google_calendar_event_id": event.get("id"),
+		"synced_from_google_calendar": 1
+	}
+	calendar_event.update(google_calendar_to_repeat_on(recurrence=recurrence, start=event.get("start"), end=event.get("end")))
+	frappe.get_doc(calendar_event).insert(ignore_permissions=True)
+
+def update_event_in_calendar(account, event, recurrence=None):
+	# Updates Event in Frappe Calendar
+
+	calendar_event = frappe.get_doc("Event", {"google_calendar_event_id": event.get("id")})
+	calendar_event.subject = event.get("summary")
+	calendar_event.description = event.get("description")
+	calendar_event.update(google_calendar_to_repeat_on(recurrence=recurrence, start=event.get("start"), end=event.get("end")))
+	calendar_event.save(ignore_permissions=True)
+
 def google_calendar_insert_events(doc, method=None):
 	# Insert Events to Google Calendar
 
 	def _google_calendar_insert_events(google_calendar, account, event, doc):
-		event = google_calendar.events().insert(calendarId=account.google_calendar_id, body=event).execute()
+		event = google_calendar.events().insert(calendarId=doc.google_calendar_id, body=event).execute()
 		frappe.db.set_value("Event", doc.name, "google_calendar_event_id", event.get("id"), update_modified=False)
 
 	if not frappe.db.exists("Google Calendar", {"name": doc.google_calendar}) or doc.synced_from_google_calendar \
 		or not doc.sync_with_google_calendar:
 		return
 
-	google_calendar, account = get_credentials({"name": doc.google_calendar})
+	google_calendar, account = get_credentials(doc.google_calendar)
 
 	if not account.push_to_google_calendar:
 		return
@@ -299,13 +303,13 @@ def google_calendar_insert_events(doc, method=None):
 	try:
 		_google_calendar_insert_events(google_calendar, account, event, doc)
 	except HttpError as err:
-		frappe.throw(_("Google Calendar - Could not insert event in Google Calendar {0}, error code {1}."),format(account.name, err.resp.status))
+		frappe.throw(_("Google Calendar - Could not insert event in Google Calendar {0}, error code {1}.").format(account.name, err.resp.status))
 
 def google_calendar_update_events(doc, method=None):
 	# Update Events with Google Calendar
 
 	def _google_calendar_update_events(google_calendar, account, doc):
-		event = google_calendar.events().get(calendarId=account.google_calendar_id, eventId=doc.google_calendar_event_id).execute()
+		event = google_calendar.events().get(calendarId=doc.google_calendar_id, eventId=doc.google_calendar_event_id).execute()
 		event["summary"] = doc.subject
 		event["description"] = doc.description
 		event["recurrence"] = unparse_recurrence(doc)
@@ -314,7 +318,7 @@ def google_calendar_update_events(doc, method=None):
 		if doc.event_type == "Cancelled" or doc.status == "Closed":
 			event["status"] = "cancelled"
 
-		google_calendar.events().update(calendarId=account.google_calendar_id, eventId=doc.google_calendar_event_id, body=event).execute()
+		google_calendar.events().update(calendarId=doc.google_calendar_id, eventId=doc.google_calendar_event_id, body=event).execute()
 
 	# Workaround to avoid triggering updation when Event is being inserted since
 	# creation and modified are same when inserting doc
@@ -322,7 +326,7 @@ def google_calendar_update_events(doc, method=None):
 		or not doc.sync_with_google_calendar:
 		return
 
-	google_calendar, account = get_credentials({"name": doc.google_calendar})
+	google_calendar, account = get_credentials(doc.google_calendar)
 
 	if not account.push_to_google_calendar:
 		return
@@ -336,15 +340,15 @@ def google_calendar_delete_events(doc, method=None):
 	# Delete Events from Google Calendar
 
 	def _google_calendar_delete_events(google_calendar, account, doc):
-		event = google_calendar.events().get(calendarId=account.google_calendar_id, eventId=doc.google_calendar_event_id).execute()
+		event = google_calendar.events().get(calendarId=doc.google_calendar_id, eventId=doc.google_calendar_event_id).execute()
 		event["recurrence"] = None
 		event["status"] = "cancelled"
-		google_calendar.events().update(calendarId=account.google_calendar_id, eventId=doc.google_calendar_event_id, body=event).execute()
+		google_calendar.events().update(calendarId=doc.google_calendar_id, eventId=doc.google_calendar_event_id, body=event).execute()
 
 	if not frappe.db.exists("Google Calendar", {"name": doc.google_calendar}):
 		return
 
-	google_calendar, account = get_credentials({"name": doc.google_calendar})
+	google_calendar, account = get_credentials(doc.google_calendar)
 
 	if not account.push_to_google_calendar:
 		return

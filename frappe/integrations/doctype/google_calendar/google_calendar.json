@@ -46,6 +46,7 @@
    "description": "The name that will appear in Google Calendar",
    "fieldname": "calendar_name",
    "fieldtype": "Data",
+   "in_list_view": 1,
    "label": "Calendar Name",
    "reqd": 1,
    "unique": 1
@@ -56,17 +57,20 @@
   },
   {
    "fieldname": "refresh_token",
-   "fieldtype": "Data",
+   "fieldtype": "Password",
+   "hidden": 1,
    "label": "Refresh Token"
   },
   {
    "fieldname": "authorization_code",
-   "fieldtype": "Data",
+   "fieldtype": "Password",
+   "hidden": 1,
    "label": "Authorization Code"
   },
   {
    "fieldname": "next_sync_token",
-   "fieldtype": "Data",
+   "fieldtype": "Password",
+   "hidden": 1,
    "label": "Next Sync Token"
   },
   {
@@ -107,7 +111,7 @@
    "label": "Push to Google Calendar"
   }
  ],
- "modified": "2019-08-01 18:59:36.943325",
+ "modified": "2019-08-01 23:13:18.877561",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Google Calendar",

@@ -26,7 +26,7 @@ frappe.ui.form.on("Google Calendar", {
 				frappe.call({
 					method: "frappe.integrations.doctype.google_calendar.google_calendar.sync",
 					args: {
-						"g_contact": frm.doc.name
+						"g_calendar": frm.doc.name
 					},
 				}).then(() => {
 					frappe.hide_progress();
