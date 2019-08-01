@@ -59,8 +59,14 @@ Object.assign(frappe.utils, {
 	strip_whitespace: function(html) {
 		return (html || "").replace(/<p>\s*<\/p>/g, "").replace(/<br>(\s*<br>\s*)+/g, "<br><br>");
 	},
-	change_url_target: function(html){
-		return html.replace("href", " target='_blank' href");
+	update_url_target: function(html){
+		var parser = new DOMParser();
+		var doc = parser.parseFromString(html, "text/html");
+		if (doc.body.querySelector("a"))
+		{
+			doc.body.querySelector("a").target = "_blank";
+		}
+		return new XMLSerializer().serializeToString(doc);
 	},
 	encode_tags: function(html) {
 		var tagsToReplace = {
