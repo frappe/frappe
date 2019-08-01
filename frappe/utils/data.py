@@ -714,9 +714,10 @@ def get_url(uri=None, full_address=False):
 		return uri
 
 	if not host_name:
-		if hasattr(frappe.local, "request") and frappe.local.request and frappe.local.request.host:
-			protocol = 'https://' if 'https' == frappe.get_request_header('X-Forwarded-Proto', "") else 'http://'
-			host_name = protocol + frappe.local.request.host
+		request_host_name = get_host_name_from_request()
+
+		if request_host_name:
+			host_name = request_host_name
 
 		elif frappe.local.site:
 			protocol = 'http://'
@@ -752,6 +753,11 @@ def get_url(uri=None, full_address=False):
 	url = urljoin(host_name, uri) if uri else host_name
 
 	return url
+
+def get_host_name_from_request():
+	if hasattr(frappe.local, "request") and frappe.local.request and frappe.local.request.host:
+		protocol = 'https://' if 'https' == frappe.get_request_header('X-Forwarded-Proto', "") else 'http://'
+		return protocol + frappe.local.request.host
 
 def url_contains_port(url):
 	parts = url.split(':')
