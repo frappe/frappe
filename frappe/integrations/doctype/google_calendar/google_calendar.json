@@ -56,19 +56,16 @@
   {
    "fieldname": "refresh_token",
    "fieldtype": "Data",
-   "hidden": 1,
    "label": "Refresh Token"
   },
   {
    "fieldname": "authorization_code",
    "fieldtype": "Data",
-   "hidden": 1,
    "label": "Authorization Code"
   },
   {
    "fieldname": "next_sync_token",
    "fieldtype": "Data",
-   "hidden": 1,
    "label": "Next Sync Token"
   },
   {
@@ -109,7 +106,7 @@
    "label": "Push to Google Calendar"
   }
  ],
- "modified": "2019-08-01 14:11:49.438425",
+ "modified": "2019-08-01 14:26:47.411823",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Google Calendar",
