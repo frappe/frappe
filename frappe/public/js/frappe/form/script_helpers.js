@@ -23,11 +23,7 @@ window.refresh_field = function(n, docname, table_field) {
 			field = field[0];
 			var meta = frappe.meta.get_docfield(field.parent, field.fieldname, docname);
 			$.extend(field, meta);
-			if (docname){
-				cur_frm.fields_dict[table_field].grid.grid_rows_by_docname[docname].refresh_field(n);
-			} else {
-				cur_frm.fields_dict[table_field].grid.refresh();
-			}
+			cur_frm.fields_dict[table_field].grid.refresh();
 		}
 	} else if(cur_frm) {
 		cur_frm.refresh_field(n);
