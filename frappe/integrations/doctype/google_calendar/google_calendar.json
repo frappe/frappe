@@ -1,5 +1,5 @@
 {
- "autoname": "format:{calendar_name}-{user}",
+ "autoname": "field:calendar_name",
  "creation": "2019-07-06 17:54:09.450100",
  "doctype": "DocType",
  "editable_grid": 1,
@@ -47,7 +47,8 @@
    "fieldname": "calendar_name",
    "fieldtype": "Data",
    "label": "Calendar Name",
-   "reqd": 1
+   "reqd": 1,
+   "unique": 1
   },
   {
    "fieldname": "section_break_3",
@@ -106,7 +107,7 @@
    "label": "Push to Google Calendar"
   }
  ],
- "modified": "2019-08-01 14:26:47.411823",
+ "modified": "2019-08-01 18:59:36.943325",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Google Calendar",
