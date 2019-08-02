@@ -51,12 +51,8 @@ frappe.ui.EnergyPointsNotifications = class {
 	}
 
 	check_seen() {
-		this.dropdown_items.forEach(item=> {
-			if(item.seen === 0) {
-				frappe.xcall('frappe.social.doctype.energy_point_log.energy_point_log.set_notification_as_seen', {field: item});
-				item.seen = 1;
-			}
-		});
+		let unseen_items = this.dropdown_items.filter(item=> item.seen === 0);
+		frappe.call('frappe.social.doctype.energy_point_log.energy_point_log.set_notification_as_seen', {notifications: unseen_items});
 	}
 
 	get_energy_points_date_range(date) {
@@ -106,7 +102,8 @@ frappe.ui.EnergyPointsNotifications = class {
 			body_html += `<li><a href="#" onclick = "return false" class="text-muted text-center">${__('No activity')}</a></li>`;
 		}
 
-		let dropdown_html = header_html + body_html;
+		let dropdown_html = header_html + body_html +
+			`<li><a href="#List/Energy%20Point%20Log/List" class="text-muted text-center">${__('See Full Log')}</a></li>`;
 		this.$dropdown_list.html(dropdown_html);
 	}
 
@@ -119,13 +116,13 @@ frappe.ui.EnergyPointsNotifications = class {
 		let message_html = this.get_message_html(field);
 
 		let item_html = `<li class="recent-points-item">
-							${link_html_string}
-							${points_html}
-							<div class="points-reason">
-								${message_html}
-							</div>
-							</a>
-						</li>`;
+			${link_html_string}
+			${points_html}
+			<div class="points-reason">
+				${message_html}
+			</div>
+			</a>
+		</li>`;
 		return item_html;
 	}
 
