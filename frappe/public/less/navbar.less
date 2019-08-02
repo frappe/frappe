@@ -122,6 +122,11 @@
 	}
 }
 
+.dropdown-notification {
+	max-height: 480px;
+	overflow-y: auto;
+}
+
 .dropdown-help .dropdown-menu {
 	width: 350px !important;
 	max-height: 440px;
@@ -266,19 +271,21 @@
 }
 
 .dropdown-energy-points .energy-points-icon {
-    height: 40px;
-    font-size: 14px;
-    text-align: center;
+	height: 40px;
+	font-size: 14px;
+	text-align: center;
 }
 
 .recent-points-list {
 	width: 300px;
+	max-height: 480px;
+	overflow-y: auto;
 }
 
 .energy-points-notification {
 	font-size: 7px;
-    position: absolute;
-    top: 4px;
+	position: absolute;
+	top: 4px;
 	right: 8px;
 	color: @indicator-orange;
 	display: none;
@@ -286,9 +293,9 @@
 
 .points-update {
 	float: left;
-    text-align: right;
-    margin-right: 15px;
-    width: 7%;
+	text-align: right;
+	margin-right: 15px;
+	width: 7%;
 }
 
 .positive-points {
@@ -310,7 +317,7 @@
 
 .points-updates-header {
 	background: @navbar-bg;
-    padding: 9px;
+	padding: 9px;
 }
 
 .points-date-range {
