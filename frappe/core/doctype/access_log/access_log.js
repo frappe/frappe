@@ -2,12 +2,6 @@
 // For license information, please see license.txt
 
 frappe.ui.form.on('Access Log', {
-	refresh: function (frm) {
-		if (frm.doc.hasOwnProperty('report_name') && frm.doc.report_name != 'Backup') {
-			frm.set_df_property('show_report', 'hidden', 0);
-		}
-	},
-
 	show_document: function (frm) {
 		frappe.set_route('Form', frm.doc.export_from, frm.doc.reference_document);
 	},
@@ -16,11 +10,8 @@ frappe.ui.form.on('Access Log', {
 		if (frm.doc.report_name.includes('/')) {
 			frappe.set_route(frm.doc.report_name);
 		} else {
-			try {
-				frappe.set_route('query-report', frm.doc.report_name, frm.doc.filters ? JSON.parse(frm.doc.filters) : '');
-			} catch (err) {
-				frappe.throw(__(err + ' has occurred'));
-			}
+			let filters = frm.doc.filters ? frm.doc.filters : {};
+			frappe.set_route('query-report', frm.doc.report_name, filters);
 		}
 	}
 });
