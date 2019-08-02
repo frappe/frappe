@@ -15,7 +15,12 @@ base_template_path = "templates/www/sitemap.xml"
 
 def get_context(context):
 	"""generate the sitemap XML"""
-	host = get_request_site_address()
+
+	# the site might be accessible from multiple host_names
+	# for e.g gadgets.erpnext.com and gadgetsinternational.com
+	# so it should be picked from the request
+	host = frappe.utils.get_host_name_from_request()
+
 	links = []
 	for route, page in iteritems(get_pages()):
 		if page.sitemap:
