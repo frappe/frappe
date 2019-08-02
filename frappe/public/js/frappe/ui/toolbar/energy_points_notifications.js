@@ -135,7 +135,7 @@ frappe.ui.EnergyPointsNotifications = class {
 
 	get_message_html(field) {
 		let owner_name = frappe.user.full_name(field.owner).trim();
-		owner_name = this.truncate_value(owner_name);
+		owner_name = frappe.ellipsis(owner_name, 50);
 		let message_html = '';
 		if (field.type === 'Auto' ) {
 			message_html = `For ${__(field.rule)} <span class="points-reason-name text-muted">${__(field.reference_name)}</span>`;
@@ -148,15 +148,11 @@ frappe.ui.EnergyPointsNotifications = class {
 			} else if (field.type === 'Revert') {
 				message =  `${__(owner_name)} reverted your points on `;
 			}
-			let reason_string = '- "' + this.truncate_value(field.reason) + '"';
+			let reason_string = '- "' + frappe.ellipsis(field.reason, 50) + '"';
 			message_html = `${message}<span class="points-reason-name text-muted">${__(field.reference_name)}</span>
 				<span class="hidden-xs">${__(reason_string)} </span>`;
 		}
 		return message_html;
 	}
 
-	truncate_value(str) {
-		if(str.length > 50) str = str.slice(0,50) + '...';
-		return str;
-	}
 };
