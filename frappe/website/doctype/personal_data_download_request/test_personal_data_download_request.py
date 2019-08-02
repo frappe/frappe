@@ -21,18 +21,25 @@ class TestRequestPersonalData(unittest.TestCase):
 
 	def test_file_and_email_creation(self):
 		frappe.set_user('test_privacy@example.com')
-		download_request = frappe.get_doc({"doctype": 'Personal Data Download Request', 'user': 'test_privacy@example.com'})
+		download_request = frappe.get_doc({
+			"doctype": 'Personal Data Download Request',
+			'user': 'test_privacy@example.com'
+		})
 		download_request.save(ignore_permissions=True)
+
 		frappe.set_user('Administrator')
 
-		f = frappe.get_all('File',
-			{'attached_to_doctype':'Personal Data Download Request', 'attached_to_name': download_request.name},
-			['*'])
-		self.assertEqual(len(f), 1)
+		file_count = frappe.db.count('File', {
+			'attached_to_doctype':'Personal Data Download Request',
+			'attached_to_name': download_request.name
+		})
 
-		email_queue = frappe.db.sql("""SELECT *
-			FROM `tabEmail Queue`
-			ORDER BY `creation` DESC""", as_dict=True)
+		self.assertEqual(file_count, 1)
+
+		email_queue = frappe.get_all('Email Queue',
+			fields=['message'],
+			order_by="creation DESC",
+			limit=1)
 		self.assertTrue("Subject: Download Your Data" in email_queue[0].message)
 
 		frappe.db.sql("delete from `tabEmail Queue`")

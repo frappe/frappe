@@ -7,7 +7,7 @@ def execute():
 		filters={'is_folder': 0})
 
 	for file in files:
-		file_url = file.file_url
+		file_url = file.file_url or ""
 		if file.is_private:
 			if not file_url.startswith('/private/files/'):
 				generate_file(file.name)
