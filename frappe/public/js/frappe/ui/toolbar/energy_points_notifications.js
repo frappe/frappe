@@ -110,7 +110,7 @@ frappe.ui.EnergyPointsNotifications = class {
 		}
 
 		let dropdown_html = header_html + body_html +
-			`<li><a href="#List/Energy%20Point%20Log/List" class="text-muted text-center">${__('See Full Log')}</a></li>`;
+			`<li><a href="#List/Energy%20Point%20Log/List" class="text-muted text-center">${__('View Full Log')}</a></li>`;
 		this.$dropdown_list.html(dropdown_html);
 	}
 
@@ -118,8 +118,8 @@ frappe.ui.EnergyPointsNotifications = class {
 		let doc_link = frappe.utils.get_form_link(field.reference_doctype,field.reference_name);
 		let link_html_string = field.seen? `<a href=${doc_link}>`: `<a href=${doc_link} class="unseen">`;
 		let points_html= field.type === 'Auto' || field.type === 'Appreciation'
-			? `<div class="points-update positive-points">+${__(field.points)}</div>`
-			: `<div class="points-update negative-points">${__(field.points)}</div>`;
+			? __(`<div class="points-update positive-points">+{0}</div>`, [field.points])
+			: __(`<div class="points-update negative-points">{0}</div>`, [field.points]);
 		let message_html = this.get_message_html(field);
 
 		let item_html = `<li class="recent-points-item">
@@ -142,15 +142,15 @@ frappe.ui.EnergyPointsNotifications = class {
 		} else {
 			let message;
 			if (field.type === 'Appreciation') {
-				message = `${__(owner_name)} appreciated your work on `;
+				message = __('{0} appreciated your work on', [owner_name])
 			} else if (field.type === 'Criticism') {
-				message =  `${__(owner_name)} criticized your work on `;
+				message = __('{0} criticized your work on', [owner_name])
 			} else if (field.type === 'Revert') {
-				message =  `${__(owner_name)} reverted your points on `;
+				message = __('{0} reverted your points on', [owner_name])
 			}
 			let reason_string = '- "' + frappe.ellipsis(field.reason, 50) + '"';
-			message_html = `${message}<span class="points-reason-name text-muted">${__(field.reference_name)}</span>
-				<span class="hidden-xs">${__(reason_string)} </span>`;
+			message_html = __(`{0}<span class="points-reason-name text-muted">{1}</span>
+				<span class="hidden-xs">{2}`, [message, field.reference_name, reason_string])
 		}
 		return message_html;
 	}
