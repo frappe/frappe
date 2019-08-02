@@ -142,15 +142,15 @@ frappe.ui.EnergyPointsNotifications = class {
 		} else {
 			let message;
 			if (field.type === 'Appreciation') {
-				message = __('{0} appreciated your work on', [owner_name])
+				message = __('{0} appreciated your work on', [owner_name]);
 			} else if (field.type === 'Criticism') {
-				message = __('{0} criticized your work on', [owner_name])
+				message = __('{0} criticized your work on', [owner_name]);
 			} else if (field.type === 'Revert') {
-				message = __('{0} reverted your points on', [owner_name])
+				message = __('{0} reverted your points on', [owner_name]);
 			}
 			let reason_string = '- "' + frappe.ellipsis(field.reason, 50) + '"';
 			message_html = __(`{0}<span class="points-reason-name text-muted">{1}</span>
-				<span class="hidden-xs">{2}`, [message, field.reference_name, reason_string])
+				<span class="hidden-xs">{2}`, [message, field.reference_name, reason_string]);
 		}
 		return message_html;
 	}
