@@ -55,7 +55,11 @@
 		],
 		"no-control-regex": [
 			"off"
-		]
+		],
+		"space-before-blocks": "warn",
+		"keyword-spacing": "warn",
+		"comma-spacing": "warn",
+		"key-spacing": "warn",
 	},
 	"root": true,
 	"globals": {
