@@ -51,8 +51,8 @@ frappe.ui.EnergyPointsNotifications = class {
 	}
 
 	check_seen() {
-		let unseen_items = this.dropdown_items.filter(item => item.seen === 0);
-		frappe.call('frappe.social.doctype.energy_point_log.energy_point_log.set_notification_as_seen', {notifications: unseen_items});
+		let unseen_logs = this.dropdown_items.filter(item => item.seen === 0);
+		frappe.call('frappe.social.doctype.energy_point_log.energy_point_log.set_notification_as_seen', {point_logs: unseen_logs});
 	}
 
 	get_energy_points_date_range(date) {
