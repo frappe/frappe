@@ -4,7 +4,6 @@
 
 # imports - standard imports
 from __future__ import unicode_literals
-import json
 
 # imports - module imports
 import frappe

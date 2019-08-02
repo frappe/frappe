@@ -11,10 +11,8 @@ import os
 # imports - module imports
 import frappe
 from frappe.core.doctype.access_log.access_log import make_access_log
-from frappe.utils.response import download_private_file
 from frappe.utils import cstr, get_site_url
 from frappe.core.doctype.data_import.data_import import export_csv
-from frappe.core.doctype.file import test_file
 from frappe.core.doctype.user.user import generate_keys
 # from frappe import cache
 
@@ -103,8 +101,8 @@ class TestAccessLog(unittest.TestCase):
 		self.test_filters = {"from_date": "2019-06-30", "to_date": "2019-07-31", "party": [],
 							"group_by": "Group by Voucher (Consolidated)", "cost_center": [], "project": []}
 
-		self.test_doctype = 'Account'
-		self.test_document = ''
+		self.test_doctype = 'File'
+		self.test_document = 'Test Document'
 		self.test_report_name = 'General Ledger'
 		self.test_file_type = 'CSV'
 		self.test_method = 'Test Method'
