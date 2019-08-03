@@ -156,7 +156,6 @@ scheduler_events = {
 		'frappe.model.utils.user_settings.sync_user_settings',
 		"frappe.utils.error.collect_error_snapshots",
 		"frappe.desk.page.backups.backups.delete_downloadable_backups",
-		"frappe.desk.doctype.auto_repeat.auto_repeat.make_auto_repeat_entry",
 		"frappe.deferred_insert.save_to_db",
 		"frappe.desk.form.document_follow.send_hourly_updates",
 	],

@@ -82,6 +82,7 @@ def get_bootinfo():
 	bootinfo.energy_points_enabled = is_energy_point_enabled()
 	bootinfo.points = get_energy_points(frappe.session.user)
 	bootinfo.frequently_visited_links = frequently_visited_links()
+	bootinfo.link_preview_doctypes = get_link_preview_doctypes()
 
 	return bootinfo
 
@@ -262,3 +263,6 @@ def get_gsuite_status():
 
 def get_success_action():
 	return frappe.get_all("Success Action", fields=["*"])
+
+def get_link_preview_doctypes():
+	return [d.name for d in frappe.db.get_all('DocType', {'show_preview_popup': 1})]
