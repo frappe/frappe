@@ -138,7 +138,7 @@ frappe.ui.EnergyPointsNotifications = class {
 		owner_name = frappe.ellipsis(owner_name, 50);
 		let message_html = '';
 		if (field.type === 'Auto' ) {
-			message_html = `For ${__(field.rule)} <span class="points-reason-name text-muted">${__(field.reference_name)}</span>`;
+			message_html = __(`For {0} <span class="points-reason-name text-muted">{1}</span>`, [field.rule, field.reference_name]);
 		} else {
 			let message;
 			if (field.type === 'Appreciation') {
