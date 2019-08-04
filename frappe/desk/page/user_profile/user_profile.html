@@ -1,11 +1,12 @@
 <div class="row user-profile">
     <div class="col-md-12">
-        <div class="h6 uppercase performance-title">Activity Overview</div>
+        <!-- <div class="h6 uppercase performance-title">Activity Overview</div> -->
         <div class="performance-graphs">
             <div class="chart-column-container heatmap-container">
+                <!-- <p class=" heatmap-title h6 uppercase text-muted">Energy Points Monthly Distribution</p> -->
                 <div class="chart-filter pull-right">
-                    <div class="btn btn-default btn-sm dropdown-toggle year-filter" data-toggle="dropdown">
-                        <span class="filter-label">2019</span><span class="caret"></span></div>
+                    <div class="btn btn-default btn-xs dropdown-toggle year-filter" data-toggle="dropdown">
+                        <span class="filter-label">{%=__("2019") %}</span><span class="caret"></span></div>
                     <ul class="dropdown-menu year-dropdown" role="menu"></ul>
                 </div>
                 <div class="performance-heatmap">
@@ -13,50 +14,60 @@
             </div>
             <div class="chart-column-container percentage-chart-container">
                 <div class="chart-filter pull-right">
-                    <div class="btn btn-default btn-sm dropdown-toggle field-filter" data-toggle="dropdown">
-                        <span class="filter-label">Type</span><span class="caret"></span>
+                    <div class="btn btn-default btn-xs dropdown-toggle field-filter" data-toggle="dropdown">
+                        <span class="filter-label">{%=__("Type") %}</span><span class="caret"></span>
                     </div>
                     <ul class="dropdown-menu field-dropdown" role="menu">
-                        <li><a href="#" onclick="return false" data-fieldname="type">Type</a></li>
-                        <li><a href="#" onclick="return false" data-fieldname="reference_doctype">Reference Doctype</a></li>
-                        <li><a href="#" onclick="return false" data-fieldname="rule">Rule</a></li>
+                        <li><a href="#" onclick="return false" data-fieldname="type">{{ __("Type") }}</a></li>
+                        <li><a href="#" onclick="return false" data-fieldname="reference_doctype">{{ __("Reference Doctype") }}</a></li>
+                        <li><a href="#" onclick="return false" data-fieldname="rule">{{ __("Rule") }}</a></li>
                     </ul>
                 </div>
                 <div class="performance-percentage-chart">
                 </div>
             </div>
             <div class="chart-column-container line-chart-container">
-                    <div class="chart-filter pull-right">
-                        <div class="btn btn-default btn-sm dropdown-toggle period-filter" data-toggle="dropdown">
-                            <span class="filter-label">Last Month</span><span class="caret"></span>
-                        </div>
-                        <ul class="dropdown-menu period-dropdown" role="menu">
-                            <li><a href="#" onclick="return false">Last Week</a></li>
-                            <li><a href="#" onclick="return false">Last Month</a></li>
-                            <li><a href="#" onclick="return false">Last Quarter</a></li>
-                        </ul>
+                <div class="chart-filter pull-right">
+                    <div class="btn btn-default btn-xs dropdown-toggle interval-filter" data-toggle="dropdown">
+                        <span class="filter-label">{%=__("Daily") %}</span><span class="caret"></span>
                     </div>
-                    <div class="chart-filter pull-right">
-                        <div class="btn btn-default btn-sm dropdown-toggle type-filter" data-toggle="dropdown">
-                            <span class="filter-label">All</span><span class="caret"></span>
-                        </div>
-                        <ul class="dropdown-menu type-dropdown" role="menu">
-                            <li><a href="#" onclick="return false">All</a></li>
-                            <li><a href="#" onclick="return false">Auto</a></li>
-                            <li><a href="#" onclick="return false">Criticism</a></li>
-                            <li><a href="#" onclick="return false">Revert</a></li>
-                        </ul>
-                    </div>
-                    <div class="performance-line-chart">
-                    </div>
+                    <ul class="dropdown-menu interval-dropdown" role="menu">
+                        <li><a href="#" onclick="return false">{{ __("Daily") }}</a></li>
+                        <li><a href="#" onclick="return false">{{ __("Weekly") }}</a></li>
+                        <li><a href="#" onclick="return false">{{ __("Monthly") }}</a></li>
+                    </ul>
                 </div>
+                <div class="chart-filter pull-right">
+                    <div class="btn btn-default btn-xs dropdown-toggle period-filter" data-toggle="dropdown">
+                        <span class="filter-label">Last Month</span><span class="caret"></span>
+                    </div>
+                    <ul class="dropdown-menu period-dropdown" role="menu">
+                        <li><a href="#" onclick="return false">{{ __("Last Week") }}</a></li>
+                        <li><a href="#" onclick="return false">{{ __("Last Month") }}</a></li>
+                        <li><a href="#" onclick="return false">{{ __("Last Quarter") }}</a></li>
+                    </ul>
+                </div>
+                <div class="chart-filter pull-right">
+                    <div class="btn btn-default btn-xs dropdown-toggle type-filter" data-toggle="dropdown">
+                        <span class="filter-label">All</span><span class="caret"></span>
+                    </div>
+                    <ul class="dropdown-menu type-dropdown" role="menu">
+                        <li><a href="#" onclick="return false">{{ __("All") }}</a></li>
+                        <li><a href="#" onclick="return false">{{ __("Auto") }}</a></li>
+                        <li><a href="#" onclick="return false">{{ __("Appreciation") }}</a></li>
+                        <li><a href="#" onclick="return false">{{ __("Criticism") }}</a></li>
+                        <li><a href="#" onclick="return false">{{ __("Revert") }}</a></li>
+                    </ul>
+                </div>
+                <div class="performance-line-chart">
+                </div>
+            </div>
         </div>
-        <hr>
         <div class="recent-activity">
-            <p class="recent-activity-title h6 uppercase">Recent Activity</p>
+            <p class="recent-activity-title h6 uppercase">{%=__("Recent Activity") %}</p>
             <div class="recent-activity-list">
             </div>
-            <div class="show-more-activity"><a class="text-muted">Show More Activity</a></div>
+            <div class="show-more-activity"><a class="text-muted">{%=__("Show More Activity") %}</a></div>
         </div>
     </div>
 </div>

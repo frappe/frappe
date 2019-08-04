@@ -15,14 +15,18 @@ def get_energy_points_heatmap_data(user, date):
 
 @frappe.whitelist()
 def get_energy_points_pie_chart_data(user, field):
-    result = (frappe.db.sql("""select {field}, ABS(sum(points))
-        from `tabEnergy Point Log`
-        where
-        user = '{user}' and
-        type != 'Review'
-        group by {field}
-        order by {field}""".format(user=user, field=field)))
-    # result = frappe.db.get_all('Energy Point Log', filters={'user': user, 'type': ['!=', 'Review']}, group_by='type', order_by = 'type', fields=['type', 'sum(points) as points'], as_list = True)
+    # result = (frappe.db.sql("""select {field}, ABS(sum(points))
+    #     from `tabEnergy Point Log`
+    #     where
+    #     user = '{user}' and
+    #     type != 'Review'
+    #     group by {field}
+    #     order by {field}""".format(user=user, field=field)))
+    result = frappe.db.get_all('Energy Point Log',
+        filters={'user': user, 'type': ['!=', 'Review']},
+        group_by=field, order_by = field,
+        fields=[field, 'ABS(sum(points)) as points'],
+        as_list = True)
     print(result)
     return {
         "labels": [r[0] for r in result if r[0]!=None],
@@ -33,29 +37,32 @@ def get_energy_points_pie_chart_data(user, field):
 
 @frappe.whitelist()
 def get_user_points_and_rank(user, date=None):
-    result = frappe.db.sql("""select user, sum(points) as points, rank() over (order by points desc) as rank
-        from `tabEnergy Point Log`
-        where creation > '{date}'
-        group by user""".format(date=date))
+    # result = frappe.db.sql("""select user, sum(points) as points, rank() over (order by points desc) as rank
+    #     from `tabEnergy Point Log`
+    #     where creation > '{date}'
+    #     group by user""".format(date=date))
+
+    result = frappe.db.get_all('Energy Point Log',
+        group_by='user',
+        filters={'creation': ['>', date]},
+        fields=['user', '(sum(points)) as points', 'rank() over (order by points desc) as rank'],
+        as_list = True)
     return [r for r in result if r[0]==user]
 
 
 @frappe.whitelist()
 def update_profile_info(profile_info):
-	profile_info = frappe.parse_json(profile_info)
-    #for loop
-	if 'location' not in profile_info:
-		profile_info['location'] = None
-	if 'interest' not in profile_info:
-		profile_info['interest'] = None
-	if 'user_image' not in profile_info:
-		profile_info['user_image'] = None
-	if 'bio' not in profile_info:
-		profile_info['bio'] = None
-	user = frappe.get_doc('User', frappe.session.user)
-	user.update(profile_info)
-	user.save()
-	return user
+    profile_info = frappe.parse_json(profile_info)
+    keys = ['location', 'interest', 'user_image', 'bio']
+
+    for key in keys:
+        if key not in profile_info:
+            profile_info[key] = None
+
+    user = frappe.get_doc('User', frappe.session.user)
+    user.update(profile_info)
+    user.save()
+    return user
 
 @frappe.whitelist()
 def get_energy_points_list(start, limit, user):

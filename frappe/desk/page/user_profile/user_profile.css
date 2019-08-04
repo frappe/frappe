@@ -20,42 +20,55 @@
 }
 
 .chart-column-container{
-    border: 1px solid #d1d8dd;
-    border-radius: 4px;
-    margin: 30px 0;
-    padding: 5px 15px;
+    border-bottom: 1px solid #d1d8dd;
+    margin: 5px 0;
+}
+
+.chart-container {
+    z-index: -1;
+}
+
+.chart-container text.title {
+    text-transform: uppercase;
+    font-size: 11px;
 }
 
 .heatmap-container {
-    height: 180px
+    height: 170px
 }
 .performance-heatmap .chart-container {
-    margin: 0 auto;
+    margin-left: 30px;
+}
+
+.performance-heatmap .frappe-chart {
+    margin-top: 5px;
 }
 
 .performance-heatmap .frappe-chart .chart-legend {
     display: none;
 }
 
-.percentage-chart-container {
-    height: 170px;
+.performance-percentage-chart .frappe-chart {
+    position: absolute;
+    top: 5px;
 }
-/* .performance-graphs .chart-column-container {
-    width: 95%;
-} */
 
-.performance-graphs {
-    margin: 15px 30px;
+.performance-line-chart .frappe-chart {
+    margin-top: -20px;
+}
+
+.percentage-chart-container {
+    height: 130px;
 }
 
 .recent-activity {
-    margin: 30px;
+    margin: 20px;
     font-size: 12px;
 }
 
 .show-more-activity {
     text-align: center;
-    margin-top: 30px;
+    margin-top: 20px;
 }
 
 .positive-points {
@@ -87,10 +100,8 @@
 
 .chart-filter {
     position: relative;
-    left: 10px;
     top: 5px;
-    margin-right: 5px;
-    z-index: 1;
+    margin-right: 10px;
 }
 
 .filter-label {

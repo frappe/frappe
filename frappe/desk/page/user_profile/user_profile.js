@@ -51,7 +51,9 @@ class UserProfile {
 		this.main_section.empty().append(frappe.render_template('user_profile'));
 		this.energy_points = 0;
 		this.rank = 0;
+		this.month_rank = 0;
 		this.render_user_details();
+		this.render_points_and_rank();
 		this.render_heatmap();
 		this.render_years_filter_dropdown();
 		this.render_line_chart();
@@ -89,13 +91,11 @@ class UserProfile {
 	}
 
 	render_heatmap() {
-		this.heatmap = new frappe.Chart(".performance-heatmap", {
+		this.heatmap = new frappe.Chart('.performance-heatmap', {
 			type: 'heatmap',
-			title: "Energy Points Monthly Distribution",
-			countLabel: 'Level',
+			countLabel: 'Energy Points',
 			data:{},
 			discreteDomains: 0,
-			colors: ['#ebedf0', '#c0ddf9', '#73b3f3', '#3886e1', '#17459e'],
 		});
 		this.update_heatmap_data();
 	}
@@ -116,7 +116,7 @@ class UserProfile {
 		let dropdown_html = '';
 		let current_year = this.get_year(frappe.datetime.now_date());
 		for(var year = current_year; year >= creation_year; year--) {
-			dropdown_html+=`<li><a href="#" onclick="return false">${__(year)}</a></li>`
+			dropdown_html+=__(`<li><a href="#" onclick="return false">{0}</a></li>`,[year]);
 		}
 		this.year_dropdown.html(dropdown_html);
 	}
@@ -158,7 +158,7 @@ class UserProfile {
 		this.line_chart_data.filters_json = JSON.stringify(this.line_chart_filters);
 		frappe.xcall('frappe.desk.doctype.dashboard_chart.dashboard_chart.get', {
 			chart: this.line_chart_data,
-			cache: 0,
+			no_cache: 1,
 		}).then(chart=> {
 			this.line_chart.update(chart);
 		});
@@ -191,7 +191,7 @@ class UserProfile {
 		});
 	}
 
-
+	//Work on this - look at dashboard.js
 	filter_charts() {
 		this.year_dropdown.on('click','li a',(e)=> {
 			let selected_year = e.currentTarget.textContent;
@@ -203,6 +203,13 @@ class UserProfile {
 			let selected_period = e.currentTarget.textContent;
 			this.line_chart_data.timespan = selected_period;
 			this.wrapper.find('.period-filter .filter-label').text(selected_period);
+			this.update_line_chart_data();
+		});
+
+		this.interval_dropdown = this.wrapper.find('.interval-dropdown').on('click','li a',(e)=> {
+			let selected_interval = e.currentTarget.textContent;
+			this.line_chart_data.time_interval = selected_interval;
+			this.wrapper.find('.interval-filter .filter-label').text(selected_interval);
 			this.update_line_chart_data();
 		});
 
@@ -282,40 +289,53 @@ class UserProfile {
 	}
 
 	render_user_details() {
-		this.get_user_energy_points_and_rank().then(()=> {
-				this.sidebar.empty().append(frappe.render_template('user_profile_sidebar', {
-				user_image: frappe.avatar(this.user_id,'avatar-frame', 'user_image', this.user.image),
-				user_abbr: this.user.abbr,
-				user_location: this.user.location,
-				user_interest: this.user.interest,
-				user_bio: this.user.bio,
-				energy_points: this.energy_points,
-				rank: this.rank
-			}));
-			if(this.user_id !== frappe.session.user) {
-				this.wrapper.find('.profile-links').hide();
-			} else {
-				this.wrapper.find(".edit-profile-link").on("click", () => {
-					this.edit_profile();
-				});
-				this.wrapper.find(".user-settings-link").on("click", () => {
-					this.go_to_user_settings();
-				});
-			}
-		});
+		this.sidebar.empty().append(frappe.render_template('user_profile_sidebar', {
+			user_image: frappe.avatar(this.user_id,'avatar-frame', 'user_image', this.user.image),
+			user_abbr: this.user.abbr,
+			user_location: this.user.location,
+			user_interest: this.user.interest,
+			user_bio: this.user.bio,
+		}));
+		if(this.user_id !== frappe.session.user) {
+			this.wrapper.find('.profile-links').hide();
+		} else {
+			this.wrapper.find(".edit-profile-link").on("click", () => {
+				this.edit_profile();
+			});
+			this.wrapper.find(".user-settings-link").on("click", () => {
+				this.go_to_user_settings();
+			});
+		}
 	}
 
-	get_user_energy_points_and_rank() {
+	get_user_energy_points_and_rank(date) {
 		return frappe.xcall('frappe.desk.page.user_profile.user_profile.get_user_points_and_rank', {
-			user: this.user_id
+			user: this.user_id,
+			date: date || null,
 		})
 		.then(user => {
 			if(user[0]) {
 				let user_info = user[0];
-				console.log(user_info);
-				this.energy_points = user_info[1];
-				this.rank = user_info[2];
+				if(!this.energy_points) this.energy_points = user_info[1];
+				if(!date) {
+					this.rank = user_info[2];
+				} else {
+					this.month_rank = user_info[2];
+				}
 			}
+		})
+	}
+
+	render_points_and_rank() {
+		let profile_details_el = this.wrapper.find('.profile-details')
+		this.get_user_energy_points_and_rank().then(()=> {
+			let html = $(__(`<p class="user-energy-points text-muted">Energy Points: <span class="rank">{0}</span></p>
+				<p class="user-energy-points text-muted">Rank: <span class="rank">{1}</span></p>`, [this.energy_points, this.rank]));
+				profile_details_el.append(html);
+			this.get_user_energy_points_and_rank(frappe.datetime.month_start()).then(()=> {
+				let html = $(__(`<p class="user-energy-points text-muted">Monthly Rank: <span class="rank">{0}</span></p>`, [this.month_rank]));
+				profile_details_el.append(html);
+			})
 		})
 	}
 
@@ -327,8 +347,8 @@ class UserProfile {
 		this.$recent_activity_list = $('.recent-activity-list');
 		let get_recent_energy_points_html = (field) => {
 			let points_html= field.type === 'Auto' || field.type === 'Appreciation'
-			? `<div class="points-update positive-points">+${__(field.points)}</div>`
-			: `<div class="points-update negative-points">${__(field.points)}</div>`;
+			? __(`<div class="points-update positive-points">+{0}</div>`, [field.points])
+			: __(`<div class="points-update negative-points">+{0}</div>`, [field.points]);
 			let message_html = this.get_message_html(field);
 
 			return `<p class="recent-points-item">
@@ -357,19 +377,20 @@ class UserProfile {
 		let doc_link = frappe.utils.get_form_link(field.reference_doctype, field.reference_name);
 		let message_html = '';
 		if(field.type === 'Auto' ) {
-			message_html = `For ${__(field.rule)} <a class="points-doc-link text-muted" href=${doc_link}>${__(field.reference_name)}</a>`;
+			message_html = __(`For {0} <a class="points-doc-link text-muted" href=${doc_link}>{1}</a>`,
+				[field.rule, field.reference_name, field.reason]);
 		} else {
 			let user_str = this.user_id === frappe.session.user ? 'your': frappe.user.full_name(field.user) + "'s";
 			let message;
 			if(field.type === 'Appreciation') {
-				message = `${__(owner_name)} appreciated ${__(user_str)} work on `;
+				message = __('{0} appreciated {1} work on ', [owner_name, user_str]);
 			} else if(field.type === 'Criticism') {
-				message =  `${__(owner_name)} criticized ${__(user_str)} work on `
+				message =  __('{0} criticized {1} work on ', [owner_name, user_str]);
 			} else if(field.type === 'Revert') {
-				message =  `${__(owner_name)} reverted ${__(user_str)} points on `;
+				message =  __('{0} reverted {1} points on ', [owner_name, user_str]);
 			}
-			message_html = `${message}<a class="points-doc-link text-muted" href=${doc_link}>${__(field.reference_name)}</a>
-				<span class="hidden-xs"> - ${__(field.reason)} </span>`;
+			message_html = __(`{0}<a class="points-doc-link text-muted" href=${doc_link}>{1}</a>
+				<span class="hidden-xs"> - {2} </span>`, [message, field.reference_name, field.reason]);
 		}
 		return message_html;
 	}
