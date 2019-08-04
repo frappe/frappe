@@ -188,16 +188,15 @@ frappe.ui.LinkPreview = class {
 			if (!['preview_image', 'preview_title', 'name'].includes(key)) {
 				let value = frappe.ellipsis(preview_data[key], 280);
 				let label = key;
-				content_html = `
-					<div class="preview-table">
-						<div class="preview-field">
-							<div class='small preview-label text-muted bold'>${label}</div>
-							<div class="small preview-value">${value}</div>
-						</div>
+				content_html += `
+					<div class="preview-field">
+						<div class='small preview-label text-muted bold'>${label}</div>
+						<div class="small preview-value">${value}</div>
 					</div>
 				`;
 			}
 		});
+		content_html = `<div class="preview-table">${content_html}</div>`;
 
 		let popover_content =`
 			<div class="preview-popover-header">${image_html}
