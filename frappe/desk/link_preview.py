@@ -33,11 +33,11 @@ def get_preview_data(doctype, docname):
 	formatted_preview_data = {
 		'preview_image': preview_data.get(image_field),
 		'preview_title': preview_data.get(title_field),
-		'name': preview_data.get('name')
+		'name': preview_data.get('name'),
 	}
 
 	for key, val in preview_data.items():
-		if val and meta.has_field(key):
+		if val and meta.has_field(key) and key not in [image_field, title_field, 'name']:
 			formatted_preview_data[meta.get_field(key).label] = frappe.format(val, meta.get_field(key).fieldtype)
 
 	return formatted_preview_data
