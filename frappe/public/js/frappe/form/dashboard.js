@@ -495,7 +495,10 @@ frappe.ui.form.Dashboard = Class.extend({
 		this.chart_area.empty().removeClass('hidden');
 		$.extend(args, {
 			type: 'line',
-			colors: ['green']
+			colors: ['green'],
+			axisOptions: {
+				shortenYAxisNumbers: 1
+			}
 		});
 		this.show();
 

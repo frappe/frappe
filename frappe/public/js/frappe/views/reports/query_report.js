@@ -535,7 +535,10 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				]
 			},
 			type: type,
-			colors: colors
+			colors: colors,
+			axisOptions: {
+				shortenYAxisNumbers: 1
+			}
 		};
 
 		function get_column_values(column_name) {
