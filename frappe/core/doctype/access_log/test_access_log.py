@@ -14,7 +14,6 @@ from frappe.core.doctype.access_log.access_log import make_access_log
 from frappe.utils import cstr, get_site_url
 from frappe.core.doctype.data_import.data_import import export_csv
 from frappe.core.doctype.user.user import generate_keys
-# from frappe import cache
 
 # imports - third party imports
 import requests
@@ -141,7 +140,7 @@ class TestAccessLog(unittest.TestCase):
 	def test_private_file_download(self):
 		# create new private file
 		new_private_file = frappe.get_doc({
-			'doctype': 'File',
+			'doctype': self.test_doctype,
 			'file_name': self.file_name,
 			'content': base64.b64encode(self.test_content.encode('utf-8')),
 			'is_private': 1,
@@ -157,7 +156,7 @@ class TestAccessLog(unittest.TestCase):
 
 			if request.status_code == 403:
 				# if file is not accessible, access log wont be generated
-				self.assertNotEqual(new_private_file.doctype, last_doc.export_from)
+				pass
 
 			else:
 				# check for the access log of downloaded file
