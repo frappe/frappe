@@ -195,7 +195,6 @@ DocType: Communication,Sent Read Receipt,Enviar Confirmação de Leitura
 apps/frappe/frappe/www/404.html,Page missing or moved,Página ausente ou mudou
 apps/frappe/frappe/website/doctype/website_settings/website_settings.py,{0} does not exist in row {1},{0} não existe em linha {1}
 apps/frappe/frappe/utils/data.py,only.,apenas.
-apps/frappe/frappe/core/doctype/data_import/exporter.py,Leave blank for new records,Deixe em branco para novos registros
 DocType: Website Settings,Copyright,Direitos autorais
 apps/frappe/frappe/model/base_document.py,Duplicate name {0} {1},Nome duplicado {0} e {1}
 apps/frappe/frappe/config/settings.py,Log of error on automated events (scheduler).,Log de erro sobre eventos automatizados ( programador ) .

@@ -379,7 +379,6 @@ apps/frappe/frappe/core/doctype/success_action/success_action.js,Select atleast 
 DocType: Email Flag Queue,Email Flag Queue,Емаил Застава редова
 apps/frappe/frappe/config/settings.py,Stylesheets for Print Formats,Стилесхеетс за формате штампања
 apps/frappe/frappe/utils/bot.py,Can't identify open {0}. Try something else.,Не може да идентификује отворен {0}. Покушајте нешто друго.
-apps/frappe/frappe/email/smtp.py,Please setup default Email Account from Setup &gt; Email &gt; Email Account,Поставите подразумевани рачун е-поште из програма Сетуп&gt; Емаил&gt; Аццоунт Емаил
 apps/frappe/frappe/public/js/frappe/web_form/web_form.js,Your information has been submitted,Ваше информације је предата
 apps/frappe/frappe/core/doctype/user/user.py,User {0} cannot be deleted,Пользователь {0} не может быть удален
 DocType: System Settings,Currency Precision,Валута Прецизни
@@ -484,7 +483,9 @@ apps/frappe/frappe/public/js/frappe/form/footer/timeline.js,changed value of {0}
 DocType: Report,JSON,ЈСОН
 apps/frappe/frappe/core/doctype/user/user.py,Please check your email for verification,Проверите да ли сте за верификацију
 apps/frappe/frappe/core/doctype/doctype/doctype.py,Fold can not be at the end of the form,Фолд не може бити на крају обрасца
+apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,"For comparison, use &gt;5, &lt;10 or =324. For ranges, use 5:10 (for values between 5 &amp; 10).","За поређење користите&gt; 5, &lt;10 или = 324. За опсеге користите 5:10 (за вредности између 5 и 10)."
 DocType: Communication,Bounced,Боунцед
+apps/frappe/frappe/email/smtp.py,Please setup default Email Account from Setup &gt; Email &gt; Email Account,Поставите подразумевани рачун е-поште из програма Сетуп&gt; Емаил&gt; Аццоунт Емаил
 DocType: Deleted Document,Deleted Name,deleted Име
 apps/frappe/frappe/config/users_and_permissions.py,System and Website Users,Системные и сайта Пользователи
 DocType: Workflow Document State,Doc Status,Док статус
@@ -592,7 +593,6 @@ apps/frappe/frappe/core/doctype/user_permission/user_permission_list.js,No recor
 apps/frappe/frappe/email/doctype/notification/notification.js,Last Modified Date,Последњи измијењени датум
 DocType: Chat Profile,Settings,Подешавања
 DocType: Print Format,Style Settings,Стиле Подешавања
-apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Setup &gt; User Permissions,Подешавање&gt; Дозволе корисника
 apps/frappe/frappe/public/js/frappe/list/list_sidebar_group_by.js,Filter By,Филтер од
 apps/frappe/frappe/database/database.py,No conditions provided,Нису обезбеђени услови
 apps/frappe/frappe/public/js/frappe/views/reports/report_view.js,Y Axis Fields,Поља И оси
@@ -672,6 +672,7 @@ DocType: Address,Nagaland,Раџадтан
 DocType: Slack Webhook URL,Webhook URL,Вебхоок УРЛ
 apps/frappe/frappe/core/doctype/user/user.py,Username {0} already exists,Корисничко име {0} већ постоји
 apps/frappe/frappe/core/doctype/doctype/doctype.py,{0}: Cannot set import as {1} is not importable,{0} : Не удается установить импорт как {1} не является ввозу
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Setup &gt; Customize Form,Подешавање&gt; Прилагоди образац
 apps/frappe/frappe/contacts/doctype/address/address.py,There is an error in your Address Template {0},Постоји грешка у вашем Адреса Темплате {0}
 apps/frappe/frappe/automation/doctype/auto_repeat/auto_repeat.py,{0} is an invalid email address in 'Recipients',{0} је неважећа адреса е-поште у &#39;Примаоцима&#39;
 DocType: Footer Item,"target = ""_blank""",таргет = &quot;_бланк&quot;
@@ -783,7 +784,6 @@ DocType: Kanban Board Column,Indicator,индикатор
 DocType: DocShare,Everyone,Свако
 DocType: Workflow State,backward,уназад
 apps/frappe/frappe/core/doctype/doctype/doctype.py,"{0}: Only one rule allowed with the same Role, Level and {1}","{0}: Само једно правило дозвољено са истом улогом, нивоу и {1}"
-apps/frappe/frappe/email/smtp.py,Email Account not setup. Please create a new Email Account from Setup &gt; Email &gt; Email Account,Рачун е-поште није подешавање. Креирајте нови рачун е-поште из програма Сетуп&gt; Емаил&gt; Аццоунт Емаил
 DocType: Email Queue,Add Unsubscribe Link,Додај Унсубсцрибе Линк
 apps/frappe/frappe/templates/includes/comments/comments.html,No comments yet. Start a new discussion.,Још увек нема коментара. Започните нову дискусију.
 DocType: Workflow State,share,удео
@@ -877,6 +877,7 @@ apps/frappe/frappe/public/js/frappe/utils/pretty_date.js,{0} days ago,пре {0}
 DocType: Email Account,Awaiting Password,Очекујем Лозинка
 DocType: Address,Address Line 1,Аддресс Лине 1
 apps/frappe/frappe/public/js/frappe/ui/filters/filter.js,Not Descendants Of,Не потомци
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Setup &gt; User,Подешавање&gt; Корисник
 DocType: Custom DocPerm,Role,Улога
 apps/frappe/frappe/public/js/frappe/form/templates/print_layout.html,Settings...,Подешавања ...
 apps/frappe/frappe/templates/emails/delete_data_confirmation.html, to your browser,у ваш претраживач
@@ -971,7 +972,6 @@ apps/frappe/frappe/www/update-password.html,Old Password Required.,Старо П
 DocType: Role,Desk Access,сто приступа
 DocType: Workflow State,minus,минус
 DocType: S3 Backup Settings,Bucket,Буцкет
-apps/frappe/frappe/public/js/frappe/utils/pretty_date.js,&gt; {0} year(s) ago,&gt; {0} пре годину дана
 apps/frappe/frappe/public/js/frappe/ui/capture.js,Unable to load camera.,Не могу да учитам фотоапарат.
 apps/frappe/frappe/core/doctype/user/user.py,Welcome email sent,"Добро пожаловать Письмо, отправленное"
 apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js,Let's prepare the system for first use.,Хајде да припреми систем за прве употребе.
@@ -1101,6 +1101,7 @@ DocType: User,Send Password Update Notification,Пошаљи лозинку Уп
 apps/frappe/frappe/public/js/frappe/form/form.js,"Allowing DocType, DocType. Be careful!","Разрешение DocType , DocType . Будьте осторожны !"
 apps/frappe/frappe/config/core.py,"Customized Formats for Printing, Email","Прилагођени формати за штампу, Емаил"
 apps/frappe/frappe/public/js/frappe/ui/group_by/group_by.js,Sum of {0},Збир {0}
+apps/frappe/frappe/public/js/frappe/utils/pretty_date.js,&gt; {0} year(s) ago,&gt; {0} пре годину дана
 apps/frappe/frappe/public/js/frappe/desk.js,Updated To New Version,Упдатед на нову верзију
 DocType: Custom Field,Depends On,Зависи
 DocType: Kanban Board Column,Green,Зелен
@@ -1339,6 +1340,7 @@ DocType: DefaultValue,Key,Кључ
 DocType: Address,Contacts,связи
 DocType: System Settings,Setup Complete,Завершение установки
 apps/frappe/frappe/config/users_and_permissions.py,Report of all document shares,Извештај свих акција докумената
+apps/frappe/frappe/public/js/frappe/form/print.js,"Error connecting to QZ Tray Application...<br><br> You need to have QZ Tray application installed and running, to use the Raw Print feature.<br><br><a href=""https://qz.io/download/"" target=""_blank"">Click here to Download and install QZ Tray</a>.<br> <a href=""https://erpnext.com/docs/user/manual/en/setting-up/print/raw-printing"" target=""_blank"">Click here to learn more about Raw Printing</a>.","Грешка приликом повезивања са апликацијом КЗ Траи ... <br><br> За употребу функције Рав Принт морате да имате инсталирану и покренуту апликацију КЗ Траи. <br><br> <a href=""https://qz.io/download/"" target=""_blank"">Кликните овде да бисте преузели и инсталирали КЗ Траи</a> . <br> <a href=""https://erpnext.com/docs/user/manual/en/setting-up/print/raw-printing"" target=""_blank"">Кликните овде да бисте сазнали више о сировом штампању</a> ."
 apps/frappe/frappe/www/update-password.html,New Password,Нова лозинка
 apps/frappe/frappe/public/js/frappe/ui/filters/filters.js,Filter {0} missing,Филтер {0} недостаје
 apps/frappe/frappe/core/doctype/activity_log/activity_log.py,Sorry! You cannot delete auto-generated comments,Жао ми је! Ви не можете брисати ауто-генерисана коментаре
@@ -1897,7 +1899,6 @@ apps/frappe/frappe/public/js/frappe/views/interaction.js,{0} created successfull
 DocType: Custom DocPerm,Cancel,Отказати
 apps/frappe/frappe/core/doctype/user_permission/user_permission_list.js,Bulk Delete,Скупно брисање
 apps/frappe/frappe/core/doctype/file/file.py,File {0} does not exist,Филе {0} не постоји
-apps/frappe/frappe/core/doctype/data_import/exporter.py,Leave blank for new records,Оставите празно за нове записе
 DocType: Dashboard Chart,Dashboard Chart,Дасхбоард Цхарт
 DocType: Dashboard Chart,Last Quarter,"Последња четвртина, последњи фртаљ"
 apps/frappe/frappe/config/website.py,List of themes for Website.,Листа тема за сајт.
@@ -1995,6 +1996,7 @@ DocType: Auto Email Report,Weekdays,Радним данима
 apps/frappe/frappe/core/doctype/doctype/doctype.py,Title field must be a valid fieldname,Название поля должно быть допустимым имя_поля
 DocType: Post Comment,Post Comment,Постави коментар
 apps/frappe/frappe/config/core.py,Documents,Документи
+apps/frappe/frappe/contacts/doctype/address/address.py,No default Address Template found. Please create a new one from Setup &gt; Printing and Branding &gt; Address Template.,Није пронађена задана предлошка адресе. Креирајте нову из Подешавање&gt; Штампање и брендирање&gt; Предложак адреса.
 DocType: Social Login Key,Custom Base URL,Корисничка база УРЛ адресе
 DocType: Email Flag Queue,Is Completed,Је завршен
 apps/frappe/frappe/website/doctype/web_form/web_form.js,Get Fields,Гет Фиелдс
@@ -2222,7 +2224,6 @@ apps/frappe/frappe/geo/doctype/currency/currency.js,This Currency is disabled. E
 DocType: Desktop Icon,Blocked,блокиран
 DocType: Contact Us Settings,"Default: ""Contact Us""",Уобичајено: &quot;Контакт&quot;
 DocType: Contact,Purchase Manager,Куповина директор
-apps/frappe/frappe/public/js/frappe/ui/toolbar/search.js,<p>No results found for '</p>,<p> Нема резултата за &#39; </p>
 apps/frappe/frappe/public/js/frappe/ui/tags.js,toggle Tag,укључите ознаку
 DocType: Custom Script,Sample,Узорак
 apps/frappe/frappe/public/js/frappe/form/controls/table.js,"For performance, only the first 100 rows were processed.",За перформансе је обрађено само првих 100 редака.
@@ -2310,6 +2311,7 @@ DocType: Workflow State,Warning,Упозорење
 apps/frappe/frappe/public/js/frappe/form/print.js,This may get printed on multiple pages,Ово може бити одштампано на више страница
 DocType: Data Migration Run,Percent Complete,Перцент Цомплете
 DocType: Tag Category,Tag Category,таг Категорија
+apps/frappe/frappe/public/js/frappe/ui/toolbar/search.js,<p>No results found for '</p>,<p> Нема резултата за &#39; </p>
 apps/frappe/frappe/core/doctype/data_import/data_import.js,Help,Помоћ
 DocType: User,Login Before,Пријава Пре
 DocType: Web Page,Insert Style,Убаците Стиле
@@ -2329,7 +2331,6 @@ apps/frappe/frappe/public/js/frappe/form/link_selector.js,Added {0} ({1}),Дод
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.py,Fieldtype cannot be changed from {0} to {1} in row {2},Фиелдтипе не може да се промени из {0} на {1} у {2} редом
 apps/frappe/frappe/public/js/frappe/roles_editor.js,Role Permissions,Роле Дозволе
 DocType: Help Article,Intermediate,средњи
-apps/frappe/frappe/public/js/frappe/form/print.js,"Error connecting to QZ Tray Application...<br><br> You need to have QZ Tray application installed and running, to use the Raw Print feature.<br><br><a href=""https://qz.io/download/"" target=""_blank"">Click here to Download and install QZ Tray</a>.<br> <a href=""https://erpnext.com/docs/user/manual/en/setting-up/print/raw-printing"" target=""_blank"">Click here to learn more about Raw Printing</a>.","Грешка приликом повезивања са апликацијом КЗ Траи ... <br><br> За употребу функције Рав Принт морате да имате инсталирану и покренуту апликацију КЗ Траи. <br><br> <a href=""https://qz.io/download/"" target=""_blank"">Кликните овде да бисте преузели и инсталирали КЗ Траи</a> . <br> <a href=""https://erpnext.com/docs/user/manual/en/setting-up/print/raw-printing"" target=""_blank"">Кликните овде да бисте сазнали више о сировом штампању</a> ."
 apps/frappe/frappe/public/js/frappe/form/footer/timeline.js,{0} changed {1} to {2},{0} промењен {1} у {2}
 apps/frappe/frappe/core/doctype/deleted_document/deleted_document.py,Cancelled Document restored as Draft,Отказан документ је обновљен као Нацрт
 DocType: Data Migration Run,Start Time,Почетак Време
@@ -2409,7 +2410,6 @@ DocType: User,Generate Keys,Генериши кључеве
 apps/frappe/frappe/templates/emails/delete_data_confirmation.html,This will permanently remove your data.,Ово ће трајно уклонити ваше податке.
 DocType: DocType,View Settings,Погледај Подешавања
 DocType: Email Account,Outlook.com,Оутлоок.цом
-apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,"For comparison, use &gt;5, &lt;10 or =324. For ranges, use 5:10 (for values between 5 &amp; 10).","За поређење користите&gt; 5, &lt;10 или = 324. За опсеге користите 5:10 (за вредности између 5 и 10)."
 DocType: Personal Data Deletion Request,Pending Verification,у току верификација
 DocType: Website Meta Tag,Website Meta Tag,Мета Таг веб странице
 DocType: Email Account,"If non standard port (e.g. 587). If on Google Cloud, try port 2525.","Ако нестандардни порт (нпр. 587). Ако сте у Гоогле Цлоуд-у, пробајте порт 2525."
@@ -2810,7 +2810,6 @@ apps/frappe/frappe/core/doctype/error_log/error_log_list.js,Clear Error Logs,Ц�
 apps/frappe/frappe/core/doctype/user/user.js,Reset OTP Secret,Ресетујте ОТП тајну
 DocType: Email Account,Notify if unreplied for (in mins),Нотифи ако по алтернативним за (у минута)
 apps/frappe/frappe/templates/emails/energy_points_summary.html,Points Given,Дане бодове
-apps/frappe/frappe/contacts/doctype/address/address.py,No default Address Template found. Please create a new one from Setup &gt; Printing and Branding &gt; Address Template.,Није пронађена задана предлошка адресе. Креирајте нову из Подешавање&gt; Штампање и брендирање&gt; Предложак адреса.
 apps/frappe/frappe/config/website.py,Categorize blog posts.,Категоризација постова на блогу.
 DocType: Workflow State,Time,Време
 DocType: DocField,Attach,Лепити
@@ -2846,6 +2845,7 @@ DocType: Report,Reference Report,Референтни извештај
 DocType: Activity Log,Link DocType,линк ДОЦТИПЕ
 apps/frappe/frappe/public/js/frappe/chat.js,You don't have any messages yet.,Немате још порука.
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js,Remove all customizations?,Удалите все настройки ?
+apps/frappe/frappe/email/smtp.py,Email Account not setup. Please create a new Email Account from Setup &gt; Email &gt; Email Account,Рачун е-поште није подешавање. Креирајте нови рачун е-поште из програма Сетуп&gt; Емаил&gt; Аццоунт Емаил
 DocType: Website Slideshow,Slideshow Name,Приказ Име
 DocType: Address,Andhra Pradesh,Андра Прадеш
 apps/frappe/frappe/public/js/frappe/form/save.js,Cancelling,Отказивање
@@ -3385,6 +3385,7 @@ apps/frappe/frappe/public/js/frappe/ui/filters/filter.js,Equals,Једнак
 apps/frappe/frappe/core/doctype/doctype/doctype.py,Options 'Dynamic Link' type of field must point to another Link Field with options as 'DocType',"Опције 'Динамиц Линк' тип поља мора да указује на другу линкове ратарство са опцијама као 'ДОЦТИПЕ """
 DocType: About Us Settings,Team Members Heading,Чланови тима Хеадинг
 apps/frappe/frappe/utils/csvutils.py,Invalid CSV Format,Неважећи ЦСВ формату
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Setup &gt; User Permissions,Подешавање&gt; Дозволе корисника
 apps/frappe/frappe/desk/page/backups/backups.js,Set Number of Backups,Сет број резервних копија
 DocType: DocField,Do not allow user to change after set the first time,Не позволяйте пользователю изменять после установить в первый раз
 apps/frappe/frappe/utils/data.py,1 year ago,1 год назад
@@ -3507,7 +3508,6 @@ apps/frappe/frappe/core/doctype/doctype/doctype.py,'In Global Search' not allowe
 DocType: Energy Point Log,Appreciation,Захвалност
 apps/frappe/frappe/public/js/frappe/views/treeview.js,View List,виев Лист
 DocType: Workflow,Don't Override Status,Не замењују Статус
-apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Setup &gt; Customize Form,Подешавање&gt; Прилагоди образац
 apps/frappe/frappe/public/js/frappe/form/multi_select_dialog.js,Search term,Термин за претрагу
 apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js,The First User: You,Први Корисник : Ви
 DocType: Deleted Document,GCalendar Sync ID,ГЦалендар Синц ИД
@@ -3730,7 +3730,6 @@ DocType: Chat Message,Room,соба
 apps/frappe/frappe/public/js/frappe/change_log.html,updated to {0},ажуриран на {0}
 DocType: User,Desktop Background,Десктоп Бацкгроунд
 DocType: Portal Settings,Custom Menu Items,Цустом Ставке менија
-apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Setup &gt; User,Подешавање&gt; Корисник
 apps/frappe/frappe/website/doctype/website_slideshow/website_slideshow.py,All Images attached to Website Slideshow should be public,Све слике приложене Слајдшоу сајта би требало да буду јавне
 DocType: Workflow State,chevron-right,Цхеврон-десно
 apps/frappe/frappe/website/doctype/web_form/web_form.py,You need to be in developer mode to edit a Standard Web Form,Морате бити у режиму програмера да измените стандардни веб формулар

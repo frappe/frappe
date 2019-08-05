@@ -376,7 +376,6 @@ apps/frappe/frappe/core/doctype/success_action/success_action.js,Select atleast 
 DocType: Email Flag Queue,Email Flag Queue,மின்னஞ்சல் கொடி கியூ
 apps/frappe/frappe/config/settings.py,Stylesheets for Print Formats,அச்சு வடிவங்களுக்கான நடைதாள்
 apps/frappe/frappe/utils/bot.py,Can't identify open {0}. Try something else.,திறந்த அடையாளம் முடியாது {0}. வேறு ஏதாவது முயற்சி.
-apps/frappe/frappe/email/smtp.py,Please setup default Email Account from Setup &gt; Email &gt; Email Account,அமைவு&gt; மின்னஞ்சல்&gt; மின்னஞ்சல் கணக்கிலிருந்து இயல்புநிலை மின்னஞ்சல் கணக்கை அமைக்கவும்
 apps/frappe/frappe/public/js/frappe/web_form/web_form.js,Your information has been submitted,உங்கள் தகவல் சமர்ப்பிக்கப்பட்டது
 apps/frappe/frappe/core/doctype/user/user.py,User {0} cannot be deleted,பயனர் {0} நீக்க முடியாது
 DocType: System Settings,Currency Precision,நாணய துல்லிய
@@ -482,7 +481,9 @@ apps/frappe/frappe/public/js/frappe/form/footer/timeline.js,changed value of {0}
 DocType: Report,JSON,JSON
 apps/frappe/frappe/core/doctype/user/user.py,Please check your email for verification,சரிபார்ப்புக்காக உங்கள் மின்னஞ்சலைப் பார்க்கவும்
 apps/frappe/frappe/core/doctype/doctype/doctype.py,Fold can not be at the end of the form,அயல் வடிவம் முடிவில் இருக்க முடியாது
+apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,"For comparison, use &gt;5, &lt;10 or =324. For ranges, use 5:10 (for values between 5 &amp; 10).","ஒப்பிடுவதற்கு,&gt; 5, &lt;10 அல்லது = 324 ஐப் பயன்படுத்தவும். வரம்புகளுக்கு, 5:10 ஐப் பயன்படுத்தவும் (5 &amp; 10 க்கு இடையிலான மதிப்புகளுக்கு)."
 DocType: Communication,Bounced,பவுன்ஸ்டு
+apps/frappe/frappe/email/smtp.py,Please setup default Email Account from Setup &gt; Email &gt; Email Account,அமைவு&gt; மின்னஞ்சல்&gt; மின்னஞ்சல் கணக்கிலிருந்து இயல்புநிலை மின்னஞ்சல் கணக்கை அமைக்கவும்
 DocType: Deleted Document,Deleted Name,நீக்கப்பட்ட பெயர்
 apps/frappe/frappe/config/users_and_permissions.py,System and Website Users,கணினி மற்றும் இணைய பயனர்கள்
 DocType: Workflow Document State,Doc Status,Doc நிலைமை
@@ -591,7 +592,6 @@ apps/frappe/frappe/core/doctype/user_permission/user_permission_list.js,No recor
 apps/frappe/frappe/email/doctype/notification/notification.js,Last Modified Date,கடைசியாக மாற்றிய தேதி
 DocType: Chat Profile,Settings,அமைப்புகள்
 DocType: Print Format,Style Settings,உடை அமைப்புகள்
-apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Setup &gt; User Permissions,அமைவு&gt; பயனர் அனுமதிகள்
 apps/frappe/frappe/public/js/frappe/list/list_sidebar_group_by.js,Filter By,மூலம் வடிகட்டவும்
 apps/frappe/frappe/database/database.py,No conditions provided,எந்த நிபந்தனைகளும் வழங்கப்படவில்லை
 apps/frappe/frappe/public/js/frappe/views/reports/report_view.js,Y Axis Fields,Y அச்சு புலங்கள்
@@ -669,6 +669,7 @@ DocType: Address,Nagaland,நாகாலாந்து
 DocType: Slack Webhook URL,Webhook URL,Webhook URL
 apps/frappe/frappe/core/doctype/user/user.py,Username {0} already exists,பயனர் பெயர் {0} ஏற்கனவே உள்ளது
 apps/frappe/frappe/core/doctype/doctype/doctype.py,{0}: Cannot set import as {1} is not importable,{0} {1} importable அல்ல இறக்குமதி அமைக்க முடியாது
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Setup &gt; Customize Form,அமைவு&gt; படிவத்தைத் தனிப்பயனாக்கு
 apps/frappe/frappe/contacts/doctype/address/address.py,There is an error in your Address Template {0},உங்கள் முகவரி டெம்ப்ளேட் பிழை உள்ளது {0}
 apps/frappe/frappe/automation/doctype/auto_repeat/auto_repeat.py,{0} is an invalid email address in 'Recipients',{0} என்பது &#39;பெறுநர்கள்&#39; இன் தவறான மின்னஞ்சல் முகவரி.
 DocType: Footer Item,"target = ""_blank""",இலக்கு = &quot;_blank&quot;
@@ -779,7 +780,6 @@ DocType: Kanban Board Column,Indicator,காட்டி
 DocType: DocShare,Everyone,அனைவரும்
 DocType: Workflow State,backward,பின்னோக்கி
 apps/frappe/frappe/core/doctype/doctype/doctype.py,"{0}: Only one rule allowed with the same Role, Level and {1}","{0}: இதே பாத்திரம், நிலை மற்றும் அனுமதி ஒரே ஆட்சி {1}"
-apps/frappe/frappe/email/smtp.py,Email Account not setup. Please create a new Email Account from Setup &gt; Email &gt; Email Account,மின்னஞ்சல் கணக்கு அமைக்கப்படவில்லை. அமைவு&gt; மின்னஞ்சல்&gt; மின்னஞ்சல் கணக்கிலிருந்து புதிய மின்னஞ்சல் கணக்கை உருவாக்கவும்
 DocType: Email Queue,Add Unsubscribe Link,குழுவிலகல் இணைப்பு சேர்
 apps/frappe/frappe/templates/includes/comments/comments.html,No comments yet. Start a new discussion.,இதுவரை இல்லை. ஒரு புதிய விவாதத்தை தொடங்க.
 DocType: Workflow State,share,பங்கு
@@ -870,6 +870,7 @@ apps/frappe/frappe/public/js/frappe/utils/pretty_date.js,{0} days ago,{0} நா
 DocType: Email Account,Awaiting Password,காத்திருக்கிறது கடவுச்சொல்
 DocType: Address,Address Line 1,முகவரி வரி 1
 apps/frappe/frappe/public/js/frappe/ui/filters/filter.js,Not Descendants Of,இல்லை வம்சாவளியைச் சேர்ந்தவர்கள்
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Setup &gt; User,அமைப்பு&gt; பயனர்
 DocType: Custom DocPerm,Role,பங்கு
 apps/frappe/frappe/public/js/frappe/form/templates/print_layout.html,Settings...,அமைப்புகள் ...
 apps/frappe/frappe/templates/emails/delete_data_confirmation.html, to your browser,உங்கள் உலாவிக்கு
@@ -962,7 +963,6 @@ apps/frappe/frappe/www/update-password.html,Old Password Required.,பழைய 
 DocType: Role,Desk Access,டெஸ்க் அணுகல்
 DocType: Workflow State,minus,குறைய
 DocType: S3 Backup Settings,Bucket,பக்கெட்
-apps/frappe/frappe/public/js/frappe/utils/pretty_date.js,&gt; {0} year(s) ago,&gt; {0} ஆண்டு (கள்) முன்பு
 apps/frappe/frappe/public/js/frappe/ui/capture.js,Unable to load camera.,கேமராவை ஏற்ற முடியவில்லை.
 apps/frappe/frappe/core/doctype/user/user.py,Welcome email sent,வரவேற்கிறோம் மின்னஞ்சல் அனுப்பி
 apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js,Let's prepare the system for first use.,முதல் பயன்படுத்த அமைப்பு தயார் செய்யட்டும்.
@@ -1091,6 +1091,7 @@ apps/frappe/frappe/public/js/frappe/request.js,You are not connected to Internet
 DocType: User,Send Password Update Notification,கடவுச்சொல் மேம்படுத்தல் அறிவிப்பு அனுப்பவும்
 apps/frappe/frappe/public/js/frappe/form/form.js,"Allowing DocType, DocType. Be careful!","அனுமதிப்பது DOCTYPE , DOCTYPE . கவனமாக இருங்கள்!"
 apps/frappe/frappe/config/core.py,"Customized Formats for Printing, Email","அச்சு, மின்னஞ்சல் அமைத்துக்கொள்ள வடிவங்கள்"
+apps/frappe/frappe/public/js/frappe/utils/pretty_date.js,&gt; {0} year(s) ago,&gt; {0} ஆண்டு (கள்) முன்பு
 apps/frappe/frappe/public/js/frappe/desk.js,Updated To New Version,புதிய பதிப்பு மேம்படுத்தப்பட்டது
 DocType: Custom Field,Depends On,பொறுத்தது
 DocType: Kanban Board Column,Green,பச்சை
@@ -1326,6 +1327,7 @@ DocType: DefaultValue,Key,சாவி
 DocType: Address,Contacts,தொடர்புகள்
 DocType: System Settings,Setup Complete,அமைப்பு முழு
 apps/frappe/frappe/config/users_and_permissions.py,Report of all document shares,அனைத்து ஆவணம் பங்குகளை அறிக்கை
+apps/frappe/frappe/public/js/frappe/form/print.js,"Error connecting to QZ Tray Application...<br><br> You need to have QZ Tray application installed and running, to use the Raw Print feature.<br><br><a href=""https://qz.io/download/"" target=""_blank"">Click here to Download and install QZ Tray</a>.<br> <a href=""https://erpnext.com/docs/user/manual/en/setting-up/print/raw-printing"" target=""_blank"">Click here to learn more about Raw Printing</a>.","QZ தட்டு பயன்பாட்டுடன் இணைப்பதில் பிழை ... <br><br> மூல அச்சு அம்சத்தைப் பயன்படுத்த நீங்கள் QZ தட்டு பயன்பாட்டை நிறுவி இயக்க வேண்டும். <br><br> <a href=""https://qz.io/download/"" target=""_blank"">QZ தட்டில் பதிவிறக்கி நிறுவ இங்கே கிளிக் செய்க</a> . <br> <a href=""https://erpnext.com/docs/user/manual/en/setting-up/print/raw-printing"" target=""_blank"">மூல அச்சிடுதல் பற்றி மேலும் அறிய இங்கே கிளிக் செய்க</a> ."
 apps/frappe/frappe/www/update-password.html,New Password,புதிய கடவுச்சொல்
 apps/frappe/frappe/public/js/frappe/ui/filters/filters.js,Filter {0} missing,வடிகட்டி {0} காணாமல்
 apps/frappe/frappe/core/doctype/activity_log/activity_log.py,Sorry! You cannot delete auto-generated comments,மன்னிக்கவும்! நீங்கள் தானாக உருவாக்கப்பட்ட கருத்துகளை நீக்க முடியாது
@@ -1876,7 +1878,6 @@ apps/frappe/frappe/public/js/frappe/views/interaction.js,{0} created successfull
 DocType: Custom DocPerm,Cancel,ரத்து
 apps/frappe/frappe/core/doctype/user_permission/user_permission_list.js,Bulk Delete,மொத்த நீக்கு
 apps/frappe/frappe/core/doctype/file/file.py,File {0} does not exist,{0} இல்லை கோப்பு
-apps/frappe/frappe/core/doctype/data_import/exporter.py,Leave blank for new records,புதிய பதிவுகளை காலியாக விடவும்
 DocType: Dashboard Chart,Dashboard Chart,டாஷ்போர்டு விளக்கப்படம்
 DocType: Dashboard Chart,Last Quarter,கடந்த காலாண்டில்
 apps/frappe/frappe/config/website.py,List of themes for Website.,வலைத்தளம் கருப்பொருள்கள் பட்டியல்.
@@ -1974,6 +1975,7 @@ DocType: Auto Email Report,Weekdays,வார
 apps/frappe/frappe/core/doctype/doctype/doctype.py,Title field must be a valid fieldname,தலைப்பு துறையில் ஒரு செல்லுபடியாகும் FIELDNAME இருக்க வேண்டும்
 DocType: Post Comment,Post Comment,கருத்து தெரிவி
 apps/frappe/frappe/config/core.py,Documents,ஆவணங்கள்
+apps/frappe/frappe/contacts/doctype/address/address.py,No default Address Template found. Please create a new one from Setup &gt; Printing and Branding &gt; Address Template.,இயல்புநிலை முகவரி வார்ப்புரு இல்லை. அமைவு&gt; அச்சிடுதல் மற்றும் பிராண்டிங்&gt; முகவரி வார்ப்புருவில் இருந்து புதிய ஒன்றை உருவாக்கவும்.
 DocType: Social Login Key,Custom Base URL,தனிப்பயன் அடிப்படை URL
 DocType: Email Flag Queue,Is Completed,நிறைவுபெற்றது
 apps/frappe/frappe/website/doctype/web_form/web_form.js,Get Fields,புலங்களைப் பெறுங்கள்
@@ -2197,7 +2199,6 @@ apps/frappe/frappe/geo/doctype/currency/currency.js,This Currency is disabled. E
 DocType: Desktop Icon,Blocked,தடுக்கப்பட்ட
 DocType: Contact Us Settings,"Default: ""Contact Us""",இயல்புநிலை: &quot;எங்களை&quot;
 DocType: Contact,Purchase Manager,கொள்முதல் மேலாளர்
-apps/frappe/frappe/public/js/frappe/ui/toolbar/search.js,<p>No results found for '</p>,<p> &#39; </p>
 apps/frappe/frappe/public/js/frappe/ui/tags.js,toggle Tag,குறிச்சொல் மாற்று
 DocType: Custom Script,Sample,மாதிரி
 apps/frappe/frappe/public/js/frappe/form/controls/table.js,"For performance, only the first 100 rows were processed.","செயல்திறனுக்காக, முதல் 100 வரிசைகள் மட்டுமே செயலாக்கப்பட்டன."
@@ -2283,6 +2284,7 @@ DocType: Workflow State,Warning,எச்சரிக்கை
 apps/frappe/frappe/public/js/frappe/form/print.js,This may get printed on multiple pages,இது பல பக்கங்களில் அச்சிடப்படலாம்
 DocType: Data Migration Run,Percent Complete,சதவீதம் முடிந்தது
 DocType: Tag Category,Tag Category,டேக் வகை
+apps/frappe/frappe/public/js/frappe/ui/toolbar/search.js,<p>No results found for '</p>,<p> &#39; </p>
 apps/frappe/frappe/core/doctype/data_import/data_import.js,Help,உதவி
 DocType: User,Login Before,உள்நுழைவு முன்
 DocType: Web Page,Insert Style,பாணி  செருக
@@ -2302,7 +2304,6 @@ apps/frappe/frappe/public/js/frappe/form/link_selector.js,Added {0} ({1}),சே
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.py,Fieldtype cannot be changed from {0} to {1} in row {2},துறை வகை  செய்ய {0} இருந்து  {1} வரிசையில் {2} மாற்ற முடியாது
 apps/frappe/frappe/public/js/frappe/roles_editor.js,Role Permissions,அனுமதிகள்
 DocType: Help Article,Intermediate,இடைநிலை
-apps/frappe/frappe/public/js/frappe/form/print.js,"Error connecting to QZ Tray Application...<br><br> You need to have QZ Tray application installed and running, to use the Raw Print feature.<br><br><a href=""https://qz.io/download/"" target=""_blank"">Click here to Download and install QZ Tray</a>.<br> <a href=""https://erpnext.com/docs/user/manual/en/setting-up/print/raw-printing"" target=""_blank"">Click here to learn more about Raw Printing</a>.","QZ தட்டு பயன்பாட்டுடன் இணைப்பதில் பிழை ... <br><br> மூல அச்சு அம்சத்தைப் பயன்படுத்த நீங்கள் QZ தட்டு பயன்பாட்டை நிறுவி இயக்க வேண்டும். <br><br> <a href=""https://qz.io/download/"" target=""_blank"">QZ தட்டில் பதிவிறக்கி நிறுவ இங்கே கிளிக் செய்க</a> . <br> <a href=""https://erpnext.com/docs/user/manual/en/setting-up/print/raw-printing"" target=""_blank"">மூல அச்சிடுதல் பற்றி மேலும் அறிய இங்கே கிளிக் செய்க</a> ."
 apps/frappe/frappe/public/js/frappe/form/footer/timeline.js,{0} changed {1} to {2},{0} {1} ஐ {2} ஆக மாற்றியது
 apps/frappe/frappe/core/doctype/deleted_document/deleted_document.py,Cancelled Document restored as Draft,ரத்து செய்யப்பட்ட ஆவணம் வரைவு என மீட்டெடுக்கப்பட்டது
 DocType: Data Migration Run,Start Time,தொடக்க நேரம்
@@ -2380,7 +2381,6 @@ DocType: User,Generate Keys,விசைகளை உருவாக்கவு
 apps/frappe/frappe/templates/emails/delete_data_confirmation.html,This will permanently remove your data.,இது உங்கள் தரவை நிரந்தரமாக அகற்றும்.
 DocType: DocType,View Settings,காண்க அமைப்புகள்
 DocType: Email Account,Outlook.com,Outlook.com
-apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,"For comparison, use &gt;5, &lt;10 or =324. For ranges, use 5:10 (for values between 5 &amp; 10).","ஒப்பிடுவதற்கு,&gt; 5, &lt;10 அல்லது = 324 ஐப் பயன்படுத்தவும். வரம்புகளுக்கு, 5:10 ஐப் பயன்படுத்தவும் (5 &amp; 10 க்கு இடையிலான மதிப்புகளுக்கு)."
 DocType: Personal Data Deletion Request,Pending Verification,சரிபார்ப்பு நிலுவையில் உள்ளது
 DocType: Website Meta Tag,Website Meta Tag,வலைத்தள மெட்டா டேக்
 DocType: Email Account,"If non standard port (e.g. 587). If on Google Cloud, try port 2525.","அல்லாத நிலையான துறை (எ.கா. 587). Google கிளவுட் இல் இருந்தால், போர்ட் 2525 ஐ முயற்சிக்கவும்."
@@ -2782,7 +2782,6 @@ apps/frappe/frappe/core/doctype/error_log/error_log_list.js,Clear Error Logs,ப
 apps/frappe/frappe/core/doctype/user/user.js,Reset OTP Secret,OTP இரகசியத்தை மீட்டமைக்கவும்
 DocType: Email Account,Notify if unreplied for (in mins),(நிமிடங்கள்) க்கான பதில் இல்லை தெரிவிக்கப்படும்
 apps/frappe/frappe/templates/emails/energy_points_summary.html,Points Given,புள்ளிகள் கொடுக்கப்பட்டுள்ளன
-apps/frappe/frappe/contacts/doctype/address/address.py,No default Address Template found. Please create a new one from Setup &gt; Printing and Branding &gt; Address Template.,இயல்புநிலை முகவரி வார்ப்புரு இல்லை. அமைவு&gt; அச்சிடுதல் மற்றும் பிராண்டிங்&gt; முகவரி வார்ப்புருவில் இருந்து புதிய ஒன்றை உருவாக்கவும்.
 apps/frappe/frappe/config/website.py,Categorize blog posts.,இடுகைகள் வகைப்படுத்தவும்.
 DocType: Workflow State,Time,காலம்
 DocType: DocField,Attach,இணைக்கவும்
@@ -2819,6 +2818,7 @@ DocType: Activity Log,Link DocType,"இணைப்பு
 ஆவண வகை"
 apps/frappe/frappe/public/js/frappe/chat.js,You don't have any messages yet.,உங்களுக்கு இதுவரை எந்த செய்தியும் இல்லை.
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js,Remove all customizations?,அனைத்து தனிப்பயனாக்கம் நீக்க வேண்டுமா?
+apps/frappe/frappe/email/smtp.py,Email Account not setup. Please create a new Email Account from Setup &gt; Email &gt; Email Account,மின்னஞ்சல் கணக்கு அமைக்கப்படவில்லை. அமைவு&gt; மின்னஞ்சல்&gt; மின்னஞ்சல் கணக்கிலிருந்து புதிய மின்னஞ்சல் கணக்கை உருவாக்கவும்
 DocType: Website Slideshow,Slideshow Name,எஸ் பெயர்
 DocType: Address,Andhra Pradesh,ஆந்திரப் பிரதேசம்
 apps/frappe/frappe/public/js/frappe/form/save.js,Cancelling,ரத்து
@@ -3353,6 +3353,7 @@ apps/frappe/frappe/public/js/frappe/ui/filters/filter.js,Equals,சமங்க�
 apps/frappe/frappe/core/doctype/doctype/doctype.py,Options 'Dynamic Link' type of field must point to another Link Field with options as 'DocType',துறையில் விருப்பங்கள் 'டைனமிக் லிங்க்' வகை 'DOCTYPE' என விருப்பங்கள் மற்றொரு இணைப்பு துறையில் சுட்டி வேண்டும்
 DocType: About Us Settings,Team Members Heading,குழு உறுப்பினர் தலைப்பு
 apps/frappe/frappe/utils/csvutils.py,Invalid CSV Format,தவறான CSV வடிவத்தில்
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Setup &gt; User Permissions,அமைவு&gt; பயனர் அனுமதிகள்
 apps/frappe/frappe/desk/page/backups/backups.js,Set Number of Backups,காப்பு எண்ணிக்கை அமை
 DocType: DocField,Do not allow user to change after set the first time,பயனர் மாற்ற அனுமதிக்க வேண்டாம் பிறகு முதல் முறையாக அமைக்க
 apps/frappe/frappe/utils/data.py,1 year ago,1 வருடம் முன்பு
@@ -3472,7 +3473,6 @@ apps/frappe/frappe/core/doctype/doctype/doctype.py,'In Global Search' not allowe
 DocType: Energy Point Log,Appreciation,பாராட்டு
 apps/frappe/frappe/public/js/frappe/views/treeview.js,View List,காண்க பட்டியல்
 DocType: Workflow,Don't Override Status,நிலைமை புறக்கணிக்க வேண்டாம்
-apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Setup &gt; Customize Form,அமைவு&gt; படிவத்தைத் தனிப்பயனாக்கு
 apps/frappe/frappe/public/js/frappe/form/multi_select_dialog.js,Search term,தேடல் கால
 apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js,The First User: You,முதல் பயனர் : நீங்கள்
 DocType: Deleted Document,GCalendar Sync ID,GCalendar ஒத்திசைவு ஐடி
@@ -3690,7 +3690,6 @@ DocType: Chat Message,Room,அறை
 apps/frappe/frappe/public/js/frappe/change_log.html,updated to {0},மேம்படுத்தப்பட்டது {0}
 DocType: User,Desktop Background,டெஸ்க்டாப் பின்னணி
 DocType: Portal Settings,Custom Menu Items,வழக்கமான பட்டி உருப்படிகள்
-apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Setup &gt; User,அமைப்பு&gt; பயனர்
 apps/frappe/frappe/website/doctype/website_slideshow/website_slideshow.py,All Images attached to Website Slideshow should be public,வலைத்தள ஸ்லைடுஷோவுடன் இணைக்கப்பட்ட அனைத்து படங்களும் பொதுவில் இருக்க வேண்டும்
 DocType: Workflow State,chevron-right,செவ்ரான் வலது
 apps/frappe/frappe/website/doctype/web_form/web_form.py,You need to be in developer mode to edit a Standard Web Form,நீங்கள் ஒரு நிலையான வலை படிவம் திருத்த டெவலப்பர் முறையில் இருக்க வேண்டும்
