@@ -5,7 +5,7 @@ frappe.provide('frappe.energy_points');
 
 Object.assign(frappe.energy_points, {
 	get_points(points) {
-		return `<span class='bold' style="color: ${points >= 0 ? '#45A163': '#e42121'}">
+		return `<span style="color: ${points >= 0 ? '#45A163': '#e42121'}">
 			${points > 0 ? '+': ''}${points}
 		</span>`;
 	},

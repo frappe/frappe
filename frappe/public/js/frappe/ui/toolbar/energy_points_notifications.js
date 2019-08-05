@@ -117,9 +117,8 @@ frappe.ui.EnergyPointsNotifications = class {
 	get_dropdown_item_html(field) {
 		let doc_link = frappe.utils.get_form_link(field.reference_doctype,field.reference_name);
 		let link_html_string = field.seen? `<a href=${doc_link}>`: `<a href=${doc_link} class="unseen">`;
-		let points_html= field.type === 'Auto' || field.type === 'Appreciation'
-			? __(`<div class="points-update positive-points">+{0}</div>`, [field.points])
-			: __(`<div class="points-update negative-points">{0}</div>`, [field.points]);
+		let points_html = __(`<div class="points-update">{0}</div>`,
+			[frappe.energy_points.get_points(field.points)]);
 		let message_html = this.get_message_html(field);
 
 		let item_html = `<li class="recent-points-item">
@@ -137,20 +136,30 @@ frappe.ui.EnergyPointsNotifications = class {
 		let owner_name = frappe.user.full_name(field.owner).trim();
 		owner_name = frappe.ellipsis(owner_name, 50);
 		let message_html = '';
+		let reference_doc = `
+			<span class="points-reason-name text-muted">
+					${field.reference_name}
+			</span>
+		`;
+		let reason_string = `
+			<span class="hidden-xs">
+				- "${frappe.ellipsis(field.reason, 50)}"
+			</span>
+		`;
 		if (field.type === 'Auto' ) {
-			message_html = __(`For {0} <span class="points-reason-name text-muted">{1}</span>`, [field.rule, field.reference_name]);
+			message_html = __('For {0} {1}',
+				[field.rule, reference_doc]);
 		} else {
-			let message;
 			if (field.type === 'Appreciation') {
-				message = __('{0} appreciated your work on', [owner_name]);
+				message_html = __('{0} appreciated your work on {1} {2}',
+					[owner_name, reference_doc, reason_string]);
 			} else if (field.type === 'Criticism') {
-				message = __('{0} criticized your work on', [owner_name]);
+				message_html = __('{0} criticized your work on {1} {2}',
+					[owner_name, reference_doc, reason_string]);
 			} else if (field.type === 'Revert') {
-				message = __('{0} reverted your points on', [owner_name]);
+				message_html = __('{0} reverted your points on {1} {2}',
+					[owner_name, reference_doc, reason_string]);
 			}
-			let reason_string = '- "' + frappe.ellipsis(field.reason, 50) + '"';
-			message_html = __(`{0}<span class="points-reason-name text-muted">{1}</span>
-				<span class="hidden-xs">{2}`, [message, field.reference_name, reason_string]);
 		}
 		return message_html;
 	}

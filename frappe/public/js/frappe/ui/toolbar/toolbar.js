@@ -162,16 +162,14 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 	},
 
 	setup_energy_point_notifications: function() {
-		frappe.db.get_value('Energy Point Settings', null, 'enabled').then(r => {
-			let enabled = r.message.enabled;
-			if(enabled === "1") {
-				$('.dropdown-energy-points').show();
-				this.energy_points_notifications = new frappe.ui.EnergyPointsNotifications();
-			} else {
-				$('.dropdown-energy-points').hide();
-			}
-		});
+		if (frappe.boot.energy_points_enabled) {
+			$('.dropdown-energy-points').show();
+			this.energy_points_notifications = new frappe.ui.EnergyPointsNotifications();
+		} else {
+			$('.dropdown-energy-points').hide();
+		}
 	}
+
 });
 
 $.extend(frappe.ui.toolbar, {
