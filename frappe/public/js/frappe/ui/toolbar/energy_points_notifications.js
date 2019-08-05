@@ -92,6 +92,7 @@ frappe.ui.EnergyPointsNotifications = class {
 				<a href="#social/users" class="points-leaderboard text-muted hidden-xs">${__('Leaderboard')}</a>
 			</li>`;
 		let body_html = '';
+		let view_full_log_html = '';
 
 		if (this.dropdown_items.length) {
 			let date_range= this.get_energy_points_date_range(this.dropdown_items[0].creation);
@@ -105,12 +106,12 @@ frappe.ui.EnergyPointsNotifications = class {
 				let item_html = this.get_dropdown_item_html(field);
 				if (item_html) body_html += item_html;
 			});
+			view_full_log_html = `<li><a href="#List/Energy%20Point%20Log/List" class="text-muted text-center">${__('View Full Log')}</a></li>`;
 		} else {
 			body_html += `<li><a href="#" onclick = "return false" class="text-muted text-center">${__('No activity')}</a></li>`;
 		}
-
-		let dropdown_html = header_html + body_html +
-			`<li><a href="#List/Energy%20Point%20Log/List" class="text-muted text-center">${__('View Full Log')}</a></li>`;
+		let full_log_btn = `<li><a href="#List/Energy%20Point%20Log/List" class="text-muted text-center">${__('View Full Log')}</a></li>`;
+		let dropdown_html = header_html + body_html + view_full_log_html;
 		this.$dropdown_list.html(dropdown_html);
 	}
 
