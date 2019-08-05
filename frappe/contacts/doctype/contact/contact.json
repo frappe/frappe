@@ -19,8 +19,10 @@
   "designation",
   "gender",
   "phone",
-  "mobile_no",
   "image",
+  "sb_00",
+  "email_ids",
+  "contact_numbers",
   "contact_details",
   "is_primary_contact",
   "links",
@@ -63,6 +65,7 @@
    "oldfieldname": "email_id",
    "oldfieldtype": "Data",
    "options": "Email",
+   "read_only": 1,
    "search_index": 1
   },
   {
@@ -103,16 +106,8 @@
    "fieldtype": "Data",
    "label": "Phone",
    "oldfieldname": "contact_no",
-   "oldfieldtype": "Data"
-  },
-  {
-   "bold": 1,
-   "fieldname": "mobile_no",
-   "fieldtype": "Data",
-   "in_global_search": 1,
-   "label": "Mobile No",
-   "oldfieldname": "mobile_no",
-   "oldfieldtype": "Data"
+   "oldfieldtype": "Data",
+   "read_only": 1
   },
   {
    "fieldname": "image",
@@ -182,12 +177,29 @@
    "fieldname": "google_contacts_description",
    "fieldtype": "Small Text",
    "label": "Google Contacts Description"
+  },
+  {
+   "fieldname": "sb_00",
+   "fieldtype": "Section Break",
+   "label": "Contact Details"
+  },
+  {
+   "fieldname": "email_ids",
+   "fieldtype": "Table",
+   "label": "Email IDs",
+   "options": "Contact Email"
+  },
+  {
+   "fieldname": "contact_numbers",
+   "fieldtype": "Table",
+   "label": "Contact Numbers",
+   "options": "Contact Phone"
   }
  ],
  "icon": "fa fa-user",
  "idx": 1,
  "image_field": "image",
- "modified": "2019-06-14 20:35:45.300869",
+ "modified": "2019-08-02 13:35:56.989751",
  "modified_by": "Administrator",
  "module": "Contacts",
  "name": "Contact",

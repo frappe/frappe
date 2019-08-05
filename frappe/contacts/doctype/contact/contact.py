@@ -29,10 +29,31 @@ class Contact(Document):
 			break
 
 	def validate(self):
+		if len(self.email_ids) == 1:
+			self.email_ids[0].is_primary = 1
+			self.email_id = self.email_ids[0].email_id
+		else:
+			for email_id in self.email_ids:
+				if email_id.is_primary == 1:
+					self.email_id = email_id.email_id
+					break
+
+		if len(self.contact_numbers) == 1:
+			self.contact_numbers[0].is_primary = 1
+			self.phone = self.contact_numbers[0].phone
+		else:
+			for contact_number in self.contact_numbers:
+				if contact_number.is_primary == 1:
+					self.phone = contact_number.phone
+					break
+
 		if self.email_id:
 			self.email_id = self.email_id.strip()
+
 		self.set_user()
+
 		set_link_title(self)
+
 		if self.email_id and not self.image:
 			self.image = has_gravatar(self.email_id)
 
@@ -61,6 +82,21 @@ class Contact(Document):
 			if (link.link_doctype, link.link_name) in reference_links:
 				return True
 
+	def add_email_address(self, email_id, autosave=False):
+		self.append("email_ids", {
+			"email_id": email_id
+		})
+
+		if autosave:
+			self.save(ignore_permissions=True)
+
+	def add_phone_number(self, phone_number, autosave=False):
+		self.append("phone_numbers", {
+			"phone": phone_number
+		})
+
+		if autosave:
+			self.save(ignore_permissions=True)
 
 def get_default_contact(doctype, name):
 	'''Returns default contact for the given doctype, name'''
@@ -166,10 +202,9 @@ def contact_query(doctype, txt, searchfield, start, page_len, filters):
 def get_contact_with_phone_number(number):
 	if not number: return
 
-	contacts = frappe.get_all('Contact', or_filters={
-		'phone': ['like', '%{}'.format(number)],
-		'mobile_no': ['like', '%{}'.format(number)]
-	}, limit=1)
+	contacts = frappe.get_all('Contact', or_filters=[
+		['Contact Phone', 'phone', 'like' '%{}'.format(number)]
+	], limit=1)
 
 	contact = contacts[0].name if contacts else None
 
