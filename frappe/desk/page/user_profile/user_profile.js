@@ -94,7 +94,7 @@ class UserProfile {
 		this.heatmap = new frappe.Chart('.performance-heatmap', {
 			type: 'heatmap',
 			countLabel: 'Energy Points',
-			data:{},
+			data: {},
 			discreteDomains: 0,
 		});
 		this.update_heatmap_data();
@@ -103,26 +103,27 @@ class UserProfile {
 	update_heatmap_data(date_from) {
 		frappe.xcall('frappe.desk.page.user_profile.user_profile.get_energy_points_heatmap_data', {
 			user: this.user_id,
-			date: date_from || frappe.datetime.year_start()
-		}).then((r)=> {
-			this.heatmap.update({dataPoints:r});
+			date: date_from || frappe.datetime.year_start(),
+		}).then((r) => {
+			this.heatmap.update( {dataPoints: r} );
 		});
 	}
 
 	render_years_filter_dropdown() {
+		//Get years since user account created
 		this.user_creation = frappe.boot.user.creation;
 		let creation_year = this.get_year(this.user_creation);
 		this.year_dropdown = this.wrapper.find('.year-dropdown');
 		let dropdown_html = '';
 		let current_year = this.get_year(frappe.datetime.now_date());
-		for(var year = current_year; year >= creation_year; year--) {
-			dropdown_html+=__(`<li><a href="#" onclick="return false">{0}</a></li>`,[year]);
+		for (var year = current_year; year >= creation_year; year--) {
+			dropdown_html += __(`<li><a href="#" onclick="return false">{0}</a></li>`,[year]);
 		}
 		this.year_dropdown.html(dropdown_html);
 	}
 
 	get_year(date_str) {
-		return date_str.substring(0,date_str.indexOf('-'));
+		return date_str.substring(0, date_str.indexOf('-'));
 	}
 
 	render_line_chart() {
@@ -138,7 +139,7 @@ class UserProfile {
 			width: 'half',
 			based_on: 'creation'
 		}
-		this.line_chart = new frappe.Chart( ".performance-line-chart", { // or DOM element
+		this.line_chart = new frappe.Chart( ".performance-line-chart", {
 			title: 'Energy Points',
 			type: 'line',
 			height: 200,
@@ -159,7 +160,7 @@ class UserProfile {
 		frappe.xcall('frappe.desk.doctype.dashboard_chart.dashboard_chart.get', {
 			chart: this.line_chart_data,
 			no_cache: 1,
-		}).then(chart=> {
+		}).then(chart => {
 			this.line_chart.update(chart);
 		});
 	}
@@ -168,9 +169,9 @@ class UserProfile {
 		frappe.xcall('frappe.desk.page.user_profile.user_profile.get_energy_points_pie_chart_data', {
 			user: this.user_id,
 			field: field
-		}).then(chart=> {
-			if(chart.labels.length) {
-				this.percentage_chart = new frappe.Chart( '.performance-percentage-chart', { // or DOM element
+		}).then(chart => {
+			if (chart.labels.length) {
+				this.percentage_chart = new frappe.Chart( '.performance-percentage-chart', {
 					title: title,
 					type: 'percentage',
 					data: {
@@ -186,42 +187,42 @@ class UserProfile {
 					colors: ['#5e64ff', '#743ee2', '#ff5858', '#ffa00a', '#feef72', '#28a745', '#98d85b', '#a9a7ac'],
 				});
 			} else {
-				$('.percentage-chart-container').hide();
+				this.wrapper.find('.percentage-chart-container').hide();
 			}
 		});
 	}
 
-	//Work on this - look at dashboard.js
+	//Work on this
 	filter_charts() {
-		this.year_dropdown.on('click','li a',(e)=> {
+		this.year_dropdown.on('click','li a', (e) => {
 			let selected_year = e.currentTarget.textContent;
 			this.wrapper.find('.year-filter .filter-label').text(selected_year);
 			this.update_heatmap_data(frappe.datetime.obj_to_str(selected_year));
 		});
 
-		this.period_dropdown = this.wrapper.find('.period-dropdown').on('click','li a',(e)=> {
+		this.period_dropdown = this.wrapper.find('.period-dropdown').on('click','li a', (e) => {
 			let selected_period = e.currentTarget.textContent;
 			this.line_chart_data.timespan = selected_period;
 			this.wrapper.find('.period-filter .filter-label').text(selected_period);
 			this.update_line_chart_data();
 		});
 
-		this.interval_dropdown = this.wrapper.find('.interval-dropdown').on('click','li a',(e)=> {
+		this.interval_dropdown = this.wrapper.find('.interval-dropdown').on('click','li a', (e) => {
 			let selected_interval = e.currentTarget.textContent;
 			this.line_chart_data.time_interval = selected_interval;
 			this.wrapper.find('.interval-filter .filter-label').text(selected_interval);
 			this.update_line_chart_data();
 		});
 
-		this.type_dropdown = this.wrapper.find('.type-dropdown').on('click','li a',(e)=> {
+		this.type_dropdown = this.wrapper.find('.type-dropdown').on('click','li a', (e) => {
 			let selected_type = e.currentTarget.textContent;
-			if(selected_type === 'All') delete this.line_chart_filters.type;
+			if (selected_type === 'All') delete this.line_chart_filters.type;
 			else this.line_chart_filters.type = selected_type;
 			this.wrapper.find('.type-filter .filter-label').text(selected_type);
 			this.update_line_chart_data();
 		});
 
-		this.field_dropdown = this.wrapper.find('.field-dropdown').on('click','li a',(e)=> {
+		this.field_dropdown = this.wrapper.find('.field-dropdown').on('click','li a', (e) => {
 			let selected_field = e.currentTarget.textContent;
 			let fieldname = $(e.currentTarget).attr('data-fieldname')
 			this.wrapper.find('.field-filter .filter-label').text(selected_field);
@@ -231,7 +232,7 @@ class UserProfile {
 	}
 
 	edit_profile() {
-		const edit_profile_dialog = new frappe.ui.Dialog({
+		let edit_profile_dialog = new frappe.ui.Dialog({
 			title: __('Edit Profile'),
 			fields: [
 				{
@@ -296,7 +297,12 @@ class UserProfile {
 			user_interest: this.user.interest,
 			user_bio: this.user.bio,
 		}));
-		if(this.user_id !== frappe.session.user) {
+
+		this.setup_user_profile_links();
+	}
+
+	setup_user_profile_links() {
+		if (this.user_id !== frappe.session.user) {
 			this.wrapper.find('.profile-links').hide();
 		} else {
 			this.wrapper.find(".edit-profile-link").on("click", () => {
@@ -314,10 +320,11 @@ class UserProfile {
 			date: date || null,
 		})
 		.then(user => {
-			if(user[0]) {
+			if (user[0]) {
 				let user_info = user[0];
-				if(!this.energy_points) this.energy_points = user_info[1];
-				if(!date) {
+				//Check if monthly rank or all time rank
+				if (!this.energy_points) this.energy_points = user_info[1];
+				if (!date) {
 					this.rank = user_info[2];
 				} else {
 					this.month_rank = user_info[2];
@@ -327,14 +334,17 @@ class UserProfile {
 	}
 
 	render_points_and_rank() {
-		let profile_details_el = this.wrapper.find('.profile-details')
-		this.get_user_energy_points_and_rank().then(()=> {
+		let $profile_details = this.wrapper.find('.profile-details');
+
+		this.get_user_energy_points_and_rank().then(() => {
 			let html = $(__(`<p class="user-energy-points text-muted">Energy Points: <span class="rank">{0}</span></p>
 				<p class="user-energy-points text-muted">Rank: <span class="rank">{1}</span></p>`, [this.energy_points, this.rank]));
-				profile_details_el.append(html);
-			this.get_user_energy_points_and_rank(frappe.datetime.month_start()).then(()=> {
-				let html = $(__(`<p class="user-energy-points text-muted">Monthly Rank: <span class="rank">{0}</span></p>`, [this.month_rank]));
-				profile_details_el.append(html);
+				$profile_details.append(html);
+
+			this.get_user_energy_points_and_rank(frappe.datetime.month_start()).then(() => {
+				let html = $(__(`<p class="user-energy-points text-muted">Monthly Rank: <span class="rank">{0}</span></p>`,
+					[this.month_rank]));
+				$profile_details.append(html);
 			})
 		})
 	}
@@ -343,31 +353,32 @@ class UserProfile {
 		frappe.set_route('Form', 'User', this.user_id);
 	}
 
-	render_user_activity(append) {
-		this.$recent_activity_list = $('.recent-activity-list');
+	render_user_activity(append_to_activity) {
+		this.$recent_activity_list = this.wrapper.find('.recent-activity-list');
+
 		let get_recent_energy_points_html = (field) => {
 			let points_html= field.type === 'Auto' || field.type === 'Appreciation'
 			? __(`<div class="points-update positive-points">+{0}</div>`, [field.points])
 			: __(`<div class="points-update negative-points">{0}</div>`, [field.points]);
 			let message_html = this.get_message_html(field);
-
 			return `<p class="recent-points-item">
-						${points_html}
-						<span class="points-reason">
-							${message_html}
-						</span>
-					</p>`;
+				${points_html}
+				<span class="points-reason">
+					${message_html}
+				</span>
+			</p>`;
 		}
+
 		frappe.xcall('frappe.desk.page.user_profile.user_profile.get_energy_points_list', {
-			start:this.activity_start,
+			start: this.activity_start,
 			limit: this.activity_end,
 			user: this.user_id
-		}).then(list=> {
+		}).then(list => {
 			if(!list.length) {
 				this.wrapper.find('.show-more-activity a').html('No More Activity');
 			}
 			let html = list.map(get_recent_energy_points_html).join('');
-			if(append) this.$recent_activity_list.append(html);
+			if (append_to_activity) this.$recent_activity_list.append(html);
 			else this.$recent_activity_list.html(html);
 		})
 	}
@@ -376,17 +387,18 @@ class UserProfile {
 		let owner_name = frappe.user.full_name(field.owner).trim();
 		let doc_link = frappe.utils.get_form_link(field.reference_doctype, field.reference_name);
 		let message_html = '';
-		if(field.type === 'Auto' ) {
+
+		if (field.type === 'Auto' ) {
 			message_html = __(`For {0} <a class="points-doc-link text-muted" href=${doc_link}>{1}</a>`,
 				[field.rule, field.reference_name, field.reason]);
 		} else {
 			let user_str = this.user_id === frappe.session.user ? 'your': frappe.user.full_name(field.user) + "'s";
 			let message;
-			if(field.type === 'Appreciation') {
+			if (field.type === 'Appreciation') {
 				message = __('{0} appreciated {1} work on ', [owner_name, user_str]);
-			} else if(field.type === 'Criticism') {
+			} else if (field.type === 'Criticism') {
 				message =  __('{0} criticized {1} work on ', [owner_name, user_str]);
-			} else if(field.type === 'Revert') {
+			} else if (field.type === 'Revert') {
 				message =  __('{0} reverted {1} points on ', [owner_name, user_str]);
 			}
 			message_html = __(`{0}<a class="points-doc-link text-muted" href=${doc_link}>{1}</a>
@@ -396,14 +408,15 @@ class UserProfile {
 	}
 
 	setup_show_more_activity() {
+		//Show 10 items at a time
 		this.activity_start = 0;
 		this.activity_end = 10;
-		this.wrapper.find('.show-more-activity').on('click', ()=>this.show_more_activity());
+		this.wrapper.find('.show-more-activity').on('click', () => this.show_more_activity());
 	}
 
 	show_more_activity() {
 		this.activity_start = this.activity_end;
-		this.activity_end+=10;
+		this.activity_end += 10;
 		this.render_user_activity(true);
 	}
 
