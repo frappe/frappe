@@ -1,115 +1,138 @@
 .user-image-container {
-    margin-top: 7px;
-    padding-bottom: 100%;
+	margin-top: 7px;
+	padding-bottom: 100%;
 }
 
-.standard-image {
-    font-size: 72px;
+.user-image-container .standard-image {
+	font-size: 72px;
 }
 
 .profile-details {
-    margin: -5px 5px;
+	margin: -5px 5px;
 }
 
 .profile-links {
-    margin: 30px 5px;
+	margin: 30px 5px;
 }
 
 .user-initial {
-    font-size: 72px;
+	font-size: 72px;
 }
 
 .chart-column-container{
-    border-bottom: 1px solid #d1d8dd;
-    margin: 5px 0;
+	border-bottom: 1px solid #d1d8dd;
+	margin: 5px 0;
 }
 
 .chart-container {
-    z-index: -1;
+	z-index: -1;
 }
 
 .chart-container text.title {
-    text-transform: uppercase;
-    font-size: 11px;
+	text-transform: uppercase;
+	font-size: 11px;
 }
 
 .heatmap-container {
-    height: 170px
+	height: 170px
 }
 .performance-heatmap .chart-container {
-    margin-left: 30px;
+	margin-left: 30px;
 }
 
 .performance-heatmap .frappe-chart {
-    margin-top: 5px;
+	margin-top: 5px;
 }
 
 .performance-heatmap .frappe-chart .chart-legend {
-    display: none;
+	display: none;
 }
 
 .performance-percentage-chart .frappe-chart {
-    position: absolute;
-    top: 5px;
+	position: absolute;
+	top: 5px;
 }
 
 .performance-line-chart .frappe-chart {
-    margin-top: -20px;
+	margin-top: -20px;
 }
 
 .percentage-chart-container {
-    height: 130px;
+	height: 130px;
 }
 
 .recent-activity {
-    margin: 20px;
-    font-size: 12px;
+	margin: 20px;
+	font-size: 12px;
 }
 
 .show-more-activity {
-    text-align: center;
-    margin-top: 20px;
+	text-align: center;
+	margin-top: 20px;
 }
 
 .positive-points {
-    color: #45A163;
+	color: #45A163;
 }
 
 .negative-points {
-    color: #e42121;
+	color: #e42121;
 }
 
 .points-reason {
-    display: flow-root;
+	display: flow-root;
 }
 
 .points-update {
 	float: left;
-    text-align: right;
-    margin-right: 15px;
-    width: 3%;
+	text-align: right;
+	margin-right: 15px;
+	width: 3%;
 }
 
 .recent-points-item {
-    margin: 15px;
+	margin: 15px;
 }
 
 .interest-icon {
-    margin-right: 5px;
+	margin-right: 5px;
 }
 
 .chart-filter {
-    position: relative;
-    top: 5px;
-    margin-right: 10px;
+	position: relative;
+	top: 5px;
+	margin-right: 10px;
 }
 
 .filter-label {
-    margin-right: 4px;
+	margin-right: 4px;
 }
 
 .performance-title {
-    position: relative;
-    left: 30px;
-    top: 20px;
+	position: relative;
+	left: 30px;
+	top: 20px;
+}
+
+@media (max-width: 991px) {
+	.user-profile-sidebar {
+		display: flex;
+	}
+
+	.percentage-chart-container {
+		border-top: 1px solid #d1d8dd;
+	}
+
+	.user-profile-sidebar .profile-links {
+		margin: 0;
+	}
+
+	.user-profile-sidebar .profile-details {
+		width: 50%;
+		margin: 0;
+	}
+
+	.points-update {
+		margin-right: 30px;
+	}
 }

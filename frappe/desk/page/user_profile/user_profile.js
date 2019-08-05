@@ -348,7 +348,7 @@ class UserProfile {
 		let get_recent_energy_points_html = (field) => {
 			let points_html= field.type === 'Auto' || field.type === 'Appreciation'
 			? __(`<div class="points-update positive-points">+{0}</div>`, [field.points])
-			: __(`<div class="points-update negative-points">+{0}</div>`, [field.points]);
+			: __(`<div class="points-update negative-points">{0}</div>`, [field.points]);
 			let message_html = this.get_message_html(field);
 
 			return `<p class="recent-points-item">
