@@ -10,7 +10,7 @@ frappe.ui.form.on('Access Log', {
 		if (frm.doc.report_name.includes('/')) {
 			frappe.set_route(frm.doc.report_name);
 		} else {
-			let filters = frm.doc.filters ? JSON.parse(frm.doc.filters) : {};
+			let filters = frm.doc.filters ? JSON.parse(frm.doc.filters.replace(/'/g, '"')) : {};
 			frappe.set_route('query-report', frm.doc.report_name, filters);
 		}
 	}

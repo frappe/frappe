@@ -20,7 +20,8 @@
   "filters",
   "show_report",
   "raw_information_log_section",
-  "page"
+  "page",
+  "columns"
  ],
  "fields": [
   {
@@ -118,9 +119,15 @@
    "fieldtype": "Code",
    "label": "Filters",
    "read_only": 1
+  },
+  {
+   "fieldname": "columns",
+   "fieldtype": "HTML Editor",
+   "label": "Columns / Fields",
+   "read_only": 1
   }
  ],
- "modified": "2019-08-02 14:20:48.446539",
+ "modified": "2019-08-05 19:00:13.839471",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Access Log",
@@ -139,6 +146,5 @@
  ],
  "sort_field": "modified",
  "sort_order": "DESC",
- "track_seen": 1,
- "track_views": 1
+ "track_seen": 1
 }

@@ -3,7 +3,6 @@
 # See license.txt
 
 # imports - standard imports
-from __future__ import unicode_literals
 import unittest
 import base64
 import os

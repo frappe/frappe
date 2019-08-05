@@ -16,7 +16,7 @@ class AccessLog(Document):
 
 @frappe.whitelist()
 def make_access_log(doctype=None, document=None, method=None, file_type=None,
-		report_name=None, filters=None, page=None):
+		report_name=None, filters=None, page=None, columns=None):
 
 	user = frappe.session.user
 
@@ -29,7 +29,8 @@ def make_access_log(doctype=None, document=None, method=None, file_type=None,
 		'report_name': report_name,
 		'page': page,
 		'method': method,
-		'filters': frappe.utils.cstr(filters)
+		'filters': frappe.utils.cstr(filters),
+		'columns': columns
 	})
 	doc.insert(ignore_permissions=True)
 
