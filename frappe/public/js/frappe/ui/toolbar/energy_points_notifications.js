@@ -110,7 +110,6 @@ frappe.ui.EnergyPointsNotifications = class {
 		} else {
 			body_html += `<li><a href="#" onclick = "return false" class="text-muted text-center">${__('No activity')}</a></li>`;
 		}
-		let full_log_btn = `<li><a href="#List/Energy%20Point%20Log/List" class="text-muted text-center">${__('View Full Log')}</a></li>`;
 		let dropdown_html = header_html + body_html + view_full_log_html;
 		this.$dropdown_list.html(dropdown_html);
 	}
