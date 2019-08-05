@@ -15,19 +15,12 @@ def get_energy_points_heatmap_data(user, date):
 
 @frappe.whitelist()
 def get_energy_points_pie_chart_data(user, field):
-    # result = (frappe.db.sql("""select {field}, ABS(sum(points))
-    #     from `tabEnergy Point Log`
-    #     where
-    #     user = '{user}' and
-    #     type != 'Review'
-    #     group by {field}
-    #     order by {field}""".format(user=user, field=field)))
     result = frappe.db.get_all('Energy Point Log',
         filters={'user': user, 'type': ['!=', 'Review']},
         group_by=field, order_by = field,
         fields=[field, 'ABS(sum(points)) as points'],
         as_list = True)
-    print(result)
+
     return {
         "labels": [r[0] for r in result if r[0]!=None],
         "datasets": [{
@@ -37,16 +30,12 @@ def get_energy_points_pie_chart_data(user, field):
 
 @frappe.whitelist()
 def get_user_points_and_rank(user, date=None):
-    # result = frappe.db.sql("""select user, sum(points) as points, rank() over (order by points desc) as rank
-    #     from `tabEnergy Point Log`
-    #     where creation > '{date}'
-    #     group by user""".format(date=date))
-
     result = frappe.db.get_all('Energy Point Log',
         group_by='user',
         filters={'creation': ['>', date]},
         fields=['user', '(sum(points)) as points', 'rank() over (order by points desc) as rank'],
         as_list = True)
+
     return [r for r in result if r[0]==user]
 
 
