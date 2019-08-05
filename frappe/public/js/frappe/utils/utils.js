@@ -62,11 +62,13 @@ Object.assign(frappe.utils, {
 	update_url_target: function(html){
 		var parser = new DOMParser();
 		var doc = parser.parseFromString(html, "text/html");
-		if (doc.body.querySelector("a"))
-		{
-			doc.body.querySelector("a").target = "_blank";
+		if (doc.body){
+			var anchors = doc.body.querySelectorAll("a");
+			if (anchors.length) {
+				anchors.forEach(anchor => {anchor.target = "_blank";});
+			}
 		}
-		return new XMLSerializer().serializeToString(doc);
+		return doc.documentElement.innerHTML;
 	},
 	encode_tags: function(html) {
 		var tagsToReplace = {
