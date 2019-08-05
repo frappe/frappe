@@ -40,7 +40,7 @@ class UserProfile {
 				this.user_id = user;
 				this.make_user_profile();
 			}
-		})
+		});
 	}
 
 	make_user_profile() {
@@ -116,6 +116,7 @@ class UserProfile {
 		this.year_dropdown = this.wrapper.find('.year-dropdown');
 		let dropdown_html = '';
 		let current_year = this.get_year(frappe.datetime.now_date());
+
 		for (var year = current_year; year >= creation_year; year--) {
 			dropdown_html += __(`<li><a href="#" onclick="return false">{0}</a></li>`,[year]);
 		}
@@ -139,6 +140,7 @@ class UserProfile {
 			width: 'half',
 			based_on: 'creation'
 		}
+
 		this.line_chart = new frappe.Chart( ".performance-line-chart", {
 			title: 'Energy Points',
 			type: 'line',
@@ -157,6 +159,7 @@ class UserProfile {
 
 	update_line_chart_data() {
 		this.line_chart_data.filters_json = JSON.stringify(this.line_chart_filters);
+
 		frappe.xcall('frappe.desk.doctype.dashboard_chart.dashboard_chart.get', {
 			chart: this.line_chart_data,
 			no_cache: 1,
@@ -280,6 +283,7 @@ class UserProfile {
 			},
 			primary_action_label: __('Save')
 		});
+
 		edit_profile_dialog.set_values({
 			user_image: this.user.image,
 			location: this.user.location,
@@ -308,6 +312,7 @@ class UserProfile {
 			this.wrapper.find(".edit-profile-link").on("click", () => {
 				this.edit_profile();
 			});
+
 			this.wrapper.find(".user-settings-link").on("click", () => {
 				this.go_to_user_settings();
 			});
@@ -357,9 +362,8 @@ class UserProfile {
 		this.$recent_activity_list = this.wrapper.find('.recent-activity-list');
 
 		let get_recent_energy_points_html = (field) => {
-			let points_html= field.type === 'Auto' || field.type === 'Appreciation'
-			? __(`<div class="points-update positive-points">+{0}</div>`, [field.points])
-			: __(`<div class="points-update negative-points">{0}</div>`, [field.points]);
+			let points_html = __(`<div class="points-update">{0}</div>`,
+				[frappe.energy_points.get_points(field.points)]);
 			let message_html = this.get_message_html(field);
 			return `<p class="recent-points-item">
 				${points_html}
@@ -383,26 +387,36 @@ class UserProfile {
 		})
 	}
 
+	// Make common with energy point notifications
 	get_message_html(field) {
 		let owner_name = frappe.user.full_name(field.owner).trim();
 		let doc_link = frappe.utils.get_form_link(field.reference_doctype, field.reference_name);
 		let message_html = '';
-
+		let reference_doc =`
+			<a class="points-doc-link text-muted" href=${doc_link}>
+				${field.reference_name}
+			</a>
+		`;
+		let reason_string = `
+			<span class="hidden-xs">
+				- "${field.reason}"
+			</span>
+		`;
 		if (field.type === 'Auto' ) {
-			message_html = __(`For {0} <a class="points-doc-link text-muted" href=${doc_link}>{1}</a>`,
-				[field.rule, field.reference_name, field.reason]);
+			message_html = __('For {0} {1}',
+				[field.rule, reference_doc]);
 		} else {
 			let user_str = this.user_id === frappe.session.user ? 'your': frappe.user.full_name(field.user) + "'s";
-			let message;
 			if (field.type === 'Appreciation') {
-				message = __('{0} appreciated {1} work on ', [owner_name, user_str]);
+				message_html = __('{0} appreciated {1} work on {2} {3}',
+					[owner_name, user_str, reference_doc, reason_string]);
 			} else if (field.type === 'Criticism') {
-				message =  __('{0} criticized {1} work on ', [owner_name, user_str]);
+				message_html = __('{0} criticized {1} work on {2} {3}',
+					[owner_name, user_str, reference_doc, reason_string]);
 			} else if (field.type === 'Revert') {
-				message =  __('{0} reverted {1} points on ', [owner_name, user_str]);
+				message_html = __('{0} reverted {1} points on {2} {3}',
+					[owner_name, user_str, reference_doc, reason_string]);
 			}
-			message_html = __(`{0}<a class="points-doc-link text-muted" href=${doc_link}>{1}</a>
-				<span class="hidden-xs"> - {2} </span>`, [message, field.reference_name, field.reason]);
 		}
 		return message_html;
 	}
