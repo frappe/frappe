@@ -18,7 +18,7 @@ def remove_attach():
 	file_name = frappe.form_dict.get('file_name')
 	frappe.delete_doc('File', fid)
 
-@frappe.whitelist()
+@frappe.whitelist(allow_guest=True)
 def validate_link():
 	"""validate link when updated by user"""
 	import frappe
