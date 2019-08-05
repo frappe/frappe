@@ -117,8 +117,7 @@ frappe.ui.EnergyPointsNotifications = class {
 	get_dropdown_item_html(field) {
 		let doc_link = frappe.utils.get_form_link(field.reference_doctype,field.reference_name);
 		let link_html_string = field.seen ? `<a href=${doc_link}>`: `<a href=${doc_link} class="unseen">`;
-		let points_html = __(`<div class="points-update">{0}</div>`,
-			[frappe.energy_points.get_points(field.points)]);
+		let points_html = `<div class="points-update">${frappe.energy_points.get_points(field.points)}</div>`;
 		let message_html = this.get_message_html(field);
 
 		let item_html = `<li class="recent-points-item">
