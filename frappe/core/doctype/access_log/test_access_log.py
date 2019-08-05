@@ -23,9 +23,8 @@ class TestAccessLog(unittest.TestCase):
 		# generate keys for current user to send requests for the following tests
 		generate_keys(frappe.session.user)
 		frappe.db.commit()
-		generated_secret = frappe.utils.password.get_decrypted_password(
-			"User", frappe.session.user, fieldname='api_secret'
-		)
+		generated_secret = frappe.utils.password.get_decrypted_password("User",
+			frappe.session.user, fieldname='api_secret')
 		api_key = frappe.db.get_value("User", "Administrator", "api_key")
 		self.header = {"Authorization": "token {}:{}".format(api_key, generated_secret)}
 
@@ -96,8 +95,14 @@ class TestAccessLog(unittest.TestCase):
 			</body>
 			</html>
 		"""
-		self.test_filters = {"from_date": "2019-06-30", "to_date": "2019-07-31", "party": [],
-							"group_by": "Group by Voucher (Consolidated)", "cost_center": [], "project": []}
+		self.test_filters = {
+			"from_date": "2019-06-30",
+			"to_date": "2019-07-31",
+			"party": [],
+			"group_by": "Group by Voucher (Consolidated)",
+			"cost_center": [],
+			"project": []
+		}
 
 		self.test_doctype = 'File'
 		self.test_document = 'Test Document'
@@ -113,12 +118,12 @@ class TestAccessLog(unittest.TestCase):
 
 		# test if all fields maintain data: html page and filters are converted?
 		make_access_log(doctype=self.test_doctype,
-						document=self.test_document,
-						report_name=self.test_report_name,
-						page=self.test_html_template,
-						file_type=self.test_file_type,
-						method=self.test_method,
-						filters=self.test_filters)
+			document=self.test_document,
+			report_name=self.test_report_name,
+			page=self.test_html_template,
+			file_type=self.test_file_type,
+			method=self.test_method,
+			filters=self.test_filters)
 
 		last_doc = frappe.get_last_doc('Access Log')
 		self.assertEqual(last_doc.filters, cstr(self.test_filters))
