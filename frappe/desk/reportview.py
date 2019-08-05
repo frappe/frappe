@@ -138,9 +138,9 @@ def export_query():
 		del form_params["selected_items"]
 
 	make_access_log(doctype=doctype,
-			file_type=file_format_type,
-			report_name=form_params.report_name,
-			filters=form_params.filters)
+		file_type=file_format_type,
+		report_name=form_params.report_name,
+		filters=form_params.filters)
 
 	db_query = DatabaseQuery(doctype)
 	ret = db_query.execute(**form_params)
