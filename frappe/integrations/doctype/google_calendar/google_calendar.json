@@ -52,6 +52,7 @@
    "unique": 1
   },
   {
+   "depends_on": "eval: doc.enable",
    "fieldname": "section_break_3",
    "fieldtype": "Section Break"
   },
@@ -90,6 +91,7 @@
    "label": "Authorize Google Calendar Access"
   },
   {
+   "depends_on": "eval: doc.enable",
    "fieldname": "sb_01",
    "fieldtype": "Section Break",
    "label": "Sync"
@@ -111,7 +113,7 @@
    "label": "Push to Google Calendar"
   }
  ],
- "modified": "2019-08-01 23:13:18.877561",
+ "modified": "2019-08-06 22:44:22.189224",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Google Calendar",

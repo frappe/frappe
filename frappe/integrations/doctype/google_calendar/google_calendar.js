@@ -12,7 +12,7 @@ frappe.ui.form.on("Google Calendar", {
 				frm.dashboard.show_progress("Syncing Google Calendar", data.progress / data.total * 100,
 					__("Syncing {0} of {1}", [data.progress, data.total]));
 				if (data.progress === data.total) {
-					frm.dashboard.hide_progress("Sync Google Calendar");
+					frm.dashboard.hide_progress("Syncing Google Calendar");
 				}
 			}
 		});

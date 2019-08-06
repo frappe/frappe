@@ -15,6 +15,7 @@ from googleapiclient.errors import HttpError
 from frappe.utils import add_days, get_datetime, get_weekdays, now_datetime, add_to_date, get_time_zone
 from dateutil import parser
 from datetime import datetime, timedelta
+from six.moves.urllib.parse import quote
 
 SCOPES = "https://www.googleapis.com/auth/calendar"
 
@@ -120,7 +121,7 @@ def authorize_access(g_calendar, reauthorize=None):
 				frappe.db.commit()
 
 			frappe.local.response["type"] = "redirect"
-			frappe.local.response["location"] = "/desk#Form/Google%20Calendar/{}".format(google_calendar.name)
+			frappe.local.response["location"] = "/desk#Form/{0}/{1}".format(quote("Google Calendar"), quote(google_calendar.name))
 
 			frappe.msgprint(_("Google Calendar has been configured."))
 		except Exception as e:
