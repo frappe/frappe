@@ -29,7 +29,7 @@ def make_access_log(doctype=None, document=None, method=None, file_type=None,
 		'report_name': report_name,
 		'page': page,
 		'method': method,
-		'filters': filters,
+		'filters': frappe.utils.cstr(filters) if filters else None,
 		'columns': columns
 	})
 	doc.insert(ignore_permissions=True)
