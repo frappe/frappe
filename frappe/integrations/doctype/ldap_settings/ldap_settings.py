@@ -172,8 +172,8 @@ class LDAPSettings(Document):
 
 	def convert_ldap_entry_to_dict(self, user_entry):
 
-	        # support multiple email values
-                email = user_entry[self.ldap_email_field]
+		# support multiple email values
+		email = user_entry[self.ldap_email_field]
 
 		data = {
 			'username': user_entry[self.ldap_username_field].value,
