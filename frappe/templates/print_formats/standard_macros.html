@@ -71,7 +71,7 @@ data-fieldname="{{ df.fieldname }}" data-fieldtype="{{ df.fieldtype }}"
 {%- macro render_field_with_label(df, doc) -%}
 		<div class="row {% if df.bold %}important{% endif %} data-field" {{ fieldmeta(df) }}>
 			<div class="col-xs-{{ "9" if df.fieldtype=="Check" else "5" }}
-				{%- if doc._align_labels_right %} text-right{%- endif -%}">
+				{%- if doc.align_labels_right %} text-right{%- endif -%}">
 
 				{% if df.fieldtype not in ("Image","HTML","Check") and
 					doc.get(df.fieldname) != None %}
