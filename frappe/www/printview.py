@@ -95,8 +95,8 @@ def get_rendered_template(doc, name=None, print_format=None, meta=None,
 
 	# determine template
 	if print_format:
-		doc.show_section_headings = print_format.show_section_headings
-		doc.line_breaks = print_format.line_breaks
+		doc.print_section_headings = print_format.show_section_headings
+		doc.print_line_breaks = print_format.line_breaks
 		doc.align_labels_right = print_format.align_labels_right
 
 		def get_template_from_string():
