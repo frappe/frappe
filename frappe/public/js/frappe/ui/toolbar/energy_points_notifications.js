@@ -13,6 +13,7 @@ frappe.ui.EnergyPointsNotifications = class {
 		this.get_energy_points_list(this.max_length).then(user_points_list => {
 			this.dropdown_items = user_points_list;
 			this.render_energy_points_dropdown();
+			this.setup_view_full_log();
 			if (this.$dropdown_list.find('.unseen').length) {
 				this.$notification_indicator.show();
 			}
@@ -106,7 +107,7 @@ frappe.ui.EnergyPointsNotifications = class {
 				let item_html = this.get_dropdown_item_html(field);
 				if (item_html) body_html += item_html;
 			});
-			view_full_log_html = `<li><a href="#List/Energy%20Point%20Log/List" class="text-muted text-center">${__('View Full Log')}</a></li>`;
+			view_full_log_html = `<li><a class="text-muted text-center full-log-btn">${__('View Full Log')}</a></li>`;
 		} else {
 			body_html += `<li><a href="#" onclick = "return false" class="text-muted text-center">${__('No activity')}</a></li>`;
 		}
@@ -161,6 +162,12 @@ frappe.ui.EnergyPointsNotifications = class {
 			}
 		}
 		return message_html;
+	}
+
+	setup_view_full_log() {
+		this.$dropdown_list.find('.full-log-btn').on('click', () => {
+			frappe.set_route('List', 'Energy Point Log', {user: frappe.session.user});
+		});
 	}
 
 };
