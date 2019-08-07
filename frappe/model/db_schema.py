@@ -228,7 +228,7 @@ class DbTable:
 			for fieldname in optional_columns:
 				fl.append({
 					"fieldname": fieldname,
-					"fieldtype": "Long Text"
+					"fieldtype": "Text"
 				})
 
 			# add _seen column if track_seen
