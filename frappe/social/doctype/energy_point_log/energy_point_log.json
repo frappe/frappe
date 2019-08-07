@@ -51,7 +51,7 @@
    "fieldtype": "Link",
    "in_list_view": 1,
    "in_standard_filter": 1,
-   "label": "Reference Doctype",
+   "label": "Reference Document Type",
    "options": "DocType",
    "read_only": 1,
    "search_index": 1
@@ -110,7 +110,7 @@
   }
  ],
  "in_create": 1,
- "modified": "2019-07-15 18:48:49.412020",
+ "modified": "2019-08-07 15:51:05.288886",
  "modified_by": "Administrator",
  "module": "Social",
  "name": "Energy Point Log",
