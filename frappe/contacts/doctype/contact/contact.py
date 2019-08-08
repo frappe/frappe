@@ -212,4 +212,4 @@ def get_contact_with_phone_number(number):
 
 def get_contact_name(email_id):
 	contact = frappe.get_list("Contact Email", filters={"email_id": email_id}, fields=["parent"], limit=1)
-	return contact[0].parent
+	return contact[0].parent if contact else None
