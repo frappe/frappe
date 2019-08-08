@@ -19,7 +19,7 @@ class EnergyPointRule(Document):
 
 	def apply(self, doc):
 		whitelisted_globals = {
-			"getdate": getdate
+			"getdate": frappe.utils.getdate
 		}
 		if frappe.safe_eval(self.condition, whitelisted_globals, {'doc': doc.as_dict()}):
 			multiplier = 1
