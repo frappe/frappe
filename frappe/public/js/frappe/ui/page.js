@@ -142,6 +142,12 @@ frappe.ui.Page = Class.extend({
 		this.clear_indicator().removeClass("hide").html(`<span>${label}</span>`).addClass(color);
 	},
 
+  add_action_icon_tooltip: function(icon, tooltip, click) {
+	  return $('<a class="text-muted no-decoration" title="' + tooltip + '"><i class="'+icon+'"></i></a>')
+	    .appendTo(this.icon_group.removeClass("hide"))
+	    .click(click);
+  },
+
 	add_action_icon: function(icon, click) {
 		return $('<a class="text-muted no-decoration"><i class="'+icon+'"></i></a>')
 			.appendTo(this.icon_group.removeClass("hide"))
