@@ -250,8 +250,17 @@ def sync_events_from_google_calendar(g_calendar, method=None, page_length=10):
 		elif event.get("status") == "cancelled":
 			# If any synced Google Calendar Event is cancelled, then close the Event
 			frappe.db.set_value("Event", {"google_calendar_id": account.google_calendar_id, "google_calendar_event_id": event.get("id")}, "status", "Closed")
+			frappe.get_doc({
+				"doctype": "Comment",
+				"comment_type": "Info",
+				"reference_doctype": "Event",
+				"reference_name": frappe.db.get_value("Event", {"google_calendar_id": account.google_calendar_id, "google_calendar_event_id": event.get("id")}, "name"),
+				"content": "Event deleted from Google Calendar.",
+			}).insert(ignore_permissions=True)
 		else:
 			pass
+
+	return len(results)
 
 def insert_event_to_calendar(account, event, recurrence=None):
 	"""
@@ -265,7 +274,7 @@ def insert_event_to_calendar(account, event, recurrence=None):
 		"google_calendar": account.name,
 		"google_calendar_id": account.google_calendar_id,
 		"google_calendar_event_id": event.get("id"),
-		"synced_from_google_calendar": 1
+		"pulled_from_google_calendar": 1
 	}
 	calendar_event.update(google_calendar_to_repeat_on(recurrence=recurrence, start=event.get("start"), end=event.get("end")))
 	frappe.get_doc(calendar_event).insert(ignore_permissions=True)
@@ -284,7 +293,7 @@ def insert_event_in_google_calendar(doc, method=None):
 	"""
 		Insert Events in Google Calendar if sync_with_google_calendar is checked.
 	"""
-	if not frappe.db.exists("Google Calendar", {"name": doc.google_calendar}) or doc.synced_from_google_calendar \
+	if not frappe.db.exists("Google Calendar", {"name": doc.google_calendar}) or doc.pulled_from_google_calendar \
 		or not doc.sync_with_google_calendar:
 		return
 
@@ -306,6 +315,7 @@ def insert_event_in_google_calendar(doc, method=None):
 	try:
 		event = google_calendar.events().insert(calendarId=doc.google_calendar_id, body=event).execute()
 		frappe.db.set_value("Event", doc.name, "google_calendar_event_id", event.get("id"), update_modified=False)
+		frappe.msgprint(_("Event Synced with Google Calendar."))
 	except HttpError as err:
 		frappe.throw(_("Google Calendar - Could not insert event in Google Calendar {0}, error code {1}.").format(account.name, err.resp.status))
 
@@ -338,6 +348,7 @@ def update_event_in_google_calendar(doc, method=None):
 		event.update(format_date_according_to_google_calendar(doc.all_day, get_datetime(doc.starts_on), get_datetime(doc.ends_on)))
 
 		google_calendar.events().update(calendarId=doc.google_calendar_id, eventId=doc.google_calendar_event_id, body=event).execute()
+		frappe.msgprint(_("Event Synced with Google Calendar."))
 	except HttpError as err:
 		frappe.throw(_("Google Calendar - Could not update Event {0} in Google Calendar, error code {1}.").format(doc.name, err.resp.status))
 

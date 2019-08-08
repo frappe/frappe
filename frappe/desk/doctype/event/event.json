@@ -17,9 +17,14 @@
   "starts_on",
   "ends_on",
   "status",
-  "google_calendar",
   "all_day",
   "sync_with_google_calendar",
+  "sb_00",
+  "google_calendar",
+  "pulled_from_google_calendar",
+  "cb_00",
+  "google_calendar_id",
+  "google_calendar_event_id",
   "section_break_13",
   "repeat_on",
   "repeat_till",
@@ -34,12 +39,7 @@
   "section_break_8",
   "description",
   "participants",
-  "event_participants",
-  "sb_00",
-  "google_calendar_id",
-  "synced_from_google_calendar",
-  "cb_00",
-  "google_calendar_event_id"
+  "event_participants"
  ],
  "fields": [
   {
@@ -222,7 +222,7 @@
   },
   {
    "collapsible": 1,
-   "depends_on": "eval:doc.google_calendar",
+   "depends_on": "eval:doc.sync_with_google_calendar",
    "fieldname": "sb_00",
    "fieldtype": "Section Break",
    "label": "Google Calendar"
@@ -246,28 +246,27 @@
   },
   {
    "default": "0",
-   "fieldname": "synced_from_google_calendar",
-   "fieldtype": "Check",
-   "label": "Synced from Google Calendar",
-   "read_only": 1
-  },
-  {
-   "default": "0",
    "fieldname": "sync_with_google_calendar",
    "fieldtype": "Check",
    "label": "Sync with Google Calendar"
   },
   {
-   "depends_on": "eval:doc.sync_with_google_calendar",
    "fieldname": "google_calendar",
    "fieldtype": "Link",
    "label": "Google Calendar",
    "options": "Google Calendar"
+  },
+  {
+   "default": "0",
+   "fieldname": "pulled_from_google_calendar",
+   "fieldtype": "Check",
+   "label": "Pulled from Google Calendar",
+   "read_only": 1
   }
  ],
  "icon": "fa fa-calendar",
  "idx": 1,
- "modified": "2019-08-01 13:19:05.145607",
+ "modified": "2019-08-08 16:01:19.489396",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Event",

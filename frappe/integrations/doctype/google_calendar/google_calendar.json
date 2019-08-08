@@ -7,10 +7,9 @@
  "field_order": [
   "enable",
   "sb_00",
+  "calendar_name",
   "user",
   "authorize_google_calendar_access",
-  "cb_00",
-  "calendar_name",
   "sb_01",
   "pull_from_google_calendar",
   "cb_01",
@@ -81,10 +80,6 @@
    "read_only": 1
   },
   {
-   "fieldname": "cb_00",
-   "fieldtype": "Column Break"
-  },
-  {
    "depends_on": "eval:!doc.__islocal",
    "fieldname": "authorize_google_calendar_access",
    "fieldtype": "Button",
@@ -113,7 +108,7 @@
    "label": "Push to Google Calendar"
   }
  ],
- "modified": "2019-08-06 22:44:22.189224",
+ "modified": "2019-08-08 15:44:15.798362",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Google Calendar",
