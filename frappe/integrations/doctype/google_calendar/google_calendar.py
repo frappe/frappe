@@ -56,10 +56,17 @@ framework_days = {
 class GoogleCalendar(Document):
 
 	def validate(self):
-		validate_google_settings()
+		google_settings = frappe.get_single("Google Settings")
+		if not google_settings.enable:
+			frappe.throw(_("Enable Google API in Google Settings."))
+
+		if not google_settings.client_id or not google_settings.client_secret:
+			frappe.throw(_("Enter Client Id and Client Secret in Google Settings."))
+
+		return google_settings
 
 	def get_access_token(self):
-		google_settings = validate_google_settings()
+		google_settings = self.validate()
 
 		if not self.refresh_token:
 			button_label = frappe.bold(_("Allow Google Calendar Access"))
@@ -80,16 +87,6 @@ class GoogleCalendar(Document):
 			frappe.throw(_("Something went wrong during the token generation. Click on {0} to generate a new one.").format(button_label))
 
 		return r.get("access_token")
-
-def validate_google_settings():
-	google_settings = frappe.get_single("Google Settings")
-	if not google_settings.enable:
-		frappe.throw(_("Enable Google API in Google Settings."))
-
-	if not google_settings.client_id or not google_settings.client_secret:
-		frappe.throw(_("Enter Client Id and Client Secret in Google Settings."))
-
-	return google_settings
 
 @frappe.whitelist()
 def authorize_access(g_calendar, reauthorize=None):
