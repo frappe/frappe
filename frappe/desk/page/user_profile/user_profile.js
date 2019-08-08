@@ -256,7 +256,6 @@ class UserProfile {
 	}
 
 	render_chart_filters(filters, container, append) {
-		console.log(this.wrapper.find(container));
 		filters.forEach(filter => {
 			let chart_filter_html = `<div class="chart-filter pull-right">
 				<a class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">

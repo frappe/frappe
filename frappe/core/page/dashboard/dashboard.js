@@ -215,7 +215,6 @@ class DashboardChart {
 			method,
 			{
 				chart: this.chart_doc,
-				no_cache: 0,
 				filters: filters,
 				refresh: refresh ? 1 : 0,
 			}

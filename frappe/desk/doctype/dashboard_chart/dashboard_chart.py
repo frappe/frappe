@@ -11,7 +11,7 @@ from frappe.model.document import Document
 
 @frappe.whitelist()
 @cache_source
-def get(chart, no_cache, from_date=None, to_date=None, refresh = None):
+def get(chart, no_cache=None, from_date=None, to_date=None, refresh = None):
 
 	chart = frappe.parse_json(chart)
 	timespan = chart.timespan
