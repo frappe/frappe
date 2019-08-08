@@ -372,7 +372,7 @@ def delete_event_from_google_calendar(doc, method=None):
 
 		google_calendar.events().update(calendarId=doc.google_calendar_id, eventId=doc.google_calendar_event_id, body=event).execute()
 	except HttpError as err:
-		frappe.throw(_("Google Calendar - Could not delete Event {0} from Google Calendar, error code {1}.").format(doc.name, err.resp.status))
+		frappe.msgprint(_("Google Calendar - Could not delete Event {0} from Google Calendar, error code {1}.").format(doc.name, err.resp.status))
 
 def google_calendar_to_repeat_on(start, end, recurrence=None):
 	"""
