@@ -18,7 +18,10 @@ class EnergyPointRule(Document):
 		frappe.cache_manager.clear_doctype_map('Energy Point Rule', self.name)
 
 	def apply(self, doc):
-		if frappe.safe_eval(self.condition, None, {'doc': doc.as_dict()}):
+		whitelisted_globals = {
+			'utils': frappe.utils
+		}
+		if frappe.safe_eval(self.condition, whitelisted_globals, {'doc': doc.as_dict()}):
 			multiplier = 1
 
 			if self.multiplier_field:
