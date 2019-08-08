@@ -224,7 +224,7 @@ class UserProfile {
 				}
 			},
 		]
-		this.render_chart_filters(filters, '.line-chart-container');
+		this.render_chart_filters(filters, '.line-chart-container', 1);
 	}
 
 	create_percentage_chart_filters() {
@@ -255,7 +255,7 @@ class UserProfile {
 		this.render_chart_filters(filters, '.heatmap-container');
 	}
 
-	render_chart_filters(filters, container) {
+	render_chart_filters(filters, container, append) {
 		console.log(this.wrapper.find(container));
 		filters.forEach(filter => {
 			let chart_filter_html = `<div class="chart-filter pull-right">
@@ -266,15 +266,21 @@ class UserProfile {
 					</button>
 				</a>`;
 			let options_html;
+
 			if (filter.fieldnames) {
 				options_html = filter.options.map((option, i) =>
 					`<li><a data-fieldname = "${filter.fieldnames[i]}">${option}</a></li>`).join('');
 			} else {
 				options_html = filter.options.map( option => `<li><a>${option}</a></li>`).join('');
 			}
+
 			let dropdown_html= chart_filter_html + `<ul class="dropdown-menu">${options_html}</ul></div>`;
 			let $chart_filter = $(dropdown_html);
-			$chart_filter.prependTo(this.wrapper.find(container));
+
+			if (append) {
+				$chart_filter.prependTo(this.wrapper.find(container));
+			} else $chart_filter.appendTo(this.wrapper.find(container));
+
 			$chart_filter.find('.dropdown-menu').on('click', 'li a', (e)=> {
 				let $el = $(e.currentTarget);
 				let fieldname;

@@ -32,6 +32,12 @@
 .heatmap-container {
 	height: 170px
 }
+
+.performance-heatmap {
+	width: 80%;
+	display: inline-block;
+}
+
 .performance-heatmap .chart-container {
 	margin-left: 30px;
 }
@@ -55,6 +61,10 @@
 
 .percentage-chart-container {
 	height: 130px;
+}
+
+.line-chart-container .chart-filter {
+	z-index: 1;
 }
 
 .recent-activity {
