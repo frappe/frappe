@@ -153,7 +153,7 @@ def sync(g_calendar=None):
 	google_calendars = frappe.get_list("Google Calendar", filters=filters)
 
 	for g in google_calendars:
-		sync_events_from_google_calendar(g.name)
+		return sync_events_from_google_calendar(g.name)
 
 def get_google_calendar_object(g_calendar):
 	"""
@@ -260,7 +260,7 @@ def sync_events_from_google_calendar(g_calendar, method=None, page_length=10):
 		else:
 			pass
 
-	return len(results)
+	return _("{} Google Calendar Events Synced.").format(len(results) if results else "No")
 
 def insert_event_to_calendar(account, event, recurrence=None):
 	"""
