@@ -265,7 +265,10 @@ class DbColumn:
 		if "decimal" in current_def['type']:
 			return self.default_changed_for_decimal(current_def)
 		else:
-			return current_def['default'] != self.default
+			default = None
+			if current_def['default'] != "NULL":
+				default = current_def['default']
+			return default != self.default
 
 	def default_changed_for_decimal(self, current_def):
 		try:
