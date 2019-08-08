@@ -1,3 +1,5 @@
+frappe.provide('frappe.energy_points');
+
 frappe.pages['user-profile'].on_page_load = function(wrapper) {
 
 	let page = frappe.ui.make_app_page({
@@ -55,10 +57,9 @@ class UserProfile {
 		this.render_user_details();
 		this.render_points_and_rank();
 		this.render_heatmap();
-		this.render_years_filter_dropdown();
 		this.render_line_chart();
 		this.render_percentage_chart('type', 'Type Distribution');
-		this.filter_charts();
+		this.create_percentage_chart_filters();
 		this.setup_show_more_activity();
 		this.render_user_activity();
 	}
@@ -98,6 +99,7 @@ class UserProfile {
 			discreteDomains: 0,
 		});
 		this.update_heatmap_data();
+		this.create_heatmap_chart_filters();
 	}
 
 	update_heatmap_data(date_from) {
@@ -109,18 +111,16 @@ class UserProfile {
 		});
 	}
 
-	render_years_filter_dropdown() {
+	get_years_since_creation() {
 		//Get years since user account created
 		this.user_creation = frappe.boot.user.creation;
 		let creation_year = this.get_year(this.user_creation);
-		this.year_dropdown = this.wrapper.find('.year-dropdown');
-		let dropdown_html = '';
 		let current_year = this.get_year(frappe.datetime.now_date());
-
+		let years_list = [];
 		for (var year = current_year; year >= creation_year; year--) {
-			dropdown_html += __(`<li><a href="#" onclick="return false">{0}</a></li>`,[year]);
+			years_list.push(year);
 		}
-		this.year_dropdown.html(dropdown_html);
+		return years_list;
 	}
 
 	get_year(date_str) {
@@ -155,6 +155,7 @@ class UserProfile {
 			}
 		});
 		this.update_line_chart_data();
+		this.create_line_chart_filters();
 	}
 
 	update_line_chart_data() {
@@ -195,43 +196,97 @@ class UserProfile {
 		});
 	}
 
-	//Work on this
-	filter_charts() {
-		this.year_dropdown.on('click','li a', (e) => {
-			let selected_year = e.currentTarget.textContent;
-			this.wrapper.find('.year-filter .filter-label').text(selected_year);
-			this.update_heatmap_data(frappe.datetime.obj_to_str(selected_year));
+	create_line_chart_filters() {
+		let filters = [
+			{
+				label: 'All',
+				options: ['All', 'Auto', 'Criticism', 'Appreciation', 'Revert'],
+				action: (selected_item) => {
+					if (selected_item === 'All') delete this.line_chart_filters.type;
+					else this.line_chart_filters.type = selected_item;
+					this.update_line_chart_data();
+				}
+			},
+			{
+				label: 'Last Month',
+				options: ['Last Week', 'Last Month', 'Last Quarter'],
+				action: (selected_item) => {
+					this.line_chart_data.timespan = selected_item;
+					this.update_line_chart_data();
+				}
+			},
+			{
+				label: 'Daily',
+				options: ['Daily', 'Weekly', 'Monthly'],
+				action: (selected_item) => {
+					this.line_chart_data.time_interval = selected_item;
+					this.update_line_chart_data();
+				}
+			},
+		]
+		this.render_chart_filters(filters, '.line-chart-container');
+	}
+
+	create_percentage_chart_filters() {
+		let filters = [
+			{
+				label: 'Type',
+				options: ['Type', 'Reference Doctype', 'Rule'],
+				fieldnames: ['type', 'reference_doctype', 'rule'],
+				action: (selected_item, fieldname) => {
+					let title = selected_item + ' Distribution';
+					this.render_percentage_chart(fieldname, title);
+				}
+			},
+		]
+		this.render_chart_filters(filters, '.percentage-chart-container');
+	}
+
+	create_heatmap_chart_filters() {
+		let filters = [
+			{
+				label: this.get_year(frappe.datetime.now_date()),
+				options: this.get_years_since_creation(),
+				action: (selected_item) => {
+					this.update_heatmap_data(frappe.datetime.obj_to_str(selected_item));
+				}
+			},
+		]
+		this.render_chart_filters(filters, '.heatmap-container');
+	}
+
+	render_chart_filters(filters, container) {
+		console.log(this.wrapper.find(container));
+		filters.forEach(filter => {
+			let chart_filter_html = `<div class="chart-filter pull-right">
+				<a class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+					<button class="btn btn-default btn-xs">
+						<span class="filter-label">${filter.label}</span>
+						<span class="caret"></span>
+					</button>
+				</a>`;
+			let options_html;
+			if (filter.fieldnames) {
+				options_html = filter.options.map((option, i) =>
+					`<li><a data-fieldname = "${filter.fieldnames[i]}">${option}</a></li>`).join('');
+			} else {
+				options_html = filter.options.map( option => `<li><a>${option}</a></li>`).join('');
+			}
+			let dropdown_html= chart_filter_html + `<ul class="dropdown-menu">${options_html}</ul></div>`;
+			let $chart_filter = $(dropdown_html);
+			$chart_filter.prependTo(this.wrapper.find(container));
+			$chart_filter.find('.dropdown-menu').on('click', 'li a', (e)=> {
+				let $el = $(e.currentTarget);
+				let fieldname;
+				if ($el.attr('data-fieldname')) {
+					fieldname = $el.attr('data-fieldname');
+				}
+				let selected_item = $el.text();
+				$el.parents('.chart-filter').find('.filter-label').text(selected_item);
+				filter.action(selected_item, fieldname);
+			})
 		});
 
-		this.period_dropdown = this.wrapper.find('.period-dropdown').on('click','li a', (e) => {
-			let selected_period = e.currentTarget.textContent;
-			this.line_chart_data.timespan = selected_period;
-			this.wrapper.find('.period-filter .filter-label').text(selected_period);
-			this.update_line_chart_data();
-		});
-
-		this.interval_dropdown = this.wrapper.find('.interval-dropdown').on('click','li a', (e) => {
-			let selected_interval = e.currentTarget.textContent;
-			this.line_chart_data.time_interval = selected_interval;
-			this.wrapper.find('.interval-filter .filter-label').text(selected_interval);
-			this.update_line_chart_data();
-		});
-
-		this.type_dropdown = this.wrapper.find('.type-dropdown').on('click','li a', (e) => {
-			let selected_type = e.currentTarget.textContent;
-			if (selected_type === 'All') delete this.line_chart_filters.type;
-			else this.line_chart_filters.type = selected_type;
-			this.wrapper.find('.type-filter .filter-label').text(selected_type);
-			this.update_line_chart_data();
-		});
-
-		this.field_dropdown = this.wrapper.find('.field-dropdown').on('click','li a', (e) => {
-			let selected_field = e.currentTarget.textContent;
-			let fieldname = $(e.currentTarget).attr('data-fieldname')
-			this.wrapper.find('.field-filter .filter-label').text(selected_field);
-			let title = selected_field + ' Distribution';
-			this.render_percentage_chart(fieldname, title);
-		});
 	}
 
 	edit_profile() {
@@ -362,15 +417,8 @@ class UserProfile {
 		this.$recent_activity_list = this.wrapper.find('.recent-activity-list');
 
 		let get_recent_energy_points_html = (field) => {
-			let points_html = __(`<div class="points-update">{0}</div>`,
-				[frappe.energy_points.get_points(field.points)]);
-			let message_html = this.get_message_html(field);
-			return `<p class="recent-points-item">
-				${points_html}
-				<span class="points-reason">
-					${message_html}
-				</span>
-			</p>`;
+			let message_html = frappe.energy_points.format_history_log(field);
+			return `<p class="recent-activity-item text-muted"> ${message_html} </p>`;
 		}
 
 		frappe.xcall('frappe.desk.page.user_profile.user_profile.get_energy_points_list', {
@@ -385,40 +433,6 @@ class UserProfile {
 			if (append_to_activity) this.$recent_activity_list.append(html);
 			else this.$recent_activity_list.html(html);
 		})
-	}
-
-	// Make common with energy point notifications
-	get_message_html(field) {
-		let owner_name = frappe.user.full_name(field.owner).trim();
-		let doc_link = frappe.utils.get_form_link(field.reference_doctype, field.reference_name);
-		let message_html = '';
-		let reference_doc =`
-			<a class="points-doc-link text-muted" href=${doc_link}>
-				${field.reference_name}
-			</a>
-		`;
-		let reason_string = `
-			<span class="hidden-xs">
-				- "${field.reason}"
-			</span>
-		`;
-		if (field.type === 'Auto' ) {
-			message_html = __('For {0} {1}',
-				[field.rule, reference_doc]);
-		} else {
-			let user_str = this.user_id === frappe.session.user ? 'your': frappe.user.full_name(field.user) + "'s";
-			if (field.type === 'Appreciation') {
-				message_html = __('{0} appreciated {1} work on {2} {3}',
-					[owner_name, user_str, reference_doc, reason_string]);
-			} else if (field.type === 'Criticism') {
-				message_html = __('{0} criticized {1} work on {2} {3}',
-					[owner_name, user_str, reference_doc, reason_string]);
-			} else if (field.type === 'Revert') {
-				message_html = __('{0} reverted {1} points on {2} {3}',
-					[owner_name, user_str, reference_doc, reason_string]);
-			}
-		}
-		return message_html;
 	}
 
 	setup_show_more_activity() {

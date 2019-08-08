@@ -24,10 +24,6 @@
 	margin: 5px 0;
 }
 
-.chart-container {
-	z-index: -1;
-}
-
 .chart-container text.title {
 	text-transform: uppercase;
 	font-size: 11px;
@@ -71,19 +67,8 @@
 	margin-top: 20px;
 }
 
-.points-reason {
-	display: flow-root;
-}
-
-.points-update {
-	float: left;
-	text-align: right;
-	margin-right: 15px;
-	width: 3%;
-}
-
-.recent-points-item {
-	margin: 15px;
+.recent-activity-item {
+	margin: 15px 5px;
 }
 
 .interest-icon {
@@ -122,10 +107,5 @@
 	.user-profile-sidebar .profile-details {
 		width: 50%;
 		margin: 0;
-	}
-
-	.points-update {
-		margin-right: 30px;
-		width: 6%;
 	}
 }

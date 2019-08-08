@@ -2,61 +2,14 @@
     <div class="col-md-12">
         <div class="performance-graphs">
             <div class="chart-column-container heatmap-container hidden-xs hidden-sm">
-                <div class="chart-filter pull-right">
-                    <div class="btn btn-default btn-xs dropdown-toggle year-filter" data-toggle="dropdown">
-                        <span class="filter-label">{%=__("2019") %}</span><span class="caret"></span></div>
-                    <ul class="dropdown-menu year-dropdown" role="menu"></ul>
-                </div>
                 <div class="performance-heatmap">
                 </div>
             </div>
             <div class="chart-column-container percentage-chart-container">
-                <div class="chart-filter pull-right">
-                    <div class="btn btn-default btn-xs dropdown-toggle field-filter" data-toggle="dropdown">
-                        <span class="filter-label">{%=__("Type") %}</span><span class="caret"></span>
-                    </div>
-                    <ul class="dropdown-menu field-dropdown" role="menu">
-                        <li><a href="#" onclick="return false" data-fieldname="type">{{ __("Type") }}</a></li>
-                        <li><a href="#" onclick="return false" data-fieldname="reference_doctype">{{ __("Reference Doctype") }}</a></li>
-                        <li><a href="#" onclick="return false" data-fieldname="rule">{{ __("Rule") }}</a></li>
-                    </ul>
-                </div>
                 <div class="performance-percentage-chart">
                 </div>
             </div>
             <div class="chart-column-container line-chart-container">
-                <div class="chart-filter pull-right">
-                    <div class="btn btn-default btn-xs dropdown-toggle interval-filter" data-toggle="dropdown">
-                        <span class="filter-label">{%=__("Daily") %}</span><span class="caret"></span>
-                    </div>
-                    <ul class="dropdown-menu interval-dropdown" role="menu">
-                        <li><a href="#" onclick="return false">{{ __("Daily") }}</a></li>
-                        <li><a href="#" onclick="return false">{{ __("Weekly") }}</a></li>
-                        <li><a href="#" onclick="return false">{{ __("Monthly") }}</a></li>
-                    </ul>
-                </div>
-                <div class="chart-filter pull-right">
-                    <div class="btn btn-default btn-xs dropdown-toggle period-filter" data-toggle="dropdown">
-                        <span class="filter-label">Last Month</span><span class="caret"></span>
-                    </div>
-                    <ul class="dropdown-menu period-dropdown" role="menu">
-                        <li><a href="#" onclick="return false">{{ __("Last Week") }}</a></li>
-                        <li><a href="#" onclick="return false">{{ __("Last Month") }}</a></li>
-                        <li><a href="#" onclick="return false">{{ __("Last Quarter") }}</a></li>
-                    </ul>
-                </div>
-                <div class="chart-filter pull-right">
-                    <div class="btn btn-default btn-xs dropdown-toggle type-filter" data-toggle="dropdown">
-                        <span class="filter-label">All</span><span class="caret"></span>
-                    </div>
-                    <ul class="dropdown-menu type-dropdown" role="menu">
-                        <li><a href="#" onclick="return false">{{ __("All") }}</a></li>
-                        <li><a href="#" onclick="return false">{{ __("Auto") }}</a></li>
-                        <li><a href="#" onclick="return false">{{ __("Appreciation") }}</a></li>
-                        <li><a href="#" onclick="return false">{{ __("Criticism") }}</a></li>
-                        <li><a href="#" onclick="return false">{{ __("Revert") }}</a></li>
-                    </ul>
-                </div>
                 <div class="performance-line-chart">
                 </div>
             </div>

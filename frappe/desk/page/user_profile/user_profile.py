@@ -56,5 +56,6 @@ def update_profile_info(profile_info):
 @frappe.whitelist()
 def get_energy_points_list(start, limit, user):
     return frappe.db.get_list('Energy Point Log',filters = {'user': user, 'type': ['!=', 'Review']},
-        fields=['name','user', 'points', 'reference_doctype', 'reference_name', 'reason', 'type', 'seen', 'rule', 'owner', 'creation'],
+        fields=['name','user', 'points', 'reference_doctype', 'reference_name', 'reason',
+            'type', 'seen', 'rule', 'owner', 'creation', 'revert_of'],
         start=start, limit=limit, order_by='creation desc')
