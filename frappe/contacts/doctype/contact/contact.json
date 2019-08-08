@@ -13,6 +13,7 @@
   "last_name",
   "email_id",
   "user",
+  "address",
   "cb00",
   "status",
   "salutation",
@@ -194,12 +195,18 @@
    "fieldtype": "Table",
    "label": "Contact Numbers",
    "options": "Contact Phone"
+  },
+  {
+   "fieldname": "address",
+   "fieldtype": "Link",
+   "label": "Address",
+   "options": "Address"
   }
  ],
  "icon": "fa fa-user",
  "idx": 1,
  "image_field": "image",
- "modified": "2019-08-02 13:35:56.989751",
+ "modified": "2019-08-08 19:07:57.844491",
  "modified_by": "Administrator",
  "module": "Contacts",
  "name": "Contact",

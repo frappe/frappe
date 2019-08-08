@@ -37,6 +37,19 @@ def load_address_and_contact(doc, key=None):
 	]
 	contact_list = frappe.get_all("Contact", filters=filters, fields=["*"])
 
+	for contact in contact_list:
+		contact["email_ids"] = frappe.get_list("Contact Email", filters={
+				"parenttype": "Contact",
+				"parent": contact.name,
+				"is_primary": 0
+			}, fields=["email_id"])
+
+		contact["phones"] = frappe.get_list("Contact Phone", filters={
+				"parenttype": "Contact",
+				"parent": contact.name,
+				"is_primary": 0
+			}, fields=["phone"])
+
 	contact_list = sorted(contact_list,
 		key = functools.cmp_to_key(lambda a, b:
 			(int(a.is_primary_contact - b.is_primary_contact)) or
