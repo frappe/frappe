@@ -81,7 +81,7 @@
    "label": "Type",
    "oldfieldname": "fieldtype",
    "oldfieldtype": "Select",
-   "options": "Attach\nAttach Image\nBarcode\nButton\nCheck\nCode\nColor\nColumn Break\nCurrency\nData\nDate\nDatetime\nDynamic Link\nFloat\nFold\nGeolocation\nHeading\nHTML\nHTML Editor\nImage\nInt\nJSON\nJSONB\nLink\nLong Text\nMarkdown Editor\nPassword\nPercent\nRead Only\nRating\nSection Break\nSelect\nSmall Text\nTable\nTable MultiSelect\nText\nText Editor\nTime\nSignature",
+   "options": "Attach\nAttach Image\nBarcode\nButton\nCheck\nCode\nColor\nColumn Break\nCurrency\nData\nDate\nDatetime\nDynamic Link\nFloat\nFold\nGeolocation\nHeading\nHTML\nHTML Editor\nImage\nInt\nJSON\nLink\nLong Text\nMarkdown Editor\nPassword\nPercent\nRead Only\nRating\nSection Break\nSelect\nSmall Text\nTable\nTable MultiSelect\nText\nText Editor\nTime\nSignature",
    "reqd": 1,
    "search_index": 1
   },
@@ -425,7 +425,7 @@
  ],
  "idx": 1,
  "istable": 1,
- "modified": "2019-08-07 13:46:51.564026",
+ "modified": "2019-08-08 13:11:28.041307",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocField",
