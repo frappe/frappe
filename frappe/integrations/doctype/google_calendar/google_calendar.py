@@ -260,7 +260,7 @@ def sync_events_from_google_calendar(g_calendar, method=None, page_length=10):
 		else:
 			pass
 
-	return _("{} Google Calendar Events Synced.").format(len(results) if results else "No")
+	return _("{0} Google Calendar Events Synced.").format(len(results) if results else "No")
 
 def insert_event_to_calendar(account, event, recurrence=None):
 	"""
