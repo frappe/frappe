@@ -339,10 +339,11 @@ def get_contacts(email_strings):
 
 		if not contact_name:
 			contact = frappe.get_doc({
-					"doctype": "Contact",
-					"first_name": frappe.unscrub(email.split("@")[0]),
-					"email_id": email
-				}).insert(ignore_permissions=True)
+				"doctype": "Contact",
+				"first_name": frappe.unscrub(email.split("@")[0]),
+			})
+			contact.add_email(email)
+			contact.insert(ignore_permissions=True)
 			contact_name = contact.name
 
 		contacts.append(contact_name)

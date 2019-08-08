@@ -82,7 +82,7 @@ class Contact(Document):
 			if (link.link_doctype, link.link_name) in reference_links:
 				return True
 
-	def add_email_address(self, email_id, autosave=False):
+	def add_email(self, email_id, autosave=False):
 		self.append("email_ids", {
 			"email_id": email_id
 		})
@@ -90,7 +90,7 @@ class Contact(Document):
 		if autosave:
 			self.save(ignore_permissions=True)
 
-	def add_phone_number(self, phone_number, autosave=False):
+	def add_phone(self, phone_number, autosave=False):
 		self.append("phone_numbers", {
 			"phone": phone_number
 		})

@@ -74,13 +74,13 @@ def create_linked_contact(link_list):
 	contact = frappe.get_doc({
 		"doctype": "Contact",
 		"salutation": "Mr",
-		"email_id": "test_contact@example.com",
 		"first_name": "_Test First Name",
 		"last_name": "_Test Last Name",
 		"is_primary_contact": 1,
-		"phone": "+91 0000000000",
 		"status": "Open"
 	})
+	contact.add_email("test_contact@example.com")
+	contact.add_phone("+91 0000000000")
 
 	for name in link_list:
 		contact.append("links",{
