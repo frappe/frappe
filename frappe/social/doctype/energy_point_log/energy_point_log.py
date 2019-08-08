@@ -178,7 +178,7 @@ def get_user_energy_and_review_points(user=None, from_date=None, as_dict=True):
 def set_notification_as_seen(point_logs):
 	point_logs = frappe.parse_json(point_logs)
 	for log in point_logs:
-		frappe.db.set_value('Energy Point Log', log['name'], 'seen', 1)
+		frappe.db.set_value('Energy Point Log', log['name'], 'seen', 1, update_modified=False)
 
 @frappe.whitelist()
 def review(doc, points, to_user, reason, review_type='Appreciation'):
