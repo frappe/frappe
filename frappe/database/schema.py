@@ -29,6 +29,9 @@ class DBTable:
 		# load
 		self.get_columns_from_docfields()
 
+	def __repr__(self):
+		return self.table_name
+
 	def sync(self):
 		if self.is_new():
 			self.create()
@@ -201,6 +204,9 @@ class DbColumn:
 		self.unique = unique
 		self.precision = precision
 
+	def __repr__(self):
+		return self.table.table_name + '_' + self.fieldname + '_(' + self.fieldtype + ')'
+
 	def get_definition(self, with_default=1):
 		column_def = get_definition(self.fieldtype, precision=self.precision, length=self.length)
 
@@ -238,7 +244,7 @@ class DbColumn:
 			return
 
 		# type
-		if ((current_def['type']) != column_type):
+		if (current_def['type'] != column_type):
 			self.table.change_type.append(self)
 
 		# unique
@@ -265,7 +271,23 @@ class DbColumn:
 		if "decimal" in current_def['type']:
 			return self.default_changed_for_decimal(current_def)
 		else:
-			return current_def['default'] != self.default
+			cur_default = current_def['default']
+			new_default = self.default
+			if cur_default == "NULL" or cur_default is None:
+				cur_default = None
+			else:
+				# Strip quotes from default value
+				# eg. database returns default value as "'System Manager'"
+				cur_default = cur_default.lstrip("'").rstrip("'")
+
+			fieldtype = self.fieldtype
+			if fieldtype in ['Int', 'Check']:
+				cur_default = cint(cur_default)
+				new_default = cint(new_default)
+			elif fieldtype in ['Currency', 'Float', 'Percent']:
+				cur_default = flt(cur_default)
+				new_default = flt(new_default)
+			return cur_default != new_default
 
 	def default_changed_for_decimal(self, current_def):
 		try:
