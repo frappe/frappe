@@ -10,7 +10,7 @@ frappe.ui.form.ControlJSON = frappe.ui.form.ControlData.extend({
 		this.$input.css({'height': '300px'});
 	},
 	validate: function(value) {
-		if(value){
+		if (value) {
 			try {
 				JSON.parse(value);
 				return value;
