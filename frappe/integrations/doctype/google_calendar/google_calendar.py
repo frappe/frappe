@@ -255,7 +255,7 @@ def sync_events_from_google_calendar(g_calendar, method=None, page_length=10):
 				"comment_type": "Info",
 				"reference_doctype": "Event",
 				"reference_name": frappe.db.get_value("Event", {"google_calendar_id": account.google_calendar_id, "google_calendar_event_id": event.get("id")}, "name"),
-				"content": "Event deleted from Google Calendar.",
+				"content": " - Event deleted from Google Calendar.",
 			}).insert(ignore_permissions=True)
 		else:
 			pass
