@@ -248,3 +248,4 @@ frappe.patches.v12_0.move_timeline_links_to_dynamic_links
 frappe.patches.v12_0.delete_feedback_request_if_exists #1
 frappe.patches.v12_0.rename_events_repeat_on
 frappe.patches.v12_0.fix_public_private_files
+frappe.patches.v12_0.delete_duplicate_indexes
