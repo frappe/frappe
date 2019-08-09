@@ -258,8 +258,8 @@ def get_unseen_notes():
 			(select user from `tabNote Seen By` nsb
 				where nsb.parent=`tabNote`.name)''', (frappe.utils.now(), frappe.session.user), as_dict=True)
 
-				def get_google_drive_status():
-					return True if frappe.db.exists("Google Drive", {"enable": 1}) else False
+def get_google_drive_status():
+	return True if frappe.db.exists("Google Drive", {"enable": 1}) else False
 
 def get_success_action():
 	return frappe.get_all("Success Action", fields=["*"])
