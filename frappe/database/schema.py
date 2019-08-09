@@ -29,9 +29,6 @@ class DBTable:
 		# load
 		self.get_columns_from_docfields()
 
-	def __repr__(self):
-		return self.table_name
-
 	def sync(self):
 		if self.is_new():
 			self.create()
@@ -203,9 +200,6 @@ class DbColumn:
 		self.options = options
 		self.unique = unique
 		self.precision = precision
-
-	def __repr__(self):
-		return self.table.table_name + '_' + self.fieldname + '_(' + self.fieldtype + ')'
 
 	def get_definition(self, with_default=1):
 		column_def = get_definition(self.fieldtype, precision=self.precision, length=self.length)

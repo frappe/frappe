@@ -4,6 +4,7 @@ import frappe
 # The patch only checks for indexes with UNIQUE constraints
 
 def execute():
+	if frappe.db.db_type != 'mariadb': return
 	all_tables = frappe.db.get_tables()
 
 	final_deletion_map = frappe._dict()
