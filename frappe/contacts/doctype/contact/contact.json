@@ -23,7 +23,7 @@
   "image",
   "sb_00",
   "email_ids",
-  "contact_numbers",
+  "phone_nos",
   "contact_details",
   "is_primary_contact",
   "links",
@@ -62,6 +62,7 @@
    "fieldname": "email_id",
    "fieldtype": "Data",
    "in_global_search": 1,
+   "in_list_view": 1,
    "label": "Email Address",
    "oldfieldname": "email_id",
    "oldfieldtype": "Data",
@@ -105,6 +106,7 @@
    "bold": 1,
    "fieldname": "phone",
    "fieldtype": "Data",
+   "in_list_view": 1,
    "label": "Phone",
    "oldfieldname": "contact_no",
    "oldfieldtype": "Data",
@@ -191,22 +193,22 @@
    "options": "Contact Email"
   },
   {
-   "fieldname": "contact_numbers",
-   "fieldtype": "Table",
-   "label": "Contact Numbers",
-   "options": "Contact Phone"
-  },
-  {
    "fieldname": "address",
    "fieldtype": "Link",
    "label": "Address",
    "options": "Address"
+  },
+  {
+   "fieldname": "phone_nos",
+   "fieldtype": "Table",
+   "label": "Phone Nos",
+   "options": "Contact Phone"
   }
  ],
  "icon": "fa fa-user",
  "idx": 1,
  "image_field": "image",
- "modified": "2019-08-08 19:07:57.844491",
+ "modified": "2019-08-09 10:23:00.486673",
  "modified_by": "Administrator",
  "module": "Contacts",
  "name": "Contact",

@@ -38,11 +38,11 @@ class Contact(Document):
 					self.email_id = email_id.email_id
 					break
 
-		if len(self.contact_numbers) == 1:
-			self.contact_numbers[0].is_primary = 1
-			self.phone = self.contact_numbers[0].phone
+		if len(self.phone_nos) == 1:
+			self.phone_nos[0].is_primary = 1
+			self.phone = self.phone_nos[0].phone
 		else:
-			for contact_number in self.contact_numbers:
+			for contact_number in self.phone_nos:
 				if contact_number.is_primary == 1:
 					self.phone = contact_number.phone
 					break
@@ -90,9 +90,9 @@ class Contact(Document):
 		if autosave:
 			self.save(ignore_permissions=True)
 
-	def add_phone(self, phone_number, autosave=False):
-		self.append("phone_numbers", {
-			"phone": phone_number
+	def add_phone(self, phone, autosave=False):
+		self.append("phone_nos", {
+			"phone": phone
 		})
 
 		if autosave:

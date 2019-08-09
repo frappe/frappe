@@ -44,7 +44,7 @@ def load_address_and_contact(doc, key=None):
 				"is_primary": 0
 			}, fields=["email_id"])
 
-		contact["phones"] = frappe.get_list("Contact Phone", filters={
+		contact["phone_nos"] = frappe.get_list("Contact Phone", filters={
 				"parenttype": "Contact",
 				"parent": contact.name,
 				"is_primary": 0
