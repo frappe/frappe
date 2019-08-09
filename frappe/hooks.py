@@ -280,7 +280,7 @@ user_privacy_documents = [
 		'doctype': 'User',
 		'match_field': 'name',
 		'personal_fields': ['email', 'username', 'first_name', 'middle_name', 'last_name', 'full_name', 'birth_date',
-			'user_image', 'phone', 'mobile_no', 'location', 'banner_image', 'interest', 'bio', 'email_signature', 'background_image'],
+			'user_image', 'phone', 'mobile_no', 'location', 'banner_image', 'interest', 'bio', 'email_signature'],
 		'applies_to_website_user': 1
 	},
 
