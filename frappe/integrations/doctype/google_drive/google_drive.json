@@ -50,16 +50,16 @@
   },
   {
    "fieldname": "authorization_code",
-   "fieldtype": "Password",
+   "fieldtype": "Data",
    "label": "Authorization Code"
   },
   {
    "fieldname": "refresh_token",
-   "fieldtype": "Password",
+   "fieldtype": "Data",
    "label": "Refresh Token"
   }
  ],
- "modified": "2019-08-09 18:20:58.169056",
+ "modified": "2019-08-09 19:16:28.614921",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Google Drive",
