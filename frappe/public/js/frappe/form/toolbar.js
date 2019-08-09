@@ -125,6 +125,15 @@ frappe.ui.form.Toolbar = Class.extend({
 			}
 		}
 
+		//Google Drive
+		if(frappe.boot.google_drive_enabled){
+			this.page.add_menu_item(__("Google Drive Upload"), function() {
+				new frappe.views.GoogleDriveUploader(me.frm);}, true);
+			this.print_icon = this.page.add_action_icon("fa fa-google", function() {
+				new frappe.views.GoogleDriveUploader(me.frm);
+			});
+		}
+
 		// email
 		if(frappe.model.can_email(null, me.frm) && me.frm.doc.docstatus < 2) {
 			this.page.add_menu_item(__("Email"), function() {
