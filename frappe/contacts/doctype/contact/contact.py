@@ -82,17 +82,19 @@ class Contact(Document):
 			if (link.link_doctype, link.link_name) in reference_links:
 				return True
 
-	def add_email(self, email_id, autosave=False):
+	def add_email(self, email_id, is_primary=0, autosave=False):
 		self.append("email_ids", {
-			"email_id": email_id
+			"email_id": email_id,
+			"is_primary": is_primary
 		})
 
 		if autosave:
 			self.save(ignore_permissions=True)
 
-	def add_phone(self, phone, autosave=False):
+	def add_phone(self, phone, is_primary=0, autosave=False):
 		self.append("phone_nos", {
-			"phone": phone
+			"phone": phone,
+			"is_primary": is_primary
 		})
 
 		if autosave:
