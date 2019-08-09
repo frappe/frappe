@@ -98,6 +98,9 @@ frappe.views.Page = Class.extend({
 				this.wrapper.innerHTML = this.pagedoc.content;
 			frappe.dom.eval(this.pagedoc.__script || this.pagedoc.script || '');
 			frappe.dom.set_style(this.pagedoc.style || '');
+
+			// set breadcrumbs
+			frappe.breadcrumbs.add(this.pagedoc.module || null);
 		}
 
 		this.trigger_page_event('on_page_load');

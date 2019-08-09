@@ -7,6 +7,8 @@ import frappe
 from rq import Queue, Worker
 from frappe.utils.background_jobs import get_redis_conn
 from frappe.utils import format_datetime, cint
+from frappe.utils.scheduler import is_scheduler_inactive
+from frappe import _
 
 colors = {
 	'queued': 'orange',
@@ -49,3 +51,9 @@ def get_info(show_failed=False):
 				for j in q.get_jobs()[:10]: add_job(j, q.name)
 
 	return jobs
+
+@frappe.whitelist()
+def get_scheduler_status():
+	if is_scheduler_inactive():
+		return [_("Inactive"), "red"]
+	return [_("Active"), "green"]
