@@ -1,0 +1,79 @@
+{
+ "beta": 1,
+ "creation": "2019-08-04 14:16:08.318714",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "reference_doctype",
+  "download_sample_file",
+  "import_type",
+  "import_file",
+  "section_import_preview",
+  "import_preview"
+ ],
+ "fields": [
+  {
+   "fieldname": "reference_doctype",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Document Type",
+   "options": "DocType",
+   "reqd": 1
+  },
+  {
+   "fieldname": "import_type",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Import Type",
+   "options": "Insert new records\nUpdate existing records",
+   "reqd": 1
+  },
+  {
+   "depends_on": "eval:!doc.__islocal",
+   "fieldname": "import_file",
+   "fieldtype": "Attach",
+   "in_list_view": 1,
+   "label": "Import File"
+  },
+  {
+   "fieldname": "import_preview",
+   "fieldtype": "HTML",
+   "label": "Import Preview"
+  },
+  {
+   "fieldname": "section_import_preview",
+   "fieldtype": "Section Break",
+   "label": "Import Preview"
+  },
+  {
+   "depends_on": "reference_doctype",
+   "fieldname": "download_sample_file",
+   "fieldtype": "Button",
+   "label": "Download Sample File"
+  }
+ ],
+ "hide_toolbar": 1,
+ "modified": "2019-08-10 02:08:33.133016",
+ "modified_by": "Administrator",
+ "module": "Core",
+ "name": "Data Import Beta",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}
