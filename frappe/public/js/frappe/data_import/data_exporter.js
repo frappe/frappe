@@ -1,0 +1,280 @@
+frappe.provide('frappe.data_import');
+
+class ColumnPickerFields extends frappe.views.ReportView {
+	show() {}
+}
+
+frappe.data_import.DataExporter = class DataExporter {
+	constructor(doctype) {
+		this.doctype = doctype;
+		frappe.model.with_doctype(doctype, () => {
+			this.make_dialog();
+		});
+	}
+
+	make_dialog() {
+		let column_map = new ColumnPickerFields({
+			doctype: this.doctype
+		}).get_columns_for_picker();
+
+		let doctypes = [this.doctype].concat(
+			...frappe.meta
+				.get_table_fields(this.doctype)
+				.filter(df => !df.hidden)
+				.map(df => df.options)
+		);
+
+		this.dialog = new frappe.ui.Dialog({
+			title: __('Export Data'),
+			fields: [
+				{
+					fieldtype: 'Select',
+					fieldname: 'export_records',
+					label: __('Export Records'),
+					options: [
+						{
+							label: __('Export All Records'),
+							value: 'all'
+						},
+						// {
+						// 	label: __('Export 10 Records'),
+						// 	value: 'last_10_records'
+						// },
+						{
+							label: __('Export Filtered Records'),
+							value: 'by_filter'
+						}
+					],
+					default: 'all',
+					change: () => {
+						this.update_record_count_message();
+					}
+				},
+				{
+					fieldtype: 'HTML',
+					fieldname: 'filter_area',
+					depends_on: doc => doc.export_records === 'by_filter'
+				},
+				{
+					fieldtype: 'Select',
+					fieldname: 'file_type',
+					label: __('File Type'),
+					options: ['Excel', 'CSV'],
+					default: 'CSV'
+				},
+				{
+					fieldtype: 'Section Break'
+				},
+				{
+					fieldtype: 'HTML',
+					fieldname: 'select_all_buttons'
+				},
+				...doctypes.map(doctype => {
+					return {
+						label: __(doctype),
+						fieldname: doctype,
+						fieldtype: 'MultiCheck',
+						columns: 2,
+						on_change: () => {
+							this.update_primary_action();
+						},
+						options: column_map[doctype].map(df => ({
+							label: __(df.label),
+							value: df.fieldname,
+							danger: df.reqd,
+							checked: df.reqd,
+							description: `${df.fieldname} ${
+								df.reqd ? __('(Mandatory)') : ''
+							}`
+						}))
+					};
+				})
+			],
+			primary_action_label: __('Export'),
+			primary_action: values => {
+				this.export_records(values);
+			}
+		});
+
+		this.make_filter_area();
+		this.make_select_all_buttons();
+		this.update_record_count_message();
+
+		this.dialog.show();
+	}
+
+	export_records() {
+		let method =
+			'/api/method/frappe.core.doctype.data_import_beta.data_import_beta.download_template';
+
+		let multicheck_fields = this.dialog.fields
+			.filter(df => df.fieldtype === 'MultiCheck')
+			.map(df => df.fieldname);
+
+		let values = this.dialog.get_values();
+
+		let doctype_field_map = Object.assign({}, values);
+		for (let key in doctype_field_map) {
+			if (!multicheck_fields.includes(key)) {
+				delete doctype_field_map[key];
+			}
+		}
+
+		let filters = null;
+		if (values.export_records === 'by_filter') {
+			filters = this.get_filters();
+		}
+
+		open_url_post(method, {
+			doctype: this.doctype,
+			file_type: values.file_type,
+			export_records: values.export_records,
+			export_fields: doctype_field_map,
+			export_filters: filters
+		});
+	}
+
+	make_filter_area() {
+		this.filter_group = new frappe.ui.FilterGroup({
+			parent: this.dialog.get_field('filter_area').$wrapper,
+			doctype: this.doctype,
+			on_change: e => {
+				this.update_record_count_message();
+			}
+		});
+	}
+
+	make_select_all_buttons() {
+		let $select_all_buttons = $(`
+			<div>
+				<h6 class="form-section-heading uppercase">${__('Select fields to export')}</h6>
+				<button class="btn btn-default btn-xs" data-action="select_all">
+					${__('Select All')}
+				</button>
+				<button class="btn btn-default btn-xs" data-action="select_mandatory">
+					${__('Select Mandatory')}
+				</button>
+				<button class="btn btn-default btn-xs" data-action="select_mandatory_without_children">
+					${__('Select Mandatory without children')}
+				</button>
+				<button class="btn btn-default btn-xs" data-action="unselect_all">
+					${__('Unselect All')}
+				</button>
+			</div>
+		`).on('click', '[data-action]', e => {
+			let $target = $(e.currentTarget);
+			let action = $target.data('action');
+			let method = this[action];
+			method ? this[action]() : null;
+		});
+		this.dialog
+			.get_field('select_all_buttons')
+			.$wrapper.html($select_all_buttons);
+	}
+
+	select_all() {
+		this.dialog.$wrapper
+			.find(':checkbox')
+			.prop('checked', true)
+			.trigger('change');
+	}
+
+	select_mandatory() {
+		let multicheck_fields = this.dialog.fields
+			.filter(df => df.fieldtype === 'MultiCheck')
+			.map(df => df.fieldname);
+
+		let checkboxes = [].concat(
+			...multicheck_fields.map(fieldname => {
+				let field = this.dialog.get_field(fieldname);
+				return field.options
+					.filter(option => option.danger)
+					.map(option => option.$checkbox.find('input').get(0));
+			})
+		);
+
+		this.unselect_all();
+		$(checkboxes)
+			.prop('checked', true)
+			.trigger('change');
+	}
+
+	select_mandatory_without_children() {
+		let field = this.dialog.get_field(this.doctype);
+		let checkboxes = field.options
+			.filter(option => option.danger)
+			.map(option => option.$checkbox.find('input').get(0));
+
+		this.unselect_all();
+		$(checkboxes)
+			.prop('checked', true)
+			.trigger('change');
+	}
+
+	unselect_all() {
+		this.dialog.$wrapper
+			.find(':checkbox')
+			.prop('checked', false)
+			.trigger('change');
+	}
+
+	update_record_count_message() {
+		let export_records = this.dialog.get_value('export_records');
+		let count_method = {
+			last_10_records: () => Promise.resolve('10'),
+			all: () => frappe.db.count(this.doctype),
+			by_filter: () =>
+				frappe.db.count(this.doctype, {
+					filters: this.get_filters()
+				})
+		};
+
+		count_method[export_records]().then(value => {
+			let message = '';
+			value = parseInt(value);
+			if (value === 0) {
+				message = __('No records will be exported');
+			} else if (value === 1) {
+				message = __('1 record will be exported');
+			} else {
+				message = __('{0} records will be exported', [value]);
+			}
+			this.dialog.set_df_property(
+				'export_records',
+				'description',
+				message
+			);
+
+			this.update_primary_action(value);
+		});
+	}
+
+	update_primary_action(no_of_records) {
+		let $primary_action = this.dialog.get_primary_btn();
+
+		if (no_of_records != null) {
+			$primary_action.prop('disabled', no_of_records === 0);
+
+			let label = '';
+			if (no_of_records === 0) {
+				label = __('Export');
+			} else if (no_of_records === 1) {
+				label = __('Export 1 record');
+			} else {
+				label = __('Export {0} records', [no_of_records]);
+			}
+			$primary_action.html(label);
+		} else {
+			let parent_fields = this.dialog.get_value(this.doctype);
+			$primary_action.prop('disabled', parent_fields.length === 0);
+		}
+	}
+
+	get_filters() {
+		return this.filter_group.get_filters().reduce((acc, filter) => {
+			return Object.assign(acc, {
+				[filter[1]]: [filter[2], filter[3]]
+			});
+		}, {});
+	}
+};

@@ -780,7 +780,8 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		doctype_fields = [{
 			label: __('ID'),
 			fieldname: 'name',
-			fieldtype: 'Data'
+			fieldtype: 'Data',
+			reqd: 1
 		}].concat(doctype_fields, frappe.model.std_fields);
 
 		out[this.doctype] = doctype_fields;
