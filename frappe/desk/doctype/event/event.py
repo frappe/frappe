@@ -148,7 +148,7 @@ def get_events(start, end, user=None, for_reminder=False, filters=None):
 				`tabEvent`.friday,
 				`tabEvent`.saturday,
 				`tabEvent`.sunday
-		FROM `tabEvent`
+		FROM `tabEvent`, `tabEvent Participants`
 		WHERE (
 				(
 					(date(`tabEvent`.starts_on) BETWEEN date(%(start)s) AND date(%(end)s))
