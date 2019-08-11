@@ -117,6 +117,9 @@ def get_google_drive_object(g_drive):
 	google_settings = frappe.get_doc("Google Settings")
 	account = frappe.get_doc("Google Drive", g_drive)
 
+	if not account.backup_folder_id:
+		frappe.throw(_("Folder {0} not created in Google Drive.").format(account.backup_folder_name))
+
 	credentials_dict = {
 		"token": account.get_access_token(),
 		"refresh_token": account.get_password(fieldname="refresh_token", raise_exception=False),
