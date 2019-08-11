@@ -24,6 +24,23 @@ frappe.ui.form.on('Google Drive', {
 				});
 			});
 		}
+		if (!frm.doc.backup_folder_id) {
+			let sync_button = frm.add_custom_button(__("Create Folder in Google Drive"), function () {
+				frappe.show_alert({
+					indicator: "green",
+					message: __("Creating folder in Google Drive.")
+				});
+				frappe.call({
+					method: "frappe.integrations.doctype.google_drive.google_drive.create_folder_in_google_drive",
+					args: {
+						"g_drive": frm.doc.name
+					},
+					btn: sync_button
+				}).then((r) => {
+					frappe.msgprint(r.message);
+				});
+			});
+		}
 	},
 	authorize_google_drive_access: function(frm) {
 		let reauthorize = 0;

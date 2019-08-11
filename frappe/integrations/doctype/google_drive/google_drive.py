@@ -131,13 +131,19 @@ def get_google_drive_object(g_drive):
 
 	return google_drive_object, account
 
-def create_folder_in_google_drive(google_drive_object, account):
+@frappe.whitelist()
+def create_folder_in_google_drive(google_drive_object=None, account=None, g_drive=None):
+	if g_drive:
+		google_drive_object, account = get_google_drive_object(g_drive)
+
 	file_metadata = {
 		"name": account.backup_folder_name,
 		"mimeType": "application/vnd.google-apps.folder"
 	}
 	folder = google_drive_object.files().create(body=file_metadata, fields="id").execute()
 	frappe.db.set_value("Google Drive", account.name, "backup_folder_id", folder.get("id"))
+
+	return "Folder created successfully in Google Drive."
 
 def check_for_folder_in_google_drive(google_drive_object, account):
 	"""
