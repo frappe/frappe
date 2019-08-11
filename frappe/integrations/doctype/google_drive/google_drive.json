@@ -83,11 +83,10 @@
   {
    "fieldname": "backup_folder_id",
    "fieldtype": "Data",
-   "label": "Backup Folder ID",
-   "read_only": 1
+   "label": "Backup Folder ID"
   }
  ],
- "modified": "2019-08-11 16:00:39.521237",
+ "modified": "2019-08-11 16:17:26.314299",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Google Drive",

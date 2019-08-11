@@ -40,6 +40,8 @@ frappe.ui.form.on('Google Drive', {
 					frappe.msgprint(r.message);
 				});
 			});
+		} else {
+			frm.set_df_property("backup_folder_id", "read_only", 1);
 		}
 	},
 	authorize_google_drive_access: function(frm) {
