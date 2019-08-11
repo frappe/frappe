@@ -12,7 +12,7 @@ frappe.query_reports["Addresses And Contacts"] = {
 			"get_query": function() {
 				return {
 					"filters": {
-						"name": ["in","Contact, Address"],
+						"name": ["in", "Contact, Address"],
 					}
 				}
 			}
