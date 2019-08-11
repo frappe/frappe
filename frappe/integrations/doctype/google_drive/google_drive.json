@@ -7,12 +7,14 @@
   "enable",
   "sb_00",
   "user",
+  "backup_folder_name",
   "authorize_google_drive_access",
   "column_break_5",
-  "folder_name",
-  "folder_id",
-  "authorization_code",
-  "refresh_token"
+  "backup_folder_id",
+  "enable_system_backup",
+  "frequency",
+  "refresh_token",
+  "authorization_code"
  ],
  "fields": [
   {
@@ -42,15 +44,6 @@
    "label": "Authorize Google Drive Access"
   },
   {
-   "fieldname": "folder_name",
-   "fieldtype": "Data",
-   "in_list_view": 1,
-   "label": "Folder Name",
-   "reqd": 1,
-   "set_only_once": 1,
-   "unique": 1
-  },
-  {
    "fieldname": "authorization_code",
    "fieldtype": "Data",
    "label": "Authorization Code"
@@ -65,13 +58,34 @@
    "fieldtype": "Column Break"
   },
   {
-   "fieldname": "folder_id",
+   "depends_on": "enable_system_backup",
+   "fieldname": "frequency",
+   "fieldtype": "Select",
+   "label": "Frequency",
+   "options": "Daily\nWeekly"
+  },
+  {
+   "default": "0",
+   "fieldname": "enable_system_backup",
+   "fieldtype": "Check",
+   "label": "Enable System Backup"
+  },
+  {
+   "fieldname": "backup_folder_name",
    "fieldtype": "Data",
-   "label": "Folder ID",
+   "in_list_view": 1,
+   "label": "Backup Folder Name",
+   "set_only_once": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "backup_folder_id",
+   "fieldtype": "Data",
+   "label": "Backup Folder ID",
    "read_only": 1
   }
  ],
- "modified": "2019-08-11 05:17:36.862158",
+ "modified": "2019-08-11 12:42:41.738678",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Google Drive",

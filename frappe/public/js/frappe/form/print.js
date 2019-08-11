@@ -470,6 +470,7 @@ frappe.ui.form.PrintPreview = Class.extend({
 						get_query: function() {
 							return {
 								"filters": {
+									"enable": 1,
 									"owner": frappe.session.user,
 								}
 							}
@@ -482,7 +483,10 @@ frappe.ui.form.PrintPreview = Class.extend({
 						indicator: "red",
 						message: __("Uploading to Google Drive.")
 					})
+
 					uploader.hide();
+					uploader.disable_primary_action();
+					uploader.clear();
 
 					frappe.call({
 						method: "frappe.integrations.doctype.google_drive.google_drive.upload_document_to_google_drive",
@@ -493,7 +497,7 @@ frappe.ui.form.PrintPreview = Class.extend({
 							format: me.selected_format(),
 							letterhead: me.with_letterhead() ? "0" : "1"
 						},
-						callback: function(r) {
+						callback: function() {
 							frappe.show_alert({
 								indicator: "green",
 								message: __("Document uploaded to Google Drive.")

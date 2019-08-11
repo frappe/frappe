@@ -7,6 +7,7 @@ import frappe
 import requests
 import googleapiclient.discovery
 import google.oauth2.credentials
+import os
 
 from frappe import _
 from googleapiclient.errors import HttpError
@@ -16,10 +17,19 @@ from six.moves.urllib.parse import quote
 from apiclient.http import MediaFileUpload
 from frappe.utils.file_manager import save_file, get_file_url
 from frappe.utils.print_format import download_pdf
+from frappe.utils import get_backups_path, get_files_path
+from frappe.utils.backups import new_backup
+from frappe.utils import now
 
 SCOPES = "https://www.googleapis.com/auth/drive"
 
 class GoogleDrive(Document):
+
+	def validate(self):
+		if self.enable_system_backup:
+			system_backup = frappe.db.exists("Google Drive", {"enable_system_backup": 1})
+			if system_backup and not system_backup == self.name:
+				frappe.throw(_("Google Drive System Backup can be enabled only for one account."))
 
 	def get_access_token(self):
 		google_settings = frappe.get_doc("Google Settings")
@@ -122,52 +132,108 @@ def get_google_drive_object(g_drive):
 	return google_drive_object, account
 
 def create_folder_in_google_drive(google_drive_object, account):
-	"""
-		Create a folder on Drive, returns the newely created folders ID
-	"""
 	file_metadata = {
-		"name": account.folder_name,
+		"name": account.backup_folder_name,
 		"mimeType": "application/vnd.google-apps.folder"
 	}
 	folder = google_drive_object.files().create(body=file_metadata, fields="id").execute()
-	frappe.db.set_value("Google Drive", account.name, "folder_id", folder.get("id"))
+	frappe.db.set_value("Google Drive", account.name, "backup_folder_id", folder.get("id"))
+
+def check_for_folder_in_google_drive(google_drive_object, account):
+	"""
+		Create a folder on Drive, returns the newely created folders ID
+	"""
+	if not account.backup_folder_id:
+		create_folder_in_google_drive(google_drive_object, account)
+		return
+
+	try:
+		folder = google_drive_object.files().get(fileId=account.backup_folder_id, fields="id").execute()
+	except HttpError as e:
+		if e.resp.status == 404:
+			create_folder_in_google_drive(google_drive_object, account)
+		else:
+			frappe.msgprint(_("Google Drive - Could not create folder - Error Code {0}.").format(e))
 
 @frappe.whitelist()
 def upload_document_to_google_drive(doctype, docname, g_drive, format, letterhead):
 	"""
 		Uploads Document to Folder specified in Google Drive Doc.
 	"""
+	# Get Google Drive Object
 	google_drive_object, account = get_google_drive_object(g_drive)
 
-	if not account.folder_id:
-		create_folder_in_google_drive(google_drive_object, account)
-		account.load_from_db()
+	# Check if folder exists in Google Drive
+	check_for_folder_in_google_drive(google_drive_object, account)
+	account.load_from_db()
 
+	# Create PDF for doc and append datestring to name
 	download_pdf(doctype=doctype, name=docname, format=format, no_letterhead=letterhead)
-
-	filename = frappe.local.response.filename.replace(".pdf", "-{0}.pdf".format(frappe.generate_hash(length=5)))
+	filename = frappe.local.response.filename.replace(".pdf", "-{0}.pdf".format(now()))
 	filecontent = frappe.local.response.filecontent
 
-	upload_file = save_file(filename, filecontent, doctype, docname)
+	file_to_upload = save_file(filename, filecontent, doctype, docname)
 
-	if not upload_file:
+	if not file_to_upload:
 		frappe.throw(_("Could not upload pdf to Google Drive"))
 
-	fileurl = upload_file.file_url or upload_file.file_name
+	fileurl = os.path.basename(file_to_upload.file_name or file_to_upload.file_url)
+
+	# parents: Folder id under which the file is to be uploaded
 	file_metadata = {
 		"name": filename,
-		"parents": [account.folder_id]
+		"parents": [account.backup_folder_id]
 	}
 
-	media = MediaFileUpload(get_absolute_path(fileurl), mimetype="application/pdf")
+	media = MediaFileUpload(get_absolute_path(fileurl), mimetype="application/pdf", resumable=True)
 
 	try:
-		file = google_drive_object.files().create(body=file_metadata, media_body=media, fields="id").execute()
+		google_drive_object.files().create(body=file_metadata, media_body=media, fields="id").execute()
 	except HttpError as e:
-		frappe.msgprint(_("Google Drive - Could not upload file - Error Code {0}").format(e.resp.status))
+		frappe.msgprint(_("Google Drive - Could not upload file - Error Code {0}").format(e))
 
-def get_absolute_path(filename):
-	filename = filename.replace("/files/", "")
-	file_path = frappe.utils.get_path("public", "files", filename).replace("./", "")
+@frappe.whitelist()
+def upload_system_backup_to_google_drive(g_drive):
+	"""
+		Upload system backup to Google Drive
+	"""
+	# Get Google Drive Object
+	google_drive_object, account = get_google_drive_object(g_drive)
+
+	# Check if folder exists in Google Drive
+	check_for_folder_in_google_drive(google_drive_object, account)
+	account.load_from_db()
+
+	backup = new_backup(ignore_files=True)
+
+	fileurl = os.path.basename(backup.backup_path_db)
+
+	file_metadata = {
+		"name": "Instance Backup-{0}".format(frappe.utils.now()),
+		"parents": [account.backup_folder_id]
+	}
+
+	media = MediaFileUpload(get_absolute_path(fileurl, True), mimetype="application/gzip", resumable=True)
+
+	try:
+		google_drive_object.files().create(body=file_metadata, media_body=media, fields="id").execute()
+	except HttpError as e:
+		frappe.msgprint(_("Google Drive - Could not upload backup - Error {0}").format(e))
+
+def daily_backup():
+	g_drive = frappe.db.exists("Google Drive", {"enable": 1, "enable_system_backup": 1, "frequency": "Daily"})
+	if g_drive:
+		upload_system_backup_to_google_drive(g_drive)
+
+def weekly_backup():
+	g_drive = frappe.db.exists("Google Drive", {"enable": 1, "enable_system_backup": 1, "frequency": "Weekly"})
+	if g_drive:
+		upload_system_backup_to_google_drive(g_drive)
+
+def get_absolute_path(filename, backup=False):
+	file_path = os.path.join(frappe.utils.get_files_path()[2:], filename)
+
+	if backup:
+		file_path = os.path.join(frappe.utils.get_backups_path()[2:], filename)
 
 	return "{0}/sites/{1}".format(frappe.utils.get_bench_path(), file_path)
