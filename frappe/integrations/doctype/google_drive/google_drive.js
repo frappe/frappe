@@ -24,7 +24,7 @@ frappe.ui.form.on('Google Drive', {
 				});
 			});
 		}
-		if (!frm.doc.backup_folder_id) {
+		if (!frm.doc.backup_folder_id && frm.doc.refresh_token) {
 			let sync_button = frm.add_custom_button(__("Create Folder in Google Drive"), function () {
 				frappe.show_alert({
 					indicator: "green",
@@ -37,6 +37,7 @@ frappe.ui.form.on('Google Drive', {
 					},
 					btn: sync_button
 				}).then((r) => {
+					frm.refresh();
 					frappe.msgprint(r.message);
 				});
 			});
