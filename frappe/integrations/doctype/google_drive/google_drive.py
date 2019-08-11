@@ -9,10 +9,13 @@ import googleapiclient.discovery
 import google.oauth2.credentials
 
 from frappe import _
+from googleapiclient.errors import HttpError
 from frappe.model.document import Document
 from frappe.utils import get_request_site_address
 from six.moves.urllib.parse import quote
 from apiclient.http import MediaFileUpload
+from frappe.utils.file_manager import save_file, get_file_url
+from frappe.utils.print_format import download_pdf
 
 SCOPES = "https://www.googleapis.com/auth/drive"
 
@@ -114,20 +117,57 @@ def get_google_drive_object(g_drive):
 	}
 
 	credentials = google.oauth2.credentials.Credentials(**credentials_dict)
-	google_drive = googleapiclient.discovery.build("drive", "v3", credentials=credentials)
+	google_drive_object = googleapiclient.discovery.build("drive", "v3", credentials=credentials)
 
-	return google_calendar
+	return google_drive_object, account
+
+def create_folder_in_google_drive(google_drive_object, account):
+	"""
+		Create a folder on Drive, returns the newely created folders ID
+	"""
+	file_metadata = {
+		"name": account.folder_name,
+		"mimeType": "application/vnd.google-apps.folder"
+	}
+	folder = google_drive_object.files().create(body=file_metadata, fields="id").execute()
+	frappe.db.set_value("Google Drive", account.name, "folder_id", folder.get("id"))
 
 @frappe.whitelist()
-def upload_document(doctype, docname, g_drive):
-	from frappe.utils.print_format import download_pdf
+def upload_document_to_google_drive(doctype, docname, g_drive, format, letterhead):
+	"""
+		Uploads Document to Folder specified in Google Drive Doc.
+	"""
+	google_drive_object, account = get_google_drive_object(g_drive)
 
-	google_drive = get_google_drive_object(g_drive)
-	download_pdf(doctype=doctype, docname=docname, format="pdf")
-	file_metadata = {"name": frappe.local.response.filename}
-	media = MediaFileUpload(frappe.local.response.filename, mimetype="application/pdf")
+	if not account.folder_id:
+		create_folder_in_google_drive(google_drive_object, account)
+		account.load_from_db()
 
-	file = google_drive.files().create(body=file_metadata, media_body=media, fields='id').execute()
+	download_pdf(doctype=doctype, name=docname, format=format, no_letterhead=letterhead)
 
+	filename = frappe.local.response.filename.replace(".pdf", "-{0}.pdf".format(frappe.generate_hash(length=5)))
+	filecontent = frappe.local.response.filecontent
 
-	# frappe.local.response.filecontent
+	upload_file = save_file(filename, filecontent, doctype, docname)
+
+	if not upload_file:
+		frappe.throw(_("Could not upload pdf to Google Drive"))
+
+	fileurl = upload_file.file_url or upload_file.file_name
+	file_metadata = {
+		"name": filename,
+		"parents": [account.folder_id]
+	}
+
+	media = MediaFileUpload(get_absolute_path(fileurl), mimetype="application/pdf")
+
+	try:
+		file = google_drive_object.files().create(body=file_metadata, media_body=media, fields="id").execute()
+	except HttpError as e:
+		frappe.msgprint(_("Google Drive - Could not upload file - Error Code {0}").format(e.resp.status))
+
+def get_absolute_path(filename):
+	filename = filename.replace("/files/", "")
+	file_path = frappe.utils.get_path("public", "files", filename).replace("./", "")
+
+	return "{0}/sites/{1}".format(frappe.utils.get_bench_path(), file_path)

@@ -7,8 +7,10 @@
   "enable",
   "sb_00",
   "user",
-  "folder_name",
   "authorize_google_drive_access",
+  "column_break_5",
+  "folder_name",
+  "folder_id",
   "authorization_code",
   "refresh_token"
  ],
@@ -57,9 +59,19 @@
    "fieldname": "refresh_token",
    "fieldtype": "Data",
    "label": "Refresh Token"
+  },
+  {
+   "fieldname": "column_break_5",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "folder_id",
+   "fieldtype": "Data",
+   "label": "Folder ID",
+   "read_only": 1
   }
  ],
- "modified": "2019-08-09 19:16:28.614921",
+ "modified": "2019-08-11 05:17:36.862158",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Google Drive",
