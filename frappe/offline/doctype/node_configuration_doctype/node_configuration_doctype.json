@@ -1,0 +1,30 @@
+{
+ "creation": "2019-08-09 16:19:58.344278",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "ref_doctype"
+ ],
+ "fields": [
+  {
+   "fieldname": "ref_doctype",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Document Type",
+   "options": "DocType",
+   "reqd": 1
+  }
+ ],
+ "istable": 1,
+ "modified": "2019-08-09 16:21:12.082995",
+ "modified_by": "Administrator",
+ "module": "Offline",
+ "name": "Node Configuration DocType",
+ "owner": "Administrator",
+ "permissions": [],
+ "quick_entry": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

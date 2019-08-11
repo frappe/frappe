@@ -255,6 +255,8 @@ class Document(BaseDocument):
 		if self.get("amended_from"):
 			self.copy_attachments_from_amended_from()
 
+		#flag to prevent creation of update log for create and update both, during document creation
+		self.flags.update_log_for_doc_creation = True
 		self.run_post_save_methods()
 		self.flags.in_insert = False
 
@@ -937,6 +939,14 @@ class Document(BaseDocument):
 		if (self.doctype, self.name) in frappe.flags.currently_saving:
 			frappe.flags.currently_saving.remove((self.doctype, self.name))
 
+		# make update log for doctypes having followers
+		if not frappe.flags.in_install:
+			if self.flags.update_log_for_doc_creation:
+				make_update_log(self, update_type = 'Create')
+				self.flags.create_type_update_log = False
+			else:
+				make_update_log(self, update_type = 'Update')
+
 		self.latest = None
 
 	def clear_cache(self):
@@ -1261,3 +1271,30 @@ def execute_action(doctype, name, action, **kwargs):
 
 		doc.add_comment('Comment', _('Action Failed') + '<br><br>' + msg)
 		doc.notify_update()
+
+def make_update_log(doc, update_type):
+	'''Save update info for doctypes that have followers'''
+	doctype_has_followers = check_doctype_has_followers(doc.doctype)
+	if doctype_has_followers:
+		if update_type != 'Delete':
+			data = frappe.as_json(doc)
+		else:
+			data = None
+		doc = frappe.get_doc({
+			'doctype': 'Update Log',
+			'update_type': update_type,
+			'ref_doctype': doc.doctype,
+			'docname': doc.name,
+			'data': data
+		})
+		doc.insert(ignore_permissions = True)
+		frappe.db.commit()
+
+def check_doctype_has_followers(doctype):
+	node_configs = frappe.get_all(doctype = 'Node Configuration')
+	for node_config in node_configs:
+		config = frappe.get_doc('Node Configuration', node_config.name)
+		for entry in config.following_doctypes:
+			if doctype == entry.ref_doctype:
+				return True
+	return False
