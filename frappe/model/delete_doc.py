@@ -13,6 +13,7 @@ from frappe import _
 from frappe.model.naming import revert_series_if_last
 from frappe.utils.global_search import delete_for_document
 from six import string_types, integer_types
+from frappe.model.document import make_update_log
 
 doctypes_to_skip = ("Communication", "ToDo", "DocShare", "Email Unsubscribe", "Activity Log", "File", "Version", "Document Follow", "Comment" , "View Log")
 
@@ -99,6 +100,10 @@ def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reloa
 
 		# delete global search entry
 		delete_for_document(doc)
+
+		# update log if doctype has followers
+		if not frappe.flags.in_install:
+			make_update_log(doc, update_type = 'Delete')
 
 		if doc and not for_reload:
 			add_to_deleted_document(doc)

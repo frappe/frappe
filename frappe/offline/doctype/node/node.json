@@ -1,0 +1,73 @@
+{
+ "_comments": "[]",
+ "_liked_by": "[]",
+ "autoname": "field:host_name",
+ "creation": "2019-07-30 15:10:47.993692",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "host_name",
+  "api_key",
+  "api_secret",
+  "allow_auto_changes",
+  "last_updated"
+ ],
+ "fields": [
+  {
+   "fieldname": "host_name",
+   "fieldtype": "Data",
+   "label": "Hostname (URL)",
+   "unique": 1
+  },
+  {
+   "default": "0",
+   "description": "Automatic changes from Follower nodes will be fetched and updated",
+   "fieldname": "allow_auto_changes",
+   "fieldtype": "Check",
+   "label": "Allow Automatic Changes"
+  },
+  {
+   "fieldname": "api_key",
+   "fieldtype": "Data",
+   "label": "API Key",
+   "read_only": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "api_secret",
+   "fieldtype": "Password",
+   "label": "API Secret",
+   "read_only": 1
+  },
+  {
+   "fieldname": "last_updated",
+   "fieldtype": "Link",
+   "label": "Last Updated",
+   "options": "Update Log",
+   "read_only": 1
+  }
+ ],
+ "modified": "2019-08-09 14:54:07.173962",
+ "modified_by": "Administrator",
+ "module": "Offline",
+ "name": "Node",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "quick_entry": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}
