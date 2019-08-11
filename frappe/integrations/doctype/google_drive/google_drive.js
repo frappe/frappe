@@ -6,6 +6,24 @@ frappe.ui.form.on('Google Drive', {
 		if (frm.is_new()) {
 			frm.dashboard.set_headline(__("To use Google Drive, enable <a href='#Form/Google Settings'>Google Settings</a>."));
 		}
+
+		if (frm.doc.enable_system_backup) {
+			let sync_button = frm.add_custom_button(__("Take Backup"), function () {
+				frappe.show_alert({
+					indicator: "green",
+					message: __("Backing up to Google Drive.")
+				});
+				frappe.call({
+					method: "frappe.integrations.doctype.google_drive.google_drive.upload_system_backup_to_google_drive",
+					args: {
+						"g_drive": frm.doc.name
+					},
+					btn: sync_button
+				}).then((r) => {
+					frappe.msgprint(r.message);
+				});
+			});
+		}
 	},
 	authorize_google_drive_access: function(frm) {
 		let reauthorize = 0;
