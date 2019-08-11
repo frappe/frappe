@@ -45,13 +45,13 @@
   },
   {
    "fieldname": "authorization_code",
-   "fieldtype": "Password",
+   "fieldtype": "Data",
    "hidden": 1,
    "label": "Authorization Code"
   },
   {
    "fieldname": "refresh_token",
-   "fieldtype": "Password",
+   "fieldtype": "Data",
    "hidden": 1,
    "label": "Refresh Token"
   },
@@ -86,7 +86,7 @@
    "label": "Backup Folder ID"
   }
  ],
- "modified": "2019-08-11 16:17:26.314299",
+ "modified": "2019-08-11 20:08:45.407321",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Google Drive",
