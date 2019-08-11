@@ -497,11 +497,8 @@ frappe.ui.form.PrintPreview = Class.extend({
 							format: me.selected_format(),
 							letterhead: me.with_letterhead() ? "0" : "1"
 						},
-						callback: function() {
-							frappe.show_alert({
-								indicator: "green",
-								message: __("Document uploaded to Google Drive.")
-							});
+						callback: function(r) {
+							frappe.msgprint(r.message);
 						}
 					})
 				}

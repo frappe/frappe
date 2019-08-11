@@ -198,6 +198,8 @@ def upload_document_to_google_drive(doctype, docname, g_drive, format, letterhea
 	except HttpError as e:
 		frappe.msgprint(_("Google Drive - Could not upload file - Error Code {0}").format(e))
 
+	return _("{0} {1} uploaded to Google Drive successfully.").format(doctype, docname)
+
 @frappe.whitelist()
 def upload_system_backup_to_google_drive(g_drive):
 	"""
@@ -226,7 +228,7 @@ def upload_system_backup_to_google_drive(g_drive):
 	except HttpError as e:
 		frappe.msgprint(_("Google Drive - Could not upload backup - Error {0}").format(e))
 
-	return "Google Drive Backup Successful."
+	return _("Google Drive Backup Successful.")
 
 def daily_backup():
 	g_drive = frappe.db.exists("Google Drive", {"enable": 1, "enable_system_backup": 1, "frequency": "Daily"})
