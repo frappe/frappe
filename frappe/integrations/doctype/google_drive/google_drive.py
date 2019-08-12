@@ -20,8 +20,9 @@ from frappe.utils.print_format import download_pdf
 from frappe.utils import get_backups_path, get_files_path
 from frappe.utils.backups import new_backup
 from frappe.utils import now
+from frappe.integrations.doctype.google_settings.google_settings import get_auth_url
 
-SCOPES = "https://www.googleapis.com/auth/drive"
+SCOPES = "https://www.googleapis.com/auth/drive/v3"
 
 class GoogleDrive(Document):
 
@@ -50,7 +51,7 @@ class GoogleDrive(Document):
 		}
 
 		try:
-			r = requests.post("https://www.googleapis.com/oauth2/v4/token", data=data).json()
+			r = requests.post(get_auth_url(), data=data).json()
 		except requests.exceptions.HTTPError:
 			button_label = frappe.bold(_("Allow Google Drive Access"))
 			frappe.throw(_("Something went wrong during the token generation. Click on {0} to generate a new one.").format(button_label))
@@ -81,7 +82,7 @@ def authorize_access(g_drive, reauthorize=None):
 				"redirect_uri": redirect_uri,
 				"grant_type": "authorization_code"
 			}
-			r = requests.post("https://www.googleapis.com/oauth2/v4/token", data=data).json()
+			r = requests.post(get_auth_url(), data=data).json()
 
 			if "refresh_token" in r:
 				frappe.db.set_value("Google Drive", google_drive.name, "refresh_token", r.get("refresh_token"))
@@ -123,10 +124,10 @@ def get_google_drive_object(g_drive):
 	credentials_dict = {
 		"token": account.get_access_token(),
 		"refresh_token": account.get_password(fieldname="refresh_token", raise_exception=False),
-		"token_uri": "https://www.googleapis.com/oauth2/v4/token",
+		"token_uri": get_auth_url(),
 		"client_id": google_settings.client_id,
 		"client_secret": google_settings.get_password(fieldname="client_secret", raise_exception=False),
-		"scopes": "https://www.googleapis.com/auth/drive/v3"
+		"scopes": SCOPES
 	}
 
 	credentials = google.oauth2.credentials.Credentials(**credentials_dict)
@@ -146,7 +147,7 @@ def create_folder_in_google_drive(google_drive_object=None, account=None, g_driv
 	try:
 		folder = google_drive_object.files().create(body=file_metadata, fields="id").execute()
 		frappe.db.set_value("Google Drive", account.name, "backup_folder_id", folder.get("id"))
-	except HttpError as e
+	except HttpError as e:
 		frappe.throw(_("Google Drive - Could not create folder in Google Drive - Error Code {0}").format(e))
 
 	return "Folder created successfully in Google Drive."
