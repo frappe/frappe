@@ -373,7 +373,6 @@ apps/frappe/frappe/core/doctype/success_action/success_action.js,Select atleast 
 DocType: Email Flag Queue,Email Flag Queue,ఇమెయిల్ ఫ్లాగ్ క్యూ
 apps/frappe/frappe/config/settings.py,Stylesheets for Print Formats,ప్రింట్ ఆకృతుల కోసం స్టైల్షీట్స్
 apps/frappe/frappe/utils/bot.py,Can't identify open {0}. Try something else.,ఓపెన్ గుర్తించడానికి కాదు {0}. ఏదో ప్రయత్నించండి.
-apps/frappe/frappe/email/smtp.py,Please setup default Email Account from Setup &gt; Email &gt; Email Account,దయచేసి సెటప్&gt; ఇమెయిల్&gt; ఇమెయిల్ ఖాతా నుండి డిఫాల్ట్ ఇమెయిల్ ఖాతాను సెటప్ చేయండి
 apps/frappe/frappe/public/js/frappe/web_form/web_form.js,Your information has been submitted,మీ సమాచారం సమర్పించబడింది
 apps/frappe/frappe/core/doctype/user/user.py,User {0} cannot be deleted,{0} వాడుకరి తొలగించడం సాధ్యం కాదు
 DocType: System Settings,Currency Precision,కరెన్సీ ప్రెసిషన్
@@ -479,7 +478,9 @@ apps/frappe/frappe/public/js/frappe/form/footer/timeline.js,changed value of {0}
 DocType: Report,JSON,JSON
 apps/frappe/frappe/core/doctype/user/user.py,Please check your email for verification,ధృవీకరణ కోసం మీ ఇమెయిల్ తనిఖీ చేయండి
 apps/frappe/frappe/core/doctype/doctype/doctype.py,Fold can not be at the end of the form,మడత రూపం చివరిలో ఉండకూడదు
+apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,"For comparison, use &gt;5, &lt;10 or =324. For ranges, use 5:10 (for values between 5 &amp; 10).","పోలిక కోసం,&gt; 5, &lt;10 లేదా = 324 ఉపయోగించండి. శ్రేణుల కోసం, 5:10 (5 &amp; 10 మధ్య విలువలకు) ఉపయోగించండి."
 DocType: Communication,Bounced,ఎగిరిన
+apps/frappe/frappe/email/smtp.py,Please setup default Email Account from Setup &gt; Email &gt; Email Account,దయచేసి సెటప్&gt; ఇమెయిల్&gt; ఇమెయిల్ ఖాతా నుండి డిఫాల్ట్ ఇమెయిల్ ఖాతాను సెటప్ చేయండి
 DocType: Deleted Document,Deleted Name,తొలగించినవి పేరు
 apps/frappe/frappe/config/users_and_permissions.py,System and Website Users,వ్యవస్థ మరియు వెబ్సైట్ వాడుకదారులకు
 DocType: Workflow Document State,Doc Status,Doc స్థితి
@@ -584,7 +585,6 @@ apps/frappe/frappe/core/doctype/user_permission/user_permission_list.js,No recor
 apps/frappe/frappe/email/doctype/notification/notification.js,Last Modified Date,చివరి మార్పు చేసిన తేదీ
 DocType: Chat Profile,Settings,సెట్టింగులు
 DocType: Print Format,Style Settings,శైలి సెట్టింగులు
-apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Setup &gt; User Permissions,సెటప్&gt; వినియోగదారు అనుమతులు
 apps/frappe/frappe/public/js/frappe/list/list_sidebar_group_by.js,Filter By,ద్వారా వడపోత
 apps/frappe/frappe/database/database.py,No conditions provided,షరతులు అందించబడలేదు
 apps/frappe/frappe/public/js/frappe/views/reports/report_view.js,Y Axis Fields,Y యాక్సిస్ ఫీల్డ్స్
@@ -663,6 +663,7 @@ DocType: Address,Nagaland,నాగాలాండ్
 DocType: Slack Webhook URL,Webhook URL,వెబ్హూక్ URL
 apps/frappe/frappe/core/doctype/user/user.py,Username {0} already exists,యూజర్ పేరు {0} ఇప్పటికే ఉంది
 apps/frappe/frappe/core/doctype/doctype/doctype.py,{0}: Cannot set import as {1} is not importable,{0}: {1} importable కాదు దిగుమతి సెట్ చెయ్యబడదు
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Setup &gt; Customize Form,సెటప్&gt; ఫారమ్‌ను అనుకూలీకరించండి
 apps/frappe/frappe/contacts/doctype/address/address.py,There is an error in your Address Template {0},మీ చిరునామా మూస లోపం ఉంది {0}
 apps/frappe/frappe/automation/doctype/auto_repeat/auto_repeat.py,{0} is an invalid email address in 'Recipients',{0} &#39;గ్రహీతలు&#39; లో చెల్లని ఇమెయిల్ చిరునామా
 DocType: Footer Item,"target = ""_blank""",target = &quot;_blank&quot;
@@ -774,7 +775,6 @@ DocType: Kanban Board Column,Indicator,సూచిక
 DocType: DocShare,Everyone,అందరూ
 DocType: Workflow State,backward,వెనుకబడిన
 apps/frappe/frappe/core/doctype/doctype/doctype.py,"{0}: Only one rule allowed with the same Role, Level and {1}",{0}: ఒకే పాత్ర స్థాయి మరియు అనుమతి మాత్రమే ఒక నియమం {1}
-apps/frappe/frappe/email/smtp.py,Email Account not setup. Please create a new Email Account from Setup &gt; Email &gt; Email Account,ఇమెయిల్ ఖాతా సెటప్ కాదు. దయచేసి సెటప్&gt; ఇమెయిల్&gt; ఇమెయిల్ ఖాతా నుండి క్రొత్త ఇమెయిల్ ఖాతాను సృష్టించండి
 DocType: Email Queue,Add Unsubscribe Link,చందా రద్దుచేసే లింక్ జోడించండి
 apps/frappe/frappe/templates/includes/comments/comments.html,No comments yet. Start a new discussion.,ఇంకా వ్యాఖ్యలు లేవు. కొత్త చర్చను ప్రారంభించండి.
 DocType: Workflow State,share,వాటా
@@ -865,6 +865,7 @@ apps/frappe/frappe/public/js/frappe/utils/pretty_date.js,{0} days ago,{0} రో
 DocType: Email Account,Awaiting Password,అందించనివారు పాస్వర్డ్
 DocType: Address,Address Line 1,చిరునామా పంక్తి 1
 apps/frappe/frappe/public/js/frappe/ui/filters/filter.js,Not Descendants Of,కాదు వారసులు
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Setup &gt; User,సెటప్&gt; వినియోగదారు
 DocType: Custom DocPerm,Role,పాత్ర
 apps/frappe/frappe/public/js/frappe/form/templates/print_layout.html,Settings...,సెట్టింగ్లు ...
 apps/frappe/frappe/templates/emails/delete_data_confirmation.html, to your browser,మీ బ్రౌజర్‌కు
@@ -958,7 +959,6 @@ apps/frappe/frappe/www/update-password.html,Old Password Required.,పాత ప
 DocType: Role,Desk Access,డెస్క్ యాక్సెస్
 DocType: Workflow State,minus,మైనస్
 DocType: S3 Backup Settings,Bucket,బకెట్
-apps/frappe/frappe/public/js/frappe/utils/pretty_date.js,&gt; {0} year(s) ago,&gt; {0} సంవత్సరం (లు) క్రితం
 apps/frappe/frappe/public/js/frappe/ui/capture.js,Unable to load camera.,కెమెరా లోడ్ చేయలేకపోయింది.
 apps/frappe/frappe/core/doctype/user/user.py,Welcome email sent,స్వాగతం ఇమెయిల్ పంపారు
 apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js,Let's prepare the system for first use.,యొక్క మొదటి ఉపయోగం కోసం కంప్యూటరును సిద్ధం లెట్.
@@ -1088,6 +1088,7 @@ DocType: User,Send Password Update Notification,పాస్వర్డ్ అ�
 apps/frappe/frappe/public/js/frappe/form/form.js,"Allowing DocType, DocType. Be careful!","DOCTYPE, doctype అనుమతిస్తుంది. జగ్రత్త!"
 apps/frappe/frappe/config/core.py,"Customized Formats for Printing, Email","ప్రింటింగ్, ఇమెయిల్ కోసం అనుకూలీకరించిన ఆకృతులు"
 apps/frappe/frappe/public/js/frappe/ui/group_by/group_by.js,Sum of {0},{0} మొత్తం
+apps/frappe/frappe/public/js/frappe/utils/pretty_date.js,&gt; {0} year(s) ago,&gt; {0} సంవత్సరం (లు) క్రితం
 apps/frappe/frappe/public/js/frappe/desk.js,Updated To New Version,కొత్త వెర్షన్ కు నవీకరించబడింది
 DocType: Custom Field,Depends On,ఆధారపడి
 DocType: Kanban Board Column,Green,గ్రీన్
@@ -1322,6 +1323,7 @@ DocType: DefaultValue,Key,కీ
 DocType: Address,Contacts,కాంటాక్ట్స్
 DocType: System Settings,Setup Complete,సెటప్ పూర్తయింది
 apps/frappe/frappe/config/users_and_permissions.py,Report of all document shares,అన్ని పత్రం వాటాల నివేదిక
+apps/frappe/frappe/public/js/frappe/form/print.js,"Error connecting to QZ Tray Application...<br><br> You need to have QZ Tray application installed and running, to use the Raw Print feature.<br><br><a href=""https://qz.io/download/"" target=""_blank"">Click here to Download and install QZ Tray</a>.<br> <a href=""https://erpnext.com/docs/user/manual/en/setting-up/print/raw-printing"" target=""_blank"">Click here to learn more about Raw Printing</a>.","QZ ట్రే అనువర్తనానికి కనెక్ట్ చేయడంలో లోపం ... <br><br> రా ప్రింట్ ఫీచర్‌ను ఉపయోగించడానికి మీరు QZ ట్రే అప్లికేషన్‌ను ఇన్‌స్టాల్ చేసి అమలు చేయాలి. <br><br> <a href=""https://qz.io/download/"" target=""_blank"">QZ ట్రేని డౌన్‌లోడ్ చేసి, ఇన్‌స్టాల్ చేయడానికి ఇక్కడ క్లిక్ చేయండి</a> . <br> <a href=""https://erpnext.com/docs/user/manual/en/setting-up/print/raw-printing"" target=""_blank"">రా ప్రింటింగ్ గురించి మరింత తెలుసుకోవడానికి ఇక్కడ క్లిక్ చేయండి</a> ."
 apps/frappe/frappe/www/update-password.html,New Password,కొత్త పాస్వర్డ్
 apps/frappe/frappe/public/js/frappe/ui/filters/filters.js,Filter {0} missing,వడపోత {0} తప్పిపోయిన
 apps/frappe/frappe/core/doctype/activity_log/activity_log.py,Sorry! You cannot delete auto-generated comments,క్షమించాలి! మీరు ఆటో సృష్టించిన వ్యాఖ్యలు తొలగించలేరు
@@ -1870,7 +1872,6 @@ apps/frappe/frappe/public/js/frappe/views/interaction.js,{0} created successfull
 DocType: Custom DocPerm,Cancel,రద్దు
 apps/frappe/frappe/core/doctype/user_permission/user_permission_list.js,Bulk Delete,బల్క్ డిలీట్
 apps/frappe/frappe/core/doctype/file/file.py,File {0} does not exist,{0} ఉనికిలో లేదు దాఖలు
-apps/frappe/frappe/core/doctype/data_import/exporter.py,Leave blank for new records,కొత్త రికార్డులు ఖాళీగా వదలండి
 DocType: Dashboard Chart,Dashboard Chart,డాష్‌బోర్డ్ చార్ట్
 DocType: Dashboard Chart,Last Quarter,చివరి త్రైమాసికం
 apps/frappe/frappe/config/website.py,List of themes for Website.,వెబ్సైట్ కోసం థీమ్స్ జాబితా.
@@ -1968,6 +1969,7 @@ DocType: Auto Email Report,Weekdays,వారపు రోజులు
 apps/frappe/frappe/core/doctype/doctype/doctype.py,Title field must be a valid fieldname,శీర్షిక ఫీల్డ్ చెల్లుబాటు అయ్యే FIELDNAME ఉండాలి
 DocType: Post Comment,Post Comment,పోస్ట్ వ్యాఖ్య
 apps/frappe/frappe/config/core.py,Documents,పత్రాలు
+apps/frappe/frappe/contacts/doctype/address/address.py,No default Address Template found. Please create a new one from Setup &gt; Printing and Branding &gt; Address Template.,డిఫాల్ట్ చిరునామా మూస కనుగొనబడలేదు. దయచేసి సెటప్&gt; ప్రింటింగ్ మరియు బ్రాండింగ్&gt; చిరునామా మూస నుండి క్రొత్తదాన్ని సృష్టించండి.
 DocType: Social Login Key,Custom Base URL,కస్టమ్ బేస్ URL
 DocType: Email Flag Queue,Is Completed,పూర్తయిన
 apps/frappe/frappe/website/doctype/web_form/web_form.js,Get Fields,ఫీల్డ్స్ పొందండి
@@ -2189,7 +2191,6 @@ apps/frappe/frappe/geo/doctype/currency/currency.js,This Currency is disabled. E
 DocType: Desktop Icon,Blocked,నిరోధిత
 DocType: Contact Us Settings,"Default: ""Contact Us""",డిఫాల్ట్: &quot;మమ్మల్ని సంప్రదించండి&quot;
 DocType: Contact,Purchase Manager,కొనుగోలు మేనేజర్
-apps/frappe/frappe/public/js/frappe/ui/toolbar/search.js,<p>No results found for '</p>,<p> దీని కోసం ఫలితాలు కనుగొనబడలేదు &#39; </p>
 apps/frappe/frappe/public/js/frappe/ui/tags.js,toggle Tag,ట్యాగ్ టోగుల్
 DocType: Custom Script,Sample,నమూనా
 apps/frappe/frappe/public/js/frappe/form/controls/table.js,"For performance, only the first 100 rows were processed.","పనితీరు కోసం, మొదటి 100 వరుసలు మాత్రమే ప్రాసెస్ చేయబడ్డాయి."
@@ -2274,6 +2275,7 @@ DocType: Workflow State,Warning,హెచ్చరిక
 apps/frappe/frappe/public/js/frappe/form/print.js,This may get printed on multiple pages,ఇది బహుళ పేజీలలో ముద్రించబడవచ్చు
 DocType: Data Migration Run,Percent Complete,శాతం పూర్తయింది
 DocType: Tag Category,Tag Category,ట్యాగ్ వర్గం
+apps/frappe/frappe/public/js/frappe/ui/toolbar/search.js,<p>No results found for '</p>,<p> దీని కోసం ఫలితాలు కనుగొనబడలేదు &#39; </p>
 apps/frappe/frappe/core/doctype/data_import/data_import.js,Help,సహాయం
 DocType: User,Login Before,లాగిన్ ముందు
 DocType: Web Page,Insert Style,చొప్పించు శైలి
@@ -2293,7 +2295,6 @@ apps/frappe/frappe/public/js/frappe/form/link_selector.js,Added {0} ({1}),చే
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.py,Fieldtype cannot be changed from {0} to {1} in row {2},Fieldtype నుండి మారలేదు {0} కు {1} వరుసగా {2}
 apps/frappe/frappe/public/js/frappe/roles_editor.js,Role Permissions,పాత్ర అనుమతులు
 DocType: Help Article,Intermediate,ఇంటర్మీడియట్
-apps/frappe/frappe/public/js/frappe/form/print.js,"Error connecting to QZ Tray Application...<br><br> You need to have QZ Tray application installed and running, to use the Raw Print feature.<br><br><a href=""https://qz.io/download/"" target=""_blank"">Click here to Download and install QZ Tray</a>.<br> <a href=""https://erpnext.com/docs/user/manual/en/setting-up/print/raw-printing"" target=""_blank"">Click here to learn more about Raw Printing</a>.","QZ ట్రే అనువర్తనానికి కనెక్ట్ చేయడంలో లోపం ... <br><br> రా ప్రింట్ ఫీచర్‌ను ఉపయోగించడానికి మీరు QZ ట్రే అప్లికేషన్‌ను ఇన్‌స్టాల్ చేసి అమలు చేయాలి. <br><br> <a href=""https://qz.io/download/"" target=""_blank"">QZ ట్రేని డౌన్‌లోడ్ చేసి, ఇన్‌స్టాల్ చేయడానికి ఇక్కడ క్లిక్ చేయండి</a> . <br> <a href=""https://erpnext.com/docs/user/manual/en/setting-up/print/raw-printing"" target=""_blank"">రా ప్రింటింగ్ గురించి మరింత తెలుసుకోవడానికి ఇక్కడ క్లిక్ చేయండి</a> ."
 apps/frappe/frappe/public/js/frappe/form/footer/timeline.js,{0} changed {1} to {2},{0} {1} ను {2} కు మార్చారు
 apps/frappe/frappe/core/doctype/deleted_document/deleted_document.py,Cancelled Document restored as Draft,రద్దు చేసిన పత్రం చిత్తుప్రతిగా పునరుద్ధరించబడింది
 DocType: Data Migration Run,Start Time,ప్రారంభ సమయం
@@ -2368,7 +2369,6 @@ DocType: User,Generate Keys,కీలను సృష్టించండి
 apps/frappe/frappe/templates/emails/delete_data_confirmation.html,This will permanently remove your data.,ఇది మీ డేటాను శాశ్వతంగా తొలగిస్తుంది.
 DocType: DocType,View Settings,సెట్టింగ్లను వీక్షించండి
 DocType: Email Account,Outlook.com,Outlook.com
-apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,"For comparison, use &gt;5, &lt;10 or =324. For ranges, use 5:10 (for values between 5 &amp; 10).","పోలిక కోసం,&gt; 5, &lt;10 లేదా = 324 ఉపయోగించండి. శ్రేణుల కోసం, 5:10 (5 &amp; 10 మధ్య విలువలకు) ఉపయోగించండి."
 DocType: Personal Data Deletion Request,Pending Verification,ధృవీకరణ పెండింగ్‌లో ఉంది
 DocType: Website Meta Tag,Website Meta Tag,వెబ్‌సైట్ మెటా ట్యాగ్
 DocType: Email Account,"If non standard port (e.g. 587). If on Google Cloud, try port 2525.","ప్రామాణికమైన కాని పోర్ట్ (ఉదా. 587). Google క్లౌడ్లో ఉంటే, పోర్ట్ 2525 ని ప్రయత్నించండి."
@@ -2766,7 +2766,6 @@ apps/frappe/frappe/core/doctype/error_log/error_log_list.js,Clear Error Logs,ల
 apps/frappe/frappe/core/doctype/user/user.js,Reset OTP Secret,OTP సీక్రెట్ను రీసెట్ చేయండి
 DocType: Email Account,Notify if unreplied for (in mins),(నిమిషాలు) కోసం unreplied ఉంటే తెలియజేయి
 apps/frappe/frappe/templates/emails/energy_points_summary.html,Points Given,ఇచ్చిన పాయింట్లు
-apps/frappe/frappe/contacts/doctype/address/address.py,No default Address Template found. Please create a new one from Setup &gt; Printing and Branding &gt; Address Template.,డిఫాల్ట్ చిరునామా మూస కనుగొనబడలేదు. దయచేసి సెటప్&gt; ప్రింటింగ్ మరియు బ్రాండింగ్&gt; చిరునామా మూస నుండి క్రొత్తదాన్ని సృష్టించండి.
 apps/frappe/frappe/config/website.py,Categorize blog posts.,బ్లాగ్ పోస్ట్లు వర్గీకరణ.
 DocType: Workflow State,Time,సమయం
 DocType: DocField,Attach,అటాచ్
@@ -2802,6 +2801,7 @@ DocType: Report,Reference Report,సూచన నివేదిక
 DocType: Activity Log,Link DocType,లింక్ doctype
 apps/frappe/frappe/public/js/frappe/chat.js,You don't have any messages yet.,మీకు ఇంకా ఏ సందేశాలు లేవు.
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js,Remove all customizations?,అన్ని వినియోగాలను తొలగించు?
+apps/frappe/frappe/email/smtp.py,Email Account not setup. Please create a new Email Account from Setup &gt; Email &gt; Email Account,ఇమెయిల్ ఖాతా సెటప్ కాదు. దయచేసి సెటప్&gt; ఇమెయిల్&gt; ఇమెయిల్ ఖాతా నుండి క్రొత్త ఇమెయిల్ ఖాతాను సృష్టించండి
 DocType: Website Slideshow,Slideshow Name,స్లైడ్ పేరు
 DocType: Address,Andhra Pradesh,ఆంధ్ర ప్రదేశ్
 apps/frappe/frappe/public/js/frappe/form/save.js,Cancelling,రద్దు
@@ -3322,6 +3322,7 @@ apps/frappe/frappe/public/js/frappe/ui/filters/filter.js,Equals,సమానం
 apps/frappe/frappe/core/doctype/doctype/doctype.py,Options 'Dynamic Link' type of field must point to another Link Field with options as 'DocType',రంగంలో ఐచ్ఛికాలు &#39;డైనమిక్ లింక్&#39; రకం &#39;DOCTYPE&#39; వంటి ఎంపికలు మరొక లింక్ ఫీల్డ్ సూచిస్తుంది ఉండాలి
 DocType: About Us Settings,Team Members Heading,శీర్షిక జట్టు సభ్యులు
 apps/frappe/frappe/utils/csvutils.py,Invalid CSV Format,చెల్లని CSV ఫార్మాట్
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Setup &gt; User Permissions,సెటప్&gt; వినియోగదారు అనుమతులు
 apps/frappe/frappe/desk/page/backups/backups.js,Set Number of Backups,బ్యాకప్ సంఖ్య సెట్
 DocType: DocField,Do not allow user to change after set the first time,మొదటిసారి యూజర్ తర్వాత సెట్ మార్చడానికి అనుమతిస్తుంది లేదు
 apps/frappe/frappe/utils/data.py,1 year ago,1 సంవత్సరం క్రితం
@@ -3441,7 +3442,6 @@ apps/frappe/frappe/core/doctype/doctype/doctype.py,'In Global Search' not allowe
 DocType: Energy Point Log,Appreciation,ప్రశంసతో
 apps/frappe/frappe/public/js/frappe/views/treeview.js,View List,జాబితా వీక్షణ
 DocType: Workflow,Don't Override Status,స్థితి భర్తీ లేదు
-apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Setup &gt; Customize Form,సెటప్&gt; ఫారమ్‌ను అనుకూలీకరించండి
 apps/frappe/frappe/public/js/frappe/form/multi_select_dialog.js,Search term,శోధన పదం
 apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js,The First User: You,మొదటి వాడుకరి: మీరు
 DocType: Deleted Document,GCalendar Sync ID,GCalendar సమకాలీకరణ ID
@@ -3657,7 +3657,6 @@ DocType: Chat Message,Room,గది
 apps/frappe/frappe/public/js/frappe/change_log.html,updated to {0},నవీకరించబడింది {0}
 DocType: User,Desktop Background,డెస్క్టాప్ నేపథ్య
 DocType: Portal Settings,Custom Menu Items,కస్టమ్ మెను అంశాలు
-apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Setup &gt; User,సెటప్&gt; వినియోగదారు
 apps/frappe/frappe/website/doctype/website_slideshow/website_slideshow.py,All Images attached to Website Slideshow should be public,వెబ్సైట్ స్లయిడ్షోకు జోడించబడిన అన్ని చిత్రాలు పబ్లిక్గా ఉండాలి
 DocType: Workflow State,chevron-right,చెవ్రాన్ కుడి
 apps/frappe/frappe/website/doctype/web_form/web_form.py,You need to be in developer mode to edit a Standard Web Form,మీరు ఒక ప్రామాణిక వెబ్ ఫారం సవరించడానికి డెవలపర్ మోడ్లో ఉండాలి
