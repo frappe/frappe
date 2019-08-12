@@ -78,7 +78,7 @@ frappe.ui.form.on("System Settings", "change_encryption_password", function (frm
 frappe.ui.form.on("System Settings", "validate", function (frm) {
 	if (frm.doc.new_password_encryption != frm.doc.confirm_password_encryption && frm.doc.enable_backup_encryption) {
 		frappe.msgprint("Password encrytion is not matched with the confirmed password.");
-		frappe.validated = False;
+		frappe.validated = 0;
 	} else if (frm.doc.new_password_encryption == frm.doc.confirm_password_encryption && frm.doc.enable_backup_encryption) {
 		if (frm.doc.confirm_password_encryption) {
 			frm.doc.password_encryption = frm.doc.confirm_password_encryption;
