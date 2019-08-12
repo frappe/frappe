@@ -30,6 +30,7 @@ def get_form_params():
 
 	data.pop('cmd', None)
 	data.pop('data', None)
+	data.pop('ignore_permissions', None)
 
 	if "csrf_token" in data:
 		del data["csrf_token"]
