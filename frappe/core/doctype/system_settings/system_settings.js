@@ -96,7 +96,7 @@ frappe.ui.form.on("System Settings", "validate", function (frm) {
 		frm.doc.change_encryption_password = 0;
 	}
 });
-frappe.ui.form.on("System Settings", "confirm_password_encryption", function () {
+frappe.ui.form.on("System Settings", "confirm_password_encryption", function (frm) {
 	if (frm.doc.new_password_encryption == frm.doc.confirm_password_encryption) {
 		$('input[data-fieldname="confirm_password_encryption"]')[0].style = "border-color: #08c708";
 	} else {
