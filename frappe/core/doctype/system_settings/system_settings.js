@@ -1,6 +1,3 @@
-/**
- * Created by jedi-paul on 7/1/19.
- */
 frappe.ui.form.on("System Settings", "refresh", function (frm) {
 	frappe.call({
 		method: "frappe.core.doctype.system_settings.system_settings.load",
