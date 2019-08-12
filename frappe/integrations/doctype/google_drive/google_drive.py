@@ -166,7 +166,7 @@ def check_for_folder_in_google_drive(google_drive, account):
 		frappe.throw(_("Google Drive - Could not find folder in Google Drive - Error Code {0}.").format(e))
 
 @frappe.whitelist()
-def upload_document_to_google_drive(doctype, docname, g_drive, format, letterhead):
+def upload_doc_to_google_drive(doctype, docname, g_drive, format, letterhead):
 	"""
 		Uploads Document to Folder specified in Google Drive Doc.
 	"""

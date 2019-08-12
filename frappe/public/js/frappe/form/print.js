@@ -497,7 +497,7 @@ frappe.ui.form.PrintPreview = Class.extend({
 					});
 
 					frappe.call({
-						method: "frappe.integrations.doctype.google_drive.google_drive.upload_document_to_google_drive",
+						method: "frappe.integrations.doctype.google_drive.google_drive.upload_doc_to_google_drive",
 						args: {
 							doctype: me.frm.doc.doctype,
 							docname: me.frm.doc.name,
