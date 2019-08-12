@@ -13,10 +13,6 @@ frappe.data_import.DataExporter = class DataExporter {
 	}
 
 	make_dialog() {
-		let column_map = new ColumnPickerFields({
-			doctype: this.doctype
-		}).get_columns_for_picker();
-
 		let doctypes = [this.doctype].concat(
 			...frappe.meta
 				.get_table_fields(this.doctype)
@@ -78,15 +74,7 @@ frappe.data_import.DataExporter = class DataExporter {
 						on_change: () => {
 							this.update_primary_action();
 						},
-						options: column_map[doctype].map(df => ({
-							label: __(df.label),
-							value: df.fieldname,
-							danger: df.reqd,
-							checked: df.reqd,
-							description: `${df.fieldname} ${
-								df.reqd ? __('(Mandatory)') : ''
-							}`
-						}))
+						options: this.get_multicheck_options(doctype)
 					};
 				})
 			],
@@ -161,12 +149,8 @@ frappe.data_import.DataExporter = class DataExporter {
 					${__('Unselect All')}
 				</button>
 			</div>
-		`).on('click', '[data-action]', e => {
-			let $target = $(e.currentTarget);
-			let action = $target.data('action');
-			let method = this[action];
-			method ? this[action]() : null;
-		});
+		`);
+		frappe.utils.bind_actions_with_class($select_all_buttons, this);
 		this.dialog
 			.get_field('select_all_buttons')
 			.$wrapper.html($select_all_buttons);
@@ -239,11 +223,7 @@ frappe.data_import.DataExporter = class DataExporter {
 			} else {
 				message = __('{0} records will be exported', [value]);
 			}
-			this.dialog.set_df_property(
-				'export_records',
-				'description',
-				message
-			);
+			this.dialog.set_df_property('export_records', 'description', message);
 
 			this.update_primary_action(value);
 		});
@@ -276,5 +256,41 @@ frappe.data_import.DataExporter = class DataExporter {
 				[filter[1]]: [filter[2], filter[3]]
 			});
 		}, {});
+	}
+
+	get_multicheck_options(doctype) {
+		if (!this.column_map) {
+			this.column_map = new ColumnPickerFields({
+				doctype: this.doctype
+			}).get_columns_for_picker();
+		}
+
+		let autoname_field = null;
+		let meta = frappe.get_meta(doctype);
+		if (meta.autoname && meta.autoname.startsWith('field:')) {
+			let fieldname = meta.autoname.slice('field:'.length);
+			autoname_field = frappe.meta.get_field(doctype, fieldname);
+		}
+
+		return this.column_map[doctype]
+			.filter(df => {
+				if (autoname_field && df.fieldname === autoname_field.fieldname) {
+					return false;
+				}
+				return true;
+			})
+			.map(df => {
+				let label = __(df.label);
+				if (autoname_field && df.fieldname === 'name') {
+					label = label + ` (${__(autoname_field.label)})`;
+				}
+				return {
+					label,
+					value: df.fieldname,
+					danger: df.reqd,
+					checked: df.reqd,
+					description: `${df.fieldname} ${df.reqd ? __('(Mandatory)') : ''}`
+				};
+			});
 	}
 };

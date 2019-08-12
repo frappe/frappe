@@ -5,7 +5,7 @@
 from __future__ import unicode_literals
 import frappe
 from frappe.model.document import Document
-from frappe.utils.csvutils import read_csv_content
+from frappe.core.doctype.data_import.importer_new import Importer
 from frappe.core.doctype.data_import.exporter_new import Exporter
 
 class DataImportBeta(Document):
@@ -16,9 +16,9 @@ class DataImportBeta(Document):
 
 		f = frappe.get_doc('File', { 'file_url': self.import_file })
 		file_content = f.get_content()
-		csv_content = read_csv_content(file_content)
 
-		return csv_content[:100]
+		i = Importer(self.reference_doctype, content=file_content)
+		return i.get_data_for_import_preview()
 
 
 @frappe.whitelist()

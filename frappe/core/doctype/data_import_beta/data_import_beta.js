@@ -24,12 +24,13 @@ frappe.ui.form.on('Data Import Beta', {
 				.appendTo(frm.get_field('import_preview').$wrapper);
 
 			frm.call('get_preview_from_template').then(r => {
-				let csv_array = r.message;
+				let preview_data = r.message;
 
 				frappe.require('/assets/js/data_import_tools.min.js', () => {
 					new frappe.data_import.ImportPreview(
 						frm.get_field('import_preview').$wrapper,
-						csv_array
+						frm.doc.reference_doctype,
+						preview_data
 					);
 				});
 			});

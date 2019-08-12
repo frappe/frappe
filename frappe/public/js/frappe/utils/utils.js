@@ -725,6 +725,16 @@ Object.assign(frappe.utils, {
 	},
 	is_rtl() {
 		return ["ar", "he", "fa"].includes(frappe.boot.lang);
+	},
+	bind_actions_with_class($el, class_instance) {
+		$($el).on('click', '[data-action]', e => {
+			let $target = $(e.currentTarget);
+			let action = $target.data('action');
+			let method = class_instance[action];
+			method ? class_instance[action]() : null;
+		});
+
+		return $el;
 	}
 });
 

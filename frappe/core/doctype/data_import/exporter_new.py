@@ -48,7 +48,21 @@ class Exporter:
 			'reqd': 1,
 			'parent': self.doctype
 		})
-		return [name_field] + self.get_exportable_fields(self.doctype)
+
+		parent_fields = self.get_exportable_fields(self.doctype)
+
+		# if autoname is based on field
+		# then merge ID and the field column title as "ID (Autoname Field)"
+		autoname = self.meta.autoname
+		if autoname and autoname.startswith('field:'):
+			fieldname = autoname[len('field:'):]
+			autoname_field = self.meta.get_field(fieldname)
+			if autoname_field:
+				name_field.label = 'ID ({})'.format(autoname_field.label)
+				# remove the autoname field as it is a duplicate of ID field
+				parent_fields = [df for df in parent_fields if df.fieldname != autoname_field.fieldname]
+
+		return [name_field] + parent_fields
 
 
 	def get_exportable_children_fields(self):

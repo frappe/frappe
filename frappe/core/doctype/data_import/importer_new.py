@@ -10,6 +10,7 @@ from frappe import _
 from frappe.utils import cint, flt, DATE_FORMAT, DATETIME_FORMAT
 from frappe.utils.csvutils import read_csv_content
 from frappe.exceptions import ValidationError, MandatoryError
+from frappe.model import display_fieldtypes, no_value_fields, table_fields
 
 # set user lang
 # set flags: frappe.flags.in_import = True
@@ -17,6 +18,8 @@ from frappe.exceptions import ValidationError, MandatoryError
 # during import
 	# check empty row
 	# validate naming
+
+INVALID_VALUES = ['', None]
 
 class Importer:
 
@@ -33,6 +36,7 @@ class Importer:
 		elif content:
 			self.read_content(content)
 
+		self.remove_empty_rows_and_columns()
 
 	def read_file(self, file_path):
 		extn = file_path.split('.')[1]
@@ -53,8 +57,159 @@ class Importer:
 		self.data = data[1:]
 
 
+	def remove_empty_rows_and_columns(self):
+		self.row_index_map = []
+		removed_rows = []
+		removed_columns = []
+
+		# remove empty rows
+		data = []
+		for i, row in enumerate(self.data):
+			if all(v in INVALID_VALUES for v in row):
+				# empty row
+				removed_rows.append(i)
+			else:
+				data.append(row)
+				self.row_index_map.append(i)
+
+		# remove empty columns
+		# a column with a header and no data is a valid column
+		# a column with no header and no data will be removed
+		header_row = []
+		for i, column in enumerate(self.header_row):
+			column_values = [row[i] for row in data]
+			values = [column] + column_values
+			if all(v in INVALID_VALUES for v in values):
+				# empty column
+				removed_columns.append(i)
+			else:
+				header_row.append(column)
+
+		data_without_empty_columns = []
+		# remove empty columns from data
+		for i, row in enumerate(data):
+			new_row = [v for j, v in enumerate(row) if j not in removed_columns]
+			data_without_empty_columns.append(new_row)
+
+		self.data = data_without_empty_columns
+		self.header_row = header_row
+
+
+	def get_data_for_import_preview(self):
+		fields, fields_warnings = self.parse_fields_from_header_row()
+		formats, formats_warnings = self.parse_formats_from_first_10_rows()
+		fields, data = self.add_serial_no_column(fields, self.data)
+
+		warnings = fields_warnings + formats_warnings
+
+		return dict(
+			fields=fields,
+			data=data,
+			warnings=warnings
+		)
+
+
+	def parse_fields_from_header_row(self):
+		fields = []
+		warnings = []
+
+		df_by_labels_and_fieldnames = self.build_fields_dict_for_column_matching()
+
+		for i, value in enumerate(self.header_row):
+			field = df_by_labels_and_fieldnames.get(value)
+			if not field:
+				field = {
+					'label': value,
+					'skip_import': True
+				}
+				if value:
+					warnings.append(_('Column {0}: Cannot match column {1} with any field').format(i, frappe.bold(value)))
+				else:
+					warnings.append(_('Column {0}: Skipping untitled column').format(i))
+			fields.append(field)
+
+		return fields, warnings
+
+
+	def build_fields_dict_for_column_matching(self):
+		"""
+		Build a dict with various keys to match with column headers and value as docfield
+		The keys can be label or fieldname
+		{
+		 'Customer': df1,
+		 'customer': df1,
+		 'Due Date': df2,
+		 'due_date': df2,
+		 'Sales Invoice Item / Item Code': df3
+		}
+		"""
+		out = {
+			'ID': frappe._dict({
+				'fieldtype': 'Data',
+				'fieldname': 'name',
+				'label': 'ID',
+				'reqd': 1,
+				'parent': self.doctype
+			})
+		}
+
+		doctypes = [self.doctype] + [df.options for df in self.meta.get_table_fields()]
+		for doctype in doctypes:
+			meta = frappe.get_meta(doctype)
+			for df in meta.fields:
+				if df.fieldtype not in no_value_fields:
+					# label as key
+					label = df.label if self.doctype == doctype else '{0} / {1}'.format(df.parent, df.label)
+					out[label] = df
+					# fieldname as key
+					if self.doctype == doctype:
+						out[df.fieldname] = df
+
+		# if autoname is based on field
+		# add an entry for "ID (Autoname Field)"
+		autoname = self.meta.autoname
+		if autoname and autoname.startswith('field:'):
+			fieldname = autoname[len('field:'):]
+			autoname_field = self.meta.get_field(fieldname)
+			if autoname_field:
+				out['ID ({})'.format(autoname_field.label)] = autoname_field
+				# ID field should also map to the autoname field
+				out['ID'] = autoname_field
+
+		return out
+
+
+	def parse_formats_from_first_10_rows(self):
+		"""
+		Returns a list of column descriptors for columns that might need parsing.
+		For e.g if it is a Date column return the Date format
+		[
+			[['Data']],
+			[['Date', '%m/%d/%y']],
+			[['Currency', '#,###.##']],
+			...
+		]
+		"""
+		formats = []
+		return formats, []
+
+
+	def add_serial_no_column(self, fields, data):
+		fields_with_serial_no = [
+			{
+				'label': _('Sr. No'),
+				'skip_import': True
+			}
+		] + fields
+
+		data_with_serial_no = []
+		for i, row in enumerate(data):
+			data_with_serial_no.append([self.row_index_map[i] + 1] + row)
+
+		return fields_with_serial_no, data_with_serial_no
+
+
 	def parse_data_for_import(self, row, index):
-		INVALID_VALUES = ['', None]
 
 		if all(v in INVALID_VALUES for v in row):
 			# empty row
