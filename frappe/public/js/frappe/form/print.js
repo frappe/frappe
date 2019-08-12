@@ -506,9 +506,10 @@ frappe.ui.form.PrintPreview = Class.extend({
 							letterhead: me.with_letterhead() ? "0" : "1"
 						},
 						callback: function(r) {
+							frappe.msgprint(r.message);
 							uploader.enable_primary_action();
 						}
-					})
+					});
 				}
 			});
 			uploader.show();

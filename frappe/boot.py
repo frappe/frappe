@@ -76,7 +76,6 @@ def get_bootinfo():
 	bootinfo.calendars = sorted(frappe.get_hooks("calendars"))
 	bootinfo.treeviews = frappe.get_hooks("treeviews") or []
 	bootinfo.lang_dict = get_lang_dict()
-	bootinfo.google_drive_enabled = get_google_drive_status()
 	bootinfo.success_action = get_success_action()
 	bootinfo.update(get_email_accounts(user=frappe.session.user))
 	bootinfo.energy_points_enabled = is_energy_point_enabled()
@@ -257,9 +256,6 @@ def get_unseen_notes():
 		and expire_notification_on > %s and %s not in
 			(select user from `tabNote Seen By` nsb
 				where nsb.parent=`tabNote`.name)''', (frappe.utils.now(), frappe.session.user), as_dict=True)
-
-def get_google_drive_status():
-	return True if frappe.db.exists("Google Drive", {"enable": 1}) else False
 
 def get_success_action():
 	return frappe.get_all("Success Action", fields=["*"])

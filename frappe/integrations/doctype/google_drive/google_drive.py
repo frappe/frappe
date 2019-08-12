@@ -15,7 +15,7 @@ from frappe.model.document import Document
 from frappe.utils import get_request_site_address
 from six.moves.urllib.parse import quote
 from apiclient.http import MediaFileUpload
-from frappe.utils.file_manager import save_file, get_file_url
+from frappe.utils.file_manager import save_file
 from frappe.utils.print_format import download_pdf
 from frappe.utils import get_backups_path, get_files_path
 from frappe.utils.backups import new_backup
@@ -143,8 +143,11 @@ def create_folder_in_google_drive(google_drive_object=None, account=None, g_driv
 		"name": account.backup_folder_name,
 		"mimeType": "application/vnd.google-apps.folder"
 	}
-	folder = google_drive_object.files().create(body=file_metadata, fields="id").execute()
-	frappe.db.set_value("Google Drive", account.name, "backup_folder_id", folder.get("id"))
+	try:
+		folder = google_drive_object.files().create(body=file_metadata, fields="id").execute()
+		frappe.db.set_value("Google Drive", account.name, "backup_folder_id", folder.get("id"))
+	except HttpError as e
+		frappe.throw(_("Google Drive - Could not create folder in Google Drive - Error Code {0}").format(e))
 
 	return "Folder created successfully in Google Drive."
 
@@ -157,12 +160,9 @@ def check_for_folder_in_google_drive(google_drive_object, account):
 		return
 
 	try:
-		folder = google_drive_object.files().get(fileId=account.backup_folder_id, fields="id").execute()
+		google_drive_object.files().get(fileId=account.backup_folder_id, fields="id").execute()
 	except HttpError as e:
-		if e.resp.status == 404:
-			create_folder_in_google_drive(google_drive_object, account)
-		else:
-			frappe.msgprint(_("Google Drive - Could not create folder - Error Code {0}.").format(e))
+		frappe.throw(_("Google Drive - Could not find folder in Google Drive - Error Code {0}.").format(e))
 
 @frappe.whitelist()
 def upload_document_to_google_drive(doctype, docname, g_drive, format, letterhead):
