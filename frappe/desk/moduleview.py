@@ -228,7 +228,7 @@ def get_config(app, module):
 			if item["type"]=="report" and frappe.db.get_value("Report", item["name"], "disabled")==1:
 				section["items"].remove(item)
 				continue
-			if not "label" in item:
+			if not item.get("label"):
 				item["label"] = _(item["name"])
 
 	return sections
@@ -324,8 +324,7 @@ def get_desktop_settings():
 		all_links = get_links(module.app, module.module_name)
 		module_links_by_label = {}
 		for link in all_links:
-			if link.get('label'):
-				module_links_by_label[link['label']] = link
+			module_links_by_label[link['label']] = link
 
 		if module.module_name in user_saved_links_by_module:
 			user_links = frappe.parse_json(user_saved_links_by_module[module.module_name])
