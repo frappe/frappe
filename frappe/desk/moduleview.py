@@ -324,7 +324,8 @@ def get_desktop_settings():
 		all_links = get_links(module.app, module.module_name)
 		module_links_by_label = {}
 		for link in all_links:
-			module_links_by_label[link['label']] = link
+			if link.get('label'):
+				module_links_by_label[link['label']] = link
 
 		if module.module_name in user_saved_links_by_module:
 			user_links = frappe.parse_json(user_saved_links_by_module[module.module_name])
