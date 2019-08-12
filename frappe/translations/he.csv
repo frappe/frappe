@@ -587,7 +587,6 @@ apps/frappe/frappe/www/login.html,Or login with,או התחבר עם
 apps/frappe/frappe/desk/moduleview.py,Custom Reports,דוחות מותאמים אישית
 DocType: Event,Participants,משתתפים
 DocType: Custom DocPerm,Permissions,הרשאות
-apps/frappe/frappe/core/doctype/data_import/exporter.py,Leave blank for new records,שאר ריק לשיאים חדשים
 apps/frappe/frappe/core/doctype/error_snapshot/error_snapshot.html,Error Report,דוח שגיאות
 apps/frappe/frappe/public/js/frappe/form/save.js,Submitting,הגשה
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.py,'In List View' not allowed for type {0} in row {1},"""ברשימת צפייה 'לא אפשר לסוג {0} בשורת {1}"

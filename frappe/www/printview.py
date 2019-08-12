@@ -7,6 +7,7 @@ import frappe, os, copy, json, re
 from frappe import _
 
 from frappe.modules import get_doc_path
+from frappe.core.doctype.access_log.access_log import make_access_log
 from frappe.utils import cint, strip_html
 from six import string_types
 
@@ -32,6 +33,8 @@ def get_context(context):
 	meta = frappe.get_meta(doc.doctype)
 
 	print_format = get_print_format_doc(None, meta = meta)
+
+	make_access_log(doctype=frappe.form_dict.doctype, document=frappe.form_dict.name, file_type='PDF', method='Print')
 
 	return {
 		"body": get_rendered_template(doc, print_format = print_format,
@@ -95,9 +98,9 @@ def get_rendered_template(doc, name=None, print_format=None, meta=None,
 
 	# determine template
 	if print_format:
-		doc._show_section_headings = print_format.show_section_headings
-		doc._line_breaks = print_format.line_breaks
-		doc._align_labels_right = print_format.align_labels_right
+		doc.print_section_headings = print_format.show_section_headings
+		doc.print_line_breaks = print_format.line_breaks
+		doc.align_labels_right = print_format.align_labels_right
 
 		def get_template_from_string():
 			return jenv.from_string(get_print_format(doc.doctype,
