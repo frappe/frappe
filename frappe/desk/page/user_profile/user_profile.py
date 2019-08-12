@@ -32,7 +32,7 @@ def get_energy_points_pie_chart_data(user, field):
 def get_user_points_and_rank(user, date=None):
     result = frappe.db.get_all('Energy Point Log',
         group_by='user',
-        filters={'creation': ['>', date]},
+        filters={'creation': ['>', date], 'type' : ['!=', 'Review']},
         fields=['user', '(sum(points)) as points', 'rank() over (order by points desc) as rank'],
         as_list = True)
 
