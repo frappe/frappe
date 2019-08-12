@@ -30,7 +30,10 @@ def get_form_params():
 	"""Stringify GET request parameters."""
 	data = frappe._dict(frappe.local.form_dict)
 
-	del data["cmd"]
+	data.pop('cmd', None)
+	data.pop('data', None)
+	data.pop('ignore_permissions', None)
+
 	if "csrf_token" in data:
 		del data["csrf_token"]
 
