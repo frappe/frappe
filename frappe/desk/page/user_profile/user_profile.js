@@ -2,24 +2,24 @@ frappe.provide('frappe.energy_points');
 
 frappe.pages['user-profile'].on_page_load = function(wrapper) {
 
-	let page = frappe.ui.make_app_page({
+	frappe.ui.make_app_page({
 		parent: wrapper,
-		title: __("User Profile"),
+		title: __('User Profile'),
 	});
 
-	let user_profile = new UserProfile(wrapper)
-	$(wrapper).bind('show',()=> {
+	let user_profile = new UserProfile(wrapper);
+	$(wrapper).bind('show', ()=> {
 		user_profile.show();
 	});
-}
+};
 
 class UserProfile {
 
 	constructor(wrapper) {
 		this.wrapper = $(wrapper);
 		this.page = wrapper.page;
-		this.sidebar = this.wrapper.find(".layout-side-section");
-		this.main_section = this.wrapper.find(".layout-main-section");
+		this.sidebar = this.wrapper.find('.layout-side-section');
+		this.main_section = this.wrapper.find('.layout-main-section');
 	}
 
 	show() {
@@ -36,8 +36,8 @@ class UserProfile {
 
 	check_user_exists(user) {
 		frappe.db.exists('User', user).then( exists => {
-			if(!exists) {
-				frappe.msgprint('User does not exist');
+			if (!exists) {
+				frappe.msgprint(__('User does not exist'));
 			} else {
 				this.user_id = user;
 				this.make_user_profile();
@@ -67,7 +67,7 @@ class UserProfile {
 	setup_user_search() {
 		var me = this;
 		this.$user_search_button = this.page.set_secondary_action('Change User', function() {
-			me.show_user_search_dialog()
+			me.show_user_search_dialog();
 		});
 	}
 
@@ -132,16 +132,16 @@ class UserProfile {
 		this.line_chart_data = {
 			timespan: 'Last Month',
 			time_interval: 'Daily',
-			type:'Line',
-			value_based_on: "points",
-			chart_type: "Sum",
-			document_type: "Energy Point Log",
+			type: 'Line',
+			value_based_on: 'points',
+			chart_type: 'Sum',
+			document_type: 'Energy Point Log',
 			name: 'Energy Points',
 			width: 'half',
 			based_on: 'creation'
-		}
+		};
 
-		this.line_chart = new frappe.Chart( ".performance-line-chart", {
+		this.line_chart = new frappe.Chart( '.performance-line-chart', {
 			title: 'Energy Points',
 			type: 'line',
 			height: 200,
@@ -223,7 +223,7 @@ class UserProfile {
 					this.update_line_chart_data();
 				}
 			},
-		]
+		];
 		this.render_chart_filters(filters, '.line-chart-container', 1);
 	}
 
@@ -238,7 +238,7 @@ class UserProfile {
 					this.render_percentage_chart(fieldname, title);
 				}
 			},
-		]
+		];
 		this.render_chart_filters(filters, '.percentage-chart-container');
 	}
 
@@ -251,7 +251,7 @@ class UserProfile {
 					this.update_heatmap_data(frappe.datetime.obj_to_str(selected_item));
 				}
 			},
-		]
+		];
 		this.render_chart_filters(filters, '.heatmap-container');
 	}
 
@@ -289,7 +289,7 @@ class UserProfile {
 				let selected_item = $el.text();
 				$el.parents('.chart-filter').find('.filter-label').text(selected_item);
 				filter.action(selected_item, fieldname);
-			})
+			});
 		});
 
 	}
@@ -329,17 +329,15 @@ class UserProfile {
 			primary_action: values => {
 				edit_profile_dialog.disable_primary_action();
 				frappe.xcall('frappe.desk.page.user_profile.user_profile.update_profile_info', {
-						profile_info: values
-					})
-					.then(user => {
-						user.image = user.user_image;
-						this.user = Object.assign(values, user);
-						edit_profile_dialog.hide();
-						this.render_user_details();
-					})
-					.finally(() => {
-						edit_profile_dialog.enable_primary_action();
-					});
+					profile_info: values
+				}).then(user => {
+					user.image = user.user_image;
+					this.user = Object.assign(values, user);
+					edit_profile_dialog.hide();
+					this.render_user_details();
+				}).finally(() => {
+					edit_profile_dialog.enable_primary_action();
+				});
 			},
 			primary_action_label: __('Save')
 		});
@@ -355,7 +353,7 @@ class UserProfile {
 
 	render_user_details() {
 		this.sidebar.empty().append(frappe.render_template('user_profile_sidebar', {
-			user_image: frappe.avatar(this.user_id,'avatar-frame', 'user_image', this.user.image),
+			user_image: frappe.avatar(this.user_id, 'avatar-frame', 'user_image', this.user.image),
 			user_abbr: this.user.abbr,
 			user_location: this.user.location,
 			user_interest: this.user.interest,
@@ -369,11 +367,11 @@ class UserProfile {
 		if (this.user_id !== frappe.session.user) {
 			this.wrapper.find('.profile-links').hide();
 		} else {
-			this.wrapper.find(".edit-profile-link").on("click", () => {
+			this.wrapper.find('.edit-profile-link').on('click', () => {
 				this.edit_profile();
 			});
 
-			this.wrapper.find(".user-settings-link").on("click", () => {
+			this.wrapper.find('.user-settings-link').on('click', () => {
 				this.go_to_user_settings();
 			});
 		}
@@ -383,8 +381,7 @@ class UserProfile {
 		return frappe.xcall('frappe.desk.page.user_profile.user_profile.get_user_points_and_rank', {
 			user: this.user_id,
 			date: date || null,
-		})
-		.then(user => {
+		}).then(user => {
 			if (user[0]) {
 				let user_info = user[0];
 				//Check if monthly rank or all time rank
@@ -395,7 +392,7 @@ class UserProfile {
 					this.month_rank = user_info[2];
 				}
 			}
-		})
+		});
 	}
 
 	render_points_and_rank() {
@@ -404,14 +401,15 @@ class UserProfile {
 		this.get_user_energy_points_and_rank().then(() => {
 			let html = $(__(`<p class="user-energy-points text-muted">Energy Points: <span class="rank">{0}</span></p>
 				<p class="user-energy-points text-muted">Rank: <span class="rank">{1}</span></p>`, [this.energy_points, this.rank]));
-				$profile_details.append(html);
+
+			$profile_details.append(html);
 
 			this.get_user_energy_points_and_rank(frappe.datetime.month_start()).then(() => {
 				let html = $(__(`<p class="user-energy-points text-muted">Monthly Rank: <span class="rank">{0}</span></p>`,
 					[this.month_rank]));
 				$profile_details.append(html);
-			})
-		})
+			});
+		});
 	}
 
 	go_to_user_settings() {
@@ -424,20 +422,20 @@ class UserProfile {
 		let get_recent_energy_points_html = (field) => {
 			let message_html = frappe.energy_points.format_history_log(field);
 			return `<p class="recent-activity-item text-muted"> ${message_html} </p>`;
-		}
+		};
 
 		frappe.xcall('frappe.desk.page.user_profile.user_profile.get_energy_points_list', {
 			start: this.activity_start,
 			limit: this.activity_end,
 			user: this.user_id
 		}).then(list => {
-			if(!list.length) {
+			if (!list.length) {
 				this.wrapper.find('.show-more-activity a').html('No More Activity');
 			}
 			let html = list.map(get_recent_energy_points_html).join('');
 			if (append_to_activity) this.$recent_activity_list.append(html);
 			else this.$recent_activity_list.html(html);
-		})
+		});
 	}
 
 	setup_show_more_activity() {
@@ -454,6 +452,3 @@ class UserProfile {
 	}
 
 }
-
-
-
