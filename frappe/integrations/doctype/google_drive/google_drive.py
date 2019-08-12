@@ -197,11 +197,12 @@ def upload_document_to_google_drive(doctype, docname, g_drive, format, letterhea
 	media = MediaFileUpload(get_absolute_path(fileurl), mimetype="application/pdf", resumable=True)
 
 	try:
+		display_upload_status("orange", _("Uploading file to Google Drive."))
 		google_drive_object.files().create(body=file_metadata, media_body=media, fields="id").execute()
 	except HttpError as e:
 		frappe.msgprint(_("Google Drive - Could not upload file - Error Code {0}").format(e))
 
-	return _("{0} {1} uploaded to Google Drive successfully.").format(doctype, docname)
+	display_upload_status("green", _("File Uploaded to Google Drive."))
 
 @frappe.whitelist()
 def upload_system_backup_to_google_drive(g_drive):
@@ -232,6 +233,9 @@ def upload_system_backup_to_google_drive(g_drive):
 		frappe.msgprint(_("Google Drive - Could not upload backup - Error {0}").format(e))
 
 	return _("Google Drive Backup Successful.")
+
+def display_upload_status(indicator, message):
+	frappe.publish_realtime("upload_google_drive", dict(indicator=indicator, message=message), user=frappe.session.user)
 
 def daily_backup():
 	g_drive = frappe.db.exists("Google Drive", {"enable": 1, "enable_system_backup": 1, "frequency": "Daily"})

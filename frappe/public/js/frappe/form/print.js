@@ -457,6 +457,14 @@ frappe.ui.form.PrintPreview = Class.extend({
 	},
 	google_drive_upload: function() {
 		var me = this;
+
+		frappe.realtime.on("upload_google_drive", (data) => {
+			frappe.show_alert({
+				indicator: data.indicator,
+				message: data.message
+			});
+		});
+
 		this.wrapper.find(".btn-upload-drive").click(function () {
 			let uploader = new frappe.ui.Dialog({
 				title: __("Upload File to Google Drive"),
@@ -485,8 +493,8 @@ frappe.ui.form.PrintPreview = Class.extend({
 
 					frappe.show_alert({
 						indicator: "red",
-						message: __("Uploading to Google Drive.")
-					})
+						message: __("Preparing file to upload.")
+					});
 
 					frappe.call({
 						method: "frappe.integrations.doctype.google_drive.google_drive.upload_document_to_google_drive",
@@ -498,7 +506,6 @@ frappe.ui.form.PrintPreview = Class.extend({
 							letterhead: me.with_letterhead() ? "0" : "1"
 						},
 						callback: function(r) {
-							frappe.msgprint(r.message);
 							uploader.enable_primary_action();
 						}
 					})
