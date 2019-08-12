@@ -139,7 +139,7 @@ def uploadfile():
 
 	return ret
 
-@frappe.whitelist()
+@frappe.whitelist(allow_guest=True)
 def upload_file():
 	files = frappe.request.files
 	is_private = frappe.form_dict.is_private
@@ -176,7 +176,7 @@ def upload_file():
 			"is_private": cint(is_private),
 			"content": content
 		})
-		ret.save()
+		ret.save(ignore_permissions=True)
 		return ret
 
 
