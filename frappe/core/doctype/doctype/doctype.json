@@ -1,6 +1,7 @@
 {
  "allow_rename": 1,
  "autoname": "Prompt",
+ "create_on_install": 1,
  "creation": "2013-02-18 13:36:19",
  "description": "DocType is a Table / Form in the application.",
  "doctype": "DocType",
@@ -9,6 +10,7 @@
  "field_order": [
   "sb0",
   "module",
+  "create_on_install",
   "is_submittable",
   "istable",
   "issingle",
@@ -438,11 +440,18 @@
    "fieldtype": "Select",
    "label": "Database Engine",
    "options": "InnoDB\nMyISAM"
+  },
+  {
+   "default": "0",
+   "description": "Create table during installation.",
+   "fieldname": "create_on_install",
+   "fieldtype": "Check",
+   "label": "Create on Install"
   }
  ],
  "icon": "fa fa-bolt",
  "idx": 6,
- "modified": "2019-07-04 23:23:17.174960",
+ "modified": "2019-08-12 23:07:00.691953",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocType",

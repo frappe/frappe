@@ -2,6 +2,7 @@
  "allow_import": 1,
  "allow_rename": 1,
  "autoname": "format:AUT-AR-{#####}",
+ "create_on_install": 1,
  "creation": "2018-03-09 11:22:31.192349",
  "doctype": "DocType",
  "editable_grid": 1,
@@ -188,7 +189,7 @@
    "label": "Repeat on Last Day of the Month"
   }
  ],
- "modified": "2019-07-17 11:30:51.412317",
+ "modified": "2019-08-12 23:07:12.999699",
  "modified_by": "Administrator",
  "module": "Automation",
  "name": "Auto Repeat",

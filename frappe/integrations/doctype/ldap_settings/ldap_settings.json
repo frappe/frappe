@@ -1,4 +1,5 @@
 {
+ "create_on_install": 1,
  "creation": "2016-09-22 04:16:48.829658",
  "doctype": "DocType",
  "document_type": "System",
@@ -190,7 +191,7 @@
  ],
  "in_create": 1,
  "issingle": 1,
- "modified": "2019-07-15 06:48:16.562109",
+ "modified": "2019-08-12 23:07:15.126335",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "LDAP Settings",

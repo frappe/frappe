@@ -1,6 +1,7 @@
 {
  "allow_import": 1,
  "autoname": "field:theme",
+ "create_on_install": 1,
  "creation": "2015-02-18 12:46:38.168929",
  "doctype": "DocType",
  "document_type": "Setup",
@@ -70,7 +71,7 @@
    "options": "JSON"
   }
  ],
- "modified": "2019-06-14 18:36:21.283390",
+ "modified": "2019-08-12 23:07:22.151153",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Website Theme",

@@ -1,6 +1,7 @@
 {
  "allow_import": 1,
  "allow_rename": 1,
+ "create_on_install": 1,
  "creation": "2014-03-11 14:55:00",
  "description": "Represents a User in the system.",
  "doctype": "DocType",
@@ -614,8 +615,8 @@
  "idx": 413,
  "image_field": "user_image",
  "max_attachments": 5,
- "modified": "2019-07-12 11:35:17.469656",
- "modified_by": "prasadsherlock@gmail.com",
+ "modified": "2019-08-12 23:07:16.845875",
+ "modified_by": "Administrator",
  "module": "Core",
  "name": "User",
  "owner": "Administrator",

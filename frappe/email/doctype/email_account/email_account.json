@@ -1,6 +1,7 @@
 {
  "allow_rename": 1,
  "autoname": "field:email_account_name",
+ "create_on_install": 1,
  "creation": "2014-09-11 12:04:34.163728",
  "doctype": "DocType",
  "document_type": "Setup",
@@ -372,8 +373,8 @@
    "read_only": 1
   },
   {
-    "fieldname": "section_break_12",
-    "fieldtype": "Section Break"
+   "fieldname": "section_break_12",
+   "fieldtype": "Section Break"
   },
   {
    "default": "0",
@@ -384,7 +385,7 @@
   }
  ],
  "icon": "fa fa-inbox",
- "modified": "2019-06-15 19:03:55.283524",
+ "modified": "2019-08-12 23:07:20.548505",
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Email Account",

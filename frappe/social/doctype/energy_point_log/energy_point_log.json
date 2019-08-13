@@ -1,4 +1,5 @@
 {
+ "create_on_install": 1,
  "creation": "2018-06-21 14:58:55.913619",
  "doctype": "DocType",
  "editable_grid": 1,
@@ -101,7 +102,7 @@
   }
  ],
  "in_create": 1,
- "modified": "2019-08-07 15:51:05.288886",
+ "modified": "2019-08-12 23:07:08.504273",
  "modified_by": "Administrator",
  "module": "Social",
  "name": "Energy Point Log",

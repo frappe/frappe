@@ -1,5 +1,6 @@
 {
  "autoname": "field:calendar_name",
+ "create_on_install": 1,
  "creation": "2019-07-06 17:54:09.450100",
  "doctype": "DocType",
  "editable_grid": 1,
@@ -108,7 +109,7 @@
    "label": "Push to Google Calendar"
   }
  ],
- "modified": "2019-08-08 15:44:15.798362",
+ "modified": "2019-08-12 23:07:06.513425",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Google Calendar",

@@ -1,5 +1,6 @@
 {
  "autoname": "DL.####",
+ "create_on_install": 1,
  "creation": "2013-01-29 17:55:08",
  "doctype": "DocType",
  "document_type": "Document",
@@ -173,7 +174,7 @@
  "icon": "fa fa-glass",
  "idx": 1,
  "issingle": 1,
- "modified": "2019-07-01 22:50:50.372465",
+ "modified": "2019-08-12 23:07:18.445679",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Customize Form",

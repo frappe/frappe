@@ -1,4 +1,5 @@
 {
+ "create_on_install": 1,
  "creation": "2019-05-07 11:08:35.889625",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -23,7 +24,7 @@
   }
  ],
  "istable": 1,
- "modified": "2019-05-07 11:11:46.867684",
+ "modified": "2019-08-12 23:07:32.618965",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Website Route Redirect",

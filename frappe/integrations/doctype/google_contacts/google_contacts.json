@@ -1,5 +1,6 @@
 {
  "autoname": "format:GC-{user}",
+ "create_on_install": 1,
  "creation": "2019-06-14 00:09:39.441961",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -72,7 +73,7 @@
    "label": "Authorize Google Contacts Access"
   }
  ],
- "modified": "2019-06-19 15:26:24.494101",
+ "modified": "2019-08-12 23:07:19.630619",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Google Contacts",

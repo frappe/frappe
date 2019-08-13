@@ -1,6 +1,7 @@
 {
  "allow_rename": 1,
  "autoname": "Prompt",
+ "create_on_install": 1,
  "creation": "2014-07-11 17:18:09.923399",
  "doctype": "DocType",
  "document_type": "System",
@@ -263,7 +264,7 @@
   }
  ],
  "icon": "fa fa-envelope",
- "modified": "2019-07-15 13:17:02.585013",
+ "modified": "2019-08-12 23:07:14.309417",
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Notification",

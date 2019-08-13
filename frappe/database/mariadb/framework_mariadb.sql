@@ -161,6 +161,7 @@ CREATE TABLE `tabDocType` (
   `allow_guest_to_view` int(1) NOT NULL DEFAULT 0,
   `route` varchar(255) DEFAULT NULL,
   `is_published_field` varchar(255) DEFAULT NULL,
+  `create_on_install` int(1) NOT NULL DEFAULT 0,
   PRIMARY KEY (`name`),
   KEY `parent` (`parent`)
 ) ENGINE=InnoDB ROW_FORMAT=COMPRESSED CHARACTER SET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

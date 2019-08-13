@@ -1,6 +1,7 @@
 {
  "allow_rename": 1,
  "autoname": "field:language_code",
+ "create_on_install": 1,
  "creation": "2014-08-22 16:12:17.249590",
  "doctype": "DocType",
  "document_type": "Setup",
@@ -41,7 +42,7 @@
   }
  ],
  "icon": "fa fa-globe",
- "modified": "2019-07-19 16:32:12.652550",
+ "modified": "2019-08-12 23:07:11.610536",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Language",

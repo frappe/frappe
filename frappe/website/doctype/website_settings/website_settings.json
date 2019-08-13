@@ -1,4 +1,5 @@
 {
+ "create_on_install": 1,
  "creation": "2013-04-30 12:58:46",
  "doctype": "DocType",
  "document_type": "Other",
@@ -293,7 +294,7 @@
  "idx": 1,
  "issingle": 1,
  "max_attachments": 10,
- "modified": "2019-06-12 17:16:37.452872",
+ "modified": "2019-08-12 23:07:23.468341",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Website Settings",

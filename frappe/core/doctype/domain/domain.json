@@ -1,5 +1,6 @@
 {
  "autoname": "field:domain",
+ "create_on_install": 1,
  "creation": "2017-05-03 15:07:39.752820",
  "doctype": "DocType",
  "editable_grid": 1,
@@ -17,7 +18,7 @@
    "unique": 1
   }
  ],
- "modified": "2019-06-30 13:24:13.732202",
+ "modified": "2019-08-12 23:07:19.254208",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Domain",
