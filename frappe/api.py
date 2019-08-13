@@ -164,23 +164,29 @@ def validate_auth_via_api_keys():
 	"""
 	try:
 		authorization_header = frappe.get_request_header("Authorization", None).split(" ") if frappe.get_request_header("Authorization") else None
+		authorization_source = frappe.get_request_header("Frappe-Authorization-Source", None)
 		if authorization_header and authorization_header[0] == 'Basic':
 			token = frappe.safe_decode(base64.b64decode(authorization_header[1])).split(":")
-			validate_api_key_secret(token[0], token[1])
 		elif authorization_header and authorization_header[0] == 'token':
 			token = authorization_header[1].split(":")
-			validate_api_key_secret(token[0], token[1])
+		
+		if authorization_source:
+			validate_api_key_secret(token[0], token[1], authorization_source)
 	except Exception as e:
 		raise e
 
-def validate_api_key_secret(api_key, api_secret):
-	user = frappe.db.get_value(
-		doctype="User",
+def validate_api_key_secret(api_key, api_secret, frappe_authorization_source=None):
+	""" frappe_authorization_source to provide api key and secret for a doctype apart from User """
+	if not frappe_authorization_source:
+		frappe_authorization_source = 'User'
+	doc = frappe.db.get_value(
+		doctype=frappe_authorization_source,
 		filters={"api_key": api_key},
-		fieldname=['name']
+		fieldname=["name"]
 	)
 	form_dict = frappe.local.form_dict
-	user_secret = frappe.utils.password.get_decrypted_password ("User", user, fieldname='api_secret')
-	if api_secret == user_secret:
+	doc_secret = frappe.utils.password.get_decrypted_password(frappe_authorization_source, doc, fieldname="api_secret")
+	if api_secret == doc_secret:
+		user = frappe.db.get_value(frappe_authorization_source, doc, 'user')
 		frappe.set_user(user)
 		frappe.local.form_dict = form_dict
