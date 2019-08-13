@@ -15,11 +15,8 @@ from frappe.model.document import Document
 from frappe.utils import get_request_site_address
 from six.moves.urllib.parse import quote
 from apiclient.http import MediaFileUpload
-from frappe.utils.file_manager import save_file
-from frappe.utils.print_format import download_pdf
 from frappe.utils import get_backups_path, get_files_path, get_bench_path
 from frappe.utils.backups import new_backup
-from frappe.utils import now
 from frappe.integrations.doctype.google_settings.google_settings import get_auth_url
 
 SCOPES = "https://www.googleapis.com/auth/drive/v3"
@@ -109,12 +106,12 @@ def google_callback(code=None):
 
 	authorize_access(google_drive)
 
-def get_google_drive_object(g_drive):
+def get_google_drive_object():
 	"""
 		Returns an object of Google Drive.
 	"""
 	google_settings = frappe.get_doc("Google Settings")
-	account = frappe.get_doc("Google Drive", g_drive)
+	account = frappe.get_doc("Google Drive")
 
 	if not account.backup_folder_id:
 		frappe.throw(_("Folder {0} not created in Google Drive.").format(account.backup_folder_name))
@@ -133,10 +130,8 @@ def get_google_drive_object(g_drive):
 
 	return google_drive, account
 
-@frappe.whitelist()
-def create_folder_in_google_drive(google_drive=None, account=None, g_drive=None):
-	if g_drive:
-		google_drive, account = get_google_drive_object(g_drive)
+def create_folder_in_google_drive(google_drive, account):
+	google_drive, account = get_google_drive_object()
 
 	file_metadata = {
 		"name": account.backup_folder_name,
@@ -164,12 +159,12 @@ def check_for_folder_in_google_drive(google_drive, account):
 		frappe.throw(_("Google Drive - Could not find folder in Google Drive - Error Code {0}.").format(e))
 
 @frappe.whitelist()
-def upload_system_backup_to_google_drive(g_drive):
+def upload_system_backup_to_google_drive():
 	"""
 		Upload system backup to Google Drive
 	"""
 	# Get Google Drive Object
-	google_drive, account = get_google_drive_object(g_drive)
+	google_drive, account = get_google_drive_object()
 
 	# Check if folder exists in Google Drive
 	check_for_folder_in_google_drive(google_drive, account)
@@ -197,12 +192,12 @@ def upload_system_backup_to_google_drive(g_drive):
 def daily_backup():
 	g_drive = frappe.db.exists("Google Drive", {"enable": 1, "enable_system_backup": 1, "frequency": "Daily"})
 	if g_drive:
-		upload_system_backup_to_google_drive(g_drive)
+		upload_system_backup_to_google_drive()
 
 def weekly_backup():
 	g_drive = frappe.db.exists("Google Drive", {"enable": 1, "enable_system_backup": 1, "frequency": "Weekly"})
 	if g_drive:
-		upload_system_backup_to_google_drive(g_drive)
+		upload_system_backup_to_google_drive()
 
 def get_absolute_path(filename, backup=False):
 	file_path = os.path.join(get_files_path()[2:], filename)
