@@ -52,6 +52,7 @@ class UserProfile {
 		this.setup_user_search();
 		this.main_section.empty().append(frappe.render_template('user_profile'));
 		this.energy_points = 0;
+		this.review_points = 0;
 		this.rank = 0;
 		this.month_rank = 0;
 		this.render_user_details();
@@ -377,20 +378,34 @@ class UserProfile {
 		}
 	}
 
-	get_user_energy_points_and_rank(date) {
-		return frappe.xcall('frappe.desk.page.user_profile.user_profile.get_user_points_and_rank', {
+	get_user_rank(date) {
+		return frappe.xcall('frappe.desk.page.user_profile.user_profile.get_user_rank', {
 			user: this.user_id,
 			date: date || null,
-		}).then(user => {
-			if (user[0]) {
-				let user_info = user[0];
+		}).then(r => {
+			if (r[0]) {
+				let user_rank = r[0];
+
 				//Check if monthly rank or all time rank
-				if (!this.energy_points) this.energy_points = user_info[1];
 				if (!date) {
-					this.rank = user_info[2];
+					this.rank = user_rank[1];
 				} else {
-					this.month_rank = user_info[2];
+					this.month_rank = user_rank[1];
 				}
+			}
+		});
+	}
+
+	get_user_points() {
+		return frappe.xcall(
+			'frappe.social.doctype.energy_point_log.energy_point_log.get_user_energy_and_review_points',
+			{
+				user: this.user_id,
+			}
+		).then(r => {
+			if (r.length) {
+				this.energy_points = r[this.user_id].energy_points;
+				this.review_points = r[this.user_id].review_points;
 			}
 		});
 	}
@@ -398,16 +413,19 @@ class UserProfile {
 	render_points_and_rank() {
 		let $profile_details = this.wrapper.find('.profile-details');
 
-		this.get_user_energy_points_and_rank().then(() => {
-			let html = $(__(`<p class="user-energy-points text-muted">Energy Points: <span class="rank">{0}</span></p>
-				<p class="user-energy-points text-muted">Rank: <span class="rank">{1}</span></p>`, [this.energy_points, this.rank]));
+		this.get_user_rank().then(() => {
 
-			$profile_details.append(html);
+			this.get_user_rank(frappe.datetime.month_start()).then(() => {
 
-			this.get_user_energy_points_and_rank(frappe.datetime.month_start()).then(() => {
-				let html = $(__(`<p class="user-energy-points text-muted">Monthly Rank: <span class="rank">{0}</span></p>`,
-					[this.month_rank]));
-				$profile_details.append(html);
+				this.get_user_points().then(() => {
+					let html = $(__(`<p class="user-energy-points text-muted">Energy Points: <span class="rank">{0}</span></p>
+						<p class="user-energy-points text-muted">Review Points: <span class="rank">{1}</span></p>
+						<p class="user-energy-points text-muted">Rank: <span class="rank">{2}</span></p>
+						<p class="user-energy-points text-muted">Monthly Rank: <span class="rank">{3}</span></p>
+					`, [this.energy_points, this.review_points, this.rank, this.month_rank]));
+
+					$profile_details.append(html);
+				});
 			});
 		});
 	}
