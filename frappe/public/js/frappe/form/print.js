@@ -146,8 +146,6 @@ frappe.ui.form.PrintPreview = Class.extend({
 				frappe.set_route("print-format-builder");
 			}, __("New Custom Print Format"), __("Start"));
 		});
-
-		this.google_drive_upload();
 	},
 	setup_keyboard_shortcuts() {
 		this.wrapper.find('.print-toolbar a.btn-default').each((i, el) => {
@@ -453,66 +451,6 @@ frappe.ui.form.PrintPreview = Class.extend({
 			if (!(this.printer_list && this.printer_list.length)) {
 				frappe.throw(__("No Printer is Available."));
 			}
-		});
-	},
-	google_drive_upload: function() {
-		var me = this;
-
-		frappe.realtime.on("upload_google_drive", (data) => {
-			frappe.show_alert({
-				indicator: data.indicator,
-				message: data.message
-			});
-		});
-
-		this.wrapper.find(".btn-upload-drive").click(function () {
-			let uploader = new frappe.ui.Dialog({
-				title: __("Upload File to Google Drive"),
-				fields: [
-					{
-						fieldtype: "Link",
-						fieldname: "google_drive",
-						options: "Google Drive",
-						label: __("Google Drive"),
-						reqd: 1,
-						get_query: function() {
-							return {
-								"filters": {
-									"enable": 1,
-									"owner": frappe.session.user,
-								}
-							}
-						}
-					}
-				],
-				primary_action_label: __("Submit"),
-				primary_action: (d) => {
-					uploader.hide();
-					uploader.disable_primary_action();
-					uploader.clear();
-
-					frappe.show_alert({
-						indicator: "red",
-						message: __("Preparing file to upload.")
-					});
-
-					frappe.call({
-						method: "frappe.integrations.doctype.google_drive.google_drive.upload_doc_to_google_drive",
-						args: {
-							doctype: me.frm.doc.doctype,
-							docname: me.frm.doc.name,
-							g_drive: d.google_drive,
-							format: me.selected_format(),
-							letterhead: me.with_letterhead() ? "0" : "1"
-						},
-						callback: function(r) {
-							frappe.msgprint(r.message);
-							uploader.enable_primary_action();
-						}
-					});
-				}
-			});
-			uploader.show();
 		});
 	}
 });

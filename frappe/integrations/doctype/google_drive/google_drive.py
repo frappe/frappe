@@ -66,12 +66,11 @@ def authorize_access(g_drive, reauthorize=None):
 	"""
 
 	google_settings = frappe.get_doc("Google Settings")
-	google_drive = frappe.get_doc("Google Drive", g_drive)
+	google_drive = frappe.get_doc("Google Drive")
 
 	redirect_uri = get_request_site_address(True) + "?cmd=frappe.integrations.doctype.google_drive.google_drive.google_callback"
 
 	if not google_drive.authorization_code or reauthorize:
-		frappe.cache().hset("google_drive", "google_drive", google_drive.name)
 		return get_authentication_url(client_id=google_settings.client_id, redirect_uri=redirect_uri)
 	else:
 		try:
@@ -89,7 +88,7 @@ def authorize_access(g_drive, reauthorize=None):
 				frappe.db.commit()
 
 			frappe.local.response["type"] = "redirect"
-			frappe.local.response["location"] = "/desk#Form/{0}/{1}".format(quote("Google Drive"), quote(google_drive.name))
+			frappe.local.response["location"] = "/desk#Form/{0}".format(quote("Google Drive"))
 
 			frappe.msgprint(_("Google Drive has been configured."))
 		except Exception as e:
@@ -105,8 +104,7 @@ def google_callback(code=None):
 	"""
 		Authorization code is sent to callback as per the API configuration
 	"""
-	google_drive = frappe.cache().hget("google_drive", "google_drive")
-	frappe.db.set_value("Google Drive", google_drive, "authorization_code", code)
+	frappe.db.set_value("Google Drive", None, "authorization_code", code)
 	frappe.db.commit()
 
 	authorize_access(google_drive)
@@ -146,7 +144,7 @@ def create_folder_in_google_drive(google_drive=None, account=None, g_drive=None)
 	}
 	try:
 		folder = google_drive.files().create(body=file_metadata, fields="id").execute()
-		frappe.db.set_value("Google Drive", account.name, "backup_folder_id", folder.get("id"))
+		frappe.db.set_value("Google Drive", None, "backup_folder_id", folder.get("id"))
 	except HttpError as e:
 		frappe.throw(_("Google Drive - Could not create folder in Google Drive - Error Code {0}").format(e))
 
@@ -164,46 +162,6 @@ def check_for_folder_in_google_drive(google_drive, account):
 		google_drive.files().get(fileId=account.backup_folder_id, fields="id").execute()
 	except HttpError as e:
 		frappe.throw(_("Google Drive - Could not find folder in Google Drive - Error Code {0}.").format(e))
-
-@frappe.whitelist()
-def upload_doc_to_google_drive(doctype, docname, g_drive, format, letterhead):
-	"""
-		Uploads Document to Folder specified in Google Drive Doc.
-	"""
-	# Get Google Drive Object
-	google_drive, account = get_google_drive_object(g_drive)
-
-	# Check if folder exists in Google Drive
-	check_for_folder_in_google_drive(google_drive, account)
-	account.load_from_db()
-
-	# Create PDF for doc and append datestring to name
-	download_pdf(doctype=doctype, name=docname, format=format, no_letterhead=letterhead)
-	filename = frappe.local.response.filename.replace(".pdf", "-{0}.pdf".format(now()))
-	filecontent = frappe.local.response.filecontent
-
-	file_to_upload = save_file(filename, filecontent, doctype, docname)
-
-	if not file_to_upload:
-		frappe.throw(_("Could not upload pdf to Google Drive"))
-
-	fileurl = os.path.basename(file_to_upload.file_name or file_to_upload.file_url)
-
-	# parents: Folder id under which the file is to be uploaded
-	file_metadata = {
-		"name": filename,
-		"parents": [account.backup_folder_id]
-	}
-
-	media = MediaFileUpload(get_absolute_path(fileurl), mimetype="application/pdf", resumable=True)
-
-	try:
-		display_upload_status("orange", _("Uploading file to Google Drive."))
-		google_drive.files().create(body=file_metadata, media_body=media, fields="id").execute()
-	except HttpError as e:
-		frappe.msgprint(_("Google Drive - Could not upload file - Error Code {0}").format(e))
-
-	display_upload_status("green", _("File Uploaded to Google Drive."))
 
 @frappe.whitelist()
 def upload_system_backup_to_google_drive(g_drive):
@@ -230,13 +188,11 @@ def upload_system_backup_to_google_drive(g_drive):
 
 	try:
 		google_drive.files().create(body=file_metadata, media_body=media, fields="id").execute()
+		frappe.db.set_value("Google Drive", None, "last_backup_on", frappe.utils.now_datetime())
 	except HttpError as e:
 		frappe.msgprint(_("Google Drive - Could not upload backup - Error {0}").format(e))
 
 	return _("Google Drive Backup Successful.")
-
-def display_upload_status(indicator, message):
-	frappe.publish_realtime("upload_google_drive", dict(indicator=indicator, message=message), user=frappe.session.user)
 
 def daily_backup():
 	g_drive = frappe.db.exists("Google Drive", {"enable": 1, "enable_system_backup": 1, "frequency": "Daily"})
