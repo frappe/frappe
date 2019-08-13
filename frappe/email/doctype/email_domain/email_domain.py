@@ -49,9 +49,15 @@ class EmailDomain(Document):
 				except Exception:
 					pass
 			try:
-				if self.use_tls and not self.smtp_port:
+				if self.use_ssl_for_outgoing and not self.smtp_port:
+					self.smtp_port = 465
+					sess = smtplib.SMTP_SSL((self.smtp_server or "").encode('utf-8'), cint(self.smtp_port) or None)
+
+				elif self.use_tls and not self.smtp_port:
 					self.smtp_port = 587
+
 				sess = smtplib.SMTP((self.smtp_server or "").encode('utf-8'), cint(self.smtp_port) or None)
+
 				sess.quit()
 			except Exception:
 				frappe.throw(_("Outgoing email account not correct"))
