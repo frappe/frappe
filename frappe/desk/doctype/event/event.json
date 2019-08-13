@@ -10,6 +10,7 @@
   "subject",
   "event_category",
   "event_type",
+  "color",
   "send_reminder",
   "repeat_this_event",
   "column_break_4",
@@ -17,6 +18,13 @@
   "ends_on",
   "status",
   "all_day",
+  "sync_with_google_calendar",
+  "sb_00",
+  "google_calendar",
+  "pulled_from_google_calendar",
+  "cb_00",
+  "google_calendar_id",
+  "google_calendar_event_id",
   "section_break_13",
   "repeat_on",
   "repeat_till",
@@ -29,8 +37,6 @@
   "saturday",
   "sunday",
   "section_break_8",
-  "color",
-  "section_break_6",
   "description",
   "participants",
   "event_participants"
@@ -39,6 +45,7 @@
   {
    "fieldname": "details",
    "fieldtype": "Section Break",
+   "label": "Details",
    "oldfieldtype": "Section Break"
   },
   {
@@ -183,10 +190,6 @@
    "label": "Color"
   },
   {
-   "fieldname": "section_break_6",
-   "fieldtype": "Section Break"
-  },
-  {
    "fieldname": "description",
    "fieldtype": "Text Editor",
    "in_global_search": 1,
@@ -216,11 +219,54 @@
    "in_standard_filter": 1,
    "label": "Status",
    "options": "Open\nClosed"
+  },
+  {
+   "collapsible": 1,
+   "depends_on": "eval:doc.sync_with_google_calendar",
+   "fieldname": "sb_00",
+   "fieldtype": "Section Break",
+   "label": "Google Calendar"
+  },
+  {
+   "fetch_from": "google_calendar.google_calendar_id",
+   "fieldname": "google_calendar_id",
+   "fieldtype": "Data",
+   "label": "Google Calendar ID",
+   "read_only": 1
+  },
+  {
+   "fieldname": "cb_00",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "google_calendar_event_id",
+   "fieldtype": "Data",
+   "label": "Google Calendar Event ID",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "sync_with_google_calendar",
+   "fieldtype": "Check",
+   "label": "Sync with Google Calendar"
+  },
+  {
+   "fieldname": "google_calendar",
+   "fieldtype": "Link",
+   "label": "Google Calendar",
+   "options": "Google Calendar"
+  },
+  {
+   "default": "0",
+   "fieldname": "pulled_from_google_calendar",
+   "fieldtype": "Check",
+   "label": "Pulled from Google Calendar",
+   "read_only": 1
   }
  ],
  "icon": "fa fa-calendar",
  "idx": 1,
- "modified": "2019-07-27 10:33:39.183832",
+ "modified": "2019-08-08 16:01:19.489396",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Event",

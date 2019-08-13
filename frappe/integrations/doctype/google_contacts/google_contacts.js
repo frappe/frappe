@@ -16,7 +16,7 @@ frappe.ui.form.on('Google Contacts', {
 		});
 
 		if (frm.doc.refresh_token) {
-			frm.add_custom_button(__('Sync Contacts'), function () {
+			let sync_button = frm.add_custom_button(__('Sync Contacts'), function () {
 				frappe.show_alert({
 					indicator: 'green',
 					message: __('Syncing')
@@ -26,6 +26,7 @@ frappe.ui.form.on('Google Contacts', {
 					args: {
 						"g_contact": frm.doc.name
 					},
+					btn: sync_button
 				}).then((r) => {
 					frappe.hide_progress();
 					frappe.msgprint(r.message);

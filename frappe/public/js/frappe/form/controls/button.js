@@ -1,4 +1,8 @@
 frappe.ui.form.ControlButton = frappe.ui.form.ControlData.extend({
+	can_write() {
+		// should be always true in case of button
+		return true;
+	},
 	make_input: function() {
 		var me = this;
 		this.$input = $('<button class="btn btn-default btn-xs">')

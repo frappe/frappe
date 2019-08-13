@@ -31,6 +31,9 @@ class Event(Document):
 		if self.repeat_on == "Daily" and self.ends_on and getdate(self.starts_on) != getdate(self.ends_on):
 			frappe.throw(_("Daily Events should finish on the Same Day."))
 
+		if self.sync_with_google_calendar and not self.google_calendar:
+			frappe.throw(_("Select Google Calendar to which event should be synced."))
+
 	def on_update(self):
 		self.sync_communication()
 

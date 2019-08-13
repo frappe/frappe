@@ -94,16 +94,6 @@ def get_data():
 				},
 				{
 					"type": "doctype",
-					"name": "GCalendar Settings",
-					"description": _("Configure your google calendar integration"),
-				},
-				{
-					"type": "doctype",
-					"name": "GCalendar Account",
-					"description": _("Configure accounts for google calendar"),
-				},
-				{
-					"type": "doctype",
 					"name": "GSuite Settings",
 					"description": _("Enter keys to enable integration with Google GSuite"),
 				},
@@ -116,6 +106,11 @@ def get_data():
 					"type": "doctype",
 					"name": "Google Contacts",
 					"description": _("Google Contacts Integration."),
+				},
+				{
+					"type": "doctype",
+					"name": "Google Calendar",
+					"description": _("Google Calendar Integration."),
 				}
 			]
 		}
