@@ -3,6 +3,7 @@ import requests
 import json
 import frappe
 from six import iteritems, string_types
+from base64 import b64encode
 
 '''
 FrappeClient is a library that helps you connect with other frappe systems
@@ -15,7 +16,7 @@ class FrappeException(Exception):
 	pass
 
 class FrappeClient(object):
-	def __init__(self, url, username=None, password=None, verify=True):
+	def __init__(self, url, username=None, password=None, verify=True, api_key=None, api_secret=None, frappe_authorization_source = None):
 		self.headers = dict(Accept='application/json')
 		self.verify = verify
 		self.session = requests.session()
@@ -24,6 +25,10 @@ class FrappeClient(object):
 		# login if username/password provided
 		if username and password:
 			self._login(username, password)
+
+		# token based authentication if api_key and api_secret provided
+		elif api_key and api_secret:
+			self.authenticate(api_key, api_secret, frappe_authorization_source)
 
 	def __enter__(self):
 		return self
@@ -44,6 +49,14 @@ class FrappeClient(object):
 		else:
 			print(r.text)
 			raise AuthError
+
+	def authenticate(self, api_key, api_secret, frappe_authorization_source=None):
+		token = b64encode('{}:{}'. format(api_key, api_secret))
+		auth_header = {'Authorization': 'Basic {}'.format(token)}
+		self.session.headers.update(auth_header)
+		if frappe_authorization_source:
+			auth_source = {'Frappe-Authorization-Source': frappe_authorization_source}
+			self.session.headers.update(auth_source)
 
 	def logout(self):
 		'''Logout session'''
