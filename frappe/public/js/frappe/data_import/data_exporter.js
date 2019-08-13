@@ -1,8 +1,5 @@
+import ColumnPickerFields from './column_picker_fields';
 frappe.provide('frappe.data_import');
-
-class ColumnPickerFields extends frappe.views.ReportView {
-	show() {}
-}
 
 frappe.data_import.DataExporter = class DataExporter {
 	constructor(doctype) {

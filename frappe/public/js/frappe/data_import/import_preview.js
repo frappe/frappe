@@ -1,21 +1,27 @@
 import DataTable from 'frappe-datatable';
+import ColumnManager from 'frappe-datatable/src/columnmanager';
+import ColumnPickerFields from './column_picker_fields';
 
 frappe.provide('frappe.data_import');
 
 frappe.data_import.ImportPreview = class ImportPreview {
-	constructor(wrapper, doctype, preview_data) {
+	constructor({ wrapper, doctype, preview_data, events = {} }) {
 		frappe.import_preview = this;
 		this.wrapper = wrapper;
 		this.doctype = doctype;
+		this.header_row = preview_data.header_row;
 		this.preview_fields = preview_data.fields;
 		this.preview_data = preview_data.data;
 		this.preview_warnings = preview_data.warnings;
+		this.events = events;
 
-		this.make_wrapper();
-		this.prepare_columns();
-		this.prepare_data();
-		this.render_warnings();
-		this.render_datatable();
+		frappe.model.with_doctype(doctype, () => {
+			this.make_wrapper();
+			this.prepare_columns();
+			this.prepare_data();
+			this.render_warnings();
+			this.render_datatable();
+		});
 	}
 
 	make_wrapper() {
@@ -55,11 +61,16 @@ frappe.data_import.ImportPreview = class ImportPreview {
 			if (this.doctype !== df.parent) {
 				column_title = `${df.label} (${df.parent})`;
 			}
+			let meta = frappe.get_meta(this.doctype);
+			if (meta.autoname === `field:${df.fieldname}`) {
+				column_title = `ID (${df.label})`;
+			}
 			return {
 				id: df.fieldname,
 				name: column_title,
 				df: df,
-				editable: true
+				editable: true,
+				align: 'left'
 			};
 		});
 	}
@@ -87,6 +98,8 @@ frappe.data_import.ImportPreview = class ImportPreview {
 	}
 
 	render_datatable() {
+		let self = this;
+
 		this.datatable = new DataTable(this.$table_preview.get(0), {
 			data: this.preview_data,
 			columns: this.columns,
@@ -97,23 +110,121 @@ frappe.data_import.ImportPreview = class ImportPreview {
 			pasteFromClipboard: true,
 			headerDropdown: [
 				{
-					label: __('Change column mapping'),
-					action: console.log
+					label: __('Remap Column'),
+					action: col => this.remap_column(col)
 				},
 				{
-					label: __("Don't Import"),
-					action: console.log
+					label: __('Skip Import'),
+					action: col => this.skip_import(col)
 				}
-			]
+			],
+			overrideComponents: {
+				ColumnManager: class CustomColumnManager extends ColumnManager {
+					getHeaderHTML(columns) {
+						let html = super.getHeaderHTML(columns);
+
+						let header_row_columns = [
+							{
+								id: '_checkbox',
+								colIndex: 0,
+								format: () => ''
+							},
+							{
+								id: 'Sr. No',
+								colIndex: 1,
+								format: () => ''
+							}
+						].concat(
+							...self.header_row.map((col, i) => {
+								return {
+									id: col,
+									name: col,
+									align: 'left',
+									dropdown: false,
+									content: col,
+									colIndex: i + 2
+								};
+							})
+						);
+
+						let header_row_html = this.rowmanager.getRowHTML(
+							header_row_columns,
+							{
+								rowIndex: 'header-row'
+							}
+						);
+						return header_row_html + html;
+					}
+				}
+			}
 		});
 
 		this.datatable.style.setStyle('.dt-dropdown__list-item:nth-child(-n+4)', {
 			display: 'none'
+		});
+
+		let columns = this.datatable.getColumns();
+		columns.forEach(col => {
+			if (!col.skip_import && col.df) {
+				this.datatable.style.setStyle(
+					`.dt-header .dt-cell--col-${col.colIndex}`,
+					{
+						backgroundColor: frappe.ui.color.get_color_shade(
+							'green',
+							'extra-light'
+						),
+						color: frappe.ui.color.get_color_shade('green', 'dark')
+					}
+				);
+			}
+			if (col.skip_import && col.name !== 'Sr. No') {
+				this.datatable.style.setStyle(
+					`.dt-header .dt-cell--col-${col.colIndex}`,
+					{
+						backgroundColor: frappe.ui.color.get_color_shade(
+							'orange',
+							'extra-light'
+						),
+						color: frappe.ui.color.get_color_shade('orange', 'dark')
+					}
+				);
+				this.datatable.style.setStyle(`.dt-cell--col-${col.colIndex}`, {
+					backgroundColor: frappe.ui.color.get_color_shade('white', 'light')
+				});
+			}
 		});
 	}
 
 	add_row() {
 		this.preview_data.push([]);
 		this.datatable.refresh(this.preview_data);
+	}
+
+	remap_column(col) {
+		let column_picker_fields = new ColumnPickerFields({
+			doctype: this.doctype
+		});
+		let dialog = new frappe.ui.Dialog({
+			title: __('Remap Column: {0}', [col.name]),
+			fields: [
+				{
+					fieldtype: 'Autocomplete',
+					fieldname: 'fieldname',
+					label: __('Select field'),
+					max_items: Infinity,
+					options: column_picker_fields.get_fields_as_options()
+				}
+			],
+			primary_action: ({ fieldname }) => {
+				if (!fieldname) return;
+				this.events.remap_column(col.name, fieldname);
+				dialog.hide();
+			}
+		});
+		dialog.show();
+	}
+
+	skip_import(col) {
+		this.events.skip_import(col.name);
 	}
 };

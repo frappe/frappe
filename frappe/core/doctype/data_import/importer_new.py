@@ -95,35 +95,50 @@ class Importer:
 		self.header_row = header_row
 
 
-	def get_data_for_import_preview(self):
-		fields, fields_warnings = self.parse_fields_from_header_row()
+	def get_data_for_import_preview(self, import_options=None):
+		import_options = import_options or frappe._dict()
+		remap_columns = import_options.remap_column
+		skip_import = import_options.skip_import
+
+		fields, fields_warnings = self.parse_fields_from_header_row(remap_columns, skip_import)
 		formats, formats_warnings = self.parse_formats_from_first_10_rows()
 		fields, data = self.add_serial_no_column(fields, self.data)
 
 		warnings = fields_warnings + formats_warnings
 
 		return dict(
+			header_row=self.header_row,
 			fields=fields,
 			data=data,
 			warnings=warnings
 		)
 
 
-	def parse_fields_from_header_row(self):
+	def parse_fields_from_header_row(self, remap_columns, skip_import):
+		remap_columns = remap_columns or frappe._dict()
+		skip_import = skip_import or []
 		fields = []
 		warnings = []
 
 		df_by_labels_and_fieldnames = self.build_fields_dict_for_column_matching()
 
 		for i, value in enumerate(self.header_row):
+			if remap_columns.get(value):
+				column_name = value
+				value = remap_columns.get(value)
+				warnings.append(_('Column {0}: Mapping column {1} to field {2}').format(
+					i, frappe.bold(column_name), frappe.bold(value)))
+
 			field = df_by_labels_and_fieldnames.get(value)
-			if not field:
+			if not field or value in skip_import:
 				field = {
 					'label': value,
 					'skip_import': True
 				}
-				if value:
+				if value and value not in skip_import:
 					warnings.append(_('Column {0}: Cannot match column {1} with any field').format(i, frappe.bold(value)))
+				elif value in skip_import:
+					warnings.append(_('Column {0}: Skipping column {1}').format(i, frappe.bold(value)))
 				else:
 					warnings.append(_('Column {0}: Skipping untitled column').format(i))
 			fields.append(field)
@@ -140,7 +155,8 @@ class Importer:
 		 'customer': df1,
 		 'Due Date': df2,
 		 'due_date': df2,
-		 'Sales Invoice Item / Item Code': df3
+		 'Item Code (Sales Invoice Item)': df3,
+		 'Sales Invoice Item:item_code': df3,
 		}
 		"""
 		out = {
@@ -159,11 +175,14 @@ class Importer:
 			for df in meta.fields:
 				if df.fieldtype not in no_value_fields:
 					# label as key
-					label = df.label if self.doctype == doctype else '{0} / {1}'.format(df.parent, df.label)
+					label = df.label if self.doctype == doctype else '{0} ({1})'.format(df.label, df.parent)
 					out[label] = df
 					# fieldname as key
 					if self.doctype == doctype:
 						out[df.fieldname] = df
+					else:
+						key = '{0}:{1}'.format(doctype, df.fieldname)
+						out[key] = df
 
 		# if autoname is based on field
 		# add an entry for "ID (Autoname Field)"
@@ -197,7 +216,7 @@ class Importer:
 	def add_serial_no_column(self, fields, data):
 		fields_with_serial_no = [
 			{
-				'label': _('Sr. No'),
+				'label': 'Sr. No',
 				'skip_import': True
 			}
 		] + fields

@@ -154,7 +154,7 @@ class Exporter:
 			if df.parent == self.doctype:
 				return df.label
 			else:
-				return '{0} / {1}'.format(df.parent, df.label)
+				return '{0} ({1})'.format(df.label, df.parent)
 
 		header = [get_label(df) for df in self.fields]
 		self.csv_array.append(header)
