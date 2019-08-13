@@ -36,6 +36,8 @@
   "enable_outgoing",
   "smtp_server",
   "use_tls",
+  "use_ssl_for_outgoing",
+  "append_emails_to_send_folder",
   "smtp_port",
   "default_outgoing",
   "always_use_account_email_id_as_sender",
@@ -372,8 +374,8 @@
    "read_only": 1
   },
   {
-    "fieldname": "section_break_12",
-    "fieldtype": "Section Break"
+   "fieldname": "section_break_12",
+   "fieldtype": "Section Break"
   },
   {
    "default": "0",
@@ -381,10 +383,24 @@
    "fieldname": "enable_automatic_linking",
    "fieldtype": "Check",
    "label": "Enable Automatic Linking in Documents"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:!doc.domain && doc.enable_outgoing",
+   "fieldname": "use_ssl_for_outgoing",
+   "fieldtype": "Check",
+   "label": "Use SSL"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:!doc.domain && doc.enable_outgoing",
+   "fieldname": "append_emails_to_send_folder",
+   "fieldtype": "Check",
+   "label": "Append Outgoing Email To Sent Folder"
   }
  ],
  "icon": "fa fa-inbox",
- "modified": "2019-06-15 19:03:55.283524",
+ "modified": "2019-08-13 17:26:36.906755",
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Email Account",
