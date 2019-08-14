@@ -403,7 +403,7 @@ class UserProfile {
 				user: this.user_id,
 			}
 		).then(r => {
-			if (r.length) {
+			if (r) {
 				this.energy_points = r[this.user_id].energy_points;
 				this.review_points = r[this.user_id].review_points;
 			}
