@@ -300,3 +300,23 @@ frappe.ui.toolbar.setup_session_defaults = function() {
 		}
 	});
 };
+
+frappe.ui.toolbar.pull_master_data = function() {
+	frappe.call({
+		method: 'frappe.offline.doctype.node_configuration.node_configuration.pull_master_data',
+		callback: function(r) {
+			if(r.message == 'success') {
+				frappe.show_alert({message:'Successfully pulled master data', indicator:'green'});
+				location.reload(true);
+			}
+			else if(r.message == 'failed') {
+				frappe.show_alert({message:'Failed to pull master data', indicator:'red'});
+				location.reload(true);
+			}
+			else if(r.message == 'no updates') {
+				frappe.show_alert({message:'Already up-to-date', indicator:'blue'});
+				location.reload(true);
+			}
+		}
+	});
+}
