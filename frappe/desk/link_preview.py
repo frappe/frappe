@@ -13,7 +13,7 @@ def get_preview_data(doctype, docname):
 
 	# no preview fields defined, build list from mandatory fields
 	if not preview_fields:
-		preview_fields = [field.name for field in meta.fields if field.reqd]
+		preview_fields = [field.fieldname for field in meta.fields if field.reqd]
 
 	title_field = meta.get_title_field()
 	image_field = meta.image_field
