@@ -1,6 +1,4 @@
 {
- "_comments": "[]",
- "_liked_by": "[]",
  "autoname": "field:host_name",
  "creation": "2019-07-30 15:10:47.993692",
  "doctype": "DocType",
@@ -9,6 +7,7 @@
   "host_name",
   "api_key",
   "api_secret",
+  "user",
   "allow_auto_changes",
   "last_updated"
  ],
@@ -16,7 +15,9 @@
   {
    "fieldname": "host_name",
    "fieldtype": "Data",
+   "in_list_view": 1,
    "label": "Hostname (URL)",
+   "reqd": 1,
    "unique": 1
   },
   {
@@ -43,11 +44,18 @@
    "fieldname": "last_updated",
    "fieldtype": "Link",
    "label": "Last Updated",
-   "options": "Update Log",
-   "read_only": 1
+   "options": "Update Log"
+  },
+  {
+   "fieldname": "user",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Node User",
+   "options": "User",
+   "reqd": 1
   }
  ],
- "modified": "2019-08-09 14:54:07.173962",
+ "modified": "2019-08-14 10:19:30.049821",
  "modified_by": "Administrator",
  "module": "Offline",
  "name": "Node",

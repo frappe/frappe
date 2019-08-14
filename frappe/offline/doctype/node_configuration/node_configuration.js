@@ -3,6 +3,6 @@
 
 frappe.ui.form.on('Node Configuration', {
 	// refresh: function(frm) {
-  //
+
 	// }
 });
