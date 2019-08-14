@@ -83,14 +83,8 @@ def enqueue_events_for_site(site, queued_jobs):
 
 	try:
 		frappe.init(site=site)
-		if frappe.local.conf.maintenance_mode:
-			return
-
-		if frappe.local.conf.pause_scheduler:
-			return
-
 		frappe.connect()
-		if is_scheduler_disabled():
+		if is_scheduler_inactive():
 			return
 
 		enqueue_events(site=site, queued_jobs=queued_jobs)
@@ -229,6 +223,18 @@ def get_enabled_scheduler_events():
 
 	return ["all", "hourly", "hourly_long", "daily", "daily_long",
 		"weekly", "weekly_long", "monthly", "monthly_long", "cron"]
+
+def is_scheduler_inactive():
+	if frappe.local.conf.maintenance_mode:
+		return True
+
+	if frappe.local.conf.pause_scheduler:
+		return True
+
+	if is_scheduler_disabled():
+		return True
+
+	return False
 
 def is_scheduler_disabled():
 	if frappe.conf.disable_scheduler:

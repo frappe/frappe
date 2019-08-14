@@ -1008,6 +1008,7 @@
    "allow_bulk_edit": 0,
    "allow_in_quick_entry": 0,
    "allow_on_submit": 0,
+   "depends_on": "eval:doc.fieldtype==='Link'",
    "bold": 0,
    "collapsible": 0,
    "columns": 0,
