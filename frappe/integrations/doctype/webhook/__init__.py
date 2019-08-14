@@ -5,6 +5,7 @@
 from __future__ import unicode_literals
 import frappe
 
+
 def run_webhooks(doc, method):
 	'''Run webhooks for this method'''
 	if frappe.flags.in_import or frappe.flags.in_patch or frappe.flags.in_install:
@@ -13,13 +14,13 @@ def run_webhooks(doc, method):
 	if frappe.flags.webhooks_executed is None:
 		frappe.flags.webhooks_executed = {}
 
-	if frappe.flags.webhooks == None:
+	if frappe.flags.webhooks is None:
 		# load webhooks from cache
 		webhooks = frappe.cache().get_value('webhooks')
-		if webhooks==None:
+		if webhooks is None:
 			# query webhooks
 			webhooks_list = frappe.get_all('Webhook',
-				fields=["name", "webhook_docevent", "webhook_doctype"])
+				fields=["name", "`condition`", "webhook_docevent", "webhook_doctype"])
 
 			# make webhooks map for cache
 			webhooks = {}
@@ -37,7 +38,7 @@ def run_webhooks(doc, method):
 		return
 
 	def _webhook_request(webhook):
-		if not webhook.name in frappe.flags.webhooks_executed.get(doc.name, []):
+		if webhook.name not in frappe.flags.webhooks_executed.get(doc.name, []):
 			frappe.enqueue("frappe.integrations.doctype.webhook.webhook.enqueue_webhook",
 				enqueue_after_commit=True, doc=doc, webhook=webhook)
 
@@ -55,5 +56,7 @@ def run_webhooks(doc, method):
 
 	for webhook in webhooks_for_doc:
 		event = method if method in event_list else None
-		if event and webhook.webhook_docevent == event:
-			_webhook_request(webhook)
+
+		if webhook.condition and frappe.safe_eval(webhook.condition, None, {"doc": doc}):
+			if event and webhook.webhook_docevent == event:
+				_webhook_request(webhook)
