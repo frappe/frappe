@@ -23,12 +23,6 @@ SCOPES = "https://www.googleapis.com/auth/drive/v3"
 
 class GoogleDrive(Document):
 
-	def validate(self):
-		if self.enable_system_backup:
-			system_backup = frappe.db.exists("Google Drive", {"enable_system_backup": 1})
-			if system_backup and not system_backup == self.name:
-				frappe.throw(_("Google Drive System Backup can be enabled only for one account."))
-
 	def get_access_token(self):
 		google_settings = frappe.get_doc("Google Settings")
 
@@ -179,7 +173,7 @@ def upload_system_backup_to_google_drive():
 		"parents": [account.backup_folder_id]
 	}
 
-	media = MediaFileUpload(get_absolute_path(fileurl, True), mimetype="application/gzip", resumable=True)
+	media = MediaFileUpload(get_absolute_path(fileurl), mimetype="application/gzip", resumable=True)
 
 	try:
 		google_drive.files().create(body=file_metadata, media_body=media, fields="id").execute()
@@ -190,19 +184,13 @@ def upload_system_backup_to_google_drive():
 	return _("Google Drive Backup Successful.")
 
 def daily_backup():
-	g_drive = frappe.db.exists("Google Drive", {"enable": 1, "enable_system_backup": 1, "frequency": "Daily"})
-	if g_drive:
+	if frappe.db.get_single_value("Google Drive", "frequency") == "Daily":
 		upload_system_backup_to_google_drive()
 
 def weekly_backup():
-	g_drive = frappe.db.exists("Google Drive", {"enable": 1, "enable_system_backup": 1, "frequency": "Weekly"})
-	if g_drive:
+	if frappe.db.get_single_value("Google Drive", "frequency") == "Weekly":
 		upload_system_backup_to_google_drive()
 
-def get_absolute_path(filename, backup=False):
-	file_path = os.path.join(get_files_path()[2:], filename)
-
-	if backup:
-		file_path = os.path.join(get_backups_path()[2:], filename)
-
+def get_absolute_path(filename):
+	file_path = os.path.join(get_backups_path()[2:], filename)
 	return "{0}/sites/{1}".format(get_bench_path(), file_path)

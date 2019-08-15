@@ -15,9 +15,6 @@ frappe.ui.form.on('Google Drive', {
 				});
 				frappe.call({
 					method: "frappe.integrations.doctype.google_drive.google_drive.upload_system_backup_to_google_drive",
-					args: {
-						"g_drive": frm.doc.name
-					},
 					btn: sync_button
 				}).then((r) => {
 					frappe.msgprint(r.message);
