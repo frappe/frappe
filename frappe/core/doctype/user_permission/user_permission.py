@@ -125,7 +125,7 @@ def get_applicable_for_doctype_list(doctype, txt, searchfield, start, page_len, 
 	linked_doctypes += [doctype]
 
 	if txt:
-		linked_doctypes = [d for d in linked_doctypes if txt in d.lower()]
+		linked_doctypes = [d for d in linked_doctypes if txt.lower() in d.lower()]
 
 	linked_doctypes.sort()
 
