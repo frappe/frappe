@@ -152,10 +152,6 @@ class User(Document):
 		if new_password and not self.flags.in_insert:
 			_update_password(user=self.name, pwd=new_password, logout_all_sessions=self.logout_all_sessions)
 
-			if self.send_password_update_notification and self.enabled:
-				self.password_update_mail(new_password)
-				frappe.msgprint(_("New password emailed"))
-
 	def set_system_user(self):
 		'''Set as System User if any of the given roles has desk_access'''
 		if self.has_desk_access() or self.name == 'Administrator':
@@ -244,10 +240,6 @@ class User(Document):
 	def password_reset_mail(self, link):
 		self.send_login_mail(_("Password Reset"),
 			"password_reset", {"link": link}, now=True)
-
-	def password_update_mail(self, password):
-		self.send_login_mail(_("Password Update"),
-			"password_update", {"new_password": password}, now=True)
 
 	def send_welcome_mail_to_user(self):
 		from frappe.utils import get_url
