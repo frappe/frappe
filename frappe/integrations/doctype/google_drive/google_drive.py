@@ -19,7 +19,7 @@ from frappe.utils import get_backups_path, get_files_path, get_bench_path
 from frappe.utils.backups import new_backup
 from frappe.integrations.doctype.google_settings.google_settings import get_auth_url
 
-SCOPES = "https://www.googleapis.com/auth/drive/v3"
+SCOPES = "https://www.googleapis.com/auth/drive"
 
 class GoogleDrive(Document):
 
@@ -113,7 +113,7 @@ def get_google_drive_object():
 		"token_uri": get_auth_url(),
 		"client_id": google_settings.client_id,
 		"client_secret": google_settings.get_password(fieldname="client_secret", raise_exception=False),
-		"scopes": SCOPES
+		"scopes": "https://www.googleapis.com/auth/drive/v3"
 	}
 
 	credentials = google.oauth2.credentials.Credentials(**credentials_dict)
