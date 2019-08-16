@@ -3,7 +3,7 @@
 # For license information, please see license.txt
 
 from __future__ import unicode_literals
-import frappe, json
+import frappe
 from frappe import _
 import datetime
 from frappe.core.page.dashboard.dashboard import cache_source, get_from_date_from_timespan
@@ -17,7 +17,7 @@ def get(chart, no_cache=None, from_date=None, to_date=None, refresh = None):
 	chart = frappe.parse_json(chart)
 	timespan = chart.timespan
 	timegrain = chart.time_interval
-	filters = json.loads(chart['filters_json'])
+	filters = frappe.parse_json(chart['filters_json'])
 
 	# don't include cancelled documents
 	filters['docstatus'] = ('<', 2)
