@@ -64,7 +64,7 @@
    "fieldname": "frequency",
    "fieldtype": "Select",
    "label": "Frequency",
-   "options": "Daily\nWeekly"
+   "options": "\nDaily\nWeekly"
   },
   {
    "fieldname": "refresh_token",
@@ -86,7 +86,7 @@
   }
  ],
  "issingle": 1,
- "modified": "2019-08-16 10:47:24.799056",
+ "modified": "2019-08-16 10:53:10.165267",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Google Drive",
