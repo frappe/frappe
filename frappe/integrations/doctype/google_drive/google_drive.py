@@ -15,7 +15,7 @@ from frappe.model.document import Document
 from frappe.utils import get_request_site_address
 from six.moves.urllib.parse import quote
 from apiclient.http import MediaFileUpload
-from frappe.utils import get_backups_path, get_files_path, get_bench_path
+from frappe.utils import get_backups_path, get_bench_path
 from frappe.utils.backups import new_backup
 from frappe.integrations.doctype.google_settings.google_settings import get_auth_url
 
