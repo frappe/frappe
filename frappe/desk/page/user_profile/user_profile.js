@@ -62,9 +62,8 @@ class UserProfile {
 	}
 
 	setup_user_search() {
-		var me = this;
-		this.$user_search_button = this.page.set_secondary_action('Change User', function() {
-			me.show_user_search_dialog();
+		this.$user_search_button = this.page.set_secondary_action('Change User', () => {
+			this.show_user_search_dialog();
 		});
 	}
 
@@ -82,7 +81,8 @@ class UserProfile {
 			primary_action_label: __('Go'),
 			primary_action: ({ user }) => {
 				dialog.hide();
-				this.check_user_exists(user);
+				this.user_id = user;
+				this.make_user_profile();
 			}
 		});
 		dialog.show();
