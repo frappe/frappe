@@ -170,7 +170,10 @@ def upload_system_backup_to_google_drive():
 		"parents": [account.backup_folder_id]
 	}
 
-	media = MediaFileUpload(get_absolute_path(fileurl, True), mimetype="application/gzip", resumable=True)
+	try:
+		media = MediaFileUpload(get_absolute_path(fileurl, True), mimetype="application/gzip", resumable=True)
+	except IOError as e:
+		frappe.throw(_("Google Drive - Could not locate locate - {0}").format(os.path.basename(e)))
 
 	try:
 		progress(2, "Uploading backup to Google Drive.")
@@ -207,7 +210,10 @@ def upload_file_to_google_drive(google_drive, account, fileurl, is_private):
 		"parents": [account.backup_folder_id]
 	}
 
-	media = MediaFileUpload(get_absolute_path(filename, is_private), mimetype="application/pdf", resumable=True)
+	try:
+		media = MediaFileUpload(get_absolute_path(filename, is_private), mimetype="application/pdf", resumable=True)
+	except IOError as e:
+		frappe.msgprint(_("Google Drive - Could not locate file - {0}").format(os.path.basename(e)))
 
 	try:
 		google_drive.files().create(body=file_metadata, media_body=media, fields="id").execute()
