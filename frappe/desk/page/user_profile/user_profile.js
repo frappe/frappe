@@ -126,7 +126,7 @@ class UserProfile {
 
 	render_line_chart() {
 		this.line_chart_filters = {'user': this.user_id};
-		this.line_chart_data = {
+		this.line_chart_config = {
 			timespan: 'Last Month',
 			time_interval: 'Daily',
 			type: 'Line',
@@ -156,10 +156,10 @@ class UserProfile {
 	}
 
 	update_line_chart_data() {
-		this.line_chart_data.filters_json = JSON.stringify(this.line_chart_filters);
+		this.line_chart_config.filters_json = JSON.stringify(this.line_chart_filters);
 
 		frappe.xcall('frappe.desk.doctype.dashboard_chart.dashboard_chart.get', {
-			chart: this.line_chart_data,
+			chart: this.line_chart_config,
 			no_cache: 1,
 		}).then(chart => {
 			this.line_chart.update(chart);
@@ -167,7 +167,7 @@ class UserProfile {
 	}
 
 	render_percentage_chart(field, title) {
-		frappe.xcall('frappe.desk.page.user_profile.user_profile.get_energy_points_pie_chart_data', {
+		frappe.xcall('frappe.desk.page.user_profile.user_profile.get_energy_points_percentage_chart_data', {
 			user: this.user_id,
 			field: field
 		}).then(chart => {
@@ -208,7 +208,7 @@ class UserProfile {
 				label: 'Last Month',
 				options: ['Last Week', 'Last Month', 'Last Quarter'],
 				action: (selected_item) => {
-					this.line_chart_data.timespan = selected_item;
+					this.line_chart_config.timespan = selected_item;
 					this.update_line_chart_data();
 				}
 			},
@@ -216,7 +216,7 @@ class UserProfile {
 				label: 'Daily',
 				options: ['Daily', 'Weekly', 'Monthly'],
 				action: (selected_item) => {
-					this.line_chart_data.time_interval = selected_item;
+					this.line_chart_config.time_interval = selected_item;
 					this.update_line_chart_data();
 				}
 			},
@@ -270,14 +270,14 @@ class UserProfile {
 				options_html = filter.options.map( option => `<li><a>${option}</a></li>`).join('');
 			}
 
-			let dropdown_html= chart_filter_html + `<ul class="dropdown-menu">${options_html}</ul></div>`;
+			let dropdown_html = chart_filter_html + `<ul class="dropdown-menu">${options_html}</ul></div>`;
 			let $chart_filter = $(dropdown_html);
 
 			if (append) {
 				$chart_filter.prependTo(this.wrapper.find(container));
 			} else $chart_filter.appendTo(this.wrapper.find(container));
 
-			$chart_filter.find('.dropdown-menu').on('click', 'li a', (e)=> {
+			$chart_filter.find('.dropdown-menu').on('click', 'li a', (e) => {
 				let $el = $(e.currentTarget);
 				let fieldname;
 				if ($el.attr('data-fieldname')) {

@@ -10,19 +10,20 @@ def get_energy_points_heatmap_data(user, date):
 			user = '{user}' and
 			type != 'Review'
 		group by date(creation)
-		order by creation asc""".format(user=user, date = date)))
+		order by creation asc""".format(user = user, date = date)))
 
 
 @frappe.whitelist()
-def get_energy_points_pie_chart_data(user, field):
+def get_energy_points_percentage_chart_data(user, field):
     result = frappe.db.get_all('Energy Point Log',
-        filters={'user': user, 'type': ['!=', 'Review']},
-        group_by=field, order_by = field,
-        fields=[field, 'ABS(sum(points)) as points'],
+        filters = {'user': user, 'type': ['!=', 'Review']},
+        group_by = field,
+        order_by = field,
+        fields = [field, 'ABS(sum(points)) as points'],
         as_list = True)
 
     return {
-        "labels": [r[0] for r in result if r[0]!=None],
+        "labels": [r[0] for r in result if r[0] != None],
         "datasets": [{
             "values": [r[1] for r in result]
         }]
@@ -36,7 +37,7 @@ def get_user_rank(user, date=None):
         fields=['user', 'rank() over (order by sum(points) desc) as rank'],
         as_list = True)
 
-    return [r for r in result if r[0]==user]
+    return [r for r in result if r[0] == user]
 
 
 @frappe.whitelist()
@@ -55,7 +56,10 @@ def update_profile_info(profile_info):
 
 @frappe.whitelist()
 def get_energy_points_list(start, limit, user):
-    return frappe.db.get_list('Energy Point Log',filters = {'user': user, 'type': ['!=', 'Review']},
-        fields=['name','user', 'points', 'reference_doctype', 'reference_name', 'reason',
+    return frappe.db.get_list('Energy Point Log',
+        filters = {'user': user, 'type': ['!=', 'Review']},
+        fields = ['name','user', 'points', 'reference_doctype', 'reference_name', 'reason',
             'type', 'seen', 'rule', 'owner', 'creation', 'revert_of'],
-        start=start, limit=limit, order_by='creation desc')
+        start = start,
+        limit = limit,
+        order_by = 'creation desc')
