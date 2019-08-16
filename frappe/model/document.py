@@ -191,7 +191,7 @@ class Document(BaseDocument):
 		frappe.flags.error_message = _('Insufficient Permission for {0}').format(self.doctype)
 		raise frappe.PermissionError
 
-	def insert(self, ignore_permissions=None, ignore_links=None, ignore_if_duplicate=False, ignore_mandatory=None):
+	def insert(self, ignore_permissions=None, ignore_links=None, ignore_if_duplicate=False, ignore_mandatory=None, set_name=None):
 		"""Insert the document in the database (as a new document).
 		This will check for user permissions and execute `before_insert`,
 		`validate`, `on_update`, `after_insert` methods if they are written.
@@ -220,7 +220,7 @@ class Document(BaseDocument):
 		self.check_if_latest()
 		self.run_method("before_insert")
 		self._validate_links()
-		self.set_new_name()
+		self.set_new_name(set_name=set_name)
 		self.set_parent_in_children()
 		self.validate_higher_perm_levels()
 
@@ -385,12 +385,16 @@ class Document(BaseDocument):
 	def get_doc_before_save(self):
 		return getattr(self, '_doc_before_save', None)
 
-	def set_new_name(self, force=False):
+	def set_new_name(self, force=False, set_name=None):
 		"""Calls `frappe.naming.se_new_name` for parent and child docs."""
 		if self.flags.name_set and not force:
 			return
 
-		set_new_name(self)
+		if set_name:
+			self.name = set_name
+		else:
+			set_new_name(self)
+
 		# set name for children
 		for d in self.get_all_children():
 			set_new_name(d)
@@ -1280,14 +1284,14 @@ def make_update_log(doc, update_type):
 			data = frappe.as_json(doc)
 		else:
 			data = None
-		doc = frappe.get_doc({
+		log_doc = frappe.get_doc({
 			'doctype': 'Update Log',
 			'update_type': update_type,
 			'ref_doctype': doc.doctype,
 			'docname': doc.name,
 			'data': data
 		})
-		doc.insert(ignore_permissions = True)
+		log_doc.insert(ignore_permissions = True)
 		frappe.db.commit()
 
 def check_doctype_has_followers(doctype):
