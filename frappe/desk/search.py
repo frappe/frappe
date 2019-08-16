@@ -84,7 +84,6 @@ def search_widget(doctype, txt, query=None, searchfield=None, start=0, page_leng
 		meta = frappe.get_meta(doctype)
 
 		if query:
-			print(query)
 			frappe.throw(_("This query style is discontinued"))
 			# custom query
 			# frappe.response["values"] = frappe.db.sql(scrub_custom_query(query, searchfield, txt))
