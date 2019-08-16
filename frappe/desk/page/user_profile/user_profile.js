@@ -414,10 +414,10 @@ class UserProfile {
 			this.get_user_rank(frappe.datetime.month_start()).then(() => {
 
 				this.get_user_points().then(() => {
-					let html = $(__(`<p class="user-energy-points text-muted">Energy Points: <span class="rank">{0}</span></p>
-						<p class="user-energy-points text-muted">Review Points: <span class="rank">{1}</span></p>
-						<p class="user-energy-points text-muted">Rank: <span class="rank">{2}</span></p>
-						<p class="user-energy-points text-muted">Monthly Rank: <span class="rank">{3}</span></p>
+					let html = $(__(`<p class="user-energy-points text-muted">${__('Energy Points: ')}<span class="rank">{0}</span></p>
+						<p class="user-energy-points text-muted">${__('Review Points: ')}<span class="rank">{1}</span></p>
+						<p class="user-energy-points text-muted">${__('Rank: ')}<span class="rank">{2}</span></p>
+						<p class="user-energy-points text-muted">${__('Monthly Rank: ')}<span class="rank">{3}</span></p>
 					`, [this.energy_points, this.review_points, this.rank, this.month_rank]));
 
 					$profile_details.append(html);
@@ -430,7 +430,7 @@ class UserProfile {
 		frappe.set_route('Form', 'User', this.user_id);
 	}
 
-	render_user_activity(append_to_activity) {
+	render_user_activity() {
 		this.$recent_activity_list = this.wrapper.find('.recent-activity-list');
 
 		let get_recent_energy_points_html = (field) => {
@@ -443,26 +443,26 @@ class UserProfile {
 			limit: this.activity_end,
 			user: this.user_id
 		}).then(list => {
-			if (!list.length) {
-				this.wrapper.find('.show-more-activity a').html('No More Activity');
+			if (list.length < 11) {
+				let activity_html = `<span class="text-muted">${__('No More Activity')}</span>`;
+				this.wrapper.find('.show-more-activity').html(activity_html);
 			}
-			let html = list.map(get_recent_energy_points_html).join('');
-			if (append_to_activity) this.$recent_activity_list.append(html);
-			else this.$recent_activity_list.html(html);
+			let html = list.slice(0, 10).map(get_recent_energy_points_html).join('');
+			this.$recent_activity_list.append(html);
 		});
 	}
 
 	setup_show_more_activity() {
 		//Show 10 items at a time
 		this.activity_start = 0;
-		this.activity_end = 10;
+		this.activity_end = 11;
 		this.wrapper.find('.show-more-activity').on('click', () => this.show_more_activity());
 	}
 
 	show_more_activity() {
 		this.activity_start = this.activity_end;
-		this.activity_end += 10;
-		this.render_user_activity(true);
+		this.activity_end += 11;
+		this.render_user_activity();
 	}
 
 }
