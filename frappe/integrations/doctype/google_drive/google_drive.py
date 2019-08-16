@@ -107,9 +107,6 @@ def get_google_drive_object():
 	google_settings = frappe.get_doc("Google Settings")
 	account = frappe.get_doc("Google Drive")
 
-	if not account.backup_folder_id:
-		frappe.throw(_("Folder {0} not created in Google Drive.").format(account.backup_folder_name))
-
 	credentials_dict = {
 		"token": account.get_access_token(),
 		"refresh_token": account.get_password(fieldname="refresh_token", raise_exception=False),
@@ -163,21 +160,23 @@ def upload_system_backup_to_google_drive():
 	# Check if folder exists in Google Drive
 	check_for_folder_in_google_drive(google_drive, account)
 	account.load_from_db()
-
+	progress(1, "Backing up Data.")
 	backup = new_backup(ignore_files=True)
 
 	fileurl = os.path.basename(backup.backup_path_db)
 
 	file_metadata = {
-		"name": "Instance Backup-{0}".format(frappe.utils.now()),
+		"name": fileurl,
 		"parents": [account.backup_folder_id]
 	}
 
 	media = MediaFileUpload(get_absolute_path(fileurl), mimetype="application/gzip", resumable=True)
 
 	try:
+		progress(2, "Uploading backup to Google Drive.")
 		google_drive.files().create(body=file_metadata, media_body=media, fields="id").execute()
 		frappe.db.set_value("Google Drive", None, "last_backup_on", frappe.utils.now_datetime())
+		progress(3, "Uploading successful.")
 	except HttpError as e:
 		frappe.msgprint(_("Google Drive - Could not upload backup - Error {0}").format(e))
 
@@ -194,3 +193,6 @@ def weekly_backup():
 def get_absolute_path(filename):
 	file_path = os.path.join(get_backups_path()[2:], filename)
 	return "{0}/sites/{1}".format(get_bench_path(), file_path)
+
+def progress(progress, message):
+	frappe.publish_realtime("upload_to_google_drive", dict(progress=progress, total=3, message=message), user=frappe.session.user)

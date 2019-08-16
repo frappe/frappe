@@ -7,7 +7,17 @@ frappe.ui.form.on('Google Drive', {
 			frm.dashboard.set_headline(__("To use Google Drive, enable <a href='#Form/Google Settings'>Google Settings</a>."));
 		}
 
-		if (frm.doc.enable_system_backup) {
+		frappe.realtime.on("upload_to_google_drive", (data) => {
+			if (data.progress) {
+				frm.dashboard.show_progress("Uploading to Google Drive", data.progress / data.total * 100,
+					__("{0}", [data.message]));
+				if (data.progress === data.total) {
+					frm.dashboard.hide_progress("Uploading to Google Drive");
+				}
+			}
+		});
+
+		if (frm.doc.refresh_token) {
 			let sync_button = frm.add_custom_button(__("Take Backup"), function () {
 				frappe.show_alert({
 					indicator: "green",

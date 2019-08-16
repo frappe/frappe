@@ -1,5 +1,4 @@
 {
- "autoname": "field:backup_folder_name",
  "creation": "2019-08-13 17:24:05.470876",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -8,10 +7,10 @@
   "sb_00",
   "user",
   "backup_folder_name",
-  "backup_folder_id",
+  "frequency",
   "authorize_google_drive_access",
   "column_break_5",
-  "frequency",
+  "backup_folder_id",
   "last_backup_on",
   "refresh_token",
   "authorization_code"
@@ -42,6 +41,7 @@
    "fieldtype": "Data",
    "in_list_view": 1,
    "label": "Backup Folder Name",
+   "reqd": 1,
    "set_only_once": 1
   },
   {
@@ -86,7 +86,7 @@
   }
  ],
  "issingle": 1,
- "modified": "2019-08-15 22:13:14.637569",
+ "modified": "2019-08-16 10:47:24.799056",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Google Drive",
