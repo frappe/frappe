@@ -50,7 +50,7 @@ class GoogleDrive(Document):
 		return r.get("access_token")
 
 @frappe.whitelist()
-def authorize_access(g_drive, reauthorize=None):
+def authorize_access(reauthorize=None):
 	"""
 		If no Authorization code get it from Google and then request for Refresh Token.
 		Google Contact Name is set to flags to set_value after Authorization Code is obtained.
@@ -98,7 +98,7 @@ def google_callback(code=None):
 	frappe.db.set_value("Google Drive", None, "authorization_code", code)
 	frappe.db.commit()
 
-	authorize_access(google_drive)
+	authorize_access()
 
 def get_google_drive_object():
 	"""
