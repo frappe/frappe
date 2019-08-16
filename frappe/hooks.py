@@ -113,9 +113,9 @@ has_website_permission = {
 	"Address": "frappe.contacts.doctype.address.address.has_website_permission"
 }
 
-# standard_queries = {
-# 	"User": "frappe.core.doctype.user.user.user_query"
-# }
+standard_queries = {
+	"User": "frappe.core.doctype.user.user.user_query"
+}
 
 doc_events = {
 	"*": {

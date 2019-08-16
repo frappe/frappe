@@ -56,8 +56,8 @@ def search_link(doctype, txt, query=None, filters=None, page_length=20, searchfi
 
 # this is called by the search box
 @frappe.whitelist()
-def search_widget(doctype, txt, query=None, searchfield=None, start=0,
-	page_length=20, filters=None, filter_fields=None, as_dict=False, reference_doctype=None, ignore_user_permissions=False):
+def search_widget(doctype, txt, query=None, searchfield=None, start=0, page_length=20, filters=None,
+	filter_fields=None, as_dict=False, reference_doctype=None, ignore_user_permissions=False):
 
 	start = cint(start)
 
@@ -70,22 +70,18 @@ def search_widget(doctype, txt, query=None, searchfield=None, start=0,
 	if not searchfield:
 		searchfield = "name"
 
-	# standard_queries = frappe.get_hooks().standard_queries or {}
+	standard_queries = frappe.get_hooks().standard_queries or {}
 
-	# if query and query.split()[0].lower()!="select":
-	# 	# by method
-	# 	print("# by method")
-	# 	print(query)
-	# 	frappe.response["values"] = frappe.call(query, doctype, txt,
-	# 		searchfield, start, page_length, filters, as_dict=as_dict)
-	# elif not query and doctype in standard_queries:
-	# 	# from standard queries
-	# 	print("# from standard queries")
-	# 	search_widget(doctype, txt, standard_queries[doctype][0],
-	# 		searchfield, start, page_length, filters)
-	if True:
+	if query and query.split()[0].lower()!="select":
+		# by method
+		frappe.response["values"] = frappe.call(query, doctype, txt,
+			searchfield, start, page_length, filters, as_dict=as_dict)
+	elif not query and doctype in standard_queries:
+		# from standard queries
+		search_widget(doctype, txt, standard_queries[doctype][0],
+			searchfield, start, page_length, filters)
+	else:
 		meta = frappe.get_meta(doctype)
-		formatted_fields = [f.fieldname for f in meta.fields if f.in_link_option]
 
 		if query:
 			print(query)
@@ -93,7 +89,6 @@ def search_widget(doctype, txt, query=None, searchfield=None, start=0,
 			# custom query
 			# frappe.response["values"] = frappe.db.sql(scrub_custom_query(query, searchfield, txt))
 		else:
-			print("-"*20)
 			if isinstance(filters, dict):
 				filters_items = filters.items()
 				filters = []
@@ -178,7 +173,7 @@ def get_std_fields_list(meta, key):
 	sflist = meta.search_fields and meta.search_fields.split(",") or []
 	title_field = [meta.title_field] if (meta.title_field and meta.title_field not in sflist) else []
 	in_link_option = [f.fieldname for f in meta.fields if f.in_link_option]
-	print(in_link_option)
+
 	sflist = ['name'] + sflist + title_field + in_link_option
 	if not key in sflist:
 		sflist = sflist + [key]
