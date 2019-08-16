@@ -374,7 +374,7 @@ _f.Frm.prototype.set_read_only = function() {
 	var docperms = frappe.perm.get_perm(this.doc.doctype);
 	for (var i=0, l=docperms.length; i<l; i++) {
 		var p = docperms[i];
-		perm[p.permlevel || 0] = {read:1, print:1, cancel:1};
+		perm[p.permlevel || 0] = {read:1, print:1, cancel:1, email:1};
 	}
 	this.perm = perm;
 };
