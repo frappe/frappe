@@ -192,7 +192,7 @@ def upload_files(google_drive, account):
 	for f in frappe.get_list("File", filters={"is_folder": 0, "uploaded_to_google_drive": 0},
 		fields=["name", "file_url", "file_name", "is_private"]):
 
-		upload_file_to_google_drive(google_drive, account, f.file_name or f.file_url, f.is_private)
+		upload_file_to_google_drive(google_drive, account, f.file_url or f.file_name, f.is_private)
 		frappe.db.set_value("File", f.name, "uploaded_to_google_drive", 1)
 
 def upload_file_to_google_drive(google_drive, account, fileurl, is_private):
@@ -200,12 +200,14 @@ def upload_file_to_google_drive(google_drive, account, fileurl, is_private):
 		Uploads File to Folder specified in Google Drive Doc.
 	"""
 	# parents: Folder id under which the file is to be uploaded
+	filename = os.path.basename(fileurl)
+
 	file_metadata = {
 		"name": filename,
 		"parents": [account.backup_folder_id]
 	}
 
-	media = MediaFileUpload(get_absolute_path(fileurl, is_private), mimetype="application/pdf", resumable=True)
+	media = MediaFileUpload(get_absolute_path(filename, is_private), mimetype="application/pdf", resumable=True)
 
 	try:
 		google_drive.files().create(body=file_metadata, media_body=media, fields="id").execute()
