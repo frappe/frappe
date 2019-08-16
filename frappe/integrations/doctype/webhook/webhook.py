@@ -39,7 +39,7 @@ class Webhook(Document):
 		temp_doc = frappe.new_doc(self.webhook_doctype)
 		if self.condition:
 			try:
-				frappe.safe_eval(self.condition, eval_globals=None, eval_locals=get_context(temp_doc))
+				frappe.safe_eval(self.condition, eval_locals=get_context(temp_doc))
 			except Exception as e:
 				frappe.throw(_(e))
 

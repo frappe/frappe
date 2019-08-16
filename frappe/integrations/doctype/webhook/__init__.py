@@ -3,6 +3,7 @@
 # For license information, please see license.txt
 
 from __future__ import unicode_literals
+
 import frappe
 
 
@@ -54,9 +55,15 @@ def run_webhooks(doc, method):
 		event_list.append('on_change')
 		event_list.append('before_update_after_submit')
 
-	for webhook in webhooks_for_doc:
-		event = method if method in event_list else None
+	from frappe.integrations.doctype.webhook.webhook import get_context
 
-		if webhook.condition and frappe.safe_eval(webhook.condition, None, {"doc": doc}):
-			if event and webhook.webhook_docevent == event:
-				_webhook_request(webhook)
+	for webhook in webhooks_for_doc:
+		trigger_webhook = False
+		event = method if method in event_list else None
+		if not webhook.condition:
+			trigger_webhook = True
+		elif frappe.safe_eval(webhook.condition, eval_locals=get_context(doc)):
+			trigger_webhook = True
+
+		if trigger_webhook and event and webhook.webhook_docevent == event:
+			_webhook_request(webhook)
