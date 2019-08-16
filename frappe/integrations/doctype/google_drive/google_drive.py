@@ -214,6 +214,7 @@ def upload_file_to_google_drive(google_drive, account, fileurl, is_private):
 		media = MediaFileUpload(get_absolute_path(filename, is_private), mimetype="application/pdf", resumable=True)
 	except IOError as e:
 		frappe.msgprint(_("Google Drive - Could not locate file - {0}").format(e))
+		return
 
 	try:
 		google_drive.files().create(body=file_metadata, media_body=media, fields="id").execute()
