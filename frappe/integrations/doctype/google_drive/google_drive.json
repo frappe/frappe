@@ -5,7 +5,9 @@
  "field_order": [
   "enable",
   "sb_00",
-  "user",
+  "email",
+  "send_email_for_successful_backup",
+  "file_backup",
   "backup_folder_name",
   "frequency",
   "authorize_google_drive_access",
@@ -27,14 +29,6 @@
    "fieldname": "sb_00",
    "fieldtype": "Section Break",
    "label": "Google Drive"
-  },
-  {
-   "fieldname": "user",
-   "fieldtype": "Link",
-   "in_list_view": 1,
-   "label": "User",
-   "options": "User",
-   "reqd": 1
   },
   {
    "fieldname": "backup_folder_name",
@@ -83,10 +77,31 @@
    "fieldtype": "Datetime",
    "label": "Last Backup On",
    "read_only": 1
+  },
+  {
+   "fieldname": "email",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Email",
+   "options": "Email",
+   "reqd": 1
+  },
+  {
+   "default": "0",
+   "description": "Note: By default emails for failed backups are sent.",
+   "fieldname": "send_email_for_successful_backup",
+   "fieldtype": "Check",
+   "label": "Send Email for Successful backup"
+  },
+  {
+   "default": "0",
+   "fieldname": "file_backup",
+   "fieldtype": "Check",
+   "label": "File Backup"
   }
  ],
  "issingle": 1,
- "modified": "2019-08-16 10:53:10.165267",
+ "modified": "2019-08-16 16:23:36.686391",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Google Drive",

@@ -15,7 +15,7 @@ from frappe.model.document import Document
 from frappe.utils import get_request_site_address
 from six.moves.urllib.parse import quote
 from apiclient.http import MediaFileUpload
-from frappe.utils import get_backups_path, get_bench_path
+from frappe.utils import get_backups_path, get_files_path, get_bench_path
 from frappe.utils.backups import new_backup
 from frappe.integrations.doctype.google_settings.google_settings import get_auth_url
 
@@ -170,17 +170,47 @@ def upload_system_backup_to_google_drive():
 		"parents": [account.backup_folder_id]
 	}
 
-	media = MediaFileUpload(get_absolute_path(fileurl), mimetype="application/gzip", resumable=True)
+	media = MediaFileUpload(get_absolute_path(fileurl, True), mimetype="application/gzip", resumable=True)
 
 	try:
 		progress(2, "Uploading backup to Google Drive.")
 		google_drive.files().create(body=file_metadata, media_body=media, fields="id").execute()
+		if account.file_backup:
+			progress(2, "Uploading files to Google Drive.")
+			upload_files(google_drive, account)
+
 		frappe.db.set_value("Google Drive", None, "last_backup_on", frappe.utils.now_datetime())
 		progress(3, "Uploading successful.")
+		send_email(success=True)
 	except HttpError as e:
+		send_email(success=False, error=e)
 		frappe.msgprint(_("Google Drive - Could not upload backup - Error {0}").format(e))
 
 	return _("Google Drive Backup Successful.")
+
+def upload_files(google_drive, account):
+	for f in frappe.get_list("File", filters={"is_folder": 0, "uploaded_to_google_drive": 0},
+		fields=["name", "file_url", "file_name", "is_private"]):
+
+		upload_file_to_google_drive(google_drive, account, f.file_name or f.file_url, f.is_private)
+		frappe.db.set_value("File", f.name, "uploaded_to_google_drive", 1)
+
+def upload_file_to_google_drive(google_drive, account, fileurl, is_private):
+	"""
+		Uploads File to Folder specified in Google Drive Doc.
+	"""
+	# parents: Folder id under which the file is to be uploaded
+	file_metadata = {
+		"name": filename,
+		"parents": [account.backup_folder_id]
+	}
+
+	media = MediaFileUpload(get_absolute_path(fileurl, is_private), mimetype="application/pdf", resumable=True)
+
+	try:
+		google_drive.files().create(body=file_metadata, media_body=media, fields="id").execute()
+	except HttpError as e:
+		frappe.msgprint(_("Google Drive - Could not upload file - Error Code {0}").format(e))
 
 def daily_backup():
 	if frappe.db.get_single_value("Google Drive", "frequency") == "Daily":
@@ -190,9 +220,37 @@ def weekly_backup():
 	if frappe.db.get_single_value("Google Drive", "frequency") == "Weekly":
 		upload_system_backup_to_google_drive()
 
-def get_absolute_path(filename):
-	file_path = os.path.join(get_backups_path()[2:], filename)
+def get_absolute_path(filename, is_private=False):
+	file_path = os.path.join(get_files_path()[2:], filename)
+
+	if is_private:
+		file_path = os.path.join(get_backups_path()[2:], filename)
 	return "{0}/sites/{1}".format(get_bench_path(), file_path)
 
 def progress(progress, message):
 	frappe.publish_realtime("upload_to_google_drive", dict(progress=progress, total=3, message=message), user=frappe.session.user)
+
+def send_email(success, error=None):
+	if success:
+		if not frappe.db.get_single_value("Google Drive", None, "send_email_for_successful_backup"):
+			return
+
+		subject = "Backup Upload Successful"
+		message = """<h3>Backup Uploaded Successfully</h3><p>Hi there, this is just to inform you
+		that your backup was successfully uploaded to Google Drive.</p>
+		"""
+	else:
+		subject = "[Warning] Backup Upload Failed"
+		message = """<h3>Backup Upload Failed</h3><p>Oops, your automated backup to Google Drive
+		failed.</p>
+		<p>Error message: <br>
+		<pre><code>%s</code></pre>
+		</p>
+		<p>Please contact your system manager for more information.</p>
+		""".format(error)
+
+	frappe.sendmail(
+		recipients=frappe.db.get_single_value("Google Drive", "email"),
+		subject=subject,
+		message=message
+	)
