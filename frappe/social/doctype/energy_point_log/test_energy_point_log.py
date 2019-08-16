@@ -179,10 +179,11 @@ class TestEnergyPointLog(unittest.TestCase):
 		todo_point_rule = create_energy_point_rule_for_todo(for_doc_creation=True)
 
 		points_before_todo_creation = get_points('test@example.com')
-		created_todo = create_a_todo()
+		create_a_todo()
 		points_after_todo_creation = get_points('test@example.com')
 
-		self.assertEquals(points_after_todo_creation, points_before_todo_creation + todo_point_rule.points)
+		self.assertEquals(points_after_todo_creation,
+			points_before_todo_creation + todo_point_rule.points)
 
 def create_energy_point_rule_for_todo(multiplier_field=None, for_doc_creation=False, max_points=None):
 	name = 'ToDo Closed'
