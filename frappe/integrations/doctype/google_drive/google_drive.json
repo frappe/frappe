@@ -35,8 +35,7 @@
    "fieldtype": "Data",
    "in_list_view": 1,
    "label": "Backup Folder Name",
-   "reqd": 1,
-   "set_only_once": 1
+   "reqd": 1
   },
   {
    "depends_on": "eval:!doc.__islocal",
@@ -101,7 +100,7 @@
   }
  ],
  "issingle": 1,
- "modified": "2019-08-16 16:23:36.686391",
+ "modified": "2019-08-16 16:57:11.475982",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Google Drive",
