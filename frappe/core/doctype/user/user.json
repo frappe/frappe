@@ -104,7 +104,6 @@
   {
    "fieldname": "email",
    "fieldtype": "Data",
-   "in_link_option": 1,
    "label": "Email",
    "no_copy": 1,
    "oldfieldname": "email",
@@ -115,7 +114,6 @@
   {
    "fieldname": "first_name",
    "fieldtype": "Data",
-   "in_link_option": 1,
    "label": "First Name",
    "oldfieldname": "first_name",
    "oldfieldtype": "Data",
@@ -132,7 +130,6 @@
    "bold": 1,
    "fieldname": "last_name",
    "fieldtype": "Data",
-   "in_link_option": 1,
    "label": "Last Name",
    "oldfieldname": "last_name",
    "oldfieldtype": "Data"
@@ -617,7 +614,7 @@
  "idx": 413,
  "image_field": "user_image",
  "max_attachments": 5,
- "modified": "2019-08-16 15:15:08.952856",
+ "modified": "2019-08-16 22:26:00.651878",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "User",
