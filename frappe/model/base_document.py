@@ -366,6 +366,14 @@ class BaseDocument(object):
 				self.show_unique_validation_message(e)
 			else:
 				raise
+	
+	def db_update_all(self):
+		'''Raw update parent + children
+		DOES NOT VALIDATE AND CALL TRIGGERS'''
+		self.db_update()
+		for df in self.meta.get_table_fields():
+			for d in self.get(df.fieldname):
+				d.db_update()
 
 	def show_unique_validation_message(self, e):
 		# TODO: Find a better way to extract fieldname
