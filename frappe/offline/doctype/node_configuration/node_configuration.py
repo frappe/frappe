@@ -23,71 +23,75 @@ class NodeConfiguration(Document):
 		if config_exists:
 			frappe.throw(_('Node configuration already exists'))
 		
-	def on_update(self):
-		''' create custom field to store remote docname of master node'''
-		df = {
-				'label': 'Remote Docname',
-				'fieldname': 'remote_docname',
-				'fieldtype': 'Data',
-				'hidden': 1,
-				'read_only': 1,
-				'unique': 1,
-				'no_copy': 1
-			}
-		for doc in self.following_doctypes:
-			print(doc)
-			create_custom_field(doc.ref_doctype, df)
-
 @frappe.whitelist()
 def pull_master_data():
 	'''Fetch data from remote master node.'''
-	current_node = frappe.utils.get_url()
-	node_configurations = frappe.get_all(
-		doctype = 'Node Configuration',
-		filters = {'follower_node': current_node}
-	)
-	for node_config in node_configurations:
-		config = frappe.get_doc('Node Configuration', node_config.name)
-		client = FrappeClient(config.master_node, 'Administrator', 'root')
-		remote_node = client.get_doc('Node', filters = {'host_name': current_node}, fields = ['name', 'last_updated'])
-		last_update_synced = client.get_value('Update Log', 'creation', filters = {'name': remote_node[0].get('last_updated')})
-
-		doctypes = []
-		for entry in config.following_doctypes:
-			doctypes.append(entry.ref_doctype)
-
-		updates_to_be_synced = client.get_list(
-			doctype = 'Update Log',
-			filters = [['creation', '>', last_update_synced], ['ref_doctype', 'in', doctypes]],
-			fields = ['update_type', 'ref_doctype', 'docname', 'data', 'name'],
-		)
-
-		if updates_to_be_synced != []:
-			for doc in updates_to_be_synced:
-				try:
-					if doc.get('update_type') == 'Create':
-						local_doc = frappe.get_doc(json.loads(doc.get('data'))).insert()
-						doc = frappe.db.set_value(doc.get('ref_doctype'), local_doc.name, 'remote_docname', doc.get('name'))
-
-					if doc.get('update_type') == 'Update':
-						mapped_doc = frappe.get_all(doc.get('ref_doctype'), filters = {'remote_docname': doc.get('name')}, fields = ['name'])
-						local_doc = frappe.get_doc(doc.get('doctype'), mapped_doc[0].get('name'))
-						local_doc.update(json.loads(doc.get('data')))
-
-					if doc.get('update_type') == 'Delete':
-						mapped_doc = frappe.get_all(doc.get('ref_doctype'), filters = {'remote_docname': doc.get('name')}, fields = ['name'])				
-						local_doc = frappe.get_doc(doc.get('doctype'), mapped_doc[0].get('name'))
-						local_doc.delete()
-					frappe.db.commit()
-
-				except Exception:
-					frappe.db.rollback()
-					frappe.log_error(frappe.get_traceback(), _('Pulling master data failed'))
-					return 'failed'
-
-			client.set_value('Node', remote_node[0].get('name'), 'last_updated', updates_to_be_synced[-1].name)
-		
-		else:
-			return 'no updates'
-	
+	for node_config in frappe.get_all('Node Configuration', {'follower_node': get_current_node().name}):
+		pull_from_node(node_config.name)
 	return 'success'
+
+def pull_from_node(node_config_name):
+	config = frappe.get_doc('Node Configuration', node_config_name)
+	master = get_master(config)
+	last_update = frappe.db.get_value('Node', config.follower_node, 'last_updated')
+	doctypes = []
+	for entry in config.following_doctypes:
+		doctypes.append(entry.ref_doctype)
+
+	updates = get_updates(master, last_update, doctypes)
+
+	for update in updates:
+		if update.update_type == 'Create':
+			set_insert(update)
+
+		if update.update_type == 'Update':
+			set_update(update)
+
+		if update.update_type == 'Delete':
+			set_delete(update)
+
+		frappe.db.set_value('Node', config.follower_node, 'last_updated', update.name)
+		frappe.db.commit()
+
+def set_insert(update):
+	if frappe.db.get_value(update.ref_doctype, dict(remote_docname=update.docname)):
+		# doc already created
+		return
+	else:
+		frappe.get_doc(json.loads(update.data)).insert(set_name=update.docname)
+
+def set_update(update):
+	local_doc = get_local_doc(update)
+	data = json.loads(update.get('data'))
+	data.pop('name')
+	local_doc.update(data)
+	local_doc.db_update_all()
+
+def set_delete(update):
+	get_local_doc(update).delete()
+
+def get_updates(master, last_update, doctypes):
+	last_update_timestamp = master.get_value('Update Log', 'creation', {'name': last_update}).get('creation')
+	docs = master.get_list(
+		doctype = 'Update Log',
+		filters = {'creation': ('>', last_update_timestamp), 'ref_doctype': ('in', doctypes)},
+		fields = ['update_type', 'ref_doctype', 'docname', 'data', 'name']
+	)
+	docs.reverse()
+	return [frappe._dict(d) for d in docs]
+
+def get_master(config):
+	master = FrappeClient(config.master_node, 'Administrator', 'root')
+	return master
+
+def get_local_doc(update):
+	return frappe.get_doc(update.ref_doctype, update.docname)
+
+def get_current_node():
+	current_node = frappe.utils.get_url()
+	parts = current_node.split(':')
+	if not len(parts) > 2:
+		port = frappe.conf.http_port or frappe.conf.webserver_port
+		current_node += ':' + str(port)
+
+	return frappe.get_doc('Node', current_node)
