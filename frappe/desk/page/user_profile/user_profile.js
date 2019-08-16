@@ -23,26 +23,22 @@ class UserProfile {
 	}
 
 	show() {
-		this.route = frappe.get_route();
+		let route = frappe.get_route();
+		this.user_id = route[1] || frappe.session.user;
+
 		//validate if user
-		if (this.route.length > 1) {
-			let user_id = this.route.slice(-1)[0];
-			this.check_user_exists(user_id);
+		if (route.length > 1) {
+			frappe.db.exists('User', this.user_id).then( exists => {
+				if (exists) {
+					this.make_user_profile();
+				} else {
+					frappe.msgprint(__('User does not exist'));
+				}
+			});
 		} else {
 			this.user_id = frappe.session.user;
 			this.make_user_profile();
 		}
-	}
-
-	check_user_exists(user) {
-		frappe.db.exists('User', user).then( exists => {
-			if (!exists) {
-				frappe.msgprint(__('User does not exist'));
-			} else {
-				this.user_id = user;
-				this.make_user_profile();
-			}
-		});
 	}
 
 	make_user_profile() {
