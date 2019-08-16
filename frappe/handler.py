@@ -141,6 +141,9 @@ def uploadfile():
 
 @frappe.whitelist(allow_guest=True)
 def upload_file():
+	if frappe.session.user == 'Guest' and \
+		not frappe.get_system_settings('allow_guests_to_upload_files'):
+		return
 	files = frappe.request.files
 	is_private = frappe.form_dict.is_private
 	doctype = frappe.form_dict.doctype
