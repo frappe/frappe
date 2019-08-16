@@ -35,7 +35,7 @@ frappe.ui.form.on('Success Action', {
 			return {
 				label: action.label,
 				value: action.value,
-				checked: checked_actions.length ? checked_actions.includes(action) : 1
+				checked: checked_actions.length ? checked_actions.includes(action.value) : 1
 			};
 		});
 		frm.action_multicheck = frappe.ui.form.make_control({
