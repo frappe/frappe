@@ -187,6 +187,11 @@ def validate_api_key_secret(api_key, api_secret, frappe_authorization_source=Non
 	form_dict = frappe.local.form_dict
 	doc_secret = frappe.utils.password.get_decrypted_password(frappe_authorization_source, doc, fieldname="api_secret")
 	if api_secret == doc_secret:
-		user = frappe.db.get_value(frappe_authorization_source, doc, 'user')
+		fieldname = 'name' if frappe_authorization_source == 'User' else 'user'
+		if frappe_authorization_source == 'User':
+			fieldname = 'name'
+		else:
+			fieldname = 'user'
+		user = frappe.db.get_value(frappe_authorization_source, doc, fieldname)
 		frappe.set_user(user)
 		frappe.local.form_dict = form_dict
