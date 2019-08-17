@@ -2,7 +2,7 @@
 # MIT License. See license.txt
 
 from __future__ import unicode_literals, print_function
-
+from sys import version_info
 from six import iteritems, text_type, string_types, PY2
 
 """
@@ -559,6 +559,7 @@ def read_csv_file(path):
 			newdata = [[ val for val in row ] for row in data]
 	return newdata
 
+
 def write_csv_file(path, app_messages, lang_dict):
 	"""Write translation CSV file.
 
@@ -566,15 +567,19 @@ def write_csv_file(path, app_messages, lang_dict):
 	:param app_messages: Translatable strings for this app.
 	:param lang_dict: Full translated dict.
 	"""
+	if version_info[0] > 2:
+		write_mode = "w"
+
 	app_messages.sort(key = lambda x: x[1])
 	from csv import writer
-	with open(path, 'wb') as msgfile:
+	with open(path, write_mode) as msgfile:
 		w = writer(msgfile, lineterminator='\n')
 		for p, m in app_messages:
 			t = lang_dict.get(m, '')
 			# strip whitespaces
 			t = re.sub('{\s?([0-9]+)\s?}', "{\g<1>}", t)
 			w.writerow([p.encode('utf-8') if p else '', m.encode('utf-8'), t.encode('utf-8')])
+
 
 def get_untranslated(lang, untranslated_file, get_all=False):
 	"""Returns all untranslated strings for a language and writes in a file
@@ -597,9 +602,12 @@ def get_untranslated(lang, untranslated_file, get_all=False):
 				.replace("\\n", "||||")
 				.replace("\n", "|||"))
 
+	if version_info[0] > 2:
+		write_mode = "wb"
+
 	if get_all:
 		print(str(len(messages)) + " messages")
-		with open(untranslated_file, "w") as f:
+		with open(untranslated_file, write_mode) as f:
 			for m in messages:
 				# replace \n with ||| so that internal linebreaks don't get split
 				f.write((escape_newlines(m[1]) + os.linesep).encode("utf-8"))
@@ -612,12 +620,13 @@ def get_untranslated(lang, untranslated_file, get_all=False):
 
 		if untranslated:
 			print(str(len(untranslated)) + " missing translations of " + str(len(messages)))
-			with open(untranslated_file, "w") as f:
+			with open(untranslated_file, write_mode) as f:
 				for m in untranslated:
 					# replace \n with ||| so that internal linebreaks don't get split
 					f.write((escape_newlines(m) + os.linesep).encode("utf-8"))
 		else:
 			print("all translated!")
+
 
 def update_translations(lang, untranslated_file, translated_file):
 	"""Update translations from a source and target file for a given language.
@@ -647,6 +656,7 @@ def update_translations(lang, untranslated_file, translated_file):
 
 	for app in frappe.get_all_apps(True):
 		write_translations_file(app, lang, full_dict)
+
 
 def import_translations(lang, path):
 	"""Import translations from file in standard format"""
