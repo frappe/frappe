@@ -121,6 +121,7 @@ def get_google_drive_object():
 
 	return google_drive, account
 
+@frappe.whitelist()
 def create_folder_in_google_drive(google_drive, account):
 	google_drive, account = get_google_drive_object()
 
