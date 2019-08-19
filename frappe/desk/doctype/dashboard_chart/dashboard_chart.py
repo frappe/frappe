@@ -14,7 +14,7 @@ from frappe.model.document import Document
 @cache_source
 def get(chart, no_cache=None, from_date=None, to_date=None, refresh = None):
 
-	chart = frappe._dict(frappe.parse_json(chart))
+	chart = frappe.parse_json(chart)
 	timespan = chart.timespan
 	timegrain = chart.time_interval
 	filters = frappe.parse_json(chart.filters_json)

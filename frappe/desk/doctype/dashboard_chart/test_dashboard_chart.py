@@ -40,7 +40,7 @@ class TestDashboardChart(unittest.TestCase):
 		if frappe.db.exists('Dashboard Chart', 'Test Dashboard Chart'):
 			frappe.delete_doc('Dashboard Chart', 'Test Dashboard Chart')
 
-		chart = dict(
+		chart = frappe.get_doc(dict(
 			doctype = 'Dashboard Chart',
 			chart_name = 'Test Dashboard Chart',
 			name = 'Test Dashboard Chart',
@@ -51,11 +51,11 @@ class TestDashboardChart(unittest.TestCase):
 			time_interval = 'Monthly',
 			filters_json = '{}',
 			timeseries = 1
-		)
+		)).insert()
 
 		cur_date = datetime.now() - relativedelta(years=1)
 
-		result = get(chart = chart, refresh = 1)
+		result = get(chart = chart)
 		for idx in range(13):
 			month = datetime(int(cur_date.year), int(cur_date.strftime('%m')), int(calendar.monthrange(cur_date.year, cur_date.month)[1]))
 			month = formatdate(month.strftime('%Y-%m-%d'))
