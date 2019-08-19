@@ -254,8 +254,15 @@ def get_print_format(doctype, print_format):
 		elif print_format.raw_commands and print_format.raw_printing:
 			return print_format.raw_commands
 		else:
-			frappe.throw(_("No template found at path: {0}").format(path),
-				frappe.TemplateNotFoundError)
+			return """
+			<html>
+			<div class="text-muted text-center" style="font-size: 2em; margin-top: 80px;">
+			<p>No HTML Template found</p>
+			<p>Please add some HTML code in the current Print Format</p>
+			</div>
+			</html>
+			"""
+			frappe.throw(frappe.TemplateNotFoundError)
 
 def make_layout(doc, meta, format_data=None):
 	"""Builds a hierarchical layout object from the fields list to be rendered
