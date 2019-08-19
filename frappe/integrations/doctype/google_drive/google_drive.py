@@ -135,8 +135,6 @@ def create_folder_in_google_drive():
 	except HttpError as e:
 		frappe.throw(_("Google Drive - Could not create folder in Google Drive - Error Code {0}").format(e))
 
-	return "Folder created successfully in Google Drive."
-
 def check_for_folder_in_google_drive(google_drive, account):
 	"""
 		Create a folder on Drive, returns the newely created folders ID
