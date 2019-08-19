@@ -122,7 +122,7 @@ def get_google_drive_object():
 	return google_drive, account
 
 @frappe.whitelist()
-def create_folder_in_google_drive(google_drive, account):
+def create_folder_in_google_drive():
 	google_drive, account = get_google_drive_object()
 
 	file_metadata = {
@@ -142,7 +142,7 @@ def check_for_folder_in_google_drive(google_drive, account):
 		Create a folder on Drive, returns the newely created folders ID
 	"""
 	if not account.backup_folder_id:
-		create_folder_in_google_drive(google_drive, account)
+		create_folder_in_google_drive()
 		return
 
 	try:
