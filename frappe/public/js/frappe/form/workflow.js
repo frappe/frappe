@@ -90,12 +90,18 @@ frappe.ui.form.States = Class.extend({
 				if(frappe.user_roles.includes(d.allowed) && has_approval_access(d)) {
 					added = true;
 					me.frm.page.add_action_item(__(d.action), function() {
-						frappe.xcall('frappe.model.workflow.apply_workflow',
-							{doc: me.frm.doc, action: d.action})
-							.then((doc) => {
-								frappe.model.sync(doc);
-								me.frm.refresh();
-							});
+						// set the workflow_action for use in form scripts
+						me.frm.selected_workflow_action = d.action;
+						me.frm.script_manager.trigger('before_workflow_action').then(() => {
+							frappe.xcall('frappe.model.workflow.apply_workflow',
+								{doc: me.frm.doc, action: d.action})
+								.then((doc) => {
+									frappe.model.sync(doc);
+									me.frm.refresh();
+									me.frm.selected_workflow_action = null;
+									me.frm.script_manager.trigger("after_workflow_action");
+								});
+						});
 					});
 				}
 			});
