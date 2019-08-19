@@ -116,9 +116,9 @@ def read_options_from_html(html):
 	toggle_visible_pdf(soup)
 
 	# use regex instead of soup-parser
-	for attr in (("page-size",), ("orientation",), 
-		     ("margin-top", "mm"), ("margin-bottom", "mm"), ("margin-left", "mm"), 
-		     ("margin-right", "mm"), ("header-spacing", "mm")):
+	for attr in (("page-size",), ("orientation",),
+		     ("page-width", "mm"), ("page-height", "mm"), ("header-spacing", "mm")
+		     ("margin-top", "mm"), ("margin-bottom", "mm"), ("margin-left", "mm"), ("margin-right", "mm")):
 		unit = attr[1] if len(attr) == 2 else ""
 		attr = attr[0]
 		try:
