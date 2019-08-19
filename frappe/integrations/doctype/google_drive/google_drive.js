@@ -26,8 +26,9 @@ frappe.ui.form.on('Google Drive', {
 				frappe.call({
 					method: "frappe.integrations.doctype.google_drive.google_drive.create_folder_in_google_drive",
 					btn: create_button
-				}).then(() => {
-					frm.refresh();
+				}).then((r) => {
+					frappe.msgprint(r.message);
+					frm.refresh_field("backup_folder_id");
 				});
 			});
 		}
