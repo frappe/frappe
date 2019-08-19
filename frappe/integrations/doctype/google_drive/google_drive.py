@@ -241,7 +241,7 @@ def progress(progress, message):
 
 def send_email(success, error=None):
 	if success:
-		if not frappe.db.get_single_value("Google Drive", None, "send_email_for_successful_backup"):
+		if not frappe.db.get_single_value("Google Drive", "send_email_for_successful_backup"):
 			return
 
 		subject = "Backup Upload Successful"
