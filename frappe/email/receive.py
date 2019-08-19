@@ -484,7 +484,7 @@ class Email:
 			if six.PY2:
 				charset = chardet.detect(str(part))['encoding']
 			else:
-				charset = chardet.detect(str(part).encode())['encoding']
+				chardet.detect(frappe.safe_encode(str(part)))['encoding']
 
 		return charset
 
