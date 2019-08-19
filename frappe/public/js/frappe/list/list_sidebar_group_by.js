@@ -128,7 +128,7 @@ frappe.views.ListGroupBy = class ListGroupBy {
 			let current_user = field_counts.find(f => f.name === frappe.session.user);
 			field_counts = field_counts.filter(f => !['Guest', 'Administrator', frappe.session.user].includes(f.name));
 			// Set frappe.session.user on top of the list
-			if(current_user) field_counts.unshift(current_user);
+			if (current_user) field_counts.unshift(current_user);
 			return field_counts;
 		});
 	}
