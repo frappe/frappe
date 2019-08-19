@@ -253,7 +253,7 @@ def send_email(success, error=None):
 		message = """<h3>Backup Upload Failed</h3><p>Oops, your automated backup to Google Drive
 		failed.</p>
 		<p>Error message: <br>
-		<pre><code>%s</code></pre>
+		<pre><code>{0}</code></pre>
 		</p>
 		<p>Please contact your system manager for more information.</p>
 		""".format(error)

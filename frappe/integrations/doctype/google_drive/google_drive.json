@@ -4,7 +4,7 @@
  "engine": "InnoDB",
  "field_order": [
   "enable",
-  "sb_00",
+  "google_drive_section",
   "email",
   "send_email_for_successful_backup",
   "file_backup",
@@ -23,12 +23,6 @@
    "fieldname": "enable",
    "fieldtype": "Check",
    "label": "Enable"
-  },
-  {
-   "depends_on": "enable",
-   "fieldname": "sb_00",
-   "fieldtype": "Section Break",
-   "label": "Google Drive"
   },
   {
    "fieldname": "backup_folder_name",
@@ -97,10 +91,16 @@
    "fieldname": "file_backup",
    "fieldtype": "Check",
    "label": "File Backup"
+  },
+  {
+   "depends_on": "enable",
+   "fieldname": "google_drive_section",
+   "fieldtype": "Section Break",
+   "label": "Google Drive"
   }
  ],
  "issingle": 1,
- "modified": "2019-08-16 16:57:11.475982",
+ "modified": "2019-08-19 11:56:31.447432",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Google Drive",
