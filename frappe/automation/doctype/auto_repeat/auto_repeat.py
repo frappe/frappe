@@ -32,18 +32,17 @@ class AutoRepeat(Document):
 
 	def before_insert(self):
 		if not frappe.flags.in_test:
-			start_date = self.start_date
+			start_date = getdate(self.start_date)
 			today_date = getdate(today())
 			if start_date <= today_date:
-				start_date = today_date
+				self.start_date = today_date
 
 	def after_save(self):
 		frappe.get_doc(self.reference_doctype, self.reference_document).notify_update()
 
 	def on_trash(self):
-		frappe.db.set_value(self.reference_doctype, self.reference_document, {
-			'auto_repeat': self.name
-		}, 'auto_repeat', '')
+		frappe.db.set_value(self.reference_doctype, self.reference_document, 'auto_repeat', '')
+		frappe.get_doc(self.reference_doctype, self.reference_document).notify_update()
 
 	def set_dates(self):
 		if self.disabled:
