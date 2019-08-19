@@ -183,8 +183,9 @@ class SMTPServer:
 				self.password = None
 			self.port = self.email_account.smtp_port
 			self.use_tls = self.email_account.use_tls
-			self.use_ssl = self.email_account.use_ssl_for_outgoing
 			self.sender = self.email_account.email_id
+			self.use_ssl = self.email_account.use_ssl_for_outgoing
+			self.append_emails_to_send_folder = self.append_emails_to_send_folder
 			self.always_use_account_email_id_as_sender = cint(self.email_account.get("always_use_account_email_id_as_sender"))
 			self.always_use_account_name_as_sender_name = cint(self.email_account.get("always_use_account_name_as_sender_name"))
 

@@ -14,6 +14,7 @@ from frappe.utils import get_url, nowdate, encode, now_datetime, add_days, split
 from rq.timeouts import JobTimeoutException
 from frappe.utils.scheduler import log
 from six import text_type, string_types
+from frappe.email.receive import EmailServer
 
 class EmailLimitCrossedError(frappe.ValidationError): pass
 
@@ -410,6 +411,9 @@ def send_one(email, smtpserver=None, auto_commit=True, now=False, from_test=Fals
 			recipient.status = "Sent"
 			frappe.db.sql("""update `tabEmail Queue Recipient` set status='Sent', modified=%s where name=%s""",
 				(now_datetime(), recipient.name), auto_commit=auto_commit)
+
+			if smtpserver.append_emails_to_send_folder and recipient.status == "Sent":
+				pass
 
 		#if all are sent set status
 		if any("Sent" == s.status for s in recipients_list):
