@@ -596,6 +596,7 @@ def validate_fields(meta):
 			frappe.throw(_("{0}: Field {1} of type {2} cannot be mandatory").format(docname, d.label, d.fieldtype), IllegalMandatoryError)
 
 	def check_link_table_options(docname, d):
+		if frappe.flags.in_patch: return
 		if d.fieldtype in ("Link",) + table_fields:
 			if not d.options:
 				frappe.throw(_("{0}: Options required for Link or Table type field {1} in row {2}").format(docname, d.label, d.idx), DoctypeLinkError)
