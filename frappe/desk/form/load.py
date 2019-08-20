@@ -161,7 +161,7 @@ def get_communication_data(doctype, name, start=0, limit=20, after=None, fields=
 	'''Returns list of communications for a given document'''
 	if not fields:
 		fields = '''
-			distinct C.message_id, C.name, C.communication_type, C.communication_medium,
+			C.message_id, C.name, C.communication_type, C.communication_medium,
 			C.comment_type, C.communication_date, C.content,
 			C.sender, C.sender_full_name, C.cc, C.bcc,
 			C.creation AS creation, C.subject, C.delivery_status,
@@ -199,6 +199,11 @@ def get_communication_data(doctype, name, start=0, limit=20, after=None, fields=
 		AND `tabCommunication Link`.link_doctype = %(doctype)s AND `tabCommunication Link`.link_name = %(name)s
 		{conditions}
 	'''.format(fields=fields, conditions=conditions)
+
+	#add goup by to pull distinct communications
+
+	if not group_by:
+		group_by = 'group by message_id'
 
 	communications = frappe.db.sql('''
 		SELECT *
