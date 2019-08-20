@@ -71,12 +71,7 @@ def make(doctype=None, name=None, content=None, subject=None, sent_or_received =
 		"message_id":get_message_id().strip(" <>"),
 		"read_receipt":read_receipt,
 		"has_attachment": 1 if attachments else 0
-	})
-	comm.insert(ignore_permissions=True)
-
-	if not doctype:
-		# if no reference given, then send it against the communication
-		comm.db_set(dict(reference_doctype='Communication', reference_name=comm.name))
+	}).insert(ignore_permissions=True)
 
 	if isinstance(attachments, string_types):
 		attachments = json.loads(attachments)
