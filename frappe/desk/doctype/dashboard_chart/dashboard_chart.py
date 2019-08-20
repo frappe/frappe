@@ -74,7 +74,6 @@ def get_aggregate_function(chart_type):
 		"Average": "AVG"
 	}[chart_type]
 
-
 def convert_to_dates(data, timegrain):
 	result = []
 	for d in data:

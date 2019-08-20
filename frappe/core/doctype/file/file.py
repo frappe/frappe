@@ -29,7 +29,7 @@ from frappe.utils.nestedset import NestedSet
 from frappe.utils import strip
 from PIL import Image, ImageOps
 from six import StringIO, string_types
-from six.moves.urllib.parse import unquote
+from six.moves.urllib.parse import unquote, quote
 from six import text_type, PY2
 import zipfile
 
@@ -78,7 +78,7 @@ class File(NestedSet):
 			self.add_comment_in_reference_doc('Attachment',
 				_('Added {0}').format("<a href='{file_url}' target='_blank'>{file_name}</a>{icon}".format(**{
 					"icon": ' <i class="fa fa-lock text-warning"></i>' if self.is_private else "",
-					"file_url": self.file_url.replace("#", "%23") if self.file_name else self.file_url,
+					"file_url": quote(self.file_url) if self.file_url else self.file_name,
 					"file_name": self.file_name or self.file_url
 				})))
 

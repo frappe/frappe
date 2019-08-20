@@ -984,7 +984,13 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 
 	setup_new_doc_event() {
-		this.$no_result.find('.btn-new-doc').click(() => this.make_new_doc());
+		this.$no_result.find('.btn-new-doc').click(() => {
+			if (this.settings.primary_action) {
+				this.settings.primary_action();
+			} else {
+				this.make_new_doc();
+			}
+		});
 	}
 
 	setup_tag_event() {
