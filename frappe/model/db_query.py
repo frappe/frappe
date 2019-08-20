@@ -580,29 +580,28 @@ class DatabaseQuery(object):
 		meta = frappe.get_meta(self.doctype)
 		doctype_link_fields = []
 		doctype_link_fields = meta.get_link_fields()
+
+		# append current doctype with fieldname as 'name' as first link field
 		doctype_link_fields.append(dict(
 			options=self.doctype,
 			fieldname='name',
 		))
-		# appended current doctype with fieldname as 'name' to
-		# and condition on doc name if user permission is found for current doctype
 
 		match_filters = {}
 		match_conditions = []
 		for df in doctype_link_fields:
-			user_permission_values = user_permissions.get(df.get('options'), {})
-
 			if df.get('ignore_user_permissions'): continue
 
-			empty_value_condition = "ifnull(`tab{doctype}`.`{fieldname}`, '')=''".format(
-				doctype=self.doctype, fieldname=df.get('fieldname')
-			)
+			user_permission_values = user_permissions.get(df.get('options'), {})
 
 			if user_permission_values:
 				docs = []
 				if frappe.get_system_settings("apply_strict_user_permissions"):
 					condition = ""
 				else:
+					empty_value_condition = "ifnull(`tab{doctype}`.`{fieldname}`, '')=''".format(
+						doctype=self.doctype, fieldname=df.get('fieldname')
+					)
 					condition = empty_value_condition + " or "
 
 				for permission in user_permission_values:
@@ -611,9 +610,10 @@ class DatabaseQuery(object):
 
 					# append docs based on user permission applicable on reference doctype
 
-					# This is useful when getting list of doc from a link field
-						# in this case parent doctype of the link will be the
-						# will be the reference doctype
+					# this is useful when getting list of docs from a link field
+
+					# in this case parent doctype of the link
+					# will be the reference doctype
 
 					elif df.get('fieldname') == 'name' and self.reference_doctype:
 						if permission.get('applicable_for') == self.reference_doctype:

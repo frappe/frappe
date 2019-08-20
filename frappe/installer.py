@@ -26,7 +26,6 @@ def install_db(root_login="root", root_password=None, db_name=None, source_sql=N
 	if not db_type:
 		db_type = frappe.conf.db_type or 'mariadb'
 
-
 	make_conf(db_name, site_config=site_config, db_type=db_type)
 	frappe.flags.in_install_db = True
 
@@ -43,7 +42,6 @@ def install_db(root_login="root", root_password=None, db_name=None, source_sql=N
 	frappe.db.create_user_settings_table()
 
 	frappe.flags.in_install_db = False
-
 
 def install_app(name, verbose=False, set_as_patched=True):
 	frappe.flags.in_install = name

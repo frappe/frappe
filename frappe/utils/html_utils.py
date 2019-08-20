@@ -58,7 +58,7 @@ def sanitize_html(html, linkify=False):
 		return html
 
 	tags = (acceptable_elements + svg_elements + mathml_elements
-		+ ["html", "head", "meta", "link", "body", "iframe", "style", "o:p"])
+		+ ["html", "head", "meta", "link", "body", "style", "o:p"])
 	attributes = {"*": acceptable_attributes, 'svg': svg_attributes}
 	styles = bleach_whitelist.all_styles
 	strip_comments = False
