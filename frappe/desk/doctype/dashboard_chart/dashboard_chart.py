@@ -137,7 +137,7 @@ def add_missing_values(data, timegrain, from_date, to_date):
 			next_expected_date = get_next_expected_date(next_expected_date, timegrain)
 
 	# add date for the last period (if missing)
-	if get_period_ending(to_date, timegrain) > result[-1][0]:
+	if result and get_period_ending(to_date, timegrain) > result[-1][0]:
 		result.append([get_period_ending(to_date, timegrain), 0.0])
 
 	return result
