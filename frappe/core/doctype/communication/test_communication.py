@@ -150,7 +150,8 @@ class TestCommunication(unittest.TestCase):
 			"doctype": "Communication",
 			"communication_type": "Communication",
 			"content": "Test Get Communication Data 1",
-			"communication_medium": "Email"
+			"communication_medium": "Email",
+			"message_id": frappe.generate_hash()
 		}).insert(ignore_permissions=True)
 
 		comm_note_1.add_link(link_doctype="Note", link_name=note.name, autosave=True)
@@ -159,7 +160,8 @@ class TestCommunication(unittest.TestCase):
 			"doctype": "Communication",
 			"communication_type": "Communication",
 			"content": "Test Get Communication Data 2",
-			"communication_medium": "Email"
+			"communication_medium": "Email",
+			"message_id": frappe.generate_hash()
 		}).insert(ignore_permissions=True)
 
 		comm_note_2.add_link(link_doctype="Note", link_name=note.name, autosave=True)
