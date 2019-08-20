@@ -36,6 +36,18 @@ frappe.ui.form.on('Dashboard Chart', {
 		frm.trigger('update_options');
 	},
 
+	timespan: function(frm) {
+		const time_interval_options = {
+			"Last Year": ["Quarterly", "Monthly", "Weekly", "Daily"],
+			"Last Quarter": ["Monthly", "Weekly", "Daily"],
+			"Last Month": ["Weekly", "Daily"],
+			"Last Week": ["Daily"]
+		};
+		if (frm.doc.timespan) {
+			frm.set_df_property('time_interval', 'options', time_interval_options[frm.doc.timespan]);
+		}
+	},
+
 	update_options: function(frm) {
 		let doctype = frm.doc.document_type;
 		let date_fields = [
