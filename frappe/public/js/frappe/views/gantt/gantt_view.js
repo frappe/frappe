@@ -128,7 +128,7 @@ frappe.views.GanttView = class GanttView extends frappe.views.ListView {
 					<p>${moment(task._start).format('MMM D')} - ${moment(task._end).format('MMM D')}</p>`;
 
 				// custom html in doctype settings
-				var custom = me.settings.gantt_custom_popup_html;
+				var custom = me.calendar_settings.gantt_custom_popup_html;
 				if (custom && $.isFunction(custom)) {
 					var ganttobj = task;
 					html = custom(ganttobj, item);
