@@ -1,7 +1,7 @@
 {
  "allow_import": 1,
  "autoname": "EV.#####",
- "create_on_install": 1,
+ "create_on_install": 0,
  "creation": "2013-06-10 13:17:47",
  "doctype": "DocType",
  "document_type": "Document",
@@ -267,7 +267,7 @@
  ],
  "icon": "fa fa-calendar",
  "idx": 1,
- "modified": "2019-08-12 23:07:03.726711",
+ "modified": "2019-08-20 09:31:02.560346",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Event",

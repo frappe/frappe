@@ -105,9 +105,9 @@ def import_doc(docdict, force=False, data_import=False, pre_process=None,
 
 	doc = frappe.get_doc(docdict)
 
-	# if not doc.create_during_installation:
-	# 	print("Skipping" + str(doc.name))
-	# 	return
+	if hasattr(doc, 'create_on_install') and not doc.create_on_install:
+		print("Skipping" + str(doc.name))
+		return
 
 	doc.run_method("before_import")
 
