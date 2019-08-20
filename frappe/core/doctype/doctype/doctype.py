@@ -79,6 +79,7 @@ class DocType(Document):
 
 		self.make_amendable()
 		self.make_repeatable()
+		self.validate_in_link_option()
 		self.validate_website()
 
 		if not self.is_new():
@@ -555,6 +556,11 @@ class DocType(Document):
 			is_a_valid_name = re.match("^(?![\W])[^\d_\s][\w ]+$", name, flags = re.ASCII)
 		if not is_a_valid_name:
 			frappe.throw(_("DocType's name should start with a letter and it can only consist of letters, numbers, spaces and underscores"), frappe.NameError)
+
+	def validate_in_link_option(self):
+		for f in self.fields:
+			if f.in_link_option and f.fieldtype in ["Table", "MultiSelect"]:
+				frappe.throw(_("In Link Option cannot be enabled for Child Table or MultiSelect."))
 
 def validate_fields_for_doctype(doctype):
 	doc = frappe.get_doc("DocType", doctype)
