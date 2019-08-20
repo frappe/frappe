@@ -648,6 +648,13 @@ frappe.PrintFormatBuilder = Class.extend({
 				d.hide();
 			});
 
+			let update_column_count_message = () => {
+				// show a warning if user selects more than 10 columns for a table
+				let columns_count = $body.find("input:checked").length;
+				$body.find('.help-message').toggle(columns_count > 10);
+			}
+			update_column_count_message();
+
 			// enable / disable input based on selection
 			$body.on("click", "input[type='checkbox']", function() {
 				var disabled = !$(this).prop("checked"),
@@ -655,6 +662,8 @@ frappe.PrintFormatBuilder = Class.extend({
 
 				input.prop("disabled", disabled);
 				if(disabled) input.val("");
+
+				update_column_count_message();
 			});
 
 			d.show();
