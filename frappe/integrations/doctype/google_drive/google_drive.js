@@ -48,7 +48,7 @@ frappe.ui.form.on('Google Drive', {
 			});
 		}
 
-		if (frm.doc.enable && frm.doc.backup_folder_name) {
+		if (frm.doc.enable && frm.doc.backup_folder_name && !frm.doc.backup_folder_id) {
 			frm.dashboard.set_headline(__("Enable Google Drive Access."));
 		}
 

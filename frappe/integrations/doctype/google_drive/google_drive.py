@@ -233,7 +233,7 @@ def weekly_backup():
 def get_absolute_path(filename, is_private=False, backup=False):
 	file_path = os.path.join(get_files_path(is_private=is_private)[2:], filename)
 
-	if is_private:
+	if backup:
 		file_path = os.path.join(get_backups_path()[2:], filename)
 	return "{0}/sites/{1}".format(get_bench_path(), file_path)
 
