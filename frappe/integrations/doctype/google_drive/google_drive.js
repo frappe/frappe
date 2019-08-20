@@ -48,11 +48,11 @@ frappe.ui.form.on('Google Drive', {
 			});
 		}
 
-		if (frm.doc.enable && frm.doc.backup_folder_name && !frm.doc.backup_folder_id) {
+		if (frm.doc.enable && frm.doc.backup_folder_name && !frm.doc.refresh_token) {
 			frm.dashboard.set_headline(__("Enable Google Drive Access."));
 		}
 
-		if (frm.doc.refresh_token && frm.doc.authorization_code && frm.doc.enable) {
+		if (frm.doc.enable && frm.doc.refresh_token && frm.doc.authorization_code) {
 			frm.page.set_indicator("Authorized", "green");
 		}
 	},
