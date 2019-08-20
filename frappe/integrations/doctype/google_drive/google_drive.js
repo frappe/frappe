@@ -17,7 +17,7 @@ frappe.ui.form.on('Google Drive', {
 			}
 		});
 
-		if (!frm.doc.backup_folder_id) {
+		if (frm.doc.refresh_token && !frm.doc.backup_folder_id) {
 			let create_button = frm.add_custom_button(__("Create Folder"), function () {
 				frappe.show_alert({
 					indicator: "green",
@@ -46,6 +46,14 @@ frappe.ui.form.on('Google Drive', {
 					frappe.msgprint(r.message);
 				});
 			});
+		}
+
+		if (frm.doc.enable && frm.doc.backup_folder_name) {
+			frm.dashboard.set_headline(__("Enable Google Drive Access."));
+		}
+
+		if (frm.doc.refresh_token && frm.doc.authorization_code && frm.doc.enable) {
+			frm.page.set_indicator("Authorized", "green");
 		}
 	},
 	authorize_google_drive_access: function(frm) {

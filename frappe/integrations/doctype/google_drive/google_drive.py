@@ -172,7 +172,7 @@ def upload_system_backup_to_google_drive():
 	}
 
 	try:
-		media = MediaFileUpload(get_absolute_path(fileurl, True), mimetype="application/gzip", resumable=True)
+		media = MediaFileUpload(get_absolute_path(filename=fileurl, backup=True), mimetype="application/gzip", resumable=True)
 	except IOError as e:
 		frappe.throw(_("Google Drive - Could not locate locate - {0}").format(e))
 
@@ -212,7 +212,7 @@ def upload_file_to_google_drive(google_drive, account, fileurl, is_private):
 	}
 
 	try:
-		media = MediaFileUpload(get_absolute_path(filename, is_private), mimetype="application/pdf", resumable=True)
+		media = MediaFileUpload(get_absolute_path(filename=filename, is_private=is_private), mimetype="application/pdf", resumable=True)
 	except IOError as e:
 		frappe.msgprint(_("Google Drive - File not found - {0}").format(e))
 		return
@@ -230,8 +230,8 @@ def weekly_backup():
 	if frappe.db.get_single_value("Google Drive", "frequency") == "Weekly":
 		upload_system_backup_to_google_drive()
 
-def get_absolute_path(filename, is_private=False):
-	file_path = os.path.join(get_files_path()[2:], filename)
+def get_absolute_path(filename, is_private=False, backup=False):
+	file_path = os.path.join(get_files_path(is_private=is_private)[2:], filename)
 
 	if is_private:
 		file_path = os.path.join(get_backups_path()[2:], filename)

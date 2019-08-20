@@ -6,10 +6,10 @@
   "enable",
   "google_drive_section",
   "email",
-  "send_email_for_successful_backup",
-  "file_backup",
   "backup_folder_name",
   "frequency",
+  "send_email_for_successful_backup",
+  "file_backup",
   "authorize_google_drive_access",
   "column_break_5",
   "backup_folder_id",
@@ -51,7 +51,8 @@
    "fieldname": "frequency",
    "fieldtype": "Select",
    "label": "Frequency",
-   "options": "\nDaily\nWeekly"
+   "options": "\nDaily\nWeekly",
+   "reqd": 1
   },
   {
    "fieldname": "refresh_token",
@@ -100,8 +101,8 @@
   }
  ],
  "issingle": 1,
- "modified": "2019-08-19 11:56:31.447432",
- "modified_by": "Administrator",
+ "modified": "2019-08-20 14:25:24.504705",
+ "modified_by": "qwe@qwe.com",
  "module": "Integrations",
  "name": "Google Drive",
  "owner": "Administrator",
