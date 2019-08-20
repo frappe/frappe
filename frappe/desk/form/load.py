@@ -144,7 +144,7 @@ def get_communication_data(doctype, name, start=0, limit=20, after=None, fields=
 			timeline_doctype, timeline_name,
 			reference_doctype, reference_name,
 			link_doctype, link_name, read_by_recipient,
-			rating, "Communication" as doctype'''
+			rating, "Communication" as doctype, message_id'''
 
 	conditions = '''communication_type in ("Communication", "Comment", "Feedback")
 			and (
@@ -158,6 +158,9 @@ def get_communication_data(doctype, name, start=0, limit=20, after=None, fields=
 					and comment_type in ("Created", "Updated", "Submitted", "Cancelled", "Deleted")
 				)))
 			)'''
+
+	if not group_by:
+		group_by = 'group by message_id'
 
 
 	if after:

@@ -344,9 +344,9 @@ class EmailAccount(Document):
 
 		if email.message_id:
 			names = frappe.db.sql("""select distinct name from tabCommunication
-				where message_id='{message_id}'
+				where message_id='{message_id}' and email_account='{email_account}'
 				order by creation desc limit 1""".format(
-					message_id=email.message_id
+					message_id=email.message_id, email_account=self.name
 				), as_dict=True)
 
 			if names:
