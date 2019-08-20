@@ -432,12 +432,15 @@ def can_import(doctype, raise_exception=False):
 	return True
 
 def can_export(doctype, raise_exception=False):
-	if not ("System Manager" in frappe.get_roles() or has_permission(doctype, "export")):
-		if raise_exception:
-			raise frappe.PermissionError("You are not allowed to export: {doctype}".format(doctype=doctype))
-		else:
-			return False
-	return True
+	if "System Manager" in frappe.get_roles():
+		return True
+	else:
+		role_permissions = frappe.permissions.get_role_permissions(doctype)
+		has_access = role_permissions.get('export') or \
+			role_permissions.get('if_owner').get('export')
+		if not has_access and raise_exception:
+			raise frappe.PermissionError(_("You are not allowed to export {} doctype").format(doctype))
+		return has_access
 
 def update_permission_property(doctype, role, permlevel, ptype, value=None, validate=True):
 	'''Update a property in Custom Perm'''
