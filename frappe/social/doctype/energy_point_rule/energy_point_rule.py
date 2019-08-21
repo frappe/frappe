@@ -50,11 +50,16 @@ class EnergyPointRule(Document):
 				frappe.log_error(frappe.get_traceback(), 'apply_energy_point')
 
 	def rule_condition_satisfied(self, doc):
-		if self.for_doc_creation:
+		if self.for_doc_event == 'New':
 			# indicates that this was a new doc
 			return doc.get_doc_before_save() == None
-		else:
+		if self.for_doc_event == 'Submit':
+			return doc.docstatus == 1
+		if self.for_doc_event == 'Cancel':
+			return doc.docstatus == 2
+		if self.for_doc_event == 'Custom' and self.condition:
 			return frappe.safe_eval(self.condition, None, {'doc': doc.as_dict()})
+		return False
 
 def process_energy_points(doc, state):
 	if (frappe.flags.in_patch

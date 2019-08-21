@@ -9,7 +9,7 @@
   "section_break_2",
   "rule_name",
   "reference_doctype",
-  "for_doc_creation",
+  "for_doc_event",
   "condition",
   "points",
   "user_field",
@@ -42,7 +42,7 @@
    "reqd": 1
   },
   {
-   "depends_on": "eval:!doc.for_doc_creation",
+   "depends_on": "eval:doc.for_doc_event === 'Custom'",
    "description": "If the condition is satisfied user will be rewarded with the points. eg. doc.status == 'Closed'\n",
    "fieldname": "condition",
    "fieldtype": "Code",
@@ -68,12 +68,6 @@
    "label": "Multiplier Field"
   },
   {
-   "default": "0",
-   "fieldname": "for_doc_creation",
-   "fieldtype": "Check",
-   "label": "Allot Points for Document Creation"
-  },
-  {
    "depends_on": "eval:doc.multiplier_field",
    "description": "Maximum points allowed after multiplying points with the multiplier value\n(Note: For no limit set value as 0)",
    "fieldname": "max_points",
@@ -83,9 +77,16 @@
   {
    "fieldname": "section_break_2",
    "fieldtype": "Section Break"
+  },
+  {
+   "default": "Custom",
+   "fieldname": "for_doc_event",
+   "fieldtype": "Select",
+   "label": "For Document Event",
+   "options": "New\nSubmit\nCancel\nCustom"
   }
  ],
- "modified": "2019-08-20 11:17:41.788235",
+ "modified": "2019-08-21 12:32:29.852841",
  "modified_by": "Administrator",
  "module": "Social",
  "name": "Energy Point Rule",

@@ -176,7 +176,7 @@ class TestEnergyPointLog(unittest.TestCase):
 
 	def test_energy_point_for_new_document_creation(self):
 		frappe.set_user('test@example.com')
-		todo_point_rule = create_energy_point_rule_for_todo(for_doc_creation=True)
+		todo_point_rule = create_energy_point_rule_for_todo(for_doc_event='New')
 
 		points_before_todo_creation = get_points('test@example.com')
 		create_a_todo()
@@ -185,7 +185,7 @@ class TestEnergyPointLog(unittest.TestCase):
 		self.assertEquals(points_after_todo_creation,
 			points_before_todo_creation + todo_point_rule.points)
 
-def create_energy_point_rule_for_todo(multiplier_field=None, for_doc_creation=False, max_points=None):
+def create_energy_point_rule_for_todo(multiplier_field=None, for_doc_event='Custom', max_points=None):
 	name = 'ToDo Closed'
 	point_rule = frappe.db.get_all(
 		'Energy Point Rule',
@@ -202,7 +202,7 @@ def create_energy_point_rule_for_todo(multiplier_field=None, for_doc_creation=Fa
 		'points': 5,
 		'reference_doctype': 'ToDo',
 		'condition': 'doc.status == "Closed"',
-		'for_doc_creation': for_doc_creation,
+		'for_doc_event': for_doc_event,
 		'user_field': 'owner',
 		'multiplier_field': multiplier_field,
 		'max_points': max_points
