@@ -3,6 +3,7 @@ frappe.provide('frappe.views');
 frappe.views.BaseList = class BaseList {
 	constructor(opts) {
 		Object.assign(this, opts);
+		this.show_sidebar = JSON.parse(localStorage.show_sidebar || 'true');
 	}
 
 	show() {
@@ -200,13 +201,26 @@ frappe.views.BaseList = class BaseList {
 	}
 
 	toggle_side_bar() {
-		this.list_sidebar.parent.toggleClass('hide');
-		this.page.current_view.find('.layout-main-section-wrapper').toggleClass('col-md-10 col-md-12');
+		this.show_sidebar = !this.show_sidebar
+		localStorage.show_sidebar = this.show_sidebar;
+		this.list_sidebar.parent.toggle(this.show_sidebar);
+		this.set_list_width()
+	}
+
+	set_list_width() {
+		if (!this.show_sidebar) {
+			cur_list.page.current_view.find('.layout-main-section-wrapper').removeClass('col-md-10')
+			cur_list.page.current_view.find('.layout-main-section-wrapper').addClass('col-md-12')
+		} else {
+			cur_list.page.current_view.find('.layout-main-section-wrapper').removeClass('col-md-12')
+			cur_list.page.current_view.find('.layout-main-section-wrapper').addClass('col-md-10')
+		}
 	}
 
 	setup_main_section() {
 		return frappe.run_serially([
 			this.setup_list_wrapper,
+			this.set_list_width,
 			this.setup_filter_area,
 			this.setup_sort_selector,
 			this.setup_result_area,
