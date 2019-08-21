@@ -17,23 +17,7 @@ frappe.ui.form.on('Google Drive', {
 			}
 		});
 
-		if (frm.doc.enable && frm.doc.refresh_token && !frm.doc.backup_folder_id) {
-			let create_button = frm.add_custom_button(__("Create Folder"), function () {
-				frappe.show_alert({
-					indicator: "green",
-					message: __("Creating folder in Google Drive.")
-				});
-				frappe.call({
-					method: "frappe.integrations.doctype.google_drive.google_drive.create_folder_in_google_drive",
-					btn: create_button
-				}).then((r) => {
-					frm.refresh();
-					frappe.msgprint(r.message);
-				});
-			});
-		}
-
-		if (frm.doc.enable && frm.doc.refresh_token && frm.doc.backup_folder_id) {
+		if (frm.doc.enable && frm.doc.refresh_token) {
 			let sync_button = frm.add_custom_button(__("Take Backup"), function () {
 				frappe.show_alert({
 					indicator: "green",
