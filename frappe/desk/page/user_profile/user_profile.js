@@ -374,21 +374,13 @@ class UserProfile {
 		}
 	}
 
-	get_user_rank(date) {
+	get_user_rank() {
 		return frappe.xcall('frappe.desk.page.user_profile.user_profile.get_user_rank', {
 			user: this.user_id,
-			date: date || null,
 		}).then(r => {
-			if (r[0]) {
-				let user_rank = r[0];
 
-				//Check if monthly rank or all time rank
-				if (!date) {
-					this.rank = user_rank[1];
-				} else {
-					this.month_rank = user_rank[1];
-				}
-			}
+			if (r.monthly_rank[0]) this.month_rank = r.monthly_rank[0][1];
+			if (r.all_time_rank[0]) this.rank = r.all_time_rank[0][1];
 		});
 	}
 
@@ -410,18 +402,14 @@ class UserProfile {
 		let $profile_details = this.wrapper.find('.profile-details');
 
 		this.get_user_rank().then(() => {
+			this.get_user_points().then(() => {
+				let html = $(__(`<p class="user-energy-points text-muted">${__('Energy Points: ')}<span class="rank">{0}</span></p>
+					<p class="user-energy-points text-muted">${__('Review Points: ')}<span class="rank">{1}</span></p>
+					<p class="user-energy-points text-muted">${__('Rank: ')}<span class="rank">{2}</span></p>
+					<p class="user-energy-points text-muted">${__('Monthly Rank: ')}<span class="rank">{3}</span></p>
+				`, [this.energy_points, this.review_points, this.rank, this.month_rank]));
 
-			this.get_user_rank(frappe.datetime.month_start()).then(() => {
-
-				this.get_user_points().then(() => {
-					let html = $(__(`<p class="user-energy-points text-muted">${__('Energy Points: ')}<span class="rank">{0}</span></p>
-						<p class="user-energy-points text-muted">${__('Review Points: ')}<span class="rank">{1}</span></p>
-						<p class="user-energy-points text-muted">${__('Rank: ')}<span class="rank">{2}</span></p>
-						<p class="user-energy-points text-muted">${__('Monthly Rank: ')}<span class="rank">{3}</span></p>
-					`, [this.energy_points, this.review_points, this.rank, this.month_rank]));
-
-					$profile_details.append(html);
-				});
+				$profile_details.append(html);
 			});
 		});
 	}
