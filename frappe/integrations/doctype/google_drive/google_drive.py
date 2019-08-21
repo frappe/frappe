@@ -23,6 +23,12 @@ SCOPES = "https://www.googleapis.com/auth/drive"
 
 class GoogleDrive(Document):
 
+	def validate(self):
+		if not self.email == frappe.db.get_single_value("Google Drive", "email"):
+			self.authorization_code = ""
+			self.refresh_token = ""
+			self.backup_folder_id = ""
+
 	def get_access_token(self):
 		google_settings = frappe.get_doc("Google Settings")
 
