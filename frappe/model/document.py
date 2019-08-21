@@ -64,6 +64,9 @@ def get_doc(*args, **kwargs):
 		else:
 			raise ValueError('"doctype" is a required key')
 
+	if doctype != "DocType" and doctype not in frappe.get_all("DocType"):
+		frappe.throw(_("DocType {0} not found in DocType List").format(doctype))
+
 	controller = get_controller(doctype)
 	if controller:
 		return controller(*args, **kwargs)
