@@ -156,13 +156,12 @@ def check_for_folder_in_google_drive():
 	except HttpError as e:
 		frappe.throw(_("Google Drive - Could not find folder in Google Drive - Error Code {0}").format(e))
 
-	if google_drive_folders.get("files"):
-		for f in google_drive_folders.get("files"):
-			if f.get("name") == account.backup_folder_name:
-				frappe.db.set_value("Google Drive", None, "backup_folder_id", f.get("id"))
-				frappe.db.commit()
-				backup_folder_exists = True
-				break
+	for f in google_drive_folders.get("files"):
+		if f.get("name") == account.backup_folder_name:
+			frappe.db.set_value("Google Drive", None, "backup_folder_id", f.get("id"))
+			frappe.db.commit()
+			backup_folder_exists = True
+			break
 
 	if not backup_folder_exists:
 		_create_folder_in_google_drive(google_drive, account)
