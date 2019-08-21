@@ -152,7 +152,7 @@ def check_for_folder_in_google_drive():
 	backup_folder_exists = False
 
 	try:
-		google_drive_folders = google_drive.files().list(q="mimeType='application/vnd.google-apps.folder'".format(account.backup_folder_name)).execute()
+		google_drive_folders = google_drive.files().list(q="mimeType='application/vnd.google-apps.folder'").execute()
 	except HttpError as e:
 		frappe.throw(_("Google Drive - Could not find folder in Google Drive - Error Code {0}").format(e))
 
