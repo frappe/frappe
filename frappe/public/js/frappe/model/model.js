@@ -13,9 +13,15 @@ $.extend(frappe.model, {
 		'_user_tags', '_comments', '_assign', '_liked_by', 'docstatus',
 		'parent', 'parenttype', 'parentfield', 'idx'],
 
-	core_doctypes_list: ['DocType', 'DocField', 'DocPerm', 'User', 'Role', 'Has Role',
-		'Page', 'Module Def', 'Print Format', 'Report', 'Customize Form',
-		'Customize Form Field', 'Property Setter', 'Custom Field', 'Custom Script'],
+	core_doctypes_list: ['Success Action', 'User', 'Access Log', 'Session Default', 'Language',
+		'Session Default Settings', 'DocType', 'Domain', 'Translation', 'DocField', 'Communication',
+		'Communication Link', 'Dynamic Link', 'Prepared Report', 'User Permission', 'System Settings',
+		'Report', 'View Log', 'Comment', 'Role Permission for Page and Report', 'Transaction Log',
+		'File', 'Data Import', 'Custom DocPerm', 'DocPerm', 'User Email', 'Activity Log', 'Version',
+		'Data Export', 'Payment Gateway', 'Domain Settings', 'User Social Login', 'Page', 'SMS Settings',
+		'Block Module', 'Role Profile', 'SMS Parameter', 'DocShare', 'Test Runner', 'Module Def', 'Role',
+		'Has Domain', 'Custom Role', 'Error Log', 'Has Role', 'Error Snapshot', 'Tag Category', 'Patch Log',
+		'Deleted Document', 'DefaultValue', 'Tag', 'Tag Doc Category'],
 
 	std_fields: [
 		{fieldname:'name', fieldtype:'Link', label:__('ID')},

@@ -45,9 +45,16 @@ default_fields = ('doctype','name','owner','creation','modified','modified_by',
 	'parent','parentfield','parenttype','idx','docstatus')
 optional_fields = ("_user_tags", "_comments", "_assign", "_liked_by", "_seen")
 table_fields = ('Table', 'Table MultiSelect')
-core_doctypes_list = ('DocType', 'DocField', 'DocPerm', 'User', 'Role', 'Has Role',
-	'Page', 'Module Def', 'Print Format', 'Report', 'Customize Form',
-	'Customize Form Field', 'Property Setter', 'Custom Field', 'Custom Script')
+core_doctypes_list = ('Success Action', 'User', 'Access Log', 'Session Default',
+	'Language', 'Session Default Settings', 'DocType', 'Domain', 'Translation',
+	'DocField', 'Communication', 'Communication Link', 'Dynamic Link', 'Prepared Report',
+	'User Permission', 'System Settings', 'Report', 'View Log', 'Comment',
+	'Role Permission for Page and Report', 'Transaction Log', 'File', 'Data Import',
+	'Custom DocPerm', 'DocPerm', 'User Email', 'Activity Log', 'Version', 'Data Export',
+	'Payment Gateway', 'Domain Settings', 'User Social Login', 'Page', 'SMS Settings',
+	'Block Module', 'Role Profile', 'SMS Parameter', 'DocShare', 'Test Runner', 'Module Def',
+	'Role', 'Has Domain', 'Custom Role', 'Error Log', 'Has Role', 'Error Snapshot', 'Tag Category',
+	'Patch Log', 'Deleted Document', 'DefaultValue', 'Tag', 'Tag Doc Category')
 
 def copytables(srctype, src, srcfield, tartype, tar, tarfield, srcfields, tarfields=[]):
 	if not tarfields:
