@@ -16,7 +16,7 @@ from frappe.utils import get_request_site_address
 from frappe.utils.background_jobs import enqueue
 from six.moves.urllib.parse import quote
 from apiclient.http import MediaFileUpload
-from frappe.utils import get_backups_path, get_files_path, get_bench_path
+from frappe.utils import get_backups_path, get_bench_path
 from frappe.utils.backups import new_backup
 from frappe.integrations.doctype.google_settings.google_settings import get_auth_url
 
@@ -152,12 +152,12 @@ def check_for_folder_in_google_drive():
 	backup_folder_exists = False
 
 	try:
-		google_drive_folders = google_drive.files().list(q="mimeType='application/vnd.google-apps.folder'".format(account.backup_folder_name)).execute().get("files", [])
+		google_drive_folders = google_drive.files().list(q="mimeType='application/vnd.google-apps.folder'".format(account.backup_folder_name)).execute()
 	except HttpError as e:
 		frappe.throw(_("Google Drive - Could not find folder in Google Drive - Error Code {0}").format(e))
 
-	if google_drive_folders:
-		for f in google_drive_folders:
+	if google_drive_folders.get("files"):
+		for f in google_drive_folders.get("files"):
 			if f.get("name") == account.backup_folder_name:
 				frappe.db.set_value("Google Drive", None, "backup_folder_id", f.get("id"))
 				frappe.db.commit()
