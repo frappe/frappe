@@ -204,11 +204,11 @@ def contact_query(doctype, txt, searchfield, start, page_len, filters):
 def get_contact_with_phone_number(number):
 	if not number: return
 
-	contacts = frappe.get_all('Contact', filters=[
-		['Contact Phone', 'phone', 'like' '%{}'.format(number)]
-	], limit=1)
+	contacts = frappe.get_all('Contact Phone', filters=[
+		['phone', 'like', '{0}'.format(number)]
+	], fields=["parent"], limit=1)
 
-	return contacts[0].name if contacts else None
+	return contacts[0].parent if contacts else None
 
 def get_contact_name(email_id):
 	contact = frappe.get_list("Contact Email", filters={"email_id": email_id}, fields=["parent"], limit=1)
