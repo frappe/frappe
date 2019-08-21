@@ -126,17 +126,35 @@ def get_google_drive_object():
 
 @frappe.whitelist()
 def create_folder_in_google_drive():
-	google_drive, account = get_google_drive_object()
+	def _create_folder_in_google_drive(google_drive, account):
+		file_metadata = {
+			"name": account.backup_folder_name,
+			"mimeType": "application/vnd.google-apps.folder"
+		}
 
-	file_metadata = {
-		"name": account.backup_folder_name,
-		"mimeType": "application/vnd.google-apps.folder"
-	}
+		try:
+			folder = google_drive.files().create(body=file_metadata, fields="id").execute()
+			frappe.db.set_value("Google Drive", None, "backup_folder_id", folder.get("id"))
+		except HttpError as e:
+			frappe.throw(_("Google Drive - Could not create folder in Google Drive - Error Code {0}").format(e))
+
+	google_drive, account = get_google_drive_object()
+	backup_folder_exists = False
+
 	try:
-		folder = google_drive.files().create(body=file_metadata, fields="id").execute()
-		frappe.db.set_value("Google Drive", None, "backup_folder_id", folder.get("id"))
+		folder_exists = google_drive.files().list(q="mimeType='application/vnd.google-apps.folder'".format(account.backup_folder_name)).execute().get("files", [])
 	except HttpError as e:
-		frappe.throw(_("Google Drive - Could not create folder in Google Drive - Error Code {0}").format(e))
+		frappe.throw(_("Google Drive - Could not find folder in Google Drive - Error Code {0}").format(e))
+
+	if folder_exists:
+		for f in folder_exists:
+			if f.get("name") == account.backup_folder_name:
+				frappe.db.set_value("Google Drive", None, "backup_folder_id", f.get("id"))
+				backup_folder_exists = True
+				break
+
+	if not backup_folder_exists:
+		_create_folder_in_google_drive(google_drive, account)
 
 	return _("Folder Created in Google Drive.")
 
