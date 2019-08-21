@@ -151,6 +151,11 @@ def check_for_folder_in_google_drive(google_drive, account):
 		frappe.throw(_("Google Drive - Could not find folder in Google Drive - Error Code {0}.").format(e))
 
 @frappe.whitelist()
+def take_backup():
+	"""Enqueue longjob for taking backup to Google Drive"""
+	enqueue("frappe.integrations.doctype.google_drive.google_drive.upload_system_backup_to_google_drive", queue='long', timeout=1500)
+	frappe.msgprint(_("Queued for backup. It may take a few minutes to an hour."))
+
 def upload_system_backup_to_google_drive():
 	"""
 		Upload system backup to Google Drive
@@ -169,7 +174,7 @@ def upload_system_backup_to_google_drive():
 	fileurl_private_files = os.path.basename(backup.backup_path_private_files)
 
 
-	for file_url in [fileurl_backup, fileurl_public_files, fileurl_private_files]:
+	for fileurl in [fileurl_backup, fileurl_public_files, fileurl_private_files]:
 		file_metadata = {
 			"name": fileurl,
 			"parents": [account.backup_folder_id]

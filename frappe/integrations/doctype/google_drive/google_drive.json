@@ -7,6 +7,7 @@
   "google_drive_section",
   "backup_folder_name",
   "frequency",
+  "email",
   "send_email_for_successful_backup",
   "file_backup",
   "authorize_google_drive_access",
@@ -89,10 +90,17 @@
    "fieldname": "google_drive_section",
    "fieldtype": "Section Break",
    "label": "Google Drive"
+  },
+  {
+   "fieldname": "email",
+   "fieldtype": "Data",
+   "label": "Send Notification To",
+   "options": "Email",
+   "reqd": 1
   }
  ],
  "issingle": 1,
- "modified": "2019-08-21 17:07:21.773252",
+ "modified": "2019-08-21 17:33:28.516614",
  "modified_by": "qwe@qwe.com",
  "module": "Integrations",
  "name": "Google Drive",
