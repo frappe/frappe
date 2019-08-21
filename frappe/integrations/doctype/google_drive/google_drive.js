@@ -49,7 +49,7 @@ frappe.ui.form.on('Google Drive', {
 		}
 
 		if (frm.doc.enable && frm.doc.backup_folder_name && !frm.doc.refresh_token) {
-			frm.dashboard.set_headline(__("Enable Google Drive Access."));
+			frm.dashboard.set_headline(__("Click on <b>Authorize Google Drive Access</b> to authorize Google Drive Access."));
 		}
 
 		if (frm.doc.enable && frm.doc.refresh_token && frm.doc.authorization_code) {
