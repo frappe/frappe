@@ -42,6 +42,11 @@ def get_data():
 					"name": "S3 Backup Settings",
 					"description": _("S3 Backup Settings"),
 				},
+				{
+					"type": "doctype",
+					"name": "Google Drive",
+					"description": _("Google Drive Backup."),
+				}
 			]
 		},
 		{

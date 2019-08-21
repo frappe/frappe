@@ -5,7 +5,6 @@
  "field_order": [
   "enable",
   "google_drive_section",
-  "email",
   "backup_folder_name",
   "frequency",
   "send_email_for_successful_backup",
@@ -73,14 +72,6 @@
    "read_only": 1
   },
   {
-   "fieldname": "email",
-   "fieldtype": "Data",
-   "in_list_view": 1,
-   "label": "Email",
-   "options": "Email",
-   "reqd": 1
-  },
-  {
    "default": "0",
    "description": "Note: By default emails for failed backups are sent.",
    "fieldname": "send_email_for_successful_backup",
@@ -101,7 +92,7 @@
   }
  ],
  "issingle": 1,
- "modified": "2019-08-20 14:25:24.504705",
+ "modified": "2019-08-21 17:07:21.773252",
  "modified_by": "qwe@qwe.com",
  "module": "Integrations",
  "name": "Google Drive",

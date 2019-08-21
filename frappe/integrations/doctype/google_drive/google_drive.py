@@ -23,12 +23,6 @@ SCOPES = "https://www.googleapis.com/auth/drive"
 
 class GoogleDrive(Document):
 
-	def validate(self):
-		if not self.email == frappe.db.get_single_value("Google Drive", "email"):
-			self.authorization_code = ""
-			self.refresh_token = ""
-			self.backup_folder_id = ""
-
 	def get_access_token(self):
 		google_settings = frappe.get_doc("Google Settings")
 
@@ -168,65 +162,35 @@ def upload_system_backup_to_google_drive():
 	check_for_folder_in_google_drive(google_drive, account)
 	account.load_from_db()
 	progress(1, "Backing up Data.")
-	backup = new_backup(ignore_files=True)
+	backup = new_backup()
 
-	fileurl = os.path.basename(backup.backup_path_db)
+	fileurl_backup = os.path.basename(backup.backup_path_db)
+	fileurl_public_files = os.path.basename(backup.backup_path_files)
+	fileurl_private_files = os.path.basename(backup.backup_path_private_files)
 
-	file_metadata = {
-		"name": fileurl,
-		"parents": [account.backup_folder_id]
-	}
 
-	try:
-		media = MediaFileUpload(get_absolute_path(filename=fileurl, backup=True), mimetype="application/gzip", resumable=True)
-	except IOError as e:
-		frappe.throw(_("Google Drive - Could not locate locate - {0}").format(e))
+	for file_url in [fileurl_backup, fileurl_public_files, fileurl_private_files]:
+		file_metadata = {
+			"name": fileurl,
+			"parents": [account.backup_folder_id]
+		}
 
-	try:
-		progress(2, "Uploading backup to Google Drive.")
-		google_drive.files().create(body=file_metadata, media_body=media, fields="id").execute()
-		if account.file_backup:
-			progress(2, "Uploading files to Google Drive.")
-			upload_files(google_drive, account)
+		try:
+			media = MediaFileUpload(get_absolute_path(filename=fileurl), mimetype="application/gzip", resumable=True)
+		except IOError as e:
+			frappe.throw(_("Google Drive - Could not locate locate - {0}").format(e))
 
-		frappe.db.set_value("Google Drive", None, "last_backup_on", frappe.utils.now_datetime())
-		progress(3, "Uploading successful.")
-		send_email(success=True)
-	except HttpError as e:
-		send_email(success=False, error=e)
-		frappe.msgprint(_("Google Drive - Could not upload backup - Error {0}").format(e))
+		try:
+			progress(2, "Uploading backup to Google Drive.")
+			google_drive.files().create(body=file_metadata, media_body=media, fields="id").execute()
+		except HttpError as e:
+			send_email(success=False, error=e)
+			frappe.msgprint(_("Google Drive - Could not upload backup - Error {0}").format(e))
 
+	progress(3, "Uploading successful.")
+	frappe.db.set_value("Google Drive", None, "last_backup_on", frappe.utils.now_datetime())
+	send_email(success=True)
 	return _("Google Drive Backup Successful.")
-
-def upload_files(google_drive, account):
-	for f in frappe.get_list("File", filters={"is_folder": 0, "uploaded_to_google_drive": 0},
-		fields=["name", "file_url", "file_name", "is_private"]):
-
-		upload_file_to_google_drive(google_drive, account, f.file_url or f.file_name, f.is_private)
-		frappe.db.set_value("File", f.name, "uploaded_to_google_drive", 1)
-
-def upload_file_to_google_drive(google_drive, account, fileurl, is_private):
-	"""
-		Uploads File to Folder specified in Google Drive Doc.
-	"""
-	# parents: Folder id under which the file is to be uploaded
-	filename = os.path.basename(fileurl)
-
-	file_metadata = {
-		"name": filename,
-		"parents": [account.backup_folder_id]
-	}
-
-	try:
-		media = MediaFileUpload(get_absolute_path(filename=filename, is_private=is_private), mimetype="application/pdf", resumable=True)
-	except IOError as e:
-		frappe.msgprint(_("Google Drive - File not found - {0}").format(e))
-		return
-
-	try:
-		google_drive.files().create(body=file_metadata, media_body=media, fields="id").execute()
-	except HttpError as e:
-		frappe.msgprint(_("Google Drive - Could not upload file - Error Code {0}").format(e))
 
 def daily_backup():
 	if frappe.db.get_single_value("Google Drive", "frequency") == "Daily":
@@ -236,11 +200,8 @@ def weekly_backup():
 	if frappe.db.get_single_value("Google Drive", "frequency") == "Weekly":
 		upload_system_backup_to_google_drive()
 
-def get_absolute_path(filename, is_private=False, backup=False):
-	file_path = os.path.join(get_files_path(is_private=is_private)[2:], filename)
-
-	if backup:
-		file_path = os.path.join(get_backups_path()[2:], filename)
+def get_absolute_path(filename):
+	file_path = os.path.join(get_backups_path()[2:], filename)
 	return "{0}/sites/{1}".format(get_bench_path(), file_path)
 
 def progress(progress, message):
