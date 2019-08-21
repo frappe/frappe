@@ -23,8 +23,6 @@ frappe.views.ListSidebar = class ListSidebar {
 		this.sidebar = $('<div class="list-sidebar overlay-sidebar hidden-xs hidden-sm"></div>')
 			.html(sidebar_content)
 			.appendTo(this.page.sidebar.empty());
-		let show_sidebar = JSON.parse(localStorage.show_sidebar || 'true');
-		this.sidebar.toggle(show_sidebar)
 
 		this.setup_reports();
 		this.setup_list_filter();
