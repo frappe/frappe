@@ -7,7 +7,6 @@ import frappe
 from frappe import _
 from frappe.model.document import Document
 from frappe.email.queue import send_one
-from frappe.limits import get_limits
 from frappe.utils import now_datetime
 
 

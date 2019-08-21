@@ -238,7 +238,7 @@ class DbColumn:
 			return
 
 		# type
-		if ((current_def['type']) != column_type):
+		if (current_def['type'] != column_type):
 			self.table.change_type.append(self)
 
 		# unique
@@ -265,7 +265,23 @@ class DbColumn:
 		if "decimal" in current_def['type']:
 			return self.default_changed_for_decimal(current_def)
 		else:
-			return current_def['default'] != self.default
+			cur_default = current_def['default']
+			new_default = self.default
+			if cur_default == "NULL" or cur_default is None:
+				cur_default = None
+			else:
+				# Strip quotes from default value
+				# eg. database returns default value as "'System Manager'"
+				cur_default = cur_default.lstrip("'").rstrip("'")
+
+			fieldtype = self.fieldtype
+			if fieldtype in ['Int', 'Check']:
+				cur_default = cint(cur_default)
+				new_default = cint(new_default)
+			elif fieldtype in ['Currency', 'Float', 'Percent']:
+				cur_default = flt(cur_default)
+				new_default = flt(new_default)
+			return cur_default != new_default
 
 	def default_changed_for_decimal(self, current_def):
 		try:

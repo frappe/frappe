@@ -69,7 +69,6 @@ def send(recipients=None, sender=None, subject=None, message=None, text_content=
 	if not sender or sender == "Administrator":
 		sender = email_account.default_sender
 
-	check_email_limit(recipients)
 
 	if not text_content:
 		try:
@@ -243,39 +242,6 @@ def get_email_queue(recipients, sender, subject, **kwargs):
 
 	return e
 
-def check_email_limit(recipients):
-	# if using settings from site_config.json, check email limit
-	# No limit for own email settings
-	smtp_server = SMTPServer()
-
-	if (smtp_server.email_account
-		and getattr(smtp_server.email_account, "from_site_config", False)
-		or frappe.flags.in_test):
-
-		monthly_email_limit = frappe.conf.get('limits', {}).get('emails')
-		daily_email_limit = cint(frappe.conf.get('limits', {}).get('daily_emails'))
-
-		if frappe.flags.in_test:
-			monthly_email_limit = 500
-			daily_email_limit = 50
-
-		if daily_email_limit:
-			# get count of sent mails in last 24 hours
-			today = get_emails_sent_today()
-			if (today + len(recipients)) > daily_email_limit:
-				throw(_("Cannot send this email. You have crossed the sending limit of {0} emails for this day.").format(daily_email_limit),
-					EmailLimitCrossedError)
-
-		if not monthly_email_limit:
-			return
-
-		# get count of mails sent this month
-		this_month = get_emails_sent_this_month()
-
-		if (this_month + len(recipients)) > monthly_email_limit:
-			throw(_("Cannot send this email. You have crossed the sending limit of {0} emails for this month.").format(monthly_email_limit),
-				EmailLimitCrossedError)
-
 def get_emails_sent_this_month():
 	return frappe.db.sql("""SELECT COUNT(`name`) FROM `tabEmail Queue` WHERE
 		`status`='Sent' AND EXTRACT(MONTH FROM `creation`) = EXTRACT(MONTH FROM NOW())""")[0][0]
@@ -355,7 +321,6 @@ def return_unsubscribed_page(email, doctype, name):
 def flush(from_test=False):
 	"""flush email queue, every time: called from scheduler"""
 	# additional check
-	check_email_limit([])
 
 	auto_commit = not from_test
 	if frappe.are_emails_muted():

@@ -40,9 +40,9 @@ body {
 		}
 
 		.page-title .indicator {
-			position: absolute;
-    		left: 5px;
-			margin-top: 12px;
+			float: left;
+			margin-top: 10px;
+			margin-right: 5px;
 		}
 
 
@@ -53,11 +53,6 @@ body {
 			position: absolute;
 			right: 140px;
 			min-width: 200px;
-		}
-
-		.title-text {
-			margin-top: 10px;
-			//margin-left: 10px;
 		}
 	}
 
@@ -227,10 +222,13 @@ body {
 				font-size: 16px;
 				width: calc(~"100% - 90px");
 			}
+
 			.indicator {
-				float: left;
-				margin-top: 10px;
-				margin-right: 5px;
+				margin: 0;
+			}
+
+			.title-area {
+				flex-direction: column;
 			}
 		}
 	}

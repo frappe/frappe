@@ -496,6 +496,9 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 			data: data,
 			type: args.chart_type,
 			colors: ['#70E078', 'light-blue', 'orange', 'red'],
+			axisOptions: {
+				shortenYAxisNumbers: 1
+			},
 
 			format_tooltip_x: value => value.doc.name,
 			format_tooltip_y:

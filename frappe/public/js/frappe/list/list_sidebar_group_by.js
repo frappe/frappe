@@ -19,10 +19,10 @@ frappe.views.ListGroupBy = class ListGroupBy {
 
 	make_group_by_fields_modal() {
 		let d = new frappe.ui.Dialog ({
-			title: __("Add Filter By"),
+			title: __("Select Filters"),
 			fields: this.get_group_by_dropdown_fields()
 		});
-		d.set_primary_action("Add", ({ group_by_fields }) => {
+		d.set_primary_action("Save", ({ group_by_fields }) => {
 			frappe.model.user_settings.save(this.doctype, 'group_by_fields', group_by_fields || null);
 			this.group_by_fields = group_by_fields ? ['assigned_to', ...group_by_fields] : ['assigned_to'];
 			this.render_group_by_items();
@@ -110,17 +110,25 @@ frappe.views.ListGroupBy = class ListGroupBy {
 	}
 
 	get_group_by_count(field) {
+		let current_filters = this.list_view.get_filters_for_args();
+
+		// remove filter of the current field
+		current_filters = current_filters.filter((f_arr) => !f_arr.includes(field === 'assigned_to' ? '_assign': field));
+
 		let args =  {
 			doctype: this.doctype,
-			current_filters: this.list_view.get_filters_for_args(),
+			current_filters: current_filters,
 			field: field,
 		};
+
+
 		return frappe.call('frappe.desk.listview.get_group_by_count', args).then((r) => {
 			let field_counts = r.message || [];
 			field_counts = field_counts.filter(f => f.count !== 0);
-			if (field === 'assigned_to') {
-				field_counts = field_counts.filter(f => !['Guest', 'Administrator'].includes(f.name));
-			}
+			let current_user = field_counts.find(f => f.name === frappe.session.user);
+			field_counts = field_counts.filter(f => !['Guest', 'Administrator', frappe.session.user].includes(f.name));
+			// Set frappe.session.user on top of the list
+			if (current_user) field_counts.unshift(current_user);
 			return field_counts;
 		});
 	}
@@ -135,7 +143,7 @@ frappe.views.ListGroupBy = class ListGroupBy {
 
 			return `<li class="group-by-item" data-value="${value}">
 				<a class="badge-hover" href="#" onclick="return false;">
-					<span class="group-by-value">${label}</span>
+					<span class="group-by-value" data-name="${field.name}">${label}</span>
 					<span class="badge pull-right group-by-count">${field.count}</span>
 				</a>
 			</li>`;
@@ -145,6 +153,7 @@ frappe.views.ListGroupBy = class ListGroupBy {
 				<input type="text" placeholder="${__('Search')}" class="form-control dropdown-search-input input-xs">
 			</div>
 		`;
+
 		let dropdown_html = standard_html + fields.map(get_dropdown_html).join('');
 		dropdown.html(dropdown_html);
 	}
@@ -156,19 +165,20 @@ frappe.views.ListGroupBy = class ListGroupBy {
 			let value = decodeURIComponent($target.data('value').trim());
 			fieldname = fieldname === 'assigned_to' ? '_assign': fieldname;
 
-			this.list_view.filter_area.remove(fieldname);
+			return this.list_view.filter_area.remove(fieldname)
+				.then(() => {
+					let operator = '=';
+					if (value === '') {
+						operator = 'is';
+						value = 'not set';
+					}
+					if (fieldname === '_assign') {
+						operator = 'like';
+						value = `%${value}%`;
+					}
 
-			let operator = '=';
-			if (value === '') {
-				operator = 'is';
-				value = 'not set';
-			}
-			if (fieldname === '_assign') {
-				operator = 'like';
-				value = `%${value}%`;
-			}
-
-			this.list_view.filter_area.add(this.doctype, fieldname, operator, value);
+					return this.list_view.filter_area.add(this.doctype, fieldname, operator, value);
+				});
 		});
 	}
 

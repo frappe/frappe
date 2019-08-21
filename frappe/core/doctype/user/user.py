@@ -15,7 +15,6 @@ import frappe.share
 import re
 import json
 
-from frappe.limits import get_limits
 from frappe.website.utils import is_signup_enabled
 from frappe.utils.background_jobs import enqueue
 
@@ -91,7 +90,6 @@ class User(Document):
 
 	def on_update(self):
 		# clear new password
-		self.validate_user_limit()
 		self.share_with_self()
 		clear_notifications(user=self.name)
 		frappe.clear_cache(user=self.name)
@@ -473,34 +471,6 @@ class User(Document):
 	def get_blocked_modules(self):
 		"""Returns list of modules blocked for that user"""
 		return [d.module for d in self.block_modules] if self.block_modules else []
-
-	def validate_user_limit(self):
-		'''
-			Validate if user limit has been reached for System Users
-			Checked in 'Validate' event as we don't want welcome email sent if max users are exceeded.
-		'''
-
-		if self.user_type == "Website User":
-			return
-
-		if not self.enabled:
-			# don't validate max users when saving a disabled user
-			return
-
-		limits = get_limits()
-		if not limits.users:
-			# no limits defined
-			return
-
-		total_users = get_total_users()
-		if self.is_new():
-			# get_total_users gets existing users in database
-			# a new record isn't inserted yet, so adding 1
-			total_users += 1
-
-		if total_users > limits.users:
-			frappe.throw(_("Sorry. You have reached the maximum user limit for your subscription. You can either disable an existing user or buy a higher subscription plan."),
-				MaxUsersReachedError)
 
 	def validate_user_email_inbox(self):
 		""" check if same email account added in User Emails twice """

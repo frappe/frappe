@@ -19,7 +19,6 @@ import os
 from frappe.utils import get_sites
 from datetime import datetime
 from frappe.utils.background_jobs import enqueue, get_jobs, queue_timeout
-from frappe.limits import has_expired
 from frappe.utils.data import get_datetime, now_datetime
 from frappe.core.doctype.user.user import STANDARD_USERS
 from frappe.installer import update_site_config
@@ -310,9 +309,6 @@ def reset_enabled_scheduler_events(login_manager):
 			if is_dormant:
 				update_site_config('dormant', 'None')
 
-def disable_scheduler_on_expiry():
-	if has_expired():
-		disable_scheduler()
 
 def restrict_scheduler_events_if_dormant():
 	if is_dormant():
