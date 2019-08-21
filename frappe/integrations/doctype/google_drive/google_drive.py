@@ -13,6 +13,7 @@ from frappe import _
 from googleapiclient.errors import HttpError
 from frappe.model.document import Document
 from frappe.utils import get_request_site_address
+from frappe.utils.background_jobs import enqueue
 from six.moves.urllib.parse import quote
 from apiclient.http import MediaFileUpload
 from frappe.utils import get_backups_path, get_files_path, get_bench_path
