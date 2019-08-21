@@ -63,6 +63,8 @@ def authorize_access(reauthorize=None):
 	redirect_uri = get_request_site_address(True) + "?cmd=frappe.integrations.doctype.google_drive.google_drive.google_callback"
 
 	if not google_drive.authorization_code or reauthorize:
+		if reauthorize:
+			frappe.db.set_value("Google Drive", None, "backup_folder_id", "")
 		return get_authentication_url(client_id=google_settings.client_id, redirect_uri=redirect_uri)
 	else:
 		try:
