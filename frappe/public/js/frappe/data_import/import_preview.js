@@ -1,5 +1,5 @@
 import DataTable from 'frappe-datatable';
-import ColumnManager from 'frappe-datatable/src/columnmanager';
+import get_custom_column_manager from './custom_column_manager';
 import ColumnPickerFields from './column_picker_fields';
 
 frappe.provide('frappe.data_import');
@@ -19,7 +19,7 @@ frappe.data_import.ImportPreview = class ImportPreview {
 			this.make_wrapper();
 			this.prepare_columns();
 			this.prepare_data();
-			this.render_warnings();
+			this.render_warnings(this.preview_warnings);
 			this.render_datatable();
 		});
 	}
@@ -43,7 +43,8 @@ frappe.data_import.ImportPreview = class ImportPreview {
 	}
 
 	prepare_columns() {
-		this.columns = this.preview_fields.map(df => {
+		this.columns = this.preview_fields.map((df, i) => {
+			let header_row_index = i - 1;
 			if (df.skip_import) {
 				return {
 					id: frappe.utils.get_random(6),
@@ -51,6 +52,7 @@ frappe.data_import.ImportPreview = class ImportPreview {
 					skip_import: true,
 					editable: false,
 					focusable: false,
+					header_row_index,
 					format: (value, row, column, data) => {
 						return `<div class="text-muted">${value}</div>`;
 					}
@@ -70,7 +72,8 @@ frappe.data_import.ImportPreview = class ImportPreview {
 				name: column_title,
 				df: df,
 				editable: true,
-				align: 'left'
+				align: 'left',
+				header_row_index
 			};
 		});
 	}
@@ -86,8 +89,8 @@ frappe.data_import.ImportPreview = class ImportPreview {
 		});
 	}
 
-	render_warnings() {
-		let warning_html = this.preview_warnings
+	render_warnings(warnings) {
+		let warning_html = warnings
 			.map(warning => {
 				return `<div style="line-height: 2">${warning}</div>`;
 			})
@@ -106,7 +109,7 @@ frappe.data_import.ImportPreview = class ImportPreview {
 			layout: 'fixed',
 			cellHeight: 35,
 			serialNoColumn: false,
-			checkboxColumn: true,
+			checkboxColumn: false,
 			pasteFromClipboard: true,
 			headerDropdown: [
 				{
@@ -119,43 +122,7 @@ frappe.data_import.ImportPreview = class ImportPreview {
 				}
 			],
 			overrideComponents: {
-				ColumnManager: class CustomColumnManager extends ColumnManager {
-					getHeaderHTML(columns) {
-						let html = super.getHeaderHTML(columns);
-
-						let header_row_columns = [
-							{
-								id: '_checkbox',
-								colIndex: 0,
-								format: () => ''
-							},
-							{
-								id: 'Sr. No',
-								colIndex: 1,
-								format: () => ''
-							}
-						].concat(
-							...self.header_row.map((col, i) => {
-								return {
-									id: col,
-									name: col,
-									align: 'left',
-									dropdown: false,
-									content: col,
-									colIndex: i + 2
-								};
-							})
-						);
-
-						let header_row_html = this.rowmanager.getRowHTML(
-							header_row_columns,
-							{
-								rowIndex: 'header-row'
-							}
-						);
-						return header_row_html + html;
-					}
-				}
+				ColumnManager: get_custom_column_manager(this.header_row)
 			}
 		});
 
@@ -163,11 +130,21 @@ frappe.data_import.ImportPreview = class ImportPreview {
 			display: 'none'
 		});
 
+		this.add_color_to_column_header();
+	}
+
+	get_rows_as_csv_array() {
+		return this.datatable.getRows().map(row => {
+			return row.map(cell => cell.content);
+		});
+	}
+
+	add_color_to_column_header() {
 		let columns = this.datatable.getColumns();
 		columns.forEach(col => {
 			if (!col.skip_import && col.df) {
 				this.datatable.style.setStyle(
-					`.dt-header .dt-cell--col-${col.colIndex}`,
+					`.dt-header .dt-cell--col-${col.colIndex}, .dt-header .dt-cell--col-${col.colIndex} .dt-dropdown__toggle`,
 					{
 						backgroundColor: frappe.ui.color.get_color_shade(
 							'green',
@@ -179,7 +156,7 @@ frappe.data_import.ImportPreview = class ImportPreview {
 			}
 			if (col.skip_import && col.name !== 'Sr. No') {
 				this.datatable.style.setStyle(
-					`.dt-header .dt-cell--col-${col.colIndex}`,
+					`.dt-header .dt-cell--col-${col.colIndex}, .dt-header .dt-cell--col-${col.colIndex} .dt-dropdown__toggle`,
 					{
 						backgroundColor: frappe.ui.color.get_color_shade(
 							'orange',
@@ -217,7 +194,7 @@ frappe.data_import.ImportPreview = class ImportPreview {
 			],
 			primary_action: ({ fieldname }) => {
 				if (!fieldname) return;
-				this.events.remap_column(col.name, fieldname);
+				this.events.remap_column(col.header_row_index, fieldname);
 				dialog.hide();
 			}
 		});
@@ -225,6 +202,6 @@ frappe.data_import.ImportPreview = class ImportPreview {
 	}
 
 	skip_import(col) {
-		this.events.skip_import(col.name);
+		this.events.skip_import(col.header_row_index);
 	}
 };

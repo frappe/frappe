@@ -1,4 +1,5 @@
 {
+ "autoname": "format:{reference_doctype} Import on {creation}",
  "beta": 1,
  "creation": "2019-08-04 14:16:08.318714",
  "doctype": "DocType",
@@ -9,9 +10,16 @@
   "import_type",
   "download_sample_file",
   "import_file",
+  "column_break_5",
+  "skip_rows_with_errors",
+  "section_break_7",
+  "date_format",
+  "template_options",
   "section_import_preview",
   "import_preview",
-  "import_json"
+  "import_log_section",
+  "import_log",
+  "import_log_preview"
  ],
  "fields": [
   {
@@ -27,7 +35,7 @@
    "fieldtype": "Select",
    "in_list_view": 1,
    "label": "Import Type",
-   "options": "Insert new records\nUpdate existing records",
+   "options": "Insert New Records\nUpdate Existing Records",
    "reqd": 1
   },
   {
@@ -54,16 +62,54 @@
    "label": "Download Sample File"
   },
   {
-   "fieldname": "import_json",
+   "fieldname": "column_break_5",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "skip_rows_with_errors",
+   "fieldtype": "Check",
+   "label": "Skip rows with errors"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "section_break_7",
+   "fieldtype": "Section Break",
+   "label": "Import Options"
+  },
+  {
+   "fieldname": "date_format",
+   "fieldtype": "Select",
+   "label": "Date Format",
+   "options": "\nYYYY-MM-DD\nDD-MM-YYYY\nMM-DD-YYYY\nYYYY/MM/DD\nDD/MM/YYYY\nMM/DD/YYYY\nMM/DD/YY\nDD/MM/YY\nYYYY.MM.DD\nDD.MM.YYYY\nMM.DD.YYYY"
+  },
+  {
+   "fieldname": "template_options",
    "fieldtype": "Code",
    "hidden": 1,
-   "label": "Import JSON",
+   "label": "Template Options",
    "options": "JSON",
    "read_only": 1
+  },
+  {
+   "fieldname": "import_log",
+   "fieldtype": "Code",
+   "label": "Import Log",
+   "options": "JSON"
+  },
+  {
+   "fieldname": "import_log_section",
+   "fieldtype": "Section Break",
+   "label": "Import Log"
+  },
+  {
+   "fieldname": "import_log_preview",
+   "fieldtype": "HTML",
+   "label": "Import Log Preview"
   }
  ],
  "hide_toolbar": 1,
- "modified": "2019-08-13 19:10:02.943686",
+ "modified": "2019-08-22 18:26:28.939065",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Data Import Beta",

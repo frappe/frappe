@@ -9,7 +9,6 @@ from frappe.core.doctype.data_import.importer_new import Importer
 from frappe.core.doctype.data_import.exporter_new import Exporter
 
 class DataImportBeta(Document):
-
 	def validate(self):
 		if not self.import_file:
 			self.import_json = ''
@@ -18,12 +17,15 @@ class DataImportBeta(Document):
 		if not self.import_file:
 			return
 
-		f = frappe.get_doc('File', { 'file_url': self.import_file })
-		file_content = f.get_content()
+		i = self.get_importer()
+		return i.get_data_for_import_preview()
 
-		i = Importer(self.reference_doctype, content=file_content)
-		import_options = frappe.parse_json(self.import_json or '{}')
-		return i.get_data_for_import_preview(import_options)
+	def start_import(self):
+		i = self.get_importer()
+		return i.import_data()
+
+	def get_importer(self):
+		return Importer(self.reference_doctype, data_import=self)
 
 
 @frappe.whitelist()
