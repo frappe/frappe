@@ -16,6 +16,7 @@ from rq.timeouts import JobTimeoutException
 from frappe.utils import (cint, split_emails, get_request_site_address,
 	get_files_path, get_backups_path, get_url, encode)
 from six import text_type
+from frappe.integrations.offsite_backup_utils import get_latest_backup_file, send_email, get_recipients, validate_file_size
 
 ignore_list = [".DS_Store"]
 
@@ -48,10 +49,14 @@ def take_backup_to_dropbox(retry_count=0, upload_db_backup=True):
 	did_not_upload, error_log = [], []
 	try:
 		if cint(frappe.db.get_value("Dropbox Settings", None, "enabled")):
+			frappe.flags.create_new_backup = False
+			validate_file_size()
+
 			did_not_upload, error_log = backup_to_dropbox(upload_db_backup)
 			if did_not_upload: raise Exception
 
-			send_email(True, "Dropbox")
+			recipients = get_recipients("Drobox Settings", email_field='send_notifications_to')
+			send_email(True, "Dropbox", "Drobox Settings", recipients)
 	except JobTimeoutException:
 		if retry_count < 2:
 			args = {
@@ -66,34 +71,9 @@ def take_backup_to_dropbox(retry_count=0, upload_db_backup=True):
 		else:
 			file_and_error = [" - ".join(f) for f in zip(did_not_upload, error_log)]
 			error_message = ("\n".join(file_and_error) + "\n" + frappe.get_traceback())
-		frappe.errprint(error_message)
-		send_email(False, "Dropbox", error_message)
 
-def send_email(success, service_name, error_status=None):
-	if success:
-		if frappe.db.get_value("Dropbox Settings", None, "send_email_for_successful_backup") == '0':
-			return
-
-		subject = "Backup Upload Successful"
-		message ="""<h3>Backup Uploaded Successfully</h3><p>Hi there, this is just to inform you
-		that your backup was successfully uploaded to your %s account. So relax!</p>
-		""" % service_name
-
-	else:
-		subject = "[Warning] Backup Upload Failed"
-		message ="""<h3>Backup Upload Failed</h3><p>Oops, your automated backup to %s
-		failed.</p>
-		<p>Error message: <br>
-		<pre><code>%s</code></pre>
-		</p>
-		<p>Please contact your system manager for more information.</p>
-		""" % (service_name, error_status)
-
-	if not frappe.db:
-		frappe.connect()
-
-	recipients = split_emails(frappe.db.get_value("Dropbox Settings", None, "send_notifications_to"))
-	frappe.sendmail(recipients=recipients, subject=subject, message=message)
+		recipients = get_recipients("Drobox Settings", email_field='send_notifications_to')
+		send_email(False, "Dropbox", "Dropbox Settings", recipients, error_message)
 
 def backup_to_dropbox(upload_db_backup=True):
 	if not frappe.db:
@@ -114,8 +94,12 @@ def backup_to_dropbox(upload_db_backup=True):
 	dropbox_client = dropbox.Dropbox(dropbox_settings['access_token'])
 
 	if upload_db_backup:
-		backup = new_backup(ignore_files=True)
-		filename = os.path.join(get_backups_path(), os.path.basename(backup.backup_path_db))
+		if frappe.flags.create_new_backup:
+			backup = new_backup(ignore_files=True)
+			filename = os.path.join(get_backups_path(), os.path.basename(backup.backup_path_db))
+		else:
+			filename = get_latest_backup_file()
+
 		upload_file_to_dropbox(filename, "/database", dropbox_client)
 
 		# delete older databases

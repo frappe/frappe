@@ -13,6 +13,7 @@ from frappe.utils import cint, split_emails
 from frappe.utils.background_jobs import enqueue
 from rq.timeouts import JobTimeoutException
 from botocore.exceptions import ClientError
+from frappe.integrations.offsite_backup_utils import get_latest_backup_file, send_email, get_recipients, validate_file_size
 
 class S3BackupSettings(Document):
 
@@ -59,18 +60,20 @@ def take_backups_weekly():
 def take_backups_monthly():
 	take_backups_if("Monthly")
 
-
 def take_backups_if(freq):
 	if cint(frappe.db.get_value("S3 Backup Settings", None, "enabled")):
 		if frappe.db.get_value("S3 Backup Settings", None, "frequency") == freq:
 			take_backups_s3()
 
-
 @frappe.whitelist()
 def take_backups_s3(retry_count=0):
 	try:
+		frappe.flags.create_new_backup = False
+		validate_file_size()
+
 		backup_to_s3()
-		send_email(True, "S3 Backup Settings")
+		recipients = get_recipients("S3 Backup Settings", email_field='notification_email')
+		send_email(True, 'Amazon S3', "S3 Backup Settings", recipients)
 	except JobTimeoutException:
 		if retry_count < 2:
 			args = {
@@ -85,31 +88,8 @@ def take_backups_s3(retry_count=0):
 
 def notify():
 	error_message = frappe.get_traceback()
-	frappe.errprint(error_message)
-	send_email(False, "S3 Backup Settings", error_message)
-
-def send_email(success, service_name, error_status=None):
-	if success:
-		if frappe.db.get_value("S3 Backup Settings", None, "send_email_for_successful_backup") == '0':
-			return
-
-		subject = "Backup Upload Successful"
-		message = """<h3>Backup Uploaded Successfully! </h3><p>Hi there, this is just to inform you
-		that your backup was successfully uploaded to your Amazon S3 bucket. So relax!</p> """
-
-	else:
-		subject = "[Warning] Backup Upload Failed"
-		message = """<h3>Backup Upload Failed! </h3><p>Oops, your automated backup to Amazon S3 failed.
-		</p> <p>Error message: %s</p> <p>Please contact your system manager
-		for more information.</p>""" % error_status
-
-	if not frappe.db:
-		frappe.connect()
-
-	if frappe.db.get_value("S3 Backup Settings", None, "notification_email"):
-		recipients = split_emails(frappe.db.get_value("S3 Backup Settings", None, "notification_email"))
-		frappe.sendmail(recipients=recipients, subject=subject, message=message)
-
+	recipients = get_recipients("S3 Backup Settings", email_field='notification_email')
+	send_email(False, 'Amazon S3' , "S3 Backup Settings", recipients, error_message)
 
 def backup_to_s3():
 	from frappe.utils.backups import new_backup
@@ -125,10 +105,13 @@ def backup_to_s3():
 			endpoint_url=doc.endpoint_url or 'https://s3.amazonaws.com'
 			)
 
-
-	backup = new_backup(ignore_files=False, backup_path_db=None,
+	if frappe.flags.create_new_backup:
+		backup = new_backup(ignore_files=False, backup_path_db=None,
 						backup_path_files=None, backup_path_private_files=None, force=True)
-	db_filename = os.path.join(get_backups_path(), os.path.basename(backup.backup_path_db))
+		db_filename = os.path.join(get_backups_path(), os.path.basename(backup.backup_path_db))
+	else:
+		db_filename = get_latest_backup_file()
+
 	files_filename = os.path.join(get_backups_path(), os.path.basename(backup.backup_path_files))
 	private_files = os.path.join(get_backups_path(), os.path.basename(backup.backup_path_private_files))
 	folder = os.path.basename(db_filename)[:15] + '/'
