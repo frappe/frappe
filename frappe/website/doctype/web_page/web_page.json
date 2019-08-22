@@ -124,6 +124,7 @@
    "depends_on": "eval:doc.content_type==='HTML'",
    "fieldname": "main_section_html",
    "fieldtype": "HTML Editor",
+   "ignore_xss_filter": 1,
    "label": "Main Section"
   },
   {
@@ -241,7 +242,7 @@
  "idx": 1,
  "is_published_field": "published",
  "max_attachments": 20,
- "modified": "2019-05-28 16:17:06.733116",
+ "modified": "2019-08-22 13:06:37.946347",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Web Page",
