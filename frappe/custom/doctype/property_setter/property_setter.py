@@ -24,7 +24,7 @@ class PropertySetter(Document):
 		# clear cache
 		frappe.clear_cache(doctype = self.doc_type)
 
-	def check_core_module():
+	def check_core_module(self):
 		if self.doc_type in core_doctypes_list:
 			return frappe.throw(_("Core DocTypes cannot be customized."))
 
