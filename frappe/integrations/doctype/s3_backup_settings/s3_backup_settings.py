@@ -125,6 +125,7 @@ def backup_to_s3():
 			endpoint_url=doc.endpoint_url or 'https://s3.amazonaws.com'
 			)
 
+
 	backup = new_backup(ignore_files=False, backup_path_db=None,
 						backup_path_files=None, backup_path_private_files=None, force=True)
 	db_filename = os.path.join(get_backups_path(), os.path.basename(backup.backup_path_db))

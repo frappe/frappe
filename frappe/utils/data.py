@@ -6,7 +6,7 @@ from __future__ import unicode_literals
 # IMPORTANT: only import safe functions as this module will be included in jinja environment
 import frappe
 import operator
-import re, datetime, math, time
+import re, datetime, math, time, os
 import babel.dates
 from babel.core import UnknownLocaleError
 from dateutil import parser
@@ -1038,3 +1038,17 @@ def get_source_value(source, key):
 def is_subset(list_a, list_b):
 	'''Returns whether list_a is a subset of list_b'''
 	return len(list(set(list_a) & set(list_b))) == len(list_a)
+
+def get_file_size(file_path, unit):
+	if not unit:
+		unit = 'MB'
+
+	file_size = os.path.getsize(file_path)
+
+	memory_size_unit_mapper = {'KB': 1, 'MB': 2, 'GB': 3, 'TB': 4}
+	i = 0
+	while i < memory_size_unit_mapper[unit]:
+		file_size = file_size / 1000.0
+		i += 1
+
+	return file_size
