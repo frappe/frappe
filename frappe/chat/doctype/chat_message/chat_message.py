@@ -146,9 +146,9 @@ def seen(message, user = None):
 	if has_message:
 		mess = frappe.get_doc('Chat Message', message)
 		mess.add_seen(user)
-
+		mess.load_from_db()
 		room = mess.room
-		resp = dict(message = message, data = dict(seen = json.loads(mess._seen)))
+		resp = dict(message = message, data = dict(seen = json.loads(mess._seen) if mess._seen else []))
 
 		frappe.publish_realtime('frappe.chat.message:update', resp, room = room, after_commit = True)
 

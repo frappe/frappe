@@ -36,7 +36,6 @@ app_include_js = [
 	"assets/js/form.min.js",
 	"assets/js/control.min.js",
 	"assets/js/report.min.js",
-	"assets/frappe/js/frappe/toolbar.js"
 ]
 app_include_css = [
 	"assets/css/desk.min.css",
@@ -76,7 +75,6 @@ calendars = ["Event"]
 on_session_creation = [
 	"frappe.core.doctype.activity_log.feed.login_feed",
 	"frappe.core.doctype.user.user.notify_admin_access_to_system_manager",
-	"frappe.limits.check_if_expired",
 	"frappe.utils.scheduler.reset_enabled_scheduler_events",
 ]
 
@@ -138,14 +136,6 @@ doc_events = {
 		"on_change": [
 			"frappe.social.doctype.energy_point_rule.energy_point_rule.process_energy_points"
 		],
-	},
-	"Email Group Member": {
-		"validate": "frappe.email.doctype.email_group.email_group.restrict_email_group"
-	},
-	"Event": {
-		"after_insert": "frappe.integrations.doctype.google_calendar.google_calendar.insert_event_in_google_calendar",
-		"on_update": "frappe.integrations.doctype.google_calendar.google_calendar.update_event_in_google_calendar",
-		"on_trash": "frappe.integrations.doctype.google_calendar.google_calendar.delete_event_from_google_calendar",
 	}
 }
 
@@ -165,8 +155,6 @@ scheduler_events = {
 		'frappe.model.utils.user_settings.sync_user_settings',
 		"frappe.utils.error.collect_error_snapshots",
 		"frappe.desk.page.backups.backups.delete_downloadable_backups",
-		"frappe.limits.update_space_usage",
-		"frappe.limits.update_site_usage",
 		"frappe.deferred_insert.save_to_db",
 		"frappe.desk.form.document_follow.send_hourly_updates",
 		"frappe.integrations.doctype.google_calendar.google_calendar.sync"
@@ -179,7 +167,6 @@ scheduler_events = {
 		"frappe.sessions.clear_expired_sessions",
 		"frappe.email.doctype.notification.notification.trigger_daily_alerts",
 		"frappe.realtime.remove_old_task_logs",
-		"frappe.utils.scheduler.disable_scheduler_on_expiry",
 		"frappe.utils.scheduler.restrict_scheduler_events_if_dormant",
 		"frappe.email.doctype.auto_email_report.auto_email_report.send_daily",
 		"frappe.core.doctype.activity_log.activity_log.clear_authentication_logs",
@@ -192,7 +179,8 @@ scheduler_events = {
 	],
 	"daily_long": [
 		"frappe.integrations.doctype.dropbox_settings.dropbox_settings.take_backups_daily",
-		"frappe.integrations.doctype.s3_backup_settings.s3_backup_settings.take_backups_daily"
+		"frappe.integrations.doctype.s3_backup_settings.s3_backup_settings.take_backups_daily",
+		"frappe.integrations.doctype.google_drive.google_drive.daily_backup"
 	],
 	"weekly_long": [
 		"frappe.integrations.doctype.dropbox_settings.dropbox_settings.take_backups_weekly",
@@ -200,7 +188,8 @@ scheduler_events = {
 		"frappe.utils.change_log.check_for_update",
 		"frappe.desk.doctype.route_history.route_history.flush_old_route_records",
 		"frappe.desk.form.document_follow.send_weekly_updates",
-		"frappe.social.doctype.energy_point_log.energy_point_log.send_weekly_summary"
+		"frappe.social.doctype.energy_point_log.energy_point_log.send_weekly_summary",
+		"frappe.integrations.doctype.google_drive.google_drive.weekly_backup"
 	],
 	"monthly": [
 		"frappe.email.doctype.auto_email_report.auto_email_report.send_monthly",
@@ -241,7 +230,6 @@ bot_parsers = [
 ]
 
 setup_wizard_exception = "frappe.desk.page.setup_wizard.setup_wizard.email_setup_wizard_exception"
-before_write_file = "frappe.limits.validate_space_limit"
 
 before_migrate = ['frappe.patches.v11_0.sync_user_permission_doctype_before_migrate.execute']
 after_migrate = ['frappe.website.doctype.website_theme.website_theme.generate_theme_files_if_not_exist']
@@ -294,7 +282,7 @@ user_privacy_documents = [
 		'doctype': 'User',
 		'match_field': 'name',
 		'personal_fields': ['email', 'username', 'first_name', 'middle_name', 'last_name', 'full_name', 'birth_date',
-			'user_image', 'phone', 'mobile_no', 'location', 'banner_image', 'interest', 'bio', 'email_signature', 'background_image'],
+			'user_image', 'phone', 'mobile_no', 'location', 'banner_image', 'interest', 'bio', 'email_signature'],
 		'applies_to_website_user': 1
 	},
 

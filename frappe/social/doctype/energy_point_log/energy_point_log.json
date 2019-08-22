@@ -14,7 +14,8 @@
   "reverted",
   "revert_of",
   "section_break_10",
-  "reason"
+  "reason",
+  "seen"
  ],
  "fields": [
   {
@@ -98,10 +99,18 @@
   {
    "fieldname": "section_break_10",
    "fieldtype": "Section Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "seen",
+   "fieldtype": "Check",
+   "hidden": 1,
+   "ignore_user_permissions": 1,
+   "label": "Seen"
   }
  ],
  "in_create": 1,
- "modified": "2019-08-07 15:51:05.288886",
+ "modified": "2019-08-21 15:51:05.288886",
  "modified_by": "Administrator",
  "module": "Social",
  "name": "Energy Point Log",

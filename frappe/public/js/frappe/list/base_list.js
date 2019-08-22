@@ -551,12 +551,12 @@ class FilterArea {
 		const fields_dict = this.list_view.page.fields_dict;
 
 		if (fieldname in fields_dict) {
-			fields_dict[fieldname].set_value('');
-			return;
+			return fields_dict[fieldname].set_value('');
 		}
 
 		let filter = this.filter_list.get_filter(fieldname);
 		if (filter) filter.remove();
+		return Promise.resolve();
 	}
 
 	clear(refresh = true) {

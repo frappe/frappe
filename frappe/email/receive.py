@@ -481,10 +481,7 @@ class Email:
 		"""Detect chartset."""
 		charset = part.get_content_charset()
 		if not charset:
-			if six.PY2:
-				charset = chardet.detect(str(part))['encoding']
-			else:
-				charset = chardet.detect(part.encode())['encoding']
+			charset = chardet.detect(frappe.safe_encode(part))['encoding']
 
 		return charset
 
