@@ -4,10 +4,7 @@ export default class ColumnPickerFields extends frappe.views.ReportView {
 	get_fields_as_options() {
 		let column_map = this.get_columns_for_picker();
 		let doctypes = [this.doctype].concat(
-			...frappe.meta
-				.get_table_fields(this.doctype)
-				.filter(df => !df.hidden)
-				.map(df => df.options)
+			...frappe.meta.get_table_fields(this.doctype).map(df => df.options)
 		);
 		// flatten array
 		return [].concat(

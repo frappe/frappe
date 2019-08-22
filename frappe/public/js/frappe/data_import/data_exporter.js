@@ -3,6 +3,7 @@ frappe.provide('frappe.data_import');
 
 frappe.data_import.DataExporter = class DataExporter {
 	constructor(doctype) {
+		frappe.data_exporter = this;
 		this.doctype = doctype;
 		frappe.model.with_doctype(doctype, () => {
 			this.make_dialog();
@@ -11,10 +12,7 @@ frappe.data_import.DataExporter = class DataExporter {
 
 	make_dialog() {
 		let doctypes = [this.doctype].concat(
-			...frappe.meta
-				.get_table_fields(this.doctype)
-				.filter(df => !df.hidden)
-				.map(df => df.options)
+			...frappe.meta.get_table_fields(this.doctype).map(df => df.options)
 		);
 
 		this.dialog = new frappe.ui.Dialog({
