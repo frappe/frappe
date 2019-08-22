@@ -221,7 +221,7 @@ def get_context(context):
 				"payer_name": frappe.utils.get_fullname(frappe.session.user),
 				"order_id": doc.name,
 				"currency": self.currency,
-				"redirect_to": frappe.utils.get_url(self.route)
+				"redirect_to": frappe.utils.get_url(self.success_url or self.route)
 			}
 
 			# Redirect the user to this url
