@@ -291,3 +291,12 @@ user_privacy_documents = [
 	},
 
 ]
+
+leaderboards = {
+	'Energy Point Log': 'frappe.social.doctype.energy_point_log.energy_point_log.get_leaderboard_data',
+	'Customer': 'frappe.desk.page.leaderboard.leaderboard.get_all_customers',
+	'Item': 'frappe.desk.page.leaderboard.leaderboard.get_all_items',
+	'Supplier': 'frappe.desk.page.leaderboard.leaderboard.get_all_suppliers',
+	'Sales Partner': 'frappe.desk.page.leaderboard.leaderboard.get_all_sales_partner',
+	'Sales Person': 'frappe.desk.page.leaderboard.leaderboard.get_all_sales_person',
+}
