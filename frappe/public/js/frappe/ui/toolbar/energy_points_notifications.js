@@ -75,12 +75,12 @@ frappe.ui.EnergyPointsNotifications = class {
 		return frappe.db.get_list('Energy Point Log', {
 			filters: {
 				user: frappe.session.user,
-				type: ['not in',['Review']]
+				type: ['not in', ['Review']],
 			},
 			fields:
-				['name','user', 'points', 'reference_doctype', 'reference_name', 'reason', 'type', 'seen', 'rule', 'owner', 'creation'],
+				['name', 'user', 'points', 'reference_doctype', 'reference_name', 'reason', 'type', 'seen', 'rule', 'owner', 'creation'],
 			limit: limit,
-			order_by:'creation desc'
+			order_by: 'creation desc'
 		}).then((energy_points_list) => {
 			return energy_points_list;
 		});
@@ -116,7 +116,7 @@ frappe.ui.EnergyPointsNotifications = class {
 	}
 
 	get_dropdown_item_html(field) {
-		let doc_link = frappe.utils.get_form_link(field.reference_doctype,field.reference_name);
+		let doc_link = frappe.utils.get_form_link(field.reference_doctype, field.reference_name);
 		let link_html_string = field.seen ? `<a href=${doc_link}>`: `<a href=${doc_link} class="unseen">`;
 		let points_html = `<div class="points-update">${frappe.energy_points.get_points(field.points)}</div>`;
 		let message_html = this.get_message_html(field);
