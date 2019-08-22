@@ -1021,8 +1021,13 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			return;
 		}
 		if (this.settings.subscriptions) {
+
         for (const subscription of Object.keys(this.settings.subscriptions)){
-            frappe.realtime.on(subscription, data => this.settings.subscriptions[subscription](data));
+            frappe.realtime.on(subscription, data => {
+			          const { doctype, message } = data;
+			          if (doctype !== this.doctype) return;
+                this.settings.subscriptions[subscription](message);
+            });
         }
     }
 		frappe.realtime.on('list_update', data => {
