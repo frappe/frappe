@@ -1020,6 +1020,11 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		if (this.list_view_settings.disable_auto_refresh) {
 			return;
 		}
+		if (this.settings.subscriptions) {
+        for (const subscription of Object.keys(this.settings.subscriptions)){
+            frappe.realtime.on(subscription, data => this.settings.subscriptions[subscription](data));
+        }
+    }
 		frappe.realtime.on('list_update', data => {
 			if (this.filter_area.is_being_edited()) {
 				return;
