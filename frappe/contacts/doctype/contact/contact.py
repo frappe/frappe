@@ -29,23 +29,8 @@ class Contact(Document):
 			break
 
 	def validate(self):
-		if len(self.email_ids) == 1:
-			self.email_ids[0].is_primary = 1
-			self.email_id = self.email_ids[0].email_id
-		else:
-			for email_id in self.email_ids:
-				if email_id.is_primary == 1:
-					self.email_id = email_id.email_id
-					break
-
-		if len(self.phone_nos) == 1:
-			self.phone_nos[0].is_primary = 1
-			self.phone = self.phone_nos[0].phone
-		else:
-			for contact_number in self.phone_nos:
-				if contact_number.is_primary == 1:
-					self.phone = contact_number.phone
-					break
+		self.set_primary("email_id", "email_ids")
+		self.set_primary("phone", "phone_nos")
 
 		if self.email_id:
 			self.email_id = self.email_id.strip()
@@ -99,6 +84,16 @@ class Contact(Document):
 
 		if autosave:
 			self.save(ignore_permissions=True)
+
+	def set_primary(self, fieldname, child_table):
+		if len(self.get(child_table)) == 1:
+			self.get(child_table)[0].is_primary = 1
+			setattr(self, fieldname, self.get(child_table)[0].get(fieldname))
+		else:
+			for d in self.get(child_table):
+				if d.is_primary == 1:
+					setattr(self, fieldname, d.get(fieldname))
+					break
 
 def get_default_contact(doctype, name):
 	'''Returns default contact for the given doctype, name'''

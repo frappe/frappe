@@ -138,22 +138,20 @@ def sync(g_contact=None):
 					if name.get("metadata").get("primary"):
 						contact = frappe.get_doc({
 							"doctype": "Contact",
-							"salutation": name.get("honorificPrefix") if name.get("honorificPrefix") else "",
-							"first_name": name.get("givenName") if name.get("givenName") else "",
-							"middle_name": name.get("middleName") if name.get("middleName") else "",
-							"last_name": name.get("familyName") if name.get("familyName") else "",
+							"salutation": name.get("honorificPrefix") or "",
+							"first_name": name.get("givenName") or "",
+							"middle_name": name.get("middleName") or "",
+							"last_name": name.get("familyName") or "",
 							"designation": get_indexed_value(connection.get("organizations"), 0, "title"),
 							"source": "Google Contacts",
 							"google_contacts_description": get_indexed_value(connection.get("organizations"), 0, "name")
 						})
 
-						if connection.get("emailAddresses"):
-							for email in connection.get("emailAddresses"):
-								contact.add_email(email_id=email.get("value"), is_primary=1 if email.get("primary") else 0)
+						for email in connection.get("emailAddresses", []):
+							contact.add_email(email_id=email.get("value"), is_primary=1 if email.get("primary") else 0)
 
-						if connection.get("phoneNumbers"):
-							for phone in connection.get("phoneNumbers"):
-								contact.add_phone(phone=phone.get("value"), is_primary=1 if phone.get("primary") else 0)
+						for phone in connection.get("phoneNumbers", []):
+							contact.add_phone(phone=phone.get("value"), is_primary=1 if phone.get("primary") else 0)
 
 						contact.insert(ignore_permissions=True)
 
