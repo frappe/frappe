@@ -13,7 +13,7 @@ context('API Resources', () => {
 			.its('data')
 			.then(data => expect(data).to.have.lengthOf(2));
 
-		cy.get_list('Comment', ['name', 'content'], ['content', '=', 'hello'])
+		cy.get_list('Comment', ['name', 'content'], [['content', '=', 'hello']])
 			.then(body => {
 				expect(body).to.have.property('data');
 				expect(body.data).to.have.lengthOf(1);
