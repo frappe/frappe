@@ -46,9 +46,22 @@ frappe.ui.EnergyPointsNotifications = class {
 				this.$dropdown_list.find('.recent-points-item').last().remove();
 				this.dropdown_items.pop();
 			}
-			let new_item_html = this.get_dropdown_item_html(new_item);
-			$(new_item_html).insertAfter(this.$dropdown_list.find('.points-date-range').eq(0));
+			this.insert_into_dropdown();
 		});
+	}
+
+	insert_into_dropdown() {
+		let new_item = this.dropdown_items[0];
+		let new_item_html = this.get_dropdown_item_html(new_item);
+		let new_item_date_range = this.get_energy_points_date_range(new_item.creation);
+		let current_date_range = this.get_energy_points_date_range(this.dropdown_items[1].creation);
+		if (current_date_range !== new_item_date_range) {
+			let $date_range = $(`<li class="points-date-range text-muted">${__(new_item_date_range)}</li>`);
+			$date_range.insertAfter(this.$dropdown_list.find('.points-updates-header'));
+			$(new_item_html).insertAfter($date_range);
+		} else {
+			$(new_item_html).insertAfter(this.$dropdown_list.find('.points-date-range').eq(0));
+		}
 	}
 
 	check_seen() {
@@ -96,13 +109,13 @@ frappe.ui.EnergyPointsNotifications = class {
 		let view_full_log_html = '';
 
 		if (this.dropdown_items.length) {
-			let date_range= this.get_energy_points_date_range(this.dropdown_items[0].creation);
+			let date_range = this.get_energy_points_date_range(this.dropdown_items[0].creation);
 			body_html += `<li class="points-date-range text-muted">${__(date_range)}</li>`;
 			this.dropdown_items.forEach(field => {
 				let current_field_date_range = this.get_energy_points_date_range(field.creation);
 				if (date_range !== current_field_date_range) {
-					body_html+=`<li class="points-date-range text-muted">${__(current_field_date_range)}</li>`;
-					date_range=current_field_date_range;
+					body_html += `<li class="points-date-range text-muted">${__(current_field_date_range)}</li>`;
+					date_range = current_field_date_range;
 				}
 				let item_html = this.get_dropdown_item_html(field);
 				if (item_html) body_html += item_html;
