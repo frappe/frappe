@@ -19,7 +19,7 @@ cur_frm.cscript.report_type = function(doc) {
 }
 
 cur_frm.cscript.refresh = function(doc) {
-	cur_frm.add_custom_button("Show Report", function() {
+	cur_frm.add_custom_button(__("Show Report"), function() {
 		switch(doc.report_type) {
 			case "Report Builder":
 				frappe.set_route('List', doc.ref_doctype, 'Report', doc.name);
