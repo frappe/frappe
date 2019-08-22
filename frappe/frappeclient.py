@@ -188,7 +188,7 @@ class FrappeClient(object):
 		res = self.session.get(self.url + "/api/resource/" + doctype + "/" + name,
 			params=params, verify=self.verify, headers=self.headers)
 
-		return self.post_process(res)
+		return frappe._dict(self.post_process(res))
 
 	def rename_doc(self, doctype, old_name, new_name):
 		'''Rename remote document
