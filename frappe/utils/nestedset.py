@@ -35,11 +35,13 @@ def update_nsm(doc):
 
 	p, op = doc.get(pf) or None, doc.get(opf) or None
 
+	frappe.db.sql("LOCK TABLES `tab{}` WRITE CONCURRENT".format(doc.doctype))
 	# has parent changed (?) or parent is None (root)
 	if not doc.lft and not doc.rgt:
 		update_add_node(doc, p or '', pf)
 	elif op != p:
 		update_move_node(doc, pf)
+	frappe.db.sql("UNLOCK TABLES")
 
 	# set old parent
 	doc.set(opf, p)
