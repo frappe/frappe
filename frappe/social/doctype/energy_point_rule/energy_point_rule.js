@@ -26,6 +26,9 @@ frappe.ui.form.on('Energy Point Rule', {
 			const multiplier_fields = fields.filter(df => ['Int', 'Float'].includes(df.fieldtype))
 				.map(map_for_options);
 
+			// blank option for the ability to unset the multiplier field
+			multiplier_fields.unshift(null);
+
 			frm.set_df_property('user_field', 'options', user_fields);
 			frm.set_df_property('multiplier_field', 'options', multiplier_fields);
 		});

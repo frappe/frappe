@@ -8,6 +8,7 @@ import requests
 from frappe.model.document import Document
 from frappe import _
 from frappe.utils import get_request_site_address
+from frappe.integrations.doctype.google_settings.google_settings import get_auth_url
 
 SCOPES = "https://www.googleapis.com/auth/contacts"
 REQUEST = "https://people.googleapis.com/v1/people/me/connections"
@@ -38,7 +39,7 @@ class GoogleContacts(Document):
 		}
 
 		try:
-			r = requests.post("https://www.googleapis.com/oauth2/v4/token", data=data).json()
+			r = requests.post(get_auth_url(), data=data).json()
 		except requests.exceptions.HTTPError:
 			button_label = frappe.bold(_('Allow Google Contacts Access'))
 			frappe.throw(_("Something went wrong during the token generation. Click on {0} to generate a new one.").format(button_label))
@@ -69,7 +70,7 @@ def authorize_access(g_contact, reauthorize=None):
 				"redirect_uri": redirect_uri,
 				"grant_type": "authorization_code"
 			}
-			r = requests.post("https://www.googleapis.com/oauth2/v4/token", data=data).json()
+			r = requests.post(get_auth_url(), data=data).json()
 
 			if "refresh_token" in r:
 				frappe.db.set_value("Google Contacts", google_contact.name, "refresh_token", r.get("refresh_token"))
