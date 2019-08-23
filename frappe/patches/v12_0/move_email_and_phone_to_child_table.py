@@ -15,7 +15,7 @@ def execute():
 				INSERT INTO `tabContact Email`
 					(`idx`, `name`, `email_id`, `parentfield`, `parenttype`, `parent`, `is_primary`, `creation`, `modified`, `modified_by`)
 				VALUES (1, '{0}', '{1}', 'email_ids', 'Contact', '{2}', 1, '{3}', '{4}', '{5}')
-			""".format(str(name_counter), contact_detail.email_id, contact_name, contact_detail.creation, contact_detail.modified, contact_detail.modified_by))
+			""".format(frappe.generate_hash(contact_detail.email_id, 10), contact_detail.email_id, contact_name, contact_detail.creation, contact_detail.modified, contact_detail.modified_by))
 			name_counter += 1
 
 		if contact_detail.phone:
@@ -23,7 +23,7 @@ def execute():
 				INSERT INTO `tabContact Phone`
 					(`idx`, `name`, `phone`, `parentfield`, `parenttype`, `parent`, `is_primary`, `creation`, `modified`, `modified_by`)
 				VALUES (1, '{0}', '{1}', 'phone_nos', 'Contact', '{2}', 1, '{3}', '{4}', '{5}')
-			""".format(str(name_counter), contact_detail.phone, contact_name, contact_detail.creation, contact_detail.modified, contact_detail.modified_by))
+			""".format(frappe.generate_hash(contact_detail.phone, 10), contact_detail.phone, contact_name, contact_detail.creation, contact_detail.modified, contact_detail.modified_by))
 			name_counter += 1
 
 		if contact_detail.mobile_no:
@@ -31,5 +31,5 @@ def execute():
 				INSERT INTO `tabContact Phone`
 					(`idx`, `name`, `phone`, `parentfield`, `parenttype`, `parent`, `is_primary`, `creation`, `modified`, `modified_by`)
 				VALUES (2, '{0}', '{1}', 'phone_nos', 'Contact', '{2}', 0, '{3}', '{4}', '{5}')
-			""".format(str(name_counter), contact_detail.mobile_no, contact_name, contact_detail.creation, contact_detail.modified, contact_detail.modified_by))
+			""".format(frappe.generate_hash(contact_detail.mobile_no, 10), contact_detail.mobile_no, contact_name, contact_detail.creation, contact_detail.modified, contact_detail.modified_by))
 			name_counter += 1
