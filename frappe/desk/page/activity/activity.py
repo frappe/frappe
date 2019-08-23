@@ -19,8 +19,8 @@ def get_feed(start, page_length):
 			from
 				`tabCommunication`
 			where
-				communication_type = "Communication"
-				and communication_medium != "Email"
+				communication_type = 'Communication'
+				and communication_medium != 'Email'
 				and {match_conditions_communication}
 		UNION
 			select name, owner, modified, creation, '0', 'Updated',
