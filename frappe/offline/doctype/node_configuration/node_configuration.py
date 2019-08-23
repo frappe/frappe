@@ -109,25 +109,35 @@ def check_doc_has_dependencies(doc, master):
 	then dynamic links'''
 
 	meta = frappe.get_meta(doc.doctype)
-	sync_child_table_dependencies(doc, meta.get_table_fields(), master)
-	sync_link_dependencies(doc, master)
-	sync_dynamic_link_dependencies(meta.get_dynamic_link_fields())
+	table_fields = meta.get_table_fields()
+	link_fields = meta.get_link_fields()
+	dl_fields = meta.get_dynamic_link_fields()
+	if table_fields:
+		sync_child_table_dependencies(doc, table_fields, master)
+	if link_fields:
+		sync_link_dependencies(doc, link_fields, master)
+	if dl_fields:
+		sync_dynamic_link_dependencies(doc, dl_fields, master)
 			
 def sync_child_table_dependencies(doc, table_fields, master):
 	for df in table_fields:
 		child_table = doc.get(df.fieldname)
 		for entry in child_table:
-			set_dependencies(entry, master)
+			set_dependencies(entry, frappe.get_meta(entry.doctype).get_link_fields(), master)
 		
-def sync_link_dependencies(doc, master):
-	set_dependencies(doc, master)
+def sync_link_dependencies(doc, link_fields, master):
+	set_dependencies(doc, link_fields, master)
 
-def sync_dynamic_link_dependencies(dl_fields):
-	pass
+def sync_dynamic_link_dependencies(doc, dl_fields, master):
+	for df in dl_fields:
+		docname = doc.get(df.fieldname)
+		linked_doctype = doc.get(df.options)
+		if docname and not check_dependency_fulfilled(linked_doctype, docname):
+			master_doc = master.get_doc(linked_doctype, docname)
+			frappe.get_doc(master_doc).insert(set_name=docname)
 
-def set_dependencies(doc, master):
-	meta = frappe.get_meta(doc.doctype)
-	for df in meta.get_link_fields():
+def set_dependencies(doc, link_fields, master):
+	for df in link_fields:
 		docname = doc.get(df.fieldname)
 		linked_doctype = df.get_link_doctype()
 		if docname and not check_dependency_fulfilled(linked_doctype, docname):
