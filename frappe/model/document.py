@@ -63,7 +63,7 @@ def get_doc(*args, **kwargs):
 			doctype = kwargs['doctype']
 		else:
 			raise ValueError('"doctype" is a required key')
-
+	print(doctype, frappe.db.sql("SELECT name from `tabDocType` where name = %s", doctype))
 	if doctype != "DocType" and not frappe.db.sql("SELECT name from `tabDocType` where name = %s", doctype):
 		frappe.throw(_("DocType {0} not found in DocType List").format(doctype))
 
