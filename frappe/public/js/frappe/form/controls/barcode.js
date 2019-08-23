@@ -17,10 +17,15 @@ frappe.ui.form.ControlBarcode = frappe.ui.form.ControlData.extend({
 
 	set_formatted_input(value) {
 		// Set values to display
-		const svg = value;
+		let svg = value;
 		const barcode_value = $(svg).attr('data-barcode-value');
 
-		this.$input.val(barcode_value);
+		if(!barcode_value) {
+			svg = this.get_barcode_html(value);
+			this.doc[this.df.fieldname] = svg;
+		}
+
+		this.$input.val(barcode_value || value);
 		this.barcode_area.html(svg);
 	},
 
