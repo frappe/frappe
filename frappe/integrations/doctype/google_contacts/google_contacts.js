@@ -3,7 +3,9 @@
 
 frappe.ui.form.on('Google Contacts', {
 	refresh: function(frm) {
-		frm.set_value("user", frappe.session.user);
+		if (!frm.doc.enable) {
+			frm.dashboard.set_headline(__("To use Google Drive, enable <a href='#Form/Google Settings'>Google Settings</a>."));
+		}
 
 		frappe.realtime.on('import_google_contacts', (data) => {
 			if (data.progress) {
