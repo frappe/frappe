@@ -46,9 +46,22 @@ frappe.ui.EnergyPointsNotifications = class {
 				this.$dropdown_list.find('.recent-points-item').last().remove();
 				this.dropdown_items.pop();
 			}
-			let new_item_html = this.get_dropdown_item_html(new_item);
-			$(new_item_html).insertAfter(this.$dropdown_list.find('.points-date-range').eq(0));
+			this.insert_into_dropdown();
 		});
+	}
+
+	insert_into_dropdown() {
+		let new_item = this.dropdown_items[0];
+		let new_item_html = this.get_dropdown_item_html(new_item);
+		let new_item_date_range = this.get_date_range_title(new_item.creation);
+		let current_date_range = this.get_date_range_title(this.dropdown_items[1].creation);
+		if (current_date_range !== new_item_date_range) {
+			let $date_range = $(`<li class="points-date-range text-muted">${new_item_date_range}</li>`);
+			$date_range.insertAfter(this.$dropdown_list.find('.points-updates-header'));
+			$(new_item_html).insertAfter($date_range);
+		} else {
+			$(new_item_html).insertAfter(this.$dropdown_list.find('.points-date-range').eq(0));
+		}
 	}
 
 	check_seen() {
@@ -56,18 +69,18 @@ frappe.ui.EnergyPointsNotifications = class {
 		frappe.call('frappe.social.doctype.energy_point_log.energy_point_log.set_notification_as_seen', {point_logs: unseen_logs});
 	}
 
-	get_energy_points_date_range(date) {
+	get_date_range_title(date) {
 		let current_date = frappe.datetime.now_date();
 		let prev_week = frappe.datetime.add_days(current_date, -7);
 		let prev_month = frappe.datetime.add_months(frappe.datetime.now_date(), -1);
 		if (date >= current_date) {
-			return 'Today';
+			return __('Today');
 		} else if (date > prev_week) {
-			return 'Last 7 days';
+			return __('Last 7 days');
 		} else if (date > prev_month) {
-			return 'Last 30 days';
+			return __('Last 30 days');
 		} else  {
-			return 'Older';
+			return __('Older');
 		}
 	}
 
@@ -96,13 +109,13 @@ frappe.ui.EnergyPointsNotifications = class {
 		let view_full_log_html = '';
 
 		if (this.dropdown_items.length) {
-			let date_range= this.get_energy_points_date_range(this.dropdown_items[0].creation);
-			body_html += `<li class="points-date-range text-muted">${__(date_range)}</li>`;
+			let date_range = this.get_date_range_title(this.dropdown_items[0].creation);
+			body_html += `<li class="points-date-range text-muted">${date_range}</li>`;
 			this.dropdown_items.forEach(field => {
-				let current_field_date_range = this.get_energy_points_date_range(field.creation);
+				let current_field_date_range = this.get_date_range_title(field.creation);
 				if (date_range !== current_field_date_range) {
-					body_html+=`<li class="points-date-range text-muted">${__(current_field_date_range)}</li>`;
-					date_range=current_field_date_range;
+					body_html += `<li class="points-date-range text-muted">${current_field_date_range}</li>`;
+					date_range = current_field_date_range;
 				}
 				let item_html = this.get_dropdown_item_html(field);
 				if (item_html) body_html += item_html;
