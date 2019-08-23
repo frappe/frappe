@@ -1,3 +1,8 @@
+#### Infos zu unseren hacks
+
+Diff (vom aktuellen Checkout) : `git diff --stat --color ..upstream/develop`
+
+
 <div align="center">
     <img src=".github/frappe-framework-logo.png" height="150">
     <h1>
