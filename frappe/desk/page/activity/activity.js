@@ -29,7 +29,7 @@ frappe.pages['activity'].on_page_load = function(wrapper) {
 			doctype = $(this).attr("data-doctype"),
 			docname = $(this).attr("data-docname");
 
-		var [link_doctype, link_name, doctype, docname] =
+		[link_doctype, link_name, doctype, docname] =
 			[link_doctype, link_name, doctype, docname].map(decodeURIComponent);
 
 		link_doctype = link_doctype && link_doctype !== 'null' ? link_doctype : null;
