@@ -34,7 +34,8 @@ data_fieldtypes = (
 	'Signature',
 	'Color',
 	'Barcode',
-	'Geolocation'
+	'Geolocation',
+	'JSON'
 )
 
 no_value_fields = ('Section Break', 'Column Break', 'HTML', 'Table', 'Table MultiSelect', 'Button', 'Image',
