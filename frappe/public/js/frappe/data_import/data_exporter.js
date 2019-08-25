@@ -27,10 +27,6 @@ frappe.data_import.DataExporter = class DataExporter {
 							label: __('Export All Records'),
 							value: 'all'
 						},
-						// {
-						// 	label: __('Export 10 Records'),
-						// 	value: 'last_10_records'
-						// },
 						{
 							label: __('Export Filtered Records'),
 							value: 'by_filter'
@@ -200,7 +196,6 @@ frappe.data_import.DataExporter = class DataExporter {
 	update_record_count_message() {
 		let export_records = this.dialog.get_value('export_records');
 		let count_method = {
-			last_10_records: () => Promise.resolve('10'),
 			all: () => frappe.db.count(this.doctype),
 			by_filter: () =>
 				frappe.db.count(this.doctype, {
@@ -228,8 +223,6 @@ frappe.data_import.DataExporter = class DataExporter {
 		let $primary_action = this.dialog.get_primary_btn();
 
 		if (no_of_records != null) {
-			$primary_action.prop('disabled', no_of_records === 0);
-
 			let label = '';
 			if (no_of_records === 0) {
 				label = __('Export');
