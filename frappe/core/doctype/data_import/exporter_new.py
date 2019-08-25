@@ -140,6 +140,7 @@ class Exporter:
 		data = self.remove_duplicate_values(data)
 		data = self.remove_row_gaps(data)
 		data = self.remove_empty_rows(data)
+		# data = self.remove_values_from_name_column(data)
 
 		return data
 
@@ -208,9 +209,16 @@ class Exporter:
 	def remove_empty_rows(self, data):
 		return [row for row in data if any(v not in INVALID_VALUES for v in row)]
 
+	def remove_values_from_name_column(self, data):
+		out = []
+		name_columns = [i for i, df in enumerate(self.fields) if df.fieldname == "name"]
+		for row in data:
+			out.append(["" if i in name_columns else value for i, value in enumerate(row)])
+		return out
+
 	def get_name_column_index(self, doctype):
 		for i, df in enumerate(self.fields):
-			if df.parent == doctype and df.fieldname == 'name':
+			if df.parent == doctype and df.fieldname == "name":
 				return i
 		return -1
 
