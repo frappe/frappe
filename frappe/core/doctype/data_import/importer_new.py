@@ -289,8 +289,10 @@ class Importer:
 		data = out["data"]
 		import_log = []
 
-		print("Importing {0} rows...".format(len(data)))
-		docs, warnings = self.get_docs_for_import(fields, data)
+		# validate link field values
+		missing_link_values = self.get_missing_link_field_values(fields, data)
+		if missing_link_values:
+			return {"missing_link_values": missing_link_values}
 
 		if warnings:
 			return warnings
@@ -407,6 +409,30 @@ class Importer:
 		doc.update({"doctype": self.doctype})
 		new_doc = frappe.get_doc(doc)
 		return new_doc.insert()
+
+	def get_missing_link_field_values(self, fields, data):
+		link_column_indexes = [i for i, df in enumerate(fields) if df.fieldtype == "Link"]
+
+		def has_one_mandatory_field(doctype):
+			meta = frappe.get_meta(doctype)
+			mandatory_fields = [df for df in meta.fields if df.reqd]
+			mandatory_fields_count = len(mandatory_fields)
+			if meta.autoname.lower() == "prompt":
+				mandatory_fields_count += 1
+			return mandatory_fields_count == 1
+
+		missing_values_map = {}
+		for index in link_column_indexes:
+			df = fields[index]
+			column_values = [row[index] for row in data]
+			values = set([v for v in column_values if v not in INVALID_VALUES])
+			doctype = df.options
+			if has_one_mandatory_field(doctype):
+				missing_values = [value for value in values if not frappe.db.exists(doctype, value)]
+				if missing_values:
+					missing_values_map[doctype] = missing_values
+
+		return missing_values_map
 
 
 DATE_FORMATS = [

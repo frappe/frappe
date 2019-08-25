@@ -25,11 +25,11 @@ frappe.ui.form.on('Data Import Beta', {
 		frm.save().then(() => {
 			frm.trigger('import_file').then(() =>
 				frm.call('start_import').then(r => {
-					let warnings = r.message || [];
-					if (warnings.length) {
+					let { warnings, missing_link_values } = r.message || {};
+					if (warnings) {
 						frm.import_preview.render_warnings(warnings);
-					} else {
-						//
+					} else if (missing_link_values) {
+						frm.events.show_missing_link_values(frm, missing_link_values);
 					}
 				})
 			);
@@ -138,5 +138,31 @@ frappe.ui.form.on('Data Import Beta', {
 				${rows}
 			</table>
 		`);
+	},
+
+	show_missing_link_values(frm, missing_link_values) {
+		let html = Object.keys(missing_link_values)
+			.map(doctype => {
+				let values = missing_link_values[doctype];
+				return `
+				<h5>${doctype}</h5>
+				<ul>${values.map(v => `<li>${v}</li>`).join('')}</ul>
+			`;
+			})
+			.join('');
+
+		let message = __('There are some linked records which needs to be created before we can import your file. Do you want to create the following missing link records?');
+		frappe.confirm(message + html, () => {
+			frm
+				.call('create_missing_link_values', {
+					missing_link_values
+				})
+				.then(r => {
+					let records = r.message;
+					frappe.msgprint(
+						__('Created {0} records successfully.', [records.length])
+					);
+				});
+		});
 	}
 });

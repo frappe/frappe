@@ -27,6 +27,21 @@ class DataImportBeta(Document):
 	def get_importer(self):
 		return Importer(self.reference_doctype, data_import=self)
 
+	def create_missing_link_values(self, missing_link_values):
+		docs = []
+		for doctype, values in missing_link_values.items():
+			meta = frappe.get_meta(doctype)
+			# find the autoname field
+			if meta.autoname and meta.autoname.startswith('field:'):
+				autoname_field = meta.autoname[len('field:') :]
+			else:
+				autoname_field = 'name'
+
+			for value in values:
+				new_doc = frappe.new_doc(doctype)
+				new_doc.set(autoname_field, value)
+				docs.append(new_doc.insert())
+		return docs
 
 @frappe.whitelist()
 def download_template(doctype, export_fields=None, export_records=None, export_filters=None, file_type='CSV'):
