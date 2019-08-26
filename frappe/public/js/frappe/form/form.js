@@ -644,8 +644,8 @@ frappe.ui.form.Form = class FrappeForm {
 	}
 
 	amend_doc() {
-		if (!this.fields_dict['amended_from']) {
-			frappe.msgprint(__('"amended_from" field must be present to do an amendment.'));
+		if(!this.fields_dict['amended_from']) {
+			alert('"amended_from" field must be present to do an amendment.');
 			return;
 		}
 		this.validate_form_action("Amend");
@@ -839,7 +839,7 @@ frappe.ui.form.Form = class FrappeForm {
 	}
 
 	rename_doc() {
-		frappe.model.rename_doc(this.doctype, this.docname);
+		frappe.model.rename_doc(this.doctype, this.docname, () => this.refresh_header());
 	}
 
 	share_doc() {

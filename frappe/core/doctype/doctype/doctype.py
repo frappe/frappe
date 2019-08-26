@@ -390,13 +390,16 @@ class DocType(Document):
 		frappe.msgprint(_('Renamed files and replaced code in controllers, please check!'))
 
 	def rename_inside_controller(self, new, old, new_path):
-		for fname in ('{}.js', '{}.py', '{}_list.js', '{}_calendar.js', 'test_{}.py', 'test_{}.js'):
+		for fname in ('{}.js', '{}.py', '{}_list.js', '{}_calendar.js', 'test_{}.py', 'test_{}.js', '{}.json'):
 			fname = os.path.join(new_path, fname.format(frappe.scrub(new)))
 			if os.path.exists(fname):
 				with open(fname, 'r') as f:
 					code = f.read()
 				with open(fname, 'w') as f:
-					f.write(code.replace(frappe.scrub(old).replace(' ', ''), frappe.scrub(new).replace(' ', '')))
+					file_content = code.replace(old.strip(), new.strip()) # replace str with full str (js controllers)
+					file_content = file_content.replace(frappe.scrub(old), frappe.scrub(new)) # replace str with _ (py imports)
+					file_content = file_content.replace(old.replace(' ', ''), new.replace(' ', '')) # replace str (py controllers)
+					f.write(file_content)
 
 	def before_reload(self):
 		"""Preserve naming series changes in Property Setter."""
