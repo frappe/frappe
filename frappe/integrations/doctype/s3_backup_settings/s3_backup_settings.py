@@ -11,6 +11,7 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.utils import cint, split_emails
 from frappe.utils.background_jobs import enqueue
+from rq.timeouts import JobTimeoutException
 from botocore.exceptions import ClientError
 
 class S3BackupSettings(Document):
@@ -66,15 +67,26 @@ def take_backups_if(freq):
 
 
 @frappe.whitelist()
-def take_backups_s3():
+def take_backups_s3(retry_count=0):
 	try:
 		backup_to_s3()
 		send_email(True, "S3 Backup Settings")
+	except JobTimeoutException:
+		if retry_count < 2:
+			args = {
+				"retry_count" :retry_count + 1
+			}
+			enqueue("frappe.integrations.doctype.s3_backup_settings.s3_backup_settings.take_backups_s3",
+				queue='long', timeout=1500, **args)
+		else:
+			notify()
 	except Exception:
-		error_message = frappe.get_traceback()
-		frappe.errprint(error_message)
-		send_email(False, "S3 Backup Settings", error_message)
+		notify()
 
+def notify():
+	error_message = frappe.get_traceback()
+	frappe.errprint(error_message)
+	send_email(False, "S3 Backup Settings", error_message)
 
 def send_email(success, service_name, error_status=None):
 	if success:
@@ -134,6 +146,7 @@ def upload_file_to_s3(filename, folder, conn, bucket):
 		conn.upload_file(filename, bucket, destpath)
 
 	except Exception as e:
+		frappe.log_error()
 		print("Error uploading: %s" % (e))
 
 
@@ -150,8 +163,9 @@ def delete_old_backups(limit, bucket):
 			)
 	bucket = s3.Bucket(bucket)
 	objects = bucket.meta.client.list_objects_v2(Bucket=bucket.name, Delimiter='/')
-	for obj in objects.get('CommonPrefixes'):
-		all_backups.append(obj.get('Prefix'))
+	if objects:
+		for obj in objects.get('CommonPrefixes'):
+			all_backups.append(obj.get('Prefix'))
 
 	oldest_backup = sorted(all_backups)[0]
 

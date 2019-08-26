@@ -76,12 +76,12 @@ def get_bootinfo():
 	bootinfo.calendars = sorted(frappe.get_hooks("calendars"))
 	bootinfo.treeviews = frappe.get_hooks("treeviews") or []
 	bootinfo.lang_dict = get_lang_dict()
-	bootinfo.gsuite_enabled = get_gsuite_status()
 	bootinfo.success_action = get_success_action()
 	bootinfo.update(get_email_accounts(user=frappe.session.user))
 	bootinfo.energy_points_enabled = is_energy_point_enabled()
 	bootinfo.points = get_energy_points(frappe.session.user)
 	bootinfo.frequently_visited_links = frequently_visited_links()
+	bootinfo.link_preview_doctypes = get_link_preview_doctypes()
 
 	return bootinfo
 
@@ -257,8 +257,8 @@ def get_unseen_notes():
 			(select user from `tabNote Seen By` nsb
 				where nsb.parent=`tabNote`.name)''', (frappe.utils.now(), frappe.session.user), as_dict=True)
 
-def get_gsuite_status():
-	return (frappe.get_value('Gsuite Settings', None, 'enable') == '1')
-
 def get_success_action():
 	return frappe.get_all("Success Action", fields=["*"])
+
+def get_link_preview_doctypes():
+	return [d.name for d in frappe.db.get_all('DocType', {'show_preview_popup': 1})]

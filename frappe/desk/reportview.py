@@ -10,6 +10,7 @@ import frappe.permissions
 from frappe.model.db_query import DatabaseQuery
 from frappe import _
 from six import text_type, string_types, StringIO
+from frappe.core.doctype.access_log.access_log import make_access_log
 
 @frappe.whitelist()
 @frappe.read_only()
@@ -29,6 +30,7 @@ def get_form_params():
 
 	data.pop('cmd', None)
 	data.pop('data', None)
+	data.pop('ignore_permissions', None)
 
 	if "csrf_token" in data:
 		del data["csrf_token"]
@@ -68,6 +70,7 @@ def get_form_params():
 
 	# queries must always be server side
 	data.query = None
+	data.strict = None
 
 	return data
 
@@ -136,6 +139,11 @@ def export_query():
 		form_params["filters"] = {"name": ("in", si)}
 		del form_params["selected_items"]
 
+	make_access_log(doctype=doctype,
+		file_type=file_format_type,
+		report_name=form_params.report_name,
+		filters=form_params.filters)
+
 	db_query = DatabaseQuery(doctype)
 	ret = db_query.execute(**form_params)
 
@@ -185,6 +193,10 @@ def append_totals_row(data):
 		for i in range(len(row)):
 			if isinstance(row[i], (float, int)):
 				totals[i] = (totals[i] or 0) + row[i]
+
+	if not isinstance(totals[0], (int, float)):
+		totals[0] = 'Total'
+
 	data.append(totals)
 
 	return data

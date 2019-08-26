@@ -214,7 +214,7 @@ class DashboardChart {
 		return frappe.xcall(
 			method,
 			{
-				chart_name: this.chart_doc.name,
+				chart: this.chart_doc,
 				filters: filters,
 				refresh: refresh ? 1 : 0,
 			}
@@ -232,7 +232,8 @@ class DashboardChart {
 			type: chart_type_map[this.chart_doc.type],
 			colors: [this.chart_doc.color || "light-blue"],
 			axisOptions: {
-				xIsSeries: this.chart_doc.timeseries
+				xIsSeries: this.chart_doc.timeseries,
+				shortenYAxisNumbers: 1
 			}
 		};
 		this.chart_container.find('.chart-loading-state').addClass('hide');

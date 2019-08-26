@@ -53,9 +53,6 @@
   "email_signature",
   "email_inbox",
   "user_emails",
-  "background",
-  "background_image",
-  "background_style",
   "sb_allow_modules",
   "modules_html",
   "block_modules",
@@ -405,24 +402,6 @@
   },
   {
    "collapsible": 1,
-   "depends_on": "enabled",
-   "fieldname": "background",
-   "fieldtype": "Section Break",
-   "label": "Desktop Background"
-  },
-  {
-   "fieldname": "background_image",
-   "fieldtype": "Attach",
-   "label": "Background Image"
-  },
-  {
-   "fieldname": "background_style",
-   "fieldtype": "Select",
-   "label": "Background Style",
-   "options": "Fill Screen\nTile"
-  },
-  {
-   "collapsible": 1,
    "fieldname": "sb_allow_modules",
    "fieldtype": "Section Break",
    "label": "Allow Modules",
@@ -614,8 +593,8 @@
  "idx": 413,
  "image_field": "user_image",
  "max_attachments": 5,
- "modified": "2019-07-12 11:35:17.469656",
- "modified_by": "prasadsherlock@gmail.com",
+ "modified": "2019-08-09 10:34:56.912283",
+ "modified_by": "Administrator",
  "module": "Core",
  "name": "User",
  "owner": "Administrator",

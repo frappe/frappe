@@ -4,10 +4,10 @@
       <div class="module-category h6 uppercase">{{ category }}</div>
     </div>
 
-    <div class="modules-container">
+    <div class="modules-container" :class="{'dragging': dragging}" ref="modules-container">
       <desk-module-box
         v-for="(module, index) in modules"
-        :key="module.name"
+        :key="module.module_name"
         :index="index"
         v-bind="module"
 		@customize="show_module_card_customize_dialog(module)"
@@ -24,7 +24,34 @@ export default {
 	components: {
 		DeskModuleBox
 	},
+	data() {
+		return {
+			dragging: false
+		}
+	},
+	mounted() {
+		if (!frappe.utils.is_mobile()) {
+			this.setup_sortable();
+		}
+	},
 	methods: {
+		setup_sortable() {
+			let modules_container =this.$refs['modules-container'];
+			this.sortable = new Sortable(modules_container, {
+				animation: 150,
+				onStart: () => this.dragging = true,
+				onEnd: () => {
+					this.dragging = false;
+					let modules = Array.from(modules_container.querySelectorAll('.module-box'))
+						.map(node => node.dataset.moduleName);
+
+					this.$emit('module-order-change', {
+						module_category: this.category,
+						modules
+					});
+				}
+			})
+		},
 		show_module_card_customize_dialog(module) {
 			const d = new frappe.ui.Dialog({
 				title: __('Customize Shortcuts'),
@@ -34,7 +61,7 @@ export default {
 						fieldname: 'links',
 						fieldtype: 'MultiSelectPills',
 						get_data() {
-							return frappe.call('frappe.desk.moduleview.get_links', {
+							return frappe.call('frappe.desk.moduleview.get_links_for_module', {
 								app: module.app,
 								module: module.module_name,
 							}).then(r => r.message);
@@ -48,7 +75,7 @@ export default {
 						module_name: module.module_name,
 						links
 					}).then(r => {
-						this.$emit('update_home_settings', r.message);
+						this.$emit('update-desktop-settings', r.message);
 					});
 					d.hide();
 				}

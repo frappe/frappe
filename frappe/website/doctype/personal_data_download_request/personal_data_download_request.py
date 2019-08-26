@@ -11,11 +11,10 @@ from frappe.utils.verified_command import get_signed_params
 
 class PersonalDataDownloadRequest(Document):
 	def after_insert(self):
-		if frappe.session.user in ['Administrator', 'Guest']:
-			frappe.throw(_("This user cannot request to download data"))
-		else:
-			personal_data = get_user_data(frappe.session.user)
-			self.generate_file_and_send_mail(personal_data)
+		personal_data = get_user_data(self.user)
+
+		frappe.enqueue_doc(self.doctype, self.name, 'generate_file_and_send_mail',
+			queue='short', personal_data=personal_data, now=frappe.flags.in_test)
 
 	def generate_file_and_send_mail(self, personal_data):
 		"""generate the file link for download"""
@@ -34,14 +33,14 @@ class PersonalDataDownloadRequest(Document):
 			"?" + get_signed_params({"file_url": f.file_url})
 		host_name = frappe.local.site
 		frappe.sendmail(
-			recipients=frappe.session.user,
+			recipients=self.user,
 			subject=_("Download Your Data"),
 			template="download_data",
 			args={
-				'user':frappe.session.user,
-				'user_name':self.user_name,
-				'link':file_link,
-				'host_name':host_name
+				'user': self.user,
+				'user_name': self.user_name,
+				'link': file_link,
+				'host_name': host_name
 			},
 			header=[_("Download Your Data"), "green"]
 		)

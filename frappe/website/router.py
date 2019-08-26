@@ -246,8 +246,7 @@ def setup_source(page_info):
 				page_info.update(res['attributes'])
 				source = res['body']
 		except Exception as e:
-			print('Error parsing ' + page_info.template)
-			print(e)
+			pass
 
 		source = frappe.utils.md_to_html(source)
 

@@ -21,6 +21,8 @@ from frappe.website.render import render
 from frappe.utils import cint
 from six import text_type
 from six.moves.urllib.parse import quote
+from frappe.core.doctype.access_log.access_log import make_access_log
+
 
 def report_error(status_code):
 	'''Build error. Show traceback in developer mode'''
@@ -155,6 +157,7 @@ def redirect():
 def download_backup(path):
 	try:
 		frappe.only_for(("System Manager", "Administrator"))
+		make_access_log(report_name='Backup')
 	except frappe.PermissionError:
 		raise Forbidden(_("You need to be logged in and have System Manager Role to be able to access backups."))
 
@@ -162,11 +165,20 @@ def download_backup(path):
 
 def download_private_file(path):
 	"""Checks permissions and sends back private file"""
-	try:
-		_file = frappe.get_doc("File", {"file_url": path})
-		_file.is_downloadable()
 
-	except frappe.PermissionError:
+	files = frappe.db.get_all('File', {'file_url': path})
+	can_access = False
+	# this file might be attached to multiple documents
+	# if the file is accessible from any one of those documents
+	# then it should be downloadable
+	for f in files:
+		_file = frappe.get_doc("File", f)
+		can_access = _file.is_downloadable()
+		if can_access:
+			make_access_log(doctype='File', document=_file.name, file_type=os.path.splitext(path)[-1][1:])
+			break
+
+	if not can_access:
 		raise Forbidden(_("You don't have permission to access this file"))
 
 	return send_private_file(path.split("/private", 1)[1])

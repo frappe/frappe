@@ -142,7 +142,7 @@ def get_info_via_oauth(provider, code, decoder=None, id_token=False):
 		api_endpoint_args = oauth2_providers[provider].get("api_endpoint_args")
 		info = session.get(api_endpoint, params=api_endpoint_args).json()
 
-	if not (info.get("verified_email") or info.get("verified")):
+	if not (info.get("email_verified") or info.get("email")):
 		frappe.throw(_("Email not verified with {0}").format(provider.title()))
 
 	return info
@@ -290,7 +290,7 @@ def redirect_post_login(desk_user):
 	frappe.local.response["type"] = "redirect"
 
 	# the #desktop is added to prevent a facebook redirect bug
-	frappe.local.response["location"] = "/desk#desktop" if desk_user else "/"
+	frappe.local.response["location"] = "/desk#desktop" if desk_user else "/me"
 
 def oauth_decoder(data):
 	if isinstance(data, bytes):

@@ -29,7 +29,7 @@ from frappe.utils.nestedset import NestedSet
 from frappe.utils import strip
 from PIL import Image, ImageOps
 from six import StringIO, string_types
-from six.moves.urllib.parse import unquote
+from six.moves.urllib.parse import unquote, quote
 from six import text_type, PY2
 import zipfile
 
@@ -78,7 +78,7 @@ class File(NestedSet):
 			self.add_comment_in_reference_doc('Attachment',
 				_('Added {0}').format("<a href='{file_url}' target='_blank'>{file_name}</a>{icon}".format(**{
 					"icon": ' <i class="fa fa-lock text-warning"></i>' if self.is_private else "",
-					"file_url": self.file_url.replace("#", "%23") if self.file_name else self.file_url,
+					"file_url": quote(self.file_url) if self.file_url else self.file_name,
 					"file_name": self.file_name or self.file_url
 				})))
 
@@ -188,14 +188,20 @@ class File(NestedSet):
 			# check duplicate name
 
 			# check duplicate assignement
-			n_records = frappe.db.sql("""select name from `tabFile`
-				where content_hash=%s
-				and name!=%s
-				and attached_to_doctype=%s
-				and attached_to_name=%s""", (self.content_hash, self.name, self.attached_to_doctype,
-					self.attached_to_name))
-			if len(n_records) > 0:
-				self.duplicate_entry = n_records[0][0]
+			filters = {
+				'content_hash': self.content_hash,
+				'is_private': self.is_private,
+				'name': ('!=', self.name)
+			}
+			if self.attached_to_doctype and self.attached_to_name:
+				filters.update({
+					'attached_to_doctype': self.attached_to_doctype,
+					'attached_to_name': self.attached_to_name
+				})
+			duplicate_file = frappe.db.get_value('File', filters)
+
+			if duplicate_file:
+				self.duplicate_entry = duplicate_file
 				frappe.throw(_("Same file has already been attached to the record"),
 					frappe.DuplicateEntryError)
 
@@ -451,7 +457,7 @@ class File(NestedSet):
 				return
 
 			self.file_url = unquote(self.file_url)
-			self.file_size = frappe.form_dict.file_size
+			self.file_size = frappe.form_dict.file_size or self.file_size
 
 
 	def get_uploaded_content(self):
@@ -467,7 +473,7 @@ class File(NestedSet):
 		return None
 
 
-	def save_file(self, content=None, decode=False):
+	def save_file(self, content=None, decode=False, ignore_existing_file_check=False):
 		file_exists = False
 		self.content = content
 		if decode:
@@ -484,7 +490,16 @@ class File(NestedSet):
 		self.content_hash = get_content_hash(self.content)
 		self.content_type = mimetypes.guess_type(self.file_name)[0]
 
-		_file = frappe.get_value("File", {"content_hash": self.content_hash}, ["file_url"])
+		_file = False
+
+		# check if a file exists with the same content hash and is also in the same folder (public or private)
+		if not ignore_existing_file_check:
+			_file = frappe.get_value("File", {
+					"content_hash": self.content_hash,
+					"is_private": self.is_private
+				},
+				["file_url"])
+
 		if _file:
 			self.file_url  = _file
 			file_exists = True
@@ -554,7 +569,7 @@ class File(NestedSet):
 			if has_permission(self, 'read'):
 				return True
 
-			raise frappe.PermissionError
+			return False
 
 	def get_extension(self):
 		'''returns split filename and extension'''
@@ -683,7 +698,7 @@ def get_web_image(file_url):
 			frappe.msgprint(_("Unable to read file format for {0}").format(file_url))
 		raise
 
-	image = Image.open(StringIO(r.content))
+	image = Image.open(StringIO(frappe.safe_decode(r.content)))
 
 	try:
 		filename, extn = file_url.rsplit("/", 1)[1].rsplit(".", 1)

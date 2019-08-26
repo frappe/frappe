@@ -3,6 +3,7 @@
     v-if="!hidden"
     class="border module-box"
     :class="{ 'hovered-box': hovered }"
+	:data-module-name="module_name"
   >
     <div class="flush-top">
       <div class="module-box-content">
@@ -10,7 +11,7 @@
           <a class="module-box-link" :href="type === 'module' ? '#modules/' + module_name : link">
             <h4 class="h4">
               <div>
-                <i :class="iconClass" style="color:#8d99a6;font-size:18px;margin-right:6px;"></i>
+                <i :class="icon_class" style="color:#8d99a6;font-size:18px;margin-right:6px;"></i>
                 {{ label }}
               </div>
             </h4>
@@ -54,7 +55,7 @@ export default {
     };
   },
   computed: {
-    iconClass() {
+    icon_class() {
       if (this.icon) {
         return this.icon;
       } else {
@@ -82,7 +83,12 @@ export default {
   background-color: #ffffff;
 }
 
-.module-box:hover {
+.module-box.sortable-chosen {
+	background-color: @disabled-background;
+	border-color: @disabled-background;
+}
+
+.modules-container:not(.dragging) .module-box:hover {
 	border-color: @text-muted;
 }
 

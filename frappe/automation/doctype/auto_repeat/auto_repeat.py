@@ -32,18 +32,17 @@ class AutoRepeat(Document):
 
 	def before_insert(self):
 		if not frappe.flags.in_test:
-			start_date = self.start_date
-			today_date = today()
+			start_date = getdate(self.start_date)
+			today_date = getdate(today())
 			if start_date <= today_date:
-				start_date = today_date
+				self.start_date = today_date
 
 	def after_save(self):
 		frappe.get_doc(self.reference_doctype, self.reference_document).notify_update()
 
 	def on_trash(self):
-		frappe.db.set_value(self.reference_doctype, self.reference_document, {
-			'auto_repeat': self.name
-		}, 'auto_repeat', '')
+		frappe.db.set_value(self.reference_doctype, self.reference_document, 'auto_repeat', '')
+		frappe.get_doc(self.reference_doctype, self.reference_document).notify_update()
 
 	def set_dates(self):
 		if self.disabled:
@@ -61,7 +60,8 @@ class AutoRepeat(Document):
 				frappe.throw(_("Enable Allow Auto Repeat for the doctype {0} in Customize Form").format(self.reference_doctype))
 
 	def validate_dates(self):
-		self.validate_from_to_dates('start_date', 'end_date')
+		if self.end_date:
+			self.validate_from_to_dates('start_date', 'end_date')
 
 		if self.end_date == self.start_date:
 			frappe.throw(_('{0} should not be same as {1}').format(frappe.bold('End Date'), frappe.bold('Start Date')))
@@ -325,7 +325,9 @@ def set_auto_repeat_as_completed():
 			doc.save()
 
 @frappe.whitelist()
-def make_auto_repeat(doctype, docname, frequency, start_date, end_date = None):
+def make_auto_repeat(doctype, docname, frequency = 'Daily', start_date = None, end_date = None):
+	if not start_date:
+		start_date = getdate(today())
 	doc = frappe.new_doc('Auto Repeat')
 	doc.reference_doctype = doctype
 	doc.reference_document = docname

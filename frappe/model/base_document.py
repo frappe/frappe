@@ -210,11 +210,7 @@ class BaseDocument(object):
 			df = self.meta.get_field(fieldname)
 			if df:
 				if df.fieldtype=="Check":
-					if d[fieldname]==None:
-						d[fieldname] = 0
-
-					elif (not isinstance(d[fieldname], int) or d[fieldname] > 1):
-						d[fieldname] = 1 if cint(d[fieldname]) else 0
+					d[fieldname] = 1 if cint(d[fieldname]) else 0
 
 				elif df.fieldtype=="Int" and not isinstance(d[fieldname], int):
 					d[fieldname] = cint(d[fieldname])

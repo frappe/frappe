@@ -17,13 +17,13 @@ from faker import Faker
 from .exceptions import *
 from .utils.jinja import (get_jenv, get_template, render_template, get_email_from_template, get_jloader)
 
-# Hamless for Python 3
+# Harmless for Python 3
 # For Python 2 set default encoding to utf-8
 if sys.version[0] == '2':
 	reload(sys)
 	sys.setdefaultencoding("utf-8")
 
-__version__ = '11.1.36'
+__version__ = '12.0.8'
 __title__ = "Frappe Framework"
 
 local = Local()

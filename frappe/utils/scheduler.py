@@ -19,7 +19,6 @@ import os
 from frappe.utils import get_sites
 from datetime import datetime
 from frappe.utils.background_jobs import enqueue, get_jobs, queue_timeout
-from frappe.limits import has_expired
 from frappe.utils.data import get_datetime, now_datetime
 from frappe.core.doctype.user.user import STANDARD_USERS
 from frappe.installer import update_site_config
@@ -79,14 +78,8 @@ def enqueue_events_for_site(site, queued_jobs):
 
 	try:
 		frappe.init(site=site)
-		if frappe.local.conf.maintenance_mode:
-			return
-
-		if frappe.local.conf.pause_scheduler:
-			return
-
 		frappe.connect()
-		if is_scheduler_disabled():
+		if is_scheduler_inactive():
 			return
 
 		enqueue_events(site=site, queued_jobs=queued_jobs)
@@ -226,6 +219,18 @@ def get_enabled_scheduler_events():
 	return ["all", "hourly", "hourly_long", "daily", "daily_long",
 		"weekly", "weekly_long", "monthly", "monthly_long", "cron"]
 
+def is_scheduler_inactive():
+	if frappe.local.conf.maintenance_mode:
+		return True
+
+	if frappe.local.conf.pause_scheduler:
+		return True
+
+	if is_scheduler_disabled():
+		return True
+
+	return False
+
 def is_scheduler_disabled():
 	if frappe.conf.disable_scheduler:
 		return True
@@ -304,9 +309,6 @@ def reset_enabled_scheduler_events(login_manager):
 			if is_dormant:
 				update_site_config('dormant', 'None')
 
-def disable_scheduler_on_expiry():
-	if has_expired():
-		disable_scheduler()
 
 def restrict_scheduler_events_if_dormant():
 	if is_dormant():

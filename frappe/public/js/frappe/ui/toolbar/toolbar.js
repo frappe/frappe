@@ -15,6 +15,8 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 		awesome_bar.setup("#navbar-search");
 		awesome_bar.setup("#modal-search");
 
+		this.setup_energy_point_notifications();
+
 		this.make();
 	},
 
@@ -157,7 +159,17 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 				e.preventDefault();
 			}
 		}
+	},
+
+	setup_energy_point_notifications: function() {
+		if (frappe.boot.energy_points_enabled) {
+			$('.dropdown-energy-points').show();
+			this.energy_points_notifications = new frappe.ui.EnergyPointsNotifications();
+		} else {
+			$('.dropdown-energy-points').hide();
+		}
 	}
+
 });
 
 $.extend(frappe.ui.toolbar, {

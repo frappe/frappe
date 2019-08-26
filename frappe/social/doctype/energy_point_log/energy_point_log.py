@@ -30,6 +30,9 @@ class EnergyPointLog(Document):
 		frappe.cache().hdel('energy_points', self.user)
 		frappe.publish_realtime('update_points', after_commit=True)
 
+		if self.type != 'Review':
+			frappe.publish_realtime('energy_points_notification', after_commit=True, user=self.user)
+
 def get_alert_dict(doc):
 	alert_dict = frappe._dict()
 	owner_name = get_fullname(doc.owner)
@@ -170,6 +173,12 @@ def get_user_energy_and_review_points(user=None, from_date=None, as_dict=True):
 		dict_to_return[d.pop('user')] = d
 	return dict_to_return
 
+
+@frappe.whitelist()
+def set_notification_as_seen(point_logs):
+	point_logs = frappe.parse_json(point_logs)
+	for log in point_logs:
+		frappe.db.set_value('Energy Point Log', log['name'], 'seen', 1, update_modified=False)
 
 @frappe.whitelist()
 def review(doc, points, to_user, reason, review_type='Appreciation'):

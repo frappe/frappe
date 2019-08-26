@@ -139,7 +139,7 @@ frappe.ui.Page = Class.extend({
 	},
 
 	set_indicator: function(label, color) {
-		this.clear_indicator().removeClass("hide").html(`<span class='hidden-xs hidden-sm'>${label}</span>`).addClass(color);
+		this.clear_indicator().removeClass("hide").html(`<span>${label}</span>`).addClass(color);
 	},
 
 	add_action_icon: function(icon, click) {
@@ -380,14 +380,16 @@ frappe.ui.Page = Class.extend({
 	* @param {string} selector - CSS Selector of the button to be searched for. By default, it is `li`.
 	* @param {string} label - Label of the button
 	*/
-	is_in_group_button_dropdown: function(parent, selector, label){
+	is_in_group_button_dropdown: function(parent, selector, label) {
+
 		if (!selector) selector = 'li';
 
 		if (!label || !parent) return false;
 
 		const result = $(parent).find(`${selector}:contains('${label}')`)
 			.filter(function() {
-				return $(this).text() === label;
+				let item = $(this).html();
+				return $(item).attr('data-label') === label;
 			});
 		return result.length > 0;
 	},

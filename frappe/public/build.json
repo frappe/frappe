@@ -10,7 +10,6 @@
 		"node_modules/frappe-datatable/dist/frappe-datatable.css"
 	],
 	"css/frappe-web-b4.css": [
-		"public/css/font-awesome.css",
 		"public/less/indicator.less",
 		"public/scss/website.scss"
 	],
@@ -147,8 +146,6 @@
 		"public/js/frappe/roles_editor.js",
 		"public/js/frappe/microtemplate.js",
 
-		"public/js/legacy/handler.js",
-
 		"public/js/frappe/ui/page.html",
 		"public/js/frappe/ui/page.js",
 		"public/js/frappe/ui/slides.js",
@@ -189,7 +186,6 @@
 
 		"public/js/frappe/ui/upload.html",
 		"public/js/frappe/upload.js",
-		"public/js/integrations/gsuite.js",
 		"public/js/frappe/ui/tree.js",
 
 		"public/js/frappe/views/container.js",
@@ -198,6 +194,7 @@
 		"public/js/frappe/views/pageview.js",
 
 		"public/js/frappe/ui/toolbar/awesome_bar.js",
+		"public/js/frappe/ui/toolbar/energy_points_notifications.js",
 		"public/js/frappe/ui/toolbar/search.js",
 		"public/js/frappe/ui/toolbar/search.html",
 		"public/js/frappe/ui/toolbar/search_header.html",
