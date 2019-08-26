@@ -839,7 +839,7 @@ frappe.ui.form.Form = class FrappeForm {
 	}
 
 	rename_doc() {
-		frappe.model.rename_doc(this.doctype, this.docname);
+		frappe.model.rename_doc(this.doctype, this.docname, () => this.refresh_header());
 	}
 
 	share_doc() {
