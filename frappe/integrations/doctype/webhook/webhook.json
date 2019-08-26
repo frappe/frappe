@@ -14,10 +14,13 @@
   "html_condition",
   "sb_webhook",
   "request_url",
+  "cb_webhook",
+  "request_structure",
   "sb_webhook_headers",
   "webhook_headers",
   "sb_webhook_data",
-  "webhook_data"
+  "webhook_data",
+  "webhook_json"
  ],
  "fields": [
   {
@@ -93,13 +96,30 @@
    "label": "Webhook Data"
   },
   {
+   "depends_on": "eval: !doc.request_structure || doc.request_structure == \"Form URL-Encoded\"",
    "fieldname": "webhook_data",
    "fieldtype": "Table",
    "label": "Data",
    "options": "Webhook Data"
+  },
+  {
+   "fieldname": "cb_webhook",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "request_structure",
+   "fieldtype": "Select",
+   "label": "Request Structure",
+   "options": "\nForm URL-Encoded\nJSON"
+  },
+  {
+   "depends_on": "eval: doc.request_structure == \"JSON\"",
+   "fieldname": "webhook_json",
+   "fieldtype": "Code",
+   "label": "JSON Request Body"
   }
  ],
- "modified": "2019-08-14 01:39:44.060261",
+ "modified": "2019-08-26 00:38:14.611267",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Webhook",
