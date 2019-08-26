@@ -102,8 +102,23 @@ class TestNodeConfiguration(unittest.TestCase):
 		master_doc = master.insert(master_doc)
 		pull_master_data()
 		time.sleep(1)
-		local_doc = frappe.get_doc('Node Configuration', master_doc.name)
-		self.assertEqual(len(local_doc.following_doctypes), 2)		
+		if frappe.db.exists('Node Configuration', master_doc.name):
+			local_doc = frappe.get_doc('Node Configuration', master_doc.name)
+			self.assertEqual(len(local_doc.following_doctypes), 2)
+
+	def test_dynamic_link_dependencies_synced(self):
+		master = self.get_client()
+		master_link_doc = frappe.get_doc(dict(doctype='Note', title='Test Dynamic Link 1'))
+		master_link_doc = master.insert(master_link_doc)
+		master_doc = frappe.get_doc(dict(doctype='ToDo', description='Test Dynamic Link 2', assigned_by='Administrator', reference_type='Note', reference_name=master_link_doc.name))
+		master_doc = master.insert(master_doc)
+
+		pull_master_data()
+		time.sleep(1)
+
+		#check dynamic link dependency created
+		self.assertTrue(frappe.db.exists('Note', master_link_doc.name))
+		self.assertEqual(master_link_doc.name, frappe.db.get_value('ToDo', master_doc.name, 'reference_name'))
 
 	def insert_into_master(self, master, description):
 		#create and insert todo on remote site
