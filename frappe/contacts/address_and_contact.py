@@ -51,9 +51,8 @@ def load_address_and_contact(doc, key=None):
 			}, fields=["phone"])
 
 		if contact.address:
-			contact["city"] = frappe.db.get_value("Address", contact.address, "city")
-			contact["state"] = frappe.db.get_value("Address", contact.address, "state")
-			contact["country"] = frappe.db.get_value("Address", contact.address, "country")
+			address = frappe.get_doc("Address", contact.address)
+			contact["address"] = get_address_display(address.as_dict())
 
 	contact_list = sorted(contact_list,
 		key = functools.cmp_to_key(lambda a, b:
