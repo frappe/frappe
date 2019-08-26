@@ -264,6 +264,11 @@ user_privacy_documents = [
 		'personal_fields': ['first_name', 'last_name', 'phone'],
 	},
 	{
+		'doctype': 'Contact Email',
+		'match_field': 'email_id',
+		'personal_fields': ['email_id'],
+	},
+	{
 		'doctype': 'Address',
 		'match_field': 'email_id',
 		'personal_fields': ['address_title', 'address_line1', 'address_line2', 'city', 'county', 'state', 'pincode',
