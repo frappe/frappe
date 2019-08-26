@@ -207,7 +207,7 @@ def check_if_doc_is_linked(doc, method="Delete"):
 
 				if not item:
 					continue
-				elif (method != "Delete" or item.docstatus == 2) and (method != "Cancel" or item.docstatus != 1):
+				elif method != "Delete"  and (method != "Cancel" or item.docstatus != 1):
 					# don't raise exception if not
 					# linked to a non-cancelled doc when deleting or to a submitted doc when cancelling
 					continue
