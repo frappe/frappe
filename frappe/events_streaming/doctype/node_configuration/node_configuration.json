@@ -17,7 +17,7 @@
    "fieldname": "follower_node",
    "fieldtype": "Link",
    "in_list_view": 1,
-   "label": "Follower Node",
+   "label": "Consumer Node",
    "options": "Node",
    "reqd": 1
   },
@@ -25,14 +25,14 @@
    "fieldname": "master_node",
    "fieldtype": "Link",
    "in_list_view": 1,
-   "label": "Master Node",
+   "label": "Producer Node",
    "options": "Node",
    "reqd": 1
   },
   {
    "fieldname": "rules_section",
    "fieldtype": "Section Break",
-   "label": "Rules for Follower"
+   "label": "Rules for Consumer"
   },
   {
    "default": "0",
@@ -60,9 +60,9 @@
    "reqd": 1
   }
  ],
- "modified": "2019-08-11 22:35:18.561804",
+ "modified": "2019-08-26 14:03:17.668802",
  "modified_by": "Administrator",
- "module": "Offline",
+ "module": "Events Streaming",
  "name": "Node Configuration",
  "owner": "Administrator",
  "permissions": [

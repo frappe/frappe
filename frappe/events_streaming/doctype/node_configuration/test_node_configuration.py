@@ -9,7 +9,7 @@ import time
 from frappe import _
 from frappe.commands.site import new_site
 from frappe.frappeclient import FrappeClient
-from frappe.offline.doctype.node_configuration.node_configuration import pull_master_data, get_current_node
+from frappe.events_streaming.doctype.node_configuration.node_configuration import pull_master_data, get_current_node
 
 class TestNodeConfiguration(unittest.TestCase):
 	def test_insert(self):
