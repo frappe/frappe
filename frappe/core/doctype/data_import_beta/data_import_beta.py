@@ -33,7 +33,13 @@ class DataImportBeta(Document):
 
 	def create_missing_link_values(self, missing_link_values):
 		docs = []
-		for doctype, values in missing_link_values.items():
+		for d in missing_link_values:
+			d = frappe._dict(d)
+			if not d.has_one_mandatory_field:
+				continue
+
+			doctype = d.doctype
+			values = d.missing_values
 			meta = frappe.get_meta(doctype)
 			# find the autoname field
 			if meta.autoname and meta.autoname.startswith('field:'):

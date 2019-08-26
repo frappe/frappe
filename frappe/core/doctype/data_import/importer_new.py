@@ -430,25 +430,30 @@ class Importer:
 		def has_one_mandatory_field(doctype):
 			meta = frappe.get_meta(doctype)
 			# get mandatory fields with default not set
-			# mandatory_fields = [df for df in meta.fields if df.reqd and not df.default]
-			mandatory_fields = [df for df in meta.fields if df.reqd]
+			mandatory_fields = [df for df in meta.fields if df.reqd and not df.default]
 			mandatory_fields_count = len(mandatory_fields)
 			if meta.autoname.lower() == "prompt":
 				mandatory_fields_count += 1
 			return mandatory_fields_count == 1
 
-		missing_values_map = {}
+		missing_values_payload = []
 		for index in link_column_indexes:
 			df = fields[index]
 			column_values = [row[index] for row in data]
 			values = set([v for v in column_values if v not in INVALID_VALUES])
 			doctype = df.options
-			if has_one_mandatory_field(doctype):
-				missing_values = [value for value in values if not frappe.db.exists(doctype, value)]
-				if missing_values:
-					missing_values_map[doctype] = missing_values
 
-		return missing_values_map
+			missing_values = [value for value in values if not frappe.db.exists(doctype, value)]
+			if missing_values:
+				missing_values_payload.append(
+					frappe._dict(
+						doctype=doctype,
+						missing_values=missing_values,
+						has_one_mandatory_field=has_one_mandatory_field(doctype),
+					)
+				)
+
+		return missing_values_payload
 
 
 DATE_FORMATS = [
