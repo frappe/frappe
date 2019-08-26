@@ -18,12 +18,6 @@ frappe.pages['modules'].on_page_load = function(wrapper) {
 			.show(frappe.session.user);
 	});
 
-	if(frappe.user.has_role('System Manager')) {
-		page.add_menu_item(__('Install Apps'), function() {
-			frappe.set_route("applications");
-		});
-	}
-
 	page.get_page_modules = () => {
 		return frappe.get_desktop_icons(true)
 			.filter(d => d.type==='module' && !d.blocked)
