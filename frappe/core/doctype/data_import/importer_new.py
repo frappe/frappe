@@ -40,6 +40,7 @@ class Importer:
 
 		self.header_row = None
 		self.data = None
+		# used to store date formats guessed from data rows per column
 		self._guessed_date_formats = {}
 		self.meta = frappe.get_meta(doctype)
 		self.prepare_content(file_path, content)
@@ -191,7 +192,9 @@ class Importer:
 			for df in meta.fields:
 				if df.fieldtype not in no_value_fields:
 					# label as key
-					label = df.label if self.doctype == doctype else "{0} ({1})".format(df.label, df.parent)
+					label = (
+						df.label if self.doctype == doctype else "{0} ({1})".format(df.label, df.parent)
+					)
 					out[label] = df
 					# fieldname as key
 					if self.doctype == doctype:
@@ -294,25 +297,35 @@ class Importer:
 		if missing_link_values:
 			return {"missing_link_values": missing_link_values}
 
-		if warnings:
-			return warnings
+		# parse import data
+		payloads = self.get_payloads_for_import(fields, data)
 
-		for doc in docs:
-			doc = self.process_doc(doc)
-			import_log.append({"inserted": True, "name": doc.name})
+		# collect warnings
+		warnings = []
+		for payload in payloads:
+			warnings += payload.warnings
+		if warnings:
+			return {"warnings": warnings}
+
+		# start import
+		print("Importing {0} rows...".format(len(data)))
+		for payload in payloads:
+			doc = payload.doc
+			row_indexes = [row[0] for row in payload.rows]
+			try:
+				doc = self.process_doc(doc)
+				import_log.append({"success": True, "docname": doc.name, "row_indexes": row_indexes})
+			except Exception as e:
+				import_log.append({"success": False, "exception": frappe.get_traceback(), "row_indexes": row_indexes})
 
 		self.data_import.db_set("import_log", json.dumps(import_log))
 
-	def get_docs_for_import(self, fields, data):
-		docs = []
-		parse_warnings = []
+	def get_payloads_for_import(self, fields, data):
+		payloads = []
 		while data:
-			doc, data, warnings = self.parse_next_row_for_import(fields, data)
-			if not warnings:
-				docs.append(doc)
-			else:
-				parse_warnings += warnings
-		return docs, parse_warnings
+			doc, rows, data, warnings = self.parse_next_row_for_import(fields, data)
+			payloads.append(frappe._dict(doc=doc, rows=rows, warnings=warnings))
+		return payloads
 
 	def parse_next_row_for_import(self, fields, data):
 		doc = {}
@@ -383,7 +396,7 @@ class Importer:
 					table_field = table_dfs[0]
 					doc[table_field.fieldname] = docs
 
-		return doc, data[len(rows) :], warnings
+		return doc, rows, data[len(rows) :], warnings
 
 	def get_first_parent_column_index(self, fields):
 		"""
@@ -406,7 +419,8 @@ class Importer:
 			pass
 
 	def insert_record(self, doc):
-		doc.update({"doctype": self.doctype})
+		# name shouldn't be set when inserting a new record
+		doc.update({"doctype": self.doctype, "name": None})
 		new_doc = frappe.get_doc(doc)
 		return new_doc.insert()
 
@@ -415,6 +429,8 @@ class Importer:
 
 		def has_one_mandatory_field(doctype):
 			meta = frappe.get_meta(doctype)
+			# get mandatory fields with default not set
+			# mandatory_fields = [df for df in meta.fields if df.reqd and not df.default]
 			mandatory_fields = [df for df in meta.fields if df.reqd]
 			mandatory_fields_count = len(mandatory_fields)
 			if meta.autoname.lower() == "prompt":

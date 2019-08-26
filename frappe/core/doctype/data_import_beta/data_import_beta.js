@@ -6,7 +6,7 @@ frappe.ui.form.on('Data Import Beta', {
 		frm.page.hide_icon_group();
 		frm.trigger('import_file');
 		frm.trigger('reference_doctype');
-		frm.trigger('show_import_log');
+		// frm.trigger('show_import_log');
 		if (!frm.is_new()) {
 			frm.page.set_primary_action(__('Start Import'), () =>
 				frm.events.start_import(frm)
@@ -43,34 +43,46 @@ frappe.ui.form.on('Data Import Beta', {
 	},
 
 	import_file(frm) {
-		if (frm.doc.import_file) {
-			$('<span class="text-muted">')
-				.html(__('Loading import file...'))
-				.appendTo(frm.get_field('import_preview').$wrapper);
-
-			frm
-				.call({
-					doc: frm.doc,
-					method: 'get_preview_from_template',
-					freeze: true,
-					freeze_message: __('Preparing Preview...')
-				})
-				.then(r => {
-					let preview_data = r.message;
-					frm.events.show_import_preview(frm, preview_data);
-				});
-		} else {
-			frm.get_field('import_preview').$wrapper.empty();
-		}
 		frm.toggle_display('section_import_preview', frm.doc.import_file);
+		if (!frm.doc.import_file) {
+			frm.get_field('import_preview').$wrapper.empty();
+			return;
+		}
+
+		// load import preview
+		$('<span class="text-muted">')
+			.html(__('Loading import file...'))
+			.appendTo(frm.get_field('import_preview').$wrapper);
+
+		frm
+			.call({
+				doc: frm.doc,
+				method: 'get_preview_from_template',
+				freeze: true,
+				freeze_message: __('Preparing Preview...')
+			})
+			.then(r => {
+				let preview_data = r.message;
+				frm.events.show_import_preview(frm, preview_data);
+			});
 	},
 
 	show_import_preview(frm, preview_data) {
+		let import_log = JSON.parse(frm.doc.import_log || '[]');
+
+		if (frm.import_preview) {
+			frm.import_preview.preview_data = preview_data;
+			frm.import_preview.import_log = import_log;
+			frm.import_preview.refresh();
+			return;
+		}
+
 		frappe.require('/assets/js/data_import_tools.min.js', () => {
 			frm.import_preview = new frappe.data_import.ImportPreview({
 				wrapper: frm.get_field('import_preview').$wrapper,
 				doctype: frm.doc.reference_doctype,
 				preview_data,
+				import_log,
 				events: {
 					remap_column(header_row_index, fieldname) {
 						let template_options = JSON.parse(frm.doc.template_options || '{}');
@@ -123,9 +135,15 @@ frappe.ui.form.on('Data Import Beta', {
 		let import_log = JSON.parse(frm.doc.import_log);
 		let rows = import_log
 			.map(log => {
+				if (log.inserted) {
+					return `<tr>
+						<td>${log.name}</td>
+						<td>${log.inserted ? 'Inserted' : ''}</td>
+					</tr>`;
+				}
 				return `<tr>
-					<td>${log.name}</td>
-					<td>${log.inserted ? 'Inserted' : ''}</td>
+					<td>Failed</td>
+					<td><pre>${log.exception}</pre></td>
 				</tr>`;
 			})
 			.join('');

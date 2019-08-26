@@ -8,10 +8,14 @@ from frappe.model.document import Document
 from frappe.core.doctype.data_import.importer_new import Importer
 from frappe.core.doctype.data_import.exporter_new import Exporter
 
+
 class DataImportBeta(Document):
 	def validate(self):
-		if not self.import_file:
-			self.import_json = ''
+		doc_before_save = self.get_doc_before_save()
+		if not self.import_file or (
+			doc_before_save and doc_before_save.import_file != self.import_file
+		):
+			self.template_options = ""
 
 	def get_preview_from_template(self):
 		if not self.import_file:
@@ -44,7 +48,7 @@ class DataImportBeta(Document):
 		return docs
 
 @frappe.whitelist()
-def download_template(doctype, export_fields=None, export_records=None, export_filters=None, file_type='CSV'):
+def download_template(doctype, export_fields=None, export_records=None, export_filters=None, file_type="CSV"):
 	"""
 	Download template from Exporter
 		:param doctype: Document Type
@@ -57,10 +61,11 @@ def download_template(doctype, export_fields=None, export_records=None, export_f
 	export_fields = frappe.parse_json(export_fields)
 	export_filters = frappe.parse_json(export_filters)
 
-	e = Exporter(doctype,
+	e = Exporter(
+		doctype,
 		export_fields=export_fields,
 		export_data=True,
 		export_filters=export_filters,
-		file_type=file_type
+		file_type=file_type,
 	)
 	e.build_csv_response()

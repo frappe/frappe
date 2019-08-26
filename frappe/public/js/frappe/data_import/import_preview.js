@@ -4,24 +4,39 @@ import ColumnPickerFields from './column_picker_fields';
 
 frappe.provide('frappe.data_import');
 
+const SVG_ICONS = {
+	'checkbox-circle-line': `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="import-success">
+		<g>
+			<path fill="none" d="M0 0h24v24H0z"/>
+			<path d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10zm0-2a8 8 0 1 0 0-16 8 8 0 0 0 0 16zm-.997-4L6.76 11.757l1.414-1.414 2.829 2.829 5.656-5.657 1.415 1.414L11.003 16z"/>
+		</g>
+	</svg>`
+};
+
 frappe.data_import.ImportPreview = class ImportPreview {
-	constructor({ wrapper, doctype, preview_data, events = {} }) {
+	constructor({ wrapper, doctype, preview_data, import_log, events = {} }) {
 		frappe.import_preview = this;
 		this.wrapper = wrapper;
 		this.doctype = doctype;
-		this.header_row = preview_data.header_row;
-		this.preview_fields = preview_data.fields;
-		this.preview_data = preview_data.data;
-		this.preview_warnings = preview_data.warnings;
+		this.preview_data = preview_data;
 		this.events = events;
+		this.import_log = import_log;
 
 		frappe.model.with_doctype(doctype, () => {
 			this.make_wrapper();
-			this.prepare_columns();
-			this.prepare_data();
-			this.render_warnings(this.preview_warnings);
-			this.render_datatable();
+			this.refresh();
 		});
+	}
+
+	refresh() {
+		this.header_row = this.preview_data.header_row;
+		this.fields = this.preview_data.fields;
+		this.data = this.preview_data.data;
+		this.warnings = this.preview_data.warnings;
+		this.prepare_columns();
+		this.prepare_data();
+		this.render_warnings(this.warnings);
+		this.render_datatable();
 	}
 
 	make_wrapper() {
@@ -43,7 +58,7 @@ frappe.data_import.ImportPreview = class ImportPreview {
 	}
 
 	prepare_columns() {
-		this.columns = this.preview_fields.map((df, i) => {
+		this.columns = this.fields.map((df, i) => {
 			let header_row_index = i - 1;
 			if (df.skip_import) {
 				return {
@@ -54,7 +69,13 @@ frappe.data_import.ImportPreview = class ImportPreview {
 					focusable: false,
 					header_row_index,
 					format: (value, row, column, data) => {
-						return `<div class="text-muted">${value}</div>`;
+						let html = `<div class="text-muted">${value}</div>`;
+						if (df.label === 'Sr. No' && this.is_row_imported(row)) {
+							html = `
+								<div class="flex justify-between">${SVG_ICONS['checkbox-circle-line'] + html}</div>
+							`;
+						}
+						return html;
 					}
 				};
 			}
@@ -79,7 +100,7 @@ frappe.data_import.ImportPreview = class ImportPreview {
 	}
 
 	prepare_data() {
-		this.preview_data = this.preview_data.map(row => {
+		this.data = this.data.map(row => {
 			return row.map(cell => {
 				if (cell == null) {
 					return '';
@@ -104,7 +125,7 @@ frappe.data_import.ImportPreview = class ImportPreview {
 		let self = this;
 
 		this.datatable = new DataTable(this.$table_preview.get(0), {
-			data: this.preview_data,
+			data: this.data,
 			columns: this.columns,
 			layout: 'fixed',
 			cellHeight: 35,
@@ -144,7 +165,9 @@ frappe.data_import.ImportPreview = class ImportPreview {
 		columns.forEach(col => {
 			if (!col.skip_import && col.df) {
 				this.datatable.style.setStyle(
-					`.dt-header .dt-cell--col-${col.colIndex}, .dt-header .dt-cell--col-${col.colIndex} .dt-dropdown__toggle`,
+					`.dt-header .dt-cell--col-${col.colIndex}, .dt-header .dt-cell--col-${
+						col.colIndex
+					} .dt-dropdown__toggle`,
 					{
 						backgroundColor: frappe.ui.color.get_color_shade(
 							'green',
@@ -156,7 +179,9 @@ frappe.data_import.ImportPreview = class ImportPreview {
 			}
 			if (col.skip_import && col.name !== 'Sr. No') {
 				this.datatable.style.setStyle(
-					`.dt-header .dt-cell--col-${col.colIndex}, .dt-header .dt-cell--col-${col.colIndex} .dt-dropdown__toggle`,
+					`.dt-header .dt-cell--col-${col.colIndex}, .dt-header .dt-cell--col-${
+						col.colIndex
+					} .dt-dropdown__toggle`,
 					{
 						backgroundColor: frappe.ui.color.get_color_shade(
 							'orange',
@@ -170,11 +195,15 @@ frappe.data_import.ImportPreview = class ImportPreview {
 				});
 			}
 		});
+		this.datatable.style.setStyle(`svg.import-success`, {
+			width: '16px',
+			fill: frappe.ui.color.get_color_shade('green', 'dark')
+		});
 	}
 
 	add_row() {
-		this.preview_data.push([]);
-		this.datatable.refresh(this.preview_data);
+		this.data.push([]);
+		this.datatable.refresh(this.data);
 	}
 
 	remap_column(col) {
@@ -203,5 +232,12 @@ frappe.data_import.ImportPreview = class ImportPreview {
 
 	skip_import(col) {
 		this.events.skip_import(col.header_row_index);
+	}
+
+	is_row_imported(row) {
+		let serial_no = row[0].content;
+		return this.import_log.find(log => {
+			return log.success && log.row_indexes.includes(serial_no);
+		});
 	}
 };
