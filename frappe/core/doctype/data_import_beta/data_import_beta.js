@@ -2,18 +2,50 @@
 // For license information, please see license.txt
 
 frappe.ui.form.on('Data Import Beta', {
+	setup(frm) {
+		frappe.realtime.on('data_import_progress', data => {
+			let percent = Math.floor((data.current * 100) / data.total);
+			let message;
+			if (data.success) {
+				message = __('Importing {0} ({1} of {2})', [data.docname, data.current, data.total]);
+			}
+			if (data.skipping) {
+				message = __('Skipping ({1} of {2})', [data.current, data.total]);
+			}
+			frm.dashboard.show_progress(__('Import Progress'), percent, message);
+
+			// hide progress when complete
+			if (data.current === data.total) {
+				setTimeout(() => {
+					frm.dashboard.hide();
+					frm.refresh();
+				}, 2000);
+			}
+		});
+	},
+
 	refresh(frm) {
 		frm.page.hide_icon_group();
 		frm.trigger('import_file');
-		frm.trigger('reference_doctype');
-		// frm.trigger('show_import_log');
-		if (!frm.is_new()) {
-			frm.page.set_primary_action(__('Start Import'), () =>
-				frm.events.start_import(frm)
-			);
+
+		if (frm.doc.status === 'Pending') {
+			if (!frm.is_new()) {
+				frm.page.set_primary_action(__('Start Import'), () =>
+					frm.events.start_import(frm)
+				);
+			} else {
+				frm.page.set_primary_action(__('Save'), () => frm.save());
+			}
 		} else {
-			frm.page.set_primary_action(__('Save'), () => frm.save());
+			frm.disable_save();
+			frm.events.after_success(frm);
 		}
+	},
+
+	after_success(frm) {
+		let import_log = JSON.parse(frm.doc.import_log || '[]');
+		let successful_records = import_log.filter(log => log.success);
+		frm.dashboard.set_headline(__('Successfully imported {0} records', [successful_records.length]));
 	},
 
 	start_import(frm) {
@@ -30,6 +62,8 @@ frappe.ui.form.on('Data Import Beta', {
 						frm.import_preview.render_warnings(warnings);
 					} else if (missing_link_values) {
 						frm.events.show_missing_link_values(frm, missing_link_values);
+					} else {
+						frm.refresh();
 					}
 				})
 			);

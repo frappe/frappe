@@ -290,7 +290,6 @@ class Importer:
 		out = self.get_data_for_import_preview()
 		fields = out["fields"]
 		data = out["data"]
-		import_log = []
 
 		# validate link field values
 		missing_link_values = self.get_missing_link_field_values(fields, data)
@@ -307,18 +306,67 @@ class Importer:
 		if warnings:
 			return {"warnings": warnings}
 
+		if self.data_import.import_log:
+			import_log = frappe.parse_json(self.data_import.import_log)
+		else:
+			import_log = []
+
+		# get successfully imported rows
+		imported_rows = []
+		for log in import_log:
+			log = frappe._dict(log)
+			if log.success:
+				imported_rows += log.row_indexes
+
 		# start import
 		print("Importing {0} rows...".format(len(data)))
-		for payload in payloads:
+		# mark savepoint
+		frappe.db.sql("SAVEPOINT import")
+
+		total_payload_count = len(payloads)
+		for i, payload in enumerate(payloads):
 			doc = payload.doc
 			row_indexes = [row[0] for row in payload.rows]
+			current_index = i + 1
+
+			if set(row_indexes).intersection(set(imported_rows)):
+				print("Skipping imported rows", row_indexes)
+				frappe.publish_realtime(
+					"data_import_progress",
+					{"current": current_index, "total": total_payload_count, "skipping": True},
+				)
+				continue
+
 			try:
+				print("Importing", doc)
 				doc = self.process_doc(doc)
-				import_log.append({"success": True, "docname": doc.name, "row_indexes": row_indexes})
+				frappe.publish_realtime(
+					"data_import_progress",
+					{
+						"current": current_index,
+						"total": total_payload_count,
+						"docname": doc.name,
+						"success": True,
+						"row_indexes": row_indexes,
+					},
+				)
+				import_log.append(
+					{"success": True, "docname": doc.name, "row_indexes": row_indexes}
+				)
+
 			except Exception as e:
-				import_log.append({"success": False, "exception": frappe.get_traceback(), "row_indexes": row_indexes})
+				import_log.append(
+					{"success": False, "exception": frappe.get_traceback(), "row_indexes": row_indexes}
+				)
+
+		# rollback to savepoint if something went wrong
+		# frappe.db.sql('ROLLBACK TO SAVEPOINT import')
+
+		# release savepoint if everything is ok
+		frappe.db.sql("RELEASE SAVEPOINT import")
 
 		self.data_import.db_set("import_log", json.dumps(import_log))
+		self.data_import.db_set("status", "Success")
 
 	def get_payloads_for_import(self, fields, data):
 		payloads = []
@@ -457,17 +505,24 @@ class Importer:
 
 
 DATE_FORMATS = [
-	r"%Y-%m-%d",
 	r"%d-%m-%Y",
 	r"%m-%d-%Y",
-	r"%Y/%m/%d",
+	r"%Y-%m-%d",
+	r"%d-%m-%y",
+	r"%m-%d-%y",
+	r"%y-%m-%d",
 	r"%d/%m/%Y",
 	r"%m/%d/%Y",
-	r"%m/%d/%y",
+	r"%Y/%m/%d",
 	r"%d/%m/%y",
-	r"%Y.%m.%d",
+	r"%m/%d/%y",
+	r"%y/%m/%d",
 	r"%d.%m.%Y",
 	r"%m.%d.%Y",
+	r"%Y.%m.%d",
+	r"%d.%m.%y",
+	r"%m.%d.%y",
+	r"%y.%m.%d",
 ]
 
 TIME_FORMATS = [

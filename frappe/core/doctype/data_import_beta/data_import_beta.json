@@ -11,6 +11,7 @@
   "download_sample_file",
   "import_file",
   "column_break_5",
+  "status",
   "skip_rows_with_errors",
   "section_break_7",
   "date_format",
@@ -100,16 +101,25 @@
   {
    "fieldname": "import_log_section",
    "fieldtype": "Section Break",
+   "hidden": 1,
    "label": "Import Log"
   },
   {
    "fieldname": "import_log_preview",
    "fieldtype": "HTML",
    "label": "Import Log Preview"
+  },
+  {
+   "default": "Pending",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Status",
+   "options": "Pending\nSuccess\nPartial Success",
+   "read_only": 1
   }
  ],
  "hide_toolbar": 1,
- "modified": "2019-08-22 18:26:28.939065",
+ "modified": "2019-08-26 18:27:25.663674",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Data Import Beta",

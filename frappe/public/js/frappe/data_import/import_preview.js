@@ -23,7 +23,6 @@ frappe.data_import.ImportPreview = class ImportPreview {
 		this.import_log = import_log;
 
 		frappe.model.with_doctype(doctype, () => {
-			this.make_wrapper();
 			this.refresh();
 		});
 	}
@@ -33,10 +32,12 @@ frappe.data_import.ImportPreview = class ImportPreview {
 		this.fields = this.preview_data.fields;
 		this.data = this.preview_data.data;
 		this.warnings = this.preview_data.warnings;
+		this.make_wrapper();
 		this.prepare_columns();
 		this.prepare_data();
 		this.render_warnings(this.warnings);
 		this.render_datatable();
+		this.setup_styles();
 	}
 
 	make_wrapper() {
@@ -58,6 +59,7 @@ frappe.data_import.ImportPreview = class ImportPreview {
 	}
 
 	prepare_columns() {
+		let column_width = 120;
 		this.columns = this.fields.map((df, i) => {
 			let header_row_index = i - 1;
 			if (df.skip_import) {
@@ -67,12 +69,15 @@ frappe.data_import.ImportPreview = class ImportPreview {
 					skip_import: true,
 					editable: false,
 					focusable: false,
+					align: 'left',
 					header_row_index,
+					width: column_width,
 					format: (value, row, column, data) => {
 						let html = `<div class="text-muted">${value}</div>`;
 						if (df.label === 'Sr. No' && this.is_row_imported(row)) {
 							html = `
-								<div class="flex justify-between">${SVG_ICONS['checkbox-circle-line'] + html}</div>
+								<div class="flex justify-between">${SVG_ICONS['checkbox-circle-line'] +
+									html}</div>
 							`;
 						}
 						return html;
@@ -94,7 +99,8 @@ frappe.data_import.ImportPreview = class ImportPreview {
 				df: df,
 				editable: true,
 				align: 'left',
-				header_row_index
+				header_row_index,
+				width: column_width
 			};
 		});
 	}
@@ -111,18 +117,23 @@ frappe.data_import.ImportPreview = class ImportPreview {
 	}
 
 	render_warnings(warnings) {
-		let warning_html = warnings
-			.map(warning => {
-				return `<div style="line-height: 2">${warning}</div>`;
-			})
-			.join('');
+		let html = '';
+		if (warnings.length > 0) {
+			let warning_html = warnings
+				.map(warning => {
+					return `<div style="line-height: 2">${warning}</div>`;
+				})
+				.join('');
 
-		let html = `<div class="border text-muted padding rounded margin-bottom">${warning_html}</div>`;
+			html = `<div class="border text-muted padding rounded margin-bottom">${warning_html}</div>`;
+		}
 		this.$warnings.html(html);
 	}
 
 	render_datatable() {
-		let self = this;
+		if (this.datatable) {
+			this.datatable.destroy();
+		}
 
 		this.datatable = new DataTable(this.$table_preview.get(0), {
 			data: this.data,
@@ -150,8 +161,6 @@ frappe.data_import.ImportPreview = class ImportPreview {
 		this.datatable.style.setStyle('.dt-dropdown__list-item:nth-child(-n+4)', {
 			display: 'none'
 		});
-
-		this.add_color_to_column_header();
 	}
 
 	get_rows_as_csv_array() {
@@ -160,44 +169,52 @@ frappe.data_import.ImportPreview = class ImportPreview {
 		});
 	}
 
-	add_color_to_column_header() {
+	setup_styles() {
 		let columns = this.datatable.getColumns();
 		columns.forEach(col => {
+			let class_name = [
+				`.dt-header .dt-cell--col-${col.colIndex}`,
+				`.dt-header .dt-cell--col-${col.colIndex} .dt-dropdown__toggle`
+			].join(',');
+
 			if (!col.skip_import && col.df) {
-				this.datatable.style.setStyle(
-					`.dt-header .dt-cell--col-${col.colIndex}, .dt-header .dt-cell--col-${
-						col.colIndex
-					} .dt-dropdown__toggle`,
-					{
-						backgroundColor: frappe.ui.color.get_color_shade(
-							'green',
-							'extra-light'
-						),
-						color: frappe.ui.color.get_color_shade('green', 'dark')
-					}
-				);
+				this.datatable.style.setStyle(class_name, {
+					backgroundColor: frappe.ui.color.get_color_shade(
+						'green',
+						'extra-light'
+					),
+					color: frappe.ui.color.get_color_shade('green', 'dark')
+				});
 			}
 			if (col.skip_import && col.name !== 'Sr. No') {
-				this.datatable.style.setStyle(
-					`.dt-header .dt-cell--col-${col.colIndex}, .dt-header .dt-cell--col-${
-						col.colIndex
-					} .dt-dropdown__toggle`,
-					{
-						backgroundColor: frappe.ui.color.get_color_shade(
-							'orange',
-							'extra-light'
-						),
-						color: frappe.ui.color.get_color_shade('orange', 'dark')
-					}
-				);
+				this.datatable.style.setStyle(class_name, {
+					backgroundColor: frappe.ui.color.get_color_shade(
+						'orange',
+						'extra-light'
+					),
+					color: frappe.ui.color.get_color_shade('orange', 'dark')
+				});
 				this.datatable.style.setStyle(`.dt-cell--col-${col.colIndex}`, {
 					backgroundColor: frappe.ui.color.get_color_shade('white', 'light')
 				});
 			}
 		});
+		// import success checkbox
 		this.datatable.style.setStyle(`svg.import-success`, {
 			width: '16px',
 			fill: frappe.ui.color.get_color_shade('green', 'dark')
+		});
+		// make successfully imported rows readonly
+		let row_classes = this.datatable
+			.getRows()
+			.filter(row => this.is_row_imported(row))
+			.map(row => row.meta.rowIndex)
+			.map(i => `.dt-row-${i} .dt-cell`)
+			.join(',');
+		this.datatable.style.setStyle(row_classes, {
+			pointerEvents: 'none',
+			backgroundColor: frappe.ui.color.get_color_shade('white', 'light'),
+			color: frappe.ui.color.get_color_shade('black', 'extra-light'),
 		});
 	}
 
