@@ -303,7 +303,7 @@ frappe.ui.toolbar.setup_session_defaults = function() {
 
 frappe.ui.toolbar.pull_master_data = function() {
 	frappe.call({
-		method: 'frappe.offline.doctype.node_configuration.node_configuration.pull_master_data',
+		method: 'frappe.events_streaming.doctype.node_configuration.node_configuration.pull_master_data',
 		callback: function(r) {
 			if(r.message == 'success') {
 				frappe.show_alert({message:'Successfully pulled master data', indicator:'green'});

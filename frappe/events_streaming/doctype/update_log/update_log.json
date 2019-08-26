@@ -39,9 +39,9 @@
   }
  ],
  "in_create": 1,
- "modified": "2019-08-04 23:28:11.548894",
+ "modified": "2019-08-26 12:49:41.559411",
  "modified_by": "Administrator",
- "module": "Offline",
+ "module": "Events Streaming",
  "name": "Update Log",
  "owner": "Administrator",
  "permissions": [

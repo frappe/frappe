@@ -944,7 +944,7 @@ class Document(BaseDocument):
 			frappe.flags.currently_saving.remove((self.doctype, self.name))
 
 		# make update log for doctypes having followers
-		if not frappe.flags.in_install:
+		if not frappe.flags.in_install and not frappe.flags.in_migrate:
 			if self.flags.update_log_for_doc_creation:
 				make_update_log(self, update_type = 'Create')
 				self.flags.create_type_update_log = False

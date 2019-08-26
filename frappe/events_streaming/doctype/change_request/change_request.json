@@ -14,7 +14,7 @@
   {
    "fieldname": "follower_node",
    "fieldtype": "Link",
-   "label": "Follower Node",
+   "label": "Consumer Node",
    "options": "Node"
   },
   {
@@ -39,9 +39,9 @@
    "options": "\nApproved\nRejected\nResolve Conflict"
   }
  ],
- "modified": "2019-08-02 09:48:41.263955",
+ "modified": "2019-08-26 14:03:56.911041",
  "modified_by": "Administrator",
- "module": "Offline",
+ "module": "Events Streaming",
  "name": "Change Request",
  "owner": "Administrator",
  "permissions": [

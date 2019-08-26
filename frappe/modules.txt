@@ -12,4 +12,4 @@ Data Migration
 Chat
 Social
 Automation
-Offline
+Events Streaming
