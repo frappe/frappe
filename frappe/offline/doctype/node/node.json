@@ -42,7 +42,7 @@
   },
   {
    "fieldname": "last_updated",
-   "fieldtype": "Link",
+   "fieldtype": "Data",
    "label": "Last Updated",
    "options": "Update Log"
   },
@@ -55,7 +55,7 @@
    "reqd": 1
   }
  ],
- "modified": "2019-08-14 10:19:30.049821",
+ "modified": "2019-08-23 15:36:48.462608",
  "modified_by": "Administrator",
  "module": "Offline",
  "name": "Node",
