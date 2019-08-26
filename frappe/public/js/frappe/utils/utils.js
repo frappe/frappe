@@ -727,7 +727,10 @@ Object.assign(frappe.utils, {
 		return ["ar", "he", "fa"].includes(frappe.boot.lang);
 	},
 	bind_actions_with_class($el, class_instance) {
-		$($el).on('click', '[data-action]', e => {
+		// remove previously bound event
+		$($el).off('click.class_actions');
+		// attach new event
+		$($el).on('click.class_actions', '[data-action]', e => {
 			let $target = $(e.currentTarget);
 			let action = $target.data('action');
 			let method = class_instance[action];
