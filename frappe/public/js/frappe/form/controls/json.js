@@ -1,4 +1,4 @@
-frappe.ui.form.ControlJSON = frappe.ui.form.ControlCode.extend({
+frappe.ui.form.ControlJSON = frappe.ui.form.ControlData.extend({
 	html_element: "textarea",
 	horizontal: false,
 	make_wrapper: function() {
