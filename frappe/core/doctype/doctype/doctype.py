@@ -415,16 +415,24 @@ class DocType(Document):
 
 
 	def rename_inside_controller(self, new, old, new_path):
-		for fname in ('{}.js', '{}.py', '{}_list.js', '{}_calendar.js', 'test_{}.py', 'test_{}.js', '{}.json'):
+		for fname in ('{}.js', '{}.py', '{}_list.js', '{}_calendar.js', 'test_{}.py', 'test_{}.js'):
 			fname = os.path.join(new_path, fname.format(frappe.scrub(new)))
 			if os.path.exists(fname):
 				with open(fname, 'r') as f:
 					code = f.read()
 				with open(fname, 'w') as f:
-					file_content = code.replace(old.strip(), new.strip()) # replace str with full str (js controllers)
+					file_content = code.replace(old, new) # replace str with full str (js controllers)
 					file_content = file_content.replace(frappe.scrub(old), frappe.scrub(new)) # replace str with _ (py imports)
 					file_content = file_content.replace(old.replace(' ', ''), new.replace(' ', '')) # replace str (py controllers)
 					f.write(file_content)
+
+		# updating json file with new name
+		doctype_json_path = os.path.join(new_path, '{}.json'.format(frappe.scrub(new)))
+		current_data = frappe.get_file_json(doctype_json_path)
+		current_data['name'] = new
+
+		with open(doctype_json_path, 'w') as f:
+			json.dump(current_data, f, indent=1)
 
 	def before_reload(self):
 		"""Preserve naming series changes in Property Setter."""

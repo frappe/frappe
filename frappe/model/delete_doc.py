@@ -2,17 +2,21 @@
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
+import os
+from six import string_types, integer_types
+import shutil
 
 import frappe
-import frappe.model.meta
-from frappe.model.dynamic_links import get_dynamic_link_map
 import frappe.defaults
+import frappe.model.meta
+from frappe import _
+from frappe import get_module_path
+from frappe.model.dynamic_links import get_dynamic_link_map
 from frappe.core.doctype.file.file import remove_all
 from frappe.utils.password import delete_all_passwords_for
-from frappe import _
 from frappe.model.naming import revert_series_if_last
 from frappe.utils.global_search import delete_for_document
-from six import string_types, integer_types
+
 
 doctypes_to_skip = ("Communication", "ToDo", "DocShare", "Email Unsubscribe", "Activity Log", "File", "Version", "Document Follow", "Comment" , "View Log")
 
@@ -69,6 +73,13 @@ def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reloa
 				frappe.db.sql("delete from `__global_search` where doctype=%s", name)
 
 			delete_from_table(doctype, name, ignore_doctypes, None)
+
+			if not (frappe.flags.in_migrate or frappe.flags.in_install or frappe.flags.in_test):
+				try:
+					delete_controllers(name, doc.module)
+				except FileNotFoundError:
+					# in case a doctype doesnt have any controller code
+					pass
 
 		else:
 			doc = frappe.get_doc(doctype, name)
@@ -317,3 +328,12 @@ def insert_feed(doc):
 		"subject": "{0} {1}".format(_(doc.doctype), doc.name),
 		"full_name": get_fullname(doc.owner)
 	}).insert(ignore_permissions=True)
+
+def delete_controllers(doctype, module):
+	"""
+	Delete controller code in the doctype folder
+	"""
+	module_path = get_module_path(module)
+	dir_path = os.path.join(module_path, 'doctype', frappe.scrub(doctype))
+
+	shutil.rmtree(dir_path)
