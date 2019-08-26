@@ -17,14 +17,14 @@ class PropertySetter(Document):
 			+ self.property
 
 	def validate(self):
-		self.check_core_module()
+		self.validate_core_module()
 		self.validate_fieldtype_change()
 		self.delete_property_setter()
 
 		# clear cache
 		frappe.clear_cache(doctype = self.doc_type)
 
-	def check_core_module(self):
+	def validate_core_module(self):
 		if self.doc_type in core_doctypes_list:
 			return frappe.throw(_("Core DocTypes cannot be customized."))
 
