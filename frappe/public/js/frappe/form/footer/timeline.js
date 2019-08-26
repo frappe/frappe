@@ -598,6 +598,7 @@ frappe.ui.form.Timeline = class Timeline {
 					return parts.length < 3;
 				});
 				if(parts.length) {
+					parts = parts.map(frappe.utils.escape_html);
 					out.push(me.get_version_comment(version, __("changed value of {0}", [parts.join(', ').bold()])));
 				}
 			}
