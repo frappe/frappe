@@ -1166,7 +1166,6 @@ def respond_as_web_page(title, html, success=None, http_status_code=None,
 	:param fullpage: hide header / footer
 	:param width: Width of message in pixels
 	:param template: Optionally pass view template
-	:param no_cache: Template will always be re-rendered i.e., no caching.
 	"""
 	local.message_title = title
 	local.message = html
@@ -1193,7 +1192,6 @@ def respond_as_web_page(title, html, success=None, http_status_code=None,
 	context['primary_action'] = primary_action
 	context['error_code'] = http_status_code
 	context['fullpage'] = fullpage
-	context['no_cache'] = no_cache
 	if width:
 		context['card_width'] = width
 
