@@ -121,8 +121,7 @@ def return_action_confirmation_page(doc, action, action_link, alert_doc_change=F
 		html=None,
 		indicator_color='blue',
 		template='confirm_workflow_action',
-		context=template_params,
-		no_cache=True)
+		context=template_params)
 
 def return_link_expired_page(doc, doc_workflow_state):
 	frappe.respond_as_web_page(_("Link Expired"),
