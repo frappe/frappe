@@ -8,7 +8,7 @@ def execute():
 
 	name_counter = 100000000
 	for contact_detail in contact_details:
-		contact_name = contact_detail.name.replace('"', '\\"').replace("'", "\\'")
+		contact_name = frappe.db.escape(contact_detail.name)
 
 		if contact_detail.email_id:
 			frappe.db.sql("""
