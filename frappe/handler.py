@@ -163,6 +163,13 @@ def upload_file():
 	frappe.local.uploaded_file = content
 	frappe.local.uploaded_filename = filename
 
+	if frappe.session.user == 'Guest':
+		import mimetypes
+		filetype = mimetypes.guess_type(filename)[0]
+		print(filetype)
+		if filetype not in ['image/png', 'image/jpeg', 'application/pdf']:
+			frappe.throw("You can only upload JPG, PNG or PDF files.")
+
 	if method:
 		method = frappe.get_attr(method)
 		is_whitelisted(method)
