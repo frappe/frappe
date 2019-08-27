@@ -94,7 +94,8 @@ def confirm_action(doctype, docname, user, action):
 	return_success_page(newdoc)
 
 	# reset session user
-	frappe.set_user(logged_in_user)
+	if logged_in_user == 'Guest':
+		frappe.set_user(logged_in_user)
 
 def return_success_page(doc):
 	frappe.respond_as_web_page(_("Success"),
@@ -116,10 +117,12 @@ def return_action_confirmation_page(doc, action, action_link, alert_doc_change=F
 
 	template_params['pdf_link'] = get_pdf_link(doc.get('doctype'), doc.get('name'))
 
-	frappe.respond_as_web_page(None, None,
-		indicator_color="blue",
-		template="confirm_workflow_action",
-		context=template_params)
+	frappe.respond_as_web_page(None,
+		None,
+		indicator_color='blue',
+		template='confirm_workflow_action',
+		context=template_params,
+		no_cache=True)
 
 def return_link_expired_page(doc, doc_workflow_state):
 	frappe.respond_as_web_page(_("Link Expired"),
