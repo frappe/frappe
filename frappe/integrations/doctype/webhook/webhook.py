@@ -77,22 +77,8 @@ def get_context(doc):
 
 def enqueue_webhook(doc, webhook):
 	webhook = frappe.get_doc("Webhook", webhook.get("name"))
-	headers = {}
-	data = {}
-	if webhook.webhook_headers:
-		for h in webhook.webhook_headers:
-			if h.get("key") and h.get("value"):
-				headers[h.get("key")] = h.get("value")
-
-	if webhook.webhook_data:
-		for w in webhook.webhook_data:
-			value = doc.get(w.fieldname)
-			if isinstance(value, datetime.datetime):
-				value = frappe.utils.get_datetime_str(value)
-			data[w.key] = value
-	elif webhook.webhook_json:
-		data = frappe.render_template(webhook.webhook_json, get_context(doc))
-		data = json.loads(data)
+	headers = get_webhook_headers(doc, webhook)
+	data = get_webhook_data(doc, webhook)
 
 	for i in range(3):
 		try:
@@ -107,3 +93,26 @@ def enqueue_webhook(doc, webhook):
 				continue
 			else:
 				raise e
+
+
+def get_webhook_headers(doc, webhook):
+	headers = {}
+	if webhook.webhook_headers:
+		for h in webhook.webhook_headers:
+			if h.get("key") and h.get("value"):
+				headers[h.get("key")] = h.get("value")
+	return headers
+
+
+def get_webhook_data(doc, webhook):
+	data = {}
+	if webhook.webhook_data:
+		for w in webhook.webhook_data:
+			value = doc.get(w.fieldname)
+			if isinstance(value, datetime.datetime):
+				value = frappe.utils.get_datetime_str(value)
+			data[w.key] = value
+	elif webhook.webhook_json:
+		data = frappe.render_template(webhook.webhook_json, get_context(doc))
+		data = json.loads(data)
+	return data
