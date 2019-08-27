@@ -8,7 +8,7 @@ import frappe.handler
 import frappe.client
 from frappe.utils.response import build_response
 from frappe import _
-from six.moves.urllib.parse import urlparse, urlencode
+from six.moves.urllib.parse import urlparse, urlencode, unquote_plus
 import base64
 
 
@@ -47,9 +47,13 @@ def handle():
 
 	if len(parts) > 2:
 		doctype = parts[2]
+		if doctype:
+			doctype = unquote_plus(doctype)
 
 	if len(parts) > 3:
 		name = parts[3]
+		if name:
+			name = unquote_plus(name)
 
 	if call=="method":
 		frappe.local.form_dict.cmd = doctype
