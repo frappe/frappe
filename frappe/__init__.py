@@ -1152,7 +1152,7 @@ def compare(val1, condition, val2):
 
 def respond_as_web_page(title, html, success=None, http_status_code=None,
 	context=None, indicator_color=None, primary_action='/', primary_label = None, fullpage=False,
-	width=None, template='message'):
+	width=None, template='message', no_cache=0):
 	"""Send response as a web page with a message rather than JSON. Used to show permission errors etc.
 
 	:param title: Page title and heading.
@@ -1162,15 +1162,18 @@ def respond_as_web_page(title, html, success=None, http_status_code=None,
 	:param context: web template context
 	:param indicator_color: color of indicator in title
 	:param primary_action: route on primary button (default is `/`)
-	:param primary_label: label on primary button (defaut is "Home")
+	:param primary_label: label on primary button (default is "Home")
 	:param fullpage: hide header / footer
 	:param width: Width of message in pixels
 	:param template: Optionally pass view template
+	:param no_cache: Template will always be re-rendered i.e., no caching.
 	"""
 	local.message_title = title
 	local.message = html
 	local.response['type'] = 'page'
 	local.response['route'] = template
+	local.no_cache = no_cache
+
 	if http_status_code:
 		local.response['http_status_code'] = http_status_code
 
@@ -1190,6 +1193,7 @@ def respond_as_web_page(title, html, success=None, http_status_code=None,
 	context['primary_action'] = primary_action
 	context['error_code'] = http_status_code
 	context['fullpage'] = fullpage
+	context['no_cache'] = no_cache
 	if width:
 		context['card_width'] = width
 
