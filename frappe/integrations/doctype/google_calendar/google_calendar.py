@@ -16,6 +16,7 @@ from frappe.utils import add_days, get_datetime, get_weekdays, now_datetime, add
 from dateutil import parser
 from datetime import datetime, timedelta
 from six.moves.urllib.parse import quote
+from frappe.integrations.doctype.google_settings.google_settings import get_auth_url
 
 SCOPES = "https://www.googleapis.com/auth/calendar"
 
@@ -81,7 +82,7 @@ class GoogleCalendar(Document):
 		}
 
 		try:
-			r = requests.post("https://www.googleapis.com/oauth2/v4/token", data=data).json()
+			r = requests.post(get_auth_url(), data=data).json()
 		except requests.exceptions.HTTPError:
 			button_label = frappe.bold(_("Allow Google Calendar Access"))
 			frappe.throw(_("Something went wrong during the token generation. Click on {0} to generate a new one.").format(button_label))
@@ -111,7 +112,7 @@ def authorize_access(g_calendar, reauthorize=None):
 				"redirect_uri": redirect_uri,
 				"grant_type": "authorization_code"
 			}
-			r = requests.post("https://www.googleapis.com/oauth2/v4/token", data=data).json()
+			r = requests.post(get_auth_url(), data=data).json()
 
 			if "refresh_token" in r:
 				frappe.db.set_value("Google Calendar", google_calendar.name, "refresh_token", r.get("refresh_token"))
@@ -162,7 +163,7 @@ def get_google_calendar_object(g_calendar):
 	credentials_dict = {
 		"token": account.get_access_token(),
 		"refresh_token": account.get_password(fieldname="refresh_token", raise_exception=False),
-		"token_uri": "https://www.googleapis.com/oauth2/v4/token",
+		"token_uri": get_auth_url(),
 		"client_id": google_settings.client_id,
 		"client_secret": google_settings.get_password(fieldname="client_secret", raise_exception=False),
 		"scopes": "https://www.googleapis.com/auth/calendar/v3"

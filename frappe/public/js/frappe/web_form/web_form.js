@@ -64,11 +64,11 @@ export default class WebForm extends frappe.ui.FieldGroup {
 	}
 
 	add_button_to_footer(name, type, action) {
-		this.add_button(name, type, action, '.web-form-footer')
+		this.add_button(name, type, action, '.web-form-footer');
 	}
 
 	add_button_to_header(name, type, action) {
-		this.add_button(name, type, action, '.web-form-actions')
+		this.add_button(name, type, action, '.web-form-actions');
 	}
 
 	setup_primary_action() {

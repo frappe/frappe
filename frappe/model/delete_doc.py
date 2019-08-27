@@ -198,13 +198,16 @@ def check_if_doc_is_linked(doc, method="Delete"):
 			for item in frappe.db.get_values(link_dt, {link_field:doc.name},
 				["name", "parent", "parenttype", "docstatus"], as_dict=True):
 				linked_doctype = item.parenttype if item.parent else link_dt
-				if linked_doctype in doctypes_to_skip:
+
+				ignore_linked_doctypes = doc.get('ignore_linked_doctypes') or []
+
+				if linked_doctype in doctypes_to_skip or (linked_doctype in ignore_linked_doctypes and method == 'Cancel'):
 					# don't check for communication and todo!
 					continue
 
 				if not item:
 					continue
-				elif (method != "Delete" or item.docstatus == 2) and (method != "Cancel" or item.docstatus != 1):
+				elif method != "Delete"  and (method != "Cancel" or item.docstatus != 1):
 					# don't raise exception if not
 					# linked to a non-cancelled doc when deleting or to a submitted doc when cancelling
 					continue
@@ -223,7 +226,10 @@ def check_if_doc_is_linked(doc, method="Delete"):
 def check_if_doc_is_dynamically_linked(doc, method="Delete"):
 	'''Raise `frappe.LinkExistsError` if the document is dynamically linked'''
 	for df in get_dynamic_link_map().get(doc.doctype, []):
-		if df.parent in doctypes_to_skip:
+
+		ignore_linked_doctypes = doc.get('ignore_linked_doctypes') or []
+
+		if df.parent in doctypes_to_skip or (df.parent in ignore_linked_doctypes and method == 'Cancel'):
 			# don't check for communication and todo!
 			continue
 
