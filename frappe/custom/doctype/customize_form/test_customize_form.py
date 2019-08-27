@@ -188,9 +188,6 @@ class TestCustomizeForm(unittest.TestCase):
 		d = self.get_customize_form('User')
 		e = self.get_customize_form('Custom Field')
 
-		print(d.fields)
-		print(e.fields)
-
 		# core doctype is invalid, hence no attributes are set
 		self.assertEquals(d.get("fields"), [])
 		self.assertEquals(e.get("fields"), [])
