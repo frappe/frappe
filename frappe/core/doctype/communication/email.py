@@ -10,7 +10,6 @@ from email.utils import formataddr
 from frappe.core.utils import get_parent_doc
 from frappe.utils import (get_url, get_formatted_email, cint,
   validate_email_address, split_emails, time_diff_in_seconds, parse_addr, get_datetime)
-from frappe.email.queue import check_email_limit
 from frappe.utils.scheduler import log
 from frappe.email.email_body import get_message_id
 import frappe.email.smtp
@@ -137,7 +136,6 @@ def notify(doc, print_html=None, print_format=None, attachments=None,
 		doc._notify(print_html=print_html, print_format=print_format, attachments=attachments,
 			recipients=recipients, cc=cc, bcc=None)
 	else:
-		check_email_limit(list(set(doc.sent_email_addresses)))
 		enqueue(sendmail, queue="default", timeout=300, event="sendmail",
 			communication_name=doc.name,
 			print_html=print_html, print_format=print_format, attachments=attachments,

@@ -9,6 +9,10 @@
   "webhook_doctype",
   "cb_doc_events",
   "webhook_docevent",
+  "sb_condition",
+  "condition",
+  "cb_condition",
+  "html_condition",
   "sb_webhook",
   "request_url",
   "sb_webhook_headers",
@@ -40,6 +44,26 @@
    "label": "Doc Event",
    "options": "after_insert\non_update\non_submit\non_cancel\non_trash\non_update_after_submit\non_change",
    "set_only_once": 1
+  },
+  {
+   "fieldname": "sb_condition",
+   "fieldtype": "Section Break",
+   "label": "Webhook Trigger"
+  },
+  {
+   "description": "The webhook will be triggered if this expression is true",
+   "fieldname": "condition",
+   "fieldtype": "Small Text",
+   "label": "Condition"
+  },
+  {
+   "fieldname": "cb_condition",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "html_condition",
+   "fieldtype": "HTML",
+   "options": "<p><strong>Condition Examples:</strong></p>\n<pre>doc.status==\"Open\"<br>doc.due_date==nowdate()<br>doc.total &gt; 40000\n</pre>"
   },
   {
    "fieldname": "sb_webhook",
@@ -76,7 +100,7 @@
    "options": "Webhook Data"
   }
  ],
- "modified": "2019-08-12 23:17:03.344167",
+ "modified": "2019-08-14 01:39:44.060261",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Webhook",

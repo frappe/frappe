@@ -120,8 +120,15 @@ def user_permission_exists(user, allow, for_value, applicable_for=None):
 	return has_same_user_permission
 
 def get_applicable_for_doctype_list(doctype, txt, searchfield, start, page_len, filters):
-	linked_doctypes = get_linked_doctypes(doctype, True).keys()
-	linked_doctypes = list(linked_doctypes)
+	linked_doctypes_map = get_linked_doctypes(doctype, True)
+
+	linked_doctypes = []
+	for linked_doctype, linked_doctype_values in linked_doctypes_map.items():
+		linked_doctypes.append(linked_doctype)
+		child_doctype = linked_doctype_values.get("child_doctype")
+		if child_doctype:
+			linked_doctypes.append(child_doctype)
+
 	linked_doctypes += [doctype]
 
 	if txt:

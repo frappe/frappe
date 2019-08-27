@@ -22,7 +22,7 @@ frappe.views.ListSidebar = class ListSidebar {
 		this.sidebar = $('<div class="list-sidebar overlay-sidebar hidden-xs hidden-sm"></div>')
 			.html(sidebar_content)
 			.appendTo(this.page.sidebar.empty());
-		
+
 		this.setup_reports();
 		this.setup_list_filter();
 		this.setup_views();
@@ -32,11 +32,9 @@ frappe.views.ListSidebar = class ListSidebar {
 		this.setup_keyboard_shortcuts();
 		this.setup_list_group_by();
 
-		let limits = frappe.boot.limits;
-
-		if (limits.upgrade_url && limits.expiry && !frappe.flags.upgrade_dismissed) {
-			this.setup_upgrade_box();
-		}
+		// do not remove
+		// used to trigger custom scripts
+		$(document).trigger('list_sidebar_setup');
 
 		if (this.list_view.list_view_settings && this.list_view.list_view_settings.disable_sidebar_stats) {
 			this.sidebar.find('.sidebar-stat').remove();
@@ -253,10 +251,16 @@ frappe.views.ListSidebar = class ListSidebar {
 		let $elements = dropdown.find('li');
 		$dropdown_search.on('keyup',()=> {
 			let text_filter = $search_input.val().toLowerCase();
+			// Replace trailing and leading spaces
+			text_filter = text_filter.replace(/^\s+|\s+$/g, '');
 			let text;
 			for (var i = 0; i < $elements.length; i++) {
-				text = $elements.eq(i).find(text_class).text();
-				if (text.toLowerCase().indexOf(text_filter) > -1) {
+				let text_element = $elements.eq(i).find(text_class);
+
+				let text = text_element.text().toLowerCase();
+				// Search data-name since label for current user is 'Me'
+				let name = text_element.data('name').toLowerCase();
+				if (text.includes(text_filter) || name.includes(text_filter)) {
 					$elements.eq(i).css('display','');
 				} else {
 					$elements.eq(i).css('display','none');
@@ -268,35 +272,6 @@ frappe.views.ListSidebar = class ListSidebar {
 		});
 	}
 
-	setup_upgrade_box() {
-		let upgrade_list = $(`<ul class="list-unstyled sidebar-menu"></ul>`).appendTo(this.sidebar);
-
-		// Show Renew/Upgrade button,
-		// if account is holding one user free plan or
-		// if account's expiry date within range of 30 days from today's date
-
-		let upgrade_date = frappe.datetime.add_days(frappe.datetime.get_today(), 30);
-		if (frappe.boot.limits.users === 1 || upgrade_date >= frappe.boot.limits.expiry) {
-			let upgrade_box = $(`<div class="border" style="
-					padding: 0px 10px;
-					border-radius: 3px;
-				">
-				<a><i class="octicon octicon-x pull-right close" style="margin-top: 10px;"></i></a>
-				<h5>Go Premium</h5>
-				<p>Upgrade to a premium plan with more users, storage and priority support.</p>
-				<button class="btn btn-xs btn-default btn-upgrade" style="margin-bottom: 10px;"> Renew / Upgrade </button>
-				</div>`).appendTo(upgrade_list);
-
-			upgrade_box.find('.btn-upgrade').on('click', () => {
-				frappe.set_route('usage-info');
-			});
-
-			upgrade_box.find('.close').on('click', () => {
-				upgrade_list.remove();
-				frappe.flags.upgrade_dismissed = 1;
-			});
-		}
-	}
 
 	get_cat_tags() {
 		return this.cat_tags;

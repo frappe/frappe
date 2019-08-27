@@ -10,6 +10,7 @@ import frappe.permissions
 from frappe.model.db_query import DatabaseQuery
 from frappe import _
 from six import text_type, string_types, StringIO
+from frappe.core.doctype.access_log.access_log import make_access_log
 
 @frappe.whitelist()
 @frappe.read_only()
@@ -29,6 +30,7 @@ def get_form_params():
 
 	data.pop('cmd', None)
 	data.pop('data', None)
+	data.pop('ignore_permissions', None)
 
 	if "csrf_token" in data:
 		del data["csrf_token"]
@@ -136,6 +138,11 @@ def export_query():
 		si = json.loads(frappe.form_dict.get('selected_items'))
 		form_params["filters"] = {"name": ("in", si)}
 		del form_params["selected_items"]
+
+	make_access_log(doctype=doctype,
+		file_type=file_format_type,
+		report_name=form_params.report_name,
+		filters=form_params.filters)
 
 	db_query = DatabaseQuery(doctype)
 	ret = db_query.execute(**form_params)

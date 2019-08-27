@@ -27,7 +27,8 @@
   "rgt",
   "old_parent",
   "content_hash",
-  "uploaded_to_dropbox"
+  "uploaded_to_dropbox",
+  "uploaded_to_google_drive"
  ],
  "fields": [
   {
@@ -175,11 +176,18 @@
    "fieldtype": "Check",
    "label": "Uploaded To Dropbox",
    "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "uploaded_to_google_drive",
+   "fieldtype": "Check",
+   "label": "Uploaded To Google Drive",
+   "read_only": 1
   }
  ],
  "icon": "fa fa-file",
  "idx": 1,
- "modified": "2019-08-12 23:13:55.238154",
+ "modified": "2019-08-16 16:41:03.086023",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "File",

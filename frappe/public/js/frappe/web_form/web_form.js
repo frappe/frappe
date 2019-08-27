@@ -55,30 +55,42 @@ export default class WebForm extends frappe.ui.FieldGroup {
 		intro_wrapper.innerHTML = intro;
 	}
 
-	add_button(name, type, action) {
+	add_button(name, type, action, wrapper_class=".web-form-actions") {
 		const button = document.createElement("button");
 		button.classList.add("btn", "btn-" + type, "btn-sm", "ml-2");
 		button.innerHTML = name;
 		button.onclick = action;
-		document.querySelector(".web-form-actions").appendChild(button);
+		document.querySelector(wrapper_class).appendChild(button);
+	}
+
+	add_button_to_footer(name, type, action) {
+		this.add_button(name, type, action, '.web-form-footer');
+	}
+
+	add_button_to_header(name, type, action) {
+		this.add_button(name, type, action, '.web-form-actions');
 	}
 
 	setup_primary_action() {
-		this.add_button(this.button_label || "Save", "primary", () =>
+		this.add_button_to_header(this.button_label || "Save", "primary", () =>
+			this.save()
+		);
+
+		this.add_button_to_footer(this.button_label || "Save", "primary", () =>
 			this.save()
 		);
 	}
 
 	setup_cancel_button() {
-		this.add_button("Cancel", "light", () => this.cancel());
+		this.add_button_to_header("Cancel", "light", () => this.cancel());
 	}
 
 	setup_delete_button() {
-		this.add_button("Delete", "danger", () => this.delete());
+		this.add_button_to_header("Delete", "danger", () => this.delete());
 	}
 
 	setup_print_button() {
-		this.add_button(
+		this.add_button_to_header(
 			'<i class="fa fa-print" aria-hidden="true"></i>',
 			"light",
 			() => this.print()
