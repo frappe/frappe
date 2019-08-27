@@ -54,7 +54,8 @@ core_doctypes_list = ('Success Action', 'User', 'Access Log', 'Session Default',
 	'Payment Gateway', 'Domain Settings', 'User Social Login', 'Page', 'SMS Settings',
 	'Block Module', 'Role Profile', 'SMS Parameter', 'DocShare', 'Test Runner', 'Module Def',
 	'Role', 'Has Domain', 'Custom Role', 'Error Log', 'Has Role', 'Error Snapshot', 'Tag Category',
-	'Patch Log', 'Deleted Document', 'DefaultValue', 'Tag', 'Tag Doc Category')
+	'Patch Log', 'Deleted Document', 'DefaultValue', 'Tag', 'Tag Doc Category', 'Print Format',
+	'Customize Form', 'Customize Form Field', 'Property Setter', 'Custom Field', 'Custom Script')
 
 def copytables(srctype, src, srcfield, tartype, tar, tarfield, srcfields, tarfields=[]):
 	if not tarfields:
