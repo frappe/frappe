@@ -1152,7 +1152,7 @@ def compare(val1, condition, val2):
 
 def respond_as_web_page(title, html, success=None, http_status_code=None,
 	context=None, indicator_color=None, primary_action='/', primary_label = None, fullpage=False,
-	width=None, template='message', no_cache=0):
+	width=None, template='message'):
 	"""Send response as a web page with a message rather than JSON. Used to show permission errors etc.
 
 	:param title: Page title and heading.
@@ -1172,7 +1172,7 @@ def respond_as_web_page(title, html, success=None, http_status_code=None,
 	local.message = html
 	local.response['type'] = 'page'
 	local.response['route'] = template
-	local.no_cache = no_cache
+	local.no_cache = 1
 
 	if http_status_code:
 		local.response['http_status_code'] = http_status_code
