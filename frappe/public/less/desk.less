@@ -1039,3 +1039,15 @@ img.img-loading:after {
 	font-family: 'Octicons';
 	content: "\f00b";
 }
+
+body.no-sidebar {
+	@media (min-width: @screen-md) {
+		.layout-side-section {
+			display: none;
+		}
+
+		.layout-main-section-wrapper {
+			width: 100% !important;
+		}
+	}
+}
