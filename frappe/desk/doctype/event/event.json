@@ -1,7 +1,7 @@
 {
  "allow_import": 1,
  "autoname": "EV.#####",
- "create_on_install": 0,
+ "create_on_install": 1,
  "creation": "2013-06-10 13:17:47",
  "doctype": "DocType",
  "document_type": "Document",

@@ -1,5 +1,5 @@
 {
- "create_on_install": 0,
+ "create_on_install": 1,
  "creation": "2018-09-21 15:44:58.836156",
  "doctype": "DocType",
  "editable_grid": 1,

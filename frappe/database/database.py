@@ -181,12 +181,15 @@ class Database(object):
 			if frappe.conf.db_type == 'postgres':
 				self.rollback()
 
+			if self.is_table_missing(e):
+				return None
+
 			elif self.is_syntax_error(e):
 				# only for mariadb
 				frappe.errprint('Syntax error in query:')
 				frappe.errprint(query)
 
-			if ignore_ddl and (self.is_missing_column(e) or self.is_missing_table(e) or self.cant_drop_field_or_key(e)):
+			if ignore_ddl and (self.is_missing_column(e) or self.cant_drop_field_or_key(e)):
 				pass
 			else:
 				raise
@@ -803,11 +806,13 @@ class Database(object):
 		if filters:
 			conditions, filters = self.build_conditions(filters)
 			count = self.sql("""select count(*)
-				from `tab%s` where %s""" % (dt, conditions), filters, debug=debug)[0][0]
-			return count
+				from `tab%s` where %s""" % (dt, conditions), filters, debug=debug)
+			return count[0][0] if count else 0
 		else:
 			count = self.sql("""select count(*)
-				from `tab%s`""" % (dt,))[0][0]
+				from `tab%s`""" % (dt,))
+
+			count = count[0][0] if count else 0
 
 			if cache:
 				frappe.cache().set_value('doctype:count:{}'.format(dt), count, expires_in_sec = 86400)

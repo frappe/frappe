@@ -258,7 +258,9 @@ class DocType(Document):
 		"""Update database schema, make controller templates if `custom` is not set and clear cache."""
 		self.delete_duplicate_custom_fields()
 		try:
-			frappe.db.updatedb(self.name, self)
+			if self.create_on_install or self.name in get_created_tables():
+				log_created_tables(self.name)
+				frappe.db.updatedb(self.name, self)
 		except Exception as e:
 			print("\n\nThere was an issue while migrating the DocType: {}\n".format(self.name))
 			raise e
@@ -1003,3 +1005,29 @@ def check_if_fieldname_conflicts_with_methods(doctype, fieldname):
 
 def clear_linked_doctype_cache():
 	frappe.cache().delete_value('linked_doctypes_without_ignore_user_permissions_enabled')
+
+def log_created_tables(dt):
+	created_tables_file = frappe.get_site_path('created_tables.json')
+	created_tables = []
+
+	if not os.path.exists(created_tables_file):
+		with open(created_tables_file, 'w') as f:
+			json.dump([], f)
+
+	with open(created_tables_file) as f:
+		created_tables = json.load(f)
+
+	if dt not in created_tables:
+		created_tables.append(dt)
+		with open(created_tables_file, 'w') as f:
+			json.dump(list(set(created_tables)), f, sort_keys=True, indent=4)
+
+def get_created_tables():
+	created_tables_file = frappe.get_site_path('created_tables.json')
+
+	if not os.path.exists(created_tables_file):
+		with open(created_tables_file, 'w') as f:
+			json.dump([], f)
+
+	with open(created_tables_file) as f:
+		return json.load(f)
