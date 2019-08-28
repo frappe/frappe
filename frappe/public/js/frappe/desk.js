@@ -43,7 +43,9 @@ frappe.Application = Class.extend({
 		this.load_user_permissions();
 		this.make_nav_bar();
 		this.set_favicon();
+		this.set_fullwidth_if_enabled();		
 		this.setup_analytics();
+		
 		frappe.ui.keys.setup();
 		this.set_rtl();
 
@@ -506,6 +508,10 @@ frappe.Application = Class.extend({
 				"$email": frappe.session.user
 			});
 		}
+	},
+	
+	set_fullwidth_if_enabled() {
+		frappe.ui.toolbar.set_fullwidth_if_enabled();
 	},
 
 	show_notes: function() {
