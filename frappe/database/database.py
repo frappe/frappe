@@ -181,16 +181,24 @@ class Database(object):
 			if frappe.conf.db_type == 'postgres':
 				self.rollback()
 
-			if self.is_table_missing(e):
-				if query.strip().lower().split()[0] in ('insert', 'update', 'alter'):
+			if self.is_table_missing(e) and not frappe.flags.in_install:
+				action = query.strip().lower().split()[0]
+
+				if action in ['insert', 'update', 'alter']:
+					print(action)
 					from frappe.core.doctype.doctype.doctype import get_created_tables, log_created_tables, create_table
 
 					tables = get_tables_from_query(query)
+					tables = check_valid_doctype(tables)
 					created_tables = get_created_tables()
 					for table in tables:
 						if not table in created_tables:
 							log_created_tables(table)
 							create_table(table)
+							sql(query=query, values=values, as_dict=as_dict, as_list=as_dict, formatted=formatted,debug=debug,
+								ignore_ddl=ignore_ddl, as_utf8=as_utf8, auto_commit=auto_commit, update=update, explain=explain)
+				elif action in ['select']:
+					return [] if as_list else {}
 
 			elif self.is_syntax_error(e):
 				# only for mariadb
@@ -997,6 +1005,9 @@ def get_tables_from_query(query, get_doctype_name=False):
 	multi_word_regex = r'([`"])(tab([A-Z]\w+)( [A-Z]\w+)+)\1'
 	tables = []
 	for regex in (single_word_regex, multi_word_regex):
-		tables += [groups[1] for groups in re.findall(regex, query)]
+		tables += [groups[1][3:] for groups in re.findall(regex, query)]
 
 	return tables
+
+def check_valid_doctype(tables):
+	return [table for table in tables if frappe.db.exists("DocType", table)]
