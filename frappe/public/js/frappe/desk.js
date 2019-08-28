@@ -43,7 +43,9 @@ frappe.Application = Class.extend({
 		this.load_user_permissions();
 		this.make_nav_bar();
 		this.set_favicon();
+		this.set_fullwidth_if_enabled();		
 		this.setup_analytics();
+		
 		frappe.ui.keys.setup();
 		this.set_rtl();
 
@@ -507,6 +509,10 @@ frappe.Application = Class.extend({
 			});
 		}
 	},
+	
+	set_fullwidth_if_enabled() {
+		frappe.ui.toolbar.set_fullwidth_if_enabled();
+	},
 
 	show_notes: function() {
 		var me = this;
@@ -673,3 +679,4 @@ frappe.add_to_desktop = function(label, doctype, report) {
 		}
 	});
 };
+This looks like a JavaScript file. Click this bar to format it.No 3
