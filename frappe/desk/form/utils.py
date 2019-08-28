@@ -5,7 +5,6 @@ from __future__ import unicode_literals
 import frappe, json
 import frappe.desk.form.meta
 import frappe.desk.form.load
-from frappe.utils.html_utils import sanitize_html
 from frappe.desk.form.document_follow import follow_document
 
 from frappe import _
@@ -63,7 +62,7 @@ def add_comment(reference_doctype, reference_name, content, comment_email):
 		doctype = 'Comment',
 		reference_doctype = reference_doctype,
 		reference_name = reference_name,
-		content = sanitize_html(content),
+		content = content,
 		comment_email = comment_email,
 		comment_type = 'Comment'
 	)).insert(ignore_permissions = True)
