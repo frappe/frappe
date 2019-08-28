@@ -220,7 +220,7 @@ class AutoRepeat(Document):
 
 		attachments = [frappe.attach_print(new_doc.doctype, new_doc.name,
 			file_name=new_doc.name, print_format=print_format)]
-		
+
 		recipients = self.recipients.split('\n')
 
 		make(doctype=new_doc.doctype, name=new_doc.name, recipients=recipients,
