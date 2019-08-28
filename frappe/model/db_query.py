@@ -44,7 +44,7 @@ class DatabaseQuery(object):
 		from frappe.core.doctype.doctype.doctype import get_created_tables
 
 		if not self.doctype in get_created_tables() and not frappe.flags.in_install:
-			return None
+			return []
 
 		# filters and fields swappable
 		# its hard to remember what comes first

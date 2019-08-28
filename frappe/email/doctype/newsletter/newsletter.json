@@ -1,6 +1,5 @@
 {
  "allow_rename": 1,
- "create_on_install": 1,
  "creation": "2013-01-10 16:34:31",
  "description": "Create and Send Newsletters",
  "doctype": "DocType",
@@ -123,7 +122,7 @@
  "idx": 1,
  "is_published_field": "published",
  "max_attachments": 3,
- "modified": "2019-08-12 23:16:42.253069",
+ "modified": "2019-08-29 00:19:31.056541",
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Newsletter",

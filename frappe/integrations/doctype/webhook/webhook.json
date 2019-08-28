@@ -1,5 +1,4 @@
 {
- "create_on_install": 1,
  "creation": "2017-09-08 16:16:13.060641",
  "doctype": "DocType",
  "editable_grid": 1,
@@ -100,7 +99,7 @@
    "options": "Webhook Data"
   }
  ],
- "modified": "2019-08-14 01:39:44.060261",
+ "modified": "2019-08-28 20:18:48.576709",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Webhook",

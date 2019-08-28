@@ -1,7 +1,6 @@
 {
  "allow_guest_to_view": 1,
  "allow_import": 1,
- "create_on_install": 0,
  "creation": "2013-03-28 10:35:30",
  "description": "Page to show on the website\n",
  "doctype": "DocType",
@@ -243,7 +242,7 @@
  "idx": 1,
  "is_published_field": "published",
  "max_attachments": 20,
- "modified": "2019-08-22 13:06:37.946347",
+ "modified": "2019-08-29 00:08:53.396882",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Web Page",

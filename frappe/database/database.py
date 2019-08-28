@@ -86,8 +86,8 @@ class Database(object):
 	def get_database_size(self):
 		pass
 
-	def sql(self, query, values=(), as_dict = 0, as_list = 0, formatted = 0,
-		debug=0, ignore_ddl=0, as_utf8=0, auto_commit=0, update=None, explain=False):
+	def sql(self, query, values=(), as_dict = 0, as_list = 0, formatted = 0, debug=0, ignore_ddl=0, as_utf8=0,
+		auto_commit=0, update=None, explain=False, retry=0):
 		"""Execute a SQL query and fetch all rows.
 
 		:param query: SQL query.
@@ -153,7 +153,19 @@ class Database(object):
 					frappe.log("with values:")
 					frappe.log(values)
 					frappe.log(">>>>")
-				self._cursor.execute(query, values)
+
+				try:
+					self._cursor.execute(query, values)
+				except Exception as e:
+					if self.is_table_missing(e) and not frappe.flags.in_install:
+						action = query.strip().lower().split()[0]
+
+						if action in ['insert', 'update', 'alter']:
+							self.handle_TableMissingError(query=query, values=values, as_dict=as_dict, as_list=as_list, formatted=formatted,
+								debug=debug, ignore_ddl=ignore_ddl, as_utf8=as_utf8, auto_commit=auto_commit, update=update,
+								explain=explain, retry=retry)
+						elif action in ['select']:
+							return []
 
 				if frappe.flags.in_migrate:
 					self.log_touched_tables(query, values)
@@ -168,7 +180,19 @@ class Database(object):
 					frappe.log(query)
 					frappe.log(">>>>")
 
-				self._cursor.execute(query)
+				try:
+					self._cursor.execute(query)
+				except Exception as e:
+					if self.is_table_missing(e) and not frappe.flags.in_install:
+						action = query.strip().lower().split()[0]
+
+						if action in ['insert', 'update', 'alter']:
+							self.handle_TableMissingError(query=query, values=values, as_dict=as_dict, as_list=as_list, formatted=formatted,
+								debug=debug, ignore_ddl=ignore_ddl, as_utf8=as_utf8, auto_commit=auto_commit, update=update,
+								explain=explain, retry=retry)
+						elif action in ['select']:
+							return []
+
 
 				if frappe.flags.in_migrate:
 					self.log_touched_tables(query)
@@ -181,31 +205,12 @@ class Database(object):
 			if frappe.conf.db_type == 'postgres':
 				self.rollback()
 
-			if self.is_table_missing(e) and not frappe.flags.in_install:
-				action = query.strip().lower().split()[0]
-
-				if action in ['insert', 'update', 'alter']:
-					print(action)
-					from frappe.core.doctype.doctype.doctype import get_created_tables, log_created_tables, create_table
-
-					tables = get_tables_from_query(query)
-					tables = check_valid_doctype(tables)
-					created_tables = get_created_tables()
-					for table in tables:
-						if not table in created_tables:
-							log_created_tables(table)
-							create_table(table)
-							sql(query=query, values=values, as_dict=as_dict, as_list=as_dict, formatted=formatted,debug=debug,
-								ignore_ddl=ignore_ddl, as_utf8=as_utf8, auto_commit=auto_commit, update=update, explain=explain)
-				elif action in ['select']:
-					return [] if as_list else {}
-
 			elif self.is_syntax_error(e):
 				# only for mariadb
 				frappe.errprint('Syntax error in query:')
 				frappe.errprint(query)
 
-			if ignore_ddl and (self.is_missing_column(e) or self.cant_drop_field_or_key(e)):
+			if ignore_ddl and (self.is_missing_column(e) or self.is_missing_table(e) or self.cant_drop_field_or_key(e)):
 				pass
 			else:
 				raise
@@ -228,6 +233,26 @@ class Database(object):
 			return self.convert_to_lists(self._cursor.fetchall(), formatted, as_utf8)
 		else:
 			return self._cursor.fetchall()
+
+	def handle_TableMissingError(self, query, values, as_dict, as_list, formatted, debug, ignore_ddl, as_utf8, auto_commit,
+		update, explain, retry):
+		from frappe.core.doctype.doctype.doctype import get_created_tables, create_table, log_created_tables
+
+		tables = get_tables_from_query(query)
+		tables = check_valid_doctype(tables)
+		created_tables = get_created_tables()
+
+		for table in tables:
+			if not table in created_tables:
+				log_created_tables(table)
+				create_table(table)
+
+		if retry > 2:
+			raise self.TableMissingError
+
+		self.sql(query=query, values=values, as_dict=as_dict, as_list=as_dict, formatted=formatted,debug=debug,
+			ignore_ddl=ignore_ddl, as_utf8=as_utf8, auto_commit=auto_commit, update=update, explain=explain,
+			retry=retry+1)
 
 	def explain_query(self, query, values=None):
 		"""Print `EXPLAIN` in error log."""
