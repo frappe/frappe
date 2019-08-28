@@ -51,7 +51,7 @@ class TestWebhook(unittest.TestCase):
 		}])
 		self.webhook.save()
 		headers = get_webhook_headers(doc=None, webhook=self.webhook)
-		self.assertEqual(headers, None)
+		self.assertEqual(headers, {})
 
 		# test complete headers
 		self.webhook.set("webhook_headers", [{
@@ -71,7 +71,7 @@ class TestWebhook(unittest.TestCase):
 			"key": "name"
 		}])
 		self.webhook.webhook_json = """{
-			"name": "Test User"
+			"name": "{{ doc.name }}"
 		}"""
 		self.webhook.save()
 		self.assertEqual(self.webhook.webhook_json, None)
@@ -88,7 +88,7 @@ class TestWebhook(unittest.TestCase):
 			"key": "name"
 		}])
 		self.webhook.webhook_json = """{
-			"name": "{{ self.webhook.name }}"
+			"name": "{{ doc.name }}"
 		}"""
 		self.webhook.save()
 		self.assertEqual(self.webhook.webhook_data, [])
