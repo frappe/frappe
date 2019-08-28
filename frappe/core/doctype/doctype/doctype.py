@@ -269,10 +269,7 @@ class DocType(Document):
 			if used_in:
 				frappe.throw(_("Series {0} already used in {1}").format(prefix, used_in[0][0]))
 
-
-	def on_update(self):
-		"""Update database schema, make controller templates if `custom` is not set and clear cache."""
-		self.delete_duplicate_custom_fields()
+	def create_table(self):
 		try:
 			if self.create_on_install or self.name in get_created_tables():
 				log_created_tables(self.name)
@@ -280,6 +277,11 @@ class DocType(Document):
 		except Exception as e:
 			print("\n\nThere was an issue while migrating the DocType: {}\n".format(self.name))
 			raise e
+
+	def on_update(self):
+		"""Update database schema, make controller templates if `custom` is not set and clear cache."""
+		self.delete_duplicate_custom_fields()
+		self.create_table()
 
 		self.change_modified_of_parent()
 		make_module_and_roles(self)
@@ -1104,3 +1106,7 @@ def get_created_tables():
 
 	with open(created_tables_file) as f:
 		return json.load(f)
+
+def create_table(dt):
+	doc = frappe.get_doc("DocType", dt)
+	doc.create_table()

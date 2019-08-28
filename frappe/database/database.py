@@ -182,7 +182,15 @@ class Database(object):
 				self.rollback()
 
 			if self.is_table_missing(e):
-				return None
+				if query.strip().lower().split()[0] in ('insert', 'update', 'alter'):
+					from frappe.core.doctype.doctype.doctype import get_created_tables, log_created_tables, create_table
+
+					tables = get_tables_from_query(query)
+					created_tables = get_created_tables()
+					for table in tables:
+						if not table in created_tables:
+							log_created_tables(table)
+							create_table(table)
 
 			elif self.is_syntax_error(e):
 				# only for mariadb
@@ -939,25 +947,7 @@ class Database(object):
 		if values:
 			query = frappe.safe_decode(self._cursor.mogrify(query, values))
 		if query.strip().lower().split()[0] in ('insert', 'delete', 'update', 'alter'):
-			# single_word_regex is designed to match following patterns
-			# `tabXxx`, tabXxx and "tabXxx"
-
-			# multi_word_regex is designed to match following patterns
-			# `tabXxx Xxx` and "tabXxx Xxx"
-
-			# ([`"]?) Captures " or ` at the begining of the table name (if provided)
-			# \1 matches the first captured group (quote character) at the end of the table name
-			# multi word table name must have surrounding quotes.
-
-			# (tab([A-Z]\w+)( [A-Z]\w+)*) Captures table names that start with "tab"
-			# and are continued with multiple words that start with a captital letter
-			# e.g. 'tabXxx' or 'tabXxx Xxx' or 'tabXxx Xxx Xxx' and so on
-
-			single_word_regex = r'([`"]?)(tab([A-Z]\w+))\1'
-			multi_word_regex = r'([`"])(tab([A-Z]\w+)( [A-Z]\w+)+)\1'
-			tables = []
-			for regex in (single_word_regex, multi_word_regex):
-				tables += [groups[1] for groups in re.findall(regex, query)]
+			tables = get_tables_from_query(query)
 
 			if frappe.flags.touched_tables is None:
 				frappe.flags.touched_tables = set()
@@ -987,3 +977,26 @@ def _cast_result(doctype, result):
 		return result
 
 	return tuple(batch)
+
+def get_tables_from_query(query, get_doctype_name=False):
+	# single_word_regex is designed to match following patterns
+	# `tabXxx`, tabXxx and "tabXxx"
+
+	# multi_word_regex is designed to match following patterns
+	# `tabXxx Xxx` and "tabXxx Xxx"
+
+	# ([`"]?) Captures " or ` at the begining of the table name (if provided)
+	# \1 matches the first captured group (quote character) at the end of the table name
+	# multi word table name must have surrounding quotes.
+
+	# (tab([A-Z]\w+)( [A-Z]\w+)*) Captures table names that start with "tab"
+	# and are continued with multiple words that start with a captital letter
+	# e.g. 'tabXxx' or 'tabXxx Xxx' or 'tabXxx Xxx Xxx' and so on
+
+	single_word_regex = r'([`"]?)(tab([A-Z]\w+))\1'
+	multi_word_regex = r'([`"])(tab([A-Z]\w+)( [A-Z]\w+)+)\1'
+	tables = []
+	for regex in (single_word_regex, multi_word_regex):
+		tables += [groups[1] for groups in re.findall(regex, query)]
+
+	return tables
