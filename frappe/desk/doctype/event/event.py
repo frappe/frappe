@@ -127,7 +127,13 @@ def get_events(start, end, user=None, for_reminder=False, filters=None):
 		user = frappe.session.user
 	if isinstance(filters, string_types):
 		filters = json.loads(filters)
-	roles = frappe.get_roles(user)
+
+	filter_condition = get_filters_cond('Event', filters, [])
+
+	tables = ["`tabEvent`"]
+	if "`tabEvent Participants`" in filter_condition:
+		tables.append("`tabEvent Participants`")
+
 	events = frappe.db.sql("""
 		SELECT `tabEvent`.name,
 				`tabEvent`.subject,
@@ -148,7 +154,7 @@ def get_events(start, end, user=None, for_reminder=False, filters=None):
 				`tabEvent`.friday,
 				`tabEvent`.saturday,
 				`tabEvent`.sunday
-		FROM `tabEvent`, `tabEvent Participants`
+		FROM {tables}
 		WHERE (
 				(
 					(date(`tabEvent`.starts_on) BETWEEN date(%(start)s) AND date(%(end)s))
@@ -178,9 +184,9 @@ def get_events(start, end, user=None, for_reminder=False, filters=None):
 				)
 			)
 		ORDER BY `tabEvent`.starts_on""".format(
-			filter_condition=get_filters_cond('Event', filters, []),
-			reminder_condition="AND coalesce(`tabEvent`.send_reminder, 0)=1" if for_reminder else "",
-			roles=", ".join('"{}"'.format(frappe.db.escape(r)) for r in roles)
+			tables=", ".join(tables),
+			filter_condition=filter_condition,
+			reminder_condition="AND coalesce(`tabEvent`.send_reminder, 0)=1" if for_reminder else ""
 		), {
 			"start": start,
 			"end": end,
