@@ -238,7 +238,7 @@ class Database(object):
 		update, explain, retry):
 		from frappe.core.doctype.doctype.doctype import get_created_tables, create_table, log_created_tables
 
-		tables = get_tables_from_query(query)
+		tables = get_tables_from_query(query, True)
 		tables = check_valid_doctype(tables)
 		created_tables = get_created_tables()
 
@@ -1030,7 +1030,10 @@ def get_tables_from_query(query, get_doctype_name=False):
 	multi_word_regex = r'([`"])(tab([A-Z]\w+)( [A-Z]\w+)+)\1'
 	tables = []
 	for regex in (single_word_regex, multi_word_regex):
-		tables += [groups[1][3:] for groups in re.findall(regex, query)]
+		tables += [groups[1] for groups in re.findall(regex, query)]
+
+	if get_doctype_name:
+		tables = [table[3:] for table in tables]
 
 	return tables
 
