@@ -16,5 +16,5 @@ def execute():
 			pass
 		except frappe.db.DataError:
 			pass
-		except pymysql.err.InternalError:
+		except Exception:
 			pass
