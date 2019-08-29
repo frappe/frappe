@@ -117,12 +117,6 @@ def get_dict(fortype, name=None):
 			messages += frappe.db.sql("select 'Role:', name from tabRole")
 			messages += frappe.db.sql("select 'Module:', name from `tabModule Def`")
 
-			# Adding module labels
-			messages.append(('sites/assets/js/desk.min.js', 'Modules'))
-			messages.append(('sites/assets/js/desk.min.js', 'Domains'))
-			messages.append(('sites/assets/js/desk.min.js', 'Places'))
-			messages.append(('sites/assets/js/desk.min.js', 'Administration'))
-
 		message_dict = make_dict_from_messages(messages)
 		message_dict.update(get_dict_from_hooks(fortype, name))
 
