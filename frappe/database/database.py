@@ -86,8 +86,8 @@ class Database(object):
 	def get_database_size(self):
 		pass
 
-	def sql(self, query, values=(), as_dict = 0, as_list = 0, formatted = 0, debug=0, ignore_ddl=0, as_utf8=0,
-		auto_commit=0, update=None, explain=False, retry=0):
+	def sql(self, query, values=(), as_dict=False, as_list=False, formatted=False, debug=False, ignore_ddl=False, as_utf8=False,
+		auto_commit=False, update=None, explain=False, retry=0):
 		"""Execute a SQL query and fetch all rows.
 
 		:param query: SQL query.
@@ -100,6 +100,7 @@ class Database(object):
 		:param as_utf8: Encode values as UTF 8.
 		:param auto_commit: Commit after executing the query.
 		:param update: Update this dict to all rows (if returned `as_dict`).
+		:param retry: If table is not created on site install, retry twice before throwing TableMissingError
 
 		Examples:
 
@@ -140,59 +141,58 @@ class Database(object):
 				if not isinstance(values, (dict, tuple, list)):
 					values = (values,)
 
-				if debug and query.strip().lower().startswith('select'):
-					try:
-						if explain:
-							self.explain_query(query, values)
-						frappe.errprint(query % values)
-					except TypeError:
-						frappe.errprint([query, values])
-				if (frappe.conf.get("logging") or False)==2:
-					frappe.log("<<<< query")
-					frappe.log(query)
-					frappe.log("with values:")
-					frappe.log(values)
-					frappe.log(">>>>")
+				if debug:
+					frappe.errprint(query % values)
+					if explain:
+						self.explain_query(query, values)
+
+				if frappe.conf.get("logging"):
+					self.log_query(query, values)
 
 				try:
 					self._cursor.execute(query, values)
-				except Exception as e:
-					if self.is_table_missing(e) and not frappe.flags.in_install:
-						action = query.strip().lower().split()[0]
+				except self.TableMissingError as e:
+					# If app is being install ignore the exception
+					# If insert or update ot alter in query, create table and rerun the query
+					# If select return emplty result
+					if frappe.flags.in_install:
+						return
 
-						if action in ['insert', 'update', 'alter']:
-							self.handle_TableMissingError(query=query, values=values, as_dict=as_dict, as_list=as_list, formatted=formatted,
-								debug=debug, ignore_ddl=ignore_ddl, as_utf8=as_utf8, auto_commit=auto_commit, update=update,
-								explain=explain, retry=retry)
-						elif action in ['select']:
-							return []
+					action = query.strip().lower().split()[0]
+					if action in ['insert', 'update', 'alter']:
+						self.handle_TableMissingError(query=query, values=values, as_dict=as_dict, as_list=as_list,
+							formatted=formatted, debug=debug, ignore_ddl=ignore_ddl, as_utf8=as_utf8, auto_commit=auto_commit,
+							update=update, explain=explain, retry=retry)
+					elif action in ['select']:
+						return []
 
 				if frappe.flags.in_migrate:
 					self.log_touched_tables(query, values)
-
 			else:
 				if debug:
+					frappe.errprint(query)
 					if explain:
 						self.explain_query(query)
-					frappe.errprint(query)
-				if (frappe.conf.get("logging") or False)==2:
-					frappe.log("<<<< query")
-					frappe.log(query)
-					frappe.log(">>>>")
+
+				if frappe.conf.get("logging"):
+					self.log_query(query)
 
 				try:
 					self._cursor.execute(query)
-				except Exception as e:
-					if self.is_table_missing(e) and not frappe.flags.in_install:
-						action = query.strip().lower().split()[0]
+				except self.TableMissingError as e:
+					# If app is being install ignore the exception
+					# If insert or update ot alter in query, create table and rerun the query
+					# If select return emplty result
+					if frappe.flags.in_install:
+						return
 
-						if action in ['insert', 'update', 'alter']:
-							self.handle_TableMissingError(query=query, values=values, as_dict=as_dict, as_list=as_list, formatted=formatted,
-								debug=debug, ignore_ddl=ignore_ddl, as_utf8=as_utf8, auto_commit=auto_commit, update=update,
-								explain=explain, retry=retry)
-						elif action in ['select']:
-							return []
-
+					action = query.strip().lower().split()[0]
+					if action in ['insert', 'update', 'alter']:
+						self.handle_TableMissingError(query=query, values=values, as_dict=as_dict, as_list=as_list,
+							formatted=formatted, debug=debug, ignore_ddl=ignore_ddl, as_utf8=as_utf8, auto_commit=auto_commit,
+							update=update, explain=explain, retry=retry)
+					elif action in ['select']:
+						return []
 
 				if frappe.flags.in_migrate:
 					self.log_touched_tables(query)
@@ -253,6 +253,14 @@ class Database(object):
 		self.sql(query=query, values=values, as_dict=as_dict, as_list=as_dict, formatted=formatted,debug=debug,
 			ignore_ddl=ignore_ddl, as_utf8=as_utf8, auto_commit=auto_commit, update=update, explain=explain,
 			retry=retry+1)
+
+	def log_query(self, query, values=None):
+		frappe.log("<<<<<<<<<< query")
+		frappe.log(query)
+		if values:
+			frappe.log("with values:")
+			frappe.log(values)
+		frappe.log(">>>>>>>>>>")
 
 	def explain_query(self, query, values=None):
 		"""Print `EXPLAIN` in error log."""
@@ -896,7 +904,7 @@ class Database(object):
 	def get_table_columns(self, doctype):
 		"""Returns list of column names from given doctype."""
 		columns = self.get_db_table_columns('tab' + doctype)
-		if not columns:
+		if not columns and frappe.flags.in_install:
 			raise self.TableMissingError
 		return columns
 
