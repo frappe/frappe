@@ -83,3 +83,4 @@ class SecurityException(Exception): pass
 class InvalidColumnName(ValidationError): pass
 class IncompatibleApp(ValidationError): pass
 class InvalidDates(ValidationError): pass
+class DataTooLongException(ValidationError): pass
