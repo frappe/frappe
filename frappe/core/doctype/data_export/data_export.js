@@ -134,7 +134,7 @@ const make_multiselect_buttons = parent_wrapper => {
 
 const get_doctypes = parentdt => {
 	return [parentdt].concat(
-		frappe.meta.get_table_fields(parentdt).map(df => df.options)
+		frappe.meta.get_table_fields(parentdt).filter(df => !df.hidden).map(df => df.options)
 	);
 };
 
