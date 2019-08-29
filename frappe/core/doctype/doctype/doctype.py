@@ -271,7 +271,7 @@ class DocType(Document):
 
 	def create_table(self):
 		try:
-			if self.create_on_install or self.name in get_created_tables():
+			if self.create_on_install or self.name in get_created_tables() or frappe.conf.get("developer_mode"):
 				log_created_tables(self.name)
 				frappe.db.updatedb(self.name, self)
 		except Exception as e:
