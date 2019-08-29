@@ -15,6 +15,7 @@ class TestDocType(unittest.TestCase):
 	def new_doctype(self, name, unique=0, depends_on=''):
 		return frappe.get_doc({
 			"doctype": "DocType",
+			"create_on_install": 1,
 			"module": "Core",
 			"custom": 1,
 			"fields": [{
@@ -43,20 +44,23 @@ class TestDocType(unittest.TestCase):
 			doc.delete()
 
 	def test_doctype_unique_constraint_dropped(self):
-		if frappe.db.exists("DocType", "With_Unique"):
-			frappe.delete_doc("DocType", "With_Unique")
+		frappe.delete_doc_if_exists("DocType", "With_Unique")
 
 		dt = self.new_doctype("With_Unique", unique=1)
 		dt.insert()
 
-		doc1 = frappe.new_doc("With_Unique")
-		doc2 = frappe.new_doc("With_Unique")
-		doc1.some_fieldname = "Something"
-		doc1.name = "one"
-		doc2.some_fieldname = "Something"
-		doc2.name = "two"
+		doc1 = frappe.get_doc({
+			"doctype": "With_Unique",
+			"name": "one",
+			"some_fieldname": "Something"
+		}).insert()
 
-		doc1.insert()
+		doc2 = frappe.get_doc({
+			"doctype": "With_Unique",
+			"name": "two",
+			"some_fieldname": "Something"
+		})
+
 		self.assertRaises(frappe.UniqueValidationError, doc2.insert)
 
 		dt.fields[0].unique = 0
@@ -115,6 +119,7 @@ class TestDocType(unittest.TestCase):
 		# create test doctype
 		test_doctype = frappe.get_doc({
 			"doctype": "DocType",
+			"create_on_install": 1,
 			"module": "Core",
 			"fields": [
 				{
@@ -155,7 +160,7 @@ class TestDocType(unittest.TestCase):
 
 		try:
 			frappe.flags.allow_doctype_export = 1
-			test_doctype.save()
+			test_doctype.insert()
 
 			# assert that field_order list is being created with the default order
 			test_doctype_json = frappe.get_file_json(path)
@@ -248,6 +253,7 @@ class TestDocType(unittest.TestCase):
 		field_1.fieldtype = 'Data'
 		doc.insert()
 		self.assertEqual(doc.fields[1].fieldname, "name1")
+		doc.load_from_db()
 		doc.fields[1].fieldname  = 'name'
 		self.assertRaises(InvalidFieldNameError, doc.save)
 

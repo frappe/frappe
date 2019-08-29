@@ -41,11 +41,6 @@ class DatabaseQuery(object):
 			frappe.flags.error_message = _('Insufficient Permission for {0}').format(frappe.bold(self.doctype))
 			raise frappe.PermissionError(self.doctype)
 
-		from frappe.core.doctype.doctype.doctype import get_created_tables
-
-		if not self.doctype in get_created_tables() and not frappe.flags.in_install:
-			return []
-
 		# filters and fields swappable
 		# its hard to remember what comes first
 		if (isinstance(fields, dict)
