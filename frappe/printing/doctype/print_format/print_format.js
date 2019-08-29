@@ -32,6 +32,9 @@ frappe.ui.form.on("Print Format", {
 					frappe.set_route("print-format-builder", frm.doc.name);
 				});
 			}
+			else if (frm.doc.custom_format && !frm.doc.raw_printing) {
+				frm.set_df_property("html", "reqd", 1);
+			}
 			frm.add_custom_button(__("Make Default"), function() {
 				frappe.call({
 					method: "frappe.printing.doctype.print_format.print_format.make_default",
