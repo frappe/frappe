@@ -100,7 +100,7 @@ class EMail:
 			Attach message in the text portion of multipart/alternative
 		"""
 		from email.mime.text import MIMEText
-		part = MIMEText(message, 'plain', 'utf-8')
+		part = MIMEText(message, 'plain')
 		self.msg_alternative.attach(part)
 
 	def set_part_html(self, message, inline_images):
@@ -115,7 +115,7 @@ class EMail:
 			# prepare parts
 			msg_related = MIMEMultipart('related')
 
-			html_part = MIMEText(message, 'html', 'utf-8')
+			html_part = MIMEText(message, 'html')
 			msg_related.attach(html_part)
 
 			for image in _inline_images:
@@ -124,7 +124,7 @@ class EMail:
 
 			self.msg_alternative.attach(msg_related)
 		else:
-			self.msg_alternative.attach(MIMEText(message, 'html', 'utf-8'))
+			self.msg_alternative.attach(MIMEText(message, 'html'))
 
 	def set_html_as_text(self, html):
 		"""Set plain text from HTML"""
