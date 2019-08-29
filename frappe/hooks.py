@@ -266,7 +266,6 @@ user_privacy_documents = [
 	{
 		'doctype': 'Contact Email',
 		'match_field': 'email_id',
-		'personal_fields': ['email_id'],
 	},
 	{
 		'doctype': 'Address',
