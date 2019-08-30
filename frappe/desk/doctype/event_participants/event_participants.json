@@ -1,4 +1,5 @@
 {
+ "create_on_install": 1,
  "creation": "2018-09-21 15:44:58.836156",
  "doctype": "DocType",
  "editable_grid": 1,
@@ -26,7 +27,7 @@
   }
  ],
  "istable": 1,
- "modified": "2019-08-28 20:18:12.056545",
+ "modified": "2019-08-30 14:38:32.128354",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Event Participants",

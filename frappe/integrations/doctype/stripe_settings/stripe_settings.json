@@ -61,7 +61,7 @@
    "label": "Redirect URL"
   }
  ],
- "modified": "2019-08-12 23:15:41.228823",
+ "modified": "2019-08-30 14:39:01.063522",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Stripe Settings",

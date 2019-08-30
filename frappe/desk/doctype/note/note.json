@@ -1,5 +1,6 @@
 {
  "allow_rename": 1,
+ "create_on_install": 1,
  "creation": "2013-05-24 13:41:00",
  "doctype": "DocType",
  "document_type": "Document",
@@ -80,7 +81,7 @@
  ],
  "icon": "fa fa-file-text",
  "idx": 1,
- "modified": "2019-08-29 00:04:20.002742",
+ "modified": "2019-08-30 14:38:23.785548",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Note",

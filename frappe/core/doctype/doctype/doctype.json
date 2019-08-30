@@ -443,15 +443,16 @@
   },
   {
    "default": "0",
-   "description": "Create table during installation.",
+   "fetch_from": "module.create_on_install",
    "fieldname": "create_on_install",
    "fieldtype": "Check",
-   "label": "Create on Install"
+   "label": "Create on Install",
+   "read_only": 1
   }
  ],
  "icon": "fa fa-bolt",
  "idx": 6,
- "modified": "2019-08-12 23:07:00.691953",
+ "modified": "2019-08-30 14:39:02.871649",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocType",

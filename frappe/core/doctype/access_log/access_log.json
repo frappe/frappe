@@ -1,5 +1,6 @@
 {
  "autoname": "format:AL-{#####}",
+ "create_on_install": 1,
  "creation": "2019-07-25 15:44:44.955496",
  "doctype": "DocType",
  "editable_grid": 1,
@@ -127,7 +128,7 @@
    "read_only": 1
   }
  ],
- "modified": "2019-08-05 19:00:13.839471",
+ "modified": "2019-08-30 14:38:36.447232",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Access Log",

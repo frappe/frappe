@@ -65,7 +65,7 @@
    "options": "Active\nRevoked"
   }
  ],
- "modified": "2019-08-12 23:17:10.588167",
+ "modified": "2019-08-30 14:38:42.751294",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "OAuth Bearer Token",

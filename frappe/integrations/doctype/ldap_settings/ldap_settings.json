@@ -191,7 +191,7 @@
  ],
  "in_create": 1,
  "issingle": 1,
- "modified": "2019-08-12 23:07:15.126335",
+ "modified": "2019-08-30 14:39:35.479374",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "LDAP Settings",

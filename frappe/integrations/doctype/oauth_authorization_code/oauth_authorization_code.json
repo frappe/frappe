@@ -1,5 +1,6 @@
 {
  "autoname": "field:authorization_code",
+ "create_on_install": 1,
  "creation": "2016-08-24 14:12:13.647159",
  "doctype": "DocType",
  "document_type": "Document",
@@ -59,7 +60,7 @@
    "options": "Valid\nInvalid"
   }
  ],
- "modified": "2019-08-28 20:18:48.991072",
+ "modified": "2019-08-30 14:38:32.402055",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "OAuth Authorization Code",

@@ -8,6 +8,7 @@
  "field_order": [
   "module_name",
   "app_name",
+  "create_on_install",
   "restrict_to_domain"
  ],
  "fields": [
@@ -34,11 +35,18 @@
    "fieldtype": "Link",
    "label": "Restrict To Domain",
    "options": "Domain"
+  },
+  {
+   "default": "0",
+   "description": "Create Module on site install.",
+   "fieldname": "create_on_install",
+   "fieldtype": "Check",
+   "label": "Create on Install"
   }
  ],
  "icon": "fa fa-sitemap",
  "idx": 1,
- "modified": "2019-08-12 23:17:06.037625",
+ "modified": "2019-08-30 14:38:34.861356",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Module Def",
