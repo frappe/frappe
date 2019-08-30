@@ -259,7 +259,7 @@ frappe.views.FileView = class FileView extends frappe.views.ListView {
 
 	get_left_html(file) {
 		file = this.prepare_datum(file);
-		const file_size = frappe.form.formatters.FileSize(file.file_size);
+		const file_size = file.file_size ? frappe.form.formatters.FileSize(file.file_size) : '';
 		const route_url = this.get_route_url(file);
 
 		let created_on;
