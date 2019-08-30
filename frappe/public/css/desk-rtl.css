@@ -109,5 +109,5 @@ ul.tree-children {
   direction: ltr;
 }
 .section-header {
-  direction: ltr !important;
+  direction: ltr;
 }
