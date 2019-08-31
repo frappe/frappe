@@ -136,24 +136,25 @@ def sync(g_contact=None):
 
 				for name in connection.get("names"):
 					if name.get("metadata").get("primary"):
-						if connection.get("emailAddresses"):
-							for email in connection.get("emailAddresses"):
-								if not frappe.db.exists("Contact", {"email_id": email.get("value")}):
-									contacts_updated += 1
+						contact = frappe.get_doc({
+							"doctype": "Contact",
+							"salutation": name.get("honorificPrefix") or "",
+							"first_name": name.get("givenName") or "",
+							"middle_name": name.get("middleName") or "",
+							"last_name": name.get("familyName") or "",
+							"designation": get_indexed_value(connection.get("organizations"), 0, "title"),
+							"source": "Google Contacts",
+							"google_contacts_description": get_indexed_value(connection.get("organizations"), 0, "name")
+						})
 
-									frappe.get_doc({
-										"doctype": "Contact",
-										"salutation": name.get("honorificPrefix") if name.get("honorificPrefix") else "",
-										"first_name": name.get("givenName") if name.get("givenName") else "",
-										"middle_name": name.get("middleName") if name.get("middleName") else "",
-										"last_name": name.get("familyName") if name.get("familyName") else "",
-										"email_id": email.get("value") if email.get("value") else "",
-										"designation": get_indexed_value(connection.get("organizations"), 0, "title"),
-										"phone": get_indexed_value(connection.get("phoneNumbers"), 0, "value"),
-										"mobile_no": get_indexed_value(connection.get("phoneNumbers"), 1, "value"),
-										"source": "Google Contacts",
-										"google_contacts_description": get_indexed_value(connection.get("organizations"), 0, "name")
-									}).insert(ignore_permissions=True)
+						for email in connection.get("emailAddresses", []):
+							contact.add_email(email_id=email.get("value"), is_primary=1 if email.get("primary") else 0)
+
+						for phone in connection.get("phoneNumbers", []):
+							contact.add_phone(phone=phone.get("value"), is_primary=1 if phone.get("primary") else 0)
+
+						contact.insert(ignore_permissions=True)
+
 			if g_contact:
 				return _("{0} Google Contacts synced.").format(contacts_updated) if contacts_updated > 0 else _("No new Google Contacts synced.")
 

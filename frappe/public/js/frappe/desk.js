@@ -2,6 +2,8 @@
 // MIT License. See license.txt
 /* eslint-disable no-console */
 
+// __('Modules') __('Domains') __('Places') __('Administration') # for translation, don't remove
+
 frappe.start_app = function() {
 	if(!frappe.Application)
 		return;

@@ -1,7 +1,7 @@
 <template>
   <div>
     <div class="section-header level text-muted">
-      <div class="module-category h6 uppercase">{{ category }}</div>
+      <div class="module-category h6 uppercase">{{ __(this.category) }}</div>
     </div>
 
     <div class="modules-container" :class="{'dragging': dragging}" ref="modules-container">
