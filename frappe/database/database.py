@@ -160,6 +160,7 @@ class Database(object):
 
 					action = query.strip().lower().split()[0]
 					if action in ['insert', 'update', 'alter']:
+						self.rollback()
 						self.handle_TableMissingError(query=query, values=values, as_dict=as_dict, as_list=as_list,
 							formatted=formatted, debug=debug, ignore_ddl=ignore_ddl, as_utf8=as_utf8, auto_commit=auto_commit,
 							update=update, explain=explain, retry=retry)
@@ -188,6 +189,7 @@ class Database(object):
 
 					action = query.strip().lower().split()[0]
 					if action in ['insert', 'update', 'alter']:
+						self.rollback()
 						self.handle_TableMissingError(query=query, values=values, as_dict=as_dict, as_list=as_list,
 							formatted=formatted, debug=debug, ignore_ddl=ignore_ddl, as_utf8=as_utf8, auto_commit=auto_commit,
 							update=update, explain=explain, retry=retry)
@@ -236,16 +238,14 @@ class Database(object):
 
 	def handle_TableMissingError(self, query, values, as_dict, as_list, formatted, debug, ignore_ddl, as_utf8, auto_commit,
 		update, explain, retry):
-		from frappe.core.doctype.doctype.doctype import get_created_tables, create_table, log_created_tables
+		from frappe.core.doctype.module_def.module_def import enable_module, get_modules_from_tables
 
 		tables = get_tables_from_query(query, True)
 		tables = check_valid_doctype(tables)
-		created_tables = get_created_tables()
+		modules = get_modules_from_tables(tables)
 
-		for table in tables:
-			if not table in created_tables:
-				log_created_tables(table)
-				create_table(table)
+		for module in modules:
+			enable_module(module)
 
 		if retry > 2:
 			raise self.TableMissingError

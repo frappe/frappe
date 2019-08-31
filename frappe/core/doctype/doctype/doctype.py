@@ -270,9 +270,10 @@ class DocType(Document):
 				frappe.throw(_("Series {0} already used in {1}").format(prefix, used_in[0][0]))
 
 	def create_table(self):
+		from frappe.core.doctype.module_def.module_def import get_enabled_modules, log_enabled_module
 		try:
-			if self.create_on_install or self.name in get_created_tables() or frappe.conf.get("developer_mode"):
-				log_created_tables(self.name)
+			if self.create_on_install or self.module in get_enabled_modules(): # or frappe.conf.get("developer_mode"):
+				log_enabled_module(self.module)
 				frappe.db.updatedb(self.name, self)
 		except Exception as e:
 			print("\n\nThere was an issue while migrating the DocType: {}\n".format(self.name))
@@ -1048,7 +1049,12 @@ def make_module_and_roles(doc, perm_fieldname="permissions"):
 
 		if	("tabModule Def" in frappe.db.get_tables()
 			and not frappe.db.exists("Module Def", doc.module)):
-			m = frappe.get_doc({"doctype": "Module Def", "module_name": doc.module})
+			m = frappe.get_doc({
+				"doctype": "Module Def",
+				"module_name": doc.module,
+				"create_on_install": 1 if doc.create_on_install else 0,
+				"enabled": 1 if doc.create_on_install else 0
+			})
 			m.app_name = frappe.local.module_app[frappe.scrub(doc.module)]
 			m.flags.ignore_mandatory = m.flags.ignore_permissions = True
 			m.insert()
@@ -1080,32 +1086,6 @@ def check_if_fieldname_conflicts_with_methods(doctype, fieldname):
 
 def clear_linked_doctype_cache():
 	frappe.cache().delete_value('linked_doctypes_without_ignore_user_permissions_enabled')
-
-def log_created_tables(dt):
-	created_tables_file = frappe.get_site_path('created_tables.json')
-	created_tables = []
-
-	if not os.path.exists(created_tables_file):
-		with open(created_tables_file, 'w') as f:
-			json.dump([], f)
-
-	with open(created_tables_file) as f:
-		created_tables = json.load(f)
-
-	if dt not in created_tables:
-		created_tables.append(dt)
-		with open(created_tables_file, 'w') as f:
-			json.dump(list(set(created_tables)), f, sort_keys=True, indent=4)
-
-def get_created_tables():
-	created_tables_file = frappe.get_site_path('created_tables.json')
-
-	if not os.path.exists(created_tables_file):
-		with open(created_tables_file, 'w') as f:
-			json.dump([], f)
-
-	with open(created_tables_file) as f:
-		return json.load(f)
 
 def create_table(dt):
 	doc = frappe.get_doc("DocType", dt)

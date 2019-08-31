@@ -82,6 +82,7 @@ def get_bootinfo():
 	bootinfo.points = get_energy_points(frappe.session.user)
 	bootinfo.frequently_visited_links = frequently_visited_links()
 	bootinfo.link_preview_doctypes = get_link_preview_doctypes()
+	bootinfo.enabled_modules = get_enabled_modules()
 
 	return bootinfo
 
@@ -262,3 +263,6 @@ def get_success_action():
 
 def get_link_preview_doctypes():
 	return [d.name for d in frappe.db.get_all('DocType', {'show_preview_popup': 1})]
+
+def get_enabled_modules():
+	return [d.name for d in frappe.get_list("Module Def", filters={"enabled": 1})]

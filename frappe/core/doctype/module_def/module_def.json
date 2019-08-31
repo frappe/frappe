@@ -6,6 +6,7 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
+  "enabled",
   "module_name",
   "app_name",
   "create_on_install",
@@ -42,11 +43,18 @@
    "fieldname": "create_on_install",
    "fieldtype": "Check",
    "label": "Create on Install"
+  },
+  {
+   "default": "0",
+   "fieldname": "enabled",
+   "fieldtype": "Check",
+   "label": "Enabled",
+   "read_only": 1
   }
  ],
  "icon": "fa fa-sitemap",
  "idx": 1,
- "modified": "2019-08-30 14:38:34.861356",
+ "modified": "2019-08-30 22:06:16.093504",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Module Def",

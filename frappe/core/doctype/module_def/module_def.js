@@ -3,6 +3,8 @@
 
 frappe.ui.form.on('Module Def', {
 	refresh: function(frm) {
-
+		if (!frappe.boot.developer_mode) {
+			frm.set_df_property("create_on_install", "read_only", 1);
+		}
 	}
 });
