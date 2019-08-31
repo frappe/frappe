@@ -73,9 +73,9 @@ class EmailServer:
 			port =  self.settings.incoming_port or poplib.POP3_PORT
 			if cint(self.settings.use_ssl):
 				port =  self.settings.incoming_port or poplib.POP3_SSL_PORT
-				self.pop = Timed_POP3_SSL(self.settings.host, self.settings.incoming_port, timeout=frappe.conf.get("pop_timeout"))
+				self.pop = Timed_POP3_SSL(self.settings.host, port, timeout=frappe.conf.get("pop_timeout"))
 			else:
-				self.pop = Timed_POP3(self.settings.host,  self.settings.incoming_port, timeout=frappe.conf.get("pop_timeout"))
+				self.pop = Timed_POP3(self.settings.host, port, timeout=frappe.conf.get("pop_timeout"))
 
 			self.pop.user(self.settings.username)
 			self.pop.pass_(self.settings.password)
