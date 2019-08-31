@@ -25,17 +25,19 @@ class EmailDomain(Document):
 
 		if not frappe.local.flags.in_install and not frappe.local.flags.in_patch:
 			try:
+				port = cint(self.incoming_port) or None
+
 				if self.use_imap:
 					if self.use_ssl:
-						test = imaplib.IMAP4_SSL(self.email_server)
+						test = imaplib.IMAP4_SSL(self.email_server, port=port)
 					else:
-						test = imaplib.IMAP4(self.email_server)
+						test = imaplib.IMAP4(self.email_server, port=port)
 
 				else:
 					if self.use_ssl:
-						test = poplib.POP3_SSL(self.email_server)
+						test = poplib.POP3_SSL(self.email_server, port=port)
 					else:
-						test = poplib.POP3(self.email_server)
+						test = poplib.POP3(self.email_server, port=port)
 
 			except Exception:
 				frappe.throw(_("Incoming email account not correct"))
