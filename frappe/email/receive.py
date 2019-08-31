@@ -47,10 +47,13 @@ class EmailServer:
 	def connect_imap(self):
 		"""Connect to IMAP"""
 		try:
+			port =  self.settings.incoming_port or imaplib.IMAP4_PORT
+
 			if cint(self.settings.use_ssl):
-				self.imap = Timed_IMAP4_SSL(self.settings.host, self.settings.port, timeout=frappe.conf.get("pop_timeout"))
+				port = self.settings.incoming_port or imaplib.IMAP4_SSL_PORT
+				self.imap = Timed_IMAP4_SSL(self.settings.host, port, timeout=frappe.conf.get("pop_timeout"))
 			else:
-				self.imap = Timed_IMAP4(self.settings.host, self.settings.port, timeout=frappe.conf.get("pop_timeout"))
+				self.imap = Timed_IMAP4(self.settings.host, port, timeout=frappe.conf.get("pop_timeout"))
 			self.imap.login(self.settings.username, self.settings.password)
 			# connection established!
 			return True
@@ -67,10 +70,12 @@ class EmailServer:
 	def connect_pop(self):
 		#this method return pop connection
 		try:
+			port =  self.settings.incoming_port or poplib.POP3_PORT
 			if cint(self.settings.use_ssl):
-				self.pop = Timed_POP3_SSL(self.settings.host, timeout=frappe.conf.get("pop_timeout"))
+				port =  self.settings.incoming_port or poplib.POP3_SSL_PORT
+				self.pop = Timed_POP3_SSL(self.settings.host, self.settings.incoming_port, timeout=frappe.conf.get("pop_timeout"))
 			else:
-				self.pop = Timed_POP3(self.settings.host, timeout=frappe.conf.get("pop_timeout"))
+				self.pop = Timed_POP3(self.settings.host,  self.settings.incoming_port, timeout=frappe.conf.get("pop_timeout"))
 
 			self.pop.user(self.settings.username)
 			self.pop.pass_(self.settings.password)
@@ -585,6 +590,7 @@ class Timed_POP3(TimerMixin, poplib.POP3):
 
 class Timed_POP3_SSL(TimerMixin, poplib.POP3_SSL):
 	_super = poplib.POP3_SSL
+
 class Timed_IMAP4(TimerMixin, imaplib.IMAP4):
 	_super = imaplib.IMAP4
 

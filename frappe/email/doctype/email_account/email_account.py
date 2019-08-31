@@ -153,7 +153,7 @@ class EmailAccount(Document):
 			"use_imap": self.use_imap,
 			"email_sync_rule": email_sync_rule,
 			"uid_validity": self.uidvalidity,
-			"incoming_port": self.incoming_port,
+			"incoming_port": cint(self.incoming_port),
 			"initial_sync_count": self.initial_sync_count or 100
 		})
 
