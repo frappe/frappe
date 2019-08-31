@@ -100,21 +100,24 @@ class TestCommunication(unittest.TestCase):
 	def test_contacts_attached(self):
 		contact_sender = frappe.get_doc({
 			"doctype": "Contact",
-			"first_name": frappe.generate_hash(length=10),
-			"email_id": "comm_sender@example.com"
-		}).insert(ignore_permissions=True)
+			"first_name": "contact_sender",
+		})
+		contact_sender.add_email("comm_sender@example.com")
+		contact_sender.insert(ignore_permissions=True)
 
 		contact_recipient = frappe.get_doc({
 			"doctype": "Contact",
-			"first_name": frappe.generate_hash(length=10),
-			"email_id": "comm_recipient@example.com"
-		}).insert(ignore_permissions=True)
+			"first_name": "contact_recipient",
+		})
+		contact_recipient.add_email("comm_recipient@example.com")
+		contact_recipient.insert(ignore_permissions=True)
 
 		contact_cc = frappe.get_doc({
 			"doctype": "Contact",
-			"first_name": frappe.generate_hash(length=10),
-			"email_id": "comm_cc@example.com"
-		}).insert(ignore_permissions=True)
+			"first_name": "contact_cc",
+		})
+		contact_cc.add_email("comm_cc@example.com")
+		contact_cc.insert(ignore_permissions=True)
 
 		comm = frappe.get_doc({
 			"doctype": "Communication",
