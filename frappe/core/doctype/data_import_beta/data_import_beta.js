@@ -58,10 +58,18 @@ frappe.ui.form.on('Data Import Beta', {
 			${__('{0} List', [frm.doc.reference_doctype])}
 		</a>`;
 		let message_args = [successful_records.length, link];
-		let message =
-			frm.doc.import_type === 'Insert New Records'
-				? __('Successfully imported {0} records. Go to {1}', message_args)
-				: __('Successfully updated {0} records. Go to {1}', message_args);
+		let message;
+		if (frm.doc.import_type === 'Insert New Records') {
+			message =
+				successful_records.length > 1
+					? __('Successfully imported {0} records. Go to {1}', message_args)
+					: __('Successfully imported {0} record. Go to {1}', message_args);
+		} else {
+			message =
+				successful_records.length > 1
+					? __('Successfully updated {0} records. Go to {1}', message_args)
+					: __('Successfully updated {0} record. Go to {1}', message_args);
+		}
 		frm.dashboard.set_headline(message);
 	},
 
