@@ -287,6 +287,8 @@ class Importer:
 		return self._guessed_date_formats[fieldname]
 
 	def import_data(self):
+		frappe.flags.in_import = True
+
 		out = self.get_data_for_import_preview()
 		fields = out["fields"]
 		data = out["data"]
@@ -310,6 +312,9 @@ class Importer:
 			import_log = frappe.parse_json(self.data_import.import_log)
 		else:
 			import_log = []
+
+		# remove failures
+		import_log = [l for l in import_log if l.get("success") == True]
 
 		# get successfully imported rows
 		imported_rows = []
@@ -351,13 +356,19 @@ class Importer:
 					},
 				)
 				import_log.append(
-					{"success": True, "docname": doc.name, "row_indexes": row_indexes}
+					frappe._dict(success=True, docname=doc.name, row_indexes=row_indexes)
 				)
 
 			except Exception as e:
 				import_log.append(
-					{"success": False, "exception": frappe.get_traceback(), "row_indexes": row_indexes}
+					frappe._dict(
+						success=False,
+						exception=frappe.get_traceback(),
+						messages=frappe.local.message_log,
+						row_indexes=row_indexes,
+					)
 				)
+				frappe.clear_messages()
 
 		# rollback to savepoint if something went wrong
 		# frappe.db.sql('ROLLBACK TO SAVEPOINT import')
@@ -365,8 +376,17 @@ class Importer:
 		# release savepoint if everything is ok
 		frappe.db.sql("RELEASE SAVEPOINT import")
 
+		# set status
+		failures = [l for l in import_log if l.get("success") == False]
+		if len(failures) > 0:
+			status = "Partial Success"
+		else:
+			status = "Success"
+
+		self.data_import.db_set("status", status)
 		self.data_import.db_set("import_log", json.dumps(import_log))
-		self.data_import.db_set("status", "Success")
+
+		frappe.flags.in_import = False
 
 	def get_payloads_for_import(self, fields, data):
 		payloads = []

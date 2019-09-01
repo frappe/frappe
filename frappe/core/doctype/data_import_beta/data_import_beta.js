@@ -7,7 +7,11 @@ frappe.ui.form.on('Data Import Beta', {
 			let percent = Math.floor((data.current * 100) / data.total);
 			let message;
 			if (data.success) {
-				message = __('Importing {0} ({1} of {2})', [data.docname, data.current, data.total]);
+				message = __('Importing {0} ({1} of {2})', [
+					data.docname,
+					data.current,
+					data.total
+				]);
 			}
 			if (data.skipping) {
 				message = __('Skipping ({1} of {2})', [data.current, data.total]);
@@ -27,25 +31,36 @@ frappe.ui.form.on('Data Import Beta', {
 	refresh(frm) {
 		frm.page.hide_icon_group();
 		frm.trigger('import_file');
+		frm.trigger('show_import_log');
 
-		if (frm.doc.status === 'Pending') {
+		if (frm.doc.status === 'Success') {
+			// set form as readonly
+			frm.doc.docstatus = 1;
+			frm.page.clear_secondary_action();
+			frm.disable_save();
+			frm.events.show_success_message(frm);
+		} else {
 			if (!frm.is_new()) {
-				frm.page.set_primary_action(__('Start Import'), () =>
+				let label = frm.doc.status === 'Pending' ? __('Start Import') : __('Retry');
+				frm.page.set_primary_action(label, () =>
 					frm.events.start_import(frm)
 				);
 			} else {
 				frm.page.set_primary_action(__('Save'), () => frm.save());
 			}
-		} else {
-			frm.disable_save();
-			frm.events.after_success(frm);
 		}
 	},
 
-	after_success(frm) {
+	show_success_message(frm) {
 		let import_log = JSON.parse(frm.doc.import_log || '[]');
 		let successful_records = import_log.filter(log => log.success);
-		frm.dashboard.set_headline(__('Successfully imported {0} records', [successful_records.length]));
+		let link = `<a href="#List/${frm.doc.reference_doctype}">${__('{0} List', [frm.doc.reference_doctype])}</a>`;
+		frm.dashboard.set_headline(
+			__('Successfully imported {0} records. Go to {1}', [
+				successful_records.length,
+				link
+			])
+		);
 	},
 
 	start_import(frm) {
@@ -55,7 +70,8 @@ frappe.ui.form.on('Data Import Beta', {
 		frm.set_value('template_options', JSON.stringify(template_options));
 
 		frm.save().then(() => {
-			frm.trigger('import_file').then(() =>
+			frm.trigger('import_file').then(() => {
+				console.log('import_file ')
 				frm.call('start_import').then(r => {
 					let { warnings, missing_link_values } = r.message || {};
 					if (warnings) {
@@ -66,7 +82,7 @@ frappe.ui.form.on('Data Import Beta', {
 						frm.refresh();
 					}
 				})
-			);
+			});
 		});
 	},
 
@@ -161,31 +177,46 @@ frappe.ui.form.on('Data Import Beta', {
 	},
 
 	show_import_log(frm) {
+		let import_log = JSON.parse(frm.doc.import_log || '[]');
+		let failures = import_log.filter(log => !log.success);
 		frm.toggle_display('import_log', false);
-		if (!frm.doc.import_log) {
+		frm.toggle_display('import_log_preview', failures.length > 0);
+
+		if (failures.length === 0) {
 			frm.get_field('import_log_preview').$wrapper.empty();
 			return;
 		}
-		let import_log = JSON.parse(frm.doc.import_log);
-		let rows = import_log
+
+		let rows = failures
 			.map(log => {
-				if (log.inserted) {
-					return `<tr>
-						<td>${log.name}</td>
-						<td>${log.inserted ? 'Inserted' : ''}</td>
-					</tr>`;
-				}
+				let messages = log.messages.map(JSON.parse).map(m => {
+					let title = m.title ? `<strong>${m.title}</strong>` : '';
+					let message = m.message ? `<p>${m.message}</p>` : '';
+					return title + message;
+				}).join('');
+				let id = frappe.dom.get_unique_id();
 				return `<tr>
-					<td>Failed</td>
-					<td><pre>${log.exception}</pre></td>
+					<td>${log.row_indexes.join(', ')}</td>
+					<td>
+						${messages}
+						<button class="btn btn-default btn-xs" type="button" data-toggle="collapse" data-target="#${id}" aria-expanded="false" aria-controls="${id}">
+							${__('Show Traceback')}
+						</button>
+						<div class="collapse margin-top" id="${id}">
+							<div class="well">
+								<pre>${log.exception}</pre>
+							</div>
+						</div>
+					</td>
 				</tr>`;
 			})
 			.join('');
+
 		frm.get_field('import_log_preview').$wrapper.html(`
 			<table class="table table-bordered">
 				<tr>
-					<th width="30%">${__('Document Name')}</th>
-					<th width="70%">${__('Status')}</th>
+					<th width="30%">${__('Row Number')}</th>
+					<th width="70%">${__('Error Message')}</th>
 				</tr>
 				${rows}
 			</table>
