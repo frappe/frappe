@@ -52,33 +52,45 @@ class ModuleDef(Document):
 				d.create_on_install = self.create_on_install
 				d.save()
 
-def enable_module(dt=None, module=None):
+@frappe.whitelist()
+def enable_module(module):
 	"""
-		Enables Module
-		- if one DocType from that module is accessed
-		- if explicity enabled by the user
+		Enables Module by initializing the tables in db
 	"""
-	from frappe.doctype.doctype.doctype import create_table
-	if not module:
-		module = frappe.db.get_value("DocType", dt, "module")
+	from frappe.core.doctype.doctype.doctype import create_table
+
+	if frappe.db.get_value("Module Def", module, "enabled"):
+		return
 
 	log_enabled_module(module)
 	for doctype in frappe.get_list("DocType", filters={"module": module}):
+		print("**enabling table - " + doctype.name)
 		create_table(doctype.name)
 
-def get_modules_from_tables(tables):
+def get_disabled_modules_from_tables(tables):
 	modules = []
 	for table in tables:
-		frappe.get_meta(table).module
+		module = frappe.get_meta(table).module
+		if not frappe.db.get_value("Module Def", module, "enabled"):
+			modules.append(module)
 
-	return set(modules)
+	return list(set(modules))
 
 def log_enabled_module(module):
-	if "tabModule Def" in frappe.db.get_tables() and frappe.db.exists("Module Def", module):
+	if not "tabModule Def" in frappe.db.get_tables():
+		return
+
+	if frappe.db.exists("Module Def", module):
 		frappe.db.set_value("Module Def", module, "enabled", 1)
+		if not frappe.cache().hget("modules", "enabled"):
+			frappe.cache().hset("modules", "enabled", [])
+
+		frappe.cache().hget("modules", "enabled").append(module)
 
 def get_enabled_modules():
 	if not "tabModule Def" in frappe.db.get_tables():
 		return []
 
-	return frappe.get_list("Module Def", filters={"enabled": 1})
+	enabled_modules = [d.name for d in frappe.get_list("Module Def", filters={"enabled": 1})]
+	frappe.cache().hset("modules", "enabled", enabled_modules)
+	return enabled_modules

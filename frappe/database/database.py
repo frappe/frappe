@@ -18,7 +18,8 @@ from time import time
 from frappe.utils import now, getdate, cast_fieldtype
 from frappe.utils.background_jobs import execute_job, get_queue
 from frappe.model.utils.link_count import flush_local_link_count
-from frappe.utils import cint
+from frappe.utils import cint, get_site_name
+from frappe.app import init_request
 
 # imports - compatibility imports
 from six import (
@@ -87,7 +88,9 @@ class Database(object):
 		pass
 
 	def sql(self, query, values=(), as_dict=False, as_list=False, formatted=False, debug=False, ignore_ddl=False, as_utf8=False,
-		auto_commit=False, update=None, explain=False, retry=0):
+		auto_commit=False, update=None, explain=False):
+
+		print(vars(frappe.local.request))
 		"""Execute a SQL query and fetch all rows.
 
 		:param query: SQL query.
@@ -155,15 +158,13 @@ class Database(object):
 					# If app is being install ignore the exception
 					# If insert or update ot alter in query, create table and rerun the query
 					# If select return emplty result
-					if frappe.flags.in_install:
+					if frappe.flags.in_install or not self.is_table_missing(e):
 						return
 
 					action = query.strip().lower().split()[0]
 					if action in ['insert', 'update', 'alter']:
 						self.rollback()
-						self.handle_TableMissingError(query=query, values=values, as_dict=as_dict, as_list=as_list,
-							formatted=formatted, debug=debug, ignore_ddl=ignore_ddl, as_utf8=as_utf8, auto_commit=auto_commit,
-							update=update, explain=explain, retry=retry)
+						self.handle_TableMissingError(query=query)
 					elif action in ['select']:
 						return []
 
@@ -184,15 +185,13 @@ class Database(object):
 					# If app is being install ignore the exception
 					# If insert or update ot alter in query, create table and rerun the query
 					# If select return emplty result
-					if frappe.flags.in_install:
+					if frappe.flags.in_install or not self.is_table_missing(e):
 						return
 
 					action = query.strip().lower().split()[0]
 					if action in ['insert', 'update', 'alter']:
 						self.rollback()
-						self.handle_TableMissingError(query=query, values=values, as_dict=as_dict, as_list=as_list,
-							formatted=formatted, debug=debug, ignore_ddl=ignore_ddl, as_utf8=as_utf8, auto_commit=auto_commit,
-							update=update, explain=explain, retry=retry)
+						self.handle_TableMissingError(query=query)
 					elif action in ['select']:
 						return []
 
@@ -236,23 +235,21 @@ class Database(object):
 		else:
 			return self._cursor.fetchall()
 
-	def handle_TableMissingError(self, query, values, as_dict, as_list, formatted, debug, ignore_ddl, as_utf8, auto_commit,
-		update, explain, retry):
-		from frappe.core.doctype.module_def.module_def import enable_module, get_modules_from_tables
+	def handle_TableMissingError(self, query):
+		from frappe.core.doctype.module_def.module_def import enable_module, get_disabled_modules_from_tables
 
+		print("*"*20)
 		tables = get_tables_from_query(query, True)
-		tables = check_valid_doctype(tables)
-		modules = get_modules_from_tables(tables)
-
+		modules = get_disabled_modules_from_tables(tables)
+		print("modules")
+		print(modules)
 		for module in modules:
+			print("*****enabling - " + module)
 			enable_module(module)
 
-		if retry > 2:
-			raise self.TableMissingError
-
-		self.sql(query=query, values=values, as_dict=as_dict, as_list=as_dict, formatted=formatted,debug=debug,
-			ignore_ddl=ignore_ddl, as_utf8=as_utf8, auto_commit=auto_commit, update=update, explain=explain,
-			retry=retry+1)
+		if frappe.local.request:
+			frappe.init(site=get_site_name(frappe.local.request.host))
+		print("*"*20)
 
 	def log_query(self, query, values=None):
 		frappe.log("<<<<<<<<<< query")
@@ -1042,8 +1039,6 @@ def get_tables_from_query(query, get_doctype_name=False):
 
 	if get_doctype_name:
 		tables = [table[3:] for table in tables]
+		tables = [table for table in tables if frappe.db.exists("DocType", table)]
 
 	return tables
-
-def check_valid_doctype(tables):
-	return [table for table in tables if frappe.db.exists("DocType", table)]

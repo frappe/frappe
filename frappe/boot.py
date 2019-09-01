@@ -19,6 +19,7 @@ from frappe.email.inbox import get_email_accounts
 from frappe.social.doctype.energy_point_settings.energy_point_settings import is_energy_point_enabled
 from frappe.social.doctype.energy_point_log.energy_point_log import get_energy_points
 from frappe.social.doctype.post.post import frequently_visited_links
+from frappe.core.doctype.module_def.module_def import get_enabled_modules
 
 def get_bootinfo():
 	"""build and return boot info"""
@@ -263,6 +264,3 @@ def get_success_action():
 
 def get_link_preview_doctypes():
 	return [d.name for d in frappe.db.get_all('DocType', {'show_preview_popup': 1})]
-
-def get_enabled_modules():
-	return [d.name for d in frappe.get_list("Module Def", filters={"enabled": 1})]

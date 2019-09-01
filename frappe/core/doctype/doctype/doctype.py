@@ -270,12 +270,13 @@ class DocType(Document):
 				frappe.throw(_("Series {0} already used in {1}").format(prefix, used_in[0][0]))
 
 	def create_table(self):
-		from frappe.core.doctype.module_def.module_def import get_enabled_modules, log_enabled_module
+		from frappe.core.doctype.module_def.module_def import log_enabled_module
 		try:
-			if self.create_on_install or self.module in get_enabled_modules(): # or frappe.conf.get("developer_mode"):
+			if self.module in (frappe.cache().hget("modules", "enabled") or []) or (hasattr(self, "create_on_install") and self.create_on_install): # or frappe.conf.get("developer_mode"):
 				log_enabled_module(self.module)
 				frappe.db.updatedb(self.name, self)
 		except Exception as e:
+			print(e)
 			print("\n\nThere was an issue while migrating the DocType: {}\n".format(self.name))
 			raise e
 
@@ -716,6 +717,9 @@ def validate_fields(meta):
 
 
 	def check_unique_and_text(docname, d):
+		if not hasattr(meta, "create_on_install") or not meta.module in frappe.cache().hget("modules", "enabled"):
+			return
+
 		if meta.issingle:
 			d.unique = 0
 			d.search_index = 0
@@ -1090,3 +1094,8 @@ def clear_linked_doctype_cache():
 def create_table(dt):
 	doc = frappe.get_doc("DocType", dt)
 	doc.create_table()
+
+	custom_fields = frappe.get_list("Custom Field", {"dt": dt})
+	for custom_field in custom_fields:
+		d = frappe.get_doc("Custom Field", custom_field.name)
+		d.on_update()

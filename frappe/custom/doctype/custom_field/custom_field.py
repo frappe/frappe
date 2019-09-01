@@ -61,9 +61,9 @@ class CustomField(Document):
 			validate_fields_for_doctype(self.dt)
 
 		# update the schema
-		if not frappe.db.get_value('DocType', self.dt, 'issingle'):
-			if (self.fieldname not in frappe.db.get_table_columns(self.dt)
-				or getattr(self, "_old_fieldtype", None) != self.fieldtype):
+		if not frappe.db.get_value('DocType', self.dt, 'issingle') and frappe.get_meta(self.dt).module in frappe.cache().hget("modules", "enabled"):
+			table_columns = frappe.db.get_table_columns(self.dt)
+			if self.fieldname not in table_columns or not getattr(self, "_old_fieldtype", None) == self.fieldtype:
 				frappe.db.updatedb(self.dt)
 
 	def on_trash(self):

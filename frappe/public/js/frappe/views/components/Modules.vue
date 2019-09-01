@@ -45,26 +45,22 @@ export default {
 				this.route = route
 				let module = this.modules_list.filter(m => m.module_name == route[1])[0]
 				let module_name = module && (module.label || module.module_name)
-				let title = this.current_module_label
-					? this.current_module_label
-					: module_name
+				let title = this.current_module_label ? this.current_module_label : module_name;
 				let enabled_modules = frappe.boot.enabled_modules;
-				let is_module_enabled = false;
+				let is_enabled = this.is_enabled(module_name, enabled_modules);
 
-				frappe.modules.home && frappe.modules.home.page.set_title(title)
+				frappe.modules.home && frappe.modules.home.page.set_title(title);
+				this.setup_enable_module(is_enabled, module_name)
 
 				if (!frappe.modules.home) {
 					setTimeout(() => {
 						frappe.modules.home.page.set_title(title)
+						this.setup_enable_module(is_enabled, module_name)
 					}, 200)
 				}
 
 				if (module_name) {
 					this.get_module_sections(module.module_name)
-				}
-
-				if (enabled_modules.indexOf(module_name) === -1) {
-					console.log(this);
 				}
 			}
 		},
@@ -97,10 +93,35 @@ export default {
 				})
 			})
 		},
-		module_enabled() {
-
+		is_enabled(module_name, enabled_modules) {
+			if (enabled_modules.indexOf(module_name) === -1) {
+				return false
+			}
+			return true
 		},
-
+		setup_enable_module(is_enabled, module_name) {
+			frappe.modules.home && !is_enabled && frappe.modules.home.page.set_indicator('Module Disabled', 'red')
+			frappe.modules.home && !is_enabled && frappe.modules.home.page.set_secondary_action('Enable Module', () => {
+				frappe.show_alert({
+					message: __('Enabling Module.'),
+					indicator: 'red'
+				});
+				frappe.call({
+					method: 'frappe.core.doctype.module_def.module_def.enable_module',
+					args: {
+						module: module_name
+					},
+					callback: r => {
+						frappe.modules.home.page.clear_secondary_action();
+						frappe.modules.home.page.clear_indicator();
+						frappe.show_alert({
+							message: __('Module Enabled.'),
+							indicator: 'green'
+						})
+					}
+				})
+			});
+		}
 	},
 }
 </script>
