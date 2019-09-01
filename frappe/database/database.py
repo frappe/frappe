@@ -19,7 +19,6 @@ from frappe.utils import now, getdate, cast_fieldtype
 from frappe.utils.background_jobs import execute_job, get_queue
 from frappe.model.utils.link_count import flush_local_link_count
 from frappe.utils import cint, get_site_name
-from frappe.app import init_request
 
 # imports - compatibility imports
 from six import (
