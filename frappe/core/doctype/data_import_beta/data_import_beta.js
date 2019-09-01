@@ -35,8 +35,7 @@ frappe.ui.form.on('Data Import Beta', {
 
 		if (frm.doc.status === 'Success') {
 			// set form as readonly
-			frm.doc.docstatus = 1;
-			frm.page.clear_secondary_action();
+			frm.fields.forEach(f => f.df.read_only = 1);
 			frm.disable_save();
 			frm.events.show_success_message(frm);
 		} else {
