@@ -376,24 +376,32 @@ class Importer:
 		return payloads
 
 	def parse_next_row_for_import(self, fields, data):
+		"""
+		Parses rows that make up a doc. A doc maybe built from a single row or multiple rows.
+		Returns the doc, rows, data without the rows and warnings.
+		"""
 		doc = {}
 		warnings = []
 		doctypes = set([df.parent for df in fields if df.parent])
 
-		# get all rows to make this doc
 		# first row is included by default
-		rows = [data[0]]
+		first_row = data[0]
+		rows = [first_row]
 
 		# if there are child doctypes, find the subsequent rows
 		if len(doctypes) > 1:
-			# subsequent rows dont have any parent value set
-			# so we use it to check if any value is set
-			# if not we include that row
+			# subsequent rows either dont have any parent value set
+			# or have the same value as the parent
+			# we include a row if either of conditions match
 			parent_column_index = self.get_first_parent_column_index(fields)
-			for d in data[1:]:
+			parent_value = first_row[parent_column_index]
+			data_without_first_row = data[1:]
+			for d in data_without_first_row:
 				value = d[parent_column_index]
-				# if cell value exists then it is the next doc
-				if value:
+				# if value is blank then it's a child row
+				# if value is same as parent value it's a child row
+				# if value is different than the parent value, it's the next doc
+				if value not in INVALID_VALUES and value != parent_value:
 					break
 				rows.append(d)
 
@@ -421,6 +429,11 @@ class Importer:
 		parsed_docs = {}
 		for row_index, row in enumerate(rows):
 			for doctype in doctypes:
+				if doctype == self.doctype and parsed_docs.get(doctype):
+					# if parent doc is already parsed from the first row
+					# then skip
+					continue
+
 				column_indexes = get_column_indexes(doctype)
 				values = [row[i] for i in column_indexes]
 
