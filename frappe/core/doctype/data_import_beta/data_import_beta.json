@@ -36,7 +36,7 @@
    "fieldtype": "Select",
    "in_list_view": 1,
    "label": "Import Type",
-   "options": "Insert New Records\nUpdate Existing Records",
+   "options": "\nInsert New Records\nUpdate Existing Records",
    "reqd": 1
   },
   {
@@ -119,7 +119,7 @@
   }
  ],
  "hide_toolbar": 1,
- "modified": "2019-09-01 22:11:16.057751",
+ "modified": "2019-09-02 00:52:17.043355",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Data Import Beta",

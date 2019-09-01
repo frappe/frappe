@@ -40,7 +40,7 @@ frappe.ui.form.on('Data Import Beta', {
 			frm.disable_save();
 			frm.events.show_success_message(frm);
 		} else {
-			if (!frm.is_new()) {
+			if (!frm.is_new() && frm.doc.import_file) {
 				let label = frm.doc.status === 'Pending' ? __('Start Import') : __('Retry');
 				frm.page.set_primary_action(label, () =>
 					frm.events.start_import(frm)
@@ -54,13 +54,15 @@ frappe.ui.form.on('Data Import Beta', {
 	show_success_message(frm) {
 		let import_log = JSON.parse(frm.doc.import_log || '[]');
 		let successful_records = import_log.filter(log => log.success);
-		let link = `<a href="#List/${frm.doc.reference_doctype}">${__('{0} List', [frm.doc.reference_doctype])}</a>`;
-		frm.dashboard.set_headline(
-			__('Successfully imported {0} records. Go to {1}', [
-				successful_records.length,
-				link
-			])
-		);
+		let link = `<a href="#List/${frm.doc.reference_doctype}">
+			${__('{0} List', [frm.doc.reference_doctype])}
+		</a>`;
+		let message_args = [successful_records.length, link];
+		let message =
+			frm.doc.import_type === 'Insert New Records'
+				? __('Successfully imported {0} records. Go to {1}', message_args)
+				: __('Successfully updated {0} records. Go to {1}', message_args);
+		frm.dashboard.set_headline(message);
 	},
 
 	start_import(frm) {
@@ -70,18 +72,16 @@ frappe.ui.form.on('Data Import Beta', {
 		frm.set_value('template_options', JSON.stringify(template_options));
 
 		frm.save().then(() => {
-			frm.trigger('import_file').then(() => {
-				console.log('import_file ')
-				frm.call('start_import').then(r => {
-					let { warnings, missing_link_values } = r.message || {};
-					if (warnings) {
-						frm.import_preview.render_warnings(warnings);
-					} else if (missing_link_values) {
-						frm.events.show_missing_link_values(frm, missing_link_values);
-					} else {
-						frm.refresh();
-					}
-				})
+			console.log('import_file ')
+			frm.call('start_import').then(r => {
+				let { warnings, missing_link_values } = r.message || {};
+				if (warnings) {
+					frm.import_preview.render_warnings(warnings);
+				} else if (missing_link_values) {
+					frm.events.show_missing_link_values(frm, missing_link_values);
+				} else {
+					frm.refresh();
+				}
 			});
 		});
 	},
@@ -180,7 +180,7 @@ frappe.ui.form.on('Data Import Beta', {
 		let import_log = JSON.parse(frm.doc.import_log || '[]');
 		let failures = import_log.filter(log => !log.success);
 		frm.toggle_display('import_log', false);
-		frm.toggle_display('import_log_preview', failures.length > 0);
+		frm.toggle_display('import_log_section', failures.length > 0);
 
 		if (failures.length === 0) {
 			frm.get_field('import_log_preview').$wrapper.empty();

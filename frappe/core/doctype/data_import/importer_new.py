@@ -497,13 +497,22 @@ class Importer:
 		if import_type == "Insert New Records":
 			return self.insert_record(doc)
 		elif import_type == "Update Existing Records":
-			pass
+			return self.update_record(doc)
 
 	def insert_record(self, doc):
 		# name shouldn't be set when inserting a new record
 		doc.update({"doctype": self.doctype, "name": None})
 		new_doc = frappe.get_doc(doc)
 		return new_doc.insert()
+
+	def update_record(self, doc):
+		id_fieldname = self.get_id_fieldname()
+		id_value = doc[id_fieldname]
+		existing_doc = frappe.get_doc(self.doctype, { id_fieldname: id_value })
+		existing_doc.flags.via_data_import = self.data_import.name
+		existing_doc.update(doc)
+		existing_doc.save()
+		return existing_doc
 
 	def get_missing_link_field_values(self, fields, data):
 		link_column_indexes = [i for i, df in enumerate(fields) if df.fieldtype == "Link"]
@@ -535,6 +544,15 @@ class Importer:
 				)
 
 		return missing_values_payload
+
+	def get_id_fieldname(self):
+		autoname = self.meta.autoname
+		if autoname and autoname.startswith("field:"):
+			fieldname = autoname[len("field:") :]
+			autoname_field = self.meta.get_field(fieldname)
+			if autoname_field:
+				return autoname_field.fieldname
+		return 'name'
 
 
 DATE_FORMATS = [
