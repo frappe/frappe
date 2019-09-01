@@ -679,4 +679,3 @@ frappe.add_to_desktop = function(label, doctype, report) {
 		}
 	});
 };
-This looks like a JavaScript file. Click this bar to format it.No 3
