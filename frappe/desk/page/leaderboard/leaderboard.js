@@ -37,7 +37,7 @@ frappe.Leaderboard = Class.extend({
 
 		// for saving current selected filters
 		// TODO: revert to 0 index for doctype and timespan, and remove preset down
-		const _initial_doctype = this.doctypes[0];
+		const _initial_doctype = frappe.get_route()[1] || this.doctypes[0];
 		const _initial_timespan = this.timespans[0];
 		const _initial_filter = this.filters[_initial_doctype];
 
