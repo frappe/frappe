@@ -152,13 +152,6 @@ class TestEmail(unittest.TestCase):
 		self.assertEqual(len(queue_recipients), 1)
 		self.assertTrue('Unsubscribe' in frappe.safe_decode(frappe.flags.sent_mail))
 
-	def test_email_queue_limit(self):
-		from frappe.email.queue import send, EmailLimitCrossedError
-		self.assertRaises(EmailLimitCrossedError, send,
-			recipients=['test@example.com']*1000,
-			sender="admin@example.com",
-			reference_doctype = "User", reference_name="Administrator",
-			subject='Testing Email Queue', message='This email is queued!')
 
 	def test_image_parsing(self):
 		import re

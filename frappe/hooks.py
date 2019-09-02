@@ -147,7 +147,6 @@ scheduler_events = {
 		"frappe.oauth.delete_oauth2_data",
 		"frappe.integrations.doctype.razorpay_settings.razorpay_settings.capture_payment",
 		"frappe.twofactor.delete_all_barcodes_for_users",
-		"frappe.integrations.doctype.gcalendar_settings.gcalendar_settings.sync",
 		"frappe.website.doctype.web_page.web_page.check_publish_status",
 		'frappe.utils.global_search.sync_global_search'
 	],
@@ -158,6 +157,7 @@ scheduler_events = {
 		"frappe.desk.page.backups.backups.delete_downloadable_backups",
 		"frappe.deferred_insert.save_to_db",
 		"frappe.desk.form.document_follow.send_hourly_updates",
+		"frappe.integrations.doctype.google_calendar.google_calendar.sync"
 	],
 	"daily": [
 		"frappe.email.queue.clear_outbox",
@@ -179,7 +179,8 @@ scheduler_events = {
 	],
 	"daily_long": [
 		"frappe.integrations.doctype.dropbox_settings.dropbox_settings.take_backups_daily",
-		"frappe.integrations.doctype.s3_backup_settings.s3_backup_settings.take_backups_daily"
+		"frappe.integrations.doctype.s3_backup_settings.s3_backup_settings.take_backups_daily",
+		"frappe.integrations.doctype.google_drive.google_drive.daily_backup"
 	],
 	"weekly_long": [
 		"frappe.integrations.doctype.dropbox_settings.dropbox_settings.take_backups_weekly",
@@ -187,7 +188,8 @@ scheduler_events = {
 		"frappe.utils.change_log.check_for_update",
 		"frappe.desk.doctype.route_history.route_history.flush_old_route_records",
 		"frappe.desk.form.document_follow.send_weekly_updates",
-		"frappe.social.doctype.energy_point_log.energy_point_log.send_weekly_summary"
+		"frappe.social.doctype.energy_point_log.energy_point_log.send_weekly_summary",
+		"frappe.integrations.doctype.google_drive.google_drive.weekly_backup"
 	],
 	"monthly": [
 		"frappe.email.doctype.auto_email_report.auto_email_report.send_monthly",
@@ -259,7 +261,11 @@ user_privacy_documents = [
 	{
 		'doctype': 'Contact',
 		'match_field': 'email_id',
-		'personal_fields': ['first_name', 'last_name', 'phone', 'mobile_no'],
+		'personal_fields': ['first_name', 'last_name', 'phone'],
+	},
+	{
+		'doctype': 'Contact Email',
+		'match_field': 'email_id',
 	},
 	{
 		'doctype': 'Address',

@@ -380,14 +380,16 @@ frappe.ui.Page = Class.extend({
 	* @param {string} selector - CSS Selector of the button to be searched for. By default, it is `li`.
 	* @param {string} label - Label of the button
 	*/
-	is_in_group_button_dropdown: function(parent, selector, label){
+	is_in_group_button_dropdown: function(parent, selector, label) {
+
 		if (!selector) selector = 'li';
 
 		if (!label || !parent) return false;
 
 		const result = $(parent).find(`${selector}:contains('${label}')`)
 			.filter(function() {
-				return $(this).text() === label;
+				let item = $(this).html();
+				return $(item).attr('data-label') === label;
 			});
 		return result.length > 0;
 	},

@@ -8,6 +8,7 @@ import requests
 from frappe.model.document import Document
 from frappe import _
 from frappe.utils import get_request_site_address
+from frappe.integrations.doctype.google_settings.google_settings import get_auth_url
 
 SCOPES = "https://www.googleapis.com/auth/contacts"
 REQUEST = "https://people.googleapis.com/v1/people/me/connections"
@@ -38,7 +39,7 @@ class GoogleContacts(Document):
 		}
 
 		try:
-			r = requests.post("https://www.googleapis.com/oauth2/v4/token", data=data).json()
+			r = requests.post(get_auth_url(), data=data).json()
 		except requests.exceptions.HTTPError:
 			button_label = frappe.bold(_('Allow Google Contacts Access'))
 			frappe.throw(_("Something went wrong during the token generation. Click on {0} to generate a new one.").format(button_label))
@@ -69,7 +70,7 @@ def authorize_access(g_contact, reauthorize=None):
 				"redirect_uri": redirect_uri,
 				"grant_type": "authorization_code"
 			}
-			r = requests.post("https://www.googleapis.com/oauth2/v4/token", data=data).json()
+			r = requests.post(get_auth_url(), data=data).json()
 
 			if "refresh_token" in r:
 				frappe.db.set_value("Google Contacts", google_contact.name, "refresh_token", r.get("refresh_token"))
@@ -135,24 +136,25 @@ def sync(g_contact=None):
 
 				for name in connection.get("names"):
 					if name.get("metadata").get("primary"):
-						if connection.get("emailAddresses"):
-							for email in connection.get("emailAddresses"):
-								if not frappe.db.exists("Contact", {"email_id": email.get("value")}):
-									contacts_updated += 1
+						contact = frappe.get_doc({
+							"doctype": "Contact",
+							"salutation": name.get("honorificPrefix") or "",
+							"first_name": name.get("givenName") or "",
+							"middle_name": name.get("middleName") or "",
+							"last_name": name.get("familyName") or "",
+							"designation": get_indexed_value(connection.get("organizations"), 0, "title"),
+							"source": "Google Contacts",
+							"google_contacts_description": get_indexed_value(connection.get("organizations"), 0, "name")
+						})
 
-									frappe.get_doc({
-										"doctype": "Contact",
-										"salutation": name.get("honorificPrefix") if name.get("honorificPrefix") else "",
-										"first_name": name.get("givenName") if name.get("givenName") else "",
-										"middle_name": name.get("middleName") if name.get("middleName") else "",
-										"last_name": name.get("familyName") if name.get("familyName") else "",
-										"email_id": email.get("value") if email.get("value") else "",
-										"designation": get_indexed_value(connection.get("organizations"), 0, "title"),
-										"phone": get_indexed_value(connection.get("phoneNumbers"), 0, "value"),
-										"mobile_no": get_indexed_value(connection.get("phoneNumbers"), 1, "value"),
-										"source": "Google Contacts",
-										"google_contacts_description": get_indexed_value(connection.get("organizations"), 0, "name")
-									}).insert(ignore_permissions=True)
+						for email in connection.get("emailAddresses", []):
+							contact.add_email(email_id=email.get("value"), is_primary=1 if email.get("primary") else 0)
+
+						for phone in connection.get("phoneNumbers", []):
+							contact.add_phone(phone=phone.get("value"), is_primary=1 if phone.get("primary") else 0)
+
+						contact.insert(ignore_permissions=True)
+
 			if g_contact:
 				return _("{0} Google Contacts synced.").format(contacts_updated) if contacts_updated > 0 else _("No new Google Contacts synced.")
 

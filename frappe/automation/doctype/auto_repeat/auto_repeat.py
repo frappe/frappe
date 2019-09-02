@@ -32,18 +32,17 @@ class AutoRepeat(Document):
 
 	def before_insert(self):
 		if not frappe.flags.in_test:
-			start_date = self.start_date
+			start_date = getdate(self.start_date)
 			today_date = getdate(today())
 			if start_date <= today_date:
-				start_date = today_date
+				self.start_date = today_date
 
 	def after_save(self):
 		frappe.get_doc(self.reference_doctype, self.reference_document).notify_update()
 
 	def on_trash(self):
-		frappe.db.set_value(self.reference_doctype, self.reference_document, {
-			'auto_repeat': self.name
-		}, 'auto_repeat', '')
+		frappe.db.set_value(self.reference_doctype, self.reference_document, 'auto_repeat', '')
+		frappe.get_doc(self.reference_doctype, self.reference_document).notify_update()
 
 	def set_dates(self):
 		if self.disabled:
@@ -222,7 +221,9 @@ class AutoRepeat(Document):
 		attachments = [frappe.attach_print(new_doc.doctype, new_doc.name,
 			file_name=new_doc.name, print_format=print_format)]
 
-		make(doctype=new_doc.doctype, name=new_doc.name, recipients=self.recipients,
+		recipients = self.recipients.split('\n')
+
+		make(doctype=new_doc.doctype, name=new_doc.name, recipients=recipients,
 			subject=subject, content=message, attachments=attachments, send_email=1)
 
 	def fetch_linked_contacts(self):
@@ -244,13 +245,14 @@ class AutoRepeat(Document):
 		frappe.db.set_value('Auto Repeat', self.name, 'disabled', 1)
 
 	def notify_error_to_user(self, error_log):
-		recipients = get_system_managers(only_name=True) + self.owner
+		recipients = list(get_system_managers(only_name=True))
+		recipients.append(self.owner)
 		subject = _("Auto Repeat Document Creation Failed")
 
 		form_link = frappe.utils.get_link_to_form(self.reference_doctype, self.reference_document)
 		auto_repeat_failed_for = _('Auto Repeat failed for {0}').format(form_link)
 
-		error_log_link =frappe.utils.get_link_to_form(error_log.reference_doctype, error_log.reference_document)
+		error_log_link = frappe.utils.get_link_to_form('Error Log', error_log.name)
 		error_log_message = _('Check the Error Log for more information: {0}').format(error_log_link)
 
 		frappe.sendmail(

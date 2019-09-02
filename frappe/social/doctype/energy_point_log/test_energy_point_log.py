@@ -43,14 +43,42 @@ class TestEnergyPointLog(unittest.TestCase):
 		energy_point_of_user = get_points('test@example.com')
 
 		created_todo = create_a_todo()
-		points_after_closing_todo = get_points('test@example.com')
 		created_todo.status = 'Closed'
 		created_todo.multiplier = multiplier_value
 		created_todo.save()
 
 		points_after_closing_todo = get_points('test@example.com')
 
-		self.assertEquals(points_after_closing_todo, energy_point_of_user + round(todo_point_rule.points * multiplier_value))
+		self.assertEquals(points_after_closing_todo,
+			energy_point_of_user + round(todo_point_rule.points * multiplier_value))
+
+		clear_custom_fields('ToDo')
+
+	def test_points_based_on_max_points(self):
+		frappe.set_user('test@example.com')
+		# here multiplier is high
+		# let see if points get capped to max_point limit
+		multiplier_value = 15
+		max_points = 50
+
+		add_custom_field('ToDo', 'multiplier', 'Float')
+		todo_point_rule = create_energy_point_rule_for_todo('multiplier', max_points=max_points)
+		energy_point_of_user = get_points('test@example.com')
+
+		created_todo = create_a_todo()
+		created_todo.status = 'Closed'
+		created_todo.multiplier = multiplier_value
+		created_todo.save()
+
+		points_after_closing_todo = get_points('test@example.com')
+
+		# test max_points cap
+		self.assertNotEquals(points_after_closing_todo,
+			energy_point_of_user + round(todo_point_rule.points * multiplier_value))
+
+		self.assertEquals(points_after_closing_todo,
+			energy_point_of_user + max_points)
+
 		clear_custom_fields('ToDo')
 
 	def test_disabled_energy_points(self):
@@ -146,7 +174,18 @@ class TestEnergyPointLog(unittest.TestCase):
 			{'reference_name': created_todo.name, 'type': 'Auto', 'reverted': 1}
 		])
 
-def create_energy_point_rule_for_todo(multiplier_field=None):
+	def test_energy_point_for_new_document_creation(self):
+		frappe.set_user('test@example.com')
+		todo_point_rule = create_energy_point_rule_for_todo(for_doc_event='New')
+
+		points_before_todo_creation = get_points('test@example.com')
+		create_a_todo()
+		points_after_todo_creation = get_points('test@example.com')
+
+		self.assertEquals(points_after_todo_creation,
+			points_before_todo_creation + todo_point_rule.points)
+
+def create_energy_point_rule_for_todo(multiplier_field=None, for_doc_event='Custom', max_points=None):
 	name = 'ToDo Closed'
 	point_rule = frappe.db.get_all(
 		'Energy Point Rule',
@@ -163,8 +202,10 @@ def create_energy_point_rule_for_todo(multiplier_field=None):
 		'points': 5,
 		'reference_doctype': 'ToDo',
 		'condition': 'doc.status == "Closed"',
+		'for_doc_event': for_doc_event,
 		'user_field': 'owner',
-		'multiplier_field': multiplier_field
+		'multiplier_field': multiplier_field,
+		'max_points': max_points
 	}).insert(ignore_permissions=1)
 
 def create_a_todo():

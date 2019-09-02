@@ -1,5 +1,5 @@
 {
- "autoname": "format:GC-{user}",
+ "autoname": "format:GC-{email_id}",
  "creation": "2019-06-14 00:09:39.441961",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -9,7 +9,6 @@
   "email_id",
   "authorize_google_contacts_access",
   "cb_00",
-  "user",
   "last_sync_on",
   "authorization_code",
   "refresh_token"
@@ -20,13 +19,6 @@
    "fieldname": "enable",
    "fieldtype": "Check",
    "label": "Enable"
-  },
-  {
-   "fieldname": "user",
-   "fieldtype": "Link",
-   "label": "User",
-   "options": "User",
-   "read_only": 1
   },
   {
    "fieldname": "authorization_code",
@@ -72,7 +64,7 @@
    "label": "Authorize Google Contacts Access"
   }
  ],
- "modified": "2019-06-19 15:26:24.494101",
+ "modified": "2019-08-23 13:50:52.789503",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Google Contacts",

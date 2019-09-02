@@ -7,7 +7,6 @@ import frappe
 import frappe.utils
 from frappe import throw, _
 from frappe.website.website_generator import WebsiteGenerator
-from frappe.email.queue import check_email_limit
 from frappe.utils.verified_command import get_signed_params, verify_request
 from frappe.utils.background_jobs import enqueue
 from frappe.utils.scheduler import log
@@ -104,7 +103,6 @@ class Newsletter(WebsiteGenerator):
 	def validate_send(self):
 		if self.get("__islocal"):
 			throw(_("Please save the Newsletter before sending"))
-		check_email_limit(self.recipients)
 
 	def get_context(self, context):
 		newsletters = get_newsletter_list("Newsletter", None, None, 0)

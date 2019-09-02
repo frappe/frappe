@@ -7,7 +7,7 @@ frappe.views.ListGroupBy = class ListGroupBy {
 		this.make_wrapper();
 
 		this.user_settings = frappe.get_user_settings(this.doctype);
-		this.group_by_fields = ['assigned_to'];
+		this.group_by_fields = ['assigned_to', 'owner'];
 		if(this.user_settings.group_by_fields) {
 			this.group_by_fields = this.group_by_fields.concat(this.user_settings.group_by_fields);
 		}
@@ -24,7 +24,7 @@ frappe.views.ListGroupBy = class ListGroupBy {
 		});
 		d.set_primary_action("Save", ({ group_by_fields }) => {
 			frappe.model.user_settings.save(this.doctype, 'group_by_fields', group_by_fields || null);
-			this.group_by_fields = group_by_fields ? ['assigned_to', ...group_by_fields] : ['assigned_to'];
+			this.group_by_fields = group_by_fields ? ['assigned_to', 'owner', ...group_by_fields] : ['assigned_to', 'owner'];
 			this.render_group_by_items();
 			d.hide();
 		});
@@ -53,9 +53,14 @@ frappe.views.ListGroupBy = class ListGroupBy {
 
 	render_group_by_items() {
 		let get_item_html = (fieldname) => {
-			let label = fieldname === 'assigned_to'
-				? __('Assigned To')
-				: frappe.meta.get_label(this.doctype, fieldname);
+			let label;
+			if (fieldname === 'assigned_to') {
+				label = __('Assigned To');
+			} else if (fieldname === 'owner') {
+				label = __('Created By');
+			} else {
+				label = frappe.meta.get_label(this.doctype, fieldname);
+			}
 
 			return `<li class="group-by-field list-link">
 				<div class="btn-group">
@@ -125,9 +130,10 @@ frappe.views.ListGroupBy = class ListGroupBy {
 		return frappe.call('frappe.desk.listview.get_group_by_count', args).then((r) => {
 			let field_counts = r.message || [];
 			field_counts = field_counts.filter(f => f.count !== 0);
-			if (field === 'assigned_to') {
-				field_counts = field_counts.filter(f => !['Guest', 'Administrator'].includes(f.name));
-			}
+			let current_user = field_counts.find(f => f.name === frappe.session.user);
+			field_counts = field_counts.filter(f => !['Guest', 'Administrator', frappe.session.user].includes(f.name));
+			// Set frappe.session.user on top of the list
+			if (current_user) field_counts.unshift(current_user);
 			return field_counts;
 		});
 	}
@@ -152,9 +158,6 @@ frappe.views.ListGroupBy = class ListGroupBy {
 				<input type="text" placeholder="${__('Search')}" class="form-control dropdown-search-input input-xs">
 			</div>
 		`;
-
-		// Sort and set frappe.session.user on top of the list
-		fields.sort((item) => item.name ===  frappe.session.user ? -1 : 1);
 
 		let dropdown_html = standard_html + fields.map(get_dropdown_html).join('');
 		dropdown.html(dropdown_html);
