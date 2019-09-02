@@ -378,7 +378,7 @@ def is_document_already_amended(doctype, docname):
 			return frappe.db.exists(doctype, {
 				'amended_from': docname
 			})
-		except frappe.db.InternalError as e:
+		except frappe.db.InternalError:
 			pass
 
 	return False
