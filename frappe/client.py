@@ -372,7 +372,7 @@ def check_parent_permission(parent, child_doctype):
 	raise frappe.PermissionError
 
 @frappe.whitelist()
-def is_document_already_amended(doctype, docname):
+def is_document_amended(doctype, docname):
 	if frappe.permissions.has_permission(doctype):
 		try:
 			return frappe.db.exists(doctype, {
