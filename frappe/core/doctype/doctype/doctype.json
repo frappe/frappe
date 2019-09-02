@@ -451,12 +451,13 @@
   {
    "fieldname": "nsm_parent_field",
    "fieldtype": "Data",
-   "label": "Parent Field (Tree)"
+   "label": "Parent Field (Tree)",
+   "depends_on": "is_tree"
   }
  ],
  "icon": "fa fa-bolt",
  "idx": 6,
- "modified": "2019-09-02 05:51:29.411525",
+ "modified": "2019-09-02 05:52:29.411525",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocType",
