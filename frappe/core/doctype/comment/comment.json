@@ -98,13 +98,13 @@
   },
   {
    "fieldname": "content",
-   "fieldtype": "Text Editor",
+   "fieldtype": "HTML Editor",
    "ignore_xss_filter": 1,
    "in_list_view": 1,
    "label": "Content"
   }
  ],
- "modified": "2019-08-28 18:05:09.727475",
+ "modified": "2019-09-02 21:00:10.784787",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Comment",
