@@ -12,7 +12,6 @@
   "import_file",
   "column_break_5",
   "status",
-  "skip_rows_with_errors",
   "section_break_7",
   "date_format",
   "template_options",
@@ -67,16 +66,11 @@
    "fieldtype": "Column Break"
   },
   {
-   "default": "0",
-   "fieldname": "skip_rows_with_errors",
-   "fieldtype": "Check",
-   "label": "Skip rows with errors"
-  },
-  {
    "collapsible": 1,
    "depends_on": "eval:!doc.__islocal",
    "fieldname": "section_break_7",
    "fieldtype": "Section Break",
+   "hidden": 1,
    "label": "Import Options"
   },
   {
@@ -119,7 +113,7 @@
   }
  ],
  "hide_toolbar": 1,
- "modified": "2019-09-02 00:52:17.043355",
+ "modified": "2019-09-02 12:58:49.053073",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Data Import Beta",
