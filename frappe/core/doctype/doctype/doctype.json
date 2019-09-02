@@ -12,6 +12,7 @@
   "is_submittable",
   "istable",
   "issingle",
+  "is_tree",
   "editable_grid",
   "quick_entry",
   "cb01",
@@ -30,6 +31,7 @@
   "form_settings_section",
   "image_field",
   "timeline_field",
+  "nsm_parent_field",
   "max_attachments",
   "column_break_23",
   "hide_toolbar",
@@ -438,11 +440,24 @@
    "fieldtype": "Select",
    "label": "Database Engine",
    "options": "InnoDB\nMyISAM"
+  },
+  {
+   "default": "0",
+   "description": "Tree structures are implemented using Nested Set",
+   "fieldname": "is_tree",
+   "fieldtype": "Check",
+   "label": "Is Tree"
+  },
+  {
+   "fieldname": "nsm_parent_field",
+   "fieldtype": "Data",
+   "label": "Parent Field (Tree)",
+   "depends_on": "is_tree"
   }
  ],
  "icon": "fa fa-bolt",
  "idx": 6,
- "modified": "2019-07-04 23:23:17.174960",
+ "modified": "2019-09-02 05:52:29.411525",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocType",

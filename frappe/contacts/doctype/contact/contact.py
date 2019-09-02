@@ -29,10 +29,16 @@ class Contact(Document):
 			break
 
 	def validate(self):
+		self.set_primary("email_id", "email_ids")
+		self.set_primary("phone", "phone_nos")
+
 		if self.email_id:
 			self.email_id = self.email_id.strip()
+
 		self.set_user()
+
 		set_link_title(self)
+
 		if self.email_id and not self.image:
 			self.image = has_gravatar(self.email_id)
 
@@ -61,6 +67,33 @@ class Contact(Document):
 			if (link.link_doctype, link.link_name) in reference_links:
 				return True
 
+	def add_email(self, email_id, is_primary=0, autosave=False):
+		self.append("email_ids", {
+			"email_id": email_id,
+			"is_primary": is_primary
+		})
+
+		if autosave:
+			self.save(ignore_permissions=True)
+
+	def add_phone(self, phone, is_primary=0, autosave=False):
+		self.append("phone_nos", {
+			"phone": phone,
+			"is_primary": is_primary
+		})
+
+		if autosave:
+			self.save(ignore_permissions=True)
+
+	def set_primary(self, fieldname, child_table):
+		if len(self.get(child_table)) == 1:
+			self.get(child_table)[0].is_primary = 1
+			setattr(self, fieldname, self.get(child_table)[0].get(fieldname))
+		else:
+			for d in self.get(child_table):
+				if d.is_primary == 1:
+					setattr(self, fieldname, d.get(fieldname))
+					break
 
 def get_default_contact(doctype, name):
 	'''Returns default contact for the given doctype, name'''
@@ -166,11 +199,12 @@ def contact_query(doctype, txt, searchfield, start, page_len, filters):
 def get_contact_with_phone_number(number):
 	if not number: return
 
-	contacts = frappe.get_all('Contact', or_filters={
-		'phone': ['like', '%{}'.format(number)],
-		'mobile_no': ['like', '%{}'.format(number)]
-	}, limit=1)
+	contacts = frappe.get_all('Contact Phone', filters=[
+		['phone', 'like', '%{0}'.format(number)]
+	], fields=["parent"], limit=1)
 
-	contact = contacts[0].name if contacts else None
+	return contacts[0].parent if contacts else None
 
-	return contact
+def get_contact_name(email_id):
+	contact = frappe.get_list("Contact Email", filters={"email_id": email_id}, fields=["parent"], limit=1)
+	return contact[0].parent if contact else None

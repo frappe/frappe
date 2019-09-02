@@ -45,7 +45,7 @@ pyqrcode
 pypng
 premailer
 croniter
-googlemaps
+googlemaps==3.1.1
 braintree
 future
 passlib
