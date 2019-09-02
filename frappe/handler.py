@@ -141,9 +141,13 @@ def uploadfile():
 
 @frappe.whitelist(allow_guest=True)
 def upload_file():
+	ignore_permissions = False
 	if frappe.session.user == 'Guest' and \
 		not frappe.get_system_settings('allow_guests_to_upload_files'):
 		return
+	else:
+		ignore_permissions = True
+
 	files = frappe.request.files
 	is_private = frappe.form_dict.is_private
 	doctype = frappe.form_dict.doctype
@@ -186,7 +190,7 @@ def upload_file():
 			"is_private": cint(is_private),
 			"content": content
 		})
-		ret.save(ignore_permissions=True)
+		ret.save(ignore_permissions=ignore_permissions)
 		return ret
 
 
