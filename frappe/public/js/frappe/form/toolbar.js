@@ -362,24 +362,6 @@ frappe.ui.form.Toolbar = Class.extend({
 
 		this.current_status = status;
 	},
-	make_cancel_amend_button: function() {
-		var me = this;
-		var docstatus = cint(this.frm.doc.docstatus);
-		var p = this.frm.perm[0];
-		var has_workflow = this.has_workflow();
-
-		if (docstatus === 2 && p[AMEND]) {
-			this.page.set_secondary_action(__('Amend'), function () {
-				me.frm.amend_doc();
-			}, 'fa fa-pencil', true);
-		} else if (has_workflow) {
-			return;
-		} else if (docstatus === 1 && p[CANCEL]) {
-			this.page.set_secondary_action(__('Cancel'), function () {
-				me.frm.savecancel(this);
-			}, 'fa fa-ban-circle');
-		}
-	},
 	add_update_button_on_dirty: function() {
 		var me = this;
 		$(this.frm.wrapper).on("dirty", function() {
