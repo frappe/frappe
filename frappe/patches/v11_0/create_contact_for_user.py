@@ -8,6 +8,10 @@ def execute():
 	frappe.reload_doc('contacts', 'doctype', 'contact')
 	frappe.reload_doc('core', 'doctype', 'dynamic_link')
 
+	if not frappe.__version__.startswith('11'):
+		frappe.reload_doc('contacts', 'doctype', 'contact_email')
+		frappe.reload_doc('contacts', 'doctype', 'contact_phone')
+
 	users = frappe.get_all('User', filters={"name": ('not in', 'Administrator, Guest')}, fields=["*"])
 	for user in users:
 		if user.first_name:

@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
-# Copyright (c) {year}, {app_publisher} and contributors
+# Copyright (c) 2019, Frappe Technologies and contributors
 # For license information, please see license.txt
 
 from __future__ import unicode_literals
 # import frappe
-{base_class_import}
+from frappe.model.document import Document
 
-class {classname}({base_class}):
+class ContactEmail(Document):
 	pass

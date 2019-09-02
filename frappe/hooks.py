@@ -261,7 +261,11 @@ user_privacy_documents = [
 	{
 		'doctype': 'Contact',
 		'match_field': 'email_id',
-		'personal_fields': ['first_name', 'last_name', 'phone', 'mobile_no'],
+		'personal_fields': ['first_name', 'last_name', 'phone'],
+	},
+	{
+		'doctype': 'Contact Email',
+		'match_field': 'email_id',
 	},
 	{
 		'doctype': 'Address',
