@@ -119,12 +119,16 @@ def save_report():
 @frappe.whitelist()
 def export_query():
 	"""export from report builder"""
+	title = frappe.form_dict.title
+	frappe.form_dict.pop('title')
+
 	form_params = get_form_params()
 	form_params["limit_page_length"] = None
 	form_params["as_list"] = True
 	doctype = form_params.doctype
 	add_totals_row = None
 	file_format_type = form_params["file_format_type"]
+	title = title or doctype
 
 	del form_params["doctype"]
 	del form_params["file_format_type"]
@@ -166,14 +170,14 @@ def export_query():
 		f.seek(0)
 		frappe.response['result'] = text_type(f.read(), 'utf-8')
 		frappe.response['type'] = 'csv'
-		frappe.response['doctype'] = doctype
+		frappe.response['doctype'] = title
 
 	elif file_format_type == "Excel":
 
 		from frappe.utils.xlsxutils import make_xlsx
 		xlsx_file = make_xlsx(data, doctype)
 
-		frappe.response['filename'] = doctype + '.xlsx'
+		frappe.response['filename'] = title + '.xlsx'
 		frappe.response['filecontent'] = xlsx_file.getvalue()
 		frappe.response['type'] = 'binary'
 
