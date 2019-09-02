@@ -26,6 +26,14 @@ frappe.ui.form.on('Data Import Beta', {
 				}, 2000);
 			}
 		});
+
+		frm.set_query('reference_doctype', () => {
+			return {
+				filters: {
+					allow_import: 1
+				}
+			}
+		});
 	},
 
 	refresh(frm) {
