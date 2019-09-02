@@ -249,7 +249,18 @@ frappe.ui.form.Toolbar = Class.extend({
 		var status = this.get_action_status();
 		if (status) {
 			if (status !== this.current_status) {
-				this.set_page_actions(status);
+				if (status === 'Amend') {
+					let doc = this.frm.doc;
+					frappe.xcall('frappe.client.is_document_already_amended', {
+						'doctype': doc.doctype,
+						'docname': doc.name
+					}).then(is_amended => {
+						if (is_amended) return;
+						this.set_page_actions(status);
+					});
+				} else {
+					this.set_page_actions(status);
+				}
 			}
 		} else {
 			this.page.clear_actions();
