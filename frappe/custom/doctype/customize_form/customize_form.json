@@ -27,6 +27,10 @@
   "sort_field",
   "column_break_10",
   "sort_order",
+  "section_break_22",
+  "ignore_in_global_search",
+  "column_break_24",
+  "prioritise_in_global_search",
   "fields_section_break",
   "fields"
  ],
@@ -167,13 +171,34 @@
    "fieldname": "allow_auto_repeat",
    "fieldtype": "Check",
    "label": "Allow Auto Repeat"
+  },
+  {
+   "depends_on": "doc_type",
+   "fieldname": "section_break_22",
+   "fieldtype": "Section Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "ignore_in_global_search",
+   "fieldtype": "Check",
+   "label": "Ignore in Global Search"
+  },
+  {
+   "fieldname": "column_break_24",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "prioritise_in_global_search",
+   "fieldtype": "Check",
+   "label": "Prioritise in Global Search"
   }
  ],
  "hide_toolbar": 1,
  "icon": "fa fa-glass",
  "idx": 1,
  "issingle": 1,
- "modified": "2019-07-01 22:50:50.372465",
+ "modified": "2019-09-01 23:53:10.353532",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Customize Form",

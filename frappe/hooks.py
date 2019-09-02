@@ -287,3 +287,5 @@ user_privacy_documents = [
 	},
 
 ]
+
+ignore_in_global_search = ["DocType", "DocField", "DocPerm", "Communication", "Communication Link", "Activity Log", "Comment"]
