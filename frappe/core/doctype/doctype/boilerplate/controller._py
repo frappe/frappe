@@ -4,7 +4,7 @@
 
 from __future__ import unicode_literals
 # import frappe
-from frappe.model.document import Document
+{base_class_import}
 
-class {classname}(Document):
+class {classname}({base_class}):
 	pass

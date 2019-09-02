@@ -30,14 +30,15 @@ def get_controller(doctype):
 
 	:param doctype: DocType name as string."""
 	from frappe.model.document import Document
+	from frappe.utils.nestedset import NestedSet
 	global _classes
 
 	if not doctype in _classes:
-		module_name, custom = frappe.db.get_value("DocType", doctype, ("module", "custom"), cache=True) \
-			or ["Core", False]
+		module_name, custom, is_tree = frappe.db.get_value("DocType", doctype, ("module", "custom", "is_tree"), cache=True) \
+			or ["Core", False, False]
 
 		if custom:
-			_class = Document
+			_class = NestedSet if is_tree else Document
 		else:
 			module = load_doctype_module(doctype, module_name)
 			classname = doctype.replace(" ", "").replace("-", "")
