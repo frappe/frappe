@@ -277,7 +277,7 @@ frappe.ui.form.Toolbar = Class.extend({
 			if (status !== this.current_status) {
 				if (status === 'Amend') {
 					let doc = this.frm.doc;
-					frappe.xcall('frappe.client.is_document_already_amended', {
+					frappe.xcall('frappe.client.is_document_amended', {
 						'doctype': doc.doctype,
 						'docname': doc.name
 					}).then(is_amended => {
