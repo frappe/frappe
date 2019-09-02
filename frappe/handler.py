@@ -170,7 +170,6 @@ def upload_file():
 	if frappe.session.user == 'Guest':
 		import mimetypes
 		filetype = mimetypes.guess_type(filename)[0]
-		print(filetype)
 		if filetype not in ['image/png', 'image/jpeg', 'application/pdf']:
 			frappe.throw("You can only upload JPG, PNG or PDF files.")
 
