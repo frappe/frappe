@@ -8,8 +8,6 @@ frappe.pages["leaderboard"].on_page_load = function (wrapper) {
 	});
 }
 
-
-// Add search if possible, add rank column, show users with 0 points, show names not email
 frappe.Leaderboard = Class.extend({
 
 	init: function (parent) {
@@ -284,7 +282,7 @@ frappe.Leaderboard = Class.extend({
 							const col = frappe.model.unscrub(filter);
 							return (
 								`<div class="leaderboard-item list-item_content ellipsis text-muted list-item__content--flex-2
-									header-btn-base
+									header-btn-base ${filter}
 									${(col && _selected_filter.indexOf(col) !== -1) ? "text-right" : ""}">
 									<span class="list-col-title ellipsis">
 										${col}
@@ -333,13 +331,13 @@ frappe.Leaderboard = Class.extend({
 		var me = this;
 		const company = me.options.selected_company;
 		const currency = frappe.get_doc(":Company", company).default_currency;
-		const fields = ['index', 'name', 'value'];
+		const fields = ['rank', 'name', 'value'];
 
 		const html =
 			`<div class="list-item">
 				${
 			fields.map(col => {
-					let val = col === 'index'? index: item[col];
+					let val = col === 'rank'? index: item[col];
 					let link = me.options.selected_doctype === 'Energy Point Log'
 						? `#user-profile/${item["name"]}`
 						: `#Form/${me.options.selected_doctype}/${item["name"]}`;
@@ -352,14 +350,14 @@ frappe.Leaderboard = Class.extend({
 					} else {
 						var value = me.options.selected_doctype !== 'Energy Point Log' &&
 							me.options.selected_filter_item.indexOf('qty') == -1 &&
-							col !== 'index'
+							col !== 'rank'
 							?  format_currency(val, currency)
 							: val;
 						var formatted_value = `<span class="text-muted ellipsis">${value}</span>`
 					}
 
 					return (
-						`<div class="list-item_content ellipsis list-item__content--flex-2
+						`<div class="list-item_content ellipsis list-item__content--flex-2 ${col}
 							${(col == "value") ? "text-right" : ""}">
 							${formatted_value}
 						</div>`);
