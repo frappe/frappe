@@ -141,12 +141,13 @@ def uploadfile():
 
 @frappe.whitelist(allow_guest=True)
 def upload_file():
-	ignore_permissions = False
-	if frappe.session.user == 'Guest' and \
-		not frappe.get_system_settings('allow_guests_to_upload_files'):
-		return
+	if frappe.session.user == 'Guest':
+		if frappe.get_system_settings('allow_guests_to_upload_files'):
+			ignore_permissions = True
+		else:
+			return
 	else:
-		ignore_permissions = True
+		ignore_permissions = False
 
 	files = frappe.request.files
 	is_private = frappe.form_dict.is_private
