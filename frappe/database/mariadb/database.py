@@ -170,7 +170,7 @@ class MariaDBDatabase(Database):
 		return e.args[0] == ER.PARSE_ERROR
 
 	@staticmethod
-	def data_too_long(e):
+	def is_data_too_long(e):
 		return e.args[0] == ER.DATA_TOO_LONG
 
 	def is_primary_key_violation(self, e):

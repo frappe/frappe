@@ -170,7 +170,7 @@ class PostgresDatabase(Database):
 		return e.pgcode == '42701'
 
 	@staticmethod
-	def data_too_long(e):
+	def is_data_too_long(e):
 		return e.pgcode == '22001'
 
 	def create_auth_table(self):
