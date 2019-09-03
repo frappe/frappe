@@ -34,6 +34,12 @@ frappe.ui.form.on('Data Import Beta', {
 				}
 			}
 		});
+
+		frm.get_field('import_file').df.options = {
+			restrictions: {
+				allowed_file_types: ['.csv', '.xls', '.xlsx']
+			}
+		};
 	},
 
 	refresh(frm) {

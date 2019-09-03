@@ -30,6 +30,10 @@ frappe.data_import.DataExporter = class DataExporter {
 						{
 							label: __('Export Filtered Records'),
 							value: 'by_filter'
+						},
+						{
+							label: __('Export Blank Template'),
+							value: 'blank_template'
 						}
 					],
 					default: 'all',
@@ -200,7 +204,8 @@ frappe.data_import.DataExporter = class DataExporter {
 			by_filter: () =>
 				frappe.db.count(this.doctype, {
 					filters: this.get_filters()
-				})
+				}),
+			blank_template: () => Promise.resolve(0)
 		};
 
 		count_method[export_records]().then(value => {

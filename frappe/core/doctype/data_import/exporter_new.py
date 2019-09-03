@@ -245,7 +245,7 @@ class Exporter:
 		csv_array = self.csv_array
 
 		if not self.data:
-			# add 5 empty rows
-			csv_array += [[]] * 5
+			# add 2 empty rows
+			csv_array += [[]] * 2
 
 		build_csv_response(csv_array, self.doctype)

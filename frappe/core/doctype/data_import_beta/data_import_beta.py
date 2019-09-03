@@ -59,18 +59,19 @@ def download_template(doctype, export_fields=None, export_records=None, export_f
 	Download template from Exporter
 		:param doctype: Document Type
 		:param export_fields=None: Fields to export as dict {'Sales Invoice': ['name', 'customer'], 'Sales Invoice Item': ['item_code']}
-		:param export_records=None: One of 'all', 'last_10_records', 'by_filter'
+		:param export_records=None: One of 'all', 'by_filter', 'blank_template'
 		:param export_filters: Filter dict
 		:param file_type: File type to export into
 	"""
 
 	export_fields = frappe.parse_json(export_fields)
 	export_filters = frappe.parse_json(export_filters)
+	export_data = export_records != 'blank_template'
 
 	e = Exporter(
 		doctype,
 		export_fields=export_fields,
-		export_data=True,
+		export_data=export_data,
 		export_filters=export_filters,
 		file_type=file_type,
 	)
