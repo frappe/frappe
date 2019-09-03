@@ -122,8 +122,18 @@ frappe.ui.form.ControlData = frappe.ui.form.ControlInput.extend({
 			} else {
 				var invalid_email = false;
 				email_list.forEach(function(email) {
-					if (!validate_email(email)) {
-						frappe.msgprint(__("Invalid Email: {0}", [email]));
+					// The email format is something like 'Jack Ma <JackMa@alibaba.com>'
+					let email_address = '';
+					if (email.includes("<") && email.includes(">")){
+						let left_sign = email.indexOf("<");
+						let right_sign = email.indexOf(">");
+						email_address = email.substring(left_sign+1, right_sign);
+					}else {
+						email_address = email
+					}
+					// email_address now will look like 'JackMa@alibaba.com'
+					if (!validate_email(email_address)) {
+						frappe.msgprint(__("Invalid Email: {0}", [email_address]));
 						invalid_email = true;
 					}
 				});
