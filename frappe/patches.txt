@@ -7,7 +7,7 @@ frappe.patches.v7_0.update_auth
 frappe.patches.v8_0.drop_in_dialog #2017-09-22
 frappe.patches.v7_2.remove_in_filter
 frappe.patches.v11_0.drop_column_apply_user_permissions
-execute:frappe.reload_doc('core', 'doctype', 'doctype', force=True) #2019-09-03
+execute:frappe.reload_doc('core', 'doctype', 'doctype', force=True) #2017-09-22
 execute:frappe.reload_doc('core', 'doctype', 'docfield', force=True) #2018-02-20
 execute:frappe.reload_doc('core', 'doctype', 'custom_docperm')
 execute:frappe.reload_doc('core', 'doctype', 'docperm') #2018-05-29
