@@ -113,8 +113,7 @@ def clear_expired_sessions():
 
 def get():
 	"""get session boot info"""
-	from frappe.desk.notifications import \
-		get_notification_info_for_boot, get_notifications
+	from frappe.desk.notifications import get_notification_info_for_boot, get_notifications
 	from frappe.boot import get_bootinfo, get_unseen_notes
 
 	bootinfo = None

@@ -89,7 +89,7 @@ class Database(object):
 	def sql(self, query, values=(), as_dict=False, as_list=False, formatted=False, debug=False, ignore_ddl=False, as_utf8=False,
 		auto_commit=False, update=None, explain=False):
 
-		print(vars(frappe.local.request))
+		# print(vars(frappe.local.request))
 		"""Execute a SQL query and fetch all rows.
 
 		:param query: SQL query.

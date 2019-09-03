@@ -83,7 +83,7 @@ def get_bootinfo():
 	bootinfo.points = get_energy_points(frappe.session.user)
 	bootinfo.frequently_visited_links = frequently_visited_links()
 	bootinfo.link_preview_doctypes = get_link_preview_doctypes()
-	bootinfo.enabled_modules = get_enabled_modules()
+	bootinfo.enabled_modules = get_enabled_modules(for_desk=True)
 
 	return bootinfo
 
