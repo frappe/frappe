@@ -198,7 +198,13 @@ class FormMeta(Meta):
 	def load_dashboard(self):
 		if self.custom:
 			return
-		self.set('__dashboard', self.get_dashboard_data())
+
+		dashboard_data = self.get_dashboard_data()
+		for hook in frappe.get_hooks("override_doctype_dashboards", {}).get(self.name, []):
+			dashboard_data = frappe.get_attr(hook)()
+			break
+
+		self.set('__dashboard', dashboard_data)
 
 	def load_kanban_meta(self):
 		self.load_kanban_column_fields()
@@ -233,4 +239,3 @@ def get_js(path):
 	js = frappe.read_file(path)
 	if js:
 		return render_include(js)
-

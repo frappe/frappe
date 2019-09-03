@@ -242,11 +242,15 @@ app_license = "{app_license}"
 
 # before_tests = "{app_name}.install.before_tests"
 
-# Overriding Whitelisted Methods
+# Overriding Methods
 # ------------------------------
 #
 # override_whitelisted_methods = {{
 # 	"frappe.desk.doctype.event.event.get_events": "{app_name}.event.get_events"
+# }}
+#
+# override_doctype_dashboards = {{
+# 	"Task": "{app_name}.task.get_dashboard_data"
 # }}
 
 """
