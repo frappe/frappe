@@ -1,29 +1,15 @@
-frappe.ui.form.ControlJSON = frappe.ui.form.ControlData.extend({
-	html_element: "textarea",
-	horizontal: false,
-	make_wrapper: function() {
+frappe.ui.form.ControlJSON = frappe.ui.form.ControlCode.extend({
+	set_language() {
+		this.df.options = 'JSON';
 		this._super();
-		this.$wrapper.find(".like-disabled-input").addClass("for-description");
 	},
-	make_input: function() {
-		this._super();
-		this.$input.css({'height': '300px'});
-	},
-	validate: function(value) {
-		if (value) {
-			try {
-				JSON.parse(value);
-				return value;
-			} catch (e) {
-				frappe.msgprint(__("Invalid JSON"));
-				return '';
-			}
-		}
-	},
-	set_input: function(value) {
-		this.last_value = JSON.stringify(this.value, null, '\t');
-		this.value = JSON.stringify(value, null, '\t');
-		this.set_formatted_input(this.value);
-		this.set_mandatory && this.set_mandatory(this.value);
+	set_formatted_input(value) {
+		return this.load_lib().then(() => {
+			if (!this.editor) return;
+			if (value === this.get_input_value()) return;
+			if (typeof value === 'object')
+				value = JSON.stringify(value, undefined, 2);
+			this.editor.session.setValue(value);
+		});
 	}
 });
