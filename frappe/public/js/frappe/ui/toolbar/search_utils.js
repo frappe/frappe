@@ -317,10 +317,6 @@ frappe.search.utils = {
 	get_global_results: function(keywords, start, limit, doctype = "") {
 		var me = this;
 		function get_results_sets(data, priorities) {
-			console.log("data");
-			console.log(data);
-			console.log("priorities");
-			console.log(priorities);
 			var results_sets = [], result, set;
 			function get_existing_set(doctype) {
 				return results_sets.find(function(set) {
@@ -417,16 +413,10 @@ frappe.search.utils = {
 				}
 
 			});
-
-			let res = [];
-			results_sets.forEach(function(d) {
-				if (priorities.indexOf(d.title) !== -1) {
-					res.unshift(d);
-				} else {
-					res.push(d)
-				}
-			})
-			return res;
+			return {
+				"results_sets": results_sets,
+				"priorities": priorities
+			}
 		}
 		return new Promise(function(resolve, reject) {
 			frappe.call({
@@ -476,8 +466,6 @@ frappe.search.utils = {
 		}
 		var lists = [], setup = [];
 		var all_doctypes = sort_uniques(this.get_doctypes(keywords));
-		console.log("all_doctypes");
-		console.log(all_doctypes);
 		all_doctypes.forEach(function(d) {
 			if(d.type === "") {
 				setup.push(d);
@@ -640,6 +628,7 @@ frappe.search.utils = {
 		});
 		return results;
 	},
+
 	make_function_searchable(_function, label=null) {
 		if (typeof _function !== 'function') {
 			throw new Error('First argument should be a function');

@@ -455,7 +455,6 @@ def search(text, start=0, limit=20, doctype=""):
 		except Exception:
 			frappe.clear_messages()
 
-	print(results)
 	prioritites = get_prioritised_doctypes_for_global_search()
 	return {"results": results, "priorities": prioritites}
 

@@ -365,7 +365,16 @@ frappe.search.SearchDialog = Class.extend({
 				var results = frappe.search.utils.get_nav_results(keywords);
 				frappe.search.utils.get_global_results(keywords, start, limit)
 					.then(function(global_results) {
-						results = results.concat(global_results);
+						let priorities = global_results.priorities;
+						results = results.concat(global_results.results_sets);
+
+						if (priorities) {
+							results.forEach(function(d, index){
+								if (priorities.indexOf(d.title !== -1)) {
+									results.unshift(results.splice(index, 1)[0]);
+								}
+							})
+						}
 						callback(results, keywords);
 					}, function (err) {
 						console.error(err);
