@@ -82,7 +82,6 @@ class Exporter:
 			return (
 				df.fieldtype not in display_fieldtypes
 				and df.fieldtype not in no_value_fields
-				and not df.hidden
 			)
 
 		meta = frappe.get_meta(doctype)
