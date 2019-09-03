@@ -79,6 +79,7 @@ frappe.ui.form.Review = class Review {
 				fieldname: 'to_user',
 				fieldtype: 'Autocomplete',
 				label: __('To User'),
+				reqd: 1,
 				options: user_options,
 				description: __('Only users involved in the document are listed')
 			}, {

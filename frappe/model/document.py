@@ -984,6 +984,7 @@ class Document(BaseDocument):
 			self.set("modified", now())
 			self.set("modified_by", frappe.session.user)
 
+		self.load_doc_before_save()
 		# to trigger notification on value change
 		self.run_method('before_change')
 

@@ -30,7 +30,9 @@ frappe.ui.form.Timeline = class Timeline {
 			render_input: true,
 			only_input: true,
 			on_submit: (val) => {
-				strip_html(val) && this.insert_comment(val, this.comment_area.button);
+				if(val) {
+					this.insert_comment(val, this.comment_area.button);
+				}
 			}
 		});
 

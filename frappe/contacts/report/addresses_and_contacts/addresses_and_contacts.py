@@ -7,8 +7,8 @@ import frappe
 from frappe import _
 
 field_map = {
-	"Contact": [ "first_name", "last_name", "phone", "mobile_no", "email_id", "is_primary_contact" ],
-	"Address": [ "address_line1", "address_line2", "city", "state", "pincode", "country", "is_primary_address" ]
+	"Contact": ["first_name", "last_name", "address", "phone", "email_id", "is_primary_contact"],
+	"Address": ["address_line1", "address_line2", "city", "state", "pincode", "country", "is_primary_address"]
 }
 
 def execute(filters=None):
@@ -27,8 +27,8 @@ def get_columns(filters):
 		"Is Primary Address:Check",
 		"First Name",
 		"Last Name",
+		"Address",
 		"Phone",
-		"Mobile No",
 		"Email Id",
 		"Is Primary Contact:Check"
 	]
@@ -49,7 +49,7 @@ def get_reference_addresses_and_contact(reference_doctype, reference_name):
 		return []
 
 	if reference_name:
-		filters = { "name": reference_name }
+		filters = {"name": reference_name}
 
 	reference_list = [d[0] for d in frappe.get_list(reference_doctype, filters=filters, fields=["name"], as_list=True)]
 

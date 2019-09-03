@@ -1382,12 +1382,12 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		}
 
 		// bulk submit
-		if (frappe.model.is_submittable(doctype) && has_submit_permission(doctype)) {
+		if (frappe.model.is_submittable(doctype) && has_submit_permission(doctype) && !(frappe.model.has_workflow(doctype))) {
 			actions_menu_items.push(bulk_submit());
 		}
 
 		// bulk cancel
-		if (frappe.model.can_cancel(doctype)) {
+		if (frappe.model.can_cancel(doctype) && !(frappe.model.has_workflow(doctype))) {
 			actions_menu_items.push(bulk_cancel());
 		}
 
