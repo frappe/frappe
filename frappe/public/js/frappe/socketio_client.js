@@ -161,6 +161,7 @@ frappe.socketio = {
 	doc_close: function(doctype, docname) {
 		// notify that the user has closed this doc
 		frappe.socketio.socket.emit('doc_close', doctype, docname);
+		frappe.socketio.last_doc = [];
 	},
 
 	setup_listeners: function() {
