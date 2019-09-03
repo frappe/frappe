@@ -121,7 +121,7 @@ def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reloa
 		# delete tag link entry
 		delete_tags_for_document(doc)
 
-		# update log if doctype has followers
+		# update log if doctype has event consumers
 		if not frappe.flags.in_install and not frappe.flags.in_migrate:
 			make_update_log(doc, update_type = 'Delete')
 

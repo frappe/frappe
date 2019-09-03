@@ -301,16 +301,16 @@ frappe.ui.toolbar.setup_session_defaults = function() {
 	});
 };
 
-frappe.ui.toolbar.pull_master_data = function() {
+frappe.ui.toolbar.pull_producer_data = function() {
 	frappe.call({
-		method: 'frappe.events_streaming.doctype.node_configuration.node_configuration.pull_master_data',
+		method: 'frappe.events_streaming.doctype.event_producer.event_producer.pull_producer_data',
 		callback: function(r) {
 			if(r.message == 'success') {
 				frappe.show_alert({message:'Successfully pulled master data', indicator:'green'});
 				location.reload(true);
 			}
 			else if(r.message == 'failed') {
-				frappe.show_alert({message:'Failed to pull master data', indicator:'red'});
+				frappe.show_alert({message:'Failed to pull producer data', indicator:'red'});
 				location.reload(true);
 			}
 			else if(r.message == 'no updates') {

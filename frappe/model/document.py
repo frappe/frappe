@@ -943,7 +943,7 @@ class Document(BaseDocument):
 		if (self.doctype, self.name) in frappe.flags.currently_saving:
 			frappe.flags.currently_saving.remove((self.doctype, self.name))
 
-		# make update log for doctypes having followers
+		# make update log for doctypes having event consumers
 		if not frappe.flags.in_install and not frappe.flags.in_migrate:
 			if self.flags.update_log_for_doc_creation:
 				make_update_log(self, update_type = 'Create')
@@ -1277,9 +1277,9 @@ def execute_action(doctype, name, action, **kwargs):
 		doc.notify_update()
 
 def make_update_log(doc, update_type):
-	'''Save update info for doctypes that have followers'''
-	doctype_has_followers = check_doctype_has_followers(doc.doctype)
-	if doctype_has_followers:
+	'''Save update info for doctypes that have event consumers'''
+	doctype_has_consumers = check_doctype_has_consumers(doc.doctype)
+	if doctype_has_consumers:
 		if update_type != 'Delete':
 			data = frappe.as_json(doc)
 		else:
@@ -1294,11 +1294,11 @@ def make_update_log(doc, update_type):
 		log_doc.insert(ignore_permissions = True)
 		frappe.db.commit()
 
-def check_doctype_has_followers(doctype):
-	node_configs = frappe.get_all(doctype = 'Node Configuration')
-	for node_config in node_configs:
-		config = frappe.get_doc('Node Configuration', node_config.name)
-		for entry in config.following_doctypes:
+def check_doctype_has_consumers(doctype):
+	event_consumers = frappe.get_all(doctype = 'Event Consumer')
+	for event_consumer in event_consumers:
+		consumer = frappe.get_doc('Event Consumer', event_consumer.name)
+		for entry in consumer.subscribed_doctypes:
 			if doctype == entry.ref_doctype:
 				return True
 	return False
