@@ -237,6 +237,19 @@ def address_query(doctype, txt, searchfield, start, page_len, filters):
 			value=value
 		)
 
+	meta = frappe.get_meta("Address")
+	searchfields = meta.get_search_fields()
+
+	if searchfield:
+		searchfields.append(searchfield)
+
+	search_condition = ''
+	for field in searchfields:
+		if search_condition == '':
+			search_condition += '`tabAddress`.`{field}` like %(txt)s'.format(field=field)
+		else:
+			search_condition += ' or `tabAddress`.`{field}` like %(txt)s'.format(field=field)
+
 	return frappe.db.sql("""select
 			`tabAddress`.name, `tabAddress`.city, `tabAddress`.country
 		from
@@ -247,7 +260,7 @@ def address_query(doctype, txt, searchfield, start, page_len, filters):
 			`tabDynamic Link`.link_doctype = %(link_doctype)s and
 			`tabDynamic Link`.link_name = %(link_name)s and
 			ifnull(`tabAddress`.disabled, 0) = 0 and
-			`tabAddress`.`{key}` like %(txt)s
+			({search_condition})
 			{mcond} {condition}
 		order by
 			if(locate(%(_txt)s, `tabAddress`.name), locate(%(_txt)s, `tabAddress`.name), 99999),
@@ -255,6 +268,7 @@ def address_query(doctype, txt, searchfield, start, page_len, filters):
 		limit %(start)s, %(page_len)s """.format(
 			mcond=get_match_cond(doctype),
 			key=frappe.db.escape(searchfield),
+			search_condition = search_condition,
 			condition=condition or ""),
 		{
 			'txt': "%%%s%%" % frappe.db.escape(txt),
