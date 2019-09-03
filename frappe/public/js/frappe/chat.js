@@ -1421,7 +1421,7 @@ class extends Component {
 			const state     = [ ]
 
 			for (const room of rooms)
-				if ( ["Group", "Visitor"].includes(room.type) || room.owner === frappe.session.user || room.last_message ) {
+				  if ( ["Group", "Visitor"].includes(room.type) || room.owner === frappe.session.user || room.last_message || room.users.includes(frappe.session.user)) {
 					frappe.log.info(`Adding ${room.name} to component.`)
 					state.push(room)
 				}
