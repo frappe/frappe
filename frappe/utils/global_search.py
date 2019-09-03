@@ -416,9 +416,11 @@ def search(text, start=0, limit=20, doctype=""):
 	:param limit: number of results to return, default 20
 	:return: Array of result objects
 	"""
+	from frappe.desk.doctype.global_search_settings.global_search_settings import get_doctypes_for_global_search
+
 	results = []
 	texts = [t.strip() for t in text.split('&')]
-	ignore_doctypes = get_ignored_doctypes_for_global_search()
+	allowed_doctypes = priorities = get_doctypes_for_global_search()
 	for text in texts:
 		mariadb_conditions = ''
 		postgres_conditions = ''
@@ -429,8 +431,8 @@ def search(text, start=0, limit=20, doctype=""):
 		postgres_conditions += 'TO_TSVECTOR("content") @@ PLAINTO_TSQUERY({})'.format(frappe.db.escape(text))
 
 		if ignore_doctypes:
-			mariadb_conditions += ' AND `doctype` NOT IN ({})'.format(ignore_doctypes)
-			postgres_conditions += ' AND `doctype` NOT IN ({})'.format(ignore_doctypes)
+			mariadb_conditions += ' AND `doctype` IN ({})'.format(ignore_doctypes)
+			postgres_conditions += ' AND `doctype` IN ({})'.format(ignore_doctypes)
 
 		common_query = '''SELECT `doctype`, `name`, `content`
 					FROM `__global_search`
@@ -455,8 +457,7 @@ def search(text, start=0, limit=20, doctype=""):
 		except Exception:
 			frappe.clear_messages()
 
-	prioritites = get_prioritised_doctypes_for_global_search()
-	return {"results": results, "priorities": prioritites}
+	return {"results": results, "priorities": priorities}
 
 
 @frappe.whitelist(allow_guest=True)
@@ -512,23 +513,3 @@ def get_distinct_words(text):
 	text = text.replace('"', '')
 	text = text.replace("'", '')
 	return [w.strip().lower() for w in text.split(' ')]
-
-def get_ignored_doctypes_for_global_search():
-	filters = {
-		"property": "ignore_in_global_search",
-		"value": 1
-	}
-	fields = ["doc_type"]
-	ignored_dts = [d.doc_type for d in frappe.get_list("Property Setter", filters=filters, fields=fields) if d.doc_type]
-	ignored_dts.extend(frappe.get_hooks("ignore_in_global_search"))
-	ignored_dts = ["'{0}'".format(d) for d in ignored_dts]
-	return ",".join(ignored_dts)
-
-def get_prioritised_doctypes_for_global_search():
-	filters = {
-		"property": "prioritise_in_global_search",
-		"value": 1
-	}
-	fields = ["doc_type"]
-
-	return [d.doc_type for d in frappe.get_list("Property Setter", filters=filters, fields=fields) if d.doc_type]

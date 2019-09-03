@@ -174,7 +174,9 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 
 					// show filter description in awesomplete
 					if (args.filters) {
+						console.log(args.filters)
 						let filter_string = me.get_filter_description(args.filters);
+						console.log(filter_string)
 						if (filter_string) {
 							r.results.push({
 								html: `<span class="text-muted">${filter_string}</span>`,
