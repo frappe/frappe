@@ -67,20 +67,23 @@ def create_linked_address(link_list):
 	address.insert()
 	frappe.flags.test_address_created = True
 
-def create_linked_contact(link_list):
+	return address.name
+
+def create_linked_contact(link_list, address):
 	if frappe.flags.test_contact_created:
 		return
 
 	contact = frappe.get_doc({
 		"doctype": "Contact",
 		"salutation": "Mr",
-		"email_id": "test_contact@example.com",
 		"first_name": "_Test First Name",
 		"last_name": "_Test Last Name",
 		"is_primary_contact": 1,
-		"phone": "+91 0000000000",
+		"address": address,
 		"status": "Open"
 	})
+	contact.add_email("test_contact@example.com")
+	contact.add_phone("+91 0000000000")
 
 	for name in link_list:
 		contact.append("links",{
@@ -88,7 +91,7 @@ def create_linked_contact(link_list):
 			'link_name': name
 		})
 
-	contact.insert()
+	contact.insert(ignore_permissions=True)
 	frappe.flags.test_contact_created = True
 
 
@@ -96,11 +99,11 @@ class TestAddressesAndContacts(unittest.TestCase):
 	def test_get_data(self):
 		linked_docs = [get_custom_doc_for_address_and_contacts()]
 		links_list = [item.name for item in linked_docs]
-		create_linked_contact(links_list)
-		create_linked_address(links_list)
+		d = create_linked_address(links_list)
+		create_linked_contact(links_list, d)
 		report_data = get_data({"reference_doctype": "Test Custom Doctype"})
 		for idx, link in enumerate(links_list):
-			test_item = [link, 'test address line 1', 'test address line 2', 'Milan', None, None, 'Italy', 0, '_Test First Name', '_Test Last Name', '+91 0000000000', None, 'test_contact@example.com', 1]
+			test_item = [link, 'test address line 1', 'test address line 2', 'Milan', None, None, 'Italy', 0, '_Test First Name', '_Test Last Name', '_Test Address-Billing', '+91 0000000000', 'test_contact@example.com', 1]
 			self.assertListEqual(test_item, report_data[idx])
 
 	def tearDown(self):

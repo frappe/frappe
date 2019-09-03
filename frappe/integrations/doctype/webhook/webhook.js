@@ -28,12 +28,40 @@ frappe.webhook = {
 				frappe.meta.get_docfield("Webhook Data", "fieldname", frm.doc.name).options = [""].concat(fields);
 			});
 		}
+	},
+
+	set_request_headers: (frm) => {
+		if (frm.doc.request_structure) {
+			let header_value;
+			if (frm.doc.request_structure == "Form URL-Encoded") {
+				header_value = "application/x-www-form-urlencoded";
+			} else if (frm.doc.request_structure == "JSON") {
+				header_value = "application/json";
+			}
+
+			if (header_value) {
+				let header_row = (frm.doc.webhook_headers || []).find(row => row.key === 'Content-Type');
+				if (header_row) {
+					frappe.model.set_value(header_row.doctype, header_row.name, "value", header_value);
+				} else {
+					frm.add_child("webhook_headers", {
+						"key": "Content-Type",
+						"value": header_value
+					});
+				}
+				frm.refresh();
+			}
+		}
 	}
 };
 
 frappe.ui.form.on('Webhook', {
 	refresh: (frm) => {
 		frappe.webhook.set_fieldname_select(frm);
+	},
+
+	request_structure: (frm) => {
+		frappe.webhook.set_request_headers(frm);
 	},
 
 	webhook_doctype: (frm) => {

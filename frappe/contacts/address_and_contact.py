@@ -10,7 +10,7 @@ import re
 
 def load_address_and_contact(doc, key=None):
 	"""Loads address list and contact list in `__onload`"""
-	from frappe.contacts.doctype.address.address import get_address_display
+	from frappe.contacts.doctype.address.address import get_address_display, get_condensed_address
 
 	filters = [
 		["Dynamic Link", "link_doctype", "=", doc.doctype],
@@ -36,6 +36,23 @@ def load_address_and_contact(doc, key=None):
 		["Dynamic Link", "parenttype", "=", "Contact"],
 	]
 	contact_list = frappe.get_all("Contact", filters=filters, fields=["*"])
+
+	for contact in contact_list:
+		contact["email_ids"] = frappe.get_list("Contact Email", filters={
+				"parenttype": "Contact",
+				"parent": contact.name,
+				"is_primary": 0
+			}, fields=["email_id"])
+
+		contact["phone_nos"] = frappe.get_list("Contact Phone", filters={
+				"parenttype": "Contact",
+				"parent": contact.name,
+				"is_primary": 0
+			}, fields=["phone"])
+
+		if contact.address:
+			address = frappe.get_doc("Address", contact.address)
+			contact["address"] = get_condensed_address(address)
 
 	contact_list = sorted(contact_list,
 		key = functools.cmp_to_key(lambda a, b:

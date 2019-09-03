@@ -3,20 +3,21 @@
 # For license information, please see license.txt
 
 from __future__ import unicode_literals
-import frappe, json
+import frappe
 from frappe import _
+import datetime
 from frappe.core.page.dashboard.dashboard import cache_source, get_from_date_from_timespan
 from frappe.utils import nowdate, add_to_date, getdate, get_last_day, formatdate
 from frappe.model.document import Document
 
 @frappe.whitelist()
 @cache_source
-def get(chart_name, from_date=None, to_date=None, refresh = None):
-	chart = frappe.get_doc('Dashboard Chart', chart_name)
+def get(chart, no_cache=None, from_date=None, to_date=None, refresh = None):
 
+	chart = frappe.parse_json(chart)
 	timespan = chart.timespan
 	timegrain = chart.time_interval
-	filters = json.loads(chart.filters_json)
+	filters = frappe.parse_json(chart.filters_json)
 
 	# don't include cancelled documents
 	filters['docstatus'] = ('<', 2)
@@ -24,7 +25,7 @@ def get(chart_name, from_date=None, to_date=None, refresh = None):
 	if not from_date:
 		from_date = get_from_date_from_timespan(to_date, timespan)
 	if not to_date:
-		to_date = nowdate()
+		to_date = datetime.datetime.now()
 
 	# get conditions from filters
 	conditions, values = frappe.db.build_conditions(filters)
@@ -78,7 +79,7 @@ def convert_to_dates(data, timegrain):
 	result = []
 	for d in data:
 		if timegrain == 'Daily':
-			result.append([add_to_date('{:d}-01-01'.format(int(d[0])), days = d[1]), d[2]])
+			result.append([add_to_date('{:d}-01-01'.format(int(d[0])), days = d[1] - 1), d[2]])
 		elif timegrain == 'Weekly':
 			result.append([add_to_date(add_to_date('{:d}-01-01'.format(int(d[0])), weeks = d[1] + 1), days = -1), d[2]])
 		elif timegrain == 'Monthly':

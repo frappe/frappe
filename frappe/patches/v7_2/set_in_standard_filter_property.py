@@ -16,3 +16,5 @@ def execute():
 			pass
 		except frappe.db.DataError:
 			pass
+		except Exception:
+			pass

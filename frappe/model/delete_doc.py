@@ -2,17 +2,21 @@
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
+import os
+from six import string_types, integer_types
+import shutil
 
 import frappe
-import frappe.model.meta
-from frappe.model.dynamic_links import get_dynamic_link_map
 import frappe.defaults
+import frappe.model.meta
+from frappe import _
+from frappe import get_module_path
+from frappe.model.dynamic_links import get_dynamic_link_map
 from frappe.core.doctype.file.file import remove_all
 from frappe.utils.password import delete_all_passwords_for
-from frappe import _
 from frappe.model.naming import revert_series_if_last
 from frappe.utils.global_search import delete_for_document
-from six import string_types, integer_types
+
 
 doctypes_to_skip = ("Communication", "ToDo", "DocShare", "Email Unsubscribe", "Activity Log", "File", "Version", "Document Follow", "Comment" , "View Log")
 
@@ -69,6 +73,13 @@ def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reloa
 				frappe.db.sql("delete from `__global_search` where doctype=%s", name)
 
 			delete_from_table(doctype, name, ignore_doctypes, None)
+
+			if not (frappe.flags.in_migrate or frappe.flags.in_install or frappe.flags.in_test):
+				try:
+					delete_controllers(name, doc.module)
+				except FileNotFoundError:
+					# in case a doctype doesnt have any controller code
+					pass
 
 		else:
 			doc = frappe.get_doc(doctype, name)
@@ -198,13 +209,16 @@ def check_if_doc_is_linked(doc, method="Delete"):
 			for item in frappe.db.get_values(link_dt, {link_field:doc.name},
 				["name", "parent", "parenttype", "docstatus"], as_dict=True):
 				linked_doctype = item.parenttype if item.parent else link_dt
-				if linked_doctype in doctypes_to_skip:
+
+				ignore_linked_doctypes = doc.get('ignore_linked_doctypes') or []
+
+				if linked_doctype in doctypes_to_skip or (linked_doctype in ignore_linked_doctypes and method == 'Cancel'):
 					# don't check for communication and todo!
 					continue
 
 				if not item:
 					continue
-				elif (method != "Delete" or item.docstatus == 2) and (method != "Cancel" or item.docstatus != 1):
+				elif method != "Delete"  and (method != "Cancel" or item.docstatus != 1):
 					# don't raise exception if not
 					# linked to a non-cancelled doc when deleting or to a submitted doc when cancelling
 					continue
@@ -223,7 +237,10 @@ def check_if_doc_is_linked(doc, method="Delete"):
 def check_if_doc_is_dynamically_linked(doc, method="Delete"):
 	'''Raise `frappe.LinkExistsError` if the document is dynamically linked'''
 	for df in get_dynamic_link_map().get(doc.doctype, []):
-		if df.parent in doctypes_to_skip:
+
+		ignore_linked_doctypes = doc.get('ignore_linked_doctypes') or []
+
+		if df.parent in doctypes_to_skip or (df.parent in ignore_linked_doctypes and method == 'Cancel'):
 			# don't check for communication and todo!
 			continue
 
@@ -317,3 +334,12 @@ def insert_feed(doc):
 		"subject": "{0} {1}".format(_(doc.doctype), doc.name),
 		"full_name": get_fullname(doc.owner)
 	}).insert(ignore_permissions=True)
+
+def delete_controllers(doctype, module):
+	"""
+	Delete controller code in the doctype folder
+	"""
+	module_path = get_module_path(module)
+	dir_path = os.path.join(module_path, 'doctype', frappe.scrub(doctype))
+
+	shutil.rmtree(dir_path)

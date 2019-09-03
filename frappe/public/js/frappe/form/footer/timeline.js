@@ -30,7 +30,9 @@ frappe.ui.form.Timeline = class Timeline {
 			render_input: true,
 			only_input: true,
 			on_submit: (val) => {
-				strip_html(val) && this.insert_comment(val, this.comment_area.button);
+				if(val) {
+					this.insert_comment(val, this.comment_area.button);
+				}
 			}
 		});
 
@@ -598,6 +600,7 @@ frappe.ui.form.Timeline = class Timeline {
 					return parts.length < 3;
 				});
 				if(parts.length) {
+					parts = parts.map(frappe.utils.escape_html);
 					out.push(me.get_version_comment(version, __("changed value of {0}", [parts.join(', ').bold()])));
 				}
 			}
