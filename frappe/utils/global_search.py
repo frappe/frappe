@@ -420,7 +420,7 @@ def search(text, start=0, limit=20, doctype=""):
 
 	results = []
 	texts = [t.strip() for t in text.split('&')]
-	allowed_doctypes = priorities = get_doctypes_for_global_search()
+	allowed_doctypes = get_doctypes_for_global_search()
 	for text in texts:
 		mariadb_conditions = ''
 		postgres_conditions = ''
@@ -430,9 +430,9 @@ def search(text, start=0, limit=20, doctype=""):
 		mariadb_conditions += 'MATCH(`content`) AGAINST ({} IN BOOLEAN MODE)'.format(frappe.db.escape('+' + text + '*'))
 		postgres_conditions += 'TO_TSVECTOR("content") @@ PLAINTO_TSQUERY({})'.format(frappe.db.escape(text))
 
-		if ignore_doctypes:
-			mariadb_conditions += ' AND `doctype` IN ({})'.format(ignore_doctypes)
-			postgres_conditions += ' AND `doctype` IN ({})'.format(ignore_doctypes)
+		if allowed_doctypes:
+			mariadb_conditions += ' AND `doctype` IN ({})'.format(allowed_doctypes)
+			postgres_conditions += ' AND `doctype` IN ({})'.format(allowed_doctypes)
 
 		common_query = '''SELECT `doctype`, `name`, `content`
 					FROM `__global_search`
@@ -457,6 +457,7 @@ def search(text, start=0, limit=20, doctype=""):
 		except Exception:
 			frappe.clear_messages()
 
+	priorities = get_doctypes_for_global_search(as_list=True)
 	return {"results": results, "priorities": priorities}
 
 

@@ -367,13 +367,20 @@ frappe.search.SearchDialog = Class.extend({
 					.then(function(global_results) {
 						let priorities = global_results.priorities;
 						results = results.concat(global_results.results_sets);
+						let results_set = [];
 
 						if (priorities) {
-							results.forEach(function(d, index){
-								if (priorities.indexOf(d.title !== -1)) {
-									results.unshift(results.splice(index, 1)[0]);
-								}
+							priorities.forEach(function (d) {
+								results.forEach(function (e, idx) {
+									if (d === e.title) {
+										results_set.push(results.splice(idx, 1));
+										break
+									}
+								})
 							})
+							if (results) {
+								results_set.concat(results);
+							}
 						}
 						callback(results, keywords);
 					}, function (err) {
