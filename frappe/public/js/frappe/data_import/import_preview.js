@@ -46,9 +46,11 @@ frappe.data_import.ImportPreview = class ImportPreview {
 				<div class="warnings"></div>
 				<div class="table-preview"></div>
 				<div class="table-actions margin-top">
+					<!--
 					<button class="btn btn-xs btn-default" data-action="add_row">
 						${__('Add Row')}
 					</button>
+					-->
 				</div>
 			</div>
 		`);
