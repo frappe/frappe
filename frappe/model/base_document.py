@@ -34,10 +34,15 @@ def get_controller(doctype):
 	global _classes
 
 	if not doctype in _classes:
-		module_name, custom, is_tree = frappe.db.get_value("DocType", doctype, ("module", "custom", "is_tree"), cache=True) \
-			or ["Core", False, False]
+		module_name, custom = frappe.db.get_value("DocType", doctype, ("module", "custom"), cache=True) \
+			or ["Core", False]
 
 		if custom:
+			try:
+				is_tree = frappe.db.get_value('Doctype', doctype, 'is_tree')
+			except frappe.db.InternalError as e:
+				is_tree = False if frappe.db.is_missing_column(e) else raise
+
 			_class = NestedSet if is_tree else Document
 		else:
 			module = load_doctype_module(doctype, module_name)
