@@ -1,5 +1,5 @@
 {
- "creation": "2019-08-09 16:19:58.344278",
+ "creation": "2019-08-29 11:35:00.625815",
  "doctype": "DocType",
  "editable_grid": 1,
  "engine": "InnoDB",
@@ -17,10 +17,10 @@
   }
  ],
  "istable": 1,
- "modified": "2019-08-26 12:48:54.329431",
+ "modified": "2019-08-29 11:35:00.625815",
  "modified_by": "Administrator",
  "module": "Events Streaming",
- "name": "Node Configuration DocType",
+ "name": "Event Subscribed DocType",
  "owner": "Administrator",
  "permissions": [],
  "quick_entry": 1,
