@@ -50,12 +50,12 @@ export default {
 				let is_enabled = this.is_enabled(module_name, enabled_modules);
 
 				frappe.modules.home && frappe.modules.home.page.set_title(title);
-				this.setup_enable_module(is_enabled, module_name)
+				this.setup_enable_module(is_enabled, module)
 
 				if (!frappe.modules.home) {
 					setTimeout(() => {
 						frappe.modules.home.page.set_title(title)
-						this.setup_enable_module(is_enabled, module_name)
+						this.setup_enable_module(is_enabled, module)
 					}, 200)
 				}
 
@@ -99,7 +99,10 @@ export default {
 			}
 			return true
 		},
-		setup_enable_module(is_enabled, module_name) {
+		setup_enable_module(is_enabled, module) {
+			if (!module) {
+				return
+			}
 			frappe.modules.home && !is_enabled && frappe.modules.home.page.set_indicator('Module Disabled', 'red')
 			frappe.modules.home && !is_enabled && frappe.modules.home.page.set_secondary_action('Enable Module', () => {
 				frappe.show_alert({
@@ -109,11 +112,12 @@ export default {
 				frappe.call({
 					method: 'frappe.core.doctype.module_def.module_def.enable_module',
 					args: {
-						module: module_name
+						module: module.module_name
 					},
 					callback: r => {
 						frappe.modules.home.page.clear_secondary_action();
 						frappe.modules.home.page.clear_indicator();
+						frappe.boot.enabled_modules = frappe.boot.enabled_modules.push(module.label || module.module_name);
 						frappe.show_alert({
 							message: __('Module Enabled.'),
 							indicator: 'green'
