@@ -25,6 +25,7 @@ if sys.version[0] == '2':
 
 __version__ = '12.0.16'
 __title__ = "Frappe Framework"
+__version_pcg__ = 1
 
 local = Local()
 
@@ -1635,3 +1636,7 @@ def mock(type, size = 1, locale = 'en'):
 	results = squashify(results)
 
 	return results
+
+@whitelist(allow_guest = True)
+def get_version_pcg():
+        return __version_pcg__

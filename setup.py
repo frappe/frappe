@@ -9,12 +9,15 @@ import re, ast
 
 # get version from __version__ variable in frappe/__init__.py
 _version_re = re.compile(r'__version__\s+=\s+(.*)')
+_version_pcg_re = re.compile(r'__version_pcg__\s+=\s+(.*)')
 
 with open('requirements.txt') as f:
 	install_requires = f.read().strip().split('\n')
 
 with open('frappe/__init__.py', 'rb') as f:
 	version = str(ast.literal_eval(_version_re.search(
+		f.read().decode('utf-8')).group(1)))
+	ourVersion = str(ast.literal_eval(_version_pcg_re.search(
 		f.read().decode('utf-8')).group(1)))
 
 class CleanCommand(Clean):
@@ -44,7 +47,7 @@ class CleanCommand(Clean):
 
 setup(
 	name='frappe',
-	version=version,
+	version=version + "Mit Pcg-Modifikation: " + ourVersion,
 	description='Metadata driven, full-stack web framework',
 	author='Frappe Technologies',
 	author_email='info@frappe.io',
