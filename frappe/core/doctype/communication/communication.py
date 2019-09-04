@@ -15,6 +15,7 @@ from frappe.core.doctype.comment.comment import update_comment_in_doc
 from email.utils import parseaddr
 from six.moves.urllib.parse import unquote
 from collections import Counter
+from frappe.contacts.doctype.contact.contact import get_contact_name
 
 exclude_from_linked_with = True
 
@@ -334,14 +335,15 @@ def get_contacts(email_strings):
 	contacts = []
 	for email in email_addrs:
 		email = get_email_without_link(email)
-		contact_name = frappe.db.get_value('Contact', {'email_id': email})
+		contact_name = get_contact_name(email)
 
 		if not contact_name:
 			contact = frappe.get_doc({
-					"doctype": "Contact",
-					"first_name": frappe.unscrub(email.split("@")[0]),
-					"email_id": email
-				}).insert(ignore_permissions=True)
+				"doctype": "Contact",
+				"first_name": frappe.unscrub(email.split("@")[0]),
+			})
+			contact.add_email(email)
+			contact.insert(ignore_permissions=True)
 			contact_name = contact.name
 
 		contacts.append(contact_name)

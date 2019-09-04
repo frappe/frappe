@@ -143,13 +143,13 @@ def get_list_context(context=None):
 	}
 
 def get_address_list(doctype, txt, filters, limit_start, limit_page_length = 20, order_by = None):
-    from frappe.www.list import get_list
-    user = frappe.session.user
-    ignore_permissions = False
-    if is_website_user():
-        if not filters: filters = []
-        add_name = []
-        contact = frappe.db.sql("""
+	from frappe.www.list import get_list
+	user = frappe.session.user
+	ignore_permissions = False
+	if is_website_user():
+		if not filters: filters = []
+		add_name = []
+		contact = frappe.db.sql("""
 			select
 				address.name
 			from
@@ -165,12 +165,12 @@ def get_address_list(doctype, txt, filters, limit_start, limit_page_length = 20,
 					   `tabDynamic Link` as link on contact.name = link.parent
 				   where
 					   contact.user = %s)""",(user))
-        for c in contact:
-            add_name.append(c[0])
-        filters.append(("Address", "name", "in", add_name))
-        ignore_permissions = True
+		for c in contact:
+			add_name.append(c[0])
+		filters.append(("Address", "name", "in", add_name))
+		ignore_permissions = True
 
-    return get_list(doctype, txt, filters, limit_start, limit_page_length, ignore_permissions=ignore_permissions)
+	return get_list(doctype, txt, filters, limit_start, limit_page_length, ignore_permissions=ignore_permissions)
 
 def has_website_permission(doc, ptype, user, verbose=False):
 	"""Returns true if there is a related lead or contact related to this document"""
@@ -237,6 +237,19 @@ def address_query(doctype, txt, searchfield, start, page_len, filters):
 			value=value
 		)
 
+	meta = frappe.get_meta("Address")
+	searchfields = meta.get_search_fields()
+
+	if searchfield:
+		searchfields.append(searchfield)
+
+	search_condition = ''
+	for field in searchfields:
+		if search_condition == '':
+			search_condition += '`tabAddress`.`{field}` like %(txt)s'.format(field=field)
+		else:
+			search_condition += ' or `tabAddress`.`{field}` like %(txt)s'.format(field=field)
+
 	return frappe.db.sql("""select
 			`tabAddress`.name, `tabAddress`.city, `tabAddress`.country
 		from
@@ -247,7 +260,7 @@ def address_query(doctype, txt, searchfield, start, page_len, filters):
 			`tabDynamic Link`.link_doctype = %(link_doctype)s and
 			`tabDynamic Link`.link_name = %(link_name)s and
 			ifnull(`tabAddress`.disabled, 0) = 0 and
-			`tabAddress`.`{key}` like %(txt)s
+			({search_condition})
 			{mcond} {condition}
 		order by
 			if(locate(%(_txt)s, `tabAddress`.name), locate(%(_txt)s, `tabAddress`.name), 99999),
@@ -255,6 +268,7 @@ def address_query(doctype, txt, searchfield, start, page_len, filters):
 		limit %(start)s, %(page_len)s """.format(
 			mcond=get_match_cond(doctype),
 			key=searchfield,
+			search_condition = search_condition,
 			condition=condition or ""), {
 			'txt': '%' + txt + '%',
 			'_txt': txt.replace("%", ""),
@@ -263,3 +277,7 @@ def address_query(doctype, txt, searchfield, start, page_len, filters):
 			'link_name': link_name,
 			'link_doctype': link_doctype
 		})
+
+def get_condensed_address(doc):
+	fields = ["address_title", "address_line1", "address_line2", "city", "county", "state", "country"]
+	return ", ".join([doc.get(d) for d in fields if doc.get(d)])

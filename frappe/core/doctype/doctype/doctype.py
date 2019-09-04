@@ -84,6 +84,7 @@ class DocType(Document):
 
 		self.make_amendable()
 		self.make_repeatable()
+		self.validate_nestedset()
 		self.validate_website()
 
 		if not self.is_new():
@@ -580,6 +581,64 @@ class DocType(Document):
 				insert_after = self.fields[len(self.fields) - 1].fieldname
 				df = dict(fieldname='auto_repeat', label='Auto Repeat', fieldtype='Link', options='Auto Repeat', insert_after=insert_after, read_only=1, no_copy=1, print_hide=1)
 				create_custom_field(self.name, df)
+
+	def validate_nestedset(self):
+		if not self.is_tree:
+			return
+		self.add_nestedset_fields()
+		# set field as mandatory
+		field = self.meta.get_field('nsm_parent_field')
+		field.reqd = 1
+		# check if field is valid
+		fieldnames = [df.fieldname for df in self.fields]
+		if self.nsm_parent_field and self.nsm_parent_field not in fieldnames:
+			frappe.throw(_("Parent Field must be a valid fieldname"), InvalidFieldNameError)
+
+	def add_nestedset_fields(self):
+		"""If is_tree is set, add parent_field, lft, rgt, is_group fields."""
+		fieldnames = [df.fieldname for df in self.fields]
+		if 'lft' in fieldnames:
+			return
+
+		self.append("fields", {
+			"label": "Left",
+			"fieldtype": "Int",
+			"fieldname": "lft",
+			"read_only": 1,
+			"hidden": 1,
+			"no_copy": 1
+		})
+
+		self.append("fields", {
+			"label": "Right",
+			"fieldtype": "Int",
+			"fieldname": "rgt",
+			"read_only": 1,
+			"hidden": 1,
+			"no_copy": 1
+		})
+
+		self.append("fields", {
+			"label": "Is Group",
+			"fieldtype": "Check",
+			"fieldname": "is_group"
+		})
+		self.append("fields", {
+			"label": "Old Parent",
+			"fieldtype": "Link",
+			"options": self.name,
+			"fieldname": "old_parent"
+		})
+
+		parent_field_label = "Parent {}".format(self.name)
+		parent_field_name = frappe.scrub(parent_field_label)
+		self.append("fields", {
+			"label": parent_field_label,
+			"fieldtype": "Link",
+			"options": self.name,
+			"fieldname": parent_field_name
+		})
+		self.nsm_parent_field = parent_field_name
 
 
 	def get_max_idx(self):

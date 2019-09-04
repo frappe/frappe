@@ -117,11 +117,15 @@ def get_dict(fortype, name=None):
 			messages += frappe.db.sql("select 'Role:', name from tabRole")
 			messages += frappe.db.sql("select 'Module:', name from `tabModule Def`")
 
+
 		message_dict = make_dict_from_messages(messages)
 		message_dict.update(get_dict_from_hooks(fortype, name))
 
 		# remove untranslated
 		message_dict = {k:v for k, v in iteritems(message_dict) if k!=v}
+
+		if fortype=="boot":
+			message_dict.update(get_user_translations(frappe.local.lang))
 
 		translation_assets[asset_key] = message_dict
 
