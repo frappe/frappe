@@ -237,18 +237,20 @@ class Database(object):
 	def handle_TableMissingError(self, query):
 		from frappe.core.doctype.module_def.module_def import enable_module, get_disabled_modules_from_tables
 
-		print("*"*20)
+		# print("*"*20)
 		tables = get_tables_from_query(query, True)
-		modules = get_disabled_modules_from_tables(tables)
-		print("modules")
-		print(modules)
-		for module in modules:
-			print("*****enabling - " + module)
-			enable_module(module)
+		modules = ", ".join([d for d in get_disabled_modules_from_tables(tables)])
+		frappe.throw(_("Module disbaled: {0}").format(modules))
+		# modules = get_disabled_modules_from_tables(tables)
+		# print("modules")
+		# print(modules)
+		# for module in modules:
+		# 	print("*****enabling - " + module)
+		# 	enable_module(module)
 
-		if frappe.local.request:
-			frappe.init(site=get_site_name(frappe.local.request.host))
-		print("*"*20)
+		# if frappe.local.request:
+		# 	frappe.init(site=get_site_name(frappe.local.request.host))
+		# print("*"*20)
 
 	def log_query(self, query, values=None):
 		frappe.log("<<<<<<<<<< query")
