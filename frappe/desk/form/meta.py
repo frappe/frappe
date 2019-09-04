@@ -201,8 +201,7 @@ class FormMeta(Meta):
 
 		dashboard_data = self.get_dashboard_data()
 		for hook in frappe.get_hooks("override_doctype_dashboards", {}).get(self.name, []):
-			dashboard_data = frappe.get_attr(hook)()
-			break
+			dashboard_data = frappe.get_attr(hook)(data=dashboard_data)
 
 		self.set('__dashboard', dashboard_data)
 
