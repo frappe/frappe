@@ -152,11 +152,7 @@ frappe.socketio = {
 	},
 	doc_open: function(doctype, docname) {
 		// notify that the user has opened this doc, if not already notified
-		if(!frappe.socketio.last_doc
-			|| (frappe.socketio.last_doc[0]!=doctype && frappe.socketio.last_doc[0]!=docname)) {
 			frappe.socketio.socket.emit('doc_open', doctype, docname);
-		}
-		frappe.socketio.last_doc = [doctype, docname];
 	},
 	doc_close: function(doctype, docname) {
 		// notify that the user has closed this doc
