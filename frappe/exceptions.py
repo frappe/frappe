@@ -2,9 +2,16 @@
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
+import sys
 
 # BEWARE don't put anything in this file except exceptions
 from werkzeug.exceptions import NotFound
+
+
+if sys.version_info.major == 2:
+	class FileNotFoundError(Exception): pass
+else:
+	from builtins import FileNotFoundError
 
 class ValidationError(Exception):
 	http_status_code = 417
