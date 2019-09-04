@@ -20,7 +20,11 @@ class GlobalSearchSettings(Document):
 			frappe.throw(_("Core Modules {0} cannot be searched in Global Search.").format(core_dts))
 
 def get_doctypes_for_global_search(as_list=False):
-	dts = [d.document for d in frappe.get_list("Global Search Allow", fields=["document"], order_by="idx ASC")]
+	doctypes = frappe.get_list("Global Search Allow", fields=["document"], order_by="idx ASC")
+	if not doctypes:
+		return []
+
+	dts = [d.document for d in doctypes]
 	if as_list:
 		return dts
 

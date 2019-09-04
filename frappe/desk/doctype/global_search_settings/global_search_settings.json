@@ -1,9 +1,11 @@
 {
+ "_comments": "[{\"comment\": \"<div><br></div>\", \"by\": \"Administrator\", \"name\": \"73ee03988d\"}, {\"comment\": \"<div><br></div>\", \"by\": \"Administrator\", \"name\": \"370f1e2937\"}]",
  "creation": "2019-09-03 16:08:21.333698",
  "doctype": "DocType",
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
+  "enabled",
   "allowed_in_global_search"
  ],
  "fields": [
@@ -12,10 +14,16 @@
    "fieldtype": "Table",
    "label": "Allowed in Global Search",
    "options": "Global Search Allow"
+  },
+  {
+   "default": "0",
+   "fieldname": "enabled",
+   "fieldtype": "Check",
+   "label": "Enabled"
   }
  ],
  "issingle": 1,
- "modified": "2019-09-03 16:10:17.957063",
+ "modified": "2019-09-04 22:37:13.250796",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Global Search Settings",
