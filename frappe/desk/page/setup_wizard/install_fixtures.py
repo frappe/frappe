@@ -9,8 +9,8 @@ from frappe import _
 
 def install():
 	update_genders_and_salutations()
+	update_global_search_doctypes()
 
-@frappe.whitelist()
 def update_genders_and_salutations():
 	default_genders = [_("Male"), _("Female"), _("Other")]
 	default_salutations = [_("Mr"), _("Ms"), _('Mx'), _("Dr"), _("Mrs"), _("Madam"), _("Miss"), _("Master"), _("Prof")]
@@ -29,3 +29,15 @@ def update_genders_and_salutations():
 				pass
 			else:
 				raise
+
+def update_global_search_doctypes():
+	global_searches_doctypes = ["Contact", "Address"]
+	global_search_documents = []
+
+	global_search_settings = frappe.get_single("Global Search Settings")
+	global_search_settings.enabled = 1
+
+	for d in global_searches_doctypes:
+		global_search_documents.append({"document": d})
+
+	global_search_settings.save(ignore_permissions=True)
