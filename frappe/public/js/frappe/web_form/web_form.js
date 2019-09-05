@@ -100,7 +100,7 @@ export default class WebForm extends frappe.ui.FieldGroup {
 	save() {
 		this.validate && this.validate();
 
-		// small validation hack
+		// validation hack: get_values will check for missing data
 		super.get_values(this.allow_incomplete);
 
 		if (window.saving) return;
