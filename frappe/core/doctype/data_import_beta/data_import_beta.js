@@ -3,6 +3,12 @@
 
 frappe.ui.form.on('Data Import Beta', {
 	setup(frm) {
+		frappe.realtime.on('data_import_refresh', () => {
+			frappe.model.clear_doc('Data Import Beta', frm.doc.name);
+			frappe.model.with_doc('Data Import Beta', frm.doc.name).then(() => {
+				frm.refresh();
+			});
+		});
 		frappe.realtime.on('data_import_progress', data => {
 			let percent = Math.floor((data.current * 100) / data.total);
 			let message;

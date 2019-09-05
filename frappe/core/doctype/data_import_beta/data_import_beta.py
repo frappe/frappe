@@ -7,6 +7,8 @@ import frappe
 from frappe.model.document import Document
 from frappe.core.doctype.data_import.importer_new import Importer
 from frappe.core.doctype.data_import.exporter_new import Exporter
+from frappe.core.page.background_jobs.background_jobs import get_info
+from frappe.utils.background_jobs import enqueue
 
 
 class DataImportBeta(Document):
@@ -25,8 +27,17 @@ class DataImportBeta(Document):
 		return i.get_data_for_import_preview()
 
 	def start_import(self):
-		i = self.get_importer()
-		return i.import_data()
+		enqueued_jobs = [d.get("job_name") for d in get_info()]
+
+		if self.name not in enqueued_jobs:
+			enqueue(
+				start_import,
+				queue="default",
+				timeout=6000,
+				event="data_import",
+				job_name=self.name,
+				data_import=self.name,
+			)
 
 	def get_importer(self):
 		return Importer(self.reference_doctype, data_import=self)
@@ -42,10 +53,10 @@ class DataImportBeta(Document):
 			values = d.missing_values
 			meta = frappe.get_meta(doctype)
 			# find the autoname field
-			if meta.autoname and meta.autoname.startswith('field:'):
-				autoname_field = meta.autoname[len('field:') :]
+			if meta.autoname and meta.autoname.startswith("field:"):
+				autoname_field = meta.autoname[len("field:") :]
 			else:
-				autoname_field = 'name'
+				autoname_field = "name"
 
 			for value in values:
 				new_doc = frappe.new_doc(doctype)
@@ -53,8 +64,18 @@ class DataImportBeta(Document):
 				docs.append(new_doc.insert())
 		return docs
 
+
+def start_import(data_import):
+	"""This method runs in background job"""
+	data_import = frappe.get_doc("Data Import Beta", data_import)
+	i = Importer(data_import.reference_doctype, data_import=data_import)
+	return i.import_data()
+
+
 @frappe.whitelist()
-def download_template(doctype, export_fields=None, export_records=None, export_filters=None, file_type="CSV"):
+def download_template(
+	doctype, export_fields=None, export_records=None, export_filters=None, file_type="CSV"
+):
 	"""
 	Download template from Exporter
 		:param doctype: Document Type
@@ -66,7 +87,7 @@ def download_template(doctype, export_fields=None, export_records=None, export_f
 
 	export_fields = frappe.parse_json(export_fields)
 	export_filters = frappe.parse_json(export_filters)
-	export_data = export_records != 'blank_template'
+	export_data = export_records != "blank_template"
 
 	e = Exporter(
 		doctype,

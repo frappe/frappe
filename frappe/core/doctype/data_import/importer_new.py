@@ -319,12 +319,13 @@ class Importer:
 		if warnings:
 			return {"warnings": warnings}
 
+		# setup import log
 		if self.data_import.import_log:
 			import_log = frappe.parse_json(self.data_import.import_log)
 		else:
 			import_log = []
 
-		# remove failures
+		# remove previous failures from import log
 		import_log = [l for l in import_log if l.get("success") == True]
 
 		# get successfully imported rows
@@ -342,47 +343,47 @@ class Importer:
 		total_payload_count = len(payloads)
 		batch_size = frappe.conf.data_import_batch_size or 1000
 
-		for batched_payloads in frappe.utils.create_batch(payloads, batch_size):
+		for batch_index, batched_payloads in enumerate(frappe.utils.create_batch(payloads, batch_size)):
 			for i, payload in enumerate(batched_payloads):
-			doc = payload.doc
-			row_indexes = [row[0] for row in payload.rows]
-			current_index = i + 1
+				doc = payload.doc
+				row_indexes = [row[0] for row in payload.rows]
+				current_index = (i + 1) + (batch_index * batch_size)
 
-			if set(row_indexes).intersection(set(imported_rows)):
-				print("Skipping imported rows", row_indexes)
-				frappe.publish_realtime(
-					"data_import_progress",
-					{"current": current_index, "total": total_payload_count, "skipping": True},
-				)
-				continue
-
-			try:
-				print("Importing", doc)
-				doc = self.process_doc(doc)
-				frappe.publish_realtime(
-					"data_import_progress",
-					{
-						"current": current_index,
-						"total": total_payload_count,
-						"docname": doc.name,
-						"success": True,
-						"row_indexes": row_indexes,
-					},
-				)
-				import_log.append(
-					frappe._dict(success=True, docname=doc.name, row_indexes=row_indexes)
-				)
-
-			except Exception as e:
-				import_log.append(
-					frappe._dict(
-						success=False,
-						exception=frappe.get_traceback(),
-						messages=frappe.local.message_log,
-						row_indexes=row_indexes,
+				if set(row_indexes).intersection(set(imported_rows)):
+					print("Skipping imported rows", row_indexes)
+					frappe.publish_realtime(
+						"data_import_progress",
+						{"current": current_index, "total": total_payload_count, "skipping": True},
 					)
-				)
-				frappe.clear_messages()
+					continue
+
+				try:
+					print("Importing", doc)
+					doc = self.process_doc(doc)
+					frappe.publish_realtime(
+						"data_import_progress",
+						{
+							"current": current_index,
+							"total": total_payload_count,
+							"docname": doc.name,
+							"success": True,
+							"row_indexes": row_indexes,
+						},
+					)
+					import_log.append(
+						frappe._dict(success=True, docname=doc.name, row_indexes=row_indexes)
+					)
+
+				except Exception as e:
+					import_log.append(
+						frappe._dict(
+							success=False,
+							exception=frappe.get_traceback(),
+							messages=frappe.local.message_log,
+							row_indexes=row_indexes,
+						)
+					)
+					frappe.clear_messages()
 
 		# rollback to savepoint if something went wrong
 		# frappe.db.sql('ROLLBACK TO SAVEPOINT import')
@@ -401,6 +402,7 @@ class Importer:
 		self.data_import.db_set("import_log", json.dumps(import_log))
 
 		frappe.flags.in_import = False
+		frappe.publish_realtime("data_import_refresh")
 
 	def get_payloads_for_import(self, fields, data):
 		payloads = []
