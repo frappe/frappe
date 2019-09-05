@@ -203,6 +203,17 @@ class Importer:
 						key = "{0}:{1}".format(doctype, df.fieldname)
 						out[key] = df
 
+		# name field
+		out["name"] = frappe._dict(
+			{
+				"fieldtype": "Data",
+				"fieldname": "name",
+				"label": "ID",
+				"reqd": self.data_import.import_type == "Update Existing Records",
+				"parent": self.doctype,
+			}
+		)
+
 		# if autoname is based on field
 		# add an entry for "ID (Autoname Field)"
 		autoname = self.meta.autoname
