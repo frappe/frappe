@@ -5,6 +5,7 @@
 import io
 import csv
 import json
+import timeit
 import frappe
 from datetime import datetime
 from frappe import _
@@ -42,6 +43,7 @@ class Importer:
 		self.data = None
 		# used to store date formats guessed from data rows per column
 		self._guessed_date_formats = {}
+		self.last_eta = 0
 		self.meta = frappe.get_meta(doctype)
 		self.prepare_content(file_path, content)
 
@@ -359,7 +361,10 @@ class Importer:
 
 				try:
 					print("Importing", doc)
+					start = timeit.default_timer()
 					doc = self.process_doc(doc)
+					processing_time = timeit.default_timer() - start
+					eta = self.get_eta(current_index, total_payload_count, processing_time)
 					frappe.publish_realtime(
 						"data_import_progress",
 						{
@@ -368,6 +373,7 @@ class Importer:
 							"docname": doc.name,
 							"success": True,
 							"row_indexes": row_indexes,
+							"eta": eta
 						},
 					)
 					import_log.append(
@@ -569,6 +575,13 @@ class Importer:
 			if autoname_field:
 				return autoname_field.fieldname
 		return 'name'
+
+	def get_eta(self, current, total, processing_time):
+		remaining = total - current
+		eta = processing_time * remaining
+		if not self.last_eta or eta < self.last_eta:
+			self.last_eta = eta
+		return self.last_eta
 
 
 DATE_FORMATS = [

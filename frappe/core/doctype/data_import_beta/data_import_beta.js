@@ -11,6 +11,10 @@ frappe.ui.form.on('Data Import Beta', {
 		});
 		frappe.realtime.on('data_import_progress', data => {
 			let percent = Math.floor((data.current * 100) / data.total);
+			let eta_message =
+				data.eta < 60
+					? __('ETA {0} seconds', [Math.floor(data.eta)])
+					: __('ETA {0} minutes', [Math.floor(data.eta / 60)]);
 			let message;
 			if (data.success) {
 				let message_args = [data.docname, data.current, data.total];
@@ -23,6 +27,7 @@ frappe.ui.form.on('Data Import Beta', {
 				message = __('Skipping ({1} of {2})', [data.current, data.total]);
 			}
 			frm.dashboard.show_progress(__('Import Progress'), percent, message);
+			frm.page.set_indicator(eta_message, 'orange');
 
 			// hide progress when complete
 			if (data.current === data.total) {
@@ -68,6 +73,7 @@ frappe.ui.form.on('Data Import Beta', {
 				frm.page.set_primary_action(__('Save'), () => frm.save());
 			}
 		}
+		frm.page.set_indicator(__(frm.doc.status), frm.doc.status === 'Success' ? 'green' : 'grey');
 	},
 
 	show_success_message(frm) {
