@@ -7,11 +7,11 @@ frappe.ui.form.on('Data Import Beta', {
 			let percent = Math.floor((data.current * 100) / data.total);
 			let message;
 			if (data.success) {
-				message = __('Importing {0} ({1} of {2})', [
-					data.docname,
-					data.current,
-					data.total
-				]);
+				let message_args = [data.docname, data.current, data.total];
+				message =
+					frm.doc.import_type === 'Insert New Records'
+						? __('Importing {0} ({1} of {2})', message_args)
+						: __('Updating {0} ({1} of {2})', message_args);
 			}
 			if (data.skipping) {
 				message = __('Skipping ({1} of {2})', [data.current, data.total]);
