@@ -2,7 +2,6 @@
 # For license information, please see license.txt
 
 from __future__ import unicode_literals, print_function
-import frappe
 import imaplib, poplib
 
 from frappe.utils import cint
@@ -13,6 +12,6 @@ def get_port(doc):
 			doc.incoming_port  =  imaplib.IMAP4_SSL_PORT if doc.use_ssl else imaplib.IMAP4_PORT
 
 		else:
-			doc.incoming_port  =  imaplib.IMAP4_SSL_PORT if doc.use_ssl else imaplib.IMAP4_PORT
+			doc.incoming_port  =  poplib.POP3_SSL_PORT if doc.use_ssl else poplib.POP3_PORT
 
 	return cint(doc.incoming_port)
