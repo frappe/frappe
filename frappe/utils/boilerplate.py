@@ -249,6 +249,9 @@ app_license = "{app_license}"
 # 	"frappe.desk.doctype.event.event.get_events": "{app_name}.event.get_events"
 # }}
 #
+# each overriding function accepts a `data` argument;
+# generated from the base implementation of the doctype dashboard,
+# along with any modifications made in other Frappe apps
 # override_doctype_dashboards = {{
 # 	"Task": "{app_name}.task.get_dashboard_data"
 # }}
