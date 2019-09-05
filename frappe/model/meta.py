@@ -414,7 +414,7 @@ class Meta(Document):
 
 		This method will return the `data` property in the `[doctype]_dashboard.py`
 		file in the doctype's folder, along with any overrides or extensions
-		implemented in other Frappe applications via hooks.
+		implemented in other Frappe applications.
 		'''
 		data = frappe._dict()
 		try:
