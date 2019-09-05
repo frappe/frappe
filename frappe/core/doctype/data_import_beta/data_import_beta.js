@@ -130,7 +130,12 @@ frappe.ui.form.on('Data Import Beta', {
 				doc: frm.doc,
 				method: 'get_preview_from_template',
 				freeze: true,
-				freeze_message: __('Preparing Preview...')
+				freeze_message: __('Preparing Preview...'),
+				error_handlers: {
+					TimestampMismatchError() {
+						// ignore this error
+					}
+				}
 			})
 			.then(r => {
 				let preview_data = r.message;
