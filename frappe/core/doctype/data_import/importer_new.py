@@ -329,7 +329,10 @@ class Importer:
 		frappe.db.sql("SAVEPOINT import")
 
 		total_payload_count = len(payloads)
-		for i, payload in enumerate(payloads):
+		batch_size = frappe.conf.data_import_batch_size or 1000
+
+		for batched_payloads in frappe.utils.create_batch(payloads, batch_size):
+			for i, payload in enumerate(batched_payloads):
 			doc = payload.doc
 			row_indexes = [row[0] for row in payload.rows]
 			current_index = i + 1
