@@ -40,8 +40,9 @@ class TestNotification(unittest.TestCase):
 
 	def test_condition(self):
 		event = frappe.new_doc("Event")
-		event.subject = "test",
+		event.subject = "test"
 		event.event_type = "Private"
+		event.description = ""
 		event.starts_on  = "2014-06-06 12:00:00"
 		event.insert()
 
@@ -74,8 +75,9 @@ class TestNotification(unittest.TestCase):
 
 	def test_value_changed(self):
 		event = frappe.new_doc("Event")
-		event.subject = "test",
+		event.subject = "test"
 		event.event_type = "Private"
+		event.description = ""
 		event.starts_on  = "2014-06-06 12:00:00"
 		event.insert()
 
@@ -113,6 +115,7 @@ class TestNotification(unittest.TestCase):
 		event = frappe.new_doc("Event")
 		event.subject = "test-2",
 		event.event_type = "Private"
+		event.description = ""
 		event.starts_on  = "2014-06-06 12:00:00"
 		event.insert()
 		event.subject = "test 1"
@@ -129,6 +132,7 @@ class TestNotification(unittest.TestCase):
 		event = frappe.new_doc("Event")
 		event.subject = "test",
 		event.event_type = "Private"
+		event.description = ""
 		event.starts_on = "2014-01-01 12:00:00"
 		event.insert()
 
