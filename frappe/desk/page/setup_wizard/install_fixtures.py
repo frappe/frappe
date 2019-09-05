@@ -31,13 +31,27 @@ def update_genders_and_salutations():
 				raise
 
 def update_global_search_doctypes():
-	global_searches_doctypes = ["Contact", "Address"]
-	global_search_documents = []
+	global_searches_doctypes = ["Global Search Settings", "Customize Form", "Web Page", "Webhook", "Google Contacts",
+		"Google Drive", "Energy Point Log", "Energy Point Rule", "Address", "Contact", "Event", "Google Calendar",
+		"Google Settings", "Auto Repeat", "Notification", "LDAP Settings", "Email Account", "Website Theme",
+		"Website Settings", "Print Format", "Personal Data Download Request", "Auto Email Report", "Integration Request",
+		"ToDo", "Milestone Tracker", "Milestone", "Assignment Rule", "Dashboard", "Print Settings", "S3 Backup Settings",
+		"Dashboard Chart", "Dashboard Chart Source", "Energy Point Settings", "Custom Script", "Custom Field", "Post",
+		"List View Setting", "Document Follow", "Website Slideshow", "Website Route Meta", "Personal Data Deletion Request",
+		"Letter Head", "Blog Post", "Web Form", "Desktop Icon", "Email Queue", "Dropbox Settings", "Post Comment", "Workflow Action",
+		"Blogger", "Route History", "Note", "Social Login Key", "Email Rule", "Country", "Currency", "Chat Room",
+		"Data Migration Run", "Data Migration Plan", "Calendar View", "Workflow", "Stripe Settings", "Slack Webhook URL",
+		"Help Article", "Workflow Action Master", "Email Template", "Chat Message", "Chat Token", "List Filter",
+		"Braintree Settings", "Chat Profile", "Data Migration Connector", "OAuth Client", "Data Migration Mapping",
+		"Email Flag Queue", "Unhandled Email", "Newsletter", "Contact Us Settings", "Print Style", "Print Heading",
+		"Address Template", "Salutation", "Gender", "Kanban Board", "OAuth Bearer Token", "OAuth Authorization Code",
+		"Blog Category", "Email Group", "Workflow State", "Email Group Member", "About Us Settings", "Blog Settings",
+		"Website Script", "Bulk Update", "Razorpay Settings", "PayPal Settings", "Portal Settings", "OAuth Provider Settings",
+		"Email Unsubscribe", "Help Category", "Property Setter", "Website Sidebar", "Email Domain"]
 
 	global_search_settings = frappe.get_single("Global Search Settings")
 	global_search_settings.enabled = 1
-
+	global_search_settings.allowed_in_global_search = []
 	for d in global_searches_doctypes:
-		global_search_documents.append({"document": d})
-
+		global_search_settings.append("allowed_in_global_search", {"document": d})
 	global_search_settings.save(ignore_permissions=True)
