@@ -78,30 +78,28 @@ def get_modules_from_app(app):
 	return active_modules_list
 
 def get_all_empty_tables_by_module():
-	results = frappe.db.multisql({
-		'mariadb': '''
-			SELECT `name`, `module`
-			FROM information_schema.tables AS i
-			JOIN `tabDocType` AS d
-				ON i.table_name = CONCAT('tab', d.name)
-			WHERE `table_rows` = 0;
-		''',
-		'postgres': '''
-			SELECT "name", "module"
-			FROM "pg_stat_all_tables" AS i
-			JOIN "tabDocType" AS d
-				ON i.relname = CONCAT('tab', d.name)
-			WHERE n_tup_ins = 0;
-		'''
-	})
+	empty_tables = set(r[0] for r in frappe.db.multisql({
+		"mariadb": """
+			SELECT table_name
+			FROM information_schema.tables
+			WHERE table_rows = 0 and table_schema = "{}"
+			""".format(frappe.conf.db_name),
+		"postgres": """
+			SELECT "relname" as "table_name"
+			FROM "pg_stat_all_tables"
+			WHERE n_tup_ins = 0
+		"""
+	}))
 
+	results = frappe.get_all("DocType", fields=["name", "module"])
 	empty_tables_by_module = {}
 
 	for doctype, module in results:
-		if module in empty_tables_by_module:
-			empty_tables_by_module[module].append(doctype)
-		else:
-			empty_tables_by_module[module] = [doctype]
+		if "tab" + doctype in empty_tables:
+			if module in empty_tables_by_module:
+				empty_tables_by_module[module].append(doctype)
+			else:
+				empty_tables_by_module[module] = [doctype]
 	return empty_tables_by_module
 
 def is_domain(module):
