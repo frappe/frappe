@@ -262,7 +262,7 @@ def update_contacts_to_google_contacts(doc, method=None):
 		contact["emailAddresses"] = emailAddresses
 
 		google_contacts.people().updateContact(resourceName=doc.google_contacts_id,body={"names":[names],
-			"phoneNumbers":phoneNumbers,"emailAddresses":emailAddresses},
+			"phoneNumbers":phoneNumbers,"emailAddresses":emailAddresses,"etag":contact.get("etag")},
 			updatePersonFields="names,emailAddresses,organizations,phoneNumbers").execute()
 		frappe.msgprint(_("Contact Synced with Google Contacts."))
 	except HttpError as err:
