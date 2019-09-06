@@ -3,7 +3,7 @@
 # See license.txt
 from __future__ import unicode_literals
 
-import unittest, frappe 
+import unittest, frappe
 from frappe.utils import getdate, formatdate
 from frappe.desk.doctype.dashboard_chart.dashboard_chart import (get,
 	get_period_ending)
