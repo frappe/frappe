@@ -27,12 +27,14 @@
   },
   {
    "fieldname": "authorization_code",
-   "fieldtype": "Data",
+   "fieldtype": "Password",
+   "hidden": 1,
    "label": "Authorization Code"
   },
   {
    "fieldname": "refresh_token",
-   "fieldtype": "Data",
+   "fieldtype": "Password",
+   "hidden": 1,
    "label": "Refresh Token"
   },
   {
@@ -68,7 +70,8 @@
   },
   {
    "fieldname": "next_sync_token",
-   "fieldtype": "Data",
+   "fieldtype": "Password",
+   "hidden": 1,
    "label": "Next Sync Token"
   },
   {
@@ -93,7 +96,7 @@
    "label": "Push to Google Contacts"
   }
  ],
- "modified": "2019-09-06 17:11:15.530952",
+ "modified": "2019-09-06 20:43:38.124849",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Google Contacts",
