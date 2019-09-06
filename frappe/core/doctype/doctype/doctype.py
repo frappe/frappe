@@ -272,11 +272,12 @@ class DocType(Document):
 	def create_table(self):
 		from frappe.core.doctype.module_def.module_def import log_enabled_module
 		try:
-			if self.module in (frappe.cache().hget("modules", "enabled") or []) or (hasattr(self, "create_on_install") and self.create_on_install): # or frappe.conf.get("developer_mode"):
-				log_enabled_module(self.module)
+			if self.module in (frappe.cache().hget("modules", "enabled") or []) or \
+				(hasattr(self, "create_on_install") and self.create_on_install):# or frappe.conf.get("developer_mode"):
+				if self.module not in (frappe.cache().hget("modules", "enabled") or []):
+					log_enabled_module(self.module)
 				frappe.db.updatedb(self.name, self)
 		except Exception as e:
-			print(e)
 			print("\n\nThere was an issue while migrating the DocType: {}\n".format(self.name))
 			raise e
 
