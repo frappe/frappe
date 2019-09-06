@@ -168,13 +168,11 @@ export default class WebForm extends frappe.ui.FieldGroup {
 		const success_dialog = new frappe.ui.Dialog({
 			title: __("Saved Successfully"),
 			secondary_action: () => {
-				if (this.login_required) {
-					if (this.route_to_success_link) {
-						window.location.pathname = this.success_url;
-					} else {
-						window.location.href =
-							window.location.pathname + "?name=" + data.name;
-					}
+				if (this.success_url) {
+					window.location.pathname = this.success_url;
+				} else if(this.login_required) {
+					window.location.href =
+						window.location.pathname + "?name=" + data.name;
 				}
 			}
 		});
