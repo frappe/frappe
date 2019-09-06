@@ -137,7 +137,7 @@ def sync(g_contact=None):
 def sync_contacts_from_google_contacts(g_contact):
 	"""
 		Syncs Contacts from Google Contacts.
-		https://developers.google.com/people/api/rest/v1/contactGroups/list
+		https://developers.google.com/people/api/rest/v1/people.connections/list
 	"""
 	google_contacts, account = get_google_contacts_object(g_contact)
 
