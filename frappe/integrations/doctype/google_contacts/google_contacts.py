@@ -107,7 +107,7 @@ def get_google_contacts_object(g_contact):
 		Returns an object of Google Calendar along with Google Calendar doc.
 	"""
 	google_settings = frappe.get_doc("Google Settings")
-	account = frappe.get_doc("Google Contacts", g_calendar)
+	account = frappe.get_doc("Google Contacts", g_contact)
 
 	credentials_dict = {
 		"token": account.get_access_token(),
@@ -140,7 +140,7 @@ def sync_contacts_from_google_contacts(g_contact, page_length=10):
 		Syncs Contacts from Google Contacts.
 		https://developers.google.com/people/api/rest/v1/contactGroups/list
 	"""
-	google_contacts, account = get_google_contacts_object(google_contact.name)
+	google_contacts, account = get_google_contacts_object(g_contact)
 	results = []
 	contacts_updated = 0
 
