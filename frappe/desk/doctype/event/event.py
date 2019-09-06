@@ -127,28 +127,66 @@ def get_events(start, end, user=None, for_reminder=False, filters=None):
 		user = frappe.session.user
 	if isinstance(filters, string_types):
 		filters = json.loads(filters)
-	roles = frappe.get_roles(user)
-	events = frappe.db.sql("""select name, subject, description, color,
-		starts_on, ends_on, owner, all_day, event_type, repeat_this_event, repeat_on,repeat_till,
-		monday, tuesday, wednesday, thursday, friday, saturday, sunday
-		from tabEvent where ((
-			(date(starts_on) between date(%(start)s) and date(%(end)s))
-			or (date(ends_on) between date(%(start)s) and date(%(end)s))
-			or (date(starts_on) <= date(%(start)s) and date(ends_on) >= date(%(end)s))
-		) or (
-			date(starts_on) <= date(%(start)s) and repeat_this_event=1 and
-			ifnull(repeat_till, "3000-01-01") > date(%(start)s)
-		))
+
+	filter_condition = get_filters_cond('Event', filters, [])
+
+	tables = ["`tabEvent`"]
+	if "`tabEvent Participants`" in filter_condition:
+		tables.append("`tabEvent Participants`")
+
+	events = frappe.db.sql("""
+		SELECT `tabEvent`.name,
+				`tabEvent`.subject,
+				`tabEvent`.description,
+				`tabEvent`.color,
+				`tabEvent`.starts_on,
+				`tabEvent`.ends_on,
+				`tabEvent`.owner,
+				`tabEvent`.all_day,
+				`tabEvent`.event_type,
+				`tabEvent`.repeat_this_event,
+				`tabEvent`.repeat_on,
+				`tabEvent`.repeat_till,
+				`tabEvent`.monday,
+				`tabEvent`.tuesday,
+				`tabEvent`.wednesday,
+				`tabEvent`.thursday,
+				`tabEvent`.friday,
+				`tabEvent`.saturday,
+				`tabEvent`.sunday
+		FROM {tables}
+		WHERE (
+				(
+					(date(`tabEvent`.starts_on) BETWEEN date(%(start)s) AND date(%(end)s))
+					OR (date(`tabEvent`.ends_on) BETWEEN date(%(start)s) AND date(%(end)s))
+					OR (
+						date(`tabEvent`.starts_on) <= date(%(start)s)
+						AND date(`tabEvent`.ends_on) >= date(%(end)s)
+					)
+				)
+				OR (
+					date(`tabEvent`.starts_on) <= date(%(start)s)
+					AND `tabEvent`.repeat_this_event=1
+					AND coalesce(`tabEvent`.repeat_till, '3000-01-01') > date(%(start)s)
+				)
+			)
 		{reminder_condition}
 		{filter_condition}
-		and (event_type='Public' or owner=%(user)s
-		or exists(select name from `tabDocShare` where
-			tabDocShare.share_doctype="Event" and `tabDocShare`.share_name=tabEvent.name
-			and tabDocShare.user=%(user)s))
-		order by starts_on""".format(
-			filter_condition=get_filters_cond('Event', filters, []),
-			reminder_condition="and ifnull(send_reminder,0)=1" if for_reminder else "",
-			roles=", ".join('"{}"'.format(frappe.db.escape(r)) for r in roles)
+		AND (
+				`tabEvent`.event_type='Public'
+				OR `tabEvent`.owner=%(user)s
+				OR EXISTS(
+					SELECT `tabDocShare`.name
+					FROM `tabDocShare`
+					WHERE `tabDocShare`.share_doctype='Event'
+						AND `tabDocShare`.share_name=`tabEvent`.name
+						AND `tabDocShare`.user=%(user)s
+				)
+			)
+		ORDER BY `tabEvent`.starts_on""".format(
+			tables=", ".join(tables),
+			filter_condition=filter_condition,
+			reminder_condition="AND coalesce(`tabEvent`.send_reminder, 0)=1" if for_reminder else ""
 		), {
 			"start": start,
 			"end": end,

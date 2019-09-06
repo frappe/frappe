@@ -91,6 +91,7 @@ def get_icon_html(icon, small=False):
 		u"(\ud83c[\udde0-\uddff])"
 		"+", flags=re.UNICODE)
 
+	icon = icon or ""
 	if icon and emoji_pattern.match(icon):
 		return '<span class="text-muted">' + icon + '</span>'
 
