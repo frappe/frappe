@@ -1295,7 +1295,7 @@ def make_update_log(doc, update_type):
 		frappe.db.commit()
 
 def check_doctype_has_consumers(doctype):
-	event_consumers = frappe.get_all(doctype = 'Event Consumer')
+	event_consumers = frappe.get_all('Event Consumer')
 	for event_consumer in event_consumers:
 		consumer = frappe.get_doc('Event Consumer', event_consumer.name)
 		for entry in consumer.subscribed_doctypes:

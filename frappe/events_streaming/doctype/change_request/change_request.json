@@ -4,19 +4,13 @@
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
-  "follower_node",
+  "event_consumer",
   "ref_doctype",
   "document_name",
   "requested_change",
   "request_status"
  ],
  "fields": [
-  {
-   "fieldname": "follower_node",
-   "fieldtype": "Link",
-   "label": "Consumer Node",
-   "options": "Node"
-  },
   {
    "fieldname": "ref_doctype",
    "fieldtype": "Data",
@@ -37,9 +31,15 @@
    "fieldtype": "Select",
    "label": "Request Status",
    "options": "\nApproved\nRejected\nResolve Conflict"
+  },
+  {
+   "fieldname": "event_consumer",
+   "fieldtype": "Link",
+   "label": "Event Consumer",
+   "options": "Event Consumer"
   }
  ],
- "modified": "2019-08-26 14:03:56.911041",
+ "modified": "2019-09-05 13:44:06.934893",
  "modified_by": "Administrator",
  "module": "Events Streaming",
  "name": "Change Request",
