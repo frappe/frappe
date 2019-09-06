@@ -8,7 +8,6 @@ import json
 from frappe import _
 from frappe.model.document import Document
 from frappe.frappeclient import FrappeClient
-# from frappe.desk.linked_with import get_linked_doctype
 
 class EventProducer(Document):
 	def after_insert(self):
@@ -19,22 +18,24 @@ class EventProducer(Document):
 
 	def update_event_consumer(self):
 		producer_site = get_producer_site(self.producer_url)
-		event_consumer = producer_site.get_doc('Event Consumer', get_current_node())
-		if not event_consumer:
+		try:
+			event_consumer = producer_site.get_doc('Event Consumer', get_current_node())
+			event_consumer.subscribed_doctypes = []
+			for entry in self.subscribed_doctypes:
+				event_consumer.subscribed_doctypes.append({
+					'ref_doctype': entry.ref_doctype
+				})
+			event_consumer.event_subscriber = self.event_subscriber
+			producer_site.update(event_consumer)
+		except Exception:
 			consumer = frappe.new_doc('Event Consumer')
 			consumer.callback_url = get_current_node()
 			for entry in self.subscribed_doctypes:
 				consumer.append('subscribed_doctypes', {
 					'ref_doctype': entry.ref_doctype
 				})
-			producer_site.insert(consumer)	
-		else:
-			event_consumer.subscribed_doctypes = []
-			for entry in self.subscribed_doctypes:
-				event_consumer.subscribed_doctypes.append({
-					'ref_doctype': entry.ref_doctype
-				})
-			producer_site.update(event_consumer)
+			consumer.event_subscriber = self.event_subscriber
+			producer_site.insert(consumer)
 
 def get_current_node():
 	current_node = frappe.utils.get_url()
