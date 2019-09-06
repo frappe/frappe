@@ -287,7 +287,3 @@ user_privacy_documents = [
 	},
 
 ]
-
-custom_module_name_to_module_map = {
-	"Custom": ["Customization"]
-}
