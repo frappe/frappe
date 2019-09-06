@@ -70,7 +70,7 @@ DocType: Auto Repeat,Monthly,Mensual
 DocType: Address,Uttarakhand,Uttarakhand
 DocType: Email Account,Enable Incoming,Habilitar correos entrantes
 apps/frappe/frappe/core/doctype/version/version_view.html,Danger,Peligro
-apps/frappe/frappe/www/login.py,Email Address,Dirección de correo electrónico
+apps/frappe/frappe/www/login.py,Email address,Dirección de correo electrónico
 DocType: Workflow State,th-large,th-large
 DocType: Communication,Unread Notification Sent,Envíar una notificación al no ser leído
 apps/frappe/frappe/public/js/frappe/utils/tools.js,Export not allowed. You need {0} role to export.,Exportación no permitida. Se necesita el rol {0} para exportar.
