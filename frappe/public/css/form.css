@@ -576,7 +576,7 @@ h6.uppercase,
   cursor: pointer;
 }
 select.form-control {
-  -webkit-appearance: none;
+  -webkit-appearance: menulist;
   -moz-appearance: none;
   appearance: none;
 }
