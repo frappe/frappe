@@ -342,7 +342,7 @@ def get_contacts(email_strings):
 				"doctype": "Contact",
 				"first_name": frappe.unscrub(email.split("@")[0]),
 			})
-			contact.add_email(email)
+			contact.add_email(email_id=email, is_primary=True)
 			contact.insert(ignore_permissions=True)
 			contact_name = contact.name
 
