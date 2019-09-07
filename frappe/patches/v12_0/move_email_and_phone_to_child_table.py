@@ -64,7 +64,7 @@ def execute():
 
 			email_values = []
 
-		if phone_values and (count % 10000 == 0 or count == len(contact_details) - 1):
+		if phone_values and (count%10000 == 0 or count == len(contact_details)-1):
 			frappe.db.sql("""
 				INSERT INTO `tabContact Phone`
 					(`idx`, `name`, `phone`, `parentfield`, `parenttype`, `parent`, `is_primary`, `creation`,
