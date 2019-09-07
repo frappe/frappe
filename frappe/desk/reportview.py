@@ -119,7 +119,7 @@ def save_report():
 def export_query():
 	"""export from report builder"""
 	title = frappe.form_dict.title
-	frappe.form_dict.pop('title')
+	frappe.form_dict.pop('title', None)
 
 	form_params = get_form_params()
 	form_params["limit_page_length"] = None
