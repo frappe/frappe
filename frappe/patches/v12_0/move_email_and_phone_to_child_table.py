@@ -17,7 +17,7 @@ def execute():
 		is_primary = 1
 
 		if contact_detail.email_id:
-			email_values.append([
+			email_values.append((
 				1,
 				frappe.generate_hash(contact_detail.email_id, 10),
 				contact_detail.email_id,
@@ -28,11 +28,11 @@ def execute():
 				contact_detail.creation,
 				contact_detail.modified,
 				contact_detail.modified_by
-			])
+			))
 
 		if contact_detail.phone:
 			is_primary = 1 if phone_counter == 1 else 0
-			phone_values.append([
+			phone_values.append((
 				phone_counter,
 				frappe.generate_hash(contact_detail.email_id, 10),
 				contact_detail.phone,
@@ -43,13 +43,13 @@ def execute():
 				contact_detail.creation,
 				contact_detail.modified,
 				contact_detail.modified_by
-			])
+			))
 			phone_counter += 1
 			is_primary += 1
 
 		if contact_detail.mobile_no:
 			is_primary = 1 if phone_counter == 1 else 0
-			phone_values.append([
+			phone_values.append((
 				phone_counter,
 				frappe.generate_hash(contact_detail.email_id, 10),
 				contact_detail.phone,
@@ -60,7 +60,7 @@ def execute():
 				contact_detail.creation,
 				contact_detail.modified,
 				contact_detail.modified_by
-			])
+			))
 
 		if email_values and (count%10000 == 0 or count == len(contact_details)-1):
 			frappe.db.sql("""
