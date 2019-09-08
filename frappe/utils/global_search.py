@@ -418,33 +418,52 @@ def search(text, start=0, limit=20, doctype=""):
 	texts = [t.strip() for t in text.split('&')]
 	allowed_doctypes = get_doctypes_for_global_search()
 	for text in texts:
-		mariadb_conditions = ''
-		postgres_conditions = ''
-		if doctype:
-			mariadb_conditions = postgres_conditions = '`doctype` = {} AND '.format(frappe.db.escape(doctype))
+		# mariadb_conditions = ''
+		# postgres_conditions = ''
+		# if doctype:
+		# 	mariadb_conditions = postgres_conditions = '`doctype` = {} AND '.format(frappe.db.escape(doctype))
 
-		mariadb_conditions += 'MATCH(`content`) AGAINST ({} IN BOOLEAN MODE)'.format(frappe.db.escape('+' + text + '*'))
-		postgres_conditions += 'TO_TSVECTOR("content") @@ PLAINTO_TSQUERY({})'.format(frappe.db.escape(text))
+		# mariadb_conditions += 'MATCH(`content`) AGAINST ({} IN BOOLEAN MODE)'.format(frappe.db.escape('+' + text + '*'))
+		# postgres_conditions += 'TO_TSVECTOR("content") @@ PLAINTO_TSQUERY({})'.format(frappe.db.escape(text))
 
-		if allowed_doctypes:
-			mariadb_conditions += ' AND `doctype` IN ({})'.format(allowed_doctypes)
-			postgres_conditions += ' AND `doctype` IN ({})'.format(allowed_doctypes)
+		# if allowed_doctypes:
+		# 	mariadb_conditions += ' AND `doctype` IN ({})'.format(allowed_doctypes)
+		# 	postgres_conditions += ' AND `doctype` IN ({})'.format(allowed_doctypes)
 
-		common_query = '''SELECT `doctype`, `name`, `content`
-					FROM `__global_search`
-					WHERE {conditions}
-					LIMIT {limit} OFFSET {start}'''
+		# common_query = '''SELECT `doctype`, `name`, `content`
+		# 			FROM `__global_search`
+		# 			WHERE {conditions}
+		# 			LIMIT {limit} OFFSET {start}'''
 
-		result = frappe.db.multisql({
-				'mariadb': common_query.format(conditions=mariadb_conditions, limit=limit, start=start),
-				'postgres': common_query.format(conditions=postgres_conditions, limit=limit, start=start)
-			}, as_dict=True)
+		# result = frappe.db.multisql({
+		# 		'mariadb': common_query.format(conditions=mariadb_conditions, limit=limit, start=start),
+		# 		'postgres': common_query.format(conditions=postgres_conditions, limit=limit, start=start)
+		# 	}, as_dict=True)
+		mariadb_cond = " WHERE `doctype`={}".format(doctype) if doctype else ""
+		mariadb_query = """
+			SELECT `doctype`, `name`, `content`, MATCH (`content`) AGAINST ({0} IN NATURAL LANGUAGE MODE) AS rank
+			FROM `__global_search`
+			{1}
+			ORDER BY rank DESC
+		""".format(frappe.db.escape('+' + text + '*'), mariadb_cond)
+
+		postgres_cond = " AND `doctype`={}".format(doctype) if doctype else ""
+		postgres_query = """
+			SELECT `doctype`, `name`, `content` ts_rank_cd(textsearch, query) AS rank
+			FROM `__global_search`, to_tsquery({0}) query
+			WHERE textsearch @@ query
+			{1}
+			ORDER BY rank DESC
+		""".format(frappe.db.escape(text), postgres_cond)
+
+		result = frappe.db.multisql({'mariadb': mariadb_query, 'postgres': postgres_query}, as_dict=True)
 
 		tmp_result=[]
 		for i in result:
-			if i in results or not results:
-				tmp_result.append(i)
-		results += tmp_result
+			if i.rank > 0.0:
+				if i in results or not results:
+					tmp_result.extend([i])
+		results.extend(tmp_result)
 
 	for r in results:
 		try:
