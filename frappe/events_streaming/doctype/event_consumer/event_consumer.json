@@ -6,7 +6,10 @@
  "engine": "InnoDB",
  "field_order": [
   "subscribed_doctypes",
-  "callback_url"
+  "callback_url",
+  "user",
+  "api_key",
+  "api_secret"
  ],
  "fields": [
   {
@@ -21,11 +24,29 @@
    "fieldname": "subscribed_doctypes",
    "fieldtype": "Table",
    "label": "Subscribed Doctypes",
-   "options": "Event Subscribed DocType",
+   "options": "Event Subscribed DocType"
+  },
+  {
+   "fieldname": "api_key",
+   "fieldtype": "Data",
+   "label": "API Key",
+   "read_only": 1
+  },
+  {
+   "fieldname": "api_secret",
+   "fieldtype": "Password",
+   "label": "API Secret",
+   "read_only": 1
+  },
+  {
+   "fieldname": "user",
+   "fieldtype": "Link",
+   "label": "Event Subscriber",
+   "options": "User",
    "reqd": 1
   }
  ],
- "modified": "2019-08-29 21:00:03.302463",
+ "modified": "2019-09-08 22:25:29.141335",
  "modified_by": "Administrator",
  "module": "Events Streaming",
  "name": "Event Consumer",

@@ -54,9 +54,10 @@ class FrappeClient(object):
 		token = b64encode('{}:{}'. format(api_key, api_secret))
 		auth_header = {'Authorization': 'Basic {}'.format(token)}
 		self.session.headers.update(auth_header)
-		if frappe_authorization_source:
-			auth_source = {'Frappe-Authorization-Source': frappe_authorization_source}
-			self.session.headers.update(auth_source)
+		if not frappe_authorization_source:
+			frappe_authorization_source = 'User'
+		auth_source = {'Frappe-Authorization-Source': frappe_authorization_source}
+		self.session.headers.update(auth_source)
 
 	def logout(self):
 		'''Logout session'''

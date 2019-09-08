@@ -11,31 +11,34 @@ from frappe.frappeclient import FrappeClient
 
 class EventProducer(Document):
 	def after_insert(self):
-		self.update_event_consumer()
+		self.create_event_consumer()
 
 	def on_update(self):
-		self.update_event_consumer()
-
-	def update_event_consumer(self):
 		producer_site = get_producer_site(self.producer_url)
-		try:
-			event_consumer = producer_site.get_doc('Event Consumer', get_current_node())
-			event_consumer.subscribed_doctypes = []
-			for entry in self.subscribed_doctypes:
-				event_consumer.subscribed_doctypes.append({
-					'ref_doctype': entry.ref_doctype
-				})
-			event_consumer.event_subscriber = self.event_subscriber
-			producer_site.update(event_consumer)
-		except Exception:
-			consumer = frappe.new_doc('Event Consumer')
-			consumer.callback_url = get_current_node()
-			for entry in self.subscribed_doctypes:
-				consumer.append('subscribed_doctypes', {
-					'ref_doctype': entry.ref_doctype
-				})
-			consumer.event_subscriber = self.event_subscriber
-			producer_site.insert(consumer)
+		event_consumer = producer_site.get_doc('Event Consumer', get_current_node())
+		event_consumer.subscribed_doctypes = []
+		for entry in self.subscribed_doctypes:
+			event_consumer.subscribed_doctypes.append({
+				'ref_doctype': entry.ref_doctype
+			})
+		event_consumer.user = self.user
+		producer_site.update(event_consumer)
+
+	def create_event_consumer(self):
+		'''register event consumer on producer site'''
+		producer_site = FrappeClient(self.producer_url)
+		subscribed_doctypes = []
+		for entry in self.subscribed_doctypes:
+			subscribed_doctypes.append(entry.ref_doctype)
+		(api_key, api_secret) = producer_site.post_request({
+			'cmd': 'frappe.events_streaming.doctype.event_consumer.event_consumer.register_consumer',
+			'event_consumer': get_current_node(),
+			'subscribed_doctypes': json.dumps(subscribed_doctypes),
+			'user': self.user
+		})
+		self.db_set('api_key', api_key)
+		self.db_set('api_secret', api_secret)
+
 
 def get_current_node():
 	current_node = frappe.utils.get_url()
@@ -46,7 +49,13 @@ def get_current_node():
 	return current_node
 
 def get_producer_site(producer_url):
-	producer_site = FrappeClient(producer_url, 'Administrator', 'root')
+	producer_doc = frappe.get_doc('Event Producer', producer_url)
+	producer_site = FrappeClient(
+		url=producer_url,
+		api_key=producer_doc.api_key,
+		api_secret=producer_doc.get_password('api_secret'),
+		frappe_authorization_source='Event Consumer'
+	)
 	return producer_site
 
 @frappe.whitelist()
