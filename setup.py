@@ -17,6 +17,8 @@ with open('requirements.txt') as f:
 with open('frappe/__init__.py', 'rb') as f:
 	version = str(ast.literal_eval(_version_re.search(
 		f.read().decode('utf-8')).group(1)))
+
+with open('frappe/__init__.py', 'rb') as f:
 	ourVersion = str(ast.literal_eval(_version_pcg_re.search(
 		f.read().decode('utf-8')).group(1)))
 
