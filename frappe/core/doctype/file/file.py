@@ -198,12 +198,17 @@ class File(NestedSet):
 					'attached_to_doctype': self.attached_to_doctype,
 					'attached_to_name': self.attached_to_name
 				})
-			duplicate_file = frappe.db.get_value('File', filters)
+			duplicate_file = frappe.db.get_value('File', filters, ['name', 'file_url'], as_dict=1)
 
 			if duplicate_file:
-				self.duplicate_entry = duplicate_file
-				frappe.throw(_("Same file has already been attached to the record"),
-					frappe.DuplicateEntryError)
+				# if it is attached to a document then throw DuplicateEntryError
+				if self.attached_to_doctype and self.attached_to_name:
+					self.duplicate_entry = duplicate_file.name
+					frappe.throw(_("Same file has already been attached to the record"),
+						frappe.DuplicateEntryError)
+				# else just use the url, to avoid uploading a duplicate
+				else:
+					self.file_url = duplicate_file.file_url
 
 	def validate_file_name(self):
 		if not self.file_name and self.file_url:

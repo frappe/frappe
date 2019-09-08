@@ -397,6 +397,7 @@
    "oldfieldtype": "Check"
   },
   {
+   "depends_on": "eval:doc.custom===0",
    "fieldname": "web_view",
    "fieldtype": "Section Break",
    "label": "Web View"
@@ -449,15 +450,15 @@
    "label": "Is Tree"
   },
   {
+   "depends_on": "is_tree",
    "fieldname": "nsm_parent_field",
    "fieldtype": "Data",
-   "label": "Parent Field (Tree)",
-   "depends_on": "is_tree"
+   "label": "Parent Field (Tree)"
   }
  ],
  "icon": "fa fa-bolt",
  "idx": 6,
- "modified": "2019-09-02 05:52:29.411525",
+ "modified": "2019-09-07 14:28:05.392490",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocType",
