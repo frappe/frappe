@@ -239,7 +239,7 @@
   {
    "fieldname": "reference_doctype",
    "fieldtype": "Link",
-   "label": "Reference DocType",
+   "label": "Reference Document Type",
    "options": "DocType"
   },
   {
@@ -383,7 +383,7 @@
  ],
  "icon": "fa fa-comment",
  "idx": 1,
- "modified": "2019-05-21 09:48:24.892143",
+ "modified": "2019-09-05 14:22:27.664645",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Communication",

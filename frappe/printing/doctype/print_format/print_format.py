@@ -6,6 +6,7 @@ from __future__ import unicode_literals
 import frappe
 import frappe.utils
 import json
+from frappe import _
 from frappe.utils.jinja import validate_template
 
 from frappe.model.document import Document
@@ -29,6 +30,12 @@ class PrintFormat(Document):
 
 		if self.html and self.print_format_type != 'JS':
 			validate_template(self.html)
+
+		if self.custom_format and self.raw_printing and not self.raw_commands:
+			frappe.throw(_('{0} are required').format(frappe.bold(_('Raw Commands'))), frappe.MandatoryError)
+
+		if self.custom_format and not self.html:
+			frappe.throw(_('{0} is required').format(frappe.bold(_('HTML'))), frappe.MandatoryError)
 
 	def extract_images(self):
 		from frappe.core.doctype.file.file import extract_images_from_html

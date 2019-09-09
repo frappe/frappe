@@ -147,7 +147,8 @@ frappe.ui.form.save = function (frm, action, callback, btn) {
 			}
 
 			if (error_fields.length) {
-				if (doc.parenttype) {
+				let meta = frappe.get_meta(doc.doctype);
+				if (meta.istable) {
 					var message = __('Mandatory fields required in table {0}, Row {1}',
 						[__(frappe.meta.docfield_map[doc.parenttype][doc.parentfield].label).bold(), doc.idx]);
 				} else {

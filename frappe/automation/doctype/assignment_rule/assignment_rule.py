@@ -122,7 +122,7 @@ def apply(doc, method):
 
 	# multiple auto assigns
 	for d in assignment_rules:
-		assignment_rule_docs.append(frappe.get_doc('Assignment Rule', d.name))
+		assignment_rule_docs.append(frappe.get_doc('Assignment Rule', d.get('name')))
 
 	if not assignment_rule_docs:
 		return
@@ -138,7 +138,7 @@ def apply(doc, method):
 			clear = assignment_rule.apply_unassign(doc, assignments)
 			if clear: break
 
-	# apply rule only if there are no exisiting assignments
+	# apply rule only if there are no existing assignments
 	if clear:
 		for assignment_rule in assignment_rule_docs:
 			if assignment_rule.apply_assign(doc): break
