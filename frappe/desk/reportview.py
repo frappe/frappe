@@ -240,7 +240,6 @@ def delete_items():
 		delete_bulk(doctype, items)
 
 def delete_bulk(doctype, items):
-	failed = []
 	for i, d in enumerate(items):
 		try:
 			frappe.delete_doc(doctype, d)
@@ -248,8 +247,12 @@ def delete_bulk(doctype, items):
 				frappe.publish_realtime("progress",
 					dict(progress=[i+1, len(items)], title=_('Deleting {0}').format(doctype), description=d),
 						user=frappe.session.user)
+			# Commit after successful deletion
+			frappe.db.commit()
 		except Exception:
-			failed.append(d)
+			# rollback if any record failed to delete
+			# if not rollbacked, queries get committed on after_request method in app.py
+			frappe.db.rollback()
 
 @frappe.whitelist()
 @frappe.read_only()
