@@ -158,6 +158,8 @@ class SMTPServer:
 		self._sess = None
 		self.email_account = None
 		self.server = None
+		self.append_emails_to_send_folder = None
+
 		if server:
 			self.server = server
 			self.port = port
@@ -185,7 +187,7 @@ class SMTPServer:
 			self.use_tls = self.email_account.use_tls
 			self.sender = self.email_account.email_id
 			self.use_ssl = self.email_account.use_ssl_for_outgoing
-			self.append_emails_to_send_folder = self.append_emails_to_send_folder
+			self.append_emails_to_send_folder = self.email_account.append_emails_to_send_folder
 			self.always_use_account_email_id_as_sender = cint(self.email_account.get("always_use_account_email_id_as_sender"))
 			self.always_use_account_name_as_sender_name = cint(self.email_account.get("always_use_account_name_as_sender_name"))
 

@@ -7,6 +7,7 @@ import imaplib
 import re
 import json
 import socket
+import time
 from frappe import _
 from frappe.model.document import Document
 from frappe.utils import validate_email_address, cint, get_datetime, DATE_FORMAT, strip, comma_or, sanitize_html
@@ -649,6 +650,22 @@ class EmailAccount(Document):
 
 			if frappe.db.exists("Email Account", {"enable_automatic_linking": 1, "name": ('!=', self.name)}):
 				frappe.throw(_("Automatic Linking can be activated only for one Email Account."))
+
+	def append_email_to_send_folder(self, message):
+
+		email_server = None
+		try:
+			email_server = self.get_incoming_server(in_receive=True)
+		except Exception:
+			frappe.log_error(title=_("Error while connecting to email account {0}").format(self.name))
+
+		if not email_server:
+			return
+
+		email_server.connect()
+
+		if email_server.imap:
+			email_server.imap.append('Sent', '\\Seen', imaplib.Time2Internaldate(time.time()), message)
 
 @frappe.whitelist()
 def get_append_to(doctype=None, txt=None, searchfield=None, start=None, page_len=None, filters=None):

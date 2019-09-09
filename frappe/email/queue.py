@@ -396,6 +396,8 @@ def send_one(email, smtpserver=None, auto_commit=True, now=False, from_test=Fals
 		frappe.get_doc('Communication', email.communication).set_delivery_status(commit=auto_commit)
 
 	try:
+		message = None
+
 		if not frappe.flags.in_test:
 			if not smtpserver: smtpserver = SMTPServer()
 			smtpserver.setup_email_account(email.reference_doctype, sender=email.sender)
@@ -412,9 +414,6 @@ def send_one(email, smtpserver=None, auto_commit=True, now=False, from_test=Fals
 			frappe.db.sql("""update `tabEmail Queue Recipient` set status='Sent', modified=%s where name=%s""",
 				(now_datetime(), recipient.name), auto_commit=auto_commit)
 
-			if smtpserver.append_emails_to_send_folder and recipient.status == "Sent":
-				pass
-
 		#if all are sent set status
 		if any("Sent" == s.status for s in recipients_list):
 			frappe.db.sql("""update `tabEmail Queue` set status='Sent', modified=%s where name=%s""",
@@ -427,6 +426,10 @@ def send_one(email, smtpserver=None, auto_commit=True, now=False, from_test=Fals
 			return
 		if email.communication:
 			frappe.get_doc('Communication', email.communication).set_delivery_status(commit=auto_commit)
+
+		if smtpserver.append_emails_to_send_folder and any("Sent" == s.status for s in recipients_list):
+			print(smtpserver.append_emails_to_send_folder)
+			smtpserver.email_account.append_email_to_send_folder(encode(message))
 
 	except (smtplib.SMTPServerDisconnected,
 			smtplib.SMTPConnectError,
