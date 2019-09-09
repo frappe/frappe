@@ -14,7 +14,6 @@ from frappe.utils import get_url, nowdate, encode, now_datetime, add_days, split
 from rq.timeouts import JobTimeoutException
 from frappe.utils.scheduler import log
 from six import text_type, string_types
-from frappe.email.receive import EmailServer
 
 class EmailLimitCrossedError(frappe.ValidationError): pass
 
