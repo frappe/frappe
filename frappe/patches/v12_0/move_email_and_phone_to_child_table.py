@@ -8,6 +8,7 @@ def execute():
 
 	for contact_detail in contact_details:
 		contact_name = frappe.db.escape(contact_detail.name)
+		contact_phone = frappe.db.escape(contact_detail.phone)
 
 		if contact_detail.email_id:
 			frappe.db.sql("""
@@ -20,8 +21,8 @@ def execute():
 			frappe.db.sql("""
 				INSERT INTO `tabContact Phone`
 					(`idx`, `name`, `phone`, `parentfield`, `parenttype`, `parent`, `is_primary`, `creation`, `modified`, `modified_by`)
-				VALUES (1, '{0}', '{1}', 'phone_nos', 'Contact', {2}, 1, '{3}', '{4}', '{5}')
-			""".format(frappe.generate_hash(contact_detail.phone, 10), contact_detail.phone, contact_name, contact_detail.creation, contact_detail.modified, contact_detail.modified_by))
+				VALUES (1, '{0}', {1}, 'phone_nos', 'Contact', {2}, 1, '{3}', '{4}', '{5}')
+			""".format(frappe.generate_hash(contact_phone, 10), contact_phone, contact_name, contact_detail.creation, contact_detail.modified, contact_detail.modified_by))
 
 		if contact_detail.mobile_no:
 			frappe.db.sql("""
