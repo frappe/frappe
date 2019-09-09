@@ -416,7 +416,8 @@ def search(text, start=0, limit=20, doctype=""):
 
 	results = []
 	texts = [t.strip() for t in text.split('&')]
-	allowed_doctypes = get_doctypes_for_global_search()
+	priorities = get_doctypes_for_global_search()
+	allowed_doctypes = ",".join(["'{0}'".format(dt) for dt in priorities])
 	for text in texts:
 		# mariadb_conditions = ''
 		# postgres_conditions = ''
@@ -439,24 +440,35 @@ def search(text, start=0, limit=20, doctype=""):
 		# 		'mariadb': common_query.format(conditions=mariadb_conditions, limit=limit, start=start),
 		# 		'postgres': common_query.format(conditions=postgres_conditions, limit=limit, start=start)
 		# 	}, as_dict=True)
-		mariadb_cond = " WHERE `doctype`={}".format(doctype) if doctype else ""
-		mariadb_query = """
-			SELECT `doctype`, `name`, `content`, MATCH (`content`) AGAINST ({0} IN NATURAL LANGUAGE MODE) AS rank
-			FROM `__global_search`
-			{1}
-			ORDER BY rank DESC
-		""".format(frappe.db.escape('+' + text + '*'), mariadb_cond)
 
-		postgres_cond = " AND `doctype`={}".format(doctype) if doctype else ""
+		doctype_priorities = " AND `doctype` IN ({})".format(allowed_doctypes) if priorities else ""
+
+		mariadb_conditions = " AND `doctype`={}".format(doctype) if doctype else ""
+		mariadb_text = frappe.db.escape('+' + text + '*')
+		mariadb_query = """
+			SELECT `doctype`, `name`, `content`, MATCH (`content`) AGAINST ({text} IN NATURAL LANGUAGE MODE) AS rank
+			FROM `__global_search`
+			WHERE MATCH (`content`) AGAINST ({text} IN NATURAL LANGUAGE MODE)
+			{mariadb_conditions}
+			{priorities}
+			ORDER BY rank DESC
+		"""
+
+		postgres_conditions = " AND `doctype`={}".format(doctype) if doctype else ""
+		postgres_text = frappe.db.escape(text)
 		postgres_query = """
 			SELECT `doctype`, `name`, `content` ts_rank_cd(textsearch, query) AS rank
-			FROM `__global_search`, to_tsquery({0}) query
+			FROM `__global_search`, to_tsquery({text}) query
 			WHERE textsearch @@ query
-			{1}
+			{postgres_conditions}
+			{priorities}
 			ORDER BY rank DESC
-		""".format(frappe.db.escape(text), postgres_cond)
+		"""
 
-		result = frappe.db.multisql({'mariadb': mariadb_query, 'postgres': postgres_query}, as_dict=True)
+		result = frappe.db.multisql({
+			'mariadb': mariadb_query.format(text=mariadb_text, mariadb_conditions=mariadb_conditions, priorities=doctype_priorities),
+			'postgres': postgres_query.format(text=postgres_text, postgres_conditions=postgres_conditions, priorities=doctype_priorities)
+		}, as_dict=True)
 
 		tmp_result=[]
 		for i in result:
@@ -472,7 +484,7 @@ def search(text, start=0, limit=20, doctype=""):
 		except Exception:
 			frappe.clear_messages()
 
-	priorities = get_doctypes_for_global_search(as_list=True)
+	print(results)
 	return {"results": results, "priorities": priorities}
 
 

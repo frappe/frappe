@@ -28,13 +28,9 @@ class GlobalSearchSettings(Document):
 			"idx": 1
 		})
 
-def get_doctypes_for_global_search(as_list=False):
+def get_doctypes_for_global_search():
 	doctypes = frappe.get_list("Global Search Allow", fields=["document"], order_by="idx ASC")
-	if not doctypes:
+	if not doctypes or not frappe.db.get_single_value("Global Search Settings", "enabled"):
 		return []
 
-	dts = [d.document for d in doctypes]
-	if as_list:
-		return dts
-
-	return ",".join(["'{0}'".format(dt) for dt in dts])
+	return [d.document for d in doctypes]
