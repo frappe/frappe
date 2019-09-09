@@ -102,7 +102,9 @@ frappe.ui.GroupBy = class {
 	}
 
 	apply_group_by() {
-		this.group_by = this.groupby_select.val();
+		this.group_by_doctype = this.groupby_select.find(':selected').attr('data-doctype');
+		this.group_by_field = this.groupby_select.val();
+		this.group_by = '`tab' + this.group_by_doctype + '`.`' + this.group_by_field + '`';
 		this.aggregate_function = this.aggregate_function_select.val();
 
 		if (this.aggregate_function === 'count') {
@@ -138,9 +140,12 @@ frappe.ui.GroupBy = class {
 		if (this.aggregate_function && this.group_by) {
 			let aggregate_column;
 			if(this.aggregate_function === 'count') {
-				aggregate_column = 'count(1)';
+				aggregate_column = 'count(`tab'+ this.doctype + '`.`name`)';
 			} else {
-				aggregate_column = `${this.aggregate_function}(${this.aggregate_on})`;
+
+				// aggregate_column = `${this.aggregate_function}(${this.aggregate_on})`;
+
+				aggregate_column = 'sum('+ '`tab' + this.doctype + '`.`' + this.aggregate_on+'`)';
 			}
 
 			this.report_view.group_by = this.group_by;
@@ -153,7 +158,7 @@ frappe.ui.GroupBy = class {
 			}
 
 			this.report_view.fields = [
-				[this.group_by, this.doctype]
+				[this.group_by_field, this.group_by_doctype]
 			];
 
 			// rebuild fields for group by
@@ -222,8 +227,25 @@ frappe.ui.GroupBy = class {
 		this.report_view.refresh();
 	}
 
-	get_group_by_fields() {
-		return this.report_view.meta.fields.filter((f)=> ["Select", "Link"].includes(f.fieldtype));
+get_group_by_fields() {
+		let group_by_fields = {};
+		let fields = this.report_view.meta.fields.filter((f)=> ["Select", "Link"].includes(f.fieldtype));
+		group_by_fields[this.doctype] = fields;
+
+		const standard_fields_filter = df =>
+			!in_list(frappe.model.no_value_type, df.fieldtype) && !df.report_hide;
+		
+		const table_fields = frappe.meta.get_table_fields(this.doctype)
+			.filter(df => !df.hidden);
+
+		table_fields.forEach(df => {
+			const cdt = df.options;
+			const child_table_fields = frappe.meta.get_docfields(cdt).filter(standard_fields_filter);
+
+			group_by_fields[cdt] = child_table_fields;
+		});
+
+		return group_by_fields;
 	}
 
 };

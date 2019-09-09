@@ -3,9 +3,15 @@
                 <div class="col-sm-4 form-group ui-front">
                         <select class="groupby form-control">
                                 <option value=""disabled selected>Select Group By...</option>
-                                {% for condition in groupby_conditions %}
-                                <option value="{{condition.fieldname}}">{{ condition.label }}</option>
-                                {% endfor %}
+                                {% for (var doc in groupby_conditions) { %}
+                                        {% for (var val in groupby_conditions[doc]) { %}
+                                        <option 
+                                                data-doctype= "{{doc}}"
+                                                value="{{groupby_conditions[doc][val].fieldname}}">
+                                                {{ groupby_conditions[doc][val].label }}
+                                        </option>
+                                        {% } %}
+                                {% } %}
                         </select>
                 </div>
 		<div class="col-sm-2 form-group">
