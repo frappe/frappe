@@ -4,14 +4,19 @@
 
 from __future__ import unicode_literals
 import frappe
-import requests
 import time
 import json
 from frappe.model.document import Document
 from frappe.frappeclient import FrappeClient
+from frappe.events_streaming.doctype.event_producer.event_producer import get_current_node
 
 class EventConsumer(Document):
-	pass
+	def notify(self):
+		client = get_consumer_site(self.callback_url)
+		response = client.post_request({
+			'cmd': 'frappe.events_streaming.doctype.event_producer.event_producer.new_event_notification',
+			'producer_url': get_current_node()
+		})
 
 @frappe.whitelist(allow_guest=True)
 def register_consumer(event_consumer, subscribed_doctypes, user):
@@ -30,3 +35,20 @@ def register_consumer(event_consumer, subscribed_doctypes, user):
 	consumer.api_secret = api_secret
 	consumer.insert(ignore_permissions = True)
 	return (api_key, api_secret)
+
+@frappe.whitelist()
+def notify_event_consumers():
+	event_consumers = frappe.get_all('Event Consumer')
+	for event_consumer in event_consumers:
+		consumer = frappe.get_doc('Event Consumer', event_consumer.name)
+		consumer.notify()
+
+def get_consumer_site(consumer_url):
+	consumer_doc = frappe.get_doc('Event Consumer', consumer_url)
+	consumer_site = FrappeClient(
+		url=consumer_url,
+		api_key=consumer_doc.api_key,
+		api_secret=consumer_doc.get_password('api_secret'),
+		frappe_authorization_source='Event Producer'
+	)
+	return consumer_site

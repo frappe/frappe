@@ -8,6 +8,7 @@ import json
 from frappe import _
 from frappe.model.document import Document
 from frappe.frappeclient import FrappeClient
+from frappe.utils.background_jobs import get_jobs
 
 class EventProducer(Document):
 	def after_insert(self):
@@ -25,7 +26,7 @@ class EventProducer(Document):
 		producer_site.update(event_consumer)
 
 	def create_event_consumer(self):
-		'''register event consumer on producer site'''
+		'''register event consumer on the producer site'''
 		producer_site = FrappeClient(self.producer_url)
 		subscribed_doctypes = []
 		for entry in self.subscribed_doctypes:
@@ -38,7 +39,6 @@ class EventProducer(Document):
 		})
 		self.db_set('api_key', api_key)
 		self.db_set('api_secret', api_secret)
-
 
 def get_current_node():
 	current_node = frappe.utils.get_url()
@@ -65,6 +65,7 @@ def pull_producer_data():
 		pull_from_node(event_producer.name)
 	return 'success'
 
+@frappe.whitelist()
 def pull_from_node(event_producer):
 	event_producer = frappe.get_doc('Event Producer', event_producer)
 	producer_site = get_producer_site(event_producer.producer_url)
@@ -172,3 +173,11 @@ def set_dependencies(doc, link_fields, producer_site):
 
 def check_dependency_fulfilled(linked_doctype, docname):
 	return frappe.db.exists(linked_doctype, docname)
+
+@frappe.whitelist()
+def new_event_notification(producer_url):
+	'''Pull data from producer when notified'''
+	enqueued_method = 'frappe.events_streaming.doctype.event_producer.event_producer.pull_from_node'
+	jobs = get_jobs()
+	if not jobs or enqueued_method not in jobs[frappe.local.site]:
+		frappe.enqueue(enqueued_method, queue = 'default', enqueue_after_commit = True, **{'event_producer': producer_url})
