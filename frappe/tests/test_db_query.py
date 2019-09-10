@@ -251,8 +251,6 @@ class TestReportview(unittest.TestCase):
 		self.assertTrue('DefaultValue' in [d['name'] for d in out])
 
 	def test_of_not_of_descendant_ancestors(self):
-		create_nested_doctype()
-		create_nested_doctype_records()
 		clear_user_permissions_for_doctype('Nested DocType')
 
 		# in descendants filter
