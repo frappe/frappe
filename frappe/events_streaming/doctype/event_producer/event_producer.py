@@ -31,7 +31,7 @@ class EventProducer(Document):
 		subscribed_doctypes = []
 		for entry in self.subscribed_doctypes:
 			subscribed_doctypes.append(entry.ref_doctype)
-		(api_key, api_secret) = producer_site.post_request({
+		(api_key, api_secret, last_update) = producer_site.post_request({
 			'cmd': 'frappe.events_streaming.doctype.event_consumer.event_consumer.register_consumer',
 			'event_consumer': get_current_node(),
 			'subscribed_doctypes': json.dumps(subscribed_doctypes),
@@ -39,6 +39,7 @@ class EventProducer(Document):
 		})
 		self.db_set('api_key', api_key)
 		self.db_set('api_secret', api_secret)
+		self.db_set('last_update', last_update)
 
 def get_current_node():
 	current_node = frappe.utils.get_url()
