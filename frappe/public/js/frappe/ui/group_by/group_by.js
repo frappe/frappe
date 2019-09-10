@@ -142,10 +142,7 @@ frappe.ui.GroupBy = class {
 			if(this.aggregate_function === 'count') {
 				aggregate_column = 'count(`tab'+ this.doctype + '`.`name`)';
 			} else {
-
-				// aggregate_column = `${this.aggregate_function}(${this.aggregate_on})`;
-
-				aggregate_column = 'sum('+ '`tab' + this.doctype + '`.`' + this.aggregate_on+'`)';
+				aggregate_column = 'sum(' + '`tab' + this.doctype + '`.`' + this.aggregate_on + '`)';
 			}
 
 			this.report_view.group_by = this.group_by;
@@ -227,7 +224,7 @@ frappe.ui.GroupBy = class {
 		this.report_view.refresh();
 	}
 
-get_group_by_fields() {
+	get_group_by_fields() {
 		let group_by_fields = {};
 		let fields = this.report_view.meta.fields.filter((f)=> ["Select", "Link"].includes(f.fieldtype));
 		group_by_fields[this.doctype] = fields;
@@ -241,7 +238,6 @@ get_group_by_fields() {
 		table_fields.forEach(df => {
 			const cdt = df.options;
 			const child_table_fields = frappe.meta.get_docfields(cdt).filter(standard_fields_filter);
-
 			group_by_fields[cdt] = child_table_fields;
 		});
 
