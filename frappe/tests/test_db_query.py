@@ -366,6 +366,7 @@ def create_nested_doctype():
 			{'role': 'Blogger'}
 		]
 	}).insert()
+	frappe.db.commit()
 
 def create_nested_doctype_records():
 	'''
