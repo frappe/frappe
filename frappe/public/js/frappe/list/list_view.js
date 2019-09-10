@@ -1300,6 +1300,14 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			};
 		};
 
+		const bulk_assignment_rule = () => {
+			return {
+				label: __('Apply Assignment Rule'),
+				action: () => bulk_operations.apply_assignment_rule(this.get_checked_items(true), this.refresh),
+				standard: true
+			};
+		};
+
 		const bulk_printing = () => {
 			return {
 				label: __('Print'),
@@ -1375,6 +1383,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 		// bulk assignment
 		actions_menu_items.push(bulk_assignment());
+
+		actions_menu_items.push(bulk_assignment_rule());
 
 		// bulk printing
 		if (frappe.model.can_print(doctype)) {
