@@ -172,7 +172,7 @@ class Communication(Document):
 					first_name, last_name = frappe.db.get_value('Contact',
 						filters={'email_id': sender_email},
 						fieldname=['first_name', 'last_name']
-					)
+					) or [None, None]
 					self.sender_full_name = (first_name or '') + (last_name or '')
 
 				if not self.sender_full_name:
