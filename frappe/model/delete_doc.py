@@ -94,9 +94,6 @@ def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reloa
 					doc.flags.in_delete = True
 					doc.run_method('on_change')
 
-				frappe.enqueue('frappe.model.delete_doc.delete_dynamic_links', doctype=doc.doctype, name=doc.name,
-					is_async=False if frappe.flags.in_test else True)
-
 				# check if links exist
 				if not force:
 					check_if_doc_is_linked(doc)
@@ -108,6 +105,14 @@ def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reloa
 
 			# delete attachments
 			remove_all(doctype, name, from_delete=True)
+
+			if not for_reload:
+				# Enqueued at the end, because it gets committed
+				# All the linked docs should be checked beforehand
+				frappe.enqueue('frappe.model.delete_doc.delete_dynamic_links',
+					doctype=doc.doctype, name=doc.name,
+					is_async=False if frappe.flags.in_test else True)
+
 
 		# delete global search entry
 		delete_for_document(doc)
