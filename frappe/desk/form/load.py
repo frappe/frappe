@@ -217,8 +217,8 @@ def get_communication_data(doctype, name, start=0, limit=20, after=None, fields=
 	return communications
 
 def get_assignments(dt, dn):
-	cl = frappe.db.sql("""select `name`, owner, description from `tabToDo`
-		where reference_type=%(doctype)s and reference_name=%(name)s and status='Open'
+	cl = frappe.db.sql("""select `name`, owner, description, status from `tabToDo`
+		where reference_type=%(doctype)s and reference_name=%(name)s and status != 'Cancelled'
 		order by modified desc limit 5""", {
 			"doctype": dt,
 			"name": dn
