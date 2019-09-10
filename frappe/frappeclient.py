@@ -21,14 +21,15 @@ class FrappeClient(object):
 		self.verify = verify
 		self.session = requests.session()
 		self.url = url
+		self.api_key = api_key
+		self.api_secret = api_secret
+		self.frappe_authorization_source = frappe_authorization_source
+
+		self.setup_key_authentication_headers()
 
 		# login if username/password provided
 		if username and password:
 			self._login(username, password)
-
-		# token based authentication if api_key and api_secret provided
-		elif api_key and api_secret:
-			self.authenticate(api_key, api_secret, frappe_authorization_source)
 
 	def __enter__(self):
 		return self
@@ -50,14 +51,15 @@ class FrappeClient(object):
 			print(r.text)
 			raise AuthError
 
-	def authenticate(self, api_key, api_secret, frappe_authorization_source=None):
-		token = b64encode('{}:{}'. format(api_key, api_secret))
-		auth_header = {'Authorization': 'Basic {}'.format(token)}
-		self.session.headers.update(auth_header)
-		if not frappe_authorization_source:
-			frappe_authorization_source = 'User'
-		auth_source = {'Frappe-Authorization-Source': frappe_authorization_source}
-		self.session.headers.update(auth_source)
+	def setup_key_authentication_headers(self):
+		if self.api_key and self.api_secret:
+			token = b64encode('{}:{}'. format(self.api_key, self.api_secret))
+			auth_header = {'Authorization': 'Basic {}'.format(token)}
+			self.headers.update(auth_header)
+
+			if self.frappe_authorization_source:
+				auth_source = {'Frappe-Authorization-Source': self.frappe_authorization_source}
+				self.headers.update(auth_source)
 
 	def logout(self):
 		'''Logout session'''

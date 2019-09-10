@@ -8,12 +8,14 @@ import frappe.utils
 import frappe.sessions
 import frappe.desk.form.run_method
 from frappe.utils.response import build_response
+from frappe.api import validate_auth_via_api_keys
 from frappe.utils import cint
 from werkzeug.wrappers import Response
 from six import string_types
 
 def handle():
 	"""handle request"""
+	validate_auth_via_api_keys()
 	cmd = frappe.local.form_dict.cmd
 	data = None
 
