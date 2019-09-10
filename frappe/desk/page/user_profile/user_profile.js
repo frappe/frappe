@@ -179,6 +179,7 @@ class UserProfile {
 						labels: chart.labels,
 						datasets: chart.datasets
 					},
+					truncateLegends: 1,
 					barOptions: {
 						height: 11,
 						depth: 1
