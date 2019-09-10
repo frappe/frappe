@@ -29,12 +29,18 @@ def register_consumer(event_consumer, subscribed_doctypes, user):
 		consumer.append('subscribed_doctypes',{
 			'ref_doctype': entry
 		})
+
 	api_key = frappe.generate_hash(length=10)
 	api_secret = frappe.generate_hash(length=10)
 	consumer.api_key = api_key
 	consumer.api_secret = api_secret
 	consumer.insert(ignore_permissions = True)
-	return (api_key, api_secret)
+
+	# consumer's 'last_update' field should point to the latest update in producer's update log when subscribing
+	# so that, updates after subscribing are consumed and not the old ones.
+	last_update = get_last_update()
+
+	return (api_key, api_secret, last_update)
 
 @frappe.whitelist()
 def notify_event_consumers():
@@ -52,3 +58,8 @@ def get_consumer_site(consumer_url):
 		frappe_authorization_source='Event Producer'
 	)
 	return consumer_site
+
+@frappe.whitelist()
+def get_last_update():
+	last_updates = frappe.get_list('Update Log', ignore_permissions=True)
+	return last_updates[0].name
