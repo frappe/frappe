@@ -17,6 +17,7 @@ frappe.ui.GroupBy = class {
 			{name:'avg', label:'Average'}
 		];
 		this.groupby_edit_area = $(frappe.render_template("group_by", {
+			doctype: this.doctype,
 			groupby_conditions: this.get_group_by_fields(),
 			aggregate_function_conditions: sql_aggregate_function,
 		}));
@@ -142,7 +143,7 @@ frappe.ui.GroupBy = class {
 			if(this.aggregate_function === 'count') {
 				aggregate_column = 'count(`tab'+ this.doctype + '`.`name`)';
 			} else {
-				aggregate_column = 'sum(' + '`tab' + this.doctype + '`.`' + this.aggregate_on + '`)';
+				aggregate_column = `${this.aggregate_function}(\`tab${this.doctype}\`.\`${this.aggregate_on}\`)`;
 			}
 
 			this.report_view.group_by = this.group_by;

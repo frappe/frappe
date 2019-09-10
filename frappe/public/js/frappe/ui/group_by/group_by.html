@@ -5,11 +5,20 @@
 								<option value=""disabled selected>Select Group By...</option>
 								{% for (var doc in groupby_conditions) { %}
 										{% for (var val in groupby_conditions[doc]) { %}
-										<option 
-												data-doctype= "{{doc}}"
-												value="{{groupby_conditions[doc][val].fieldname}}">
-												{{ groupby_conditions[doc][val].label }}
-										</option>
+											{% if (doc!==doctype) { %}
+											<option 
+													data-doctype= "{{doc}}"
+													value="{{groupby_conditions[doc][val].fieldname}}">
+													{{ groupby_conditions[doc][val].label }}
+													({{ doc }})
+											</option>
+											{% } else { %}
+											<option 
+													data-doctype= "{{doc}}"
+													value="{{groupby_conditions[doc][val].fieldname}}">
+													{{ groupby_conditions[doc][val].label }}
+											</option>
+											{% } %}										
 										{% } %}
 								{% } %}
 						</select>
