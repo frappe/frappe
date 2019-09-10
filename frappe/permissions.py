@@ -423,7 +423,7 @@ def clear_user_permissions_for_doctype(doctype, user=None):
 	filters = {'allow': doctype}
 	if user:
 		filters['user'] = user
-	user_permissions_for_doctype = frappe.db.get_all('User Permission', filters=filters)
+	user_permissions_for_doctype = frappe.db.get_list('User Permission', filters=filters)
 	for d in user_permissions_for_doctype:
 		frappe.delete_doc('User Permission', d.name)
 
