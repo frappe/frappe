@@ -103,8 +103,8 @@ def get_notifications_for_doctypes(config, notification_count):
 			else:
 				try:
 					if isinstance(condition, dict):
-						result = len(frappe.get_list(d, fields=["name"],
-							filters=condition, limit_page_length = 100, as_list=True, ignore_ifnull=True))
+						result = frappe.get_list(d, fields="count(*) as count",
+							filters=condition, ignore_ifnull=True)[0].count
 					else:
 						result = frappe.get_attr(condition)()
 
@@ -282,12 +282,12 @@ def get_open_count(doctype, name, items=[]):
 			# get the fieldname for the current document
 			# we only need open documents related to the current document
 			filters[fieldname] = name
-			total = len(frappe.get_all(d, fields='name',
-				filters=filters, limit=100, distinct=True, ignore_ifnull=True))
+			total = frappe.get_all(d, fields='count(*) as count',
+				filters=filters, ignore_ifnull=True)[0].count
 			data['open_count'] = total
 
-		total = len(frappe.get_all(d, fields='name',
-			filters={fieldname: name}, limit=100, distinct=True, ignore_ifnull=True))
+		total = frappe.get_all(d, fields='count(*) as count',
+			filters={fieldname: name}, ignore_ifnull=True)[0].count
 		data['count'] = total
 		out.append(data)
 
