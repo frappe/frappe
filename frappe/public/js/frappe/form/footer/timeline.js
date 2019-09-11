@@ -585,21 +585,21 @@ frappe.ui.form.Timeline = class Timeline {
 
 						var df = frappe.meta.get_docfield(me.frm.doctype, p[0], me.frm.docname);
 
-						if(df && !df.hidden) {
+						if (df && !df.hidden) {
 							var field_display_status = frappe.perm.get_field_display_status(df, null,
 								me.frm.perm);
-							if(field_display_status === 'Read' || field_display_status === 'Write') {
+							if (field_display_status === 'Read' || field_display_status === 'Write') {
 								parts.push(__('{0} from {1} to {2}', [
 									__(df.label),
-									(frappe.ellipsis(frappe.utils.html2text(p[1]), 40) || '""').bold(),
-									(frappe.ellipsis(frappe.utils.html2text(p[2]), 40) || '""').bold()
+									(frappe.ellipsis(frappe.utils.html2text(p[1]), 40) || '""'),
+									(frappe.ellipsis(frappe.utils.html2text(p[2]), 40) || '""')
 								]));
 							}
 						}
 					}
 					return parts.length < 3;
 				});
-				if(parts.length) {
+				if (parts.length) {
 					parts = parts.map(frappe.utils.escape_html);
 					out.push(me.get_version_comment(version, __("changed value of {0}", [parts.join(', ').bold()])));
 				}
