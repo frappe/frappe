@@ -127,18 +127,18 @@ def bulk_apply(doctype, docnames):
 	import json
 	docnames = json.loads(docnames)
 
-	background = True #len(docnames) > 5
+	background = len(docnames) > 5
 	for name in docnames:
 		if background:
-			frappe.enqueue('frappe.automation.doctype.assignment_rule.assignment_rule.apply', doc=None, doctype = doctype, name=name)
+			frappe.enqueue('frappe.automation.doctype.assignment_rule.assignment_rule.apply', doc=None, doctype=doctype, name=name)
 		else:
-			apply(None, doctype = doctype, name=name)
+			apply(None, doctype=doctype, name=name)
 
 def reopen_closed_assignment(doc):
 	try:
 		todo = frappe.get_list('ToDo', dict(
 			reference_type = doc.doctype,
-			reference_name = doc.docname,
+			reference_name = doc.name,
 			status = 'Closed'
 		))[0]
 	except IndexError:
