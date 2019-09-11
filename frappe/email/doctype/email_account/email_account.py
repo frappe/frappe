@@ -135,7 +135,8 @@ class EmailAccount(Document):
 					or self.email_id,
 				server = self.smtp_server,
 				port = cint(self.smtp_port),
-				use_tls = cint(self.use_tls)
+				use_tls = cint(self.use_tls),
+				use_ssl = cint(self.use_ssl_for_outgoing)
 			)
 			if self.password and not self.no_smtp_authentication:
 				server.password = self.get_password()
