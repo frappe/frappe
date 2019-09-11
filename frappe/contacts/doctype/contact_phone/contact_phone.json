@@ -5,26 +5,34 @@
  "engine": "InnoDB",
  "field_order": [
   "phone",
-  "is_primary"
+  "is_primary_phone",
+  "is_primary_mobile"
  ],
  "fields": [
-  {
-   "default": "0",
-   "fieldname": "is_primary",
-   "fieldtype": "Check",
-   "in_list_view": 1,
-   "label": "Is Primary"
-  },
   {
    "fieldname": "phone",
    "fieldtype": "Data",
    "in_list_view": 1,
    "label": "Phone"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_primary_phone",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Is Primary Phone"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_primary_mobile",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Is Primary Mobile"
   }
  ],
  "istable": 1,
- "modified": "2019-08-05 11:40:59.104224",
- "modified_by": "Administrator",
+ "modified": "2019-09-11 19:52:31.732427",
+ "modified_by": "himanshu@erpnext.com",
  "module": "Contacts",
  "name": "Contact Phone",
  "owner": "Administrator",
