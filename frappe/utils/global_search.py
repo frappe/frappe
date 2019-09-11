@@ -266,6 +266,9 @@ def update_global_search(doc):
 
 		sync_value_in_queue(value)
 
+	if not frappe.db.get_value("Global Search Allow", {"doctype": doc.doctype}, "records_exist"):
+		frappe.db.set_value("Global Search Allow", {"doctype": doc.doctype}, "records_exist", 1)
+
 def update_global_search_for_all_web_pages():
 	routes_to_index = get_routes_to_index()
 	for route in routes_to_index:
