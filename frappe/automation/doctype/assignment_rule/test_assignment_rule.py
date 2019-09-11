@@ -122,7 +122,7 @@ class TestAutoAssign(unittest.TestCase):
 		todo = frappe.get_doc('ToDo', todo['name'])
 		self.assertEqual(todo.owner, 'test@example.com')
 
-		note.content="Invalid"
+		note.content="Closed"
 		note.save()
 
 		todo.load_from_db()
@@ -155,7 +155,7 @@ def get_assignment_rule():
 		document_type = 'Note',
 		assign_condition = 'public == 1',
 		unassign_condition = 'public == 0 or notify_on_login == 1',
-		close_condition = '"Invalid" in content',
+		close_condition = '"Closed" in content',
 		rule = 'Round Robin',
 		users = [
 			dict(user = 'test@example.com'),
