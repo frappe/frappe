@@ -1,7 +1,7 @@
 {% for (var i=0, l=users.length; i < l; i++) {
 	var u = users[i];
 %}
-	<span class="avatar avatar-small {{ u.avatar_class || "" }}" title="{{ u.title }}">
+  <span class="avatar avatar-small {{ u.avatar_class || "" }}" {% if(u.username) { %} data-username ="{{ u.username }}" {% }  %}title="{{ u.title }}">
 	{% if (u.icon) { %}
 		<i class="{{ u.icon }}"></i>
 	{% } else if(u.image) { %}
