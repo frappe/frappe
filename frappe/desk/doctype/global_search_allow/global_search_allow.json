@@ -4,8 +4,7 @@
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
-  "document",
-  "records_exist"
+  "document"
  ],
  "fields": [
   {
@@ -14,18 +13,11 @@
    "in_list_view": 1,
    "label": "Document",
    "options": "DocType"
-  },
-  {
-   "default": "0",
-   "fieldname": "records_exist",
-   "fieldtype": "Check",
-   "label": "Records Exist",
-   "read_only": 1
   }
  ],
  "istable": 1,
- "modified": "2019-09-11 13:17:33.727642",
- "modified_by": "Administrator",
+ "modified": "2019-09-11 15:31:51.160713",
+ "modified_by": "himanshu@erpnext.com",
  "module": "Desk",
  "name": "Global Search Allow",
  "owner": "Administrator",
