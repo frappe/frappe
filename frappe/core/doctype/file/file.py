@@ -22,7 +22,7 @@ import requests
 import requests.exceptions
 import imghdr
 
-from frappe.utils import get_hook_method, get_files_path, random_string, encode, cstr, call_hook_method, cint, get_site_path
+from frappe.utils import get_hook_method, get_files_path, random_string, encode, cstr, call_hook_method, cint
 from frappe import _
 from frappe import conf
 from frappe.utils.nestedset import NestedSet
