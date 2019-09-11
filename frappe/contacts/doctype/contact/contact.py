@@ -29,8 +29,9 @@ class Contact(Document):
 			break
 
 	def validate(self):
-		self.set_primary("email_id", "email_ids")
-		self.set_primary("phone", "phone_nos")
+		self.set_primary_email()
+		self.set_primary_phone_and_mobile_no("phone")
+		self.set_primary_phone_and_mobile_no("mobile_no")
 
 		if self.email_id:
 			self.email_id = self.email_id.strip()
@@ -85,14 +86,41 @@ class Contact(Document):
 		if autosave:
 			self.save(ignore_permissions=True)
 
-	def set_primary(self, fieldname, child_table):
-		if len(self.get(child_table)) == 1:
-			self.get(child_table)[0].is_primary = 1
-			setattr(self, fieldname, self.get(child_table)[0].get(fieldname))
+	def set_primary_email(self):
+		primary_email = [email.email_id for email in self.email_ids if email.is_primary]
+
+		if len(primary_email) > 1:
+			frappe.throw(_("Only one Email ID can be set as primary."))
+
+		if len(self.email_ids) == 1:
+			self.email_ids[0].is_primary = 1
+			self.email_id = self.email_ids[0].email_id
 		else:
-			for d in self.get(child_table):
+			for d in self.email_ids:
 				if d.is_primary == 1:
-					setattr(self, fieldname, d.get(fieldname))
+					self.email_id = d.email_id
+					break
+
+	def set_primary_phone_and_mobile_no(self, fieldname):
+		field_name = "is_primary_" + fieldname
+		is_primary = [phone.phone for phone in self.phone_nos if phone.get(field_name)]
+
+		if len(is_primary) > 1:
+			frappe.throw(_("Only one {0} can be set as primary.").format(frappe.bold(frappe.unscrub(fieldname))))
+
+		if len(self.phone_nos) == 1:
+			if self.phone_nos[0].phone == self.phone or self.phone_nos[0].phone == self.mobile_no:
+				return
+
+			setattr(self.phone_nos[0], fieldname, 1)
+			setattr(self, fieldname, self.phone_nos[0].get("phone"))
+		else:
+			for d in self.phone_nos:
+				if d.get(field_name) == 1:
+					if d.phone == self.phone or d.phone == self.mobile_no:
+						frappe.throw(_("Same number {0} cannot be set for Phone and Mobile No.").format(frappe.bold(d.phone)))
+
+					setattr(self, fieldname, d.phone)
 					break
 
 def get_default_contact(doctype, name):

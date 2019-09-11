@@ -6,7 +6,7 @@
  "field_order": [
   "phone",
   "is_primary_phone",
-  "is_primary_mobile"
+  "is_primary_mobile_no"
  ],
  "fields": [
   {
@@ -24,14 +24,14 @@
   },
   {
    "default": "0",
-   "fieldname": "is_primary_mobile",
+   "fieldname": "is_primary_mobile_no",
    "fieldtype": "Check",
    "in_list_view": 1,
-   "label": "Is Primary Mobile"
+   "label": "Is Primary Mobile No"
   }
  ],
  "istable": 1,
- "modified": "2019-09-11 19:52:31.732427",
+ "modified": "2019-09-11 20:57:22.108260",
  "modified_by": "himanshu@erpnext.com",
  "module": "Contacts",
  "name": "Contact Phone",
