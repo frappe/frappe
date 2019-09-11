@@ -1,3 +1,36 @@
+function openChatWith(viewer){
+		function displayRoom(room){
+				// frappe.chatter.render({room: room});
+				/* The above may be the way to go to display the chat,
+					 but it inserts a completely new chat into the dom
+					 which will lead to issues with toggeling the chat
+					 using the normal toggle function in the page header
+				*/
+				//Ugly, but I don't find a better way
+				frappe.chat.widget.props.children[0].attributes.click(room);
+		}
+
+		frappe.chat.widget.toggle(true);				// display Chat
+		frappe.chat.room.get().then(
+				function (rooms) {
+						if (! Array.isArray(rooms)){
+								rooms = [rooms];
+						}
+						let directChatsWithViewer = rooms.filter(function(room) {
+								return room.type === "Direct" &&
+										(room.owner === viewer || room.users.includes(viewer));
+						});
+						if (directChatsWithViewer.length > 0){
+								displayRoom(directChatsWithViewer[0]);
+						} else {
+								frappe.chat.room.create("Direct", null, viewer).then(room => displayRoom(room));
+						}
+				});
+		return false;	 /*  Becuase we execute this method onClick, it is very important to disable the
+											 onClick listeners to bubble up by returning false.
+											 The document onClick would trigger and make the chat widget invisible again */
+}
+
 
 
 frappe.ui.form.Viewers = Class.extend({
@@ -31,6 +64,7 @@ frappe.ui.form.Viewers = Class.extend({
 				image: user_info.image,
 				fullname: user_info.fullname,
 				abbr: user_info.abbr,
+				username: username,
 				color: user_info.color,
 				title: __("{0} is currently viewing this document", [user_info.fullname])
 			});
@@ -43,6 +77,10 @@ frappe.ui.form.Viewers = Class.extend({
 		if (users.length) {
 			this.parent.parent().removeClass("hidden");
 			this.parent.append(frappe.render_template("users_in_sidebar", {"users": users}));
+			this.parent.find(".avatar").on("click", function(e) {
+					return openChatWith($(e.currentTarget).data('username'));
+			});
+
 		} else {
 			this.parent.parent().addClass("hidden");
 		}
