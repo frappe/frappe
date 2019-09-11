@@ -115,7 +115,6 @@ def remove(doctype, name, assign_to):
 def set_status(doctype, name, assign_to, status="Cancelled"):
 	"""remove from todo"""
 	try:
-		print(locals())
 		todo = frappe.db.get_value("ToDo", {"reference_type":doctype,
 		"reference_name":name, "owner":assign_to, "status": ('!=', status)})
 		if todo:
