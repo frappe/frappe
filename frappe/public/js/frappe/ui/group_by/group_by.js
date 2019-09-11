@@ -227,7 +227,7 @@ frappe.ui.GroupBy = class {
 
 	get_group_by_fields() {
 		let group_by_fields = {};
-		let fields = this.report_view.meta.fields.filter((f)=> ["Select", "Link"].includes(f.fieldtype));
+		let fields = this.report_view.meta.fields.filter(f => ["Select", "Link"].includes(f.fieldtype));
 		group_by_fields[this.doctype] = fields;
 
 		const standard_fields_filter = df =>
