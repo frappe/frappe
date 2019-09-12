@@ -36,18 +36,20 @@ def get_user_rank(user):
     monthly_rank = frappe.db.get_all('Energy Point Log',
         group_by = 'user',
         filters = {'creation': ['>', month_start], 'type' : ['!=', 'Review']},
-        fields = ['user', 'rank() over (order by sum(points) desc) as rank'],
+        fields = ['user', 'sum(points)'],
+        order_by = 'sum(points) desc',
         as_list = True)
 
     all_time_rank = frappe.db.get_all('Energy Point Log',
         group_by = 'user',
         filters = {'type' : ['!=', 'Review']},
-        fields = ['user', 'rank() over (order by sum(points) desc) as rank'],
+        fields = ['user', 'sum(points)'],
+        order_by = 'sum(points) desc',
         as_list = True)
 
     return {
-       'monthly_rank': [r for r in monthly_rank if r[0] == user],
-       'all_time_rank': [r for r in all_time_rank if r[0] == user]
+       'monthly_rank': [i+1 for i, r in enumerate(monthly_rank) if r[0] == user],
+       'all_time_rank': [i+1 for i, r in enumerate(all_time_rank) if r[0] == user]
     }
 
 

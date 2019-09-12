@@ -52,6 +52,8 @@ def get_form_params():
 		key = field.split(" as ")[0]
 
 		if key.startswith('count('): continue
+		if key.startswith('sum('): continue
+		if key.startswith('avg('): continue
 
 		if "." in key:
 			parenttype, fieldname = key.split(".")[0][4:-1], key.split(".")[1].strip("`")
@@ -119,7 +121,7 @@ def save_report():
 def export_query():
 	"""export from report builder"""
 	title = frappe.form_dict.title
-	frappe.form_dict.pop('title')
+	frappe.form_dict.pop('title', None)
 
 	form_params = get_form_params()
 	form_params["limit_page_length"] = None
@@ -240,7 +242,6 @@ def delete_items():
 		delete_bulk(doctype, items)
 
 def delete_bulk(doctype, items):
-	failed = []
 	for i, d in enumerate(items):
 		try:
 			frappe.delete_doc(doctype, d)
@@ -248,8 +249,12 @@ def delete_bulk(doctype, items):
 				frappe.publish_realtime("progress",
 					dict(progress=[i+1, len(items)], title=_('Deleting {0}').format(doctype), description=d),
 						user=frappe.session.user)
+			# Commit after successful deletion
+			frappe.db.commit()
 		except Exception:
-			failed.append(d)
+			# rollback if any record failed to delete
+			# if not rollbacked, queries get committed on after_request method in app.py
+			frappe.db.rollback()
 
 @frappe.whitelist()
 @frappe.read_only()

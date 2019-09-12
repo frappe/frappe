@@ -214,7 +214,7 @@ class DashboardChart {
 		return frappe.xcall(
 			method,
 			{
-				chart: this.chart_doc,
+				chart_name: this.chart_doc.name,
 				filters: filters,
 				refresh: refresh ? 1 : 0,
 			}

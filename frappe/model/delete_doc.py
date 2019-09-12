@@ -16,6 +16,7 @@ from frappe.core.doctype.file.file import remove_all
 from frappe.utils.password import delete_all_passwords_for
 from frappe.model.naming import revert_series_if_last
 from frappe.utils.global_search import delete_for_document
+from frappe.exceptions import FileNotFoundError
 
 
 doctypes_to_skip = ("Communication", "ToDo", "DocShare", "Email Unsubscribe", "Activity Log", "File", "Version", "Document Follow", "Comment" , "View Log")
@@ -77,7 +78,7 @@ def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reloa
 			if not (frappe.flags.in_migrate or frappe.flags.in_install or frappe.flags.in_test):
 				try:
 					delete_controllers(name, doc.module)
-				except FileNotFoundError:
+				except (FileNotFoundError, OSError):
 					# in case a doctype doesnt have any controller code
 					pass
 
@@ -93,9 +94,6 @@ def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reloa
 					doc.flags.in_delete = True
 					doc.run_method('on_change')
 
-				frappe.enqueue('frappe.model.delete_doc.delete_dynamic_links', doctype=doc.doctype, name=doc.name,
-					is_async=False if frappe.flags.in_test else True)
-
 				# check if links exist
 				if not force:
 					check_if_doc_is_linked(doc)
@@ -107,6 +105,14 @@ def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reloa
 
 			# delete attachments
 			remove_all(doctype, name, from_delete=True)
+
+			if not for_reload:
+				# Enqueued at the end, because it gets committed
+				# All the linked docs should be checked beforehand
+				frappe.enqueue('frappe.model.delete_doc.delete_dynamic_links',
+					doctype=doc.doctype, name=doc.name,
+					is_async=False if frappe.flags.in_test else True)
+
 
 		# delete global search entry
 		delete_for_document(doc)

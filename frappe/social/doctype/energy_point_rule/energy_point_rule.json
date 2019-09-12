@@ -37,7 +37,7 @@
    "fieldname": "reference_doctype",
    "fieldtype": "Link",
    "in_list_view": 1,
-   "label": "Reference Doctype",
+   "label": "Reference Document Type",
    "options": "DocType",
    "reqd": 1
   },
@@ -86,7 +86,7 @@
    "options": "New\nSubmit\nCancel\nCustom"
   }
  ],
- "modified": "2019-08-21 12:32:29.852841",
+ "modified": "2019-09-05 14:22:27.664645",
  "modified_by": "Administrator",
  "module": "Social",
  "name": "Energy Point Rule",
