@@ -321,5 +321,8 @@
 	],
 	"js/modules.min.js": [
 		"public/js/frappe/views/modules_home.js"
+	],
+	"js/barcode_scanner.min.js": [
+		"public/js/frappe/barcode_scanner.js"
 	]
 }
