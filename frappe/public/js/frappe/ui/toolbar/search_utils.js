@@ -416,7 +416,7 @@ frappe.search.utils = {
 			return {
 				"results_sets": results_sets,
 				"priorities": priorities
-			}
+			};
 		}
 		return new Promise(function(resolve, reject) {
 			frappe.call({
