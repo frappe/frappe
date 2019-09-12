@@ -161,6 +161,9 @@ def delete_from_table(doctype, name, ignore_doctypes, doc):
 
 	else:
 		def get_table_fields(field_doctype):
+			if field_doctype == 'Custom Field':
+				return []
+
 			return [r[0] for r in frappe.get_all(field_doctype,
 				fields='options',
 				filters={
