@@ -6,11 +6,13 @@ import unittest
 import frappe
 
 from frappe.utils import global_search
+from frappe.desk.page.setup_wizard.install_fixtures import update_global_search_doctypes
 from frappe.test_runner import make_test_objects
 import frappe.utils
 
 class TestGlobalSearch(unittest.TestCase):
 	def setUp(self):
+		update_global_search_doctypes()
 		global_search.setup_global_search_table()
 		self.assertTrue('__global_search' in frappe.db.get_tables())
 		doctype = "Event"
@@ -39,6 +41,7 @@ class TestGlobalSearch(unittest.TestCase):
 			frappe.get_doc(dict(
 				doctype='Event',
 				subject=text,
+				repeat_this_event=1,
 				repeat_on='Monthly',
 				starts_on=frappe.utils.now_datetime())).insert()
 
@@ -48,12 +51,17 @@ class TestGlobalSearch(unittest.TestCase):
 
 	def test_search(self):
 		self.insert_test_events()
+
 		results = global_search.search('awakens')
+		results = results.get("results")
 		self.assertTrue('After Mulder awakens from his coma, he realizes his duty to prevent alien colonization. ' in results[0].content)
 
 		results = global_search.search('extraterrestrial')
+		results = results.get("results")
 		self.assertTrue('Carter explored themes of extraterrestrial involvement in ancient mass extinctions in this episode, the third in a trilogy.' in results[0].content)
+
 		results = global_search.search('awakens & duty & alien')
+		results = results.get("results")
 		self.assertTrue('After Mulder awakens from his coma, he realizes his duty to prevent alien colonization. ' in results[0].content)
 
 	def test_update_doc(self):
@@ -64,19 +72,25 @@ class TestGlobalSearch(unittest.TestCase):
 		event.save()
 		frappe.db.commit()
 		global_search.sync_global_search()
-		results = global_search.search('testing global search')
 
+		results = global_search.search('testing global search')
+		results = results.get("results")
 		self.assertTrue('testing global search' in results[0].content)
 
 	def test_update_fields(self):
 		self.insert_test_events()
+
 		results = global_search.search('Monthly')
+		results = results.get("results")
 		self.assertEqual(len(results), 0)
+
 		doctype = "Event"
 		from frappe.custom.doctype.property_setter.property_setter import make_property_setter
 		make_property_setter(doctype, "repeat_on", "in_global_search", 1, "Int")
 		global_search.rebuild_for_doctype(doctype)
-		results = global_search.search('Monthly')
+
+		results = global_search.search('monthly')
+		results = results.get("results")
 		self.assertEqual(len(results), 3)
 
 	def test_delete_doc(self):
@@ -85,13 +99,16 @@ class TestGlobalSearch(unittest.TestCase):
 		event_name = frappe.get_all('Event')[0].name
 		event = frappe.get_doc('Event', event_name)
 		test_subject = event.subject
+
 		results = global_search.search(test_subject)
+		results = results.get("results")
 		self.assertEqual(len(results), 1)
 
 		frappe.delete_doc('Event', event_name)
 		global_search.sync_global_search()
 
 		results = global_search.search(test_subject)
+		results = results.get("results")
 		self.assertEqual(len(results), 0)
 
 	def test_insert_child_table(self):
