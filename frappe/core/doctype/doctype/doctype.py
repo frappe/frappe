@@ -695,8 +695,8 @@ def validate_fields(meta):
 	def check_invalid_fieldnames(docname, fieldname):
 		invalid_fields = ('doctype',)
 		if fieldname in invalid_fields:
-			frappe.throw(_("{0}: Fieldname cannot one of {1}")
-				.format(docname, ", ".join(invalid_fields)))
+			frappe.throw(_("{0}: Fieldname cannot be one of {1}")
+				.format(docname, ", ".join([frappe.bold(d) for d in invalid_fields])))
 
 
 	def check_unique_fieldname(docname, fieldname):
