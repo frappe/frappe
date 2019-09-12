@@ -16,7 +16,7 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 		awesome_bar.setup("#modal-search");
 
 		this.setup_energy_point_notifications();
-
+		this.setup_notifications();
 		this.make();
 	},
 
@@ -30,9 +30,9 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 	},
 
 	bind_events: function() {
-		$(document).on("notification-update", function() {
-			frappe.ui.notifications.update_notifications();
-		});
+		// $(document).on("notification-update", function() {
+		// 	frappe.ui.notifications.update_notifications();
+		// });
 
 		// clear all custom menus on page change
 		$(document).on("page-change", function() {
@@ -168,6 +168,17 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 		} else {
 			$('.dropdown-energy-points').hide();
 		}
+	},
+
+	setup_notifications: function() {
+		// if (frappe.boot.notifications_enabled) {
+			$('.dropdown-notifications').show();
+			console.log('called');
+			this.notifications = new frappe.ui.Notifications();
+			console.log(this.notifications)
+		// } else {
+			// $('.dropdown-notifications').hide();
+		// }
 	}
 
 });

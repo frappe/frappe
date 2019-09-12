@@ -37,57 +37,57 @@ def get_notifications():
 
 	return {
 		"open_count_doctype": get_notifications_for_doctypes(config, notification_count),
-		"open_count_module": get_notifications_for_modules(config, notification_count),
-		"open_count_other": get_notifications_for_other(config, notification_count),
+		# "open_count_module": get_notifications_for_modules(config, notification_count),
+		# "open_count_other": get_notifications_for_other(config, notification_count),
 		"targets": get_notifications_for_targets(config, notification_percent),
-		"new_messages": get_new_messages()
+		# "new_messages": get_new_messages()
 	}
 
-def get_new_messages():
-	last_update = frappe.cache().hget("notifications_last_update", frappe.session.user)
-	now_timestamp = now()
-	frappe.cache().hset("notifications_last_update", frappe.session.user, now_timestamp)
+# def get_new_messages():
+# 	last_update = frappe.cache().hget("notifications_last_update", frappe.session.user)
+# 	now_timestamp = now()
+# 	frappe.cache().hset("notifications_last_update", frappe.session.user, now_timestamp)
 
-	if not last_update:
-		return []
+# 	if not last_update:
+# 		return []
 
-	if last_update and time_diff_in_seconds(now_timestamp, last_update) > 1800:
-		# no update for 30 mins, consider only the last 30 mins
-		last_update = (now_datetime() - relativedelta(seconds=1800)).strftime(DATETIME_FORMAT)
+# 	if last_update and time_diff_in_seconds(now_timestamp, last_update) > 1800:
+# 		# no update for 30 mins, consider only the last 30 mins
+# 		last_update = (now_datetime() - relativedelta(seconds=1800)).strftime(DATETIME_FORMAT)
 
-	return frappe.db.sql("""select sender_full_name, content
-		from `tabCommunication`
-			where communication_type in ('Chat', 'Notification')
-			and reference_doctype='user'
-			and reference_name = %s
-			and creation > %s
-			order by creation desc""", (frappe.session.user, last_update), as_dict=1)
+# 	return frappe.db.sql("""select sender_full_name, content
+# 		from `tabCommunication`
+# 			where communication_type in ('Chat', 'Notification')
+# 			and reference_doctype='user'
+# 			and reference_name = %s
+# 			and creation > %s
+# 			order by creation desc""", (frappe.session.user, last_update), as_dict=1)
 
-def get_notifications_for_modules(config, notification_count):
-	"""Notifications for modules"""
-	return get_notifications_for("for_module", config, notification_count)
+# def get_notifications_for_modules(config, notification_count):
+# 	"""Notifications for modules"""
+# 	return get_notifications_for("for_module", config, notification_count)
 
-def get_notifications_for_other(config, notification_count):
-	"""Notifications for other items"""
-	return get_notifications_for("for_other", config, notification_count)
+# def get_notifications_for_other(config, notification_count):
+# 	"""Notifications for other items"""
+# 	return get_notifications_for("for_other", config, notification_count)
 
-def get_notifications_for(notification_type, config, notification_count):
-	open_count = {}
-	notification_map = config.get(notification_type) or {}
-	for m in notification_map:
-		try:
-			if m in notification_count:
-				open_count[m] = notification_count[m]
-			else:
-				open_count[m] = frappe.get_attr(notification_map[m])()
+# def get_notifications_for(notification_type, config, notification_count):
+# 	open_count = {}
+# 	notification_map = config.get(notification_type) or {}
+# 	for m in notification_map:
+# 		try:
+# 			if m in notification_count:
+# 				open_count[m] = notification_count[m]
+# 			else:
+# 				open_count[m] = frappe.get_attr(notification_map[m])()
 
-				frappe.cache().hset("notification_count:" + m, frappe.session.user, open_count[m])
-		except frappe.PermissionError:
-			frappe.clear_messages()
-			pass
-			# frappe.msgprint("Permission Error in notifications for {0}".format(m))
+# 				frappe.cache().hset("notification_count:" + m, frappe.session.user, open_count[m])
+# 		except frappe.PermissionError:
+# 			frappe.clear_messages()
+# 			pass
+# 			# frappe.msgprint("Permission Error in notifications for {0}".format(m))
 
-	return open_count
+# 	return open_count
 
 def get_notifications_for_doctypes(config, notification_count):
 	"""Notifications for DocTypes"""
@@ -200,7 +200,8 @@ def clear_doctype_notifications(doc, method=None, *args, **kwargs):
 		delete_notification_count_for(doctype)
 		return
 
-def get_notification_info_for_boot():
+@frappe.whitelist()
+def get_notification_info():
 	out = get_notifications()
 	config = get_notification_config()
 	can_read = frappe.get_user().get_can_read()

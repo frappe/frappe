@@ -8,6 +8,7 @@ from frappe import _
 import json
 from frappe.model.document import Document
 from frappe.core.doctype.user.user import extract_mentions
+from frappe.core.doctype.notification_log.notification_log import create_notification_log
 from frappe.utils import get_fullname, get_link_to_form
 from frappe.website.render import clear_cache
 from frappe.database.schema import add_column
@@ -67,18 +68,32 @@ class Comment(Document):
 				for name in mentions]
 			link = get_link_to_form(self.reference_doctype, self.reference_name, label=parent_doc_label)
 
-			frappe.sendmail(
-				recipients = recipients,
-				sender = frappe.session.user,
-				subject = subject,
-				template = "mentioned_in_comment",
-				args = {
-					"body_content": _("{0} mentioned you in a comment in {1}").format(sender_fullname, link),
-					"comment": self,
-					"link": link
-				},
-				header = [_('New Mention'), 'orange']
-			)
+			# from frappe.core.doctype.notification_settings.notification_settings import is_notifications_enabled
+			# if is_notifications_enabled:
+			notification_message = _('''<b>{0}</b> mentioned you in a comment in <b>{1} {2}</b></span>''')\
+				.format(sender_fullname, self.reference_doctype, title)
+
+			notification_doc = {
+				'type': 'Mention',
+				'reference_doctype': self.reference_doctype,
+				'subject': notification_message,
+				'reference_name': self.reference_name,
+				'reference_user': frappe.session.user
+			}
+			create_notification_log(recipients, notification_doc)
+
+			# frappe.sendmail(
+			# 	recipients = recipients,
+			# 	sender = frappe.session.user,
+			# 	subject = subject,
+			# 	template = "mentioned_in_comment",
+			# 	args = {
+			# 		"body_content": _("{0} mentioned you in a comment in {1}").format(sender_fullname, link),
+			# 		"comment": self,
+			# 		"link": link
+			# 	},
+			# 	header = [_('New Mention'), 'orange']
+			# )
 
 
 def on_doctype_update():

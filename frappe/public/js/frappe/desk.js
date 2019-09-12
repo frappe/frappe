@@ -272,49 +272,49 @@ frappe.Application = Class.extend({
 		var me = this;
 
 		// refresh_notifications will be called only once during a 1 second window
-		this.refresh_notifications = frappe.utils.debounce(this.refresh_notifications.bind(this), 1000);
+		// this.refresh_notifications = frappe.utils.debounce(this.refresh_notifications.bind(this), 1000);
 
 		// kickoff
-		this.refresh_notifications();
+		// this.refresh_notifications();
 
-		frappe.realtime.on('clear_notifications', () => {
-			me.refresh_notifications();
-		});
+		// frappe.realtime.on('clear_notifications', () => {
+		// 	me.refresh_notifications();
+		// });
 
 		// first time loaded in boot
-		$(document).trigger("notification-update");
+		// $(document).trigger("notification-update");
 
 		// refresh notifications if user is back after sometime
-		$(document).on("session_alive", function() {
-			me.refresh_notifications();
-		});
+		// $(document).on("session_alive", function() {
+		// 	me.refresh_notifications();
+		// });
 	},
 
-	refresh_notifications: function() {
-		var me = this;
-		if(frappe.session_alive && frappe.boot && frappe.boot.home_page !== 'setup-wizard') {
-			if (this._refresh_notifications) {
-				this._refresh_notifications.abort();
-			}
-			this._refresh_notifications = frappe.call({
-				type: 'GET',
-				method: "frappe.desk.notifications.get_notifications",
-				callback: function(r) {
-					if(r.message) {
-						$.extend(frappe.boot.notification_info, r.message);
-						$(document).trigger("notification-update");
+	// refresh_notifications: function() {
+	// 	var me = this;
+	// 	if(frappe.session_alive && frappe.boot && frappe.boot.home_page !== 'setup-wizard') {
+	// 		if (this._refresh_notifications) {
+	// 			this._refresh_notifications.abort();
+	// 		}
+	// 		this._refresh_notifications = frappe.call({
+	// 			type: 'GET',
+	// 			method: "frappe.desk.notifications.get_notifications",
+	// 			callback: function(r) {
+	// 				if(r.message) {
+	// 					$.extend(frappe.boot.notification_info, r.message);
+	// 					$(document).trigger("notification-update");
 
-						if(frappe.get_route()[0] != "messages") {
-							if(r.message.new_messages.length) {
-								frappe.utils.set_title_prefix("(" + r.message.new_messages.length + ")");
-							}
-						}
-					}
-				},
-				freeze: false
-			});
-		}
-	},
+	// 					if(frappe.get_route()[0] != "messages") {
+	// 						if(r.message.new_messages.length) {
+	// 							frappe.utils.set_title_prefix("(" + r.message.new_messages.length + ")");
+	// 						}
+	// 					}
+	// 				}
+	// 			},
+	// 			freeze: false
+	// 		});
+	// 	}
+	// },
 
 	set_globals: function() {
 		frappe.session.user = frappe.boot.user.name;

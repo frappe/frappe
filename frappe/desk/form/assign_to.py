@@ -7,6 +7,8 @@ from __future__ import unicode_literals
 import frappe
 from frappe import _
 from frappe.desk.form.document_follow import follow_document
+from frappe.core.doctype.notification_log.notification_log import create_notification_log
+import frappe.utils
 from frappe.utils import cint
 import frappe.share
 
@@ -78,9 +80,11 @@ def add(args=None):
 		# make this document followed by assigned user
 		follow_document(args['doctype'], args['name'], args['assign_to'])
 
-	# notify
+	# from frappe.core.doctype.notification_settings.notification_settings import is_notifications_enabled
+	# if is_notifications_enabled:
+		# notify
 	notify_assignment(d.assigned_by, d.owner, d.reference_type, d.reference_name, action='ASSIGN',\
-			 description=args.get("description"), notify=args.get('notify'))
+			description=args.get("description"), notify=args.get('notify'))
 
 	return get(args)
 
@@ -162,7 +166,11 @@ def notify_assignment(assigned_by, owner, doc_type, doc_name, action='CLOSE',
 	assignment = get_link_to_form(doc_type, doc_name, label="%s: %s" % (doc_type, doc_name))
 	owner_name = frappe.get_cached_value('User', owner, 'full_name')
 	user_name = frappe.get_cached_value('User', frappe.session.user, 'full_name')
+	title_field = frappe.get_meta(doc_type).get_title_field()
+	title = doc_name if title_field == "name" else \
+		frappe.db.get_value(doc_type, doc_name, title_field)
 	if action=='CLOSE':
+		print('CLOSED!!!')
 		if owner == frappe.session.get('user'):
 			arg = {
 				'contact': assigned_by,
@@ -175,6 +183,15 @@ def notify_assignment(assigned_by, owner, doc_type, doc_name, action='CLOSE',
 				'txt': _("The task {0}, that you assigned to {1}, has been closed by {2}.").format(assignment,
 					owner_name, user_name)
 			}
+		subject = _('<b>Your</b> assignment on <b>{0} {1}</b> has been removed').format(doc_type, title)
+		notification_doc = {
+			'type': 'Assignment',
+			'reference_doctype': doc_type,
+			'subject': subject,
+			'reference_name': doc_name,
+			'reference_user': frappe.session.user
+		}
+		create_notification_log(owner, notification_doc)
 	else:
 		description_html = "<p>{0}</p>".format(description)
 		arg = {
@@ -183,6 +200,16 @@ def notify_assignment(assigned_by, owner, doc_type, doc_name, action='CLOSE',
 				user_name, description_html),
 			'notify': notify
 		}
+		user = arg['contact']
+		subject = '''<b>{0}</b> assigned a new task <b>{1} {2}</b> to you'''.format(user_name, doc_type, title)
+		notification_doc = {
+			'type': 'Assignment',
+			'reference_doctype': doc_type,
+			'subject': subject,
+			'reference_name': doc_name,
+			'reference_user': frappe.session.user
+		}
+		create_notification_log(user, notification_doc)
 
 	if arg and cint(arg.get("notify")):
 		_notify(arg)

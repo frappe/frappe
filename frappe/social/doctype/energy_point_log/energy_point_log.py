@@ -7,6 +7,7 @@ import frappe
 from frappe import _
 import json
 from frappe.model.document import Document
+from frappe.core.doctype.notification_log.notification_log import create_notification_log
 from frappe.utils import cint, get_fullname, getdate, get_link_to_form
 
 class EnergyPointLog(Document):
@@ -22,6 +23,9 @@ class EnergyPointLog(Document):
 				['reference_type', 'reference_name'])
 
 	def after_insert(self):
+		# from frappe.core.doctype.notification_settings.notification_settings import is_notifications_enabled,\
+		# 	is_energy_point_notifications_enabled
+		# if is_notifications_enabled and is_energy_point_notifications_enabled:
 		alert_dict = get_alert_dict(self)
 		if alert_dict:
 			frappe.publish_realtime('energy_point_alert', message=alert_dict, user=self.user)
@@ -31,7 +35,51 @@ class EnergyPointLog(Document):
 		frappe.publish_realtime('update_points', after_commit=True)
 
 		if self.type != 'Review':
+			reference_user = self.user if self.type == 'Auto' else self.owner
 			frappe.publish_realtime('energy_points_notification', after_commit=True, user=self.user)
+			notification_doc = {
+				'type': 'Energy Point',
+				'reference_doctype': self.reference_doctype,
+				'reference_name': self.reference_name,
+				'subject': get_notifications_message(self),
+				'reference_user': reference_user
+			}
+			create_notification_log(self.user, notification_doc)
+
+def get_notifications_message(doc):
+	owner_name = get_fullname(doc.owner)
+	points = doc.points
+	title_field = frappe.get_meta(doc.reference_doctype).get_title_field()
+	title = doc.reference_name if title_field == "name" else \
+		frappe.db.get_value(doc.reference_doctype, doc.reference_name, title_field)
+	print(title, 'titlee')
+	if doc.type == 'Auto':
+		if points == 1:
+			message = _('<b>You</b> gained <b>{0}</b> point for {1} <b>{2}</b>')
+		else:
+			message = _('<b>You</b> gained <b>{0}</b> points for {1} <b>{2}</b>')
+		message = message.format(points, doc.rule, title)
+	elif doc.type == 'Appreciation':
+		if points == 1:
+			message = _('<b>{0}</b> appreciated your work on <b>{1}</b> with <b>{2}</b> point')
+		else:
+			message = _('<b>{0}</b> appreciated your work on <b>{1}</b> with <b>{2}</b> points')
+		message = message.format(owner_name, title, points)
+	elif doc.type == 'Criticism':
+		if points == 1:
+			message = _('<b>{0}</b> criticized your work on <b>{1}</b> with <b>{2}</b> point')
+		else:
+			message = _('<b>{0}</b> criticized your work on <b>{1}</b> with <b>{2}</b> points')
+
+		message = message.format(owner_name, title, points)
+	elif doc.type == 'Revert':
+		if points == 1:
+			message = _('<b>{0}</b> reverted your point on <b>{1}</b>')
+		else:
+			message = _('<b>{0}</b> reverted your points on <b>{1}</b>')
+		message = message.format(owner_name, title)
+
+	return message
 
 def get_alert_dict(doc):
 	alert_dict = frappe._dict()

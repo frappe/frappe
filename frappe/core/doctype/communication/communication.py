@@ -8,6 +8,7 @@ from frappe.model.document import Document
 from frappe.utils import validate_email_address, get_fullname, strip_html, cstr
 from frappe.core.doctype.communication.email import (validate_email,
 	notify, _notify, update_parent_mins_to_first_response)
+from frappe.core.doctype.notification_log.notification_log import create_notification_log
 from frappe.core.utils import get_parent_doc
 from frappe.utils.bot import BotReply
 from frappe.utils import parse_addr
@@ -102,6 +103,10 @@ class Communication(Document):
 			frappe.publish_realtime('new_communication', self.as_dict(),
 				doctype=self.reference_doctype, docname=self.reference_name,
 				after_commit=True)
+
+			# from frappe.core.doctype.notification_settings.notification_settings import is_notifications_enabled
+			# if is_notifications_enabled:
+			create_notification(self)
 
 		elif self.communication_type in ("Chat", "Notification", "Bot"):
 			if self.reference_name == frappe.session.user:
@@ -413,3 +418,28 @@ def get_email_without_link(email):
 	email_host = email.split("@")[1]
 
 	return "{0}@{1}".format(email_id, email_host)
+
+def create_notification(self):
+	title_field = frappe.get_meta(self.reference_doctype).get_title_field()
+	title = self.reference_name if title_field == "name" else \
+		frappe.db.get_value(self.reference_doctype, self.reference_name, title_field)
+
+	if self.cc or self.bcc:
+		names = self.cc or '' + self.bcc or ''
+		notification_message = _('''<b>{0}</b> included you in an Email <b>{1}</b>''').format(self.sender_full_name, title)
+		args = {
+			'type': 'Communication',
+			'reference_doctype': self.reference_doctype,
+			'subject': notification_message,
+			'reference_name': self.reference_name
+		}
+		create_notification_log(names, args)
+	notification_message = _('''<b>{0}</b> replied to your Email <b>{1}</b>''').format(self.sender_full_name, title)
+	args = {
+		'type': 'Communication',
+		'reference_doctype': self.reference_doctype,
+		'subject': notification_message,
+		'reference_name': self.reference_name,
+		'reference_user': frappe.session.user
+	}
+	create_notification_log(self.recipients, args)
