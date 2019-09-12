@@ -179,6 +179,7 @@ def sync_contacts_from_google_contacts(g_contact):
 					"last_name": name.get("familyName") or "",
 					"designation": get_indexed_value(connection.get("organizations"), 0, "title"),
 					"pulled_from_google_contacts": 1,
+					"google_contacts": account.name,
 					"google_contacts_description": get_indexed_value(connection.get("organizations"), 0, "name")
 				})
 
