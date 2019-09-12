@@ -583,7 +583,7 @@ class DocType(Document):
 				create_custom_field(self.name, df)
 
 	def validate_nestedset(self):
-		if not self.is_tree:
+		if not self.get('is_tree'):
 			return
 		self.add_nestedset_fields()
 		# set field as mandatory
