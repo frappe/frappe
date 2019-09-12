@@ -427,15 +427,12 @@ def search(text, start=0, limit=20, doctype=""):
 
 		mariadb_text = frappe.db.escape('+' + text + '*')
 
-		mariadb_fields = '`doctype`, `name`, `content`, MATCH (`content`) AGAINST ({} IN NATURAL LANGUAGE MODE) AS rank'.format(mariadb_text)
+		mariadb_fields = '`doctype`, `name`, `content`, MATCH (`content`) AGAINST ({} IN BOOLEAN MODE) AS rank'.format(mariadb_text)
 		postgres_fields = '`doctype`, `name`, `content`, TO_TSVECTOR("content") @@ PLAINTO_TSQUERY({}) as rank'.format(frappe.db.escape(text))
 
-		mariadb_conditions += 'MATCH(`content`) AGAINST ({} IN BOOLEAN MODE)'.format(mariadb_text)
-		postgres_conditions += 'TO_TSVECTOR("content") @@ PLAINTO_TSQUERY({})'.format(frappe.db.escape(text))
-
 		if allowed_doctypes:
-			mariadb_conditions += ' AND `doctype` IN ({})'.format(allowed_doctypes)
-			postgres_conditions += ' AND `doctype` IN ({})'.format(allowed_doctypes)
+			mariadb_conditions += '`doctype` IN ({})'.format(allowed_doctypes)
+			postgres_conditions += '`doctype` IN ({})'.format(allowed_doctypes)
 
 		common_query = """
 				SELECT {fields}
