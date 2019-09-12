@@ -68,9 +68,11 @@ frappe.barcode.get_barcode = function() {
 					},
 					function(err) {
 						if (err) {
+							// eslint-disable-next-line
 							console.log(err);
 							return;
 						}
+						// eslint-disable-next-line
 						console.log('Initialization finished. Ready to start');
 						Quagga.start();
 					}

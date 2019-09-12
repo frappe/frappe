@@ -7,7 +7,7 @@ frappe.barcode.scan_barcode = function() {
 			window.cordova.plugins &&
 			window.cordova.plugins.barcodeScanner
 		) {
-			cordova.plugins.barcodeScanner.scan(result => {
+			window.cordova.plugins.barcodeScanner.scan(result => {
 				if (!result.cancelled) {
 					resolve(result.text);
 				}
