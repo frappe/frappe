@@ -41,7 +41,7 @@ Quagga.onProcessed(function(result) {
 	}
 });
 
-frappe.barcode.scan_barcode = function() {
+frappe.barcode.get_barcode = function() {
 	return new Promise(resolve => {
 		let d = new frappe.ui.Dialog({
 			title: __('Scan Barcode'),
