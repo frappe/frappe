@@ -135,7 +135,7 @@ frappe.Application = Class.extend({
 			frappe.call({
 				method: 'frappe.core.page.background_jobs.background_jobs.get_scheduler_status',
 				callback: function(r) {
-					if (r.message[0] == __("Inactive")) {
+					if (r.message[0] == __("Inactive") && frappe.boot.developer_mode!=1) {
 						frappe.msgprint({
 							title: __("Scheduler Inactive"),
 							indicator: "red",
