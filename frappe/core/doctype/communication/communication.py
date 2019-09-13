@@ -390,7 +390,6 @@ def parse_email(communication, email_strings):
 					email_local_part = email.split("@")[0]
 					local_parts = email_local_part.split(delimiter)
 					if len(local_parts) == 3:
-						email_address = unquote(local_parts[0])
 						doctype = unquote(local_parts[1])
 						docname = unquote(local_parts[2])
 						if doctype and docname and frappe.db.exists(doctype, docname):
