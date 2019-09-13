@@ -90,12 +90,8 @@ class Contact(Document):
 		if not self.email_ids:
 			return
 
-		primary_email = [email.email_id for email in self.email_ids if email.is_primary]
-
-		if len(primary_email) > 1:
+		if len([email.email_id for email in self.email_ids if email.is_primary]) > 1:
 			frappe.throw(_("Only one Email ID can be set as primary."))
-		elif len(primary_email) == 0:
-			frappe.throw(_("Select primary {0}.").format(frappe.bold("Email")))
 
 		if len(self.email_ids) == 1:
 			self.email_ids[0].is_primary = 1
@@ -111,18 +107,15 @@ class Contact(Document):
 			return
 
 		field_name = "is_primary_" + fieldname
-		is_primary = [phone.phone for phone in self.phone_nos if phone.get(field_name)]
 
-		if len(is_primary) > 1:
+		if len([phone.phone for phone in self.phone_nos if phone.get(field_name)]) > 1:
 			frappe.throw(_("Only one {0} can be set as primary.").format(frappe.bold(frappe.unscrub(fieldname))))
-		elif len(is_primary) == 0:
-			frappe.throw(_("Select primary {0}.").format(frappe.bold(frappe.scrub(fieldname))))
 
 		if len(self.phone_nos) == 1:
 			if self.phone_nos[0].phone == self.phone or self.phone_nos[0].phone == self.mobile_no:
-				return
+				frappe.throw(_("Same number {0} cannot be set for Phone and Mobile No.").format(frappe.bold(self.phone_nos[0].phone)))
 
-			setattr(self.phone_nos[0], fieldname, 1)
+			setattr(self.phone_nos[0], field_name, 1)
 			setattr(self, fieldname, self.phone_nos[0].get("phone"))
 		else:
 			for d in self.phone_nos:
