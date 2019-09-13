@@ -75,6 +75,7 @@
    "label": "Next Sync Token"
   },
   {
+   "depends_on": "enable",
    "fieldname": "sync",
    "fieldtype": "Section Break",
    "label": "Sync"
@@ -96,8 +97,8 @@
    "label": "Push to Google Contacts"
   }
  ],
- "modified": "2019-09-06 20:43:38.124849",
- "modified_by": "Administrator",
+ "modified": "2019-09-13 15:53:19.569924",
+ "modified_by": "himanshu@erpnext.com",
  "module": "Integrations",
  "name": "Google Contacts",
  "owner": "Administrator",
