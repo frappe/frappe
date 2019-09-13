@@ -231,7 +231,7 @@ def update_contacts_to_google_contacts(doc, method=None):
 	"""
 	# Workaround to avoid triggering updation when Event is being inserted since
 	# creation and modified are same when inserting doc
-	if not frappe.db.exists("Google Contacts", {"name": doc.google_contacts}) or doc.modified == doc.creation \
+	if not frappe.db.exists("Google Contacts", {"name": doc.google_contacts}) or doc.is_new() \
 		or not doc.sync_with_google_contacts:
 		return
 
