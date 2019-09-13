@@ -1040,6 +1040,7 @@ img.img-loading:after {
 	content: "\f00b";
 }
 
+
 body.no-sidebar {
 	@media (min-width: @screen-md) {
 		.layout-side-section {
@@ -1048,6 +1049,14 @@ body.no-sidebar {
 
 		.layout-main-section-wrapper {
 			width: 100% !important;
+		}
+	}
+}
+
+body.full-width {
+	@media (min-width: @screen-md) {
+		.container {
+			width: 90%;
 		}
 	}
 }
