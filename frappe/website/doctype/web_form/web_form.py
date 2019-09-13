@@ -527,6 +527,14 @@ def get_form_data(doctype, docname=None, web_form_name=None):
 			field.fields = get_in_list_view_fields(field.options)
 			out.update({field.fieldname: field.fields})
 
+		if field.fieldtype == "Link":
+			field.fieldtype = "Autocomplete"
+			field.options = get_link_options(
+				web_form_name,
+				field.options,
+				field.allow_read_on_all_link_options
+			)
+
 	return out
 
 @frappe.whitelist()
