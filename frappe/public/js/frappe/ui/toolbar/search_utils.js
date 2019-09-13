@@ -316,7 +316,7 @@ frappe.search.utils = {
 
 	get_global_results: function(keywords, start, limit, doctype = "") {
 		var me = this;
-		function get_results_sets(data, priorities) {
+		function get_results_sets(data) {
 			var results_sets = [], result, set;
 			function get_existing_set(doctype) {
 				return results_sets.find(function(set) {
@@ -413,10 +413,7 @@ frappe.search.utils = {
 				}
 
 			});
-			return {
-				"results_sets": results_sets,
-				"priorities": priorities
-			};
+			return results_sets;
 		}
 		return new Promise(function(resolve, reject) {
 			frappe.call({
@@ -429,7 +426,7 @@ frappe.search.utils = {
 				},
 				callback: function(r) {
 					if(r.message) {
-						resolve(get_results_sets(r.message.results, r.message.priorities));
+						resolve(get_results_sets(r.message));
 					} else {
 						resolve([]);
 					}

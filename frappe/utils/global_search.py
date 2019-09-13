@@ -462,7 +462,17 @@ def search(text, start=0, limit=20, doctype=""):
 		except Exception:
 			frappe.clear_messages()
 
-	return {"results": results, "priorities": priorities}
+	sorted_results = []
+
+	for priority in priorities:
+		for r in results:
+			tmp_result = []
+			if r.doctype == priority:
+				tmp_result.append(r)
+
+		sorted_results.extend(tmp_result)
+
+	return sorted_results
 
 
 @frappe.whitelist(allow_guest=True)
