@@ -131,7 +131,7 @@ frappe.Application = Class.extend({
 		}
 		this.link_preview = new frappe.ui.LinkPreview();
 
-		if (frappe.boot.developer_mode!=1) {
+		if (!frappe.boot.developer_mode) {
 			setInterval(function() {
 				frappe.call({
 					method: 'frappe.core.page.background_jobs.background_jobs.get_scheduler_status',
