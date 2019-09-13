@@ -180,7 +180,7 @@ def sync_contacts_from_google_contacts(g_contact):
 					"designation": get_indexed_value(connection.get("organizations"), 0, "title"),
 					"pulled_from_google_contacts": 1,
 					"google_contacts": account.name,
-					"google_contacts_description": get_indexed_value(connection.get("organizations"), 0, "name")
+					"company_name": get_indexed_value(connection.get("organizations"), 0, "name")
 				})
 
 				for email in connection.get("emailAddresses", []):

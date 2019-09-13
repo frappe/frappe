@@ -61,6 +61,15 @@ frappe.ui.form.on("Contact", {
 				}
 			}
 		]);
+	},
+	sync_with_google_contacts: function(frm) {
+		if (frm.doc.sync_with_google_contacts) {
+			frappe.db.get_value("Google Contacts", {"email_id": frappe.session.user}, "name", (r) => {
+				if (r && r.name) {
+					frm.set_value("google_contacts", r.name);
+				}
+			})
+		}
 	}
 });
 
