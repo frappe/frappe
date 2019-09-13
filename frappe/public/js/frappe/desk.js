@@ -118,20 +118,22 @@ frappe.Application = Class.extend({
 			}
 		}
 
-		setInterval(function() {
-			frappe.call({
-				method: 'frappe.core.page.background_jobs.background_jobs.get_scheduler_status',
-				callback: function(r) {
-					if (r.message[0] == __("Inactive") && frappe.boot.developer_mode!=1) {
-						frappe.msgprint({
-							title: __("Scheduler Inactive"),
-							indicator: "red",
-							message: __("Background jobs are not running. Please contact Administrator")
-						});
+		if (frappe.boot.developer_mode!=1) {
+			setInterval(function() {
+				frappe.call({
+					method: 'frappe.core.page.background_jobs.background_jobs.get_scheduler_status',
+					callback: function(r) {
+						if (r.message[0] == __("Inactive")) {
+							frappe.msgprint({
+								title: __("Scheduler Inactive"),
+								indicator: "red",
+								message: __("Background jobs are not running. Please contact Administrator")
+							});
+						}
 					}
-				}
-			});
-		}, 300000); // check every 5 minutes
+				});
+			}, 300000); // check every 5 minutes
+		}
 	},
 	set_password: function(user) {
 		var me=this;
