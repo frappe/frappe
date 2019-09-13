@@ -23,6 +23,17 @@
 	<link type="text/css" rel="stylesheet" href="{{ include }}?ver={{ build_version }}">
 	{%- endfor -%}
 </head>
+<noscript>
+	<div class="container py-5">
+		<img src="/assets/frappe_theme/img/icons/stop.svg" style="width: 80px; margin-bottom: 2rem; margin-top: -2rem;">
+		<h1>Enable Javascript</h1>
+		<p class="lead text-muted mb-5">
+			It seems like JavaScript is disabled on your browser.
+		</p>
+		<!-- <a href="https://enable-javascript.com" target="_blank">Instructions to Enable JavaScript</a> -->
+		<a href="https://enable-javascript.com" class="btn btn-dark">Instructions to Enable JavaScript</a>
+	</div>
+</noscript>
 <body>
 	<div class="centered splash" style="width: 100px; height: 100px;">
         <img src="{{ splash_image or "/assets/frappe/images/frappe-framework-logo.png" }}">
