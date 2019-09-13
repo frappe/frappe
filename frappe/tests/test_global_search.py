@@ -53,15 +53,12 @@ class TestGlobalSearch(unittest.TestCase):
 		self.insert_test_events()
 
 		results = global_search.search('awakens')
-		results = results.get("results")
 		self.assertTrue('After Mulder awakens from his coma, he realizes his duty to prevent alien colonization. ' in results[0].content)
 
 		results = global_search.search('extraterrestrial')
-		results = results.get("results")
 		self.assertTrue('Carter explored themes of extraterrestrial involvement in ancient mass extinctions in this episode, the third in a trilogy.' in results[0].content)
 
 		results = global_search.search('awakens & duty & alien')
-		results = results.get("results")
 		self.assertTrue('After Mulder awakens from his coma, he realizes his duty to prevent alien colonization. ' in results[0].content)
 
 	def test_update_doc(self):
@@ -74,14 +71,12 @@ class TestGlobalSearch(unittest.TestCase):
 		global_search.sync_global_search()
 
 		results = global_search.search('testing global search')
-		results = results.get("results")
 		self.assertTrue('testing global search' in results[0].content)
 
 	def test_update_fields(self):
 		self.insert_test_events()
 
 		results = global_search.search('Monthly')
-		results = results.get("results")
 		self.assertEqual(len(results), 0)
 
 		doctype = "Event"
@@ -90,7 +85,6 @@ class TestGlobalSearch(unittest.TestCase):
 		global_search.rebuild_for_doctype(doctype)
 
 		results = global_search.search('monthly')
-		results = results.get("results")
 		self.assertEqual(len(results), 3)
 
 	def test_delete_doc(self):
@@ -101,14 +95,12 @@ class TestGlobalSearch(unittest.TestCase):
 		test_subject = event.subject
 
 		results = global_search.search(test_subject)
-		results = results.get("results")
 		self.assertEqual(len(results), 1)
 
 		frappe.delete_doc('Event', event_name)
 		global_search.sync_global_search()
 
 		results = global_search.search(test_subject)
-		results = results.get("results")
 		self.assertEqual(len(results), 0)
 
 	def test_insert_child_table(self):
