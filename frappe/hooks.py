@@ -300,3 +300,18 @@ user_privacy_documents = [
 	},
 
 ]
+
+global_searches_doctypes = [
+	{"doctype": "Contact"},
+	{"doctype": "Address"},
+	{"doctype": "Event"},
+	{"doctype": "Note"},
+	{"doctype": "Google Calendar"},
+	{"doctype": "Auto Repeat"},
+	{"doctype": "ToDo"},
+	{"doctype": "Country"},
+	{"doctype": "Currency"},
+	{"doctype": "Newsletter"},
+	{"doctype": "Contact Us Settings"},
+	{"doctype": "Google Contacts"}
+]
