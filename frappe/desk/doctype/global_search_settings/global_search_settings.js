@@ -13,7 +13,7 @@ frappe.ui.form.on('Global Search Settings', {
 					});
 					frm.refresh();
 				}
-			})
+			});
 		});
 	}
 });
