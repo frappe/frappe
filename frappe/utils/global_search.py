@@ -465,10 +465,10 @@ def search(text, start=0, limit=20, doctype=""):
 	sorted_results = []
 
 	for priority in priorities:
+		tmp_result = []
 		for r in results:
-			tmp_result = []
 			if r.doctype == priority:
-				tmp_result.append(r)
+				tmp_result.extend([r])
 
 		sorted_results.extend(tmp_result)
 
