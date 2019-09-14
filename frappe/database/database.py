@@ -160,11 +160,11 @@ class Database(object):
 					if frappe.flags.in_install or not self.is_table_missing(e):
 						return
 
-					action = query.strip().lower().split()[0]
-					if action in ['insert', 'update', 'alter']:
+					query_list = query.strip().lower().split()
+					if "insert" in set(query_list) or "update" in set(query_list) or "alter" in set(query_list):
 						self.rollback()
 						self.handle_TableMissingError(query=query)
-					elif action in ['select']:
+					elif "select" in set(query_list):
 						return []
 
 				if frappe.flags.in_migrate:
@@ -187,11 +187,11 @@ class Database(object):
 					if frappe.flags.in_install or not self.is_table_missing(e):
 						return
 
-					action = query.strip().lower().split()[0]
-					if action in ['insert', 'update', 'alter']:
+					query_list = query.strip().lower().split()
+					if "insert" in set(query_list) or "update" in set(query_list) or "alter" in set(query_list):
 						self.rollback()
 						self.handle_TableMissingError(query=query)
-					elif action in ['select']:
+					elif "select" in set(query_list):
 						return []
 
 				if frappe.flags.in_migrate:
@@ -235,22 +235,11 @@ class Database(object):
 			return self._cursor.fetchall()
 
 	def handle_TableMissingError(self, query):
-		from frappe.core.doctype.module_def.module_def import enable_module, get_disabled_modules_from_tables
+		from frappe.core.doctype.module_def.module_def import get_disabled_modules_from_tables
 
-		# print("*"*20)
 		tables = get_tables_from_query(query, True)
 		modules = ", ".join([d for d in get_disabled_modules_from_tables(tables)])
 		frappe.throw(_("Module disbaled: {0}").format(modules))
-		# modules = get_disabled_modules_from_tables(tables)
-		# print("modules")
-		# print(modules)
-		# for module in modules:
-		# 	print("*****enabling - " + module)
-		# 	enable_module(module)
-
-		# if frappe.local.request:
-		# 	frappe.init(site=get_site_name(frappe.local.request.host))
-		# print("*"*20)
 
 	def log_query(self, query, values=None):
 		frappe.log("<<<<<<<<<< query")
