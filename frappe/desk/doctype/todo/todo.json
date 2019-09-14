@@ -38,7 +38,7 @@
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Status",
-   "options": "Open\nClosed"
+   "options": "Open\nClosed\nCancelled"
   },
   {
    "default": "Medium",
@@ -155,7 +155,7 @@
  ],
  "icon": "fa fa-check",
  "idx": 2,
- "modified": "2019-08-30 14:38:33.115951",
+ "modified": "2019-09-10 14:34:59.161750",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "ToDo",

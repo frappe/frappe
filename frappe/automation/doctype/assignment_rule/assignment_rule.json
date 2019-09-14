@@ -17,6 +17,8 @@
   "assign_condition",
   "column_break_6",
   "unassign_condition",
+  "section_break_10",
+  "close_condition",
   "assign_to_users_section",
   "rule",
   "users",
@@ -104,9 +106,19 @@
    "label": "Last User",
    "options": "User",
    "read_only": 1
+  },
+  {
+   "fieldname": "section_break_10",
+   "fieldtype": "Section Break"
+  },
+  {
+   "description": "Simple Python Expression, Example: Status in (\"Invalid\")",
+   "fieldname": "close_condition",
+   "fieldtype": "Code",
+   "label": "Close Condition"
   }
  ],
- "modified": "2019-08-30 14:39:14.004362",
+ "modified": "2019-09-10 14:45:53.657667",
  "modified_by": "Administrator",
  "module": "Automation",
  "name": "Assignment Rule",

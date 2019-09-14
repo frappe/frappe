@@ -100,11 +100,12 @@
   {
    "fieldname": "content",
    "fieldtype": "HTML Editor",
+   "ignore_xss_filter": 1,
    "in_list_view": 1,
    "label": "Content"
   }
  ],
- "modified": "2019-08-30 14:39:14.649399",
+ "modified": "2019-09-02 21:00:10.784787",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Comment",

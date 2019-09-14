@@ -269,7 +269,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			const promises = filters_to_set.map(f => {
 				return () => {
 					const value = frappe.route_options[f.df.fieldname];
-					return f.set_value(value);
+					f.set_value(value);
 				};
 			});
 			promises.push(() => {

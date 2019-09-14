@@ -179,6 +179,7 @@ class UserProfile {
 						labels: chart.labels,
 						datasets: chart.datasets
 					},
+					truncateLegends: 1,
 					barOptions: {
 						height: 11,
 						depth: 1
@@ -378,9 +379,8 @@ class UserProfile {
 		return frappe.xcall('frappe.desk.page.user_profile.user_profile.get_user_rank', {
 			user: this.user_id,
 		}).then(r => {
-
-			if (r.monthly_rank[0]) this.month_rank = r.monthly_rank[0][1];
-			if (r.all_time_rank[0]) this.rank = r.all_time_rank[0][1];
+			if (r.monthly_rank.length) this.month_rank = r.monthly_rank[0];
+			if (r.all_time_rank.length) this.rank = r.all_time_rank[0];
 		});
 	}
 

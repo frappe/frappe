@@ -560,7 +560,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 					data-filter="${fieldname},=,${value}">
 					${_value}
 				</a>`;
-			} else if (df.fieldtype === 'Text Editor') {
+			} else if (['Text Editor', 'Text', 'Small Text'].includes(df.fieldtype)) {
 				html = `<span class="text-muted ellipsis">
 					${_value}
 				</span>`;
@@ -1300,6 +1300,14 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			};
 		};
 
+		const bulk_assignment_rule = () => {
+			return {
+				label: __('Apply Assignment Rule'),
+				action: () => bulk_operations.apply_assignment_rule(this.get_checked_items(true), this.refresh),
+				standard: true
+			};
+		};
+
 		const bulk_printing = () => {
 			return {
 				label: __('Print'),
@@ -1376,18 +1384,20 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		// bulk assignment
 		actions_menu_items.push(bulk_assignment());
 
+		actions_menu_items.push(bulk_assignment_rule());
+
 		// bulk printing
 		if (frappe.model.can_print(doctype)) {
 			actions_menu_items.push(bulk_printing());
 		}
 
 		// bulk submit
-		if (frappe.model.is_submittable(doctype) && has_submit_permission(doctype)) {
+		if (frappe.model.is_submittable(doctype) && has_submit_permission(doctype) && !(frappe.model.has_workflow(doctype))) {
 			actions_menu_items.push(bulk_submit());
 		}
 
 		// bulk cancel
-		if (frappe.model.can_cancel(doctype)) {
+		if (frappe.model.can_cancel(doctype) && !(frappe.model.has_workflow(doctype))) {
 			actions_menu_items.push(bulk_cancel());
 		}
 

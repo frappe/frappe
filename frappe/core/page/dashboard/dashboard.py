@@ -8,10 +8,13 @@ from frappe.utils import add_to_date
 
 def cache_source(function):
 	def wrapper(*args, **kwargs):
-		chart = kwargs.get("chart")
+		if kwargs.get("chart_name"):
+			chart = frappe.get_doc('Dashboard Chart', kwargs.get("chart_name"))
+		else:
+			chart = kwargs.get("chart")
 		no_cache = kwargs.get("no_cache")
 		if no_cache:
-			return function(chart, no_cache)
+			return function(chart = chart, no_cache = no_cache)
 		chart_name = frappe.parse_json(chart).name
 		cache_key = "chart-data:{}".format(chart_name)
 		if int(kwargs.get("refresh") or 0):
@@ -26,7 +29,7 @@ def cache_source(function):
 	return wrapper
 
 def generate_and_cache_results(chart, chart_name, function, cache_key):
-	results = function(chart)
+	results = function(chart_name = chart_name)
 	frappe.cache().set_value(cache_key, json.dumps(results, default=str))
 	frappe.db.set_value("Dashboard Chart", chart_name, "last_synced_on", frappe.utils.now(), update_modified = False)
 	return results

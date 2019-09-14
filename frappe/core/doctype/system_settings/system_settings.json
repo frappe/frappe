@@ -25,6 +25,8 @@
   "scheduler_last_event",
   "permissions",
   "apply_strict_user_permissions",
+  "column_break_21",
+  "allow_guests_to_upload_files",
   "security",
   "session_expiry",
   "session_expiry_mobile",
@@ -385,11 +387,22 @@
    "fieldname": "use_socketio_to_upload_file",
    "fieldtype": "Check",
    "label": "Use socketio to upload file"
+  },
+  {
+   "fieldname": "column_break_21",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "description": "When enabled this will allow guests to upload files to your application, You can enable this if you wish to collect files from user without having them to log in, for example in job applications web form.",
+   "fieldname": "allow_guests_to_upload_files",
+   "fieldtype": "Check",
+   "label": "Allow Guests to Upload Files"
   }
  ],
  "icon": "fa fa-cog",
  "issingle": 1,
- "modified": "2019-08-30 14:39:21.334195",
+ "modified": "2019-08-16 08:26:45.936626",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",

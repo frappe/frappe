@@ -113,10 +113,19 @@
    "read": 1,
    "report": 1,
    "role": "Administrator",
-   "share": 1
+   "set_user_permissions": 0,
+   "share": 1,
+   "submit": 0,
+   "write": 0
   }
  ],
+ "quick_entry": 0,
+ "read_only": 0,
+ "read_only_onload": 0,
+ "show_name_in_global_search": 0,
  "sort_field": "modified",
  "sort_order": "DESC",
- "track_changes": 1
+ "track_changes": 1,
+ "track_seen": 0,
+ "track_views": 0
 }

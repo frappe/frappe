@@ -198,12 +198,19 @@ class File(NestedSet):
 					'attached_to_doctype': self.attached_to_doctype,
 					'attached_to_name': self.attached_to_name
 				})
-			duplicate_file = frappe.db.get_value('File', filters)
+			duplicate_file = frappe.db.get_value('File', filters, ['name', 'file_url'], as_dict=1)
 
 			if duplicate_file:
-				self.duplicate_entry = duplicate_file
-				frappe.throw(_("Same file has already been attached to the record"),
-					frappe.DuplicateEntryError)
+				duplicate_file_doc = frappe.get_cached_doc('File', duplicate_file.name)
+				if duplicate_file_doc.exists_on_disk():
+					# if it is attached to a document then throw DuplicateEntryError
+					if self.attached_to_doctype and self.attached_to_name:
+						self.duplicate_entry = duplicate_file.name
+						frappe.throw(_("Same file has already been attached to the record"),
+							frappe.DuplicateEntryError)
+					# else just use the url, to avoid uploading a duplicate
+					else:
+						self.file_url = duplicate_file.file_url
 
 	def validate_file_name(self):
 		if not self.file_name and self.file_url:
@@ -327,6 +334,9 @@ class File(NestedSet):
 		data = frappe.db.get_value("File", self.file_data_name, ["file_name", "file_url"], as_dict=True)
 		return data.file_url or data.file_name
 
+	def exists_on_disk(self):
+		exists = os.path.exists(self.get_full_path())
+		return exists
 
 	def upload(self):
 		# get record details
@@ -490,24 +500,26 @@ class File(NestedSet):
 		self.content_hash = get_content_hash(self.content)
 		self.content_type = mimetypes.guess_type(self.file_name)[0]
 
-		_file = False
+		duplicate_file = None
 
 		# check if a file exists with the same content hash and is also in the same folder (public or private)
 		if not ignore_existing_file_check:
-			_file = frappe.get_value("File", {
+			duplicate_file = frappe.get_value("File", {
 					"content_hash": self.content_hash,
 					"is_private": self.is_private
 				},
-				["file_url"])
+				["file_url", "name"], as_dict=True)
 
-		if _file:
-			self.file_url  = _file
-			file_exists = True
+		if duplicate_file:
+			file_doc = frappe.get_cached_doc('File', duplicate_file.name)
+			if file_doc.exists_on_disk():
+				self.file_url  = duplicate_file.file_url
+				file_exists = True
+
+		if os.path.exists(encode(get_files_path(self.file_name, is_private=self.is_private))):
+			self.file_name = get_file_name(self.file_name, self.content_hash[-6:])
 
 		if not file_exists:
-			if os.path.exists(encode(get_files_path(self.file_name))):
-				self.file_name = get_file_name(self.file_name, self.content_hash[-6:])
-
 			call_hook_method("before_write_file", file_size=self.file_size)
 			write_file_method = get_hook_method('write_file')
 			if write_file_method:

@@ -143,13 +143,13 @@ def get_list_context(context=None):
 	}
 
 def get_address_list(doctype, txt, filters, limit_start, limit_page_length = 20, order_by = None):
-    from frappe.www.list import get_list
-    user = frappe.session.user
-    ignore_permissions = False
-    if is_website_user():
-        if not filters: filters = []
-        add_name = []
-        contact = frappe.db.sql("""
+	from frappe.www.list import get_list
+	user = frappe.session.user
+	ignore_permissions = False
+	if is_website_user():
+		if not filters: filters = []
+		add_name = []
+		contact = frappe.db.sql("""
 			select
 				address.name
 			from
@@ -165,12 +165,12 @@ def get_address_list(doctype, txt, filters, limit_start, limit_page_length = 20,
 					   `tabDynamic Link` as link on contact.name = link.parent
 				   where
 					   contact.user = %s)""",(user))
-        for c in contact:
-            add_name.append(c[0])
-        filters.append(("Address", "name", "in", add_name))
-        ignore_permissions = True
+		for c in contact:
+			add_name.append(c[0])
+		filters.append(("Address", "name", "in", add_name))
+		ignore_permissions = True
 
-    return get_list(doctype, txt, filters, limit_start, limit_page_length, ignore_permissions=ignore_permissions)
+	return get_list(doctype, txt, filters, limit_start, limit_page_length, ignore_permissions=ignore_permissions)
 
 def has_website_permission(doc, ptype, user, verbose=False):
 	"""Returns true if there is a related lead or contact related to this document"""
@@ -277,3 +277,7 @@ def address_query(doctype, txt, searchfield, start, page_len, filters):
 			'link_name': link_name,
 			'link_doctype': link_doctype
 		})
+
+def get_condensed_address(doc):
+	fields = ["address_title", "address_line1", "address_line2", "city", "county", "state", "country"]
+	return ", ".join([doc.get(d) for d in fields if doc.get(d)])

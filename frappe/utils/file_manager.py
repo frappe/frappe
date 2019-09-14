@@ -78,7 +78,7 @@ def get_file_doc(dt=None, dn=None, folder=None, is_private=None, df=None):
 def save_uploaded(dt, dn, folder, is_private, df=None):
 	fname, content = get_uploaded_content()
 	if content:
-		return save_file(fname, content, dt, dn, folder, is_private=is_private, df=df);
+		return save_file(fname, content, dt, dn, folder, is_private=is_private, df=df)
 	else:
 		raise Exception
 

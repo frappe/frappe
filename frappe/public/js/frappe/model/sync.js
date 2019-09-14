@@ -80,8 +80,10 @@ $.extend(frappe.model, {
 
 		locals[doc.doctype][doc.name] = doc;
 
+		let meta = frappe.get_meta(doc.doctype);
+		let is_table = meta ? meta.istable : doc.parentfield;
 		// add child docs to locals
-		if(!doc.parentfield) {
+		if (!is_table) {
 			for(var i in doc) {
 				var value = doc[i];
 

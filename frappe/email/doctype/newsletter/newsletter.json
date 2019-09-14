@@ -7,7 +7,7 @@
  "document_type": "Other",
  "engine": "InnoDB",
  "field_order": [
-  "receipient",
+  "recipients",
   "email_group",
   "send_from",
   "email_sent",
@@ -24,11 +24,6 @@
   "scheduled_to_send"
  ],
  "fields": [
-  {
-   "fieldname": "receipient",
-   "fieldtype": "Section Break",
-   "label": "Receipient"
-  },
   {
    "fieldname": "email_group",
    "fieldtype": "Table",
@@ -116,6 +111,11 @@
    "fieldtype": "Int",
    "hidden": 1,
    "label": "Scheduled To Send"
+  },
+  {
+   "fieldname": "recipients",
+   "fieldtype": "Section Break",
+   "label": "Recipients"
   }
  ],
  "has_web_view": 1,
@@ -123,7 +123,7 @@
  "idx": 1,
  "is_published_field": "published",
  "max_attachments": 3,
- "modified": "2019-08-30 14:38:58.779702",
+ "modified": "2019-09-06 22:15:55.471254",
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Newsletter",
