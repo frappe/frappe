@@ -428,7 +428,7 @@ def search(text, start=0, limit=20, doctype=""):
 		mariadb_text = frappe.db.escape('+' + text + '*')
 
 		mariadb_fields = '`doctype`, `name`, `content`, MATCH (`content`) AGAINST ({} IN BOOLEAN MODE) AS rank'.format(mariadb_text)
-		postgres_fields = '`doctype`, `name`, `content`, TO_TSVECTOR("content") @@ PLAINTO_TSQUERY({}) as rank'.format(frappe.db.escape(text))
+		postgres_fields = '`doctype`, `name`, `content`, TO_TSVECTOR("content") @@ PLAINTO_TSQUERY({}) AS rank'.format(frappe.db.escape(text))
 
 		if allowed_doctypes:
 			mariadb_conditions += '`doctype` IN ({})'.format(allowed_doctypes)
