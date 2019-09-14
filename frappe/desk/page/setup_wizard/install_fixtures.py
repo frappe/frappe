@@ -4,8 +4,8 @@
 from __future__ import unicode_literals
 
 import frappe
-
 from frappe import _
+from frappe.desk.doctype.global_search_settings.global_search_settings import update_global_search_doctypes
 
 def install():
 	update_genders_and_salutations()
@@ -29,13 +29,3 @@ def update_genders_and_salutations():
 				pass
 			else:
 				raise
-
-def update_global_search_doctypes():
-	global_searches_doctypes = ["Contact", "Address", "Event", "Note", "Google Calendar", "Auto Repeat",
-		"ToDo", "Country", "Currency", "Newsletter", "Contact Us Settings", "Google Contacts"]
-
-	global_search_settings = frappe.get_single("Global Search Settings")
-	global_search_settings.allowed_in_global_search = []
-	for d in global_searches_doctypes:
-		global_search_settings.append("allowed_in_global_search", {"document_type": d})
-	global_search_settings.save(ignore_permissions=True)
