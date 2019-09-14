@@ -63,8 +63,11 @@ def enable_module(module):
 		return
 
 	log_enabled_module(module)
+
+	if frappe.conf.developer_mode and module == "Developer":
+		return
+
 	for doctype in frappe.get_list("DocType", filters={"module": module}):
-		print("**enabling table - " + doctype.name)
 		create_table(doctype.name)
 
 def get_disabled_modules_from_tables(tables):
@@ -80,8 +83,9 @@ def log_enabled_module(module):
 	if not "tabModule Def" in frappe.db.get_tables():
 		return
 
-	if frappe.db.exists("Module Def", module):
+	if frappe.db.exists("Module Def", module) or frappe.conf.developer_mode:
 		frappe.db.set_value("Module Def", module, "enabled", 1)
+
 		if not frappe.cache().hget("modules", "enabled"):
 			frappe.cache().hset("modules", "enabled", [])
 

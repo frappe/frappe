@@ -155,7 +155,7 @@ class Database(object):
 					self._cursor.execute(query, values)
 				except self.TableMissingError as e:
 					# If app is being install ignore the exception
-					# If insert or update ot alter in query, create table and rerun the query
+					# If insert or update ot alter in query, return Module disabled
 					# If select return emplty result
 					if frappe.flags.in_install or not self.is_table_missing(e):
 						return
@@ -182,7 +182,7 @@ class Database(object):
 					self._cursor.execute(query)
 				except self.TableMissingError as e:
 					# If app is being install ignore the exception
-					# If insert or update ot alter in query, create table and rerun the query
+					# If insert or update ot alter in query, return Module disabled
 					# If select return emplty result
 					if frappe.flags.in_install or not self.is_table_missing(e):
 						return
