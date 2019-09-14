@@ -1,6 +1,8 @@
 context('API Resources', () => {
 	before(() => {
+		cy.visit('/login');
 		cy.login();
+		cy.visit('/desk');
 	});
 
 	it('Creates two Comments', () => {
