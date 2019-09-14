@@ -103,7 +103,7 @@ Cypress.Commands.add('create_doc', (doctype, args) => {
 				'X-Frappe-CSRF-Token': csrf_token
 			}
 		}).then(res => {
-			expect(res.status).eq(201);
+			expect(res.status).eq(200);
 			return res.body;
 		});
 	});
@@ -119,7 +119,7 @@ Cypress.Commands.add('remove_doc', (doctype, name) => {
 				'X-Frappe-CSRF-Token': csrf_token
 			}
 		}).then(res => {
-			expect(res.status).eq(201);
+			expect(res.status).eq(202);
 			return res.body;
 		});
 	});
