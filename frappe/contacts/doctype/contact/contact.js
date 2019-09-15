@@ -48,7 +48,6 @@ frappe.ui.form.on("Contact", {
 				args: {links: frm.doc.links},
 				callback: function(r) {
 					if (r && r.message) {
-						console.log(r.message);
 						frm.set_query("address", function () {
 							return {
 								filters: {
