@@ -14,13 +14,6 @@ from frappe.utils.csvutils import read_csv_content
 from frappe.exceptions import ValidationError, MandatoryError
 from frappe.model import display_fieldtypes, no_value_fields, table_fields
 
-# set user lang
-# set flags: frappe.flags.in_import = True
-
-# during import
-# check empty row
-# validate naming
-
 INVALID_VALUES = ["", None]
 
 
@@ -176,11 +169,11 @@ class Importer:
 		out = {}
 
 		table_doctypes = [df.options for df in self.meta.get_table_fields()]
-		doctypes = [self.doctype] + table_doctypes
+		doctypes = table_doctypes + [self.doctype]
 		for doctype in doctypes:
 			# name field
 			name_key = "ID" if self.doctype == doctype else "ID ({})".format(doctype)
-			out[name_key] = frappe._dict(
+			name_df = frappe._dict(
 				{
 					"fieldtype": "Data",
 					"fieldname": "name",
@@ -189,13 +182,19 @@ class Importer:
 					"parent": doctype,
 				}
 			)
+			out[name_key] = name_df
+			out["name"] = name_df
+
 			# other fields
 			meta = frappe.get_meta(doctype)
-			for df in meta.fields:
-				if df.fieldtype not in no_value_fields:
+			fields = self.get_standard_fields(doctype) + meta.fields
+			for df in fields:
+				fieldtype = df.fieldtype or 'Data'
+				parent = df.parent or self.doctype
+				if fieldtype not in no_value_fields:
 					# label as key
 					label = (
-						df.label if self.doctype == doctype else "{0} ({1})".format(df.label, df.parent)
+						df.label if self.doctype == doctype else "{0} ({1})".format(df.label, parent)
 					)
 					out[label] = df
 					# fieldname as key
@@ -204,17 +203,6 @@ class Importer:
 					else:
 						key = "{0}:{1}".format(doctype, df.fieldname)
 						out[key] = df
-
-		# name field
-		out["name"] = frappe._dict(
-			{
-				"fieldtype": "Data",
-				"fieldname": "name",
-				"label": "ID",
-				"reqd": self.data_import.import_type == "Update Existing Records",
-				"parent": self.doctype,
-			}
-		)
 
 		# if autoname is based on field
 		# add an entry for "ID (Autoname Field)"
@@ -226,7 +214,49 @@ class Importer:
 				out["ID ({})".format(autoname_field.label)] = autoname_field
 				# ID field should also map to the autoname field
 				out["ID"] = autoname_field
+				out["name"] = autoname_field
 
+		return out
+
+	def get_standard_fields(self, doctype):
+		meta = frappe.get_meta(doctype)
+		if meta.istable:
+			standard_fields = [
+				{
+					'label': 'Parent',
+					'fieldname': 'parent'
+				},
+				{
+					'label': 'Parent Type',
+					'fieldname': 'parenttype'
+				},
+				{
+					'label': 'Parent Field',
+					'fieldname': 'parentfield'
+				},
+				{
+					'label': 'Row Index',
+					'fieldname': 'idx'
+				}
+			]
+		else:
+			standard_fields = [
+				{
+					'label': 'Owner',
+					'fieldname': 'owner'
+				},
+				{
+					'label': 'Document Status',
+					'fieldname': 'docstatus',
+					'fieldtype': 'Int'
+				}
+			]
+
+		out = []
+		for df in standard_fields:
+			df = frappe._dict(df)
+			df.parent = doctype
+			out.append(df)
 		return out
 
 	def parse_formats_from_first_10_rows(self):
@@ -271,7 +301,9 @@ class Importer:
 
 	def parse_date_format(self, value, df):
 		date_format = self.guess_date_format_for_column(df.fieldname)
-		return datetime.strptime(value, date_format)
+		if date_format:
+			return datetime.strptime(value, date_format)
+		return value
 
 	def guess_date_format_for_column(self, fieldname):
 		""" Guesses date format for a column by parsing the first 10 values in the column,
@@ -293,13 +325,19 @@ class Importer:
 			column_values = map(lambda x: x[column_index], self.data[:PARSE_ROW_COUNT])
 			column_values = filter(lambda x: bool(x), column_values)
 			date_formats = list(map(lambda x: guess_date_format(x), column_values))
+			if not date_formats:
+				return
 			max_occurred_date_format = max(set(date_formats), key=date_formats.count)
-
 			self._guessed_date_formats[fieldname] = max_occurred_date_format
 
 		return self._guessed_date_formats[fieldname]
 
 	def import_data(self):
+		# set user lang for translations
+		frappe.cache().hdel("lang", frappe.session.user)
+		frappe.set_user_lang(frappe.session.user)
+
+		# set flag
 		frappe.flags.in_import = True
 
 		out = self.get_data_for_import_preview()
@@ -569,7 +607,7 @@ class Importer:
 			# get mandatory fields with default not set
 			mandatory_fields = [df for df in meta.fields if df.reqd and not df.default]
 			mandatory_fields_count = len(mandatory_fields)
-			if meta.autoname.lower() == "prompt":
+			if meta.autoname and meta.autoname.lower() == "prompt":
 				mandatory_fields_count += 1
 			return mandatory_fields_count == 1
 
