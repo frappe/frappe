@@ -14,12 +14,13 @@ const SVG_ICONS = {
 };
 
 frappe.data_import.ImportPreview = class ImportPreview {
-	constructor({ wrapper, doctype, preview_data, import_log, events = {} }) {
+	constructor({ wrapper, doctype, preview_data, import_log, warnings, events = {} }) {
 		frappe.import_preview = this;
 		this.wrapper = wrapper;
 		this.doctype = doctype;
 		this.preview_data = preview_data;
 		this.events = events;
+		this.warnings = warnings;
 		this.import_log = import_log;
 
 		frappe.model.with_doctype(doctype, () => {
@@ -31,7 +32,6 @@ frappe.data_import.ImportPreview = class ImportPreview {
 		this.header_row = this.preview_data.header_row;
 		this.fields = this.preview_data.fields;
 		this.data = this.preview_data.data;
-		this.warnings = this.preview_data.warnings;
 		this.make_wrapper();
 		this.prepare_columns();
 		this.prepare_data();
@@ -73,7 +73,7 @@ frappe.data_import.ImportPreview = class ImportPreview {
 					focusable: false,
 					align: 'left',
 					header_row_index,
-					width: column_width,
+					width: df.label === 'Sr. No' ? 60 : column_width,
 					format: (value, row, column, data) => {
 						let html = `<div class="text-muted">${value}</div>`;
 						if (df.label === 'Sr. No' && this.is_row_imported(row)) {
@@ -123,11 +123,11 @@ frappe.data_import.ImportPreview = class ImportPreview {
 		if (warnings.length > 0) {
 			let warning_html = warnings
 				.map(warning => {
-					return `<div style="line-height: 2">${warning}</div>`;
+					return `<li>${warning}</li>`;
 				})
 				.join('');
 
-			html = `<div class="border text-muted padding rounded margin-bottom">${warning_html}</div>`;
+			html = `<ul>${warning_html}</ul>`;
 		}
 		this.$warnings.html(html);
 	}

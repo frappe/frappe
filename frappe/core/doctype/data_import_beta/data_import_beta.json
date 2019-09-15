@@ -15,6 +15,7 @@
   "section_break_7",
   "date_format",
   "template_options",
+  "template_warnings",
   "section_import_preview",
   "import_preview",
   "import_log_section",
@@ -107,9 +108,17 @@
    "default": "Pending",
    "fieldname": "status",
    "fieldtype": "Select",
+   "hidden": 1,
    "label": "Status",
    "options": "Pending\nSuccess\nPartial Success",
    "read_only": 1
+  },
+  {
+   "fieldname": "template_warnings",
+   "fieldtype": "Code",
+   "label": "Template Warnings",
+   "options": "JSON"
+  },
   }
  ],
  "hide_toolbar": 1,

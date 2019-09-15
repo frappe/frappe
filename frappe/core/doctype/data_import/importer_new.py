@@ -305,21 +305,26 @@ class Importer:
 		out = self.get_data_for_import_preview()
 		fields = out["fields"]
 		data = out["data"]
+		warnings = []
 
 		# validate link field values
 		missing_link_values = self.get_missing_link_field_values(fields, data)
-		if missing_link_values:
-			return {"missing_link_values": missing_link_values}
+		for d in missing_link_values:
+			msg = _('The following linked values are missing for the Document Type {0}:').format(frappe.bold(_(d.doctype)))
+			msg += ' ' + ', '.join(d.missing_values)
+			warnings.append(msg)
 
 		# parse import data
 		payloads = self.get_payloads_for_import(fields, data)
 
 		# collect warnings
-		warnings = []
 		for payload in payloads:
 			warnings += payload.warnings
+
 		if warnings:
-			return {"warnings": warnings}
+			self.data_import.db_set("template_warnings", json.dumps(warnings))
+			frappe.publish_realtime("data_import_refresh")
+			return
 
 		# setup import log
 		if self.data_import.import_log:
@@ -424,6 +429,7 @@ class Importer:
 		"""
 		doc = {}
 		warnings = []
+		mandatory_fields = []
 		doctypes = set([df.parent for df in fields if df.parent])
 
 		# first row is included by default
@@ -458,14 +464,12 @@ class Importer:
 
 				if value in INVALID_VALUES:
 					if df.reqd:
-						warnings.append(
-							_("Row {0}: {1} is a mandatory field").format(row_index, frappe.bold(df.label))
-						)
+						mandatory_fields.append(frappe._dict(row_number=row_number, df=df))
 						continue
 					else:
 						value = None
 
-				doc[df.fieldname] = value = self.parse_value(value, df)
+				doc[df.fieldname] = self.parse_value(value, df)
 			return doc
 
 		parsed_docs = {}
@@ -476,6 +480,7 @@ class Importer:
 					# then skip
 					continue
 
+				row_number = row[0]
 				column_indexes = get_column_indexes(doctype)
 				values = [row[i] for i in column_indexes]
 
@@ -484,7 +489,7 @@ class Importer:
 					continue
 
 				docfields = [fields[i] for i in column_indexes]
-				doc = parse_doc(doctype, docfields, values, row_index)
+				doc = parse_doc(doctype, docfields, values, row_number)
 				parsed_docs[doctype] = parsed_docs.get(doctype, [])
 				parsed_docs[doctype].append(doc)
 
@@ -498,6 +503,23 @@ class Importer:
 				if table_dfs:
 					table_field = table_dfs[0]
 					doc[table_field.fieldname] = docs
+
+		if mandatory_fields:
+			df_by_row_number = {}
+			for d in mandatory_fields:
+				df_by_row_number.setdefault(d.row_number, [])
+				df_by_row_number[d.row_number].append(d.df)
+
+			for row_number, fields in df_by_row_number.items():
+				if len(fields) == 1:
+					warnings.append(
+						_("Row {0}: {1} is a mandatory field").format(row_number, fields[0].label)
+					)
+				else:
+					fields_string = ', '.join([df.label for df in fields])
+					warnings.append(
+						_("Row {0}: {1} are mandatory fields").format(row_number, fields_string)
+					)
 
 		return doc, rows, data[len(rows) :], warnings
 

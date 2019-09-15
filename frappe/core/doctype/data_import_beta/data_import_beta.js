@@ -157,11 +157,14 @@ frappe.ui.form.on('Data Import Beta', {
 
 	show_import_preview(frm, preview_data) {
 		let import_log = JSON.parse(frm.doc.import_log || '[]');
+		let warnings = JSON.parse(frm.doc.template_warnings || '[]');
+		warnings = warnings.concat(preview_data.warnings || []);
 
 		if (frm.import_preview) {
 			frm.import_preview.preview_data = preview_data;
 			frm.import_preview.import_log = import_log;
 			frm.import_preview.refresh();
+			frm.import_preview.render_warnings(warnings);
 			return;
 		}
 
@@ -171,6 +174,7 @@ frappe.ui.form.on('Data Import Beta', {
 				doctype: frm.doc.reference_doctype,
 				preview_data,
 				import_log,
+				warnings,
 				events: {
 					remap_column(header_row_index, fieldname) {
 						let template_options = JSON.parse(frm.doc.template_options || '{}');
