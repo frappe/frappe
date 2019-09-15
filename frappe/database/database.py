@@ -18,7 +18,7 @@ from time import time
 from frappe.utils import now, getdate, cast_fieldtype
 from frappe.utils.background_jobs import execute_job, get_queue
 from frappe.model.utils.link_count import flush_local_link_count
-from frappe.utils import cint, get_site_name
+from frappe.utils import cint
 
 # imports - compatibility imports
 from six import (
@@ -149,7 +149,7 @@ class Database(object):
 						self.explain_query(query, values)
 
 				if frappe.conf.get("logging"):
-					self.log_query(query, values)
+					log_query(query, values)
 
 				try:
 					self._cursor.execute(query, values)
@@ -163,7 +163,7 @@ class Database(object):
 					query_list = query.strip().lower().split()
 					if "insert" in set(query_list) or "update" in set(query_list) or "alter" in set(query_list):
 						self.rollback()
-						self.handle_TableMissingError(query=query)
+						handle_TableMissingError(query=query)
 					elif "select" in set(query_list):
 						return []
 
@@ -176,7 +176,7 @@ class Database(object):
 						self.explain_query(query)
 
 				if frappe.conf.get("logging"):
-					self.log_query(query)
+					log_query(query)
 
 				try:
 					self._cursor.execute(query)
@@ -190,7 +190,7 @@ class Database(object):
 					query_list = query.strip().lower().split()
 					if "insert" in set(query_list) or "update" in set(query_list) or "alter" in set(query_list):
 						self.rollback()
-						self.handle_TableMissingError(query=query)
+						handle_TableMissingError(query=query)
 					elif "select" in set(query_list):
 						return []
 
@@ -233,21 +233,6 @@ class Database(object):
 			return self.convert_to_lists(self._cursor.fetchall(), formatted, as_utf8)
 		else:
 			return self._cursor.fetchall()
-
-	def handle_TableMissingError(self, query):
-		from frappe.core.doctype.module_def.module_def import get_disabled_modules_from_tables
-
-		tables = get_tables_from_query(query, True)
-		modules = ", ".join([d for d in get_disabled_modules_from_tables(tables)])
-		frappe.throw(_("Module disbaled: {0}").format(modules))
-
-	def log_query(self, query, values=None):
-		frappe.log("<<<<<<<<<< query")
-		frappe.log(query)
-		if values:
-			frappe.log("with values:")
-			frappe.log(values)
-		frappe.log(">>>>>>>>>>")
 
 	def explain_query(self, query, values=None):
 		"""Print `EXPLAIN` in error log."""
@@ -1032,3 +1017,18 @@ def get_tables_from_query(query, get_doctype_name=False):
 		tables = [table for table in tables if frappe.db.exists("DocType", table)]
 
 	return tables
+
+def log_query(query, values=None):
+	frappe.log("<<<<<<<<<< query")
+	frappe.log(query)
+	if values:
+		frappe.log("with values:")
+		frappe.log(values)
+	frappe.log(">>>>>>>>>>")
+
+def handle_TableMissingError(query):
+	from frappe.core.doctype.module_def.module_def import get_disabled_modules_from_tables
+
+	tables = get_tables_from_query(query, True)
+	modules = ", ".join([d for d in get_disabled_modules_from_tables(tables)])
+	frappe.throw(_("Module disbaled: {0}").format(modules))
