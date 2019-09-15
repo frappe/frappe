@@ -198,6 +198,29 @@ def contact_query(doctype, txt, searchfield, start, page_len, filters):
 			'link_doctype': link_doctype
 		})
 
+@frappe.whitelist()
+def address_query(links):
+	import json
+
+	links = [{"link_doctype": d.get("link_doctype"), "link_name": d.get("link_name")} for d in json.loads(links)]
+	result = []
+
+	for link in links:
+		res = frappe.db.sql("""
+			SELECT `tabAddress`.name
+			FROM `tabAddress`, `tabDynamic Link`
+			WHERE `tabDynamic Link`.parenttype='Address'
+				AND `tabDynamic Link`.parent=`tabAddress`.name
+				AND `tabDynamic Link`.link_doctype = %(link_doctype)s
+				AND `tabDynamic Link`.link_name = %(link_name)s
+		""", {
+			"link_doctype": link.get("link_doctype"),
+			"link_name": link.get("link_name"),
+		}, as_dict=True)
+
+		result.extend([l.name for l in res])
+
+	return result
 
 def get_contact_with_phone_number(number):
 	if not number: return
