@@ -12,6 +12,7 @@
   "import_file",
   "column_break_5",
   "status",
+  "submit_after_import",
   "section_break_7",
   "date_format",
   "template_options",
@@ -119,10 +120,15 @@
    "label": "Template Warnings",
    "options": "JSON"
   },
+  {
+   "default": "0",
+   "fieldname": "submit_after_import",
+   "fieldtype": "Check",
+   "label": "Submit After Import"
   }
  ],
  "hide_toolbar": 1,
- "modified": "2019-09-02 12:58:49.053073",
+ "modified": "2019-09-09 17:53:28.398802",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Data Import Beta",

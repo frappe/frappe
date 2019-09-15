@@ -547,7 +547,10 @@ class Importer:
 		# name shouldn't be set when inserting a new record
 		doc.update({"doctype": self.doctype, "name": None})
 		new_doc = frappe.get_doc(doc)
-		return new_doc.insert()
+		new_doc.insert()
+		if self.meta.is_submittable and self.data_import.submit_after_import:
+			new_doc.submit()
+		return new_doc
 
 	def update_record(self, doc):
 		id_fieldname = self.get_id_fieldname()

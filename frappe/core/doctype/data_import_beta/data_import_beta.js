@@ -103,26 +103,28 @@ frappe.ui.form.on('Data Import Beta', {
 		let template_options = JSON.parse(frm.doc.template_options || '{}');
 		template_options.edited_rows = csv_array;
 		frm.set_value('template_options', JSON.stringify(template_options));
-
-		frm.save().then(() => {
-			console.log('import_file ')
-			frm.call('start_import').then(r => {
-				let { warnings, missing_link_values } = r.message || {};
-				if (warnings) {
-					frm.import_preview.render_warnings(warnings);
-				} else if (missing_link_values) {
-					frm.events.show_missing_link_values(frm, missing_link_values);
-				} else {
-					frm.refresh();
-				}
-			});
-		});
+		frm.save().then(() => frm.call('start_import'));
 	},
 
 	download_sample_file(frm) {
 		frappe.require('/assets/js/data_import_tools.min.js', () => {
 			new frappe.data_import.DataExporter(frm.doc.reference_doctype);
 		});
+	},
+
+	reference_doctype(frm) {
+		frm.trigger('toggle_submit_after_import');
+	},
+
+	toggle_submit_after_import(frm) {
+		frm.toggle_display('submit_after_import', false);
+		let doctype = frm.doc.reference_doctype;
+		if (doctype) {
+			frappe.model.with_doctype(doctype, () => {
+				let meta = frappe.get_meta(doctype);
+				frm.toggle_display('submit_after_import', meta.is_submittable);
+			});
+		}
 	},
 
 	import_file(frm) {
