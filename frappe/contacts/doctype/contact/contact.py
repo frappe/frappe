@@ -80,10 +80,11 @@ class Contact(Document):
 		if autosave:
 			self.save(ignore_permissions=True)
 
-	def add_phone(self, phone, is_primary=0, autosave=False):
+	def add_phone(self, phone, is_primary_phone=0, is_primary_mobile_no=0, autosave=False):
 		self.append("phone_nos", {
 			"phone": phone,
-			"is_primary": is_primary
+			"is_primary_phone": is_primary_phone,
+			"is_primary_mobile_no": is_primary_mobile_no
 		})
 
 		if autosave:
@@ -93,8 +94,12 @@ class Contact(Document):
 		if not self.email_ids:
 			return
 
-		if len([email.email_id for email in self.email_ids if email.is_primary]) > 1:
+		primary_email = [email.email_id for email in self.email_ids if email.is_primary]
+
+		if len(self.email_ids) > 1 and len(primary_email) > 1:
 			frappe.throw(_("Only one Email ID can be set as primary."))
+		elif len(self.email_ids) > 1 and len(primary_email) == 0:
+			frappe.throw(_("Set primary Email ID."))
 
 		if len(self.email_ids) == 1:
 			self.email_ids[0].is_primary = 1
@@ -106,13 +111,16 @@ class Contact(Document):
 					break
 
 	def set_primary_phone_and_mobile_no(self, fieldname):
-		if not self.phone_nos:
+		if len(self.phone_nos) == 0:
 			return
 
 		field_name = "is_primary_" + fieldname
+		primary = [phone.phone for phone in self.phone_nos if phone.get(field_name)]
 
-		if len([phone.phone for phone in self.phone_nos if phone.get(field_name)]) > 1:
+		if len(self.phone_nos) > 1 and len(primary) > 1:
 			frappe.throw(_("Only one {0} can be set as primary.").format(frappe.bold(frappe.unscrub(fieldname))))
+		elif len(self.phone_nos) > 1 and len(primary) == 0:
+			frappe.throw(_("Set primary {0}").format(frappe.unscrub(fieldname)))
 
 		if len(self.phone_nos) == 1:
 			if self.phone_nos[0].phone == self.phone or self.phone_nos[0].phone == self.mobile_no:
