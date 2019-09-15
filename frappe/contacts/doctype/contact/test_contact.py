@@ -9,31 +9,6 @@ from frappe.exceptions import ValidationError
 
 class TestContact(unittest.TestCase):
 
-	def create_contact(self, name, salutation, emails=None, phones=None, save=True):
-		doc = frappe.get_doc({
-				"doctype": "Contact",
-				"first_name": name,
-				"status": "Open",
-				"salutation": salutation
-			})
-		if emails:
-			for d in emails:
-				doc.add_email(d.get("email"), d.get("is_primary"))
-
-		if phones:
-			for d in phones:
-				doc.add_phone(d.get("phone"), d.get("is_primary_phone"), d.get("is_primary_mobile_no"))
-
-		if save:
-			doc.insert()
-
-		return doc
-
-	def tearDown(self):
-		frappe.db.sql("delete from `tabContact`")
-		frappe.db.sql("delete from `tabContact Phone`")
-		frappe.db.sql("delete from `tabContact Email`")
-
 	def test_check_default_email(self):
 		emails = [
 			{"email": "test1@example.com", "is_primary": 0},
@@ -88,3 +63,24 @@ class TestContact(unittest.TestCase):
 
 		# No default set for phones if many phones are passed as params
 		self.assertRaises(ValidationError, contact_phone.save)
+
+def create_contact(name, salutation, emails=None, phones=None, save=True):
+	doc = frappe.get_doc({
+			"doctype": "Contact",
+			"first_name": name,
+			"status": "Open",
+			"salutation": salutation
+		})
+
+	if emails:
+		for d in emails:
+			doc.add_email(d.get("email"), d.get("is_primary"))
+
+	if phones:
+		for d in phones:
+			doc.add_phone(d.get("phone"), d.get("is_primary_phone"), d.get("is_primary_mobile_no"))
+
+	if save:
+		doc.insert()
+
+	return doc
