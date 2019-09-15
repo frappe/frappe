@@ -11,10 +11,6 @@ frappe.data_import.DataExporter = class DataExporter {
 	}
 
 	make_dialog() {
-		let doctypes = [this.doctype].concat(
-			...frappe.meta.get_table_fields(this.doctype).map(df => df.options)
-		);
-
 		this.dialog = new frappe.ui.Dialog({
 			title: __('Export Data'),
 			fields: [
@@ -60,23 +56,33 @@ frappe.data_import.DataExporter = class DataExporter {
 					fieldtype: 'HTML',
 					fieldname: 'select_all_buttons'
 				},
-				...doctypes.map(doctype => {
-					return {
-						label: __(doctype),
-						fieldname: doctype,
-						fieldtype: 'MultiCheck',
-						columns: 2,
-						on_change: () => {
-							this.update_primary_action();
-						},
-						options: this.get_multicheck_options(doctype)
-					};
-				})
+				{
+					label: __(this.doctype),
+					fieldname: this.doctype,
+					fieldtype: 'MultiCheck',
+					columns: 2,
+					on_change: () => this.update_primary_action(),
+					options: this.get_multicheck_options(this.doctype)
+				},
+				...frappe.meta.get_table_fields(this.doctype)
+					.map(df => {
+						let doctype = df.options;
+						let label = df.reqd
+							? __('{0} (1 row mandatory)', [doctype])
+							: __(doctype);
+						return {
+							label,
+							fieldname: doctype,
+							fieldtype: 'MultiCheck',
+							columns: 2,
+							on_change: () => this.update_primary_action(),
+							options: this.get_multicheck_options(doctype)
+						};
+					})
 			],
 			primary_action_label: __('Export'),
-			primary_action: values => {
-				this.export_records(values);
-			}
+			primary_action: values => this.export_records(values),
+			on_page_show: () => this.select_mandatory()
 		});
 
 		this.make_filter_area();
@@ -159,9 +165,16 @@ frappe.data_import.DataExporter = class DataExporter {
 	}
 
 	select_mandatory() {
+		let mandatory_table_doctypes = frappe.meta
+			.get_table_fields(this.doctype)
+			.filter(df => df.reqd)
+			.map(df => df.options);
+		mandatory_table_doctypes.push(this.doctype);
+
 		let multicheck_fields = this.dialog.fields
 			.filter(df => df.fieldtype === 'MultiCheck')
-			.map(df => df.fieldname);
+			.map(df => df.fieldname)
+			.filter(doctype => mandatory_table_doctypes.includes(doctype));
 
 		let checkboxes = [].concat(
 			...multicheck_fields.map(fieldname => {
@@ -281,7 +294,7 @@ frappe.data_import.DataExporter = class DataExporter {
 					label,
 					value: df.fieldname,
 					danger: df.reqd,
-					checked: df.reqd,
+					checked: false,
 					description: `${df.fieldname} ${df.reqd ? __('(Mandatory)') : ''}`
 				};
 			});
