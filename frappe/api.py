@@ -73,57 +73,54 @@ def handle():
 				frappe.db.commit()
 
 		else:
+			if frappe.local.form_dict.data is None:
+				request_data = json.loads(frappe.local.request.get_data())
+			else:
+				request_data = json.loads(frappe.local.form_dict.data)
+
 			if name:
-				if frappe.local.request.method=="GET":
+				if frappe.local.request.method == "GET":
 					doc = frappe.get_doc(doctype, name)
 					if not doc.has_permission("read"):
 						raise frappe.PermissionError
 					frappe.local.response.update({"data": doc})
 
-				if frappe.local.request.method=="PUT":
-					data = json.loads(frappe.local.form_dict.data)
+				if frappe.local.request.method == "PUT":
 					doc = frappe.get_doc(doctype, name)
 
-					if "flags" in data:
-						del data["flags"]
+					if "flags" in request_data:
+						del request_data["flags"]
 
 					# Not checking permissions here because it's checked in doc.save
-					doc.update(data)
+					doc.update(request_data)
 
 					frappe.local.response.update({
 						"data": doc.save().as_dict()
 					})
 					frappe.db.commit()
 
-				if frappe.local.request.method=="DELETE":
+				if frappe.local.request.method == "DELETE":
 					# Not checking permissions here because it's checked in delete_doc
 					frappe.delete_doc(doctype, name, ignore_missing=False)
 					frappe.local.response.http_status_code = 202
 					frappe.local.response.message = "ok"
 					frappe.db.commit()
 
-
 			elif doctype:
-				if frappe.local.request.method=="GET":
+				request_data.update({"doctype": doctype})
+
+				if frappe.local.request.method == "GET":
 					if frappe.local.form_dict.get('fields'):
 						frappe.local.form_dict['fields'] = json.loads(frappe.local.form_dict['fields'])
 					frappe.local.form_dict.setdefault('limit_page_length', 20)
-					frappe.local.response.update({
-						"data":  frappe.call(frappe.client.get_list,
-							doctype, **frappe.local.form_dict)})
+					response_data = frappe.call(frappe.client.get_list, doctype, **frappe.local.form_dict)
+					frappe.local.response.update({"data":  response_data})
 
-				if frappe.local.request.method=="POST":
-					if frappe.local.form_dict.data is None:
-						data = json.loads(frappe.local.request.get_data())
-					else:
-						data = json.loads(frappe.local.form_dict.data)
-					data.update({
-						"doctype": doctype
-					})
-					frappe.local.response.update({
-						"data": frappe.get_doc(data).insert().as_dict()
-					})
+				if frappe.local.request.method == "POST":
+					response_data = frappe.get_doc(request_data).insert().as_dict()
+					frappe.local.response.update({"data": response_data})
 					frappe.db.commit()
+
 			else:
 				raise frappe.DoesNotExistError
 
