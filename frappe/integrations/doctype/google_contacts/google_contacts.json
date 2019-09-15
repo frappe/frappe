@@ -11,7 +11,12 @@
   "cb_00",
   "last_sync_on",
   "authorization_code",
-  "refresh_token"
+  "refresh_token",
+  "next_sync_token",
+  "sync",
+  "pull_from_google_contacts",
+  "column_break_12",
+  "push_to_google_contacts"
  ],
  "fields": [
   {
@@ -62,10 +67,38 @@
    "fieldname": "authorize_google_contacts_access",
    "fieldtype": "Button",
    "label": "Authorize Google Contacts Access"
+  },
+  {
+   "fieldname": "next_sync_token",
+   "fieldtype": "Password",
+   "hidden": 1,
+   "label": "Next Sync Token"
+  },
+  {
+   "depends_on": "enable",
+   "fieldname": "sync",
+   "fieldtype": "Section Break",
+   "label": "Sync"
+  },
+  {
+   "default": "0",
+   "fieldname": "pull_from_google_contacts",
+   "fieldtype": "Check",
+   "label": "Pull from Google Contacts"
+  },
+  {
+   "fieldname": "column_break_12",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "push_to_google_contacts",
+   "fieldtype": "Check",
+   "label": "Push to Google Contacts"
   }
  ],
- "modified": "2019-08-23 13:50:52.789503",
- "modified_by": "Administrator",
+ "modified": "2019-09-13 15:53:19.569924",
+ "modified_by": "himanshu@erpnext.com",
  "module": "Integrations",
  "name": "Google Contacts",
  "owner": "Administrator",
