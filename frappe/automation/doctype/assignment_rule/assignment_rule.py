@@ -109,11 +109,14 @@ class AssignmentRule(Document):
 
 	def safe_eval(self, fieldname, doc):
 		try:
-			return frappe.safe_eval(self.get(fieldname), None, doc)
+			if self.get(fieldname):
+				return frappe.safe_eval(self.get(fieldname), None, doc)
 		except Exception as e:
 			# when assignment fails, don't block the document as it may be
 			# a part of the email pulling
 			frappe.msgprint(frappe._('Auto assignment failed: {0}').format(str(e)), indicator = 'orange')
+
+		return False
 
 def get_assignments(doc):
 	return frappe.get_all('ToDo', fields = ['name', 'assignment_rule'], filters = dict(
@@ -144,7 +147,7 @@ def reopen_closed_assignment(doc):
 		return False
 	todo = frappe.get_doc("ToDo", todo)
 	todo.status = 'Open'
-	todo.save()
+	todo.save(ignore_permissions=True)
 	return True
 
 def apply(doc, method=None, doctype=None, name=None):
