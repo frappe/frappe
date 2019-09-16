@@ -177,7 +177,6 @@ def get_notification_info():
 def get_notification_config():
 	cache = frappe.cache()
 	def _get(cache):
-		print('setting cache')
 		subscribed_documents = get_subscribed_documents()
 		config = frappe._dict()
 		hooks = frappe.get_hooks()

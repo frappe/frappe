@@ -29,10 +29,6 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 	},
 
 	bind_events: function() {
-		// $(document).on("notification-update", function() {
-		// 	frappe.ui.notifications.update_notifications();
-		// });
-
 		// clear all custom menus on page change
 		$(document).on("page-change", function() {
 			$("header .navbar .custom-menu").remove();
