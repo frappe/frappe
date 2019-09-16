@@ -37,6 +37,7 @@ frappe.ui.Notifications = class Notifications {
 			let hide = $(e.currentTarget).next().hasClass("in");
 			if (!hide) {
 				let today = frappe.datetime.now_date();
+
 				frappe.xcall('frappe.desk.doctype.event.event.get_events', {
 					start: today,
 					end: frappe.datetime.add_days(today, 3)
@@ -64,7 +65,8 @@ frappe.ui.Notifications = class Notifications {
 			html = `<li class="recent-item text-center">
 					<span class="text-muted">${__('No Upcoming Events')}</span>
 				</li>`;
-		} 
+		}
+
 		this.$upcoming_events.html(html);
 	}
 
@@ -112,7 +114,7 @@ frappe.ui.Notifications = class Notifications {
 		keys.map(key => {
 			let doc_dt = (map.doctypes) ? map.doctypes[key] : undefined;
 			if (map[key] > 0 || target) {
-				this.add_notification(key, map[key], doc_dt, target);
+				this.add_notification_html(key, map[key], doc_dt, target);
 				empty_map = 0;
 			}
 		});
@@ -122,19 +124,24 @@ frappe.ui.Notifications = class Notifications {
 		}
 	}
 
-	add_notification(name, value, doc_dt, target = false) {
-		let label = this.open_docs_config[name] ? this.open_docs_config[name].label : name;
+	add_notification_html(name, value, doc_dt, target = false) {
+		let label = this.open_docs_config[name] ?
+			this.open_docs_config[name].label :
+			name;
 		let title = target ? `title="Your Target"` : '';
 		let $list_item = !target
 			? $(`<li><a class="badge-hover" href="#" onclick="return false;" data-doctype="${name}" ${title}>
 				${__(label)}
 				<span class="badge pull-right">${value}</span>
 			</a></li>`)
-			: $(`<li><a class="progress-small" href="#" onclick="return false;" ${title} data-doctype="${doc_dt}"
-				data-doc="${name}"><span class="dropdown-item-label">${__(label)}<span>
-				<div class="progress-chart"><div class="progress">
-					<div class="progress-bar" style="width: ${value}%"></div>
-				</div></div>
+			: $(`<li><a class="progress-small" href="#" onclick="return false;" ${title}
+				data-doctype="${doc_dt}" data-doc="${name}">
+					<span class="dropdown-item-label">${__(label)}<span>
+					<div class="progress-chart">
+						<div class="progress">
+							<div class="progress-bar" style="width: ${value}%"></div>
+						</div>
+					</div>
 			</a></li>`);
 
 		this.$open_docs.append($list_item);
@@ -154,6 +161,7 @@ frappe.ui.Notifications = class Notifications {
 
 	setup_open_docs_route() {
 		let me = this;
+
 		this.$open_docs.on('click', 'li a', function() {
 			let doctype = $(this).attr('data-doctype');
 			let doc = $(this).attr('data-doc');
@@ -180,6 +188,7 @@ frappe.ui.Notifications = class Notifications {
 				this.$dropdown_list.find('.recent-notification').last().remove();
 				this.dropdown_items.pop();
 			}
+
 			this.insert_into_dropdown();
 		});
 	}
@@ -227,6 +236,7 @@ frappe.ui.Notifications = class Notifications {
 					${__('No activity')}
 				</a></li>`;
 		}
+
 		let dropdown_html = body_html + view_full_log_html;
 		this.$notifications.append(dropdown_html);
 	}
@@ -272,6 +282,7 @@ frappe.ui.Notifications = class Notifications {
 					<span class="octicon octicon-chevron-down collapse-indicator"></span>
 				</li>
 				<div id = "${category_id}" class="collapse">`;
+
 			if (category_id !== 'notifications') {
 				html += `<div class="text-center text-muted notifications-loading">
 					${__("Loading...")}
@@ -286,12 +297,13 @@ frappe.ui.Notifications = class Notifications {
 	}
 
 	bind_events() {
+		let me = this;
+
 		frappe.realtime.on('notification', () => {
 			this.$dropdown.find('.notifications-indicator').show();
 			this.update_dropdown();
 		});
 
-		let me = this;
 		this.$dropdown.on('hide.bs.dropdown', function() {
 			me.$notification_indicator.hide();
 			let hide = $(this).data('closable');
