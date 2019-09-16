@@ -206,6 +206,9 @@ def address_query(links):
 	result = []
 
 	for link in links:
+		if not frappe.has_permission(doctype=link.get("link_doctype"), ptype="read", doc=link.get("link_name")):
+			continue
+
 		res = frappe.db.sql("""
 			SELECT `tabAddress`.name
 			FROM `tabAddress`, `tabDynamic Link`
