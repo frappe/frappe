@@ -1,8 +1,8 @@
 // Copyright (c) 2019, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
-frappe.provide("frappe.global_tag");
+frappe.provide("frappe.global_tags");
 
-frappe.global_tag.GlobalTagDialog = class GlobalTag {
+frappe.global_tags.GlobalTagsDialog = class GlobalTags {
 	constructor(opts) {
 		console.log(opts);
 		$.extend(this, opts);
@@ -56,30 +56,6 @@ frappe.global_tag.GlobalTagDialog = class GlobalTag {
 		}
 
 		$(this.dialog.body).html(html);
-	}
-
-	load_doctypes() {
-		const already_loaded = Object.keys(locals.DocType);
-		let doctypes_to_load = [];
-
-		if (this.frm.__linked_doctypes) {
-			doctypes_to_load =
-				Object.keys(this.frm.__linked_doctypes)
-					.filter(doctype => !already_loaded.includes(doctype));
-		}
-
-		// load all doctypes asynchronously using with_doctype
-		const promises = doctypes_to_load.map(dt => {
-			return frappe.model.with_doctype(dt, () => {
-				if(frappe.listview_settings[dt]) {
-					// add additional fields to __linked_doctypes
-					this.frm.__linked_doctypes[dt].add_fields =
-						frappe.listview_settings[dt].add_fields;
-				}
-			});
-		});
-
-		return Promise.all(promises);
 	}
 
 	get_documents_for_tag() {

@@ -1,7 +1,7 @@
 // Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 frappe.provide('frappe.search');
-frappe.provide('frappe.global_tag');
+frappe.provide('frappe.global_tags');
 
 frappe.search.AwesomeBar = Class.extend({
 	setup: function(element) {
@@ -233,16 +233,15 @@ frappe.search.AwesomeBar = Class.extend({
 
 	make_global_tags:function(txt) {
 		var me = this;
-		var hashtag = txt.charAt(0);
 
-		if (hashtag === "#") {
+		if (txt.charAt(0) === "#") {
 			this.options.push({
 				label: __("Search for tag '{0}'", [txt.bold()]),
 				value: __("Search for tag '{0}'", [txt]),
 				match: txt,
 				default: "Tag",
 				onclick: function() {
-					new frappe.global_tag.GlobalTagDialog({"tag": txt})
+					new frappe.global_tags.GlobalTagsDialog({"tag": txt})
 				}
 			});
 		}
