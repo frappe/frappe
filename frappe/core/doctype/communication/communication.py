@@ -426,7 +426,8 @@ def create_notification(self):
 
 	if self.cc or self.bcc:
 		names = self.cc or '' + self.bcc or ''
-		notification_message = _('''<b>{0}</b> included you in an Email <b>{1}</b>''').format(self.sender_full_name, title)
+		notification_message = _('''<b>{0}</b> included you in an Email <b>{1}</b>''')\
+			.format(self.sender_full_name, title)
 		args = {
 			'type': 'Communication',
 			'reference_doctype': self.reference_doctype,
@@ -434,12 +435,15 @@ def create_notification(self):
 			'reference_name': self.reference_name
 		}
 		create_notification_log(names, args)
-	notification_message = _('''<b>{0}</b> replied to your Email <b>{1}</b>''').format(self.sender_full_name, title)
-	args = {
-		'type': 'Communication',
-		'reference_doctype': self.reference_doctype,
-		'subject': notification_message,
-		'reference_name': self.reference_name,
-		'reference_user': frappe.session.user
-	}
-	create_notification_log(self.recipients, args)
+
+	if self.recipients:
+		notification_message = _('''<b>{0}</b> replied to your Email <b>{1}</b>''')\
+			.format(self.sender_full_name, title)
+		args = {
+			'type': 'Communication',
+			'reference_doctype': self.reference_doctype,
+			'subject': notification_message,
+			'reference_name': self.reference_name,
+			'reference_user': frappe.session.user
+		}
+		create_notification_log(self.recipients, args)
