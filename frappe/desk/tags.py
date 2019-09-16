@@ -59,14 +59,9 @@ def get_tagged_docs(doctype, tag):
 @frappe.whitelist()
 def get_tags(doctype, txt, cat_tags):
 	tags = json.loads(cat_tags)
-	try:
-		for _user_tags in frappe.db.sql_list("""select DISTINCT `_user_tags`
-			from `tab{0}`
-			where _user_tags like {1}
-			limit 50""".format(doctype, frappe.db.escape('%' + txt + '%'))):
-			tags.extend(_user_tags[1:].split(","))
-	except Exception as e:
-		if not frappe.db.is_column_missing(e): raise
+	tag = frappe.get_list("Tag", filters=[["name", "like", "%{}%".format(txt)]])
+	tags.extend([t.name for t in tag])
+
 	return sorted(filter(lambda t: t and txt.lower() in t.lower(), list(set(tags))))
 
 class DocTags:
@@ -87,6 +82,8 @@ class DocTags:
 		tl = self.get_tags(dn).split(',')
 		if not tag in tl:
 			tl.append(tag)
+			if not frappe.db.exists("Tag", tag.strip()):
+				frappe.get_doc({"doctype": "Tag", "name": tag.strip()}).insert()
 			self.update(dn, tl)
 
 	def remove(self, dn, tag):
