@@ -123,14 +123,12 @@ def get():
 		bootinfo = frappe.cache().hget("bootinfo", frappe.session.user)
 		if bootinfo:
 			bootinfo['from_cache'] = 1
-			# bootinfo["notification_info"].update(get_notifications())
 			bootinfo["user"]["recent"] = json.dumps(\
 				frappe.cache().hget("user_recent", frappe.session.user))
 
 	if not bootinfo:
 		# if not create it
 		bootinfo = get_bootinfo()
-		# bootinfo["notification_info"] = get_notification_info_for_boot()
 		frappe.cache().hset("bootinfo", frappe.session.user, bootinfo)
 		try:
 			frappe.cache().ping()
