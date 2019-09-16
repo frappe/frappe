@@ -15,6 +15,7 @@ import hashlib, json
 from frappe.model import optional_fields, table_fields
 from frappe.model.workflow import validate_workflow
 from frappe.utils.global_search import update_global_search
+from frappe.utils.global_tags import update_global_tags
 from frappe.integrations.doctype.webhook import run_webhooks
 from frappe.desk.form.document_follow import follow_document
 
@@ -930,6 +931,7 @@ class Document(BaseDocument):
 		self.notify_update()
 
 		update_global_search(self)
+		update_global_tags(self)
 
 		if getattr(self.meta, 'track_changes', False) and self._doc_before_save and not self.flags.ignore_version:
 			self.save_version()
