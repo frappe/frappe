@@ -5,25 +5,27 @@
 from __future__ import unicode_literals
 import frappe
 import json
+import requests
 from frappe import _
 from frappe.model.document import Document
 from frappe.frappeclient import FrappeClient
 from frappe.utils.background_jobs import get_jobs
 
 class EventProducer(Document):
-	def after_insert(self):
+	def before_insert(self):
 		self.create_event_consumer()
 
 	def on_update(self):
 		producer_site = get_producer_site(self.producer_url)
 		event_consumer = producer_site.get_doc('Event Consumer', get_current_node())
-		event_consumer.subscribed_doctypes = []
-		for entry in self.subscribed_doctypes:
-			event_consumer.subscribed_doctypes.append({
-				'ref_doctype': entry.ref_doctype
-			})
-		event_consumer.user = self.user
-		producer_site.update(event_consumer)
+		if event_consumer:
+			event_consumer.subscribed_doctypes = []
+			for entry in self.subscribed_doctypes:
+				event_consumer.subscribed_doctypes.append({
+					'ref_doctype': entry.ref_doctype
+				})
+			event_consumer.user = self.user
+			producer_site.update(event_consumer)
 
 	def create_event_consumer(self):
 		'''register event consumer on the producer site'''
@@ -37,9 +39,9 @@ class EventProducer(Document):
 			'subscribed_doctypes': json.dumps(subscribed_doctypes),
 			'user': self.user
 		})
-		self.db_set('api_key', api_key)
-		self.db_set('api_secret', api_secret)
-		self.db_set('last_update', last_update)
+		self.api_key = api_key
+		self.api_secret =  api_secret
+		self.last_update = last_update
 
 def get_current_node():
 	current_node = frappe.utils.get_url()
@@ -61,10 +63,12 @@ def get_producer_site(producer_url):
 
 @frappe.whitelist()
 def pull_producer_data():
-	'''Fetch data from producer node.'''
-	for event_producer in frappe.get_all('Event Producer'):
-		pull_from_node(event_producer.name)
-	return 'success'
+	response = requests.get(get_current_node())
+	if response.status_code == 200:
+		'''Fetch data from producer node.'''
+		for event_producer in frappe.get_all('Event Producer'):
+			pull_from_node(event_producer.name)
+		return 'success'
 
 @frappe.whitelist()
 def pull_from_node(event_producer):
@@ -103,8 +107,10 @@ def set_update(update, producer_site):
 	local_doc = get_local_doc(update)
 	data = json.loads(update.get('data'))
 	data.pop('name')
-	local_doc.update(data)
-	local_doc.db_update_all()
+	if local_doc:
+		check_doc_has_dependencies(local_doc, producer_site)
+		local_doc.update(data)
+		local_doc.db_update_all()
 
 def set_delete(update):
 	local_doc = get_local_doc(update)
@@ -181,4 +187,4 @@ def new_event_notification(producer_url):
 	enqueued_method = 'frappe.events_streaming.doctype.event_producer.event_producer.pull_from_node'
 	jobs = get_jobs()
 	if not jobs or enqueued_method not in jobs[frappe.local.site]:
-		frappe.enqueue(enqueued_method, queue = 'default', enqueue_after_commit = True, **{'event_producer': producer_url})
+		frappe.enqueue(enqueued_method, queue = 'default', **{'event_producer': producer_url})

@@ -23,8 +23,9 @@
   {
    "fieldname": "subscribed_doctypes",
    "fieldtype": "Table",
-   "label": "Subscribed Doctypes",
-   "options": "Event Subscribed DocType"
+   "label": "Subscribed Document Types",
+   "options": "Event Subscribed DocType",
+   "reqd": 1
   },
   {
    "fieldname": "api_key",
@@ -46,7 +47,7 @@
    "reqd": 1
   }
  ],
- "modified": "2019-09-08 22:25:29.141335",
+ "modified": "2019-09-11 12:22:01.974457",
  "modified_by": "Administrator",
  "module": "Events Streaming",
  "name": "Event Consumer",
