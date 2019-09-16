@@ -7,15 +7,15 @@ frappe.ui.Notifications = class Notifications {
 		this.$notification_indicator = this.$dropdown.find('.notifications-indicator');
 		this.user = frappe.session.user;
 		this.max_length = 20;
-		this.categories = ['Notifications', 'Todays Events', 'Open Documents'];
 
+		this.categories = ['Notifications', 'Upcoming Events', 'Open Documents'];
 		this.render_dropdown_headers();
 		this.$notifications = this.$dropdown_list.find('#notifications');
 		this.$open_docs = this.$dropdown_list.find('#open-documents');
-		this.$todays_events = this.$dropdown_list.find('#todays-events');
+		this.$upcoming_events = this.$dropdown_list.find('#upcoming-events');
 
 		this.setup_notifications();
-		this.setup_todays_events();
+		this.setup_upcoming_events();
 		this.setup_open_document_count();
 		this.bind_events();
 	}
@@ -25,32 +25,36 @@ frappe.ui.Notifications = class Notifications {
 			this.dropdown_items = list;
 			this.render_notifications_dropdown();
 			this.setup_view_full_log();
+
 			if (this.$notifications.find('.unseen').length) {
 				this.$notification_indicator.show();
 			}
 		});
 	}
 
-	setup_todays_events() {
-		this.$dropdown_list.on('click', '.todays-events-header', (e) => {
-			let today = frappe.datetime.now_date();
-			frappe.xcall('frappe.desk.doctype.event.event.get_events', {
-				start: today,
-				end: today
-			}).then((event_list) => {
-				this.render_events_html(event_list);
-			});
+	setup_upcoming_events() {
+		this.$dropdown_list.on('click', '.upcoming-events-header', (e) => {
+			let hide = $(e.currentTarget).next().hasClass("in");
+			if (!hide) {
+				let today = frappe.datetime.now_date();
+				frappe.xcall('frappe.desk.doctype.event.event.get_events', {
+					start: today,
+					end: frappe.datetime.add_days(today, 3)
+				}).then((event_list) => {
+					this.render_events_html(event_list);
+				});
+			}
 		});
 	}
 
 	render_events_html(event_list) {
 		let html = '';
-		if(event_list.length) {
+		if (event_list.length) {
 			let get_event_html = (event) => {
 				let time = frappe.datetime.get_time(event.starts_on);
 				return `<li class="recent-item event">
 					<a href="#Form/Event/${event.name}">
-						<span class="event-time">${time}</span>
+						<span class="event-time bold">${time}</span>
 						<span class="event-subject"> ${event.subject}</span>
 					</a>
 				</li>`;
@@ -58,28 +62,34 @@ frappe.ui.Notifications = class Notifications {
 			html = event_list.map(get_event_html).join('');
 		} else {
 			html = `<li class="recent-item text-center">
-					<span class="text-muted">${__('No Events Today')}</span>
+					<span class="text-muted">${__('No Upcoming Events')}</span>
 				</li>`;
 		} 
-		this.$todays_events.html(html);
+		this.$upcoming_events.html(html);
 	}
 
 	setup_open_document_count() {
 		this.open_docs_config =  {
-			"ToDo": { label: __("To Do") },
-			"Event": { label: __("Calendar"), route: "List/Event/Calendar" },
-			"Email": { label: __("Email"), route: "List/Communication/Inbox" }
+			'ToDo': { label: __('To Do') },
+			'Event': { label: __('Calendar'), route: 'List/Event/Calendar' },
 		};
+
 		this.$dropdown_list.on('click', '.open-documents-header', (e) => {
-			frappe.xcall('frappe.desk.notifications.get_notification_info').then((r) => {
-				this.open_document_list = r;
-				this.render_open_document_count();
-			});
+			let hide = $(e.currentTarget).next().hasClass('in');
+			if (!hide) {
+				frappe.xcall('frappe.desk.notifications.get_notification_info').then((r) => {
+					this.open_document_list = r;
+					this.render_open_document_count();
+				});
+			}
 		});
+
+		this.setup_open_docs_route();
 	}
 
 	render_open_document_count() {
-		let defaults = ["Comment", "ToDo", "Event"];
+		this.$open_docs.html('');
+		let defaults = ['ToDo'];
 		this.get_counts(this.open_document_list['open_count_doctype'], 1, defaults);
 		let targets = { doctypes : {} }, map = this.open_document_list['targets'];
 
@@ -89,7 +99,8 @@ frappe.ui.Notifications = class Notifications {
 				targets.doctypes[doc] = doctype;
 			});
 		});
-		this.get_counts(targets, 1, null, ["doctypes"], true);
+
+		this.get_counts(targets, 1, null, ['doctypes'], true);
 		this.get_counts(this.open_document_list['open_count_doctype'],
 			0, null, defaults);
 	}
@@ -100,13 +111,13 @@ frappe.ui.Notifications = class Notifications {
 			: Object.keys(map).sort().filter(e => !excluded.includes(e));
 		keys.map(key => {
 			let doc_dt = (map.doctypes) ? map.doctypes[key] : undefined;
-			if(map[key] > 0 || target) {
+			if (map[key] > 0 || target) {
 				this.add_notification(key, map[key], doc_dt, target);
 				empty_map = 0;
 			}
 		});
 
-		if(divide && !empty_map) {
+		if (divide && !empty_map) {
 			this.$open_docs.append($('<li class="divider"></li>'));
 		}
 	}
@@ -115,7 +126,8 @@ frappe.ui.Notifications = class Notifications {
 		let label = this.open_docs_config[name] ? this.open_docs_config[name].label : name;
 		let title = target ? `title="Your Target"` : '';
 		let $list_item = !target
-			? $(`<li><a class="badge-hover" href="#" onclick="return false;" data-doctype="${name}" ${title}>${__(label)}
+			? $(`<li><a class="badge-hover" href="#" onclick="return false;" data-doctype="${name}" ${title}>
+				${__(label)}
 				<span class="badge pull-right">${value}</span>
 			</a></li>`)
 			: $(`<li><a class="progress-small" href="#" onclick="return false;" ${title} data-doctype="${doc_dt}"
@@ -126,7 +138,38 @@ frappe.ui.Notifications = class Notifications {
 			</a></li>`);
 
 		this.$open_docs.append($list_item);
-		if(!target) this.total += value;
+		if (!target) this.total += value;
+	}
+
+	show_open_count_list(doctype) {
+		let filters = this.open_document_list['conditions'][doctype];
+		if (filters && $.isPlainObject(filters)) {
+			if (!frappe.route_options) {
+				frappe.route_options = {};
+			}
+			$.extend(frappe.route_options, filters);
+		}
+		frappe.set_route("List", doctype);
+	}
+
+	setup_open_docs_route() {
+		let me = this;
+		this.$open_docs.on('click', 'li a', function() {
+			let doctype = $(this).attr('data-doctype');
+			let doc = $(this).attr('data-doc');
+			if (!doc) {
+				let config = me.open_docs_config[doctype] || {};
+				if (config.route) {
+					frappe.set_route(config.route);
+				} else if (config.click) {
+					config.click();
+				} else {
+					me.show_open_count_list(doctype);
+				}
+			} else {
+				frappe.set_route("Form", doctype, doc);
+			}
+		});
 	}
 
 	update_dropdown() {
@@ -145,21 +188,19 @@ frappe.ui.Notifications = class Notifications {
 		let new_item = this.dropdown_items[0];
 		let new_item_html = this.get_dropdown_item_html(new_item);
 		$(new_item_html).prependTo(this.$dropdown_list.find('#notifications'));
-		this.$dropdown_list.find('#notifications').collapse('show')
 	}
-
 
 	check_seen() {
 		let unseen_logs = this.dropdown_items.filter(item => item.seen === 0);
 		frappe.call(
 			'frappe.core.doctype.notification_log.notification_log.set_notification_as_seen', 
-			{notification_log: unseen_logs});
+			{notification_log: unseen_logs}
+		);
 	}
 
 	get_notifications_list(limit) {
 		return frappe.db.get_list('Notification Log', {
-			fields:
-				['*'],
+			fields: ['*'],
 			limit: limit,
 			order_by: 'creation desc'
 		}).then((notifications_list) => {
@@ -176,9 +217,15 @@ frappe.ui.Notifications = class Notifications {
 				let item_html = this.get_dropdown_item_html(field);
 				if (item_html) body_html += item_html;
 			});
-			view_full_log_html = `<li class="recent-item text-center"><a class="text-muted full-log-btn">${__('View Full Log')}</a></li>`;
+			view_full_log_html = `<li class="recent-item text-center">
+				<a class="text-muted full-log-btn">
+					${__('View Full Log')}
+				</a></li>`;
 		} else {
-			body_html += `<li class="recent-item text-center"><a href="#" onclick = "return false" class="text-muted">${__('No activity')}</a></li>`;
+			body_html += `<li class="recent-item text-center">
+				<a href="#" onclick = "return false" class="text-muted">
+					${__('No activity')}
+				</a></li>`;
 		}
 		let dropdown_html = body_html + view_full_log_html;
 		this.$notifications.append(dropdown_html);
@@ -217,15 +264,21 @@ frappe.ui.Notifications = class Notifications {
 		let get_headers_html = (category) => {
 			let category_id = frappe.scrub(category, '-');
 			let category_header_class = frappe.scrub(category, '-') + '-header';
-			return `<li class="notifications-category">
+			let html = `<li class="notifications-category">
 				<li class="text-muted header h6 uppercase ${category_header_class}" 
 					href="#${category_id}" 
 					data-toggle="collapse">
 					${category}
 					<span class="octicon octicon-chevron-down collapse-indicator"></span>
 				</li>
-				<div id = "${category_id}" class="collapse"></div>
-			</li>`;
+				<div id = "${category_id}" class="collapse">`;
+			if (category_id !== 'notifications') {
+				html += `<div class="text-center text-muted notifications-loading">
+					${__("Loading...")}
+				</div>`
+			}
+			html += `</div></li>`;
+			return html;
 		}
 
 		let html = this.categories.map(get_headers_html).join('<li class="divider"></li>');
@@ -239,7 +292,7 @@ frappe.ui.Notifications = class Notifications {
 		});
 
 		let me = this;
-		this.$dropdown.on('hide.bs.dropdown', function(e) {
+		this.$dropdown.on('hide.bs.dropdown', function() {
 			me.$notification_indicator.hide();
 			let hide = $(this).data('closable');
 			me.$dropdown_list.find('.unseen').removeClass('unseen');
@@ -249,6 +302,7 @@ frappe.ui.Notifications = class Notifications {
 
 		this.$dropdown.on('show.bs.dropdown', () => {
 			this.check_seen();
+			this.$dropdown_list.find('#notifications').collapse('show');
 		});
 
 		this.$dropdown.on('click', function(e) {
@@ -263,30 +317,11 @@ frappe.ui.Notifications = class Notifications {
 			this.$dropdown.removeClass('open');
 		});
 
-		this.$dropdown.find(".header").on('click', function(e) {
-			let hide = me.$dropdown.find('.header').next().hasClass("in");
+		this.$dropdown.find('.header').on('click', function(e) {
+			let hide = $(this).next().hasClass("in");
 			$(this).find('.collapse-indicator').toggleClass("octicon-chevron-down", hide);
 			$(this).find('.collapse-indicator').toggleClass("octicon-chevron-up", !hide);
 		});
-
-		this.$open_docs.on('click', 'li a', function() {
-			var doctype = $(this).attr('data-doctype');
-			var doc = $(this).attr('data-doc');
-			if(!doc) {
-				var config = me.open_docs_config[doctype] || {};
-				console.log('config', config)
-				if (config.route) {
-					frappe.set_route(config.route);
-				} else if (config.click) {
-					config.click();
-				} else {
-					me.show_open_count_list(doctype);
-				}
-			} else {
-				frappe.set_route("Form", doctype, doc);
-			}
-		});
 	}
-
 
 }

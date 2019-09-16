@@ -9,6 +9,8 @@ import json
 from frappe.model.document import Document
 from frappe.core.doctype.user.user import extract_mentions
 from frappe.core.doctype.notification_log.notification_log import create_notification_log
+from frappe.core.doctype.notification_settings.notification_settings import (is_notifications_enabled,
+	is_email_notifications_enabled)
 from frappe.utils import get_fullname, get_link_to_form
 from frappe.website.render import clear_cache
 from frappe.database.schema import add_column
@@ -67,9 +69,6 @@ class Comment(Document):
 			recipients = [frappe.db.get_value("User", {"enabled": 1, "name": name, "user_type": "System User", "allowed_in_mentions": 1}, "email")
 				for name in mentions]
 			link = get_link_to_form(self.reference_doctype, self.reference_name, label=parent_doc_label)
-
-			# from frappe.core.doctype.notification_settings.notification_settings import is_notifications_enabled
-			# if is_notifications_enabled:
 			notification_message = _('''<b>{0}</b> mentioned you in a comment in <b>{1} {2}</b></span>''')\
 				.format(sender_fullname, self.reference_doctype, title)
 
@@ -82,18 +81,20 @@ class Comment(Document):
 			}
 			create_notification_log(recipients, notification_doc)
 
-			# frappe.sendmail(
-			# 	recipients = recipients,
-			# 	sender = frappe.session.user,
-			# 	subject = subject,
-			# 	template = "mentioned_in_comment",
-			# 	args = {
-			# 		"body_content": _("{0} mentioned you in a comment in {1}").format(sender_fullname, link),
-			# 		"comment": self,
-			# 		"link": link
-			# 	},
-			# 	header = [_('New Mention'), 'orange']
-			# )
+			for recipient in recipients:
+				if is_email_notifications_enabled(recipient):
+					frappe.sendmail(
+						recipients = recipients,
+						sender = frappe.session.user,
+						subject = subject,
+						template = "mentioned_in_comment",
+						args = {
+							"body_content": _("{0} mentioned you in a comment in {1}").format(sender_fullname, link),
+							"comment": self,
+							"link": link
+						},
+						header = [_('New Mention'), 'orange']
+					)
 
 
 def on_doctype_update():

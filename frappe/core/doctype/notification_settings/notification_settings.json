@@ -7,7 +7,8 @@
   "enable",
   "enable_energy_point_notifications",
   "enable_email_notifications",
-  "subscribed_documents"
+  "subscribed_documents",
+  "user"
  ],
  "fields": [
   {
@@ -33,17 +34,26 @@
    "fieldtype": "Table MultiSelect",
    "label": "Subscribed Documents",
    "options": "Subscribed Documents"
+  },
+  {
+   "default": "__user",
+   "fieldname": "user",
+   "fieldtype": "Link",
+   "hidden": 1,
+   "in_list_view": 1,
+   "label": "User",
+   "options": "User",
+   "read_only": 1
   }
  ],
- "in_create": 1,
- "modified": "2019-09-12 17:32:38.026945",
+ "modified": "2019-09-16 18:17:43.146062",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Notification Settings",
  "owner": "Administrator",
  "permissions": [
   {
-   "delete": 1,
+   "create": 1,
    "email": 1,
    "export": 1,
    "print": 1,

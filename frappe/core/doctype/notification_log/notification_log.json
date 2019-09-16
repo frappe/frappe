@@ -74,14 +74,13 @@
   }
  ],
  "in_create": 1,
- "modified": "2019-09-11 15:45:05.102753",
+ "modified": "2019-09-16 18:17:59.823096",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Notification Log",
  "owner": "Administrator",
  "permissions": [
   {
-   "delete": 1,
    "email": 1,
    "export": 1,
    "print": 1,

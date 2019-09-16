@@ -8,6 +8,7 @@ import frappe
 from frappe import _
 from frappe.desk.form.document_follow import follow_document
 from frappe.core.doctype.notification_log.notification_log import create_notification_log
+from frappe.core.doctype.notification_settings.notification_settings import is_notifications_enabled, is_email_notifications_enabled
 import frappe.utils
 from frappe.utils import cint
 import frappe.share
@@ -80,8 +81,7 @@ def add(args=None):
 		# make this document followed by assigned user
 		follow_document(args['doctype'], args['name'], args['assign_to'])
 
-	# from frappe.core.doctype.notification_settings.notification_settings import is_notifications_enabled
-	# if is_notifications_enabled:
+	# if is_notifications_enabled():
 		# notify
 	notify_assignment(d.assigned_by, d.owner, d.reference_type, d.reference_name, action='ASSIGN',\
 			description=args.get("description"), notify=args.get('notify'))
@@ -170,7 +170,6 @@ def notify_assignment(assigned_by, owner, doc_type, doc_name, action='CLOSE',
 	title = doc_name if title_field == "name" else \
 		frappe.db.get_value(doc_type, doc_name, title_field)
 	if action=='CLOSE':
-		print('CLOSED!!!')
 		if owner == frappe.session.get('user'):
 			arg = {
 				'contact': assigned_by,
@@ -211,7 +210,7 @@ def notify_assignment(assigned_by, owner, doc_type, doc_name, action='CLOSE',
 		}
 		create_notification_log(user, notification_doc)
 
-	if arg and cint(arg.get("notify")):
+	if arg and cint(arg.get("notify") and is_email_notifications_enabled(user)):
 		_notify(arg)
 
 def _notify(args):
@@ -224,7 +223,7 @@ def _notify(args):
 	try:
 		if not isinstance(contact, list):
 			contact = [frappe.db.get_value("User", contact, "email") or contact]
-
+		
 		frappe.sendmail(\
 			recipients=contact,
 			sender= frappe.db.get_value("User", frappe.session.user, "email"),
