@@ -147,7 +147,7 @@ def reopen_closed_assignment(doc):
 		return False
 	todo = frappe.get_doc("ToDo", todo)
 	todo.status = 'Open'
-	todo.save()
+	todo.save(ignore_permissions=True)
 	return True
 
 def apply(doc, method=None, doctype=None, name=None):
