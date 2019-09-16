@@ -82,7 +82,7 @@ def create_linked_contact(link_list, address):
 		"address": address,
 		"status": "Open"
 	})
-	contact.add_email("test_contact@example.com")
+	contact.add_email("test_contact@example.com", is_primary=True)
 	contact.add_phone("+91 0000000000", is_primary_phone=True)
 
 	for name in link_list:
