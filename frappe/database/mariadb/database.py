@@ -211,7 +211,8 @@ class MariaDBDatabase(Database):
 				doctype varchar(100),
 				name varchar({0}),
 				title varchar({0}),
-				tag varchar(100))
+				tags varchar({0}),
+				unique `doctype_name` (doctype, name))
 				COLLATE=utf8mb4_unicode_ci
 				ENGINE=MyISAM
 				CHARACTER SET=utf8mb4'''.format(self.VARCHAR_LEN))

@@ -200,7 +200,8 @@ class PostgresDatabase(Database):
 				doctype varchar(100),
 				name varchar({0}),
 				title varchar({0}),
-				tag varchar(100))'''.format(self.VARCHAR_LEN))
+				tags varchar({0}),
+				unique (doctype, name))'''.format(self.VARCHAR_LEN))
 
 	def create_user_settings_table(self):
 		self.sql_ddl("""create table if not exists "__UserSettings" (

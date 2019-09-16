@@ -26,7 +26,7 @@ Design:
 """
 
 import frappe
-from frappe.utils.global_search import update_global_search
+from frappe.utils.global_tags import update_global_tags
 
 def check_user_tags(dt):
 	"if the user does not have a tags column, then it creates one"
@@ -110,7 +110,7 @@ class DocTags:
 			frappe.db.sql("update `tab%s` set _user_tags=%s where name=%s" % \
 				(self.dt,'%s','%s'), (tags , dn))
 			doc= frappe.get_doc(self.dt, dn)
-			update_global_search(doc)
+			update_global_tags(doc, tags)
 		except Exception as e:
 			if frappe.db.is_column_missing(e):
 				if not tags:

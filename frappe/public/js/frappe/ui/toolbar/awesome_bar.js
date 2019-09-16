@@ -1,6 +1,7 @@
 // Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 frappe.provide('frappe.search');
+frappe.provide('frappe.global_tag');
 
 frappe.search.AwesomeBar = Class.extend({
 	setup: function(element) {
@@ -140,6 +141,8 @@ frappe.search.AwesomeBar = Class.extend({
 						__("document type..., e.g. customer")+'</td></tr>\
 					<tr><td>'+__("Search in a document type")+'</td><td>'+
 						__("text in document type")+'</td></tr>\
+					<tr><td>'+__("Tags")+'</td><td>'+
+						__("tag name..., e.g. #tag")+'</td></tr>\
 					<tr><td>'+__("Open a module or tool")+'</td><td>'+
 						__("module name...")+'</td></tr>\
 					<tr><td>'+__("Calculate")+'</td><td>'+
@@ -165,6 +168,7 @@ frappe.search.AwesomeBar = Class.extend({
 		this.make_search_in_current(txt);
 		this.make_calculator(txt);
 		this.make_random(txt);
+		this.make_global_tags(txt);
 	},
 
 	build_options: function(txt) {
@@ -225,6 +229,23 @@ frappe.search.AwesomeBar = Class.extend({
 				frappe.searchdialog.search.init_search(txt, "global_search");
 			}
 		});
+	},
+
+	make_global_tags:function(txt) {
+		var me = this;
+		var hashtag = txt.charAt(0);
+
+		if (hashtag === "#") {
+			this.options.push({
+				label: __("Search for tag '{0}'", [txt.bold()]),
+				value: __("Search for tag '{0}'", [txt]),
+				match: txt,
+				default: "Tag",
+				onclick: function() {
+					new frappe.global_tag.GlobalTagDialog({"tag": txt})
+				}
+			});
+		}
 	},
 
 	make_search_in_current: function(txt) {

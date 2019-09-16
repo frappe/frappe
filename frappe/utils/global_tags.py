@@ -28,64 +28,42 @@ def reset():
 	"""
 	frappe.db.sql('DELETE FROM `__global_tags`')
 
-def sync_value_in_queue(value):
-	try:
-		# append to search queue if connected
-		frappe.cache().lpush('global_tags_queue', json.dumps(value))
-	except redis.exceptions.ConnectionError:
-		# not connected, sync directly
-		sync_value(value)
-
-def sync_global_tags():
-	"""
-		Inserts / updates values from `global_tags_queue` to __global_tags.
-		This is called via job scheduler
-		:param flags:
-		:return:
-	"""
-	while frappe.cache().llen('global_tags_queue') > 0:
-		value = json.loads(frappe.cache().lpop('global_tags_queue').decode('utf-8'))
-		sync_value(value)
-
-def delete_global_tags_records_for_document_with_tag(doctype, docname, tag):
-	frappe.db.sql('''
-		DELETE
+def delete_global_tags_records_for_document(doctype, docname):
+	frappe.db.sql("""DELETE
 		FROM `__global_search`
 		WHERE doctype = %s
-			AND name = %s
-			AND tag = %s''', (doctype, docname, tag))
+			AND name = %s""", (doctype, docname, tag))
 
-def sync_value(value):
-	'''
-		Sync a given document to global tags
-		:param value: dict of { doctype, name, title, tag }
-	'''
 
-	frappe.db.multisql({
-		'mariadb': '''INSERT INTO `__global_tags`
-			(`doctype`, `name`, `title`, `tag`)
-			VALUES (%(doctype)s, %(name)s, %(title)s, %(tag)s)
-		''',
-		'postgres': '''INSERT INTO `__global_search`
-			(`doctype`, `name`, `title`, `tag`)
-			VALUES (%(doctype)s, %(name)s, %(title)s, %(tag)s)
-		'''
-	}, value)
-
-def update_global_tags(doc):
+def update_global_tags(doc, tags):
 	"""
 		Adds tags for documents
 		:param doc: Document to be added to global tags
 	"""
-	if frappe.local.conf.get('disable_global_tags'):
+	if frappe.local.conf.get('disable_global_tags') or not doc.get("_user_tags"):
 		return
 
-	values = {
+	value = {
 		"doctype": doc.doctype,
 		"name": doc.name,
 		"title": (doc.get_title() or '')[:int(frappe.db.VARCHAR_LEN)],
-		"tag": "tag"
+		"tags": tags.lower()
 	}
+
+	frappe.db.multisql({
+		'mariadb': '''INSERT INTO `__global_tags`
+			(`doctype`, `name`, `title`, `tags`)
+			VALUES (%(doctype)s, %(name)s, %(title)s, %(tags)s)
+			ON DUPLICATE key UPDATE
+				`tags`=%(tags)s
+		''',
+		'postgres': '''INSERT INTO `__global_tags`
+			(`doctype`, `name`, `title`, `tags`)
+			VALUES (%(doctype)s, %(name)s, %(title)s, %(tags)s)
+			ON CONFLICT("doctype", "name") DO UPDATE SET
+				`tags`=%(tags)s
+		'''
+	}, value)
 
 def delete_for_document(doc):
 	"""
@@ -98,3 +76,35 @@ def delete_for_document(doc):
 		FROM `__global_tags`
 		WHERE doctype = %s
 		AND name = %s''', (doc.doctype, doc.name))
+
+@frappe.whitelist()
+def get_documents_for_tag(tag):
+	"""
+	Search for given text in __global_tags
+	:param tag: tag to be searched
+	"""
+	# remove hastag # from tag
+	results = {}
+	tag = tag[1:]
+
+	mariadb_fields = '`doctype`, `name`, `title`, `tags`, MATCH(`tags`) AGAINST ({} IN BOOLEAN MODE) AS rank'.format(frappe.db.escape('+' + tag + '*'))
+	postgres_fields = '`doctype`, `name`, `title`, `tags`, TO_TSVECTOR("tags") @@ PLAINTO_TSQUERY({}) AS rank'.format(frappe.db.escape(tag))
+
+	common_query = '''SELECT {fields} FROM `__global_tags`'''
+
+	result = frappe.db.multisql({
+			'mariadb': common_query.format(fields=mariadb_fields),
+			'postgres': common_query.format(fields=postgres_fields)
+		}, as_dict=True)
+
+	for res in result:
+		# if res.doctype in results.keys():
+		# 	results[res.doctype].append([res])
+		# else:
+		# 	results[res.doctype] = [[res]]
+		if res.doctype in results.keys():
+			results[res.doctype].append(res)
+		else:
+			results[res.doctype] = [res]
+
+	return results
