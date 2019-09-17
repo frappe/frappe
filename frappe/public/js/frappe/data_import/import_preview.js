@@ -32,12 +32,14 @@ frappe.data_import.ImportPreview = class ImportPreview {
 		this.header_row = this.preview_data.header_row;
 		this.fields = this.preview_data.fields;
 		this.data = this.preview_data.data;
+		this.max_rows_exceeded = this.preview_data.max_rows_exceeded;
 		this.make_wrapper();
 		this.prepare_columns();
 		this.prepare_data();
 		this.render_warnings(this.warnings);
 		this.render_datatable();
 		this.setup_styles();
+		this.add_actions();
 	}
 
 	make_wrapper() {
@@ -45,11 +47,7 @@ frappe.data_import.ImportPreview = class ImportPreview {
 			<div>
 				<div class="warnings text-muted"></div>
 				<div class="table-preview"></div>
-				<div class="table-actions margin-top">
-					<button class="btn btn-xs btn-default" data-action="export_errored_rows">
-						${__('Export rows which are not imported')}
-					</button>
-				</div>
+				<div class="table-actions margin-top"></div>
 			</div>
 		`);
 		frappe.utils.bind_actions_with_class(this.wrapper, this);
@@ -135,6 +133,11 @@ frappe.data_import.ImportPreview = class ImportPreview {
 			this.datatable.destroy();
 		}
 
+		let no_data_message = this.max_rows_exceeded
+			? __('Cannot load preview for more than 500 rows. You can still remap or skip columns.')
+			: __('No Data');
+		no_data_message = `<span class="text-muted">${no_data_message}</span>`;
+
 		this.datatable = new DataTable(this.$table_preview.get(0), {
 			data: this.data,
 			columns: this.columns,
@@ -143,6 +146,7 @@ frappe.data_import.ImportPreview = class ImportPreview {
 			serialNoColumn: false,
 			checkboxColumn: false,
 			pasteFromClipboard: true,
+			noDataMessage: no_data_message,
 			headerDropdown: [
 				{
 					label: __('Remap Column'),
@@ -157,6 +161,12 @@ frappe.data_import.ImportPreview = class ImportPreview {
 				ColumnManager: get_custom_column_manager(this.header_row)
 			}
 		});
+
+		if (this.data.length === 0) {
+			this.datatable.style.setStyle('.dt-scrollable', {
+				height: 'auto'
+			});
+		}
 
 		this.datatable.style.setStyle('.dt-dropdown__list-item:nth-child(-n+4)', {
 			display: 'none'
@@ -216,6 +226,17 @@ frappe.data_import.ImportPreview = class ImportPreview {
 			backgroundColor: frappe.ui.color.get_color_shade('white', 'light'),
 			color: frappe.ui.color.get_color_shade('black', 'extra-light'),
 		});
+	}
+
+	add_actions() {
+		let failures = this.import_log.filter(log => !log.success);
+		if (failures.length > 0) {
+			this.wrapper.find('.table-actions').append(
+				`<button class="btn btn-xs btn-default" data-action="export_errored_rows">
+					${__('Export rows which are not imported')}
+				</button>
+			`);
+		}
 	}
 
 	export_errored_rows() {

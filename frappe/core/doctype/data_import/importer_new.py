@@ -15,6 +15,7 @@ from frappe.exceptions import ValidationError, MandatoryError
 from frappe.model import display_fieldtypes, no_value_fields, table_fields
 
 INVALID_VALUES = ["", None]
+MAX_ROWS_IN_PREVIEW = 500
 
 
 class Importer:
@@ -106,6 +107,13 @@ class Importer:
 		self.header_row = header_row
 
 	def get_data_for_import_preview(self):
+		out = self.get_parsed_data_from_template()
+		if len(out.data) > MAX_ROWS_IN_PREVIEW:
+			out.data = []
+			out.max_rows_exceeded = True
+		return out
+
+	def get_parsed_data_from_template(self):
 		fields, fields_warnings = self.parse_fields_from_header_row()
 		formats, formats_warnings = self.parse_formats_from_first_10_rows()
 		fields, data = self.add_serial_no_column(fields, self.data)
@@ -115,7 +123,9 @@ class Importer:
 
 		warnings = fields_warnings + formats_warnings
 
-		return dict(header_row=self.header_row, fields=fields, data=data, warnings=warnings)
+		return frappe._dict(
+			header_row=self.header_row, fields=fields, data=data, warnings=warnings
+		)
 
 	def parse_fields_from_header_row(self):
 		remap_column = self.template_options.remap_column
@@ -321,7 +331,7 @@ class Importer:
 		# set flag
 		frappe.flags.in_import = True
 
-		out = self.get_data_for_import_preview()
+		out = self.get_parsed_data_from_template()
 		fields = out["fields"]
 		data = out["data"]
 		warnings = []
@@ -619,12 +629,12 @@ class Importer:
 		row_indexes = list(set(row_indexes))
 		row_indexes.sort()
 
-		out = self.get_data_for_import_preview()
+		out = self.get_parsed_data_from_template()
 		header_row = out["header_row"]
 		data = out["data"]
 
 		rows = [header_row]
-		rows += [row[1: ] for row in data if row[0] in row_indexes]
+		rows += [row[1:] for row in data if row[0] in row_indexes]
 
 		build_csv_response(rows, self.doctype)
 
