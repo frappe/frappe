@@ -100,7 +100,7 @@ frappe.ui.SortSelector = Class.extend({
 				this.args.sort_order = meta_sort_order;
 			} else {
 				// default
-				this.args.sort_by = 'modified';
+				this.args.sort_by = 'creation';
 				this.args.sort_order = 'desc';
 			}
 		}
@@ -112,7 +112,7 @@ frappe.ui.SortSelector = Class.extend({
 		if(!this.args.options) {
 			// default options
 			var _options = [
-				{'fieldname': 'modified'}
+				{'fieldname': 'creation'}
 			]
 
 			// title field
@@ -133,7 +133,7 @@ frappe.ui.SortSelector = Class.extend({
 			// more default options
 			_options.push(
 				{'fieldname': 'name'},
-				{'fieldname': 'creation'},
+				{'fieldname': 'modified'},
 				{'fieldname': 'idx'}
 			)
 
@@ -172,7 +172,7 @@ frappe.ui.SortSelector = Class.extend({
 			}
 		} else {
 			return {
-				meta_sort_field: meta.sort_field || 'modified',
+				meta_sort_field: meta.sort_field || 'creation',
 				meta_sort_order: meta.sort_order ? meta.sort_order.toLowerCase() : ''
 			}
 		}

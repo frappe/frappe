@@ -49,7 +49,7 @@ frappe.views.BaseList = class BaseList {
 
 		this.fields = [];
 		this.filters = [];
-		this.sort_by = 'modified';
+		this.sort_by = 'creation';
 		this.sort_order = 'desc';
 
 		// Setup buttons

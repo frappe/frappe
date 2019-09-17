@@ -49,7 +49,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		super.setup_defaults();
 
 		// initialize with saved order by
-		this.sort_by = this.view_user_settings.sort_by || 'modified';
+		this.sort_by = this.view_user_settings.sort_by || 'creation';
 		this.sort_order = this.view_user_settings.sort_order || 'desc';
 
 		// set filters from user_settings or list_settings
