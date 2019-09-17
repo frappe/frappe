@@ -9,8 +9,6 @@ from frappe.utils import validate_email_address, get_fullname, strip_html, cstr
 from frappe.core.doctype.communication.email import (validate_email,
 	notify, _notify, update_parent_mins_to_first_response)
 from frappe.core.doctype.notification_log.notification_log import create_notification_log
-from frappe.core.doctype.notification_settings.notification_settings import (is_notifications_enabled,
-	is_email_notifications_enabled, is_energy_point_notifications_enabled)
 from frappe.core.utils import get_parent_doc
 from frappe.utils.bot import BotReply
 from frappe.utils import parse_addr

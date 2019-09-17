@@ -4,9 +4,8 @@
 from __future__ import unicode_literals
 
 import frappe
-from frappe.utils import time_diff_in_seconds, now, now_datetime, DATETIME_FORMAT
+from frappe.utils import time_diff_in_seconds, now
 from frappe.core.doctype.notification_settings.notification_settings import get_subscribed_documents
-from dateutil.relativedelta import relativedelta
 from six import string_types
 import json
 

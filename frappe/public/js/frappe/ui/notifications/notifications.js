@@ -93,7 +93,7 @@ frappe.ui.Notifications = class Notifications {
 		this.$open_docs.html('');
 		let defaults = ['ToDo'];
 		this.get_counts(this.open_document_list['open_count_doctype'], 1, defaults);
-		let targets = { doctypes : {} }, map = this.open_document_list['targets'];
+		let targets = { doctypes: {} }, map = this.open_document_list['targets'];
 
 		Object.keys(map).map(doctype => {
 			Object.keys(map[doctype]).map(doc => {
@@ -286,7 +286,7 @@ frappe.ui.Notifications = class Notifications {
 			if (category_id !== 'notifications') {
 				html += `<div class="text-center text-muted notifications-loading">
 					${__("Loading...")}
-				</div>`
+				</div>`;
 			}
 			html += `</div></li>`;
 			return html;
@@ -325,15 +325,15 @@ frappe.ui.Notifications = class Notifications {
 			}
 		});
 
-		this.$dropdown_list.on('click', '.recent-item', (e) => {
+		this.$dropdown_list.on('click', '.recent-item', () => {
 			this.$dropdown.removeClass('open');
 		});
 
-		this.$dropdown.find('.header').on('click', function(e) {
+		this.$dropdown.find('.header').on('click', function() {
 			let hide = $(this).next().hasClass("in");
 			$(this).find('.collapse-indicator').toggleClass("octicon-chevron-down", hide);
 			$(this).find('.collapse-indicator').toggleClass("octicon-chevron-up", !hide);
 		});
 	}
 
-}
+};

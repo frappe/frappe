@@ -6,7 +6,7 @@ from __future__ import unicode_literals
 import frappe
 from frappe.model.document import Document
 from frappe.core.doctype.notification_settings.notification_settings import (is_notifications_enabled,
-	is_email_notifications_enabled, is_energy_point_notifications_enabled)
+	is_energy_point_notifications_enabled)
 
 class NotificationLog(Document):
 

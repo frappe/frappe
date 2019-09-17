@@ -43,7 +43,7 @@ def get_subscribed_documents():
 		name = settings[0].name
 		doc = frappe.get_doc('Notification Settings', name)
 		subscribed_documents = [item.document for item in doc.subscribed_documents]
-	
+
 	return subscribed_documents
 
 
