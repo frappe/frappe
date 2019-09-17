@@ -33,6 +33,7 @@
     "jsbarcode": "^3.9.0",
     "moment": "^2.20.1",
     "moment-timezone": "^0.5.21",
+    "quagga": "^0.12.1",
     "quill": "2.0.0-dev.2",
     "qz-tray": "^2.0.8",
     "redis": "^2.8.0",
