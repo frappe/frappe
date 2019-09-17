@@ -64,3 +64,4 @@ sqlparse==0.2.4
 Pygments==2.2.0
 frontmatter
 PyYAML==3.13
+xlrd

@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 import frappe
 
 import openpyxl
+import xlrd
 import re
 from openpyxl.styles import Font
 from openpyxl import load_workbook
@@ -94,4 +95,14 @@ def read_xlsx_file_from_attached_file(file_url=None, fcontent=None, filepath=Non
 		for cell in row:
 			tmp_list.append(cell.value)
 		rows.append(tmp_list)
+	return rows
+
+def read_xls_file_from_attached_file(content):
+	book = xlrd.open_workbook(file_contents=content)
+	sheets = book.sheets()
+	sheet = sheets[0]
+	rows = []
+	for i in range(sheet.nrows):
+		rows.append(sheet.row_values(i))
+	rows = rows[1:]
 	return rows

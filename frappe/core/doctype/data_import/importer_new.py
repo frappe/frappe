@@ -11,6 +11,10 @@ from datetime import datetime
 from frappe import _
 from frappe.utils import cint, flt, DATE_FORMAT, DATETIME_FORMAT
 from frappe.utils.csvutils import read_csv_content
+from frappe.utils.xlsxutils import (
+	read_xlsx_file_from_attached_file,
+	read_xls_file_from_attached_file,
+)
 from frappe.exceptions import ValidationError, MandatoryError
 from frappe.model import display_fieldtypes, no_value_fields, table_fields
 
@@ -45,11 +49,12 @@ class Importer:
 		if self.data_import:
 			file_doc = frappe.get_doc("File", {"file_url": self.data_import.import_file})
 			content = file_doc.get_content()
+			extension = file_doc.file_name.split(".")[1]
 
 		if file_path:
 			self.read_file(file_path)
 		elif content:
-			self.read_content(content)
+			self.read_content(content, extension)
 		self.remove_empty_rows_and_columns()
 
 	def read_file(self, file_path):
@@ -64,8 +69,14 @@ class Importer:
 			self.header_row = data[0]
 			self.data = data[1:]
 
-	def read_content(self, content):
-		data = read_csv_content(content)
+	def read_content(self, content, extension):
+		if extension == "csv":
+			data = read_csv_content(content)
+		elif extension == "xlsx":
+			data = read_xlsx_file_from_attached_file(fcontent=content)
+		elif extension == "xls":
+			data = read_xls_file_from_attached_file(content)
+
 		self.header_row = data[0]
 		self.data = data[1:]
 
