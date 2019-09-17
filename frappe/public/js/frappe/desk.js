@@ -43,7 +43,9 @@ frappe.Application = Class.extend({
 		this.load_user_permissions();
 		this.make_nav_bar();
 		this.set_favicon();
+		this.set_fullwidth_if_enabled();		
 		this.setup_analytics();
+		
 		frappe.ui.keys.setup();
 		this.set_rtl();
 
@@ -118,6 +120,22 @@ frappe.Application = Class.extend({
 			}
 		}
 
+		if (!frappe.boot.developer_mode) {
+			setInterval(function() {
+				frappe.call({
+					method: 'frappe.core.page.background_jobs.background_jobs.get_scheduler_status',
+					callback: function(r) {
+						if (r.message[0] == __("Inactive")) {
+							frappe.msgprint({
+								title: __("Scheduler Inactive"),
+								indicator: "red",
+								message: __("Background jobs are not running. Please contact Administrator")
+							});
+						}
+					}
+				});
+			}, 300000); // check every 5 minutes
+		}
 	},
 	set_password: function(user) {
 		var me=this;
@@ -506,6 +524,10 @@ frappe.Application = Class.extend({
 				"$email": frappe.session.user
 			});
 		}
+	},
+	
+	set_fullwidth_if_enabled() {
+		frappe.ui.toolbar.set_fullwidth_if_enabled();
 	},
 
 	show_notes: function() {
