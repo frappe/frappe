@@ -117,14 +117,13 @@
   },
   {
    "default": "0",
-   "depends_on": "eval:doc.use_ssl_for_outgoing",
    "fieldname": "append_emails_to_send_folder",
    "fieldtype": "Check",
    "label": "Append Outgoing Email To Sent Folder"
   }
  ],
  "icon": "icon-inbox",
- "modified": "2019-08-13 17:39:12.634183",
+ "modified": "2019-09-17 19:04:44.805609",
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Email Domain",

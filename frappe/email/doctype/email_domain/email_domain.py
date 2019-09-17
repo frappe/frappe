@@ -82,6 +82,8 @@ class EmailDomain(Document):
 				email_account.set("attachment_limit",self.attachment_limit)
 				email_account.set("smtp_server",self.smtp_server)
 				email_account.set("smtp_port",self.smtp_port)
+				email_account.set("use_ssl_for_outgoing",self.use_ssl_for_outgoing)
+				email_account.set("append_emails_to_send_folder",self.append_emails_to_send_folder)
 				email_account.save()
 			except Exception as e:
 				frappe.msgprint(email_account.name)
