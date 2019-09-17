@@ -176,7 +176,14 @@ def set_dependencies(doc, link_fields, producer_site):
 		linked_doctype = df.get_link_doctype()
 		if docname and not check_dependency_fulfilled(linked_doctype, docname):
 			master_doc = producer_site.get_doc(linked_doctype, docname)
-			frappe.get_doc(master_doc).insert(set_name=docname)
+			try:
+				doc = frappe.get_doc(master_doc)
+				doc.insert(set_name=docname)
+				frappe.db.commit()
+			
+			#for dependency inside a dependency
+			except Exception:
+				check_doc_has_dependencies(frappe.get_doc(master_doc), producer_site)
 
 def check_dependency_fulfilled(linked_doctype, docname):
 	return frappe.db.exists(linked_doctype, docname)
