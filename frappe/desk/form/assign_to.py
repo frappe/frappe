@@ -81,8 +81,7 @@ def add(args=None):
 		# make this document followed by assigned user
 		follow_document(args['doctype'], args['name'], args['assign_to'])
 
-	# if is_notifications_enabled():
-		# notify
+	# notify
 	notify_assignment(d.assigned_by, d.owner, d.reference_type, d.reference_name, action='ASSIGN',\
 			description=args.get("description"), notify=args.get('notify'))
 
@@ -223,7 +222,7 @@ def _notify(args):
 	try:
 		if not isinstance(contact, list):
 			contact = [frappe.db.get_value("User", contact, "email") or contact]
-		
+
 		frappe.sendmail(\
 			recipients=contact,
 			sender= frappe.db.get_value("User", frappe.session.user, "email"),

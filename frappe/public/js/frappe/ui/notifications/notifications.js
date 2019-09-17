@@ -59,7 +59,7 @@ frappe.ui.Notifications = class Notifications {
 						<span class="event-subject"> ${event.subject}</span>
 					</a>
 				</li>`;
-			}
+			};
 			html = event_list.map(get_event_html).join('');
 		} else {
 			html = `<li class="recent-item text-center">
@@ -290,7 +290,7 @@ frappe.ui.Notifications = class Notifications {
 			}
 			html += `</div></li>`;
 			return html;
-		}
+		};
 
 		let html = this.categories.map(get_headers_html).join('<li class="divider"></li>');
 		this.$dropdown_list.append(html);

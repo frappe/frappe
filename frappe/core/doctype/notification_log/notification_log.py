@@ -38,7 +38,7 @@ def create_notification_log(names, doc):
 					_doc.reference_doctype = doc.reference_doctype
 					_doc.reference_name = doc.reference_name
 					_doc.reference_user = doc.reference_user
-					_doc.subject = doc.subject.replace('<div>','').replace('</div>','')
+					_doc.subject = doc.subject.replace('<div>', '').replace('</div>', '')
 					_doc.insert(ignore_permissions=True)
 
 
