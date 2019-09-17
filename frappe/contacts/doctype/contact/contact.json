@@ -14,14 +14,21 @@
   "email_id",
   "user",
   "address",
+  "sync_with_google_contacts",
   "cb00",
   "status",
   "salutation",
   "designation",
   "gender",
   "phone",
+  "company_name",
   "image",
   "sb_00",
+  "google_contacts",
+  "google_contacts_id",
+  "cb_00",
+  "pulled_from_google_contacts",
+  "sb_01",
   "email_ids",
   "phone_nos",
   "contact_details",
@@ -29,10 +36,7 @@
   "links",
   "more_info",
   "department",
-  "unsubscribed",
-  "column_break_17",
-  "source",
-  "google_contacts_description"
+  "unsubscribed"
  ],
  "fields": [
   {
@@ -156,19 +160,10 @@
    "label": "Designation"
   },
   {
-   "fieldname": "column_break_17",
-   "fieldtype": "Column Break"
-  },
-  {
    "default": "0",
    "fieldname": "unsubscribed",
    "fieldtype": "Check",
    "label": "Unsubscribed"
-  },
-  {
-   "fieldname": "source",
-   "fieldtype": "Data",
-   "label": "Source"
   },
   {
    "fieldname": "middle_name",
@@ -176,15 +171,11 @@
    "label": "Middle Name"
   },
   {
-   "depends_on": "eval:doc.source==\"Google Contacts\"",
-   "fieldname": "google_contacts_description",
-   "fieldtype": "Small Text",
-   "label": "Google Contacts Description"
-  },
-  {
+   "collapsible": 1,
+   "depends_on": "eval:doc.sync_with_google_contacts || doc.pulled_from_google_contacts",
    "fieldname": "sb_00",
    "fieldtype": "Section Break",
-   "label": "Contact Details"
+   "label": "Google Contacts"
   },
   {
    "fieldname": "email_ids",
@@ -203,13 +194,52 @@
    "fieldtype": "Table",
    "label": "Phone Nos",
    "options": "Contact Phone"
+  },
+  {
+   "default": "0",
+   "fieldname": "pulled_from_google_contacts",
+   "fieldtype": "Check",
+   "label": "Pulled from Google Contacts",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "sync_with_google_contacts",
+   "fieldtype": "Check",
+   "label": "Sync with Google Contacts"
+  },
+  {
+   "fieldname": "google_contacts",
+   "fieldtype": "Link",
+   "label": "Google Contacts",
+   "options": "Google Contacts"
+  },
+  {
+   "fieldname": "cb_00",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "sb_01",
+   "fieldtype": "Section Break",
+   "label": "Contact Details"
+  },
+  {
+   "fieldname": "google_contacts_id",
+   "fieldtype": "Data",
+   "label": "Google Contacts Id",
+   "read_only": 1
+  },
+  {
+   "fieldname": "company_name",
+   "fieldtype": "Data",
+   "label": "Company Name"
   }
  ],
  "icon": "fa fa-user",
  "idx": 1,
  "image_field": "image",
- "modified": "2019-08-09 10:23:00.486673",
- "modified_by": "Administrator",
+ "modified": "2019-09-13 15:50:38.999884",
+ "modified_by": "himanshu@erpnext.com",
  "module": "Contacts",
  "name": "Contact",
  "name_case": "Title Case",

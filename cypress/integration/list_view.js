@@ -8,11 +8,11 @@ context('List View', () => {
 		cy.clear_cache();
 	});
 	it('enables "Actions" button', () => {
-		const actions = ['Approve', 'Reject', 'Edit', 'Assign To', 'Print','Delete'];
+		const actions = ['Approve', 'Reject', 'Edit', 'Assign To', 'Apply Assignment Rule', 'Print', 'Delete'];
 		cy.go_to_list('ToDo');
 		cy.get('.level-item.list-row-checkbox.hidden-xs').click({ multiple: true, force: true });
 		cy.get('.btn.btn-primary.btn-sm.dropdown-toggle').contains('Actions').should('be.visible').click();
-		cy.get('.dropdown-menu li:visible').should('have.length', 6).each((el, index) => {
+		cy.get('.dropdown-menu li:visible').should('have.length', 7).each((el, index) => {
 			cy.wrap(el).contains(actions[index]);
 		}).then((elements) => {
 			cy.server();
