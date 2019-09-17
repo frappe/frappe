@@ -43,14 +43,12 @@ frappe.data_import.ImportPreview = class ImportPreview {
 	make_wrapper() {
 		this.wrapper.html(`
 			<div>
-				<div class="warnings"></div>
+				<div class="warnings text-muted"></div>
 				<div class="table-preview"></div>
 				<div class="table-actions margin-top">
-					<!--
-					<button class="btn btn-xs btn-default" data-action="add_row">
-						${__('Add Row')}
+					<button class="btn btn-xs btn-default" data-action="export_errored_rows">
+						${__('Export rows which are not imported')}
 					</button>
-					-->
 				</div>
 			</div>
 		`);
@@ -220,9 +218,8 @@ frappe.data_import.ImportPreview = class ImportPreview {
 		});
 	}
 
-	add_row() {
-		this.data.push([]);
-		this.datatable.refresh(this.data);
+	export_errored_rows() {
+		this.events.export_errored_rows();
 	}
 
 	remap_column(col) {

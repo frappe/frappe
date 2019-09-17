@@ -57,6 +57,7 @@ frappe.ui.form.on('Data Import Beta', {
 		frm.page.hide_icon_group();
 		frm.trigger('import_file');
 		frm.trigger('show_import_log');
+		frm.trigger('toggle_submit_after_import');
 
 		if (frm.doc.status === 'Success') {
 			// set form as readonly
@@ -214,6 +215,12 @@ frappe.ui.form.on('Data Import Beta', {
 						frm.save().then(() => {
 							frm.trigger('import_file');
 						});
+					},
+
+					export_errored_rows() {
+						open_url_post('/api/method/frappe.core.doctype.data_import_beta.data_import_beta.download_errored_template', {
+							data_import_name: frm.doc.name
+						})
 					}
 				}
 			});

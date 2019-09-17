@@ -38,7 +38,7 @@ class DataImportBeta(Document):
 				event="data_import",
 				job_name=self.name,
 				data_import=self.name,
-				now=True
+				now=True,
 			)
 
 	def get_importer(self):
@@ -65,6 +65,9 @@ class DataImportBeta(Document):
 				new_doc.set(autoname_field, value)
 				docs.append(new_doc.insert())
 		return docs
+
+	def export_errored_rows(self):
+		return self.get_importer().export_errored_rows()
 
 
 def start_import(data_import):
@@ -99,3 +102,8 @@ def download_template(
 		file_type=file_type,
 	)
 	e.build_csv_response()
+
+@frappe.whitelist()
+def download_errored_template(data_import_name):
+	data_import = frappe.get_doc('Data Import Beta', data_import_name)
+	data_import.export_errored_rows()

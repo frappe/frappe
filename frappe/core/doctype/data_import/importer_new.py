@@ -603,6 +603,31 @@ class Importer:
 		existing_doc.save()
 		return existing_doc
 
+	def export_errored_rows(self):
+		from frappe.utils.csvutils import build_csv_response
+
+		if not self.data_import:
+			return
+
+		import_log = frappe.parse_json(self.data_import.import_log or "[]")
+		failures = [l for l in import_log if l.get("success") == False]
+		row_indexes = []
+		for f in failures:
+			row_indexes.extend(f.get("row_indexes", []))
+
+		# de duplicate
+		row_indexes = list(set(row_indexes))
+		row_indexes.sort()
+
+		out = self.get_data_for_import_preview()
+		header_row = out["header_row"]
+		data = out["data"]
+
+		rows = [header_row]
+		rows += [row[1: ] for row in data if row[0] in row_indexes]
+
+		build_csv_response(rows, self.doctype)
+
 	def get_missing_link_field_values(self, doctype):
 		return self.missing_link_values.get(doctype, [])
 
