@@ -189,7 +189,7 @@ class Importer:
 			meta = frappe.get_meta(doctype)
 			fields = self.get_standard_fields(doctype) + meta.fields
 			for df in fields:
-				fieldtype = df.fieldtype or 'Data'
+				fieldtype = df.fieldtype or "Data"
 				parent = df.parent or self.doctype
 				if fieldtype not in no_value_fields:
 					# label as key
@@ -222,34 +222,15 @@ class Importer:
 		meta = frappe.get_meta(doctype)
 		if meta.istable:
 			standard_fields = [
-				{
-					'label': 'Parent',
-					'fieldname': 'parent'
-				},
-				{
-					'label': 'Parent Type',
-					'fieldname': 'parenttype'
-				},
-				{
-					'label': 'Parent Field',
-					'fieldname': 'parentfield'
-				},
-				{
-					'label': 'Row Index',
-					'fieldname': 'idx'
-				}
+				{"label": "Parent", "fieldname": "parent"},
+				{"label": "Parent Type", "fieldname": "parenttype"},
+				{"label": "Parent Field", "fieldname": "parentfield"},
+				{"label": "Row Index", "fieldname": "idx"},
 			]
 		else:
 			standard_fields = [
-				{
-					'label': 'Owner',
-					'fieldname': 'owner'
-				},
-				{
-					'label': 'Document Status',
-					'fieldname': 'docstatus',
-					'fieldtype': 'Int'
-				}
+				{"label": "Owner", "fieldname": "owner"},
+				{"label": "Document Status", "fieldname": "docstatus", "fieldtype": "Int"},
 			]
 
 		out = []
@@ -345,12 +326,8 @@ class Importer:
 		data = out["data"]
 		warnings = []
 
-		# validate link field values
-		missing_link_values = self.get_missing_link_field_values(fields, data)
-		for d in missing_link_values:
-			msg = _('The following linked values are missing for the Document Type {0}:').format(frappe.bold(_(d.doctype)))
-			msg += ' ' + ', '.join(d.missing_values)
-			warnings.append(msg)
+		# prepare a map for missing link field values
+		self.prepare_missing_link_field_values(fields, data)
 
 		# parse import data
 		payloads = self.get_payloads_for_import(fields, data)
@@ -388,7 +365,9 @@ class Importer:
 		total_payload_count = len(payloads)
 		batch_size = frappe.conf.data_import_batch_size or 1000
 
-		for batch_index, batched_payloads in enumerate(frappe.utils.create_batch(payloads, batch_size)):
+		for batch_index, batched_payloads in enumerate(
+			frappe.utils.create_batch(payloads, batch_size)
+		):
 			for i, payload in enumerate(batched_payloads):
 				doc = payload.doc
 				row_indexes = [row[0] for row in payload.rows]
@@ -416,7 +395,7 @@ class Importer:
 							"docname": doc.name,
 							"success": True,
 							"row_indexes": row_indexes,
-							"eta": eta
+							"eta": eta,
 						},
 					)
 					import_log.append(
@@ -494,6 +473,30 @@ class Importer:
 		def get_column_indexes(doctype):
 			return [i for i, df in enumerate(fields) if df.parent == doctype]
 
+		def validate_value(value, df):
+			local_warnings = []
+
+			if df.fieldtype == "Select" and value not in df.get_select_options():
+				options_string = ", ".join([frappe.bold(d) for d in df.get_select_options()])
+				msg = _("Row {0}, Column {1}: Value must be one of {2}").format(
+					row_number, df.label, options_string
+				)
+				local_warnings.append(msg)
+
+			elif df.fieldtype == "Link":
+				missing_link_values = self.get_missing_link_field_values(df.options)
+				if value in missing_link_values:
+					msg = _("Row {0}, Column {1}: Value {2} missing for Document Type {3}").format(
+						row_number, df.label, frappe.bold(value), frappe.bold(df.options)
+					)
+					local_warnings.append(msg)
+
+			if local_warnings:
+				warnings.extend(local_warnings)
+				return False
+
+			return True
+
 		def parse_doc(doctype, docfields, values, row_index):
 			doc = {}
 			for index, (df, value) in enumerate(zip(docfields, values)):
@@ -507,7 +510,8 @@ class Importer:
 					else:
 						value = None
 
-				doc[df.fieldname] = self.parse_value(value, df)
+				if validate_value(value, df):
+					doc[df.fieldname] = self.parse_value(value, df)
 			return doc
 
 		parsed_docs = {}
@@ -554,7 +558,7 @@ class Importer:
 						_("Row {0}: {1} is a mandatory field").format(row_number, fields[0].label)
 					)
 				else:
-					fields_string = ', '.join([df.label for df in fields])
+					fields_string = ", ".join([df.label for df in fields])
 					warnings.append(
 						_("Row {0}: {1} are mandatory fields").format(row_number, fields_string)
 					)
@@ -593,13 +597,16 @@ class Importer:
 	def update_record(self, doc):
 		id_fieldname = self.get_id_fieldname()
 		id_value = doc[id_fieldname]
-		existing_doc = frappe.get_doc(self.doctype, { id_fieldname: id_value })
+		existing_doc = frappe.get_doc(self.doctype, {id_fieldname: id_value})
 		existing_doc.flags.via_data_import = self.data_import.name
 		existing_doc.update(doc)
 		existing_doc.save()
 		return existing_doc
 
-	def get_missing_link_field_values(self, fields, data):
+	def get_missing_link_field_values(self, doctype):
+		return self.missing_link_values.get(doctype, [])
+
+	def prepare_missing_link_field_values(self, fields, data):
 		link_column_indexes = [i for i, df in enumerate(fields) if df.fieldtype == "Link"]
 
 		def has_one_mandatory_field(doctype):
@@ -611,7 +618,7 @@ class Importer:
 				mandatory_fields_count += 1
 			return mandatory_fields_count == 1
 
-		missing_values_payload = []
+		self.missing_link_values = {}
 		for index in link_column_indexes:
 			df = fields[index]
 			column_values = [row[index] for row in data]
@@ -619,16 +626,7 @@ class Importer:
 			doctype = df.options
 
 			missing_values = [value for value in values if not frappe.db.exists(doctype, value)]
-			if missing_values:
-				missing_values_payload.append(
-					frappe._dict(
-						doctype=doctype,
-						missing_values=missing_values,
-						has_one_mandatory_field=has_one_mandatory_field(doctype),
-					)
-				)
-
-		return missing_values_payload
+			self.missing_link_values[doctype] = missing_values
 
 	def get_id_fieldname(self):
 		autoname = self.meta.autoname
@@ -637,7 +635,7 @@ class Importer:
 			autoname_field = self.meta.get_field(fieldname)
 			if autoname_field:
 				return autoname_field.fieldname
-		return 'name'
+		return "name"
 
 	def get_eta(self, current, total, processing_time):
 		remaining = total - current
