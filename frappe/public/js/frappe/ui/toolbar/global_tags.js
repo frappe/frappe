@@ -4,7 +4,6 @@ frappe.provide("frappe.global_tags");
 
 frappe.global_tags.GlobalTagsDialog = class GlobalTags {
 	constructor(opts) {
-		console.log(opts);
 		$.extend(this, opts);
 		this.show();
 	}
@@ -22,11 +21,9 @@ frappe.global_tags.GlobalTagsDialog = class GlobalTags {
 	}
 
 	make_dialog() {
-		let title = __("Tag {0}", [`${__(this.tag)}`]);
-
 		this.dialog = new frappe.ui.Dialog({
 			hide_on_page_refresh: true,
-			title: title
+			title: __("Tags")
 		});
 
 		this.dialog.on_page_show = () => {

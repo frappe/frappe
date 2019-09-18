@@ -219,6 +219,10 @@ frappe.search.AwesomeBar = Class.extend({
 
 	make_global_search: function(txt) {
 		var me = this;
+		if (txt.charAt(0) === "#") {
+			return;
+		}
+
 		this.options.push({
 			label: __("Search for '{0}'", [txt.bold()]),
 			value: __("Search for '{0}'", [txt]),
