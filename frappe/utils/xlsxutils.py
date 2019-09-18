@@ -106,3 +106,10 @@ def read_xls_file_from_attached_file(content):
 		rows.append(sheet.row_values(i))
 	rows = rows[1:]
 	return rows
+
+def build_xlsx_response(data, filename):
+	xlsx_file = make_xlsx(data, filename)
+	# write out response as a xlsx type
+	frappe.response['filename'] = filename + '.xlsx'
+	frappe.response['filecontent'] = xlsx_file.getvalue()
+	frappe.response['type'] = 'binary'

@@ -101,7 +101,7 @@ def download_template(
 		export_filters=export_filters,
 		file_type=file_type,
 	)
-	e.build_csv_response()
+	e.build_response()
 
 @frappe.whitelist()
 def download_errored_template(data_import_name):

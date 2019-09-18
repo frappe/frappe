@@ -6,6 +6,7 @@ import frappe
 from frappe import _
 from frappe.model import display_fieldtypes, no_value_fields, table_fields
 from frappe.utils.csvutils import build_csv_response
+from frappe.utils.xlsxutils import build_xlsx_response
 from .importer_new import INVALID_VALUES
 
 
@@ -30,6 +31,7 @@ class Exporter:
 		self.meta = frappe.get_meta(doctype)
 		self.export_fields = export_fields
 		self.export_filters = export_filters
+		self.file_type = file_type
 
 		# this will contain the csv content
 		self.csv_array = []
@@ -240,11 +242,23 @@ class Exporter:
 	def get_csv_array(self):
 		return self.csv_array
 
-	def build_csv_response(self):
+	def get_csv_array_for_export(self):
 		csv_array = self.csv_array
 
 		if not self.data:
 			# add 2 empty rows
 			csv_array += [[]] * 2
 
-		build_csv_response(csv_array, self.doctype)
+		return csv_array
+
+	def build_response(self):
+		if self.file_type == 'CSV':
+			self.build_csv_response()
+		elif self.file_type == 'Excel':
+			self.build_xlsx_response()
+
+	def build_csv_response(self):
+		build_csv_response(self.get_csv_array_for_export(), self.doctype)
+
+	def build_xlsx_response(self):
+		build_xlsx_response(self.get_csv_array_for_export(), self.doctype)
