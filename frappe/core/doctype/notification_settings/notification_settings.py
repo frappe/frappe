@@ -29,12 +29,6 @@ def is_email_notifications_enabled(user):
 	else:
 		return True
 
-def is_energy_point_notifications_enabled(user):
-	if frappe.db.count('Notification Settings', {'user': user}) > 0:
-		return frappe.get_cached_value('Notification Settings', {'user': user}, 'enable_energy_point_notifications')
-	else:
-		return True
-
 
 @frappe.whitelist()
 def create_notification_settings():

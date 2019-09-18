@@ -6,7 +6,6 @@
  "engine": "InnoDB",
  "field_order": [
   "enable",
-  "enable_energy_point_notifications",
   "enable_email_notifications",
   "subscribed_documents",
   "user"
@@ -17,12 +16,6 @@
    "fieldname": "enable",
    "fieldtype": "Check",
    "label": "Enable"
-  },
-  {
-   "default": "1",
-   "fieldname": "enable_energy_point_notifications",
-   "fieldtype": "Check",
-   "label": "Enable Energy Point Notifications"
   },
   {
    "default": "1",
@@ -48,8 +41,8 @@
   }
  ],
  "in_create": 1,
- "modified": "2019-09-18 15:28:48.599292",
- "modified_by": "umair@erpnext.com",
+ "modified": "2019-09-18 16:33:10.708750",
+ "modified_by": "Administrator",
  "module": "Core",
  "name": "Notification Settings",
  "owner": "Administrator",

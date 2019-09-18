@@ -5,8 +5,7 @@
 from __future__ import unicode_literals
 import frappe
 from frappe.model.document import Document
-from frappe.core.doctype.notification_settings.notification_settings import (is_notifications_enabled,
-	is_energy_point_notifications_enabled)
+from frappe.core.doctype.notification_settings.notification_settings import is_notifications_enabled
 
 class NotificationLog(Document):
 
@@ -29,7 +28,9 @@ def create_notification_log(names, doc):
 		user = name.strip()
 		if frappe.db.exists('User', user):
 			if is_notifications_enabled(user):
-				if doc.type == 'Energy Point' and not is_energy_point_notifications_enabled(user):
+				from frappe.social.doctype.energy_point_settings.energy_point_settings import is_energy_point_enabled
+
+				if doc.type == 'Energy Point' and not is_energy_point_enabled():
 					return
 				else:
 					_doc = frappe.new_doc('Notification Log')
