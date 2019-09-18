@@ -277,8 +277,10 @@ def check_email_limit(recipients):
 				EmailLimitCrossedError)
 
 def get_emails_sent_this_month():
-	return frappe.db.sql("""select count(name) from `tabEmail Queue` where
-		status='Sent' and MONTH(creation)=MONTH(CURDATE())""")[0][0]
+	return frappe.db.sql("""
+		SELECT COUNT(*) FROM `tabEmail Queue`
+		WHERE `status`='Sent' AND EXTRACT(YEAR_MONTH FROM `creation`) = EXTRACT(YEAR_MONTH FROM NOW())
+	""")[0][0]
 
 def get_emails_sent_today():
 	return frappe.db.sql("""select count(name) from `tabEmail Queue` where
