@@ -7,6 +7,7 @@ pull_request_rules:
       - status-success=security/snyk - package.json (frappe)
       - status-success=security/snyk - requirements.txt (frappe)
       - label!=don't-merge
+      - label!=squash
       - "#approved-reviews-by>=1"
     actions:
       merge:
