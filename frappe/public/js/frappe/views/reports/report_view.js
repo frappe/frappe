@@ -1239,7 +1239,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 							options: ['Excel', 'CSV'],
 							default: 'Excel'
 						}
-					]
+					];
 
 					if (this.total_count > args.page_length) {
 						fields.push({
