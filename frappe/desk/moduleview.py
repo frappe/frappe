@@ -217,7 +217,7 @@ def apply_permissions(data):
 	return new_data
 
 def get_disabled_reports():
-	if frappe.local.disabled_reports is None:
+	if not hasattr(frappe.local, "disabled_reports"):
 		frappe.local.disabled_reports = set(r.name for r in frappe.get_all("Report", {"disabled": 1}))
 	return frappe.local.disabled_reports
 
