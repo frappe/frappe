@@ -35,6 +35,15 @@ def is_energy_point_notifications_enabled(user):
 	else:
 		return True
 
+
+@frappe.whitelist()
+def create_notification_settings():
+	_doc = frappe.new_doc('Notification Settings')
+	_doc.name = frappe.session.user
+	_doc.insert(ignore_permissions=True)
+	frappe.db.commit()
+
+
 @frappe.whitelist()
 def get_subscribed_documents():
 	subscribed_documents = []

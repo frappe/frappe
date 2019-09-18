@@ -4,9 +4,9 @@
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
+  "subject",
   "user",
   "type",
-  "subject",
   "column_break_4",
   "reference_doctype",
   "seen",
@@ -27,6 +27,7 @@
   {
    "fieldname": "subject",
    "fieldtype": "Text",
+   "in_list_view": 1,
    "label": "Subject",
    "read_only": 1
   },
@@ -74,8 +75,8 @@
   }
  ],
  "in_create": 1,
- "modified": "2019-09-16 18:17:59.823096",
- "modified_by": "Administrator",
+ "modified": "2019-09-17 16:51:11.148601",
+ "modified_by": "umair@erpnext.com",
  "module": "Core",
  "name": "Notification Log",
  "owner": "Administrator",
@@ -92,5 +93,6 @@
  ],
  "sort_field": "modified",
  "sort_order": "DESC",
+ "title_field": "subject",
  "track_changes": 1
 }

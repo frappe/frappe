@@ -14,6 +14,7 @@ frappe.ui.Notifications = class Notifications {
 		this.$open_docs = this.$dropdown_list.find('#open-documents');
 		this.$upcoming_events = this.$dropdown_list.find('#upcoming-events');
 
+		this.setup_notification_settings();
 		this.setup_notifications();
 		this.setup_upcoming_events();
 		this.setup_open_document_count();
@@ -238,7 +239,7 @@ frappe.ui.Notifications = class Notifications {
 		}
 
 		let dropdown_html = body_html + view_full_log_html;
-		this.$notifications.append(dropdown_html);
+		this.$notifications.html(dropdown_html);
 	}
 
 	get_dropdown_item_html(field) {
@@ -253,10 +254,10 @@ frappe.ui.Notifications = class Notifications {
 			${user_avatar}
 			<a class= "message-link" href = "${doc_link}">
 				${message_html}
+				<div class="notification-timestamp text-muted">
+					${timestamp}
+				</div>
 			</a>
-			<div class="notification-timestamp text-muted">
-				${timestamp}
-			</div>
 		</li>`;
 
 		return item_html;
@@ -274,26 +275,47 @@ frappe.ui.Notifications = class Notifications {
 		let get_headers_html = (category) => {
 			let category_id = frappe.scrub(category, '-');
 			let category_header_class = frappe.scrub(category, '-') + '-header';
-			let html = `<li class="notifications-category">
-				<li class="text-muted header h6 uppercase ${category_header_class}" 
-					href="#${category_id}" 
-					data-toggle="collapse">
-					${category}
-					<span class="octicon octicon-chevron-down collapse-indicator"></span>
-				</li>
-				<div id = "${category_id}" class="collapse">`;
+			let settings_html = category === 'Notifications'?
+				`<span class="notification-settings pull-right">${__('Settings')}</span>`
+				: '';
+			let html = 
+				`<li class="notifications-category">
+					<li class="text-muted header ${category_header_class}" 
+						href="#${category_id}" 
+						data-toggle="collapse">
+						${category}
+						<span class="octicon octicon-chevron-down collapse-indicator"></span>
+						${settings_html}
+					</li>
+					<div id = "${category_id}" class="collapse">
+						<div class="text-center text-muted notifications-loading">
+							${__('Loading...')}
+						</div>
+					</div>
+				</li>`;
 
-			if (category_id !== 'notifications') {
-				html += `<div class="text-center text-muted notifications-loading">
-					${__("Loading...")}
-				</div>`;
-			}
-			html += `</div></li>`;
 			return html;
 		};
 
 		let html = this.categories.map(get_headers_html).join('<li class="divider"></li>');
 		this.$dropdown_list.append(html);
+	}
+
+	setup_notification_settings() {
+
+		this.$dropdown_list.find('.notification-settings').on('click', (e) => {
+			e.preventDefault();
+			if(!frappe.db.exists('Notification Settings', frappe.session.user)) {
+				frappe.call(
+					'frappe.core.doctype.notification_settings.notification_settings.create_notification_settings',
+				).then(() => {
+					frappe.set_route(`#Form/Notification Settings/${frappe.session.user}`);
+				});
+			}
+			else {
+				frappe.set_route(`#Form/Notification Settings/${frappe.session.user}`);
+			}
+		});
 	}
 
 	bind_events() {
