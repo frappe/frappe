@@ -181,6 +181,9 @@ frappe.search.AwesomeBar = Class.extend({
 			frappe.search.utils.get_recent_pages(txt || ""),
 			frappe.search.utils.get_executables(txt)
 		);
+		if (txt.charAt(0) === "#") {
+			options = frappe.global_tags.utils.get_tags(txt);
+		}
 		var out = this.deduplicate(options);
 		return out.sort(function(a, b) {
 			return b.index - a.index;

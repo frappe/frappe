@@ -107,3 +107,7 @@ def get_documents_for_tag(tag):
 			results[res.doctype] = [res]
 
 	return results
+
+@frappe.whitelist()
+def get_tags_list_for_awesomebar():
+	return [t.name for t in frappe.get_list("Tag")]

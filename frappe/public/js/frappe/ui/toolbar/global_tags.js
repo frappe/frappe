@@ -91,3 +91,35 @@ frappe.global_tags.GlobalTagsDialog = class GlobalTags {
 		</div>`;
 	}
 };
+
+frappe.global_tags.utils = {
+	get_tags: function(txt) {
+		txt = txt.slice(1);
+		let out = [];
+
+		frappe.call({
+			method: "frappe.utils.global_tags.get_tags_list_for_awesomebar",
+			callback: function(r) {
+				if (r && r.message) {
+					let tags = r.message;
+					tags.forEach(tag => {
+						let level = frappe.search.utils.fuzzy_search(txt, tag);
+						if(level) {
+							out.push({
+								type: "Tag",
+								label: __("#{0}", [frappe.search.utils.bolden_match_part(__(tag), txt)]),
+								value: __("#{0}", [__(tag)]),
+								index: 1 + level,
+								match: tag,
+								onclick: function() {
+									new frappe.global_tags.GlobalTagsDialog({"tag": txt})
+								}
+							});
+						}
+					});
+				}
+				return out;
+			}
+		});
+	},
+}
