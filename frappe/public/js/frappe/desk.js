@@ -288,7 +288,7 @@ frappe.Application = Class.extend({
 		});
 	},
 
-	refresh_notifications: function() {
+	refresh_notifications: function(callback=null) {
 		var me = this;
 		if(frappe.session_alive && frappe.boot && frappe.boot.home_page !== 'setup-wizard') {
 			if (this._refresh_notifications) {
@@ -307,6 +307,7 @@ frappe.Application = Class.extend({
 								frappe.utils.set_title_prefix("(" + r.message.new_messages.length + ")");
 							}
 						}
+						callback && callback();
 					}
 				},
 				freeze: false

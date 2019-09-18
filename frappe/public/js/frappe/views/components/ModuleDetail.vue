@@ -10,7 +10,7 @@
 					:key="section.label + item.label"
 					:data-youtube-id="item.type==='help' ? item.youtube_id : false"
 					v-bind="item"
-					:open_count="item.type==='doctype' ? frappe.boot.notification_info.open_count_doctype[item.doctype] : false"
+					:open_count="item.type==='doctype' ? open_count_doctype[item.doctype] : false"
 				>
 				</module-link-item>
 			</div>
@@ -29,7 +29,21 @@ export default {
 	components: {
 		ModuleLinkItem
 	},
+	data: function() {
+		return {
+			open_count_doctype: {},
+		}
+	},
 	props: ['module_name', 'sections'],
+	mounted: function() {
+		if (frappe.boot.notification_info.open_count_doctype) {
+			this.open_count_doctype = frappe.boot.notification_info.open_count_doctype;
+		} else {
+			frappe.app.refresh_notifications(() => {
+				this.open_count_doctype = frappe.boot.notification_info.open_count_doctype;
+			});
+		}
+	},
 }
 </script>
 <style lang="less" scoped>
