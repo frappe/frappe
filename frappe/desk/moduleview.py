@@ -217,9 +217,9 @@ def apply_permissions(data):
 	return new_data
 
 def get_disabled_reports():
-	if frappe.flags.disabled_reports is None:
-		frappe.flags.disabled_reports = set(r.name for r in frappe.get_all("Report", {"disabled": 1}))
-	return frappe.flags.disabled_reports
+	if frappe.local.disabled_reports is None:
+		frappe.local.disabled_reports = set(r.name for r in frappe.get_all("Report", {"disabled": 1}))
+	return frappe.local.disabled_reports
 
 def get_config(app, module):
 	"""Load module info from `[app].config.[module]`."""
