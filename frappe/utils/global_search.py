@@ -422,7 +422,7 @@ def search(text, start=0, limit=20, doctype=""):
 	from frappe.desk.doctype.global_search_settings.global_search_settings import get_doctypes_for_global_search
 
 	results = []
-	texts = [t.strip() for t in text.split('&')]
+	texts = [t.strip() for t in text.split('&') if t]
 	priorities = get_doctypes_for_global_search()
 	allowed_doctypes = ",".join(["'{0}'".format(dt) for dt in priorities])
 	for text in texts:
