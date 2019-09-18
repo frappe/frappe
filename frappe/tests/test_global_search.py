@@ -7,10 +7,13 @@ import frappe
 
 from frappe.utils import global_search
 from frappe.test_runner import make_test_objects
+from frappe.desk.page.setup_wizard.install_fixtures import update_global_search_doctypes
+
 import frappe.utils
 
 class TestGlobalSearch(unittest.TestCase):
 	def setUp(self):
+		update_global_search_doctypes()
 		global_search.setup_global_search_table()
 		self.assertTrue('__global_search' in frappe.db.get_tables())
 		doctype = "Event"
