@@ -51,7 +51,7 @@ class TestContact(unittest.TestCase):
 		phones = [
 			{"phone": "+91 0000000000", "is_primary_phone": 0, "is_primary_mobile_no": 0},
 			{"phone": "+91 0000000001", "is_primary_phone": 0, "is_primary_mobile_no": 0},
-			{"phone": "+91 0000000002", "is_primary_phone": 0, "is_primary_mobile_no": 0},
+			{"phone": "+91 0000000002", "is_primary_phone": 1, "is_primary_mobile_no": 1},
 			{"phone": "+91 0000000003", "is_primary_phone": 0, "is_primary_mobile_no": 0},
 		]
 

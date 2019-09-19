@@ -30,11 +30,9 @@ class Contact(Document):
 
 	def validate(self):
 		self.set_primary_email()
-		self.set_primary_phone_and_mobile_no("phone")
-		self.set_primary_phone_and_mobile_no("mobile_no")
-
-		if self.email_id:
-			self.email_id = self.email_id.strip()
+		self.set_primary("phone")
+		self.set_primary("mobile_no")
+		self.check_if_primary_phone_and_mobile_no_same()
 
 		self.set_user()
 
@@ -94,48 +92,35 @@ class Contact(Document):
 		if not self.email_ids:
 			return
 
-		primary_email = [email.email_id for email in self.email_ids if email.is_primary]
-
-		if len(self.email_ids) > 1 and len(primary_email) > 1:
+		if len([email.email_id for email in self.email_ids if email.is_primary]) > 1:
 			frappe.throw(_("Only one Email ID can be set as primary."))
-		elif len(self.email_ids) > 1 and len(primary_email) == 0:
-			frappe.throw(_("Set primary Email ID."))
 
-		if len(self.email_ids) == 1:
-			self.email_ids[0].is_primary = 1
-			self.email_id = self.email_ids[0].email_id
-		else:
-			for d in self.email_ids:
-				if d.is_primary == 1:
-					self.email_id = d.email_id
-					break
+		for d in self.email_ids:
+			if d.is_primary == 1:
+				self.email_id = d.email_id.strip()
+				break
 
-	def set_primary_phone_and_mobile_no(self, fieldname):
+	def set_primary(self, fieldname):
+		# Used to set primary mobile and phone no.
 		if len(self.phone_nos) == 0:
 			return
 
 		field_name = "is_primary_" + fieldname
-		primary = [phone.phone for phone in self.phone_nos if phone.get(field_name)]
 
-		if len(self.phone_nos) > 1 and len(primary) > 1:
-			frappe.throw(_("Only one {0} can be set as primary.").format(frappe.bold(frappe.unscrub(fieldname))))
-		elif len(self.phone_nos) > 1 and len(primary) == 0:
-			frappe.throw(_("Set primary {0}").format(frappe.unscrub(fieldname)))
+		is_primary = [phone.phone for phone in self.phone_nos if phone.get(field_name)]
 
-		if len(self.phone_nos) == 1:
-			if self.phone_nos[0].phone == self.phone or self.phone_nos[0].phone == self.mobile_no:
-				frappe.throw(_("Same number {0} cannot be set for Phone and Mobile No.").format(frappe.bold(self.phone_nos[0].phone)))
+		if len(is_primary) > 1:
+			frappe.throw(_("Only one {0} can be set as primary.").format(frappe.scrub(fieldname)))
 
-			setattr(self.phone_nos[0], field_name, 1)
-			setattr(self, fieldname, self.phone_nos[0].get("phone"))
-		else:
-			for d in self.phone_nos:
-				if d.get(field_name) == 1:
-					if d.phone == self.phone or d.phone == self.mobile_no:
-						frappe.throw(_("Same number {0} cannot be set for Phone and Mobile No.").format(frappe.bold(d.phone)))
+		for d in self.phone_nos:
+			if d.get(field_name) == 1:
+				setattr(self, fieldname, d.phone)
+				break
 
-					setattr(self, fieldname, d.phone)
-					break
+	def check_if_primary_phone_and_mobile_no_same(self):
+		if self.phone and self.mobile_no and self.phone == self.mobile_no:
+			number = frappe.bold(self.phone)
+			frappe.throw(_("Number {0} cannot be set as primary for Phone as well as Mobile No.").format(number))
 
 def get_default_contact(doctype, name):
 	'''Returns default contact for the given doctype, name'''
