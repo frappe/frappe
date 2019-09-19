@@ -86,7 +86,7 @@ apps/frappe/frappe/public/js/frappe/request.js,You are not connected to Internet
 apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,Collapse All,Skupi sve
 apps/frappe/frappe/config/desk.py,Chat messages and other notifications.,Poruke i ostala obavještenja.
 apps/frappe/frappe/website/doctype/blog_post/blog_post.py,{0} comments,{0} komentara
-apps/frappe/frappe/public/js/frappe/socketio_client.js,Upload Failed,Dodavanje priloga neuspješno
+apps/frappe/frappe/public/js/frappe/file_uploader/FilePreview.vue,Upload Failed,Dodavanje priloga neuspješno
 apps/frappe/frappe/public/js/frappe/list/list_view.js,Customize,Prilagodite
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js,Users with role {0}:,Korisnici sa rolom {0} :
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js,Did not add,Nije dodato
@@ -138,7 +138,6 @@ apps/frappe/frappe/public/js/frappe/views/treeview.js,Expand All,Proširi sve
 apps/frappe/frappe/website/doctype/web_form/web_form.py,You are not allowed to update this Web Form Document,Немате дозволу да ажурирате овај Документ Веб Форме
 apps/frappe/frappe/public/js/frappe/ui/toolbar/search_utils.js,New,Novi
 apps/frappe/frappe/core/doctype/file/file.py,Cannot delete Home and Attachments folders,Ne možete brisati foldere Naslovna i prilozi
-DocType: User,Desktop Background,Pozadina radne površine
 apps/frappe/frappe/core/doctype/data_import/data_import.js,Attach File,Priloži dokument
 DocType: ToDo,High,Visok
 apps/frappe/frappe/www/printview.py,No {0} permission,{0} Nema dozvolu
@@ -157,7 +156,7 @@ apps/frappe/frappe/public/js/frappe/ui/slides.js,Add More,Dodaj još
 apps/frappe/frappe/public/js/frappe/views/reports/report_view.js,Pick Columns,Odaberi kolone
 DocType: Footer Item,Company,Preduzeće
 DocType: Address,Purchase User,Korisnik u nabavci
-apps/frappe/frappe/public/js/frappe/model/model.js,Created By,Kreirao
+apps/frappe/frappe/public/js/frappe/list/list_sidebar_group_by.js,Created By,Kreirao
 apps/frappe/frappe/public/js/frappe/views/reports/report_view.js,Export Report: {0},Izvoz izvještaja: {0}
 apps/frappe/frappe/public/js/frappe/form/grid_row_form.js,Insert Below,Ubacite ispod
 apps/frappe/frappe/public/js/frappe/list/list_view.js,Assign To,Dodijeli
@@ -196,7 +195,7 @@ apps/frappe/frappe/public/js/frappe/views/treeview.js,View List,Prikaz liste
 DocType: Communication,Delivery Status,Status isporuke
 DocType: Translation,Saved,Sačuvano
 DocType: Workflow State,share-alt,Podijeli-alt
-apps/frappe/frappe/public/js/frappe/ui/upload.html,Web Link,Url adresa
+apps/frappe/frappe/public/js/frappe/file_uploader/FileUploader.vue,Web Link,Url adresa
 DocType: Web Form,Amount,Vrijednost
 ,Address and Contacts,Adresa i kontakti
 apps/frappe/frappe/config/desk.py,Event and other calendars.,Događaji i ostali kalendari.
@@ -296,9 +295,9 @@ apps/frappe/frappe/public/js/frappe/form/layout.js,Hide Details,Sakrij detalje
 apps/frappe/frappe/core/doctype/version/version_view.html,Success,Uspješno
 apps/frappe/frappe/core/doctype/data_export/exporter.py,Data Import Template,Šablon za uvoz podataka
 apps/frappe/frappe/public/js/frappe/form/formatters.js,{0} to {1},{0} do {1}
-DocType: User,Background Image,Pozadinska slika
 DocType: Web Form,Payments,Plaćanja
 apps/frappe/frappe/core/doctype/communication/communication.js,Close,Zatvori
+apps/frappe/frappe/desk/page/user_profile/user_profile_sidebar.html,LeaderBoard,Tabla
 apps/frappe/frappe/public/js/frappe/web_form/web_form_list.js,Sr,Rb
 DocType: Contact,Purchase Master Manager,Direktor nabavke
 DocType: User,Last Login,Poslednja prijava
@@ -346,7 +345,7 @@ DocType: Address,Warehouse,Skladište
 DocType: Workflow State,Upload,Priloži
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.py,You can't set 'Translatable' for field {0},Не можете поставити 'Може се превести' за поље {0}
 DocType: Workflow,States,Države
-apps/frappe/frappe/public/js/frappe/form/toolbar.js,Go,Traži
+apps/frappe/frappe/desk/page/user_profile/user_profile.js,Go,Traži
 apps/frappe/frappe/public/js/frappe/utils/pretty_date.js,{0} days ago,prije {0} dana
 apps/frappe/frappe/public/js/frappe/views/reports/report_view.js,Y Axis Fields,Поља на Y-oси
 apps/frappe/frappe/public/js/frappe/form/grid.js,Add Row,Dodaj red
@@ -400,7 +399,7 @@ apps/frappe/frappe/public/js/frappe/desk.js,Session Expired,Sesija je istekla
 DocType: Communication,Received,Primljeno
 DocType: User,Login After,Prijava nakon
 apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,PDF,PDF
-DocType: Contact,Mobile No,Mobilni br.
+DocType: User,Mobile No,Mobilni br.
 apps/frappe/frappe/public/js/frappe/ui/sort_selector.js,Most Used,Najviše korišćeno
 apps/frappe/frappe/email/doctype/email_account/email_account.js,"You are selecting Sync Option as ALL, It will resync all \
 				read as well as unread message from server. This may also cause the duplication\
@@ -438,7 +437,7 @@ apps/frappe/frappe/public/js/frappe/views/reports/report_view.js,Select File Typ
 apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,Add Column,Dodaj kolonu
 DocType: Comment,Unshared,Nije podijeljen
 DocType: Help Article,Knowledge Base Editor,Urednik baze znanja
-DocType: Prepared Report,Report Name,Naziv izvještaja
+DocType: Access Log,Report Name,Naziv izvještaja
 DocType: System Settings,Session Expiry in Hours e.g. 06:00,Sesija ističe u satima npr. 06:00
 DocType: Report,Report Builder,Generator izvještaja
 apps/frappe/frappe/desk/report/todo/todo.py,ID,ID

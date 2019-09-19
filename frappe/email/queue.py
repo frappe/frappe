@@ -243,8 +243,10 @@ def get_email_queue(recipients, sender, subject, **kwargs):
 	return e
 
 def get_emails_sent_this_month():
-	return frappe.db.sql("""SELECT COUNT(`name`) FROM `tabEmail Queue` WHERE
-		`status`='Sent' AND EXTRACT(MONTH FROM `creation`) = EXTRACT(MONTH FROM NOW())""")[0][0]
+	return frappe.db.sql("""
+		SELECT COUNT(*) FROM `tabEmail Queue`
+		WHERE `status`='Sent' AND EXTRACT(YEAR_MONTH FROM `creation`) = EXTRACT(YEAR_MONTH FROM NOW())
+	""")[0][0]
 
 def get_emails_sent_today():
 	return frappe.db.sql("""SELECT COUNT(`name`) FROM `tabEmail Queue` WHERE
