@@ -91,22 +91,46 @@ class TestAutoAssign(unittest.TestCase):
 		note = make_note(dict(public=1))
 
 		# check if auto assigned to first user
-		self.assertEqual(frappe.db.get_value('ToDo', dict(
+		todo = frappe.get_list('ToDo', dict(
 			reference_type = 'Note',
 			reference_name = note.name,
 			status = 'Open'
-		), 'owner'), 'test@example.com')
+		))[0]
+
+		todo = frappe.get_doc('ToDo', todo['name'])
+		self.assertEqual(todo.owner, 'test@example.com')
 
 		# test auto unassign
 		note.public = 0
 		note.save()
 
-		# check if cleared
-		self.assertEqual(frappe.db.get_value('ToDo', dict(
+		todo.load_from_db()
+
+		# check if todo is cancelled
+		self.assertEqual(todo.status, 'Cancelled')
+
+	def test_close_assignment(self):
+		note = make_note(dict(public=1, content="valid"))
+
+		# check if auto assigned
+		todo = frappe.get_list('ToDo', dict(
 			reference_type = 'Note',
 			reference_name = note.name,
 			status = 'Open'
-		), 'owner'), None)
+		))[0]
+
+		todo = frappe.get_doc('ToDo', todo['name'])
+		self.assertEqual(todo.owner, 'test@example.com')
+
+		note.content="Closed"
+		note.save()
+
+		todo.load_from_db()
+
+		# check if todo is closed
+		self.assertEqual(todo.status, 'Closed')
+		# check if closed todo retained assignment
+		self.assertEqual(todo.owner, 'test@example.com')
 
 	def check_multiple_rules(self):
 		note = make_note(dict(public=1, notify_on_login=1))
@@ -131,6 +155,7 @@ def get_assignment_rule():
 		document_type = 'Note',
 		assign_condition = 'public == 1',
 		unassign_condition = 'public == 0 or notify_on_login == 1',
+		close_condition = '"Closed" in content',
 		rule = 'Round Robin',
 		users = [
 			dict(user = 'test@example.com'),

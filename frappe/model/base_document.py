@@ -34,10 +34,14 @@ def get_controller(doctype):
 	global _classes
 
 	if not doctype in _classes:
-		module_name, custom, is_tree = frappe.db.get_value("DocType", doctype, ("module", "custom", "is_tree"), cache=True) \
-			or ["Core", False, False]
+		module_name, custom = frappe.db.get_value("DocType", doctype, ("module", "custom"), cache=True) \
+			or ["Core", False]
 
 		if custom:
+			if frappe.db.field_exists(doctype, "is_tree"):
+				is_tree = frappe.db.get_value("DocType", doctype, ("is_tree"), cache=True)
+			else:
+				is_tree = False
 			_class = NestedSet if is_tree else Document
 		else:
 			module = load_doctype_module(doctype, module_name)

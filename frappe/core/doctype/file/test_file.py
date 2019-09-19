@@ -79,9 +79,7 @@ class TestBase64File(unittest.TestCase):
 
 
 class TestSameFileName(unittest.TestCase):
-
-
-	def setUp(self):
+	def test_saved_content(self):
 		self.attached_to_doctype, self.attached_to_docname = make_test_doc()
 		self.test_content1 = test_content1
 		self.test_content2 = test_content2
@@ -103,7 +101,6 @@ class TestSameFileName(unittest.TestCase):
 		self.saved_file_url2 = _file2.file_url
 
 
-	def test_saved_content(self):
 		_file = frappe.get_doc("File", {"file_url": self.saved_file_url1})
 		content1 = _file.get_content()
 		self.assertEqual(content1, self.test_content1)
@@ -111,10 +108,25 @@ class TestSameFileName(unittest.TestCase):
 		content2 = _file.get_content()
 		self.assertEqual(content2, self.test_content2)
 
+	def test_saved_content_private(self):
+		_file1 = frappe.get_doc({
+			"doctype": "File",
+			"file_name": "testing-private.txt",
+			"content": test_content1,
+			"is_private": 1
+		}).insert()
+		_file2 = frappe.get_doc({
+			"doctype": "File",
+			"file_name": "testing-private.txt",
+			"content": test_content2,
+			"is_private": 1
+		}).insert()
 
-	def tearDown(self):
-		# File gets deleted on rollback, so blank
-		pass
+		_file = frappe.get_doc("File", {"file_url": _file1.file_url})
+		self.assertEqual(_file.get_content(), test_content1)
+
+		_file = frappe.get_doc("File", {"file_url": _file2.file_url})
+		self.assertEqual(_file.get_content(), test_content2)
 
 
 class TestSameContent(unittest.TestCase):

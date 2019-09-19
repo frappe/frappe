@@ -157,7 +157,7 @@ DocType: Patch Log,Patch Log,Registro de Parches
 apps/frappe/frappe/public/js/frappe/views/kanban/kanban_column.html,Add,Añadir
 DocType: Communication,Sent or Received,Envío y de recepción
 DocType: System Settings,Setup Complete,Configuración completa
-DocType: View Log,Reference DocType,Referencia DocType
+apps/frappe/frappe/core/doctype/communication/communication.js,Reference DocType,Referencia DocType
 DocType: Workflow State,minus-sign,signo menos
 DocType: Blog Post,Markdown,Markdown
 DocType: DocShare,Document Name,Nombre del documento
@@ -201,6 +201,7 @@ apps/frappe/frappe/model/document.py,Record does not exist,Registro no existe
 apps/frappe/frappe/desk/query_report.py,Query must be a SELECT,Debe seleccionar la Consulta
 DocType: Data Export,Select DocType,Seleccione tipo de documento
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,"Certain documents, like an Invoice, should not be changed once final. The final state for such documents is called Submitted. You can restrict which roles can Submit.","Algunos documentos como facturas, no se deben cambiar una vez guardados. El estado final de dichos documentos se llama 'Presentado'. Puede restringir qué roles/usuarios pueden presentar documentos"
+DocType: Contact,Contact Details,Datos del Contacto
 apps/frappe/frappe/public/js/frappe/form/save.js,Mandatory fields required in {0},Campos obligatorios requeridos en {0}
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js,Reset Permissions for {0}?,Restablecer los permisos para {0} ?
 DocType: Workflow State,align-left,alinear -izquierda
@@ -425,7 +426,7 @@ DocType: Workflow Action,Workflow Action,Acciones de los flujos de trabajo
 DocType: Event,Send an email reminder in the morning,Enviar un recordatorio por correo electrónico en la mañana
 DocType: Event,Repeat On,Repetir OK
 DocType: Website Settings,"Show title in browser window as ""Prefix - title""",Mostrar título en la ventana del navegador como &quot;Prefijo - título&quot;
-DocType: Prepared Report,Report Name,Nombre del informe
+DocType: Access Log,Report Name,Nombre del informe
 DocType: Website Settings,Title Prefix,Prefijo del Título
 DocType: Workflow State,cog,diente
 DocType: DocField,Default,Defecto

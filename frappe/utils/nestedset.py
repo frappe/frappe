@@ -184,7 +184,7 @@ def validate_loop(doctype, name, lft, rgt):
 
 class NestedSet(Document):
 	def __setup__(self):
-		if self.meta.nsm_parent_field:
+		if self.meta.get("nsm_parent_field"):
 			self.nsm_parent_field = self.meta.nsm_parent_field
 
 	def on_update(self):

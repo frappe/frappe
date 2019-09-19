@@ -1,31 +1,86 @@
 import frappe
 
 def execute():
-	contact_details = frappe.get_list("Contact", fields=["name", "email_id", "phone", "mobile_no", "modified_by", "creation", "modified"])
+	contact_details = frappe.db.sql("""
+		SELECT
+			`name`, `email_id`, `phone`, `mobile_no`, `modified_by`, `creation`, `modified`
+		FROM `tabContact`
+	""", as_dict=True)
 	frappe.reload_doc("contacts", "doctype", "contact_email")
 	frappe.reload_doc("contacts", "doctype", "contact_phone")
 	frappe.reload_doc("contacts", "doctype", "contact")
 
-	for contact_detail in contact_details:
-		contact_name = frappe.db.escape(contact_detail.name)
+	email_values = []
+	phone_values = []
+	for count, contact_detail in enumerate(contact_details):
+		phone_counter = 1
+		is_primary = 1
 
 		if contact_detail.email_id:
-			frappe.db.sql("""
-				INSERT INTO `tabContact Email`
-					(`idx`, `name`, `email_id`, `parentfield`, `parenttype`, `parent`, `is_primary`, `creation`, `modified`, `modified_by`)
-				VALUES (1, '{0}', '{1}', 'email_ids', 'Contact', {2}, 1, '{3}', '{4}', '{5}')
-			""".format(frappe.generate_hash(contact_detail.email_id, 10), contact_detail.email_id, contact_name, contact_detail.creation, contact_detail.modified, contact_detail.modified_by))
+			email_values.append((
+				1,
+				frappe.generate_hash(contact_detail.email_id, 10),
+				contact_detail.email_id,
+				'email_ids',
+				'Contact',
+				contact_detail.name,
+				1,
+				contact_detail.creation,
+				contact_detail.modified,
+				contact_detail.modified_by
+			))
 
 		if contact_detail.phone:
-			frappe.db.sql("""
-				INSERT INTO `tabContact Phone`
-					(`idx`, `name`, `phone`, `parentfield`, `parenttype`, `parent`, `is_primary`, `creation`, `modified`, `modified_by`)
-				VALUES (1, '{0}', '{1}', 'phone_nos', 'Contact', {2}, 1, '{3}', '{4}', '{5}')
-			""".format(frappe.generate_hash(contact_detail.phone, 10), contact_detail.phone, contact_name, contact_detail.creation, contact_detail.modified, contact_detail.modified_by))
+			is_primary = 1 if phone_counter == 1 else 0
+			phone_values.append((
+				phone_counter,
+				frappe.generate_hash(contact_detail.email_id, 10),
+				contact_detail.phone,
+				'phone_nos',
+				'Contact',
+				contact_detail.name,
+				is_primary,
+				contact_detail.creation,
+				contact_detail.modified,
+				contact_detail.modified_by
+			))
+			phone_counter += 1
+			is_primary += 1
 
 		if contact_detail.mobile_no:
+			is_primary = 1 if phone_counter == 1 else 0
+			phone_values.append((
+				phone_counter,
+				frappe.generate_hash(contact_detail.email_id, 10),
+				contact_detail.phone,
+				'phone_nos',
+				'Contact',
+				contact_detail.name,
+				is_primary,
+				contact_detail.creation,
+				contact_detail.modified,
+				contact_detail.modified_by
+			))
+
+		if email_values and (count%10000 == 0 or count == len(contact_details)-1):
+			frappe.db.sql("""
+				INSERT INTO `tabContact Email`
+					(`idx`, `name`, `email_id`, `parentfield`, `parenttype`, `parent`, `is_primary`, `creation`,
+					`modified`, `modified_by`)
+				VALUES {}
+			""".format(", ".join(['%s'] * len(email_values))), tuple(email_values))
+
+			email_values = []
+
+		if phone_values and (count%10000 == 0 or count == len(contact_details)-1):
 			frappe.db.sql("""
 				INSERT INTO `tabContact Phone`
-					(`idx`, `name`, `phone`, `parentfield`, `parenttype`, `parent`, `is_primary`, `creation`, `modified`, `modified_by`)
-				VALUES (2, '{0}', '{1}', 'phone_nos', 'Contact', {2}, 0, '{3}', '{4}', '{5}')
-			""".format(frappe.generate_hash(contact_detail.mobile_no, 10), contact_detail.mobile_no, contact_name, contact_detail.creation, contact_detail.modified, contact_detail.modified_by))
+					(`idx`, `name`, `phone`, `parentfield`, `parenttype`, `parent`, `is_primary`, `creation`,
+					`modified`, `modified_by`)
+				VALUES {}
+			""".format(", ".join(['%s'] * len(phone_values))), tuple(phone_values))
+
+			phone_values = []
+
+	frappe.db.add_index("Contact Phone", ["phone"])
+	frappe.db.add_index("Contact Email", ["email_id"])

@@ -23,11 +23,17 @@ class AssignmentRule(Document):
 
 		return False
 
+	def apply_close(self, doc, assignments):
+		if (self.close_assignments and
+			self.name in [d.assignment_rule for d in assignments]):
+			return self.close_assignments(doc)
+
+		return False
+
 	def apply_assign(self, doc):
 		if self.safe_eval('assign_condition', doc):
 			self.do_assignment(doc)
 			return True
-
 
 	def do_assignment(self, doc):
 		# clear existing assignment, to reassign
@@ -51,6 +57,11 @@ class AssignmentRule(Document):
 		'''Clear assignments'''
 		if self.safe_eval('unassign_condition', doc):
 			return assign_to.clear(doc.get('doctype'), doc.get('name'))
+
+	def close_assignments(self, doc):
+		'''Close assignments'''
+		if self.safe_eval('close_condition', doc):
+			return assign_to.close_all_assignments(doc.get('doctype'), doc.get('name'))
 
 	def get_user(self):
 		'''
@@ -98,22 +109,53 @@ class AssignmentRule(Document):
 
 	def safe_eval(self, fieldname, doc):
 		try:
-			return frappe.safe_eval(self.get(fieldname), None, doc)
+			if self.get(fieldname):
+				return frappe.safe_eval(self.get(fieldname), None, doc)
 		except Exception as e:
 			# when assignment fails, don't block the document as it may be
 			# a part of the email pulling
 			frappe.msgprint(frappe._('Auto assignment failed: {0}').format(str(e)), indicator = 'orange')
 
+		return False
+
 def get_assignments(doc):
 	return frappe.get_all('ToDo', fields = ['name', 'assignment_rule'], filters = dict(
 		reference_type = doc.get('doctype'),
 		reference_name = doc.get('name'),
-		status = 'Open'
+		status = ('!=', 'Cancelled')
 	), limit = 5)
 
-def apply(doc, method):
+@frappe.whitelist()
+def bulk_apply(doctype, docnames):
+	import json
+	docnames = json.loads(docnames)
+
+	background = len(docnames) > 5
+	for name in docnames:
+		if background:
+			frappe.enqueue('frappe.automation.doctype.assignment_rule.assignment_rule.apply', doc=None, doctype=doctype, name=name)
+		else:
+			apply(None, doctype=doctype, name=name)
+
+def reopen_closed_assignment(doc):
+	todo = frappe.db.exists('ToDo', dict(
+		reference_type = doc.doctype,
+		reference_name = doc.name,
+		status = 'Closed'
+	))
+	if not todo:
+		return False
+	todo = frappe.get_doc("ToDo", todo)
+	todo.status = 'Open'
+	todo.save(ignore_permissions=True)
+	return True
+
+def apply(doc, method=None, doctype=None, name=None):
 	if frappe.flags.in_patch or frappe.flags.in_install:
 		return
+
+	if not doc and doctype and name:
+		doc = frappe.get_doc(doctype, name)
 
 	assignment_rules = frappe.cache_manager.get_doctype_map('Assignment Rule', doc.doctype, dict(
 		document_type = doc.doctype, disabled = 0), order_by = 'priority desc')
@@ -122,7 +164,7 @@ def apply(doc, method):
 
 	# multiple auto assigns
 	for d in assignment_rules:
-		assignment_rule_docs.append(frappe.get_doc('Assignment Rule', d.name))
+		assignment_rule_docs.append(frappe.get_doc('Assignment Rule', d.get('name')))
 
 	if not assignment_rule_docs:
 		return
@@ -130,18 +172,37 @@ def apply(doc, method):
 	doc = doc.as_dict()
 	assignments = get_assignments(doc)
 
-	clear = True
+	clear = True # are all assignments cleared
+	new_apply = False # are new assignments applied
+
 	if assignments:
 		# first unassign
+		# use case, there are separate groups to be assigned for say L1 and L2,
+		# so when the value switches from L1 to L2, L1 team must be unassigned, then L2 can be assigned.
 		clear = False
 		for assignment_rule in assignment_rule_docs:
 			clear = assignment_rule.apply_unassign(doc, assignments)
-			if clear: break
+			if clear:
+				break
 
-	# apply rule only if there are no exisiting assignments
+	# apply rule only if there are no existing assignments
 	if clear:
 		for assignment_rule in assignment_rule_docs:
-			if assignment_rule.apply_assign(doc): break
+			new_apply = assignment_rule.apply_assign(doc)
+			if new_apply:
+				break
+
+	# apply close rule only if assignments exists
+	assignments = get_assignments(doc)
+	if assignments:
+		for assignment_rule in assignment_rule_docs:
+			if not new_apply:
+				reopen =  reopen_closed_assignment(doc)
+				if reopen:
+					break
+			close = assignment_rule.apply_close(doc, assignments)
+			if close:
+				break
 
 
 def get_assignment_rules():
