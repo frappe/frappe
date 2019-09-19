@@ -304,14 +304,16 @@ user_privacy_documents = [
 global_search_doctypes = [
 	{"doctype": "Contact"},
 	{"doctype": "Address"},
-	{"doctype": "Event"},
-	{"doctype": "Note"},
-	{"doctype": "Google Calendar"},
-	{"doctype": "Auto Repeat"},
 	{"doctype": "ToDo"},
+	{"doctype": "Note"},
+	{"doctype": "Event"},
+	{"doctype": "Blog Post"},
+	{"doctype": "Dashboard"},
 	{"doctype": "Country"},
 	{"doctype": "Currency"},
 	{"doctype": "Newsletter"},
-	{"doctype": "Contact Us Settings"},
-	{"doctype": "Google Contacts"}
+	{"doctype": "Letter Head"},
+	{"doctype": "Workflow"},
+	{"doctype": "Web Page"},
+	{"doctype": "Web Form"}
 ]
