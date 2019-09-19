@@ -213,6 +213,10 @@ def get_labels(fields, doctype):
 	for key in fields:
 		key = key.split(" as ")[0]
 
+		if key.startswith('count('): continue
+		if key.startswith('sum('): continue
+		if key.startswith('avg('): continue
+
 		if "." in key:
 			parenttype, fieldname = key.split(".")[0][4:-1], key.split(".")[1].strip("`")
 		else:
