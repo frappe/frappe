@@ -12,6 +12,7 @@
   "for_doc_event",
   "condition",
   "points",
+  "for_assigned_users",
   "user_field",
   "multiplier_field",
   "max_points"
@@ -56,6 +57,7 @@
    "reqd": 1
   },
   {
+   "depends_on": "eval:!doc.for_assigned_users || doc.for_doc_event==='New'",
    "description": "The user from this field will be rewarded points",
    "fieldname": "user_field",
    "fieldtype": "Select",
@@ -84,9 +86,16 @@
    "fieldtype": "Select",
    "label": "For Document Event",
    "options": "New\nSubmit\nCancel\nCustom"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:doc.for_doc_event !=='New'",
+   "fieldname": "for_assigned_users",
+   "fieldtype": "Check",
+   "label": "Allot Points To Assigned Users"
   }
  ],
- "modified": "2019-09-05 14:22:27.664645",
+ "modified": "2019-09-19 17:45:58.137148",
  "modified_by": "Administrator",
  "module": "Social",
  "name": "Energy Point Rule",
