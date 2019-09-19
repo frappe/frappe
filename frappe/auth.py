@@ -407,10 +407,10 @@ def validate_ip_address(user):
 	enabled = int(frappe.get_system_settings('enable_two_factor_auth') or 0)
 	if enabled:
 		#check if bypass restrict ip is enabled for all users
-		bypass_restrict_ip_check = int(frappe.get_system_settings('bypass_restrict_ip_check_if_2fa_enabled') or 0)
+		bypass_restrict_ip_check = int(frappe.get_system_settings('bypass_restrict_ip_check_if_2fa_enabled')) or 0
 		if not bypass_restrict_ip_check:
 			#check if bypass restrict ip is enabled for login user
-			bypass_restrict_ip_check = int(frappe.db.get_value('User', user, 'bypass_restrict_ip_check_if_2fa_enabled') or 0)
+			bypass_restrict_ip_check = user.bypass_restrict_ip_check_if_2fa_enabled or 0
 	for ip in ip_list:
 		if frappe.local.request_ip.startswith(ip) or bypass_restrict_ip_check:
 			return
