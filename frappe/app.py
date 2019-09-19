@@ -51,8 +51,6 @@ def application(request):
 
 		init_request(request)
 
-		frappe.recorder.record()
-
 		if frappe.local.form_dict.cmd:
 			response = frappe.handler.handle()
 
