@@ -18,7 +18,7 @@ from frappe.utils.password import check_password, delete_login_failed_cache
 from frappe.core.doctype.activity_log.activity_log import add_authentication_log
 from frappe.twofactor import (should_run_2fa, authenticate_for_2factor,
 	confirm_otp_token, get_cached_user_pass)
-
+import frappe.recorder
 from six.moves.urllib.parse import quote
 
 
@@ -400,11 +400,17 @@ def check_consecutive_login_attempts(user, doc):
 def validate_ip_address(user):
 	"""check if IP Address is valid"""
 	user = frappe.get_cached_doc("User", user)
+	if frappe.flags.in_test:
+		user = frappe.get_doc("User", user)
+
 	ip_list = user.get_restricted_ip_list()
 	if not ip_list:
 		return
 
 	system_settings = frappe.get_cached_doc("System Settings")
+	if frappe.flags.in_test:
+		system_settings = frappe.get_doc("System Settings")
+
 	bypass_restrict_ip_check = None
 
 	# check if two factor auth is enabled
