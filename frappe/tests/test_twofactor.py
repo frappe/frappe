@@ -140,18 +140,18 @@ class TestTwoFactor(unittest.TestCase):
 		user.save()
 		enable_2fa(bypass_restrict_ip_check=0)
 		with self.assertRaises(frappe.AuthenticationError):
-			validate_ip_address()
+			validate_ip_address(self.user)
 
 		#2
 		enable_2fa(bypass_restrict_ip_check=1)
-		self.assertIsNone(validate_ip_address())
+		self.assertIsNone(validate_ip_address(self.user))
 
 		#3
 		user = frappe.get_doc('User', self.user)
 		user.bypass_restrict_ip_check_if_2fa_enabled = 1
 		user.save()
 		enable_2fa()
-		self.assertIsNone(validate_ip_address())
+		self.assertIsNone(validate_ip_address(self.user))
 
 def create_http_request():
 	'''Get http request object.'''
