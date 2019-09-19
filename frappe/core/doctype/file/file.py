@@ -589,7 +589,7 @@ def get_breadcrumbs(folder):
 	path = folder.split('/')
 
 	folders = []
-	for i, p in enumerate(path):
+	for i, _ in enumerate(path):
 		indexes = range(0, i)
 		folder = '/'.join([path[i] for i in indexes])
 		if folder:
