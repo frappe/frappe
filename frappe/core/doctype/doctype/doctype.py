@@ -586,9 +586,11 @@ class DocType(Document):
 		if not self.get('is_tree'):
 			return
 		self.add_nestedset_fields()
-		# set field as mandatory
-		field = self.meta.get_field('nsm_parent_field')
-		field.reqd = 1
+
+		if not self.nsm_parent_field:
+			field_label = frappe.bold(_("Parent Field (Tree)"))
+			frappe.throw(_("{0} is a mandatory field").format(field_label), frappe.MandatoryError)
+
 		# check if field is valid
 		fieldnames = [df.fieldname for df in self.fields]
 		if self.nsm_parent_field and self.nsm_parent_field not in fieldnames:
