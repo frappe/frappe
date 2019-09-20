@@ -168,7 +168,9 @@ frappe.ui.form.QuickEntryForm = Class.extend({
 					}
 				},
 				error: function() {
-					me.open_doc();
+					if (!me.skip_redirect_on_error) {
+						me.open_doc();
+					}
 				},
 				always: function() {
 					me.dialog.working = false;
