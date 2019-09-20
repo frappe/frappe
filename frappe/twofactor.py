@@ -7,7 +7,6 @@ import frappe
 from frappe import _
 import pyotp, os
 from frappe.utils.background_jobs import enqueue
-from jinja2 import Template
 from pyqrcode import create as qrcreate
 from six import BytesIO
 from base64 import b64encode, b32encode
@@ -223,32 +222,26 @@ def process_2fa_for_email(user, token, otp_secret, otp_issuer, method='Email'):
 def get_email_subject_for_2fa(kwargs_dict):
 	'''Get email subject for 2fa.'''
 	subject_template = _('Login Verification Code from {}').format(frappe.db.get_value('System Settings', 'System Settings', 'otp_issuer_name'))
-	subject = render_string_template(subject_template, kwargs_dict)
+	subject = frappe.render_template(subject_template, kwargs_dict)
 	return subject
 
 def get_email_body_for_2fa(kwargs_dict):
 	'''Get email body for 2fa.'''
 	body_template = 'Enter this code to complete your login:<br><br> <b>{{otp}}</b>'
-	body = render_string_template(body_template, kwargs_dict)
+	body = frappe.render_template(body_template, kwargs_dict)
 	return body
 
 def get_email_subject_for_qr_code(kwargs_dict):
 	'''Get QRCode email subject.'''
 	subject_template = _('One Time Password (OTP) Registration Code from {}').format(frappe.db.get_value('System Settings', 'System Settings', 'otp_issuer_name'))
-	subject = render_string_template(subject_template, kwargs_dict)
+	subject = frappe.render_template(subject_template, kwargs_dict)
 	return subject
 
 def get_email_body_for_qr_code(kwargs_dict):
 	'''Get QRCode email body.'''
 	body_template = 'Please click on the following link and follow the instructions on the page.<br><br> {{qrcode_link}}'
-	body = render_string_template(body_template, kwargs_dict)
+	body = frappe.render_template(body_template, kwargs_dict)
 	return body
-
-def render_string_template(_str, kwargs_dict):
-	'''Render string with jinja.'''
-	s = Template(_str)
-	s = s.render(**kwargs_dict)
-	return s
 
 def get_link_for_qrcode(user, totp_uri):
 	'''Get link to temporary page showing QRCode.'''
