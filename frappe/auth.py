@@ -397,18 +397,12 @@ def check_consecutive_login_attempts(user, doc):
 
 def validate_ip_address(user):
 	"""check if IP Address is valid"""
-	user = frappe.get_cached_doc("User", user)
-	if frappe.flags.in_test:
-		user = frappe.get_doc("User", user)
-
+	user = frappe.get_cached_doc("User", user) if not frappe.flags.in_test else frappe.get_doc("User", user)
 	ip_list = user.get_restricted_ip_list()
 	if not ip_list:
 		return
 
-	system_settings = frappe.get_cached_doc("System Settings")
-	if frappe.flags.in_test:
-		system_settings = frappe.get_doc("System Settings")
-
+	system_settings = frappe.get_cached_doc("System Settings") if not frappe.flags.in_test else frappe.get_single("System Settings")
 	bypass_restrict_ip_check = None
 
 	# check if two factor auth is enabled
