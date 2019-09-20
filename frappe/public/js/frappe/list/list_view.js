@@ -124,7 +124,14 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 		const actions = this.actions_menu_items.concat(this.workflow_action_menu_items);
 		actions.map(item => {
-			const $item = this.page.add_actions_menu_item(item.label, item.action, item.standard);
+			let action = () => {
+				frappe.run_serially([
+					this.toggle_auto_refresh(false),
+					item.action,
+					this.toggle_auto_refresh(true)
+				])
+			}
+			const $item = this.page.add_actions_menu_item(item.label, action, item.standard);
 			if (item.class) {
 				$item.addClass(item.class);
 			}
@@ -133,6 +140,10 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				this.workflow_action_items[item.name] = $item;
 			}
 		});
+	}
+
+	toggle_auto_refresh(state) {
+		this.list_view_settings.disable_auto_refresh = !state;
 	}
 
 	show_restricted_list_indicator_if_applicable() {
