@@ -1048,7 +1048,7 @@ def create_contact(user, ignore_links=False, ignore_mandatory=False):
 		})
 
 		if user.email:
-			contact.add_email(user.email)
+			contact.add_email(user.email, is_primary=True)
 
 		if user.phone:
 			contact.add_phone(user.phone)
