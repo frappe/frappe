@@ -23,6 +23,14 @@ $(document).ready(function() {
 	frappe.start_app();
 });
 
+$(document).on('click', 'a', function(event) {
+	let url = $(this).attr('href');
+	if (frappe.utils.is_url(url)) {
+		event.preventDefault();
+		window.open(url, '_blank');
+	}
+});
+
 frappe.Application = Class.extend({
 	init: function() {
 		this.startup();
@@ -289,7 +297,6 @@ frappe.Application = Class.extend({
 	},
 
 	refresh_notifications: function() {
-		var me = this;
 		if(frappe.session_alive && frappe.boot && frappe.boot.home_page !== 'setup-wizard') {
 			if (this._refresh_notifications) {
 				this._refresh_notifications.abort();
