@@ -10,14 +10,24 @@ from frappe import _
 class GlobalSearchSettings(Document):
 
 	def validate(self):
-		core_dts = []
+		dts, core_dts, repeated_dts = [], [], []
+
 		for dt in self.allowed_in_global_search:
+			if dt.document_type in dts:
+				repeated_dts.append(dt.document_type)
+
 			if frappe.get_meta(dt.document_type).module == "Core":
 				core_dts.append(dt.document_type)
+
+			dts.append(dt.document_type)
 
 		if core_dts:
 			core_dts = (", ".join([frappe.bold(dt) for dt in core_dts]))
 			frappe.throw(_("Core Modules {0} cannot be searched in Global Search.").format(core_dts))
+
+		if repeated_dts:
+			repeated_dts = (", ".join([frappe.bold(dt) for dt in repeated_dts]))
+			frappe.throw(_("Document Type {0} has been repeated.").format(repeated_dts))
 
 def get_doctypes_for_global_search():
 	doctypes = frappe.get_list("Global Search DocType", fields=["document_type"], order_by="idx ASC")
@@ -36,7 +46,7 @@ def update_global_search_doctypes():
 
 	for dt in global_search_doctypes:
 		if dt.get("index"):
-			allowed_in_global_search.insert(dt.get("index")-1, dt.get("doctype"))
+			allowed_in_global_search.insert(dt.get("index"), dt.get("doctype"))
 			continue
 
 		allowed_in_global_search.append(dt.get("doctype"))
