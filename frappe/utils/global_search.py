@@ -473,9 +473,13 @@ def search(text, start=0, limit=20, doctype=""):
 
 	for priority in priorities:
 		tmp_result = []
-		for r in results:
+		if not results:
+			break
+
+		for index, r in enumerate(results):
 			if r.doctype == priority:
 				tmp_result.extend([r])
+				results.pop(index)
 
 		sorted_results.extend(tmp_result)
 

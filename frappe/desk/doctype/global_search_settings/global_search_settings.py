@@ -45,7 +45,7 @@ def update_global_search_doctypes():
 	allowed_in_global_search = []
 
 	for dt in global_search_doctypes:
-		if dt.get("index"):
+		if dt.get("index") is not None:
 			allowed_in_global_search.insert(dt.get("index"), dt.get("doctype"))
 			continue
 
