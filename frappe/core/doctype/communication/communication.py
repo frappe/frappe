@@ -382,6 +382,9 @@ def parse_email(communication, email_strings):
 		the email is parsed and doctype and docname is extracted and timeline link is added.
 	"""
 	delimiter = "+"
+	
+	if not frappe.db.get_value("Email Account", {"enable_automatic_linking": 1}):
+		return  # If no Email Accounts with automatic linking, do not proceed
 
 	for email_string in email_strings:
 		if email_string:
