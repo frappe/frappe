@@ -59,7 +59,7 @@ def get_email_address(user=None):
 	if not user:
 		user = frappe.session.user
 
-	return frappe.db.get_value("User", user, ["email"], as_dict=True).get("email")
+	return frappe.db.get_value("User", user, "email")
 
 def get_formatted_email(user):
 	"""get Email Address of user formatted as: `John Doe <johndoe@example.com>`"""
