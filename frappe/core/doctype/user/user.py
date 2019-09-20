@@ -1035,9 +1035,10 @@ def update_roles(role_profile):
 		user.add_roles(*roles)
 
 def create_contact(user, ignore_links=False, ignore_mandatory=False):
+	from frappe.contacts.doctype.contact.contact import get_contact_name
 	if user.name in ["Administrator", "Guest"]: return
 
-	if not frappe.db.get_value("Contact", {"email_id": user.email}):
+	if not get_contact_name(user.email):
 		contact = frappe.get_doc({
 			"doctype": "Contact",
 			"first_name": user.first_name,
@@ -1055,7 +1056,6 @@ def create_contact(user, ignore_links=False, ignore_mandatory=False):
 		if user.mobile_no:
 			contact.add_phone(user.mobile_no)
 		contact.insert(ignore_permissions=True, ignore_links=ignore_links, ignore_mandatory=ignore_mandatory)
-
 
 @frappe.whitelist()
 def generate_keys(user):

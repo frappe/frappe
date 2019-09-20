@@ -13,6 +13,9 @@ class TestRequestPersonalData(unittest.TestCase):
 	def setUp(self):
 		create_user_if_not_exists(email='test_privacy@example.com')
 
+	def tearDown(self):
+		frappe.db.sql("""DELETE FROM `tabPersonal Data Download Request`""")
+
 	def test_user_data_creation(self):
 		user_data = json.loads(get_user_data('test_privacy@example.com'))
 		expected_data = {'Contact': frappe.get_all('Contact', {'email_id':'test_privacy@example.com'}, ["*"])}
