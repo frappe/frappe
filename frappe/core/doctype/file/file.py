@@ -26,6 +26,7 @@ from frappe.utils import get_hook_method, get_files_path, random_string, encode,
 from frappe import _
 from frappe import conf
 from frappe.utils.nestedset import NestedSet
+from frappe.model.document import Document
 from frappe.utils import strip
 from PIL import Image, ImageOps
 from six import StringIO, string_types
@@ -42,8 +43,7 @@ class FolderNotEmpty(frappe.ValidationError): pass
 exclude_from_linked_with = True
 
 
-class File(NestedSet):
-	nsm_parent_field = 'folder'
+class File(Document):
 	no_feed_on_delete = True
 
 	def before_insert(self):
@@ -72,8 +72,6 @@ class File(NestedSet):
 			self.name = frappe.generate_hash("", 10)
 
 	def after_insert(self):
-		self.update_parent_folder_size()
-
 		if not self.is_folder:
 			self.add_comment_in_reference_doc('Attachment',
 				_('Added {0}').format("<a href='{file_url}' target='_blank'>{file_name}</a>{icon}".format(**{
@@ -100,7 +98,6 @@ class File(NestedSet):
 				self.validate_file()
 			self.generate_content_hash()
 
-		self.set_folder_size()
 		self.validate_url()
 
 		if frappe.db.exists('File', {'name': self.name, 'is_folder': 0}):
@@ -135,31 +132,6 @@ class File(NestedSet):
 				if self.attached_to_field:
 					frappe.db.set_value(self.attached_to_doctype, self.attached_to_name,
 						self.attached_to_field, self.file_url)
-
-
-	def set_folder_size(self):
-		"""Set folder size if folder"""
-		if self.is_folder and not self.is_new():
-			self.file_size = cint(self.get_folder_size())
-			self.db_set('file_size', self.file_size)
-
-			for folder in self.get_ancestors():
-				frappe.db.set_value("File", folder, "file_size", self.get_folder_size(folder))
-
-	def get_folder_size(self, folder=None):
-		"""Returns folder size for current folder"""
-		if not folder:
-			folder = self.name
-
-		file_size =  frappe.db.sql("""select ifnull(sum(file_size), 0)
-			from tabFile where folder=%s """, (folder))[0][0]
-
-		return file_size
-
-	def update_parent_folder_size(self):
-		"""Update size of parent folder"""
-		if self.folder and not self.is_folder: # it not home
-			frappe.get_doc("File", self.folder).set_folder_size()
 
 	def set_folder_name(self):
 		"""Make parent folders if not exists based on reference doctype and name"""
@@ -232,7 +204,6 @@ class File(NestedSet):
 		if self.is_home_folder or self.is_attachments_folder:
 			frappe.throw(_("Cannot delete Home and Attachments folders"))
 		self.check_folder_is_empty()
-		super(File, self).on_trash()
 		self.call_delete_file()
 		if not self.is_folder:
 			self.add_comment_in_reference_doc('Attachment Removed', _("Removed {0}").format(self.file_name))
@@ -273,9 +244,6 @@ class File(NestedSet):
 				return
 
 			return thumbnail_url
-
-	def after_delete(self):
-		self.update_parent_folder_size()
 
 	def check_folder_is_empty(self):
 		"""Throw exception if folder is not empty"""
@@ -598,7 +566,6 @@ class File(NestedSet):
 
 def on_doctype_update():
 	frappe.db.add_index("File", ["attached_to_doctype", "attached_to_name"])
-	frappe.db.add_index("File", ["lft", "rgt"])
 
 def make_home_folder():
 	home = frappe.get_doc({
@@ -619,12 +586,16 @@ def make_home_folder():
 @frappe.whitelist()
 def get_breadcrumbs(folder):
 	"""returns name, file_name of parent folder"""
-	values = frappe.db.get_value("File", folder, ["lft", "rgt"], as_dict=True)
-	if not values:
-		frappe.throw(_("Folder {0} does not exist").format(folder))
+	path = folder.split('/')
 
-	return frappe.db.sql("""select name, file_name from tabFile
-		where lft < %s and rgt > %s order by lft asc""", (values.lft, values.rgt), as_dict=1)
+	folders = []
+	for i, _ in enumerate(path):
+		indexes = range(0, i)
+		folder = '/'.join([path[i] for i in indexes])
+		if folder:
+			folders.append(folder)
+
+	return [frappe._dict(file_name=f) for f in folders]
 
 @frappe.whitelist()
 def create_new_folder(file_name, folder):

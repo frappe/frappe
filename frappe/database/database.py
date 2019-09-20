@@ -758,7 +758,10 @@ class Database(object):
 
 	def field_exists(self, dt, fn):
 		"""Return true of field exists."""
-		return self.sql("select name from tabDocField where fieldname=%s and parent=%s", (dt, fn))
+		return self.exists('DocField', {
+			'fieldname': fn,
+			'parent': dt
+		})
 
 	def table_exists(self, doctype):
 		"""Returns True if table for given doctype exists."""
