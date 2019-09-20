@@ -19,7 +19,7 @@ class TestRequestPersonalData(unittest.TestCase):
 	def test_user_data_creation(self):
 		user_data = json.loads(get_user_data('test_privacy@example.com'))
 		contact_name = get_contact_name('test_privacy@example.com')
-		expected_data = {'Contact': frappe.get_all('Contact', contact_name, ["*"])}
+		expected_data = {'Contact': frappe.get_all('Contact', {"name": contact_name}, ["*"])}
 		expected_data = json.loads(json.dumps(expected_data, default=str))
 		self.assertEqual({'Contact': user_data['Contact']}, expected_data)
 
