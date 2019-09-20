@@ -117,7 +117,7 @@ frappe.ui.form.Form = class FrappeForm {
 
 	add_nav_keyboard_shortcuts() {
 		frappe.ui.keys.add_shortcut({
-			shortcut: 'shift+>',
+			shortcut: 'shift+ctrl+>',
 			action: () => this.navigate_records(0),
 			page: this.page,
 			description: __('Go to next record'),
@@ -126,7 +126,7 @@ frappe.ui.form.Form = class FrappeForm {
 		});
 
 		frappe.ui.keys.add_shortcut({
-			shortcut: 'shift+<',
+			shortcut: 'shift+ctrl+<',
 			action: () => this.navigate_records(1),
 			page: this.page,
 			description: __('Go to previous record'),
@@ -839,10 +839,14 @@ frappe.ui.form.Form = class FrappeForm {
 		frappe.call('frappe.desk.form.utils.get_next', args).then(r => {
 			if (r.message) {
 				frappe.set_route('Form', this.doctype, r.message);
-				let $first_input_el = $(frappe.container.page).find('.frappe-control:visible').eq(0);
-				$first_input_el.find('input, select, textarea').focus();
+				this.focus_on_first_input();
 			}
 		});
+	}
+
+	focus_on_first_input() {
+		let $first_input_el = $(frappe.container.page).find('.frappe-control:visible').eq(0);
+		$first_input_el.find('input, select, textarea').focus();
 	}
 
 	rename_doc() {
