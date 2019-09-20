@@ -47,8 +47,6 @@ class HTTPRequest:
 		# set db
 		self.connect()
 
-		frappe.recorder.record()
-
 		# login
 		frappe.local.login_manager = LoginManager()
 
