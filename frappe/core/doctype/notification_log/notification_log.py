@@ -4,8 +4,10 @@
 
 from __future__ import unicode_literals
 import frappe
+from frappe import _
 from frappe.model.document import Document
-from frappe.core.doctype.notification_settings.notification_settings import is_notifications_enabled
+from frappe.core.doctype.notification_settings.notification_settings import (is_notifications_enabled,
+	is_email_notifications_enabled)
 
 class NotificationLog(Document):
 
@@ -19,7 +21,7 @@ def get_permission_query_conditions(user):
 
 	return '''(`tabNotification Log`.user = '{user}')'''.format(user=user)
 
-def create_notification_log(names, doc):
+def create_notification_log(names, doc, email_content = None):
 	doc = frappe._dict(doc)
 	if(not isinstance(names, list)):
 		if names:
@@ -41,7 +43,39 @@ def create_notification_log(names, doc):
 					_doc.reference_user = doc.reference_user
 					_doc.subject = doc.subject.replace('<div>', '').replace('</div>', '')
 					_doc.insert(ignore_permissions=True)
+		if is_email_notifications_enabled(user):
+			send_notification_email(_doc, user, email_content)
 
+def send_notification_email(doc, user, description=None):
+	from frappe.utils import get_fullname, get_url_to_form, strip_html, get_url
+
+	doc_link = get_url_to_form(doc.reference_doctype, doc.reference_name)
+	header = get_email_header(doc)
+	email_subject = strip_html(doc.subject)
+
+	frappe.sendmail(
+		recipients = user,
+		sender = frappe.session.user,
+		subject = email_subject,
+		template = "new_notification",
+		args = {
+			"body_content": doc.subject,
+			"description": description,
+			"doc_link": doc_link,
+			"link": get_url()
+		},
+		header = [header, 'orange']
+	)
+
+def get_email_header(doc):
+	if doc.type == 'Mention' or doc.type == 'Assignment':
+		return _('New {0}').format(doc.type)
+	elif doc.type == 'Communication':
+		return _('New Email')
+	elif doc.type == 'Share':
+		return _('New Document Shared')
+	elif doc.type == 'Energy Point':
+		return _('Energy Point Update')
 
 @frappe.whitelist()
 def set_notification_as_seen(notification_log):

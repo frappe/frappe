@@ -83,7 +83,7 @@ def add(args=None):
 
 	# notify
 	notify_assignment(d.assigned_by, d.owner, d.reference_type, d.reference_name, action='ASSIGN',\
-			description=args.get("description"), notify=args.get('notify'))
+			description=args.get("description"))
 
 	return get(args)
 
@@ -150,7 +150,7 @@ def clear(doctype, name):
 	return True
 
 def notify_assignment(assigned_by, owner, doc_type, doc_name, action='CLOSE',
-	description=None, notify=0):
+	description=None):
 	"""
 		Notify assignee that there is a change in assignment
 	"""
@@ -162,77 +162,24 @@ def notify_assignment(assigned_by, owner, doc_type, doc_name, action='CLOSE',
 
 	# Search for email address in description -- i.e. assignee
 	from frappe.utils import get_link_to_form
-	assignment = get_link_to_form(doc_type, doc_name, label="%s: %s" % (doc_type, doc_name))
-	owner_name = frappe.get_cached_value('User', owner, 'full_name')
+
 	user_name = frappe.get_cached_value('User', frappe.session.user, 'full_name')
 	title_field = frappe.get_meta(doc_type).get_title_field()
 	title = doc_name if title_field == "name" else \
 		frappe.db.get_value(doc_type, doc_name, title_field)
+	description_html =  "<p>{0}</p>".format(description) if description else None
+
 	if action=='CLOSE':
-		if owner == frappe.session.get('user'):
-			arg = {
-				'contact': assigned_by,
-				'txt': _("The task {0}, that you assigned to {1}, has been closed.").format(assignment,
-						owner_name)
-			}
-		else:
-			arg = {
-				'contact': assigned_by,
-				'txt': _("The task {0}, that you assigned to {1}, has been closed by {2}.").format(assignment,
-					owner_name, user_name)
-			}
 		subject = _('<b>Your</b> assignment on <b>{0} {1}</b> has been removed').format(doc_type, title)
-		notification_doc = {
-			'type': 'Assignment',
-			'reference_doctype': doc_type,
-			'subject': subject,
-			'reference_name': doc_name,
-			'reference_user': frappe.session.user
-		}
-		create_notification_log(owner, notification_doc)
 	else:
-		description_html = "<p>{0}</p>".format(description)
-		arg = {
-			'contact': owner,
-			'txt': _("A new task, {0}, has been assigned to you by {1}. {2}").format(assignment,
-				user_name, description_html),
-			'notify': notify
-		}
-		user = arg['contact']
 		subject = '''<b>{0}</b> assigned a new task <b>{1} {2}</b> to you'''.format(user_name, doc_type, title)
-		notification_doc = {
-			'type': 'Assignment',
-			'reference_doctype': doc_type,
-			'subject': subject,
-			'reference_name': doc_name,
-			'reference_user': frappe.session.user
-		}
-		create_notification_log(user, notification_doc)
 
-	if arg and cint(arg.get("notify") and is_email_notifications_enabled(user)):
-		_notify(arg)
+	notification_doc = {
+		'type': 'Assignment',
+		'reference_doctype': doc_type,
+		'subject': subject,
+		'reference_name': doc_name,
+		'reference_user': frappe.session.user
+	}
+	create_notification_log(owner, notification_doc, description_html or None)
 
-def _notify(args):
-	from frappe.utils import get_fullname, get_url
-
-	args = frappe._dict(args)
-	contact = args.contact
-	txt = args.txt
-
-	try:
-		if not isinstance(contact, list):
-			contact = [frappe.db.get_value("User", contact, "email") or contact]
-
-		frappe.sendmail(\
-			recipients=contact,
-			sender= frappe.db.get_value("User", frappe.session.user, "email"),
-			subject=_("New message from {0}").format(get_fullname(frappe.session.user)),
-			template="new_message",
-			args={
-				"from": get_fullname(frappe.session.user),
-				"message": txt,
-				"link": get_url()
-			},
-			header=[_('New Message'), 'orange'])
-	except frappe.OutgoingEmailError:
-		pass

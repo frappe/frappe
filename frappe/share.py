@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 import frappe
 from frappe import _
 from frappe.desk.form.document_follow import follow_document
+from frappe.core.doctype.notification_log.notification_log import create_notification_log
 from frappe.utils import cint
 
 @frappe.whitelist()
@@ -40,7 +41,7 @@ def add(doctype, name, user=None, read=1, write=0, share=0, everyone=0, flags=No
 	})
 
 	doc.save(ignore_permissions=True)
-	notify_assignment(user, doctype, name, description=None, notify=notify)
+	notify_assignment(user, doctype, name, everyone, description=None)
 
 	follow_document(doctype, name, user)
 
@@ -145,16 +146,24 @@ def check_share_permission(doctype, name):
 	if not frappe.has_permission(doctype, ptype="share", doc=name):
 		frappe.throw(_("No permission to {0} {1} {2}".format("share", doctype, name)), frappe.PermissionError)
 
-def notify_assignment(shared_by, doc_type, doc_name, description=None, notify=0):
+def notify_assignment(shared_by, doctype, doc_name, everyone, description=None):
 
-	if not (shared_by and doc_type and doc_name): return
+	if not (shared_by and doctype and doc_name) or everyone: return
 
-	from frappe.utils import get_link_to_form
-	document = get_link_to_form(doc_type, doc_name, label="%s: %s" % (doc_type, doc_name))
+	from frappe.utils import get_link_to_form, get_fullname
 
-	arg = {
-		'contact': shared_by,
-		'txt': _("A new document {0} has been shared by with you {1}.").format(document,
-				shared_by),
-		'notify': notify
+	title_field = frappe.get_meta(doctype).get_title_field()
+	title = doc_name if title_field == "name" else \
+		frappe.db.get_value(doctype, doc_name, title_field)
+
+	reference_user = get_fullname(frappe.session.user)
+	notification_message = _('''<b>{0}</b> shared a document <b>{1} {2}</b> with you''').format(reference_user, doctype, title)
+	notification_doc = {
+		'type': 'Share',
+		'reference_doctype': doctype,
+		'subject': notification_message,
+		'reference_name': doc_name,
+		'reference_user': frappe.session.user
 	}
+
+	create_notification_log(shared_by, notification_doc)

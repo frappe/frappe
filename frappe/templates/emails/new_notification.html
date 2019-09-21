@@ -1,0 +1,13 @@
+<p>
+	<a href = "{{ doc_link }}" style="text-decoration: none; color: #333">{{ body_content }}</a>
+</p>
+{% if description %}
+<blockquote
+	style="border-left: 3px solid #d1d8dd; padding: 7px 15px; margin-left: 0px;">
+	{{ description | markdown }}
+</blockquote>
+{% endif %}
+<div class="more-info">
+	<a href="{{ link }}">{{ _("Login and view in Browser") }}</a>
+</div>
+	

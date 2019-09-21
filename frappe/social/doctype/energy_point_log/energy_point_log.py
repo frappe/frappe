@@ -28,7 +28,6 @@ class EnergyPointLog(Document):
 		if is_email_notifications_enabled(self.user):
 			if alert_dict:
 				frappe.publish_realtime('energy_point_alert', message=alert_dict, user=self.user)
-				send_review_mail(self, alert_dict)
 
 		frappe.cache().hdel('energy_points', self.user)
 		frappe.publish_realtime('update_points', after_commit=True)
@@ -42,7 +41,8 @@ class EnergyPointLog(Document):
 				'subject': get_notifications_message(self),
 				'reference_user': reference_user
 			}
-			create_notification_log(self.user, notification_doc)
+
+			create_notification_log(self.user, notification_doc, self.reason)
 
 def get_notifications_message(doc):
 	owner_name = get_fullname(doc.owner)

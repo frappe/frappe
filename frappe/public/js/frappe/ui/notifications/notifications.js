@@ -305,16 +305,17 @@ frappe.ui.Notifications = class Notifications {
 
 		this.$dropdown_list.find('.notification-settings').on('click', (e) => {
 			e.preventDefault();
-			if(!frappe.db.exists('Notification Settings', frappe.session.user)) {
-				frappe.call(
-					'frappe.core.doctype.notification_settings.notification_settings.create_notification_settings',
-				).then(() => {
+			frappe.db.exists('Notification Settings', frappe.session.user).then((exists)=> {
+				if(!exists) {
+					frappe.call(
+						'frappe.core.doctype.notification_settings.notification_settings.create_notification_settings',
+					).then(() => {
+						frappe.set_route(`#Form/Notification Settings/${frappe.session.user}`);
+					});
+				} else {
 					frappe.set_route(`#Form/Notification Settings/${frappe.session.user}`);
-				});
-			}
-			else {
-				frappe.set_route(`#Form/Notification Settings/${frappe.session.user}`);
-			}
+				}
+			});
 		});
 	}
 

@@ -56,18 +56,9 @@ class Comment(Document):
 			title = self.reference_name if title_field == "name" else \
 				frappe.db.get_value(self.reference_doctype, self.reference_name, title_field)
 
-			if title != self.reference_name:
-				parent_doc_label = "{0}: {1} (#{2})".format(_(self.reference_doctype),
-					title, self.reference_name)
-			else:
-				parent_doc_label = "{0}: {1}".format(_(self.reference_doctype),
-					self.reference_name)
-
-			subject = _("{0} mentioned you in a comment in {1}").format(sender_fullname, parent_doc_label)
-
 			recipients = [frappe.db.get_value("User", {"enabled": 1, "name": name, "user_type": "System User", "allowed_in_mentions": 1}, "email")
 				for name in mentions]
-			link = get_link_to_form(self.reference_doctype, self.reference_name, label=parent_doc_label)
+
 			notification_message = _('''<b>{0}</b> mentioned you in a comment in <b>{1} {2}</b></span>''')\
 				.format(sender_fullname, self.reference_doctype, title)
 
@@ -78,22 +69,7 @@ class Comment(Document):
 				'reference_name': self.reference_name,
 				'reference_user': frappe.session.user
 			}
-			create_notification_log(recipients, notification_doc)
-
-			for recipient in recipients:
-				if is_email_notifications_enabled(recipient):
-					frappe.sendmail(
-						recipients = recipients,
-						sender = frappe.session.user,
-						subject = subject,
-						template = "mentioned_in_comment",
-						args = {
-							"body_content": _("{0} mentioned you in a comment in {1}").format(sender_fullname, link),
-							"comment": self,
-							"link": link
-						},
-						header = [_('New Mention'), 'orange']
-					)
+			create_notification_log(recipients, notification_doc, self.content)
 
 
 def on_doctype_update():

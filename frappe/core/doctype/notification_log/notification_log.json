@@ -20,7 +20,7 @@
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Type",
-   "options": "Mention\nEnergy Point\nCommunication\nAssignment",
+   "options": "Mention\nEnergy Point\nCommunication\nAssignment\nShare",
    "read_only": 1,
    "search_index": 1
   },
@@ -75,8 +75,8 @@
   }
  ],
  "in_create": 1,
- "modified": "2019-09-17 16:51:11.148601",
- "modified_by": "umair@erpnext.com",
+ "modified": "2019-09-20 15:14:25.646766",
+ "modified_by": "Administrator",
  "module": "Core",
  "name": "Notification Log",
  "owner": "Administrator",
