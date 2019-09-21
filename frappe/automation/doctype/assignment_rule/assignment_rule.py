@@ -118,6 +118,9 @@ class AssignmentRule(Document):
 
 		return False
 
+	def get_assignment_days(self):
+		return [d.day for d in self.assignment_days]
+
 def get_assignments(doc):
 	return frappe.get_all('ToDo', fields = ['name', 'assignment_rule'], filters = dict(
 		reference_type = doc.get('doctype'),
@@ -175,12 +178,18 @@ def apply(doc, method=None, doctype=None, name=None):
 	clear = True # are all assignments cleared
 	new_apply = False # are new assignments applied
 
+	today = frappe.utils.get_weekday()
+
 	if assignments:
 		# first unassign
 		# use case, there are separate groups to be assigned for say L1 and L2,
 		# so when the value switches from L1 to L2, L1 team must be unassigned, then L2 can be assigned.
 		clear = False
 		for assignment_rule in assignment_rule_docs:
+			assignment_rule_days = assignment_rule.get_assignment_days()
+			if assignment_rule_days and not today in assignment_rule_days:
+				continue
+
 			clear = assignment_rule.apply_unassign(doc, assignments)
 			if clear:
 				break
@@ -188,6 +197,10 @@ def apply(doc, method=None, doctype=None, name=None):
 	# apply rule only if there are no existing assignments
 	if clear:
 		for assignment_rule in assignment_rule_docs:
+			assignment_rule_days = assignment_rule.get_assignment_days()
+			if assignment_rule_days and not today in assignment_rule_days:
+				continue
+
 			new_apply = assignment_rule.apply_assign(doc)
 			if new_apply:
 				break
@@ -196,6 +209,10 @@ def apply(doc, method=None, doctype=None, name=None):
 	assignments = get_assignments(doc)
 	if assignments:
 		for assignment_rule in assignment_rule_docs:
+			assignment_rule_days = assignment_rule.get_assignment_days()
+			if assignment_rule_days and not today in assignment_rule_days:
+				continue
+
 			if not new_apply:
 				reopen =  reopen_closed_assignment(doc)
 				if reopen:

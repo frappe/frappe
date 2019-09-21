@@ -18,6 +18,8 @@
   "unassign_condition",
   "section_break_10",
   "close_condition",
+  "sb",
+  "assignment_day",
   "assign_to_users_section",
   "rule",
   "users",
@@ -115,9 +117,20 @@
    "fieldname": "close_condition",
    "fieldtype": "Code",
    "label": "Close Condition"
+  },
+  {
+   "fieldname": "sb",
+   "fieldtype": "Section Break",
+   "label": "Assignment Days"
+  },
+  {
+   "fieldname": "assignment_day",
+   "fieldtype": "Table",
+   "label": "Assignment Days",
+   "options": "Assignment Rule Day"
   }
  ],
- "modified": "2019-09-10 14:45:53.657667",
+ "modified": "2019-09-21 16:54:10.370154",
  "modified_by": "Administrator",
  "module": "Automation",
  "name": "Assignment Rule",
