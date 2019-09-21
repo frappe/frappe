@@ -8,7 +8,6 @@ import frappe
 from frappe import _
 from frappe.desk.form.document_follow import follow_document
 from frappe.core.doctype.notification_log.notification_log import create_notification_log
-from frappe.core.doctype.notification_settings.notification_settings import is_notifications_enabled, is_email_notifications_enabled
 import frappe.utils
 from frappe.utils import cint
 import frappe.share

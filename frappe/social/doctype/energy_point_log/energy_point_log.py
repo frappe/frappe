@@ -8,7 +8,6 @@ from frappe import _
 import json
 from frappe.model.document import Document
 from frappe.core.doctype.notification_log.notification_log import create_notification_log
-from frappe.core.doctype.notification_settings.notification_settings import is_email_notifications_enabled
 from frappe.utils import cint, get_fullname, getdate, get_link_to_form
 
 class EnergyPointLog(Document):
@@ -25,9 +24,8 @@ class EnergyPointLog(Document):
 
 	def after_insert(self):
 		alert_dict = get_alert_dict(self)
-		if is_email_notifications_enabled(self.user):
-			if alert_dict:
-				frappe.publish_realtime('energy_point_alert', message=alert_dict, user=self.user)
+		if alert_dict:
+			frappe.publish_realtime('energy_point_alert', message=alert_dict, user=self.user)
 
 		frappe.cache().hdel('energy_points', self.user)
 		frappe.publish_realtime('update_points', after_commit=True)
