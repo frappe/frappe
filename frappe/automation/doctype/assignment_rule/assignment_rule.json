@@ -19,7 +19,7 @@
   "section_break_10",
   "close_condition",
   "sb",
-  "assignment_day",
+  "assignment_days",
   "assign_to_users_section",
   "rule",
   "users",
@@ -124,13 +124,13 @@
    "label": "Assignment Days"
   },
   {
-   "fieldname": "assignment_day",
+   "fieldname": "assignment_days",
    "fieldtype": "Table",
    "label": "Assignment Days",
    "options": "Assignment Rule Day"
   }
  ],
- "modified": "2019-09-21 16:54:10.370154",
+ "modified": "2019-09-21 17:36:16.787602",
  "modified_by": "Administrator",
  "module": "Automation",
  "name": "Assignment Rule",
