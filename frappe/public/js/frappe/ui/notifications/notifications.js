@@ -161,19 +161,18 @@ frappe.ui.Notifications = class Notifications {
 	}
 
 	setup_open_docs_route() {
-		let me = this;
 
-		this.$open_docs.on('click', 'li a', function() {
-			let doctype = $(this).attr('data-doctype');
-			let doc = $(this).attr('data-doc');
+		this.$open_docs.on('click', 'li a', (e) => {
+			let doctype = $(e.currentTarget).attr('data-doctype');
+			let doc = $(e.currentTarget).attr('data-doc');
 			if (!doc) {
-				let config = me.open_docs_config[doctype] || {};
+				let config = this.open_docs_config[doctype] || {};
 				if (config.route) {
 					frappe.set_route(config.route);
 				} else if (config.click) {
 					config.click();
 				} else {
-					me.show_open_count_list(doctype);
+					this.show_open_count_list(doctype);
 				}
 			} else {
 				frappe.set_route("Form", doctype, doc);
@@ -287,7 +286,7 @@ frappe.ui.Notifications = class Notifications {
 						<span class="octicon octicon-chevron-down collapse-indicator"></span>
 						${settings_html}
 					</li>
-					<div id = "${category_id}" class="collapse">
+					<div id = "${category_id}" class="collapse category-list">
 						<div class="text-center text-muted notifications-loading">
 							${__('Loading...')}
 						</div>
@@ -299,6 +298,8 @@ frappe.ui.Notifications = class Notifications {
 
 		let html = this.categories.map(get_headers_html).join('<li class="divider"></li>');
 		this.$dropdown_list.append(html);
+		this.$dropdown_list.find('#notifications').collapse('show');
+		this.toggle_collapse_indicator(this.$dropdown_list.find('#notifications'));
 	}
 
 	setup_notification_settings() {
@@ -320,43 +321,58 @@ frappe.ui.Notifications = class Notifications {
 	}
 
 	bind_events() {
-		let me = this;
+		this.setup_notification_listener();
+		this.setup_dropdown_events();
+	
+		this.$dropdown_list.on('click', '.recent-item', () => {
+			this.$dropdown.removeClass('open');
+		});
 
+		$('.category-list').on('hide.bs.collapse', (e) => {
+			this.toggle_collapse_indicator($(e.currentTarget));
+		});
+
+		$('.category-list').on('show.bs.collapse', (e) => {
+			this.toggle_collapse_indicator($(e.currentTarget));
+		});
+	}
+
+	setup_notification_listener() {
 		frappe.realtime.on('notification', () => {
 			this.$dropdown.find('.notifications-indicator').show();
 			this.update_dropdown();
 		});
+	}
 
-		this.$dropdown.on('hide.bs.dropdown', function() {
-			me.$notification_indicator.hide();
-			let hide = $(this).data('closable');
-			me.$dropdown_list.find('.unseen').removeClass('unseen');
-			$(this).data('closable', true);
+	setup_dropdown_events() {
+		this.$dropdown.on('hide.bs.dropdown', (e) => {
+			this.$notification_indicator.hide();
+			let hide = $(e.currentTarget).data('closable');
+			if (hide) {
+				this.$dropdown_list.find('#notifications').collapse('show');
+				this.$dropdown_list.find('#upcoming-events, #open-documents').collapse('hide');
+			}
+			this.$dropdown_list.find('.unseen').removeClass('unseen');
+			$(e.currentTarget).data('closable', true);
 			return hide;
 		});
 
 		this.$dropdown.on('show.bs.dropdown', () => {
 			this.check_seen();
-			this.$dropdown_list.find('#notifications').collapse('show');
 		});
 
-		this.$dropdown.on('click', function(e) {
+		this.$dropdown.on('click', (e) => {
 			if ($(e.target).closest('.dropdown-toggle').length) {
-				$(this).data('closable', true);
+				$(e.currentTarget).data('closable', true);
 			} else {
-				$(this).data('closable', false);
+				$(e.currentTarget).data('closable', false);
 			}
 		});
+	}
 
-		this.$dropdown_list.on('click', '.recent-item', () => {
-			this.$dropdown.removeClass('open');
-		});
-
-		this.$dropdown.find('.header').on('click', function() {
-			let hide = $(this).next().hasClass("in");
-			$(this).find('.collapse-indicator').toggleClass("octicon-chevron-down", hide);
-			$(this).find('.collapse-indicator').toggleClass("octicon-chevron-up", !hide);
-		});
+	toggle_collapse_indicator($el) {
+		$el.prev().find('.collapse-indicator').toggleClass("octicon-chevron-down");
+		$el.prev().find('.collapse-indicator').toggleClass("octicon-chevron-up");
 	}
 
 };
