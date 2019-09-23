@@ -242,7 +242,7 @@ def make_boilerplate(template, doc, opts=None):
 
 		base_class = 'Document'
 		base_class_import = 'from frappe.model.document import Document'
-		if doc.is_tree:
+		if hasattr(doc, "is_tree"):
 			base_class = 'NestedSet'
 			base_class_import = 'from frappe.utils.nestedset import NestedSet'
 
