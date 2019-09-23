@@ -157,12 +157,7 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 	},
 
 	setup_notifications: function() {
-		if (frappe.boot.notifications_enabled) {
-			$('.dropdown-notifications').show();
-			this.notifications = new frappe.ui.Notifications();
-		} else {
-			$('.dropdown-notifications').hide();
-		}
+		this.notifications = new frappe.ui.Notifications();
 	}
 
 });

@@ -220,24 +220,33 @@ frappe.ui.Notifications = class Notifications {
 	render_notifications_dropdown() {
 		let body_html = '';
 		let view_full_log_html = '';
+		let dropdown_html;
 
-		if (this.dropdown_items.length) {
-			this.dropdown_items.forEach(field => {
-				let item_html = this.get_dropdown_item_html(field);
-				if (item_html) body_html += item_html;
-			});
-			view_full_log_html = `<li class="recent-item text-center">
-				<a class="text-muted full-log-btn">
-					${__('View Full Log')}
-				</a></li>`;
-		} else {
-			body_html += `<li class="recent-item text-center">
-				<a href="#" onclick = "return false" class="text-muted">
-					${__('No activity')}
-				</a></li>`;
+		if (!frappe.boot.notifications_enabled) {
+			dropdown_html = `<li class="recent-item text-center">
+				<span class="text-muted">
+					${__('Notifications Disabled')}
+				</span></li>`;
+		}
+		else {
+			if (this.dropdown_items.length) {
+				this.dropdown_items.forEach(field => {
+					let item_html = this.get_dropdown_item_html(field);
+					if (item_html) body_html += item_html;
+				});
+				view_full_log_html = `<li class="recent-item text-center">
+					<a class="text-muted full-log-btn">
+						${__('View Full Log')}
+					</a></li>`;
+			} else {
+				body_html += `<li class="recent-item text-center">
+					<span class="text-muted">
+						${__('No activity')}
+					</span></li>`;
+			}
+			dropdown_html = body_html + view_full_log_html;
 		}
 
-		let dropdown_html = body_html + view_full_log_html;
 		this.$notifications.html(dropdown_html);
 	}
 
