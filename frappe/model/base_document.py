@@ -458,7 +458,7 @@ class BaseDocument(object):
 					meta = frappe.get_meta(doctype)
 					if meta.has_field('disabled'):
 						disabled = frappe.get_value(doctype, self.get(df.fieldname), 'disabled')
-						if disabled:
+						if disabled and not (frappe.flags.in_patch or frappe.flags.in_install):
 							frappe.throw(_("{0} is disabled").format(frappe.bold(self.get(df.fieldname))))
 				else:
 					doctype = self.get(df.options)
