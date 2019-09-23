@@ -261,13 +261,8 @@ def delete_bulk(doctype, items):
 @frappe.whitelist()
 @frappe.read_only()
 def get_sidebar_stats(stats, doctype, filters=[]):
-	cat_tags = frappe.db.sql("""select `tag`.parent as `category`, `tag`.tag_name as `tag`
-		from `tabTag Doc Category` as `docCat`
-		INNER JOIN  `tabTag` as `tag` on `tag`.parent = `docCat`.parent
-		where `docCat`.tagdoc=%s
-		ORDER BY `tag`.parent asc, `tag`.idx""", doctype, as_dict=1)
 
-	return {"defined_cat":cat_tags, "stats":get_stats(stats, doctype, filters)}
+	return {"defined_cat": [], "stats": get_stats(stats, doctype, filters)}
 
 @frappe.whitelist()
 @frappe.read_only()

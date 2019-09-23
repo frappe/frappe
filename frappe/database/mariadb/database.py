@@ -205,6 +205,18 @@ class MariaDBDatabase(Database):
 				ENGINE=MyISAM
 				CHARACTER SET=utf8mb4'''.format(self.VARCHAR_LEN))
 
+	def create_global_tags_table(self):
+		if not '__global_tags' in self.get_tables():
+			self.sql('''create table __global_tags(
+				doctype varchar(100),
+				name varchar({0}),
+				title varchar({0}),
+				tags varchar({0}),
+				unique `doctype_name` (doctype, name))
+				COLLATE=utf8mb4_unicode_ci
+				ENGINE=MyISAM
+				CHARACTER SET=utf8mb4'''.format(self.VARCHAR_LEN))
+
 	def create_user_settings_table(self):
 		self.sql_ddl("""create table if not exists __UserSettings (
 			`user` VARCHAR(180) NOT NULL,

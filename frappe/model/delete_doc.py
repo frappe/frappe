@@ -16,6 +16,7 @@ from frappe.core.doctype.file.file import remove_all
 from frappe.utils.password import delete_all_passwords_for
 from frappe.model.naming import revert_series_if_last
 from frappe.utils.global_search import delete_for_document
+from frappe.utils.global_tags import delete_tags_for_document
 from frappe.exceptions import FileNotFoundError
 
 
@@ -116,6 +117,8 @@ def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reloa
 
 		# delete global search entry
 		delete_for_document(doc)
+		# delete tags from __global_tags
+		delete_tags_for_document(doc)
 
 		if doc and not for_reload:
 			add_to_deleted_document(doc)
