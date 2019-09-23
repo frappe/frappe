@@ -4,7 +4,6 @@
 from __future__ import unicode_literals
 
 import frappe
-from frappe.utils import time_diff_in_seconds
 from frappe.core.doctype.notification_settings.notification_settings import get_subscribed_documents
 from six import string_types
 import json

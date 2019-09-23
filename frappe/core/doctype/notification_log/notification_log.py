@@ -43,11 +43,11 @@ def create_notification_log(names, doc, email_content = None):
 					_doc.reference_user = doc.reference_user
 					_doc.subject = doc.subject.replace('<div>', '').replace('</div>', '')
 					_doc.insert(ignore_permissions=True)
-		if is_email_notifications_enabled(user):
-			send_notification_email(_doc, user, email_content)
+					if is_email_notifications_enabled(user):
+						send_notification_email(_doc, user, email_content)
 
 def send_notification_email(doc, user, description=None):
-	from frappe.utils import get_fullname, get_url_to_form, strip_html, get_url
+	from frappe.utils import get_url_to_form, strip_html, get_url
 
 	doc_link = get_url_to_form(doc.reference_doctype, doc.reference_name)
 	header = get_email_header(doc)

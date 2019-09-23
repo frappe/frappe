@@ -307,7 +307,7 @@ frappe.ui.Notifications = class Notifications {
 		this.$dropdown_list.find('.notification-settings').on('click', (e) => {
 			e.preventDefault();
 			frappe.db.exists('Notification Settings', frappe.session.user).then((exists)=> {
-				if(!exists) {
+				if (!exists) {
 					frappe.call(
 						'frappe.core.doctype.notification_settings.notification_settings.create_notification_settings',
 					).then(() => {

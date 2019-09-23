@@ -9,7 +9,6 @@ from frappe import _
 from frappe.desk.form.document_follow import follow_document
 from frappe.core.doctype.notification_log.notification_log import create_notification_log
 import frappe.utils
-from frappe.utils import cint
 import frappe.share
 
 class DuplicateToDoError(frappe.ValidationError): pass
@@ -160,8 +159,6 @@ def notify_assignment(assigned_by, owner, doc_type, doc_name, action='CLOSE',
 		return
 
 	# Search for email address in description -- i.e. assignee
-	from frappe.utils import get_link_to_form
-
 	user_name = frappe.get_cached_value('User', frappe.session.user, 'full_name')
 	title_field = frappe.get_meta(doc_type).get_title_field()
 	title = doc_name if title_field == "name" else \

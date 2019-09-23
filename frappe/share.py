@@ -150,7 +150,7 @@ def notify_assignment(shared_by, doctype, doc_name, everyone, description=None):
 
 	if not (shared_by and doctype and doc_name) or everyone: return
 
-	from frappe.utils import get_link_to_form, get_fullname
+	from frappe.utils import get_fullname
 
 	title_field = frappe.get_meta(doctype).get_title_field()
 	title = doc_name if title_field == "name" else \

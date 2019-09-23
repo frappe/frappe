@@ -9,7 +9,7 @@ import json
 from frappe.model.document import Document
 from frappe.core.doctype.user.user import extract_mentions
 from frappe.core.doctype.notification_log.notification_log import create_notification_log
-from frappe.utils import get_fullname, get_link_to_form
+from frappe.utils import get_fullname
 from frappe.website.render import clear_cache
 from frappe.database.schema import add_column
 from frappe.exceptions import ImplicitCommitError
