@@ -4,6 +4,7 @@
 
 from __future__ import unicode_literals
 import frappe
+import json
 from frappe import _
 import datetime
 from frappe.core.page.dashboard.dashboard import cache_source, get_from_date_from_timespan
@@ -206,6 +207,7 @@ class DashboardChart(Document):
 		frappe.cache().delete_key('chart-data:{}'.format(self.name))
 
 	def validate(self):
+		self.validate_filters()
 		if self.chart_type != 'Custom':
 			self.check_required_field()
 
@@ -214,3 +216,10 @@ class DashboardChart(Document):
 			frappe.throw(_("Time series based on is required to create a dashboard chart"))
 		if not self.document_type:
 			frappe.throw(_("Document type is required to create a dashboard chart"))
+		
+	def validate_filters(self):
+		filters = json.loads(self.filters_json)
+		if not frappe.db.exists('Company', filters.get('company')):
+			frappe.throw(_('No Company named {0}').format(filters.get('company')))
+		if not frappe.db.exists('Account', filters.get('account')):
+			frappe.throw(_('No Account named {0}').format(filters.get('account')))
