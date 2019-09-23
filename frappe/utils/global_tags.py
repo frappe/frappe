@@ -88,16 +88,17 @@ def get_documents_for_tag(tag):
 	"""
 	# remove hastag # from tag
 	results = {}
-	tag = tag[1:]
+	tag = frappe.db.escape('%{0}%'.format(tag.lower()), False)
 
-	mariadb_fields = '`doctype`, `name`, `title`, `tags`, MATCH(`tags`) AGAINST ({} IN BOOLEAN MODE) AS rank'.format(frappe.db.escape('+' + tag + '*'))
-	postgres_fields = '`doctype`, `name`, `title`, `tags`, TO_TSVECTOR("tags") @@ PLAINTO_TSQUERY({}) AS rank'.format(frappe.db.escape(tag))
-
-	common_query = '''SELECT {fields} FROM `__global_tags`'''
+	common_query = '''
+		SELECT `doctype`, `name`, `title`, `tags`
+		FROM `__global_tags`
+		WHERE `tags` LIKE {tag}
+	'''
 
 	result = frappe.db.multisql({
-			'mariadb': common_query.format(fields=mariadb_fields),
-			'postgres': common_query.format(fields=postgres_fields)
+			'mariadb': common_query.format(tag=tag),
+			'postgres': common_query.format(tag=tag)
 		}, as_dict=True)
 
 	for res in result:

@@ -7,9 +7,13 @@ import frappe
 import json
 from frappe.model.document import Document
 from frappe.utils.global_tags import update_global_tags
+from frappe import _
 
 class Tag(Document):
-	pass
+
+	def on_trash(self):
+		if self.count > 0:
+			frappe.throw(_("Cannot delete Tag {0} since it is linked to Documents.").format(frappe.bold(self.name)))
 
 def check_user_tags(dt):
 	"if the user does not have a tags column, then it creates one"

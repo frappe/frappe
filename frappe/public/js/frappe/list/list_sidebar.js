@@ -282,6 +282,11 @@ frappe.views.ListSidebar = class ListSidebar {
 		frappe.call({
 			method: 'frappe.desk.reportview.get_sidebar_stats',
 			type: 'GET',
+			args: {
+				stats: me.stats,
+				doctype: me.doctype,
+				filters: me.default_filters || []
+			},
 			callback: function(r) {
 				me.defined_category = r.message;
 				if (r.message.defined_cat) {

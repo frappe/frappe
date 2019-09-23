@@ -168,7 +168,6 @@ frappe.search.AwesomeBar = Class.extend({
 		this.make_search_in_current(txt);
 		this.make_calculator(txt);
 		this.make_random(txt);
-		this.make_global_tags(txt);
 	},
 
 	build_options: function(txt) {
@@ -236,22 +235,6 @@ frappe.search.AwesomeBar = Class.extend({
 				frappe.searchdialog.search.init_search(txt, "global_search");
 			}
 		});
-	},
-
-	make_global_tags:function(txt) {
-		var me = this;
-
-		if (txt.charAt(0) === "#") {
-			this.options.push({
-				label: __("Search for tag '{0}'", [txt.bold()]),
-				value: __("Search for tag '{0}'", [txt]),
-				match: txt,
-				default: "Tag",
-				onclick: function() {
-					new frappe.global_tags.GlobalTagsDialog({"tag": txt})
-				}
-			});
-		}
 	},
 
 	make_search_in_current: function(txt) {
