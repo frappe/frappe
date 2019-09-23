@@ -151,7 +151,7 @@ class Meta(Document):
 			if self.name!="DocType":
 				self._table_fields = self.get('fields', {"fieldtype": ['in', table_fields]})
 			else:
-				self._table_fields = doctype_table_fields
+				self._table_fields = DOCTYPE_TABLE_FIELDS
 
 		return self._table_fields
 
@@ -165,7 +165,7 @@ class Meta(Document):
 
 	def get_valid_columns(self):
 		if not hasattr(self, "_valid_columns"):
-			if self.name in ("DocType", "DocField", "DocPerm", "Property Setter"):
+			if self.name in ("DocType", "DocField", "DocPerm", 'DocType Action',"Property Setter"):
 				self._valid_columns = get_table_columns(self.name)
 			else:
 				self._valid_columns = self.default_fields + \
@@ -174,7 +174,7 @@ class Meta(Document):
 		return self._valid_columns
 
 	def get_table_field_doctype(self, fieldname):
-		return { "fields": "DocField", "permissions": "DocPerm"}.get(fieldname)
+		return { "fields": "DocField", "permissions": "DocPerm", "actions": "DocType Action"}.get(fieldname)
 
 	def get_field(self, fieldname):
 		'''Return docfield from meta'''
@@ -441,9 +441,10 @@ class Meta(Document):
 	def is_nested_set(self):
 		return self.has_field('lft') and self.has_field('rgt')
 
-doctype_table_fields = [
+DOCTYPE_TABLE_FIELDS = [
 	frappe._dict({"fieldname": "fields", "options": "DocField"}),
-	frappe._dict({"fieldname": "permissions", "options": "DocPerm"})
+	frappe._dict({"fieldname": "permissions", "options": "DocPerm"}),
+	frappe._dict({"fieldname": "actions", "options": "DocType Action"}),
 ]
 
 #######

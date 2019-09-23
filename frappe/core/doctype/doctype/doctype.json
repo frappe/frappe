@@ -57,6 +57,8 @@
   "restrict_to_domain",
   "read_only",
   "in_create",
+  "actions_section",
+  "actions",
   "web_view",
   "has_web_view",
   "allow_guest_to_view",
@@ -454,11 +456,22 @@
    "fieldname": "nsm_parent_field",
    "fieldtype": "Data",
    "label": "Parent Field (Tree)"
+  },
+  {
+   "fieldname": "actions_section",
+   "fieldtype": "Section Break",
+   "label": "Actions"
+  },
+  {
+   "fieldname": "actions",
+   "fieldtype": "Table",
+   "label": "Actions",
+   "options": "DocType Action"
   }
  ],
  "icon": "fa fa-bolt",
  "idx": 6,
- "modified": "2019-09-07 14:28:05.392490",
+ "modified": "2019-09-23 16:29:21.209832",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocType",
