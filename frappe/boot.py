@@ -193,6 +193,9 @@ def load_translations(bootinfo):
 	for name in bootinfo.user.all_reports:
 		messages[name] = frappe._(name)
 
+	for t in frappe.get_list("Translation", fields=["source_name", "target_name"]):
+		messages[t.source_name] = t.target_name
+
 	# only untranslated
 	messages = {k:v for k, v in iteritems(messages) if k!=v}
 
