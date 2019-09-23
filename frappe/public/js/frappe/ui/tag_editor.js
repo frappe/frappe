@@ -57,7 +57,7 @@ frappe.ui.TagEditor = Class.extend({
 							user_tags.splice(user_tags.indexOf(tag), 1);
 							me.user_tags = user_tags.join(",");
 							me.on_change && me.on_change(me.user_tags);
-							frappe.global_tags.utils.set_tags()
+							frappe.global_tags.utils.set_tags();
 						}
 					});
 				}
@@ -84,7 +84,7 @@ frappe.ui.TagEditor = Class.extend({
 		$input.on("input", function(e) {
 			var value = e.target.value;
 			frappe.call({
-				method:"frappe.desk.doctype.tag.tag.get_tags",
+				method: "frappe.desk.doctype.tag.tag.get_tags",
 				args:{
 					doctype: me.frm.doctype,
 					txt: value.toLowerCase(),

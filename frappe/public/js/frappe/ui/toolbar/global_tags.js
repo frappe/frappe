@@ -10,8 +10,9 @@ frappe.global_tags.GlobalTagsDialog = class GlobalTags {
 	}
 
 	show() {
-		if(!this.dialog)
+		if (!this.dialog) {
 			this.make_dialog();
+		}
 
 		$(this.dialog.body).html(
 			`<div class="text-muted text-center" style="padding: 30px 0px">
@@ -22,9 +23,12 @@ frappe.global_tags.GlobalTagsDialog = class GlobalTags {
 	}
 
 	make_dialog() {
+		let title = __("Tag {0}", ["#".concat(this.tag)]);
+
 		this.dialog = new frappe.ui.Dialog({
 			hide_on_page_refresh: true,
-			title: __("Tags")
+			minimizable: true,
+			title: title
 		});
 
 		this.dialog.on_page_show = () => {
@@ -101,7 +105,7 @@ frappe.global_tags.utils = {
 		for (let i in locals.global_tags) {
 			let tag = locals.global_tags[i];
 			let level = frappe.search.utils.fuzzy_search(txt, tag);
-			if(level) {
+			if (level) {
 				out.push({
 					type: "Tag",
 					label: __("#{0}", [frappe.search.utils.bolden_match_part(__(tag), txt)]),
@@ -109,7 +113,7 @@ frappe.global_tags.utils = {
 					index: 1 + level,
 					match: tag,
 					onclick: function() {
-						new frappe.global_tags.GlobalTagsDialog({"tag": tag})
+						new frappe.global_tags.GlobalTagsDialog({"tag": tag});
 					}
 				});
 			}

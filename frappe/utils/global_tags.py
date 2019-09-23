@@ -1,17 +1,9 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2019, Frappe Technologies Pvt. Ltd. and Contributors
 # License: GNU General Public License v3. See license.txt
 
 from __future__ import unicode_literals
 
 import frappe
-import re
-import redis
-import json
-import os
-from bs4 import BeautifulSoup
-from frappe.utils import cint, strip_html_tags
-from frappe.model.base_document import get_controller
-from six import text_type
 
 def setup_global_tags_table():
 	"""
@@ -19,7 +11,6 @@ def setup_global_tags_table():
 	:return:
 	"""
 	frappe.db.create_global_tags_table()
-
 
 def reset():
 	"""
@@ -36,7 +27,6 @@ def delete_global_tags_for_document(doc):
 		FROM `__global_search`
 		WHERE doctype = %s
 			AND name = %s""", (doc.doctype, doc.name))
-
 
 def update_global_tags(doc, tags):
 	"""
