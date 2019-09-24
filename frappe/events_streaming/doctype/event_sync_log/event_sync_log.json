@@ -1,0 +1,93 @@
+{
+ "creation": "2019-09-24 22:22:05.845089",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "update_type",
+  "ref_doctype",
+  "docname",
+  "column_break_4",
+  "status",
+  "event_producer",
+  "producer_document_name",
+  "section_break_8",
+  "data"
+ ],
+ "fields": [
+  {
+   "fieldname": "update_type",
+   "fieldtype": "Select",
+   "label": "Update Type",
+   "options": "Create\nUpdate\nDelete"
+  },
+  {
+   "fieldname": "ref_doctype",
+   "fieldtype": "Link",
+   "label": "Doctype",
+   "options": "DocType"
+  },
+  {
+   "fieldname": "docname",
+   "fieldtype": "Dynamic Link",
+   "label": "Document Name",
+   "options": "ref_doctype"
+  },
+  {
+   "fieldname": "column_break_4",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Status",
+   "options": "\nSynced\nFailed"
+  },
+  {
+   "fieldname": "event_producer",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Event Producer",
+   "options": "Event Producer",
+   "read_only": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "producer_document_name",
+   "fieldtype": "Data",
+   "label": "Producer Document Name"
+  },
+  {
+   "fieldname": "section_break_8",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "data",
+   "fieldtype": "Code",
+   "label": "Data"
+  }
+ ],
+ "modified": "2019-09-24 22:22:15.631662",
+ "modified_by": "Administrator",
+ "module": "Events Streaming",
+ "name": "Event Sync Log",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "quick_entry": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}
