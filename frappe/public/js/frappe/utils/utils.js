@@ -734,7 +734,7 @@ Object.assign(frappe.utils, {
 			let $target = $(e.currentTarget);
 			let action = $target.data('action');
 			let method = class_instance[action];
-			method ? class_instance[action]() : null;
+			method ? class_instance[action](e, $target) : null;
 		});
 
 		return $el;

@@ -57,13 +57,17 @@ frappe.data_import.ImportPreview = class ImportPreview {
 	}
 
 	prepare_columns() {
-		let column_width = 120;
 		this.columns = this.fields.map((df, i) => {
+			let column_width = 120;
 			let header_row_index = i - 1;
 			if (df.skip_import) {
 				let is_sr = df.label === 'Sr. No';
-				let show_warnings_button = `<button class="btn btn-xs" data-action="show_warnings">
+				let show_warnings_button = `<button class="btn btn-xs" data-action="show_column_warning" data-col="${i}">
 					<i class="octicon octicon-stop"></i></button>`;
+				if (!df.parent) {
+					// increase column width for unidentified columns
+					column_width += 50
+				}
 				let column_title = is_sr
 					? df.label
 					: `<span class="indicator red">
@@ -218,6 +222,13 @@ frappe.data_import.ImportPreview = class ImportPreview {
 
 	show_warnings() {
 		this.events.show_warnings();
+	}
+
+	show_column_warning(_, $target) {
+		let $warning = this.frm
+			.get_field('import_warnings').$wrapper
+			.find(`[data-col=${$target.data('col')}]`);
+		frappe.utils.scroll_to($warning, true, 30);
 	}
 
 	show_column_mapper() {
