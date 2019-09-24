@@ -160,18 +160,25 @@ def get_worker_name(queue):
 def get_jobs(site=None, queue=None, key='method'):
 	'''Gets jobs per queue or per site or both'''
 	jobs_per_site = defaultdict(list)
+
+	def add_to_dict(job):
+		if key in job.kwargs:
+			jobs_per_site[job.kwargs['site']].append(job.kwargs[key])
+
+		elif key in job.kwargs.get('kwargs', {}):
+			# optional keyword arguments are stored in 'kwargs' of 'kwargs'
+			jobs_per_site[job.kwargs['site']].append(job.kwargs['kwargs'][key])
+
 	for queue in get_queue_list(queue):
 		q = get_queue(queue)
 
 		for job in q.jobs:
 			if job.kwargs.get('site'):
 				if site is None:
-					# get jobs for all sites
-					jobs_per_site[job.kwargs['site']].append(job.kwargs[key])
+					add_to_dict(job)
 
 				elif job.kwargs['site'] == site:
-					# get jobs only for given site
-					jobs_per_site[site].append(job.kwargs[key])
+					add_to_dict(job)
 
 			else:
 				print('No site found in job', job.__dict__)

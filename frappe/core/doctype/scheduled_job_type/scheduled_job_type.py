@@ -9,7 +9,7 @@ from frappe.model.document import Document
 from frappe.utils import now_datetime, get_datetime
 from datetime import datetime
 from croniter import croniter
-from frappe.utils.background_jobs import enqueue
+from frappe.utils.background_jobs import enqueue, get_jobs
 
 class ScheduledJobType(Document):
 	def autoname(self):
@@ -24,12 +24,18 @@ class ScheduledJobType(Document):
 		# enqueue event if last execution is done
 		if self.is_event_due():
 			self.update_last_execution()
-			frappe.flags.enqueued_jobs.append(self.method)
-		if frappe.flags.in_test:
-			self.execute()
-		else:
-			enqueue('frappe.core.doctype.scheduled_job_type.scheduled_job_type.run_scheduled_job',
-				job_type=self.method)
+			if frappe.flags.enqueued_jobs:
+				frappe.flags.enqueued_jobs.append(self.method)
+
+			if frappe.flags.execute_job:
+				self.execute()
+			else:
+				if not self.is_job_in_queue():
+					enqueue('frappe.core.doctype.scheduled_job_type.scheduled_job_type.run_scheduled_job',
+						queue = self.get_queue_name(), job_type=self.method)
+					return True
+				else:
+					return False
 
 	def is_event_due(self, current_time = None):
 		'''Return true if event is due based on time lapsed since last execution'''
@@ -38,6 +44,10 @@ class ScheduledJobType(Document):
 
 		# if the next scheduled event is before NOW, then its due!
 		return self.last_execution <= (current_time or now_datetime())
+
+	def is_job_in_queue(self):
+		queued_jobs = get_jobs(site=frappe.local.site, key='job_type')[frappe.local.site]
+		return self.method in queued_jobs
 
 	def get_next_execution(self):
 		CRON_MAP = {
@@ -91,7 +101,7 @@ class ScheduledJobType(Document):
 		frappe.db.commit()
 
 	def get_queue_name(self):
-		return self.queue.replace(' ', '_').lower()
+		return 'long' if ('Long' in self.queue) else 'default'
 
 @frappe.whitelist()
 def execute_event(doc):
@@ -143,4 +153,4 @@ def insert_single_event(queue, event, cron_format = None):
 def clear_events(all_events, scheduler_events):
 	for event in frappe.get_all('Scheduled Job Type', ('name', 'method')):
 		if event.method not in all_events:
-			frappe.db.delete_doc('Scheduled Job Type', event.name)
+			frappe.delete_doc('Scheduled Job Type', event.name)

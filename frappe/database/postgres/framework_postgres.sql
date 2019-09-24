@@ -147,7 +147,7 @@ CREATE TABLE "tabDocType Link" (
   "parentfield" varchar(255) DEFAULT NULL,
   "parenttype" varchar(255) DEFAULT NULL,
   "idx" bigint NOT NULL DEFAULT 0,
-  "label" varchar(140) NOT NULL,
+  "label" varchar(140) DEFAULT NULL,
   "group" varchar(140) DEFAULT NULL,
   "link_doctype" varchar(140) NOT NULL,
   "link_fieldname" varchar(140) NOT NULL,
