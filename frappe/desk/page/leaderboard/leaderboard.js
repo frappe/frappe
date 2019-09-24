@@ -200,8 +200,9 @@ frappe.Leaderboard = Class.extend({
 		if(!me.options.selected_company) {
 			frappe.throw(__("Please select Company"));
 		}
+
 		frappe.call({
-			method: "frappe.desk.page.leaderboard.leaderboard.get_leaderboard",
+			method: "frappe.desk.page.leaderboard.leaderboard.get_leaderboards",
 			args: {
 				doctype: me.options.selected_doctype,
 				timespan: me.options.selected_timespan,
