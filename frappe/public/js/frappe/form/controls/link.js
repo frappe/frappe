@@ -7,7 +7,7 @@
 import Awesomplete from 'awesomplete';
 
 frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
-	make_input: function() {
+	make_input: function () {
 		var me = this;
 		// line-height: 1 is for Mozilla 51, shows extra padding otherwise
 		$('<div class="link-field ui-front" style="position: relative; line-height: 1;">\
@@ -22,24 +22,24 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 		this.$link = this.$input_area.find('.link-btn');
 		this.$link_open = this.$link.find('.btn-open');
 		this.set_input_attributes();
-		this.$input.on("focus", function() {
-			setTimeout(function() {
-				if(me.$input.val() && me.get_options()) {
+		this.$input.on("focus", function () {
+			setTimeout(function () {
+				if (me.$input.val() && me.get_options()) {
 					let doctype = me.get_options();
 					let name = me.$input.val();
 					me.$link.toggle(true);
 					me.$link_open.attr('href', frappe.utils.get_form_link(doctype, name));
 				}
 
-				if(!me.$input.val()) {
+				if (!me.$input.val()) {
 					me.$input.val("").trigger("input");
 				}
 			}, 500);
 		});
-		this.$input.on("blur", function() {
+		this.$input.on("blur", function () {
 			// if this disappears immediately, the user's click
 			// does not register, hence timeout
-			setTimeout(function() {
+			setTimeout(function () {
 				me.$link.toggle(false);
 			}, 500);
 		});
@@ -50,7 +50,7 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 		this.setup_buttons();
 		this.setup_awesomeplete();
 	},
-	get_options: function() {
+	get_options: function () {
 		return this.df.options;
 	},
 	get_reference_doctype() {
@@ -60,14 +60,14 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 			return frappe.get_route && frappe.get_route()[0] === 'List' ? frappe.get_route()[1] : null;
 		}
 	},
-	setup_buttons: function() {
-		if(this.only_input && !this.with_link_btn) {
+	setup_buttons: function () {
+		if (this.only_input && !this.with_link_btn) {
 			this.$input_area.find(".link-btn").remove();
 		}
 	},
-	open_advanced_search: function() {
+	open_advanced_search: function () {
 		var doctype = this.get_options();
-		if(!doctype) return;
+		if (!doctype) return;
 		new frappe.ui.form.LinkSelector({
 			doctype: doctype,
 			target: this,
@@ -75,14 +75,14 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 		});
 		return false;
 	},
-	new_doc: function() {
+	new_doc: function () {
 		var doctype = this.get_options();
 		var me = this;
 
-		if(!doctype) return;
+		if (!doctype) return;
 
 		// set values to fill in the new document
-		if(this.df.get_route_options_for_new_doc) {
+		if (this.df.get_route_options_for_new_doc) {
 			frappe.route_options = this.df.get_route_options_for_new_doc(this);
 		} else {
 			frappe.route_options = {};
@@ -101,7 +101,7 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 
 		return false;
 	},
-	setup_awesomeplete: function() {
+	setup_awesomeplete: function () {
 		var me = this;
 
 		this.$input.cache = {};
@@ -117,16 +117,16 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 					value: item.value
 				};
 			},
-			filter: function() {
+			filter: function () {
 				return true;
 			},
 			item: function (item) {
 				var d = this.get_item(item.value);
-				if(!d.label) {	d.label = d.value; }
+				if (!d.label) { d.label = d.value; }
 
 				var _label = (me.translate_values) ? __(d.label) : d.label;
 				var html = d.html || "<strong>" + _label + "</strong>";
-				if(d.description && d.value!==d.description) {
+				if (d.description && d.value !== d.description) {
 					html += '<br><span class="small">' + __(d.description) + '</span>';
 				}
 				return $('<li></li>')
@@ -135,21 +135,21 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 					.html('<a><p>' + html + '</p></a>')
 					.get(0);
 			},
-			sort: function() {
+			sort: function () {
 				return 0;
 			}
 		});
 
-		this.$input.on("input", frappe.utils.debounce(function(e) {
+		this.$input.on("input", frappe.utils.debounce(function (e) {
 			var doctype = me.get_options();
-			if(!doctype) return;
+			if (!doctype) return;
 			if (!me.$input.cache[doctype]) {
 				me.$input.cache[doctype] = {};
 			}
 
 			var term = e.target.value;
 
-			if (me.$input.cache[doctype][term]!=null) {
+			if (me.$input.cache[doctype][term] != null) {
 				// immediately show from cache
 				me.awesomplete.list = me.$input.cache[doctype][term];
 			}
@@ -164,11 +164,11 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 
 			frappe.call({
 				type: "POST",
-				method:'frappe.desk.search.search_link',
+				method: 'frappe.desk.search.search_link',
 				no_spinner: true,
 				args: args,
-				callback: function(r) {
-					if(!me.$input.is(":focus")) {
+				callback: function (r) {
+					if (!me.$input.is(":focus")) {
 						return;
 					}
 
@@ -179,13 +179,13 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 							r.results.push({
 								html: `<span class="text-muted">${filter_string}</span>`,
 								value: '',
-								action: () => {}
+								action: () => { }
 							});
 						}
 					}
 
-					if(!me.df.only_select) {
-						if(frappe.model.can_create(doctype)) {
+					if (!me.df.only_select) {
+						if (frappe.model.can_create(doctype)) {
 							// new item
 							r.results.push({
 								label: "<span class='text-primary link-option'>"
@@ -216,29 +216,29 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 			});
 		}, 500));
 
-		this.$input.on("blur", function() {
-			if(me.selected) {
+		this.$input.on("blur", function () {
+			if (me.selected) {
 				me.selected = false;
 				return;
 			}
 			var value = me.get_input_value();
-			if(value!==me.last_value) {
+			if (value !== me.last_value) {
 				me.parse_validate_and_set_in_model(value);
 			}
 		});
 
-		this.$input.on("awesomplete-open", function() {
-			me.$wrapper.css({"z-index": 100});
-			me.$wrapper.find('ul').css({"z-index": 100});
+		this.$input.on("awesomplete-open", function () {
+			me.$wrapper.css({ "z-index": 100 });
+			me.$wrapper.find('ul').css({ "z-index": 100 });
 			me.autocomplete_open = true;
 		});
 
-		this.$input.on("awesomplete-close", function() {
-			me.$wrapper.css({"z-index": 1});
+		this.$input.on("awesomplete-close", function () {
+			me.$wrapper.css({ "z-index": 1 });
 			me.autocomplete_open = false;
 		});
 
-		this.$input.on("awesomplete-select", function(e) {
+		this.$input.on("awesomplete-select", function (e) {
 			var o = e.originalEvent;
 			var item = me.awesomplete.get_item(o.text.value);
 
@@ -246,13 +246,13 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 
 			// prevent selection on tab
 			var TABKEY = 9;
-			if(e.keyCode === TABKEY) {
+			if (e.keyCode === TABKEY) {
 				e.preventDefault();
 				me.awesomplete.close();
 				return false;
 			}
 
-			if(item.action) {
+			if (item.action) {
 				item.value = "";
 				item.action.apply(me);
 			}
@@ -261,16 +261,16 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 			// then add this value
 			// to defaults so you do not need to set it again
 			// unless it is changed.
-			if(me.df.remember_last_selected_value) {
+			if (me.df.remember_last_selected_value) {
 				frappe.boot.user.last_selected_values[me.df.options] = item.value;
 			}
 
 			me.parse_validate_and_set_in_model(item.value);
 		});
 
-		this.$input.on("awesomplete-selectcomplete", function(e) {
+		this.$input.on("awesomplete-selectcomplete", function (e) {
 			var o = e.originalEvent;
-			if(o.text.value.indexOf("__link_option") !== -1) {
+			if (o.text.value.indexOf("__link_option") !== -1) {
 				me.$input.val("");
 			}
 		});
@@ -326,23 +326,23 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 		return __('Filters applied for {0}', [filter_string]);
 	},
 
-	set_custom_query: function(args) {
-		var set_nulls = function(obj) {
-			$.each(obj, function(key, value) {
-				if(value!==undefined) {
+	set_custom_query: function (args) {
+		var set_nulls = function (obj) {
+			$.each(obj, function (key, value) {
+				if (value !== undefined) {
 					obj[key] = value;
 				}
 			});
 			return obj;
 		};
-		if(this.get_query || this.df.get_query) {
+		if (this.get_query || this.df.get_query) {
 			var get_query = this.get_query || this.df.get_query;
-			if($.isPlainObject(get_query)) {
+			if ($.isPlainObject(get_query)) {
 				var filters = null;
-				if(get_query.filters) {
+				if (get_query.filters) {
 					// passed as {'filters': {'key':'value'}}
 					filters = get_query.filters;
-				} else if(get_query.query) {
+				} else if (get_query.query) {
 
 					// passed as {'query': 'path.to.method'}
 					args.query = get_query;
@@ -361,23 +361,23 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 					// add "filters" for standard query (search.py)
 					args.filters = filters;
 				}
-			} else if(typeof(get_query)==="string") {
+			} else if (typeof (get_query) === "string") {
 				args.query = get_query;
 			} else {
 				// get_query by function
 				var q = (get_query)(this.frm && this.frm.doc || this.doc, this.doctype, this.docname);
 
-				if (typeof(q)==="string") {
+				if (typeof (q) === "string") {
 					// returns a string
 					args.query = q;
-				} else if($.isPlainObject(q)) {
+				} else if ($.isPlainObject(q)) {
 					// returns a plain object with filters
-					if(q.filters) {
+					if (q.filters) {
 						set_nulls(q.filters);
 					}
 
 					// turn off value translation
-					if(q.translate_values !== undefined) {
+					if (q.translate_values !== undefined) {
 						this.translate_values = q.translate_values;
 					}
 
@@ -389,66 +389,87 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 				}
 			}
 		}
-		if(this.df.filters) {
+		if (this.df.filters) {
 			set_nulls(this.df.filters);
-			if(!args.filters) args.filters = {};
+			if (!args.filters) args.filters = {};
 			$.extend(args.filters, this.df.filters);
 		}
 	},
-	validate: function(value) {
+	validate: function (value) {
 		// validate the value just entered
-		if(this.df.options=="[Select]" || this.df.ignore_link_validation) {
+		if (this.df.options == "[Select]" || this.df.ignore_link_validation) {
 			return value;
 		}
 
 		return this.validate_link_and_fetch(this.df, this.get_options(),
 			this.docname, value);
 	},
-	validate_link_and_fetch: function(df, doctype, docname, value) {
+	validate_link_and_fetch: function (df, doctype, docname, value) {
 		var me = this;
 
-		if(value) {
+		if (value) {
 			return new Promise((resolve) => {
-				var fetch = '';
-
-				if(this.frm && this.frm.fetch_dict[df.fieldname]) {
-					fetch = this.frm.fetch_dict[df.fieldname].columns.join(', ');
+				var fetch = [];
+				let cur_doctype ={};
+				if(cur_frm){
+					cur_doctype= cur_frm.doc.doctype
 				}
-
-				return frappe.call({
-					method:'frappe.desk.form.utils.validate_link',
-					type: "GET",
-					args: {
-						'value': value,
-						'options': doctype,
-						'fetch': fetch
-					},
-					no_spinner: true,
-					callback: function(r) {
-						if(r.message=='Ok') {
-							if(r.fetch_values && docname) {
-								me.set_fetch_values(df, docname, r.fetch_values);
-							}
-							resolve(r.valid_value);
-						} else {
-							resolve("");
+				if (cur_dialog) {
+					cur_doctype = cur_dialog.doc.doctype;
+				}
+				
+				if (cur_doctype) {
+					// Fetch field from	doctype meta  
+					let meta = frappe.get_meta(cur_doctype)
+					for (let i = 0; i < meta.fields.length; i++) {
+						const field = meta.fields[i];
+						if (field.fetch_from) {
+							let strings = field.fetch_from.split('.');
+							fetch = fetch.concat(strings[1])
 						}
 					}
-				});
+					let fetch_string = fetch.join(',')
+					
+					return frappe.call({
+						method: 'frappe.desk.form.utils.validate_link',
+						type: "GET",
+						args: {
+							'value': value,
+							'options': doctype,
+							'fetch': fetch_string
+						},
+						no_spinner: true,
+						callback: function (r) {
+							if (r.message == 'Ok') {
+								if (r.fetch_values && docname) {
+									me.set_fetch_values(df, docname,fetch, r.fetch_values);
+								}
+								resolve(r.valid_value);
+							} else {
+								resolve("");
+							}
+						}
+					});
+
+				};
 			});
 		}
 	},
-	set_fetch_values: function(df, docname, fetch_values) {
-		var fl = this.frm.fetch_dict[df.fieldname].fields;
-		for(var i=0; i < fl.length; i++) {
-			frappe.model.set_value(df.parent, docname, fl[i], fetch_values[i], df.fieldtype);
+	set_fetch_values: function (df, docname, fields, fetch_values) {
+		var fl = fields;
+		for (var i = 0; i < fl.length; i++) {
+			if(cur_dialog){
+			cur_dialog.set_value(fl[i],fetch_values[i]);
+			}
+			else{
+			cur_frm.set_value(fl[i],fetch_values[i]);}
 		}
 	}
 });
 
-if(Awesomplete) {
-	Awesomplete.prototype.get_item = function(value) {
-		return this._list.find(function(item) {
+if (Awesomplete) {
+	Awesomplete.prototype.get_item = function (value) {
+		return this._list.find(function (item) {
 			return item.value === value;
 		});
 	};
