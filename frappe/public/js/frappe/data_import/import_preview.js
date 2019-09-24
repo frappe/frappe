@@ -1,5 +1,4 @@
 import DataTable from 'frappe-datatable';
-import get_custom_column_manager from './custom_column_manager';
 import ColumnPickerFields from './column_picker_fields';
 
 frappe.provide('frappe.data_import');
@@ -47,7 +46,11 @@ frappe.data_import.ImportPreview = class ImportPreview {
 			<div>
 				<div class="warnings text-muted"></div>
 				<div class="table-preview"></div>
-				<div class="table-actions margin-top"></div>
+				<div class="table-actions margin-top">
+					<button class="btn btn-sm btn-default" data-action="show_column_mapper">
+						${__('Map Columns')}
+					</button>
+				</div>
 			</div>
 		`);
 		frappe.utils.bind_actions_with_class(this.wrapper, this);
@@ -61,18 +64,23 @@ frappe.data_import.ImportPreview = class ImportPreview {
 		this.columns = this.fields.map((df, i) => {
 			let header_row_index = i - 1;
 			if (df.skip_import) {
+				let is_sr = df.label === 'Sr. No';
+				let column_title = is_sr
+					? df.label
+					: `<span class="indicator red">${df.header_title || `<i>${__('Untitled Column')}</i>`}</span>`;
 				return {
 					id: frappe.utils.get_random(6),
 					name: df.label,
+					content: column_title,
 					skip_import: true,
 					editable: false,
 					focusable: false,
 					align: 'left',
 					header_row_index,
-					width: df.label === 'Sr. No' ? 60 : column_width,
+					width: is_sr ? 60 : column_width,
 					format: (value, row, column, data) => {
 						let html = `<div class="text-muted">${value}</div>`;
-						if (df.label === 'Sr. No' && this.is_row_imported(row)) {
+						if (is_sr && this.is_row_imported(row)) {
 							html = `
 								<div class="flex justify-between">${SVG_ICONS['checkbox-circle-line'] +
 									html}</div>
@@ -94,6 +102,7 @@ frappe.data_import.ImportPreview = class ImportPreview {
 			return {
 				id: df.fieldname,
 				name: column_title,
+				content: `<span class="indicator green">${df.header_title || df.label}</span>`,
 				df: df,
 				editable: true,
 				align: 'left',
@@ -146,20 +155,7 @@ frappe.data_import.ImportPreview = class ImportPreview {
 			serialNoColumn: false,
 			checkboxColumn: false,
 			pasteFromClipboard: true,
-			noDataMessage: no_data_message,
-			headerDropdown: [
-				{
-					label: __('Remap Column'),
-					action: col => this.remap_column(col)
-				},
-				{
-					label: __('Skip Import'),
-					action: col => this.skip_import(col)
-				}
-			],
-			overrideComponents: {
-				ColumnManager: get_custom_column_manager(this.header_row)
-			}
+			noDataMessage: no_data_message
 		});
 
 		if (this.data.length === 0) {
@@ -168,7 +164,7 @@ frappe.data_import.ImportPreview = class ImportPreview {
 			});
 		}
 
-		this.datatable.style.setStyle('.dt-dropdown__list-item:nth-child(-n+4)', {
+		this.datatable.style.setStyle('.dt-dropdown', {
 			display: 'none'
 		});
 	}
@@ -180,35 +176,6 @@ frappe.data_import.ImportPreview = class ImportPreview {
 	}
 
 	setup_styles() {
-		let columns = this.datatable.getColumns();
-		columns.forEach(col => {
-			let class_name = [
-				`.dt-header .dt-cell--col-${col.colIndex}`,
-				`.dt-header .dt-cell--col-${col.colIndex} .dt-dropdown__toggle`
-			].join(',');
-
-			if (!col.skip_import && col.df) {
-				this.datatable.style.setStyle(class_name, {
-					backgroundColor: frappe.ui.color.get_color_shade(
-						'green',
-						'extra-light'
-					),
-					color: frappe.ui.color.get_color_shade('green', 'dark')
-				});
-			}
-			if (col.skip_import && col.name !== 'Sr. No') {
-				this.datatable.style.setStyle(class_name, {
-					backgroundColor: frappe.ui.color.get_color_shade(
-						'orange',
-						'extra-light'
-					),
-					color: frappe.ui.color.get_color_shade('orange', 'dark')
-				});
-				this.datatable.style.setStyle(`.dt-cell--col-${col.colIndex}`, {
-					backgroundColor: frappe.ui.color.get_color_shade('white', 'light')
-				});
-			}
-		});
 		// import success checkbox
 		this.datatable.style.setStyle(`svg.import-success`, {
 			width: '16px',
@@ -232,8 +199,8 @@ frappe.data_import.ImportPreview = class ImportPreview {
 		let failures = this.import_log.filter(log => !log.success);
 		if (failures.length > 0) {
 			this.wrapper.find('.table-actions').append(
-				`<button class="btn btn-xs btn-default" data-action="export_errored_rows">
-					${__('Export rows which are not imported')}
+				`<button class="btn btn-sm btn-default" data-action="export_errored_rows">
+					${__('Export Errored Rows')}
 				</button>
 			`);
 		}
@@ -241,6 +208,78 @@ frappe.data_import.ImportPreview = class ImportPreview {
 
 	export_errored_rows() {
 		this.events.export_errored_rows();
+	}
+
+	show_column_mapper() {
+		let column_picker_fields = new ColumnPickerFields({
+			doctype: this.doctype
+		});
+		let changed = [];
+		let fields = this.fields.map((df, i) => {
+			if (df.label === 'Sr. No') return [];
+
+			let fieldname;
+			if (df.skip_import) {
+				fieldname = null;
+			} else {
+				fieldname = df.parent === this.doctype
+					? df.fieldname
+					: `${df.parent}:${df.fieldname}`;
+			}
+			return [
+				{
+					label: __('Column {0}', [i]),
+					fieldtype: 'Data',
+					default: df.header_title,
+					fieldname: `Column ${i}`,
+					read_only: 1
+				},
+				{
+					fieldtype: 'Button',
+					label: 'Skip Column',
+					fieldname: 'skip_' + i,
+					click: () => {
+						let header_row_index = i - 1;
+						this.events.skip_import(header_row_index);
+					}
+				},
+				{
+					fieldtype: 'Column Break'
+				},
+				{
+					fieldtype: 'Autocomplete',
+					fieldname: i,
+					label: __('Select field'),
+					max_items: Infinity,
+					options: column_picker_fields.get_fields_as_options(),
+					default: fieldname,
+					change() {
+						changed.push(i);
+					}
+				},
+				{
+					fieldtype: 'Section Break'
+				}
+			];
+		});
+		// flatten the array
+		fields = fields.reduce((acc, curr) => [...acc, ...curr]);
+		let dialog = new frappe.ui.Dialog({
+			title: __('Column Mapper'),
+			fields,
+			primary_action: (values) => {
+				let changed_map = {};
+				changed.map(i => {
+					let header_row_index = i - 1;
+					changed_map[header_row_index] = values[i];
+				});
+				if (changed.length > 0) {
+					this.events.remap_column(changed_map);
+				}
+				dialog.hide();
+			}
+		});
+		dialog.show();
 	}
 
 	remap_column(col) {

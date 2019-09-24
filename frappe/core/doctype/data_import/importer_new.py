@@ -9,6 +9,7 @@ import timeit
 import frappe
 from datetime import datetime
 from frappe import _
+from frappe.core.doctype.docfield.docfield import DocField
 from frappe.utils import cint, flt, DATE_FORMAT, DATETIME_FORMAT
 from frappe.utils.csvutils import read_csv_content
 from frappe.utils.xlsxutils import (
@@ -119,6 +120,23 @@ class Importer:
 
 	def get_data_for_import_preview(self):
 		out = self.get_parsed_data_from_template()
+
+		# prepare fields
+		fields = []
+		for df in out.fields:
+			header_title = df.header_title
+			skip_import = df.skip_import
+			if isinstance(df, DocField):
+				field = df.as_dict()
+			else:
+				field = df
+			field.update({
+				'header_title': header_title,
+				'skip_import': skip_import
+			})
+			fields.append(field)
+		out.fields = fields
+
 		if len(out.data) > MAX_ROWS_IN_PREVIEW:
 			out.data = []
 			out.max_rows_exceeded = True
@@ -146,30 +164,37 @@ class Importer:
 
 		df_by_labels_and_fieldnames = self.build_fields_dict_for_column_matching()
 
-		for i, value in enumerate(self.header_row):
+		for i, header_title in enumerate(self.header_row):
 			header_row_index = str(i)
 			if remap_column.get(header_row_index):
-				column_name = value
-				value = remap_column.get(header_row_index)
+				fieldname = remap_column.get(header_row_index)
+				df = df_by_labels_and_fieldnames.get(fieldname)
 				warnings.append(
 					_("Column {0}: Mapping column {1} to field {2}").format(
-						i, frappe.bold(column_name), frappe.bold(value)
+						i, frappe.bold(header_title or '<i>Untitled Column</i>'), frappe.bold(df.label)
 					)
 				)
+			else:
+				df = df_by_labels_and_fieldnames.get(header_title)
 
-			field = df_by_labels_and_fieldnames.get(value)
-			if not field or i in skip_import:
-				field = frappe._dict({"label": value, "skip_import": True})
-				if value and i not in skip_import:
-					warnings.append(
-						_("Column {0}: Cannot match column {1} with any field").format(
-							i, frappe.bold(value)
-						)
+			if not df:
+				field = frappe._dict(header_title=header_title, skip_import=True)
+			else:
+				field = df
+				field.header_title = header_title
+				field.skip_import = False
+
+			if i in skip_import:
+				field.skip_import = True
+				warnings.append(_("Column {0}: Skipping column {1}").format(i, frappe.bold(header_title)))
+			elif header_title and not df:
+				warnings.append(
+					_("Column {0}: Cannot match column {1} with any field").format(
+						i, frappe.bold(header_title)
 					)
-				elif i in skip_import:
-					warnings.append(_("Column {0}: Skipping column {1}").format(i, frappe.bold(value)))
-				else:
-					warnings.append(_("Column {0}: Skipping untitled column").format(i))
+				)
+			elif not header_title and not df:
+				warnings.append(_("Column {0}: Skipping untitled column").format(i))
 			fields.append(field)
 
 		return fields, warnings
@@ -442,7 +467,9 @@ class Importer:
 
 		# set status
 		failures = [l for l in import_log if l.get("success") == False]
-		if len(failures) > 0:
+		if len(failures) == total_payload_count:
+			status = "Pending"
+		elif len(failures) > 0:
 			status = "Partial Success"
 		else:
 			status = "Success"

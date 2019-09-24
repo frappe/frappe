@@ -59,10 +59,13 @@ frappe.ui.form.on('Data Import Beta', {
 		frm.trigger('show_import_log');
 		frm.trigger('toggle_submit_after_import');
 
-		if (frm.doc.status === 'Success') {
+		if (frm.doc.import_log && frm.doc.import_log !== '[]') {
 			// set form as readonly
 			frm.fields.forEach(f => f.df.read_only = 1);
 			frm.disable_save();
+		}
+
+		if (frm.doc.status === 'Success') {
 			frm.events.show_success_message(frm);
 		} else {
 			if (!frm.is_new() && frm.doc.import_file) {
@@ -144,8 +147,6 @@ frappe.ui.form.on('Data Import Beta', {
 			.call({
 				doc: frm.doc,
 				method: 'get_preview_from_template',
-				freeze: true,
-				freeze_message: __('Preparing Preview...'),
 				error_handlers: {
 					TimestampMismatchError() {
 						// ignore this error
@@ -179,23 +180,19 @@ frappe.ui.form.on('Data Import Beta', {
 				import_log,
 				warnings,
 				events: {
-					remap_column(header_row_index, fieldname) {
+					remap_column(changed_map) {
 						let template_options = JSON.parse(frm.doc.template_options || '{}');
 						template_options.remap_column = template_options.remap_column || {};
-						template_options.remap_column[header_row_index] = fieldname;
+						Object.assign(template_options.remap_column, changed_map);
+
 						// if the column is remapped, remove it from skip_import
-						if (
-							template_options.skip_import &&
-							template_options.skip_import.includes(header_row_index)
-						) {
+						if (template_options.skip_import) {
 							template_options.skip_import = template_options.skip_import.filter(
-								d => d !== header_row_index
+								d => !Object.keys(template_options.remap_column).includes(cstr(d))
 							);
 						}
 						frm.set_value('template_options', JSON.stringify(template_options));
-						frm.save().then(() => {
-							frm.trigger('import_file');
-						});
+						frm.save().then(() => frm.trigger('import_file'));
 					},
 
 					skip_import(header_row_index) {
