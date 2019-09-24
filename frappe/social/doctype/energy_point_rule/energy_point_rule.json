@@ -11,12 +11,13 @@
   "reference_doctype",
   "for_doc_event",
   "field_to_check",
-  "condition",
   "points",
   "for_assigned_users",
   "user_field",
   "multiplier_field",
-  "max_points"
+  "max_points",
+  "column_break_12",
+  "condition"
  ],
  "fields": [
   {
@@ -100,9 +101,13 @@
    "fieldname": "field_to_check",
    "fieldtype": "Select",
    "label": "Field To Check"
+  },
+  {
+   "fieldname": "column_break_12",
+   "fieldtype": "Column Break"
   }
  ],
- "modified": "2019-09-20 11:26:26.101557",
+ "modified": "2019-09-24 15:20:25.383536",
  "modified_by": "Administrator",
  "module": "Social",
  "name": "Energy Point Rule",
