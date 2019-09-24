@@ -57,9 +57,24 @@ class EnergyPointRule(Document):
 			return doc.docstatus == 1
 		if self.for_doc_event == 'Cancel':
 			return doc.docstatus == 2
+		if self.for_doc_event == 'Value Change':
+			field_to_check = self.field_to_check
+			if not field_to_check: return False
+			doc_before_save = doc.get_doc_before_save()
+			# check if the field has been changed
+			# if condition is set check if it is satisfied
+			return doc_before_save \
+				and doc_before_save.get(field_to_check) != doc.get(field_to_check) \
+				and (not self.condition or self.eval_condition(doc))
+
 		if self.for_doc_event == 'Custom' and self.condition:
-			return frappe.safe_eval(self.condition, None, {'doc': doc.as_dict()})
+			return self.eval_condition(doc)
 		return False
+
+	def eval_condition(self, doc):
+		return self.condition and frappe.safe_eval(self.condition, None, {
+			'doc': doc.as_dict()
+		})
 
 def process_energy_points(doc, state):
 	if (frappe.flags.in_patch
