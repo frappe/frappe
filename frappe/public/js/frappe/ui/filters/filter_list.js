@@ -15,6 +15,9 @@ frappe.ui.FilterGroup = class {
 		this.wrapper.find('.add-filter').on('click', () => {
 			this.add_filter(this.doctype, 'name');
 		});
+		this.wrapper.find('.remove-filters').on('click', () => {
+			this.clear_filters();
+		})
 	}
 
 	add_filters(filters) {
@@ -142,6 +145,10 @@ frappe.ui.FilterGroup = class {
 			<div class="active-tag-filters">
 				<button class="btn btn-default btn-xs add-filter text-muted">
 						${__("Add Filter")}
+				</button>
+
+				<button class="btn btn-default btn-xs remove-filters text-muted">
+						${__("Clear All Filters")}
 				</button>
 			</div>
 		</div>
