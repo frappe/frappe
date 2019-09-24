@@ -2,19 +2,25 @@
 // For license information, please see license.txt
 
 frappe.ui.form.on('Energy Point Rule', {
-	refresh: function(frm) {
-		frm.events.set_user_and_multiplier_field_options(frm);
+	refresh(frm) {
+		frm.events.set_field_options(frm);
 	},
 	reference_doctype(frm) {
-		frm.events.set_user_and_multiplier_field_options(frm);
+		frm.events.set_field_options(frm);
 	},
-	set_user_and_multiplier_field_options(frm) {
+	set_field_options(frm) {
+		// sets options for field_to_check, user_field and multiplier fields
+		// based on reference doctype
 		const reference_doctype = frm.doc.reference_doctype;
 		if (!reference_doctype) return;
 
 		frappe.model.with_doctype(reference_doctype, () => {
 			const map_for_options = df => ({ label: df.label, value: df.fieldname });
-			const fields = frappe.meta.get_docfields(frm.doc.reference_doctype);
+			const fields = frappe.meta.get_docfields(frm.doc.reference_doctype)
+				.filter(frappe.model.is_value_type);
+
+			const fields_to_check = fields.map(map_for_options);
+
 			const user_fields = fields.filter(df => (df.fieldtype === 'Link' && df.options === 'User')
 				|| df.fieldtype === 'Data')
 				.map(map_for_options)
@@ -29,6 +35,7 @@ frappe.ui.form.on('Energy Point Rule', {
 			// blank option for the ability to unset the multiplier field
 			multiplier_fields.unshift(null);
 
+			frm.set_df_property('field_to_check', 'options', fields_to_check);
 			frm.set_df_property('user_field', 'options', user_fields);
 			frm.set_df_property('multiplier_field', 'options', multiplier_fields);
 		});
