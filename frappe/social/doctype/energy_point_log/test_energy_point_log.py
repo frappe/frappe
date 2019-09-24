@@ -208,18 +208,31 @@ class TestEnergyPointLog(unittest.TestCase):
 		self.assertEquals(test2_user_after_points,
 			test2_user_before_points + rule.points)
 
+	def test_points_on_field_value_change(self):
+		rule = create_energy_point_rule_for_todo(for_doc_event='Value Change',
+			field_to_check='description')
+
+		frappe.set_user('test@example.com')
+		points_before_todo_creation = get_points('test@example.com')
+		todo = create_a_todo()
+		todo.status = 'Closed'
+		todo.save()
+		points_after_closing_todo = get_points('test@example.com')
+		self.assertEquals(points_after_closing_todo,
+			points_before_todo_creation)
+
+		todo.description = 'This is new todo'
+		todo.save()
+		points_after_changing_todo_description = get_points('test@example.com')
+		self.assertEquals(points_after_changing_todo_description,
+			points_before_todo_creation + rule.points)
 
 def create_energy_point_rule_for_todo(multiplier_field=None, for_doc_event='Custom',
-	max_points=None, for_assigned_users=0):
+	max_points=None, for_assigned_users=0, field_to_check=None):
 	name = 'ToDo Closed'
-	point_rule = frappe.db.get_all(
-		'Energy Point Rule',
-		{'name': name},
-		['*'],
-		limit=1
-	)
+	point_rule_exists = frappe.db.exists('Energy Point Rule', name)
 
-	if point_rule: return point_rule[0]
+	if point_rule_exists: return frappe.get_doc('Energy Point Rule', name)
 
 	return frappe.get_doc({
 		'doctype': 'Energy Point Rule',
@@ -231,7 +244,8 @@ def create_energy_point_rule_for_todo(multiplier_field=None, for_doc_event='Cust
 		'user_field': 'owner',
 		'for_assigned_users': for_assigned_users,
 		'multiplier_field': multiplier_field,
-		'max_points': max_points
+		'max_points': max_points,
+		'field_to_check': field_to_check
 	}).insert(ignore_permissions=1)
 
 def create_a_todo():
