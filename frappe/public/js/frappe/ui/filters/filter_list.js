@@ -17,7 +17,7 @@ frappe.ui.FilterGroup = class {
 		});
 		this.wrapper.find('.remove-filters').on('click', () => {
 			this.clear_filters();
-		})
+		});
 	}
 
 	add_filters(filters) {
