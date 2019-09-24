@@ -19,6 +19,8 @@
   "template_warnings",
   "section_import_preview",
   "import_preview",
+  "import_warnings_section",
+  "import_warnings",
   "import_log_section",
   "import_log",
   "import_log_preview"
@@ -125,10 +127,20 @@
    "fieldname": "submit_after_import",
    "fieldtype": "Check",
    "label": "Submit After Import"
+  },
+  {
+   "fieldname": "import_warnings_section",
+   "fieldtype": "Section Break",
+   "label": "Import Warnings"
+  },
+  {
+   "fieldname": "import_warnings",
+   "fieldtype": "HTML",
+   "label": "Import Warnings"
   }
  ],
  "hide_toolbar": 1,
- "modified": "2019-09-09 17:53:28.398802",
+ "modified": "2019-09-24 15:08:25.984923",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Data Import Beta",

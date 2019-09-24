@@ -130,10 +130,7 @@ class Importer:
 				field = df.as_dict()
 			else:
 				field = df
-			field.update({
-				'header_title': header_title,
-				'skip_import': skip_import
-			})
+			field.update({"header_title": header_title, "skip_import": skip_import})
 			fields.append(field)
 		out.fields = fields
 
@@ -166,13 +163,17 @@ class Importer:
 
 		for i, header_title in enumerate(self.header_row):
 			header_row_index = str(i)
+			column_number = str(i + 1)
 			if remap_column.get(header_row_index):
 				fieldname = remap_column.get(header_row_index)
 				df = df_by_labels_and_fieldnames.get(fieldname)
 				warnings.append(
-					_("Column {0}: Mapping column {1} to field {2}").format(
-						i, frappe.bold(header_title or '<i>Untitled Column</i>'), frappe.bold(df.label)
-					)
+					{
+						"col": column_number,
+						"message": _("Mapping column {0} to field {1}").format(
+							frappe.bold(header_title or "<i>Untitled Column</i>"), frappe.bold(df.label)
+						),
+					}
 				)
 			else:
 				df = df_by_labels_and_fieldnames.get(header_title)
@@ -186,15 +187,20 @@ class Importer:
 
 			if i in skip_import:
 				field.skip_import = True
-				warnings.append(_("Column {0}: Skipping column {1}").format(i, frappe.bold(header_title)))
+				warnings.append(
+					{"col": column_number, "message": _("Skipping column {0}").format(frappe.bold(header_title))}
+				)
 			elif header_title and not df:
 				warnings.append(
-					_("Column {0}: Cannot match column {1} with any field").format(
-						i, frappe.bold(header_title)
-					)
+					{
+						"col": column_number,
+						"message": _("Cannot match column {0} with any field").format(
+							frappe.bold(header_title)
+						),
+					}
 				)
 			elif not header_title and not df:
-				warnings.append(_("Column {0}: Skipping untitled column").format(i))
+				warnings.append({"col": column_number, "message": _("Skipping Untitled Column")})
 			fields.append(field)
 
 		return fields, warnings
@@ -522,25 +528,27 @@ class Importer:
 			return [i for i, df in enumerate(fields) if df.parent == doctype]
 
 		def validate_value(value, df):
-			local_warnings = []
+			validate_warnings = []
 
 			if df.fieldtype == "Select" and value not in df.get_select_options():
 				options_string = ", ".join([frappe.bold(d) for d in df.get_select_options()])
-				msg = _("Row {0}, Column {1}: Value must be one of {2}").format(
-					row_number, df.label, options_string
+				msg = _("Value must be one of {0}").format(options_string)
+				validate_warnings.append(
+					{"row": row_number, "field": df.as_dict(convert_dates_to_str=True), "message": msg}
 				)
-				local_warnings.append(msg)
 
 			elif df.fieldtype == "Link":
 				missing_link_values = self.get_missing_link_field_values(df.options)
 				if value in missing_link_values:
-					msg = _("Row {0}, Column {1}: Value {2} missing for Document Type {3}").format(
-						row_number, df.label, frappe.bold(value), frappe.bold(df.options)
+					msg = _("Value {0} missing for Document Type {1}").format(
+						frappe.bold(value), frappe.bold(df.options)
 					)
-					local_warnings.append(msg)
+					validate_warnings.append(
+						{"row": row_number, "field": df.as_dict(convert_dates_to_str=True), "message": msg}
+					)
 
-			if local_warnings:
-				warnings.extend(local_warnings)
+			if validate_warnings:
+				warnings.extend(validate_warnings)
 				return False
 
 			return True
@@ -603,12 +611,18 @@ class Importer:
 			for row_number, fields in df_by_row_number.items():
 				if len(fields) == 1:
 					warnings.append(
-						_("Row {0}: {1} is a mandatory field").format(row_number, fields[0].label)
+						{
+							"row": row_number,
+							"message": _("{0} is a mandatory field").format(fields[0].label),
+						}
 					)
 				else:
 					fields_string = ", ".join([df.label for df in fields])
 					warnings.append(
-						_("Row {0}: {1} are mandatory fields").format(row_number, fields_string)
+						{
+							"row": row_number,
+							"message": _("{0} are mandatory fields").format(fields_string),
+						}
 					)
 
 		return doc, rows, data[len(rows) :], warnings

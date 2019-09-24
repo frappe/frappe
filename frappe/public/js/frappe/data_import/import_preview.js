@@ -13,14 +13,13 @@ const SVG_ICONS = {
 };
 
 frappe.data_import.ImportPreview = class ImportPreview {
-	constructor({ wrapper, doctype, preview_data, import_log, warnings, events = {} }) {
-		frappe.import_preview = this;
+	constructor({ wrapper, doctype, preview_data, frm, import_log, events = {} }) {
 		this.wrapper = wrapper;
 		this.doctype = doctype;
 		this.preview_data = preview_data;
 		this.events = events;
-		this.warnings = warnings;
 		this.import_log = import_log;
+		this.frm = frm;
 
 		frappe.model.with_doctype(doctype, () => {
 			this.refresh();
@@ -35,7 +34,6 @@ frappe.data_import.ImportPreview = class ImportPreview {
 		this.make_wrapper();
 		this.prepare_columns();
 		this.prepare_data();
-		this.render_warnings(this.warnings);
 		this.render_datatable();
 		this.setup_styles();
 		this.add_actions();
@@ -44,18 +42,17 @@ frappe.data_import.ImportPreview = class ImportPreview {
 	make_wrapper() {
 		this.wrapper.html(`
 			<div>
-				<div class="warnings text-muted"></div>
-				<div class="table-preview"></div>
-				<div class="table-actions margin-top">
-					<button class="btn btn-sm btn-default" data-action="show_column_mapper">
-						${__('Map Columns')}
-					</button>
+				<div class="row">
+					<div class="col-sm-12">
+						<div class="table-actions margin-bottom">
+						</div>
+						<div class="table-preview border"></div>
+					</div>
 				</div>
 			</div>
 		`);
 		frappe.utils.bind_actions_with_class(this.wrapper, this);
 
-		this.$warnings = this.wrapper.find('.warnings');
 		this.$table_preview = this.wrapper.find('.table-preview');
 	}
 
@@ -65,9 +62,14 @@ frappe.data_import.ImportPreview = class ImportPreview {
 			let header_row_index = i - 1;
 			if (df.skip_import) {
 				let is_sr = df.label === 'Sr. No';
+				let show_warnings_button = `<button class="btn btn-xs" data-action="show_warnings">
+					<i class="octicon octicon-stop"></i></button>`;
 				let column_title = is_sr
 					? df.label
-					: `<span class="indicator red">${df.header_title || `<i>${__('Untitled Column')}</i>`}</span>`;
+					: `<span class="indicator red">
+						${df.header_title || `<i>${__('Untitled Column')}</i>`}
+						${!df.parent ? show_warnings_button : ''}
+					</span>`;
 				return {
 					id: frappe.utils.get_random(6),
 					name: df.label,
@@ -123,20 +125,6 @@ frappe.data_import.ImportPreview = class ImportPreview {
 		});
 	}
 
-	render_warnings(warnings) {
-		let html = '';
-		if (warnings.length > 0) {
-			let warning_html = warnings
-				.map(warning => {
-					return `<li>${warning}</li>`;
-				})
-				.join('');
-
-			html = `<ul>${warning_html}</ul>`;
-		}
-		this.$warnings.html(html);
-	}
-
 	render_datatable() {
 		if (this.datatable) {
 			this.datatable.destroy();
@@ -150,7 +138,7 @@ frappe.data_import.ImportPreview = class ImportPreview {
 		this.datatable = new DataTable(this.$table_preview.get(0), {
 			data: this.data,
 			columns: this.columns,
-			layout: 'fixed',
+			layout: this.columns.length < 10 ? 'fluid' : 'fixed',
 			cellHeight: 35,
 			serialNoColumn: false,
 			checkboxColumn: false,
@@ -196,18 +184,40 @@ frappe.data_import.ImportPreview = class ImportPreview {
 	}
 
 	add_actions() {
-		let failures = this.import_log.filter(log => !log.success);
-		if (failures.length > 0) {
-			this.wrapper.find('.table-actions').append(
-				`<button class="btn btn-sm btn-default" data-action="export_errored_rows">
-					${__('Export Errored Rows')}
+		let actions = [
+			{
+				label: __('Map Columns'),
+				handler: 'show_column_mapper',
+				condition: this.frm.doc.status !== 'Success'
+			},
+			{
+				label: __('Export Errored Rows'),
+				handler: 'export_errored_rows',
+				condition: this.import_log.filter(log => !log.success).length > 0
+			},
+			{
+				label: __('Show Warnings'),
+				handler: 'show_warnings',
+				condition: this.preview_data.warnings.length > 0
+			}
+		];
+
+		let html = actions.filter(action => action.condition).map(action => {
+			return `<button class="btn btn-sm btn-default" data-action="${action.handler}">
+					${action.label}
 				</button>
-			`);
-		}
+			`;
+		});
+
+		this.wrapper.find('.table-actions').html(html);
 	}
 
 	export_errored_rows() {
 		this.events.export_errored_rows();
+	}
+
+	show_warnings() {
+		this.events.show_warnings();
 	}
 
 	show_column_mapper() {

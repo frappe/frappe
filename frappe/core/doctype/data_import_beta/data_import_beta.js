@@ -43,7 +43,7 @@ frappe.ui.form.on('Data Import Beta', {
 				filters: {
 					allow_import: 1
 				}
-			}
+			};
 		});
 
 		frm.get_field('import_file').df.options = {
@@ -57,11 +57,12 @@ frappe.ui.form.on('Data Import Beta', {
 		frm.page.hide_icon_group();
 		frm.trigger('import_file');
 		frm.trigger('show_import_log');
+		frm.trigger('show_import_warnings');
 		frm.trigger('toggle_submit_after_import');
 
 		if (frm.doc.import_log && frm.doc.import_log !== '[]') {
 			// set form as readonly
-			frm.fields.forEach(f => f.df.read_only = 1);
+			frm.fields.forEach(f => (f.df.read_only = 1));
 			frm.disable_save();
 		}
 
@@ -70,14 +71,15 @@ frappe.ui.form.on('Data Import Beta', {
 		} else {
 			if (!frm.is_new() && frm.doc.import_file) {
 				let label = frm.doc.status === 'Pending' ? __('Start Import') : __('Retry');
-				frm.page.set_primary_action(label, () =>
-					frm.events.start_import(frm)
-				);
+				frm.page.set_primary_action(label, () => frm.events.start_import(frm));
 			} else {
 				frm.page.set_primary_action(__('Save'), () => frm.save());
 			}
 		}
-		frm.page.set_indicator(__(frm.doc.status), frm.doc.status === 'Success' ? 'green' : 'grey');
+		frm.page.set_indicator(
+			__(frm.doc.status),
+			frm.doc.status === 'Success' ? 'green' : 'grey'
+		);
 	},
 
 	show_success_message(frm) {
@@ -139,6 +141,7 @@ frappe.ui.form.on('Data Import Beta', {
 		}
 
 		// load import preview
+		frm.get_field('import_preview').$wrapper.empty();
 		$('<span class="text-muted">')
 			.html(__('Loading import file...'))
 			.appendTo(frm.get_field('import_preview').$wrapper);
@@ -156,19 +159,17 @@ frappe.ui.form.on('Data Import Beta', {
 			.then(r => {
 				let preview_data = r.message;
 				frm.events.show_import_preview(frm, preview_data);
+				frm.events.show_import_warnings(frm, preview_data);
 			});
 	},
 
 	show_import_preview(frm, preview_data) {
 		let import_log = JSON.parse(frm.doc.import_log || '[]');
-		let warnings = JSON.parse(frm.doc.template_warnings || '[]');
-		warnings = warnings.concat(preview_data.warnings || []);
 
 		if (frm.import_preview) {
 			frm.import_preview.preview_data = preview_data;
 			frm.import_preview.import_log = import_log;
 			frm.import_preview.refresh();
-			frm.import_preview.render_warnings(warnings);
 			return;
 		}
 
@@ -178,7 +179,7 @@ frappe.ui.form.on('Data Import Beta', {
 				doctype: frm.doc.reference_doctype,
 				preview_data,
 				import_log,
-				warnings,
+				frm,
 				events: {
 					remap_column(changed_map) {
 						let template_options = JSON.parse(frm.doc.template_options || '{}');
@@ -217,11 +218,76 @@ frappe.ui.form.on('Data Import Beta', {
 					export_errored_rows() {
 						open_url_post('/api/method/frappe.core.doctype.data_import_beta.data_import_beta.download_errored_template', {
 							data_import_name: frm.doc.name
-						})
+						});
+					},
+
+					show_warnings() {
+						frm.scroll_to_field('import_warnings');
 					}
 				}
 			});
 		});
+	},
+
+	show_import_warnings(frm, preview_data) {
+		frm.toggle_display('import_warnings_section',
+			preview_data.warnings && preview_data.warnings.length);
+		if (!preview_data) {
+			frm.get_field('import_warnings').$wrapper.html('');
+			return;
+		}
+		let warnings = JSON.parse(frm.doc.template_warnings || '[]');
+		warnings = warnings.concat(preview_data.warnings || []);
+
+		// group warnings by row
+		let warnings_by_row = {};
+		let other_warnings = [];
+		for (let warning of warnings) {
+			if (warning.row) {
+				warnings_by_row[warning.row] = warnings_by_row[warning.row] || [];
+				warnings_by_row[warning.row].push(warning);
+			} else {
+				other_warnings.push(warning);
+			}
+		}
+
+		let html = '';
+		html += Object.keys(warnings_by_row).map(row_number => {
+			let message = warnings_by_row[row_number]
+				.map(w => {
+					if (w.field) {
+						return `<li>${w.field.label}: ${w.message}</li>`;
+					}
+					return w.message;
+				})
+				.join('');
+			return `
+				<div class="alert border" data-row="${row_number}">
+					<div class="uppercase">${__('Row {0}', [row_number])}</div>
+					<div class="body"><ul>${message}</ul></div>
+				</div>
+			`;
+		}).join('');
+
+		html += other_warnings
+			.map(warning => {
+				let header = '';
+				if (warning.col) {
+					header = __('Column {0}', [warning.col]);
+				}
+				return `
+					<div class="alert border" data-col="${warning.col}">
+						<div class="uppercase">${header}</div>
+						<div class="body">${warning.message}</div>
+					</div>
+				`;
+			})
+			.join('');
+		frm.get_field('import_warnings').$wrapper.html(`
+			<div class="row">
+				<div class="col-sm-6 warnings text-muted">${html}</div>
+			</div>
+		`);
 	},
 
 	show_import_log(frm) {
@@ -240,14 +306,21 @@ frappe.ui.form.on('Data Import Beta', {
 				let html;
 				if (log.success) {
 					html = __('Successfully imported {0}', [
-						`<span class="underline">${frappe.utils.get_form_link(frm.doc.doctype, log.docname, true)}<span>`
+						`<span class="underline">${frappe.utils.get_form_link(
+							frm.doc.doctype,
+							log.docname,
+							true
+						)}<span>`
 					]);
 				} else {
-					let messages = log.messages.map(JSON.parse).map(m => {
-						let title = m.title ? `<strong>${m.title}</strong>` : '';
-						let message = m.message ? `<p>${m.message}</p>` : '';
-						return title + message;
-					}).join('');
+					let messages = log.messages
+						.map(JSON.parse)
+						.map(m => {
+							let title = m.title ? `<strong>${m.title}</strong>` : '';
+							let message = m.message ? `<p>${m.message}</p>` : '';
+							return title + message;
+						})
+						.join('');
 					let id = frappe.dom.get_unique_id();
 					html = `${messages}
 						<button class="btn btn-default btn-xs" type="button" data-toggle="collapse" data-target="#${id}" aria-expanded="false" aria-controls="${id}">
@@ -257,7 +330,7 @@ frappe.ui.form.on('Data Import Beta', {
 							<div class="well">
 								<pre>${log.exception}</pre>
 							</div>
-						</div>`
+						</div>`;
 				}
 				return `<tr>
 					<td>${log.row_indexes.join(', ')}</td>
