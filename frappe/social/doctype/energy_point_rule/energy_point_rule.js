@@ -2,8 +2,17 @@
 // For license information, please see license.txt
 
 frappe.ui.form.on('Energy Point Rule', {
+	validate(frm) {
+		frm.set_df_property('user_field', 'reqd', !frm.doc.for_assigned_users);
+		frm.set_df_property('condition', 'reqd', frm.doc.for_doc_event==='Custom');
+	},
 	refresh(frm) {
 		frm.events.set_field_options(frm);
+	},
+	for_doc_event(frm) {
+		if (frm.doc.for_assigned_users) {
+			frm.set_value('for_assigned_users', !frm.doc.for_doc_event==='New');
+		}
 	},
 	reference_doctype(frm) {
 		frm.events.set_field_options(frm);
