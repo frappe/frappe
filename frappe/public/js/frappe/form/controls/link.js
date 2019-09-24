@@ -410,14 +410,14 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 		if (value) {
 			return new Promise((resolve) => {
 				var fetch = [];
-				let cur_doctype ={};
-				if(cur_frm){
-					cur_doctype= cur_frm.doc.doctype
+				let cur_doctype = {};
+				if (cur_frm) {
+					cur_doctype = cur_frm.doc.doctype
 				}
 				if (cur_dialog) {
 					cur_doctype = cur_dialog.doc.doctype;
 				}
-				
+
 				if (cur_doctype) {
 					// Fetch field from	doctype meta  
 					let meta = frappe.get_meta(cur_doctype)
@@ -429,7 +429,7 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 						}
 					}
 					let fetch_string = fetch.join(',')
-					
+
 					return frappe.call({
 						method: 'frappe.desk.form.utils.validate_link',
 						type: "GET",
@@ -442,7 +442,7 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 						callback: function (r) {
 							if (r.message == 'Ok') {
 								if (r.fetch_values && docname) {
-									me.set_fetch_values(df, docname,fetch, r.fetch_values);
+									me.set_fetch_values(df, docname, fetch, r.fetch_values);
 								}
 								resolve(r.valid_value);
 							} else {
@@ -455,14 +455,17 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 			});
 		}
 	},
+
 	set_fetch_values: function (df, docname, fields, fetch_values) {
 		var fl = fields;
+		// Can't use forEach as index is needed
 		for (var i = 0; i < fl.length; i++) {
-			if(cur_dialog){
-			cur_dialog.set_value(fl[i],fetch_values[i]);
+			if (cur_dialog) {
+				cur_dialog.set_value(fl[i], fetch_values[i]);
 			}
-			else{
-			cur_frm.set_value(fl[i],fetch_values[i]);}
+			else {
+				cur_frm.set_value(fl[i], fetch_values[i]);
+			}
 		}
 	}
 });
