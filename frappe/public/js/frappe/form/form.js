@@ -1391,6 +1391,28 @@ frappe.ui.form.Form = class FrappeForm {
 		}
 		return sum;
 	}
+
+	scroll_to_field(fieldname) {
+		let field = this.get_field(fieldname);
+		if (!field) return;
+
+		let $el = field.$wrapper;
+
+		// uncollapse section
+		if (field.section.is_collapsed()) {
+			field.section.collapse(false);
+		}
+
+		// scroll to input
+		frappe.utils.scroll_to($el);
+
+		// highlight input
+		$el.addClass('has-error');
+		setTimeout(() => {
+			$el.removeClass('has-error');
+			$el.find('input, select, textarea').focus();
+		}, 1000);
+	}
 };
 
 frappe.validated = 0;
