@@ -328,9 +328,14 @@ frappe.ui.form.Form = class FrappeForm {
 				frappe.ui.form.on(this.doctype, 'refresh', () => {
 					if (!this.is_new()) {
 						this.add_custom_button(action.label, () => {
-							frappe.xcall(action.method, {doc: this.doc}).then(() => {
-								frappe.msgprint({message:__('Event Executed'), alert:true});
-							});
+							if (action.action_type==='Server Action') {
+								frappe.xcall(action.action, {doc: this.doc}).then(() => {
+									frappe.msgprint({
+										message: __('{} Complete', [action.label]),
+										alert: true
+									});
+								});
+							}
 						}, action.group);
 					}
 				});

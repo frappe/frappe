@@ -1,7 +1,9 @@
 {
  "actions": [
   {
+   "action": "frappe.core.doctype.scheduled_job_type.scheduled_job_type.execute_event",
    "action_path": "frappe.core.doctype.scheduled_job_type.scheduled_job_type.execute_event",
+   "action_type": "Server Action",
    "label": "Execute",
    "method": "frappe.core.doctype.scheduled_job_type.scheduled_job_type.execute_event"
   }
@@ -66,7 +68,7 @@
   }
  ],
  "in_create": 1,
- "modified": "2019-09-23 22:19:22.594874",
+ "modified": "2019-09-24 09:11:29.115423",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Scheduled Job Type",

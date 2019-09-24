@@ -73,12 +73,13 @@ def enqueue_events_for_site(site):
 		frappe.destroy()
 
 def enqueue_events(site):
-	frappe.flags.enqueued_jobs = []
-	queued_jobs = get_jobs(key='job_type').get(site) or []
-	for job_type in frappe.get_all('Scheduled Job Type', dict(stopped=0)):
-		if not job_type.method in queued_jobs:
-			# don't add it to queue if still pending
-			frappe.get_doc('Scheduled Job Type', job_type.name).enqueue()
+	if schedule_jobs_based_on_activity():
+		frappe.flags.enqueued_jobs = []
+		queued_jobs = get_jobs(key='job_type').get(site) or []
+		for job_type in frappe.get_all('Scheduled Job Type', dict(stopped=0)):
+			if not job_type.method in queued_jobs:
+				# don't add it to queue if still pending
+				frappe.get_doc('Scheduled Job Type', job_type.name).enqueue()
 
 def is_scheduler_inactive():
 	if frappe.local.conf.maintenance_mode:
@@ -88,9 +89,6 @@ def is_scheduler_inactive():
 		return True
 
 	if is_scheduler_disabled():
-		return True
-
-	if is_dormant():
 		return True
 
 	return False
@@ -110,19 +108,31 @@ def enable_scheduler():
 def disable_scheduler():
 	toggle_scheduler(False)
 
-def is_dormant(since = 345600):
-	last_user_activity = get_last_active()
-	if not last_user_activity:
-		# no user has ever logged in, so not yet used
-		return False
+def schedule_jobs_based_on_activity():
+	'''Returns True for active sites defined by Activity Log
+	Returns True for inactive sites once in 24 hours'''
+	if is_dormant():
+		# ensure last job is one day old
+		last_job = frappe.db.get_all('Scheduled Job Log', ('creation'), limit=1, order_by='creation desc')
+		if not last_job:
+			return True
+		else:
+			if (now_datetime() - get_datetime(last_job[0].creation)).seconds > 86400:
+				# one day is passed since jobs are run, so lets do this
+				return True
+			else:
+				# schedulers run in the last 24 hours, do nothing
+				return False
+	else:
+		# site active, lets run the jobs
+		return True
 
-	if now_datetime() - get_datetime(last_user_activity) > since:  # 4 days
+def is_dormant():
+	last_activity_log = frappe.db.get_all('Activity Log', ('modified'), limit=1, order_by='modified desc')
+	since = (frappe.get_system_settings('dormant_days') or 4) * 86400
+	if not last_activity_log:
+		return True
+	if (now_datetime() - get_datetime(last_activity_log[0].modified)).seconds > since:
 		return True
 
 	return False
-
-def get_last_active():
-	return frappe.db.sql("""SELECT MAX(`last_active`) FROM `tabUser`
-		WHERE `user_type` = 'System User' AND `name` NOT IN ({standard_users})"""
-		.format(standard_users=", ".join(["%s"]*len(STANDARD_USERS))),
-		STANDARD_USERS)[0][0]

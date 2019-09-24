@@ -7,7 +7,7 @@
  "field_order": [
   "label",
   "action_type",
-  "method",
+  "action",
   "group"
  ],
  "fields": [
@@ -20,28 +20,31 @@
    "reqd": 1
   },
   {
-   "columns": 6,
-   "fieldname": "method",
-   "fieldtype": "Data",
-   "in_list_view": 1,
-   "label": "Method",
-   "reqd": 1
-  },
-  {
    "fieldname": "group",
    "fieldtype": "Data",
    "in_list_view": 1,
    "label": "Group"
   },
   {
+   "columns": 2,
    "fieldname": "action_type",
-   "fieldtype": "Data",
+   "fieldtype": "Select",
+   "in_list_view": 1,
    "label": "Action Type",
-   "options": "Server Action"
+   "options": "Server Action",
+   "reqd": 1
+  },
+  {
+   "columns": 4,
+   "fieldname": "action",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Action",
+   "reqd": 1
   }
  ],
  "istable": 1,
- "modified": "2019-09-23 21:34:39.971700",
+ "modified": "2019-09-24 09:11:39.860100",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocType Action",

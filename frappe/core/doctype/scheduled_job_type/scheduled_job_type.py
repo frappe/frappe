@@ -39,6 +39,9 @@ class ScheduledJobType(Document):
 		if self.is_event_due():
 			self.update_last_execution()
 			frappe.flags.enqueued_jobs.append(self.method)
+		if frappe.flags.in_test:
+			self.execute()
+		else:
 			enqueue('frappe.core.doctype.scheduled_job_type.scheduled_job_type.run_scheduled_job',
 				job_type=self.method)
 
@@ -58,16 +61,30 @@ class ScheduledJobType(Document):
 			get_datetime(self.last_execution)).get_next(datetime)
 
 	def execute(self):
+		self.scheduler_log = None
 		try:
-			frappe.logger(__name__).info('Started Scheduled Job: {0} for {1}'.format(self.method, frappe.local.site))
+			self.log_status('Start')
 			frappe.get_attr(self.method)()
 			frappe.db.commit()
-			frappe.logger(__name__).info('Completed Scheduled Job: {0} for {1}'.format(self.method, frappe.local.site))
+			self.log_status('Complete')
 		except Exception:
 			frappe.db.rollback()
-			frappe.log_error('{} failed'.format(self.method))
-			frappe.logger(__name__).info('Failed Scheduled Job: {0} for {1}'.format(self.method, frappe.local.site))
+			self.log_status('Failed')
 
+	def log_status(self, status):
+		# log file
+		frappe.logger(__name__).info('Scheduled Job {0}: {1} for {2}'.format(status, self.method, frappe.local.site))
+		self.update_scheduler_log(status)
+
+	def update_scheduler_log(self, status):
+		if not self.create_log:
+			return
+		if not self.scheduler_log:
+			self.scheduler_log = frappe.get_doc(dict(doctype = 'Scheduled Job Log', scheduled_job=self.name)).insert(ignore_permissions=True)
+		self.scheduler_log.db_set('status', status)
+		if status == 'Failed':
+			self.scheduler_log.db_set('details', frappe.get_traceback())
+		frappe.db.commit()
 
 	def update_last_execution(self):
 		self.db_set('last_execution', self.last_execution, update_modified=False)
