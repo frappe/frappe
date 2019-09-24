@@ -52,7 +52,7 @@ frappe.global_tags.GlobalTagsDialog = class GlobalTags {
 				return `
 					<div class="list-item-table margin-bottom">
 						${this.make_doc_head(doctype)}
-						${docs.map(doc => this.make_doc_row(doc.name, doctype, doc.title)).join('')}
+						${docs.map(doc => this.make_doc_row(doc.dn, doctype, doc.title)).join('')}
 					</div>
 				`;
 			}).join('');

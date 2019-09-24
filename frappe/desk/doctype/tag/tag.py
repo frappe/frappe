@@ -12,8 +12,11 @@ from frappe import _
 class Tag(Document):
 
 	def on_trash(self):
-		if self.count > 0:
+		if check_if_tag_is_linked(self.name):
 			frappe.throw(_("Cannot delete Tag {0} since it is linked to Documents.").format(frappe.bold(self.name)))
+
+def check_if_tag_is_linked(tag):
+	return frappe.db.count("Tag Link", {"tags": ["like", "%{0}%".format(tag)]})
 
 def check_user_tags(dt):
 	"if the user does not have a tags column, then it creates one"
@@ -71,19 +74,15 @@ class DocTags:
 			tl.append(tag)
 			if not frappe.db.exists("Tag", tag):
 				frappe.get_doc({"doctype": "Tag", "name": tag, "count": 1}).insert(ignore_permissions=True)
-			else:
-				update_tag_count(tags=tag)
 			self.update(dn, tl)
 
 	def remove(self, dn, tag):
 		"""remove a user tag"""
 		tl = self.get_tags(dn).split(',')
-		update_tag_count(tags=tag, increment=False)
 		self.update(dn, filter(lambda x:x.lower()!=tag.lower(), tl))
 
 	def remove_all(self, dn):
 		"""remove all user tags (call before delete)"""
-		update_tag_count(tags=tag, increment=False, dt=self.dt, dn=dn)
 		self.update(dn, [])
 
 	def update(self, dn, tl):
@@ -113,21 +112,3 @@ class DocTags:
 		"""adds the _user_tags column if not exists"""
 		from frappe.database.schema import add_column
 		add_column(self.dt, "_user_tags", "Data")
-
-def update_tag_count(tags, increment=True, dt=None, dn=None):
-	"""
-		Used to Increase or Decrease the count of documents linked with a certain tag
-	"""
-	_user_tags = [tags]
-	if tags == [] and dt and dn:
-		_user_tags = frappe.db.get_value(dt, dn, '_user_tags', ignore=1).split(",")
-		_user_tags = [t.strip() for t in _user_tags if t]
-
-	for tag in _user_tags:
-		tag_count = frappe.db.get_value("Tag", tag, "count")
-		if increment:
-			tag_count+=1
-		else:
-			tag_count-=1
-
-		frappe.db.set_value("Tag", tag, "count", tag_count)

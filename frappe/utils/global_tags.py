@@ -2,22 +2,14 @@
 # License: GNU General Public License v3. See license.txt
 
 from __future__ import unicode_literals
-
 import frappe
-
-def setup_global_tags_table():
-	"""
-	Creates __global_search table
-	:return:
-	"""
-	frappe.db.create_global_tags_table()
 
 def reset():
 	"""
-	Deletes all data in __global_tags
+	Deletes all data in `tabTag Link`
 	:return:
 	"""
-	frappe.db.sql('DELETE FROM `__global_tags`')
+	frappe.db.sql('DELETE FROM `tabTag Link`')
 
 def delete_tags_for_document(doc):
 	"""
@@ -26,9 +18,9 @@ def delete_tags_for_document(doc):
 		:param doc: Deleted document
 	"""
 	frappe.db.sql("""DELETE
-		FROM `__global_search`
-		WHERE doctype = %s
-			AND name = %s""", (doc.doctype, doc.name))
+		FROM `tabTag Link`
+		WHERE dt = %s
+			AND dn = %s""", (doc.doctype, doc.name))
 
 def update_global_tags(doc, tags):
 	"""
@@ -38,54 +30,38 @@ def update_global_tags(doc, tags):
 	if frappe.local.conf.get('disable_global_tags') or not doc.get("_user_tags"):
 		return
 
-	value = {
-		"doctype": doc.doctype,
-		"name": doc.name,
-		"title": (doc.get_title() or '')[:int(frappe.db.VARCHAR_LEN)],
-		"tags": tags.lower()
-	}
-
-	frappe.db.multisql({
-		'mariadb': '''INSERT INTO `__global_tags`
-			(`doctype`, `name`, `title`, `tags`)
-			VALUES (%(doctype)s, %(name)s, %(title)s, %(tags)s)
-			ON DUPLICATE key UPDATE
-				`tags`=%(tags)s
-		''',
-		'postgres': '''INSERT INTO `__global_tags`
-			(`doctype`, `name`, `title`, `tags`)
-			VALUES (%(doctype)s, %(name)s, %(title)s, %(tags)s)
-			ON CONFLICT("doctype", "name") DO UPDATE SET
-				`tags`=%(tags)s
-		'''
-	}, value)
+	if not frappe.db.exists("Tag Link", {"dt": doc.doctype, "dn": doc.name}):
+		frappe.get_doc({
+			"doctype": "Tag Link",
+			"dt": doc.doctype,
+			"dn": doc.name,
+			"title": doc.get_title() or '',
+			"tags": tags
+		}).insert(ignore_permissions=True)
+	else:
+		frappe.db.set_value("Tag Link", {"dt": doc.doctype, "dn": doc.name}, "tags", tags)
 
 @frappe.whitelist()
 def get_documents_for_tag(tag):
 	"""
-	Search for given text in __global_tags
-	:param tag: tag to be searched
+		Search for given text in __global_tags
+		:param tag: tag to be searched
 	"""
-	# remove hastag # from tag
+	# remove hastag `#` from tag
 	results = {}
 	tag = frappe.db.escape('%{0}%'.format(tag.lower()), False)
 
-	common_query = '''
-		SELECT `doctype`, `name`, `title`, `tags`
-		FROM `__global_tags`
-		WHERE `tags` LIKE {tag}
-	'''
-
-	result = frappe.db.multisql({
-			'mariadb': common_query.format(tag=tag),
-			'postgres': common_query.format(tag=tag)
-		}, as_dict=True)
+	result = frappe.db.sql('''
+			SELECT `dt`, `dn`, `title`, `tags`
+			FROM `tabTag Link`
+			WHERE `tags` LIKE {0}
+		'''.format(tag), as_dict=True)
 
 	for res in result:
-		if res.doctype in results.keys():
-			results[res.doctype].append(res)
+		if res.dt in results.keys():
+			results[res.dt].append(res)
 		else:
-			results[res.doctype] = [res]
+			results[res.dt] = [res]
 
 	return results
 
