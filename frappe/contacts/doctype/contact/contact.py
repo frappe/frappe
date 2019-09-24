@@ -90,6 +90,7 @@ class Contact(Document):
 
 	def set_primary_email(self):
 		if not self.email_ids:
+			self.email_id = ""
 			return
 
 		if len([email.email_id for email in self.email_ids if email.is_primary]) > 1:
@@ -103,6 +104,7 @@ class Contact(Document):
 	def set_primary(self, fieldname):
 		# Used to set primary mobile and phone no.
 		if len(self.phone_nos) == 0:
+			setattr(self, fieldname, "")
 			return
 
 		field_name = "is_primary_" + fieldname
