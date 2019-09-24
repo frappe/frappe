@@ -1234,12 +1234,12 @@ class Document(BaseDocument):
 
 	def get_assigned_users(self):
 		assignments = frappe.get_all('ToDo',
-				fields=['owner'],
-				filters={
-					'reference_type': self.doctype,
-					'reference_name': self.name,
-					'status': ('!=', 'Cancelled'),
-				})
+			fields=['owner'],
+			filters={
+				'reference_type': self.doctype,
+				'reference_name': self.name,
+				'status': ('!=', 'Cancelled'),
+			})
 
 		users = set([assignment.owner for assignment in assignments])
 		return users
