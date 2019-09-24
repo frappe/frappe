@@ -31,21 +31,24 @@ class EnergyPointRule(Document):
 
 			reference_doctype = doc.doctype
 			reference_name = doc.name
-			user = doc.get(self.user_field)
+			users = []
+			if self.for_assigned_users:
+				users = doc.get_assigned_users()
+			else:
+				users = [doc.get(self.user_field)]
 			rule = self.name
 
 			# incase of zero as result after roundoff
 			if not points: return
 
-			# if user_field has no value
-			if not user or user == 'Administrator': return
-
 			try:
-				create_energy_points_log(reference_doctype, reference_name, {
-					'points': points,
-					'user': user,
-					'rule': rule
-				})
+				for user in users:
+					if not user or user == 'Administrator': continue
+					create_energy_points_log(reference_doctype, reference_name, {
+						'points': points,
+						'user': user,
+						'rule': rule
+					})
 			except Exception as e:
 				frappe.log_error(frappe.get_traceback(), 'apply_energy_point')
 

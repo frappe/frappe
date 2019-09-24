@@ -7,6 +7,7 @@ import frappe
 import unittest
 from .energy_point_log import get_energy_points as _get_energy_points, create_review_points_log, review
 from frappe.utils.testutils import add_custom_field, clear_custom_fields
+from frappe.desk.form.assign_to import add as assign_to
 
 class TestEnergyPointLog(unittest.TestCase):
 	def tearDown(self):
@@ -185,7 +186,31 @@ class TestEnergyPointLog(unittest.TestCase):
 		self.assertEquals(points_after_todo_creation,
 			points_before_todo_creation + todo_point_rule.points)
 
-def create_energy_point_rule_for_todo(multiplier_field=None, for_doc_event='Custom', max_points=None):
+	def test_point_allocation_for_assigned_users(self):
+		todo = create_a_todo()
+
+		assign_users_to_todo(todo.name, ['test@example.com', 'test2@example.com'])
+
+		test_user_before_points = get_points('test@example.com')
+		test2_user_before_points = get_points('test2@example.com')
+
+		rule = create_energy_point_rule_for_todo(for_assigned_users=1)
+
+		todo.status = 'Closed'
+		todo.save()
+
+		test_user_after_points = get_points('test@example.com')
+		test2_user_after_points = get_points('test2@example.com')
+
+		self.assertEquals(test_user_after_points,
+			test_user_before_points + rule.points)
+
+		self.assertEquals(test2_user_after_points,
+			test2_user_before_points + rule.points)
+
+
+def create_energy_point_rule_for_todo(multiplier_field=None, for_doc_event='Custom',
+	max_points=None, for_assigned_users=0):
 	name = 'ToDo Closed'
 	point_rule = frappe.db.get_all(
 		'Energy Point Rule',
@@ -204,6 +229,7 @@ def create_energy_point_rule_for_todo(multiplier_field=None, for_doc_event='Cust
 		'condition': 'doc.status == "Closed"',
 		'for_doc_event': for_doc_event,
 		'user_field': 'owner',
+		'for_assigned_users': for_assigned_users,
 		'multiplier_field': multiplier_field,
 		'max_points': max_points
 	}).insert(ignore_permissions=1)
@@ -217,3 +243,11 @@ def create_a_todo():
 
 def get_points(user, point_type='energy_points'):
 	return _get_energy_points(user).get(point_type) or 0
+
+def assign_users_to_todo(todo_name, users):
+	for user in users:
+		assign_to({
+			'assign_to': user,
+			'doctype': 'ToDo',
+			'name': todo_name
+		})
