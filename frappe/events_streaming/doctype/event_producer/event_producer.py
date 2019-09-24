@@ -169,6 +169,7 @@ def sync_dynamic_link_dependencies(doc, dl_fields, producer_site):
 		if docname and not check_dependency_fulfilled(linked_doctype, docname):
 			master_doc = producer_site.get_doc(linked_doctype, docname)
 			frappe.get_doc(master_doc).insert(set_name=docname)
+			frappe.db.commit()
 
 def set_dependencies(doc, link_fields, producer_site):
 	for df in link_fields:
