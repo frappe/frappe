@@ -13,7 +13,8 @@
    "fieldname": "phone",
    "fieldtype": "Data",
    "in_list_view": 1,
-   "label": "Phone"
+   "label": "Number",
+   "reqd": 1
   },
   {
    "columns": 2,
@@ -29,11 +30,11 @@
    "fieldname": "is_primary_mobile_no",
    "fieldtype": "Check",
    "in_list_view": 1,
-   "label": "Is Primary Mobile No"
+   "label": "Is Primary Mobile"
   }
  ],
  "istable": 1,
- "modified": "2019-09-21 20:46:06.177615",
+ "modified": "2019-09-24 17:47:50.375326",
  "modified_by": "Administrator",
  "module": "Contacts",
  "name": "Contact Phone",

@@ -93,7 +93,7 @@ class Contact(Document):
 			return
 
 		if len([email.email_id for email in self.email_ids if email.is_primary]) > 1:
-			frappe.throw(_("Only one Email ID can be set as primary."))
+			frappe.throw(_("Only one {0} can be set as primary.").format(frappe.bold("Email ID")))
 
 		for d in self.email_ids:
 			if d.is_primary == 1:
@@ -110,7 +110,7 @@ class Contact(Document):
 		is_primary = [phone.phone for phone in self.phone_nos if phone.get(field_name)]
 
 		if len(is_primary) > 1:
-			frappe.throw(_("Only one {0} can be set as primary.").format(frappe.scrub(fieldname)))
+			frappe.throw(_("Only one {0} can be set as primary.").format(frappe.bold(frappe.unscrub(fieldname))))
 
 		for d in self.phone_nos:
 			if d.get(field_name) == 1:
