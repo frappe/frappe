@@ -143,9 +143,6 @@ frappe.data_import.DataExporter = class DataExporter {
 				<button class="btn btn-default btn-xs" data-action="select_mandatory">
 					${__('Select Mandatory')}
 				</button>
-				<button class="btn btn-default btn-xs" data-action="select_mandatory_without_children">
-					${__('Select Mandatory without children')}
-				</button>
 				<button class="btn btn-default btn-xs" data-action="unselect_all">
 					${__('Unselect All')}
 				</button>
@@ -184,18 +181,6 @@ frappe.data_import.DataExporter = class DataExporter {
 					.map(option => option.$checkbox.find('input').get(0));
 			})
 		);
-
-		this.unselect_all();
-		$(checkboxes)
-			.prop('checked', true)
-			.trigger('change');
-	}
-
-	select_mandatory_without_children() {
-		let field = this.dialog.get_field(this.doctype);
-		let checkboxes = field.options
-			.filter(option => option.danger)
-			.map(option => option.$checkbox.find('input').get(0));
 
 		this.unselect_all();
 		$(checkboxes)
