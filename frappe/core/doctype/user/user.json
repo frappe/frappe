@@ -38,7 +38,6 @@
   "mute_sounds",
   "change_password",
   "new_password",
-  "send_password_update_notification",
   "logout_all_sessions",
   "reset_password_key",
   "last_password_reset_date",
@@ -298,13 +297,6 @@
    "fieldtype": "Password",
    "label": "Set New Password",
    "no_copy": 1
-  },
-  {
-   "default": "0",
-   "depends_on": "eval:!doc.__islocal",
-   "fieldname": "send_password_update_notification",
-   "fieldtype": "Check",
-   "label": "Send Password Update Notification"
   },
   {
    "default": "0",
@@ -593,7 +585,7 @@
  "idx": 413,
  "image_field": "user_image",
  "max_attachments": 5,
- "modified": "2019-08-09 10:34:56.912283",
+ "modified": "2019-09-18 14:14:01.233124",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "User",

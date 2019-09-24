@@ -7,8 +7,7 @@ from frappe.auth import HTTPRequest
 from frappe.utils import cint
 from frappe.tests import set_request
 from frappe.twofactor import (should_run_2fa, authenticate_for_2factor, get_cached_user_pass,
-	two_factor_is_enabled_for_, confirm_otp_token, get_otpsecret_for_, get_verification_obj,
-	render_string_template)
+	two_factor_is_enabled_for_, confirm_otp_token, get_otpsecret_for_, get_verification_obj)
 
 import time
 
@@ -123,7 +122,7 @@ class TestTwoFactor(unittest.TestCase):
 		'''String template renders as expected with variables.'''
 		args = {'issuer_name':'Frappe Technologies'}
 		_str = 'Verification Code from {{issuer_name}}'
-		_str = render_string_template(_str,args)
+		_str = frappe.render_template(_str,args)
 		self.assertEqual(_str,'Verification Code from Frappe Technologies')
 
 	def test_bypass_restict_ip(self):
