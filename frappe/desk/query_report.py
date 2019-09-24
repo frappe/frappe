@@ -562,7 +562,7 @@ def get_linked_doctypes(columns, data):
 	for idx, col in enumerate(columns):
 		df = columns_dict[idx]
 		if df.get("fieldtype")=="Link":
-			if isinstance(col, string_types):
+			if data and isinstance(data[0], (list, tuple)):
 				linked_doctypes[df["options"]] = idx
 			else:
 				# dict

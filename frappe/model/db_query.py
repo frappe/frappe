@@ -411,18 +411,6 @@ class DatabaseQuery(object):
 				value = get_between_date_filter(f.value, df)
 				fallback = "'0000-00-00 00:00:00'"
 
-			elif df and df.fieldtype=="Date":
-				value = getdate(f.value).strftime("%Y-%m-%d")
-				fallback = "'0000-00-00'"
-
-			elif (df and df.fieldtype=="Datetime") or isinstance(f.value, datetime):
-				value = get_datetime(f.value).strftime("%Y-%m-%d %H:%M:%S.%f")
-				fallback = "'0000-00-00 00:00:00'"
-
-			elif df and df.fieldtype=="Time":
-				value = get_time(f.value).strftime("%H:%M:%S.%f")
-				fallback = "'00:00:00'"
-
 			elif f.operator.lower() == "is":
 				if f.value == 'set':
 					f.operator = '!='
@@ -435,6 +423,18 @@ class DatabaseQuery(object):
 
 				if 'ifnull' not in column_name:
 					column_name = 'ifnull({}, {})'.format(column_name, fallback)
+
+			elif df and df.fieldtype=="Date":
+				value = getdate(f.value).strftime("%Y-%m-%d")
+				fallback = "'0000-00-00'"
+
+			elif (df and df.fieldtype=="Datetime") or isinstance(f.value, datetime):
+				value = get_datetime(f.value).strftime("%Y-%m-%d %H:%M:%S.%f")
+				fallback = "'0000-00-00 00:00:00'"
+
+			elif df and df.fieldtype=="Time":
+				value = get_time(f.value).strftime("%H:%M:%S.%f")
+				fallback = "'00:00:00'"
 
 			elif f.operator.lower() in ("like", "not like") or (isinstance(f.value, string_types) and
 				(not df or df.fieldtype not in ["Float", "Int", "Currency", "Percent", "Check"])):
