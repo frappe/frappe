@@ -7,6 +7,7 @@ import frappe
 import unittest
 from .energy_point_log import get_energy_points as _get_energy_points, create_review_points_log, review
 from frappe.utils.testutils import add_custom_field, clear_custom_fields
+from frappe.desk.form.assign_to import add as assign_to
 
 class TestEnergyPointLog(unittest.TestCase):
 	def tearDown(self):
@@ -241,6 +242,7 @@ def create_energy_point_rule_for_todo(multiplier_field=None, for_doc_event='Cust
 		'condition': 'doc.status == "Closed"',
 		'for_doc_event': for_doc_event,
 		'user_field': 'owner',
+		'for_assigned_users': for_assigned_users,
 		'multiplier_field': multiplier_field,
 		'max_points': max_points,
 		'field_to_check': field_to_check
@@ -255,3 +257,11 @@ def create_a_todo():
 
 def get_points(user, point_type='energy_points'):
 	return _get_energy_points(user).get(point_type) or 0
+
+def assign_users_to_todo(todo_name, users):
+	for user in users:
+		assign_to({
+			'assign_to': user,
+			'doctype': 'ToDo',
+			'name': todo_name
+		})
