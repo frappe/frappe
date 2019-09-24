@@ -22,7 +22,7 @@ max_positive_value = {
 	'bigint': 2 ** 63
 }
 
-DOCTYPES_FOR_DOCTYPE = ('DocType', 'DocField', 'DocPerm', 'DocType Action')
+DOCTYPES_FOR_DOCTYPE = ('DocType', 'DocField', 'DocPerm', 'DocType Action', 'DocType Link')
 
 _classes = {}
 

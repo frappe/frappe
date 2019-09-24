@@ -132,6 +132,32 @@ CREATE TABLE "tabDocType Action" (
 create index on "tabDocType Action" ("parent");
 
 --
+-- Table structure for table "tabDocType Link"
+--
+
+DROP TABLE IF EXISTS "tabDocType Link";
+CREATE TABLE "tabDocType Link" (
+  "name" varchar(255) NOT NULL,
+  "creation" timestamp(6) DEFAULT NULL,
+  "modified" timestamp(6) DEFAULT NULL,
+  "modified_by" varchar(255) DEFAULT NULL,
+  "owner" varchar(255) DEFAULT NULL,
+  "docstatus" smallint NOT NULL DEFAULT 0,
+  "parent" varchar(255) DEFAULT NULL,
+  "parentfield" varchar(255) DEFAULT NULL,
+  "parenttype" varchar(255) DEFAULT NULL,
+  "idx" bigint NOT NULL DEFAULT 0,
+  "label" varchar(140) DEFAULT NOT NULL,
+  "group" varchar(140) DEFAULT NULL,
+  "link_doctype" varchar(140) DEFAULT NOT NULL,
+  "link_fieldname" varchar(140) DEFAULT NOT NULL,
+  PRIMARY KEY ("name")
+) ;
+
+create index on "tabDocType Link" ("parent");
+
+
+--
 -- Table structure for table "tabDocType"
 --
 

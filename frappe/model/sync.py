@@ -30,6 +30,7 @@ def sync_for(app_name, force=0, sync_everything = False, verbose=False, reset_pe
 		for d in (("core", "docfield"),
 			("core", "docperm"),
 			("core", "doctype_action"),
+			("core", "doctype_link"),
 			("core", "role"),
 			("core", "has_role"),
 			("core", "doctype"),

@@ -11,20 +11,6 @@ from datetime import datetime
 from croniter import croniter
 from frappe.utils.background_jobs import enqueue
 
-CRON_MAP = {
-	"Yearly": "0 0 1 1 *",
-	"Annual": "0 0 1 1 *",
-	"Monthly": "0 0 1 * *",
-	"Monthly Long": "0 0 1 * *",
-	"Weekly": "0 0 * * 0",
-	"Weekly Long": "0 0 * * 0",
-	"Daily": "0 0 * * *",
-	"Daily Long": "0 0 * * *",
-	"Hourly": "0 * * * *",
-	"Hourly Long": "0 * * * *",
-	"All": "0/" + str((frappe.get_conf().scheduler_interval or 240) // 60) + " * * * *",
-}
-
 class ScheduledJobType(Document):
 	def autoname(self):
 		self.name = '.'.join(self.method.split('.')[-2:])
@@ -54,6 +40,20 @@ class ScheduledJobType(Document):
 		return self.last_execution <= (current_time or now_datetime())
 
 	def get_next_execution(self):
+		CRON_MAP = {
+			"Yearly": "0 0 1 1 *",
+			"Annual": "0 0 1 1 *",
+			"Monthly": "0 0 1 * *",
+			"Monthly Long": "0 0 1 * *",
+			"Weekly": "0 0 * * 0",
+			"Weekly Long": "0 0 * * 0",
+			"Daily": "0 0 * * *",
+			"Daily Long": "0 0 * * *",
+			"Hourly": "0 * * * *",
+			"Hourly Long": "0 * * * *",
+			"All": "0/" + str((frappe.get_conf().scheduler_interval or 240) // 60) + " * * * *",
+		}
+
 		if not self.cron_format:
 			self.cron_format = CRON_MAP[self.queue]
 

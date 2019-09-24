@@ -1,4 +1,5 @@
 {
+ "actions": [],
  "allow_rename": 1,
  "autoname": "Prompt",
  "creation": "2013-02-18 13:36:19",
@@ -59,6 +60,8 @@
   "in_create",
   "actions_section",
   "actions",
+  "links_section",
+  "links",
   "web_view",
   "has_web_view",
   "allow_guest_to_view",
@@ -467,11 +470,22 @@
    "fieldtype": "Table",
    "label": "Actions",
    "options": "DocType Action"
+  },
+  {
+   "fieldname": "links_section",
+   "fieldtype": "Section Break",
+   "label": "Links Section"
+  },
+  {
+   "fieldname": "links",
+   "fieldtype": "Table",
+   "label": "Links",
+   "options": "DocType Link"
   }
  ],
  "icon": "fa fa-bolt",
  "idx": 6,
- "modified": "2019-09-23 16:29:21.209832",
+ "modified": "2019-09-24 11:42:18.081499",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocType",

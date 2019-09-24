@@ -2,10 +2,8 @@
  "actions": [
   {
    "action": "frappe.core.doctype.scheduled_job_type.scheduled_job_type.execute_event",
-   "action_path": "frappe.core.doctype.scheduled_job_type.scheduled_job_type.execute_event",
    "action_type": "Server Action",
-   "label": "Execute",
-   "method": "frappe.core.doctype.scheduled_job_type.scheduled_job_type.execute_event"
+   "label": "Execute"
   }
  ],
  "creation": "2019-09-23 14:34:09.205368",
@@ -68,7 +66,13 @@
   }
  ],
  "in_create": 1,
- "modified": "2019-09-24 09:11:29.115423",
+ "links": [
+  {
+   "link_doctype": "Scheduled Job Log",
+   "link_fieldname": "scheduled_job"
+  }
+ ],
+ "modified": "2019-09-24 11:45:34.748779",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Scheduled Job Type",
