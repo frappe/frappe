@@ -52,6 +52,8 @@ def get_form_params():
 		key = field.split(" as ")[0]
 
 		if key.startswith('count('): continue
+		if key.startswith('sum('): continue
+		if key.startswith('avg('): continue
 
 		if "." in key:
 			parenttype, fieldname = key.split(".")[0][4:-1], key.split(".")[1].strip("`")
@@ -210,6 +212,8 @@ def get_labels(fields, doctype):
 	labels = []
 	for key in fields:
 		key = key.split(" as ")[0]
+
+		if key.startswith(('count(', 'sum(', 'avg(')): continue
 
 		if "." in key:
 			parenttype, fieldname = key.split(".")[0][4:-1], key.split(".")[1].strip("`")

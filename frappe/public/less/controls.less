@@ -131,3 +131,18 @@
 		overflow: auto;
 	}
 }
+
+.barcode-scanner {
+	position: relative;
+
+	& > canvas, & > video {
+		max-width: 100%;
+		width: 100%;
+	}
+
+	canvas.drawing, canvas.drawingBuffer {
+		position: absolute;
+		left: 0;
+		top: 0;
+	}
+}

@@ -60,7 +60,7 @@ frappe.ui.form.ControlComment = frappe.ui.form.ControlTextEditor.extend({
 
 	update_state() {
 		const value = this.get_value();
-		if (strip_html(value)) {
+		if (strip_html(value).trim() != "") {
 			this.button.removeClass('btn-default').addClass('btn-primary');
 		} else {
 			this.button.addClass('btn-default').removeClass('btn-primary');

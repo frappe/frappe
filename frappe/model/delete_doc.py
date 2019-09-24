@@ -75,7 +75,7 @@ def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reloa
 
 			delete_from_table(doctype, name, ignore_doctypes, None)
 
-			if not (frappe.flags.in_migrate or frappe.flags.in_install or frappe.flags.in_test):
+			if not (for_reload or frappe.flags.in_migrate or frappe.flags.in_install or frappe.flags.in_test):
 				try:
 					delete_controllers(name, doc.module)
 				except (FileNotFoundError, OSError):
@@ -161,6 +161,9 @@ def delete_from_table(doctype, name, ignore_doctypes, doc):
 
 	else:
 		def get_table_fields(field_doctype):
+			if field_doctype == 'Custom Field':
+				return []
+
 			return [r[0] for r in frappe.get_all(field_doctype,
 				fields='options',
 				filters={

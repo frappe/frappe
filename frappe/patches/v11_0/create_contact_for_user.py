@@ -5,6 +5,7 @@ import re
 
 def execute():
 	""" Create Contact for each User if not present """
+	frappe.reload_doc('integrations', 'doctype', 'google_contacts')
 	frappe.reload_doc('contacts', 'doctype', 'contact')
 	frappe.reload_doc('core', 'doctype', 'dynamic_link')
 

@@ -7,7 +7,21 @@ pull_request_rules:
       - status-success=security/snyk - package.json (frappe)
       - status-success=security/snyk - requirements.txt (frappe)
       - label!=don't-merge
+      - label!=squash
       - "#approved-reviews-by>=1"
     actions:
       merge:
         method: merge
+  - name: Automatic squash on CI success and review
+    conditions:
+      - status-success=Codacy/PR Quality Review
+      - status-success=Semantic Pull Request
+      - status-success=continuous-integration/travis-ci/pr
+      - status-success=security/snyk - package.json (frappe)
+      - status-success=security/snyk - requirements.txt (frappe)
+      - label!=don't-merge
+      - label=squash
+      - "#approved-reviews-by>=1"
+    actions:
+      merge:
+        method: squash
