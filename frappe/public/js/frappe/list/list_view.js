@@ -525,13 +525,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		const fieldname = df.fieldname;
 		const value = doc[fieldname] || '';
 
-		// listview_setting formatter
-		const formatters = this.settings.formatters;
-
 		const format = () => {
-			if (formatters && formatters[fieldname]) {
-				return formatters[fieldname](value, df, doc);
-			} else if (df.fieldtype === 'Code') {
+			if (df.fieldtype === 'Code') {
 				return value;
 			} else if (df.fieldtype === 'Percent') {
 				return `<div class="progress level" style="margin: 0px;">
@@ -547,7 +542,13 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 		const field_html = () => {
 			let html;
-			const _value = typeof value === 'string' ? frappe.utils.escape_html(value) : value;
+			let _value;
+			// listview_setting formatter
+			if (this.settings.formatters && this.settings.formatters[fieldname]) {
+				_value = this.settings.formatters[fieldname](value, df, doc);
+			} else {
+				_value = typeof value === 'string' ? frappe.utils.escape_html(value) : value;
+			}
 
 			if (df.fieldtype === 'Image') {
 				html = df.options ?
