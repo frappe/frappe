@@ -226,27 +226,30 @@ frappe.ui.form.on('Data Import Beta', {
 
 	show_import_log(frm) {
 		let import_log = JSON.parse(frm.doc.import_log || '[]');
-		let failures = import_log.filter(log => !log.success);
+		let logs = import_log;
 		frm.toggle_display('import_log', false);
-		frm.toggle_display('import_log_section', failures.length > 0);
+		frm.toggle_display('import_log_section', logs.length > 0);
 
-		if (failures.length === 0) {
+		if (logs.length === 0) {
 			frm.get_field('import_log_preview').$wrapper.empty();
 			return;
 		}
 
-		let rows = failures
+		let rows = logs
 			.map(log => {
-				let messages = log.messages.map(JSON.parse).map(m => {
-					let title = m.title ? `<strong>${m.title}</strong>` : '';
-					let message = m.message ? `<p>${m.message}</p>` : '';
-					return title + message;
-				}).join('');
-				let id = frappe.dom.get_unique_id();
-				return `<tr>
-					<td>${log.row_indexes.join(', ')}</td>
-					<td>
-						${messages}
+				let html;
+				if (log.success) {
+					html = __('Successfully imported {0}', [
+						`<span class="underline">${frappe.utils.get_form_link(frm.doc.doctype, log.docname, true)}<span>`
+					]);
+				} else {
+					let messages = log.messages.map(JSON.parse).map(m => {
+						let title = m.title ? `<strong>${m.title}</strong>` : '';
+						let message = m.message ? `<p>${m.message}</p>` : '';
+						return title + message;
+					}).join('');
+					let id = frappe.dom.get_unique_id();
+					html = `${messages}
 						<button class="btn btn-default btn-xs" type="button" data-toggle="collapse" data-target="#${id}" aria-expanded="false" aria-controls="${id}">
 							${__('Show Traceback')}
 						</button>
@@ -254,17 +257,20 @@ frappe.ui.form.on('Data Import Beta', {
 							<div class="well">
 								<pre>${log.exception}</pre>
 							</div>
-						</div>
-					</td>
+						</div>`
+				}
+				return `<tr>
+					<td>${log.row_indexes.join(', ')}</td>
+					<td>${html}</td>
 				</tr>`;
 			})
 			.join('');
 
 		frm.get_field('import_log_preview').$wrapper.html(`
 			<table class="table table-bordered">
-				<tr>
+				<tr class="text-muted">
 					<th width="30%">${__('Row Number')}</th>
-					<th width="70%">${__('Error Message')}</th>
+					<th width="70%">${__('Message')}</th>
 				</tr>
 				${rows}
 			</table>
