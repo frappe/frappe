@@ -50,7 +50,7 @@ def get_diff(old, new, for_child=False):
 		if df.fieldtype in no_value_fields and df.fieldtype not in table_fields:
 			continue
 
-		old_value, new_value = old.get(df.fieldname) or [], new.get(df.fieldname) or []
+		old_value, new_value = old.get(df.fieldname), new.get(df.fieldname)
 
 		if df.fieldtype in table_fields:
 			# make maps

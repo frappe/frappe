@@ -122,10 +122,10 @@ CREATE TABLE "tabDocType Action" (
   "parentfield" varchar(255) DEFAULT NULL,
   "parenttype" varchar(255) DEFAULT NULL,
   "idx" bigint NOT NULL DEFAULT 0,
-  "label" varchar(140) DEFAULT NOT NULL,
+  "label" varchar(140) NOT NULL,
   "group" varchar(140) DEFAULT NULL,
-  "action_type" varchar(140) DEFAULT NOT NULL,
-  "action" varchar(140) DEFAULT NOT NULL,
+  "action_type" varchar(140) NOT NULL,
+  "action" varchar(140) NOT NULL,
   PRIMARY KEY ("name")
 ) ;
 
@@ -147,10 +147,10 @@ CREATE TABLE "tabDocType Link" (
   "parentfield" varchar(255) DEFAULT NULL,
   "parenttype" varchar(255) DEFAULT NULL,
   "idx" bigint NOT NULL DEFAULT 0,
-  "label" varchar(140) DEFAULT NOT NULL,
+  "label" varchar(140) NOT NULL,
   "group" varchar(140) DEFAULT NULL,
-  "link_doctype" varchar(140) DEFAULT NOT NULL,
-  "link_fieldname" varchar(140) DEFAULT NOT NULL,
+  "link_doctype" varchar(140) NOT NULL,
+  "link_fieldname" varchar(140) NOT NULL,
   PRIMARY KEY ("name")
 ) ;
 
