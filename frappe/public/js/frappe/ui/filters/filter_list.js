@@ -12,10 +12,10 @@ frappe.ui.FilterGroup = class {
 	}
 
 	set_events() {
-		this.wrapper.find('.add-filter').on('click', () => {
+		this.wrapper.find('#add-filter').on('click', () => {
 			this.add_filter(this.doctype, 'name');
 		});
-		this.wrapper.find('.remove-filters').on('click', () => {
+		this.wrapper.find('#remove-filters').on('click', () => {
 			this.clear_filters();
 		});
 	}
@@ -143,10 +143,10 @@ frappe.ui.FilterGroup = class {
 	get_container_template() {
 		return $(`<div class="tag-filters-area">
 			<div class="active-tag-filters">
-				<button class="btn btn-default btn-xs remove-filters text-muted">
+				<button class="btn btn-default btn-xs filter-button text-muted" id="remove-filters">
 					${__("Clear All Filters")}
 				</button>
-				<button class="btn btn-default btn-xs add-filter text-muted">
+				<button class="btn btn-default btn-xs filter-button text-muted" id="add-filter">
 						${__("Add Filter")}
 				</button>
 			</div>
