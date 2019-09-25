@@ -24,7 +24,7 @@
   {
    "fieldname": "subscribed_doctypes",
    "fieldtype": "Table",
-   "label": "Subscribed Document Types",
+   "label": "Subscribed Doctypes",
    "options": "Event Subscribed DocType",
    "reqd": 1
   },
@@ -54,7 +54,7 @@
    "reqd": 1
   }
  ],
- "modified": "2019-09-11 12:21:48.935817",
+ "modified": "2019-09-25 10:17:32.591436",
  "modified_by": "Administrator",
  "module": "Events Streaming",
  "name": "Event Producer",

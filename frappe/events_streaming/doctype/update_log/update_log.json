@@ -13,6 +13,7 @@
   {
    "fieldname": "update_type",
    "fieldtype": "Select",
+   "in_list_view": 1,
    "label": "Update Type",
    "options": "Create\nUpdate\nDelete",
    "read_only": 1
@@ -20,6 +21,7 @@
   {
    "fieldname": "ref_doctype",
    "fieldtype": "Link",
+   "in_list_view": 1,
    "label": "DocType",
    "options": "DocType",
    "read_only": 1
@@ -27,6 +29,7 @@
   {
    "fieldname": "docname",
    "fieldtype": "Data",
+   "in_list_view": 1,
    "label": "Document Name",
    "options": "ref_doctype",
    "read_only": 1
@@ -39,7 +42,7 @@
   }
  ],
  "in_create": 1,
- "modified": "2019-08-26 12:49:41.559411",
+ "modified": "2019-09-24 23:16:07.207707",
  "modified_by": "Administrator",
  "module": "Events Streaming",
  "name": "Update Log",

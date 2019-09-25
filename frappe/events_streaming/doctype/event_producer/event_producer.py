@@ -82,14 +82,20 @@ def pull_from_node(event_producer):
 	updates = get_updates(producer_site, last_update, doctypes)
 
 	for update in updates:
-		if update.update_type == 'Create':
-			set_insert(update, producer_site)
+		try:
+			if update.update_type == 'Create':
+				set_insert(update, producer_site)
 
-		if update.update_type == 'Update':
-			set_update(update, producer_site)
+			if update.update_type == 'Update':
+				set_update(update, producer_site)
 
-		if update.update_type == 'Delete':
-			set_delete(update)
+			if update.update_type == 'Delete':
+				set_delete(update)
+
+			log_event_sync(update, event_producer.name, 'Synced')
+
+		except Exception:
+			log_event_sync(update, event_producer.name, 'Failed', frappe.get_traceback())
 
 		frappe.db.set_value('Event Producer', event_producer.name, 'last_update', update.name)
 		frappe.db.commit()
@@ -188,6 +194,19 @@ def set_dependencies(doc, link_fields, producer_site):
 
 def check_dependency_fulfilled(linked_doctype, docname):
 	return frappe.db.exists(linked_doctype, docname)
+
+def log_event_sync(update, event_producer, sync_status, error=None):
+	doc = frappe.new_doc('Event Sync Log')
+	doc.update_type = update.update_type
+	doc.ref_doctype = update.ref_doctype
+	doc.docname = update.docname
+	doc.status = sync_status
+	doc.event_producer = event_producer
+	doc.producer_doc = update.docname
+	doc.data = update.data
+	if error:
+		doc.error = error
+	doc.insert()
 
 @frappe.whitelist()
 def new_event_notification(producer_url):
