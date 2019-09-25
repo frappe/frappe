@@ -48,7 +48,10 @@ def get_documents_for_tag(tag):
 		:param tag: tag to be searched
 	"""
 	# remove hastag `#` from tag
-	results = {}
+	tag = tag[1:]
+
+	results = []
+
 	tag = frappe.db.escape('%{0}%'.format(tag.lower()), False)
 
 	result = frappe.db.sql('''
@@ -58,10 +61,11 @@ def get_documents_for_tag(tag):
 		'''.format(tag), as_dict=True)
 
 	for res in result:
-		if res.dt in results.keys():
-			results[res.dt].append(res)
-		else:
-			results[res.dt] = [res]
+		results.append({
+			"doctype": res.dt,
+			"name": res.dn,
+			"content": res.title
+		})
 
 	return results
 
