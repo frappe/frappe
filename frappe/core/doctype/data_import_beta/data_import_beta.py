@@ -9,6 +9,7 @@ from frappe.core.doctype.data_import.importer_new import Importer
 from frappe.core.doctype.data_import.exporter_new import Exporter
 from frappe.core.page.background_jobs.background_jobs import get_info
 from frappe.utils.background_jobs import enqueue
+from frappe import _
 
 
 class DataImportBeta(Document):
@@ -28,6 +29,9 @@ class DataImportBeta(Document):
 		return i.get_data_for_import_preview()
 
 	def start_import(self):
+		if frappe.utils.scheduler.is_scheduler_inactive():
+			frappe.throw(_("Scheduler is inactive. Cannot import data."), title=_("Error"))
+
 		enqueued_jobs = [d.get("job_name") for d in get_info()]
 
 		if self.name not in enqueued_jobs:
@@ -38,7 +42,6 @@ class DataImportBeta(Document):
 				event="data_import",
 				job_name=self.name,
 				data_import=self.name,
-				now=True,
 			)
 
 	def get_importer(self):
@@ -103,7 +106,8 @@ def download_template(
 	)
 	e.build_response()
 
+
 @frappe.whitelist()
 def download_errored_template(data_import_name):
-	data_import = frappe.get_doc('Data Import Beta', data_import_name)
+	data_import = frappe.get_doc("Data Import Beta", data_import_name)
 	data_import.export_errored_rows()
