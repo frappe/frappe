@@ -250,10 +250,11 @@ def _add_test(app, path, filename, verbose, test_suite=None, ui_tests=False):
 
 	if os.path.basename(os.path.dirname(path))=="doctype":
 		txt_file = os.path.join(path, filename[5:].replace(".py", ".json"))
-		with open(txt_file, 'r') as f:
-			doc = json.loads(f.read())
-		doctype = doc["name"]
-		make_test_records(doctype, verbose)
+		if os.path.exists(txt_file):
+			with open(txt_file, 'r') as f:
+				doc = json.loads(f.read())
+			doctype = doc["name"]
+			make_test_records(doctype, verbose)
 
 	test_suite.addTest(unittest.TestLoader().loadTestsFromModule(module))
 
