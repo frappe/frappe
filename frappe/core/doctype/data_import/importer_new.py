@@ -541,34 +541,30 @@ class Importer:
 			return [i for i, df in enumerate(fields) if df.parent == doctype]
 
 		def validate_value(value, df):
-			validate_warnings = []
-
 			if df.fieldtype == "Select" and value not in df.get_select_options():
 				options_string = ", ".join([frappe.bold(d) for d in df.get_select_options()])
 				msg = _("Value must be one of {0}").format(options_string)
-				validate_warnings.append(
+				warnings.append(
 					{"row": row_number, "field": df.as_dict(convert_dates_to_str=True), "message": msg}
 				)
+				return False
 
 			elif df.fieldtype == "Link":
-				missing_link_values = self.get_missing_link_field_values(df.options)
-				if value in missing_link_values:
-					msg = _("Value {0} missing for Document Type {1}").format(
+				d = self.get_missing_link_field_values(df.options)
+				if value in d.missing_values and not d.one_mandatory:
+					msg = _("Value {0} missing for {1}").format(
 						frappe.bold(value), frappe.bold(df.options)
 					)
-					validate_warnings.append(
+					warnings.append(
 						{
 							"row": row_number,
 							"field": df.as_dict(convert_dates_to_str=True),
 							"message": msg,
 						}
 					)
+					return value
 
-			if validate_warnings:
-				warnings.extend(validate_warnings)
-				return False
-
-			return True
+			return value
 
 		def parse_doc(doctype, docfields, values, row_number):
 			doc = {}
@@ -663,6 +659,7 @@ class Importer:
 			return self.update_record(doc)
 
 	def insert_record(self, doc):
+		self.create_missing_linked_records(doc)
 		# name shouldn't be set when inserting a new record
 		doc.update({"doctype": self.doctype, "name": None})
 		new_doc = frappe.get_doc(doc)
@@ -670,6 +667,37 @@ class Importer:
 		if self.meta.is_submittable and self.data_import.submit_after_import:
 			new_doc.submit()
 		return new_doc
+
+	def create_missing_linked_records(self, doc):
+		"""
+		Finds fields that are of type Link, and creates the corresponding
+		document automatically if it has only one mandatory field
+		"""
+		link_values = []
+		def get_link_fields(doc, doctype):
+			for fieldname, value in doc.items():
+				meta = frappe.get_meta(doctype)
+				df = meta.get_field(fieldname)
+				if df.fieldtype == 'Link':
+					link_values.append([df.options, value])
+				elif df.fieldtype in table_fields:
+					for row in value:
+						get_link_fields(row, df.options)
+		get_link_fields(doc, self.doctype)
+
+		for link_doctype, link_value in link_values:
+			d = self.missing_link_values.get(link_doctype)
+			if d.one_mandatory and link_value in d.missing_values:
+				meta = frappe.get_meta(link_doctype)
+				# find the autoname field
+				if meta.autoname and meta.autoname.startswith("field:"):
+					autoname_field = meta.autoname[len("field:") :]
+				else:
+					autoname_field = "name"
+				new_doc = frappe.new_doc(link_doctype)
+				new_doc.set(autoname_field, link_value)
+				new_doc.insert()
+				d.missing_values.remove(link_value)
 
 	def update_record(self, doc):
 		id_fieldname = self.get_id_fieldname()
@@ -706,7 +734,7 @@ class Importer:
 		build_csv_response(rows, self.doctype)
 
 	def get_missing_link_field_values(self, doctype):
-		return self.missing_link_values.get(doctype, [])
+		return self.missing_link_values.get(doctype, {})
 
 	def prepare_missing_link_field_values(self, fields, data):
 		link_column_indexes = [i for i, df in enumerate(fields) if df.fieldtype == "Link"]
@@ -728,7 +756,12 @@ class Importer:
 			doctype = df.options
 
 			missing_values = [value for value in values if not frappe.db.exists(doctype, value)]
-			self.missing_link_values[doctype] = missing_values
+			if self.missing_link_values.get(doctype):
+				self.missing_link_values[doctype].missing_values += missing_values
+			else:
+				self.missing_link_values[doctype] = frappe._dict(
+					missing_values=missing_values, one_mandatory=has_one_mandatory_field(doctype), df=df
+				)
 
 	def get_id_fieldname(self):
 		autoname = self.meta.autoname
