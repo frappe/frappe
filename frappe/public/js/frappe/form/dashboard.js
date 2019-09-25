@@ -123,11 +123,7 @@ frappe.ui.form.Dashboard = Class.extend({
 
 	format_percent: function(title, percent) {
 		var width = cint(percent) < 1 ? 1 : cint(percent);
-		var progress_class = "";
-		if(width < 10)
-			progress_class = "progress-bar-danger";
-		if(width > 99.9)
-			progress_class = "progress-bar-success";
+		var progress_class = "progress-bar-success";
 
 		return [{
 			title: title,
