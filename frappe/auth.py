@@ -381,11 +381,12 @@ def validate_ip_address(user):
 		return
 
 	system_settings = frappe.get_cached_doc("System Settings")
-	bypass_restrict_ip_check = None
+	# check if bypass restrict ip is enabled for all users
+	bypass_restrict_ip_check = system_settings.bypass_restrict_ip_check_if_2fa_enabled
 
 	# check if two factor auth is enabled
-	if system_settings.enable_two_factor_auth and not system_settings.bypass_restrict_ip_check_if_2fa_enabled:
-		# check if bypass restrict ip is enabled for all users or check if bypass restrict ip is enabled for login user
+	if system_settings.enable_two_factor_auth and not bypass_restrict_ip_check:
+		# check if bypass restrict ip is enabled for login user
 		bypass_restrict_ip_check = user.bypass_restrict_ip_check_if_2fa_enabled
 
 	for ip in ip_list:
