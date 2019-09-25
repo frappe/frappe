@@ -108,16 +108,16 @@ def enable_scheduler():
 def disable_scheduler():
 	toggle_scheduler(False)
 
-def schedule_jobs_based_on_activity():
+def schedule_jobs_based_on_activity(check_time=None):
 	'''Returns True for active sites defined by Activity Log
 	Returns True for inactive sites once in 24 hours'''
-	if is_dormant():
+	if is_dormant(check_time=check_time):
 		# ensure last job is one day old
-		last_job = frappe.db.get_all('Scheduled Job Log', ('creation'), limit=1, order_by='creation desc')
-		if not last_job:
+		last_job_timestamp = frappe.db.get_last_created('Scheduled Job Log')
+		if not last_job_timestamp:
 			return True
 		else:
-			if (now_datetime() - get_datetime(last_job[0].creation)).seconds > 86400:
+			if ((check_time  or now_datetime()) - last_job_timestamp).total_seconds() >= 86400:
 				# one day is passed since jobs are run, so lets do this
 				return True
 			else:
@@ -127,12 +127,12 @@ def schedule_jobs_based_on_activity():
 		# site active, lets run the jobs
 		return True
 
-def is_dormant():
-	last_activity_log = frappe.db.get_all('Activity Log', ('modified'), limit=1, order_by='modified desc')
+def is_dormant(check_time=None):
+	last_activity_log_timestamp = frappe.db.get_last_created('Activity Log')
 	since = (frappe.get_system_settings('dormant_days') or 4) * 86400
-	if not last_activity_log:
+	if not last_activity_log_timestamp:
 		return True
-	if (now_datetime() - get_datetime(last_activity_log[0].modified)).seconds > since:
+	if ((check_time or now_datetime()) - last_activity_log_timestamp).total_seconds() >= since:
 		return True
 
 	return False

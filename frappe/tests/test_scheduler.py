@@ -4,14 +4,20 @@ from unittest import TestCase
 from dateutil.relativedelta import relativedelta
 from frappe.core.doctype.scheduled_job_type.scheduled_job_type import sync_jobs
 from frappe.utils.background_jobs import enqueue, get_jobs
-from frappe.utils.scheduler import enqueue_events
+from frappe.utils.scheduler import enqueue_events, is_dormant, schedule_jobs_based_on_activity
+from frappe.utils import add_days, get_datetime
 
 import frappe
 import time
 
 def test_timeout():
-	'''This function needs to be pickleable'''
 	time.sleep(100)
+
+def test_timeout_10():
+	time.sleep(10)
+
+def test_method():
+	pass
 
 class TestScheduler(TestCase):
 	def setUp(self):
@@ -30,23 +36,37 @@ class TestScheduler(TestCase):
 		self.assertTrue('frappe.email.doctype.auto_email_report.auto_email_report.send_monthly', frappe.flags.enqueued_jobs)
 
 	def test_queue_peeking(self):
-		if not frappe.db.exists('Scheduled Job Type', 'test_scheduler.test_timeout'):
-			job = frappe.get_doc(dict(
-				doctype = 'Scheduled Job Type',
-				method = 'frappe.tests.test_scheduler.test_timeout',
-				last_execution = '2010-01-01 00:00:00',
-				queue = 'All'
-			)).insert()
-			frappe.db.commit()
-		else:
-			job = frappe.get_doc('Scheduled Job Type', 'test_scheduler.test_timeout')
-
+		job = get_test_job()
 		self.assertTrue(job.enqueue())
 		job.db_set('last_execution', '2010-01-01 00:00:00')
 		frappe.db.commit()
-		time.sleep(1) # wait if job is not yet queued
+		time.sleep(3) # wait if job is not yet queued
 		self.assertFalse(job.enqueue())
 		job.delete()
+
+	def test_is_dormant(self):
+		self.assertTrue(is_dormant(check_time= get_datetime('2100-01-01 00:00:00')))
+		self.assertTrue(is_dormant(check_time = add_days(frappe.db.get_last_created('Activity Log'), 5)))
+		self.assertFalse(is_dormant(check_time = frappe.db.get_last_created('Activity Log')))
+
+	def test_once_a_day_for_dormant(self):
+		frappe.db.clear_table('Scheduled Job Log')
+		self.assertTrue(schedule_jobs_based_on_activity(check_time= get_datetime('2100-01-01 00:00:00')))
+		self.assertTrue(schedule_jobs_based_on_activity(check_time = add_days(frappe.db.get_last_created('Activity Log'), 5)))
+
+		# create a fake job executed 5 days from now
+		job = get_test_job(method='frappe.tests.test_scheduler.test_method', queue='Daily')
+		job.execute()
+		job_log = frappe.get_doc('Scheduled Job Log', dict(scheduled_job_type=job.name))
+		job_log.db_set('creation', add_days(frappe.db.get_last_created('Activity Log'), 5))
+
+		# inactive site with recent job, don't run
+		self.assertFalse(schedule_jobs_based_on_activity(check_time = add_days(frappe.db.get_last_created('Activity Log'), 5)))
+
+		# one more day has passed
+		self.assertTrue(schedule_jobs_based_on_activity(check_time = add_days(frappe.db.get_last_created('Activity Log'), 6)))
+
+		frappe.db.rollback()
 
 	def test_job_timeout(self):
 		return
@@ -59,3 +79,20 @@ class TestScheduler(TestCase):
 				break
 
 		self.assertTrue(job.is_failed)
+
+def get_test_job(method='frappe.tests.test_scheduler.test_timeout_10', queue='All'):
+	if not frappe.db.exists('Scheduled Job Type', dict(method=method)):
+		job = frappe.get_doc(dict(
+			doctype = 'Scheduled Job Type',
+			method = method,
+			last_execution = '2010-01-01 00:00:00',
+			queue = queue
+		)).insert()
+		frappe.db.commit()
+	else:
+		job = frappe.get_doc('Scheduled Job Type', dict(method=method))
+		job.db_set('last_execution', '2010-01-01 00:00:00')
+		job.db_set('queue', queue)
+
+	return job
+

@@ -1,11 +1,12 @@
 {
+ "actions": [],
  "creation": "2019-09-23 14:36:36.935869",
  "doctype": "DocType",
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
   "status",
-  "scheduled_job",
+  "scheduled_job_type",
   "details"
  ],
  "fields": [
@@ -20,7 +21,13 @@
    "reqd": 1
   },
   {
-   "fieldname": "scheduled_job",
+   "fieldname": "details",
+   "fieldtype": "Code",
+   "label": "Details",
+   "read_only": 1
+  },
+  {
+   "fieldname": "scheduled_job_type",
    "fieldtype": "Link",
    "in_list_view": 1,
    "in_standard_filter": 1,
@@ -28,15 +35,10 @@
    "options": "Scheduled Job Type",
    "read_only": 1,
    "reqd": 1
-  },
-  {
-   "fieldname": "details",
-   "fieldtype": "Code",
-   "label": "Details",
-   "read_only": 1
   }
  ],
- "modified": "2019-09-23 14:36:36.935869",
+ "links": [],
+ "modified": "2019-09-25 11:55:10.646458",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Scheduled Job Log",

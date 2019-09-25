@@ -69,10 +69,10 @@
  "links": [
   {
    "link_doctype": "Scheduled Job Log",
-   "link_fieldname": "scheduled_job"
+   "link_fieldname": "scheduled_job_type"
   }
  ],
- "modified": "2019-09-24 11:45:34.748779",
+ "modified": "2019-09-25 11:54:58.013623",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Scheduled Job Type",

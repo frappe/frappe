@@ -35,6 +35,10 @@ class ScheduledJobType(Document):
 						queue = self.get_queue_name(), job_type=self.method)
 					return True
 
+		else:
+			pass
+			#print('not yet due')
+
 		return False
 
 	def is_event_due(self, current_time = None):
@@ -90,7 +94,7 @@ class ScheduledJobType(Document):
 		if not self.create_log:
 			return
 		if not self.scheduler_log:
-			self.scheduler_log = frappe.get_doc(dict(doctype = 'Scheduled Job Log', scheduled_job=self.name)).insert(ignore_permissions=True)
+			self.scheduler_log = frappe.get_doc(dict(doctype = 'Scheduled Job Log', scheduled_job_type=self.name)).insert(ignore_permissions=True)
 		self.scheduler_log.db_set('status', status)
 		if status == 'Failed':
 			self.scheduler_log.db_set('details', frappe.get_traceback())
@@ -112,6 +116,7 @@ def execute_event(doc):
 def run_scheduled_job(job_type):
 	'''This is a wrapper function that runs a hooks.scheduler_events method'''
 	try:
+		print('executing job {}'.format(job_type))
 		frappe.get_doc('Scheduled Job Type', dict(method=job_type)).execute()
 	except Exception:
 		print(frappe.get_traceback())
