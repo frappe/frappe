@@ -3,7 +3,6 @@ frappe.provide('frappe.data_import');
 
 frappe.data_import.DataExporter = class DataExporter {
 	constructor(doctype) {
-		frappe.data_exporter = this;
 		this.doctype = doctype;
 		frappe.model.with_doctype(doctype, () => {
 			this.make_dialog();
@@ -17,22 +16,22 @@ frappe.data_import.DataExporter = class DataExporter {
 				{
 					fieldtype: 'Select',
 					fieldname: 'export_records',
-					label: __('Export Records'),
+					label: __('Export Type'),
 					options: [
 						{
-							label: __('Export All Records'),
+							label: __('All Records'),
 							value: 'all'
 						},
 						{
-							label: __('Export Filtered Records'),
+							label: __('Filtered Records'),
 							value: 'by_filter'
 						},
 						{
-							label: __('Export Blank Template'),
+							label: __('Blank Template'),
 							value: 'blank_template'
 						}
 					],
-					default: 'all',
+					default: 'blank_template',
 					change: () => {
 						this.update_record_count_message();
 					}

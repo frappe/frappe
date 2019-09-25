@@ -113,8 +113,23 @@ frappe.ui.form.on('Data Import Beta', {
 	},
 
 	download_template(frm) {
-			new frappe.data_import.DataExporter(frm.doc.reference_doctype);
-		});
+		if (frm.data_exporter) {
+			frm.data_exporter.dialog.show();
+			set_export_records();
+		} else {
+			frappe.require('/assets/js/data_import_tools.min.js', () => {
+				frm.data_exporter = new frappe.data_import.DataExporter(frm.doc.reference_doctype);
+				set_export_records();
+			});
+		}
+
+		function set_export_records() {
+			if (frm.doc.import_type === 'Insert New Records') {
+				frm.data_exporter.dialog.set_value('export_records', 'blank_template');
+			} else {
+				frm.data_exporter.dialog.set_value('export_records', 'all');
+			}
+		}
 	},
 
 	reference_doctype(frm) {
