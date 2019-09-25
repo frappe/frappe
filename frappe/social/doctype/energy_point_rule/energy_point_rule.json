@@ -12,6 +12,7 @@
   "for_doc_event",
   "condition",
   "points",
+  "for_assigned_users",
   "user_field",
   "multiplier_field",
   "max_points"
@@ -56,11 +57,11 @@
    "reqd": 1
   },
   {
+   "depends_on": "eval:!doc.for_assigned_users || doc.for_doc_event==='New'",
    "description": "The user from this field will be rewarded points",
    "fieldname": "user_field",
    "fieldtype": "Select",
-   "label": "User Field",
-   "reqd": 1
+   "label": "User Field"
   },
   {
    "fieldname": "multiplier_field",
@@ -69,7 +70,7 @@
   },
   {
    "depends_on": "eval:doc.multiplier_field",
-   "description": "Maximum points allowed after multiplying points with the multiplier value\n(Note: For no limit set value as 0)",
+   "description": "Maximum points allowed after multiplying points with the multiplier value\n(Note: For no limit leave this field empty or set 0)",
    "fieldname": "max_points",
    "fieldtype": "Int",
    "label": "Maximum Points"
@@ -84,9 +85,17 @@
    "fieldtype": "Select",
    "label": "For Document Event",
    "options": "New\nSubmit\nCancel\nCustom"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:doc.for_doc_event !=='New'",
+   "description": "Users assigned to the reference document will get points.",
+   "fieldname": "for_assigned_users",
+   "fieldtype": "Check",
+   "label": "Allot Points To Assigned Users"
   }
  ],
- "modified": "2019-09-05 14:22:27.664645",
+ "modified": "2019-09-20 11:26:26.101557",
  "modified_by": "Administrator",
  "module": "Social",
  "name": "Energy Point Rule",

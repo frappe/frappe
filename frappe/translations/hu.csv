@@ -14,7 +14,6 @@ apps/frappe/frappe/www/third_party_apps.py,You need to be logged in to access th
 DocType: System Settings,Note: Multiple sessions will be allowed in case of mobile device,Megjegyzés: Több szakasz lesz megengedve a mobil eszköz esetén
 DocType: DocType,Form Settings,Űrlapbeállítások
 apps/frappe/frappe/templates/emails/download_data.html,Download Data,Töltse le az adatokat
-apps/frappe/frappe/email/queue.py,Cannot send this email. You have crossed the sending limit of {0} emails for this month.,Ez az e-mail nem küldhető. Átléphette ezt a küldési limt felső határt: {0} az e-mailekre  ebben a hónapban.
 apps/frappe/frappe/public/js/frappe/form/form.js,Permanently Submit {0}?,Véglegesen Küldje {0}?
 apps/frappe/frappe/desk/page/backups/backups.js,Download Files Backup,Fájlok biztonsági mentéseinek letöltése
 DocType: Address,County,Megye
@@ -30,9 +29,9 @@ apps/frappe/frappe/public/js/frappe/views/file/file_view.js,Import Zip,Zip impor
 apps/frappe/frappe/model/base_document.py,Value too big,Túl nagy érték
 DocType: DocField,DocField,DocField
 DocType: GSuite Settings,Run Script Test,Script teszt futtatás
+apps/frappe/frappe/desk/doctype/event/event.py,Select Google Calendar to which event should be synced.,"Válassza ki azt a Google Naptárt, amelyhez szinkronizálni kell az eseményt."
 DocType: Data Import,Total Rows,Összes sor
 DocType: Contact,Department,Részleg
-apps/frappe/frappe/integrations/doctype/google_contacts/google_contacts.py,No Google Contacts present to sync.,Nincs szinkronizált Google névjegy.
 DocType: DocField,Options,Választhatók
 apps/frappe/frappe/client.py,Cannot edit standard fields,Nem szerkesztheti az alapértelmezett mezőket
 DocType: Print Format,Print Format Builder,Nyomtatvány sablon készítő
@@ -75,11 +74,14 @@ DocType: Workflow State,th-large,TH-nagy
 DocType: Communication,Unread Notification Sent,Olvasatlan küldött értesítés
 apps/frappe/frappe/public/js/frappe/utils/tools.js,Export not allowed. You need {0} role to export.,Export nem engedélyezett. A {0} beosztás szükséges az exporthoz.
 DocType: Assignment Rule,Automatically Assign Documents to Users,Dokumentumok automatikus hozzárendelése a felhasználókhoz
+apps/frappe/frappe/public/js/frappe/social/components/Post.vue,Unpin,Kibont
 DocType: System Settings,In seconds,Másodpercek alatt
 apps/frappe/frappe/public/js/frappe/list/list_view.js,Cancel {0} documents?,{0} dokumentumok  törlése?
 DocType: DocType,Is Published Field,Ez Közzététel mező
 DocType: GCalendar Settings,GCalendar Settings,GNaptár beállítások
 DocType: Email Group,Email Group,E-mail csoport
+apps/frappe/frappe/integrations/doctype/google_calendar/google_calendar.py,"Google Calendar - Could not delete Event {0} from Google Calendar, error code {1}.","Google Naptár - A (z) {0} esemény nem törölhető a Google Naptárból, hibakód: {1}."
+DocType: Event,Pulled from Google Calendar,Húzza a Google Naptárból
 DocType: Note,Seen By,Látta
 apps/frappe/frappe/public/js/frappe/form/grid.js,Add Multiple,Többszörös hozzáadás
 apps/frappe/frappe/social/doctype/energy_point_log/energy_point_log.py,You gained some energy points,Ön szerzett néhány energiapontot
@@ -97,6 +99,7 @@ DocType: Contact Us Settings,"Contact options, like ""Sales Query, Support Query
 apps/frappe/frappe/public/js/frappe/ui/tag_editor.js,Add a tag ...,Címke hozzáadás ...
 apps/frappe/frappe/public/js/frappe/form/print.js,Portrait,portré
 DocType: Data Migration Run,Insert,Beszúr
+apps/frappe/frappe/integrations/doctype/google_drive/google_drive.py,Allow Google Drive Access,Google Drive hozzáférés engedélyezése
 apps/frappe/frappe/public/js/frappe/form/link_selector.js,Select {0},Válassza ki a {0}
 apps/frappe/frappe/integrations/doctype/social_login_key/social_login_key.py,Please enter Base URL,"Kérjük, adja meg az alap URL-t"
 DocType: DocType,"If enabled, the document is marked as seen, the first time a user opens it","Ha engedélyezve van, akkor a dokumentumot látottként jelöli meg, amikor a felhasználó először nyitja meg"
@@ -109,7 +112,7 @@ DocType: System Settings,Time in seconds to retain QR code image on server. Min:
 apps/frappe/frappe/public/js/frappe/views/inbox/inbox_view.js,Invalid Email Account,Érvénytelen e-mail fiók
 apps/frappe/frappe/core/doctype/doctype/doctype.py,{0}:Fieldtype {1} for {2} cannot be indexed,{0}: A (z) {2} {1} mezőtípusa nem indexálható
 DocType: Dashboard Chart,Timespan,Időtartam
-apps/frappe/frappe/public/js/frappe/ui/upload.html,Web Link,Web elérési útvonal
+apps/frappe/frappe/public/js/frappe/file_uploader/FileUploader.vue,Web Link,Web elérési útvonal
 DocType: Deleted Document,Restored,Visszaállított
 apps/frappe/frappe/public/js/frappe/utils/pretty_date.js,1 minute ago,1 perce
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,"Apart from System Manager, roles with Set User Permissions right can set permissions for other users for that Document Type.","Rendszergazdán kívül, beállított felhasználói engedélyekkel rendelkező beosztásokkal ehhez a Doctype típushoz tartozó felhasználók számára beállíthat engedélyeket."
@@ -125,9 +128,12 @@ apps/frappe/frappe/database/mariadb/schema.py,"{0} field cannot be set as unique
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js,Document Types,Dokumentum típusok
 DocType: Address,Jammu and Kashmir,Dzsammu és Kasmír
 DocType: Workflow,Workflow State Field,Munkafolyamat állapotmező
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Setup &gt; User,Beállítás&gt; Felhasználó
 DocType: Language,Guest,Vendég
 DocType: DocType,Title Field,Cím mező
 DocType: Error Log,Error Log,Hiba napló
+apps/frappe/frappe/public/js/frappe/file_uploader/FileUploader.vue,Invalid URL,érvénytelen URL
+apps/frappe/frappe/public/js/frappe/ui/toolbar/energy_points_notifications.js,Last 7 days,Az elmúlt 7 nap
 apps/frappe/frappe/utils/password_strength.py,"Repeats like ""abcabcabc"" are only slightly harder to guess than ""abc""","Megismétli, mint a &quot;abcabcabc&quot; csak kicsit nehezebb kitalálni, mint az &quot;abc&quot;"
 DocType: Notification,Channel,Csatorna
 apps/frappe/frappe/templates/emails/administrator_logged_in.html,"If you think this is unauthorized, please change the Administrator password.","Ha úgy gondolja, ez nem engedélyezett, kérjük, változtassa meg a rendszergazdai jelszót."
@@ -173,6 +179,7 @@ apps/frappe/frappe/public/js/frappe/views/file/file_view.js,File Manager,Fájlke
 DocType: Website Settings,"HTML Header, Robots and Redirects","HTML fejléc, robotok és átirányítások"
 DocType: GCalendar Account,Refresh Token,Token frissítése
 DocType: Address,Goa,Goa
+apps/frappe/frappe/core/page/background_jobs/background_jobs.html,No pending or current jobs for this site,Nincsenek függőben lévő vagy jelenlegi munkahelyek ezen a webhelyen
 DocType: Webhook,Doc Event,Doc Esemény
 apps/frappe/frappe/public/js/frappe/utils/user.js,You,Ön
 DocType: Braintree Settings,Braintree Settings,Braintree beállításai
@@ -188,6 +195,7 @@ DocType: Communication,BCC,BCC
 DocType: Unhandled Email,Reason,Ok
 DocType: Email Unsubscribe,Email Unsubscribe,Email Leiratkozás
 DocType: Website Settings,Select an image of approx width 150px with a transparent background for best results.,"Válasszon ki egy képet kb. 150px szélességüt, átlátszó háttérrel a legjobb eredményhez."
+apps/frappe/frappe/public/js/frappe/ui/toolbar/energy_points_notifications.js,No activity,Nincs aktivitás
 apps/frappe/frappe/www/third_party_apps.html,Third Party Apps,Harmadik féltől származó alkalmazások
 apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js,The first user will become the System Manager (you can change this later).,Az első felhasználó lesz a Rendszergazda (meg lehet változtatni erről később).
 apps/frappe/frappe/social/doctype/energy_point_log/energy_point_log.py,You cannot give review points to yourself,Nem adhat át értékelési pontokat magadnak
@@ -204,6 +212,7 @@ apps/frappe/frappe/config/desk.py,Event and other calendars.,Esemény és egyéb
 apps/frappe/frappe/templates/includes/comments/comments.html,All fields are necessary to submit the comment.,Minden mező kitöltése szükséges benyújtani a megjegyzést.
 DocType: Custom Script,Adds a client custom script to a DocType,Hozzáad egy kliens egyéni szkriptet a DocType-hez
 DocType: Print Settings,Printer Name,A nyomtató neve
+DocType: Webhook,Form URL-Encoded,Űrlap URL-kódolva
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder_column_selector.html,Widths can be set in px or %.,Szélesség állítható mérete: px illetve %.
 apps/frappe/frappe/public/js/frappe/form/print.js,Start,Kezdés
 DocType: Contact,First Name,Vezetéknév
@@ -222,6 +231,7 @@ apps/frappe/frappe/website/doctype/website_theme/website_theme.py,You are not al
 DocType: Data Import,Log Details,Napló részletei
 DocType: Workflow Transition,Example,Példa
 DocType: Webhook Header,Webhook Header,Webes hívatkozások fejléce
+DocType: Access Log,Report Information,Jelentés információ
 DocType: Print Settings,Print Server,Nyomtatószerver
 DocType: Workflow State,gift,ajándék
 DocType: Communication,Timeline Links,Idővonal linkek
@@ -241,6 +251,7 @@ DocType: Bulk Update,Bulk Update,Tömeges frissítés
 DocType: Workflow State,chevron-up,Chevron-fel
 DocType: DocType,Allow Guest to View,Vendég nézet engedélyezése
 apps/frappe/frappe/automation/doctype/auto_repeat/auto_repeat.py,{0} should not be same as {1},"A (z) {0} nem lehet ugyanaz, mint a (z) {1}"
+apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,"For comparison, use &gt;5, &lt;10 or =324. For ranges, use 5:10 (for values between 5 &amp; 10).","Összehasonlításként használjon&gt; 5, &lt;10 vagy = 324. A tartományokhoz használja az 5:10 értéket (az 5 és 10 közötti értékekhez)."
 DocType: Webhook,on_change,on_change
 apps/frappe/frappe/public/js/frappe/list/list_view.js,Delete {0} items permanently?,{0} tétel végelges törlése?
 apps/frappe/frappe/utils/oauth.py,Not Allowed,Nem engedélyezett
@@ -270,12 +281,14 @@ DocType: Communication,Rating,Értékelés
 DocType: Customize Form Field,"Print Width of the field, if the field is a column in a table","Nyomtatási szélesség a területen, ha a mező egy oszlop a táblázatban"
 DocType: Dropbox Settings,Dropbox Access Key,Dropbox belépési kulcs
 apps/frappe/frappe/desk/form/utils.py,Wrong fieldname <b>{0}</b> in add_fetch configuration of custom script,Az egyedi parancsfájl add_fetch konfigurációjában hibás mezőnév <b>{0}</b>
+apps/frappe/frappe/contacts/doctype/contact/contact.py,Select Google Contacts to which contact should be synced.,"Válassza ki azokat a Google Névjegyeket, amelyekkel szinkronizálni kell a kapcsolatot."
 DocType: Workflow State,headphones,fejhallgató
 apps/frappe/frappe/email/doctype/email_account/email_account.py,Password is required or select Awaiting Password,"Jelszó szükséges, vagy válassza a Várakozás jelszót"
 DocType: Email Account,e.g. replies@yourcomany.com. All replies will come to this inbox.,pl. valaszok@cegem.hu. Minden válasz ebbe a postafiókba fog jönni.
 DocType: Slack Webhook URL,Slack Webhook URL,Laza Webhook URL
 DocType: Data Migration Run,Current Mapping,Aktuális leképzés
 apps/frappe/frappe/templates/includes/login/login.js,Valid email and name required,Érvényes e-mail és név szükséges
+apps/frappe/frappe/public/js/frappe/file_uploader/FileUploader.vue,Make all attachments private,Az összes mellékletet tegye privátnak
 DocType: User,Send Notifications for documents followed by me,Értesítések küldése az általam követett dokumentumokról
 apps/frappe/frappe/core/doctype/user_permission/user_permission_list.js,Add User Permissions,Adjon hozzá felhasználói engedélyeket
 DocType: Session Default Settings,Session Default Settings,Munkamenet alapértelmezett beállításai
@@ -302,6 +315,7 @@ apps/frappe/frappe/model/workflow.py,Applying: {0},Jelentkezés: {0}
 apps/frappe/frappe/public/js/frappe/request.js,Internal Server Error,Belső Szerverhiba
 apps/frappe/frappe/config/settings.py,Update many values at one time.,Frissítsen sok értéket egyszerre.
 apps/frappe/frappe/model/document.py,Error: Document has been modified after you have opened it,"Hiba: A dokumentum módosításra került, miután megnyitotta"
+apps/frappe/frappe/core/page/background_jobs/background_jobs.html,Job,Munka
 apps/frappe/frappe/core/doctype/activity_log/feed.py,{0} logged out: {1},{0} kijelentkezett: {1}
 DocType: Address,West Bengal,Nyugat-Bengál
 apps/frappe/frappe/core/doctype/doctype/doctype.py,{0}: Cannot set Assign Submit if not Submittable,"{0}: Nem állítható Hozzárendelés küldésre, ha nem Küldhető"
@@ -371,7 +385,9 @@ apps/frappe/frappe/templates/includes/login/login.js,Instructions Emailed,Utasí
 apps/frappe/frappe/public/js/frappe/views/communication.js,Enter Email Recipient(s),Adja meg e-mail címzett(ek)et
 DocType: Print Format,Verdana,Verdana
 apps/frappe/frappe/core/doctype/success_action/success_action.js,Select atleast 2 actions,Válasszon legalább 2 műveletet
+apps/frappe/frappe/public/js/frappe/barcode_scanner/quagga.js,Scan Barcode,Barcode beolvasás
 DocType: Email Flag Queue,Email Flag Queue,E-mail zászló sorrend
+DocType: Access Log,Columns / Fields,Oszlopok / mezők
 apps/frappe/frappe/config/settings.py,Stylesheets for Print Formats,Stíluslapok nyomtatási formátumokhoz
 apps/frappe/frappe/utils/bot.py,Can't identify open {0}. Try something else.,Nem tudja azonosítani a megnyitott: {0}. Próbáljon ki valami mást.
 apps/frappe/frappe/public/js/frappe/web_form/web_form.js,Your information has been submitted,Az információját benyújtották
@@ -385,13 +401,12 @@ DocType: Auto Repeat,Yearly,Évi
 DocType: Communication,Message ID,Üzenet ID
 DocType: Property Setter,Field Name,Mező neve
 DocType: Assignment Rule,Assign To Users,Hozzárendelés a felhasználók számára
-apps/frappe/frappe/integrations/doctype/gsuite_settings/gsuite_settings.py,Google GSuite is not configured.,Google GSuite nincs beállítva.
 apps/frappe/frappe/public/js/frappe/utils/utils.js,or,vagy
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js,module name...,modul neve ...
 apps/frappe/frappe/templates/pages/integrations/payment-success.html,Continue,Folytatás
+apps/frappe/frappe/integrations/doctype/google_drive/google_drive.py,Google Integration is disabled.,A Google Integráció le van tiltva.
 DocType: Custom Field,Fieldname,Mezőnév
 DocType: Workflow State,certificate,tanusítvány
-DocType: User,Tile,Megszólítás
 apps/frappe/frappe/templates/includes/login/login.js,Verifying...,Ellenőrzés...
 apps/frappe/frappe/core/doctype/data_export/exporter.py,First data column must be blank.,Az első adat oszlopot üresen kell hagyni.
 apps/frappe/frappe/core/doctype/version/version.js,Show all Versions,Összes verzió mutatása
@@ -401,13 +416,14 @@ DocType: Energy Point Log,Review,Felülvizsgálat
 DocType: User,Restrict IP,IP korlátozás
 apps/frappe/frappe/core/page/dashboard/dashboard.js,Dashboard,Műszerfal
 apps/frappe/frappe/email/smtp.py,Unable to send emails at this time,Nem lehet e-mailt küldeni most
+apps/frappe/frappe/integrations/doctype/google_calendar/google_calendar.py,"Google Calendar - Could not update Event {0} in Google Calendar, error code {1}.","Google Naptár - A (z) {0} esemény nem frissíthető a Google Naptárban, hibakód: {1}."
 apps/frappe/frappe/public/js/frappe/ui/toolbar/navbar.html,Search or type a command,Keressen vagy írja be a parancsot
 DocType: Activity Log,Timeline Name,Idővonal neve
 DocType: Email Account,e.g. smtp.gmail.com,pl. smtp.gmail.com
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js,Add A New Rule,Új szabály hozzáadása
 DocType: Contact,Sales Master Manager,Értékesítési törzsadat kezelő
 DocType: User Permission,For Value,Értékért
-DocType: GCalendar Account,Google Calendar ID,Google naptár azonosító ID
+DocType: Event,Google Calendar ID,Google naptár azonosító ID
 apps/frappe/frappe/www/complete_signup.html,One Last Step,Egy utolsó lépés
 apps/frappe/frappe/config/settings.py,Import Data,Adato importálás
 apps/frappe/frappe/custom/doctype/custom_field/custom_field.js,Name of the Document Type (DocType) you want this field to be linked to. e.g. Customer,Dokument Típus (DocType) név melyet ehhez a mezőhöz szeretne kötni. pl Vevő
@@ -421,10 +437,11 @@ apps/frappe/frappe/integrations/doctype/google_contacts/google_contacts.js,Impor
 DocType: GCalendar Account,Allow GCalendar Access,GCalendar hozzáférés engedélyezése
 apps/frappe/frappe/core/doctype/data_import/importer.py,{0} is a mandatory field,A(z) {0} egy kötelező mező
 apps/frappe/frappe/templates/includes/login/login.js,Login token required,Bejelentkezési token szükséges
+apps/frappe/frappe/desk/page/user_profile/user_profile.js,Monthly Rank: ,Havi rang:
 apps/frappe/frappe/public/js/frappe/list/list_view.js,Select multiple list items,Válasszon több listaelemet
 DocType: Event,Repeat Till,Ismételje Till
 apps/frappe/frappe/public/js/frappe/ui/toolbar/search_utils.js,New,Új
-apps/frappe/frappe/integrations/doctype/gsuite_settings/gsuite_settings.py,Please set script URL on Gsuite Settings,"Kérjük, állítsa be a script URL elérési utat a Gsuite beállításoknál"
+apps/frappe/frappe/public/js/frappe/views/components/ModuleLinkItem.vue,You need to create these first: ,Először ezeket kell létrehoznia:
 DocType: Google Maps Settings,Google Maps Settings,A Google Térkép beállításai
 apps/frappe/frappe/core/page/dashboard/dashboard.js,Loading...,Betöltés...
 DocType: DocField,Password,Jelszó
@@ -441,6 +458,7 @@ DocType: File,File URL,Fájl URL
 DocType: Version,Table HTML,Táblázat HTML
 apps/frappe/frappe/email/doctype/email_group/email_group.js,Add Subscribers,Előfizetők hozzáadása
 apps/frappe/frappe/desk/doctype/event/event.py,Upcoming Events for Today,"A mai nap eseményei, teendői"
+DocType: Google Calendar,Push to Google Calendar,Nyomja meg a Google Naptárt
 DocType: Notification Recipient,Email By Document Field,Email dokumentum mezőből
 DocType: Domain Settings,Domain Settings,Domén beállítások
 apps/frappe/frappe/email/receive.py,Cannot connect: {0},Nem lehet csatlakozni: {0}
@@ -455,9 +473,11 @@ DocType: Currency,Fraction Units,Törtrész egységei
 apps/frappe/frappe/public/js/frappe/form/footer/timeline.js,{0} from {1} to {2},{0} az {1} és {2} közt
 apps/frappe/frappe/public/js/frappe/ui/toolbar/user_progress_dialog.js,Mark as Done,Jelölje elvégzettnek
 DocType: Chat Message,Type,Típus
+DocType: Google Settings,OAuth Client ID,OAuth kliens azonosító
 DocType: Auto Repeat,Subject,Tárgy
 apps/frappe/frappe/templates/pages/integrations/gcalendar-success.html,Back to Desk,Vissza az asztalhoz
 DocType: Web Form,Amount Based On Field,Összeg a mező alapján
+apps/frappe/frappe/email/smtp.py,Please setup default Email Account from Setup &gt; Email &gt; Email Account,"Kérjük, állítsa be az alapértelmezett e-mail fiókot a Beállítás&gt; E-mail&gt; E-mail fiók menüben"
 apps/frappe/frappe/core/doctype/docshare/docshare.py,User is mandatory for Share,Felhasználói kötelező a Megosztáshoz
 DocType: DocField,Hidden,Rejtett
 DocType: Web Form,Allow Incomplete Forms,Befejezetlen nyomtatvány engedélyezése
@@ -468,6 +488,7 @@ DocType: Workflow State,plane,sík
 apps/frappe/frappe/website/doctype/website_theme/website_theme.js,Rounded Corners,Lekerekített sarok
 apps/frappe/frappe/core/doctype/data_export/exporter.py,"If you are uploading new records, ""Naming Series"" becomes mandatory, if present.","Ha új rekordokat tölt fel, az ""Elnevezési sorozatok"" kötelezővé válik, ha van ilyen."
 apps/frappe/frappe/email/doctype/notification/notification.js,Get Alerts for Today,Értesítést kaphat mai napról
+DocType: Contact,Google Contacts Id,Google Névjegy Id
 apps/frappe/frappe/core/doctype/doctype/doctype.py,DocType can only be renamed by Administrator,DocType-ot csak Admin nevezhet át
 apps/frappe/frappe/public/js/frappe/ui/filters/filter.js,6 months,6 hónap
 apps/frappe/frappe/printing/doctype/letter_head/letter_head.py,Please attach an image file to set HTML,"Kérjük, csatoljon egy képfájlt a HTML beállításához"
@@ -478,14 +499,13 @@ apps/frappe/frappe/public/js/frappe/form/footer/timeline.js,changed value of {0}
 DocType: Report,JSON,JSON
 apps/frappe/frappe/core/doctype/user/user.py,Please check your email for verification,"Kérjük, ellenőrizze e-mail a vizsgálathoz"
 apps/frappe/frappe/core/doctype/doctype/doctype.py,Fold can not be at the end of the form,Becsukás nem lehet az űrlap végén
-apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,"For comparison, use &gt;5, &lt;10 or =324. For ranges, use 5:10 (for values between 5 &amp; 10).","Összehasonlításként használjon&gt; 5, &lt;10 vagy = 324. A tartományokhoz használja az 5:10 értéket (az 5 és 10 közötti értékekhez)."
 DocType: Communication,Bounced,Visszapattant
-apps/frappe/frappe/email/smtp.py,Please setup default Email Account from Setup &gt; Email &gt; Email Account,"Kérjük, állítsa be az alapértelmezett e-mail fiókot a Beállítás&gt; E-mail&gt; E-mail fiók menüben"
 DocType: Deleted Document,Deleted Name,Törölt név
 apps/frappe/frappe/config/users_and_permissions.py,System and Website Users,Rendszer és a weboldal használói
 DocType: Workflow Document State,Doc Status,Dokumentum állapota
 DocType: Data Migration Run,Pull Update,Kihúzza a frissítést
 DocType: Auto Email Report,No of Rows (Max 500),Sorok száma (max 500)
+apps/frappe/frappe/public/js/frappe/ui/group_by/group_by.html,Select Field...,Válassza a mezőt ...
 DocType: Language,Language Code,Nyelvi kód
 DocType: Dropbox Settings,Note: By default emails for failed backups are sent.,Megjegyzés: Alapértelmezés szerint a sikertelen biztonsági másolatok e-mailjei kerülnek elküldésre.
 apps/frappe/frappe/public/js/frappe/ui/filters/filters.js,Add Filter,Szűrő hozzáadása
@@ -521,9 +541,8 @@ apps/frappe/frappe/utils/file_manager.py,No file attached,Nincs csatolt fájl
 DocType: Version,Version,Verzió
 DocType: S3 Backup Settings,Endpoint URL,Végpont URL
 DocType: Dashboard,Charts,Táblázatok
-DocType: User,Fill Screen,Képernyő kitöltése
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Permissions are automatically applied to Standard Reports and searches.,Engedélyek automatikusan alkalmazásra kerülnek az általános jelentések és keresések esetén.
-apps/frappe/frappe/public/js/frappe/socketio_client.js,Upload Failed,Feltöltés sikertelen
+apps/frappe/frappe/public/js/frappe/file_uploader/FilePreview.vue,Upload Failed,Feltöltés sikertelen
 apps/frappe/frappe/social/doctype/energy_point_log/energy_point_log.py,Stats based on last week's performance (from {0} to {1}),A statisztikák a múlt heti teljesítmény alapján ({0} - {1})
 DocType: LDAP Settings,LDAP Phone Field,LDAP telefonmező
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js,"document type..., e.g. customer","dokumentum típus ..., pl vevő"
@@ -556,12 +575,15 @@ apps/frappe/frappe/public/js/frappe/views/reports/print_tree.html,Page {0} of {1
 DocType: About Us Settings,Introduce your company to the website visitor.,Mutassa be a cégét a honlap látogatóinak.
 apps/frappe/frappe/utils/password.py,"Encryption key is invalid, Please check site_config.json","A titkosítási kulcs érvénytelen, Kérjük, ellenőrizze site_config.json fájlt"
 DocType: SMS Settings,Receiver Parameter,Fogadó fél Paraméterei
+apps/frappe/frappe/public/js/frappe/file_uploader/FilePreview.vue,Toggle Public/Private,Váltás köz / magán
 DocType: Data Migration Mapping Detail,Remote Fieldname,Távoli Mezőnév
 DocType: Communication,To,Címzett
 apps/frappe/frappe/social/doctype/energy_point_log/energy_point_log_list.js,View Ref,View Ref
+apps/frappe/frappe/public/js/frappe/desk.js,Places,Helyek
 DocType: Kanban Board Column,darkgrey,sötétszürke
 apps/frappe/frappe/model/rename_doc.py,Successful: {0} to {1},Sikeres: {0} - {1}
 apps/frappe/frappe/core/doctype/user/user.py,Cannot change user details in demo. Please signup for a new account at https://erpnext.com,Nem lehet megváltoztatni a felhasználói adatokat a demoban. Kérjük regisztráljon egy új fiókot itt: https://erpnext.com
+apps/frappe/frappe/public/js/frappe/ui/dropzone.js,Drop,Csepp
 apps/frappe/frappe/printing/doctype/print_format/print_format.js,Please duplicate this to make changes,Kérjük kétszerezze meg ezt a változtatásra
 apps/frappe/frappe/public/js/frappe/list/list_filter.js,Press Enter to save,Nyomja meg az Enter billentyűt a mentéshez
 apps/frappe/frappe/utils/pdf.py,PDF generation failed because of broken image links,"PDF létrehozás nem sikerült, törött kép linkek miatt"
@@ -599,7 +621,9 @@ DocType: Print Format,Format Data,Adat formátum
 DocType: List Filter,Filter Name,Szűrő neve
 apps/frappe/frappe/public/js/frappe/ui/filters/filters.js,Like,Mint
 DocType: Assignment Rule,Automation,Automatizálás
+DocType: Google Drive,Last Backup On,Utolsó biztonsági mentés be
 DocType: Customize Form Field,Customize Form Field,Űrlap mezőjének testreszabása
+DocType: Energy Point Rule,For Document Event,A dokumentum eseményhez
 DocType: Website Settings,Chat Room Name,Csevegő szoba neve
 DocType: OAuth Client,Grant Type,Típus támogatása
 apps/frappe/frappe/config/users_and_permissions.py,Check which Documents are readable by a User,"Ellenőrizze, hogy mely dokumentumok olvashatók egy Felhasználó részére"
@@ -665,7 +689,6 @@ DocType: Address,Nagaland,Nagaland
 DocType: Slack Webhook URL,Webhook URL,Webes hívatkozás URL
 apps/frappe/frappe/core/doctype/user/user.py,Username {0} already exists,Felhasználónév {0} már létezik
 apps/frappe/frappe/core/doctype/doctype/doctype.py,{0}: Cannot set import as {1} is not importable,"{0}: {1} nem állítható be importálásra, mivel nem importálható"
-apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Setup &gt; Customize Form,Beállítás&gt; Az űrlap testreszabása
 apps/frappe/frappe/contacts/doctype/address/address.py,There is an error in your Address Template {0},Van egy hiba ebben a Címsablonban {0}
 apps/frappe/frappe/automation/doctype/auto_repeat/auto_repeat.py,{0} is an invalid email address in 'Recipients',{0} egy érvénytelen e-mail cím a 'Címzettek' közt
 DocType: Footer Item,"target = ""_blank""","target = ""_blank"""
@@ -699,6 +722,8 @@ DocType: User,Send Notifications for Email threads,Értesítések küldése e-ma
 apps/frappe/frappe/desk/page/setup_wizard/install_fixtures.py,Prof,Prof
 apps/frappe/frappe/core/doctype/page/page.py,Not in Developer Mode,Nem a Fejlesztői módban
 apps/frappe/frappe/desk/page/backups/backups.py,File backup is ready,A fájl biztonsági mentésre kész
+DocType: Energy Point Rule,"Maximum points allowed after multiplying points with the multiplier value
+(Note: For no limit set value as 0)",A megengedett pontok maximális száma a szorzó értékével való megszorzás után (Megjegyzés: Nincs határérték 0-ra állítva)
 DocType: DocField,In Global Search,Globális keresésben
 DocType: System Settings,Brute Force Security,Brute Force biztonság
 DocType: Workflow State,indent-left,behúzás-balra
@@ -743,6 +768,7 @@ apps/frappe/frappe/website/doctype/website_slideshow/website_slideshow.js,First 
 apps/frappe/frappe/public/js/frappe/form/sidebar/share.js,Shared with {0},Megosztva vele {0}
 apps/frappe/frappe/email/queue.py,Unsubscribe,Leiratkozás
 DocType: View Log,Reference Name,Hivatkozott tétel
+apps/frappe/frappe/desk/page/user_profile/user_profile.js,Change User,Felhasználó módosítása
 apps/frappe/frappe/public/js/frappe/views/translation_manager.js,Update Translations,Fordítások frissítése
 DocType: Error Snapshot,Exception,Kivétel
 DocType: Email Account,Use IMAP,IMAP használata
@@ -806,7 +832,6 @@ DocType: Data Migration Mapping,Mapping,Térképezés
 DocType: Web Page,0 is highest,0 a legnagyobb
 apps/frappe/frappe/public/js/frappe/microtemplate.js,Please enable pop-ups in your browser,"Kérjük, engedélyezze az előugró ablakokat a böngészőjében"
 apps/frappe/frappe/core/doctype/communication/communication.js,Are you sure you want to relink this communication to {0}?,"Biztos benne, hogy szeretné összekapcsolni ezt a kommunikációt ezzel: {0}?"
-apps/frappe/frappe/www/login.html,Send Password,Jelszó kiküldése
 DocType: Print Settings,Server IP,Szerver IP
 DocType: Email Queue,Attachments,Mellékletek
 apps/frappe/frappe/website/doctype/web_form/web_form.py,You don't have the permissions to access this document,Nincs jogosultsága a dokumentum eléréséhez
@@ -838,9 +863,12 @@ DocType: Contact Us Settings,Contact Us Settings,Kapcsolat beállítások
 apps/frappe/frappe/public/js/frappe/ui/toolbar/search.js,Searching ...,Keresés ...
 DocType: Workflow State,text-width,szöveg-szélesség
 apps/frappe/frappe/public/js/frappe/form/form.js,Maximum Attachment Limit for this record reached.,Elérte a maximális csatolmány korlátot ehhez a bejegyzéshez
+apps/frappe/frappe/public/js/frappe/file_uploader/FileBrowser.vue,Search by filename or extension,Keresés fájlnév vagy kiterjesztés szerint
 DocType: Notification,View Properties (via Customize Form),Tulajdonságok megtekintése (itt: Űrlap testreszabása)
+apps/frappe/frappe/public/js/frappe/file_uploader/FileUploader.vue,Click on a file to select it.,Kattintson egy fájlra a kiválasztásához.
 DocType: Note Seen By,Note Seen By,Megjegyzést láttta
 apps/frappe/frappe/utils/password_strength.py,Try to use a longer keyboard pattern with more turns,"Próbáld ki, hogy egy hosszabb billentyűzet mintát használ több menetben"
+apps/frappe/frappe/desk/page/user_profile/user_profile_sidebar.html,LeaderBoard,Ranglista
 DocType: DocType,Default Sort Order,Alapértelmezett rendezési sorrend
 DocType: Address,Rajasthan,Rajasthan
 DocType: Email Template,Email Reply Help,E-mail válasz súgó
@@ -866,7 +894,7 @@ apps/frappe/frappe/public/js/frappe/utils/pretty_date.js,{0} days ago,{0} napja
 DocType: Email Account,Awaiting Password,Várakozás jelszóra
 DocType: Address,Address Line 1,1. cím sor
 apps/frappe/frappe/public/js/frappe/ui/filters/filter.js,Not Descendants Of,Nem leszármazottjai
-apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Setup &gt; User,Beállítás&gt; Felhasználó
+DocType: Contact,Company Name,Válallkozás neve
 DocType: Custom DocPerm,Role,Beosztás
 apps/frappe/frappe/public/js/frappe/form/templates/print_layout.html,Settings...,Beállítások...
 apps/frappe/frappe/templates/emails/delete_data_confirmation.html, to your browser,a böngészőbe
@@ -889,6 +917,7 @@ DocType: Footer Item,Link to the page you want to open. Leave blank if you want 
 DocType: DocType,Is Single,Ez egyedi
 apps/frappe/frappe/core/doctype/user/user.py,Sign Up is disabled,Regisztráció letiltott
 apps/frappe/frappe/email/queue.py,{0} has left the conversation in {1} {2},{0} elhagyta a párbeszédet itt {1} {2}
+DocType: Access Log,Show Document,A dokumentum megjelenítése
 DocType: Blogger,User ID of a Blogger,Felhasználói azonosító egy Bloggernek
 apps/frappe/frappe/core/doctype/user/user.py,There should remain at least one System Manager,Maradnia kell legalább egy Rendszergazdának
 DocType: GCalendar Account,Authorization Code,Hitelesítő kód
@@ -905,7 +934,7 @@ DocType: LDAP Settings,Organizational Unit for Users,Szervezeti egység a felhas
 ,Transaction Log Report,Tranzakciós napló jelentés
 DocType: Custom DocPerm,Custom DocPerm,Egyedi DocPerm
 DocType: Newsletter,Send Unsubscribe Link,Küldj leiratkozási linket
-DocType: Notification,Method,Módszer
+DocType: Access Log,Method,Módszer
 DocType: Report,Script Report,Script-jelentés
 DocType: OAuth Authorization Code,Scopes,Hatáskör
 DocType: About Us Settings,Company Introduction,Vállalkozás bemutatása
@@ -913,12 +942,13 @@ DocType: User,Last Password Reset Date,Utolsó jelszó visszaállítási dátuma
 DocType: DocField,Length,Hossz
 apps/frappe/frappe/config/settings.py,Restore or permanently delete a document.,Visszaállítja vagy véglegesen törölni a dokumentumot.
 apps/frappe/frappe/chat/doctype/chat_profile/chat_profile.py,Chat Profile for User {0} exists.,A(z) {0} felhasználó csevegőprofilja létezik.
-apps/frappe/frappe/integrations/doctype/gsuite_settings/gsuite_settings.js,GSuite test executed with success. GSuite integration is correctly configured,GSuite teszt sikeressen végrehajtva. GSuite integráció helyesen beállított
+apps/frappe/frappe/public/js/frappe/social/components/PostSidebar.vue,Frequently Visited Links,Gyakran látogatott linkek
 DocType: Notification,"To add dynamic subject, use jinja tags like
 
 <div><pre><code>{{ doc.name }} Delivered</code></pre></div>","Szerint dinamikus téma, használja jinja cimke <div><pre> <code>{{ doc.name }} Delivered</code> </pre> </div>"
 apps/frappe/frappe/desk/search.py,Invalid Search Field {0},Érvénytelen keresési mező {0}
 DocType: User,Modules HTML,Modulok HTML
+apps/frappe/frappe/integrations/doctype/google_calendar/google_calendar.py,Allow Google Calendar Access,Engedélyezze a Google Calendar hozzáférést
 DocType: Assignment Rule,Higher priority rule will be applied first,Először a magasabb prioritású szabályt kell alkalmazni
 DocType: Email Account,"Track if your email has been opened by the recipient.
 <br>
@@ -934,12 +964,14 @@ DocType: Address,Permanent,Állandó
 apps/frappe/frappe/public/js/frappe/form/workflow.js,Note: Other permission rules may also apply,Megjegyzés: Egyéb jogosultsági szabályok is érvényben lehetnek
 DocType: Assignment Rule,Unassign Condition,Visszavonási feltétel
 apps/frappe/frappe/templates/emails/print_link.html,View this in your browser,Megtekintés a böngészőben
+DocType: DocType,Parent Field (Tree),Szülő mező (fa)
 DocType: DocType,Search Fields,Mezőkben keresés
 apps/frappe/frappe/integrations/doctype/google_contacts/google_contacts.js,Sync Contacts,Névjegyek szinkronizálása
 DocType: System Settings,OTP Issuer Name,OTP kibocsátó neve
 DocType: OAuth Bearer Token,OAuth Bearer Token,OAuth tulasjdonos Token
 apps/frappe/frappe/desk/page/setup_wizard/install_fixtures.py,Dr,Dr
-apps/frappe/frappe/integrations/doctype/google_contacts/google_contacts.js,Syncing,szinkronizálása
+apps/frappe/frappe/integrations/doctype/google_calendar/google_calendar.js,Syncing,szinkronizálása
+apps/frappe/frappe/public/js/frappe/file_uploader/FilePreview.vue,Uploaded successfully,Feltöltés sikeres
 apps/frappe/frappe/public/js/frappe/dom.js,You are connected to internet.,Csatlakozott az internethez.
 DocType: Social Login Key,Enable Social Login,Engedélyezze a közösségi bejelentkezést
 DocType: Communication,Event,Esemény
@@ -986,6 +1018,7 @@ apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,The
 DocType: Communication,CC,CC
 DocType: Country,Geo,Geo
 DocType: Data Migration Run,Trigger Name,Trigger Name
+apps/frappe/frappe/public/js/frappe/desk.js,Domains,Domének
 DocType: Blog Category,Blog Category,Blog Kategória
 apps/frappe/frappe/model/mapper.py,Cannot map because following condition fails: ,"Nem képezhető, mert a következő feltétel nem teljesül:"
 DocType: Role Permission for Page and Report,Roles HTML,Beosztások HTML
@@ -1034,8 +1067,10 @@ apps/frappe/frappe/website/doctype/website_theme/website_theme.js,"Add the name 
 apps/frappe/frappe/public/js/frappe/request.js,Request Timed Out,Árajánlatkérés lejárt
 apps/frappe/frappe/config/settings.py,Enable / Disable Domains,Domainek engedélyezése / tiltása
 DocType: Role Permission for Page and Report,Allow Roles,Szerepek engedélyezése
+DocType: Assignment Rule,"Simple Python Expression, Example: Status in (""Invalid"")","Egyszerű Python kifejezés, példa: Állapot (&quot;érvénytelen&quot;)"
 DocType: User,Last Active,Utolsó Aktívitás
 DocType: Email Account,SMTP Settings for outgoing emails,SMTP beállítások a kimenő e-mailekhez
+apps/frappe/frappe/public/js/frappe/file_uploader/FileUploader.vue,choose an,válasszon egy
 DocType: Data Export,Filter List,Szűrő lista
 DocType: Data Export,Excel,Excel
 apps/frappe/frappe/templates/emails/password_update.html,Your password has been updated. Here is your new password,Jelszava frissült. Ez az új jelszó
@@ -1048,6 +1083,7 @@ DocType: Contact,User ID,Felhasználó ID
 DocType: Communication,Sent,Elküldött
 DocType: Address,Kerala,Kerala
 DocType: File,Lft,Lft
+apps/frappe/frappe/public/js/frappe/desk.js,Administration,Adminisztráció
 DocType: User,Simultaneous Sessions,Egyidejű munkamenet
 DocType: Social Login Key,Client Credentials,Ügyfél bizonyítványok
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js,Open a module or tool,Modul vagy eszköz megnyitása
@@ -1071,6 +1107,7 @@ DocType: Address,Address Type,Cím típusa
 apps/frappe/frappe/email/receive.py,Invalid User Name or Support Password. Please rectify and try again.,"Érvénytelen felhasználónév vagy Támogatási jelszó. Kérjük orvosolja, és próbálja újra."
 DocType: Email Account,Yahoo Mail,Yahoo Mail
 apps/frappe/frappe/email/doctype/notification/notification.py,Error in Notification,Hiba az értesítésben
+DocType: Access Log,Log Data,Naplóadatok
 apps/frappe/frappe/desk/page/setup_wizard/install_fixtures.py,Madam,Hölgy
 apps/frappe/frappe/public/js/frappe/form/sidebar/review.js,Criticize,kritizál
 apps/frappe/frappe/desk/page/activity/activity_row.html,Updated {0}: {1},Frissítve {0}: {1}
@@ -1080,6 +1117,7 @@ apps/frappe/frappe/social/doctype/energy_point_settings/energy_point_settings.js
 apps/frappe/frappe/core/doctype/file/file.py,Folder {0} does not exist,Mappa {0} nem létezik
 apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py,Dropbox access is approved!,Dropbox belépés engedélyezve!
 DocType: Customize Form,Enter Form Type,Adja meg az űrlap típusát
+DocType: Google Drive,Authorize Google Drive Access,A Google Drive Access engedélyezése
 apps/frappe/frappe/public/js/frappe/views/kanban/kanban_view.js,Missing parameter Kanban Board Name,Hiányzik a Kanban Board neve paraméter
 apps/frappe/frappe/public/js/frappe/list/list_sidebar_stat.html,No records tagged.,Nincs címkézett rekord.
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js,Remove Field,Mező eltávolítása
@@ -1088,7 +1126,6 @@ DocType: User,Send Password Update Notification,Jelszó frissítés figyelmeztet
 apps/frappe/frappe/public/js/frappe/form/form.js,"Allowing DocType, DocType. Be careful!","Lehetővé teszi DocType, DocType. Legyen óvatos!"
 apps/frappe/frappe/config/core.py,"Customized Formats for Printing, Email","Testreszabott formátumok nyomtatás, E-mail"
 apps/frappe/frappe/public/js/frappe/ui/group_by/group_by.js,Sum of {0},{0} összeg
-apps/frappe/frappe/public/js/frappe/utils/pretty_date.js,&gt; {0} year(s) ago,&gt; {0} évvel ezelőtt
 apps/frappe/frappe/public/js/frappe/desk.js,Updated To New Version,Frissítve az új verzióra
 DocType: Custom Field,Depends On,Függés ettől
 DocType: Kanban Board Column,Green,Zöld
@@ -1105,6 +1142,7 @@ DocType: Print Format,Align Labels to the Right,Igazítsa a címkéket a jobb ol
 DocType: Assignment Rule,Disabled,Tiltva
 DocType: File,Uploaded To Dropbox,Feltöltve a Dropboxba
 DocType: Workflow State,eye-close,szem-bezárt
+apps/frappe/frappe/integrations/doctype/google_settings/google_settings.js,"For more information, {0}.",További információ: {0}.
 apps/frappe/frappe/public/js/frappe/form/sidebar/form_sidebar.js,Repeats {0},Ismétli a (z) {0}
 DocType: OAuth Provider Settings,OAuth Provider Settings,OAuth Szolgáltató beállítások
 DocType: Review Level,Review Points,Felülvizsgálati pontok
@@ -1113,12 +1151,14 @@ DocType: Address,City/Town,Város/település
 DocType: Data Migration Connector,Connector Name,Csatoló neve
 DocType: Address,Is Your Company Address,Az Ön cége címe
 DocType: Energy Point Log,Social,Szociális
+apps/frappe/frappe/integrations/doctype/google_calendar/google_calendar.py,"Google Calendar - Could not create Calendar for {0}, error code {1}.","Google Naptár - Nem sikerült létrehozni a (z) {0} naptárát, hibakód: {1}."
 apps/frappe/frappe/public/js/frappe/form/grid_row_form.js,Editing Row,Sor rzerkesztése
 DocType: Workflow Action Master,Workflow Action Master,Munkafolyamat művelet törzsadat
 DocType: Custom Field,Field Type,Mező típusa
 apps/frappe/frappe/utils/data.py,only.,csak.
 DocType: Route History,Route History,Útvonal előzmények
 apps/frappe/frappe/social/doctype/energy_point_settings/energy_point_settings.js,Give Review Points,Adj felülvizsgálati pontokat
+apps/frappe/frappe/integrations/doctype/google_contacts/google_contacts.py,"Google Calendar - Could not insert contact in Google Contacts {0}, error code {1}.","Google Naptár - Nem lehetett beszúrni a névjegyet a Google Névjegyzékbe {0}, hibakód: {1}."
 apps/frappe/frappe/core/doctype/user/user.py,OTP secret can only be reset by the Administrator.,Az OTP titkosítót csak az adminisztrátor állíthatja vissza.
 apps/frappe/frappe/utils/password_strength.py,Avoid years that are associated with you.,"Kerüljük az Önnel kapcsolatos, társított éveket."
 apps/frappe/frappe/config/users_and_permissions.py,Restrict user for specific document,Korlátozza a felhasználót adott dokumentumtól
@@ -1128,10 +1168,12 @@ apps/frappe/frappe/email/receive.py,Invalid Mail Server. Please rectify and try 
 DocType: DocField,"For Links, enter the DocType as range.
 For Select, enter list of Options, each on a new line.","Linkekhez, adja meg a DocType mint tartományt. Kiválasztáshoz, írja be az opciók listáját, mindet, új sorba."
 DocType: Workflow State,film,film
+apps/frappe/frappe/integrations/doctype/google_calendar/google_calendar.js,Sync Calendar,Naptár szinkronizálása
 apps/frappe/frappe/model/db_query.py,No permission to read {0},Nincs engedélye az olvasgatására {0}
 apps/frappe/frappe/config/desktop.py,Tools,Eszközök
 apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,Include indentation,Tartalmazza a behúzást
 apps/frappe/frappe/utils/password_strength.py,Avoid recent years.,Kerüljük az elmúlt éveket.
+apps/frappe/frappe/templates/includes/login/login.js,Verification,Igazolás
 apps/frappe/frappe/utils/nestedset.py,Multiple root nodes not allowed.,Több gyökér csomópont nem engedélyezett.
 DocType: Note,"If enabled, users will be notified every time they login. If not enabled, users will only be notified once.","Ha engedélyezve van, a felhasználók értesítést kapnak, valahányszor belépnek. Ha nincs engedélyezve, a felhasználók csak egyszer kapnak értesítést."
 apps/frappe/frappe/core/doctype/doctype/doctype.py,Invalid {0} condition,Érvénytelen {0} feltétel
@@ -1177,12 +1219,12 @@ apps/frappe/frappe/core/doctype/page/page.js,Go to {0} Page,Ugrás a (z) {0} old
 DocType: LDAP Settings,Password for Base DN,Jelszó a Base DN -hez
 apps/frappe/frappe/core/doctype/version/version_view.html,Table Field,Táblázat mező
 apps/frappe/frappe/public/js/frappe/views/kanban/kanban_view.js,Columns based on,Oszlopok ez alapján
-apps/frappe/frappe/config/integrations.py,Enter keys to enable integration with Google GSuite,"Adja meg a kulcsokat, a  Google GSuite integrációhoz"
 DocType: Workflow State,move,mozgás
 apps/frappe/frappe/model/document.py,Action Failed,Művelet sikerült
 apps/frappe/frappe/core/doctype/user_permission/user_permission_list.js,For User,Felhasználóknak
 DocType: View Log,View log,Napló megtekintése
 DocType: Address,Assam,Assam
+apps/frappe/frappe/public/js/frappe/file_uploader/WebLink.vue,← Back to upload files,← Vissza a fájlok feltöltéséhez
 apps/frappe/frappe/email/doctype/email_domain/email_domain.py,Outgoing email account not correct,Kimenő e-mail fiók nem helyes
 DocType: Transaction Log,Chaining Hash,Lánc-hajtás
 apps/frappe/frappe/contacts/doctype/contact/contact.py,Please set Email Address,"Kérjük, állítsa be az e-mail címet"
@@ -1199,6 +1241,7 @@ DocType: Web Form,Actions,Műveletek
 DocType: Workflow State,align-justify,igazítás-sorkizárt
 DocType: User,Middle Name (Optional),Középső név (opcionális)
 apps/frappe/frappe/public/js/frappe/request.js,Not Permitted,Nem engedélyezett
+apps/frappe/frappe/integrations/doctype/google_calendar/google_calendar.py,No Google Calendar Event to sync.,Nincs szinkronizálható Google Naptár-esemény.
 apps/frappe/frappe/public/js/frappe/ui/field_group.js,Following fields have missing values:,Következő mezőkből hiányoznak az értékek:
 apps/frappe/frappe/public/js/frappe/utils/energy_point_utils.js,via automatic rule {0} on {1},a (z) {1} automatikus {0} szabály segítségével
 apps/frappe/frappe/core/report/transaction_log_report/transaction_log_report.py,First Transaction,Első tranzakció
@@ -1217,7 +1260,7 @@ apps/frappe/frappe/public/js/frappe/form/sidebar/assign_to.js,Please save the do
 apps/frappe/frappe/public/js/frappe/form/templates/form_sidebar.html,Click here to post bugs and suggestions,Kattintson ide a hibák és javaslatok közzétételéhez
 DocType: Website Settings,Address and other legal information you may want to put in the footer.,Cím és más hivatalos információkat érdemes lehet a láblécbe tenni.
 DocType: Website Sidebar Item,Website Sidebar Item,Weboldal oldalsáv tétel
-apps/frappe/frappe/integrations/doctype/google_contacts/google_contacts.py,Click on {0} to generate Refresh Token.,Kattintson a (z) {0} -ra a Refresh Token létrehozásához.
+apps/frappe/frappe/integrations/doctype/google_drive/google_drive.py,Click on {0} to generate Refresh Token.,Kattintson a (z) {0} -ra a Refresh Token létrehozásához.
 apps/frappe/frappe/social/doctype/energy_point_rule/energy_point_rule.py,Reference document has been cancelled,A referenciadokumentumot törölték
 DocType: PayPal Settings,PayPal Settings,PayPal beállításai
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js,Select Document Type,Dokumentum típus kiválasztása
@@ -1226,13 +1269,15 @@ apps/frappe/frappe/public/js/frappe/utils/pretty_date.js,{0} minutes ago,{0} per
 DocType: Kanban Board Column,lightblue,világoskék
 apps/frappe/frappe/integrations/doctype/webhook/webhook.py,Same Field is entered more than once,Ugyanazt a mezőt többször ütötte be
 DocType: Print Settings,Enable Raw Printing,Nyers nyomtatás engedélyezése
-DocType: Contact,Source,Forrás
+DocType: Website Route Redirect,Source,Forrás
 apps/frappe/frappe/templates/includes/list/filters.html,clear,világos
+apps/frappe/frappe/core/page/background_jobs/background_jobs.html,Finished,Befejezett
 DocType: Prepared Report,Filter Values,Szűró értékei
 DocType: Communication,User Tags,Felhasználó címkéi
 DocType: Data Migration Run,Fail,Nem sikerül
 DocType: Workflow State,download-alt,download-alt
 DocType: Data Migration Run,Pull Failed,Kihúzás sikertelen
+apps/frappe/frappe/public/js/frappe/views/components/Desktop.vue,Show / Hide Cards,Kártyák megjelenítése / elrejtése
 DocType: Communication,Feedback Request,Visszajelzés kérése
 apps/frappe/frappe/config/settings.py,Import Data from CSV / Excel files.,Adat importálása CSV / Excel fájlokból.
 apps/frappe/frappe/website/doctype/web_form/web_form.py,Following fields are missing:,Következő mezők hiányoznak:
@@ -1243,7 +1288,6 @@ apps/frappe/frappe/www/update-password.html,"Hint: Include symbols, numbers and 
 DocType: DocField,Allow in Quick Entry,Gyors bejegyzés engedélyezése
 apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,PDF,PDF
 DocType: System Settings,dd/mm/yyyy,nn/hh/éééé
-apps/frappe/frappe/integrations/doctype/gsuite_settings/gsuite_settings.js,GSuite script test,GSuite script teszt
 DocType: System Settings,Backups,Biztonsági mentések
 apps/frappe/frappe/core/doctype/communication/communication.js,Add Contact,Kapcsolat hozzáadása
 DocType: Notification Recipient,Optional: Always send to these ids. Each Email Address on a new row,Választható: Mindig elküldi ezekre az azonosítókra. Minden e-mail cím egy új sorba
@@ -1260,7 +1304,7 @@ DocType: Footer Item,Target,Cél
 DocType: System Settings,Number of Backups,Biztonsági másolatok száma
 DocType: Dashboard Chart,Last Year,Tavaly
 DocType: Website Settings,Copyright,Szerzői jog
-apps/frappe/frappe/public/js/frappe/form/toolbar.js,Go,Indítsa
+apps/frappe/frappe/desk/page/user_profile/user_profile.js,Go,Indítsa
 DocType: OAuth Authorization Code,Invalid,Érvénytelen
 DocType: ToDo,Due Date,Határidő
 apps/frappe/frappe/public/js/frappe/views/gantt/gantt_view.js,Quarter Day,Negyedévi bérfizetési nap
@@ -1295,13 +1339,15 @@ DocType: Milestone,Track Field,Pálya mező
 DocType: Notification,Set Property After Alert,Tulajdonság beállítása figyelmeztetés után
 apps/frappe/frappe/config/customization.py,Add fields to forms.,Új mezők hozzáadása űrlapokhoz.
 apps/frappe/frappe/integrations/doctype/paypal_settings/paypal_settings.py,Looks like something is wrong with this site's Paypal configuration.,"Úgy néz ki, hogy valami baj van ezen az oldalon a Paypal konfigurációval."
+apps/frappe/frappe/public/js/frappe/form/print.js,"Error connecting to QZ Tray Application...<br><br> You need to have QZ Tray application installed and running, to use the Raw Print feature.<br><br><a href=""https://qz.io/download/"" target=""_blank"">Click here to Download and install QZ Tray</a>.<br> <a href=""https://erpnext.com/docs/user/manual/en/setting-up/print/raw-printing"" target=""_blank"">Click here to learn more about Raw Printing</a>.","Hiba történt a QZ tálca alkalmazáshoz való csatlakozáskor ... <br><br> A Raw Print szolgáltatás használatához rendelkeznie kell a QZ Tray alkalmazás telepítésével és futtatásával. <br><br> <a href=""https://qz.io/download/"" target=""_blank"">Kattintson ide a QZ tálca letöltéséhez és telepítéséhez</a> . <br> <a href=""https://erpnext.com/docs/user/manual/en/setting-up/print/raw-printing"" target=""_blank"">Kattintson ide, hogy többet tudjon meg a nyers nyomtatásról</a> ."
 apps/frappe/frappe/public/js/frappe/form/sidebar/review.js,Add Review,Vélemény hozzáadása
 DocType: File,rgt,RGT
 apps/frappe/frappe/website/doctype/website_theme/website_theme.js,Font Size (px),Betűméret (px)
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.py,Only standard DocTypes are allowed to be customized from Customize Form.,Kizárólag a szabványos DocType-k testreszabhatók a Testreszabás űrlapból.
 DocType: Email Account,Sendgrid,Küldési háló
-DocType: Data Export,File Type,Fájl típusa
+DocType: Access Log,File Type,Fájl típusa
 DocType: S3 Backup Settings,cn-north-1,cn-észak-1
+apps/frappe/frappe/templates/includes/login/login.js,Verification Code,Ellenőrző kód
 DocType: Workflow State,leaf,levél
 DocType: Portal Menu Item,Portal Menu Item,Portál menüpont
 apps/frappe/frappe/desk/doctype/dashboard_chart/dashboard_chart.js,Set Filters,Állítsa be a szűrőket
@@ -1312,7 +1358,9 @@ DocType: Activity Log,Keep track of all update feeds,Kövesse nyomon az összes 
 DocType: OAuth Client,A list of resources which the Client App will have access to after the user allows it.<br> e.g. project,"A listát a forrásokat, amelyeket az Ügyfél App férhet hozzá, miután a felhasználó ezt lehetővé teszi. <br> pl projekt"
 DocType: Translation,Translated Text,Lefordított szöveg
 DocType: Contact Us Settings,Query Options,Érdeklődés beállítások
-DocType: Error Snapshot,Timestamp,Időbélyeg
+apps/frappe/frappe/public/js/frappe/social/components/PostLoader.vue,Fetching posts...,Bejegyzések lekérése ...
+apps/frappe/frappe/integrations/doctype/google_contacts/google_contacts.py,Contact Synced with Google Contacts.,Kapcsolattartó szinkronizálva a Google Névjegyekkel.
+DocType: Access Log,Timestamp,Időbélyeg
 DocType: Patch Log,Patch Log,Frissítési napló
 DocType: Data Migration Mapping,Local Primary Key,Helyi elsődleges Kulcs
 apps/frappe/frappe/core/doctype/doctype/doctype.py,{0}: Options required for Link or Table type field {1} in row {2},{0}: A {2} sorban a {1} Link vagy Táblázat típus mezőjéhez szükséges beállítások
@@ -1325,11 +1373,11 @@ DocType: DefaultValue,Key,Mutató
 DocType: Address,Contacts,Kapcsolatok
 DocType: System Settings,Setup Complete,Telepítés befejezve
 apps/frappe/frappe/config/users_and_permissions.py,Report of all document shares,Jelentés az összes dokumentum részvények
-apps/frappe/frappe/public/js/frappe/form/print.js,"Error connecting to QZ Tray Application...<br><br> You need to have QZ Tray application installed and running, to use the Raw Print feature.<br><br><a href=""https://qz.io/download/"" target=""_blank"">Click here to Download and install QZ Tray</a>.<br> <a href=""https://erpnext.com/docs/user/manual/en/setting-up/print/raw-printing"" target=""_blank"">Click here to learn more about Raw Printing</a>.","Hiba történt a QZ tálca alkalmazáshoz való csatlakozáskor ... <br><br> A Raw Print szolgáltatás használatához rendelkeznie kell a QZ Tray alkalmazás telepítésével és futtatásával. <br><br> <a href=""https://qz.io/download/"" target=""_blank"">Kattintson ide a QZ tálca letöltéséhez és telepítéséhez</a> . <br> <a href=""https://erpnext.com/docs/user/manual/en/setting-up/print/raw-printing"" target=""_blank"">Kattintson ide, hogy többet tudjon meg a nyers nyomtatásról</a> ."
 apps/frappe/frappe/www/update-password.html,New Password,Új jelszó
 apps/frappe/frappe/public/js/frappe/ui/filters/filters.js,Filter {0} missing,Szűrés {0} hiányzik
 apps/frappe/frappe/core/doctype/activity_log/activity_log.py,Sorry! You cannot delete auto-generated comments,Bocsánat! Nem törölheti az automatikusan generált megjegyzéseket
-DocType: View Log,Reference DocType,Referencia DocType
+DocType: Google Settings,Used For Google Maps Integration.,A Google Maps Integrációhoz használható.
+apps/frappe/frappe/core/doctype/communication/communication.js,Reference DocType,Referencia DocType
 DocType: User,System User,Rendszer felhasználó
 DocType: Report,Is Standard,Ez alapfelszereltség
 DocType: Desktop Icon,_report,_jelentés
@@ -1348,6 +1396,8 @@ DocType: Data Export,Fields Multicheck,Többszörös ellenőrzésű mezők
 DocType: Activity Log,Login,Bejelentkezés
 DocType: Web Form,Payments,Kifizetések
 apps/frappe/frappe/www/qrcode.html,Hi {0},Hello {0}
+apps/frappe/frappe/config/integrations.py,Google Drive Integration.,Google Drive-integráció.
+apps/frappe/frappe/public/js/frappe/ui/toolbar/energy_points_notifications.js,{0} reverted your points on {1} {2},{0} visszaadta pontainkat a következő napon: {1} {2}
 DocType: System Settings,Enable Scheduled Jobs,Engedélyezze ütemezett feladatokat
 apps/frappe/frappe/core/doctype/data_export/exporter.py,Notes:,Megjegyzések:
 apps/frappe/frappe/core/page/background_jobs/background_jobs.py,Inactive,Inaktív
@@ -1385,13 +1435,11 @@ DocType: Async Task,Async Task,Aszinkron Feladat
 DocType: Workflow State,picture,kép
 apps/frappe/frappe/www/complete_signup.html,Complete,Teljes
 DocType: DocType,Image Field,képmező
-apps/frappe/frappe/integrations/doctype/gsuite_settings/gsuite_settings.py,Something went wrong during the token generation. Please request again an authorization code.,"Valami nem sikerült a token létrehozásakor. Kérjük, kérjen ismét egy engedélyezési kódot."
 DocType: Print Format,Custom HTML Help,Egyéni HTML Súgó
 DocType: LDAP Settings,Default Role on Creation,Alapértelmezett szerep a létrehozásban
 apps/frappe/frappe/website/doctype/contact_us_settings/contact_us_settings.js,See on Website,Lásd a honlapon
 DocType: Workflow Transition,Next State,Következő állapot
 DocType: User,Block Modules,Zárolt modulok
-apps/frappe/frappe/model/db_schema.py,Reverting length to {0} for '{1}' in '{2}'; Setting the length as {3} will cause truncation of data.,A (z)'{1}' értékének visszaállítása a (z) '{2}' -ben erre:  {0} ; A hossz beállítása mint: {3} beállításával az adatok csonkolásával járhat.
 DocType: Print Format,Custom CSS,Egyedi CSS
 apps/frappe/frappe/public/js/frappe/form/controls/comment.js,Add a comment,Hozzászólás hozzáadása
 DocType: Webhook,on_update,on_update
@@ -1448,6 +1496,7 @@ apps/frappe/frappe/core/doctype/user/user.py,Adding System Manager to this User 
 DocType: Chat Message,URLs,URL-ek
 DocType: Data Migration Run,Total Pages,Összes oldal
 apps/frappe/frappe/core/doctype/user_permission/user_permission.py,{0} has already assigned default value for {1}.,A (z) {0} már hozzárendelt alapértelmezett értéket ehhez: {1}.
+apps/frappe/frappe/public/js/frappe/ui/toolbar/search.js,<p>No results found for '</p>,<p> Nincs eredmény a következőre: &#39; </p>
 DocType: DocField,Attach Image,Kép csatolása
 DocType: Workflow State,list-alt,list-alt
 apps/frappe/frappe/www/update-password.html,Password Updated,Jelszó Frissítve
@@ -1473,6 +1522,7 @@ DocType: Dashboard Chart,Chart Options,Diagram opciók
 apps/frappe/frappe/public/js/frappe/form/footer/timeline.js,{0} from {1} to {2} in row #{3},{0} az {1} és {2} közt ebben a sorban # {3}
 DocType: Communication,Expired,Lejárt
 apps/frappe/frappe/templates/pages/integrations/razorpay_checkout.py,Seems token you are using is invalid!,"Úgy tűnik, hogy a token, amelyet használ, érvénytelen!"
+DocType: DocType,Is Tree,A fa
 DocType: Customize Form Field,Number of columns for a field in a Grid (Total Columns in a grid should be less than 11),"Mező oszlopainak száma egy rácsban (Összes  oszlopnak egy rácsban, kevesebbnek kell lennie, mint 11)"
 DocType: DocType,System,Rendszer
 DocType: Web Form,Max Attachment Size (in MB),Max Csatolmány Méret (MB)
@@ -1514,6 +1564,7 @@ apps/frappe/frappe/public/js/frappe/ui/keyboard.js,Open Help,Nyissa meg a Súgó
 DocType: DocType,Is Submittable,Ez küldhető
 apps/frappe/frappe/core/doctype/comment/comment.py,New Mention,Új említés
 apps/frappe/frappe/integrations/doctype/google_contacts/google_contacts.py,No new Google Contacts synced.,Nincs új Google Névjegy szinkronizálva.
+DocType: File,Uploaded To Google Drive,Feltöltve a Google Drive-ra
 apps/frappe/frappe/custom/doctype/property_setter/property_setter.js,Value for a check field can be either 0 or 1,Az ellenőrző mező értéke 1 vagy 0 lehet
 apps/frappe/frappe/model/document.py,Could not find {0},Nem található {0}
 apps/frappe/frappe/public/js/frappe/form/controls/link.js,Filters applied for {0},A (z) {0} felhasznált szűrők
@@ -1525,9 +1576,11 @@ DocType: Kanban Board Column,Red,Piros
 DocType: Workflow State,Tag,Címke
 DocType: Custom Script,Script,Forgatókönyv
 apps/frappe/frappe/core/doctype/data_import/log_details.html,Document can't saved.,Dokumentumot nem lehet menteni.
+DocType: Energy Point Rule,Maximum Points,Maximális pontok
 apps/frappe/frappe/public/js/frappe/ui/toolbar/navbar.html,My Settings,Beállításaim
 apps/frappe/frappe/website/doctype/website_theme/website_theme.js,Text Color,Szöveg színe
 apps/frappe/frappe/desk/page/backups/backups.py,Backup job is already queued. You will receive an email with the download link,Biztonsági mentés már várakozik. E-mailt fog kapni a letöltési hivatkozással
+apps/frappe/frappe/integrations/doctype/google_calendar/google_calendar.py,1 Google Calendar Event synced.,1 A Google Naptár esemény szinkronizálva.
 DocType: Desktop Icon,Force Show,Eröltetés mutatása
 apps/frappe/frappe/auth.py,Invalid Request,Érvénytelen kérelem
 apps/frappe/frappe/public/js/frappe/form/layout.js,This form does not have any input,Ez az űrlap nem rendelkezik bemenettel
@@ -1543,6 +1596,8 @@ DocType: Workflow State,wrench,csavarkulcs
 apps/frappe/frappe/public/js/frappe/ui/filters/filter.js,Not Set,Nincs beállítva
 DocType: Deleted Document,GitHub Sync ID,GitHub szinkronizálási azonosító ID
 DocType: Activity Log,Date,Dátum
+apps/frappe/frappe/public/js/frappe/social/components/PostLoader.vue,No more posts,Nincs több hozzászólás
+DocType: Access Log,RAW Information Log,RAW információs napló
 DocType: Website Settings,Disable Signup,Feliratkozás tiltása
 DocType: Email Queue,Email Queue,E-mail várólista
 DocType: Address,Haryana,Haryana
@@ -1607,11 +1662,15 @@ DocType: Workflow State,step-backward,visszalépés
 apps/frappe/frappe/utils/boilerplate.py,{app_title},{app_title}
 apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py,Please set Dropbox access keys in your site config,"Kérjük, állítsa be a Dropbox hozzáférési kulcsokat az oldal beállításopkban"
 apps/frappe/frappe/email/doctype/email_unsubscribe/email_unsubscribe.py,Delete this record to allow sending to this email address,"Ezt a Rekordot törli, hogy elküldhesse erre az e-mail címre"
+apps/frappe/frappe/public/js/frappe/views/components/DeskSection.vue,Customize Shortcuts,Testreszabhatja a hivatkozásokat
 apps/frappe/frappe/core/doctype/data_export/exporter.py,Only mandatory fields are necessary for new records. You can delete non-mandatory columns if you wish.,"Csak a kötelező mezők szükségesek új rekordokhoz. Törölheti a nem kötelező oszlopokat, ha akarja."
+apps/frappe/frappe/desk/page/user_profile/user_profile.html,Show More Activity,További tevékenység megjelenítése
+apps/frappe/frappe/templates/includes/login/login.js,Enter Code displayed in OTP App.,Írja be az OTP alkalmazásban megjelenő kódot.
 apps/frappe/frappe/public/js/frappe/views/calendar/calendar.js,Unable to update event,Nem lehet frissíteni az eseményt
 apps/frappe/frappe/twofactor.py,Verification code has been sent to your registered email address.,A hitelesítési kódot elküldtük regisztrált e-mail címére.
 apps/frappe/frappe/core/doctype/user/user.py,Throttled,Lassított
 apps/frappe/frappe/utils/data.py,"Filter must have 4 values (doctype, fieldname, operator, value): {0}","Szűrésnek 4 értékűnek kell lennie (doctype, mezőnév, operátor, érték): {0}"
+apps/frappe/frappe/public/js/frappe/list/list_view.js,Apply Assignment Rule,Alkalmazza a hozzárendelési szabályt
 apps/frappe/frappe/utils/bot.py,show,mutasd
 apps/frappe/frappe/utils/data.py,Invalid field name {0},Érvénytelen mezőnév {0}
 apps/frappe/frappe/model/document.py,{0} must be after {1},A (z) {0} -nek {1} után kell lennie
@@ -1620,6 +1679,7 @@ DocType: Workflow State,text-height,szöveg-magasság
 DocType: Data Migration Plan Mapping,Data Migration Plan Mapping,Adatátviteli terv leképezés
 apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js,Starting Frappé ...,Frappé elindítása ...
 DocType: Web Form Field,Max Length,Max hossz
+apps/frappe/frappe/public/js/frappe/ui/toolbar/energy_points_notifications.js,For {0} {1},{0} {1}
 DocType: Print Format,Jinja,Jinja
 DocType: Workflow State,map-marker,térkép-jelölő
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Submit an Issue,Jelentsen egy problémát
@@ -1681,6 +1741,7 @@ apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,"Ce
 DocType: Newsletter,Test Email Address,Teszt e-mail cím
 DocType: Auto Repeat,Reference Document Type,Referencia Dokumentum típus
 DocType: ToDo,Sender,Küldő
+DocType: Google Drive,Backup Folder Name,Biztonsági mappa neve
 apps/frappe/frappe/email/doctype/notification/notification.py,Error while evaluating Notification {0}. Please fix your template.,"Hiba az Értesítés {0} értékelésekor. Kérjük, javítsa meg a sablont."
 DocType: GSuite Settings,Google Apps Script,Google alkalmazások Script
 apps/frappe/frappe/templates/includes/comments/comments.html,Leave a Comment,Szólj hozzá
@@ -1692,6 +1753,7 @@ DocType: System Settings,Allow only one session per user,Csak egyetlen munkamene
 apps/frappe/frappe/core/doctype/file/test_file.py,Home/Test Folder 1/Test Folder 3,Kezdőlap / Teszt mappa 1 / Teszt mappa 3
 DocType: Website Settings,&lt;head&gt; HTML,&lt;head&gt; HTML
 apps/frappe/frappe/public/js/frappe/views/calendar/calendar.js,Select or drag across time slots to create a new event.,Válassza ki vagy húzza át az időkereteket egy új esemény létrehozásához.
+DocType: Contact,Contact Details,Kapcsolattartó részletei
 DocType: DocField,In Filter,Szűrőben
 apps/frappe/frappe/public/js/frappe/list/list_sidebar.html,Kanban,Kanban
 DocType: DocType,Show in Module Section,Megjelenítés Modul Szekcióban
@@ -1699,6 +1761,7 @@ DocType: Workflow Document State,Is Optional State,Opcionális állam
 apps/frappe/frappe/automation/doctype/auto_repeat/auto_repeat.py,The {0} is already on auto repeat {1},A (z) {0} már automatikusan ismétlődik {1}
 DocType: Letter Head,Header HTML,Fejléc HTML
 apps/frappe/frappe/core/doctype/communication/communication.js,Relink,Átszerkeszt
+apps/frappe/frappe/templates/includes/login/login.js,SMS was not sent. Please contact Administrator.,Az SMS nem lett elküldve. Vegye fel a kapcsolatot az adminisztrátorral.
 DocType: Web Page,"Page to show on the website
 ",Oldalt megmutatja a honlapon
 apps/frappe/frappe/config/settings.py,Create and manage newsletter,Hírújság létrehozása és szervezése
@@ -1706,13 +1769,14 @@ DocType: Note,Seen By Table,Látott táblázat
 apps/frappe/frappe/www/third_party_apps.html,Logged in,Bejelentkezve
 apps/frappe/frappe/email/doctype/email_account/email_account_list.js,Default Sending and Inbox,Alapértelmezett Küldés és Beérkezett
 DocType: System Settings,OTP App,OTP App
-DocType: Dropbox Settings,Send Email for Successful Backup,Küldjön e-mailt a sikeres mentéshez
+DocType: Google Drive,Send Email for Successful Backup,Küldjön e-mailt a sikeres mentéshez
 DocType: Print Settings,Letter,Levél
 DocType: DocType,"Naming Options:
 <ol><li><b>field:[fieldname]</b> - By Field</li><li><b>naming_series:</b> - By Naming Series (field called naming_series must be present</li><li><b>Prompt</b> - Prompt user for a name</li><li><b>[series]</b> - Series by prefix (separated by a dot); for example PRE.#####</li>
 <li><b>format:EXAMPLE-{MM}morewords{fieldname1}-{fieldname2}-{#####}</b> - Replace all braced words (fieldnames, date words (DD, MM, YY), series) with their value. Outside braces, any characters can be used.</li></ol>","Nevezési opciók: <ol><li> <b>mező: [fieldname]</b> - Mező szerint </li><li> <b>namesing_series:</b> - Sorozat elnevezése (a naming_series nevű mezőnek jelen kell lennie </li><li> <b>Kérés</b> - Kérjen egy felhasználót egy névhez </li><li> <b>[sorozat]</b> - sorozatok előtaggal (ponttal elválasztva); például PRE. ##### </li><li> <b>formátum: PÉLDA {MM} morewords {mezőnév1} - {mezőnév2} - {#####}</b> - Helyezze vissza az összes megerősített szót (mezőnevek, dátumszavak (DD, MM, YY) sorozatok). Külső fogsorok, bármilyen karakter használható. </li></ol>"
 apps/frappe/frappe/public/js/frappe/views/interaction.js,There were errors while creating the document. Please try again.,Hiba történt a dokumentum létrehozása közben. Kérlek próbáld újra.
 apps/frappe/frappe/core/doctype/doctype/doctype.py,Image field must be of type Attach Image,Képmező típusúnak kell lennie a csatolt képnek
+apps/frappe/frappe/permissions.py,You are not allowed to export {} doctype,A (z) {} doctype nem exportálható
 DocType: DocField,Columns,Oszlopok
 apps/frappe/frappe/desk/form/assign_to.py,Shared with user {0} with read access,Megosztva a(z) {0} felhasználóval olvasási hozzáféréssel
 DocType: GCalendar Account,Next Sync Token,Következő Sync Token
@@ -1747,7 +1811,7 @@ DocType: Event,Friday,Péntek
 apps/frappe/frappe/public/js/frappe/form/quick_entry.js,Edit in full page,Szerkesztés teljes oldalon
 apps/frappe/frappe/public/js/frappe/list/list_view.js,Open list item,Nyissa meg a lista elemet
 DocType: Report,Add Total Row,Összesítő sor hozzáadása
-apps/frappe/frappe/www/printview.py,No Preview available,Nincs elérhető előnézet
+apps/frappe/frappe/public/js/frappe/form/print.js,No Preview available,Nincs elérhető előnézet
 apps/frappe/frappe/twofactor.py,Please check your registered email address for instructions on how to proceed. Do not close this window as you will have to return to it.,"Kérjük, ellenőrizze a regisztrált e-mail címét a folytatás utasításaihoz. Ne zárja be ezt az ablakot, mert vissza kell térnie hozzá."
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,For example if you cancel and amend INV004 it will become a new document INV004-1. This helps you to keep track of each amendment.,"Például ha törli, és módosítja SZLA004, akkor az egy új dokumentumot lesz: SZLA004-1. Ez segít nyomon követni az egyes módosításokat."
 apps/frappe/frappe/core/doctype/data_export/data_export.js,Atleast one field of Parent Document Type is mandatory,A fő dokumentum típus legalább egyik mezője kötelező
@@ -1789,9 +1853,11 @@ apps/frappe/frappe/public/js/frappe/ui/filters/filters.js,In,Tartalmazza
 DocType: Notification,Value Change,Érték Változás
 DocType: Google Contacts,Authorize Google Contacts Access,A Google Névjegyekhez való hozzáférés engedélyezése
 apps/frappe/frappe/public/js/frappe/views/reports/report_view.js,Showing only Numeric fields from Report,Csak számmezők megjelenítése a Jelentésből
+DocType: Access Log,HTML Page,HTML oldal
 DocType: Address,Subsidiary,Leányvállalat
 apps/frappe/frappe/public/js/frappe/form/print.js,Attempting Connection to QZ Tray...,Csatlakozás kísérlete a QZ tálcával ...
 DocType: System Settings,In Hours,Órákban
+apps/frappe/frappe/integrations/doctype/google_drive/google_drive.py,Google Drive - Could not find folder in Google Drive - Error Code {0},Google Drive - Nem található a mappa a Google Drive-on - Hibakód: {0}
 apps/frappe/frappe/public/js/frappe/list/bulk_operations.js,With Letterhead,Fejléccel
 apps/frappe/frappe/email/smtp.py,Invalid Outgoing Mail Server or Port,Érvénytelen Kimenő levelek kiszolgálója vagy Portja
 DocType: Custom DocPerm,Write,Ír
@@ -1829,6 +1895,7 @@ apps/frappe/frappe/custom/doctype/custom_script/custom_script.js,Add script for 
 apps/frappe/frappe/desk/form/utils.py,Comment can only be edited by the owner,A megjegyzést csak a tulajdonos szerkesztheti
 DocType: Data Import,Do not send Emails,Ne küldj e-maileket
 apps/frappe/frappe/utils/password_strength.py,Common names and surnames are easy to guess.,Gyakori neveket és vezetékneveket könnyű kitalálni.
+DocType: Google Drive,Google Drive,Google Drive
 apps/frappe/frappe/public/js/frappe/model/indicator.js,Draft,Vázlat
 apps/frappe/frappe/utils/password_strength.py,This is similar to a commonly used password.,Ez hasonló egy általánosan használt jelszóhoz.
 apps/frappe/frappe/desk/page/setup_wizard/install_fixtures.py,Female,Nő
@@ -1840,12 +1907,14 @@ DocType: Contact,Replied,Megválaszolt
 DocType: Newsletter,Test,Teszt
 DocType: Custom Field,Default Value,Alapértelmezett érték
 DocType: Email Account,Enable Automatic Linking in Documents,Engedélyezze az automatikus összekapcsolást a dokumentumokban
+DocType: System Settings,Allow Guests to Upload Files,Engedélyezze a vendégeknek a fájlok feltöltését
 apps/frappe/frappe/public/js/frappe/ui/messages.js,Verify,Ellenőrzi
 DocType: Workflow Document State,Update Field,Mező frissítése
 DocType: Chat Profile,Enable Chat,Csevegés engedélyezése
 DocType: LDAP Settings,Base Distinguished Name (DN),Alapértelmezett elkülönítő név (DN)
 apps/frappe/frappe/email/doctype/email_account/email_account.py,Leave this conversation,Beszélgetés elhagyása
 apps/frappe/frappe/model/base_document.py,Options not set for link field {0},Választást nem állította be erre a link mezőre: {0}
+apps/frappe/frappe/core/page/background_jobs/background_jobs.html,Queue / Worker,Sor / munkás
 DocType: S3 Backup Settings,ap-southeast-1,AP-délkelet-1
 DocType: DocType,"Must be of type ""Attach Image""","Ilyen típusnak kell lennie: ""Kép csatolása"""
 apps/frappe/frappe/core/doctype/data_import/data_import.js,Unselect All,Minden kijelölés megszüntetése
@@ -1865,6 +1934,7 @@ apps/frappe/frappe/templates/includes/login/login.js,Not Allowed: Disabled User,
 DocType: Social Login Key,Google,Google
 DocType: Email Domain,Example Email Address,Példa e-mail címek
 apps/frappe/frappe/public/js/frappe/ui/sort_selector.js,Most Used,Legtöbbet használt
+,user-profile,felhasználói profil
 apps/frappe/frappe/www/login.html,Forgot Password,Elfelejtett jelszó
 DocType: Dropbox Settings,Backup Frequency,Biztonsági mentések gyakorisága
 DocType: Workflow State,Inverse,Inverz
@@ -1898,6 +1968,7 @@ apps/frappe/frappe/www/qrcode.html,Authentication Apps you can use are: ,Hiteles
 apps/frappe/frappe/public/js/frappe/form/controls/data.js,{0} already exists. Select another name,{0} már létezik. Válasszon másik nevet
 DocType: S3 Backup Settings,None,Semelyik
 apps/frappe/frappe/core/doctype/doctype/doctype.py,Timeline field must be a valid fieldname,Idővonal mezőnek egy érvényes mezőnévnek kell lennie
+DocType: Contact,Email Ids,E-mail ID azonosítók
 DocType: GCalendar Account,Session Token,Szakasz Token
 DocType: Currency,Symbol,Szimbólum
 apps/frappe/frappe/model/base_document.py,Row #{0}:,Sor # {0}:
@@ -1911,6 +1982,7 @@ apps/frappe/frappe/core/doctype/data_import/log_details.html,Row No,Sor sz.
 DocType: Async Task,Runtime,Runtime
 DocType: Post,Is Pinned,Kitűzött
 DocType: Contact Us Settings,Introduction,Bevezetés
+apps/frappe/frappe/public/js/frappe/social/components/Post.vue,Pin Globally,PIN-kód globálisan
 apps/frappe/frappe/public/js/frappe/form/templates/form_sidebar.html,Followed by,Követte
 DocType: LDAP Settings,LDAP Email Field,LDAP-mail mező
 apps/frappe/frappe/core/page/dashboard/dashboard.js,{0} List,{0} lista
@@ -1919,6 +1991,7 @@ DocType: User Email,Enable Outgoing,Engedélyezze a kimenőt
 DocType: Address,Fax,Fax
 apps/frappe/frappe/config/customization.py,Custom Tags,Egyedi címkék
 DocType: Comment,Submitted,Benyújtva
+DocType: Contact,Pulled from Google Contacts,A Google Névjegyekből vonult le
 apps/frappe/frappe/integrations/doctype/paypal_settings/paypal_settings.py,In Valid Request,Érvénytelen kérelem
 apps/frappe/frappe/website/doctype/website_theme/website_theme.py,Compiled Successfully,Sikeresen összeállítva
 DocType: System Settings,Email Footer Address,E-mail  lábléc cím
@@ -1939,7 +2012,7 @@ DocType: DocField,Dynamic Link,Dinamikus link
 apps/frappe/frappe/public/js/frappe/ui/keyboard.js,Press Alt Key to trigger additional shortcuts in Menu and Sidebar,Az Alt billentyű megnyomásával további hivatkozásokat indíthat a menüben és az oldalsávban
 DocType: List View Setting,List View Setting,Lista nézet beállítása
 apps/frappe/frappe/core/page/background_jobs/background_jobs_outer.html,Show failed jobs,Mutassa a sikertelen műveleteket
-apps/frappe/frappe/public/js/frappe/form/templates/timeline_item.html,Details,Részletek
+DocType: Event,Details,Részletek
 DocType: Property Setter,DocType or Field,DocType vagy Mező
 apps/frappe/frappe/public/js/frappe/form/sidebar/document_follow.js,You unfollowed this document,Ön követte ezt a dokumentumot
 apps/frappe/frappe/website/doctype/website_theme/website_theme.js,Primary Color,Elsődleges szín
@@ -1975,11 +2048,11 @@ DocType: Auto Email Report,Weekdays,Hétköznapok
 apps/frappe/frappe/core/doctype/doctype/doctype.py,Title field must be a valid fieldname,Cím mezőnek érvényes mezőnévvel kell rendelkeznie
 DocType: Post Comment,Post Comment,Üzenet elküldése
 apps/frappe/frappe/config/core.py,Documents,Dokumentumok
-apps/frappe/frappe/contacts/doctype/address/address.py,No default Address Template found. Please create a new one from Setup &gt; Printing and Branding &gt; Address Template.,"Nem található alapértelmezett címsablon. Kérjük, hozzon létre egy újat a Beállítás&gt; Nyomtatás és márkajelzés&gt; Címsablon menüpontból."
+apps/frappe/frappe/config/users_and_permissions.py,Activity Log by ,Tevékenységi napló
 DocType: Social Login Key,Custom Base URL,Egyéni alap URL
 DocType: Email Flag Queue,Is Completed,Ez elkészült
 apps/frappe/frappe/website/doctype/web_form/web_form.js,Get Fields,Mezők beszerzése
-apps/frappe/frappe/www/me.html,Edit Profile,Profil szerkesztése
+apps/frappe/frappe/desk/page/user_profile/user_profile.js,Edit Profile,Profil szerkesztése
 DocType: Kanban Board Column,Archived,Archivált
 DocType: Milestone Tracker,Document Type to Track,A követni kívánt dokumentum típusa
 DocType: System Settings,Session Expiry in Hours e.g. 06:00,Munkamenet lejárati ideje órában: pl. 06:00
@@ -1988,13 +2061,14 @@ myfield
 eval:doc.myfield=='My Value'
 eval:doc.age&gt;18","Ez a mező csak akkor jelenik meg, ha a mezőnévnek itt megadott értéke van VAGY a szabályok igazak (példák): myfield eval:doc.myfield=='My Value'eval:doc.age&gt;18"
 DocType: Social Login Key,Office 365,Office 365
-apps/frappe/frappe/public/js/frappe/form/controls/date.js,Today,Ma
+apps/frappe/frappe/public/js/frappe/ui/toolbar/energy_points_notifications.js,Today,Ma
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,"Once you have set this, the users will only be able access documents (eg. Blog Post) where the link exists (eg. Blogger).","Ha beállította ezt, a felhasználók csak akkor férhetnek hozzá a dokumentumokhoz (pl. Blogbejegyzés), ahol a link jelen van (pl. Blogger)."
 DocType: Error Log,Log of Scheduler Errors,Ütemező hiba naplója
 DocType: User,Bio,Életrajz
 DocType: OAuth Client,App Client Secret,Alk kliens titkositas
 apps/frappe/frappe/public/js/frappe/form/save.js,Submitting,Benyújtása
 apps/frappe/frappe/core/doctype/data_export/exporter.py,Parent is the name of the document to which the data will get added to.,"A szülő az a dokumentum neve, amelyhez az adatokat hozzáadják."
+apps/frappe/frappe/integrations/doctype/google_drive/google_drive.py,Google Drive - Could not create folder in Google Drive - Error Code {0},Google Drive - Nem lehet mappát létrehozni a Google Drive-on - Hibakód: {0}
 DocType: DocType,UPPER CASE,NAGYBETŰ
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js,Custom HTML,Egyedi HTML
 apps/frappe/frappe/public/js/frappe/views/file/file_view.js,Enter folder name,Írja be a mappa nevét
@@ -2019,6 +2093,7 @@ DocType: Workflow Document State,Represents the states allowed in one document a
 DocType: Data Migration Connector,Database Name,Adatbázis név
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js,Refresh Form,Űrlap frissítése
 DocType: DocField,Select,Választás
+apps/frappe/frappe/public/js/frappe/ui/toolbar/energy_points_notifications.js,View Full Log,Teljes napló megtekintése
 DocType: Assignment Rule,"Simple Python Expression, Example: status == 'Open' and type == 'Bug'","Egyszerű Python kifejezés, példa: status == &#39;Megnyitás&#39; és gépelés == &#39;Hiba&#39;"
 apps/frappe/frappe/utils/csvutils.py,File not attached,A fájl nincs mellékelve
 apps/frappe/frappe/public/js/frappe/dom.js,Connection lost. Some features might not work.,A kapcsolat megszakadt. Egyes funkciók nem működhetnek.
@@ -2053,6 +2128,7 @@ DocType: Email Unsubscribe,Global Unsubscribe,Globális Leiratkozás
 apps/frappe/frappe/utils/password_strength.py,This is a very common password.,Ez egy nagyon gyakori jelszó.
 apps/frappe/frappe/email/doctype/email_group/email_group.js,View,Nézet
 DocType: Comment,Assigned,Hozzárendelt
+apps/frappe/frappe/integrations/doctype/google_drive/google_drive.js,Click on <b>Authorize Google Drive Access</b> to authorize Google Drive Access.,Kattintson a <b>Google Drive-hozzáférés</b> hitelesítése elemre a <b>Google Drive-hozzáférés</b> engedélyezéséhez.
 DocType: Print Format,Js,Js
 apps/frappe/frappe/public/js/frappe/views/communication.js,Select Print Format,Válasszon nyomtatási formátumot
 apps/frappe/frappe/utils/password_strength.py,Short keyboard patterns are easy to guess,Rövid billentyűzet minták könnyen kitalálhatóak
@@ -2068,6 +2144,7 @@ apps/frappe/frappe/public/js/frappe/form/sidebar/review.js,To User,Felhasználó
 apps/frappe/frappe/public/js/frappe/ui/messages.js,Enter Value,Adjon Értéket
 DocType: Workflow State,tint,színárnyalat
 DocType: DocField,In Preview,Előnézetben
+DocType: Webhook,JSON Request Body,JSON kérési testület
 DocType: Web Page,Style,Stílus
 DocType: Prepared Report,Report End Time,Jelentés befejező dátum
 apps/frappe/frappe/custom/doctype/custom_field/custom_field.js,e.g.:,pl.:
@@ -2089,6 +2166,7 @@ apps/frappe/frappe/core/doctype/system_settings/system_settings.py,Please select
 apps/frappe/frappe/public/js/frappe/form/footer/timeline.js,Added,Hozzáadott
 DocType: Personal Data Download Request,Personal Data Download Request,Személyes adatok letöltése
 DocType: DocField,Table MultiSelect,MultiSelect táblázat
+apps/frappe/frappe/config/integrations.py,Google Calendar Integration.,A Google Naptár-integráció.
 DocType: Auto Repeat,Half-yearly,Fél-évente
 apps/frappe/frappe/templates/emails/upcoming_events.html,Daily Event Digest is sent for Calendar Events where reminders are set.,"A napi eseményekről emlékeztetőt küld a Naptár, ha be van állítva az emlékeztető az eseményeknél."
 DocType: Braintree Settings,Header Image,Fejléc kép
@@ -2116,26 +2194,28 @@ apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js,Will be your login ID,
 ,Lead Conversion Time,Érdeklődésre átváltás ideje
 apps/frappe/frappe/desk/page/activity/activity.js,Build Report,Jelentés készítés
 DocType: Note,Notify users with a popup when they log in,Értesíti a felhasználókat egy felugró ablakkal a  bejelentkezásükkor
+apps/frappe/frappe/public/js/frappe/social/components/ActivitySidebar.vue,Open Chat,Nyissa meg a Csevegőt
 apps/frappe/frappe/model/rename_doc.py,"{0} {1} does not exist, select a new target to merge","{0} {1} nem létezik, válasszon egy új célt egyesítéshez"
 DocType: Data Migration Connector,Python Module,Python modulja
 apps/frappe/frappe/public/js/frappe/ui/keyboard.js,Navigate Home,Keresse meg a Kezdőlapot
-DocType: Google Settings,Google Credentials,Google bizonyítványok
+DocType: GSuite Settings,Google Credentials,Google bizonyítványok
 apps/frappe/frappe/www/qrcode.html,QR Code for Login Verification,QR kód a bejelentkezés ellenőrzéséhez
 apps/frappe/frappe/public/js/frappe/form/sidebar/assign_to.js,Add to To Do,Add hozzá a Tennivalókhoz
 DocType: Footer Item,Company,Vállalkozás
 apps/frappe/frappe/public/js/frappe/ui/group_by/group_by.js,Average of {0},{0} átlag
-apps/frappe/frappe/config/integrations.py,Google GSuite Templates to integration with DocTypes,Google GSuite sablonok integrációi a DocTypes -el
 DocType: User,Logout from all devices while changing Password,Kijelentkezés az összes eszközről a jelszó megváltoztatáskor
 apps/frappe/frappe/public/js/frappe/ui/messages.js,Verify Password,Jelszó megerősítése
 apps/frappe/frappe/public/js/frappe/form/sidebar/attachments.js,There were errors,Hibák voltak
+apps/frappe/frappe/integrations/doctype/google_calendar/google_calendar.py,Enter Client Id and Client Secret in Google Settings.,Írja be az Ügyfél-azonosítót és az Ügyfél-titkot a Google Beállításokban.
 apps/frappe/frappe/core/doctype/communication/communication.js,Close,Bezárás
 apps/frappe/frappe/model/document.py,Cannot change docstatus from 0 to 2,Nem lehet megváltoztatni docstatus 0 -ról 2 -re
 DocType: File,Attached To Field,Mezőhöz csatolt
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Setup &gt; User Permissions,Beállítás&gt; Felhasználói engedélyek
 apps/frappe/frappe/core/doctype/role_permission_for_page_and_report/role_permission_for_page_and_report.js,Update,Frissítés
 DocType: Transaction Log,Transaction Hash,Transaction Hash
 DocType: Error Snapshot,Snapshot View,Pillanatkép megtekintése
 apps/frappe/frappe/email/doctype/newsletter/newsletter.py,Please save the Newsletter before sending,"Kérjük, mentse a hírlevelet a küldés előtt"
-apps/frappe/frappe/config/integrations.py,Configure accounts for google calendar,Állítson be fiókokat a google naptárhoz
+DocType: Webhook,The webhook will be triggered if this expression is true,"A webhook akkor indul el, ha ez a kifejezés igaz"
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js,Edit Properties,Tulajdonságok szerkesztése
 DocType: Patch Log,List of patches executed,Javítások listája végrehajtott
 apps/frappe/frappe/email/doctype/email_unsubscribe/email_unsubscribe.py,{0} already unsubscribed,{0} már leiratkozott
@@ -2144,7 +2224,7 @@ DocType: Website Settings,Banner HTML,HTML szalagcím
 DocType: Workflow,Send Email Alert,E-mail figyelmeztetés küldése
 apps/frappe/frappe/integrations/doctype/razorpay_settings/razorpay_settings.py,Please select another payment method. Razorpay does not support transactions in currency '{0}',"Kérjük, válasszon más fizetési módot. Razorpay nem támogatja a tranzakciókat ebben a pénznemben '{0}'"
 DocType: Data Import,In Progress,Folyamatban
-apps/frappe/frappe/integrations/doctype/s3_backup_settings/s3_backup_settings.py,Queued for backup. It may take a few minutes to an hour.,Várakozó a mentésre. Ez eltarthat néhány perctől egy óráig.
+apps/frappe/frappe/integrations/doctype/google_drive/google_drive.py,Queued for backup. It may take a few minutes to an hour.,Várakozó a mentésre. Ez eltarthat néhány perctől egy óráig.
 DocType: Error Snapshot,Pyver,Pyver
 apps/frappe/frappe/core/doctype/user_permission/user_permission.py,User permission already exists,Felhasználói engedély már létezik
 apps/frappe/frappe/automation/doctype/auto_repeat/auto_repeat.js,View {0},Megtekintés {0}
@@ -2165,6 +2245,7 @@ DocType: System Settings,Older backups will be automatically deleted,Régebbi me
 apps/frappe/frappe/integrations/doctype/s3_backup_settings/s3_backup_settings.py,Invalid Access Key ID or Secret Access Key.,Érvénytelen hozzáférési kulcs ID azonosító vagy titkos hozzáférési kulcs.
 apps/frappe/frappe/social/doctype/energy_point_log/energy_point_log.py,You lost some energy points,Elvesztette néhány energiapontot
 DocType: Post,Is Globally Pinned,Globálisan kitűzve
+apps/frappe/frappe/desk/page/user_profile/user_profile.html,Recent Activity,Legutóbbi tevékenység
 DocType: Workflow Transition,Conditions,Körülmények
 DocType: Event,Leave blank to repeat always,Üresen hagyva örökké ismétlődik
 apps/frappe/frappe/email/doctype/newsletter/newsletter.py,Confirmed,Megerősített
@@ -2173,6 +2254,7 @@ DocType: Payment Gateway,Gateway,Átjáró
 DocType: LDAP Settings,Path to Server Certificate,Út a kiszolgálói tanúsítványhoz
 apps/frappe/frappe/public/js/frappe/form/linked_with.js,Not enough permission to see links,Nincs elég Jogosultság a linkek megtekintéséhez
 apps/frappe/frappe/contacts/doctype/address/address.py,Address Title is mandatory.,Cím felirat kötelező.
+DocType: Google Contacts,Push to Google Contacts,Nyomja meg a Google Névjegyeket
 DocType: Website Settings,"Added HTML in the &lt;head&gt; section of the web page, primarily used for website verification and SEO","Hozzáadott HTML a fejléc részben a weboldalon, amit elsősorban a weboldal ellenőrzésére és SEO használja"
 apps/frappe/frappe/core/doctype/error_snapshot/error_snapshot_list.js,Relapsed,Relapszusos
 apps/frappe/frappe/utils/nestedset.py,Item cannot be added to its own descendents,Tételt nem lehet hozzáadni a saját leszármazottaikhoz
@@ -2180,6 +2262,7 @@ DocType: Session Default Settings,Session Defaults,Munkamenet alapértelmezései
 DocType: System Settings,Expiry time of QR Code Image Page,A QR kód képoldal lejárati ideje
 apps/frappe/frappe/public/js/frappe/views/reports/report_view.js,Show Totals,Összesítések megjelenítése
 DocType: Error Snapshot,Relapses,Visszaesések
+apps/frappe/frappe/public/js/frappe/social/pages/UserList.vue,No user found,Nem található felhasználó
 DocType: Address,Preferred Shipping Address,Előnyben részesített szállítási cím
 apps/frappe/frappe/public/js/frappe/form/print.js,With Letter head,Fejléccel
 apps/frappe/frappe/public/js/frappe/form/sidebar/form_sidebar.js,{0} created this {1},{0} hozta létre ezt {1}
@@ -2200,6 +2283,7 @@ apps/frappe/frappe/geo/doctype/currency/currency.js,This Currency is disabled. E
 DocType: Desktop Icon,Blocked,Zárolt
 DocType: Contact Us Settings,"Default: ""Contact Us""","Alapértelmezett: ""Kapcsolat"""
 DocType: Contact,Purchase Manager,Beszerzési menedzser
+DocType: System Settings,"When enabled this will allow guests to upload files to your application, You can enable this if you wish to collect files from user without having them to log in, for example in job applications web form.","Ha engedélyezi, ez lehetővé teszi a vendégeknek, hogy fájlokat töltsenek fel az alkalmazásba. Ezt engedélyezheti, ha fájlokat szeretne gyűjteni a felhasználótól anélkül, hogy be kellene jelentkeznie, például a munkaalkalmazások webes űrlapján."
 apps/frappe/frappe/public/js/frappe/ui/tags.js,toggle Tag,Címke kapcsolása
 DocType: Custom Script,Sample,Minta
 apps/frappe/frappe/public/js/frappe/form/controls/table.js,"For performance, only the first 100 rows were processed.",A teljesítmény érdekében csak az első 100 sor került feldolgozásra.
@@ -2207,8 +2291,10 @@ DocType: Braintree Settings,Private Key,Privát kulcs
 DocType: S3 Backup Settings,ap-northeast-2,ap-északkelet-2
 DocType: Custom Field,Is Mandatory Field,Ez kötelező mező
 DocType: User,Website User,Weboldal Felhasználó
+apps/frappe/frappe/printing/page/print_format_builder/print_format_builder_column_selector.html,Some columns might get cut off when printing to PDF. Try to keep number of columns under 10.,"Előfordulhat, hogy néhány oszlop levágásra kerül, amikor PDF-re nyomtat. Próbáljon az oszlopok számát 10 alatt tartani."
 apps/frappe/frappe/public/js/frappe/ui/filters/filter.js,Not equals,Nem egyenlő
 DocType: Integration Request,Integration Request Service,Integrációt igénylő szolgáltatás
+DocType: Access Log,Access Log,Belépési napló
 DocType: Website Script,Script to attach to all web pages.,Script amit hozzákapcsol az összes weboldalhoz.
 DocType: Web Form,Allow Multiple,Többszöri engedélyezése
 apps/frappe/frappe/public/js/frappe/form/templates/form_sidebar.html,Assign,Hozzárendelni
@@ -2233,6 +2319,7 @@ apps/frappe/frappe/public/js/frappe/ui/keyboard.js,Clear Cache and Reload,Törö
 DocType: Portal Settings,Custom Sidebar Menu,Egyéni oldalsáv menü
 DocType: Workflow State,pencil,ceruza
 apps/frappe/frappe/config/desk.py,Chat messages and other notifications.,Csevegés üzenetek és egyéb bejelentések.
+apps/frappe/frappe/public/js/frappe/social/Home.vue,Social Home,Szociális otthon
 apps/frappe/frappe/custom/doctype/custom_field/custom_field.py,Insert After cannot be set as {0},Nem lehet beszúrni utána így mint {0}
 apps/frappe/frappe/public/js/frappe/form/sidebar/share.js,Share {0} with,{0} megosztása vele
 apps/frappe/frappe/public/js/frappe/desk.js,Email Account setup please enter your password for: ,E-mail fiók beállításához írja be a jelszavát:
@@ -2257,7 +2344,6 @@ apps/frappe/frappe/www/list.py,My Account,Fiókom
 DocType: ToDo,Allocated To,Kiosztott
 apps/frappe/frappe/templates/emails/password_reset.html,Please click on the following link to set your new password,"Kérjük, kattintson az alábbi linkre, az új jelszó beállításához"
 DocType: Notification,Days After,Nappal utána
-DocType: Newsletter,Receipient,Címzett
 apps/frappe/frappe/public/js/frappe/form/print.js,QZ Tray Connection Active!,A QZ tálca csatlakoztatása aktív!
 DocType: Contact Us Settings,Settings for Contact Us Page,Beállítások a Kapcsolat Oldalhoz
 DocType: Print Settings,Enable Print Server,A nyomtatószerver engedélyezése
@@ -2285,7 +2371,7 @@ DocType: Workflow State,Warning,Figyelmeztetés
 apps/frappe/frappe/public/js/frappe/form/print.js,This may get printed on multiple pages,"Előfordulhat, hogy több oldalra nyomtatják"
 DocType: Data Migration Run,Percent Complete,Százalék teljesítve
 DocType: Tag Category,Tag Category,Címke kategória
-apps/frappe/frappe/public/js/frappe/ui/toolbar/search.js,<p>No results found for '</p>,<p> Nincs eredmény a következőre: &#39; </p>
+DocType: Google Calendar,Pull from Google Calendar,Húzza a Google Naptárból
 apps/frappe/frappe/core/doctype/data_import/data_import.js,Help,Súgó
 DocType: User,Login Before,Bejelentkezés előtt
 DocType: Web Page,Insert Style,Stílus beszúrása
@@ -2316,7 +2402,7 @@ DocType: DocField,Geolocation,Geolokáció
 DocType: Workflow,Emails will be sent with next possible workflow actions,E-maileket küldünk a következő lehetséges munkafolyamat-műveletekkel
 apps/frappe/frappe/public/js/frappe/form/workflow.js,Workflow will start after saving.,Munkafolyamat a mentés után kezdődik.
 DocType: S3 Backup Settings,ap-northeast-1,ap-északkelet-1
-apps/frappe/frappe/integrations/doctype/google_contacts/google_contacts.py,Something went wrong during the token generation. Click on {0} to generate a new one.,Valami rosszra ment a token generáció során. Kattintson a (z) {0} elemre egy új létrehozásához.
+apps/frappe/frappe/integrations/doctype/google_drive/google_drive.py,Something went wrong during the token generation. Click on {0} to generate a new one.,Valami rosszra ment a token generáció során. Kattintson a (z) {0} elemre egy új létrehozásához.
 apps/frappe/frappe/public/js/frappe/form/templates/set_sharing.html,Can Share,Megoszthat
 apps/frappe/frappe/email/smtp.py,Invalid recipient address,Érvénytelen címzett cím
 DocType: Workflow State,step-forward,előrelépés
@@ -2331,9 +2417,10 @@ DocType: GCalendar Settings,Google API Credentials,Google API hitelesítő adato
 apps/frappe/frappe/public/js/frappe/desk.js,Session Start Failed,Munkamenet indítása sikertelen
 apps/frappe/frappe/email/queue.py,This email was sent to {0} and copied to {1},Ezt az e-mailt elküldte ide: {0} és másolatot ide: {1}
 DocType: Workflow State,th,th
+apps/frappe/frappe/public/js/frappe/utils/pretty_date.js,&gt; {0} year(s) ago,&gt; {0} évvel ezelőtt
 DocType: Social Login Key,Provider Name,Ellátó neve
 apps/frappe/frappe/public/js/frappe/list/list_view.js,Create a new {0},Hozzon létre egy új {0}
-DocType: Google Contacts,Google Contacts,Google Névjegyek
+DocType: Contact,Google Contacts,Google Névjegyek
 DocType: GCalendar Account,GCalendar Account,GNaptár-fiók
 DocType: Email Rule,Is Spam,Ez Levélszemét
 apps/frappe/frappe/public/js/frappe/ui/toolbar/search_utils.js,Report {0},Report {0}
@@ -2351,9 +2438,11 @@ apps/frappe/frappe/core/doctype/doctype/doctype.py,{0}: Field {1} in row {2} can
 DocType: Newsletter,Create and Send Newsletters,Létrehoz és küld hírleveleket
 apps/frappe/frappe/templates/includes/comments/comments.html,Thank you for your comment. It will be published after approval,Köszönöm a megjegyzését. A jóváhagyást követően közzéteszi
 DocType: Address,Andaman and Nicobar Islands,Andamán és Nicobar-szigetek
+DocType: Google Contacts,Pull from Google Contacts,Húzza a Google Névjegyekből
 apps/frappe/frappe/email/doctype/notification/notification.py,Please specify which value field must be checked,"Kérjük, határozza meg melyik érték mezőt kell  llenőrizni"
+DocType: Event,Google Calendar Event ID,A Google Naptár eseményazonosítója
 apps/frappe/frappe/core/doctype/data_export/exporter.py,"""Parent"" signifies the parent table in which this row must be added","""Szülő"" jelenti azt a szülő táblát, amelyhez ezt a sort hozzá kell adni"
-apps/frappe/frappe/email/queue.py,Cannot send this email. You have crossed the sending limit of {0} emails for this day.,Ez az e-amil nem küldhető. Átléphette ezt a küldési limit felső határt: {0} az e-mailekre erre a napra.
+apps/frappe/frappe/desk/page/user_profile/user_profile.js,Review Points: ,Felülvizsgálati pontok:
 apps/frappe/frappe/public/js/frappe/form/templates/form_sidebar.html,Shared With,Megosztva
 apps/frappe/frappe/website/doctype/website_slideshow/website_slideshow.js,Attach files / urls and add in table.,"Csatolja a fájlokat / URL-eket, és adja hozzá a táblázatban."
 apps/frappe/frappe/automation/doctype/auto_repeat/auto_repeat.js,Message not setup,Az üzenet nem állítható be
@@ -2376,12 +2465,13 @@ apps/frappe/frappe/desk/doctype/dashboard_chart_source/dashboard_chart_source.py
 DocType: About Us Settings,Settings for the About Us Page,Beállítások a Rólunk oldalhoz
 apps/frappe/frappe/config/integrations.py,Stripe payment gateway settings,Stripe fizetési átjáró beállításai
 apps/frappe/frappe/public/js/frappe/form/print.js,Print Sent to the printer!,Nyomtatás elküldve a nyomtatónak!
-apps/frappe/frappe/templates/emails/energy_points_summary.html,Energy Points,Energiapontok
+apps/frappe/frappe/public/js/frappe/ui/toolbar/energy_points_notifications.js,Energy Points,Energiapontok
 DocType: Email Account,e.g. pop.gmail.com / imap.gmail.com,pl. pop.gmail.com / imap.gmail.com
 DocType: User,Generate Keys,Kulcsok generálása
 apps/frappe/frappe/templates/emails/delete_data_confirmation.html,This will permanently remove your data.,Ez véglegesen eltávolítja az Ön adatait.
 DocType: DocType,View Settings,Nézet beállítások
 DocType: Email Account,Outlook.com,Outlook.com
+DocType: Webhook,Request Structure,Kérjen felépítést
 DocType: Personal Data Deletion Request,Pending Verification,Az ellenőrzés függőben van
 DocType: Website Meta Tag,Website Meta Tag,Weboldal Meta Tag
 DocType: Email Account,"If non standard port (e.g. 587). If on Google Cloud, try port 2525.","Ha nem szabványos port (pl. 587). Ha a Google Cloud szolgáltatás, akkor próbálja meg a 2525-ös portot."
@@ -2399,6 +2489,7 @@ DocType: System Settings,Hide footer in auto email reports,Lábléc elrejtése a
 DocType: DocField,Remember Last Selected Value,Emlékezzen az utolsó kiválasztott értékre
 apps/frappe/frappe/social/doctype/energy_point_log/energy_point_log.py,This document cannot be reverted,Ezt a dokumentumot nem lehet visszavonni
 DocType: Email Account,Check this to pull emails from your mailbox,Jelöld be az emailek lekéréséhez a  postafiókjából.
+apps/frappe/frappe/integrations/doctype/google_settings/google_settings.js,click here,kattintson ide
 apps/frappe/frappe/model/document.py,Cannot edit cancelled document,Nem lehet szerkeszteni a törölt dokumentumot
 DocType: Transaction Log,Checksum Version,Számlaösszeg verzió
 DocType: User,Allow Modules,Modulok engedélyezése
@@ -2415,6 +2506,7 @@ apps/frappe/frappe/www/update-password.html,New Password Required.,Új jelszó s
 apps/frappe/frappe/core/doctype/docshare/docshare.py,{0} shared this document with {1},{0} megosztotta ezt a dokumentumot vele: {1}
 DocType: Website Settings,Brand Image,Márka képe
 DocType: Print Settings,A4,A4
+apps/frappe/frappe/integrations/doctype/google_calendar/google_calendar.py,Google Calendar has been configured.,A Google Naptár konfigurálva van.
 apps/frappe/frappe/config/website.py,"Setup of top navigation bar, footer and logo.","Felső menüsor, lábléc és logo telepítése."
 DocType: Web Form Field,Max Value,Max érték
 apps/frappe/frappe/core/doctype/doctype/doctype.py,For {0} at level {1} in {2} in row {3},{0} -hoz a {1} szinten a {2} -ben a {3} sorban
@@ -2475,6 +2567,7 @@ DocType: User,Restrict user from this IP address only. Multiple IP addresses can
 DocType: Communication,From,-tól
 apps/frappe/frappe/public/js/frappe/views/treeview.js,Select a group node first.,Válasszon először egy csoportcsomópontot.
 apps/frappe/frappe/public/js/frappe/ui/toolbar/search_utils.js,Find {0} in {1},"Megtalálta ezt: {0} , ebben: {1}"
+apps/frappe/frappe/public/js/frappe/social/components/PostLoader.vue,No posts yet,Még nincs hozzászólás
 DocType: OAuth Client,Implicit,Hallgatólagos
 DocType: Email Account,"Append as communication against this DocType (must have fields, ""Status"", ""Subject"")","Hozzáfűzés mint kommunikáció ehhez a DocType-hoz (kötelező mezők, ""Állapot"", ""Tárgy"")"
 DocType: Letter Head,Default Letter Head,Alapértelmezett levélfejléc
@@ -2485,6 +2578,7 @@ DocType: Data Migration Mapping,Migration ID Field,Migrációs ID azonosító me
 DocType: Dashboard Chart,Last Synced On,Utoljára szinkronizálva
 DocType: Comment,Comment Type,Megjegyzés Típus
 DocType: OAuth Client,OAuth Client,OAuth kliens
+apps/frappe/frappe/public/js/frappe/ui/toolbar/energy_points_notifications.js,{0} criticized your work on {1} {2},{0} bírálta a (z) {1} {2} munkáját
 DocType: Assignment Rule,Users,Felhasználók
 DocType: Address,Odisha,Orisza
 DocType: Report,Report Type,Report Type
@@ -2516,18 +2610,23 @@ apps/frappe/frappe/templates/emails/download_data.html,Click on the link below t
 apps/frappe/frappe/core/doctype/user/user.py,Enabled email inbox for user {0},Engedélyezett e-mail üzenetek a {0} felhasználónak
 DocType: Data Migration Run,Data Migration Run,Adatátvitel futtatás
 DocType: Blog Post,Email Sent,Email elküldve
+apps/frappe/frappe/public/js/frappe/ui/toolbar/energy_points_notifications.js,Older,régebbi
 DocType: DocField,Ignore XSS Filter,Figyelmen kívül hagyja az XSS szűrőt
 apps/frappe/frappe/public/js/frappe/form/footer/timeline.js,removed,eltávolított
 apps/frappe/frappe/config/integrations.py,Dropbox backup settings,Dropbox biztonsági mentés beállítások
+DocType: Webhook,Webhook Trigger,Webhook Trigger
+apps/frappe/frappe/integrations/doctype/google_calendar/google_calendar.py,{0} Google Calendar Events synced.,{0} A Google Naptár eseményei szinkronizálva vannak.
 DocType: Dashboard Chart,Time Series,Idősorok
 apps/frappe/frappe/core/doctype/user/user.py,User {0} cannot be disabled,A(z) {0} felhasználó nem tiltható le
-DocType: Google Settings,Google Settings,Google beállítások
+apps/frappe/frappe/integrations/doctype/google_calendar/google_calendar.js,Google Settings,Google beállítások
 apps/frappe/frappe/templates/emails/administrator_logged_in.html,"Dear System Manager,","Tisztelt Rendszergazda,"
 apps/frappe/frappe/desk/doctype/todo/todo.py,{0} self assigned this task: {1},{0} ezt a feladatát osztotta ki saját magának: {1}
 apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js,Your Country,Országa
 DocType: Event,Sunday,Vasárnap
+apps/frappe/frappe/core/doctype/doctype/doctype.py,{0}: Fieldname cannot be one of {1},{0}: A mezőnév nem lehet a (z) {1} egyikének
 apps/frappe/frappe/templates/emails/energy_points_summary.html,Standings,Tabella
 apps/frappe/frappe/core/doctype/doctype/doctype.js,In Grid View,Rácsnézetben
+apps/frappe/frappe/desk/page/user_profile/user_profile.js,No More Activity,Nincs több tevékenység
 DocType: Auto Repeat,Template,Sablon
 DocType: Address,Delhi,Delhi
 apps/frappe/frappe/desk/doctype/calendar_view/calendar_view.js,Show Calendar,Naptár megjelenítése
@@ -2556,7 +2655,6 @@ apps/frappe/frappe/public/js/frappe/form/print.js,Please set a printer mapping f
 DocType: DocField,Table,Táblázat
 DocType: File,File Size,Fájlméret
 apps/frappe/frappe/website/doctype/web_form/web_form.py,You must login to submit this form,Be kell jelentkezie az űrlap beküldéséhez
-DocType: User,Background Image,Háttérkép
 apps/frappe/frappe/email/doctype/notification/notification.py,Cannot set Notification on Document Type {0},Nem lehet beállítani az Értesítést erre a dokumentumtípusra: {0}
 apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js,"Select your Country, Time Zone and Currency","Válassza ki országát, időzóna és a pénznemét"
 apps/frappe/frappe/desk/page/setup_wizard/install_fixtures.py,Mx,mx
@@ -2634,23 +2732,28 @@ apps/frappe/frappe/config/integrations.py,Braintree payment gateway settings,Bra
 apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,Rebuild,Átépít
 apps/frappe/frappe/www/third_party_apps.html,This will log out {0} from all other devices,Ez minden más eszközről kijelentkezik {0}
 apps/frappe/frappe/desk/query_report.py,You don't have permission to get a report on: {0},Nincs jogosultsága ehhez a jelentéshez: {0}
+apps/frappe/frappe/integrations/doctype/google_calendar/google_calendar.py,"Google Calendar - Could not insert event in Google Calendar {0}, error code {1}.","Google Naptár - Nem sikerült beilleszteni az eseményt a (z) {0} Google Naptárba, hibakód: {1}."
 DocType: System Settings,Apply Strict User Permissions,Szigorú Felhasználói jogosultságok alkalmazása
 DocType: S3 Backup Settings,us-west-1,us-nyugat-1
 DocType: DocField,Allow Bulk Edit,Engedélyezi a tömeges szerkesztést
 DocType: Blog Post,Blog Post,Blog bejegyzés
+DocType: Access Log,Export From,Exportálás innen
 apps/frappe/frappe/public/js/frappe/form/controls/link.js,Advanced Search,Részletes keresés
 apps/frappe/frappe/email/doctype/newsletter/newsletter.py,You are not permitted to view the newsletter.,Nem tekintheti meg a hírlevelet.
 DocType: User,Interests,Érdekek
 apps/frappe/frappe/core/doctype/user/user.py,Password reset instructions have been sent to your email,A jelszó visszaállításához szükséges utasítok el lettek küldve emailen
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js,"Level 0 is for document level permissions, \
 								higher levels for field level permissions.","0 szint van a dokumentumok szintű engedélyekkel, \ magasabb szinteket mező szintű engedélyekkel."
+DocType: Contact Email,Is Primary,Elsődleges
 apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,From Document Type,A dokumentum típusától
+DocType: DocType,Tree structures are implemented using Nested Set,A fa struktúrák a Nested Set használatával valósulnak meg
 apps/frappe/frappe/core/doctype/data_import/data_import.py,Can't save the form as data import is in progress.,"Nem végezhető űrlap mentés, mivel az adatok importálása folyamatban van."
 DocType: Workflow,States,Államok
 DocType: Notification,Attach Print,Erősítse Nyomtatás
 DocType: Assignment Rule,Assignment Rule,Hozzárendelési szabály
 apps/frappe/frappe/core/doctype/user/user.py,Suggested Username: {0},Javasolt Felhasználónév: {0}
 apps/frappe/frappe/public/js/frappe/views/gantt/gantt_view.js,Day,Nap
+apps/frappe/frappe/public/js/frappe/desk.js,Modules,Modulok
 apps/frappe/frappe/templates/pages/integrations/payment-success.html,Payment Success,Fizetési sikeres
 apps/frappe/frappe/public/js/frappe/views/inbox/inbox_view.js,No {0} mail,{0} sz. levél
 DocType: OAuth Bearer Token,Revoked,Visszavont
@@ -2667,12 +2770,15 @@ apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,"To get the up
 apps/frappe/frappe/sessions.py,Redis cache server not running. Please contact Administrator / Tech support,"A Redis cache szerver nem fut. Kérjük, forduljon az adminisztrátorhoz vagy a technikai támogatáshoz"
 apps/frappe/frappe/public/js/frappe/ui/toolbar/search_header.html,Searching,Keres
 DocType: Currency,Fraction,Törtrész
+apps/frappe/frappe/integrations/doctype/google_calendar/google_calendar.py,Event Synced with Google Calendar.,Az esemény szinkronizálva van a Google Naptárral.
 DocType: LDAP Settings,LDAP First Name Field,LDAP Utónév mező
 DocType: Contact,Middle Name,Középső név
 DocType: Custom Field,Field Description,Mező leírása
 apps/frappe/frappe/model/naming.py,Name not set via Prompt,Nevet nem állította be a felszólítással
 apps/frappe/frappe/public/js/frappe/ui/toolbar/search_utils.js,Email Inbox,E-mail beérkezett üzenetek
 DocType: Auto Email Report,Filters Display,Szűrők megjelenítése
+apps/frappe/frappe/public/js/frappe/form/form.js,"""amended_from"" field must be present to do an amendment.",A &quot;módosított_from&quot; mezőnek jelen kell lennie a módosítás végrehajtásához.
+apps/frappe/frappe/public/js/frappe/ui/toolbar/energy_points_notifications.js,{0} appreciated your work on {1} {2},{0} értékelte a (z) {1} {2} -on végzett munkáját
 apps/frappe/frappe/public/js/frappe/views/kanban/kanban_view.js,Save filters,Szűrők mentése
 DocType: Address,Plant,Géppark
 apps/frappe/frappe/core/doctype/communication/communication.js,Reply All,Válasz mindenkinek
@@ -2692,7 +2798,6 @@ apps/frappe/frappe/core/doctype/data_export/exporter.py,There is no data to be e
 DocType: Domain Settings,Domains HTML,Domainek HTML-je
 apps/frappe/frappe/templates/includes/search_template.html,Type something in the search box to search,Írjon valamit a keresőmezőbe a kereséshez
 apps/frappe/frappe/config/settings.py,Define workflows for forms.,Határozza meg a munkafolyamatokat az űrlapokhoz.
-apps/frappe/frappe/integrations/doctype/gcalendar_settings/gcalendar_settings.py,GCalendar is not configured.,A GNaptár nincs konfigurálva.
 DocType: Address,Other,Egyéb
 apps/frappe/frappe/integrations/doctype/social_login_key/social_login_key.py,Please enter Authorize URL,Adja meg az engedélyezési URL-t
 DocType: S3 Backup Settings,Access Key ID,Hozzáférési kulcs ID
@@ -2702,10 +2807,11 @@ DocType: Workflow State,font,betűtípus
 DocType: DocType,Show Preview Popup,Az előugró ablak megjelenítése
 apps/frappe/frappe/utils/password_strength.py,This is a top-100 common password.,Ez egy top-100 ismétlődő jelszót.
 apps/frappe/frappe/email/doctype/auto_email_report/auto_email_report.js,Please enable pop-ups,"Kérjük, engedélyezze a felugrókat"
-DocType: Contact,Mobile No,Mobil:
+DocType: User,Mobile No,Mobil:
 DocType: Communication,Text Content,Szöveges tartalom
 DocType: Customize Form Field,Is Custom Field,Ez egyéni mező
 DocType: Workflow,"If checked, all other workflows become inactive.","Ha be van jelölve, minden más munkafolyamat inaktívvá válik."
+DocType: Access Log,File Information,Fájlinformációk
 apps/frappe/frappe/core/doctype/report/report.js,[Label]:[Field Type]/[Options]:[Width],[Label]:[Field Type]/[Options]:[Width]
 apps/frappe/frappe/public/js/frappe/ui/keyboard.js,Open Settings,Nyisd meg a beállításokat
 DocType: Workflow State,folder-close,mappa-bezár
@@ -2746,11 +2852,11 @@ apps/frappe/frappe/config/customization.py,Add custom javascript to forms.,Egyé
 ,Role Permissions Manager,Beosztás jogosultság kezelő
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js,Name of the new Print Format,Új nyomtatási formátum neve
 apps/frappe/frappe/public/js/frappe/list/list_view.js,Toggle Sidebar,Oldalsáv kapcsolása
-DocType: Contact,Google Contacts Description,Google Névjegy Leírás
 DocType: Data Migration Run,Pull Insert,Kihúzza a beszúrást
 apps/frappe/frappe/model/db_query.py,Illegal SQL Query,Illegális SQL lekérdezés
 apps/frappe/frappe/core/doctype/data_export/exporter.py,Mandatory:,Kötelező:
 DocType: Chat Message,Mentions,Megemlít
+apps/frappe/frappe/integrations/doctype/google_contacts/google_contacts.js,"To use Google Contacts, enable {0}.",A Google Névjegyek használatához engedélyezze a (z) {0} lehetőséget.
 apps/frappe/frappe/public/js/frappe/utils/utils.js,{0} Modules,{0} modulok
 DocType: Chat Room,Chat Room,Csevegés szoba
 DocType: Chat Profile,Conversation Tones,Beszélgetés hangjai
@@ -2787,6 +2893,7 @@ DocType: Braintree Settings,Public Key,Nyilvános kulcs
 DocType: GSuite Settings,GSuite Settings,GSuite Beállítások
 DocType: Address,Links,Összekapcsolások
 DocType: Email Account,Uses the Email Address Name mentioned in this Account as the Sender's Name for all emails sent using this Account.,A fiókban említett e-mail címet küldõként használja a fiókban említett összes e-mail címre.
+apps/frappe/frappe/integrations/doctype/google_contacts/google_contacts.py,"Google Contacts - Could not update contact in Google Contacts {0}, error code {1}.","Google Névjegyek - Nem sikerült frissíteni a kapcsolatot a Google Névjegyekben {0}, hibakód: {1}."
 apps/frappe/frappe/core/doctype/data_export/data_export.js,Please select the Document Type.,"Kérjük, válassza ki a dokumentum típusát."
 apps/frappe/frappe/model/base_document.py,Value missing for,Érték hiányzik erre
 apps/frappe/frappe/public/js/frappe/views/treeview.js,Add Child,Al csoport hozzáadása
@@ -2809,11 +2916,11 @@ apps/frappe/frappe/www/login.html,Don't have an account? Sign up,Nincs még fió
 apps/frappe/frappe/public/js/frappe/views/reports/report_view.js,Cannot remove ID field,Nem eltávolítható az ID mező
 apps/frappe/frappe/core/doctype/doctype/doctype.py,{0}: Cannot set Assign Amend if not Submittable,"{0}: Nem állítható Hozzárendelés módosításra, ha nem Küldhető"
 DocType: Address,Bihar,Bihári
+apps/frappe/frappe/desk/page/user_profile/user_profile_sidebar.html,User Settings,Felhasználói beállítások
 DocType: Report,Reference Report,Referencia-jelentés
 DocType: Activity Log,Link DocType,Elérési link DocType
 apps/frappe/frappe/public/js/frappe/chat.js,You don't have any messages yet.,Nincs még üzenete.
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js,Remove all customizations?,Az összes testreszabás eltávolítása?
-apps/frappe/frappe/email/smtp.py,Email Account not setup. Please create a new Email Account from Setup &gt; Email &gt; Email Account,"Az e-mail fiók nincs beállítva. Kérjük, hozzon létre egy új e-mail fiókot a Beállítás&gt; E-mail&gt; E-mail fiók menüben"
 DocType: Website Slideshow,Slideshow Name,Diavetítés név
 DocType: Address,Andhra Pradesh,Andhra Pradesh
 apps/frappe/frappe/public/js/frappe/form/save.js,Cancelling,Törlése
@@ -2822,6 +2929,7 @@ DocType: Activity Log,Full Name,Teljes név
 apps/frappe/frappe/public/js/frappe/list/list_filter.js,Duplicate Filter Name,Megkettőzött szűrő név
 DocType: Chat Room User,Chat Room User,Csevegés szoba felhasználója
 apps/frappe/frappe/model/workflow.py,Workflow State not set,Munkafolyamat állapota nincs beállítva
+DocType: Google Calendar,Authorize Google Calendar Access,A Google Calendar Access engedélyezése
 apps/frappe/frappe/www/404.html,The page you are looking for is missing. This could be because it is moved or there is a typo in the link.,"Az oldal, amit keres hiányzik. Ez azért lehet, mert átmozgatásra került, vagy van egy elírás a linkben."
 apps/frappe/frappe/www/404.html,Error Code: {0},Hibakód: {0}
 DocType: Blog Post,"Description for listing page, in plain text, only a couple of lines. (max 140 characters)","Leírás a listázási oldalra, sima szöveges, csak egy pár sor. (max 140 karakter)"
@@ -2835,6 +2943,7 @@ DocType: Web Form,Success URL,Sikeresség URL
 DocType: Email Account,Append To,Hozzáfűzés
 apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py,Number of DB backups cannot be less than 1,A DB-mentések száma nem lehet kevesebb 1-nél
 DocType: Workflow Document State,Only Allow Edit For,Csak ő szerkesztheti
+apps/frappe/frappe/integrations/doctype/google_drive/google_drive.js,Backing up to Google Drive.,Biztonsági mentés a Google Drive-ra.
 apps/frappe/frappe/core/doctype/role_permission_for_page_and_report/role_permission_for_page_and_report.js,Mandatory field: {0},Kötelező mező: {0}
 apps/frappe/frappe/templates/includes/comments/comments.html,Your Name,A neve
 apps/frappe/frappe/templates/pages/integrations/gcalendar-success.html,Connection Success,A kapcsolat sikeres
@@ -2863,13 +2972,14 @@ DocType: Workflow State,resize-full,átméretezés-teljes
 DocType: Workflow State,off,ki
 apps/frappe/frappe/public/js/frappe/ui/capture.js,Retake,Visszafoglal
 apps/frappe/frappe/desk/query_report.py,Report {0} is disabled,Jelentés {0} letiltott
-DocType: Activity Log,Core,Alap dolgok
+DocType: Access Log,Core,Alap dolgok
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js,Set Permissions,Engedélyek beállítása
 DocType: DocField,Set non-standard precision for a Float or Currency field,Állítsa be a nem szabványos pontosságot a lebegőpontos vagy pénznem mezőhöz
 DocType: Email Account,Ignore attachments over this size,Mellékletek figyelmen kívül hagyása e méret felett
 apps/frappe/frappe/public/js/frappe/form/grid_row.js,Move To,Költözik
 DocType: Address,Preferred Billing Address,Előnyben részesített számlázási cím
 apps/frappe/frappe/database/database.py,Too many writes in one request. Please send smaller requests,"Túl sok írás egy kérésnél. Kérjük, küldje kisebb kérésekkel"
+apps/frappe/frappe/integrations/doctype/google_drive/google_drive.py,Google Drive has been configured.,A Google Drive konfigurálva van.
 apps/frappe/frappe/core/doctype/version/version_view.html,Values Changed,Értékek megváltoztak
 DocType: Workflow State,arrow-up,nyíl-fel
 apps/frappe/frappe/automation/doctype/auto_repeat/auto_repeat.js,"To configure Auto Repeat, enable ""Allow Auto Repeat"" from {0}.",Az automatikus ismétlés konfigurálásához engedélyezze az „Automatikus ismétlés engedélyezése” lehetőséget a (z) {0} helyről.
@@ -2881,6 +2991,7 @@ apps/frappe/frappe/public/js/frappe/views/reports/report_view.js,Pick Columns,Os
 DocType: Web Page,Add code as &lt;script&gt;,Kód mint  script  hozzáadása
 apps/frappe/frappe/core/doctype/user_permission/user_permission_list.js,Clear User Permissions,Felhasználói engedélyek törlése
 DocType: Webhook,Headers,Fejlécek
+apps/frappe/frappe/public/js/frappe/social/components/ActivitySidebar.vue,Upcoming Events,Közelgő események
 apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.js,Please enter values for App Access Key and App Secret Key,"Kérjük, adja meg az értékeket az Alk hozzáférés kulcshoz és Alk titkos kulcshoz"
 DocType: Web Form,Accept Payment,Fizetés fogadása
 apps/frappe/frappe/public/js/frappe/list/list_view.js,Select list item,Válassza ki a lista elemet
@@ -2900,6 +3011,7 @@ apps/frappe/frappe/config/customization.py,Form Customization,Űrlap testreszab�
 apps/frappe/frappe/www/third_party_apps.html,No Active Sessions,Nincs aktív munkamenet
 DocType: Web Form,Route to Success Link,Útvonal a sikeres linkhez
 DocType: Top Bar Item,Right,Jobb
+apps/frappe/frappe/public/js/frappe/social/components/ActivitySidebar.vue,No Upcoming Events,Nincsenek közelgő események
 DocType: User,User Type,Felhasználó típusa
 DocType: Prepared Report,Ref Report DocType,Jelentés ref  DocType
 apps/frappe/frappe/desk/doctype/dashboard_chart/dashboard_chart.js,Click table to edit,Kattintson a táblázatra a szerkesztéshez
@@ -2965,6 +3077,7 @@ DocType: Workflow State,star-empty,csillag-üres
 apps/frappe/frappe/utils/password_strength.py,Dates are often easy to guess.,Dátumokat gyakran könnyű kitalálni.
 apps/frappe/frappe/public/js/frappe/form/workflow.js,Next actions,Következő művelet
 apps/frappe/frappe/email/doctype/notification/notification.py,"Cannot edit Standard Notification. To edit, please disable this and duplicate it","Nem lehet szerkeszteni a normál értesítést. A szerkesztéshez kérjük, tiltsa le ezt, kettőzze meg"
+apps/frappe/frappe/templates/includes/login/login.js,Verification code email not sent. Please contact Administrator.,Az ellenőrző kód e-mail címe nem elküldve. Vegye fel a kapcsolatot az adminisztrátorral.
 DocType: Workflow State,ok,ok
 DocType: User,These values will be automatically updated in transactions and also will be useful to restrict permissions for this user on transactions containing these values.,"Ezek az értékek automatikusan frissülnek a tranzakciókban és hasznos lesz ennek a felhasználónak a jogosultságait korlátozni olyan tranzakciókon, ahol ezek az értékek szerepelnek."
 apps/frappe/frappe/twofactor.py,Verfication Code,Hitelesítési kód
@@ -2994,6 +3107,7 @@ apps/frappe/frappe/config/desk.py,Private and public Notes.,A magán- és állam
 DocType: DocField,Datetime,Dátum
 apps/frappe/frappe/templates/includes/login/login.js,Not a valid user,Nem érvényes felhasználó
 apps/frappe/frappe/templates/includes/comments/comments.html,Please enter a valid email address.,Kérjük valós e-mail címet adjon meg.
+apps/frappe/frappe/core/page/background_jobs/background_jobs.html,Last refreshed,Utolsó frissítés
 apps/frappe/frappe/core/doctype/user_permission/user_permission_list.js,For Document Type,A dokumentum típusához
 DocType: Workflow State,arrow-right,nyíl-jobbra
 DocType: Workflow State,Workflow state represents the current state of a document.,Munkafolyamat állapotámak jelenlegi állását mutatja a dokumentum.
@@ -3017,11 +3131,11 @@ DocType: Comment,Bot,robot
 DocType: Help Article,Help Article,Súgó cikk
 DocType: Page,Page Name,Oldal név
 apps/frappe/frappe/public/js/frappe/views/reports/report_view.js,Also adding the dependent currency field {0},Az alárendelt pénznem mezőt is hozzáadja {0}
+apps/frappe/frappe/integrations/doctype/google_drive/google_drive.py,Google Drive - Could not locate locate - {0},Google Drive - Nem található a helymeghatározás - {0}
 DocType: S3 Backup Settings,ap-south-1,ap-dél-1
 apps/frappe/frappe/core/doctype/file/file.js,Unzip,Unzip
 apps/frappe/frappe/model/document.py,Incorrect value in row {0}: {1} must be {2} {3},Érvénytelen érték a {0} sorban: a(z) {1} értéke muszáj {2} {3}
 apps/frappe/frappe/workflow/doctype/workflow/workflow.py,Submitted Document cannot be converted back to draft. Transition row {0},Benyújtott dokumentumot nem lehet visszaalakítani tervezetté. Átvezetési sor {0}
-apps/frappe/frappe/config/integrations.py,Configure your google calendar integration,Állítsa be a Google naptár-integrációját
 apps/frappe/frappe/desk/reportview.py,Deleting {0},{0} Törlése
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder_start.html,Select an existing format to edit or start a new format.,Válasszon ki egy létező formátumot egy új formátum szerkesztéséhez vagy elkezdéséhez.
 DocType: System Settings,Bypass restricted IP Address check If Two Factor Auth Enabled,"Korlátozott IP-cím ellenőrzés átugrása, ha két tényezős azonosítás engedélyezett"
@@ -3035,6 +3149,7 @@ DocType: User,Redirect URL,Az átirányítási URL
 DocType: SMS Settings,Enter url parameter for receiver nos,Adjon url paramétert a fogadó számaihoz
 DocType: Chat Profile,Online,Online
 DocType: Email Account,Always use Account's Name as Sender's Name,A fiók nevét mindig küldõként használja
+apps/frappe/frappe/email/doctype/email_queue/email_queue.py,Only Administrator can delete Email Queue,Csak adminisztrátor törölheti az Email sorbanállásokat
 apps/frappe/frappe/contacts/doctype/address_template/address_template.py,Setting this Address Template as default as there is no other default,"Állítsa alapértelmezettre ezt a címsablont, mivel nincs más alapértelmezett"
 DocType: Workflow State,Home,Kezdő oldal
 DocType: OAuth Provider Settings,Auto,Automatikus
@@ -3043,6 +3158,7 @@ DocType: Workflow State,question-sign,kérdőjel
 apps/frappe/frappe/core/doctype/doctype/doctype.py,"Field ""route"" is mandatory for Web Views","A webes nézetekhez kötelező mező az  ""útvonal"""
 apps/frappe/frappe/public/js/frappe/views/reports/report_view.js,Insert Column Before {0},Oszlop beillesztése ez elé: {0}
 DocType: Energy Point Rule,The user from this field will be rewarded points,A mezőből származó felhasználó pontokat kap
+DocType: Assignment Rule,Close Condition,Bezárás feltétel
 DocType: Dropbox Settings,Number of DB Backups,DB biztonsági mentések száma
 DocType: Email Account,Add Signature,Aláírás hozzáadása
 apps/frappe/frappe/email/doctype/email_unsubscribe/email_unsubscribe.py,Left this conversation,Elhagyta ezt a beszélgetést
@@ -3050,6 +3166,7 @@ DocType: Print Format,Raw Printing,Nyers nyomtatás
 ,Background Jobs,Háttérműveletek
 apps/frappe/frappe/public/js/frappe/form/print.js,Printer Settings,Nyomtatóbeállítások
 apps/frappe/frappe/desk/doctype/dashboard_chart/dashboard_chart.py,Time series based on is required to create a dashboard chart,A műszerfal diagram létrehozásához az idősorokra van szükség
+apps/frappe/frappe/desk/page/user_profile/user_profile.js,Energy Points: ,Energiapontok:
 DocType: ToDo,ToDo,Tennivalók
 DocType: DocField,No Copy,Nincs másolat
 DocType: Workflow State,qrcode,qrcode
@@ -3057,8 +3174,10 @@ DocType: Chat Token,IP Address,IP-cím
 DocType: Data Import,Submit after importing,Elküldés az importálás után
 apps/frappe/frappe/www/login.html,Login with LDAP,LDAP általi belépés
 DocType: Web Form,Breadcrumbs,Zsemlemorzsa (Breadcrumb)
+apps/frappe/frappe/desk/page/user_profile/user_profile.js,Rank: ,Rang:
 apps/frappe/frappe/core/doctype/doctype/doctype.py,If Owner,Ha tulajdonos
 DocType: Data Migration Mapping,Push,Benyomja
+apps/frappe/frappe/public/js/frappe/file_uploader/FileUploader.vue,Drop files here,Dobja ide a fájlokat
 DocType: OAuth Authorization Code,Expiration time,Lejárati idő
 DocType: Web Page,Website Sidebar,Weboldal oldalsáv
 DocType: Web Form,Show Sidebar,Oldalsáv megjelenítése
@@ -3085,7 +3204,7 @@ DocType: S3 Backup Settings,sa-east-1,SA-East-1
 DocType: Workflow Transition,Workflow Transition,Munkafolyamat átvezetés
 apps/frappe/frappe/public/js/frappe/utils/pretty_date.js,{0} months ago,{0} hónappal ezelőtt
 apps/frappe/frappe/custom/doctype/custom_field/custom_field.py,Custom Fields can only be added to a standard DocType.,Az egyedi mezők csak a szabványos DocType-hez adhatók hozzá.
-apps/frappe/frappe/public/js/frappe/model/model.js,Created By,Létrehozta
+apps/frappe/frappe/public/js/frappe/list/list_sidebar_group_by.js,Created By,Létrehozta
 apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py,Dropbox Setup,Dropbox beállítása
 DocType: Workflow State,resize-horizontal,átméretezés-vízszintes
 apps/frappe/frappe/templates/emails/download_data.html,Download Link,Letöltési link
@@ -3094,6 +3213,7 @@ apps/frappe/frappe/social/doctype/energy_point_log/energy_point_log.py,{0} rever
 DocType: Data Migration Run,Push Insert,Benyomja be a beszúrást
 apps/frappe/frappe/public/js/frappe/views/treeview.js,Group Node,Csoport csomópont
 DocType: Auto Repeat,Notification,Értesítés
+DocType: Contact Phone,Contact Phone,Kapcsolattartó telefon
 apps/frappe/frappe/public/js/frappe/utils/energy_point_utils.js,{0} appreciated {1},{0} értékelt {1}
 DocType: Milestone,Document,Dokumentum
 apps/frappe/frappe/core/doctype/doctype/doctype.py,Series {0} already used in {1},{0} sorozat már használva van itt: {1}
@@ -3102,6 +3222,7 @@ apps/frappe/frappe/public/js/frappe/form/print.js,Attempting to launch QZ Tray..
 DocType: Assignment Rule,Example: {{ subject }},Példa: {{tárgy}}
 DocType: DocField,Code,Kód
 DocType: Workflow,"All possible Workflow States and roles of the workflow. Docstatus Options: 0 is""Saved"", 1 is ""Submitted"" and 2 is ""Cancelled""","Minden lehetséges munkafolyamat állapota és beosztása a munkafolyamatnak. Dokállapot lehetőségek: 0 ""Elmentett"", 1 ""Benyújtott"", és 2. ""Törölt"""
+apps/frappe/frappe/printing/doctype/print_format/print_format.py,{0} are required,{0} szükséges
 apps/frappe/frappe/desk/doctype/dashboard_chart/dashboard_chart.js,Last Modified On,Utolsó módosítás
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,"Permissions at level 0 are Document Level permissions, i.e. they are primary for access to the document.","Engedélyek 0. szinten a dokumentum szintű engedélyek, azaz ők az elsődlegesek a dokumentumhoz való hozzáférés számára."
 DocType: Auto Repeat,Print Format,Nyomtatvány sablon
@@ -3121,7 +3242,7 @@ DocType: Address,Tripura,Tripura
 DocType: About Us Settings,"""Company History""","""Cégtörténet"""
 apps/frappe/frappe/www/confirm_workflow_action.html,This document has been modified after the email was sent.,Ezt a dokumentumot az e-mail elküldése után módosították.
 DocType: DocField,"If checked, this field will be not overwritten based on Fetch From if a value already exists.","Ha bejelöli, ezt a mezőt nem írják felül a Letöltés alapján, ha egy érték már létezik."
-apps/frappe/frappe/core/doctype/prepared_report/prepared_report.js,Show Report,Jelentés megjelenítése
+DocType: Access Log,Show Report,Jelentés megjelenítése
 DocType: Address,Tamil Nadu,Tamil Nadu
 DocType: Email Rule,Email Rule,E-mail szabály
 apps/frappe/frappe/core/doctype/docshare/docshare.py,{0} shared this document with everyone,{0} megosztotta ezt a dokumentumot mindenkivel
@@ -3133,12 +3254,15 @@ apps/frappe/frappe/public/js/frappe/views/translation_manager.js,Translate {0},F
 DocType: Notification,Send alert if this field's value changes,"Riasztást küld, ha ennek a mezőnek az értéke változik"
 apps/frappe/frappe/website/doctype/website_theme/website_theme.js,Theme Colors,Téma színek
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js,Select a DocType to make a new format,"Válasszon ki egy DocType, egy új formátum létrehozásához"
+apps/frappe/frappe/desk/page/user_profile/user_profile.js,User does not exist,A felhasználó nem létezik
 apps/frappe/frappe/automation/doctype/auto_repeat/auto_repeat.py,'Recipients' not specified,A 'címzettek' nincsenek megadva
 apps/frappe/frappe/public/js/frappe/utils/pretty_date.js,just now,pont most
 apps/frappe/frappe/public/js/frappe/ui/filters/edit_filter.html,Apply,Alkalmaz
 DocType: Footer Item,Policy,Irányelv
 apps/frappe/frappe/integrations/utils.py,{0} Settings not found,{0} beállításokat nem találja
 DocType: Module Def,Module Def,Modul Def
+apps/frappe/frappe/public/js/frappe/file_uploader/FileUploader.vue,Upload file,Fájl feltöltés
+apps/frappe/frappe/public/js/frappe/social/components/Post.vue,Are you sure you want to delete this post?,Biztosan törli ezt a bejegyzést?
 DocType: Chat Profile,Busy,Elfoglalt
 apps/frappe/frappe/core/page/dashboard/dashboard.js,{0} Dashboard,{0} Irányítópult
 DocType: Data Migration Plan,Data Migration Plan,Adatátvitel terve
@@ -3156,7 +3280,9 @@ apps/frappe/frappe/templates/includes/comments/comments.py,New Comment on {0}: {
 apps/frappe/frappe/core/doctype/deleted_document/deleted_document.py,restored {0} as {1},Visszaállított {0} mint {1}
 apps/frappe/frappe/core/doctype/data_export/exporter.py,"If you are updating, please select ""Overwrite"" else existing rows will not be deleted.","Ha aktualizál, kérjük válassza a ""Felülírás"" -t máskülönben a meglévő sorok nem kerülnek törlésre."
 DocType: DocField,Translatable,Lefordítható
+apps/frappe/frappe/integrations/doctype/google_calendar/google_calendar.js,Syncing {0} of {1},A (z) {1} {0} szinkronizálása
 DocType: Letter Head,Letter Head in HTML,Levél fejléc HTML-ben
+apps/frappe/frappe/desk/page/user_profile/user_profile.js,User Profile,Felhasználói profil
 DocType: Web Form,Web Form,Web Űrlap
 apps/frappe/frappe/public/js/frappe/form/controls/date.js,Date {0} must be in format: {1},A {0} dátumnak formátumban kell lennie: {1}
 DocType: About Us Settings,Org History Heading,Vállalkozás története Rovat
@@ -3218,7 +3344,7 @@ apps/frappe/frappe/public/js/frappe/chat.js,Discard,Elvet
 apps/frappe/frappe/public/js/frappe/utils/pretty_date.js,1 hour ago,1 órával ezelőtt
 DocType: Website Settings,Home Page,Kezdőlap
 DocType: Error Snapshot,Parent Error Snapshot,Fő Hiba Pillanatkép
-DocType: Prepared Report,Filters,Szűrők
+DocType: Access Log,Filters,Szűrők
 DocType: Workflow State,share-alt,share-alt
 apps/frappe/frappe/utils/background_jobs.py,Queue should be one of {0},Sorba állításnak ennek az egyikének kell lennie {0}
 DocType: Address Template,"<h4>Default Template</h4>
@@ -3255,6 +3381,7 @@ DocType: Notification,Send days before or after the reference date,Küldjön a r
 DocType: User,Allow user to login only after this hour (0-24),"A felhasználó megadhatja, hogy ezen óra után jelentkezhet be (0-24)"
 apps/frappe/frappe/automation/doctype/assignment_rule/assignment_rule.js,"Assign one by one, in sequence","Rendeljen egyenként, sorrendben"
 DocType: Integration Request,Subscription Notification,Előfizetési értesítés
+apps/frappe/frappe/public/js/frappe/file_uploader/FileUploader.vue,or attach a,vagy csatolja a
 DocType: Auto Repeat,Start Date,Kezdés dátuma
 apps/frappe/frappe/public/js/frappe/form/link_selector.js,Value,Érték
 DocType: Dashboard Chart,Filters JSON,JSON szűrők
@@ -3264,6 +3391,7 @@ apps/frappe/frappe/public/js/frappe/utils/utils.js,Copied to clipboard.,Másolja
 apps/frappe/frappe/utils/password_strength.py,Predictable substitutions like '@' instead of 'a' don't help very much.,"Kiszámítható helyettesítések, mint a '@' helyett 'a' nem nagyon segít."
 apps/frappe/frappe/desk/doctype/todo/todo_list.js,Assigned By Me,Általam hozzárendelt
 apps/frappe/frappe/utils/data.py,Zero,Nulla
+DocType: Google Drive,Backup Folder ID,Biztonsági mappa azonosítója
 apps/frappe/frappe/core/doctype/doctype/doctype.py,Not in Developer Mode! Set in site_config.json or make 'Custom' DocType.,"Nem a fejlesztői módban! Állítsa be a  site_config.json, vagy hozzon létre 'Egyedi' DocType."
 DocType: Workflow State,globe,földgolyó
 DocType: System Settings,dd.mm.yyyy,nn.hh.éééé
@@ -3281,10 +3409,13 @@ DocType: Print Settings,Page Settings,Oldalbeállítások
 apps/frappe/frappe/public/js/frappe/form/quick_entry.js,Saving...,Megtakarítás...
 apps/frappe/frappe/www/update-password.html,Invalid Password,Érvénytelen jelszó
 DocType: Contact,Purchase Master Manager,Beszerzés törzsadat kezelő
+apps/frappe/frappe/public/js/frappe/file_uploader/FileUploader.vue,Click on the lock icon to toggle public/private,A nyilvános / privát váltáshoz kattintson a zár ikonra
 DocType: Module Def,Module Name,Modul neve
 DocType: S3 Backup Settings,eu-west-3,eu-nyugat-3
+apps/frappe/frappe/public/js/frappe/file_uploader/FileUploader.vue,Uploading {0} of {1},A (z) {1} {0} feltöltése
 DocType: DocType,DocType is a Table / Form in the application.,DocType egy Táblázat / Űrlap az alkalmazában.
 DocType: Social Login Key,Authorize URL,Hitelesítő URL
+apps/frappe/frappe/integrations/doctype/google_calendar/google_calendar.py,"Google Calendar - Could not fetch event from Google Calendar, error code {0}.","Google Naptár - Nem sikerült beolvasni az eseményt a Google Naptárból, hibakód: {0}."
 apps/frappe/frappe/automation/doctype/auto_repeat/auto_repeat.py,Auto Repeat Document Creation Failed,A dokumentum automatikus ismételt létrehozása sikertelen
 DocType: Email Account,GMail,GMail
 DocType: Letter Head,Letter Head Image,Levél fej kép
@@ -3300,10 +3431,13 @@ DocType: DocField,Print Width,Nyomtatási szélesség
 DocType: Address,GST State Number,GST Állam száma
 DocType: Chat Message,Visitor,Látogató
 DocType: User,Allow user to login only before this hour (0-24),"A felhasználó megadhatja, hogy ezen óra előtt jelentkezhet be (0-24)"
+apps/frappe/frappe/public/js/frappe/file_uploader/FileUploader.vue,"Drag and drop files, ","Fájlok húzása és dobása,"
 DocType: Social Login Key,Access Token URL,Hozzáférési token URL
+apps/frappe/frappe/config/integrations.py,Google Drive Backup.,Google Drive biztonsági másolat.
 apps/frappe/frappe/desk/doctype/todo/todo.py,{0} assigned {1}: {2},{0} kijelölt {1}: {2}
 apps/frappe/frappe/www/contact.py,New Message from Website Contact Page,Új Üzenet a honlap Kapcsolat oldalról
 DocType: Notification,Reference Date,Hivatkozó dátum
+apps/frappe/frappe/templates/includes/login/login.js,OTP setup using OTP App was not completed. Please contact Administrator.,Az OTP beállítása az OTP alkalmazás használatával nem fejeződött be. Vegye fel a kapcsolatot az adminisztrátorral.
 apps/frappe/frappe/core/doctype/sms_settings/sms_settings.py,Please enter valid mobile nos,"Kérjük, adjon meg érvényes mobil számokat"
 apps/frappe/frappe/public/js/frappe/desk.js,Some of the features might not work in your browser. Please update your browser to the latest version.,Egyes funkciók esetleg nem működnek a böngészőjében. Kérjük frissítse böngészőjét a legfrissebb verzióra.
 apps/frappe/frappe/utils/bot.py,"Don't know, ask 'help'","Nem tudom, kérdezd &quot;segítséget&quot;"
@@ -3317,7 +3451,6 @@ DocType: Data Migration Mapping Detail,Child Table Mapping,Al tábla-feltérkép
 DocType: Company History,Year,Év
 DocType: User Social Login,Provider,Ellátó
 DocType: OAuth Client, Advanced Settings,További beállítások
-apps/frappe/frappe/integrations/doctype/gsuite_settings/gsuite_settings.js,Please enter values for GSuite Access Key and GSuite Access Secret,"Kérjük, adja meg az értékeket a GSuite hozzáférési kulcshoz és a GSuite hozzáférési titkosítóhoz"
 apps/frappe/frappe/website/doctype/website_settings/website_settings.py,{0} does not exist in row {1},{0} nem létezik a(z) {1} sorban
 apps/frappe/frappe/core/doctype/sms_settings/sms_settings.py,Please Update SMS Settings,"Kérjük, frissítsd az SMS beállításokat"
 DocType: Event,Event Type,Esemény típusa
@@ -3331,16 +3464,17 @@ apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,Save Report,Je
 DocType: Webhook,on_cancel,on_cancel
 DocType: Social Login Key,API Endpoint Args,API végpont érv
 apps/frappe/frappe/core/doctype/user/user.py,Administrator accessed {0} on {1} via IP Address {2}.,Rendszergazda elérhető itt: {0} ezen keresztül: {1} a következő IP címen {2}.
+apps/frappe/frappe/core/doctype/doctype/doctype.py,Parent Field must be a valid fieldname,A szülő mezőnek érvényes mezőnévnek kell lennie
 apps/frappe/frappe/integrations/doctype/paypal_settings/paypal_settings.py,Failed while amending subscription,Sikertelen az előfizetés módosítása során
 DocType: LDAP Settings,LDAP Group Field,LDAP csoport mező
 apps/frappe/frappe/public/js/frappe/ui/filters/filter.js,Equals,Egyenlő
 apps/frappe/frappe/core/doctype/doctype/doctype.py,Options 'Dynamic Link' type of field must point to another Link Field with options as 'DocType',A választható 'Dinamikus link' típusú mezőnek egy másik Link mezőre  kell mutatnia 'DocType' választhatósággal
 DocType: About Us Settings,Team Members Heading,Szervezeti csoport felépítés fejszövege
 apps/frappe/frappe/utils/csvutils.py,Invalid CSV Format,Érvénytelen CSV formátum
-apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Setup &gt; User Permissions,Beállítás&gt; Felhasználói engedélyek
 apps/frappe/frappe/desk/page/backups/backups.js,Set Number of Backups,Állítsa be a mentéseket számát
 DocType: DocField,Do not allow user to change after set the first time,"Ne engedje, hogy a felhasználó módosítsa, miután beállította az első időt"
 apps/frappe/frappe/utils/data.py,1 year ago,1 évvel ezelőtt
+apps/frappe/frappe/config/users_and_permissions.py,"View Log of all print, download and export events","Az összes nyomtatási, letöltési és exportálási eseménynapló megtekintése"
 apps/frappe/frappe/public/js/frappe/ui/filters/filter.js,1 month,1 hónap
 DocType: Contact,Contact,Kapcsolat
 DocType: User,Third Party Authentication,Ügyfél azonosítók megadása
@@ -3365,10 +3499,12 @@ DocType: Auto Email Report,Dynamic Report Filters,Dinamikus jelentésszűrők
 DocType: Email Account,UIDVALIDITY,FELHIDERVENY
 apps/frappe/frappe/public/js/frappe/views/communication.js,New Email,Új Email
 DocType: Custom DocPerm,Export,Export
+apps/frappe/frappe/integrations/doctype/google_calendar/google_calendar.js,"To use Google Calendar, enable {0}.",A Google Naptár használatához engedélyezze a (z) {0} lehetőséget.
 apps/frappe/frappe/public/js/frappe/form/print.js,QZ Tray Failed: ,Nem sikerült a QZ tálca:
 DocType: Dropbox Settings,Dropbox Settings,Dropbox beállításai
 DocType: About Us Settings,More content for the bottom of the page.,További tartalom a lap aljára.
 apps/frappe/frappe/social/doctype/energy_point_log/energy_point_log.js,This document has been reverted,Ezt a dokumentumot visszavonták
+apps/frappe/frappe/integrations/doctype/google_drive/google_drive.py,Google Drive Backup Successful.,A Google Drive biztonsági mentése sikeres.
 DocType: Workflow,DocType on which this Workflow is applicable.,DocType melyre ez a munkafolyamat alkalmazható.
 DocType: User,Enabled,Engedélyezve
 apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js,Failed to complete setup,Sikertelen telepítés
@@ -3398,7 +3534,9 @@ DocType: ToDo,Low,Alacsony
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js,You can add dynamic properties from the document by using Jinja templating.,Hozzáadhat dinamikus tulajdonságokat a dokumentumból a Jinja sablonozóval.
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js,List a document type,Listázzon egy dokument típust
 DocType: Web Page,"Header, Breadcrumbs and Meta Tags","Fejléc, zsemlemorzsa és metacímkék"
+apps/frappe/frappe/public/js/frappe/file_uploader/FileUploader.vue,"browse,","Keressük,"
 apps/frappe/frappe/public/js/frappe/ui/filters/filter.js,3 months,3 hónap
+apps/frappe/frappe/public/js/frappe/views/components/DeskSection.vue,Shortcuts,parancsikonok
 apps/frappe/frappe/core/doctype/data_export/exporter.py,"If you are uploading new records, leave the ""name"" (ID) column blank.","Ha új rekordokat tölt fel, hagyja üresen a ""Név"" (ID) oszlopot."
 DocType: Data Migration Run,Current Mapping Delete Start,Aktuális leképzés kezdés törlés
 apps/frappe/frappe/config/core.py,Errors in Background Events,Hibák a Háttér Eseményeken
@@ -3430,6 +3568,7 @@ apps/frappe/frappe/templates/includes/login/login.js,Invalid Login. Try again.,�
 DocType: Auto Email Report,Send only if there is any data,"Csak akkor küldje, ha van adat"
 apps/frappe/frappe/public/js/frappe/views/reports/report_view.js,Totals Row,Összes sor
 apps/frappe/frappe/core/doctype/doctype/doctype.py,{0}: Permission at level 0 must be set before higher levels are set,"{0}: A 0. szintű jogosultságot be kell állítani, mielőtt a magasabb szintűt beállítaná"
+DocType: Contact,Sync with Google Contacts,Szinkronizálás a Google Névjegyekkel
 apps/frappe/frappe/desk/doctype/todo/todo.py,Assignment closed by {0},Hozzárendelés lezárva {0}
 DocType: Integration Request,Remote,Távoli
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js,Calculate,Számolás
@@ -3439,6 +3578,7 @@ apps/frappe/frappe/www/login.html,Or login with,Vagy jelentkezz be ezzel
 DocType: Error Snapshot,Locals,Helyiek
 apps/frappe/frappe/desk/page/activity/activity_row.html,Communicated via {0} on {1}: {2},Keresztül közölt {0} ezen {1}: {2}
 apps/frappe/frappe/core/doctype/comment/comment.py,{0} mentioned you in a comment in {1},{0} megemlítette Önt egy megjegyzésben itt: {1}
+apps/frappe/frappe/public/js/frappe/ui/group_by/group_by.html,Select Group By...,Válassza ki a Csoportot ...
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js,e.g. (55 + 434) / 4 or =Math.sin(Math.PI/2)...,pl. (55 + 434) / 4 vagy = Math.sin(Math.PI/2)...
 apps/frappe/frappe/utils/csvutils.py,{0} is required,{0} szükséges
 DocType: Integration Request,Integration Type,Integráció típusa
@@ -3461,6 +3601,8 @@ apps/frappe/frappe/public/js/frappe/views/treeview.js,View List,Lista megtekint�
 DocType: Workflow,Don't Override Status,Ne írja fellül az állapotot
 apps/frappe/frappe/public/js/frappe/form/multi_select_dialog.js,Search term,Keresési kifejezés
 apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js,The First User: You,Az első felhasználó: Ön
+apps/frappe/frappe/email/doctype/newsletter/newsletter.py,Newsletter should have atleast one recipient,A hírlevélnek legalább egy címzettnek kell lennie
+apps/frappe/frappe/public/js/frappe/file_uploader/FileUploader.vue,Upload {0} files,Tölts fel {0} fájlt
 DocType: Deleted Document,GCalendar Sync ID,GNaptár szinkr ID
 DocType: Prepared Report,Report Start Time,Jelentés kezdési dátum
 apps/frappe/frappe/config/settings.py,Export Data,Adat exportálás
@@ -3481,9 +3623,11 @@ DocType: Report,Disable Prepared Report,Az elkészített jelentés letiltása
 apps/frappe/frappe/templates/emails/data_deletion_approval.html,User {0} has requested for data deletion,A (z) {0} felhasználó adatok törlését kérte
 apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py,Illegal Access Token. Please try again,Illegális hozzáférési Token. Kérlek próbáld újra
 apps/frappe/frappe/public/js/frappe/desk.js,"The application has been updated to a new version, please refresh this page","Az alkalmazás frissült egy új verzióra, kérjük, frissítse az oldalt"
+apps/frappe/frappe/contacts/doctype/address/address.py,No default Address Template found. Please create a new one from Setup &gt; Printing and Branding &gt; Address Template.,"Nem található alapértelmezett címsablon. Kérjük, hozzon létre egy újat a Beállítás&gt; Nyomtatás és márkajelzés&gt; Címsablon menüpontból."
 DocType: Notification,Optional: The alert will be sent if this expression is true,"Választható: A riasztást kiküldjük, ha ez a kifejezés igaz"
 DocType: Data Migration Plan,Plan Name,Terv megnevezése
 DocType: Print Settings,Print with letterhead,Nyomtatás fejléccel
+apps/frappe/frappe/public/js/frappe/file_uploader/WebLink.vue,Attach a web link,Csatlakoztasson egy internetes linket
 DocType: Unhandled Email,Raw Email,Nyers email
 apps/frappe/frappe/public/js/frappe/list/bulk_operations.js,Select records for assignment,Válasszon ki rekordokat hozzárendeléshez
 apps/frappe/frappe/www/printview.py,{0} is not a raw printing format.,A (z) {0} nem egy nyers nyomtatási formátum.
@@ -3495,6 +3639,7 @@ apps/frappe/frappe/public/js/frappe/form/sidebar/review.js,{0} appreciation poin
 DocType: S3 Backup Settings,cn-northwest-1,cn-Northwest-1
 DocType: Dropbox Settings,Limit Number of DB Backups,A DB-mentések számának korlátozása
 DocType: Custom DocPerm,Level,Szint
+apps/frappe/frappe/public/js/frappe/ui/toolbar/energy_points_notifications.js,Last 30 days,Az elmúlt 30 nap
 DocType: Custom DocPerm,Report,Jelentés
 apps/frappe/frappe/website/doctype/web_form/web_form.py,Amount must be greater than 0.,"Összegnek nagyobbnak kell lennie, mint 0."
 apps/frappe/frappe/public/js/frappe/form/print.js,Connected to QZ Tray!,Csatlakoztatva a QZ tálcához!
@@ -3512,6 +3657,7 @@ apps/frappe/frappe/custom/doctype/custom_script/custom_script.js,Select Child Ta
 apps/frappe/frappe/public/js/frappe/ui/keyboard.js,Trigger Primary Action,Indítsa el az elsődleges műveletet
 apps/frappe/frappe/public/js/frappe/form/templates/form_sidebar.html,Change,Változás
 DocType: Email Domain,domain name,domén név
+DocType: Contact Email,Contact Email,Kapcsolattartó e-mailcíme
 DocType: Kanban Board Column,Order,Sorrend
 DocType: Report,Ref DocType,Hiv. DocType
 apps/frappe/frappe/integrations/doctype/social_login_key/social_login_key.py,Please enter Client ID before social login is enabled,"Kérjük, adja meg az Ügyfél-azonosítót,  a közösségi bejelentkezés engedélyezése előtt"
@@ -3539,6 +3685,7 @@ DocType: Workflow Action,Workflow Action,Munkafolyamat művelet
 apps/frappe/frappe/utils/bot.py,I found these: ,Ezeket találtam:
 DocType: Event,Send an email reminder in the morning,Küldjön email emlékeztetőt reggel
 DocType: Blog Post,Published On,Közzétette ekkor
+apps/frappe/frappe/email/smtp.py,Email Account not setup. Please create a new Email Account from Setup &gt; Email &gt; Email Account,"Az e-mail fiók nincs beállítva. Kérjük, hozzon létre egy új e-mail fiókot a Beállítás&gt; E-mail&gt; E-mail fiók menüben"
 DocType: Contact,Gender,Neme
 apps/frappe/frappe/website/doctype/web_form/web_form.py,Mandatory Information missing:,Kötelező informácikó hiányoznak:
 apps/frappe/frappe/social/doctype/energy_point_log/energy_point_log.py,{0} reverted your points on {1},{0} visszaadta pontainkat a (z) {1} -on
@@ -3559,6 +3706,7 @@ apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Use
 DocType: Workflow State,warning-sign,figyelmeztető jel
 DocType: Prepared Report,Prepared Report,Létrehozott jelentés
 apps/frappe/frappe/config/website.py,Add meta tags to your web pages,Adjon hozzá metacímkéket a weblapjaihoz
+DocType: Contact,Phone Nos,Telefonszám
 DocType: Workflow State,User,Felhasználó
 DocType: Website Settings,"Show title in browser window as ""Prefix - title""","Cím megjelenítése a böngészőablakban, mint ""Előtag - cím"""
 DocType: Payment Gateway,Gateway Settings,Árjáró beállítások
@@ -3579,7 +3727,8 @@ apps/frappe/frappe/public/js/frappe/views/interaction.js,Summary,Összefoglalás
 DocType: Event,Event Participants,Esemény résztvevői
 DocType: Auto Repeat,Frequency,Gyakoriság
 DocType: Custom Field,Insert After,Beszúrás utána
-DocType: Prepared Report,Report Name,Jelentés neve
+DocType: Event,Sync with Google Calendar,Szinkronizálás a Google Naptárral
+DocType: Access Log,Report Name,Jelentés neve
 DocType: Desktop Icon,Reverse Icon Color,Fordított Icon Color
 DocType: Notification,Save,Mentés
 apps/frappe/frappe/automation/doctype/auto_repeat/auto_repeat_schedule.html,Next Scheduled Date,Következő ütemezés dátuma
@@ -3604,6 +3753,7 @@ apps/frappe/frappe/public/js/frappe/ui/filters/filters.js,values separated by co
 apps/frappe/frappe/core/doctype/doctype/doctype.py,Max width for type Currency is 100px in row {0},Max szélesség a pénznem típushoz 100px ebben a sorban {0}
 apps/frappe/frappe/config/website.py,Content web page.,Weboldal tartalom.
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Add a New Role,Új beosztás hozzáadása
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Setup &gt; Customize Form,Beállítás&gt; Az űrlap testreszabása
 DocType: Google Contacts,Last Sync On,Utolsó szinkronizálás ekkor
 DocType: Deleted Document,Deleted Document,Törölt dokumentum
 apps/frappe/frappe/templates/includes/login/login.js,Oops! Something went wrong,Hoppá! Valami rosszul sült el
@@ -3613,12 +3763,14 @@ apps/frappe/frappe/public/js/frappe/form/print.js,Landscape,Tájkép
 apps/frappe/frappe/config/core.py,Client side script extensions in Javascript,Kliens oldali script bővítmények Javascript alapon
 DocType: Webhook,on_trash,on_trash
 apps/frappe/frappe/core/doctype/user_permission/user_permission_help.html,Records for following doctypes will be filtered,A következő típusú doctypes adatai lesznek szűrve
+apps/frappe/frappe/public/js/frappe/desk.js,Scheduler Inactive,Ütemező inaktív
 DocType: Blog Settings,Blog Introduction,Blog Bevezetés
 DocType: Address,Office,Iroda
 apps/frappe/frappe/public/js/frappe/views/kanban/kanban_view.js,This Kanban Board will be private,Ez Kanban Board privát lesz
 apps/frappe/frappe/desk/moduleview.py,Standard Reports,Általános jelentések
 DocType: Dashboard Chart Link,Dashboard Chart Link,Irányítópult diagram link
 DocType: User,Email Settings,Email beállítások
+apps/frappe/frappe/public/js/frappe/ui/dropzone.js,Drop Here,Dobja ide
 DocType: User,"If enabled,  user can login from any IP Address using Two Factor Auth, this can also be set for all users in System Settings","Ha engedélyezve van, a felhasználó bármilyen IP-címről bejelentkezhet a Two Factor Auth használatával, ez minden felhasználó számára beállítható a Rendszerbeállításokban"
 apps/frappe/frappe/public/js/frappe/form/templates/print_layout.html,Printer Settings...,Nyomtatóbeállítások ...
 apps/frappe/frappe/public/js/frappe/desk.js,Please Enter Your Password to Continue,"Kérjük, adja meg a jelszavát a folytatáshoz"
@@ -3629,6 +3781,7 @@ apps/frappe/frappe/social/doctype/energy_point_log/energy_point_log.py,Energy po
 apps/frappe/frappe/integrations/doctype/paypal_settings/paypal_settings.py,Please select another payment method. PayPal does not support transactions in currency '{0}',"Kérjük, válasszon más fizetési módot. PayPal nem támogatja a tranzakciókat ebben a pénznemben '{0}'"
 DocType: Chat Message,Room Type,Szoba típus
 apps/frappe/frappe/core/doctype/doctype/doctype.py,Search field {0} is not valid,Keresés mező {0} nem érvényes
+apps/frappe/frappe/public/js/frappe/file_uploader/FileUploader.vue,uploaded file,feltöltött fájl
 DocType: Workflow State,ok-circle,ok-kör
 DocType: LDAP Settings,LDAP User Creation and Mapping,LDAP felhasználó létrehozása és leképezése
 apps/frappe/frappe/utils/bot.py,You can find things by asking 'find orange in customers',Megtalálhat dolgokat így rákérdezve 'narancs keresés vevők'
@@ -3636,6 +3789,7 @@ apps/frappe/frappe/core/doctype/user/user.py,Sorry! User should have complete ac
 ,Usage Info,Használat Info
 apps/frappe/frappe/public/js/frappe/ui/keyboard.js,Show Keyboard Shortcuts,Billentyűparancsok megjelenítése
 apps/frappe/frappe/utils/oauth.py,Invalid Token,Érvénytelen kód
+apps/frappe/frappe/integrations/doctype/google_drive/google_drive.py,Google Drive - Could not upload backup - Error {0},Google Drive - Nem sikerült feltölteni a biztonsági másolatot - {0} hiba
 DocType: Email Account,Email Server,E-mail szerver
 DocType: Assignment Rule,Document Type,Dokumentum típus
 DocType: Address,Tax Category,Adókategória
@@ -3675,16 +3829,18 @@ DocType: Communication,To and CC,Címzett és CC
 DocType: SMS Settings,Static Parameters,Statikus paraméterek
 DocType: Chat Message,Room,Szoba
 apps/frappe/frappe/public/js/frappe/change_log.html,updated to {0},frissítve erre: {0}
-DocType: User,Desktop Background,Asztal háttere
+apps/frappe/frappe/public/js/frappe/desk.js,Background jobs are not running. Please contact Administrator,A háttér jobok nem futnak. Vegye fel a kapcsolatot az adminisztrátorral
 DocType: Portal Settings,Custom Menu Items,Egyedi Menüpontok
 apps/frappe/frappe/website/doctype/website_slideshow/website_slideshow.py,All Images attached to Website Slideshow should be public,"A weboldal diavetítéshez csatolt, összes képének, nyilvánosnak kell lennie"
 DocType: Workflow State,chevron-right,Chevron-jobb
+apps/frappe/frappe/integrations/doctype/google_drive/google_drive.js,"To use Google Drive, enable {0}.",A Google Drive használatához engedélyezze a (z) {0} lehetőséget.
 apps/frappe/frappe/website/doctype/web_form/web_form.py,You need to be in developer mode to edit a Standard Web Form,"Fejlesztő módban kell lennie, hogy  szerkeszthessen egy alapértelmezett webes űrlapot"
 DocType: Personal Data Deletion Request,Personal Data Deletion Request,Személyes adatok törlési kérelme
 DocType: Payment Gateway,Gateway Controller,Átjáró vezérlő
 apps/frappe/frappe/core/doctype/session_default_settings/session_default_settings.py,Default {0},Alapértelmezett {0}
 DocType: Workflow State,camera,kamera
 DocType: Website Settings,Brand HTML,Márka HTML
+apps/frappe/frappe/integrations/doctype/google_drive/google_drive.js,Take Backup,Vegye biztonsági mentést
 apps/frappe/frappe/public/js/frappe/form/controls/multiselect_list.js,{0} values selected,{0} érték kiválasztva
 DocType: DocType,Allow Auto Repeat,Engedélyezze az automatikus ismétlést
 apps/frappe/frappe/public/js/frappe/form/controls/multiselect_list.js,No values to show,Nincs megjeleníthető érték
@@ -3708,8 +3864,8 @@ DocType: Patch Log,Patch,Javítócsomag
 DocType: Activity Log,Failed,Sikertelen
 DocType: Web Form,Allow Comments,Megjegyzések engedélyezése
 DocType: Dashboard Chart,Last Week,Múlt hét
-DocType: User,Background Style,Háttérkép elrendezése
 DocType: System Settings,Bypass Two Factor Auth for users who login from restricted IP Address,"Két tényezős azonosítás átlépése azon felhasználók számára, akik korlátozott IP-címről jelentkeznek be"
+DocType: Event,Google Calendar,Google Naptár
 apps/frappe/frappe/email/queue.py,{0} to stop receiving emails of this type,{0} az ilyen típusú e-mailek fogadásának leállításához
 apps/frappe/frappe/www/qrcode.html,Open your authentication app on your mobile phone.,Nyissa meg a hitelesítési alkalmazást a mobiltelefonján.
 apps/frappe/frappe/model/rename_doc.py,merged {0} into {1},egyesítve ez: {0} ebbe: {1}

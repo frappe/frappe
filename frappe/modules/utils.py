@@ -119,7 +119,7 @@ def sync_customizations_for_doctype(data, folder):
 					custom_doctype, doctype_fieldname), doc_type)
 
 				for d in data[key]:
-					_insert(data)
+					_insert(d)
 
 			else:
 				for d in data[key]:

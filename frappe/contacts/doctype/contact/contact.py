@@ -42,6 +42,9 @@ class Contact(Document):
 		if self.email_id and not self.image:
 			self.image = has_gravatar(self.email_id)
 
+		if self.get("sync_with_google_contacts") and not self.get("google_contacts"):
+			frappe.throw(_("Select Google Contacts to which contact should be synced."))
+
 		deduplicate_dynamic_links(self)
 
 	def set_user(self):
@@ -195,6 +198,32 @@ def contact_query(doctype, txt, searchfield, start, page_len, filters):
 			'link_doctype': link_doctype
 		})
 
+@frappe.whitelist()
+def address_query(links):
+	import json
+
+	links = [{"link_doctype": d.get("link_doctype"), "link_name": d.get("link_name")} for d in json.loads(links)]
+	result = []
+
+	for link in links:
+		if not frappe.has_permission(doctype=link.get("link_doctype"), ptype="read", doc=link.get("link_name")):
+			continue
+
+		res = frappe.db.sql("""
+			SELECT `tabAddress`.name
+			FROM `tabAddress`, `tabDynamic Link`
+			WHERE `tabDynamic Link`.parenttype='Address'
+				AND `tabDynamic Link`.parent=`tabAddress`.name
+				AND `tabDynamic Link`.link_doctype = %(link_doctype)s
+				AND `tabDynamic Link`.link_name = %(link_name)s
+		""", {
+			"link_doctype": link.get("link_doctype"),
+			"link_name": link.get("link_name"),
+		}, as_dict=True)
+
+		result.extend([l.name for l in res])
+
+	return result
 
 def get_contact_with_phone_number(number):
 	if not number: return

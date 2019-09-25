@@ -100,7 +100,9 @@ frappe.ready(function() {
 
 					return df;
 				}
-				if (df.fieldtype === "Link") df.only_select = true;
+				if (df.fieldtype === "Link") {
+					df.only_select = true;
+				}
 			});
 
 			return form_data;
