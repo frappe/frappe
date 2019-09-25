@@ -111,7 +111,10 @@ def execute_event(doc):
 
 def run_scheduled_job(job_type):
 	'''This is a wrapper function that runs a hooks.scheduler_events method'''
-	frappe.get_doc('Scheduled Job Type', dict(method=job_type)).execute()
+	try:
+		frappe.get_doc('Scheduled Job Type', dict(method=job_type)).execute()
+	except Exception:
+		print(frappe.get_traceback())
 
 def sync_jobs():
 	frappe.reload_doc('core', 'doctype', 'scheduled_job_type')
