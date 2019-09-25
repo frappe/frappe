@@ -270,7 +270,7 @@ user_privacy_documents = [
 	{
 		'doctype': 'Contact',
 		'match_field': 'email_id',
-		'personal_fields': ['first_name', 'last_name', 'phone'],
+		'personal_fields': ['first_name', 'last_name', 'phone', 'mobile_no'],
 	},
 	{
 		'doctype': 'Contact Email',

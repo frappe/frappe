@@ -1232,6 +1232,18 @@ class Document(BaseDocument):
 				frappe.bold(self.meta.get_label(from_date_field)),
 			), frappe.exceptions.InvalidDates)
 
+	def get_assigned_users(self):
+		assignments = frappe.get_all('ToDo',
+			fields=['owner'],
+			filters={
+				'reference_type': self.doctype,
+				'reference_name': self.name,
+				'status': ('!=', 'Cancelled'),
+			})
+
+		users = set([assignment.owner for assignment in assignments])
+		return users
+
 def execute_action(doctype, name, action, **kwargs):
 	'''Execute an action on a document (called by background worker)'''
 	doc = frappe.get_doc(doctype, name)

@@ -10,11 +10,14 @@
   "rule_name",
   "reference_doctype",
   "for_doc_event",
-  "condition",
+  "field_to_check",
   "points",
+  "for_assigned_users",
   "user_field",
   "multiplier_field",
-  "max_points"
+  "max_points",
+  "column_break_12",
+  "condition"
  ],
  "fields": [
   {
@@ -42,7 +45,7 @@
    "reqd": 1
   },
   {
-   "depends_on": "eval:doc.for_doc_event === 'Custom'",
+   "depends_on": "eval:['Custom', 'Value Change'].includes(doc.for_doc_event)",
    "description": "If the condition is satisfied user will be rewarded with the points. eg. doc.status == 'Closed'\n",
    "fieldname": "condition",
    "fieldtype": "Code",
@@ -56,11 +59,11 @@
    "reqd": 1
   },
   {
+   "depends_on": "eval:!doc.for_assigned_users || doc.for_doc_event==='New'",
    "description": "The user from this field will be rewarded points",
    "fieldname": "user_field",
    "fieldtype": "Select",
-   "label": "User Field",
-   "reqd": 1
+   "label": "User Field"
   },
   {
    "fieldname": "multiplier_field",
@@ -69,7 +72,7 @@
   },
   {
    "depends_on": "eval:doc.multiplier_field",
-   "description": "Maximum points allowed after multiplying points with the multiplier value\n(Note: For no limit set value as 0)",
+   "description": "Maximum points allowed after multiplying points with the multiplier value\n(Note: For no limit leave this field empty or set 0)",
    "fieldname": "max_points",
    "fieldtype": "Int",
    "label": "Maximum Points"
@@ -83,10 +86,28 @@
    "fieldname": "for_doc_event",
    "fieldtype": "Select",
    "label": "For Document Event",
-   "options": "New\nSubmit\nCancel\nCustom"
+   "options": "New\nSubmit\nCancel\nValue Change\nCustom"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:doc.for_doc_event !=='New'",
+   "description": "Users assigned to the reference document will get points.",
+   "fieldname": "for_assigned_users",
+   "fieldtype": "Check",
+   "label": "Allot Points To Assigned Users"
+  },
+  {
+   "depends_on": "eval:doc.for_doc_event=='Value Change'",
+   "fieldname": "field_to_check",
+   "fieldtype": "Select",
+   "label": "Field To Check"
+  },
+  {
+   "fieldname": "column_break_12",
+   "fieldtype": "Column Break"
   }
  ],
- "modified": "2019-09-05 14:22:27.664645",
+ "modified": "2019-09-24 15:20:25.383536",
  "modified_by": "Administrator",
  "module": "Social",
  "name": "Energy Point Rule",
