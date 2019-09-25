@@ -51,7 +51,7 @@ frappe.data_import.ImportPreview = class ImportPreview {
 				</div>
 			</div>
 		`);
-		frappe.utils.bind_actions_with_class(this.wrapper, this);
+		frappe.utils.bind_actions_with_object(this.wrapper, this);
 
 		this.$table_preview = this.wrapper.find('.table-preview');
 	}

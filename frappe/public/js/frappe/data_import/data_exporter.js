@@ -148,7 +148,7 @@ frappe.data_import.DataExporter = class DataExporter {
 				</button>
 			</div>
 		`);
-		frappe.utils.bind_actions_with_class($select_all_buttons, this);
+		frappe.utils.bind_actions_with_object($select_all_buttons, this);
 		this.dialog
 			.get_field('select_all_buttons')
 			.$wrapper.html($select_all_buttons);
