@@ -183,6 +183,9 @@ frappe.search.SearchDialog = Class.extend({
 			this.$search_modal.find('.loading-state').removeClass('hide');
 		}
 		this.search.get_results(keywords, this.parse_results.bind(this));
+		if (this.search_dialog.is_minimized) {
+			this.toggle_minimize();
+		}
 	},
 
 	parse_results: function(result_sets, keyword) {

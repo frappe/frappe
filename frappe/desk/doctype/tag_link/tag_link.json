@@ -6,7 +6,7 @@
  "field_order": [
   "dt",
   "dn",
-  "tags",
+  "tag",
   "title"
  ],
  "fields": [
@@ -29,21 +29,21 @@
    "read_only": 1
   },
   {
-   "fieldname": "tags",
-   "fieldtype": "Data",
-   "in_list_view": 1,
-   "in_standard_filter": 1,
-   "label": "Tag",
-   "read_only": 1
-  },
-  {
    "fieldname": "title",
    "fieldtype": "Data",
    "label": "Document Title",
    "read_only": 1
+  },
+  {
+   "fieldname": "tag",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Document Tag",
+   "read_only": 1
   }
  ],
- "modified": "2019-09-24 22:24:36.927919",
+ "modified": "2019-09-25 22:10:47.671304",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Tag Link",
@@ -62,6 +62,7 @@
    "write": 1
   }
  ],
+ "read_only": 1,
  "sort_field": "modified",
  "sort_order": "DESC",
  "track_changes": 1

@@ -20,7 +20,7 @@ frappe.global_tags.utils = {
 					match: tag,
 					onclick() {
 						// Use Global Search Dialog for tag search too.
-						frappe.searchdialog.search.init_search("#".concat(tag), "global_tag")
+						frappe.searchdialog.search.init_search("#".concat(tag), "global_tag");
 					}
 				});
 			}
@@ -57,18 +57,20 @@ frappe.global_tags.utils = {
 				var fields = [];
 				var result_current_length = 0;
 				var field_text = "";
-				for(var i = 0; i < parts.length; i++) {
+				var colon_index = null;
+				var field_value = null;
+				for (var i = 0; i < parts.length; i++) {
 					var part = parts[i];
 					if(part.toLowerCase().indexOf(tag) !== -1) {
 						// If the field contains the keyword
-						if(part.indexOf(' &&& ') !== -1) {
-							var colon_index = part.indexOf(' &&& ');
-							var field_value = part.slice(colon_index + 5);
+						if (part.indexOf(' &&& ') !== -1) {
+							colon_index = part.indexOf(' &&& ');
+							field_value = part.slice(colon_index + 5);
 						} else {
-							var colon_index = part.indexOf(' : ');
-							var field_value = part.slice(colon_index + 3);
+							colon_index = part.indexOf(' : ');
+							field_value = part.slice(colon_index + 3);
 						}
-						if(field_value.length > field_length) {
+						if (field_value.length > field_length) {
 							// If field value exceeds field_length, find the keyword in it
 							// and trim field value by half the field_length at both sides
 							// ellipsify if necessary
@@ -85,17 +87,17 @@ frappe.global_tags.utils = {
 						// Find remaining result_length and add field length to result_current_length
 						var remaining_length = result_max_length - result_current_length;
 						result_current_length += field_name.length + field_value.length + 2;
-						if(result_current_length < result_max_length) {
+						if (result_current_length < result_max_length) {
 							// We have room, push the entire field
 							field_text = '<span class="field-name text-muted">' +
 								me.bolden_match_part(field_name, tag) + ': </span> ' +
 								me.bolden_match_part(field_value, tag);
-							if(fields.indexOf(field_text) === -1 && doc_name !== field_value) {
+							if (fields.indexOf(field_text) === -1 && doc_name !== field_value) {
 								fields.push(field_text);
 							}
 						} else {
 							// Not enough room
-							if(field_name.length < remaining_length){
+							if (field_name.length < remaining_length){
 								// Ellipsify (trim at word end) and push
 								remaining_length -= field_name.length;
 								field_text = '<span class="field-name text-muted">' +
@@ -125,7 +127,7 @@ frappe.global_tags.utils = {
 
 				};
 				set = get_existing_set(d.doctype);
-				if(set) {
+				if (set) {
 					set.results.push(result);
 				} else {
 					set = {
@@ -146,7 +148,7 @@ frappe.global_tags.utils = {
 					tag: tag
 				},
 				callback: function(r) {
-					if(r.message) {
+					if (r.message) {
 						resolve(get_results_sets(r.message));
 					} else {
 						resolve([]);
@@ -155,4 +157,4 @@ frappe.global_tags.utils = {
 			});
 		});
 	},
-}
+};

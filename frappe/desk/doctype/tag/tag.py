@@ -16,7 +16,7 @@ class Tag(Document):
 			frappe.throw(_("Cannot delete Tag {0} since it is linked to Documents.").format(frappe.bold(self.name)))
 
 def check_if_tag_is_linked(tag):
-	return frappe.db.count("Tag Link", {"tags": ["like", "%{0}%".format(tag)]})
+	return frappe.db.count("Tag Link", {"tag": frappe.db.escape('%{0}%'.format(tag), False)})
 
 def check_user_tags(dt):
 	"if the user does not have a tags column, then it creates one"
@@ -47,10 +47,9 @@ def get_tagged_docs(doctype, tag):
 		WHERE _user_tags LIKE '%{1}%'""".format(doctype, tag))
 
 @frappe.whitelist()
-def get_tags(doctype, txt, cat_tags):
-	tags = json.loads(cat_tags)
+def get_tags(doctype, txt):
 	tag = frappe.get_list("Tag", filters=[["name", "like", "%{}%".format(txt)]])
-	tags.extend([t.name for t in tag])
+	tags = [t.name for t in tag]
 
 	return sorted(filter(lambda t: t and txt.lower() in t.lower(), list(set(tags))))
 
