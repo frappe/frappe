@@ -242,14 +242,14 @@ frappe.ui.form.on('Data Import Beta', {
 	},
 
 	show_import_warnings(frm, preview_data) {
-		frm.toggle_display('import_warnings_section',
-			preview_data.warnings && preview_data.warnings.length);
-		if (!preview_data) {
+		let warnings = JSON.parse(frm.doc.template_warnings || '[]');
+		warnings = warnings.concat(preview_data.warnings || []);
+
+		frm.toggle_display('import_warnings_section', warnings.length > 0);
+		if (warnings.length === 0) {
 			frm.get_field('import_warnings').$wrapper.html('');
 			return;
 		}
-		let warnings = JSON.parse(frm.doc.template_warnings || '[]');
-		warnings = warnings.concat(preview_data.warnings || []);
 
 		// group warnings by row
 		let warnings_by_row = {};
