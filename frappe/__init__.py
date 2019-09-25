@@ -23,7 +23,7 @@ if sys.version[0] == '2':
 	reload(sys)
 	sys.setdefaultencoding("utf-8")
 
-__version__ = '11.1.57'
+__version__ = '11.1.59'
 __title__ = "Frappe Framework"
 
 local = Local()
@@ -1404,8 +1404,9 @@ def publish_progress(*args, **kwargs):
 
 	:param percent: Percent progress
 	:param title: Title
-	:param doctype: Optional, for DocType
-	:param name: Optional, for Document name
+	:param doctype: Optional, for document type
+	:param docname: Optional, for document name
+	:param description: Optional description
 	"""
 	import frappe.realtime
 	return frappe.realtime.publish_progress(*args, **kwargs)
