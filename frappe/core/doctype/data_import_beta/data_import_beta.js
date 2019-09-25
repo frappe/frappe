@@ -61,8 +61,6 @@ frappe.ui.form.on('Data Import Beta', {
 		frm.trigger('toggle_submit_after_import');
 
 		if (frm.doc.import_log && frm.doc.import_log !== '[]') {
-			// set form as readonly
-			frm.fields.forEach(f => (f.df.read_only = 1));
 			frm.disable_save();
 		}
 
@@ -321,7 +319,7 @@ frappe.ui.form.on('Data Import Beta', {
 				if (log.success) {
 					html = __('Successfully imported {0}', [
 						`<span class="underline">${frappe.utils.get_form_link(
-							frm.doc.doctype,
+							frm.doc.reference_doctype,
 							log.docname,
 							true
 						)}<span>`

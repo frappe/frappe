@@ -32,7 +32,8 @@
    "in_list_view": 1,
    "label": "Document Type",
    "options": "DocType",
-   "reqd": 1
+   "reqd": 1,
+   "set_only_once": 1
   },
   {
    "fieldname": "import_type",
@@ -40,7 +41,8 @@
    "in_list_view": 1,
    "label": "Import Type",
    "options": "\nInsert New Records\nUpdate Existing Records",
-   "reqd": 1
+   "reqd": 1,
+   "set_only_once": 1
   },
   {
    "depends_on": "eval:!doc.__islocal",
@@ -140,7 +142,7 @@
   }
  ],
  "hide_toolbar": 1,
- "modified": "2019-09-25 12:41:46.836826",
+ "modified": "2019-09-25 13:03:25.463692",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Data Import Beta",
