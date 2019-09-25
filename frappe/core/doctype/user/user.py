@@ -153,10 +153,6 @@ class User(Document):
 		if new_password and not self.flags.in_insert:
 			_update_password(user=self.name, pwd=new_password, logout_all_sessions=self.logout_all_sessions)
 
-			if self.send_password_update_notification and self.enabled:
-				self.password_update_mail(new_password)
-				frappe.msgprint(_("New password emailed"))
-
 	def set_system_user(self):
 		'''Set as System User if any of the given roles has desk_access'''
 		if self.has_desk_access() or self.name == 'Administrator':
@@ -249,10 +245,6 @@ class User(Document):
 	def password_reset_mail(self, link):
 		self.send_login_mail(_("Password Reset"),
 			"password_reset", {"link": link}, now=True)
-
-	def password_update_mail(self, password):
-		self.send_login_mail(_("Password Update"),
-			"password_update", {"new_password": password}, now=True)
 
 	def send_welcome_mail_to_user(self):
 		from frappe.utils import get_url
@@ -1032,9 +1024,10 @@ def update_roles(role_profile):
 		user.add_roles(*roles)
 
 def create_contact(user, ignore_links=False, ignore_mandatory=False):
+	from frappe.contacts.doctype.contact.contact import get_contact_name
 	if user.name in ["Administrator", "Guest"]: return
 
-	if not frappe.db.get_value("Contact", {"email_id": user.email}):
+	if not get_contact_name(user.email):
 		contact = frappe.get_doc({
 			"doctype": "Contact",
 			"first_name": user.first_name,
@@ -1044,7 +1037,7 @@ def create_contact(user, ignore_links=False, ignore_mandatory=False):
 		})
 
 		if user.email:
-			contact.add_email(user.email)
+			contact.add_email(user.email, is_primary=True)
 
 		if user.phone:
 			contact.add_phone(user.phone)
@@ -1052,7 +1045,6 @@ def create_contact(user, ignore_links=False, ignore_mandatory=False):
 		if user.mobile_no:
 			contact.add_phone(user.mobile_no)
 		contact.insert(ignore_permissions=True, ignore_links=ignore_links, ignore_mandatory=ignore_mandatory)
-
 
 @frappe.whitelist()
 def generate_keys(user):
