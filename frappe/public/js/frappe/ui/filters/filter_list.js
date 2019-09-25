@@ -8,12 +8,26 @@ frappe.ui.FilterGroup = class {
 
 	make() {
 		this.wrapper.append(this.get_container_template());
+		this.toggle_clear_filter();
 		this.set_events();
 	}
 
+	toggle_clear_filter() {
+		let clear_filter_button = this.wrapper.find('.remove-filters');
+		if (this.filters.length == 0) {
+			clear_filter_button.hide();
+		} else {
+			clear_filter_button.show();
+		}
+	}
 	set_events() {
 		this.wrapper.find('.add-filter').on('click', () => {
-			this.add_filter(this.doctype, 'name');
+			this.add_filter(this.doctype, 'name')
+				.then(this.toggle_clear_filter());
+
+		});
+		this.wrapper.find('.remove-filters').on('click', () => {
+			this.clear_filters();
 		});
 	}
 
@@ -34,7 +48,6 @@ frappe.ui.FilterGroup = class {
 		// {}: Add in page filter by fieldname if exists ('=' => 'like')
 
 		if(!this.validate_args(doctype, fieldname)) return false;
-
 		const is_new_filter = arguments.length < 2;
 		if (is_new_filter && this.wrapper.find(".new-filter:visible").length) {
 			// only allow 1 new filter at a time!
@@ -123,6 +136,7 @@ frappe.ui.FilterGroup = class {
 
 	update_filters() {
 		this.filters = this.filters.filter(f => f.field); // remove hidden filters
+		this.toggle_clear_filter();
 	}
 
 	clear_filters() {
@@ -140,8 +154,11 @@ frappe.ui.FilterGroup = class {
 	get_container_template() {
 		return $(`<div class="tag-filters-area">
 			<div class="active-tag-filters">
-				<button class="btn btn-default btn-xs add-filter text-muted">
+				<button class="btn btn-default btn-xs filter-button text-muted add-filter">
 						${__("Add Filter")}
+				</button>
+				<button class="btn btn-default btn-xs filter-button text-muted remove-filters">
+					${__("Clear Filters")}
 				</button>
 			</div>
 		</div>

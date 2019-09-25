@@ -41,7 +41,7 @@ def get_context(context):
 	ldap_settings = LDAPSettings.get_ldap_client_settings()
 	context["ldap_settings"] = ldap_settings
 
-	login_name_placeholder = [_("Email address")]
+	login_name_placeholder = [_("Email Address")]
 
 	if frappe.utils.cint(frappe.get_system_settings("allow_login_using_mobile_number")):
 		login_name_placeholder.append(_("Mobile number"))

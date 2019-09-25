@@ -21,6 +21,7 @@
   "designation",
   "gender",
   "phone",
+  "mobile_no",
   "company_name",
   "image",
   "sb_00",
@@ -192,8 +193,14 @@
   {
    "fieldname": "phone_nos",
    "fieldtype": "Table",
-   "label": "Phone Nos",
+   "label": "Numbers",
    "options": "Contact Phone"
+  },
+  {
+   "fieldname": "mobile_no",
+   "fieldtype": "Data",
+   "label": "Mobile No",
+   "read_only": 1
   },
   {
    "default": "0",
@@ -238,8 +245,8 @@
  "icon": "fa fa-user",
  "idx": 1,
  "image_field": "image",
- "modified": "2019-09-13 15:50:38.999884",
- "modified_by": "himanshu@erpnext.com",
+ "modified": "2019-09-24 17:48:26.790985",
+ "modified_by": "Administrator",
  "module": "Contacts",
  "name": "Contact",
  "name_case": "Title Case",
