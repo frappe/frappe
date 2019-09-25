@@ -270,7 +270,7 @@ frappe.ui.form.on('Data Import Beta', {
 					if (w.field) {
 						return `<li>${w.field.label}: ${w.message}</li>`;
 					}
-					return w.message;
+					return `<li>${w.message}</li>`;
 				})
 				.join('');
 			return `
