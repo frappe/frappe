@@ -56,6 +56,8 @@ class Importer:
 			self.read_file(file_path)
 		elif content:
 			self.read_content(content, extension)
+
+		self.validate_template_content()
 		self.remove_empty_rows_and_columns()
 
 	def read_file(self, file_path):
@@ -80,6 +82,13 @@ class Importer:
 
 		self.header_row = data[0]
 		self.data = data[1:]
+
+	def validate_template_content(self):
+		column_count = len(self.header_row)
+		if any([len(row) != column_count and len(row) != 0 for row in self.data]):
+			frappe.throw(
+				_("Number of columns does not match with data"), title=_("Invalid Template")
+			)
 
 	def remove_empty_rows_and_columns(self):
 		self.row_index_map = []
