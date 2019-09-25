@@ -1,11 +1,5 @@
 frappe.pages["leaderboard"].on_page_load = function (wrapper) {
 	frappe.leaderboard = new frappe.Leaderboard(wrapper);
-
-	$(wrapper).bind('show', ()=> {
-		//Get which leaderboard to show
-		let doctype = frappe.get_route()[1];
-		frappe.leaderboard.show_leaderboard(doctype);
-	});
 };
 
 frappe.Leaderboard = Class.extend({
@@ -16,39 +10,41 @@ frappe.Leaderboard = Class.extend({
 			title: "Leaderboard",
 			single_column: false
 		});
-
 		this.parent = parent;
 		this.page = this.parent.page;
 		this.page.sidebar.html(`<ul class="module-sidebar-nav overlay-sidebar nav nav-pills nav-stacked"></ul>`);
 		this.$sidebar_list = this.page.sidebar.find('ul');
 
-		// const list of doctypes
-		this.doctypes = ["Customer", "Item", "Supplier", "Sales Partner", "Sales Person", "Energy Point Log"];
-		this.timespans = ["Week", "Month", "Quarter", "Year", "All Time"];
-		this.filters = {
-			"Customer": ["total_sales_amount", "total_qty_sold", "outstanding_amount"],
-			"Item": ["total_sales_amount", "total_qty_sold", "total_purchase_amount",
-				"total_qty_purchased", "available_stock_qty", "available_stock_value"],
-			"Supplier": ["total_purchase_amount", "total_qty_purchased", "outstanding_amount"],
-			"Sales Partner": ["total_sales_amount", "total_commission"],
-			"Sales Person": ["total_sales_amount"],
-			"Energy Point Log": ["points"]
-		};
+		this.get_leaderboard_config();
 
-		// for saving current selected filters
-		const _initial_doctype = frappe.get_route()[1] || this.doctypes[0];
-		const _initial_timespan = this.timespans[0];
-		const _initial_filter = this.filters[_initial_doctype];
+	},
 
-		this.options = {
-			selected_doctype: _initial_doctype,
-			selected_filter: _initial_filter,
-			selected_filter_item: _initial_filter[0],
-			selected_timespan: _initial_timespan,
-		};
+	get_leaderboard_config: function() {
+		this.doctypes = [];
+		this.filters = {};
+		frappe.xcall('frappe.desk.page.leaderboard.leaderboard.get_leaderboard_config').then( config => {
+			this.leaderboard_config = config;
+			for (doctype in this.leaderboard_config) {
+				this.doctypes.push(doctype);
+				this.filters[doctype] = this.leaderboard_config[doctype].fields;
+			}
+			this.timespans = ["Week", "Month", "Quarter", "Year", "All Time"];
 
-		this.message = null;
-		this.make();
+			// for saving current selected filters
+			const _initial_doctype = frappe.get_route()[1] || this.doctypes[0];
+			const _initial_timespan = this.timespans[0];
+			const _initial_filter = this.filters[_initial_doctype];
+
+			this.options = {
+				selected_doctype: _initial_doctype,
+				selected_filter: _initial_filter,
+				selected_filter_item: _initial_filter[0],
+				selected_timespan: _initial_timespan,
+			};
+
+			this.message = null;
+			this.make();
+		});
 	},
 
 	make: function () {
@@ -71,7 +67,11 @@ frappe.Leaderboard = Class.extend({
 		this.render_search_box();
 
 		// now get leaderboard
-		this.show_leaderboard();
+		$(this.parent).bind('show', ()=> {
+		//Get which leaderboard to show
+			let doctype = frappe.get_route()[1];
+			this.show_leaderboard(doctype);
+		});
 
 	},
 
@@ -196,6 +196,7 @@ frappe.Leaderboard = Class.extend({
 		frappe.call({
 			method: "frappe.desk.page.leaderboard.leaderboard.get_leaderboards",
 			args: {
+				leaderboard_config: this.leaderboard_config,
 				doctype: this.options.selected_doctype,
 				timespan: this.options.selected_timespan,
 				company: this.options.selected_company,
@@ -263,24 +264,22 @@ frappe.Leaderboard = Class.extend({
 		const _selected_filter = this.options.selected_filter
 			.map(i => frappe.model.unscrub(i));
 		const fields = ["rank", "name", this.options.selected_filter_item];
+		const filters = fields.map(filter => {
+			const col = frappe.model.unscrub(filter);
+			return (
+				`<div class="leaderboard-item list-item_content ellipsis text-muted list-item__content--flex-2
+					header-btn-base ${filter}
+					${(col && _selected_filter.indexOf(col) !== -1) ? "text-right" : ""}">
+					<span class="list-col-title ellipsis">
+						${col}
+					</span>
+				</div>`
+			);
+		}).join("");
 
 		const html =
 			`<div class="list-headers">
-				<div class="list-item list-item--head" data-list-renderer="${"List"}">
-					${
-					fields.map(filter => {
-						const col = frappe.model.unscrub(filter);
-						return (
-							`<div class="leaderboard-item list-item_content ellipsis text-muted list-item__content--flex-2
-								header-btn-base ${filter}
-								${(col && _selected_filter.indexOf(col) !== -1) ? "text-right" : ""}">
-								<span class="list-col-title ellipsis">
-									${col}
-								</span>
-							</div>`);
-					}).join("")
-					}
-				</div>
+				<div class="list-item list-item--head" data-list-renderer="List">${filters}</div>
 			</div>`;
 		return html;
 	},

@@ -4,11 +4,12 @@ import frappe
 
 def get_leaderboards():
 	leaderboards = {
-		'Energy Point Log': 'frappe.desk.leaderboard.get_energy_point_leaderboard',
+		'Energy Point Log': {
+			'fields': ['points'],
+			'method': 'frappe.desk.leaderboard.get_energy_point_leaderboard',
+		}
 	}
 	return leaderboards
-
-
 
 def get_energy_point_leaderboard(from_date, company = None, field = None):
 	energy_point_users = frappe.db.sql("""

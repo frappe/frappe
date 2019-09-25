@@ -5,21 +5,24 @@ from __future__ import unicode_literals, print_function
 import frappe
 from frappe.utils import add_to_date
 
+
 @frappe.whitelist()
-def get_leaderboards(doctype, timespan, company, field):
-	leaderboards = frappe._dict()
-	from_date = get_from_date(timespan)
+def get_leaderboard_config():
+	leaderboard_config = frappe._dict()
 	leaderboard_hooks = frappe.get_hooks('leaderboards')
-
 	for hook in leaderboard_hooks:
-		leaderboards.update(frappe.get_attr(hook)())
+		leaderboard_config.update(frappe.get_attr(hook)())
+	
+	return leaderboard_config
 
-	method = leaderboards[doctype]
+@frappe.whitelist()
+def get_leaderboards(leaderboard_config, doctype, timespan, company, field):
+	leaderboard_config = frappe.parse_json(leaderboard_config)
+	from_date = get_from_date(timespan)
+	method = leaderboard_config[doctype]['method']
 	records = frappe.get_attr(method)(from_date, company, field)
 	
 	return records
-
-
 
 def get_from_date(selected_timespan):
 	"""return string for ex:this week as date:string"""

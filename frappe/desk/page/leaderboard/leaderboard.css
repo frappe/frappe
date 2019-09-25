@@ -9,7 +9,7 @@
 	margin:5px;
 }
 
-.list-item_content{
+.list-item_content {
 	flex: 1;
 	padding-right: 15px;
 	align-items: center;
@@ -23,7 +23,7 @@
 	background: #f0f4f7;
 }
 
-.header-btn-base{
+.header-btn-base {
 	border:none;
 	outline:0;
 	vertical-align:middle;
@@ -35,16 +35,16 @@
 	white-space:nowrap;
 }
 
-.header-btn-grey,.header-btn-grey:hover{
+.header-btn-grey,.header-btn-grey:hover {
 	color:#000!important;
 	background-color:#bbb!important
 }
 
-.header-btn-round{
+.header-btn-round {
 	border-radius:4px
 }
 
-.item-title-bold{
+.item-title-bold {
 	font-weight: bold;
 }
 
@@ -52,7 +52,3 @@
 	max-width: 150px;
 }
 
-/*
-.header-btn-base:hover {
-	box-shadow:0 8px 16px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19)
-}*/
