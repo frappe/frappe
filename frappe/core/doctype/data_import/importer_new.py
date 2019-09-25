@@ -382,6 +382,8 @@ class Importer:
 		frappe.cache().hdel("lang", frappe.session.user)
 		frappe.set_user_lang(frappe.session.user)
 
+		self.data_import.db_set("template_warnings", "")
+
 		# set flag
 		frappe.flags.in_import = True
 
@@ -404,8 +406,6 @@ class Importer:
 			self.data_import.db_set("template_warnings", json.dumps(warnings))
 			frappe.publish_realtime("data_import_refresh")
 			return
-		else:
-			self.data_import.db_set("template_warnings", "")
 
 		# setup import log
 		if self.data_import.import_log:
@@ -425,8 +425,6 @@ class Importer:
 
 		# start import
 		print("Importing {0} rows...".format(len(data)))
-		# mark savepoint
-		frappe.db.sql("SAVEPOINT import")
 
 		total_payload_count = len(payloads)
 		batch_size = frappe.conf.data_import_batch_size or 1000
@@ -441,10 +439,11 @@ class Importer:
 
 				if set(row_indexes).intersection(set(imported_rows)):
 					print("Skipping imported rows", row_indexes)
-					frappe.publish_realtime(
-						"data_import_progress",
-						{"current": current_index, "total": total_payload_count, "skipping": True},
-					)
+					if total_payload_count > 5:
+						frappe.publish_realtime(
+							"data_import_progress",
+							{"current": current_index, "total": total_payload_count, "skipping": True},
+						)
 					continue
 
 				try:
@@ -453,20 +452,24 @@ class Importer:
 					doc = self.process_doc(doc)
 					processing_time = timeit.default_timer() - start
 					eta = self.get_eta(current_index, total_payload_count, processing_time)
-					frappe.publish_realtime(
-						"data_import_progress",
-						{
-							"current": current_index,
-							"total": total_payload_count,
-							"docname": doc.name,
-							"success": True,
-							"row_indexes": row_indexes,
-							"eta": eta,
-						},
-					)
+
+					if total_payload_count > 5:
+						frappe.publish_realtime(
+							"data_import_progress",
+							{
+								"current": current_index,
+								"total": total_payload_count,
+								"docname": doc.name,
+								"success": True,
+								"row_indexes": row_indexes,
+								"eta": eta,
+							},
+						)
 					import_log.append(
 						frappe._dict(success=True, docname=doc.name, row_indexes=row_indexes)
 					)
+					# commit after every successful import
+					frappe.db.commit()
 
 				except Exception as e:
 					import_log.append(
@@ -478,12 +481,6 @@ class Importer:
 						)
 					)
 					frappe.clear_messages()
-
-		# rollback to savepoint if something went wrong
-		# frappe.db.sql('ROLLBACK TO SAVEPOINT import')
-
-		# release savepoint if everything is ok
-		frappe.db.sql("RELEASE SAVEPOINT import")
 
 		# set status
 		failures = [l for l in import_log if l.get("success") == False]
@@ -589,7 +586,9 @@ class Importer:
 
 		def check_mandatory_fields(doctype, doc, row_number):
 			meta = frappe.get_meta(doctype)
-			fields = [df for df in meta.fields if df.reqd and doc.get(df.fieldname) in INVALID_VALUES]
+			fields = [
+				df for df in meta.fields if df.reqd and doc.get(df.fieldname) in INVALID_VALUES
+			]
 
 			if not fields:
 				return
@@ -604,12 +603,8 @@ class Importer:
 			else:
 				fields_string = ", ".join([df.label for df in fields])
 				warnings.append(
-					{
-						"row": row_number,
-						"message": _("{0} are mandatory fields").format(fields_string),
-					}
+					{"row": row_number, "message": _("{0} are mandatory fields").format(fields_string)}
 				)
-
 
 		parsed_docs = {}
 		for row_index, row in enumerate(rows):

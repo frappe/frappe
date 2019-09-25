@@ -21,6 +21,10 @@ class DataImportBeta(Document):
 			self.template_options = ""
 			self.template_warnings = ""
 
+		if self.import_file:
+			# validate template
+			i = self.get_importer()
+
 	def get_preview_from_template(self):
 		if not self.import_file:
 			return
@@ -42,6 +46,7 @@ class DataImportBeta(Document):
 				event="data_import",
 				job_name=self.name,
 				data_import=self.name,
+				# now=True
 			)
 
 	def get_importer(self):
