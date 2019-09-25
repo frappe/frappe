@@ -1,8 +1,16 @@
 @import 'common';
 
 .active-tag-filters {
+	display: flex;
+	overflow: scroll;
 	.filter-button, .filter-tag {
 		margin: 0 10px 10px 0;
+	}
+	#add-filter{
+		align-self: flex-start;
+	}
+	#remove-filters{
+		margin-left: auto;
 	}
 }
 
@@ -47,7 +55,6 @@
 	.filter-box .row > div[class*="col-sm-"] {
 		padding-right: 0px;
 	}
-
 	.filter-field {
 		width: 65% !important;
 
