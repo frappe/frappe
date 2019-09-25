@@ -12,18 +12,18 @@ frappe.ui.FilterGroup = class {
 		this.set_events();
 	}
 
-	toggle_clear_filter(){
-		let clear_filter_button = this.wrapper.find('.remove-filters')
+	toggle_clear_filter() {
+		let clear_filter_button = this.wrapper.find('.remove-filters');
 		if (this.filters.length == 0) {
 			clear_filter_button.hide();
-		}else{
+		} else {
 			clear_filter_button.show();
 		}
 	}
 	set_events() {
 		this.wrapper.find('.add-filter').on('click', () => {
 			this.add_filter(this.doctype, 'name')
-				.then(this.toggle_clear_filter())
+				.then(this.toggle_clear_filter());
 
 		});
 		this.wrapper.find('.remove-filters').on('click', () => {
