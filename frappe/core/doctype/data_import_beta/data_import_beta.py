@@ -108,6 +108,7 @@ def download_template(
 		export_data=export_data,
 		export_filters=export_filters,
 		file_type=file_type,
+		export_page_length=5 if export_records == "5_records" else None,
 	)
 	e.build_response()
 

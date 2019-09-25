@@ -17,6 +17,7 @@ class Exporter:
 		export_fields=None,
 		export_data=False,
 		export_filters=None,
+		export_page_length=None,
 		file_type="CSV",
 	):
 		"""
@@ -31,6 +32,7 @@ class Exporter:
 		self.meta = frappe.get_meta(doctype)
 		self.export_fields = export_fields
 		self.export_filters = export_filters
+		self.export_page_length = export_page_length
 		self.file_type = file_type
 
 		# this will contain the csv content
@@ -133,7 +135,7 @@ class Exporter:
 			self.doctype,
 			filters=filters,
 			fields=fields,
-			limit_page_length=None,
+			limit_page_length=self.export_page_length,
 			order_by=order_by,
 			as_list=1,
 		)
