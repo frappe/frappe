@@ -481,6 +481,8 @@ class Importer:
 						)
 					)
 					frappe.clear_messages()
+					# rollback if exception
+					frappe.db.rollback()
 
 		# set status
 		failures = [l for l in import_log if l.get("success") == False]
