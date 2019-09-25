@@ -8,7 +8,7 @@
  "field_order": [
   "reference_doctype",
   "import_type",
-  "download_sample_file",
+  "download_template",
   "import_file",
   "column_break_5",
   "status",
@@ -58,12 +58,6 @@
    "fieldname": "section_import_preview",
    "fieldtype": "Section Break",
    "label": "Import Preview"
-  },
-  {
-   "depends_on": "reference_doctype",
-   "fieldname": "download_sample_file",
-   "fieldtype": "Button",
-   "label": "Download Sample File"
   },
   {
    "fieldname": "column_break_5",
@@ -137,10 +131,16 @@
    "fieldname": "import_warnings",
    "fieldtype": "HTML",
    "label": "Import Warnings"
+  },
+  {
+   "depends_on": "reference_doctype",
+   "fieldname": "download_template",
+   "fieldtype": "Button",
+   "label": "Download Template"
   }
  ],
  "hide_toolbar": 1,
- "modified": "2019-09-24 15:08:25.984923",
+ "modified": "2019-09-25 12:41:46.836826",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Data Import Beta",

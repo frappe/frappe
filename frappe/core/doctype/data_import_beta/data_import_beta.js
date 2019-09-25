@@ -112,8 +112,7 @@ frappe.ui.form.on('Data Import Beta', {
 		frm.save().then(() => frm.call('start_import'));
 	},
 
-	download_sample_file(frm) {
-		frappe.require('/assets/js/data_import_tools.min.js', () => {
+	download_template(frm) {
 			new frappe.data_import.DataExporter(frm.doc.reference_doctype);
 		});
 	},
