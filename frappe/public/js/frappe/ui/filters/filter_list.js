@@ -143,12 +143,11 @@ frappe.ui.FilterGroup = class {
 	get_container_template() {
 		return $(`<div class="tag-filters-area">
 			<div class="active-tag-filters">
+				<button class="btn btn-default btn-xs remove-filters text-muted">
+					${__("Clear All Filters")}
+				</button>
 				<button class="btn btn-default btn-xs add-filter text-muted">
 						${__("Add Filter")}
-				</button>
-
-				<button class="btn btn-default btn-xs remove-filters text-muted">
-						${__("Clear All Filters")}
 				</button>
 			</div>
 		</div>
