@@ -34,8 +34,8 @@ class ScheduledJobType(Document):
 					enqueue('frappe.core.doctype.scheduled_job_type.scheduled_job_type.run_scheduled_job',
 						queue = self.get_queue_name(), job_type=self.method)
 					return True
-				else:
-					return False
+
+		return False
 
 	def is_event_due(self, current_time = None):
 		'''Return true if event is due based on time lapsed since last execution'''

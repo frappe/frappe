@@ -1515,6 +1515,8 @@ def log_error(message=None, title=None):
 			error = get_traceback()
 		else:
 			error = message
+	else:
+		error = get_traceback()
 
 	return get_doc(dict(doctype='Error Log', error=as_unicode(error),
 		method=title)).insert(ignore_permissions=True)

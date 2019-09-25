@@ -37,11 +37,14 @@ class TestScheduler(TestCase):
 				last_execution = '2010-01-01 00:00:00',
 				queue = 'All'
 			)).insert()
+			frappe.db.commit()
 		else:
 			job = frappe.get_doc('Scheduled Job Type', 'test_scheduler.test_timeout')
 
 		self.assertTrue(job.enqueue())
-		print(get_jobs(site=frappe.local.site, key='job_type'))
+		job.db_set('last_execution', '2010-01-01 00:00:00')
+		frappe.db.commit()
+		time.sleep(1) # wait if job is not yet queued
 		self.assertFalse(job.enqueue())
 		job.delete()
 
