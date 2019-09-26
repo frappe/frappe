@@ -19,14 +19,13 @@ context('List View', () => {
 			cy.route({
 				method: 'POST',
 				url:'api/method/frappe.model.workflow.bulk_workflow_approval'
-			}).then(()=> {
-				cy.route({
-					method: 'GET',
-					url:'api/method/frappe.desk.reportview.get'
-				})
-			}).as('update-view');
+			}).as('bulk-approval');
+			cy.route({
+				method: 'POST',
+				url:'api/method/frappe.desk.reportview.get'
+			}).as('real-time-update');
 			cy.wrap(elements).contains('Approve').click();
-			cy.wait('@update-view');
+			cy.wait(['@bulk-approval', '@real-time-update']);
 			cy.get('.list-row-container:visible').should('contain', 'Approved');
 		});
 	});

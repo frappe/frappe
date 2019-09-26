@@ -1041,7 +1041,6 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 						// in the listview according to filters applied
 						// let's remove it manually
 						this.data = this.data.filter(d => d.name !== name);
-						this.$result.find('.list-row-container').remove();
 						this.render_list();
 						return;
 					}
