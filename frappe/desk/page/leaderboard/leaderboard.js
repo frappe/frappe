@@ -1,10 +1,16 @@
-frappe.pages["leaderboard"].on_page_load = function (wrapper) {
-	frappe.leaderboard = new frappe.Leaderboard(wrapper);
+frappe.pages["leaderboard"].on_page_load = (wrapper) => {
+	frappe.leaderboard = new Leaderboard(wrapper);
+
+	$(wrapper).bind('show', ()=> {
+		// Get which leaderboard to show
+		let doctype = frappe.get_route()[1];
+		frappe.leaderboard.show_leaderboard(doctype);
+	});
 };
 
-frappe.Leaderboard = Class.extend({
+class Leaderboard {
 
-	init: function (parent) {
+	constructor(parent) {
 		frappe.ui.make_app_page({
 			parent: parent,
 			title: "Leaderboard",
@@ -17,14 +23,16 @@ frappe.Leaderboard = Class.extend({
 
 		this.get_leaderboard_config();
 
-	},
+	}
 
-	get_leaderboard_config: function() {
+	get_leaderboard_config() {
 		this.doctypes = [];
 		this.filters = {};
-		frappe.xcall('frappe.desk.page.leaderboard.leaderboard.get_leaderboard_config').then( config => {
+		this.leaderboard_limit = 20;
+
+		frappe.xcall("frappe.desk.page.leaderboard.leaderboard.get_leaderboard_config").then( config => {
 			this.leaderboard_config = config;
-			for (doctype in this.leaderboard_config) {
+			for (let doctype in this.leaderboard_config) {
 				this.doctypes.push(doctype);
 				this.filters[doctype] = this.leaderboard_config[doctype].fields;
 			}
@@ -45,9 +53,9 @@ frappe.Leaderboard = Class.extend({
 			this.message = null;
 			this.make();
 		});
-	},
+	}
 
-	make: function () {
+	make() {
 
 		this.$container = $(`<div class="leaderboard page-main-content">
 			<div class="leaderboard-graph"></div>
@@ -66,14 +74,11 @@ frappe.Leaderboard = Class.extend({
 
 		this.render_search_box();
 
-		// now get leaderboard
-		$(this.parent).bind('show', ()=> {
-		//Get which leaderboard to show
-			let doctype = frappe.get_route()[1];
-			this.show_leaderboard(doctype);
-		});
+		// Get which leaderboard to show
+		let doctype = frappe.get_route()[1];
+		this.show_leaderboard(doctype);
 
-	},
+	}
 
 	setup_leaderboard_fields() {
 		this.company_select = this.page.add_field({
@@ -94,7 +99,7 @@ frappe.Leaderboard = Class.extend({
 			})
 		);
 
-		this.type_select = this.page.add_select(__("Type"),
+		this.type_select = this.page.add_select(__("Field"),
 			this.options.selected_filter.map(d => {
 				return {"label": __(frappe.model.unscrub(d)), value: d };
 			})
@@ -109,7 +114,7 @@ frappe.Leaderboard = Class.extend({
 			this.options.selected_filter_item = e.currentTarget.value;
 			this.make_request();
 		});
-	},
+	}
 
 	render_selected_doctype() {
 
@@ -140,7 +145,7 @@ frappe.Leaderboard = Class.extend({
 			frappe.set_route("leaderboard", this.options.selected_doctype);
 			this.make_request();
 		});
-	},
+	}
 
 	render_search_box() {
 
@@ -150,7 +155,7 @@ frappe.Leaderboard = Class.extend({
 			</div>`);
 
 		$(this.parent).find(".page-form").append(this.$search_box);
-	},
+	}
 
 	setup_search(list_items) {
 		let $search_input = this.$search_box.find(".leaderboard-search-input");
@@ -168,27 +173,28 @@ frappe.Leaderboard = Class.extend({
 				}
 			}
 		});
-	},
+	}
 
 	show_leaderboard(doctype) {
+		if(this.doctypes.length) {
+			if (this.doctypes.includes(doctype)) {
+				this.options.selected_doctype = doctype;
+				this.$sidebar_list.find(`[doctype-value = "${this.options.selected_doctype}"]`).trigger("click");
+			}
 
-		if (this.doctypes.includes(doctype)) {
-			this.options.selected_doctype = doctype;
-			this.$sidebar_list.find(`[doctype-value = "${this.options.selected_doctype}"]`).trigger("click");
+			this.$search_box.find(".leaderboard-search-input").val("");
+			frappe.set_route("leaderboard", this.options.selected_doctype);
 		}
+	}
 
-		this.$search_box.find(".leaderboard-search-input").val("");
-		frappe.set_route("leaderboard", this.options.selected_doctype);
-	},
-
-	make_request: function () {
+	make_request() {
 
 		frappe.model.with_doctype(this.options.selected_doctype, ()=> {
 			this.get_leaderboard(this.get_leaderboard_data);
 		});
-	},
+	}
 
-	get_leaderboard: function (notify) {
+	get_leaderboard(notify) {
 		if (!this.options.selected_company) {
 			frappe.throw(__("Please select Company"));
 		}
@@ -201,6 +207,7 @@ frappe.Leaderboard = Class.extend({
 				timespan: this.options.selected_timespan,
 				company: this.options.selected_company,
 				field: this.options.selected_filter_item,
+				limit: this.leaderboard_limit,
 			},
 			callback: (r) => {
 				let results = r.message || [];
@@ -227,9 +234,9 @@ frappe.Leaderboard = Class.extend({
 				notify(this, r);
 			}
 		});
-	},
+	}
 
-	get_leaderboard_data: function (me, res) {
+	get_leaderboard_data(me, res) {
 		if (res && res.message.length) {
 			me.message = null;
 			me.$container.find(".leaderboard-list").html(me.render_list_view(res.message));
@@ -239,9 +246,9 @@ frappe.Leaderboard = Class.extend({
 			me.message = __("No items found.");
 			me.$container.find(".leaderboard-list").html(me.render_list_view());
 		}
-	},
+	}
 
-	render_list_view: function (items = []) {
+	render_list_view(items = []) {
 
 		var html =
 			`${this.render_message()}
@@ -250,17 +257,17 @@ frappe.Leaderboard = Class.extend({
 			</div>`;
 
 		return $(html);
-	},
+	}
 
-	render_result: function (items) {
+	render_result(items) {
 
 		var html =
 			`${this.render_list_header()}
 			${this.render_list_result(items)}`;
 		return html;
-	},
+	}
 
-	render_list_header: function () {
+	render_list_header() {
 		const _selected_filter = this.options.selected_filter
 			.map(i => frappe.model.unscrub(i));
 		const fields = ["rank", "name", this.options.selected_filter_item];
@@ -282,9 +289,9 @@ frappe.Leaderboard = Class.extend({
 				<div class="list-item list-item--head" data-list-renderer="List">${filters}</div>
 			</div>`;
 		return html;
-	},
+	}
 
-	render_list_result: function (items) {
+	render_list_result(items) {
 
 		let _html = items.map((item, index) => {
 			const $value = $(this.get_item_html(item, index+1));
@@ -300,9 +307,9 @@ frappe.Leaderboard = Class.extend({
 			</div>`;
 
 		return html;
-	},
+	}
 
-	render_message: function () {
+	render_message() {
 
 		let html =
 			`<div class="no-result text-center" style="${this.message ? "" : "display: none;"}">
@@ -312,9 +319,9 @@ frappe.Leaderboard = Class.extend({
 			</div>`;
 
 		return html;
-	},
+	}
 
-	get_item_html: function (item, index) {
+	get_item_html(item, index) {
 		const company = this.options.selected_company;
 		const currency = frappe.get_doc(":Company", company).default_currency;
 		const fields = ["rank", "name", "value"];
@@ -332,7 +339,7 @@ frappe.Leaderboard = Class.extend({
 					? frappe.user.full_name(val)
 					: val;
 					var formatted_value = `<a class="grey list-id ellipsis"
-						href="${link}"> ${val} </a>`
+						href="${link}"> ${val} </a>`;
 				} else {
 					var value = this.options.selected_doctype !== "Energy Point Log" &&
 						this.options.selected_filter_item.indexOf("qty") == -1 &&
@@ -346,18 +353,19 @@ frappe.Leaderboard = Class.extend({
 					`<div class="list-item_content ellipsis list-item__content--flex-2 ${col}
 						${(col == "value") ? "text-right" : ""}">
 						${formatted_value}
-					</div>`);
+					</div>`
+				);
 			}).join("")
 			}
 			</div>`;
 
 		return html;
-	},
+	}
 
-	get_sidebar_item: function(item) {
+	get_sidebar_item(item) {
 		return $(`<li class="strong module-sidebar-item">
 			<a class="module-link">
 			<span doctype-value="${item}">${ __(item) }</span></a>
 		</li>`);
 	}
-});
+}

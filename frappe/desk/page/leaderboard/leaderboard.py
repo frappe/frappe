@@ -12,16 +12,17 @@ def get_leaderboard_config():
 	leaderboard_hooks = frappe.get_hooks('leaderboards')
 	for hook in leaderboard_hooks:
 		leaderboard_config.update(frappe.get_attr(hook)())
-	
+
 	return leaderboard_config
 
 @frappe.whitelist()
-def get_leaderboards(leaderboard_config, doctype, timespan, company, field):
+def get_leaderboards(leaderboard_config, doctype, timespan, company, field, limit):
+	limit = frappe.parse_json(limit)
 	leaderboard_config = frappe.parse_json(leaderboard_config)
 	from_date = get_from_date(timespan)
 	method = leaderboard_config[doctype]['method']
-	records = frappe.get_attr(method)(from_date, company, field)
-	
+	records = frappe.get_attr(method)(from_date, company, field, limit)
+
 	return records
 
 def get_from_date(selected_timespan):

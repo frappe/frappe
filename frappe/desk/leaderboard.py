@@ -11,13 +11,16 @@ def get_leaderboards():
 	}
 	return leaderboards
 
-def get_energy_point_leaderboard(from_date, company = None, field = None):
-	energy_point_users = frappe.db.sql("""
-		select user as name, sum(points) as value from
-		`tabEnergy Point Log`
-		where type!='Review' and creation >= %s 
-		group by user
-		order by value DESC""", (from_date), as_dict = 1)
+def get_energy_point_leaderboard(from_date, company = None, field = None, limit = None):
+	energy_point_users = frappe.db.get_all('Energy Point Log',
+		fields = ['user as name', 'sum(points) as value'],
+		filters = [
+			['type', '!=', 'Review'],
+			['creation', '>', from_date]
+		],
+		group_by = 'user',
+		order_by = 'value desc'
+	)
 	all_users = frappe.db.get_all('User',
 		filters = {'name': ['not in', ['Administrator', 'Guest']]},
 		order_by = 'name ASC')

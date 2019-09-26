@@ -6,7 +6,7 @@
 .list-filter-item {
 	min-width: 150px;
 	float: left;
-	margin:5px;
+	margin: 5px;
 }
 
 .list-item_content {
@@ -24,24 +24,19 @@
 }
 
 .header-btn-base {
-	border:none;
-	outline:0;
-	vertical-align:middle;
-	overflow:hidden;
-	text-decoration:none;
-	color:inherit;
-	background-color:inherit;
-	cursor:pointer;
-	white-space:nowrap;
-}
-
-.header-btn-grey,.header-btn-grey:hover {
-	color:#000!important;
-	background-color:#bbb!important
+	border: none;
+	outline: 0;
+	vertical-align: middle;
+	overflow: hidden;
+	text-decoration: none;
+	color: inherit;
+	background-color: inherit;
+	cursor: pointer;
+	white-space: nowrap;
 }
 
 .header-btn-round {
-	border-radius:4px
+	border-radius: 4px;
 }
 
 .item-title-bold {
@@ -49,6 +44,6 @@
 }
 
 .rank {
-	max-width: 150px;
+	max-width: 75px;
 }
 
