@@ -1043,10 +1043,10 @@ def create_contact(user, ignore_links=False, ignore_mandatory=False):
 			contact.add_email(user.email, is_primary=True)
 
 		if user.phone:
-			contact.add_phone(user.phone)
+			contact.add_phone(user.phone, is_primary_phone=True)
 
 		if user.mobile_no:
-			contact.add_phone(user.mobile_no)
+			contact.add_phone(user.mobile_no, is_primary_mobile_no=True)
 		contact.insert(ignore_permissions=True, ignore_links=ignore_links, ignore_mandatory=ignore_mandatory)
 
 @frappe.whitelist()

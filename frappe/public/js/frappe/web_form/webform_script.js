@@ -56,11 +56,19 @@ frappe.ready(function() {
 				window.location.replace(window.location.pathname + "?new=1");
 				return;
 			}
-
-			web_form.prepare(web_form_doc, r.message.doc || {});
+			let doc = r.message.doc || build_doc(r.message);
+			web_form.prepare(web_form_doc, doc);
 			web_form.make();
 			web_form.set_default_values();
 		})
+
+		function build_doc(form_data) {
+			let doc = {};
+			form_data.web_form.web_form_fields.forEach(df => {
+				if (df.default) return doc[df.fieldname] = df.default;
+			});
+			return doc;
+		}
 
 		function get_data() {
 			return frappe.call({
