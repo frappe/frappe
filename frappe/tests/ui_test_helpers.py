@@ -33,19 +33,33 @@ def create_if_not_exists(doc):
 
 @frappe.whitelist()
 def create_todo_records():
-	frappe.db.sql("DELETE FROM `tabToDo` WHERE name!=''")
+	if frappe.db.get_all('ToDo', {'description': 'this is first todo'}):
+		return
 
-	for number in range(1, 5):
-		frappe.get_doc({
-			"doctype": "ToDo",
-			"date": add_to_date(now(), days=3),
-			"description": "this is {} todo".format(number)
-		}).insert()
-
+	frappe.get_doc({
+		"doctype": "ToDo",
+		"date": add_to_date(now(), days=3),
+		"description": "this is first todo"
+	}).insert()
+	frappe.get_doc({
+		"doctype": "ToDo",
+		"date": add_to_date(now(), days=-3),
+		"description": "this is second todo"
+	}).insert()
+	frappe.get_doc({
+		"doctype": "ToDo",
+		"date": add_to_date(now(), months=2),
+		"description": "this is third todo"
+	}).insert()
+	frappe.get_doc({
+		"doctype": "ToDo",
+		"date": add_to_date(now(), months=-2),
+		"description": "this is fourth todo"
+	}).insert()
 
 @frappe.whitelist()
 def setup_workflow():
-	from frappe.workflow.doctype.workflow.test_workflow import create_todo_workflow
-	create_todo_workflow()
-	create_todo_records()
-	frappe.clear_cache()
+  from frappe.workflow.doctype.workflow.test_workflow import create_todo_workflow
+  create_todo_workflow()
+  create_todo_records()
+  frappe.clear_cache()
