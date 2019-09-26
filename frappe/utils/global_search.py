@@ -428,6 +428,7 @@ def search(text, start=0, limit=20, doctype=""):
 	for text in texts:
 		mariadb_conditions = ''
 		postgres_conditions = ''
+		offset = ''
 
 		if doctype:
 			mariadb_conditions = postgres_conditions = '`doctype` = {} AND '.format(frappe.db.escape(doctype))
@@ -441,18 +442,21 @@ def search(text, start=0, limit=20, doctype=""):
 			mariadb_conditions += '`doctype` IN ({})'.format(allowed_doctypes)
 			postgres_conditions += '`doctype` IN ({})'.format(allowed_doctypes)
 
+		if int(start) > 0:
+			offset = 'OFFSET {}'.format(start)
+
 		common_query = """
 				SELECT {fields}
 				FROM `__global_search`
 				WHERE {conditions}
 				ORDER BY rank DESC
 				LIMIT {limit}
-				OFFSET {start}
+				{offset}
 			"""
 
 		result = frappe.db.multisql({
-				'mariadb': common_query.format(fields=mariadb_fields, conditions=mariadb_conditions, limit=limit, start=start),
-				'postgres': common_query.format(fields=postgres_fields, conditions=postgres_conditions, limit=limit, start=start)
+				'mariadb': common_query.format(fields=mariadb_fields, conditions=mariadb_conditions, limit=limit, offset=offset),
+				'postgres': common_query.format(fields=postgres_fields, conditions=postgres_conditions, limit=limit, offset=offset)
 			}, as_dict=True)
 
 		tmp_result=[]
