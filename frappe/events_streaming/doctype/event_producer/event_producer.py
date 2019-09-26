@@ -82,23 +82,32 @@ def pull_from_node(event_producer):
 	updates = get_updates(producer_site, last_update, doctypes)
 
 	for update in updates:
-		try:
-			if update.update_type == 'Create':
-				set_insert(update, producer_site)
+		sync(update, producer_site)
 
-			if update.update_type == 'Update':
-				set_update(update, producer_site)
+def sync(update, producer_site, in_retry=False):
+	try:
+		if update.update_type == 'Create':
+			set_insert(update, producer_site)
 
-			if update.update_type == 'Delete':
-				set_delete(update)
+		if update.update_type == 'Update':
+			set_update(update, producer_site)
 
-			log_event_sync(update, event_producer.name, 'Synced')
+		if update.update_type == 'Delete':
+			set_delete(update)	
+		
+		if in_retry:
+			return 'Synced'
 
-		except Exception:
-			log_event_sync(update, event_producer.name, 'Failed', frappe.get_traceback())
+		log_event_sync(update, event_producer.name, 'Synced')
 
-		frappe.db.set_value('Event Producer', event_producer.name, 'last_update', update.name)
-		frappe.db.commit()
+	except Exception:
+		if in_retry:
+			return 'Failed'
+
+		log_event_sync(update, event_producer.name, 'Failed', frappe.get_traceback())
+
+	frappe.db.set_value('Event Producer', event_producer.name, 'last_update', update.name)
+	frappe.db.commit()
 
 def set_insert(update, producer_site):
 	if frappe.db.get_value(update.ref_doctype, update.docname):
@@ -215,3 +224,9 @@ def new_event_notification(producer_url):
 	jobs = get_jobs()
 	if not jobs or enqueued_method not in jobs[frappe.local.site]:
 		frappe.enqueue(enqueued_method, queue = 'default', **{'event_producer': producer_url})
+
+@frappe.whitelist()
+def resync(update):
+	update = frappe._dict(json.loads(update))
+	producer_site = get_producer_site(update.event_producer)
+	return sync(update, producer_site, in_retry=True)
