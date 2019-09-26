@@ -300,3 +300,20 @@ user_privacy_documents = [
 	},
 
 ]
+
+global_search_doctypes = [
+	{"doctype": "Contact"},
+	{"doctype": "Address"},
+	{"doctype": "ToDo"},
+	{"doctype": "Note"},
+	{"doctype": "Event"},
+	{"doctype": "Blog Post"},
+	{"doctype": "Dashboard"},
+	{"doctype": "Country"},
+	{"doctype": "Currency"},
+	{"doctype": "Newsletter"},
+	{"doctype": "Letter Head"},
+	{"doctype": "Workflow"},
+	{"doctype": "Web Page"},
+	{"doctype": "Web Form"}
+]
