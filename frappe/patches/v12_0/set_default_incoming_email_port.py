@@ -6,6 +6,9 @@ def execute():
 		1. Set default incoming mmail port in email domin
 		2. Set default incoming mmail port in all email account (for those account where domain is missing)
 	'''
+	frappe.reload_doc("email", "doctype", "email_domain", force=True)
+	frappe.reload_doc("email", "doctype", "email_account", force=True)
+
 	setup_incomming_email_port_in_email_domains()
 	setup_incomming_email_port_in_email_accounts()
 
