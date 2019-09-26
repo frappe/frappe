@@ -316,10 +316,12 @@ class Communication(Document):
 		if autosave:
 			self.save(ignore_permissions=ignore_permissions)
 
+
 def on_doctype_update():
 	"""Add indexes in `tabCommunication`"""
 	frappe.db.add_index("Communication", ["reference_doctype", "reference_name"])
 	frappe.db.add_index("Communication", ["status", "communication_type"])
+
 
 def has_permission(doc, ptype, user):
 	if ptype=="read":
@@ -329,6 +331,7 @@ def has_permission(doc, ptype, user):
 		if doc.reference_doctype and doc.reference_name:
 			if frappe.has_permission(doc.reference_doctype, ptype="read", doc=doc.reference_name):
 				return True
+
 
 def get_permission_query_conditions_for_communication(user):
 	if not user: user = frappe.session.user
@@ -348,6 +351,7 @@ def get_permission_query_conditions_for_communication(user):
 		email_accounts = [ '"%s"'%account.get("email_account") for account in accounts ]
 		return """`tabCommunication`.email_account in ({email_accounts})"""\
 			.format(email_accounts=','.join(email_accounts))
+
 
 def get_contacts(email_strings):
 	email_addrs = []
@@ -377,6 +381,7 @@ def get_contacts(email_strings):
 
 	return contacts
 
+
 def add_contact_links_to_communication(communication, contact_name):
 	contact_links = frappe.get_list("Dynamic Link", filters={
 			"parenttype": "Contact",
@@ -387,6 +392,7 @@ def add_contact_links_to_communication(communication, contact_name):
 		for contact_link in contact_links:
 			communication.add_link(contact_link.link_doctype, contact_link.link_name)
 
+
 def parse_email(communication, email_strings):
 	"""
 		Parse email to add timeline links.
@@ -395,9 +401,6 @@ def parse_email(communication, email_strings):
 		the email is parsed and doctype and docname is extracted and timeline link is added.
 	"""
 	delimiter = "+"
-
-	if not frappe.db.get_value("Email Account", {"enable_automatic_linking": 1}):
-		return  # If no Email Accounts with automatic linking, do not proceed
 
 	for email_string in email_strings:
 		if email_string:
@@ -410,6 +413,7 @@ def parse_email(communication, email_strings):
 						docname = unquote(local_parts[2])
 						if doctype and docname and frappe.db.exists(doctype, docname):
 							communication.add_link(doctype, docname)
+
 
 def get_email_without_link(email):
 	"""
