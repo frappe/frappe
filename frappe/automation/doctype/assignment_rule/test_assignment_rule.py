@@ -157,6 +157,15 @@ def get_assignment_rule():
 		unassign_condition = 'public == 0 or notify_on_login == 1',
 		close_condition = '"Closed" in content',
 		rule = 'Round Robin',
+		assignment_days = [
+			dict(day = 'Sunday'),
+			dict(day = 'Monday'),
+			dict(day = 'Tueday'),
+			dict(day = 'Wednesday'),
+			dict(day = 'Thursday'),
+			dict(day = 'Friday'),
+			dict(day = 'Saturday'),
+		],
 		users = [
 			dict(user = 'test@example.com'),
 			dict(user = 'test1@example.com'),
@@ -175,6 +184,15 @@ def get_assignment_rule():
 		assign_condition = 'notify_on_login == 1',
 		unassign_condition = 'notify_on_login == 0',
 		rule = 'Round Robin',
+		assignment_days = [
+			dict(day = 'Sunday'),
+			dict(day = 'Monday'),
+			dict(day = 'Tueday'),
+			dict(day = 'Wednesday'),
+			dict(day = 'Thursday'),
+			dict(day = 'Friday'),
+			dict(day = 'Saturday'),
+		],
 		users = [
 			dict(user = 'test3@example.com')
 		]

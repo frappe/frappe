@@ -8,8 +8,16 @@ import frappe
 from frappe.model.document import Document
 from frappe.desk.form import assign_to
 import frappe.cache_manager
+from frappe import _
 
 class AssignmentRule(Document):
+
+	def validate(self):
+		assignment_days = self.get_assignment_days()
+		if not len(set(assignment_days)) == len(assignment_days):
+			repeated_days = get_repeated(assignment_days)
+			frappe.throw(_("Assignment Day {0} has been repeated.".format(frappe.bold(repeated_days))))
+
 	def on_update(self): # pylint: disable=no-self-use
 		frappe.cache_manager.clear_doctype_map('Assignment Rule', self.name)
 
@@ -121,6 +129,18 @@ class AssignmentRule(Document):
 	def get_assignment_days(self):
 		return [d.day for d in self.assignment_days]
 
+	def is_rule_not_applicable_today(self):
+		# If today is in assignment_rule_days then return False
+		# If today is not in assignment_rule_days then return True
+		today = frappe.utils.get_weekday()
+		print(today)
+		assignment_days = self.get_assignment_days()
+		print(assignment_days)
+		if assignment_days and not today in assignment_days:
+			return True
+
+		return False
+
 def get_assignments(doc):
 	return frappe.get_all('ToDo', fields = ['name', 'assignment_rule'], filters = dict(
 		reference_type = doc.get('doctype'),
@@ -178,16 +198,13 @@ def apply(doc, method=None, doctype=None, name=None):
 	clear = True # are all assignments cleared
 	new_apply = False # are new assignments applied
 
-	today = frappe.utils.get_weekday()
-
 	if assignments:
 		# first unassign
 		# use case, there are separate groups to be assigned for say L1 and L2,
 		# so when the value switches from L1 to L2, L1 team must be unassigned, then L2 can be assigned.
 		clear = False
 		for assignment_rule in assignment_rule_docs:
-			assignment_rule_days = assignment_rule.get_assignment_days()
-			if assignment_rule_days and not today in assignment_rule_days:
+			if assignment_rule.is_rule_not_applicable_today():
 				continue
 
 			clear = assignment_rule.apply_unassign(doc, assignments)
@@ -197,8 +214,7 @@ def apply(doc, method=None, doctype=None, name=None):
 	# apply rule only if there are no existing assignments
 	if clear:
 		for assignment_rule in assignment_rule_docs:
-			assignment_rule_days = assignment_rule.get_assignment_days()
-			if assignment_rule_days and not today in assignment_rule_days:
+			if assignment_rule.is_rule_not_applicable_today():
 				continue
 
 			new_apply = assignment_rule.apply_assign(doc)
@@ -209,8 +225,7 @@ def apply(doc, method=None, doctype=None, name=None):
 	assignments = get_assignments(doc)
 	if assignments:
 		for assignment_rule in assignment_rule_docs:
-			assignment_rule_days = assignment_rule.get_assignment_days()
-			if assignment_rule_days and not today in assignment_rule_days:
+			if assignment_rule.is_rule_not_applicable_today():
 				continue
 
 			if not new_apply:
@@ -224,3 +239,14 @@ def apply(doc, method=None, doctype=None, name=None):
 
 def get_assignment_rules():
 	return [d.document_type for d in frappe.db.get_all('Assignment Rule', fields=['document_type'], filters=dict(disabled = 0))]
+
+def get_repeated(values):
+	unique_list = []
+	diff = []
+	for value in values:
+		if value not in unique_list:
+			unique_list.append(str(value))
+		else:
+			if value not in diff:
+				diff.append(str(value))
+	return " ".join(diff)
