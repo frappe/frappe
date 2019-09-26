@@ -129,7 +129,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 					this.toggle_auto_refresh(false),
 					item.action,
 					this.toggle_auto_refresh(true)
-				])
+				]);
 			}
 			const $item = this.page.add_actions_menu_item(item.label, action, item.standard);
 			if (item.class) {
