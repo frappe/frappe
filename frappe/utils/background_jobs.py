@@ -119,6 +119,8 @@ def execute_job(site, method, event, job_name, kwargs, user=None, is_async=True,
 	except:
 		frappe.db.rollback()
 		frappe.log_error(method_name)
+		frappe.db.commit()
+		print(frappe.get_traceback())
 		raise
 
 	else:
@@ -140,8 +142,6 @@ def start_worker(queue=None, quiet = False):
 	with Connection(redis_connection):
 		queues = get_queue_list(queue)
 		logging_level = "INFO"
-		if quiet:
-			logging_level = "WARNING"
 		Worker(queues, name=get_worker_name(queue)).work(logging_level = logging_level)
 
 def get_worker_name(queue):
@@ -203,13 +203,7 @@ def get_queue_list(queue_list=None):
 def get_queue(queue, is_async=True):
 	'''Returns a Queue object tied to a redis connection'''
 	validate_queue(queue)
-
-	kwargs = {
-		'connection': get_redis_conn(),
-		'async': is_async
-	}
-
-	return Queue(queue, **kwargs)
+	return Queue(queue, connection=get_redis_conn(), is_async=is_async)
 
 def validate_queue(queue, default_queue_list=None):
 	if not default_queue_list:

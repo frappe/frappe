@@ -37,10 +37,17 @@ class TestScheduler(TestCase):
 
 	def test_queue_peeking(self):
 		job = get_test_job()
+
 		self.assertTrue(job.enqueue())
 		job.db_set('last_execution', '2010-01-01 00:00:00')
 		frappe.db.commit()
-		time.sleep(3) # wait if job is not yet queued
+
+		# 1 job in queue
+		self.assertTrue(job.enqueue())
+		job.db_set('last_execution', '2010-01-01 00:00:00')
+		frappe.db.commit()
+
+		# 2nd job not loaded
 		self.assertFalse(job.enqueue())
 		job.delete()
 
@@ -88,11 +95,11 @@ def get_test_job(method='frappe.tests.test_scheduler.test_timeout_10', queue='Al
 			last_execution = '2010-01-01 00:00:00',
 			queue = queue
 		)).insert()
-		frappe.db.commit()
 	else:
 		job = frappe.get_doc('Scheduled Job Type', dict(method=method))
 		job.db_set('last_execution', '2010-01-01 00:00:00')
 		job.db_set('queue', queue)
+	frappe.db.commit()
 
 	return job
 
