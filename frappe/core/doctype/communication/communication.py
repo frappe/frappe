@@ -5,7 +5,7 @@ from __future__ import unicode_literals, absolute_import
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils import validate_email_address, get_fullname, strip_html, cstr
+from frappe.utils import validate_email_address, strip_html, cstr
 from frappe.core.doctype.communication.email import (validate_email,
 	notify, _notify, update_parent_mins_to_first_response)
 from frappe.core.utils import get_parent_doc
@@ -19,10 +19,23 @@ from frappe.contacts.doctype.contact.contact import get_contact_name
 
 exclude_from_linked_with = True
 
+
 class Communication(Document):
 	no_feed_on_delete = True
 
 	"""Communication represents an external communication like Email."""
+	def __init__(self, *args, **kwargs):
+		super(Communication, self).__init__(*args, **kwargs)
+		self.communication_type = None
+		self.user = None
+		self.subject = None
+		self.seen = None
+		self.sent_or_received = None
+		self.reference_owner = None
+		self.sender_full_name = None
+		self.sender = None
+		self.communication_medium = None
+
 	def onload(self):
 		"""create email flag queue"""
 		if self.communication_type == "Communication" and self.communication_medium == "Email" \
@@ -382,7 +395,7 @@ def parse_email(communication, email_strings):
 		the email is parsed and doctype and docname is extracted and timeline link is added.
 	"""
 	delimiter = "+"
-	
+
 	if not frappe.db.get_value("Email Account", {"enable_automatic_linking": 1}):
 		return  # If no Email Accounts with automatic linking, do not proceed
 
