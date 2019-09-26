@@ -25,7 +25,7 @@ class TestScheduler(TestCase):
 			sync_jobs()
 
 	def test_enqueue_jobs(self):
-		frappe.db.sql('update `tabScheduled Job Type` set last_execution = "2010-01-01 00:00:00"')
+		frappe.db.sql("update `tabScheduled Job Type` set last_execution = '2010-01-01 00:00:00'")
 
 		frappe.flags.execute_job = True
 		enqueue_events(site = frappe.local.site)
