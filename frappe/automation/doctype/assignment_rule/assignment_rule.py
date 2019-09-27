@@ -130,12 +130,8 @@ class AssignmentRule(Document):
 		return [d.day for d in self.assignment_days]
 
 	def is_rule_not_applicable_today(self):
-		# If today is in assignment_rule_days then return False
-		# If today is not in assignment_rule_days then return True
-		today = frappe.utils.get_weekday()
-		print(today)
+		today = frappe.flags.assignment_day or frappe.utils.get_weekday()
 		assignment_days = self.get_assignment_days()
-		print(assignment_days)
 		if assignment_days and not today in assignment_days:
 			return True
 
