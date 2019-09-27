@@ -1,12 +1,14 @@
 
 from __future__ import unicode_literals, print_function
 import frappe
+from frappe.utils import get_fullname
 
 def get_leaderboards():
 	leaderboards = {
 		'Energy Point Log': {
 			'fields': ['points'],
 			'method': 'frappe.desk.leaderboard.get_energy_point_leaderboard',
+			'company_disabled': 1
 		}
 	}
 	return leaderboards
@@ -30,5 +32,9 @@ def get_energy_point_leaderboard(from_date, company = None, field = None, limit 
 	for user in all_users_list:
 		if user not in energy_point_users_list:
 			energy_point_users.append({'name': user, 'value': 0})
+
+	for user in energy_point_users:
+		user_id = user['name']
+		user['formatted_name'] = '<a href="#user-profile/{}">{}</a>'.format(user_id, get_fullname(user_id))
 
 	return energy_point_users

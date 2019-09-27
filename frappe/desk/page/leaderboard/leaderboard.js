@@ -34,7 +34,12 @@ class Leaderboard {
 			this.leaderboard_config = config;
 			for (let doctype in this.leaderboard_config) {
 				this.doctypes.push(doctype);
-				this.filters[doctype] = this.leaderboard_config[doctype].fields;
+				this.filters[doctype] = this.leaderboard_config[doctype].fields.map(field => {
+					if (typeof field ==='object') {
+						return field.label || field.fieldname;
+					}
+					return field;
+				});
 			}
 			this.timespans = ["Week", "Month", "Quarter", "Year", "All Time"];
 
@@ -93,6 +98,7 @@ class Leaderboard {
 				this.make_request();
 			}
 		});
+
 		this.timespan_select = this.page.add_select(__("Timespan"),
 			this.timespans.map(d => {
 				return {"label": __(d), value: d };
@@ -132,8 +138,7 @@ class Leaderboard {
 					return {"label": __(frappe.model.unscrub(d)), value: d };
 				})
 			);
-
-			if (this.options.selected_doctype === "Energy Point Log") {
+			if (this.leaderboard_config[this.options.selected_doctype].company_disabled) {
 				$(this.parent).find("[data-original-title=Company]").hide();
 			} else {
 				$(this.parent).find("[data-original-title=Company]").show();
@@ -176,7 +181,7 @@ class Leaderboard {
 	}
 
 	show_leaderboard(doctype) {
-		if(this.doctypes.length) {
+		if (this.doctypes.length) {
 			if (this.doctypes.includes(doctype)) {
 				this.options.selected_doctype = doctype;
 				this.$sidebar_list.find(`[doctype-value = "${this.options.selected_doctype}"]`).trigger("click");
@@ -322,41 +327,27 @@ class Leaderboard {
 	}
 
 	get_item_html(item, index) {
-		const company = this.options.selected_company;
-		const currency = frappe.get_doc(":Company", company).default_currency;
-		const fields = ["rank", "name", "value"];
+		const fields = this.leaderboard_config[this.options.selected_doctype].fields;
+		const value = frappe.format(item.value, fields.find(field => {
+			let fieldname = field.fieldname || field;
+			return fieldname === this.options.selected_filter_item;
+		}));
 
+		const link = `#Form/${this.options.selected_doctype}/${item.name}`;
+		const name_html = item.formatted_name ? 
+			`<span class="text-muted ellipsis">${item.formatted_name}</span>`
+			: `<a class="grey list-id ellipsis" href="${link}"> ${item.name} </a>`;
 		const html =
-			`<div class="list-item">
-			${
-			fields.map(col => {
-				let val = col === "rank"? index: item[col];
-				let link = this.options.selected_doctype === "Energy Point Log"
-					? `#user-profile/${item["name"]}`
-					: `#Form/${this.options.selected_doctype}/${item["name"]}`;
-				if (col == "name") {
-					val = this.options.selected_doctype === "Energy Point Log"
-					? frappe.user.full_name(val)
-					: val;
-					var formatted_value = `<a class="grey list-id ellipsis"
-						href="${link}"> ${val} </a>`;
-				} else {
-					var value = this.options.selected_doctype !== "Energy Point Log" &&
-						this.options.selected_filter_item.indexOf("qty") == -1 &&
-						col !== "rank"
-						?  format_currency(val, currency)
-						: val;
-					var formatted_value = `<span class="text-muted ellipsis">${value}</span>`;
-				}
-
-				return (
-					`<div class="list-item_content ellipsis list-item__content--flex-2 ${col}
-						${(col == "value") ? "text-right" : ""}">
-						${formatted_value}
-					</div>`
-				);
-			}).join("")
-			}
+			`<div class="list-item"> 
+				<div class="list-item_content ellipsis list-item__content--flex-2 rank">
+					<span class="text-muted ellipsis">${index}</span>
+				</div>
+				<div class="list-item_content ellipsis list-item__content--flex-2 name">
+					${name_html}
+				</div>
+				<div class="list-item_content ellipsis list-item__content--flex-2 value text-right">
+					<span class="text-muted ellipsis">${value}</span>
+				</div>
 			</div>`;
 
 		return html;
