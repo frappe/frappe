@@ -157,8 +157,11 @@ class UserPermissions:
 				self.can_read.remove(dt)
 
 		if "System Manager" in self.get_roles():
-			self.can_import = list(filter(lambda d: d in self.can_create,
-				frappe.db.sql_list("""select name from `tabDocType` where allow_import = 1""")))
+			docs = [x['name'] for x in frappe.get_all("DocType", "name")]
+			frappe.clear_cache()
+			for docname in docs:
+				if frappe.get_meta(docname).allow_import == 1:
+					self.can_import.append(docname)
 
 	def get_defaults(self):
 		import frappe.defaults
