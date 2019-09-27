@@ -62,7 +62,7 @@ class TestScheduler(TestCase):
 		self.assertTrue(schedule_jobs_based_on_activity(check_time = add_days(frappe.db.get_last_created('Activity Log'), 5)))
 
 		# create a fake job executed 5 days from now
-		job = get_test_job(method='frappe.tests.test_scheduler.test_method', queue='Daily')
+		job = get_test_job(method='frappe.tests.test_scheduler.test_method', frequency='Daily')
 		job.execute()
 		job_log = frappe.get_doc('Scheduled Job Log', dict(scheduled_job_type=job.name))
 		job_log.db_set('creation', add_days(frappe.db.get_last_created('Activity Log'), 5))
@@ -87,18 +87,18 @@ class TestScheduler(TestCase):
 
 		self.assertTrue(job.is_failed)
 
-def get_test_job(method='frappe.tests.test_scheduler.test_timeout_10', queue='All'):
+def get_test_job(method='frappe.tests.test_scheduler.test_timeout_10', frequency='All'):
 	if not frappe.db.exists('Scheduled Job Type', dict(method=method)):
 		job = frappe.get_doc(dict(
 			doctype = 'Scheduled Job Type',
 			method = method,
 			last_execution = '2010-01-01 00:00:00',
-			queue = queue
+			frequency = frequency
 		)).insert()
 	else:
 		job = frappe.get_doc('Scheduled Job Type', dict(method=method))
 		job.db_set('last_execution', '2010-01-01 00:00:00')
-		job.db_set('queue', queue)
+		job.db_set('frequency', frequency)
 	frappe.db.commit()
 
 	return job
