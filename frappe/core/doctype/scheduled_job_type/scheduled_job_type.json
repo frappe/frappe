@@ -13,7 +13,7 @@
  "field_order": [
   "stopped",
   "method",
-  "queue",
+  "frequency",
   "cron_format",
   "last_execution",
   "create_log"
@@ -24,16 +24,6 @@
    "fieldtype": "Data",
    "in_list_view": 1,
    "label": "Method",
-   "read_only": 1,
-   "reqd": 1
-  },
-  {
-   "fieldname": "queue",
-   "fieldtype": "Select",
-   "in_list_view": 1,
-   "in_standard_filter": 1,
-   "label": "Queue",
-   "options": "All\nHourly\nDaily\nDaily Long\nWeekly\nWeekly Long\nMonthly\nMonthly Long\nCron\nYearly\nAnnual",
    "read_only": 1,
    "reqd": 1
   },
@@ -63,6 +53,16 @@
    "fieldtype": "Data",
    "label": "Cron Format",
    "read_only": 1
+  },
+  {
+   "fieldname": "frequency",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Frequency",
+   "options": "All\nHourly\nDaily\nDaily Long\nWeekly\nWeekly Long\nMonthly\nMonthly Long\nCron\nYearly\nAnnual",
+   "read_only": 1,
+   "reqd": 1
   }
  ],
  "in_create": 1,
@@ -72,7 +72,7 @@
    "link_fieldname": "scheduled_job_type"
   }
  ],
- "modified": "2019-09-25 11:54:58.013623",
+ "modified": "2019-09-27 12:19:23.259989",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Scheduled Job Type",

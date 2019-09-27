@@ -20,16 +20,16 @@ class TestScheduledJobType(unittest.TestCase):
 	def test_sync_jobs(self):
 		all_job = frappe.get_doc('Scheduled Job Type',
 			dict(method='frappe.email.queue.flush'))
-		self.assertEqual(all_job.queue, 'All')
+		self.assertEqual(all_job.frequency, 'All')
 
 		daily_job = frappe.get_doc('Scheduled Job Type',
 			dict(method='frappe.email.queue.clear_outbox'))
-		self.assertEqual(daily_job.queue, 'Daily')
+		self.assertEqual(daily_job.frequency, 'Daily')
 
 		# check if cron jobs are synced
 		cron_job = frappe.get_doc('Scheduled Job Type',
 			dict(method='frappe.oauth.delete_oauth2_data'))
-		self.assertEqual(cron_job.queue, 'Cron')
+		self.assertEqual(cron_job.frequency, 'Cron')
 		self.assertEqual(cron_job.cron_format, '0/15 * * * *')
 
 	def test_daily_job(self):

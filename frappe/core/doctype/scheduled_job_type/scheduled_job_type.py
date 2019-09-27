@@ -16,7 +16,7 @@ class ScheduledJobType(Document):
 		self.name = '.'.join(self.method.split('.')[-2:])
 
 	def validate(self):
-		if self.queue != 'All':
+		if self.frequency != 'All':
 			# force logging for all events other than continuous ones (ALL)
 			self.create_log = 1
 
@@ -34,10 +34,6 @@ class ScheduledJobType(Document):
 					enqueue('frappe.core.doctype.scheduled_job_type.scheduled_job_type.run_scheduled_job',
 						queue = self.get_queue_name(), job_type=self.method)
 					return True
-				else:
-					pass
-		else:
-			pass
 
 		return False
 
@@ -69,7 +65,7 @@ class ScheduledJobType(Document):
 		}
 
 		if not self.cron_format:
-			self.cron_format = CRON_MAP[self.queue]
+			self.cron_format = CRON_MAP[self.frequency]
 
 		return croniter(self.cron_format,
 			get_datetime(self.last_execution)).get_next(datetime)
@@ -105,7 +101,7 @@ class ScheduledJobType(Document):
 		frappe.db.commit()
 
 	def get_queue_name(self):
-		return 'long' if ('Long' in self.queue) else 'default'
+		return 'long' if ('Long' in self.frequency) else 'default'
 
 @frappe.whitelist()
 def execute_event(doc):
@@ -145,16 +141,16 @@ def insert_cron_event(events, all_events):
 def insert_event_list(events, event_type, all_events):
 	for event in events:
 		all_events.append(event)
-		queue = event_type.replace('_', ' ').title()
-		insert_single_event(queue, event)
+		frequency = event_type.replace('_', ' ').title()
+		insert_single_event(frequency, event)
 
-def insert_single_event(queue, event, cron_format = None):
+def insert_single_event(frequency, event, cron_format = None):
 	if not frappe.db.exists('Scheduled Job Type', dict(method=event)):
 		frappe.get_doc(dict(
 			doctype = 'Scheduled Job Type',
 			method = event,
 			cron_format = cron_format,
-			queue = queue
+			frequency = frequency
 		)).insert()
 
 def clear_events(all_events, scheduler_events):
