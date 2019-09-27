@@ -82,9 +82,9 @@ def pull_from_node(event_producer):
 	updates = get_updates(producer_site, last_update, doctypes)
 
 	for update in updates:
-		sync(update, producer_site)
+		sync(update, producer_site, event_producer)
 
-def sync(update, producer_site, in_retry=False):
+def sync(update, producer_site, event_producer, in_retry=False):
 	try:
 		if update.update_type == 'Create':
 			set_insert(update, producer_site)
@@ -229,4 +229,5 @@ def new_event_notification(producer_url):
 def resync(update):
 	update = frappe._dict(json.loads(update))
 	producer_site = get_producer_site(update.event_producer)
-	return sync(update, producer_site, in_retry=True)
+	event_producer = frappe.get_doc('Event Producer', update.event_producer)
+	return sync(update, producer_site, event_producer, in_retry=True)

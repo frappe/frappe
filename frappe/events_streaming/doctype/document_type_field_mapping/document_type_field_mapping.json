@@ -1,0 +1,51 @@
+{
+ "creation": "2019-09-27 12:46:50.165135",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "remote_fieldname",
+  "local_fieldname",
+  "is_child_table",
+  "child_table_mapping"
+ ],
+ "fields": [
+  {
+   "fieldname": "remote_fieldname",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Remote Fieldname",
+   "reqd": 1
+  },
+  {
+   "fieldname": "local_fieldname",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Local Fieldname",
+   "reqd": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "is_child_table",
+   "fieldtype": "Check",
+   "label": "Is Child Table"
+  },
+  {
+   "fieldname": "child_table_mapping",
+   "fieldtype": "Link",
+   "label": "Child Table Mapping",
+   "options": "Document Type Mapping"
+  }
+ ],
+ "istable": 1,
+ "modified": "2019-09-27 12:46:50.165135",
+ "modified_by": "Administrator",
+ "module": "Events Streaming",
+ "name": "Document Type Field Mapping",
+ "owner": "Administrator",
+ "permissions": [],
+ "quick_entry": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

@@ -13,7 +13,6 @@ frappe.ui.form.on('Event Sync Log', {
 					callback: function(r) {
 						if(r.message) {
 							if(r.message) {
-								console.log(r.message);
 								frappe.msgprint(r.message);
 								frm.set_value('status', r.message);
 								frm.save();

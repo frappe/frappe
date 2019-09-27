@@ -4,7 +4,10 @@
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
-  "ref_doctype"
+  "ref_doctype",
+  "use_same_name",
+  "has_mapping",
+  "mapping"
  ],
  "fields": [
   {
@@ -14,10 +17,31 @@
    "label": "Document Type",
    "options": "DocType",
    "reqd": 1
+  },
+  {
+   "default": "0",
+   "description": "If the document has different field names on the Producer and Consumer's end check this and set up the Mapping",
+   "fieldname": "has_mapping",
+   "fieldtype": "Check",
+   "label": "Has Mapping"
+  },
+  {
+   "fieldname": "mapping",
+   "fieldtype": "Link",
+   "label": "Mapping",
+   "options": "Document Type Mapping"
+  },
+  {
+   "default": "0",
+   "description": "If this is checked the documents will have the same name as they have on the Event Producer's site",
+   "fieldname": "use_same_name",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Use Same Name"
   }
  ],
  "istable": 1,
- "modified": "2019-09-11 12:21:05.732925",
+ "modified": "2019-09-27 13:00:25.279457",
  "modified_by": "Administrator",
  "module": "Events Streaming",
  "name": "Event Subscribed DocType",
