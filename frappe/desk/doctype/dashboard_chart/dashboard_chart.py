@@ -32,50 +32,96 @@ def get(chart_name = None, chart = None, no_cache = None, from_date=None, to_dat
 
 	# get conditions from filters
 	conditions, values = frappe.db.build_conditions(filters)
+	if chart.chart_type == 'Group By':
+		chart_config = get_group_by_chart_config(chart, filters)
+	else:
+		print('conditions', conditions)
+		# query will return year, unit and aggregate value
+		data = frappe.db.sql('''
+			select
+				extract(year from {datefield}) as _year,
+				{unit_function} as _unit,
+				{aggregate_function}({value_field})
+			from `tab{doctype}`
+			where
+				{conditions}
+				and {datefield} >= '{from_date}'
+				and {datefield} <= '{to_date}'
+			group by _year, _unit
+			order by _year asc, _unit asc
+		'''.format(
+			unit_function = get_unit_function(chart.based_on, timegrain),
+			datefield = chart.based_on,
+			aggregate_function = get_aggregate_function(chart.chart_type),
+			value_field = chart.value_based_on or '1',
+			doctype = chart.document_type,
+			conditions = conditions,
+			from_date = from_date.strftime('%Y-%m-%d'),
+			to_date = to_date
+		), values)
 
-	# query will return year, unit and aggregate value
+		# result given as year, unit -> convert it to end of period of that unit
+		result = convert_to_dates(data, timegrain)
+
+		# add missing data points for periods where there was no result
+		result = add_missing_values(result, timegrain, from_date, to_date)
+
+		chart_config = {
+			"labels": [formatdate(r[0].strftime('%Y-%m-%d')) for r in result],
+			"datasets": [{
+				"name": chart.name,
+				"values": [r[1] for r in result]
+			}]
+		}
+
+	return chart_config
+
+
+def get_group_by_chart_config(chart, filters):
+	conditions, values = frappe.db.build_conditions(filters)
 	data = frappe.db.sql('''
 		select
-			extract(year from {datefield}) as _year,
-			{unit_function} as _unit,
-			{aggregate_function}({value_field})
+			{aggregate_function}({value_field}) as count,
+			{group_by_field} as name
 		from `tab{doctype}`
-		where
-			{conditions}
-			and {datefield} >= '{from_date}'
-			and {datefield} <= '{to_date}'
-		group by _year, _unit
-		order by _year asc, _unit asc
+		where {conditions}
+		group by {group_by_field}
+		order by count desc
 	'''.format(
-		unit_function = get_unit_function(chart.based_on, timegrain),
-		datefield = chart.based_on,
-		aggregate_function = get_aggregate_function(chart.chart_type),
-		value_field = chart.value_based_on or '1',
+		aggregate_function = get_aggregate_function(chart.group_by_type),
+		value_field = chart.aggregate_function_based_on or '1',
+		field = chart.aggregate_function_based_on or chart.group_by_based_on,
+		group_by_field = chart.group_by_based_on,
 		doctype = chart.document_type,
 		conditions = conditions,
-		from_date = from_date.strftime('%Y-%m-%d'),
-		to_date = to_date
-	), values)
+	), values, as_dict = True)
 
-	# result given as year, unit -> convert it to end of period of that unit
-	result = convert_to_dates(data, timegrain)
+	print('data', data)
+	if data:
+		if chart.number_of_groups and chart.number_of_groups < len(data):
+			other_count = 0
+			for i in range(chart.number_of_groups - 1, len(data)):
+				other_count += data[i]['count']
+			data = data[0: chart.number_of_groups - 1]
+			data.append({'name': 'Other', 'count': other_count})
 
-	# add missing data points for periods where there was no result
-	result = add_missing_values(result, timegrain, from_date, to_date)
+		chart_config = {
+			"labels": [item['name'] if item['name'] else 'Not Specified' for item in data],
+			"datasets": [{
+				"name": chart.name,
+				"values": [item['count'] for item in data]
+			}] 
+		}
+		return chart_config
+	else:
+		return None
 
-	return {
-		"labels": [formatdate(r[0].strftime('%Y-%m-%d')) for r in result],
-		"datasets": [{
-			"name": chart.name,
-			"values": [r[1] for r in result]
-		}]
-	}
 
 def get_aggregate_function(chart_type):
 	return {
 		"Sum": "SUM",
 		"Count": "COUNT",
-		"Average": "AVG"
+		"Average": "AVG",
 	}[chart_type]
 
 def convert_to_dates(data, timegrain):
@@ -210,7 +256,14 @@ class DashboardChart(Document):
 			self.check_required_field()
 
 	def check_required_field(self):
-		if not self.based_on:
-			frappe.throw(_("Time series based on is required to create a dashboard chart"))
 		if not self.document_type:
-			frappe.throw(_("Document type is required to create a dashboard chart"))
+				frappe.throw(_("Document type is required to create a dashboard chart"))
+
+		if self.chart_type == 'Group By':
+			if not self.group_by_based_on:
+				frappe.throw(_("Group By field is required to create a dashboard chart"))
+			if self.group_by_type in ['Sum', 'Average'] and not self.aggregate_function_based_on:
+				frappe.throw(_("Aggregate Function field is required to create a dashboard chart"))
+		else:
+			if not self.based_on:
+				frappe.throw(_("Time series based on is required to create a dashboard chart"))
