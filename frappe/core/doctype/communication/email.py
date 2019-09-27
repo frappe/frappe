@@ -239,8 +239,12 @@ def get_recipients_cc_and_bcc(doc, recipients, cc, bcc, fetched_from_email_accou
 	return recipients, cc, bcc
 
 def remove_administrator_from_email_list(email_list):
-	if 'Administrator' in email_list:
-		email_list.remove('Administrator')
+	administrator_email_id = filter(lambda x: 'Administrator' in x, email_list)
+
+	if administrator_email_id:
+		''' as filter returns list '''
+		email_list.remove(administrator_email_id[0])
+
 
 def prepare_to_notify(doc, print_html=None, print_format=None, attachments=None):
 	"""Prepare to make multipart MIME Email
