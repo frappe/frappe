@@ -127,6 +127,7 @@ frappe.search.SearchDialog = Class.extend({
 
 		// Setup Minimizable functionality
 		this.search_dialog.minimizable = true;
+		this.search_dialog.is_minimized = false;
 		this.search_dialog.$wrapper.find('.btn-modal-minimize').click(() => this.toggle_minimize());
 	},
 
