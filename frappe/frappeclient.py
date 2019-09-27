@@ -3,7 +3,7 @@ import requests
 import json
 import frappe
 from six import iteritems, string_types
-from base64 import b64encode
+import base64
 
 '''
 FrappeClient is a library that helps you connect with other frappe systems
@@ -57,7 +57,7 @@ class FrappeClient(object):
 
 	def setup_key_authentication_headers(self):
 		if self.api_key and self.api_secret:
-			token = b64encode('{}:{}'. format(self.api_key, self.api_secret))
+			token = base64.b64encode(('{}:{}'.format(self.api_key, self.api_secret)).encode('utf-8')).decode('utf-8')
 			auth_header = {'Authorization': 'Basic {}'.format(token)}
 			self.headers.update(auth_header)
 
