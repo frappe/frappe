@@ -183,6 +183,13 @@ frappe.search.SearchDialog = Class.extend({
 		} else {
 			this.$search_modal.find('.loading-state').removeClass('hide');
 		}
+
+		if (this.current_keyword.charAt(0) === "#") {
+			this.search = this.searches["global_tag"];
+		} else {
+			this.search = this.searches["global_search"];
+		}
+
 		this.search.get_results(keywords, this.parse_results.bind(this));
 		if (this.search_dialog.is_minimized) {
 			this.toggle_minimize();
@@ -377,7 +384,7 @@ frappe.search.SearchDialog = Class.extend({
 	// Search objects
 	searches: {
 		global_search: {
-			input_placeholder: __("Global Search"),
+			input_placeholder: __("Search"),
 			empty_state_text: __("Search for anything"),
 			no_results_status: (keyword) => __("<p>No results found for '" + keyword + "' in Global Search</p>"),
 
@@ -394,8 +401,8 @@ frappe.search.SearchDialog = Class.extend({
 			}
 		},
 		global_tag: {
-			input_placeholder: __("Global Tags"),
-			empty_state_text: __("Search for Tags"),
+			input_placeholder: __("Search"),
+			empty_state_text: __("Search for anything"),
 			no_results_status: (keyword) => __("<p>No results found for '" + keyword + "' in Global Tags</p>"),
 
 			get_results: function(keywords, callback) {
