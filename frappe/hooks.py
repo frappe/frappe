@@ -270,7 +270,7 @@ user_privacy_documents = [
 	{
 		'doctype': 'Contact',
 		'match_field': 'email_id',
-		'personal_fields': ['first_name', 'last_name', 'phone'],
+		'personal_fields': ['first_name', 'last_name', 'phone', 'mobile_no'],
 	},
 	{
 		'doctype': 'Contact Email',
@@ -299,4 +299,21 @@ user_privacy_documents = [
 		'applies_to_website_user': 1
 	},
 
+]
+
+global_search_doctypes = [
+	{"doctype": "Contact"},
+	{"doctype": "Address"},
+	{"doctype": "ToDo"},
+	{"doctype": "Note"},
+	{"doctype": "Event"},
+	{"doctype": "Blog Post"},
+	{"doctype": "Dashboard"},
+	{"doctype": "Country"},
+	{"doctype": "Currency"},
+	{"doctype": "Newsletter"},
+	{"doctype": "Letter Head"},
+	{"doctype": "Workflow"},
+	{"doctype": "Web Page"},
+	{"doctype": "Web Form"}
 ]

@@ -187,7 +187,7 @@ def sync_contacts_from_google_contacts(g_contact):
 					contact.add_email(email_id=email.get("value"), is_primary=1 if email.get("metadata").get("primary") else 0)
 
 				for phone in connection.get("phoneNumbers", []):
-					contact.add_phone(phone=phone.get("value"), is_primary=1 if phone.get("metadata").get("primary") else 0)
+					contact.add_phone(phone=phone.get("value"), is_primary_phone=1 if phone.get("metadata").get("primary") else 0)
 
 				contact.insert(ignore_permissions=True)
 
@@ -231,7 +231,7 @@ def update_contacts_to_google_contacts(doc, method=None):
 	"""
 	# Workaround to avoid triggering updation when Event is being inserted since
 	# creation and modified are same when inserting doc
-	if not frappe.db.exists("Google Contacts", {"name": doc.google_contacts}) or doc.is_new() \
+	if not frappe.db.exists("Google Contacts", {"name": doc.google_contacts}) or doc.modified == doc.creation \
 		or not doc.sync_with_google_contacts:
 		return
 

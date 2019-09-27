@@ -607,7 +607,7 @@ class Database(object):
 		"""Update multiple values. Alias for `set_value`."""
 		return self.set_value(*args, **kwargs)
 
-	def set_value(self, dt, dn, field, val, modified=None, modified_by=None,
+	def set_value(self, dt, dn, field, val=None, modified=None, modified_by=None,
 		update_modified=True, debug=False):
 		"""Set a single value in the database, do not call the ORM triggers
 		but update the modified timestamp (unless specified not to).
