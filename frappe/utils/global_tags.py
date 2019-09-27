@@ -10,6 +10,9 @@ def delete_tags_for_document(doc):
 		been deleted
 		:param doc: Deleted document
 	"""
+	if not frappe.db.table_exists("Tag Link"):
+		return
+
 	frappe.db.sql("""DELETE FROM `tabTag Link` WHERE `dt`=%s AND `dn`=%s""", (doc.doctype, doc.name))
 
 def update_global_tags(doc, tags):
@@ -17,8 +20,6 @@ def update_global_tags(doc, tags):
 		Adds tags for documents
 		:param doc: Document to be added to global tags
 	"""
-	if frappe.local.conf.get('disable_global_tags'):
-		return
 
 	new_tags = list(set([tag.strip() for tag in tags.split(",") if tag]))
 
@@ -42,7 +43,7 @@ def update_global_tags(doc, tags):
 			delete_tag_for_document(doc.doctype, doc.name, tag)
 
 def get_deleted_tags(new_tags, existing_tags):
-	print(list(set(existing_tags) - set(new_tags)))
+
 	return list(set(existing_tags) - set(new_tags))
 
 def delete_tag_for_document(dt, dn, tag):

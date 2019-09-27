@@ -61,7 +61,7 @@ frappe.global_tags.utils = {
 				var field_value = null;
 				for (var i = 0; i < parts.length; i++) {
 					var part = parts[i];
-					if(part.toLowerCase().indexOf(tag) !== -1) {
+					if (part.toLowerCase().indexOf(tag) !== -1) {
 						// If the field contains the keyword
 						if (part.indexOf(' &&& ') !== -1) {
 							colon_index = part.indexOf(' &&& ');
@@ -97,7 +97,7 @@ frappe.global_tags.utils = {
 							}
 						} else {
 							// Not enough room
-							if (field_name.length < remaining_length){
+							if (field_name.length < remaining_length) {
 								// Ellipsify (trim at word end) and push
 								remaining_length -= field_name.length;
 								field_text = '<span class="field-name text-muted">' +
@@ -141,7 +141,7 @@ frappe.global_tags.utils = {
 			});
 			return results_sets;
 		}
-		return new Promise(function(resolve, reject) {
+		return new Promise(function(resolve) {
 			frappe.call({
 				method: "frappe.utils.global_tags.get_documents_for_tag",
 				args: {
