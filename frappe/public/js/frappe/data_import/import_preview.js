@@ -249,20 +249,11 @@ frappe.data_import.ImportPreview = class ImportPreview {
 			}
 			return [
 				{
-					label: __('Column {0}', [i]),
+					label: '',
 					fieldtype: 'Data',
 					default: df.header_title,
 					fieldname: `Column ${i}`,
 					read_only: 1
-				},
-				{
-					fieldtype: 'Button',
-					label: 'Skip Column',
-					fieldname: 'skip_' + i,
-					click: () => {
-						let header_row_index = i - 1;
-						this.events.skip_import(header_row_index);
-					}
 				},
 				{
 					fieldtype: 'Column Break'
@@ -270,10 +261,15 @@ frappe.data_import.ImportPreview = class ImportPreview {
 				{
 					fieldtype: 'Autocomplete',
 					fieldname: i,
-					label: __('Select field'),
+					label: '',
 					max_items: Infinity,
-					options: column_picker_fields.get_fields_as_options(),
-					default: fieldname,
+					options: [
+						{
+							label: __("Don't Import"),
+							value: "Don't Import"
+						}
+					].concat(column_picker_fields.get_fields_as_options()),
+					default: fieldname || "Don't Import",
 					change() {
 						changed.push(i);
 					}
@@ -285,8 +281,24 @@ frappe.data_import.ImportPreview = class ImportPreview {
 		});
 		// flatten the array
 		fields = fields.reduce((acc, curr) => [...acc, ...curr]);
+		let file_name = (this.frm.doc.import_file || '').split('/').pop();
+		fields = [
+			{
+				fieldtype: 'HTML',
+				fieldname: 'heading',
+				options: `
+					<div class="margin-top text-muted">
+					${__('Map columns from {0} to fields in {1}', [file_name.bold(), this.doctype.bold()])}
+					</div>
+				`
+			},
+			{
+				fieldtype: 'Section Break'
+			}
+		].concat(fields);
+
 		let dialog = new frappe.ui.Dialog({
-			title: __('Column Mapper'),
+			title: __('Map Columns'),
 			fields,
 			primary_action: (values) => {
 				let changed_map = {};
@@ -300,35 +312,8 @@ frappe.data_import.ImportPreview = class ImportPreview {
 				dialog.hide();
 			}
 		});
+		dialog.$body.addClass('map-columns');
 		dialog.show();
-	}
-
-	remap_column(col) {
-		let column_picker_fields = new ColumnPickerFields({
-			doctype: this.doctype
-		});
-		let dialog = new frappe.ui.Dialog({
-			title: __('Remap Column: {0}', [col.name]),
-			fields: [
-				{
-					fieldtype: 'Autocomplete',
-					fieldname: 'fieldname',
-					label: __('Select field'),
-					max_items: Infinity,
-					options: column_picker_fields.get_fields_as_options()
-				}
-			],
-			primary_action: ({ fieldname }) => {
-				if (!fieldname) return;
-				this.events.remap_column(col.header_row_index, fieldname);
-				dialog.hide();
-			}
-		});
-		dialog.show();
-	}
-
-	skip_import(col) {
-		this.events.skip_import(col.header_row_index);
 	}
 
 	is_row_imported(row) {

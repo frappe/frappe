@@ -34,7 +34,7 @@ class DataImportBeta(Document):
 
 	def start_import(self):
 		if frappe.utils.scheduler.is_scheduler_inactive():
-			frappe.throw(_("Scheduler is inactive. Cannot import data."), title=_("Error"))
+			frappe.throw(_("Scheduler is inactive. Cannot import data."), title=_("Scheduler Inactive"))
 
 		enqueued_jobs = [d.get("job_name") for d in get_info()]
 
@@ -46,7 +46,7 @@ class DataImportBeta(Document):
 				event="data_import",
 				job_name=self.name,
 				data_import=self.name,
-				# now=True
+				now=True
 			)
 
 	def get_importer(self):

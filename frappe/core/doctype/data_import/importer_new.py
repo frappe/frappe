@@ -27,7 +27,7 @@ class Importer:
 	def __init__(self, doctype, data_import=None, file_path=None, content=None):
 		self.doctype = doctype
 		self.template_options = frappe._dict(
-			{"remap_column": {}, "skip_import": [], "edited_rows": []}
+			{"remap_column": {}, "edited_rows": []}
 		)
 
 		if data_import:
@@ -164,7 +164,6 @@ class Importer:
 
 	def parse_fields_from_header_row(self):
 		remap_column = self.template_options.remap_column
-		skip_import = self.template_options.skip_import
 		fields = []
 		warnings = []
 
@@ -173,8 +172,8 @@ class Importer:
 		for i, header_title in enumerate(self.header_row):
 			header_row_index = str(i)
 			column_number = str(i + 1)
-			if remap_column.get(header_row_index):
-				fieldname = remap_column.get(header_row_index)
+			fieldname = remap_column.get(header_row_index)
+			if fieldname and fieldname != "Don't Import":
 				df = df_by_labels_and_fieldnames.get(fieldname)
 				warnings.append(
 					{
@@ -194,7 +193,7 @@ class Importer:
 				field.header_title = header_title
 				field.skip_import = False
 
-			if i in skip_import:
+			if fieldname == "Don't Import":
 				field.skip_import = True
 				warnings.append(
 					{
