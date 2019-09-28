@@ -44,11 +44,17 @@ def map_docs(method, source_names, target_doc):
 def get_mapped_doc(from_doctype, from_docname, table_maps, target_doc=None,
 		postprocess=None, ignore_permissions=False, ignore_child_tables=False):
 
+	apply_strict_user_permissions = frappe.get_system_settings("apply_strict_user_permissions")
+
 	# main
 	if not target_doc:
 		target_doc = frappe.new_doc(table_maps[from_doctype]["doctype"])
 	elif isinstance(target_doc, string_types):
 		target_doc = frappe.get_doc(json.loads(target_doc))
+
+	if (not apply_strict_user_permissions
+		and not ignore_permissions and not target_doc.has_permission("create")):
+		target_doc.raise_no_permission_to("create")
 
 	source_doc = frappe.get_doc(from_doctype, from_docname)
 
@@ -111,7 +117,8 @@ def get_mapped_doc(from_doctype, from_docname, table_maps, target_doc=None,
 
 	target_doc.set_onload("load_after_mapping", True)
 
-	if not ignore_permissions and not target_doc.has_permission("create"):
+	if (apply_strict_user_permissions
+		and not ignore_permissions and not target_doc.has_permission("create")):
 		target_doc.raise_no_permission_to("create")
 
 	return target_doc
