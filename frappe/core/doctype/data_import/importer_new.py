@@ -381,8 +381,9 @@ class Importer:
 
 		self.data_import.db_set("template_warnings", "")
 
-		# set flag
+		# set flags
 		frappe.flags.in_import = True
+		frappe.flags.mute_emails = self.data_import.mute_emails
 
 		out = self.get_parsed_data_from_template()
 		fields = out["fields"]
@@ -494,6 +495,7 @@ class Importer:
 		self.data_import.db_set("import_log", json.dumps(import_log))
 
 		frappe.flags.in_import = False
+		frappe.flags.mute_emails = False
 		frappe.publish_realtime("data_import_refresh")
 
 	def get_payloads_for_import(self, fields, data):
