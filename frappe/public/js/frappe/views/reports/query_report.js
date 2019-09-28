@@ -1083,8 +1083,16 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 											.filter(frappe.model.is_value_type)
 											.map(df => ({ label: df.label, value: df.fieldname }));
 
-										d.set_df_property('field', 'options', options);
-
+										d.set_df_property('field', 'options', options.sort(function(a,b) {
+												if (a.label < b.label) {
+													return -1;
+												}
+												if (a.label > b.label) {
+													return 1;
+												}
+												return 0;
+											})
+										);
 									});
 								}
 							},
@@ -1127,7 +1135,6 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 									d.hide();
 								}
 							});
-							this.show_save = true;
 							this.set_menu_items();
 						}
 					})
@@ -1155,7 +1162,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 								args: {
 									reference_report: this.report_name,
 									report_name: values.report_name,
-									columns: this.columns
+									columns: this.get_visible_columns()
 								},
 								callback: function(r) {
 									this.show_save = false;
@@ -1167,7 +1174,6 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 					});
 					d.show();
 				},
-				condition: () => this.show_save,
 				standard: true
 			},
 			{
