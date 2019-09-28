@@ -20,14 +20,14 @@ from frappe.exceptions import ValidationError, MandatoryError
 from frappe.model import display_fieldtypes, no_value_fields, table_fields
 
 INVALID_VALUES = ["", None]
-MAX_ROWS_IN_PREVIEW = 500
+MAX_ROWS_IN_PREVIEW = 10
 
 
 class Importer:
 	def __init__(self, doctype, data_import=None, file_path=None, content=None):
 		self.doctype = doctype
 		self.template_options = frappe._dict(
-			{"remap_column": {}, "edited_rows": []}
+			{"remap_column": {}}
 		)
 
 		if data_import:
@@ -144,17 +144,15 @@ class Importer:
 		out.fields = fields
 
 		if len(out.data) > MAX_ROWS_IN_PREVIEW:
-			out.data = []
+			out.data = out.data[:MAX_ROWS_IN_PREVIEW]
 			out.max_rows_exceeded = True
+			out.max_rows_in_preview = MAX_ROWS_IN_PREVIEW
 		return out
 
 	def get_parsed_data_from_template(self):
 		fields, fields_warnings = self.parse_fields_from_header_row()
 		formats, formats_warnings = self.parse_formats_from_first_10_rows()
 		fields, data = self.add_serial_no_column(fields, self.data)
-
-		if self.template_options.edited_rows:
-			data = self.template_options.edited_rows
 
 		warnings = fields_warnings + formats_warnings
 

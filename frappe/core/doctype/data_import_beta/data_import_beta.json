@@ -12,14 +12,13 @@
   "import_file",
   "column_break_5",
   "status",
-  "submit_after_import",
   "section_break_7",
-  "date_format",
+  "submit_after_import",
   "template_options",
-  "template_warnings",
   "section_import_preview",
   "import_preview",
   "import_warnings_section",
+  "template_warnings",
   "import_warnings",
   "import_log_section",
   "import_log",
@@ -59,7 +58,7 @@
   {
    "fieldname": "section_import_preview",
    "fieldtype": "Section Break",
-   "label": "Import Preview"
+   "label": "Preview"
   },
   {
    "fieldname": "column_break_5",
@@ -70,14 +69,7 @@
    "depends_on": "eval:!doc.__islocal",
    "fieldname": "section_break_7",
    "fieldtype": "Section Break",
-   "hidden": 1,
    "label": "Import Options"
-  },
-  {
-   "fieldname": "date_format",
-   "fieldtype": "Select",
-   "label": "Date Format",
-   "options": "\nYYYY-MM-DD\nDD-MM-YYYY\nMM-DD-YYYY\nYYYY/MM/DD\nDD/MM/YYYY\nMM/DD/YYYY\nMM/DD/YY\nDD/MM/YY\nYYYY.MM.DD\nDD.MM.YYYY\nMM.DD.YYYY"
   },
   {
    "fieldname": "template_options",
@@ -115,6 +107,7 @@
   {
    "fieldname": "template_warnings",
    "fieldtype": "Code",
+   "hidden": 1,
    "label": "Template Warnings",
    "options": "JSON"
   },
@@ -127,7 +120,7 @@
   {
    "fieldname": "import_warnings_section",
    "fieldtype": "Section Break",
-   "label": "Import Warnings"
+   "label": "Warnings"
   },
   {
    "fieldname": "import_warnings",

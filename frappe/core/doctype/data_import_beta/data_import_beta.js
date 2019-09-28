@@ -103,10 +103,6 @@ frappe.ui.form.on('Data Import Beta', {
 	},
 
 	start_import(frm) {
-		let csv_array = frm.import_preview.get_rows_as_csv_array();
-		let template_options = JSON.parse(frm.doc.template_options || '{}');
-		template_options.edited_rows = csv_array;
-		frm.set_value('template_options', JSON.stringify(template_options));
 		frm.save().then(() => frm.call('start_import'));
 	},
 

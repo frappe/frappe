@@ -30,7 +30,6 @@ frappe.data_import.ImportPreview = class ImportPreview {
 		this.header_row = this.preview_data.header_row;
 		this.fields = this.preview_data.fields;
 		this.data = this.preview_data.data;
-		this.max_rows_exceeded = this.preview_data.max_rows_exceeded;
 		this.make_wrapper();
 		this.prepare_columns();
 		this.prepare_data();
@@ -47,6 +46,7 @@ frappe.data_import.ImportPreview = class ImportPreview {
 						<div class="table-actions margin-bottom">
 						</div>
 						<div class="table-preview border"></div>
+						<div class="table-message"></div>
 					</div>
 				</div>
 			</div>
@@ -110,7 +110,7 @@ frappe.data_import.ImportPreview = class ImportPreview {
 				name: column_title,
 				content: `<span class="indicator green">${df.header_title || df.label}</span>`,
 				df: df,
-				editable: true,
+				editable: false,
 				align: 'left',
 				header_row_index,
 				width: column_width
@@ -134,11 +134,6 @@ frappe.data_import.ImportPreview = class ImportPreview {
 			this.datatable.destroy();
 		}
 
-		let no_data_message = this.max_rows_exceeded
-			? __('Cannot load preview for more than 500 rows. You can still remap or skip columns.')
-			: __('No Data');
-		no_data_message = `<span class="text-muted">${no_data_message}</span>`;
-
 		this.datatable = new DataTable(this.$table_preview.get(0), {
 			data: this.data,
 			columns: this.columns,
@@ -146,9 +141,18 @@ frappe.data_import.ImportPreview = class ImportPreview {
 			cellHeight: 35,
 			serialNoColumn: false,
 			checkboxColumn: false,
-			pasteFromClipboard: true,
-			noDataMessage: no_data_message
+			noDataMessage: __('No Data'),
+			disableReorderColumn: true
 		});
+
+		let { max_rows_exceeded, max_rows_in_preview } = this.preview_data;
+		if (max_rows_exceeded) {
+			this.wrapper.find('.table-message').html(`
+				<div class="text-muted margin-top text-medium">
+				${__('Showing only first {0} rows in preview', [max_rows_in_preview])}
+				</div>
+			`);
+		}
 
 		if (this.data.length === 0) {
 			this.datatable.style.setStyle('.dt-scrollable', {
@@ -158,12 +162,6 @@ frappe.data_import.ImportPreview = class ImportPreview {
 
 		this.datatable.style.setStyle('.dt-dropdown', {
 			display: 'none'
-		});
-	}
-
-	get_rows_as_csv_array() {
-		return this.datatable.getRows().map(row => {
-			return row.map(cell => cell.content);
 		});
 	}
 
