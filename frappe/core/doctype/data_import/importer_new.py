@@ -686,7 +686,7 @@ class Importer:
 			for fieldname, value in doc.items():
 				meta = frappe.get_meta(doctype)
 				df = meta.get_field(fieldname)
-				if df.fieldtype == "Link":
+				if df.fieldtype == "Link" and value not in INVALID_VALUES:
 					link_values.append([df.options, value])
 				elif df.fieldtype in table_fields:
 					for row in value:
@@ -696,7 +696,7 @@ class Importer:
 
 		for link_doctype, link_value in link_values:
 			d = self.missing_link_values.get(link_doctype)
-			if d.one_mandatory and link_value in d.missing_values:
+			if d and d.one_mandatory and link_value in d.missing_values:
 				meta = frappe.get_meta(link_doctype)
 				# find the autoname field
 				if meta.autoname and meta.autoname.startswith("field:"):
