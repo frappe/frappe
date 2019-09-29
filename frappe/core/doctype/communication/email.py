@@ -309,27 +309,11 @@ def set_incoming_outgoing_accounts(doc):
 		doc.incoming_email_account = frappe.db.get_value("Email Account",
 			{"append_to": doc.reference_doctype, }, "email_id")
 
-		doc.outgoing_email_account = frappe.db.get_value("Email Account",
-			{"append_to": doc.reference_doctype, "enable_outgoing": 1},
-			["email_id", "always_use_account_email_id_as_sender", "name",
-			"always_use_account_name_as_sender_name"], as_dict=True)
-
 	if not doc.incoming_email_account:
 		doc.incoming_email_account = frappe.db.get_value("Email Account",
 			{"default_incoming": 1, "enable_incoming": 1},  "email_id")
 
-	if not doc.outgoing_email_account:
-		# if from address is not the default email account
-		doc.outgoing_email_account = frappe.db.get_value("Email Account",
-			{"email_id": doc.sender, "enable_outgoing": 1},
-			["email_id", "always_use_account_email_id_as_sender", "name",
-			"send_unsubscribe_message", "always_use_account_name_as_sender_name"], as_dict=True) or frappe._dict()
-
-	if not doc.outgoing_email_account:
-		doc.outgoing_email_account = frappe.db.get_value("Email Account",
-			{"default_outgoing": 1, "enable_outgoing": 1},
-			["email_id", "always_use_account_email_id_as_sender", "name",
-			"send_unsubscribe_message", "always_use_account_name_as_sender_name"],as_dict=True) or frappe._dict()
+	doc.outgoing_email_account = frappe.email.smtp.get_outgoing_email_account(raise_exception_not_set=False, append_to=None, sender=None)
 
 	if doc.sent_or_received == "Sent":
 		doc.db_set("email_account", doc.outgoing_email_account.name)
