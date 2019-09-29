@@ -48,7 +48,7 @@ class DataImportBeta(Document):
 				event="data_import",
 				job_name=self.name,
 				data_import=self.name,
-				now=True,
+				now=frappe.conf.developer_mode or frappe.flags.in_test,
 			)
 
 	def export_errored_rows(self):
