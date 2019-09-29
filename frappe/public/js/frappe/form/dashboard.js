@@ -92,11 +92,14 @@ frappe.ui.form.Dashboard = Class.extend({
 
 	show_progress: function(title, percent, message) {
 		this._progress_map = this._progress_map || {};
-		if (!this._progress_map[title]) {
-			const progress_chart = this.add_progress(title, percent, message);
+		let progress_chart = this._progress_map[title];
+		// create a new progress chart if it doesnt exist
+		// or the previous one got detached from the DOM
+		if (!progress_chart || progress_chart.parent().length == 0) {
+			progress_chart = this.add_progress(title, percent, message);
 			this._progress_map[title] = progress_chart;
 		}
-		let progress_chart = this._progress_map[title];
+
 		if (!$.isArray(percent)) {
 			percent = this.format_percent(title, percent);
 		}

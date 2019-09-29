@@ -26,9 +26,7 @@ MAX_ROWS_IN_PREVIEW = 10
 class Importer:
 	def __init__(self, doctype, data_import=None, file_path=None, content=None):
 		self.doctype = doctype
-		self.template_options = frappe._dict(
-			{"remap_column": {}}
-		)
+		self.template_options = frappe._dict({"remap_column": {}})
 
 		if data_import:
 			self.data_import = data_import
@@ -42,9 +40,14 @@ class Importer:
 		self.data = None
 		# used to store date formats guessed from data rows per column
 		self._guessed_date_formats = {}
+		# used to store eta during import
 		self.last_eta = 0
+		# used to collect warnings during template parsing
+		# and show them to user
+		self.warnings = []
 		self.meta = frappe.get_meta(doctype)
 		self.prepare_content(file_path, content)
+		self.parse_data_from_template()
 
 	def prepare_content(self, file_path, content):
 		if self.data_import:
@@ -128,91 +131,89 @@ class Importer:
 		self.header_row = header_row
 
 	def get_data_for_import_preview(self):
-		out = self.get_parsed_data_from_template()
-
-		# prepare fields
-		fields = []
-		for df in out.fields:
-			header_title = df.header_title
-			skip_import = df.skip_import
-			if isinstance(df, DocField):
-				field = df.as_dict()
-			else:
-				field = df
-			field.update({"header_title": header_title, "skip_import": skip_import})
-			fields.append(field)
-		out.fields = fields
-
+		out = frappe._dict()
+		out.data = list(self.rows)
+		out.columns = self.columns
+		out.warnings = self.warnings
 		if len(out.data) > MAX_ROWS_IN_PREVIEW:
 			out.data = out.data[:MAX_ROWS_IN_PREVIEW]
 			out.max_rows_exceeded = True
 			out.max_rows_in_preview = MAX_ROWS_IN_PREVIEW
 		return out
 
-	def get_parsed_data_from_template(self):
-		fields, fields_warnings = self.parse_fields_from_header_row()
-		formats, formats_warnings = self.parse_formats_from_first_10_rows()
-		fields, data = self.add_serial_no_column(fields, self.data)
+	def parse_data_from_template(self):
+		columns = self.parse_columns_from_header_row()
+		columns, data = self.add_serial_no_column(columns, self.data)
 
-		warnings = fields_warnings + formats_warnings
+		self.columns = columns
+		self.rows = data
 
-		return frappe._dict(
-			header_row=self.header_row, fields=fields, data=data, warnings=warnings
-		)
-
-	def parse_fields_from_header_row(self):
+	def parse_columns_from_header_row(self):
 		remap_column = self.template_options.remap_column
-		fields = []
-		warnings = []
+		columns = []
 
 		df_by_labels_and_fieldnames = self.build_fields_dict_for_column_matching()
 
 		for i, header_title in enumerate(self.header_row):
 			header_row_index = str(i)
 			column_number = str(i + 1)
+			skip_import = False
 			fieldname = remap_column.get(header_row_index)
+
 			if fieldname and fieldname != "Don't Import":
 				df = df_by_labels_and_fieldnames.get(fieldname)
-				warnings.append(
+				self.warnings.append(
 					{
 						"col": column_number,
 						"message": _("Mapping column {0} to field {1}").format(
 							frappe.bold(header_title or "<i>Untitled Column</i>"), frappe.bold(df.label)
 						),
+						"type": "info",
 					}
 				)
 			else:
 				df = df_by_labels_and_fieldnames.get(header_title)
 
 			if not df:
-				field = frappe._dict(header_title=header_title, skip_import=True)
+				skip_import = True
 			else:
-				field = df
-				field.header_title = header_title
-				field.skip_import = False
+				skip_import = False
 
 			if fieldname == "Don't Import":
-				field.skip_import = True
-				warnings.append(
+				skip_import = True
+				self.warnings.append(
 					{
 						"col": column_number,
 						"message": _("Skipping column {0}").format(frappe.bold(header_title)),
+						"type": "info",
 					}
 				)
 			elif header_title and not df:
-				warnings.append(
+				self.warnings.append(
 					{
 						"col": column_number,
 						"message": _("Cannot match column {0} with any field").format(
 							frappe.bold(header_title)
 						),
+						"type": "info",
 					}
 				)
 			elif not header_title and not df:
-				warnings.append({"col": column_number, "message": _("Skipping Untitled Column")})
-			fields.append(field)
+				self.warnings.append(
+					{"col": column_number, "message": _("Skipping Untitled Column"), "type": "info"}
+				)
 
-		return fields, warnings
+			columns.append(
+				frappe._dict(
+					df=df,
+					skip_import=skip_import,
+					header_title=header_title,
+					column_number=column_number,
+					index=i,
+				)
+			)
+
+		return columns
 
 	def build_fields_dict_for_column_matching(self):
 		"""
@@ -301,30 +302,20 @@ class Importer:
 			out.append(df)
 		return out
 
-	def parse_formats_from_first_10_rows(self):
-		"""
-		Returns a list of column descriptors for columns that might need parsing.
-		For e.g if it is a Date column return the Date format
-		[
-			[['Data']],
-			[['Date', '%m/%d/%y']],
-			[['Currency', '#,###.##']],
-			...
-		]
-		"""
-		formats = []
-		return formats, []
+	def add_serial_no_column(self, columns, data):
+		columns_with_serial_no = [
+			frappe._dict({"header_title": "Sr. No", "skip_import": True})
+		] + columns
 
-	def add_serial_no_column(self, fields, data):
-		fields_with_serial_no = [
-			frappe._dict({"label": "Sr. No", "skip_import": True, "parent": None})
-		] + fields
+		# update index for each column
+		for i, col in enumerate(columns_with_serial_no):
+			col.index = i
 
 		data_with_serial_no = []
 		for i, row in enumerate(data):
 			data_with_serial_no.append([self.row_index_map[i] + 1] + row)
 
-		return fields_with_serial_no, data_with_serial_no
+		return columns_with_serial_no, data_with_serial_no
 
 	def parse_value(self, value, df):
 		# convert boolean values to 0 or 1
@@ -385,24 +376,19 @@ class Importer:
 		frappe.flags.in_import = True
 		frappe.flags.mute_emails = self.data_import.mute_emails
 
-		out = self.get_parsed_data_from_template()
-		fields = out["fields"]
-		data = out["data"]
-		warnings = []
-
 		# prepare a map for missing link field values
-		self.prepare_missing_link_field_values(fields, data)
+		self.prepare_missing_link_field_values()
 
-		# parse import data
-		payloads = self.get_payloads_for_import(fields, data)
+		# parse docs from rows
+		payloads = self.get_payloads_for_import()
 
-		# collect warnings
-		for payload in payloads:
-			warnings += payload.warnings
-
+		# dont import if there are non-ignorable warnings
+		warnings = [w for w in self.warnings if w.get("type") != "info"]
 		if warnings:
 			self.data_import.db_set("template_warnings", json.dumps(warnings))
-			frappe.publish_realtime("data_import_refresh")
+			frappe.publish_realtime(
+				"data_import_refresh", {"data_import": self.data_import.name}
+			)
 			return
 
 		# setup import log
@@ -422,7 +408,7 @@ class Importer:
 				imported_rows += log.row_indexes
 
 		# start import
-		print("Importing {0} rows...".format(len(data)))
+		print("Importing {0} rows...".format(len(self.rows)))
 
 		total_payload_count = len(payloads)
 		batch_size = frappe.conf.data_import_batch_size or 1000
@@ -440,7 +426,12 @@ class Importer:
 					if total_payload_count > 5:
 						frappe.publish_realtime(
 							"data_import_progress",
-							{"current": current_index, "total": total_payload_count, "skipping": True},
+							{
+								"current": current_index,
+								"total": total_payload_count,
+								"skipping": True,
+								"data_import": self.data_import.name,
+							},
 						)
 					continue
 
@@ -458,6 +449,7 @@ class Importer:
 								"current": current_index,
 								"total": total_payload_count,
 								"docname": doc.name,
+								"data_import": self.data_import.name,
 								"success": True,
 								"row_indexes": row_indexes,
 								"eta": eta,
@@ -496,24 +488,25 @@ class Importer:
 
 		frappe.flags.in_import = False
 		frappe.flags.mute_emails = False
-		frappe.publish_realtime("data_import_refresh")
+		frappe.publish_realtime("data_import_refresh", {"data_import": self.data_import.name})
 
-	def get_payloads_for_import(self, fields, data):
+	def get_payloads_for_import(self):
 		payloads = []
+		# make a copy
+		data = list(self.rows)
 		while data:
-			doc, rows, data, warnings = self.parse_next_row_for_import(fields, data)
-			payloads.append(frappe._dict(doc=doc, rows=rows, warnings=warnings))
+			doc, rows, data = self.parse_next_row_for_import(data)
+			payloads.append(frappe._dict(doc=doc, rows=rows))
 		return payloads
 
-	def parse_next_row_for_import(self, fields, data):
+	def parse_next_row_for_import(self, data):
 		"""
 		Parses rows that make up a doc. A doc maybe built from a single row or multiple rows.
-		Returns the doc, rows, data without the rows and warnings.
+		Returns the doc, rows, and data without the rows.
 		"""
 		doc = {}
-		warnings = []
 		mandatory_fields = []
-		doctypes = set([df.parent for df in fields if df.parent])
+		doctypes = set([col.df.parent for col in self.columns if col.df and col.df.parent])
 
 		# first row is included by default
 		first_row = data[0]
@@ -524,7 +517,7 @@ class Importer:
 			# subsequent rows either dont have any parent value set
 			# or have the same value as the parent
 			# we include a row if either of conditions match
-			parent_column_index = self.get_first_parent_column_index(fields)
+			parent_column_index = self.get_first_parent_column_index()
 			parent_value = first_row[parent_column_index]
 			data_without_first_row = data[1:]
 			for d in data_without_first_row:
@@ -537,16 +530,26 @@ class Importer:
 				rows.append(d)
 
 		def get_column_indexes(doctype):
-			return [i for i, df in enumerate(fields) if df.parent == doctype]
+			return [
+				col.index
+				for col in self.columns
+				if not col.skip_import and col.df and col.df.parent == doctype
+			]
 
 		def validate_value(value, df):
-			if df.fieldtype == "Select" and value not in df.get_select_options():
-				options_string = ", ".join([frappe.bold(d) for d in df.get_select_options()])
-				msg = _("Value must be one of {0}").format(options_string)
-				warnings.append(
-					{"row": row_number, "field": df.as_dict(convert_dates_to_str=True), "message": msg}
-				)
-				return False
+			if df.fieldtype == "Select":
+				select_options = df.get_select_options()
+				if select_options and value not in select_options:
+					options_string = ", ".join([frappe.bold(d) for d in select_options])
+					msg = _("Value must be one of {0}").format(options_string)
+					self.warnings.append(
+						{
+							"row": row_number,
+							"field": df.as_dict(convert_dates_to_str=True),
+							"message": msg,
+						}
+					)
+					return False
 
 			elif df.fieldtype == "Link":
 				d = self.get_missing_link_field_values(df.options)
@@ -554,7 +557,7 @@ class Importer:
 					msg = _("Value {0} missing for {1}").format(
 						frappe.bold(value), frappe.bold(df.options)
 					)
-					warnings.append(
+					self.warnings.append(
 						{
 							"row": row_number,
 							"field": df.as_dict(convert_dates_to_str=True),
@@ -566,19 +569,21 @@ class Importer:
 			return value
 
 		def parse_doc(doctype, docfields, values, row_number):
-			doc = {}
-			for index, (df, value) in enumerate(zip(docfields, values)):
-				if df.get("skip_import", False):
-					continue
+			# new_doc returns a dict with default values set
+			doc = frappe.new_doc(doctype, as_dict=True)
+			# remove standard fields and __islocal
+			for key in frappe.model.default_fields + ('__islocal',):
+				doc.pop(key, None)
 
+			for index, (df, value) in enumerate(zip(docfields, values)):
 				if value in INVALID_VALUES:
 					value = None
 
-				if validate_value(value, df):
+				value = validate_value(value, df)
+				if value:
 					doc[df.fieldname] = self.parse_value(value, df)
 
 			check_mandatory_fields(doctype, doc, row_number)
-
 			return doc
 
 		def check_mandatory_fields(doctype, doc, row_number):
@@ -591,7 +596,7 @@ class Importer:
 				return
 
 			if len(fields) == 1:
-				warnings.append(
+				self.warnings.append(
 					{
 						"row": row_number,
 						"message": _("{0} is a mandatory field").format(fields[0].label),
@@ -599,7 +604,7 @@ class Importer:
 				)
 			else:
 				fields_string = ", ".join([df.label for df in fields])
-				warnings.append(
+				self.warnings.append(
 					{"row": row_number, "message": _("{0} are mandatory fields").format(fields_string)}
 				)
 
@@ -619,7 +624,8 @@ class Importer:
 					# skip values if all of them are empty
 					continue
 
-				docfields = [fields[i] for i in column_indexes]
+				columns = [self.columns[i] for i in column_indexes]
+				docfields = [col.df for col in columns]
 				doc = parse_doc(doctype, docfields, values, row_number)
 				parsed_docs[doctype] = parsed_docs.get(doctype, [])
 				parsed_docs[doctype].append(doc)
@@ -635,17 +641,17 @@ class Importer:
 					table_field = table_dfs[0]
 					doc[table_field.fieldname] = docs
 
-		return doc, rows, data[len(rows) :], warnings
+		return doc, rows, data[len(rows) :]
 
-	def get_first_parent_column_index(self, fields):
+	def get_first_parent_column_index(self):
 		"""
 		Returns the first column's index which must be one of the parent columns
 		"""
 		# find a parent column
 		parent_column_index = -1
-		for i, df in enumerate(fields):
-			if not df.get("skip_import", False) and df.parent == self.doctype:
-				parent_column_index = i
+		for col in self.columns:
+			if not col.skip_import and col.df and col.df.parent == self.doctype:
+				parent_column_index = col.index
 				break
 		return parent_column_index
 
@@ -659,9 +665,11 @@ class Importer:
 
 	def insert_record(self, doc):
 		self.create_missing_linked_records(doc)
+
+		new_doc = frappe.new_doc(self.doctype)
+		new_doc.update(doc)
 		# name shouldn't be set when inserting a new record
-		doc.update({"doctype": self.doctype, "name": None})
-		new_doc = frappe.get_doc(doc)
+		new_doc.set("name", None)
 		new_doc.insert()
 		if self.meta.is_submittable and self.data_import.submit_after_import:
 			new_doc.submit()
@@ -673,15 +681,17 @@ class Importer:
 		document automatically if it has only one mandatory field
 		"""
 		link_values = []
+
 		def get_link_fields(doc, doctype):
 			for fieldname, value in doc.items():
 				meta = frappe.get_meta(doctype)
 				df = meta.get_field(fieldname)
-				if df.fieldtype == 'Link':
+				if df.fieldtype == "Link":
 					link_values.append([df.options, value])
 				elif df.fieldtype in table_fields:
 					for row in value:
 						get_link_fields(row, df.options)
+
 		get_link_fields(doc, self.doctype)
 
 		for link_doctype, link_value in link_values:
@@ -701,7 +711,7 @@ class Importer:
 	def update_record(self, doc):
 		id_fieldname = self.get_id_fieldname()
 		id_value = doc[id_fieldname]
-		existing_doc = frappe.get_doc(self.doctype, {id_fieldname: id_value})
+		existing_doc = frappe.get_doc(self.doctype, id_value)
 		existing_doc.flags.via_data_import = self.data_import.name
 		existing_doc.update(doc)
 		existing_doc.save()
@@ -723,43 +733,37 @@ class Importer:
 		row_indexes = list(set(row_indexes))
 		row_indexes.sort()
 
-		out = self.get_parsed_data_from_template()
-		header_row = out["header_row"]
-		data = out["data"]
-
+		header_row = [col.header_title for col in self.columns[1:]]
 		rows = [header_row]
-		rows += [row[1:] for row in data if row[0] in row_indexes]
+		rows += [row[1:] for row in self.rows if row[0] in row_indexes]
 
 		build_csv_response(rows, self.doctype)
 
 	def get_missing_link_field_values(self, doctype):
 		return self.missing_link_values.get(doctype, {})
 
-	def prepare_missing_link_field_values(self, fields, data):
-		link_column_indexes = [i for i, df in enumerate(fields) if df.fieldtype == "Link"]
-
-		def has_one_mandatory_field(doctype):
-			meta = frappe.get_meta(doctype)
-			# get mandatory fields with default not set
-			mandatory_fields = [df for df in meta.fields if df.reqd and not df.default]
-			mandatory_fields_count = len(mandatory_fields)
-			if meta.autoname and meta.autoname.lower() == "prompt":
-				mandatory_fields_count += 1
-			return mandatory_fields_count == 1
+	def prepare_missing_link_field_values(self):
+		columns = self.columns
+		rows = self.rows
+		link_column_indexes = [
+			col.index for col in columns if col.df and col.df.fieldtype == "Link"
+		]
 
 		self.missing_link_values = {}
 		for index in link_column_indexes:
-			df = fields[index]
-			column_values = [row[index] for row in data]
+			col = columns[index]
+			column_values = [row[index] for row in rows]
 			values = set([v for v in column_values if v not in INVALID_VALUES])
-			doctype = df.options
+			doctype = col.df.options
 
 			missing_values = [value for value in values if not frappe.db.exists(doctype, value)]
 			if self.missing_link_values.get(doctype):
 				self.missing_link_values[doctype].missing_values += missing_values
 			else:
 				self.missing_link_values[doctype] = frappe._dict(
-					missing_values=missing_values, one_mandatory=has_one_mandatory_field(doctype), df=df
+					missing_values=missing_values,
+					one_mandatory=self.has_one_mandatory_field(doctype),
+					df=col.df,
 				)
 
 	def get_id_fieldname(self):
@@ -777,6 +781,15 @@ class Importer:
 		if not self.last_eta or eta < self.last_eta:
 			self.last_eta = eta
 		return self.last_eta
+
+	def has_one_mandatory_field(self, doctype):
+		meta = frappe.get_meta(doctype)
+		# get mandatory fields with default not set
+		mandatory_fields = [df for df in meta.fields if df.reqd and not df.default]
+		mandatory_fields_count = len(mandatory_fields)
+		if meta.autoname and meta.autoname.lower() == "prompt":
+			mandatory_fields_count += 1
+		return mandatory_fields_count == 1
 
 
 DATE_FORMATS = [

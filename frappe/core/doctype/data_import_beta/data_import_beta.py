@@ -34,7 +34,9 @@ class DataImportBeta(Document):
 
 	def start_import(self):
 		if frappe.utils.scheduler.is_scheduler_inactive():
-			frappe.throw(_("Scheduler is inactive. Cannot import data."), title=_("Scheduler Inactive"))
+			frappe.throw(
+				_("Scheduler is inactive. Cannot import data."), title=_("Scheduler Inactive")
+			)
 
 		enqueued_jobs = [d.get("job_name") for d in get_info()]
 
@@ -46,36 +48,14 @@ class DataImportBeta(Document):
 				event="data_import",
 				job_name=self.name,
 				data_import=self.name,
-				now=True
+				now=True,
 			)
-
-	def get_importer(self):
-		return Importer(self.reference_doctype, data_import=self)
-
-	def create_missing_link_values(self, missing_link_values):
-		docs = []
-		for d in missing_link_values:
-			d = frappe._dict(d)
-			if not d.has_one_mandatory_field:
-				continue
-
-			doctype = d.doctype
-			values = d.missing_values
-			meta = frappe.get_meta(doctype)
-			# find the autoname field
-			if meta.autoname and meta.autoname.startswith("field:"):
-				autoname_field = meta.autoname[len("field:") :]
-			else:
-				autoname_field = "name"
-
-			for value in values:
-				new_doc = frappe.new_doc(doctype)
-				new_doc.set(autoname_field, value)
-				docs.append(new_doc.insert())
-		return docs
 
 	def export_errored_rows(self):
 		return self.get_importer().export_errored_rows()
+
+	def get_importer(self):
+		return Importer(self.reference_doctype, data_import=self)
 
 
 def start_import(data_import):

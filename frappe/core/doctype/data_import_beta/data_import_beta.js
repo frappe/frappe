@@ -3,31 +3,40 @@
 
 frappe.ui.form.on('Data Import Beta', {
 	setup(frm) {
-		frappe.realtime.on('data_import_refresh', () => {
+		frappe.realtime.on('data_import_refresh', ({ data_import }) => {
+			if (data_import !== frm.doc.name) return;
 			frappe.model.clear_doc('Data Import Beta', frm.doc.name);
 			frappe.model.with_doc('Data Import Beta', frm.doc.name).then(() => {
 				frm.refresh();
 			});
 		});
 		frappe.realtime.on('data_import_progress', data => {
+			if (data.data_import !== frm.doc.name) {
+				return;
+			}
 			let percent = Math.floor((data.current * 100) / data.total);
+			let seconds = Math.floor(data.eta);
+			let minutes = Math.floor(data.eta / 60);
 			let eta_message =
-				data.eta < 60
-					? __('ETA {0} seconds', [Math.floor(data.eta)])
-					: __('ETA {0} minutes', [Math.floor(data.eta / 60)]);
+				seconds < 60
+					? __('About {0} seconds remaining', [seconds])
+					: minutes === 1
+						? __('About {0} minute remaining', [minutes])
+						: __('About {0} minutes remaining', [minutes]);
+
 			let message;
 			if (data.success) {
-				let message_args = [data.docname, data.current, data.total];
+				let message_args = [data.current, data.total, eta_message];
 				message =
 					frm.doc.import_type === 'Insert New Records'
-						? __('Importing {0} ({1} of {2})', message_args)
-						: __('Updating {0} ({1} of {2})', message_args);
+						? __('Importing {0} of {1}, {2}', message_args)
+						: __('Updating {0} of {1}, {2}', message_args);
 			}
 			if (data.skipping) {
-				message = __('Skipping ({1} of {2})', [data.current, data.total]);
+				message = __('Skipping {0} of {1}, {2}', [data.current, data.total, eta_message]);
 			}
 			frm.dashboard.show_progress(__('Import Progress'), percent, message);
-			frm.page.set_indicator(eta_message, 'orange');
+			frm.page.set_indicator(__('In Progress'), 'orange');
 
 			// hide progress when complete
 			if (data.current === data.total) {
@@ -59,14 +68,19 @@ frappe.ui.form.on('Data Import Beta', {
 		frm.trigger('show_import_log');
 		frm.trigger('show_import_warnings');
 		frm.trigger('toggle_submit_after_import');
+		frm.trigger('show_import_status');
 
-		if (frm.doc.import_log && frm.doc.import_log !== '[]') {
-			frm.disable_save();
+		if (frm.doc.status === 'Partial Success') {
+			frm.add_custom_button(__('Export Errored Rows'),
+				() => frm.trigger('export_errored_rows'));
 		}
 
-		if (frm.doc.status === 'Success') {
-			frm.events.show_success_message(frm);
-		} else {
+		if (frm.doc.status.includes('Success')) {
+			frm.add_custom_button(__('Go to {0} List', [frm.doc.reference_doctype]),
+				() => frappe.set_route('List', frm.doc.reference_doctype));
+		}
+
+		if (frm.doc.status !== 'Success') {
 			if (!frm.is_new() && frm.doc.import_file) {
 				let label = frm.doc.status === 'Pending' ? __('Start Import') : __('Retry');
 				frm.page.set_primary_action(label, () => frm.events.start_import(frm));
@@ -74,30 +88,40 @@ frappe.ui.form.on('Data Import Beta', {
 				frm.page.set_primary_action(__('Save'), () => frm.save());
 			}
 		}
-		frm.page.set_indicator(
-			__(frm.doc.status),
-			frm.doc.status === 'Success' ? 'green' : 'grey'
-		);
 	},
-
-	show_success_message(frm) {
+	show_import_status(frm) {
 		let import_log = JSON.parse(frm.doc.import_log || '[]');
 		let successful_records = import_log.filter(log => log.success);
-		let link = `<a href="#List/${frm.doc.reference_doctype}">
-			${__('{0} List', [frm.doc.reference_doctype])}
-		</a>`;
-		let message_args = [successful_records.length, link];
+		let failed_records = import_log.filter(log => !log.success);
+		if (successful_records.length === 0) return;
+
 		let message;
-		if (frm.doc.import_type === 'Insert New Records') {
-			message =
-				successful_records.length > 1
-					? __('Successfully imported {0} records. Go to {1}', message_args)
-					: __('Successfully imported {0} record. Go to {1}', message_args);
+		if (failed_records.length === 0) {
+			let message_args = [successful_records.length];
+			if (frm.doc.import_type === 'Insert New Records') {
+				message =
+					successful_records.length > 1
+						? __('Successfully imported {0} records.', message_args)
+						: __('Successfully imported {0} record.', message_args);
+			} else {
+				message =
+					successful_records.length > 1
+						? __('Successfully updated {0} records.', message_args)
+						: __('Successfully updated {0} record.', message_args);
+			}
 		} else {
-			message =
-				successful_records.length > 1
-					? __('Successfully updated {0} records. Go to {1}', message_args)
-					: __('Successfully updated {0} record. Go to {1}', message_args);
+			let message_args = [successful_records.length, import_log.length];
+			if (frm.doc.import_type === 'Insert New Records') {
+				message =
+					successful_records.length > 1
+						? __('Successfully imported {0} records out of {1}.', message_args)
+						: __('Successfully imported {0} record out of {1}.', message_args);
+			} else {
+				message =
+					successful_records.length > 1
+						? __('Successfully updated {0} records out of {1}.', message_args)
+						: __('Successfully updated {0} record out of {1}.', message_args);
+			}
 		}
 		frm.dashboard.set_headline(message);
 	},
@@ -196,18 +220,14 @@ frappe.ui.form.on('Data Import Beta', {
 						frm.set_value('template_options', JSON.stringify(template_options));
 						frm.save().then(() => frm.trigger('import_file'));
 					},
-
-					export_errored_rows() {
-						open_url_post('/api/method/frappe.core.doctype.data_import_beta.data_import_beta.download_errored_template', {
-							data_import_name: frm.doc.name
-						});
-					},
-
-					show_warnings() {
-						frm.scroll_to_field('import_warnings');
-					}
 				}
 			});
+		});
+	},
+
+	export_errored_rows(frm) {
+		open_url_post('/api/method/frappe.core.doctype.data_import_beta.data_import_beta.download_errored_template', {
+			data_import_name: frm.doc.name
 		});
 	},
 
@@ -299,13 +319,13 @@ frappe.ui.form.on('Data Import Beta', {
 						.map(JSON.parse)
 						.map(m => {
 							let title = m.title ? `<strong>${m.title}</strong>` : '';
-							let message = m.message ? `<p>${m.message}</p>` : '';
+							let message = m.message ? `<div>${m.message}</div>` : '';
 							return title + message;
 						})
 						.join('');
 					let id = frappe.dom.get_unique_id();
 					html = `${messages}
-						<button class="btn btn-default btn-xs" type="button" data-toggle="collapse" data-target="#${id}" aria-expanded="false" aria-controls="${id}">
+						<button class="btn btn-default btn-xs margin-top" type="button" data-toggle="collapse" data-target="#${id}" aria-expanded="false" aria-controls="${id}">
 							${__('Show Traceback')}
 						</button>
 						<div class="collapse margin-top" id="${id}">
@@ -314,9 +334,16 @@ frappe.ui.form.on('Data Import Beta', {
 							</div>
 						</div>`;
 				}
+				let indicator_color = log.success ? 'green' : 'red';
+				let title = log.success ? __('Success') : __('Failure');
 				return `<tr>
 					<td>${log.row_indexes.join(', ')}</td>
-					<td>${html}</td>
+					<td>
+						<div class="indicator ${indicator_color}">${title}</div>
+					</td>
+					<td>
+						${html}
+					</td>
 				</tr>`;
 			})
 			.join('');
@@ -324,8 +351,9 @@ frappe.ui.form.on('Data Import Beta', {
 		frm.get_field('import_log_preview').$wrapper.html(`
 			<table class="table table-bordered">
 				<tr class="text-muted">
-					<th width="30%">${__('Row Number')}</th>
-					<th width="70%">${__('Message')}</th>
+					<th width="10%">${__('Row Number')}</th>
+					<th width="10%">${__('Status')}</th>
+					<th width="80%">${__('Message')}</th>
 				</tr>
 				${rows}
 			</table>

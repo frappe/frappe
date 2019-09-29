@@ -27,8 +27,6 @@ frappe.data_import.ImportPreview = class ImportPreview {
 	}
 
 	refresh() {
-		this.header_row = this.preview_data.header_row;
-		this.fields = this.preview_data.fields;
 		this.data = this.preview_data.data;
 		this.make_wrapper();
 		this.prepare_columns();
@@ -57,62 +55,52 @@ frappe.data_import.ImportPreview = class ImportPreview {
 	}
 
 	prepare_columns() {
-		this.columns = this.fields.map((df, i) => {
+		this.columns = this.preview_data.columns.map((col, i) => {
+			let df = col.df;
 			let column_width = 120;
-			let header_row_index = i - 1;
-			if (df.skip_import) {
-				let is_sr = df.label === 'Sr. No';
+			if (col.header_title === 'Sr. No') {
+				return {
+					id: 'srno',
+					name: 'Sr. No',
+					content: 'Sr. No',
+					editable: false,
+					focusable: false,
+					align: 'left',
+					width: 60
+				}
+			}
+
+			if (col.skip_import) {
 				let show_warnings_button = `<button class="btn btn-xs" data-action="show_column_warning" data-col="${i}">
 					<i class="octicon octicon-stop"></i></button>`;
-				if (!df.parent) {
+				if (!col.df) {
 					// increase column width for unidentified columns
 					column_width += 50
 				}
-				let column_title = is_sr
-					? df.label
-					: `<span class="indicator red">
-						${df.header_title || `<i>${__('Untitled Column')}</i>`}
-						${!df.parent ? show_warnings_button : ''}
-					</span>`;
+				let column_title = `<span class="indicator red">
+					${col.header_title || `<i>${__('Untitled Column')}</i>`}
+					${!col.df ? show_warnings_button : ''}
+				</span>`;
 				return {
 					id: frappe.utils.get_random(6),
-					name: df.label,
+					name: col.header_title || df.label,
 					content: column_title,
 					skip_import: true,
 					editable: false,
 					focusable: false,
 					align: 'left',
-					header_row_index,
-					width: is_sr ? 60 : column_width,
-					format: (value, row, column, data) => {
-						let html = `<div class="text-muted">${value}</div>`;
-						if (is_sr && this.is_row_imported(row)) {
-							html = `
-								<div class="flex justify-between">${SVG_ICONS['checkbox-circle-line'] +
-									html}</div>
-							`;
-						}
-						return html;
-					}
+					width: column_width,
+					format: value => `<div class="text-muted">${value}</div>`
 				};
 			}
 
-			let column_title = df.label;
-			if (this.doctype !== df.parent) {
-				column_title = `${df.label} (${df.parent})`;
-			}
-			let meta = frappe.get_meta(this.doctype);
-			if (meta.autoname === `field:${df.fieldname}`) {
-				column_title = `ID (${df.label})`;
-			}
 			return {
 				id: df.fieldname,
-				name: column_title,
-				content: `<span class="indicator green">${df.header_title || df.label}</span>`,
+				name: col.header_title,
+				content: `<span class="indicator green">${col.header_title || df.label}</span>`,
 				df: df,
 				editable: false,
 				align: 'left',
-				header_row_index,
 				width: column_width
 			};
 		});
@@ -215,11 +203,11 @@ frappe.data_import.ImportPreview = class ImportPreview {
 	}
 
 	export_errored_rows() {
-		this.events.export_errored_rows();
+		this.frm.trigger('export_errored_rows');
 	}
 
 	show_warnings() {
-		this.events.show_warnings();
+		this.frm.scroll_to_field('import_warnings');
 	}
 
 	show_column_warning(_, $target) {
@@ -234,11 +222,12 @@ frappe.data_import.ImportPreview = class ImportPreview {
 			doctype: this.doctype
 		});
 		let changed = [];
-		let fields = this.fields.map((df, i) => {
-			if (df.label === 'Sr. No') return [];
+		let fields = this.preview_data.columns.map((col, i) => {
+			let df = col.df;
+			if (col.header_title === 'Sr. No') return [];
 
 			let fieldname;
-			if (df.skip_import) {
+			if (!df) {
 				fieldname = null;
 			} else {
 				fieldname = df.parent === this.doctype
@@ -249,7 +238,7 @@ frappe.data_import.ImportPreview = class ImportPreview {
 				{
 					label: '',
 					fieldtype: 'Data',
-					default: df.header_title,
+					default: col.header_title,
 					fieldname: `Column ${i}`,
 					read_only: 1
 				},
