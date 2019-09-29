@@ -198,7 +198,7 @@ frappe.ui.form.on('Data Import Beta', {
 	show_import_preview(frm, preview_data) {
 		let import_log = JSON.parse(frm.doc.import_log || '[]');
 
-		if (frm.import_preview) {
+		if (frm.import_preview && frm.import_preview.doctype === frm.doc.reference_doctype) {
 			frm.import_preview.preview_data = preview_data;
 			frm.import_preview.import_log = import_log;
 			frm.import_preview.refresh();
