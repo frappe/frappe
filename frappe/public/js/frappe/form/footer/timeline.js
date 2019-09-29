@@ -579,11 +579,11 @@ frappe.ui.form.Timeline = class Timeline {
 			);
 
 			// value changed in parent
-			if(data.changed && data.changed.length) {
+			if (data.changed && data.changed.length) {
 				var parts = [];
 				data.changed.every(function(p) {
-					if(p[0]==='docstatus') {
-						if(p[2]==1) {
+					if (p[0]==='docstatus') {
+						if (p[2]==1) {
 							let message = data.data_import
 								? __('submitted this document {0}', [data_import_link])
 								: __('submitted this document');
@@ -623,7 +623,7 @@ frappe.ui.form.Timeline = class Timeline {
 			}
 
 			// value changed in table field
-			if(data.row_changed && data.row_changed.length) {
+			if (data.row_changed && data.row_changed.length) {
 				var parts = [], count = 0;
 				data.row_changed.every(function(row) {
 					row[3].every(function(p) {
@@ -652,9 +652,9 @@ frappe.ui.form.Timeline = class Timeline {
 				if(parts.length) {
 					let message;
 					if (data.data_import) {
-						message = __("changed values for {0} {1}", [parts.join(', '), data_import_link])
+						message = __("changed values for {0} {1}", [parts.join(', '), data_import_link]);
 					} else {
-						message = __("changed values for {0}", [parts.join(', ')])
+						message = __("changed values for {0}", [parts.join(', ')]);
 					}
 					out.push(me.get_version_comment(version, message));
 				}

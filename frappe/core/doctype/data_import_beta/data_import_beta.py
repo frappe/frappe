@@ -23,7 +23,7 @@ class DataImportBeta(Document):
 
 		if self.import_file:
 			# validate template
-			i = self.get_importer()
+			self.get_importer()
 
 	def get_preview_from_template(self):
 		if not self.import_file:

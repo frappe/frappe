@@ -3,7 +3,6 @@
 # MIT License. See license.txt
 
 import frappe
-from frappe import _
 from frappe.model import display_fieldtypes, no_value_fields, table_fields
 from frappe.utils.csvutils import build_csv_response
 from frappe.utils.xlsxutils import build_xlsx_response
@@ -209,6 +208,7 @@ class Exporter:
 
 		return data
 
+	# pylint: disable=R0201
 	def remove_empty_rows(self, data):
 		return [row for row in data if any(v not in INVALID_VALUES for v in row)]
 

@@ -130,7 +130,7 @@ frappe.data_import.DataExporter = class DataExporter {
 		this.filter_group = new frappe.ui.FilterGroup({
 			parent: this.dialog.get_field('filter_area').$wrapper,
 			doctype: this.doctype,
-			on_change: e => {
+			on_change: () => {
 				this.update_record_count_message();
 			}
 		});

@@ -4,7 +4,7 @@ frappe.listview_settings['Data Import Beta'] = {
 			"Pending": "orange",
 			"Partial Success": "orange",
 			"Success": "green",
-		}
+		};
 		return [__(doc.status), colors[doc.status], "status,=," + doc.status];
 	},
 	formatters: {

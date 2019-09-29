@@ -3,26 +3,23 @@
 # MIT License. See license.txt
 
 import io
-import csv
 import json
 import timeit
 import frappe
 from datetime import datetime
 from frappe import _
-from frappe.core.doctype.docfield.docfield import DocField
-from frappe.utils import cint, flt, DATE_FORMAT, DATETIME_FORMAT
+from frappe.utils import cint, flt
 from frappe.utils.csvutils import read_csv_content
 from frappe.utils.xlsxutils import (
 	read_xlsx_file_from_attached_file,
 	read_xls_file_from_attached_file,
 )
-from frappe.exceptions import ValidationError, MandatoryError
-from frappe.model import display_fieldtypes, no_value_fields, table_fields
+from frappe.model import no_value_fields, table_fields
 
 INVALID_VALUES = ["", None]
 MAX_ROWS_IN_PREVIEW = 10
 
-
+# pylint: disable=R0201
 class Importer:
 	def __init__(self, doctype, data_import=None, file_path=None, content=None):
 		self.doctype = doctype
@@ -355,9 +352,10 @@ class Importer:
 			if column_index == -1:
 				self._guessed_date_formats[fieldname] = None
 
-			column_values = map(lambda x: x[column_index], self.data[:PARSE_ROW_COUNT])
-			column_values = filter(lambda x: bool(x), column_values)
-			date_formats = list(map(lambda x: guess_date_format(x), column_values))
+			date_values = [
+				row[column_index] for row in self.data[:PARSE_ROW_COUNT] if row[column_index]
+			]
+			date_formats = [guess_date_format(d) for d in date_values]
 			if not date_formats:
 				return
 			max_occurred_date_format = max(set(date_formats), key=date_formats.count)
@@ -461,7 +459,7 @@ class Importer:
 					# commit after every successful import
 					frappe.db.commit()
 
-				except Exception as e:
+				except Exception:
 					import_log.append(
 						frappe._dict(
 							success=False,
@@ -505,7 +503,6 @@ class Importer:
 		Returns the doc, rows, and data without the rows.
 		"""
 		doc = {}
-		mandatory_fields = []
 		doctypes = set([col.df.parent for col in self.columns if col.df and col.df.parent])
 
 		# first row is included by default
@@ -572,10 +569,10 @@ class Importer:
 			# new_doc returns a dict with default values set
 			doc = frappe.new_doc(doctype, as_dict=True)
 			# remove standard fields and __islocal
-			for key in frappe.model.default_fields + ('__islocal',):
+			for key in frappe.model.default_fields + ("__islocal",):
 				doc.pop(key, None)
 
-			for index, (df, value) in enumerate(zip(docfields, values)):
+			for df, value in zip(docfields, values):
 				if value in INVALID_VALUES:
 					value = None
 
@@ -609,7 +606,7 @@ class Importer:
 				)
 
 		parsed_docs = {}
-		for row_index, row in enumerate(rows):
+		for row in rows:
 			for doctype in doctypes:
 				if doctype == self.doctype and parsed_docs.get(doctype):
 					# if parent doc is already parsed from the first row
@@ -839,7 +836,9 @@ def guess_date_format(date_string):
 
 	for f in DATE_FORMATS:
 		try:
-			parsed_date = datetime.strptime(_date, f)
+			# if date is parsed without any exception
+			# capture the date format
+			datetime.strptime(_date, f)
 			date_format = f
 			break
 		except ValueError:
@@ -848,7 +847,9 @@ def guess_date_format(date_string):
 	if _time:
 		for f in TIME_FORMATS:
 			try:
-				parsed_time = datetime.strptime(_time, f)
+				# if time is parsed without any exception
+				# capture the time format
+				datetime.strptime(_time, f)
 				time_format = f
 				break
 			except ValueError:
