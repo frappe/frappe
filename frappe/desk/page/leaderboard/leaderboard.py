@@ -3,8 +3,6 @@
 
 from __future__ import unicode_literals, print_function
 import frappe
-from frappe.utils import add_to_date
-
 
 @frappe.whitelist()
 def get_leaderboard_config():

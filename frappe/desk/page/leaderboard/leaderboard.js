@@ -30,7 +30,7 @@ class Leaderboard {
 		this.filters = {};
 		this.leaderboard_limit = 20;
 
-		frappe.xcall("frappe.desk.page.leaderboard.leaderboard.get_leaderboard_config").then( config => {
+		frappe.xcall("frappe.desk.page.leaderboard.leaderboard.get_leaderboard_config").then(config => {
 			this.leaderboard_config = config;
 			for (let doctype in this.leaderboard_config) {
 				this.doctypes.push(doctype);
@@ -331,11 +331,11 @@ class Leaderboard {
 		}));
 
 		const link = `#Form/${this.options.selected_doctype}/${item.name}`;
-		const name_html = item.formatted_name ? 
+		const name_html = item.formatted_name ?
 			`<span class="text-muted ellipsis">${item.formatted_name}</span>`
 			: `<a class="grey list-id ellipsis" href="${link}"> ${item.name} </a>`;
 		const html =
-			`<div class="list-item"> 
+			`<div class="list-item">
 				<div class="list-item_content ellipsis list-item__content--flex-2 rank">
 					<span class="text-muted ellipsis">${index}</span>
 				</div>
