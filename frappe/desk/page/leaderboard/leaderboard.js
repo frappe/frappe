@@ -203,41 +203,38 @@ class Leaderboard {
 		if (!this.options.selected_company) {
 			frappe.throw(__("Please select Company"));
 		}
-
-		frappe.call({
-			method: "frappe.desk.page.leaderboard.leaderboard.get_leaderboards",
-			args: {
-				leaderboard_config: this.leaderboard_config,
-				doctype: this.options.selected_doctype,
-				timespan: this.options.selected_timespan,
-				company: this.options.selected_company,
-				field: this.options.selected_filter_item,
-				limit: this.leaderboard_limit,
-			},
-			callback: (r) => {
-				let results = r.message || [];
-
-				let graph_items = results.slice(0, 10);
-
-				this.$graph_area.show().empty();
-				let args = {
-					data: {
-						datasets: [
-							{
-								values: graph_items.map(d => d.value)
-							}
-						],
-						labels: graph_items.map(d => d.name)
-					},
-					colors: ["light-green"],
-					format_tooltip_x: d => d[this.options.selected_filter_item],
-					type: "bar",
-					height: 140
-				};
-				new frappe.Chart(".leaderboard-graph", args);
-
-				notify(this, r);
+		frappe.call(
+			this.leaderboard_config[this.options.selected_doctype].method,
+			{
+				'from_date': this.get_from_date(),
+				'timespan': this.options.selected_timespan,
+				'company': this.options.selected_company,
+				'field': this.options.selected_filter_item,
+				'limit': this.leaderboard_limit,
 			}
+		).then(r => {
+			let results = r.message || [];
+
+			let graph_items = results.slice(0, 10);
+
+			this.$graph_area.show().empty();
+			let args = {
+				data: {
+					datasets: [
+						{
+							values: graph_items.map(d => d.value)
+						}
+					],
+					labels: graph_items.map(d => d.name)
+				},
+				colors: ["light-green"],
+				format_tooltip_x: d => d[this.options.selected_filter_item],
+				type: "bar",
+				height: 140
+			};
+			new frappe.Chart(".leaderboard-graph", args);
+
+			notify(this, r);
 		});
 	}
 
@@ -359,4 +356,21 @@ class Leaderboard {
 			<span doctype-value="${item}">${ __(item) }</span></a>
 		</li>`);
 	}
+
+	get_from_date() {
+		let timespan = this.options.selected_timespan.toLowerCase();
+		let current_date = frappe.datetime.now_date();
+		let date = '';
+		if (timespan === "month") {
+			date = frappe.datetime.add_months(current_date, -1);
+		} else if (timespan === "quarter") {
+			date = frappe.datetime.add_months(current_date, -3);
+		} else if (timespan === "year") {
+			date = frappe.datetime.add_months(current_date, -12);
+		} else if (timespan === "week") {
+			date = frappe.datetime.add_days(current_date, -7);
+		}
+		return date;
+	}
+
 }

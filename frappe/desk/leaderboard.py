@@ -13,6 +13,7 @@ def get_leaderboards():
 	}
 	return leaderboards
 
+@frappe.whitelist()
 def get_energy_point_leaderboard(from_date, company = None, field = None, limit = None):
 	energy_point_users = frappe.db.get_all('Energy Point Log',
 		fields = ['user as name', 'sum(points) as value'],
