@@ -145,6 +145,7 @@ def add_country_and_currency(name, country):
 			"doctype": "Country",
 			"country_name": name,
 			"code": country.code,
+			"calling_code":country.calling_code,
 			"date_format": country.date_format or "dd-mm-yyyy",
 			"time_zones": "\n".join(country.timezones or []),
 			"docstatus": 0
@@ -161,3 +162,14 @@ def add_country_and_currency(name, country):
 			"number_format": country.number_format,
 			"docstatus": 0
 		}).db_insert()
+
+def add_calling_codes_to_existing_country():
+	from frappe.geo.country_info import get_country_info
+	countries = frappe.get_all('Country',fields=['name','calling_code'])
+	for country in countries:
+		if not country.calling_code:
+			country = frappe.get_doc('Country',country.name)
+			print(country.name)
+			country.calling_code = get_country_info(country=country.name).calling_code
+			country.save()
+	frappe.db.commit()

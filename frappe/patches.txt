@@ -250,3 +250,4 @@ frappe.patches.v12_0.rename_events_repeat_on
 frappe.patches.v12_0.fix_public_private_files
 frappe.patches.v12_0.move_email_and_phone_to_child_table
 frappe.patches.v12_0.delete_duplicate_indexes
+execute:frappe.utils.install.add_calling_codes_to_existing_country()
