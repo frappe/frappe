@@ -51,6 +51,7 @@ class Importer:
 		self.parse_data_from_template()
 
 	def prepare_content(self, file_path, content):
+		extension = None
 		if self.data_import and self.data_import.import_file:
 			file_doc = frappe.get_doc("File", {"file_url": self.data_import.import_file})
 			content = file_doc.get_content()
@@ -58,6 +59,9 @@ class Importer:
 
 		if file_path:
 			content, extension = self.read_file(file_path)
+
+		if not extension:
+			extension = "csv"
 
 		if content:
 			self.read_content(content, extension)
@@ -496,6 +500,8 @@ class Importer:
 		frappe.flags.in_import = False
 		frappe.flags.mute_emails = False
 		frappe.publish_realtime("data_import_refresh", {"data_import": self.data_import.name})
+
+		return import_log
 
 	def get_payloads_for_import(self):
 		payloads = []
