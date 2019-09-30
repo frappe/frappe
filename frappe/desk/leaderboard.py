@@ -5,7 +5,7 @@ from frappe.utils import get_fullname
 
 def get_leaderboards():
 	leaderboards = {
-		'Energy Point Log': {
+		'User': {
 			'fields': ['points'],
 			'method': 'frappe.desk.leaderboard.get_energy_point_leaderboard',
 			'company_disabled': 1
