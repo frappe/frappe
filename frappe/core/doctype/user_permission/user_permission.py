@@ -66,7 +66,7 @@ def get_user_permissions(user=None):
 	if not user:
 		user = frappe.session.user
 
-	if user == "Administrator":
+	if not user or user == "Administrator":
 		return {}
 
 	cached_user_permissions = frappe.cache().hget("user_permissions", user)

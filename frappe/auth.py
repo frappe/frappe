@@ -138,7 +138,7 @@ class LoginManager:
 
 	def post_login(self):
 		self.run_trigger('on_login')
-		self.validate_ip_address()
+		validate_ip_address(self.user)
 		self.validate_hour()
 		self.get_user_info()
 		self.make_session()
@@ -271,28 +271,6 @@ class LoginManager:
 		for method in frappe.get_hooks().get(event, []):
 			frappe.call(frappe.get_attr(method), login_manager=self)
 
-	def validate_ip_address(self):
-		"""check if IP Address is valid"""
-		user = frappe.get_doc("User", self.user)
-		ip_list = user.get_restricted_ip_list()
-		if not ip_list:
-			return
-
-		bypass_restrict_ip_check = 0
-		# check if two factor auth is enabled
-		enabled = int(frappe.get_system_settings('enable_two_factor_auth') or 0)
-		if enabled:
-			#check if bypass restrict ip is enabled for all users
-			bypass_restrict_ip_check = int(frappe.get_system_settings('bypass_restrict_ip_check_if_2fa_enabled') or 0)
-			if not bypass_restrict_ip_check:
-				#check if bypass restrict ip is enabled for login user
-				bypass_restrict_ip_check = int(frappe.db.get_value('User', self.user, 'bypass_restrict_ip_check_if_2fa_enabled') or 0)
-		for ip in ip_list:
-			if frappe.local.request_ip.startswith(ip) or bypass_restrict_ip_check:
-				return
-
-		frappe.throw(_("Not allowed from this IP Address"), frappe.AuthenticationError)
-
 	def validate_hour(self):
 		"""check if user is logging in during restricted hours"""
 		login_before = int(frappe.db.get_value('User', self.user, 'login_before', ignore=True) or 0)
@@ -416,3 +394,25 @@ def check_consecutive_login_attempts(user, doc):
 				.format(doc.allow_login_after_fail), frappe.SecurityException)
 		else:
 			delete_login_failed_cache(user)
+
+def validate_ip_address(user):
+	"""check if IP Address is valid"""
+	user = frappe.get_cached_doc("User", user) if not frappe.flags.in_test else frappe.get_doc("User", user)
+	ip_list = user.get_restricted_ip_list()
+	if not ip_list:
+		return
+
+	system_settings = frappe.get_cached_doc("System Settings") if not frappe.flags.in_test else frappe.get_single("System Settings")
+	# check if bypass restrict ip is enabled for all users
+	bypass_restrict_ip_check = system_settings.bypass_restrict_ip_check_if_2fa_enabled
+
+	# check if two factor auth is enabled
+	if system_settings.enable_two_factor_auth and not bypass_restrict_ip_check:
+		# check if bypass restrict ip is enabled for login user
+		bypass_restrict_ip_check = user.bypass_restrict_ip_check_if_2fa_enabled
+
+	for ip in ip_list:
+		if frappe.local.request_ip.startswith(ip) or bypass_restrict_ip_check:
+			return
+
+	frappe.throw(_("Access not allowed from this IP Address"), frappe.AuthenticationError)

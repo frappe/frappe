@@ -534,6 +534,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 					{ values: dataset_values }
 				]
 			},
+			truncateLegends: 1,
 			type: type,
 			colors: colors,
 			axisOptions: {

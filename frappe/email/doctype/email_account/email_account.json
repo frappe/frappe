@@ -21,6 +21,7 @@
   "use_imap",
   "email_server",
   "use_ssl",
+  "incoming_port",
   "attachment_limit",
   "append_to",
   "default_incoming",
@@ -372,8 +373,8 @@
    "read_only": 1
   },
   {
-    "fieldname": "section_break_12",
-    "fieldtype": "Section Break"
+   "fieldname": "section_break_12",
+   "fieldtype": "Section Break"
   },
   {
    "default": "0",
@@ -381,10 +382,17 @@
    "fieldname": "enable_automatic_linking",
    "fieldtype": "Check",
    "label": "Enable Automatic Linking in Documents"
+  },
+  {
+   "depends_on": "eval:!doc.domain && doc.enable_incoming",
+   "description": "If non-standard port (e.g. POP3: 995/110, IMAP: 993/143)",
+   "fieldname": "incoming_port",
+   "fieldtype": "Data",
+   "label": "Port"
   }
  ],
  "icon": "fa fa-inbox",
- "modified": "2019-06-15 19:03:55.283524",
+ "modified": "2019-08-31 18:01:15.568831",
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Email Account",
