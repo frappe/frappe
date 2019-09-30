@@ -70,6 +70,8 @@ get_rooms = 'frappe.chat.doctype.chat_room.chat_room.get_rooms'
 
 calendars = ["Event"]
 
+leaderboards = "frappe.desk.leaderboard.get_leaderboards"
+
 # login
 
 on_session_creation = [

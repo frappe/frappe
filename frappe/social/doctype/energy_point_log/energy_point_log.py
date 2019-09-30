@@ -284,3 +284,4 @@ def get_footer_message(timespan):
 	else:
 		return _("Stats based on last week's performance (from {0} to {1})")
 
+
