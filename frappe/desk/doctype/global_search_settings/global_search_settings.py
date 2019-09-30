@@ -40,8 +40,10 @@ def get_doctypes_for_global_search():
 def reset_global_search_settings_doctypes():
 	update_global_search_doctypes()
 
-def update_global_search_doctypes():
-	global_search_doctypes = frappe.get_hooks("global_search_doctypes")
+def update_global_search_doctypes(global_search_doctypes=None):
+	if not global_search_doctypes:
+		global_search_doctypes = frappe.get_hooks("global_search_doctypes")
+
 	doctype_list = set([dt.name for dt in frappe.get_list("DocType")])
 	allowed_in_global_search = []
 
