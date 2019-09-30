@@ -5,18 +5,20 @@ from __future__ import unicode_literals, print_function
 import frappe
 from frappe import _
 from frappe.utils import cint
+from frappe.client import get_count
+from frappe.utils.background_jobs import enqueue
 from frappe.model.naming import validate_name
 from frappe.model.dynamic_links import get_dynamic_link_map
 from frappe.utils.password import rename_password
+from frappe.desk.form.linked_with import get_linked_doctypes
 from frappe.model.utils.user_settings import sync_user_settings, update_user_settings_data
 
 @frappe.whitelist()
-def rename_doc(doctype, old, new, force=False, merge=False, ignore_permissions=False, ignore_if_exists=False):
-	"""
-		Renames a doc(dt, old) to doc(dt, new) and
-		updates all linked fields of type "Link"
-	"""
+def rename_doc(doctype, old, new, force=False,
+	merge=False, ignore_permissions=False, ignore_if_exists=False, enqueue_job=False):
+
 	if not frappe.db.exists(doctype, old):
+		frappe.msgprint(_('{0}: {1} does not exists').format(doctype, old))
 		return
 
 	if ignore_if_exists and frappe.db.exists(doctype, new):
@@ -26,66 +28,100 @@ def rename_doc(doctype, old, new, force=False, merge=False, ignore_permissions=F
 		frappe.msgprint(_('Please select a new name to rename'))
 		return
 
+	if enqueue_job and validate_enqueue_for_rename(doctype, old):
+		frappe.msgprint(_("Queued for renaming {0} from {1} to {2}. It may take a few minutes.").
+			format(doctype, old, new))
+
+		enqueue(_rename_doc, doctype=doctype, old=old, new=new, force=force, merge=merge,
+			ignore_permissions=ignore_permissions, ignore_if_exists=ignore_if_exists, timeout=6000)
+	else:
+		return _rename_doc(doctype, old, new, force=force,
+			merge=merge, ignore_permissions=ignore_permissions, ignore_if_exists=ignore_if_exists)
+
+def _rename_doc(doctype, old, new, force=False, merge=False, ignore_permissions=False, ignore_if_exists=False):
+	"""
+		Renames a doc(dt, old) to doc(dt, new) and
+		updates all linked fields of type "Link"
+	"""
+
 	force = cint(force)
 	merge = cint(merge)
 
-	meta = frappe.get_meta(doctype)
+	try:
+		meta = frappe.get_meta(doctype)
 
-	# call before_rename
-	old_doc = frappe.get_doc(doctype, old)
-	out = old_doc.run_method("before_rename", old, new, merge) or {}
-	new = (out.get("new") or new) if isinstance(out, dict) else (out or new)
+		# call before_rename
+		old_doc = frappe.get_doc(doctype, old)
+		out = old_doc.run_method("before_rename", old, new, merge) or {}
+		new = (out.get("new") or new) if isinstance(out, dict) else (out or new)
 
-	if doctype != "DocType":
-		new = validate_rename(doctype, new, meta, merge, force, ignore_permissions)
+		if doctype != "DocType":
+			new = validate_rename(doctype, new, meta, merge, force, ignore_permissions)
 
-	if not merge:
-		rename_parent_and_child(doctype, old, new, meta)
+		if not merge:
+			rename_parent_and_child(doctype, old, new, meta)
 
-	# update link fields' values
-	link_fields = get_link_fields(doctype)
-	update_link_field_values(link_fields, old, new, doctype)
+		# update link fields' values
+		link_fields = get_link_fields(doctype)
+		update_link_field_values(link_fields, old, new, doctype)
 
-	rename_dynamic_links(doctype, old, new)
+		rename_dynamic_links(doctype, old, new)
 
-	# save the user settings in the db
-	update_user_settings(old, new, link_fields)
+		# save the user settings in the db
+		update_user_settings(old, new, link_fields)
 
-	if doctype=='DocType':
-		rename_doctype(doctype, old, new, force)
+		if doctype=='DocType':
+			rename_doctype(doctype, old, new, force)
 
-	update_attachments(doctype, old, new)
+		update_attachments(doctype, old, new)
 
-	rename_versions(doctype, old, new)
+		rename_versions(doctype, old, new)
 
-	# call after_rename
-	new_doc = frappe.get_doc(doctype, new)
+		# call after_rename
+		new_doc = frappe.get_doc(doctype, new)
 
-	# copy any flags if required
-	new_doc._local = getattr(old_doc, "_local", None)
+		# copy any flags if required
+		new_doc._local = getattr(old_doc, "_local", None)
 
-	new_doc.run_method("after_rename", old, new, merge)
+		new_doc.run_method("after_rename", old, new, merge)
 
-	if not merge:
-		rename_password(doctype, old, new)
+		if not merge:
+			rename_password(doctype, old, new)
 
-	# update user_permissions
-	frappe.db.sql("""UPDATE `tabDefaultValue` SET `defvalue`=%s WHERE `parenttype`='User Permission'
-		AND `defkey`=%s AND `defvalue`=%s""", (new, doctype, old))
+		# update user_permissions
+		frappe.db.sql("""UPDATE `tabDefaultValue` SET `defvalue`=%s WHERE `parenttype`='User Permission'
+			AND `defkey`=%s AND `defvalue`=%s""", (new, doctype, old))
 
-	if merge:
-		new_doc.add_comment('Edit', _("merged {0} into {1}").format(frappe.bold(old), frappe.bold(new)))
-	else:
-		new_doc.add_comment('Edit', _("renamed from {0} to {1}").format(frappe.bold(old), frappe.bold(new)))
+		if merge:
+			new_doc.add_comment('Edit', _("merged {0} into {1}").format(frappe.bold(old), frappe.bold(new)))
+		else:
+			new_doc.add_comment('Edit', _("renamed from {0} to {1}").format(frappe.bold(old), frappe.bold(new)))
 
-	if merge:
-		frappe.delete_doc(doctype, old)
+		if merge:
+			frappe.delete_doc(doctype, old)
 
-	frappe.clear_cache()
-	frappe.enqueue('frappe.utils.global_search.rebuild_for_doctype', doctype=doctype)
+		frappe.clear_cache()
+		frappe.enqueue('frappe.utils.global_search.rebuild_for_doctype', doctype=doctype)
+
+	except Exception:
+		frappe.log_error(frappe.get_traceback())
 
 	return new
 
+def validate_enqueue_for_rename(doctype, docname):
+	linked_docs = get_linked_doctypes(doctype, ignore_single_doctype=True) or {}
+
+	total_count = 0
+	for key, value in linked_docs.items():
+		doc_type = key
+		if value.get("child_doctype"):
+			doc_type = value.get("child_doctype")
+
+		for field in value.get("fieldname"):
+			total_count += get_count(doc_type, filters={field: docname})
+
+			if total_count > 1000:
+				return True
 
 def update_user_settings(old, new, link_fields):
 	'''

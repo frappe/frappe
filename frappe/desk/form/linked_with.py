@@ -98,7 +98,7 @@ def get_linked_docs(doctype, name, linkinfo=None, for_doctype=None):
 	return results
 
 @frappe.whitelist()
-def get_linked_doctypes(doctype, without_ignore_user_permissions_enabled=False):
+def get_linked_doctypes(doctype, without_ignore_user_permissions_enabled=False, ignore_single_doctype=False):
 	"""add list of doctypes this doctype is 'linked' with.
 
 	Example, for Customer:
@@ -106,15 +106,16 @@ def get_linked_doctypes(doctype, without_ignore_user_permissions_enabled=False):
 		{"Address": {"fieldname": "customer"}..}
 	"""
 	if(without_ignore_user_permissions_enabled):
-		return frappe.cache().hget("linked_doctypes_without_ignore_user_permissions_enabled",
-			doctype, lambda: _get_linked_doctypes(doctype, without_ignore_user_permissions_enabled))
+		return frappe.cache().hget("linked_doctypes_without_ignore_user_permissions_enabled", doctype,
+			lambda: _get_linked_doctypes(doctype, without_ignore_user_permissions_enabled, ignore_single_doctype))
 	else:
-		return frappe.cache().hget("linked_doctypes", doctype, lambda: _get_linked_doctypes(doctype))
+		return frappe.cache().hget("linked_doctypes", doctype,
+			lambda: _get_linked_doctypes(doctype, ignore_single_doctype=ignore_single_doctype))
 
-def _get_linked_doctypes(doctype, without_ignore_user_permissions_enabled=False):
+def _get_linked_doctypes(doctype, without_ignore_user_permissions_enabled=False, ignore_single_doctype=False):
 	ret = {}
 	# find fields where this doctype is linked
-	ret.update(get_linked_fields(doctype, without_ignore_user_permissions_enabled))
+	ret.update(get_linked_fields(doctype, without_ignore_user_permissions_enabled, ignore_single_doctype))
 	ret.update(get_dynamic_linked_fields(doctype, without_ignore_user_permissions_enabled))
 
 	filters=[['fieldtype', 'in', frappe.model.table_fields], ['options', '=', doctype]]
@@ -140,14 +141,19 @@ def _get_linked_doctypes(doctype, without_ignore_user_permissions_enabled=False)
 
 	return ret
 
-def get_linked_fields(doctype, without_ignore_user_permissions_enabled=False):
+def get_linked_fields(doctype, without_ignore_user_permissions_enabled=False, ignore_single_doctype=False):
 
 	filters=[['fieldtype','=', 'Link'], ['options', '=', doctype]]
 	if without_ignore_user_permissions_enabled: filters.append(['ignore_user_permissions', '!=', 1])
 
+	links= frappe.get_all("Custom Field", fields=["dt as parent", "fieldname"], filters=filters, as_list=1)
+
+	if ignore_single_doctype:
+		single_doctype = set([d.name for d in frappe.get_all("DocType", filters={'issingle': 1})])
+		filters.append(['parent', 'not in', single_doctype])
+
 	# find links of parents
-	links = frappe.get_all("DocField", fields=["parent", "fieldname"], filters=filters, as_list=1)
-	links+= frappe.get_all("Custom Field", fields=["dt as parent", "fieldname"], filters=filters, as_list=1)
+	links += frappe.get_all("DocField", fields=["parent", "fieldname"], filters=filters, as_list=1)
 
 	ret = {}
 
