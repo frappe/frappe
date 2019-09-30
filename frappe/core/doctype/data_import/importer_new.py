@@ -512,19 +512,28 @@ class Importer:
 		# if there are child doctypes, find the subsequent rows
 		if len(doctypes) > 1:
 			# subsequent rows either dont have any parent value set
-			# or have the same value as the parent
+			# or have the same value as the parent row
 			# we include a row if either of conditions match
-			parent_column_index = self.get_first_parent_column_index()
-			parent_value = first_row[parent_column_index]
+			parent_column_indexes = [
+				col.index
+				for col in self.columns
+				if not col.skip_import and col.df and col.df.parent == self.doctype
+			]
+			parent_row_values = [first_row[i] for i in parent_column_indexes]
+
 			data_without_first_row = data[1:]
-			for d in data_without_first_row:
-				value = d[parent_column_index]
-				# if value is blank then it's a child row
-				# if value is same as parent value it's a child row
-				# if value is different than the parent value, it's the next doc
-				if value not in INVALID_VALUES and value != parent_value:
-					break
-				rows.append(d)
+			for row in data_without_first_row:
+				row_values = [row[i] for i in parent_column_indexes]
+				# if the row is blank, it's a child row doc
+				if all([v in INVALID_VALUES for v in row_values]):
+					rows.append(row)
+					continue
+				# if the row has same values as parent row, it's a child row doc
+				if row_values == parent_row_values:
+					rows.append(row)
+					continue
+				# if any of those conditions dont match, it's the next doc
+				break
 
 		def get_column_indexes(doctype):
 			return [
