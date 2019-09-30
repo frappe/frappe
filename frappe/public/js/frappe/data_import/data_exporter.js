@@ -212,7 +212,7 @@ frappe.data_import.DataExporter = class DataExporter {
 
 		count_method[export_records]().then(value => {
 			let message = '';
-			value = parseInt(value);
+			value = parseInt(value, 10);
 			if (value === 0) {
 				message = __('No records will be exported');
 			} else if (value === 1) {

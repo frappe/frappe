@@ -738,7 +738,6 @@ class Importer:
 		for link_doctype, link_value in link_values:
 			d = self.missing_link_values.get(link_doctype)
 			if d and d.one_mandatory and link_value in d.missing_values:
-				meta = frappe.get_meta(link_doctype)
 				# find the autoname field
 				autoname_field = self.get_autoname_field(link_doctype)
 				name_field = autoname_field.fieldname if autoname_field else "name"
@@ -856,7 +855,7 @@ class Importer:
 
 		if successful_records:
 			print(
-				"Successfully imported {1} records out of {1}".format(
+				"Successfully imported {0} records out of {1}".format(
 					len(successful_records), len(import_log)
 				)
 			)
