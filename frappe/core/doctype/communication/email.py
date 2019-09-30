@@ -239,7 +239,7 @@ def get_recipients_cc_and_bcc(doc, recipients, cc, bcc, fetched_from_email_accou
 	return recipients, cc, bcc
 
 def remove_administrator_from_email_list(email_list):
-	administrator_email_id = filter(lambda x: 'Administrator' in x, email_list)
+	administrator_email_id = list(filter(lambda x: 'Administrator' in x, email_list))
 
 	if administrator_email_id:
 		''' as filter returns list '''
