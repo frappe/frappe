@@ -836,7 +836,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		const custom_format = this.report_settings.html_format || null;
 		const filters_html = this.get_filters_html_for_print();
 		const landscape = print_settings.orientation == 'Landscape';
-		let columns = []
+		let columns = [];
 
 		if (print_settings.columns) {
 			columns = this.get_columns_for_print().filter(column =>
@@ -867,8 +867,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		const print_css = frappe.boot.print_css;
 		const landscape = print_settings.orientation == 'Landscape';
 
-		let columns = []
-
+		let columns = [];
 
 		if (print_settings.columns) {
 			columns = this.get_columns_for_print().filter(column =>
@@ -1083,15 +1082,15 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 											.filter(frappe.model.is_value_type)
 											.map(df => ({ label: df.label, value: df.fieldname }));
 
-										d.set_df_property('field', 'options', options.sort(function(a,b) {
-												if (a.label < b.label) {
-													return -1;
-												}
-												if (a.label > b.label) {
-													return 1;
-												}
-												return 0;
-											})
+										d.set_df_property('field', 'options', options.sort(function(a, b) {
+											if (a.label < b.label) {
+												return -1;
+											}
+											if (a.label > b.label) {
+												return 1;
+											}
+											return 0;
+										})
 										);
 									});
 								}

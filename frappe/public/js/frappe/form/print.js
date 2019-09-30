@@ -517,7 +517,7 @@ frappe.ui.get_print_settings = function (pdf, callback, letter_head, pick_column
 					value: df.fieldname
 				}))
 			}
-		)
+		);
 	}
 
 	return frappe.prompt(columns, function (data) {
