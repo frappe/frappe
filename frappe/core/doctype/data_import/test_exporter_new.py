@@ -13,7 +13,7 @@ class TestExporter(unittest.TestCase):
 		e = Exporter('Web Page', export_fields='Mandatory')
 		csv_array = e.get_csv_array()
 		header_row = csv_array[0]
-		self.assertEqual(header_row, ['ID (name)', 'Title (title)'])
+		self.assertEqual(header_row, ['ID', 'Title'])
 
 
 	def test_exports_all_fields(self):
@@ -24,11 +24,13 @@ class TestExporter(unittest.TestCase):
 
 
 	def test_exports_selected_fields(self):
-		export_fields = ['title', 'route', 'published']
+		export_fields = {
+			'Web Page': ['title', 'route', 'published']
+		}
 		e = Exporter('Web Page', export_fields=export_fields)
 		csv_array = e.get_csv_array()
 		header = csv_array[0]
-		self.assertEqual(header, ['Title (title)', 'Route (route)', 'Published (published)'])
+		self.assertEqual(header, ['ID', 'Title', 'Route', 'Published'])
 
 
 	def test_exports_data(self):

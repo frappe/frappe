@@ -95,11 +95,12 @@ class Exporter:
 		if self.export_fields == "Mandatory":
 			fields = [df for df in fields if df.reqd]
 
+		if self.export_fields == "All":
+			fields = list(fields)
+
 		elif isinstance(self.export_fields, dict):
 			whitelist = self.export_fields.get(doctype, [])
 			fields = [df for df in fields if df.fieldname in whitelist]
-		else:
-			fields = [df for df in fields if df.reqd or df.in_list_view or df.bold]
 
 		name_field = frappe._dict(
 			{
