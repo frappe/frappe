@@ -8,11 +8,11 @@ frappe.webhook = {
 				// get doctype fields
 				let fields = $.map(frappe.get_doc("DocType", frm.doc.webhook_doctype).fields, (d) => {
 					if (frappe.model.no_value_type.includes(d.fieldtype) || frappe.model.table_fields.includes(d.fieldtype)) {
-						return { label: d.label + ' (' + d.fieldtype + ')', value: d.fieldname };
+						return null;
 					} else if (d.fieldtype === 'Currency' || d.fieldtype === 'Float') {
 						return { label: d.label, value: d.fieldname };
 					} else {
-						return null;
+						return { label: d.label + ' (' + d.fieldtype + ')', value: d.fieldname };
 					}
 				});
 
