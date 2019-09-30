@@ -54,7 +54,7 @@ def setup_complete(args):
 
 	# Setup complete: do not throw an exception, let the user continue to desk
 	if cint(frappe.db.get_single_value('System Settings', 'setup_complete')):
-		return
+		return {'status': 'ok'}
 
 	args = parse_args(args)
 
