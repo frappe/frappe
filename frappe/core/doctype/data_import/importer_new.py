@@ -3,12 +3,13 @@
 # MIT License. See license.txt
 
 import io
+import os
 import json
 import timeit
 import frappe
 from datetime import datetime
 from frappe import _
-from frappe.utils import cint, flt
+from frappe.utils import cint, flt, update_progress_bar
 from frappe.utils.csvutils import read_csv_content
 from frappe.utils.xlsxutils import (
 	read_xlsx_file_from_attached_file,
@@ -21,9 +22,12 @@ MAX_ROWS_IN_PREVIEW = 10
 
 # pylint: disable=R0201
 class Importer:
-	def __init__(self, doctype, data_import=None, file_path=None, content=None):
+	def __init__(
+		self, doctype, data_import=None, file_path=None, content=None, console=False
+	):
 		self.doctype = doctype
 		self.template_options = frappe._dict({"remap_column": {}})
+		self.console = console
 
 		if data_import:
 			self.data_import = data_import
@@ -47,14 +51,15 @@ class Importer:
 		self.parse_data_from_template()
 
 	def prepare_content(self, file_path, content):
-		if self.data_import:
+		if self.data_import and self.data_import.import_file:
 			file_doc = frappe.get_doc("File", {"file_url": self.data_import.import_file})
 			content = file_doc.get_content()
 			extension = file_doc.file_name.split(".")[1]
 
 		if file_path:
-			self.read_file(file_path)
-		elif content:
+			content, extension = self.read_file(file_path)
+
+		if content:
 			self.read_content(content, extension)
 
 		self.validate_template_content()
@@ -67,10 +72,7 @@ class Importer:
 		with io.open(file_path, mode="rb") as f:
 			file_content = f.read()
 
-		if extn == "csv":
-			data = read_csv_content(file_content)
-			self.header_row = data[0]
-			self.data = data[1:]
+		return file_content, extn
 
 	def read_content(self, content, extension):
 		if extension == "csv":
@@ -365,7 +367,8 @@ class Importer:
 		frappe.cache().hdel("lang", frappe.session.user)
 		frappe.set_user_lang(frappe.session.user)
 
-		self.data_import.db_set("template_warnings", "")
+		if not self.console:
+			self.data_import.db_set("template_warnings", "")
 
 		# set flags
 		frappe.flags.in_import = True
@@ -380,10 +383,13 @@ class Importer:
 		# dont import if there are non-ignorable warnings
 		warnings = [w for w in self.warnings if w.get("type") != "info"]
 		if warnings:
-			self.data_import.db_set("template_warnings", json.dumps(warnings))
-			frappe.publish_realtime(
-				"data_import_refresh", {"data_import": self.data_import.name}
-			)
+			if self.console:
+				self.print_grouped_warnings(warnings)
+			else:
+				self.data_import.db_set("template_warnings", json.dumps(warnings))
+				frappe.publish_realtime(
+					"data_import_refresh", {"data_import": self.data_import.name}
+				)
 			return
 
 		# setup import log
@@ -403,8 +409,6 @@ class Importer:
 				imported_rows += log.row_indexes
 
 		# start import
-		print("Importing {0} rows...".format(len(self.rows)))
-
 		total_payload_count = len(payloads)
 		batch_size = frappe.conf.data_import_batch_size or 1000
 
@@ -431,7 +435,6 @@ class Importer:
 					continue
 
 				try:
-					print("Importing", doc)
 					start = timeit.default_timer()
 					doc = self.process_doc(doc)
 					processing_time = timeit.default_timer() - start
@@ -449,6 +452,12 @@ class Importer:
 								"row_indexes": row_indexes,
 								"eta": eta,
 							},
+						)
+					if self.console:
+						update_progress_bar(
+							"Importing {0} records".format(total_payload_count),
+							current_index,
+							total_payload_count,
 						)
 					import_log.append(
 						frappe._dict(success=True, docname=doc.name, row_indexes=row_indexes)
@@ -478,8 +487,11 @@ class Importer:
 		else:
 			status = "Success"
 
-		self.data_import.db_set("status", status)
-		self.data_import.db_set("import_log", json.dumps(import_log))
+		if self.console:
+			self.print_import_log(import_log)
+		else:
+			self.data_import.db_set("status", status)
+			self.data_import.db_set("import_log", json.dumps(import_log))
 
 		frappe.flags.in_import = False
 		frappe.flags.mute_emails = False
@@ -499,7 +511,6 @@ class Importer:
 		Parses rows that make up a doc. A doc maybe built from a single row or multiple rows.
 		Returns the doc, rows, and data without the rows.
 		"""
-		doc = {}
 		doctypes = set([col.df.parent for col in self.columns if col.df and col.df.parent])
 
 		# first row is included by default
@@ -590,9 +601,14 @@ class Importer:
 			return doc
 
 		def check_mandatory_fields(doctype, doc, row_number):
+			# check if mandatory fields are set (except table fields)
 			meta = frappe.get_meta(doctype)
 			fields = [
-				df for df in meta.fields if df.reqd and doc.get(df.fieldname) in INVALID_VALUES
+				df
+				for df in meta.fields
+				if df.fieldtype not in table_fields
+				and df.reqd
+				and doc.get(df.fieldname) in INVALID_VALUES
 			]
 
 			if not fields:
@@ -633,9 +649,11 @@ class Importer:
 				parsed_docs[doctype] = parsed_docs.get(doctype, [])
 				parsed_docs[doctype].append(doc)
 
+		# build the doc with children
+		doc = {}
 		for doctype, docs in parsed_docs.items():
 			if doctype == self.doctype:
-				doc = docs[0]
+				doc.update(docs[0])
 			else:
 				table_dfs = self.meta.get(
 					"fields", {"options": doctype, "fieldtype": ["in", table_fields]}
@@ -644,19 +662,31 @@ class Importer:
 					table_field = table_dfs[0]
 					doc[table_field.fieldname] = docs
 
-		return doc, rows, data[len(rows) :]
+		# check if there is atleast one row for mandatory table fields
+		mandatory_table_fields = [
+			df
+			for df in self.meta.fields
+			if df.fieldtype in table_fields and df.reqd and len(doc.get(df.fieldname, [])) == 0
+		]
+		if len(mandatory_table_fields) == 1:
+			self.warnings.append(
+				{
+					"row": first_row[0],
+					"message": _("There should be atleast one row for {0} table").format(
+						mandatory_table_fields[0].label
+					),
+				}
+			)
+		elif mandatory_table_fields:
+			fields_string = ", ".join([df.label for df in mandatory_table_fields])
+			self.warnings.append(
+				{
+					"row": first_row[0],
+					"message": _("There should be atleast one row for the following tables: {0}").format(fields_string),
+				}
+			)
 
-	def get_first_parent_column_index(self):
-		"""
-		Returns the first column's index which must be one of the parent columns
-		"""
-		# find a parent column
-		parent_column_index = -1
-		for col in self.columns:
-			if not col.skip_import and col.df and col.df.parent == self.doctype:
-				parent_column_index = col.index
-				break
-		return parent_column_index
+		return doc, rows, data[len(rows) :]
 
 	def process_doc(self, doc):
 		import_type = self.data_import.import_type
@@ -796,6 +826,47 @@ class Importer:
 		if meta.autoname and meta.autoname.startswith("field:"):
 			fieldname = meta.autoname[len("field:") :]
 			return meta.get_field(fieldname)
+
+	def print_grouped_warnings(self, warnings):
+		warnings_by_row = {}
+		other_warnings = []
+		for w in warnings:
+			if w.get("row"):
+				warnings_by_row.setdefault(w.get("row"), []).append(w)
+			else:
+				other_warnings.append(w)
+
+		for row_number, warnings in warnings_by_row.items():
+			print("Row {0}".format(row_number))
+			for w in warnings:
+				print(w.get("message"))
+
+		for w in other_warnings:
+			print(w.get("message"))
+
+	def print_import_log(self, import_log):
+		failed_records = [l for l in import_log if not l.success]
+		successful_records = [l for l in import_log if l.success]
+
+		if successful_records:
+			print(
+				"Successfully imported {1} records out of {1}".format(
+					len(successful_records), len(import_log)
+				)
+			)
+
+		if failed_records:
+			print("Failed to import {0} records".format(len(failed_records)))
+			file_name = '{0}_import_on_{1}.txt'.format(self.doctype, frappe.utils.now())
+			print('Check {0} for errors'.format(os.path.join('sites', file_name)))
+			text = ""
+			for w in failed_records:
+				text += "Row Indexes: {0}\n".format(str(w.get('row_indexes', [])))
+				text += "Messages:\n{0}\n".format('\n'.join(w.get('messages', [])))
+				text += "Traceback:\n{0}\n\n".format(w.get('exception'))
+
+			with open(file_name, 'w') as f:
+				f.write(text)
 
 
 DATE_FORMATS = [
