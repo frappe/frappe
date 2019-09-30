@@ -127,11 +127,15 @@ frappe.ui.form.on('Data Import Beta', {
 	},
 
 	start_import(frm) {
-		frm.save().then(() => frm.call('start_import'));
+		frm.call({
+			doc: frm.doc,
+			method: 'start_import',
+			btn: frm.page.btn_primary
+		});
 	},
 
 	download_template(frm) {
-		if (frm.data_exporter) {
+		if (frm.data_exporter && frm.data_exporter.doctype === frm.doc.reference_doctype) {
 			frm.data_exporter.dialog.show();
 			set_export_records();
 		} else {
