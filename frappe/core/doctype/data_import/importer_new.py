@@ -265,15 +265,12 @@ class Importer:
 
 		# if autoname is based on field
 		# add an entry for "ID (Autoname Field)"
-		autoname = self.meta.autoname
-		if autoname and autoname.startswith("field:"):
-			fieldname = autoname[len("field:") :]
-			autoname_field = self.meta.get_field(fieldname)
-			if autoname_field:
-				out["ID ({})".format(autoname_field.label)] = autoname_field
-				# ID field should also map to the autoname field
-				out["ID"] = autoname_field
-				out["name"] = autoname_field
+		autoname_field = self.get_autoname_field(self.doctype)
+		if autoname_field:
+			out["ID ({})".format(autoname_field.label)] = autoname_field
+			# ID field should also map to the autoname field
+			out["ID"] = autoname_field
+			out["name"] = autoname_field
 
 		return out
 
@@ -692,6 +689,8 @@ class Importer:
 			for fieldname, value in doc.items():
 				meta = frappe.get_meta(doctype)
 				df = meta.get_field(fieldname)
+				if not df:
+					continue
 				if df.fieldtype == "Link" and value not in INVALID_VALUES:
 					link_values.append([df.options, value])
 				elif df.fieldtype in table_fields:
@@ -705,12 +704,10 @@ class Importer:
 			if d and d.one_mandatory and link_value in d.missing_values:
 				meta = frappe.get_meta(link_doctype)
 				# find the autoname field
-				if meta.autoname and meta.autoname.startswith("field:"):
-					autoname_field = meta.autoname[len("field:") :]
-				else:
-					autoname_field = "name"
+				autoname_field = self.get_autoname_field(link_doctype)
+				name_field = autoname_field.fieldname if autoname_field else "name"
 				new_doc = frappe.new_doc(link_doctype)
-				new_doc.set(autoname_field, link_value)
+				new_doc.set(name_field, link_value)
 				new_doc.insert()
 				d.missing_values.remove(link_value)
 
@@ -773,12 +770,9 @@ class Importer:
 				)
 
 	def get_id_fieldname(self):
-		autoname = self.meta.autoname
-		if autoname and autoname.startswith("field:"):
-			fieldname = autoname[len("field:") :]
-			autoname_field = self.meta.get_field(fieldname)
-			if autoname_field:
-				return autoname_field.fieldname
+		autoname_field = self.get_autoname_field(self.doctype)
+		if autoname_field:
+			return autoname_field.fieldname
 		return "name"
 
 	def get_eta(self, current, total, processing_time):
@@ -796,6 +790,12 @@ class Importer:
 		if meta.autoname and meta.autoname.lower() == "prompt":
 			mandatory_fields_count += 1
 		return mandatory_fields_count == 1
+
+	def get_autoname_field(self, doctype):
+		meta = frappe.get_meta(doctype)
+		if meta.autoname and meta.autoname.startswith("field:"):
+			fieldname = meta.autoname[len("field:") :]
+			return meta.get_field(fieldname)
 
 
 DATE_FORMATS = [
