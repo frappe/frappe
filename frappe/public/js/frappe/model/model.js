@@ -553,19 +553,12 @@ $.extend(frappe.model, {
 					doctype: doctype,
 					old: docname,
 					"new": args.new_name,
-					"merge": args.merge
+					"merge": args.merge,
+					"enqueue_job": 1
 				},
 				btn: d.get_primary_btn(),
 				callback: function(r,rt) {
-					if(!r.exc) {
-						$(document).trigger('rename', [doctype, docname,
-							r.message || args.new_name]);
-						if(locals[doctype] && locals[doctype][docname])
-							delete locals[doctype][docname];
-						d.hide();
-						if(callback)
-							callback(r.message);
-					}
+					d.hide();
 				}
 			});
 		});
