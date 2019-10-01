@@ -53,7 +53,7 @@ Cypress.Commands.add('install_ui_test', () => {
 		}).then((response) => {
 			cy.expect(response.status).be.oneOf([200, 409]);
 		});
-        });
+	});
 });
 
 Cypress.Commands.add('update_datetime_formats', (date_format, time_format) => {
@@ -63,9 +63,9 @@ Cypress.Commands.add('update_datetime_formats', (date_format, time_format) => {
 		docname: "System Settings",
 		date_format: date_format,
 		time_format: time_format
-        }];
-	cy.call('frappe.client.bulk_update', {'docs': JSON.stringify(docs)})
-	.then((r) => {
+	}];
+	cy.call('frappe.client.bulk_update', {'docs': JSON.stringify(docs)}
+	).then((r) => {
 		expect(r.message.failed_docs).to.be.empty;
 	});
 });
@@ -79,8 +79,8 @@ Cypress.Commands.add('update_test_data', (date, time, datetime) => {
 		time: time,
 		datetime: datetime
 	}];
-	cy.call('frappe.client.bulk_update', {'docs': JSON.stringify(docs)})
-	.then((r) => {
+	cy.call('frappe.client.bulk_update', {'docs': JSON.stringify(docs)}
+	).then((r) => {
 		expect(r.message.failed_docs).to.be.empty;
 		cy.window().then((win) => {
 			win.cur_frm.reload_doc();

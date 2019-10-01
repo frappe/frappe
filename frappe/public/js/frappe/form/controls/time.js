@@ -35,7 +35,7 @@ frappe.ui.form.ControlTime = frappe.ui.form.ControlData.extend({
 	},
 	set_input: function(value) {
 		this._super(value);
-		if(value
+		if (value
 			&& ((this.last_value && this.last_value !== this.value)
 				|| (!this.datepicker.selectedDates.length))) {
 
@@ -65,7 +65,7 @@ frappe.ui.form.ControlTime = frappe.ui.form.ControlData.extend({
 		}
 	},
 	update_datepicker_position: function() {
-		if(!this.frm) return;
+		if (!this.frm) return;
 		// show datepicker above or below the input
 		// based on scroll position
 		const scroll_limit = $(window).scrollTop() + $(window).height();
@@ -96,18 +96,18 @@ frappe.ui.form.ControlTime = frappe.ui.form.ControlData.extend({
 		this._super();
 	},
 	parse: function(value) {
-		if(value) {
+		if (value) {
 			return frappe.datetime.user_to_str(value, true);
 		}
 	},
 	format_for_input: function(value) {
-		if(value) {
+		if (value) {
 			return frappe.datetime.str_to_user(value, true);
 		}
 		return "";
 	},
 	validate: function(value) {
-		if(value && !frappe.datetime.validate(value)) {
+		if (value && !frappe.datetime.validate(value)) {
 			let sysdefaults = frappe.sys_defaults;
 			let time_format = sysdefaults && sysdefaults.time_format
 				? sysdefaults.time_format : 'HH:mm:ss';

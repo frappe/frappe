@@ -40,7 +40,7 @@ frappe.ui.form.ControlDatetime = frappe.ui.form.ControlDate.extend({
 		}
 	},
 	update_datepicker_position: function() {
-		if(!this.frm) return;
+		if (!this.frm) return;
 		// show datepicker above or below the input
 		// based on scroll position
 		const scroll_limit = $(window).scrollTop() + $(window).height();
