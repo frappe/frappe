@@ -149,7 +149,7 @@ Cypress.Commands.add('delayed_type', {prevSubject: 'element'}, (subject, text) =
 
 context('Datetime tests', () => {
 	before(() => {
-		cy.login('Administrator', 'qwe');
+		cy.login();
 		cy.get_csrf_token();
 		cy.install_ui_test();
 		cy.visit('/desk#Form/UI Test/UI Test');
