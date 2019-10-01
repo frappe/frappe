@@ -80,7 +80,7 @@
    "fieldname": "time_format",
    "fieldtype": "Data",
    "in_list_view": 1,
-   "label": "Time format",
+   "label": "Time format"
   },
   {
    "allow_bulk_edit": 0,
