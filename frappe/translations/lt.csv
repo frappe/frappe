@@ -1,8 +1,10 @@
 apps/frappe/frappe/utils/change_log.py,New {} releases for the following apps are available,Nauji {} išleidimai šioms programoms yra prieinami
 apps/frappe/frappe/website/doctype/web_form/web_form.py,Please select a Amount Field.,Prašome pasirinkti laukelyje Kiekis.
+apps/frappe/frappe/core/doctype/data_import_beta/data_import_beta.js,Loading import file...,Įkeliamas importo failas ...
 DocType: Assignment Rule,Last User,Paskutinis vartotojas
 apps/frappe/frappe/desk/form/assign_to.py,"A new task, {0}, has been assigned to you by {1}. {2}","Nauja užduotis, {0}, buvo priskirtas jums {1}. {2}"
 apps/frappe/frappe/public/js/frappe/ui/toolbar/toolbar.js,Session Defaults Saved,Sesijos numatytosios vertės išsaugotos
+apps/frappe/frappe/public/js/frappe/form/controls/attach.js,Reload File,Iš naujo įkelti failą
 DocType: Email Queue,Email Queue records.,Paštas Queue įrašus.
 DocType: Post,Post,paštas
 DocType: Address,Punjab,Pendžabo
@@ -44,6 +46,7 @@ apps/frappe/frappe/public/js/frappe/views/kanban/kanban_view.js,There was an err
 DocType: Custom DocPerm,This role update User Permissions for a user,Šis vaidmuo Atnaujinti Vartotojo Leidimai vartotojas
 apps/frappe/frappe/public/js/frappe/model/model.js,Rename {0},Pervadinti {0}
 DocType: Workflow State,zoom-out,nutolinti
+DocType: Data Import Beta,Import Options,Importavimo parinktys
 apps/frappe/frappe/public/js/frappe/form/form.js,Cannot open {0} when its instance is open,Nepavyko atidaryti {0} kai jos atvejis yra atvira
 apps/frappe/frappe/model/document.py,Table {0} cannot be empty,Stalo {0} negali būti tuščias
 DocType: SMS Parameter,Parameter,Parametras
@@ -70,7 +73,7 @@ DocType: Auto Repeat,Monthly,kas mėnesį
 DocType: Address,Uttarakhand,Utarakhandas
 DocType: Email Account,Enable Incoming,Įjungti Sąlygos straipsnį
 apps/frappe/frappe/core/doctype/version/version_view.html,Danger,pavojus
-apps/frappe/frappe/www/login.py,Email Address,Elektroninio pašto adresas
+DocType: Address,Email Address,Elektroninio pašto adresas
 DocType: Workflow State,th-large,TH-didelis
 DocType: Communication,Unread Notification Sent,Neperskaityta išsiųstą pranešimą
 apps/frappe/frappe/public/js/frappe/utils/tools.js,Export not allowed. You need {0} role to export.,Eksportas neleidžiama. Jums reikia {0} vaidmenį eksportui.
@@ -99,7 +102,7 @@ apps/frappe/frappe/core/doctype/user/user.py,Administrator Logged In,Administrat
 DocType: Contact Us Settings,"Contact options, like ""Sales Query, Support Query"" etc each on a new line or separated by commas.","Kontaktai variantai, pavyzdžiui, &quot;Pardavimų užklausos Pagalba užklausos&quot; ir tt kiekvienas į naują eilutę ar atskirdami juos kableliais."
 apps/frappe/frappe/public/js/frappe/ui/tag_editor.js,Add a tag ...,Pridėti žymą ...
 apps/frappe/frappe/public/js/frappe/form/print.js,Portrait,Portretas
-DocType: Data Migration Run,Insert,Įdėti
+apps/frappe/frappe/core/doctype/data_import_beta/data_import_beta_list.js,Insert,Įdėti
 apps/frappe/frappe/integrations/doctype/google_drive/google_drive.py,Allow Google Drive Access,Leisti „Google“ disko prieigą
 apps/frappe/frappe/public/js/frappe/form/link_selector.js,Select {0},Pasirinkite {0}
 apps/frappe/frappe/integrations/doctype/social_login_key/social_login_key.py,Please enter Base URL,Įveskite pagrindinį URL
@@ -119,17 +122,17 @@ apps/frappe/frappe/public/js/frappe/utils/pretty_date.js,1 minute ago,prieš 1 m
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,"Apart from System Manager, roles with Set User Permissions right can set permissions for other users for that Document Type.",Be System Manager vaidmenys SET vartotojų teises teisė gali nustatyti leidimus kitiems vartotojams už šio dokumento tipą.
 apps/frappe/frappe/website/doctype/website_theme/website_theme.js,Configure Theme,Konfigūruoti temą
 DocType: Company History,Company History,Įmonės istorija
-apps/frappe/frappe/website/doctype/portal_settings/portal_settings.js,Reset,Atstatyti
+apps/frappe/frappe/desk/doctype/global_search_settings/global_search_settings.js,Reset,Atstatyti
 DocType: Workflow State,volume-up,pagarsink
 apps/frappe/frappe/config/integrations.py,Webhooks calling API requests into web apps,"Webhoks, skambinantys API užklausas į žiniatinklio programas"
+apps/frappe/frappe/core/doctype/data_import_beta/data_import_beta.js,Show Traceback,Rodyti „Traceback“
 DocType: DocType,Default Print Format,Numatytoji spausdinimo formatas
 DocType: Workflow State,Tags,Žymos
 apps/frappe/frappe/public/js/frappe/form/workflow.js,None: End of Workflow,Nėra: pabaiga Workflow
 apps/frappe/frappe/database/mariadb/schema.py,"{0} field cannot be set as unique in {1}, as there are non-unique existing values","{0} laukelis negali būti nustatyti kaip unikalus {1}, nes yra ne unikalus esamos gamtos vertybės"
-apps/frappe/frappe/core/page/permission_manager/permission_manager.js,Document Types,Dokumentų tipai
+DocType: Global Search Settings,Document Types,Dokumentų tipai
 DocType: Address,Jammu and Kashmir,Džamu ir Kašmyras
 DocType: Workflow,Workflow State Field,Eigos būseną laukas
-apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Setup &gt; User,Sąranka&gt; vartotojas
 DocType: Language,Guest,Svečias
 DocType: DocType,Title Field,Pavadinimas laukas
 DocType: Error Log,Error Log,klaida Prisijungti
@@ -138,6 +141,7 @@ apps/frappe/frappe/public/js/frappe/ui/toolbar/energy_points_notifications.js,La
 apps/frappe/frappe/utils/password_strength.py,"Repeats like ""abcabcabc"" are only slightly harder to guess than ""abc""","Pakartoja, pavyzdžiui, &quot;abcabcabc&quot; yra tik šiek tiek sunkiau atspėti nei &quot;ABC&quot;"
 DocType: Notification,Channel,Kanalas
 apps/frappe/frappe/templates/emails/administrator_logged_in.html,"If you think this is unauthorized, please change the Administrator password.","Jei manote, kad tai yra neleistinas, prašome pakeisti administratoriaus slaptažodį."
+DocType: Data Import Beta,Data Import Beta,Duomenų importavimo beta versija
 apps/frappe/frappe/email/doctype/email_account/email_account.py,{0} is mandatory,{0} yra privalomi
 DocType: Assignment Rule,Assignment Rules,Paskyrimo taisyklės
 DocType: Workflow State,eject,kraustyti
@@ -164,6 +168,7 @@ DocType: Workflow Action Master,Workflow Action Name,Darbo eigos Veiksmo pavadin
 apps/frappe/frappe/core/doctype/doctype/doctype.py,DocType can not be merged,DOCTYPE negali būti sujungtos
 DocType: Web Form Field,Fieldtype,Fieldtype
 apps/frappe/frappe/core/doctype/file/file.py,Not a zip file,Ne zip failą
+DocType: Global Search DocType,Global Search DocType,Visuotinės paieškos „DocType“
 DocType: Auto Repeat,"To add dynamic subject, use jinja tags like
 
 <div><pre><code>New {{ doc.doctype }} #{{ doc.name }}</code></pre></div>","Norėdami pridėti dinaminį temą, naudokite jinja žymes kaip <div><pre> <code>New {{ doc.doctype }} #{{ doc.name }}</code> </pre> </div>"
@@ -185,6 +190,7 @@ apps/frappe/frappe/core/page/background_jobs/background_jobs.html,No pending or 
 DocType: Webhook,Doc Event,Doc renginys
 apps/frappe/frappe/public/js/frappe/utils/user.js,You,Tu
 DocType: Braintree Settings,Braintree Settings,&quot;Braintree&quot; nustatymai
+apps/frappe/frappe/core/doctype/data_import_beta/data_import_beta.js,Created {0} records successfully.,Sėkmingai sukurti {0} įrašai.
 apps/frappe/frappe/public/js/frappe/list/list_filter.js,Save Filter,Išsaugoti filtrą
 DocType: Print Format,Helvetica,Helvetica
 apps/frappe/frappe/public/js/frappe/list/bulk_operations.js,Cannot delete {0},Negalima ištrinti {0}
@@ -211,6 +217,7 @@ DocType: SMS Settings,Enter url parameter for message,Įveskite URL parametrą p
 apps/frappe/frappe/public/js/frappe/utils/common.js,Auto Repeat created for this document,Šiam dokumentui sukurtas automatinis pakartojimas
 apps/frappe/frappe/templates/emails/auto_email_report.html,View report in your browser,Peržiūrėkite ataskaitą savo naršyklėje
 apps/frappe/frappe/config/desk.py,Event and other calendars.,Renginių ir kiti kalendoriai.
+apps/frappe/frappe/public/js/frappe/data_import/data_exporter.js,{0} (1 row mandatory),{0} (1 eilutė privaloma)
 apps/frappe/frappe/templates/includes/comments/comments.html,All fields are necessary to submit the comment.,Visi laukai yra būtini pateikti komentarą.
 DocType: Custom Script,Adds a client custom script to a DocType,Prideda kliento pasirinktinį scenarijų „DocType“
 DocType: Print Settings,Printer Name,Spausdintuvo pavadinimas
@@ -253,7 +260,6 @@ DocType: Bulk Update,Bulk Update,Masiniai Atnaujinti
 DocType: Workflow State,chevron-up,&quot;Chevron viršų
 DocType: DocType,Allow Guest to View,Leiskite Svečių to Peržiūrėti
 apps/frappe/frappe/automation/doctype/auto_repeat/auto_repeat.py,{0} should not be same as {1},{0} neturėtų būti tas pats kaip {1}
-apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,"For comparison, use &gt;5, &lt;10 or =324. For ranges, use 5:10 (for values between 5 &amp; 10).","Palyginimui naudokite&gt; 5, &lt;10 arba = 324. Diapazonams naudokite 5:10 (vertėms nuo 5 iki 10)."
 DocType: Webhook,on_change,on_change
 apps/frappe/frappe/public/js/frappe/list/list_view.js,Delete {0} items permanently?,Ištrinti {0} elementus visam laikui?
 apps/frappe/frappe/utils/oauth.py,Not Allowed,Neleidžiama
@@ -269,6 +275,7 @@ apps/frappe/frappe/data_migration/doctype/data_migration_connector/data_migratio
 DocType: DocField,Display,displėjus
 DocType: Email Group,Total Subscribers,Iš viso žiūrovai
 apps/frappe/frappe/templates/emails/energy_points_summary.html,Top {0},Populiariausia {0}
+apps/frappe/frappe/core/doctype/data_import_beta/data_import_beta.js,Row Number,Eilutės numeris
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,"If a Role does not have access at Level 0, then higher levels are meaningless.","Jei vaidmuo neturi prieigos 0 lygio, tada didesnis lygis yra beprasmiška."
 apps/frappe/frappe/public/js/frappe/views/reports/report_view.js,Save As,Išsaugoti kaip
 DocType: Comment,Seen,Žiūrint
@@ -309,6 +316,7 @@ apps/frappe/frappe/core/doctype/user_permission/user_permission_list.js,Add / Up
 apps/frappe/frappe/www/printview.py,Not allowed to print draft documents,"Neleidžiama spausdinti dokumentus, projektus"
 apps/frappe/frappe/core/doctype/role_permission_for_page_and_report/role_permission_for_page_and_report.js,Reset to defaults,Nust
 DocType: Workflow,Transition Rules,Pereinamojo laikotarpio taisyklės
+apps/frappe/frappe/public/js/frappe/data_import/import_preview.js,Showing only first {0} rows in preview,Rodomos tik pirmosios peržiūros {0} eilutės
 apps/frappe/frappe/core/doctype/report/report.js,Example:,Pavyzdys:
 DocType: Workflow,Defines workflow states and rules for a document.,Apibrėžia darbo eigos būsenas ir taisykles dokumentu.
 DocType: Workflow State,Filter,Filtras
@@ -331,6 +339,7 @@ DocType: Activity Log,Closed,Uždaryta
 DocType: Blog Settings,Blog Title,Dienoraštis Pavadinimas
 apps/frappe/frappe/core/doctype/role/role.py,Standard roles cannot be disabled,Standartiniai vaidmenys negali būti išjungtas
 apps/frappe/frappe/public/js/frappe/chat.js,Chat Type,Pokalbio tipas
+apps/frappe/frappe/public/js/frappe/data_import/import_preview.js,Map Columns,Žemėlapio stulpeliai
 DocType: Address,Mizoram,Mizoramas
 DocType: Newsletter,Newsletter,Naujienlaiškis
 apps/frappe/frappe/model/db_query.py,Cannot use sub-query in order by,Negalite naudoti sub-užklausą tvarka pagal
@@ -366,6 +375,7 @@ apps/frappe/frappe/core/doctype/doctype/doctype.py,DocType <b>{0}</b> provided f
 apps/frappe/frappe/public/js/frappe/views/kanban/kanban_board.html,Add a column,Pridėti stulpelį
 apps/frappe/frappe/www/contact.html,Your email address,Jūsų elektroninio pašto adresas
 DocType: Desktop Icon,Module,modulis
+apps/frappe/frappe/core/doctype/data_import_beta/data_import_beta.js,Successfully updated {0} records out of {1}.,Sėkmingai atnaujinti {0} įrašai iš {1}.
 DocType: Notification,Send Alert On,Siųsti pasiruošęs
 DocType: Customize Form,"Customize Label, Print Hide, Default etc.","Tinkinti etiketės, spausdinimo Slėpti, pagal nutylėjimą ir tt"
 apps/frappe/frappe/public/js/frappe/views/file/file_view.js,Unzipping files...,Atidaromi failai ...
@@ -400,6 +410,7 @@ apps/frappe/frappe/core/doctype/user/user.py,User {0} cannot be deleted,Vartotoj
 DocType: System Settings,Currency Precision,valiuta Tikslios
 DocType: System Settings,Currency Precision,valiuta Tikslios
 apps/frappe/frappe/public/js/frappe/request.js,Another transaction is blocking this one. Please try again in a few seconds.,Kitas sandoris blokuoja šį vieną. Bandykite dar kartą per kelias sekundes.
+apps/frappe/frappe/public/js/frappe/ui/filters/filter_list.js,Clear filters,Išvalyti filtrus
 DocType: Test Runner,App,Programos
 apps/frappe/frappe/public/js/frappe/views/interaction.js,The attachments could not be correctly linked to the new document,Priedai negalėjo būti teisingai susieti su nauju dokumentu
 DocType: Chat Message Attachment,Attachment,areštas
@@ -425,6 +436,7 @@ apps/frappe/frappe/email/smtp.py,Unable to send emails at this time,Nepavyko iš
 apps/frappe/frappe/integrations/doctype/google_calendar/google_calendar.py,"Google Calendar - Could not update Event {0} in Google Calendar, error code {1}.","„Google“ kalendorius - Nepavyko atnaujinti {0} įvykio „Google“ kalendoriuje, klaidos kodas {1}."
 apps/frappe/frappe/public/js/frappe/ui/toolbar/navbar.html,Search or type a command,Paieška arba įveskite komandą
 DocType: Activity Log,Timeline Name,Chronologija Vardas
+apps/frappe/frappe/contacts/doctype/contact/contact.py,Only one {0} can be set as primary.,Tik vienas {0} gali būti nustatytas kaip pagrindinis.
 DocType: Email Account,e.g. smtp.gmail.com,pvz smtp.gmail.com
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js,Add A New Rule,Įdėti naują taisyklę
 DocType: Contact,Sales Master Manager,Pardavimų magistras direktorius
@@ -442,7 +454,7 @@ apps/frappe/frappe/email/doctype/email_account/email_account.py,Automatic Linkin
 DocType: LDAP Settings,LDAP Middle Name Field,LDAP vidurinio vardo laukas
 apps/frappe/frappe/integrations/doctype/google_contacts/google_contacts.js,Importing {0} of {1},Importuojama {0} iš {1}
 DocType: GCalendar Account,Allow GCalendar Access,Leisti &quot;GCalendar&quot; prieigą
-apps/frappe/frappe/core/doctype/data_import/importer.py,{0} is a mandatory field,{0} yra privalomas laukas
+apps/frappe/frappe/core/doctype/data_import/importer_new.py,{0} is a mandatory field,{0} yra privalomas laukas
 apps/frappe/frappe/templates/includes/login/login.js,Login token required,Reikalingas prisijungimo raktas
 apps/frappe/frappe/desk/page/user_profile/user_profile.js,Monthly Rank: ,Mėnesio reitingas:
 apps/frappe/frappe/public/js/frappe/list/list_view.js,Select multiple list items,Pasirinkite kelis sąrašo elementus
@@ -472,6 +484,7 @@ apps/frappe/frappe/email/receive.py,Cannot connect: {0},Nepavyko prisijungti: {0
 apps/frappe/frappe/utils/password_strength.py,A word by itself is easy to guess.,Žodį vieną patį yra lengva atspėti.
 apps/frappe/frappe/automation/doctype/assignment_rule/assignment_rule.py,Auto assignment failed: {0},Automatinis priskyrimas nepavyko: {0}
 apps/frappe/frappe/templates/includes/search_box.html,Search...,Paieška...
+apps/frappe/frappe/desk/page/leaderboard/leaderboard.js,Please select Company,Prašome pasirinkti kompaniją
 apps/frappe/frappe/utils/nestedset.py,Merging is only possible between Group-to-Group or Leaf Node-to-Leaf Node,Sujungimas yra galimas tik tarp grupės iki grupės arba lapų mazgas iki Leaf mazgo
 apps/frappe/frappe/utils/file_manager.py,Added {0},Pridėta {0}
 apps/frappe/frappe/templates/includes/search_template.html,No matching records. Search something new,Nėra atitinkančių įrašų. Paieška kažką naujo
@@ -484,7 +497,6 @@ DocType: Google Settings,OAuth Client ID,„OAuth“ kliento ID
 DocType: Auto Repeat,Subject,tema
 apps/frappe/frappe/templates/pages/integrations/gcalendar-success.html,Back to Desk,Atgal į stalą
 DocType: Web Form,Amount Based On Field,Suma pagal lauko
-apps/frappe/frappe/email/smtp.py,Please setup default Email Account from Setup &gt; Email &gt; Email Account,Nustatykite numatytąją el. Pašto paskyrą iš sąrankos&gt; El. Paštas&gt; El. Pašto abonementas
 apps/frappe/frappe/core/doctype/docshare/docshare.py,User is mandatory for Share,Vartotojas yra privalomas Share
 DocType: DocField,Hidden,Paslėptas
 DocType: Web Form,Allow Incomplete Forms,Leiskite neišsami Forms
@@ -521,6 +533,7 @@ apps/frappe/frappe/utils/data.py,{0} and {1},{0} ir {1}
 apps/frappe/frappe/public/js/frappe/chat.js,Start a conversation.,Pradėkite pokalbį.
 DocType: Print Settings,"Always add ""Draft"" Heading for printing draft documents",Visada pridėti &quot;Juodraštis&quot; kategorija spausdinimo dokumentų projektų
 apps/frappe/frappe/email/doctype/notification/notification.py,Error in Notification: {},Pranešimo klaida: {}
+apps/frappe/frappe/public/js/frappe/utils/pretty_date.js,&gt; {0} year(s) ago,&gt; Prieš {0} metus (-ių)
 DocType: Data Migration Run,Current Mapping Start,Dabartinė žemėlapių pradžia
 apps/frappe/frappe/core/doctype/communication/communication.js,Email has been marked as spam,Laiškas buvo pažymėtas kaip šlamštas
 DocType: Comment,Website Manager,Interneto svetainė direktorius
@@ -559,6 +572,7 @@ DocType: Workflow State,barcode,brūkšninis kodas
 apps/frappe/frappe/model/db_query.py,Use of sub-query or function is restricted,Sub-užklausos ar funkcijos naudojimas yra ribojamas
 apps/frappe/frappe/config/customization.py,Add your own translations,Pridėti savo vertimo
 DocType: Country,Country Name,šalies pavadinimas
+apps/frappe/frappe/public/js/frappe/data_import/data_exporter.js,Blank Template,Tuščias šablonas
 DocType: About Us Team Member,About Us Team Member,Apie mus komandos narys
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,"Permissions are set on Roles and Document Types (called DocTypes) by setting rights like Read, Write, Create, Delete, Submit, Cancel, Amend, Report, Import, Export, Print, Email and Set User Permissions.","Leidimai yra nustatyti vaidmenis ir dokumentų tipai (vadinami DocTypes) Nustatydami teises kaip skaityti, rašyti, kurti, ištrinti, teikia, atšaukti pakeisti, ataskaita, importas, eksportas, Spausdinti, elektroninio pašto adresą ir nustatyti vartotojo Permissions."
 DocType: Event,Wednesday,trečiadienis
@@ -570,6 +584,7 @@ DocType: Website Settings,Website Theme Image Link,Interneto svetainė Tema nuor
 DocType: Web Form,Sidebar Items,Sidebar daiktai
 DocType: Web Form,Show as Grid,Rodyti kaip tinklelis
 apps/frappe/frappe/installer.py,App {0} already installed,Programa {0} jau įdiegta
+DocType: Energy Point Rule,Users assigned to the reference document will get points.,"Naudotojai, priskirti referenciniam dokumentui, gaus taškus."
 apps/frappe/frappe/printing/doctype/print_settings/print_settings.js,No Preview,Nėra peržiūros
 DocType: Workflow State,exclamation-sign,šauktukas-ženklas
 apps/frappe/frappe/public/js/frappe/views/file/file_view.js,Unzipped {0} files,Neišpakuoti {0} failai
@@ -605,6 +620,7 @@ DocType: Notification,Days Before,dienų iki
 apps/frappe/frappe/desk/doctype/event/event.py,Daily Events should finish on the Same Day.,Dienos įvykiai turėtų būti baigti tą pačią dieną.
 apps/frappe/frappe/core/page/dashboard/dashboard.js,Edit...,Redaguoti...
 DocType: Workflow State,volume-down,Kiekis apačią
+apps/frappe/frappe/auth.py,Access not allowed from this IP Address,Prieiga neleidžiama iš šio IP adreso
 apps/frappe/frappe/desk/reportview.py,No Tags,Žymų nėra
 DocType: Email Account,Send Notification to,Siųsti pranešimą į
 DocType: DocField,Collapsible,išardomas
@@ -661,6 +677,7 @@ apps/frappe/frappe/integrations/doctype/s3_backup_settings/s3_backup_settings.js
 apps/frappe/frappe/config/desktop.py,Developer,Programuotojas
 apps/frappe/frappe/public/js/frappe/form/footer/timeline.js,Created,Sukurta
 apps/frappe/frappe/website/doctype/website_settings/website_settings.py,{0} in row {1} cannot have both URL and child items,{0} iš eilės {1} negali turėti abiejų URL ir vaiko daiktus
+apps/frappe/frappe/core/doctype/data_import/importer_new.py,There should be atleast one row for the following tables: {0},Šiose lentelėse turėtų būti bent viena eilutė: {0}
 DocType: Print Format,Default Print Language,Numatytoji spausdinimo kalba
 apps/frappe/frappe/public/js/frappe/ui/filters/filter.js,Ancestors Of,Protėviai
 apps/frappe/frappe/utils/nestedset.py,Root {0} cannot be deleted,Šaknis {0} ištrinti negalima
@@ -703,6 +720,7 @@ apps/frappe/frappe/automation/doctype/auto_repeat/auto_repeat.py,{0} is an inval
 DocType: Footer Item,"target = ""_blank""",target = &quot;_ blank&quot;
 DocType: Workflow State,hdd,HDD
 DocType: Integration Request,Host,kariuomenė
+DocType: Data Import Beta,Import File,Importuoti failą
 apps/frappe/frappe/desk/doctype/kanban_board/kanban_board.py,Column <b>{0}</b> already exist.,Skiltis <b>{0}</b> jau egzistuoja.
 DocType: ToDo,High,aukštas
 apps/frappe/frappe/public/js/frappe/form/templates/timeline.html,New Event,Naujas įvykis
@@ -731,8 +749,6 @@ DocType: User,Send Notifications for Email threads,Siųsti pranešimus apie el. 
 apps/frappe/frappe/desk/page/setup_wizard/install_fixtures.py,Prof,prof
 apps/frappe/frappe/core/doctype/page/page.py,Not in Developer Mode,Ne kūrėjo režimu
 apps/frappe/frappe/desk/page/backups/backups.py,File backup is ready,Failo atsarginė kopija paruošta
-DocType: Energy Point Rule,"Maximum points allowed after multiplying points with the multiplier value
-(Note: For no limit set value as 0)",Maksimalūs leidžiami taškai padauginus taškus iš daugiklio vertės (pastaba: neribotai vertei nustatykite 0)
 DocType: DocField,In Global Search,Global paieška
 DocType: System Settings,Brute Force Security,Brute Force Security
 DocType: Workflow State,indent-left,įtrauka kairiajame
@@ -775,6 +791,7 @@ apps/frappe/frappe/public/js/frappe/list/bulk_operations.js,Select atleast 1 rec
 apps/frappe/frappe/core/doctype/has_role/has_role.py,User '{0}' already has the role '{1}',Vartotojo {0} &quot;jau turi vaidmenį&quot; {1} &quot;
 DocType: System Settings,Two Factor Authentication method,Du faktoriaus autentifikavimo metodai
 apps/frappe/frappe/website/doctype/website_slideshow/website_slideshow.js,First set the name and save the record.,Pirmiausia nustatykite vardą ir įrašykite įrašą.
+apps/frappe/frappe/public/js/frappe/data_import/data_exporter.js,5 Records,5 įrašai
 apps/frappe/frappe/public/js/frappe/form/sidebar/share.js,Shared with {0},Dalijamasi su {0}
 apps/frappe/frappe/email/queue.py,Unsubscribe,Atsisakyti
 DocType: View Log,Reference Name,Nuorodoje
@@ -825,6 +842,8 @@ apps/frappe/frappe/public/js/frappe/utils/energy_point_utils.js,{0} reverted {1}
 DocType: Email Account,Track Email Status,Stebėti el. Pašto būseną
 DocType: Note,Notify Users On Every Login,Praneškite Vartotojai kiekvieno prisijungimo metu
 DocType: Note,Notify Users On Every Login,Praneškite Vartotojai kiekvieno prisijungimo metu
+apps/frappe/frappe/core/doctype/data_import/importer_new.py,Cannot match column {0} with any field,{0} stulpelio negalima sutapti su jokiu lauku
+apps/frappe/frappe/core/doctype/data_import_beta/data_import_beta.js,Successfully updated {0} records.,Sėkmingai atnaujinti {0} įrašai.
 DocType: PayPal Settings,API Password,API Slaptažodžių
 apps/frappe/frappe/data_migration/doctype/data_migration_connector/data_migration_connector.py,Enter python module or select connector type,Įveskite &quot;python&quot; modulį arba pasirinkite jungties tipą
 apps/frappe/frappe/custom/doctype/custom_field/custom_field.py,Fieldname not set for Custom Field,Nazwapola nenustatyti Custom Field
@@ -853,9 +872,11 @@ apps/frappe/frappe/auth.py,Your account has been locked and will resume after {0
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,User Permissions are used to limit users to specific records.,Naudotojų leidimai naudojami norint apriboti naudotojus konkrečiais įrašais.
 DocType: Notification,Value Changed,vertė Pakeitė
 apps/frappe/frappe/model/base_document.py,Duplicate name {0} {1},Duplicate vardas {0} {1}
-DocType: Email Queue,Retry,Dar kartą pabandyti
+apps/frappe/frappe/core/doctype/data_import_beta/data_import_beta.js,Retry,Dar kartą pabandyti
+DocType: Contact Phone,Number,Numeris
 DocType: Web Form Field,Web Form Field,Interneto formos laukas
 apps/frappe/frappe/templates/emails/new_message.html,You have a new message from: ,Jūs turite naują pranešimą iš:
+apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,"For comparison, use &gt;5, &lt;10 or =324. For ranges, use 5:10 (for values between 5 &amp; 10).","Palyginimui naudokite&gt; 5, &lt;10 arba = 324. Diapazonams naudokite 5:10 (vertėms nuo 5 iki 10)."
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder_field.html,Edit HTML,Redaguoti HTML
 apps/frappe/frappe/integrations/doctype/social_login_key/social_login_key.py,Please enter Redirect URL,Įveskite nukreipimo URL
 apps/frappe/frappe/core/doctype/language/language.py,"{0} must begin and end with a letter and can only contain letters,
@@ -881,7 +902,7 @@ DocType: Notification,View Properties (via Customize Form),Peržiūrėti objektu
 apps/frappe/frappe/public/js/frappe/file_uploader/FileUploader.vue,Click on a file to select it.,"Spustelėkite failą, kad jį pasirinktumėte."
 DocType: Note Seen By,Note Seen By,Pastaba matyti
 apps/frappe/frappe/utils/password_strength.py,Try to use a longer keyboard pattern with more turns,Stenkitės naudoti ilgesnį klaviatūros modelį su daugiau vijų
-apps/frappe/frappe/desk/page/user_profile/user_profile_sidebar.html,LeaderBoard,Lyderių
+,LeaderBoard,Lyderių
 DocType: DocType,Default Sort Order,Numatytoji rūšiavimo tvarka
 DocType: Address,Rajasthan,Radžastano
 DocType: Email Template,Email Reply Help,Siųsti el. Atsakymą Pagalba
@@ -916,6 +937,7 @@ apps/frappe/frappe/utils/data.py,Cent,centas
 apps/frappe/frappe/public/js/frappe/views/inbox/inbox_view.js,Compose Email,rašyti laišką
 apps/frappe/frappe/config/settings.py,"States for workflow (e.g. Draft, Approved, Cancelled).","Narių eigos (pvz projektas, patvirtintas, atšaukta)."
 DocType: Print Settings,Allow Print for Draft,Leiskite Spausdinti projekto
+apps/frappe/frappe/public/js/frappe/form/print.js,"Error connecting to QZ Tray Application...<br><br> You need to have QZ Tray application installed and running, to use the Raw Print feature.<br><br><a href=""https://qz.io/download/"" target=""_blank"">Click here to Download and install QZ Tray</a>.<br> <a href=""https://erpnext.com/docs/user/manual/en/setting-up/print/raw-printing"" target=""_blank"">Click here to learn more about Raw Printing</a>.","Klaida jungiantis prie „QZ Tray Application“ ... <br><br> Jei norite naudoti neapdoroto spausdinimo funkciją, turite būti įdiegta ir paleista „QZ Tray“ programa. <br><br> <a href=""https://qz.io/download/"" target=""_blank"">Spustelėkite čia, jei norite atsisiųsti ir įdiegti „QZ Tray“</a> . <br> <a href=""https://erpnext.com/docs/user/manual/en/setting-up/print/raw-printing"" target=""_blank"">Spustelėkite čia, jei norite sužinoti daugiau apie neapdorotą spausdinimą</a> ."
 apps/frappe/frappe/public/js/frappe/form/link_selector.js,Set Quantity,nustatytas kiekis
 apps/frappe/frappe/public/js/frappe/form/form.js,Submit this document to confirm,Pateikti šį dokumentą patvirtinti
 DocType: Contact,Unsubscribed,neišplatintos
@@ -947,6 +969,7 @@ DocType: LDAP Settings,Organizational Unit for Users,Organizacinis vienetas vart
 ,Transaction Log Report,Sandorių žurnalo ataskaita
 DocType: Custom DocPerm,Custom DocPerm,Pasirinktinis DocPerm
 DocType: Newsletter,Send Unsubscribe Link,Siųsti Atsisakyti Link
+apps/frappe/frappe/core/doctype/data_import_beta/data_import_beta.js,There are some linked records which needs to be created before we can import your file. Do you want to create the following missing records automatically?,"Yra keletas susietų įrašų, kuriuos reikia sukurti, kad galėtume importuoti jūsų failą. Ar norite automatiškai sukurti šiuos trūkstamus įrašus?"
 DocType: Access Log,Method,metodas
 DocType: Report,Script Report,scenarijaus ataskaita
 DocType: OAuth Authorization Code,Scopes,Monokliai
@@ -988,6 +1011,7 @@ apps/frappe/frappe/integrations/doctype/google_calendar/google_calendar.js,Synci
 apps/frappe/frappe/public/js/frappe/file_uploader/FilePreview.vue,Uploaded successfully,Įkelta sėkmingai
 apps/frappe/frappe/public/js/frappe/dom.js,You are connected to internet.,Jūs esate prisijungę prie interneto.
 DocType: Social Login Key,Enable Social Login,Įgalinti socialinį prisijungimą
+DocType: Data Import Beta,Warnings,Įspėjimai
 DocType: Communication,Event,renginys
 apps/frappe/frappe/public/js/frappe/views/communication.js,"On {0}, {1} wrote:","Apie {0}, {1} rašė:"
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js,Cannot delete standard field. You can hide it if you want,"Negalite ištrinti standartinis lauką. Galite paslėpti jį, jei norite"
@@ -1043,6 +1067,7 @@ apps/frappe/frappe/public/js/frappe/form/grid_row_form.js,Insert Below,Įdėkite
 DocType: Kanban Board Column,Blue,mėlynas
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js,All customizations will be removed. Please confirm.,Visi tinkinimo bus pašalintas. Prašome patvirtinti.
 DocType: Page,Page HTML,HTML puslapyje
+apps/frappe/frappe/core/doctype/data_import_beta/data_import_beta.js,Export Errored Rows,Eksportuoti sugadintas eiles
 apps/frappe/frappe/chat/doctype/chat_room/chat_room.py,Group name cannot be empty.,Grupės pavadinimas negali būti tuščias.
 apps/frappe/frappe/public/js/frappe/views/treeview.js,Further nodes can be only created under 'Group' type nodes,Daugiau mazgai gali būti kuriamos tik pagal &quot;grupė&quot; tipo mazgų
 DocType: SMS Parameter,Header,antraštė
@@ -1082,13 +1107,13 @@ apps/frappe/frappe/website/doctype/website_theme/website_theme.js,"Add the name 
 apps/frappe/frappe/public/js/frappe/request.js,Request Timed Out,Užklausos laikas baigėsi
 apps/frappe/frappe/config/settings.py,Enable / Disable Domains,Įgalinti / išjungti domenus
 DocType: Role Permission for Page and Report,Allow Roles,Leiskite Vaidmenys
+apps/frappe/frappe/core/doctype/data_import_beta/data_import_beta.js,Successfully imported {0} records out of {1}.,Sėkmingai importuoti {0} įrašai iš {1}.
 DocType: Assignment Rule,"Simple Python Expression, Example: Status in (""Invalid"")","Paprastas Python išraiška, pavyzdys: būsena („Neteisinga“)"
 DocType: User,Last Active,Lankėsi
 DocType: Email Account,SMTP Settings for outgoing emails,SMTP parametrai išeinančių laiškų
 apps/frappe/frappe/public/js/frappe/file_uploader/FileUploader.vue,choose an,pasirinkti
 DocType: Data Export,Filter List,Filtrų sąrašas
 DocType: Data Export,Excel,Excel
-apps/frappe/frappe/templates/emails/password_update.html,Your password has been updated. Here is your new password,Jūsų slaptažodis buvo atnaujintas. Čia yra jūsų naują slaptažodį
 DocType: Email Account,Auto Reply Message,Automatinis Atsakyti pranešimas
 DocType: Data Migration Mapping,Condition,būklė
 apps/frappe/frappe/utils/data.py,{0} hours ago,prieš {0} valandos
@@ -1097,7 +1122,6 @@ apps/frappe/frappe/public/js/frappe/list/list_sidebar_group_by.js,Not Specified,
 DocType: Contact,User ID,Vartotojo ID
 DocType: Communication,Sent,siunčiami
 DocType: Address,Kerala,Kerala
-DocType: File,Lft,LFT
 apps/frappe/frappe/public/js/frappe/desk.js,Administration,Administracija
 DocType: User,Simultaneous Sessions,Sinchroninio posėdžiai
 DocType: Social Login Key,Client Credentials,klientų kvalifikaciniai
@@ -1129,7 +1153,6 @@ apps/frappe/frappe/desk/page/activity/activity_row.html,Updated {0}: {1},Atnauji
 apps/frappe/frappe/desk/page/setup_wizard/install_fixtures.py,Master,meistras
 DocType: DocType,User Cannot Create,Vartotojas negali Sukurti
 apps/frappe/frappe/social/doctype/energy_point_settings/energy_point_settings.js,Successfully Done,Sėkmingai padaryta
-apps/frappe/frappe/core/doctype/file/file.py,Folder {0} does not exist,Aplankas {0} neegzistuoja
 apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py,Dropbox access is approved!,ZMI prieiga yra patvirtintas!
 DocType: Customize Form,Enter Form Type,Įveskite formos tipas
 DocType: Google Drive,Authorize Google Drive Access,Įgalioti „Google“ disko prieigą
@@ -1137,7 +1160,6 @@ apps/frappe/frappe/public/js/frappe/views/kanban/kanban_view.js,Missing paramete
 apps/frappe/frappe/public/js/frappe/list/list_sidebar_stat.html,No records tagged.,Nėra įrašų pažymėti.
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js,Remove Field,pašalinti laukas
 apps/frappe/frappe/public/js/frappe/request.js,You are not connected to Internet. Retry after sometime.,Jūs nesate prisijungę prie interneto. Pakartotinai pabandykite.
-DocType: User,Send Password Update Notification,Siųsti slaptažodį Pranešimas Update
 apps/frappe/frappe/public/js/frappe/form/form.js,"Allowing DocType, DocType. Be careful!","Leidimas dokumentų tipas, tipas. Būk atsargus!"
 apps/frappe/frappe/config/core.py,"Customized Formats for Printing, Email","Individualus formatai Spausdinimas, elektroninio pašto"
 apps/frappe/frappe/public/js/frappe/ui/group_by/group_by.js,Sum of {0},{0} suma
@@ -1223,6 +1245,7 @@ apps/frappe/frappe/twofactor.py,Incorrect Verification code,Neteisingas patvirti
 apps/frappe/frappe/integrations/doctype/google_contacts/google_contacts.py,Google Contacts Integration is disabled.,„Google“ kontaktų integracija neleidžiama.
 DocType: Assignment Rule,Description,Prekės ir paslaugos pavadinimas
 DocType: Print Settings,Repeat Header and Footer in PDF,Pakartokite parašą PDF formate
+apps/frappe/frappe/core/doctype/data_import_beta/data_import_beta.js,Failure,Nesėkmė
 DocType: Address Template,Is Default,numatytoji
 DocType: Data Migration Connector,Connector Type,Jungties tipas
 apps/frappe/frappe/desk/doctype/kanban_board/kanban_board.py,Column Name cannot be empty,Stulpelio pavadinimas gali būti netuščias
@@ -1235,6 +1258,7 @@ apps/frappe/frappe/core/doctype/page/page.js,Go to {0} Page,Eikite į {0} puslap
 DocType: LDAP Settings,Password for Base DN,Slaptažodis Base DN
 apps/frappe/frappe/core/doctype/version/version_view.html,Table Field,stalo laukas
 apps/frappe/frappe/public/js/frappe/views/kanban/kanban_view.js,Columns based on,Stulpeliai remiantis
+apps/frappe/frappe/core/doctype/data_import_beta/data_import_beta.js,"Importing {0} of {1}, {2}","Importuojama {0} iš {1}, {2}"
 DocType: Workflow State,move,žingsnis
 apps/frappe/frappe/model/document.py,Action Failed,veiksmas Nepavyko
 apps/frappe/frappe/core/doctype/user_permission/user_permission_list.js,For User,vartotojui
@@ -1288,6 +1312,7 @@ DocType: Print Settings,Enable Raw Printing,Įgalinti neapdorotą spausdinimą
 DocType: Website Route Redirect,Source,šaltinis
 apps/frappe/frappe/templates/includes/list/filters.html,clear,aiškus
 apps/frappe/frappe/core/page/background_jobs/background_jobs.html,Finished,Baigta
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Setup &gt; User,Sąranka&gt; vartotojas
 DocType: Prepared Report,Filter Values,Filtro vertės
 DocType: Communication,User Tags,Vartotojo Žymos
 DocType: Data Migration Run,Fail,Nepavyko
@@ -1344,6 +1369,7 @@ apps/frappe/frappe/public/js/frappe/form/templates/form_sidebar.html,Follow,Seki
 ,Activity,veikla
 DocType: Note,"Help: To link to another record in the system, use ""#Form/Note/[Note Name]"" as the Link URL. (don't use ""http://"")","Pagalba: nukreipti į kitą įrašą į sistemą, naudokite &quot;# Forma / pastaba / [Pastaba pavadinimas]&quot;, kaip Link URL. (Nenaudokite &quot;http: //&quot;)"
 DocType: User Permission,Allow,Leiskite
+DocType: Data Import Beta,Update Existing Records,Atnaujinkite esamus įrašus
 apps/frappe/frappe/utils/password_strength.py,Let's avoid repeated words and characters,Leiskite išvengti pakartotinių žodžius ir simbolius
 DocType: Energy Point Rule,Energy Point Rule,Energijos taško taisyklė
 DocType: Communication,Delayed,atidėtas
@@ -1356,9 +1382,7 @@ DocType: Milestone,Track Field,Bėgių laukas
 DocType: Notification,Set Property After Alert,Nustatyti Turto Po Uždaryti
 apps/frappe/frappe/config/customization.py,Add fields to forms.,Pridėti laukus formas.
 apps/frappe/frappe/integrations/doctype/paypal_settings/paypal_settings.py,Looks like something is wrong with this site's Paypal configuration.,"Atrodo, kad kažkas yra negerai su šiuo svetainės Paypal konfigūracijos."
-apps/frappe/frappe/public/js/frappe/form/print.js,"Error connecting to QZ Tray Application...<br><br> You need to have QZ Tray application installed and running, to use the Raw Print feature.<br><br><a href=""https://qz.io/download/"" target=""_blank"">Click here to Download and install QZ Tray</a>.<br> <a href=""https://erpnext.com/docs/user/manual/en/setting-up/print/raw-printing"" target=""_blank"">Click here to learn more about Raw Printing</a>.","Klaida jungiantis prie „QZ Tray Application“ ... <br><br> Jei norite naudoti neapdoroto spausdinimo funkciją, turite būti įdiegta ir paleista „QZ Tray“ programa. <br><br> <a href=""https://qz.io/download/"" target=""_blank"">Spustelėkite čia, jei norite atsisiųsti ir įdiegti „QZ Tray“</a> . <br> <a href=""https://erpnext.com/docs/user/manual/en/setting-up/print/raw-printing"" target=""_blank"">Spustelėkite čia, jei norite sužinoti daugiau apie neapdorotą spausdinimą</a> ."
 apps/frappe/frappe/public/js/frappe/form/sidebar/review.js,Add Review,Pridėti apžvalgą
-DocType: File,rgt,RGT
 apps/frappe/frappe/website/doctype/website_theme/website_theme.js,Font Size (px),Šrifto dydis (px)
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.py,Only standard DocTypes are allowed to be customized from Customize Form.,Iš tinkinimo formos leidžiama tinkinti tik standartinius „DocTypes“.
 DocType: Email Account,Sendgrid,Sendgrid
@@ -1395,6 +1419,7 @@ apps/frappe/frappe/public/js/frappe/ui/filters/filters.js,Filter {0} missing,Fil
 apps/frappe/frappe/core/doctype/activity_log/activity_log.py,Sorry! You cannot delete auto-generated comments,Atsiprašau! Jūs negalite trinti automatiškai sugeneruotus komentarų
 DocType: Google Settings,Used For Google Maps Integration.,Naudojama „Google Maps“ integracijai.
 apps/frappe/frappe/core/doctype/communication/communication.js,Reference DocType,nuoroda dokumentų tipas
+apps/frappe/frappe/public/js/frappe/data_import/data_exporter.js,No records will be exported,Įrašai nebus eksportuojami
 DocType: User,System User,sistemos dalyvis
 DocType: Report,Is Standard,Ar Standartinė
 DocType: Desktop Icon,_report,_report
@@ -1410,6 +1435,7 @@ DocType: Workflow State,minus-sign,minus ženklas
 apps/frappe/frappe/public/js/frappe/request.js,Not Found,Nerastas
 apps/frappe/frappe/www/printview.py,No {0} permission,Nėra {0} leidimas
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js,Export Custom Permissions,Eksporto Custom leidimai
+apps/frappe/frappe/desk/page/leaderboard/leaderboard.js,No items found.,Nerasta daiktų.
 DocType: Data Export,Fields Multicheck,Laukai Multicheck
 DocType: Activity Log,Login,Prisijungti
 DocType: Web Form,Payments,Mokėjimai
@@ -1470,8 +1496,9 @@ DocType: Address,Postal,pašto
 DocType: Email Account,Default Incoming,numatytasis Priimamojo
 DocType: Workflow State,repeat,pakartoti
 DocType: Website Settings,Banner,vėliava
+apps/frappe/frappe/core/doctype/data_import/importer_new.py,Value must be one of {0},Vertė turi būti viena iš {0}
 DocType: Role,"If disabled, this role will be removed from all users.","Jei išjungta, šis vaidmuo bus pašalintos iš visų vartotojų."
-apps/frappe/frappe/core/doctype/doctype/doctype.js,Go to {0} List,Eikite į {0} sąrašą
+apps/frappe/frappe/core/doctype/data_import_beta/data_import_beta.js,Go to {0} List,Eikite į {0} sąrašą
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js,Help on Search,Pagalba dėl Ieškoti
 DocType: Milestone,Milestone Tracker,„Milestone Tracker“
 apps/frappe/frappe/core/doctype/user/user.py,Registered but disabled,"Užsiregistravau, tačiau neįgaliesiems"
@@ -1485,6 +1512,7 @@ DocType: Data Migration Mapping Detail,Local Fieldname,Vietinis lauko pavadinima
 DocType: DocType,Track Changes,Kurso pakeitimai
 DocType: Workflow State,Check,Tikrinti
 DocType: Chat Profile,Offline,Atsijungęs
+apps/frappe/frappe/core/doctype/data_import_beta/data_import_beta.js,Successfully imported {0},Sėkmingai importuota {0}
 DocType: User,API Key,&quot;API raktas
 DocType: Email Account,Send unsubscribe message in email,Siųsti Atsisakyti pranešimą elektroniniu paštu
 apps/frappe/frappe/public/js/frappe/form/toolbar.js,Edit Title,Redaguoti Pavadinimas
@@ -1511,11 +1539,11 @@ apps/frappe/frappe/public/js/frappe/views/communication.js,Attach Document Print
 DocType: Bulk Update,Field,laukas
 DocType: Communication,Received,gavo
 DocType: Notification,"Trigger on valid methods like ""before_insert"", ""after_update"", etc (will depend on the DocType selected)","Sukelti ant patvirtintais metodais, pavyzdžiui, &quot;before_insert&quot;, &quot;after_update&quot;, ir tt (priklauso nuo dokumentų tipas pasirinktos)"
+apps/frappe/frappe/public/js/frappe/form/footer/timeline.js,changed value of {0} {1},pakeista {0} {1} vertė
 apps/frappe/frappe/core/doctype/user/user.py,Adding System Manager to this User as there must be atleast one System Manager,Įrašyta System Manager šį vartotoją kaip ten turi būti atleast viena sistema direktorius
 DocType: Chat Message,URLs,URL adresai
 DocType: Data Migration Run,Total Pages,Iš viso puslapių
 apps/frappe/frappe/core/doctype/user_permission/user_permission.py,{0} has already assigned default value for {1}.,{0} jau priskyrė numatytąją vertę {1}.
-apps/frappe/frappe/public/js/frappe/ui/toolbar/search.js,<p>No results found for '</p>,<p> Paieškos rezultatų nerasta </p>
 DocType: DocField,Attach Image,prisegti Image
 DocType: Workflow State,list-alt,sąrašas Alt
 apps/frappe/frappe/www/update-password.html,Password Updated,Slaptažodis Atnaujinta
@@ -1536,8 +1564,10 @@ apps/frappe/frappe/permissions.py,Not allowed for {0}: {1},Neleidžiama {0}: {1}
 apps/frappe/frappe/email/doctype/auto_email_report/auto_email_report.py,"%s is not a valid report format. Report format should \
 				one of the following %s",%s yra neteisingas ataskaitos formatas. Ataskaitos formatas turi \ būti vienas iš išvardintų %s
 DocType: Chat Message,Chat,kalbėtis
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Setup &gt; User Permissions,Sąranka&gt; Vartotojo leidimai
 DocType: LDAP Group Mapping,LDAP Group Mapping,LDAP grupės žemėlapis
 DocType: Dashboard Chart,Chart Options,Diagramos parinktys
+apps/frappe/frappe/public/js/frappe/data_import/import_preview.js,Untitled Column,Stulpelis be pavadinimo
 apps/frappe/frappe/public/js/frappe/form/footer/timeline.js,{0} from {1} to {2} in row #{3},{0} iš {1} ir {2} į eilutėse # {3}
 DocType: Communication,Expired,baigėsi
 apps/frappe/frappe/templates/pages/integrations/razorpay_checkout.py,Seems token you are using is invalid!,"Atrodo, kad naudojamas tokenas yra neteisingas!"
@@ -1547,6 +1577,7 @@ DocType: DocType,System,sistema
 DocType: Web Form,Max Attachment Size (in MB),Maksimalus priedo dydis (MB)
 apps/frappe/frappe/www/login.html,Have an account? Login,Turite sąskaitą? Prisijungti
 DocType: Workflow State,arrow-down,rodyklė žemyn
+apps/frappe/frappe/core/doctype/data_import_beta/data_import_beta.js,Row {0},{0} eilutė
 apps/frappe/frappe/model/delete_doc.py,User not allowed to delete {0}: {1},Vartotojas neleidžiama ištrinti {0}: {1}
 apps/frappe/frappe/public/js/frappe/list/list_view.js,{0} of {1},{0} iš {1}
 apps/frappe/frappe/public/js/frappe/model/model.js,Last Updated On,Atnaujinta
@@ -1564,6 +1595,7 @@ DocType: Custom Role,Custom Role,Pasirinktinis vaidmuo
 apps/frappe/frappe/core/doctype/file/test_file.py,Home/Test Folder 2,Pagrindinis / Testas Aplankas 2
 apps/frappe/frappe/public/js/frappe/ui/messages.js,Enter your password,Įveskite savo slaptažodį
 DocType: Dropbox Settings,Dropbox Access Secret,ZMI Prieiga paslaptis
+apps/frappe/frappe/public/js/frappe/data_import/data_exporter.js,(Mandatory),(Privaloma)
 DocType: Social Login Key,Social Login Provider,Socialinės paskyros teikėjas
 apps/frappe/frappe/templates/includes/comments/comments.html,Add Another Comment,Pridėti kitą komentarą
 apps/frappe/frappe/core/doctype/data_import/importer.py,No data found in the file. Please reattach the new file with data.,Failo nerasta. Prašome dar kartą pridėti naują failą su duomenimis.
@@ -1638,6 +1670,7 @@ apps/frappe/frappe/desk/doctype/dashboard/dashboard.js,Show Dashboard,Rodyti inf
 apps/frappe/frappe/desk/form/assign_to.py,New Message,Nauja žinutė
 DocType: File,Preview HTML,Peržiūrėti HTML
 DocType: Desktop Icon,query-report,Užklausa-ataskaita
+DocType: Data Import Beta,Template Warnings,Šablono įspėjimai
 apps/frappe/frappe/public/js/frappe/views/kanban/kanban_view.js,Filters saved,Filtrai išsaugotas
 DocType: DocField,Percent,procentai
 apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,Please set filters,Prašome nustatyti filtrai
@@ -1659,6 +1692,7 @@ DocType: Custom Field,Custom,paprotys
 DocType: System Settings,"If enabled, users who login from Restricted IP Address, won't be prompted for Two Factor Auth","Jei įjungta, vartotojai, kurie prisijungs iš riboto IP adreso, nebus paraginti &quot;Two Factor Auth&quot;"
 DocType: Auto Repeat,Get Contacts,Gaukite kontaktus
 apps/frappe/frappe/website/doctype/blog_post/blog_post.py,Posts filed under {0},"Postus, filed under {0}"
+apps/frappe/frappe/core/doctype/data_import/importer_new.py,Skipping Untitled Column,Praleidžiant stulpelį be pavadinimo
 DocType: Notification,Send alert if date matches this field's value,"Siųsti perspėjimą, jei data atitinka šioje srityje vertę"
 DocType: Workflow,Transitions,perėjimai
 apps/frappe/frappe/desk/page/activity/activity_row.html,{0} {1} to {2},{0} {1} ir {2}
@@ -1682,6 +1716,7 @@ DocType: Workflow State,step-backward,žingsnis atgal
 apps/frappe/frappe/utils/boilerplate.py,{app_title},{app_title}
 apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py,Please set Dropbox access keys in your site config,Prašome nustatyti Dropbox prieigos raktus į savo svetainę config
 apps/frappe/frappe/email/doctype/email_unsubscribe/email_unsubscribe.py,Delete this record to allow sending to this email address,"Ištrinti šį įrašą, kad būtų galima siųsti į šį elektroninio pašto adresą"
+DocType: Email Account,"If non-standard port (e.g. POP3: 995/110, IMAP: 993/143)","Jei nestandartinis prievadas (pvz., POP3: 995/110, IMAP: 993/143)"
 apps/frappe/frappe/public/js/frappe/views/components/DeskSection.vue,Customize Shortcuts,Tinkinkite sparčiuosius klavišus
 apps/frappe/frappe/core/doctype/data_export/exporter.py,Only mandatory fields are necessary for new records. You can delete non-mandatory columns if you wish.,"Tik privalomi laukai yra būtini naujų įrašų. Jūs galite ištrinti neprivalomi stulpelius, jei norite."
 apps/frappe/frappe/desk/page/user_profile/user_profile.html,Show More Activity,Rodyti daugiau veiklos
@@ -1789,7 +1824,9 @@ DocType: Note,Seen By Table,Matyti lentelėje
 apps/frappe/frappe/www/third_party_apps.html,Logged in,Prisijungęs
 apps/frappe/frappe/email/doctype/email_account/email_account_list.js,Default Sending and Inbox,Numatytasis siuntimas ir Gautieji
 DocType: System Settings,OTP App,OTP programa
+apps/frappe/frappe/core/doctype/data_import_beta/data_import_beta.js,Successfully updated {0} record out of {1}.,Sėkmingai atnaujintas {0} įrašas iš {1}.
 DocType: Google Drive,Send Email for Successful Backup,Siųsti sėkmingo atsarginio kopijavimo el. Laišką
+apps/frappe/frappe/core/doctype/data_import_beta/data_import_beta.py,Scheduler is inactive. Cannot import data.,Tvarkaraštis neaktyvus. Neįmanoma importuoti duomenų.
 DocType: Print Settings,Letter,laiškas
 DocType: DocType,"Naming Options:
 <ol><li><b>field:[fieldname]</b> - By Field</li><li><b>naming_series:</b> - By Naming Series (field called naming_series must be present</li><li><b>Prompt</b> - Prompt user for a name</li><li><b>[series]</b> - Series by prefix (separated by a dot); for example PRE.#####</li>
@@ -1803,6 +1840,7 @@ DocType: GCalendar Account,Next Sync Token,Next Sync Token
 DocType: Energy Point Settings,Energy Point Settings,Energijos taško nustatymai
 DocType: Async Task,Succeeded,pavyko
 apps/frappe/frappe/public/js/frappe/form/save.js,Mandatory fields required in {0},Privalomi laukeliai reikalingi {0}
+apps/frappe/frappe/public/js/frappe/ui/toolbar/search.js,<p>No results found for '</p>,<p> Paieškos rezultatų nerasta </p>
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js,Reset Permissions for {0}?,Atstatyti Leidimai {0}?
 apps/frappe/frappe/config/desktop.py,Users and Permissions,Vartotojai ir leidimai
 DocType: S3 Backup Settings,S3 Backup Settings,S3 atsarginių kopijų nustatymai
@@ -1873,6 +1911,7 @@ apps/frappe/frappe/public/js/frappe/ui/filters/filters.js,In,į
 DocType: Notification,Value Change,Reikšmė pokytis
 DocType: Google Contacts,Authorize Google Contacts Access,Įgalioti „Google“ kontaktų prieigą
 apps/frappe/frappe/public/js/frappe/views/reports/report_view.js,Showing only Numeric fields from Report,Rodomi tik skaitiniai laukai iš ataskaitos
+DocType: Data Import Beta,Import Type,Importo tipas
 DocType: Access Log,HTML Page,HTML puslapis
 DocType: Address,Subsidiary,filialas
 apps/frappe/frappe/public/js/frappe/form/print.js,Attempting Connection to QZ Tray...,Bandoma prisijungti prie QZ dėklo ...
@@ -1883,7 +1922,7 @@ apps/frappe/frappe/email/smtp.py,Invalid Outgoing Mail Server or Port,Neteisinga
 DocType: Custom DocPerm,Write,rašyti
 apps/frappe/frappe/core/doctype/report/report.py,Only Administrator allowed to create Query / Script Reports,Tik administratorius gali sukurti užklausa / script ataskaitos
 apps/frappe/frappe/public/js/frappe/form/save.js,Updating,atnaujinimas
-DocType: File,Preview,Peržiūrėti
+DocType: Data Import Beta,Preview,Peržiūrėti
 apps/frappe/frappe/desk/doctype/bulk_update/bulk_update.js,"Field ""value"" is mandatory. Please specify value to be updated",Laukas &quot;vertė&quot; yra privalomas. Prašome nurodyti vertę turi būti atnaujintas
 DocType: Customize Form,Use this fieldname to generate title,Naudokite šį nazwapola generuoti titulą
 apps/frappe/frappe/email/doctype/email_group/email_group.js,Import Email From,Importas laišką iš
@@ -1968,6 +2007,7 @@ apps/frappe/frappe/public/js/frappe/desk.js,Browser not supported,Naršyklė nep
 DocType: Social Login Key,Client URLs,Kliento URL
 apps/frappe/frappe/templates/pages/integrations/braintree_checkout.py,Some information is missing,Kai trūksta informacijos
 apps/frappe/frappe/public/js/frappe/views/interaction.js,{0} created successfully,{0} sėkmingai sukurtas
+apps/frappe/frappe/core/doctype/data_import_beta/data_import_beta.js,"Skipping {0} of {1}, {2}","Praleidžiamas {0} iš {1}, {2}"
 DocType: Custom DocPerm,Cancel,Atšaukti
 apps/frappe/frappe/core/doctype/user_permission/user_permission_list.js,Bulk Delete,Masinis ištrynimas
 apps/frappe/frappe/core/doctype/file/file.py,File {0} does not exist,Failo {0} neegzistuoja
@@ -1995,7 +2035,6 @@ DocType: GCalendar Account,Session Token,Sesijos ženklais
 DocType: Currency,Symbol,simbolis
 apps/frappe/frappe/model/base_document.py,Row #{0}:,Eilutės # {0}:
 apps/frappe/frappe/website/doctype/personal_data_deletion_request/personal_data_deletion_request.py,Confirm Deletion of Data,Patvirtinkite duomenų ištrynimą
-apps/frappe/frappe/core/doctype/user/user.py,New password emailed,Naujas slaptažodis išsiųstas
 apps/frappe/frappe/auth.py,Login not allowed at this time,Prisijungti neleidžiama šiuo metu
 DocType: Data Migration Run,Current Mapping Action,Dabartinis kartografavimo veiksmas
 DocType: Dashboard Chart Source,Source Name,šaltinis Vardas
@@ -2008,6 +2047,7 @@ apps/frappe/frappe/public/js/frappe/social/components/Post.vue,Pin Globally,Pris
 apps/frappe/frappe/public/js/frappe/form/templates/form_sidebar.html,Followed by,Paskui
 DocType: LDAP Settings,LDAP Email Field,LDAP paštas laukas
 apps/frappe/frappe/core/page/dashboard/dashboard.js,{0} List,{0} Sąrašas
+apps/frappe/frappe/public/js/frappe/data_import/data_exporter.js,Export {0} records,Eksportuoti {0} įrašus
 apps/frappe/frappe/desk/form/assign_to.py,Already in user's To Do list,Jau vartotojo Darbų sąrašas
 DocType: User Email,Enable Outgoing,Įjungti išeinantis
 DocType: Address,Fax,faksas
@@ -2067,8 +2107,10 @@ apps/frappe/frappe/model/naming.py,Name cannot contain special characters like {
 apps/frappe/frappe/public/js/frappe/list/bulk_operations.js,Print Documents,Spausdinti dokumentus
 apps/frappe/frappe/public/js/frappe/form/toolbar.js,Jump to field,Peršok į lauką
 DocType: Contact Us Settings,Forward To Email Address,Perduoti pašto adresas
+DocType: Contact Phone,Is Primary Phone,Yra pagrindinis telefonas
 apps/frappe/frappe/public/js/frappe/form/templates/timeline.html,Send an email to {0} to link it here.,"Siųskite el. Laišką adresu {0}, kad susietumėte jį čia."
 DocType: Auto Email Report,Weekdays,Darbo dienomis
+apps/frappe/frappe/public/js/frappe/data_import/data_exporter.js,{0} records will be exported,{0} įrašai bus eksportuoti
 apps/frappe/frappe/core/doctype/doctype/doctype.py,Title field must be a valid fieldname,Pavadinimas laukas turi būti galiojantis nazwapola
 DocType: Post Comment,Post Comment,Paskelbti komentarą
 apps/frappe/frappe/config/core.py,Documents,Dokumentai
@@ -2087,7 +2129,9 @@ eval:doc.age&gt;18","Šis laukas bus rodomas tik tada, jei čia apibrėžta nazw
 DocType: Social Login Key,Office 365,Office 365
 apps/frappe/frappe/public/js/frappe/ui/toolbar/energy_points_notifications.js,Today,šiandien
 apps/frappe/frappe/public/js/frappe/ui/toolbar/energy_points_notifications.js,Today,šiandien
+apps/frappe/frappe/contacts/doctype/address/address.py,No default Address Template found. Please create a new one from Setup &gt; Printing and Branding &gt; Address Template.,Nerastas numatytasis adreso šablonas. Sukurkite naują iš sąrankos&gt; Spausdinimas ir prekės ženklo kūrimas&gt; Adreso šablonas.
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,"Once you have set this, the users will only be able access documents (eg. Blog Post) where the link exists (eg. Blogger).","Kai jūs turite nustatyti tai, vartotojai bus galima tik prieigos dokumentus (pvz., Bloge), kur nuoroda egzistuoja (pvz., Blogger &quot;)."
+DocType: Data Import Beta,Submit After Import,Pateikti po importavimo
 DocType: Error Log,Log of Scheduler Errors,Prisijungti nuo Scheduler klaidos
 DocType: User,Bio,Biografija
 DocType: OAuth Client,App Client Secret,Programos Klientas paslaptis
@@ -2106,10 +2150,12 @@ DocType: DocType,"If enabled, document views are tracked, this can happen multip
 DocType: Website Settings,Disable Customer Signup link in Login page,Išjungti Klientų registracija nurodo Prisijungti puslapyje
 apps/frappe/frappe/desk/report/todo/todo.py,Assigned To/Owner,Priskirta / savininkas
 DocType: Workflow State,arrow-left,rodyklė kairę
+apps/frappe/frappe/public/js/frappe/data_import/data_exporter.js,Export 1 record,Eksportuoti 1 įrašą
 DocType: Workflow State,fullscreen,per visą ekraną
 DocType: Chat Token,Chat Token,Pokalbio ženklas
 apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,Create Chart,Kurti diagramą
 apps/frappe/frappe/templates/pages/integrations/stripe_checkout.html,john@doe.com,john@doe.com
+apps/frappe/frappe/public/js/frappe/data_import/import_preview.js,Don't Import,Neimportuoti
 DocType: Web Page,Center,centras
 DocType: Notification,Value To Be Set,Vertė turi būti nustatyta
 apps/frappe/frappe/public/js/frappe/views/reports/report_view.js,Edit {0},Redaguoti {0}
@@ -2129,6 +2175,7 @@ DocType: Print Format,Show Section Headings,Rodyti skirsnis Veiklos sritys
 DocType: Bulk Update,Limit,riba
 apps/frappe/frappe/templates/emails/delete_data_confirmation.html,We have received a request for deletion of {0} data associated with: {1},"Gavome prašymą ištrinti {0} duomenis, susijusius su: {1}"
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder_layout.html,Add a new section,Pridėti naują skyrių
+apps/frappe/frappe/public/js/frappe/data_import/data_exporter.js,Filtered Records,Filtruoti įrašai
 apps/frappe/frappe/www/printview.py,No template found at path: {0},Ne šablonas rasti kelią: {0}
 apps/frappe/frappe/public/js/frappe/views/inbox/inbox_view.js,No Email Account,Nėra paštas paskyra
 DocType: Comment,Cancelled,Atšauktas
@@ -2216,10 +2263,13 @@ DocType: Communication Link,Communication Link,Ryšio saitas
 apps/frappe/frappe/email/doctype/auto_email_report/auto_email_report.py,Invalid Output Format,Neteisingas Išvesties formatas
 apps/frappe/frappe/public/js/frappe/list/bulk_operations.js,Cannot {0} {1},Negali {0} {1}
 DocType: Custom DocPerm,Apply this rule if the User is the Owner,"Taikyti šią taisyklę, jeigu vartotojas yra savininkas"
+DocType: Global Search Settings,Global Search Settings,Visuotinės paieškos nustatymai
 apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js,Will be your login ID,Bus jūsų prisijungimo ID
+apps/frappe/frappe/desk/doctype/global_search_settings/global_search_settings.js,Global Search Document Types Reset.,Visuotinės paieškos dokumentų tipų atstatymas.
 ,Lead Conversion Time,Pagrindinis konversijos laikas
 apps/frappe/frappe/desk/page/activity/activity.js,Build Report,sukurti ataskaitą
 DocType: Note,Notify users with a popup when they log in,Praneškite vartotojams iššokantį kai jie prisijungti
+apps/frappe/frappe/desk/doctype/global_search_settings/global_search_settings.py,Core Modules {0} cannot be searched in Global Search.,Pagrindinių modulių {0} negalima ieškoti visuotinėje paieškoje.
 apps/frappe/frappe/public/js/frappe/social/components/ActivitySidebar.vue,Open Chat,Atidaryti pokalbį
 apps/frappe/frappe/model/rename_doc.py,"{0} {1} does not exist, select a new target to merge","{0} {1} neegzistuoja, pasirinkite naują taikinį sujungti"
 DocType: Data Migration Connector,Python Module,Python modulis
@@ -2236,8 +2286,7 @@ apps/frappe/frappe/integrations/doctype/google_calendar/google_calendar.py,Enter
 apps/frappe/frappe/core/doctype/communication/communication.js,Close,Uždaryti
 apps/frappe/frappe/model/document.py,Cannot change docstatus from 0 to 2,Nepavyksta pakeisti docstatus nuo 0 iki 2
 DocType: File,Attached To Field,Pritvirtintas prie lauko
-apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Setup &gt; User Permissions,Sąranka&gt; Vartotojo leidimai
-apps/frappe/frappe/core/doctype/role_permission_for_page_and_report/role_permission_for_page_and_report.js,Update,atnaujinimas
+apps/frappe/frappe/core/doctype/data_import_beta/data_import_beta_list.js,Update,atnaujinimas
 DocType: Transaction Log,Transaction Hash,Sandorio hipisas
 DocType: Error Snapshot,Snapshot View,Fotografavimo Peržiūrėti
 apps/frappe/frappe/email/doctype/newsletter/newsletter.py,Please save the Newsletter before sending,Prašome įrašyti naujienlaiškį prieš siunčiant
@@ -2253,6 +2302,7 @@ DocType: Data Import,In Progress,&quot;Progress&quot;
 apps/frappe/frappe/integrations/doctype/google_drive/google_drive.py,Queued for backup. It may take a few minutes to an hour.,Eilėje atsarginę kopiją. Tai gali užtrukti keletą minučių iki valandos.
 DocType: Error Snapshot,Pyver,Pyver
 apps/frappe/frappe/core/doctype/user_permission/user_permission.py,User permission already exists,Vartotojo leidimas jau egzistuoja
+apps/frappe/frappe/core/doctype/data_import/importer_new.py,Mapping column {0} to field {1},{0} stulpelio atvaizdavimas į {1} lauką
 apps/frappe/frappe/automation/doctype/auto_repeat/auto_repeat.js,View {0},Peržiūrėti {0}
 DocType: User,Hourly,Kas valandą
 apps/frappe/frappe/config/integrations.py,Register OAuth Client App,Registruotis OAuth klientų App
@@ -2265,7 +2315,6 @@ DocType: SMS Settings,SMS Gateway URL,SMS Vartai adresas
 apps/frappe/frappe/model/base_document.py,"{0} {1} cannot be ""{2}"". It should be one of ""{3}""",{0} {1} negali būti &quot;{2}&quot;. Ji turėtų būti vienas iš &quot;{3}&quot;
 apps/frappe/frappe/public/js/frappe/utils/energy_point_utils.js,gained by {0} via automatic rule {1},įgyta {0} naudojant automatinę taisyklę {1}
 apps/frappe/frappe/utils/data.py,{0} or {1},{0} arba {1}
-apps/frappe/frappe/core/doctype/user/user.py,Password Update,Slaptažodis Atnaujinti
 DocType: Workflow State,trash,šiukšlės
 DocType: System Settings,Older backups will be automatically deleted,Senesni kopijavimas bus automatiškai ištrintas
 apps/frappe/frappe/integrations/doctype/s3_backup_settings/s3_backup_settings.py,Invalid Access Key ID or Secret Access Key.,Neteisingas prieigos raktas ar slapta prieigos raktas.
@@ -2294,6 +2343,7 @@ DocType: Address,Preferred Shipping Address,Pageidautina Pristatymas Adresas
 apps/frappe/frappe/public/js/frappe/form/print.js,With Letter head,Raide galvos
 apps/frappe/frappe/public/js/frappe/form/sidebar/form_sidebar.js,{0} created this {1},{0} sukurtas šis {1}
 apps/frappe/frappe/permissions.py,Not allowed for {0}: {1} in Row {2}. Restricted field: {3},Neleidžiama {0}: {1} {2} eilutėje. Ribotas laukas: {3}
+apps/frappe/frappe/email/smtp.py,Email Account not setup. Please create a new Email Account from Setup &gt; Email &gt; Email Account,El. Pašto sąskaita nėra nustatyta. Sukurkite naują el. Pašto paskyrą apsilankę Sąranka&gt; El. Paštas&gt; El. Pašto abonementas
 DocType: S3 Backup Settings,eu-west-1,eu-vakarai-1
 DocType: Data Import,"If this is checked, rows with valid data will be imported and invalid rows will be dumped into a new file for you to import later.","Jei tai bus pažymėta, bus importuotos eilutės su galiojančiais duomenimis, o netinkamos eilutės bus nukreiptos į naują failą, kurį vėliau galėsite importuoti."
 apps/frappe/frappe/public/js/frappe/form/workflow.js,Document is only editable by users of role,Dokumentas yra redaguojamas tik vartotojų vaidmenį
@@ -2320,6 +2370,7 @@ DocType: Custom Field,Is Mandatory Field,Ar Privalomas laukas
 DocType: User,Website User,Interneto svetainė Vartotojas
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder_column_selector.html,Some columns might get cut off when printing to PDF. Try to keep number of columns under 10.,"Kai kurie stulpeliai gali būti nukirpti spausdinant į PDF. Stenkitės, kad stulpelių skaičius būtų mažesnis nei 10."
 apps/frappe/frappe/public/js/frappe/ui/filters/filter.js,Not equals,ne lygu
+DocType: Data Import Beta,Don't Send Emails,Nesiųskite el. Laiškų
 DocType: Integration Request,Integration Request Service,Integracija Prašymas Paslaugos
 DocType: Access Log,Access Log,Prieigos žurnalas
 DocType: Website Script,Script to attach to all web pages.,Scenarijaus pridėti prie visų tinklalapių.
@@ -2360,6 +2411,7 @@ DocType: Contact,Passive,pasyvus
 DocType: Auto Repeat,Accounts Manager,sąskaitos direktorius
 apps/frappe/frappe/desk/form/assign_to.py,Assignment for {0} {1},Paskirtis už {0} {1}
 apps/frappe/frappe/templates/pages/integrations/payment-cancel.html,Your payment is cancelled.,Jūsų mokėjimas bus atšauktas.
+apps/frappe/frappe/email/smtp.py,Please setup default Email Account from Setup &gt; Email &gt; Email Account,Nustatykite numatytąją el. Pašto paskyrą iš sąrankos&gt; El. Paštas&gt; El. Pašto abonementas
 apps/frappe/frappe/public/js/frappe/views/reports/report_view.js,Select File Type,Pasirinkite Failo tipas
 apps/frappe/frappe/core/doctype/success_action/success_action.js,View All,Peržiūrėti visus
 DocType: Help Article,Knowledge Base Editor,Žinių bazės redaktorius
@@ -2392,6 +2444,7 @@ apps/frappe/frappe/core/doctype/doctype/doctype.py,Fieldname {0} conflicting wit
 DocType: Deleted Document,Data,duomenys
 apps/frappe/frappe/public/js/frappe/model/model.js,Document Status,Dokumento statusas
 apps/frappe/frappe/website/doctype/personal_data_deletion_request/personal_data_deletion_request.py,Approval Required,Reikalingas patvirtinimas
+apps/frappe/frappe/core/doctype/data_import_beta/data_import_beta.js,The following records needs to be created before we can import your file.,"Kad galėtume importuoti jūsų failą, reikia sukurti šiuos įrašus."
 DocType: OAuth Authorization Code,OAuth Authorization Code,OAuth autorizavimo kodas
 apps/frappe/frappe/core/doctype/data_import/importer.py,Not allowed to Import,Neleidžiama importuoti
 DocType: Deleted Document,Deleted DocType,ištrintas dokumentų tipas
@@ -2446,8 +2499,8 @@ DocType: GCalendar Settings,Google API Credentials,&quot;Google&quot; API įgali
 apps/frappe/frappe/public/js/frappe/desk.js,Session Start Failed,Sesijos pradžioje Nepavyko
 apps/frappe/frappe/public/js/frappe/desk.js,Session Start Failed,Sesijos pradžioje Nepavyko
 apps/frappe/frappe/email/queue.py,This email was sent to {0} and copied to {1},Šis el.pašto išsiųstas {0} ir nukopijuoti į {1}
+apps/frappe/frappe/public/js/frappe/form/footer/timeline.js,submitted this document {0},pateikė šį dokumentą {0}
 DocType: Workflow State,th,-oji
-apps/frappe/frappe/public/js/frappe/utils/pretty_date.js,&gt; {0} year(s) ago,&gt; Prieš {0} metus (-ių)
 DocType: Social Login Key,Provider Name,Tiekėjo pavadinimas
 apps/frappe/frappe/public/js/frappe/list/list_view.js,Create a new {0},Sukurti naują {0}
 DocType: Contact,Google Contacts,„Google“ kontaktai
@@ -2455,6 +2508,7 @@ DocType: GCalendar Account,GCalendar Account,&quot;GCalendar&quot; sąskaita
 DocType: Email Rule,Is Spam,Ar Šlamštas
 apps/frappe/frappe/public/js/frappe/ui/toolbar/search_utils.js,Report {0},Ataskaita {0}
 apps/frappe/frappe/desk/doctype/todo/todo_list.js,Open {0},Atidaryti {0}
+DocType: Data Import Beta,Import Warnings,Įspėjimai importuoti
 DocType: OAuth Client,Default Redirect URI,Numatytasis Nukreipimo URI
 DocType: Auto Repeat,Recipients,gavėjai
 DocType: System Settings,Choose authentication method to be used by all users,"Pasirinkite autentifikavimo metodą, kurį naudos visi naudotojai"
@@ -2573,6 +2627,7 @@ apps/frappe/frappe/desk/query_report.py,Report updated successfully,Ataskaita s�
 apps/frappe/frappe/integrations/doctype/slack_webhook_url/slack_webhook_url.py,Slack Webhook Error,Trumpas &quot;Webhook&quot; klaida
 DocType: Email Flag Queue,Unread,neskaitytas
 DocType: Bulk Update,Desk,rašomasis stalas
+apps/frappe/frappe/core/doctype/data_import/importer_new.py,Skipping column {0},Praleidžiantis stulpelis {0}
 apps/frappe/frappe/utils/data.py,Filter must be a tuple or list (in a list),Filtras turi būti kortežas ar sąrašą (A sąrašą)
 apps/frappe/frappe/core/doctype/report/report.js,Write a SELECT query. Note result is not paged (all data is sent in one go).,Rašyti SELECT užklausą. Pastaba rezultatas nėra gaviklį (visi duomenys siunčiami vienu ypu).
 DocType: Email Account,Attachment Limit (MB),Priedas riba (MB)
@@ -2587,6 +2642,7 @@ apps/frappe/frappe/custom/doctype/customize_form/customize_form.py,Core DocTypes
 apps/frappe/frappe/public/js/frappe/views/treeview.js,Create New,Sukurk naują
 DocType: Workflow State,chevron-down,&quot;Chevron apačią
 apps/frappe/frappe/public/js/frappe/views/communication.js,Email not sent to {0} (unsubscribed / disabled),Paštu nesiunčiamas {0} (neišplatintos / išjungta)
+apps/frappe/frappe/public/js/frappe/data_import/data_exporter.js,Select fields to export,"Pasirinkite laukus, kuriuos norite eksportuoti"
 DocType: Async Task,Traceback,Atsekti
 DocType: Currency,Smallest Currency Fraction Value,Mažiausias Valiuta frakcija Vertė
 apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,Preparing Report,Rengiame ataskaitą
@@ -2595,6 +2651,7 @@ DocType: Workflow State,th-list,TH-sąrašas
 DocType: Web Page,Enable Comments,Įgalinti komentarus
 apps/frappe/frappe/desk/doctype/note/note_list.js,Notes,Pastabos
 DocType: User,Restrict user from this IP address only. Multiple IP addresses can be added by separating with commas. Also accepts partial IP addresses like (111.111.111),Apriboti vartotoją tik iš šio IP adreso. Keli IP adresai gali būti pridėta atskiriant kableliais. Taip pat priima dalinius IP adresus kaip (111.111.111)
+DocType: Data Import Beta,Import Preview,Importuoti peržiūrą
 DocType: Communication,From,nuo
 apps/frappe/frappe/public/js/frappe/views/treeview.js,Select a group node first.,Pirmasis Pasirinkite grupę mazgas.
 apps/frappe/frappe/public/js/frappe/ui/toolbar/search_utils.js,Find {0} in {1},Ieškoti {0} iš {1}
@@ -2694,6 +2751,7 @@ apps/frappe/frappe/templates/emails/energy_points_summary.html,gained {0} points
 apps/frappe/frappe/public/js/frappe/ui/filters/filter.js,Between,tarp
 DocType: Social Login Key,fairlogin,fairlogin
 DocType: Async Task,Queued,eilėje
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Setup &gt; Customize Form,Sąranka&gt; Tinkinti formą
 DocType: Braintree Settings,Use Sandbox,Naudokite Smėlio
 apps/frappe/frappe/utils/goal.py,This month,Šį mėnesį
 apps/frappe/frappe/public/js/frappe/form/print.js,New Custom Print Format,Nauja Individualizuotos Spausdinti Formatas
@@ -2709,6 +2767,7 @@ DocType: Session Default,Session Default,Numatytasis seansas
 DocType: Chat Room,Last Message,Paskutinė žinutė
 DocType: OAuth Bearer Token,Access Token,Prieigos raktas
 DocType: About Us Settings,Org History,org istorija
+apps/frappe/frappe/core/doctype/data_import_beta/data_import_beta.js,About {0} minutes remaining,Liko apie {0} minučių
 DocType: Auto Repeat,Next Schedule Date,Kitas tvarkaraščio data
 DocType: Workflow,Workflow Name,Darbo eigos pavadinimas
 DocType: DocShare,Notify by Email,Praneškite elektroniniu paštu
@@ -2738,6 +2797,7 @@ apps/frappe/frappe/custom/doctype/customize_form/customize_form.py,You can't set
 DocType: Help Article,Author,autorius
 apps/frappe/frappe/email/doctype/email_queue/email_queue_list.js,Resume Sending,atnaujinti siuntimas
 apps/frappe/frappe/core/doctype/communication/communication.js,Reopen,atnaujinti
+apps/frappe/frappe/public/js/frappe/data_import/import_preview.js,Show Warnings,Rodyti įspėjimus
 apps/frappe/frappe/core/doctype/communication/communication.js,Re: {0},Re: {0}
 DocType: Address,Purchase User,pirkimo Vartotojas
 DocType: Data Migration Run,Push Failed,Paspauskite nepavyko
@@ -2776,6 +2836,7 @@ apps/frappe/frappe/public/js/frappe/form/controls/link.js,Advanced Search,Išpl�
 apps/frappe/frappe/email/doctype/newsletter/newsletter.py,You are not permitted to view the newsletter.,Jums neleidžiama peržiūrėti naujienų.
 DocType: User,Interests,Pomėgiai
 apps/frappe/frappe/core/doctype/user/user.py,Password reset instructions have been sent to your email,buvo slaptažodžio instrukcijos išsiųstas į jūsų elektroninio pašto
+DocType: Energy Point Rule,Allot Points To Assigned Users,Skiria taškus paskirtiems vartotojams
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js,"Level 0 is for document level permissions, \
 								higher levels for field level permissions.",0 lygis yra dokumentas lygio leidimus \ aukštesnio lygio lauko lygio leidimus.
 DocType: Contact Email,Is Primary,Yra pirminis
@@ -2799,6 +2860,7 @@ apps/frappe/frappe/integrations/doctype/slack_webhook_url/slack_webhook_url.py,S
 DocType: Stripe Settings,Publishable Key,skelbtinas raktas
 DocType: Stripe Settings,Publishable Key,skelbtinas raktas
 apps/frappe/frappe/core/doctype/data_import/data_import.js,Start Import,Pradėti importuoti
+apps/frappe/frappe/public/js/frappe/data_import/data_exporter.js,Export Type,Eksporto tipas
 DocType: Workflow State,circle-arrow-left,apskritimo rodyklės į kairę
 DocType: System Settings,Force User to Reset Password,Priversti vartotoją iš naujo nustatyti slaptažodį
 apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,"To get the updated report, click on {0}.","Norėdami gauti atnaujintą ataskaitą, spustelėkite {0}."
@@ -2812,13 +2874,16 @@ DocType: Contact,Middle Name,Antras vardas
 DocType: Custom Field,Field Description,Laukelio aprašymas
 apps/frappe/frappe/model/naming.py,Name not set via Prompt,Vardas nenustatytas per Klausti
 apps/frappe/frappe/public/js/frappe/ui/toolbar/search_utils.js,Email Inbox,pašto dėžutę
+apps/frappe/frappe/core/doctype/data_import_beta/data_import_beta.js,"Updating {0} of {1}, {2}","Atnaujinamas {0} iš {1}, {2}"
 DocType: Auto Email Report,Filters Display,Filtrai Rodyti
 apps/frappe/frappe/public/js/frappe/form/form.js,"""amended_from"" field must be present to do an amendment.","Norint atlikti pakeitimą, turi būti laukas „Grozīta iš fronto“."
+DocType: Contact,Numbers,Skaičiai
 apps/frappe/frappe/public/js/frappe/ui/toolbar/energy_points_notifications.js,{0} appreciated your work on {1} {2},{0} įvertino jūsų darbą {1} {2}
 apps/frappe/frappe/public/js/frappe/views/kanban/kanban_view.js,Save filters,Išsaugoti filtrus
 DocType: Address,Plant,augalas
 apps/frappe/frappe/core/doctype/communication/communication.js,Reply All,Atsakyti visiems
 DocType: DocType,Setup,Sąranka
+apps/frappe/frappe/public/js/frappe/data_import/data_exporter.js,All Records,Visi įrašai
 DocType: Google Contacts,Email Address whose Google Contacts are to be synced.,"El. Pašto adresas, kurio „Google“ kontaktai turi būti sinchronizuojami."
 DocType: Email Account,Initial Sync Count,Pradinis Sync &quot;Grafas
 DocType: Workflow State,glass,stiklas
@@ -2843,7 +2908,7 @@ DocType: Workflow State,font,šriftas
 DocType: DocType,Show Preview Popup,Rodyti peržiūros iššokantįjį langą
 apps/frappe/frappe/utils/password_strength.py,This is a top-100 common password.,Tai yra iš viršaus į 100 bendras slaptažodį.
 apps/frappe/frappe/email/doctype/auto_email_report/auto_email_report.js,Please enable pop-ups,Prašome įjungti iššokančių langų
-DocType: User,Mobile No,Mobilus Nėra
+DocType: Contact,Mobile No,Mobilus Nėra
 DocType: Communication,Text Content,tekstas turinys
 DocType: Customize Form Field,Is Custom Field,Ar įprastinį lauką
 DocType: Workflow,"If checked, all other workflows become inactive.","Jei pažymėta, visi kiti darbo eigas tampa neaktyvūs."
@@ -2889,6 +2954,9 @@ apps/frappe/frappe/config/customization.py,Add custom javascript to forms.,Prid�
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js,Name of the new Print Format,Pavadinimas naują spausdinimo formatą
 apps/frappe/frappe/public/js/frappe/list/list_view.js,Toggle Sidebar,Įjunkite šoninę juostą
 DocType: Data Migration Run,Pull Insert,Ištraukite įdėklą
+DocType: Energy Point Rule,"Maximum points allowed after multiplying points with the multiplier value
+(Note: For no limit leave this field empty or set 0)","Maksimalus leistinas taškų skaičius padauginus taškus iš daugiklio vertės (pastaba: neribokite šio lauko, palikite jį tuščią arba nustatykite 0)"
+apps/frappe/frappe/core/doctype/data_import/importer_new.py,Invalid Template,Netinkamas šablonas
 apps/frappe/frappe/model/db_query.py,Illegal SQL Query,Neteisėta SQL užklausa
 apps/frappe/frappe/core/doctype/data_export/exporter.py,Mandatory:,privalomas:
 DocType: Chat Message,Mentions,Minima
@@ -2903,6 +2971,7 @@ DocType: User Permission,User Permission,Vartotojo leidimas
 apps/frappe/frappe/templates/includes/blog/blog.html,Blog,Dienoraštis
 apps/frappe/frappe/integrations/doctype/ldap_settings/ldap_settings.py,LDAP Not Installed,LDAP Ne Instaliuota
 apps/frappe/frappe/core/doctype/data_import/data_import.js,Download with data,Parsisiųsti duomenis
+apps/frappe/frappe/public/js/frappe/form/footer/timeline.js,changed values for {0} {1},pakeistos {0} {1} vertės
 DocType: Workflow State,hand-right,rankų darbo teisė
 DocType: Website Settings,Subdomain,subdomenas
 DocType: S3 Backup Settings,Region,regionas
@@ -2930,10 +2999,12 @@ DocType: Braintree Settings,Public Key,Viešasis raktas
 DocType: GSuite Settings,GSuite Settings,GSuite Nustatymai
 DocType: Address,Links,saitai
 DocType: Email Account,Uses the Email Address Name mentioned in this Account as the Sender's Name for all emails sent using this Account.,"Visuose el. Laiškuose, išsiųstuose naudojant šią sąskaitą, šioje sąskaitoje nurodytas el. Pašto adreso vardas naudojamas kaip siuntėjo vardas."
+DocType: Energy Point Rule,Field To Check,"Laukas, kurį reikia patikrinti"
 apps/frappe/frappe/integrations/doctype/google_contacts/google_contacts.py,"Google Contacts - Could not update contact in Google Contacts {0}, error code {1}.","„Google“ kontaktai - nepavyko atnaujinti kontakto „Google“ kontaktuose {0}, klaidos kodas {1}."
 apps/frappe/frappe/core/doctype/data_export/data_export.js,Please select the Document Type.,Pasirinkite dokumento tipą.
 apps/frappe/frappe/model/base_document.py,Value missing for,Vertė trūksta
 apps/frappe/frappe/public/js/frappe/views/treeview.js,Add Child,Pridėti vaikas
+apps/frappe/frappe/core/doctype/data_import_beta/data_import_beta.js,Import Progress,Importo progresas
 DocType: Energy Point Rule,"If the condition is satisfied user will be rewarded with the points. eg. doc.status == 'Closed'
 ","Jei sąlyga bus įvykdyta, vartotojas bus apdovanotas taškais. pvz. doc.status == „Uždaryta“"
 apps/frappe/frappe/model/delete_doc.py,{0} {1}: Submitted Record cannot be deleted.,{0} {1}: Pateikė įrašas negali būti išbrauktas.
@@ -2970,6 +3041,7 @@ DocType: Google Calendar,Authorize Google Calendar Access,Įgalioti „Google“
 apps/frappe/frappe/www/404.html,The page you are looking for is missing. This could be because it is moved or there is a typo in the link.,"Puslapis ieškote trūksta. Tai gali būti, kad jį perkelti ar ten yra nuorodą klaidos."
 apps/frappe/frappe/www/404.html,Error Code: {0},Klaidos kodas: {0}
 DocType: Blog Post,"Description for listing page, in plain text, only a couple of lines. (max 140 characters)","Aprašymas išvardijami puslapį, paprastu tekstu, tik kelias eilutes. (max 140 simbolių)"
+apps/frappe/frappe/core/doctype/data_import/importer_new.py,{0} are mandatory fields,{0} yra privalomi laukai
 DocType: Workflow,Allow Self Approval,Leisti savęs patvirtinimą
 DocType: Event,Event Category,Įvykio kategorija
 apps/frappe/frappe/templates/pages/integrations/stripe_checkout.html,John Doe,John Doe
@@ -3017,8 +3089,10 @@ apps/frappe/frappe/public/js/frappe/form/grid_row.js,Move To,Pereiti prie
 DocType: Address,Preferred Billing Address,Pageidautina Atsiskaitymo Adresas
 apps/frappe/frappe/database/database.py,Too many writes in one request. Please send smaller requests,Per daug rašo viename prašyme. Prašome siųsti mažesnius prašymus
 apps/frappe/frappe/integrations/doctype/google_drive/google_drive.py,Google Drive has been configured.,„Google“ diskas sukonfigūruotas.
+apps/frappe/frappe/desk/doctype/global_search_settings/global_search_settings.py,Document Type {0} has been repeated.,{0} dokumento tipas buvo pakartotas.
 apps/frappe/frappe/core/doctype/version/version_view.html,Values Changed,vertybės Pakeitė
 DocType: Workflow State,arrow-up,rodyklė viršų
+apps/frappe/frappe/core/doctype/data_import/importer_new.py,There should be atleast one row for {0} table,{0} lentelės eilutėje turėtų būti bent viena eilutė
 apps/frappe/frappe/automation/doctype/auto_repeat/auto_repeat.js,"To configure Auto Repeat, enable ""Allow Auto Repeat"" from {0}.","Norėdami sukonfigūruoti automatinį kartojimą, įjunkite „Leisti automatinį pakartojimą“ iš {0}."
 DocType: OAuth Bearer Token,Expires In,galiojimas baigiasi
 DocType: DocField,Allow on Submit,Leisti Pateikti
@@ -3105,6 +3179,7 @@ DocType: Custom Field,Options Help,Nustatymai Pagalba
 DocType: Footer Item,Group Label,Grupės etikėtė
 DocType: Kanban Board,Kanban Board,Kanban lenta
 apps/frappe/frappe/integrations/doctype/google_contacts/google_contacts.py,Google Contacts has been configured.,„Google“ kontaktai sukonfigūruoti.
+apps/frappe/frappe/public/js/frappe/data_import/data_exporter.js,1 record will be exported,Bus eksportuotas 1 įrašas
 DocType: DocField,Report Hide,Pranešti Slėpti
 apps/frappe/frappe/public/js/frappe/views/treeview.js,Tree view not available for {0},Medis nėra už {0}
 DocType: DocType,Restrict To Domain,Apriboti domenų
@@ -3122,6 +3197,7 @@ apps/frappe/frappe/twofactor.py,Verfication Code,Verifikacijos kodas
 DocType: Webhook,Webhook Request,Webhook užklausa
 apps/frappe/frappe/model/rename_doc.py,** Failed: {0} to {1}: {2},** Nepavyko: {0} ir {1} {2}
 DocType: Data Migration Mapping,Mapping Type,Žemėlapio tipas
+apps/frappe/frappe/public/js/frappe/data_import/data_exporter.js,Select Mandatory,Pasirinkite Privalomas
 apps/frappe/frappe/public/js/frappe/ui/upload.html,Browse,Naršyti
 apps/frappe/frappe/utils/password_strength.py,"No need for symbols, digits, or uppercase letters.","Nereikia simbolių, skaitmenų ar didžiosiomis raidėmis."
 DocType: DocField,Currency,valiuta
@@ -3152,11 +3228,13 @@ DocType: Workflow State,Workflow state represents the current state of a documen
 DocType: Letter Head,Letter Head Based On,Laiško galva paremta
 apps/frappe/frappe/utils/oauth.py,Token is missing,Ženklas nėra
 apps/frappe/frappe/www/update-password.html,Set Password,Nustatyti slaptažodį
+apps/frappe/frappe/core/doctype/data_import_beta/data_import_beta.js,Successfully imported {0} records.,Sėkmingai importuoti {0} įrašai.
 apps/frappe/frappe/public/js/frappe/utils/utils.js,Note: Changing the Page Name will break previous URL to this page.,Pastaba: keitimas Puslapio pavadinimas bus pertrauka ankstesnę URL į šį puslapį.
 apps/frappe/frappe/utils/file_manager.py,Removed {0},Pašalinta {0}
 DocType: SMS Settings,SMS Settings,SMS nustatymai
 DocType: Company History,Highlight,pabrėžti
 DocType: Dashboard Chart,Sum,Suma
+apps/frappe/frappe/public/js/frappe/form/footer/timeline.js,via Data Import,per duomenų importavimą
 DocType: OAuth Provider Settings,Force,jėga
 apps/frappe/frappe/core/page/dashboard/dashboard.js,Last synced {0},Paskutinį kartą sinchronizuotas {0}
 DocType: DocField,Fold,sulankstyti
@@ -3193,6 +3271,7 @@ DocType: Workflow State,Home,Namai
 DocType: OAuth Provider Settings,Auto,Automatinis
 DocType: System Settings,User can login using Email id or User Name,Vartotojas gali prisijungti naudojant el. Pašto adresą arba vartotojo vardą
 DocType: Workflow State,question-sign,klausimas-ženklas
+apps/frappe/frappe/model/base_document.py,{0} is disabled,{0} neleidžiamas
 apps/frappe/frappe/core/doctype/doctype/doctype.py,"Field ""route"" is mandatory for Web Views",Lauko &quot;maršrutas&quot; yra privalomas &quot;Web Views&quot;
 apps/frappe/frappe/public/js/frappe/views/reports/report_view.js,Insert Column Before {0},Įterpti stulpelį prieš {0}
 DocType: Energy Point Rule,The user from this field will be rewarded points,Šio lauko vartotojui bus suteikiami taškai
@@ -3226,6 +3305,7 @@ DocType: Website Settings,Top Bar Items,Viršutinėje juostoje daiktai
 DocType: Notification,Print Settings,Print Settings
 DocType: Page,Yes,Taip
 DocType: DocType,Max Attachments,max Įrangos
+apps/frappe/frappe/core/doctype/data_import_beta/data_import_beta.js,About {0} seconds remaining,Liko apie {0} sekundžių
 DocType: Calendar View,End Date Field,Pabaigos data laukas
 apps/frappe/frappe/public/js/frappe/ui/keyboard.js,Global Shortcuts,Visuotiniai spartieji klavišai
 DocType: Desktop Icon,Page,puslapis
@@ -3338,6 +3418,7 @@ DocType: GSuite Settings,Allow GSuite access,Leiskite GSuite priėjimą
 DocType: DocType,DESC,mažėjimo
 DocType: DocType,Naming,Pavadinimų
 apps/frappe/frappe/core/doctype/data_import/data_import.js,Select All,Pasirinkti viską
+apps/frappe/frappe/core/doctype/data_import_beta/data_import_beta.js,Column {0},{0} stulpelis
 apps/frappe/frappe/config/customization.py,Custom Translations,Individualizuotos Vertimai
 apps/frappe/frappe/public/js/frappe/socketio_client.js,Progress,Progresas
 apps/frappe/frappe/public/js/frappe/form/workflow.js, by Role ,pagal Pareigas
@@ -3380,11 +3461,13 @@ DocType: Stripe Settings,Stripe Settings,juostele Nustatymai
 DocType: Stripe Settings,Stripe Settings,juostele Nustatymai
 DocType: Data Migration Mapping,Data Migration Mapping,Duomenų perkėlimo atvaizdavimas
 DocType: Auto Email Report,Period,laikotarpis
+apps/frappe/frappe/core/doctype/data_import_beta/data_import_beta.js,About {0} minute remaining,Liko apie {0} minučių
 apps/frappe/frappe/www/login.py,Invalid Login Token,Neteisingas Vartotojas ženklas
 apps/frappe/frappe/public/js/frappe/chat.js,Discard,Atmesti
 apps/frappe/frappe/public/js/frappe/utils/pretty_date.js,1 hour ago,prieš 1 val
 DocType: Website Settings,Home Page,Titulinis puslapis
 DocType: Error Snapshot,Parent Error Snapshot,Tėvų klaidos fotografiją
+apps/frappe/frappe/public/js/frappe/data_import/import_preview.js,Map columns from {0} to fields in {1},Žemėlapių stulpeliai nuo {0} į laukus {1}
 DocType: Access Log,Filters,Filtrai
 DocType: Workflow State,share-alt,dalis-Alt
 apps/frappe/frappe/utils/background_jobs.py,Queue should be one of {0},Eilėje turėtų būti vienas iš {0}
@@ -3404,6 +3487,7 @@ DocType: Calendar View,Start Date Field,Pradžios data laukas
 DocType: Role,Role Name,vaidmuo Vardas
 apps/frappe/frappe/templates/includes/navbar/navbar_login.html,Switch To Desk,Perjungti į Desk
 apps/frappe/frappe/config/core.py,Script or Query reports,Scenarijaus arba užklausa ataskaitos
+DocType: Contact Phone,Is Primary Mobile,Yra pagrindinis mobilusis
 DocType: Workflow Document State,Workflow Document State,Darbo eigos Dokumento valstybė
 apps/frappe/frappe/public/js/frappe/request.js,File too big,Failas per didelis
 apps/frappe/frappe/core/doctype/user/user.py,Email Account added multiple times,Pašto paskyros pridėjo kelis kartus
@@ -3449,6 +3533,7 @@ DocType: DocField,Float,plūdė
 DocType: Print Settings,Page Settings,Puslapio nustatymai
 apps/frappe/frappe/public/js/frappe/form/quick_entry.js,Saving...,Išsaugoma ...
 apps/frappe/frappe/www/update-password.html,Invalid Password,Neteisingas slaptažodis
+apps/frappe/frappe/core/doctype/data_import_beta/data_import_beta.js,Successfully imported {0} record out of {1}.,Sėkmingai importuotas {0} įrašas iš {1}.
 DocType: Contact,Purchase Master Manager,Pirkimo magistras direktorius
 apps/frappe/frappe/public/js/frappe/file_uploader/FileUploader.vue,Click on the lock icon to toggle public/private,"Spustelėkite užrakto piktogramą, kad perjungtumėte viešą / privačią"
 DocType: Module Def,Module Name,Modulio pavadinimas
@@ -3483,6 +3568,7 @@ apps/frappe/frappe/core/doctype/sms_settings/sms_settings.py,Please enter valid 
 apps/frappe/frappe/public/js/frappe/desk.js,Some of the features might not work in your browser. Please update your browser to the latest version.,Kai kurios funkcijos gali neveikti jūsų naršyklėje. Atnaujinkite savo naršyklę į naujausią versiją.
 apps/frappe/frappe/public/js/frappe/desk.js,Some of the features might not work in your browser. Please update your browser to the latest version.,Kai kurios funkcijos gali neveikti jūsų naršyklėje. Atnaujinkite savo naršyklę į naujausią versiją.
 apps/frappe/frappe/utils/bot.py,"Don't know, ask 'help'","Nežinau, kreipkitės į &quot;Pagalba&quot;"
+apps/frappe/frappe/public/js/frappe/form/footer/timeline.js,cancelled this document {0},atšaukė šį dokumentą {0}
 DocType: DocType,Comments and Communications will be associated with this linked document,Komentarai ir Ryšių bus susijęs su šiuo susietą dokumentą
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder_sidebar.html,Filter...,Filtras...
 DocType: Workflow State,bold,drąsus
@@ -3501,6 +3587,7 @@ apps/frappe/frappe/config/settings.py,Add / Manage Email Accounts.,Įdėti / Val
 DocType: Comment,Published,paskelbta
 apps/frappe/frappe/templates/emails/auto_reply.html,Thank you for your email,Ačiu už tavo elektroninį laišką
 DocType: DocField,Small Text,Smulkus šriftas
+apps/frappe/frappe/contacts/doctype/contact/contact.py,Number {0} cannot be set as primary for Phone as well as Mobile No.,"Numerio {0} negalima nustatyti kaip pagrindinio telefono, taip pat ir mobiliojo telefono Nr."
 DocType: Workflow,Allow approval for creator of the document,Leisti patvirtinti dokumento kūrėją
 apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,Save Report,Išsaugoti ataskaitą
 DocType: Webhook,on_cancel,on_cancel
@@ -3558,6 +3645,7 @@ DocType: Print Settings,PDF Settings,PDF Nustatymai
 DocType: Kanban Board Column,Column Name,stulpelio pavadinimo
 DocType: Language,Based On,remiantis
 DocType: Email Account,"For more information, <a class=""text-muted"" href=""https://erpnext.com/docs/user/manual/en/setting-up/email/linking-emails-to-document"">click here</a>.","Norėdami gauti daugiau informacijos, <a class=""text-muted"" href=""https://erpnext.com/docs/user/manual/en/setting-up/email/linking-emails-to-document"">spustelėkite čia</a> ."
+apps/frappe/frappe/core/doctype/data_import/importer_new.py,Number of columns does not match with data,Stulpelių skaičius nesutampa su duomenimis
 apps/frappe/frappe/printing/doctype/print_format/print_format.js,Make Default,Nustatyti kaip numatytąjį
 apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,Execution Time: {0} sec,Vykdymo laikas: {0} sek
 apps/frappe/frappe/model/utils/__init__.py,Invalid include path,Netinkamas įtraukimo kelias
@@ -3648,7 +3736,7 @@ apps/frappe/frappe/email/doctype/newsletter/newsletter.py,Newsletter should have
 apps/frappe/frappe/public/js/frappe/file_uploader/FileUploader.vue,Upload {0} files,Įkelkite {0} failų
 DocType: Deleted Document,GCalendar Sync ID,&quot;GCalendar&quot; sinchronizavimo ID
 DocType: Prepared Report,Report Start Time,Ataskaitos pradžios laikas
-apps/frappe/frappe/config/settings.py,Export Data,Eksporto duomenys
+apps/frappe/frappe/public/js/frappe/data_import/data_exporter.js,Export Data,Eksporto duomenys
 apps/frappe/frappe/core/doctype/data_import/data_import.js,Select Columns,pasirinkti stulpelius
 DocType: Translation,Source Text,šaltinis tekstas
 apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,This is a background report. Please set the appropriate filters and then generate a new one.,Tai yra pagrindinė ataskaita. Nustatykite tinkamus filtrus ir sugeneruokite naują.
@@ -3666,7 +3754,6 @@ DocType: Report,Disable Prepared Report,Išjungti parengtą ataskaitą
 apps/frappe/frappe/templates/emails/data_deletion_approval.html,User {0} has requested for data deletion,Naudotojas {0} paprašė ištrinti duomenis
 apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py,Illegal Access Token. Please try again,"Neteisėta prieiga ženklas. Prašau, pabandykite dar kartą"
 apps/frappe/frappe/public/js/frappe/desk.js,"The application has been updated to a new version, please refresh this page","Paraiška buvo atnaujinta į naują versiją, prašome perkraukite šį puslapį"
-apps/frappe/frappe/contacts/doctype/address/address.py,No default Address Template found. Please create a new one from Setup &gt; Printing and Branding &gt; Address Template.,Nerastas numatytasis adreso šablonas. Sukurkite naują iš sąrankos&gt; Spausdinimas ir prekės ženklo kūrimas&gt; Adreso šablonas.
 DocType: Notification,Optional: The alert will be sent if this expression is true,"Neprivaloma: Įspėjimo bus siunčiama, jei ši išraiška yra teisinga"
 DocType: Data Migration Plan,Plan Name,Plano pavadinimas
 DocType: Print Settings,Print with letterhead,Spausdinti su blanko
@@ -3707,6 +3794,7 @@ apps/frappe/frappe/integrations/doctype/social_login_key/social_login_key.py,Ple
 apps/frappe/frappe/core/doctype/doctype/doctype.py,{0}: Cannot set Amend without Cancel,{0}: Negalima nustatyti Iš dalies pakeisti be Atšaukti
 apps/frappe/frappe/public/js/frappe/form/templates/print_layout.html,Full Page,Visas puslapis
 DocType: DocType,Is Child Table,Ar vaikas lentelė
+DocType: Data Import Beta,Template Options,Šablono parinktys
 apps/frappe/frappe/utils/csvutils.py,{0} must be one of {1},{0} turi būti vienas iš {1}
 apps/frappe/frappe/public/js/frappe/form/sidebar/form_viewers.js,{0} is currently viewing this document,{0} šiuo metu žiūri šią dokumentą
 apps/frappe/frappe/config/core.py,Background Email Queue,Fono paštas eilės
@@ -3714,7 +3802,6 @@ apps/frappe/frappe/core/doctype/user/user.py,Password Reset,slaptažodžio
 DocType: Communication,Opened,atidarytas
 DocType: Workflow State,chevron-left,&quot;Chevron kairę
 DocType: Communication,Sending,siuntimas
-apps/frappe/frappe/auth.py,Not allowed from this IP Address,Neleidžiama iš šio IP adreso
 DocType: Website Slideshow,This goes above the slideshow.,Tai eina virš skaidrių peržiūrą.
 DocType: Contact,Last Name,Pavardė
 DocType: Event,Private,privatus
@@ -3728,7 +3815,6 @@ DocType: Workflow Action,Workflow Action,darbo eigos veiksmas
 apps/frappe/frappe/utils/bot.py,I found these: ,Radau tai:
 DocType: Event,Send an email reminder in the morning,Siųsti el priminimą ryte
 DocType: Blog Post,Published On,paskelbta
-apps/frappe/frappe/email/smtp.py,Email Account not setup. Please create a new Email Account from Setup &gt; Email &gt; Email Account,El. Pašto sąskaita nėra nustatyta. Sukurkite naują el. Pašto paskyrą apsilankę Sąranka&gt; El. Paštas&gt; El. Pašto abonementas
 DocType: Contact,Gender,Lytis
 apps/frappe/frappe/website/doctype/web_form/web_form.py,Mandatory Information missing:,Privaloma informacija truksta:
 apps/frappe/frappe/social/doctype/energy_point_log/energy_point_log.py,{0} reverted your points on {1},{0} grąžino jūsų taškus {1}
@@ -3749,7 +3835,6 @@ apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Use
 DocType: Workflow State,warning-sign,įspėjamasis ženklas
 DocType: Prepared Report,Prepared Report,Parengta ataskaita
 apps/frappe/frappe/config/website.py,Add meta tags to your web pages,Įtraukite metažymas į savo tinklalapius
-DocType: Contact,Phone Nos,Telefono Nr
 DocType: Workflow State,User,Vartotojas
 DocType: Website Settings,"Show title in browser window as ""Prefix - title""",Rodyti Pavadinimas naršyklės lange &quot;priešdėlio - pavadinimas&quot;
 DocType: Payment Gateway,Gateway Settings,Vartai nustatymai
@@ -3767,6 +3852,7 @@ DocType: Data Migration Connector,Data Migration,Duomenų perkėlimas
 DocType: User,API Key cannot be  regenerated,API raktas negali būti atkurtas
 apps/frappe/frappe/public/js/frappe/views/translation_manager.js,Something went wrong,Kažkas negerai
 DocType: System Settings,Number Format,Taškų Formatas
+apps/frappe/frappe/core/doctype/data_import_beta/data_import_beta.js,Successfully imported {0} record.,Sėkmingai importuotas {0} įrašas.
 apps/frappe/frappe/public/js/frappe/views/interaction.js,Summary,Santrauka
 DocType: Event,Event Participants,Renginio dalyviai
 DocType: Auto Repeat,Frequency,dažnis
@@ -3774,7 +3860,7 @@ DocType: Custom Field,Insert After,Įdėkite Po
 DocType: Event,Sync with Google Calendar,Sinchronizuoti su „Google“ kalendoriumi
 DocType: Access Log,Report Name,Ataskaitos pavadinimas
 DocType: Desktop Icon,Reverse Icon Color,Atvirkštinė Icon spalva
-DocType: Notification,Save,Išsaugoti
+apps/frappe/frappe/core/doctype/data_import_beta/data_import_beta.js,Save,Išsaugoti
 apps/frappe/frappe/automation/doctype/auto_repeat/auto_repeat_schedule.html,Next Scheduled Date,Kitas numatytas data
 apps/frappe/frappe/automation/doctype/assignment_rule/assignment_rule.js,Assign to the one who has the least assignments,"Priskirkite tam, kuris turi mažiausiai užduočių"
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js,Section Heading,pozicijoje skyrius
@@ -3797,11 +3883,11 @@ apps/frappe/frappe/public/js/frappe/ui/filters/filters.js,values separated by co
 apps/frappe/frappe/core/doctype/doctype/doctype.py,Max width for type Currency is 100px in row {0},Maksimalus plotis tipo valiuta yra 100px iš eilės {0}
 apps/frappe/frappe/config/website.py,Content web page.,Turinio interneto puslapis.
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Add a New Role,Įdėti naują vaidmenį
-apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Setup &gt; Customize Form,Sąranka&gt; Tinkinti formą
 DocType: Google Contacts,Last Sync On,Paskutinė sinchronizacija įjungta
 DocType: Deleted Document,Deleted Document,ištrintas Dokumento
 apps/frappe/frappe/templates/includes/login/login.js,Oops! Something went wrong,Oi! Kažkas negerai
 DocType: Desktop Icon,Category,Kategorija
+apps/frappe/frappe/core/doctype/data_import/importer_new.py,Value {0} missing for {1},Trūksta {0} vertės {0}
 apps/frappe/frappe/desk/doctype/event/event.js,Add Contacts,Pridėti kontaktus
 apps/frappe/frappe/public/js/frappe/form/print.js,Landscape,Peizažas
 apps/frappe/frappe/config/core.py,Client side script extensions in Javascript,Kliento pusėje scenarijus plėtiniai JavaScript
@@ -3825,6 +3911,7 @@ apps/frappe/frappe/core/doctype/user_permission/user_permission_list.js,Apply to
 apps/frappe/frappe/social/doctype/energy_point_log/energy_point_log.py,Energy point update,Energijos taško atnaujinimas
 apps/frappe/frappe/integrations/doctype/paypal_settings/paypal_settings.py,Please select another payment method. PayPal does not support transactions in currency '{0}',Prašome pasirinkti kitą mokėjimo būdą. &quot;PayPal&quot; nepalaiko sandoriams valiuta &quot;{0} &#39;
 DocType: Chat Message,Room Type,Kambario tipas
+DocType: Data Import Beta,Import Log Preview,Importuoti žurnalo peržiūrą
 apps/frappe/frappe/core/doctype/doctype/doctype.py,Search field {0} is not valid,Paieška laukas {0} negalioja
 apps/frappe/frappe/public/js/frappe/file_uploader/FileUploader.vue,uploaded file,įkeltas failas
 DocType: Workflow State,ok-circle,OK-ratas
@@ -3893,6 +3980,7 @@ DocType: DocType,Allow Auto Repeat,Leisti automatinį pakartojimą
 apps/frappe/frappe/public/js/frappe/form/controls/multiselect_list.js,No values to show,Jokių vertybių parodyti
 DocType: Desktop Icon,_doctype,_doctype
 DocType: Communication,Email Template,Elektroninio pašto šablonas
+apps/frappe/frappe/core/doctype/data_import_beta/data_import_beta.js,Successfully updated {0} record.,Sėkmingai atnaujintas {0} įrašas.
 apps/frappe/frappe/permissions.py,User {0} does not have doctype access via role permission for document {1},Naudotojas {0} neturi prieigos prie doktipo tipo per {1} dokumento vaidmens leidimą
 apps/frappe/frappe/templates/includes/login/login.js,Both login and password required,Tiek prisijungimo vardą ir slaptažodį reikia
 apps/frappe/frappe/model/document.py,Please refresh to get the latest document.,Prašome atnaujinti gauti naujausią dokumentą.
