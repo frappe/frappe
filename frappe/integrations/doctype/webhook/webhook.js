@@ -12,7 +12,7 @@ frappe.webhook = {
 					} else if (d.fieldtype === 'Currency' || d.fieldtype === 'Float') {
 						return { label: d.label, value: d.fieldname };
 					} else {
-						return { label: d.label + ' (' + d.fieldtype + ')', value: d.fieldname };
+						return {  label: `${__(d.label)} (${d.fieldtype})`, value: d.fieldname };
 					}
 				});
 
@@ -21,7 +21,7 @@ frappe.webhook = {
 					if (field.fieldname == "name") {
 						fields.unshift({ label: "Name (Doc Name)", value: "name" });
 					} else {
-						fields.push({ label: field.label + ' (' + field.fieldtype + ')', value: field.fieldname });
+						fields.push({ label: `${__(field.label)} (${field.fieldtype})`, value: field.fieldname });
 					}
 				}
 
