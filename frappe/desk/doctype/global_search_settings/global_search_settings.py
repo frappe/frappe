@@ -70,7 +70,7 @@ def update_global_search_doctypes():
 	show_message(2, _("Setting up Global Search documents."))
 	global_search_settings = frappe.get_single("Global Search Settings")
 	global_search_settings.allowed_in_global_search = []
-	for idx, dt in enumerate(allowed_in_global_search):
+	for dt in allowed_in_global_search:
 		if dt not in doctype_list:
 			continue
 
