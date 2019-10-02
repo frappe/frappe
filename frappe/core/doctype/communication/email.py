@@ -313,7 +313,7 @@ def set_incoming_outgoing_accounts(doc):
 		doc.incoming_email_account = frappe.db.get_value("Email Account",
 			{"default_incoming": 1, "enable_incoming": 1},  "email_id")
 
-	doc.outgoing_email_account = frappe.email.smtp.get_outgoing_email_account(raise_exception_not_set=False, append_to=None, sender=None)
+	doc.outgoing_email_account = frappe.email.smtp.get_outgoing_email_account(raise_exception_not_set=False, append_to=doc.doctype, sender=doc.sender)
 
 	if doc.sent_or_received == "Sent":
 		doc.db_set("email_account", doc.outgoing_email_account.name)
