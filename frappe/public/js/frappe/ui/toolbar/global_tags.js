@@ -50,71 +50,16 @@ frappe.global_tags.utils = {
 				});
 			}
 
-			function make_description(content, doc_name) {
-				var parts = content.split(" ||| ");
-				var result_max_length = 300;
-				var field_length = 120;
-				var fields = [];
-				var result_current_length = 0;
-				var field_text = "";
-				var colon_index = null;
+			function make_description(content) {
+				var field_length = 110;
 				var field_value = null;
-				for (var i = 0; i < parts.length; i++) {
-					var part = parts[i];
-					if (part.toLowerCase().indexOf(tag) !== -1) {
-						// If the field contains the keyword
-						if (part.indexOf(' &&& ') !== -1) {
-							colon_index = part.indexOf(' &&& ');
-							field_value = part.slice(colon_index + 5);
-						} else {
-							colon_index = part.indexOf(' : ');
-							field_value = part.slice(colon_index + 3);
-						}
-						if (field_value.length > field_length) {
-							// If field value exceeds field_length, find the keyword in it
-							// and trim field value by half the field_length at both sides
-							// ellipsify if necessary
-							var field_data = "";
-							var index = field_value.indexOf(tag);
-							field_data += index < field_length/2 ? field_value.slice(0, index)
-								: '...' + field_value.slice(index - field_length/2, index);
-							field_data += field_value.slice(index, index + field_length/2);
-							field_data += index + field_length/2 < field_value.length ? "..." : "";
-							field_value = field_data;
-						}
-						var field_name = part.slice(0, colon_index);
-
-						// Find remaining result_length and add field length to result_current_length
-						var remaining_length = result_max_length - result_current_length;
-						result_current_length += field_name.length + field_value.length + 2;
-						if (result_current_length < result_max_length) {
-							// We have room, push the entire field
-							field_text = '<span class="field-name text-muted">' +
-								me.bolden_match_part(field_name, tag) + ': </span> ' +
-								me.bolden_match_part(field_value, tag);
-							if (fields.indexOf(field_text) === -1 && doc_name !== field_value) {
-								fields.push(field_text);
-							}
-						} else {
-							// Not enough room
-							if (field_name.length < remaining_length) {
-								// Ellipsify (trim at word end) and push
-								remaining_length -= field_name.length;
-								field_text = '<span class="field-name text-muted">' +
-									me.bolden_match_part(field_name, tag) + ': </span> ';
-								field_value = field_value.slice(0, remaining_length);
-								field_value = field_value.slice(0, field_value.lastIndexOf(' ')) + ' ...';
-								field_text += me.bolden_match_part(field_value, tag);
-								fields.push(field_text);
-							} else {
-								// No room for even the field name, skip
-								fields.push('...');
-							}
-							break;
-						}
-					}
+				if (content.length > field_length) {
+					field_value = content.slice(0, field_length) + "...";
+				} else {
+					var length = content.length;
+					field_value = content.slice(0, length) + "...";
 				}
-				return fields.join(', ');
+				return field_value;
 			}
 
 			data.forEach(function(d) {
@@ -122,7 +67,7 @@ frappe.global_tags.utils = {
 				result = {
 					label: d.name,
 					value: d.name,
-					description: make_description(d.content, d.name),
+					description: make_description(d.content),
 					route: ['Form', d.doctype, d.name],
 
 				};

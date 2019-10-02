@@ -23,13 +23,14 @@ def update_global_tags(doc, tags):
 
 	new_tags = list(set([tag.strip() for tag in tags.split(",") if tag]))
 
-
 	for tag in new_tags:
-		if not frappe.db.exists("Tag Link", {"dt": doc.doctype, "dn": doc.name, "tag": tag}):
+		if not frappe.db.exists("Tag Link", {"parenttype": doc.doctype, "parent": doc.name, "tag": tag}):
 			frappe.get_doc({
 				"doctype": "Tag Link",
 				"dt": doc.doctype,
 				"dn": doc.name,
+				"parenttype": doc.doctype,
+				"parent": doc.name,
 				"title": doc.get_title() or '',
 				"tag": tag
 			}).insert(ignore_permissions=True)
