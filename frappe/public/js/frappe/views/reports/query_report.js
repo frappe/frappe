@@ -836,16 +836,6 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		const custom_format = this.report_settings.html_format || null;
 		const filters_html = this.get_filters_html_for_print();
 		const landscape = print_settings.orientation == 'Landscape';
-		let columns = [];
-
-		if (print_settings.columns) {
-			columns = this.get_columns_for_print().filter(column =>
-				print_settings.columns.includes(column.fieldname)
-			);
-		}
-		else {
-			columns = custom_format ? this.columns : this.get_columns_for_print();
-		}
 
 		this.make_access_log('Print', 'PDF');
 		frappe.render_grid({
@@ -856,7 +846,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			landscape: landscape,
 			filters: this.get_filter_values(),
 			data: this.get_data_for_print(),
-			columns: columns,
+			columns: this.get_columns_for_print(print_settings, custom_format),
 			original_data: this.data,
 			report: this
 		});
@@ -866,17 +856,6 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		const base_url = frappe.urllib.get_base_url();
 		const print_css = frappe.boot.print_css;
 		const landscape = print_settings.orientation == 'Landscape';
-
-		let columns = [];
-
-		if (print_settings.columns) {
-			columns = this.get_columns_for_print().filter(column =>
-				print_settings.columns.includes(column.fieldname)
-			);
-		}
-		else {
-			columns = custom_format ? this.columns : this.get_columns_for_print();
-		}
 
 		const custom_format = this.report_settings.html_format || null;
 		const data = this.get_data_for_print();
@@ -889,7 +868,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			filters: applied_filters,
 			data: data,
 			original_data: this.data,
-			columns: columns,
+			columns: this.get_columns_for_print(print_settings, custom_format),
 			report: this
 		});
 
@@ -1007,8 +986,18 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		return rows;
 	}
 
-	get_columns_for_print() {
-		return this.get_visible_columns();
+	get_columns_for_print(print_settings, custom_format) {
+		let columns = [];
+
+		if (print_settings && print_settings.columns) {
+			columns = this.get_visible_columns().filter(column =>
+				print_settings.columns.includes(column.fieldname)
+			);
+		} else {
+			columns = custom_format ? this.columns : this.get_visible_columns();
+		}
+
+		return columns;
 	}
 
 	get_menu_items() {
