@@ -399,6 +399,11 @@ def send_one(email, smtpserver=None, auto_commit=True, now=False, from_test=Fals
 
 		if not frappe.flags.in_test:
 			if not smtpserver: smtpserver = SMTPServer()
+
+			# to avoid always using of default outgoing email account
+			if getattr(frappe.local, "outgoing_email_account", None):
+				frappe.local.outgoing_email_account = {}
+
 			smtpserver.setup_email_account(email.reference_doctype, sender=email.sender)
 
 		for recipient in recipients_list:
@@ -427,7 +432,6 @@ def send_one(email, smtpserver=None, auto_commit=True, now=False, from_test=Fals
 			frappe.get_doc('Communication', email.communication).set_delivery_status(commit=auto_commit)
 
 		if smtpserver.append_emails_to_send_folder and any("Sent" == s.status for s in recipients_list):
-			print(smtpserver.append_emails_to_send_folder)
 			smtpserver.email_account.append_email_to_send_folder(encode(message))
 
 	except (smtplib.SMTPServerDisconnected,
