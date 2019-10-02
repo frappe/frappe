@@ -7,10 +7,13 @@ import frappe
 
 from frappe.utils import global_search
 from frappe.test_runner import make_test_objects
+from frappe.desk.page.setup_wizard.install_fixtures import update_global_search_doctypes
+
 import frappe.utils
 
 class TestGlobalSearch(unittest.TestCase):
 	def setUp(self):
+		update_global_search_doctypes()
 		global_search.setup_global_search_table()
 		self.assertTrue('__global_search' in frappe.db.get_tables())
 		doctype = "Event"
@@ -77,7 +80,7 @@ class TestGlobalSearch(unittest.TestCase):
 		make_property_setter(doctype, "repeat_on", "in_global_search", 1, "Int")
 		global_search.rebuild_for_doctype(doctype)
 		results = global_search.search('Monthly')
-		self.assertEqual(len(results), 3)
+		self.assertEqual(len(results), 2)
 
 	def test_delete_doc(self):
 		self.insert_test_events()

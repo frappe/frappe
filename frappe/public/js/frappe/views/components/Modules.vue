@@ -41,7 +41,7 @@ export default {
   methods: {
     update_current_module() {
       let route = frappe.get_route()
-      if (route[0] === 'modules' || !route[0]) {
+      if (route[0] === 'modules') {
         this.route = route
         let module = this.modules_list.filter(m => m.module_name == route[1])[0]
         let module_name = module && (module.label || module.module_name)

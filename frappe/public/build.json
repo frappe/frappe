@@ -325,5 +325,8 @@
 	],
 	"js/barcode_scanner.min.js": [
 		"public/js/frappe/barcode_scanner/quagga.js"
+	],
+	"js/data_import_tools.min.js": [
+		"public/js/frappe/data_import/index.js"
 	]
 }

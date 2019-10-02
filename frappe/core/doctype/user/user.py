@@ -494,10 +494,7 @@ class User(Document):
 		if not self.restrict_ip:
 			return
 
-		ip_list = self.restrict_ip.replace(",", "\n").split('\n')
-		ip_list = [i.strip() for i in ip_list]
-
-		return ip_list
+		return [i.strip() for i in self.restrict_ip.split(",")]
 
 @frappe.whitelist()
 def get_timezones():
@@ -1027,9 +1024,10 @@ def update_roles(role_profile):
 		user.add_roles(*roles)
 
 def create_contact(user, ignore_links=False, ignore_mandatory=False):
+	from frappe.contacts.doctype.contact.contact import get_contact_name
 	if user.name in ["Administrator", "Guest"]: return
 
-	if not frappe.db.get_value("Contact", {"email_id": user.email}):
+	if not get_contact_name(user.email):
 		contact = frappe.get_doc({
 			"doctype": "Contact",
 			"first_name": user.first_name,
@@ -1039,15 +1037,14 @@ def create_contact(user, ignore_links=False, ignore_mandatory=False):
 		})
 
 		if user.email:
-			contact.add_email(user.email)
+			contact.add_email(user.email, is_primary=True)
 
 		if user.phone:
-			contact.add_phone(user.phone)
+			contact.add_phone(user.phone, is_primary_phone=True)
 
 		if user.mobile_no:
-			contact.add_phone(user.mobile_no)
+			contact.add_phone(user.mobile_no, is_primary_mobile_no=True)
 		contact.insert(ignore_permissions=True, ignore_links=ignore_links, ignore_mandatory=ignore_mandatory)
-
 
 @frappe.whitelist()
 def generate_keys(user):
