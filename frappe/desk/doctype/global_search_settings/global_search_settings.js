@@ -6,8 +6,7 @@ frappe.ui.form.on('Global Search Settings', {
 
 		frappe.realtime.on('global_search_settings', (data) => {
 			if (data.progress) {
-				frm.dashboard.show_progress('Setting up Global Search', data.progress / data.total * 100,
-					__('Adding {0} to Global Search.', [data.doctype]));
+				frm.dashboard.show_progress('Setting up Global Search', data.progress / data.total * 100, data.msg);
 				if (data.progress === data.total) {
 					frm.dashboard.hide_progress('Setting up Global Search');
 				}
