@@ -225,7 +225,7 @@ def create_email_account():
 		"unreplied_for_mins": 20,
 		"send_notification_to": "test_unreplied@example.com",
 		"pop3_server": "pop.test.example.com",
-		"no_remaining":"0",,
+		"no_remaining":"0",
 		"enable_automatic_linking": 1
 	}).insert(ignore_permissions=True)
 
