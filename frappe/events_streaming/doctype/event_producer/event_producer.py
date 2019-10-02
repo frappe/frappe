@@ -10,10 +10,22 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.frappeclient import FrappeClient
 from frappe.utils.background_jobs import get_jobs
+from frappe.custom.doctype.custom_field.custom_field import create_custom_field
 
 class EventProducer(Document):
 	def before_insert(self):
 		self.create_event_consumer()
+
+	def validate(self):
+		'''create custom field to store remote docname and remote site url'''
+		for entry in self.subscribed_doctypes:
+			if not entry.use_same_name:
+				if not frappe.db.exists('Custom Field', {'fieldname': 'remote_docname', 'dt': entry.ref_doctype}):
+					df = dict(fieldname='remote_docname', label='Remote Docname', fieldtype='Data', read_only=1, print_hide=1)
+					create_custom_field(entry.ref_doctype, df)
+				if not frappe.db.exists('Custom Field', {'fieldname': 'remote_site_name', 'dt': entry.ref_doctype}):
+					df = dict(fieldname='remote_site_name', label='Remote Site', fieldtype='Data', read_only=1, print_hide=1)
+					create_custom_field(entry.ref_doctype, df)
 
 	def on_update(self):
 		producer_site = get_producer_site(self.producer_url)
@@ -75,25 +87,28 @@ def pull_from_node(event_producer):
 	event_producer = frappe.get_doc('Event Producer', event_producer)
 	producer_site = get_producer_site(event_producer.producer_url)
 	last_update = event_producer.last_update
+
 	doctypes = []
 	for entry in event_producer.subscribed_doctypes:
 		doctypes.append(entry.ref_doctype)
-	
+
 	updates = get_updates(producer_site, last_update, doctypes)
 
 	for update in updates:
 		sync(update, producer_site, event_producer)
 
 def sync(update, producer_site, event_producer, in_retry=False):
+	use_same_name = check_use_same_name(update.ref_doctype, event_producer.subscribed_doctypes)
+
 	try:
 		if update.update_type == 'Create':
-			set_insert(update, producer_site)
+			set_insert(update, producer_site, use_same_name, event_producer.name)
 
 		if update.update_type == 'Update':
-			set_update(update, producer_site)
+			set_update(update, producer_site, use_same_name)
 
 		if update.update_type == 'Delete':
-			set_delete(update)	
+			set_delete(update, use_same_name)	
 		
 		if in_retry:
 			return 'Synced'
@@ -109,17 +124,23 @@ def sync(update, producer_site, event_producer, in_retry=False):
 	frappe.db.set_value('Event Producer', event_producer.name, 'last_update', update.name)
 	frappe.db.commit()
 
-def set_insert(update, producer_site):
+def set_insert(update, producer_site, use_same_name, event_producer):
 	if frappe.db.get_value(update.ref_doctype, update.docname):
 		# doc already created
 		return
 	else:
 		doc = frappe.get_doc(json.loads(update.data))
 		check_doc_has_dependencies(doc, producer_site)
-		frappe.get_doc(json.loads(update.data)).insert(set_name=update.docname)
+		if use_same_name:
+			doc.insert(set_name=update.docname)
+		else:
+			#if event consumer is not saving documents with the same name as the producer
+			#store the remote docname in a custom field for future updates
+			local_doc = doc.insert()
+			set_custom_fields(local_doc, update.docname, event_producer)
 
-def set_update(update, producer_site):
-	local_doc = get_local_doc(update)
+def set_update(update, producer_site, use_same_name):
+	local_doc = get_local_doc(update, use_same_name)
 	data = json.loads(update.get('data'))
 	data.pop('name')
 	if local_doc:
@@ -127,8 +148,8 @@ def set_update(update, producer_site):
 		local_doc.update(data)
 		local_doc.db_update_all()
 
-def set_delete(update):
-	local_doc = get_local_doc(update)
+def set_delete(update, use_same_name):
+	local_doc = get_local_doc(update, use_same_name)
 	if local_doc:
 		local_doc.delete()
 
@@ -146,9 +167,12 @@ def get_updates(producer_site, last_update, doctypes):
 	docs.reverse()
 	return [frappe._dict(d) for d in docs]
 
-def get_local_doc(update):
+def get_local_doc(update, use_same_name):
 	try:
-		return frappe.get_doc(update.ref_doctype, update.docname)
+		if not use_same_name:
+			return frappe.get_doc(update.ref_doctype, {'remote_docname': update.docname})
+		else:
+			return frappe.get_doc(update.ref_doctype, update.docname)
 	except frappe.DoesNotExistError:
 		return
 
@@ -231,3 +255,14 @@ def resync(update):
 	producer_site = get_producer_site(update.event_producer)
 	event_producer = frappe.get_doc('Event Producer', update.event_producer)
 	return sync(update, producer_site, event_producer, in_retry=True)
+
+def check_use_same_name(doctype, subscription_configs):
+	for entry in subscription_configs:
+		if entry.ref_doctype == doctype and entry.use_same_name != 1:
+			return False
+	return True
+
+def set_custom_fields(local_doc, remote_docname, remote_site_name):
+	'''sets custom field in doc for storing remote docname'''
+	frappe.db.set_value(local_doc.doctype, local_doc.name, 'remote_docname', remote_docname)
+	frappe.db.set_value(local_doc.doctype, local_doc.name, 'remote_site_name', remote_site_name)
