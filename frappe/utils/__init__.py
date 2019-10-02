@@ -59,7 +59,7 @@ def get_email_address(user=None):
 	if not user:
 		user = frappe.session.user
 
-	return frappe.db.get_value("User", user, ["email"], as_dict=True).get("email")
+	return frappe.db.get_value("User", user, "email")
 
 def get_formatted_email(user):
 	"""get Email Address of user formatted as: `John Doe <johndoe@example.com>`"""
@@ -670,3 +670,11 @@ def get_safe_filters(filters):
 		pass
 
 	return filters
+
+def create_batch(iterable, batch_size):
+	"""
+	Convert an iterable to multiple batches of constant size of batch_size
+	"""
+	total_count = len(iterable)
+	for i in range(0, total_count, batch_size):
+		yield iterable[i:min(i + batch_size, total_count)]

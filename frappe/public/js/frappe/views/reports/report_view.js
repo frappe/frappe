@@ -495,6 +495,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 			title: __("{0} Chart", [this.doctype]),
 			data: data,
 			type: args.chart_type,
+			truncateLegends: 1,
 			colors: ['#70E078', 'light-blue', 'orange', 'red'],
 			axisOptions: {
 				shortenYAxisNumbers: 1
@@ -771,21 +772,20 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 	get_columns_for_picker() {
 		let out = {};
 
-		const standard_fields_filter = df =>
-			!in_list(frappe.model.no_value_type, df.fieldtype) && !df.report_hide;
+		const standard_fields_filter = df => !in_list(frappe.model.no_value_type, df.fieldtype);
 
 		let doctype_fields = frappe.meta.get_docfields(this.doctype).filter(standard_fields_filter);
 
 		doctype_fields = [{
 			label: __('ID'),
 			fieldname: 'name',
-			fieldtype: 'Data'
+			fieldtype: 'Data',
+			reqd: 1
 		}].concat(doctype_fields, frappe.model.std_fields);
 
 		out[this.doctype] = doctype_fields;
 
-		const table_fields = frappe.meta.get_table_fields(this.doctype)
-			.filter(df => !df.hidden);
+		const table_fields = frappe.meta.get_table_fields(this.doctype);
 
 		table_fields.forEach(df => {
 			const cdt = df.options;
@@ -1231,23 +1231,27 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 				action: () => {
 					const args = this.get_args();
 					const selected_items = this.get_checked_items(true);
+					let fields = [
+						{
+							fieldtype: 'Select',
+							label: __('Select File Type'),
+							fieldname:'file_format_type',
+							options: ['Excel', 'CSV'],
+							default: 'Excel'
+						}
+					];
+
+					if (this.total_count > args.page_length) {
+						fields.push({
+							fieldtype: 'Check',
+							fieldname: 'export_all_rows',
+							label: __('Export All {0} rows?', [(this.total_count + "").bold()])
+						});
+					}
 
 					const d = new frappe.ui.Dialog({
 						title: __("Export Report: {0}",[__(this.doctype)]),
-						fields: [
-							{
-								fieldtype: 'Select',
-								label: __('Select File Type'),
-								fieldname:'file_format_type',
-								options: ['Excel', 'CSV'],
-								default: 'Excel'
-							},
-							{
-								fieldtype: 'Check',
-								fieldname: 'export_all_rows',
-								label: __('Export All {0} rows?', [(this.total_count + "").bold()])
-							}
-						],
+						fields: fields,
 						primary_action_label: __('Download'),
 						primary_action: (data) => {
 							args.cmd = 'frappe.desk.reportview.export_query';

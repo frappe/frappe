@@ -82,8 +82,8 @@ def create_linked_contact(link_list, address):
 		"address": address,
 		"status": "Open"
 	})
-	contact.add_email("test_contact@example.com")
-	contact.add_phone("+91 0000000000")
+	contact.add_email("test_contact@example.com", is_primary=True)
+	contact.add_phone("+91 0000000000", is_primary_phone=True)
 
 	for name in link_list:
 		contact.append("links",{
@@ -103,7 +103,7 @@ class TestAddressesAndContacts(unittest.TestCase):
 		create_linked_contact(links_list, d)
 		report_data = get_data({"reference_doctype": "Test Custom Doctype"})
 		for idx, link in enumerate(links_list):
-			test_item = [link, 'test address line 1', 'test address line 2', 'Milan', None, None, 'Italy', 0, '_Test First Name', '_Test Last Name', '_Test Address-Billing', '+91 0000000000', 'test_contact@example.com', 1]
+			test_item = [link, 'test address line 1', 'test address line 2', 'Milan', None, None, 'Italy', 0, '_Test First Name', '_Test Last Name', '_Test Address-Billing', '+91 0000000000', None, 'test_contact@example.com', 1]
 			self.assertListEqual(test_item, report_data[idx])
 
 	def tearDown(self):

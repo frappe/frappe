@@ -20,7 +20,7 @@ def get(args=None):
 	return frappe.get_all('ToDo', fields = ['owner', 'description'], filters = dict(
 		reference_type = args.get('doctype'),
 		reference_name = args.get('name'),
-		status = 'Open'
+		status = ('!=', 'Cancelled')
 	), limit = 5)
 
 @frappe.whitelist()
@@ -47,9 +47,6 @@ def add(args=None):
 		frappe.throw(_("Already in user's To Do list"), DuplicateToDoError)
 	else:
 		from frappe.utils import nowdate
-
-		# if args.get("re_assign"):
-		# 	remove_from_todo_if_already_assigned(args['doctype'], args['name'])
 
 		if not args.get('description'):
 			args['description'] = _('Assignment for {0} {1}'.format(args['doctype'], args['name']))
@@ -100,20 +97,29 @@ def add_multiple(args=None):
 		args.update({"name": docname})
 		add(args)
 
-def remove_from_todo_if_already_assigned(doctype, docname):
-	owner = frappe.db.get_value("ToDo", {"reference_type": doctype, "reference_name": docname,
-		"status":"Open"}, "owner")
-	if owner:
-		remove(doctype, docname, owner)
+def close_all_assignments(doctype, name):
+	assignments = frappe.db.get_all('ToDo', fields=['owner'], filters =
+		dict(reference_type = doctype, reference_name = name, status=('!=', 'Cancelled')))
+	if not assignments:
+		return False
+
+	for assign_to in assignments:
+		set_status(doctype, name, assign_to.owner, status="Closed")
+
+	return True
 
 @frappe.whitelist()
 def remove(doctype, name, assign_to):
+	return set_status(doctype, name, assign_to, status="Cancelled")
+
+def set_status(doctype, name, assign_to, status="Cancelled"):
 	"""remove from todo"""
 	try:
-		todo = frappe.db.get_value("ToDo", {"reference_type":doctype, "reference_name":name, "owner":assign_to, "status":"Open"})
+		todo = frappe.db.get_value("ToDo", {"reference_type":doctype,
+		"reference_name":name, "owner":assign_to, "status": ('!=', status)})
 		if todo:
 			todo = frappe.get_doc("ToDo", todo)
-			todo.status = "Closed"
+			todo.status = status
 			todo.save(ignore_permissions=True)
 
 			notify_assignment(todo.assigned_by, todo.owner, todo.reference_type, todo.reference_name)
@@ -121,7 +127,7 @@ def remove(doctype, name, assign_to):
 		pass
 
 	# clear assigned_to if field exists
-	if frappe.get_meta(doctype).get_field("assigned_to"):
+	if frappe.get_meta(doctype).get_field("assigned_to") and status=="Cancelled":
 		frappe.db.set_value(doctype, name, "assigned_to", None)
 
 	return get({"doctype": doctype, "name": name})
@@ -136,7 +142,7 @@ def clear(doctype, name):
 		return False
 
 	for assign_to in assignments:
-		remove(doctype, name, assign_to.owner)
+		set_status(doctype, name, assign_to.owner, "Cancelled")
 
 	return True
 

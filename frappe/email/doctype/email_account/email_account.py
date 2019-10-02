@@ -23,7 +23,7 @@ from frappe.utils.background_jobs import enqueue, get_jobs
 from frappe.core.doctype.communication.email import set_incoming_outgoing_accounts
 from frappe.utils.scheduler import log
 from frappe.utils.html_utils import clean_email_html
-
+from frappe.email.utils import get_port
 
 class SentEmailInInbox(Exception): pass
 
@@ -117,7 +117,7 @@ class EmailAccount(Document):
 			fields = [
 				"name as domain", "use_imap", "email_server",
 				"use_ssl", "smtp_server", "use_tls",
-				"smtp_port"
+				"smtp_port", "incoming_port"
 			]
 			return frappe.db.get_value("Email Domain", domain[1], fields, as_dict=True)
 		except Exception:
@@ -153,6 +153,7 @@ class EmailAccount(Document):
 			"use_imap": self.use_imap,
 			"email_sync_rule": email_sync_rule,
 			"uid_validity": self.uidvalidity,
+			"incoming_port": get_port(self),
 			"initial_sync_count": self.initial_sync_count or 100
 		})
 

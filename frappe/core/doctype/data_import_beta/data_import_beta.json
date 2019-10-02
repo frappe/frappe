@@ -1,0 +1,167 @@
+{
+ "autoname": "format:{reference_doctype} Import on {creation}",
+ "beta": 1,
+ "creation": "2019-08-04 14:16:08.318714",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "reference_doctype",
+  "import_type",
+  "download_template",
+  "import_file",
+  "column_break_5",
+  "status",
+  "section_break_7",
+  "submit_after_import",
+  "mute_emails",
+  "template_options",
+  "section_import_preview",
+  "import_preview",
+  "import_warnings_section",
+  "template_warnings",
+  "import_warnings",
+  "import_log_section",
+  "import_log",
+  "import_log_preview"
+ ],
+ "fields": [
+  {
+   "fieldname": "reference_doctype",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Document Type",
+   "options": "DocType",
+   "reqd": 1,
+   "set_only_once": 1
+  },
+  {
+   "fieldname": "import_type",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Import Type",
+   "options": "\nInsert New Records\nUpdate Existing Records",
+   "reqd": 1,
+   "set_only_once": 1
+  },
+  {
+   "depends_on": "eval:!doc.__islocal",
+   "fieldname": "import_file",
+   "fieldtype": "Attach",
+   "in_list_view": 1,
+   "label": "Import File"
+  },
+  {
+   "fieldname": "import_preview",
+   "fieldtype": "HTML",
+   "label": "Import Preview"
+  },
+  {
+   "fieldname": "section_import_preview",
+   "fieldtype": "Section Break",
+   "label": "Preview"
+  },
+  {
+   "fieldname": "column_break_5",
+   "fieldtype": "Column Break"
+  },
+  {
+   "collapsible": 1,
+   "depends_on": "eval:!doc.__islocal",
+   "fieldname": "section_break_7",
+   "fieldtype": "Section Break",
+   "label": "Import Options"
+  },
+  {
+   "fieldname": "template_options",
+   "fieldtype": "Code",
+   "hidden": 1,
+   "label": "Template Options",
+   "options": "JSON",
+   "read_only": 1
+  },
+  {
+   "fieldname": "import_log",
+   "fieldtype": "Code",
+   "label": "Import Log",
+   "options": "JSON"
+  },
+  {
+   "fieldname": "import_log_section",
+   "fieldtype": "Section Break",
+   "label": "Import Log"
+  },
+  {
+   "fieldname": "import_log_preview",
+   "fieldtype": "HTML",
+   "label": "Import Log Preview"
+  },
+  {
+   "default": "Pending",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "hidden": 1,
+   "label": "Status",
+   "options": "Pending\nSuccess\nPartial Success",
+   "read_only": 1
+  },
+  {
+   "fieldname": "template_warnings",
+   "fieldtype": "Code",
+   "hidden": 1,
+   "label": "Template Warnings",
+   "options": "JSON"
+  },
+  {
+   "default": "0",
+   "fieldname": "submit_after_import",
+   "fieldtype": "Check",
+   "label": "Submit After Import"
+  },
+  {
+   "fieldname": "import_warnings_section",
+   "fieldtype": "Section Break",
+   "label": "Warnings"
+  },
+  {
+   "fieldname": "import_warnings",
+   "fieldtype": "HTML",
+   "label": "Import Warnings"
+  },
+  {
+   "depends_on": "reference_doctype",
+   "fieldname": "download_template",
+   "fieldtype": "Button",
+   "label": "Download Template"
+  },
+  {
+   "default": "0",
+   "fieldname": "mute_emails",
+   "fieldtype": "Check",
+   "label": "Don't Send Emails"
+  }
+ ],
+ "hide_toolbar": 1,
+ "modified": "2019-09-28 13:54:35.061730",
+ "modified_by": "Administrator",
+ "module": "Core",
+ "name": "Data Import Beta",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

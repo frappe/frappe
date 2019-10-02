@@ -52,7 +52,7 @@ class Event(Document):
 					["Communication Link", "link_doctype", "=", participant.reference_doctype],
 					["Communication Link", "link_name", "=", participant.reference_docname]
 				]
-				comms = frappe.get_list("Communication", filters=filters, fields=["name"])
+				comms = frappe.get_all("Communication", filters=filters, fields=["name"])
 
 				if comms:
 					for comm in comms:
