@@ -161,8 +161,22 @@ class Communication(Document):
 				sender_name, sender_email = parse_addr(self.sender)
 				if sender_name == sender_email:
 					sender_name = None
+
 				self.sender = sender_email
-				self.sender_full_name = sender_name or frappe.db.exists("Contact", {"email_id": sender_email}) or sender_email
+				self.sender_full_name = sender_name
+
+				if not self.sender_full_name:
+					self.sender_full_name = frappe.db.get_value('User', self.sender, 'full_name')
+
+				if not self.sender_full_name:
+					first_name, last_name = frappe.db.get_value('Contact',
+						filters={'email_id': sender_email},
+						fieldname=['first_name', 'last_name']
+					) or [None, None]
+					self.sender_full_name = (first_name or '') + (last_name or '')
+
+				if not self.sender_full_name:
+					self.sender_full_name = sender_email
 
 	def send(self, print_html=None, print_format=None, attachments=None,
 		send_me_a_copy=False, recipients=None):

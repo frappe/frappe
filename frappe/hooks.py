@@ -70,6 +70,8 @@ get_rooms = 'frappe.chat.doctype.chat_room.chat_room.get_rooms'
 
 calendars = ["Event"]
 
+leaderboards = "frappe.desk.leaderboard.get_leaderboards"
+
 # login
 
 on_session_creation = [
@@ -136,6 +138,15 @@ doc_events = {
 		"on_change": [
 			"frappe.social.doctype.energy_point_rule.energy_point_rule.process_energy_points"
 		],
+	},
+	"Event": {
+		"after_insert": "frappe.integrations.doctype.google_calendar.google_calendar.insert_event_in_google_calendar",
+		"on_update": "frappe.integrations.doctype.google_calendar.google_calendar.update_event_in_google_calendar",
+		"on_trash": "frappe.integrations.doctype.google_calendar.google_calendar.delete_event_from_google_calendar",
+	},
+	"Contact": {
+		"after_insert": "frappe.integrations.doctype.google_contacts.google_contacts.insert_contacts_to_google_contacts",
+		"on_update": "frappe.integrations.doctype.google_contacts.google_contacts.update_contacts_to_google_contacts",
 	}
 }
 
@@ -261,7 +272,7 @@ user_privacy_documents = [
 	{
 		'doctype': 'Contact',
 		'match_field': 'email_id',
-		'personal_fields': ['first_name', 'last_name', 'phone'],
+		'personal_fields': ['first_name', 'last_name', 'phone', 'mobile_no'],
 	},
 	{
 		'doctype': 'Contact Email',
@@ -291,3 +302,22 @@ user_privacy_documents = [
 	},
 
 ]
+
+global_search_doctypes = {
+	"Default": [
+		{"doctype": "Contact"},
+		{"doctype": "Address"},
+		{"doctype": "ToDo"},
+		{"doctype": "Note"},
+		{"doctype": "Event"},
+		{"doctype": "Blog Post"},
+		{"doctype": "Dashboard"},
+		{"doctype": "Country"},
+		{"doctype": "Currency"},
+		{"doctype": "Newsletter"},
+		{"doctype": "Letter Head"},
+		{"doctype": "Workflow"},
+		{"doctype": "Web Page"},
+		{"doctype": "Web Form"}
+	]
+}

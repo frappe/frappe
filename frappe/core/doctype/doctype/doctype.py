@@ -583,12 +583,14 @@ class DocType(Document):
 				create_custom_field(self.name, df)
 
 	def validate_nestedset(self):
-		if not self.is_tree:
+		if not self.get('is_tree'):
 			return
 		self.add_nestedset_fields()
-		# set field as mandatory
-		field = self.meta.get_field('nsm_parent_field')
-		field.reqd = 1
+
+		if not self.nsm_parent_field:
+			field_label = frappe.bold(_("Parent Field (Tree)"))
+			frappe.throw(_("{0} is a mandatory field").format(field_label), frappe.MandatoryError)
+
 		# check if field is valid
 		fieldnames = [df.fieldname for df in self.fields]
 		if self.nsm_parent_field and self.nsm_parent_field not in fieldnames:
@@ -690,6 +692,13 @@ def validate_fields(meta):
 
 	def check_illegal_characters(fieldname):
 		validate_column_name(fieldname)
+
+
+	def check_invalid_fieldnames(docname, fieldname):
+		invalid_fields = ('doctype',)
+		if fieldname in invalid_fields:
+			frappe.throw(_("{0}: Fieldname cannot be one of {1}")
+				.format(docname, ", ".join([frappe.bold(d) for d in invalid_fields])))
 
 
 	def check_unique_fieldname(docname, fieldname):
@@ -949,6 +958,7 @@ def validate_fields(meta):
 			d.fieldname = d.fieldname.lower()
 
 		check_illegal_characters(d.fieldname)
+		check_invalid_fieldnames(meta.get("name"), d.fieldname)
 		check_unique_fieldname(meta.get("name"), d.fieldname)
 		check_fieldname_length(d.fieldname)
 		check_illegal_mandatory(meta.get("name"), d)

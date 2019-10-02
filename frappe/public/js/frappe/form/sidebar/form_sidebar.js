@@ -216,7 +216,7 @@ frappe.ui.form.Sidebar = Class.extend({
 			callback: (r) => {
 				// docinfo will be synced
 				if(callback) callback(r.docinfo);
-				this.frm.timeline.refresh();
+				this.frm.timeline && this.frm.timeline.refresh();
 				this.frm.assign_to.refresh();
 				this.frm.attachments.refresh();
 			}

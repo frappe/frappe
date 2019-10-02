@@ -259,7 +259,8 @@ class DatabaseQuery(object):
 		# add tables from fields
 		if self.fields:
 			for f in self.fields:
-				if ( not ("tab" in f and "." in f) ) or ("locate(" in f) or ("strpos(" in f) or ("count(" in f):
+				if ( not ("tab" in f and "." in f) ) or ("locate(" in f) or ("strpos(" in f) or \
+					("count(" in f) or ("avg(" in f)  or ("sum(" in f):
 					continue
 
 				table_name = f.split('.')[0]
@@ -457,18 +458,6 @@ class DatabaseQuery(object):
 				value = get_between_date_filter(f.value, df)
 				fallback = "'0001-01-01 00:00:00'"
 
-			elif df and df.fieldtype=="Date":
-				value = frappe.db.format_date(f.value)
-				fallback = "'0001-01-01'"
-
-			elif (df and df.fieldtype=="Datetime") or isinstance(f.value, datetime):
-				value = frappe.db.format_datetime(f.value)
-				fallback = "'0001-01-01 00:00:00'"
-
-			elif df and df.fieldtype=="Time":
-				value = get_time(f.value).strftime("%H:%M:%S.%f")
-				fallback = "'00:00:00'"
-
 			elif f.operator.lower() == "is":
 				if f.value == 'set':
 					f.operator = '!='
@@ -481,6 +470,18 @@ class DatabaseQuery(object):
 
 				if 'ifnull' not in column_name:
 					column_name = 'ifnull({}, {})'.format(column_name, fallback)
+
+			elif df and df.fieldtype=="Date":
+				value = frappe.db.format_date(f.value)
+				fallback = "'0001-01-01'"
+
+			elif (df and df.fieldtype=="Datetime") or isinstance(f.value, datetime):
+				value = frappe.db.format_datetime(f.value)
+				fallback = "'0001-01-01 00:00:00'"
+
+			elif df and df.fieldtype=="Time":
+				value = get_time(f.value).strftime("%H:%M:%S.%f")
+				fallback = "'00:00:00'"
 
 			elif f.operator.lower() in ("like", "not like") or (isinstance(f.value, string_types) and
 				(not df or df.fieldtype not in ["Float", "Int", "Currency", "Percent", "Check"])):

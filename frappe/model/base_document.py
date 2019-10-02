@@ -38,8 +38,8 @@ def get_controller(doctype):
 			or ["Core", False]
 
 		if custom:
-			if frappe.db.field_exists(doctype, "is_tree"):
-				is_tree = frappe.db.get_value("DocType", doctype, ("is_tree"), cache=True)
+			if frappe.db.field_exists("DocType", "is_tree"):
+				is_tree = frappe.db.get_value("DocType", doctype, "is_tree", cache=True)
 			else:
 				is_tree = False
 			_class = NestedSet if is_tree else Document
@@ -233,8 +233,8 @@ class BaseDocument(object):
 				if isinstance(d[fieldname], list) and df.fieldtype not in table_fields:
 					frappe.throw(_('Value for {0} cannot be a list').format(_(df.label)))
 
-				if convert_dates_to_str and isinstance(d[fieldname], (datetime.datetime, datetime.time, datetime.timedelta)):
-					d[fieldname] = str(d[fieldname])
+			if convert_dates_to_str and isinstance(d[fieldname], (datetime.datetime, datetime.time, datetime.timedelta)):
+				d[fieldname] = str(d[fieldname])
 
 			if d[fieldname] == None and ignore_nulls:
 				del d[fieldname]
@@ -454,6 +454,18 @@ class BaseDocument(object):
 					doctype = df.options
 					if not doctype:
 						frappe.throw(_("Options not set for link field {0}").format(df.fieldname))
+
+					meta = frappe.get_meta(doctype)
+					if meta.has_field('disabled'):
+						if not (
+							frappe.flags.in_import
+							or frappe.flags.in_migrate
+							or frappe.flags.in_install
+							or frappe.flags.in_patch
+						):
+							disabled = frappe.get_value(doctype, self.get(df.fieldname), 'disabled')
+							if disabled:
+								frappe.throw(_("{0} is disabled").format(frappe.bold(self.get(df.fieldname))))
 				else:
 					doctype = self.get(df.options)
 					if not doctype:

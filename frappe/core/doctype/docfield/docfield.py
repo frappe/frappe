@@ -26,3 +26,8 @@ class DocField(Document):
 			}, 'options')
 
 			return link_doctype
+
+	def get_select_options(self):
+		if self.fieldtype == 'Select':
+			options = self.options or ''
+			return [d for d in options.split('\n') if d]

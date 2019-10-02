@@ -171,6 +171,7 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 					if(!me.$input.is(":focus")) {
 						return;
 					}
+					r.results = me.merge_duplicates(r.results);
 
 					// show filter description in awesomplete
 					if (args.filters) {
@@ -274,6 +275,23 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 				me.$input.val("");
 			}
 		});
+	},
+
+	merge_duplicates(results) {
+		// in case of result like this 
+		// [{value: 'Manufacturer 1', 'description': 'mobile part 1'},
+		// 	{value: 'Manufacturer 1', 'description': 'mobile part 2'}]
+		// suggestion list has two items with same value (docname) & description
+		return results.reduce((newArr, currElem) => {
+			if (newArr.length === 0) return [currElem];
+			let element_with_same_value = newArr.find(e => e.value === currElem.value);
+			if (element_with_same_value) {
+				element_with_same_value.description += `, ${currElem.description}`;
+				return [...newArr];
+			}
+			return [...newArr, currElem];
+		}, []);
+		// returns [{value: 'Manufacturer 1', 'description': 'mobile part 1, mobile part 2'}]
 	},
 
 	get_filter_description(filters) {
