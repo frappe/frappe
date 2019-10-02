@@ -80,6 +80,7 @@ class CustomizeForm(Document):
 	def on_update(self):
 		frappe.db.sql("delete from tabSingles where doctype='Customize Form'")
 		frappe.db.sql("delete from `tabCustomize Form Field`")
+		frappe.cache().hdel('db_columns', 'tab{}'.format(self.doc_type))
 
 	def fetch_to_customize(self):
 		self.clear_existing_doc()

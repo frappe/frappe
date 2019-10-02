@@ -845,10 +845,14 @@ class Database(object):
 
 	def get_db_table_columns(self, table):
 		"""Returns list of column names from given table."""
-		return [r[0] for r in self.sql('''
-			select column_name
-			from information_schema.columns
-			where table_name = %s ''', table)]
+		columns = frappe.cache().hget('db_columns', table)
+		if columns == None:
+			columns = [r[0] for r in self.sql('''
+				select column_name
+				from information_schema.columns
+				where table_name = %s ''', table)]
+			frappe.cache().hset('db_columns', table, columns)
+		return columns
 
 	def get_table_columns(self, doctype):
 		"""Returns list of column names from given doctype."""
