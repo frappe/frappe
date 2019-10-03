@@ -33,6 +33,7 @@ class DBTable:
 		if self.is_new():
 			self.create()
 		else:
+			frappe.cache().hdel('db_columns', 'tab{}'.format(self.name))
 			self.alter()
 
 	def create(self):
