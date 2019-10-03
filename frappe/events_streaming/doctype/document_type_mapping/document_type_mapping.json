@@ -6,8 +6,8 @@
  "field_order": [
   "local_doctype",
   "remote_doctype",
-  "mapping_section",
-  "field_maps"
+  "section_break_3",
+  "field_mapping"
  ],
  "fields": [
   {
@@ -25,19 +25,18 @@
    "reqd": 1
   },
   {
-   "fieldname": "mapping_section",
-   "fieldtype": "Section Break",
-   "label": "Mapping"
+   "fieldname": "section_break_3",
+   "fieldtype": "Section Break"
   },
   {
-   "fieldname": "field_maps",
+   "fieldname": "field_mapping",
    "fieldtype": "Table",
-   "label": "Field Maps",
+   "label": "Field Mapping",
    "options": "Document Type Field Mapping",
    "reqd": 1
   }
  ],
- "modified": "2019-09-27 12:47:04.887985",
+ "modified": "2019-10-03 21:17:32.785912",
  "modified_by": "Administrator",
  "module": "Events Streaming",
  "name": "Document Type Mapping",

@@ -6,7 +6,7 @@
  "engine": "InnoDB",
  "field_order": [
   "producer_url",
-  "subscribed_doctypes",
+  "event_configuration",
   "last_update",
   "user",
   "api_key",
@@ -20,13 +20,6 @@
    "label": "Producer URL",
    "reqd": 1,
    "unique": 1
-  },
-  {
-   "fieldname": "subscribed_doctypes",
-   "fieldtype": "Table",
-   "label": "Subscribed Doctypes",
-   "options": "Event Subscribed DocType",
-   "reqd": 1
   },
   {
    "fieldname": "last_update",
@@ -52,9 +45,16 @@
    "label": "Event Subscriber",
    "options": "User",
    "reqd": 1
+  },
+  {
+   "fieldname": "event_configuration",
+   "fieldtype": "Table",
+   "label": "Event Configuration",
+   "options": "Event Configuration",
+   "reqd": 1
   }
  ],
- "modified": "2019-09-25 10:17:32.591436",
+ "modified": "2019-10-03 21:26:32.739416",
  "modified_by": "Administrator",
  "module": "Events Streaming",
  "name": "Event Producer",

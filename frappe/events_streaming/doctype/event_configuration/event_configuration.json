@@ -1,5 +1,5 @@
 {
- "creation": "2019-08-29 11:35:00.625815",
+ "creation": "2019-10-03 21:08:25.890352",
  "doctype": "DocType",
  "editable_grid": 1,
  "engine": "InnoDB",
@@ -26,6 +26,7 @@
    "label": "Has Mapping"
   },
   {
+   "depends_on": "eval: doc.has_mapping",
    "fieldname": "mapping",
    "fieldtype": "Link",
    "label": "Mapping",
@@ -41,10 +42,10 @@
   }
  ],
  "istable": 1,
- "modified": "2019-09-27 13:53:09.687499",
+ "modified": "2019-10-03 21:27:31.483213",
  "modified_by": "Administrator",
  "module": "Events Streaming",
- "name": "Event Subscribed DocType",
+ "name": "Event Configuration",
  "owner": "Administrator",
  "permissions": [],
  "quick_entry": 1,

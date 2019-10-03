@@ -18,10 +18,10 @@ class EventProducer(Document):
 
 	def validate(self):
 		'''create custom field to store remote docname and remote site url'''
-		for entry in self.subscribed_doctypes:
+		for entry in self.event_configuration:
 			if not entry.use_same_name:
 				if not frappe.db.exists('Custom Field', {'fieldname': 'remote_docname', 'dt': entry.ref_doctype}):
-					df = dict(fieldname='remote_docname', label='Remote Docname', fieldtype='Data', read_only=1, print_hide=1)
+					df = dict(fieldname='remote_docname', label='Remote Document Name', fieldtype='Data', read_only=1, print_hide=1)
 					create_custom_field(entry.ref_doctype, df)
 				if not frappe.db.exists('Custom Field', {'fieldname': 'remote_site_name', 'dt': entry.ref_doctype}):
 					df = dict(fieldname='remote_site_name', label='Remote Site', fieldtype='Data', read_only=1, print_hide=1)
@@ -32,7 +32,7 @@ class EventProducer(Document):
 		event_consumer = producer_site.get_doc('Event Consumer', get_current_node())
 		if event_consumer:
 			event_consumer.subscribed_doctypes = []
-			for entry in self.subscribed_doctypes:
+			for entry in self.event_configuration:
 				event_consumer.subscribed_doctypes.append({
 					'ref_doctype': entry.ref_doctype
 				})
@@ -43,8 +43,11 @@ class EventProducer(Document):
 		'''register event consumer on the producer site'''
 		producer_site = FrappeClient(self.producer_url)
 		subscribed_doctypes = []
-		for entry in self.subscribed_doctypes:
-			subscribed_doctypes.append(entry.ref_doctype)
+		for entry in self.event_configuration:
+			if entry.has_mapping:
+				subscribed_doctypes.append(frappe.db.get_value('Document Type Mapping', entry.mapping, 'remote_doctype'))
+			else:
+				subscribed_doctypes.append(entry.ref_doctype)
 		(api_key, api_secret, last_update) = producer_site.post_request({
 			'cmd': 'frappe.events_streaming.doctype.event_consumer.event_consumer.register_consumer',
 			'event_consumer': get_current_node(),
@@ -89,7 +92,7 @@ def pull_from_node(event_producer):
 	last_update = event_producer.last_update
 
 	doctypes = []
-	for entry in event_producer.subscribed_doctypes:
+	for entry in event_producer.event_configuration:
 		doctypes.append(entry.ref_doctype)
 
 	updates = get_updates(producer_site, last_update, doctypes)
@@ -98,27 +101,26 @@ def pull_from_node(event_producer):
 		sync(update, producer_site, event_producer)
 
 def sync(update, producer_site, event_producer, in_retry=False):
-	use_same_name = check_use_same_name(update.ref_doctype, event_producer.subscribed_doctypes)
+	(use_same_name, has_mapping, mapping) = frappe.db.get_value(
+		doctype = 'Event Configuration',
+		filters = {'parent': event_producer.name, 'ref_doctype': update.ref_doctype}, 
+		fieldname = ['use_same_name', 'has_mapping', 'mapping'],
+	)
 
 	try:
 		if update.update_type == 'Create':
 			set_insert(update, producer_site, use_same_name, event_producer.name)
-
 		if update.update_type == 'Update':
 			set_update(update, producer_site, use_same_name)
-
 		if update.update_type == 'Delete':
 			set_delete(update, use_same_name)	
-		
 		if in_retry:
 			return 'Synced'
-
 		log_event_sync(update, event_producer.name, 'Synced')
 
 	except Exception:
 		if in_retry:
 			return 'Failed'
-
 		log_event_sync(update, event_producer.name, 'Failed', frappe.get_traceback())
 
 	frappe.db.set_value('Event Producer', event_producer.name, 'last_update', update.name)
@@ -255,12 +257,6 @@ def resync(update):
 	producer_site = get_producer_site(update.event_producer)
 	event_producer = frappe.get_doc('Event Producer', update.event_producer)
 	return sync(update, producer_site, event_producer, in_retry=True)
-
-def check_use_same_name(doctype, subscription_configs):
-	for entry in subscription_configs:
-		if entry.ref_doctype == doctype and entry.use_same_name != 1:
-			return False
-	return True
 
 def set_custom_fields(local_doc, remote_docname, remote_site_name):
 	'''sets custom field in doc for storing remote docname'''
