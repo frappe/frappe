@@ -1,15 +1,15 @@
 // Copyright (c) 2019, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
-frappe.provide("frappe.global_tags");
+frappe.provide("frappe.tags");
 
-frappe.global_tags.utils = {
+frappe.tags.utils = {
 	get_tags: function(txt) {
 		txt = txt.slice(1);
 		let out = [];
 
-		for (let i in frappe.global_tags.tags) {
-			let tag = frappe.global_tags.tags[i];
+		for (let i in frappe.tags.tags) {
+			let tag = frappe.tags.tags[i];
 			let level = frappe.search.utils.fuzzy_search(txt, tag);
 			if (level) {
 				out.push({
@@ -31,10 +31,10 @@ frappe.global_tags.utils = {
 
 	set_tags() {
 		frappe.call({
-			method: "frappe.utils.global_tags.get_tags_list_for_awesomebar",
+			method: "frappe.desk.doctype.tag.tag.get_tags_list_for_awesomebar",
 			callback: function(r) {
 				if (r && r.message) {
-					frappe.global_tags.tags = $.extend([], r.message);
+					frappe.tags.tags = $.extend([], r.message);
 				}
 			}
 		});
@@ -51,6 +51,9 @@ frappe.global_tags.utils = {
 			}
 
 			function make_description(content) {
+				if (!content) {
+					return;
+				}
 				var field_length = 110;
 				var field_value = null;
 				if (content.length > field_length) {
@@ -88,12 +91,13 @@ frappe.global_tags.utils = {
 		}
 		return new Promise(function(resolve) {
 			frappe.call({
-				method: "frappe.utils.global_tags.get_documents_for_tag",
+				method: "frappe.desk.doctype.tag.tag.get_documents_for_tag",
 				args: {
 					tag: tag
 				},
 				callback: function(r) {
 					if (r.message) {
+						console.log(r.message);
 						resolve(get_results_sets(r.message));
 					} else {
 						resolve([]);

@@ -6,17 +6,10 @@ from __future__ import unicode_literals
 import frappe
 import json
 from frappe.model.document import Document
-from frappe.utils.global_tags import update_global_tags
 from frappe import _
 
 class Tag(Document):
-
-	def on_trash(self):
-		if check_if_tag_is_linked(self.name):
-			frappe.throw(_("Cannot delete Tag {0} since it is linked to Documents.").format(frappe.bold(self.name)))
-
-def check_if_tag_is_linked(tag):
-	return frappe.db.count("Tag Link", {"tag": frappe.db.escape('%{0}%'.format(tag), False)})
+	pass
 
 def check_user_tags(dt):
 	"if the user does not have a tags column, then it creates one"
@@ -72,7 +65,7 @@ class DocTags:
 		if not tag in tl:
 			tl.append(tag)
 			if not frappe.db.exists("Tag", tag):
-				frappe.get_doc({"doctype": "Tag", "name": tag, "count": 1}).insert(ignore_permissions=True)
+				frappe.get_doc({"doctype": "Tag", "name": tag}).insert(ignore_permissions=True)
 			self.update(dn, tl)
 
 	def remove(self, dn, tag):
@@ -111,3 +104,78 @@ class DocTags:
 		"""adds the _user_tags column if not exists"""
 		from frappe.database.schema import add_column
 		add_column(self.dt, "_user_tags", "Data")
+
+def delete_tags_for_document(doc):
+	"""
+		Delete the __global_tags entry of a document that has
+		been deleted
+		:param doc: Deleted document
+	"""
+	if not frappe.db.table_exists("Tag Link"):
+		return
+
+	frappe.db.sql("""DELETE FROM `tabTag Link` WHERE `document_type`=%s AND `document_name`=%s""", (doc.doctype, doc.name))
+
+def update_global_tags(doc, tags):
+	"""
+		Adds tags for documents
+		:param doc: Document to be added to global tags
+	"""
+
+	new_tags = list(set([tag.strip() for tag in tags.split(",") if tag]))
+
+	for tag in new_tags:
+		if not frappe.db.exists("Tag Link", {"parenttype": doc.doctype, "parent": doc.name, "tag": tag}):
+			frappe.get_doc({
+				"doctype": "Tag Link",
+				"document_type": doc.doctype,
+				"document_name": doc.name,
+				"parenttype": doc.doctype,
+				"parent": doc.name,
+				"title": doc.get_title() or '',
+				"tag": tag
+			}).insert(ignore_permissions=True)
+
+	existing_tags = [tag.tag for tag in frappe.get_list("Tag Link", filters={
+			"document_type": doc.doctype,
+			"document_name": doc.name
+		}, fields=["tag"])]
+
+	deleted_tags = get_deleted_tags(new_tags, existing_tags)
+
+	if deleted_tags:
+		for tag in deleted_tags:
+			delete_tag_for_document(doc.doctype, doc.name, tag)
+
+def get_deleted_tags(new_tags, existing_tags):
+
+	return list(set(existing_tags) - set(new_tags))
+
+def delete_tag_for_document(dt, dn, tag):
+	frappe.db.sql("""DELETE FROM `tabTag Link` WHERE `document_type`=%s, `document_name`=%s, tag=%s""", (dt, dn, tag))
+
+@frappe.whitelist()
+def get_documents_for_tag(tag):
+	"""
+		Search for given text in Tag Link
+		:param tag: tag to be searched
+	"""
+	# remove hastag `#` from tag
+	tag = tag[1:]
+	results = []
+
+	result = frappe.get_list("Tag Link", filters={"tag": tag}, fields=["document_type", "document_name", "title", "tag"])
+
+	for res in result:
+		results.append({
+			"doctype": res.document_type,
+			"name": res.document_name,
+			"content": res.title
+		})
+
+	print(results)
+	return results
+
+@frappe.whitelist()
+def get_tags_list_for_awesomebar():
+	return [t.name for t in frappe.get_list("Tag")]

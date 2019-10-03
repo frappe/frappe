@@ -266,12 +266,12 @@ def get_sidebar_stats(stats, doctype, filters=[]):
 		tags = [tag.name for tag in frappe.get_list("Tag")]
 		_user_tags = []
 		for tag in tags:
-			count = frappe.db.count("Tag Link", filters={"dt": doctype, "tag": tag})
+			count = frappe.db.count("Tag Link", filters={"document_type": doctype, "tag": tag})
 			if count > 0:
 				_user_tags.append([tag, count])
 		frappe.cache().hset("tags_count", doctype, _user_tags)
 
-	return {"defined_cat": [], "stats": {"_user_tags": frappe.cache().hget("tags_count", doctype)}}
+	return {"stats": {"_user_tags": frappe.cache().hget("tags_count", doctype)}}
 
 @frappe.whitelist()
 @frappe.read_only()

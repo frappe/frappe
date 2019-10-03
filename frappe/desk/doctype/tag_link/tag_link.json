@@ -4,30 +4,12 @@
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
-  "dt",
-  "dn",
+  "document_type",
+  "document_name",
   "tag",
   "title"
  ],
  "fields": [
-  {
-   "fieldname": "dt",
-   "fieldtype": "Link",
-   "in_list_view": 1,
-   "in_standard_filter": 1,
-   "label": "Document Type",
-   "options": "DocType",
-   "read_only": 1
-  },
-  {
-   "fieldname": "dn",
-   "fieldtype": "Dynamic Link",
-   "in_list_view": 1,
-   "in_standard_filter": 1,
-   "label": "Document Name",
-   "options": "dt",
-   "read_only": 1
-  },
   {
    "fieldname": "title",
    "fieldtype": "Data",
@@ -36,14 +18,33 @@
   },
   {
    "fieldname": "tag",
-   "fieldtype": "Data",
+   "fieldtype": "Link",
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Document Tag",
+   "options": "Tag",
+   "read_only": 1
+  },
+  {
+   "fieldname": "document_type",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Document Type",
+   "options": "DocType",
+   "read_only": 1
+  },
+  {
+   "fieldname": "document_name",
+   "fieldtype": "Dynamic Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Document Name",
+   "options": "document_type",
    "read_only": 1
   }
  ],
- "modified": "2019-09-25 22:10:47.671304",
+ "modified": "2019-10-03 16:42:35.932409",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Tag Link",

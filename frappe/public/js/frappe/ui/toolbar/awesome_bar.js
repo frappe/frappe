@@ -1,7 +1,7 @@
 // Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 frappe.provide('frappe.search');
-frappe.provide('frappe.global_tags');
+frappe.provide('frappe.tags');
 
 frappe.search.AwesomeBar = Class.extend({
 	setup: function(element) {
@@ -181,7 +181,7 @@ frappe.search.AwesomeBar = Class.extend({
 			frappe.search.utils.get_executables(txt)
 		);
 		if (txt.charAt(0) === "#") {
-			options = frappe.global_tags.utils.get_tags(txt);
+			options = frappe.tags.utils.get_tags(txt);
 		}
 		var out = this.deduplicate(options);
 		return out.sort(function(a, b) {

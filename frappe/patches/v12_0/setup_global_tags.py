@@ -5,6 +5,7 @@ def execute():
 	frappe.delete_doc_if_exists("DocType", "Tag Doc Category")
 
 	frappe.reload_doc("desk", "doctype", "tag")
+	frappe.reload_doc("desk", "doctype", "tag_link")
 
 	tag_list = []
 	tag_links = []
@@ -20,27 +21,10 @@ def execute():
 				if not tag:
 					continue
 
-				tag_list.append(tag.strip())
+				tag_list.append((tag.strip(), time, time, 'Administrator'))
 
 				tag_link_name = frappe.generate_hash(dt_tags.name + tag.strip(), 10),
 				tag_links.append((tag_link_name, doctype.name, dt_tags.name, tag.strip(), time, time, 'Administrator'))
 
-
-	temp_list = []
-	for count, value in enumerate(set(tag_list)):
-		temp_list.append((value, time, time, 'Administrator'))
-
-		if count and (count%1000 == 0 or count == len(tag_list)-1):
-			frappe.db.sql("""
-				INSERT INTO `tabTag` (`name`, `creation`, `modified`, `modified_by`) VALUES {}
-			""".format(", ".join(['%s'] * len(temp_list))), tuple(temp_list))
-			temp_list = []
-
-	for count, value in enumerate(set(tag_links)):
-		temp_list.append(value)
-
-		if count and (count%1000 == 0 or count == len(tag_links)-1):
-			frappe.db.sql("""
-				INSERT INTO `tabTag Link` (`name`, `dt`, `dn`, `tag`, `creation`, `modified`, `modified_by`) VALUES {}
-			""".format(", ".join(['%s'] * len(temp_list))), tuple(temp_list))
-			temp_list = []
+	frappe.db.bulk_insert("Tag", fields=["name", "creation", "modified", "modified_by"], values=tag_list)
+	frappe.db.bulk_insert("Tag Link", fields=["name", "document_type", "document_name", "tag", "creation", "modified", "modified_by"], values=tag_links)

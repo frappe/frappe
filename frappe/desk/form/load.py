@@ -258,5 +258,9 @@ def get_view_logs(doctype, docname):
 	return logs
 
 def get_tags(doctype, name):
-	tags = [tag.tag for tag in frappe.get_all("Tag Link", filters={"dt": doctype, "dn": name}, fields=["tag"])]
+	tags = [tag.tag for tag in frappe.get_all("Tag Link", filters={
+			"document_type": doctype,
+			"document_name": name
+		}, fields=["tag"])]
+
 	return ",".join([tag for tag in tags])

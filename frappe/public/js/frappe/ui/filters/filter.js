@@ -61,7 +61,6 @@ frappe.ui.Filter = class {
 			doctype: this.parent_doctype,
 			filter_fields: this.filter_fields,
 			select: (doctype, fieldname) => {
-				console.log(doctype, fieldname);
 				this.set_field(doctype, fieldname);
 			}
 		});

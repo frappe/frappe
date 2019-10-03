@@ -386,7 +386,7 @@ frappe.search.SearchDialog = Class.extend({
 		global_search: {
 			input_placeholder: __("Search"),
 			empty_state_text: __("Search for anything"),
-			no_results_status: (keyword) => __("<p>No results found for '" + keyword + "' in Global Search</p>"),
+			no_results_status: (keyword) => "<p>" + __("No results found for {0} in Global Search", [keyword]) + "</p>",
 
 			get_results: function(keywords, callback) {
 				var start = 0, limit = 1000;
@@ -403,11 +403,11 @@ frappe.search.SearchDialog = Class.extend({
 		global_tag: {
 			input_placeholder: __("Search"),
 			empty_state_text: __("Search for anything"),
-			no_results_status: (keyword) => __("<p>No results found for '" + keyword + "' in Global Tags</p>"),
+			no_results_status: (keyword) => "<p>" + __("No results found for {0} in Global Tags", [keyword]) + "</p>",
 
 			get_results: function(keywords, callback) {
 				var results = frappe.search.utils.get_nav_results(keywords);
-				frappe.global_tags.utils.get_tag_results(keywords)
+				frappe.tags.utils.get_tag_results(keywords)
 					.then(function(global_results) {
 						results = results.concat(global_results);
 						callback(results, keywords);
