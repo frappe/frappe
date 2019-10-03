@@ -16,28 +16,9 @@ class EventProducer(Document):
 	def before_insert(self):
 		self.create_event_consumer()
 
-	def validate(self):
-		'''create custom field to store remote docname and remote site url'''
-		for entry in self.event_configuration:
-			if not entry.use_same_name:
-				if not frappe.db.exists('Custom Field', {'fieldname': 'remote_docname', 'dt': entry.ref_doctype}):
-					df = dict(fieldname='remote_docname', label='Remote Document Name', fieldtype='Data', read_only=1, print_hide=1)
-					create_custom_field(entry.ref_doctype, df)
-				if not frappe.db.exists('Custom Field', {'fieldname': 'remote_site_name', 'dt': entry.ref_doctype}):
-					df = dict(fieldname='remote_site_name', label='Remote Site', fieldtype='Data', read_only=1, print_hide=1)
-					create_custom_field(entry.ref_doctype, df)
-
 	def on_update(self):
-		producer_site = get_producer_site(self.producer_url)
-		event_consumer = producer_site.get_doc('Event Consumer', get_current_node())
-		if event_consumer:
-			event_consumer.subscribed_doctypes = []
-			for entry in self.event_configuration:
-				event_consumer.subscribed_doctypes.append({
-					'ref_doctype': entry.ref_doctype
-				})
-			event_consumer.user = self.user
-			producer_site.update(event_consumer)
+		self.update_event_consumer()
+		self.create_custom_fields()
 
 	def create_event_consumer(self):
 		'''register event consumer on the producer site'''
@@ -45,6 +26,7 @@ class EventProducer(Document):
 		subscribed_doctypes = []
 		for entry in self.event_configuration:
 			if entry.has_mapping:
+				#if it has mapping then on event consumer's site it should subscribe to remote doctype
 				subscribed_doctypes.append(frappe.db.get_value('Document Type Mapping', entry.mapping, 'remote_doctype'))
 			else:
 				subscribed_doctypes.append(entry.ref_doctype)
@@ -57,6 +39,35 @@ class EventProducer(Document):
 		self.api_key = api_key
 		self.api_secret =  api_secret
 		self.last_update = last_update
+
+	def create_custom_fields(self):
+		'''create custom field to store remote docname and remote site url'''
+		for entry in self.event_configuration:
+			if not entry.use_same_name:
+				if not frappe.db.exists('Custom Field', {'fieldname': 'remote_docname', 'dt': entry.ref_doctype}):
+					df = dict(fieldname='remote_docname', label='Remote Document Name', fieldtype='Data', read_only=1, print_hide=1)
+					create_custom_field(entry.ref_doctype, df)
+				if not frappe.db.exists('Custom Field', {'fieldname': 'remote_site_name', 'dt': entry.ref_doctype}):
+					df = dict(fieldname='remote_site_name', label='Remote Site', fieldtype='Data', read_only=1, print_hide=1)
+					create_custom_field(entry.ref_doctype, df)
+
+	def update_event_consumer(self):
+		producer_site = get_producer_site(self.producer_url)
+		event_consumer = producer_site.get_doc('Event Consumer', get_current_node())
+		if event_consumer:
+			event_consumer.subscribed_doctypes = []
+			for entry in self.event_configuration:
+				if entry.has_mapping:
+					#if it has mapping then on event consumer's site it should subscribe to remote doctype
+					event_consumer.subscribed_doctypes.append({
+						'ref_doctype': frappe.db.get_value('Document Type Mapping', entry.mapping, 'remote_doctype')
+					})
+				else:
+					event_consumer.subscribed_doctypes.append({
+						'ref_doctype': entry.ref_doctype
+					})
+			event_consumer.user = self.user
+			producer_site.update(event_consumer)
 
 def get_current_node():
 	current_node = frappe.utils.get_url()
