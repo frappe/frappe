@@ -197,6 +197,18 @@ frappe.ui.Notifications = class Notifications {
 		let new_item = this.dropdown_items[0];
 		let new_item_html = this.get_dropdown_item_html(new_item);
 		$(new_item_html).prependTo(this.$dropdown_list.find('#notifications'));
+		this.change_activity_status();
+	}
+
+	change_activity_status() {
+		if (this.$dropdown_list.find('.activity-status')) {
+			this.$dropdown_list.find('.activity-status').replaceWith(
+				`<li class="recent-item text-center">
+					<a class="text-muted full-log-btn">
+						${__('View Full Log')}
+					</a>
+				</li>`);
+		}
 	}
 
 	check_seen() {
@@ -239,7 +251,7 @@ frappe.ui.Notifications = class Notifications {
 						${__('View Full Log')}
 					</a></li>`;
 			} else {
-				body_html += `<li class="recent-item text-center">
+				body_html += `<li class="recent-item text-center activity-status">
 					<span class="text-muted">
 						${__('No activity')}
 					</span></li>`;
