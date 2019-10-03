@@ -366,6 +366,9 @@ frappe.ui.Notifications = class Notifications {
 	}
 
 	setup_dropdown_events() {
+		this.$dropdown_list.find('#upcoming-events, #open-documents, #notifications').collapse({
+			toggle: false
+		});
 		this.$dropdown.on('hide.bs.dropdown', (e) => {
 			this.$notification_indicator.hide();
 			let hide = $(e.currentTarget).data('closable');
