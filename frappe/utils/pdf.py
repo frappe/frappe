@@ -87,12 +87,14 @@ def prepare_options(html, options):
 		'quiet': None,
 		# 'no-outline': None,
 		'encoding': "UTF-8",
-		#'load-error-handling': 'ignore',
-
-		# defaults
-		'margin-right': '15mm',
-		'margin-left': '15mm'
+		#'load-error-handling': 'ignore'
 	})
+
+	if not options.get("margin-right"):
+		options['margin-right'] = '15mm'
+
+	if not options.get("margin-left"):
+		options['margin-left'] = '15mm'
 
 	html, html_options = read_options_from_html(html)
 	options.update(html_options or {})
