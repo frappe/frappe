@@ -670,3 +670,11 @@ def get_safe_filters(filters):
 		pass
 
 	return filters
+
+def create_batch(iterable, batch_size):
+	"""
+	Convert an iterable to multiple batches of constant size of batch_size
+	"""
+	total_count = len(iterable)
+	for i in range(0, total_count, batch_size):
+		yield iterable[i:min(i + batch_size, total_count)]

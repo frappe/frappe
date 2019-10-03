@@ -2,7 +2,6 @@
 
 .active-tag-filters {
 	display: flex;
-	overflow: scroll;
 	.filter-button, .filter-tag {
 		margin: 0 10px 10px 0;
 	}
@@ -31,9 +30,17 @@
 	float: none;
 }
 
-.filter-box {
+.frappe-list .filter-box {
 	border-bottom: 1px solid @border-color;
-	padding: 10px 15px 3px;
+	padding: 10px 15px;
+}
+
+.filter-box {
+	.form-group {
+		@media (min-width: @screen-xs) {
+			margin-bottom: 0;
+		}
+	}
 
 	.remove-filter {
 		margin-top: 6px;
@@ -41,11 +48,9 @@
 	}
 
 	.filter-field {
-		padding-right: 15px;
-		width: calc(100% - 36px);
-
 		.frappe-control {
 			position: relative;
+			margin-bottom: 0;
 		}
 	}
 }
@@ -56,8 +61,6 @@
 		padding-right: 0px;
 	}
 	.filter-field {
-		width: 65% !important;
-
 		.frappe-control {
 			position: relative;
 		}

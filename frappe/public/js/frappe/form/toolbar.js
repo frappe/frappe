@@ -411,25 +411,7 @@ frappe.ui.form.Toolbar = Class.extend({
 			primary_action_label: __('Go'),
 			primary_action: ({ fieldname }) => {
 				dialog.hide();
-				let field = this.frm.get_field(fieldname);
-				if (!field) return;
-
-				let $el = field.$wrapper;
-
-				// uncollapse section
-				if (field.section.is_collapsed()) {
-					field.section.collapse(false);
-				}
-
-				// scroll to input
-				frappe.utils.scroll_to($el);
-
-				// highlight input
-				$el.addClass('has-error');
-				setTimeout(() => {
-					$el.removeClass('has-error');
-					$el.find('input, select, textarea').focus();
-				}, 1000);
+				this.frm.scroll_to_field(fieldname);
 			}
 		});
 

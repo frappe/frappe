@@ -56,7 +56,6 @@ apps/frappe/frappe/public/js/frappe/views/pageview.js,Sorry! You are not permitt
 DocType: Web Form,Success Message,Poruka o uspjehu
 apps/frappe/frappe/public/js/frappe/form/sidebar/form_sidebar.js,{0} created this {1},{1} {0} je kreirao/la ovo.
 DocType: Chat Profile,Online,Na mreži
-apps/frappe/frappe/core/doctype/file/file.py,Folder {0} does not exist,Folder {0} ne postoji
 DocType: Auto Repeat,Subject,Naslov
 apps/frappe/frappe/public/js/frappe/views/file/file_view.js,Enter folder name,Unesi naziv foldera
 DocType: Workflow State,Tags,Tagovi
@@ -249,7 +248,7 @@ DocType: Activity Log,Full Name,Puno ime
 apps/frappe/frappe/public/js/frappe/form/quick_entry.js,Edit in full page,Izmijeni u punoj strani
 apps/frappe/frappe/public/js/frappe/form/form.js,Permanently Cancel {0}?,Trajno otkaži {0} ?
 apps/frappe/frappe/core/doctype/data_export/exporter.py,Notes:,Bilješke :
-DocType: Notification,Save,Sačuvaj
+apps/frappe/frappe/core/doctype/data_import_beta/data_import_beta.js,Save,Sačuvaj
 apps/frappe/frappe/public/js/frappe/views/file/file_view.js,File Manager,Fajlovi
 apps/frappe/frappe/desk/doctype/bulk_update/bulk_update.py,; not allowed in condition,; није дозвољенa у услову
 DocType: File,Folder,Folder
@@ -261,7 +260,7 @@ apps/frappe/frappe/public/js/frappe/form/grid.js,Add Multiple,Dodaj više
 DocType: Custom DocPerm,Import,Uvoz
 DocType: User,Security Settings,Bezbjedonosna podešavanja
 apps/frappe/frappe/public/js/frappe/form/multi_select_dialog.js,Search term,Pretraga
-apps/frappe/frappe/www/login.py,Email Address,Email adresa
+DocType: Address,Email Address,Email adresa
 DocType: Google Maps Settings,Home Address,Kućna adresa
 apps/frappe/frappe/public/js/frappe/form/grid_row_form.js,Ctrl + Up,Ctrl + up
 DocType: Comment,Assigned,Dodijeljeno
@@ -297,7 +296,7 @@ apps/frappe/frappe/core/doctype/data_export/exporter.py,Data Import Template,Ša
 apps/frappe/frappe/public/js/frappe/form/formatters.js,{0} to {1},{0} do {1}
 DocType: Web Form,Payments,Plaćanja
 apps/frappe/frappe/core/doctype/communication/communication.js,Close,Zatvori
-apps/frappe/frappe/desk/page/user_profile/user_profile_sidebar.html,LeaderBoard,Tabla
+,LeaderBoard,Tabla
 apps/frappe/frappe/public/js/frappe/web_form/web_form_list.js,Sr,Rb
 DocType: Contact,Purchase Master Manager,Direktor nabavke
 DocType: User,Last Login,Poslednja prijava
@@ -399,7 +398,7 @@ apps/frappe/frappe/public/js/frappe/desk.js,Session Expired,Sesija je istekla
 DocType: Communication,Received,Primljeno
 DocType: User,Login After,Prijava nakon
 apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,PDF,PDF
-DocType: User,Mobile No,Mobilni br.
+DocType: Contact,Mobile No,Mobilni br.
 apps/frappe/frappe/public/js/frappe/ui/sort_selector.js,Most Used,Najviše korišćeno
 apps/frappe/frappe/email/doctype/email_account/email_account.js,"You are selecting Sync Option as ALL, It will resync all \
 				read as well as unread message from server. This may also cause the duplication\

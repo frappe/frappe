@@ -47,7 +47,8 @@ def load_address_and_contact(doc, key=None):
 		contact["phone_nos"] = frappe.get_list("Contact Phone", filters={
 				"parenttype": "Contact",
 				"parent": contact.name,
-				"is_primary": 0
+				"is_primary_phone": 0,
+				"is_primary_mobile_no": 0
 			}, fields=["phone"])
 
 		if contact.address:
