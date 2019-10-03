@@ -271,8 +271,8 @@ frappe.ui.Notifications = class Notifications {
 		let user_avatar = frappe.avatar(user, 'avatar-small user-avatar');
 		let timestamp = frappe.datetime.comment_when(field.creation, true);
 		let item_html = `<li class="recent-item ${seen_class}">
-			${user_avatar}
 			<a class= "message-link" href = "${doc_link}">
+				${user_avatar}
 				${message_html}
 				<div class="notification-timestamp text-muted">
 					${timestamp}
