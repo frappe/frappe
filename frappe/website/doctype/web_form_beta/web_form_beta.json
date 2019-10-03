@@ -1,0 +1,256 @@
+{
+ "autoname": "field:title",
+ "beta": 1,
+ "creation": "2019-10-03 13:05:48.581399",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "title",
+  "reference_doctype",
+  "route",
+  "module",
+  "column_break_5",
+  "is_standard",
+  "is_published",
+  "login_required",
+  "allow_print",
+  "allow_incomplete",
+  "allow_edit",
+  "allow_delete",
+  "allow_attachments",
+  "allow_comments",
+  "fields_section",
+  "fields",
+  "client_script_section",
+  "client_script",
+  "settings_section",
+  "submit_button_label",
+  "success_url",
+  "column_break_22",
+  "success_message",
+  "payments_section",
+  "accept_payments",
+  "payment_gateway",
+  "column_break_26",
+  "payment_based_on__field",
+  "amount_field",
+  "amount",
+  "currency"
+ ],
+ "fields": [
+  {
+   "fieldname": "reference_doctype",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Reference DocType",
+   "options": "DocType",
+   "reqd": 1
+  },
+  {
+   "fieldname": "route",
+   "fieldtype": "Data",
+   "label": "Route"
+  },
+  {
+   "fieldname": "column_break_5",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "login_required",
+   "fieldtype": "Check",
+   "label": "Login Required"
+  },
+  {
+   "default": "0",
+   "depends_on": "login_required",
+   "fieldname": "allow_edit",
+   "fieldtype": "Check",
+   "label": "Allow Edit"
+  },
+  {
+   "default": "0",
+   "fieldname": "allow_print",
+   "fieldtype": "Check",
+   "label": "Allow Print"
+  },
+  {
+   "default": "0",
+   "depends_on": "login_required",
+   "fieldname": "allow_delete",
+   "fieldtype": "Check",
+   "label": "Allow Delete"
+  },
+  {
+   "default": "0",
+   "depends_on": "login_required",
+   "fieldname": "allow_attachments",
+   "fieldtype": "Check",
+   "label": "Allow Attachments"
+  },
+  {
+   "default": "0",
+   "depends_on": "login_required",
+   "fieldname": "allow_comments",
+   "fieldtype": "Check",
+   "label": "Allow Comments"
+  },
+  {
+   "fieldname": "fields_section",
+   "fieldtype": "Section Break",
+   "label": "Fields"
+  },
+  {
+   "fieldname": "fields",
+   "fieldtype": "Table",
+   "label": "Web Form Fields",
+   "options": "Web Form Field"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_standard",
+   "fieldtype": "Check",
+   "hidden": 1,
+   "label": "Is Standard"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_published",
+   "fieldtype": "Check",
+   "label": "Is Published"
+  },
+  {
+   "default": "0",
+   "depends_on": "login_required",
+   "fieldname": "allow_incomplete",
+   "fieldtype": "Check",
+   "label": "Allow Incomplete"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "settings_section",
+   "fieldtype": "Section Break",
+   "label": "Settings"
+  },
+  {
+   "fieldname": "submit_button_label",
+   "fieldtype": "Data",
+   "label": "Submit Button Label"
+  },
+  {
+   "fieldname": "success_message",
+   "fieldtype": "Small Text",
+   "label": "Success Message"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "payments_section",
+   "fieldtype": "Section Break",
+   "label": "Payments"
+  },
+  {
+   "default": "0",
+   "fieldname": "accept_payments",
+   "fieldtype": "Check",
+   "label": "Accept Payments"
+  },
+  {
+   "fieldname": "payment_gateway",
+   "fieldtype": "Data",
+   "label": "Payment Gateway"
+  },
+  {
+   "default": "0",
+   "fieldname": "payment_based_on__field",
+   "fieldtype": "Check",
+   "label": "Payment Based on  Field"
+  },
+  {
+   "fieldname": "amount_field",
+   "fieldtype": "Data",
+   "label": "Amount Field"
+  },
+  {
+   "fieldname": "amount",
+   "fieldtype": "Data",
+   "label": "Amount"
+  },
+  {
+   "fieldname": "currency",
+   "fieldtype": "Data",
+   "label": "Currency"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "client_script_section",
+   "fieldtype": "Section Break",
+   "label": "Client Script"
+  },
+  {
+   "fieldname": "client_script",
+   "fieldtype": "Code",
+   "label": "Client Script"
+  },
+  {
+   "fieldname": "column_break_26",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_22",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Title",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "module",
+   "fieldtype": "Data",
+   "label": "Module"
+  },
+  {
+   "fieldname": "success_url",
+   "fieldtype": "Data",
+   "label": "Success URL"
+  }
+ ],
+ "modified": "2019-10-03 14:40:38.674227",
+ "modified_by": "Administrator",
+ "module": "Website",
+ "name": "Web Form Beta",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Website Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}
