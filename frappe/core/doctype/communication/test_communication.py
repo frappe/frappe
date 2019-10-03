@@ -214,7 +214,7 @@ def create_email_account():
 		"email_account_name": "_Test Comm Account 1",
 		"enable_outgoing": 1,
 		"smtp_server": "test.example.com",
-		"email_id": "test@example.com",
+		"email_id": "test_comm@example.com",
 		"password": "password",
 		"add_signature": 1,
 		"signature": "\nBest Wishes\nTest Signature",
@@ -223,7 +223,7 @@ def create_email_account():
 		"enable_incoming": 1,
 		"notify_if_unreplied": 1,
 		"unreplied_for_mins": 20,
-		"send_notification_to": "test_unreplied@example.com",
+		"send_notification_to": "test_comm@example.com",
 		"pop3_server": "pop.test.example.com",
 		"no_remaining":"0",
 		"enable_automatic_linking": 1
