@@ -13,6 +13,8 @@ class NotificationLog(Document):
 
 	def after_insert(self):
 		frappe.publish_realtime('notification', after_commit=True, user=self.user)
+		if is_email_notifications_enabled(self.user):
+			send_notification_email(self)
 
 
 def get_permission_query_conditions(user):
@@ -37,35 +39,39 @@ def create_notification_log(names, doc, email_content = None):
 				else:
 					_doc = frappe.new_doc('Notification Log')
 					_doc.type = doc.type
-					_doc.user = name.strip()
+					_doc.user = user
 					_doc.reference_doctype = doc.reference_doctype
 					_doc.reference_name = doc.reference_name
 					_doc.reference_user = doc.reference_user
 					_doc.subject = doc.subject.replace('<div>', '').replace('</div>', '')
+					_doc.email_content = email_content
 					_doc.insert(ignore_permissions=True)
-					if is_email_notifications_enabled(user):
-						send_notification_email(_doc, user, email_content)
 
-def send_notification_email(doc, user, description=None):
+def send_notification_email(doc):
 	from frappe.utils import get_url_to_form, strip_html, get_url
 
 	doc_link = get_url_to_form(doc.reference_doctype, doc.reference_name)
 	header = get_email_header(doc)
 	email_subject = strip_html(doc.subject)
 
-	frappe.sendmail(
-		recipients = user,
-		sender = frappe.session.user,
-		subject = email_subject,
-		template = "new_notification",
-		args = {
-			"body_content": doc.subject,
-			"description": description,
-			"doc_link": doc_link,
-			"link": get_url()
-		},
-		header = [header, 'orange']
-	)
+	try:
+		frappe.sendmail(
+			recipients = doc.user,
+			sender = frappe.session.user,
+			subject = email_subject,
+			template = "new_notification",
+			args = {
+				"body_content": doc.subject,
+				"description": doc.email_content,
+				"doc_link": doc_link,
+				"link": get_url()
+			},
+			header = [header, 'orange']
+		)
+	except:	
+		pass
+
+
 
 def get_email_header(doc):
 	if doc.type == 'Mention' or doc.type == 'Assignment':

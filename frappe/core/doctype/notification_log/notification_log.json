@@ -7,6 +7,7 @@
   "subject",
   "user",
   "type",
+  "email_content",
   "column_break_4",
   "reference_doctype",
   "seen",
@@ -72,11 +73,17 @@
    "options": "User",
    "read_only": 1,
    "search_index": 1
+  },
+  {
+   "fieldname": "email_content",
+   "fieldtype": "Text",
+   "label": "Email Content",
+   "read_only": 1
   }
  ],
  "in_create": 1,
- "modified": "2019-09-20 15:14:25.646766",
- "modified_by": "Administrator",
+ "modified": "2019-10-03 15:35:05.980370",
+ "modified_by": "frappetestuser2@gmail.com",
  "module": "Core",
  "name": "Notification Log",
  "owner": "Administrator",
