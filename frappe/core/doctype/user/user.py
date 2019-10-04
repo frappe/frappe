@@ -522,10 +522,7 @@ class User(Document):
 		if not self.restrict_ip:
 			return
 
-		ip_list = self.restrict_ip.replace(",", "\n").split('\n')
-		ip_list = [i.strip() for i in ip_list]
-
-		return ip_list
+		return [i.strip() for i in self.restrict_ip.split(",")]
 
 @frappe.whitelist()
 def get_timezones():
