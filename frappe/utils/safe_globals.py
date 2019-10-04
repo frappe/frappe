@@ -1,5 +1,4 @@
 
-from RestrictedPython import safe_globals
 import os, json
 import mimetypes
 from html2text import html2text
@@ -87,7 +86,5 @@ def get_safe_globals():
 			get_default = frappe.db.get_default,
 			escape = frappe.db.escape,
 		)
-
-	out.update(safe_globals)
 
 	return out
