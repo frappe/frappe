@@ -1,0 +1,89 @@
+{
+ "autoname": "Prompt",
+ "creation": "2019-09-30 11:56:57.943241",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "script_type",
+  "reference_doctype",
+  "doctype_event",
+  "frequency",
+  "api_method",
+  "allow_guest",
+  "script"
+ ],
+ "fields": [
+  {
+   "fieldname": "script_type",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Script Type",
+   "options": "DocType Event\nAPI",
+   "reqd": 1
+  },
+  {
+   "fieldname": "script",
+   "fieldtype": "Code",
+   "label": "Script",
+   "reqd": 1
+  },
+  {
+   "depends_on": "eval:doc.script_type==='DocType Event'",
+   "fieldname": "reference_doctype",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Reference DocType",
+   "options": "DocType"
+  },
+  {
+   "depends_on": "eval:doc.script_type==='DocType Event'",
+   "fieldname": "doctype_event",
+   "fieldtype": "Select",
+   "label": "DocType Event",
+   "options": "Before Insert\nBefore Save\nAfter Save\nBefore Submit\nBefore Cancel\nBefore Delete"
+  },
+  {
+   "depends_on": "eval:doc.script_type==='Scheduled Job'",
+   "fieldname": "frequency",
+   "fieldtype": "Select",
+   "label": "Frequency",
+   "options": "Hourly\nDaily\nWeekly\nMonthly"
+  },
+  {
+   "depends_on": "eval:doc.script_type==='API'",
+   "fieldname": "api_method",
+   "fieldtype": "Data",
+   "label": "API Method"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:doc.script_type==='API'",
+   "fieldname": "allow_guest",
+   "fieldtype": "Check",
+   "label": "Allow Guest"
+  }
+ ],
+ "modified": "2019-10-04 15:51:57.995877",
+ "modified_by": "Administrator",
+ "module": "Core",
+ "name": "Server Script",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}
