@@ -1,7 +1,17 @@
 frappe.ui.form.ControlSelect = frappe.ui.form.ControlData.extend({
-	html_element: "select",
 	make_input: function() {
-		this._super();
+		$('<select type="text" autocomplete="off" class="input-with-feedback form-control" data-fieldtype="Select"> \
+			</select> \
+			<i class="octicon octicon-chevron-down select-dropdown"></i>').prependTo(this.input_area);
+
+		this.$input_area = $(this.input_area);
+		this.$input = this.$input_area.find('select');
+		this.set_input_attributes();
+		this.input = this.$input.get(0);
+		this.has_input = true;
+		this.bind_change_event();
+		this.bind_focusout();
+		this.setup_autoname_check();
 		this.set_options();
 	},
 	set_formatted_input: function(value) {
