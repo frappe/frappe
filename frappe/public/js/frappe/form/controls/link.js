@@ -43,7 +43,7 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 				me.$link.toggle(false);
 			}, 500);
 		});
-		this.$input.attr('target', this.df.options);
+		this.$input.attr('data-target', this.df.options);
 		this.input = this.$input.get(0);
 		this.has_input = true;
 		this.translate_values = true;
