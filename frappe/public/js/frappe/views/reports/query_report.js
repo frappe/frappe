@@ -865,7 +865,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 		const filters_html = this.get_filters_html_for_print();
 		const template =
-			print_settings.columns && custom_format ? 'print_grid' : custom_format;
+			print_settings.columns || !custom_format ? 'print_grid' : custom_format;
 		const content = frappe.render_template(template, {
 			title: __(this.report_name),
 			subtitle: filters_html,
