@@ -97,7 +97,6 @@ frappe.tags.utils = {
 				},
 				callback: function(r) {
 					if (r.message) {
-						console.log(r.message);
 						resolve(get_results_sets(r.message));
 					} else {
 						resolve([]);
