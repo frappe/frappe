@@ -20,7 +20,7 @@ frappe.tags.utils = {
 					match: tag,
 					onclick() {
 						// Use Global Search Dialog for tag search too.
-						frappe.searchdialog.search.init_search("#".concat(tag), "global_tag");
+						frappe.searchdialog.search.init_search("#".concat(tag), "tags");
 					}
 				});
 			}

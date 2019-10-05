@@ -89,7 +89,7 @@ class DocTags:
 			frappe.db.sql("update `tab%s` set _user_tags=%s where name=%s" % \
 				(self.dt,'%s','%s'), (tags , dn))
 			doc= frappe.get_doc(self.dt, dn)
-			update_global_tags(doc, tags)
+			update_tags(doc, tags)
 		except Exception as e:
 			if frappe.db.is_column_missing(e):
 				if not tags:
@@ -107,7 +107,7 @@ class DocTags:
 
 def delete_tags_for_document(doc):
 	"""
-		Delete the __global_tags entry of a document that has
+		Delete the Tag Link entry of a document that has
 		been deleted
 		:param doc: Deleted document
 	"""
@@ -116,7 +116,7 @@ def delete_tags_for_document(doc):
 
 	frappe.db.sql("""DELETE FROM `tabTag Link` WHERE `document_type`=%s AND `document_name`=%s""", (doc.doctype, doc.name))
 
-def update_global_tags(doc, tags):
+def update_tags(doc, tags):
 	"""
 		Adds tags for documents
 		:param doc: Document to be added to global tags

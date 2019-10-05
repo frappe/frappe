@@ -185,7 +185,7 @@ frappe.search.SearchDialog = Class.extend({
 		}
 
 		if (this.current_keyword.charAt(0) === "#") {
-			this.search = this.searches["global_tag"];
+			this.search = this.searches["tags"];
 		} else {
 			this.search = this.searches["global_search"];
 		}
@@ -400,10 +400,10 @@ frappe.search.SearchDialog = Class.extend({
 					});
 			}
 		},
-		global_tag: {
+		tags: {
 			input_placeholder: __("Search"),
 			empty_state_text: __("Search for anything"),
-			no_results_status: (keyword) => "<p>" + __("No results found for {0} in Global Tags", [keyword]) + "</p>",
+			no_results_status: (keyword) => "<p>" + __("No results found for {0} in Tags", [keyword]) + "</p>",
 
 			get_results: function(keywords, callback) {
 				var results = frappe.search.utils.get_nav_results(keywords);

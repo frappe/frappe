@@ -117,7 +117,7 @@ def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reloa
 
 		# delete global search entry
 		delete_for_document(doc)
-		# delete tags from __global_tags
+		# delete tag link entry
 		delete_tags_for_document(doc)
 
 		if doc and not for_reload:

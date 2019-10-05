@@ -21,10 +21,11 @@ def execute():
 				if not tag:
 					continue
 
-				tag_list.append((tag.strip(), time, time, 'Administrator'))
+				escaped_tag = frappe.db.escape(tag.strip())
+				tag_list.append((escaped_tag, time, time, 'Administrator'))
 
-				tag_link_name = frappe.generate_hash(dt_tags.name + tag.strip(), 10),
-				tag_links.append((tag_link_name, doctype.name, dt_tags.name, tag.strip(), time, time, 'Administrator'))
+				tag_link_name = frappe.generate_hash(dt_tags.name + escaped_tag, 10),
+				tag_links.append((tag_link_name, doctype.name, dt_tags.name, escaped_tag, time, time, 'Administrator'))
 
 	frappe.db.bulk_insert("Tag", fields=["name", "creation", "modified", "modified_by"], values=tag_list)
 	frappe.db.bulk_insert("Tag Link", fields=["name", "document_type", "document_name", "tag", "creation", "modified", "modified_by"], values=tag_links)
