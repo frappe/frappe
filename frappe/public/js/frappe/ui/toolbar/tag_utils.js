@@ -41,7 +41,6 @@ frappe.tags.utils = {
 	},
 
 	get_tag_results: function(tag) {
-		var me = this;
 		function get_results_sets(data) {
 			var results_sets = [], result, set;
 			function get_existing_set(doctype) {

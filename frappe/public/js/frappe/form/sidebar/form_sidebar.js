@@ -119,7 +119,6 @@ frappe.ui.form.Sidebar = Class.extend({
 	},
 
 	make_tags: function() {
-		var me = this;
 		if (this.frm.meta.issingle) {
 			this.sidebar.find(".form-tags").toggle(false);
 			return;
