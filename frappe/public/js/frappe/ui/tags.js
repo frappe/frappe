@@ -67,7 +67,6 @@ frappe.ui.Tags = class {
 	}
 
 	addTag(label) {
-		label = toTitle(label);
 		if(label && label!== '' && !this.tagsList.includes(label)) {
 			let $tag = this.getTag(label);
 			this.getListElement($tag).insertBefore(this.$inputWrapper);
