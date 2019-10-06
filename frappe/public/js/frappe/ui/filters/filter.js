@@ -174,8 +174,10 @@ frappe.ui.Filter = class {
 
 		let original_docfield = (this.fieldselect.fields_by_name[doctype] || {})[fieldname];
 
-		if (doctype === "Tag Link") {
-			original_docfield = {fieldname: "tag", fieldtype: "Data", label: "Tags", parent: doctype};
+		if (doctype === "Tag Link" || fieldname === "_user_tags") {
+			original_docfield = {fieldname: "tag", fieldtype: "Data", label: "Tags", parent: "Tag Link"};
+			doctype = "Tag Link";
+			condition = "=";
 		}
 
 		if(!original_docfield) {

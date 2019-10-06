@@ -186,7 +186,7 @@
 		"public/js/frappe/ui/toolbar/awesome_bar.js",
 		"public/js/frappe/ui/toolbar/energy_points_notifications.js",
 		"public/js/frappe/ui/toolbar/search.js",
-		"public/js/frappe/ui/toolbar/tags.js",
+		"public/js/frappe/ui/toolbar/tag_utils.js",
 		"public/js/frappe/ui/toolbar/search.html",
 		"public/js/frappe/ui/toolbar/search_header.html",
 		"public/js/frappe/ui/toolbar/search_utils.js",

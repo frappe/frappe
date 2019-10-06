@@ -432,7 +432,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 			tag_editor.wrapper.on('click', '.tagit-label', (e) => {
 				const $this = $(e.currentTarget);
-				this.filter_area.add(this.doctype, '_user_tags', '=', $this.text());
+				this.filter_area.add('Tag Link', 'tag', '=', $this.text());
 			});
 		});
 	}

@@ -603,7 +603,7 @@ frappe.Application = Class.extend({
 	},
 
 	fetch_tags() {
-		frappe.tags.utils.set_tags();
+		frappe.tags.utils.fetch_tags();
 	}
 });
 

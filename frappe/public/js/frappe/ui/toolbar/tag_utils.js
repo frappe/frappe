@@ -29,7 +29,7 @@ frappe.tags.utils = {
 		return out;
 	},
 
-	set_tags() {
+	fetch_tags() {
 		frappe.call({
 			method: "frappe.desk.doctype.tag.tag.get_tags_list_for_awesomebar",
 			callback: function(r) {
