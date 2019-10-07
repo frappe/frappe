@@ -110,8 +110,8 @@ def pull_from_node(event_producer):
 		update.use_same_name = naming_config.get(update.ref_doctype)
 		mapping = mapping_config.get(update.ref_doctype)
 		if mapping:
-			update = get_mapped_update(mapping, update)
 			update.mapping = mapping
+			update = get_mapped_update(update)
 		if not update.update_type == 'Delete':
 			update.data = json.loads(update.data)
 
@@ -262,19 +262,18 @@ def log_event_sync(update, event_producer, sync_status, error=None):
 	doc.event_producer = event_producer
 	doc.producer_doc = update.docname
 	doc.data = frappe.as_json(update.data)
-	doc.use_same_name = 'Yes' if update.use_same_name else 'No'
+	doc.use_same_name = update.use_same_name
 	doc.mapping = update.mapping if update.mapping else None
-	if sync_status == 'Synced':
-		if update.use_same_name:
-			doc.docname = update.docname
-		else:
-			doc.docname = frappe.db.get_value(update.ref_doctype, {'remote_docname': update.docname}, 'name')
+	if update.use_same_name:
+		doc.docname = update.docname
 	else:
+		doc.docname = frappe.db.get_value(update.ref_doctype, {'remote_docname': update.docname}, 'name')
+	if error:
 		doc.error = error
 	doc.insert()
 
-def get_mapped_update(mapping, update):
-	mapping = frappe.get_doc('Document Type Mapping', mapping)
+def get_mapped_update(update):
+	mapping = frappe.get_doc('Document Type Mapping', update.mapping)
 	if update.update_type != 'Delete':
 		update.data = mapping.get_mapped_doc(update.data)
 	update.ref_doctype = mapping.local_doctype
@@ -291,6 +290,9 @@ def new_event_notification(producer_url):
 @frappe.whitelist()
 def resync(update):
 	update = frappe._dict(json.loads(update))
+	if update.mapping:
+		update = get_mapped_update(update)
+		update.data = json.loads(update.data)
 	producer_site = get_producer_site(update.event_producer)
 	event_producer = frappe.get_doc('Event Producer', update.event_producer)
 	return sync(update, producer_site, event_producer, in_retry=True)
