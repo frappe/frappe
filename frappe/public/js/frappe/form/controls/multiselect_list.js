@@ -195,11 +195,11 @@ frappe.ui.form.ControlMultiSelectList = frappe.ui.form.ControlData.extend({
 			let encoded_value = encodeURIComponent(option.value);
 			let selected = this.values.includes(option.value) ? 'selected' : '';
 			return `<li class="selectable-item ${selected}" data-value="${encoded_value}">
-				<p>
-					<strong>${option.label}</strong> <br>
-					<span class="small">${option.description}</span>
-				</p>
-				<span class="octicon octicon-check text-muted"></span>
+				<div>
+					<strong>${option.label}</strong>
+					<div class="small">${option.description}</div>
+				</div>
+				<div><span class="octicon octicon-check text-muted"></span></div>
 			</li>`;
 		}).join('');
 		if (!html) {
