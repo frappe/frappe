@@ -288,29 +288,7 @@ frappe.views.ListSidebar = class ListSidebar {
 				filters: me.default_filters || []
 			},
 			callback: function(r) {
-				me.defined_category = r.message;
-				if (r.message.defined_cat) {
-					me.defined_category = r.message.defined_cat;
-					me.cats = {};
-					//structure the tag categories
-					for (var i in me.defined_category) {
-						if (me.cats[me.defined_category[i].category] === undefined) {
-							me.cats[me.defined_category[i].category] = [me.defined_category[i].tag];
-						} else {
-							me.cats[me.defined_category[i].category].push(me.defined_category[i].tag);
-						}
-						me.cat_tags[i] = me.defined_category[i].tag;
-					}
-					me.tempstats = r.message.stats;
-
-					$.each(me.cats, function(i, v) {
-						me.render_stat(i, (me.tempstats || {})["_user_tags"], v);
-					});
-					me.render_stat("_user_tags", (me.tempstats || {})["_user_tags"]);
-				} else {
-					//render normal stats
-					me.render_stat("_user_tags", (r.message.stats || {})["_user_tags"]);
-				}
+				me.render_stat("_user_tags", (r.message.stats || {})["_user_tags"]);
 				let stats_dropdown = me.sidebar.find('.list-stats-dropdown');
 				me.setup_dropdown_search(stats_dropdown,'.stat-label');
 			}
@@ -355,13 +333,14 @@ frappe.views.ListSidebar = class ListSidebar {
 			field: field,
 			stat: stats,
 			sum: sum,
-			label: field === '_user_tags' ? (tags ? __(label) : __("Tags")) : __(label),
+			label: field === '_user_tags' ? (tags ? __(label) : __("Tag")) : __(label),
 		};
 		$(frappe.render_template("list_sidebar_stat", context))
 			.on("click", ".stat-link", function() {
+				var doctype = "Tag Link";
 				var fieldname = $(this).attr('data-field');
 				var label = $(this).attr('data-label');
-				var condition = "like";
+				var condition = "=";
 				var existing = me.list_view.filter_area.filter_list.get_filter(fieldname);
 				if(existing) {
 					existing.remove();
@@ -370,7 +349,7 @@ frappe.views.ListSidebar = class ListSidebar {
 					label = "%,%";
 					condition = "not like";
 				}
-				me.list_view.filter_area.filter_list.add_filter(me.list_view.doctype, fieldname, condition, label)
+				me.list_view.filter_area.filter_list.add_filter(doctype, fieldname, condition, label)
 					.then(function() {
 						me.list_view.refresh();
 					});
