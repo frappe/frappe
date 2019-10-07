@@ -72,7 +72,7 @@ frappe.ui.form.Toolbar = Class.extend({
 		let me = this;
 
 		this.page.$title_area.find(".title-text").on("click", () => {
-			let fields = []
+			let fields = [];
 			let title_field = me.frm.meta.title_field;
 
 			// check if title is updateable
@@ -88,22 +88,19 @@ frappe.ui.form.Toolbar = Class.extend({
 
 			// check if docname is updateable
 			if (me.can_rename()) {
-				fields.push(...
-					[{
-						label: __("New Docname"),
-						fieldname: "name",
-						fieldtype: "Data",
-						reqd: 1,
-						default: me.frm.doc.name
-					}, {
-						label: __("Merge with existing"),
-						fieldname: "merge",
-						fieldtype: "Check",
-						default: 0
-					}]
-				);
+				fields.push(...[{
+					label: __("New Docname"),
+					fieldname: "name",
+					fieldtype: "Data",
+					reqd: 1,
+					default: me.frm.doc.name
+				}, {
+					label: __("Merge with existing"),
+					fieldname: "merge",
+					fieldtype: "Check",
+					default: 0
+				}]);
 			}
-
 			// create dialog
 			if (fields.length > 0) {
 				let d = new frappe.ui.Dialog({
@@ -138,12 +135,10 @@ frappe.ui.form.Toolbar = Class.extend({
 					merge: args.merge
 				},
 				btn: d.get_primary_btn(),
-				callback: function(r,rt) {
-					if(!r.exc) {
-						$(document).trigger('rename', [doctype, docname,
-							r.message || args.new_name]);
-						if(locals[doctype] && locals[doctype][docname])
-							delete locals[doctype][docname];
+				callback: function (res) {
+					if (!res.exc) {
+						$(document).trigger('rename', [doctype, docname, res.message || args.name]);
+						if (locals[doctype] && locals[doctype][docname]) delete locals[doctype][docname];
 					}
 				}
 			});
