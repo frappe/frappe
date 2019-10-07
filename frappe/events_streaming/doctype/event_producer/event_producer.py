@@ -168,6 +168,7 @@ def set_insert(update, producer_site, event_producer):
 def set_update(update, producer_site):
 	local_doc = get_local_doc(update)
 	if local_doc:
+		update.data.pop('name')
 		check_doc_has_dependencies(local_doc, producer_site)
 		local_doc.update(update.data)
 		local_doc.db_update_all()
