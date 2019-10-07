@@ -195,7 +195,7 @@ frappe.ui.form.Form = class FrappeForm {
 				field && field.refresh(fieldname);
 
 				// Validate value for link field explicitly
-				field && field.df.fieldtype === "Link" && field.validate && field.validate(value);
+				field && ["Link", "Dynamic Link"].includes(field.df.fieldtype) && field.validate && field.validate(value);
 
 				me.layout.refresh_dependency();
 				let object = me.script_manager.trigger(fieldname, doc.doctype, doc.name);
