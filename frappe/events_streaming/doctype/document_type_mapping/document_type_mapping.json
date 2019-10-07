@@ -1,9 +1,11 @@
 {
+ "autoname": "field:mapping_name",
  "creation": "2019-09-27 12:45:56.529124",
  "doctype": "DocType",
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
+  "mapping_name",
   "local_doctype",
   "remote_doctype",
   "section_break_3",
@@ -12,9 +14,10 @@
  "fields": [
   {
    "fieldname": "local_doctype",
-   "fieldtype": "Data",
+   "fieldtype": "Link",
    "in_list_view": 1,
    "label": "Local Document Type",
+   "options": "DocType",
    "reqd": 1
   },
   {
@@ -34,9 +37,16 @@
    "label": "Field Mapping",
    "options": "Document Type Field Mapping",
    "reqd": 1
+  },
+  {
+   "fieldname": "mapping_name",
+   "fieldtype": "Data",
+   "label": "Mapping Name",
+   "reqd": 1,
+   "unique": 1
   }
  ],
- "modified": "2019-10-03 21:17:32.785912",
+ "modified": "2019-10-07 15:20:19.093351",
  "modified_by": "Administrator",
  "module": "Events Streaming",
  "name": "Document Type Mapping",
