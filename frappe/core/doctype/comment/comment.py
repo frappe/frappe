@@ -8,7 +8,7 @@ from frappe import _
 import json
 from frappe.model.document import Document
 from frappe.core.doctype.user.user import extract_mentions
-from frappe.core.doctype.notification_log.notification_log import create_notification_log
+from frappe.core.doctype.notification_log.notification_log import create_notification
 from frappe.utils import get_fullname
 from frappe.website.render import clear_cache
 from frappe.database.schema import add_column
@@ -68,7 +68,8 @@ class Comment(Document):
 				'reference_name': self.reference_name,
 				'reference_user': frappe.session.user
 			}
-			create_notification_log(recipients, notification_doc, self.content)
+
+			create_notification(recipients, notification_doc, self.content)
 
 
 def on_doctype_update():

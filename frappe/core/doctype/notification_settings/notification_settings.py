@@ -30,7 +30,7 @@ def is_email_notifications_enabled(user):
 		return True
 
 def is_email_notifications_enabled_for_type(user, notification_type):
-	type_field = 'enable_email_' + notification_type.lower()
+	type_field = 'enable_email_' + frappe.scrub(notification_type)
 	if frappe.db.count('Notification Settings', {'user': user}) > 0:
 		return frappe.get_value('Notification Settings', {'user': user}, type_field)
 	else:

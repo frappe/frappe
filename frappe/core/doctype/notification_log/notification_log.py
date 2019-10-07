@@ -23,29 +23,36 @@ def get_permission_query_conditions(user):
 
 	return '''(`tabNotification Log`.user = '{user}')'''.format(user=user)
 
-def create_notification_log(names, doc, email_content = None):
+def create_notification(names, doc, email_content = None):
 	doc = frappe._dict(doc)
-	if(not isinstance(names, list)):
+	if not isinstance(names, list):
 		if names:
 			names = filter(None, names.split(', '))
 	for name in names:
 		user = name.strip()
 		if frappe.db.exists('User', user):
 			if is_notifications_enabled(user):
-				from frappe.social.doctype.energy_point_settings.energy_point_settings import is_energy_point_enabled
+				frappe.enqueue(
+					'frappe.core.doctype.notification_log.notification_log.make_notification_log',
+					doc = doc,
+					user = user,
+					email_content = email_content
+				)
 
-				if doc.type == 'Energy Point' and not is_energy_point_enabled():
-					return
-				else:
-					_doc = frappe.new_doc('Notification Log')
-					_doc.type = doc.type
-					_doc.user = user
-					_doc.reference_doctype = doc.reference_doctype
-					_doc.reference_name = doc.reference_name
-					_doc.reference_user = doc.reference_user
-					_doc.subject = doc.subject.replace('<div>', '').replace('</div>', '')
-					_doc.email_content = email_content
-					_doc.insert(ignore_permissions=True)
+def make_notification_log(doc, user, email_content):
+	from frappe.social.doctype.energy_point_settings.energy_point_settings import is_energy_point_enabled
+	if doc.type == 'Energy Point' and not is_energy_point_enabled():
+		return
+	else:
+		_doc = frappe.new_doc('Notification Log')
+		_doc.type = doc.type
+		_doc.user = user
+		_doc.reference_doctype = doc.reference_doctype
+		_doc.reference_name = doc.reference_name
+		_doc.reference_user = doc.reference_user
+		_doc.subject = doc.subject.replace('<div>', '').replace('</div>', '')
+		_doc.email_content = email_content
+		_doc.insert(ignore_permissions=True)
 
 def send_notification_email(doc):
 	is_type_enabled = is_email_notifications_enabled_for_type(doc.user, doc.type)

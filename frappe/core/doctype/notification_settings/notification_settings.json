@@ -12,7 +12,7 @@
   "enable_email_mention",
   "enable_email_assignment",
   "enable_email_energy_point",
-  "enable_email_doc_share",
+  "enable_email_share",
   "user"
  ],
  "fields": [
@@ -50,31 +50,36 @@
    "label": "Email Settings"
   },
   {
-   "default": "0",
+   "default": "1",
+   "depends_on": "enable_email_notifications",
    "fieldname": "enable_email_mention",
    "fieldtype": "Check",
    "label": "Mention"
   },
   {
-   "default": "0",
+   "default": "1",
+   "depends_on": "enable_email_notifications",
    "fieldname": "enable_email_assignment",
    "fieldtype": "Check",
    "label": "Assignment"
   },
   {
-   "default": "0",
+   "default": "1",
+   "depends_on": "enable_email_notifications",
    "fieldname": "enable_email_energy_point",
    "fieldtype": "Check",
    "label": "Energy Point"
   },
   {
-   "fieldname": "enable_email_doc_share",
-   "fieldtype": "Data",
-   "label": "Document Share"
+   "default": "1",
+   "depends_on": "enable_email_notifications",
+   "fieldname": "enable_email_share",
+   "fieldtype": "Check",
+   "label": "Share"
   }
  ],
  "in_create": 1,
- "modified": "2019-10-07 12:57:35.130404",
+ "modified": "2019-10-07 14:55:30.220252",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Notification Settings",

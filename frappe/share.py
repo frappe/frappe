@@ -5,7 +5,7 @@ from __future__ import unicode_literals
 import frappe
 from frappe import _
 from frappe.desk.form.document_follow import follow_document
-from frappe.core.doctype.notification_log.notification_log import create_notification_log
+from frappe.core.doctype.notification_log.notification_log import create_notification
 from frappe.utils import cint
 
 @frappe.whitelist()
@@ -166,4 +166,4 @@ def notify_assignment(shared_by, doctype, doc_name, everyone, description=None, 
 		'reference_user': frappe.session.user
 	}
 
-	create_notification_log(shared_by, notification_doc)
+	create_notification(shared_by, notification_doc)

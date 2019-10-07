@@ -7,7 +7,7 @@ from __future__ import unicode_literals
 import frappe
 from frappe import _
 from frappe.desk.form.document_follow import follow_document
-from frappe.core.doctype.notification_log.notification_log import create_notification_log
+from frappe.core.doctype.notification_log.notification_log import create_notification
 import frappe.utils
 import frappe.share
 
@@ -177,5 +177,6 @@ def notify_assignment(assigned_by, owner, doc_type, doc_name, action='CLOSE',
 		'reference_name': doc_name,
 		'reference_user': frappe.session.user
 	}
-	create_notification_log(owner, notification_doc, description_html or None)
+
+	create_notification(owner, notification_doc, description_html or None)
 

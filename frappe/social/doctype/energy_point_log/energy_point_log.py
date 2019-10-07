@@ -7,7 +7,7 @@ import frappe
 from frappe import _
 import json
 from frappe.model.document import Document
-from frappe.core.doctype.notification_log.notification_log import create_notification_log
+from frappe.core.doctype.notification_log.notification_log import create_notification
 from frappe.utils import cint, get_fullname, getdate, get_link_to_form
 
 class EnergyPointLog(Document):
@@ -40,7 +40,7 @@ class EnergyPointLog(Document):
 				'reference_user': reference_user
 			}
 
-			create_notification_log(self.user, notification_doc, self.reason)
+			create_notification(self.user, notification_doc, self.reason)
 
 def get_notifications_message(doc):
 	owner_name = get_fullname(doc.owner)
