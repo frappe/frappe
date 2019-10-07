@@ -52,10 +52,14 @@ frappe.ui.form.Toolbar = Class.extend({
 		this.set_indicator();
 	},
 	is_title_editable: function() {
-		if (this.frm.meta.title_field==="title"
+		let title_field = this.frm.meta.title_field;
+		let field = this.frm.get_field(title_field);
+		if (title_field==="title"
 			&& this.frm.perm[0].write
 			&& !this.frm.get_docfield("title").options
-			&& !this.frm.doc.__islocal) {
+			&& !this.frm.doc.__islocal
+			&& field
+			&& !field.df.read_only) {
 			return true;
 		} else {
 			return false;
@@ -100,25 +104,27 @@ frappe.ui.form.Toolbar = Class.extend({
 			}
 
 			// create dialog
-			let d = new frappe.ui.Dialog({
-				title: __("Rename Fields"),
-				fields: fields
-			});
-			d.show();
+			if (fields.length > 0) {
+				let d = new frappe.ui.Dialog({
+					title: __("Rename Fields"),
+					fields: fields
+				});
+				d.show();
 
-			d.set_primary_action(__("Rename"), function () {
-				let args = d.get_values();
+				d.set_primary_action(__("Rename"), function () {
+					let args = d.get_values();
 
-				if (args.title && me.frm.doc[me.frm.meta.title_field] != args.title) {
-					me.frm.set_value(me.frm.meta.title_field, args.title);
-					me.frm.save_or_update();
-				}
-				if (args.name && me.frm.doc.name != args.name) {
-					rename_doc(d, me.frm.doctype, me.frm.doc.name, args);
-				}
+					if (args.title && me.frm.doc[me.frm.meta.title_field] != args.title) {
+						me.frm.set_value(me.frm.meta.title_field, args.title);
+						me.frm.save_or_update();
+					}
+					if (args.name && me.frm.doc.name != args.name) {
+						rename_doc(d, me.frm.doctype, me.frm.doc.name, args);
+					}
 
-				d.hide();
-			});
+					d.hide();
+				});
+			}
 		});
 
 		function rename_doc(d, doctype, docname, args) {
