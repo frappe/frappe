@@ -111,6 +111,7 @@ def pull_from_node(event_producer):
 		mapping = mapping_config.get(update.ref_doctype)
 		if mapping:
 			update = get_mapped_update(mapping, update)
+			update.mapping = mapping
 		if not update.update_type == 'Delete':
 			update.data = json.loads(update.data)
 
@@ -257,12 +258,18 @@ def log_event_sync(update, event_producer, sync_status, error=None):
 	doc = frappe.new_doc('Event Sync Log')
 	doc.update_type = update.update_type
 	doc.ref_doctype = update.ref_doctype
-	doc.docname = update.docname
 	doc.status = sync_status
 	doc.event_producer = event_producer
 	doc.producer_doc = update.docname
 	doc.data = frappe.as_json(update.data)
-	if error:
+	doc.use_same_name = 'Yes' if update.use_same_name else 'No'
+	doc.mapping = update.mapping if update.mapping else None
+	if sync_status == 'Synced':
+		if update.use_same_name:
+			doc.docname = update.docname
+		else:
+			doc.docname = frappe.db.get_value(update.ref_doctype, {'remote_docname': update.docname}, 'name')
+	else:
 		doc.error = error
 	doc.insert()
 

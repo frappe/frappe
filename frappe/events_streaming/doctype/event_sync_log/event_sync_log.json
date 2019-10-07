@@ -11,6 +11,10 @@
   "status",
   "event_producer",
   "producer_doc",
+  "event_configurations_section",
+  "use_same_name",
+  "column_break_9",
+  "mapping",
   "section_break_8",
   "data",
   "error"
@@ -61,7 +65,8 @@
   },
   {
    "fieldname": "section_break_8",
-   "fieldtype": "Section Break"
+   "fieldtype": "Section Break",
+   "label": "Data"
   },
   {
    "fieldname": "data",
@@ -81,10 +86,32 @@
    "fieldtype": "Code",
    "label": "Error",
    "read_only": 1
+  },
+  {
+   "fieldname": "event_configurations_section",
+   "fieldtype": "Section Break",
+   "label": "Event Configurations"
+  },
+  {
+   "default": "0",
+   "fieldname": "use_same_name",
+   "fieldtype": "Data",
+   "label": "Use Same Name",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_9",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "mapping",
+   "fieldtype": "Data",
+   "label": "Mapping",
+   "read_only": 1
   }
  ],
  "in_create": 1,
- "modified": "2019-10-03 21:29:43.036851",
+ "modified": "2019-10-07 13:22:10.401479",
  "modified_by": "Administrator",
  "module": "Events Streaming",
  "name": "Event Sync Log",
