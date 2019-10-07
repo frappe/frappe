@@ -7,7 +7,7 @@ import frappe
 from frappe import _
 from frappe.model.document import Document
 from frappe.core.doctype.notification_settings.notification_settings import (is_notifications_enabled,
-	is_email_notifications_enabled)
+	is_email_notifications_enabled, is_email_notifications_enabled_for_type)
 
 class NotificationLog(Document):
 
@@ -48,6 +48,10 @@ def create_notification_log(names, doc, email_content = None):
 					_doc.insert(ignore_permissions=True)
 
 def send_notification_email(doc):
+	is_type_enabled = is_email_notifications_enabled_for_type(doc.user, doc.type)
+	if not is_type_enabled:
+		return
+
 	from frappe.utils import get_url_to_form, strip_html, get_url
 
 	doc_link = get_url_to_form(doc.reference_doctype, doc.reference_name)

@@ -9,6 +9,10 @@
   "subscribed_documents",
   "column_break_3",
   "enable_email_notifications",
+  "enable_email_mention",
+  "enable_email_assignment",
+  "enable_email_energy_point",
+  "enable_email_doc_share",
   "user"
  ],
  "fields": [
@@ -44,10 +48,33 @@
    "fieldname": "column_break_3",
    "fieldtype": "Section Break",
    "label": "Email Settings"
+  },
+  {
+   "default": "0",
+   "fieldname": "enable_email_mention",
+   "fieldtype": "Check",
+   "label": "Mention"
+  },
+  {
+   "default": "0",
+   "fieldname": "enable_email_assignment",
+   "fieldtype": "Check",
+   "label": "Assignment"
+  },
+  {
+   "default": "0",
+   "fieldname": "enable_email_energy_point",
+   "fieldtype": "Check",
+   "label": "Energy Point"
+  },
+  {
+   "fieldname": "enable_email_doc_share",
+   "fieldtype": "Data",
+   "label": "Document Share"
   }
  ],
  "in_create": 1,
- "modified": "2019-10-07 11:42:39.596589",
+ "modified": "2019-10-07 12:57:35.130404",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Notification Settings",
