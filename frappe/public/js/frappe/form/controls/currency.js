@@ -12,7 +12,7 @@ frappe.ui.form.ControlCurrency = frappe.ui.form.ControlFloat.extend({
 
 			try {
 				return eval(value);
-			} catch(e) {
+			} catch (e) {
 				return value;
 			}
 		}
