@@ -73,11 +73,12 @@ frappe.ui.form.Toolbar = Class.extend({
 
 		this.page.$title_area.find(".title-text").on("click", () => {
 			let fields = []
+			let title_field = me.frm.meta.title_field;
 
 			// check if title is updateable
 			if (me.is_title_editable()) {
 				fields.push({
-					label: __("New {0}", [__(me.frm.meta.title_field)]),
+					label: __("New {0}", [__(title_field)]),
 					fieldname: "title",
 					fieldtype: "Data",
 					reqd: 1,
@@ -114,8 +115,8 @@ frappe.ui.form.Toolbar = Class.extend({
 				d.set_primary_action(__("Rename"), function () {
 					let args = d.get_values();
 
-					if (args.title && me.frm.doc[me.frm.meta.title_field] != args.title) {
-						me.frm.set_value(me.frm.meta.title_field, args.title);
+					if (args.title && me.frm.doc[title_field] != args.title) {
+						me.frm.set_value(title_field, args.title);
 						me.frm.save_or_update();
 					}
 					if (args.name && me.frm.doc.name != args.name) {
