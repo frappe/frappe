@@ -76,8 +76,6 @@ def send_notification_email(doc):
 def get_email_header(doc):
 	if doc.type == 'Mention' or doc.type == 'Assignment':
 		return _('New {0}').format(doc.type)
-	elif doc.type == 'Communication':
-		return _('New Email')
 	elif doc.type == 'Share':
 		return _('New Document Shared')
 	elif doc.type == 'Energy Point':

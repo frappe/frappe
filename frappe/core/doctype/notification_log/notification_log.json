@@ -21,7 +21,7 @@
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Type",
-   "options": "Mention\nEnergy Point\nCommunication\nAssignment\nShare",
+   "options": "Mention\nEnergy Point\nAssignment\nShare",
    "read_only": 1,
    "search_index": 1
   },
@@ -82,8 +82,8 @@
   }
  ],
  "in_create": 1,
- "modified": "2019-10-03 17:30:07.352330",
- "modified_by": "frappetestuser2@gmail.com",
+ "modified": "2019-10-07 12:49:51.050231",
+ "modified_by": "Administrator",
  "module": "Core",
  "name": "Notification Log",
  "owner": "Administrator",

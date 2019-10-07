@@ -6,8 +6,9 @@
  "engine": "InnoDB",
  "field_order": [
   "enable",
-  "enable_email_notifications",
   "subscribed_documents",
+  "column_break_3",
+  "enable_email_notifications",
   "user"
  ],
  "fields": [
@@ -38,10 +39,15 @@
    "label": "User",
    "options": "User",
    "read_only": 1
+  },
+  {
+   "fieldname": "column_break_3",
+   "fieldtype": "Section Break",
+   "label": "Email Settings"
   }
  ],
  "in_create": 1,
- "modified": "2019-09-23 16:13:43.885111",
+ "modified": "2019-10-07 11:42:39.596589",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Notification Settings",
