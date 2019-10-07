@@ -64,27 +64,83 @@ frappe.ui.form.Toolbar = Class.extend({
 	can_rename: function() {
 		return this.frm.perm[0].write && this.frm.meta.allow_rename && !this.frm.doc.__islocal;
 	},
-	setup_editable_title: function() {
-		var me = this;
-		this.page.$title_area.find(".title-text").on("click", function() {
-			if(me.is_title_editable()) {
-				frappe.prompt({fieldname: "title", fieldtype:"Data",
-					label: __("Title"), reqd: 1, "default": me.frm.doc.title },
-					function(data) {
-						if(data.title) {
-							me.frm.set_value("title", data.title);
-							if(!me.frm.doc.__islocal) {
-								me.frm.save_or_update();
-							} else {
-								me.set_title();
-							}
-						}
-					}, __("Edit Title"), __("Update"));
+	setup_editable_title: function () {
+		let me = this;
+
+		this.page.$title_area.find(".title-text").on("click", () => {
+			let fields = []
+
+			// check if title is updateable
+			if (me.is_title_editable()) {
+				fields.push({
+					label: __("New {0}", [__(me.frm.meta.title_field)]),
+					fieldname: "title",
+					fieldtype: "Data",
+					reqd: 1,
+					default: me.frm.doc.title
+				});
 			}
-			if(me.can_rename()) {
-				me.frm.rename_doc();
+
+			// check if docname is updateable
+			if (me.can_rename()) {
+				fields.push(...
+					[{
+						label: __("New Docname"),
+						fieldname: "name",
+						fieldtype: "Data",
+						reqd: 1,
+						default: me.frm.doc.name
+					}, {
+						label: __("Merge with existing"),
+						fieldname: "merge",
+						fieldtype: "Check",
+						default: 0
+					}]
+				);
 			}
+
+			// create dialog
+			let d = new frappe.ui.Dialog({
+				title: __("Rename Fields"),
+				fields: fields
+			});
+			d.show();
+
+			d.set_primary_action(__("Rename"), function () {
+				let args = d.get_values();
+
+				if (args.title && me.frm.doc[me.frm.meta.title_field] != args.title) {
+					me.frm.set_value(me.frm.meta.title_field, args.title);
+					me.frm.save_or_update();
+				}
+				if (args.name && me.frm.doc.name != args.name) {
+					rename_doc(d, me.frm.doctype, me.frm.doc.name, args);
+				}
+
+				d.hide();
+			});
 		});
+
+		function rename_doc(d, doctype, docname, args) {
+			frappe.call({
+				method: "frappe.model.rename_doc.rename_doc",
+				args: {
+					doctype: doctype,
+					old: docname,
+					new: args.name,
+					merge: args.merge
+				},
+				btn: d.get_primary_btn(),
+				callback: function(r,rt) {
+					if(!r.exc) {
+						$(document).trigger('rename', [doctype, docname,
+							r.message || args.new_name]);
+						if(locals[doctype] && locals[doctype][docname])
+							delete locals[doctype][docname];
+					}
+				}
+			});
+		}
 	},
 	get_dropdown_menu: function(label) {
 		return this.page.add_dropdown(label);

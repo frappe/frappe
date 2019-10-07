@@ -3,7 +3,7 @@
 
 from __future__ import unicode_literals, print_function
 import frappe
-from frappe import _
+from frappe import _, bold
 from frappe.utils import cint
 from frappe.model.naming import validate_name
 from frappe.model.dynamic_links import get_dynamic_link_map
@@ -83,6 +83,7 @@ def rename_doc(doctype, old, new, force=False, merge=False, ignore_permissions=F
 
 	frappe.clear_cache()
 	frappe.enqueue('frappe.utils.global_search.rebuild_for_doctype', doctype=doctype)
+	frappe.msgprint(_('Document renamed from {0} to {1}').format(bold(old), bold(new)), alert=True, indicator='green')
 
 	return new
 
