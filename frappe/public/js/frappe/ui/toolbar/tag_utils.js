@@ -51,7 +51,7 @@ frappe.tags.utils = {
 
 			function make_description(content) {
 				if (!content) {
-					return;
+					return "";
 				}
 				var field_length = 110;
 				var field_value = null;
