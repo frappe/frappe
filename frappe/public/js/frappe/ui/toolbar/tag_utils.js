@@ -50,9 +50,6 @@ frappe.tags.utils = {
 			}
 
 			function make_description(content) {
-				if (!content) {
-					return "";
-				}
 				var field_length = 110;
 				var field_value = null;
 				if (content.length > field_length) {
@@ -66,10 +63,14 @@ frappe.tags.utils = {
 
 			data.forEach(function(d) {
 				// more properties
+				var description = "";
+				if (d.content) {
+					description = make_description(d.content);
+				}
 				result = {
 					label: d.name,
 					value: d.name,
-					description: make_description(d.content),
+					description: description,
 					route: ['Form', d.doctype, d.name],
 
 				};
