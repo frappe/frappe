@@ -147,10 +147,12 @@
 	}
 }
 
-.select-dropdown {
-	float: right;
-	pointer-events: none;
-	margin-top: -1.3em;
-	margin-right: 0.625em;
+.frappe-control[data-fieldtype="Select"] .control-input {
 	position: relative;
+
+	.octicon-chevron-down {
+		position: absolute;
+		height: 15px;
+		right: 12px;
+	}
 }
