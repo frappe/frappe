@@ -253,3 +253,4 @@ frappe.patches.v12_0.delete_duplicate_indexes
 frappe.patches.v12_0.set_default_incoming_email_port
 frappe.patches.v12_0.update_global_search
 frappe.patches.v12_0.setup_tags
+execute:frappe.reload_doc('core', 'doctype', 'notification_settings')
