@@ -53,13 +53,13 @@ frappe.ui.form.Toolbar = Class.extend({
 	},
 	is_title_editable: function() {
 		let title_field = this.frm.meta.title_field;
-		let field = this.frm.get_field(title_field);
-		if (title_field==="title"
+		let field = this.frm.get_docfield(title_field);
+
+		if (title_field
 			&& this.frm.perm[0].write
 			&& !this.frm.get_docfield("title").options
 			&& !this.frm.doc.__islocal
-			&& field
-			&& !field.df.read_only) {
+			&& !field.read_only) {
 			return true;
 		} else {
 			return false;
@@ -78,18 +78,18 @@ frappe.ui.form.Toolbar = Class.extend({
 			// check if title is updateable
 			if (me.is_title_editable()) {
 				fields.push({
-					label: __("New {0}", [__(title_field)]),
+					label: __("New {0}", [__(frappe.model.unscrub(title_field))]),
 					fieldname: "title",
 					fieldtype: "Data",
 					reqd: 1,
-					default: me.frm.doc.title
+					default: me.frm.doc[title_field]
 				});
 			}
 
 			// check if docname is updateable
 			if (me.can_rename()) {
 				fields.push(...[{
-					label: __("New Docname"),
+					label: __("New Name"),
 					fieldname: "name",
 					fieldtype: "Data",
 					reqd: 1,
@@ -104,7 +104,7 @@ frappe.ui.form.Toolbar = Class.extend({
 			// create dialog
 			if (fields.length > 0) {
 				let d = new frappe.ui.Dialog({
-					title: __("Rename Fields"),
+					title: __("Rename"),
 					fields: fields
 				});
 				d.show();
