@@ -166,7 +166,7 @@ def notify_assignment(assigned_by, owner, doc_type, doc_name, action='CLOSE',
 	description_html =  "<p>{0}</p>".format(description) if description else None
 
 	if action=='CLOSE':
-		subject = _('<b>Your</b> assignment on <b>{0} {1}</b> has been removed').format(doc_type, title)
+		subject = _('Your assignment on {0} {1} has been removed').format(frappe.bold(doc_type), frappe.bold(title))
 	else:
 		subject = '''<b>{0}</b> assigned a new task <b>{1} {2}</b> to you'''.format(user_name, doc_type, title)
 

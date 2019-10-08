@@ -58,8 +58,8 @@ class Comment(Document):
 			recipients = [frappe.db.get_value("User", {"enabled": 1, "name": name, "user_type": "System User", "allowed_in_mentions": 1}, "email")
 				for name in mentions]
 
-			notification_message = _('''<b>{0}</b> mentioned you in a comment in <b>{1} {2}</b></span>''')\
-				.format(sender_fullname, self.reference_doctype, title)
+			notification_message = _('''{0} mentioned you in a comment in {1} {2}''')\
+				.format(frappe.bold(sender_fullname), frappe.bold(self.reference_doctype), frappe.bold(title))
 
 			notification_doc = {
 				'type': 'Mention',

@@ -157,7 +157,8 @@ def notify_assignment(shared_by, doctype, doc_name, everyone, description=None, 
 		frappe.db.get_value(doctype, doc_name, title_field)
 
 	reference_user = get_fullname(frappe.session.user)
-	notification_message = _('''<b>{0}</b> shared a document <b>{1} {2}</b> with you''').format(reference_user, doctype, title)
+	notification_message = _('''{0} shared a document {1} {2} with you''')\
+		.format(frappe.bold(reference_user), frappe.bold(doctype), frappe.bold(title))
 	notification_doc = {
 		'type': 'Share',
 		'reference_doctype': doctype,

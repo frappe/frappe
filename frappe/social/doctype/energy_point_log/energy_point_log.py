@@ -36,13 +36,13 @@ class EnergyPointLog(Document):
 				'type': 'Energy Point',
 				'reference_doctype': self.reference_doctype,
 				'reference_name': self.reference_name,
-				'subject': get_notifications_message(self),
+				'subject': get_notification_message(self),
 				'reference_user': reference_user
 			}
 
 			create_notification(self.user, notification_doc, self.reason)
 
-def get_notifications_message(doc):
+def get_notification_message(doc):
 	owner_name = get_fullname(doc.owner)
 	points = doc.points
 	title_field = frappe.get_meta(doc.reference_doctype).get_title_field()
@@ -50,30 +50,31 @@ def get_notifications_message(doc):
 		frappe.db.get_value(doc.reference_doctype, doc.reference_name, title_field)
 
 	if doc.type == 'Auto':
+		owner_name = frappe.bold('You')
 		if points == 1:
-			message = _('<b>You</b> gained <b>{0}</b> point for {1} <b>{2}</b>')
+			message = _('{0} gained {1} point for {2} {3}')
 		else:
-			message = _('<b>You</b> gained <b>{0}</b> points for {1} <b>{2}</b>')
-		message = message.format(points, doc.rule, title)
+			message = _('{0} gained {1} points for {2} {3}')
+		message = message.format(owner_name, frappe.bold(points), doc.rule, frappe.bold(title))
 	elif doc.type == 'Appreciation':
 		if points == 1:
-			message = _('<b>{0}</b> appreciated your work on <b>{1}</b> with <b>{2}</b> point')
+			message = _('{0} appreciated your work on {1} with {2} point')
 		else:
-			message = _('<b>{0}</b> appreciated your work on <b>{1}</b> with <b>{2}</b> points')
-		message = message.format(owner_name, title, points)
+			message = _('{0} appreciated your work on {1} with {2} points')
+		message = message.format(frappe.bold(owner_name), frappe.bold(title), frappe.bold(points))
 	elif doc.type == 'Criticism':
 		if points == 1:
-			message = _('<b>{0}</b> criticized your work on <b>{1}</b> with <b>{2}</b> point')
+			message = _('{0} criticized your work on {1} with {2} point')
 		else:
-			message = _('<b>{0}</b> criticized your work on <b>{1}</b> with <b>{2}</b> points')
+			message = _('{0} criticized your work on {1} with {2} points')
 
-		message = message.format(owner_name, title, points)
+		message = message.format(frappe.bold(owner_name), frappe.bold(title), frappe.bold(points))
 	elif doc.type == 'Revert':
 		if points == 1:
-			message = _('<b>{0}</b> reverted your point on <b>{1}</b>')
+			message = _('{0} reverted your point on {1}')
 		else:
-			message = _('<b>{0}</b> reverted your points on <b>{1}</b>')
-		message = message.format(owner_name, title)
+			message = _('{0} reverted your points on {1}')
+		message = message.format(frappe.bold(owner_name), frappe.bold(title))
 
 	return message
 
