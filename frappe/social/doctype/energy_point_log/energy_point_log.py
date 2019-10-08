@@ -34,8 +34,8 @@ class EnergyPointLog(Document):
 			reference_user = self.user if self.type == 'Auto' else self.owner
 			notification_doc = {
 				'type': 'Energy Point',
-				'reference_doctype': self.reference_doctype,
-				'reference_name': self.reference_name,
+				'document_type': self.reference_doctype,
+				'document_name': self.reference_name,
 				'subject': get_notification_message(self),
 				'reference_user': reference_user
 			}

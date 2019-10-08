@@ -204,7 +204,7 @@ frappe.ui.Notifications = class Notifications {
 		if (this.$dropdown_list.find('.activity-status')) {
 			this.$dropdown_list.find('.activity-status').replaceWith(
 				`<li class="recent-item text-center">
-					<a class="text-muted full-log-btn">
+					<a href = '#List/Notification Log' class="text-muted full-log-btn">
 						${__('View Full Log')}
 					</a>
 				</li>`);
@@ -263,11 +263,11 @@ frappe.ui.Notifications = class Notifications {
 	}
 
 	get_dropdown_item_html(field) {
-		let doc_link = frappe.utils.get_form_link(field.reference_doctype, field.reference_name);
+		let doc_link = frappe.utils.get_form_link(field.document_type, field.document_name);
 		let seen_class = field.seen? '': 'unseen';
 		let message = field.subject;
 		let message_html = `<div class="message">${message}</div>`;
-		let user = field.reference_user;
+		let user = field.from_user;
 		let user_avatar = frappe.avatar(user, 'avatar-small user-avatar');
 		let timestamp = frappe.datetime.comment_when(field.creation, true);
 		let item_html = `<li class="recent-item ${seen_class}">
@@ -286,6 +286,7 @@ frappe.ui.Notifications = class Notifications {
 
 	setup_view_full_log() {
 		this.$dropdown_list.find('.full-log-btn').on('click', () => {
+			console.log('clicked');
 			frappe.set_route('List', 'Notification Log');
 		});
 	}

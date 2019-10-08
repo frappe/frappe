@@ -63,9 +63,9 @@ class Comment(Document):
 
 			notification_doc = {
 				'type': 'Mention',
-				'reference_doctype': self.reference_doctype,
+				'document_type': self.reference_doctype,
 				'subject': notification_message,
-				'reference_name': self.reference_name,
+				'document_name': self.reference_name,
 				'reference_user': frappe.session.user
 			}
 

@@ -12,16 +12,16 @@ from frappe.core.doctype.notification_settings.notification_settings import (is_
 class NotificationLog(Document):
 
 	def after_insert(self):
-		frappe.publish_realtime('notification', after_commit=True, user=self.user)
-		if is_email_notifications_enabled(self.user):
+		frappe.publish_realtime('notification', after_commit=True, user=self.for_user)
+		if is_email_notifications_enabled(self.for_user):
 			send_notification_email(self)
 
 
-def get_permission_query_conditions(user):
-	if not user:
-		user = frappe.session.user
+def get_permission_query_conditions(for_user):
+	if not for_user:
+		for_user = frappe.session.user
 
-	return '''(`tabNotification Log`.user = '{user}')'''.format(user=user)
+	return '''(`tabNotification Log`.for_user = '{user}')'''.format(user=for_user)
 
 def create_notification(names, doc, email_content = None):
 	doc = frappe._dict(doc)
@@ -46,28 +46,28 @@ def make_notification_log(doc, user, email_content):
 	else:
 		_doc = frappe.new_doc('Notification Log')
 		_doc.type = doc.type
-		_doc.user = user
-		_doc.reference_doctype = doc.reference_doctype
-		_doc.reference_name = doc.reference_name
-		_doc.reference_user = doc.reference_user
+		_doc.for_user = user
+		_doc.document_type = doc.document_type
+		_doc.document_name = doc.document_name
+		_doc.from_user = doc.reference_user
 		_doc.subject = doc.subject.replace('<div>', '').replace('</div>', '')
 		_doc.email_content = email_content
 		_doc.insert(ignore_permissions=True)
 
 def send_notification_email(doc):
-	is_type_enabled = is_email_notifications_enabled_for_type(doc.user, doc.type)
+	is_type_enabled = is_email_notifications_enabled_for_type(doc.for_user, doc.type)
 	if not is_type_enabled:
 		return
 
 	from frappe.utils import get_url_to_form, strip_html, get_url
 
-	doc_link = get_url_to_form(doc.reference_doctype, doc.reference_name)
+	doc_link = get_url_to_form(doc.document_type, doc.document_name)
 	header = get_email_header(doc)
 	email_subject = strip_html(doc.subject)
 
 	try:
 		frappe.sendmail(
-			recipients = doc.user,
+			recipients = doc.for_user,
 			sender = frappe.session.user,
 			subject = email_subject,
 			template = "new_notification",

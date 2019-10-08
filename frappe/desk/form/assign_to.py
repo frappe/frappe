@@ -172,9 +172,9 @@ def notify_assignment(assigned_by, owner, doc_type, doc_name, action='CLOSE',
 
 	notification_doc = {
 		'type': 'Assignment',
-		'reference_doctype': doc_type,
+		'document_type': doc_type,
 		'subject': subject,
-		'reference_name': doc_name,
+		'document_name': doc_name,
 		'reference_user': frappe.session.user
 	}
 

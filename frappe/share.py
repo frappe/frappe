@@ -161,9 +161,9 @@ def notify_assignment(shared_by, doctype, doc_name, everyone, description=None, 
 		.format(frappe.bold(reference_user), frappe.bold(doctype), frappe.bold(title))
 	notification_doc = {
 		'type': 'Share',
-		'reference_doctype': doctype,
+		'document_type': doctype,
 		'subject': notification_message,
-		'reference_name': doc_name,
+		'document_name': doc_name,
 		'reference_user': frappe.session.user
 	}
 
