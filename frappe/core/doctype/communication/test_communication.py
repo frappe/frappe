@@ -179,6 +179,8 @@ class TestCommunication(unittest.TestCase):
 	def test_link_in_email(self):
 		frappe.delete_doc_if_exists("Note", "test document link in email")
 
+		create_email_account()
+
 		note = frappe.get_doc({
 			"doctype": "Note",
 			"title": "test document link in email",
@@ -198,3 +200,33 @@ class TestCommunication(unittest.TestCase):
 			doc_links.append((timeline_link.link_doctype, timeline_link.link_name))
 
 		self.assertIn(("Note", note.name), doc_links)
+
+def create_email_account():
+	frappe.flags.mute_emails = False
+	frappe.flags.sent_mail = None
+
+	email_account = frappe.get_doc({
+		"is_default": 1,
+		"is_global": 1,
+		"doctype": "Email Account",
+		"domain":"example.com",
+		"append_to": "ToDo",
+		"email_account_name": "_Test Comm Account 1",
+		"enable_outgoing": 1,
+		"smtp_server": "test.example.com",
+		"email_id": "test_comm@example.com",
+		"password": "password",
+		"add_signature": 1,
+		"signature": "\nBest Wishes\nTest Signature",
+		"enable_auto_reply": 1,
+		"auto_reply_message": "",
+		"enable_incoming": 1,
+		"notify_if_unreplied": 1,
+		"unreplied_for_mins": 20,
+		"send_notification_to": "test_comm@example.com",
+		"pop3_server": "pop.test.example.com",
+		"no_remaining":"0",
+		"enable_automatic_linking": 1
+	}).insert(ignore_permissions=True)
+
+	return email_account

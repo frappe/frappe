@@ -380,6 +380,14 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 
 	render() {
+		this.render_list();
+		this.on_row_checked();
+		this.render_count();
+		this.render_tags();
+	}
+
+	render_list() {
+		// clear rows
 		this.$result.find('.list-row-container').remove();
 		if (this.data.length > 0) {
 			// append rows
@@ -390,9 +398,6 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				}).join('')
 			);
 		}
-		this.on_row_checked();
-		this.render_count();
-		this.render_tags();
 	}
 
 	render_count() {
@@ -427,7 +432,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 			tag_editor.wrapper.on('click', '.tagit-label', (e) => {
 				const $this = $(e.currentTarget);
-				this.filter_area.add(this.doctype, '_user_tags', '=', $this.text());
+				this.filter_area.add('Tag Link', 'tag', '=', $this.text());
 			});
 		});
 	}
@@ -520,13 +525,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		const fieldname = df.fieldname;
 		const value = doc[fieldname] || '';
 
-		// listview_setting formatter
-		const formatters = this.settings.formatters;
-
 		const format = () => {
-			if (formatters && formatters[fieldname]) {
-				return formatters[fieldname](value, df, doc);
-			} else if (df.fieldtype === 'Code') {
+			if (df.fieldtype === 'Code') {
 				return value;
 			} else if (df.fieldtype === 'Percent') {
 				return `<div class="progress level" style="margin: 0px;">
@@ -542,7 +542,13 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 		const field_html = () => {
 			let html;
-			const _value = typeof value === 'string' ? frappe.utils.escape_html(value) : value;
+			let _value;
+			// listview_setting formatter
+			if (this.settings.formatters && this.settings.formatters[fieldname]) {
+				_value = this.settings.formatters[fieldname](value, df, doc);
+			} else {
+				_value = typeof value === 'string' ? frappe.utils.escape_html(value) : value;
+			}
 
 			if (df.fieldtype === 'Image') {
 				html = df.options ?
@@ -1025,7 +1031,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 						// in the listview according to filters applied
 						// let's remove it manually
 						this.data = this.data.filter(d => d.name !== name);
-						this.render();
+						this.render_list();
 						return;
 					}
 
@@ -1059,7 +1065,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 						return return_value;
 					});
 					this.toggle_result_area();
-					this.render();
+					this.render_list();
 				});
 		});
 	}

@@ -1,11 +1,10 @@
 # -*- coding: utf-8 -*-
-# Copyright (c) 2015, Frappe Technologies and contributors
+# Copyright (c) 2019, Frappe Technologies and contributors
 # For license information, please see license.txt
 
 from __future__ import unicode_literals
-import frappe
+# import frappe
 from frappe.model.document import Document
 
-class Tag(Document):
-	def validate(self):
-		self.tag_name = self.tag_name.title()
+class TagLink(Document):
+	pass

@@ -49,7 +49,7 @@ def get_group_by_count(doctype, current_filters, field):
 		return frappe.db.get_list(doctype,
 			filters=current_filters,
 			group_by=field,
-			fields=['count(*) as count', field + ' as name'],
+			fields=['count(*) as count', '`{}` as name'.format(field)],
 			order_by='count desc',
 			limit=50,
 		)

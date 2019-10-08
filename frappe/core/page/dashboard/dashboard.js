@@ -230,6 +230,7 @@ class DashboardChart {
 			title: this.chart_doc.chart_name,
 			data: this.data,
 			type: chart_type_map[this.chart_doc.type],
+			truncateLegends: 1,
 			colors: [this.chart_doc.color || "light-blue"],
 			axisOptions: {
 				xIsSeries: this.chart_doc.timeseries,

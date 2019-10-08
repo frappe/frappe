@@ -39,7 +39,6 @@
   "mute_sounds",
   "change_password",
   "new_password",
-  "send_password_update_notification",
   "logout_all_sessions",
   "reset_password_key",
   "last_password_reset_date",
@@ -299,13 +298,6 @@
    "fieldtype": "Password",
    "label": "Set New Password",
    "no_copy": 1
-  },
-  {
-   "default": "0",
-   "depends_on": "eval:!doc.__islocal",
-   "fieldname": "send_password_update_notification",
-   "fieldtype": "Check",
-   "label": "Send Password Update Notification"
   },
   {
    "default": "0",

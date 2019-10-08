@@ -70,6 +70,8 @@ get_rooms = 'frappe.chat.doctype.chat_room.chat_room.get_rooms'
 
 calendars = ["Event"]
 
+leaderboards = "frappe.desk.leaderboard.get_leaderboards"
+
 # login
 
 on_session_creation = [
@@ -270,7 +272,7 @@ user_privacy_documents = [
 	{
 		'doctype': 'Contact',
 		'match_field': 'email_id',
-		'personal_fields': ['first_name', 'last_name', 'phone'],
+		'personal_fields': ['first_name', 'last_name', 'phone', 'mobile_no'],
 	},
 	{
 		'doctype': 'Contact Email',
@@ -300,3 +302,22 @@ user_privacy_documents = [
 	},
 
 ]
+
+global_search_doctypes = {
+	"Default": [
+		{"doctype": "Contact"},
+		{"doctype": "Address"},
+		{"doctype": "ToDo"},
+		{"doctype": "Note"},
+		{"doctype": "Event"},
+		{"doctype": "Blog Post"},
+		{"doctype": "Dashboard"},
+		{"doctype": "Country"},
+		{"doctype": "Currency"},
+		{"doctype": "Newsletter"},
+		{"doctype": "Letter Head"},
+		{"doctype": "Workflow"},
+		{"doctype": "Web Page"},
+		{"doctype": "Web Form"}
+	]
+}

@@ -13,6 +13,7 @@
   "email_server",
   "use_imap",
   "use_ssl",
+  "incoming_port",
   "attachment_limit",
   "append_to",
   "outgoing_mail_settings",
@@ -100,10 +101,16 @@
    "fieldname": "smtp_port",
    "fieldtype": "Data",
    "label": "Port"
+  },
+  {
+   "description": "If non-standard port (e.g. POP3: 995/110, IMAP: 993/143)",
+   "fieldname": "incoming_port",
+   "fieldtype": "Data",
+   "label": "Port"
   }
  ],
  "icon": "icon-inbox",
- "modified": "2019-08-30 14:38:22.108102",
+ "modified": "2019-08-31 17:56:48.834704",
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Email Domain",

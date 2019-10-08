@@ -6,9 +6,9 @@ import unittest, frappe, pyotp
 from frappe.auth import HTTPRequest
 from frappe.utils import cint
 from frappe.tests import set_request
+from frappe.auth import validate_ip_address
 from frappe.twofactor import (should_run_2fa, authenticate_for_2factor, get_cached_user_pass,
-	two_factor_is_enabled_for_, confirm_otp_token, get_otpsecret_for_, get_verification_obj,
-	render_string_template)
+	two_factor_is_enabled_for_, confirm_otp_token, get_otpsecret_for_, get_verification_obj)
 
 import time
 
@@ -123,7 +123,7 @@ class TestTwoFactor(unittest.TestCase):
 		'''String template renders as expected with variables.'''
 		args = {'issuer_name':'Frappe Technologies'}
 		_str = 'Verification Code from {{issuer_name}}'
-		_str = render_string_template(_str,args)
+		_str = frappe.render_template(_str,args)
 		self.assertEqual(_str,'Verification Code from Frappe Technologies')
 
 	def test_bypass_restict_ip(self):
@@ -140,18 +140,18 @@ class TestTwoFactor(unittest.TestCase):
 		user.save()
 		enable_2fa(bypass_restrict_ip_check=0)
 		with self.assertRaises(frappe.AuthenticationError):
-			self.login_manager.validate_ip_address()
+			validate_ip_address(self.user)
 
 		#2
 		enable_2fa(bypass_restrict_ip_check=1)
-		self.assertIsNone(self.login_manager.validate_ip_address())
+		self.assertIsNone(validate_ip_address(self.user))
 
 		#3
 		user = frappe.get_doc('User', self.user)
 		user.bypass_restrict_ip_check_if_2fa_enabled = 1
 		user.save()
 		enable_2fa()
-		self.assertIsNone(self.login_manager.validate_ip_address())
+		self.assertIsNone(validate_ip_address(self.user))
 
 def create_http_request():
 	'''Get http request object.'''

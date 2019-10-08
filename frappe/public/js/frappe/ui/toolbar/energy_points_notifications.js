@@ -103,7 +103,7 @@ frappe.ui.EnergyPointsNotifications = class {
 		let header_html =
 			`<li class="points-updates-header">
 				<span class="points-updates-title bold text-muted">${__('Energy Points')}</span>
-				<a href="#social/users" class="points-leaderboard text-muted hidden-xs">${__('Leaderboard')}</a>
+				<a href="#leaderboard/Energy Point Log" class="points-leaderboard text-muted hidden-xs">${__('Leaderboard')}</a>
 			</li>`;
 		let body_html = '';
 		let view_full_log_html = '';
