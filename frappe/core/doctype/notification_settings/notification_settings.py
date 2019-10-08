@@ -35,7 +35,7 @@ def is_email_notifications_enabled_for_type(user, notification_type):
 		return frappe.get_value('Notification Settings', {'user': user}, type_field)
 	else:
 		return True
-	
+
 
 @frappe.whitelist()
 def create_notification_settings():

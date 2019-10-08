@@ -79,7 +79,7 @@ def send_notification_email(doc):
 			},
 			header = [header, 'orange']
 		)
-	except:	
+	except Exception:
 		pass
 
 

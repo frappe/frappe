@@ -239,8 +239,7 @@ frappe.ui.Notifications = class Notifications {
 				<span class="text-muted">
 					${__('Notifications Disabled')}
 				</span></li>`;
-		}
-		else {
+		} else {
 			if (this.dropdown_items.length) {
 				this.dropdown_items.forEach(field => {
 					let item_html = this.get_dropdown_item_html(field);
