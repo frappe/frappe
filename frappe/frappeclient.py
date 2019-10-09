@@ -11,6 +11,9 @@ FrappeClient is a library that helps you connect with other frappe systems
 class AuthError(Exception):
 	pass
 
+class SiteExpiredError(Exception):
+	pass
+
 class FrappeException(Exception):
 	pass
 
@@ -43,7 +46,7 @@ class FrappeClient(object):
 			return r.json()
 		else:
 			if json.loads(r.text).get('exc_type') == "SiteExpiredError":
-				return {"exc_type": "SiteExpiredError"}
+				raise SiteExpiredError
 			print(r.text)
 			raise AuthError
 
