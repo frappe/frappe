@@ -181,13 +181,13 @@ def set_delete(update):
 
 def get_updates(producer_site, last_update, doctypes):
 	last_update = producer_site.get_value('Update Log', 'creation', {'name': last_update})
+	filters = {'ref_doctype': ('in', doctypes)}
 	if last_update:
 		last_update_timestamp = last_update.get('creation')
-	else:
-		last_update_timestamp = None
+		filters.update({'creation': ('>', last_update_timestamp)})
 	docs = producer_site.get_list(
 		doctype = 'Update Log',
-		filters = {'creation': ('>', last_update_timestamp), 'ref_doctype': ('in', doctypes)},
+		filters = filters,
 		fields = ['update_type', 'ref_doctype', 'docname', 'data', 'name']
 	)
 	docs.reverse()
