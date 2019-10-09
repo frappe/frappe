@@ -53,14 +53,13 @@ frappe.ui.form.Toolbar = Class.extend({
 	},
 	is_title_editable: function() {
 		let title_field = this.frm.meta.title_field;
-		let field = this.frm.get_docfield(title_field);
-		let title = this.frm.get_docfield("title");
+		let doc_field = this.frm.get_docfield(title_field);
 
 		if (title_field
 			&& this.frm.perm[0].write
-			&& (title ? !title.options : true)
 			&& !this.frm.doc.__islocal
-			&& !field.read_only) {
+			&& !doc_field.options
+			&& !doc_field.read_only) {
 			return true;
 		} else {
 			return false;
