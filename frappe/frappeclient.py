@@ -42,6 +42,8 @@ class FrappeClient(object):
 		if r.status_code==200 and r.json().get('message') in ("Logged In", "No App"):
 			return r.json()
 		else:
+			if json.loads(r.text).get('exc_type') == "SiteExpiredError":
+				return {"exc_type": "SiteExpiredError"}
 			print(r.text)
 			raise AuthError
 
