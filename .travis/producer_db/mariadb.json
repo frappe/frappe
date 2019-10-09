@@ -10,5 +10,5 @@
     "admin_password": "admin",
     "root_login": "root",
     "root_password": "travis",
-    "host_name": "http://test_site:8000"
+    "host_name": "http://test_site_producer:8000"
 }

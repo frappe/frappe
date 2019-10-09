@@ -12,7 +12,7 @@ from frappe.events_streaming.doctype.event_producer.event_producer import pull_f
 
 def create_event_producer():
 	event_producer = frappe.new_doc('Event Producer')
-	event_producer.producer_url = 'http://test_site_2:8000'
+	event_producer.producer_url = 'http://test_site_producer:8000'
 	event_producer.append('event_configuration', {
 		'ref_doctype': 'ToDo',
 		'use_same_name': 1
@@ -22,7 +22,7 @@ def create_event_producer():
 
 class TestEventProducer(unittest.TestCase):
 	def setUp(self):
-		if not frappe.db.exists('Event Producer', 'http://test_site_2:8000'):
+		if not frappe.db.exists('Event Producer', 'http://test_site_producer:8000'):
 			create_event_producer()
 		frappe.db.sql('delete from tabToDo')
 		frappe.db.sql('delete from tabNote')
@@ -130,7 +130,7 @@ class TestEventProducer(unittest.TestCase):
 	def test_naming_configuration(self):
 		#test with use_same_name = 0
 		frappe.clear_cache(doctype='ToDo')
-		event_producer = frappe.get_doc('Event Producer', 'http://test_site_2:8000')
+		event_producer = frappe.get_doc('Event Producer', 'http://test_site_producer:8000')
 		event_producer.event_configuration = []
 		event_producer.append('event_configuration', {
 			'ref_doctype': 'ToDo'
@@ -139,7 +139,7 @@ class TestEventProducer(unittest.TestCase):
 		producer = get_remote_site()
 		producer_doc = self.insert_into_producer(producer, 'test different name sync')
 		self.pull_producer_data()
-		self.assertTrue(frappe.db.exists('ToDo', {'remote_docname': producer_doc.name, 'remote_site_name': 'http://test_site_2:8000'}))
+		self.assertTrue(frappe.db.exists('ToDo', {'remote_docname': producer_doc.name, 'remote_site_name': 'http://test_site_producer:8000'}))
 
 	def test_update_log(self):
 		self.subscribe_to_doctypes(['ToDo'])
@@ -157,7 +157,7 @@ class TestEventProducer(unittest.TestCase):
 
 	def subscribe_to_doctypes(self, doctypes):
 		frappe.clear_cache(doctype='ToDo')
-		event_producer = frappe.get_doc('Event Producer', 'http://test_site_2:8000')
+		event_producer = frappe.get_doc('Event Producer', 'http://test_site_producer:8000')
 		event_producer.event_configuration = []
 		for d in doctypes:
 			event_producer.append('event_configuration', {
@@ -172,7 +172,7 @@ class TestEventProducer(unittest.TestCase):
 		return producer.insert(todo)
 
 	def pull_producer_data(self):
-		pull_from_node('http://test_site_2:8000')
+		pull_from_node('http://test_site_producer:8000')
 		time.sleep(1)
 
 def make_email_account_in_producer(producer, name, email_id):
@@ -190,7 +190,7 @@ def make_email_account_in_producer(producer, name, email_id):
 	return producer.insert(doc)
 
 def get_remote_site():
-	producer_doc = frappe.get_doc('Event Producer', 'http://test_site_2:8000')
+	producer_doc = frappe.get_doc('Event Producer', 'http://test_site_producer:8000')
 	producer_site = FrappeClient(
 		url=producer_doc.producer_url,
 		api_key=producer_doc.api_key,
