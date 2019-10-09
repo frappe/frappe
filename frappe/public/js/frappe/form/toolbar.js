@@ -74,11 +74,12 @@ frappe.ui.form.Toolbar = Class.extend({
 		this.page.$title_area.find(".title-text").on("click", () => {
 			let fields = [];
 			let title_field = me.frm.meta.title_field;
+			let title_field_label = me.frm.get_docfield(title_field).label
 
 			// check if title is updateable
 			if (me.is_title_editable()) {
 				fields.push({
-					label: __("New {0}", [__(frappe.model.unscrub(title_field))]),
+					label: __("New {0}", [__(title_field_label)]),
 					fieldname: "title",
 					fieldtype: "Data",
 					reqd: 1,
