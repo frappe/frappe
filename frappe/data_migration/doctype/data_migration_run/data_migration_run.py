@@ -6,18 +6,9 @@ from __future__ import unicode_literals
 import frappe, json, math
 from frappe.model.document import Document
 from frappe import _
-from frappe.utils import get_source_value
+from frappe.utils import get_source_value, cstr
 
 class DataMigrationRun(Document):
-
-	def validate(self):
-		exists = frappe.db.exists('Data Migration Run', dict(
-			status=('in', ['Fail', 'Error']),
-			name=('!=', self.name)
-		))
-		if exists:
-			frappe.throw(_('There are failed runs with the same Data Migration Plan'))
-
 	def run(self):
 		self.begin()
 		if self.total_pages > 0:
@@ -41,8 +32,9 @@ class DataMigrationRun(Document):
 
 	def enqueue_next_page(self):
 		mapping = self.get_mapping(self.current_mapping)
+		percent_complete = self.percent_complete + (100.0 / self.total_pages)
 		fields = dict(
-			percent_complete = self.percent_complete + (100.0 / self.total_pages)
+			percent_complete = percent_complete
 		)
 		if self.current_mapping_action == 'Insert':
 			start = self.current_mapping_start + mapping.page_length
@@ -52,6 +44,11 @@ class DataMigrationRun(Document):
 			fields['current_mapping_delete_start'] = delete_start
 
 		self.db_set(fields, notify=True, commit=True)
+
+		if(percent_complete < 100):
+			frappe.publish_realtime(self.trigger_name,
+				{"progress_percent": percent_complete}, user=frappe.session.user)
+
 		frappe.enqueue_doc(self.doctype, self.name, 'run_current_mapping', now=frappe.flags.in_test)
 
 	def run_current_mapping(self):
@@ -72,11 +69,13 @@ class DataMigrationRun(Document):
 			self.db_set('status', 'Error', notify=True, commit=True)
 			print('Data Migration Run failed')
 			print(frappe.get_traceback())
+			self.execute_postprocess('Error')
 			raise e
 
 	def get_last_modified_condition(self):
 		last_run_timestamp = frappe.db.get_value('Data Migration Run', dict(
 			data_migration_plan=self.data_migration_plan,
+			data_migration_connector=self.data_migration_connector,
 			name=('!=', self.name)
 		), 'modified')
 		if last_run_timestamp:
@@ -115,13 +114,36 @@ class DataMigrationRun(Document):
 		push_failed = self.get_log('push_failed', [])
 		pull_failed = self.get_log('pull_failed', [])
 
-		if push_failed or pull_failed:
-			fields['status'] = 'Partial Success'
-		else:
-			fields['status'] = 'Success'
+		status = 'Partial Success'
+
+		if not push_failed and not pull_failed:
+			status = 'Success'
 			fields['percent_complete'] = 100
 
+		fields['status'] = status
+
 		self.db_set(fields, notify=True, commit=True)
+
+		self.execute_postprocess(status)
+
+		frappe.publish_realtime(self.trigger_name,
+			{"progress_percent": 100}, user=frappe.session.user)
+
+	def execute_postprocess(self, status):
+		# Execute post process
+		postprocess_method_path = self.get_plan().postprocess_method
+
+		if postprocess_method_path:
+			frappe.get_attr(postprocess_method_path)({
+				"status": status,
+				"stats": {
+					"push_insert": self.push_insert,
+					"push_update": self.push_update,
+					"push_delete": self.push_delete,
+					"pull_insert": self.pull_insert,
+					"pull_update": self.pull_update
+				}
+			})
 
 	def get_plan(self):
 		if not hasattr(self, 'plan'):
@@ -191,19 +213,19 @@ class DataMigrationRun(Document):
 	def get_deleted_local_data(self):
 		'''Fetch local deleted data using `frappe.get_all`. Used during Push'''
 		mapping = self.get_mapping(self.current_mapping)
-		or_filters = self.get_or_filters(mapping)
-		filters = dict(
-			deleted_doctype=mapping.local_doctype
-		)
+		filters = self.get_last_modified_condition()
+		filters.update({
+			"deleted_doctype": mapping.local_doctype
+		})
 
-		data = frappe.get_all('Deleted Document', fields=['data'],
-			filters=filters, or_filters=or_filters)
+		data = frappe.get_all('Deleted Document', fields=['name', 'data'],
+			filters=filters)
 
 		_data = []
 		for d in data:
 			doc = json.loads(d.data)
 			if doc.get(mapping.migration_id_field):
-				doc['_deleted_document_name'] = d.name
+				doc['_deleted_document_name'] = d["name"]
 				_data.append(doc)
 
 		return _data
@@ -284,8 +306,8 @@ class DataMigrationRun(Document):
 				self.update_log('push_insert', 1)
 				# post process after insert
 				self.post_process_doc(local_doc=d, remote_doc=response_doc)
-			except Exception:
-				self.update_log('push_failed', d.name)
+			except Exception as e:
+				self.update_log('push_failed', {d.name: cstr(e)})
 
 		# update page_start
 		self.db_set('current_mapping_start',
@@ -316,8 +338,8 @@ class DataMigrationRun(Document):
 				self.update_log('push_update', 1)
 				# post process after update
 				self.post_process_doc(local_doc=d, remote_doc=response_doc)
-			except Exception:
-				self.update_log('push_failed', d.name)
+			except Exception as e:
+				self.update_log('push_failed', {d.name: cstr(e)})
 
 		# update page_start
 		self.db_set('current_mapping_start',
@@ -348,8 +370,8 @@ class DataMigrationRun(Document):
 				self.update_log('push_delete', 1)
 				# post process only when action is success
 				self.post_process_doc(local_doc=d, remote_doc=response_doc)
-			except Exception:
-				self.update_log('push_failed', d.name)
+			except Exception as e:
+				self.update_log('push_failed', {d.name: cstr(e)})
 
 		# update page_start
 		self.db_set('current_mapping_start',
@@ -392,7 +414,7 @@ class DataMigrationRun(Document):
 					self.post_process_doc(remote_doc=d, local_doc=local_doc)
 				except Exception:
 					# failed, append to log
-					self.update_log('pull_failed', migration_id_value)
+					self.update_log('pull_failed', {migration_id_value: cstr(e)})
 
 		if len(data) < mapping.page_length:
 			# last page, done with pull

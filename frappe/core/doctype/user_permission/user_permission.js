@@ -11,40 +11,39 @@ frappe.ui.form.on('User Permission', {
 				}
 			};
 		});
+
+		frm.set_query('applicable_for', () => {
+			return {
+				'query': 'frappe.core.doctype.user_permission.user_permission.get_applicable_for_doctype_list',
+				'doctype': frm.doc.allow
+			};
+		});
+
 	},
 
 	refresh: frm => {
 		frm.add_custom_button(__('View Permitted Documents'),
 			() => frappe.set_route('query-report', 'Permitted Documents For User',
 				{ user: frm.doc.user }));
-		frm.trigger('set_help');
+		frm.trigger('set_applicable_for_constraint');
 	},
 
 	allow: frm => {
-		frm.trigger('set_help');
 		if(frm.doc.for_value) {
-			cur_frm.fields_dict.for_value.set_input(null);
+			frm.set_value('for_value', null);
 		}
 	},
 
-	set_help: frm => {
-		const help_wrapper = frm.fields_dict.linked_doctypes.$wrapper;
-		help_wrapper.empty();
-		if (frm.doc.allow) {
-			frappe.call({
-				method: "frappe.desk.form.linked_with.get_linked_doctypes",
-				args: {
-					doctype: frm.doc.allow
-				},
-				callback: (r) => {
-					const linked_doctypes = r.message;
-					if (linked_doctypes) {
-						$(frappe.render_template("user_permission_help", { linked_doctypes: linked_doctypes }))
-							.appendTo(help_wrapper);
-					}
-				}
-			});
+	apply_to_all_doctypes: frm => {
+		frm.trigger('set_applicable_for_constraint');
+	},
+
+	set_applicable_for_constraint: frm => {
+		frm.toggle_reqd('applicable_for', !frm.doc.apply_to_all_doctypes);
+		if (frm.doc.apply_to_all_doctypes) {
+			frm.set_value('applicable_for', null);
 		}
 	}
+
 
 });

@@ -10,6 +10,9 @@ const {
 	get_options_for
 } = require('./config');
 
+const { get_redis_subscriber } = require('../node_utils');
+const subscriber = get_redis_subscriber();
+
 watch_assets();
 
 function watch_assets() {
@@ -29,9 +32,19 @@ function watch_assets() {
 
 			case 'BUNDLE_START': {
 				const output = event.output[0];
-				if (output.endsWith('.js')) {
+				if (output.endsWith('.js') || output.endsWith('.vue')) {
 					log('Rebuilding', path.basename(event.output[0]));
 				}
+				break;
+			}
+
+			case 'ERROR': {
+				log_error(event.error);
+				break;
+			}
+
+			case 'FATAL': {
+				log_error(event.error);
 				break;
 			}
 
@@ -54,10 +67,32 @@ function get_watch_options(app) {
 function log_css_change({output}) {
 	return {
 		name: 'log-css-change',
-		ongenerate() {
+		generateBundle() {
 			if (!output.endsWith('.css')) return null;
 			log('Rebuilding', path.basename(output));
 			return null;
 		}
 	};
+}
+
+function log_error(error) {
+	log(chalk.yellow('Error in: ' +  error.id));
+	log(chalk.red(error.toString()));
+
+	if (error.frame) {
+		log(chalk.red(error.frame));
+	}
+
+	// notify redis which in turns tells socketio to publish this to browser
+	const payload = {
+		event: 'build_error',
+		message: `
+Error in: ${error.id}
+${error.toString()}
+
+${error.frame ? error.frame : ''}
+		`
+	};
+
+	subscriber.publish('events', JSON.stringify(payload));
 }

@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 # imports - standard imports
 import json
 
@@ -39,7 +41,7 @@ def get_message_urls(content):
 			urls.append(text)
 
 	return urls
-	
+
 def get_message_mentions(content):
 	mentions = [ ]
 	tokens   = content.split(' ')
@@ -68,12 +70,12 @@ def get_message_meta(content):
 	meta.content  = content
 	meta.urls	  = get_message_urls(content)
 	meta.mentions = get_message_mentions(content)
-	
+
 	return meta
 
 def sanitize_message_content(content):
 	emojis = get_emojis()
-		
+
 	tokens = content.split(' ')
 	for token in tokens:
 		if token.startswith(':') and token.endswith(':'):
@@ -131,7 +133,7 @@ def get_new_chat_message(user, room, content, type = "Content"):
 @frappe.whitelist(allow_guest = True)
 def send(user, room, content, type = "Content"):
 	mess = get_new_chat_message(user, room, content, type)
-	
+
 	frappe.publish_realtime('frappe.chat.message:create', mess, room = room,
 		after_commit = True)
 
@@ -139,13 +141,16 @@ def send(user, room, content, type = "Content"):
 def seen(message, user = None):
 	authenticate(user)
 
-	mess = frappe.get_doc('Chat Message', message)
-	mess.add_seen(user)
+	has_message = frappe.db.exists('Chat Message', message)
 
-	room = mess.room
-	resp = dict(message = message, data = dict(seen = json.loads(mess._seen)))
-	
-	frappe.publish_realtime('frappe.chat.message:update', resp, room = room, after_commit = True)
+	if has_message:
+		mess = frappe.get_doc('Chat Message', message)
+		mess.add_seen(user)
+		mess.load_from_db()
+		room = mess.room
+		resp = dict(message = message, data = dict(seen = json.loads(mess._seen) if mess._seen else []))
+
+		frappe.publish_realtime('frappe.chat.message:update', resp, room = room, after_commit = True)
 
 def history(room, fields = None, limit = 10, start = None, end = None):
 	room = frappe.get_doc('Chat Room', room)
@@ -159,7 +164,7 @@ def history(room, fields = None, limit = 10, start = None, end = None):
 		],
 		order_by = 'creation'
 	)
-	
+
 	if not fields or 'seen' in fields:
 		for m in mess:
 			m['seen'] = json.loads(m._seen) if m._seen else [ ]
@@ -168,24 +173,45 @@ def history(room, fields = None, limit = 10, start = None, end = None):
 		for m in mess:
 			m['content'] = json.loads(m.content) if m.type in ["File"] else m.content
 
+	frappe.enqueue('frappe.chat.doctype.chat_message.chat_message.mark_messages_as_seen',
+		message_names=[m.name for m in mess], user=frappe.session.user)
+
 	return mess
+
+def mark_messages_as_seen(message_names, user):
+	'''
+	Marks chat messages as seen, updates the _seen for each message
+	(should be run in background process)
+	'''
+	for name in message_names:
+		seen = frappe.db.get_value('Chat Message', name, '_seen') or '[]'
+		seen = json.loads(seen)
+		seen.append(user)
+		seen = json.dumps(seen)
+		frappe.db.set_value('Chat Message', name, '_seen', seen, update_modified=False)
+
+	frappe.db.commit()
+
 
 @frappe.whitelist()
 def get(name, rooms = None, fields = None):
 	rooms, fields = safe_json_loads(rooms, fields)
 
-	dmess = frappe.get_doc('Chat Message', name)
-	data  = dict(
-		name      = dmess.name,
-		user      = dmess.user,
-		room      = dmess.room,
-		room_type = dmess.room_type,
-		content   = json.loads(dmess.content) if dmess.type in ["File"] else dmess.content,
-		type      = dmess.type,
-		urls      = dmess.urls,
-		mentions  = dmess.mentions,
-		creation  = dmess.creation,
-		seen      = get_if_empty(dmess._seen, [ ])
-	)
+	has_message = frappe.db.exists('Chat Message', name)
 
-	return data
+	if has_message:
+		dmess = frappe.get_doc('Chat Message', name)
+		data  = dict(
+			name      = dmess.name,
+			user      = dmess.user,
+			room      = dmess.room,
+			room_type = dmess.room_type,
+			content   = json.loads(dmess.content) if dmess.type in ["File"] else dmess.content,
+			type      = dmess.type,
+			urls      = dmess.urls,
+			mentions  = dmess.mentions,
+			creation  = dmess.creation,
+			seen      = get_if_empty(dmess._seen, [ ])
+		)
+
+		return data

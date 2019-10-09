@@ -3,14 +3,14 @@ from __future__ import unicode_literals
 import frappe
 
 def execute():
-	frappe.reload_doctype("Email Alert")
-	for e in frappe.get_all("Email Alert"):
-		email_alert = frappe.get_doc("Email Alert", e.name)
-		if email_alert.event == "Date Change":
-			if email_alert.days_in_advance < 0:
-				email_alert.event = "Days After"
-				email_alert.days_in_advance = -email_alert.days_in_advance
+	frappe.reload_doctype("Notification")
+	for e in frappe.get_all("Notification"):
+		notification = frappe.get_doc("Notification", e.name)
+		if notification.event == "Date Change":
+			if notification.days_in_advance < 0:
+				notification.event = "Days After"
+				notification.days_in_advance = -email_alert.days_in_advance
 			else:
-				email_alert.event = "Days Before"
+				notification.event = "Days Before"
 
-			email_alert.save()
+			notification.save()

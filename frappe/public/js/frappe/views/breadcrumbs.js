@@ -5,7 +5,20 @@ frappe.breadcrumbs = {
 	all: {},
 
 	preferred: {
-		"File": ""
+		"File": "",
+		"Dashboard": "Customization",
+		"Dashboard Chart": "Customization",
+		"Dashboard Chart Source": "Customization",
+	},
+
+	module_map: {
+		'Core': 'Settings',
+		'Email': 'Settings',
+		'Custom': 'Settings',
+		'Workflow': 'Settings',
+		'Printing': 'Settings',
+		'Automation': 'Settings',
+		'Setup': 'Settings',
 	},
 
 	set_doctype_module: function(doctype, module) {
@@ -40,7 +53,9 @@ frappe.breadcrumbs = {
 		var breadcrumbs = frappe.breadcrumbs.all[frappe.breadcrumbs.current_page()];
 
 		if(!frappe.visible_modules) {
-			frappe.visible_modules = $.map(frappe.get_desktop_icons(true), (m) => { return m.module_name; });
+			frappe.visible_modules = $.map(frappe.boot.allowed_modules, (m) => {
+				return m.module_name;
+			});
 		}
 
 		var $breadcrumbs = $("#navbar-breadcrumbs").empty();
@@ -68,8 +83,8 @@ frappe.breadcrumbs = {
 		}
 
 		if(breadcrumbs.module) {
-			if(in_list(["Core", "Email", "Custom", "Workflow", "Print"], breadcrumbs.module)) {
-				breadcrumbs.module = "Setup";
+			if (frappe.breadcrumbs.module_map[breadcrumbs.module]) {
+				breadcrumbs.module = frappe.breadcrumbs.module_map[breadcrumbs.module];
 			}
 
 			if(frappe.get_module(breadcrumbs.module)) {
@@ -88,7 +103,6 @@ frappe.breadcrumbs = {
 		}
 		if(breadcrumbs.doctype && frappe.get_route()[0]==="Form") {
 			if(breadcrumbs.doctype==="User"
-				&& frappe.user.is_module("Setup")===-1
 				|| frappe.get_doc('DocType', breadcrumbs.doctype).issingle) {
 				// no user listview for non-system managers and single doctypes
 			} else {

@@ -2,6 +2,10 @@
 
 {%- block header -%} {{ header or "" }} {%- endblock -%}
 
+{% block meta_block %}
+	{% include "templates/includes/meta_block.html" %}
+{% endblock %}
+
 {% block hero %}{{ hero or "" }}{% endblock %}
 
 {% block breadcrumbs %}
@@ -17,8 +21,8 @@
 	{{ main_section or "" }}
 	</article>
 	{% if enable_comments -%}
-	<hr>
-	<h3>Discuss</h3>
+	<hr class="my-5">
+	<h5>Discuss</h5>
 	{% include 'templates/includes/comments/comments.html' %}
 	{%- endif %}
 </div>

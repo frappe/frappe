@@ -4,12 +4,10 @@
 frappe.ui.form.on("Address", {
 	refresh: function(frm) {
 		if(frm.doc.__islocal) {
-			var last_route = frappe.route_history.slice(-2, -1)[0];
-			let docname = last_route[2];
-			if (last_route.length > 3)
-				docname = last_route.slice(2).join("/");
+			const last_doc = frappe.contacts.get_last_doc(frm);
 			if(frappe.dynamic_link && frappe.dynamic_link.doc
-					&& frappe.dynamic_link.doc.name==docname) {
+					&& frappe.dynamic_link.doc.name == last_doc.docname) {
+				frm.set_value('links', '');
 				frm.add_child('links', {
 					link_doctype: frappe.dynamic_link.doctype,
 					link_name: frappe.dynamic_link.doc[frappe.dynamic_link.fieldname]
@@ -35,14 +33,14 @@ frappe.ui.form.on("Address", {
 			});
 		}
 	},
-	after_save: function() {
+	after_save: function(frm) {
 		frappe.run_serially([
 			() => frappe.timeout(1),
 			() => {
-				var last_route = frappe.route_history.slice(-2, -1)[0];
+				const last_doc = frappe.contacts.get_last_doc(frm);
 				if(frappe.dynamic_link && frappe.dynamic_link.doc
-					&& frappe.dynamic_link.doc.name == last_route[2]){
-					frappe.set_route(last_route[0], last_route[1], last_route[2]);
+					&& frappe.dynamic_link.doc.name == last_doc.docname){
+					frappe.set_route('Form', last_doc.doctype, last_doc.docname);
 				}
 			}
 		]);

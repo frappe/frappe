@@ -36,8 +36,8 @@ frappe.ui.form.Dashboard = Class.extend({
 		// clear custom
 		this.wrapper.find('.custom').remove();
 	},
-	set_headline: function(html) {
-		this.frm.layout.show_message(html);
+	set_headline: function(html, color) {
+		this.frm.layout.show_message(html, color);
 	},
 	clear_headline: function() {
 		this.frm.layout.show_message();
@@ -57,12 +57,9 @@ frappe.ui.form.Dashboard = Class.extend({
 		this.clear_headline();
 	},
 
-	set_headline_alert: function(text, indicator_color) {
-		if (!indicator_color) {
-			indicator_color = 'orange';
-		}
+	set_headline_alert: function(text, color) {
 		if(text) {
-			this.set_headline(`<div><span class="indicator ${indicator_color}">${text}</span></div>`);
+			this.set_headline(`<div>${text}</div>`, color);
 		} else {
 			this.clear_headline();
 		}
@@ -85,20 +82,51 @@ frappe.ui.form.Dashboard = Class.extend({
 				title="%(title)s"></div>', opts)).appendTo(progress);
 		});
 
-		if(message) {
-			$('<p class="text-muted small">' + message + '</p>').appendTo(this.progress_area);
-		}
+		if (!message) message = '';
+		$(`<p class="progress-message text-muted small">${message}</p>`).appendTo(progress_chart);
 
 		this.show();
+
+		return progress_chart;
+	},
+
+	show_progress: function(title, percent, message) {
+		this._progress_map = this._progress_map || {};
+		let progress_chart = this._progress_map[title];
+		// create a new progress chart if it doesnt exist
+		// or the previous one got detached from the DOM
+		if (!progress_chart || progress_chart.parent().length == 0) {
+			progress_chart = this.add_progress(title, percent, message);
+			this._progress_map[title] = progress_chart;
+		}
+
+		if (!$.isArray(percent)) {
+			percent = this.format_percent(title, percent);
+		}
+		progress_chart.find('.progress-bar').each((i, progress_bar) => {
+			const { progress_class, width } = percent[i];
+			$(progress_bar).css('width', width)
+				.removeClass('progress-bar-danger progress-bar-success')
+				.addClass(progress_class);
+		});
+
+		if (!message) message = '';
+		progress_chart.find('.progress-message').text(message);
+	},
+
+	hide_progress: function(title) {
+		if (title){
+			this._progress_map[title].remove();
+			delete this._progress_map[title];
+		} else {
+			this._progress_map = {};
+			this.progress_area.empty();
+		}
 	},
 
 	format_percent: function(title, percent) {
 		var width = cint(percent) < 1 ? 1 : cint(percent);
-		var progress_class = "";
-		if(width < 10)
-			progress_class = "progress-bar-danger";
-		if(width > 99.9)
-			progress_class = "progress-bar-success";
+		var progress_class = "progress-bar-success";
 
 		return [{
 			title: title,
@@ -124,7 +152,8 @@ frappe.ui.form.Dashboard = Class.extend({
 
 		var show = false;
 
-		if(this.data && (this.data.transactions || []).length) {
+		if(this.data && ((this.data.transactions || []).length
+			|| (this.data.reports || []).length)) {
 			if(this.data.docstatus && this.frm.doc.docstatus !== this.data.docstatus) {
 				// limited docstatus
 				return;
@@ -166,6 +195,38 @@ frappe.ui.form.Dashboard = Class.extend({
 		this.filter_permissions();
 	},
 
+	add_transactions: function(opts) {
+		// add additional data on dashboard
+		let group_added = [];
+
+		if(!Array.isArray(opts)) opts=[opts];
+
+		if(!this.data) {
+			this.init_data();
+		}
+
+		if(this.data && (this.data.transactions || []).length) {
+			// check if label already exists, add items to it
+			this.data.transactions.map(group => {
+				opts.map(d => {
+					if(d.label == group.label) {
+						group_added.push(d.label);
+						group.items.push(...d.items);
+					}
+				});
+			});
+
+			// if label not already present, add new label and items under it
+			opts.map(d => {
+				if(!group_added.includes(d.label)) {
+					this.data.transactions.push(d);
+				}
+			});
+
+			this.filter_permissions();
+		}
+	},
+
 	filter_permissions: function() {
 		// filter out transactions for which the user
 		// does not have permission
@@ -202,9 +263,19 @@ frappe.ui.form.Dashboard = Class.extend({
 		$(frappe.render_template('form_links', this.data))
 			.appendTo(this.transactions_area)
 
+		if (this.data.reports && this.data.reports.length) {
+			$(frappe.render_template('report_links', this.data))
+				.appendTo(this.transactions_area)
+		}
+
 		// bind links
 		this.transactions_area.find(".badge-link").on('click', function() {
 			me.open_document_list($(this).parent());
+		});
+
+		// bind reports
+		this.transactions_area.find(".report-link").on('click', function() {
+			me.open_report($(this).parent());
 		});
 
 		// bind open notifications
@@ -218,6 +289,17 @@ frappe.ui.form.Dashboard = Class.extend({
 		});
 
 		this.data_rendered = true;
+	},
+	open_report: function($link) {
+
+		let report = $link.attr('data-report');
+
+		let fieldname = this.data.non_standard_fieldnames
+			? (this.data.non_standard_fieldnames[report] || this.data.fieldname)
+			: this.data.fieldname;
+
+		frappe.route_options[fieldname] = this.frm.doc.name;
+		frappe.set_route("query-report", report);
 	},
 	open_document_list: function($link, show_open) {
 		// show document list with filters
@@ -237,7 +319,7 @@ frappe.ui.form.Dashboard = Class.extend({
 			}
 		}
 
-		frappe.set_route("List", doctype);
+		frappe.set_route("List", doctype, "List");
 	},
 	get_document_filter: function(doctype) {
 		// return the default filter for the given document
@@ -246,6 +328,12 @@ frappe.ui.form.Dashboard = Class.extend({
 		var fieldname = this.data.non_standard_fieldnames
 			? (this.data.non_standard_fieldnames[doctype] || this.data.fieldname)
 			: this.data.fieldname;
+
+		if (this.data.dynamic_links && this.data.dynamic_links[fieldname]) {
+			let dynamic_fieldname = this.data.dynamic_links[fieldname][1];
+			filter[dynamic_fieldname] = this.data.dynamic_links[fieldname][0];
+		}
+
 		filter[fieldname] = this.frm.doc.name;
 		return filter;
 	},
@@ -263,13 +351,13 @@ frappe.ui.form.Dashboard = Class.extend({
 		});
 
 		var method = this.data.method || 'frappe.desk.notifications.get_open_count';
-
 		frappe.call({
 			type: "GET",
 			method: method,
 			args: {
 				doctype: this.frm.doctype,
 				name: this.frm.doc.name,
+				items: items
 			},
 			callback: function(r) {
 				if(r.message.timeline_data) {
@@ -327,16 +415,15 @@ frappe.ui.form.Dashboard = Class.extend({
 
 	update_heatmap: function(data) {
 		if(this.heatmap) {
-			this.heatmap.update(data);
+			this.heatmap.update({dataPoints: data});
 		}
 	},
 
 	// heatmap
 	render_heatmap: function() {
 		if(!this.heatmap) {
-			this.heatmap = new Chart("#heatmap-" + frappe.model.scrub(this.frm.doctype), {
+			this.heatmap = new frappe.Chart("#heatmap-" + frappe.model.scrub(this.frm.doctype), {
 				type: 'heatmap',
-				height: 120,
 				start: new Date(moment().subtract(1, 'year').toDate()),
 				count_label: "interactions",
 				discreteDomains: 0,
@@ -407,12 +494,15 @@ frappe.ui.form.Dashboard = Class.extend({
 		this.chart_area.empty().removeClass('hidden');
 		$.extend(args, {
 			type: 'line',
-			height: 140,
-			colors: ['green']
+			colors: ['green'],
+			truncateLegends: 1,
+			axisOptions: {
+				shortenYAxisNumbers: 1
+			}
 		});
 		this.show();
 
-		this.chart = new Chart('.form-graph', args);
+		this.chart = new frappe.Chart('.form-graph', args);
 		if(!this.chart) {
 			this.hide();
 		}

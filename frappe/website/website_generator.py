@@ -17,6 +17,9 @@ class WebsiteGenerator(Document):
 
 	def get_website_properties(self, key=None, default=None):
 		out = getattr(self, '_website', None) or getattr(self, 'website', None) or {}
+		if not isinstance(out, dict):
+			# website may be a property too, so ignore
+			out = {}
 		if key:
 			return out.get(key, default)
 		else:
@@ -33,6 +36,9 @@ class WebsiteGenerator(Document):
 		})
 
 	def validate(self):
+		self.set_route()
+
+	def set_route(self):
 		if self.is_website_published() and not self.route:
 			self.route = self.make_route()
 
@@ -65,6 +71,7 @@ class WebsiteGenerator(Document):
 		return title_field
 
 	def clear_cache(self):
+		super(WebsiteGenerator, self).clear_cache()
 		clear_cache(self.route)
 
 	def scrub(self, text):

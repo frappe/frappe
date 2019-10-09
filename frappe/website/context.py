@@ -38,7 +38,7 @@ def update_controller_context(context, controller):
 
 	if module:
 		# get config fields
-		for prop in ("base_template_path", "template", "no_cache", "no_sitemap",
+		for prop in ("base_template_path", "template", "no_cache", "sitemap",
 			"condition_field"):
 			if hasattr(module, prop):
 				context[prop] = getattr(module, prop)
@@ -48,9 +48,7 @@ def update_controller_context(context, controller):
 				ret = module.get_context(context)
 				if ret:
 					context.update(ret)
-			except frappe.Redirect:
-				raise
-			except (frappe.PermissionError, frappe.DoesNotExistError):
+			except (frappe.PermissionError, frappe.DoesNotExistError, frappe.Redirect):
 				raise
 			except:
 				if not frappe.flags.in_migrate:
@@ -91,7 +89,7 @@ def build_context(context):
 			if ret:
 				context.update(ret)
 
-		for prop in ("no_cache", "no_sitemap"):
+		for prop in ("no_cache", "sitemap"):
 			if not prop in context:
 				context[prop] = getattr(context.doc, prop, False)
 
@@ -122,6 +120,32 @@ def build_context(context):
 
 	return context
 
+def load_sidebar(context, sidebar_json_path):
+	with open(sidebar_json_path, 'r') as sidebarfile:
+		context.sidebar_items = json.loads(sidebarfile.read())
+		context.show_sidebar = 1
+
+def get_sidebar_json_path(path, look_for=False):
+	'''
+		Get _sidebar.json path from directory path
+
+		:param path: path of the current diretory
+		:param look_for: if True, look for _sidebar.json going upwards from given path
+
+		:return: _sidebar.json path
+	'''
+	if os.path.split(path)[1] == 'www' or path == '/' or not path:
+		return ''
+
+	sidebar_json_path = os.path.join(path, '_sidebar.json')
+	if os.path.exists(sidebar_json_path):
+		return sidebar_json_path
+	else:
+		if look_for:
+			return get_sidebar_json_path(os.path.split(path)[0], look_for)
+		else:
+			return ''
+
 def add_sidebar_and_breadcrumbs(context):
 	'''Add sidebar and breadcrumbs to context'''
 	from frappe.website.router import get_page_info_from_template
@@ -130,11 +154,14 @@ def add_sidebar_and_breadcrumbs(context):
 		add_sidebar_data(context)
 	else:
 		if context.basepath:
-			sidebar_json_path = os.path.join(context.basepath, '_sidebar.json')
-			if os.path.exists(sidebar_json_path):
-				with open(sidebar_json_path, 'r') as sidebarfile:
-					context.sidebar_items = json.loads(sidebarfile.read())
-					context.show_sidebar = 1
+			hooks = frappe.get_hooks('look_for_sidebar_json')
+			look_for_sidebar_json = hooks[0] if hooks else 0
+			sidebar_json_path = get_sidebar_json_path(
+				context.basepath,
+				look_for_sidebar_json
+			)
+			if sidebar_json_path:
+				load_sidebar(context, sidebar_json_path)
 
 	if context.add_breadcrumbs and not context.parents:
 		if context.basepath:
@@ -186,15 +213,58 @@ def add_sidebar_data(context):
 
 
 def add_metatags(context):
-	tags = context.get("metatags")
+	tags = frappe._dict(context.get("metatags") or {})
+
 	if tags:
 		if not "twitter:card" in tags:
 			tags["twitter:card"] = "summary_large_image"
+
 		if not "og:type" in tags:
 			tags["og:type"] = "article"
+
 		if tags.get("name"):
 			tags["og:title"] = tags["twitter:title"] = tags["name"]
+
+		if tags.get("title"):
+			tags["og:title"] = tags["twitter:title"] = tags["title"]
+
 		if tags.get("description"):
 			tags["og:description"] = tags["twitter:description"] = tags["description"]
-		if tags.get("image"):
-			tags["og:image"] = tags["twitter:image:src"] = tags["image"] = frappe.utils.get_url(tags.get("image"))
+
+		image = tags.get('image', context.image or None)
+		if image:
+			tags["og:image"] = tags["twitter:image:src"] = tags["image"] = frappe.utils.get_url(image)
+
+		if context.path:
+			tags['og:url'] = tags['url'] = frappe.utils.get_url(context.path)
+
+		if context.published_on:
+			tags['datePublished'] = context.published_on
+
+		if context.author:
+			tags['author'] = context.author
+
+		if context.description:
+			tags['description'] = context.description
+
+		tags['language'] = frappe.local.lang or 'en'
+
+	# Get meta tags from Website Route meta
+	# they can override the defaults set above
+	route = context.route
+	if route == '':
+		# homepage
+		route = frappe.db.get_single_value('Website Settings', 'home_page')
+
+	route_exists = (route
+		and not route.endswith(('.js', '.css'))
+		and frappe.db.exists('Website Route Meta', route))
+
+	if route_exists:
+		website_route_meta = frappe.get_doc('Website Route Meta', route)
+		for meta_tag in website_route_meta.meta_tags:
+			d = meta_tag.get_meta_dict()
+			tags.update(d)
+
+	# update tags in context
+	context.metatags = tags

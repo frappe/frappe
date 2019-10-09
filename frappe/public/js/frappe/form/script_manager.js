@@ -168,10 +168,10 @@ frappe.ui.form.ScriptManager = Class.extend({
 		}
 
 		function setup_add_fetch(df) {
-			if((['Data', 'Read Only', 'Text', 'Small Text',
-				'Text Editor', 'Code'].includes(df.fieldtype) || df.read_only==1)
-				&& df.options && df.options.indexOf(".")!=-1) {
-				var parts = df.options.split(".");
+			if((['Data', 'Read Only', 'Text', 'Small Text', 'Currency',
+				'Text Editor', 'Code', 'Link', 'Float', 'Int', 'Date', 'Select'].includes(df.fieldtype) || df.read_only==1)
+				&& df.fetch_from && df.fetch_from.indexOf(".")!=-1) {
+				var parts = df.fetch_from.split(".");
 				me.frm.add_fetch(parts[0], parts[1], df.fieldname);
 			}
 		}
@@ -179,7 +179,7 @@ frappe.ui.form.ScriptManager = Class.extend({
 		// setup add fetch
 		$.each(this.frm.fields, function(i, field) {
 			setup_add_fetch(field.df);
-			if(field.df.fieldtype==="Table") {
+			if(frappe.model.table_fields.includes(field.df.fieldtype)) {
 				$.each(frappe.meta.get_docfields(field.df.options, me.frm.docname), function(i, df) {
 					setup_add_fetch(df);
 				});

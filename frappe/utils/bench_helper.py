@@ -60,8 +60,8 @@ def get_sites(site_arg):
 				return [f.read().strip()]
 
 def get_app_commands(app):
-	if os.path.exists(frappe.get_app_path(app, 'commands.py'))\
-		or os.path.exists(frappe.get_app_path(app, 'commands', '__init__.py')):
+	if os.path.exists(os.path.join('..', 'apps', app, app, 'commands.py'))\
+		or os.path.exists(os.path.join('..', 'apps', app, app, 'commands', '__init__.py')):
 		try:
 			app_command_module = importlib.import_module(app + '.commands')
 		except Exception:

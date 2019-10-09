@@ -1,18 +1,16 @@
 // Copyright (c) 2016, Frappe Technologies and contributors
 // For license information, please see license.txt
 
-
-cur_frm.email_field = "email_id";
 frappe.ui.form.on("Contact", {
+	onload(frm) {
+		frm.email_field = "email_id";
+	},
 	refresh: function(frm) {
 		if(frm.doc.__islocal) {
-			var last_route = frappe.route_history.slice(-2, -1)[0];
-			let docname = last_route[2];
-			if (last_route && last_route.length > 3) {
-				docname = last_route.slice(2).join("/");
-			}
+			const last_doc = frappe.contacts.get_last_doc(frm);
 			if(frappe.dynamic_link && frappe.dynamic_link.doc
-					&& frappe.dynamic_link.doc.name==docname) {
+					&& frappe.dynamic_link.doc.name == last_doc.docname) {
+				frm.set_value('links', '');
 				frm.add_child('links', {
 					link_doctype: frappe.dynamic_link.doctype,
 					link_name: frappe.dynamic_link.doc[frappe.dynamic_link.fieldname]
@@ -43,6 +41,24 @@ frappe.ui.form.on("Contact", {
 			}
 		});
 		frm.refresh_field("links");
+
+		if (frm.doc.links.length > 0) {
+			frappe.call({
+				method: "frappe.contacts.doctype.contact.contact.address_query",
+				args: {links: frm.doc.links},
+				callback: function(r) {
+					if (r && r.message) {
+						frm.set_query("address", function () {
+							return {
+								filters: {
+									name: ["in", r.message],
+								}
+							}
+						});
+					}
+				}
+			});
+		}
 	},
 	validate: function(frm) {
 		// clear linked customer / supplier / sales partner on saving...
@@ -50,6 +66,27 @@ frappe.ui.form.on("Contact", {
 			frm.doc.links.forEach(function(d) {
 				frappe.model.remove_from_locals(d.link_doctype, d.link_name);
 			});
+		}
+	},
+	after_save: function(frm) {
+		frappe.run_serially([
+			() => frappe.timeout(1),
+			() => {
+				const last_doc = frappe.contacts.get_last_doc(frm);
+				if(frappe.dynamic_link && frappe.dynamic_link.doc
+					&& frappe.dynamic_link.doc.name == last_doc.docname){
+					frappe.set_route('Form', last_doc.doctype, last_doc.docname);
+				}
+			}
+		]);
+	},
+	sync_with_google_contacts: function(frm) {
+		if (frm.doc.sync_with_google_contacts) {
+			frappe.db.get_value("Google Contacts", {"email_id": frappe.session.user}, "name", (r) => {
+				if (r && r.name) {
+					frm.set_value("google_contacts", r.name);
+				}
+			})
 		}
 	}
 });

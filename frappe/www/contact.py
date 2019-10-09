@@ -7,6 +7,8 @@ import frappe
 from frappe.utils import now
 from frappe import _
 
+sitemap = 1
+
 def get_context(context):
 	doc = frappe.get_doc("Contact Us Settings", "Contact Us Settings")
 

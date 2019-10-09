@@ -35,7 +35,7 @@ class TestDataImport(unittest.TestCase):
 
 		exporter.export_data("Blog Category", all_doctypes=True, template=True)
 		content = read_csv_content(frappe.response.result)
-		content.append(["", "", "test-category", "Test Cateogry"])
+		content.append(["", "test-category", "Test Cateogry"])
 		importer.upload(content)
 		self.assertTrue(frappe.db.get_value("Blog Category", "test-category", "title"), "Test Category")
 
@@ -51,7 +51,7 @@ class TestDataImport(unittest.TestCase):
 	def test_import_only_children(self):
 		user_email = "test_import_userrole@example.com"
 		if frappe.db.exists("User", user_email):
-			frappe.delete_doc("User", user_email)
+			frappe.delete_doc("User", user_email, force=True)
 
 		frappe.get_doc({"doctype": "User", "email": user_email, "first_name": "Test Import UserRole"}).insert()
 
@@ -81,10 +81,9 @@ class TestDataImport(unittest.TestCase):
 		content = read_csv_content(frappe.response.result)
 
 		content.append([None] * len(content[-2]))
-		content[-1][1] = "EV00001"
-		content[-1][2] = "__Test Event with children"
-		content[-1][3] = "Private"
-		content[-1][4] = "2014-01-01 10:00:00.000000"
+		content[-1][1] = "__Test Event with children"
+		content[-1][2] = "Private"
+		content[-1][3] = "2014-01-01 10:00:00.000000"
 		importer.upload(content)
 
 		frappe.get_doc("Event", {"subject":"__Test Event with children"})
@@ -96,6 +95,6 @@ class TestDataImport(unittest.TestCase):
 		exporter.export_data("Event", all_doctypes=True, template=True, file_type="Excel")
 		from frappe.utils.xlsxutils import read_xlsx_file_from_attached_file
 		content = read_xlsx_file_from_attached_file(fcontent=frappe.response.filecontent)
-		content.append(["", "EV00001", "_test", "Private", "05-11-2017 13:51:48", "0", "0", "", "1", "blue"])
+		content.append(["", "_test", "Private", "05-11-2017 13:51:48", "Event", "blue", "0", "0", "", "Open", "", 0, "", 0, "", "", "1", 0, "", "", 0, 0, 0, 0, 0, 0, 0])
 		importer.upload(content)
-		self.assertTrue(frappe.db.get_value("Event", "EV00001", "subject"), "_test")
+		self.assertTrue(frappe.db.get_value("Event", {"subject": "_test"}, "name"))

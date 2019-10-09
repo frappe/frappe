@@ -2,6 +2,8 @@
 // MIT License. See license.txt
 /* eslint-disable no-console */
 
+import hljs from './syntax_highlight';
+
 frappe.provide("website");
 frappe.provide("frappe.awesome_bar_path");
 window.cur_frm = null;
@@ -11,23 +13,34 @@ $.extend(frappe, {
 		lang: 'en'
 	},
 	_assets_loaded: [],
-	require: function(url) {
-		if(frappe._assets_loaded.indexOf(url)!==-1) return;
-		return $.ajax({
-			url: url,
-			async: false,
-			dataType: "text",
-			success: function(data) {
-				var el;
-				if(url.split(".").splice(-1) == "js") {
-					el = document.createElement('script');
-				} else {
-					el = document.createElement('style');
-				}
-				el.appendChild(document.createTextNode(data));
-				document.getElementsByTagName('head')[0].appendChild(el);
-				frappe._assets_loaded.push(url);
+	require: async function(links, callback) {
+		if (typeof (links) === 'string') {
+			links = [links];
+		}
+		for (let link of links) {
+			await this.add_asset_to_head(link);
+		}
+		callback && callback();
+	},
+	add_asset_to_head(link) {
+		return new Promise(resolve => {
+			if (frappe._assets_loaded.includes(link)) return resolve();
+			let el;
+			if(link.split('.').pop() === 'js') {
+				el = document.createElement('script');
+				el.type = 'text/javascript';
+				el.src = link;
+			} else {
+				el = document.createElement('link');
+				el.type = 'text/css';
+				el.rel = 'stylesheet';
+				el.href = link;
 			}
+			document.getElementsByTagName('head')[0].appendChild(el);
+			el.onload = () => {
+				frappe._assets_loaded.push(link);
+				resolve();
+			};
 		});
 	},
 	hide_message: function() {
@@ -175,31 +188,6 @@ $.extend(frappe, {
 		var sid = frappe.get_cookie("sid");
 		return sid && sid !== "Guest";
 	},
-	get_modal: function(title, body_html) {
-		var modal = $('<div class="modal" style="overflow: auto;" tabindex="-1">\
-			<div class="modal-dialog">\
-				<div class="modal-content">\
-					<div class="modal-header">\
-						<a type="button" class="close"\
-							data-dismiss="modal" aria-hidden="true">&times;</a>\
-						<h4 class="modal-title">'+title+'</h4>\
-					</div>\
-					<div class="modal-body ui-front">'+body_html+'\
-					</div>\
-				</div>\
-			</div>\
-			</div>').appendTo(document.body);
-
-		return modal;
-	},
-	msgprint: function(html, title) {
-		if(html.substr(0,1)==="[") html = JSON.parse(html);
-		if($.isArray(html)) {
-			html = html.join("<hr>");
-		}
-
-		return frappe.get_modal(title || "Message", html).modal("show");
-	},
 	send_message: function(opts, btn) {
 		return frappe.call({
 			type: "POST",
@@ -276,11 +264,7 @@ $.extend(frappe, {
 	},
 
 	highlight_code_blocks: function() {
-		if(window.hljs) {
-			$('pre code').each(function(i, block) {
-				hljs.highlightBlock(block);
-			});
-		}
+		hljs.initHighlighting();
 	},
 	bind_filters: function() {
 		// set in select
@@ -340,10 +324,49 @@ $.extend(frappe, {
 		return $(".navbar .search, .sidebar .search");
 	},
 	is_user_logged_in: function() {
-		return window.full_name ? true : false;
+		return frappe.get_cookie("sid") && frappe.get_cookie("sid") !== "Guest";
 	},
 	add_switch_to_desk: function() {
 		$('.switch-to-desk').removeClass('hidden');
+	},
+	setup_lazy_images: function() {
+		// Use IntersectionObserver to only load images that are visible in the viewport
+		// Fallback for browsers that don't support it
+		// To use this feature, instead of adding an img tag, add
+		// <div class="website-image-lazy" data-class="img-class" data-src="image.jpg" data-alt="image"></div>
+
+		function replace_with_image(target) {
+			const $target = $(target);
+			const attrs = $target.data();
+			const data_string = Object.keys(attrs)
+				.map(key => `${key}="${attrs[key]}"`)
+				.join(' ');
+			$target.replaceWith(`<img ${data_string}>`);
+		}
+
+		if (!window.IntersectionObserver) {
+			$('.website-image-lazy').each((_, el) => {
+				replace_with_image(el);
+			});
+			return;
+		}
+
+		const io = new IntersectionObserver(
+			entries => {
+				entries.forEach(e => {
+					if (e.intersectionRatio > 0) {
+						io.unobserve(e.target);
+						replace_with_image(e.target);
+					}
+				});
+			}, {
+				threshold: [0, 0.2, 0.4, 0.6],
+			});
+
+		$('.website-image-lazy').each((_, el) => {
+			// Start observing an element
+			io.observe(el);
+		});
 	}
 });
 
@@ -352,7 +375,7 @@ $.extend(frappe, {
 
 window.valid_email = function(id) {
 	// eslint-disable-next-line
-	return (id.toLowerCase().search("[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?")==-1) ? 0 : 1;
+	return /[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/.test(id.toLowerCase());
 }
 
 window.validate_email = valid_email;
@@ -386,7 +409,7 @@ window.ask_to_login = function ask_to_login() {
 // check if logged in?
 $(document).ready(function() {
 	window.full_name = frappe.get_cookie("full_name");
-	var logged_in = frappe.get_cookie("sid") && frappe.get_cookie("sid") !== "Guest";
+	var logged_in = frappe.is_user_logged_in();
 	$("#website-login").toggleClass("hide", logged_in ? true : false);
 	$("#website-post-login").toggleClass("hide", logged_in ? false : true);
 	$(".logged-in").toggleClass("hide", logged_in ? false : true);
@@ -399,6 +422,7 @@ $(document).ready(function() {
 	}
 
 	frappe.render_user();
+	frappe.setup_lazy_images();
 
 	$(document).trigger("page-change");
 });
@@ -426,12 +450,22 @@ $(document).on("page-change", function() {
 		var element = document.getElementById(window.location.hash.substring(1));
 		element && element.scrollIntoView(true);
 	}
+
 });
 
 
-$(document).ready(function( ) {
-	// frappe.Chat
-	// const chat = new frappe.Chat();
-	// chat.render();
-	// end frappe.Chat
+frappe.ready(function() {
+	frappe.call({
+		method: 'frappe.website.doctype.website_settings.website_settings.is_chat_enabled',
+		callback: (r) => {
+			if (r.message) {
+				frappe.require('/assets/js/moment-bundle.min.js', () => {
+					frappe.require('/assets/js/chat.js', () => {
+						frappe.chat.setup();
+					});
+				});
+			}
+		}
+	});
+	frappe.socketio.init(window.socketio_port);
 });

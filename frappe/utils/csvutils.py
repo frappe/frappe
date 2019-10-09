@@ -15,8 +15,8 @@ def read_csv_content_from_uploaded_file(ignore_encoding=False):
 		with open(frappe.uploaded_file, "r") as upfile:
 			fcontent = upfile.read()
 	else:
-		from frappe.utils.file_manager import get_uploaded_content
-		fname, fcontent = get_uploaded_content()
+		_file = frappe.new_doc("File")
+		fcontent = _file.get_uploaded_content()
 	return read_csv_content(fcontent, ignore_encoding)
 
 def read_csv_content_from_attached_file(doc):
@@ -30,8 +30,8 @@ def read_csv_content_from_attached_file(doc):
 		raise Exception
 
 	try:
-		from frappe.utils.file_manager import get_file
-		fname, fcontent = get_file(fileid)
+		_file = frappe.get_doc("File", fileid)
+		fcontent = _file.get_content()
 		return read_csv_content(fcontent, frappe.form_dict.get('ignore_encoding_errors'))
 	except Exception:
 		frappe.throw(_("Unable to open attached file. Did you export it as CSV?"), title=_('Invalid CSV Format'))
@@ -50,13 +50,15 @@ def read_csv_content(fcontent, ignore_encoding=False):
 				continue
 
 		if not decoded:
-			frappe.msgprint(_("Unknown file encoding. Tried utf-8, windows-1250, windows-1252."),
-				raise_exception=True)
+			frappe.msgprint(_("Unknown file encoding. Tried utf-8, windows-1250, windows-1252."), raise_exception=True)
 
 	fcontent = fcontent.encode("utf-8")
 	content  = [ ]
 	for line in fcontent.splitlines(True):
-		content.append(frappe.safe_decode(line))
+		if six.PY2:
+			content.append(line)
+		else:
+			content.append(frappe.safe_decode(line))
 
 	try:
 		rows = []
@@ -98,6 +100,10 @@ def to_csv(data):
 
 	return writer.getvalue()
 
+def build_csv_response(data, filename):
+	frappe.response["result"] = cstr(to_csv(data))
+	frappe.response["doctype"] = filename
+	frappe.response["type"] = "csv"
 
 class UnicodeWriter:
 	def __init__(self, encoding="utf-8"):
@@ -145,6 +151,8 @@ def import_doc(d, doctype, overwrite, row_idx, submit=False, ignore_links=False)
 			doc.update(d)
 			if d.get("docstatus") == 1:
 				doc.update_after_submit()
+			elif d.get("docstatus") == 0 and submit:
+				doc.submit()
 			else:
 				doc.save()
 			return 'Updated row (#%d) %s' % (row_idx + 1, getlink(doctype, d['name']))

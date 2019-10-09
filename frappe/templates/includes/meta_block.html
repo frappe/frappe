@@ -1,11 +1,5 @@
 {%- if metatags -%}
 {%- for name in metatags %}
-<meta {% if name == 'og:title' or name == "og:image" or name == "og:type" or name == "og:description" %} property="{{ name }}" {% else %} name="{{ name }}" {% endif %}  content="{{ metatags[name]|striptags|escape }}" data-html-block="meta_block">
+<meta {% if name.startswith('og:') %}property="{{ name }}"{% else %}name="{{ name }}"{% endif %} content="{{ metatags[name] | striptags | escape }}">
 {%- endfor -%}
-<meta property="og:url" content="{{ frappe.utils.get_url(path) }}">
-<meta itemprop="datePublished" content="{{ frappe.format_date(published_on) }}">
-<meta itemprop="author" content="{{ blogger }}">
-<meta itemprop="name" content="{{ name }}" data-html-block="meta_block">
-<meta itemprop="description" content="{{ description }}" data-html-block="meta_block">
-<meta itemprop="image" content="{{ frappe.utils.get_url(metatags["image"]) }}" data-html-block="meta_block">
 {%- endif -%}

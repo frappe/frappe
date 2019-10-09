@@ -6,7 +6,6 @@
 from __future__ import unicode_literals, print_function
 from werkzeug.test import Client
 import os, re, sys, json, hashlib, requests, traceback
-from markdown2 import markdown as _markdown
 from .html_utils import sanitize_html
 import frappe
 from frappe.utils.identicon import Identicon
@@ -15,6 +14,8 @@ from email.utils import parseaddr, formataddr
 from frappe.utils.data import *
 from six.moves.urllib.parse import quote
 from six import text_type, string_types
+import io
+from gzip import GzipFile
 
 default_fields = ['doctype', 'name', 'owner', 'creation', 'modified', 'modified_by',
 	'parent', 'parentfield', 'parenttype', 'idx', 'docstatus']
@@ -53,12 +54,18 @@ def get_fullname(user=None):
 
 	return frappe.local.fullnames.get(user)
 
+def get_email_address(user=None):
+	"""get the email address of the user from User"""
+	if not user:
+		user = frappe.session.user
+
+	return frappe.db.get_value("User", user, "email")
+
 def get_formatted_email(user):
 	"""get Email Address of user formatted as: `John Doe <johndoe@example.com>`"""
-	if user == "Administrator":
-		return user
 	fullname = get_fullname(user)
-	return formataddr((fullname, user))
+	mail = get_email_address(user)
+	return formataddr((fullname, mail))
 
 def extract_email_id(email):
 	"""fetch only the email part of the Email Address"""
@@ -68,6 +75,12 @@ def extract_email_id(email):
 	return email_id
 
 def validate_email_add(email_str, throw=False):
+	"""
+	validate_email_add will be renamed to the validate_email_address in v12
+	"""
+	return validate_email_address(email_str, throw=False)
+
+def validate_email_address(email_str, throw=False):
 	"""Validates the email string"""
 	email = email_str = (email_str or "").strip()
 
@@ -303,6 +316,12 @@ def get_backups_path():
 def get_request_site_address(full_address=False):
 	return get_url(full_address=full_address)
 
+def get_site_url(site):
+	return 'http://{site}:{port}'.format(
+		site=site,
+		port=frappe.get_conf(site).webserver_port
+	)
+
 def encode_dict(d, encoding="utf-8"):
 	for key in d:
 		if isinstance(d[key], string_types) and isinstance(d[key], text_type):
@@ -436,7 +455,7 @@ def watch(path, handler=None, debug=True):
 	observer.join()
 
 def markdown(text, sanitize=True, linkify=True):
-	html = _markdown(text)
+	html = frappe.utils.md_to_html(text)
 
 	if sanitize:
 		html = html.replace("<!-- markdown -->", "")
@@ -447,7 +466,7 @@ def markdown(text, sanitize=True, linkify=True):
 def sanitize_email(emails):
 	sanitized = []
 	for e in split_emails(emails):
-		if not validate_email_add(e):
+		if not validate_email_address(e):
 			continue
 
 		full_name, email_id = parse_addr(e)
@@ -498,10 +517,13 @@ def get_name_from_email_string(email_string, email_id, name):
 
 def get_installed_apps_info():
 	out = []
-	for app in frappe.get_installed_apps():
+	from frappe.utils.change_log import get_versions
+
+	for app, version_details in iteritems(get_versions()):
 		out.append({
 			'app_name': app,
-			'version': getattr(frappe.get_module(app), '__version__', 'Unknown')
+			'version': version_details.get('branch_version') or version_details.get('version'),
+			'branch': version_details.get('branch')
 		})
 
 	return out
@@ -525,6 +547,8 @@ def get_site_info():
 	system_settings = frappe.db.get_singles_dict('System Settings')
 	space_usage = frappe._dict((frappe.local.conf.limits or {}).get('space_usage', {}))
 
+	kwargs = {"fields": ["user", "creation", "full_name"], "filters":{"Operation": "Login", "Status": "Success"}, "limit": "10"}
+
 	site_info = {
 		'installed_apps': get_installed_apps_info(),
 		'users': users,
@@ -539,7 +563,8 @@ def get_site_info():
 		'space_used': flt((space_usage.total or 0) / 1024.0, 2),
 		'database_size': space_usage.database_size,
 		'backup_size': space_usage.backup_size,
-		'files_size': space_usage.files_size
+		'files_size': space_usage.files_size,
+		'last_logins': frappe.get_all("Activity Log", **kwargs)
 	}
 
 	# from other apps
@@ -554,7 +579,9 @@ def parse_json(val):
 	Parses json if string else return
 	"""
 	if isinstance(val, string_types):
-		return json.loads(val)
+		val = json.loads(val)
+	if isinstance(val, dict):
+		val = frappe._dict(val)
 	return val
 
 def cast_fieldtype(fieldtype, value):
@@ -578,3 +605,76 @@ def cast_fieldtype(fieldtype, value):
 		value = to_timedelta(value)
 
 	return value
+
+def get_db_count(*args):
+	"""
+	Pass a doctype or a series of doctypes to get the count of docs in them
+	Parameters:
+		*args: Variable length argument list of doctype names whose doc count you need
+
+	Returns:
+		dict: A dict with the count values.
+
+	Example:
+		via terminal:
+			bench --site erpnext.local execute frappe.utils.get_db_count --args "['DocType', 'Communication']"
+	"""
+	db_count = {}
+	for doctype in args:
+		db_count[doctype] = frappe.db.count(doctype)
+
+	return json.loads(frappe.as_json(db_count))
+
+def call(fn, *args, **kwargs):
+	"""
+	Pass a doctype or a series of doctypes to get the count of docs in them
+	Parameters:
+		fn: frappe function to be called
+
+	Returns:
+		based on the function you call: output of the function you call
+
+	Example:
+		via terminal:
+			bench --site erpnext.local execute frappe.utils.call --args '''["frappe.get_all", "Activity Log"]''' --kwargs '''{"fields": ["user", "creation", "full_name"], "filters":{"Operation": "Login", "Status": "Success"}, "limit": "10"}'''
+	"""
+	return json.loads(frappe.as_json(frappe.call(fn, *args, **kwargs)))
+
+# Following methods are aken as-is from Python 3 codebase
+# since gzip.compress and gzip.decompress are not available in Python 2.7
+def gzip_compress(data, compresslevel=9):
+	"""Compress data in one shot and return the compressed string.
+	Optional argument is the compression level, in range of 0-9.
+	"""
+	buf = io.BytesIO()
+	with GzipFile(fileobj=buf, mode='wb', compresslevel=compresslevel) as f:
+		f.write(data)
+	return buf.getvalue()
+
+def gzip_decompress(data):
+	"""Decompress a gzip compressed string in one shot.
+	Return the decompressed string.
+	"""
+	with GzipFile(fileobj=io.BytesIO(data)) as f:
+		return f.read()
+
+def get_safe_filters(filters):
+	try:
+		filters = json.loads(filters)
+
+		if isinstance(filters, (integer_types, float)):
+			filters = frappe.as_unicode(filters)
+
+	except (TypeError, ValueError):
+		# filters are not passed, not json
+		pass
+
+	return filters
+
+def create_batch(iterable, batch_size):
+	"""
+	Convert an iterable to multiple batches of constant size of batch_size
+	"""
+	total_count = len(iterable)
+	for i in range(0, total_count, batch_size):
+		yield iterable[i:min(i + batch_size, total_count)]

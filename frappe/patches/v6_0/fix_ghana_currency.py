@@ -1,3 +1,4 @@
+from __future__ import unicode_literals
 
 def execute():
 	from frappe.geo.country_info import get_all

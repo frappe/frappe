@@ -31,13 +31,6 @@ frappe.ui.form.on("Communication", {
 			}
 		}
 
-		if(frm.doc.communication_type == "Feedback") {
-			frm.add_custom_button(__("Resend"), function() {
-				var feedback = new frappe.utils.Feedback();
-				feedback.resend_feedback_request(frm.doc);
-			});
-		}
-
 		if(frm.doc.status==="Open") {
 			frm.add_custom_button(__("Close"), function() {
 				frm.set_value("status", "Closed");
@@ -54,7 +47,7 @@ frappe.ui.form.on("Communication", {
 			frm.trigger('show_relink_dialog');
 		});
 
-		if(frm.doc.communication_type=="Communication" 
+		if(frm.doc.communication_type=="Communication"
 			&& frm.doc.communication_medium == "Email"
 			&& frm.doc.sent_or_received == "Received") {
 
@@ -89,7 +82,17 @@ frappe.ui.form.on("Communication", {
 				}, "Actions");
 			}
 		}
+
+		if(frm.doc.communication_type=="Communication"
+			&& frm.doc.communication_medium == "Phone"
+			&& frm.doc.sent_or_received == "Received"){
+
+			frm.add_custom_button(__("Add Contact"), function() {
+				frm.trigger('add_to_contact');
+			}, "Actions");
+		}
 	},
+
 	show_relink_dialog: function(frm){
 		var lib = "frappe.email";
 		var d = new frappe.ui.Dialog ({
@@ -166,7 +169,7 @@ frappe.ui.form.on("Communication", {
 	reply_all: function(frm) {
 		var args = frm.events.get_mail_args(frm)
 		$.extend(args, {
-			subject: __("Re: {0}", [frm.doc.subject]),
+			subject: __("Res: {0}", [frm.doc.subject]),
 			recipients: frm.doc.sender,
 			cc: frm.doc.cc
 		})
@@ -175,7 +178,7 @@ frappe.ui.form.on("Communication", {
 
 	forward_mail: function(frm) {
 		var args = frm.events.get_mail_args(frm)
-		$.extend(args, {		
+		$.extend(args, {
 			forward: true,
 			subject: __("Fw: {0}", [frm.doc.subject]),
 		})
@@ -210,9 +213,10 @@ frappe.ui.form.on("Communication", {
 		var last_name = names.length >= 2? names[names.length - 1]: ""
 
 		frappe.route_options = {
-			"email_id": frm.doc.sender,
+			"email_id": frm.doc.sender || "",
 			"first_name": first_name,
 			"last_name": last_name,
+			"mobile_no": frm.doc.phone_no || ""
 		}
 		frappe.new_doc("Contact")
 	},

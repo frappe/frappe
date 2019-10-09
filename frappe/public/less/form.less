@@ -48,6 +48,22 @@
 	border-bottom: 1px solid @border-color;
 }
 
+.form-message.yellow {
+	background-color: @light-yellow;
+}
+
+.form-message.blue {
+		background-color: @blue-extra-light;
+}
+
+.form-message.red {
+		background-color: @red-extra-light;
+}
+
+.form-message.green {
+		background-color: @green-extra-light;
+}
+
 .document-flow-wrapper {
 	padding: 40px 15px 30px;
 	font-size: @text-medium;
@@ -135,14 +151,21 @@
 }
 
 .form-heatmap {
+	padding: 0px 30px 15px 30px;
 
 	.heatmap {
 		display: flex;
 		justify-content: center;
-	}
 
-	.heatmap-message {
-		margin-top: 10px;
+		// excessive whitespace around the chart
+		.chart-container {
+			margin: 0px;
+		}
+
+		// don't show the less..more legend
+		.chart-legend {
+			display: none;
+		}
 	}
 
 	@media (max-width: @screen-sm) {
@@ -200,6 +223,19 @@
 	}
 }
 
+.frappe-rtl .inline-graph {
+	direction: ltr;
+	display: block;
+	transform: scaleX(-1);
+	.inline-graph-count {
+		transform: scaleX(-1);
+		text-align: right;
+	}
+	.inline-graph-half:first-child .inline-graph-count {
+		text-align: left;
+	}
+}
+
 .progress-area {
 	padding-top: 15px;
 	padding-bottom: 15px;
@@ -231,7 +267,6 @@ h6.uppercase, .h6.uppercase {
 	font-weight: normal;
 	letter-spacing: 0.4px;
 	text-transform: uppercase;
-	color: @text-muted;
 }
 
 .form-section {
@@ -336,11 +371,14 @@ h6.uppercase, .h6.uppercase {
 	margin-top: 0px;
 
 	b {
-		color: @text-color !important;
+		color: @text-light !important;
 	}
 
 	blockquote {
-		font-size: inherit;
+		font-size: 14px;
+		padding-top: 0px;
+		padding-bottom: 0px;
+		margin: 0px;
 	}
 
 	.btn-more {
@@ -352,8 +390,29 @@ h6.uppercase, .h6.uppercase {
 	}
 }
 
+.timeline-item[data-communication-type="Comment"] {
+	.reply {
+		background-color: @light-yellow;
+	}
+}
+
 .timeline-items {
 	position: relative;
+
+	.timeline-item-content {
+		max-height: 400px;
+		overflow: auto;
+	}
+}
+
+.timeline-item-content .mention {
+	background-color: transparent;
+	padding: 0;
+	font-weight: bold;
+
+	span {
+		margin: 0;
+	}
 }
 
 .timeline {
@@ -378,6 +437,10 @@ h6.uppercase, .h6.uppercase {
 	.timeline::before {
 		bottom: -64px;
 	}
+}
+
+.timeline-item .media-body {
+	max-width: 100%;
 }
 
 .timeline-item.user-content {
@@ -557,9 +620,15 @@ h6.uppercase, .h6.uppercase {
 	.timeline-indicator();
 }
 
-.timeline-item .reply-link {
-	margin-left: 15px;
-	font-size: 12px;
+.timeline-item {
+	.reply-link, .reply-link-all {
+		margin-left: 15px;
+		font-size: 12px;
+	}
+}
+
+.timeline-item.notification-content.dark::before {
+	background-color: @text-color;
 }
 
 .timeline-head {
@@ -600,6 +669,10 @@ h6.uppercase, .h6.uppercase {
 		border-right: none;
 		border-radius: 0px;
 	}
+}
+
+.timeline-futur span{
+	color: @orange !important;
 }
 
 .signature-field {
@@ -681,7 +754,7 @@ h6.uppercase, .h6.uppercase {
 }
 
 .frappe-control& {
-	margin-bottom: 10px;
+	margin-bottom: 15px;
 
 	.help-box {
 		margin-top: 3px;
@@ -752,6 +825,7 @@ select.form-control {
 	color: @text-color;
 	font-size: 12px;
 	line-height: 1.7em;
+	margin-bottom: 10px !important;
 }
 
 .delivery-status-indicator {
@@ -798,6 +872,9 @@ select.form-control {
 		.section-head {
 			padding: 15px 15px 15px 0px;
 		}
+		.section-body {
+			margin-top: -15px;
+		}
 		.section-body .form-column:first-child{
 			.radio, .checkbox{
 				margin-top: 0;
@@ -818,14 +895,6 @@ select.form-control {
 	.form-section {
 		padding-left: 0px !important;
 		padding-right: 0px !important;
-	}
-
-	.form-grid {
-		margin-left: -17px;
-		margin-right: -17px;
-		border-left: none !important;
-		border-right: none !important;
-		border-radius: none;
 	}
 
 	// forms
@@ -860,6 +929,8 @@ select.form-control {
 		.frappe-control[data-fieldtype="Table"] {
 			padding: 0px 15px;
 			margin-top: -1px;
+			margin-left: -17px;
+			margin-right: -17px;
 			border-bottom: none;
 
 			label {
@@ -867,19 +938,9 @@ select.form-control {
 			}
 		}
 
-		// .form-section:last-child .form-column:last-child .frappe-control:last-child {
-		// 	border-bottom: none;
-		// }
-
 		.form-control {
-			border: none;
-			border-bottom: 1px solid @border-color;
-			box-shadow: none;
-			background-color: inherit;
 			height: auto;
-			padding: 0px;
 			margin-bottom: 7px;
-			border-radius: 0px;
 
 			// make all fields left-aligned!
 			text-align: left !important;
@@ -888,10 +949,6 @@ select.form-control {
 		.form-control:focus {
 			box-shadow: none;
 		}
-
-		// select.form-control {
-		// 	text-indent: -2px;
-		// }
 	}
 }
 
@@ -913,15 +970,25 @@ body[data-route^="Form/Communication"] textarea[data-fieldname="subject"] {
 	height: 80px !important;
 }
 
-.frappe-control[data-fieldtype="Attach"] {
+.frappe-control[data-fieldtype="Attach"], .frappe-control[data-fieldtype="Attach Image"] {
 	.attached-file {
 		position: relative;
-		margin-top: 5px;
-
-		.close {
-			position: absolute;
-			top: 0;
-			right: 0;
-		}
+		padding: 6px 10px;
+		background: @light-bg;
+		border-radius: 4px;
+		border: 1px solid @border-color;
+		font-size: @text-medium;
 	}
+}
+
+.followed-by-label{
+	margin-top: 30px;
+}
+
+.map-columns .form-section {
+	padding: 0 7px 7px;
+}
+
+.map-columns .form-section:first-child {
+	padding-top: 7px;
 }

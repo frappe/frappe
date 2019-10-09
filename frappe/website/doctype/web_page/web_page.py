@@ -1,25 +1,35 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
-from __future__ import unicode_literals, print_function
-import frappe, re
-import requests, requests.exceptions
-from frappe.utils import strip_html
-from frappe.website.website_generator import WebsiteGenerator
-from frappe.website.router import resolve_route
-from frappe.website.doctype.website_slideshow.website_slideshow import get_slideshow
-from frappe.website.utils import find_first_image, get_comment_list, extract_title
-from frappe.utils.jinja import render_template
+from __future__ import print_function, unicode_literals
+
+import re
+
+import requests
+import requests.exceptions
 from jinja2.exceptions import TemplateSyntaxError
+
+import frappe
 from frappe import _
+from frappe.utils import get_datetime, now, strip_html
+from frappe.utils.jinja import render_template
+from frappe.website.doctype.website_slideshow.website_slideshow import get_slideshow
+from frappe.website.router import resolve_route
+from frappe.website.utils import (extract_title, find_first_image, get_comment_list,
+	get_html_content_based_on_type)
+from frappe.website.website_generator import WebsiteGenerator
+
 
 class WebPage(WebsiteGenerator):
+	def validate(self):
+		self.validate_dates()
+		self.set_route()
+
 	def get_feed(self):
 		return self.title
 
 	def get_context(self, context):
-		if context.main_section == None:
-			context.main_section = ''
+		context.main_section = get_html_content_based_on_type(self, 'main_section', self.content_type)
 
 		# if static page, get static content
 		if context.slideshow:
@@ -35,9 +45,6 @@ class WebPage(WebsiteGenerator):
 			"title": self.title,
 			"text_align": self.text_align,
 		})
-
-		if self.description:
-			context.setdefault("metatags", {})["description"] = self.description
 
 		if not self.show_title:
 			context["no_header"] = 1
@@ -113,13 +120,45 @@ class WebPage(WebsiteGenerator):
 
 	def set_metatags(self, context):
 		context.metatags = {
-			"name": context.title,
-			"description": (context.description or "").replace("\n", " ")[:500]
+			"name": context.title
 		}
 
 		image = find_first_image(context.main_section or "")
 		if image:
 			context.metatags["image"] = image
+
+	def validate_dates(self):
+		if self.end_date:
+			if self.start_date and get_datetime(self.end_date) < get_datetime(self.start_date):
+				frappe.throw(_("End Date cannot be before Start Date!"))
+
+			# If the current date is past end date, and
+			# web page is published, empty the end date
+			if self.published and now() > self.end_date:
+				self.end_date = None
+
+				frappe.msgprint(_("Clearing end date, as it cannot be in the past for published pages."))
+
+
+def check_publish_status():
+	web_pages = frappe.get_all("Web Page", fields=["name", "published", "start_date", "end_date"])
+	now_date = get_datetime(now())
+
+	for page in web_pages:
+		start_date = page.start_date if page.start_date else ""
+		end_date = page.end_date if page.end_date else ""
+
+		if page.published:
+			# Unpublish pages that are outside the set date ranges
+			if (start_date and now_date < start_date) or (end_date and now_date > end_date):
+				frappe.db.set_value("Web Page", page.name, "published", 0)
+		else:
+			# Publish pages that are inside the set date ranges
+			if start_date:
+				if not end_date or (end_date and now_date < end_date):
+					frappe.db.set_value("Web Page", page.name, "published", 1)
+
+
 
 def check_broken_links():
 	cnt = 0

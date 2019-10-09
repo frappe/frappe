@@ -1,6 +1,7 @@
+from __future__ import unicode_literals
 import frappe
 
-from frappe.core.doctype.communication.comment import update_comment_in_doc
+from frappe.core.doctype.comment.comment import update_comment_in_doc
 
 def execute():
 	for d in frappe.db.get_all("Communication",

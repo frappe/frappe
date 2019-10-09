@@ -6,11 +6,21 @@ from __future__ import unicode_literals
 import frappe
 from frappe.utils import time_diff_in_seconds, now, now_datetime, DATETIME_FORMAT
 from dateutil.relativedelta import relativedelta
+from six import string_types
+import json
 
 @frappe.whitelist()
+@frappe.read_only()
 def get_notifications():
-	if frappe.flags.in_install:
-		return
+	if (frappe.flags.in_install or
+		not frappe.db.get_single_value('System Settings', 'setup_complete')):
+		return {
+			"open_count_doctype": {},
+			"open_count_module": {},
+			"open_count_other": {},
+			"targets": {},
+			"new_messages": []
+		}
 
 	config = get_notification_config()
 
@@ -105,7 +115,8 @@ def get_notifications_for_doctypes(config, notification_count):
 
 				except Exception as e:
 					# OperationalError: (1412, 'Table definition has changed, please retry transaction')
-					if e.args[0]!=1412:
+					# InternalError: (1684, 'Table definition is being modified by concurrent DDL statement')
+					if e.args and e.args[0] not in (1412, 1684):
 						raise
 
 				else:
@@ -145,7 +156,7 @@ def get_notifications_for_targets(config, notification_percent):
 					frappe.clear_messages()
 					pass
 				except Exception as e:
-					if e.args[0]!=1412:
+					if e.args[0] not in (1412, 1684):
 						raise
 
 				else:
@@ -180,7 +191,10 @@ def delete_notification_count_for(doctype):
 
 def clear_doctype_notifications(doc, method=None, *args, **kwargs):
 	config = get_notification_config()
-	doctype = doc.doctype
+	if isinstance(doc, string_types):
+		doctype = doc # assuming doctype name was passed directly
+	else:
+		doctype = doc.doctype
 
 	if doctype in config.for_doctype:
 		delete_notification_count_for(doctype)
@@ -228,7 +242,8 @@ def get_filters_for(doctype):
 	return config.get('for_doctype').get(doctype, {})
 
 @frappe.whitelist()
-def get_open_count(doctype, name):
+@frappe.read_only()
+def get_open_count(doctype, name, items=[]):
 	'''Get open count for given transactions and filters
 
 	:param doctype: Reference DocType
@@ -236,15 +251,23 @@ def get_open_count(doctype, name):
 	:param transactions: List of transactions (json/dict)
 	:param filters: optional filters (json/list)'''
 
+	if frappe.flags.in_migrate or frappe.flags.in_install:
+		return {
+			'count': []
+		}
+
 	frappe.has_permission(doc=frappe.get_doc(doctype, name), throw=True)
 
 	meta = frappe.get_meta(doctype)
 	links = meta.get_dashboard_data()
 
 	# compile all items in a list
-	items = []
-	for group in links.transactions:
-		items.extend(group.get('items'))
+	if not items:
+		for group in links.transactions:
+			items.extend(group.get('items'))
+
+	if not isinstance(items, list):
+		items = json.loads(items)
 
 	out = []
 	for d in items:

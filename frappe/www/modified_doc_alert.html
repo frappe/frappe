@@ -1,0 +1,19 @@
+{% extends "templates/web.html" %}
+{% block page_content %}
+<div class="panel panel-default">
+  <div class="panel-heading" style="display:flex; justify-content:space-between">
+    <h3 class="panel-title">{{ _(title) }}</h3>
+    {% if action %}
+      <a href="{{action.link}}" class="btn btn-sm btn-primary">{{ _(action.label) }}</a>
+    {% endif %}
+  </div>
+  <div class="panel-body">
+    <div class="padding">
+      {{ _(message) }}
+    </div>
+    <div class="padding">
+      {{ print_format }}
+    </div>
+  </div>
+</div>
+{% endblock %}

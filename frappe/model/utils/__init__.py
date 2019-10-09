@@ -4,6 +4,7 @@
 from __future__ import unicode_literals, print_function
 from six.moves import range
 import frappe
+from frappe import _
 from frappe.utils import cstr
 from frappe.build import html_to_js_template
 import re
@@ -62,7 +63,7 @@ def render_include(content):
 		if "{% include" in content:
 			paths = re.findall(r'''{% include\s['"](.*)['"]\s%}''', content)
 			if not paths:
-				frappe.throw('Invalid include path', InvalidIncludePath)
+				frappe.throw(_('Invalid include path'), InvalidIncludePath)
 
 			for path in paths:
 				app, app_path = path.split('/', 1)
@@ -90,7 +91,7 @@ def get_fetch_values(doctype, fieldname, value):
 	link_df = meta.get_field(fieldname)
 	for df in meta.get_fields_to_fetch(fieldname):
 		# example shipping_address.gistin
-		link_field, source_fieldname = df.options.split('.', 1)
+		link_field, source_fieldname = df.fetch_from.split('.', 1)
 		out[df.fieldname] = frappe.db.get_value(link_df.options, value, source_fieldname)
 
 	return out

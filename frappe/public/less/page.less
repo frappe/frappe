@@ -104,6 +104,7 @@
 .form-inner-toolbar .dropdown-menu {
 	right: 0px;
 	left: auto;
+	z-index: 100;
 }
 
 .layout-main-section {
@@ -118,7 +119,7 @@
 .layout-footer {
 	border: 1px solid @border-color;
 	border-top: 0px;
-	padding: 3px 15px;
+	padding: 5px 15px;
 	font-size: @text-medium;
 }
 
@@ -141,6 +142,27 @@
 
 		.help-box {
 			display: none;
+		}
+	}
+	.sort-selector {
+		position: absolute;
+		top: 0px;
+		right: 15px;
+		margin: 10px;
+		display: flex;
+
+		.dropdown:hover {
+			text-decoration: underline;
+		}
+
+		.dropdown-menu {
+			max-height: 300px;
+			overflow-y: scroll;
+			right: 0;
+			left: auto;
+		}
+		button {
+			margin-left: 10px;
 		}
 	}
 }
@@ -177,8 +199,9 @@ select.input-sm {
 
 @media(max-width: @screen-xs) {
 	.page-actions {
-		max-width: 150px;
+		position: absolute;
 		float: right;
+		padding-right: 0px;
 	}
 
 	.page-title {
@@ -354,11 +377,11 @@ select.input-sm {
 .page-card {
 	max-width: 360px;
 	margin: 70px auto;
-    padding: 15px;
-    border: 1px solid #d1d8dd;
-    border-radius: 4px;
-    background-color: #fff;
-    box-shadow: 0px 3px 6px rgba(0, 0, 0, 0.1);
+	padding: 15px;
+	border: 1px solid #d1d8dd;
+	border-radius: 4px;
+	background-color: #fff;
+	box-shadow: 0px 3px 6px rgba(0, 0, 0, 0.1);
 
 	.page-card-head {
 		padding: 10px 15px;
@@ -386,4 +409,12 @@ select.input-sm {
 	align-items: center;
 }
 
+.menu-btn-group {
+	.dropdown-menu {
+		width: max-content;
+	}
 
+	.menu-item-label {
+		margin-right: 15px;
+	}
+}

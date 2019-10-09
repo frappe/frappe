@@ -6,7 +6,7 @@ from __future__ import unicode_literals
 from frappe import _
 from frappe.utils import get_fullname, now
 from frappe.model.document import Document
-from frappe.core.utils import get_parent_doc, set_timeline_doc
+from frappe.core.utils import set_timeline_doc
 import frappe
 
 class ActivityLog(Document):
@@ -41,9 +41,9 @@ def add_authentication_log(subject, user, operation="Login", status="Success"):
 		"status": status,
 		"subject": subject,
 		"operation": operation,
-	}).insert(ignore_permissions=True)
+	}).insert(ignore_permissions=True, ignore_links=True)
 
 def clear_authentication_logs():
 	"""clear 100 day old authentication logs"""
 	frappe.db.sql("""delete from `tabActivity Log` where \
-	creation<DATE_SUB(NOW(), INTERVAL 100 DAY)""")
+	creation< (NOW() - INTERVAL '100' DAY)""")

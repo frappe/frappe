@@ -1,0 +1,143 @@
+@import "variables.less";
+@import (less) "quill/dist/quill.snow.css";
+@import (less) "quill/dist/quill.bubble.css";
+@import (less) "../js/frappe/form/controls/quill-mention/quill.mention.css";
+
+.ql-toolbar.ql-snow, .ql-container.ql-snow {
+    border-color: @border-color;
+    font-family: inherit;
+}
+
+.ql-editor {
+    font-family: @font-stack;
+    line-height: 1.6;
+
+	h1, h2, h3, h4, h5 {
+		margin-top: 0.5em;
+		margin-bottom: 0.25em;
+	}
+}
+
+.ql-toolbar.ql-snow {
+    border-top-left-radius: 4px;
+    border-top-right-radius: 4px;
+    background-color: @panel-bg;
+    padding-bottom: 0;
+}
+
+.ql-container.ql-snow {
+    border-bottom-left-radius: 4px;
+    border-bottom-right-radius: 4px;
+}
+
+.ql-snow .ql-editor {
+    min-height: 400px;
+    max-height: 600px;
+}
+
+.ql-snow .ql-picker {
+	font-size: 12px;
+}
+
+.ql-snow .ql-picker-label {
+    outline: none;
+}
+
+.ql-formats {
+    margin-bottom: 8px;
+}
+
+.ql-bubble .ql-editor {
+    min-height: 100px;
+    max-height: 300px;
+    border: 1px solid @light-border-color;
+    border-radius: 4px;
+}
+
+.ql-mention-list-container {
+    z-index: 1;
+}
+
+.ql-mention-list {
+    border-radius: 4px;
+}
+
+.ql-mention-list-item {
+    font-size: @text-small;
+    padding: 10px 12px;
+    height: initial;
+    line-height: initial;
+
+    &.selected {
+        background-color: @btn-bg;
+    }
+}
+
+.ql-editor .mention {
+    height: auto;
+    width: auto;
+    border-radius: 10px;
+    border: 1px solid @light-border-color;
+    padding: 2px 3px;
+    background-color: @btn-bg;
+}
+
+// table
+
+.ql-table {
+    width: 66px;
+
+    .ql-picker-label::before {
+        content: 'Table';
+    }
+
+    .ql-picker-options {
+        [data-value='insert-table']::before {
+            content: 'Insert Table';
+        }
+        [data-value='insert-row-above']::before {
+            content: 'Insert Row Above';
+        }
+        [data-value='insert-row-below']::before {
+            content: 'Insert Row Below';
+        }
+        [data-value='insert-column-right']::before {
+            content: 'Insert Column Right';
+        }
+        [data-value='insert-column-left']::before {
+            content: 'Insert Column Left';
+        }
+        [data-value='delete-row']::before {
+            content: 'Delete Row';
+        }
+        [data-value='delete-column']::before {
+            content: 'Delete Column';
+        }
+        [data-value='delete-table']::before {
+            content: 'Delete Table';
+        }
+    }
+}
+
+.ql-editor td {
+    border: 1px solid @border-color;
+}
+
+.ql-snow .ql-editor blockquote {
+	font-size: 13px;
+	margin-top: 0px;
+	margin-bottom: 0px;
+}
+
+.ql-editor ol {
+	padding-left: 2.5em;
+}
+
+.ql-editor li[data-list=ordered] {
+	list-style-type: decimal;
+	padding-left: 0;
+
+	&::before {
+		content: none;
+	}
+}

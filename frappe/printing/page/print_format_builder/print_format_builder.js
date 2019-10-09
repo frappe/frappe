@@ -12,10 +12,9 @@ frappe.pages['print-format-builder'].on_page_show = function(wrapper) {
 		});
 	} else if(frappe.route_options) {
 		if(frappe.route_options.make_new) {
-			var doctype = frappe.route_options.doctype;
-			var name = frappe.route_options.name;
+			let { doctype, name, based_on } = frappe.route_options;
 			frappe.route_options = null;
-			frappe.print_format_builder.setup_new_print_format(doctype, name);
+			frappe.print_format_builder.setup_new_print_format(doctype, name, based_on);
 		} else {
 			frappe.print_format_builder.print_format = frappe.route_options.doc;
 			frappe.route_options = null;
@@ -130,23 +129,22 @@ frappe.PrintFormatBuilder = Class.extend({
 
 		});
 	},
-	setup_new_print_format: function(doctype, name) {
-		var me = this;
+	setup_new_print_format: function(doctype, name, based_on) {
 		frappe.call({
-			method: "frappe.client.insert",
+			method: 'frappe.printing.page.print_format_builder.print_format_builder.create_custom_format',
 			args: {
-				doc: {
-					doctype: "Print Format",
-					name: name,
-					standard: "No",
-					doc_type: doctype,
-					print_format_builder: 1
+				doctype: doctype,
+				name: name,
+				based_on: based_on
+			},
+			callback: (r) => {
+				if(!r.exc) {
+					if(r.message) {
+						this.print_format = r.message;
+						this.refresh();
+					}
 				}
 			},
-			callback: function(r) {
-				me.print_format = r.message;
-				me.refresh();
-			}
 		});
 	},
 	setup_print_format: function() {
@@ -650,6 +648,13 @@ frappe.PrintFormatBuilder = Class.extend({
 				d.hide();
 			});
 
+			let update_column_count_message = () => {
+				// show a warning if user selects more than 10 columns for a table
+				let columns_count = $body.find("input:checked").length;
+				$body.find('.help-message').toggle(columns_count > 10);
+			}
+			update_column_count_message();
+
 			// enable / disable input based on selection
 			$body.on("click", "input[type='checkbox']", function() {
 				var disabled = !$(this).prop("checked"),
@@ -657,6 +662,8 @@ frappe.PrintFormatBuilder = Class.extend({
 
 				input.prop("disabled", disabled);
 				if(disabled) input.val("");
+
+				update_column_count_message();
 			});
 
 			d.show();
@@ -785,6 +792,8 @@ frappe.PrintFormatBuilder = Class.extend({
 				fieldname: "format_data",
 				value: JSON.stringify(data),
 			},
+			freeze: true,
+			btn: this.page.btn_primary,
 			callback: function(r) {
 				me.print_format = r.message;
 				frappe.show_alert({message: __("Saved"), indicator: 'green'});

@@ -59,8 +59,7 @@ class WebsiteSettings(Document):
 	def clear_cache(self):
 		# make js and css
 		# clear web cache (for menus!)
-		from frappe.sessions import clear_cache
-		clear_cache('Guest')
+		frappe.clear_cache(user = 'Guest')
 
 		from frappe.website.render import clear_cache
 		clear_cache()
@@ -75,7 +74,6 @@ def get_website_settings():
 		'footer_items': get_items('footer_items'),
 		"post_login": [
 			{"label": _("My Account"), "url": "/me"},
-#			{"class": "divider"},
 			{"label": _("Logout"), "url": "/?cmd=web_logout"}
 		]
 	})
@@ -130,7 +128,7 @@ def get_items(parentfield):
 		where parent='Website Settings' and parentfield= %s
 		order by idx asc""", parentfield, as_dict=1)
 
-	top_items = [d for d in all_top_items if not d['parent_label']]
+	top_items = all_top_items[:]
 
 	# attach child items to top bar
 	for d in all_top_items:
@@ -143,3 +141,6 @@ def get_items(parentfield):
 					break
 	return top_items
 
+@frappe.whitelist(allow_guest=True)
+def is_chat_enabled():
+	return bool(frappe.db.get_single_value('Website Settings', 'chat_enable'))

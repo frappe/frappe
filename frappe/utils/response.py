@@ -4,7 +4,7 @@
 from __future__ import unicode_literals
 import json
 import datetime
-from decimal import Decimal
+import decimal
 import mimetypes
 import os
 import frappe
@@ -17,10 +17,12 @@ from werkzeug.local import LocalProxy
 from werkzeug.wsgi import wrap_file
 from werkzeug.wrappers import Response
 from werkzeug.exceptions import NotFound, Forbidden
-from frappe.core.doctype.file.file import check_file_permission
 from frappe.website.render import render
 from frappe.utils import cint
 from six import text_type
+from six.moves.urllib.parse import quote
+from frappe.core.doctype.access_log.access_log import make_access_log
+
 
 def report_error(status_code):
 	'''Build error. Show traceback in developer mode'''
@@ -39,8 +41,10 @@ def build_response(response_type=None):
 
 	response_type_map = {
 		'csv': as_csv,
+		'txt': as_txt,
 		'download': as_raw,
 		'json': as_json,
+		'pdf': as_pdf,
 		'page': as_page,
 		'redirect': redirect,
 		'binary': as_binary
@@ -56,10 +60,18 @@ def as_csv():
 	response.data = frappe.response['result']
 	return response
 
+def as_txt():
+	response = Response()
+	response.mimetype = 'text'
+	response.charset = 'utf-8'
+	response.headers["Content-Disposition"] = ("attachment; filename=\"%s.txt\"" % frappe.response['doctype'].replace(' ', '_')).encode("utf-8")
+	response.data = frappe.response['result']
+	return response
+
 def as_raw():
 	response = Response()
 	response.mimetype = frappe.response.get("content_type") or mimetypes.guess_type(frappe.response['filename'])[0] or "application/unknown"
-	response.headers["Content-Disposition"] = ("filename=\"%s\"" % frappe.response['filename'].replace(' ', '_')).encode("utf-8")
+	response.headers["Content-Disposition"] = ("attachment; filename=\"%s\"" % frappe.response['filename'].replace(' ', '_')).encode("utf-8")
 	response.data = frappe.response['filecontent']
 	return response
 
@@ -75,6 +87,13 @@ def as_json():
 	response.data = json.dumps(frappe.local.response, default=json_handler, separators=(',',':'))
 	return response
 
+def as_pdf():
+	response = Response()
+	response.mimetype = "application/pdf"
+	response.headers["Content-Disposition"] = ("filename=\"%s\"" % frappe.response['filename'].replace(' ', '_')).encode("utf-8")
+	response.data = frappe.response['filecontent']
+	return response
+
 def as_binary():
 	response = Response()
 	response.mimetype = 'application/octet-stream'
@@ -88,8 +107,7 @@ def make_logs(response = None):
 		response = frappe.local.response
 
 	if frappe.error_log:
-		# frappe.response['exc'] = json.dumps("\n".join([cstr(d) for d in frappe.error_log]))
-		response['exc'] = json.dumps([frappe.utils.cstr(d) for d in frappe.local.error_log])
+		response['exc'] = json.dumps([frappe.utils.cstr(d["exc"]) for d in frappe.local.error_log])
 
 	if frappe.local.message_log:
 		response['_server_messages'] = json.dumps([frappe.utils.cstr(d) for
@@ -109,8 +127,8 @@ def json_handler(obj):
 	if isinstance(obj, (datetime.date, datetime.timedelta, datetime.datetime)):
 		return text_type(obj)
 
-	if isinstance(obj, Decimal):
-		return text_type(obj)
+	elif isinstance(obj, decimal.Decimal):
+		return float(obj)
 
 	elif isinstance(obj, LocalProxy):
 		return text_type(obj)
@@ -139,6 +157,7 @@ def redirect():
 def download_backup(path):
 	try:
 		frappe.only_for(("System Manager", "Administrator"))
+		make_access_log(report_name='Backup')
 	except frappe.PermissionError:
 		raise Forbidden(_("You need to be logged in and have System Manager Role to be able to access backups."))
 
@@ -146,10 +165,20 @@ def download_backup(path):
 
 def download_private_file(path):
 	"""Checks permissions and sends back private file"""
-	try:
-		check_file_permission(path)
 
-	except frappe.PermissionError:
+	files = frappe.db.get_all('File', {'file_url': path})
+	can_access = False
+	# this file might be attached to multiple documents
+	# if the file is accessible from any one of those documents
+	# then it should be downloadable
+	for f in files:
+		_file = frappe.get_doc("File", f)
+		can_access = _file.is_downloadable()
+		if can_access:
+			make_access_log(doctype='File', document=_file.name, file_type=os.path.splitext(path)[-1][1:])
+			break
+
+	if not can_access:
 		raise Forbidden(_("You don't have permission to access this file"))
 
 	return send_private_file(path.split("/private", 1)[1])
@@ -162,7 +191,7 @@ def send_private_file(path):
 	if frappe.local.request.headers.get('X-Use-X-Accel-Redirect'):
 		path = '/protected/' + path
 		response = Response()
-		response.headers['X-Accel-Redirect'] = frappe.utils.encode(path)
+		response.headers['X-Accel-Redirect'] = quote(frappe.utils.encode(path))
 
 	else:
 		filepath = frappe.utils.get_site_path(path)
@@ -174,7 +203,13 @@ def send_private_file(path):
 		response = Response(wrap_file(frappe.local.request.environ, f), direct_passthrough=True)
 
 	# no need for content disposition and force download. let browser handle its opening.
-	# response.headers.add(b'Content-Disposition', b'attachment', filename=filename.encode("utf-8"))
+	# Except for those that can be injected with scripts.
+
+	extension = os.path.splitext(path)[1]
+	blacklist = ['.svg', '.html', '.htm', '.xml']
+
+	if extension.lower() in blacklist:
+		response.headers.add(b'Content-Disposition', b'attachment', filename=filename.encode("utf-8"))
 
 	response.mimetype = mimetypes.guess_type(filename)[0] or 'application/octet-stream'
 

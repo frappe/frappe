@@ -5,21 +5,28 @@ from __future__ import unicode_literals
 import pdfkit, os, frappe
 from frappe.utils import scrub_urls
 from frappe import _
+import six, re, io
 from bs4 import BeautifulSoup
-from PyPDF2 import PdfFileWriter, PdfFileReader
+from PyPDF2 import PdfFileReader, PdfFileWriter
 
-def get_pdf(html, options=None, output = None):
+def get_pdf(html, options=None, output=None):
 	html = scrub_urls(html)
 	html, options = prepare_options(html, options)
-	fname = os.path.join("/tmp", "frappe-pdf-{0}.pdf".format(frappe.generate_hash()))
+
+	options.update({
+		"disable-javascript": "",
+		"disable-local-file-access": "",
+	})
+
+	filedata = ''
 
 	try:
-		pdfkit.from_string(html, fname, options=options or {})
-		if output:
-			append_pdf(PdfFileReader(file(fname,"rb")),output)
-		else:
-			with open(fname, "rb") as fileobj:
-				filedata = fileobj.read()
+		# Set filename property to false, so no file is actually created
+		filedata = pdfkit.from_string(html, False, options=options or {})
+
+		# https://pythonhosted.org/PyPDF2/PdfFileReader.html
+		# create in-memory binary streams from filedata and create a PdfFileReader object
+		reader = PdfFileReader(io.BytesIO(filedata))
 
 	except IOError as e:
 		if ("ContentNotFoundError" in e.message
@@ -28,29 +35,46 @@ def get_pdf(html, options=None, output = None):
 			or "RemoteHostClosedError" in e.message):
 
 			# allow pdfs with missing images if file got created
-			if os.path.exists(fname):
-				if output:
-					append_pdf(PdfFileReader(file(fname,"rb")),output)
-				else:
-					with open(fname, "rb") as fileobj:
-						filedata = fileobj.read()
+			if filedata:
+				if output: # output is a PdfFileWriter object
+					output.appendPagesFromReader(reader)
 
 			else:
 				frappe.throw(_("PDF generation failed because of broken image links"))
 		else:
 			raise
 
-	finally:
-		cleanup(fname, options)
+	if "password" in options:
+		password = options["password"]
+		if six.PY2:
+			password = frappe.safe_encode(password)
 
 	if output:
+		output.appendPagesFromReader(reader)
 		return output
+
+	writer = PdfFileWriter()
+	writer.appendPagesFromReader(reader)
+
+	if "password" in options:
+		writer.encrypt(password)
+
+	filedata = get_file_data_from_writer(writer)
 
 	return filedata
 
-def append_pdf(input,output):
-	# Merging multiple pdf files
-    [output.addPage(input.getPage(page_num)) for page_num in range(input.numPages)]
+def get_file_data_from_writer(writer_obj):
+
+	# https://docs.python.org/3/library/io.html
+	stream = io.BytesIO()
+	writer_obj.write(stream)
+
+	# Change the stream position to start of the stream
+	stream.seek(0)
+
+	# Read up to size bytes from the object and return them
+	return stream.read()
+
 
 def prepare_options(html, options):
 	if not options:
@@ -63,12 +87,14 @@ def prepare_options(html, options):
 		'quiet': None,
 		# 'no-outline': None,
 		'encoding': "UTF-8",
-		#'load-error-handling': 'ignore',
-
-		# defaults
-		'margin-right': '15mm',
-		'margin-left': '15mm'
+		#'load-error-handling': 'ignore'
 	})
+
+	if not options.get("margin-right"):
+		options['margin-right'] = '15mm'
+
+	if not options.get("margin-left"):
+		options['margin-left'] = '15mm'
 
 	html, html_options = read_options_from_html(html)
 	options.update(html_options or {})
@@ -91,12 +117,13 @@ def read_options_from_html(html):
 
 	toggle_visible_pdf(soup)
 
-	# extract pdfkit options from html
-	for html_id in ("margin-top", "margin-bottom", "margin-left", "margin-right", "page-size"):
+	# use regex instead of soup-parser
+	for attr in ("margin-top", "margin-bottom", "margin-left", "margin-right", "page-size", "header-spacing"):
 		try:
-			tag = soup.find(id=html_id)
-			if tag and tag.contents:
-				options[html_id] = tag.contents
+			pattern = re.compile(r"(\.print-format)([\S|\s][^}]*?)(" + str(attr) + r":)(.+)(mm;)")
+			match = pattern.findall(html)
+			if match:
+				options[attr] = str(match[-1][3]).strip()
 		except:
 			pass
 

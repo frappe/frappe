@@ -34,7 +34,7 @@ frappe.ui.app_icon = {
 					icon = data;
 				}
 			});
-			icon = '<object>'+ icon+'</object>';
+			icon = '<object class="app-icon-svg">'+ icon+'</object>';
 		} else {
 			icon = '<i class="'+ icon+'" title="' + module._label + '" style="'+ icon_style + '"></i>';
 		}

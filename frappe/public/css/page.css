@@ -22,7 +22,7 @@
 @media (min-width: 767px) {
   .page-body {
     overflow-x: hidden;
-    min-height: calc(60vh);
+    min-height: calc(100vh - 40px);
   }
 }
 .page-title {
@@ -66,6 +66,10 @@
 .page-actions {
   padding-top: 17px;
   padding-bottom: 17px;
+}
+.page-actions .sub-heading {
+  max-width: 50%;
+  overflow: hidden;
 }
 .page-icon-group {
   vertical-align: middle;

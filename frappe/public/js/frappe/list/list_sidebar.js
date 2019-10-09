@@ -9,14 +9,14 @@ frappe.provide('frappe.views');
 // parent
 // set_filter = function called on click
 
-frappe.views.ListSidebar = Class.extend({
-	init: function(opts) {
+frappe.views.ListSidebar = class ListSidebar {
+	constructor(opts) {
 		$.extend(this, opts);
 		this.make();
-		this.get_stats();
 		this.cat_tags = [];
-	},
-	make: function() {
+	}
+
+	make() {
 		var sidebar_content = frappe.render_template("list_sidebar", { doctype: this.doctype });
 
 		this.sidebar = $('<div class="list-sidebar overlay-sidebar hidden-xs hidden-sm"></div>')
@@ -25,19 +25,29 @@ frappe.views.ListSidebar = Class.extend({
 
 		this.setup_reports();
 		this.setup_list_filter();
-		this.setup_assigned_to_me();
 		this.setup_views();
 		this.setup_kanban_boards();
 		this.setup_calendar_view();
 		this.setup_email_inbox();
+		this.setup_keyboard_shortcuts();
+		this.setup_list_group_by();
 
-		let limits = frappe.boot.limits;
+		// do not remove
+		// used to trigger custom scripts
+		$(document).trigger('list_sidebar_setup');
 
-		if (limits.upgrade_url && limits.expiry && !frappe.flags.upgrade_dismissed) {
-			this.setup_upgrade_box();
+		if (this.list_view.list_view_settings && this.list_view.list_view_settings.disable_sidebar_stats) {
+			this.sidebar.find('.sidebar-stat').remove();
+		} else {
+			this.sidebar.find('.list-stats').on('click', (e) => {
+				$(e.currentTarget).find('.stat-link').remove();
+				this.get_stats();
+			});
 		}
-	},
-	setup_views: function() {
+
+	}
+
+	setup_views() {
 		var show_list_link = false;
 
 		if (frappe.views.calendar[this.doctype]) {
@@ -52,7 +62,7 @@ frappe.views.ListSidebar = Class.extend({
 			show_list_link = true;
 		}
 
-		if (frappe.treeview_settings[this.doctype]) {
+		if (frappe.treeview_settings[this.doctype] || frappe.get_meta(this.doctype).is_tree) {
 			this.sidebar.find(".tree-link").removeClass("hide");
 		}
 
@@ -85,8 +95,9 @@ frappe.views.ListSidebar = Class.extend({
 		if (show_list_link) {
 			this.sidebar.find('.list-link[data-view="List"]').removeClass('hide');
 		}
-	},
-	setup_reports: function() {
+	}
+
+	setup_reports() {
 		// add reports linked to this doctype to the dropdown
 		var me = this;
 		var added = [];
@@ -122,167 +133,27 @@ frappe.views.ListSidebar = Class.extend({
 			add_reports(this.list_view.settings.reports);
 		}
 
-		// from specially tagged reports
-		add_reports(frappe.boot.user.all_reports || []);
-	},
+		// Sort reports alphabetically
+		var reports = Object.values(frappe.boot.user.all_reports).sort((a,b) => a.title.localeCompare(b.title)) || [];
 
-	setup_list_filter: function() {
+		// from specially tagged reports
+		add_reports(reports);
+	}
+
+	setup_list_filter() {
 		this.list_filter = new ListFilter({
 			wrapper: this.page.sidebar.find('.list-filters'),
 			doctype: this.doctype,
 			list_view: this.list_view
 		});
-	},
+	}
 
-	setup_kanban_boards: function() {
-		// add kanban boards linked to this doctype to the dropdown
-		var me = this;
-		var $dropdown = this.page.sidebar.find('.kanban-dropdown');
-		var divider = false;
+	setup_kanban_boards() {
+		const $dropdown = this.page.sidebar.find('.kanban-dropdown');
+		frappe.views.KanbanView.setup_dropdown_in_sidebar(this.doctype, $dropdown);
+	}
 
-		var meta = frappe.get_meta(this.doctype);
-		var boards = meta && meta.__kanban_boards;
-		if (!boards) return;
-
-		boards.forEach(function(board) {
-			var route = ["List", board.reference_doctype, "Kanban", board.name].join('/');
-			if (!divider) {
-				me.get_divider().appendTo($dropdown);
-				divider = true;
-			}
-			$(`<li><a href="#${route}">
-				<span>${__(board.name)}</span>
-				${board.private ? '<i class="fa fa-lock fa-fw text-warning"></i>' : ''}
-			</a></li>`).appendTo($dropdown);
-		});
-
-		$dropdown.find('.new-kanban-board').click(function() {
-			// frappe.new_doc('Kanban Board', {reference_doctype: me.doctype});
-			var select_fields = frappe.get_meta(me.doctype)
-				.fields.filter(function(df) {
-					return df.fieldtype === 'Select' &&
-						df.fieldname !== 'kanban_column';
-				});
-
-			var fields = [{
-				fieldtype: 'Data',
-				fieldname: 'board_name',
-				label: __('Kanban Board Name'),
-				reqd: 1
-			}];
-
-			if (select_fields.length > 0) {
-				fields = fields.concat([{
-					fieldtype: 'Select',
-					fieldname: 'field_name',
-					label: __('Columns based on'),
-					options: select_fields.map(df => df.label).join('\n'),
-					default: select_fields[0]
-				},
-				{
-					fieldtype: 'Check',
-					fieldname: 'custom_column',
-					label: __('Custom Column'),
-					default: 0,
-					onchange: function() {
-						var checked = d.get_value('custom_column');
-						if (checked) {
-							$(d.body).find('.frappe-control[data-fieldname="field_name"]').hide();
-						} else {
-							$(d.body).find('.frappe-control[data-fieldname="field_name"]').show();
-						}
-					}
-				}
-				]);
-			}
-
-			if (me.doctype === 'Task') {
-				fields[0].description = __('A new Project with this name will be created');
-			}
-
-			if (['Note', 'ToDo'].includes(me.doctype)) {
-				fields[0].description = __('This Kanban Board will be private');
-			}
-
-			var d = new frappe.ui.Dialog({
-				title: __('New Kanban Board'),
-				fields: fields,
-				primary_action_label: __('Save'),
-				primary_action: function(values) {
-
-					var custom_column = values.custom_column !== undefined ?
-						values.custom_column : 1;
-					var field_name;
-					if (custom_column) {
-						field_name = 'kanban_column';
-					} else {
-						field_name =
-							select_fields
-								.find(df => df.label === values.field_name)
-								.fieldname;
-					}
-
-					me.add_custom_column_field(custom_column)
-						.then(function() {
-							return me.make_kanban_board(values.board_name, field_name);
-						})
-						.then(function() {
-							d.hide();
-						}, function(err) {
-							frappe.msgprint(err);
-						});
-				}
-			});
-			d.show();
-		});
-	},
-	add_custom_column_field: function(flag) {
-		var me = this;
-		return new Promise(function(resolve, reject) {
-			if (!flag) resolve(false);
-			frappe.call({
-				method: 'frappe.custom.doctype.custom_field.custom_field.add_custom_field',
-				args: {
-					doctype: me.doctype,
-					df: {
-						label: 'Kanban Column',
-						fieldname: 'kanban_column',
-						fieldtype: 'Select',
-						hidden: 1
-					}
-				}
-			}).success(function() {
-				resolve(true);
-			}).error(function(err) {
-				reject(err);
-			});
-		});
-	},
-	make_kanban_board: function(board_name, field_name) {
-		var me = this;
-		return frappe.call({
-			method: 'frappe.desk.doctype.kanban_board.kanban_board.quick_kanban_board',
-			args: {
-				doctype: me.doctype,
-				board_name: board_name,
-				field_name: field_name
-			},
-			callback: function(r) {
-				var kb = r.message;
-				if (kb.filters) {
-					frappe.provide('frappe.kanban_filters');
-					frappe.kanban_filters[kb.kanban_board_name] = kb.filters;
-				}
-				frappe.set_route(
-					'List',
-					me.doctype,
-					'Kanban',
-					kb.kanban_board_name
-				);
-			}
-		});
-	},
-	setup_calendar_view: function() {
+	setup_calendar_view() {
 		const doctype = this.doctype;
 
 		frappe.db.get_list('Calendar View', {
@@ -320,8 +191,9 @@ frappe.views.ListSidebar = Class.extend({
 			$link_calendar.removeClass('hide');
 			$link_calendar.html(dropdown_html);
 		});
-	},
-	setup_email_inbox: function() {
+	}
+
+	setup_email_inbox() {
 		// get active email account for the user and add in dropdown
 		if (this.doctype != "Communication")
 			return;
@@ -350,81 +222,80 @@ frappe.views.ListSidebar = Class.extend({
 		$dropdown.find('.new-email-account').click(function() {
 			frappe.new_doc("Email Account");
 		});
-	},
-	setup_assigned_to_me: function() {
-		this.page.sidebar.find(".assigned-to-me a").on("click", () => {
-			this.list_view.filter_area.add(this.list_view.doctype, "_assign", "like", `%${frappe.session.user}%`);
+	}
+
+	setup_keyboard_shortcuts() {
+		this.sidebar.find('.list-link > a, .list-link > .btn-group > a').each((i, el) => {
+			frappe.ui.keys
+				.get_shortcut_group(this.page)
+				.add($(el));
 		});
-	},
-	setup_upgrade_box: function() {
-		let upgrade_list = $(`<ul class="list-unstyled sidebar-menu"></ul>`).appendTo(this.sidebar);
+	}
 
-		// Show Renew/Upgrade button,
-		// if account is holding one user free plan or
-		// if account's expiry date within range of 30 days from today's date
+	setup_list_group_by() {
+		this.list_group_by = new frappe.views.ListGroupBy({
+			doctype: this.doctype,
+			sidebar: this,
+			list_view: this.list_view,
+			page: this.page
+		});
+	}
 
-		let upgrade_date = frappe.datetime.add_days(frappe.datetime.get_today(), 30);
-		if (frappe.boot.limits.users === 1 || upgrade_date >= frappe.boot.limits.expiry) {
-			let upgrade_box = $(`<div class="border" style="
-					padding: 0px 10px;
-					border-radius: 3px;
-				">
-				<a><i class="octicon octicon-x pull-right close" style="margin-top: 10px;"></i></a>
-				<h5>Go Premium</h5>
-				<p>Upgrade to a premium plan with more users, storage and priority support.</p>
-				<button class="btn btn-xs btn-default btn-upgrade" style="margin-bottom: 10px;"> Renew / Upgrade </button>
-				</div>`).appendTo(upgrade_list);
+	setup_dropdown_search(dropdown, text_class) {
+		let $dropdown_search = dropdown.find('.dropdown-search').show();
+		let $search_input = $dropdown_search.find('.dropdown-search-input');
+		$search_input.focus();
+		$dropdown_search.on('click',(e)=>{
+			e.stopPropagation();
+		});
+		let $elements = dropdown.find('li');
+		$dropdown_search.on('keyup',()=> {
+			let text_filter = $search_input.val().toLowerCase();
+			// Replace trailing and leading spaces
+			text_filter = text_filter.replace(/^\s+|\s+$/g, '');
+			let text;
+			for (var i = 0; i < $elements.length; i++) {
+				let text_element = $elements.eq(i).find(text_class);
 
-			upgrade_box.find('.btn-upgrade').on('click', () => {
-				frappe.set_route('usage-info');
-			});
+				let text = text_element.text().toLowerCase();
+				// Search data-name since label for current user is 'Me'
+				let name = text_element.data('name').toLowerCase();
+				if (text.includes(text_filter) || name.includes(text_filter)) {
+					$elements.eq(i).css('display','');
+				} else {
+					$elements.eq(i).css('display','none');
+				}
+			}
+		});
+		dropdown.parent().on('hide.bs.dropdown',()=> {
+			$dropdown_search.val('');
+		});
+	}
 
-			upgrade_box.find('.close').on('click', () => {
-				upgrade_list.remove();
-				frappe.flags.upgrade_dismissed = 1;
-			});
-		}
-	},
-	get_cat_tags: function() {
+
+	get_cat_tags() {
 		return this.cat_tags;
-	},
-	get_stats: function() {
+	}
+
+	get_stats() {
 		var me = this;
 		frappe.call({
 			method: 'frappe.desk.reportview.get_sidebar_stats',
+			type: 'GET',
 			args: {
 				stats: me.stats,
 				doctype: me.doctype,
 				filters: me.default_filters || []
 			},
 			callback: function(r) {
-				me.defined_category = r.message;
-				if (r.message.defined_cat) {
-					me.defined_category = r.message.defined_cat;
-					me.cats = {};
-					//structure the tag categories
-					for (var i in me.defined_category) {
-						if (me.cats[me.defined_category[i].category] === undefined) {
-							me.cats[me.defined_category[i].category] = [me.defined_category[i].tag];
-						} else {
-							me.cats[me.defined_category[i].category].push(me.defined_category[i].tag);
-						}
-						me.cat_tags[i] = me.defined_category[i].tag;
-					}
-					me.tempstats = r.message.stats;
-
-					$.each(me.cats, function(i, v) {
-						me.render_stat(i, (me.tempstats || {})["_user_tags"], v);
-					});
-					me.render_stat("_user_tags", (me.tempstats || {})["_user_tags"]);
-				} else {
-					//render normal stats
-					me.render_stat("_user_tags", (r.message.stats || {})["_user_tags"]);
-				}
+				me.render_stat("_user_tags", (r.message.stats || {})["_user_tags"]);
+				let stats_dropdown = me.sidebar.find('.list-stats-dropdown');
+				me.setup_dropdown_search(stats_dropdown,'.stat-label');
 			}
 		});
-	},
-	render_stat: function(field, stat, tags) {
+	}
+
+	render_stat(field, stat, tags) {
 		var me = this;
 		var sum = 0;
 		var stats = [];
@@ -462,22 +333,31 @@ frappe.views.ListSidebar = Class.extend({
 			field: field,
 			stat: stats,
 			sum: sum,
-			label: field === '_user_tags' ? (tags ? __(label) : __("Tags")) : __(label),
+			label: field === '_user_tags' ? (tags ? __(label) : __("Tag")) : __(label),
 		};
 		$(frappe.render_template("list_sidebar_stat", context))
 			.on("click", ".stat-link", function() {
+				var doctype = "Tag Link";
 				var fieldname = $(this).attr('data-field');
 				var label = $(this).attr('data-label');
-				if (label == "No Tags") {
-					me.list_view.filter_list.add_filter(me.list_view.doctype, fieldname, 'not like', '%,%');
-					me.list_view.run();
-				} else {
-					me.set_filter(fieldname, label);
+				var condition = "=";
+				var existing = me.list_view.filter_area.filter_list.get_filter(fieldname);
+				if(existing) {
+					existing.remove();
 				}
+				if (label == "No Tags") {
+					label = "%,%";
+					condition = "not like";
+				}
+				me.list_view.filter_area.filter_list.add_filter(doctype, fieldname, condition, label)
+					.then(function() {
+						me.list_view.refresh();
+					});
 			})
-			.insertBefore(this.sidebar.find(".close-sidebar-button"));
-	},
-	set_fieldtype: function(df) {
+			.appendTo(this.sidebar.find(".list-stats-dropdown"));
+	}
+
+	set_fieldtype(df) {
 
 		// scrub
 		if (df.fieldname == "docstatus") {
@@ -502,12 +382,14 @@ frappe.views.ListSidebar = Class.extend({
 		if (df.fieldtype === "Data" && (df.options || "").toLowerCase() === "email") {
 			df.options = null;
 		}
-	},
-	reload_stats: function() {
+	}
+
+	reload_stats() {
 		this.sidebar.find(".sidebar-stat").remove();
 		this.get_stats();
-	},
-	get_divider: function() {
+	}
+
+	get_divider() {
 		return $('<li role="separator" class="divider"></li>');
 	}
-});
+};

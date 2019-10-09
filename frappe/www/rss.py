@@ -3,7 +3,6 @@
 
 from __future__ import unicode_literals
 import frappe
-import urllib
 from frappe.utils import escape_html, get_request_site_address, now, cstr
 from six.moves.urllib.parse import quote, urljoin
 

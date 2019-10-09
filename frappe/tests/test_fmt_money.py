@@ -3,8 +3,7 @@
 from __future__ import unicode_literals
 
 import frappe
-from frappe import _
-from frappe.utils import flt, cstr, fmt_money
+from frappe.utils import fmt_money
 import unittest
 
 class TestFmtMoney(unittest.TestCase):
@@ -82,6 +81,17 @@ class TestFmtMoney(unittest.TestCase):
 		self.assertEqual(fmt_money(10000000.3344567), "10,000,000.3345")
 		self.assertEqual(fmt_money(100000000.37827268), "100,000,000.3783")
 		self.assertEqual(fmt_money(1000000000.2718272637), "1,000,000,000.2718")
+		frappe.db.set_default("currency_precision", "")
+
+	def test_currency_precision_de_format(self):
+		frappe.db.set_default("currency_precision", "4")
+		frappe.db.set_default("number_format", "#.###,##")
+		self.assertEqual(fmt_money(100), "100,00")
+		self.assertEqual(fmt_money(1000), "1.000,00")
+		self.assertEqual(fmt_money(10000), "10.000,00")
+		self.assertEqual(fmt_money(100000), "100.000,00")
+		self.assertEqual(fmt_money(100.23), "100,23")
+		self.assertEqual(fmt_money(1000.456), "1.000,456")
 		frappe.db.set_default("currency_precision", "")
 
 if __name__=="__main__":

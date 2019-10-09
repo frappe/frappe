@@ -62,7 +62,7 @@ def popen(command, *args, **kwargs):
 
 	return_ = proc.wait()
 
-	if raise_err:
+	if return_ and raise_err:
 		raise subprocess.CalledProcessError(return_, command)
 
 	return return_
@@ -72,12 +72,11 @@ def call_command(cmd, context):
 
 def get_commands():
 	# prevent circular imports
-	from .docs import commands as doc_commands
 	from .scheduler import commands as scheduler_commands
 	from .site import commands as site_commands
 	from .translate import commands as translate_commands
 	from .utils import commands as utils_commands
 
-	return list(set(doc_commands + scheduler_commands + site_commands + translate_commands + utils_commands))
+	return list(set(scheduler_commands + site_commands + translate_commands + utils_commands))
 
 commands = get_commands()

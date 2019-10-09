@@ -13,7 +13,7 @@ frappe.ui.form.ControlDynamicLink = frappe.ui.form.ControlLink.extend({
 			let input = null;
 			if (cur_list) {
 				// for list page
-				input = cur_list.wrapper.find(selector);
+				input = cur_list.filter_area.standard_filters_wrapper.find(selector);
 			}
 			if (cur_page) {
 				input = $(cur_page.page).find(selector);

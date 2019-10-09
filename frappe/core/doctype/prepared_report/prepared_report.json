@@ -1,0 +1,128 @@
+{
+ "autoname": "REP.#####",
+ "creation": "2018-06-25 18:39:11.152960",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "report_name",
+  "ref_report_doctype",
+  "status",
+  "column_break_4",
+  "report_start_time",
+  "report_end_time",
+  "section_break_7",
+  "error_message",
+  "filters_sb",
+  "filters",
+  "filter_values",
+  "columns"
+ ],
+ "fields": [
+  {
+   "fieldname": "report_name",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Report Name",
+   "read_only": 1
+  },
+  {
+   "fieldname": "ref_report_doctype",
+   "fieldtype": "Link",
+   "hidden": 1,
+   "label": "Ref Report DocType",
+   "options": "Report",
+   "read_only": 1
+  },
+  {
+   "default": "Queued",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "hidden": 1,
+   "in_list_view": 1,
+   "label": "Status",
+   "options": "Error\nQueued\nCompleted",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_4",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "report_start_time",
+   "fieldtype": "Datetime",
+   "label": "Report Start Time",
+   "read_only": 1
+  },
+  {
+   "fieldname": "report_end_time",
+   "fieldtype": "Datetime",
+   "label": "Report End Time",
+   "read_only": 1
+  },
+  {
+   "depends_on": "eval:doc.status == 'Error'",
+   "fieldname": "section_break_7",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "error_message",
+   "fieldtype": "Text",
+   "label": "Error Message",
+   "no_copy": 1,
+   "print_hide": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "filters_sb",
+   "fieldtype": "Section Break",
+   "label": "Filters"
+  },
+  {
+   "fieldname": "filters",
+   "fieldtype": "Small Text",
+   "hidden": 1,
+   "label": "Filters",
+   "read_only": 1
+  },
+  {
+   "fieldname": "filter_values",
+   "fieldtype": "HTML",
+   "label": "Filter Values"
+  },
+  {
+   "fieldname": "columns",
+   "fieldtype": "Code",
+   "hidden": 1,
+   "label": "Columns",
+   "no_copy": 1,
+   "print_hide": 1,
+   "read_only": 1
+  }
+ ],
+ "in_create": 1,
+ "modified": "2019-09-18 04:00:55.644257",
+ "modified_by": "Administrator",
+ "module": "Core",
+ "name": "Prepared Report",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "quick_entry": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "title_field": "report_name",
+ "track_changes": 1
+}

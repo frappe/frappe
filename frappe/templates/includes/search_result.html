@@ -1,6 +1,6 @@
 {% for d in results %}
-<div class='search-result-item'>
-	<h4><a href="{{ d.route }}">{{ d.title }}</a></h4>
-	<p>{{ d.preview }}</p>
+<div class="search-result-item mb-4">
+	<a href="{{ d.route }}"><b>{{ d.title }}</b></a>
+	<p class="m-0">{{ d.preview }}</p>
 </div>
 {% endfor %}

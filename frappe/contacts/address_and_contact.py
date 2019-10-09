@@ -4,11 +4,13 @@
 from __future__ import unicode_literals
 import frappe
 
+from frappe import _
 import functools
+import re
 
 def load_address_and_contact(doc, key=None):
 	"""Loads address list and contact list in `__onload`"""
-	from frappe.contacts.doctype.address.address import get_address_display
+	from frappe.contacts.doctype.address.address import get_address_display, get_condensed_address
 
 	filters = [
 		["Dynamic Link", "link_doctype", "=", doc.doctype],
@@ -34,6 +36,24 @@ def load_address_and_contact(doc, key=None):
 		["Dynamic Link", "parenttype", "=", "Contact"],
 	]
 	contact_list = frappe.get_all("Contact", filters=filters, fields=["*"])
+
+	for contact in contact_list:
+		contact["email_ids"] = frappe.get_list("Contact Email", filters={
+				"parenttype": "Contact",
+				"parent": contact.name,
+				"is_primary": 0
+			}, fields=["email_id"])
+
+		contact["phone_nos"] = frappe.get_list("Contact Phone", filters={
+				"parenttype": "Contact",
+				"parent": contact.name,
+				"is_primary_phone": 0,
+				"is_primary_mobile_no": 0
+			}, fields=["phone"])
+
+		if contact.address:
+			address = frappe.get_doc("Address", contact.address)
+			contact["address"] = get_condensed_address(address)
 
 	contact_list = sorted(contact_list,
 		key = functools.cmp_to_key(lambda a, b:
@@ -99,12 +119,13 @@ def get_permitted_and_not_permitted_links(doctype):
 	not_permitted_links = []
 
 	meta = frappe.get_meta(doctype)
+	allowed_doctypes = frappe.permissions.get_doctypes_with_read()
 
 	for df in meta.get_link_fields():
 		if df.options not in ("Customer", "Supplier", "Company", "Sales Partner"):
 			continue
 
-		if frappe.has_permission(df.options):
+		if df.options in allowed_doctypes:
 			permitted_links.append(df)
 		else:
 			not_permitted_links.append(df)
@@ -128,30 +149,32 @@ def delete_contact_and_address(doctype, docname):
 def filter_dynamic_link_doctypes(doctype, txt, searchfield, start, page_len, filters):
 	if not txt: txt = ""
 
-	txt = txt.lower()
-	txt = "%%%s%%" % (txt)
-
-	filters.update({
-		"parent": ("like", txt)
-	})
-
 	doctypes = frappe.db.get_all("DocField", filters=filters, fields=["parent"],
 		distinct=True, as_list=True)
 
-	filters.pop("parent")
+	doctypes = tuple([d for d in doctypes if re.search(txt+".*", _(d[0]), re.IGNORECASE)])
+
 	filters.update({
-		"dt": ("not in", [d[0] for d in doctypes]),
-		"dt": ("like", txt),
+		"dt": ("not in", [d[0] for d in doctypes])
 	})
 
 	_doctypes = frappe.db.get_all("Custom Field", filters=filters, fields=["dt"],
 		as_list=True)
 
+	_doctypes = tuple([d for d in _doctypes if re.search(txt+".*", _(d[0]), re.IGNORECASE)])
+
 	all_doctypes = [d[0] for d in doctypes + _doctypes]
-	valid_doctypes = []
+	allowed_doctypes = frappe.permissions.get_doctypes_with_read()
 
-	for doctype in all_doctypes:
-		if frappe.has_permission(doctype):
-			valid_doctypes.append([doctype])
+	valid_doctypes = sorted(set(all_doctypes).intersection(set(allowed_doctypes)))
+	valid_doctypes = [[doctype] for doctype in valid_doctypes]
 
-	return sorted(valid_doctypes)
+	return valid_doctypes
+
+def set_link_title(doc):
+	if not doc.links:
+		return
+	for link in doc.links:
+		if not link.link_title:
+			linked_doc = frappe.get_doc(link.link_doctype, link.link_name)
+			link.link_title = linked_doc.get("title_field") or linked_doc.get("name")

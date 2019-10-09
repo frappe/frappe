@@ -47,11 +47,11 @@ $.extend(frappe.perm, {
 		let meta = frappe.get_doc("DocType", doctype);
 		const user  = frappe.session.user;
 
-		if (!meta) return perm;
-
 		if (user === "Administrator" || frappe.user_roles.includes("Administrator")) {
 			perm[0].read = 1;
 		}
+
+		if (!meta) return perm;
 
 		frappe.perm.build_role_permissions(perm, meta);
 
@@ -115,6 +115,7 @@ $.extend(frappe.perm, {
 				let permlevel = cint(p.permlevel);
 				if (!perm[permlevel]) {
 					perm[permlevel] = {};
+					perm[permlevel]["permlevel"] = permlevel
 				}
 
 				$.each(frappe.perm.rights, (i, key) => {
@@ -150,7 +151,11 @@ $.extend(frappe.perm, {
 			let rules = {};
 			let fields_to_check = frappe.meta.get_fields_to_check_permissions(doctype);
 			$.each(fields_to_check, (i, df) => {
-				if (user_permissions[df.options]) rules[df.label] = user_permissions[df.options];
+				const user_permissions_for_doctype = user_permissions[df.options] || [];
+				const allowed_records = frappe.perm.get_allowed_docs_for_doctype(user_permissions_for_doctype, doctype);
+				if (allowed_records.length) {
+					rules[df.label] = allowed_records;
+				}
 			});
 			if (!$.isEmptyObject(rules)) {
 				match_rules.push(rules);
@@ -247,4 +252,32 @@ $.extend(frappe.perm, {
 
 		return status === "None" ? false : true;
 	},
+
+	get_allowed_docs_for_doctype: (user_permissions, doctype) => {
+		// returns docs from the list of user permissions that are allowed under provided doctype
+		return frappe.perm.filter_allowed_docs_for_doctype(user_permissions, doctype, false);
+	},
+
+	filter_allowed_docs_for_doctype: (user_permissions, doctype, with_default_doc=true) => {
+		// returns docs from the list of user permissions that are allowed under provided doctype
+		// also returns default doc when with_default_doc is set
+		const filtered_perms = (user_permissions || []).filter(perm => {
+			return (perm.applicable_for === doctype || !perm.applicable_for);
+		});
+
+		const allowed_docs = (filtered_perms).map(perm => perm.doc);
+
+		if (with_default_doc) {
+			const default_doc = allowed_docs.length === 1 ? allowed_docs : filtered_perms
+				.filter(perm => perm.is_default)
+				.map(record => record.doc);
+
+			return {
+				allowed_records: allowed_docs,
+				default_doc: default_doc[0]
+			};
+		} else {
+			return allowed_docs;
+		}
+	}
 });

@@ -19,16 +19,7 @@ frappe.listview_settings['Communication'] = {
 		});
 	},
 
-	set_primary_action: function(list_view) {
-		var me = this;
-		if (list_view.new_doctype) {
-			list_view.page.set_primary_action(
-				__("New"),
-				function() { new frappe.views.CommunicationComposer({ doc: {} }) },
-				"octicon octicon-plus"
-			);
-		} else {
-			list_view.page.clear_primary_action();
-		}
+	primary_action: function() {
+		new frappe.views.CommunicationComposer({ doc: {} });
 	}
 };

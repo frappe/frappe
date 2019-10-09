@@ -1,7 +1,7 @@
 // Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
-frappe.provide("frappe.ui.form");
+
 
 frappe.ui.form.save = function (frm, action, callback, btn) {
 	$(btn).prop("disabled", true);
@@ -142,13 +142,17 @@ frappe.ui.form.save = function (frm, action, callback, btn) {
 				}
 			});
 
+			if (frm.is_new() && frm.meta.autoname === 'Prompt' && !frm.doc.__newname) {
+				error_fields = [__('Name'), ...error_fields];
+			}
+
 			if (error_fields.length) {
-				if (doc.parenttype) {
+				let meta = frappe.get_meta(doc.doctype);
+				if (meta.istable) {
 					var message = __('Mandatory fields required in table {0}, Row {1}',
 						[__(frappe.meta.docfield_map[doc.parenttype][doc.parentfield].label).bold(), doc.idx]);
 				} else {
 					var message = __('Mandatory fields required in {0}', [__(doc.doctype)]);
-
 				}
 				message = message + '<br><br><ul><li>' + error_fields.join('</li><li>') + "</ul>";
 				frappe.msgprint({
@@ -185,7 +189,10 @@ frappe.ui.form.save = function (frm, action, callback, btn) {
 			throw "saving";
 		}
 
-		frappe.ui.form.remove_old_form_route();
+		// ensure we remove new docs routes ONLY
+		if ( frm.is_new() ) {
+			frappe.ui.form.remove_old_form_route();
+		}
 		frappe.ui.form.is_saving = true;
 
 		return frappe.call({
@@ -201,6 +208,11 @@ frappe.ui.form.save = function (frm, action, callback, btn) {
 			always: function (r) {
 				$(btn).prop("disabled", false);
 				frappe.ui.form.is_saving = false;
+
+				if (!r.exc) {
+					frappe.show_alert({message: __('Saved'), indicator: 'green'});
+				}
+
 				if (r) {
 					var doc = r.docs && r.docs[0];
 					if (doc) {
@@ -219,19 +231,25 @@ frappe.ui.form.save = function (frm, action, callback, btn) {
 }
 
 frappe.ui.form.remove_old_form_route = () => {
-	let index = -1;
-	let current_route = frappe.get_route();
-	frappe.route_history.map((arr, i) => {
-		if (arr.join("/") === current_route.join("/")) {
-			index = i;
-		}
-	});
-	frappe.route_history.splice(index, 1);
+	let current_route = frappe.get_route().join("/");
+	frappe.route_history = frappe.route_history
+		.filter((route) => route.join("/") !== current_route);
 }
 
 frappe.ui.form.update_calling_link = (newdoc) => {
-	if (frappe._from_link && newdoc.doctype === frappe._from_link.df.options) {
-		var doc = frappe.get_doc(frappe._from_link.doctype, frappe._from_link.docname);
+	if (!frappe._from_link) return;
+	var doc = frappe.get_doc(frappe._from_link.doctype, frappe._from_link.docname);
+
+	let is_valid_doctype = () => {
+		if (frappe._from_link.df.fieldtype==='Link') {
+			return newdoc.doctype === frappe._from_link.df.options;
+		} else {
+			// dynamic link, type is dynamic
+			return newdoc.doctype === doc[frappe._from_link.df.options];
+		}
+	};
+
+	if (is_valid_doctype()) {
 		// set value
 		if (doc && doc.parentfield) {
 			//update values for child table

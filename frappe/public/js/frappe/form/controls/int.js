@@ -19,7 +19,23 @@ frappe.ui.form.ControlInt = frappe.ui.form.ControlData.extend({
 				return false;
 			});
 	},
+	eval_expression: function(value) {
+		if (typeof value==='string'
+			&& value.match(/^[0-9+-/* ]+$/)
+			// strings with commas are evaluated incorrectly
+			// for e.g 47,186.00 -> 186
+			&& !value.includes(',')) {
+			try {
+				return eval(value);
+			} catch (e) {
+				// bad expression
+				return value;
+			}
+		} else {
+			return value;
+		}
+	},
 	parse: function(value) {
-		return cint(value, null);
+		return cint(this.eval_expression(value), null);
 	}
 });

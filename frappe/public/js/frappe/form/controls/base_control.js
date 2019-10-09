@@ -1,21 +1,10 @@
-frappe.ui.form.make_control = function (opts) {
-	var control_class_name = "Control" + opts.df.fieldtype.replace(/ /g, "");
-	if(frappe.ui.form[control_class_name]) {
-		return new frappe.ui.form[control_class_name](opts);
-	} else {
-		// eslint-disable-next-line
-		console.log("Invalid Control Name: " + opts.df.fieldtype);
-	}
-};
-
 frappe.ui.form.Control = Class.extend({
 	init: function(opts) {
 		$.extend(this, opts);
 		this.make();
 
 		// if developer_mode=1, show fieldname as tooltip
-		if(frappe.boot.user && frappe.boot.user.name==="Administrator" &&
-			frappe.boot.developer_mode===1 && this.$wrapper) {
+		if(frappe.boot.user && frappe.boot.developer_mode===1 && this.$wrapper) {
 			this.$wrapper.attr("title", __(this.df.fieldname));
 		}
 
@@ -51,7 +40,7 @@ frappe.ui.form.Control = Class.extend({
 			return this.df.get_status(this);
 		}
 
-		if(!this.doctype && !this.docname) {
+		if((!this.doctype && !this.docname) || this.df.parenttype === 'Web Form') {
 			// like in case of a dialog box
 			if (cint(this.df.hidden)) {
 				// eslint-disable-next-line
@@ -79,7 +68,7 @@ frappe.ui.form.Control = Class.extend({
 		// hide if no value
 		if (this.doctype && status==="Read" && !this.only_input
 			&& is_null(frappe.model.get_value(this.doctype, this.docname, this.df.fieldname))
-			&& !in_list(["HTML", "Image"], this.df.fieldtype)) {
+			&& !in_list(["HTML", "Image", "Button"], this.df.fieldtype)) {
 
 			// eslint-disable-next-line
 			if(explain) console.log("By Hide Read-only, null fields: None");
@@ -102,10 +91,10 @@ frappe.ui.form.Control = Class.extend({
 	show_translatable_button(value) {
 		// Disable translation non-string fields or special string fields
 		if (!frappe.model
-			|| !frappe.model.can_write('Translation')
 			|| !this.frm
 			|| !this.doc
 			|| !this.df.translatable
+			|| !frappe.model.can_write('Translation')
 			|| !value) return;
 
 		// Disable translation in website
@@ -191,7 +180,7 @@ frappe.ui.form.Control = Class.extend({
 		}
 	},
 	set_model_value: function(value) {
-		if(this.doctype && this.docname) {
+		if(this.frm) {
 			this.last_value = value;
 			return frappe.model.set_value(this.doctype, this.docname, this.df.fieldname,
 				value, this.df.fieldtype);

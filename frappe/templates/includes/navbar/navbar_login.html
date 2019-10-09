@@ -1,29 +1,29 @@
 <!-- post login tools -->
 {% if not only_static %}
-<li class="dropdown logged-in" id="website-post-login"
-	data-label="website-post-login" style="display: none">
-	<a href="#" class="dropdown-toggle" data-toggle="dropdown">
-		<span class="user-image-wrapper"></span>
-		<span class="full-name"></span>
-		<b class="caret"></b>
-	</a>
-    <ul class="dropdown-menu" role="menu">
-		{%- for child in post_login -%}
-		<li {% if child.label %}data-label="{{ child.label }}" {% endif %}
-			{% if child.class %} class="{{ child.class }}" {% endif %}>
 
+	{% if frappe.session.user != 'Guest' %}
+	<li class="nav-item dropdown logged-in" id="website-post-login" data-label="website-post-login" style="display: none">
+		<a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown">
+			<span class="user-image-wrapper"></span>
+			<span class="full-name"></span>
+			<b class="caret"></b>
+		</a>
+		<ul class="dropdown-menu dropdown-menu-right" role="menu">
+			{%- for child in post_login -%}
 			{%- if child.url -%}
-				<a href="{{ child.url | abs_url }}" {{ child.target or '' }}
-					rel="nofollow">
-					{{ child.label }}
-				</a>
+			<a class="dropdown-item" href="{{ child.url | abs_url }}" {{ child.target or '' }} rel="nofollow">
+				{{ child.label }}
+			</a>
 			{%- endif -%}
-		</li>
-		{%- endfor -%}
-		<li class='switch-to-desk hidden'><a href="/desk">{{ _('Switch To Desk') }}</a></li>
-	</ul>
-</li>
-{% if not hide_login %}
-<li class="btn-login-area"><a href="/login">{{ _("Login") }}</a></li>
-{% endif %}
+			{%- endfor -%}
+			<a class="dropdown-item switch-to-desk hidden" href="/desk">{{ _('Switch To Desk') }}</a>
+		</ul>
+	</li>
+	{% endif %}
+
+	{% if not hide_login %}
+	<li class="nav-item">
+		<a class="nav-link btn-login-area" href="/login">{{ _("Login") }}</a>
+	</li>
+	{% endif %}
 {% endif %}

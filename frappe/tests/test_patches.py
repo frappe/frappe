@@ -1,3 +1,4 @@
+from __future__ import unicode_literals
 import unittest, frappe
 from frappe.modules import patch_handler
 

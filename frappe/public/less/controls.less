@@ -1,3 +1,9 @@
+@import "variables.less";
+@import "mixins.less";
+@import "awesomplete.less";
+@import "datepicker.less";
+@import "quill.less";
+
 .unit-checkbox {
 	color: #36414c;
 	margin-top: 5px;
@@ -17,10 +23,126 @@
 	}
 }
 
-.frappe-control .select-all {
-	margin-right: 5px;
+.frappe-control .bulk-select-options {
+	margin: 10px 0;
+	.select-all {
+		margin-right: 5px;
+	}
 }
 
 .frappe-control .control-value {
 	overflow-wrap: break-word;
+}
+
+.link-btn {
+	position: absolute;
+	top: 3px;
+	right: 4px;
+	border-radius: 2px;
+	padding: 3px;
+	display: none;
+	z-index: 3;
+}
+
+.markdown-preview, .html-preview {
+	padding: 12px 15px;
+	min-height: 300px;
+	max-height: 600px;
+	overflow: auto;
+}
+
+.markdown-toggle, .html-toggle {
+	margin-bottom: 5px;
+}
+
+/* table multiselect */
+.table-multiselect {
+	display: flex;
+	align-items: center;
+	flex-wrap: wrap;
+	height: auto;
+	padding: 10px;
+	padding-bottom: 5px;
+}
+
+.table-multiselect.form-control input {
+	display: inline-block;
+	outline: none;
+	border: none;
+	padding: 0;
+	font-size: @text-medium;
+}
+
+.table-multiselect .awesomplete {
+	display: inline;
+}
+
+.tb-selected-value {
+	display: inline-block;
+	margin-right: 5px;
+	margin-bottom: 5px;
+}
+
+.rating {
+	i {
+		color: @text-extra-muted;
+	}
+	.star-hover {
+		color: @text-muted;
+	}
+	.star-click {
+		color: @text-light;
+	}
+}
+
+.multiselect-list {
+	.dropdown-menu {
+		width: 100%;
+	}
+
+	li {
+		padding: 9px 11.8px;
+	}
+
+	.selectable-item {
+		cursor: pointer;
+		display: flex;
+		justify-content: space-between;
+
+		.octicon-check {
+			display: none;
+		}
+	}
+
+	.selectable-item.selected {
+		background-color: @light-yellow;
+
+		.octicon-check {
+			display: inline-block;
+		}
+	}
+
+	.selectable-item:hover, .selectable-item.highlighted {
+		background-color: @btn-bg;
+	}
+
+	.selectable-items {
+		max-height: 200px;
+		overflow: auto;
+	}
+}
+
+.barcode-scanner {
+	position: relative;
+
+	& > canvas, & > video {
+		max-width: 100%;
+		width: 100%;
+	}
+
+	canvas.drawing, canvas.drawingBuffer {
+		position: absolute;
+		left: 0;
+		top: 0;
+	}
 }

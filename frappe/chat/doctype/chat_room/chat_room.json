@@ -15,6 +15,7 @@
  "fields": [
   {
    "allow_bulk_edit": 0,
+   "allow_in_quick_entry": 0,
    "allow_on_submit": 0,
    "bold": 0,
    "collapsible": 0,
@@ -48,6 +49,7 @@
   },
   {
    "allow_bulk_edit": 0,
+   "allow_in_quick_entry": 0,
    "allow_on_submit": 0,
    "bold": 0,
    "collapsible": 0,
@@ -80,6 +82,7 @@
   },
   {
    "allow_bulk_edit": 0,
+   "allow_in_quick_entry": 0,
    "allow_on_submit": 0,
    "bold": 0,
    "collapsible": 0,
@@ -87,7 +90,7 @@
    "depends_on": "eval:doc.type==\"Group\"",
    "fieldname": "avatar",
    "fieldtype": "Attach Image",
-   "hidden": 0,
+   "hidden": 1,
    "ignore_user_permissions": 0,
    "ignore_xss_filter": 0,
    "in_filter": 0,
@@ -112,6 +115,7 @@
   },
   {
    "allow_bulk_edit": 0,
+   "allow_in_quick_entry": 0,
    "allow_on_submit": 0,
    "bold": 0,
    "collapsible": 0,
@@ -144,6 +148,7 @@
   },
   {
    "allow_bulk_edit": 0,
+   "allow_in_quick_entry": 0,
    "allow_on_submit": 0,
    "bold": 0,
    "collapsible": 0,
@@ -175,6 +180,7 @@
   },
   {
    "allow_bulk_edit": 0,
+   "allow_in_quick_entry": 0,
    "allow_on_submit": 0,
    "bold": 0,
    "collapsible": 0,
@@ -208,6 +214,7 @@
   },
   {
    "allow_bulk_edit": 0,
+   "allow_in_quick_entry": 0,
    "allow_on_submit": 0,
    "bold": 0,
    "collapsible": 0,
@@ -239,6 +246,7 @@
   },
   {
    "allow_bulk_edit": 0,
+   "allow_in_quick_entry": 0,
    "allow_on_submit": 0,
    "bold": 0,
    "collapsible": 0,
@@ -281,7 +289,7 @@
  "issingle": 0,
  "istable": 0,
  "max_attachments": 0,
- "modified": "2018-03-23 17:07:17.351554",
+ "modified": "2018-08-16 10:45:13.970081",
  "modified_by": "Administrator",
  "module": "Chat",
  "name": "Chat Room",
@@ -290,7 +298,6 @@
  "permissions": [
   {
    "amend": 0,
-   "apply_user_permissions": 0,
    "cancel": 0,
    "create": 1,
    "delete": 1,
@@ -318,5 +325,6 @@
  "sort_order": "DESC",
  "title_field": "room_name",
  "track_changes": 1,
- "track_seen": 0
+ "track_seen": 0,
+ "track_views": 0
 }

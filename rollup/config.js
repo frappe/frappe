@@ -1,4 +1,5 @@
 const path = require('path');
+const fs = require('fs');
 const chalk = require('chalk');
 const log = console.log; // eslint-disable-line
 
@@ -7,17 +8,20 @@ const commonjs = require('rollup-plugin-commonjs');
 const node_resolve = require('rollup-plugin-node-resolve');
 const postcss = require('rollup-plugin-postcss');
 const buble = require('rollup-plugin-buble');
-const uglify = require('rollup-plugin-uglify');
+const { terser } = require('rollup-plugin-terser');
+const vue = require('rollup-plugin-vue');
 const frappe_html = require('./frappe-html-plugin');
 
 const production = process.env.FRAPPE_ENV === 'production';
 
 const {
+	apps_list,
 	assets_path,
 	bench_path,
 	get_public_path,
 	get_app_path,
-	get_build_json
+	get_build_json,
+	get_options_for_scss
 } = require('./rollup.utils');
 
 function get_rollup_options(output_file, input_files) {
@@ -29,24 +33,39 @@ function get_rollup_options(output_file, input_files) {
 }
 
 function get_rollup_options_for_js(output_file, input_files) {
-	const css_output_file = path.resolve(assets_path, 'css', path.basename(output_file).split('.js')[0] + '.css');
+
+	const node_resolve_paths = [].concat(
+		// node_modules of apps directly importable
+		apps_list.map(app => path.resolve(get_app_path(app), '../node_modules')).filter(fs.existsSync),
+		// import js file of any app if you provide the full path
+		apps_list.map(app => path.resolve(get_app_path(app), '..')).filter(fs.existsSync)
+	);
 
 	const plugins = [
 		// enables array of inputs
 		multi_entry(),
 		// .html -> .js
 		frappe_html(),
+		// ignore css imports
+		ignore_css(),
+		// .vue -> .js
+		vue.default(),
 		// ES6 -> ES5
 		buble({
 			objectAssign: 'Object.assign',
 			transforms: {
-				dangerousForOf: true
+				dangerousForOf: true,
+				classes: false
 			},
 			exclude: [path.resolve(bench_path, '**/*.css'), path.resolve(bench_path, '**/*.less')]
 		}),
 		commonjs(),
-		node_resolve(),
-		production && uglify()
+		node_resolve({
+			customResolveOptions: {
+				paths: node_resolve_paths
+			}
+		}),
+		production && terser()
 	];
 
 	return {
@@ -58,6 +77,14 @@ function get_rollup_options_for_js(output_file, input_files) {
 			onwarn({ code, message, loc, frame }) {
 				// skip warnings
 				if (['EVAL', 'SOURCEMAP_BROKEN', 'NAMESPACE_CONFLICT'].includes(code)) return;
+
+				if ('UNRESOLVED_IMPORT' === code) {
+					log(chalk.yellow.underline(code), ':', message);
+					const command = chalk.yellow('bench setup requirements');
+					log(`Cannot find some dependencies. You may have to run "${command}" to install them.`);
+					log();
+					return;
+				}
 
 				if (loc) {
 					log(`${loc.file} (${loc.line}:${loc.column}) ${message}`);
@@ -81,6 +108,7 @@ function get_rollup_options_for_js(output_file, input_files) {
 
 function get_rollup_options_for_css(output_file, input_files) {
 	const output_path = path.resolve(assets_path, output_file);
+	const minimize_css = output_path.startsWith('css/') && production;
 
 	const plugins = [
 		// enables array of inputs
@@ -88,14 +116,21 @@ function get_rollup_options_for_css(output_file, input_files) {
 		// less -> css
 		postcss({
 			extract: output_path,
-			use: [['less', {
-				// import other less/css files starting from these folders
-				paths: [
-					path.resolve(get_public_path('frappe'), 'less')
-				]
-			}]],
-			include: [path.resolve(bench_path, '**/*.less'), path.resolve(bench_path, '**/*.css')],
-			minimize: production
+			use: [
+				['less', {
+					// import other less/css files starting from these folders
+					paths: [
+						path.resolve(get_public_path('frappe'), 'less')
+					]
+				}],
+				['sass', get_options_for_scss()]
+			],
+			include: [
+				path.resolve(bench_path, '**/*.less'),
+				path.resolve(bench_path, '**/*.scss'),
+				path.resolve(bench_path, '**/*.css')
+			],
+			minimize: minimize_css
 		})
 	];
 
@@ -125,7 +160,7 @@ function get_options_for(app) {
 
 	return Object.keys(build_json)
 		.map(output_file => {
-			if (output_file.endsWith('libs.min.js')) return null;
+			if (output_file.startsWith('concat:')) return null;
 
 			const input_files = build_json[output_file]
 				.map(input_file => {
@@ -142,6 +177,21 @@ function get_options_for(app) {
 		})
 		.filter(Boolean);
 }
+
+function ignore_css() {
+	return {
+		name: 'ignore-css',
+		transform(code, id) {
+			if (!['.css', '.scss', '.sass', '.less'].some(ext => id.endsWith(ext))) {
+				return null;
+			}
+
+			return `
+				// ignored ${id}
+			`;
+		}
+	};
+};
 
 module.exports = {
 	get_options_for

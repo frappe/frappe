@@ -5,8 +5,10 @@ from __future__ import unicode_literals, print_function
 
 import frappe
 import json
-from frappe.model import no_value_fields
+from frappe.model import no_value_fields, table_fields
 from frappe.utils.password import rename_password_field
+from frappe.model.utils.user_settings import update_user_settings_data, sync_user_settings
+
 
 def rename_field(doctype, old_fieldname, new_fieldname):
 	"""This functions assumes that doctype is already synced"""
@@ -17,7 +19,7 @@ def rename_field(doctype, old_fieldname, new_fieldname):
 		print("rename_field: " + (new_fieldname) + " not found in " + doctype)
 		return
 
-	if new_field.fieldtype == "Table":
+	if new_field.fieldtype in table_fields:
 		# change parentfield of table mentioned in options
 		frappe.db.sql("""update `tab%s` set parentfield=%s
 			where parentfield=%s""" % (new_field.options.split("\n")[0], "%s", "%s"),
@@ -41,6 +43,9 @@ def rename_field(doctype, old_fieldname, new_fieldname):
 
 	# update in property setter
 	update_property_setters(doctype, old_fieldname, new_fieldname)
+
+	# update in user settings
+	update_user_settings(doctype, old_fieldname, new_fieldname)
 
 def update_reports(doctype, old_fieldname, new_fieldname):
 	def _get_new_sort_by(report_dict, report, key):
@@ -70,21 +75,23 @@ def update_reports(doctype, old_fieldname, new_fieldname):
 
 		# update filters
 		new_filters = []
-		for f in report_dict.get("filters"):
-			if f and len(f) > 1 and f[0] == doctype and f[1] == old_fieldname:
-				new_filters.append([doctype, new_fieldname, f[2], f[3]])
-				report_dict["updated"] = True
-			else:
-				new_filters.append(f)
+		if report_dict.get("filters"):
+			for f in report_dict.get("filters"):
+				if f and len(f) > 1 and f[0] == doctype and f[1] == old_fieldname:
+					new_filters.append([doctype, new_fieldname, f[2], f[3]])
+					report_dict["updated"] = True
+				else:
+					new_filters.append(f)
 
 		# update columns
 		new_columns = []
-		for c in report_dict.get("columns"):
-			if c and len(c) > 1 and c[0] == old_fieldname and c[1] == doctype:
-				new_columns.append([new_fieldname, doctype])
-				report_dict["updated"] = True
-			else:
-				new_columns.append(c)
+		if report_dict.get("columns"):
+			for c in report_dict.get("columns"):
+				if c and len(c) > 1 and c[0] == old_fieldname and c[1] == doctype:
+					new_columns.append([new_fieldname, doctype])
+					report_dict["updated"] = True
+				else:
+					new_columns.append(c)
 
 		# update sort by
 		new_sort_by = _get_new_sort_by(report_dict, r, "sort_by")
@@ -125,3 +132,14 @@ def update_property_setters(doctype, old_fieldname, new_fieldname):
 
 	frappe.db.sql('''update `tabCustom Field` set insert_after=%s
 		where insert_after=%s and dt=%s''', (new_fieldname, old_fieldname, doctype))
+
+
+def update_user_settings(doctype, old_fieldname, new_fieldname):
+	# store the user settings data from the redis to db
+	sync_user_settings()
+
+	user_settings = frappe.db.sql(''' select user, doctype, data from `__UserSettings`
+		where doctype=%s and data like "%%%s%%"''', (doctype, old_fieldname), as_dict=1)
+
+	for user_setting in user_settings:
+		update_user_settings_data(user_setting, "docfield", old_fieldname, new_fieldname)

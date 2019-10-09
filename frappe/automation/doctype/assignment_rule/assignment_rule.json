@@ -1,0 +1,156 @@
+{
+ "allow_rename": 1,
+ "autoname": "Prompt",
+ "creation": "2019-02-28 17:12:18.815830",
+ "description": "Automatically Assign Documents to Users",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "document_type",
+  "priority",
+  "disabled",
+  "column_break_4",
+  "description",
+  "assignment_rules_section",
+  "assign_condition",
+  "column_break_6",
+  "unassign_condition",
+  "section_break_10",
+  "close_condition",
+  "sb",
+  "assignment_days",
+  "assign_to_users_section",
+  "rule",
+  "users",
+  "last_user"
+ ],
+ "fields": [
+  {
+   "fieldname": "document_type",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Document Type",
+   "options": "DocType",
+   "reqd": 1
+  },
+  {
+   "description": "Higher priority rule will be applied first",
+   "fieldname": "priority",
+   "fieldtype": "Int",
+   "label": "Priority"
+  },
+  {
+   "default": "0",
+   "fieldname": "disabled",
+   "fieldtype": "Check",
+   "label": "Disabled"
+  },
+  {
+   "fieldname": "column_break_4",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "Automatic Assignment",
+   "description": "Example: {{ subject }}",
+   "fieldname": "description",
+   "fieldtype": "Small Text",
+   "label": "Description",
+   "reqd": 1
+  },
+  {
+   "fieldname": "assignment_rules_section",
+   "fieldtype": "Section Break",
+   "label": "Assignment Rules"
+  },
+  {
+   "description": "Simple Python Expression, Example: status == 'Open' and type == 'Bug'",
+   "fieldname": "assign_condition",
+   "fieldtype": "Code",
+   "in_list_view": 1,
+   "label": "Assign Condition",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_6",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "Simple Python Expression, Example: Status in (\"Closed\", \"Cancelled\")",
+   "fieldname": "unassign_condition",
+   "fieldtype": "Code",
+   "label": "Unassign Condition"
+  },
+  {
+   "fieldname": "assign_to_users_section",
+   "fieldtype": "Section Break",
+   "label": "Assign To Users"
+  },
+  {
+   "fieldname": "rule",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Rule",
+   "options": "Round Robin\nLoad Balancing",
+   "reqd": 1
+  },
+  {
+   "fieldname": "users",
+   "fieldtype": "Table MultiSelect",
+   "label": "Users",
+   "options": "Assignment Rule User",
+   "reqd": 1
+  },
+  {
+   "fieldname": "last_user",
+   "fieldtype": "Link",
+   "label": "Last User",
+   "options": "User",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_10",
+   "fieldtype": "Section Break"
+  },
+  {
+   "description": "Simple Python Expression, Example: Status in (\"Invalid\")",
+   "fieldname": "close_condition",
+   "fieldtype": "Code",
+   "label": "Close Condition"
+  },
+  {
+   "fieldname": "sb",
+   "fieldtype": "Section Break",
+   "label": "Assignment Days"
+  },
+  {
+   "fieldname": "assignment_days",
+   "fieldtype": "Table",
+   "label": "Assignment Days",
+   "options": "Assignment Rule Day",
+   "reqd": 1
+  }
+ ],
+ "modified": "2019-09-25 14:52:12.214514",
+ "modified_by": "Administrator",
+ "module": "Automation",
+ "name": "Assignment Rule",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

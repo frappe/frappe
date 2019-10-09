@@ -102,6 +102,9 @@ class BraintreeSettings(Document):
 				try:
 					custom_redirect_to = frappe.get_doc(self.data.reference_doctype,
 						self.data.reference_docname).run_method("on_payment_authorized", self.flags.status_changed_to)
+					braintree_success_page = frappe.get_hooks('braintree_success_page')
+					if braintree_success_page:
+						custom_redirect_to = frappe.get_attr(braintree_success_page[-1])(self.data)
 				except Exception:
 					frappe.log_error(frappe.get_traceback())
 

@@ -13,10 +13,15 @@
         <tr>
         {% for col in columns %}
             {% if col.name && col._id !== "_check" %}
-            <th style="min-width: {{ col.minWidth }}px"
+			<th
+				{% if col.minWidth %}
+					style="min-width: {{ col.minWidth }}px"
+				{% endif %}
                 {% if col.docfield && frappe.model.is_numeric_field(col.docfield) %}
                     class="text-right"
-                {% endif %}>{{ __(col.name) }}</th>
+				{% endif %}
+			>
+				{{ __(col.name) }}</th>
             {% endif %}
         {% endfor %}
         </tr>
@@ -31,9 +36,17 @@
                     {% var value = col.fieldname ? row[col.fieldname] : row[col.id]; %}
 
                     <td>
-                        {{ col.formatter
-	                        ? col.formatter(row._index, col._index, value, col, row, true)
-                            : (col.docfield ? frappe.format(value, col.docfield) : value) }}
+                        <span {% if col._index == 0 %} style="padding-left: {%= cint(row.indent) * 2 %}em" {% endif %}>
+                            {{
+                                col.formatter
+                                    ? col.formatter(row._index, col._index, value, col, row, true)
+                                    : col.format
+                                        ? col.format(value, row, col, data)
+                                        : col.docfield
+                                            ? frappe.format(value, col.docfield)
+                                            : value
+                            }}
+                        </span>
                     </td>
                 {% endif %}
             {% endfor %}
@@ -41,3 +54,4 @@
         {% endfor %}
     </tbody>
 </table>
+

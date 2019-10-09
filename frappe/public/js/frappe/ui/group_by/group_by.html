@@ -1,0 +1,48 @@
+<div class="groupby-box" style="display: none">
+	<div class="list_groupby row">
+		<div class="col-sm-4 form-group ui-front">
+			<select class="groupby form-control">
+				<option value="" disabled selected>{{ __("Select Group By...") }}</option>
+				{% for (var parent_doctype in groupby_conditions) { %}
+					{% for (var val in groupby_conditions[parent_doctype]) { %}
+						{% if (parent_doctype !== doctype) { %}
+						<option 
+							data-doctype="{{parent_doctype}}"
+							value="{{groupby_conditions[parent_doctype][val].fieldname}}">
+							{{ groupby_conditions[parent_doctype][val].label }}
+							({{ parent_doctype }})
+						</option>
+						{% } else { %}
+						<option 
+							data-doctype="{{parent_doctype}}"
+							value="{{groupby_conditions[parent_doctype][val].fieldname}}">
+							{{ groupby_conditions[parent_doctype][val].label }}
+						</option>
+						{% } %}
+					{% } %}
+				{% } %}
+			</select>
+		</div>
+		<div class="col-sm-2 form-group">
+			<select class="aggregate-function form-control">
+				{% for condition in aggregate_function_conditions %}
+				<option value="{{condition.name}}">{{ condition.label }}</option>
+				{% endfor %}
+			</select>
+		</div>
+		<div class="col-sm-6 col-xs-12">
+			<div class="groupby-field pull-left">
+				<select class="aggregate-on form-control" style="display: none">
+					<option value="" disabled selected>{{ __("Select Field...") }}</option>
+				</select>
+			</div>
+			<div class="groupby-actions pull-left">
+				<a class="small grey remove-groupby pull-left">
+					<i class="octicon octicon-trashcan visible-xs"></i>
+					<span class="hidden-xs">{{ __("Remove") }}</span>
+				</a>
+			</div>
+			<div class="clearfix"></div>
+		</div>
+	</div>
+</div>

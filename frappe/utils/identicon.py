@@ -1,3 +1,4 @@
+from __future__ import unicode_literals
 from PIL import Image, ImageDraw
 from hashlib import md5
 import base64

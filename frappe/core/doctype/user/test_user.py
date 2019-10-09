@@ -8,10 +8,10 @@ import requests
 from frappe.model.delete_doc import delete_doc
 from frappe.utils.data import today, add_to_date
 from frappe import _dict
-from frappe.limits import update_limits, clear_limit
 from frappe.utils import get_url
 from frappe.core.doctype.user.user import get_total_users
 from frappe.core.doctype.user.user import MaxUsersReachedError, test_password_strength
+from frappe.core.doctype.user.user import extract_mentions
 
 test_records = frappe.get_test_records('User')
 
@@ -45,6 +45,7 @@ class TestUser(unittest.TestCase):
 		new_user.save()
 		self.assertEqual(new_user.user_type, 'Website User')
 
+		delete_contact(new_user.name)
 		frappe.delete_doc('User', new_user.name)
 
 
@@ -55,6 +56,7 @@ class TestUser(unittest.TestCase):
 		delete_doc("Role","_Test Role 2")
 
 		if frappe.db.exists("User", "_test@example.com"):
+			delete_contact("_test@example.com")
 			delete_doc("User", "_test@example.com")
 
 		user = frappe.copy_doc(test_records[1])
@@ -63,6 +65,7 @@ class TestUser(unittest.TestCase):
 
 		frappe.get_doc({"doctype": "ToDo", "description": "_Test"}).insert()
 
+		delete_contact("_test@example.com")
 		delete_doc("User", "_test@example.com")
 
 		self.assertTrue(not frappe.db.sql("""select * from `tabToDo` where owner=%s""",
@@ -112,43 +115,6 @@ class TestUser(unittest.TestCase):
 
 		self.assertTrue("System Manager" in [d.role for d in me.get("roles")])
 
-	def test_user_limit_for_site(self):
-		update_limits({'users': get_total_users()})
-
-		# reload site config
-		from frappe import _dict
-		frappe.local.conf = _dict(frappe.get_site_config())
-
-		# Create a new user
-		user = frappe.new_doc('User')
-		user.email = 'test_max_users@example.com'
-		user.first_name = 'Test_max_user'
-
-		self.assertRaises(MaxUsersReachedError, user.add_roles, 'System Manager')
-
-		if frappe.db.exists('User', 'test_max_users@example.com'):
-			frappe.delete_doc('User', 'test_max_users@example.com')
-
-		# Clear the user limit
-		clear_limit('users')
-
-	def test_user_limit_for_site_with_simultaneous_sessions(self):
-		clear_limit('users')
-
-		# make sure this user counts
-		user = frappe.get_doc('User', 'test@example.com')
-		user.add_roles('Website Manager')
-		user.save()
-
-		update_limits({'users': get_total_users()})
-
-		user.simultaneous_sessions = user.simultaneous_sessions + 1
-
-		self.assertRaises(MaxUsersReachedError, user.save)
-
-		# Clear the user limit
-		clear_limit('users')
-
 	# def test_deny_multiple_sessions(self):
 	#	from frappe.installer import update_site_config
 	# 	clear_limit('users')
@@ -179,25 +145,6 @@ class TestUser(unittest.TestCase):
 	# 	# first connection should fail
 	# 	test_request(conn1)
 
-	def test_site_expiry(self):
-		user = frappe.get_doc('User', 'test@example.com')
-		user.enabled = 1
-		user.new_password = 'Eastern_43A1W'
-		user.save()
-
-		update_limits({'expiry': add_to_date(today(), days=-1), 'support_email': 'support@example.com'})
-		frappe.local.conf = _dict(frappe.get_site_config())
-
-		frappe.db.commit()
-
-		res = requests.post(get_url(), params={'cmd': 'login', 'usr':
-			'test@example.com', 'pwd': 'Eastern_43A1W', 'device': 'desktop'})
-
-		# While site is expired status code returned is 417 Failed Expectation
-		self.assertEqual(res.status_code, 417)
-
-		clear_limit("expiry")
-		frappe.local.conf = _dict(frappe.get_site_config())
 
 	def test_delete_user(self):
 		new_user = frappe.get_doc(dict(doctype='User', email='test-for-delete@example.com',
@@ -218,27 +165,9 @@ class TestUser(unittest.TestCase):
 		})
 		comm.insert(ignore_permissions=True)
 
+		delete_contact(new_user.name)
 		frappe.delete_doc('User', new_user.name)
 		self.assertFalse(frappe.db.exists('User', new_user.name))
-
-	def test_deactivate_additional_users(self):
-		update_limits({'users': get_total_users()+1})
-
-		if not frappe.db.exists("User", "test_deactivate_additional_users@example.com"):
-			user = frappe.new_doc('User')
-			user.email = 'test_deactivate_additional_users@example.com'
-			user.first_name = 'Test Deactivate Additional Users'
-			user.add_roles("System Manager")
-
-		#update limits
-		update_limits({"users": get_total_users()-1})
-		self.assertEqual(frappe.db.get_value("User", "test_deactivate_additional_users@example.com", "enabled"), 0)
-
-		if frappe.db.exists("User", "test_deactivate_additional_users@example.com"):
-			frappe.delete_doc('User', 'test_deactivate_additional_users@example.com')
-
-		# Clear the user limit
-		clear_limit('users')
 
 	def test_password_strength(self):
 		# Test Password without Password Strenth Policy
@@ -259,3 +188,40 @@ class TestUser(unittest.TestCase):
 		# Score 4; should pass
 		result = test_password_strength("Eastern_43A1W")
 		self.assertEqual(result['feedback']['password_policy_validation_passed'], True)
+
+	def test_comment_mentions(self):
+		comment = '''
+			<span class="mention" data-id="test.comment@example.com" data-value="Test" data-denotation-char="@">
+				<span><span class="ql-mention-denotation-char">@</span>Test</span>
+			</span>
+		'''
+		self.assertEqual(extract_mentions(comment)[0], "test.comment@example.com")
+
+		comment = '''
+			<div>
+				Testing comment,
+				<span class="mention" data-id="test.comment@example.com" data-value="Test" data-denotation-char="@">
+					<span><span class="ql-mention-denotation-char">@</span>Test</span>
+				</span>
+				please check
+			</div>
+		'''
+		self.assertEqual(extract_mentions(comment)[0], "test.comment@example.com")
+		comment = '''
+			<div>
+				Testing comment for
+				<span class="mention" data-id="test_user@example.com" data-value="Test" data-denotation-char="@">
+					<span><span class="ql-mention-denotation-char">@</span>Test</span>
+				</span>
+				and
+				<span class="mention" data-id="test.again@example1.com" data-value="Test" data-denotation-char="@">
+					<span><span class="ql-mention-denotation-char">@</span>Test</span>
+				</span>
+				please check
+			</div>
+		'''
+		self.assertEqual(extract_mentions(comment)[0], "test_user@example.com")
+		self.assertEqual(extract_mentions(comment)[1], "test.again@example1.com")
+
+def delete_contact(user):
+	frappe.db.sql("DELETE FROM `tabContact` WHERE `email_id`= %s", user)

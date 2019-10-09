@@ -25,18 +25,13 @@
 </head>
 <body>
 	<div class="centered splash" style="width: 100px; height: 100px;">
-        <img src="{{ splash_image or "/assets/frappe/images/frappe-bird-thin.svg" }}">
+        <img src="{{ splash_image or "/assets/frappe/images/frappe-framework-logo.png" }}">
     </div>
 	<div class="main-section">
 		<header></header>
 		<div id="body_div"></div>
 		<footer></footer>
 	</div>
-
-	<!-- hack! load background image asap, before desktop is rendered -->
-	{% if background_image %}
-	<img src="{{ background_image }}" style="height: 1px; width: 1px; margin-bottom: -1px;">
-	{% endif %}
 
 	<script type="text/javascript" src="/assets/frappe/js/lib/jquery/jquery.min.js"></script>
 

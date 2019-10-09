@@ -3,6 +3,10 @@ frappe.socketio = {
 	open_docs: [],
 	emit_queue: [],
 	init: function(port = 3000) {
+		if (!window.io) {
+			return;
+		}
+
 		if (frappe.boot.disable_async) {
 			return;
 		}
@@ -149,7 +153,7 @@ frappe.socketio = {
 	doc_open: function(doctype, docname) {
 		// notify that the user has opened this doc, if not already notified
 		if(!frappe.socketio.last_doc
-			|| (frappe.socketio.last_doc[0]!=doctype && frappe.socketio.last_doc[0]!=docname)) {
+			|| (frappe.socketio.last_doc[0]!=doctype && frappe.socketio.last_doc[1]!=docname)) {
 			frappe.socketio.socket.emit('doc_open', doctype, docname);
 		}
 		frappe.socketio.last_doc = [doctype, docname];
@@ -282,13 +286,12 @@ frappe.socketio.SocketIOUploader = class SocketIOUploader {
 			frappe.throw(__('File Upload in Progress. Please try again in a few moments.'));
 		}
 
-		if (!frappe.socketio.socket.connected) {
-			if (fallback) {
-				fallback();
-				return;
-			} else {
-				frappe.throw(__('Socketio is not connected. Cannot upload'));
-			}
+		function fallback_required() {
+			return !frappe.boot.sysdefaults.use_socketio_to_upload_file || !frappe.socketio.socket.connected;
+		}
+
+		if (fallback_required()) {
+			return fallback ? fallback() : frappe.throw(__('Socketio is not connected. Cannot upload'));
 		}
 
 		this.reader = new FileReader();

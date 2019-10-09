@@ -1,0 +1,155 @@
+@import "variables.less";
+@import (reference) 'common.less';
+
+body[data-route*="social"] {
+
+	.layout-main-section {
+		border: none;
+	}
+	a {
+		transition: none;
+	}
+	.liked-by-popover {
+		font-size: @text-small;
+	}
+
+	.wall-container {
+		.post-container {
+			.new_posts_count {
+				cursor: pointer;
+				text-align: center;
+				padding: 5px;
+				margin-bottom: 15px;
+			}
+		}
+	}
+
+	.wall-container, .profile-container {
+		display: flex;
+		font-size: 12px;
+		.post-sidebar {
+			padding-top: 20px;
+			flex: 20%
+		}
+		.post-container {
+			flex: 55%;
+			display: flex;
+			padding: 15px;
+			flex-direction: column;
+		}
+		.activity-sidebar {
+			padding: 15px;
+			flex: 25%;
+			.event {
+				margin-bottom: 15px;
+			}
+		}
+	}
+
+	.generic-card() {
+		background: white;
+		font-size: 12px;
+		margin-bottom: 15px;
+		min-height: 70px;
+		border: 1px solid @border-color;
+		border-radius: 4px;
+		overflow: hidden;
+		.content {
+			font-size: 14px;
+			img, iframe {
+				border-radius: 5px;
+				border: 1px solid @light-border-color;
+				margin: 5px 0;
+			}
+			img {
+				&:hover {
+					opacity: 0.7;
+					cursor: pointer;
+				}
+			}
+		}
+	}
+
+	.post-card {
+		.generic-card();
+		max-width: 600px;
+		.post-body {
+			padding: 15px;
+			.user-name {
+				font-weight: 500;
+			}
+			.user-avatar {
+				float: left;
+				margin-right: 5px;
+			}
+			.user-avatar, .user-name {
+				cursor: pointer;
+			}
+			.content {
+				margin: 15px 0 0 46px;
+			}
+			.post-dropdown-menu {
+				display: none;
+				padding-left: 10px;
+				line-height: 1;
+			}
+		}
+		.pin-option {
+			.text-muted;
+			text-transform: uppercase;
+			font-size: @text-small;
+			display: none;
+		}
+		.pinned {
+			background: #fefdf2;
+			.pin-option {
+				display: block;
+			}
+		}
+		&:hover {
+			.post-dropdown-menu {
+				display: block;
+			}
+		}
+		.post-action-container {
+			padding-left: 56px;
+			background-color: #F6F6F6;
+			border-top: 1px solid @border-color;
+		}
+		.preview-card {
+			text-decoration: none;
+			max-height: 150px;
+			border: 1px solid @light-border-color;
+			border-radius: 5px;
+			margin-top: 15px;
+			padding-right: 10px;
+			background: white;
+			display: flex;
+			img {
+				border: none;
+				margin: 10px;
+				max-width: 160px;
+				max-height: 140px;
+				align-self: center;
+			}
+			p {
+				overflow: hidden;
+				.text-medium
+			}
+		}
+	}
+
+	.muted-title {
+		&:extend(.text-muted);
+		margin-bottom: 10px;
+		text-transform: uppercase;
+		font-size: 10px;
+		font-weight: 600;
+	}
+}
+
+body[data-route*="social/profile"] {
+	.page-head {
+		display: none;
+	}
+}

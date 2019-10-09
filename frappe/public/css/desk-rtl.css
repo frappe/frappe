@@ -22,7 +22,6 @@ body.no-breadcrumbs .navbar .navbar-home:before {
 .layout-side-section .overlay-sidebar {
   left: auto !important;
   right: 0 !important;
-  transform:translateX(110%) !important;
 }
 .layout-side-section .overlay-sidebar.opened {
   transform:translateX(0) !important;
@@ -107,5 +106,8 @@ ul.tree-children {
   direction: ltr;
 }
 .data-table {
+  direction: ltr;
+}
+.section-header {
   direction: ltr;
 }

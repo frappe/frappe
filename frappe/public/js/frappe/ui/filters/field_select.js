@@ -112,7 +112,7 @@ frappe.ui.FieldSelect = Class.extend({
 		var main_table_fields = std_filters.concat(frappe.meta.docfield_list[me.doctype]);
 		$.each(frappe.utils.sort(main_table_fields, "label", "string"), function(i, df) {
 			// show fields where user has read access and if report hide flag is not set
-			if(frappe.perm.has_perm(me.doctype, df.permlevel, "read") && !df.report_hide)
+			if(frappe.perm.has_perm(me.doctype, df.permlevel, "read"))
 				me.add_field_option(df);
 		});
 
@@ -122,7 +122,7 @@ frappe.ui.FieldSelect = Class.extend({
 				var child_table_fields = [].concat(frappe.meta.docfield_list[table_df.options]);
 				$.each(frappe.utils.sort(child_table_fields, "label", "string"), function(i, df) {
 					// show fields where user has read access and if report hide flag is not set
-					if(frappe.perm.has_perm(me.doctype, df.permlevel, "read") && !df.report_hide)
+					if(frappe.perm.has_perm(me.doctype, df.permlevel, "read"))
 						me.add_field_option(df);
 				});
 			}
@@ -130,20 +130,18 @@ frappe.ui.FieldSelect = Class.extend({
 	},
 
 	add_field_option(df) {
+		if (df.fieldname == 'docstatus' && !frappe.model.is_submittable(this.doctype))
+			return;
+
 		var me = this;
 		var label, table;
 		if(me.doctype && df.parent==me.doctype) {
 			label = __(df.label);
 			table = me.doctype;
-			if(df.fieldtype=='Table') me.table_fields.push(df);
+			if(frappe.model.table_fields.includes(df.fieldtype)) me.table_fields.push(df);
 		} else {
 			label = __(df.label) + ' (' + __(df.parent) + ')';
 			table = df.parent;
-		}
-
-		// check if this option should be added
-		if (this.filter_options && this.filter_options(table, df.fieldname) === false) {
-			return;
 		}
 
 		if(frappe.model.no_value_type.indexOf(df.fieldtype) == -1 &&

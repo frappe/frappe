@@ -9,7 +9,7 @@ import json
 import socket
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils import validate_email_add, cint, get_datetime, DATE_FORMAT, strip, comma_or, sanitize_html
+from frappe.utils import validate_email_address, cint, get_datetime, DATE_FORMAT, strip, comma_or, sanitize_html
 from frappe.utils.user import is_system_user
 from frappe.utils.jinja import render_template
 from frappe.email.smtp import SMTPServer
@@ -22,6 +22,8 @@ from frappe.utils.user import get_system_managers
 from frappe.utils.background_jobs import enqueue, get_jobs
 from frappe.core.doctype.communication.email import set_incoming_outgoing_accounts
 from frappe.utils.scheduler import log
+from frappe.utils.html_utils import clean_email_html
+from frappe.email.utils import get_port
 
 class SentEmailInInbox(Exception): pass
 
@@ -37,7 +39,7 @@ class EmailAccount(Document):
 	def validate(self):
 		"""Validate Email Address and check POP3/IMAP and SMTP connections is enabled."""
 		if self.email_id:
-			validate_email_add(self.email_id, True)
+			validate_email_address(self.email_id, True)
 
 		if self.login_id_is_different:
 			if not self.login_id:
@@ -50,7 +52,7 @@ class EmailAccount(Document):
 			"name": ("!=", self.name)
 		})
 		if duplicate_email_account:
-			frappe.throw(_("Email id must be unique, Email Account is already exist \
+			frappe.throw(_("Email ID must be unique, Email Account already exists \
 				for {0}".format(frappe.bold(self.email_id))))
 
 		if frappe.local.flags.in_patch or frappe.local.flags.in_test:
@@ -70,14 +72,14 @@ class EmailAccount(Document):
 				if self.enable_outgoing:
 					self.check_smtp()
 			else:
-				if self.enable_incoming or self.enable_outgoing:
+				if self.enable_incoming or (self.enable_outgoing and not self.no_smtp_authentication):
 					frappe.throw(_("Password is required or select Awaiting Password"))
 
 		if self.notify_if_unreplied:
 			if not self.send_notification_to:
 				frappe.throw(_("{0} is mandatory").format(self.meta.get_label("send_notification_to")))
 			for e in self.get_unreplied_notification_emails():
-				validate_email_add(e, True)
+				validate_email_address(e, True)
 
 		if self.enable_incoming and self.append_to:
 			valid_doctypes = [d[0] for d in get_append_to()]
@@ -86,8 +88,9 @@ class EmailAccount(Document):
 
 	def on_update(self):
 		"""Check there is only one default of each type."""
-		from frappe.core.doctype.user.user import ask_pass_update, setup_user_email_inbox
+		from frappe.core.doctype.user.user import setup_user_email_inbox
 
+		self.check_automatic_linking_email_account()
 		self.there_must_be_only_one_default()
 		setup_user_email_inbox(email_account=self.name, awaiting_password=self.awaiting_password,
 			email_id=self.email_id, enable_outgoing=self.enable_outgoing)
@@ -114,7 +117,7 @@ class EmailAccount(Document):
 			fields = [
 				"name as domain", "use_imap", "email_server",
 				"use_ssl", "smtp_server", "use_tls",
-				"smtp_port"
+				"smtp_port", "incoming_port"
 			]
 			return frappe.db.get_value("Email Domain", domain[1], fields, as_dict=True)
 		except Exception:
@@ -132,8 +135,9 @@ class EmailAccount(Document):
 				port = cint(self.smtp_port),
 				use_tls = cint(self.use_tls)
 			)
-			if self.password:
+			if self.password and not self.no_smtp_authentication:
 				server.password = self.get_password()
+
 			server.sess
 
 	def get_incoming_server(self, in_receive=False, email_sync_rule="UNSEEN"):
@@ -149,6 +153,7 @@ class EmailAccount(Document):
 			"use_imap": self.use_imap,
 			"email_sync_rule": email_sync_rule,
 			"uid_validity": self.uidvalidity,
+			"incoming_port": get_port(self),
 			"initial_sync_count": self.initial_sync_count or 100
 		})
 
@@ -340,9 +345,10 @@ class EmailAccount(Document):
 			raise SentEmailInInbox
 
 		if email.message_id:
-			names = frappe.db.sql("""select distinct name from tabCommunication
-				where message_id='{message_id}'
-				order by creation desc limit 1""".format(
+			# https://stackoverflow.com/a/18367248
+			names = frappe.db.sql("""SELECT DISTINCT `name`, `creation` FROM `tabCommunication`
+				WHERE `message_id`='{message_id}'
+				ORDER BY `creation` DESC LIMIT 1""".format(
 					message_id=email.message_id
 				), as_dict=True)
 
@@ -351,6 +357,9 @@ class EmailAccount(Document):
 				# email is already available update communication uid instead
 				frappe.db.set_value("Communication", name, "uid", uid, update_modified=False)
 				return
+
+		if email.content_type == 'text/html':
+			email.content = clean_email_html(email.content)
 
 		communication = frappe.get_doc({
 			"doctype": "Communication",
@@ -380,7 +389,7 @@ class EmailAccount(Document):
 			communication._seen = json.dumps(users)
 
 		communication.flags.in_receive = True
-		communication.insert(ignore_permissions = 1)
+		communication.insert(ignore_permissions=True)
 
 		# save attachments
 		communication._attachments = email.save_attachments_in_doc(communication)
@@ -457,13 +466,13 @@ class EmailAccount(Document):
 				# try and match by subject and sender
 				# if sent by same sender with same subject,
 				# append it to old coversation
-				subject = frappe.as_unicode(strip(re.sub("(^\s*(fw|fwd|wg)[^:]*:|\s*(re|aw)[^:]*:\s*)*",
+				subject = frappe.as_unicode(strip(re.sub(r"(^\s*(fw|fwd|wg)[^:]*:|\s*(re|aw)[^:]*:\s*)*",
 					"", email.subject, 0, flags=re.IGNORECASE)))
 
 				parent = frappe.db.get_all(self.append_to, filters={
 					self.sender_field: email.from_email,
 					self.subject_field: ("like", "%{0}%".format(subject)),
-					"creation": (">", (get_datetime() - relativedelta(days=10)).strftime(DATE_FORMAT))
+					"creation": (">", (get_datetime() - relativedelta(days=60)).strftime(DATE_FORMAT))
 				}, fields="name")
 
 				# match only subject field
@@ -472,7 +481,7 @@ class EmailAccount(Document):
 				if not parent and len(subject) > 10 and is_system_user(email.from_email):
 					parent = frappe.db.get_all(self.append_to, filters={
 						self.subject_field: ("like", "%{0}%".format(subject)),
-						"creation": (">", (get_datetime() - relativedelta(days=10)).strftime(DATE_FORMAT))
+						"creation": (">", (get_datetime() - relativedelta(days=60)).strftime(DATE_FORMAT))
 					}, fields="name")
 
 			if parent:
@@ -491,6 +500,9 @@ class EmailAccount(Document):
 
 		if self.sender_field:
 			parent.set(self.sender_field, frappe.as_unicode(email.from_email))
+
+		if parent.meta.has_field("email_account"):
+			parent.email_account = self.name
 
 		parent.flags.ignore_mandatory = True
 
@@ -596,7 +608,7 @@ class EmailAccount(Document):
 			return
 
 		flags = frappe.db.sql("""select name, communication, uid, action from
-			`tabEmail Flag Queue` where is_completed=0 and email_account='{email_account}'
+			`tabEmail Flag Queue` where is_completed=0 and email_account={email_account}
 			""".format(email_account=frappe.db.escape(self.name)), as_dict=True)
 
 		uid_list = { flag.get("uid", None): flag.get("action", "Read") for flag in flags }
@@ -629,6 +641,14 @@ class EmailAccount(Document):
 		frappe.db.sql(""" update `tabCommunication` set seen={seen}
 			where name in ({docnames})""".format(docnames=docnames, seen=seen))
 
+	def check_automatic_linking_email_account(self):
+		if self.enable_automatic_linking:
+			if not self.enable_incoming:
+				frappe.throw(_("Automatic Linking can be activated only if Incoming is enabled."))
+
+			if frappe.db.exists("Email Account", {"enable_automatic_linking": 1, "name": ('!=', self.name)}):
+				frappe.throw(_("Automatic Linking can be activated only for one Email Account."))
+
 @frappe.whitelist()
 def get_append_to(doctype=None, txt=None, searchfield=None, start=None, page_len=None, filters=None):
 	if not txt: txt = ""
@@ -658,14 +678,14 @@ def notify_unreplied():
 		if email_account.append_to:
 
 			# get open communications younger than x mins, for given doctype
-			for comm in frappe.get_all("Communication", "name", filters={
-					"sent_or_received": "Received",
-					"reference_doctype": email_account.append_to,
-					"unread_notification_sent": 0,
-					"email_account":email_account.name,
-					"creation": ("<", datetime.now() - timedelta(seconds = (email_account.unreplied_for_mins or 30) * 60)),
-					"creation": (">", datetime.now() - timedelta(seconds = (email_account.unreplied_for_mins or 30) * 60 * 3))
-				}):
+			for comm in frappe.get_all("Communication", "name", filters=[
+					{"sent_or_received": "Received"},
+					{"reference_doctype": email_account.append_to},
+					{"unread_notification_sent": 0},
+					{"email_account":email_account.name},
+					{"creation": ("<", datetime.now() - timedelta(seconds = (email_account.unreplied_for_mins or 30) * 60))},
+					{"creation": (">", datetime.now() - timedelta(seconds = (email_account.unreplied_for_mins or 30) * 60 * 3))}
+				]):
 				comm = frappe.get_doc("Communication", comm.name)
 
 				if frappe.db.get_value(comm.reference_doctype, comm.reference_name, "status")=="Open":
@@ -721,3 +741,7 @@ def get_max_email_uid(email_account):
 	else:
 		max_uid = cint(result[0].get("uid", 0)) + 1
 		return max_uid
+
+@frappe.whitelist()
+def get_automatic_email_link():
+	return frappe.db.get_value("Email Account", {"enable_incoming": 1, "enable_automatic_linking": 1}, "email_id")

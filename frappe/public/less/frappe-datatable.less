@@ -1,36 +1,25 @@
 @import "variables.less";
 
-.data-table {
+.datatable {
 	margin-left: -1px;
 	margin-top: -1px;
 	font-size: @text-medium;
 
-	.data-table-col .edit-cell {
-		padding: 0;
-
-		input {
-			font-size: inherit;
-			height: 27px;
-		}
-	}
-
-	.data-table-col .content {
-		padding: 0.5rem;
-	}
-
-	.frappe-control {
+	.frappe-control, .form-control {
 		margin: 0;
+		border-radius: 0px;
+		border: none;
+		background-color: transparent;
 	}
+
 	.form-group {
 		margin: 0;
 	}
-	.form-control {
-		border-radius: 0px;
-		border: none;
-	}
+
 	.link-btn {
 		top: 6px;
 	}
+
 	select {
 		height: 27px;
 	}
@@ -38,37 +27,73 @@
 	.checkbox {
 		margin: 7px 0 7px 8px;
 	}
+
 	[data-fieldtype="Color"] .control-input {
 		overflow: hidden;
 	}
+}
 
-	.body-scrollable {
-		&::-webkit-scrollbar {
-			display: none;
-		}
+.dt-scrollable {
+	max-height: calc(100vh - 250px);
+	min-height: 100px;
+}
+
+table td.dt-cell {
+	position: relative;
+}
+
+.dt-cell__edit {
+	padding: 0;
+
+	input {
+		font-size: inherit;
+		height: 27px;
+	}
+}
+
+.dt-header {
+	--dt-header-cell-bg: @panel-bg;
+	--dt-cell-bg: @panel-bg;
+	--dt-text-color: @text-muted;
+
+	.dt-row[data-is-filter] {
+		display: flex !important;
+	}
+}
+
+.dt-row {
+	height: 35px;
+}
+
+.dt-row.dt-row-totalRow {
+	font-weight: bold;
+}
+
+.dt-row.row-update {
+	animation: 500ms breathe forwards;
+}
+
+.report-action-checkbox {
+	margin: 0;
+	margin-left: 10px;
+
+	.checkbox {
+		margin: 0;
 	}
 
-	.data-table-header {
-		background-color: @panel-bg;
-		color: @text-muted;
+	.help-box {
+		display: none;
 	}
+}
 
-	.data-table-row.row-update {
-		animation: 500ms breathe forwards;
-	}
+.dt-filter {
+	border: 1px solid @light-border-color;
+	border-radius: 3px;
+	background-color: #fff;
+}
 
-	.data-table-row.row-highlight {
-		background-color: @extra-light-yellow;
-	}
-
-	.report-tree-node {
-		display: inline-block;
-
-		.toggle {
-			cursor: pointer;
-			font-size: @text-regular;
-		}
-	}
+.dt-tree-node__toggle + a {
+	margin-left: 4px;
 }
 
 @keyframes breathe {

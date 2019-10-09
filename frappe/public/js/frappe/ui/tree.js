@@ -149,12 +149,14 @@ frappe.ui.Tree = class {
 		if(!deep) {
 			frappe.run_serially([
 				() => {return this.get_nodes(value, is_root);},
-				(data_set) => { this.render_node_children(node, data_set); }
+				(data_set) => { this.render_node_children(node, data_set); },
+				() => { this.set_selected_node(node); }
 			]);
 		} else {
 			frappe.run_serially([
 				() => {return this.get_all_nodes(value, is_root);},
-				(data_list) => { this.render_children_of_all_nodes(data_list); }
+				(data_list) => { this.render_children_of_all_nodes(data_list); },
+				() => { this.set_selected_node(node); }
 			]);
 		}
 	}

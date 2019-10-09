@@ -1,6 +1,8 @@
 // Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
+import Desktop from './components/Desktop.vue';
+
 frappe.provide('frappe.views.pageview');
 frappe.provide("frappe.standard_pages");
 
@@ -14,7 +16,7 @@ frappe.views.pageview = {
 			return;
 		}
 
-		if((locals.Page && locals.Page[name]) || name==window.page_name) {
+		if((locals.Page && locals.Page[name] && locals.Page[name].script) || name==window.page_name) {
 			// already loaded
 			callback();
 		} else if(localStorage["_page:" + name] && frappe.boot.developer_mode!=1) {
@@ -39,6 +41,23 @@ frappe.views.pageview = {
 	show: function(name) {
 		if(!name) {
 			name = (frappe.boot ? frappe.boot.home_page : window.page_name);
+
+			if(name === "desktop") {
+				if(!frappe.pages.desktop) {
+					let page = frappe.container.add_page('desktop');
+					let container = $('<div class="container"></div>').appendTo(page);
+					container = $('<div></div>').appendTo(container);
+
+					new Vue({
+						el: container[0],
+						render: h => h(Desktop)
+					});
+				}
+
+				frappe.container.change_to('desktop');
+				frappe.utils.set_title(__('Home'));
+				return;
+			}
 		}
 		frappe.model.with_doctype("Page", function() {
 			frappe.views.pageview.with_page(name, function(r) {
@@ -79,10 +98,12 @@ frappe.views.Page = Class.extend({
 				this.wrapper.innerHTML = this.pagedoc.content;
 			frappe.dom.eval(this.pagedoc.__script || this.pagedoc.script || '');
 			frappe.dom.set_style(this.pagedoc.style || '');
+
+			// set breadcrumbs
+			frappe.breadcrumbs.add(this.pagedoc.module || null);
 		}
 
 		this.trigger_page_event('on_page_load');
-
 		// set events
 		$(this.wrapper).on('show', function() {
 			window.cur_frm = null;
@@ -144,3 +165,27 @@ frappe.show_message_page = function(opts) {
 
 	frappe.container.change_to(opts.page_name);
 };
+
+frappe.views.ModulesFactory = class ModulesFactory extends frappe.views.Factory {
+	show() {
+		if (frappe.pages.modules) {
+			frappe.container.change_to('modules');
+		} else {
+			this.make('modules');
+		}
+	}
+
+	make(page_name) {
+		const assets = [
+			'/assets/js/modules.min.js'
+		];
+
+		frappe.require(assets, () => {
+			frappe.modules.home = new frappe.modules.Home({
+				parent: this.make_page(true, page_name)
+			});
+		});
+	}
+};
+
+

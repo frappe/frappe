@@ -6,10 +6,41 @@ import frappe, unittest
 
 from frappe.model.db_query import DatabaseQuery
 from frappe.desk.reportview import get_filters_cond
+from frappe.permissions import add_user_permission, clear_user_permissions_for_doctype
+
+test_dependencies = ['User', 'Blog Post']
 
 class TestReportview(unittest.TestCase):
 	def test_basic(self):
 		self.assertTrue({"name":"DocType"} in DatabaseQuery("DocType").execute(limit_page_length=None))
+
+	def test_build_match_conditions(self):
+		clear_user_permissions_for_doctype('Blog Post', 'test2@example.com')
+
+		test2user = frappe.get_doc('User', 'test2@example.com')
+		test2user.add_roles('Blogger')
+		frappe.set_user('test2@example.com')
+
+		# this will get match conditions for Blog Post
+		build_match_conditions = DatabaseQuery('Blog Post').build_match_conditions
+
+		# Before any user permission is applied
+		# get as filters
+		self.assertEqual(build_match_conditions(as_condition=False), [])
+		# get as conditions
+		self.assertEqual(build_match_conditions(as_condition=True), "")
+
+		add_user_permission('Blog Post', '-test-blog-post', 'test2@example.com', True)
+		add_user_permission('Blog Post', '-test-blog-post-1', 'test2@example.com', True)
+
+		# After applying user permission
+		# get as filters
+		self.assertTrue({'Blog Post': ['-test-blog-post-1', '-test-blog-post']} in build_match_conditions(as_condition=False))
+		# get as conditions
+		self.assertEqual(build_match_conditions(as_condition=True),
+			"""(((ifnull(`tabBlog Post`.`name`, '')='' or `tabBlog Post`.`name` in ('-test-blog-post-1', '-test-blog-post'))))""")
+
+		frappe.set_user('Administrator')
 
 	def test_fields(self):
 		self.assertTrue({"name":"DocType", "issingle":0} \
@@ -117,9 +148,27 @@ class TestReportview(unittest.TestCase):
 			fields=["name", "issingle, IF(issingle=1, (SELECT name from tabUser), count(*))"],
 			limit_start=0, limit_page_length=1)
 
-		data = DatabaseQuery("DocType").execute(fields=["name", "issingle", "count(name)"],
+		self.assertRaises(frappe.DataError, DatabaseQuery("DocType").execute,
+			fields=["name", "issingle ''"],limit_start=0, limit_page_length=1)
+
+		self.assertRaises(frappe.DataError, DatabaseQuery("DocType").execute,
+			fields=["name", "issingle,'"],limit_start=0, limit_page_length=1)
+
+		self.assertRaises(frappe.DataError, DatabaseQuery("DocType").execute,
+			fields=["name", "select * from tabSessions"],limit_start=0, limit_page_length=1)
+
+		self.assertRaises(frappe.DataError, DatabaseQuery("DocType").execute,
+			fields=["name", "issingle from --"],limit_start=0, limit_page_length=1)
+
+		self.assertRaises(frappe.DataError, DatabaseQuery("DocType").execute,
+			fields=["name", "issingle from tabDocType order by 2 --"],limit_start=0, limit_page_length=1)
+
+		self.assertRaises(frappe.DataError, DatabaseQuery("DocType").execute,
+			fields=["name", "1' UNION SELECT * FROM __Auth --"],limit_start=0, limit_page_length=1)
+
+		data = DatabaseQuery("DocType").execute(fields=["count(`name`) as count"],
 			limit_start=0, limit_page_length=1)
-		self.assertTrue('count(name)' in data[0])
+		self.assertTrue('count' in data[0])
 
 		data = DatabaseQuery("DocType").execute(fields=["name", "issingle", "locate('', name) as _relevance"],
 			limit_start=0, limit_page_length=1)
@@ -129,9 +178,160 @@ class TestReportview(unittest.TestCase):
 			limit_start=0, limit_page_length=1)
 		self.assertTrue('creation' in data[0])
 
-		data = DatabaseQuery("DocType").execute(fields=["name", "issingle",
-			"datediff(modified, creation) as date_diff"], limit_start=0, limit_page_length=1)
-		self.assertTrue('date_diff' in data[0])
+		if frappe.db.db_type != 'postgres':
+			# datediff function does not exist in postgres
+			data = DatabaseQuery("DocType").execute(fields=["name", "issingle",
+				"datediff(modified, creation) as date_diff"], limit_start=0, limit_page_length=1)
+			self.assertTrue('date_diff' in data[0])
+
+	def test_nested_permission(self):
+		frappe.set_user('Administrator')
+		create_nested_doctype()
+		create_nested_doctype_records()
+		clear_user_permissions_for_doctype('Nested DocType')
+
+		# user permission for only one root folder
+		add_user_permission('Nested DocType', 'Level 1 A', 'test2@example.com')
+
+		from frappe.core.page.permission_manager.permission_manager import update
+		# to avoid if_owner filter
+		update('Nested DocType', 'All', 0, 'if_owner', 0)
+
+		frappe.set_user('test2@example.com')
+		data = DatabaseQuery('Nested DocType').execute()
+
+		# children of root folder (for which we added user permission) should be accessible
+		self.assertTrue({'name': 'Level 2 A'} in data)
+		self.assertTrue({'name': 'Level 2 A'} in data)
+
+		# other folders should not be accessible
+		self.assertFalse({'name': 'Level 1 B'} in data)
+		self.assertFalse({'name': 'Level 2 B'} in data)
+		update('Nested DocType', 'All', 0, 'if_owner', 1)
+		frappe.set_user('Administrator')
+
+	def test_filter_sanitizer(self):
+		self.assertRaises(frappe.DataError, DatabaseQuery("DocType").execute,
+				fields=["name"], filters={'istable,': 1}, limit_start=0, limit_page_length=1)
+
+		self.assertRaises(frappe.DataError, DatabaseQuery("DocType").execute,
+				fields=["name"], filters={'editable_grid,': 1}, or_filters={'istable,': 1},
+				limit_start=0, limit_page_length=1)
+
+		self.assertRaises(frappe.DataError, DatabaseQuery("DocType").execute,
+				fields=["name"], filters={'editable_grid,': 1},
+				or_filters=[['DocType', 'istable,', '=', 1]],
+				limit_start=0, limit_page_length=1)
+
+		self.assertRaises(frappe.DataError, DatabaseQuery("DocType").execute,
+				fields=["name"], filters={'editable_grid,': 1},
+				or_filters=[['DocType', 'istable', '=', 1], ['DocType', 'beta and 1=1', '=', 0]],
+				limit_start=0, limit_page_length=1)
+
+		out = DatabaseQuery("DocType").execute(fields=["name"],
+				filters={'editable_grid': 1, 'module': 'Core'},
+				or_filters=[['DocType', 'istable', '=', 1]], order_by='creation')
+		self.assertTrue('DocField' in [d['name'] for d in out])
+
+		out = DatabaseQuery("DocType").execute(fields=["name"],
+				filters={'issingle': 1}, or_filters=[['DocType', 'module', '=', 'Core']],
+				order_by='creation')
+		self.assertTrue('Role Permission for Page and Report' in [d['name'] for d in out])
+
+		out = DatabaseQuery("DocType").execute(fields=["name"],
+				filters={'track_changes': 1, 'module': 'Core'},
+				order_by='creation')
+		self.assertTrue('File' in [d['name'] for d in out])
+
+		out = DatabaseQuery("DocType").execute(fields=["name"],
+				filters=[
+					['DocType', 'ifnull(track_changes, 0)', '=', 0],
+					['DocType', 'module', '=', 'Core']
+				], order_by='creation')
+		self.assertTrue('DefaultValue' in [d['name'] for d in out])
+
+	def test_of_not_of_descendant_ancestors(self):
+		frappe.set_user('Administrator')
+		clear_user_permissions_for_doctype('Nested DocType')
+
+		# in descendants filter
+		data = frappe.get_all('Nested DocType', {'name': ('descendants of', 'Level 2 A')})
+		self.assertTrue({"name": "Level 3 A"} in data)
+
+		data = frappe.get_all('Nested DocType', {'name': ('descendants of', 'Level 1 A')})
+		self.assertTrue({"name": "Level 3 A"} in data)
+		self.assertTrue({"name": "Level 2 A"} in data)
+		self.assertFalse({"name": "Level 2 B"} in data)
+		self.assertFalse({"name": "Level 1 B"} in data)
+		self.assertFalse({"name": "Level 1 A"} in data)
+		self.assertFalse({"name": "Root"} in data)
+
+		# in ancestors of filter
+		data = frappe.get_all('Nested DocType', {'name': ('ancestors of', 'Level 2 A')})
+		self.assertFalse({"name": "Level 3 A"} in data)
+		self.assertFalse({"name": "Level 2 A"} in data)
+		self.assertFalse({"name": "Level 2 B"} in data)
+		self.assertFalse({"name": "Level 1 B"} in data)
+		self.assertTrue({"name": "Level 1 A"} in data)
+		self.assertTrue({"name": "Root"} in data)
+
+		data = frappe.get_all('Nested DocType', {'name': ('ancestors of', 'Level 1 A')})
+		self.assertFalse({"name": "Level 3 A"} in data)
+		self.assertFalse({"name": "Level 2 A"} in data)
+		self.assertFalse({"name": "Level 2 B"} in data)
+		self.assertFalse({"name": "Level 1 B"} in data)
+		self.assertFalse({"name": "Level 1 A"} in data)
+		self.assertTrue({"name": "Root"} in data)
+
+		# not descendants filter
+		data = frappe.get_all('Nested DocType', {'name': ('not descendants of', 'Level 2 A')})
+		self.assertFalse({"name": "Level 3 A"} in data)
+		self.assertTrue({"name": "Level 2 A"} in data)
+		self.assertTrue({"name": "Level 2 B"} in data)
+		self.assertTrue({"name": "Level 1 A"} in data)
+		self.assertTrue({"name": "Root"} in data)
+
+		data = frappe.get_all('Nested DocType', {'name': ('not descendants of', 'Level 1 A')})
+		self.assertFalse({"name": "Level 3 A"} in data)
+		self.assertFalse({"name": "Level 2 A"} in data)
+		self.assertTrue({"name": "Level 2 B"} in data)
+		self.assertTrue({"name": "Level 1 B"} in data)
+		self.assertTrue({"name": "Level 1 A"} in data)
+		self.assertTrue({"name": "Root"} in data)
+
+		# not ancestors of filter
+		data = frappe.get_all('Nested DocType', {'name': ('not ancestors of', 'Level 2 A')})
+		self.assertTrue({"name": "Level 3 A"} in data)
+		self.assertTrue({"name": "Level 2 A"} in data)
+		self.assertTrue({"name": "Level 2 B"} in data)
+		self.assertTrue({"name": "Level 1 B"} in data)
+		self.assertTrue({"name": "Level 1 A"} not in data)
+		self.assertTrue({"name": "Root"} not in data)
+
+		data = frappe.get_all('Nested DocType', {'name': ('not ancestors of', 'Level 1 A')})
+		self.assertTrue({"name": "Level 3 A"} in data)
+		self.assertTrue({"name": "Level 2 A"} in data)
+		self.assertTrue({"name": "Level 2 B"} in data)
+		self.assertTrue({"name": "Level 1 B"} in data)
+		self.assertTrue({"name": "Level 1 A"} in data)
+		self.assertFalse({"name": "Root"} in data)
+
+		data = frappe.get_all('Nested DocType', {'name': ('ancestors of', 'Root')})
+		self.assertTrue(len(data) == 0)
+		self.assertTrue(len(frappe.get_all('Nested DocType', {'name': ('not ancestors of', 'Root')})) == len(frappe.get_all('Nested DocType')))
+
+
+	def test_is_set_is_not_set(self):
+		res = DatabaseQuery('DocType').execute(filters={'autoname': ['is', 'not set']})
+		self.assertTrue({'name': 'Integration Request'} in res)
+		self.assertTrue({'name': 'User'} in res)
+		self.assertFalse({'name': 'Blogger'} in res)
+
+		res = DatabaseQuery('DocType').execute(filters={'autoname': ['is', 'set']})
+		self.assertTrue({'name': 'DocField'} in res)
+		self.assertTrue({'name': 'Prepared Report'} in res)
+		self.assertFalse({'name': 'Property Setter'} in res)
+
 
 def create_event(subject="_Test Event", starts_on=None):
 	""" create a test event """
@@ -146,3 +346,46 @@ def create_event(subject="_Test Event", starts_on=None):
 	}).insert(ignore_permissions=True)
 
 	return event
+
+def create_nested_doctype():
+	if frappe.db.exists('DocType', 'Nested DocType'):
+		return
+
+	frappe.get_doc({
+		'doctype': 'DocType',
+		'name': 'Nested DocType',
+		'module': 'Custom',
+		'is_tree': 1,
+		'custom': 1,
+		'autoname': 'Prompt',
+		'fields': [
+			{'label': 'Description', 'fieldname': 'description'}
+		],
+		'permissions': [
+			{'role': 'Blogger'}
+		]
+	}).insert()
+
+def create_nested_doctype_records():
+	'''
+	Create a structure like:
+	- Root
+		- Level 1 A
+			- Level 2 A
+				- Level 3 A
+		- Level 1 B
+			- Level 2 B
+	'''
+	records = [
+		{'name': 'Root', 'is_group': 1},
+		{'name': 'Level 1 A', 'parent_nested_doctype': 'Root', 'is_group': 1},
+		{'name': 'Level 2 A', 'parent_nested_doctype': 'Level 1 A', 'is_group': 1},
+		{'name': 'Level 3 A', 'parent_nested_doctype': 'Level 2 A'},
+		{'name': 'Level 1 B', 'parent_nested_doctype': 'Root', 'is_group': 1},
+		{'name': 'Level 2 B', 'parent_nested_doctype': 'Level 1 B'},
+	]
+
+	for r in records:
+		d = frappe.new_doc('Nested DocType')
+		d.update(r)
+		d.insert(ignore_permissions=True, ignore_if_duplicate=True)

@@ -8,24 +8,28 @@
 
 {% block page_content %}
 <!-- {{ for_test }} -->
+<div style='min-height: 360px'>
 <section class='for-login'>
 	<div class="login-content page-card" style="margin-top: 30px;">
 		<form class="form-signin form-login" role="form">
 			<div class="page-card-head">
-				<span class="indicator blue" data-text="{{ _("Sign In") }}"></span>
+				<span class="indicator blue" data-text="{{ _('Login') }}"></span>
 			</div>
 
 			<input type="text" id="login_email"
 				class="form-control"
-				placeholder="{% if login_name_placeholder %}{{ login_name_placeholder  }}{% else %}{{ _("Email address") }}{% endif %}"
+				placeholder="{% if login_name_placeholder %}{{ login_name_placeholder  }}{% else %}{{ _('Email Address') }}{% endif %}"
 				required autofocus>
 
+			<div class="password-field" style="position: relative;">
+				<input type="password" id="login_password"
+						class="form-control" placeholder="{{ _('Password') }}" required>
 
-			<input type="password" id="login_password"
-				class="form-control" placeholder="{{ _('Password') }}" required>
+				<span toggle="#login_password" class="fa fa-fw fa-eye toggle-password text-muted"></span>
+			</div>
 
 			<button class="btn btn-sm btn-primary btn-block btn-login" type="submit">
-				{{ _("Sign in") }}</button>
+				{{ _("Login") }}</button>
 
 			{% if ldap_settings and ldap_settings.enabled %}
 			<button class="btn btn-sm btn-default btn-block btn-login btn-ldap-login">
@@ -42,7 +46,7 @@
 				<p class="text-center" style="margin-top: 15px">
 				{% for provider in provider_logins %}
 					<a href="{{ provider.auth_url }}"
-						class="btn btn-default btn-xs btn-social btn-{{ provider.name }}">
+						class="btn btn-default btn-sm btn-social btn-{{ provider.name }}">
 							{{ provider.icon }} {{ provider.provider_name }}</a>
 				{% endfor %}
 				</p>
@@ -50,11 +54,11 @@
 			</div>
 
 	{%- if not disable_signup -%}
-		<p class="text-center">
+		<p class="text-center sign-up-message">
 			<a href="#signup" style="margin-top: -2px;">{{ _("Don't have an account? Sign up") }}</a>
 		</p>
 	{%- endif -%}
-	<p class="text-center">
+	<p class="text-center forgot-password-message">
 		<a href="#forgot">{{ _("Forgot Password?") }}</a></p>
 	</div>
 </section>
@@ -62,12 +66,12 @@
 	<div class="login-content page-card" style="margin-top: 20px;">
 	<form class="form-signin form-signup hide" role="form">
 		<div class="page-card-head">
-			<span class="indicator blue" data-text="{{ _("Sign Up") }}"></span>
+			<span class="indicator blue" data-text="{{ _('Sign Up') }}"></span>
 		</div>
 		<input type="text" id="signup_fullname"
 			class="form-control" placeholder="{{ _('Full Name') }}" required autofocus>
 		<input type="email" id="signup_email"
-			class="form-control" placeholder="{{ _('Email address') }}" required>
+			class="form-control" placeholder="{{ _('Email Address') }}" required>
 		<button class="btn btn-sm btn-primary btn-block btn-signup" type="submit">{{ _("Sign up") }}</button>
 	</form>
 	</div>
@@ -80,16 +84,17 @@
 	<div class="login-content page-card" style="margin-top: 20px;">
 	<form class="form-signin form-forgot hide" role="form">
 		<div class="page-card-head">
-			<span class="indicator blue" data-text="{{ _("Forgot Password") }}"></span></div>
+			<span class="indicator blue" data-text="{{ _('Forgot Password') }}"></span></div>
 		<input type="email" id="forgot_email"
-			class="form-control" placeholder="{{ _('Email address') }}" required autofocus>
-		<button class="btn btn-sm btn-primary btn-block btn-forgot" type="submit">{{ _("Send Password") }}</button>
+			class="form-control" placeholder="{{ _('Email Address') }}" required autofocus>
+		<button class="btn btn-sm btn-primary btn-block btn-forgot" type="submit">{{ _("Reset Password") }}</button>
 	</form>
 	</div>
 	<div class='form-footer'>
 		<a href="#login">{{ _("Back to Login") }}</a>
 	</div>
 </section>
+</div>
 {% endblock %}
 
 {% block script %}

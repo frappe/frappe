@@ -5,11 +5,10 @@ from __future__ import unicode_literals
 import frappe
 from frappe import _
 import frappe.utils
-import frappe.async
 import frappe.sessions
-import frappe.utils.file_manager
 import frappe.desk.form.run_method
 from frappe.utils.response import build_response
+from frappe.utils import cint
 from werkzeug.wrappers import Response
 from six import string_types
 
@@ -21,7 +20,8 @@ def handle():
 	if cmd!='login':
 		data = execute_cmd(cmd)
 
-	if data:
+	# data can be an empty string or list which are valid responses
+	if data is not None:
 		if isinstance(data, Response):
 			# method returns a response object, pass it on
 			return data
@@ -40,8 +40,11 @@ def execute_cmd(cmd, from_async=False):
 
 	try:
 		method = get_attr(cmd)
-	except:
-		frappe.respond_as_web_page(title='Invalid Method', html='Method not found',
+	except Exception as e:
+		if frappe.local.conf.developer_mode:
+			raise e
+		else:
+			frappe.respond_as_web_page(title='Invalid Method', html='Method not found',
 			indicator_color='red', http_status_code=404)
 		return
 
@@ -104,11 +107,22 @@ def run_custom_method(doctype, name, custom_method):
 @frappe.whitelist()
 def uploadfile():
 	ret = None
-	
+
 	try:
 		if frappe.form_dict.get('from_form'):
 			try:
-				ret = frappe.utils.file_manager.upload()
+				ret = frappe.get_doc({
+					"doctype": "File",
+					"attached_to_name": frappe.form_dict.docname,
+					"attached_to_doctype": frappe.form_dict.doctype,
+					"attached_to_field": frappe.form_dict.docfield,
+					"file_url": frappe.form_dict.file_url,
+					"file_name": frappe.form_dict.filename,
+					"is_private": frappe.utils.cint(frappe.form_dict.is_private),
+					"content": frappe.form_dict.filedata,
+					"decode": True
+				})
+				ret.save()
 			except frappe.DuplicateEntryError:
 				# ignore pass
 				ret = None
@@ -124,6 +138,60 @@ def uploadfile():
 		ret = None
 
 	return ret
+
+@frappe.whitelist(allow_guest=True)
+def upload_file():
+	if frappe.session.user == 'Guest':
+		if frappe.get_system_settings('allow_guests_to_upload_files'):
+			ignore_permissions = True
+		else:
+			return
+	else:
+		ignore_permissions = False
+
+	files = frappe.request.files
+	is_private = frappe.form_dict.is_private
+	doctype = frappe.form_dict.doctype
+	docname = frappe.form_dict.docname
+	fieldname = frappe.form_dict.fieldname
+	file_url = frappe.form_dict.file_url
+	folder = frappe.form_dict.folder or 'Home'
+	method = frappe.form_dict.method
+	content = None
+	filename = None
+
+	if 'file' in files:
+		file = files['file']
+		content = file.stream.read()
+		filename = file.filename
+
+	frappe.local.uploaded_file = content
+	frappe.local.uploaded_filename = filename
+
+	if frappe.session.user == 'Guest':
+		import mimetypes
+		filetype = mimetypes.guess_type(filename)[0]
+		if filetype not in ['image/png', 'image/jpeg', 'application/pdf']:
+			frappe.throw("You can only upload JPG, PNG or PDF files.")
+
+	if method:
+		method = frappe.get_attr(method)
+		is_whitelisted(method)
+		return method()
+	else:
+		ret = frappe.get_doc({
+			"doctype": "File",
+			"attached_to_doctype": doctype,
+			"attached_to_name": docname,
+			"attached_to_field": fieldname,
+			"folder": folder,
+			"file_name": filename,
+			"file_url": file_url,
+			"is_private": cint(is_private),
+			"content": content
+		})
+		ret.save(ignore_permissions=ignore_permissions)
+		return ret
 
 
 def get_attr(cmd):

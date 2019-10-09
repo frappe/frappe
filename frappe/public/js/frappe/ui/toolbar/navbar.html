@@ -4,20 +4,15 @@
 			<a class="navbar-brand toggle-sidebar visible-xs visible-sm">
 				<i class="octicon octicon-three-bars"></i>
 			</a>
-			<a class="navbar-brand navbar-home hidden-xs hidden-sm" href="#">Home</a>
+			<a class="navbar-brand navbar-home hidden-xs hidden-sm" href="#">
+				<img class="app-logo" src="{{ frappe.app.logo_url }}">
+			</a>
 			<ul class="nav navbar-nav" id="navbar-breadcrumbs">
 			</ul>
 		</div>
 		<div class="navbar-center ellipsis" style="display: none;"></div>
 
 		<ul class="nav navbar-nav navbar-right">
-			<li class="user-progress hide" title="Your Setup Progress">
-				<a class="dropdown-toggle" data-toggle="dropdown" href="#" onclick="return false;"  style="height: 40px;">
-					<div class="progress-chart" style"width: 50px; margin-top: 8px;"><div class="progress">
-						<div class="progress-bar"></div>
-					</div></div>
-				</a>
-			</li>
 			<li class="visible-xs">
 				<a class="navbar-search-button" href="#" data-toggle="modal" data-target="#search-modal"><i class="octicon octicon-search"></i></a>
 			</li>
@@ -25,18 +20,24 @@
 				<a class="dropdown-toggle" data-toggle="dropdown" href="#"
 					onclick="return false;">
 				{{ avatar }}
-                <span class="ellipsis toolbar-user-fullname hidden-xs hidden-sm">
-					{%= frappe.user.full_name() %}</span>
-                <b class="caret hidden-xs hidden-sm"></b></a>
+				<span class="ellipsis toolbar-user-fullname hidden-xs hidden-sm">
+					{%= __("Settings") %}</span>
+				<b class="caret hidden-xs hidden-sm"></b></a>
 				<ul class="dropdown-menu" id="toolbar-user" role="menu">
-					<li class="navbar-set-desktop-icons"><a>
-					    {%= __("Set Desktop Icons") %}</a></li>
+					<li><a href="#user-profile">
+						{%= __("My Profile") %}</a></li>
 					<li><a href="#Form/User/{%= encodeURIComponent(frappe.session.user) %}">
-					    {%= __("My Settings") %}</a></li>
-					<li><a href="#" onclick="return frappe.ui.toolbar.clear_cache();">
-					    {%= __("Reload") %}</a></li>
+						{%= __("My Settings") %}</a></li>
+					<li><a href="#" onclick="return frappe.ui.toolbar.setup_session_defaults();">
+							{%= __("Session Defaults") %}</a></li>
+					<li class="navbar-reload">
+						<a href="#" onclick="return frappe.ui.toolbar.clear_cache();">
+						{%= __("Reload") %}</a></li>
 					<li><a href="/index" target="_blank" rel="noopener noreferrer">
 						{%= __("View Website") %}</a></li>
+					<li class="navbar-toggle-full-width">
+						<a href="#" onclick="return false">{%= __("Toggle Full Width") %}</a>
+					</li>
 					<li><a href="#background_jobs">
 						{%= __("Background Jobs") %}</a></li>
 					<li class="divider"></li>
@@ -52,20 +53,14 @@
 					<span class="visible-xs visible-sm standard-image"
 						style="padding: 50% 7px; font-size: 17px; background-color: #fafbfc; font-weight: 100;">?</span>
 				</a>
-				<ul class="dropdown-menu" role="menu">
-					<div class="input-group" style="border-bottom: 1px solid #d1d8dd;">
-						<input id="input-help" type="text" placeholder="{{ __("What do you need help with?") }}" autofocus>
-						<span class="input-group-btn"><button class="btn btn-default">{{ __("Go") }}</button></span>
-					</div>
+				<ul class="dropdown-menu" id="toolbar-help" role="menu">
 					<li id="help-links"></li>
 					<li class="divider"></li>
-					<li>
-						<a data-link-type="documentation"
-							data-path="/documentation/index" target="_blank" rel="noopener noreferrer">{{ __("Documentation") }}</a>
-					</li>
 					<li class="divider documentation-links"></li>
 					<li><a href="#" onclick="return frappe.ui.toolbar.show_about();">
 						{%= __("About") %}</a></li>
+					<li><a href="#" onclick="return frappe.ui.toolbar.show_shortcuts(event);">
+						{%= __("Keyboard Shortcuts") %}</a></li>
 				</ul>
 			</li>
 
@@ -74,11 +69,37 @@
 			<li class="frappe-chat-dropdown"></li>
 			<!-- end frappe.chat -->
 
+			<li class="dropdown dropdown-energy-points dropdown-mobile">
+				<span class="energy-points-notification"><i class="fa fa-circle"></i></span>
+				<a
+					class="dropdown-toggle energy-points-icon"
+					data-toggle="dropdown"
+					aria-haspopup="true"
+					aria-expanded="true"
+					href="#"
+					onclick="return false;">
+					<span><i class="fa fa-trophy"></i></span>
+				</a>
+				<ul
+					class="dropdown-menu recent-points-list"
+					role="menu">
+				</ul>
+			</li>
+
 			<li class="dropdown dropdown-navbar-new-comments dropdown-mobile">
-				<a class="btn dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+				<a
+					class="btn dropdown-toggle"
+					data-toggle="dropdown"
+					aria-haspopup="true"
+					aria-expanded="true"
+					href="#"
+					onclick="return false;">
 					<span class="navbar-new-comments">0</span>
 				</a>
-				<ul class="dropdown-menu" id="dropdown-notification" role="menu" style="max-height: 480px; overflow-y: auto;">
+				<ul
+					class="dropdown-menu"
+					id="dropdown-notification"
+					role="menu">
 				</ul>
 			</li>
 		</ul>
@@ -91,7 +112,7 @@
 							<div class="input-group" style="width: 100%">
 								<input id="modal-search" type="text" class="form-control"
 								placeholder="{%= __("Search or type a command") %}" aria-haspopup="true">
-								<button type="reset" class="close"><i class="octicon octicon-x"></i></button>
+								<button type="reset" class="close" data-dismiss="modal"><i class="octicon octicon-x"></i></button>
 							</div>
 						</form>
 					</div>
@@ -100,13 +121,13 @@
 		</div>
 
 		<div class="hidden-xs">
-	        <form class="navbar-form navbar-right" role="search" onsubmit="return false;">
-	          <div class="form-group form-group-sm ui-front">
-	            <input id="navbar-search" type="text" class="form-control"
+			<form class="navbar-form navbar-right" role="search" onsubmit="return false;">
+			  <div class="form-group form-group-sm ui-front">
+				<input id="navbar-search" type="text" class="form-control"
 					placeholder="{%= __("Search or type a command") %} {%= __("(Ctrl + G)") %}" aria-haspopup="true">
 				<span class="octicon octicon-search navbar-search-icon"></span>
-	          </div>
-	        </form>
+			  </div>
+			</form>
 		</div>
 	</div>
 </div>

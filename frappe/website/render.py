@@ -15,6 +15,7 @@ from werkzeug.routing import Map, Rule, NotFound
 from werkzeug.wsgi import wrap_file
 
 from frappe.website.context import get_context
+from frappe.website.redirect import resolve_redirect
 from frappe.website.utils import (get_home_page, can_cache, delete_page_cache,
 	get_toc, get_next_link)
 from frappe.website.router import clear_sitemap
@@ -26,54 +27,64 @@ def render(path=None, http_status_code=None):
 	"""render html page"""
 	if not path:
 		path = frappe.local.request.path
-	path = resolve_path(path.strip('/ '))
-	data = None
 
-	# if in list of already known 404s, send it
-	if can_cache() and frappe.cache().hget('website_404', frappe.request.url):
-		data = render_page('404')
-		http_status_code = 404
-	elif is_static_file(path):
-		return get_static_file_response()
-	else:
-		try:
-			data = render_page_by_language(path)
-		except frappe.DoesNotExistError as e:
-			doctype, name = get_doctype_from_path(path)
-			if doctype and name:
-				path = "printview"
-				frappe.local.form_dict.doctype = doctype
-				frappe.local.form_dict.name = name
-			elif doctype:
-				path = "list"
-				frappe.local.form_dict.doctype = doctype
-			else:
-				# 404s are expensive, cache them!
-				frappe.cache().hset('website_404', frappe.request.url, True)
-				data = render_page('404')
-				http_status_code = 404
+	try:
+		path = path.strip('/ ')
+		raise_if_disabled(path)
+		resolve_redirect(path)
+		path = resolve_path(path)
+		data = None
 
-			if not data:
-				try:
-					data = render_page(path)
-				except frappe.PermissionError as e:
-					data, http_status_code = render_403(e, path)
+		# if in list of already known 404s, send it
+		if can_cache() and frappe.cache().hget('website_404', frappe.request.url):
+			data = render_page('404')
+			http_status_code = 404
+		elif is_static_file(path):
+			return get_static_file_response()
+		elif is_web_form(path):
+			data = render_web_form(path)
+		else:
+			try:
+				data = render_page_by_language(path)
+			except frappe.DoesNotExistError:
+				doctype, name = get_doctype_from_path(path)
+				if doctype and name:
+					path = "printview"
+					frappe.local.form_dict.doctype = doctype
+					frappe.local.form_dict.name = name
+				elif doctype:
+					path = "list"
+					frappe.local.form_dict.doctype = doctype
+				else:
+					# 404s are expensive, cache them!
+					frappe.cache().hset('website_404', frappe.request.url, True)
+					data = render_page('404')
+					http_status_code = 404
 
-		except frappe.PermissionError as e:
-			data, http_status_code = render_403(e, path)
+				if not data:
+					try:
+						data = render_page(path)
+					except frappe.PermissionError as e:
+						data, http_status_code = render_403(e, path)
 
-		except frappe.Redirect as e:
-			return build_response(path, "", 301, {
-				"Location": frappe.flags.redirect_location or (frappe.local.response or {}).get('location'),
-				"Cache-Control": "no-store, no-cache, must-revalidate"
-			})
+			except frappe.PermissionError as e:
+				data, http_status_code = render_403(e, path)
 
-		except Exception:
-			path = "error"
-			data = render_page(path)
-			http_status_code = 500
+			except frappe.Redirect as e:
+				raise e
 
-	data = add_csrf_token(data)
+			except Exception:
+				path = "error"
+				data = render_page(path)
+				http_status_code = 500
+
+		data = add_csrf_token(data)
+
+	except frappe.Redirect:
+		return build_response(path, "", 301, {
+			"Location": frappe.flags.redirect_location or (frappe.local.response or {}).get('location'),
+			"Cache-Control": "no-store, no-cache, must-revalidate"
+		})
 
 	return build_response(path, data, http_status_code or 200)
 
@@ -91,6 +102,13 @@ def is_static_file(path):
 			return True
 
 	return False
+
+def is_web_form(path):
+	return bool(frappe.get_all("Web Form", filters={'route': path}))
+
+def render_web_form(path):
+	data = render_page(path)
+	return data
 
 def get_static_file_response():
 	try:
@@ -168,14 +186,15 @@ def build_page(path):
 		frappe.local.path = path
 
 	context = get_context(path)
-	if context.title and "{{" in cstr(context.title):
-		title_template = context.pop('title')
-		context.title = frappe.render_template(title_template, context)
 
 	if context.source:
 		html = frappe.render_template(context.source, context)
+
 	elif context.template:
-		html = frappe.get_template(context.template).render(context)
+		if path.endswith('min.js'):
+			html = frappe.get_jloader().get_source(frappe.get_jenv(), context.template)[0]
+		else:
+			html = frappe.get_template(context.template).render(context)
 
 	if '{index}' in html:
 		html = html.replace('{index}', get_toc(context.route))
@@ -212,7 +231,9 @@ def resolve_path(path):
 def resolve_from_map(path):
 	m = Map([Rule(r["from_route"], endpoint=r["to_route"], defaults=r.get("defaults"))
 		for r in get_website_rules()])
-	urls = m.bind_to_environ(frappe.local.request.environ)
+
+	if frappe.local.request:
+		urls = m.bind_to_environ(frappe.local.request.environ)
 	try:
 		endpoint, args = urls.match("/" + path)
 		path = endpoint
@@ -264,13 +285,17 @@ def clear_cache(path=None):
 	for key in ('website_generator_routes', 'website_pages',
 		'website_full_index'):
 		frappe.cache().delete_value(key)
-	delete_page_cache(path)
+
 	frappe.cache().delete_value("website_404")
-	if not path:
+	if path:
+		frappe.cache().hdel('website_redirects', path)
+		delete_page_cache(path)
+	else:
 		clear_sitemap()
 		frappe.clear_cache("Guest")
 		for key in ('portal_menu_items', 'home_page', 'website_route_rules',
-			'doctypes_with_web_view'):
+			'doctypes_with_web_view', 'website_redirects', 'page_context',
+			'website_page'):
 			frappe.cache().delete_value(key)
 
 	for method in frappe.get_hooks("website_clear_cache"):
@@ -311,3 +336,17 @@ def add_csrf_token(data):
 				frappe.local.session.data.csrf_token))
 	else:
 		return data
+
+def raise_if_disabled(path):
+	routes = frappe.db.get_all('Portal Menu Item',
+		fields=['route', 'enabled'],
+		filters={
+			'enabled': 0,
+			'route': ['like', '%{0}'.format(path)]
+		}
+	)
+
+	for r in routes:
+		_path = r.route.lstrip('/')
+		if path == _path and not r.enabled:
+			raise frappe.PermissionError

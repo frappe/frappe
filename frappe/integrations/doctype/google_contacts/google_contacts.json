@@ -1,0 +1,132 @@
+{
+ "autoname": "format:GC-{email_id}",
+ "creation": "2019-06-14 00:09:39.441961",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "enable",
+  "sb_00",
+  "email_id",
+  "authorize_google_contacts_access",
+  "cb_00",
+  "last_sync_on",
+  "authorization_code",
+  "refresh_token",
+  "next_sync_token",
+  "sync",
+  "pull_from_google_contacts",
+  "column_break_12",
+  "push_to_google_contacts"
+ ],
+ "fields": [
+  {
+   "default": "0",
+   "fieldname": "enable",
+   "fieldtype": "Check",
+   "label": "Enable"
+  },
+  {
+   "fieldname": "authorization_code",
+   "fieldtype": "Password",
+   "hidden": 1,
+   "label": "Authorization Code"
+  },
+  {
+   "fieldname": "refresh_token",
+   "fieldtype": "Password",
+   "hidden": 1,
+   "label": "Refresh Token"
+  },
+  {
+   "fieldname": "last_sync_on",
+   "fieldtype": "Datetime",
+   "label": "Last Sync On",
+   "read_only": 1
+  },
+  {
+   "description": "Email Address whose Google Contacts are to be synced.",
+   "fieldname": "email_id",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Email Address",
+   "options": "Email",
+   "reqd": 1
+  },
+  {
+   "depends_on": "enable",
+   "fieldname": "sb_00",
+   "fieldtype": "Section Break",
+   "label": "Google Contacts"
+  },
+  {
+   "fieldname": "cb_00",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "eval:!doc.__islocal",
+   "fieldname": "authorize_google_contacts_access",
+   "fieldtype": "Button",
+   "label": "Authorize Google Contacts Access"
+  },
+  {
+   "fieldname": "next_sync_token",
+   "fieldtype": "Password",
+   "hidden": 1,
+   "label": "Next Sync Token"
+  },
+  {
+   "depends_on": "enable",
+   "fieldname": "sync",
+   "fieldtype": "Section Break",
+   "label": "Sync"
+  },
+  {
+   "default": "0",
+   "fieldname": "pull_from_google_contacts",
+   "fieldtype": "Check",
+   "label": "Pull from Google Contacts"
+  },
+  {
+   "fieldname": "column_break_12",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "push_to_google_contacts",
+   "fieldtype": "Check",
+   "label": "Push to Google Contacts"
+  }
+ ],
+ "modified": "2019-09-13 15:53:19.569924",
+ "modified_by": "himanshu@erpnext.com",
+ "module": "Integrations",
+ "name": "Google Contacts",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "All",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "ASC",
+ "track_changes": 1
+}

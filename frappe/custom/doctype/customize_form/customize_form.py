@@ -11,8 +11,9 @@ import frappe.translate
 from frappe import _
 from frappe.utils import cint
 from frappe.model.document import Document
-from frappe.model import no_value_fields
+from frappe.model import no_value_fields, core_doctypes_list
 from frappe.core.doctype.doctype.doctype import validate_fields_for_doctype
+from frappe.custom.doctype.custom_field.custom_field import create_custom_field
 from frappe.model.docfield import supports_translation
 
 doctype_properties = {
@@ -22,14 +23,14 @@ doctype_properties = {
 	'sort_field': 'Data',
 	'sort_order': 'Data',
 	'default_print_format': 'Data',
-	'read_only_onload': 'Check',
 	'allow_copy': 'Check',
 	'istable': 'Check',
 	'quick_entry': 'Check',
 	'editable_grid': 'Check',
 	'max_attachments': 'Int',
-	'image_view': 'Check',
 	'track_changes': 'Check',
+	'track_views': 'Check',
+	'allow_auto_repeat': 'Check'
 }
 
 docfield_properties = {
@@ -37,6 +38,8 @@ docfield_properties = {
 	'label': 'Data',
 	'fieldtype': 'Select',
 	'options': 'Text',
+	'fetch_from': 'Small Text',
+	'fetch_if_empty': 'Check',
 	'permlevel': 'Int',
 	'width': 'Data',
 	'print_width': 'Data',
@@ -64,11 +67,12 @@ docfield_properties = {
 	'columns': 'Int',
 	'remember_last_selected_value': 'Check',
 	'allow_bulk_edit': 'Check',
+	'auto_repeat': 'Link'
 }
 
 allowed_fieldtype_change = (('Currency', 'Float', 'Percent'), ('Small Text', 'Data'),
-	('Text', 'Data'), ('Text', 'Text Editor', 'Code', 'Signature'), ('Data', 'Select'),
-	('Text', 'Small Text'), ('Text', 'Data', 'Barcode'), ('Code', 'Geolocation'))
+	('Text', 'Data'), ('Text', 'Text Editor', 'Code', 'Signature', 'HTML Editor'), ('Data', 'Select'),
+	('Text', 'Small Text'), ('Text', 'Data', 'Barcode'), ('Code', 'Geolocation'), ('Table', 'Table MultiSelect'))
 
 allowed_fieldtype_for_options_change = ('Read Only', 'HTML', 'Select', 'Data')
 
@@ -84,6 +88,15 @@ class CustomizeForm(Document):
 
 		meta = frappe.get_meta(self.doc_type)
 
+		if self.doc_type in core_doctypes_list:
+			return frappe.msgprint(_("Core DocTypes cannot be customized."))
+
+		if meta.issingle:
+			return frappe.msgprint(_("Single DocTypes cannot be customized."))
+
+		if meta.custom:
+			return frappe.msgprint(_("Only standard DocTypes are allowed to be customized from Customize Form."))
+
 		# doctype properties
 		for property in doctype_properties:
 			self.set(property, meta.get(property))
@@ -97,6 +110,13 @@ class CustomizeForm(Document):
 		# load custom translation
 		translation = self.get_name_translation()
 		self.label = translation.target_name if translation else ''
+
+		#If allow_auto_repeat is set, add auto_repeat custom field.
+		if self.allow_auto_repeat:
+			if not frappe.db.exists('Custom Field', {'fieldname': 'auto_repeat', 'dt': self.doc_type}):
+				insert_after = self.fields[len(self.fields) - 1].fieldname
+				df = dict(fieldname='auto_repeat', label='Auto Repeat', fieldtype='Link', options='Auto Repeat', insert_after=insert_after, read_only=1, no_copy=1, print_hide=1)
+				create_custom_field(self.doc_type, df)
 
 		# NOTE doc is sent to clientside by run_method
 
@@ -141,6 +161,7 @@ class CustomizeForm(Document):
 			return
 
 		self.flags.update_db = False
+		self.flags.rebuild_doctype_for_global_search = False
 
 		self.set_property_setters()
 		self.update_custom_fields()
@@ -148,13 +169,16 @@ class CustomizeForm(Document):
 		validate_fields_for_doctype(self.doc_type)
 
 		if self.flags.update_db:
-			from frappe.model.db_schema import updatedb
-			updatedb(self.doc_type)
+			frappe.db.updatedb(self.doc_type)
 
 		if not hasattr(self, 'hide_success') or not self.hide_success:
-			frappe.msgprint(_("{0} updated").format(_(self.doc_type)))
+			frappe.msgprint(_("{0} updated").format(_(self.doc_type)), alert=True)
 		frappe.clear_cache(doctype=self.doc_type)
 		self.fetch_to_customize()
+
+		if self.flags.rebuild_doctype_for_global_search:
+			frappe.enqueue('frappe.utils.global_search.rebuild_for_doctype',
+				now=True, doctype=self.doc_type)
 
 	def set_property_setters(self):
 		meta = frappe.get_meta(self.doc_type)
@@ -182,7 +206,7 @@ class CustomizeForm(Document):
 						continue
 
 					elif property == "reqd" and \
-						((frappe.db.get_value("DocField", 
+						((frappe.db.get_value("DocField",
 							{"parent":self.doc_type,"fieldname":df.fieldname}, "reqd") == 1) \
 							and (df.get(property) == 0)):
 						frappe.msgprint(_("Row {0}: Not allowed to disable Mandatory for standard fields")\
@@ -215,6 +239,10 @@ class CustomizeForm(Document):
 					elif property == 'translatable' and not supports_translation(df.get('fieldtype')):
 						frappe.msgprint(_("You can't set 'Translatable' for field {0}").format(df.label))
 						continue
+
+					elif (property == 'in_global_search' and
+						df.in_global_search != meta_df[0].get("in_global_search")):
+						self.flags.rebuild_doctype_for_global_search = True
 
 					self.make_property_setter(property=property, value=df.get(property),
 						property_type=docfield_properties[property], fieldname=df.fieldname)
@@ -321,7 +349,7 @@ class CustomizeForm(Document):
 			try:
 				property_value = frappe.db.get_value("DocType", self.doc_type, property_name)
 			except Exception as e:
-				if e.args[0]==1054:
+				if frappe.db.is_column_missing(e):
 					property_value = None
 				else:
 					raise
@@ -341,7 +369,8 @@ class CustomizeForm(Document):
 		if not self.doc_type:
 			return
 
-		frappe.db.sql("""delete from `tabProperty Setter` where doc_type=%s
-			and !(`field_name`='naming_series' and `property`='options')""", self.doc_type)
+		frappe.db.sql("""DELETE FROM `tabProperty Setter` WHERE doc_type=%s
+			and `field_name`!='naming_series'
+			and `property`!='options'""", self.doc_type)
 		frappe.clear_cache(doctype=self.doc_type)
 		self.fetch_to_customize()

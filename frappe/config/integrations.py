@@ -42,6 +42,11 @@ def get_data():
 					"name": "S3 Backup Settings",
 					"description": _("S3 Backup Settings"),
 				},
+				{
+					"type": "doctype",
+					"name": "Google Drive",
+					"description": _("Google Drive Backup."),
+				}
 			]
 		},
 		{
@@ -70,32 +75,42 @@ def get_data():
 			]
 		},
 		{
-			"label": _("External Documents"),
+			"label": _("Webhook"),
 			"items": [
-				{
-					"type": "doctype",
-					"name": "GSuite Settings",
-					"description": _("Enter keys to enable integration with Google GSuite"),
-				},
-				{
-					"type": "doctype",
-					"name": "GSuite Templates",
-					"description": _("Google GSuite Templates to integration with DocTypes"),
-				},
 				{
 					"type": "doctype",
 					"name": "Webhook",
 					"description": _("Webhooks calling API requests into web apps"),
-				}
+				},
+				{
+					"type": "doctype",
+					"name": "Slack Webhook URL",
+					"description": _("Slack Webhooks for internal integration"),
+				},
 			]
 		},
 		{
-			"label": _("Maps"),
+			"label": _("Google Services"),
 			"items": [
 				{
 					"type": "doctype",
-					"name": "Google Maps",
-					"description": _("Google Maps integration"),
+					"name": "Google Settings",
+					"description": _("Google API Settings."),
+				},
+				{
+					"type": "doctype",
+					"name": "Google Contacts",
+					"description": _("Google Contacts Integration."),
+				},
+				{
+					"type": "doctype",
+					"name": "Google Calendar",
+					"description": _("Google Calendar Integration."),
+				},
+				{
+					"type": "doctype",
+					"name": "Google Drive",
+					"description": _("Google Drive Integration."),
 				}
 			]
 		}

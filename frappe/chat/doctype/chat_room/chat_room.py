@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 # imports - standard imports
 import json
 
@@ -33,7 +35,7 @@ def is_direct(owner, other, bidirectional = False):
 	exists = len(get_room(owner, other)) == 1
 	if bidirectional:
 		exists = exists or len(get_room(other, owner)) == 1
-	
+
 	return exists
 
 def get_chat_room_user_set(users, filter_ = None):
@@ -56,39 +58,34 @@ class ChatRoom(Document):
 
 		if self.type == "Direct":
 			if len(self.users) != 1:
-				frappe.throw(_('{type} room must have atmost one user.'.format(type = self.type)))
+				frappe.throw(_('{0} room must have atmost one user.').format(self.type))
 
 			other = squashify(self.users)
 
 			if self.is_new():
 				if is_direct(self.owner, other.user, bidirectional = True):
-					frappe.throw(_('Direct room with {other} already exists.'.format(
-						other = other.user
-					)))
+					frappe.throw(_('Direct room with {0} already exists.').format(other.user))
 
 		if self.type == "Group" and not self.room_name:
 			frappe.throw(_('Group name cannot be empty.'))
-	
-	def before_save(self):
-		if not self.is_new():
-			self.get_doc_before_save()
 
 	def on_update(self):
 		if not self.is_new():
 			before = self.get_doc_before_save()
-			after  = self
+			if not before: return
 
+			after  = self
 			diff   = dictify(get_diff(before, after))
 			if diff:
 				update = { }
 				for changed in diff.changed:
 					field, old, new = changed
-					
+
 					if field == 'last_message':
 						new = chat_message.get(new)
 
 					update.update({ field: new })
-				
+
 				if diff.added or diff.removed:
 					update.update(dict(users = [u.user for u in self.users]))
 
@@ -121,7 +118,7 @@ def get(user, rooms = None, fields = None, filters = None):
 
 	default = ['name', 'type', 'room_name', 'creation', 'owner', 'avatar']
 	handle  = ['users', 'last_message']
-	
+
 	param   = [f for f in fields if f not in handle]
 
 	rooms   = frappe.get_all('Chat Room',
@@ -151,7 +148,7 @@ def get(user, rooms = None, fields = None, filters = None):
 				rooms[i]['last_message'] = None
 
 	rooms = squashify(dictify(rooms))
-	
+
 	return rooms
 
 @frappe.whitelist(allow_guest = True)
@@ -177,7 +174,7 @@ def create(kind, owner, users = None, name = None):
 		room.type 	   = kind
 		room.owner	   = owner
 		room.room_name = name
-		
+
 	dusers = [ ]
 
 	if kind != 'Visitor':
@@ -197,8 +194,11 @@ def create(kind, owner, users = None, name = None):
 
 		for user in dsettings.chat_operators:
 			if user.user not in users:
-				room.append('users', user)
-			
+				# appending user to room.users will remove the user from chat_operators
+				# this is undesirable, create a new Chat Room User instead
+				chat_room_user = {"doctype": "Chat Room User", "user": user.user}
+				room.append('users', chat_room_user)
+
 	room.save(ignore_permissions = True)
 
 	room  = get(owner, rooms = room.name)
@@ -218,5 +218,5 @@ def history(room, user, fields = None, limit = 10, start = None, end = None):
 
 	mess   = chat_message.history(room, limit = limit, start = start, end = end)
 	mess   = squashify(mess)
-	
+
 	return dictify(mess)

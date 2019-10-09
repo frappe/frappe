@@ -1,0 +1,21 @@
+{% extends "templates/web.html" %}
+
+{% block title %}{{ _("Connection Success") }}{% endblock %}
+
+{%- block page_content -%}
+<div class='page-card'>
+	<div class='page-card-head'>
+		<span class='indicator green'>
+			{{ _("Success") }}</span>
+	</div>
+	<p>{{ _("Your connection request to Google Calendar was successfully accepted") }}</p>
+	<div><a href='{{ "/desk" }}' class='btn btn-primary btn-sm'>
+		{{ _("Back to Desk") }}</a></div>
+</div>
+<style>
+.hero-and-content {
+	background-color: #f5f7fa;
+}
+{% include "templates/styles/card_style.css" %}
+</style>
+{% endblock %}

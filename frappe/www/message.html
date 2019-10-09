@@ -4,9 +4,7 @@
 
 {% block page_content %}
 <style>
-.hero-and-content {
-	background-color: #f5f7fa;
-}
+{% include "templates/styles/card_style.css" %}
 {% if fullpage %}
 header, footer {
 	display: none;
@@ -22,15 +20,19 @@ html, body {
 {% endif %}
 </style>
 <div class='page-card'>
-	<div class='page-card-head'>
+	<h5 class='page-card-head'>
 		<span class='indicator {{ indicator_color or "blue" }}'>
 			{{ title or _("Message") }}</span>
+	</h5>
+	<div class="page-card-body">
+	{% block message_body %}
+		<p>{{ message or "" }}</p>
+		{% if primary_action %}
+		<div><a href='{{ primary_action or "/" }}' class='btn btn-primary btn-sm'>
+			{{ primary_label or _("Home") }}</a></div>
+		{% endif %}
+	{% endblock %}
 	</div>
-	<p>{{ message or "" }}</p>
-	{% if primary_action %}
-	<div><a href='{{ primary_action or "/" }}' class='btn btn-primary btn-sm'>
-		{{ primary_label or _("Home") }}</a></div>
-	{% endif %}
 </div>
 {% if error_code %}
 <p class='text-muted text-center small' style='margin-top: -20px;'>{{ _("Status: {0}").format(error_code) }}</p>
@@ -40,7 +42,7 @@ html, body {
 		if(window.location.hash) {
 			localStorage.setItem('session_last_route', window.location.hash.substr(1));
 		}
-		
+
 		$('.btn-primary').focus();
 	});
 </script>

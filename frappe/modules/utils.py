@@ -8,6 +8,7 @@ from __future__ import unicode_literals, print_function
 import frappe, os, json
 import frappe.utils
 from frappe import _
+from frappe.utils import cint
 
 def export_module_json(doc, is_standard, module):
 	"""Make a folder for the given doc and add its json file (make it a standard
@@ -39,11 +40,15 @@ def get_doc_module(module, doctype, name):
 def export_customizations(module, doctype, sync_on_migrate=0, with_permissions=0):
 	"""Export Custom Field and Property Setter for the current document to the app folder.
 		This will be synced with bench migrate"""
+
+	sync_on_migrate = cint(sync_on_migrate)
+	with_permissions = cint(with_permissions)
+
 	if not frappe.get_conf().developer_mode:
 		raise Exception('Not developer mode')
 
 	custom = {'custom_fields': [], 'property_setters': [], 'custom_perms': [],
-		'doctype': doctype, 'sync_on_migrate': 1}
+		'doctype': doctype, 'sync_on_migrate': sync_on_migrate}
 
 	def add(_doctype):
 		custom['custom_fields'] += frappe.get_all('Custom Field',
@@ -83,12 +88,10 @@ def sync_customizations(app=None):
 	for app_name in apps:
 		for module_name in frappe.local.app_modules.get(app_name) or []:
 			folder = frappe.get_app_path(app_name, module_name, 'custom')
-
 			if os.path.exists(folder):
 				for fname in os.listdir(folder):
 					with open(os.path.join(folder, fname), 'r') as f:
 						data = json.loads(f.read())
-
 					if data.get('sync_on_migrate'):
 						sync_customizations_for_doctype(data, folder)
 
@@ -105,13 +108,30 @@ def sync_customizations_for_doctype(data, folder):
 
 		# sync single doctype exculding the child doctype
 		def sync_single_doctype(doc_type):
-			frappe.db.sql('delete from `tab{0}` where `{1}` =%s'.format(
-				custom_doctype, doctype_fieldname), doc_type)
-			for d in data[key]:
-				if d.get(doctype_fieldname) == doc_type:
-					d['doctype'] = custom_doctype
-					doc = frappe.get_doc(d)
+			def _insert(data):
+				if data.get(doctype_fieldname) == doc_type:
+					data['doctype'] = custom_doctype
+					doc = frappe.get_doc(data)
 					doc.db_insert()
+
+			if custom_doctype != 'Custom Field':
+				frappe.db.sql('delete from `tab{0}` where `{1}` =%s'.format(
+					custom_doctype, doctype_fieldname), doc_type)
+
+				for d in data[key]:
+					_insert(d)
+
+			else:
+				for d in data[key]:
+					field = frappe.db.get_value("Custom Field", {"dt": doc_type, "fieldname": d["fieldname"]})
+					if not field:
+						d["owner"] = "Administrator"
+						_insert(d)
+					else:
+						custom_field = frappe.get_doc("Custom Field", field)
+						custom_field.flags.ignore_validate = True
+						custom_field.update(d)
+						custom_field.db_update()
 
 		for doc_type in doctypes:
 			# only sync the parent doctype and child doctype if there isn't any other child table json file
@@ -132,8 +152,7 @@ def sync_customizations_for_doctype(data, folder):
 	validate_fields_for_doctype(doctype)
 
 	if update_schema and not frappe.db.get_value('DocType', doctype, 'issingle'):
-		from frappe.model.db_schema import updatedb
-		updatedb(doctype)
+		frappe.db.updatedb(doctype)
 
 def scrub(txt):
 	return frappe.scrub(txt)
@@ -221,6 +240,12 @@ def make_boilerplate(template, doc, opts=None):
 		if not opts:
 			opts = {}
 
+		base_class = 'Document'
+		base_class_import = 'from frappe.model.document import Document'
+		if doc.get('is_tree'):
+			base_class = 'NestedSet'
+			base_class_import = 'from frappe.utils.nestedset import NestedSet'
+
 		with open(target_file_path, 'w') as target:
 			with open(os.path.join(get_module_path("core"), "doctype", scrub(doc.doctype),
 				"boilerplate", template), 'r') as source:
@@ -229,5 +254,7 @@ def make_boilerplate(template, doc, opts=None):
 						app_publisher=app_publisher,
 						year=frappe.utils.nowdate()[:4],
 						classname=doc.name.replace(" ", ""),
+						base_class_import=base_class_import,
+						base_class=base_class,
 						doctype=doc.name, **opts)
 				))

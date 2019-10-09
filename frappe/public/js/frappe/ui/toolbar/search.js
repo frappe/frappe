@@ -122,8 +122,13 @@ frappe.search.SearchDialog = Class.extend({
 		});
 
 		// Help results
-		this.$modal_body.on('click', 'a[data-path]', frappe.help.show_results);
+		// this.$modal_body.on('click', 'a[data-path]', frappe.help.show_results);
 		this.bind_keyboard_events();
+
+		// Setup Minimizable functionality
+		this.search_dialog.minimizable = true;
+		this.search_dialog.is_minimized = false;
+		this.search_dialog.$wrapper.find('.btn-modal-minimize').click(() => this.toggle_minimize());
 	},
 
 	bind_keyboard_events: function() {
@@ -178,7 +183,17 @@ frappe.search.SearchDialog = Class.extend({
 		} else {
 			this.$search_modal.find('.loading-state').removeClass('hide');
 		}
+
+		if (this.current_keyword.charAt(0) === "#") {
+			this.search = this.searches["tags"];
+		} else {
+			this.search = this.searches["global_search"];
+		}
+
 		this.search.get_results(keywords, this.parse_results.bind(this));
+		if (this.search_dialog.is_minimized) {
+			this.toggle_minimize();
+		}
 	},
 
 	parse_results: function(result_sets, keyword) {
@@ -288,9 +303,13 @@ frappe.search.SearchDialog = Class.extend({
 		}
 
 		if(result.image) {
-			$result.append('<div class="result-image"><img data-name="' + result.label + '" src="'+ result.image +'" alt="' + result.label + '"></div>');
+			$result.append('<a '+ get_link(result) +
+				'><div class="result-image"><img data-name="' + result.label
+					+ '" src="'+ result.image +'" alt="' + result.label + '"></div></a>');
 		} else if (result.image === null) {
-			$result.append('<div class="result-image"><div class="flex-text"><span>'+ frappe.get_abbr(result.label) +'</span></div></div>');
+			$result.append('<a '+ get_link(result) +
+				'><div class="result-image"><div class="flex-text"><span>'
+					+ frappe.get_abbr(result.label) +'</span></div></div></a>');
 		}
 
 		var title_html = '<a '+ get_link(result) +' class="module-section-link small">'+ result.label +'</a>';
@@ -303,8 +322,8 @@ frappe.search.SearchDialog = Class.extend({
 			if(result.route_options) {
 				frappe.route_options = result.route_options;
 			}
-			$result_text.on('click', (e) => {
-				this.search_dialog.hide();
+			$result.on('click', (e) => {
+				this.toggle_minimize();
 				if(result.onclick) {
 					result.onclick(result.match);
 				} else {
@@ -349,48 +368,54 @@ frappe.search.SearchDialog = Class.extend({
 		this.$modal_body.find('.more-results.last').slideDown(200, function() {});
 	},
 
+	get_minimize_btn: function() {
+		return this.search_dialog.$wrapper.find(".modal-header .btn-modal-minimize");
+	},
+
+	toggle_minimize: function() {
+		let modal = this.search_dialog.$wrapper.closest('.modal').toggleClass('modal-minimize');
+		modal.attr('tabindex') ? modal.removeAttr('tabindex') : modal.attr('tabindex', -1);
+		this.get_minimize_btn().find('i').toggleClass('octicon-chevron-down').toggleClass('octicon-chevron-up');
+		this.search_dialog.is_minimized = !this.search_dialog.is_minimized;
+		this.on_minimize_toggle && this.on_minimize_toggle(this.search_dialog.is_minimized);
+		this.search_dialog.header.find('.modal-title').toggleClass('cursor-pointer');
+	},
+
 	// Search objects
 	searches: {
 		global_search: {
-			input_placeholder: __("Global Search"),
+			input_placeholder: __("Search"),
 			empty_state_text: __("Search for anything"),
-			no_results_status: (keyword) => __("<p>No results found for '" + keyword + "' in Global Search</p>"),
+			no_results_status: (keyword) => "<p>" + __("No results found for {0} in Global Search", [keyword]) + "</p>",
 
 			get_results: function(keywords, callback) {
-				var start = 0, limit = 100;
+				var start = 0, limit = 1000;
 				var results = frappe.search.utils.get_nav_results(keywords);
 				frappe.search.utils.get_global_results(keywords, start, limit)
 					.then(function(global_results) {
 						results = results.concat(global_results);
-						return frappe.search.utils.get_help_results(keywords);
-					}).then(function(help_results) {
-						results = results.concat(help_results);
 						callback(results, keywords);
 					}, function (err) {
 						console.error(err);
 					});
 			}
 		},
-		help: {
-			input_placeholder: __("Search Help"),
-			empty_state_text: __("Search the docs"),
-			no_results_status: (keyword) => __("<p>No results found for '" + keyword +
-				"' in Help</p><p>Would you like to search <a class='switch-to-global-search text-muted' "+
-				"style='text-decoration: underline;'>globally</a>" +
-				" or the <a href='https://discuss.erpnext.com' class='forum-link text-muted' " +
-				"style='text-decoration: underline;'>forums</a> instead?</p>"),
+		tags: {
+			input_placeholder: __("Search"),
+			empty_state_text: __("Search for anything"),
+			no_results_status: (keyword) => "<p>" + __("No documents found tagged with {0}", [keyword]) + "</p>",
 
 			get_results: function(keywords, callback) {
-				var results = [];
-				frappe.search.utils.get_help_results(keywords)
-					.then(function(help_results) {
-						results = results.concat(help_results);
+				var results = frappe.search.utils.get_nav_results(keywords);
+				frappe.tags.utils.get_tag_results(keywords)
+					.then(function(global_results) {
+						results = results.concat(global_results);
 						callback(results, keywords);
 					}, function (err) {
 						console.error(err);
 					});
 			}
-		}
+		},
 	},
 
 });

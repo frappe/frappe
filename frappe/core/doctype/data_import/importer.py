@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
@@ -7,15 +9,13 @@ from six.moves import range
 import requests
 import frappe, json, os
 import frappe.permissions
-import frappe.async
 
 from frappe import _
 
 from frappe.utils.csvutils import getlink
 from frappe.utils.dateutils import parse_date
-from frappe.utils.file_manager import save_url
 
-from frappe.utils import cint, cstr, flt, getdate, get_datetime, get_url, get_url_to_form
+from frappe.utils import cint, cstr, flt, getdate, get_datetime, get_url, get_absolute_url
 from six import text_type, string_types
 
 
@@ -39,6 +39,7 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 
 	# for translations
 	if user:
+		frappe.cache().hdel("lang", user)
 		frappe.set_user_lang(user)
 
 	if data_import_doc and isinstance(data_import_doc, string_types):
@@ -115,7 +116,7 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 		dt = None
 		for i, d in enumerate(doctype_row[1:]):
 			if d not in ("~", "-"):
-				if d and doctype_row[i] in (None, '' ,'~', '-', 'DocType:'):
+				if d and doctype_row[i] in (None, '' ,'~', '-', _("DocType") + ":"):
 					dt, parentfield = d, None
 					# xls format truncates the row, so it may not have more columns
 					if len(doctype_row) > i+2:
@@ -196,14 +197,14 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 		else:
 			doc = frappe._dict(zip(columns, rows[start_idx][1:]))
 			doc['doctype'] = doctype
-			return doc
+			return doc, [], None
 
 	# used in testing whether a row is empty or parent row or child row
 	# checked only 3 first columns since first two columns can be blank for example the case of
 	# importing the item variant where item code and item name will be blank.
 	def main_doc_empty(row):
 		if row:
-			for i in xrange(3,1,-1):
+			for i in range(3,0,-1):
 				if len(row) > i and row[i]:
 					return False
 		return True
@@ -265,18 +266,26 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 			# file is already attached
 			return
 
-		save_url(file_url, None, doctype, docname, "Home/Attachments", 0)
+		_file = frappe.get_doc({
+			"doctype": "File",
+			"file_url": file_url,
+			"attached_to_name": docname,
+			"attached_to_doctype": doctype,
+			"attached_to_field": 0,
+			"folder": "Home/Attachments"})
+		_file.save()
+
 
 	# header
 	filename, file_extension = ['','']
 	if not rows:
-		from frappe.utils.file_manager import get_file # get_file_doc
-		fname, fcontent = get_file(data_import_doc.import_file)
-		filename, file_extension = os.path.splitext(fname)
+		_file = frappe.get_doc("File", {"file_url": data_import_doc.import_file})
+		fcontent = _file.get_content()
+		filename, file_extension = _file.get_extension()
 
 		if file_extension == '.xlsx' and from_data_import == 'Yes':
 			from frappe.utils.xlsxutils import read_xlsx_file_from_attached_file
-			rows = read_xlsx_file_from_attached_file(file_id=data_import_doc.import_file)
+			rows = read_xlsx_file_from_attached_file(file_url=data_import_doc.import_file)
 
 		elif file_extension == '.csv':
 			from frappe.utils.csvutils import read_csv_content
@@ -356,93 +365,113 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 
 
 	error_flag = rollback_flag = False
-	for i, row in enumerate(data):
-		# bypass empty rows
-		if main_doc_empty(row):
-			continue
 
-		row_idx = i + start_row
-		doc = None
+	batch_size = frappe.conf.data_import_batch_size or 1000
 
-		publish_progress(i)
+	for batch_start in range(0, total, batch_size):
+		batch = data[batch_start:batch_start + batch_size]
 
-		try:
-			doc, attachments, last_error_row_idx = get_doc(row_idx)
-			validate_naming(doc)
-			if pre_process:
-				pre_process(doc)
+		for i, row in enumerate(batch):
+			# bypass empty rows
+			if main_doc_empty(row):
+				continue
 
-			original = None
-			if parentfield:
-				parent = frappe.get_doc(parenttype, doc["parent"])
-				doc = parent.append(parentfield, doc)
-				parent.save()
-			else:
-				if overwrite and doc.get("name") and frappe.db.exists(doctype, doc["name"]):
-					original = frappe.get_doc(doctype, doc["name"])
-					original_name = original.name
-					original.update(doc)
-					# preserve original name for case sensitivity
-					original.name = original_name
-					original.flags.ignore_links = ignore_links
-					original.save()
-					doc = original
+			row_idx = i + start_row
+			doc = None
+
+			publish_progress(i)
+
+			try:
+				doc, attachments, last_error_row_idx = get_doc(row_idx)
+				validate_naming(doc)
+				if pre_process:
+					pre_process(doc)
+
+				original = None
+				if parentfield:
+					parent = frappe.get_doc(parenttype, doc["parent"])
+					doc = parent.append(parentfield, doc)
+					parent.save()
 				else:
-					if not update_only:
-						doc = frappe.get_doc(doc)
-						prepare_for_insert(doc)
-						doc.flags.ignore_links = ignore_links
-						doc.insert()
-				if attachments:
-					# check file url and create a File document
-					for file_url in attachments:
-						attach_file_to_doc(doc.doctype, doc.name, file_url)
-				if submit_after_import:
-					doc.submit()
+					if overwrite and doc.get("name") and frappe.db.exists(doctype, doc["name"]):
+						original = frappe.get_doc(doctype, doc["name"])
+						original_name = original.name
+						original.update(doc)
+						# preserve original name for case sensitivity
+						original.name = original_name
+						original.flags.ignore_links = ignore_links
+						original.save()
+						doc = original
+					else:
+						if not update_only:
+							doc = frappe.get_doc(doc)
+							prepare_for_insert(doc)
+							doc.flags.ignore_links = ignore_links
+							doc.insert()
+					if attachments:
+						# check file url and create a File document
+						for file_url in attachments:
+							attach_file_to_doc(doc.doctype, doc.name, file_url)
+					if submit_after_import:
+						doc.submit()
 
-			# log errors
-			if parentfield:
-				log(**{"row": doc.idx, "title": 'Inserted row for "%s"' % (as_link(parenttype, doc.parent)),
-					"link": get_url_to_form(parenttype, doc.parent), "message": 'Document successfully saved', "indicator": "green"})
-			elif submit_after_import:
-				log(**{"row": row_idx + 1, "title":'Submitted row for "%s"' % (as_link(doc.doctype, doc.name)),
-					"message": "Document successfully submitted", "link": get_url_to_form(doc.doctype, doc.name), "indicator": "blue"})
-			elif original:
-				log(**{"row": row_idx + 1,"title":'Updated row for "%s"' % (as_link(doc.doctype, doc.name)),
-					"message": "Document successfully updated", "link": get_url_to_form(doc.doctype, doc.name), "indicator": "green"})
-			elif not update_only:
-				log(**{"row": row_idx + 1, "title":'Inserted row for "%s"' % (as_link(doc.doctype, doc.name)),
-					"message": "Document successfully saved", "link": get_url_to_form(doc.doctype, doc.name), "indicator": "green"})
-			else:
-				log(**{"row": row_idx + 1, "title":'Ignored row for %s' % (row[1]), "link": None,
-					"message": "Document updation ignored", "indicator": "orange"})
+				# log errors
+				if parentfield:
+					log(**{"row": doc.idx, "title": 'Inserted row for "%s"' % (as_link(parenttype, doc.parent)),
+						"link": get_absolute_url(parenttype, doc.parent), "message": 'Document successfully saved', "indicator": "green"})
+				elif submit_after_import:
+					log(**{"row": row_idx + 1, "title":'Submitted row for "%s"' % (as_link(doc.doctype, doc.name)),
+						"message": "Document successfully submitted", "link": get_absolute_url(doc.doctype, doc.name), "indicator": "blue"})
+				elif original:
+					log(**{"row": row_idx + 1,"title":'Updated row for "%s"' % (as_link(doc.doctype, doc.name)),
+						"message": "Document successfully updated", "link": get_absolute_url(doc.doctype, doc.name), "indicator": "green"})
+				elif not update_only:
+					log(**{"row": row_idx + 1, "title":'Inserted row for "%s"' % (as_link(doc.doctype, doc.name)),
+						"message": "Document successfully saved", "link": get_absolute_url(doc.doctype, doc.name), "indicator": "green"})
+				else:
+					log(**{"row": row_idx + 1, "title":'Ignored row for %s' % (row[1]), "link": None,
+						"message": "Document updation ignored", "indicator": "orange"})
 
-		except Exception as e:
-			error_flag = True
-			err_msg = frappe.local.message_log and "\n".join([json.loads(msg).get('message') for msg in frappe.local.message_log]) or cstr(e)
-			error_trace = frappe.get_traceback()
-			if error_trace:
-				error_log_doc = frappe.log_error(error_trace)
-				error_link = get_url_to_form("Error Log", error_log_doc.name)
-			else:
-				error_link = None
-			log(**{"row": row_idx + 1, "title":'Error for row %s' % (len(row)>1 and row[1] or ""), "message": err_msg,
-				"indicator": "red", "link":error_link})
-			# data with error to create a new file
-			# include the errored data in the last row as last_error_row_idx will not be updated for the last row
-			if skip_errors:
-				if last_error_row_idx == len(rows)-1:
-					last_error_row_idx = len(rows)
-				data_rows_with_error += rows[row_idx:last_error_row_idx]
-			else:
-				rollback_flag = True
-		finally:
-			frappe.local.message_log = []
+			except Exception as e:
+				error_flag = True
 
-	if rollback_flag:
-		frappe.db.rollback()
-	else:
-		frappe.db.commit()
+				# build error message
+				if frappe.local.message_log:
+					err_msg = "\n".join(['<p class="border-bottom small">{}</p>'.format(json.loads(msg).get('message')) for msg in frappe.local.message_log])
+				else:
+					err_msg = '<p class="border-bottom small">{}</p>'.format(cstr(e))
+
+				error_trace = frappe.get_traceback()
+				if error_trace:
+					error_log_doc = frappe.log_error(error_trace)
+					error_link = get_absolute_url("Error Log", error_log_doc.name)
+				else:
+					error_link = None
+
+				log(**{
+					"row": row_idx + 1,
+					"title": 'Error for row %s' % (len(row)>1 and frappe.safe_decode(row[1]) or ""),
+					"message": err_msg,
+					"indicator": "red",
+					"link":error_link
+				})
+
+				# data with error to create a new file
+				# include the errored data in the last row as last_error_row_idx will not be updated for the last row
+				if skip_errors:
+					if last_error_row_idx == len(rows)-1:
+						last_error_row_idx = len(rows)
+					data_rows_with_error += rows[row_idx:last_error_row_idx]
+				else:
+					rollback_flag = True
+			finally:
+				frappe.local.message_log = []
+
+		start_row += batch_size
+		if rollback_flag:
+			frappe.db.rollback()
+		else:
+			frappe.db.commit()
 
 	frappe.flags.mute_emails = False
 	frappe.flags.in_import = False
@@ -455,7 +484,6 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 		if error_flag and data_import_doc.skip_errors and len(data) != len(data_rows_with_error):
 			import_status = "Partially Successful"
 			# write the file with the faulty row
-			from frappe.utils.file_manager import save_file
 			file_name = 'error_' + filename + file_extension
 			if file_extension == '.xlsx':
 				from frappe.utils.xlsxutils import make_xlsx
@@ -464,9 +492,15 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 			else:
 				from frappe.utils.csvutils import to_csv
 				file_data = to_csv(data_rows_with_error)
-			error_data_file = save_file(file_name, file_data, "Data Import",
-				data_import_doc.name,  "Home/Attachments")
-			data_import_doc.error_file = error_data_file.file_url
+			_file = frappe.get_doc({
+				"doctype": "File",
+				"file_name": file_name,
+				"attached_to_doctype": "Data Import",
+				"attached_to_name": data_import_doc.name,
+				"folder": "Home/Attachments",
+				"content": file_data})
+			_file.save()
+			data_import_doc.error_file = _file.file_url
 
 		elif error_flag:
 			import_status = "Failed"

@@ -47,3 +47,26 @@ class TestDefaults(unittest.TestCase):
 
 		clear_default("key6", value="value6")
 		self.assertEqual(get_user_default("key6"), None)
+
+	def test_user_permission_on_defaults(self):
+		self.assertEqual(get_global_default("language"), "en")
+		self.assertEqual(get_user_default("language"), "en")
+		self.assertEqual(get_user_default_as_list("language"), ["en"])
+
+		old_user = frappe.session.user
+		user = 'test@example.com'
+		frappe.set_user(user)
+
+		perm_doc = frappe.get_doc(dict(
+			doctype='User Permission',
+			user=frappe.session.user,
+			allow="Language",
+			for_value="en-GB",
+		)).insert(ignore_permissions = True)
+
+		self.assertEqual(get_global_default("language"), None)
+		self.assertEqual(get_user_default("language"), None)
+		self.assertEqual(get_user_default_as_list("language"), [])
+
+		frappe.delete_doc('User Permission', perm_doc.name)
+		frappe.set_user(old_user)

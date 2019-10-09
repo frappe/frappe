@@ -10,7 +10,6 @@ from frappe.custom.doctype.custom_field.custom_field import create_custom_field
 from frappe.model.document import Document
 
 class DataMigrationPlan(Document):
-
 	def on_update(self):
 		# update custom fields in mappings
 		self.make_custom_fields_for_mappings()
@@ -31,6 +30,7 @@ class DataMigrationPlan(Document):
 				create_init_py(get_module_path(self.module), dt, dn)
 
 	def make_custom_fields_for_mappings(self):
+		frappe.flags.ignore_in_install = True
 		label = self.name + ' ID'
 		fieldname = frappe.scrub(label)
 
@@ -40,7 +40,8 @@ class DataMigrationPlan(Document):
 			'fieldtype': 'Data',
 			'hidden': 1,
 			'read_only': 1,
-			'unique': 1
+			'unique': 1,
+			'no_copy': 1
 		}
 
 		for m in self.mappings:
@@ -51,6 +52,7 @@ class DataMigrationPlan(Document):
 
 		# Create custom field in Deleted Document
 		create_custom_field('Deleted Document', df)
+		frappe.flags.ignore_in_install = False
 
 	def pre_process_doc(self, mapping_name, doc):
 		module = self.get_mapping_module(mapping_name)

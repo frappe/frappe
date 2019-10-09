@@ -7,7 +7,6 @@ import frappe, json, os
 from frappe.utils import strip, cint
 from frappe.translate import (set_default_language, get_dict, send_translations)
 from frappe.geo.country_info import get_country_info
-from frappe.utils.file_manager import save_file
 from frappe.utils.password import update_password
 from werkzeug.useragents import UserAgent
 from . import install_fixtures
@@ -55,7 +54,7 @@ def setup_complete(args):
 
 	# Setup complete: do not throw an exception, let the user continue to desk
 	if cint(frappe.db.get_single_value('System Settings', 'setup_complete')):
-		return
+		return {'status': 'ok'}
 
 	args = parse_args(args)
 
@@ -70,7 +69,6 @@ def setup_complete(args):
 			for task in stage.get('tasks'):
 				current_task = task
 				task.get('fn')(task.get('args'))
-
 	except Exception:
 		handle_setup_exception(args)
 		return {'status': 'fail', 'fail': current_task.get('fail_msg')}
@@ -79,8 +77,9 @@ def setup_complete(args):
 		return {'status': 'ok'}
 
 def update_global_settings(args):
-	if args.language and args.language != "english":
+	if args.language and args.language != "English":
 		set_default_language(get_language_code(args.lang))
+		frappe.db.commit()
 	frappe.clear_cache()
 
 	update_system_settings(args)
@@ -187,7 +186,15 @@ def update_user_name(args):
 		attach_user = args.get("attach_user").split(",")
 		if len(attach_user)==3:
 			filename, filetype, content = attach_user
-			fileurl = save_file(filename, content, "User", args.get("name"), decode=True).file_url
+			_file = frappe.get_doc({
+				"doctype": "File",
+				"file_name": filename,
+				"attached_to_doctype": "User",
+				"attached_to_name": args.get("name"),
+				"content": content,
+				"decode": True})
+			_file.save()
+			fileurl = _file.file_url
 			frappe.db.set_value("User", args.get("name"), "user_image", fileurl)
 
 	if args.get('name'):
@@ -236,6 +243,7 @@ def load_messages(language):
 	javascript files"""
 	frappe.clear_cache()
 	set_default_language(get_language_code(language))
+	frappe.db.commit()
 	m = get_dict("page", "setup-wizard")
 
 	for path in frappe.get_hooks("setup_wizard_requires"):
@@ -348,3 +356,55 @@ def enable_twofactor_all_roles():
 	all_role.two_factor_auth = True
 	all_role.save(ignore_permissions=True)
 
+def make_records(records, debug=False):
+	from frappe import _dict
+	from frappe.modules import scrub
+
+	if debug:
+		print("make_records: in DEBUG mode")
+
+	# LOG every success and failure
+	for record in records:
+
+		doctype = record.get("doctype")
+		condition = record.get('__condition')
+
+		if condition and not condition():
+			continue
+
+		doc = frappe.new_doc(doctype)
+		doc.update(record)
+
+		# ignore mandatory for root
+		parent_link_field = ("parent_" + scrub(doc.doctype))
+		if doc.meta.get_field(parent_link_field) and not doc.get(parent_link_field):
+			doc.flags.ignore_mandatory = True
+
+		try:
+			doc.insert(ignore_permissions=True)
+
+		except frappe.DuplicateEntryError as e:
+			# print("Failed to insert duplicate {0} {1}".format(doctype, doc.name))
+
+			# pass DuplicateEntryError and continue
+			if e.args and e.args[0]==doc.doctype and e.args[1]==doc.name:
+				# make sure DuplicateEntryError is for the exact same doc and not a related doc
+				frappe.clear_messages()
+			else:
+				raise
+
+		except Exception as e:
+			exception = record.get('__exception')
+			if exception:
+				config = _dict(exception)
+				if isinstance(e, config.exception):
+					config.handler()
+				else:
+					show_document_insert_error()
+			else:
+				show_document_insert_error()
+
+
+def show_document_insert_error():
+	print("Document Insert Error")
+	print(frappe.get_traceback())

@@ -9,6 +9,7 @@ from frappe import _, throw, msgprint
 from frappe.utils import nowdate
 
 from frappe.model.document import Document
+import six
 from six import string_types
 
 class SMSSettings(Document):
@@ -18,7 +19,7 @@ def validate_receiver_nos(receiver_list):
 	validated_receiver_list = []
 	for d in receiver_list:
 		# remove invalid character
-		for x in [' ', '+', '-', '(', ')']:
+		for x in [' ','-', '(', ')']:
 			d = d.replace(x, '')
 
 		validated_receiver_list.append(d)
@@ -53,7 +54,7 @@ def send_sms(receiver_list, msg, sender_name = '', success_msg = True):
 
 	arg = {
 		'receiver_list' : receiver_list,
-		'message'		: unicode(msg).encode('utf-8'),
+		'message'		: frappe.safe_decode(msg).encode('utf-8'),
 		'success_msg'	: success_msg
 	}
 

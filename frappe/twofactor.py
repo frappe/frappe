@@ -7,11 +7,10 @@ import frappe
 from frappe import _
 import pyotp, os
 from frappe.utils.background_jobs import enqueue
-from jinja2 import Template
 from pyqrcode import create as qrcreate
 from six import BytesIO
 from base64 import b64encode, b32encode
-from frappe.utils import get_url, get_datetime, time_diff_in_seconds
+from frappe.utils import get_url, get_datetime, time_diff_in_seconds, cint
 from six import iteritems, string_types
 
 class ExpiredLoginException(Exception): pass
@@ -20,7 +19,7 @@ def toggle_two_factor_auth(state, roles=[]):
 	'''Enable or disable 2FA in site_config and roles'''
 	for role in roles:
 		role = frappe.get_doc('Role', {'role_name': role})
-		role.two_factor_auth = state
+		role.two_factor_auth = cint(state)
 		role.save(ignore_permissions=True)
 
 def two_factor_is_enabled(user=None):
@@ -28,10 +27,15 @@ def two_factor_is_enabled(user=None):
 	enabled = int(frappe.db.get_value('System Settings', None, 'enable_two_factor_auth') or 0)
 	if enabled:
 		bypass_two_factor_auth = int(frappe.db.get_value('System Settings', None, 'bypass_2fa_for_retricted_ip_users') or 0)
-		if bypass_two_factor_auth:
-			restrict_ip = frappe.db.get_value("User", filters={"name": user}, fieldname="restrict_ip")
-			if restrict_ip and bypass_two_factor_auth:
-				enabled = False
+		if bypass_two_factor_auth and user:
+			user_doc = frappe.get_doc("User", user)
+			restrict_ip_list = user_doc.get_restricted_ip_list() #can be None or one or more than one ip address
+			if restrict_ip_list:
+				for ip in restrict_ip_list:
+					if frappe.local.request_ip.startswith(ip):
+						enabled = False
+						break
+
 	if not user or not enabled:
 		return enabled
 	return two_factor_is_enabled_for_(user)
@@ -45,8 +49,8 @@ def get_cached_user_pass():
 	user = pwd = None
 	tmp_id = frappe.form_dict.get('tmp_id')
 	if tmp_id:
-		user = frappe.cache().get(tmp_id+'_usr')
-		pwd = frappe.cache().get(tmp_id+'_pwd')
+		user = frappe.safe_decode(frappe.cache().get(tmp_id+'_usr'))
+		pwd = frappe.safe_decode(frappe.cache().get(tmp_id+'_pwd'))
 	return (user, pwd)
 
 def authenticate_for_2factor(user):
@@ -87,10 +91,14 @@ def two_factor_is_enabled_for_(user):
 		user = frappe.get_doc('User', user)
 
 	roles = [frappe.db.escape(d.role) for d in user.roles or []]
-	roles.append('All')
+	roles.append("'All'")
 
-	query = """select name from `tabRole` where two_factor_auth=1
-		and name in ({0}) limit 1""".format(', '.join('\"{}\"'.format(i) for i in roles))
+	query = """SELECT `name`
+		FROM `tabRole`
+		WHERE `two_factor_auth`= 1
+		AND `name` IN ({0})
+		LIMIT 1""".format(", ".join(roles))
+
 	if len(frappe.db.sql(query)) > 0:
 		return True
 
@@ -214,32 +222,26 @@ def process_2fa_for_email(user, token, otp_secret, otp_issuer, method='Email'):
 def get_email_subject_for_2fa(kwargs_dict):
 	'''Get email subject for 2fa.'''
 	subject_template = _('Login Verification Code from {}').format(frappe.db.get_value('System Settings', 'System Settings', 'otp_issuer_name'))
-	subject = render_string_template(subject_template, kwargs_dict)
+	subject = frappe.render_template(subject_template, kwargs_dict)
 	return subject
 
 def get_email_body_for_2fa(kwargs_dict):
 	'''Get email body for 2fa.'''
 	body_template = 'Enter this code to complete your login:<br><br> <b>{{otp}}</b>'
-	body = render_string_template(body_template, kwargs_dict)
+	body = frappe.render_template(body_template, kwargs_dict)
 	return body
 
 def get_email_subject_for_qr_code(kwargs_dict):
 	'''Get QRCode email subject.'''
 	subject_template = _('One Time Password (OTP) Registration Code from {}').format(frappe.db.get_value('System Settings', 'System Settings', 'otp_issuer_name'))
-	subject = render_string_template(subject_template, kwargs_dict)
+	subject = frappe.render_template(subject_template, kwargs_dict)
 	return subject
 
 def get_email_body_for_qr_code(kwargs_dict):
 	'''Get QRCode email body.'''
 	body_template = 'Please click on the following link and follow the instructions on the page.<br><br> {{qrcode_link}}'
-	body = render_string_template(body_template, kwargs_dict)
+	body = frappe.render_template(body_template, kwargs_dict)
 	return body
-
-def render_string_template(_str, kwargs_dict):
-	'''Render string with jinja.'''
-	s = Template(_str)
-	s = s.render(**kwargs_dict)
-	return s
 
 def get_link_for_qrcode(user, totp_uri):
 	'''Get link to temporary page showing QRCode.'''
@@ -283,7 +285,7 @@ def send_token_via_sms(otpsecret, token=None, phone_no=None):
 		'use_post': ss.use_post
 	}
 	enqueue(method=send_request, queue='short', timeout=300, event=None,
-		async=True, job_name=None, now=False, **sms_args)
+		is_async=True, job_name=None, now=False, **sms_args)
 	return True
 
 def send_token_via_email(user, token, otp_secret, otp_issuer, subject=None, message=None):
@@ -310,7 +312,7 @@ def send_token_via_email(user, token, otp_secret, otp_issuer, subject=None, mess
 	}
 
 	enqueue(method=frappe.sendmail, queue='short', timeout=300, event=None,
-		async=True, job_name=None, now=False, **email_args)
+		is_async=True, job_name=None, now=False, **email_args)
 	return True
 
 def get_qr_svg_code(totp_uri):
@@ -328,13 +330,19 @@ def get_qr_svg_code(totp_uri):
 
 def qrcode_as_png(user, totp_uri):
 	'''Save temporary Qrcode to server.'''
-	from frappe.utils.file_manager import save_file
 	folder = create_barcode_folder()
 	png_file_name = '{}.png'.format(frappe.generate_hash(length=20))
-	file_obj = save_file(png_file_name, png_file_name, 'User', user, folder=folder)
+	_file = frappe.get_doc({
+		"doctype": "File",
+		"file_name": png_file_name,
+		"attached_to_doctype": 'User',
+		"attached_to_name": user,
+		"folder": folder,
+		"content": png_file_name})
+	_file.save()
 	frappe.db.commit()
-	file_url = get_url(file_obj.file_url)
-	file_path = os.path.join(frappe.get_site_path('public', 'files'), file_obj.file_name)
+	file_url = get_url(_file.file_url)
+	file_path = os.path.join(frappe.get_site_path('public', 'files'), _file.file_name)
 	url = qrcreate(totp_uri)
 	with open(file_path, 'w') as png_file:
 		url.png(png_file, scale=8, module_color=[0, 0, 0, 180], background=[0xff, 0xff, 0xcc])

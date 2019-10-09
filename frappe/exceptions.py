@@ -2,13 +2,16 @@
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
+import sys
 
 # BEWARE don't put anything in this file except exceptions
 from werkzeug.exceptions import NotFound
 
-# imports - third-party imports
-from pymysql import ProgrammingError as SQLError, Error
-# from pymysql import OperationalError as DatabaseOperationalError
+
+if sys.version_info.major == 2:
+	class FileNotFoundError(Exception): pass
+else:
+	from builtins import FileNotFoundError
 
 class ValidationError(Exception):
 	http_status_code = 417
@@ -46,7 +49,7 @@ class Redirect(Exception):
 class CSRFTokenError(Exception):
 	http_status_code = 400
 
-class ImproperDBConfigurationError(Error):
+class ImproperDBConfigurationError(Exception):
 	"""
 	Used when frappe detects that database or tables are not properly
 	configured
@@ -82,3 +85,9 @@ class IncorrectSitePath(NotFound): pass
 class ImplicitCommitError(ValidationError): pass
 class RetryBackgroundJobError(Exception): pass
 class DocumentLockedError(ValidationError): pass
+class CircularLinkingError(ValidationError): pass
+class SecurityException(Exception): pass
+class InvalidColumnName(ValidationError): pass
+class IncompatibleApp(ValidationError): pass
+class InvalidDates(ValidationError): pass
+class DataTooLongException(ValidationError): pass

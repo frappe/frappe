@@ -11,6 +11,7 @@ from frappe.utils.csvutils import UnicodeWriter
 from frappe.utils import cstr, formatdate, format_datetime, parse_json, cint
 from frappe.core.doctype.data_import.importer import get_data_keys
 from six import string_types
+from frappe.core.doctype.access_log.access_log import make_access_log
 
 reflags = {
 	"I":re.I,
@@ -25,6 +26,10 @@ reflags = {
 @frappe.whitelist()
 def export_data(doctype=None, parent_doctype=None, all_doctypes=True, with_data=False,
 		select_columns=None, file_type='CSV', template=False, filters=None):
+	_doctype = doctype
+	if isinstance(_doctype, list):
+		_doctype = _doctype[0]
+	make_access_log(doctype=_doctype, file_type=file_type, columns=select_columns, filters=filters, method=parent_doctype)
 	exporter = DataExporter(doctype=doctype, parent_doctype=parent_doctype, all_doctypes=all_doctypes, with_data=with_data,
 		select_columns=select_columns, file_type=file_type, template=template, filters=filters)
 	exporter.build_response()
@@ -77,13 +82,13 @@ class DataExporter:
 			self.add_main_header()
 
 		self.writer.writerow([''])
-		self.tablerow = [self.data_keys.doctype, ""]
-		self.labelrow = [_("Column Labels:"), "ID"]
-		self.fieldrow = [self.data_keys.columns, self.name_field]
-		self.mandatoryrow = [_("Mandatory:"), _("Yes")]
-		self.typerow = [_('Type:'), 'Data (text)']
-		self.inforow = [_('Info:'), '']
-		self.columns = [self.name_field]
+		self.tablerow = [self.data_keys.doctype]
+		self.labelrow = [_("Column Labels:")]
+		self.fieldrow = [self.data_keys.columns]
+		self.mandatoryrow = [_("Mandatory:")]
+		self.typerow = [_('Type:')]
+		self.inforow = [_('Info:')]
+		self.columns = []
 
 		self.build_field_columns(self.doctype)
 
@@ -134,9 +139,10 @@ class DataExporter:
 
 		# build list of valid docfields
 		tablecolumns = []
-		for f in frappe.db.sql('desc `tab%s`' % dt):
-			field = meta.get_field(f[0])
-			if field and ((self.select_columns and f[0] in self.select_columns[dt]) or not self.select_columns):
+		table_name = 'tab' + dt
+		for f in frappe.db.get_table_columns_description(table_name):
+			field = meta.get_field(f.name)
+			if field and ((self.select_columns and f.name in self.select_columns[dt]) or not self.select_columns):
 				tablecolumns.append(field)
 
 		tablecolumns.sort(key = lambda a: int(a.idx))
@@ -144,19 +150,26 @@ class DataExporter:
 		_column_start_end = frappe._dict(start=0)
 
 		if dt==self.doctype:
+			if (meta.get('autoname') and meta.get('autoname').lower()=='prompt') or (self.with_data):
+				self._append_name_column()
+
+			# if importing only child table for new record, add parent field
+			if meta.get('istable') and not self.with_data:
+				self.append_field_column(frappe._dict({
+					"fieldname": "parent",
+					"parent": "",
+					"label": "Parent",
+					"fieldtype": "Data",
+					"reqd": 1,
+					"info": _("Parent is the name of the document to which the data will get added to.")
+				}), True)
+
 			_column_start_end = frappe._dict(start=0)
 		else:
 			_column_start_end = frappe._dict(start=len(self.columns))
 
-			self.append_field_column(frappe._dict({
-				"fieldname": "name",
-				"parent": dt,
-				"label": "ID",
-				"fieldtype": "Data",
-				"reqd": 1,
-				"idx": 0,
-				"info": _("Leave blank for new records")
-			}), True)
+			if self.with_data:
+				self._append_name_column(dt)
 
 		for docfield in tablecolumns:
 			self.append_field_column(docfield, True)
@@ -190,7 +203,8 @@ class DataExporter:
 			return
 		if docfield.hidden:
 			return
-		if self.select_columns and docfield.fieldname not in self.select_columns.get(docfield.parent, []):
+		if self.select_columns and docfield.fieldname not in self.select_columns.get(docfield.parent, []) \
+			and docfield.fieldname!="name":
 			return
 
 		self.tablerow.append("")
@@ -337,3 +351,11 @@ class DataExporter:
 		frappe.response['filecontent'] = xlsx_file.getvalue()
 		frappe.response['type'] = 'binary'
 
+	def _append_name_column(self, dt=None):
+		self.append_field_column(frappe._dict({
+			"fieldname": "name" if dt else self.name_field,
+			"parent": dt or "",
+			"label": "ID",
+			"fieldtype": "Data",
+			"reqd": 1,
+		}), True)

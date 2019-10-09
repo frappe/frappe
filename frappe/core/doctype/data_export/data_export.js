@@ -58,7 +58,7 @@ const export_data = frm => {
 			filters: frm.filter_list.get_filters().map(filter => filter.slice(1, 4)),
 			file_type: frm.doc.file_type,
 			template: true,
-			with_data: true
+			with_data: 1
 		};
 	};
 
@@ -89,12 +89,47 @@ const set_field_options = (frm) => {
 		on_change: () => { },
 	});
 
+	// Add 'Select All' and 'Unselect All' button
+	make_multiselect_buttons(parent_wrapper);
+
 	frm.fields_multicheck = {};
 	related_doctypes.forEach(dt => {
 		frm.fields_multicheck[dt] = add_doctype_field_multicheck_control(dt, parent_wrapper);
 	});
 
 	frm.refresh();
+};
+
+const make_multiselect_buttons = parent_wrapper => {
+	const button_container = $(parent_wrapper)
+		.append('<div class="flex"></div>')
+		.find('.flex');
+
+	["Select All", "Unselect All"].map(d => {
+		frappe.ui.form.make_control({
+			parent: $(button_container),
+			df: {
+				label: __(d),
+				fieldname: frappe.scrub(d),
+				fieldtype: "Button",
+				click: () => {
+					checkbox_toggle(d !== 'Select All');
+				}
+			},
+			render_input: true
+		});
+	});
+
+	$(button_container).find('.frappe-control').map((index, button) => {
+		$(button).css({"margin-right": "1em"});
+	});
+
+	function checkbox_toggle(checked) {
+		$(parent_wrapper).find('[data-fieldtype="MultiCheck"]').map((index, element) => {
+			$(element).find(`:checkbox`).prop("checked", checked).trigger('click');
+		});
+	}
+
 };
 
 const get_doctypes = parentdt => {
@@ -109,8 +144,9 @@ const add_doctype_field_multicheck_control = (doctype, parent_wrapper) => {
 	const options = fields
 		.map(df => {
 			return {
-				label: df.label + (df.reqd ? ' (M)' : ''),
+				label: df.label,
 				value: df.fieldname,
+				danger: df.reqd,
 				checked: 1
 			};
 		});
@@ -122,9 +158,7 @@ const add_doctype_field_multicheck_control = (doctype, parent_wrapper) => {
 			"fieldname": doctype + '_fields',
 			"fieldtype": "MultiCheck",
 			"options": options,
-			"select_all": options.length > 5,
 			"columns": 3,
-			"hidden": 1,
 		},
 		render_input: true
 	});

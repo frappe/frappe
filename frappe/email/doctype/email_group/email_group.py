@@ -5,7 +5,7 @@
 from __future__ import unicode_literals
 import frappe
 from frappe import _
-from frappe.utils import validate_email_add
+from frappe.utils import validate_email_address
 from frappe.model.document import Document
 from frappe.utils import parse_addr
 
@@ -13,13 +13,13 @@ class EmailGroup(Document):
 	def onload(self):
 			singles = [d.name for d in frappe.db.get_all("DocType", "name", {"issingle": 1})]
 			self.get("__onload").import_types = [{"value": d.parent, "label": "{0} ({1})".format(d.parent, d.label)} \
-				for d in frappe.db.get_all("DocField", ("parent", "label"), {"options": "Email"}) 
+				for d in frappe.db.get_all("DocField", ("parent", "label"), {"options": "Email"})
 				if d.parent not in singles]
 
 	def import_from(self, doctype):
 		"""Extract Email Addresses from given doctype and add them to the current list"""
 		meta = frappe.get_meta(doctype)
-		email_field = [d.fieldname for d in meta.fields 
+		email_field = [d.fieldname for d in meta.fields
 			if d.fieldtype in ("Data", "Small Text", "Text", "Code") and d.options=="Email"][0]
 		unsubscribed_field = "unsubscribed" if meta.get_field("unsubscribed") else None
 		added = 0
@@ -69,7 +69,7 @@ def add_subscribers(name, email_list):
 	count = 0
 	for email in email_list:
 		email = email.strip()
-		parsed_email = validate_email_add(email, False)
+		parsed_email = validate_email_address(email, False)
 
 		if parsed_email:
 			if not frappe.db.get_value("Email Group Member",
@@ -90,13 +90,3 @@ def add_subscribers(name, email_list):
 
 	return frappe.get_doc("Email Group", name).update_total_subscribers()
 
-def restrict_email_group(doc, method):
-	from frappe.limits import get_limits
-
-	email_group_limit = get_limits().get('email_group')
-	if not email_group_limit:
-		return
-
-	email_group = frappe.get_doc("Email Group", doc.email_group)
-	if email_group.get_total_subscribers() >= email_group_limit:
-		frappe.throw(_("Please Upgrade to add more than {0} subscribers").format(email_group_limit))

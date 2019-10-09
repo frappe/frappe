@@ -3,16 +3,20 @@
 # For license information, please see license.txt
 
 from __future__ import unicode_literals
-import frappe, json
+
+import calendar
+from datetime import timedelta
+
+import frappe
 from frappe import _
 from frappe.model.document import Document
-from datetime import timedelta
-import frappe.utils
-from frappe.utils import now, global_date_format, format_time
-from frappe.utils.xlsxutils import make_xlsx
+from frappe.utils import (format_time, get_link_to_form, get_url_to_report,
+	global_date_format, now, now_datetime, validate_email_address, today, add_to_date)
 from frappe.utils.csvutils import to_csv
+from frappe.utils.xlsxutils import make_xlsx
 
 max_reports_per_user = frappe.local.conf.max_reports_per_user or 3
+
 
 class AutoEmailReport(Document):
 	def autoname(self):
@@ -31,7 +35,7 @@ class AutoEmailReport(Document):
 		valid = []
 		for email in self.email_to.split():
 			if email:
-				frappe.utils.validate_email_add(email, True)
+				validate_email_address(email, True)
 				valid.append(email)
 
 		self.email_to = '\n'.join(valid)
@@ -53,9 +57,13 @@ class AutoEmailReport(Document):
 		'''Returns file in for the report in given format'''
 		report = frappe.get_doc('Report', self.report)
 
+		self.filters = frappe.parse_json(self.filters) if self.filters else {}
+
 		if self.report_type=='Report Builder' and self.data_modified_till:
-			self.filters = json.loads(self.filters) if self.filters else {}
-			self.filters['modified'] = ('>', frappe.utils.now_datetime() - timedelta(hours=self.data_modified_till))
+			self.filters['modified'] = ('>', now_datetime() - timedelta(hours=self.data_modified_till))
+
+		if self.report_type != 'Report Builder' and self.dynamic_date_filters_set():
+			self.prepare_dynamic_filters()
 
 		columns, data = report.get_data(limit=self.no_of_rows or 100, user = self.user,
 			filters = self.filters, as_dict=True)
@@ -69,6 +77,8 @@ class AutoEmailReport(Document):
 			return None
 
 		if self.format == 'HTML':
+			columns, data = make_links(columns, data)
+
 			return self.get_html_table(columns, data)
 
 		elif self.format == 'XLSX':
@@ -94,11 +104,9 @@ class AutoEmailReport(Document):
 			'date_time': date_time,
 			'columns': columns,
 			'data': data,
-			'report_url': frappe.utils.get_url_to_report(self.report,
-				self.report_type, report_doctype),
+			'report_url': get_url_to_report(self.report, self.report_type, report_doctype),
 			'report_name': self.report,
-			'edit_report_settings': frappe.utils.get_link_to_form('Auto Email Report',
-				self.name)
+			'edit_report_settings': get_link_to_form('Auto Email Report', self.name)
 		})
 
 	@staticmethod
@@ -108,12 +116,31 @@ class AutoEmailReport(Document):
 			new_row = []
 			out.append(new_row)
 			for df in columns:
+				if df.fieldname not in row: continue
 				new_row.append(frappe.format(row[df.fieldname], df, row))
 
 		return out
 
 	def get_file_name(self):
 		return "{0}.{1}".format(self.report.replace(" ", "-").replace("/", "-"), self.format.lower())
+
+	def prepare_dynamic_filters(self):
+		self.filters = frappe.parse_json(self.filters)
+
+		to_date = today()
+		from_date_value = {
+			'Daily': ('days', -1),
+			'Weekly': ('weeks', -1),
+			'Monthly': ('months', -1),
+			'Quarterly': ('months', -3),
+			'Half Yearly': ('months', -6),
+			'Yearly': ('years', -1)
+		}[self.dynamic_date_period]
+
+		from_date = add_to_date(to_date, **{from_date_value[0]: from_date_value[1]})
+
+		self.filters[self.from_date_field] = from_date
+		self.filters[self.to_date_field] = to_date
 
 	def send(self):
 		if self.filter_meta and not self.filters:
@@ -144,6 +171,9 @@ class AutoEmailReport(Document):
 			reference_name = self.name
 		)
 
+	def dynamic_date_filters_set(self):
+		return self.dynamic_date_period and self.from_date_field and self.to_date_field
+
 @frappe.whitelist()
 def download(name):
 	'''Download report locally'''
@@ -168,15 +198,20 @@ def send_now(name):
 
 def send_daily():
 	'''Check reports to be sent daily'''
-	now = frappe.utils.now_datetime()
-	for report in frappe.get_all('Auto Email Report',
-		{'enabled': 1, 'frequency': ('in', ('Daily', 'Weekly'))}):
+
+	current_day = calendar.day_name[now_datetime().weekday()]
+	enabled_reports = frappe.get_all('Auto Email Report',
+		filters={'enabled': 1, 'frequency': ('in', ('Daily', 'Weekdays', 'Weekly'))})
+
+	for report in enabled_reports:
 		auto_email_report = frappe.get_doc('Auto Email Report', report.name)
 
 		# if not correct weekday, skip
-		if auto_email_report.frequency=='Weekly':
-			if now.weekday()!={'Monday':0,'Tuesday':1,'Wednesday':2,
-				'Thursday':3,'Friday':4,'Saturday':5,'Sunday':6}[auto_email_report.day_of_week]:
+		if auto_email_report.frequency == "Weekdays":
+			if current_day in ("Saturday", "Sunday"):
+				continue
+		elif auto_email_report.frequency == 'Weekly':
+			if auto_email_report.day_of_week != current_day:
 				continue
 
 		auto_email_report.send()
@@ -186,3 +221,15 @@ def send_monthly():
 	'''Check reports to be sent monthly'''
 	for report in frappe.get_all('Auto Email Report', {'enabled': 1, 'frequency': 'Monthly'}):
 		frappe.get_doc('Auto Email Report', report.name).send()
+
+def make_links(columns, data):
+	for row in data:
+		for col in columns:
+			if col.fieldtype == "Link" and col.options != "Currency":
+				if col.options and row.get(col.fieldname):
+					row[col.fieldname] = get_link_to_form(col.options, row[col.fieldname])
+			elif col.fieldtype == "Dynamic Link":
+				if col.options and row.get(col.fieldname) and row.get(col.options):
+					row[col.fieldname] = get_link_to_form(row[col.options], row[col.fieldname])
+
+	return columns, data

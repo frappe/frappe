@@ -27,6 +27,11 @@ frappe.views.InboxView = class InboxView extends frappe.views.ListView {
 			return frappe.boot.email_accounts.find(d => d.email_account === email_account);
 		}
 	}
+
+	get view_name() {
+		return 'Inbox';
+	}
+
 	show() {
 		super.show();
 		// save email account in user_settings
@@ -37,7 +42,6 @@ frappe.views.InboxView = class InboxView extends frappe.views.ListView {
 
 	setup_defaults() {
 		super.setup_defaults();
-		this.view_name = 'Inbox';
 		this.email_account = frappe.get_route()[3];
 		this.page_title = this.email_account;
 		this.filters = this.get_inbox_filters();
@@ -80,10 +84,10 @@ frappe.views.InboxView = class InboxView extends frappe.views.ListView {
 			email.css_seen = "seen";
 
 		const columns_html = `
-			<div class="list-row-col list-subject level">
+			<div class="list-row-col list-subject level ellipsis">
 				<input class="level-item list-row-checkbox hidden-xs" type="checkbox" data-name="${email.name}">
 				<span class="level-item">
-					<a class="${ email.seen ? 'seen' : ''} ellipsis" href="${this.get_form_link(email)}">
+					<a class="${ email.seen ? '' : 'bold'} ellipsis" href="${this.get_form_link(email)}">
 						${email.subject}
 					</a>
 				</span>
