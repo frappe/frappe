@@ -11,7 +11,6 @@ from frappe.core.doctype.server_script.server_script_utils import get_server_scr
 
 class TestServerScript(unittest.TestCase):
 	def setUp(self):
-		frappe.conf.server_script_enabled = True
 		frappe.cache().delete_value('server_script_map')
 
 	def test_doctype_event(self):
