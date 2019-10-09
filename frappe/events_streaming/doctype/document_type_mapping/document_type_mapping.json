@@ -35,8 +35,7 @@
    "fieldname": "field_mapping",
    "fieldtype": "Table",
    "label": "Field Mapping",
-   "options": "Document Type Field Mapping",
-   "reqd": 1
+   "options": "Document Type Field Mapping"
   },
   {
    "fieldname": "mapping_name",
@@ -46,7 +45,7 @@
    "unique": 1
   }
  ],
- "modified": "2019-10-07 15:20:19.093351",
+ "modified": "2019-10-09 08:36:04.621397",
  "modified_by": "Administrator",
  "module": "Events Streaming",
  "name": "Document Type Mapping",
