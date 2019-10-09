@@ -75,7 +75,7 @@
    "label": "Show Title"
   }
  ],
- "modified": "2019-10-09 15:12:16.170809",
+ "modified": "2019-10-09 15:54:57.298813",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Metabase Dashboard",
@@ -94,6 +94,7 @@
    "write": 1
   }
  ],
+ "search_fields": "dashboard_name",
  "sort_field": "modified",
  "sort_order": "DESC",
  "track_changes": 1
