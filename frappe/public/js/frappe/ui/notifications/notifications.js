@@ -54,12 +54,10 @@ frappe.ui.Notifications = class Notifications {
 		if (event_list.length) {
 			let get_event_html = (event) => {
 				let time = frappe.datetime.get_time(event.starts_on);
-				return `<li class="recent-item event">
-					<a href="#Form/Event/${event.name}">
-						<span class="event-time bold">${time}</span>
-						<span class="event-subject"> ${event.subject}</span>
-					</a>
-				</li>`;
+				return `<a class="recent-item event" href="#Form/Event/${event.name}">
+					<span class="event-time bold">${time}</span>
+					<span class="event-subject"> ${event.subject}</span>
+				</a>`;
 			};
 			html = event_list.map(get_event_html).join('');
 		} else {
@@ -203,11 +201,10 @@ frappe.ui.Notifications = class Notifications {
 	change_activity_status() {
 		if (this.$dropdown_list.find('.activity-status')) {
 			this.$dropdown_list.find('.activity-status').replaceWith(
-				`<li class="recent-item text-center">
-					<a href = '#List/Notification Log' class="text-muted full-log-btn">
-						${__('View Full Log')}
-					</a>
-				</li>`);
+				`<a class="recent-item text-center text-muted full-log-btn" 
+					href="#List/Notification Log">
+					${__('View Full Log')}
+				</a>`);
 		}
 	}
 
@@ -245,10 +242,9 @@ frappe.ui.Notifications = class Notifications {
 					let item_html = this.get_dropdown_item_html(field);
 					if (item_html) body_html += item_html;
 				});
-				view_full_log_html = `<li class="recent-item text-center">
-					<a class="text-muted full-log-btn">
+				view_full_log_html = `<a class="recent-item text-center text-muted full-log-btn">
 						${__('View Full Log')}
-					</a></li>`;
+					</a>`;
 			} else {
 				body_html += `<li class="recent-item text-center activity-status">
 					<span class="text-muted">
@@ -269,15 +265,13 @@ frappe.ui.Notifications = class Notifications {
 		let user = field.from_user;
 		let user_avatar = frappe.avatar(user, 'avatar-small user-avatar');
 		let timestamp = frappe.datetime.comment_when(field.creation, true);
-		let item_html = `<li class="recent-item ${seen_class}">
-			<a class= "message-link" href = "${doc_link}">
+		let item_html = `<a class="recent-item ${seen_class}" href = "${doc_link}">
 				${user_avatar}
 				${message_html}
 				<div class="notification-timestamp text-muted">
 					${timestamp}
 				</div>
-			</a>
-		</li>`;
+		</a>`;
 
 		return item_html;
 	}
@@ -285,7 +279,6 @@ frappe.ui.Notifications = class Notifications {
 
 	setup_view_full_log() {
 		this.$dropdown_list.find('.full-log-btn').on('click', () => {
-			console.log('clicked');
 			frappe.set_route('List', 'Notification Log');
 		});
 	}

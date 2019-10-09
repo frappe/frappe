@@ -72,17 +72,16 @@ def send_notification_email(doc):
 			subject = email_subject,
 			template = "new_notification",
 			args = {
-				"body_content": doc.subject,
-				"description": doc.email_content,
-				"doc_link": doc_link,
-				"link": get_url()
+				'body_content': doc.subject,
+				'description': doc.email_content,
+				'document_type': doc.document_type,
+				'document_name': doc.document_name,
+				"doc_link": doc_link
 			},
 			header = [header, 'orange']
 		)
 	except Exception:
 		pass
-
-
 
 def get_email_header(doc):
 	if doc.type == 'Mention' or doc.type == 'Assignment':
@@ -97,4 +96,3 @@ def set_notification_as_seen(notification_log):
 	notification_log = frappe.parse_json(notification_log)
 	for log in notification_log:
 		frappe.db.set_value('Notification Log', log['name'], 'seen', 1, update_modified=False)
-

@@ -40,7 +40,7 @@ class EnergyPointLog(Document):
 				'reference_user': reference_user
 			}
 
-			create_notification(self.user, notification_doc, self.reason)
+			create_notification(self.user, notification_doc, '<div>{}</div>'.format(self.reason))
 
 def get_notification_message(doc):
 	owner_name = get_fullname(doc.owner)
@@ -128,13 +128,6 @@ def get_alert_dict(doc):
 
 	return alert_dict
 
-def send_review_mail(doc, message_dict):
-	if doc.type in ['Appreciation', 'Criticism']:
-		frappe.sendmail(recipients=doc.user,
-			subject=_("You gained some energy points") if doc.points > 0 else _("You lost some energy points"),
-			message=message_dict.message + '<p>{}</p>'.format(doc.reason),
-			header=[_('Energy point update'), message_dict.indicator])
-
 def create_energy_points_log(ref_doctype, ref_name, doc):
 	doc = frappe._dict(doc)
 	log_exists = frappe.db.exists('Energy Point Log', {
@@ -217,13 +210,6 @@ def get_user_energy_and_review_points(user=None, from_date=None, as_dict=True):
 	for d in points_list:
 		dict_to_return[d.pop('user')] = d
 	return dict_to_return
-
-
-@frappe.whitelist()
-def set_notification_as_seen(point_logs):
-	point_logs = frappe.parse_json(point_logs)
-	for log in point_logs:
-		frappe.db.set_value('Energy Point Log', log['name'], 'seen', 1, update_modified=False)
 
 @frappe.whitelist()
 def review(doc, points, to_user, reason, review_type='Appreciation'):

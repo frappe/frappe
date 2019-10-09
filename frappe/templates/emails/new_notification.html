@@ -1,5 +1,5 @@
 <p>
-	<a href = "{{ doc_link }}" style="text-decoration: none; color: #333">{{ body_content }}</a>
+	<p>{{ body_content }}</p>
 </p>
 {% if description %}
 <blockquote
@@ -8,6 +8,6 @@
 </blockquote>
 {% endif %}
 <div class="more-info">
-	<a href="{{ link }}">{{ _("Login and view in Browser") }}</a>
+	<a href="{{ doc_link }}">{{ _("Login and view in Browser") }}</a>
 </div>
 	

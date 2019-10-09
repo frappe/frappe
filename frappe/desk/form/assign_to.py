@@ -163,7 +163,7 @@ def notify_assignment(assigned_by, owner, doc_type, doc_name, action='CLOSE',
 	title_field = frappe.get_meta(doc_type).get_title_field()
 	title = doc_name if title_field == "name" else \
 		frappe.db.get_value(doc_type, doc_name, title_field)
-	description_html =  "<p>{0}</p>".format(description) if description else None
+	description_html =  "<div>{0}</div>".format(description) if description else None
 
 	if action=='CLOSE':
 		subject = _('Your assignment on {0} {1} has been removed').format(frappe.bold(doc_type), frappe.bold(title))
