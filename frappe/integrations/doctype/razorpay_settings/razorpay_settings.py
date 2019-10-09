@@ -326,6 +326,7 @@ def capture_payment(is_sandbox=False, sanbox_response=None):
 			doc = frappe.get_doc("Integration Request", doc.name)
 			doc.status = "Failed"
 			doc.error = frappe.get_traceback()
+			doc.save()
 			frappe.log_error(doc.error, '{0} Failed'.format(doc.name))
 
 def convert_rupee_to_paisa(**kwargs):
