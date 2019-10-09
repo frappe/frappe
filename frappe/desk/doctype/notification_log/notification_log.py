@@ -6,7 +6,7 @@ from __future__ import unicode_literals
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from frappe.core.doctype.notification_settings.notification_settings import (is_notifications_enabled,
+from frappe.desk.doctype.notification_settings.notification_settings import (is_notifications_enabled,
 	is_email_notifications_enabled, is_email_notifications_enabled_for_type)
 
 class NotificationLog(Document):
@@ -20,6 +20,9 @@ class NotificationLog(Document):
 def get_permission_query_conditions(for_user):
 	if not for_user:
 		for_user = frappe.session.user
+	
+	if for_user == 'Administrator':
+		return
 
 	return '''(`tabNotification Log`.for_user = '{user}')'''.format(user=for_user)
 
@@ -33,7 +36,7 @@ def create_notification(names, doc, email_content = None):
 		if frappe.db.exists('User', user):
 			if is_notifications_enabled(user):
 				frappe.enqueue(
-					'frappe.core.doctype.notification_log.notification_log.make_notification_log',
+					'frappe.desk.doctype.notification_log.notification_log.make_notification_log',
 					doc = doc,
 					user = user,
 					email_content = email_content
@@ -92,7 +95,8 @@ def get_email_header(doc):
 		return _('Energy Point Update')
 
 @frappe.whitelist()
-def set_notification_as_seen(notification_log):
-	notification_log = frappe.parse_json(notification_log)
-	for log in notification_log:
-		frappe.db.set_value('Notification Log', log['name'], 'seen', 1, update_modified=False)
+def mark_as_seen(docnames):
+	docnames = frappe.parse_json(docnames)
+	if docnames:
+		filters = {'name': ['in', docnames]}
+		frappe.db.set_value('Notification Log', filters, 'seen', 1, update_modified=False)

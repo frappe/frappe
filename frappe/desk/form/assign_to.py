@@ -7,7 +7,7 @@ from __future__ import unicode_literals
 import frappe
 from frappe import _
 from frappe.desk.form.document_follow import follow_document
-from frappe.core.doctype.notification_log.notification_log import create_notification
+from frappe.desk.doctype.notification_log.notification_log import create_notification
 import frappe.utils
 import frappe.share
 

@@ -16,6 +16,20 @@
  ],
  "fields": [
   {
+   "fieldname": "subject",
+   "fieldtype": "Text",
+   "in_list_view": 1,
+   "label": "Subject",
+   "read_only": 1
+  },
+  {
+   "fieldname": "for_user",
+   "fieldtype": "Link",
+   "label": "For User",
+   "options": "User",
+   "read_only": 1
+  },
+  {
    "fieldname": "type",
    "fieldtype": "Select",
    "in_list_view": 1,
@@ -26,29 +40,14 @@
    "search_index": 1
   },
   {
-   "fieldname": "subject",
-   "fieldtype": "Text",
-   "in_list_view": 1,
-   "label": "Subject",
-   "read_only": 1
-  },
-  {
-   "default": "0",
-   "fieldname": "seen",
-   "fieldtype": "Check",
-   "hidden": 1,
-   "ignore_user_permissions": 1,
-   "label": "Seen"
-  },
-  {
-   "fieldname": "column_break_4",
-   "fieldtype": "Column Break"
-  },
-  {
    "fieldname": "email_content",
    "fieldtype": "Text",
    "label": "Email Content",
    "read_only": 1
+  },
+  {
+   "fieldname": "column_break_4",
+   "fieldtype": "Column Break"
   },
   {
    "fieldname": "document_type",
@@ -59,18 +58,19 @@
    "search_index": 1
   },
   {
+   "default": "0",
+   "fieldname": "seen",
+   "fieldtype": "Check",
+   "hidden": 1,
+   "ignore_user_permissions": 1,
+   "label": "Seen"
+  },
+  {
    "fieldname": "document_name",
    "fieldtype": "Data",
    "label": "Document Name",
    "read_only": 1,
    "search_index": 1
-  },
-  {
-   "fieldname": "for_user",
-   "fieldtype": "Link",
-   "label": "For User",
-   "options": "User",
-   "read_only": 1
   },
   {
    "fieldname": "from_user",
@@ -82,9 +82,9 @@
   }
  ],
  "in_create": 1,
- "modified": "2019-10-08 21:09:27.865465",
+ "modified": "2019-10-09 15:03:56.682093",
  "modified_by": "Administrator",
- "module": "Core",
+ "module": "Desk",
  "name": "Notification Log",
  "owner": "Administrator",
  "permissions": [

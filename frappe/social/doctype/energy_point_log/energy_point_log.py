@@ -7,7 +7,7 @@ import frappe
 from frappe import _
 import json
 from frappe.model.document import Document
-from frappe.core.doctype.notification_log.notification_log import create_notification
+from frappe.desk.doctype.notification_log.notification_log import create_notification
 from frappe.utils import cint, get_fullname, getdate, get_link_to_form
 
 class EnergyPointLog(Document):

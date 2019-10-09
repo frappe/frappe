@@ -4,7 +4,7 @@
 from __future__ import unicode_literals
 
 import frappe
-from frappe.core.doctype.notification_settings.notification_settings import get_subscribed_documents
+from frappe.desk.doctype.notification_settings.notification_settings import get_subscribed_documents
 from six import string_types
 import json
 
