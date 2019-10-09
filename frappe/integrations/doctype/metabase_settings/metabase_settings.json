@@ -26,7 +26,8 @@
   {
    "fieldname": "metabase_secret",
    "fieldtype": "Data",
-   "label": "Secret Key"
+   "label": "Secret Key",
+   "reqd": 1
   },
   {
    "fieldname": "section_break_4",
@@ -42,11 +43,12 @@
    "default": "20",
    "fieldname": "metabase_exp_time",
    "fieldtype": "Int",
-   "label": "Dashboard Expiration (Minute)"
+   "label": "Dashboard Expiration (Minute)",
+   "reqd": 1
   }
  ],
  "issingle": 1,
- "modified": "2019-10-09 15:21:07.247175",
+ "modified": "2019-10-09 16:09:01.430260",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Metabase Settings",
