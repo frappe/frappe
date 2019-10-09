@@ -1,0 +1,19 @@
+{
+ "content": null,
+ "creation": "2019-10-09 14:13:46.911036",
+ "docstatus": 0,
+ "doctype": "Page",
+ "icon": "octicon octicon-graph",
+ "idx": 0,
+ "modified": "2019-10-09 14:13:46.911036",
+ "modified_by": "Administrator",
+ "module": "Integrations",
+ "name": "metabase-dashboard",
+ "owner": "Administrator",
+ "page_name": "Metabase Dashboard",
+ "roles": [],
+ "script": null,
+ "standard": "Yes",
+ "style": null,
+ "system_page": 0
+}

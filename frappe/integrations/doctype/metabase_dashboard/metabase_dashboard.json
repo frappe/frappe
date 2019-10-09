@@ -1,0 +1,100 @@
+{
+ "autoname": "INTE-MBOARD-.#####",
+ "creation": "2019-10-09 14:04:53.307178",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "is_active",
+  "dashboard_info_section",
+  "dashboard_id",
+  "column_break_4",
+  "dashboard_name",
+  "dashboard_config_section",
+  "theme",
+  "column_break_8",
+  "show_border",
+  "show_title"
+ ],
+ "fields": [
+  {
+   "default": "1",
+   "fieldname": "is_active",
+   "fieldtype": "Check",
+   "label": "Is Active"
+  },
+  {
+   "fieldname": "dashboard_info_section",
+   "fieldtype": "Section Break",
+   "label": "Dashboard Info"
+  },
+  {
+   "fieldname": "dashboard_id",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Dashboard ID",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_4",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "dashboard_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Dashboard Name",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "dashboard_config_section",
+   "fieldtype": "Section Break",
+   "label": "Dashboard Config"
+  },
+  {
+   "fieldname": "theme",
+   "fieldtype": "Select",
+   "label": "Theme",
+   "options": "Light\nDark"
+  },
+  {
+   "fieldname": "column_break_8",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "show_border",
+   "fieldtype": "Check",
+   "label": "Show Border"
+  },
+  {
+   "default": "0",
+   "fieldname": "show_title",
+   "fieldtype": "Check",
+   "label": "Show Title"
+  }
+ ],
+ "modified": "2019-10-09 15:12:16.170809",
+ "modified_by": "Administrator",
+ "module": "Integrations",
+ "name": "Metabase Dashboard",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

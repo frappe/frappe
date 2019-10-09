@@ -113,5 +113,18 @@ def get_data():
 					"description": _("Google Drive Integration."),
 				}
 			]
+		},
+		{
+			"label": _("Settings"),
+			"items": [
+				{
+					"type": "doctype",
+					"name": "Metabase Settings"
+				},
+				{
+					"type": "doctype",
+					"name": "Metabase Dashboard",
+				},
+			]
 		}
 	]
