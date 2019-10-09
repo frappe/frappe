@@ -23,8 +23,8 @@ def execute():
 
 				tag_list.append((tag.strip(), time, time, 'Administrator'))
 
-				tag_link_name = frappe.generate_hash(dt_tags.name + tag.strip(), 10),
+				tag_link_name = frappe.generate_hash(dt_tags.name + tag.strip() + doctype.name, 10),
 				tag_links.append((tag_link_name, doctype.name, dt_tags.name, tag.strip(), time, time, 'Administrator'))
 
-	frappe.db.bulk_insert("Tag", fields=["name", "creation", "modified", "modified_by"], values=tag_list)
-	frappe.db.bulk_insert("Tag Link", fields=["name", "document_type", "document_name", "tag", "creation", "modified", "modified_by"], values=tag_links)
+	frappe.db.bulk_insert("Tag", fields=["name", "creation", "modified", "modified_by"], values=set(tag_list))
+	frappe.db.bulk_insert("Tag Link", fields=["name", "document_type", "document_name", "tag", "creation", "modified", "modified_by"], values=set(tag_links))
