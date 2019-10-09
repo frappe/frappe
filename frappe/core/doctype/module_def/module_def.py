@@ -70,6 +70,8 @@ def enable_module(module):
 	for doctype in frappe.get_list("DocType", filters={"module": module}):
 		create_table(doctype.name)
 
+	return get_enabled_modules()
+
 def get_disabled_modules_from_tables(tables):
 	modules = []
 	for table in tables:
@@ -91,15 +93,9 @@ def log_enabled_module(module):
 
 		frappe.cache().hget("modules", "enabled").append(module)
 
-def get_enabled_modules(for_desk=False):
+@frappe.whitelist()
+def get_enabled_modules():
 	if not "tabModule Def" in frappe.db.get_tables():
 		return []
 
-	enabled_modules = [d.name for d in frappe.get_list("Module Def", filters={"enabled": 1})]
-	if for_desk:
-		custom_names = frappe.get_hooks("custom_module_name_to_module_map")
-		for idx, module in enumerate(enabled_modules):
-			if custom_names.get(module):
-				enabled_modules[idx] = custom_names.get(module)[0]
-	frappe.cache().hset("modules", "enabled", enabled_modules)
-	return enabled_modules
+	return [d.name for d in frappe.get_list("Module Def", filters={"enabled": 1})]

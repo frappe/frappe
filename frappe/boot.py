@@ -19,7 +19,6 @@ from frappe.email.inbox import get_email_accounts
 from frappe.social.doctype.energy_point_settings.energy_point_settings import is_energy_point_enabled
 from frappe.social.doctype.energy_point_log.energy_point_log import get_energy_points
 from frappe.social.doctype.post.post import frequently_visited_links
-from frappe.core.doctype.module_def.module_def import get_enabled_modules
 
 def get_bootinfo():
 	"""build and return boot info"""
@@ -83,7 +82,6 @@ def get_bootinfo():
 	bootinfo.points = get_energy_points(frappe.session.user)
 	bootinfo.frequently_visited_links = frequently_visited_links()
 	bootinfo.link_preview_doctypes = get_link_preview_doctypes()
-	bootinfo.enabled_modules = get_enabled_modules(for_desk=True)
 
 	return bootinfo
 
