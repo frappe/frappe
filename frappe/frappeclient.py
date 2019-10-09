@@ -47,7 +47,6 @@ class FrappeClient(object):
 		else:
 			if json.loads(r.text).get('exc_type') == "SiteExpiredError":
 				raise SiteExpiredError
-			print(r.text)
 			raise AuthError
 
 	def logout(self):
