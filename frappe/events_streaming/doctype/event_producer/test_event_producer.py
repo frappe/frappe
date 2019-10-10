@@ -95,16 +95,16 @@ class TestEventProducer(unittest.TestCase):
 		self.subscribe_to_doctypes(['Note'])
 		producer = get_remote_site()
 		producer_user = frappe.get_doc(dict(doctype='User', email='test_user@sync.com', first_name='Test Sync User'))
-		producer_user.enabled = 1
 		delete_on_remote_if_exists(producer, 'User', {'email': producer_user.email})
 		frappe.db.delete('User', {'email':producer_user.email})
+		producer_user.enabled = 1
+		producer_user.append('roles', {
+			'role': 'System Manager'
+		})
 		producer_user = producer.insert(producer_user)
 		producer_note = frappe.get_doc(dict(doctype='Note', title='test child table dependency sync'))
 		producer_note.append('seen_by', {
 			'user': producer_user.name
-		})
-		producer_user.append('roles', {
-			'role': 'System Manager'
 		})
 		delete_on_remote_if_exists(producer, 'Note', {'title': producer_note.title})
 		frappe.db.delete('Note', {'title': producer_note.title})
