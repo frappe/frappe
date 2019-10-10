@@ -175,12 +175,12 @@ scheduler_events = {
 	],
 	"daily_long": [
 		"frappe.integrations.doctype.dropbox_settings.dropbox_settings.take_backups_daily",
-		"frappe.integrations.doctype.s3_backup_settings.s3_backup_settings.take_backups_daily"
+		"frappe.integrations.doctype.s3_backup_settings.s3_backup_settings.take_backups_daily",
+		"frappe.utils.change_log.check_for_update"
 	],
 	"weekly_long": [
 		"frappe.integrations.doctype.dropbox_settings.dropbox_settings.take_backups_weekly",
-		"frappe.integrations.doctype.s3_backup_settings.s3_backup_settings.take_backups_weekly",
-		"frappe.utils.change_log.check_for_update"
+		"frappe.integrations.doctype.s3_backup_settings.s3_backup_settings.take_backups_weekly"
 	],
 	"monthly": [
 		"frappe.email.doctype.auto_email_report.auto_email_report.send_monthly"
