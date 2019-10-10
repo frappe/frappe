@@ -41,7 +41,7 @@ def add(doctype, name, user=None, read=1, write=0, share=0, everyone=0, flags=No
 	})
 
 	doc.save(ignore_permissions=True)
-	notify_assignment(user, doctype, name, everyone, description=None)
+	notify_assignment(user, doctype, name, everyone, description=None, notify=notify)
 
 	follow_document(doctype, name, user)
 
@@ -146,9 +146,9 @@ def check_share_permission(doctype, name):
 	if not frappe.has_permission(doctype, ptype="share", doc=name):
 		frappe.throw(_("No permission to {0} {1} {2}".format("share", doctype, name)), frappe.PermissionError)
 
-def notify_assignment(shared_by, doctype, doc_name, everyone, description=None):
+def notify_assignment(shared_by, doctype, doc_name, everyone, description=None, notify = 0):
 
-	if not (shared_by and doctype and doc_name) or everyone: return
+	if not (shared_by and doctype and doc_name) or everyone or not notify: return
 
 	from frappe.utils import get_fullname
 

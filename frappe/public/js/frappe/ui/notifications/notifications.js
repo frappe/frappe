@@ -126,9 +126,7 @@ frappe.ui.Notifications = class Notifications {
 		let empty_map = 1;
 		keys = keys
 			? keys
-			: Object.keys(map)
-					.sort()
-					.filter(e => !excluded.includes(e));
+			: Object.keys(map).sort().filter(e => !excluded.includes(e));
 		keys.map(key => {
 			let doc_dt = map.doctypes ? map.doctypes[key] : undefined;
 			if (map[key] > 0 || target) {
@@ -338,9 +336,7 @@ frappe.ui.Notifications = class Notifications {
 						<span class="octicon octicon-chevron-down collapse-indicator"></span>
 						${settings_html}
 					</li>
-					<div id="${category_id}" class="collapse category-list" data-category="${
-				category.value
-			}">
+					<div id="${category_id}" class="collapse category-list" data-category="${category.value}">
 						<div class="text-center text-muted notifications-loading">
 							${__('Loading...')}
 						</div>

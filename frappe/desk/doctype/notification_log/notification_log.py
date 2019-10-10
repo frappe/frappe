@@ -20,7 +20,7 @@ class NotificationLog(Document):
 def get_permission_query_conditions(for_user):
 	if not for_user:
 		for_user = frappe.session.user
-	
+
 	if for_user == 'Administrator':
 		return
 
@@ -62,7 +62,7 @@ def send_notification_email(doc):
 	if not is_type_enabled:
 		return
 
-	from frappe.utils import get_url_to_form, strip_html, get_url
+	from frappe.utils import get_url_to_form, strip_html
 
 	doc_link = get_url_to_form(doc.document_type, doc.document_name)
 	header = get_email_header(doc)
