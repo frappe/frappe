@@ -10,12 +10,12 @@
   {
    "fieldname": "allowed_in_global_search",
    "fieldtype": "Table",
-   "label": "Document Types",
+   "label": "Search Priorities",
    "options": "Global Search DocType"
   }
  ],
  "issingle": 1,
- "modified": "2019-09-18 18:00:17.388486",
+ "modified": "2019-10-10 22:05:02.692689",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Global Search Settings",
