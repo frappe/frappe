@@ -21,6 +21,7 @@ class FrappeException(Exception):
 class FrappeClient(object):
 	def __init__(self, url, username=None, password=None, verify=True, api_key=None, api_secret=None, frappe_authorization_source = None):
 		self.headers = dict(Accept='application/json')
+		self.headers.update({'Content-type': 'application/json'})
 		self.verify = verify
 		self.session = requests.session()
 		self.url = url

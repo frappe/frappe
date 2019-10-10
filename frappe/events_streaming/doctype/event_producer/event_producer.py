@@ -22,7 +22,7 @@ class EventProducer(Document):
 
 	def create_event_consumer(self):
 		'''register event consumer on the producer site'''
-		producer_site = FrappeClient(self.producer_url)
+		producer_site = FrappeClient(self.producer_url, verify=False)
 		subscribed_doctypes = []
 		for entry in self.event_configuration:
 			if entry.has_mapping:
@@ -30,15 +30,16 @@ class EventProducer(Document):
 				subscribed_doctypes.append(frappe.db.get_value('Document Type Mapping', entry.mapping, 'remote_doctype'))
 			else:
 				subscribed_doctypes.append(entry.ref_doctype)
-		(api_key, api_secret, last_update) = producer_site.post_request({
+		response = producer_site.post_request({
 			'cmd': 'frappe.events_streaming.doctype.event_consumer.event_consumer.register_consumer',
 			'event_consumer': get_current_node(),
 			'subscribed_doctypes': json.dumps(subscribed_doctypes),
 			'user': self.user
 		})
-		self.api_key = api_key
-		self.api_secret =  api_secret
-		self.last_update = last_update
+		response = json.loads(response)
+		self.api_key = response['api_key']
+		self.api_secret =  response['api_secret']
+		self.last_update = response['last_update']
 
 	def create_custom_fields(self):
 		'''create custom field to store remote docname and remote site url'''
