@@ -22,7 +22,7 @@ class EventProducer(Document):
 
 	def create_event_consumer(self):
 		'''register event consumer on the producer site'''
-		producer_site = FrappeClient(self.producer_url, verify=False)
+		producer_site = FrappeClient(self.producer_url)
 		subscribed_doctypes = []
 		for entry in self.event_configuration:
 			if entry.has_mapping:
