@@ -92,31 +92,28 @@ class TestEventProducer(unittest.TestCase):
 		self.assertFalse(frappe.db.exists('Note', producer_note2.name))
 
 	def test_child_table_sync_with_dependencies(self):
-		self.subscribe_to_doctypes(['User'])
+		self.subscribe_to_doctypes(['Note'])
 		producer = get_remote_site()
-		delete_on_remote_if_exists(producer, 'User', {'email': 'test_user@sync.com'})
 		producer_user = frappe.get_doc(dict(doctype='User', email='test_user@sync.com', first_name='Test Sync User'))
-		frappe.db.delete('User', {'email': producer_user.email})
-		frappe.db.delete('Email Account', {'email_id': 'test-sync@example.com'})
-		email_account1 = make_email_account_in_producer(producer, _('_Test Sync Email Account 1'), _('test-sync1@example.com'))
-		email_account2 = make_email_account_in_producer(producer, _('_Test Sync Email Account 2'), _('test-sync2@example.com'))
-		producer_user.user_emails = []
-		producer_user.append('user_emails', {
-			'email_account': email_account1.name
-		})
-		producer_user.append('user_emails', {
-			'email_account': email_account2.name
+		producer_user.enabled = 1
+		delete_on_remote_if_exists(producer, 'User', {'email': producer_user.email})
+		frappe.db.delete('User', {'email':producer_user.email})
+		producer_user = producer.insert(producer_user)
+		producer_note = frappe.get_doc(dict(doctype='Note', title='test child table dependency sync'))
+		producer_note.append('seen_by', {
+			'user': producer_user.name
 		})
 		producer_user.append('roles', {
 			'role': 'System Manager'
 		})
-		producer_user.enabled = 1
-		producer_user = producer.insert(producer_user)
+		delete_on_remote_if_exists(producer, 'Note', {'title': producer_note.title})
+		frappe.db.delete('Note', {'title': producer_note.title})
+		producer_note = producer.insert(producer_note)
 		self.pull_producer_data()
-		self.assertTrue(frappe.db.exists('Email Account', email_account1.name))
-		if self.assertTrue(frappe.db.exists('User', producer_user.name)):
-			local_user = frappe.get_doc('User', producer_user.name)
-			self.assertEqual(len(local_user.user_emails), 2)
+		self.assertTrue(frappe.db.exists('User', producer_user.name))
+		if self.assertTrue(frappe.db.exists('Note', producer_note.name)):
+			local_note = frappe.get_doc('Note', producer_note.name)
+			self.assertEqual(len(local_note.seen_by), 1)
 
 	def test_dynamic_link_dependencies_synced(self):
 		self.subscribe_to_doctypes(['ToDo'])
@@ -182,20 +179,6 @@ class TestEventProducer(unittest.TestCase):
 	def pull_producer_data(self):
 		pull_from_node('http://test_site_producer:8000')
 		time.sleep(1)
-
-def make_email_account_in_producer(producer, name, email_id):
-	delete_on_remote_if_exists(producer, 'Email Account', {'email_id': email_id})
-	doc = frappe.get_doc(dict(
-		doctype='Email Account',
-		domain='example.com',
-		email_account_name=name,
-		append_to='Communication',
-		smtp_server='test.example.com',
-		pop3_server='pop.test.example.com',
-		email_id=email_id,
-		password='password',
-	))
-	return producer.insert(doc)
 
 def get_remote_site():
 	producer_doc = frappe.get_doc('Event Producer', 'http://test_site_producer:8000')

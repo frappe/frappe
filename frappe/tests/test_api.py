@@ -42,21 +42,21 @@ class TestAPI(unittest.TestCase):
 
 		api_key = frappe.db.get_value("User", "Administrator", "api_key")
 		header = {"Authorization": "token {}:{}".format(api_key, generated_secret)}
-		res = requests.post(frappe.get_site_config().host_name + "/api/method/frappe.auth.get_logged_user", headers=header)
+		res = requests.post(get_current_node() + "/api/method/frappe.auth.get_logged_user", headers=header)
 
 		self.assertEqual(res.status_code, 200)
 		self.assertEqual("Administrator", res.json()["message"])
 		self.assertEqual(keys['api_secret'], generated_secret)
 
 		header = {"Authorization": "Basic {}".format(base64.b64encode(frappe.safe_encode("{}:{}".format(api_key, generated_secret))).decode())}
-		res = requests.post(frappe.get_site_config().host_name + "/api/method/frappe.auth.get_logged_user", headers=header)
+		res = requests.post(get_current_node() + "/api/method/frappe.auth.get_logged_user", headers=header)
 		self.assertEqual(res.status_code, 200)
 		self.assertEqual("Administrator", res.json()["message"])
 
 		# Valid api key, invalid api secret
 		api_secret = "ksk&93nxoe3os"
 		header = {"Authorization": "token {}:{}".format(api_key, api_secret)}
-		res = requests.post(frappe.get_site_config().host_name + "/api/method/frappe.auth.get_logged_user", headers=header)
+		res = requests.post(get_current_node() + "/api/method/frappe.auth.get_logged_user", headers=header)
 		self.assertEqual(res.status_code, 403)
 
 
@@ -64,5 +64,13 @@ class TestAPI(unittest.TestCase):
 		api_key = "@3djdk3kld"
 		api_secret = "ksk&93nxoe3os"
 		header = {"Authorization": "token {}:{}".format(api_key, api_secret)}
-		res = requests.post(frappe.get_site_config().host_name + "/api/method/frappe.auth.get_logged_user", headers=header)
+		res = requests.post(get_current_node() + "/api/method/frappe.auth.get_logged_user", headers=header)
 		self.assertEqual(res.status_code, 401)
+
+def get_current_node():
+	current_node = frappe.utils.get_url()
+	parts = current_node.split(':')
+	if not len(parts) > 2:
+		port = frappe.conf.http_port or frappe.conf.webserver_port
+		current_node += ':' + str(port)
+	return current_node
