@@ -110,7 +110,7 @@ def get_group_by_chart_config(chart, filters):
 			"datasets": [{
 				"name": chart.name,
 				"values": [item['count'] for item in data]
-			}] 
+			}]
 		}
 		return chart_config
 	else:

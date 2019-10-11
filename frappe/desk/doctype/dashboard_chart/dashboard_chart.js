@@ -80,7 +80,7 @@ frappe.ui.form.on('Dashboard Chart', {
 						value_fields.push({label: df.label, value: df.fieldname});
 						aggregate_function_fields.push({label: df.label, value: df.fieldname});
 					}
-					if(['Link', 'Select'].includes(df.fieldtype)) {
+					if (['Link', 'Select'].includes(df.fieldtype)) {
 						group_by_fields.push({label: df.label, value: df.fieldname});
 					}
 				});

@@ -241,7 +241,7 @@ class DashboardChart {
 					shortenYAxisNumbers: 1
 				}
 			};
-			if(!this.chart) {
+			if (!this.chart) {
 				this.chart = new frappe.Chart(this.chart_container.find(".chart-wrapper")[0], chart_args);
 			} else {
 				this.chart.update(this.data);
