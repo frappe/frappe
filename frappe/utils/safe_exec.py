@@ -5,8 +5,17 @@ from html2text import html2text
 from RestrictedPython import compile_restricted, safe_globals
 
 def safe_exec(script, _globals=None, _locals=None):
-	if not _globals: _globals = get_safe_globals()
-	exec(compile_restricted(script), _globals, _locals) # pylint: disable=exec-used
+	# script reports must be enabled via site_config.json
+	if not frappe.conf.server_script_enabled:
+		frappe.msgprint('Please Enable Server Scripts')
+		raise ServerScriptNotEnabled
+
+	# build globals
+	exec_globals = get_safe_globals()
+	exec_globals.update(_globals)
+
+	# execute script compiled by RestrictedPython
+	exec(compile_restricted(script), exec_globals, _locals) # pylint: disable=exec-used
 
 def get_safe_globals():
 	import frappe

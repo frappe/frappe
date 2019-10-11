@@ -1,5 +1,8 @@
 import frappe
 
+# this is a separate file since it is imported in frappe.model.document
+# to avoid circular imports
+
 EVENT_MAP = {
 	'before_insert': 'Before Insert',
 	'after_insert': 'After Insert',
@@ -14,12 +17,14 @@ EVENT_MAP = {
 }
 
 def run_server_script_api(method):
+	# called via handler, execute an API script
 	script_name = get_server_script_map().get('_api', {}).get(method)
 	if script_name:
 		frappe.get_doc('Server Script', script_name).execute_method()
 		return True
 
 def run_server_script_for_doc_event(doc, event):
+	# run document event method
 	if not event in EVENT_MAP:
 		return
 
@@ -28,10 +33,20 @@ def run_server_script_for_doc_event(doc, event):
 
 	scripts = get_server_script_map().get(doc.doctype, {}).get(EVENT_MAP[event], None)
 	if scripts:
+		# run all scripts for this doctype + event
 		for script_name in scripts:
 			frappe.get_doc('Server Script', script_name).execute_doc(doc)
 
 def get_server_script_map():
+	# fetch cached server script methods
+	# {
+	# 	'[doctype]': {
+	#		'Before Insert': ['[server script 1]', '[server script 2]']
+	# 	},
+	# 	'_api': {
+	# 		'[path]': '[server script]'
+	# 	}
+	# }
 	script_map = frappe.cache().get_value('server_script_map')
 	if script_map is None:
 		script_map = {}

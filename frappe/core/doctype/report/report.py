@@ -29,7 +29,9 @@ class Report(Document):
 				self.is_standard = "Yes"
 
 		if self.is_standard == "No":
-			frappe.only_for('Script Manager')
+			# allow only script manager to edit scripts
+			if frappe.session.user!="Administrator":
+				frappe.only_for('Script Manager', True)
 
 			if frappe.db.get_value("Report", self.name, "is_standard") == "Yes":
 				frappe.throw(_("Cannot edit a standard report. Please duplicate and create a new report"))
@@ -91,26 +93,20 @@ class Report(Document):
 			make_boilerplate("controller.js", self, {"name": self.name})
 
 	def execute_script_report(self, filters):
+		# save the timestamp to automatically set to prepared
 		threshold = 30
 		res = []
 
 		start_time = datetime.datetime.now()
+
 		# The JOB
 		if self.is_standard == 'Yes':
-			module = self.module or frappe.db.get_value("DocType", self.ref_doctype, "module")
-			method_name = get_report_module_dotted_path(module, self.name) + ".execute"
-			res = frappe.get_attr(method_name)(frappe._dict(filters))
+			self.execute_module(filters)
 		else:
-			if not frappe.conf.server_script_enabled:
-				raise ServerScriptNotEnabled
-			loc = {"filters": frappe._dict(filters), 'data':[]}
-			safe_exec(self.report_script, None, loc)
-			res = loc['data']
+			self.execute_script(filters)
 
-		end_time = datetime.datetime.now()
-
-		execution_time = (end_time - start_time).seconds
-
+		# automatically set as prepared
+		execution_time = (datetime.datetime.now() - start_time).total_seconds()
 		if execution_time > threshold and not self.prepared_report:
 			self.db_set('prepared_report', 1)
 
@@ -118,6 +114,17 @@ class Report(Document):
 
 		return res
 
+	def execute_module(self, filters):
+		# report in python module
+		module = self.module or frappe.db.get_value("DocType", self.ref_doctype, "module")
+		method_name = get_report_module_dotted_path(module, self.name) + ".execute"
+		res = frappe.get_attr(method_name)(frappe._dict(filters))
+
+	def execute_script(self, filters):
+		# server script
+		loc = {"filters": frappe._dict(filters), 'data':[]}
+		safe_exec(self.report_script, None, loc)
+		res = loc['data']
 
 	def get_data(self, filters=None, limit=None, user=None, as_dict=False):
 		columns = []
