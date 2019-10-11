@@ -91,6 +91,7 @@
   },
   {
    "default": "0",
+   "depends_on": "eval:doc.chart_type !== 'Group By'",
    "fieldname": "timeseries",
    "fieldtype": "Check",
    "label": "Time Series"
@@ -172,7 +173,7 @@
    "label": "Number of Groups"
   }
  ],
- "modified": "2019-09-27 15:34:05.593069",
+ "modified": "2019-10-11 16:11:17.051669",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Dashboard Chart",
