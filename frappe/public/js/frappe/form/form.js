@@ -1369,6 +1369,8 @@ frappe.ui.form.Form = class FrappeForm {
 				frappe.get_meta(doctype).fields.forEach(function(df) {
 					if(df.fieldtype==='Link' && df.options===me.doctype) {
 						new_doc[df.fieldname] = me.doc.name;
+					} else if (df.fieldtype==='Link' || 'Dynamic Link' && me.doc[df.fieldname]) {
+						new_doc[df.fieldname] = me.doc[df.fieldname];
 					}
 				});
 
