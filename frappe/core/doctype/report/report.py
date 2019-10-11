@@ -101,9 +101,9 @@ class Report(Document):
 
 		# The JOB
 		if self.is_standard == 'Yes':
-			self.execute_module(filters)
+			res = self.execute_module(filters)
 		else:
-			self.execute_script(filters)
+			res = self.execute_script(filters)
 
 		# automatically set as prepared
 		execution_time = (datetime.datetime.now() - start_time).total_seconds()
@@ -118,13 +118,13 @@ class Report(Document):
 		# report in python module
 		module = self.module or frappe.db.get_value("DocType", self.ref_doctype, "module")
 		method_name = get_report_module_dotted_path(module, self.name) + ".execute"
-		res = frappe.get_attr(method_name)(frappe._dict(filters))
+		return frappe.get_attr(method_name)(frappe._dict(filters))
 
 	def execute_script(self, filters):
 		# server script
 		loc = {"filters": frappe._dict(filters), 'data':[]}
 		safe_exec(self.report_script, None, loc)
-		res = loc['data']
+		return loc['data']
 
 	def get_data(self, filters=None, limit=None, user=None, as_dict=False):
 		columns = []

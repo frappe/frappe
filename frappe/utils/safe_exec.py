@@ -19,7 +19,8 @@ def safe_exec(script, _globals=None, _locals=None):
 
 	# build globals
 	exec_globals = get_safe_globals()
-	exec_globals.update(_globals)
+	if _globals:
+		exec_globals.update(_globals)
 
 	# execute script compiled by RestrictedPython
 	exec(compile_restricted(script), exec_globals, _locals) # pylint: disable=exec-used
@@ -46,31 +47,36 @@ def get_safe_globals():
 			_ = frappe._,
 			_dict = frappe._dict,
 			flags = frappe.flags,
-			get_url = frappe.utils.get_url,
+
 			format = frappe.format_value,
 			format_value = frappe.format_value,
 			date_format = date_format,
 			format_date = frappe.utils.data.global_date_format,
 			form_dict = getattr(frappe.local, 'form_dict', {}),
-			get_hooks = frappe.get_hooks,
+
 			get_meta = frappe.get_meta,
 			get_doc = frappe.get_doc,
 			get_cached_doc = frappe.get_cached_doc,
 			get_list = frappe.get_list,
 			get_all = frappe.get_all,
 			get_system_settings = frappe.get_system_settings,
+
 			utils = datautils,
+			get_url = frappe.utils.get_url,
+			render_template = frappe.render_template,
+			msgprint = frappe.msgprint,
+
 			user = user,
 			get_fullname = frappe.utils.get_fullname,
 			get_gravatar = frappe.utils.get_gravatar_url,
 			full_name = frappe.local.session.data.full_name if getattr(frappe.local, "session", None) else "Guest",
-			render_template = frappe.render_template,
 			request = getattr(frappe.local, 'request', {}),
 			session = frappe._dict(
 				user = user,
 				csrf_token = frappe.local.session.data.csrf_token if getattr(frappe.local, "session", None) else ''
 			),
 			socketio_port = frappe.conf.socketio_port,
+			get_hooks = frappe.get_hooks,
 		),
 		style = frappe._dict(
 			border_color = '#d1d8dd'
