@@ -3,6 +3,13 @@ import os, json, inspect
 import mimetypes
 from html2text import html2text
 from RestrictedPython import compile_restricted, safe_globals
+import frappe
+import frappe.utils
+import frappe.utils.data
+from frappe.website.utils import (get_shade, get_toc, get_next_link)
+from frappe.modules import scrub
+from frappe.www.printview import get_visible_columns
+import frappe.exceptions
 
 def safe_exec(script, _globals=None, _locals=None):
 	# script reports must be enabled via site_config.json
@@ -18,14 +25,6 @@ def safe_exec(script, _globals=None, _locals=None):
 	exec(compile_restricted(script), exec_globals, _locals) # pylint: disable=exec-used
 
 def get_safe_globals():
-	import frappe
-	import frappe.utils
-	import frappe.utils.data
-	from frappe.website.utils import (get_shade, get_toc, get_next_link)
-	from frappe.modules import scrub
-	from frappe.www.printview import get_visible_columns
-	import frappe.exceptions
-
 	datautils = {}
 	if frappe.db:
 		date_format = frappe.db.get_default("date_format") or "yyyy-mm-dd"
