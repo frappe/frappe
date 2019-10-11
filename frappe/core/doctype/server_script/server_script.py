@@ -8,8 +8,6 @@ import frappe
 from frappe.model.document import Document
 from frappe.utils.safe_exec import safe_exec
 
-class ServerScriptNotEnabled(frappe.PermissionError): pass
-
 class ServerScript(Document):
 	@staticmethod
 	def validate():

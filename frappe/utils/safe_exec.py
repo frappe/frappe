@@ -11,6 +11,8 @@ from frappe.modules import scrub
 from frappe.www.printview import get_visible_columns
 import frappe.exceptions
 
+class ServerScriptNotEnabled(frappe.PermissionError): pass
+
 def safe_exec(script, _globals=None, _locals=None):
 	# script reports must be enabled via site_config.json
 	if not frappe.conf.server_script_enabled:
