@@ -42,7 +42,7 @@ def register_consumer(event_consumer, subscribed_doctypes, user):
 	# so that, updates after subscribing are consumed and not the old ones.
 	last_update = get_last_update()
 
-	return json.dumps({'api_key': api_key, 'api_secret': api_secret, 'last_update': last_update})
+	return {'api_key': api_key, 'api_secret': api_secret, 'last_update': last_update}
 
 def get_consumer_site(consumer_url):
 	consumer_doc = frappe.get_doc('Event Consumer', consumer_url)

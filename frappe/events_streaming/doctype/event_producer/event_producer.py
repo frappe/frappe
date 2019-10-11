@@ -22,7 +22,7 @@ class EventProducer(Document):
 
 	def create_event_consumer(self):
 		'''register event consumer on the producer site'''
-		producer_site = FrappeClient(self.producer_url)
+		producer_site = FrappeClient(self.producer_url, verify=False)
 		subscribed_doctypes = []
 		for entry in self.event_configuration:
 			if entry.has_mapping:
@@ -36,7 +36,6 @@ class EventProducer(Document):
 			'subscribed_doctypes': json.dumps(subscribed_doctypes),
 			'user': self.user
 		})
-		response = json.loads(response)
 		self.api_key = response['api_key']
 		self.api_secret =  response['api_secret']
 		self.last_update = response['last_update']
