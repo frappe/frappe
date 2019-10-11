@@ -6,13 +6,13 @@ from __future__ import unicode_literals
 
 import frappe
 from frappe.model.document import Document
-from frappe.utils.safe_globals import get_safe_globals
+from frappe.utils.safe_exec import safe_exec
 
 class ServerScriptNotEnabled(frappe.PermissionError): pass
 
 class ServerScript(Document):
 	def validate(self):
-		frappe.only_for('System Manager')
+		frappe.only_for('Script Manager')
 
 	def on_update(self):
 		frappe.cache().delete_value('server_script_map')
@@ -23,14 +23,13 @@ class ServerScript(Document):
 		if self.script_type == 'API':
 			if frappe.session.user == 'Guest' and not self.allow_guest:
 				raise frappe.PermissionError
-			exec(self.script, globals(), None)
+			safe_exec(self.script)
 		else:
 			raise frappe.DoesNotExistError
 
 	def execute_doc(self, doc):
 		if not frappe.conf.server_script_enabled:
 			raise ServerScriptNotEnabled
-		context = doc.as_dict()
-		context.doc = doc
-		exec(self.script, globals(), context)
+		context = dict(doc = doc)
+		safe_exec(self.script, None, context)
 

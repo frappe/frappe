@@ -6,8 +6,11 @@ EVENT_MAP = {
 	'validate': 'Before Save',
 	'on_update': 'After Save',
 	'before_submit': 'Before Submit',
+	'on_submit': 'After Submit',
 	'before_cancel': 'Before Cancel',
-	'before_delete': 'Before Delete'
+	'on_cancel': 'After Cancel',
+	'on_trash': 'Before Delete',
+	'after_delete': 'After Delete',
 }
 
 def run_server_script_api(method):
@@ -23,9 +26,10 @@ def run_server_script_for_doc_event(doc, event):
 	if frappe.flags.in_install:
 		return
 
-	script_name = get_server_script_map().get(doc.doctype, {}).get(EVENT_MAP[event], None)
-	if script_name:
-		frappe.get_doc('Server Script', script_name).execute_doc(doc)
+	scripts = get_server_script_map().get(doc.doctype, {}).get(EVENT_MAP[event], None)
+	if scripts:
+		for script_name in scripts:
+			frappe.get_doc('Server Script', script_name).execute_doc(doc)
 
 def get_server_script_map():
 	script_map = frappe.cache().get_value('server_script_map')
@@ -34,7 +38,7 @@ def get_server_script_map():
 		for script in frappe.get_all('Server Script', ('name', 'reference_doctype', 'doctype_event',
 			'api_method', 'script_type')):
 			if script.script_type == 'DocType Event':
-				script_map.setdefault(script.reference_doctype, {})[script.doctype_event] = script.name
+				script_map.setdefault(script.reference_doctype, {}).setdefault(script.doctype_event, []).append(script.name)
 			else:
 				script_map.setdefault('_api', {})[script.api_method] = script.name
 		frappe.cache().set_value('server_script_map', script_map)

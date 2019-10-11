@@ -68,3 +68,6 @@ class TestReport(unittest.TestCase):
 		self.assertEqual(columns[1].get('label'), 'User Type')
 		self.assertTrue('Administrator' in [d[0] for d in data])
 		frappe.delete_doc('Report', 'User Activity Report Without Sort')
+
+	def test_non_standard_script_report(self):
+		pass

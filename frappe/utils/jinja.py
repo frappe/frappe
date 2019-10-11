@@ -4,7 +4,7 @@ from __future__ import unicode_literals
 
 def get_jenv():
 	import frappe
-	from frappe.utils.safe_globals import get_safe_globals
+	from frappe.utils.safe_exec import get_safe_globals
 
 	if not getattr(frappe.local, 'jenv', None):
 		from jinja2 import DebugUndefined

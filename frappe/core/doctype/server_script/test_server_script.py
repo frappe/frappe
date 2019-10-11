@@ -9,46 +9,67 @@ import requests
 from frappe.utils import get_site_url
 from frappe.core.doctype.server_script.server_script_utils import get_server_script_map
 
+scripts = [
+	dict(
+		name='test_todo',
+		script_type = 'DocType Event',
+		doctype_event = 'Before Insert',
+		reference_doctype = 'ToDo',
+		script = '''
+if "test" in doc.description:
+	doc.status = 'Closed'
+'''
+	),
+	dict(
+		name='test_todo_validate',
+		script_type = 'DocType Event',
+		doctype_event = 'Before Insert',
+		reference_doctype = 'ToDo',
+		script = '''
+if "validate" in doc.description:
+	raise frappe.ValidationError
+'''
+	),
+	dict(
+		name='test_api',
+		script_type = 'API',
+		api_method = 'test_server_script',
+		allow_guest = 1,
+		script = '''
+frappe.response['message'] = 'hello'
+'''
+	)
+]
 class TestServerScript(unittest.TestCase):
+	@classmethod
+	def setUpClass(cls):
+		frappe.db.commit()
+		frappe.db.sql('truncate `tabServer Script`')
+		frappe.get_doc('User', 'Administrator').add_roles('Script Manager')
+		for script in scripts:
+			script_doc = frappe.get_doc(doctype ='Server Script')
+			script_doc.update(script)
+			script_doc.insert()
+
+		frappe.db.commit()
+
+	# @classmethod
+	# def tearDownClass(cls):
+	# 	frappe.db.sql('truncate `tabServer Script`')
+
 	def setUp(self):
 		frappe.cache().delete_value('server_script_map')
 
 	def test_doctype_event(self):
-		script = get_server_script()
-		script.script_type = 'DocType Event'
-		script.script = 'frappe.flags._ping = True'
-		script.reference_doctype = 'ToDo'
-		script.doctype_event = 'Before Save'
-		script.save()
-		frappe.db.commit()
+		todo = frappe.get_doc(dict(doctype='ToDo', description='hello')).insert()
+		self.assertEqual(todo.status, 'Open')
 
-		frappe.flags._ping = False
-		frappe.get_doc(dict(doctype='ToDo', description='test todo')).insert()
-		self.assertTrue(frappe.flags._ping)
+		todo = frappe.get_doc(dict(doctype='ToDo', description='test todo')).insert()
+		self.assertEqual(todo.status, 'Closed')
+
+		self.assertRaises(frappe.ValidationError, frappe.get_doc(dict(doctype='ToDo', description='validate me')).insert)
 
 	def test_api(self):
-		script = get_server_script()
-		script.script_type = 'API'
-		script.api_method = 'test_server_script'
-		script.allow_guest = 1
-		script.script = 'frappe.response["message"] = "hello"'
-		script.save()
-		frappe.db.commit()
-
 		response = requests.post(get_site_url(frappe.local.site) + "/api/method/test_server_script")
 		self.assertEqual(response.status_code, 200)
 		self.assertEqual("hello", response.json()["message"])
-
-
-def get_server_script():
-	if frappe.db.exists('Server Script', 'Test Server Script'):
-		return frappe.get_doc('Server Script', 'Test Server Script')
-	else:
-		script = frappe.get_doc(dict(
-			doctype = 'Server Script',
-			name = 'Test Server Script',
-			script = '# nothing',
-			script_type = 'DocType Event'
-		)).insert()
-
-		return script

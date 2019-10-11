@@ -3,7 +3,7 @@
 
 from __future__ import unicode_literals
 import frappe
-import json
+import json, datetime
 from frappe import _
 import frappe.desk.query_report
 from frappe.utils import cint
@@ -27,15 +27,14 @@ class Report(Document):
 			if frappe.session.user=="Administrator" and getattr(frappe.local.conf, 'developer_mode',0)==1:
 				self.is_standard = "Yes"
 
-		if self.is_standard == "No" and frappe.db.get_value("Report", self.name, "is_standard") == "Yes":
-			frappe.throw(_("Cannot edit a standard report. Please duplicate and create a new report"))
+		if self.is_standard == "No":
+			frappe.only_for('Script Manager')
+
+			if frappe.db.get_value("Report", self.name, "is_standard") == "Yes":
+				frappe.throw(_("Cannot edit a standard report. Please duplicate and create a new report"))
 
 		if self.is_standard == "Yes" and frappe.session.user!="Administrator":
 			frappe.throw(_("Only Administrator can save a standard report. Please rename and save."))
-
-		if self.report_type in ("Query Report", "Script Report") \
-			and frappe.session.user!="Administrator":
-			frappe.throw(_("Only Administrator allowed to create Query / Script Reports"))
 
 		if self.report_type == "Report Builder":
 			self.update_report_json()
@@ -91,6 +90,35 @@ class Report(Document):
 		if self.report_type == "Script Report":
 			make_boilerplate("controller.py", self, {"name": self.name})
 			make_boilerplate("controller.js", self, {"name": self.name})
+
+	def execute_script_report(self, filters):
+		threshold = 30
+		res = []
+
+		start_time = datetime.datetime.now()
+		# The JOB
+		if self.is_standard == 'Yes':
+			module = self.module or frappe.db.get_value("DocType", self.ref_doctype, "module")
+			method_name = get_report_module_dotted_path(module, report.name) + ".execute"
+			res = frappe.get_attr(method_name)(frappe._dict(filters))
+		else:
+			if not frappe.conf.server_script_enabled:
+				raise ServerScriptNotEnabled
+			loc = {"filters": frappe._dict(filters), 'data':[]}
+			exec(self.report_script, globals(), loc)
+			res = loc['data']
+
+		end_time = datetime.datetime.now()
+
+		execution_time = (end_time - start_time).seconds
+
+		if execution_time > threshold and not self.prepared_report:
+			self.db_set('prepared_report', 1)
+
+		frappe.cache().hset('report_execution_time', self.name, execution_time)
+
+		return res
+
 
 	def get_data(self, filters=None, limit=None, user=None, as_dict=False):
 		columns = []

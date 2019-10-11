@@ -1,7 +1,12 @@
 
-import os, json
+import os, json, inspect
 import mimetypes
 from html2text import html2text
+from RestrictedPython import compile_restricted, safe_globals
+
+def safe_exec(script, _globals=None, _locals=None):
+	if not _globals: _globals = get_safe_globals()
+	exec(compile_restricted(script), _globals, _locals)
 
 def get_safe_globals():
 	import frappe
@@ -11,6 +16,7 @@ def get_safe_globals():
 	from frappe.website.utils import (get_shade, get_toc, get_next_link)
 	from frappe.modules import scrub
 	from frappe.www.printview import get_visible_columns
+	import frappe.exceptions
 
 	datautils = {}
 	if frappe.db:
@@ -18,14 +24,7 @@ def get_safe_globals():
 	else:
 		date_format = 'yyyy-mm-dd'
 
-	for key, obj in frappe.utils.data.__dict__.items():
-		if key.startswith("_"):
-			# ignore
-			continue
-
-		if hasattr(obj, "__call__"):
-			# only allow functions
-			datautils[key] = obj
+	add_module_properties(frappe.utils.data, datautils, lambda obj: hasattr(obj, "__call__"))
 
 	if "_" in getattr(frappe.local, 'form_dict', {}):
 		del frappe.local.form_dict["_"]
@@ -77,6 +76,8 @@ def get_safe_globals():
 		dev_server =  1 if os.environ.get('DEV_SERVER', False) else 0
 	)
 
+	add_module_properties(frappe.exceptions, out.frappe, lambda obj: inspect.isclass(obj) and issubclass(obj, Exception))
+
 	if not frappe.flags.in_setup_help:
 		out.get_visible_columns = get_visible_columns
 		out.frappe.date_format = date_format
@@ -87,4 +88,22 @@ def get_safe_globals():
 			escape = frappe.db.escape,
 		)
 
+	if frappe.response:
+		out.frappe.response = frappe.response
+
+	out.update(safe_globals)
+
+	# default writer allows write access
+	out._write_ = lambda obj: obj
+
 	return out
+
+def add_module_properties(module, data, filter_method):
+	for key, obj in module.__dict__.items():
+		if key.startswith("_"):
+			# ignore
+			continue
+
+		if filter_method(obj):
+			# only allow functions
+			data[key] = obj

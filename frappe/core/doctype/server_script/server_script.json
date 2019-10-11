@@ -6,11 +6,13 @@
  "engine": "InnoDB",
  "field_order": [
   "script_type",
+  "disabled",
+  "column_break_3",
   "reference_doctype",
   "doctype_event",
-  "frequency",
   "api_method",
   "allow_guest",
+  "section_break_8",
   "script"
  ],
  "fields": [
@@ -33,7 +35,7 @@
    "fieldname": "reference_doctype",
    "fieldtype": "Link",
    "in_list_view": 1,
-   "label": "Reference DocType",
+   "label": "Reference Document Type",
    "options": "DocType"
   },
   {
@@ -41,14 +43,7 @@
    "fieldname": "doctype_event",
    "fieldtype": "Select",
    "label": "DocType Event",
-   "options": "Before Insert\nBefore Save\nAfter Save\nBefore Submit\nBefore Cancel\nBefore Delete"
-  },
-  {
-   "depends_on": "eval:doc.script_type==='Scheduled Job'",
-   "fieldname": "frequency",
-   "fieldtype": "Select",
-   "label": "Frequency",
-   "options": "Hourly\nDaily\nWeekly\nMonthly"
+   "options": "Before Insert\nBefore Save\nAfter Save\nBefore Submit\nAfter Submit\nBefore Cancel\nAfter Cancel\nBefore Delete\nAfter Delete"
   },
   {
    "depends_on": "eval:doc.script_type==='API'",
@@ -62,9 +57,23 @@
    "fieldname": "allow_guest",
    "fieldtype": "Check",
    "label": "Allow Guest"
+  },
+  {
+   "default": "0",
+   "fieldname": "disabled",
+   "fieldtype": "Check",
+   "label": "Disabled"
+  },
+  {
+   "fieldname": "column_break_3",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_8",
+   "fieldtype": "Section Break"
   }
  ],
- "modified": "2019-10-04 15:51:57.995877",
+ "modified": "2019-10-09 15:08:40.085059",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Server Script",
@@ -78,7 +87,7 @@
    "print": 1,
    "read": 1,
    "report": 1,
-   "role": "System Manager",
+   "role": "Script Manager",
    "share": 1,
    "write": 1
   }
