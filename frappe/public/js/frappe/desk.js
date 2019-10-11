@@ -149,7 +149,7 @@ frappe.Application = Class.extend({
 		}
 
 		this.fetch_tags();
-		frappe.locals.modules.utils.get_enabled_modules();
+		frappe.enabled_modules.utils.get_enabled_modules();
 	},
 
 	setup_frappe_vue() {
@@ -652,3 +652,5 @@ frappe.get_module = function(m, default_module) {
 
 	return module;
 };
+
+frappe.get_enabled_modules
