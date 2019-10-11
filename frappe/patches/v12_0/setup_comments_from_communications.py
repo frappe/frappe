@@ -6,7 +6,7 @@ def execute():
 	frappe.reload_doctype("Comment")
 
 	if frappe.db.count('Communication', filters = dict(communication_type = 'Comment')) > 20000:
-			frappe.db.auto_commit_on_many_writes = True
+		frappe.db.auto_commit_on_many_writes = True
 
 	for comment in frappe.get_all('Communication', fields = ['*'],
 		filters = dict(communication_type = 'Comment')):
