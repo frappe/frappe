@@ -4,7 +4,7 @@
 from __future__ import unicode_literals
 import frappe
 import json, datetime
-from frappe import _
+from frappe import _, scrub
 import frappe.desk.query_report
 from frappe.utils import cint
 from frappe.model.document import Document
@@ -14,6 +14,7 @@ from frappe.core.doctype.page.page import delete_custom_role
 from frappe.core.doctype.custom_role.custom_role import get_custom_allowed_roles
 from frappe.desk.reportview import append_totals_row
 from six import iteritems
+from frappe.utils.safe_exec import safe_exec
 
 
 class Report(Document):
@@ -67,9 +68,7 @@ class Report(Document):
 		if not allowed:
 			return True
 
-		roles = frappe.get_roles()
-
-		if has_common(roles, allowed):
+		if has_common(frappe.get_roles(), allowed):
 			return True
 
 	def update_report_json(self):
@@ -99,13 +98,13 @@ class Report(Document):
 		# The JOB
 		if self.is_standard == 'Yes':
 			module = self.module or frappe.db.get_value("DocType", self.ref_doctype, "module")
-			method_name = get_report_module_dotted_path(module, report.name) + ".execute"
+			method_name = get_report_module_dotted_path(module, self.name) + ".execute"
 			res = frappe.get_attr(method_name)(frappe._dict(filters))
 		else:
 			if not frappe.conf.server_script_enabled:
 				raise ServerScriptNotEnabled
 			loc = {"filters": frappe._dict(filters), 'data':[]}
-			exec(self.report_script, globals(), loc)
+			safe_exec(self.report_script, None, loc)
 			res = loc['data']
 
 		end_time = datetime.datetime.now()
@@ -229,3 +228,7 @@ class Report(Document):
 def is_prepared_report_disabled(report):
 	return frappe.db.get_value('Report',
 		report, 'disable_prepared_report') or 0
+
+def get_report_module_dotted_path(module, report_name):
+	return frappe.local.module_app[scrub(module)] + "." + scrub(module) \
+		+ ".report." + scrub(report_name) + "." + scrub(report_name)
