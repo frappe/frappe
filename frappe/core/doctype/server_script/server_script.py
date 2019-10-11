@@ -11,10 +11,12 @@ from frappe.utils.safe_exec import safe_exec
 class ServerScriptNotEnabled(frappe.PermissionError): pass
 
 class ServerScript(Document):
-	def validate(self):
+	@staticmethod
+	def validate():
 		frappe.only_for('Script Manager')
 
-	def on_update(self):
+	@staticmethod
+	def on_update():
 		frappe.cache().delete_value('server_script_map')
 
 	def execute_method(self):

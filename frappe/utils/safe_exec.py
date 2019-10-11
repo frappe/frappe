@@ -6,13 +6,12 @@ from RestrictedPython import compile_restricted, safe_globals
 
 def safe_exec(script, _globals=None, _locals=None):
 	if not _globals: _globals = get_safe_globals()
-	exec(compile_restricted(script), _globals, _locals)
+	exec(compile_restricted(script), _globals, _locals) # pylint: disable=exec-used
 
 def get_safe_globals():
 	import frappe
 	import frappe.utils
 	import frappe.utils.data
-	from frappe.model.document import get_controller
 	from frappe.website.utils import (get_shade, get_toc, get_next_link)
 	from frappe.modules import scrub
 	from frappe.www.printview import get_visible_columns

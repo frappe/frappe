@@ -7,7 +7,6 @@ import frappe
 import unittest
 import requests
 from frappe.utils import get_site_url
-from frappe.core.doctype.server_script.server_script_utils import get_server_script_map
 
 scripts = [
 	dict(

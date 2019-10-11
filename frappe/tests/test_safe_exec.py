@@ -1,6 +1,5 @@
 from __future__ import unicode_literals
 import unittest
-import frappe
 from frappe.utils.safe_exec import safe_exec
 
 class TestSafeExec(unittest.TestCase):
