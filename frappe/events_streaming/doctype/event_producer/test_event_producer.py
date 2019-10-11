@@ -18,11 +18,13 @@ def create_event_producer():
 		'use_same_name': 1
 	})
 	event_producer.user = 'Administrator'
-	event_producer.insert()
+	event_producer = event_producer.insert()
+	print('event producer', event_producer)
 
 class TestEventProducer(unittest.TestCase):
 	def setUp(self):
 		if not frappe.db.exists('Event Producer', 'http://test_site_producer:8000'):
+			print('in create event producer')
 			create_event_producer()
 		frappe.db.sql('delete from tabToDo')
 		frappe.db.sql('delete from tabNote')
