@@ -17,6 +17,8 @@ def execute():
 
 	users = frappe.get_all('User', filters={"name": ('not in', 'Administrator, Guest')}, fields=["*"])
 	for user in users:
+		if frappe.db.exists("Contact", {"email_id": user.email}) or frappe.db.exists("Contact Email", {"email_id": user.email}):
+			continue
 		if user.first_name:
 			user.first_name = re.sub("[<>]+", '', frappe.safe_decode(user.first_name))
 		if user.last_name:
