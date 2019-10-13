@@ -20,7 +20,10 @@ class FrappeException(Exception):
 
 class FrappeClient(object):
 	def __init__(self, url, username=None, password=None, verify=True, api_key=None, api_secret=None, frappe_authorization_source = None):
-		self.headers = dict(Accept='application/json')
+		self.headers = {
+			'Accept': 'application/json',
+			'content-type': 'application/x-www-form-urlencoded',
+		}
 		self.verify = verify
 		self.session = requests.session()
 		self.url = url
@@ -60,7 +63,6 @@ class FrappeClient(object):
 			token = base64.b64encode(('{}:{}'.format(self.api_key, self.api_secret)).encode('utf-8')).decode('utf-8')
 			auth_header = {
 				'Authorization': 'Basic {}'.format(token),
-				'content-type': 'application/x-www-form-urlencoded'
 			}
 			self.headers.update(auth_header)
 

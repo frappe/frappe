@@ -5,6 +5,7 @@
 from __future__ import unicode_literals
 import frappe
 import json
+import time
 import requests
 from frappe import _
 from frappe.model.document import Document
@@ -21,8 +22,29 @@ class EventProducer(Document):
 		self.create_custom_fields()
 
 	def create_event_consumer(self):
+		'''check connection status for the Event Producer site'''
+		self.retry = 3
+		res = requests.get(self.producer_url)
+		if res.status_code != 200:
+			if self.retry == 0:
+				frappe.throw(_('Failed to connect to the Event Producer site. Retry subscribing after some time.'))
+			elif self.retry > 0:
+				time.sleep(5)
+				self.retry -= 1
+				self.create_event_consumer()
+
 		'''register event consumer on the producer site'''
 		producer_site = FrappeClient(self.producer_url, verify=False)
+		response = producer_site.post_api(
+			'frappe.events_streaming.doctype.event_consumer.event_consumer.register_consumer',
+			params = {'data': json.dumps(self.get_request_data())}
+		)
+		response = json.loads(response)
+		self.api_key = response['api_key']
+		self.api_secret =  response['api_secret']
+		self.last_update = response['last_update']
+
+	def get_request_data(self):
 		subscribed_doctypes = []
 		for entry in self.event_configuration:
 			if entry.has_mapping:
@@ -30,15 +52,12 @@ class EventProducer(Document):
 				subscribed_doctypes.append(frappe.db.get_value('Document Type Mapping', entry.mapping, 'remote_doctype'))
 			else:
 				subscribed_doctypes.append(entry.ref_doctype)
-		response = producer_site.post_request({
-			'cmd': 'frappe.events_streaming.doctype.event_consumer.event_consumer.register_consumer',
+
+		return {
 			'event_consumer': get_current_node(),
 			'subscribed_doctypes': json.dumps(subscribed_doctypes),
 			'user': self.user
-		})
-		self.api_key = response['api_key']
-		self.api_secret =  response['api_secret']
-		self.last_update = response['last_update']
+		}
 
 	def create_custom_fields(self):
 		'''create custom field to store remote docname and remote site url'''

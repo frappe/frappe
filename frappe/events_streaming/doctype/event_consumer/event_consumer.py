@@ -21,14 +21,15 @@ class EventConsumer(Document):
 			return 'online'
 
 @frappe.whitelist(allow_guest=True)
-def register_consumer(event_consumer, subscribed_doctypes, user):
+def register_consumer(data):
 	consumer = frappe.new_doc('Event Consumer')
-	consumer.callback_url = event_consumer
-	consumer.user = user
-	subscribed_doctypes = json.loads(subscribed_doctypes)
+	data = json.loads(data)
+	consumer.callback_url = data['event_consumer']
+	consumer.user = data['user']
+	subscribed_doctypes = json.loads(data['subscribed_doctypes'])
 
 	for entry in subscribed_doctypes:
-		consumer.append('subscribed_doctypes',{
+		consumer.append('subscribed_doctypes', {
 			'ref_doctype': entry
 		})
 
@@ -41,8 +42,7 @@ def register_consumer(event_consumer, subscribed_doctypes, user):
 	# consumer's 'last_update' field should point to the latest update in producer's update log when subscribing
 	# so that, updates after subscribing are consumed and not the old ones.
 	last_update = get_last_update()
-
-	return {'api_key': api_key, 'api_secret': api_secret, 'last_update': last_update}
+	return json.dumps({'api_key': api_key, 'api_secret': api_secret, 'last_update': last_update})
 
 def get_consumer_site(consumer_url):
 	consumer_doc = frappe.get_doc('Event Consumer', consumer_url)
