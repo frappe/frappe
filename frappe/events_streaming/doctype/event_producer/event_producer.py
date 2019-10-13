@@ -17,7 +17,7 @@ class EventProducer(Document):
 	def before_insert(self):
 		self.create_event_consumer()
 
-	def validate():
+	def validate(self):
 		self.create_custom_fields()
 
 	def on_update(self):
