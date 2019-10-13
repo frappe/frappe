@@ -298,7 +298,7 @@ class EmailServer:
 			"Connection timed out",
 		)
 		for message in messages:
-			if message in strip(cstr(e.message)) or message in strip(cstr(getattr(e, 'strerror', ''))):
+			if message in strip(cstr(e)) or message in strip(cstr(getattr(e, 'strerror', ''))):
 				return True
 		return False
 
