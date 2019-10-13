@@ -17,9 +17,11 @@ class EventProducer(Document):
 	def before_insert(self):
 		self.create_event_consumer()
 
+	def validate():
+		self.create_custom_fields()
+
 	def on_update(self):
 		self.update_event_consumer()
-		self.create_custom_fields()
 
 	def create_event_consumer(self):
 		'''check connection status for the Event Producer site'''
