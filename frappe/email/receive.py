@@ -86,8 +86,8 @@ class EmailServer:
 			frappe.msgprint(_('Invalid Mail Server. Please rectify and try again.'))
 			raise
 
-		except poplib.error_proto as e:
-			if self.is_temporary_system_problem(e):
+		except poplib.error_proto, details:
+			if self.is_temporary_system_problem(details):
 				return False
 
 			else:
@@ -298,7 +298,7 @@ class EmailServer:
 			"Connection timed out",
 		)
 		for message in messages:
-			if message in strip(cstr(e.message)) or message in strip(cstr(getattr(e, 'strerror', ''))):
+			if message in strip(cstr(e)) or message in strip(cstr(getattr(e, 'strerror', ''))):
 				return True
 		return False
 
