@@ -15,26 +15,13 @@ from frappe.custom.doctype.custom_field.custom_field import create_custom_field
 
 class EventProducer(Document):
 	def before_insert(self):
-		self.create_event_consumer()
-
-	def validate(self):
-		self.create_custom_fields()
+		self.is_producer_online(method='create_event_consumer')
 
 	def on_update(self):
-		self.update_event_consumer()
+		self.is_producer_online(method='update_event_consumer')
+		self.create_custom_fields()
 
 	def create_event_consumer(self):
-		'''check connection status for the Event Producer site'''
-		self.retry = 3
-		res = requests.get(self.producer_url)
-		if res.status_code != 200:
-			if self.retry == 0:
-				frappe.throw(_('Failed to connect to the Event Producer site. Retry subscribing after some time.'))
-			elif self.retry > 0:
-				time.sleep(5)
-				self.retry -= 1
-				self.create_event_consumer()
-
 		'''register event consumer on the producer site'''
 		producer_site = FrappeClient(self.producer_url, verify=False)
 		response = producer_site.post_api(
@@ -89,6 +76,19 @@ class EventProducer(Document):
 					})
 			event_consumer.user = self.user
 			producer_site.update(event_consumer)
+
+	def is_producer_online(self, method = None):
+		'''check connection status for the Event Producer site'''
+		self.retry = 3
+		res = requests.get(self.producer_url)
+		while(res.status_code != 200 and self.retry > 0):
+			time.sleep(5)
+			res = requests.get(self.producer_url)
+			self.retry -= 1
+		if res.status_code == 200:
+				self.run_method(method)
+		if res.status_code != 200 and self.retry == 0:
+			frappe.throw(_('Failed to connect to the Event Producer site. Retry after some time.'))
 
 def get_current_node():
 	current_node = frappe.utils.get_url()

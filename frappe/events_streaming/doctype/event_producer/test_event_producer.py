@@ -117,12 +117,14 @@ class TestEventProducer(unittest.TestCase):
 
 	def test_dynamic_link_dependencies_synced(self):
 		#unsubscribe for Note to check whether dependency is fulfilled
-		producer = frappe.get_doc('Event Producer', self.producer_url)
-		producer.event_configuration = []
-		producer.append('event_configuration', {
+		event_producer = frappe.get_doc('Event Producer', self.producer_url)
+		event_producer.event_configuration = []
+		event_producer.append('event_configuration', {
 			'ref_doctype': 'ToDo',
 			'use_same_name': 1
 		})
+		event_producer.save()
+
 		producer = self.get_remote_site()
 		producer_link_doc = frappe.get_doc(dict(doctype='Note', title='Test Dynamic Link 1'))
 
@@ -137,17 +139,38 @@ class TestEventProducer(unittest.TestCase):
 		#check dynamic link dependency created
 		self.assertTrue(frappe.db.exists('Note', producer_link_doc.name))
 		self.assertEqual(producer_link_doc.name, frappe.db.get_value('ToDo', producer_doc.name, 'reference_name'))
+		
+		#subscribe again
+		event_producer = frappe.get_doc('Event Producer', self.producer_url)
+		event_producer.append('event_configuration', {
+			'ref_doctype': 'Note',
+			'use_same_name': 1
+		})
+		event_producer.save()
 
 	def test_naming_configuration(self):
 		#test with use_same_name = 0
-		frappe.clear_cache(doctype='ToDo')
-		config = frappe.db.get_value('Event Configuration', {'parent': self.producer_url, 'ref_doctype': 'ToDo'})
-		frappe.db.set_value('Event Configuration', config, 'use_same_name', 0)
+		event_producer = frappe.get_doc('Event Producer', self.producer_url)
+		event_producer.event_configuration = []
+		event_producer.append('event_configuration', {
+			'ref_doctype': 'ToDo',
+			'use_same_name': 0
+		})
+		event_producer.save()
+
 		producer = self.get_remote_site()
 		producer_doc = self.insert_into_producer(producer, 'test different name sync')
 		self.pull_producer_data()
 		self.assertTrue(frappe.db.exists('ToDo', {'remote_docname': producer_doc.name, 'remote_site_name': self.producer_url}))
-		frappe.db.set_value('Event Configuration', config, 'use_same_name', 1)
+
+		event_producer = frappe.get_doc('Event Producer', self.producer_url)
+		event_producer.event_configuration = []
+		#set use_same_name back to 1
+		event_producer.append('event_configuration', {
+			'ref_doctype': 'ToDo',
+			'use_same_name': 1
+		})
+		event_producer.save()
 
 	def test_update_log(self):
 		producer = self.get_remote_site()
