@@ -1,7 +1,7 @@
 ---
 name: Bug report
 about: Report a bug encountered while using the Frappe Framework
-
+labels: bug
 ---
 
 <!--

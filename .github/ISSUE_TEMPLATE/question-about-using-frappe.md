@@ -1,7 +1,7 @@
 ---
 name: Question about using Frappe/Frappe Apps
 about: This is not the appropriate channel
-
+labels: invalid
 ---
 
 Please post on our forums:
