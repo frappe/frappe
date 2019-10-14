@@ -110,7 +110,7 @@ class Dashboard {
 		frappe.db.get_list("Dashboard").then(dashboards => {
 			dashboards.map(dashboard => {
 				let name = dashboard.name;
-				if(name != this.dashboard_name){
+				if (name != this.dashboard_name) {
 					this.page.add_menu_item(name, () => frappe.set_route("dashboard", name));
 				}
 			});
