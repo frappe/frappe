@@ -7,9 +7,7 @@
   "metabase_url",
   "metabase_exp_time",
   "column_break_2",
-  "metabase_secret",
-  "section_break_4",
-  "metabase_default_dashboard"
+  "metabase_secret"
  ],
  "fields": [
   {
@@ -30,16 +28,6 @@
    "reqd": 1
   },
   {
-   "fieldname": "section_break_4",
-   "fieldtype": "Section Break"
-  },
-  {
-   "fieldname": "metabase_default_dashboard",
-   "fieldtype": "Link",
-   "label": "Default Dashboard",
-   "options": "Metabase Dashboard"
-  },
-  {
    "default": "20",
    "fieldname": "metabase_exp_time",
    "fieldtype": "Int",
@@ -48,7 +36,7 @@
   }
  ],
  "issingle": 1,
- "modified": "2019-10-09 16:09:01.430260",
+ "modified": "2019-10-14 22:12:13.823169",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Metabase Settings",
