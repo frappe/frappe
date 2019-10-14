@@ -10,6 +10,22 @@ from frappe.model.dynamic_links import get_dynamic_link_map
 from frappe.utils.password import rename_password
 from frappe.model.utils.user_settings import sync_user_settings, update_user_settings_data
 
+
+@frappe.whitelist()
+def update_document_title(doctype, document, title_field, old_title, new_title, old_name, new_name):
+	"""
+		Update title from header in form view
+	"""
+	if new_title and old_title != new_title:
+		frappe.db.set_value(doctype, document, title_field, new_title)
+		frappe.msgprint(_('Saved'), alert=True, indicator='green')
+
+	if new_name and old_name != new_name:
+		return rename_doc(doctype, old_name, new_name)
+
+	return old_name
+
+
 @frappe.whitelist()
 def rename_doc(doctype, old, new, force=False, merge=False, ignore_permissions=False, ignore_if_exists=False):
 	"""

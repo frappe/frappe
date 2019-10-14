@@ -73,6 +73,8 @@ frappe.ui.form.Toolbar = Class.extend({
 
 		this.page.$title_area.find(".title-text").on("click", () => {
 			let fields = [];
+			let doctype = me.frm.doctype;
+			let docname = me.frm.doc.name;
 			let title_field = me.frm.meta.title_field || '';
 
 			// check if title is updateable
@@ -95,7 +97,7 @@ frappe.ui.form.Toolbar = Class.extend({
 					fieldname: "name",
 					fieldtype: "Data",
 					reqd: 1,
-					default: me.frm.doc.name
+					default: docname
 				}, {
 					label: __("Merge with existing"),
 					fieldname: "merge",
@@ -103,6 +105,7 @@ frappe.ui.form.Toolbar = Class.extend({
 					default: 0
 				}]);
 			}
+
 			// create dialog
 			if (fields.length > 0) {
 				let d = new frappe.ui.Dialog({
@@ -113,41 +116,25 @@ frappe.ui.form.Toolbar = Class.extend({
 
 				d.set_primary_action(__("Rename"), function () {
 					let args = d.get_values();
-
-					frappe.run_serially([
-						rename_doc(d, me.frm.doctype, me.frm.doc.name, args),
-						me.frm.reload_doc(),
-						update_title(me, title_field, args)
-					])
-
-					d.hide();
-				});
-			}
-		});
-		function update_title(me, title_field, args) {
-			if (args.title && me.frm.doc[title_field] != args.title) {
-				me.frm.set_value(title_field, args.title);
-				me.frm.save_or_update();
-			}
-		}
-		function rename_doc(d, doctype, docname, args) {
-			if (args.name && docname != args.name) {
-				frappe.call({
-					method: "frappe.model.rename_doc.rename_doc",
-					args: {
-						doctype: doctype,
-						old: docname,
-						new: args.name,
-						merge: args.merge
-					},
-					btn: d.get_primary_btn(),
-					callback: function (res) {
-						if (!res.exc) {
+					frappe.call({
+						method: "frappe.model.rename_doc.update_document_title",
+						args: {
+							doctype: doctype,
+							document: docname,
+							title_field: title_field || null,
+							old_title: me.frm.doc[title_field] || null,
+							new_title: args.title || null,
+							old_name: docname || null,
+							new_name: args.name || null
+						},
+						btn: d.get_primary_btn()
+					}).then((res) => {
+						if (!res.exc && (args.name != docname)) {
 							$(document).trigger('rename', [doctype, docname, res.message || args.name]);
 							if (locals[doctype] && locals[doctype][docname]) delete locals[doctype][docname];
 						}
-						return res
-					}
+					});
+					d.hide();
 				});
 			}
 		}
