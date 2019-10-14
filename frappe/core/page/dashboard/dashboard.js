@@ -59,7 +59,7 @@ class Dashboard {
 	}
 
 	show_dashboard(current_dashboard_name) {
-		if(this.dashboard_name !== current_dashboard_name) {
+		if (this.dashboard_name !== current_dashboard_name) {
 			this.dashboard_name = current_dashboard_name;
 			let title = this.dashboard_name;
 			if (!this.dashboard_name.toLowerCase().includes(__('dashboard'))) {
@@ -183,7 +183,7 @@ class DashboardChart {
 				handler: () => {
 					frappe.set_route('List', this.chart_doc.document_type);
 				}
-			})
+			});
 		}
 		this.set_chart_actions(actions);
 	}
@@ -239,7 +239,7 @@ class DashboardChart {
 		};
 		this.chart_container.find('.chart-loading-state').addClass('hide');
 
-		if(!this.chart) {
+		if (!this.chart) {
 			this.chart = new frappe.Chart(this.chart_container.find(".chart-wrapper")[0], chart_args);
 		} else {
 			this.chart.update(this.data);
