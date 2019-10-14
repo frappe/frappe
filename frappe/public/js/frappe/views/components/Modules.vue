@@ -46,7 +46,7 @@ export default {
 				let module = this.modules_list.filter(m => m.module_name == route[1])[0]
 				let module_name = module && (module.label || module.module_name)
 				let title = this.current_module_label ? this.current_module_label : module_name;
-				let is_enabled = this.is_enabled(module.module_name, frappe.enabled_modules.modules);
+				let is_enabled = this.is_enabled(module.module_name, frappe.modules.enabled_modules);
 
 				frappe.modules.home && frappe.modules.home.page.set_title(title);
 				this.setup_enable_module(is_enabled, module)
@@ -114,7 +114,7 @@ export default {
 						module: module.module_name
 					},
 					callback: r => {
-						frappe.enabled_modules.modules = $.extend([], r.message);
+						frappe.modules["enabled_modules"] = $.extend([], r.message);
 						frappe.show_alert({
 							message: __('Module Enabled.'),
 							indicator: 'green'

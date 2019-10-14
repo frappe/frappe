@@ -24,7 +24,7 @@ from frappe.modules import make_boilerplate, get_doc_path
 from frappe.database.schema import validate_column_name, validate_column_length
 from frappe.model.docfield import supports_translation
 from frappe.modules.import_file import get_file_path
-
+from frappe.core.doctype.module_def.module_def import log_enabled_module
 
 class InvalidFieldNameError(frappe.ValidationError): pass
 class UniqueFieldnameError(frappe.ValidationError): pass
@@ -271,12 +271,15 @@ class DocType(Document):
 				frappe.throw(_("Series {0} already used in {1}").format(prefix, used_in[0][0]))
 
 	def create_table(self):
-		from frappe.core.doctype.module_def.module_def import log_enabled_module
+		enabled_modules = frappe.cache().hget("modules", "enabled") or []
+
 		try:
-			if self.module in (frappe.cache().hget("modules", "enabled") or []) or \
-				(hasattr(self, "create_on_install") and self.create_on_install):# or frappe.conf.get("developer_mode"):
-				if self.module not in (frappe.cache().hget("modules", "enabled") or []):
+			if self.module in enabled_modules or (hasattr(self, "create_on_install") and self.create_on_install):
+				#or frappe.conf.get("developer_mode"):
+
+				if self.module not in enabled_modules:
 					log_enabled_module(self.module)
+
 				frappe.db.updatedb(self.name, self)
 		except Exception as e:
 			print("\n\nThere was an issue while migrating the DocType: {}\n".format(self.name))

@@ -43,6 +43,7 @@ frappe.Application = Class.extend({
 
 		this.setup_frappe_vue();
 		this.load_bootinfo();
+		this.set_enabled_modules();
 		this.load_user_permissions();
 		this.set_app_logo_url()
 			.then(() => {
@@ -149,7 +150,7 @@ frappe.Application = Class.extend({
 		}
 
 		this.fetch_tags();
-		frappe.enabled_modules.utils.get_enabled_modules();
+
 	},
 
 	setup_frappe_vue() {
@@ -252,6 +253,17 @@ frappe.Application = Class.extend({
 		} else {
 			this.set_as_guest();
 		}
+	},
+
+	set_enabled_modules: function() {
+		frappe.call({
+			method: 'frappe.core.doctype.module_def.module_def.get_enabled_modules',
+			callback: (r) => {
+				if (r && r.message) {
+					frappe.modules["enabled_modules"] = $.extend([], r.message);
+				}
+			}
+		});
 	},
 
 	load_user_permissions: function() {
