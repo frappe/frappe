@@ -382,7 +382,7 @@ class metabaseDashboard {
 
 	get_settings() {
 		return frappe.call({
-			'method': 'frappe.integrations.page.metabase_dashboard.get_url',
+			'method': 'frappe.integrations.doctype.metabase_dashboard.get_url',
 			'args': {
 				'dashboard': this.dashboard_name,
 			},
