@@ -29,10 +29,10 @@ class Dashboard {
 	}
 
 	show() {
-		this.route = frappe.get_route();
+		this.get_route();
+
 		if (this.route.length > 1) {
-			// from route
-			this.show_dashboard(this.route.slice(-1)[0]);
+			this.show_dashboard();
 		} else {
 			// last opened
 			if (frappe.last_dashboard) {
@@ -58,9 +58,26 @@ class Dashboard {
 		}
 	}
 
-	show_dashboard(current_dashboard_name) {
-		if (this.dashboard_name !== current_dashboard_name) {
-			this.dashboard_name = current_dashboard_name;
+	get_route() {
+		this.route = frappe.get_route();
+		if (this.route.length > 1) {
+			// from route
+			if (this.route.length == 2) {
+				// frappe dashboard
+				this.dashboard_doctype = 'Dashboard';
+
+			} else if (this.route.length == 3) {
+				if (this.route[1] == 'metabase') {
+					this.dashboard_doctype = 'Metabase Dashboard';
+				}
+			}
+		}
+		this.current_dashboard_name = this.route.slice(-1)[0];
+	}
+
+	show_dashboard() {
+		if (this.dashboard_name !== this.current_dashboard_name) {
+			this.dashboard_name = this.current_dashboard_name;
 			let title = this.dashboard_name;
 			if (!this.dashboard_name.toLowerCase().includes(__('dashboard'))) {
 				// ensure dashboard title has "dashboard"
@@ -69,10 +86,23 @@ class Dashboard {
 			this.page.set_title(title);
 			this.set_dropdown();
 			this.container.empty();
-			this.refresh();
+
+			if (this.dashboard_doctype == 'Dashboard') {
+				this.refresh();
+			} else if (this.dashboard_doctype == 'Metabase Dashboard') {
+				this.refresh_metabase();
+			}
 		}
 		this.charts = {};
-		frappe.last_dashboard = current_dashboard_name;
+		frappe.last_dashboard = this.current_dashboard_name;
+	}
+
+	refresh_metabase() {
+		let metabase_dashboard = new metabaseDashboard(
+			this.dashboard_name,
+			this.container,
+		);
+		metabase_dashboard.show();
 	}
 
 	refresh() {
@@ -100,18 +130,49 @@ class Dashboard {
 		this.page.clear_menu();
 
 		this.page.add_menu_item('Edit...', () => {
-			frappe.set_route('Form', 'Dashboard', frappe.dashboard.dashboard_name);
+			frappe.set_route(
+				'Form',
+				this.dashboard_doctype,
+				frappe.dashboard.dashboard_name
+			);
 		}, 1);
 
 		this.page.add_menu_item('New...', () => {
-			frappe.new_doc('Dashboard');
+			frappe.new_doc(this.dashboard_doctype);
 		}, 1);
 
-		frappe.db.get_list("Dashboard").then(dashboards => {
+		frappe.db.get_list(
+			'Dashboard'
+		).then((dashboards) => {
 			dashboards.map(dashboard => {
 				let name = dashboard.name;
 				if (name != this.dashboard_name) {
-					this.page.add_menu_item(name, () => frappe.set_route("dashboard", name));
+					this.page.add_menu_item(
+						name,
+						() => {
+							frappe.set_route('dashboard', name);
+						},
+					);
+				}
+			});
+		});
+
+		frappe.db.get_list(
+			'Metabase Dashboard',
+		).then((dashboards) => {
+			dashboards.map((dashboard) => {
+				let name = dashboard.name;
+				if (name != this.dashboard_name) {
+					this.page.add_menu_item(
+						name,
+						() => {
+							frappe.set_route(
+								'dashboard',
+								'metabase',
+								name
+							);
+						},
+					);
 				}
 			});
 		});
@@ -280,5 +341,51 @@ class DashboardChart {
 		} else {
 			return Promise.resolve();
 		}
+	}
+}
+
+class metabaseDashboard {
+	constructor(dashboard_name, page_container) {
+		this.dashboard_name = dashboard_name;
+		this.container = page_container;
+	}
+
+	show() {
+		this.get_settings().then(
+			(r) => {
+				// set variable
+				this.settings = r.message;
+				this.resizer = this.settings.resizer;
+				this.iframeUrl = this.settings.iframeUrl;
+				this.name = this.settings.name;
+
+			
+				if (this.iframeUrl && this.resizer) {
+					// prepare html
+					const iframe = `
+						<script src="${this.resizer}"></script>
+						<iframe
+							src="${this.iframeUrl}"
+							frameborder="0"
+							width=100%
+							onload="iFrameResize({}, this)"
+							allowtransparency
+						></iframe>
+					`;
+			
+					// append html to page
+					$(iframe).appendTo(this.container);
+				}
+			}
+		);
+	}
+
+	get_settings() {
+		return frappe.call({
+			'method': 'frappe.integrations.page.metabase_dashboard.get_url',
+			'args': {
+				'dashboard': this.dashboard_name,
+			},
+		});
 	}
 }

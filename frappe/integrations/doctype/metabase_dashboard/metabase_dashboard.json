@@ -1,15 +1,13 @@
 {
- "autoname": "INTE-MBOARD-.#####",
+ "autoname": "field:dashboard_name",
  "creation": "2019-10-09 14:04:53.307178",
  "doctype": "DocType",
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
-  "is_active",
-  "dashboard_info_section",
+  "dashboard_name",
   "dashboard_id",
   "column_break_4",
-  "dashboard_name",
   "dashboard_config_section",
   "theme",
   "column_break_8",
@@ -17,17 +15,6 @@
   "show_title"
  ],
  "fields": [
-  {
-   "default": "1",
-   "fieldname": "is_active",
-   "fieldtype": "Check",
-   "label": "Is Active"
-  },
-  {
-   "fieldname": "dashboard_info_section",
-   "fieldtype": "Section Break",
-   "label": "Dashboard Info"
-  },
   {
    "fieldname": "dashboard_id",
    "fieldtype": "Int",
@@ -75,7 +62,7 @@
    "label": "Show Title"
   }
  ],
- "modified": "2019-10-09 15:54:57.298813",
+ "modified": "2019-10-14 20:02:09.013107",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Metabase Dashboard",
