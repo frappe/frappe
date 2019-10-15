@@ -165,6 +165,7 @@ class CustomizeForm(Document):
 		self.flags.update_db = False
 		self.flags.rebuild_doctype_for_global_search = False
 
+		self.check_email_append_to()
 		self.set_property_setters()
 		self.update_custom_fields()
 		self.set_name_translation()
@@ -248,6 +249,13 @@ class CustomizeForm(Document):
 
 					self.make_property_setter(property=property, value=df.get(property),
 						property_type=docfield_properties[property], fieldname=df.fieldname)
+
+	def check_email_append_to(self):
+		meta = frappe.get_meta(self.doc_type)
+
+		if self.allow_in_email_append_to and not (meta.has_field("subject") and meta.has_field("status")):
+			frappe.throw(_("Add custom fields for Subject and Status in Document Type \
+				{0} to enable Email Append To").format(self.doc_type))
 
 	def update_custom_fields(self):
 		for i, df in enumerate(self.get("fields")):
