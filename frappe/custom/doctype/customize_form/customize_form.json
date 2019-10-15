@@ -20,6 +20,7 @@
   "allow_auto_repeat",
   "allow_import",
   "image_view",
+  "allow_in_email_append_to",
   "column_break_5",
   "title_field",
   "image_field",
@@ -174,13 +175,19 @@
    "fieldname": "allow_import",
    "fieldtype": "Check",
    "label": "Allow Import (via Data Import Tool)"
+  },
+  {
+   "default": "0",
+   "fieldname": "allow_in_email_append_to",
+   "fieldtype": "Check",
+   "label": "Allow in Email Append To"
   }
  ],
  "hide_toolbar": 1,
  "icon": "fa fa-glass",
  "idx": 1,
  "issingle": 1,
- "modified": "2019-10-08 11:16:36.698006",
+ "modified": "2019-10-15 14:20:51.272870",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Customize Form",

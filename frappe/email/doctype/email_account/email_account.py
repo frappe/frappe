@@ -652,7 +652,17 @@ class EmailAccount(Document):
 @frappe.whitelist()
 def get_append_to(doctype=None, txt=None, searchfield=None, start=None, page_len=None, filters=None):
 	if not txt: txt = ""
-	return [[d] for d in frappe.get_hooks("email_append_to") if txt in d]
+
+	email_append_to_list = frappe.get_hooks("email_append_to")
+	custom_email_append_to_list = frappe.get_list("Property Setter", filters={
+			"property": "allow_in_email_append_to",
+			"value": 1
+		}, fields=["doc_type"])
+
+	for doctype in custom_email_append_to_list:
+		email_append_to_list.append(doctype.doc_type)
+
+	return [[d] for d in set(email_append_to_list) if txt in d]
 
 def test_internet(host="8.8.8.8", port=53, timeout=3):
 	"""Returns True if internet is connected
