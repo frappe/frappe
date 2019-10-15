@@ -1,5 +1,10 @@
 frappe.ui.form.ControlCurrency = frappe.ui.form.ControlFloat.extend({
 	eval_expression: function(value) {
+		if (typeof value === 'string' && value.includes(',')
+			&& frappe.sys_defaults.number_format.startsWith("#.")) {
+			return value;
+		}
+
 		if (typeof value === 'string' 
 			&& value.match(/^[0-9+-/* ]+$/)) {
 			if (value.includes(',')) {
