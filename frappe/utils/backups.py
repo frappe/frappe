@@ -10,6 +10,7 @@ from frappe import _
 import os, frappe
 from datetime import datetime
 from frappe.utils import cstr, get_url, now_datetime
+from time import time
 
 #Global constants
 verbose = 0
@@ -171,6 +172,7 @@ def scheduled_backup(older_than=6, ignore_files=False, backup_path_db=None, back
 	return odb
 
 def new_backup(older_than=6, ignore_files=False, backup_path_db=None, backup_path_files=None, backup_path_private_files=None, force=False):
+	time_start = time()
 	delete_temp_backups(older_than = frappe.conf.keep_backups_for_hours or 24)
 	odb = BackupGenerator(frappe.conf.db_name, frappe.conf.db_name,\
 						  frappe.conf.db_password,
@@ -178,6 +180,8 @@ def new_backup(older_than=6, ignore_files=False, backup_path_db=None, backup_pat
 						  backup_path_private_files=backup_path_private_files,
 						  db_host = frappe.db.host)
 	odb.get_backup(older_than, ignore_files, force=force)
+	time_end = time()
+	frappe.errprint(("Execution time: {0} sec").format(round(time_end - time_start, 2)))
 	return odb
 
 def delete_temp_backups(older_than=24):

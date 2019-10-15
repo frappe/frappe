@@ -260,7 +260,7 @@ frappe.Application = Class.extend({
 			method: 'frappe.core.doctype.module_def.module_def.get_enabled_modules',
 			callback: (r) => {
 				if (r && r.message) {
-					frappe.modules["enabled_modules"] = $.extend([], r.message);
+					frappe.enabled_modules = $.extend([], r.message);
 				}
 			}
 		});
