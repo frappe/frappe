@@ -2,6 +2,7 @@
 // For license information, please see license.txt
 
 frappe.provide('frappe.dashboards.chart_sources');
+frappe.require('assets/frappe/js/frappe/ui/filters/filter.js')
 
 frappe.ui.form.on('Dashboard Chart', {
 	setup: function(frm) {
@@ -13,6 +14,8 @@ frappe.ui.form.on('Dashboard Chart', {
 		frm.chart_filters = null;
 		frm.set_df_property("filters_section", "hidden", 1);
 		frm.trigger('update_options');
+		let wrapper = $(frm.get_field('filter_html').wrapper).empty();
+		wrapper.append('<div class="filter-edit-area"></div>');
 	},
 
 	source: function(frm) {
@@ -32,8 +35,8 @@ frappe.ui.form.on('Dashboard Chart', {
 		frm.set_value('source', '');
 		frm.set_value('based_on', '');
 		frm.set_value('value_based_on', '');
-		frm.set_value('filters_json', '{}');
-		frm.trigger('update_options');
+		frm.set_value('filters_json', '[]');
+		frm.trigger('update_options');		
 	},
 
 	update_options: function(frm) {
@@ -63,12 +66,12 @@ frappe.ui.form.on('Dashboard Chart', {
 					}
 				});
 				update_form();
-			});
+				frappe.meta.docfield_list[doctype] = frappe.get_meta(doctype).fields;			
+			});			
 		} else {
 			// update select options
 			update_form();
 		}
-
 	},
 
 	show_filters: function(frm) {
@@ -119,53 +122,86 @@ frappe.ui.form.on('Dashboard Chart', {
 	render_filters_table: function(frm) {
 		frm.set_df_property("filters_section", "hidden", 0);
 		let fields = frm.chart_filters;
-
+		
 		let wrapper = $(frm.get_field('filters_json').wrapper).empty();
 		let table = $(`<table class="table table-bordered" style="cursor:pointer; margin:0px;">
 			<thead>
 				<tr>
 					<th style="width: 50%">${__('Filter')}</th>
+					<th>${__('Condition')}</th>
 					<th>${__('Value')}</th>
 				</tr>
 			</thead>
 			<tbody></tbody>
 		</table>`).appendTo(wrapper);
-		$(`<p class="text-muted small">${__("Click table to edit")}</p>`).appendTo(wrapper);
 
-		let filters = JSON.parse(frm.doc.filters_json || '{}');
+		let filters = JSON.parse(frm.doc.filters_json || '[]');
 		var filters_set = false;
-		fields.map( f => {
-			if (filters[f.fieldname]) {
-				const filter_row = $(`<tr><td>${f.label}</td><td>${filters[f.fieldname] || ""}</td></tr>`);
-				table.find('tbody').append(filter_row);
-				filters_set = true;
-			}
-		});
-
-		if (!filters_set) {
-			const filter_row = $(`<tr><td colspan="2" class="text-muted text-center">
-				${__("Click to Set Filters")}</td></tr>`);
-			table.find('tbody').append(filter_row);
+		
+		if(filters){
+			filters.map((f, index)=>{
+				const filter_row = $(`<tr data-id="${index}"><td>${f[1]}</td><td>${f[2]}</td><td>${f[3]}</td></tr>`)
+					table.find('tbody').append(filter_row);
+					filters_set = true;
+			})
 		}
 
-		table.on('click', () => {
-			let dialog = new frappe.ui.Dialog({
-				title: __('Set Filters'),
-				fields: fields,
-				primary_action: function() {
-					let values = this.get_values();
-					if(values) {
-						this.hide();
-						frm.set_value('filters_json', JSON.stringify(values));
-						frm.trigger('show_filters');
-					}
-				},
-				primary_action_label: "Set"
-			});
-			dialog.show();
-			dialog.set_values(filters);
-			frappe.dashboards.filters_dialog = dialog;
-		});
+		if (!filters_set) {
+			const filter_row = $(`<tr><td colspan="3" class="text-muted text-center">
+				${__("No filters added")}</td></tr>`);
+			table.find('tbody').append(filter_row);
+		}else{
+			$(`<p class="text-muted small">${__("Click on the row to edit filter")}</p>`).appendTo(wrapper);
+		}
+
+		table.find('tr').click(function(){
+			let index = $(this).attr('data-id');
+			if(filters[index]){
+				frm.events.show_filter(frm, filters[index][1], filters[index][2], filters[index][3], false, index)
+			}
+		})
+		
+	}, 
+	filters_fn:function(frm){
+		// sending default fieldname as name
+		frm.events.show_filter(frm, 'name', '=', undefined, true, 0)
+	},
+	add_filter:function(frm){
+		frm.trigger('filters_fn')
+	},
+	show_filter(frm, fieldname, condition, value, is_new, index){
+		let list_filter = new frappe.ui.Filter({
+            parent: $(frm.get_field('filter_html').wrapper),
+            parent_doctype: frm.doc.document_type,
+            fieldname: fieldname,
+            hidden: false,
+            condition: condition,
+            doctype: frm.doc.document_type,
+            value: value,
+            remove: function(){
+            	if(is_new == false){
+            		// to delete filter from array
+					let arr = JSON.parse(frm.doc.filters_json);
+					arr.splice(parseInt(index),1)
+					frm.set_value('filters_json',JSON.stringify(arr))
+					frm.trigger('show_filters')
+            	}
+            	this.filter_edit_area.remove();
+            },
+            on_change: function() {
+                let val = list_filter.get_value();
+                if(val[2] == 'like' || val[2] == 'Like')
+                	val[3] = val[3].replace(/%/g, "");
+                let arr = JSON.parse(frm.doc.filters_json);
+                if(is_new == false){
+                	arr[index] = val;
+                } else{
+                	arr.push(val)
+                }
+                frm.set_value('filters_json',JSON.stringify(arr))
+                frm.trigger('show_filters')
+            }
+        });
 	}
 });
 

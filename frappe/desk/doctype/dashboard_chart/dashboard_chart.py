@@ -8,6 +8,7 @@ from frappe import _
 from frappe.core.page.dashboard.dashboard import cache_source, get_from_date_from_timespan
 from frappe.utils import nowdate, add_to_date, getdate, get_last_day, formatdate
 from frappe.model.document import Document
+from frappe.model.db_query import DatabaseQuery
 
 @frappe.whitelist()
 @cache_source
@@ -18,16 +19,13 @@ def get(chart_name, from_date=None, to_date=None, refresh = None):
 	timegrain = chart.time_interval
 	filters = json.loads(chart.filters_json)
 
-	# don't include cancelled documents
-	filters['docstatus'] = ('<', 2)
-
 	if not from_date:
 		from_date = get_from_date_from_timespan(to_date, timespan)
 	if not to_date:
 		to_date = nowdate()
-
+	
 	# get conditions from filters
-	conditions, values = frappe.db.build_conditions(filters)
+	conditions = get_chart_conditions(chart.document_type,filters)
 
 	# query will return year, unit and aggregate value
 	data = frappe.db.sql('''
@@ -37,9 +35,10 @@ def get(chart_name, from_date=None, to_date=None, refresh = None):
 			{aggregate_function}({value_field})
 		from `tab{doctype}`
 		where
-			{conditions}
+			`tab{doctype}`.docstatus < 2		
 			and {datefield} >= '{from_date}'
 			and {datefield} <= '{to_date}'
+			{conditions}
 		group by _year, _unit
 		order by _year asc, _unit asc
 	'''.format(
@@ -51,7 +50,7 @@ def get(chart_name, from_date=None, to_date=None, refresh = None):
 		conditions = conditions,
 		from_date = from_date.strftime('%Y-%m-%d'),
 		to_date = to_date
-	), values)
+	))
 
 	# result given as year, unit -> convert it to end of period of that unit
 	result = convert_to_dates(data, timegrain)
@@ -197,6 +196,14 @@ def get_quarter_ending(date):
 
 	return date
 
+def get_chart_conditions(doctype, filters):
+	condition = ''
+	if filters:
+		for f in filters:
+			cond = DatabaseQuery(doctype=doctype,user=frappe.session.user).prepare_filter_condition(f)
+			if cond:
+				condition += ' and {0}'.format(cond)
+	return condition
 
 class DashboardChart(Document):
 	def on_update(self):

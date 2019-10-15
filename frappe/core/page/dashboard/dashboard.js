@@ -234,7 +234,19 @@ class DashboardChart {
 			axisOptions: {
 				xIsSeries: this.chart_doc.timeseries,
 				shortenYAxisNumbers: 1
-			}
+			},
+			height: this.chart_doc.chart_height || 240,
+			barOptions: {
+	            spaceRatio: this.chart_doc.bar_space_ratio || 0.2
+	        },
+	        valuesOverPoints:this.chart_doc.show_values_over_points || 0,
+        	isNavigable:this.chart_doc.allow_navigation || 0,
+        	lineOptions: {
+	            dotSize: this.chart_doc.dot_size || 4,
+	            hideDots:this.chart_doc.hide_dots || 0,
+	            hideLine:this.chart_doc.hide_line || 0,
+	            heatline:this.chart_doc.show_heatline || 0
+	        }
 		};
 		this.chart_container.find('.chart-loading-state').addClass('hide');
 
