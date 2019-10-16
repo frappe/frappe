@@ -13,6 +13,8 @@ from frappe.utils.jinja import validate_template
 from frappe.modules.utils import export_module_json, get_doc_module
 from six import string_types
 from frappe.integrations.doctype.slack_webhook_url.slack_webhook_url import send_slack_message
+from frappe.desk.query_report import run as execute_report
+from frappe.utils.report_rendering import get_report_content
 
 class Notification(Document):
 	def onload(self):
@@ -110,9 +112,9 @@ def get_context(context):
 
 	def send(self, doc):
 		'''Build recipients and send Notification'''
-
 		context = get_context(doc)
-		context = {"doc": doc, "alert": self, "comments": None}
+		context = {"doc": doc, "alert": self, "comments": None, "get_report_content": get_report_content}
+		
 		if doc.get("_comments"):
 			context["comments"] = json.loads(doc.get("_comments"))
 
@@ -137,6 +139,7 @@ def get_context(context):
 
 	def send_an_email(self, doc, context):
 		from email.utils import formataddr
+		
 		subject = self.subject
 		if "{" in subject:
 			subject = frappe.render_template(self.subject, context)
@@ -327,4 +330,9 @@ def evaluate_alert(doc, alert, event):
 			frappe.utils.get_link_to_form('Error Log', error_log.name))))
 
 def get_context(doc):
-	return {"doc": doc, "nowdate": nowdate, "frappe.utils": frappe.utils}
+	return {
+		"doc": doc, 
+		"nowdate": nowdate, 
+		"frappe.utils": frappe.utils,
+		"get_report_content": get_report_content
+	}
