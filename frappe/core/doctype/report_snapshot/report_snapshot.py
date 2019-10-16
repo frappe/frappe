@@ -11,6 +11,8 @@ import frappe
 from frappe.desk.query_report import run as execute_report
 from frappe.utils import nowdate, cstr, cint
 from frappe.modules.export_file import export_to_files
+from six import string_types
+from frappe.report.utils import get_column_def
 
 class ReportSnapshot(Document):
 
@@ -31,7 +33,7 @@ class ReportSnapshot(Document):
 		if self.is_standard == 'Yes':
 			if self.report_config.is_standard == 'No':
 				frappe.throw(
-					'Standard Snapshot Config must have standard Report')
+					'Standard Report Snapshot must have standard Report')
 
 	def validate_disabled(self):
 		if (not cint(self.disabled)) and cint(self.report_config.disabled):
@@ -81,7 +83,7 @@ class ReportSnapshot(Document):
 				'doctype': 'DocType',
 				'__newname': self.doc_type,
 				'name': self.doc_type,
-				'module': 'Withrun Erpnext',
+				'module': 'Core',
 				'autoname': "hash",
 				'custom': cint(self.is_standard != 'Yes'),
 				'track_changes': 0,
@@ -123,7 +125,7 @@ class ReportSnapshot(Document):
 			frappe.db.sql(f"""ALTER TABLE `tab{self.doc_type}` MODIFY name BIGINT not null AUTO_INCREMENT""")
 			frappe.db.commit()
 		except Exception as e:
-			frappe.throw(e)
+			frappe.log_error(f"Error while creating Snapshot doctype - {e}")
 			frappe.db.rollback()
 
 
@@ -225,7 +227,9 @@ def bulk_insert(data, columns, doc):
 
 	values = []
 	for row in data:
-		row.append(nowdate())
+		row_arr = list(row)
+		row_arr.append(nowdate())
+		row = tuple(row_arr)
 		val_arr = [cstr(row[idx]) for idx, col in enumerate(columns)]
 		val_string = tuple(val_arr)
 		values.append(val_string)
@@ -244,13 +248,13 @@ def bulk_insert(data, columns, doc):
 def execute(docname=None, doc=None):
 
 	if docname:
-		doc = frappe.get_doc('Snapshot Config', docname)
+		doc = frappe.get_doc('Report Snapshot', docname)
 
 	if not doc:
-		frappe.throw("Snapshot Config document not found")
+		frappe.throw("Report Snapshot document not found")
 
 	if doc.disabled:
-		frappe.throw("Snapshot Config is disabled")
+		frappe.throw("Report Snapshot is disabled")
 		return
 
 	# Get data for snapshot creation
@@ -284,12 +288,12 @@ def run_hourly():
 	hour = now.hour
 
 	frappe.log_error({
-		'msg': 'Running snapshot config at {0} hour'.format(hour),
-		'job_name': 'Snapshot Config',
+		'msg': 'Running report snapshot at {0} hour'.format(hour),
+		'job_name': 'Report Snapshot',
 		'function_name': 'report_snapshot.run_hourly'
 	}, 'report_snapshot.run_hourly')
 
-	for config in frappe.get_all("Snapshot Config", filters={"at_hour": hour, "disabled": 0, "schedule": "At Hour"}):
+	for config in frappe.get_all("Report Snapshot", filters={"at_hour": hour, "disabled": 0, "schedule": "At Hour"}):
 		take_snapshot(config.name)
 
 
@@ -297,7 +301,7 @@ def cron_run():
 	#	frappe.logger().debug("CRON CALLED")
 	now = frappe.utils.now_datetime()
 
-	for config in frappe.get_all("Snapshot Config", filters={"schedule": "Cron_String", "disabled": 0}, fields=["name", "cron_string"]):
+	for config in frappe.get_all("Report Snapshot", filters={"schedule": "Cron_String", "disabled": 0}, fields=["name", "cron_string"]):
 		if config.get("cron_string") and (croniter(config.get("cron_string")).get_next(datetime) <= now):
 			take_snapshot(config.name)
 
@@ -323,20 +327,3 @@ def convert_filters_to_condition_str(filters):
 	)
 	condition = frappe.render_template(condition, {'frappe': frappe})
 	return condition
-
-def get_column_def(columns, filters={'make_non_leaf_nodes': True}):
-	columns = [
-		convert_string_to_column_def(column_name)
-		if isinstance(column_name, string_types)
-		else column_name
-		for column_name in columns
-	]
-	if not filters.get('make_non_leaf_nodes'):
-		for column in columns:
-			if column.get('fieldname') == 'warehouse':
-				try:
-					del column['is_tree']
-				except KeyError:
-					pass
-				break
-	return columns
