@@ -116,24 +116,32 @@ frappe.ui.form.Toolbar = Class.extend({
 
 				d.set_primary_action(__("Rename"), function () {
 					let args = d.get_values();
-					frappe.call({
-						method: "frappe.model.rename_doc.update_document_title",
-						args: {
-							doctype: doctype,
-							document: docname,
-							title_field: title_field || null,
-							old_title: me.frm.doc[title_field] || null,
-							new_title: args.title || null,
-							old_name: docname || null,
-							new_name: args.name || null
-						},
-						btn: d.get_primary_btn()
-					}).then((res) => {
-						if (!res.exc && (args.name != docname)) {
-							$(document).trigger('rename', [doctype, docname, res.message || args.name]);
-							if (locals[doctype] && locals[doctype][docname]) delete locals[doctype][docname];
-						}
-					});
+					if (args.title != me.frm.doc[title_field] || args.name != docname) {
+						frappe.call({
+							method: "frappe.model.rename_doc.update_document_title",
+							args: {
+								doctype: doctype,
+								document: docname,
+								title_field: title_field || null,
+								old_title: me.frm.doc[title_field] || null,
+								new_title: args.title || null,
+								old_name: docname || null,
+								new_name: args.name || null
+							},
+							btn: d.get_primary_btn()
+						}).then((res) => {
+							me.frm.reload_doc();
+							if (!res.exc && (args.name != docname)) {
+								$(document).trigger("rename", [doctype, docname, res.message || args.name]);
+								if (locals[doctype] && locals[doctype][docname]) delete locals[doctype][docname];
+							}
+						});
+					} else {
+						frappe.show_alert({
+							indicator: "yellow",
+							message: __("Unchanged")
+						});
+					}
 					d.hide();
 				});
 			}
