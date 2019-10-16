@@ -47,6 +47,9 @@ def get_server_script_map():
 	# 		'[path]': '[server script]'
 	# 	}
 	# }
+	if frappe.flags.in_patch and not frappe.db.table_exists('Server Script'):
+		return {}
+
 	script_map = frappe.cache().get_value('server_script_map')
 	if script_map is None:
 		script_map = {}
