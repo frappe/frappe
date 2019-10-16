@@ -42,7 +42,7 @@
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Schedule",
-   "options": "At Hour\nCron String",
+   "options": "At Hour\nCron String\nEvent",
    "reqd": 1
   },
   {
@@ -111,6 +111,7 @@
    "options": "Report Filter"
   },
   {
+   "depends_on": "eval: doc.filter_based_update",
    "fieldname": "snapshot_filters_section",
    "fieldtype": "Section Break",
    "label": "Snapshot Filters"
@@ -122,7 +123,7 @@
    "options": "Report Snapshot Filter"
   }
  ],
- "modified": "2019-10-15 15:16:00.644229",
+ "modified": "2019-10-16 12:14:26.592337",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Report Snapshot",

@@ -1,0 +1,37 @@
+{
+ "creation": "2019-10-16 12:24:28.392030",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "on_report_snapshot",
+  "start_report_snapshot"
+ ],
+ "fields": [
+  {
+   "fieldname": "on_report_snapshot",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "On Report Snapshot",
+   "options": "Report Snapshot"
+  },
+  {
+   "fieldname": "start_report_snapshot",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Start Report Snapshot",
+   "options": "Report Snapshot"
+  }
+ ],
+ "istable": 1,
+ "modified": "2019-10-16 12:48:46.866460",
+ "modified_by": "Administrator",
+ "module": "Core",
+ "name": "Snappily Flow",
+ "owner": "Administrator",
+ "permissions": [],
+ "quick_entry": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

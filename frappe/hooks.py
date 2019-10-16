@@ -211,7 +211,7 @@ scheduler_events = {
 		"frappe.integrations.doctype.s3_backup_settings.s3_backup_settings.take_backups_monthly"
 	],
 	"*/15 * * * *": [
-        "frappe.core.doctype.report_snapshot.report_snapshot.cron_run",
+        #"frappe.core.doctype.report_snapshot.report_snapshot.cron_run",
     ],
 }
 

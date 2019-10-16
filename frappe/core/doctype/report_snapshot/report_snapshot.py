@@ -270,6 +270,17 @@ def execute(docname=None, doc=None):
 	# Create snapshots
 	create_snapshot(doc, report_res, columns)
 
+	create_execution_log(doc)
+
+def create_execution_log(doc):
+
+	execution_log = frappe.get_doc({
+		'doctype': "Report Snapshot Execution Log",
+		'report_snapshot': doc.name
+	})
+
+	execution_log.flags.ignore_permissions = True
+	execution_log.save()
 
 def remove_special_char(name):
 
@@ -301,7 +312,7 @@ def cron_run():
 	#	frappe.logger().debug("CRON CALLED")
 	now = frappe.utils.now_datetime()
 
-	for config in frappe.get_all("Report Snapshot", filters={"schedule": "Cron_String", "disabled": 0}, fields=["name", "cron_string"]):
+	for config in frappe.get_all("Report Snapshot", filters={"schedule": "Cron String", "disabled": 0}, fields=["name", "cron_string"]):
 		if config.get("cron_string") and (croniter(config.get("cron_string")).get_next(datetime) <= now):
 			take_snapshot(config.name)
 

@@ -2,36 +2,26 @@
  "at_hour": "10",
  "creation": "2019-10-16 10:57:55.090729",
  "disabled": 0,
- "doc_type": "Sample Snapshot",
+ "doc_type": "Daily Margin Snapshot",
  "docstatus": 0,
  "doctype": "Report Snapshot",
  "filter_based_update": 0,
  "filters": [
   {
-   "field_name": "user",
-   "field_value": "sneha.p@elastic.run",
-   "label": "User"
-  },
-  {
-   "field_name": "doctype",
-   "field_value": "Salutation",
-   "label": "DocType"
-  },
-  {
-   "field_name": "show_permissions",
-   "field_value": "1",
-   "label": "Show Permissions"
+   "field_name": "date",
+   "field_value": "{{frappe.utils.nowdate()}}",
+   "label": "Date"
   }
  ],
  "idx": 0,
  "is_standard": "Yes",
- "modified": "2019-10-16 11:05:38.338627",
- "modified_by": "sneha.p@elastic.run",
+ "modified": "2019-10-16 12:10:33.390889",
+ "modified_by": "Administrator",
  "module": "Core",
  "name": "Sample",
  "owner": "sneha.p@elastic.run",
- "replace_old_snapshot": 0,
- "report": "Permitted Documents For User",
+ "replace_old_snapshot": 1,
+ "report": "Daily Margin",
  "schedule": "At Hour",
  "snapshot_filters": []
 }
