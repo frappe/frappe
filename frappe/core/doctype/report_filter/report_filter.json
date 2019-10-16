@@ -1,0 +1,42 @@
+{
+ "creation": "2019-10-15 15:09:18.755388",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "label",
+  "field_name",
+  "field_value"
+ ],
+ "fields": [
+  {
+   "fieldname": "field_name",
+   "fieldtype": "Data",
+   "label": "Field Name",
+   "read_only": 1
+  },
+  {
+   "fieldname": "field_value",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Field Value"
+  },
+  {
+   "fieldname": "label",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Label",
+   "read_only": 1
+  }
+ ],
+ "istable": 1,
+ "modified": "2019-10-15 15:22:57.471428",
+ "modified_by": "Administrator",
+ "module": "Core",
+ "name": "Report Filter",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

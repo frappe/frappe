@@ -1,0 +1,46 @@
+{
+ "creation": "2019-10-15 15:13:25.287606",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "key",
+  "op",
+  "value"
+ ],
+ "fields": [
+  {
+   "fieldname": "key",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Key",
+   "reqd": 1
+  },
+  {
+   "fieldname": "op",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Operator",
+   "options": "\n=\n&gt;\n&gt;=\n&lt;\n&lt;=\n!=\nIN\nNOT IN\nBETWEEN",
+   "reqd": 1
+  },
+  {
+   "fieldname": "value",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Value",
+   "reqd": 1
+  }
+ ],
+ "istable": 1,
+ "modified": "2019-10-15 15:13:31.872071",
+ "modified_by": "Administrator",
+ "module": "Core",
+ "name": "Report Snapshot Filter",
+ "owner": "Administrator",
+ "permissions": [],
+ "quick_entry": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

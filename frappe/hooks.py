@@ -168,7 +168,8 @@ scheduler_events = {
 		"frappe.desk.page.backups.backups.delete_downloadable_backups",
 		"frappe.deferred_insert.save_to_db",
 		"frappe.desk.form.document_follow.send_hourly_updates",
-		"frappe.integrations.doctype.google_calendar.google_calendar.sync"
+		"frappe.integrations.doctype.google_calendar.google_calendar.sync",
+		"frappe.core.doctype.report_snapshot.report_snapshot.run_hourly",
 	],
 	"daily": [
 		"frappe.email.queue.clear_outbox",
@@ -208,7 +209,10 @@ scheduler_events = {
 	],
 	"monthly_long": [
 		"frappe.integrations.doctype.s3_backup_settings.s3_backup_settings.take_backups_monthly"
-	]
+	],
+	"*/15 * * * *": [
+        "frappe.core.doctype.report_snapshot.report_snapshot.cron_run",
+    ],
 }
 
 get_translated_dict = {

@@ -1,0 +1,147 @@
+{
+ "autoname": "Prompt",
+ "creation": "2019-10-15 15:01:20.631537",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "report",
+  "doc_type",
+  "schedule",
+  "at_hour",
+  "cron_string",
+  "column_break_3",
+  "disabled",
+  "replace_old_snapshot",
+  "filter_based_update",
+  "is_standard",
+  "module",
+  "section_break_5",
+  "filters",
+  "snapshot_filters_section",
+  "snapshot_filters"
+ ],
+ "fields": [
+  {
+   "fieldname": "report",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Report ",
+   "options": "Report",
+   "reqd": 1
+  },
+  {
+   "fieldname": "doc_type",
+   "fieldtype": "Data",
+   "label": "Doc type"
+  },
+  {
+   "fieldname": "schedule",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Schedule",
+   "options": "At Hour\nCron String",
+   "reqd": 1
+  },
+  {
+   "depends_on": "eval:(doc.schedule==\"At Hour\")",
+   "fieldname": "at_hour",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "At Hour",
+   "options": "0\n1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23",
+   "reqd": 1
+  },
+  {
+   "depends_on": "eval:(doc.schedule==\"Cron String\")",
+   "fieldname": "cron_string",
+   "fieldtype": "Data",
+   "label": "Cron String"
+  },
+  {
+   "fieldname": "column_break_3",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "disabled",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Disabled"
+  },
+  {
+   "default": "0",
+   "fieldname": "replace_old_snapshot",
+   "fieldtype": "Check",
+   "label": "Replace Old Snapshot"
+  },
+  {
+   "default": "0",
+   "fieldname": "filter_based_update",
+   "fieldtype": "Check",
+   "label": "Filter Based Update"
+  },
+  {
+   "fieldname": "is_standard",
+   "fieldtype": "Select",
+   "label": "Is Standard",
+   "options": "Yes\nNo",
+   "reqd": 1
+  },
+  {
+   "depends_on": "eval:doc.is_standard===\"Yes\"",
+   "fieldname": "module",
+   "fieldtype": "Link",
+   "label": "Module",
+   "options": "Module Def"
+  },
+  {
+   "fieldname": "section_break_5",
+   "fieldtype": "Section Break",
+   "label": "Report Filters"
+  },
+  {
+   "fieldname": "filters",
+   "fieldtype": "Table",
+   "label": "Filters",
+   "options": "Report Filter"
+  },
+  {
+   "fieldname": "snapshot_filters_section",
+   "fieldtype": "Section Break",
+   "label": "Snapshot Filters"
+  },
+  {
+   "fieldname": "snapshot_filters",
+   "fieldtype": "Table",
+   "label": "Snapshot Filters",
+   "options": "Report Snapshot Filter"
+  }
+ ],
+ "modified": "2019-10-15 15:16:00.644229",
+ "modified_by": "Administrator",
+ "module": "Core",
+ "name": "Report Snapshot",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}
