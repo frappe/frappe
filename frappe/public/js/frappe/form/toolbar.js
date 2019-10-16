@@ -137,7 +137,7 @@ frappe.ui.form.Toolbar = Class.extend({
 					d.hide();
 				});
 			}
-		}
+		});
 	},
 	get_dropdown_menu: function(label) {
 		return this.page.add_dropdown(label);
