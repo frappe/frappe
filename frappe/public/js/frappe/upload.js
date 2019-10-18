@@ -37,6 +37,40 @@ frappe.upload = {
 		var $file_input = $upload.find(".input-upload-file");
 		var $uploaded_files_wrapper = $upload.find('.uploaded-filename');
 
+		/* Button action Added by Shahnawaz Hossan*/
+		var $capture_image = $upload.find(".input-upload-file");
+
+		$upload.find(".btn-capture").on("click", function() {
+
+			const capture = new frappe.ui.Capture();
+			// console.log(capture);
+			capture.show();
+			capture.submit((data) => {
+					 // do stuff.
+
+					 console.log(data);
+
+					 //return a promise that resolves with a File instance
+					 function urltoFile(url, filename, mimeType){
+							 return (fetch(url)
+									 .then(function(res){return res.arrayBuffer();})
+									 .then(function(buf){return new File([buf], filename, {type:mimeType});})
+							 );
+					 }
+
+					 //Usage example:
+					 urltoFile(data, 'profile.png', 'image/png').then(function(file){
+							 console.log(file);
+							 passFile(file);
+					 });
+
+			});
+
+
+		});
+		/*End of Button action Added by Shahnawaz Hossan*/
+
+
 		// bind pseudo browse button
 		$upload.find(".btn-browse").on("click",
 			function() { $file_input.click(); });
@@ -73,41 +107,52 @@ frappe.upload = {
 					// files from input type file
 					fileobjs = $upload.find(":file").get(0).files;
 				}
-				var file_array = $.makeArray(fileobjs);
 
-				$upload.find(".web-link-wrapper").addClass("hidden");
-				$upload.find(".btn-browse").removeClass("btn-primary").addClass("btn-default");
-				$uploaded_files_wrapper.removeClass('hidden').empty();
-				$uploaded_files_wrapper.css({ 'margin-bottom': '25px' });
+				passFile(fileobjs); // Function Added by Shahnawaz Hossan
 
-				file_array = file_array.map(
-					file => Object.assign(file, {is_private: opts.is_private ? 1 : 0})
-				)
-				$upload.data('attached_files', file_array);
-
-				// List of files in a grid
-				$uploaded_files_wrapper.append(`
-					<div class="list-item list-item--head">
-						<div class="list-item__content list-item__content--flex-2">
-							${__('Filename')}
-						</div>
-						${opts.show_private
-						? `<div class="list-item__content file-public-column">
-							${__('Public')}
-							</div>`
-						: ''}
-						<div class="list-item__content list-item__content--activity" style="flex: 0 0 32px">
-						</div>
-					</div>
-				`);
-				var file_pills = file_array.map(
-					file => frappe.upload.make_file_row(file, opts)
-				);
-				$uploaded_files_wrapper.append(file_pills);
 			} else {
 				frappe.upload.show_empty_state($upload);
 			}
 		});
+
+		/*Function Edited by Shahnawaz Hossan*/
+		function passFile(fileobjs){
+
+			var file_array = $.makeArray(fileobjs);
+
+			$upload.find(".web-link-wrapper").addClass("hidden");
+			$upload.find(".btn-browse").removeClass("btn-primary").addClass("btn-default");
+			$uploaded_files_wrapper.removeClass('hidden').empty();
+			$uploaded_files_wrapper.css({ 'margin-bottom': '25px' });
+
+			file_array = file_array.map(
+				file => Object.assign(file, {is_private: opts.is_private ? 1 : 0})
+			)
+			$upload.data('attached_files', file_array);
+
+			// List of files in a grid
+			$uploaded_files_wrapper.append(`
+				<div class="list-item list-item--head">
+					<div class="list-item__content list-item__content--flex-2">
+						${__('Filename')}
+					</div>
+					${opts.show_private
+					? `<div class="list-item__content file-public-column">
+						${__('Public')}
+						</div>`
+					: ''}
+					<div class="list-item__content list-item__content--activity" style="flex: 0 0 32px">
+					</div>
+				</div>
+			`);
+			var file_pills = file_array.map(
+				file => frappe.upload.make_file_row(file, opts)
+			);
+			$uploaded_files_wrapper.append(file_pills);
+
+		}
+		/*End of Function Edited by Shahnawaz Hossan*/
+
 
 		if(opts.files && opts.files.length > 0) {
 			$file_input.trigger('change');
