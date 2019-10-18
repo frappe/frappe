@@ -10,7 +10,7 @@ from datetime import timedelta
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils import (get_link_to_form, now, now_datetime, validate_email_address, today)
+from frappe.utils import (get_link_to_form, now, now_datetime, validate_email_address)
 
 from frappe.utils.report_rendering import (get_report_content, get_html_table)
 
@@ -62,17 +62,17 @@ class AutoEmailReport(Document):
 		if self.filters:
 			self.filters = frappe.parse_json(self.filters)
 		data = get_report_content(self.report,
-					self.filters, 
-					self.format, 
-					self.no_of_rows, 
-					self.description, 
-					self.user, 
-					self.data_modified_till, 
-					self.from_date_field, 
-					self.to_date_field, 
-					self.dynamic_date_period, 
+					self.filters,
+					self.format,
+					self.no_of_rows,
+					self.description,
+					self.user,
+					self.data_modified_till,
+					self.from_date_field,
+					self.to_date_field,
+					self.dynamic_date_period,
 					additional_params = {
-						'single_report': 1, 
+						'single_report': 1,
 						'edit_report_settings': get_link_to_form('Auto Email Report', self.name)
 						}
 				)
@@ -83,8 +83,8 @@ class AutoEmailReport(Document):
 		if self.format == "HTML":
 			message = data
 		else:
-			message = self.get_html_table(report_name=self.report, report_type=self.report_type, description=self.description)
-
+			message = get_html_table(report_name=self.report, report_type=self.report_type, description=self.description)
+		
 		if not self.format=='HTML':
 			attachments = [{
 				'fname': self.get_file_name(),
@@ -108,16 +108,16 @@ def download(name):
 	if auto_email_report.filters:
 		auto_email_report.filters = frappe.parse_json(auto_email_report.filters)
 	data = get_report_content(
-		auto_email_report.report, 
+		auto_email_report.report,
 		auto_email_report.filters,
 		auto_email_report.format,
-		auto_email_report.no_of_rows, 
-		auto_email_report.description, 
-		auto_email_report.user, 
-		auto_email_report.data_modified_till, 
-		auto_email_report.from_date_field, 
-		auto_email_report.to_date_field, 
-		auto_email_report.dynamic_date_period, 
+		auto_email_report.no_of_rows,
+		auto_email_report.description,
+		auto_email_report.user,
+		auto_email_report.data_modified_till,
+		auto_email_report.from_date_field,
+		auto_email_report.to_date_field,
+		auto_email_report.dynamic_date_period,
 		additional_params = {
 			'edit_report_settings': get_link_to_form('Auto Email Report', auto_email_report.name)
 			}
