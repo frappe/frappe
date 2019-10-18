@@ -1,13 +1,9 @@
 from __future__ import unicode_literals
-
-import calendar
 from datetime import timedelta
-
 import frappe
 from frappe import _
-from frappe.model.document import Document
 from frappe.utils import (format_time, get_link_to_form, get_url_to_report,
-	global_date_format, now, now_datetime, validate_email_address, today, add_to_date)
+	global_date_format, now, now_datetime, today, add_to_date)
 from frappe.utils.csvutils import to_csv
 from frappe.utils.xlsxutils import make_xlsx
 
@@ -23,7 +19,7 @@ def make_links(columns, data):
 
 	return columns, data
 
-def get_report_content(report_name, filters, format, no_of_rows, description=None, user=None, data_modified_till=None, from_date_field=None, to_date_field=None, dynamic_date_period=None, additional_params={}):
+def get_report_content(report_name, filters, render_format, no_of_rows, description=None, user=None, data_modified_till=None, from_date_field=None, to_date_field=None, dynamic_date_period=None, additional_params={}):
 	def __dynamic_date_filters_set(dynamic_date_period, from_date_field, to_date_field):
 		return dynamic_date_period and from_date_field and to_date_field
 
@@ -64,16 +60,16 @@ def get_report_content(report_name, filters, format, no_of_rows, description=Non
 	if len(data)==0 and self.send_if_data:
 		return None
 
-	if format == 'HTML':
+	if render_format == 'HTML':
 		columns, data = make_links(columns, data)
 		return get_html_table(report_name=report_name, report_type=report_type, description=description, columns=columns, data=data, additional_params = additional_params)
 		
-	elif format == 'XLSX':
+	elif render_format == 'XLSX':
 		spreadsheet_data = get_spreadsheet_data(columns, data)
 		xlsx_file = make_xlsx(spreadsheet_data, "Auto Email Report")
 		return xlsx_file.getvalue()
 
-	elif format == 'CSV':
+	elif render_format == 'CSV':
 		spreadsheet_data = get_spreadsheet_data(columns, data)
 		return to_csv(spreadsheet_data)
 
