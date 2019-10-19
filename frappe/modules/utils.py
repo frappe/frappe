@@ -119,7 +119,7 @@ def sync_customizations_for_doctype(data, folder):
 					custom_doctype, doctype_fieldname), doc_type)
 
 				for d in data[key]:
-					_insert(data)
+					_insert(d)
 
 			else:
 				for d in data[key]:
@@ -242,7 +242,7 @@ def make_boilerplate(template, doc, opts=None):
 
 		base_class = 'Document'
 		base_class_import = 'from frappe.model.document import Document'
-		if doc.is_tree:
+		if doc.get('is_tree'):
 			base_class = 'NestedSet'
 			base_class_import = 'from frappe.utils.nestedset import NestedSet'
 

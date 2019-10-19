@@ -70,6 +70,8 @@ get_rooms = 'frappe.chat.doctype.chat_room.chat_room.get_rooms'
 
 calendars = ["Event"]
 
+leaderboards = "frappe.desk.leaderboard.get_leaderboards"
+
 # login
 
 on_session_creation = [
@@ -188,13 +190,13 @@ scheduler_events = {
 	],
 	"daily_long": [
 		"frappe.integrations.doctype.dropbox_settings.dropbox_settings.take_backups_daily",
+		"frappe.utils.change_log.check_for_update",
 		"frappe.integrations.doctype.s3_backup_settings.s3_backup_settings.take_backups_daily",
 		"frappe.integrations.doctype.google_drive.google_drive.daily_backup"
 	],
 	"weekly_long": [
 		"frappe.integrations.doctype.dropbox_settings.dropbox_settings.take_backups_weekly",
 		"frappe.integrations.doctype.s3_backup_settings.s3_backup_settings.take_backups_weekly",
-		"frappe.utils.change_log.check_for_update",
 		"frappe.desk.doctype.route_history.route_history.flush_old_route_records",
 		"frappe.desk.form.document_follow.send_weekly_updates",
 		"frappe.social.doctype.energy_point_log.energy_point_log.send_weekly_summary",
@@ -270,7 +272,7 @@ user_privacy_documents = [
 	{
 		'doctype': 'Contact',
 		'match_field': 'email_id',
-		'personal_fields': ['first_name', 'last_name', 'phone'],
+		'personal_fields': ['first_name', 'last_name', 'phone', 'mobile_no'],
 	},
 	{
 		'doctype': 'Contact Email',
@@ -300,3 +302,22 @@ user_privacy_documents = [
 	},
 
 ]
+
+global_search_doctypes = {
+	"Default": [
+		{"doctype": "Contact"},
+		{"doctype": "Address"},
+		{"doctype": "ToDo"},
+		{"doctype": "Note"},
+		{"doctype": "Event"},
+		{"doctype": "Blog Post"},
+		{"doctype": "Dashboard"},
+		{"doctype": "Country"},
+		{"doctype": "Currency"},
+		{"doctype": "Newsletter"},
+		{"doctype": "Letter Head"},
+		{"doctype": "Workflow"},
+		{"doctype": "Web Page"},
+		{"doctype": "Web Form"}
+	]
+}

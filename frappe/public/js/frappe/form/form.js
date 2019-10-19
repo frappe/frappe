@@ -117,18 +117,20 @@ frappe.ui.form.Form = class FrappeForm {
 
 	add_nav_keyboard_shortcuts() {
 		frappe.ui.keys.add_shortcut({
-			shortcut: 'shift+>',
+			shortcut: 'shift+ctrl+>',
 			action: () => this.navigate_records(0),
 			page: this.page,
 			description: __('Go to next record'),
+			ignore_inputs: true,
 			condition: () => !this.is_new()
 		});
 
 		frappe.ui.keys.add_shortcut({
-			shortcut: 'shift+<',
+			shortcut: 'shift+ctrl+<',
 			action: () => this.navigate_records(1),
 			page: this.page,
 			description: __('Go to previous record'),
+			ignore_inputs: true,
 			condition: () => !this.is_new()
 		});
 	}
@@ -188,8 +190,12 @@ frappe.ui.form.Form = class FrappeForm {
 				} else {
 					me.dirty();
 				}
-				me.fields_dict[fieldname]
-					&& me.fields_dict[fieldname].refresh(fieldname);
+
+				let field = me.fields_dict[fieldname];
+				field && field.refresh(fieldname);
+
+				// Validate value for link field explicitly
+				field && ["Link", "Dynamic Link"].includes(field.df.fieldtype) && field.validate && field.validate(value);
 
 				me.layout.refresh_dependency();
 				let object = me.script_manager.trigger(fieldname, doc.doctype, doc.name);
@@ -837,8 +843,14 @@ frappe.ui.form.Form = class FrappeForm {
 		frappe.call('frappe.desk.form.utils.get_next', args).then(r => {
 			if (r.message) {
 				frappe.set_route('Form', this.doctype, r.message);
+				this.focus_on_first_input();
 			}
 		});
+	}
+
+	focus_on_first_input() {
+		let $first_input_el = $(frappe.container.page).find('.frappe-control:visible').eq(0);
+		$first_input_el.find('input, select, textarea').focus();
 	}
 
 	rename_doc() {
@@ -1357,6 +1369,8 @@ frappe.ui.form.Form = class FrappeForm {
 				frappe.get_meta(doctype).fields.forEach(function(df) {
 					if(df.fieldtype==='Link' && df.options===me.doctype) {
 						new_doc[df.fieldname] = me.doc.name;
+					} else if (['Link', 'Dynamic Link'].includes(df.fieldtype) && me.doc[df.fieldname]) {
+						new_doc[df.fieldname] = me.doc[df.fieldname];
 					}
 				});
 
@@ -1382,6 +1396,28 @@ frappe.ui.form.Form = class FrappeForm {
 			sum += d[fieldname];
 		}
 		return sum;
+	}
+
+	scroll_to_field(fieldname) {
+		let field = this.get_field(fieldname);
+		if (!field) return;
+
+		let $el = field.$wrapper;
+
+		// uncollapse section
+		if (field.section.is_collapsed()) {
+			field.section.collapse(false);
+		}
+
+		// scroll to input
+		frappe.utils.scroll_to($el);
+
+		// highlight input
+		$el.addClass('has-error');
+		setTimeout(() => {
+			$el.removeClass('has-error');
+			$el.find('input, select, textarea').focus();
+		}, 1000);
 	}
 };
 

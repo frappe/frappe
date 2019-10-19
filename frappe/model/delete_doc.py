@@ -16,10 +16,11 @@ from frappe.core.doctype.file.file import remove_all
 from frappe.utils.password import delete_all_passwords_for
 from frappe.model.naming import revert_series_if_last
 from frappe.utils.global_search import delete_for_document
+from frappe.desk.doctype.tag.tag import delete_tags_for_document
 from frappe.exceptions import FileNotFoundError
 
 
-doctypes_to_skip = ("Communication", "ToDo", "DocShare", "Email Unsubscribe", "Activity Log", "File", "Version", "Document Follow", "Comment" , "View Log")
+doctypes_to_skip = ("Communication", "ToDo", "DocShare", "Email Unsubscribe", "Activity Log", "File", "Version", "Document Follow", "Comment" , "View Log", "Tag Link")
 
 def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reload=False,
 	ignore_permissions=False, flags=None, ignore_on_trash=False, ignore_missing=True):
@@ -116,6 +117,8 @@ def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reloa
 
 		# delete global search entry
 		delete_for_document(doc)
+		# delete tag link entry
+		delete_tags_for_document(doc)
 
 		if doc and not for_reload:
 			add_to_deleted_document(doc)

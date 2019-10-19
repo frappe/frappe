@@ -242,10 +242,6 @@ def update_global_search(doc):
 		if doc.get(field.fieldname) and field.fieldtype not in frappe.model.table_fields:
 			content.append(get_formatted_value(doc.get(field.fieldname), field))
 
-	tags = (doc.get('_user_tags') or '').strip()
-	if tags:
-		content.extend(list(filter(lambda x: x, tags.split(','))))
-
 	# Get children
 	for child in doc.meta.get_table_fields():
 		for d in doc.get(child.fieldname):
@@ -419,32 +415,52 @@ def search(text, start=0, limit=20, doctype=""):
 	:param limit: number of results to return, default 20
 	:return: Array of result objects
 	"""
+	from frappe.desk.doctype.global_search_settings.global_search_settings import get_doctypes_for_global_search
+
 	results = []
-	texts = text.split('&')
+	texts = [t.strip() for t in text.split('&') if t]
+	priorities = get_doctypes_for_global_search()
+	allowed_doctypes = ",".join(["'{0}'".format(dt) for dt in priorities])
 	for text in texts:
 		mariadb_conditions = ''
 		postgres_conditions = ''
+		offset = ''
+
 		if doctype:
 			mariadb_conditions = postgres_conditions = '`doctype` = {} AND '.format(frappe.db.escape(doctype))
 
-		mariadb_conditions += 'MATCH(`content`) AGAINST ({} IN BOOLEAN MODE)'.format(frappe.db.escape('+' + text + '*'))
-		postgres_conditions += 'TO_TSVECTOR("content") @@ PLAINTO_TSQUERY({})'.format(frappe.db.escape(text))
+		mariadb_text = frappe.db.escape('+' + text + '*')
 
-		common_query = '''SELECT `doctype`, `name`, `content`
-					FROM `__global_search`
-					WHERE {conditions}
-					LIMIT {limit} OFFSET {start}'''
+		mariadb_fields = '`doctype`, `name`, `content`, MATCH (`content`) AGAINST ({} IN BOOLEAN MODE) AS rank'.format(mariadb_text)
+		postgres_fields = '`doctype`, `name`, `content`, TO_TSVECTOR("content") @@ PLAINTO_TSQUERY({}) AS rank'.format(frappe.db.escape(text))
+
+		if allowed_doctypes:
+			mariadb_conditions += '`doctype` IN ({})'.format(allowed_doctypes)
+			postgres_conditions += '`doctype` IN ({})'.format(allowed_doctypes)
+
+		if int(start) > 0:
+			offset = 'OFFSET {}'.format(start)
+
+		common_query = """
+				SELECT {fields}
+				FROM `__global_search`
+				WHERE {conditions}
+				ORDER BY rank DESC
+				LIMIT {limit}
+				{offset}
+			"""
 
 		result = frappe.db.multisql({
-				'mariadb': common_query.format(conditions=mariadb_conditions, limit=limit, start=start),
-				'postgres': common_query.format(conditions=postgres_conditions, limit=limit, start=start)
+				'mariadb': common_query.format(fields=mariadb_fields, conditions=mariadb_conditions, limit=limit, offset=offset),
+				'postgres': common_query.format(fields=postgres_fields, conditions=postgres_conditions, limit=limit, offset=offset)
 			}, as_dict=True)
 
 		tmp_result=[]
 		for i in result:
-			if i in results or not results:
-				tmp_result.append(i)
-		results += tmp_result
+			if i.rank > 0.0:
+				if i in results or not results:
+					tmp_result.extend([i])
+		results.extend(tmp_result)
 
 	for r in results:
 		try:
@@ -453,7 +469,21 @@ def search(text, start=0, limit=20, doctype=""):
 		except Exception:
 			frappe.clear_messages()
 
-	return results
+	sorted_results = []
+
+	for priority in priorities:
+		tmp_result = []
+		if not results:
+			break
+
+		for index, r in enumerate(results):
+			if r.doctype == priority:
+				tmp_result.extend([r])
+				results.pop(index)
+
+		sorted_results.extend(tmp_result)
+
+	return sorted_results
 
 
 @frappe.whitelist(allow_guest=True)

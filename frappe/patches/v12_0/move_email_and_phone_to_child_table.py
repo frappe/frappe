@@ -31,7 +31,7 @@ def execute():
 			))
 
 		if contact_detail.phone:
-			is_primary = 1 if phone_counter == 1 else 0
+			is_primary_phone = 1 if phone_counter == 1 else 0
 			phone_values.append((
 				phone_counter,
 				frappe.generate_hash(contact_detail.email_id, 10),
@@ -39,24 +39,25 @@ def execute():
 				'phone_nos',
 				'Contact',
 				contact_detail.name,
-				is_primary,
+				is_primary_phone,
+				0,
 				contact_detail.creation,
 				contact_detail.modified,
 				contact_detail.modified_by
 			))
 			phone_counter += 1
-			is_primary += 1
 
 		if contact_detail.mobile_no:
-			is_primary = 1 if phone_counter == 1 else 0
+			is_primary_mobile_no = 1 if phone_counter == 1 else 0
 			phone_values.append((
 				phone_counter,
 				frappe.generate_hash(contact_detail.email_id, 10),
-				contact_detail.phone,
+				contact_detail.mobile_no,
 				'phone_nos',
 				'Contact',
 				contact_detail.name,
-				is_primary,
+				0,
+				is_primary_mobile_no,
 				contact_detail.creation,
 				contact_detail.modified,
 				contact_detail.modified_by
@@ -75,7 +76,7 @@ def execute():
 		if phone_values and (count%10000 == 0 or count == len(contact_details)-1):
 			frappe.db.sql("""
 				INSERT INTO `tabContact Phone`
-					(`idx`, `name`, `phone`, `parentfield`, `parenttype`, `parent`, `is_primary`, `creation`,
+					(`idx`, `name`, `phone`, `parentfield`, `parenttype`, `parent`, `is_primary_phone`, `is_primary_mobile_no`, `creation`,
 					`modified`, `modified_by`)
 				VALUES {}
 			""".format(", ".join(['%s'] * len(phone_values))), tuple(phone_values))

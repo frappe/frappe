@@ -19,7 +19,7 @@ babel==2.6.0
 ipython
 html2text==2016.9.19
 email_reply_parser
-click
+click==7.0
 num2words==0.5.5
 watchdog==0.8.0
 bleach==2.1.4
@@ -64,3 +64,4 @@ sqlparse==0.2.4
 Pygments==2.2.0
 frontmatter
 PyYAML==3.13
+xlrd

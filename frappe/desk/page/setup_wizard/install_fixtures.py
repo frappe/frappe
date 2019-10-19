@@ -4,11 +4,12 @@
 from __future__ import unicode_literals
 
 import frappe
-
 from frappe import _
+from frappe.desk.doctype.global_search_settings.global_search_settings import update_global_search_doctypes
 
 def install():
 	update_genders_and_salutations()
+	update_global_search_doctypes()
 
 @frappe.whitelist()
 def update_genders_and_salutations():

@@ -233,8 +233,8 @@ class BaseDocument(object):
 				if isinstance(d[fieldname], list) and df.fieldtype not in table_fields:
 					frappe.throw(_('Value for {0} cannot be a list').format(_(df.label)))
 
-				if convert_dates_to_str and isinstance(d[fieldname], (datetime.datetime, datetime.time, datetime.timedelta)):
-					d[fieldname] = str(d[fieldname])
+			if convert_dates_to_str and isinstance(d[fieldname], (datetime.datetime, datetime.time, datetime.timedelta)):
+				d[fieldname] = str(d[fieldname])
 
 			if d[fieldname] == None and ignore_nulls:
 				del d[fieldname]
@@ -457,9 +457,15 @@ class BaseDocument(object):
 
 					meta = frappe.get_meta(doctype)
 					if meta.has_field('disabled'):
-						disabled = frappe.get_value(doctype, self.get(df.fieldname), 'disabled')
-						if disabled:
-							frappe.throw(_("{0} is disabled").format(frappe.bold(self.get(df.fieldname))))
+						if not (
+							frappe.flags.in_import
+							or frappe.flags.in_migrate
+							or frappe.flags.in_install
+							or frappe.flags.in_patch
+						):
+							disabled = frappe.get_value(doctype, self.get(df.fieldname), 'disabled')
+							if disabled and (not self.flags.ignore_disabled):
+								frappe.throw(_("{0} is disabled").format(frappe.bold(self.get(df.fieldname))))
 				else:
 					doctype = self.get(df.options)
 					if not doctype:
@@ -664,7 +670,7 @@ class BaseDocument(object):
 				continue
 
 			else:
-				sanitized_value = sanitize_html(value, linkify=df.fieldtype=='Text Editor')
+				sanitized_value = sanitize_html(value, linkify=df and df.fieldtype=='Text Editor')
 
 			self.set(fieldname, sanitized_value)
 

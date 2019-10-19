@@ -35,10 +35,10 @@ frappe.ui.form.ControlMultiSelectList = frappe.ui.form.ControlData.extend({
 						if (this.values.includes(opt.value)) {
 							return true;
 						}
-						match = Awesomplete.FILTER_CONTAINS(opt.label, txt);
-						if (!match) {
-							match = Awesomplete.FILTER_CONTAINS(opt.value, txt);
-						}
+						match = Awesomplete.FILTER_CONTAINS(opt.label, txt)
+							|| Awesomplete.FILTER_CONTAINS(opt.value, txt)
+							|| Awesomplete.FILTER_CONTAINS(opt.description, txt);
+
 						return match;
 					});
 					let options = this._selected_values
@@ -195,8 +195,11 @@ frappe.ui.form.ControlMultiSelectList = frappe.ui.form.ControlData.extend({
 			let encoded_value = encodeURIComponent(option.value);
 			let selected = this.values.includes(option.value) ? 'selected' : '';
 			return `<li class="selectable-item ${selected}" data-value="${encoded_value}">
-				${option.label}
-				<span class="octicon octicon-check text-muted"></span>
+				<div>
+					<strong>${option.label}</strong>
+					<div class="small">${option.description}</div>
+				</div>
+				<div><span class="octicon octicon-check text-muted"></span></div>
 			</li>`;
 		}).join('');
 		if (!html) {

@@ -186,6 +186,7 @@
 		"public/js/frappe/ui/toolbar/awesome_bar.js",
 		"public/js/frappe/ui/toolbar/energy_points_notifications.js",
 		"public/js/frappe/ui/toolbar/search.js",
+		"public/js/frappe/ui/toolbar/tag_utils.js",
 		"public/js/frappe/ui/toolbar/search.html",
 		"public/js/frappe/ui/toolbar/search_header.html",
 		"public/js/frappe/ui/toolbar/search_utils.js",
@@ -325,5 +326,8 @@
 	],
 	"js/barcode_scanner.min.js": [
 		"public/js/frappe/barcode_scanner/quagga.js"
+	],
+	"js/data_import_tools.min.js": [
+		"public/js/frappe/data_import/index.js"
 	]
 }

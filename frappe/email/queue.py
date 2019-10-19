@@ -428,6 +428,7 @@ def send_one(email, smtpserver=None, auto_commit=True, now=False, from_test=Fals
 			smtplib.SMTPConnectError,
 			smtplib.SMTPHeloError,
 			smtplib.SMTPAuthenticationError,
+			smtplib.SMTPRecipientsRefused,
 			JobTimeoutException):
 
 		# bad connection/timeout, retry later
