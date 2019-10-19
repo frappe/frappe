@@ -60,7 +60,13 @@ def get_chat_assets(build_version):
 	boot_json = frappe.as_json(boot)
 	boot_json = re.sub("\<script\>[^<]*\</script\>", "", boot_json)
 
-	include_js = ['assets/js/frappe-web.min.js', 'assets/js/chat.js']
+	include_js = [
+		'assets/js/frappe-web.min.js',
+		'assets/js/bootstrap-4-web.min.js',
+		'assets/js/dialog.min.js',
+		'assets/js/control.min.js'
+		'assets/js/chat.js',
+	]
 	include_css = []
 	local_build_version = get_build_version()
 
