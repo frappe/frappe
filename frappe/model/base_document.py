@@ -454,18 +454,6 @@ class BaseDocument(object):
 					doctype = df.options
 					if not doctype:
 						frappe.throw(_("Options not set for link field {0}").format(df.fieldname))
-
-					meta = frappe.get_meta(doctype)
-					if meta.has_field('disabled'):
-						if not (
-							frappe.flags.in_import
-							or frappe.flags.in_migrate
-							or frappe.flags.in_install
-							or frappe.flags.in_patch
-						):
-							disabled = frappe.get_value(doctype, self.get(df.fieldname), 'disabled')
-							if disabled and (not self.flags.ignore_disabled):
-								frappe.throw(_("{0} is disabled").format(frappe.bold(self.get(df.fieldname))))
 				else:
 					doctype = self.get(df.options)
 					if not doctype:
