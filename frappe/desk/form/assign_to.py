@@ -171,7 +171,7 @@ def notify_assignment(assigned_by, owner, doc_type, doc_name, action='CLOSE',
 		user_name = frappe.bold(user_name)
 		document_type = frappe.bold(doc_type)
 		title = frappe.bold(title)
-		subject = _('{0} assigned a new task {1} {2} to you').format(user_name, doc_type, title)
+		subject = _('{0} assigned a new task {1} {2} to you').format(user_name, document_type, title)
 
 	notification_doc = {
 		'type': 'Assignment',
