@@ -14,6 +14,8 @@
 		"public/js/frappe/class.js",
 		"public/js/frappe/provide.js",
 		"public/js/frappe/request.js",
+		"public/js/frappe/dom.js",
+		"public/js/lib/bootstrap.min.js",
 		"public/js/frappe/format.js",
 		"public/js/frappe/utils/number_format.js",
 		"public/js/frappe/form/formatters.js",
@@ -27,6 +29,9 @@
 		"public/js/frappe/form/controls/control.js",
 		"public/js/frappe/ui/messages.js",
 		"public/js/frappe/query_string.js",
+		"public/js/frappe/model/meta.js",
+		"public/js/frappe/model/model.js",
+		"public/js/frappe/model/perm.js",
 		"public/js/frappe/socketio_client.js",
 		"public/js/frappe/chat.js"
 	],
