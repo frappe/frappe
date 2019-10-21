@@ -8,7 +8,7 @@ from frappe import _
 import json
 from frappe.model.document import Document
 from frappe.core.doctype.user.user import extract_mentions
-from frappe.desk.doctype.notification_log.notification_log import create_notification
+from frappe.desk.doctype.notification_log.notification_log import enqueue_create_notification
 from frappe.utils import get_fullname
 from frappe.website.render import clear_cache
 from frappe.database.schema import add_column
@@ -64,12 +64,13 @@ class Comment(Document):
 			notification_doc = {
 				'type': 'Mention',
 				'document_type': self.reference_doctype,
-				'subject': notification_message,
 				'document_name': self.reference_name,
-				'reference_user': frappe.session.user
+				'subject': notification_message,
+				'from_user': frappe.session.user,
+				'email_content': self.content
 			}
 
-			create_notification(recipients, notification_doc, self.content)
+			enqueue_create_notification(recipients, notification_doc)
 
 
 def on_doctype_update():

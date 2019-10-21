@@ -8,34 +8,29 @@ from frappe import _
 from frappe.model.document import Document
 
 class NotificationSettings(Document):
-	def before_insert(self):
-		if frappe.db.count('Notification Settings', {'user': frappe.session.user}) > 0:
-			frappe.throw(_("Notification Settings already Exists"))
-
 	def on_update(self):
 		from frappe.desk.notifications import clear_notification_config
 		clear_notification_config(frappe.session.user)
 
 
 def is_notifications_enabled(user):
-	if frappe.db.count('Notification Settings', {'user': user}) > 0:
-		return frappe.get_cached_value('Notification Settings', {'user': user}, 'enable')
-	else:
+	enabled = frappe.db.get_value('Notification Settings', user, 'enabled')
+	if enabled is None:
 		return True
+	return enabled
 
 def is_email_notifications_enabled(user):
-	if frappe.db.count('Notification Settings', {'user': user}) > 0:
-		return frappe.get_cached_value('Notification Settings', {'user': user}, 'enable_email_notifications')
-	else:
+	enabled = frappe.db.get_value('Notification Settings', user, 'enable_email_notifications')
+	if enabled is None:
 		return True
+	return enabled
 
 def is_email_notifications_enabled_for_type(user, notification_type):
-	type_field = 'enable_email_' + frappe.scrub(notification_type)
-	if frappe.db.count('Notification Settings', {'user': user}) > 0:
-		return frappe.get_value('Notification Settings', {'user': user}, type_field)
-	else:
+	fieldname = 'enable_email_' + frappe.scrub(notification_type)
+	enabled = frappe.db.get_value('Notification Settings', user, fieldname)
+	if enabled is None:
 		return True
-
+	return enabled
 
 @frappe.whitelist()
 def create_notification_settings():

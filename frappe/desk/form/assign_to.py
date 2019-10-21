@@ -7,7 +7,7 @@ from __future__ import unicode_literals
 import frappe
 from frappe import _
 from frappe.desk.form.document_follow import follow_document
-from frappe.desk.doctype.notification_log.notification_log import create_notification
+from frappe.desk.doctype.notification_log.notification_log import enqueue_create_notification
 import frappe.utils
 import frappe.share
 
@@ -175,8 +175,9 @@ def notify_assignment(assigned_by, owner, doc_type, doc_name, action='CLOSE',
 		'document_type': doc_type,
 		'subject': subject,
 		'document_name': doc_name,
-		'reference_user': frappe.session.user
+		'from_user': frappe.session.user,
+		'email_content': description_html
 	}
 
-	create_notification(owner, notification_doc, description_html or None)
+	enqueue_create_notification(owner, notification_doc)
 
