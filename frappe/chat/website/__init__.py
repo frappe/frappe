@@ -57,17 +57,13 @@ def get_chat_assets(build_version):
 	csrf_token = frappe.sessions.get_csrf_token()
 	frappe.db.commit()
 
-	boot_json = frappe.as_json(boot)
-	boot_json = re.sub("\<script\>[^<]*\</script\>", "", boot_json)
-
 	include_js = [
-		'assets/js/frappe-web.min.js',
-		'assets/js/bootstrap-4-web.min.js',
-		'assets/js/dialog.min.js',
-		'assets/js/control.min.js'
-		'assets/js/chat.js',
+		'assets/js/moment-bundle.min.js',
+		'assets/js/chat-bundle.js',
 	]
-	include_css = []
+	include_css = [
+		'assets/css/desk.min.css'
+	]
 	local_build_version = get_build_version()
 
 	"""Get chat assets to be loaded for mobile app"""
@@ -95,6 +91,6 @@ def get_chat_assets(build_version):
 
 	return {
 		"build_version": local_build_version,
-		"boot": boot_json,
+		"boot": boot,
 		"assets": assets
 	}
