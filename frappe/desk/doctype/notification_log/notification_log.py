@@ -77,12 +77,14 @@ def send_notification_email(doc):
 	)
 
 def get_email_header(doc):
-	if doc.type == 'Mention' or doc.type == 'Assignment':
-		return _('New {0}').format(doc.type)
-	elif doc.type == 'Share':
-		return _('New Document Shared')
-	elif doc.type == 'Energy Point':
-		return _('Energy Point Update')
+	return {
+		'Default': _('New Notification'),
+		'Mention': _('New Mention'),
+		'Assignment': _('New Assignment'),
+		'Share': _('New Document Shared'),
+		'Energy Point': _('Energy Point Update'),
+	}[doc.type or 'Default']
+
 
 @frappe.whitelist()
 def mark_as_seen(docnames):
