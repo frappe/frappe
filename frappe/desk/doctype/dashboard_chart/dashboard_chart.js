@@ -121,7 +121,7 @@ frappe.ui.form.on('Dashboard Chart', {
 
 	render_filters_table: function(frm) {
 		frm.set_df_property("filters_section", "hidden", 0);
-		let fields = frm.chart_filters;
+		// let fields = frm.chart_filters;
 
 		let wrapper = $(frm.get_field('filters_json').wrapper).empty();
 		let table = $(`<table class="table table-bordered" style="cursor:pointer; margin:0px;">
