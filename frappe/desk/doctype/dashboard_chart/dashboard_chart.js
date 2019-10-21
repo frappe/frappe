@@ -143,7 +143,7 @@ frappe.ui.form.on('Dashboard Chart', {
 				const filter_row = $(`<tr data-id="${index}"><td>${f[1]}</td><td>${f[2]}</td><td>${f[3]}</td></tr>`);
 				table.find('tbody').append(filter_row);
 				filters_set = true;
-			})
+			});
 		}
 
 		if (!filters_set) {
@@ -157,7 +157,7 @@ frappe.ui.form.on('Dashboard Chart', {
 		table.find('tr').click(function() {
 			let index = $(this).attr('data-id');
 			if (filters[index]) {
-				frm.events.show_filter(frm, filters[index][1], filters[index][2], filters[index][3], false, index)
+				frm.events.show_filter(frm, filters[index][1], filters[index][2], filters[index][3], false, index);
 			}
 		});
 	},
@@ -182,8 +182,8 @@ frappe.ui.form.on('Dashboard Chart', {
 					// to delete filter from array
 					let arr = JSON.parse(frm.doc.filters_json);
 					arr.splice(parseInt(index), 1);
-					frm.set_value('filters_json', JSON.stringify(arr))
-					frm.trigger('show_filters')
+					frm.set_value('filters_json', JSON.stringify(arr));
+					frm.trigger('show_filters');
 				}
 				this.filter_edit_area.remove();
 			},
