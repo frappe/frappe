@@ -12,12 +12,12 @@ from frappe.model.utils.user_settings import sync_user_settings, update_user_set
 
 
 @frappe.whitelist()
-def update_document_title(doctype, document, title_field, old_title, new_title, old_name, new_name):
+def update_document_title(doctype, docname, title_field, old_title, new_title, old_name, new_name):
 	"""
 		Update title from header in form view
 	"""
 	if new_title and old_title != new_title:
-		frappe.db.set_value(doctype, document, title_field, new_title)
+		frappe.db.set_value(doctype, docname, title_field, new_title)
 		frappe.msgprint(_('Saved'), alert=True, indicator='green')
 
 	if new_name and old_name != new_name:

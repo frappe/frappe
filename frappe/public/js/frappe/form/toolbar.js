@@ -120,13 +120,13 @@ frappe.ui.form.Toolbar = Class.extend({
 						frappe.call({
 							method: "frappe.model.rename_doc.update_document_title",
 							args: {
-								doctype: doctype,
-								document: docname,
-								title_field: title_field || null,
-								old_title: me.frm.doc[title_field] || null,
-								new_title: args.title || null,
-								old_name: docname || null,
-								new_name: args.name || null
+								doctype,
+								docname,
+								title_field,
+								old_title: me.frm.doc[title_field],
+								new_title: args.title,
+								old_name: docname,
+								new_name: args.name
 							},
 							btn: d.get_primary_btn()
 						}).then((res) => {
