@@ -7,6 +7,7 @@ import frappe
 from frappe import _
 import json
 from frappe.model.document import Document
+from frappe.desk.doctype.notification_log.notification_log import enqueue_create_notification
 from frappe.utils import cint, get_fullname, getdate, get_link_to_form
 
 class EnergyPointLog(Document):
@@ -25,13 +26,58 @@ class EnergyPointLog(Document):
 		alert_dict = get_alert_dict(self)
 		if alert_dict:
 			frappe.publish_realtime('energy_point_alert', message=alert_dict, user=self.user)
-			send_review_mail(self, alert_dict)
 
 		frappe.cache().hdel('energy_points', self.user)
 		frappe.publish_realtime('update_points', after_commit=True)
 
 		if self.type != 'Review':
-			frappe.publish_realtime('energy_points_notification', after_commit=True, user=self.user)
+			reference_user = self.user if self.type == 'Auto' else self.owner
+			notification_doc = {
+				'type': 'Energy Point',
+				'document_type': self.reference_doctype,
+				'document_name': self.reference_name,
+				'subject': get_notification_message(self),
+				'from_user': reference_user,
+				'email_content': '<div>{}</div>'.format(self.reason)
+			}
+
+			enqueue_create_notification(self.user, notification_doc)
+
+def get_notification_message(doc):
+	owner_name = get_fullname(doc.owner)
+	points = doc.points
+	title_field = frappe.get_meta(doc.reference_doctype).get_title_field()
+	title = doc.reference_name if title_field == "name" else \
+		frappe.db.get_value(doc.reference_doctype, doc.reference_name, title_field)
+
+	if doc.type == 'Auto':
+		owner_name = frappe.bold('You')
+		if points == 1:
+			message = _('{0} gained {1} point for {2} {3}')
+		else:
+			message = _('{0} gained {1} points for {2} {3}')
+		message = message.format(owner_name, frappe.bold(points), doc.rule, frappe.bold(title))
+	elif doc.type == 'Appreciation':
+		if points == 1:
+			message = _('{0} appreciated your work on {1} with {2} point')
+		else:
+			message = _('{0} appreciated your work on {1} with {2} points')
+		message = message.format(frappe.bold(owner_name), frappe.bold(title), frappe.bold(points))
+	elif doc.type == 'Criticism':
+		if points == 1:
+			message = _('{0} criticized your work on {1} with {2} point')
+		else:
+			message = _('{0} criticized your work on {1} with {2} points')
+
+		message = message.format(frappe.bold(owner_name), frappe.bold(title), frappe.bold(points))
+	elif doc.type == 'Revert':
+		if points == 1:
+			message = _('{0} reverted your point on {1}')
+		else:
+			message = _('{0} reverted your points on {1}')
+		message = message.format(frappe.bold(owner_name), frappe.bold(title))
+
+	return message
 
 def get_alert_dict(doc):
 	alert_dict = frappe._dict()
@@ -82,13 +128,6 @@ def get_alert_dict(doc):
 		alert_dict.indicator = 'red'
 
 	return alert_dict
-
-def send_review_mail(doc, message_dict):
-	if doc.type in ['Appreciation', 'Criticism']:
-		frappe.sendmail(recipients=doc.user,
-			subject=_("You gained some energy points") if doc.points > 0 else _("You lost some energy points"),
-			message=message_dict.message + '<p>{}</p>'.format(doc.reason),
-			header=[_('Energy point update'), message_dict.indicator])
 
 def create_energy_points_log(ref_doctype, ref_name, doc):
 	doc = frappe._dict(doc)
@@ -172,13 +211,6 @@ def get_user_energy_and_review_points(user=None, from_date=None, as_dict=True):
 	for d in points_list:
 		dict_to_return[d.pop('user')] = d
 	return dict_to_return
-
-
-@frappe.whitelist()
-def set_notification_as_seen(point_logs):
-	point_logs = frappe.parse_json(point_logs)
-	for log in point_logs:
-		frappe.db.set_value('Energy Point Log', log['name'], 'seen', 1, update_modified=False)
 
 @frappe.whitelist()
 def review(doc, points, to_user, reason, review_type='Appreciation'):
