@@ -252,4 +252,3 @@ frappe.patches.v12_0.move_email_and_phone_to_child_table
 frappe.patches.v12_0.delete_duplicate_indexes
 frappe.patches.v12_0.set_default_incoming_email_port
 frappe.patches.v12_0.update_global_search
-frappe.patches.v12_0.setup_tags
