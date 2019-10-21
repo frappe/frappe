@@ -1031,7 +1031,7 @@ frappe.chat.sound.play  = function (name, volume = 0.1) {
 	$audio.attr('src', `${frappe.chat.sound.PATH}/chat-${name}.mp3`)
 	$audio[0].play()
 }
-frappe.chat.sound.PATH  = '/assets/frappe/sounds'
+frappe.chat.sound.PATH  = 'assets/frappe/sounds'
 
 // frappe.chat.emoji
 frappe.chat.emojis = [ ]
@@ -2617,7 +2617,7 @@ frappe._.platform   = () => {
  */
 frappe.provide('frappe.assets')
 frappe.assets.image = (image, app = 'frappe') => {
-	const  path     = `/assets/${app}/images/${image}`
+	const  path     = `assets/${app}/images/${image}`
 	return path
 }
 
