@@ -36,14 +36,14 @@ frappe.ui.form.on('Dashboard Chart', {
 		frm.set_value('based_on', '');
 		frm.set_value('value_based_on', '');
 		frm.set_value('filters_json', '[]');
-		frm.trigger('update_options');		
+		frm.trigger('update_options');
 	},
 
 	update_options: function(frm) {
 		let doctype = frm.doc.document_type;
 		let date_fields = [
-			{label: __('Created On'), value: 'creation'},
-			{label: __('Last Modified On'), value: 'modified'}
+			{ label: __('Created On'), value: 'creation' },
+			{ label: __('Last Modified On'), value: 'modified' }
 		];
 		let value_fields = [];
 		let update_form = function() {
@@ -59,15 +59,15 @@ frappe.ui.form.on('Dashboard Chart', {
 				// get all date and datetime fields
 				frappe.get_meta(doctype).fields.map(df => {
 					if (['Date', 'Datetime'].includes(df.fieldtype)) {
-						date_fields.push({label: df.label, value: df.fieldname});
+						date_fields.push({ label: df.label, value: df.fieldname });
 					}
 					if (['Int', 'Float', 'Currency', 'Percent'].includes(df.fieldtype)) {
-						value_fields.push({label: df.label, value: df.fieldname});
+						value_fields.push({ label: df.label, value: df.fieldname });
 					}
 				});
 				update_form();
-				frappe.meta.docfield_list[doctype] = frappe.get_meta(doctype).fields;			
-			});			
+				frappe.meta.docfield_list[doctype] = frappe.get_meta(doctype).fields;
+			});
 		} else {
 			// update select options
 			update_form();
@@ -78,9 +78,9 @@ frappe.ui.form.on('Dashboard Chart', {
 		if (frm.chart_filters && frm.chart_filters.length) {
 			frm.trigger('render_filters_table');
 		} else {
-			if (frm.doc.chart_type==='Custom') {
+			if (frm.doc.chart_type === 'Custom') {
 				if (frm.doc.source) {
-					frappe.xcall('frappe.desk.doctype.dashboard_chart_source.dashboard_chart_source.get_config', {name: frm.doc.source})
+					frappe.xcall('frappe.desk.doctype.dashboard_chart_source.dashboard_chart_source.get_config', { name: frm.doc.source })
 						.then(config => {
 							frappe.dom.eval(config);
 							frm.chart_filters = frappe.dashboards.chart_sources[frm.doc.source].filters;
@@ -122,7 +122,7 @@ frappe.ui.form.on('Dashboard Chart', {
 	render_filters_table: function(frm) {
 		frm.set_df_property("filters_section", "hidden", 0);
 		let fields = frm.chart_filters;
-		
+
 		let wrapper = $(frm.get_field('filters_json').wrapper).empty();
 		let table = $(`<table class="table table-bordered" style="cursor:pointer; margin:0px;">
 			<thead>
@@ -137,12 +137,12 @@ frappe.ui.form.on('Dashboard Chart', {
 
 		let filters = JSON.parse(frm.doc.filters_json || '[]');
 		var filters_set = false;
-		
-		if(filters){
-			filters.map((f, index)=>{
+
+		if (filters) {
+			filters.map((f, index) => {
 				const filter_row = $(`<tr data-id="${index}"><td>${f[1]}</td><td>${f[2]}</td><td>${f[3]}</td></tr>`)
-					table.find('tbody').append(filter_row);
-					filters_set = true;
+				table.find('tbody').append(filter_row);
+				filters_set = true;
 			})
 		}
 
@@ -150,59 +150,57 @@ frappe.ui.form.on('Dashboard Chart', {
 			const filter_row = $(`<tr><td colspan="3" class="text-muted text-center">
 				${__("No filters added")}</td></tr>`);
 			table.find('tbody').append(filter_row);
-		}else{
+		} else {
 			$(`<p class="text-muted small">${__("Click on the row to edit filter")}</p>`).appendTo(wrapper);
 		}
 
-		table.find('tr').click(function(){
+		table.find('tr').click(function() {
 			let index = $(this).attr('data-id');
-			if(filters[index]){
+			if (filters[index]) {
 				frm.events.show_filter(frm, filters[index][1], filters[index][2], filters[index][3], false, index)
 			}
 		})
-		
-	}, 
-	filters_fn:function(frm){
+
+	},
+	filters_fn: function(frm) {
 		// sending default fieldname as name
 		frm.events.show_filter(frm, 'name', '=', undefined, true, 0)
 	},
-	add_filter:function(frm){
+	add_filter: function(frm) {
 		frm.trigger('filters_fn')
 	},
-	show_filter(frm, fieldname, condition, value, is_new, index){
+	show_filter(frm, fieldname, condition, value, is_new, index) {
 		let list_filter = new frappe.ui.Filter({
-            parent: $(frm.get_field('filter_html').wrapper),
-            parent_doctype: frm.doc.document_type,
-            fieldname: fieldname,
-            hidden: false,
-            condition: condition,
-            doctype: frm.doc.document_type,
-            value: value,
-            remove: function(){
-            	if(is_new == false){
-            		// to delete filter from array
+			parent: $(frm.get_field('filter_html').wrapper),
+			parent_doctype: frm.doc.document_type,
+			fieldname: fieldname,
+			hidden: false,
+			condition: condition,
+			doctype: frm.doc.document_type,
+			value: value,
+			remove: function() {
+				if (is_new == false) {
+					// to delete filter from array
 					let arr = JSON.parse(frm.doc.filters_json);
-					arr.splice(parseInt(index),1)
-					frm.set_value('filters_json',JSON.stringify(arr))
+					arr.splice(parseInt(index), 1)
+					frm.set_value('filters_json', JSON.stringify(arr))
 					frm.trigger('show_filters')
-            	}
-            	this.filter_edit_area.remove();
-            },
-            on_change: function() {
-                let val = list_filter.get_value();
-                if(val[2] == 'like' || val[2] == 'Like')
-                	val[3] = val[3].replace(/%/g, "");
-                let arr = JSON.parse(frm.doc.filters_json);
-                if(is_new == false){
-                	arr[index] = val;
-                } else{
-                	arr.push(val)
-                }
-                frm.set_value('filters_json',JSON.stringify(arr))
-                frm.trigger('show_filters')
-            }
-        });
+				}
+				this.filter_edit_area.remove();
+			},
+			on_change: function() {
+				let val = list_filter.get_value();
+				if (val[2] == 'like' || val[2] == 'Like')
+					val[3] = val[3].replace(/%/g, "");
+				let arr = JSON.parse(frm.doc.filters_json);
+				if (is_new == false) {
+					arr[index] = val;
+				} else {
+					arr.push(val)
+				}
+				frm.set_value('filters_json', JSON.stringify(arr))
+				frm.trigger('show_filters')
+			}
+		});
 	}
 });
-
-
