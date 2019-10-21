@@ -59,6 +59,7 @@ def get_chat_assets(build_version):
 
 	include_js = [
 		'assets/js/moment-bundle.min.js',
+		'assets/js/libs.min.js',
 		'assets/js/chat-bundle.js',
 	]
 	include_css = [
