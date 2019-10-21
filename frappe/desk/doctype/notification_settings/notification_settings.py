@@ -41,12 +41,11 @@ def create_notification_settings():
 
 @frappe.whitelist()
 def get_subscribed_documents():
-	subscribed_documents = []
-	settings = frappe.get_all('Notification Settings', {'user': frappe.session.user})
-	if settings:
-		name = settings[0].name
-		doc = frappe.get_doc('Notification Settings', name)
+	try:
+		doc = frappe.get_doc('Notification Settings', frappe.session.user)
 		subscribed_documents = [item.document for item in doc.subscribed_documents]
+	except frappe.DoesNotExistError:
+		subscribed_documents = []
 
 	return subscribed_documents
 
