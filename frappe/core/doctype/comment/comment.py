@@ -8,7 +8,8 @@ from frappe import _
 import json
 from frappe.model.document import Document
 from frappe.core.doctype.user.user import extract_mentions
-from frappe.utils import get_fullname, get_link_to_form
+from frappe.desk.doctype.notification_log.notification_log import enqueue_create_notification
+from frappe.utils import get_fullname
 from frappe.website.render import clear_cache
 from frappe.database.schema import add_column
 from frappe.exceptions import ImplicitCommitError
@@ -54,31 +55,22 @@ class Comment(Document):
 			title = self.reference_name if title_field == "name" else \
 				frappe.db.get_value(self.reference_doctype, self.reference_name, title_field)
 
-			if title != self.reference_name:
-				parent_doc_label = "{0}: {1} (#{2})".format(_(self.reference_doctype),
-					title, self.reference_name)
-			else:
-				parent_doc_label = "{0}: {1}".format(_(self.reference_doctype),
-					self.reference_name)
-
-			subject = _("{0} mentioned you in a comment in {1}").format(sender_fullname, parent_doc_label)
-
 			recipients = [frappe.db.get_value("User", {"enabled": 1, "name": name, "user_type": "System User", "allowed_in_mentions": 1}, "email")
 				for name in mentions]
-			link = get_link_to_form(self.reference_doctype, self.reference_name, label=parent_doc_label)
 
-			frappe.sendmail(
-				recipients = recipients,
-				sender = frappe.session.user,
-				subject = subject,
-				template = "mentioned_in_comment",
-				args = {
-					"body_content": _("{0} mentioned you in a comment in {1}").format(sender_fullname, link),
-					"comment": self,
-					"link": link
-				},
-				header = [_('New Mention'), 'orange']
-			)
+			notification_message = _('''{0} mentioned you in a comment in {1} {2}''')\
+				.format(frappe.bold(sender_fullname), frappe.bold(self.reference_doctype), frappe.bold(title))
+
+			notification_doc = {
+				'type': 'Mention',
+				'document_type': self.reference_doctype,
+				'document_name': self.reference_name,
+				'subject': notification_message,
+				'from_user': frappe.session.user,
+				'email_content': self.content
+			}
+
+			enqueue_create_notification(recipients, notification_doc)
 
 
 def on_doctype_update():
