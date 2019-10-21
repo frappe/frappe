@@ -11,4 +11,4 @@ class UnhandledEmail(Document):
 
 
 def remove_old_unhandled_emails():
-	frappe.db.sql("""DELETE FROM `tabUnhandled Email` WHERE datediff(curdate(), date(creation)) > 30""")
+	frappe.db.sql("""DELETE FROM `tabUnhandled Email` WHERE DATEDIFF(CURRENT_DATE(), DATE(creation)) > 30""")
