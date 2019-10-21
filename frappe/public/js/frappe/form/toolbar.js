@@ -79,7 +79,7 @@ frappe.ui.form.Toolbar = Class.extend({
 
 			// check if title is updateable
 			if (me.is_title_editable()) {
-				let title_field_label = me.frm.get_docfield(title_field).label
+				let title_field_label = me.frm.get_docfield(title_field).label;
 
 				fields.push({
 					label: __("New {0}", [__(title_field_label)]),
