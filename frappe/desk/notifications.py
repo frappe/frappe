@@ -196,7 +196,7 @@ def get_notification_config():
 						config[key].update(nc.get(key, {}))
 		return config
 
-	return frappe.cache().hget("notification_config", frappe.session.user, _get())
+	return frappe.cache().hget("notification_config", frappe.session.user, _get)
 
 def get_filters_for(doctype):
 	'''get open filters for doctype'''
