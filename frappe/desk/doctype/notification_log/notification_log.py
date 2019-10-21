@@ -34,7 +34,8 @@ def enqueue_create_notification(users, doc):
 	frappe.enqueue(
 		'frappe.desk.doctype.notification_log.notification_log.make_notification_logs',
 		doc=doc,
-		users=users
+		users=users,
+		now=frappe.flags.in_test
 	)
 
 def make_notification_logs(doc, users):
@@ -73,7 +74,8 @@ def send_notification_email(doc):
 			'document_name': doc.document_name,
 			'doc_link': doc_link
 		},
-		header = [header, 'orange']
+		header = [header, 'orange'],
+		now=frappe.flags.in_test
 	)
 
 def get_email_header(doc):
