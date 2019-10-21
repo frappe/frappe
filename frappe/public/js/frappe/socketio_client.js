@@ -101,7 +101,7 @@ frappe.socketio = {
 		}
 	},
 	get_host: function(port = 3000) {
-		var host = window.location.origin;
+		var host = (window.cordova && frappe.base_url) || window.location.origin;
 		if(window.dev_server) {
 			var parts = host.split(":");
 			port = frappe.boot.socketio_port || port.toString() || '3000';
