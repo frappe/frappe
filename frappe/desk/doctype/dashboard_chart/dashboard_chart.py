@@ -23,7 +23,7 @@ def get(chart_name, from_date=None, to_date=None, refresh = None):
 		from_date = get_from_date_from_timespan(to_date, timespan)
 	if not to_date:
 		to_date = nowdate()
-	
+
 	# get conditions from filters
 	conditions = get_chart_conditions(chart.document_type,filters)
 

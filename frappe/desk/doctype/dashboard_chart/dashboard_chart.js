@@ -2,7 +2,7 @@
 // For license information, please see license.txt
 
 frappe.provide('frappe.dashboards.chart_sources');
-frappe.require('assets/frappe/js/frappe/ui/filters/filter.js')
+frappe.require('assets/frappe/js/frappe/ui/filters/filter.js');
 
 frappe.ui.form.on('Dashboard Chart', {
 	setup: function(frm) {
@@ -140,7 +140,7 @@ frappe.ui.form.on('Dashboard Chart', {
 
 		if (filters) {
 			filters.map((f, index) => {
-				const filter_row = $(`<tr data-id="${index}"><td>${f[1]}</td><td>${f[2]}</td><td>${f[3]}</td></tr>`)
+				const filter_row = $(`<tr data-id="${index}"><td>${f[1]}</td><td>${f[2]}</td><td>${f[3]}</td></tr>`);
 				table.find('tbody').append(filter_row);
 				filters_set = true;
 			})
@@ -159,15 +159,14 @@ frappe.ui.form.on('Dashboard Chart', {
 			if (filters[index]) {
 				frm.events.show_filter(frm, filters[index][1], filters[index][2], filters[index][3], false, index)
 			}
-		})
-
+		});
 	},
 	filters_fn: function(frm) {
 		// sending default fieldname as name
-		frm.events.show_filter(frm, 'name', '=', undefined, true, 0)
+		frm.events.show_filter(frm, 'name', '=', undefined, true, 0);
 	},
 	add_filter: function(frm) {
-		frm.trigger('filters_fn')
+		frm.trigger('filters_fn');
 	},
 	show_filter(frm, fieldname, condition, value, is_new, index) {
 		let list_filter = new frappe.ui.Filter({
@@ -182,7 +181,7 @@ frappe.ui.form.on('Dashboard Chart', {
 				if (is_new == false) {
 					// to delete filter from array
 					let arr = JSON.parse(frm.doc.filters_json);
-					arr.splice(parseInt(index), 1)
+					arr.splice(parseInt(index), 1);
 					frm.set_value('filters_json', JSON.stringify(arr))
 					frm.trigger('show_filters')
 				}
@@ -196,10 +195,10 @@ frappe.ui.form.on('Dashboard Chart', {
 				if (is_new == false) {
 					arr[index] = val;
 				} else {
-					arr.push(val)
+					arr.push(val);
 				}
-				frm.set_value('filters_json', JSON.stringify(arr))
-				frm.trigger('show_filters')
+				frm.set_value('filters_json', JSON.stringify(arr));
+				frm.trigger('show_filters');
 			}
 		});
 	}
