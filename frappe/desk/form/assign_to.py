@@ -168,7 +168,10 @@ def notify_assignment(assigned_by, owner, doc_type, doc_name, action='CLOSE',
 	if action=='CLOSE':
 		subject = _('Your assignment on {0} {1} has been removed').format(frappe.bold(doc_type), frappe.bold(title))
 	else:
-		subject = '''<b>{0}</b> assigned a new task <b>{1} {2}</b> to you'''.format(user_name, doc_type, title)
+		user_name = frappe.bold(user_name)
+		document_type = frappe.bold(doc_type)
+		title = frappe.bold(title)
+		subject = _('{0} assigned a new task {1} {2} to you').format(user_name, doc_type, title)
 
 	notification_doc = {
 		'type': 'Assignment',
