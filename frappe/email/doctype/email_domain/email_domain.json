@@ -30,7 +30,7 @@
    "fieldtype": "Data",
    "label": "domain name",
    "read_only": 1,
-   "unique": 1
+   "unique": 0
   },
   {
    "fieldname": "email_id",
@@ -109,7 +109,7 @@
   }
  ],
  "icon": "icon-inbox",
- "modified": "2019-08-31 17:56:48.834704",
+ "modified": "2019-10-09 17:56:48.834704",
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Email Domain",

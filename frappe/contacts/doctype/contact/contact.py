@@ -32,7 +32,6 @@ class Contact(Document):
 		self.set_primary_email()
 		self.set_primary("phone")
 		self.set_primary("mobile_no")
-		self.check_if_primary_phone_and_mobile_no_same()
 
 		self.set_user()
 
@@ -118,11 +117,6 @@ class Contact(Document):
 			if d.get(field_name) == 1:
 				setattr(self, fieldname, d.phone)
 				break
-
-	def check_if_primary_phone_and_mobile_no_same(self):
-		if self.phone and self.mobile_no and self.phone == self.mobile_no:
-			number = frappe.bold(self.phone)
-			frappe.throw(_("Number {0} cannot be set as primary for Phone as well as Mobile No.").format(number))
 
 def get_default_contact(doctype, name):
 	'''Returns default contact for the given doctype, name'''
