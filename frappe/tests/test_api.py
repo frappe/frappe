@@ -12,7 +12,7 @@ import base64
 class TestAPI(unittest.TestCase):
 	def test_insert_many(self):
 		server = FrappeClient(frappe.get_site_config().host_name, "Administrator", "admin", verify=False)
-		frappe.db.sql('delete from `tabNote` where title in ("Sing","a","song","of","sixpence")')
+		frappe.db.sql("delete from `tabNote` where title in ('Sing','a','song','of','sixpence')")
 		frappe.db.commit()
 
 		server.insert_many([
@@ -31,7 +31,7 @@ class TestAPI(unittest.TestCase):
 
 	def test_create_doc(self):
 		server = FrappeClient(frappe.get_site_config().host_name, "Administrator", "admin", verify=False)
-		frappe.db.sql('delete from `tabNote` where title = "test_create"')
+		frappe.db.sql("delete from `tabNote` where title = 'test_create'")
 		frappe.db.commit()
 
 		server.insert({"doctype": "Note", "public": True, "title": "test_create"})
@@ -46,7 +46,7 @@ class TestAPI(unittest.TestCase):
 
 	def test_get_doc(self):
 		server = FrappeClient(frappe.get_site_config().host_name, "Administrator", "admin", verify=False)
-		frappe.db.sql('delete from `tabNote` where title = "get_this"')
+		frappe.db.sql("delete from `tabNote` where title = 'get_this'")
 		frappe.db.commit()
 
 		server.insert_many([
@@ -57,7 +57,7 @@ class TestAPI(unittest.TestCase):
 
 	def test_update_doc(self):
 		server = FrappeClient(frappe.get_site_config().host_name, "Administrator", "admin", verify=False)
-		frappe.db.sql('delete from `tabNote` where title = "sing"')
+		frappe.db.sql("delete from `tabNote` where title in ('Sing','sing')")
 		frappe.db.commit()
 
 		server.insert({"doctype":"Note", "public": True, "title": "Sing"})
@@ -69,7 +69,7 @@ class TestAPI(unittest.TestCase):
 
 	def test_delete_doc(self):
 		server = FrappeClient(frappe.get_site_config().host_name, "Administrator", "admin", verify=False)
-		frappe.db.sql('delete from `tabNote` where title = "delete"')
+		frappe.db.sql("delete from `tabNote` where title = 'delete'")
 		frappe.db.commit()
 
 		server.insert_many([
