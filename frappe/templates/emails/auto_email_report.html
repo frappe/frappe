@@ -1,5 +1,5 @@
 {% macro get_alignment(col) %}
-	{% if col.get("align") %}
+	{%- if col.get("align") %}
 		class="text-{{col.align}}"
 	{% elif col.fieldtype in ('Int', 'Float', 'Currency', 'Check', 'Percentage') %}
 		class="text-right"
@@ -65,7 +65,7 @@
 	<thead>
 		<tr>
 			{% for col in columns %}
-			<th {{- get_alignment(col) }}>
+			<th {{- get_alignment(col) -}}>
 				{{- _(col.label) -}}
 			</th>
 			{% endfor %}
@@ -76,11 +76,11 @@
 		<tr>
 			{% for col in columns %}
 				{% if row[col.fieldname] == 'Total' %}
-					<td {{- get_alignment(col) }}>
+					<td {{- get_alignment(col) -}}>
 						{{- row[col.fieldname] -}}
 					</td>
 				{% else %}
-				    <td {{- get_alignment(col) }}>
+				    <td {{- get_alignment(col) -}}>
 						{{- frappe.format(row[col.fieldname], col, row) -}}
 					</td>
 				{% endif %}
