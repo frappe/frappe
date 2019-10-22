@@ -44,7 +44,7 @@ def get_subscribed_documents():
 	try:
 		doc = frappe.get_doc('Notification Settings', frappe.session.user)
 		subscribed_documents = [item.document for item in doc.subscribed_documents]
-	except frappe.DoesNotExistError:
+	except (frappe.DoesNotExistError, ImportError):
 		subscribed_documents = []
 
 	return subscribed_documents
