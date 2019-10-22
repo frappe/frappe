@@ -200,10 +200,19 @@ class Report(Document):
 
 			_columns = []
 
-			for column in columns:
-				meta = frappe.get_meta(column[1])
-				field = [meta.get_field(column[0]) or frappe._dict(label=meta.get_label(column[0]), fieldname=column[0])]
-				_columns.extend(field)
+			for (fieldname, doctype) in columns:
+				meta = frappe.get_meta(doctype)
+
+				if meta.get_field(fieldname):
+					field = meta.get_field(fieldname)
+				else:
+					field = frappe._dict(fieldname=fieldname, label=meta.get_label(fieldname))
+					# since name is the primary key for a document, it will always be a Link datatype
+					if fieldname == "name":
+						field.fieldtype = "Link"
+						field.options = doctype
+
+				_columns.append(field)
 			columns = _columns
 
 			out = out + [list(d) for d in result]
