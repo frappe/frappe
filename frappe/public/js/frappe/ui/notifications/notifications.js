@@ -52,7 +52,7 @@ frappe.ui.Notifications = class Notifications {
 			frappe.db.get_list('Event', {
 				fields: ['name', 'subject', 'starts_on'],
 				filters: [
-					{'starts_on':['between', today, tomorrow]}, 
+					{'starts_on': ['between', today, tomorrow]}, 
 					{'ends_on': ['>=', frappe.datetime.now_datetime()]}
 				]
 			}).then(event_list => {
