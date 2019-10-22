@@ -4,7 +4,7 @@
 from __future__ import unicode_literals
 
 import frappe
-import os, json, datetime
+import os, json
 
 from frappe import _
 from frappe.modules import scrub, get_module_path
@@ -63,38 +63,21 @@ def generate_report_result(report, filters=None, user=None):
 
 		result = [list(t) for t in frappe.db.sql(report.query, filters)]
 		columns = [cstr(c[0]) for c in frappe.db.get_description()]
-	else:
-		module = report.module or frappe.db.get_value("DocType", report.ref_doctype, "module")
-		if report.is_standard == "Yes":
-			method_name = get_report_module_dotted_path(module, report.name) + ".execute"
-			threshold = 30
-			res = []
 
-			start_time = datetime.datetime.now()
-			# The JOB
-			res = frappe.get_attr(method_name)(frappe._dict(filters))
+	elif report.report_type == 'Script Report':
+		res = report.execute_script_report(filters)
 
-			end_time = datetime.datetime.now()
+		columns, result = res[0], res[1]
+		if len(res) > 2:
+			message = res[2]
+		if len(res) > 3:
+			chart = res[3]
+		if len(res) > 4:
+			data_to_be_printed = res[4]
 
-			execution_time = (end_time - start_time).seconds
-
-			if execution_time > threshold and not report.prepared_report:
-				report.db_set('prepared_report', 1)
-
-			frappe.cache().hset('report_execution_time', report.name, execution_time)
-
-			columns, result = res[0], res[1]
-			if len(res) > 2:
-				message = res[2]
-			if len(res) > 3:
-				chart = res[3]
-			if len(res) > 4:
-				data_to_be_printed = res[4]
-
-
-			if report.custom_columns:
-				columns = json.loads(report.custom_columns)
-				result = add_data_to_custom_columns(columns, result)
+		if report.custom_columns:
+			columns = json.loads(report.custom_columns)
+			result = add_data_to_custom_columns(columns, result)
 
 	if result:
 		result = get_filtered_data(report.ref_doctype, columns, result, user)
@@ -354,11 +337,6 @@ def build_xlsx_data(columns, data, visible_idx,include_indentation):
 			result.append(row_data)
 
 	return result
-
-
-def get_report_module_dotted_path(module, report_name):
-	return frappe.local.module_app[scrub(module)] + "." + scrub(module) \
-		+ ".report." + scrub(report_name) + "." + scrub(report_name)
 
 def add_total_row(result, columns, meta = None):
 	total_row = [""]*len(columns)

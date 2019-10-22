@@ -186,6 +186,7 @@ frappe.patches.v8_0.newsletter_childtable_migrate
 frappe.patches.v8_0.set_doctype_values_in_custom_role
 frappe.patches.v8_0.install_new_build_system_requirements
 frappe.patches.v8_0.set_currency_field_precision	# 2017-05-09
+execute:frappe.reload_doc('desk', 'doctype', 'notification_log')
 frappe.patches.v8_0.rename_print_to_printing
 frappe.patches.v7_1.disabled_print_settings_for_custom_print_format
 execute:frappe.db.sql('update tabReport set module="Desk" where name="ToDo"')
@@ -252,3 +253,4 @@ frappe.patches.v12_0.move_email_and_phone_to_child_table
 frappe.patches.v12_0.delete_duplicate_indexes
 frappe.patches.v12_0.set_default_incoming_email_port
 frappe.patches.v12_0.update_global_search
+execute:frappe.reload_doc('desk', 'doctype', 'notification_settings')

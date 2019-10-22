@@ -70,6 +70,7 @@
 		"public/less/indicator.less",
 		"public/less/avatar.less",
 		"public/less/navbar.less",
+		"public/less/notifications.less",
 		"public/less/sidebar.less",
 		"public/less/page.less",
 		"public/less/tree.less",
@@ -185,6 +186,7 @@
 
 		"public/js/frappe/ui/toolbar/awesome_bar.js",
 		"public/js/frappe/ui/toolbar/energy_points_notifications.js",
+		"public/js/frappe/ui/notifications/notifications.js",
 		"public/js/frappe/ui/toolbar/search.js",
 		"public/js/frappe/ui/toolbar/tag_utils.js",
 		"public/js/frappe/ui/toolbar/search.html",

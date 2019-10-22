@@ -520,7 +520,7 @@ def read_only():
 		return wrapper_fn
 	return innfn
 
-def only_for(roles):
+def only_for(roles, message=False):
 	"""Raise `frappe.PermissionError` if the user does not have any of the given **Roles**.
 
 	:param roles: List of roles to check."""
@@ -532,6 +532,8 @@ def only_for(roles):
 	roles = set(roles)
 	myroles = set(get_roles())
 	if not roles.intersection(myroles):
+		if message:
+			msgprint(_('Only for {}'.format(', '.join(roles))))
 		raise PermissionError
 
 def get_domain_data(module):

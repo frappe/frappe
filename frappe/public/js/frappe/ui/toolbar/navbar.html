@@ -50,8 +50,7 @@
 				<a class="dropdown-toggle" data-toggle="dropdown" href="#"
 					onclick="return false;"  style="height: 40px;">
 					<span class="hidden-xs hidden-sm" style="line-height: 24px;">{{ __("Help") }} <b class="caret"></b></span>
-					<span class="visible-xs visible-sm standard-image"
-						style="padding: 50% 7px; font-size: 17px; background-color: #fafbfc; font-weight: 100;">?</span>
+					<span class="visible-xs visible-sm standard-image help-icon">?</span>
 				</a>
 				<ul class="dropdown-menu" id="toolbar-help" role="menu">
 					<li id="help-links"></li>
@@ -69,36 +68,19 @@
 			<li class="frappe-chat-dropdown"></li>
 			<!-- end frappe.chat -->
 
-			<li class="dropdown dropdown-energy-points dropdown-mobile">
-				<span class="energy-points-notification"><i class="fa fa-circle"></i></span>
+			<li class="dropdown dropdown-notifications dropdown-mobile">
+				<span class="notifications-indicator"><i class="fa fa-circle"></i></span>
 				<a
-					class="dropdown-toggle energy-points-icon"
+					class="dropdown-toggle notifications-icon"
 					data-toggle="dropdown"
 					aria-haspopup="true"
 					aria-expanded="true"
 					href="#"
 					onclick="return false;">
-					<span><i class="fa fa-trophy"></i></span>
+					<span><i class="fa fa-bell" aria-hidden="true"></i></span>
 				</a>
 				<ul
-					class="dropdown-menu recent-points-list"
-					role="menu">
-				</ul>
-			</li>
-
-			<li class="dropdown dropdown-navbar-new-comments dropdown-mobile">
-				<a
-					class="btn dropdown-toggle"
-					data-toggle="dropdown"
-					aria-haspopup="true"
-					aria-expanded="true"
-					href="#"
-					onclick="return false;">
-					<span class="navbar-new-comments">0</span>
-				</a>
-				<ul
-					class="dropdown-menu"
-					id="dropdown-notification"
+					class="dropdown-menu notifications-list"
 					role="menu">
 				</ul>
 			</li>

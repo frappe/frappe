@@ -262,7 +262,6 @@ frappe.views.InteractionComposer = class InteractionComposer {
 					doctype: doc.doctype,
 					name: doc.name,
 					assign_to: assignee,
-					notify: 1
 				},
 				callback:function(r) {
 					if(!r.exc) {
