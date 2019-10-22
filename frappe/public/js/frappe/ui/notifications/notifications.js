@@ -53,7 +53,8 @@ frappe.ui.Notifications = class Notifications {
 				fields: ['name', 'subject', 'starts_on'],
 				filters: [
 					{'starts_on': ['between', today, tomorrow]}, 
-					{'ends_on': ['>=', frappe.datetime.now_datetime()]}
+					{'ends_on': ['>=', frappe.datetime.now_datetime()]},
+					{'owner': frappe.session.user}
 				]
 			}).then(event_list => {
 				this.render_events_html(event_list);
