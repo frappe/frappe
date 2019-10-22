@@ -52,7 +52,7 @@ frappe.ui.Notifications = class Notifications {
 			frappe.db.get_list('Event', {
 				fields: ['name', 'subject', 'starts_on'],
 				filters: [
-					{'starts_on': ['between', today, tomorrow]}, 
+					{'starts_on': ['between', today, tomorrow]},
 					{'ends_on': ['>=', frappe.datetime.now_datetime()]},
 					{'owner': frappe.session.user}
 				]
@@ -230,15 +230,20 @@ frappe.ui.Notifications = class Notifications {
 		}
 	}
 
-	mark_as_seen() {
-		let unseen_docnames = this.dropdown_items
-			.filter(item => item.seen === 0)
-			.map(d => d.name);
-		if (!unseen_docnames.length) return;
+	mark_as_seen(docname, $el) {
 		frappe.call(
 			'frappe.desk.doctype.notification_log.notification_log.mark_as_seen',
-			{ docnames: unseen_docnames }
-		);
+			{ docname: docname }
+		).then(()=> {
+			$el.removeClass('unseen');
+		})
+	}
+
+	explicitly_mark_as_seen(e, $target) {
+		e.preventDefault();
+		e.stopImmediatePropagation();
+		let docname = $target.parents('.unseen').attr('data-name');
+		this.mark_as_seen(docname, $target.parents('.unseen'));
 	}
 
 	get_notifications_list(limit) {
@@ -292,12 +297,15 @@ frappe.ui.Notifications = class Notifications {
 		let user = field.from_user;
 		let user_avatar = frappe.avatar(user, 'avatar-small user-avatar');
 		let timestamp = frappe.datetime.comment_when(field.creation, true);
-		let item_html = `<a class="recent-item ${seen_class}" href = "${doc_link}">
+		let item_html = `<a class="recent-item ${seen_class}" href = "${doc_link}" data-name="${field.name}">
 				${user_avatar}
 				${message_html}
 				<div class="notification-timestamp text-muted">
 					${timestamp}
 				</div>
+				<span class="mark-read text-muted" data-action="explicitly_mark_as_seen">
+					${__('Mark as Read')}
+				</span>
 		</a>`;
 
 		return item_html;
@@ -377,8 +385,8 @@ frappe.ui.Notifications = class Notifications {
 	}
 
 	bind_events() {
-		this.setup_notification_listeners();
 		this.setup_dropdown_events();
+		this.setup_notification_listeners();
 
 		this.$dropdown_list.on('click', '.recent-item', () => {
 			this.$dropdown.removeClass('open');
@@ -399,8 +407,14 @@ frappe.ui.Notifications = class Notifications {
 			this.update_dropdown();
 		});
 
-		frappe.realtime.on('seen_notification', () => {
+		frappe.realtime.on('indicator_hide', () => {
 			this.$dropdown.find('.notifications-indicator').hide();
+		});
+
+		this.$dropdown_list.on('click', '.unseen', (e) => {
+			let docname = $(e.currentTarget).attr('data-name');
+			let df = this.dropdown_items.filter(f => docname.includes(f.name))[0];
+			this.mark_as_seen(df.name, $(e.currentTarget));
 		});
 	}
 
@@ -424,13 +438,16 @@ frappe.ui.Notifications = class Notifications {
 					)
 					.collapse('hide');
 			}
-			this.$dropdown_list.find('.unseen').removeClass('unseen');
 			$(e.currentTarget).data('closable', true);
 			return hide;
 		});
 
 		this.$dropdown.on('show.bs.dropdown', () => {
-			this.mark_as_seen();
+			if (this.$notification_indicator.is(':visible')) {
+				frappe.call(
+					'frappe.desk.doctype.notification_log.notification_log.trigger_indicator_hide'
+				);
+			}
 		});
 
 		this.$dropdown.on('click', e => {

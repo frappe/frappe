@@ -89,9 +89,11 @@ def get_email_header(doc):
 
 
 @frappe.whitelist()
-def mark_as_seen(docnames):
-	docnames = frappe.parse_json(docnames)
-	if docnames:
-		filters = {'name': ['in', docnames]}
-		frappe.db.set_value('Notification Log', filters, 'seen', 1, update_modified=False)
-		frappe.publish_realtime('seen_notification', after_commit=True, user=frappe.session.user)
+def mark_as_seen(docname):
+	if docname:
+		frappe.db.set_value('Notification Log', docname, 'seen', 1, update_modified=False)
+
+
+@frappe.whitelist()
+def trigger_indicator_hide():
+	frappe.publish_realtime('indicator_hide', user=frappe.session.user)

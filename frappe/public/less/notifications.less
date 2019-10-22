@@ -45,7 +45,7 @@
 }
 
 .dropdown-notifications .recent-item {
-	padding: 10px 14px;
+	padding: 15px 14px 0 14px;
     white-space: normal;
 	text-decoration: none;
 	font-weight: normal;
@@ -56,25 +56,23 @@ a.recent-item:hover {
 	background-color: #f0f4f7; 
 }
 
-.dropdown-energy-points .energy-points-icon {
-	height: 40px;
-	font-size: 14px;
-	text-align: center;
+a.unseen:hover .mark-read {
+	display: inline-block;
+}
+
+.mark-read {
+	display: none;
+	margin-left: 10px;
+}
+
+.mark-read:hover {
+	text-decoration: underline;
 }
 
 .notifications-list {
 	width: 450px;
 	max-height: 480px;
 	overflow-y: auto;
-}
-
-.energy-points-notification {
-	font-size: 7px;
-	position: absolute;
-	top: 4px;
-	right: 8px;
-	color: @indicator-orange;
-	display: none;
 }
 
 .date-range {
@@ -89,6 +87,16 @@ a.recent-item:hover {
 .notification-timestamp {
 	margin-top: 5px;
 	font-size: 11px;
+	display: inline-block;
+}
+
+.divider-dot {
+	height: 5px;
+	width: 5px;
+	margin: 0 2px;
+    background-color: #99a4af;
+    border-radius: 50%;
+    display: inline-block;
 }
 
 .user-avatar {
