@@ -6,6 +6,8 @@ from __future__ import unicode_literals
 import frappe
 import unittest, json
 from frappe.utils import get_link_to_form, today, add_to_date
+from frappe.utils.report_rendering import (get_report_content, prepare_dynamic_filters)
+from frappe.utils.data import is_html
 
 # test_records = frappe.get_test_records('Auto Email Report')
 
@@ -15,18 +17,61 @@ class TestAutoEmailReport(unittest.TestCase):
 
 		auto_email_report = get_auto_email_report()
 
-		data = auto_email_report.get_report_content()
-
-		self.assertTrue('<td>'+str(get_link_to_form('Module Def', 'Core'))+'</td>' in data)
-
+		data = get_report_content(
+			auto_email_report.report,
+			auto_email_report.filters,
+			auto_email_report.format,
+			auto_email_report.no_of_rows,
+			auto_email_report.description,
+			auto_email_report.user,
+			auto_email_report.data_modified_till,
+			auto_email_report.from_date_field,
+			auto_email_report.to_date_field,
+			auto_email_report.dynamic_date_period,
+			additional_params = {
+				'edit_report_settings': get_link_to_form('Auto Email Report', auto_email_report.name)
+				}
+		)
+		self.assertTrue(is_html(data))
+		print("data", data)
+		self.assertTrue('<td>' + str(get_link_to_form('Module Def', 'Core'))+'</td>' in data)
+		
 		auto_email_report.format = 'CSV'
 
-		data = auto_email_report.get_report_content()
+		data = get_report_content(
+			auto_email_report.report,
+			auto_email_report.filters,
+			auto_email_report.format,
+			auto_email_report.no_of_rows,
+			auto_email_report.description,
+			auto_email_report.user,
+			auto_email_report.data_modified_till,
+			auto_email_report.from_date_field,
+			auto_email_report.to_date_field,
+			auto_email_report.dynamic_date_period,
+			additional_params = {
+				'edit_report_settings': get_link_to_form('Auto Email Report', auto_email_report.name)
+				}
+		)
 		self.assertTrue('"Language","Core"' in data)
 
 		auto_email_report.format = 'XLSX'
 
-		data = auto_email_report.get_report_content()
+		data = get_report_content(
+			auto_email_report.report,
+			auto_email_report.filters,
+			auto_email_report.format,
+			auto_email_report.no_of_rows,
+			auto_email_report.description,
+			auto_email_report.user,
+			auto_email_report.data_modified_till,
+			auto_email_report.from_date_field,
+			auto_email_report.to_date_field,
+			auto_email_report.dynamic_date_period,
+			additional_params = {
+				'edit_report_settings': get_link_to_form('Auto Email Report', auto_email_report.name)
+				}
+		)
 
 
 	def test_dynamic_date_filters(self):
@@ -36,8 +81,7 @@ class TestAutoEmailReport(unittest.TestCase):
 		auto_email_report.from_date_field = 'from_date'
 		auto_email_report.to_date_field = 'to_date'
 
-		auto_email_report.prepare_dynamic_filters()
-
+		auto_email_report.filters = prepare_dynamic_filters(auto_email_report.filters, auto_email_report.dynamic_date_period, auto_email_report.from_date_field, auto_email_report.to_date_field)
 		self.assertEqual(auto_email_report.filters['from_date'], add_to_date(today(), weeks=-1))
 		self.assertEqual(auto_email_report.filters['to_date'], today())
 
