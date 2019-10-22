@@ -39,11 +39,7 @@
 					</td>
 				{% else %}
 					<td {{- get_alignment(col) }}>
-						{% if col.fieldtype in ("Link", "Dynamic Link") and col.options %}
-							{{- frappe.utils.get_link_to_form(col.options, row[col.fieldname]) }}
-						{% else %}
-							{{- frappe.format(row[col.fieldname], col, row) -}}
-						{% endif %}
+						{{- frappe.format(row[col.fieldname], col, row) -}}
 					</td>
 				{% endif %}
 			{% endfor %}
