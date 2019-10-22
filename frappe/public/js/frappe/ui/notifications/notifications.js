@@ -47,16 +47,17 @@ frappe.ui.Notifications = class Notifications {
 	render_upcoming_events(e, $target) {
 		let hide = $target.next().hasClass('in');
 		if (!hide) {
-			let today = frappe.datetime.now_date();
-
-			frappe
-				.xcall('frappe.desk.doctype.event.event.get_events', {
-					start: today,
-					end: today
-				})
-				.then(event_list => {
-					this.render_events_html(event_list);
-				});
+			let today = frappe.datetime.get_today();
+			let tomorrow = frappe.datetime.add_days(today, 1);
+			frappe.db.get_list('Event', {
+				fields: ['name', 'subject', 'starts_on'],
+				filters: [
+					{'starts_on':['between', today, tomorrow]}, 
+					{'ends_on': ['>=', frappe.datetime.now_datetime()]}
+				]
+			}).then(event_list => {
+				this.render_events_html(event_list);
+			});
 		}
 	}
 
