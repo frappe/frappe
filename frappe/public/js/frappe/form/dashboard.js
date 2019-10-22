@@ -371,22 +371,14 @@ frappe.ui.form.Dashboard = Class.extend({
 
 				// update from internal links
 				$.each(me.data.internal_links, (doctype, link) => {
-					let table_fieldname, link_fieldname;
-					if (typeof link === 'string' || link instanceof String) {
-						// get reference field from parent document
-						link_fieldname = link;
-					} else if (Array.isArray(link)) {
-						// get reference field from child documents
-						[table_fieldname, link_fieldname] = link;
-					}
-
 					let names = [];
-					if (!table_fieldname && link_fieldname) {
+					if (typeof link === 'string' || link instanceof String) {
 						// get internal links in parent document
-						let value = me.frm.doc[link_fieldname];
+						let value = me.frm.doc[link];
 						if (value && !names.includes(value)) { names.push(value); }
-					} else {
+					} else if (Array.isArray(link)) {
 						// get internal links in child documents
+						let [table_fieldname, link_fieldname] = link;
 						(me.frm.doc[table_fieldname] || []).forEach((d) => {
 							let value = d[link_fieldname];
 							if (value && !names.includes(value)) { names.push(value); }
