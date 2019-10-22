@@ -203,8 +203,11 @@ _f.Frm.prototype.watch_model_updates = function() {
 			} else {
 				me.dirty();
 			}
-			me.fields_dict[fieldname]
-				&& me.fields_dict[fieldname].refresh(fieldname);
+			let field = me.fields_dict[fieldname];
+			field && field.refresh(fieldname);
+
+			// Validate value for link field explicitly
+			field && ["Link", "Dynamic Link"].includes(field.df.fieldtype) && field.validate && field.validate(value);
 
 			me.layout.refresh_dependency();
 			let object = me.script_manager.trigger(fieldname, doc.doctype, doc.name);

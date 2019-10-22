@@ -17,6 +17,7 @@ def get_pdf(html, options=None, output = None):
 	options.update({
 		"disable-javascript": "",
 		"disable-local-file-access": "",
+		"disable-smart-shrinking": ""
 	})
 
 	try:
