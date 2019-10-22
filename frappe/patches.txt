@@ -254,4 +254,3 @@ frappe.patches.v12_0.delete_duplicate_indexes
 frappe.patches.v12_0.set_default_incoming_email_port
 frappe.patches.v12_0.update_global_search
 execute:frappe.reload_doc('desk', 'doctype', 'notification_settings')
-execute:frappe.email.doctype.unhandled_email.unhandled_email.remove_old_unhandled_emails
