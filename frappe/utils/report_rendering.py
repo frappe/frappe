@@ -19,36 +19,37 @@ def make_links(columns, data):
 
 	return columns, data
 
-def get_report_content(report_name, filters, render_format, no_of_rows, description=None, user=None, data_modified_till=None, from_date_field=None, to_date_field=None, dynamic_date_period=None, additional_params={}):
-	def __dynamic_date_filters_set(dynamic_date_period, from_date_field, to_date_field):
+def dynamic_date_filters_set(dynamic_date_period, from_date_field, to_date_field):
 		return dynamic_date_period and from_date_field and to_date_field
 
-	def __prepare_dynamic_filters(filters, dynamic_date_period, from_date_field, to_date_field):
-		self.filters = frappe.parse_json(self.filters)
+def prepare_dynamic_filters(filters, dynamic_date_period, from_date_field, to_date_field):
+	filters = frappe.parse_json(filters)
+	to_date = today()
+	from_date_value = {
+		'Daily': ('days', -1),
+		'Weekly': ('weeks', -1),
+		'Monthly': ('months', -1),
+		'Quarterly': ('months', -3),
+		'Half Yearly': ('months', -6),
+		'Yearly': ('years', -1)
+	}[dynamic_date_period]
 
-		to_date = today()
-		from_date_value = {
-			'Daily': ('days', -1),
-			'Weekly': ('weeks', -1),
-			'Monthly': ('months', -1),
-			'Quarterly': ('months', -3),
-			'Half Yearly': ('months', -6),
-			'Yearly': ('years', -1)
-		}[self.dynamic_date_period]
+	from_date = add_to_date(to_date, **{from_date_value[0]: from_date_value[1]})
 
-		from_date = add_to_date(to_date, **{from_date_value[0]: from_date_value[1]})
+	filters[from_date_field] = from_date
+	filters[to_date_field] = to_date
+	return filters
 
-		self.filters[self.from_date_field] = from_date
-		self.filters[self.to_date_field] = to_date
-
+def get_report_content(report_name, filters, render_format, no_of_rows, description=None, user=None, data_modified_till=None, from_date_field=None, to_date_field=None, dynamic_date_period=None, additional_params={}):
+		
 	report = frappe.get_doc('Report', report_name)
 	report_type = report.report_type
 	
 	if report_type=='Report Builder' and data_modified_till:
 		filters['modified'] = ('>', now_datetime() - timedelta(hours=data_modified_till))
 
-	if report_type != 'Report Builder' and __dynamic_date_filters_set(dynamic_date_period, from_date_field, to_date_field):
-		__prepare_dynamic_filters(filters, dynamic_date_period, from_date_field, to_date_field)
+	if report_type != 'Report Builder' and dynamic_date_filters_set(dynamic_date_period, from_date_field, to_date_field):
+		filters = prepare_dynamic_filters(filters, dynamic_date_period, from_date_field, to_date_field)
 
 	columns, data = report.get_data(limit=no_of_rows or 100, user = user, filters = filters, as_dict=True)
 
