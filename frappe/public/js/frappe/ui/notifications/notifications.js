@@ -375,7 +375,7 @@ frappe.ui.Notifications = class Notifications {
 	}
 
 	bind_events() {
-		this.setup_notification_listener();
+		this.setup_notification_listeners();
 		this.setup_dropdown_events();
 
 		this.$dropdown_list.on('click', '.recent-item', () => {
@@ -391,10 +391,14 @@ frappe.ui.Notifications = class Notifications {
 		});
 	}
 
-	setup_notification_listener() {
+	setup_notification_listeners() {
 		frappe.realtime.on('notification', () => {
 			this.$dropdown.find('.notifications-indicator').show();
 			this.update_dropdown();
+		});
+
+		frappe.realtime.on('seen_notification', () => {
+			this.$dropdown.find('.notifications-indicator').hide();
 		});
 	}
 
@@ -407,7 +411,6 @@ frappe.ui.Notifications = class Notifications {
 				toggle: false
 			});
 		this.$dropdown.on('hide.bs.dropdown', e => {
-			this.$notification_indicator.hide();
 			let hide = $(e.currentTarget).data('closable');
 			if (hide) {
 				this.$dropdown_list
