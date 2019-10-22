@@ -94,3 +94,4 @@ def mark_as_seen(docnames):
 	if docnames:
 		filters = {'name': ['in', docnames]}
 		frappe.db.set_value('Notification Log', filters, 'seen', 1, update_modified=False)
+		frappe.publish_realtime('seen_notification', after_commit=True, user=frappe.session.user)

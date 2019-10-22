@@ -47,16 +47,17 @@ frappe.ui.Notifications = class Notifications {
 	render_upcoming_events(e, $target) {
 		let hide = $target.next().hasClass('in');
 		if (!hide) {
-			let today = frappe.datetime.now_date();
-
-			frappe
-				.xcall('frappe.desk.doctype.event.event.get_events', {
-					start: today,
-					end: today
-				})
-				.then(event_list => {
-					this.render_events_html(event_list);
-				});
+			let today = frappe.datetime.get_today();
+			let tomorrow = frappe.datetime.add_days(today, 1);
+			frappe.db.get_list('Event', {
+				fields: ['name', 'subject', 'starts_on'],
+				filters: [
+					{'starts_on': ['between', today, tomorrow]}, 
+					{'ends_on': ['>=', frappe.datetime.now_datetime()]}
+				]
+			}).then(event_list => {
+				this.render_events_html(event_list);
+			});
 		}
 	}
 
@@ -375,7 +376,7 @@ frappe.ui.Notifications = class Notifications {
 	}
 
 	bind_events() {
-		this.setup_notification_listener();
+		this.setup_notification_listeners();
 		this.setup_dropdown_events();
 
 		this.$dropdown_list.on('click', '.recent-item', () => {
@@ -391,10 +392,14 @@ frappe.ui.Notifications = class Notifications {
 		});
 	}
 
-	setup_notification_listener() {
+	setup_notification_listeners() {
 		frappe.realtime.on('notification', () => {
 			this.$dropdown.find('.notifications-indicator').show();
 			this.update_dropdown();
+		});
+
+		frappe.realtime.on('seen_notification', () => {
+			this.$dropdown.find('.notifications-indicator').hide();
 		});
 	}
 
@@ -407,7 +412,6 @@ frappe.ui.Notifications = class Notifications {
 				toggle: false
 			});
 		this.$dropdown.on('hide.bs.dropdown', e => {
-			this.$notification_indicator.hide();
 			let hide = $(e.currentTarget).data('closable');
 			if (hide) {
 				this.$dropdown_list
