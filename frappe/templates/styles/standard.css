@@ -166,6 +166,6 @@ table td div {
 	max-height: 150px;
 }
 
-.print-format [data-fieldtype="Table"] {
+.print-preview [data-fieldtype="Table"] {
 	overflow: auto;
 }
