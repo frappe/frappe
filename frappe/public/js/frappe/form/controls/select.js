@@ -2,7 +2,7 @@ frappe.ui.form.ControlSelect = frappe.ui.form.ControlData.extend({
 	html_element: 'select',
 	make_input: function() {
 		this._super();
-		this.$input_wrapper.find('.control-input')
+		this.$wrapper.find('.control-input')
 			.addClass('flex align-center')
 			.append('<i class="octicon octicon-chevron-down text-muted"></i>');
 		this.set_options();
