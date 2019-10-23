@@ -216,6 +216,11 @@ def apply_permissions(data):
 
 	return new_data
 
+def get_disabled_reports():
+	if not hasattr(frappe.local, "disabled_reports"):
+		frappe.local.disabled_reports = set(r.name for r in frappe.get_all("Report", {"disabled": 1}))
+	return frappe.local.disabled_reports
+
 def get_config(app, module):
 	"""Load module info from `[app].config.[module]`."""
 	config = frappe.get_module("{app}.config.{module}".format(app=app, module=module))
@@ -223,10 +228,11 @@ def get_config(app, module):
 
 	sections = [s for s in config if s.get("condition", True)]
 
+	disabled_reports = get_disabled_reports()
 	for section in sections:
 		items = []
 		for item in section["items"]:
-			if item["type"]=="report" and frappe.db.get_value("Report", item["name"], "disabled")==1:
+			if item["type"]=="report" and item["name"] in disabled_reports:
 				continue
 			if not item.get("label"):
 				item["label"] = _(item["name"])
