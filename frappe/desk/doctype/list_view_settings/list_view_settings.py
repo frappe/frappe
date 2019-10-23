@@ -8,5 +8,5 @@ from frappe.model.document import Document
 
 class ListViewSettings(Document):
 
-	def validate(self):
+	def on_update(self):
 		frappe.clear_document_cache(self.doctype, self.name)
