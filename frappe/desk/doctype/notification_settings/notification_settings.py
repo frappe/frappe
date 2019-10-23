@@ -41,13 +41,19 @@ def create_notification_settings():
 
 @frappe.whitelist()
 def get_subscribed_documents():
-	try:
-		doc = frappe.get_doc('Notification Settings', frappe.session.user)
-		subscribed_documents = [item.document for item in doc.subscribed_documents]
-	except (frappe.DoesNotExistError, ImportError):
-		subscribed_documents = []
+	if not frappe.session.user:
+		return []
 
-	return subscribed_documents
+	try:
+		if frappe.db.exists('Notification Settings', frappe.session.user):
+			doc = frappe.get_doc('Notification Settings', frappe.session.user)
+			return [item.document for item in doc.subscribed_documents]
+	# Notification Settings is fetched even before sync doctype is called
+	# but it will throw an ImportError, we can ignore it in migrate
+	except ImportError:
+		pass
+
+	return []
 
 
 def get_permission_query_conditions(user):
