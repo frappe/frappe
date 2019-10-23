@@ -12,7 +12,7 @@ from frappe.model.utils.user_settings import sync_user_settings, update_user_set
 
 
 @frappe.whitelist()
-def update_document_title(doctype, docname, title_field, old_title, new_title, old_name, new_name):
+def update_document_title(doctype, docname, title_field=None, old_title=None, new_title=None, old_name=None, new_name=None):
 	"""
 		Update title from header in form view
 	"""
