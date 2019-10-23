@@ -16,11 +16,11 @@ def update_document_title(doctype, docname, title_field=None, old_title=None, ne
 	"""
 		Update title from header in form view
 	"""
-	if new_title and old_title != new_title:
+	if old_title and new_title and not old_title == new_title:
 		frappe.db.set_value(doctype, docname, title_field, new_title)
 		frappe.msgprint(_('Saved'), alert=True, indicator='green')
 
-	if new_name and old_name != new_name:
+	if old_name and new_name and not old_name == new_name:
 		return rename_doc(doctype, old_name, new_name)
 
 	return old_name
