@@ -10,7 +10,7 @@ from datetime import timedelta
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils import (get_link_to_form, now, now_datetime, validate_email_address)
+from frappe.utils import (get_link_to_form, now_datetime, validate_email_address)
 
 from frappe.utils.report_rendering import (get_report_content, get_html_table)
 
@@ -84,7 +84,7 @@ class AutoEmailReport(Document):
 			message = data
 		else:
 			message = get_html_table(report_name=self.report, report_type=self.report_type, description=self.description)
-		
+
 		if not self.format=='HTML':
 			attachments = [{
 				'fname': self.get_file_name(),

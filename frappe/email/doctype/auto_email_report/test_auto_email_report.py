@@ -3,9 +3,6 @@
 # See license.txt
 from __future__ import unicode_literals
 
-import json
-import unittest
-
 import frappe
 import unittest, json
 from frappe.utils import get_link_to_form, today, add_to_date
