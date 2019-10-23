@@ -1251,6 +1251,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				frappe.call("frappe.desk.listview.set_list_settings", {doctype: this.doctype, values: values});
 				Object.assign(this.list_view_settings, values);
 				d.hide();
+				frappe.ui.toolbar.clear_cache();
 			});
 		});
 	}
