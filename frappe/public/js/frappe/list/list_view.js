@@ -286,8 +286,19 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				}))
 		);
 
-		// limit to 4 columns
-		this.columns = this.columns.slice(0, 4);
+		// limit max to 8 columns
+		// Screen with low density no of columns 4
+		// Screen with medium density no of columns 6
+		// Screen with high density no of columns 8
+		let column_count = 6;
+
+		if (window.innerWidth <= 1200) {
+			column_count = 4;
+		} else if (window.innerWidth > 1440) {
+			column_count = 8;
+		}
+
+		this.columns = this.columns.slice(0, column_count);
 	}
 
 	get_no_result_message() {
