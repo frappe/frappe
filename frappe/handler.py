@@ -9,6 +9,7 @@ import frappe.sessions
 import frappe.desk.form.run_method
 from frappe.utils.response import build_response
 from frappe.utils import cint
+from frappe.core.doctype.server_script.server_script_utils import run_server_script_api
 from werkzeug.wrappers import Response
 from six import string_types
 
@@ -37,6 +38,10 @@ def execute_cmd(cmd, from_async=False):
 		# override using the first hook
 		cmd = hook
 		break
+
+	# via server script
+	if run_server_script_api(cmd):
+		return None
 
 	try:
 		method = get_attr(cmd)

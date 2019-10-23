@@ -143,7 +143,7 @@ def get_context(context):
 
 		attachments = self.get_attachment(doc)
 		recipients, cc, bcc = self.get_list_of_recipients(doc, context)
-		if not recipients:
+		if not (recipients or cc or bcc):
 			return
 		sender = None
 		if self.sender and self.sender_email:

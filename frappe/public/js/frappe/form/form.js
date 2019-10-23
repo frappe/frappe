@@ -190,8 +190,12 @@ frappe.ui.form.Form = class FrappeForm {
 				} else {
 					me.dirty();
 				}
-				me.fields_dict[fieldname]
-					&& me.fields_dict[fieldname].refresh(fieldname);
+
+				let field = me.fields_dict[fieldname];
+				field && field.refresh(fieldname);
+
+				// Validate value for link field explicitly
+				field && ["Link", "Dynamic Link"].includes(field.df.fieldtype) && field.validate && field.validate(value);
 
 				me.layout.refresh_dependency();
 				let object = me.script_manager.trigger(fieldname, doc.doctype, doc.name);
@@ -1365,6 +1369,8 @@ frappe.ui.form.Form = class FrappeForm {
 				frappe.get_meta(doctype).fields.forEach(function(df) {
 					if(df.fieldtype==='Link' && df.options===me.doctype) {
 						new_doc[df.fieldname] = me.doc.name;
+					} else if (['Link', 'Dynamic Link'].includes(df.fieldtype) && me.doc[df.fieldname]) {
+						new_doc[df.fieldname] = me.doc[df.fieldname];
 					}
 				});
 

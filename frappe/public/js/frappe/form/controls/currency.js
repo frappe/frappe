@@ -1,12 +1,16 @@
 frappe.ui.form.ControlCurrency = frappe.ui.form.ControlFloat.extend({
 	eval_expression: function(value) {
-		if (typeof value === 'string' 
-			&& value.match(/^[0-9+-/* ]+$/)
-			// paresFloat('1,44,000') returns 1.0
-			// 1,44,000 are being passed when we paste rows from excel sheet to a table
-			&& value.includes(',')) {
-			return value.replace(",", "");
+		if (typeof value ==='string' && value.match(/^[0-9+-/* ]+$/)) {
+			// Removes seperator
+			value = strip_number_groups(value, this.get_number_format());
+
+			try {
+				return eval(value);
+			} catch (e) {
+				return value;
+			}
 		}
+		// If not string
 		return value;
 	},
 

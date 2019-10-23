@@ -3,8 +3,8 @@
 
 from __future__ import unicode_literals
 import frappe
-import json
-from frappe import _
+import json, datetime
+from frappe import _, scrub
 import frappe.desk.query_report
 from frappe.utils import cint
 from frappe.model.document import Document
@@ -14,6 +14,7 @@ from frappe.core.doctype.page.page import delete_custom_role
 from frappe.core.doctype.custom_role.custom_role import get_custom_allowed_roles
 from frappe.desk.reportview import append_totals_row
 from six import iteritems
+from frappe.utils.safe_exec import safe_exec
 
 
 class Report(Document):
@@ -27,15 +28,16 @@ class Report(Document):
 			if frappe.session.user=="Administrator" and getattr(frappe.local.conf, 'developer_mode',0)==1:
 				self.is_standard = "Yes"
 
-		if self.is_standard == "No" and frappe.db.get_value("Report", self.name, "is_standard") == "Yes":
-			frappe.throw(_("Cannot edit a standard report. Please duplicate and create a new report"))
+		if self.is_standard == "No":
+			# allow only script manager to edit scripts
+			if frappe.session.user!="Administrator":
+				frappe.only_for('Script Manager', True)
+
+			if frappe.db.get_value("Report", self.name, "is_standard") == "Yes":
+				frappe.throw(_("Cannot edit a standard report. Please duplicate and create a new report"))
 
 		if self.is_standard == "Yes" and frappe.session.user!="Administrator":
 			frappe.throw(_("Only Administrator can save a standard report. Please rename and save."))
-
-		if self.report_type in ("Query Report", "Script Report") \
-			and frappe.session.user!="Administrator":
-			frappe.throw(_("Only Administrator allowed to create Query / Script Reports"))
 
 		if self.report_type == "Report Builder":
 			self.update_report_json()
@@ -68,9 +70,7 @@ class Report(Document):
 		if not allowed:
 			return True
 
-		roles = frappe.get_roles()
-
-		if has_common(roles, allowed):
+		if has_common(frappe.get_roles(), allowed):
 			return True
 
 	def update_report_json(self):
@@ -91,6 +91,40 @@ class Report(Document):
 		if self.report_type == "Script Report":
 			make_boilerplate("controller.py", self, {"name": self.name})
 			make_boilerplate("controller.js", self, {"name": self.name})
+
+	def execute_script_report(self, filters):
+		# save the timestamp to automatically set to prepared
+		threshold = 30
+		res = []
+
+		start_time = datetime.datetime.now()
+
+		# The JOB
+		if self.is_standard == 'Yes':
+			res = self.execute_module(filters)
+		else:
+			res = self.execute_script(filters)
+
+		# automatically set as prepared
+		execution_time = (datetime.datetime.now() - start_time).total_seconds()
+		if execution_time > threshold and not self.prepared_report:
+			self.db_set('prepared_report', 1)
+
+		frappe.cache().hset('report_execution_time', self.name, execution_time)
+
+		return res
+
+	def execute_module(self, filters):
+		# report in python module
+		module = self.module or frappe.db.get_value("DocType", self.ref_doctype, "module")
+		method_name = get_report_module_dotted_path(module, self.name) + ".execute"
+		return frappe.get_attr(method_name)(frappe._dict(filters))
+
+	def execute_script(self, filters):
+		# server script
+		loc = {"filters": frappe._dict(filters), 'data':[]}
+		safe_exec(self.report_script, None, loc)
+		return loc['data']
 
 	def get_data(self, filters=None, limit=None, user=None, as_dict=False):
 		columns = []
@@ -166,10 +200,19 @@ class Report(Document):
 
 			_columns = []
 
-			for column in columns:
-				meta = frappe.get_meta(column[1])
-				field = [meta.get_field(column[0]) or frappe._dict(label=meta.get_label(column[0]), fieldname=column[0])]
-				_columns.extend(field)
+			for (fieldname, doctype) in columns:
+				meta = frappe.get_meta(doctype)
+
+				if meta.get_field(fieldname):
+					field = meta.get_field(fieldname)
+				else:
+					field = frappe._dict(fieldname=fieldname, label=meta.get_label(fieldname))
+					# since name is the primary key for a document, it will always be a Link datatype
+					if fieldname == "name":
+						field.fieldtype = "Link"
+						field.options = doctype
+
+				_columns.append(field)
 			columns = _columns
 
 			out = out + [list(d) for d in result]
@@ -201,3 +244,7 @@ class Report(Document):
 def is_prepared_report_disabled(report):
 	return frappe.db.get_value('Report',
 		report, 'disable_prepared_report') or 0
+
+def get_report_module_dotted_path(module, report_name):
+	return frappe.local.module_app[scrub(module)] + "." + scrub(module) \
+		+ ".report." + scrub(report_name) + "." + scrub(report_name)

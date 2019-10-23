@@ -193,7 +193,7 @@
   {
    "fieldname": "phone_nos",
    "fieldtype": "Table",
-   "label": "Numbers",
+   "label": "Contact Numbers",
    "options": "Contact Phone"
   },
   {
@@ -245,7 +245,7 @@
  "icon": "fa fa-user",
  "idx": 1,
  "image_field": "image",
- "modified": "2019-09-24 17:48:26.790985",
+ "modified": "2019-10-10 22:04:41.070479",
  "modified_by": "Administrator",
  "module": "Contacts",
  "name": "Contact",

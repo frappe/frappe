@@ -845,16 +845,23 @@ class Database(object):
 
 	def get_db_table_columns(self, table):
 		"""Returns list of column names from given table."""
-		return [r[0] for r in self.sql('''
-			select column_name
-			from information_schema.columns
-			where table_name = %s ''', table)]
+		columns = frappe.cache().hget('table_columns', table)
+		if columns is None:
+			columns = [r[0] for r in self.sql('''
+				select column_name
+				from information_schema.columns
+				where table_name = %s ''', table)]
+
+			if columns:
+				frappe.cache().hset('table_columns', table, columns)
+
+		return columns
 
 	def get_table_columns(self, doctype):
 		"""Returns list of column names from given doctype."""
 		columns = self.get_db_table_columns('tab' + doctype)
 		if not columns:
-			raise self.TableMissingError
+			raise self.TableMissingError('DocType', doctype)
 		return columns
 
 	def has_column(self, doctype, column):
@@ -961,6 +968,26 @@ class Database(object):
 				frappe.flags.touched_tables = set()
 			frappe.flags.touched_tables.update(tables)
 
+	def bulk_insert(self, doctype, fields, values):
+		"""
+			Insert multiple records at a time
+
+			:param doctype: Doctype name
+			:param fields: list of fields
+			:params values: list of list of values
+		"""
+		insert_list = []
+		fields = ", ".join(["`"+field+"`" for field in fields])
+
+		for idx, value in enumerate(values):
+			insert_list.append(tuple(value))
+			if idx and (idx%10000 == 0 or idx < len(values)-1):
+				self.sql("""INSERT INTO `tab{doctype}` ({fields}) VALUES {values}""".format(
+						doctype=doctype,
+						fields=fields,
+						values=", ".join(['%s'] * len(insert_list))
+					), tuple(insert_list))
+				insert_list = []
 
 def enqueue_jobs_after_commit():
 	if frappe.flags.enqueue_after_commit and len(frappe.flags.enqueue_after_commit) > 0:

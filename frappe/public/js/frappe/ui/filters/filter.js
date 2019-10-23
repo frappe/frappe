@@ -173,6 +173,13 @@ frappe.ui.Filter = class {
 		if(this.field) for(let k in this.field.df) cur[k] = this.field.df[k];
 
 		let original_docfield = (this.fieldselect.fields_by_name[doctype] || {})[fieldname];
+
+		if (doctype === "Tag Link" || fieldname === "_user_tags") {
+			original_docfield = {fieldname: "tag", fieldtype: "Data", label: "Tags", parent: "Tag Link"};
+			doctype = "Tag Link";
+			condition = "=";
+		}
+
 		if(!original_docfield) {
 			console.warn(`Field ${fieldname} is not selectable.`);
 			this.remove();

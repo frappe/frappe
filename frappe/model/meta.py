@@ -46,8 +46,7 @@ def load_meta(doctype):
 	return Meta(doctype)
 
 def get_table_columns(doctype):
-	return frappe.cache().hget("table_columns", doctype,
-		lambda: frappe.db.get_table_columns(doctype))
+	return frappe.db.get_table_columns(doctype)
 
 def load_doctype_from_file(doctype):
 	fname = frappe.scrub(doctype)

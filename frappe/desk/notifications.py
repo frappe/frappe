@@ -4,8 +4,7 @@
 from __future__ import unicode_literals
 
 import frappe
-from frappe.utils import time_diff_in_seconds, now, now_datetime, DATETIME_FORMAT
-from dateutil.relativedelta import relativedelta
+from frappe.desk.doctype.notification_settings.notification_settings import get_subscribed_documents
 from six import string_types
 import json
 
@@ -16,10 +15,7 @@ def get_notifications():
 		not frappe.db.get_single_value('System Settings', 'setup_complete')):
 		return {
 			"open_count_doctype": {},
-			"open_count_module": {},
-			"open_count_other": {},
 			"targets": {},
-			"new_messages": []
 		}
 
 	config = get_notification_config()
@@ -37,57 +33,8 @@ def get_notifications():
 
 	return {
 		"open_count_doctype": get_notifications_for_doctypes(config, notification_count),
-		"open_count_module": get_notifications_for_modules(config, notification_count),
-		"open_count_other": get_notifications_for_other(config, notification_count),
 		"targets": get_notifications_for_targets(config, notification_percent),
-		"new_messages": get_new_messages()
 	}
-
-def get_new_messages():
-	last_update = frappe.cache().hget("notifications_last_update", frappe.session.user)
-	now_timestamp = now()
-	frappe.cache().hset("notifications_last_update", frappe.session.user, now_timestamp)
-
-	if not last_update:
-		return []
-
-	if last_update and time_diff_in_seconds(now_timestamp, last_update) > 1800:
-		# no update for 30 mins, consider only the last 30 mins
-		last_update = (now_datetime() - relativedelta(seconds=1800)).strftime(DATETIME_FORMAT)
-
-	return frappe.db.sql("""select sender_full_name, content
-		from `tabCommunication`
-			where communication_type in ('Chat', 'Notification')
-			and reference_doctype='user'
-			and reference_name = %s
-			and creation > %s
-			order by creation desc""", (frappe.session.user, last_update), as_dict=1)
-
-def get_notifications_for_modules(config, notification_count):
-	"""Notifications for modules"""
-	return get_notifications_for("for_module", config, notification_count)
-
-def get_notifications_for_other(config, notification_count):
-	"""Notifications for other items"""
-	return get_notifications_for("for_other", config, notification_count)
-
-def get_notifications_for(notification_type, config, notification_count):
-	open_count = {}
-	notification_map = config.get(notification_type) or {}
-	for m in notification_map:
-		try:
-			if m in notification_count:
-				open_count[m] = notification_count[m]
-			else:
-				open_count[m] = frappe.get_attr(notification_map[m])()
-
-				frappe.cache().hset("notification_count:" + m, frappe.session.user, open_count[m])
-		except frappe.PermissionError:
-			frappe.clear_messages()
-			pass
-			# frappe.msgprint("Permission Error in notifications for {0}".format(m))
-
-	return open_count
 
 def get_notifications_for_doctypes(config, notification_count):
 	"""Notifications for DocTypes"""
@@ -170,12 +117,11 @@ def get_notifications_for_targets(config, notification_percent):
 def clear_notifications(user=None):
 	if frappe.flags.in_install:
 		return
-
+	cache = frappe.cache()
 	config = get_notification_config()
 	for_doctype = list(config.get('for_doctype')) if config.get('for_doctype') else []
 	for_module = list(config.get('for_module')) if config.get('for_module') else []
 	groups = for_doctype + for_module
-	cache = frappe.cache()
 
 	for name in groups:
 		if user:
@@ -184,6 +130,9 @@ def clear_notifications(user=None):
 			cache.delete_key("notification_count:" + name)
 
 	frappe.publish_realtime('clear_notifications')
+
+def clear_notification_config(user):
+	frappe.cache().hdel('notification_config', user)
 
 def delete_notification_count_for(doctype):
 	frappe.cache().delete_key("notification_count:" + doctype)
@@ -200,9 +149,10 @@ def clear_doctype_notifications(doc, method=None, *args, **kwargs):
 		delete_notification_count_for(doctype)
 		return
 
-def get_notification_info_for_boot():
-	out = get_notifications()
+@frappe.whitelist()
+def get_notification_info():
 	config = get_notification_config()
+	out = get_notifications()
 	can_read = frappe.get_user().get_can_read()
 	conditions = {}
 	module_doctypes = {}
@@ -224,6 +174,7 @@ def get_notification_info_for_boot():
 
 def get_notification_config():
 	def _get():
+		subscribed_documents = get_subscribed_documents()
 		config = frappe._dict()
 		hooks = frappe.get_hooks()
 		if hooks:
@@ -231,15 +182,26 @@ def get_notification_config():
 				nc = frappe.get_attr(notification_config)()
 				for key in ("for_doctype", "for_module", "for_other", "targets"):
 					config.setdefault(key, {})
-					config[key].update(nc.get(key, {}))
+					if key == "for_doctype":
+						if len(subscribed_documents) > 0:
+							key_config = nc.get(key, {})
+							subscribed_docs_config = frappe._dict()
+							for document in subscribed_documents:
+								if key_config.get(document):
+									subscribed_docs_config[document] = key_config.get(document)
+							config[key].update(subscribed_docs_config)
+						else:
+							config[key].update(nc.get(key, {}))
+					else:
+						config[key].update(nc.get(key, {}))
 		return config
 
-	return frappe.cache().get_value("notification_config", _get)
+	return frappe.cache().hget("notification_config", frappe.session.user, _get)
 
 def get_filters_for(doctype):
 	'''get open filters for doctype'''
 	config = get_notification_config()
-	return config.get('for_doctype').get(doctype, {})
+	return config.get("for_doctype").get(doctype, {})
 
 @frappe.whitelist()
 @frappe.read_only()
@@ -253,7 +215,7 @@ def get_open_count(doctype, name, items=[]):
 
 	if frappe.flags.in_migrate or frappe.flags.in_install:
 		return {
-			'count': []
+			"count": []
 		}
 
 	frappe.has_permission(doc=frappe.get_doc(doctype, name), throw=True)
@@ -264,39 +226,39 @@ def get_open_count(doctype, name, items=[]):
 	# compile all items in a list
 	if not items:
 		for group in links.transactions:
-			items.extend(group.get('items'))
+			items.extend(group.get("items"))
 
 	if not isinstance(items, list):
 		items = json.loads(items)
 
 	out = []
 	for d in items:
-		if d in links.get('internal_links', {}):
+		if d in links.get("internal_links", {}):
 			# internal link
 			continue
 
 		filters = get_filters_for(d)
-		fieldname = links.get('non_standard_fieldnames', {}).get(d, links.fieldname)
-		data = {'name': d}
+		fieldname = links.get("non_standard_fieldnames", {}).get(d, links.fieldname)
+		data = {"name": d}
 		if filters:
 			# get the fieldname for the current document
 			# we only need open documents related to the current document
 			filters[fieldname] = name
-			total = len(frappe.get_all(d, fields='name',
+			total = len(frappe.get_all(d, fields="name",
 				filters=filters, limit=100, distinct=True, ignore_ifnull=True))
-			data['open_count'] = total
+			data["open_count"] = total
 
-		total = len(frappe.get_all(d, fields='name',
+		total = len(frappe.get_all(d, fields="name",
 			filters={fieldname: name}, limit=100, distinct=True, ignore_ifnull=True))
-		data['count'] = total
+		data["count"] = total
 		out.append(data)
 
 	out = {
-		'count': out,
+		"count": out,
 	}
 
 	module = frappe.get_meta_module(doctype)
-	if hasattr(module, 'get_timeline_data'):
-		out['timeline_data'] = module.get_timeline_data(doctype, name)
+	if hasattr(module, "get_timeline_data"):
+		out["timeline_data"] = module.get_timeline_data(doctype, name)
 
 	return out

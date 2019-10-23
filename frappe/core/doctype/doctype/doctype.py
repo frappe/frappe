@@ -312,7 +312,6 @@ class DocType(Document):
 
 		clear_linked_doctype_cache()
 
-
 	def delete_duplicate_custom_fields(self):
 		if not (frappe.db.table_exists(self.name) and frappe.db.table_exists("Custom Field")):
 			return
