@@ -292,13 +292,13 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		// Screen with high density no of columns 8
 		let column_count = 6;
 
-		if (window.innerWidth <= 1200) {
+		if (window.innerWidth <= 1366) {
 			column_count = 4;
-		} else if (window.innerWidth > 1440) {
+		} else if (window.innerWidth >= 1920) {
 			column_count = 8;
 		}
 
-		this.columns = this.columns.slice(0, column_count);
+		this.columns = this.columns.slice(0, this.list_view_settings.column_count || column_count);
 	}
 
 	get_no_result_message() {
@@ -1239,10 +1239,10 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 
 	show_list_settings() {
-		frappe.model.with_doctype("List View Setting", () => {
+		frappe.model.with_doctype("List View Settings", () => {
 			let d = new frappe.ui.Dialog({
 				title: __("Settings"),
-				fields: frappe.get_meta("List View Setting").fields
+				fields: frappe.get_meta("List View Settings").fields
 			});
 			d.set_values(this.list_view_settings);
 			d.show();
