@@ -9,15 +9,19 @@ import six, re, io
 from bs4 import BeautifulSoup
 from PyPDF2 import PdfFileReader, PdfFileWriter
 
-def get_pdf(html, options=None, output=None):
+def get_pdf(html, options=None, output=None, print_format=None):
 	html = scrub_urls(html)
 	html, options = prepare_options(html, options)
 
 	options.update({
 		"disable-javascript": "",
 		"disable-local-file-access": "",
-		"disable-smart-shrinking": ""
 	})
+
+	if not print_format or print_format == "Standard" or frappe.db.get_value("Print Format", print_format, "disable_smart_shrinking"):
+		options.update({
+			"disable-smart-shrinking": ""
+		})
 
 	filedata = ''
 
