@@ -19,6 +19,8 @@ from frappe.model.utils.user_settings import get_user_settings, update_user_sett
 from frappe.utils import flt, cint, get_time, make_filter_tuple, get_filter, add_to_date, cstr, nowdate
 from frappe.model.meta import get_table_columns
 
+MYSQL_METHODS = ('COUNT(', 'AVG(', 'SUM')
+
 class DatabaseQuery(object):
 	def __init__(self, doctype, user=None):
 		self.doctype = doctype
@@ -286,7 +288,7 @@ class DatabaseQuery(object):
 		If the fieldname is not explicitly mentioned, set the default table'''
 		if len(self.tables) > 1:
 			for i, f in enumerate(self.fields):
-				if '.' not in f:
+				if '.' not in f and not sum([int(method in f.upper()) for method in MYSQL_METHODS]):
 					self.fields[i] = '{0}.{1}'.format(self.tables[0], f)
 
 	def set_optional_columns(self):
