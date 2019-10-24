@@ -8,7 +8,8 @@
   "disable_count",
   "disable_sidebar_stats",
   "disable_auto_refresh",
-  "column_count"
+  "column_count",
+  "column_order"
  ],
  "fields": [
   {
@@ -34,9 +35,15 @@
    "fieldtype": "Select",
    "label": "Column Count",
    "options": "\n4\n5\n6\n7\n8\n9\n10"
+  },
+  {
+   "fieldname": "column_order",
+   "fieldtype": "Table",
+   "label": "Column Order",
+   "options": "List View Column Order"
   }
  ],
- "modified": "2019-10-23 19:13:41.427000",
+ "modified": "2019-10-24 14:34:03.358787",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "List View Settings",
