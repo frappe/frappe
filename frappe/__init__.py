@@ -1362,7 +1362,7 @@ def get_print(doctype=None, name=None, print_format=None, style=None, html=None,
 		html = build_page("printview")
 
 	if as_pdf:
-		return get_pdf(html, output = output)
+		return get_pdf(html, output = output, print_format=print_format)
 	else:
 		return html
 
