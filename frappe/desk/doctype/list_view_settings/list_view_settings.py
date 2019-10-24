@@ -10,6 +10,7 @@ class ListViewSettings(Document):
 
 	def on_update(self):
 		frappe.clear_document_cache(self.doctype, self.name)
+		frappe.get_cached_doc(self.doctype, self.name)
 
 @frappe.whitelist()
 def get_listview_columns(doctype):
