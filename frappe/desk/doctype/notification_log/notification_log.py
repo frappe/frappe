@@ -50,7 +50,8 @@ def make_notification_logs(doc, users):
 					_doc.update(doc)
 					_doc.for_user = user
 					_doc.subject = _doc.subject.replace('<div>', '').replace('</div>', '')
-					_doc.insert(ignore_permissions=True)
+					if _doc.for_user != _doc.from_user:
+						_doc.insert(ignore_permissions=True)
 
 def send_notification_email(doc):
 	is_type_enabled = is_email_notifications_enabled_for_type(doc.for_user, doc.type)
