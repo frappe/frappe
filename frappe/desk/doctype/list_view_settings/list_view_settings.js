@@ -11,8 +11,10 @@ frappe.ui.form.on('List View Settings', {
 				},
 				callback: function (r) {
 					if (r && r.message) {
-						for (let i in r.message) {
+						let i = 0;
+						while (i < frm.doc.column_count) {
 							frm.add_child("column_order", r.message[i]);
+							i++;
 						}
 						frm.refresh();
 					}

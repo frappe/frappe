@@ -286,6 +286,29 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				}))
 		);
 
+		if (this.list_view_settings.column_order) {
+			let custom_column_order = [];
+
+			//title_field or name and status are fixed
+			custom_column_order.push(this.columns[0]);
+			custom_column_order.push(this.columns[1]);
+
+			this.columns.splice(0, 2)
+
+			for (let i in this.list_view_settings.column_order) {
+				let fieldname = this.list_view_settings.column_order[i].fieldname;
+				for (let j in this.columns) {
+					let df = this.columns[j].df.fieldname;
+					if (fieldname === df) {
+						custom_column_order.push(this.columns[j]);
+						break;
+					}
+				}
+			}
+
+			this.columns = custom_column_order;
+		}
+
 		// limit max to 8 columns
 		// Screen with low density no of columns 4
 		// Screen with medium density no of columns 6

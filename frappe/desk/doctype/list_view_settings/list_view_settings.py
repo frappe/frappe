@@ -24,7 +24,7 @@ def get_listview_columns(doctype):
 	if meta.title_field:
 		title_field = meta.get_field(meta.title_field)
 
-		subject_field["label"] = title_field.label,
+		subject_field["label"] = title_field.label
 		subject_field["fieldname"] = title_field.fieldname
 
 	listview_columns.append(subject_field)
