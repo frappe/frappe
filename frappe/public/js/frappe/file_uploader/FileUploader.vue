@@ -23,12 +23,14 @@
 							:accept="restrictions.allowed_file_types.join(', ')"
 						>
 					</label>
-					{{ __('choose an') }}
-					<a href="#" class="text-primary bold"
-						@click.stop.prevent="show_file_browser = true"
-					>
-						{{ __('uploaded file') }}
-					</a>
+					<span v-if="file_browser_enabled">
+						{{ __('choose an') }}
+						<a href="#" class="text-primary bold"
+							@click.stop.prevent="show_file_browser = true"
+						>
+							{{ __('uploaded file') }}
+						</a>
+					</span>
 					{{ __('or attach a') }}
 					<a class="text-primary bold" href
 						@click.stop.prevent="show_web_link = true"
@@ -105,7 +107,7 @@
 		</div>
 		<FileBrowser
 			ref="file_browser"
-			v-if="show_file_browser"
+			v-if="show_file_browser && file_browser_enabled"
 			@hide-browser="show_file_browser = false"
 		/>
 		<WebLink
@@ -186,6 +188,9 @@ export default {
 				&& this.files.every(
 					file => file.total !== 0 && file.progress === file.total);
 		},
+		file_browser_enabled() {
+			return !Boolean(frappe.web_form)
+		}
 	},
 	methods: {
 		dragover() {
