@@ -23,7 +23,7 @@
 							:accept="restrictions.allowed_file_types.join(', ')"
 						>
 					</label>
-					<span v-if="file_browser_enabled">
+					<span v-if="!disable_file_browser">
 						{{ __('choose an') }}
 						<a href="#" class="text-primary bold"
 							@click.stop.prevent="show_file_browser = true"
@@ -107,7 +107,7 @@
 		</div>
 		<FileBrowser
 			ref="file_browser"
-			v-if="show_file_browser && file_browser_enabled"
+			v-if="show_file_browser && !disable_file_browser"
 			@hide-browser="show_file_browser = false"
 		/>
 		<WebLink
@@ -129,8 +129,8 @@ export default {
 		show_upload_button: {
 			default: true
 		},
-		file_browser_enabled: {
-			default: true
+		disable_file_browser: {
+			default: false
 		},
 		allow_multiple: {
 			default: true

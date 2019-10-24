@@ -114,7 +114,7 @@ frappe.ready(function() {
 				if (["Attach", "Attach Image"].includes(df.fieldtype)) {
 					if (!df.options)
 						df.options = {}
-					df.options.file_browser_enabled = false;
+					df.options.disable_file_browser = true;
 				}
 			});
 
