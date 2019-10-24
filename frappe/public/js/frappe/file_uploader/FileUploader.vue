@@ -129,6 +129,9 @@ export default {
 		show_upload_button: {
 			default: true
 		},
+		file_browser_enabled: {
+			default: true
+		},
 		allow_multiple: {
 			default: true
 		},
@@ -187,9 +190,6 @@ export default {
 			return this.files.length > 0
 				&& this.files.every(
 					file => file.total !== 0 && file.progress === file.total);
-		},
-		file_browser_enabled() {
-			return !Boolean(frappe.web_form)
 		}
 	},
 	methods: {
