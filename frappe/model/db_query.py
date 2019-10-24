@@ -285,9 +285,10 @@ class DatabaseQuery(object):
 		'''If there are more than one table, the fieldname must not be ambiguous.
 		If the fieldname is not explicitly mentioned, set the default table'''
 		def _in_standard_sql_methods(field):
+			# return False
 			methods = ('COUNT(', 'AVG(', 'SUM(')
 			for method in methods:
-				if method in field.upper():
+				if field.upper().startswith(method):
 					return True
 			return False
 

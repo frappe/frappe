@@ -45,7 +45,10 @@ def get_group_by_count(doctype, current_filters, field):
 			order by
 				count desc
 			limit 50""".format(subquery_condition = subquery_condition), as_dict=True)
-	else :
+	else:
+		print(current_filters)
+		print(field)
+		print('count(*) as count', '`{}` as name'.format(field))
 		return frappe.db.get_list(doctype,
 			filters=current_filters,
 			group_by=field,
