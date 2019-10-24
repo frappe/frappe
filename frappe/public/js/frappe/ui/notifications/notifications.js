@@ -49,10 +49,9 @@ frappe.ui.Notifications = class Notifications {
 		if (!hide) {
 			let today = frappe.datetime.get_today();
 			frappe.xcall('frappe.desk.doctype.event.event.get_events', {
-					start: today,
-					end: today
-			})
-			.then(event_list => {
+				start: today,
+				end: today
+			}).then(event_list => {
 				this.render_events_html(event_list);
 			});
 		}
@@ -232,7 +231,7 @@ frappe.ui.Notifications = class Notifications {
 			{ docname: docname }
 		).then(()=> {
 			$el.removeClass('unseen');
-		})
+		});
 	}
 
 	explicitly_mark_as_seen(e, $target) {
