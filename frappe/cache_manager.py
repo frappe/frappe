@@ -39,7 +39,7 @@ def clear_global_cache():
 	clear_website_cache()
 	frappe.cache().delete_value(["app_hooks", "installed_apps",
 		"app_modules", "module_app", "notification_config", 'system_settings',
-		'scheduler_events', 'time_zone', 'webhooks', 'active_domains', 'active_modules'])
+		'scheduler_events', 'time_zone', 'webhooks', 'active_domains', 'active_modules', 'wkhtmltopdf_version'])
 	frappe.setup_module_map()
 
 def clear_defaults_cache(user=None):
