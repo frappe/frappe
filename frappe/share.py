@@ -5,7 +5,8 @@ from __future__ import unicode_literals
 import frappe
 from frappe import _
 from frappe.desk.form.document_follow import follow_document
-from frappe.desk.doctype.notification_log.notification_log import enqueue_create_notification
+from frappe.desk.doctype.notification_log.notification_log import enqueue_create_notification,\
+	get_truncated_title
 from frappe.utils import cint
 
 @frappe.whitelist()
@@ -152,9 +153,7 @@ def notify_assignment(shared_by, doctype, doc_name, everyone):
 
 	from frappe.utils import get_fullname
 
-	title_field = frappe.get_meta(doctype).get_title_field()
-	title = doc_name if title_field == "name" else \
-		frappe.db.get_value(doctype, doc_name, title_field)
+	title = get_truncated_title(doctype, doc_name, truncate_length=100)
 
 	reference_user = get_fullname(frappe.session.user)
 	notification_message = _('{0} shared a document {1} {2} with you').format(

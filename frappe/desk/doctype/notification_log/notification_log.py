@@ -88,6 +88,15 @@ def get_email_header(doc):
 	}[doc.type or 'Default']
 
 
+def get_truncated_title(doctype, docname, title_field=None, truncate_length=None):
+	if not title_field:
+		title_field = frappe.get_meta(doctype).get_title_field()
+	title = docname if title_field == "name" else \
+		frappe.db.get_value(doctype, docname, title_field)
+	if truncate_length:
+		title = (title[:truncate_length] + '..') if len(title) > truncate_length else title
+	return title
+
 @frappe.whitelist()
 def mark_as_seen(docname):
 	if docname:

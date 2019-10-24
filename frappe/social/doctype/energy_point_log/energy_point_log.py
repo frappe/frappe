@@ -7,7 +7,8 @@ import frappe
 from frappe import _
 import json
 from frappe.model.document import Document
-from frappe.desk.doctype.notification_log.notification_log import enqueue_create_notification
+from frappe.desk.doctype.notification_log.notification_log import enqueue_create_notification,\
+	get_truncated_title
 from frappe.utils import cint, get_fullname, getdate, get_link_to_form
 
 class EnergyPointLog(Document):
@@ -46,9 +47,7 @@ class EnergyPointLog(Document):
 def get_notification_message(doc):
 	owner_name = get_fullname(doc.owner)
 	points = doc.points
-	title_field = frappe.get_meta(doc.reference_doctype).get_title_field()
-	title = doc.reference_name if title_field == "name" else \
-		frappe.db.get_value(doc.reference_doctype, doc.reference_name, title_field)
+	title = get_truncated_title(doc.reference_doctype, doc.reference_name, truncate_length=100)
 
 	if doc.type == 'Auto':
 		owner_name = frappe.bold('You')
