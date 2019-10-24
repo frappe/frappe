@@ -22,3 +22,13 @@ def get_app_last_commit_ref(app):
 		return commit_id
 	except Exception:
 		return ''
+
+def get_revision(app):
+	try:
+		rev = subprocess.check_output('cd ../apps/{0} && git rev-list HEAD --count'.format(app),
+			 shell=True)
+		rev = rev.decode('utf-8')
+		rev = rev.strip()
+		return rev
+	except Exception:
+		return ''
