@@ -159,7 +159,7 @@ class UserPermissions:
 		if "System Manager" in self.get_roles():
 			docs = [x["name"] for x in frappe.get_all("DocType", "name")]
 			for docname in docs:
-				if frappe.get_meta(docname, cached=False).allow_import == 1:
+				if frappe.get_meta(docname, cached=True).allow_import == 1:
 					self.can_import.append(docname)
 			frappe.cache().hset("can_import", frappe.session.user, self.can_import)
 

@@ -172,8 +172,13 @@ def get_user_pages_or_reports(parent):
 				has_role[p.name] = {"modified": p.modified, "title": p.title}
 
 	elif parent == "Report":
-		for report_name in has_role:
-			has_role[report_name]["report_type"] = frappe.db.get_value("Report", report_name, "report_type")
+		reports = frappe.get_all("Report",
+			fields=["name", "report_type"],
+			filters={"name": ("in", has_role.keys())},
+			ignore_ifnull=True
+		)
+		for report in reports:
+			has_role[report.name]["report_type"] = report.report_type
 
 	return has_role
 
