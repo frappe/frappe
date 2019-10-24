@@ -24,8 +24,8 @@ frappe.ui.Notifications = class Notifications {
 		this.$open_docs = this.$dropdown_list.find(
 			'.category-list[data-category="Open Documents"]'
 		);
-		this.$upcoming_events = this.$dropdown_list.find(
-			'.category-list[data-category="Upcoming Events"]'
+		this.$today_events = this.$dropdown_list.find(
+			'.category-list[data-category="Todays Events"]'
 		);
 
 		frappe.utils.bind_actions_with_object(this.$dropdown_list, this);
@@ -44,19 +44,15 @@ frappe.ui.Notifications = class Notifications {
 		});
 	}
 
-	render_upcoming_events(e, $target) {
+	render_todays_events(e, $target) {
 		let hide = $target.next().hasClass('in');
 		if (!hide) {
 			let today = frappe.datetime.get_today();
-			let tomorrow = frappe.datetime.add_days(today, 1);
-			frappe.db.get_list('Event', {
-				fields: ['name', 'subject', 'starts_on'],
-				filters: [
-					{'starts_on': ['between', today, tomorrow]},
-					{'ends_on': ['>=', frappe.datetime.now_datetime()]},
-					{'owner': frappe.session.user}
-				]
-			}).then(event_list => {
+			frappe.xcall('frappe.desk.doctype.event.event.get_events', {
+					start: today,
+					end: today
+			})
+			.then(event_list => {
 				this.render_events_html(event_list);
 			});
 		}
@@ -75,11 +71,11 @@ frappe.ui.Notifications = class Notifications {
 			html = event_list.map(get_event_html).join('');
 		} else {
 			html = `<li class="recent-item text-center">
-					<span class="text-muted">${__('No Upcoming Events')}</span>
+					<span class="text-muted">${__('No Events Today')}</span>
 				</li>`;
 		}
 
-		this.$upcoming_events.html(html);
+		this.$today_events.html(html);
 	}
 
 	get_open_document_config(e) {
@@ -222,9 +218,9 @@ frappe.ui.Notifications = class Notifications {
 	change_activity_status() {
 		if (this.$dropdown_list.find('.activity-status')) {
 			this.$dropdown_list.find('.activity-status').replaceWith(
-				`<a class="recent-item text-center text-muted full-log-btn" 
+				`<a class="recent-item text-center text-muted" 
 					href="#List/Notification Log">
-					${__('View Full Log')}
+					<div class="full-log-btn">${__('View Full Log')}</div>
 				</a>`
 			);
 		}
@@ -270,9 +266,9 @@ frappe.ui.Notifications = class Notifications {
 					let item_html = this.get_dropdown_item_html(field);
 					if (item_html) body_html += item_html;
 				});
-				view_full_log_html = `<a class="recent-item text-center text-muted full-log-btn"
+				view_full_log_html = `<a class="recent-item text-center text-muted"
 					href="#List/Notification Log">
-						${__('View Full Log')}
+						<div class="full-log-btn">${__('View Full Log')}</div>
 					</a>`;
 			} else {
 				body_html += `<li class="recent-item text-center activity-status">
@@ -297,7 +293,7 @@ frappe.ui.Notifications = class Notifications {
 		let user = field.from_user;
 		let user_avatar = frappe.avatar(user, 'avatar-small user-avatar');
 		let timestamp = frappe.datetime.comment_when(field.creation, true);
-		let item_html = `<a class="recent-item ${seen_class}" href = "${doc_link}" data-name="${field.name}">
+		let item_html = `<a class="recent-item ${seen_class}" href="${doc_link}" data-name="${field.name}">
 				${user_avatar}
 				${message_html}
 				<div class="notification-timestamp text-muted">
@@ -318,9 +314,9 @@ frappe.ui.Notifications = class Notifications {
 				value: 'Notifications'
 			},
 			{
-				label: __('Upcoming Events'),
-				value: 'Upcoming Events',
-				action: 'render_upcoming_events'
+				label: __('Today\'s Events'),
+				value: 'Todays Events',
+				action: 'render_todays_events'
 			},
 			{
 				label: __('Open Documents'),
@@ -421,7 +417,7 @@ frappe.ui.Notifications = class Notifications {
 	setup_dropdown_events() {
 		this.$dropdown_list
 			.find(
-				'[data-category="Notifications"], [data-category="Upcoming Events"], [data-category="Open Documents"]'
+				'[data-category="Notifications"], [data-category="Todays Events"], [data-category="Open Documents"]'
 			)
 			.collapse({
 				toggle: false
@@ -434,7 +430,7 @@ frappe.ui.Notifications = class Notifications {
 					.collapse('show');
 				this.$dropdown_list
 					.find(
-						'[data-category="Upcoming Events"], [data-category="Open Documents"]'
+						'[data-category="Todays Events"], [data-category="Open Documents"]'
 					)
 					.collapse('hide');
 			}

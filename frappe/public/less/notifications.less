@@ -45,11 +45,19 @@
 }
 
 .dropdown-notifications .recent-item {
-	padding: 15px 14px 0 14px;
+	padding: 10px 14px;
     white-space: normal;
 	text-decoration: none;
 	font-weight: normal;
 	display: flow-root;
+}
+
+.category-list[data-category="Notifications"] .recent-item {
+	padding: 15px 14px 0 14px;
+}
+
+.full-log-btn {
+	padding-bottom: 10px;
 }
 
 a.recent-item:hover {
@@ -63,6 +71,7 @@ a.unseen:hover .mark-read {
 .mark-read {
 	display: none;
 	margin-left: 10px;
+	font-size: 11px;
 }
 
 .mark-read:hover {
@@ -88,6 +97,7 @@ a.unseen:hover .mark-read {
 	margin-top: 5px;
 	font-size: 11px;
 	display: inline-block;
+	margin-bottom: 10px;
 }
 
 .divider-dot {
