@@ -7,5 +7,10 @@ frappe.ui.form.on('Currency', {
 		if(!frm.doc.enabled) {
 			frm.set_intro(__("This Currency is disabled. Enable to use in transactions"));
 		}
+	},
+
+	after_save(frm) {
+		if (frm.doc.enabled)
+			locals[':Currency'][frm.doc.name] = Object.assign(frm.doc, { doctype: ':Currency' });
 	}
 });

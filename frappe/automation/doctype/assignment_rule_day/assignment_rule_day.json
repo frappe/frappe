@@ -1,0 +1,28 @@
+{
+ "creation": "2019-09-21 16:52:01.705351",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "day"
+ ],
+ "fields": [
+  {
+   "fieldname": "day",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Day",
+   "options": "Monday\nTuesday\nWednesday\nThursday\nFriday\nSaturday\nSunday"
+  }
+ ],
+ "istable": 1,
+ "modified": "2019-09-21 16:55:09.376291",
+ "modified_by": "Administrator",
+ "module": "Automation",
+ "name": "Assignment Rule Day",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

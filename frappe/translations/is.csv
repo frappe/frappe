@@ -112,7 +112,6 @@ DocType: Data Migration Run,Log,Log
 DocType: Workflow State,indent-right,inndráttur hægri
 DocType: Has Role,Has Role,hefur hlutverki
 DocType: System Settings,Time in seconds to retain QR code image on server. Min:<strong>240</strong>,Tími í sekúndum til að halda QR kóða mynd á miðlara. Mín: <strong>240</strong>
-apps/frappe/frappe/public/js/frappe/views/inbox/inbox_view.js,Invalid Email Account,Ógilt netfangsreikningur
 apps/frappe/frappe/core/doctype/doctype/doctype.py,{0}:Fieldtype {1} for {2} cannot be indexed,{0}: Ekki er hægt að skrá svæðisgerð {1} fyrir {2}
 DocType: Dashboard Chart,Timespan,Tímabil
 apps/frappe/frappe/public/js/frappe/file_uploader/FileUploader.vue,Web Link,Web Link
@@ -129,7 +128,7 @@ DocType: DocType,Default Print Format,Sjálfgefið Prenta Format
 DocType: Workflow State,Tags,Tags
 apps/frappe/frappe/public/js/frappe/form/workflow.js,None: End of Workflow,Ekkert: Lok Workflow
 apps/frappe/frappe/database/mariadb/schema.py,"{0} field cannot be set as unique in {1}, as there are non-unique existing values","{0} reit er ekki hægt að setja eins og einstök í {1}, þar sem það eru ekki einstök fyrirliggjandi gildi"
-DocType: Global Search Settings,Document Types,skjal Tegundir
+apps/frappe/frappe/core/page/permission_manager/permission_manager.js,Document Types,skjal Tegundir
 DocType: Address,Jammu and Kashmir,Jammu og Kashmir
 DocType: Workflow,Workflow State Field,Workflow State Field
 DocType: Language,Guest,Guest
@@ -289,6 +288,7 @@ DocType: Customize Form Field,"Print Width of the field, if the field is a colum
 DocType: Dropbox Settings,Dropbox Access Key,Dropbox Access Key
 apps/frappe/frappe/desk/form/utils.py,Wrong fieldname <b>{0}</b> in add_fetch configuration of custom script,Rangt reitheiti <b>{0}</b> í add_fetch stillingu sérsniðið handrit
 apps/frappe/frappe/contacts/doctype/contact/contact.py,Select Google Contacts to which contact should be synced.,Veldu Google tengiliði sem tengiliðurinn á að samstilla við.
+DocType: Web Page,Main Section (HTML),Aðalhluti (HTML)
 DocType: Workflow State,headphones,heyrnartól
 apps/frappe/frappe/email/doctype/email_account/email_account.py,Password is required or select Awaiting Password,Lykilorð er krafist eða veldu bíður lykilorð
 DocType: Email Account,e.g. replies@yourcomany.com. All replies will come to this inbox.,td replies@yourcomany.com. Öll svör munu koma til þessa pósthólfið.
@@ -388,7 +388,6 @@ DocType: Webhook,Request URL,Beiðnir slóð
 DocType: Customize Form,Is Table,er Tafla
 DocType: Email Account,Total number of emails to sync in initial sync process ,Heildarfjöldi tölvupósta samstilla í upphaflegu sync ferli
 DocType: Website Settings,Set Banner from Image,Setja Banner frá Image
-apps/frappe/frappe/public/js/frappe/ui/toolbar/search.js,Global Search,Global Search
 DocType: Email Account,SparkPost,SparkPost
 apps/frappe/frappe/templates/emails/new_user.html,A new account has been created for you at {0},Ný tenging hefur verið búin til fyrir þig á {0}
 apps/frappe/frappe/templates/includes/login/login.js,Instructions Emailed,Leiðbeiningar sendar
@@ -526,7 +525,6 @@ apps/frappe/frappe/utils/data.py,{0} and {1},{0} og {1}
 apps/frappe/frappe/public/js/frappe/chat.js,Start a conversation.,Byrjaðu samtal.
 DocType: Print Settings,"Always add ""Draft"" Heading for printing draft documents",Alltaf að bæta &quot;Draft&quot; Heading fyrir prentun drög skjölum
 apps/frappe/frappe/email/doctype/notification/notification.py,Error in Notification: {},Villa í tilkynningu: {}
-apps/frappe/frappe/public/js/frappe/utils/pretty_date.js,&gt; {0} year(s) ago,&gt; {0} ári
 DocType: Data Migration Run,Current Mapping Start,Núverandi Kortlagning
 apps/frappe/frappe/core/doctype/communication/communication.js,Email has been marked as spam,Netfangið hefur verið merkt sem ruslpóstur
 DocType: Comment,Website Manager,Vefsíða Manager
@@ -567,7 +565,7 @@ DocType: Country,Country Name,Land Name
 apps/frappe/frappe/public/js/frappe/data_import/data_exporter.js,Blank Template,Autt sniðmát
 DocType: About Us Team Member,About Us Team Member,Um okkur lið félagi
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,"Permissions are set on Roles and Document Types (called DocTypes) by setting rights like Read, Write, Create, Delete, Submit, Cancel, Amend, Report, Import, Export, Print, Email and Set User Permissions.","Heimildir eru sett á hlutverkum og Skjal tegundir (kallaðar DocTypes) með því að setja rétt eins að lesa, skrifa, búa til, eyða, Senda, Hætta, breytt, Report, innflutningur, útflutningur, prenta, tölvupóst og setja heimildir notanda."
-DocType: Event,Wednesday,miðvikudagur
+DocType: Assignment Rule Day,Wednesday,miðvikudagur
 apps/frappe/frappe/core/doctype/doctype/doctype.py,Image field must be a valid fieldname,Mynd reitur verður að vera gilt FIELDNAME
 DocType: Chat Token,Token,Token
 apps/frappe/frappe/core/doctype/doctype/doctype.py,Fieldname {0} is restricted,Reitnafn {0} er takmarkað
@@ -687,6 +685,7 @@ apps/frappe/frappe/www/confirm_workflow_action.html,Please confirm your action t
 DocType: Success Action,Next Actions HTML,Næsta aðgerð HTML
 apps/frappe/frappe/public/js/frappe/social/social_home.js,Create Post,Búa til færslu
 apps/frappe/frappe/desk/doctype/event/event.js,Add Participants,Bæta við þátttakendum
+DocType: Web Page,Main Section (Markdown),Aðalhluti (Markdown)
 apps/frappe/frappe/email/doctype/auto_email_report/auto_email_report.py,Only {0} emailed reports are allowed per user,Aðeins {0} send skýrslur eru leyfð fyrir hvern notanda
 apps/frappe/frappe/core/doctype/doctype/doctype.py,{0}: Fieldtype {1} for {2} cannot be unique,{0}: Feltgerð {1} fyrir {2} getur ekki verið sérstök
 DocType: Address,Address Title,Heimilisfang Titill
@@ -743,6 +742,7 @@ apps/frappe/frappe/desk/page/backups/backups.py,File backup is ready,Skrá varab
 DocType: DocField,In Global Search,Í Global Leita
 DocType: System Settings,Brute Force Security,Brute Force Security
 DocType: Workflow State,indent-left,inndráttur vinstri
+apps/frappe/frappe/public/js/frappe/utils/pretty_date.js,&gt; {0} year(s) ago,&gt; {0} ári
 apps/frappe/frappe/utils/file_manager.py,It is risky to delete this file: {0}. Please contact your System Manager.,Það er áhættusamt að eyða þessari skrá: {0}. Vinsamlegast hafðu samband System Manager.
 DocType: Currency,Currency Name,Gjaldmiðill Name
 apps/frappe/frappe/public/js/frappe/views/inbox/inbox_view.js,No Emails,engar póst
@@ -864,7 +864,6 @@ apps/frappe/frappe/core/doctype/data_import_beta/data_import_beta.js,Retry,Reynd
 DocType: Contact Phone,Number,Númer
 DocType: Web Form Field,Web Form Field,Web Form Field
 apps/frappe/frappe/templates/emails/new_message.html,You have a new message from: ,Þú hefur nýjan skilaboð frá:
-apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,"For comparison, use &gt;5, &lt;10 or =324. For ranges, use 5:10 (for values between 5 &amp; 10).","Til samanburðar, notaðu&gt; 5, &lt;10 eða = 324. Notaðu 5:10 (fyrir gildi á milli 5 og 10) fyrir svið."
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder_field.html,Edit HTML,Breyta HTML
 apps/frappe/frappe/integrations/doctype/social_login_key/social_login_key.py,Please enter Redirect URL,Vinsamlegast sláðu inn Tilvísun vefslóð
 apps/frappe/frappe/core/doctype/language/language.py,"{0} must begin and end with a letter and can only contain letters,
@@ -924,7 +923,6 @@ apps/frappe/frappe/utils/data.py,Cent,cent
 apps/frappe/frappe/public/js/frappe/views/inbox/inbox_view.js,Compose Email,semja tölvupóst
 apps/frappe/frappe/config/settings.py,"States for workflow (e.g. Draft, Approved, Cancelled).","Ríki til workflow (td Draft, Samþykkt, HÃ|tt)."
 DocType: Print Settings,Allow Print for Draft,Leyfa prenta fyrir Draft
-apps/frappe/frappe/public/js/frappe/form/print.js,"Error connecting to QZ Tray Application...<br><br> You need to have QZ Tray application installed and running, to use the Raw Print feature.<br><br><a href=""https://qz.io/download/"" target=""_blank"">Click here to Download and install QZ Tray</a>.<br> <a href=""https://erpnext.com/docs/user/manual/en/setting-up/print/raw-printing"" target=""_blank"">Click here to learn more about Raw Printing</a>.","Villa við tengingu við QZ bakkaforrit ... <br><br> Þú verður að hafa QZ Tray forrit sett upp og keyra til að nota Raw Print aðgerðina. <br><br> <a href=""https://qz.io/download/"" target=""_blank"">Smelltu hér til að hlaða niður og setja upp QZ Bakki</a> . <br> <a href=""https://erpnext.com/docs/user/manual/en/setting-up/print/raw-printing"" target=""_blank"">Smelltu hér til að læra meira um Hráprentun</a> ."
 apps/frappe/frappe/public/js/frappe/form/link_selector.js,Set Quantity,Setja Magn
 apps/frappe/frappe/public/js/frappe/form/form.js,Submit this document to confirm,Senda þessu skjali til að staðfesta
 DocType: Contact,Unsubscribed,afskráður
@@ -1038,6 +1036,7 @@ apps/frappe/frappe/public/js/frappe/list/list_view.js,No {0} found,Engin {0} fan
 apps/frappe/frappe/config/customization.py,Add custom forms.,Bæta sérsniðnum form.
 apps/frappe/frappe/desk/like.py,{0}: {1} in {2},{0}: {1} í {2}
 apps/frappe/frappe/public/js/frappe/form/footer/timeline.js,submitted this document,lögð þessu skjali
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Setup &gt; User Permissions,Skipulag&gt; Notendaleyfi
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,The system provides many pre-defined roles. You can add new roles to set finer permissions.,Kerfið býður upp á ýmsa fyrirfram skilgreind hlutverk. Hægt er að bæta við nýjum hlutverkum að setja fínni heimildir.
 DocType: Communication,CC,CC
 DocType: Country,Geo,geo
@@ -1078,7 +1077,7 @@ apps/frappe/frappe/www/me.html,Manage Third Party Apps,Stjórnaðu forritum þri
 DocType: Website Settings,Route Redirects,Leiðbeiningar
 apps/frappe/frappe/config/settings.py,"Language, Date and Time settings","Tungumál, Dags- og tímastillingar"
 DocType: User Email,User Email,User Email
-DocType: Event,Saturday,laugardagur
+DocType: Assignment Rule Day,Saturday,laugardagur
 DocType: User,Represents a User in the system.,Táknar notandi í kerfinu.
 DocType: List View Setting,Disable Auto Refresh,Slökkva á sjálfvirkri endurnýjun
 DocType: Comment,Label,Label
@@ -1201,6 +1200,7 @@ DocType: Note,"If enabled, users will be notified every time they login. If not 
 apps/frappe/frappe/core/doctype/doctype/doctype.py,Invalid {0} condition,Ógilt {0} ástand
 DocType: OAuth Client,"If checked, users will not see the Confirm Access dialog.",Ef hakað notendur munu ekki sjá að staðfesta aðgang valmynd.
 apps/frappe/frappe/core/doctype/user_permission/user_permission_list.js,{0} record deleted,{0} skránni eytt
+apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js,"tag name..., e.g. #tag","merkingarheiti ..., td # tag"
 apps/frappe/frappe/public/js/frappe/ui/keyboard.js,Keyboard Shortcuts,Flýtilyklar
 DocType: Post,Comments,Comments
 apps/frappe/frappe/public/js/frappe/dom.js,Confirm,staðfesta
@@ -1255,6 +1255,7 @@ apps/frappe/frappe/contacts/doctype/contact/contact.py,Please set Email Address,
 DocType: User,"If the user has any role checked, then the user becomes a ""System User"". ""System User"" has access to the desktop","Ef notandinn hefur hvaða hlutverk köflóttur, þá verður notandinn að &quot;System User&quot;. &quot;System Notandi&quot; hefur aðgang að skjáborðinu"
 DocType: System Settings,Date and Number Format,Dagsetning og Number Format
 apps/frappe/frappe/model/document.py,one of,einn af
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Setup &gt; Customize Form,Skipulag&gt; Sérsníða form
 apps/frappe/frappe/public/js/frappe/desk.js,Checking one moment,Athugar eitt augnablik
 apps/frappe/frappe/public/js/frappe/list/list_sidebar.html,Show Tags,Sýna Tags
 DocType: DocField,HTML Editor,HTML ritstjóri
@@ -1262,6 +1263,7 @@ DocType: System Settings,"If Apply Strict User Permission is checked and User Pe
 DocType: Address,Billing,innheimtu
 DocType: Email Queue,Not Sent,ekki send
 DocType: Web Form,Actions,aðgerðir
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Setup &gt; User,Skipulag&gt; Notandi
 DocType: Workflow State,align-justify,samræma-réttlæta
 DocType: User,Middle Name (Optional),Middle Name (Valfrjálst)
 apps/frappe/frappe/public/js/frappe/request.js,Not Permitted,Ekki leyfilegt
@@ -1290,13 +1292,14 @@ DocType: PayPal Settings,PayPal Settings,PayPal Stillingar
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js,Select Document Type,Veldu tegund skjals
 apps/frappe/frappe/utils/nestedset.py,Cannot delete {0} as it has child nodes,Ekki hægt að eyða {0} eins og það hefur barnið hnúta
 apps/frappe/frappe/public/js/frappe/utils/pretty_date.js,{0} minutes ago,{0} mínútum síðan
+apps/frappe/frappe/automation/doctype/assignment_rule/assignment_rule.py,Assignment Day {0} has been repeated.,Verkefnadagur {0} hefur verið endurtekinn.
 DocType: Kanban Board Column,lightblue,ljósblár
 apps/frappe/frappe/integrations/doctype/webhook/webhook.py,Same Field is entered more than once,Sami reitur er slegið inn meira en einu sinni
 DocType: Print Settings,Enable Raw Printing,Virkja hráa prentun
+DocType: Contact,Contact Numbers,Hafðu númer
 DocType: Website Route Redirect,Source,Source
 apps/frappe/frappe/templates/includes/list/filters.html,clear,ljóst
 apps/frappe/frappe/core/page/background_jobs/background_jobs.html,Finished,Lokið
-apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Setup &gt; User,Skipulag&gt; Notandi
 DocType: Prepared Report,Filter Values,Sía gildi
 DocType: Communication,User Tags,User Tags
 DocType: Data Migration Run,Fail,Mistakast
@@ -1320,7 +1323,7 @@ apps/frappe/frappe/public/js/frappe/form/layout.js,Hide Details,Fela Upplýsinga
 apps/frappe/frappe/www/qrcode.py,Page has expired!,Síða hefur liðið!
 DocType: LDAP Settings,Path to private Key File,Slóð að einkalykilskrá
 DocType: Workflow State,Tasks,verkefni
-DocType: Event,Tuesday,þriðjudagur
+DocType: Assignment Rule Day,Tuesday,þriðjudagur
 DocType: Blog Settings,Blog Settings,Blog Stillingar
 apps/frappe/frappe/templates/emails/new_user.html,You can also copy-paste this link in your browser,Þú getur líka afrita líma þennan tengil í vafranum þínum
 DocType: Workflow State,bullhorn,bullhorn
@@ -1545,7 +1548,7 @@ apps/frappe/frappe/permissions.py,Not allowed for {0}: {1},Ekki leyfilegt fyrir 
 apps/frappe/frappe/email/doctype/auto_email_report/auto_email_report.py,"%s is not a valid report format. Report format should \
 				one of the following %s",% S er ekki gilt skýrslu sniði. Sniðinu ætti ekki \ eitt af eftirfarandi% s
 DocType: Chat Message,Chat,Spjallaðu
-apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Setup &gt; User Permissions,Skipulag&gt; Notendaleyfi
+apps/frappe/frappe/public/js/frappe/ui/toolbar/search.js,No documents found tagged with {0},Engin skjöl fundust merkt með {0}
 DocType: LDAP Group Mapping,LDAP Group Mapping,Kortlagning LDAP hóps
 DocType: Dashboard Chart,Chart Options,Valkostir á myndriti
 apps/frappe/frappe/public/js/frappe/data_import/import_preview.js,Untitled Column,Ónefnd titill
@@ -1575,6 +1578,7 @@ DocType: Custom Role,Custom Role,Custom hlutverk
 apps/frappe/frappe/core/doctype/file/test_file.py,Home/Test Folder 2,Forsíða / Test Folder 2
 apps/frappe/frappe/public/js/frappe/ui/messages.js,Enter your password,Sláðu inn lykilorðið þitt
 DocType: Dropbox Settings,Dropbox Access Secret,Dropbox Aðgangur Secret
+DocType: Tag Link,Document Title,Heiti skjals
 apps/frappe/frappe/public/js/frappe/data_import/data_exporter.js,(Mandatory),(Skylda)
 DocType: Social Login Key,Social Login Provider,Félagsleg innskráningaraðili
 apps/frappe/frappe/templates/includes/comments/comments.html,Add Another Comment,Bæta Annar athugasemd
@@ -1820,7 +1824,6 @@ DocType: GCalendar Account,Next Sync Token,Næsta Sync Token
 DocType: Energy Point Settings,Energy Point Settings,Stillingar orkupunkta
 DocType: Async Task,Succeeded,Eftirmaður
 apps/frappe/frappe/public/js/frappe/form/save.js,Mandatory fields required in {0},Umbeðnar krafist er í {0}
-apps/frappe/frappe/public/js/frappe/ui/toolbar/search.js,<p>No results found for '</p>,<p> Engar niðurstöður fundust fyrir &#39; </p>
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js,Reset Permissions for {0}?,Endurstilla heimildir fyrir {0}?
 apps/frappe/frappe/config/desktop.py,Users and Permissions,Notendur og heimildir
 DocType: S3 Backup Settings,S3 Backup Settings,S3 Backup Settings
@@ -1845,7 +1848,7 @@ DocType: Communication Link,Link Title,Link Title
 DocType: Workflow State,fast-backward,fljótur-afturábak
 DocType: Address,Chandigarh,Chandigarh
 DocType: DocShare,DocShare,DocShare
-DocType: Event,Friday,föstudagur
+DocType: Assignment Rule Day,Friday,föstudagur
 apps/frappe/frappe/public/js/frappe/form/quick_entry.js,Edit in full page,Breyta í fullum síðu
 apps/frappe/frappe/public/js/frappe/list/list_view.js,Open list item,Opna lista atriði
 DocType: Report,Add Total Row,Bæta Samtals Row
@@ -1863,6 +1866,7 @@ apps/frappe/frappe/public/js/frappe/list/list_view.js,Customize,sérsníða
 apps/frappe/frappe/core/doctype/user/user.js,View Permitted Documents,Skoða leyfðar skjöl
 apps/frappe/frappe/utils/print_format.py,You need to install pycups to use this feature!,Þú verður að setja upp pycups til að nota þennan eiginleika!
 apps/frappe/frappe/templates/pages/integrations/gcalendar-success.html,Your connection request to Google Calendar was successfully accepted,Tengingarbeiðnin þín við Google Dagatal var samþykkt
+DocType: Tag Link,Tag Link,Merkingartengill
 apps/frappe/frappe/core/report/transaction_log_report/transaction_log_report.py,Chain Integrity,Keðjuheilbrigði
 DocType: Data Export,CSV,CSV
 DocType: Currency,"1 Currency = [?] Fraction
@@ -2004,6 +2008,7 @@ apps/frappe/frappe/public/js/frappe/views/file/file_view.js,Folder name should n
 DocType: Note,Note,Note
 apps/frappe/frappe/core/doctype/error_snapshot/error_snapshot.html,Error Report,villuskýrslu
 apps/frappe/frappe/config/settings.py,Export Data in CSV / Excel format.,Flytja út gögn í CSV / Excel sniði.
+apps/frappe/frappe/desk/doctype/global_search_settings/global_search_settings.py,Setting up Global Search documents.,Setur upp Global Search skjöl.
 apps/frappe/frappe/www/qrcode.html,Authentication Apps you can use are: ,Staðfestingarforrit sem þú getur notað eru:
 apps/frappe/frappe/public/js/frappe/form/controls/data.js,{0} already exists. Select another name,{0} er þegar til. Veldu annað heiti
 DocType: S3 Backup Settings,None,Enginn
@@ -2016,6 +2021,7 @@ apps/frappe/frappe/website/doctype/personal_data_deletion_request/personal_data_
 apps/frappe/frappe/auth.py,Login not allowed at this time,Innskráning ekki leyfð á þessum tíma
 DocType: Data Migration Run,Current Mapping Action,Núverandi Kortlagning
 DocType: Dashboard Chart Source,Source Name,Source Name
+apps/frappe/frappe/public/js/frappe/views/inbox/inbox_view.js,No email account associated with the User. Please add an account under User &gt; Email Inbox.,Enginn tölvupóstreikningur tengdur notandanum. Vinsamlegast bættu reikningi við Notandi&gt; Netfang pósthólf.
 DocType: Email Account,Email Sync Option,Tölvupóstur Sync Valkostur
 apps/frappe/frappe/core/doctype/data_import/log_details.html,Row No,Röð nr
 DocType: Async Task,Runtime,Runtime
@@ -2030,6 +2036,7 @@ apps/frappe/frappe/desk/form/assign_to.py,Already in user's To Do list,Þegar í
 DocType: User Email,Enable Outgoing,Virkja Outgoing
 DocType: Address,Fax,Fax
 apps/frappe/frappe/config/customization.py,Custom Tags,Custom Tags
+apps/frappe/frappe/email/smtp.py,Email Account not setup. Please create a new Email Account from Setup &gt; Email &gt; Email Account,Tölvupóstreikningur er ekki uppsettur. Vinsamlegast stofnaðu nýjan tölvupóstreikning frá Uppsetning&gt; Tölvupóstur&gt; Netfangareikningur
 DocType: Comment,Submitted,lögð
 DocType: Contact,Pulled from Google Contacts,Dregið úr Google tengiliðum
 apps/frappe/frappe/integrations/doctype/paypal_settings/paypal_settings.py,In Valid Request,Ógild beiðni
@@ -2104,7 +2111,6 @@ eval:doc.myfield=='My Value'
 eval:doc.age&gt;18",Þessi reitur verður að birtast aðeins ef FIELDNAME skilgreint hér hefur gildi OR reglur eru sannir (dæmi): myfield eval: doc.myfield == &#39;Gildi minn&#39; eval: doc.age&gt; 18
 DocType: Social Login Key,Office 365,Skrifstofa 365
 apps/frappe/frappe/public/js/frappe/ui/toolbar/energy_points_notifications.js,Today,Í dag
-apps/frappe/frappe/contacts/doctype/address/address.py,No default Address Template found. Please create a new one from Setup &gt; Printing and Branding &gt; Address Template.,Ekkert sjálfgefið netsniðmát fannst. Vinsamlegast búðu til nýtt úr Skipulag&gt; Prentun og vörumerki&gt; Heimilismát.
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,"Once you have set this, the users will only be able access documents (eg. Blog Post) where the link exists (eg. Blogger).","Þegar þú hefur sett þetta, sem notendur munu aðeins vera fær aðgang skjöl (td. Bloggfærsluna) þar sem tengill er til (td. Blogger)."
 DocType: Data Import Beta,Submit After Import,Sendu inn eftir innflutning
 DocType: Error Log,Log of Scheduler Errors,Log um Tímaáætlun Villa
@@ -2116,6 +2122,7 @@ apps/frappe/frappe/integrations/doctype/google_drive/google_drive.py,Google Driv
 DocType: DocType,UPPER CASE,hástafi
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js,Custom HTML,Custom HTML
 apps/frappe/frappe/public/js/frappe/views/file/file_view.js,Enter folder name,Sláðu inn heiti möppu
+apps/frappe/frappe/contacts/doctype/address/address.py,No default Address Template found. Please create a new one from Setup &gt; Printing and Branding &gt; Address Template.,Ekkert sjálfgefið netsniðmát fannst. Vinsamlegast búðu til nýtt úr Skipulag&gt; Prentun og vörumerki&gt; Heimilismát.
 apps/frappe/frappe/auth.py,Unknown User,Óþekktur notandi
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js,Select Role,Veldu hlutverk
 DocType: Comment,Deleted,eytt
@@ -2316,7 +2323,6 @@ DocType: Address,Preferred Shipping Address,Valinn Shipping Address
 apps/frappe/frappe/public/js/frappe/form/print.js,With Letter head,Með Bréf höfuð
 apps/frappe/frappe/public/js/frappe/form/sidebar/form_sidebar.js,{0} created this {1},{0} búin þetta {1}
 apps/frappe/frappe/permissions.py,Not allowed for {0}: {1} in Row {2}. Restricted field: {3},Ekki leyfilegt fyrir {0}: {1} í röð {2}. Takmarkaður reitur: {3}
-apps/frappe/frappe/email/smtp.py,Email Account not setup. Please create a new Email Account from Setup &gt; Email &gt; Email Account,Tölvupóstreikningur er ekki uppsettur. Vinsamlegast stofnaðu nýjan tölvupóstreikning frá Uppsetning&gt; Tölvupóstur&gt; Netfangareikningur
 DocType: S3 Backup Settings,eu-west-1,eu-vestur-1
 DocType: Data Import,"If this is checked, rows with valid data will be imported and invalid rows will be dumped into a new file for you to import later.",Ef þetta er skoðuð verða raðir með gögnum innfluttar og ógildir raðir verði seldar í nýjan skrá til að flytja inn síðar.
 apps/frappe/frappe/public/js/frappe/form/workflow.js,Document is only editable by users of role,Skjalið er aðeins editable af notendum hlutverki
@@ -2383,7 +2389,6 @@ DocType: Contact,Passive,Hlutlaus
 DocType: Auto Repeat,Accounts Manager,Accounts Manager
 apps/frappe/frappe/desk/form/assign_to.py,Assignment for {0} {1},Verkefni fyrir {0} {1}
 apps/frappe/frappe/templates/pages/integrations/payment-cancel.html,Your payment is cancelled.,Greiðsla þín hefur verið lokað.
-apps/frappe/frappe/email/smtp.py,Please setup default Email Account from Setup &gt; Email &gt; Email Account,Vinsamlegast settu upp sjálfgefinn tölvupóstreikning frá Uppsetning&gt; Tölvupóstur&gt; Netfangareikningur
 apps/frappe/frappe/public/js/frappe/views/reports/report_view.js,Select File Type,Veldu File Type
 apps/frappe/frappe/core/doctype/success_action/success_action.js,View All,Sjá allt
 DocType: Help Article,Knowledge Base Editor,Knowledge Base Editor
@@ -2425,6 +2430,7 @@ DocType: Workflow State,Warning,Viðvörun
 apps/frappe/frappe/public/js/frappe/form/print.js,This may get printed on multiple pages,Þetta gæti verið prentað á mörgum síðum
 DocType: Data Migration Run,Percent Complete,Hlutfall lokið
 DocType: Tag Category,Tag Category,tag Flokkur
+apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,"For comparison, use &gt;5, &lt;10 or =324. For ranges, use 5:10 (for values between 5 &amp; 10).","Til samanburðar, notaðu&gt; 5, &lt;10 eða = 324. Notaðu 5:10 (fyrir gildi á milli 5 og 10) fyrir svið."
 DocType: Google Calendar,Pull from Google Calendar,Dragðu úr Google dagatalinu
 apps/frappe/frappe/core/doctype/data_import/data_import.js,Help,Hjálp
 DocType: User,Login Before,Innskráning Áður
@@ -2549,7 +2555,7 @@ apps/frappe/frappe/model/document.py,Cannot edit cancelled document,Ekki er hæg
 DocType: Transaction Log,Checksum Version,Athugunarútgáfa
 DocType: User,Allow Modules,Leyfa mát
 DocType: Unhandled Email,Unhandled Email,Óvænt Email
-DocType: Event,Monday,Mánudagur
+DocType: Assignment Rule Day,Monday,Mánudagur
 apps/frappe/frappe/utils/password_strength.py,Make use of longer keyboard patterns,Nýta lengri hljómborð mynstrum
 apps/frappe/frappe/templates/includes/integrations/stripe_checkout.js,Processing...,Vinnsla ...
 DocType: Data Import,Don't create new records,Ekki búa til nýjar færslur
@@ -2680,7 +2686,7 @@ apps/frappe/frappe/integrations/doctype/google_calendar/google_calendar.js,Googl
 apps/frappe/frappe/templates/emails/administrator_logged_in.html,"Dear System Manager,","Kæri System Manager,"
 apps/frappe/frappe/desk/doctype/todo/todo.py,{0} self assigned this task: {1},{0} sjálf úthlutað þessu verkefni: {1}
 apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js,Your Country,Landið þitt
-DocType: Event,Sunday,sunnudagur
+DocType: Assignment Rule Day,Sunday,sunnudagur
 apps/frappe/frappe/core/doctype/doctype/doctype.py,{0}: Fieldname cannot be one of {1},{0}: Feldheiti getur ekki verið eitt af {1}
 apps/frappe/frappe/templates/emails/energy_points_summary.html,Standings,Valur
 apps/frappe/frappe/core/doctype/doctype/doctype.js,In Grid View,Í tölvuformi
@@ -2720,7 +2726,6 @@ apps/frappe/frappe/templates/emails/energy_points_summary.html,gained {0} points
 apps/frappe/frappe/public/js/frappe/ui/filters/filter.js,Between,milli
 DocType: Social Login Key,fairlogin,fairlogin
 DocType: Async Task,Queued,biðröð
-apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Setup &gt; Customize Form,Skipulag&gt; Sérsníða form
 DocType: Braintree Settings,Use Sandbox,Nota Sandbox
 apps/frappe/frappe/utils/goal.py,This month,Í þessum mánuði
 apps/frappe/frappe/public/js/frappe/form/print.js,New Custom Print Format,Ný Custom Prenta Format
@@ -2814,7 +2819,7 @@ DocType: Workflow,States,Ríki
 DocType: Notification,Attach Print,hengja Prenta
 DocType: Assignment Rule,Assignment Rule,Verkefnisregla
 apps/frappe/frappe/core/doctype/user/user.py,Suggested Username: {0},Lagði Notandanafn: {0}
-apps/frappe/frappe/public/js/frappe/views/gantt/gantt_view.js,Day,dagur
+DocType: Assignment Rule Day,Day,dagur
 apps/frappe/frappe/public/js/frappe/desk.js,Modules,Modules
 apps/frappe/frappe/templates/pages/integrations/payment-success.html,Payment Success,greiðsla Velgengni
 apps/frappe/frappe/public/js/frappe/views/inbox/inbox_view.js,No {0} mail,No {0} mail
@@ -2842,7 +2847,6 @@ apps/frappe/frappe/public/js/frappe/ui/toolbar/search_utils.js,Email Inbox,Innh�
 apps/frappe/frappe/core/doctype/data_import_beta/data_import_beta.js,"Updating {0} of {1}, {2}","Uppfærir {0} af {1}, {2}"
 DocType: Auto Email Report,Filters Display,síur Sýna
 apps/frappe/frappe/public/js/frappe/form/form.js,"""amended_from"" field must be present to do an amendment.",Reiturinn „breyttur_frá“ verður að vera til staðar til að gera breytingu.
-DocType: Contact,Numbers,Tölur
 apps/frappe/frappe/public/js/frappe/ui/toolbar/energy_points_notifications.js,{0} appreciated your work on {1} {2},{0} kunni að meta verk þitt við {1} {2}
 apps/frappe/frappe/public/js/frappe/views/kanban/kanban_view.js,Save filters,Vistaðu síur
 DocType: Address,Plant,Plant
@@ -2888,6 +2892,7 @@ DocType: Custom Script,Custom Script,Custom Script
 DocType: Address,Address Line 2,Heimilisfang lína 2
 DocType: Address,Reference,Tilvísun
 apps/frappe/frappe/public/js/frappe/list/list_sidebar_group_by.js,Assigned To,Úthlutað til
+apps/frappe/frappe/email/smtp.py,Please setup default Email Account from Setup &gt; Email &gt; Email Account,Vinsamlegast settu upp sjálfgefinn tölvupóstreikning frá Uppsetning&gt; Tölvupóstur&gt; Netfangareikningur
 DocType: Data Migration Mapping Detail,Data Migration Mapping Detail,Gögn Flutningur Kortlagning Detail
 DocType: Data Import,Action,aðgerð
 DocType: GSuite Settings,Script URL,Slóð URL
@@ -3056,6 +3061,7 @@ apps/frappe/frappe/integrations/doctype/google_drive/google_drive.py,Google Driv
 apps/frappe/frappe/desk/doctype/global_search_settings/global_search_settings.py,Document Type {0} has been repeated.,Gerð skjals {0} hefur verið endurtekin.
 apps/frappe/frappe/core/doctype/version/version_view.html,Values Changed,gildi Breytt
 DocType: Workflow State,arrow-up,ör-upp
+DocType: Dynamic Link,Link Document Type,Krækjið gerð skjals
 apps/frappe/frappe/core/doctype/data_import/importer_new.py,There should be atleast one row for {0} table,Það ætti að vera að minnsta kosti ein röð fyrir {0} töfluna
 apps/frappe/frappe/automation/doctype/auto_repeat/auto_repeat.js,"To configure Auto Repeat, enable ""Allow Auto Repeat"" from {0}.","Til að stilla sjálfvirka endurtekningu, virkjaðu „Leyfa sjálfvirka endurtekningu“ frá {0}."
 DocType: OAuth Bearer Token,Expires In,rennur Í
@@ -3077,6 +3083,7 @@ DocType: Web Form,Button Label,Button Label
 apps/frappe/frappe/public/js/frappe/list/list_view.js,{0} items selected,{0} atriði valin
 apps/frappe/frappe/email/doctype/email_queue/email_queue_list.js,Suspend Sending,fresta Sendir
 apps/frappe/frappe/core/doctype/user_permission/user_permission_list.js,User Permissions created sucessfully,Notendaleyfi búin til með góðum árangri
+apps/frappe/frappe/desk/doctype/global_search_settings/global_search_settings.py,Fetching default Global Search documents.,Sækir sjálfgefin skjöl um Global Search.
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder_layout.html,Drag elements from the sidebar to add. Drag them back to trash.,Draga atriði úr the skenkur til að bæta við. Draga þá aftur til ruslið.
 DocType: Workflow State,resize-small,resize-lítið
 DocType: Address,Postal Code,póstnúmer
@@ -3130,7 +3137,7 @@ DocType: Auto Repeat,End Date,Lokadagur
 DocType: Data Import,Ignore encoding errors,Hunsa kóðunarvillur
 DocType: Chat Profile,Notifications,Tilkynningar
 DocType: DocField,Column Break,dálkur Break
-DocType: Event,Thursday,fimmtudagur
+DocType: Assignment Rule Day,Thursday,fimmtudagur
 apps/frappe/frappe/public/js/frappe/form/sidebar/review.js,You do not have enough review points,Þú ert ekki með nægjanlega mörg stig
 apps/frappe/frappe/utils/response.py,You don't have permission to access this file,Þú hefur ekki leyfi til að opna þessa skrá
 apps/frappe/frappe/core/doctype/user/user.js,Save API Secret: ,Vista API Leyndarmál:
@@ -3216,6 +3223,7 @@ DocType: S3 Backup Settings,ap-south-1,ap-suður-1
 apps/frappe/frappe/core/doctype/file/file.js,Unzip,Renna niður
 apps/frappe/frappe/model/document.py,Incorrect value in row {0}: {1} must be {2} {3},Rangt gildi í röð {0}: {1} verður að vera {2} {3}
 apps/frappe/frappe/workflow/doctype/workflow/workflow.py,Submitted Document cannot be converted back to draft. Transition row {0},Lögð Document ekki hægt að breyta aftur í drög. Umskipti róður {0}
+DocType: Assignment Rule,Assignment Days,Verkefnadagar
 apps/frappe/frappe/desk/reportview.py,Deleting {0},Eyði {0}
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder_start.html,Select an existing format to edit or start a new format.,Veldu fyrirliggjandi snið að breyta eða hefja nýtt snið.
 DocType: System Settings,Bypass restricted IP Address check If Two Factor Auth Enabled,Beinlínuskipta takmörkuð IP-töluathugun Ef tveir þáttur er virkur virkur
@@ -3288,6 +3296,7 @@ apps/frappe/frappe/public/js/frappe/utils/pretty_date.js,{0} months ago,{0} mán
 apps/frappe/frappe/custom/doctype/custom_field/custom_field.py,Custom Fields can only be added to a standard DocType.,Sérsniðnum reitum er aðeins hægt að bæta við venjulega DocType.
 apps/frappe/frappe/public/js/frappe/list/list_sidebar_group_by.js,Created By,Búið til af
 apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py,Dropbox Setup,Dropbox Skipulag
+DocType: Assignment Rule Day,Assignment Rule Day,Verkefnisdagur
 DocType: Workflow State,resize-horizontal,resize-lárétt
 apps/frappe/frappe/templates/emails/download_data.html,Download Link,Niðurhal hlekkur
 DocType: Chat Message,Content,innihald
@@ -3547,7 +3556,6 @@ apps/frappe/frappe/config/settings.py,Add / Manage Email Accounts.,Bæta við / 
 DocType: Comment,Published,Útgefið
 apps/frappe/frappe/templates/emails/auto_reply.html,Thank you for your email,Þakka þér fyrir þinn email
 DocType: DocField,Small Text,lítill texti
-apps/frappe/frappe/contacts/doctype/contact/contact.py,Number {0} cannot be set as primary for Phone as well as Mobile No.,Ekki er hægt að stilla númer {0} sem aðal fyrir síma og farsíma nr.
 DocType: Workflow,Allow approval for creator of the document,Leyfa samþykki fyrir höfundur skjalsins
 apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,Save Report,Vista skýrslu
 DocType: Webhook,on_cancel,on_cancel
@@ -3560,6 +3568,7 @@ apps/frappe/frappe/public/js/frappe/ui/filters/filter.js,Equals,Jafnt
 apps/frappe/frappe/core/doctype/doctype/doctype.py,Options 'Dynamic Link' type of field must point to another Link Field with options as 'DocType',Valkostir &#39;Dynamic Link&#39; tegund af sviði að benda á aðra Link Field með valkostum og &#39;DOCTYPE &quot;
 DocType: About Us Settings,Team Members Heading,Liðsmenn Fyrirsögn
 apps/frappe/frappe/utils/csvutils.py,Invalid CSV Format,Ógilt CSV snið
+apps/frappe/frappe/public/js/frappe/form/print.js,"Error connecting to QZ Tray Application...<br><br> You need to have QZ Tray application installed and running, to use the Raw Print feature.<br><br><a href=""https://qz.io/download/"" target=""_blank"">Click here to Download and install QZ Tray</a>.<br> <a href=""https://erpnext.com/docs/user/manual/en/setting-up/print/raw-printing"" target=""_blank"">Click here to learn more about Raw Printing</a>.","Villa við tengingu við QZ bakkaforrit ... <br><br> Þú þarft að hafa QZ Tray forrit sett upp og keyra til að nota Raw Print aðgerðina. <br><br> <a href=""https://qz.io/download/"" target=""_blank"">Smelltu hér til að hlaða niður og setja upp QZ Bakki</a> . <br> <a href=""https://erpnext.com/docs/user/manual/en/setting-up/print/raw-printing"" target=""_blank"">Smelltu hér til að læra meira um Hráprentun</a> ."
 apps/frappe/frappe/desk/page/backups/backups.js,Set Number of Backups,Setja Fjöldi Varabúnaður
 DocType: DocField,Do not allow user to change after set the first time,Ekki leyfa notanda að breyta eftir að setja í fyrsta skipti
 apps/frappe/frappe/utils/data.py,1 year ago,1 ár síðan
@@ -3659,6 +3668,7 @@ DocType: Auto Email Report,Send only if there is any data,Senda einungis ef þa�
 apps/frappe/frappe/public/js/frappe/views/reports/report_view.js,Totals Row,Alls Row
 apps/frappe/frappe/core/doctype/doctype/doctype.py,{0}: Permission at level 0 must be set before higher levels are set,{0}: Permission á stigi 0 verður að vera stillt áður en hærri stigum eru sett
 DocType: Contact,Sync with Google Contacts,Samstillt við Google tengiliði
+DocType: Tag Link,Document Tag,Skjalamerki
 apps/frappe/frappe/desk/doctype/todo/todo.py,Assignment closed by {0},Framsal lokað af {0}
 DocType: Integration Request,Remote,Remote
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js,Calculate,reikna
@@ -3748,6 +3758,7 @@ apps/frappe/frappe/public/js/frappe/form/templates/form_sidebar.html,Change,Brey
 DocType: Email Domain,domain name,lén
 DocType: Contact Email,Contact Email,Netfang tengiliðar
 DocType: Kanban Board Column,Order,Panta
+apps/frappe/frappe/public/js/frappe/ui/toolbar/search.js,No results found for {0} in Global Search,Engar niðurstöður fundust fyrir {0} í alþjóðlegri leit
 DocType: Report,Ref DocType,Ref DOCTYPE
 apps/frappe/frappe/integrations/doctype/social_login_key/social_login_key.py,Please enter Client ID before social login is enabled,Vinsamlegast sláðu inn auðkenni viðskiptavinar áður en félagsleg tenging er virk
 apps/frappe/frappe/core/doctype/doctype/doctype.py,{0}: Cannot set Amend without Cancel,{0}: Get ekki stillt breyta án Hætta
@@ -3853,6 +3864,7 @@ DocType: Webhook,on_trash,on_trash
 apps/frappe/frappe/core/doctype/user_permission/user_permission_help.html,Records for following doctypes will be filtered,Skrár fyrir eftirfarandi gerðir verða síaðir
 apps/frappe/frappe/public/js/frappe/desk.js,Scheduler Inactive,Tímaáætlun óvirk
 DocType: Blog Settings,Blog Introduction,Blog Inngangur
+DocType: Global Search Settings,Search Priorities,Forgangsröðun við leit
 DocType: Address,Office,Office
 apps/frappe/frappe/public/js/frappe/views/kanban/kanban_view.js,This Kanban Board will be private,Þetta Kanban Board mun vera persónulegur
 apps/frappe/frappe/desk/moduleview.py,Standard Reports,staðlaðar skýrslur

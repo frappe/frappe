@@ -140,7 +140,6 @@ frappe.ui.form.AssignToDialog = Class.extend({
 				{ fieldtype: 'Section Break' },
 				{ fieldtype: 'Column Break' },
 				{ fieldtype: 'Date', fieldname: 'date', label: __("Complete By") },
-				{ fieldtype: 'Check', fieldname: 'notify', label: __("Notify by Email"), default: 1},
 				{ fieldtype: 'Column Break' },
 				{ fieldtype: 'Select', fieldname: 'priority', label: __("Priority"),
 					options: [
@@ -171,12 +170,10 @@ frappe.ui.form.AssignToDialog = Class.extend({
 		var me = this;
 		if($(myself).prop("checked")) {
 			me.dialog.set_value("assign_to", frappe.session.user);
-			me.dialog.set_value("notify", 0);
 			me.dialog.get_field("notify").$wrapper.toggle(false);
 			me.dialog.get_field("assign_to").$wrapper.toggle(false);
 		} else {
 			me.dialog.set_value("assign_to", "");
-			me.dialog.get_field("notify").$wrapper.toggle(true);
 			me.dialog.get_field("assign_to").$wrapper.toggle(true);
 		}
 	},

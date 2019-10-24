@@ -88,6 +88,8 @@ permission_query_conditions = {
 	"Event": "frappe.desk.doctype.event.event.get_permission_query_conditions",
 	"ToDo": "frappe.desk.doctype.todo.todo.get_permission_query_conditions",
 	"User": "frappe.core.doctype.user.user.get_permission_query_conditions",
+	"Notification Log": "frappe.desk.doctype.notification_log.notification_log.get_permission_query_conditions",
+	"Notification Settings": "frappe.desk.doctype.notification_settings.notification_settings.get_permission_query_conditions",
 	"Note": "frappe.desk.doctype.note.note.get_permission_query_conditions",
 	"Kanban Board": "frappe.desk.doctype.kanban_board.kanban_board.get_permission_query_conditions",
 	"Contact": "frappe.contacts.address_and_contact.get_permission_query_conditions_for_contact",
@@ -186,17 +188,18 @@ scheduler_events = {
 		"frappe.social.doctype.energy_point_settings.energy_point_settings.allocate_review_points",
 		"frappe.integrations.doctype.google_contacts.google_contacts.sync",
 		"frappe.automation.doctype.auto_repeat.auto_repeat.make_auto_repeat_entry",
-		"frappe.automation.doctype.auto_repeat.auto_repeat.set_auto_repeat_as_completed"
+		"frappe.automation.doctype.auto_repeat.auto_repeat.set_auto_repeat_as_completed",
+		"frappe.email.doctype.unhandled_email.unhandled_email.remove_old_unhandled_emails"
 	],
 	"daily_long": [
 		"frappe.integrations.doctype.dropbox_settings.dropbox_settings.take_backups_daily",
+		"frappe.utils.change_log.check_for_update",
 		"frappe.integrations.doctype.s3_backup_settings.s3_backup_settings.take_backups_daily",
 		"frappe.integrations.doctype.google_drive.google_drive.daily_backup"
 	],
 	"weekly_long": [
 		"frappe.integrations.doctype.dropbox_settings.dropbox_settings.take_backups_weekly",
 		"frappe.integrations.doctype.s3_backup_settings.s3_backup_settings.take_backups_weekly",
-		"frappe.utils.change_log.check_for_update",
 		"frappe.desk.doctype.route_history.route_history.flush_old_route_records",
 		"frappe.desk.form.document_follow.send_weekly_updates",
 		"frappe.social.doctype.energy_point_log.energy_point_log.send_weekly_summary",
@@ -303,19 +306,21 @@ user_privacy_documents = [
 
 ]
 
-global_search_doctypes = [
-	{"doctype": "Contact"},
-	{"doctype": "Address"},
-	{"doctype": "ToDo"},
-	{"doctype": "Note"},
-	{"doctype": "Event"},
-	{"doctype": "Blog Post"},
-	{"doctype": "Dashboard"},
-	{"doctype": "Country"},
-	{"doctype": "Currency"},
-	{"doctype": "Newsletter"},
-	{"doctype": "Letter Head"},
-	{"doctype": "Workflow"},
-	{"doctype": "Web Page"},
-	{"doctype": "Web Form"}
-]
+global_search_doctypes = {
+	"Default": [
+		{"doctype": "Contact"},
+		{"doctype": "Address"},
+		{"doctype": "ToDo"},
+		{"doctype": "Note"},
+		{"doctype": "Event"},
+		{"doctype": "Blog Post"},
+		{"doctype": "Dashboard"},
+		{"doctype": "Country"},
+		{"doctype": "Currency"},
+		{"doctype": "Newsletter"},
+		{"doctype": "Letter Head"},
+		{"doctype": "Workflow"},
+		{"doctype": "Web Page"},
+		{"doctype": "Web Form"}
+	]
+}
