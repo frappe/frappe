@@ -100,7 +100,7 @@ class User(Document):
 
 		doc_before_save = self.get_doc_before_save()
 
-		if doc_before_save.home_settings != self.home_settings:
+		if doc_before_save and doc_before_save.home_settings != self.home_settings:
 			frappe.cache().hdel('home_settings', self.name)
 
 	def has_website_permission(self, ptype, user, verbose=False):
