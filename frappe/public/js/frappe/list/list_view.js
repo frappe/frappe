@@ -289,11 +289,9 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		if (this.list_view_settings.column_order) {
 			let custom_column_order = [];
 
-			//title_field or name and status are fixed
+			//title_field is fixed
 			custom_column_order.push(this.columns[0]);
-			custom_column_order.push(this.columns[1]);
-
-			this.columns.splice(0, 2);
+			this.columns.splice(0, 1);
 
 			for (let i in this.list_view_settings.column_order) {
 				let fieldname = this.list_view_settings.column_order[i].fieldname;
