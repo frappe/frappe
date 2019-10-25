@@ -15,11 +15,13 @@ def execute():
 			continue
 
 		for _user_tags in frappe.db.sql("select `name`, `_user_tags` from `tab{0}`".format(doctype.name), as_dict=True):
-			if not dt_tags.get("_user_tags"):
+			if not _user_tags.get("_user_tags"):
 				continue
 
-			tags = dt_tags.get("_user_tags").split(",") if dt_tags.get("_user_tags") else None
-			for tag in tags:
+			for tag in _user_tags.get("_user_tags").split(",") if _user_tags.get("_user_tags") else []:
+				if not tag:
+					continue
+
 				tag_name = frappe.db.escape(tag.strip())
 				tag_link_name = frappe.generate_hash(_user_tags.name + tag.strip() + doctype.name, 10)
 
