@@ -6,7 +6,6 @@ import frappe, unittest
 
 from frappe.model.db_query import DatabaseQuery
 from frappe.desk.reportview import get_filters_cond
-from pymysql.ProgrammingError
 
 from frappe.permissions import add_user_permission, clear_user_permissions_for_doctype
 
