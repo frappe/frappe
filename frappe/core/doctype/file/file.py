@@ -21,7 +21,7 @@ from frappe import _
 from frappe.utils.nestedset import NestedSet
 from frappe.utils import strip, get_files_path
 from PIL import Image, ImageOps
-from six import StringIO, string_types
+from six import StringIO, string_types, BytesIO
 from six.moves.urllib.parse import unquote
 import zipfile
 
@@ -406,7 +406,7 @@ def get_web_image(file_url):
 			frappe.msgprint(_("Unable to read file format for {0}").format(file_url))
 		raise
 
-	image = Image.open(StringIO(frappe.safe_decode(r.content)))
+	image = Image.open(BytesIO(frappe.safe_decode(r.content)))
 
 	try:
 		filename, extn = file_url.rsplit("/", 1)[1].rsplit(".", 1)
