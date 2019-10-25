@@ -7,24 +7,41 @@ def execute():
 	frappe.reload_doc("desk", "doctype", "tag")
 	frappe.reload_doc("desk", "doctype", "tag_link")
 
-	tag_list = []
-	tag_links = []
 	time = frappe.utils.get_datetime()
 
 	for doctype in frappe.get_list("DocType", filters={"istable": 0, "issingle": 0}):
-		for dt_tags in frappe.db.sql("select `name`, `_user_tags` from `tab{0}`".format(doctype.name), as_dict=True):
-			tags = dt_tags.get("_user_tags").split(",") if dt_tags.get("_user_tags") else None
-			if not tags:
+		if not (frappe.db.count(doctype.name) or frappe.db.has_column(doctype.name, "_user_tags")):
+			continue
+
+		for _user_tags in frappe.db.sql("select `name`, `_user_tags` from `tab{0}`".format(doctype.name), as_dict=True):
+			if not dt_tags.get("_user_tags"):
 				continue
 
+			tags = dt_tags.get("_user_tags").split(",") if dt_tags.get("_user_tags") else None
 			for tag in tags:
-				if not tag:
-					continue
+				tag_name = frappe.db.escape(tag.strip())
+				tag_link_name = frappe.generate_hash(_user_tags.name + tag.strip() + doctype.name, 10)
 
-				tag_list.append((tag.strip(), time, time, 'Administrator'))
+				insert_tag(tag_name, time, time, "Administrator")
+				insert_tag_link(tag_link_name, doctype.name, _user_tags.name, tag_name, time, time, "Administrator")
 
-				tag_link_name = frappe.generate_hash(dt_tags.name + tag.strip() + doctype.name, 10),
-				tag_links.append((tag_link_name, doctype.name, dt_tags.name, tag.strip(), time, time, 'Administrator'))
+def insert_tag(name, creation, modified, modified_by):
+	doc = frappe.new_doc("Tag")
+	doc.name = name
+	doc.creation = creation
+	doc.modified = modified
+	doc.modified_by = modified_by
+	doc.db_insert()
 
-	frappe.db.bulk_insert("Tag", fields=["name", "creation", "modified", "modified_by"], values=set(tag_list))
-	frappe.db.bulk_insert("Tag Link", fields=["name", "document_type", "document_name", "tag", "creation", "modified", "modified_by"], values=set(tag_links))
+def insert_tag_link(name, document_type, document_name, tag, creation, modified, modified_by):
+	doc = frappe.new_doc("Tag Link")
+	doc.name = name
+	doc.document_type = document_type
+	doc.document_name = document_name
+	doc.tag = tag
+	doc.parenttype = document_type
+	doc.parent = document_name
+	doc.creation = creation
+	doc.modified = modified
+	doc.modified_by = modified_by
+	doc.db_insert()
