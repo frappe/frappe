@@ -3,6 +3,10 @@
 
 frappe.ui.form.on('List View Settings', {
 	refresh: function(frm) {
+		frm.add_custom_button(__('Go to {0} List', [frm.doc.name]), () => {
+			frappe.set_route('List', frm.doc.name, 'List');
+		});
+
 		frm.add_custom_button('Get List View Columns', function () {
 			frappe.call({
 				method: "frappe.desk.doctype.list_view_settings.list_view_settings.get_listview_columns",

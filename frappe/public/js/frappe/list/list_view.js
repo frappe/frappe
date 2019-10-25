@@ -286,7 +286,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				}))
 		);
 
-		if (this.list_view_settings.column_order) {
+		if (this.list_view_settings.column_order.length > 0 &&
+			this.list_view_settings.column_order.length === this.list_view_settings.column_count) {
 			let custom_column_order = [];
 
 			//title_field is fixed
@@ -307,7 +308,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			this.columns = custom_column_order;
 		}
 
-		// limit max to 8 columns
+		// limit max to 8 columns if no column_count is set in List View Settings
 		// Screen with low density no of columns 4
 		// Screen with medium density no of columns 6
 		// Screen with high density no of columns 8
