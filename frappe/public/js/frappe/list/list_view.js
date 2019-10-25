@@ -293,7 +293,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			custom_column_order.push(this.columns[0]);
 			custom_column_order.push(this.columns[1]);
 
-			this.columns.splice(0, 2)
+			this.columns.splice(0, 2);
 
 			for (let i in this.list_view_settings.column_order) {
 				let fieldname = this.list_view_settings.column_order[i].fieldname;
@@ -1264,6 +1264,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	show_list_settings() {
 		frappe.model.with_doctype("List View Settings", () => {
 			let list_view_settings = frappe.get_meta("List View Settings");
+
 			let d = new frappe.ui.Dialog({
 				title: __("Settings"),
 				fields: [
