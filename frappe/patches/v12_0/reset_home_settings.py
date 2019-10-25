@@ -6,3 +6,4 @@ def execute():
 		SET `home_settings` = ''
 		WHERE `user_type` = 'System User'
 	''')
+	frappe.cache().delete_key('home_settings')
