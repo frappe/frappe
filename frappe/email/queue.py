@@ -405,7 +405,7 @@ def send_one(email, smtpserver=None, auto_commit=True, now=False, from_test=Fals
 
 			message = prepare_message(email, recipient.recipient, recipients_list)
 			if not frappe.flags.in_test:
-				smtpserver.sess.sendmail(email.sender, recipient.recipient, encode(message))
+				smtpserver.sess.sendmail(email.sender, recipient.recipient, str(message))
 
 			recipient.status = "Sent"
 			frappe.db.sql("""update `tabEmail Queue Recipient` set status='Sent', modified=%s where name=%s""",
