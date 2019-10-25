@@ -25,7 +25,7 @@ if sys.version[0] == '2':
 
 __version__ = '12.0.16'
 __title__ = "Frappe Framework"
-__version_pcg__ = 1
+__version_pcg__ = 1          # see also hooks.py
 
 local = Local()
 
