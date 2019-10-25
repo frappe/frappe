@@ -32,28 +32,21 @@ frappe.ui.misc.about = function() {
 		};
 
 		var show_versions = function(versions) {
-        frappe.call("frappe.get_version_pcg").then(function(version_pcg){
-            let apps = Object.keys(versions).sort();
-			      var $wrap = $("#about-app-versions").empty();
-            versions["Pcg Modifications"] = {title: "Pcg Modifications",
-                                             version: version_pcg.message,
-                                             branch: ""};
-            apps.push("Pcg Modifications");
-			      $.each(apps, function(i, key) {
-				        var v = versions[key];
-				        if(v.branch) {
-					          var text = $.format('<p><b>{0}:</b> v{1} ({2})<br></p>',
-						                            [v.title, v.branch_version || v.version, v.branch]);
-				        } else {
-					          var text = $.format('<p><b>{0}:</b> v{1}<br></p>',
-						                            [v.title, v.version]);
-				        }
-				        $(text).appendTo($wrap);
-			      });
+			var $wrap = $("#about-app-versions").empty();
+			$.each(Object.keys(versions).sort(), function(i, key) {
+				var v = versions[key];
+				if(v.branch) {
+					var text = $.format('<p><b>{0}:</b> v{1} ({2})<br></p>',
+						[v.title, v.branch_version || v.version, v.branch])
+				} else {
+					var text = $.format('<p><b>{0}:</b> v{1}<br></p>',
+						[v.title, v.version])
+				}
+				$(text).appendTo($wrap);
+			});
 
-			      frappe.versions = versions;
-        });
-		};
+			frappe.versions = versions;
+		}
 
 	}
 
