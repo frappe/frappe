@@ -8,6 +8,7 @@ def execute():
 	frappe.reload_doc("desk", "doctype", "tag_link")
 
 	time = frappe.utils.get_datetime()
+	frappe.db.auto_commit_on_many_writes = True
 
 	for doctype in frappe.get_list("DocType", filters={"istable": 0, "issingle": 0}):
 		if not (frappe.db.count(doctype.name) or frappe.db.has_column(doctype.name, "_user_tags")):
@@ -24,6 +25,9 @@ def execute():
 
 				insert_tag(tag_name, time, time, "Administrator")
 				insert_tag_link(tag_link_name, doctype.name, _user_tags.name, tag_name, time, time, "Administrator")
+
+	if frappe.db.auto_commit_on_many_writes:
+		frappe.db.auto_commit_on_many_writes = False
 
 def insert_tag(name, creation, modified, modified_by):
 	doc = frappe.new_doc("Tag")
