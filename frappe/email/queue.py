@@ -516,9 +516,28 @@ def prepare_message(email, recipient, recipients_list):
 		return message
 
 	# On-demand attachments
-	from email.parser import Parser
+    from email.parser import Parser
+    from email.policy import EmailPolicy, SMTP as SMTP_policy
 
-	msg_obj = Parser().parsestr(message)
+    MSG_ID_HEADERS = {'message-id', 'in-reply-to', 'references', 'resent-msg-id'}
+
+
+    class MsgIdExemptPolicy(EmailPolicy):
+        def _fold(self, name, value, *args, **kwargs):
+            if (name.lower() in MSG_ID_HEADERS and
+                    self.max_line_length < 998 and
+                    self.max_line_length - len(name) - 2 < len(value)):
+                # RFC 5322, section 2.1.1: "Each line of characters MUST be no
+                # more than 998 characters, and SHOULD be no more than 78
+                # characters, excluding the CRLF.". To avoid msg-id tokens from being folded
+                # by means of RFC2047, fold identifier lines to the max length instead.
+                return self.clone(max_line_length=998)._fold(name, value, *args, **kwargs)
+            return super()._fold(name, value, *args, **kwargs)
+
+
+    our_policy = MsgIdExemptPolicy() + SMTP_policy
+
+    msg_obj = Parser(policy=our_policy).parsestr(message)
 	attachments = json.loads(email.attachments)
 
 	for attachment in attachments:
