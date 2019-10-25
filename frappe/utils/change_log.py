@@ -103,14 +103,15 @@ def get_versions():
 			"description": app_hooks.get("app_description")[0],
 			"branch": get_app_branch(app)
 		}
-		rev = ' (rev.{0}/{0})'.format(get_revision(app), get_app_last_commit_ref(app))
 		if versions[app]['branch'] != 'master':
 			branch_version = app_hooks.get('{0}_version'.format(versions[app]['branch']))
 			if branch_version:
-				versions[app]['branch_version'] = branch_version[0] + rev
+				versions[app]['branch_version'] = branch_version[0]
 
+		rev = ' rev:{0}/{1}'.format(get_revision(app), get_app_last_commit_ref(app))
+		versions[app]['branch'] = versions[app]['branch'] + rev
 		try:
-			versions[app]["version"] = frappe.get_attr(app + ".__version__") + rev
+			versions[app]["version"] = frappe.get_attr(app + ".__version__")
 		except AttributeError:
 			versions[app]["version"] = '0.0.1'
 
