@@ -653,16 +653,20 @@ class EmailAccount(Document):
 def get_append_to(doctype=None, txt=None, searchfield=None, start=None, page_len=None, filters=None):
 	if not txt: txt = ""
 
+	if frappe.cache().hget("email_append_to", "email_append_to_dts"):
+		return frappe.cache().hget("email_append_to", "email_append_to_dts")
+
 	email_append_to_list = frappe.get_hooks("email_append_to")
-	custom_email_append_to_list = frappe.get_list("Property Setter", filters={
-			"property": "allow_in_email_append_to",
-			"value": 1
-		}, fields=["doc_type"])
 
-	for doctype in custom_email_append_to_list:
-		email_append_to_list.append(doctype.doc_type)
+	for dt in frappe.get_list("DocType", filters={"istable": 0, "issingle": 0}):
+		meta = frappe.get_meta(dt.name)
+		if meta.allow_in_email_append_to and meta.has_field("subject") and meta.has_field("status"):
+			email_append_to_list.append(dt.name)
 
-	return [[d] for d in set(email_append_to_list) if txt in d]
+	email_append = [[d] for d in set(email_append_to_list) if txt in d]
+	frappe.cache().hset("email_append_to", "email_append_to_dts", email_append)
+
+	return email_append
 
 def test_internet(host="8.8.8.8", port=53, timeout=3):
 	"""Returns True if internet is connected
