@@ -5,10 +5,11 @@ from __future__ import unicode_literals
 import frappe
 from frappe import _
 from frappe.desk.form.document_follow import follow_document
+from frappe.desk.doctype.notification_log.notification_log import enqueue_create_notification
 from frappe.utils import cint
 
 @frappe.whitelist()
-def add(doctype, name, user=None, read=1, write=0, share=0, everyone=0, flags=None, notify=0):
+def add(doctype, name, user=None, read=1, write=0, share=0, everyone=0, flags=None):
 	"""Share the given document with a user."""
 	if not user:
 		user = frappe.session.user
@@ -40,7 +41,7 @@ def add(doctype, name, user=None, read=1, write=0, share=0, everyone=0, flags=No
 	})
 
 	doc.save(ignore_permissions=True)
-	notify_assignment(user, doctype, name, description=None, notify=notify)
+	notify_assignment(user, doctype, name, everyone)
 
 	follow_document(doctype, name, user)
 
@@ -145,16 +146,26 @@ def check_share_permission(doctype, name):
 	if not frappe.has_permission(doctype, ptype="share", doc=name):
 		frappe.throw(_("No permission to {0} {1} {2}".format("share", doctype, name)), frappe.PermissionError)
 
-def notify_assignment(shared_by, doc_type, doc_name, description=None, notify=0):
+def notify_assignment(shared_by, doctype, doc_name, everyone):
 
-	if not (shared_by and doc_type and doc_name): return
+	if not (shared_by and doctype and doc_name) or everyone: return
 
-	from frappe.utils import get_link_to_form
-	document = get_link_to_form(doc_type, doc_name, label="%s: %s" % (doc_type, doc_name))
+	from frappe.utils import get_fullname
 
-	arg = {
-		'contact': shared_by,
-		'txt': _("A new document {0} has been shared by with you {1}.").format(document,
-				shared_by),
-		'notify': notify
+	title_field = frappe.get_meta(doctype).get_title_field()
+	title = doc_name if title_field == "name" else \
+		frappe.db.get_value(doctype, doc_name, title_field)
+
+	reference_user = get_fullname(frappe.session.user)
+	notification_message = _('{0} shared a document {1} {2} with you').format(
+		frappe.bold(reference_user), frappe.bold(doctype), frappe.bold(title))
+
+	notification_doc = {
+		'type': 'Share',
+		'document_type': doctype,
+		'subject': notification_message,
+		'document_name': doc_name,
+		'from_user': frappe.session.user
 	}
+
+	enqueue_create_notification(shared_by, notification_doc)

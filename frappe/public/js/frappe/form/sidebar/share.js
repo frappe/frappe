@@ -141,7 +141,6 @@ frappe.ui.form.Share = Class.extend({
 					read: $(d.body).find(".add-share-read").prop("checked") ? 1 : 0,
 					write: $(d.body).find(".add-share-write").prop("checked") ? 1 : 0,
 					share: $(d.body).find(".add-share-share").prop("checked") ? 1 : 0,
-					notify: $(d.body).find(".add-share-notify").prop("checked") ? 1 : 0
 				},
 				btn: this,
 				callback: function(r) {

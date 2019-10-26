@@ -3,7 +3,6 @@
 from __future__ import unicode_literals
 
 import frappe, unittest
-import requests
 
 from frappe.model.delete_doc import delete_doc
 from frappe.utils.data import today, add_to_date

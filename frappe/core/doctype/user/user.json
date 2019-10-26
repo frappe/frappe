@@ -416,6 +416,7 @@
   {
    "fieldname": "home_settings",
    "fieldtype": "Code",
+   "hidden": 1,
    "label": "Home Settings"
   },
   {
@@ -585,7 +586,7 @@
  "idx": 413,
  "image_field": "user_image",
  "max_attachments": 5,
- "modified": "2019-09-18 14:14:01.233124",
+ "modified": "2019-10-22 14:16:34.810223",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "User",

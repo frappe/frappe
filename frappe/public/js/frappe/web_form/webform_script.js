@@ -111,6 +111,11 @@ frappe.ready(function() {
 				if (df.fieldtype === "Link") {
 					df.only_select = true;
 				}
+				if (["Attach", "Attach Image"].includes(df.fieldtype)) {
+					if (!df.options)
+						df.options = {};
+					df.options.disable_file_browser = true;
+				}
 			});
 
 			return form_data;
