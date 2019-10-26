@@ -11,7 +11,7 @@ def execute():
 	frappe.db.auto_commit_on_many_writes = True
 
 	for doctype in frappe.get_list("DocType", filters={"istable": 0, "issingle": 0}):
-		if not (frappe.db.count(doctype.name) or frappe.db.has_column(doctype.name, "_user_tags")):
+		if not frappe.db.count(doctype.name) or not frappe.db.has_column(doctype.name, "_user_tags"):
 			continue
 
 		for _user_tags in frappe.db.sql("select `name`, `_user_tags` from `tab{0}`".format(doctype.name), as_dict=True):
