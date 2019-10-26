@@ -32,6 +32,9 @@ def execute():
 		frappe.db.auto_commit_on_many_writes = False
 
 def insert_tag(name, creation, modified, modified_by):
+	if frappe.db.exists("Tag", name):
+		return
+
 	doc = frappe.new_doc("Tag")
 	doc.name = name
 	doc.creation = creation
@@ -40,6 +43,9 @@ def insert_tag(name, creation, modified, modified_by):
 	doc.db_insert()
 
 def insert_tag_link(name, document_type, document_name, tag, creation, modified, modified_by):
+	if frappe.db.exists("Tag", {"document_type": document_type, "document_name": document_name, "tag": tag}):
+		return
+
 	doc = frappe.new_doc("Tag Link")
 	doc.name = name
 	doc.document_type = document_type
