@@ -336,7 +336,7 @@ class TestReportview(unittest.TestCase):
 	def test_set_field_tables(self):
 		# Tests _in_standard_sql_methods method in test_set_field_tables
 		# The following query will break if the above method is broken
-		data = frappe.db.get_list(doctype,
+		data = frappe.db.get_list("Web Form",
 			filters=[['Web Form Field', 'reqd', '=', 1]],
 			group_by='amount_field',
 			fields=['count(*) as count `amount_field` as name'],
