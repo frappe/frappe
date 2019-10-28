@@ -24,8 +24,8 @@ frappe.ui.Notifications = class Notifications {
 		this.$open_docs = this.$dropdown_list.find(
 			'.category-list[data-category="Open Documents"]'
 		);
-		this.$upcoming_events = this.$dropdown_list.find(
-			'.category-list[data-category="Upcoming Events"]'
+		this.$today_events = this.$dropdown_list.find(
+			'.category-list[data-category="Todays Events"]'
 		);
 
 		frappe.utils.bind_actions_with_object(this.$dropdown_list, this);
@@ -44,18 +44,13 @@ frappe.ui.Notifications = class Notifications {
 		});
 	}
 
-	render_upcoming_events(e, $target) {
+	render_todays_events(e, $target) {
 		let hide = $target.next().hasClass('in');
 		if (!hide) {
 			let today = frappe.datetime.get_today();
-			let tomorrow = frappe.datetime.add_days(today, 1);
-			frappe.db.get_list('Event', {
-				fields: ['name', 'subject', 'starts_on'],
-				filters: [
-					{'starts_on': ['between', today, tomorrow]}, 
-					{'ends_on': ['>=', frappe.datetime.now_datetime()]},
-					{'owner': frappe.session.user}
-				]
+			frappe.xcall('frappe.desk.doctype.event.event.get_events', {
+				start: today,
+				end: today
 			}).then(event_list => {
 				this.render_events_html(event_list);
 			});
@@ -75,11 +70,11 @@ frappe.ui.Notifications = class Notifications {
 			html = event_list.map(get_event_html).join('');
 		} else {
 			html = `<li class="recent-item text-center">
-					<span class="text-muted">${__('No Upcoming Events')}</span>
+					<span class="text-muted">${__('No Events Today')}</span>
 				</li>`;
 		}
 
-		this.$upcoming_events.html(html);
+		this.$today_events.html(html);
 	}
 
 	get_open_document_config(e) {
@@ -222,23 +217,34 @@ frappe.ui.Notifications = class Notifications {
 	change_activity_status() {
 		if (this.$dropdown_list.find('.activity-status')) {
 			this.$dropdown_list.find('.activity-status').replaceWith(
-				`<a class="recent-item text-center text-muted full-log-btn" 
+				`<a class="recent-item text-center text-muted" 
 					href="#List/Notification Log">
-					${__('View Full Log')}
+					<div class="full-log-btn">${__('View Full Log')}</div>
 				</a>`
 			);
 		}
 	}
 
-	mark_as_seen() {
-		let unseen_docnames = this.dropdown_items
-			.filter(item => item.seen === 0)
-			.map(d => d.name);
-		if (!unseen_docnames.length) return;
+	set_field_as_seen(docname, $el) {
 		frappe.call(
 			'frappe.desk.doctype.notification_log.notification_log.mark_as_seen',
-			{ docnames: unseen_docnames }
-		);
+			{ docname: docname }
+		).then(()=> {
+			$el.removeClass('unseen');
+		});
+	}
+
+	explicitly_mark_as_seen(e, $target) {
+		e.preventDefault();
+		e.stopImmediatePropagation();
+		let docname = $target.parents('.unseen').attr('data-name');
+		this.set_field_as_seen(docname, $target.parents('.unseen'));
+	}
+
+	mark_as_seen(e, $target) {
+		let docname = $target.attr('data-name');
+		let df = this.dropdown_items.filter(f => docname.includes(f.name))[0];
+		this.set_field_as_seen(df.name, $target);
 	}
 
 	get_notifications_list(limit) {
@@ -265,9 +271,9 @@ frappe.ui.Notifications = class Notifications {
 					let item_html = this.get_dropdown_item_html(field);
 					if (item_html) body_html += item_html;
 				});
-				view_full_log_html = `<a class="recent-item text-center text-muted full-log-btn"
+				view_full_log_html = `<a class="recent-item text-center text-muted"
 					href="#List/Notification Log">
-						${__('View Full Log')}
+						<div class="full-log-btn">${__('View Full Log')}</div>
 					</a>`;
 			} else {
 				body_html += `<li class="recent-item text-center activity-status">
@@ -287,18 +293,29 @@ frappe.ui.Notifications = class Notifications {
 			field.document_name
 		);
 		let seen_class = field.seen ? '' : 'unseen';
+		let mark_seen_action = field.seen ? '': 'data-action="mark_as_seen"';
 		let message = field.subject;
+		let title = message.match(/<b class="subject-title">(.*?)<\/b>/);
+		message = title ? message.replace(title[1], frappe.ellipsis(title[1], 100)): message;
 		let message_html = `<div class="message">${message}</div>`;
 		let user = field.from_user;
 		let user_avatar = frappe.avatar(user, 'avatar-small user-avatar');
 		let timestamp = frappe.datetime.comment_when(field.creation, true);
-		let item_html = `<a class="recent-item ${seen_class}" href = "${doc_link}">
+		let item_html = 
+			`<a class="recent-item ${seen_class}" 
+				href="${doc_link}"
+				data-name="${field.name}"
+				${mark_seen_action}
+			>
 				${user_avatar}
 				${message_html}
 				<div class="notification-timestamp text-muted">
 					${timestamp}
 				</div>
-		</a>`;
+				<span class="mark-read text-muted" data-action="explicitly_mark_as_seen">
+					${__('Mark as Read')}
+				</span>
+			</a>`;
 
 		return item_html;
 	}
@@ -306,18 +323,18 @@ frappe.ui.Notifications = class Notifications {
 	render_dropdown_headers() {
 		this.categories = [
 			{
-				label: __('Notifications'),
-				value: 'Notifications'
+				label: __("Notifications"),
+				value: "Notifications"
 			},
 			{
-				label: __('Upcoming Events'),
-				value: 'Upcoming Events',
-				action: 'render_upcoming_events'
+				label: __("Today's Events"),
+				value: "Todays Events",
+				action: "render_todays_events"
 			},
 			{
-				label: __('Open Documents'),
-				value: 'Open Documents',
-				action: 'get_open_document_config'
+				label: __("Open Documents"),
+				value: "Open Documents",
+				action: "get_open_document_config"
 			}
 		];
 
@@ -377,8 +394,8 @@ frappe.ui.Notifications = class Notifications {
 	}
 
 	bind_events() {
-		this.setup_notification_listeners();
 		this.setup_dropdown_events();
+		this.setup_notification_listeners();
 
 		this.$dropdown_list.on('click', '.recent-item', () => {
 			this.$dropdown.removeClass('open');
@@ -399,7 +416,7 @@ frappe.ui.Notifications = class Notifications {
 			this.update_dropdown();
 		});
 
-		frappe.realtime.on('seen_notification', () => {
+		frappe.realtime.on('indicator_hide', () => {
 			this.$dropdown.find('.notifications-indicator').hide();
 		});
 	}
@@ -407,7 +424,7 @@ frappe.ui.Notifications = class Notifications {
 	setup_dropdown_events() {
 		this.$dropdown_list
 			.find(
-				'[data-category="Notifications"], [data-category="Upcoming Events"], [data-category="Open Documents"]'
+				'[data-category="Notifications"], [data-category="Todays Events"], [data-category="Open Documents"]'
 			)
 			.collapse({
 				toggle: false
@@ -420,17 +437,20 @@ frappe.ui.Notifications = class Notifications {
 					.collapse('show');
 				this.$dropdown_list
 					.find(
-						'[data-category="Upcoming Events"], [data-category="Open Documents"]'
+						'[data-category="Todays Events"], [data-category="Open Documents"]'
 					)
 					.collapse('hide');
 			}
-			this.$dropdown_list.find('.unseen').removeClass('unseen');
 			$(e.currentTarget).data('closable', true);
 			return hide;
 		});
 
 		this.$dropdown.on('show.bs.dropdown', () => {
-			this.mark_as_seen();
+			if (this.$notification_indicator.is(':visible')) {
+				frappe.call(
+					'frappe.desk.doctype.notification_log.notification_log.trigger_indicator_hide'
+				);
+			}
 		});
 
 		this.$dropdown.on('click', e => {

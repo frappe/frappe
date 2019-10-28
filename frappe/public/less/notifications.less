@@ -52,29 +52,36 @@
 	display: flow-root;
 }
 
+.category-list[data-category="Notifications"] .recent-item {
+	padding: 15px 14px 0 14px;
+}
+
+.full-log-btn {
+	padding-bottom: 10px;
+}
+
 a.recent-item:hover {
 	background-color: #f0f4f7; 
 }
 
-.dropdown-energy-points .energy-points-icon {
-	height: 40px;
-	font-size: 14px;
-	text-align: center;
+a.unseen:hover .mark-read {
+	display: inline-block;
+}
+
+.mark-read {
+	display: none;
+	margin-left: 10px;
+	font-size: 11px;
+}
+
+.mark-read:hover {
+	text-decoration: underline;
 }
 
 .notifications-list {
 	width: 450px;
 	max-height: 480px;
 	overflow-y: auto;
-}
-
-.energy-points-notification {
-	font-size: 7px;
-	position: absolute;
-	top: 4px;
-	right: 8px;
-	color: @indicator-orange;
-	display: none;
 }
 
 .date-range {
@@ -89,6 +96,8 @@ a.recent-item:hover {
 .notification-timestamp {
 	margin-top: 5px;
 	font-size: 11px;
+	display: inline-block;
+	margin-bottom: 10px;
 }
 
 .user-avatar {

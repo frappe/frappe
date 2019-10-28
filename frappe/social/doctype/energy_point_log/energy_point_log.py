@@ -7,7 +7,8 @@ import frappe
 from frappe import _
 import json
 from frappe.model.document import Document
-from frappe.desk.doctype.notification_log.notification_log import enqueue_create_notification
+from frappe.desk.doctype.notification_log.notification_log import enqueue_create_notification,\
+	get_title, get_title_html
 from frappe.utils import cint, get_fullname, getdate, get_link_to_form
 
 class EnergyPointLog(Document):
@@ -38,7 +39,7 @@ class EnergyPointLog(Document):
 				'document_name': self.reference_name,
 				'subject': get_notification_message(self),
 				'from_user': reference_user,
-				'email_content': '<div>{}</div>'.format(self.reason)
+				'email_content': '<div>{}</div>'.format(self.reason) if self.reason else None
 			}
 
 			enqueue_create_notification(self.user, notification_doc)
@@ -46,9 +47,7 @@ class EnergyPointLog(Document):
 def get_notification_message(doc):
 	owner_name = get_fullname(doc.owner)
 	points = doc.points
-	title_field = frappe.get_meta(doc.reference_doctype).get_title_field()
-	title = doc.reference_name if title_field == "name" else \
-		frappe.db.get_value(doc.reference_doctype, doc.reference_name, title_field)
+	title = get_title(doc.reference_doctype, doc.reference_name)
 
 	if doc.type == 'Auto':
 		owner_name = frappe.bold('You')
@@ -56,26 +55,26 @@ def get_notification_message(doc):
 			message = _('{0} gained {1} point for {2} {3}')
 		else:
 			message = _('{0} gained {1} points for {2} {3}')
-		message = message.format(owner_name, frappe.bold(points), doc.rule, frappe.bold(title))
+		message = message.format(owner_name, frappe.bold(points), doc.rule, get_title_html(title))
 	elif doc.type == 'Appreciation':
 		if points == 1:
 			message = _('{0} appreciated your work on {1} with {2} point')
 		else:
 			message = _('{0} appreciated your work on {1} with {2} points')
-		message = message.format(frappe.bold(owner_name), frappe.bold(title), frappe.bold(points))
+		message = message.format(frappe.bold(owner_name), get_title_html(title), frappe.bold(points))
 	elif doc.type == 'Criticism':
 		if points == 1:
 			message = _('{0} criticized your work on {1} with {2} point')
 		else:
 			message = _('{0} criticized your work on {1} with {2} points')
 
-		message = message.format(frappe.bold(owner_name), frappe.bold(title), frappe.bold(points))
+		message = message.format(frappe.bold(owner_name), get_title_html(title), frappe.bold(points))
 	elif doc.type == 'Revert':
 		if points == 1:
 			message = _('{0} reverted your point on {1}')
 		else:
 			message = _('{0} reverted your points on {1}')
-		message = message.format(frappe.bold(owner_name), frappe.bold(title))
+		message = message.format(frappe.bold(owner_name), get_title_html(title))
 
 	return message
 
