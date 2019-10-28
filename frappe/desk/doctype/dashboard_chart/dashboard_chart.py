@@ -25,6 +25,15 @@ def get(chart_name = None, chart = None, no_cache = None, from_date=None, to_dat
 	# don't include cancelled documents
 	filters['docstatus'] = ('<', 2)
 
+	if chart.chart_type == 'Group By':
+		chart_config = get_group_by_chart_config(chart, filters)
+	else:
+		chart_config =  get_chart_config(chart, filters, timespan, timegrain, from_date, to_date)
+
+	return chart_config
+
+
+def get_chart_config(chart, filters, timespan, timegrain, from_date, to_date):
 	if not from_date:
 		from_date = get_from_date_from_timespan(to_date, timespan)
 	if not to_date:
@@ -32,47 +41,43 @@ def get(chart_name = None, chart = None, no_cache = None, from_date=None, to_dat
 
 	# get conditions from filters
 	conditions, values = frappe.db.build_conditions(filters)
-	if chart.chart_type == 'Group By':
-		chart_config = get_group_by_chart_config(chart, filters)
-	else:
-		print('conditions', conditions)
-		# query will return year, unit and aggregate value
-		data = frappe.db.sql('''
-			select
-				extract(year from {datefield}) as _year,
-				{unit_function} as _unit,
-				{aggregate_function}({value_field})
-			from `tab{doctype}`
-			where
-				{conditions}
-				and {datefield} >= '{from_date}'
-				and {datefield} <= '{to_date}'
-			group by _year, _unit
-			order by _year asc, _unit asc
-		'''.format(
-			unit_function = get_unit_function(chart.based_on, timegrain),
-			datefield = chart.based_on,
-			aggregate_function = get_aggregate_function(chart.chart_type),
-			value_field = chart.value_based_on or '1',
-			doctype = chart.document_type,
-			conditions = conditions,
-			from_date = from_date.strftime('%Y-%m-%d'),
-			to_date = to_date
-		), values)
+	# query will return year, unit and aggregate value
+	data = frappe.db.sql('''
+		select
+			extract(year from {datefield}) as _year,
+			{unit_function} as _unit,
+			{aggregate_function}({value_field})
+		from `tab{doctype}`
+		where
+			{conditions}
+			and {datefield} >= '{from_date}'
+			and {datefield} <= '{to_date}'
+		group by _year, _unit
+		order by _year asc, _unit asc
+	'''.format(
+		unit_function = get_unit_function(chart.based_on, timegrain),
+		datefield = chart.based_on,
+		aggregate_function = get_aggregate_function(chart.chart_type),
+		value_field = chart.value_based_on or '1',
+		doctype = chart.document_type,
+		conditions = conditions,
+		from_date = from_date.strftime('%Y-%m-%d'),
+		to_date = to_date
+	), values)
 
-		# result given as year, unit -> convert it to end of period of that unit
-		result = convert_to_dates(data, timegrain)
+	# result given as year, unit -> convert it to end of period of that unit
+	result = convert_to_dates(data, timegrain)
 
-		# add missing data points for periods where there was no result
-		result = add_missing_values(result, timegrain, from_date, to_date)
+	# add missing data points for periods where there was no result
+	result = add_missing_values(result, timegrain, from_date, to_date)
 
-		chart_config = {
-			"labels": [formatdate(r[0].strftime('%Y-%m-%d')) for r in result],
-			"datasets": [{
-				"name": chart.name,
-				"values": [r[1] for r in result]
-			}]
-		}
+	chart_config = {
+		"labels": [formatdate(r[0].strftime('%Y-%m-%d')) for r in result],
+		"datasets": [{
+			"name": chart.name,
+			"values": [r[1] for r in result]
+		}]
+	}
 
 	return chart_config
 
@@ -96,7 +101,6 @@ def get_group_by_chart_config(chart, filters):
 		conditions = conditions,
 	), values, as_dict = True)
 
-	print('data', data)
 	if data:
 		if chart.number_of_groups and chart.number_of_groups < len(data):
 			other_count = 0
