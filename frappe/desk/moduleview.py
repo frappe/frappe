@@ -375,6 +375,22 @@ def update_hidden_modules(category_map):
 
 	return get_desktop_settings()
 
+@frappe.whitelist()
+def update_global_hidden_modules(modules):
+	modules = frappe.parse_json(modules)
+	frappe.only_for('System Manager')
+
+	doc = frappe.get_doc('User', 'Administrator')
+	doc.set('block_modules', [])
+	for module in modules:
+		doc.append('block_modules', {
+			'module': module
+		})
+
+	doc.save(ignore_permissions=True)
+
+	return get_desktop_settings()
+
 
 @frappe.whitelist()
 def update_modules_order(module_category, modules):
@@ -401,6 +417,37 @@ def update_links_for_module(module_name, links):
 
 @frappe.whitelist()
 def get_options_for_show_hide_cards():
+	global_options = []
+
+	if 'System Manager' in frappe.get_roles():
+		global_options = get_options_for_global_blocked_modules()
+
+	return {
+		'user_options': get_options_for_user_blocked_modules(),
+		'global_options': global_options
+	}
+
+@frappe.whitelist()
+def get_options_for_global_blocked_modules():
+	from frappe.config import get_modules_from_all_apps
+	all_modules = get_modules_from_all_apps()
+
+	blocked_modules = frappe.get_doc('User', 'Administrator').get_blocked_modules()
+
+	options = []
+	for module in all_modules:
+		module = frappe._dict(module)
+		options.append({
+			'category': module.category,
+			'label': module.label,
+			'value': module.module_name,
+			'checked': module.module_name not in blocked_modules
+		})
+
+	return options
+
+@frappe.whitelist()
+def get_options_for_user_blocked_modules():
 	from frappe.config import get_modules_from_all_apps_for_user
 	all_modules = get_modules_from_all_apps_for_user()
 	home_settings = get_home_settings()
