@@ -18,6 +18,8 @@
   "number_of_groups",
   "column_break_6",
   "timespan",
+  "from_date",
+  "to_date",
   "time_interval",
   "timeseries",
   "filters_section",
@@ -80,7 +82,7 @@
    "fieldname": "timespan",
    "fieldtype": "Select",
    "label": "Timespan",
-   "options": "Last Year\nLast Quarter\nLast Month\nLast Week"
+   "options": "Last Year\nLast Quarter\nLast Month\nLast Week\nSelect Date Range"
   },
   {
    "depends_on": "timeseries",
@@ -171,9 +173,21 @@
    "fieldname": "number_of_groups",
    "fieldtype": "Int",
    "label": "Number of Groups"
+  },
+  {
+   "depends_on": "eval:doc.timespan === 'Choose Time Span'",
+   "fieldname": "from_date",
+   "fieldtype": "Date",
+   "label": "From Date"
+  },
+  {
+   "depends_on": "eval:doc.timespan === 'Choose Time Span'",
+   "fieldname": "to_date",
+   "fieldtype": "Date",
+   "label": "To Date"
   }
  ],
- "modified": "2019-10-11 16:11:17.051669",
+ "modified": "2019-10-29 02:26:14.838057",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Dashboard Chart",

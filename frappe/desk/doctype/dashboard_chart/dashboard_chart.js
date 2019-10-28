@@ -40,6 +40,7 @@ frappe.ui.form.on('Dashboard Chart', {
 
 	timespan: function(frm) {
 		const time_interval_options = {
+			"Select Date Range": ["Quarterly", "Monthly", "Weekly", "Daily"],
 			"Last Year": ["Quarterly", "Monthly", "Weekly", "Daily"],
 			"Last Quarter": ["Monthly", "Weekly", "Daily"],
 			"Last Month": ["Weekly", "Daily"],
