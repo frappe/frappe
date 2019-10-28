@@ -4,6 +4,7 @@
 frappe.ui.form.on('Data Import Beta', {
 	setup(frm) {
 		frappe.realtime.on('data_import_refresh', ({ data_import }) => {
+			frm.import_in_progress = false;
 			if (data_import !== frm.doc.name) return;
 			frappe.model.clear_doc('Data Import Beta', frm.doc.name);
 			frappe.model.with_doc('Data Import Beta', frm.doc.name).then(() => {
@@ -11,6 +12,7 @@ frappe.ui.form.on('Data Import Beta', {
 			});
 		});
 		frappe.realtime.on('data_import_progress', data => {
+			frm.import_in_progress = true;
 			if (data.data_import !== frm.doc.name) {
 				return;
 			}
@@ -81,7 +83,9 @@ frappe.ui.form.on('Data Import Beta', {
 		}
 
 		if (frm.doc.status !== 'Success') {
-			if (!frm.is_new() && frm.doc.import_file) {
+			if (frm.import_in_progress) {
+				frm.disable_save();
+			} else if (!frm.is_new() && frm.doc.import_file) {
 				let label = frm.doc.status === 'Pending' ? __('Start Import') : __('Retry');
 				frm.page.set_primary_action(label, () => frm.events.start_import(frm));
 			} else {
@@ -131,6 +135,10 @@ frappe.ui.form.on('Data Import Beta', {
 			doc: frm.doc,
 			method: 'start_import',
 			btn: frm.page.btn_primary
+		}).then(r => {
+			if (r.message === true) {
+				frm.disable_save();
+			}
 		});
 	},
 
