@@ -982,7 +982,7 @@ class Database(object):
 		for idx, value in enumerate(values):
 			insert_list.append(tuple(value))
 			if idx and (idx%10000 == 0 or idx < len(values)-1):
-				self.sql("""INSERT INTO `tab{doctype}` ({fields}) VALUES {values}""".format(
+				self.sql("""INSERT IGNORE INTO `tab{doctype}` ({fields}) VALUES {values}""".format(
 						doctype=doctype,
 						fields=fields,
 						values=", ".join(['%s'] * len(insert_list))
