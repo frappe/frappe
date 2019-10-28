@@ -8,7 +8,7 @@ from frappe import _
 import json
 from frappe.model.document import Document
 from frappe.desk.doctype.notification_log.notification_log import enqueue_create_notification,\
-	get_truncated_title
+	get_title, get_title_html
 from frappe.utils import cint, get_fullname, getdate, get_link_to_form
 
 class EnergyPointLog(Document):
@@ -47,7 +47,7 @@ class EnergyPointLog(Document):
 def get_notification_message(doc):
 	owner_name = get_fullname(doc.owner)
 	points = doc.points
-	title = get_truncated_title(doc.reference_doctype, doc.reference_name, truncate_length=100)
+	title = get_title(doc.reference_doctype, doc.reference_name)
 
 	if doc.type == 'Auto':
 		owner_name = frappe.bold('You')
@@ -55,26 +55,26 @@ def get_notification_message(doc):
 			message = _('{0} gained {1} point for {2} {3}')
 		else:
 			message = _('{0} gained {1} points for {2} {3}')
-		message = message.format(owner_name, frappe.bold(points), doc.rule, frappe.bold(title))
+		message = message.format(owner_name, frappe.bold(points), doc.rule, get_title_html(title))
 	elif doc.type == 'Appreciation':
 		if points == 1:
 			message = _('{0} appreciated your work on {1} with {2} point')
 		else:
 			message = _('{0} appreciated your work on {1} with {2} points')
-		message = message.format(frappe.bold(owner_name), frappe.bold(title), frappe.bold(points))
+		message = message.format(frappe.bold(owner_name), get_title_html(title), frappe.bold(points))
 	elif doc.type == 'Criticism':
 		if points == 1:
 			message = _('{0} criticized your work on {1} with {2} point')
 		else:
 			message = _('{0} criticized your work on {1} with {2} points')
 
-		message = message.format(frappe.bold(owner_name), frappe.bold(title), frappe.bold(points))
+		message = message.format(frappe.bold(owner_name), get_title_html(title), frappe.bold(points))
 	elif doc.type == 'Revert':
 		if points == 1:
 			message = _('{0} reverted your point on {1}')
 		else:
 			message = _('{0} reverted your points on {1}')
-		message = message.format(frappe.bold(owner_name), frappe.bold(title))
+		message = message.format(frappe.bold(owner_name), get_title_html(title))
 
 	return message
 

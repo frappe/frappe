@@ -6,7 +6,7 @@ import frappe
 from frappe import _
 from frappe.desk.form.document_follow import follow_document
 from frappe.desk.doctype.notification_log.notification_log import enqueue_create_notification,\
-	get_truncated_title
+	get_title, get_title_html
 from frappe.utils import cint
 
 @frappe.whitelist()
@@ -153,11 +153,11 @@ def notify_assignment(shared_by, doctype, doc_name, everyone):
 
 	from frappe.utils import get_fullname
 
-	title = get_truncated_title(doctype, doc_name, truncate_length=100)
+	title = get_title(doctype, doc_name)
 
 	reference_user = get_fullname(frappe.session.user)
 	notification_message = _('{0} shared a document {1} {2} with you').format(
-		frappe.bold(reference_user), frappe.bold(doctype), frappe.bold(title))
+		frappe.bold(reference_user), frappe.bold(doctype), get_title_html(title))
 
 	notification_doc = {
 		'type': 'Share',

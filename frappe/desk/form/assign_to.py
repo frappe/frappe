@@ -8,7 +8,7 @@ import frappe
 from frappe import _
 from frappe.desk.form.document_follow import follow_document
 from frappe.desk.doctype.notification_log.notification_log import enqueue_create_notification,\
-	get_truncated_title
+	get_title, get_title_html
 import frappe.utils
 import frappe.share
 
@@ -161,15 +161,15 @@ def notify_assignment(assigned_by, owner, doc_type, doc_name, action='CLOSE',
 
 	# Search for email address in description -- i.e. assignee
 	user_name = frappe.get_cached_value('User', frappe.session.user, 'full_name')
-	title = get_truncated_title(doc_type, doc_name, truncate_length=100)
+	title = get_title(doc_type, doc_name)
 	description_html =  "<div>{0}</div>".format(description) if description else None
 
 	if action=='CLOSE':
-		subject = _('Your assignment on {0} {1} has been removed').format(frappe.bold(doc_type), frappe.bold(title))
+		subject = _('Your assignment on {0} {1} has been removed').format(frappe.bold(doc_type), get_title_html(title))
 	else:
 		user_name = frappe.bold(user_name)
 		document_type = frappe.bold(doc_type)
-		title = frappe.bold(title)
+		title = get_title_html(title)
 		subject = _('{0} assigned a new task {1} {2} to you').format(user_name, document_type, title)
 
 	notification_doc = {

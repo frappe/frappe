@@ -288,6 +288,8 @@ frappe.ui.Notifications = class Notifications {
 		);
 		let seen_class = field.seen ? '' : 'unseen';
 		let message = field.subject;
+		let title = message.match(/<b class="subject-title">(.*?)<\/b>/);
+		message = title ? message.replace(title[1], frappe.ellipsis(title[1], 100)): message;
 		let message_html = `<div class="message">${message}</div>`;
 		let user = field.from_user;
 		let user_avatar = frappe.avatar(user, 'avatar-small user-avatar');
@@ -309,18 +311,18 @@ frappe.ui.Notifications = class Notifications {
 	render_dropdown_headers() {
 		this.categories = [
 			{
-				label: __('Notifications'),
-				value: 'Notifications'
+				label: __("Notifications"),
+				value: "Notifications"
 			},
 			{
-				label: __('Today\'s Events'),
-				value: 'Todays Events',
-				action: 'render_todays_events'
+				label: __("Today's Events"),
+				value: "Todays Events",
+				action: "render_todays_events"
 			},
 			{
-				label: __('Open Documents'),
-				value: 'Open Documents',
-				action: 'get_open_document_config'
+				label: __("Open Documents"),
+				value: "Open Documents",
+				action: "get_open_document_config"
 			}
 		];
 
