@@ -227,8 +227,31 @@ class TestEnergyPointLog(unittest.TestCase):
 		self.assertEquals(points_after_changing_todo_description,
 			points_before_todo_creation + rule.points)
 
-def create_energy_point_rule_for_todo(multiplier_field=None, for_doc_event='Custom',
-	max_points=None, for_assigned_users=0, field_to_check=None):
+	def test_user_energy_point(self):
+		frappe.set_user('test@example.com')
+		todo_point_rule = create_energy_point_rule_for_todo(apply_once=True, user_field='modified_by')
+		first_user_points = get_points('test@example.com')
+
+		created_todo = create_a_todo()
+
+		created_todo.status = 'Closed'
+		created_todo.save()
+
+		first_user_points_after_closing_todo = get_points('test@example.com')
+
+		self.assertEquals(first_user_points_after_closing_todo, first_user_points + todo_point_rule.points)
+
+		frappe.set_user('test2@example.com')
+		second_user_points = get_points('test2@example.com')
+		created_todo.save()
+		second_user_points_after_closing_todo = get_points('test@example.com')
+
+		# point should not be awarded more than once for same doc (irrespective of user)
+		self.assertEquals(second_user_points_after_closing_todo, second_user_points)
+
+
+def create_energy_point_rule_for_todo(multiplier_field=None, for_doc_event='Custom', max_points=None,
+	for_assigned_users=0, field_to_check=None, apply_once=False, user_field='owner'):
 	name = 'ToDo Closed'
 	point_rule_exists = frappe.db.exists('Energy Point Rule', name)
 
@@ -241,11 +264,12 @@ def create_energy_point_rule_for_todo(multiplier_field=None, for_doc_event='Cust
 		'reference_doctype': 'ToDo',
 		'condition': 'doc.status == "Closed"',
 		'for_doc_event': for_doc_event,
-		'user_field': 'owner',
+		'user_field': user_field,
 		'for_assigned_users': for_assigned_users,
 		'multiplier_field': multiplier_field,
 		'max_points': max_points,
-		'field_to_check': field_to_check
+		'field_to_check': field_to_check,
+		'apply_only_once': apply_once
 	}).insert(ignore_permissions=1)
 
 def create_a_todo():
