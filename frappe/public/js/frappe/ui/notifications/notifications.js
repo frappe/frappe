@@ -225,7 +225,7 @@ frappe.ui.Notifications = class Notifications {
 		}
 	}
 
-	mark_as_seen(docname, $el) {
+	set_field_as_seen(docname, $el) {
 		frappe.call(
 			'frappe.desk.doctype.notification_log.notification_log.mark_as_seen',
 			{ docname: docname }
@@ -238,7 +238,13 @@ frappe.ui.Notifications = class Notifications {
 		e.preventDefault();
 		e.stopImmediatePropagation();
 		let docname = $target.parents('.unseen').attr('data-name');
-		this.mark_as_seen(docname, $target.parents('.unseen'));
+		this.set_field_as_seen(docname, $target.parents('.unseen'));
+	}
+
+	mark_as_seen(e, $target) {
+		let docname = $target.attr('data-name');
+		let df = this.dropdown_items.filter(f => docname.includes(f.name))[0];
+		this.set_field_as_seen(df.name, $target);
 	}
 
 	get_notifications_list(limit) {
@@ -287,6 +293,7 @@ frappe.ui.Notifications = class Notifications {
 			field.document_name
 		);
 		let seen_class = field.seen ? '' : 'unseen';
+		let mark_seen_action = field.seen ? '': 'data-action="mark_as_seen"';
 		let message = field.subject;
 		let title = message.match(/<b class="subject-title">(.*?)<\/b>/);
 		message = title ? message.replace(title[1], frappe.ellipsis(title[1], 100)): message;
@@ -294,7 +301,12 @@ frappe.ui.Notifications = class Notifications {
 		let user = field.from_user;
 		let user_avatar = frappe.avatar(user, 'avatar-small user-avatar');
 		let timestamp = frappe.datetime.comment_when(field.creation, true);
-		let item_html = `<a class="recent-item ${seen_class}" href="${doc_link}" data-name="${field.name}">
+		let item_html = 
+			`<a class="recent-item ${seen_class}" 
+				href="${doc_link}"
+				data-name="${field.name}"
+				${mark_seen_action}
+			>
 				${user_avatar}
 				${message_html}
 				<div class="notification-timestamp text-muted">
@@ -303,7 +315,7 @@ frappe.ui.Notifications = class Notifications {
 				<span class="mark-read text-muted" data-action="explicitly_mark_as_seen">
 					${__('Mark as Read')}
 				</span>
-		</a>`;
+			</a>`;
 
 		return item_html;
 	}
@@ -406,12 +418,6 @@ frappe.ui.Notifications = class Notifications {
 
 		frappe.realtime.on('indicator_hide', () => {
 			this.$dropdown.find('.notifications-indicator').hide();
-		});
-
-		this.$dropdown_list.on('click', '.unseen', (e) => {
-			let docname = $(e.currentTarget).attr('data-name');
-			let df = this.dropdown_items.filter(f => docname.includes(f.name))[0];
-			this.mark_as_seen(df.name, $(e.currentTarget));
 		});
 	}
 
