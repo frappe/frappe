@@ -129,23 +129,34 @@ def get_alert_dict(doc):
 
 	return alert_dict
 
-def create_energy_points_log(ref_doctype, ref_name, doc):
+def create_energy_points_log(ref_doctype, ref_name, doc, apply_only_once=False):
 	doc = frappe._dict(doc)
-	log_exists = frappe.db.exists('Energy Point Log', {
-		'user': doc.user,
-		'rule': doc.rule,
-		'reference_doctype': ref_doctype,
-		'reference_name': ref_name
-	})
+
+	log_exists = check_if_log_exists(ref_doctype,
+		ref_name, doc.rule, None if apply_only_once else doc.user)
+
 	if log_exists:
 		return
 
-	_doc = frappe.new_doc('Energy Point Log')
-	_doc.reference_doctype = ref_doctype
-	_doc.reference_name = ref_name
-	_doc.update(doc)
-	_doc.insert(ignore_permissions=True)
-	return _doc
+	new_log = frappe.new_doc('Energy Point Log')
+	new_log.reference_doctype = ref_doctype
+	new_log.reference_name = ref_name
+	new_log.update(doc)
+	new_log.insert(ignore_permissions=True)
+	return new_log
+
+def check_if_log_exists(ref_doctype, ref_name, rule, user=None):
+	''''Checks if Energy Point Log already exists'''
+	filters = frappe._dict({
+		'rule': rule,
+		'reference_doctype': ref_doctype,
+		'reference_name': ref_name
+	})
+
+	if user:
+		filters.user = user
+
+	return frappe.db.exists('Energy Point Log', filters)
 
 def create_review_points_log(user, points, reason=None, doctype=None, docname=None):
 	return frappe.get_doc({

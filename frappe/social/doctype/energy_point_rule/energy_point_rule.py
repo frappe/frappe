@@ -48,7 +48,7 @@ class EnergyPointRule(Document):
 						'points': points,
 						'user': user,
 						'rule': rule
-					})
+					}, self.apply_only_once)
 			except Exception as e:
 				frappe.log_error(frappe.get_traceback(), 'apply_energy_point')
 
