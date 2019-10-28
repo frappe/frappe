@@ -39,7 +39,7 @@ class EnergyPointLog(Document):
 				'document_name': self.reference_name,
 				'subject': get_notification_message(self),
 				'from_user': reference_user,
-				'email_content': '<div>{}</div>'.format(self.reason)
+				'email_content': '<div>{}</div>'.format(self.reason) if self.reason else None
 			}
 
 			enqueue_create_notification(self.user, notification_doc)

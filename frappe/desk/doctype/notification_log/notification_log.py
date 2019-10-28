@@ -58,6 +58,9 @@ def send_notification_email(doc):
 	if not is_type_enabled:
 		return
 
+	if doc.type == 'Energy Point' and doc.email_content is None:
+		return
+
 	from frappe.utils import get_url_to_form, strip_html
 
 	doc_link = get_url_to_form(doc.document_type, doc.document_name)
