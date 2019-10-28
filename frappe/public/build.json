@@ -32,6 +32,7 @@
 		"public/js/frappe/model/meta.js",
 		"public/js/frappe/model/model.js",
 		"public/js/frappe/model/perm.js",
+		"public/js/frappe/model/sync.js",
 		"public/js/frappe/socketio_client.js",
 		"public/js/frappe/chat.js"
 	],
