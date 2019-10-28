@@ -286,7 +286,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				}))
 		);
 
-		if (this.list_view_settings.column_order.length > 0 &&
+		if (this.list_view_settings.column_order && this.list_view_settings.column_order.length > 0 &&
 			this.list_view_settings.column_order.length === this.list_view_settings.column_count) {
 			let custom_column_order = [];
 

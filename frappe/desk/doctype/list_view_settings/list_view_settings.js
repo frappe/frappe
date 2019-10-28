@@ -3,6 +3,10 @@
 
 frappe.ui.form.on('List View Settings', {
 	refresh: function(frm) {
+		if (frm.is_new()) {
+			return;
+		}
+
 		frm.add_custom_button(__('Go to {0} List', [frm.doc.name]), () => {
 			frappe.set_route('List', frm.doc.name, 'List');
 		});
@@ -16,8 +20,11 @@ frappe.ui.form.on('List View Settings', {
 				callback: function (r) {
 					if (r && r.message) {
 						let i = 0;
+						frm.clear_table("column_order");
 						while (i < frm.doc.column_count) {
-							frm.add_child("column_order", r.message[i]);
+							if (r.message[i]) {
+								frm.add_child("column_order", r.message[i]);
+							}
 							i++;
 						}
 						frm.refresh();
