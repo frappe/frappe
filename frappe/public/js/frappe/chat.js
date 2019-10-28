@@ -1015,11 +1015,12 @@ frappe.provide('frappe.chat.sound')
  */
 frappe.chat.sound.play  = function (name, volume = 0.1) {
 	// frappe._.play_sound(`chat-${name}`)
-	const $audio = $(`<audio class="chat-audio"/>`)
-	$audio.attr('volume', volume)
+	let $audio = $("audio.chat-audio")
 
-	if  ( frappe._.is_empty($audio) )
-		$(document).append($audio)
+	if  ( !$audio.length ) {
+		$audio = $(`<audio class="chat-audio"/>`)
+		$("body").append($audio)
+	}
 
 	if  ( !$audio.paused ) {
 		frappe.log.info('Stopping sound playing.')
@@ -1028,6 +1029,7 @@ frappe.chat.sound.play  = function (name, volume = 0.1) {
 	}
 
 	frappe.log.info('Playing sound.')
+	$audio.attr('volume', volume)
 	$audio.attr('src', `${frappe.chat.sound.PATH}/chat-${name}.mp3`)
 	$audio[0].play()
 }
