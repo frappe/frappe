@@ -4,7 +4,7 @@
 from __future__ import unicode_literals
 import frappe
 from frappe.model.document import Document
-from frappe.website.utils import cleanup_page_name
+from frappe.website.utils import cleanup_page_name, remove_non_ascii
 from frappe.website.render import clear_cache
 from frappe.modules import get_module_name
 
@@ -50,7 +50,7 @@ class WebsiteGenerator(Document):
 		route/title'''
 		from_title = self.scrubbed_title()
 		if self.meta.route:
-			return self.meta.route + '/' + from_title
+			return self.meta.route + '/' + remove_non_ascii(from_title)
 		else:
 			return from_title
 

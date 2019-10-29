@@ -307,6 +307,8 @@ def extract_comment_tag(source, tag):
 	else:
 		return None
 
+def remove_non_ascii(text):
+	return "".join(filter(lambda x: ord(x)<128, text))
 
 def add_missing_headers():
 	'''Walk and add missing headers in docs (to be called from bench execute)'''
