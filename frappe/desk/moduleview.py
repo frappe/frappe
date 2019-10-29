@@ -420,7 +420,7 @@ def get_options_for_show_hide_cards():
 	global_options = []
 
 	if 'System Manager' in frappe.get_roles():
-		global_options = get_options_for_global_blocked_modules()
+		global_options = get_options_for_global_modules()
 
 	return {
 		'user_options': get_options_for_user_blocked_modules(),
@@ -428,7 +428,7 @@ def get_options_for_show_hide_cards():
 	}
 
 @frappe.whitelist()
-def get_options_for_global_blocked_modules():
+def get_options_for_global_modules():
 	from frappe.config import get_modules_from_all_apps
 	all_modules = get_modules_from_all_apps()
 
