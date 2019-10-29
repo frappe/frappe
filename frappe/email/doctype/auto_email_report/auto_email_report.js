@@ -78,6 +78,9 @@ frappe.ui.form.on('Auto Email Report', {
 
 			if(report_filters && report_filters.length > 0) {
 				frm.set_value('filter_meta', JSON.stringify(report_filters));
+				if (frm.is_dirty()) {
+					frm.save();
+				}
 			}
 
 			var report_filters_list = []
