@@ -22,8 +22,16 @@ frappe.ui.form.on('Bulk Update', {
 
 					if (failed.length && !r._server_messages) {
 						frappe.throw(__('Cannot update {0}', [failed.map(f => f.bold ? f.bold(): f).join(', ')]));
+					} else {
+						frappe.msgprint({
+							title: __('Success'),
+							message: __('Updated Successfully'),
+							indicator: 'green'
+						});
 					}
+
 					frappe.hide_progress();
+					frm.save();
 				});
 			}
 		});
