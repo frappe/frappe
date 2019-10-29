@@ -418,10 +418,19 @@ def search(text, start=0, limit=20, doctype=""):
 	from frappe.desk.doctype.global_search_settings.global_search_settings import get_doctypes_for_global_search
 
 	results = []
-	texts = [t.strip() for t in text.split('&') if t]
-	priorities = get_doctypes_for_global_search()
-	allowed_doctypes = ",".join(["'{0}'".format(dt) for dt in priorities])
-	for text in texts:
+	sorted_results = []
+
+	priorities = frappe.cache().hget("global_search", "search_priorities")
+	allowed_doctypes = frappe.cache().hget("global_search", "allowed_doctypes")
+
+	if not priorities or not allowed_doctypes:
+		priorities, allowed_doctypes = get_doctypes_for_global_search()
+
+	for text in set(text.split('&')):
+		text = text.strip()
+		if not text:
+			continue
+
 		mariadb_conditions = ''
 		postgres_conditions = ''
 		offset = ''
@@ -455,36 +464,22 @@ def search(text, start=0, limit=20, doctype=""):
 				'postgres': common_query.format(fields=postgres_fields, conditions=postgres_conditions, limit=limit, offset=offset)
 			}, as_dict=True)
 
-		tmp_result=[]
-		for i in result:
-			if i.rank > 0.0:
-				if i in results or not results:
-					tmp_result.extend([i])
-		results.extend(tmp_result)
-
-	for r in results:
-		try:
-			if frappe.get_meta(r.doctype).image_field:
-				r.image = frappe.db.get_value(r.doctype, r.name, frappe.get_meta(r.doctype).image_field)
-		except Exception:
-			frappe.clear_messages()
-
-	sorted_results = []
+		results.extend(result)
 
 	for priority in priorities:
-		tmp_result = []
-		if not results:
-			break
-
 		for index, r in enumerate(results):
-			if r.doctype == priority:
-				tmp_result.extend([r])
+			if r.doctype == priority and r.rank > 0.0:
+				try:
+					meta = frappe.get_meta(r.doctype)
+					if meta.image_field:
+						r.image = frappe.db.get_value(r.doctype, r.name, meta.image_field)
+				except Exception:
+					frappe.clear_messages()
+
+				sorted_results.extend([r])
 				results.pop(index)
 
-		sorted_results.extend(tmp_result)
-
-	return sorted_results
-
+	return sorted_results or results
 
 @frappe.whitelist(allow_guest=True)
 def web_search(text, scope=None, start=0, limit=20):
