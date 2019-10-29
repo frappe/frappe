@@ -414,10 +414,10 @@ export default class GridRow {
 
 	set_arrow_keys(field) {
 		var me = this;
-		if(field.$input) {
+		if (field.$input) {
 			field.$input.on('keydown', function(e) {
 				var { TAB, UP: UP_ARROW, DOWN: DOWN_ARROW } = frappe.ui.keyCode;
-				if(!in_list([TAB, UP_ARROW, DOWN_ARROW], e.which)) {
+				if (!in_list([TAB, UP_ARROW, DOWN_ARROW], e.which)) {
 					return;
 				}
 
@@ -426,23 +426,26 @@ export default class GridRow {
 				var fieldtype = $(this).attr('data-fieldtype');
 
 				var move_up_down = function(base) {
-					if(in_list(['Text', 'Small Text'], fieldtype)) {
+					if (in_list(['Text', 'Small Text'], fieldtype)) {
 						return;
 					}
-					if(field.autocomplete_open) {
+					if (field.autocomplete_open) {
+						return;
+					}
+					if (field.autocomplete_open) {
 						return;
 					}
 
 					base.toggle_editable_row();
 					var input = base.columns[fieldname].field.$input;
-					if(input) {
+					if (input) {
 						input.focus();
 					}
 
 				};
 
 				// TAB
-				if(e.which==TAB && !e.shiftKey) {
+				if (e.which === TAB && !e.shiftKey) {
 					var last_column = me.wrapper.find(':input:enabled:last').get(0);
 					var is_last_column = $(this).attr('data-last-input') || last_column === this;
 
@@ -454,22 +457,21 @@ export default class GridRow {
 								me.grid.grid_rows[me.grid.grid_rows.length - 1].toggle_editable_row();
 								me.grid.set_focus_on_row();
 							}, 100);
-						}
-						// last column before last row
-						else {
+						} else {
+							// last column before last row
 							me.grid.grid_rows[me.doc.idx].toggle_editable_row();
 							me.grid.set_focus_on_row(me.doc.idx);
 							return false;
 						}
 					}
-				} else if(e.which==UP_ARROW) {
-					if(me.doc.idx > 1) {
+				} else if (e.which === UP_ARROW) {
+					if (me.doc.idx > 1) {
 						var prev = me.grid.grid_rows[me.doc.idx-2];
 						move_up_down(prev);
 						return false;
 					}
-				} else if(e.which==DOWN_ARROW) {
-					if(me.doc.idx < values.length) {
+				} else if (e.which === DOWN_ARROW) {
+					if (me.doc.idx < values.length) {
 						var next = me.grid.grid_rows[me.doc.idx];
 						move_up_down(next);
 						return false;
