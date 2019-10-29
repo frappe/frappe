@@ -27,13 +27,13 @@ class TestEnergyPointLog(unittest.TestCase):
 
 		points_after_closing_todo = get_points('test@example.com')
 
-		self.assertEquals(points_after_closing_todo, energy_point_of_user + todo_point_rule.points)
+		self.assertEqual(points_after_closing_todo, energy_point_of_user + todo_point_rule.points)
 
 		created_todo.save()
 		points_after_double_save = get_points('test@example.com')
 
 		# point should not be awarded more than once for same doc
-		self.assertEquals(points_after_double_save, energy_point_of_user + todo_point_rule.points)
+		self.assertEqual(points_after_double_save, energy_point_of_user + todo_point_rule.points)
 
 	def test_points_based_on_multiplier_field(self):
 		frappe.set_user('test@example.com')
@@ -50,7 +50,7 @@ class TestEnergyPointLog(unittest.TestCase):
 
 		points_after_closing_todo = get_points('test@example.com')
 
-		self.assertEquals(points_after_closing_todo,
+		self.assertEqual(points_after_closing_todo,
 			energy_point_of_user + round(todo_point_rule.points * multiplier_value))
 
 		clear_custom_fields('ToDo')
@@ -77,7 +77,7 @@ class TestEnergyPointLog(unittest.TestCase):
 		self.assertNotEquals(points_after_closing_todo,
 			energy_point_of_user + round(todo_point_rule.points * multiplier_value))
 
-		self.assertEquals(points_after_closing_todo,
+		self.assertEqual(points_after_closing_todo,
 			energy_point_of_user + max_points)
 
 		clear_custom_fields('ToDo')
@@ -99,7 +99,7 @@ class TestEnergyPointLog(unittest.TestCase):
 		points_after_closing_todo = get_points('test@example.com')
 
 		# no change in points
-		self.assertEquals(points_after_closing_todo, energy_point_of_user)
+		self.assertEqual(points_after_closing_todo, energy_point_of_user)
 
 		settings.enabled = 1
 		settings.save()
@@ -113,7 +113,7 @@ class TestEnergyPointLog(unittest.TestCase):
 		frappe.set_user('test2@example.com')
 
 		review_points_before_review = get_points('test2@example.com', 'review_points')
-		self.assertEquals(review_points_before_review, review_points)
+		self.assertEqual(review_points_before_review, review_points)
 
 		# for appreciation
 		appreciation_points = 5
@@ -121,8 +121,8 @@ class TestEnergyPointLog(unittest.TestCase):
 		review(created_todo, appreciation_points, 'test@example.com', 'good job')
 		energy_points_after_review = get_points('test@example.com')
 		review_points_after_review = get_points('test2@example.com', 'review_points')
-		self.assertEquals(energy_points_after_review, energy_points_before_review + appreciation_points)
-		self.assertEquals(review_points_after_review, review_points_before_review - appreciation_points)
+		self.assertEqual(energy_points_after_review, energy_points_before_review + appreciation_points)
+		self.assertEqual(review_points_after_review, review_points_before_review - appreciation_points)
 
 		# for criticism
 		criticism_points = 2
@@ -131,8 +131,8 @@ class TestEnergyPointLog(unittest.TestCase):
 		review(created_todo, criticism_points, 'test@example.com', 'You could have done better.', 'Criticism')
 		energy_points_after_review = get_points('test@example.com')
 		review_points_after_review = get_points('test2@example.com', 'review_points')
-		self.assertEquals(energy_points_after_review, energy_points_before_review - criticism_points)
-		self.assertEquals(review_points_after_review, review_points_before_review - criticism_points)
+		self.assertEqual(energy_points_after_review, energy_points_before_review - criticism_points)
+		self.assertEqual(review_points_after_review, review_points_before_review - criticism_points)
 
 	def test_user_energy_point_as_admin(self):
 		frappe.set_user('Administrator')
@@ -145,7 +145,7 @@ class TestEnergyPointLog(unittest.TestCase):
 		points_after_closing_todo = get_points('Administrator')
 
 		# no points for admin
-		self.assertEquals(points_after_closing_todo, 0)
+		self.assertEqual(points_after_closing_todo, 0)
 
 	def test_revert_points_on_cancelled_doc(self):
 		frappe.set_user('test@example.com')
@@ -156,7 +156,7 @@ class TestEnergyPointLog(unittest.TestCase):
 
 		energy_point_logs = frappe.get_all('Energy Point Log')
 
-		self.assertEquals(len(energy_point_logs), 1)
+		self.assertEqual(len(energy_point_logs), 1)
 
 		# for submit and cancel permission
 		frappe.set_user('Administrator')
@@ -183,7 +183,7 @@ class TestEnergyPointLog(unittest.TestCase):
 		create_a_todo()
 		points_after_todo_creation = get_points('test@example.com')
 
-		self.assertEquals(points_after_todo_creation,
+		self.assertEqual(points_after_todo_creation,
 			points_before_todo_creation + todo_point_rule.points)
 
 	def test_point_allocation_for_assigned_users(self):
@@ -202,10 +202,10 @@ class TestEnergyPointLog(unittest.TestCase):
 		test_user_after_points = get_points('test@example.com')
 		test2_user_after_points = get_points('test2@example.com')
 
-		self.assertEquals(test_user_after_points,
+		self.assertEqual(test_user_after_points,
 			test_user_before_points + rule.points)
 
-		self.assertEquals(test2_user_after_points,
+		self.assertEqual(test2_user_after_points,
 			test2_user_before_points + rule.points)
 
 	def test_points_on_field_value_change(self):
@@ -218,13 +218,13 @@ class TestEnergyPointLog(unittest.TestCase):
 		todo.status = 'Closed'
 		todo.save()
 		points_after_closing_todo = get_points('test@example.com')
-		self.assertEquals(points_after_closing_todo,
+		self.assertEqual(points_after_closing_todo,
 			points_before_todo_creation)
 
 		todo.description = 'This is new todo'
 		todo.save()
 		points_after_changing_todo_description = get_points('test@example.com')
-		self.assertEquals(points_after_changing_todo_description,
+		self.assertEqual(points_after_changing_todo_description,
 			points_before_todo_creation + rule.points)
 
 	def test_apply_only_once(self):
