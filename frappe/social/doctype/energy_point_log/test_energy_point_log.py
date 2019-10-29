@@ -227,7 +227,7 @@ class TestEnergyPointLog(unittest.TestCase):
 		self.assertEquals(points_after_changing_todo_description,
 			points_before_todo_creation + rule.points)
 
-	def test_user_energy_point(self):
+	def test_apply_only_once(self):
 		frappe.set_user('test@example.com')
 		todo_point_rule = create_energy_point_rule_for_todo(apply_once=True, user_field='modified_by')
 		first_user_points = get_points('test@example.com')
@@ -239,15 +239,15 @@ class TestEnergyPointLog(unittest.TestCase):
 
 		first_user_points_after_closing_todo = get_points('test@example.com')
 
-		self.assertEquals(first_user_points_after_closing_todo, first_user_points + todo_point_rule.points)
+		self.assertEqual(first_user_points_after_closing_todo, first_user_points + todo_point_rule.points)
 
 		frappe.set_user('test2@example.com')
 		second_user_points = get_points('test2@example.com')
-		created_todo.save()
-		second_user_points_after_closing_todo = get_points('test@example.com')
+		created_todo.save(ignore_permissions=True)
+		second_user_points_after_closing_todo = get_points('test2@example.com')
 
 		# point should not be awarded more than once for same doc (irrespective of user)
-		self.assertEquals(second_user_points_after_closing_todo, second_user_points)
+		self.assertEqual(second_user_points_after_closing_todo, second_user_points)
 
 
 def create_energy_point_rule_for_todo(multiplier_field=None, for_doc_event='Custom', max_points=None,
