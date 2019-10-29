@@ -82,7 +82,16 @@ export default {
 							label: __('Setup For'),
 							fieldname: 'setup_for',
 							fieldtype: 'Select',
-							options: [user_value, 'Everyone'],
+							options: [
+								{
+									label: __('User ({0})', [frappe.session.user]),
+									value: user_value
+								},
+								{
+									label: __('Everyone'),
+									value: 'Everyone'
+								}
+							],
 							default: user_value,
 							depends_on: doc => frappe.user_roles.includes('System Manager'),
 							onchange() {
