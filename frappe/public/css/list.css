@@ -54,7 +54,7 @@
 }
 .active-tag-filters .btn-group {
   margin-left: 10px;
-  white-space: nowrap;
+  /*white-space: nowrap;*/
   font-size: 0;
 }
 .active-tag-filters .btn-group .btn-default {
