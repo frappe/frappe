@@ -9,7 +9,6 @@ frappe.ui.FilterGroup = class {
 
 	make() {
 		this.wrapper.append(this.get_container_template());
-		this.toggle_clear_filter();
 		this.set_events();
 	}
 
@@ -40,7 +39,7 @@ frappe.ui.FilterGroup = class {
 			promises.push(() => this.add_filter(...filter));
 		}
 
-		promises.push()
+		promises.push(() => this.toggle_clear_filter())
 
 		return frappe.run_serially(promises);
 	}
@@ -160,8 +159,7 @@ frappe.ui.FilterGroup = class {
 			<div class="active-tag-filters">
 				<button class="btn btn-default btn-xs filter-button text-muted add-filter">
 					${__("Add Filter")}
-				</button>
-				<button class="btn btn-default btn-xs filter-button text-muted clear-filters">
+				</button><button class="btn btn-default btn-xs filter-button text-muted clear-filters">
 					${__("Clear Filters")}
 				</button>
 			</div>
