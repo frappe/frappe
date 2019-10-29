@@ -227,12 +227,12 @@ frappe.ui.GroupBy = class {
 
 	get_group_by_fields() {
 		let group_by_fields = {};
-		let fields = this.report_view.meta.fields.filter(f => ["Select", "Link"].includes(f.fieldtype));
+		let fields = this.report_view.meta.fields.filter(f => ["Select", "Link", "Data", "Int"].includes(f.fieldtype));
 		group_by_fields[this.doctype] = fields;
 
 		const standard_fields_filter = df =>
 			!in_list(frappe.model.no_value_type, df.fieldtype) && !df.report_hide;
-		
+
 		const table_fields = frappe.meta.get_table_fields(this.doctype)
 			.filter(df => !df.hidden);
 
