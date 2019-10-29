@@ -370,6 +370,10 @@ def update_hidden_modules(category_map):
 		saved_hidden_modules += config.removed or []
 		saved_hidden_modules = [d for d in saved_hidden_modules if d not in (config.added or [])]
 
+		if home_settings.get('modules_by_category') and home_settings.modules_by_category.get(category):
+			module_placement = [d for d in (config.added or []) if d not in home_settings.modules_by_category[category]]
+			home_settings.modules_by_category[category] += module_placement
+
 	home_settings.hidden_modules = saved_hidden_modules
 	set_home_settings(home_settings)
 

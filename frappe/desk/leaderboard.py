@@ -25,7 +25,11 @@ def get_energy_point_leaderboard(from_date, company = None, field = None, limit 
 		order_by = 'value desc'
 	)
 	all_users = frappe.db.get_all('User',
-		filters = {'name': ['not in', ['Administrator', 'Guest']]},
+		filters = {
+			'name': ['not in', ['Administrator', 'Guest']],
+			'enabled': 1,
+			'user_type': ['!=', 'Website User']
+		},
 		order_by = 'name ASC')
 
 	all_users_list = list(map(lambda x: x['name'], all_users))

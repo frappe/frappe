@@ -182,7 +182,7 @@ frappe.views.CommunicationComposer = Class.extend({
 			}
 		}
 
-		if (!this.recipients) {
+		if (this.frm && !this.recipients) {
 			this.recipients = this.frm.doc[this.frm.email_field];
 		}
 	},

@@ -8,7 +8,8 @@ from frappe import _
 import json
 from frappe.model.document import Document
 from frappe.core.doctype.user.user import extract_mentions
-from frappe.desk.doctype.notification_log.notification_log import enqueue_create_notification
+from frappe.desk.doctype.notification_log.notification_log import enqueue_create_notification,\
+	get_title, get_title_html
 from frappe.utils import get_fullname
 from frappe.website.render import clear_cache
 from frappe.database.schema import add_column
@@ -51,15 +52,13 @@ class Comment(Document):
 				return
 
 			sender_fullname = get_fullname(frappe.session.user)
-			title_field = frappe.get_meta(self.reference_doctype).get_title_field()
-			title = self.reference_name if title_field == "name" else \
-				frappe.db.get_value(self.reference_doctype, self.reference_name, title_field)
+			title = get_title(self.reference_doctype, self.reference_name)
 
 			recipients = [frappe.db.get_value("User", {"enabled": 1, "name": name, "user_type": "System User", "allowed_in_mentions": 1}, "email")
 				for name in mentions]
 
 			notification_message = _('''{0} mentioned you in a comment in {1} {2}''')\
-				.format(frappe.bold(sender_fullname), frappe.bold(self.reference_doctype), frappe.bold(title))
+				.format(frappe.bold(sender_fullname), frappe.bold(self.reference_doctype), get_title_html(title))
 
 			notification_doc = {
 				'type': 'Mention',

@@ -125,8 +125,8 @@ frappe.ui.form.Toolbar = Class.extend({
 								title_field,
 								old_title: me.frm.doc[title_field],
 								new_title: args.title,
-								old_name: docname,
-								new_name: args.name
+								new_name: args.name,
+								merge: args.merge
 							},
 							btn: d.get_primary_btn()
 						}).then((res) => {

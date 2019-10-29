@@ -289,7 +289,7 @@ frappe.ui.Filter = class {
 
 	make_tag() {
 		this.$filter_tag = this.get_filter_tag_element()
-			.insertAfter(this.parent.find(".active-tag-filters .add-filter"));
+			.insertAfter(this.parent.find(".active-tag-filters .clear-filters"));
 		this.set_filter_button_text();
 		this.bind_tag();
 	}

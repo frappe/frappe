@@ -3,7 +3,8 @@
 from __future__ import unicode_literals
 
 import pdfkit, os, frappe
-from frappe.utils import scrub_urls
+from distutils.version import LooseVersion
+from frappe.utils import scrub_urls, get_wkhtmltopdf_version
 from frappe import _
 import six, re, io
 from bs4 import BeautifulSoup
@@ -15,11 +16,12 @@ def get_pdf(html, options=None, output=None):
 
 	options.update({
 		"disable-javascript": "",
-		"disable-local-file-access": "",
-		"disable-smart-shrinking": ""
+		"disable-local-file-access": ""
 	})
 
 	filedata = ''
+	if LooseVersion(get_wkhtmltopdf_version()) > LooseVersion('0.12.3'):
+		options.update({"disable-smart-shrinking": ""})
 
 	try:
 		# Set filename property to false, so no file is actually created
