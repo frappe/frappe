@@ -39,7 +39,7 @@ frappe.ui.FilterGroup = class {
 			promises.push(() => this.add_filter(...filter));
 		}
 
-		promises.push(() => this.toggle_clear_filter())
+		promises.push(() => this.toggle_clear_filter());
 
 		return frappe.run_serially(promises);
 	}
