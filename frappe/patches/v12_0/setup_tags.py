@@ -29,5 +29,5 @@ def execute():
 				tag_links.append((tag_link_name, doctype.name, _user_tags.name, tag.strip(), time, time, 'Administrator'))
 
 
-	frappe.db.bulk_insert("Tag", fields=["name", "creation", "modified", "modified_by"], values=set(tag_list))
-	frappe.db.bulk_insert("Tag Link", fields=["name", "document_type", "document_name", "tag", "creation", "modified", "modified_by"], values=set(tag_links))
+	frappe.db.bulk_insert("Tag", fields=["name", "creation", "modified", "modified_by"], values=set(tag_list), ignore_duplicates=True)
+	frappe.db.bulk_insert("Tag Link", fields=["name", "document_type", "document_name", "tag", "creation", "modified", "modified_by"], values=set(tag_links), ignore_duplicates=True)
