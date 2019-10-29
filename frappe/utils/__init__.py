@@ -10,6 +10,7 @@ from .html_utils import sanitize_html
 import frappe
 from frappe.utils.identicon import Identicon
 from email.utils import parseaddr, formataddr
+from email.header import decode_header, make_header
 # utility functions like cint, int, flt, etc.
 from frappe.utils.data import *
 from six.moves.urllib.parse import quote
@@ -65,7 +66,7 @@ def get_formatted_email(user):
 	"""get Email Address of user formatted as: `John Doe <johndoe@example.com>`"""
 	fullname = get_fullname(user)
 	mail = get_email_address(user)
-	return formataddr((fullname, mail))
+	return cstr(make_header(decode_header(formataddr((fullname, mail)))))
 
 def extract_email_id(email):
 	"""fetch only the email part of the Email Address"""
