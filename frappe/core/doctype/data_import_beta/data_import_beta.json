@@ -23,6 +23,7 @@
   "import_warnings",
   "import_log_section",
   "import_log",
+  "show_failed_logs",
   "import_log_preview"
  ],
  "fields": [
@@ -30,7 +31,6 @@
    "fieldname": "reference_doctype",
    "fieldtype": "Link",
    "in_list_view": 1,
-   "in_standard_filter": 1,
    "label": "Document Type",
    "options": "DocType",
    "reqd": 1,
@@ -40,7 +40,6 @@
    "fieldname": "import_type",
    "fieldtype": "Select",
    "in_list_view": 1,
-   "in_standard_filter": 1,
    "label": "Import Type",
    "options": "\nInsert New Records\nUpdate Existing Records",
    "reqd": 1,
@@ -50,6 +49,7 @@
    "depends_on": "eval:!doc.__islocal",
    "fieldname": "import_file",
    "fieldtype": "Attach",
+   "in_list_view": 1,
    "label": "Import File"
   },
   {
@@ -102,7 +102,6 @@
    "fieldname": "status",
    "fieldtype": "Select",
    "hidden": 1,
-   "in_standard_filter": 1,
    "label": "Status",
    "options": "Pending\nSuccess\nPartial Success",
    "read_only": 1
@@ -137,15 +136,21 @@
    "label": "Download Template"
   },
   {
-   "default": "1",
+   "default": "0",
    "fieldname": "mute_emails",
    "fieldtype": "Check",
    "label": "Don't Send Emails"
+  },
+  {
+   "default": "0",
+   "fieldname": "show_failed_logs",
+   "fieldtype": "Check",
+   "label": "Show Failed Logs"
   }
  ],
  "hide_toolbar": 1,
- "modified": "2019-10-28 22:46:21.344894",
- "modified_by": "Administrator",
+ "modified": "2019-10-29 14:57:02.769220",
+ "modified_by": "faris@erpnext.com",
  "module": "Core",
  "name": "Data Import Beta",
  "owner": "Administrator",

@@ -304,6 +304,10 @@ frappe.ui.form.on('Data Import Beta', {
 		`);
 	},
 
+	show_failed_logs(frm) {
+		frm.trigger('show_import_log');
+	},
+
 	show_import_log(frm) {
 		let import_log = JSON.parse(frm.doc.import_log || '[]');
 		let logs = import_log;
@@ -317,7 +321,7 @@ frappe.ui.form.on('Data Import Beta', {
 
 		let rows = logs
 			.map(log => {
-				let html;
+				let html = '';
 				if (log.success) {
 					html = __('Successfully imported {0}', [
 						`<span class="underline">${frappe.utils.get_form_link(
@@ -348,6 +352,11 @@ frappe.ui.form.on('Data Import Beta', {
 				}
 				let indicator_color = log.success ? 'green' : 'red';
 				let title = log.success ? __('Success') : __('Failure');
+
+				if (frm.doc.show_failed_logs && log.success) {
+					return '';
+				}
+
 				return `<tr>
 					<td>${log.row_indexes.join(', ')}</td>
 					<td>
@@ -359,6 +368,10 @@ frappe.ui.form.on('Data Import Beta', {
 				</tr>`;
 			})
 			.join('');
+
+		if (!rows && frm.doc.show_failed_logs) {
+			rows = `<tr><td class="text-center text-muted" colspan=3>${__('No failed logs')}</td></tr>`;
+		}
 
 		frm.get_field('import_log_preview').$wrapper.html(`
 			<table class="table table-bordered">
