@@ -457,7 +457,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			this.datatable.refresh(data, this.columns);
 		} else {
 			let datatable_options = {
-				columns: this.columns,
+				columns: this.columns.filter((col) => !col.hidden),
 				data: data,
 				inlineFilters: true,
 				treeView: this.tree_report,
