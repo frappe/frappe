@@ -50,11 +50,15 @@ def make_notification_logs(doc, users):
 					_doc.update(doc)
 					_doc.for_user = user
 					_doc.subject = _doc.subject.replace('<div>', '').replace('</div>', '')
-					_doc.insert(ignore_permissions=True)
+					if _doc.for_user != _doc.from_user or doc.type == 'Energy Point':
+						_doc.insert(ignore_permissions=True)
 
 def send_notification_email(doc):
 	is_type_enabled = is_email_notifications_enabled_for_type(doc.for_user, doc.type)
 	if not is_type_enabled:
+		return
+
+	if doc.type == 'Energy Point' and doc.email_content is None:
 		return
 
 	from frappe.utils import get_url_to_form, strip_html
@@ -88,10 +92,22 @@ def get_email_header(doc):
 	}[doc.type or 'Default']
 
 
+def get_title(doctype, docname, title_field=None):
+	if not title_field:
+		title_field = frappe.get_meta(doctype).get_title_field()
+	title = docname if title_field == "name" else \
+		frappe.db.get_value(doctype, docname, title_field)
+	return title
+
+def get_title_html(title):
+	return '<b class="subject-title">{0}</b>'.format(title)
+
 @frappe.whitelist()
-def mark_as_seen(docnames):
-	docnames = frappe.parse_json(docnames)
-	if docnames:
-		filters = {'name': ['in', docnames]}
-		frappe.db.set_value('Notification Log', filters, 'seen', 1, update_modified=False)
-		frappe.publish_realtime('seen_notification', after_commit=True, user=frappe.session.user)
+def mark_as_seen(docname):
+	if docname:
+		frappe.db.set_value('Notification Log', docname, 'seen', 1, update_modified=False)
+
+
+@frappe.whitelist()
+def trigger_indicator_hide():
+	frappe.publish_realtime('indicator_hide', user=frappe.session.user)
