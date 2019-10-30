@@ -6,7 +6,7 @@ class RFC5322Policy(EmailPolicy):
 		self._msg_id_headers = {'message-id', 'in-reply-to', 'references', 'resent-msg-id'}
 		super().__init__(**kwargs)
 
-	def _fold(self, name, value, refold_binary):
+	def _fold(self, name, value, refold_binary=False):
 		if name.lower() in self._msg_id_headers and \
 				self.max_line_length < 998 and \
 				self.max_line_length - len(name) - 2 < len(value):
