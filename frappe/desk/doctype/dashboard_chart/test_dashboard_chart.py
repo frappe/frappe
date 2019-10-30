@@ -133,7 +133,7 @@ class TestDashboardChart(unittest.TestCase):
 	def test_group_by_chart_type(self):
 		if frappe.db.exists('Dashboard Chart', 'Test Group By Dashboard Chart'):
 			frappe.delete_doc('Dashboard Chart', 'Test Group By Dashboard Chart')
-		
+
 		frappe.get_doc({"doctype":"ToDo", "description": "test"}).insert()
 
 		frappe.get_doc(dict(
