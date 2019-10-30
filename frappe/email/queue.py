@@ -4,7 +4,9 @@
 from __future__ import unicode_literals
 import frappe
 from six.moves import html_parser as HTMLParser
-import smtplib, quopri, json
+import smtplib
+import quopri
+import json
 from frappe import msgprint, throw, _, safe_decode
 from frappe.email.smtp import SMTPServer, get_outgoing_email_account
 from frappe.email.email_body import get_email, get_formatted_html, add_attachment
@@ -14,8 +16,13 @@ from frappe.utils import get_url, nowdate, encode, now_datetime, add_days, split
 from rq.timeouts import JobTimeoutException
 from frappe.utils.scheduler import log
 from six import text_type, string_types
+from email.parser import Parser
+from email.policy import SMTP as SMTP_policy
+from frappe.email.rfc5322policy import RFC5322Policy
+
 
 class EmailLimitCrossedError(frappe.ValidationError): pass
+
 
 def send(recipients=None, sender=None, subject=None, message=None, text_content=None, reference_doctype=None,
 		reference_name=None, unsubscribe_method=None, unsubscribe_params=None, unsubscribe_message=None,
@@ -404,10 +411,8 @@ def send_one(email, smtpserver=None, auto_commit=True, now=False, from_test=Fals
 				continue
 
 			message = prepare_message(email, recipient.recipient, recipients_list)
-			message = message.replace('\n', '\r\n')
 			if not frappe.flags.in_test:
-
-				smtpserver.sess.sendmail(email.sender, recipient.recipient, encode(message))
+				smtpserver.sess.sendmail(email.sender, recipient.recipient, message)
 
 			recipient.status = "Sent"
 			frappe.db.sql("""update `tabEmail Queue Recipient` set status='Sent', modified=%s where name=%s""",
@@ -515,28 +520,9 @@ def prepare_message(email, recipient, recipients_list):
 	if not email.attachments:
 		return message
 
-	# On-demand attachments
-	from email.parser import Parser
-	from email.policy import EmailPolicy, SMTP as SMTP_policy
+	rfc_compliant_policy = RFC5322Policy(linesep="\r\n") + SMTP_policy(linesep="\r\n")
 
-	MSG_ID_HEADERS = {'message-id', 'in-reply-to', 'references', 'resent-msg-id'}
-
-
-	class MsgIdExemptPolicy(EmailPolicy):
-		def _fold(self, name, value, *args, **kwargs):
-			if (name.lower() in MSG_ID_HEADERS and
-                self.max_line_length < 998 and
-                self.max_line_length - len(name) - 2 < len(value)):
-				# RFC 5322, section 2.1.1: "Each line of characters MUST be no
-                # more than 998 characters, and SHOULD be no more than 78
-                # characters, excluding the CRLF.". To avoid msg-id tokens from being folded
-                # by means of RFC2047, fold identifier lines to the max length instead.
-				return self.clone(max_line_length=998)._fold(name, value, *args, **kwargs)
-			return super()._fold(name, value, *args, **kwargs)
-
-	our_policy = MsgIdExemptPolicy() + SMTP_policy
-
-	msg_obj = Parser(policy=our_policy).parsestr(message)
+	msg_obj = Parser(policy=rfc_compliant_policy).parsestr(message)
 	attachments = json.loads(email.attachments)
 
 	for attachment in attachments:
