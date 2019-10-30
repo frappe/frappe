@@ -53,9 +53,6 @@ def get_chat_assets(build_version):
 		boot = frappe._dict(status='failed', error = str(e))
 		print(frappe.get_traceback())
 
-	csrf_token = frappe.sessions.get_csrf_token()
-	frappe.db.commit()
-
 	include_js = [
 		'assets/js/moment-bundle.min.js',
 		'assets/js/chat-bundle.js',
