@@ -7,9 +7,12 @@
  "field_order": [
   "subscribed_doctypes",
   "callback_url",
-  "user",
+  "section_break_3",
   "api_key",
-  "api_secret"
+  "api_secret",
+  "column_break_6",
+  "user",
+  "incoming_change"
  ],
  "fields": [
   {
@@ -45,9 +48,25 @@
    "label": "Event Subscriber",
    "options": "User",
    "reqd": 1
+  },
+  {
+   "fieldname": "section_break_3",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_6",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "incoming_change",
+   "fieldtype": "Check",
+   "hidden": 1,
+   "label": "Incoming Change"
   }
  ],
- "modified": "2019-10-03 21:11:34.926285",
+ "in_create": 1,
+ "modified": "2019-10-29 19:37:39.659615",
  "modified_by": "Administrator",
  "module": "Events Streaming",
  "name": "Event Consumer",

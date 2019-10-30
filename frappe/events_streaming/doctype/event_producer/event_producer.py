@@ -18,8 +18,12 @@ class EventProducer(Document):
 		self.is_producer_online(method='create_event_consumer')
 
 	def on_update(self):
-		self.is_producer_online(method='update_event_consumer')
-		self.create_custom_fields()
+		if not self.incoming_change:
+			self.is_producer_online(method='update_event_consumer')
+			self.create_custom_fields()
+		else:
+			#when producer doc is updated it updates the consumer doc, set flag to avoid deadlock
+			frappe.db.set_value(self.doctype, self.name, 'incoming_change', False)
 
 	def create_event_consumer(self):
 		'''register event consumer on the producer site'''
@@ -45,7 +49,8 @@ class EventProducer(Document):
 		return {
 			'event_consumer': get_current_node(),
 			'subscribed_doctypes': json.dumps(subscribed_doctypes),
-			'user': self.user
+			'user': self.user,
+			'incoming_change': True
 		}
 
 	def create_custom_fields(self):
@@ -63,18 +68,21 @@ class EventProducer(Document):
 		producer_site = get_producer_site(self.producer_url)
 		event_consumer = producer_site.get_doc('Event Consumer', get_current_node())
 		if event_consumer:
+			config = event_consumer.subscribed_doctypes
 			event_consumer.subscribed_doctypes = []
 			for entry in self.event_configuration:
 				if entry.has_mapping:
 					#if it has mapping then on event consumer's site it should subscribe to remote doctype
-					event_consumer.subscribed_doctypes.append({
-						'ref_doctype': frappe.db.get_value('Document Type Mapping', entry.mapping, 'remote_doctype')
-					})
+					ref_doctype = frappe.db.get_value('Document Type Mapping', entry.mapping, 'remote_doctype')
 				else:
-					event_consumer.subscribed_doctypes.append({
-						'ref_doctype': entry.ref_doctype
-					})
+					ref_doctype = entry.ref_doctype
+
+				event_consumer.subscribed_doctypes.append({
+					'ref_doctype': ref_doctype,
+					'status': get_approval_status(config, ref_doctype)
+				})
 			event_consumer.user = self.user
+			event_consumer.incoming_change = True
 			producer_site.update(event_consumer)
 
 	def is_producer_online(self, method = None):
@@ -107,6 +115,12 @@ def get_producer_site(producer_url):
 		frappe_authorization_source='Event Consumer'
 	)
 	return producer_site
+
+def get_approval_status(config, ref_doctype):
+	for entry in config:
+		if entry.get('ref_doctype') == ref_doctype:
+			return entry.get('status')
+	return 'Pending'
 
 @frappe.whitelist()
 def pull_producer_data():

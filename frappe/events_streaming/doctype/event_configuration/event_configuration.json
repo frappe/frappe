@@ -5,6 +5,7 @@
  "engine": "InnoDB",
  "field_order": [
   "ref_doctype",
+  "status",
   "use_same_name",
   "has_mapping",
   "mapping"
@@ -39,10 +40,19 @@
    "fieldtype": "Check",
    "in_list_view": 1,
    "label": "Use Same Name"
+  },
+  {
+   "default": "Pending",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Approval Status",
+   "options": "Pending\nApproved\nRejected",
+   "read_only": 1
   }
  ],
  "istable": 1,
- "modified": "2019-10-03 21:27:31.483213",
+ "modified": "2019-10-29 15:12:53.962591",
  "modified_by": "Administrator",
  "module": "Events Streaming",
  "name": "Event Configuration",

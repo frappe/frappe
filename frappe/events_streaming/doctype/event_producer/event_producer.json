@@ -7,10 +7,13 @@
  "field_order": [
   "producer_url",
   "event_configuration",
-  "last_update",
-  "user",
+  "section_break_3",
   "api_key",
-  "api_secret"
+  "api_secret",
+  "column_break_6",
+  "user",
+  "last_update",
+  "incoming_change"
  ],
  "fields": [
   {
@@ -52,9 +55,24 @@
    "label": "Event Configuration",
    "options": "Event Configuration",
    "reqd": 1
+  },
+  {
+   "fieldname": "column_break_6",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_3",
+   "fieldtype": "Section Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "incoming_change",
+   "fieldtype": "Check",
+   "hidden": 1,
+   "label": "Incoming Change"
   }
  ],
- "modified": "2019-10-03 21:26:32.739416",
+ "modified": "2019-10-29 14:56:30.854731",
  "modified_by": "Administrator",
  "module": "Events Streaming",
  "name": "Event Producer",

@@ -12,7 +12,31 @@ from frappe.frappeclient import FrappeClient
 from frappe.events_streaming.doctype.event_producer.event_producer import get_current_node
 from frappe.utils.background_jobs import get_jobs
 
-class EventConsumer(Document):		
+class EventConsumer(Document):
+	def on_update(self):
+		if not self.incoming_change:
+			self.update_consumer_status()
+		else:
+			frappe.db.set_value(self.doctype, self.name, 'incoming_change', False)
+
+	def update_consumer_status(self):
+		consumer_site = get_consumer_site(self.callback_url)
+		event_producer = consumer_site.get_doc('Event Producer', get_current_node())
+		config = event_producer.event_configuration
+		event_producer.event_configuration = []
+		for entry in config:
+			if entry.get('has_mapping'):
+				ref_doctype = consumer_site.get_value('Document Type Mapping', entry.get('mapping'), 'remote_doctype')
+			else:
+				ref_doctype = entry.get('ref_doctype')
+
+			entry['status'] = frappe.db.get_value('Event Subscribed Document Type', {'parent': self.name, 'ref_doctype': ref_doctype}, 'status')
+
+		event_producer.event_configuration = config
+		# when producer doc is updated it updates the consumer doc, set flag to avoid deadlock
+		event_producer.incoming_change = True
+		consumer_site.update(event_producer)
+
 	def get_consumer_status(self):
 		response = requests.get(self.callback_url)
 		if response.status_code != 200:
@@ -30,7 +54,8 @@ def register_consumer(data):
 
 	for entry in subscribed_doctypes:
 		consumer.append('subscribed_doctypes', {
-			'ref_doctype': entry
+			'ref_doctype': entry,
+			'status': 'Pending'
 		})
 
 	api_key = frappe.generate_hash(length=10)
