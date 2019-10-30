@@ -62,7 +62,7 @@ def get_chat_assets(build_version):
 	]
 	local_build_version = get_build_version()
 
-	"""Get chat assets to be loaded for mobile app"""
+	# Get chat assets to be loaded for mobile app
 	assets = [{"type": "js", "data": ""}, {"type": "css", "data": ""}]
 
 	if build_version != local_build_version:

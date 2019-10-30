@@ -1605,6 +1605,7 @@ class extends Component {
 				{
 					  label: __("New"),
 					onclick: function ( ) {
+						const has_user_perm = frappe.perm.has_perm("User", 0, 'read');
 						const dialog = new frappe.ui.Dialog({
 							  title: __("New Chat"),
 							 fields: [
@@ -1639,8 +1640,8 @@ class extends Component {
 								 {
 										 label: __("User"),
 									 fieldname: "user",
-									 fieldtype: "Link",
-									   options: "User",
+									 fieldtype: has_user_perm ? "Link" : "Data",
+									   options: has_user_perm ? "User" : null,
 									depends_on: "eval:doc.type == 'Direct Chat'"
 								 }
 							 ],
