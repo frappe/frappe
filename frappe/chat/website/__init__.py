@@ -5,7 +5,6 @@ from   frappe.chat.util import filter_dict, safe_json_loads
 from   frappe.sessions  import get_geo_ip_country
 
 import os
-import re
 from frappe.www.desk import get_build_version
 
 @frappe.whitelist(allow_guest = True)
