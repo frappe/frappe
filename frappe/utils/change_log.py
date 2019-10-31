@@ -11,7 +11,7 @@ import subprocess # nosec
 from frappe.utils import cstr
 from frappe.utils.gitutils import get_app_branch
 from frappe.utils.gitutils import get_app_last_commit_ref
-from frappe.utils.gitutils import get_revision
+from frappe.utils.gitutils import get_revision, get_changelog
 
 
 def get_change_log(user=None):
@@ -226,3 +226,7 @@ def show_update_popup():
 	if update_message:
 		frappe.msgprint(update_message, title=_("New updates are available"), indicator='green')
 		cache.srem("update-user-set", user)
+
+@frappe.whitelist()
+def get_git_changelog(app):
+        return get_changelog(app)

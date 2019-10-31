@@ -10,6 +10,9 @@
 	"js/chat.js": [
 		"public/js/frappe/chat.js"
 	],
+	"js/help.js": [
+		"public/js/frappe/help.js"
+	],
 	"js/frappe-recorder.min.js": [
 		"public/js/frappe/recorder/recorder.js"
 	],

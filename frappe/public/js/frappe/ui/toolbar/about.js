@@ -1,4 +1,20 @@
 frappe.provide('frappe.ui.misc');
+
+
+function getGitChangelog(app){
+    frappe.call({
+        method:"frappe.utils.change_log.get_git_changelog",
+        args: {
+            app: app
+        },
+        callback: function(r) {
+            console.log(r);
+            frappe.msgprint(r);
+        }
+    });
+}
+
+
 frappe.ui.misc.about = function() {
 	if(!frappe.ui.misc.about_dialog) {
 		var d = new frappe.ui.Dialog({title: __('Frappe Framework')});
@@ -35,14 +51,19 @@ frappe.ui.misc.about = function() {
 			var $wrap = $("#about-app-versions").empty();
 			$.each(Object.keys(versions).sort(), function(i, key) {
 				var v = versions[key];
+          v.title = '<a href="#"><b>' + v.title + '</b></a>';
 				if(v.branch) {
-					var text = $.format('<p><b>{0}:</b> v{1} ({2})<br></p>',
-						[v.title, v.branch_version || v.version, v.branch])
+					  var title = $(v.title).click(() => getGitChangelog(key));
+					  var text = $("<p>").append(title).append($.format('v{0} ({1})<br>',
+                                                              [v.branch_version || v.version, v.branch]));
+					// var text = $.format('<p><b>{0}:</b> v{1} ({2})<br></p>',
+					// 	                  [v.title, v.branch_version || v.version, v.branch]);
 				} else {
-					var text = $.format('<p><b>{0}:</b> v{1}<br></p>',
-						[v.title, v.version])
+					  var text = $(v.title).click(() => alert('lol')).wrap($("<b></b>"));
+           //  $.format('<p><b>{0}:</b> v{1}<br></p>',
+						                  // [, v.version])
 				}
-				$(text).appendTo($wrap);
+				  $(text).appendTo($wrap);
 			});
 
 			frappe.versions = versions;

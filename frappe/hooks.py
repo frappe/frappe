@@ -36,6 +36,7 @@ app_include_js = [
 	"assets/js/form.min.js",
 	"assets/js/control.min.js",
 	"assets/js/report.min.js",
+	"assets/js/help.js",
 ]
 app_include_css = [
 	"assets/css/desk.min.css",
