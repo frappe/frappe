@@ -240,9 +240,14 @@ frappe.ui.form.Toolbar = Class.extend({
 
 		if(frappe.user_roles.includes("System Manager") && me.frm.meta.issingle === 0) {
 			this.page.add_menu_item(__("Customize"), function() {
-				frappe.set_route("Form", "Customize Form", {
-					doc_type: me.frm.doctype
-				})
+
+				if (me.frm.meta && me.frm.meta.custom) {
+					frappe.set_route('Form', 'DocType', me.frm.doctype);
+				} else {
+					frappe.set_route('Form', 'Customize Form', {
+						doc_type: me.frm.doctype
+					});
+				}
 			}, true);
 
 			if (frappe.boot.developer_mode===1) {
