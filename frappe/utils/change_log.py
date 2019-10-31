@@ -111,7 +111,9 @@ def get_versions():
 		rev = ' rev:{0}/{1}'.format(get_revision(app), get_app_last_commit_ref(app))
 		versions[app]['branch'] = versions[app]['branch'] + rev
 		try:
-			versions[app]["version"] = frappe.get_attr(app + ".__version__")
+			frappeVersion = frappe.get_attr(app + ".__version__")
+			pcgVersion = frappe.get_attr(app + ".__version_pcg__")
+			versions[app]["version"] = frappeVersion + "-pcg." + str(pcgVersion)
 		except AttributeError:
 			versions[app]["version"] = '0.0.1'
 
