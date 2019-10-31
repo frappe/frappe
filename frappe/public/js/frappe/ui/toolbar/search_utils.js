@@ -521,7 +521,7 @@ frappe.search.utils = {
 		// **Specific use-case step**
 		keywords = keywords || '';
 		var item = __(_item || '');
-		var item_without_hyphen = item.replace(/-/g, " ")
+		var item_without_hyphen = item.replace(/-/g, " ");
 
 		var item_length = item.length;
 		var query_length = keywords.length;
