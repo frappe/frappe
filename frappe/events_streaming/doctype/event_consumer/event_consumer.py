@@ -50,6 +50,7 @@ def register_consumer(data):
 	data = json.loads(data)
 	consumer.callback_url = data['event_consumer']
 	consumer.user = data['user']
+	consumer.incoming_change = True
 	subscribed_doctypes = json.loads(data['subscribed_doctypes'])
 
 	for entry in subscribed_doctypes:
@@ -66,7 +67,7 @@ def register_consumer(data):
 
 	# consumer's 'last_update' field should point to the latest update in producer's update log when subscribing
 	# so that, updates after subscribing are consumed and not the old ones.
-	last_update = get_last_update()
+	last_update = str(get_last_update())
 	return json.dumps({'api_key': api_key, 'api_secret': api_secret, 'last_update': last_update})
 
 def get_consumer_site(consumer_url):
@@ -81,11 +82,11 @@ def get_consumer_site(consumer_url):
 
 @frappe.whitelist()
 def get_last_update():
-	updates = frappe.get_list('Update Log', ignore_permissions=True)
+	updates = frappe.get_list('Update Log', 'creation', ignore_permissions=True)
 	if updates != []:
-		return updates[0].name
+		return updates[0].creation
 	else:
-		return None
+		return frappe.utils.now_datetime()
 
 @frappe.whitelist()
 def notify_event_consumers():

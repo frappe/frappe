@@ -15,6 +15,7 @@ from frappe.custom.doctype.custom_field.custom_field import create_custom_field
 
 class EventProducer(Document):
 	def before_insert(self):
+		self.incoming_change = True
 		self.is_producer_online(method='create_event_consumer')
 
 	def on_update(self):
@@ -50,7 +51,6 @@ class EventProducer(Document):
 			'event_consumer': get_current_node(),
 			'subscribed_doctypes': json.dumps(subscribed_doctypes),
 			'user': self.user,
-			'incoming_change': True
 		}
 
 	def create_custom_fields(self):
@@ -183,7 +183,7 @@ def sync(update, producer_site, event_producer, in_retry=False):
 			return 'Failed'
 		log_event_sync(update, event_producer.name, 'Failed', frappe.get_traceback())
 
-	frappe.db.set_value('Event Producer', event_producer.name, 'last_update', update.name)
+	frappe.db.set_value('Event Producer', event_producer.name, 'last_update', update.creation)
 	frappe.db.commit()
 
 def set_insert(update, producer_site, event_producer):
@@ -215,15 +215,10 @@ def set_delete(update):
 		local_doc.delete()
 
 def get_updates(producer_site, last_update, doctypes):
-	last_update = producer_site.get_value('Update Log', 'creation', {'name': last_update})
-	filters = {'ref_doctype': ('in', doctypes)}
-	if last_update:
-		last_update_timestamp = last_update.get('creation')
-		filters.update({'creation': ('>', last_update_timestamp)})
 	docs = producer_site.get_list(
 		doctype = 'Update Log',
-		filters = filters,
-		fields = ['update_type', 'ref_doctype', 'docname', 'data', 'name']
+		filters = {'ref_doctype': ('in', doctypes), 'creation': ('>', last_update)},
+		fields = ['update_type', 'ref_doctype', 'docname', 'data', 'name', 'creation']
 	)
 	docs.reverse()
 	return [frappe._dict(d) for d in docs]
