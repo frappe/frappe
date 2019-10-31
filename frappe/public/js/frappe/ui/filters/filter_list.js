@@ -159,7 +159,7 @@ frappe.ui.FilterGroup = class {
 			<div class="active-tag-filters">
 				<button class="btn btn-default btn-xs filter-button text-muted add-filter">
 					${__("Add Filter")}
-				</button><button class="btn btn-default btn-xs filter-button text-muted clear-filters">
+				</button><button class="btn btn-default btn-xs filter-button text-muted clear-filters" style="display: none;">
 					${__("Clear Filters")}
 				</button>
 			</div>
