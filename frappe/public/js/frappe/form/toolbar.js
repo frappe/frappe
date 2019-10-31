@@ -244,7 +244,7 @@ frappe.ui.form.Toolbar = Class.extend({
 
 				if (me.frm.meta.custom) {
 					frappe.set_route('Form', 'DocType', me.frm.doctype);
-				} else if (!me.frm.meta.custom) {
+				} else {
 					frappe.set_route('Form', 'Customize Form', {
 						doc_type: me.frm.doctype
 					});
