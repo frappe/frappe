@@ -66,7 +66,8 @@
 			const doctype = enabled_doctypes[0];
 			create_new_event(doctype, start, end);
 		} else if (enabled_doctypes.length > 1) {
-			frappe.prompt([{
+			frappe.prompt(
+				[{
 					'fieldname': 'doctype',
 					'fieldtype': 'Select',
 					'options': enabled_doctypes,
@@ -99,8 +100,8 @@
 	function get_field_map(doctype) {
 		return new Promise(resolve => {
 			frappe.call('frappe.core.page.calendar.calendar.get_field_map', {
-					doctype
-				})
+				doctype
+			})
 				.then(r => resolve(r.message));
 		});
 	}

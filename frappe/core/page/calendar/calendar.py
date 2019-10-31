@@ -10,20 +10,20 @@ import json
 @frappe.whitelist()
 def get_calendar_events(doctype_list, start=None, end=None):
 	doctype_list = frappe.parse_json(doctype_list)
-	data = get_field_map()
+	fields_maps = get_field_map()
 
 	master_events = []
 
 	for doctype in doctype_list:
 		if frappe.has_permission(doctype):
-			field_map = frappe._dict(data[doctype]["field_map"])
+			field_map = frappe._dict(fields_maps.get(doctype).get("field_map"))
 			fields = [field_map.start, field_map.end, field_map.title, field_map.description, 'name']
 
 			if field_map.color:
 				fields.append(field_map.color)
 
-			if "get_events_method" in data[doctype]:
-				events = frappe.call(data[doctype]["get_events_method"], start, end)
+			if "get_events_method" in fields_maps[doctype]:
+				events = frappe.call(fields_maps.get(doctype).get("get_events_method"), start, end)
 
 			else:
 				start_date = "ifnull(%s, '0001-01-01 00:00:00')" % field_map.start
@@ -37,18 +37,13 @@ def get_calendar_events(doctype_list, start=None, end=None):
 				events = frappe.get_list(doctype, fields=fields, filters=filters)
 
 			for event in events:
-				color = "#D2D1FB"
-
-				if field_map.color in event:
-					color = event[field_map.color] if event[field_map.color] else "#D2D1FB"
-
 				master_events.append({
-					"start": str(event[field_map.start]),
-					"end": str(event[field_map.end]),
-					"title" : str(event[field_map.title]),
-					"id" : str(event['name']),
-					"description": str(event[field_map.description]),
-					"color": str(color),
+					"start": str(event.get(field_map.start)),
+					"end": str(event.get(field_map.end)),
+					"title" : str(event.get(field_map.title)),
+					"id" : str(event.get('name')),
+					"description": str(event.get(field_map.description)),
+					"color": str(event.get(field_map.color, "#D2D1FB")),
 					"doctype" : str(doctype),
 					"textColor": "#4D4DA8"
 				})
@@ -57,8 +52,8 @@ def get_calendar_events(doctype_list, start=None, end=None):
 
 @frappe.whitelist()
 def update_event(start, end, doctype, name):
-	data = get_field_map()
-	field_map = frappe._dict(data[doctype]["field_map"])
+	fields_maps = get_field_map()
+	field_map = frappe._dict(fields_maps.get(doctype).get("field_map"))
 	doc = frappe.get_doc(doctype, name)
 	doc.set(field_map.start, start)
 	doc.set(field_map.end, end)
@@ -66,9 +61,9 @@ def update_event(start, end, doctype, name):
 
 @frappe.whitelist()
 def get_all_calendars():
-	data = get_field_map()
+	fields_maps = get_field_map()
 	allowed_cal = []
-	for key in data:
+	for key in fields_maps:
 		if frappe.has_permission(key):
 			allowed_cal.append(key)
 	return allowed_cal
@@ -86,4 +81,4 @@ def get_field_map(doctype=None):
 				fm = frappe._dict(d)
 				data.update(fm)
 
-	return data[doctype] if doctype else data
+	return data.get(doctype, data)

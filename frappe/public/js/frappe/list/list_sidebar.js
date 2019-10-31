@@ -48,22 +48,13 @@ frappe.views.ListSidebar = class ListSidebar {
 
 	setup_views() {
 		var show_list_link = false;
-		var cur_doc=this.doctype;
-		var check = false;
 		frappe.call({
 			method: "frappe.core.page.calendar.calendar.get_all_calendars",
 			type: "GET"
 		}).then(r => {
-			$.each(r["message"], function( index, value ) {
-				if(cur_doc == value){
-					check = true;
-					return false;
-				}
-			});
-			if (check) {
+			if (r['message'].includes(this.doctype)) {
 				this.sidebar.find('.list-link[data-view="Calendar"]').removeClass("hide");
 				this.sidebar.find('.list-link[data-view="Gantt"]').removeClass('hide');
-				show_list_link = true;
 				this.setup_calendar_view();
 			}
 		});
