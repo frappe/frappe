@@ -1299,6 +1299,6 @@ def check_doctype_has_consumers(doctype):
 	for event_consumer in event_consumers:
 		consumer = frappe.get_doc('Event Consumer', event_consumer.name)
 		for entry in consumer.subscribed_doctypes:
-			if doctype == entry.ref_doctype:
+			if doctype == entry.ref_doctype and entry.status == 'Approved':
 				return True
 	return False

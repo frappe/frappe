@@ -156,14 +156,15 @@ def get_config(event_config):
 	doctypes, mapping_config, naming_config = [], {}, {}
 
 	for entry in event_config:
-		if entry.has_mapping:
-			(mapped_doctype, mapping) = frappe.db.get_value('Document Type Mapping', entry.mapping, ['remote_doctype', 'name'])
-			mapping_config[mapped_doctype] = mapping
-			naming_config[mapped_doctype] = entry.use_same_name
-			doctypes.append(mapped_doctype)
-		else:
-			naming_config[entry.ref_doctype] = entry.use_same_name
-			doctypes.append(entry.ref_doctype)
+		if entry.status == 'Approved':
+			if entry.has_mapping:
+				(mapped_doctype, mapping) = frappe.db.get_value('Document Type Mapping', entry.mapping, ['remote_doctype', 'name'])
+				mapping_config[mapped_doctype] = mapping
+				naming_config[mapped_doctype] = entry.use_same_name
+				doctypes.append(mapped_doctype)
+			else:
+				naming_config[entry.ref_doctype] = entry.use_same_name
+				doctypes.append(entry.ref_doctype)
 	return (doctypes, mapping_config, naming_config)
 
 def sync(update, producer_site, event_producer, in_retry=False):
