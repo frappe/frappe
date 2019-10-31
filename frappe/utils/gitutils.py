@@ -38,7 +38,7 @@ def get_revision(app, commit="HEAD"):
 def get_changelog(app):
     try:
         command = " && ".join(['cd ../apps/{0}'.format(app),
-                               'git log -10 --pretty="format:dkwkkwToken__: %h %cd:\n%n%B"'])
+                               'git log -10 --pretty="format:dkwkkwToken__: %<(11,trunc)%H %cd:dkwkkwEnd%B"'])
         rev = subprocess.check_output(command, shell=True)
         rev = rev.decode('utf-8')
         rev = rev.strip()
@@ -46,12 +46,12 @@ def get_changelog(app):
         commits = rev.split("dkwkkwToken__: ")[1:]
         # commits = re.findall(r"(dkwkkwToken__: (.*? ))", rev)
         for c in commits:
-            cHash = re.search("(.{7})", c)
+            cHash = re.search("(.{9})", c)
             if cHash is not None:
                     cHash = cHash.group(1)
                     revision = get_revision(app, cHash)
-                    newC = c.replace(cHash, "rev:" + revision + "/" + cHash + " ")
-                    retVal.append(newC)
+                    newC = c.replace(cHash + "..", "rev:" + revision + "/" + cHash + " ")
+                    retVal.append(newC.split("dkwkkwEnd"))
         return retVal
     except Exception:
         return ''
