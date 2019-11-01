@@ -46,11 +46,11 @@
 		<tr>
 			{% for col in columns %}
 				{% if row[col.fieldname] == 'Total' %}
-					<td {{- get_alignment(col) }}> 
+					<td{{- get_alignment(col) }}> 
 						{{- row[col.fieldname] -}}
 					</td>
 				{% else %}
-					<td {{- get_alignment(col) }}> 
+					<td{{- get_alignment(col) }}> 
 						{{- format(col, row) -}}
 					</td>
 				{% endif %}
