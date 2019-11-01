@@ -949,7 +949,12 @@ class Document(BaseDocument):
 				make_update_log(self, update_type = 'Create')
 				self.flags.create_type_update_log = False
 			else:
-				make_update_log(self, update_type = 'Update')
+				from frappe.events_streaming.doctype.update_log.update_log import get_update
+				diff = get_update(self._doc_before_save, self)
+				if diff:
+					doc = self
+					doc.diff = diff
+					make_update_log(doc, update_type = 'Update')
 
 		self.latest = None
 
@@ -1281,7 +1286,8 @@ def make_update_log(doc, update_type):
 	doctype_has_consumers = check_doctype_has_consumers(doc.doctype)
 	if doctype_has_consumers:
 		if update_type != 'Delete':
-			data = frappe.as_json(doc)
+			#diff for update type, doc for create type
+			data = frappe.as_json(doc) if not doc.get('diff') else frappe.as_json(doc.diff)
 		else:
 			data = None
 		log_doc = frappe.get_doc({

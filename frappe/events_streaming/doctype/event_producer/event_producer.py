@@ -7,6 +7,7 @@ import frappe
 import json
 import time
 import requests
+from six import iteritems
 from frappe import _
 from frappe.model.document import Document
 from frappe.frappeclient import FrappeClient
@@ -205,10 +206,34 @@ def set_insert(update, producer_site, event_producer):
 def set_update(update, producer_site):
 	local_doc = get_local_doc(update)
 	if local_doc:
-		update.data.pop('name')
-		check_doc_has_dependencies(local_doc, producer_site)
-		local_doc.update(update.data)
-		local_doc.db_update_all()
+		data = frappe._dict(update.data)
+
+		try:
+			if data.changed:
+				local_doc.update(data.changed)
+				local_doc.db_update_all()
+
+			if data.removed:
+				for tablename, rownames in iteritems(data.removed):
+					for row in rownames:
+						table = local_doc.get_table_field_doctype(tablename)
+						frappe.db.delete(table, row)
+
+			if data.added:
+				for tablename, rows in iteritems(data.added):
+					for row in rows:
+						local_doc.append(tablename, data.added)
+				local_doc.db_update()
+
+			if data.row_changed:
+				for tablename, rows in iteritems(data.row_changed):
+					for row in rows:
+						table = local_doc.get_table_field_doctype(tablename)
+						child_doc = frappe.get_doc(table, row.get('name'))
+						child_doc.update(row)
+
+		except Exception as e:
+			check_doc_has_dependencies(local_doc, producer_site)
 
 def set_delete(update):
 	local_doc = get_local_doc(update)
@@ -231,7 +256,7 @@ def get_local_doc(update):
 		else:
 			return frappe.get_doc(update.ref_doctype, update.docname)
 	except frappe.DoesNotExistError:
-		return
+		return	
 
 def check_doc_has_dependencies(doc, producer_site):
 	'''Sync child table link fields first,
