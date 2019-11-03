@@ -86,6 +86,20 @@ frappe._messages = {{ translated_messages }};
 $(".file-size").each(function() {
 	$(this).text(frappe.form.formatters.FileSize($(this).text()));
 });
+
+frappe.ready(function() {
+	let wrapper = $(".web-form-wrapper");
+	let is_list = parseInt(wrapper.data('is-list'));
+	let webform_doctype = wrapper.data('web-form-doctype');
+	let webform_name = wrapper.data('web-form');
+	let login_required = parseInt(wrapper.data('login-required'));
+	let allow_delete = parseInt(wrapper.data('allow-delete'));
+	let query_params = frappe.utils.get_query_params();
+	let doc_name = query_params.name || '';
+	let is_new = query_params.new;
+
+	frappe.ui.build_webform(wrapper, webform_doctype, webform_name, doc_name, is_list, allow_delete, login_required, is_new)
+});
 </script>
 <script type="text/javascript" src="/assets/js/control.min.js"></script>
 {% if is_list %}
