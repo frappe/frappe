@@ -15,10 +15,10 @@ def execute():
 		fields = frappe.get_meta(doc.reference_doctype).fields
 		insert_after = fields[len(fields) - 1].fieldname
 		df = dict(fieldname="auto_repeat", label="Auto Repeat", fieldtype="Link", insert_after=insert_after,
-			options="Auto Repeat", hidden=1, print_hide=1, read_only=1) 
+			options="Auto Repeat", hidden=1, print_hide=1, read_only=1)
 		create_custom_field(doc.reference_doctype, df)
 
-		if doc.status in ['Draft', 'Stopped', 'Cancelled']:
+		if doc.status in ["Draft", "Stopped", "Cancelled"]:
 			doc.disabled = 1
 
 		#updates current status as Active, Disabled or Completed on validate
