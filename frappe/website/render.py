@@ -115,12 +115,12 @@ def build_response(path, data, http_status_code, headers=None):
 	response = Response()
 	response.data = set_content_type(response, data, path)
 	response.status_code = http_status_code
-	response.headers["X-Page-Name"] = path.encode("utf-8")
+	response.headers["X-Page-Name"] = path.encode("ascii", errors="xmlcharrefreplace")
 	response.headers["X-From-Cache"] = frappe.local.response.from_cache or False
 
 	if headers:
 		for key, val in iteritems(headers):
-			response.headers[key] = val.encode("utf-8")
+			response.headers[key] = val.encode("ascii", errors="xmlcharrefreplace")
 
 	return response
 
