@@ -12,6 +12,8 @@ source_link = "https://github.com/frappe/frappe"
 app_license = "MIT"
 app_logo_url = '/assets/frappe/images/frappe-framework-logo.png'
 
+develop_version = '12.x.x-develop-pcg.1'   # from __init__.__version_pcg__  KEEP THIS!! bench update will fail when node was upgraded
+
 app_email = "info@frappe.io"
 
 docs_app = "frappe_io"
