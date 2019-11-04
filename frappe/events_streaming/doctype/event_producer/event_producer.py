@@ -17,11 +17,11 @@ from frappe.custom.doctype.custom_field.custom_field import create_custom_field
 class EventProducer(Document):
 	def before_insert(self):
 		self.incoming_change = True
-		self.is_producer_online(method='create_event_consumer')
+		self.create_event_consumer()
 
 	def on_update(self):
 		if not self.incoming_change:
-			self.is_producer_online(method='update_event_consumer')
+			self.update_event_consumer()
 			self.create_custom_fields()
 		else:
 			#when producer doc is updated it updates the consumer doc, set flag to avoid deadlock
@@ -29,15 +29,16 @@ class EventProducer(Document):
 
 	def create_event_consumer(self):
 		'''register event consumer on the producer site'''
-		producer_site = FrappeClient(self.producer_url, verify=False)
-		response = producer_site.post_api(
-			'frappe.events_streaming.doctype.event_consumer.event_consumer.register_consumer',
-			params = {'data': json.dumps(self.get_request_data())}
-		)
-		response = json.loads(response)
-		self.api_key = response['api_key']
-		self.api_secret =  response['api_secret']
-		self.last_update = response['last_update']
+		if self.is_producer_online():
+			producer_site = FrappeClient(self.producer_url, verify=False)
+			response = producer_site.post_api(
+				'frappe.events_streaming.doctype.event_consumer.event_consumer.register_consumer',
+				params = {'data': json.dumps(self.get_request_data())}
+			)
+			response = json.loads(response)
+			self.api_key = response['api_key']
+			self.api_secret =  response['api_secret']
+			self.last_update = response['last_update']
 
 	def get_request_data(self):
 		subscribed_doctypes = []
@@ -66,25 +67,26 @@ class EventProducer(Document):
 					create_custom_field(entry.ref_doctype, df)
 
 	def update_event_consumer(self):
-		producer_site = get_producer_site(self.producer_url)
-		event_consumer = producer_site.get_doc('Event Consumer', get_current_node())
-		if event_consumer:
-			config = event_consumer.subscribed_doctypes
-			event_consumer.subscribed_doctypes = []
-			for entry in self.event_configuration:
-				if entry.has_mapping:
-					#if it has mapping then on event consumer's site it should subscribe to remote doctype
-					ref_doctype = frappe.db.get_value('Document Type Mapping', entry.mapping, 'remote_doctype')
-				else:
-					ref_doctype = entry.ref_doctype
+		if self.is_producer_online():
+			producer_site = get_producer_site(self.producer_url)
+			event_consumer = producer_site.get_doc('Event Consumer', get_current_node())
+			if event_consumer:
+				config = event_consumer.subscribed_doctypes
+				event_consumer.subscribed_doctypes = []
+				for entry in self.event_configuration:
+					if entry.has_mapping:
+						#if it has mapping then on event consumer's site it should subscribe to remote doctype
+						ref_doctype = frappe.db.get_value('Document Type Mapping', entry.mapping, 'remote_doctype')
+					else:
+						ref_doctype = entry.ref_doctype
 
-				event_consumer.subscribed_doctypes.append({
-					'ref_doctype': ref_doctype,
-					'status': get_approval_status(config, ref_doctype)
-				})
-			event_consumer.user = self.user
-			event_consumer.incoming_change = True
-			producer_site.update(event_consumer)
+					event_consumer.subscribed_doctypes.append({
+						'ref_doctype': ref_doctype,
+						'status': get_approval_status(config, ref_doctype)
+					})
+				event_consumer.user = self.user
+				event_consumer.incoming_change = True
+				producer_site.update(event_consumer)
 
 	def is_producer_online(self, method = None):
 		'''check connection status for the Event Producer site'''
@@ -95,7 +97,7 @@ class EventProducer(Document):
 			res = requests.get(self.producer_url)
 			self.retry -= 1
 		if res.status_code == 200:
-				self.run_method(method)
+			return True
 		if res.status_code != 200 and self.retry == 0:
 			frappe.throw(_('Failed to connect to the Event Producer site. Retry after some time.'))
 
