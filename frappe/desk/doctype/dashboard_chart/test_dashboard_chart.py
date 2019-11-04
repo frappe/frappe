@@ -129,3 +129,25 @@ class TestDashboardChart(unittest.TestCase):
 		self.assertEqual(result.get('datasets')[0].get('values')[2], 0)
 
 		frappe.db.rollback()
+
+	def test_group_by_chart_type(self):
+		if frappe.db.exists('Dashboard Chart', 'Test Group By Dashboard Chart'):
+			frappe.delete_doc('Dashboard Chart', 'Test Group By Dashboard Chart')
+
+		frappe.get_doc({"doctype":"ToDo", "description": "test"}).insert()
+
+		frappe.get_doc(dict(
+			doctype = 'Dashboard Chart',
+			chart_name = 'Test Group By Dashboard Chart',
+			chart_type = 'Group By',
+			document_type = 'ToDo',
+			group_by_based_on = 'status',
+			filters_json = '{}',
+		)).insert()
+
+		result = get(chart_name ='Test Group By Dashboard Chart', refresh = 1)
+		todo_status_count = frappe.db.count('ToDo', {'status': result.get('labels')[0]})
+
+		self.assertEqual(result.get('datasets')[0].get('values')[0], todo_status_count)
+
+		frappe.db.rollback()

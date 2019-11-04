@@ -370,15 +370,24 @@ frappe.ui.form.Dashboard = Class.extend({
 				});
 
 				// update from internal links
-				$.each(me.data.internal_links, function(doctype, link) {
-					var table_fieldname = link[0], link_fieldname = link[1];
-					var names = [];
-					(me.frm.doc[table_fieldname] || []).forEach(function(d) {
-						var value = d[link_fieldname];
-						if(value && names.indexOf(value)===-1) {
+				$.each(me.data.internal_links, (doctype, link) => {
+					let names = [];
+					if (typeof link === 'string' || link instanceof String) {
+						// get internal links in parent document
+						let value = me.frm.doc[link];
+						if (value && !names.includes(value)) {
 							names.push(value);
 						}
-					});
+					} else if (Array.isArray(link)) {
+						// get internal links in child documents
+						let [table_fieldname, link_fieldname] = link;
+						(me.frm.doc[table_fieldname] || []).forEach(d => {
+							let value = d[link_fieldname];
+							if (value && !names.includes(value)) {
+								names.push(value);
+							}
+						});
+					}
 					me.frm.dashboard.set_badge_count(doctype, 0, names.length, names);
 				});
 

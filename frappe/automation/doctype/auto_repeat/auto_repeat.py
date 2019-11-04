@@ -55,11 +55,15 @@ class AutoRepeat(Document):
 			frappe.db.set_value(self.reference_doctype, self.reference_document, 'auto_repeat', '')
 
 	def validate_reference_doctype(self):
-		if not frappe.flags.in_test:
-			if not frappe.get_meta(self.reference_doctype).allow_auto_repeat:
-				frappe.throw(_("Enable Allow Auto Repeat for the doctype {0} in Customize Form").format(self.reference_doctype))
+		if frappe.flags.in_test or frappe.flags.in_patch:
+			return
+		if not frappe.get_meta(self.reference_doctype).allow_auto_repeat:
+			frappe.throw(_("Enable Allow Auto Repeat for the doctype {0} in Customize Form").format(self.reference_doctype))
 
 	def validate_dates(self):
+		if frappe.flags.in_patch:
+			return
+
 		if self.end_date:
 			self.validate_from_to_dates('start_date', 'end_date')
 
@@ -81,7 +85,7 @@ class AutoRepeat(Document):
 	def update_auto_repeat_id(self):
 		#check if document is already on auto repeat
 		auto_repeat = frappe.db.get_value(self.reference_doctype, self.reference_document, "auto_repeat")
-		if auto_repeat and auto_repeat != self.name:
+		if auto_repeat and auto_repeat != self.name and not frappe.flags.in_patch:
 			frappe.throw(_("The {0} is already on auto repeat {1}").format(self.reference_document, auto_repeat))
 		else:
 			frappe.db.set_value(self.reference_doctype, self.reference_document, "auto_repeat", self.name)
