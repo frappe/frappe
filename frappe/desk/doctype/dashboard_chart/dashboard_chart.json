@@ -175,19 +175,19 @@
    "label": "Number of Groups"
   },
   {
-   "depends_on": "eval:doc.timespan === 'Choose Time Span'",
+   "depends_on": "eval:doc.timespan === 'Select Date Range'",
    "fieldname": "from_date",
    "fieldtype": "Date",
    "label": "From Date"
   },
   {
-   "depends_on": "eval:doc.timespan === 'Choose Time Span'",
+   "depends_on": "eval:doc.timespan === 'Select Date Range'",
    "fieldname": "to_date",
    "fieldtype": "Date",
    "label": "To Date"
   }
  ],
- "modified": "2019-10-29 02:26:14.838057",
+ "modified": "2019-11-04 12:32:14.525409",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Dashboard Chart",
