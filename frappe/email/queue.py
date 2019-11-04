@@ -163,7 +163,7 @@ def add(recipients, sender, subject, **kwargs):
 			if not email_queue:
 				email_queue = get_email_queue([r], sender, subject, **kwargs)
 				if kwargs.get('now'):
-					email_queue(email_queue.name, now=True)
+					send_one(email_queue.name, now=True)
 			else:
 				duplicate = email_queue.get_duplicate([r])
 				duplicate.insert(ignore_permissions=True)
