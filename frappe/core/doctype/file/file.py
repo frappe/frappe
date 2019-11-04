@@ -83,10 +83,9 @@ class File(Document):
 			setup_folder_path(successor, self.name)
 
 	def get_successor(self):
-		return frappe.db.get_list('File',
-								filters={'folder': self.name},
-								fields=['name'],
-								as_list=True)
+		return frappe.db.get_value(doctype='File',
+			filters={'folder': self.name},
+			fieldname='name')
 
 	def validate(self):
 		if self.is_new():
