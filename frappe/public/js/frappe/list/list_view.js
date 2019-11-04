@@ -719,7 +719,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		let user = frappe.session.user;
 		let subject_field = this.columns[0].df;
 		let value = doc[subject_field.fieldname] || doc.name;
-		let subject = strip_html(value);
+		let subject = strip_html(value.toString());
 		let escaped_subject = frappe.utils.escape_html(subject);
 
 		const liked_by = JSON.parse(doc._liked_by || '[]');
