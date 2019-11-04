@@ -10,7 +10,7 @@ from frappe.desk.doctype.notification_log.notification_log import enqueue_create
 from frappe.utils import cint
 
 @frappe.whitelist()
-def add(doctype, name, user=None, read=1, write=0, share=0, everyone=0, flags=None):
+def add(doctype, name, user=None, read=1, write=0, share=0, everyone=0, flags=None, notify=0):
 	"""Share the given document with a user."""
 	if not user:
 		user = frappe.session.user
@@ -42,7 +42,7 @@ def add(doctype, name, user=None, read=1, write=0, share=0, everyone=0, flags=No
 	})
 
 	doc.save(ignore_permissions=True)
-	notify_assignment(user, doctype, name, everyone)
+	notify_assignment(user, doctype, name, everyone, notify=notify)
 
 	follow_document(doctype, name, user)
 
@@ -147,9 +147,9 @@ def check_share_permission(doctype, name):
 	if not frappe.has_permission(doctype, ptype="share", doc=name):
 		frappe.throw(_("No permission to {0} {1} {2}".format("share", doctype, name)), frappe.PermissionError)
 
-def notify_assignment(shared_by, doctype, doc_name, everyone):
+def notify_assignment(shared_by, doctype, doc_name, everyone, notify=0):
 
-	if not (shared_by and doctype and doc_name) or everyone: return
+	if not (shared_by and doctype and doc_name) or everyone or not notify: return
 
 	from frappe.utils import get_fullname
 
