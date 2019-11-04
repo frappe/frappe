@@ -833,6 +833,88 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			});
 	}
 
+	get_fields() {
+		let contactList = [];
+		let visible_columns = this.get_visible_columns();
+		var fields= [
+			{label:__("To"), fieldtype:"MultiSelect", reqd: 0, fieldname:"recipients",options:contactList},
+			{fieldtype: "Section Break", collapsible: 1, label: __("CC, BCC & Email Template")},
+			{label:__("CC"), fieldtype:"MultiSelect", fieldname:"cc",options:contactList},
+			{label:__("BCC"), fieldtype:"MultiSelect", fieldname:"bcc",options:contactList},
+			{fieldtype: "Section Break"},
+			{label:__("Subject"), fieldtype:"Data", reqd: 1, fieldname:"subject", length:524288},
+			{fieldtype: "Section Break"},
+			{
+				fieldtype:"Text Editor", reqd: 1,
+				label:__("Message"),
+				fieldname:"message",
+				onchange: () => {}
+			},
+			{fieldtype: "Section Break"},
+			{fieldtype: "Column Break"},
+			{label:__("Attach Document Print"), fieldtype:"Check", fieldname:"attach_document_print", default: "1",},
+			{fieldtype: "Column Break"},
+			{label:__("Select Document Format"), fieldtype:"Select", fieldname:"attachment_format", 
+				depends_on: "attach_document_print", options: ['CSV', 'XLSX']},
+			{fieldtype: "Section Break"},
+			{label: __("Pick Columns"), fieldtype: "Check", fieldname: "pick_columns",},
+			{
+				label: __("Select Columns"),
+				fieldtype: "MultiCheck",
+				fieldname: "columns",
+				depends_on: "pick_columns",
+				columns: 2,
+				options: visible_columns.map(df => ({
+					label: __(df.label),
+					value: df.fieldname
+				}))
+			}
+		];
+
+		// add from if user has access to multiple email accounts
+		var email_accounts = frappe.boot.email_accounts.filter(function(account, idx){
+			return !in_list(["All Accounts", "Sent", "Spam", "Trash"], account.email_account) &&
+				account.enable_outgoing
+		})
+		if(frappe.boot.email_accounts && email_accounts.length > 1) {
+			fields = [
+				{label: __("From"), fieldtype: "Select", reqd: 1, fieldname: "sender",
+					options: email_accounts.map(function(e) { return e.email_id; }) }
+			].concat(fields);
+		}
+
+		return fields;
+	}
+
+	email_report() {
+		const columns = this.get_visible_columns();
+		const data = this.get_data_for_print();
+		const report = this.report_name;
+
+		let email_dialog = new frappe.ui.Dialog({
+			title: __("New Email"),
+			no_submit_on_enter: true,
+			fields: this.get_fields(),
+			primary_action_label: __("Send"),
+			primary_action: (dialog) => {
+				frappe.call({
+					method: 'frappe.desk.query_report.email_report',
+					args: {
+						report,
+						email_doc: dialog,
+						filters: this.get_filter_values(),
+						columns,
+						data
+					},
+					callback: (r) => {
+						email_dialog.hide()
+					}
+				})
+			}
+		});
+		email_dialog.show();
+	}
+
 	print_report(print_settings) {
 		const custom_format = this.report_settings.html_format || null;
 		const filters_html = this.get_filters_html_for_print();
@@ -1015,6 +1097,12 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				label: __('Edit'),
 				action: () => frappe.set_route('Form', 'Report', this.report_name),
 				condition: () => frappe.user.is_report_manager(),
+				standard: true
+			},
+			{
+				label: __('Email'),
+				action: () => this.email_report(),
+				condition: () => true,
 				standard: true
 			},
 			{

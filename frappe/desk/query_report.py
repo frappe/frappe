@@ -269,6 +269,89 @@ def get_prepared_report_result(report, filters, dn="", user=None):
 
 	return latest_report_data
 
+
+@frappe.whitelist()
+def email_report(report, email_doc, filters, columns, data):
+	from frappe.utils.csvutils import to_csv
+	from frappe.utils.xlsxutils import make_xlsx
+
+	email_doc = frappe.parse_json(email_doc)
+	columns = frappe.parse_json(columns)
+	data = frappe.parse_json(data)
+	filters = frappe.parse_json(filters)
+
+	# filters out columns selected by user
+	if email_doc.get("pick_columns") and email_doc.get("columns"):
+		picked_columns = frappe.parse_json(email_doc.get("columns"))
+		filtered_columns = []
+		for df in columns:
+			for col in picked_columns:
+				if df.get('fieldname') == col:
+					filtered_columns.append(df)
+		columns = filtered_columns
+
+	if not filters:
+		frappe.throw(_("Please set filters value in Report Filters."))
+	
+	if len(data)==0:
+		frappe.throw(_("There's no data in the report to send."))
+	
+	if email_doc.get("attach_document_print") and not email_doc.get("attachment_format"):
+		frappe.throw(_("Please set attachment format."))
+
+	# add serial numbers
+	columns.insert(0, frappe._dict(fieldname='idx', label='', width='30px'))
+	for i in range(len(data)):
+		data[i]['idx'] = i+1
+
+	# if email_doc.get("attachment_format") == 'PDF':
+	# 	data = get_html_table(columns, data)
+
+	if email_doc.get("attachment_format") == 'XLSX':
+		spreadsheet_data = get_spreadsheet_data(columns, data)
+		xlsx_file = make_xlsx(spreadsheet_data, "Auto Email Report")
+		data = xlsx_file.getvalue()
+
+	elif email_doc.get("attachment_format") == 'CSV':
+		spreadsheet_data = get_spreadsheet_data(columns, data)
+		data = to_csv(spreadsheet_data)
+
+	else:
+		frappe.throw(_("Invalid Output Format"))
+
+	# attachments = None
+	# if email_doc.get("attachment_format") == "HTML":
+	# 	message = data
+	# else:
+	# 	message = get_html_table()
+
+	if not email_doc.get("attachment_format") == 'HTML':
+		attachments = [{
+			'fname': _("Report: {0}.{1}").format(report, email_doc.get("attachment_format").lower()),
+			'fcontent': data
+		}]
+
+	frappe.sendmail(
+		recipients = email_doc.get("recipients").split(),
+		subject = email_doc.get("subject"),
+		message = email_doc.get("message"),
+		attachments = attachments,
+		now = True
+	)
+
+	return True
+
+def get_spreadsheet_data(columns, data):
+	out = [[_(df.get('label')) for df in columns], ]
+	for row in data:
+		new_row = []
+		out.append(new_row)
+		for df in columns:
+			if df.get('fieldname') not in row: continue
+			new_row.append(frappe.format(row[df.get('fieldname')], df, row))
+
+	return out
+
 @frappe.whitelist()
 def export_query():
 	"""export from query reports"""
