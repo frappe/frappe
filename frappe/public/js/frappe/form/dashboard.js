@@ -375,13 +375,17 @@ frappe.ui.form.Dashboard = Class.extend({
 					if (typeof link === 'string' || link instanceof String) {
 						// get internal links in parent document
 						let value = me.frm.doc[link];
-						if (value && !names.includes(value)) { names.push(value); }
+						if (value && !names.includes(value)) {
+							names.push(value);
+						}
 					} else if (Array.isArray(link)) {
 						// get internal links in child documents
 						let [table_fieldname, link_fieldname] = link;
-						(me.frm.doc[table_fieldname] || []).forEach((d) => {
+						(me.frm.doc[table_fieldname] || []).forEach(d => {
 							let value = d[link_fieldname];
-							if (value && !names.includes(value)) { names.push(value); }
+							if (value && !names.includes(value)) {
+								names.push(value);
+							}
 						});
 					}
 					me.frm.dashboard.set_badge_count(doctype, 0, names.length, names);
