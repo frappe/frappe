@@ -299,7 +299,7 @@ frappe.ui.Notifications = class Notifications {
 				<div class="notification-timestamp text-muted">
 					${timestamp}
 				</div>
-				<span class="mark-read text-muted" data-action="explicitly_mark_as_seen">
+				<span class="mark-read text-muted hidden-xs" data-action="explicitly_mark_as_seen">
 					${__('Mark as Read')}
 				</span>
 			</a>`;
