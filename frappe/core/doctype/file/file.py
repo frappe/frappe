@@ -80,12 +80,12 @@ class File(Document):
 
 	def after_rename(self, olddn, newdn, merge=False):
 		for successor in self.get_successor():
-			setup_folder_path(successor, self.name)
+			setup_folder_path(successor[0], self.name)
 
 	def get_successor(self):
-		return frappe.db.get_value(doctype='File',
-			filters={'folder': self.name},
-			fieldname='name')
+		return frappe.db.get_values(doctype='File',
+						filters={'folder': self.name},
+						fieldname='name')
 
 	def validate(self):
 		if self.is_new():
