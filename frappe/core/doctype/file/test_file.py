@@ -225,6 +225,23 @@ class TestFile(unittest.TestCase):
 
 		self.assertEqual(_("Home/Test Folder 2"), file.folder)
 
+	def test_folder_depth(self):
+		result1 = self.get_folder("d1", "Home")
+		self.assertEqual(result1.name, "Home/d1")
+		result2 = self.get_folder("d2", "Home/d1")
+		self.assertEqual(result2.name, "Home/d1/d2")
+		result3 = self.get_folder("d3", "Home/d1/d2")
+		self.assertEqual(result3.name, "Home/d1/d2/d3")
+		result4 = self.get_folder("d4", "Home/d1/d2/d3")
+		_file = frappe.get_doc({
+			"doctype": "File",
+			"file_name": "folder_copy.txt",
+			"attached_to_name": "",
+			"attached_to_doctype": "",
+			"folder": result4.name,
+			"content": "Testing folder copy example"})
+		_file.save()
+
 
 	def test_folder_copy(self):
 		folder = self.get_folder("Test Folder 2", "Home")

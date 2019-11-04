@@ -56,9 +56,7 @@ class File(Document):
 
 	def get_name_based_on_parent_folder(self):
 		if self.folder:
-			path = get_breadcrumbs(self.folder)
-			folder_name = frappe.get_value("File", self.folder, "file_name")
-			return "/".join([d.file_name for d in path] + [folder_name, self.file_name])
+			return "/".join([self.folder, self.file_name])
 
 	def autoname(self):
 		"""Set name for folder"""
@@ -583,19 +581,6 @@ def make_home_folder():
 		"file_name": _("Attachments")
 	}).insert()
 
-@frappe.whitelist()
-def get_breadcrumbs(folder):
-	"""returns name, file_name of parent folder"""
-	path = folder.split('/')
-
-	folders = []
-	for i, _ in enumerate(path):
-		indexes = range(0, i)
-		folder = '/'.join([path[i] for i in indexes])
-		if folder:
-			folders.append(folder)
-
-	return [frappe._dict(file_name=f) for f in folders]
 
 @frappe.whitelist()
 def create_new_folder(file_name, folder):
