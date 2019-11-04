@@ -199,7 +199,7 @@ def get_default_naming_series(doctype):
 
 def validate_name(doctype, name, case=None, merge=False):
 	if not name:
-		return 'No Name Specified for %s' % doctype
+		frappe.throw(_("No Name Specified for {0}").format(doctype))
 	if name.startswith('New '+doctype):
 		frappe.throw(_('There were some errors setting the name, please contact the administrator'), frappe.NameError)
 	if case == 'Title Case':
