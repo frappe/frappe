@@ -83,7 +83,10 @@ class File(Document):
 			setup_folder_path(successor, self.name)
 
 	def get_successor(self):
-		return frappe.db.sql_list("select name from tabFile where folder='%s'"%self.name) or []
+		return frappe.db.get_list('File',
+								filters={'folder': self.name},
+								fields=['name'],
+								as_list=True)
 
 	def validate(self):
 		if self.is_new():
