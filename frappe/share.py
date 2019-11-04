@@ -149,7 +149,8 @@ def check_share_permission(doctype, name):
 
 def notify_assignment(shared_by, doctype, doc_name, everyone, notify=0):
 
-	if not (shared_by and doctype and doc_name) or everyone or not notify: return
+	if not (shared_by and doctype and doc_name) or everyone or not notify:
+		return
 
 	from frappe.utils import get_fullname
 
