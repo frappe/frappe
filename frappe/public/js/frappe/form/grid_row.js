@@ -426,11 +426,11 @@ export default class GridRow {
 				var fieldtype = $(this).attr('data-fieldtype');
 
 				var move_up_down = function(base) {
-					if(in_list(['Text', 'Small Text'], fieldtype)) {
-						return;
+					if(in_list(['Text', 'Small Text', 'Code', 'Text Editor', 'HTML Editor'], fieldtype) && !e.altKey) {
+						return false;
 					}
 					if(field.autocomplete_open) {
-						return;
+						return false;
 					}
 
 					base.toggle_editable_row();
@@ -438,7 +438,7 @@ export default class GridRow {
 					if(input) {
 						input.focus();
 					}
-
+					return true;
 				};
 
 				// TAB
@@ -465,14 +465,16 @@ export default class GridRow {
 				} else if(e.which==UP_ARROW) {
 					if(me.doc.idx > 1) {
 						var prev = me.grid.grid_rows[me.doc.idx-2];
-						move_up_down(prev);
-						return false;
+						if (move_up_down(prev)) {
+							return false;
+						}
 					}
 				} else if(e.which==DOWN_ARROW) {
 					if(me.doc.idx < values.length) {
 						var next = me.grid.grid_rows[me.doc.idx];
-						move_up_down(next);
-						return false;
+						if (move_up_down(next)) {
+							return false;
+						}
 					}
 				}
 
