@@ -301,7 +301,10 @@ class Document(BaseDocument):
 		self.set_user_and_timestamp()
 		self.set_docstatus()
 		self.check_if_latest()
-		self.apply_auto_value_setters()
+
+		if self._action != "cancel":
+			self.apply_auto_value_setters()
+
 		self.set_parent_in_children()
 		self.set_name_in_children()
 
@@ -720,11 +723,15 @@ class Document(BaseDocument):
 		# TODO check only allowed values are updated
 
 	def apply_auto_value_setters(self):
-		if self.doctype not in ('Auto Value Setter', 'DocType'):
-			from frappe.core.doctype.auto_value_setter.auto_value_setter import apply_auto_value_setters
-			apply_auto_value_setters(self)
-			for d in self.get_all_children():
-				apply_auto_value_setters(d, self)
+		if self.doctype in ('Auto Value Setter', 'DocType'):
+			return
+		if frappe.flags.ignore_auto_value_setters or self.flags.ignore_auto_value_setters or frappe.flags.in_patch:
+			return
+
+		from frappe.core.doctype.auto_value_setter.auto_value_setter import apply_auto_value_setters
+		apply_auto_value_setters(self)
+		for d in self.get_all_children():
+			apply_auto_value_setters(d, self)
 
 	def _validate_mandatory(self):
 		if self.flags.ignore_mandatory:

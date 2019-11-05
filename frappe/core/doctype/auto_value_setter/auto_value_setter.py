@@ -5,6 +5,7 @@
 from __future__ import unicode_literals
 import frappe
 from frappe import _
+from frappe.utils import cstr
 from frappe.model.document import Document
 from frappe.utils.jinja import validate_template
 
@@ -33,7 +34,7 @@ class AutoValueSetter(Document):
 
 	def validate_conditions(self):
 		for d in self.conditions:
-			validate_template(d.value)
+			validate_template(cstr(d.value))
 
 def apply_auto_value_setters(doc, parent=None):
 	names = frappe.cache().hget('auto_value_setters', doc.doctype)
@@ -41,18 +42,30 @@ def apply_auto_value_setters(doc, parent=None):
 		names = [d.name for d in frappe.get_all('Auto Value Setter', filters={'enabled': 1, 'document_type': doc.doctype})]
 		frappe.cache().hset('auto_value_setters', doc.doctype, names)
 
+	is_submitted = doc.meta.is_submittable and doc.docstatus == 1
 	context = get_context(doc, parent)
 
 	for name in names:
 		auto_value_setter = frappe.get_cached_doc("Auto Value Setter", name)
-		if not doc.meta.has_field(auto_value_setter.field_name):
+
+		df = doc.meta.get_field(auto_value_setter.field_name)
+		current_value = doc.get(auto_value_setter.field_name)
+
+		if not df:
+			continue
+		if auto_value_setter.set_if_empty and current_value:
+			continue
+		if is_submitted and not df.allow_on_submit:
+			continue
+		if not doc.get("__islocal") and df.set_only_once and doc.get("_doc_before_save", {}).get(auto_value_setter.field_name):
 			continue
 
 		for d in auto_value_setter.conditions:
 			if not d.condition or frappe.safe_eval(d.condition, None, context):  # if condition is met
-				value = frappe.render_template(d.value, context)
+				value = frappe.render_template(cstr(d.value), context)
 				doc.set(auto_value_setter.field_name, value)
 				break
 
 def get_context(doc, parent):
-	return {"doc": doc, "parent": parent, "nowdate": frappe.utils.nowdate, "frappe.utils": frappe.utils}
+	return {"doc": doc, "parent": parent, "nowdate": frappe.utils.nowdate, "frappe.utils": frappe.utils,
+		"frappe": frappe}
