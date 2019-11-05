@@ -155,7 +155,7 @@ def sync_contacts_from_google_contacts(g_contact):
 		except HttpError as err:
 			frappe.throw(_("Google Contacts - Could not sync contacts from Google Contacts {0}, error code {1}.").format(account.name, err.resp.status))
 
-		for contact in contacts.get("connections"):
+		for contact in contacts.get("connections", []):
 			results.append(contact)
 
 		if not contacts.get("nextPageToken"):

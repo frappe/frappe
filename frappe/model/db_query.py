@@ -17,6 +17,7 @@ from frappe.model import optional_fields
 from frappe.client import check_parent_permission
 from frappe.model.utils.user_settings import get_user_settings, update_user_settings
 from frappe.utils import flt, cint, get_time, make_filter_tuple, get_filter, add_to_date, cstr, nowdate
+from frappe.model.meta import get_table_columns
 
 class DatabaseQuery(object):
 	def __init__(self, doctype, user=None):
@@ -290,7 +291,7 @@ class DatabaseQuery(object):
 
 	def set_optional_columns(self):
 		"""Removes optional columns like `_user_tags`, `_comments` etc. if not in table"""
-		columns = frappe.db.get_table_columns(self.doctype)
+		columns = get_table_columns(self.doctype)
 
 		# remove from fields
 		to_remove = []

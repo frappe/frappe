@@ -1,7 +1,9 @@
 frappe.ui.form.ControlFloat = frappe.ui.form.ControlInt.extend({
 	parse: function(value) {
 		value = this.eval_expression(value);
-		return isNaN(parseFloat(value)) ? null : flt(value, this.get_precision());
+		// For #'###.## number format, if we enter 45'00 then it gets parsed as 45.00
+		// becoz number format isn't provided to flt()
+		return isNaN(parseFloat(value)) ? null : flt(value, this.get_precision(), this.get_number_format());
 	},
 
 	format_for_input: function(value) {

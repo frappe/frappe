@@ -736,7 +736,7 @@ DocType: Contact,Mobile No,נייד לא
 DocType: SMS Settings,SMS Gateway URL,URL SMS Gateway
 DocType: Country,Geo,Geo
 apps/frappe/frappe/core/doctype/doctype/doctype.py,{0}: No basic permissions set,{0}: לא להגדיר הרשאות בסיסיות
-DocType: Event,Friday,יום שישי
+DocType: Assignment Rule Day,Friday,יום שישי
 DocType: DocType,ASC,ASC
 apps/frappe/frappe/model/base_document.py,Options not set for link field {0},אפשרויות לא נקבעו לקישור שדה {0}
 DocType: Letter Head,Printing,הדפסה
@@ -834,7 +834,7 @@ DocType: DefaultValue,Key,מפתח
 apps/frappe/frappe/core/doctype/report/report.js,Write a Python file in the same folder where this is saved and return column and result.,הוסף קובץ פייתון באותה התיקייה שבה זה נשמר ולחזור טור ותוצאה.
 DocType: Footer Item,Policy,מְדִינִיוּת
 DocType: DocField,Display Depends On,התצוגה תלויה
-apps/frappe/frappe/public/js/frappe/views/gantt/gantt_view.js,Day,יְוֹם
+DocType: Assignment Rule Day,Day,יְוֹם
 apps/frappe/frappe/core/doctype/doctype/doctype.py,Title field must be a valid fieldname,כותרת שדה חייב להיות תקף fieldname
 apps/frappe/frappe/public/js/frappe/ui/toolbar/about.js,Open Source Applications for the Web,יישומי קוד פתוחים לאינטרנט
 DocType: Workflow State,Home,בית
@@ -1238,7 +1238,7 @@ DocType: Role,"If disabled, this role will be removed from all users.","אם מ�
 apps/frappe/frappe/core/doctype/doctype/doctype.py,Fold can not be at the end of the form,קיפול לא יכול להיות בסופו של הטופס
 apps/frappe/frappe/utils/password_strength.py,"Repeats like ""abcabcabc"" are only slightly harder to guess than ""abc""",חזרות כמו &quot;abcabcabc&quot; הם רק מעט יותר קשה לנחש מ &quot;ABC&quot;
 DocType: Blog Post,Blog Intro,בלוג Intro
-DocType: Event,Thursday,יום חמישי
+DocType: Assignment Rule Day,Thursday,יום חמישי
 DocType: Workflow State,remove-circle,להסיר עיגול
 DocType: Custom DocPerm,Cancel,לבטל
 DocType: Contact,Open,פתוח
@@ -1434,7 +1434,7 @@ apps/frappe/frappe/public/js/frappe/ui/slides.js,Next,הבא
 DocType: DocType,Name Case,Case שם
 DocType: Note,"Help: To link to another record in the system, use ""#Form/Note/[Note Name]"" as the Link URL. (don't use ""http://"")","עזרה: לקישור לרשומה אחרת במערכת, להשתמש ""# טופס / הערה / [הערה שם]"" ככתובת URL הקישור. (לא להשתמש ""http: //"")"
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.py,Row {0}: Not allowed to enable Allow on Submit for standard fields,שורת {0}: לא תורשה לאפשר אפשר בשלח לשדות סטנדרטיים
-DocType: Event,Tuesday,יום שלישי
+DocType: Assignment Rule Day,Tuesday,יום שלישי
 apps/frappe/frappe/email/doctype/email_account/email_account.py,Authentication failed while receiving emails from Email Account {0}. Message from server: {1},אימות נכשלה תוך קבלת הודעות דוא&quot;ל מחשבון דוא&quot;ל {0}. הודעה מהשרת: {1}
 DocType: Email Account,Enable Incoming,אפשר נכנסת
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder_start.html,Create a New Format,צור פורמט חדש
@@ -1471,7 +1471,7 @@ DocType: Email Account,Notifications and bulk mails will be sent from this outgo
 DocType: Website Settings,Disable Customer Signup link in Login page,קישור הרשמה לקוחות השבת בדף כניסה
 DocType: Help Article,Likes,אוהב
 DocType: DocField,Float,Float
-DocType: Global Search Settings,Document Types,סוגי מסמכים
+apps/frappe/frappe/core/page/permission_manager/permission_manager.js,Document Types,סוגי מסמכים
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js,Custom HTML,המותאם אישית HTML
 DocType: Workflow,Document States,מסמך הברית
 apps/frappe/frappe/public/js/frappe/form/save.js,Mandatory fields required in {0},שדות חובה הנדרשים {0}
@@ -1647,7 +1647,7 @@ apps/frappe/frappe/config/core.py,Background Email Queue,תור דוא&quot;ל �
 apps/frappe/frappe/public/js/frappe/model/model.js,Merge with existing,מיזוג עם קיים
 apps/frappe/frappe/templates/emails/new_user.html,Click on the link below to complete your registration and set a new password,לחץ על הקישור הבא כדי להשלים את הרישום שלך ולהגדיר סיסמא חדשה
 DocType: Email Queue,Send After,שלח אחרי
-DocType: Event,Monday,יום שני
+DocType: Assignment Rule Day,Monday,יום שני
 DocType: Email Account,e.g. pop.gmail.com / imap.gmail.com,למשל pop.gmail.com / imap.gmail.com
 DocType: Email Queue,Email Queue,תור דוא&quot;ל
 DocType: Tag Category,Category Name,שם קטגוריה
@@ -1686,7 +1686,7 @@ DocType: Async Task,Reference Doc,התייחסות דוק
 apps/frappe/frappe/core/doctype/doctype/doctype.py,DocType can not be merged,לא ניתן למזג DOCTYPE
 DocType: ToDo,ToDo,ToDo
 DocType: Notification,Days Before,ימים לפני
-DocType: Event,Wednesday,יום רביעי
+DocType: Assignment Rule Day,Wednesday,יום רביעי
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,"Permissions at level 0 are Document Level permissions, i.e. they are primary for access to the document.","הרשאות ברמה 0 הן הרשאות מסמך ברמה, כלומר הם עיקריים לגישה למסמך."
 DocType: Web Form,Allow Edit,לאפשר עריכה
 DocType: Blog Post,Blog Post,בלוג הודעה
@@ -1725,7 +1725,7 @@ apps/frappe/frappe/core/doctype/report/report.js,Enable Report,אפשר דווח
 apps/frappe/frappe/templates/includes/login/login.js,Both login and password required,התחברות שתי והסיסמה הנדרשת
 apps/frappe/frappe/public/js/frappe/ui/toolbar/navbar.html,Search or type a command,חפש או הקלד פקודה
 DocType: Chat Message Attachment,Attachment,קובץ מצורף
-DocType: Event,Sunday,יום ראשון
+DocType: Assignment Rule Day,Sunday,יום ראשון
 apps/frappe/frappe/utils/jinja.py,Syntax error in template,שגיאת תחביר התבנית
 apps/frappe/frappe/config/desk.py,Chat messages and other notifications.,הודעות צ&#39;אט והודעות אחרות.
 DocType: Contact,Last Name,שם משפחה
@@ -1764,7 +1764,7 @@ apps/frappe/frappe/public/js/frappe/request.js,The resource you are looking for 
 apps/frappe/frappe/core/doctype/doctype/doctype.py,Image field must be a valid fieldname,שדה תמונה חייב להיות fieldname תקף
 DocType: User,Represents a User in the system.,מייצג משתמש במערכת.
 DocType: DocType,Allow Rename,לאפשר שינוי שם
-DocType: Event,Saturday,יום שבת
+DocType: Assignment Rule Day,Saturday,יום שבת
 apps/frappe/frappe/core/doctype/activity_log/activity_log.py,Sorry! You cannot delete auto-generated comments,מצטער! אתה לא יכול למחוק הערות שנוצרו באופן אוטומטי
 DocType: Contact,Passive,פסיבי
 apps/frappe/frappe/utils/response.py,You don't have permission to access this file,אין לך הרשאה לגשת לקובץ זה

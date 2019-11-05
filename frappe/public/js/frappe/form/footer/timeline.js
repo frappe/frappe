@@ -278,6 +278,10 @@ frappe.ui.form.Timeline = class Timeline {
 				e.preventDefault();
 				var name = $timeline_item.data('name');
 
+				// fix quill editor's tooltip
+				$timeline_item.attr('style', 'overflow: visible;');
+				$timeline_item.find('.timeline-content-show').attr('style', 'overflow: visible;');
+
 				if($timeline_item.hasClass('is-editing')) {
 					me.current_editing_area.submit();
 				} else {

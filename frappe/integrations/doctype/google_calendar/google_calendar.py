@@ -220,7 +220,7 @@ def sync_events_from_google_calendar(g_calendar, method=None, page_length=10):
 		except HttpError as err:
 			frappe.throw(_("Google Calendar - Could not fetch event from Google Calendar, error code {0}.").format(err.resp.status))
 
-		for event in events.get("items"):
+		for event in events.get("items", []):
 			results.append(event)
 
 		if not events.get("nextPageToken"):

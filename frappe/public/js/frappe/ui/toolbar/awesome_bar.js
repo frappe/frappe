@@ -1,6 +1,7 @@
 // Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 frappe.provide('frappe.search');
+frappe.provide('frappe.tags');
 
 frappe.search.AwesomeBar = Class.extend({
 	setup: function(element) {
@@ -140,6 +141,8 @@ frappe.search.AwesomeBar = Class.extend({
 						__("document type..., e.g. customer")+'</td></tr>\
 					<tr><td>'+__("Search in a document type")+'</td><td>'+
 						__("text in document type")+'</td></tr>\
+					<tr><td>'+__("Tags")+'</td><td>'+
+						__("tag name..., e.g. #tag")+'</td></tr>\
 					<tr><td>'+__("Open a module or tool")+'</td><td>'+
 						__("module name...")+'</td></tr>\
 					<tr><td>'+__("Calculate")+'</td><td>'+
@@ -177,6 +180,9 @@ frappe.search.AwesomeBar = Class.extend({
 			frappe.search.utils.get_recent_pages(txt || ""),
 			frappe.search.utils.get_executables(txt)
 		);
+		if (txt.charAt(0) === "#") {
+			options = frappe.tags.utils.get_tags(txt);
+		}
 		var out = this.deduplicate(options);
 		return out.sort(function(a, b) {
 			return b.index - a.index;
@@ -215,6 +221,11 @@ frappe.search.AwesomeBar = Class.extend({
 
 	make_global_search: function(txt) {
 		var me = this;
+
+		if (txt.charAt(0) === "#") {
+			return;
+		}
+
 		this.options.push({
 			label: __("Search for '{0}'", [txt.bold()]),
 			value: __("Search for '{0}'", [txt]),

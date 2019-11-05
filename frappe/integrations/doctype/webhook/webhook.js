@@ -7,12 +7,12 @@ frappe.webhook = {
 			frappe.model.with_doctype(frm.doc.webhook_doctype, () => {
 				// get doctype fields
 				let fields = $.map(frappe.get_doc("DocType", frm.doc.webhook_doctype).fields, (d) => {
-					if (frappe.model.no_value_type.includes(d.fieldtype) || frappe.model.table_fields.includes(d.fieldtype)) {
-						return { label: d.label + ' (' + d.fieldtype + ')', value: d.fieldname };
+					if (frappe.model.no_value_type.includes(d.fieldtype) && !(frappe.model.table_fields.includes(d.fieldtype))) {
+						return null;
 					} else if (d.fieldtype === 'Currency' || d.fieldtype === 'Float') {
 						return { label: d.label, value: d.fieldname };
 					} else {
-						return null;
+						return {  label: `${__(d.label)} (${d.fieldtype})`, value: d.fieldname };
 					}
 				});
 
@@ -21,7 +21,7 @@ frappe.webhook = {
 					if (field.fieldname == "name") {
 						fields.unshift({ label: "Name (Doc Name)", value: "name" });
 					} else {
-						fields.push({ label: field.label + ' (' + field.fieldtype + ')', value: field.fieldname });
+						fields.push({ label: `${__(field.label)} (${field.fieldtype})`, value: field.fieldname });
 					}
 				}
 

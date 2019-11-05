@@ -71,7 +71,6 @@ frappe.ui.form.ControlAttach = frappe.ui.form.ControlData.extend({
 		if (this.df.options) {
 			Object.assign(options, this.df.options);
 		}
-
 		this.upload_options = options;
 	},
 

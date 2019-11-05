@@ -41,7 +41,22 @@ def reset_global_search_settings_doctypes():
 	update_global_search_doctypes()
 
 def update_global_search_doctypes():
-	global_search_doctypes = frappe.get_hooks("global_search_doctypes")
+	global_search_doctypes = []
+	show_message(1, _("Fetching default Global Search documents."))
+
+	installed_apps = [app for app in frappe.get_installed_apps() if app]
+	active_domains = [domain for domain in frappe.get_active_domains() if domain]
+	active_domains.append("Default")
+
+	for app in installed_apps:
+		search_doctypes = frappe.get_hooks(hook="global_search_doctypes", app_name=app)
+		if not search_doctypes:
+			continue
+
+		for domain in active_domains:
+			if search_doctypes.get(domain):
+				global_search_doctypes.extend(search_doctypes.get(domain))
+
 	doctype_list = set([dt.name for dt in frappe.get_list("DocType")])
 	allowed_in_global_search = []
 
@@ -52,6 +67,7 @@ def update_global_search_doctypes():
 
 		allowed_in_global_search.append(dt.get("doctype"))
 
+	show_message(2, _("Setting up Global Search documents."))
 	global_search_settings = frappe.get_single("Global Search Settings")
 	global_search_settings.allowed_in_global_search = []
 	for dt in allowed_in_global_search:
@@ -62,3 +78,7 @@ def update_global_search_doctypes():
 			"document_type": dt
 		})
 	global_search_settings.save(ignore_permissions=True)
+	show_message(3, "Global Search Documents have been reset.")
+
+def show_message(progress, msg):
+	frappe.publish_realtime('global_search_settings', {"progress":progress, "total":3, "msg": msg}, user=frappe.session.user)

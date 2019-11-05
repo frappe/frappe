@@ -52,7 +52,7 @@ def execute():
 			phone_values.append((
 				phone_counter,
 				frappe.generate_hash(contact_detail.email_id, 10),
-				contact_detail.phone,
+				contact_detail.mobile_no,
 				'phone_nos',
 				'Contact',
 				contact_detail.name,

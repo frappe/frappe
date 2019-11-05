@@ -4,6 +4,7 @@
 frappe.ui.form.on('Data Import Beta', {
 	setup(frm) {
 		frappe.realtime.on('data_import_refresh', ({ data_import }) => {
+			frm.import_in_progress = false;
 			if (data_import !== frm.doc.name) return;
 			frappe.model.clear_doc('Data Import Beta', frm.doc.name);
 			frappe.model.with_doc('Data Import Beta', frm.doc.name).then(() => {
@@ -11,6 +12,7 @@ frappe.ui.form.on('Data Import Beta', {
 			});
 		});
 		frappe.realtime.on('data_import_progress', data => {
+			frm.import_in_progress = true;
 			if (data.data_import !== frm.doc.name) {
 				return;
 			}
@@ -81,7 +83,9 @@ frappe.ui.form.on('Data Import Beta', {
 		}
 
 		if (frm.doc.status !== 'Success') {
-			if (!frm.is_new() && frm.doc.import_file) {
+			if (frm.import_in_progress) {
+				frm.disable_save();
+			} else if (!frm.is_new() && frm.doc.import_file) {
 				let label = frm.doc.status === 'Pending' ? __('Start Import') : __('Retry');
 				frm.page.set_primary_action(label, () => frm.events.start_import(frm));
 			} else {
@@ -131,6 +135,10 @@ frappe.ui.form.on('Data Import Beta', {
 			doc: frm.doc,
 			method: 'start_import',
 			btn: frm.page.btn_primary
+		}).then(r => {
+			if (r.message === true) {
+				frm.disable_save();
+			}
 		});
 	},
 
@@ -296,6 +304,10 @@ frappe.ui.form.on('Data Import Beta', {
 		`);
 	},
 
+	show_failed_logs(frm) {
+		frm.trigger('show_import_log');
+	},
+
 	show_import_log(frm) {
 		let import_log = JSON.parse(frm.doc.import_log || '[]');
 		let logs = import_log;
@@ -309,7 +321,7 @@ frappe.ui.form.on('Data Import Beta', {
 
 		let rows = logs
 			.map(log => {
-				let html;
+				let html = '';
 				if (log.success) {
 					html = __('Successfully imported {0}', [
 						`<span class="underline">${frappe.utils.get_form_link(
@@ -340,6 +352,11 @@ frappe.ui.form.on('Data Import Beta', {
 				}
 				let indicator_color = log.success ? 'green' : 'red';
 				let title = log.success ? __('Success') : __('Failure');
+
+				if (frm.doc.show_failed_logs && log.success) {
+					return '';
+				}
+
 				return `<tr>
 					<td>${log.row_indexes.join(', ')}</td>
 					<td>
@@ -351,6 +368,10 @@ frappe.ui.form.on('Data Import Beta', {
 				</tr>`;
 			})
 			.join('');
+
+		if (!rows && frm.doc.show_failed_logs) {
+			rows = `<tr><td class="text-center text-muted" colspan=3>${__('No failed logs')}</td></tr>`;
+		}
 
 		frm.get_field('import_log_preview').$wrapper.html(`
 			<table class="table table-bordered">
