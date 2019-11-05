@@ -52,28 +52,8 @@ def get_desk_assets(build_version):
 	"""Get desk assets to be loaded for mobile app"""
 	data = get_context({"for_mobile": True})
 	assets = [{"type": "js", "data": ""}, {"type": "css", "data": ""}]
-
 	if build_version != data["build_version"]:
-		# new build, send assets
-		for path in data["include_js"]:
-			# assets path shouldn't start with /
-			# as it points to different location altogether
-			if path.startswith('/assets/'):
-				path = path.replace('/assets/', 'assets/')
-			try:
-				with open(os.path.join(frappe.local.sites_path, path) ,"r") as f:
-					assets[0]["data"] = assets[0]["data"] + "\n" + frappe.safe_decode(f.read(), "utf-8")
-			except IOError:
-				pass
-
-		for path in data["include_css"]:
-			if path.startswith('/assets/'):
-				path = path.replace('/assets/', 'assets/')
-			try:
-				with open(os.path.join(frappe.local.sites_path, path) ,"r") as f:
-					assets[1]["data"] = assets[1]["data"] + "\n" + frappe.safe_decode(f.read(), "utf-8")
-			except IOError:
-				pass
+		assets = get_assets_data(data)
 
 	return {
 		"build_version": data["build_version"],
@@ -88,3 +68,29 @@ def get_build_version():
 		# .build can sometimes not exist
 		# this is not a major problem so send fallback
 		return frappe.utils.random_string(8)
+
+def get_assets_data(data):
+	# new build, send assets
+	assets = [{"type": "js", "data": ""}, {"type": "css", "data": ""}]
+
+	for path in data["include_js"]:
+		# assets path shouldn't start with /
+		# as it points to different location altogether
+		if path.startswith('/assets/'):
+			path = path.replace('/assets/', 'assets/')
+		try:
+			with open(os.path.join(frappe.local.sites_path, path), "r") as f:
+				assets[0]["data"] = assets[0]["data"] + "\n" + frappe.safe_decode(f.read(), "utf-8")
+		except IOError:
+			pass
+
+	for path in data["include_css"]:
+		if path.startswith('/assets/'):
+			path = path.replace('/assets/', 'assets/')
+		try:
+			with open(os.path.join(frappe.local.sites_path, path), "r") as f:
+				assets[1]["data"] = assets[1]["data"] + "\n" + frappe.safe_decode(f.read(), "utf-8")
+		except IOError:
+			pass
+
+	return assets
