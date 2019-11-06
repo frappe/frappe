@@ -855,7 +855,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			{label:__("Attach Document Print"), fieldtype:"Check", fieldname:"attach_document_print", default: "1",},
 			{fieldtype: "Column Break"},
 			{label:__("Select Document Format"), fieldtype:"Select", fieldname:"attachment_format", 
-				depends_on: "attach_document_print", options: ['CSV', 'XLSX']},
+				depends_on: "attach_document_print", options: ['HTML', 'CSV', 'XLSX']},
 			{fieldtype: "Section Break"},
 			{label: __("Pick Columns"), fieldtype: "Check", fieldname: "pick_columns",},
 			{
@@ -907,9 +907,20 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 						data
 					},
 					callback: (r) => {
-						email_dialog.hide()
+						email_dialog.hide();
+						if (r.message)
+							frappe.msgprint(__('Email sent successfully'));
+						else
+							frappe.msgprint(__('Error sending email. Please try again.'))
+					},
+					error: () => {
+						email_dialog.hide();
+						frappe.msgprint(__('Error sending email. Please try again.'))
 					}
 				})
+				email_dialog.disable_primary_action();
+				email_dialog.set_title(__('Sending...'));
+				email_dialog.toggle_minimize();
 			}
 		});
 		email_dialog.show();
@@ -1064,7 +1075,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			}
 		}).filter(Boolean);
 		let totalRow = this.datatable.bodyRenderer.getTotalRow().reduce((row, cell) => {
-			row[cell.column.id] = cell.content;
+			row[cell.column.id] = cell.content || "";
 			return row;
 		}, {});
 

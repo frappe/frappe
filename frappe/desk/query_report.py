@@ -280,7 +280,7 @@ def email_report(report, email_doc, filters, columns, data):
 	data = frappe.parse_json(data)
 	filters = frappe.parse_json(filters)
 
-	# filters out columns selected by user
+	# filter out columns selected by user
 	if email_doc.get("pick_columns") and email_doc.get("columns"):
 		picked_columns = frappe.parse_json(email_doc.get("columns"))
 		filtered_columns = []
@@ -291,7 +291,7 @@ def email_report(report, email_doc, filters, columns, data):
 		columns = filtered_columns
 
 	if not filters:
-		frappe.throw(_("Please set filters value in Report Filters."))
+		frappe.throw(_("Please set Report Filters."))
 	
 	if len(data)==0:
 		frappe.throw(_("There's no data in the report to send."))
@@ -304,9 +304,6 @@ def email_report(report, email_doc, filters, columns, data):
 	for i in range(len(data)):
 		data[i]['idx'] = i+1
 
-	# if email_doc.get("attachment_format") == 'PDF':
-	# 	data = get_html_table(columns, data)
-
 	if email_doc.get("attachment_format") == 'XLSX':
 		spreadsheet_data = get_spreadsheet_data(columns, data)
 		xlsx_file = make_xlsx(spreadsheet_data, "Auto Email Report")
@@ -316,30 +313,48 @@ def email_report(report, email_doc, filters, columns, data):
 		spreadsheet_data = get_spreadsheet_data(columns, data)
 		data = to_csv(spreadsheet_data)
 
+	elif email_doc.get("attachment_format") == 'HTML':
+		data = get_html_table(report, columns, data)
 	else:
 		frappe.throw(_("Invalid Output Format"))
 
-	# attachments = None
-	# if email_doc.get("attachment_format") == "HTML":
-	# 	message = data
-	# else:
-	# 	message = get_html_table()
+	file_name = _("Report: {0}.{1}").format(report, email_doc.get("attachment_format").lower())
+	message = email_doc.get("message")
 
 	if not email_doc.get("attachment_format") == 'HTML':
 		attachments = [{
-			'fname': _("Report: {0}.{1}").format(report, email_doc.get("attachment_format").lower()),
+			'fname': file_name,
 			'fcontent': data
 		}]
+	else:
+		attachments = []
+		message += '\n' + data
 
-	frappe.sendmail(
-		recipients = email_doc.get("recipients").split(),
-		subject = email_doc.get("subject"),
-		message = email_doc.get("message"),
-		attachments = attachments,
-		now = True
-	)
+	try:
+		frappe.sendmail(
+			recipients = email_doc.get("recipients").split(),
+			subject = email_doc.get("subject"),
+			message = message,
+			attachments = attachments,
+			now = True
+		)
+		return True
+	except Exception as e:
+		print('Error: ' + str(e))
+		return False
+	
 
-	return True
+def get_html_table(report, columns, data):
+	from frappe.utils import global_date_format, now, format_time
+
+	date_time = global_date_format(now()) + ' ' + format_time(now())
+
+	return frappe.render_template('frappe/templates/emails/auto_email_report.html', {
+		'title': 'Report: ' + report,
+		'date_time': date_time,
+		'columns': columns,
+		'data': data
+	})
 
 def get_spreadsheet_data(columns, data):
 	out = [[_(df.get('label')) for df in columns], ]

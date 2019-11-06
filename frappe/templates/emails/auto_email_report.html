@@ -35,11 +35,15 @@
 			{% for col in columns %}
 				{% if row[col.fieldname] == 'Total' %}
 					<td {{- get_alignment(col) }}>
-						{{- row[col.fieldname] -}}
+						{% if row[col.fieldname] != undefined %}
+						{{- row[col.fieldname]-}}
+						{% endif %}
 					</td>
 				{% else %}
 					<td {{- get_alignment(col) }}>
+						{% if row[col.fieldname] != undefined %}
 						{{- frappe.format(row[col.fieldname], col, row) -}}
+						{% endif %}
 					</td>
 				{% endif %}
 			{% endfor %}
@@ -56,11 +60,15 @@
 			<p>
 				{{ _("This report was generated on {0}".format(date_time)) }}
 			</p>
+			{% if report_url %}
 			<p>
 				{{ _("View report in your browser") }}:
 				<a href= {{report_url}} target="_blank">{{report_name}}</a>
 			</p>
+			{% endif %}
+			{% if edit_report_settings %}
 			<p>{{ _("Edit Auto Email Report Settings") }}: {{edit_report_settings}}</p>
+			{% endif %}
 		</td>
 	</tr>
 </table>
