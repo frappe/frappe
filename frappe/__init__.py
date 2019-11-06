@@ -6,7 +6,7 @@ globals attached to frappe module
 """
 from __future__ import unicode_literals, print_function
 
-from six import iteritems, binary_type, text_type, string_types
+from six import iteritems, binary_type, text_type, string_types, PY2
 from werkzeug.local import Local, release_local
 import os, sys, importlib, inspect, json
 from past.builtins import cmp
@@ -19,7 +19,7 @@ from .utils.jinja import (get_jenv, get_template, render_template, get_email_fro
 
 # Harmless for Python 3
 # For Python 2 set default encoding to utf-8
-if sys.version[0] == '2':
+if PY2:
 	reload(sys)
 	sys.setdefaultencoding("utf-8")
 
@@ -1556,9 +1556,9 @@ def get_version(doctype, name, limit = None, head = False, raise_err = True):
 	>>>
 	[
 		{
-			 "version": [version.data], 	 # Refer Version DocType get_diff method and data attribute
-			    "user": "admin@gmail.com"    # User that created this version
-			"creation": <datetime.datetime>  # Creation timestamp of that object.
+			"version": [version.data],			# Refer Version DocType get_diff method and data attribute
+			"user": "admin@gmail.com",			# User that created this version
+			"creation": <datetime.datetime>		# Creation timestamp of that object.
 		}
 	]
 	'''
