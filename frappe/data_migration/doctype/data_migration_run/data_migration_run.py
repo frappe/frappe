@@ -412,7 +412,7 @@ class DataMigrationRun(Document):
 						self.update_log('pull_update', 1)
 					# post process doc after success
 					self.post_process_doc(remote_doc=d, local_doc=local_doc)
-				except Exception:
+				except Exception as e:
 					# failed, append to log
 					self.update_log('pull_failed', {migration_id_value: cstr(e)})
 

@@ -226,23 +226,26 @@ class DashboardChart {
 			"Line": "line",
 			"Bar": "bar",
 		};
-		let chart_args = {
-			title: this.chart_doc.chart_name,
-			data: this.data,
-			type: chart_type_map[this.chart_doc.type],
-			truncateLegends: 1,
-			colors: [this.chart_doc.color || "light-blue"],
-			axisOptions: {
-				xIsSeries: this.chart_doc.timeseries,
-				shortenYAxisNumbers: 1
-			}
-		};
-		this.chart_container.find('.chart-loading-state').addClass('hide');
 
-		if(!this.chart) {
-			this.chart = new frappe.Chart(this.chart_container.find(".chart-wrapper")[0], chart_args);
+		this.chart_container.find('.chart-loading-state').addClass('hide');
+		if (!this.data) {
+			this.chart_container.find('.chart-empty-state').removeClass('hide');
 		} else {
-			this.chart.update(this.data);
+			let chart_args = {
+				title: this.chart_doc.chart_name,
+				data: this.data,
+				type: chart_type_map[this.chart_doc.type],
+				colors: [this.chart_doc.color || "light-blue"],
+				axisOptions: {
+					xIsSeries: this.chart_doc.timeseries,
+					shortenYAxisNumbers: 1
+				}
+			};
+			if (!this.chart) {
+				this.chart = new frappe.Chart(this.chart_container.find(".chart-wrapper")[0], chart_args);
+			} else {
+				this.chart.update(this.data);
+			}
 		}
 	}
 
