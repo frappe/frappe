@@ -27,7 +27,6 @@ function addHelpEntryFromModules(route){
                 let doctypeDoc = frappe.get_doc("DocType", dt);
                 let module = doctypeDoc.module;
                 relevantNotes = notes.filter(function(note){
-                    debugger;
                     return !(note['module'] || note['doc_type'])
                         || note['module'] === module || note['doc_type'] === dt;
                 });
