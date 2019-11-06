@@ -800,10 +800,15 @@ def reload_doc(module, dt=None, dn=None, force=False, reset_permissions=False):
 	import frappe.modules
 	return frappe.modules.reload_doc(module, dt, dn, force=force, reset_permissions=reset_permissions)
 
-def rename_doc(*args, **kwargs):
-	"""Rename a document. Calls `frappe.model.rename_doc.rename_doc`"""
+@whitelist()
+def rename_doc(doctype, old, new, force=False, merge=False, ignore_if_exists=False):
+	"""
+		Renames a doc(dt, old) to doc(dt, new) and updates all linked fields of type "Link"
+
+		Calls `frappe.model.rename_doc.rename_doc`
+	"""
 	from frappe.model.rename_doc import rename_doc
-	return rename_doc(*args, **kwargs)
+	return rename_doc(doctype, old, new, force, merge, ignore_if_exists)
 
 def get_module(modulename):
 	"""Returns a module object for given Python module name using `importlib.import_module`."""
