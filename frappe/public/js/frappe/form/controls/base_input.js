@@ -123,7 +123,7 @@ frappe.ui.form.ControlInput = frappe.ui.form.Control.extend({
 			value = frappe.utils.escape_html(value);
 		}
 		let doc = this.doc || (this.frm && this.frm.doc);
-		let display_value = frappe.format(value, this.df, {no_icon:true, inline:true}, doc);
+		let display_value = frappe.format(value, this.df, { no_icon: true, inline: true }, doc);
 		this.disp_area && $(this.disp_area).html(display_value);
 	},
 
