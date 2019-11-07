@@ -6,7 +6,8 @@ import unittest, os, base64
 from frappe.email.receive import Email
 from frappe.email.email_body import (replace_filename_with_cid,
 	get_email, inline_style_in_html, get_header)
-
+from frappe.email.queue import prepare_message
+import sys
 class TestEmailBody(unittest.TestCase):
 	def setUp(self):
 		email_html = '''
@@ -37,6 +38,27 @@ This is the text version of this email
 			text_content=email_text
 		).as_string()
 
+	def test_prepare_message_returns_already_encoded_string(self):
+		email = get_email(
+			recipients=['test@example.com'],
+			sender='me@example.com',
+			subject='Test Subject',
+			content='<h1>' + chr(40960) + 'abcd' + chr(1972) + '</h1>',
+			text_content='whatever')
+		result = prepare_message(email=email, recipient='test@test.com',recipients_list=[])
+		if sys.version_info < (3, 0):
+			self.assertTrue(True)
+
+	def test_rfc_5322_header_is_wrapped_at_998_chars(self):
+		email = get_email(
+			recipients=['test@example.com'],
+			sender='me@example.com',
+			subject='Test Subject',
+			content='<h1>Whatever</h1>',
+			text_content='whatever')
+		email.set_message_id('a.really.long.message.id.that.should.not.wrap.until.998.if.it.does.then.exchange.will.break.')
+		result = prepare_message(email=email, recipient='test@test.com',recipients_list=[])
+		self.assertTrue('a.really.long.message.id.that.should.not.wrap.until.998.if.it.does.then.exchange.will.break.' in result)
 
 	def test_image(self):
 		img_signature = '''
