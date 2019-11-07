@@ -147,6 +147,8 @@ def delete_notification_count_for(doctype):
 
 def clear_doctype_notifications(doc, method=None, *args, **kwargs):
 	config = get_notification_config()
+	if not config:
+		return
 	if isinstance(doc, string_types):
 		doctype = doc # assuming doctype name was passed directly
 	else:
