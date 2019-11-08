@@ -1,3 +1,5 @@
+frappe.provide('frappe.search');
+
 frappe.ui.Notifications = class Notifications {
 	constructor() {
 		frappe.model
@@ -29,8 +31,28 @@ frappe.ui.Notifications = class Notifications {
 		);
 
 		frappe.utils.bind_actions_with_object(this.$dropdown_list, this);
+		let me = this;
+		frappe.search.utils.make_function_searchable(
+			me.route_to_settings,
+			__('Notification Settings'),
+			[this.notifications_settings],
+		)
+
 		this.setup_notifications();
 		this.bind_events();
+	}
+
+	route_to_settings(settings_doc) {
+		let method =
+			'frappe.desk.doctype.notification_settings.notification_settings.create_notification_settings';
+
+		return Promise.resolve()
+		.then(() => {
+			if (!settings_doc) return frappe.call(method);
+		})
+		.then(() => {
+			frappe.set_route(`#Form/Notification Settings/${frappe.session.user}`);
+		});
 	}
 
 	setup_notifications() {
@@ -249,7 +271,7 @@ frappe.ui.Notifications = class Notifications {
 			}
 		);
 	}
-	
+
 	mark_all_as_seen() {
 		this.$dropdown_list.find('.unseen').removeClass('unseen');
 		let unseen_docnames = this.dropdown_items
@@ -368,7 +390,7 @@ frappe.ui.Notifications = class Notifications {
 			let mark_all_read_html =
 				category.value === 'Notifications'
 				? `<span class="mark-all-read pull-right" data-action="mark_all_as_read">
-					${__('Mark All as Read')}
+					${__('Mark all as Read')}
 				</span>`
 				: '';
 			let html = `<li class="notifications-category">
@@ -407,16 +429,7 @@ frappe.ui.Notifications = class Notifications {
 		e.stopImmediatePropagation();
 		this.$dropdown.removeClass('open');
 		this.$dropdown.trigger('hide.bs.dropdown');
-		let method =
-			'frappe.desk.doctype.notification_settings.notification_settings.create_notification_settings';
-
-		return Promise.resolve()
-			.then(() => {
-				if (!this.notifications_settings) return frappe.call(method);
-			})
-			.then(() => {
-				frappe.set_route(`#Form/Notification Settings/${frappe.session.user}`);
-			});
+		this.route_to_settings(this.notifications_settings);
 	}
 
 	bind_events() {

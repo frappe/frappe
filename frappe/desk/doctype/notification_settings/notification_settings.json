@@ -72,15 +72,14 @@
    "fieldname": "user",
    "fieldtype": "Link",
    "hidden": 1,
-   "in_list_view": 1,
    "label": "User",
    "options": "User",
    "read_only": 1
   }
  ],
  "in_create": 1,
- "modified": "2019-10-23 12:42:56.175928",
- "modified_by": "Administrator",
+ "modified": "2019-11-08 14:11:35.619306",
+ "modified_by": "frappetestuser2@gmail.com",
  "module": "Desk",
  "name": "Notification Settings",
  "owner": "Administrator",
@@ -97,7 +96,6 @@
    "write": 1
   }
  ],
- "read_only": 1,
  "sort_field": "modified",
  "sort_order": "DESC",
  "track_changes": 1
