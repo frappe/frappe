@@ -328,7 +328,11 @@ frappe.ui.form.Form = class FrappeForm {
 			}
 		}
 		// reset visible columns, since column headings can change in different docs
-		this.grids.forEach(grid_obj => grid_obj.grid.visible_columns = null);
+		this.grids.forEach(grid_obj => {
+			grid_obj.grid.visible_columns = null
+			// reset page number to 1
+			grid_obj.grid.grid_pagination.go_to_page(1);
+		});
 		frappe.ui.form.close_grid_form();
 		this.docname = docname;
 	}

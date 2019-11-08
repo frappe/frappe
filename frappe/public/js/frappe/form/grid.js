@@ -2,6 +2,7 @@
 // MIT License. See license.txt
 
 import GridRow from "./grid_row";
+import GridPagination from './grid_pagination'
 
 frappe.ui.form.get_open_grid_form = function() {
 	return $(".grid-row-open").data("grid_row");
@@ -63,25 +64,37 @@ export default class Grid {
 			</div>
 			<div class="small form-clickable-section grid-footer">
 				<div class="row">
-					<div class="col-sm-6 grid-buttons">
+					<div class="col-sm-5 grid-buttons">
 						<button type="reset"
 							class="btn btn-xs btn-danger grid-remove-rows hidden"
-							style="margin-right: 4px;">
-							${__("Delete")}</button>
+							style="margin-right: 4px;"
+							data-action="delete_rows">
+							${__("Delete")}
+						</button>
+						<button type="reset"
+							class="btn btn-xs btn-danger grid-remove-all-rows hidden"
+							style="margin-right: 4px;"
+							data-action="delete_all_rows">
+							${__("Delete All")}
+						</button>
 						<button type="reset"
 							class="grid-add-multiple-rows btn btn-xs btn-default hidden"
 							style="margin-right: 4px;">
 							${__("Add Multiple")}</a>
+						</button>
 						<!-- hack to allow firefox include this in tabs -->
 						<button type="reset" class="btn btn-xs btn-default grid-add-row">
-							${__("Add Row")}</button>
+							${__("Add Row")}
+						</button>
 					</div>
-					<div class="col-sm-6 text-right">
+					<div class="col-sm-4 grid-pagination">
+					</div>
+					<div class="col-sm-3 text-right">
 						<a href="#" class="grid-download btn btn-xs btn-default hidden"
-							style="margin-left: 10px;">
+							style="margin-left: 4px;">
 							${__("Download")}</a>
 						<a href="#" class="grid-upload btn btn-xs btn-default hidden"
-							style="margin-left: 10px;">
+							style="margin-left: 4px;">
 							${__("Upload")}</a>
 					</div>
 				</div>
@@ -92,9 +105,21 @@ export default class Grid {
 			.appendTo(this.parent)
 			.attr("data-fieldname", this.df.fieldname);
 
+		frappe.utils.bind_actions_with_object(this.wrapper, this);
+
 		this.form_grid = this.wrapper.find('.form-grid');
 
-		this.wrapper.find(".grid-add-row").click(function() {
+		this.grid_pagination = new GridPagination({
+			grid: this,
+			wrapper: this.wrapper,
+		})
+
+		this.wrapper.find(".grid-add-row").click( () => {
+			if (this.data.length == this.grid_pagination.page_length*this.grid_pagination.total_pages) {
+				this.grid_pagination.go_to_page(this.grid_pagination.total_pages + 1);
+			} else {
+				this.grid_pagination.go_to_page(this.grid_pagination.total_pages);
+			}
 			me.add_new_row(null, null, true);
 			me.set_focus_on_row();
 
@@ -103,7 +128,8 @@ export default class Grid {
 
 		this.custom_buttons = {};
 		this.grid_buttons = this.wrapper.find('.grid-buttons');
-		this.remove_rows_button = this.grid_buttons.find('.grid-remove-rows')
+		this.remove_rows_button = this.grid_buttons.find('.grid-remove-rows');
+		this.remove_all_rows_button = this.grid_buttons.find('.grid-remove-all-rows');
 
 		this.setup_allow_bulk_edit();
 		this.setup_check();
@@ -113,10 +139,9 @@ export default class Grid {
 	}
 
 	setup_check() {
-		var me = this;
 
-		this.wrapper.on('click', '.grid-row-check', function(e) {
-			var $check = $(this);
+		this.wrapper.on('click', '.grid-row-check', (e) => {
+			var $check = $(e.currentTarget);
 			if($check.parents('.grid-heading-row:first').length!==0) {
 				// select all?
 				var checked = $check.prop('checked');
@@ -124,56 +149,74 @@ export default class Grid {
 					.find('.grid-row-check').prop('checked', checked);
 
 				// set all
-				(me.grid_rows || []).forEach(function(row) { row.doc.__checked = checked ? 1 : 0; });
+				let result_length = this.grid_pagination.get_result_length();
+				let page_index = this.grid_pagination.page_index;
+				let page_length = this.grid_pagination.page_length;
+				for (var ri = (page_index-1)*page_length; ri < result_length; ri++) {
+					this.grid_rows[ri].doc.__checked = checked ? 1: 0;
+				}
 			} else {
 				var docname = $check.parents('.grid-row:first').attr('data-name');
-				me.grid_rows_by_docname[docname].select($check.prop('checked'));
+				this.grid_rows_by_docname[docname].select($check.prop('checked'));
 			}
-			me.refresh_remove_rows_button();
+			this.refresh_remove_rows_button();
 		});
 
-		this.remove_rows_button.on('click', function() {
-			var dirty = false;
-
-			let tasks = [];
-			me.get_selected_children().forEach((doc) => {
-				tasks.push(() => {
-					if (!me.frm) {
-						me.df.data = me.get_data();
-						me.df.data = me.df.data.filter((row)=> row.idx != doc.idx);
-					}
-					me.grid_rows_by_docname[doc.name].remove();
-					dirty = true;
-				});
-				tasks.push(() => frappe.timeout(0.1));
-			});
-
-			if (!me.frm) {
-				tasks.push(() => {
-					// reorder idx of df.data
-					me.df.data.forEach((row, index) => row.idx = index + 1);
-				});
-			}
-
-			tasks.push(() => {
-				if (dirty) me.refresh();
-			});
-
-			frappe.run_serially(tasks);
-		});
 	}
+
+	delete_rows() {
+		var dirty = false;
+
+		let tasks = [];
+
+		this.get_selected_children().forEach((doc) => {
+			tasks.push(() => {
+				if (!this.frm) {
+					this.df.data = this.get_data();
+					this.df.data = this.df.data.filter((row)=> row.idx != doc.idx);
+				}
+				this.grid_rows_by_docname[doc.name].remove();
+				dirty = true;
+			});
+			tasks.push(() => frappe.timeout(0.1));
+		});
+
+		if (!this.frm) {
+			tasks.push(() => {
+				// reorder idx of df.data
+				this.df.data.forEach((row, index) => row.idx = index + 1);
+			});
+		}
+
+		tasks.push(() => {
+			if (dirty) this.refresh();
+		});
+
+		frappe.run_serially(tasks);
+	}
+
+	delete_all_rows() {
+		this.frm.doc[this.df.fieldname] = [];
+		this.refresh();
+	}
+
 	select_row(name) {
 		this.grid_rows_by_docname[name].select();
 	}
+
 	remove_all() {
 		this.grid_rows.forEach(row => {
 			row.remove();
 		});
 	}
+
 	refresh_remove_rows_button() {
 		this.remove_rows_button.toggleClass('hidden',
 			this.wrapper.find('.grid-body .grid-row-check:checked:first').length ? false : true);
+		this.remove_all_rows_button.toggleClass('hidden',
+			this.wrapper.find('.grid-body .grid-row-check:checked:first').length ? false : true);
 	}
+
 	get_selected() {
 		return (this.grid_rows || []).map(function(row) { return row.doc.__checked ? row.doc.name : null; })
 			.filter(function(d) { return d; });
@@ -195,10 +238,11 @@ export default class Grid {
 		}
 	}
 	refresh(force) {
+		this.data = this.get_data();
+
 		!this.wrapper && this.make();
 		var me = this,
-			$rows = $(me.parent).find(".rows"),
-			data = this.get_data();
+			$rows = $(me.parent).find(".rows");
 
 		this.setup_fields();
 
@@ -220,36 +264,13 @@ export default class Grid {
 			this.grid_rows = [];
 		}
 
-		this.truncate_rows(data);
+		this.truncate_rows();
 		this.grid_rows_by_docname = {};
 
-		for(var ri=0; ri < data.length; ri++) {
-			var d = data[ri];
-
-			if(d.idx===undefined) {
-				d.idx = ri + 1;
-			}
-
-			if(this.grid_rows[ri]) {
-				var grid_row = this.grid_rows[ri];
-				grid_row.doc = d;
-				grid_row.refresh();
-			} else {
-				var grid_row = new GridRow({
-					parent: $rows,
-					parent_df: this.df,
-					docfields: this.docfields,
-					doc: d,
-					frm: this.frm,
-					grid: this
-				});
-				this.grid_rows.push(grid_row);
-			}
-
-			this.grid_rows_by_docname[d.name] = grid_row;
-		}
-
-		this.wrapper.find(".grid-empty").toggleClass("hidden", Boolean(data.length));
+		this.grid_pagination.update_page_numbers();
+		this.render_result_rows($rows, false);
+		this.grid_pagination.check_page_number();
+		this.wrapper.find(".grid-empty").toggleClass("hidden", Boolean(this.data.length));
 
 		// toolbar
 		this.setup_toolbar();
@@ -267,18 +288,55 @@ export default class Grid {
 		// frappe.utils.scroll_to(_scroll_y);
 
 		// red if mandatory
-		this.form_grid.toggleClass('error', !!(this.df.reqd && !(data && data.length)));
+		this.form_grid.toggleClass('error', !!(this.df.reqd && !(this.data && this.data.length)));
 
 		this.refresh_remove_rows_button();
 
 		this.wrapper.trigger('change');
 	}
+
+
+	render_result_rows($rows, append_row) {
+
+		let result_length = this.grid_pagination.get_result_length();
+		let page_index = this.grid_pagination.page_index;
+		let page_length = this.grid_pagination.page_length;
+
+		for (var ri = (page_index-1)*page_length; ri < result_length; ri++) {
+			var d = this.data[ri];
+			if (!d) {
+				return;
+			}
+			if (d.idx===undefined) {
+				d.idx = ri + 1;
+			}
+			if (this.grid_rows[ri] && !append_row) {
+				var grid_row = this.grid_rows[ri];
+				grid_row.doc = d;
+				grid_row.refresh();
+			} else {
+				var grid_row = new GridRow({
+					parent: $rows,
+					parent_df: this.df,
+					docfields: this.docfields,
+					doc: d,
+					frm: this.frm,
+					grid: this
+				});
+				this.grid_rows[ri] = grid_row;
+			}
+
+			this.grid_rows_by_docname[d.name] = grid_row;
+		}
+	}
+
 	setup_toolbar() {
-		if(this.is_editable()) {
+
+		if (this.is_editable()) {
 			this.wrapper.find(".grid-footer").toggle(true);
 
 			// show, hide buttons to add rows
-			if(this.cannot_add_rows || (this.df && this.df.cannot_add_rows)) {
+			if (this.cannot_add_rows || (this.df && this.df.cannot_add_rows)) {
 				// add 'hidden' to buttons
 				this.wrapper.find(".grid-add-row, .grid-add-multiple-rows")
 					.addClass('hidden');
@@ -286,24 +344,23 @@ export default class Grid {
 				// show buttons
 				this.wrapper.find(".grid-add-row").removeClass('hidden');
 
-				if(this.multiple_set) {
+				if (this.multiple_set) {
 					this.wrapper.find(".grid-add-multiple-rows").removeClass('hidden');
 				}
 			}
-
-		} else {
+		} else if (this.grid_rows.length < this.grid_pagination.page_length ) {
 			this.wrapper.find(".grid-footer").toggle(false);
 		}
 
 	}
-	truncate_rows(data) {
-		if(this.grid_rows.length > data.length) {
+	truncate_rows() {
+		if (this.grid_rows.length > this.data.length) {
 			// remove extra rows
-			for(var i=data.length; i < this.grid_rows.length; i++) {
+			for(var i=this.data.length; i < this.grid_rows.length; i++) {
 				var grid_row = this.grid_rows[i];
 				grid_row.wrapper.remove();
 			}
-			this.grid_rows.splice(data.length);
+			this.grid_rows.splice(this.data.length);
 		}
 	}
 	setup_fields() {
@@ -349,14 +406,14 @@ export default class Grid {
 				}
 				// prevent drag behaviour if _sortable property is "false"
 				let idx = $(event.dragged).closest('.grid-row').attr('data-idx');
-				let doc = this.get_data()[idx - 1];
+				let doc = this.data[idx%this.grid_pagination.page_length];
 				if (doc && doc._sortable === false) {
 					return false;
 				}
 			},
 			onUpdate: (event) => {
 				let idx = $(event.item).closest('.grid-row').attr('data-idx');
-				let doc = this.get_data()[idx - 1];
+				let doc = this.data[idx%this.grid_pagination.page_length];
 				this.renumber_based_on_dom();
 				this.frm.script_manager.trigger(this.df.fieldname + "_move", this.df.options, doc.name);
 				this.refresh();
@@ -370,9 +427,10 @@ export default class Grid {
 		var data = this.frm ?
 			this.frm.doc[this.df.fieldname] || []
 			: this.df.data || this.get_modal_data();
-		data.sort(function(a, b) { return a.idx - b.idx});
+		// data.sort(function(a, b) { return a.idx - b.idx});
 		return data;
 	}
+
 	get_modal_data() {
 		return this.df.get_data() ? this.df.get_data().filter(data => {
 			if (!this.deleted_docs || !in_list(this.deleted_docs, data.name)) {
@@ -380,6 +438,7 @@ export default class Grid {
 			}
 		}) : [];
 	}
+
 	set_column_disp(fieldname, show) {
 		if($.isArray(fieldname)) {
 			var me = this;
@@ -395,6 +454,7 @@ export default class Grid {
 
 		this.refresh(true);
 	}
+
 	set_editable_grid_column_disp(fieldname, show) {
 		//Hide columns for editable grids
 		if (this.meta.editable_grid && this.grid_rows) {
@@ -516,20 +576,18 @@ export default class Grid {
 	renumber_based_on_dom() {
 		// renumber based on dom
 		let me = this;
-		let $rows = $(me.parent).find(".rows");
+		let $rows = $(this.parent).find(".rows");
 
-		me.grid_rows = [];
-		me.frm.doc[me.df.fieldname] = [];
-
-		$rows.find(".grid-row").each(function(i, item) {
-
+		$rows.find(".grid-row").each( (i, item) => {
 			let $item = $(item);
-			let d = locals[me.doctype][$item.attr('data-name')];
-			d.idx = i + 1;
+			let index = (this.grid_pagination.page_index-1)*this.grid_pagination.page_length+i;
+			let d = locals[this.doctype][$item.attr('data-name')];
+			d.idx = index + 1;
 			$item.attr('data-idx', d.idx);
 
-			me.frm.doc[me.df.fieldname].push(d);
-			me.grid_rows.push(me.grid_rows_by_docname[d.name]);
+			this.frm.doc[this.df.fieldname][index] = (d);
+			this.data[index] = d;
+			this.grid_rows[index]=(this.grid_rows_by_docname[d.name]);
 		});
 	}
 
