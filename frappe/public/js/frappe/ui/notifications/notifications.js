@@ -212,26 +212,57 @@ frappe.ui.Notifications = class Notifications {
 		}
 	}
 
-	set_field_as_seen(docname, $el) {
+	set_field_as_read(docname, $el) {
 		frappe.call(
-			'frappe.desk.doctype.notification_log.notification_log.mark_as_seen',
+			'frappe.desk.doctype.notification_log.notification_log.mark_as_read',
 			{ docname: docname }
 		).then(()=> {
-			$el.removeClass('unseen');
+			$el.removeClass('unread');
 		});
 	}
 
-	explicitly_mark_as_seen(e, $target) {
+	explicitly_mark_as_read(e, $target) {
 		e.preventDefault();
 		e.stopImmediatePropagation();
-		let docname = $target.parents('.unseen').attr('data-name');
-		this.set_field_as_seen(docname, $target.parents('.unseen'));
+		let docname = $target.parents('.unread').attr('data-name');
+		this.set_field_as_read(docname, $target.parents('.unread'));
 	}
 
-	mark_as_seen(e, $target) {
+	mark_as_read(e, $target) {
 		let docname = $target.attr('data-name');
 		let df = this.dropdown_items.filter(f => docname.includes(f.name))[0];
-		this.set_field_as_seen(df.name, $target);
+		this.set_field_as_read(df.name, $target);
+	}
+
+	mark_all_as_read(e) {
+		e.stopImmediatePropagation();
+		this.$dropdown_list.find('.unread').removeClass('unread');
+		let unread_docnames = this.dropdown_items
+			.filter(item => item.read === 0)
+			.map(d => d.name);
+		if (!unread_docnames.length) return;
+		frappe.call(
+			'frappe.desk.doctype.notification_log.notification_log.set_all_values_for_field',
+			{
+				docnames: unread_docnames,
+				fieldname: 'read'
+			}
+		);
+	}
+	
+	mark_all_as_seen() {
+		this.$dropdown_list.find('.unseen').removeClass('unseen');
+		let unseen_docnames = this.dropdown_items
+			.filter(item => item.seen === 0)
+			.map(d => d.name);
+		if (!unseen_docnames.length) return;
+		frappe.call(
+			'frappe.desk.doctype.notification_log.notification_log.set_all_values_for_field',
+			{
+				docnames: unseen_docnames,
+				fieldname: 'seen'
+			}
+		);
 	}
 
 	get_notifications_list(limit) {
@@ -279,8 +310,9 @@ frappe.ui.Notifications = class Notifications {
 			field.document_type,
 			field.document_name
 		);
+		let read_class = field.read ? '' : 'unread';
 		let seen_class = field.seen ? '' : 'unseen';
-		let mark_seen_action = field.seen ? '': 'data-action="mark_as_seen"';
+		let mark_read_action = field.read ? '': 'data-action="mark_as_read"';
 		let message = field.subject;
 		let title = message.match(/<b class="subject-title">(.*?)<\/b>/);
 		message = title ? message.replace(title[1], frappe.ellipsis(title[1], 100)): message;
@@ -289,17 +321,17 @@ frappe.ui.Notifications = class Notifications {
 		let user_avatar = frappe.avatar(user, 'avatar-small user-avatar');
 		let timestamp = frappe.datetime.comment_when(field.creation, true);
 		let item_html = 
-			`<a class="recent-item ${seen_class}" 
+			`<a class="recent-item ${read_class} ${seen_class}"
 				href="${doc_link}"
 				data-name="${field.name}"
-				${mark_seen_action}
+				${mark_read_action}
 			>
 				${user_avatar}
 				${message_html}
 				<div class="notification-timestamp text-muted">
 					${timestamp}
 				</div>
-				<span class="mark-read text-muted hidden-xs" data-action="explicitly_mark_as_seen">
+				<span class="mark-read text-muted hidden-xs" data-action="explicitly_mark_as_read">
 					${__('Mark as Read')}
 				</span>
 			</a>`;
@@ -333,6 +365,12 @@ frappe.ui.Notifications = class Notifications {
 						${__('Settings')}
 					</span>`
 					: '';
+			let mark_all_read_html =
+				category.value === 'Notifications'
+				? `<span class="mark-all-read pull-right" data-action="mark_all_as_read">
+					${__('Mark All as Read')}
+				</span>`
+				: '';
 			let html = `<li class="notifications-category">
 					<li class="text-muted header"
 						data-action="${category.action}"
@@ -341,6 +379,7 @@ frappe.ui.Notifications = class Notifications {
 						${category.label}
 						<span class="octicon octicon-chevron-down collapse-indicator"></span>
 						${settings_html}
+						${mark_all_read_html}
 					</li>
 					<div id="${category_id}" class="collapse category-list" data-category="${category.value}">
 						<div class="text-center text-muted notifications-loading">
@@ -418,22 +457,14 @@ frappe.ui.Notifications = class Notifications {
 			});
 		this.$dropdown.on('hide.bs.dropdown', e => {
 			let hide = $(e.currentTarget).data('closable');
-			if (hide) {
-				this.$dropdown_list
-					.find('[data-category="Notifications"]')
-					.collapse('show');
-				this.$dropdown_list
-					.find(
-						'[data-category="Todays Events"], [data-category="Open Documents"]'
-					)
-					.collapse('hide');
-			}
 			$(e.currentTarget).data('closable', true);
 			return hide;
 		});
 
 		this.$dropdown.on('show.bs.dropdown', () => {
+			this.mark_all_as_seen();
 			if (this.$notification_indicator.is(':visible')) {
+				this.$notification_indicator.hide();
 				frappe.call(
 					'frappe.desk.doctype.notification_log.notification_log.trigger_indicator_hide'
 				);
