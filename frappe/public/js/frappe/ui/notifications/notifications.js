@@ -36,7 +36,7 @@ frappe.ui.Notifications = class Notifications {
 			me.route_to_settings,
 			__('Notification Settings'),
 			[this.notifications_settings],
-		)
+		);
 
 		this.setup_notifications();
 		this.bind_events();
@@ -47,12 +47,12 @@ frappe.ui.Notifications = class Notifications {
 			'frappe.desk.doctype.notification_settings.notification_settings.create_notification_settings';
 
 		return Promise.resolve()
-		.then(() => {
-			if (!settings_doc) return frappe.call(method);
-		})
-		.then(() => {
-			frappe.set_route(`#Form/Notification Settings/${frappe.session.user}`);
-		});
+			.then(() => {
+				if (!settings_doc) return frappe.call(method);
+			})
+			.then(() => {
+				frappe.set_route(`#Form/Notification Settings/${frappe.session.user}`);
+			});
 	}
 
 	setup_notifications() {
@@ -389,10 +389,10 @@ frappe.ui.Notifications = class Notifications {
 					: '';
 			let mark_all_read_html =
 				category.value === 'Notifications'
-				? `<span class="mark-all-read pull-right" data-action="mark_all_as_read">
-					${__('Mark all as Read')}
-				</span>`
-				: '';
+					? `<span class="mark-all-read pull-right" data-action="mark_all_as_read">
+						${__('Mark all as Read')}
+					</span>`
+					: '';
 			let html = `<li class="notifications-category">
 					<li class="text-muted header"
 						data-action="${category.action}"

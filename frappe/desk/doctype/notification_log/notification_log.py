@@ -54,13 +54,13 @@ def make_notification_logs(doc, users):
 			if is_notifications_enabled(user):
 				if doc.type == 'Energy Point' and not is_energy_point_enabled():
 					return
-				else:
-					_doc = frappe.new_doc('Notification Log')
-					_doc.update(doc)
-					_doc.for_user = user
-					_doc.subject = _doc.subject.replace('<div>', '').replace('</div>', '')
-					if _doc.for_user != _doc.from_user or doc.type == 'Energy Point':
-						_doc.insert(ignore_permissions=True)
+
+				_doc = frappe.new_doc('Notification Log')
+				_doc.update(doc)
+				_doc.for_user = user
+				_doc.subject = _doc.subject.replace('<div>', '').replace('</div>', '')
+				if _doc.for_user != _doc.from_user or doc.type == 'Energy Point':
+					_doc.insert(ignore_permissions=True)
 
 def send_notification_email(doc):
 	is_type_enabled = is_email_notifications_enabled_for_type(doc.for_user, doc.type)
@@ -114,8 +114,8 @@ def get_title_html(title):
 @frappe.whitelist()
 def set_all_values_for_field(docnames, fieldname):
 	docnames = frappe.parse_json(docnames)
-	event_name = 'all_' + fieldname 
-	if docnames:	
+	event_name = 'all_' + fieldname
+	if docnames:
 		filters = {'name': ['in', docnames]}
 		frappe.db.set_value('Notification Log', filters, fieldname, 1, update_modified=False)
 		frappe.publish_realtime(event_name, after_commit=True, user=frappe.session.user)
