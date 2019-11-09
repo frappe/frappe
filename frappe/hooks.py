@@ -326,7 +326,7 @@ global_search_doctypes = {
 	]
 }
 fixtures = [
-    {"doctype": "Custom Field",
-     "filters": [["dt", "in", ("Note")]]},
+    {"doctype": "Custom Field","filters": [["dt", "in", ("Note")]]},
+    {"doctype": "Note", "filters": [["source_app", "in", ("frappe")]]}
 ]
 
