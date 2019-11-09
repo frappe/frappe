@@ -1,7 +1,7 @@
 [
  {
-  "content": "<div>Dokumentationstexte werden mit dem Anmerkung-(Notes) Mechanismus erstellt. Der Text wird im HTML Format gespeichert.</div><div><br></div><div>Ein Text ist zun\u00e4chst nur privat f\u00fcr den Autor zu Lesen und zu \u00c4ndern. Zur Verwendung eines Textes als Hilfe- oder Dokumentationstext (siehe unten) muss er \u00f6ffentlich geschaltet werden.</div><h3>Texte f\u00fcr Zielgruppen</h3><div><br></div><div>Ein solcher Text ist zun\u00e4chst an ene bestimmte <strong>Zielgruppe </strong>(Audience) gerichtet: Benutzer bekommen Informationen zur Verwendung des Systems, Marketing-Texte dienen der Werbung und enthalten kurze Feature-Beschreibungen, Entwickler k\u00f6nen Informationen zur Weiterentwicklung des Systems finden. Es gibt jeweils ein Eingabefeld f\u00fcr die Zielgruppen, die nur in der entsprechenden Rolle sichtbar sind.</div><div><br></div><h3>Verkn\u00fcpfung der Dokumentation mit dem Entwicklungstand</h3><div>Dokumentationstexte k\u00f6nnen mit der Entwicklung einer App synchron gehalten werden. Dazu wird die betreffende App unter Source_App angegeben. Ein Entwickler kann diese Information dann in das Quellcode-Reposititory \u00fcbernehmen. Dadurch passt die im System enthaltene Dokumentation immer zur tats\u00e4chlich verwendeten Version der Anwendung.</div><div><br></div><div>Sofern eine Souce-App angegeben ist, kann der betreffende Txt nur noch durch einen Systemadministrator oder im Entwicklungsmodus bearbeitet werden.</div><div><br></div><div>Texte die nicht zur Anwendung geh\u00f6ren (sondern betriebsintern sind oder private Notizen darstellen) sollten nicht so markiert werden.</div><div><br></div><h3>Zugriff auf Hilfetexte</h3><div><br></div><div>Die Texte sind via Navigation und mit der Suche zu finden. Dar\u00fcberhinaus gibt es den folgenden Mechnismus um einen Text als \"Hilfe\" \u00fcber den Men\u00fcpunkt \"Hilfe\" oben rechts zu erreichen (Kontextbezug). Neben den allgemeinen Hilfeartikeln (\"ist Hilfe\" ist angekreuzt) sind dort auch die Artikel aufgelistet, die spezifisch f\u00fcr das Modul (wenn angegeben) oder den gerade in der Anzeige befindlichen DocType (wenn angegeben) sind.</div><div><br></div><div><br></div>",
-  "developer_content": "<div>Ge\u00e4nderte Text per export fixture, gefiltert nach App exportieren und im jew. Repository comitten. Mit einem bench migrate werden diese dann im Zielsystem aktualisiert (und ggf \u00fcberschrieben!).</div><div><br></div>",
+  "content": "<div>Dokumentationstexte werden mit dem Anmerkung-(Notes) Mechanismus erstellt. Der Text wird im HTML Format gespeichert.</div><div><br></div><div>Ein Text ist zun\u00e4chst nur privat f\u00fcr den Autor zu Lesen und zu \u00c4ndern. Zur Verwendung eines Textes als Hilfe- oder Dokumentationstext (siehe unten) muss er \u00f6ffentlich geschaltet werden.</div><h3>Texte f\u00fcr Zielgruppen</h3><div><br></div><div>Ein solcher Text ist zun\u00e4chst an ene bestimmte <strong>Zielgruppe </strong>(Audience) gerichtet: Benutzer bekommen Informationen zur Verwendung des Systems, Marketing-Texte dienen der Werbung und enthalten kurze Feature-Beschreibungen, Entwickler k\u00f6nen Informationen zur Weiterentwicklung des Systems finden. Es gibt jeweils ein Eingabefeld f\u00fcr die Zielgruppen, die nur in der entsprechenden Rolle sichtbar sind.</div><div><br></div><h3>Verkn\u00fcpfung der Dokumentation mit dem Entwicklungstand</h3><div>Dokumentationstexte k\u00f6nnen mit der Entwicklung einer App synchron gehalten werden. Dazu wird die betreffende App unter Source_App angegeben. Ein Entwickler kann diese Information dann in das Quellcode-Reposititory \u00fcbernehmen. Dadurch passt die im System enthaltene Dokumentation immer zur tats\u00e4chlich verwendeten Version der Anwendung.</div><div><br></div><div>Sofern eine Source-App angegeben ist, kann der betreffende Txt nur noch durch einen Systemadministrator oder im Entwicklungsmodus bearbeitet werden. <strong>TODO</strong></div><div><br></div><div>Texte die nicht zur Anwendung geh\u00f6ren (sondern betriebsintern sind oder private Notizen darstellen) sollten nicht so markiert werden.</div><div><br></div><h3>Zugriff auf Hilfetexte</h3><div><br></div><div>Die Texte sind via Navigation und mit der Suche zu finden. Dar\u00fcberhinaus gibt es den folgenden Mechnismus um einen Text als \"Hilfe\" \u00fcber den Men\u00fcpunkt \"Hilfe\" oben rechts zu erreichen (Kontextbezug). Neben den allgemeinen Hilfeartikeln (\"ist Hilfe\" ist angekreuzt) sind dort auch die Artikel aufgelistet, die spezifisch f\u00fcr das Modul (wenn angegeben) oder den gerade in der Anzeige befindlichen DocType (wenn angegeben) sind.</div><div><br></div>",
+  "developer_content": "<div>Ge\u00e4nderte/Neue Text per</div><pre spellcheck=\"false\" class=\"ql-code-block-container\"><div class=\"ql-code-block\" data-language=\"plain\">bench --site <a href=\"http://admin.pcgteam.net\">admin.pcgteam.net</a> export-fixtures --app frappe</div></pre><div>exportieren. Dabei entsteht auch ein File <em>apps/frappe/frappe/fixtures/note.json,</em> welches die f\u00fcr die app gefilterten Texte enth\u00e4lt. Der Filter ist in <a href=\"http://hooks.py\"><em>hooks.py</em></a><em> </em>festgelegt.</div><div><br></div><div>Das json file dann committen. Mit einem</div><pre spellcheck=\"false\" class=\"ql-code-block-container\"><div class=\"ql-code-block\" data-language=\"plain\">bench update</div></pre><div>werden diese dann im Zielsystem (via git) aktualisiert und eingelesen (und ggf \u00fcberschrieben!).</div>",
   "doc_type": "Note",
   "docstatus": 0,
   "doctype": "Note",
@@ -9,7 +9,7 @@
   "is_help_article": 1,
   "language": "de",
   "marketing_content": "<div>Versioniertes mehrsprachiges und Kontext-sensitives Hilfesystem. Eingebaute Entwickler-Dokumentation.</div>",
-  "modified": "2019-11-09 15:16:52.322402",
+  "modified": "2019-11-09 17:48:27.779945",
   "module": "Desk",
   "name": "Dokumentation und Hilfetexte",
   "notify_on_every_login": 0,
@@ -21,6 +21,54 @@
   "seen_by": [],
   "source_app": "Frappe",
   "title": "Dokumentation und Hilfetexte"
+ },
+ {
+  "content": "<h2>DocTypes</h2><div><br></div><div>Kern des Systems sind sog. <strong>DocTypes</strong>, das sind Definitionen von Dokumenten die in einer Tabelle gespeichert werden. Die Anzeige der Dokumente in Listen oder einzelnen Dokumenten in Formularen folgt dabei immer dem gleichen Muster.</div><div>Bsp: Kundenbeschreibung, Lieferant</div><div><br></div><div>DocTypes k\u00f6nnen durch den System-Manager oder auch Entwickler angepasst werden: dabei k\u00f6nnen sowohl neue Felder hinzugef\u00fcgt werden, aber auch Funktionalit\u00e4t angepasst werden, z.B. Aktionen, die beim Speichern von Dokumenten erfolgen sollen.</div><div><br></div><div>In den DocTypes sind auch viele Vorgaben zur Darstellung der Felder eines Dokumentes in Listen- oder Eingabe-Form hinterlegt.</div><div><br></div><div>DocTypes sind in <strong>Modulen </strong>organisiert.</div><div><br></div><h2>Web-Ansicht, B\u00fcro-Ansicht</h2><div><br></div><div>Daten des Systems (DocTypes) werden normalerweise im <strong>B\u00fcro-Bereich</strong> (Desk) bearbeitet. Dar\u00fcberhinaus bietet das System aber auch einen \u00f6ffentlichen Bereich (Web-Ansicht), wo bestimmte Informationen dargestellt werden k\u00f6nnen.</div><div><br></div><div>Im B\u00fcro-Bereich erfolgt die Navigation zu den verschiedenen DocTypes oben links. Die Suche durchsucht nicht nur Dokumente, sondern auch DocTypes. Oben rechst finden sich einige Men\u00fcpunkte f\u00fcr den angemeldeten Benutzer.</div><div><br></div><div>Die Struktur und die in der Web-Ansicht verf\u00fcgbaren Informationen (Seiten, Blog, etc.) wird von Benutzern mit der Rolle Web-Manager eingestellt.</div><div><br></div><h2>Rechtesystem</h2><div><br></div><div>Zugriffsrechte f\u00fcr DocTypes (Lesen, Schreiben, Erzeugen etc.) werden \u00fcber Rollen gesteuert. Jeder System-Benutzer kann eine oder mehreren Rollen haben. Die Zuweisung der Rechte zu Rollen und der Rollen zu den Benutzern erfolgt durch Benutzer mit der Rolle System-Manager.</div><div><br></div><div>Es ist auch m\u00f6glich, abweichend von den Rollen einzelne Rechte f\u00fcr Dokumente f\u00fcr bestimmte Nutzer freizugeben.</div><div><br></div><div>Es sind nur die f\u00fcr die jeweiligen Rollen des Benutzers einsehbaren DocTypes bzw. Module sichtbar.</div>",
+  "developer_content": null,
+  "doc_type": null,
+  "docstatus": 0,
+  "doctype": "Note",
+  "expire_notification_on": "2019-11-03",
+  "is_help_article": 1,
+  "language": "en",
+  "marketing_content": null,
+  "modified": "2019-11-09 17:41:57.809127",
+  "module": null,
+  "name": "Allgemeine System-Einf\u00fchrung",
+  "notify_on_every_login": 0,
+  "notify_on_login": 1,
+  "parent": null,
+  "parentfield": null,
+  "parenttype": null,
+  "public": 1,
+  "seen_by": [
+   {
+    "parent": "Allgemeine System-Einf\u00fchrung",
+    "parentfield": "seen_by",
+    "parenttype": "Note",
+    "user": "hanno@pcgaertner.de"
+   },
+   {
+    "parent": "Allgemeine System-Einf\u00fchrung",
+    "parentfield": "seen_by",
+    "parenttype": "Note",
+    "user": "sb@oekobox-online.de"
+   },
+   {
+    "parent": "Allgemeine System-Einf\u00fchrung",
+    "parentfield": "seen_by",
+    "parenttype": "Note",
+    "user": "bs@oekobox-online.de"
+   },
+   {
+    "parent": "Allgemeine System-Einf\u00fchrung",
+    "parentfield": "seen_by",
+    "parenttype": "Note",
+    "user": "Administrator"
+   }
+  ],
+  "source_app": "Frappe",
+  "title": "Allgemeine System-Einf\u00fchrung"
  },
  {
   "content": "<div>Texte im System k\u00f6nnen \u00fcbersetzt werden; dies ist m\u00f6glich bei allen System-Texten (also Beschriftungen von Buttons oder \u00dcberschriften), aber auch f\u00fcr einige Teile der Daten (z.B. \u00dcbersetzungen von DocTypes).</div><div><br></div><div>Damit ist also auch eine Ver\u00e4nderung der vorgegebenen Systemtexte m\u00f6glich.</div><div><br></div><div>\u00dcbersetzungen greifen f\u00fcr die eingestellte Browser-Sprache. Diese kann unter Einstellungen-&gt;Profil (settings) auch f\u00fcr ein Konto fest eigestellt werden.</div><div><br></div><div>Vom System vorgegebene Texte k\u00f6nnen \u00fcberschrieben werden. Dazu kann der Original-Text und dessen \u00dcbersetzung eingegeben werden. Nocht alle Texte k\u00f6nnen durch die EIngabe des Originaltextes erfolgreich \u00fcberschrieben werden (wenn sie z.B. variable Teile wie Zahlen enthalten). In diesem Fall muss die \u00dcbersetzung bei uns angefragt werden.</div><div><br></div><div><br></div>",
