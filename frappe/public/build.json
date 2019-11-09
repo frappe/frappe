@@ -1,7 +1,10 @@
 {
 	"css/frappe-web-b4.css": [
+		"public/css/font-awesome.css",
+		"public/css/octicons/octicons.css",
+		"public/scss/website.scss",
 		"public/less/indicator.less",
-		"public/scss/website.scss"
+		"public/less/chat.less"
 	],
 	"concat:js/moment-bundle.min.js": [
 		"node_modules/moment/min/moment-with-locales.min.js",
