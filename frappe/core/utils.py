@@ -41,7 +41,7 @@ def find(list_of_dict, match_function):
 	Usage:
 		list_of_dict = [{'name': 'Suraj'}, {'name': 'Aditya'}]
 
-		required_dict = find(list_of_dict, lamda d: d['name'] == 'Aditya')
+		required_dict = find(list_of_dict, lambda d: d['name'] == 'Aditya')
 	'''
 
 	for entry in list_of_dict:
@@ -60,7 +60,7 @@ def find_all(list_of_dict, match_function):
 			{'color': 'blue', 'shape': 'triangle'}
 		]
 
-		red_shapes = find_all(colored_shapes, lamda d: d['color'] == 'red')
+		red_shapes = find_all(colored_shapes, lambda d: d['color'] == 'red')
 	'''
 	found = []
 	for entry in list_of_dict:
