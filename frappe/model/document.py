@@ -725,7 +725,7 @@ class Document(BaseDocument):
 	def apply_auto_value_setters(self):
 		if self.doctype in ('Auto Value Setter', 'DocType'):
 			return
-		if frappe.flags.ignore_auto_value_setters or self.flags.ignore_auto_value_setters or frappe.flags.in_patch:
+		if not self.meta.get("allow_auto_value_setter") or frappe.flags.ignore_auto_value_setters or self.flags.ignore_auto_value_setters:
 			return
 
 		from frappe.core.doctype.auto_value_setter.auto_value_setter import apply_auto_value_setters

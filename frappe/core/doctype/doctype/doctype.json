@@ -40,6 +40,7 @@
   "allow_import",
   "allow_events_in_timeline",
   "allow_auto_repeat",
+  "allow_auto_value_setter",
   "view_settings",
   "title_field",
   "search_fields",
@@ -454,11 +455,17 @@
    "fieldname": "nsm_parent_field",
    "fieldtype": "Data",
    "label": "Parent Field (Tree)"
+  },
+  {
+   "default": "0",
+   "fieldname": "allow_auto_value_setter",
+   "fieldtype": "Check",
+   "label": "Allow Auto Value Setter"
   }
  ],
  "icon": "fa fa-bolt",
  "idx": 6,
- "modified": "2019-09-07 14:28:05.392490",
+ "modified": "2019-11-10 16:46:58.301155",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocType",

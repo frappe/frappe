@@ -8,7 +8,7 @@ frappe.ui.form.on('Auto Value Setter', {
 				"filters": {
 					"issingle": 0
 				}
-			}
+			};
 		});
 	},
 
@@ -22,7 +22,7 @@ frappe.ui.form.on('Auto Value Setter', {
 
 	setup_fieldname_select: function(frm) {
 		// get the doctype to update fields
-		if(!frm.doc.document_type) {
+		if (!frm.doc.document_type) {
 			return;
 		}
 

@@ -26,6 +26,9 @@ class AutoValueSetter(Document):
 		if not meta:
 			frappe.throw(_("Could not find Document Type {0}").format(self.document_type))
 
+		if not meta.get("allow_auto_value_setter"):
+			frappe.throw(_("Auto Value Setter not allowed for Document Type {0}. Please enable it using Customize Form").format(self.document_type))
+
 		if not meta.get_field(self.field_name):
 			frappe.throw(_("Field Name {0} does not exist in Document Type {1}".format(self.field_name, self.document_type)))
 

@@ -190,6 +190,11 @@ def get_data():
 					"name": "Auto Repeat",
 					"description": _("Automatically generates recurring documents.")
 				},
+				{
+					"type": "doctype",
+					"name": "Auto Value Setter",
+					"description": _("Automatically set values based on conditions.")
+				},
 			]
 		},
 	]
