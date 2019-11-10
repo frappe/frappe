@@ -25,7 +25,26 @@ def get_permission_query_conditions(for_user):
 
 	return '''(`tabNotification Log`.for_user = '{user}')'''.format(user=for_user)
 
+def get_title(doctype, docname, title_field=None):
+	if not title_field:
+		title_field = frappe.get_meta(doctype).get_title_field()
+	title = docname if title_field == "name" else \
+		frappe.db.get_value(doctype, docname, title_field)
+	return title
+
+def get_title_html(title):
+	return '<b class="subject-title">{0}</b>'.format(title)
+
 def enqueue_create_notification(users, doc):
+	'''
+	During installation of new site, enqueue_create_notification tries to connect to Redis.
+	This breaks new site creation if Redis server is not running.
+	We do not need any notifications in fresh installation
+	'''
+	
+	if frappe.flags.in_install:
+		return
+
 	doc = frappe._dict(doc)
 
 	if isinstance(users, frappe.string_types):
@@ -91,16 +110,6 @@ def get_email_header(doc):
 		'Energy Point': _('Energy Point Update'),
 	}[doc.type or 'Default']
 
-
-def get_title(doctype, docname, title_field=None):
-	if not title_field:
-		title_field = frappe.get_meta(doctype).get_title_field()
-	title = docname if title_field == "name" else \
-		frappe.db.get_value(doctype, docname, title_field)
-	return title
-
-def get_title_html(title):
-	return '<b class="subject-title">{0}</b>'.format(title)
 
 @frappe.whitelist()
 def mark_as_seen(docname):
