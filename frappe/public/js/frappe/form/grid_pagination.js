@@ -60,7 +60,6 @@ export default class GridPagination {
 
 	check_page_number() {
 		if (this.page_index > this.total_pages && this.page_index > 1) {
-			console.log('true greater', this.page_index);
 			this.go_to_page(this.page_index-1);
 		}
 	}
@@ -112,10 +111,6 @@ export default class GridPagination {
 		}
 
 		this.update_page_numbers();
-		// if (this.page_index > this.total_pages) {
-		// 	this.total_pages++;
-		// 	this.$total_pages.text(this.total_pages);
-		// }
 	}
 
 	get_result_length() {
