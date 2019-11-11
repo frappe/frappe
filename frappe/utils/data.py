@@ -210,6 +210,7 @@ def get_datetime_str(datetime_obj):
 	return datetime_obj.strftime(DATETIME_FORMAT)
 
 def get_user_date_format():
+	"""Get the current user date format. The result will be cached."""
 	if getattr(frappe.local, "user_date_format", None) is None:
 		frappe.local.user_date_format = frappe.db.get_default("date_format")
 
@@ -218,21 +219,21 @@ def get_user_date_format():
 get_user_format = get_user_date_format  # for backwards compatibility
 
 def get_user_time_format():
+	"""Get the current user time format. The result will be cached."""
 	if getattr(frappe.local, "user_time_format", None) is None:
 		frappe.local.user_time_format = frappe.db.get_default("time_format")
 
 	return frappe.local.user_time_format or "HH:mm:ss"
 
-def formatdate(string_date=None, format_string=None):
-	"""
-		Converts the given string date to :data:`user_date_format`
-		User format specified in defaults
+def format_date(string_date=None, format_string=None):
+	"""Converts the given string date to :data:`user_date_format`
+	User format specified in defaults
 
-		 Examples:
+	Examples:
 
-		 * dd-mm-yyyy
-		 * mm-dd-yyyy
-		 * dd/mm/yyyy
+	* dd-mm-yyyy
+	* mm-dd-yyyy
+	* dd/mm/yyyy
 	"""
 
 	if not string_date:
@@ -243,21 +244,24 @@ def formatdate(string_date=None, format_string=None):
 		format_string = get_user_date_format()
 	format_string = format_string.replace("mm", "MM")
 	try:
-		formatted_date = babel.dates.format_date(date, format_string, locale=(frappe.local.lang or "").replace("-", "_"))
+		formatted_date = babel.dates.format_date(
+			date, format_string,
+			locale=(frappe.local.lang or "").replace("-", "_"))
 	except UnknownLocaleError:
 		format_string = format_string.replace("MM", "%m").replace("dd", "%d").replace("yyyy", "%Y")
 		formatted_date = date.strftime(format_string)
 	return formatted_date
 
+formatdate = format_date  # For backwards compatibility
+
 def format_time(time_string=None, format_string=None):
-	"""
-		Converts the given string time to :data:`user_time_format`
-		User format specified in defaults
+	"""Converts the given string time to :data:`user_time_format`
+	User format specified in defaults
 
-		 Examples:
+	Examples:
 
-		 * HH:mm:ss
-		 * HH:mm
+	* HH:mm:ss
+	* HH:mm
 	"""
 
 	if not time_string:
@@ -267,12 +271,22 @@ def format_time(time_string=None, format_string=None):
 	if not format_string:
 		format_string = get_user_time_format()
 	try:
-		formatted_time = babel.dates.format_time(time_, format_string, locale=(frappe.local.lang or "").replace("-", "_"))
+		formatted_time = babel.dates.format_time(
+			time_, format_string,
+			locale=(frappe.local.lang or "").replace("-", "_"))
 	except UnknownLocaleError:
 		formatted_time = time_.strftime("%H:%M:%S")
 	return formatted_time
 
 def format_datetime(datetime_string, format_string=None):
+	"""Converts the given string time to :data:`user_datetime_format`
+	User format specified in defaults
+
+	Examples:
+
+	* dd-mm-yyyy HH:mm:ss
+	* mm-dd-yyyy HH:mm
+	"""
 	if not datetime_string:
 		return
 
@@ -389,14 +403,14 @@ def rounded(num, precision=0):
 	# avoid rounding errors
 	num = round(num * multiplier if precision else num, 8)
 
-	floor = math.floor(num)
-	decimal_part = num - floor
+	floor_num = math.floor(num)
+	decimal_part = num - floor_num
 
 	if not precision and decimal_part == 0.5:
-		num = floor if (floor % 2 == 0) else floor + 1
+		num = floor_num if (floor_num % 2 == 0) else floor_num + 1
 	else:
 		if decimal_part == 0.5:
-			num = floor + 1
+			num = floor_num + 1
 		else:
 			num = round(num)
 
