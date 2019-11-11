@@ -57,6 +57,7 @@ frappe.ui.form.ControlTime = frappe.ui.form.ControlDate.extend({
 			.find('[data-action="today"]')
 			.click(() => {
 				this.datepicker.selectDate(frappe.datetime.now_time(true));
+				this.datepicker.hide()
 			});
 		if (this.datepicker.opts.timeFormat.indexOf('s') == -1) {
 			// No seconds in time format
