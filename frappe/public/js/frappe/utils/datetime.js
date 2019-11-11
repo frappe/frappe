@@ -106,6 +106,10 @@ $.extend(frappe.datetime, {
 		return frappe.sys_defaults && frappe.sys_defaults.date_format || "yyyy-mm-dd";
 	},
 
+	get_user_fmt: function() {  // For backwards compatibility onle
+		return frappe.sys_defaults && frappe.sys_defaults.date_format || "yyyy-mm-dd";
+	},
+
 	str_to_user: function(val, only_time = false) {
 		if(!val) return "";
 

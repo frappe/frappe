@@ -1,6 +1,12 @@
-frappe.ui.form.ControlTime = frappe.ui.form.ControlData.extend({
+frappe.ui.form.ControlTime = frappe.ui.form.ControlDate.extend({
+	set_formatted_input: function(value) {
+		this._super(value);
+        },
 	make_input: function() {
+		this.timepicker_only = true;
 		this._super();
+	},
+	make_picker: function() {
 		this.set_time_options();
 		this.set_datepicker();
 		this.refresh();
@@ -55,33 +61,14 @@ frappe.ui.form.ControlTime = frappe.ui.form.ControlData.extend({
 		this.datepicker.opts['offset'] = 0;
 		if (this.datepicker.opts.timeFormat.indexOf('s') == -1) {
 			// No seconds in time format
-			this.noSeconds = true;
+			this.no_seconds = true;
 			const $tp = this.datepicker.timepicker;
 			$tp.$seconds.parent().css('display', 'none');
 			$tp.$secondsText.css('display', 'none');
 			$tp.$secondsText.prev().css('display', 'none');
 		} else {
-			this.noSeconds = false;
+			this.no_seconds = false;
 		}
-	},
-	update_datepicker_position: function() {
-		if (!this.frm) return;
-		// show datepicker above or below the input
-		// based on scroll position
-		const scroll_limit = $(window).scrollTop() + $(window).height();
-		const picker_bottom = this.$input.offset().top + this.$input.outerHeight() + 12 + this.datepicker.$datepicker.outerHeight();
-
-		var position = 'bottom left';
-		//if (picker_top > scroll_limit + window_scroll) {
-		if (picker_bottom >= scroll_limit) {
-			position = 'top left';
-			// bodge around the picker being 30 pixels shorter than
-			// it should be due to hiding seconds
-			if (this.noSeconds) this.datepicker.opts['offset'] = -28;
-		} else {
-			if (this.noSeconds) this.datepicker.opts['offset'] = 12;
-		}
-		this.datepicker.update('position', position);
 	},
 	set_description: function() {
 		const { description } = this.df;

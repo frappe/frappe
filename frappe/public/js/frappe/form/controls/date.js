@@ -3,12 +3,16 @@
 frappe.ui.form.ControlDate = frappe.ui.form.ControlData.extend({
 	make_input: function() {
 		this._super();
+		this.make_picker();
+	},
+	make_picker: function() {
 		this.set_date_options();
 		this.set_datepicker();
 		this.set_t_for_today();
 	},
 	set_formatted_input: function(value) {
 		this._super(value);
+		if (this.timepicker_only) return;
 		if (!this.datepicker) return;
 		if(!value) {
 			this.datepicker.clear();
@@ -71,20 +75,6 @@ frappe.ui.form.ControlDate = frappe.ui.form.ControlData.extend({
 			}
 		};
 	},
-	update_datepicker_position: function() {
-		if(!this.frm) return;
-		// show datepicker above or below the input
-		// based on scroll position
-		const scroll_limit = $(window).scrollTop() + $(window).height();
-		const picker_bottom = this.$input.offset().top + this.$input.outerHeight() + 12 + this.datepicker.$datepicker.outerHeight();
-
-		var position = 'bottom left';
-		//if (picker_top > scroll_limit + window_scroll) {
-		if (picker_bottom >= scroll_limit) {
-			position = 'top left';
-		}
-		this.datepicker.update('position', position);
-	},
 	set_datepicker: function() {
 		this.$input.datepicker(this.datepicker_options);
 		this.datepicker = this.$input.data('datepicker');
@@ -96,6 +86,26 @@ frappe.ui.form.ControlDate = frappe.ui.form.ControlData.extend({
 			.click(() => {
 				this.datepicker.selectDate(this.get_now_date());
 			});
+		this.no_seconds = false;
+	},
+	update_datepicker_position: function() {
+		if(!this.frm) return;
+		// show datepicker above or below the input
+		// based on scroll position
+		const scroll_limit = $(window).scrollTop() + $(window).height();
+		const picker_bottom = this.$input.offset().top + this.$input.outerHeight() + 12 + this.datepicker.$datepicker.outerHeight();
+
+		var position = 'bottom left';
+		//if (picker_top > scroll_limit + window_scroll) {
+		if (picker_bottom >= scroll_limit) {
+			position = 'top left';
+			// bodge around the picker being 30 pixels shorter than
+			// it should be due to hiding seconds
+			if (this.no_seconds) this.datepicker.opts['offset'] = -28;
+		} else {
+			if (this.no_seconds) this.datepicker.opts['offset'] = 12;
+		}
+		this.datepicker.update('position', position);
 	},
 	get_now_date: function() {
 		return frappe.datetime.now_date(true);
