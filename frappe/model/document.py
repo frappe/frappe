@@ -191,7 +191,7 @@ class Document(BaseDocument):
 		frappe.flags.error_message = _('Insufficient Permission for {0}').format(self.doctype)
 		raise frappe.PermissionError
 
-	def insert(self, ignore_permissions=None, ignore_links=None, ignore_if_duplicate=False, ignore_mandatory=None, set_name=None):
+	def insert(self, ignore_permissions=None, ignore_links=None, ignore_if_duplicate=False, ignore_mandatory=None, set_name=None, set_child_names=True):
 		"""Insert the document in the database (as a new document).
 		This will check for user permissions and execute `before_insert`,
 		`validate`, `on_update`, `after_insert` methods if they are written.
@@ -220,7 +220,7 @@ class Document(BaseDocument):
 		self.check_if_latest()
 		self.run_method("before_insert")
 		self._validate_links()
-		self.set_new_name(set_name=set_name)
+		self.set_new_name(set_name=set_name, set_child_names=set_child_names)
 		self.set_parent_in_children()
 		self.validate_higher_perm_levels()
 
@@ -385,7 +385,7 @@ class Document(BaseDocument):
 	def get_doc_before_save(self):
 		return getattr(self, '_doc_before_save', None)
 
-	def set_new_name(self, force=False, set_name=None):
+	def set_new_name(self, force=False, set_name=None, set_child_names=True):
 		"""Calls `frappe.naming.se_new_name` for parent and child docs."""
 		if self.flags.name_set and not force:
 			return
@@ -395,9 +395,10 @@ class Document(BaseDocument):
 		else:
 			set_new_name(self)
 
-		# set name for children
-		for d in self.get_all_children():
-			set_new_name(d)
+		if set_child_names:
+			# set name for children
+			for d in self.get_all_children():
+				set_new_name(d)
 
 		self.flags.name_set = True
 

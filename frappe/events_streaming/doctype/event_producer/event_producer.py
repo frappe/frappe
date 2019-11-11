@@ -198,44 +198,48 @@ def set_insert(update, producer_site, event_producer):
 		doc = frappe.get_doc(update.data)
 		check_doc_has_dependencies(doc, producer_site)
 		if update.use_same_name:
-			doc.insert(set_name=update.docname)
+			doc.insert(set_name=update.docname, set_child_names=False)
 		else:
 			#if event consumer is not saving documents with the same name as the producer
 			#store the remote docname in a custom field for future updates
-			local_doc = doc.insert()
+			local_doc = doc.insert(set_child_names=False)
 			set_custom_fields(local_doc, update.docname, event_producer)
 
 def set_update(update, producer_site):
 	local_doc = get_local_doc(update)
-	if local_doc:
-		data = frappe._dict(update.data)
+	try:
+		if local_doc:
+			data = frappe._dict(update.data)
 
-		try:
 			if data.changed:
 				local_doc.update(data.changed)
-				local_doc.db_update_all()
 
 			if data.removed:
 				for tablename, rownames in iteritems(data.removed):
+					table = local_doc.get_table_field_doctype(tablename)
 					for row in rownames:
-						table = local_doc.get_table_field_doctype(tablename)
 						frappe.db.delete(table, row)
-
-			if data.added:
-				for tablename, rows in iteritems(data.added):
-					for row in rows:
-						local_doc.append(tablename, data.added)
-				local_doc.db_update()
 
 			if data.row_changed:
 				for tablename, rows in iteritems(data.row_changed):
-					for row in rows:
-						table = local_doc.get_table_field_doctype(tablename)
-						child_doc = frappe.get_doc(table, row.get('name'))
-						child_doc.update(row)
+					old = local_doc.get(tablename)
+					for doc in old:
+						for row in rows:
+							if row['name'] == doc.get('name'):
+								doc.update(row)
 
-		except Exception as e:
-			check_doc_has_dependencies(local_doc, producer_site)
+			if data.added:
+				for tablename, rows in iteritems(data.added):
+					local_doc.extend(tablename, rows)
+					for child in rows:
+						child_doc = frappe.get_doc(child)
+						child_doc.insert(set_name=child_doc.name, set_child_names=False)
+					
+			local_doc.save()
+			local_doc.db_update_all()
+
+	except frappe.DoesNotExistError:
+		check_doc_has_dependencies(local_doc, producer_site)
 
 def set_delete(update):
 	local_doc = get_local_doc(update)
