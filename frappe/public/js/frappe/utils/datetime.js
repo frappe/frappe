@@ -106,7 +106,7 @@ $.extend(frappe.datetime, {
 		return frappe.sys_defaults && frappe.sys_defaults.date_format || "yyyy-mm-dd";
 	},
 
-	get_user_fmt: function() {  // For backwards compatibility onle
+	get_user_fmt: function() {  // For backwards compatibility only
 		return frappe.sys_defaults && frappe.sys_defaults.date_format || "yyyy-mm-dd";
 	},
 
