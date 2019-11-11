@@ -84,8 +84,7 @@ export default class Grid {
 						</button>
 						<!-- hack to allow firefox include this in tabs -->
 						<button type="reset"
-							class="btn btn-xs btn-default grid-add-row"
-							data-action="add_row">
+							class="btn btn-xs btn-default grid-add-row">
 							${__("Add Row")}
 						</button>
 					</div>
@@ -110,6 +109,8 @@ export default class Grid {
 		frappe.utils.bind_actions_with_object(this.wrapper, this);
 
 		this.form_grid = this.wrapper.find('.form-grid');
+
+		this.setup_add_row();
 
 		this.setup_grid_pagination();
 
@@ -546,19 +547,18 @@ export default class Grid {
 		}
 	}
 
-	add_row() {
-		let total_pages = this.grid_pagination.total_pages;
-		if (this.data.length == this.page_length*total_pages) {
-			this.grid_pagination.go_to_page(total_pages + 1);
-		} else {
-			this.grid_pagination.go_to_page(total_pages);
-		}
-		this.add_new_row(null, null, true);
-		this.set_focus_on_row();
+	setup_add_row() {
+		this.wrapper.find(".grid-add-row").click(() => {
+			this.add_new_row(null, null, true);
+			this.set_focus_on_row();
+
+			return false;
+		});
 	}
 
 	add_new_row(idx, callback, show, copy_doc) {
 		if (this.is_editable()) {
+			this.grid_pagination.go_to_last_page();
 			if (this.frm) {
 				var d = frappe.model.add_child(this.frm.doc, this.df.options, this.df.fieldname, idx);
 				if (copy_doc) {
@@ -720,6 +720,7 @@ export default class Grid {
 
 	set_multiple_add(link, qty) {
 		if (this.multiple_set) return;
+
 		var link_field = frappe.meta.get_docfield(this.df.options, link);
 		var btn = $(this.wrapper).find(".grid-add-multiple-rows");
 
@@ -735,6 +736,7 @@ export default class Grid {
 				target: this,
 				txt: ""
 			});
+			this.grid_pagination.go_to_last_page();
 			return false;
 		});
 		this.multiple_set = true;

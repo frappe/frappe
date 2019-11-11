@@ -113,6 +113,16 @@ export default class GridPagination {
 		this.update_page_numbers();
 	}
 
+	go_to_last_page() {
+		let total_pages = this.total_pages;
+		let page_length = this.page_length;
+		if (this.grid.data.length == page_length*total_pages) {
+			this.go_to_page(total_pages + 1);
+		} else {
+			this.go_to_page(total_pages);
+		}
+	}
+
 	get_result_length() {
 		return this.grid.data.length < this.page_index*this.page_length
 			? this.grid.data.length
