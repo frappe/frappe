@@ -30,13 +30,10 @@ frappe.ui.form.ControlDatetime = frappe.ui.form.ControlDate.extend({
 		this._super();
 		if (this.datepicker.opts.timeFormat.indexOf('s') == -1) {
 			// No seconds in time format
-			this.no_seconds = true;
 			const $tp = this.datepicker.timepicker;
 			$tp.$seconds.parent().css('display', 'none');
 			$tp.$secondsText.css('display', 'none');
 			$tp.$secondsText.prev().css('display', 'none');
-		} else {
-			this.no_seconds = false;
 		}
 	}
 });

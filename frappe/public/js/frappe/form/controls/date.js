@@ -86,25 +86,28 @@ frappe.ui.form.ControlDate = frappe.ui.form.ControlData.extend({
 			.click(() => {
 				this.datepicker.selectDate(this.get_now_date());
 			});
-		this.no_seconds = false;
 	},
 	update_datepicker_position: function() {
 		if(!this.frm) return;
 		// show datepicker above or below the input
 		// based on scroll position
-		const scroll_limit = $(window).scrollTop() + $(window).height();
-		const picker_bottom = this.$input.offset().top + this.$input.outerHeight() + 12 + this.datepicker.$datepicker.outerHeight();
+		// We have to bodge around the timepicker getting its position
+		// wrong by 42px when opening upwards.
+		const $header = $('.page-head');
+		const header_bottom = $header.position().top + $header.outerHeight();
+		const picker_height = this.datepicker.$datepicker.outerHeight() + 12;
+		const picker_top = this.$input.offset().top - $(window).scrollTop() - picker_height;
 
-		var position = 'bottom left';
-		//if (picker_top > scroll_limit + window_scroll) {
-		if (picker_bottom >= scroll_limit) {
-			position = 'top left';
-			// bodge around the picker being 30 pixels shorter than
-			// it should be due to hiding seconds
-			if (this.no_seconds) this.datepicker.opts['offset'] = -28;
+		var position = 'top left';
+		// 12 is the default datepicker.opts[offset]
+		if (picker_top <= header_bottom) {
+			position = 'bottom left';
+			if (this.timepicker_only) this.datepicker.opts['offset'] = 12;
 		} else {
-			if (this.no_seconds) this.datepicker.opts['offset'] = 12;
+			// To account for 42px incorrect positioning
+			if (this.timepicker_only) this.datepicker.opts['offset'] = -30;
 		}
+
 		this.datepicker.update('position', position);
 	},
 	get_now_date: function() {

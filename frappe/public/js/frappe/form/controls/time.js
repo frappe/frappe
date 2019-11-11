@@ -58,16 +58,12 @@ frappe.ui.form.ControlTime = frappe.ui.form.ControlDate.extend({
 			.click(() => {
 				this.datepicker.selectDate(frappe.datetime.now_time(true));
 			});
-		this.datepicker.opts['offset'] = 0;
 		if (this.datepicker.opts.timeFormat.indexOf('s') == -1) {
 			// No seconds in time format
-			this.no_seconds = true;
 			const $tp = this.datepicker.timepicker;
 			$tp.$seconds.parent().css('display', 'none');
 			$tp.$secondsText.css('display', 'none');
 			$tp.$secondsText.prev().css('display', 'none');
-		} else {
-			this.no_seconds = false;
 		}
 	},
 	set_description: function() {
