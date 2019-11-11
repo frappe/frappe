@@ -6,7 +6,7 @@ export default class GridPagination {
 	}
 
 	setup_pagination() {
-		this.page_length = 10;
+		this.page_length = 20;
 		this.page_index = 1;
 		this.total_pages = Math.ceil(this.grid.data.length/this.page_length);
 		this.pages_to_skip = 3;
