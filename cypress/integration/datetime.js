@@ -7,28 +7,49 @@
 
 const ui_test_doctype = `{"image_view":0,"allow_import":0,"creation":"2019-03-15 06:29:07.215072","track_changes":1,"modified":"2019-03-15 06:33:52.572221","sort_order":"ASC","owner":"Administrator","editable_grid":1,"in_create":0,"read_only":0,"document_type":"","hide_heading":0,"modified_by":"Administrator","track_views":0,"allow_rename":0,"custom":1,"max_attachments":0,"docstatus":0,"is_submittable":0,"sort_field":"modified","allow_copy":0,"engine":"InnoDB","allow_guest_to_view":0,"istable":0,"allow_events_in_timeline":0,"has_web_view":0,"show_name_in_global_search":0,"beta":0,"read_only_onload":0,"module":"Custom","doctype":"DocType","issingle":1,"name":"UI Test","idx":0,"hide_toolbar":0,"track_seen":0,"name_case":"","fields":[{"collapsible":0,"no_copy":0,"creation":"2019-03-15 06:29:07.215072","translatable":0,"reqd":0,"in_list_view":0,"in_standard_filter":0,"owner":"Administrator","ignore_xss_filter":0,"in_global_search":0,"read_only":0,"print_hide":0,"modified_by":"Administrator","fetch_if_empty":0,"ignore_user_permissions":0,"length":0,"label":"Date","print_hide_if_no_value":0,"allow_bulk_edit":0,"set_only_once":0,"docstatus":0,"hidden":0,"in_filter":0,"permlevel":0,"columns":0,"bold":0,"parent":"UI Test","search_index":0,"allow_on_submit":0,"precision":"","remember_last_selected_value":0,"doctype":"DocField","unique":0,"name":"d04eded683","idx":1,"allow_in_quick_entry":0,"modified":"2019-03-15 06:50:50.538464","parenttype":"DocType","fieldname":"date","fieldtype":"Date","report_hide":0,"parentfield":"fields"},{"collapsible":0,"no_copy":0,"creation":"2019-03-15 06:29:07.215072","translatable":0,"reqd":0,"in_list_view":0,"in_standard_filter":0,"owner":"Administrator","ignore_xss_filter":0,"in_global_search":0,"read_only":0,"print_hide":0,"modified_by":"Administrator","fetch_if_empty":0,"ignore_user_permissions":0,"length":0,"label":"Time","print_hide_if_no_value":0,"allow_bulk_edit":0,"set_only_once":0,"docstatus":0,"hidden":0,"in_filter":0,"permlevel":0,"columns":0,"bold":0,"parent":"UI Test","search_index":0,"allow_on_submit":0,"precision":"","remember_last_selected_value":0,"doctype":"DocField","unique":0,"name":"72dae03915","idx":2,"allow_in_quick_entry":0,"modified":"2019-03-15 06:50:50.538464","parenttype":"DocType","fieldname":"time","fieldtype":"Time","report_hide":0,"parentfield":"fields"},{"collapsible":0,"no_copy":0,"creation":"2019-03-15 06:29:07.215072","translatable":0,"reqd":0,"in_list_view":0,"in_standard_filter":0,"owner":"Administrator","ignore_xss_filter":0,"in_global_search":0,"read_only":0,"print_hide":0,"modified_by":"Administrator","fetch_if_empty":0,"ignore_user_permissions":0,"length":0,"label":"Datetime","print_hide_if_no_value":0,"allow_bulk_edit":0,"set_only_once":0,"docstatus":0,"hidden":0,"in_filter":0,"permlevel":0,"columns":0,"bold":0,"parent":"UI Test","search_index":0,"allow_on_submit":0,"precision":"","remember_last_selected_value":0,"doctype":"DocField","unique":0,"name":"a5e6ba2d2e","idx":3,"allow_in_quick_entry":0,"modified":"2019-03-15 06:50:50.538464","parenttype":"DocType","fieldname":"datetime","fieldtype":"Datetime","report_hide":0,"parentfield":"fields"}],"permissions":[{"creation":"2019-03-15 06:29:07.215072","share":1,"doctype":"DocPerm","owner":"Administrator","export":0,"cancel":0,"set_user_permissions":0,"modified_by":"Administrator","create":1,"submit":0,"write":1,"role":"System Manager","print":1,"docstatus":0,"permlevel":0,"parent":"UI Test","read":1,"import":0,"report":0,"name":"83b10b4cfe","idx":1,"amend":0,"modified":"2019-03-15 06:50:50.538464","email":1,"parenttype":"DocType","parentfield":"permissions","if_owner":0,"delete":1}],"quick_entry":1}`;
 
+// For more thorough (but slow) testing, set fast_mode to false
+const fast_mode = true;
+
 const std_date_format = 'yyyy-mm-dd';
 const std_time_format = 'HH:mm:ss';
 const test_date1 = '1966-02-06';
 const test_date2 = '1987-12-27';
 
 // Formats: local fmt of test_date1, local data to enter, std format of that
-const date_formats = {
-	'yyyy-mm-dd': ['yyyy-mm-dd', test_date1, '1966-02-06', '1987-12-27', test_date2],
-	'dd-mm-yyyy': ['dd-mm-yyyy', test_date1, '06-02-1966', '27-12-1987', test_date2],
-	'dd/mm/yyyy': ['dd/mm/yyyy', test_date1, '06/02/1966', '27/12/1987', test_date2],
-	'dd.mm.yyyy': ['dd.mm.yyyy', test_date1, '06.02.1966', '27.12.1987', test_date2],
-	'mm/dd/yyyy': ['mm/dd/yyyy', test_date1, '02/06/1966', '12/27/1987', test_date2],
-	'mm-dd-yyyy': ['mm-dd-yyyy', test_date1, '02-06-1966', '12-27-1987', test_date2]
-};
-// Formats: local fmt of test_time1, local data to enter, std format of that
-const time_formats = {
-	'HH:mm:ss': ['HH:mm:ss', '01:23:45', '01:23:45', '23:59:58', '23:59:58'],
-	'HH:mm:ss zeros': ['HH:mm:ss', '00:00:00', '00:00:00', '01:00:00', '01:00:00'],
-	'HH:mm': ['HH:mm', '01:23:45', '01:23', '23:59', '23:59:00'],
-	'HH:mm zeros': ['HH:mm', '00:00:00', '00:00', '01:00', '01:00:00']
-};
+const date_formats_list = [
+	['dd-mm-yyyy', ['dd-mm-yyyy', test_date1, '06-02-1966', '27-12-1987', test_date2]],
+	['dd/mm/yyyy', ['dd/mm/yyyy', test_date1, '06/02/1966', '27/12/1987', test_date2]],
+	['dd.mm.yyyy', ['dd.mm.yyyy', test_date1, '06.02.1966', '27.12.1987', test_date2]],
+	['mm/dd/yyyy', ['mm/dd/yyyy', test_date1, '02/06/1966', '12/27/1987', test_date2]],
+	['mm-dd-yyyy', ['mm-dd-yyyy', test_date1, '02-06-1966', '12-27-1987', test_date2]],
+	['yyyy-mm-dd', ['yyyy-mm-dd', test_date1, '1966-02-06', '1987-12-27', test_date2]]
+];
 
+// Formats: local fmt of test_time1, local data to enter, std format of that
+const time_formats_list = [
+	['HH:mm:ss zeros', ['HH:mm:ss', '00:00:00', '00:00:00', '01:00:00', '01:00:00']],
+	['HH:mm', ['HH:mm', '01:23:45', '01:23', '23:59', '23:59:00']],
+	['HH:mm zeros', ['HH:mm', '00:00:00', '00:00', '01:00', '01:00:00']],
+	['HH:mm:ss', ['HH:mm:ss', '01:23:45', '01:23:45', '23:59:58', '23:59:58']]
+];
+
+if (fast_mode) {
+    date_formats_list.length = 1;
+    time_formats_list.length = 2;
+}
+
+// Convert date_format_list and time_format_list to objects
+const date_formats = {};
+date_formats_list.forEach(([key, val]) => {
+	date_formats[key] = val;
+});
+
+const time_formats = {};
+time_formats_list.forEach(([key, val]) => {
+	time_formats[key] = val;
+});
+
+// Construct datetime formats
 let datetime_formats = [];
 Object.keys(date_formats).forEach((date_format) => {
 	Object.keys(time_formats).forEach((time_format) => {
