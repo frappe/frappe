@@ -34,8 +34,8 @@ const time_formats_list = [
 ];
 
 if (fast_mode) {
-    date_formats_list.length = 1;
-    time_formats_list.length = 2;
+	date_formats_list.length = 1;
+	time_formats_list.length = 2;
 }
 
 // Convert date_format_list and time_format_list to objects

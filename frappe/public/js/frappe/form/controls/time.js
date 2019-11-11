@@ -1,7 +1,7 @@
 frappe.ui.form.ControlTime = frappe.ui.form.ControlDate.extend({
 	set_formatted_input: function(value) {
 		this._super(value);
-        },
+	},
 	make_input: function() {
 		this.timepicker_only = true;
 		this._super();
@@ -28,7 +28,7 @@ frappe.ui.form.ControlTime = frappe.ui.form.ControlDate.extend({
 				// ignore micro seconds
 				if (moment(this.get_value(), time_format).format('HH:mm:ss') != moment(this.value, time_format).format('HH:mm:ss')) {
 					this.$input.trigger('change');
-				}				
+				}
 			},
 			onShow: () => {
 				$('.datepicker--button:visible').text(__('Now'));
@@ -57,7 +57,7 @@ frappe.ui.form.ControlTime = frappe.ui.form.ControlDate.extend({
 			.find('[data-action="today"]')
 			.click(() => {
 				this.datepicker.selectDate(frappe.datetime.now_time(true));
-				this.datepicker.hide()
+				this.datepicker.hide();
 			});
 		if (this.datepicker.opts.timeFormat.indexOf('s') == -1) {
 			// No seconds in time format
