@@ -105,6 +105,10 @@ def get_website_settings():
 
 	context.web_include_css = hooks.web_include_css or []
 
+	if settings.chat_enable:
+		context.web_include_css += ["/assets/css/frappe-chat-web.css"]
+		context.web_include_js += ["/assets/frappe/js/lib/socket.io.min.js"]
+
 	via_hooks = frappe.get_hooks("website_context")
 	for key in via_hooks:
 		context[key] = via_hooks[key]
