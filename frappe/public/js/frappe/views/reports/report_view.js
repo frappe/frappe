@@ -501,9 +501,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 				shortenYAxisNumbers: 1
 			},
 			tooltipOptions: {
-				formatTooltipY: value => {
-					return frappe.format(value, get_df(this.chart_args.y_axes[0]), { always_show_decimals: true, inline: true }, get_doc(value.doc))
-				}
+				formatTooltipY: value => frappe.format(value, get_df(this.chart_args.y_axes[0]), { always_show_decimals: true, inline: true }, get_doc(value.doc))
 			}
 		});
 	}
