@@ -35,6 +35,9 @@ frappe.ui.form.ControlSelect = frappe.ui.form.ControlData.extend({
 			options = this.df.options.split("\n");
 		}
 
+		if (this.df.placeholder) {
+			this.$input.prop('required', true);
+		}
 		// nothing changed
 		if (JSON.stringify(options) === this.last_options) {
 			return;
@@ -43,7 +46,7 @@ frappe.ui.form.ControlSelect = frappe.ui.form.ControlData.extend({
 
 		if(this.$input) {
 			var selected = this.$input.find(":selected").val();
-			this.$input.empty().add_options(options || []);
+			this.$input.empty().add_options(options || [], this.df.placeholder || null);
 
 			if(value===undefined && selected) {
 				this.$input.val(selected);
@@ -69,7 +72,7 @@ frappe.ui.form.ControlSelect = frappe.ui.form.ControlData.extend({
 
 // add <option> list to <select>
 (function($) {
-	$.fn.add_options = function(options_list) {
+	$.fn.add_options = function(options_list, placeholder) {
 		// create options
 		for(var i=0, j=options_list.length; i<j; i++) {
 			var v = options_list[i];
@@ -92,6 +95,13 @@ frappe.ui.form.ControlSelect = frappe.ui.form.ControlData.extend({
 				.attr('value', value)
 				.prop('disabled', is_disabled)
 				.appendTo(this);
+		}
+
+		if (placeholder) {
+			$('<option>').html(cstr(placeholder))
+				.attr('value', '')
+				.prop('disabled', 1)
+				.prependTo(this)
 		}
 		// select the first option
 		this.selectedIndex = 0;
