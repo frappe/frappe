@@ -372,6 +372,10 @@ frappe.ui.filter_utils = {
 			val = strip(val);
 		}
 
+		if(condition == 'is' && !val) {
+			val = field.df.options[0].value;
+		}
+
 		if(field.df.original_type == 'Check') {
 			val = (val=='Yes' ? 1 :0);
 		}
