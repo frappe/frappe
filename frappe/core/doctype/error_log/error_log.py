@@ -17,9 +17,6 @@ def set_old_logs_as_seen():
 	frappe.db.sql("""UPDATE `tabError Log` SET `seen`=1
 		WHERE `seen`=0 AND `creation` < (NOW() - INTERVAL '7' DAY)""")
 
-	# clear old logs
-	frappe.db.sql("""DELETE FROM `tabError Log` WHERE `creation` < (NOW() - INTERVAL '30' DAY)""")
-
 @frappe.whitelist()
 def clear_error_logs():
 	'''Flush all Error Logs'''
