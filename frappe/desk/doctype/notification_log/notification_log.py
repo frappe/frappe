@@ -112,13 +112,11 @@ def get_title_html(title):
 	return '<b class="subject-title">{0}</b>'.format(title)
 
 @frappe.whitelist()
-def set_all_values_for_field(docnames, fieldname):
+def mark_all_as_read(docnames):
 	docnames = frappe.parse_json(docnames)
-	event_name = 'all_' + fieldname
 	if docnames:
 		filters = {'name': ['in', docnames]}
-		frappe.db.set_value('Notification Log', filters, fieldname, 1, update_modified=False)
-		frappe.publish_realtime(event_name, after_commit=True, user=frappe.session.user)
+		frappe.db.set_value('Notification Log', filters, 'read', 1, update_modified=False)
 
 @frappe.whitelist()
 def mark_as_read(docname):

@@ -13,7 +13,8 @@
   "enable_email_assignment",
   "enable_email_energy_point",
   "enable_email_share",
-  "user"
+  "user",
+  "seen"
  ],
  "fields": [
   {
@@ -75,11 +76,18 @@
    "label": "User",
    "options": "User",
    "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "seen",
+   "fieldtype": "Check",
+   "hidden": 1,
+   "label": "Seen"
   }
  ],
  "in_create": 1,
- "modified": "2019-11-08 14:11:35.619306",
- "modified_by": "frappetestuser2@gmail.com",
+ "modified": "2019-11-12 14:50:16.822761",
+ "modified_by": "Administrator",
  "module": "Desk",
  "name": "Notification Settings",
  "owner": "Administrator",

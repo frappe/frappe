@@ -59,8 +59,7 @@ frappe.ui.Notifications = class Notifications {
 		this.get_notifications_list(this.max_length).then(list => {
 			this.dropdown_items = list;
 			this.render_notifications_dropdown();
-
-			if (this.$notifications.find('.unseen').length) {
+			if (this.notifications_settings.seen == 0) {
 				this.$notification_indicator.show();
 			}
 		});
@@ -264,26 +263,17 @@ frappe.ui.Notifications = class Notifications {
 			.map(d => d.name);
 		if (!unread_docnames.length) return;
 		frappe.call(
-			'frappe.desk.doctype.notification_log.notification_log.set_all_values_for_field',
+			'frappe.desk.doctype.notification_log.notification_log.mark_all_as_read',
 			{
 				docnames: unread_docnames,
-				fieldname: 'read'
 			}
 		);
 	}
 
-	mark_all_as_seen() {
-		this.$dropdown_list.find('.unseen').removeClass('unseen');
-		let unseen_docnames = this.dropdown_items
-			.filter(item => item.seen === 0)
-			.map(d => d.name);
-		if (!unseen_docnames.length) return;
+	mark_as_seen() {
 		frappe.call(
-			'frappe.desk.doctype.notification_log.notification_log.set_all_values_for_field',
-			{
-				docnames: unseen_docnames,
-				fieldname: 'seen'
-			}
+			'frappe.desk.doctype.notification_settings.notification_settings.set_seen_value',
+			{ value: 1 }
 		);
 	}
 
@@ -333,7 +323,6 @@ frappe.ui.Notifications = class Notifications {
 			field.document_name
 		);
 		let read_class = field.read ? '' : 'unread';
-		let seen_class = field.seen ? '' : 'unseen';
 		let mark_read_action = field.read ? '': 'data-action="mark_as_read"';
 		let message = field.subject;
 		let title = message.match(/<b class="subject-title">(.*?)<\/b>/);
@@ -343,7 +332,7 @@ frappe.ui.Notifications = class Notifications {
 		let user_avatar = frappe.avatar(user, 'avatar-small user-avatar');
 		let timestamp = frappe.datetime.comment_when(field.creation, true);
 		let item_html = 
-			`<a class="recent-item ${read_class} ${seen_class}"
+			`<a class="recent-item ${read_class}"
 				href="${doc_link}"
 				data-name="${field.name}"
 				${mark_read_action}
@@ -451,6 +440,13 @@ frappe.ui.Notifications = class Notifications {
 
 	setup_notification_listeners() {
 		frappe.realtime.on('notification', () => {
+			if (this.notifications_settings.seen == 1) {
+				this.notifications_settings.seen = 0;
+				frappe.call(
+					'frappe.desk.doctype.notification_settings.notification_settings.set_seen_value',
+					{ value: 0 }
+				);
+			} 
 			this.$dropdown.find('.notifications-indicator').show();
 			this.update_dropdown();
 		});
@@ -475,7 +471,7 @@ frappe.ui.Notifications = class Notifications {
 		});
 
 		this.$dropdown.on('show.bs.dropdown', () => {
-			this.mark_all_as_seen();
+			this.mark_as_seen();
 			if (this.$notification_indicator.is(':visible')) {
 				this.$notification_indicator.hide();
 				frappe.call(
