@@ -30,7 +30,7 @@ class Report(Document):
 
 		if self.is_standard == "No":
 			# allow only script manager to edit scripts
-			if frappe.session.user!="Administrator":
+			if self.report_type == 'Script Report' and frappe.conf.server_script_enabled and frappe.session.user != "Administrator":
 				frappe.only_for('Script Manager', True)
 
 			if frappe.db.get_value("Report", self.name, "is_standard") == "Yes":
