@@ -101,7 +101,7 @@ frappe.ui.form.ControlSelect = frappe.ui.form.ControlData.extend({
 			$('<option>').html(cstr(placeholder))
 				.attr('value', '')
 				.prop('disabled', 1)
-				.prependTo(this)
+				.prependTo(this);
 		}
 		// select the first option
 		this.selectedIndex = 0;
