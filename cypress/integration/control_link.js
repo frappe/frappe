@@ -45,7 +45,7 @@ context('Control Link', () => {
 		});
 	});
 
-	it.only('should unset invalid value', () => {
+	it('should unset invalid value', () => {
 		get_dialog_with_link().as('dialog');
 
 		cy.server();
