@@ -346,6 +346,10 @@ frappe.request.cleanup = function(opts, r) {
 			}
 		}
 
+		if(r._error_message && !opts.silent) {
+			frappe.msgprint(r._error_message);
+		}
+
 		// show errors
 		if(r.exc) {
 			r.exc = JSON.parse(r.exc);
