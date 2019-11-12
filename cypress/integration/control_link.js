@@ -28,14 +28,12 @@ context('Control Link', () => {
 		cy.server();
 		cy.route('POST', '/api/method/frappe.desk.search.search_link').as('search_link');
 
-		cy.get('.frappe-control[data-fieldname=link] input')
-			.focus()
-			.type('todo for li')
-			.type('n', { delay: 600 })
-			.type('k', { delay: 700 });
+		cy.get('.frappe-control[data-fieldname=link] input').focus().as('input');
+		cy.wait('@search_link');
+		cy.get('@input').type('todo for link');
 		cy.wait('@search_link');
 		cy.get('.frappe-control[data-fieldname=link] ul').should('be.visible');
-		cy.get('.frappe-control[data-fieldname=link] input').type('{downarrow}{enter}', { delay: 100 });
+		cy.get('.frappe-control[data-fieldname=link] input').type('{enter}', { delay: 100 });
 		cy.get('.frappe-control[data-fieldname=link] input').blur();
 		cy.get('@dialog').then(dialog => {
 			cy.get('@todos').then(todos => {
