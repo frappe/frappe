@@ -2,7 +2,7 @@
 // MIT License. See license.txt
 
 import GridRow from "./grid_row";
-import GridPagination from './grid_pagination'
+import GridPagination from './grid_pagination';
 
 frappe.ui.form.get_open_grid_form = function() {
 	return $(".grid-row-open").data("grid_row");
@@ -213,13 +213,19 @@ export default class Grid {
 	}
 
 	get_selected() {
-		return (this.grid_rows || []).map(row => { return row.doc.__checked ? row.doc.name : null; })
-			.filter(d => { return d; });
+		return (this.grid_rows || []).map(row => {
+			 return row.doc.__checked ? row.doc.name : null;
+		}).filter(d => {
+			return d; 
+		});
 	}
 
 	get_selected_children() {
-		return (this.grid_rows || []).map(row => { return row.doc.__checked ? row.doc : null; })
-			.filter(d => { return d; });
+		return (this.grid_rows || []).map(row => {
+			return row.doc.__checked ? row.doc : null;
+		}).filter(d => {
+			 return d;
+		});
 	}
 
 	make_head() {
@@ -654,7 +660,7 @@ export default class Grid {
 					df.colsize=df.columns;
 				} else {
 					var colsize = 2;
-					switch(df.fieldtype) {
+					switch (df.fieldtype) {
 						case "Text":
 						case "Small Text": colsize = 3; break;
 						case "Check": colsize = 1;
@@ -743,7 +749,7 @@ export default class Grid {
 	}
 
 	setup_allow_bulk_edit() {
-		if(this.frm && this.frm.get_docfield(this.df.fieldname).allow_bulk_edit) {
+		if (this.frm && this.frm.get_docfield(this.df.fieldname).allow_bulk_edit) {
 			// download
 			this.setup_download();
 
@@ -791,7 +797,7 @@ export default class Grid {
 						});
 
 						this.frm.refresh_field(this.df.fieldname);
-						frappe.msgprint({message:__('Table updated'), title:__('Success'), indicator:'green'})
+						frappe.msgprint({message: __('Table updated'), title: __('Success'), indicator: 'green'});
 					}
 				});
 				return false;
@@ -813,7 +819,7 @@ export default class Grid {
 			data.push(["------"]);
 			$.each(frappe.get_meta(this.df.options).fields, (i, df) => {
 				// don't include the read-only field in the template
-				if(frappe.model.is_value_type(df.fieldtype)) {
+				if (frappe.model.is_value_type(df.fieldtype)) {
 					data[1].push(df.label);
 					data[2].push(df.fieldname);
 					let description = (df.description || "") + ' ';
