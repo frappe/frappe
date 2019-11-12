@@ -25,8 +25,8 @@ class TestAutoEmailReport(unittest.TestCase):
 		)).insert()
 
 		data = auto_email_report.get_report_content()
-		self.assertTrue('<td>DocShare</td>' in data)
-		self.assertTrue('<td>Core</td>' in data)
+		self.assertTrue('DocShare' in data)
+		self.assertTrue('Core' in data)
 
 		auto_email_report.format = 'CSV'
 
