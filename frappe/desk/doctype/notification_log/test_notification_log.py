@@ -28,7 +28,7 @@ class TestNotificationLog(unittest.TestCase):
 		todo = get_todo()
 		user = get_user()
 
-		frappe.share.add('ToDo', todo.name, user)
+		frappe.share.add('ToDo', todo.name, user, notify=1)
 		log_type = frappe.db.get_value('Notification Log', {
 			'document_type': 'ToDo',
 			'document_name': todo.name

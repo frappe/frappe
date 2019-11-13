@@ -82,7 +82,10 @@ class EnergyPointRule(Document):
 def process_energy_points(doc, state):
 	if (frappe.flags.in_patch
 		or frappe.flags.in_install
-		or not is_energy_point_enabled()):
+		or frappe.flags.in_migrate):
+		return
+
+	if not is_energy_point_enabled():
 		return
 
 	old_doc = doc.get_doc_before_save()

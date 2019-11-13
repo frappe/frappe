@@ -19,6 +19,11 @@ frappe.ui.form.ControlCurrency = frappe.ui.form.ControlFloat.extend({
 		return isNaN(parseFloat(value)) ? "" : formatted_value;
 	},
 
+	get_number_format: function() {
+		var currency = frappe.meta.get_field_currency(this.df, this.get_doc());
+		return get_number_format(currency);
+	},
+
 	get_precision: function() {
 		// always round based on field precision or currency's precision
 		// this method is also called in this.parse()

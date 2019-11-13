@@ -459,7 +459,7 @@ frappe.ready(function() {
 		method: 'frappe.website.doctype.website_settings.website_settings.is_chat_enabled',
 		callback: (r) => {
 			if (r.message) {
-				frappe.require('/assets/js/moment-bundle.min.js', () => {
+				frappe.require(['/assets/js/moment-bundle.min.js', "/assets/css/frappe-chat-web.css", "/assets/frappe/js/lib/socket.io.min.js"], () => {
 					frappe.require('/assets/js/chat.js', () => {
 						frappe.chat.setup();
 					});

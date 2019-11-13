@@ -31,6 +31,9 @@ def run_server_script_for_doc_event(doc, event):
 	if frappe.flags.in_install:
 		return
 
+	if frappe.flags.in_migrate:
+		return
+
 	scripts = get_server_script_map().get(doc.doctype, {}).get(EVENT_MAP[event], None)
 	if scripts:
 		# run all scripts for this doctype + event

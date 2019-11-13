@@ -100,6 +100,16 @@ def get_data():
 			"description": "Build your profile and share posts with other users."
 		},
 		{
+			"module_name": 'Leaderboard',
+			"category": "Places",
+			"label": _('Leaderboard'),
+			"icon": "fa fa-trophy",
+			"type": 'link',
+			"link": '#social/users',
+			"color": '#FF4136',
+			'standard': 1,
+		},
+		{
 			"module_name": 'dashboard',
 			"category": "Places",
 			"label": _('Dashboard'),

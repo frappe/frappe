@@ -87,12 +87,10 @@ frappe.ui.Notifications = class Notifications {
 			.next()
 			.hasClass('in');
 		if (!hide) {
-			frappe
-				.xcall('frappe.desk.notifications.get_notification_info')
-				.then(r => {
-					this.open_document_list = r;
-					this.render_open_document_count();
-				});
+			frappe.ui.notifications.get_notification_config().then(r => {
+				this.open_document_list = r;
+				this.render_open_document_count();
+			});
 		}
 	}
 
@@ -161,17 +159,6 @@ frappe.ui.Notifications = class Notifications {
 		if (!target) this.total += value;
 	}
 
-	route_to_list_with_filters(doctype) {
-		let filters = this.open_document_list['conditions'][doctype];
-		if (filters && $.isPlainObject(filters)) {
-			if (!frappe.route_options) {
-				frappe.route_options = {};
-			}
-			$.extend(frappe.route_options, filters);
-		}
-		frappe.set_route('List', doctype);
-	}
-
 	route_to_document_type(e) {
 		this.$dropdown.removeClass('open');
 		this.$dropdown.trigger('hide.bs.dropdown');
@@ -184,7 +171,7 @@ frappe.ui.Notifications = class Notifications {
 			} else if (config.click) {
 				config.click();
 			} else {
-				this.route_to_list_with_filters(doctype);
+				frappe.ui.notifications.show_open_count_list(doctype);
 			}
 		} else {
 			frappe.set_route('Form', doctype, docname);
@@ -312,7 +299,7 @@ frappe.ui.Notifications = class Notifications {
 				<div class="notification-timestamp text-muted">
 					${timestamp}
 				</div>
-				<span class="mark-read text-muted" data-action="explicitly_mark_as_seen">
+				<span class="mark-read text-muted hidden-xs" data-action="explicitly_mark_as_seen">
 					${__('Mark as Read')}
 				</span>
 			</a>`;
@@ -471,5 +458,36 @@ frappe.ui.Notifications = class Notifications {
 			.prev()
 			.find('.collapse-indicator')
 			.toggleClass('octicon-chevron-up');
+	}
+};
+
+
+frappe.ui.notifications = {
+	get_notification_config() {
+		return frappe.xcall('frappe.desk.notifications.get_notification_info').then(r => {
+			frappe.ui.notifications.config = r;
+			return r;
+		});
+	},
+
+	show_open_count_list(doctype) {
+		if (!frappe.ui.notifications.config) {
+			this.get_notification_config().then(()=> {
+				this.route_to_list_with_filters(doctype);
+			});
+		} else {
+			this.route_to_list_with_filters(doctype);
+		}
+	},
+
+	route_to_list_with_filters(doctype) {
+		let filters = frappe.ui.notifications.config['conditions'][doctype];
+		if (filters && $.isPlainObject(filters)) {
+			if (!frappe.route_options) {
+				frappe.route_options = {};
+			}
+			$.extend(frappe.route_options, filters);
+		}
+		frappe.set_route('List', doctype);
 	}
 };

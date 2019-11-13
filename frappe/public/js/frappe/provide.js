@@ -27,8 +27,6 @@ frappe.provide("frappe.ui.form");
 frappe.provide("frappe.modules");
 frappe.provide("frappe.templates");
 frappe.provide("frappe.test_data");
-frappe.provide('frappe.desk.form');
-frappe.provide('frappe.desk.report');
 frappe.provide('frappe.utils');
 frappe.provide('frappe.model');
 frappe.provide('frappe.user');
