@@ -190,9 +190,15 @@ class RazorpaySettings(Document):
 		# 	"payment_capture": 1
 		# }
 		integration_request = create_request_log(kwargs, "Host", "Razorpay")
+		payment_options = {
+			"amount": kwargs.get('amount'),
+			"currency": kwargs.get('currency', 'INR'),
+			"receipt": kwargs.get('receipt'),
+			"payment_capture": kwargs.get('payment_capture')
+		}
 		if self.api_key and self.api_secret:
 			try:
-				return make_post_request("https://api.razorpay.com/v1/orders", auth=(self.api_key, self.get_password(fieldname="api_secret", raise_exception=False)), data=kwargs)
+				return make_post_request("https://api.razorpay.com/v1/orders", auth=(self.api_key, self.get_password(fieldname="api_secret", raise_exception=False)), data=payment_options)
 			except Exception:
 				frappe.log(frappe.get_traceback())
 				frappe.throw(_("Could not create razorpay order"))
