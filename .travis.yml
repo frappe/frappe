@@ -21,12 +21,12 @@ matrix:
   - name: "Python 3.6 MariaDB"
     python: 3.6
     env: DB=mariadb TYPE=server
-    script: bench --site test_site run-tests --coverage
+    script: bench --site test_site run-tests --coverage --junit-xml-output frappe_unit_tests.xml
 
   - name: "Python 3.6 PostgreSQL"
     python: 3.6
     env: DB=postgres TYPE=server
-    script: bench --site test_site run-tests --coverage
+    script: bench --site test_site run-tests --coverage --junit-xml-output frappe_unit_tests.xml
 
   - name: "Cypress"
     python: 3.6
@@ -37,7 +37,7 @@ matrix:
   - name: "Python 2.7 MariaDB"
     python: 2.7
     env: DB=mariadb TYPE=server
-    script: bench --site test_site run-tests --coverage
+    script: bench --site test_site run-tests --coverage --junit-xml-output frappe_unit_tests.xml
 
 install:
   - cd ~
