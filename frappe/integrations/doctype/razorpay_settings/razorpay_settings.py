@@ -198,7 +198,9 @@ class RazorpaySettings(Document):
 		}
 		if self.api_key and self.api_secret:
 			try:
-				return make_post_request("https://api.razorpay.com/v1/orders", auth=(self.api_key, self.get_password(fieldname="api_secret", raise_exception=False)), data=payment_options)
+				order = make_post_request("https://api.razorpay.com/v1/orders", auth=(self.api_key, self.get_password(fieldname="api_secret", raise_exception=False)), data=payment_options)
+				order['integration_request'] = integration_request
+				return order
 			except Exception:
 				frappe.log(frappe.get_traceback())
 				frappe.throw(_("Could not create razorpay order"))
@@ -352,6 +354,22 @@ def capture_payment(is_sandbox=False, sanbox_response=None):
 			doc.status = "Failed"
 			doc.error = frappe.get_traceback()
 			frappe.log_error(doc.error, '{0} Failed'.format(doc.name))
+
+@frappe.whitelist(allow_guest=True)
+def get_order(doctype, docname):
+	return frappe.get_doc(doctype, docname).run_method("get_razorpay_order")
+
+@frappe.whitelist(allow_guest=True)
+def order_payment_success(self, integration_request, params):
+	print("SUCCESSSSSSS ------------------")
+	integration = frappe.get_doc("Integration Request", integration_request)
+	integration.update_status(update_dict)
+
+@frappe.whitelist(allow_guest=True)
+def order_payment_failure(self, integration_request, params):
+	print("FAILLLLLL ------------------")
+	integration = frappe.get_doc("Integration Request", integration_request)
+	integration.update_status(update_dict)
 
 def convert_rupee_to_paisa(**kwargs):
 	for addon in kwargs.get('addons'):
