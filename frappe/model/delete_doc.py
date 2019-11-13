@@ -21,7 +21,8 @@ from frappe.exceptions import FileNotFoundError
 from six import string_types, integer_types
 from frappe.model.document import make_update_log
 
-doctypes_to_skip = ("Communication", "ToDo", "DocShare", "Email Unsubscribe", "Activity Log", "File", "Version", "Document Follow", "Comment" , "View Log", "Tag Link")
+doctypes_to_skip = ("Communication", "ToDo", "DocShare", "Email Unsubscribe", "Activity Log", "File",
+	"Version", "Document Follow", "Comment" , "View Log", "Tag Link", "Notification Log")
 
 def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reload=False,
 	ignore_permissions=False, flags=None, ignore_on_trash=False, ignore_missing=True):
@@ -310,6 +311,7 @@ def delete_dynamic_links(doctype, name):
 	delete_references('Comment', doctype, name)
 	delete_references('View Log', doctype, name)
 	delete_references('Document Follow', doctype, name, 'ref_doctype', 'ref_docname')
+	delete_references('Notification Log', doctype, name, 'document_type', 'document_name')
 
 	# unlink communications
 	clear_timeline_references(doctype, name)

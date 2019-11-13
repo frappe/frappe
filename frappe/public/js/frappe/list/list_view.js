@@ -286,8 +286,19 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				}))
 		);
 
-		// limit to 4 columns
-		this.columns = this.columns.slice(0, 4);
+		// limit max to 8 columns
+		// Screen with low density no of columns 4
+		// Screen with medium density no of columns 6
+		// Screen with high density no of columns 8
+		let column_count = 6;
+
+		if (window.innerWidth <= 1200) {
+			column_count = 4;
+		} else if (window.innerWidth > 1440) {
+			column_count = 8;
+		}
+
+		this.columns = this.columns.slice(0, column_count);
 	}
 
 	get_no_result_message() {
@@ -708,7 +719,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		let user = frappe.session.user;
 		let subject_field = this.columns[0].df;
 		let value = doc[subject_field.fieldname] || doc.name;
-		let subject = strip_html(value);
+		let subject = strip_html(value.toString());
 		let escaped_subject = frappe.utils.escape_html(subject);
 
 		const liked_by = JSON.parse(doc._liked_by || '[]');

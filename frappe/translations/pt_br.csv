@@ -579,7 +579,7 @@ apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,Setup Auto Ema
 DocType: User,Email Settings,Configurações de Email
 ,Background Jobs,Tarefas em Segundo Plano
 apps/frappe/frappe/public/js/frappe/form/controls/comment.js,Ctrl+Enter to add comment,Ctrl+Enter para adicionar comentário
-DocType: Global Search Settings,Document Types,Tipos de documento
+apps/frappe/frappe/core/page/permission_manager/permission_manager.js,Document Types,Tipos de documento
 apps/frappe/frappe/contacts/doctype/address/address.py,There is an error in your Address Template {0},Há um erro no seu modelo de endereço {0}
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js,Reset Permissions for {0}?,Repor permissões para {0} ?
 apps/frappe/frappe/utils/password_strength.py,This is similar to a commonly used password.,Isso é parecido com uma senha comum.

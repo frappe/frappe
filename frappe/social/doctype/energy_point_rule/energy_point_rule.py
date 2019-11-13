@@ -48,7 +48,7 @@ class EnergyPointRule(Document):
 						'points': points,
 						'user': user,
 						'rule': rule
-					})
+					}, self.apply_only_once)
 			except Exception as e:
 				frappe.log_error(frappe.get_traceback(), 'apply_energy_point')
 
@@ -82,7 +82,10 @@ class EnergyPointRule(Document):
 def process_energy_points(doc, state):
 	if (frappe.flags.in_patch
 		or frappe.flags.in_install
-		or not is_energy_point_enabled()):
+		or frappe.flags.in_migrate):
+		return
+
+	if not is_energy_point_enabled():
 		return
 
 	old_doc = doc.get_doc_before_save()

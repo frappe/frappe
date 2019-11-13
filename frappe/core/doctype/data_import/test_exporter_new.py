@@ -20,7 +20,7 @@ class TestExporter(unittest.TestCase):
 		e = Exporter('Web Page', export_fields='All')
 		csv_array = e.get_csv_array()
 		header = csv_array[0]
-		self.assertEqual(len(header), 23)
+		self.assertEqual(len(header), 24)
 
 
 	def test_exports_selected_fields(self):

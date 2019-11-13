@@ -23,6 +23,7 @@
   "import_warnings",
   "import_log_section",
   "import_log",
+  "show_failed_logs",
   "import_log_preview"
  ],
  "fields": [
@@ -139,11 +140,17 @@
    "fieldname": "mute_emails",
    "fieldtype": "Check",
    "label": "Don't Send Emails"
+  },
+  {
+   "default": "0",
+   "fieldname": "show_failed_logs",
+   "fieldtype": "Check",
+   "label": "Show Failed Logs"
   }
  ],
  "hide_toolbar": 1,
- "modified": "2019-09-28 13:54:35.061730",
- "modified_by": "Administrator",
+ "modified": "2019-10-29 14:57:02.769220",
+ "modified_by": "faris@erpnext.com",
  "module": "Core",
  "name": "Data Import Beta",
  "owner": "Administrator",

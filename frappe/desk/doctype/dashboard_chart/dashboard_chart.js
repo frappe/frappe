@@ -23,6 +23,8 @@ frappe.ui.form.on('Dashboard Chart', {
 		// set timeseries based on chart type
 		if (['Count', 'Average', 'Sum'].includes(frm.doc.chart_type)) {
 			frm.set_value('timeseries', 1);
+		} else {
+			frm.set_value('timeseries', 0);
 		}
 		frm.set_value('document_type', '');
 	},
@@ -38,6 +40,7 @@ frappe.ui.form.on('Dashboard Chart', {
 
 	timespan: function(frm) {
 		const time_interval_options = {
+			"Select Date Range": ["Quarterly", "Monthly", "Weekly", "Daily"],
 			"Last Year": ["Quarterly", "Monthly", "Weekly", "Daily"],
 			"Last Quarter": ["Monthly", "Weekly", "Daily"],
 			"Last Month": ["Weekly", "Daily"],
@@ -55,10 +58,14 @@ frappe.ui.form.on('Dashboard Chart', {
 			{label: __('Last Modified On'), value: 'modified'}
 		];
 		let value_fields = [];
+		let group_by_fields = [];
+		let aggregate_function_fields = [];
 		let update_form = function() {
 			// update select options
 			frm.set_df_property('based_on', 'options', date_fields);
 			frm.set_df_property('value_based_on', 'options', value_fields);
+			frm.set_df_property('group_by_based_on', 'options', group_by_fields);
+			frm.set_df_property('aggregate_function_based_on', 'options', aggregate_function_fields);
 			frm.trigger("show_filters");
 		}
 
@@ -72,6 +79,10 @@ frappe.ui.form.on('Dashboard Chart', {
 					}
 					if (['Int', 'Float', 'Currency', 'Percent'].includes(df.fieldtype)) {
 						value_fields.push({label: df.label, value: df.fieldname});
+						aggregate_function_fields.push({label: df.label, value: df.fieldname});
+					}
+					if (['Link', 'Select'].includes(df.fieldtype)) {
+						group_by_fields.push({label: df.label, value: df.fieldname});
 					}
 				});
 				update_form();

@@ -16,7 +16,7 @@ apps/frappe/frappe/config/website.py,Settings for Contact Us Page.,Ajustes para 
 DocType: Contact Us Settings,"Contact options, like ""Sales Query, Support Query"" etc each on a new line or separated by commas.","Opciones de contacto , como "" Consultas de Ventas , Soporte de consultas"" , etc cada uno en una nueva línea o separados por comas."
 apps/frappe/frappe/public/js/frappe/form/link_selector.js,Select {0},Seleccione {0}
 apps/frappe/frappe/public/js/frappe/utils/pretty_date.js,1 minute ago,Hace 1 minuto
-DocType: Global Search Settings,Document Types,Tipos de Documento
+apps/frappe/frappe/core/page/permission_manager/permission_manager.js,Document Types,Tipos de Documento
 apps/frappe/frappe/config/website.py,Embed image slideshows in website pages.,Presentacion de imágenes incrustadas en páginas web .
 apps/frappe/frappe/core/doctype/doctype/doctype.py,DocType can not be merged,El DocType no se puede fusionar
 DocType: Newsletter,Email Sent?,Enviar Email ?
@@ -121,7 +121,7 @@ apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,The
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js,Users with role {0}:,Los usuarios con función {0}:
 DocType: DocField,Section Break,Salto de sección
 apps/frappe/frappe/desk/query_report.py,Must specify a Query to run,Debe especificar una consulta para ejecutar
-DocType: Event,Saturday,Sábado
+DocType: Assignment Rule Day,Saturday,Sábado
 apps/frappe/frappe/desk/form/assign_to.py,"The task {0}, that you assigned to {1}, has been closed.","La tarea {0}, que asignó a {1}, se ha cerrado."
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js,Open a module or tool,Abra un Módulo o Herramienta
 DocType: Customize Form,Enter Form Type,Introduzca Tipo de Formulario
@@ -292,7 +292,7 @@ DocType: Report,Report Type,Tipo de informe
 apps/frappe/frappe/public/js/frappe/form/sidebar/share.js,Share With,Comparte con
 apps/frappe/frappe/public/js/frappe/form/controls/select.js,Please attach a file first.,Adjunte un archivo primero .
 apps/frappe/frappe/model/naming.py,"There were some errors setting the name, please contact the administrator","Había algunos errores de configuración el nombre, por favor póngase en contacto con el administrador"
-DocType: Event,Sunday,Domingo
+DocType: Assignment Rule Day,Sunday,Domingo
 DocType: Contact Us Settings,Send enquiries to this email address,Puede enviar sus preguntas a la siguiente dirección de correo electrónico
 apps/frappe/frappe/config/website.py,User editable form on Website.,Forma editable Usuario en el Sitio Web.
 DocType: File,File Size,Tamaño del archivo

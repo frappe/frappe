@@ -153,10 +153,10 @@ frappe.activity.render_heatmap = function(page) {
 					start: new Date(moment().subtract(1, 'year').toDate()),
 					countLabel: "actions",
 					discreteDomains: 0,
-					data: {}
+					data: {
+						'dataPoints': r.message
+					}
 				});
-
-				heatmap.update(r.message);
 			}
 		}
 	})

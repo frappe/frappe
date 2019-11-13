@@ -17,6 +17,7 @@ from frappe.model import optional_fields
 from frappe.client import check_parent_permission
 from frappe.model.utils.user_settings import get_user_settings, update_user_settings
 from frappe.utils import flt, cint, get_time, make_filter_tuple, get_filter, add_to_date, cstr, nowdate
+from frappe.model.meta import get_table_columns
 
 class DatabaseQuery(object):
 	def __init__(self, doctype, user=None):
@@ -283,14 +284,18 @@ class DatabaseQuery(object):
 	def set_field_tables(self):
 		'''If there are more than one table, the fieldname must not be ambiguous.
 		If the fieldname is not explicitly mentioned, set the default table'''
+		def _in_standard_sql_methods(field):
+			methods = ('count(', 'avg(', 'sum(')
+			return field.lower().startswith(methods)
+
 		if len(self.tables) > 1:
-			for i, f in enumerate(self.fields):
-				if '.' not in f:
-					self.fields[i] = '{0}.{1}'.format(self.tables[0], f)
+			for idx, field in enumerate(self.fields):
+				if '.' not in field and not _in_standard_sql_methods(field):
+					self.fields[idx] = '{0}.{1}'.format(self.tables[0], field)
 
 	def set_optional_columns(self):
 		"""Removes optional columns like `_user_tags`, `_comments` etc. if not in table"""
-		columns = frappe.db.get_table_columns(self.doctype)
+		columns = get_table_columns(self.doctype)
 
 		# remove from fields
 		to_remove = []

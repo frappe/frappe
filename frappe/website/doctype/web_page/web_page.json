@@ -18,6 +18,7 @@
   "end_date",
   "sb1",
   "content_type",
+  "dynamic_template",
   "main_section",
   "main_section_md",
   "main_section_html",
@@ -235,6 +236,12 @@
    "fieldname": "set_meta_tags",
    "fieldtype": "Button",
    "label": "Set Meta Tags"
+  },
+  {
+   "default": "0",
+   "fieldname": "dynamic_template",
+   "fieldtype": "Check",
+   "label": "Dynamic Template"
   }
  ],
  "has_web_view": 1,

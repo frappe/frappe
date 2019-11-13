@@ -65,3 +65,4 @@ Pygments==2.2.0
 frontmatter
 PyYAML==3.13
 xlrd
+RestrictedPython==5.0
