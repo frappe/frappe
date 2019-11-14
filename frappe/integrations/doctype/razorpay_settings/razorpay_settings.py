@@ -185,10 +185,10 @@ class RazorpaySettings(Document):
 
 		# convert ruppes to paisa
 		kwargs['amount'] *= 100
-		
+
 		# Create integration log
 		integration_request = create_request_log(kwargs, "Host", "Razorpay")
-		
+
 		# Setup payment otptions
 		payment_options = {
 			"amount": kwargs.get('amount'),
@@ -375,25 +375,25 @@ def order_payment_success(integration_request, params):
 	"""Called by razorpay.js on order payment success, the params
 	contains razorpay_payment_id, razorpay_order_id, razorpay_signature
 	that is updated in the data field of integration request
-	
+
 	Args:
 		integration_request (string): Name for integration request doc
 		params (string): Params to be updated for integration request.
 	"""
 	params = json.loads(params)
 	integration = frappe.get_doc("Integration Request", integration_request)
-	
+
 	# Update integration request
 	integration.update_status(params, integration.status)
 	integration.reload()
 
 	data = json.loads(integration.data)
 	controller = frappe.get_doc("Razorpay Settings")
-	
+
 	# Update payment and integration data for payment controller object
 	controller.integration_request = integration
 	controller.data = frappe._dict(data)
-	
+
 	# Authorize payment
 	controller.authorize_payment()
 
