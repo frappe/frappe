@@ -71,11 +71,11 @@ frappe.require('https://checkout.razorpay.com/v1/checkout.js').then(() => {
 		}
 
 		show(callback=null) {
-			let razorpay = new Razorpay(this.options);
-			razorpay.once('ready', function(response) {
+			this.razorpay = new Razorpay(this.options);
+			this.razorpay.once('ready', (response) => {
   				this.onOpen && this.onOpen(response);
 			})
-    		razorpay.open();
+    		this.razorpay.open();
 		}
 
 		getKey() {
@@ -127,7 +127,8 @@ frappe.require('https://checkout.razorpay.com/v1/checkout.js').then(() => {
 				"image": this.image,
 				"order_id": this.order.id,
 				"prefill": this.prefill,
-				"theme": this.theme
+				"theme": this.theme,
+				"modal": this.modal
 			};
 		}
 
@@ -137,7 +138,7 @@ frappe.require('https://checkout.razorpay.com/v1/checkout.js').then(() => {
 					this.orderFail(response);
 					this.onFail && this.onFail(response);
 				}
-				if (response.razorpay_payment_id) {
+				else if (response.razorpay_payment_id) {
 					this.orderSuccess(response);	
 					this.onSuccess && this.onSuccess(response);
 				}
