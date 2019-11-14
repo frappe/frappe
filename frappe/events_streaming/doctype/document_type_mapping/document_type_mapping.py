@@ -25,15 +25,15 @@ class DocumentTypeMapping(Document):
 		doc['doctype'] = self.local_doctype
 		return frappe.as_json(doc)
 
-	def get_mapped_child_table_docs(self, child_map, table_entries):
-		child_map = frappe.get_doc('Document Type Mapping', child_map)
-		mapped_entries = []
-		for entry in table_entries:
-			child_doc = entry
-			for mapping in child_map.field_mapping:
-				if child_doc.get(mapping.remote_fieldname):
-					child_doc[mapping.local_fieldname] = child_doc[mapping.remote_fieldname]
-					child_doc.pop(mapping.remote_fieldname, None)
-			child_doc['doctype'] = child_map.local_doctype
-			mapped_entries.append(child_doc)
-		return mapped_entries
+def get_mapped_child_table_docs(child_map, table_entries):
+	child_map = frappe.get_doc('Document Type Mapping', child_map)
+	mapped_entries = []
+	for entry in table_entries:
+		child_doc = entry
+		for mapping in child_map.field_mapping:
+			if child_doc.get(mapping.remote_fieldname):
+				child_doc[mapping.local_fieldname] = child_doc[mapping.remote_fieldname]
+				child_doc.pop(mapping.remote_fieldname, None)
+		child_doc['doctype'] = child_map.local_doctype
+		mapped_entries.append(child_doc)
+	return mapped_entries

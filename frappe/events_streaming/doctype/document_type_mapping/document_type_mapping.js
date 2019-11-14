@@ -2,9 +2,6 @@
 // For license information, please see license.txt
 
 frappe.ui.form.on('Document Type Mapping', {
-	refresh: function(frm) {
-	},
-
 	local_doctype: function(frm) {
 		if (frm.doc.local_doctype) {
 			frappe.model.clear_table(frm.doc, 'field_mapping');
@@ -21,11 +18,11 @@ frappe.ui.form.on('Document Type Mapping', {
 		let filtered_fields = [];
 		frappe.model.with_doctype(frm.doc.local_doctype, ()=> {
 			frappe.get_meta(frm.doc.local_doctype).fields.map( field => {
-				if(field.fieldname !== 'remote_docname' && field.fieldname !== 'remote_site_name' && frappe.model.is_value_type(field) && !field.hidden) {
+				if (field.fieldname !== 'remote_docname' && field.fieldname !== 'remote_site_name' && frappe.model.is_value_type(field) && !field.hidden) {
 					filtered_fields.push(field.fieldname);
 				}
 			});
-		})
-		return filtered_fields
+		});
+		return filtered_fields;
 	}
 });

@@ -41,8 +41,7 @@ class EventConsumer(Document):
 		response = requests.get(self.callback_url)
 		if response.status_code != 200:
 			return 'offline'
-		else:
-			return 'online'
+		return 'online'
 
 @frappe.whitelist(allow_guest=True)
 def register_consumer(data):
@@ -85,14 +84,13 @@ def get_last_update():
 	updates = frappe.get_list('Update Log', 'creation', ignore_permissions=True)
 	if updates != []:
 		return updates[0].creation
-	else:
-		return frappe.utils.now_datetime()
+	return frappe.utils.now_datetime()
 
 @frappe.whitelist()
-def notify_event_consumers():
-	event_consumers = frappe.get_all('Event Consumer')
-	for event_consumer in event_consumers:
-		consumer = frappe.get_doc('Event Consumer', event_consumer.name)
+def notify_event_consumers(doctype):
+	event_consumers = frappe.get_all('Event Subscribed Document Type', ['parent'], {'ref_doctype': doctype, 'status': 'Approved'})
+	for entry in event_consumers:
+		consumer = frappe.get_doc('Event Consumer', entry.parent)
 		consumer.flags.notified = False
 		notify(consumer)
 
@@ -102,16 +100,16 @@ def notify(consumer):
 	if consumer_status == 'online':
 		try:
 			client = get_consumer_site(consumer.callback_url)
-			response = client.post_request({
+			client.post_request({
 				'cmd': 'frappe.events_streaming.doctype.event_producer.event_producer.new_event_notification',
 				'producer_url': get_current_node()
 			})
 			consumer.flags.notified = True
-		except Exception as e:
+		except Exception:
 			consumer.flags.notified = False
 	else:
 		consumer.flags.notified = False
-	
+
 	#enqueue another job if the site was not notified
 	if not consumer.flags.notified:
 		time.sleep(20)

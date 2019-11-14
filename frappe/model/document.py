@@ -947,10 +947,10 @@ class Document(BaseDocument):
 			frappe.flags.currently_saving.remove((self.doctype, self.name))
 
 		# make update log for doctypes having event consumers
-		if not frappe.flags.in_install and not frappe.flags.in_migrate:
+		if not frappe.flags.in_install and not frappe.flags.in_migrate and check_doctype_has_consumers(self.doctype):
 			if self.flags.update_log_for_doc_creation:
 				make_update_log(self, update_type = 'Create')
-				self.flags.create_type_update_log = False
+				self.flags.update_log_for_doc_creation = False
 			else:
 				from frappe.events_streaming.doctype.update_log.update_log import get_update
 				diff = get_update(self._doc_before_save, self)
@@ -1286,22 +1286,20 @@ def execute_action(doctype, name, action, **kwargs):
 
 def make_update_log(doc, update_type):
 	'''Save update info for doctypes that have event consumers'''
-	doctype_has_consumers = check_doctype_has_consumers(doc.doctype)
-	if doctype_has_consumers:
-		if update_type != 'Delete':
-			#diff for update type, doc for create type
-			data = frappe.as_json(doc) if not doc.get('diff') else frappe.as_json(doc.diff)
-		else:
-			data = None
-		log_doc = frappe.get_doc({
-			'doctype': 'Update Log',
-			'update_type': update_type,
-			'ref_doctype': doc.doctype,
-			'docname': doc.name,
-			'data': data
-		})
-		log_doc.insert(ignore_permissions = True)
-		frappe.db.commit()
+	if update_type != 'Delete':
+		#diff for update type, doc for create type
+		data = frappe.as_json(doc) if not doc.get('diff') else frappe.as_json(doc.diff)
+	else:
+		data = None
+	log_doc = frappe.get_doc({
+		'doctype': 'Update Log',
+		'update_type': update_type,
+		'ref_doctype': doc.doctype,
+		'docname': doc.name,
+		'data': data
+	})
+	log_doc.insert(ignore_permissions = True)
+	frappe.db.commit()
 
 def check_doctype_has_consumers(doctype):
 	event_consumers = frappe.get_all('Event Consumer')

@@ -149,6 +149,9 @@ doc_events = {
 	"Contact": {
 		"after_insert": "frappe.integrations.doctype.google_contacts.google_contacts.insert_contacts_to_google_contacts",
 		"on_update": "frappe.integrations.doctype.google_contacts.google_contacts.update_contacts_to_google_contacts",
+	},
+	"Update Log": {
+		"after_insert": "frappe.events_streaming.doctype.update_log.update_log.notify_consumers"
 	}
 }
 

@@ -11,12 +11,10 @@ frappe.ui.form.on('Event Sync Log', {
 						update: frm.doc,
 					},
 					callback: function(r) {
-						if(r.message) {
-							if(r.message) {
-								frappe.msgprint(r.message);
-								frm.set_value('status', r.message);
-								frm.save();
-							}
+						if (r.message) {
+							frappe.msgprint(r.message);
+							frm.set_value('status', r.message);
+							frm.save();
 						}
 					}
 				});

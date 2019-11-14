@@ -366,7 +366,7 @@ class BaseDocument(object):
 				self.show_unique_validation_message(e)
 			else:
 				raise
-	
+
 	def db_update_all(self):
 		'''Raw update parent + children
 		DOES NOT VALIDATE AND CALL TRIGGERS'''

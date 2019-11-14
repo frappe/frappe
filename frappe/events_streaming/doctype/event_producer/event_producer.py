@@ -88,7 +88,7 @@ class EventProducer(Document):
 				event_consumer.incoming_change = True
 				producer_site.update(event_consumer)
 
-	def is_producer_online(self, method = None):
+	def is_producer_online(self):
 		'''check connection status for the Event Producer site'''
 		self.retry = 3
 		res = requests.get(self.producer_url)
@@ -127,9 +127,9 @@ def get_approval_status(config, ref_doctype):
 
 @frappe.whitelist()
 def pull_producer_data():
+	'''Fetch data from producer node.'''
 	response = requests.get(get_current_node())
 	if response.status_code == 200:
-		'''Fetch data from producer node.'''
 		for event_producer in frappe.get_all('Event Producer'):
 			pull_from_node(event_producer.name)
 		return 'success'
@@ -194,16 +194,15 @@ def set_insert(update, producer_site, event_producer):
 	if frappe.db.get_value(update.ref_doctype, update.docname):
 		# doc already created
 		return
+	doc = frappe.get_doc(update.data)
+	check_doc_has_dependencies(doc, producer_site)
+	if update.use_same_name:
+		doc.insert(set_name=update.docname, set_child_names=False)
 	else:
-		doc = frappe.get_doc(update.data)
-		check_doc_has_dependencies(doc, producer_site)
-		if update.use_same_name:
-			doc.insert(set_name=update.docname, set_child_names=False)
-		else:
-			#if event consumer is not saving documents with the same name as the producer
-			#store the remote docname in a custom field for future updates
-			local_doc = doc.insert(set_child_names=False)
-			set_custom_fields(local_doc, update.docname, event_producer)
+		#if event consumer is not saving documents with the same name as the producer
+		#store the remote docname in a custom field for future updates
+		local_doc = doc.insert(set_child_names=False)
+		set_custom_fields(local_doc, update.docname, event_producer)
 
 def set_update(update, producer_site):
 	local_doc = get_local_doc(update)
@@ -213,33 +212,40 @@ def set_update(update, producer_site):
 
 			if data.changed:
 				local_doc.update(data.changed)
-
 			if data.removed:
-				for tablename, rownames in iteritems(data.removed):
-					table = local_doc.get_table_field_doctype(tablename)
-					for row in rownames:
-						frappe.db.delete(table, row)
-
+				update_row_removed(local_doc, data.removed)
 			if data.row_changed:
-				for tablename, rows in iteritems(data.row_changed):
-					old = local_doc.get(tablename)
-					for doc in old:
-						for row in rows:
-							if row['name'] == doc.get('name'):
-								doc.update(row)
-
+				update_row_changed(local_doc, data.row_changed)
 			if data.added:
-				for tablename, rows in iteritems(data.added):
-					local_doc.extend(tablename, rows)
-					for child in rows:
-						child_doc = frappe.get_doc(child)
-						child_doc.insert(set_name=child_doc.name, set_child_names=False)
-					
+				local_doc = update_row_added(local_doc, data.added)
+
 			local_doc.save()
 			local_doc.db_update_all()
 
 	except frappe.DoesNotExistError:
 		check_doc_has_dependencies(local_doc, producer_site)
+
+def update_row_removed(local_doc, removed):
+	for tablename, rownames in iteritems(removed):
+		table = local_doc.get_table_field_doctype(tablename)
+		for row in rownames:
+			frappe.db.delete(table, row)
+
+def update_row_changed(local_doc, changed):
+	for tablename, rows in iteritems(changed):
+		old = local_doc.get(tablename)
+		for doc in old:
+			for row in rows:
+				if row['name'] == doc.get('name'):
+					doc.update(row)
+
+def update_row_added(local_doc, added):
+	for tablename, rows in iteritems(added):
+		local_doc.extend(tablename, rows)
+		for child in rows:
+			child_doc = frappe.get_doc(child)
+			child_doc.insert(set_name=child_doc.name, set_child_names=False)
+	return local_doc
 
 def set_delete(update):
 	local_doc = get_local_doc(update)
@@ -259,10 +265,9 @@ def get_local_doc(update):
 	try:
 		if not update.use_same_name:
 			return frappe.get_doc(update.ref_doctype, {'remote_docname': update.docname})
-		else:
-			return frappe.get_doc(update.ref_doctype, update.docname)
+		return frappe.get_doc(update.ref_doctype, update.docname)
 	except frappe.DoesNotExistError:
-		return	
+		return
 
 def check_doc_has_dependencies(doc, producer_site):
 	'''Sync child table link fields first,
@@ -279,13 +284,13 @@ def check_doc_has_dependencies(doc, producer_site):
 		sync_link_dependencies(doc, link_fields, producer_site)
 	if dl_fields:
 		sync_dynamic_link_dependencies(doc, dl_fields, producer_site)
-			
+
 def sync_child_table_dependencies(doc, table_fields, producer_site):
 	for df in table_fields:
 		child_table = doc.get(df.fieldname)
 		for entry in child_table:
 			set_dependencies(entry, frappe.get_meta(entry.doctype).get_link_fields(), producer_site)
-		
+
 def sync_link_dependencies(doc, link_fields, producer_site):
 	set_dependencies(doc, link_fields, producer_site)
 
@@ -308,7 +313,7 @@ def set_dependencies(doc, link_fields, producer_site):
 				doc = frappe.get_doc(master_doc)
 				doc.insert(set_name=docname)
 				frappe.db.commit()
-			
+
 			#for dependency inside a dependency
 			except Exception:
 				check_doc_has_dependencies(frappe.get_doc(master_doc), producer_site)
