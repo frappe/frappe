@@ -198,7 +198,9 @@ class RazorpaySettings(Document):
 		}
 		if self.api_key and self.api_secret:
 			try:
-				order = make_post_request("https://api.razorpay.com/v1/orders", auth=(self.api_key, self.get_password(fieldname="api_secret", raise_exception=False)), data=payment_options)
+				order = make_post_request("https://api.razorpay.com/v1/orders", 
+					auth=(self.api_key, self.get_password(fieldname="api_secret", raise_exception=False)), 
+					data=payment_options)
 				order['integration_request'] = integration_request.name
 				return order # Order returned to be consumed by razorpay.js
 			except Exception:
@@ -365,7 +367,7 @@ def get_order(doctype, docname):
 		# Do not use run_method here as it fails silently
 		return doc.get_razorpay_order()
 	except AttributeError:
-		error_log = frappe.log_error(frappe.get_traceback(), _("Controller method get_razorpay_order missing"))
+		frappe.log_error(frappe.get_traceback(), _("Controller method get_razorpay_order missing"))
 		frappe.throw(_("Could not create Razorpay order. Please contact Administrator"))
 
 @frappe.whitelist(allow_guest=True)
@@ -404,7 +406,6 @@ def order_payment_failure(integration_request, params):
 		params (TYPE): error data to be updated
 	"""
 	frappe.log_error(params, 'Razorpay Payment Failure')
-	
 	params = json.loads(params)
 	integration = frappe.get_doc("Integration Request", integration_request)
 	integration.update_status(params, integration.status)

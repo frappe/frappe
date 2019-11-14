@@ -52,7 +52,7 @@ Razorpay Payment
 	}
 */
 
-frappe.provide("frappe.checkout")
+frappe.provide("frappe.checkout");
 
 frappe.require('https://checkout.razorpay.com/v1/checkout.js').then(() => {
 	frappe.checkout.razorpay = class RazorpayCheckout {
@@ -67,21 +67,21 @@ frappe.require('https://checkout.razorpay.com/v1/checkout.js').then(() => {
 				() => this.prepareOptions(),
 				() => this.setupHandler(),
 				() => this.show()
-			])
+			]);
 		}
 
-		show(callback=null) {
+		show() {
 			this.razorpay = new Razorpay(this.options);
 			this.razorpay.once('ready', (response) => {
-  				this.onOpen && this.onOpen(response);
+				this.onOpen && this.onOpen(response);
 			})
-    		this.razorpay.open();
+			this.razorpay.open();
 		}
 
 		getKey() {
 			return new Promise(resolve => {
 				frappe.call("frappe.integrations.doctype.razorpay_settings.razorpay_settings.get_api_key").then(res => {
-					this.key = res.message
+					this.key = res.message;
 					resolve(true);
 				})
 			});
@@ -93,7 +93,7 @@ frappe.require('https://checkout.razorpay.com/v1/checkout.js').then(() => {
 					doctype: this.doctype,
 					docname: this.docname
 				}).then(res => {
-					this.order = res.message
+					this.order = res.message;
 					resolve(true);
 				})
 			});
@@ -110,7 +110,7 @@ frappe.require('https://checkout.razorpay.com/v1/checkout.js').then(() => {
 			})
 		}
 
-		orderFail() {
+		orderFail(response) {
 			frappe.call( "frappe.integrations.doctype.razorpay_settings.razorpay_settings.order_payment_failure", {
 				integration_request: this.order.integration_request,
 				params: response
@@ -145,4 +145,4 @@ frappe.require('https://checkout.razorpay.com/v1/checkout.js').then(() => {
 			}
 		}
 	}
-})
+});
