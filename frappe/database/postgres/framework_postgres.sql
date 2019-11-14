@@ -40,6 +40,8 @@ CREATE TABLE "tabDocField" (
   "show_preview_popup" smallint NOT NULL DEFAULT 0,
   "trigger" varchar(255) DEFAULT NULL,
   "collapsible_depends_on" text,
+  "mandatory_depends_on" text,
+  "read_only_depends_on" text,
   "depends_on" text,
   "permlevel" bigint NOT NULL DEFAULT 0,
   "ignore_user_permissions" smallint NOT NULL DEFAULT 0,

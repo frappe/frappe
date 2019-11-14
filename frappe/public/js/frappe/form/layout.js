@@ -454,7 +454,7 @@ frappe.ui.form.Layout = Class.extend({
 		for(var fkey in this.fields_list) {
 			var f = this.fields_list[fkey];
 			f.dependencies_clear = true;
-			if(f.df.depends_on) {
+			if(f.df.depends_on || f.df.mandatory_depends_on || f.df.read_only_depends_on) {
 				has_dep = true;
 			}
 		}
@@ -483,9 +483,25 @@ frappe.ui.form.Layout = Class.extend({
 					}
 				}
 			}
+
+			if(f.df.mandatory_depends_on) {
+				this.set_dependant_property(f.df.mandatory_depends_on, f.df.fieldname, 'reqd');
+			}
+
+			if(f.df.read_only_depends_on) {
+				this.set_dependant_property(f.df.read_only_depends_on, f.df.fieldname, 'read_only');
+			}
 		}
 
 		this.refresh_section_count();
+	},
+	set_dependant_property: function(condition, fieldname, property) {
+		let set_property = this.evaluate_depends_on_value(condition);
+		if (set_property) {
+			this.frm.set_df_property(fieldname, property, 1);
+		} else {
+			this.frm.set_df_property(fieldname, property, 0);
+		}
 	},
 	evaluate_depends_on_value: function(expression) {
 		var out = null;
