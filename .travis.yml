@@ -1,6 +1,5 @@
 language: python
 dist: trusty
-os: linux
 
 addons:
   hosts:
