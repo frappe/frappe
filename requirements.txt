@@ -34,7 +34,7 @@ PyMySQL==0.9.3
 pyotp==2.3.0
 PyPDF2==1.26.0
 PyQRCode==1.2.1
-python-frontmatter==0.4.5
+frontmatter==3.0.5
 python-ldap==3.2.0
 rauth==0.7.3
 RestrictedPython==5.0
