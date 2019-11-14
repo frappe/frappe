@@ -273,7 +273,10 @@ frappe.ui.Notifications = class Notifications {
 	toggle_seen(flag) {
 		frappe.call(
 			'frappe.desk.doctype.notification_settings.notification_settings.set_seen_value',
-			{ value: cint(flag) }
+			{
+				value: cint(flag),
+				user: frappe.session.user
+			}
 		);
 	}
 
@@ -440,10 +443,6 @@ frappe.ui.Notifications = class Notifications {
 
 	setup_notification_listeners() {
 		frappe.realtime.on('notification', () => {
-			if (this.notifications_settings.seen == 1) {
-				this.notifications_settings.seen = 0;
-				this.toggle_seen(false);
-			}
 			this.$dropdown.find('.notifications-indicator').show();
 			this.update_dropdown();
 		});

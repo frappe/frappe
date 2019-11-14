@@ -62,5 +62,5 @@ def get_permission_query_conditions(user):
 	return '''(`tabNotification Settings`.user = '{user}')'''.format(user=user)
 
 @frappe.whitelist()
-def set_seen_value(value):
-	frappe.db.set_value('Notification Settings', frappe.session.user, 'seen', value, update_modified=False)
+def set_seen_value(value, user):
+	frappe.db.set_value('Notification Settings', user, 'seen', value, update_modified=False)

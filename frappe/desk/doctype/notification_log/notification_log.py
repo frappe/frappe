@@ -7,11 +7,12 @@ import frappe
 from frappe import _
 from frappe.model.document import Document
 from frappe.desk.doctype.notification_settings.notification_settings import (is_notifications_enabled,
-	is_email_notifications_enabled, is_email_notifications_enabled_for_type)
+	is_email_notifications_enabled, is_email_notifications_enabled_for_type, set_seen_value)
 
 class NotificationLog(Document):
 	def after_insert(self):
 		frappe.publish_realtime('notification', after_commit=True, user=self.for_user)
+		set_notifications_as_unseen(self.for_user)
 		if is_email_notifications_enabled(self.for_user):
 			send_notification_email(self)
 
@@ -123,7 +124,11 @@ def mark_as_read(docname):
 	if docname:
 		frappe.db.set_value('Notification Log', docname, 'read', 1, update_modified=False)
 
-
 @frappe.whitelist()
 def trigger_indicator_hide():
 	frappe.publish_realtime('indicator_hide', user=frappe.session.user)
+
+def set_notifications_as_unseen(user):
+	notification_settings_doc = frappe.get_doc('Notification Settings', user)
+	if notification_settings_doc.seen == 1:
+		set_seen_value(value = 0, user = user)
