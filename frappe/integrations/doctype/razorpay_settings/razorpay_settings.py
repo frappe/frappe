@@ -351,6 +351,12 @@ def capture_payment(is_sandbox=False, sanbox_response=None):
 			doc.error = frappe.get_traceback()
 			frappe.log_error(doc.error, '{0} Failed'.format(doc.name))
 
+
+@frappe.whitelist(allow_guest=True)
+def get_api_key():
+	controller = frappe.get_doc("Razorpay Settings")
+	return controller.api_key
+
 @frappe.whitelist(allow_guest=True)
 def get_order(doctype, docname):
 	# Order returned to be consumed by razorpay.js
