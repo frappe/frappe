@@ -61,7 +61,7 @@ install:
   - mkdir ~/frappe-bench/sites/test_site
   - cp $TRAVIS_BUILD_DIR/.travis/$DB.json ~/frappe-bench/sites/test_site/site_config.json
 
-  - if [$DB == "mariadb"];then
+  - if [ $DB == "mariadb" ];then
       mysql -u root -e "SET GLOBAL character_set_server = 'utf8mb4'";
       mysql -u root -e "SET GLOBAL collation_server = 'utf8mb4_unicode_ci'";
       mysql -u root -e "CREATE DATABASE test_frappe";
@@ -71,7 +71,7 @@ install:
       mysql -u root -e "FLUSH PRIVILEGES";
     fi
 
-  - if [$DB == "postgres"];then
+  - if [ $DB == "postgres" ];then
       psql -c "CREATE DATABASE test_frappe" -U postgres;
       psql -c "CREATE USER test_frappe WITH PASSWORD 'test_frappe'" -U postgres;
     fi
