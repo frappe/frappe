@@ -23,7 +23,6 @@ Razorpay Payment
 3. 	Inititate the payment in client using checkout API
 	function make_payment(ticket) {
 		var options = {
-			"key":  "<YOUR API KEY>",
 			"name": "<CHECKOUT MODAL TITLE>",
 			"description": "<CHECKOUT MODAL DESCRIPTION>",
 			"image": "<CHECKOUT MODAL LOGO>",
