@@ -225,7 +225,7 @@ frappe.ui.Notifications = class Notifications {
 	change_activity_status() {
 		if (this.$dropdown_list.find('.activity-status')) {
 			this.$dropdown_list.find('.activity-status').replaceWith(
-				`<a class="recent-item text-center text-muted" 
+				`<a class="recent-item text-center text-muted"
 					href="#List/Notification Log">
 					<div class="full-log-btn">${__('View Full Log')}</div>
 				</a>`
@@ -270,10 +270,10 @@ frappe.ui.Notifications = class Notifications {
 		);
 	}
 
-	mark_as_seen() {
+	toggle_seen(flag) {
 		frappe.call(
 			'frappe.desk.doctype.notification_settings.notification_settings.set_seen_value',
-			{ value: 1 }
+			{ value: cint(flag) }
 		);
 	}
 
@@ -331,7 +331,7 @@ frappe.ui.Notifications = class Notifications {
 		let user = field.from_user;
 		let user_avatar = frappe.avatar(user, 'avatar-small user-avatar');
 		let timestamp = frappe.datetime.comment_when(field.creation, true);
-		let item_html = 
+		let item_html =
 			`<a class="recent-item ${read_class}"
 				href="${doc_link}"
 				data-name="${field.name}"
@@ -385,7 +385,7 @@ frappe.ui.Notifications = class Notifications {
 			let html = `<li class="notifications-category">
 					<li class="text-muted header"
 						data-action="${category.action}"
-						href="#${category_id}" 
+						href="#${category_id}"
 						data-toggle="collapse">
 						${category.label}
 						<span class="octicon octicon-chevron-down collapse-indicator"></span>
@@ -442,11 +442,8 @@ frappe.ui.Notifications = class Notifications {
 		frappe.realtime.on('notification', () => {
 			if (this.notifications_settings.seen == 1) {
 				this.notifications_settings.seen = 0;
-				frappe.call(
-					'frappe.desk.doctype.notification_settings.notification_settings.set_seen_value',
-					{ value: 0 }
-				);
-			} 
+				this.toggle_seen(false);
+			}
 			this.$dropdown.find('.notifications-indicator').show();
 			this.update_dropdown();
 		});
@@ -471,7 +468,7 @@ frappe.ui.Notifications = class Notifications {
 		});
 
 		this.$dropdown.on('show.bs.dropdown', () => {
-			this.mark_as_seen();
+			this.toggle_seen(true);
 			if (this.$notification_indicator.is(':visible')) {
 				this.$notification_indicator.hide();
 				frappe.call(
