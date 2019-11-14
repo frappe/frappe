@@ -86,7 +86,7 @@
   }
  ],
  "in_create": 1,
- "modified": "2019-11-12 14:50:16.822761",
+ "modified": "2019-11-14 11:55:09.198036",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Notification Settings",
@@ -104,6 +104,7 @@
    "write": 1
   }
  ],
+ "read_only": 1,
  "sort_field": "modified",
  "sort_order": "DESC",
  "track_changes": 1
