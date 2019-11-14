@@ -43,13 +43,13 @@ def set_new_name(doc):
 
 	# if the autoname option is 'field:' and no name was derived, we need to
 	# notify
-	if autoname.startswith('field:') and not doc.name:
+	if autoname.startswith("field:") and not doc.name:
 		fieldname = autoname[6:]
 		frappe.throw(_("{0} is required").format(doc.meta.get_label(fieldname)))
 
 	# at this point, we fall back to name generation with the hash option
-	if not doc.name or autoname == 'hash':
-		doc.name = make_autoname('hash', doc.doctype)
+	if not doc.name or autoname == "hash":
+		doc.name = make_autoname("hash", doc.doctype)
 
 	doc.name = validate_name(
 		doc.doctype,
@@ -65,15 +65,15 @@ def set_name_from_naming_options(autoname, doc):
 
 	_autoname = autoname.lower()
 
-	if _autoname.startswith('field:'):
+	if _autoname.startswith("field:"):
 		doc.name = _field_autoname(autoname, doc)
-	elif _autoname.startswith('naming_series:'):
+	elif _autoname.startswith("naming_series:"):
 		set_name_by_naming_series(doc)
-	elif _autoname.startswith('prompt'):
+	elif _autoname.startswith("prompt"):
 		_prompt_autoname(autoname, doc)
-	elif _autoname.startswith('format:'):
+	elif _autoname.startswith("format:"):
 		doc.name = _format_autoname(autoname, doc)
-	elif '#' in autoname:
+	elif "#" in autoname:
 		doc.name = make_autoname(autoname, doc=doc)
 
 def set_name_by_naming_series(doc):
@@ -84,9 +84,9 @@ def set_name_by_naming_series(doc):
 	if not doc.naming_series:
 		frappe.throw(frappe._("Naming Series mandatory"))
 
-	doc.name = make_autoname(doc.naming_series+'.#####', '', doc)
+	doc.name = make_autoname(doc.naming_series+".#####", "", doc)
 
-def make_autoname(key='', doctype='', doc=''):
+def make_autoname(key="", doctype="", doc=""):
 	"""
 	Creates an autoname from the given key:
 
@@ -199,12 +199,12 @@ def get_default_naming_series(doctype):
 
 def validate_name(doctype, name, case=None, merge=False):
 	if not name:
-		return 'No Name Specified for %s' % doctype
-	if name.startswith('New '+doctype):
-		frappe.throw(_('There were some errors setting the name, please contact the administrator'), frappe.NameError)
-	if case == 'Title Case':
+		frappe.throw(_("No Name Specified for {0}").format(doctype))
+	if name.startswith("New "+doctype):
+		frappe.throw(_("There were some errors setting the name, please contact the administrator"), frappe.NameError)
+	if case == "Title Case":
 		name = name.title()
-	if case == 'UPPER CASE':
+	if case == "UPPER CASE":
 		name = name.upper()
 	name = name.strip()
 
@@ -219,13 +219,13 @@ def validate_name(doctype, name, case=None, merge=False):
 	return name
 
 
-def append_number_if_name_exists(doctype, value, fieldname='name', separator='-', filters=None):
+def append_number_if_name_exists(doctype, value, fieldname="name", separator="-", filters=None):
 	if not filters:
 		filters = dict()
 	filters.update({fieldname: value})
 	exists = frappe.db.exists(doctype, filters)
 
-	regex = '^{value}{separator}\d+$'.format(value=re.escape(value), separator=separator)
+	regex = "^{value}{separator}\d+$".format(value=re.escape(value), separator=separator)
 
 	if exists:
 		last = frappe.db.sql("""SELECT `{fieldname}` FROM `tab{doctype}`
@@ -251,10 +251,10 @@ def _set_amended_name(doc):
 	am_id = 1
 	am_prefix = doc.amended_from
 	if frappe.db.get_value(doc.doctype, doc.amended_from, "amended_from"):
-		am_id = cint(doc.amended_from.split('-')[-1]) + 1
-		am_prefix = '-'.join(doc.amended_from.split('-')[:-1])  # except the last hyphen
+		am_id = cint(doc.amended_from.split("-")[-1]) + 1
+		am_prefix = "-".join(doc.amended_from.split("-")[:-1])  # except the last hyphen
 
-	doc.name = am_prefix + '-' + str(am_id)
+	doc.name = am_prefix + "-" + str(am_id)
 	return doc.name
 
 
@@ -264,7 +264,7 @@ def _field_autoname(autoname, doc, skip_slicing=None):
 	`autoname` field starts with 'field:'
 	"""
 	fieldname = autoname if skip_slicing else autoname[6:]
-	name = (cstr(doc.get(fieldname)) or '').strip()
+	name = (cstr(doc.get(fieldname)) or "").strip()
 	return name
 
 
@@ -285,7 +285,7 @@ def _format_autoname(autoname, doc):
 	Example pattern: 'format:LOG-{MM}-{fieldname1}-{fieldname2}-{#####}'
 	"""
 
-	first_colon_index = autoname.find(':')
+	first_colon_index = autoname.find(":")
 	autoname_value = autoname[first_colon_index + 1:]
 
 	def get_param_value_for_match(match):
@@ -295,6 +295,6 @@ def _format_autoname(autoname, doc):
 		return parse_naming_series([trimmed_param], doc=doc)
 
 	# Replace braced params with their parsed value
-	name = re.sub(r'(\{[\w | #]+\})', get_param_value_for_match, autoname_value)
+	name = re.sub(r"(\{[\w | #]+\})", get_param_value_for_match, autoname_value)
 
 	return name

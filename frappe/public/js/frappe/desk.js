@@ -9,6 +9,7 @@ frappe.start_app = function() {
 		return;
 	frappe.assets.check();
 	frappe.provide('frappe.app');
+	frappe.provide('frappe.desk');
 	frappe.app = new frappe.Application();
 };
 
