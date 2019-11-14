@@ -1,3 +1,58 @@
+/* HOW-TO
+
+Razorpay Payment 
+
+1. 	Include checkout script in your code 
+	<script type="text/javascript" src="/assets/js/checkout.min.js"></script>
+
+2.	Create the Order controller in your backend 
+	def get_razorpay_order(self):
+		controller = get_payment_gateway_controller("Razorpay")
+		
+		payment_details = {
+			"amount": 300,
+			...
+			"reference_doctype": "Conference Participant",
+			"reference_docname": self.name,
+			...
+			"receipt": self.name
+		}
+
+		return controller.create_order(**payment_details)
+
+3. 	Inititate the payment in client using checkout API
+	function make_payment(ticket) {
+		var options = {
+			"key":  "<YOUR API KEY>",
+			"name": "<CHECKOUT MODAL TITLE>",
+			"description": "<CHECKOUT MODAL DESCRIPTION>",
+			"image": "<CHECKOUT MODAL LOGO>",
+		    "prefill": {
+				"name": "<CUSTOMER NAME>",
+				"email": "<CUSTOMER EMAIL>",
+				"contact": "<CUSTOMER PHONE>"
+		    },
+		    "theme": {
+				"color": "<MODAL COLOR>"
+		    },
+		    "doctype": "<REFERENCE DOCTYPE>",
+		    "docname": "<REFERENCE DOCNAME"
+		};
+
+		razorpay = new frappe.checkout.razorpay(options)
+		razorpay.onOpen = () => {
+			<SCRIPT TO RUN WHEN MODAL OPENS>
+		}
+		razorpay.onSuccess = () => {
+			<SCRIPT TO RUN ON PAYMENT SUCCESS>
+		}
+		razorpay.onFail = () => {
+			<SCRIPT TO RUN ON PAYMENT FAILURE>
+		}
+		razorpay.init() // Creates the order and opens the modal
+	}
+*/
+
 frappe.provide("frappe.checkout")
 
 frappe.require('https://checkout.razorpay.com/v1/checkout.js').then(() => {

@@ -182,14 +182,14 @@ class RazorpaySettings(Document):
 
 	def create_order(self, **kwargs):
 		# Creating Orders https://razorpay.com/docs/api/orders/
-		# 
-		# kwargs = {
-		# 	"amount": 3000,
-		# 	"currency": "INR",
-		# 	"receipt": "rcptid_11234",
-		# 	"payment_capture": 1
-		# }
+
+		# convert ruppes to paisa
+		kwargs['amount'] *= 100
+		
+		# Create integration log
 		integration_request = create_request_log(kwargs, "Host", "Razorpay")
+		
+		# Setup payment otptions
 		payment_options = {
 			"amount": kwargs.get('amount'),
 			"currency": kwargs.get('currency', 'INR'),
@@ -199,8 +199,8 @@ class RazorpaySettings(Document):
 		if self.api_key and self.api_secret:
 			try:
 				order = make_post_request("https://api.razorpay.com/v1/orders", auth=(self.api_key, self.get_password(fieldname="api_secret", raise_exception=False)), data=payment_options)
-				order['integration_request'] = integration_request
-				return order
+				order['integration_request'] = integration_request.name
+				return order # Order returned to be consumed by razorpay.js
 			except Exception:
 				frappe.log(frappe.get_traceback())
 				frappe.throw(_("Could not create razorpay order"))
@@ -238,6 +238,10 @@ class RazorpaySettings(Document):
 				self.integration_request.update_status(data, 'Authorized')
 				self.flags.status_changed_to = "Authorized"
 
+			if resp.get("status") == "captured":
+				self.integration_request.update_status(data, 'Completed')
+				self.flags.status_changed_to = "Completed"
+
 			elif data.get('subscription_id'):
 				if resp.get("status") == "refunded":
 					# if subscription start date is in future then
@@ -246,14 +250,6 @@ class RazorpaySettings(Document):
 
 					self.integration_request.update_status(data, 'Completed')
 					self.flags.status_changed_to = "Verified"
-
-				if resp.get("status") == "captured":
-					# if subscription starts immediately then
-					# razorpay charge the actual amount
-					# thus changing status to Completed
-
-					self.integration_request.update_status(data, 'Completed')
-					self.flags.status_changed_to = "Completed"
 
 			else:
 				frappe.log_error(str(resp), 'Razorpay Payment not authorized')
@@ -357,19 +353,55 @@ def capture_payment(is_sandbox=False, sanbox_response=None):
 
 @frappe.whitelist(allow_guest=True)
 def get_order(doctype, docname):
-	return frappe.get_doc(doctype, docname).run_method("get_razorpay_order")
+	# Order returned to be consumed by razorpay.js
+	doc = frappe.get_doc(doctype, docname)
+	try:
+		# Do not use run_method here as it fails silently
+		return doc.get_razorpay_order()
+	except AttributeError:
+		error_log = frappe.log_error(frappe.get_traceback(), _("Controller method get_razorpay_order missing"))
+		frappe.throw(_("Could not create Razorpay order. Please contact Administrator"))
 
 @frappe.whitelist(allow_guest=True)
-def order_payment_success(self, integration_request, params):
-	print("SUCCESSSSSSS ------------------")
+def order_payment_success(integration_request, params):
+	"""Called by razorpay.js on order payment success, the params
+	contains razorpay_payment_id, razorpay_order_id, razorpay_signature
+	that is updated in the data field of integration request
+	
+	Args:
+	    integration_request (string): Name for integration request doc
+	    params (string): Params to be updated for integration request.
+	"""
+	params = json.loads(params)
 	integration = frappe.get_doc("Integration Request", integration_request)
-	integration.update_status(update_dict)
+	
+	# Update integration request
+	integration.update_status(params, integration.status)
+	integration.reload()
+
+	data = json.loads(integration.data)
+	controller = frappe.get_doc("Razorpay Settings")
+	
+	# Update payment and integration data for payment controller object
+	controller.integration_request = integration
+	controller.data = frappe._dict(data)
+	
+	# Authorize payment
+	controller.authorize_payment()
 
 @frappe.whitelist(allow_guest=True)
-def order_payment_failure(self, integration_request, params):
-	print("FAILLLLLL ------------------")
+def order_payment_failure(integration_request, params):
+	"""Called by razorpay.js on failure
+	
+	Args:
+	    integration_request (TYPE): Description
+	    params (TYPE): error data to be updated
+	"""
+	frappe.log_error(params, 'Razorpay Payment Failure')
+	
+	params = json.loads(params)
 	integration = frappe.get_doc("Integration Request", integration_request)
-	integration.update_status(update_dict)
+	integration.update_status(params, integration.status)
 
 def convert_rupee_to_paisa(**kwargs):
 	for addon in kwargs.get('addons'):
