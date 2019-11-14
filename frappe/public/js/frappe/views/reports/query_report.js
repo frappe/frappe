@@ -837,24 +837,23 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		let contactList = [];
 		let visible_columns = this.get_visible_columns();
 		var fields= [
-			{label:__("To"), fieldtype:"MultiSelect", reqd: 0, fieldname:"recipients",options:contactList},
+			{label: __("To"), fieldtype: "MultiSelect", reqd: 0, fieldname: "recipients", options:contactList},
 			{fieldtype: "Section Break", collapsible: 1, label: __("CC, BCC & Email Template")},
-			{label:__("CC"), fieldtype:"MultiSelect", fieldname:"cc",options:contactList},
-			{label:__("BCC"), fieldtype:"MultiSelect", fieldname:"bcc",options:contactList},
+			{label: __("CC"), fieldtype: "MultiSelect", fieldname: "cc", options: contactList},
+			{label: __("BCC"), fieldtype: "MultiSelect", fieldname: "bcc", options: contactList},
 			{fieldtype: "Section Break"},
-			{label:__("Subject"), fieldtype:"Data", reqd: 1, fieldname:"subject", length:524288},
+			{label: __("Subject"), fieldtype: "Data", reqd: 1, fieldname: "subject", length: 524288},
 			{fieldtype: "Section Break"},
 			{
-				fieldtype:"Text Editor", reqd: 1,
-				label:__("Message"),
-				fieldname:"message",
-				onchange: () => {}
+				fieldtype: "Text Editor", reqd: 1,
+				label: __("Message"),
+				fieldname: "message"
 			},
 			{fieldtype: "Section Break"},
 			{fieldtype: "Column Break"},
-			{label:__("Attach Document Print"), fieldtype:"Check", fieldname:"attach_document_print", default: "1",},
+			{label: __("Attach Document Print"), fieldtype: "Check", fieldname: "attach_document_print", default: "1",},
 			{fieldtype: "Column Break"},
-			{label:__("Select Document Format"), fieldtype:"Select", fieldname:"attachment_format", 
+			{label: __("Select Document Format"), fieldtype: "Select", fieldname: "attachment_format", 
 				depends_on: "attach_document_print", options: ['HTML', 'CSV', 'XLSX']},
 			{fieldtype: "Section Break"},
 			{label: __("Pick Columns"), fieldtype: "Check", fieldname: "pick_columns",},
@@ -872,17 +871,16 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		];
 
 		// add from if user has access to multiple email accounts
-		var email_accounts = frappe.boot.email_accounts.filter(function(account, idx){
+		var email_accounts = frappe.boot.email_accounts.filter(function(account) {
 			return !in_list(["All Accounts", "Sent", "Spam", "Trash"], account.email_account) &&
-				account.enable_outgoing
+				account.enable_outgoing;
 		})
-		if(frappe.boot.email_accounts && email_accounts.length > 1) {
+		if (frappe.boot.email_accounts && email_accounts.length > 1) {
 			fields = [
 				{label: __("From"), fieldtype: "Select", reqd: 1, fieldname: "sender",
-					options: email_accounts.map(function(e) { return e.email_id; }) }
-			].concat(fields);
+					options: email_accounts.map(function(e) { return e.email_id; }) 
+				}].concat(fields);
 		}
-
 		return fields;
 	}
 
@@ -917,7 +915,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 						email_dialog.hide();
 						frappe.msgprint(__('Error sending email. Please try again.'))
 					}
-				})
+				});
 				email_dialog.disable_primary_action();
 				email_dialog.set_title(__('Sending...'));
 				email_dialog.toggle_minimize();

@@ -342,7 +342,6 @@ def email_report(report, email_doc, filters, columns, data):
 	except Exception as e:
 		print('Error: ' + str(e))
 		return False
-	
 
 def get_html_table(report, columns, data):
 	from frappe.utils import global_date_format, now, format_time
