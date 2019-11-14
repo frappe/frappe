@@ -369,8 +369,8 @@ def order_payment_success(integration_request, params):
 	that is updated in the data field of integration request
 	
 	Args:
-	    integration_request (string): Name for integration request doc
-	    params (string): Params to be updated for integration request.
+		integration_request (string): Name for integration request doc
+		params (string): Params to be updated for integration request.
 	"""
 	params = json.loads(params)
 	integration = frappe.get_doc("Integration Request", integration_request)
@@ -394,8 +394,8 @@ def order_payment_failure(integration_request, params):
 	"""Called by razorpay.js on failure
 	
 	Args:
-	    integration_request (TYPE): Description
-	    params (TYPE): error data to be updated
+		integration_request (TYPE): Description
+		params (TYPE): error data to be updated
 	"""
 	frappe.log_error(params, 'Razorpay Payment Failure')
 	
