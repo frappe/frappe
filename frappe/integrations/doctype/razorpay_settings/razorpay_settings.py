@@ -198,8 +198,8 @@ class RazorpaySettings(Document):
 		}
 		if self.api_key and self.api_secret:
 			try:
-				order = make_post_request("https://api.razorpay.com/v1/orders", 
-					auth=(self.api_key, self.get_password(fieldname="api_secret", raise_exception=False)), 
+				order = make_post_request("https://api.razorpay.com/v1/orders",
+					auth=(self.api_key, self.get_password(fieldname="api_secret", raise_exception=False)),
 					data=payment_options)
 				order['integration_request'] = integration_request.name
 				return order # Order returned to be consumed by razorpay.js
@@ -400,7 +400,7 @@ def order_payment_success(integration_request, params):
 @frappe.whitelist(allow_guest=True)
 def order_payment_failure(integration_request, params):
 	"""Called by razorpay.js on failure
-	
+
 	Args:
 		integration_request (TYPE): Description
 		params (TYPE): error data to be updated
