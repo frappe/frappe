@@ -1087,7 +1087,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	set_rows_as_checked() {
 		$.each(this.$checks, (i, el) => {
 			let docname = $(el).attr('data-name');
-			this.$result.find(`.list-row-checkbox[data-name='${docname}']`).click();
+			this.$result.find(`.list-row-checkbox[data-name='${docname}']`).prop('checked', true);
 		});
 	}
 
