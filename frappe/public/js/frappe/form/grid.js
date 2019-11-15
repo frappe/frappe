@@ -192,6 +192,7 @@ export default class Grid {
 
 	delete_all_rows() {
 		this.frm.doc[this.df.fieldname] = [];
+		this.grid_rows = [];
 		this.refresh();
 	}
 
