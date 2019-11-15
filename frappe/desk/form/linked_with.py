@@ -2,13 +2,71 @@
 # MIT License. See license.txt
 from __future__ import unicode_literals
 
-import frappe, json
+import json
+from collections import defaultdict
+
+from six import string_types
+
+import frappe
+import frappe.desk.form.load
+import frappe.desk.form.meta
+from frappe import _
 from frappe.model.meta import is_single
 from frappe.modules import load_doctype_module
-import frappe.desk.form.meta
-import frappe.desk.form.load
-from six import string_types
-from collections import defaultdict
+
+
+@frappe.whitelist()
+def get_submitted_linked_docs(doctype, name, docs=None):
+	if not docs:
+		docs = []
+
+	linkinfo = get_linked_doctypes(doctype)
+	linked_docs = get_linked_docs(doctype, name, linkinfo)
+
+	link_count = 0
+	CANCEL_EXEMPT_DOCTYPES = []
+	for doctypes in frappe.get_hooks('cancel_exempt_doctypes'):
+		CANCEL_EXEMPT_DOCTYPES.extend(doctypes)
+
+	for link_doctype, link_names in linked_docs.items():
+		# skip non-submittable doctypes since they don't need to be cancelled
+		if not frappe.get_meta(link_doctype).is_submittable:
+			continue
+
+		# skip other doctypes since they don't need to be cancelled
+		if link_doctype in CANCEL_EXEMPT_DOCTYPES:
+			continue
+
+		for link in link_names:
+			if link.docstatus != 1:
+				continue
+
+			link_count += 1
+			if link.name in [doc.get("name") for doc in docs]:
+				continue
+
+			links = get_submitted_linked_docs(link_doctype, link.name, docs)
+			docs.append({
+				"doctype": link_doctype,
+				"name": link.name,
+				"link_count": links.get("count")
+			})
+
+	# sort linked documents by ascending number of links
+	docs.sort(key=lambda doc: doc.get("link_count"))
+	return {
+		"docs": docs,
+		"count": link_count
+	}
+
+
+@frappe.whitelist()
+def cancel_all_linked_docs(docs):
+	docs = json.loads(docs)
+	for i, doc in enumerate(docs, 1):
+		frappe.publish_progress(percent=i * 100 / len(docs), title=_("Cancelling documents"))
+		linked_doc = frappe.get_doc(doc.get("doctype"), doc.get("name"))
+		linked_doc.cancel()
 
 
 @frappe.whitelist()

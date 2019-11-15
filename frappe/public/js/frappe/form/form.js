@@ -648,19 +648,103 @@ frappe.ui.form.Form = class FrappeForm {
 	}
 
 	savecancel(btn, callback, on_error) {
-		var me = this;
+		const me = this;
+		const handle_fail = () => {
+			$(btn).prop('disabled', false);
+			if (on_error) {
+				on_error();
+			}
+		};
 
 		this.validate_form_action('Cancel');
-		frappe.confirm(__("Permanently Cancel {0}?", [this.docname]), function() {
+
+		frappe.call({
+			method: "frappe.desk.form.linked_with.get_submitted_linked_docs",
+			args: {
+				doctype: me.doc.doctype,
+				name: me.doc.name
+			},
+			freeze: true,
+			callback: (r) => {
+				if (!r.exc && r.message.count > 0) {
+					me._cancel_all(r, btn, callback, handle_fail);
+				} else {
+					me._cancel(btn, callback, handle_fail, false);
+				}
+			}
+		});
+	}
+
+	_cancel_all(r, btn, callback, handle_fail) {
+		const me = this;
+
+		// add confirmation message for cancelling all linked docs
+		let links_text = "";
+		let links = r.message.docs;
+		const doctypes = Array.from(new Set(links.map(link => link.doctype)));
+
+		for (let doctype of doctypes) {
+			let docnames = links
+				.filter((link) => link.doctype == doctype)
+				.map((link) => frappe.utils.get_form_link(link.doctype, link.name, true))
+				.join(", ");
+			links_text += `<li><strong>${doctype}</strong>: ${docnames}</li>`
+		}
+		links_text = "<ul>" + links_text + "</ul>"
+
+		let confirm_message = `<strong>${me.doc.doctype}</strong> ${me.doc.name} is linked with the following submitted documents: ${links_text}`
+		let can_cancel = links.every((link) => frappe.model.can_cancel(link.doctype));
+		if (can_cancel) {
+			confirm_message += `Do you want to cancel all linked documents?`;
+		} else {
+			confirm_message += `You do not have permissions to cancel all linked documents.`;
+		}
+
+		// generate dialog box to cancel all linked docs
+		let d = new frappe.ui.Dialog({
+			title: __("Cancel All Documents"),
+			fields: [{
+				fieldtype: "HTML",
+				options: `<p class="frappe-confirm-message">${confirm_message}</p>`
+			}]
+		}, () => handle_fail());
+
+		// if user can cancel all linked docs, add action to the dialog
+		if (can_cancel) {
+			d.set_primary_action("Cancel All", () => {
+				d.hide();
+				frappe.call({
+					method: "frappe.desk.form.linked_with.cancel_all_linked_docs",
+					args: {
+						docs: links
+					},
+					freeze: true,
+					callback: (resp) => {
+						if (!resp.exc) {
+							me.reload_doc();
+							me._cancel(btn, callback, handle_fail, true);
+						}
+					}
+				})
+			});
+		}
+
+		d.show();
+	};
+
+	_cancel(btn, callback, handle_fail, skip_confirm) {
+		const me = this;
+		const cancel_doc = () => {
 			frappe.validated = true;
-			me.script_manager.trigger("before_cancel").then(function() {
-				if(!frappe.validated) {
-					return me.handle_save_fail(btn, on_error);
+			me.script_manager.trigger("before_cancel").then(() => {
+				if (!frappe.validated) {
+					handle_fail();
+					return;
 				}
 
-				var after_cancel = function(r) {
-					if(r.exc) {
-						me.handle_save_fail(btn, on_error);
+				const after_cancel(r) {
+					if (r.exc) {
+						handle_fail();
 					} else {
 						frappe.utils.play_sound("cancel");
 						me.refresh();
@@ -670,8 +754,14 @@ frappe.ui.form.Form = class FrappeForm {
 				};
 				frappe.ui.form.save(me, "cancel", after_cancel, btn);
 			});
-		}, () => me.handle_save_fail(btn, on_error));
-	}
+		}
+
+		if (skip_confirm) {
+			cancel_doc();
+		} else {
+			frappe.confirm(__("Permanently Cancel {0}?", [this.docname]), cancel_doc, handle_fail);
+		}
+	};
 
 	savetrash() {
 		this.validate_form_action("Delete");
