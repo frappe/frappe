@@ -149,7 +149,8 @@ def check_if_log_exists(ref_doctype, ref_name, rule, user=None):
 	filters = frappe._dict({
 		'rule': rule,
 		'reference_doctype': ref_doctype,
-		'reference_name': ref_name
+		'reference_name': ref_name,
+		'reverted': 0
 	})
 
 	if user:
