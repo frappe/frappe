@@ -451,27 +451,27 @@ frappe.ui.form.Layout = Class.extend({
 		// build dependants' dictionary
 		var has_dep = false;
 
-		for(var fkey in this.fields_list) {
+		for (var fkey in this.fields_list) {
 			var f = this.fields_list[fkey];
 			f.dependencies_clear = true;
-			if(f.df.depends_on || f.df.mandatory_depends_on || f.df.read_only_depends_on) {
+			if (f.df.depends_on || f.df.mandatory_depends_on || f.df.read_only_depends_on) {
 				has_dep = true;
 			}
 		}
 
-		if(!has_dep)return;
+		if (!has_dep) return;
 
 		// show / hide based on values
-		for(var i=me.fields_list.length-1;i>=0;i--) {
+		for (var i=me.fields_list.length-1;i>=0;i--) {
 			var f = me.fields_list[i];
 			f.guardian_has_value = true;
-			if(f.df.depends_on) {
+			if (f.df.depends_on) {
 				// evaluate guardian
 
 				f.guardian_has_value = this.evaluate_depends_on_value(f.df.depends_on);
 
 				// show / hide
-				if(f.guardian_has_value) {
+				if (f.guardian_has_value) {
 					if(f.df.hidden_due_to_dependency) {
 						f.df.hidden_due_to_dependency = false;
 						f.refresh();
@@ -484,11 +484,11 @@ frappe.ui.form.Layout = Class.extend({
 				}
 			}
 
-			if(f.df.mandatory_depends_on) {
+			if (f.df.mandatory_depends_on) {
 				this.set_dependant_property(f.df.mandatory_depends_on, f.df.fieldname, 'reqd');
 			}
 
-			if(f.df.read_only_depends_on) {
+			if (f.df.read_only_depends_on) {
 				this.set_dependant_property(f.df.read_only_depends_on, f.df.fieldname, 'read_only');
 			}
 		}
