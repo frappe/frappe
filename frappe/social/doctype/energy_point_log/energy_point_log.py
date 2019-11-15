@@ -55,7 +55,7 @@ class EnergyPointLog(Document):
 		if self.type != 'Auto':
 			frappe.throw(_('This document cannot be reverted'))
 
-		if self.reverted: return
+		if self.get('reverted'): return
 
 		self.reverted = 1
 		self.save(ignore_permissions=True)
