@@ -161,7 +161,8 @@ class UserPermissions:
 			for docname in docs:
 				if frappe.get_meta(docname, cached=True).allow_import == 1:
 					self.can_import.append(docname)
-			frappe.cache().hset("can_import", frappe.session.user, self.can_import)
+
+		frappe.cache().hset("can_import", frappe.session.user, self.can_import)
 
 	def get_defaults(self):
 		import frappe.defaults
