@@ -34,13 +34,17 @@ frappe.ui.Tags = class {
 	}
 
 	bind() {
+		let me = this;
+		let callback = function () {
+			const tagValue = frappe.utils.xss_sanitise(me.$input.val());
+			me.addTag(tagValue);
+			me.$input.val('');
+		}
+
 		this.$input.keypress((e) => {
-			if(e.which == 13 || e.keyCode == 13) {
-				const tagValue = frappe.utils.xss_sanitise(this.$input.val());
-				this.addTag(tagValue);
-				this.$input.val('');
-			}
+			if (e.which == 13 || e.keyCode == 13) callback();
 		});
+		this.$input.focusout(() => { callback(); });
 
 		this.$input.on('blur', () => {
 			this.deactivate();
