@@ -41,32 +41,7 @@
   "parentfield": null,
   "parenttype": null,
   "public": 1,
-  "seen_by": [
-   {
-    "parent": "Allgemeine System-Einf\u00fchrung",
-    "parentfield": "seen_by",
-    "parenttype": "Note",
-    "user": "hanno@pcgaertner.de"
-   },
-   {
-    "parent": "Allgemeine System-Einf\u00fchrung",
-    "parentfield": "seen_by",
-    "parenttype": "Note",
-    "user": "sb@oekobox-online.de"
-   },
-   {
-    "parent": "Allgemeine System-Einf\u00fchrung",
-    "parentfield": "seen_by",
-    "parenttype": "Note",
-    "user": "bs@oekobox-online.de"
-   },
-   {
-    "parent": "Allgemeine System-Einf\u00fchrung",
-    "parentfield": "seen_by",
-    "parenttype": "Note",
-    "user": "Administrator"
-   }
-  ],
+  "seen_by": [],
   "source_app": "Frappe",
   "title": "Allgemeine System-Einf\u00fchrung"
  },
