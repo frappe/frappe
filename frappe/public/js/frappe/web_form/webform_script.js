@@ -53,7 +53,7 @@ frappe.ready(function() {
 			let web_form_doc = data.web_form;
 
 			if (web_form_doc.name && web_form_doc.allow_edit === 0) {
-				if(!window.location.href.includes("?new=1")){
+				if (!window.location.href.includes("?new=1")) {
 					window.location.replace(window.location.pathname + "?new=1");
 				}
 			}
