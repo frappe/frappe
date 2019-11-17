@@ -58,7 +58,7 @@ frappe.ready(function() {
 				}
 			}
 			let doc = r.message.doc || build_doc(r.message);
-			web_form.prepare(web_form_doc, doc);
+			web_form.prepare(web_form_doc, r.message.doc && web_form_doc.allow_edit === 1 ? r.message.doc : {});
 			web_form.make();
 			web_form.set_default_values();
 		})
