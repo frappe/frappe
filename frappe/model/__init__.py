@@ -24,6 +24,7 @@ data_fieldtypes = (
 	'Text',
 	'Data',
 	'Link',
+	'Link MultiSelect',
 	'Dynamic Link',
 	'Password',
 	'Select',
