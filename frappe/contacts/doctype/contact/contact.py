@@ -8,11 +8,9 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.core.doctype.dynamic_link.dynamic_link import deduplicate_dynamic_links
 from six import iteritems
-from past.builtins import cmp
 from frappe.model.naming import append_number_if_name_exists
 from frappe.contacts.address_and_contact import set_link_title
 
-import functools
 
 class Contact(Document):
 	def autoname(self):
@@ -118,20 +116,26 @@ class Contact(Document):
 				setattr(self, fieldname, d.phone)
 				break
 
-def get_default_contact(doctype, name):
-	'''Returns default contact for the given doctype, name'''
-	out = frappe.db.sql('''select parent,
-			(select is_primary_contact from tabContact c where c.name = dl.parent)
-				as is_primary_contact
-		from
-			`tabDynamic Link` dl
+
+def get_default_contact(doctype, name, is_billing=0):
+	""" Returns default contact for the given doctype, name
+	can be ordered by `contact_type` to either is_primary_contact or is_billing_contact
+	"""
+	order_by = "is_primary_contact DESC"
+	if is_billing:
+		order_by = "is_billing_contact DESC, " + order_by
+	out = frappe.db.sql("""
+		select dl.parent, c.is_primary_contact, c.is_billing_contact
+		from `tabDynamic Link` dl
+		INNER JOIN tabContact c ON c.name = dl.parent
 		where
 			dl.link_doctype=%s and
 			dl.link_name=%s and
-			dl.parenttype = "Contact"''', (doctype, name))
-
+			dl.parenttype = "Contact"
+		ORDER BY %s
+		""", (doctype, name, order_by))
 	if out:
-		return sorted(out, key = functools.cmp_to_key(lambda x,y: cmp(y[1], x[1])))[0][0]
+		return out[0][0]
 	else:
 		return None
 

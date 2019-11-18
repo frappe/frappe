@@ -33,6 +33,20 @@ class TestContact(unittest.TestCase):
 		self.assertEqual(contact.phone, "+91 0000000002")
 		self.assertEqual(contact.mobile_no, "+91 0000000003")
 
+	def test_primary_and_billing(self):
+		test_contacts = [
+			{"first_name": "Jane", "salutation": "Ms", "is_primary_contact": 0, "is_billing_contact": 1},
+			{"first_name": "Joe", "salutation": "Mr", "is_primary_contact": 1, "is_billing_contact": 1},
+			{"first_name": "Jason", "salutation": "Dr", "is_primary_contact": 1, "is_billing_contact": 0}
+		]
+		for contact in test_contacts:
+			doc_contact = create_contact(contact.get("first_name"), contact.get("salutation"))
+			doc_contact.is_primary_contact = contact.get("is_primary_contact")
+			doc_contact.is_billing_contact = contact.get("is_billing_contact")
+			doc_contact.save()
+			self.assertEqual(doc_contact.is_primary_contact, contact.get("is_primary_contact"))
+			self.assertEqual(doc_contact.is_billing_contact, contact.get("is_billing_contact"))
+
 def create_contact(name, salutation, emails=None, phones=None, save=True):
 	doc = frappe.get_doc({
 			"doctype": "Contact",

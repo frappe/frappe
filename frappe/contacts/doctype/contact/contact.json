@@ -34,6 +34,7 @@
   "phone_nos",
   "contact_details",
   "is_primary_contact",
+  "is_billing_contact",
   "links",
   "more_info",
   "department",
@@ -240,12 +241,18 @@
    "fieldname": "company_name",
    "fieldtype": "Data",
    "label": "Company Name"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_billing_contact",
+   "fieldtype": "Check",
+   "label": "Is Billing Contact"
   }
  ],
  "icon": "fa fa-user",
  "idx": 1,
  "image_field": "image",
- "modified": "2019-10-10 22:04:41.070479",
+ "modified": "2019-11-15 10:38:59.623989",
  "modified_by": "Administrator",
  "module": "Contacts",
  "name": "Contact",
