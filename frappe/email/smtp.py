@@ -81,7 +81,7 @@ def get_outgoing_email_account(raise_exception_not_set=True, append_to=None, sen
 	if not email_account:
 		return None
 
-	# ok, we must have an outgoing account. lets populate local object and grab the important fields 
+	# ok, we must have an outgoing account. lets populate local object and grab the important fields
 	if email_account.enable_outgoing and not getattr(email_account, 'from_site_config', False):
 		raise_exception = True
 		if email_account.smtp_server in ['localhost','127.0.0.1'] or email_account.no_smtp_authentication:
@@ -93,7 +93,7 @@ def get_outgoing_email_account(raise_exception_not_set=True, append_to=None, sen
 	frappe.local.outgoing_email_account[append_to or sender_email_id or "default"] = email_account
 	return frappe.local.outgoing_email_account.get(append_to) \
 			or frappe.local.outgoing_email_account.get(sender_email_id) \
-			or frappe.local.outgoing_email_account.get("default") 
+			or frappe.local.outgoing_email_account.get("default")
 
 def get_default_outgoing_email_account(raise_exception_not_set=True):
 	'''conf should be like:
