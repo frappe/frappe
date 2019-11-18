@@ -19,18 +19,19 @@ frappe.ui.form.on('List View Settings', {
 				},
 				callback: function (r) {
 					if (r && r.message) {
-						let i = 0;
-						frm.clear_table("column_order");
-						while (i < frm.doc.column_count) {
-							if (r.message[i]) {
-								frm.add_child("column_order", r.message[i]);
-							}
-							i++;
-						}
-						frm.refresh();
+						render_fields(frm, r.message);
 					}
 				}
 			});
 		});
+
+		if (frm.doc.column_order) {
+			render_fields(frm, frm.doc.column_order);
+		}
 	}
 });
+
+function render_fields(frm, fields) {
+	let columns_html = frm.get_field("column_order");
+	columns_html.html(frappe.render_template("list_view_columns", {fields: fields}));
+}

@@ -9,6 +9,7 @@
   "disable_sidebar_stats",
   "disable_auto_refresh",
   "column_count",
+  "columns",
   "column_order"
  ],
  "fields": [
@@ -38,12 +39,16 @@
   },
   {
    "fieldname": "column_order",
-   "fieldtype": "Table",
-   "label": "Column Order",
-   "options": "List View Column Order"
+   "fieldtype": "Data",
+   "label": "Column Order"
+  },
+  {
+   "fieldname": "columns",
+   "fieldtype": "HTML",
+   "label": "Columns"
   }
  ],
- "modified": "2019-10-25 11:57:00.314570",
+ "modified": "2019-11-18 10:05:11.859157",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "List View Settings",
