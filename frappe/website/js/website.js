@@ -132,12 +132,12 @@ $.extend(frappe, {
 
 		if (data._server_messages) {
 			var server_messages = JSON.parse(data._server_messages || '[]');
-			server_messages = $.map(server_messages, function(v) {
+			server_messages.map((msg) => {
 				// temp fix for messages sent as dict
 				try {
-					return JSON.parse(v).message;
+					return JSON.parse(msg);
 				} catch (e) {
-					return v;
+					return msg;
 				}
 			}).join('<br>');
 
