@@ -3,6 +3,7 @@
 
 import GridRow from "./grid_row";
 import GridPagination from './grid_pagination';
+import { timingSafeEqual } from "crypto";
 
 frappe.ui.form.get_open_grid_form = function() {
 	return $(".grid-row-open").data("grid_row");
@@ -163,8 +164,8 @@ export default class Grid {
 		var dirty = false;
 
 		let tasks = [];
-
-		this.get_selected_children().forEach(doc => {
+		let selected_children = this.get_selected_children();
+		selected_children.forEach(doc => {
 			tasks.push(() => {
 				if (!this.frm) {
 					this.df.data = this.get_data();
@@ -188,12 +189,18 @@ export default class Grid {
 		});
 
 		frappe.run_serially(tasks);
+
+		if (selected_children.length == this.page_length) {
+			frappe.utils.scroll_to(this.wrapper);
+		}
 	}
 
 	delete_all_rows() {
 		this.frm.doc[this.df.fieldname] = [];
+		$(this.parent).find('.rows').empty();
 		this.grid_rows = [];
 		this.refresh();
+		frappe.utils.scroll_to(this.wrapper);
 	}
 
 	select_row(name) {
@@ -261,7 +268,6 @@ export default class Grid {
 		if(this.display_status === "None") return;
 
 		// redraw
-		var _scroll_y = $(document).scrollTop();
 		this.make_head();
 
 		if (!this.grid_rows) {
@@ -288,8 +294,6 @@ export default class Grid {
 
 		this.last_display_status = this.display_status;
 		this.last_docname = this.frm && this.frm.docname;
-
-		// frappe.utils.scroll_to(_scroll_y);
 
 		// red if mandatory
 		this.form_grid.toggleClass('error', !!(this.df.reqd && !(this.data && this.data.length)));
@@ -566,6 +570,9 @@ export default class Grid {
 	add_new_row(idx, callback, show, copy_doc) {
 		if (this.is_editable()) {
 			this.grid_pagination.go_to_last_page();
+			if (this.grid_pagination.page_index !== this.grid_pagination.total_pages ) {
+				frappe.utils.scroll_to(this.wrapper);
+			}
 			if (this.frm) {
 				var d = frappe.model.add_child(this.frm.doc, this.df.options, this.df.fieldname, idx);
 				if (copy_doc) {
