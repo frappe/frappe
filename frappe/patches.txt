@@ -257,3 +257,4 @@ execute:frappe.reload_doc('desk', 'doctype', 'notification_settings')
 frappe.patches.v12_0.setup_tags
 frappe.patches.v12_0.update_auto_repeat_status_and_not_submittable
 frappe.patches.v12_0.copy_to_parent_for_tags
+frappe.patches.v12_0.setup_email_linking
