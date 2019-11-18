@@ -29,7 +29,7 @@ frappe.ui.form.ControlBarcode = frappe.ui.form.ControlData.extend({
 		let svg = value;
 		const barcode_value = $(svg).attr('data-barcode-value');
 
-		if (!barcode_value) {
+		if (!barcode_value && this.doc) {
 			svg = this.get_barcode_html(value);
 			this.doc[this.df.fieldname] = svg;
 		}
