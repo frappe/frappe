@@ -126,11 +126,7 @@ frappe.Application = Class.extend({
 					method: 'frappe.core.page.background_jobs.background_jobs.get_scheduler_status',
 					callback: function(r) {
 						if (r.message[0] == __("Inactive")) {
-							frappe.msgprint({
-								title: __("Scheduler Inactive"),
-								indicator: "red",
-								message: __("Background jobs are not running. Please contact Administrator")
-							});
+							frappe.call('frappe.utils.scheduler.activate_scheduler');
 						}
 					}
 				});

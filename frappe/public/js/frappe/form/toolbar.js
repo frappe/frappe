@@ -30,7 +30,8 @@ frappe.ui.form.Toolbar = Class.extend({
 	},
 	set_title: function() {
 		if(this.frm.meta.title_field) {
-			var title = strip_html((this.frm.doc[this.frm.meta.title_field] || "").trim() || this.frm.docname);
+			let title_field = (this.frm.doc[this.frm.meta.title_field] || "").toString().trim();
+			var title = strip_html(title_field || this.frm.docname);
 			if(this.frm.doc.__islocal || title === this.frm.docname || this.frm.meta.autoname==="hash") {
 				this.page.set_title_sub("");
 			} else {
@@ -169,9 +170,14 @@ frappe.ui.form.Toolbar = Class.extend({
 
 		if(frappe.user_roles.includes("System Manager") && me.frm.meta.issingle === 0) {
 			this.page.add_menu_item(__("Customize"), function() {
-				frappe.set_route("Form", "Customize Form", {
-					doc_type: me.frm.doctype
-				})
+
+				if (me.frm.meta && me.frm.meta.custom) {
+					frappe.set_route('Form', 'DocType', me.frm.doctype);
+				} else {
+					frappe.set_route('Form', 'Customize Form', {
+						doc_type: me.frm.doctype
+					});
+				}
 			}, true);
 
 			if (frappe.boot.developer_mode===1 && me.frm.meta.issingle) {
