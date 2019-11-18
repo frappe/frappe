@@ -957,7 +957,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 					content: d[cdt_field(col.field)],
 					editable: Boolean(name && this.is_editable(col.docfield, d)),
 					format: value => {
-						return frappe.format(value, col.docfield, { always_show_decimals: true });
+						return frappe.format(value, col.docfield, { always_show_decimals: true }, d);
 					}
 				};
 			}
