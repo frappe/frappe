@@ -34,6 +34,7 @@ import './barcode';
 import './geolocation';
 import './multiselect';
 import './multicheck';
+import './link_multiselect';
 import './table_multiselect';
 import './multiselect_pills';
 import './multiselect_list';
