@@ -183,7 +183,7 @@ class RazorpaySettings(Document):
 	def create_order(self, **kwargs):
 		# Creating Orders https://razorpay.com/docs/api/orders/
 
-		# convert ruppes to paisa
+		# convert rupees to paisa
 		kwargs['amount'] *= 100
 
 		# Create integration log
