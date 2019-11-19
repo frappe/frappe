@@ -248,15 +248,8 @@ frappe.ui.Notifications = class Notifications {
 	mark_all_as_read(e) {
 		e.stopImmediatePropagation();
 		this.$dropdown_list.find('.unread').removeClass('unread');
-		let unread_docnames = this.dropdown_items
-			.filter(item => item.read === 0)
-			.map(d => d.name);
-		if (!unread_docnames.length) return;
 		frappe.call(
 			'frappe.desk.doctype.notification_log.notification_log.mark_all_as_read',
-			{
-				docnames: unread_docnames,
-			}
 		);
 	}
 
