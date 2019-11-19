@@ -348,6 +348,10 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		});
 	}
 
+	after_render() {
+		this.list_sidebar.reload_stats();
+	}
+
 	render() {
 		this.$result.find('.list-row-container').remove();
 		if (this.data.length > 0) {

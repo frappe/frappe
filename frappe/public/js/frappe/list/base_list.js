@@ -400,7 +400,7 @@ frappe.views.BaseList = class BaseList {
 	}
 
 	after_render() {
-		this.list_sidebar.reload_stats();
+
 	}
 
 	render() {
