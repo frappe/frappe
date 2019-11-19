@@ -35,24 +35,14 @@ frappe.ui.Notifications = class Notifications {
 		frappe.search.utils.make_function_searchable(
 			me.route_to_settings,
 			__('Notification Settings'),
-			[this.notifications_settings],
 		);
 
 		this.setup_notifications();
 		this.bind_events();
 	}
 
-	route_to_settings(settings_doc) {
-		let method =
-			'frappe.desk.doctype.notification_settings.notification_settings.create_notification_settings';
-
-		return Promise.resolve()
-			.then(() => {
-				if (!settings_doc) return frappe.call(method);
-			})
-			.then(() => {
-				frappe.set_route(`#Form/Notification Settings/${frappe.session.user}`);
-			});
+	route_to_settings() {
+		frappe.set_route(`#Form/Notification Settings/${frappe.session.user}`);
 	}
 
 	setup_notifications() {
@@ -375,7 +365,7 @@ frappe.ui.Notifications = class Notifications {
 			let category_id = frappe.dom.get_unique_id();
 			let settings_html =
 				category.value === 'Notifications'
-					? `<span class="notification-settings pull-right" data-action="make_and_route_to_settings">
+					? `<span class="notification-settings pull-right" data-action="go_to_settings">
 						${__('Settings')}
 					</span>`
 					: '';
@@ -417,11 +407,11 @@ frappe.ui.Notifications = class Notifications {
 		);
 	}
 
-	make_and_route_to_settings(e) {
+	go_to_settings(e) {
 		e.stopImmediatePropagation();
 		this.$dropdown.removeClass('open');
 		this.$dropdown.trigger('hide.bs.dropdown');
-		this.route_to_settings(this.notifications_settings);
+		this.route_to_settings();
 	}
 
 	bind_events() {
