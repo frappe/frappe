@@ -48,7 +48,8 @@ class User(Document):
 		throttle_user_creation()
 
 	def after_insert(self):
-		create_notification_settings(self.name)
+		if not frappe.db.exists("Notification Settings", self.name):
+			create_notification_settings(self.name)
 
 	def validate(self):
 		self.check_demo()
