@@ -874,15 +874,15 @@ class Importer:
 
 		if failed_records:
 			print("Failed to import {0} records".format(len(failed_records)))
-			file_name = '{0}_import_on_{1}.txt'.format(self.doctype, frappe.utils.now())
-			print('Check {0} for errors'.format(os.path.join('sites', file_name)))
+			file_name = "{0}_import_on_{1}.txt".format(self.doctype, frappe.utils.now())
+			print("Check {0} for errors".format(os.path.join("sites", file_name)))
 			text = ""
 			for w in failed_records:
-				text += "Row Indexes: {0}\n".format(str(w.get('row_indexes', [])))
-				text += "Messages:\n{0}\n".format('\n'.join(w.get('messages', [])))
-				text += "Traceback:\n{0}\n\n".format(w.get('exception'))
+				text += "Row Indexes: {0}\n".format(str(w.get("row_indexes", [])))
+				text += "Messages:\n{0}\n".format("\n".join(w.get("messages", [])))
+				text += "Traceback:\n{0}\n\n".format(w.get("exception"))
 
-			with open(file_name, 'w') as f:
+			with open(file_name, "w") as f:
 				f.write(text)
 
 
