@@ -1,4 +1,4 @@
-context('Control Barcide', () => {
+context('Control Barcode', () => {
 	beforeEach(() => {
 		cy.login();
 		cy.visit('/desk');
