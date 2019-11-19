@@ -390,6 +390,10 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		});
 	}
 
+	after_render() {
+		this.list_sidebar.reload_stats();
+	}
+
 	render() {
 		this.render_list();
 		this.on_row_checked();
