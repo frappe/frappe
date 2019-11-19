@@ -20,19 +20,23 @@ frappe.ui.form.ControlInt = frappe.ui.form.ControlData.extend({
 			});
 	},
 	eval_expression: function(value) {
-		// Removes seperators of any number format
-		value = strip_number_groups(value, this.get_number_format());
-		if (typeof value==='string' && value.match(/^[0-9+-/* ]+$/)) {
-			// If it is a string containing operators
-			try {
-				return eval(value);
-			} catch (e) {
-				// bad expression
-				return value;
+		if (typeof value==='string') {
+			// Removes seperators of any number format
+			value = this.get_number_format ? strip_number_groups(value, this.get_number_format())
+				// for integer there's no get_number_format
+				: strip_number_groups(value);
+
+			if (value.match(/^[0-9+-/* ]+$/)) {
+				// If it is a string containing operators
+				try {
+					return eval(value);
+				} catch (e) {
+					// bad expression
+					return value;
+				}
 			}
-		} else {
-			return value;
 		}
+		return value;
 	},
 	parse: function(value) {
 		return cint(this.eval_expression(value), null);
