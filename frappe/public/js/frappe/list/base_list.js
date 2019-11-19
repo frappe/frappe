@@ -614,7 +614,7 @@ class FilterArea {
 			let options = df.options;
 			let condition = '=';
 			let fieldtype = df.fieldtype;
-			if (['Text', 'Small Text', 'Text Editor', 'Data'].includes(fieldtype)) {
+			if (['Text', 'Small Text', 'Text Editor', 'Data', 'Code'].includes(fieldtype)) {
 				fieldtype = 'Data';
 				condition = 'like';
 			}
