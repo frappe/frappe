@@ -123,15 +123,14 @@ frappe.msgprint = function(msg, title) {
 		// setup and bind an action to the primary button
 		if (data.primary_action) {
 			if (data.primary_action.server_action && typeof data.primary_action.server_action === 'string') {
-				frappe.msg_dialog.set_primary_action(__(data.primary_action.label || "Done"),
-					() => {
-						frappe.call({
-							method: data.primary_action.server_action,
-							args: {
-								args: data.primary_action.args
-							}
-						});
+				data.primary_action.action = () => {
+					frappe.call({
+						method: data.primary_action.server_action,
+						args: {
+							args: data.primary_action.args
+						}
 					});
+				}
 			}
 
 			if (data.primary_action.client_action && typeof data.primary_action.client_action === 'string') {
@@ -140,19 +139,18 @@ frappe.msgprint = function(msg, title) {
 				for (let part of parts) {
 					obj = obj[part];
 				}
-				frappe.msg_dialog.set_primary_action(
-					__(data.primary_action.label || "Done"),
-					() => {
-						if (typeof obj === 'function') {
-							obj(data.primary_action.args);
-						}
+				data.primary_action.action = () => {
+					if (typeof obj === 'function') {
+						obj(data.primary_action.args);
 					}
-				);
-			} else {
-				frappe.msg_dialog.set_primary_action(__(data.primary_action.label || "Done"),
-				data.primary_action.action);
+				}
 			}
-		}
+
+			frappe.msg_dialog.set_primary_action(
+				__(data.primary_action.label || "Done"),
+				data.primary_action.action
+			);
+	}
 
 		// class "msgprint" is used in tests
 		frappe.msg_dialog.msg_area = $('<div class="msgprint">')
