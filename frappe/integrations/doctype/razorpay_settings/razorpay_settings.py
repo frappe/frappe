@@ -183,13 +183,13 @@ class RazorpaySettings(Document):
 	def create_order(self, **kwargs):
 		# Creating Orders https://razorpay.com/docs/api/orders/
 
-		# convert ruppes to paisa
+		# convert rupees to paisa
 		kwargs['amount'] *= 100
 
 		# Create integration log
 		integration_request = create_request_log(kwargs, "Host", "Razorpay")
 
-		# Setup payment otptions
+		# Setup payment options
 		payment_options = {
 			"amount": kwargs.get('amount'),
 			"currency": kwargs.get('currency', 'INR'),
