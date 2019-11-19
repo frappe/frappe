@@ -17,7 +17,7 @@
     font-weight: bold;
 }
 
-.chart-loading-state {
+.chart-loading-state, .chart-empty-state {
     height: 100%;
     margin-top: 160px;
     text-align: center;

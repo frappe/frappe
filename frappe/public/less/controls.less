@@ -150,6 +150,13 @@
 .frappe-control[data-fieldtype="Select"] .control-input {
 	position: relative;
 
+	select {
+		/* for Firefox */
+		-moz-appearance: none;
+		/* for Chrome */
+		-webkit-appearance: none;
+	}
+
 	.octicon-chevron-down {
 		position: absolute;
 		top: 8px;
