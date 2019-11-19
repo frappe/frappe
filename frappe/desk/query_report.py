@@ -16,6 +16,7 @@ from frappe.permissions import get_role_permissions
 from six import string_types, iteritems
 from datetime import timedelta
 from frappe.utils import gzip_decompress
+from frappe.permissions import has_permission
 
 def get_report_doc(report_name):
 	doc = frappe.get_doc("Report", report_name)
@@ -449,20 +450,10 @@ def save_report(reference_report, report_name, columns):
 def get_filtered_data(ref_doctype, columns, data, user):
 	result = []
 	linked_doctypes = get_linked_doctypes(columns, data)
-	match_filters_per_doctype = get_user_match_filters(linked_doctypes, user=user)
-	shared = frappe.share.get_shared(ref_doctype, user)
-	columns_dict = get_columns_dict(columns)
 
-	role_permissions = get_role_permissions(frappe.get_meta(ref_doctype), user)
-	if_owner = role_permissions.get("if_owner", {}).get("report")
-
-	if match_filters_per_doctype:
+	if linked_doctypes:
 		for row in data:
-			# Why linked_doctypes.get(ref_doctype)? because if column is empty, linked_doctypes[ref_doctype] is removed
-			if linked_doctypes.get(ref_doctype) and shared and row[linked_doctypes[ref_doctype]] in shared:
-				result.append(row)
-
-			elif has_match(row, linked_doctypes, match_filters_per_doctype, ref_doctype, if_owner, columns_dict, user):
+			if has_match(row, linked_doctypes, user):
 				result.append(row)
 	else:
 		result = list(data)
@@ -470,67 +461,12 @@ def get_filtered_data(ref_doctype, columns, data, user):
 	return result
 
 
-def has_match(row, linked_doctypes, doctype_match_filters, ref_doctype, if_owner, columns_dict, user):
-	"""Returns True if after evaluating permissions for each linked doctype
-		- There is an owner match for the ref_doctype
-		- `and` There is a user permission match for all linked doctypes
+def has_match(row, linked_doctypes, user):
+	for doctype, idx in linked_doctypes.items():
+		if not has_permission(doctype, doc=row[idx], user=user, raise_exception=False):
+			return False
 
-		Returns True if the row is empty
-
-		Note:
-		Each doctype could have multiple conflicting user permission doctypes.
-		Hence even if one of the sets allows a match, it is true.
-		This behavior is equivalent to the trickling of user permissions of linked doctypes to the ref doctype.
-	"""
-	resultant_match = True
-
-	if not row:
-		# allow empty rows :)
-		return resultant_match
-
-	for doctype, filter_list in doctype_match_filters.items():
-		matched_for_doctype = False
-
-		if doctype==ref_doctype and if_owner:
-			idx = linked_doctypes.get("User")
-			if (idx is not None
-				and row[idx]==user
-				and columns_dict[idx]==columns_dict.get("owner")):
-					# owner match is true
-					matched_for_doctype = True
-
-		if not matched_for_doctype:
-			for match_filters in filter_list:
-				match = True
-				for dt, idx in linked_doctypes.items():
-					# case handled above
-					if dt=="User" and columns_dict[idx]==columns_dict.get("owner"):
-						continue
-
-					cell_value = None
-					if isinstance(row, dict):
-						cell_value = row.get(idx)
-					elif isinstance(row, list):
-						cell_value = row[idx]
-
-					if dt in match_filters and cell_value not in match_filters.get(dt) and frappe.db.exists(dt, cell_value):
-						match = False
-						break
-
-				# each doctype could have multiple conflicting user permission doctypes, hence using OR
-				# so that even if one of the sets allows a match, it is true
-				matched_for_doctype = matched_for_doctype or match
-
-				if matched_for_doctype:
-					break
-
-		# each doctype's user permissions should match the row! hence using AND
-		resultant_match = resultant_match and matched_for_doctype
-
-		if not resultant_match:
-			break
-
-	return resultant_match
+	return True
 
 def get_linked_doctypes(columns, data):
 	linked_doctypes = {}
