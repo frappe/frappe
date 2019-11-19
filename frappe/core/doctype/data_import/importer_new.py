@@ -80,12 +80,23 @@ class Importer:
 		return file_content, extn
 
 	def read_content(self, content, extension):
+		error_title = _("Template Error")
+		if extension not in ("csv", "xlsx", "xls"):
+			frappe.throw(
+				_("Import template should be of type .csv, .xlsx or .xls"), title=error_title
+			)
+
 		if extension == "csv":
 			data = read_csv_content(content)
 		elif extension == "xlsx":
 			data = read_xlsx_file_from_attached_file(fcontent=content)
 		elif extension == "xls":
 			data = read_xls_file_from_attached_file(content)
+
+		if len(data) <= 1:
+			frappe.throw(
+				_("Import template should contain a Header and atleast one row."), title=error_title
+			)
 
 		self.header_row = data[0]
 		self.data = data[1:]
