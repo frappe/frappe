@@ -35,16 +35,16 @@ frappe.ui.Tags = class {
 
 	bind() {
 		const me = this;
-		const callback = function () {
+		const select_tag = function () {
 			const tagValue = frappe.utils.xss_sanitise(me.$input.val());
 			me.addTag(tagValue);
 			me.$input.val('');
 		}
 
 		this.$input.keypress((e) => {
-			if (e.which == 13 || e.keyCode == 13) callback();
+			if (e.which == 13 || e.keyCode == 13) select_tag();
 		});
-		this.$input.focusout(callback);
+		this.$input.focusout(select_tag);
 
 		this.$input.on('blur', () => {
 			this.deactivate();
