@@ -31,7 +31,6 @@ def is_email_notifications_enabled_for_type(user, notification_type):
 		return True
 	return enabled
 
-@frappe.whitelist()
 def create_notification_settings(user):
 	_doc = frappe.new_doc('Notification Settings')
 	_doc.name = user
