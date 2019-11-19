@@ -130,8 +130,6 @@ def trigger_indicator_hide():
 
 def set_notifications_as_unseen(user):
 	try:
-		notification_settings_doc = frappe.get_doc('Notification Settings', user)
-		if notification_settings_doc.seen == 1:
-			set_seen_value(value = 0, user = user)
+		frappe.db.set_value('Notification Settings', user, 'seen', 0)
 	except frappe.DoesNotExistError:
 		return
