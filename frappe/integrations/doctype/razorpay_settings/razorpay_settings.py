@@ -189,7 +189,7 @@ class RazorpaySettings(Document):
 		# Create integration log
 		integration_request = create_request_log(kwargs, "Host", "Razorpay")
 
-		# Setup payment otptions
+		# Setup payment options
 		payment_options = {
 			"amount": kwargs.get('amount'),
 			"currency": kwargs.get('currency', 'INR'),
