@@ -16,8 +16,7 @@
    "fieldtype": "Data",
    "in_list_view": 1,
    "label": "Token",
-   "reqd": 1,
-   "unique": 1
+   "reqd": 1
   },
   {
    "fieldname": "ip_address",
