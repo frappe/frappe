@@ -386,8 +386,8 @@ frappe.views.ListSidebar = class ListSidebar {
 	}
 
 	reload_stats() {
-		this.sidebar.find(".sidebar-stat").remove();
-		this.sidebar.find(".list-tag-preview").remove();
+		this.sidebar.find(".stat-link").remove();
+		this.sidebar.find(".stat-no-records").remove();
 		this.get_stats();
 	}
 
