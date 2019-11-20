@@ -649,6 +649,9 @@ class FilterArea {
 			let default_value = (field.df.fieldtype === 'Link')
 				? frappe.defaults.get_user_default(field.df.options)
 				: null;
+			if (['__default', '__global'].includes(default_value)) {	
+				default_value = null;	
+			}
 
 			if (value) {
 				if (field.df.condition === 'like' && !value.includes('%')) {
