@@ -497,10 +497,12 @@ frappe.ui.form.Layout = Class.extend({
 	},
 	set_dependant_property: function(condition, fieldname, property) {
 		let set_property = this.evaluate_depends_on_value(condition);
-		if (set_property) {
-			this.frm.set_df_property(fieldname, property, 1);
-		} else {
-			this.frm.set_df_property(fieldname, property, 0);
+		if (this.frm) {
+			if (set_property) {
+				this.frm.set_df_property(fieldname, property, 1);
+			} else {
+				this.frm.set_df_property(fieldname, property, 0);
+			}
 		}
 	},
 	evaluate_depends_on_value: function(expression) {
