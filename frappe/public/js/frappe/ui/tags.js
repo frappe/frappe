@@ -35,7 +35,7 @@ frappe.ui.Tags = class {
 
 	bind() {
 		const me = this;
-		const select_tag = function () {
+		const select_tag = function() {
 			const tagValue = frappe.utils.xss_sanitise(me.$input.val());
 			me.addTag(tagValue);
 			me.$input.val('');
