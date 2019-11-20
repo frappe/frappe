@@ -54,7 +54,8 @@ class Importer:
 		extension = None
 		if self.data_import and self.data_import.import_file:
 			file_doc = frappe.get_doc("File", {"file_url": self.data_import.import_file})
-			filename, extension = file_doc.get_extension()
+			parts = file_doc.get_extension()
+			extension = parts[1]
 			content = file_doc.get_content()
 			extension = extension.lstrip(".")
 
