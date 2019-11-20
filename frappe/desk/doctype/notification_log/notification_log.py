@@ -120,6 +120,7 @@ def mark_all_as_read():
 		filters = {'name': ['in', unread_docnames]}
 		frappe.db.set_value('Notification Log', filters, 'read', 1, update_modified=False)
 
+
 @frappe.whitelist()
 def mark_as_read(docname):
 	if docname:

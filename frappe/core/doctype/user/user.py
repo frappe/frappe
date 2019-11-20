@@ -48,8 +48,7 @@ class User(Document):
 		throttle_user_creation()
 
 	def after_insert(self):
-		if not frappe.db.exists("Notification Settings", self.name):
-			create_notification_settings(self.name)
+		create_notification_settings(self.name)
 
 	def validate(self):
 		self.check_demo()
@@ -371,6 +370,7 @@ class User(Document):
 
 		if frappe.db.exists("Notification Settings", old_name):
 			frappe.rename_doc("Notification Settings", old_name, new_name, force=True)
+
 		# set email
 		frappe.db.sql("""UPDATE `tabUser`
 			SET email = %s

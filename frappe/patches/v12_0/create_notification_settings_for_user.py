@@ -7,7 +7,4 @@ def execute():
 
 	users = frappe.db.get_all('User', fields=['name'])
 	for user in users:
-		if frappe.db.exists("Notification Settings", user.name):
-			continue
-
 		create_notification_settings(user.name)
