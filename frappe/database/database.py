@@ -174,6 +174,7 @@ class Database(object):
 					self.log_touched_tables(query)
 
 			if debug:
+				frappe.errprint(self._cursor.mogrify(query, values))
 				time_end = time()
 				frappe.errprint(("Execution time: {0} sec").format(round(time_end - time_start, 2)))
 
@@ -968,7 +969,7 @@ class Database(object):
 				frappe.flags.touched_tables = set()
 			frappe.flags.touched_tables.update(tables)
 
-	def bulk_insert(self, doctype, fields, values):
+	def bulk_insert(self, doctype, fields, values, ignore_duplicates=False):
 		"""
 			Insert multiple records at a time
 
@@ -982,7 +983,8 @@ class Database(object):
 		for idx, value in enumerate(values):
 			insert_list.append(tuple(value))
 			if idx and (idx%10000 == 0 or idx < len(values)-1):
-				self.sql("""INSERT INTO `tab{doctype}` ({fields}) VALUES {values}""".format(
+				self.sql("""INSERT {ignore_duplicates} INTO `tab{doctype}` ({fields}) VALUES {values}""".format(
+						ignore_duplicates="IGNORE" if ignore_duplicates else "",
 						doctype=doctype,
 						fields=fields,
 						values=", ".join(['%s'] * len(insert_list))

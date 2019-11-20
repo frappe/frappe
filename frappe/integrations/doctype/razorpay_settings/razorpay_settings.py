@@ -242,7 +242,6 @@ class RazorpaySettings(Document):
 
 		redirect_to = data.get('redirect_to') or None
 		redirect_message = data.get('redirect_message') or None
-
 		if self.flags.status_changed_to in ("Authorized", "Verified", "Completed"):
 			if self.data.reference_doctype and self.data.reference_docname:
 				custom_redirect_to = None

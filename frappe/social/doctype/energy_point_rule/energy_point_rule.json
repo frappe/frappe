@@ -17,6 +17,7 @@
   "multiplier_field",
   "max_points",
   "column_break_12",
+  "apply_only_once",
   "condition"
  ],
  "fields": [
@@ -105,9 +106,16 @@
   {
    "fieldname": "column_break_12",
    "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "description": "Apply this rule only once per document",
+   "fieldname": "apply_only_once",
+   "fieldtype": "Check",
+   "label": "Apply Only Once"
   }
  ],
- "modified": "2019-09-24 15:20:25.383536",
+ "modified": "2019-10-28 14:16:09.710167",
  "modified_by": "Administrator",
  "module": "Social",
  "name": "Energy Point Rule",

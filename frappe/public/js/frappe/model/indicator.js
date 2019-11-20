@@ -55,7 +55,7 @@ frappe.get_indicator = function(doc, doctype) {
 	}
 
 	// cancelled
-	if(is_submittable && doc.docstatus==2) {
+	if(is_submittable && doc.docstatus==2 && !settings.has_indicator_for_cancelled) {
 		return [__("Cancelled"), "red", "docstatus,=,2"];
 	}
 

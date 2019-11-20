@@ -381,7 +381,7 @@ def parse_email(communication, email_strings):
 		a doctype and docname ie in the format `admin+doctype+docname@example.com`,
 		the email is parsed and doctype and docname is extracted and timeline link is added.
 	"""
-	if not frappe.get_list("Email Account", filters={"enable_automatic_linking": 1}):
+	if not frappe.get_all("Email Account", filters={"enable_automatic_linking": 1}):
 		return
 
 	delimiter = "+"
@@ -406,7 +406,7 @@ def get_email_without_link(email):
 		returns email address without doctype links
 		returns admin@example.com for email admin+doctype+docname@example.com
 	"""
-	if not frappe.get_list("Email Account", filters={"enable_automatic_linking": 1}):
+	if not frappe.get_all("Email Account", filters={"enable_automatic_linking": 1}):
 		return email
 
 	email_id = email.split("@")[0].split("+")[0]

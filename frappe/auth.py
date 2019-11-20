@@ -219,6 +219,10 @@ class LoginManager:
 		if not self.user:
 			return
 
+		from frappe.core.doctype.user.user import STANDARD_USERS
+		if self.user in STANDARD_USERS:
+			return False
+
 		reset_pwd_after_days = cint(frappe.db.get_single_value("System Settings",
 			"force_user_to_reset_password"))
 
