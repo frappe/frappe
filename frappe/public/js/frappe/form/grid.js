@@ -560,18 +560,19 @@ export default class Grid {
 
 	setup_add_row() {
 		this.wrapper.find(".grid-add-row").click(() => {
-			this.add_new_row(null, null, true);
+			this.add_new_row(null, null, true, null, true);
 			this.set_focus_on_row();
 
 			return false;
 		});
 	}
 
-	add_new_row(idx, callback, show, copy_doc) {
+	add_new_row(idx, callback, show, copy_doc, go_to_last_page=false) {
 		if (this.is_editable()) {
-			this.grid_pagination.go_to_last_page();
-			if (this.grid_pagination.page_index !== this.grid_pagination.total_pages ) {
+			if (go_to_last_page) {
+				this.grid_pagination.go_to_last_page();
 				frappe.utils.scroll_to(this.wrapper);
+
 			}
 			if (this.frm) {
 				var d = frappe.model.add_child(this.frm.doc, this.df.options, this.df.fieldname, idx);
