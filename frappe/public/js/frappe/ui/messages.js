@@ -150,7 +150,7 @@ frappe.msgprint = function(msg, title) {
 				__(data.primary_action.label || "Done"),
 				data.primary_action.action
 			);
-	}
+		}
 
 		// class "msgprint" is used in tests
 		frappe.msg_dialog.msg_area = $('<div class="msgprint">')
