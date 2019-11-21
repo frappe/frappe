@@ -44,5 +44,7 @@ def get_from_date_from_timespan(to_date, timespan):
 		months = -3
 	elif "Last Year" == timespan:
 		years = -1
+	elif "All Time" == timespan:
+		years = -50
 	return add_to_date(to_date, years=years, months=months, days=days,
 		as_datetime=True)
