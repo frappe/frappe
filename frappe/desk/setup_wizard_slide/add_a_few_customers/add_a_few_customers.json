@@ -1,0 +1,64 @@
+{
+ "add_more_button": 1,
+ "app": "ERPNext",
+ "creation": "2019-11-15 14:44:10.065014",
+ "docstatus": 0,
+ "doctype": "Setup Wizard Slide",
+ "domains": [
+  {
+   "domain": "Manufacturing"
+  },
+  {
+   "domain": "Services"
+  },
+  {
+   "domain": "Retail"
+  },
+  {
+   "domain": "Distribution"
+  }
+ ],
+ "help_links": [
+  {
+   "label": "Customers",
+   "video_id": "zsrrVDk6VBs"
+  }
+ ],
+ "idx": 0,
+ "max_count": 3,
+ "modified": "2019-11-21 10:54:10.736056",
+ "modified_by": "Administrator",
+ "name": "Add A Few Customers",
+ "owner": "Administrator",
+ "slide_fields": [
+  {
+   "align": "",
+   "fieldname": "customer_name",
+   "fieldtype": "Data",
+   "label": "Customer Name",
+   "max_length": 0,
+   "max_value": 0,
+   "placeholder": "",
+   "reqd": 1
+  },
+  {
+   "align": "",
+   "fieldtype": "Column Break",
+   "max_length": 0,
+   "max_value": 0,
+   "reqd": 0
+  },
+  {
+   "align": "",
+   "fieldname": "customer_contact",
+   "fieldtype": "Data",
+   "label": "Customer Contact",
+   "max_length": 0,
+   "max_value": 0,
+   "reqd": 1
+  }
+ ],
+ "slide_title": "Add A Few Customers",
+ "slide_type": "Action",
+ "submit_method": "create_customers"
+}

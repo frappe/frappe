@@ -1,0 +1,50 @@
+{
+ "add_more_button": 0,
+ "creation": "2019-11-13 16:03:01.422088",
+ "docstatus": 0,
+ "doctype": "Setup Wizard Slide",
+ "domains": [
+  {
+   "domain": "Services"
+  },
+  {
+   "domain": "Manufacturing"
+  },
+  {
+   "domain": "Retail"
+  },
+  {
+   "domain": "Distribution"
+  }
+ ],
+ "help_links": [],
+ "idx": 0,
+ "max_count": 0,
+ "modified": "2019-11-19 13:35:05.379455",
+ "modified_by": "Administrator",
+ "name": "Company Logo and Letter Head",
+ "owner": "Administrator",
+ "slide_fields": [
+  {
+   "align": "center",
+   "fieldname": "attach_logo",
+   "fieldtype": "Attach Image",
+   "label": "Attach Logo",
+   "max_length": 0,
+   "max_value": 0,
+   "options": "image",
+   "reqd": 0
+  },
+  {
+   "align": "center",
+   "fieldname": "attach_letterhead",
+   "fieldtype": "Attach Image",
+   "label": "Attach Letterhead",
+   "max_length": 0,
+   "max_value": 0,
+   "options": "image",
+   "reqd": 0
+  }
+ ],
+ "slide_title": "Company Logo and Letter Head"
+}

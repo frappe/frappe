@@ -1,0 +1,24 @@
+{
+ "creation": "2019-11-13 16:07:24.786989",
+ "docstatus": 0,
+ "doctype": "Setup Wizard Settings",
+ "idx": "0",
+ "modified": "2019-11-21 12:38:33.839741",
+ "modified_by": "ruchamahabal2@gmail.com",
+ "name": "Setup Wizard Settings",
+ "owner": "Administrator",
+ "slide_order": [
+  {
+   "slide": "Welcome to ERPNext!"
+  },
+  {
+   "slide": "Add A Few Products You Buy Or Sell"
+  },
+  {
+   "slide": "Add A Few Customers"
+  },
+  {
+   "slide": "Add A Few Suppliers"
+  }
+ ]
+}

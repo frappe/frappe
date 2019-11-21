@@ -1,0 +1,78 @@
+{
+ "add_more_button": 1,
+ "app": "ERPNext",
+ "creation": "2019-11-15 14:41:12.007359",
+ "docstatus": 0,
+ "doctype": "Setup Wizard Slide",
+ "domains": [
+  {
+   "domain": "Manufacturing"
+  },
+  {
+   "domain": "Retail"
+  },
+  {
+   "domain": "Services"
+  },
+  {
+   "domain": "Distribution"
+  }
+ ],
+ "help_links": [],
+ "idx": 0,
+ "image_src": "/assets/erpnext/images/illustrations/product.png",
+ "max_count": 3,
+ "modified": "2019-11-21 12:31:57.487975",
+ "modified_by": "ruchamahabal2@gmail.com",
+ "name": "Add A Few Products You Buy Or Sell",
+ "owner": "Administrator",
+ "slide_desc": "",
+ "slide_fields": [
+  {
+   "align": "",
+   "fieldname": "item",
+   "fieldtype": "Data",
+   "label": "Item",
+   "max_length": 0,
+   "max_value": 0,
+   "placeholder": "Product Name",
+   "reqd": 1
+  },
+  {
+   "align": "",
+   "fieldtype": "Column Break",
+   "max_length": 0,
+   "max_value": 0,
+   "reqd": 1
+  },
+  {
+   "align": "",
+   "fieldname": "uom",
+   "fieldtype": "Link",
+   "label": "UOM",
+   "max_length": 0,
+   "max_value": 0,
+   "options": "UOM",
+   "reqd": 1
+  },
+  {
+   "align": "",
+   "fieldtype": "Column Break",
+   "max_length": 0,
+   "max_value": 0,
+   "reqd": 0
+  },
+  {
+   "align": "",
+   "fieldname": "item_price",
+   "fieldtype": "Currency",
+   "label": "Item Price",
+   "max_length": 0,
+   "max_value": 0,
+   "reqd": 1
+  }
+ ],
+ "slide_title": "Add A Few Products You Buy Or Sell",
+ "slide_type": "Action",
+ "submit_method": "create_items"
+}

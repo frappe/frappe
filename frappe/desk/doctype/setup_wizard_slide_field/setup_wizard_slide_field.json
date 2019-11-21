@@ -1,0 +1,109 @@
+{
+ "creation": "2019-11-13 13:35:08.617909",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "label",
+  "fieldtype",
+  "fieldname",
+  "options",
+  "align",
+  "placeholder",
+  "reqd",
+  "column_break_4",
+  "max_length",
+  "max_value",
+  "section_break_6",
+  "description",
+  "column_break_8",
+  "default"
+ ],
+ "fields": [
+  {
+   "fieldname": "label",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Label"
+  },
+  {
+   "fieldname": "fieldtype",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Fieldtype",
+   "options": "Attach\nAttach Image\nCheck\nCurrency\nData\nDate\nDatetime\nFloat\nHTML\nInt\nRating\nSelect\nLink\nSmall Text\nText\nText Editor\nSection Break\nColumn Break"
+  },
+  {
+   "fieldname": "fieldname",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Fieldname"
+  },
+  {
+   "fieldname": "options",
+   "fieldtype": "Text",
+   "in_list_view": 1,
+   "label": "Options"
+  },
+  {
+   "fieldname": "align",
+   "fieldtype": "Select",
+   "label": "Align",
+   "options": "\ncenter\nleft\nright"
+  },
+  {
+   "fieldname": "placeholder",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Placeholder"
+  },
+  {
+   "default": "0",
+   "fieldname": "reqd",
+   "fieldtype": "Check",
+   "label": "Mandatory"
+  },
+  {
+   "fieldname": "column_break_4",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "max_length",
+   "fieldtype": "Int",
+   "label": "Max Length"
+  },
+  {
+   "depends_on": "eval:doc.fieldtype=='Int'",
+   "fieldname": "max_value",
+   "fieldtype": "Int",
+   "label": "Max Value"
+  },
+  {
+   "fieldname": "section_break_6",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Text",
+   "label": "Description"
+  },
+  {
+   "fieldname": "column_break_8",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "default",
+   "fieldtype": "Data",
+   "label": "Default"
+  }
+ ],
+ "istable": 1,
+ "modified": "2019-11-21 17:47:12.648395",
+ "modified_by": "ruchamahabal2@gmail.com",
+ "module": "Desk",
+ "name": "Setup Wizard Slide Field",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC"
+}

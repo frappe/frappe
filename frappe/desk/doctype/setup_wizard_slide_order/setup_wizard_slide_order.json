@@ -1,0 +1,30 @@
+{
+ "creation": "2019-11-13 15:54:09.558748",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "slide"
+ ],
+ "fields": [
+  {
+   "fieldname": "slide",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Slide",
+   "options": "Setup Wizard Slide",
+   "reqd": 1
+  }
+ ],
+ "istable": 1,
+ "modified": "2019-11-19 11:55:58.818555",
+ "modified_by": "Administrator",
+ "module": "Desk",
+ "name": "Setup Wizard Slide Order",
+ "owner": "Administrator",
+ "permissions": [],
+ "quick_entry": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

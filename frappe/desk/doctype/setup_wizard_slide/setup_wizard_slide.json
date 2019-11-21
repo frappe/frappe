@@ -1,0 +1,153 @@
+{
+ "autoname": "field:slide_title",
+ "creation": "2019-11-13 14:39:56.834658",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "slide_title",
+  "app",
+  "column_break_4",
+  "image_src",
+  "description_section_break",
+  "slide_desc",
+  "action_section_break",
+  "slide_type",
+  "submit_method",
+  "column_break_6",
+  "max_count",
+  "add_more_button",
+  "section_break_5",
+  "slide_fields",
+  "section_break_10",
+  "domains",
+  "column_break_12",
+  "help_links"
+ ],
+ "fields": [
+  {
+   "fieldname": "slide_title",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Slide Title",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "depends_on": "eval:doc.slide_type === 'Action';",
+   "fieldname": "submit_method",
+   "fieldtype": "Data",
+   "label": "Submit Method"
+  },
+  {
+   "fieldname": "slide_desc",
+   "fieldtype": "HTML Editor",
+   "label": "Slide Description"
+  },
+  {
+   "default": "3",
+   "depends_on": "add_more_button",
+   "fieldname": "max_count",
+   "fieldtype": "Int",
+   "label": "Max Count"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval: doc.slide_type === 'Action';",
+   "fieldname": "add_more_button",
+   "fieldtype": "Check",
+   "label": "Add More Button"
+  },
+  {
+   "fieldname": "section_break_5",
+   "fieldtype": "Section Break",
+   "label": "Fields"
+  },
+  {
+   "fieldname": "slide_fields",
+   "fieldtype": "Table",
+   "label": "Slide Fields",
+   "options": "Setup Wizard Slide Field"
+  },
+  {
+   "fieldname": "section_break_10",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "domains",
+   "fieldtype": "Table",
+   "label": "Domains",
+   "options": "Has Domain",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_12",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "help_links",
+   "fieldtype": "Table",
+   "label": "Help Links",
+   "options": "Setup Wizard Help Link"
+  },
+  {
+   "fieldname": "action_section_break",
+   "fieldtype": "Section Break",
+   "label": "Action Settings"
+  },
+  {
+   "fieldname": "slide_type",
+   "fieldtype": "Select",
+   "label": "Slide Type",
+   "options": "\nAction\nInfo",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_6",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "app",
+   "fieldtype": "Select",
+   "label": "App",
+   "options": "Frappe\nERPNext",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_4",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "image_src",
+   "fieldtype": "Data",
+   "label": "Slide Image Source"
+  },
+  {
+   "fieldname": "description_section_break",
+   "fieldtype": "Section Break",
+   "label": "Description"
+  }
+ ],
+ "modified": "2019-11-21 17:35:30.846135",
+ "modified_by": "ruchamahabal2@gmail.com",
+ "module": "Desk",
+ "name": "Setup Wizard Slide",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}
