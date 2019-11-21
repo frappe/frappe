@@ -139,11 +139,14 @@ frappe.ui.form.Attachments = Class.extend({
 			}
 		});
 	},
-	new_attachment: function(fieldname) {
-		var me = this;
+	new_attachment: function() {
 		if (this.dialog) {
 			// remove upload dialog
 			this.dialog.$wrapper.remove();
+		}
+
+		if (this.max_reached()) {
+			frappe.throw(__("Maximum attachment limit for this record reached."));
 		}
 
 		new frappe.ui.FileUploader({
