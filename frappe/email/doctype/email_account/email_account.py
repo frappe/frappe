@@ -660,7 +660,7 @@ def get_append_to(doctype=None, txt=None, searchfield=None, start=None, page_len
 
 	for dt in frappe.get_list("DocType", filters={"istable": 0, "issingle": 0}):
 		meta = frappe.get_meta(dt.name)
-		if meta.allow_in_email_append_to and meta.has_field("subject") and meta.has_field("status"):
+		if meta.get("allow_in_email_append_to") and meta.allow_in_email_append_to:
 			email_append_to_list.append(dt.name)
 
 	email_append = [[d] for d in set(email_append_to_list) if txt in d]
