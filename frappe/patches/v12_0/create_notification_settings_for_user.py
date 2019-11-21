@@ -4,6 +4,7 @@ from frappe.desk.doctype.notification_settings.notification_settings import crea
 
 def execute():
 	frappe.reload_doc('desk', 'doctype', 'notification_settings')
+	frappe.reload_doc('desk', 'doctype', 'notification_subscribed_document')
 
 	users = frappe.db.get_all('User', fields=['name'])
 	for user in users:
