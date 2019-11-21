@@ -1,6 +1,7 @@
 context('Grid Pagination', () => {
 	beforeEach(() => {
-		cy.visit('/desk#Form/Contact/Test Contact');
+		cy.login();
+		cy.visit('/desk');
 	});
 	before(() => {
 		cy.login();
@@ -10,12 +11,14 @@ context('Grid Pagination', () => {
 		});
 	});
 	it('creates pages for child table', () => {
+		cy.visit('/desk#Form/Contact/Test Contact');
 		cy.get('.frappe-control[data-fieldname="phone_nos"]').as('table');
 		cy.get('@table').find('.current-page-number').should('contain', '1');
 		cy.get('@table').find('.total-page-number').should('contain', '50');
 		cy.get('@table').find('.grid-body .grid-row').should('have.length', 20);
 	});
 	it('goes to the next and previous page', () => {
+		cy.visit('/desk#Form/Contact/Test Contact');
 		cy.get('.frappe-control[data-fieldname="phone_nos"]').as('table');
 		cy.get('@table').find('.next-page').click();
 		cy.get('@table').find('.current-page-number').should('contain', '2');
@@ -25,6 +28,7 @@ context('Grid Pagination', () => {
 		cy.get('@table').find('.grid-body .grid-row').first().should('have.attr', 'data-idx', '1');
 	});
 	it('adds and deletes rows and changes page', ()=> {
+		cy.visit('/desk#Form/Contact/Test Contact');
 		cy.get('.frappe-control[data-fieldname="phone_nos"]').as('table');
 		cy.get('@table').find('button.grid-add-row').click();
 		cy.get('@table').find('.grid-body .row-index').should('contain', 1001);
@@ -37,6 +41,7 @@ context('Grid Pagination', () => {
 		cy.get('@table').find('.total-page-number').should('contain', '50');
 	});
 	it('deletes all rows', ()=> {
+		cy.visit('/desk#Form/Contact/Test Contact');
 		cy.get('.frappe-control[data-fieldname="phone_nos"]').as('table');
 		cy.get('@table').find('.grid-heading-row .grid-row-check').click({force: true});
 		cy.get('@table').find('button.grid-remove-all-rows').click();
