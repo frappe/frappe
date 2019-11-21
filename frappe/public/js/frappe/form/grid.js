@@ -189,7 +189,7 @@ export default class Grid {
 
 		frappe.run_serially(tasks);
 
-		if (selected_children.length == this.page_length) {
+		if (selected_children.length == this.grid_pagination.page_length) {
 			frappe.utils.scroll_to(this.wrapper);
 		}
 	}
@@ -355,7 +355,7 @@ export default class Grid {
 					this.wrapper.find('.grid-add-multiple-rows').removeClass('hidden');
 				}
 			}
-		} else if (this.grid_rows.length < this.page_length ) {
+		} else if (this.grid_rows.length < this.grid_pagination.page_length ) {
 			this.wrapper.find('.grid-footer').toggle(false);
 		}
 
@@ -416,14 +416,14 @@ export default class Grid {
 				}
 				// prevent drag behaviour if _sortable property is "false"
 				let idx = $(event.dragged).closest('.grid-row').attr('data-idx');
-				let doc = this.data[idx%this.page_length];
+				let doc = this.data[idx%this.grid_pagination.page_length];
 				if (doc && doc._sortable === false) {
 					return false;
 				}
 			},
 			onUpdate: (event) => {
 				let idx = $(event.item).closest('.grid-row').attr('data-idx');
-				let doc = this.data[idx%this.page_length];
+				let doc = this.data[idx%this.grid_pagination.page_length];
 				this.renumber_based_on_dom();
 				this.frm.script_manager.trigger(this.df.fieldname + "_move", this.df.options, doc.name);
 				this.refresh();
@@ -570,8 +570,6 @@ export default class Grid {
 		if (this.is_editable()) {
 			if (go_to_last_page) {
 				this.grid_pagination.go_to_last_page();
-				frappe.utils.scroll_to(this.wrapper);
-
 			}
 			if (this.frm) {
 				var d = frappe.model.add_child(this.frm.doc, this.df.options, this.df.fieldname, idx);
@@ -613,7 +611,7 @@ export default class Grid {
 
 		$rows.find(".grid-row").each( (i, item) => {
 			let $item = $(item);
-			let index = (this.page_index-1)*this.page_length+i;
+			let index = (this.grid_pagination.page_index-1)*this.grid_pagination.page_length+i;
 			let d = locals[this.doctype][$item.attr('data-name')];
 			d.idx = index + 1;
 			$item.attr('data-idx', d.idx);
@@ -774,7 +772,7 @@ export default class Grid {
 
 						this.frm.clear_table(this.df.fieldname);
 						$.each(data, (i, row) => {
-							if(i > 6) {
+							if (i > 6) {
 								var blank_row = true;
 								$.each(row, function(ci, value) {
 									if (value) {

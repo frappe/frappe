@@ -44,7 +44,7 @@ export default class GridPagination {
 		});
 
 		this.last_page_button.on('click', () => {
-			this.go_to_page(this.total_pages);
+			this.go_to_last_page();
 		});
 	}
 
@@ -120,6 +120,7 @@ export default class GridPagination {
 		} else {
 			this.go_to_page(total_pages);
 		}
+		frappe.utils.scroll_to(this.wrapper);
 	}
 
 	get_result_length() {
