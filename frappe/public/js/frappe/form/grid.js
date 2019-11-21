@@ -3,7 +3,6 @@
 
 import GridRow from "./grid_row";
 import GridPagination from './grid_pagination';
-import { timingSafeEqual } from "crypto";
 
 frappe.ui.form.get_open_grid_form = function() {
 	return $(".grid-row-open").data("grid_row");
@@ -222,7 +221,7 @@ export default class Grid {
 
 	get_selected() {
 		return (this.grid_rows || []).map(row => {
-			 return row.doc.__checked ? row.doc.name : null;
+			return row.doc.__checked ? row.doc.name : null;
 		}).filter(d => {
 			return d; 
 		});
@@ -232,7 +231,7 @@ export default class Grid {
 		return (this.grid_rows || []).map(row => {
 			return row.doc.__checked ? row.doc : null;
 		}).filter(d => {
-			 return d;
+			return d;
 		});
 	}
 
