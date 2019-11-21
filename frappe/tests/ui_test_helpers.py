@@ -74,3 +74,20 @@ def create_contact_phone_nos_records():
 	for index in range(1000):
 		doc.append('phone_nos', {'phone': '123456{}'.format(index)})
 	doc.insert()
+
+@frappe.whitelist()
+def create_doctype(name, fields):
+	fields = frappe.parse_json(fields)
+	if frappe.db.exists('DocType', name):
+		return
+	frappe.get_doc({
+		"doctype": "DocType",
+		"module": "Core",
+		"custom": 1,
+		"fields": fields,
+		"permissions": [{
+			"role": "System Manager",
+			"read": 1
+		}],
+		"name": name
+	}).insert()
