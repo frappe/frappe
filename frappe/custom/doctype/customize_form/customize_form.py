@@ -253,9 +253,17 @@ class CustomizeForm(Document):
 	def check_email_append_to(self):
 		meta = frappe.get_meta(self.doc_type)
 
-		if self.allow_in_email_append_to and not (meta.has_field("subject") and meta.has_field("status")):
-			frappe.throw(_("Add custom fields for Subject and Status in Document Type \
-				{0} to enable Email Append To").format(self.doc_type))
+		if self.allow_in_email_append_to:
+			if not meta.has_field("subject"):
+				frappe.throw(_("Add custom fields for Subject in Document Type {0} to enable Email Append To").format(self.doc_type))
+
+			if not meta.has_field("status"):
+				frappe.throw(_("Add custom fields for Status in Document Type {0} to enable Email Append To").format(self.doc_type))
+			else:
+				status = meta.get_field("status")
+				for option in ["Open", "Closed"]:
+					if not option in status.options:
+						frappe.throw(_("Status field should have status {0} in options").format(option))
 
 	def update_custom_fields(self):
 		for i, df in enumerate(self.get("fields")):
