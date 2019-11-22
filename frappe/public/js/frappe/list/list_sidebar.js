@@ -41,6 +41,7 @@ frappe.views.ListSidebar = class ListSidebar {
 		} else {
 			this.sidebar.find('.list-stats').on('click', (e) => {
 				$(e.currentTarget).find('.stat-link').remove();
+				$(e.currentTarget).find('.stat-no-records').remove();
 				this.get_stats();
 			});
 		}
@@ -258,8 +259,11 @@ frappe.views.ListSidebar = class ListSidebar {
 				let text_element = $elements.eq(i).find(text_class);
 
 				let text = text_element.text().toLowerCase();
+				let name = '';
 				// Search data-name since label for current user is 'Me'
-				let name = text_element.data('name').toLowerCase();
+				if (text_element.data('name')) {
+					name = text_element.data('name').toLowerCase();
+				}
 				if (text.includes(text_filter) || name.includes(text_filter)) {
 					$elements.eq(i).css('display','');
 				} else {

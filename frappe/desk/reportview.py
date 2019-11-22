@@ -262,16 +262,13 @@ def delete_bulk(doctype, items):
 @frappe.read_only()
 def get_sidebar_stats(stats, doctype, filters=[]):
 
-	if not frappe.cache().hget("tags_count", doctype):
-		tags = [tag.name for tag in frappe.get_list("Tag")]
-		_user_tags = []
-		for tag in tags:
-			count = frappe.db.count("Tag Link", filters={"document_type": doctype, "tag": tag})
-			if count > 0:
-				_user_tags.append([tag, count])
-		frappe.cache().hset("tags_count", doctype, _user_tags)
-
-	return {"stats": {"_user_tags": frappe.cache().hget("tags_count", doctype)}}
+	tags = [tag.name for tag in frappe.get_list("Tag")]
+	_user_tags = []
+	for tag in tags:
+		count = frappe.db.count("Tag Link", filters={"document_type": doctype, "tag": tag})
+		if count > 0:
+			_user_tags.append([tag, count])
+	return {"stats": {"_user_tags": _user_tags}}
 
 @frappe.whitelist()
 @frappe.read_only()
