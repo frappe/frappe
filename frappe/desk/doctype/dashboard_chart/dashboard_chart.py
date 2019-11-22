@@ -74,8 +74,7 @@ def get_chart_config(chart, filters, timespan, timegrain, from_date, to_date):
 	result = convert_to_dates(data, timegrain)
 
 	# add missing data points for periods where there was no result
-	result = add_missing_values(result, timegrain, from_date, to_date)
-
+	result = add_missing_values(result, timegrain, timespan, from_date, to_date)
 	chart_config = {
 		"labels": [formatdate(r[0].strftime('%Y-%m-%d')) for r in result],
 		"datasets": [{
@@ -134,6 +133,7 @@ def get_aggregate_function(chart_type):
 	}[chart_type]
 
 def convert_to_dates(data, timegrain):
+	''' Converts individual dates within data to the end of period '''
 	result = []
 	for d in data:
 		if timegrain == 'Daily':
@@ -144,7 +144,8 @@ def convert_to_dates(data, timegrain):
 			result.append([add_to_date(add_to_date('{:d}-01-01'.format(int(d[0])), months = d[1]), days = -1), d[2]])
 		elif timegrain == 'Quarterly':
 			result.append([add_to_date(add_to_date('{:d}-01-01'.format(int(d[0])), months = d[1] * 3), days = -1), d[2]])
-
+		elif timegrain == 'Yearly':
+			result.append([add_to_date(add_to_date('{:d}-01-01'.format(int(d[0])), months = 12), days = -1), d[2]])
 		result[-1][0] = getdate(result[-1][0])
 
 	return result
@@ -164,17 +165,17 @@ def get_unit_function(datefield, timegrain):
 
 	return unit_function
 
-def add_missing_values(data, timegrain, from_date, to_date):
+def add_missing_values(data, timegrain, from_date, to_date, timespan):
 	# add missing intervals
 	result = []
 
-	first_expected_date = get_period_ending(from_date, timegrain)
-
-	# fill out data before the first data point
-	first_data_point_date = data[0][0] if data else getdate(add_to_date(to_date, days=1))
-	while first_data_point_date > first_expected_date:
-		result.append([first_expected_date, 0.0])
-		first_expected_date = get_next_expected_date(first_expected_date, timegrain)
+	if timespan != 'All Time':
+		first_expected_date = get_period_ending(from_date, timegrain)
+		# fill out data before the first data point
+		first_data_point_date = data[0][0] if data else getdate(add_to_date(to_date, days=1))
+		while first_data_point_date > first_expected_date:
+			result.append([first_expected_date, 0.0])
+			first_expected_date = get_next_expected_date(first_expected_date, timegrain)
 
 	# fill data points and missing points
 	for i, d in enumerate(data):
@@ -220,6 +221,8 @@ def get_period_ending(date, timegrain):
 		date = get_month_ending(date)
 	elif timegrain=='Quarterly':
 		date = get_quarter_ending(date)
+	elif timegrain=='Yearly':
+		date = get_year_ending(date)
 
 	return getdate(date)
 
@@ -255,6 +258,14 @@ def get_quarter_ending(date):
 
 	return date
 
+def get_year_ending(date):
+	''' returns year ending of the given date '''
+	year = int(date.strftime('%y'))
+
+	# first day of next year (note year starts from 1)
+	date = add_to_date('{}-01-01'.format(date.year), months = 12)
+	# last day of this month
+	return add_to_date(date, days = -1)
 
 class DashboardChart(Document):
 	def on_update(self):
