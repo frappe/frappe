@@ -845,7 +845,7 @@ class Document(BaseDocument):
 	def _submit(self):
 		"""Submit the document. Sets `docstatus` = 1, then saves."""
 		if not cint(self.meta.is_submittable):
-			frappe.throw(_("{self.doctype} is not submittable".format(self=self)"))
+			frappe.throw(_("{self.doctype} is not submittable".format(self=self)))
 		self.docstatus = 1
 		self.save()
 
