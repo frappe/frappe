@@ -48,6 +48,9 @@
 	"js/bootstrap-4-web.min.js": [
 		"website/js/bootstrap-4.js"
 	],
+	"js/charts.min.js": [
+		"public/js/frappe/ui/chart.js"
+	],
 	"js/control.min.js": [
 		"public/js/frappe/ui/capture.js",
 		"public/js/frappe/form/controls/control.js"
