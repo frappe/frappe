@@ -5,7 +5,7 @@ from __future__ import unicode_literals, print_function
 import frappe
 import time
 from frappe import _, msgprint
-from frappe.utils import flt, cstr, now, get_datetime_str, file_lock, date_diff
+from frappe.utils import flt, cstr, now, get_datetime_str, file_lock, date_diff, cint
 from frappe.utils.background_jobs import enqueue
 from frappe.model.base_document import BaseDocument, get_controller
 from frappe.model.naming import set_new_name
@@ -844,6 +844,8 @@ class Document(BaseDocument):
 	@whitelist.__func__
 	def _submit(self):
 		"""Submit the document. Sets `docstatus` = 1, then saves."""
+		if not cint(self.meta.is_submittable):
+			frappe.throw(_("{self.doctype} is not submittable".format(self=self)"))
 		self.docstatus = 1
 		self.save()
 
