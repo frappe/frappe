@@ -19,6 +19,7 @@
   "homepage": "https://frappe.io",
   "dependencies": {
     "ace-builds": "^1.4.1",
+    "air-datepicker": "http://github.com/frappe/air-datepicker",
     "awesomplete": "^1.1.2",
     "bootstrap": "^4.3.1",
     "cookie": "^0.3.1",
