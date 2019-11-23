@@ -111,6 +111,9 @@ def get_webhook_data(doc, webhook):
 			value = doc.get(w.fieldname)
 			if isinstance(value, datetime.datetime):
 				value = frappe.utils.get_datetime_str(value)
+			if isinstance(value, list):
+				serialize_doc = lambda val: val.as_dict() if isinstance(val, Document) else val
+				value = list(map(serialize_doc, value))
 			data[w.key] = value
 	elif webhook.webhook_json:
 		data = frappe.render_template(webhook.webhook_json, get_context(doc))
