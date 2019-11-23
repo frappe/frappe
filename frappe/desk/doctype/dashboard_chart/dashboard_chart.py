@@ -132,8 +132,9 @@ def get_aggregate_function(chart_type):
 		"Average": "AVG",
 	}[chart_type]
 
+
 def convert_to_dates(data, timegrain):
-	''' Converts individual dates within data to the end of period '''
+	""" Converts individual dates within data to the end of period """
 	result = []
 	for d in data:
 		if timegrain == 'Daily':
@@ -141,11 +142,11 @@ def convert_to_dates(data, timegrain):
 		elif timegrain == 'Weekly':
 			result.append([add_to_date(add_to_date('{:d}-01-01'.format(int(d[0])), weeks = d[1] + 1), days = -1), d[2]])
 		elif timegrain == 'Monthly':
-			result.append([add_to_date(add_to_date('{:d}-01-01'.format(int(d[0])), months = d[1]), days = -1), d[2]])
+			result.append([add_to_date(add_to_date('{:d}-01-01'.format(int(d[0])), months=d[1]), days = -1), d[2]])
 		elif timegrain == 'Quarterly':
-			result.append([add_to_date(add_to_date('{:d}-01-01'.format(int(d[0])), months = d[1] * 3), days = -1), d[2]])
+			result.append([add_to_date(add_to_date('{:d}-01-01'.format(int(d[0])), months=d[1] * 3), days = -1), d[2]])
 		elif timegrain == 'Yearly':
-			result.append([add_to_date(add_to_date('{:d}-01-01'.format(int(d[0])), months = 12), days = -1), d[2]])
+			result.append([add_to_date(add_to_date('{:d}-01-01'.format(int(d[0])), months=12), days = -1), d[2]])
 		result[-1][0] = getdate(result[-1][0])
 
 	return result
@@ -165,7 +166,7 @@ def get_unit_function(datefield, timegrain):
 
 	return unit_function
 
-def add_missing_values(data, timegrain, from_date, to_date, timespan):
+def add_missing_values(data, timegrain, timespan, from_date, to_date):
 	# add missing intervals
 	result = []
 
@@ -213,15 +214,15 @@ def get_next_expected_date(date, timegrain):
 
 def get_period_ending(date, timegrain):
 	date = getdate(date)
-	if timegrain=='Daily':
+	if timegrain == 'Daily':
 		pass
-	elif timegrain=='Weekly':
+	elif timegrain == 'Weekly':
 		date = get_week_ending(date)
-	elif timegrain=='Monthly':
+	elif timegrain == 'Monthly':
 		date = get_month_ending(date)
-	elif timegrain=='Quarterly':
+	elif timegrain == 'Quarterly':
 		date = get_quarter_ending(date)
-	elif timegrain=='Yearly':
+	elif timegrain == 'Yearly':
 		date = get_year_ending(date)
 
 	return getdate(date)
@@ -234,7 +235,7 @@ def get_week_ending(date):
 	# first day of next week
 	date = add_to_date('{}-01-01'.format(date.year), weeks = week_of_the_year + 1)
 	# last day of this week
-	return add_to_date(date, days = -1)
+	return add_to_date(date, days=-1)
 
 def get_month_ending(date):
 	month_of_the_year = int(date.strftime('%m'))
@@ -242,7 +243,7 @@ def get_month_ending(date):
 
 	date = add_to_date('{}-01-01'.format(date.year), months = month_of_the_year)
 	# last day of this month
-	return add_to_date(date, days = -1)
+	return add_to_date(date, days=-1)
 
 def get_quarter_ending(date):
 	date = getdate(date)
@@ -260,14 +261,15 @@ def get_quarter_ending(date):
 
 def get_year_ending(date):
 	''' returns year ending of the given date '''
-	year = int(date.strftime('%y'))
 
 	# first day of next year (note year starts from 1)
 	date = add_to_date('{}-01-01'.format(date.year), months = 12)
 	# last day of this month
-	return add_to_date(date, days = -1)
+	return add_to_date(date, days=-1)
+
 
 class DashboardChart(Document):
+
 	def on_update(self):
 		frappe.cache().delete_key('chart-data:{}'.format(self.name))
 
