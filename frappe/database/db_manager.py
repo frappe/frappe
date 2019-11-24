@@ -88,6 +88,6 @@ class DbManager:
 			host=esc(frappe.db.host),
 			target=esc(target),
 			source=source,
-			port=frappe.db.port
+			port=esc(frappe.db.port)
 		)
 		os.system(command)
