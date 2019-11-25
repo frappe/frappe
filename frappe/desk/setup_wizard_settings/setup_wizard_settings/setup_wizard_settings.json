@@ -3,13 +3,16 @@
  "docstatus": 0,
  "doctype": "Setup Wizard Settings",
  "idx": "0",
- "modified": "2019-11-25 11:50:27.156173",
+ "modified": "2019-11-25 12:33:08.139851",
  "modified_by": "Administrator",
  "name": "Setup Wizard Settings",
  "owner": "Administrator",
  "slide_order": [
   {
    "slide": "Welcome to ERPNext!"
+  },
+  {
+   "slide": "Company Letter Head"
   },
   {
    "slide": "Add A Few Products You Buy Or Sell"

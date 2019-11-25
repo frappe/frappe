@@ -39,7 +39,7 @@ frappe.setup.OnboardingSlide = class OnboardingSlide extends frappe.ui.Slide {
 		if (this.set_values()) {
 			this.$action_button.addClass('disabled');
 			if (me.add_more) {
-				me.values.append('max_count', cint(me.max_count));
+				me.values.max_count = me.max_count;
 			}
 			frappe.call({
 				method: me.submit_method,

@@ -27,7 +27,7 @@
  "idx": 0,
  "image_src": "/assets/erpnext/images/illustrations/supplier.png",
  "max_count": 3,
- "modified": "2019-11-25 11:05:58.390770",
+ "modified": "2019-11-25 12:32:15.607842",
  "modified_by": "Administrator",
  "name": "Add A Few Suppliers",
  "owner": "Administrator",
@@ -52,9 +52,9 @@
   },
   {
    "align": "",
-   "fieldname": "supplier_contact",
+   "fieldname": "supplier_email",
    "fieldtype": "Data",
-   "label": "Supplier Contact",
+   "label": "Supplier Email",
    "max_length": 0,
    "max_value": 0,
    "reqd": 1

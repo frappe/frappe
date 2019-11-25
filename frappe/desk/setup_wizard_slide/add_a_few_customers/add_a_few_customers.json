@@ -27,7 +27,7 @@
  "idx": 0,
  "image_src": "/assets/erpnext/images/illustrations/customer.png",
  "max_count": 3,
- "modified": "2019-11-25 11:05:51.169841",
+ "modified": "2019-11-25 12:18:42.676764",
  "modified_by": "Administrator",
  "name": "Add A Few Customers",
  "owner": "Administrator",
@@ -52,9 +52,9 @@
   },
   {
    "align": "",
-   "fieldname": "customer_contact",
+   "fieldname": "customer_email",
    "fieldtype": "Data",
-   "label": "Customer Contact",
+   "label": "Email ID",
    "max_length": 0,
    "max_value": 0,
    "reqd": 1
