@@ -301,18 +301,33 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		this.columns = this.columns.slice(0, column_count);
 	}
 
+	get_documentation_link() {
+		let find_url = this.meta.description.match("url:[^ ]*");
+		if (find_url) {
+			let link = find_url[0].split("url:")[1]
+			return `<a href="${link}" target="blank" class="meta-description small text-muted">Need Help?</a>`
+		}
+
+		return ''
+	}
+
 	get_no_result_message() {
+		let help_link = this.get_documentation_link()
+		let no_result_message = this.filters.length ? __('No {0} found', [__(this.doctype)]) : __('You haven\'t created a {0} yet', [__(this.doctype)]);
+		let new_button_label = this.filters.length ? __('Create a new {0}', [__(this.doctype)]) : __('Create your first {0}', [__(this.doctype)]);
+
 		const new_button = this.can_create ?
 			`<p><button class="btn btn-primary btn-sm btn-new-doc">
-				${__('Create a new {0}', [__(this.doctype)])}
+				${new_button_label}
 			</button></p>` : '';
 
 		return `<div class="msg-box no-border">
 			<div>
-				<img src="/assets/frappe/images/ui-states/empty.png" alt="Generic Empty State" class="null-state img-responsive">
+				<img src="/assets/frappe/images/ui-states/empty.png" alt="Generic Empty State" class="null-state">
 			</div>
-			<p>${__('No {0} found', [__(this.doctype)])}</p>
+			<p>${no_result_message}</p>
 			${new_button}
+			${help_link}
 		</div>`;
 	}
 
