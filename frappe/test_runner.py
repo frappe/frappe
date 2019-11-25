@@ -131,7 +131,8 @@ def run_all_tests(app=None, verbose=False, profile=False, ui_tests=False, failfa
 		pr = cProfile.Profile()
 		pr.enable()
 
-	out = unittest_runner(resultclass=TimeLoggingTestResult, verbosity=1+(verbose and 1 or 0), failfast=failfast).run(test_suite)
+	# resultclass=TimeLoggingTestResult, 
+	out = unittest_runner(verbosity=1+(verbose and 1 or 0), failfast=failfast).run(test_suite)
 
 	if profile:
 		pr.disable()
