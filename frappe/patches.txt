@@ -257,3 +257,4 @@ frappe.patches.v12_0.setup_tags
 frappe.patches.v12_0.update_auto_repeat_status_and_not_submittable
 frappe.patches.v12_0.copy_to_parent_for_tags
 frappe.patches.v12_0.create_notification_settings_for_user
+frappe.patches.v11_0.make_all_prepared_report_attachments_private
