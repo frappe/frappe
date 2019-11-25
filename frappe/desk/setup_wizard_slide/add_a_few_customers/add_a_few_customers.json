@@ -27,10 +27,11 @@
  "idx": 0,
  "image_src": "/assets/erpnext/images/illustrations/customer.png",
  "max_count": 3,
- "modified": "2019-11-25 12:18:42.676764",
+ "modified": "2019-11-25 16:45:27.813979",
  "modified_by": "Administrator",
  "name": "Add A Few Customers",
  "owner": "Administrator",
+ "ref_doctype": "Customer",
  "slide_desc": "",
  "slide_fields": [
   {
@@ -61,6 +62,6 @@
   }
  ],
  "slide_title": "Add A Few Customers",
- "slide_type": "Action",
+ "slide_type": "Create",
  "submit_method": "create_customers"
 }

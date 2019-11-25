@@ -27,10 +27,11 @@
  "idx": 0,
  "image_src": "/assets/erpnext/images/illustrations/letterhead.png",
  "max_count": 0,
- "modified": "2019-11-25 12:32:56.679708",
+ "modified": "2019-11-25 16:44:48.923555",
  "modified_by": "Administrator",
  "name": "Company Letter Head",
  "owner": "Administrator",
+ "ref_doctype": "Letter Head",
  "slide_desc": "Attach Letterhead: (Keep it web friendly as 1024px by 128px)",
  "slide_fields": [
   {
@@ -45,6 +46,6 @@
   }
  ],
  "slide_title": "Company Letter Head",
- "slide_type": "Action",
+ "slide_type": "Create",
  "submit_method": "create_letterhead"
 }

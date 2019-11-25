@@ -22,10 +22,11 @@
  "idx": 0,
  "image_src": "/assets/erpnext/images/illustrations/product.png",
  "max_count": 3,
- "modified": "2019-11-22 13:16:32.222715",
+ "modified": "2019-11-25 16:45:04.478402",
  "modified_by": "Administrator",
  "name": "Add A Few Products You Buy Or Sell",
  "owner": "Administrator",
+ "ref_doctype": "Item",
  "slide_desc": "",
  "slide_fields": [
   {
@@ -73,6 +74,6 @@
   }
  ],
  "slide_title": "Add A Few Products You Buy Or Sell",
- "slide_type": "Action",
+ "slide_type": "Create",
  "submit_method": "create_items"
 }

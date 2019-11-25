@@ -27,10 +27,11 @@
  "idx": 0,
  "image_src": "/assets/erpnext/images/illustrations/supplier.png",
  "max_count": 3,
- "modified": "2019-11-25 12:32:15.607842",
+ "modified": "2019-11-25 16:45:46.389579",
  "modified_by": "Administrator",
  "name": "Add A Few Suppliers",
  "owner": "Administrator",
+ "ref_doctype": "Supplier",
  "slide_desc": "",
  "slide_fields": [
   {
@@ -61,6 +62,6 @@
   }
  ],
  "slide_title": "Add A Few Suppliers",
- "slide_type": "Action",
+ "slide_type": "Create",
  "submit_method": "create_suppliers"
 }

@@ -72,7 +72,7 @@ def get_help_links(slide_doc):
 	return links
 
 def get_submit_method(slide_doc):
-	if slide_doc.slide_type == 'Action':
+	if slide_doc.slide_type != 'Information':
 		return frappe.scrub(slide_doc.app) + '.utilities.onboarding_utils.' + slide_doc.submit_method
 	return None
 
