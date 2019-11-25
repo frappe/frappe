@@ -1,3 +1,5 @@
+frappe.provide('frappe.search');
+
 frappe.ui.Notifications = class Notifications {
 	constructor() {
 		frappe.model
@@ -24,38 +26,42 @@ frappe.ui.Notifications = class Notifications {
 		this.$open_docs = this.$dropdown_list.find(
 			'.category-list[data-category="Open Documents"]'
 		);
-		this.$upcoming_events = this.$dropdown_list.find(
-			'.category-list[data-category="Upcoming Events"]'
+		this.$today_events = this.$dropdown_list.find(
+			'.category-list[data-category="Todays Events"]'
 		);
 
 		frappe.utils.bind_actions_with_object(this.$dropdown_list, this);
+		let me = this;
+		frappe.search.utils.make_function_searchable(
+			me.route_to_settings,
+			__('Notification Settings'),
+		);
+
 		this.setup_notifications();
 		this.bind_events();
+	}
+
+	route_to_settings() {
+		frappe.set_route(`#Form/Notification Settings/${frappe.session.user}`);
 	}
 
 	setup_notifications() {
 		this.get_notifications_list(this.max_length).then(list => {
 			this.dropdown_items = list;
 			this.render_notifications_dropdown();
-
-			if (this.$notifications.find('.unseen').length) {
+			if (this.notifications_settings.seen == 0) {
 				this.$notification_indicator.show();
 			}
 		});
 	}
 
-	render_upcoming_events(e, $target) {
+	render_todays_events(e, $target) {
 		let hide = $target.next().hasClass('in');
 		if (!hide) {
 			let today = frappe.datetime.get_today();
-			let tomorrow = frappe.datetime.add_days(today, 1);
-			frappe.db.get_list('Event', {
-				fields: ['name', 'subject', 'starts_on'],
-				filters: [
-					{'starts_on': ['between', today, tomorrow]}, 
-					{'ends_on': ['>=', frappe.datetime.now_datetime()]},
-					{'owner': frappe.session.user}
-				]
+			frappe.xcall('frappe.desk.doctype.event.event.get_events', {
+				start: today,
+				end: today
 			}).then(event_list => {
 				this.render_events_html(event_list);
 			});
@@ -75,11 +81,11 @@ frappe.ui.Notifications = class Notifications {
 			html = event_list.map(get_event_html).join('');
 		} else {
 			html = `<li class="recent-item text-center">
-					<span class="text-muted">${__('No Upcoming Events')}</span>
+					<span class="text-muted">${__('No Events Today')}</span>
 				</li>`;
 		}
 
-		this.$upcoming_events.html(html);
+		this.$today_events.html(html);
 	}
 
 	get_open_document_config(e) {
@@ -92,12 +98,10 @@ frappe.ui.Notifications = class Notifications {
 			.next()
 			.hasClass('in');
 		if (!hide) {
-			frappe
-				.xcall('frappe.desk.notifications.get_notification_info')
-				.then(r => {
-					this.open_document_list = r;
-					this.render_open_document_count();
-				});
+			frappe.ui.notifications.get_notification_config().then(r => {
+				this.open_document_list = r;
+				this.render_open_document_count();
+			});
 		}
 	}
 
@@ -166,17 +170,6 @@ frappe.ui.Notifications = class Notifications {
 		if (!target) this.total += value;
 	}
 
-	route_to_list_with_filters(doctype) {
-		let filters = this.open_document_list['conditions'][doctype];
-		if (filters && $.isPlainObject(filters)) {
-			if (!frappe.route_options) {
-				frappe.route_options = {};
-			}
-			$.extend(frappe.route_options, filters);
-		}
-		frappe.set_route('List', doctype);
-	}
-
 	route_to_document_type(e) {
 		this.$dropdown.removeClass('open');
 		this.$dropdown.trigger('hide.bs.dropdown');
@@ -189,7 +182,7 @@ frappe.ui.Notifications = class Notifications {
 			} else if (config.click) {
 				config.click();
 			} else {
-				this.route_to_list_with_filters(doctype);
+				frappe.ui.notifications.show_open_count_list(doctype);
 			}
 		} else {
 			frappe.set_route('Form', doctype, docname);
@@ -222,22 +215,51 @@ frappe.ui.Notifications = class Notifications {
 	change_activity_status() {
 		if (this.$dropdown_list.find('.activity-status')) {
 			this.$dropdown_list.find('.activity-status').replaceWith(
-				`<a class="recent-item text-center text-muted full-log-btn" 
+				`<a class="recent-item text-center text-muted"
 					href="#List/Notification Log">
-					${__('View Full Log')}
+					<div class="full-log-btn">${__('View Full Log')}</div>
 				</a>`
 			);
 		}
 	}
 
-	mark_as_seen() {
-		let unseen_docnames = this.dropdown_items
-			.filter(item => item.seen === 0)
-			.map(d => d.name);
-		if (!unseen_docnames.length) return;
+	set_field_as_read(docname, $el) {
 		frappe.call(
-			'frappe.desk.doctype.notification_log.notification_log.mark_as_seen',
-			{ docnames: unseen_docnames }
+			'frappe.desk.doctype.notification_log.notification_log.mark_as_read',
+			{ docname: docname }
+		).then(()=> {
+			$el.removeClass('unread');
+		});
+	}
+
+	explicitly_mark_as_read(e, $target) {
+		e.preventDefault();
+		e.stopImmediatePropagation();
+		let docname = $target.parents('.unread').attr('data-name');
+		this.set_field_as_read(docname, $target.parents('.unread'));
+	}
+
+	mark_as_read(e, $target) {
+		let docname = $target.attr('data-name');
+		let df = this.dropdown_items.filter(f => docname.includes(f.name))[0];
+		this.set_field_as_read(df.name, $target);
+	}
+
+	mark_all_as_read(e) {
+		e.stopImmediatePropagation();
+		this.$dropdown_list.find('.unread').removeClass('unread');
+		frappe.call(
+			'frappe.desk.doctype.notification_log.notification_log.mark_all_as_read',
+		);
+	}
+
+	toggle_seen(flag) {
+		frappe.call(
+			'frappe.desk.doctype.notification_settings.notification_settings.set_seen_value',
+			{
+				value: cint(flag),
+				user: frappe.session.user
+			}
 		);
 	}
 
@@ -265,9 +287,9 @@ frappe.ui.Notifications = class Notifications {
 					let item_html = this.get_dropdown_item_html(field);
 					if (item_html) body_html += item_html;
 				});
-				view_full_log_html = `<a class="recent-item text-center text-muted full-log-btn"
+				view_full_log_html = `<a class="recent-item text-center text-muted"
 					href="#List/Notification Log">
-						${__('View Full Log')}
+						<div class="full-log-btn">${__('View Full Log')}</div>
 					</a>`;
 			} else {
 				body_html += `<li class="recent-item text-center activity-status">
@@ -286,19 +308,30 @@ frappe.ui.Notifications = class Notifications {
 			field.document_type,
 			field.document_name
 		);
-		let seen_class = field.seen ? '' : 'unseen';
+		let read_class = field.read ? '' : 'unread';
+		let mark_read_action = field.read ? '': 'data-action="mark_as_read"';
 		let message = field.subject;
+		let title = message.match(/<b class="subject-title">(.*?)<\/b>/);
+		message = title ? message.replace(title[1], frappe.ellipsis(title[1], 100)): message;
 		let message_html = `<div class="message">${message}</div>`;
 		let user = field.from_user;
 		let user_avatar = frappe.avatar(user, 'avatar-small user-avatar');
 		let timestamp = frappe.datetime.comment_when(field.creation, true);
-		let item_html = `<a class="recent-item ${seen_class}" href = "${doc_link}">
+		let item_html =
+			`<a class="recent-item ${read_class}"
+				href="${doc_link}"
+				data-name="${field.name}"
+				${mark_read_action}
+			>
 				${user_avatar}
 				${message_html}
 				<div class="notification-timestamp text-muted">
 					${timestamp}
 				</div>
-		</a>`;
+				<span class="mark-read text-muted hidden-xs" data-action="explicitly_mark_as_read">
+					${__('Mark as Read')}
+				</span>
+			</a>`;
 
 		return item_html;
 	}
@@ -306,18 +339,18 @@ frappe.ui.Notifications = class Notifications {
 	render_dropdown_headers() {
 		this.categories = [
 			{
-				label: __('Notifications'),
-				value: 'Notifications'
+				label: __("Notifications"),
+				value: "Notifications"
 			},
 			{
-				label: __('Upcoming Events'),
-				value: 'Upcoming Events',
-				action: 'render_upcoming_events'
+				label: __("Today's Events"),
+				value: "Todays Events",
+				action: "render_todays_events"
 			},
 			{
-				label: __('Open Documents'),
-				value: 'Open Documents',
-				action: 'get_open_document_config'
+				label: __("Open Documents"),
+				value: "Open Documents",
+				action: "get_open_document_config"
 			}
 		];
 
@@ -325,18 +358,25 @@ frappe.ui.Notifications = class Notifications {
 			let category_id = frappe.dom.get_unique_id();
 			let settings_html =
 				category.value === 'Notifications'
-					? `<span class="notification-settings pull-right" data-action="make_and_route_to_settings">
+					? `<span class="notification-settings pull-right" data-action="go_to_settings">
 						${__('Settings')}
+					</span>`
+					: '';
+			let mark_all_read_html =
+				category.value === 'Notifications'
+					? `<span class="mark-all-read pull-right" data-action="mark_all_as_read">
+						${__('Mark all as Read')}
 					</span>`
 					: '';
 			let html = `<li class="notifications-category">
 					<li class="text-muted header"
 						data-action="${category.action}"
-						href="#${category_id}" 
+						href="#${category_id}"
 						data-toggle="collapse">
 						${category.label}
 						<span class="octicon octicon-chevron-down collapse-indicator"></span>
 						${settings_html}
+						${mark_all_read_html}
 					</li>
 					<div id="${category_id}" class="collapse category-list" data-category="${category.value}">
 						<div class="text-center text-muted notifications-loading">
@@ -360,25 +400,16 @@ frappe.ui.Notifications = class Notifications {
 		);
 	}
 
-	make_and_route_to_settings(e) {
+	go_to_settings(e) {
 		e.stopImmediatePropagation();
 		this.$dropdown.removeClass('open');
 		this.$dropdown.trigger('hide.bs.dropdown');
-		let method =
-			'frappe.desk.doctype.notification_settings.notification_settings.create_notification_settings';
-
-		return Promise.resolve()
-			.then(() => {
-				if (!this.notifications_settings) return frappe.call(method);
-			})
-			.then(() => {
-				frappe.set_route(`#Form/Notification Settings/${frappe.session.user}`);
-			});
+		this.route_to_settings();
 	}
 
 	bind_events() {
-		this.setup_notification_listeners();
 		this.setup_dropdown_events();
+		this.setup_notification_listeners();
 
 		this.$dropdown_list.on('click', '.recent-item', () => {
 			this.$dropdown.removeClass('open');
@@ -399,7 +430,7 @@ frappe.ui.Notifications = class Notifications {
 			this.update_dropdown();
 		});
 
-		frappe.realtime.on('seen_notification', () => {
+		frappe.realtime.on('indicator_hide', () => {
 			this.$dropdown.find('.notifications-indicator').hide();
 		});
 	}
@@ -407,30 +438,25 @@ frappe.ui.Notifications = class Notifications {
 	setup_dropdown_events() {
 		this.$dropdown_list
 			.find(
-				'[data-category="Notifications"], [data-category="Upcoming Events"], [data-category="Open Documents"]'
+				'[data-category="Notifications"], [data-category="Todays Events"], [data-category="Open Documents"]'
 			)
 			.collapse({
 				toggle: false
 			});
 		this.$dropdown.on('hide.bs.dropdown', e => {
 			let hide = $(e.currentTarget).data('closable');
-			if (hide) {
-				this.$dropdown_list
-					.find('[data-category="Notifications"]')
-					.collapse('show');
-				this.$dropdown_list
-					.find(
-						'[data-category="Upcoming Events"], [data-category="Open Documents"]'
-					)
-					.collapse('hide');
-			}
-			this.$dropdown_list.find('.unseen').removeClass('unseen');
 			$(e.currentTarget).data('closable', true);
 			return hide;
 		});
 
 		this.$dropdown.on('show.bs.dropdown', () => {
-			this.mark_as_seen();
+			this.toggle_seen(true);
+			if (this.$notification_indicator.is(':visible')) {
+				this.$notification_indicator.hide();
+				frappe.call(
+					'frappe.desk.doctype.notification_log.notification_log.trigger_indicator_hide'
+				);
+			}
 		});
 
 		this.$dropdown.on('click', e => {
@@ -451,5 +477,36 @@ frappe.ui.Notifications = class Notifications {
 			.prev()
 			.find('.collapse-indicator')
 			.toggleClass('octicon-chevron-up');
+	}
+};
+
+
+frappe.ui.notifications = {
+	get_notification_config() {
+		return frappe.xcall('frappe.desk.notifications.get_notification_info').then(r => {
+			frappe.ui.notifications.config = r;
+			return r;
+		});
+	},
+
+	show_open_count_list(doctype) {
+		if (!frappe.ui.notifications.config) {
+			this.get_notification_config().then(()=> {
+				this.route_to_list_with_filters(doctype);
+			});
+		} else {
+			this.route_to_list_with_filters(doctype);
+		}
+	},
+
+	route_to_list_with_filters(doctype) {
+		let filters = frappe.ui.notifications.config['conditions'][doctype];
+		if (filters && $.isPlainObject(filters)) {
+			if (!frappe.route_options) {
+				frappe.route_options = {};
+			}
+			$.extend(frappe.route_options, filters);
+		}
+		frappe.set_route('List', doctype);
 	}
 };

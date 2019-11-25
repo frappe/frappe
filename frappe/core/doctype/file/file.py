@@ -56,9 +56,7 @@ class File(Document):
 
 	def get_name_based_on_parent_folder(self):
 		if self.folder:
-			path = get_breadcrumbs(self.folder)
-			folder_name = frappe.get_value("File", self.folder, "file_name")
-			return "/".join([d.file_name for d in path] + [folder_name, self.file_name])
+			return "/".join([self.folder, self.file_name])
 
 	def autoname(self):
 		"""Set name for folder"""
@@ -82,10 +80,12 @@ class File(Document):
 
 	def after_rename(self, olddn, newdn, merge=False):
 		for successor in self.get_successor():
-			setup_folder_path(successor, self.name)
+			setup_folder_path(successor[0], self.name)
 
 	def get_successor(self):
-		return frappe.db.sql_list("select name from tabFile where folder='%s'"%self.name) or []
+		return frappe.db.get_values(doctype='File',
+						filters={'folder': self.name},
+						fieldname='name')
 
 	def validate(self):
 		if self.is_new():
@@ -583,19 +583,6 @@ def make_home_folder():
 		"file_name": _("Attachments")
 	}).insert()
 
-@frappe.whitelist()
-def get_breadcrumbs(folder):
-	"""returns name, file_name of parent folder"""
-	path = folder.split('/')
-
-	folders = []
-	for i, _ in enumerate(path):
-		indexes = range(0, i)
-		folder = '/'.join([path[i] for i in indexes])
-		if folder:
-			folders.append(folder)
-
-	return [frappe._dict(file_name=f) for f in folders]
 
 @frappe.whitelist()
 def create_new_folder(file_name, folder):

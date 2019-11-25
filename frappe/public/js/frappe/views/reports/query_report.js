@@ -287,12 +287,6 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	refresh() {
 		this.toggle_message(true);
 		let filters = this.get_filter_values(true);
-		let query = frappe.utils.get_query_string(frappe.get_route_str());
-
-		if(query) {
-			let obj = frappe.utils.get_query_params(query);
-			filters = Object.assign(filters || {}, obj);
-		}
 
 		// only one refresh at a time
 		if (this.last_ajax) {
@@ -457,7 +451,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			this.datatable.refresh(data, this.columns);
 		} else {
 			let datatable_options = {
-				columns: this.columns,
+				columns: this.columns.filter((col) => !col.hidden),
 				data: data,
 				inlineFilters: true,
 				treeView: this.tree_report,
@@ -981,12 +975,15 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				return this.data[index];
 			}
 		}).filter(Boolean);
-		let totalRow = this.datatable.bodyRenderer.getTotalRow().reduce((row, cell) => {
-			row[cell.column.id] = cell.content;
-			return row;
-		}, {});
 
-		rows.push(totalRow);
+		if (this.raw_data.add_total_row) {
+			let totalRow = this.datatable.bodyRenderer.getTotalRow().reduce((row, cell) => {
+				row[cell.column.id] = cell.content;
+				return row;
+			}, {});
+
+			rows.push(totalRow);
+		}
 		return rows;
 	}
 

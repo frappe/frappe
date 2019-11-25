@@ -50,6 +50,9 @@ class DataImportBeta(Document):
 				data_import=self.name,
 				now=frappe.conf.developer_mode or frappe.flags.in_test,
 			)
+			return True
+
+		return False
 
 	def export_errored_rows(self):
 		return self.get_importer().export_errored_rows()

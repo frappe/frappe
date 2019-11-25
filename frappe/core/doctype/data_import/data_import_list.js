@@ -20,5 +20,12 @@ frappe.listview_settings['Data Import'] = {
 		}
 
 		return status['Pending'];
+	},
+	onload(listview) {
+		listview.page.set_title_sub(`
+			<span class="indicator blue">
+				<a class="text-muted" href="#List/Data Import Beta">${__('Try the new Data Import')}</a>
+			</span>
+		`);
 	}
 };

@@ -253,5 +253,7 @@ frappe.patches.v12_0.move_email_and_phone_to_child_table
 frappe.patches.v12_0.delete_duplicate_indexes
 frappe.patches.v12_0.set_default_incoming_email_port
 frappe.patches.v12_0.update_global_search
-execute:frappe.reload_doc('desk', 'doctype', 'notification_settings')
 frappe.patches.v12_0.setup_tags
+frappe.patches.v12_0.update_auto_repeat_status_and_not_submittable
+frappe.patches.v12_0.copy_to_parent_for_tags
+frappe.patches.v12_0.create_notification_settings_for_user

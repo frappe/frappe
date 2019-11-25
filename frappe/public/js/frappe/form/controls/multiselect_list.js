@@ -2,7 +2,7 @@ frappe.ui.form.ControlMultiSelectList = frappe.ui.form.ControlData.extend({
 	make_input() {
 		let template  = `
 			<div class="multiselect-list dropdown">
-				<div class="form-control cursor-pointer dropdown-toggle input-sm" data-toggle="dropdown">
+				<div class="form-control cursor-pointer dropdown-toggle input-sm" data-toggle="dropdown" tabindex=0>
 					<span class="status-text ellipsis"></span>
 				</div>
 				<ul class="dropdown-menu">
@@ -57,6 +57,15 @@ frappe.ui.form.ControlMultiSelectList = frappe.ui.form.ControlData.extend({
 					this.toggle_select_item(this._$last_highlighted);
 					return false;
 				}
+			}
+		});
+
+		this.$list_wrapper.on('keydown', e => {
+			if ($(e.target).is('input')) {
+				return;
+			}
+			if (e.key === 'Backspace') {
+				this.set_value([]);
 			}
 		});
 

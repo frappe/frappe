@@ -5,11 +5,12 @@ from __future__ import unicode_literals
 import frappe
 from frappe import _
 from frappe.desk.form.document_follow import follow_document
-from frappe.desk.doctype.notification_log.notification_log import enqueue_create_notification
+from frappe.desk.doctype.notification_log.notification_log import enqueue_create_notification,\
+	get_title, get_title_html
 from frappe.utils import cint
 
 @frappe.whitelist()
-def add(doctype, name, user=None, read=1, write=0, share=0, everyone=0, flags=None):
+def add(doctype, name, user=None, read=1, write=0, share=0, everyone=0, flags=None, notify=0):
 	"""Share the given document with a user."""
 	if not user:
 		user = frappe.session.user
@@ -41,7 +42,7 @@ def add(doctype, name, user=None, read=1, write=0, share=0, everyone=0, flags=No
 	})
 
 	doc.save(ignore_permissions=True)
-	notify_assignment(user, doctype, name, everyone)
+	notify_assignment(user, doctype, name, everyone, notify=notify)
 
 	follow_document(doctype, name, user)
 
@@ -146,19 +147,18 @@ def check_share_permission(doctype, name):
 	if not frappe.has_permission(doctype, ptype="share", doc=name):
 		frappe.throw(_("No permission to {0} {1} {2}".format("share", doctype, name)), frappe.PermissionError)
 
-def notify_assignment(shared_by, doctype, doc_name, everyone):
+def notify_assignment(shared_by, doctype, doc_name, everyone, notify=0):
 
-	if not (shared_by and doctype and doc_name) or everyone: return
+	if not (shared_by and doctype and doc_name) or everyone or not notify:
+		return
 
 	from frappe.utils import get_fullname
 
-	title_field = frappe.get_meta(doctype).get_title_field()
-	title = doc_name if title_field == "name" else \
-		frappe.db.get_value(doctype, doc_name, title_field)
+	title = get_title(doctype, doc_name)
 
 	reference_user = get_fullname(frappe.session.user)
 	notification_message = _('{0} shared a document {1} {2} with you').format(
-		frappe.bold(reference_user), frappe.bold(doctype), frappe.bold(title))
+		frappe.bold(reference_user), frappe.bold(doctype), get_title_html(title))
 
 	notification_doc = {
 		'type': 'Share',

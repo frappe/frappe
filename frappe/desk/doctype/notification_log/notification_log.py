@@ -7,11 +7,12 @@ import frappe
 from frappe import _
 from frappe.model.document import Document
 from frappe.desk.doctype.notification_settings.notification_settings import (is_notifications_enabled,
-	is_email_notifications_enabled, is_email_notifications_enabled_for_type)
+	is_email_notifications_enabled, is_email_notifications_enabled_for_type, set_seen_value)
 
 class NotificationLog(Document):
 	def after_insert(self):
 		frappe.publish_realtime('notification', after_commit=True, user=self.for_user)
+		set_notifications_as_unseen(self.for_user)
 		if is_email_notifications_enabled(self.for_user):
 			send_notification_email(self)
 
@@ -25,13 +26,22 @@ def get_permission_query_conditions(for_user):
 
 	return '''(`tabNotification Log`.for_user = '{user}')'''.format(user=for_user)
 
+def get_title(doctype, docname, title_field=None):
+	if not title_field:
+		title_field = frappe.get_meta(doctype).get_title_field()
+	title = docname if title_field == "name" else \
+		frappe.db.get_value(doctype, docname, title_field)
+	return title
+
+def get_title_html(title):
+	return '<b class="subject-title">{0}</b>'.format(title)
+
 def enqueue_create_notification(users, doc):
 	'''
 	During installation of new site, enqueue_create_notification tries to connect to Redis.
 	This breaks new site creation if Redis server is not running.
 	We do not need any notifications in fresh installation
 	'''
-
 	if frappe.flags.in_install:
 		return
 
@@ -54,16 +64,20 @@ def make_notification_logs(doc, users):
 			if is_notifications_enabled(user):
 				if doc.type == 'Energy Point' and not is_energy_point_enabled():
 					return
-				else:
-					_doc = frappe.new_doc('Notification Log')
-					_doc.update(doc)
-					_doc.for_user = user
-					_doc.subject = _doc.subject.replace('<div>', '').replace('</div>', '')
+
+				_doc = frappe.new_doc('Notification Log')
+				_doc.update(doc)
+				_doc.for_user = user
+				_doc.subject = _doc.subject.replace('<div>', '').replace('</div>', '')
+				if _doc.for_user != _doc.from_user or doc.type == 'Energy Point':
 					_doc.insert(ignore_permissions=True)
 
 def send_notification_email(doc):
 	is_type_enabled = is_email_notifications_enabled_for_type(doc.for_user, doc.type)
 	if not is_type_enabled:
+		return
+
+	if doc.type == 'Energy Point' and doc.email_content is None:
 		return
 
 	from frappe.utils import get_url_to_form, strip_html
@@ -98,9 +112,25 @@ def get_email_header(doc):
 
 
 @frappe.whitelist()
-def mark_as_seen(docnames):
-	docnames = frappe.parse_json(docnames)
-	if docnames:
-		filters = {'name': ['in', docnames]}
-		frappe.db.set_value('Notification Log', filters, 'seen', 1, update_modified=False)
-		frappe.publish_realtime('seen_notification', after_commit=True, user=frappe.session.user)
+def mark_all_as_read():
+	unread_docs_list = frappe.db.get_all('Notification Log', filters = {'read': 0, 'for_user': frappe.session.user})
+	unread_docnames = [doc.name for doc in unread_docs_list]
+	if unread_docnames:
+		filters = {'name': ['in', unread_docnames]}
+		frappe.db.set_value('Notification Log', filters, 'read', 1, update_modified=False)
+
+
+@frappe.whitelist()
+def mark_as_read(docname):
+	if docname:
+		frappe.db.set_value('Notification Log', docname, 'read', 1, update_modified=False)
+
+@frappe.whitelist()
+def trigger_indicator_hide():
+	frappe.publish_realtime('indicator_hide', user=frappe.session.user)
+
+def set_notifications_as_unseen(user):
+	try:
+		frappe.db.set_value('Notification Settings', user, 'seen', 0)
+	except frappe.DoesNotExistError:
+		return
