@@ -81,7 +81,7 @@ def create_json_gz_file(data, dt, dn):
 		dt=dt,
 		dn=dn,
 		folder=None,
-		is_private=False)
+		is_private=True)
 
 
 @frappe.whitelist()
