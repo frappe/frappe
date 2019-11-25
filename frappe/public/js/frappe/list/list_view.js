@@ -302,20 +302,17 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 
 	get_documentation_link() {
-		if (this.meta.description) {
-			let find_url = this.meta.description.match("url:[^ ]*");
-			if (find_url) {
-				let link = find_url[0].split("url:")[1]
-				return `<a href="${link}" target="blank" class="meta-description small text-muted">Need Help?</a>`
-			}
+		if (this.meta.documentation) {
+			return `<a href="${this.meta.documentation}" target="blank" class="meta-description small text-muted">Need Help?</a>`
 		}
 		return ''
 	}
 
 	get_no_result_message() {
 		let help_link = this.get_documentation_link()
-		let no_result_message = this.filters.length ? __('No {0} found', [__(this.doctype)]) : __('You haven\'t created a {0} yet', [__(this.doctype)]);
-		let new_button_label = this.filters.length ? __('Create a new {0}', [__(this.doctype)]) : __('Create your first {0}', [__(this.doctype)]);
+		let filters = this.filter_area.get();
+		let no_result_message = filters.length ? __('No {0} found', [__(this.doctype)]) : __('You haven\'t created a {0} yet', [__(this.doctype)]);
+		let new_button_label = filters.length ? __('Create a new {0}', [__(this.doctype)]) : __('Create your first {0}', [__(this.doctype)]);
 		let empty_state_image = this.settings.empty_state_image || '/assets/frappe/images/ui-states/empty.png'
 
 		const new_button = this.can_create ?
@@ -408,6 +405,14 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			sort_by: this.sort_selector.sort_by,
 			sort_order: this.sort_selector.sort_order
 		});
+	}
+
+	after_render() {
+		this.$no_result.html(`
+			<div class="no-result text-muted flex justify-center align-center">
+				${this.get_no_result_message()}
+			</div>
+		`);
 	}
 
 	render() {
