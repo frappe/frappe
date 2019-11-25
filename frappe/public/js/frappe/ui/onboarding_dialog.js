@@ -11,52 +11,47 @@ frappe.setup.OnboardingSlide = class OnboardingSlide extends frappe.ui.Slide {
 
 	make() {
 		super.make();
-		this.$done_state = $(`<div class="text-center">
-			<div class="help-links"></div>
-		</div>`).appendTo(this.$body);
-		if(this.help_links) {
+		this.$next_btn = this.slides_footer.find('.next-btn');
+		this.$complete_btn = this.slides_footer.find('.complete-btn');
+		this.$action_button = this.slides_footer.find('.next-btn')
+		if (this.help_links) {
+			this.$help_links = $(`<div class="text-center">
+				<div class="help-links"></div>
+			</div>`).appendTo(this.$body);
 			this.setup_help_links();
 		}
 	}
 
 	before_show() {
-		this.$action_button = this.slides_footer.find('.next-btn')
-		if (this.id === 0) {
-			this.$action_button.text(__('Start'));
-		} else {
-			this.$action_button.text(__('Next'));
-		} if (this.id === this.parent[0].children.length-1) {
-			this.slides_footer.find('.complete-btn').removeClass('hide').addClass('btn-primary action primary');
-			this.slides_footer.find('.next-btn').removeClass('action primary');
-			this.$action_button = this.slides_footer.find('.complete-btn')
-		} else {
-			this.slides_footer.find('.complete-btn').removeClass('btn-primary action primary').addClass('hide');
-			this.slides_footer.find('.next-btn').addClass('action primary');
-			this.$action_button = this.slides_footer.find('.next-btn')
-		} if (this.slide_type == 'Action') {
-			this.$action_button.addClass('primary');
-		} else if (this.slide_type == 'Info') {
-			this.$action_button.removeClass('primary');
+		(this.id === 0) ?
+			this.$next_btn.text(__('Start')) : this.$next_btn.text(__('Next'));
+		//last slide
+		if (this.id === this.parent[0].children.length-1) {
+			this.$complete_btn.removeClass('hide').addClass('action primary');
+			this.$next_btn.removeClass('action primary');
+			this.$action_button = this.$complete_btn;
 		}
+		this.setup_action_button();
 	}
 
 	primary_action() {
 		let me = this;
-		if (me.set_values()) {
-			me.slides_footer.find('.primary').addClass('disabled');
+		if (this.set_values()) {
+			this.$action_button.addClass('disabled');
+			if (me.add_more) {
+				me.values.append('max_count', cint(me.max_count));
+			}
 			frappe.call({
 				method: me.submit_method,
 				args: {args_data: me.values},
 				callback: function() {
 					if (me.id === me.parent[0].children.length-1) {
-						if (me.slides_footer.find('.complete-btn').hasClass('primary')) {
-							$('.user-progress-dialog').modal('toggle');
-							frappe.msgprint({
-								message: __('You are all set up!'),
-								indicator: 'green',
-								title: __('Success')
-							});
-						}
+						$('.onboarding-dialog').modal('toggle');
+						frappe.msgprint({
+							message: __('You are all set up!'),
+							indicator: 'green',
+							title: __('Success')
+						});
 					}
 				},
 				onerror: function() {
@@ -69,11 +64,10 @@ frappe.setup.OnboardingSlide = class OnboardingSlide extends frappe.ui.Slide {
 
 	unbind_primary_action() {
 		// unbind only action method as next button is same as create button in this setup wizard
-		this.slides_footer.find('.action').off('click.primary_action');
+		this.$action_button.off('click.primary_action');
 	}
 
 	setup_help_links() {
-		let $help_links = this.$done_state.find('.help-links');
 		this.help_links.map(link => {
 			let $link = $(
 				`<a target="_blank" class="small text-muted">${link.label}</a>
@@ -86,9 +80,13 @@ frappe.setup.OnboardingSlide = class OnboardingSlide extends frappe.ui.Slide {
 					frappe.help.show_video(link.video_id, link.label);
 				})
 			}
-			$help_links.append($link);
+			this.$help_links.append($link);
 		});
-		$('.help-links').append($help_links);
+	}
+
+	setup_action_button() {
+		(this.slide_type == 'Action') ?
+			this.$action_button.addClass('primary') : this.$action_button.removeClass('primary');
 	}
 };
 
@@ -102,7 +100,7 @@ frappe.setup.OnboardingDialog  = class OnboardingDialog {
 
 	setup() {
 		this.dialog = new frappe.ui.Dialog({title: __("Let's Onboard!")});
-		this.$wrapper = $(this.dialog.$wrapper).addClass('user-progress-dialog');
+		this.$wrapper = $(this.dialog.$wrapper).addClass('onboarding-dialog');
 		this.slide_container = new frappe.ui.Slides({
 			parent: this.dialog.body,
 			slides: this.slides,
@@ -112,12 +110,16 @@ frappe.setup.OnboardingDialog  = class OnboardingDialog {
 				$footer.find('.prev-btn').addClass('hide');
 				$footer.find('.next-btn').removeClass('btn-default').addClass('btn-primary action');
 				$footer.find('.text-right').prepend(
-					$(`<a class="complete-btn btn btn-sm">
+					$(`<a class="complete-btn btn btn-primary btn-sm hide">
 				${__("Complete")}</a>`));
 			}
 		});
 
-		this.$wrapper.find('.modal-title').prepend(`<span class="onboarding-icon"><i class="fa fa-rocket" aria-hidden="true"></i></span>`);
+		this.$wrapper.find('.modal-title').prepend(
+			`<span class="onboarding-icon">
+				<i class="fa fa-rocket" aria-hidden="true"></i>
+			</span>`
+		);
 	}
 
 	show() {

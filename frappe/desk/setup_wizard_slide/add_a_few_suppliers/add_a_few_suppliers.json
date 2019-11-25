@@ -25,8 +25,9 @@
   }
  ],
  "idx": 0,
+ "image_src": "/assets/erpnext/images/illustrations/supplier.png",
  "max_count": 3,
- "modified": "2019-11-21 10:54:03.196745",
+ "modified": "2019-11-25 11:05:58.390770",
  "modified_by": "Administrator",
  "name": "Add A Few Suppliers",
  "owner": "Administrator",

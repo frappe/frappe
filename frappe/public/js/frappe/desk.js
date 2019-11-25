@@ -88,9 +88,9 @@ frappe.Application = Class.extend({
 		}
 
 		this.show_update_available();
-		if (frappe.boot.is_first_startup) {
-			this.setup_onboarding_wizard();
-		}
+		// if (frappe.boot.is_first_startup) {
+		this.setup_onboarding_wizard();
+		// }
 
 		if(frappe.ui.startup_setup_dialog && !frappe.boot.setup_complete) {
 			frappe.ui.startup_setup_dialog.pre_show();

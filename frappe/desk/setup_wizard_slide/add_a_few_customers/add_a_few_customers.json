@@ -25,11 +25,13 @@
   }
  ],
  "idx": 0,
+ "image_src": "/assets/erpnext/images/illustrations/customer.png",
  "max_count": 3,
- "modified": "2019-11-21 10:54:10.736056",
+ "modified": "2019-11-25 11:05:51.169841",
  "modified_by": "Administrator",
  "name": "Add A Few Customers",
  "owner": "Administrator",
+ "slide_desc": "",
  "slide_fields": [
   {
    "align": "",

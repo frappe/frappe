@@ -5,7 +5,6 @@
 from __future__ import unicode_literals
 import frappe
 from frappe.model.document import Document
-from erpnext.setup.doctype.setup_progress.setup_progress import get_action_completed_state
 from frappe.modules import get_module_path, scrub_dt_dn
 from frappe.modules.export_file import export_to_files, create_init_py
 
@@ -15,7 +14,7 @@ class SetupWizardSettings(Document):
 			return
 
 		if frappe.local.conf.get('developer_mode'):
-			record_list =[['Setup Wizard Settings', self.name]]
+			record_list = [['Setup Wizard Settings', self.name]]
 
 			for s in self.slide_order:
 				record_list.append(['Setup Wizard Slide', s.slide])
@@ -31,29 +30,18 @@ def get_slide_settings():
 	slide_settings = frappe.get_single('Setup Wizard Settings')
 	for entry in slide_settings.slide_order:
 		slide_doc = frappe.get_doc('Setup Wizard Slide', entry.slide)
-		print(frappe.get_installed_apps())
 		if frappe.scrub(slide_doc.app) in frappe.get_installed_apps():
-			domains = get_domains(slide_doc)
-			help_links = get_help_links(slide_doc)
-			if slide_doc.slide_type == 'Action':
-				submit_method = frappe.scrub(slide_doc.app) + '.utilities.onboarding_utils.' + slide_doc.submit_method
-			else:
-				submit_method = None
-			if slide_doc.image_src:
-				image_src = slide_doc.image_src
-			else:
-				image_src = None
 			slides.append(frappe._dict(
 				slide_type = slide_doc.slide_type,
 				title = slide_doc.slide_title,
 				help = slide_doc.slide_desc,
-				domains = domains,
+				domains = get_domains(slide_doc),
 				fields = slide_doc.slide_fields,
-				help_links = help_links,
+				help_links = get_help_links(slide_doc),
 				add_more = slide_doc.add_more_button,
 				max_count = slide_doc.max_count,
-				submit_method = submit_method,
-				image_src= image_src
+				submit_method = get_submit_method(slide_doc),
+				image_src = get_slide_image(slide_doc)
 			))
 	return slides
 
@@ -82,3 +70,13 @@ def get_help_links(slide_doc):
 			'video_id': link.video_id
 		})
 	return links
+
+def get_submit_method(slide_doc):
+	if slide_doc.slide_type == 'Action':
+		return frappe.scrub(slide_doc.app) + '.utilities.onboarding_utils.' + slide_doc.submit_method
+	return None
+
+def get_slide_image(slide_doc):
+	if slide_doc.image_src:
+		return slide_doc.image_src
+	return None
