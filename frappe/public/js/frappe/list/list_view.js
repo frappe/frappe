@@ -302,12 +302,13 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 
 	get_documentation_link() {
-		let find_url = this.meta.description.match("url:[^ ]*");
-		if (find_url) {
-			let link = find_url[0].split("url:")[1]
-			return `<a href="${link}" target="blank" class="meta-description small text-muted">Need Help?</a>`
+		if (this.meta.description) {
+			let find_url = this.meta.description.match("url:[^ ]*");
+			if (find_url) {
+				let link = find_url[0].split("url:")[1]
+				return `<a href="${link}" target="blank" class="meta-description small text-muted">Need Help?</a>`
+			}
 		}
-
 		return ''
 	}
 
@@ -315,6 +316,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		let help_link = this.get_documentation_link()
 		let no_result_message = this.filters.length ? __('No {0} found', [__(this.doctype)]) : __('You haven\'t created a {0} yet', [__(this.doctype)]);
 		let new_button_label = this.filters.length ? __('Create a new {0}', [__(this.doctype)]) : __('Create your first {0}', [__(this.doctype)]);
+		let empty_state_image = this.settings.empty_state_image || '/assets/frappe/images/ui-states/empty.png'
 
 		const new_button = this.can_create ?
 			`<p><button class="btn btn-primary btn-sm btn-new-doc">
@@ -323,7 +325,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 		return `<div class="msg-box no-border">
 			<div>
-				<img src="/assets/frappe/images/ui-states/empty.png" alt="Generic Empty State" class="null-state">
+				<img src="${empty_state_image}" alt="Generic Empty State" class="null-state">
 			</div>
 			<p>${no_result_message}</p>
 			${new_button}
