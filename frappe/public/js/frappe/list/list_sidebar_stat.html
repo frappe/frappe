@@ -1,7 +1,4 @@
-
-{% if(!stat.length) { %}
-<li class="stat-no-records text-muted">{{ __("No records tagged.") }}</li>
-{% } else {
+{%
 	for (var i=0, l=stat.length; i < l; i++) {
 		var stat_label = stat[i][0];
 		var stat_count = stat[i][1];
@@ -13,4 +10,4 @@
 	</a>
 </li>
 	{% }
-} %}
+%}

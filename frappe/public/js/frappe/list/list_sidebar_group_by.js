@@ -91,6 +91,7 @@ frappe.views.ListGroupBy = class ListGroupBy {
 					this.sidebar.setup_dropdown_search(dropdown, '.group-by-value');
 				} else {
 					dropdown.find('.group-by-loading').hide();
+					this.render_dropdown_empty_state(dropdown);
 				}
 			});
 		});
@@ -136,6 +137,14 @@ frappe.views.ListGroupBy = class ListGroupBy {
 			if (current_user) field_counts.unshift(current_user);
 			return field_counts;
 		});
+	}
+
+	render_dropdown_empty_state(dropdown) {
+		const empty_html = `<li class="text-muted dropdown-empty">
+						${__('No Results for this Filter')}
+					</li>`;
+
+		dropdown.html(empty_html);
 	}
 
 	render_dropdown_items(fields, dropdown) {

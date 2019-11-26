@@ -156,6 +156,14 @@ frappe.views.ListSidebar = class ListSidebar {
 	setup_calendar_view() {
 		const doctype = this.doctype;
 
+		function get_calendar_url(name=null) {
+			if (name) {
+				return `<li><a href="#List/${doctype}/Calendar/${name}" style="white-space:nowrap;overflow:hidden;text-overflow: ellipsis;">${ __(name) }</a></li>`
+			}
+			// Return default if no name provided
+			return `<li><a href="#List/${doctype}/Calendar/Default">${ __("Default") }</a></li>`
+		}
+
 		frappe.db.get_list('Calendar View', {
 			filters: {
 				reference_doctype: doctype
@@ -168,14 +176,18 @@ frappe.views.ListSidebar = class ListSidebar {
 			let default_link = '';
 			if (frappe.views.calendar[this.doctype]) {
 				// has standard calendar view
-				default_link = `<li><a href="#List/${doctype}/Calendar/Default">
-					${ __("Default") }</a></li>`;
+				default_link = get_calendar_url();
 			}
-			const other_links = calendar_views.map(
-				calendar_view => `<li><a href="#List/${doctype}/Calendar/${calendar_view.name}">
-					${ __(calendar_view.name) }</a>
-				</li>`
-			).join('');
+			let dropdown_body = ''
+			if (calendar_views.length) {
+				dropdown_body = calendar_views.map(view => {
+					return get_calendar_url(view.name)
+				}).join('');
+			} else if(!default_link) {
+				dropdown_body = `<li class="text-muted dropdown-empty">
+						${__('No Calendar View Found')}
+					</li>`
+			}
 
 			const dropdown_html = `
 				<div class="btn-group">
@@ -184,7 +196,7 @@ frappe.views.ListSidebar = class ListSidebar {
 					</a>
 					<ul class="dropdown-menu calendar-dropdown" style="max-height: 300px; overflow-y: auto;">
 						${default_link}
-						${other_links}
+						${dropdown_body}
 					</ul>
 				</div>
 			`;
@@ -192,6 +204,7 @@ frappe.views.ListSidebar = class ListSidebar {
 			$link_calendar.html(dropdown_html);
 		});
 	}
+
 
 	setup_email_inbox() {
 		// get active email account for the user and add in dropdown
@@ -278,37 +291,44 @@ frappe.views.ListSidebar = class ListSidebar {
 	}
 
 	get_stats() {
-		var me = this;
-		frappe.call({
-			method: 'frappe.desk.reportview.get_sidebar_stats',
-			type: 'GET',
-			args: {
-				stats: me.stats,
-				doctype: me.doctype,
-				// wait for list filter area to be generated before getting filters, or fallback to default filters
-				filters: (me.list_view.filter_area ? me.list_filter.get_current_filters() : me.default_filters) || []
-			},
-			callback: function(r) {
-				me.render_stat("_user_tags", (r.message.stats || {})["_user_tags"]);
-				let stats_dropdown = me.sidebar.find('.list-stats-dropdown');
-				me.setup_dropdown_search(stats_dropdown,'.stat-label');
+		frappe.call('frappe.desk.reportview.get_sidebar_stats', {
+			stats: this.stats,
+			doctype: this.doctype,
+			// wait for list filter area to be generated before getting filters, or fallback to default filters
+			filters: (this.list_view.filter_area ? this.list_filter.get_current_filters() : this.default_filters) || []
+		}).then(r => {
+			this.sidebar.find('.stat-no-records').remove()
+			const field = "_user_tags";
+			const stats = r.message.stats ? r.message.stats[field] : [];
+
+			this.render_stat(field, stats);
+			let stats_dropdown = this.sidebar.find('.list-stats-dropdown');
+			if (stats.length) {
+				this.setup_dropdown_search(stats_dropdown,'.stat-label');
+				this.sidebar.find('.list-stats-search').removeClass("hide");
 			}
 		});
 	}
 
 	render_stat(field, stat, tags) {
+		if (!stat.length) {
+			const empty = $(`<li class="stat-no-records text-muted dropdown-empty">${ __("No records tagged.") }</li>`)
+			empty.appendTo(this.sidebar.find(".list-stats-dropdown"));
+
+			return
+		}
+
 		var me = this;
 		var sum = 0;
 		var stats = [];
 		var label = frappe.meta.docfield_map[this.doctype][field] ?
 			frappe.meta.docfield_map[this.doctype][field].label : field;
 
-		stat = (stat || []).sort(function(a, b) {
+		stat = stat.sort(function(a, b) {
 			return b[1] - a[1];
 		});
-		$.each(stat, function(i, v) {
-			sum = sum + v[1];
-		});
+
+		sum = stat.reduce((agg, next) => agg + next, 0)
 
 		if (tags) {
 			for (var t in tags) {
@@ -336,6 +356,8 @@ frappe.views.ListSidebar = class ListSidebar {
 			sum: sum,
 			label: field === '_user_tags' ? (tags ? __(label) : __("Tag")) : __(label),
 		};
+
+
 		$(frappe.render_template("list_sidebar_stat", context))
 			.on("click", ".stat-link", function() {
 				var doctype = "Tag Link";
