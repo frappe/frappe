@@ -24,9 +24,9 @@ frappe.ui.form.on('Setup Wizard Slide', {
 		//fetch mandatory fields automatically
 		if (frm.doc.ref_doctype) {
 			frappe.model.clear_table(frm.doc, 'slide_fields');
-			const fields = frappe.meta.get_docfields(frm.doc.ref_doctype, null, {
+			let fields = frappe.meta.get_docfields(frm.doc.ref_doctype, null, {
 				reqd: 1
-			})
+			});
 			$.each(fields, function(_i, data) {
 				let row = frappe.model.add_child(frm.doc, 'Setup Wizard Slide', 'slide_fields');
 				row.label = data.label;

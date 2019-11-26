@@ -38,12 +38,16 @@ frappe.setup.OnboardingSlide = class OnboardingSlide extends frappe.ui.Slide {
 		let me = this;
 		if (this.set_values()) {
 			this.$action_button.addClass('disabled');
-			if (me.add_more) {
-				me.values.max_count = me.max_count;
-			}
+			if (me.add_more) me.values.max_count = me.max_count;
 			frappe.call({
-				method: me.submit_method,
-				args: {args_data: me.values},
+				method: 'frappe.desk.doctype.setup_wizard_slide.setup_wizard_slide.create_onboarding_docs',
+				args: {
+					values:me.values,
+					doctype:me.ref_doctype,
+					submit_method:me.submit_method,
+					app:me.app,
+					slide_type:me.slide_type
+				},
 				callback: function() {
 					if (me.id === me.parent[0].children.length-1) {
 						$('.onboarding-dialog').modal('toggle');

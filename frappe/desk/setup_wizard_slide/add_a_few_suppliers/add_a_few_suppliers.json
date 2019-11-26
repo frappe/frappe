@@ -27,7 +27,7 @@
  "idx": 0,
  "image_src": "/assets/erpnext/images/illustrations/supplier.png",
  "max_count": 3,
- "modified": "2019-11-25 16:45:46.389579",
+ "modified": "2019-11-26 10:23:54.632950",
  "modified_by": "Administrator",
  "name": "Add A Few Suppliers",
  "owner": "Administrator",
@@ -39,16 +39,12 @@
    "fieldname": "supplier_name",
    "fieldtype": "Data",
    "label": "Supplier Name",
-   "max_length": 0,
-   "max_value": 0,
    "placeholder": "",
    "reqd": 1
   },
   {
    "align": "",
    "fieldtype": "Column Break",
-   "max_length": 0,
-   "max_value": 0,
    "reqd": 0
   },
   {
@@ -56,12 +52,10 @@
    "fieldname": "supplier_email",
    "fieldtype": "Data",
    "label": "Supplier Email",
-   "max_length": 0,
-   "max_value": 0,
    "reqd": 1
   }
  ],
  "slide_title": "Add A Few Suppliers",
  "slide_type": "Create",
- "submit_method": "create_suppliers"
+ "submit_method": ""
 }

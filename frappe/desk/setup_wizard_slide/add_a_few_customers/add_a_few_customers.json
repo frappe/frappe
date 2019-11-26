@@ -27,7 +27,7 @@
  "idx": 0,
  "image_src": "/assets/erpnext/images/illustrations/customer.png",
  "max_count": 3,
- "modified": "2019-11-25 16:45:27.813979",
+ "modified": "2019-11-26 10:24:00.553997",
  "modified_by": "Administrator",
  "name": "Add A Few Customers",
  "owner": "Administrator",
@@ -39,16 +39,12 @@
    "fieldname": "customer_name",
    "fieldtype": "Data",
    "label": "Customer Name",
-   "max_length": 0,
-   "max_value": 0,
    "placeholder": "",
    "reqd": 1
   },
   {
    "align": "",
    "fieldtype": "Column Break",
-   "max_length": 0,
-   "max_value": 0,
    "reqd": 0
   },
   {
@@ -56,12 +52,10 @@
    "fieldname": "customer_email",
    "fieldtype": "Data",
    "label": "Email ID",
-   "max_length": 0,
-   "max_value": 0,
    "reqd": 1
   }
  ],
  "slide_title": "Add A Few Customers",
  "slide_type": "Create",
- "submit_method": "create_customers"
+ "submit_method": ""
 }

@@ -32,16 +32,18 @@ def get_slide_settings():
 		slide_doc = frappe.get_doc('Setup Wizard Slide', entry.slide)
 		if frappe.scrub(slide_doc.app) in frappe.get_installed_apps():
 			slides.append(frappe._dict(
-				slide_type = slide_doc.slide_type,
-				title = slide_doc.slide_title,
-				help = slide_doc.slide_desc,
-				domains = get_domains(slide_doc),
-				fields = slide_doc.slide_fields,
-				help_links = get_help_links(slide_doc),
-				add_more = slide_doc.add_more_button,
-				max_count = slide_doc.max_count,
-				submit_method = get_submit_method(slide_doc),
-				image_src = get_slide_image(slide_doc)
+				slide_type=slide_doc.slide_type,
+				title=slide_doc.slide_title,
+				help=slide_doc.slide_desc,
+				domains=get_domains(slide_doc),
+				fields=slide_doc.slide_fields,
+				help_links=get_help_links(slide_doc),
+				add_more=slide_doc.add_more_button,
+				max_count=slide_doc.max_count,
+				submit_method=slide_doc.submit_method,
+				image_src=get_slide_image(slide_doc),
+				ref_doctype=slide_doc.ref_doctype,
+				app=slide_doc.app
 			))
 	return slides
 
@@ -70,11 +72,6 @@ def get_help_links(slide_doc):
 			'video_id': link.video_id
 		})
 	return links
-
-def get_submit_method(slide_doc):
-	if slide_doc.slide_type != 'Information':
-		return frappe.scrub(slide_doc.app) + '.utilities.onboarding_utils.' + slide_doc.submit_method
-	return None
 
 def get_slide_image(slide_doc):
 	if slide_doc.image_src:
