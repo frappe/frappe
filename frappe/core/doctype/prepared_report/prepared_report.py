@@ -29,7 +29,7 @@ class PreparedReport(Document):
 		)
 
 	def on_trash(self):
-		remove_all("PreparedReport", self.name, from_delete=True)
+		remove_all("Prepared Report", self.name)
 
 
 def run_background(prepared_report):
