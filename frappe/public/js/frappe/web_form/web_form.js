@@ -40,7 +40,7 @@ export default class WebForm extends frappe.ui.FieldGroup {
 	}
 
 	set_field_values() {
-		if (this.doc_name) this.set_values(this.doc);
+		if (this.doc.name) this.set_values(this.doc);
 		else return;
 	}
 

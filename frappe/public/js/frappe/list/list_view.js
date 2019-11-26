@@ -1077,8 +1077,19 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 					});
 					this.toggle_result_area();
 					this.render_list();
+					if (this.$checks.length) {
+						this.set_rows_as_checked();
+					}
 				});
 		});
+	}
+
+	set_rows_as_checked() {
+		$.each(this.$checks, (i, el) => {
+			let docname = $(el).attr('data-name');
+			this.$result.find(`.list-row-checkbox[data-name='${docname}']`).prop('checked', true);
+		});
+		this.on_row_checked();
 	}
 
 	on_row_checked() {
