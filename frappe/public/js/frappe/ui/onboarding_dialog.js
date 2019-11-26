@@ -13,7 +13,7 @@ frappe.setup.OnboardingSlide = class OnboardingSlide extends frappe.ui.Slide {
 		super.make();
 		this.$next_btn = this.slides_footer.find('.next-btn');
 		this.$complete_btn = this.slides_footer.find('.complete-btn');
-		this.$action_button = this.slides_footer.find('.next-btn')
+		this.$action_button = this.slides_footer.find('.next-btn');
 		if (this.help_links) {
 			this.$help_links = $(`<div class="text-center">
 				<div class="help-links"></div>
@@ -42,11 +42,11 @@ frappe.setup.OnboardingSlide = class OnboardingSlide extends frappe.ui.Slide {
 			frappe.call({
 				method: 'frappe.desk.doctype.setup_wizard_slide.setup_wizard_slide.create_onboarding_docs',
 				args: {
-					values:me.values,
-					doctype:me.ref_doctype,
-					submit_method:me.submit_method,
-					app:me.app,
-					slide_type:me.slide_type
+					values: me.values,
+					doctype: me.ref_doctype,
+					submit_method: me.submit_method,
+					app: me.app,
+					slide_type: me.slide_type
 				},
 				callback: function() {
 					if (me.id === me.parent[0].children.length-1) {
@@ -79,10 +79,10 @@ frappe.setup.OnboardingSlide = class OnboardingSlide extends frappe.ui.Slide {
 					<i class="fa fa-question-circle-o" aria-hidden="true"></i>
 				</span>`
 			);
-			if(link.video_id) {
+			if (link.video_id) {
 				$link.on('click', () => {
 					frappe.help.show_video(link.video_id, link.label);
-				})
+				});
 			}
 			this.$help_links.append($link);
 		});
