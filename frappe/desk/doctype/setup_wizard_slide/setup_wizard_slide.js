@@ -2,6 +2,11 @@
 // For license information, please see license.txt
 
 frappe.ui.form.on('Setup Wizard Slide', {
+	refresh: function(frm) {
+		frm.toggle_reqd('ref_doctype', frm.doc.slide_type!='Information');
+		frm.toggle_reqd('slide_module', frm.doc.slide_type=='Information');
+	},
+
 	ref_doctype: function(frm) {
 		frm.set_query('ref_doctype', function() {
 			if (frm.doc.slide_type === 'Create') {

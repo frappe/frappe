@@ -491,7 +491,7 @@ frappe.Application = Class.extend({
 
 	setup_onboarding_wizard: () => {
 		var me = this;
-		frappe.call('frappe.desk.doctype.setup_wizard_settings.setup_wizard_settings.get_onboarding_slides').then(res => {
+		frappe.call('frappe.desk.doctype.setup_wizard_slide.setup_wizard_slide.get_onboarding_slides').then(res => {
 			if (res.message) {
 				let slides = res.message;
 				if (slides.length) {
