@@ -325,8 +325,4 @@ global_search_doctypes = {
 		{"doctype": "Web Form"}
 	]
 }
-fixtures = [
-    {"doctype": "Custom Field","filters": [["dt", "in", ("Note")]]},
-    {"doctype": "Note", "filters": [["source_app", "in", ("frappe")]]}
-]
 
