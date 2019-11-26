@@ -57,6 +57,7 @@ install:
 
 script:
   - bench --site test_site run-tests --coverage
+  - bench --site test_site run-tests --coverage --junit-xml-output frappe_unit_tests.xml
 
 after_script:
   - pip install python-coveralls
