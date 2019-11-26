@@ -8,6 +8,7 @@ from frappe.utils import cint, has_gravatar, format_datetime, now_datetime, get_
 from frappe import throw, msgprint, _
 from frappe.utils.password import update_password as _update_password
 from frappe.desk.notifications import clear_notifications
+from frappe.desk.doctype.notification_settings.notification_settings import create_notification_settings
 from frappe.utils.user import get_system_managers
 from bs4 import BeautifulSoup
 import frappe.permissions
@@ -45,6 +46,9 @@ class User(Document):
 	def before_insert(self):
 		self.flags.in_insert = True
 		throttle_user_creation()
+
+	def after_insert(self):
+		create_notification_settings(self.name)
 
 	def validate(self):
 		self.check_demo()
@@ -363,6 +367,9 @@ class User(Document):
 
 		if frappe.db.exists("Chat Profile", old_name):
 			frappe.rename_doc("Chat Profile", old_name, new_name, force=True)
+
+		if frappe.db.exists("Notification Settings", old_name):
+			frappe.rename_doc("Notification Settings", old_name, new_name, force=True)
 
 		# set email
 		frappe.db.sql("""UPDATE `tabUser`
