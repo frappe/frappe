@@ -38,7 +38,7 @@ def main(app=None, module=None, doctype=None, verbose=False, tests=(),
 
 	xmloutput_fh = None
 	if junit_xml_output:
-		xmloutput_fh = open(junit_xml_output, 'w')
+		xmloutput_fh = open(junit_xml_output, 'wb')
 		unittest_runner = xmlrunner_wrapper(xmloutput_fh)
 	else:
 		unittest_runner = unittest.TextTestRunner
