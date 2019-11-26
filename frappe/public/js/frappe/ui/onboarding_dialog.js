@@ -89,8 +89,11 @@ frappe.setup.OnboardingSlide = class OnboardingSlide extends frappe.ui.Slide {
 	}
 
 	setup_action_button() {
-		(this.slide_type !== 'Information') ?
-			this.$action_button.addClass('primary') : this.$action_button.removeClass('primary');
+		if (this.slide_type !== 'Information') {
+			this.$action_button.addClass('primary');
+		} else {
+			this.$action_button.removeClass('primary');
+		}
 	}
 };
 

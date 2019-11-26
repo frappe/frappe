@@ -21,7 +21,7 @@ def create_onboarding_docs(values, doctype=None, submit_method=None, app=None, s
 			create_generic_onboarding_doc(data, doctype, slide_type)
 	else:
 		doc = frappe.new_doc(doctype)
-		if doc.hasattr(doc, 'create_onboarding_docs'):
+		if hasattr(doc, 'create_onboarding_docs'):
 			doc.create_onboarding_docs(data)
 		else:
 			create_generic_onboarding_doc(data, doctype, slide_type)

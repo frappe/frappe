@@ -491,27 +491,23 @@ frappe.Application = Class.extend({
 
 	setup_onboarding_wizard: () => {
 		var me = this;
-		frappe.call({
-			method: "frappe.desk.doctype.setup_wizard_settings.setup_wizard_settings.get_onboarding_slides",
-			callback: function(r) {
-				if(r.message) {
-					let slides = r.message;
-					if(slides.length) {
-						frappe.require("assets/frappe/js/frappe/ui/onboarding_dialog.js", () => {
-							me.progress_dialog = new frappe.setup.OnboardingDialog({
-								slides: slides
-							});
-							me.progress_dialog.show();
-							frappe.call({
-								method: "frappe.desk.page.setup_wizard.setup_wizard.reset_is_first_startup",
-								args: {},
-								callback: () => {}
-							});
+		frappe.call('frappe.desk.doctype.setup_wizard_settings.setup_wizard_settings.get_onboarding_slides').then(res => {
+			if (res.message) {
+				let slides = res.message;
+				if (slides.length) {
+					frappe.require("assets/frappe/js/frappe/ui/onboarding_dialog.js", () => {
+						me.progress_dialog = new frappe.setup.OnboardingDialog({
+							slides: slides
 						});
-					}
+						me.progress_dialog.show();
+						frappe.call({
+							method: "frappe.desk.page.setup_wizard.setup_wizard.reset_is_first_startup",
+							args: {},
+							callback: () => {}
+						});
+					});
 				}
-			},
-			freeze: false
+			}
 		});
 	},
 

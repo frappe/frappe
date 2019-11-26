@@ -1,6 +1,6 @@
 {
  "add_more_button": 0,
- "app": "Frappe",
+ "app": "ERPNext",
  "creation": "2019-11-22 13:25:42.892593",
  "docstatus": 0,
  "doctype": "Setup Wizard Slide",
@@ -27,7 +27,7 @@
  "idx": 0,
  "image_src": "/assets/erpnext/images/illustrations/letterhead.png",
  "max_count": 0,
- "modified": "2019-11-26 14:19:00.315094",
+ "modified": "2019-11-26 14:47:22.595626",
  "modified_by": "Administrator",
  "name": "Company Letter Head",
  "owner": "Administrator",

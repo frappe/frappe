@@ -25,7 +25,7 @@ class SetupWizardSettings(Document):
 				dt, dn = scrub_dt_dn('Setup Wizard Slide', s.slide)
 				create_init_py(get_module_path('Desk'), dt, dn)
 
-def get_slide_settings():
+def get_onboarding_slides_as_list():
 	slides = []
 	slide_settings = frappe.get_single('Setup Wizard Settings')
 	for entry in slide_settings.slide_order:
@@ -50,12 +50,12 @@ def get_slide_settings():
 @frappe.whitelist()
 def get_onboarding_slides():
 	slides = []
-	slide_settings = get_slide_settings()
+	slide_list = get_onboarding_slides_as_list()
 
-	domains = frappe.get_active_domains()
-	for s in slide_settings:
-		if not s.domains or any(d in domains for d in s.domains):
-			slides.append(s)
+	active_domains = frappe.get_active_domains()
+	for slide in slide_list:
+		if not slide.domains or any(domain in active_domains for domain in slide.domains):
+			slides.append(slide)
 	return slides
 
 def get_domains(slide_doc):
