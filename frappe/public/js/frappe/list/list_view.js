@@ -413,6 +413,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				${this.get_no_result_message()}
 			</div>
 		`);
+		this.setup_new_doc_event();
 		this.list_sidebar.reload_stats();
 	}
 
