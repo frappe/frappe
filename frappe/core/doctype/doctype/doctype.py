@@ -194,6 +194,10 @@ class DocType(Document):
 					else:
 						d.fieldname = d.fieldtype.lower().replace(" ","_") + "_" + str(d.idx)
 
+				else:
+					if d.fieldname in restricted:
+						frappe.throw(_("Fieldname {0} is restricted").format(d.fieldname), InvalidFieldNameError)
+
 				d.fieldname = re.sub('''['",./%@()<>{}]''', '', d.fieldname)
 
 				# fieldnames should be lowercase
