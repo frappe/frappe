@@ -303,17 +303,17 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 	get_documentation_link() {
 		if (this.meta.documentation) {
-			return `<a href="${this.meta.documentation}" target="blank" class="meta-description small text-muted">Need Help?</a>`
+			return `<a href="${this.meta.documentation}" target="blank" class="meta-description small text-muted">Need Help?</a>`;
 		}
-		return ''
+		return '';
 	}
 
 	get_no_result_message() {
-		let help_link = this.get_documentation_link()
+		let help_link = this.get_documentation_link();
 		let filters = this.filter_area.get();
 		let no_result_message = filters.length ? __('No {0} found', [__(this.doctype)]) : __('You haven\'t created a {0} yet', [__(this.doctype)]);
 		let new_button_label = filters.length ? __('Create a new {0}', [__(this.doctype)]) : __('Create your first {0}', [__(this.doctype)]);
-		let empty_state_image = this.settings.empty_state_image || '/assets/frappe/images/ui-states/empty.png'
+		let empty_state_image = this.settings.empty_state_image || '/assets/frappe/images/ui-states/empty.png';
 
 		const new_button = this.can_create ?
 			`<p><button class="btn btn-primary btn-sm btn-new-doc">
