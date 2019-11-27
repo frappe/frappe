@@ -622,20 +622,21 @@ frappe.search.utils = {
 					value:  this.bolden_match_part(__(item.label), txt),
 					index: this.fuzzy_search(txt, target),
 					match: item.label,
-					onclick: item.action,
+					onclick: () => item.action.apply(this, item.args)
 				});
 			}
 		});
 		return results;
 	},
-	make_function_searchable(_function, label=null) {
+	make_function_searchable(_function, label=null, args=null) {
 		if (typeof _function !== 'function') {
 			throw new Error('First argument should be a function');
 		}
 
 		this.searchable_functions.push({
 			'label': label || _function.name,
-			'action': _function
+			'action': _function,
+			'args': args,
 		});
 	},
 	searchable_functions: [],
