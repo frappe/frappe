@@ -106,7 +106,11 @@ frappe.setup.OnboardingDialog  = class OnboardingDialog {
 	}
 
 	setup() {
-		this.dialog = new frappe.ui.Dialog({title: __("Let's Onboard!")});
+		this.dialog = new frappe.ui.Dialog({
+			static: true,
+			minimizable: false,
+			title: __("Let's Onboard!")
+		});
 		this.$wrapper = $(this.dialog.$wrapper).addClass('onboarding-dialog');
 		this.slide_container = new frappe.ui.Slides({
 			parent: this.dialog.body,
