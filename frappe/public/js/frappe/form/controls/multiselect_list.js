@@ -61,6 +61,9 @@ frappe.ui.form.ControlMultiSelectList = frappe.ui.form.ControlData.extend({
 		});
 
 		this.$list_wrapper.on('keydown', e => {
+			if ($(e.target).is('input')) {
+				return;
+			}
 			if (e.key === 'Backspace') {
 				this.set_value([]);
 			}

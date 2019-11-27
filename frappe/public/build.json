@@ -1,7 +1,12 @@
 {
 	"css/frappe-web-b4.css": [
-		"public/less/indicator.less",
-		"public/scss/website.scss"
+		"public/scss/website.scss",
+		"public/less/indicator.less"
+	],
+	"css/frappe-chat-web.css": [
+		"public/css/font-awesome.css",
+		"public/css/octicons/octicons.css",
+		"public/less/chat.less"
 	],
 	"concat:js/moment-bundle.min.js": [
 		"node_modules/moment/min/moment-with-locales.min.js",
@@ -12,6 +17,9 @@
 	],
 	"js/frappe-recorder.min.js": [
 		"public/js/frappe/recorder/recorder.js"
+	],
+	"js/checkout.min.js": [
+		"public/js/integrations/razorpay.js"
 	],
 	"js/frappe-web.min.js": [
 		"public/js/frappe/class.js",

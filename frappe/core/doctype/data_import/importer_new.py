@@ -54,8 +54,10 @@ class Importer:
 		extension = None
 		if self.data_import and self.data_import.import_file:
 			file_doc = frappe.get_doc("File", {"file_url": self.data_import.import_file})
+			parts = file_doc.get_extension()
+			extension = parts[1]
 			content = file_doc.get_content()
-			extension = file_doc.file_name.split(".")[1]
+			extension = extension.lstrip(".")
 
 		if file_path:
 			content, extension = self.read_file(file_path)
@@ -79,12 +81,23 @@ class Importer:
 		return file_content, extn
 
 	def read_content(self, content, extension):
+		error_title = _("Template Error")
+		if extension not in ("csv", "xlsx", "xls"):
+			frappe.throw(
+				_("Import template should be of type .csv, .xlsx or .xls"), title=error_title
+			)
+
 		if extension == "csv":
 			data = read_csv_content(content)
 		elif extension == "xlsx":
 			data = read_xlsx_file_from_attached_file(fcontent=content)
 		elif extension == "xls":
 			data = read_xls_file_from_attached_file(content)
+
+		if len(data) <= 1:
+			frappe.throw(
+				_("Import template should contain a Header and atleast one row."), title=error_title
+			)
 
 		self.header_row = data[0]
 		self.data = data[1:]
@@ -862,15 +875,15 @@ class Importer:
 
 		if failed_records:
 			print("Failed to import {0} records".format(len(failed_records)))
-			file_name = '{0}_import_on_{1}.txt'.format(self.doctype, frappe.utils.now())
-			print('Check {0} for errors'.format(os.path.join('sites', file_name)))
+			file_name = "{0}_import_on_{1}.txt".format(self.doctype, frappe.utils.now())
+			print("Check {0} for errors".format(os.path.join("sites", file_name)))
 			text = ""
 			for w in failed_records:
-				text += "Row Indexes: {0}\n".format(str(w.get('row_indexes', [])))
-				text += "Messages:\n{0}\n".format('\n'.join(w.get('messages', [])))
-				text += "Traceback:\n{0}\n\n".format(w.get('exception'))
+				text += "Row Indexes: {0}\n".format(str(w.get("row_indexes", [])))
+				text += "Messages:\n{0}\n".format("\n".join(w.get("messages", [])))
+				text += "Traceback:\n{0}\n\n".format(w.get("exception"))
 
-			with open(file_name, 'w') as f:
+			with open(file_name, "w") as f:
 				f.write(text)
 
 
