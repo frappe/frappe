@@ -24,7 +24,7 @@ gunicorn==19.9.0
 html2text==2016.9.19
 ipython==5.8.0
 Jinja2==2.10.3
-markdown2==2.3.5
+markdown2==2.3.6
 maxminddb-geolite2==2018.703
 ndg-httpsclient==0.5.1
 num2words==0.5.5
