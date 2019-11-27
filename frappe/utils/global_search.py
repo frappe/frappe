@@ -477,7 +477,6 @@ def search(text, start=0, limit=20, doctype=""):
 					frappe.clear_messages()
 
 				sorted_results.extend([r])
-				results.pop(index)
 
 	return sorted_results or results
 
