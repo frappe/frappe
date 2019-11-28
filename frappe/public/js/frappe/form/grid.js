@@ -52,7 +52,7 @@ export default class Grid {
 
 		let template = `<div class="form-group">
 			<div class="clearfix">
-				<label class="control-label" style="padding-right: 0px;">${__(this.df.label)}</label>
+				<label class="control-label" style="padding-right: 0px;">${__(this.df.label || '')}</label>
 			</div>
 			<div class="form-grid">
 				<div class="grid-heading-row"></div>

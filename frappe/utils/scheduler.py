@@ -337,3 +337,10 @@ def get_last_active():
 		WHERE `user_type` = 'System User' AND `name` NOT IN ({standard_users})"""
 		.format(standard_users=", ".join(["%s"]*len(STANDARD_USERS))),
 		STANDARD_USERS)[0][0]
+
+@frappe.whitelist()
+def activate_scheduler():
+	if is_scheduler_disabled():
+		enable_scheduler()
+	if frappe.conf.pause_scheduler:
+		update_site_config('pause_scheduler', 0)

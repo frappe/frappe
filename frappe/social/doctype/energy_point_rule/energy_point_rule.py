@@ -8,7 +8,8 @@ from frappe import _
 import frappe.cache_manager
 from frappe.model.document import Document
 from frappe.social.doctype.energy_point_settings.energy_point_settings import is_energy_point_enabled
-from frappe.social.doctype.energy_point_log.energy_point_log import create_energy_points_log, revert
+from frappe.social.doctype.energy_point_log.energy_point_log import \
+	create_energy_points_log
 
 class EnergyPointRule(Document):
 	def on_update(self):
@@ -82,7 +83,8 @@ class EnergyPointRule(Document):
 def process_energy_points(doc, state):
 	if (frappe.flags.in_patch
 		or frappe.flags.in_install
-		or frappe.flags.in_migrate):
+		or frappe.flags.in_migrate
+		or frappe.flags.in_import):
 		return
 
 	if not is_energy_point_enabled():
@@ -106,7 +108,8 @@ def revert_points_for_cancelled_doc(doc):
 		'type': 'Auto'
 	})
 	for log in energy_point_logs:
-		revert(log.name, _('Reference document has been cancelled'))
+		reference_log = frappe.get_doc('Energy Point Log', log.name)
+		reference_log.revert(_('Reference document has been cancelled'))
 
 
 def get_energy_point_doctypes():
