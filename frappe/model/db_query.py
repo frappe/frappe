@@ -513,7 +513,7 @@ class DatabaseQuery(object):
 			or not can_be_null
 			or (f.value and f.operator.lower() in ('=', 'like'))
 			or 'ifnull(' in column_name.lower()):
-			if f.operator == 'like' and frappe.conf.get('db_type') == 'postgres':
+			if f.operator.lower() == 'like' and frappe.conf.get('db_type') == 'postgres':
 				f.operator = 'ilike'
 			condition = '{column_name} {operator} {value}'.format(
 				column_name=column_name, operator=f.operator,
