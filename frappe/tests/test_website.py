@@ -1,14 +1,11 @@
 from __future__ import unicode_literals
 
-import frappe, unittest
-from werkzeug.wrappers import Request
-from werkzeug.test import EnvironBuilder
+import unittest
 
+import frappe
 from frappe.website import render
+from frappe.utils import set_request
 
-def set_request(**kwargs):
-	builder = EnvironBuilder(**kwargs)
-	frappe.local.request = Request(builder.get_environ())
 
 def get_html_for_route(route):
 	set_request(method='GET', path=route)
@@ -17,7 +14,6 @@ def get_html_for_route(route):
 	return html
 
 class TestWebsite(unittest.TestCase):
-
 	def test_page_load(self):
 		frappe.set_user('Guest')
 		set_request(method='POST', path='login')
@@ -76,4 +72,3 @@ class TestWebsite(unittest.TestCase):
 
 		delattr(frappe.hooks, 'website_redirects')
 		frappe.cache().delete_key('app_hooks')
-
