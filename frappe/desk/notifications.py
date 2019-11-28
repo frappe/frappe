@@ -217,7 +217,13 @@ def get_open_count(doctype, name, items=[]):
 			"count": []
 		}
 
-	frappe.has_permission(doc=frappe.get_doc(doctype, name), throw=True)
+	try:
+		frappe.has_permission(doc=frappe.get_doc(doctype, name), throw=True)
+	except frappe.DoesNotExistError:
+		frappe.clear_messages()
+		return {
+			'count': []
+		}
 
 	meta = frappe.get_meta(doctype)
 	links = meta.get_dashboard_data()
