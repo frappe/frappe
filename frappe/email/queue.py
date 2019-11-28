@@ -11,7 +11,7 @@ from frappe.email.smtp import SMTPServer, get_outgoing_email_account
 from frappe.email.email_body import get_email, get_formatted_html, add_attachment
 from frappe.utils.verified_command import get_signed_params, verify_request
 from html2text import html2text
-from frappe.utils import get_url, nowdate, encode, now_datetime, add_days, split_emails, cstr, cint
+from frappe.utils import get_url, nowdate, now_datetime, add_days, split_emails, cstr, cint
 from rq.timeouts import JobTimeoutException
 from frappe.utils.scheduler import log
 from six import text_type, string_types
@@ -182,24 +182,21 @@ def add(recipients, sender, subject, **kwargs):
 
 def get_email_queue(recipients, sender, subject, **kwargs):
 	'''Make Email Queue object'''
-	try:
-		e = frappe.new_doc('Email Queue')
-		e.priority = kwargs.get('send_priority')
-		attachments = kwargs.get('attachments')
-		if attachments:
-			# store attachments with fid or print format details, to be attached on-demand later
-			_attachments = []
-			for att in attachments:
-				if att.get('fid'):
-					_attachments.append(att)
-				elif att.get("print_format_attachment") == 1:
-					if not att.get('lang', None):
-						att['lang'] = frappe.local.lang
-					att['print_letterhead'] = kwargs.get('print_letterhead')
-					_attachments.append(att)
-			e.attachments = json.dumps(_attachments)
-	except:
-		print('what')
+	e = frappe.new_doc('Email Queue')
+	e.priority = kwargs.get('send_priority')
+	attachments = kwargs.get('attachments')
+	if attachments:
+		# store attachments with fid or print format details, to be attached on-demand later
+		_attachments = []
+		for att in attachments:
+			if att.get('fid'):
+				_attachments.append(att)
+			elif att.get("print_format_attachment") == 1:
+				if not att.get('lang', None):
+					att['lang'] = frappe.local.lang
+				att['print_letterhead'] = kwargs.get('print_letterhead')
+				_attachments.append(att)
+		e.attachments = json.dumps(_attachments)
 
 	try:
 		mail = get_email(recipients,
