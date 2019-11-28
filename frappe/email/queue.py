@@ -3,6 +3,7 @@
 
 from __future__ import unicode_literals
 import frappe
+import sys
 from six.moves import html_parser as HTMLParser
 import smtplib, quopri, json
 from frappe import msgprint, throw, _, safe_decode
@@ -14,6 +15,8 @@ from frappe.utils import get_url, nowdate, encode, now_datetime, add_days, split
 from rq.timeouts import JobTimeoutException
 from frappe.utils.scheduler import log
 from six import text_type, string_types
+from email.parser import Parser
+
 
 class EmailLimitCrossedError(frappe.ValidationError): pass
 
@@ -179,21 +182,24 @@ def add(recipients, sender, subject, **kwargs):
 
 def get_email_queue(recipients, sender, subject, **kwargs):
 	'''Make Email Queue object'''
-	e = frappe.new_doc('Email Queue')
-	e.priority = kwargs.get('send_priority')
-	attachments = kwargs.get('attachments')
-	if attachments:
-		# store attachments with fid or print format details, to be attached on-demand later
-		_attachments = []
-		for att in attachments:
-			if att.get('fid'):
-				_attachments.append(att)
-			elif att.get("print_format_attachment") == 1:
-				if not att.get('lang', None):
-					att['lang'] = frappe.local.lang
-				att['print_letterhead'] = kwargs.get('print_letterhead')
-				_attachments.append(att)
-		e.attachments = json.dumps(_attachments)
+	try:
+		e = frappe.new_doc('Email Queue')
+		e.priority = kwargs.get('send_priority')
+		attachments = kwargs.get('attachments')
+		if attachments:
+			# store attachments with fid or print format details, to be attached on-demand later
+			_attachments = []
+			for att in attachments:
+				if att.get('fid'):
+					_attachments.append(att)
+				elif att.get("print_format_attachment") == 1:
+					if not att.get('lang', None):
+						att['lang'] = frappe.local.lang
+					att['print_letterhead'] = kwargs.get('print_letterhead')
+					_attachments.append(att)
+			e.attachments = json.dumps(_attachments)
+	except:
+		print('what')
 
 	try:
 		mail = get_email(recipients,
@@ -405,7 +411,7 @@ def send_one(email, smtpserver=None, auto_commit=True, now=False, from_test=Fals
 
 			message = prepare_message(email, recipient.recipient, recipients_list)
 			if not frappe.flags.in_test:
-				smtpserver.sess.sendmail(email.sender, recipient.recipient, encode(message))
+				smtpserver.sess.sendmail(email.sender, recipient.recipient, message)
 
 			recipient.status = "Sent"
 			frappe.db.sql("""update `tabEmail Queue Recipient` set status='Sent', modified=%s where name=%s""",
@@ -510,13 +516,18 @@ def prepare_message(email, recipient, recipients_list):
 
 	message = (message and message.encode('utf8')) or ''
 	message = safe_decode(message)
+
+	if sys.version_info[0] > 2:
+		from email.policy import SMTP
+		msg_obj = Parser(policy=SMTP).parsestr(message)
+	else:
+		msg_obj = Parser().parsestr(message)
+
 	if not email.attachments:
-		return message
+		return msg_obj.as_string()
 
 	# On-demand attachments
-	from email.parser import Parser
 
-	msg_obj = Parser().parsestr(message)
 	attachments = json.loads(email.attachments)
 
 	for attachment in attachments:

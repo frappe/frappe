@@ -6,7 +6,7 @@ import unittest, os, base64
 from frappe.email.receive import Email
 from frappe.email.email_body import (replace_filename_with_cid,
 	get_email, inline_style_in_html, get_header)
-from frappe.email.queue import prepare_message
+from frappe.email.queue import prepare_message, get_email_queue
 import sys
 class TestEmailBody(unittest.TestCase):
 	def setUp(self):
@@ -39,26 +39,42 @@ This is the text version of this email
 		).as_string()
 
 	def test_prepare_message_returns_already_encoded_string(self):
-		email = get_email(
+		email = get_email_queue(
 			recipients=['test@example.com'],
 			sender='me@example.com',
 			subject='Test Subject',
 			content='<h1>' + chr(40960) + 'abcd' + chr(1972) + '</h1>',
+			formatted='<h1>' + chr(40960) + 'abcd' + chr(1972) + '</h1>',
 			text_content='whatever')
 		result = prepare_message(email=email, recipient='test@test.com',recipients_list=[])
-		if sys.version_info < (3, 0):
-			self.assertTrue(True)
+		self.assertTrue("<h1>=EA=80=80abcd=DE=B4</h1>" in result)
 
+	def test_prepare_message_returns_cr_lf(self):
+		email = get_email_queue(
+			recipients=['test@example.com'],
+			sender='me@example.com',
+			subject='Test Subject',
+			content='<h1>\n this is a test of newlines\n' + '</h1>',
+			formatted='<h1>\n this is a test of newlines\n' + '</h1>',
+			text_content='whatever')
+		result = prepare_message(email=email, recipient='test@test.com', recipients_list=[])
+		if (sys.version_info)[0] > 2:
+			self.assertTrue(result.count('\n') == result.count("\r"))
+		else:
+			self.assertTrue(True)
 	def test_rfc_5322_header_is_wrapped_at_998_chars(self):
-		email = get_email(
+		# unfortunately the db can only hold 140 chars so this can't be tested properly. test at max chars anyway.
+		email = get_email_queue(
 			recipients=['test@example.com'],
 			sender='me@example.com',
 			subject='Test Subject',
 			content='<h1>Whatever</h1>',
-			text_content='whatever')
-		email.set_message_id('a.really.long.message.id.that.should.not.wrap.until.998.if.it.does.then.exchange.will.break.')
+			text_content='whatever',
+			message_id="a.really.long.message.id.that.should.not.wrap.until.998.if.it.does.then.exchange.will.break.really.long.message.id.that.should.not.wrap.unti")
 		result = prepare_message(email=email, recipient='test@test.com',recipients_list=[])
-		self.assertTrue('a.really.long.message.id.that.should.not.wrap.until.998.if.it.does.then.exchange.will.break.' in result)
+		self.assertTrue("a.really.long.message.id.that.should.not.wrap.until.998.if.it.does.then.exchange.will.break.really.long.message.id.that.should.not.wrap.unti" in result)
+
+
 
 	def test_image(self):
 		img_signature = '''
