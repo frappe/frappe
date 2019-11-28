@@ -116,7 +116,6 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		this.page_name = frappe.get_route_str();
 		this.report_name = this.route[1];
 		this.page_title = __(this.report_name);
-		this.show_save = false;
 		this.menu_items = this.get_menu_items();
 		this.datatable = null;
 		this.prepared_report_action = "New";
@@ -1172,7 +1171,6 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 									columns: this.get_visible_columns()
 								},
 								callback: function(r) {
-									this.show_save = false;
 									d.hide();
 									frappe.set_route('query-report', r.message);
 								}
