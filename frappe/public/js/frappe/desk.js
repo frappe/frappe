@@ -88,6 +88,9 @@ frappe.Application = Class.extend({
 		}
 
 		this.show_update_available();
+		if (frappe.boot.is_first_startup) {
+			this.setup_onboarding_wizard();
+		}
 
 		if(frappe.ui.startup_setup_dialog && !frappe.boot.setup_complete) {
 			frappe.ui.startup_setup_dialog.pre_show();
@@ -479,6 +482,28 @@ frappe.Application = Class.extend({
 	show_update_available: () => {
 		frappe.call({
 			"method": "frappe.utils.change_log.show_update_popup"
+		});
+	},
+
+	setup_onboarding_wizard: () => {
+		var me = this;
+		frappe.call('frappe.desk.doctype.setup_wizard_slide.setup_wizard_slide.get_onboarding_slides').then(res => {
+			if (res.message) {
+				let slides = res.message;
+				if (slides.length) {
+					frappe.require("assets/frappe/js/frappe/ui/onboarding_dialog.js", () => {
+						me.progress_dialog = new frappe.setup.OnboardingDialog({
+							slides: slides
+						});
+						me.progress_dialog.show();
+						frappe.call({
+							method: "frappe.desk.page.setup_wizard.setup_wizard.reset_is_first_startup",
+							args: {},
+							callback: () => {}
+						});
+					});
+				}
+			}
 		});
 	},
 
