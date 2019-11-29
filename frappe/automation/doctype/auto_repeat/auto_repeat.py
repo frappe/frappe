@@ -45,10 +45,11 @@ class AutoRepeat(Document):
 		frappe.get_doc(self.reference_doctype, self.reference_document).notify_update()
 
 	def set_dates(self):
-		if self.disabled:
-			self.next_schedule_date = None
-		else:
-			self.next_schedule_date = get_next_schedule_date(self.start_date, self.frequency, self.repeat_on_day, self.repeat_on_last_day, self.end_date)
+		if not frappe.flags.in_patch:
+			if self.disabled:
+				self.next_schedule_date = None
+			else:
+				self.next_schedule_date = get_next_schedule_date(self.start_date, self.frequency, self.repeat_on_day, self.repeat_on_last_day, self.end_date)
 
 	def unlink_if_applicable(self):
 		if self.status == 'Completed' or self.disabled:
@@ -307,7 +308,7 @@ def create_repeated_entries(data):
 		current_date = getdate(today())
 		schedule_date = getdate(doc.next_schedule_date)
 
-		while schedule_date <= current_date and not doc.disabled:
+		if schedule_date == current_date and not doc.disabled:
 			doc.create_documents()
 			schedule_date = get_next_schedule_date(schedule_date, doc.frequency, doc.repeat_on_day, doc.repeat_on_last_day, doc.end_date)
 
