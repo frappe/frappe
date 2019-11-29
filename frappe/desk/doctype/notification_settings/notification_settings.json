@@ -13,7 +13,8 @@
   "enable_email_assignment",
   "enable_email_energy_point",
   "enable_email_share",
-  "user"
+  "user",
+  "seen"
  ],
  "fields": [
   {
@@ -72,14 +73,20 @@
    "fieldname": "user",
    "fieldtype": "Link",
    "hidden": 1,
-   "in_list_view": 1,
    "label": "User",
    "options": "User",
    "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "seen",
+   "fieldtype": "Check",
+   "hidden": 1,
+   "label": "Seen"
   }
  ],
  "in_create": 1,
- "modified": "2019-10-23 12:42:56.175928",
+ "modified": "2019-11-19 12:57:59.356786",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Notification Settings",

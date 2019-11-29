@@ -10,7 +10,7 @@
   "email_content",
   "column_break_4",
   "document_type",
-  "seen",
+  "read",
   "document_name",
   "from_user"
  ],
@@ -58,14 +58,6 @@
    "search_index": 1
   },
   {
-   "default": "0",
-   "fieldname": "seen",
-   "fieldtype": "Check",
-   "hidden": 1,
-   "ignore_user_permissions": 1,
-   "label": "Seen"
-  },
-  {
    "fieldname": "document_name",
    "fieldtype": "Data",
    "label": "Document Name",
@@ -79,11 +71,19 @@
    "options": "User",
    "read_only": 1,
    "search_index": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "read",
+   "fieldtype": "Check",
+   "hidden": 1,
+   "ignore_user_permissions": 1,
+   "label": "Read"
   }
  ],
  "in_create": 1,
- "modified": "2019-10-23 12:48:01.119356",
- "modified_by": "Administrator",
+ "modified": "2019-11-12 15:22:35.283678",
+ "modified_by": "umair@erpnext.com",
  "module": "Desk",
  "name": "Notification Log",
  "owner": "Administrator",

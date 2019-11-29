@@ -1,0 +1,182 @@
+{
+ "autoname": "field:slide_title",
+ "creation": "2019-11-13 14:39:56.834658",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "slide_title",
+  "app",
+  "slide_order",
+  "column_break_4",
+  "image_src",
+  "slide_module",
+  "description_section_break",
+  "slide_desc",
+  "action_section_break",
+  "slide_type",
+  "submit_method",
+  "column_break_6",
+  "max_count",
+  "add_more_button",
+  "section_break_18",
+  "ref_doctype",
+  "slide_fields",
+  "section_break_10",
+  "domains",
+  "column_break_12",
+  "help_links"
+ ],
+ "fields": [
+  {
+   "fieldname": "slide_title",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Slide Title",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "depends_on": "eval:doc.slide_type!='Information'",
+   "description": "By default the code inside `create_onboarding_docs` method of the `Reference Document Type` is executed. If your method is not on the doctype level, place this method in {app_name}.utilities.onboarding_utils.{method_name} and specify the method name here",
+   "fieldname": "submit_method",
+   "fieldtype": "Data",
+   "label": "Submit Method"
+  },
+  {
+   "fieldname": "slide_desc",
+   "fieldtype": "HTML Editor",
+   "label": "Slide Description"
+  },
+  {
+   "default": "3",
+   "depends_on": "add_more_button",
+   "description": "The amount of times you want to repeat the set of fields (eg: if you want 3 customers in the slide, set this field to 3. Only the first set of fields is shown as mandatory in the slide)",
+   "fieldname": "max_count",
+   "fieldtype": "Int",
+   "label": "Max Count"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:doc.slide_type!='Information'",
+   "fieldname": "add_more_button",
+   "fieldtype": "Check",
+   "label": "Add More Button"
+  },
+  {
+   "depends_on": "eval:doc.slide_type!='Information'",
+   "fieldname": "slide_fields",
+   "fieldtype": "Table",
+   "label": "Slide Fields",
+   "options": "Setup Wizard Slide Field"
+  },
+  {
+   "fieldname": "section_break_10",
+   "fieldtype": "Section Break"
+  },
+  {
+   "description": "Specify in what all domains should the slides show up. If nothing is specified the slide is shown in all domains by default.",
+   "fieldname": "domains",
+   "fieldtype": "Table",
+   "label": "Domains",
+   "options": "Has Domain"
+  },
+  {
+   "fieldname": "column_break_12",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "Add a help video link just in case user has no idea about what to fill in the slide.",
+   "fieldname": "help_links",
+   "fieldtype": "Table",
+   "label": "Help Links",
+   "options": "Setup Wizard Help Link"
+  },
+  {
+   "fieldname": "action_section_break",
+   "fieldtype": "Section Break",
+   "label": "Action Settings"
+  },
+  {
+   "description": "If slide type is Action there should be a submit method bound to be executed after the slide is completed.",
+   "fieldname": "slide_type",
+   "fieldtype": "Select",
+   "label": "Slide Type",
+   "options": "Information\nCreate\nSettings",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_6",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "app",
+   "fieldtype": "Select",
+   "label": "App",
+   "options": "Frappe\nERPNext",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_4",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "image_src",
+   "fieldtype": "Data",
+   "label": "Slide Image Source"
+  },
+  {
+   "fieldname": "description_section_break",
+   "fieldtype": "Section Break",
+   "label": "Description"
+  },
+  {
+   "depends_on": "eval:doc.slide_type!='Information'",
+   "fieldname": "ref_doctype",
+   "fieldtype": "Link",
+   "label": "Reference Document Type",
+   "options": "DocType"
+  },
+  {
+   "default": "0",
+   "description": "Determines the order of the slide in the wizard. If the slide is not to be displayed, priority should be set to 0.",
+   "fieldname": "slide_order",
+   "fieldtype": "Int",
+   "label": "Slide Order"
+  },
+  {
+   "depends_on": "eval:doc.slide_type=='Information'",
+   "fieldname": "slide_module",
+   "fieldtype": "Link",
+   "label": "Module",
+   "options": "Module Def"
+  },
+  {
+   "fieldname": "section_break_18",
+   "fieldtype": "Section Break",
+   "label": "Fields"
+  }
+ ],
+ "modified": "2019-11-26 17:33:34.553367",
+ "modified_by": "Administrator",
+ "module": "Desk",
+ "name": "Setup Wizard Slide",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

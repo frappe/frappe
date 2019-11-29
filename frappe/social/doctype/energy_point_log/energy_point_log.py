@@ -44,6 +44,36 @@ class EnergyPointLog(Document):
 
 			enqueue_create_notification(self.user, notification_doc)
 
+	def on_trash(self):
+		if self.type == 'Revert':
+			reference_log = frappe.get_doc('Energy Point Log', self.revert_of)
+			reference_log.reverted = 0
+			reference_log.save()
+
+	def revert(self, reason):
+		frappe.only_for('System Manager')
+		if self.type != 'Auto':
+			frappe.throw(_('This document cannot be reverted'))
+
+		if self.get('reverted'):
+			return
+
+		self.reverted = 1
+		self.save(ignore_permissions=True)
+
+		revert_log = frappe.get_doc({
+			'doctype': 'Energy Point Log',
+			'points': -(self.points),
+			'type': 'Revert',
+			'user': self.user,
+			'reason': reason,
+			'reference_doctype': self.reference_doctype,
+			'reference_name': self.reference_name,
+			'revert_of': self.name
+		}).insert(ignore_permissions=True)
+
+		return revert_log
+
 def get_notification_message(doc):
 	owner_name = get_fullname(doc.owner)
 	points = doc.points
@@ -149,7 +179,8 @@ def check_if_log_exists(ref_doctype, ref_name, rule, user=None):
 	filters = frappe._dict({
 		'rule': rule,
 		'reference_doctype': ref_doctype,
-		'reference_name': ref_name
+		'reference_name': ref_name,
+		'reverted': 0
 	})
 
 	if user:
@@ -257,32 +288,6 @@ def get_reviews(doctype, docname):
 		'type': ['in', ('Appreciation', 'Criticism')],
 	}, fields=['points', 'owner', 'type', 'user', 'reason', 'creation'])
 
-@frappe.whitelist()
-def revert(name, reason):
-	frappe.only_for('System Manager')
-	doc_to_revert = frappe.get_doc('Energy Point Log', name)
-
-	if doc_to_revert.type != 'Auto':
-		frappe.throw(_('This document cannot be reverted'))
-
-	if doc_to_revert.reverted: return
-
-	doc_to_revert.reverted = 1
-	doc_to_revert.save(ignore_permissions=True)
-
-	revert_log = frappe.get_doc({
-		'doctype': 'Energy Point Log',
-		'points': -(doc_to_revert.points),
-		'type': 'Revert',
-		'user': doc_to_revert.user,
-		'reason': reason,
-		'reference_doctype': doc_to_revert.reference_doctype,
-		'reference_name': doc_to_revert.reference_name,
-		'revert_of': doc_to_revert.name
-	}).insert(ignore_permissions=True)
-
-	return revert_log
-
 def send_weekly_summary():
 	send_summary('Weekly')
 
@@ -325,5 +330,3 @@ def get_footer_message(timespan):
 		return _("Stats based on last month's performance (from {0} to {1})")
 	else:
 		return _("Stats based on last week's performance (from {0} to {1})")
-
-

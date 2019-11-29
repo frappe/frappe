@@ -249,6 +249,27 @@ class TestEnergyPointLog(unittest.TestCase):
 		# point should not be awarded more than once for same doc (irrespective of user)
 		self.assertEqual(second_user_points_after_closing_todo, second_user_points)
 
+	def test_allow_creation_of_new_log_if_the_previous_log_was_reverted(self):
+		frappe.set_user('test@example.com')
+		todo_point_rule = create_energy_point_rule_for_todo()
+		energy_point_of_user = get_points('test@example.com')
+
+		created_todo = create_a_todo()
+
+		created_todo.status = 'Closed'
+		created_todo.save()
+		points_after_closing_todo = get_points('test@example.com')
+
+		log_name = frappe.db.exists('Energy Point Log', {'reference_name': created_todo.name})
+		frappe.get_doc('Energy Point Log', log_name).revert('Just for test')
+		points_after_reverting_todo = get_points('test@example.com')
+		created_todo.save()
+		points_after_saving_todo_again = get_points('test@example.com')
+
+		rule_points = todo_point_rule.points
+		self.assertEqual(points_after_closing_todo, energy_point_of_user + rule_points)
+		self.assertEqual(points_after_reverting_todo, points_after_closing_todo - rule_points)
+		self.assertEqual(points_after_saving_todo_again, points_after_reverting_todo + rule_points)
 
 def create_energy_point_rule_for_todo(multiplier_field=None, for_doc_event='Custom', max_points=None,
 	for_assigned_users=0, field_to_check=None, apply_once=False, user_field='owner'):
