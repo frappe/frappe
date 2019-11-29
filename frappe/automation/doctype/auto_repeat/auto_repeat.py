@@ -45,11 +45,10 @@ class AutoRepeat(Document):
 		frappe.get_doc(self.reference_doctype, self.reference_document).notify_update()
 
 	def set_dates(self):
-		if not frappe.flags.in_patch:
-			if self.disabled:
-				self.next_schedule_date = None
-			else:
-				self.next_schedule_date = get_next_schedule_date(self.start_date, self.frequency, self.repeat_on_day, self.repeat_on_last_day, self.end_date)
+		if self.disabled:
+			self.next_schedule_date = None
+		else:
+			self.next_schedule_date = get_next_schedule_date(self.start_date, self.frequency, self.repeat_on_day, self.repeat_on_last_day, self.end_date)
 
 	def unlink_if_applicable(self):
 		if self.status == 'Completed' or self.disabled:
@@ -106,10 +105,6 @@ class AutoRepeat(Document):
 		schedule_details = []
 		start_date = getdate(self.start_date)
 		end_date = getdate(self.end_date)
-		today = frappe.utils.datetime.date.today()
-
-		if start_date < today:
-			start_date = today
 
 		if not self.end_date:
 			start_date = get_next_schedule_date(start_date, self.frequency, self.repeat_on_day, self.repeat_on_last_day)
@@ -283,6 +278,11 @@ def get_next_schedule_date(start_date, frequency, repeat_on_day, repeat_on_last_
 	else:
 		days = 7 if frequency == 'Weekly' else 1
 		next_date = add_days(start_date, days)
+
+	# next schedule date should be after or on current date
+	while getdate(next_date) < getdate(today()):
+		next_date = get_next_schedule_date(
+			next_date, frequency, repeat_on_day, repeat_on_last_day, end_date)
 
 	return next_date
 
