@@ -172,7 +172,7 @@ def export_query():
 		writer = csv.writer(f)
 		for r in data:
 			# encode only unicode type strings and not int, floats etc.
-			writer.writerow([handle_html(frappe.as_unicode(v)).encode('utf-8') \
+			writer.writerow([handle_html(frappe.as_unicode(v)) \
 				if isinstance(v, string_types) else v for v in r])
 
 		f.seek(0)
