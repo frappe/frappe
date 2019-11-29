@@ -293,6 +293,12 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			this.last_ajax.abort();
 		}
 
+		const query_params = this.get_query_params();
+
+		if (query_params.prepared_report_name) {
+			filters.prepared_report_name = query_params.prepared_report_name;
+		}
+
 		return new Promise(resolve => {
 			this.last_ajax = frappe.call({
 				method: 'frappe.desk.query_report.run',
@@ -303,7 +309,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				},
 				callback: resolve,
 				always: () => this.page.btn_secondary.prop('disabled', false)
-			})
+			});
 		}).then(r => {
 			let data = r.message;
 			this.hide_status();
@@ -313,18 +319,18 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 			if (data.prepared_report) {
 				this.prepared_report = true;
-				const query_string = frappe.utils.get_query_string(frappe.get_route_str());
-				const query_params = frappe.utils.get_query_params(query_string);
 				// If query_string contains prepared_report_name then set filters
 				// to match the mentioned prepared report doc and disable editing
-				if(query_params.prepared_report_name) {
+				if (query_params.prepared_report_name) {
 					this.prepared_report_action = "Edit";
 					const filters_from_report = JSON.parse(data.doc.filters);
 					Object.values(this.filters).forEach(function(field) {
 						if (filters_from_report[field.fieldname]) {
 							field.set_input(filters_from_report[field.fieldname]);
 						}
-						field.input.disabled = true;
+						if (field.input) {
+							field.input.disabled = true;
+						}
 					});
 				}
 				this.add_prepared_report_buttons(data.doc);
@@ -355,6 +361,12 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			this.show_footer_message();
 			frappe.hide_progress();
 		});
+	}
+
+	get_query_params() {
+		const query_string = frappe.utils.get_query_string(frappe.get_route_str());
+		const query_params = frappe.utils.get_query_params(query_string);
+		return query_params;
 	}
 
 	add_prepared_report_buttons(doc) {
