@@ -60,10 +60,6 @@ class Address(Document):
 			if not [row for row in self.links if row.link_doctype == "Company"]:
 				frappe.throw(_("Company is mandatory, as it is your company address"))
 
-			# removing other links
-			to_remove = [row for row in self.links if row.link_doctype != "Company"]
-			[ self.remove(row) for row in to_remove ]
-
 	def get_display(self):
 		return get_address_display(self.as_dict())
 
@@ -81,7 +77,7 @@ class Address(Document):
 		return False
 
 @frappe.whitelist()
-def get_default_address(doctype, name, sort_key='is_primary_address'):
+def get_default_address(doctype, name, sort_key='is_primary_address', existing_address=None):
 	'''Returns default Address name for the given doctype, name'''
 	if sort_key not in ['is_shipping_address', 'is_primary_address']:
 		return None
@@ -94,6 +90,10 @@ def get_default_address(doctype, name, sort_key='is_primary_address'):
 			dl.parent = addr.name and dl.link_doctype = %s and
 			dl.link_name = %s and ifnull(addr.disabled, 0) = 0
 		""" %(sort_key, '%s', '%s'), (doctype, name))
+
+	if existing_address:
+		if existing_address in [d[0] for d in out]:
+			return existing_address
 
 	if out:
 		return sorted(out, key = functools.cmp_to_key(lambda x,y: cmp(y[1], x[1])))[0][0]
