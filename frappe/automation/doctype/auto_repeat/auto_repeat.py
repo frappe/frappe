@@ -106,10 +106,6 @@ class AutoRepeat(Document):
 		schedule_details = []
 		start_date = getdate(self.start_date)
 		end_date = getdate(self.end_date)
-		today = frappe.utils.datetime.date.today()
-
-		if start_date < today:
-			start_date = today
 
 		if not self.end_date:
 			start_date = get_next_schedule_date(start_date, self.frequency, self.repeat_on_day, self.repeat_on_last_day)
@@ -131,7 +127,6 @@ class AutoRepeat(Document):
 				}
 				schedule_details.append(row)
 				start_date = get_next_schedule_date(start_date, self.frequency, self.repeat_on_day, self.repeat_on_last_day, end_date)
-
 
 		return schedule_details
 
@@ -283,6 +278,11 @@ def get_next_schedule_date(start_date, frequency, repeat_on_day, repeat_on_last_
 	else:
 		days = 7 if frequency == 'Weekly' else 1
 		next_date = add_days(start_date, days)
+
+	# next schedule date should be after or on current date
+	while getdate(next_date) < getdate(today()):
+		next_date = get_next_schedule_date(
+			next_date, frequency, repeat_on_day, repeat_on_last_day, end_date)
 
 	return next_date
 
