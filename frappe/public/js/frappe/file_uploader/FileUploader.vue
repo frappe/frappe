@@ -367,6 +367,13 @@ export default {
 							if (this.on_success) {
 								this.on_success(file_doc, r);
 							}
+						} else if (xhr.status === 403) {
+							let response = JSON.parse(xhr.responseText);
+							frappe.msgprint({
+								title: __('Not permitted'),
+								indicator: 'red',
+								message: response._error_message
+							});
 						} else {
 							file.failed = true;
 							let error = null;

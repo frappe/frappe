@@ -101,6 +101,9 @@ frappe.ui.form.ControlAutocomplete = frappe.ui.form.ControlData.extend({
 
 	validate(value) {
 		let valid_values = this.awesomplete._list.map(d => d.value);
+		if (!valid_values.length) {
+			return value;
+		}
 		if (valid_values.includes(value)) {
 			return value;
 		} else {
