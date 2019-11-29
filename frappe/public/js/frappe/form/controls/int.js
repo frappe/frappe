@@ -20,13 +20,8 @@ frappe.ui.form.ControlInt = frappe.ui.form.ControlData.extend({
 			});
 	},
 	eval_expression: function(value) {
-		if (typeof value==='string') {
-			// Removes seperators of any number format
-			value = this.get_number_format ? strip_number_groups(value, this.get_number_format())
-				// for integer there's no get_number_format
-				: strip_number_groups(value);
-
-			if (value.match(/^[0-9+-/* ]+$/)) {
+		if (typeof value === 'string') {
+			if (value.match(/^[0-9\+\-\/\* ]+$/)) {
 				// If it is a string containing operators
 				try {
 					return eval(value);
