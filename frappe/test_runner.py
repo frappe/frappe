@@ -36,6 +36,9 @@ def main(app=None, module=None, doctype=None, verbose=False, tests=(),
 		with open(frappe.get_app_path(app, doctype_list_path), 'r') as f:
 			doctype = f.read().strip().splitlines()
 
+	if ui_tests:
+		print("Selenium testing has been deprecated\nUse bench --site {site_name} run-ui-tests for Cypress tests")
+
 	xmloutput_fh = None
 	if junit_xml_output:
 		xmloutput_fh = open(junit_xml_output, 'w')
@@ -169,21 +172,6 @@ def run_tests_for_module(module, verbose=False, tests=(), profile=False):
 			make_test_records(doctype, verbose=verbose)
 
 	return _run_unittest(module, verbose=verbose, tests=tests, profile=profile)
-
-def run_setup_wizard_ui_test(app=None, verbose=False, profile=False):
-	'''Run setup wizard UI test using test_test_runner'''
-	frappe.flags.run_setup_wizard_ui_test = 1
-	return run_ui_tests(app=app, test=None, verbose=verbose, profile=profile)
-
-def run_ui_tests(app=None, test=None, test_list=None, verbose=False, profile=False):
-	'''Run a single unit test for UI using test_test_runner'''
-	module = importlib.import_module('frappe.tests.ui.test_test_runner')
-	frappe.flags.ui_test_app = app
-	if test_list:
-		frappe.flags.ui_test_list = test_list
-	else:
-		frappe.flags.ui_test_path = test
-	return _run_unittest(module, verbose=verbose, tests=(), profile=profile)
 
 def _run_unittest(modules, verbose=False, tests=(), profile=False):
 	test_suite = unittest.TestSuite()
