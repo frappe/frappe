@@ -687,7 +687,7 @@ def set_request(**kwargs):
 	frappe.local.request = Request(builder.get_environ())
 
 def get_html_for_route(route):
-	from frappe.website.render import render
+	from frappe.website import render
 	set_request(method='GET', path=route)
 	response = render.render()
 	html = frappe.safe_decode(response.get_data())
