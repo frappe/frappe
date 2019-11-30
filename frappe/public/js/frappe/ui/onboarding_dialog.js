@@ -24,7 +24,7 @@ frappe.setup.OnboardingSlide = class OnboardingSlide extends frappe.ui.Slide {
 
 	before_show() {
 		(this.id === 0) ?
-			this.$next_btn.text(__('Start')) : this.$next_btn.text(__('Next'));
+			this.$next_btn.text(__('Let\'s Start')) : this.$next_btn.text(__('Next'));
 		//last slide
 		if (this.id === this.parent[0].children.length-1) {
 			this.$complete_btn.removeClass('hide').addClass('action primary');
@@ -74,10 +74,7 @@ frappe.setup.OnboardingSlide = class OnboardingSlide extends frappe.ui.Slide {
 	setup_help_links() {
 		this.help_links.map(link => {
 			let $link = $(
-				`<a target="_blank" class="small text-muted">${link.label}</a>
-				<span class="small">
-					<i class="fa fa-question-circle-o" aria-hidden="true"></i>
-				</span>`
+				`<a target="_blank" class="small text-muted">${link.label || __("Need Help?")}</a>`
 			);
 			if (link.video_id) {
 				$link.on('click', () => {
@@ -109,7 +106,6 @@ frappe.setup.OnboardingDialog  = class OnboardingDialog {
 		this.dialog = new frappe.ui.Dialog({
 			static: true,
 			minimizable: false,
-			title: __("Let's Onboard!")
 		});
 		this.$wrapper = $(this.dialog.$wrapper).addClass('onboarding-dialog');
 		this.slide_container = new frappe.ui.Slides({
@@ -126,11 +122,7 @@ frappe.setup.OnboardingDialog  = class OnboardingDialog {
 			}
 		});
 
-		this.$wrapper.find('.modal-title').prepend(
-			`<span class="onboarding-icon">
-				<i class="fa fa-rocket" aria-hidden="true"></i>
-			</span>`
-		);
+		this.$wrapper.find('.modal-header').remove();
 	}
 
 	show() {

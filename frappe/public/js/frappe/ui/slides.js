@@ -27,7 +27,7 @@ frappe.ui.Slide = class Slide {
 				<div class="form"></div>
 				<div class="add-more text-center" style="margin-top: 5px;">
 					<a class="form-more-btn hide btn btn-default btn-xs">
-						<span><i class="fa fa-plus small" aria-hidden="true"></i></span>
+						<span>Add More</span>
 					</a>
 				</div>
 			</div>
@@ -36,6 +36,7 @@ frappe.ui.Slide = class Slide {
 		this.$content = this.$body.find(".content");
 		this.$form = this.$body.find(".form");
 		this.$primary_btn = this.slides_footer.find('.primary');
+		this.$form_wrapper = this.$body.find(".form-wrapper");
 
 		if(this.image_src) this.$content.append(
 			$(`<img src="${this.image_src}" style="margin: 20px;">`));
@@ -57,18 +58,25 @@ frappe.ui.Slide = class Slide {
 	}
 
 	setup_form() {
+		const fields = this.get_atomic_fields()
 		this.form = new frappe.ui.FieldGroup({
-			fields: this.get_atomic_fields(),
+			fields: fields,
 			body: this.$form[0],
 			no_submit_on_enter: true
 		});
 		this.form.make();
+		if (fields.length == 1 ) {
+			this.$form_wrapper.addClass("text-center")
+		} else {
+			this.$form_wrapper.removeClass("text-center")
+		}
 		if(this.add_more) this.bind_more_button();
 
 		this.set_reqd_fields();
 
 		if(this.onload) { this.onload(this); }
 		this.set_reqd_fields();
+		window.foorm = this.form
 	}
 
 	setup_done_state() {}
@@ -86,7 +94,7 @@ frappe.ui.Slide = class Slide {
 					field.reqd = 1;
 				}
 				if(!field.static) {
-					if(field.label) field.label += ' 1';
+					if(field.label) field.label;
 				}
 				return field;
 			});
@@ -121,14 +129,16 @@ frappe.ui.Slide = class Slide {
 			.on('click', () => {
 				this.count++;
 				var fields = JSON.parse(JSON.stringify(this.fields));
+
 				this.form.add_fields(fields.map(field => {
 					if(field.fieldname) field.fieldname += '_' + this.count;
 					if(!field.static) {
-						if(field.label) field.label += ' ' + this.count;
+						if(field.label) field.label;
 					}
 					field.reqd = 0;
 					return field;
 				}));
+
 				if(this.count === this.max_count) {
 					this.$more.addClass('hide');
 				}
