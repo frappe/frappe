@@ -44,7 +44,7 @@ jobs:
           echo '-----a----'
           pip --version
           echo '-------b--'
-          python -m pip install -U pip
+
 
           git clone https://github.com/frappe/bench --depth 1
           pip install -e ./bench
