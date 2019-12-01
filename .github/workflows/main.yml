@@ -6,7 +6,7 @@ on:
     - develop
     - version-12-hotfix
     - version-11-hotfix
-      
+
 jobs:
   test:
     name: Cypress run
@@ -27,7 +27,7 @@ jobs:
           sudo chmod o+x /usr/local/bin/wkhtmltopdf
           # install cups
           sudo apt-get install libcups2-dev
-          
+
       - name: install
         run: |
           cd ~
