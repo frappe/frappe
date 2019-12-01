@@ -44,10 +44,10 @@ jobs:
           echo '-----a----'
           pip --version
           echo '-------b--'
+          sudo pip install --upgrade pip
 
-
-          git clone https://github.com/frappe/bench --depth 1
-          pip install -e ./bench
+          wget https://raw.githubusercontent.com/frappe/bench/master/playbooks/install.py
+          sudo python install.py --develop
           ls
           echo '----------'
 
