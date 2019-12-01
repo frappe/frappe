@@ -41,6 +41,8 @@ jobs:
 
           git clone https://github.com/frappe/bench --depth 1
           pip install -e ./bench
+          ls
+          echo '----------'
 
           bench init frappe-bench --skip-assets --python $(which python) --frappe-path $GITHUB_WORKSPACE
 
