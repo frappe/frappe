@@ -31,6 +31,9 @@ jobs:
       - name: install
         run: |
           cd ~
+          curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.35.1/install.sh | bash
+          ls
+          pwd
           source ./.nvm/nvm.sh
           nvm install v8.10.0
 
