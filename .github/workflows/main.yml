@@ -18,6 +18,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v1
+        with:
+          fetch-depth: 1
 
       - name: before_install
         run: |
@@ -40,7 +42,7 @@ jobs:
           git clone https://github.com/frappe/bench --depth 1
           pip install -e ./bench
 
-          bench init frappe-bench --skip-assets --python $(which python) --frappe-path $TRAVIS_BUILD_DIR
+          bench init frappe-bench --skip-assets --python $(which python) --frappe-path $GITHUB_WORKSPACE
 
           mkdir ~/frappe-bench/sites/test_site
           cp $TRAVIS_BUILD_DIR/.travis/$DB.json ~/frappe-bench/sites/test_site/site_config.json
