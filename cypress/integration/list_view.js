@@ -5,7 +5,13 @@ context('List View', () => {
 		cy.window().its('frappe').then(frappe => {
 			frappe.call("frappe.tests.ui_test_helpers.setup_workflow");
 		});
+		cy.server();
+		cy.route({
+			method: 'POST',
+			url: 'frappe.sessions.clear'
+		}).as('clear-cache');
 		cy.clear_cache();
+		cy.wait(['@clear-cache']);
 	});
 	it('enables "Actions" button', () => {
 		const actions = ['Approve', 'Reject', 'Edit', 'Assign To', 'Apply Assignment Rule', 'Print', 'Delete'];
