@@ -32,13 +32,13 @@ matrix:
     env: DB=postgres TYPE=server
     script: bench --site test_site run-tests --coverage
 
-  - name: "Cypress"
+  - name: "Cypress 1"
     python: 3.6
     env: DB=mariadb TYPE=ui
     before_script: bench --site test_site execute frappe.utils.install.complete_setup_wizard
     script: bench --site test_site run-ui-tests frappe --headless --parallel
 
-  - name: "Cypress"
+  - name: "Cypress 2"
     python: 3.6
     env: DB=mariadb TYPE=ui
     before_script: bench --site test_site execute frappe.utils.install.complete_setup_wizard
@@ -98,5 +98,5 @@ install:
   - bench build --app frappe
 
 after_script:
-  - pip install python-coveralls
-  - coveralls -b apps/frappe -d ../../sites/.coverage
+  - if [ $TYPE == "server" ]; then pip install python-coveralls
+  - if [ $TYPE == "server" ]; then coveralls -b apps/frappe -d ../../sites/.coverage
