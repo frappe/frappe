@@ -16,10 +16,10 @@ jobs:
         # run 3 copies of the current job in parallel
         containers: [1]
     steps:
-      - name: Checkout
-        uses: actions/checkout@v1
-        with:
-          fetch-depth: 1
+      # - name: Checkout
+      #   uses: actions/checkout@v1
+      #   with:
+      #     fetch-depth: 1
 
       - name: before_install
         run: |
@@ -44,7 +44,7 @@ jobs:
           echo '-----a----'
           pip --version
           echo '-------b--'
-          pip install --upgrade pip
+          python -m pip install -U pip
 
           git clone https://github.com/frappe/bench --depth 1
           pip install -e ./bench
