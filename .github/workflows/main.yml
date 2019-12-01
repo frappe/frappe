@@ -40,6 +40,7 @@ jobs:
           nvm install v8.10.0
 
           git clone https://github.com/frappe/bench --depth 1
+          pip install --upgrade pip
           pip install -e ./bench
           ls
           echo '----------'
