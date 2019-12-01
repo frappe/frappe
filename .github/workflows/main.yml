@@ -38,9 +38,15 @@ jobs:
           pwd
           source ./.nvm/nvm.sh
           nvm install v8.10.0
+          echo '-----a----'
+          python --version
+          echo '-------b--'
+          echo '-----a----'
+          pip --version
+          echo '-------b--'
+          pip install --upgrade pip
 
           git clone https://github.com/frappe/bench --depth 1
-          pip install --upgrade pip
           pip install -e ./bench
           ls
           echo '----------'
