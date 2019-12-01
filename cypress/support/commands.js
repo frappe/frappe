@@ -162,15 +162,9 @@ Cypress.Commands.add('go_to_list', (doctype) => {
 });
 
 Cypress.Commands.add('clear_cache', () => {
-	cy.server();
-	cy.route({
-		method: 'POST',
-		url: 'frappe.sessions.clear'
-	}).as('clear-cache');
 	cy.window().its('frappe').then(frappe => {
 		frappe.ui.toolbar.clear_cache();
 	});
-	cy.wait(['@clear-cache']);
 });
 
 Cypress.Commands.add('dialog', (opts) => {
