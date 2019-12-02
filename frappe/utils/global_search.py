@@ -415,7 +415,7 @@ def search(text, start=0, limit=20, doctype=""):
 	:param limit: number of results to return, default 20
 	:return: Array of result objects
 	"""
-	from frappe.desk.doctype.global_search_settings.global_search_settings import get_doctypes_for_global_search
+	from frappe.desk.doctype.global_search_settings.global_search_settings import set_doctypes_for_global_search
 
 	results = []
 	sorted_results = []
@@ -424,7 +424,7 @@ def search(text, start=0, limit=20, doctype=""):
 	allowed_doctypes = frappe.cache().hget("global_search", "allowed_doctypes")
 
 	if not priorities or not allowed_doctypes:
-		priorities, allowed_doctypes = get_doctypes_for_global_search()
+		priorities, allowed_doctypes = set_doctypes_for_global_search()
 
 	for text in set(text.split('&')):
 		text = text.strip()

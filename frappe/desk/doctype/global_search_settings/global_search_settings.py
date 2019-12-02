@@ -30,9 +30,9 @@ class GlobalSearchSettings(Document):
 			frappe.throw(_("Document Type {0} has been repeated.").format(repeated_dts))
 
 	def on_update(self):
-		get_doctypes_for_global_search()
+		set_doctypes_for_global_search()
 
-def get_doctypes_for_global_search():
+def set_doctypes_for_global_search():
 	doctypes = frappe.get_list("Global Search DocType", fields=["document_type"], order_by="idx ASC")
 	if not doctypes:
 		return []
