@@ -88,7 +88,7 @@ frappe.Application = Class.extend({
 		}
 
 		this.show_update_available();
-		if (frappe.boot.is_first_startup) {
+		if (frappe.boot.is_first_startup || true) {
 			this.setup_onboarding_wizard();
 		}
 

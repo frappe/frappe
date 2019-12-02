@@ -68,7 +68,7 @@
    "fieldname": "slide_fields",
    "fieldtype": "Table",
    "label": "Slide Fields",
-   "options": "Setup Wizard Slide Field"
+   "options": "Onboarding Slide Field"
   },
   {
    "fieldname": "section_break_10",
@@ -160,7 +160,7 @@
  "modified": "2019-11-30 13:58:05.688981",
  "modified_by": "Administrator",
  "module": "Desk",
- "name": "Setup Wizard Slide",
+ "name": "Onboarding Slide",
  "owner": "Administrator",
  "permissions": [
   {

@@ -8,22 +8,22 @@ import json
 from frappe.model.document import Document
 from frappe.modules.export_file import export_to_files
 
-class SetupWizardSlide(Document):
+class OnboardingSlide(Document):
 	def on_update(self):
 		if self.ref_doctype:
 			module = frappe.db.get_value('DocType', self.ref_doctype, 'module')
 		else:
 			module = self.slide_module
-		export_to_files(record_list=[['Setup Wizard Slide', self.name]], record_module=module)
+		export_to_files(record_list=[['Onboarding Slide', self.name]], record_module=module)
 
 def get_onboarding_slides_as_list():
 	slides = []
-	slide_docs = frappe.get_all('Setup Wizard Slide',
+	slide_docs = frappe.get_all('Onboarding Slide',
 		filters={'slide_order': ('!=', 0)},
 		order_by='slide_order')
 	for entry in slide_docs:
 		# using get_doc because child table fields are not fetched in get_all
-		slide_doc = frappe.get_doc('Setup Wizard Slide', entry.name)
+		slide_doc = frappe.get_doc('Onboarding Slide', entry.name)
 		if frappe.scrub(slide_doc.app) in frappe.get_installed_apps():
 			slides.append(frappe._dict(
 				slide_type=slide_doc.slide_type,
