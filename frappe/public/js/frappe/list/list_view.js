@@ -604,7 +604,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 					data-filter="${fieldname},=,${value}">
 					${_value}
 				</a>`;
-			} else if (['Text Editor', 'Text', 'Small Text'].includes(df.fieldtype)) {
+			} else if (['Text Editor', 'Text', 'Small Text', 'HTML Editor'].includes(df.fieldtype)) {
 				html = `<span class="text-muted ellipsis">
 					${_value}
 				</span>`;
@@ -616,7 +616,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			}
 
 			return `<span class="ellipsis"
-				title="${__(label) + ': ' + _value}">
+				title="${__(label)}: ${escape(_value)}">
 				${html}
 			</span>`;
 		};

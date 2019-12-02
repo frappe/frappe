@@ -625,13 +625,17 @@ class FilterArea {
 					options = options.join("\n");
 				}
 			}
-
+			let default_value = (fieldtype === 'Link') ? frappe.defaults.get_user_default(options) : null;
+			if (['__default', '__global'].includes(default_value)) {
+				default_value = null;
+			}
 			return {
 				fieldtype: fieldtype,
 				label: __(df.label),
 				options: options,
 				fieldname: df.fieldname,
 				condition: condition,
+				default: default_value,
 				onchange: () => this.refresh_list_view(),
 				ignore_link_validation: fieldtype === 'Dynamic Link'
 			};
@@ -646,13 +650,6 @@ class FilterArea {
 		for (let key in fields_dict) {
 			let field = fields_dict[key];
 			let value = field.get_value();
-			let default_value = (field.df.fieldtype === 'Link') ?
-				frappe.defaults.get_user_default(field.df.options) : null;
-
-			if (['__default', '__global'].includes(default_value)) {
-				default_value = null;
-			}
-
 			if (value) {
 				if (field.df.condition === 'like' && !value.includes('%')) {
 					value = '%' + value + '%';
@@ -662,13 +659,6 @@ class FilterArea {
 					field.df.fieldname,
 					field.df.condition || '=',
 					value
-				]);
-			} else if (default_value) {
-				filters.push([
-					this.list_view.doctype,
-					field.df.fieldname,
-					field.df.condition,
-					default_value
 				]);
 			}
 		}
