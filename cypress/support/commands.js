@@ -47,6 +47,7 @@ Cypress.Commands.add('call', (method, args) => {
 			url: `/api/method/${method}`,
 			method: 'POST',
 			body: args,
+			retryOnStatusCodeFailure: true,
 			headers: {
 				'Accept': 'application/json',
 				'Content-Type': 'application/json',
