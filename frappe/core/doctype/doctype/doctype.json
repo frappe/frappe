@@ -29,6 +29,7 @@
   "name_case",
   "column_break_15",
   "description",
+  "documentation",
   "form_settings_section",
   "image_field",
   "timeline_field",
@@ -461,6 +462,12 @@
    "label": "Parent Field (Tree)"
   },
   {
+   "description": "URL for documentation or help",
+   "fieldname": "documentation",
+   "fieldtype": "Data",
+   "label": "Documentation Link"
+  },
+  {
    "fieldname": "actions_section",
    "fieldtype": "Section Break",
    "label": "Actions"
@@ -485,7 +492,7 @@
  ],
  "icon": "fa fa-bolt",
  "idx": 6,
- "modified": "2019-09-24 11:42:18.081499",
+ "modified": "2019-11-25 17:24:03.690192",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocType",
