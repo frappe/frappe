@@ -174,6 +174,7 @@ class Database(object):
 					self.log_touched_tables(query)
 
 			if debug:
+				frappe.errprint(self._cursor.mogrify(query, values))
 				time_end = time()
 				frappe.errprint(("Execution time: {0} sec").format(round(time_end - time_start, 2)))
 

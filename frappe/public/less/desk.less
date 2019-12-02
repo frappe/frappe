@@ -959,28 +959,33 @@ input[type="checkbox"] {
 	}
 }
 
-// User Progress Dialog
-.user-progress-dialog {
-	.slides-progress {
-		margin-top: 15px;
+// Onboarding Dialog
+.onboarding-dialog {
+
+	.modal-dialog {
+		width: 50%;
+		height: 80%;
+		max-width: none;
 	}
 
-	.done-state {
-		.check-container {
-			font-size: 64px;
-			margin: 40px;
-		}
+	.onboarding-icon {
+		color: #3246F5;
+		margin-right: 5px;
+	}
 
-		.title {
-			font-weight: normal;
-		}
+	.modal-content .slide-container {
+		height: auto;
+		min-height: 100%;
+		bottom: 0;
+	}
 
-		.help-links {
+	img {
+		max-width: 128px;
+		max-height: 128px;
+	}
 
-			a {
-				margin: 0px 10px;
-			}
-		}
+	.slides-progress {
+		margin-top: 15px;
 	}
 
 }

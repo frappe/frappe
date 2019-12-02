@@ -134,5 +134,12 @@ def is_dormant(check_time=None):
 		return True
 	if ((check_time or now_datetime()) - last_activity_log_timestamp).total_seconds() >= since:
 		return True
-
 	return False
+
+
+@frappe.whitelist()
+def activate_scheduler():
+	if is_scheduler_disabled():
+		enable_scheduler()
+	if frappe.conf.pause_scheduler:
+		update_site_config('pause_scheduler', 0)

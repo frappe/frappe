@@ -234,8 +234,11 @@ def get_config(app, module):
 		for item in section["items"]:
 			if item["type"]=="report" and item["name"] in disabled_reports:
 				continue
+			# some module links might not have name
+			if not item.get("name"):
+				item["name"] = item.get("label")
 			if not item.get("label"):
-				item["label"] = _(item["name"])
+				item["label"] = _(item.get("name"))
 			items.append(item)
 		section['items'] = items
 
@@ -297,7 +300,7 @@ def get_onboard_items(app, module):
 
 @frappe.whitelist()
 def get_links_for_module(app, module):
-	return [l.get('label') for l in get_links(app, module)]
+	return [{'value': l.get('name'), 'label': l.get('label')} for l in get_links(app, module)]
 
 def get_links(app, module):
 	try:
@@ -330,13 +333,13 @@ def get_desktop_settings():
 	def apply_user_saved_links(module):
 		module = frappe._dict(module)
 		all_links = get_links(module.app, module.module_name)
-		module_links_by_label = {}
+		module_links_by_name = {}
 		for link in all_links:
-			module_links_by_label[link['label']] = link
+			module_links_by_name[link['name']] = link
 
 		if module.module_name in user_saved_links_by_module:
 			user_links = frappe.parse_json(user_saved_links_by_module[module.module_name])
-			module.links = [module_links_by_label[l] for l in user_links if l in module_links_by_label]
+			module.links = [module_links_by_name[l] for l in user_links if l in module_links_by_name]
 
 		return module
 

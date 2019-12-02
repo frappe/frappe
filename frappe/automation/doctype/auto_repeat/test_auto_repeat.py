@@ -96,6 +96,21 @@ class TestAutoRepeat(unittest.TestCase):
 		linked_comm = frappe.db.exists("Communication", dict(reference_doctype="ToDo", reference_name=new_todo))
 		self.assertTrue(linked_comm)
 
+	def test_next_schedule_date(self):
+		current_date = getdate(today())
+		todo = frappe.get_doc(
+			dict(doctype='ToDo', description='test next schedule date todo', assigned_by='Administrator')).insert()
+		doc = make_auto_repeat(frequency='Monthly',	reference_document=todo.name, start_date=add_months(today(), -2))
+
+		#check next_schedule_date is set as per current date
+		#it should not be a previous month's date
+		self.assertEqual(doc.next_schedule_date, current_date)
+		data = get_auto_repeat_entries(current_date)
+		create_repeated_entries(data)
+		docnames = frappe.get_all(doc.reference_doctype, {'auto_repeat': doc.name})
+		#the original doc + the repeated doc
+		self.assertEqual(len(docnames), 2)
+
 
 def make_auto_repeat(**args):
 	args = frappe._dict(args)

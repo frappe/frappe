@@ -669,7 +669,7 @@ def pretty_date(iso_datetime):
 	elif dt_diff_days < 7.0:
 		return _('{0} days ago').format(cint(dt_diff_days))
 	elif dt_diff_days < 12:
-		return _('1 weeks ago')
+		return _('1 week ago')
 	elif dt_diff_days < 31.0:
 		return _('{0} weeks ago').format(cint(math.ceil(dt_diff_days / 7.0)))
 	elif dt_diff_days < 46:
