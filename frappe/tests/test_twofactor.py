@@ -5,7 +5,7 @@ from __future__ import unicode_literals
 import unittest, frappe, pyotp
 from frappe.auth import HTTPRequest
 from frappe.utils import cint
-from frappe.tests import set_request
+from frappe.utils import set_request
 from frappe.auth import validate_ip_address
 from frappe.twofactor import (should_run_2fa, authenticate_for_2factor, get_cached_user_pass,
 	two_factor_is_enabled_for_, confirm_otp_token, get_otpsecret_for_, get_verification_obj)
@@ -157,8 +157,8 @@ def create_http_request():
 	'''Get http request object.'''
 	set_request(method='POST', path='login')
 	enable_2fa()
-	frappe.form_dict['usr'] = 'test@erpnext.com'
-	frappe.form_dict['pwd'] = 'test'
+	frappe.form_dict['usr'] = 'test@example.com'
+	frappe.form_dict['pwd'] = 'Eastern_43A1W'
 	frappe.local.form_dict['cmd'] = 'login'
 	http_requests = HTTPRequest()
 	return http_requests

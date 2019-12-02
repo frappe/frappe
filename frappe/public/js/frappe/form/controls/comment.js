@@ -1,7 +1,7 @@
 import Quill from 'quill';
 import Mention from './quill-mention/quill.mention';
 
-Quill.register('modules/mention', Mention);
+Quill.register('modules/mention', Mention, true);
 
 frappe.ui.form.ControlComment = frappe.ui.form.ControlTextEditor.extend({
 	make_wrapper() {

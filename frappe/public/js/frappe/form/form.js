@@ -111,6 +111,7 @@ frappe.ui.form.Form = class FrappeForm {
 			$("body").attr("data-sidebar", 1);
 		}
 		this.setup_file_drop();
+		this.setup_doctype_actions();
 
 		this.setup_done = true;
 	}
@@ -316,6 +317,29 @@ frappe.ui.form.Form = class FrappeForm {
 				.toggleClass('cancelled-form', this.doc.docstatus===2);
 
 			this.show_conflict_message();
+		}
+	}
+
+	// sets up the refresh event for custom buttons
+	// added via configuration
+	setup_doctype_actions() {
+		if (this.meta.actions) {
+			for (let action of this.meta.actions) {
+				frappe.ui.form.on(this.doctype, 'refresh', () => {
+					if (!this.is_new()) {
+						this.add_custom_button(action.label, () => {
+							if (action.action_type==='Server Action') {
+								frappe.xcall(action.action, {doc: this.doc}).then(() => {
+									frappe.msgprint({
+										message: __('{} Complete', [action.label]),
+										alert: true
+									});
+								});
+							}
+						}, action.group);
+					}
+				});
+			}
 		}
 	}
 

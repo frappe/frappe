@@ -150,8 +150,8 @@ class Document(BaseDocument):
 			super(Document, self).__init__(d)
 
 		if self.name=="DocType" and self.doctype=="DocType":
-			from frappe.model.meta import doctype_table_fields
-			table_fields = doctype_table_fields
+			from frappe.model.meta import DOCTYPE_TABLE_FIELDS
+			table_fields = DOCTYPE_TABLE_FIELDS
 		else:
 			table_fields = self.meta.get_table_fields()
 
