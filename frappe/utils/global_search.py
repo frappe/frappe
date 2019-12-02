@@ -479,7 +479,7 @@ def search(text, start=0, limit=20, doctype=""):
 		for index, r in enumerate(results):
 			if r.doctype == priority:
 				tmp_result.extend([r])
-				results.pop(index)
+				#results.pop(index)     doesnt that modify the list we iterate over?!
 
 		sorted_results.extend(tmp_result)
 
