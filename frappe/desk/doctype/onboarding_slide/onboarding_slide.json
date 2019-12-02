@@ -90,7 +90,7 @@
    "fieldname": "help_links",
    "fieldtype": "Table",
    "label": "Help Links",
-   "options": "Setup Wizard Help Link"
+   "options": "Onboarding Slide Help Link"
   },
   {
    "fieldname": "action_section_break",
@@ -157,7 +157,7 @@
    "label": "Fields"
   }
  ],
- "modified": "2019-11-30 13:58:05.688981",
+ "modified": "2019-12-02 16:17:17.368741",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Onboarding Slide",
