@@ -1,12 +1,9 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 from __future__ import unicode_literals
-
 import json
 from collections import defaultdict
-
 from six import string_types
-
 import frappe
 import frappe.desk.form.load
 import frappe.desk.form.meta
@@ -17,6 +14,20 @@ from frappe.modules import load_doctype_module
 
 @frappe.whitelist()
 def get_submitted_linked_docs(doctype, name, docs=None):
+	"""
+	Get all nested submitted linked doctype linkinfo
+
+	Arguments:
+		doctype (str) - The doctype for which get all linked doctypes
+		name (str) - The docname for which get all linked doctypes
+
+	Keyword Arguments:
+		docs [list of dict] - (Optional) Get list of dictionary for linked doctype (default: None)
+
+	Returns:
+		dict - Return list of documents and link count
+	"""
+
 	if not docs:
 		docs = []
 
@@ -24,21 +35,12 @@ def get_submitted_linked_docs(doctype, name, docs=None):
 	linked_docs = get_linked_docs(doctype, name, linkinfo)
 
 	link_count = 0
-	CANCEL_EXEMPT_DOCTYPES = []
-	for doctypes in frappe.get_hooks('cancel_exempt_doctypes'):
-		CANCEL_EXEMPT_DOCTYPES.extend(doctypes)
-
 	for link_doctype, link_names in linked_docs.items():
-		# skip non-submittable doctypes since they don't need to be cancelled
-		if not frappe.get_meta(link_doctype).is_submittable:
-			continue
-
-		# skip other doctypes since they don't need to be cancelled
-		if link_doctype in CANCEL_EXEMPT_DOCTYPES:
-			continue
-
 		for link in link_names:
-			if link.docstatus != 1:
+			docinfo = link.update({"doctype": link_doctype})
+			validated_doc = validate_linked_doc(docinfo)
+
+			if not validated_doc:
 				continue
 
 			link_count += 1
@@ -49,6 +51,7 @@ def get_submitted_linked_docs(doctype, name, docs=None):
 			docs.append({
 				"doctype": link_doctype,
 				"name": link.name,
+				"docstatus": link.docstatus,
 				"link_count": links.get("count")
 			})
 
@@ -62,11 +65,57 @@ def get_submitted_linked_docs(doctype, name, docs=None):
 
 @frappe.whitelist()
 def cancel_all_linked_docs(docs):
+	"""
+	Cancel all linked doctype
+
+	Arguments:
+		docs [list of dict] - It contains all list of dictionaries of a linked documents.
+	"""
+
 	docs = json.loads(docs)
 	for i, doc in enumerate(docs, 1):
-		frappe.publish_progress(percent=i * 100 / len(docs), title=_("Cancelling documents"))
-		linked_doc = frappe.get_doc(doc.get("doctype"), doc.get("name"))
-		linked_doc.cancel()
+		if validate_linked_doc(doc) is True:
+			frappe.publish_progress(percent=i * 100 / len(docs), title=_("Cancelling documents"))
+			linked_doc = frappe.get_doc(doc.get("doctype"), doc.get("name"))
+			linked_doc.cancel()
+
+
+def validate_linked_doc(docinfo):
+	"""
+	Validate a document to be submitted and non-exempted from auto-cancel.
+
+	Args:
+		docs (dict): The document to check for submitted and non-exempt from auto-cancel
+
+	Returns:
+		bool: True if linked document passes all validations, else False
+	"""
+
+	# skip non-submittable doctypes since they don't need to be cancelled
+	if not frappe.get_meta(docinfo.get('doctype')).is_submittable:
+		return False
+
+	# skip draft or cancelled documents
+	if docinfo.get('docstatus') != 1:
+		return False
+
+	# skip other doctypes since they don't need to be cancelled
+	auto_cancel_exempt_doctypes = get_exempted_doctypes()
+	if docinfo.get('doctype') in auto_cancel_exempt_doctypes:
+		return False
+
+	return True
+
+
+def get_exempted_doctypes():
+	"""
+		Get list of doctypes exempted from being auto-cancelled
+	"""
+
+	auto_cancel_exempt_doctypes = []
+	for doctypes in frappe.get_hooks('auto_cancel_exempt_doctypes'):
+		auto_cancel_exempt_doctypes.append(doctypes)
+	return auto_cancel_exempt_doctypes
 
 
 @frappe.whitelist()

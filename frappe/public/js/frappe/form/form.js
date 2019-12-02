@@ -725,7 +725,7 @@ frappe.ui.form.Form = class FrappeForm {
 							me._cancel(btn, callback, handle_fail, true);
 						}
 					}
-				})
+				});
 			});
 		}
 
@@ -742,7 +742,7 @@ frappe.ui.form.Form = class FrappeForm {
 					return;
 				}
 
-				const after_cancel(r) {
+				var after_cancel = function(r) {
 					if (r.exc) {
 						handle_fail();
 					} else {
