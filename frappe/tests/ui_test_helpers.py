@@ -71,6 +71,6 @@ def create_contact_phone_nos_records():
 
 	doc = frappe.new_doc('Contact')
 	doc.first_name = 'Test Contact'
-	for x in range(1000):
-		doc.append('phone_nos', {'phone': '123456789'})
+	for index in range(1000):
+		doc.append('phone_nos', {'phone': '123456{}'.format(index)})
 	doc.insert()
