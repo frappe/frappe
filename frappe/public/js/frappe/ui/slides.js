@@ -66,9 +66,9 @@ frappe.ui.Slide = class Slide {
 		});
 		this.form.make();
 		if (fields.length == 1 ) {
-			this.$form_wrapper.addClass("text-center")
+			this.$form_wrapper.addClass("text-center");
 		} else {
-			this.$form_wrapper.removeClass("text-center")
+			this.$form_wrapper.removeClass("text-center");
 		}
 		if(this.add_more) this.bind_more_button();
 
@@ -76,7 +76,6 @@ frappe.ui.Slide = class Slide {
 
 		if(this.onload) { this.onload(this); }
 		this.set_reqd_fields();
-		window.foorm = this.form
 	}
 
 	setup_done_state() {}
