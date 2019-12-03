@@ -1188,7 +1188,7 @@ apps/frappe/frappe/integrations/doctype/google_calendar/google_calendar.py,"Goog
 apps/frappe/frappe/public/js/frappe/form/grid_row_form.js,Editing Row,编辑行
 DocType: Workflow Action Master,Workflow Action Master,工作流操作主表
 DocType: Custom Field,Field Type,字段类型
-apps/frappe/frappe/utils/data.py,only.,而已。
+apps/frappe/frappe/utils/data.py,only.,元整。
 DocType: Route History,Route History,路线历史
 apps/frappe/frappe/social/doctype/energy_point_settings/energy_point_settings.js,Give Review Points,给予评论点
 apps/frappe/frappe/integrations/doctype/google_contacts/google_contacts.py,"Google Calendar - Could not insert contact in Google Contacts {0}, error code {1}.",Google日历 - 无法在Google通讯录{0}中插入联系人，错误代码为{1}。
