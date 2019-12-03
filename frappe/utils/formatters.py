@@ -55,12 +55,15 @@ def format_value(value, df=None, doc=None, currency=None, translated=False):
 		# this is required to show 0 as blank in table columns
 		return ""
 
-	elif df.get("fieldtype") == "Currency" or (df.get("fieldtype")=="Float" and (df.options or "").strip()):
-		return fmt_money(value, precision=get_field_precision(df, doc),
-			currency=currency if currency else (get_field_currency(df, doc) if doc else None))
+	elif df.get("fieldtype") == "Currency":
+		default_currency = frappe.db.get_default("currency")
+		currency = currency or get_field_currency(df, doc) or default_currency
+		return fmt_money(value, precision=get_field_precision(df, doc), currency=currency)
 
 	elif df.get("fieldtype") == "Float":
 		precision = get_field_precision(df, doc)
+		# I don't know why we support currency option for float
+		currency = currency or get_field_currency(df, doc)
 
 		# show 1.000000 as 1
 		# options should not specified
@@ -69,7 +72,7 @@ def format_value(value, df=None, doc=None, currency=None, translated=False):
 			if len(temp)==1 or cint(temp[1])==0:
 				precision = 0
 
-		return fmt_money(value, precision=precision)
+		return fmt_money(value, precision=precision, currency=currency)
 
 	elif df.get("fieldtype") == "Percent":
 		return "{}%".format(flt(value, 2))
