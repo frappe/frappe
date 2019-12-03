@@ -3,6 +3,15 @@
 
 frappe.ui.form.on('Bulk Update', {
 	refresh: function(frm) {
+		frm.set_query("document_type", function() {
+			return {
+				filters: [
+					['DocType', 'issingle', '=', 0],
+					['DocType', 'name', 'not in', frappe.model.core_doctypes_list]
+				]
+			};
+		});
+
 		frm.page.set_primary_action(__('Update'), function() {
 			if (!frm.doc.update_value) {
 				frappe.throw(__('Field "value" is mandatory. Please specify value to be updated'));
