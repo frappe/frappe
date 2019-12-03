@@ -7,8 +7,7 @@ frappe.ui.form.on('Bulk Update', {
 			return {
 				filters: [
 					['DocType', 'issingle', '=', 0],
-					['DocType', 'name', 'not in', frappe.model.core_doctypes_list],
-					['DocType', 'restrict_to_domain', 'in', frappe.boot.active_domains]
+					['DocType', 'name', 'not in', frappe.model.core_doctypes_list]
 				]
 			};
 		});
