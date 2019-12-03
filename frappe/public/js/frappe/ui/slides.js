@@ -26,7 +26,9 @@ frappe.ui.Slide = class Slide {
 			<div class="form-wrapper">
 				<div class="form"></div>
 				<div class="add-more text-center" style="margin-top: 5px;">
-					<a class="form-more-btn hide btn btn-default btn-xs">${__("Add More")}</a>
+					<a class="form-more-btn hide btn btn-default btn-xs">
+						<span><i class="fa fa-plus small" aria-hidden="true"></i></span>
+					</a>
 				</div>
 			</div>
 		</div>`).appendTo(this.$wrapper);
@@ -35,9 +37,9 @@ frappe.ui.Slide = class Slide {
 		this.$form = this.$body.find(".form");
 		this.$primary_btn = this.slides_footer.find('.primary');
 
-		if(this.help) this.$content.append($(`<p class="slide-help">${this.help}</p>`));
 		if(this.image_src) this.$content.append(
 			$(`<img src="${this.image_src}" style="margin: 20px;">`));
+		if(this.help) this.$content.append($(`<p class="slide-help">${this.help}</p>`));
 
 		this.reqd_fields = [];
 
@@ -68,6 +70,8 @@ frappe.ui.Slide = class Slide {
 		if(this.onload) { this.onload(this); }
 		this.set_reqd_fields();
 	}
+
+	setup_done_state() {}
 
 	// Form methods
 	get_atomic_fields() {
@@ -122,6 +126,7 @@ frappe.ui.Slide = class Slide {
 					if(!field.static) {
 						if(field.label) field.label += ' ' + this.count;
 					}
+					field.reqd = 0;
 					return field;
 				}));
 				if(this.count === this.max_count) {
@@ -163,7 +168,7 @@ frappe.ui.Slide = class Slide {
 	}
 
 	bind_primary_action() {
-		this.slides_footer.find(".primary").on('click', () => {
+		this.slides_footer.find(".primary").on('click.primary_action', () => {
 			this.primary_action();
 		});
 	}

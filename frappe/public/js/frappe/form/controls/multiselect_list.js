@@ -17,6 +17,7 @@ frappe.ui.form.ControlMultiSelectList = frappe.ui.form.ControlData.extend({
 
 		this.$list_wrapper = $(template);
 		this.$input = $('<input>');
+		this.input = this.$input.get(0);
 		this.$list_wrapper.prependTo(this.input_area);
 		this.$filter_input = this.$list_wrapper.find('input');
 		this.$list_wrapper.on('click', '.dropdown-menu', e => {
