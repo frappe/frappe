@@ -433,7 +433,7 @@ class Meta(Document):
 
 	def add_doctype_links(self, data):
 		'''add `links` child table in standard link dashboard format'''
-		if self.links:
+		if hasattr(self, 'links') and self.links:
 			if not data.transactions:
 				# init groups
 				data.transactions = []
