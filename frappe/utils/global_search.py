@@ -478,7 +478,7 @@ def search(text, start=0, limit=20, doctype=""):
 
 				sorted_results.extend([r])
 
-	return sorted_results or results
+	return sorted_results
 
 @frappe.whitelist(allow_guest=True)
 def web_search(text, scope=None, start=0, limit=20):
