@@ -263,7 +263,8 @@ frappe.views.ListSidebar = class ListSidebar {
 			args: {
 				stats: me.stats,
 				doctype: me.doctype,
-				filters: me.default_filters || []
+				// wait for list filter area to be generated before getting filters, or fallback to default filters
+				filters: (me.list_view.filter_area ? me.list_filter.get_current_filters() : me.default_filters) || []
 			},
 			callback: function(r) {
 				me.defined_category = r.message;
@@ -383,6 +384,7 @@ frappe.views.ListSidebar = class ListSidebar {
 
 	reload_stats() {
 		this.sidebar.find(".sidebar-stat").remove();
+		this.sidebar.find(".list-tag-preview").remove();
 		this.get_stats();
 	}
 
