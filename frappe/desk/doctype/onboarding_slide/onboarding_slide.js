@@ -3,8 +3,8 @@
 
 frappe.ui.form.on('Onboarding Slide', {
 	refresh: function(frm) {
-		frm.toggle_reqd('ref_doctype', frm.doc.slide_type!='Information');
-		frm.toggle_reqd('slide_module', frm.doc.slide_type=='Information');
+		frm.toggle_reqd('ref_doctype', (frm.doc.slide_type=='Create' || frm.doc.slide_type=='Settings'));
+		frm.toggle_reqd('slide_module', (frm.doc.slide_type=='Information' || frm.doc.slide_type=='Continue'));
 	},
 
 	ref_doctype: function(frm) {

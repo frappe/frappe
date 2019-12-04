@@ -26,7 +26,7 @@ frappe.setup.OnboardingSlide = class OnboardingSlide extends frappe.ui.Slide {
 		(this.id === 0) ?
 			this.$next_btn.text(__('Let\'s Start')) : this.$next_btn.text(__('Next'));
 		//last slide
-		if (this.id === this.parent[0].children.length-1) {
+		if (this.is_last_slide()) {
 			this.$complete_btn.removeClass('hide').addClass('action primary');
 			this.$next_btn.removeClass('action primary');
 			this.$action_button = this.$complete_btn;
@@ -48,7 +48,7 @@ frappe.setup.OnboardingSlide = class OnboardingSlide extends frappe.ui.Slide {
 					slide_type: me.slide_type
 				},
 				callback: function() {
-					if (me.id === me.parent[0].children.length-1) {
+					if (me.is_last_slide()) {
 						me.reset_is_first_startup();
 						$('.onboarding-dialog').modal('toggle');
 						frappe.msgprint({
@@ -86,7 +86,7 @@ frappe.setup.OnboardingSlide = class OnboardingSlide extends frappe.ui.Slide {
 	}
 
 	setup_action_button() {
-		if (this.slide_type === 'Create' || this.slide_type == 'Settings' || this.id === this.parent[0].children.length-1) {
+		if (this.slide_type === 'Create' || this.slide_type == 'Settings' || this.is_last_slide()) {
 			this.$action_button.addClass('primary');
 		} else {
 			this.$action_button.removeClass('primary');

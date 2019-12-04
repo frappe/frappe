@@ -182,6 +182,13 @@ frappe.ui.Slide = class Slide {
 		});
 	}
 
+	is_last_slide() {
+		if (this.id === this.parent[0].children.length-1) {
+			return true;
+		}
+		return false;
+	}
+
 	before_show() { }
 
 	show_slide() {
