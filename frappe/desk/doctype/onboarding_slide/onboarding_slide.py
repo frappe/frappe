@@ -11,8 +11,13 @@ from frappe.modules.export_file import export_to_files
 
 class OnboardingSlide(Document):
 	def validate(self):
-		if frappe.db.exists('Onboarding Slide', {'slide_type': 'Continue', 'name': ('!=', self.name)}):
-			frappe.throw(_("An Onboarding Slide of Slide Type Continue already exists."))
+		if self.slide_type == 'Continue' and frappe.db.exists('Onboarding Slide', {'slide_type': 'Continue', 'name': ('!=', self.name)}):
+			frappe.throw(_('An Onboarding Slide of Slide Type Continue already exists.'))
+
+		if self.slide_order:
+			same_order_slide = frappe.db.exists('Onboarding Slide', {'slide_order': self.slide_order, 'name': ('!=', self.name)})
+			if same_order_slide:
+				frappe.throw(_('An Onboarding Slide <b>{0}</b> with the same slide order already exists').format(same_order_slide))
 
 	def on_update(self):
 		if self.ref_doctype:
