@@ -45,33 +45,27 @@ frappe.setup.OnboardingSlide = class OnboardingSlide extends frappe.ui.Slide {
 	}
 
 	primary_action() {
-		let me = this;
 		if (this.set_values()) {
 			this.$action_button.addClass('disabled');
-			if (me.add_more) me.values.max_count = me.max_count;
-			frappe.call({
-				method: 'frappe.desk.doctype.onboarding_slide.onboarding_slide.create_onboarding_docs',
-				args: {
-					values: me.values,
-					doctype: me.ref_doctype,
-					app: me.app,
-					slide_type: me.slide_type
-				},
-				callback: function() {
-					if (me.is_last_slide()) {
-						me.reset_is_first_startup();
-						$('.onboarding-dialog').modal('toggle');
-						frappe.msgprint({
-							message: __('You are all set up!'),
-							indicator: 'green',
-							title: __('Success')
-						});
-					}
-				},
-				onerror: function() {
-					me.slides_footer.find('.primary').removeClass('disabled');
-				},
-				freeze: true
+			const primary_method = 'frappe.desk.doctype.onboarding_slide.onboarding_slide.create_onboarding_docs';
+			if (this.add_more) {
+				this.values.max_count = this.max_count;
+			}
+			frappe.call(primary_method, {
+				values: this.values,
+				doctype: this.ref_doctype,
+				app: this.app,
+				slide_type: this.slide_type
+			}).then(() => {
+				if (this.is_last_slide()) {
+					this.reset_is_first_startup();
+					$('.onboarding-dialog').modal('toggle');
+					frappe.msgprint({
+						message: __('You are all set up!'),
+						indicator: 'green',
+						title: __('Success')
+					});
+				}
 			});
 		}
 	}
