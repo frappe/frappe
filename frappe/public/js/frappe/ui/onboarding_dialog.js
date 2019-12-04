@@ -24,7 +24,7 @@ frappe.setup.OnboardingSlide = class OnboardingSlide extends frappe.ui.Slide {
 
 	setup_form() {
 		super.setup_form();
-		const fields = this.get_atomic_fields()
+		const fields = this.get_atomic_fields();
 		if (fields.length == 1) {
 			this.$form_wrapper.addClass("text-center");
 		} else {

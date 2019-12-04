@@ -80,14 +80,14 @@ frappe.ui.Slide = class Slide {
 		if(this.add_more) {
 			this.count = 1;
 			fields = fields.map((field, i) => {
-				if(field.fieldname) {
+				if (field.fieldname) {
 					field.fieldname += '_1';
 				}
-				if(i === 1 && this.mandatory_entry) {
+				if (i === 1 && this.mandatory_entry) {
 					field.reqd = 1;
 				}
-				if(!field.static) {
-					if(field.label) field.label;
+				if (!field.static) {
+					if (field.label) field.label;
 				}
 				return field;
 			});
@@ -107,10 +107,10 @@ frappe.ui.Slide = class Slide {
 
 	set_values() {
 		this.values = this.form.get_values();
-		if(this.values===null) {
+		if (this.values===null) {
 			return false;
 		}
-		if(this.validate && !this.validate()) {
+		if (this.validate && !this.validate()) {
 			return false;
 		}
 		return true;
@@ -124,9 +124,9 @@ frappe.ui.Slide = class Slide {
 				var fields = JSON.parse(JSON.stringify(this.fields));
 
 				this.form.add_fields(fields.map(field => {
-					if(field.fieldname) field.fieldname += '_' + this.count;
-					if(!field.static) {
-						if(field.label) field.label;
+					if (field.fieldname) field.fieldname += '_' + this.count;
+					if (!field.static) {
+						if (field.label) field.label;
 					}
 					field.reqd = 0;
 					return field;
@@ -159,7 +159,7 @@ frappe.ui.Slide = class Slide {
 		var empty_fields = this.reqd_fields.filter((field) => {
 			return !field.get_value();
 		});
-		if(empty_fields.length) {
+		if (empty_fields.length) {
 			this.slides_footer.find('.action').addClass('disabled');
 		} else {
 			this.slides_footer.find('.action').removeClass('disabled');
