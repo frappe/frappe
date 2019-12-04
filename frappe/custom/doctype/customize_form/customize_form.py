@@ -59,6 +59,8 @@ docfield_properties = {
 	'report_hide': 'Check',
 	'allow_on_submit': 'Check',
 	'translatable': 'Check',
+	'mandatory_depends_on': 'Data',
+	'read_only_depends_on': 'Data',
 	'depends_on': 'Data',
 	'description': 'Text',
 	'default': 'Text',
