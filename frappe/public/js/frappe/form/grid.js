@@ -569,7 +569,7 @@ export default class Grid {
 	add_new_row(idx, callback, show, copy_doc, go_to_last_page=false) {
 		if (this.is_editable()) {
 			if (go_to_last_page) {
-				this.grid_pagination.go_to_last_page();
+				this.grid_pagination.go_to_last_page_to_add_row();
 			}
 			if (this.frm) {
 				var d = frappe.model.add_child(this.frm.doc, this.df.options, this.df.fieldname, idx);
@@ -748,7 +748,7 @@ export default class Grid {
 				target: this,
 				txt: ""
 			});
-			this.grid_pagination.go_to_last_page();
+			this.grid_pagination.go_to_last_page_to_add_row();
 			return false;
 		});
 		this.multiple_set = true;

@@ -44,7 +44,7 @@ export default class GridPagination {
 		});
 
 		this.last_page_button.on('click', () => {
-			this.go_to_last_page();
+			this.go_to_page(this.total_pages);
 		});
 	}
 
@@ -112,7 +112,7 @@ export default class GridPagination {
 		this.update_page_numbers();
 	}
 
-	go_to_last_page() {
+	go_to_last_page_to_add_row() {
 		let total_pages = this.total_pages;
 		let page_length = this.page_length;
 		if (this.grid.data.length == page_length*total_pages) {
