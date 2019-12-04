@@ -509,14 +509,37 @@ def prepare_message(email, recipient, recipients_list):
 
 	message = (message and message.encode('utf8')) or ''
 	message = safe_decode(message)
-	if not email.attachments:
-		return message
+
+
+	# Ref https://discuss.erpnext.com/t/equal-sign-in-emails/52597/10
+	# Fixes issues with microsoft email servers
+	from email.parser import Parser
+	from email.policy import EmailPolicy, SMTP as SMTP_policy
+
+	MSG_ID_HEADERS = {'message-id', 'in-reply-to', 'references', 'resent-msg-id'}
+
+
+	# RFC 5322, section 2.1.1: "Each line of characters MUST be no
+	# more than 998 characters, and SHOULD be no more than 78
+	# characters, excluding the CRLF.". To avoid msg-id tokens from being folded
+	# by means of RFC2047, fold identifier lines to the max length instead.
+	c1 = name.lower() in MSG_ID_HEADERS
+	c2 = self.max_line_length < 998
+	c3 = self.max_line_length - len(name) - 2 < len(value)
+
+	class MsgIdExemptPolicy(EmailPolicy):
+		def _fold(self, name, value, *args, **kwargs):
+			if c1 and c2 and c3:
+				return self.clone(max_line_length=998)._fold(name, value, *args, **kwargs)
+			return super()._fold(name, value, *args, **kwargs)
+
+	our_policy = MsgIdExemptPolicy() + SMTP_policy
+	msg_obj = Parser(policy=our_policy).parsestr(message)
 
 	# On-demand attachments
-	from email.parser import Parser
-
-	msg_obj = Parser().parsestr(message)
-	attachments = json.loads(email.attachments)
+	attachments = []
+	if email.attachments:
+		attachments = json.loads(email.attachments)
 
 	for attachment in attachments:
 		if attachment.get('fcontent'): continue
