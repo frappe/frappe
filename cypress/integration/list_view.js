@@ -2,10 +2,9 @@ context('List View', () => {
 	before(() => {
 		cy.login();
 		cy.visit('/desk');
-		cy.window().its('frappe').then(frappe => {
-			frappe.call("frappe.tests.ui_test_helpers.setup_workflow");
+		return cy.window().its('frappe').then(frappe => {
+			return frappe.xcall("frappe.tests.ui_test_helpers.setup_workflow");
 		});
-		cy.clear_cache();
 	});
 	it('enables "Actions" button', () => {
 		const actions = ['Approve', 'Reject', 'Edit', 'Assign To', 'Apply Assignment Rule', 'Print', 'Delete'];
