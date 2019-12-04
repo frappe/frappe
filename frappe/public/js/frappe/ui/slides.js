@@ -58,18 +58,12 @@ frappe.ui.Slide = class Slide {
 	}
 
 	setup_form() {
-		const fields = this.get_atomic_fields()
 		this.form = new frappe.ui.FieldGroup({
-			fields: fields,
+			fields: this.get_atomic_fields(),
 			body: this.$form[0],
 			no_submit_on_enter: true
 		});
 		this.form.make();
-		if (fields.length == 1 ) {
-			this.$form_wrapper.addClass("text-center");
-		} else {
-			this.$form_wrapper.removeClass("text-center");
-		}
 		if(this.add_more) this.bind_more_button();
 
 		this.set_reqd_fields();

@@ -22,6 +22,16 @@ frappe.setup.OnboardingSlide = class OnboardingSlide extends frappe.ui.Slide {
 		}
 	}
 
+	setup_form() {
+		super.setup_form();
+		const fields = this.get_atomic_fields()
+		if (fields.length == 1) {
+			this.$form_wrapper.addClass("text-center");
+		} else {
+			this.$form_wrapper.removeClass("text-center");
+		}
+	}
+
 	before_show() {
 		(this.id === 0) ?
 			this.$next_btn.text(__('Let\'s Start')) : this.$next_btn.text(__('Next'));
