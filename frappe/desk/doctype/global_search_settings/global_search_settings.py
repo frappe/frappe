@@ -29,7 +29,6 @@ class GlobalSearchSettings(Document):
 			repeated_dts = (", ".join([frappe.bold(dt) for dt in repeated_dts]))
 			frappe.throw(_("Document Type {0} has been repeated.").format(repeated_dts))
 
-	def on_update(self):
 		set_doctypes_for_global_search()
 
 def set_doctypes_for_global_search():
