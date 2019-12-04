@@ -509,7 +509,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		}
 		options.axisOptions = {
 			shortenYAxisNumbers: 1
-		}
+		};
 
 		return options;
 	}
