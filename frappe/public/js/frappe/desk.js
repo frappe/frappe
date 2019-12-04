@@ -496,11 +496,6 @@ frappe.Application = Class.extend({
 							slides: slides
 						});
 						me.progress_dialog.show();
-						frappe.call({
-							method: "frappe.desk.page.setup_wizard.setup_wizard.reset_is_first_startup",
-							args: {},
-							callback: () => {}
-						});
 					});
 				}
 			}

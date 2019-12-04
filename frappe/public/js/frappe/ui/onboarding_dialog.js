@@ -44,12 +44,12 @@ frappe.setup.OnboardingSlide = class OnboardingSlide extends frappe.ui.Slide {
 				args: {
 					values: me.values,
 					doctype: me.ref_doctype,
-					submit_method: me.submit_method,
 					app: me.app,
 					slide_type: me.slide_type
 				},
 				callback: function() {
 					if (me.id === me.parent[0].children.length-1) {
+						me.reset_is_first_startup();
 						$('.onboarding-dialog').modal('toggle');
 						frappe.msgprint({
 							message: __('You are all set up!'),
@@ -86,11 +86,34 @@ frappe.setup.OnboardingSlide = class OnboardingSlide extends frappe.ui.Slide {
 	}
 
 	setup_action_button() {
-		if (this.slide_type !== 'Information') {
+		if (this.slide_type === 'Create' || this.slide_type == 'Settings' || this.id === this.parent[0].children.length-1) {
 			this.$action_button.addClass('primary');
 		} else {
 			this.$action_button.removeClass('primary');
 		}
+
+		this.$action_button.on('click', () => {
+			if (this.slide_type != 'Continue') {
+				this.mark_as_completed();
+			}
+		});
+	}
+
+	mark_as_completed() {
+		frappe.call({
+			method: 'frappe.desk.doctype.onboarding_slide.onboarding_slide.mark_slide_as_completed',
+			args: {slide_title: this.title},
+			callback: () => {},
+			freeze: true
+		});
+	}
+
+	reset_is_first_startup() {
+		frappe.call({
+			method: "frappe.desk.page.setup_wizard.setup_wizard.reset_is_first_startup",
+			args: {},
+			callback: () => {}
+		});
 	}
 };
 
