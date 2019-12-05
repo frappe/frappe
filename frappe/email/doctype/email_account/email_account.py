@@ -356,7 +356,7 @@ class EmailAccount(Document):
 				name = names[0].get("name")
 				# email is already available update communication uid instead
 				frappe.db.set_value("Communication", name, "uid", uid, update_modified=False)
-				return
+				return frappe.get_doc("Communication", name)
 
 		if email.content_type == 'text/html':
 			email.content = clean_email_html(email.content)
