@@ -81,10 +81,11 @@ This is the text version of this email
 			subject='Test Subject',
 			content='<h1>Whatever</h1>',
 			text_content='whatever',
-			message_id="a.really.long.message.id.that.should.not.wrap.until.998.if.it.does.then.exchange.will.break" +
-				".really.long.message.id.that.should.not.wrap.unti")
+			message_id=	"a.really.long.message.id.that.should.not.wrap.until.998.if.it.does.then.exchange.will.break" +
+						".really.long.message.id.that.should.not.wrap.unti")
 		result = prepare_message(email=email, recipient='test@test.com', recipients_list=[])
-		self.assertTrue("a.really.long.message.id.that.should.not.wrap.until.998.if.it.does.then.exchange.will.break" +
+		self.assertTrue(
+			"a.really.long.message.id.that.should.not.wrap.until.998.if.it.does.then.exchange.will.break" +
 			".really.long.message.id.that.should.not.wrap.unti" in result)
 
 	def test_image(self):
