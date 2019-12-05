@@ -78,7 +78,7 @@ export default class WebFormList {
 		return frappe
 			.call({
 				method:
-					"frappe.website.doctype.web_form.web_form.get_in_list_view_fields",
+					"frappe.website.doctype.web_form.web_list.get_in_list_view_fields",
 				args: { doctype: this.doctype }
 			})
 			.then(response => (this.fields_list = response.message));
@@ -262,7 +262,7 @@ export default class WebFormList {
 			.call({
 				type: "POST",
 				method:
-					"frappe.website.doctype.web_form.web_form.delete_multiple",
+					"frappe.website.doctype.web_form.web_list.delete_multiple",
 				args: {
 					web_form_name: this.web_form_name,
 					docnames: this.get_selected().map(row => row.doc.name)
