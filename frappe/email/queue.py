@@ -22,7 +22,7 @@ class EmailLimitCrossedError(frappe.ValidationError): pass
 
 def send(recipients=None, sender=None, subject=None, message=None, text_content=None, reference_doctype=None,
 		reference_name=None, unsubscribe_method=None, unsubscribe_params=None, unsubscribe_message=None,
-		attachments=None, reply_to=None, cc=[], bcc=[], message_id=None, in_reply_to=None, send_after=None,
+		attachments=None, reply_to=None, cc=None, bcc=None, message_id=None, in_reply_to=None, send_after=None,
 		expose_recipients=None, send_priority=1, communication=None, now=False, read_receipt=None,
 		queue_separately=False, is_notification=False, add_unsubscribe_link=1, inline_images=None,
 		header=None, print_letterhead=False):
@@ -55,6 +55,11 @@ def send(recipients=None, sender=None, subject=None, message=None, text_content=
 
 	if not recipients and not cc:
 		return
+
+	if not cc:
+		cc = []
+	if not bcc:
+		bcc = []
 
 	if isinstance(recipients, string_types):
 		recipients = split_emails(recipients)

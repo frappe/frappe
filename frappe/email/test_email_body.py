@@ -41,12 +41,20 @@ This is the text version of this email
 		).as_string()
 
 	def test_prepare_message_returns_already_encoded_string(self):
+
+		if (sys.version_info)[0] > 2:
+			uni_chr1 = chr(40960)
+			uni_chr2 = chr(1972)
+		else:
+			uni_chr1 = unichr(40960)
+			uni_chr2 = unichr(1972)
+
 		email = get_email_queue(
 			recipients=['test@example.com'],
 			sender='me@example.com',
 			subject='Test Subject',
-			content='<h1>' + chr(40960) + 'abcd' + chr(1972) + '</h1>',
-			formatted='<h1>' + chr(40960) + 'abcd' + chr(1972) + '</h1>',
+			content='<h1>' + uni_chr1 + 'abcd' + uni_chr2 + '</h1>',
+			formatted='<h1>' + uni_chr1 + 'abcd' + uni_chr2 + '</h1>',
 			text_content='whatever')
 		result = prepare_message(email=email, recipient='test@test.com', recipients_list=[])
 		self.assertTrue("<h1>=EA=80=80abcd=DE=B4</h1>" in result)
@@ -60,7 +68,7 @@ This is the text version of this email
 			formatted='<h1>\n this is a test of newlines\n' + '</h1>',
 			text_content='whatever')
 		result = prepare_message(email=email, recipient='test@test.com', recipients_list=[])
-		if (sys.version_info)[0] > 2:
+		if sys.version_info[0] > 2:
 			self.assertTrue(result.count('\n') == result.count("\r"))
 		else:
 			self.assertTrue(True)
@@ -74,10 +82,10 @@ This is the text version of this email
 			content='<h1>Whatever</h1>',
 			text_content='whatever',
 			message_id="a.really.long.message.id.that.should.not.wrap.until.998.if.it.does.then.exchange.will.break" +
-						".really.long.message.id.that.should.not.wrap.unti")
+				".really.long.message.id.that.should.not.wrap.unti")
 		result = prepare_message(email=email, recipient='test@test.com', recipients_list=[])
 		self.assertTrue("a.really.long.message.id.that.should.not.wrap.until.998.if.it.does.then.exchange.will.break" +
-						".really.long.message.id.that.should.not.wrap.unti" in result)
+			".really.long.message.id.that.should.not.wrap.unti" in result)
 
 	def test_image(self):
 		img_signature = '''

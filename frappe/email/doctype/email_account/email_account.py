@@ -323,16 +323,16 @@ class EmailAccount(Document):
 			unhandled_email.insert(ignore_permissions=True)
 			frappe.db.commit()
 
-	def insert_communication(self, msg, args={}):
+	def insert_communication(self, msg, args=None):
 		if isinstance(msg, list):
 			raw, uid, seen = msg
 		else:
 			raw = msg
 			uid = -1
 			seen = 0
-
-		if args.get("uid", -1): uid = args.get("uid", -1)
-		if args.get("seen", 0): seen = args.get("seen", 0)
+		if isinstance(args, dict):
+			if args.get("uid", -1): uid = args.get("uid", -1)
+			if args.get("seen", 0): seen = args.get("seen", 0)
 
 		email = Email(raw)
 
