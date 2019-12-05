@@ -649,13 +649,6 @@ frappe.ui.form.Form = class FrappeForm {
 
 	savecancel(btn, callback, on_error) {
 		const me = this;
-		const handle_fail = () => {
-			$(btn).prop('disabled', false);
-			if (on_error) {
-				on_error();
-			}
-		};
-
 		this.validate_form_action('Cancel');
 
 		frappe.call({
@@ -667,15 +660,15 @@ frappe.ui.form.Form = class FrappeForm {
 			freeze: true,
 			callback: (r) => {
 				if (!r.exc && r.message.count > 0) {
-					me._cancel_all(r, btn, callback, handle_fail);
+					me._cancel_all(r, btn, callback, on_error);
 				} else {
-					me._cancel(btn, callback, handle_fail, false);
+					me._cancel(btn, callback, on_error, false);
 				}
 			}
 		});
 	}
 
-	_cancel_all(r, btn, callback, handle_fail) {
+	_cancel_all(r, btn, callback, on_error) {
 		const me = this;
 
 		// add confirmation message for cancelling all linked docs
@@ -707,7 +700,7 @@ frappe.ui.form.Form = class FrappeForm {
 				fieldtype: "HTML",
 				options: `<p class="frappe-confirm-message">${confirm_message}</p>`
 			}]
-		}, () => handle_fail());
+		}, () => me.handle_save_fail(btn, on_error));
 
 		// if user can cancel all linked docs, add action to the dialog
 		if (can_cancel) {
@@ -722,7 +715,7 @@ frappe.ui.form.Form = class FrappeForm {
 					callback: (resp) => {
 						if (!resp.exc) {
 							me.reload_doc();
-							me._cancel(btn, callback, handle_fail, true);
+							me._cancel(btn, callback, on_error, true);
 						}
 					}
 				});
@@ -732,14 +725,13 @@ frappe.ui.form.Form = class FrappeForm {
 		d.show();
 	};
 
-	_cancel(btn, callback, handle_fail, skip_confirm) {
+	_cancel(btn, callback, on_error, skip_confirm) {
 		const me = this;
 		const cancel_doc = () => {
 			frappe.validated = true;
 			me.script_manager.trigger("before_cancel").then(() => {
 				if (!frappe.validated) {
-					handle_fail();
-					return;
+					return me.handle_save_fail(btn, on_error);
 				}
 
 				var after_cancel = function(r) {
@@ -759,7 +751,7 @@ frappe.ui.form.Form = class FrappeForm {
 		if (skip_confirm) {
 			cancel_doc();
 		} else {
-			frappe.confirm(__("Permanently Cancel {0}?", [this.docname]), cancel_doc, handle_fail);
+			frappe.confirm(__("Permanently Cancel {0}?", [this.docname]), cancel_doc, me.handle_save_fail(btn, on_error));
 		}
 	};
 
