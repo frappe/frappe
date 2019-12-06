@@ -77,7 +77,7 @@ class Address(Document):
 		return False
 
 @frappe.whitelist()
-def get_default_address(doctype, name, sort_key='is_primary_address', existing_address=None):
+def get_default_address(doctype, name, sort_key='is_primary_address'):
 	'''Returns default Address name for the given doctype, name'''
 	if sort_key not in ['is_shipping_address', 'is_primary_address']:
 		return None
@@ -91,9 +91,6 @@ def get_default_address(doctype, name, sort_key='is_primary_address', existing_a
 			dl.link_name = %s and ifnull(addr.disabled, 0) = 0
 		""" %(sort_key, '%s', '%s'), (doctype, name))
 
-	if existing_address:
-		if existing_address in [d[0] for d in out]:
-			return existing_address
 
 	if out:
 		return sorted(out, key = functools.cmp_to_key(lambda x,y: cmp(y[1], x[1])))[0][0]
