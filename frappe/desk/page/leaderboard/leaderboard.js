@@ -41,7 +41,11 @@ class Leaderboard {
 					return field;
 				});
 			}
-			this.timespans = ["Last Week", "This Month", "Last Quarter", "This Year", "All Time", "Select From Date"];
+			this.timespans = [
+				"This Week", "This Month", "This Quarter", "This Year",
+				"Last Week", "Last Quarter","Last Year",
+				"All Time", "Select From Date"
+			];
 
 			// for saving current selected filters
 			const _initial_doctype = frappe.get_route()[1] || this.doctypes[0];
@@ -136,7 +140,7 @@ class Leaderboard {
 			df: {
 				fieldtype: 'Date',
 				fieldname: 'selected_from_date',
-				placeholder: 'From Date',
+				placeholder: frappe.datetime.month_start(),
 				default: frappe.datetime.month_start(),
 				input_class: 'input-sm',
 				reqd: 1,
@@ -235,7 +239,6 @@ class Leaderboard {
 			this.leaderboard_config[this.options.selected_doctype].method,
 			{
 				'from_date': this.get_from_date(),
-				'timespan': this.options.selected_timespan,
 				'company': this.options.selected_company,
 				'field': this.options.selected_filter_item,
 				'limit': this.leaderboard_limit,
@@ -388,19 +391,20 @@ class Leaderboard {
 	get_from_date() {
 		let timespan = this.options.selected_timespan.toLowerCase();
 		let current_date = frappe.datetime.now_date();
-		let date = '';
-		if (timespan === "this month") {
-			date = frappe.datetime.month_start();
-		} else if (timespan === "last quarter") {
-			date = frappe.datetime.add_months(current_date, -3);
-		} else if (timespan === "this year") {
-			date = frappe.datetime.year_start();
-		} else if (timespan === "last week") {
-			date = frappe.datetime.add_days(current_date, -7);
-		} else if (timespan === 'select from date') {
-			date = this.selected_from_date;
+		let get_from_date = {
+			"this week": frappe.datetime.week_start(),
+			"this month": frappe.datetime.month_start(),
+			"this quarter": frappe.datetime.quarter_start(),
+			"this year": frappe.datetime.year_start(),
+			"last week": frappe.datetime.add_days(current_date, -7),
+			"last month": frappe.datetime.add_months(current_date, -1),
+			"last quarter": frappe.datetime.add_months(current_date, -3),
+			"last year": frappe.datetime.add_months(current_date, -12),
+			"all time": "",
+			"select from date": this.selected_from_date || frappe.datetime.month_start()
 		}
-		return date;
+
+		return get_from_date[timespan];
 	}
 
 }
