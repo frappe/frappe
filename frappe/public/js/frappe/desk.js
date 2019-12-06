@@ -474,14 +474,14 @@ frappe.Application = Class.extend({
 			})
 		})
 
-		var d = frappe.msgprint({
+		var change_log_dialog = frappe.msgprint({
 			message: frappe.render_template("change_log", {"change_log": change_log}),
 			title: __("Updated To New Version 🎉"),
 			wide: true,
 			scroll: true
 		});
-		d.keep_open = true;
-		d.custom_onhide = function() {
+		change_log_dialog.keep_open = true;
+		change_log_dialog.custom_onhide = function() {
 			frappe.call({
 				"method": "frappe.utils.change_log.update_last_known_versions"
 			});
