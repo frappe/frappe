@@ -51,7 +51,7 @@ def sanitize_searchfield(searchfield):
 @frappe.whitelist()
 def search_link(doctype, txt, query=None, filters=None, page_length=20, searchfield=None, reference_doctype=None, ignore_user_permissions=False):
 	search_widget(doctype, txt, query, searchfield=searchfield, page_length=page_length, filters=filters, reference_doctype=reference_doctype, ignore_user_permissions=ignore_user_permissions)
-	frappe.response['results'] = build_for_autosuggest(frappe.response["values"])
+	frappe.response["results"] = build_for_autosuggest(frappe.response["values"], query=True if query else False)
 	del frappe.response["values"]
 
 # this is called by the search box
@@ -128,6 +128,8 @@ def search_widget(doctype, txt, query=None, searchfield=None, start=0,
 				fields = list(set(fields + json.loads(filter_fields)))
 			formatted_fields = ['`tab%s`.`%s`' % (meta.name, f.strip()) for f in fields]
 
+			formatted_fields = get_title_field(meta, formatted_fields)
+
 			# find relevance as location of search term from the beginning of string `name`. used for sorting results.
 			formatted_fields.append("""locate({_txt}, `tab{doctype}`.`name`) as `_relevance`""".format(
 				_txt=frappe.db.escape((txt or "").replace("%", "")), doctype=doctype))
@@ -183,10 +185,24 @@ def get_std_fields_list(meta, key):
 
 	return sflist
 
-def build_for_autosuggest(res):
+def get_title_field(meta, formatted_fields):
+	sflist = meta.search_fields and meta.search_fields.split(",") or []
+	title_field = meta.title_field if (meta.title_field and meta.title_field not in sflist) else []
+
+	if title_field:
+		field = "`tab{0}`.{1} as `label`".format(meta.name, title_field)
+	else:
+		field = "NULL as `label`"
+
+	formatted_fields.insert(1, field)
+	return formatted_fields
+
+def build_for_autosuggest(res, query=False):
 	results = []
 	for r in res:
 		out = {"value": r[0], "description": ", ".join(unique(cstr(d) for d in r if d)[1:])}
+		if not query:
+			out.update({"label": r[1]})
 		results.append(out)
 	return results
 
