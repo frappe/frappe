@@ -442,7 +442,7 @@ def search(text, start=0, limit=20, doctype=""):
 			values['doctype'] = doctype
 		elif allowed_doctypes:
 			conditions = '`doctype` IN %(allowed_doctypes)s'
-			values['allowed_doctypes'] = allowed_doctypes
+			values['allowed_doctypes'] = tuple(allowed_doctypes)
 
 		if int(start) > 0:
 			offset = 'OFFSET {}'.format(start)
