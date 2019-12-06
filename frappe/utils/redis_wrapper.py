@@ -43,7 +43,7 @@ class RedisWrapper(redis.Redis):
 
 		try:
 			if expires_in_sec:
-				self.setex(key, expires_in_sec, pickle.dumps(val))
+				self.setex(key, pickle.dumps(val), expires_in_sec)
 			else:
 				self.set(key, pickle.dumps(val))
 
