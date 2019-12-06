@@ -207,6 +207,15 @@ frappe.msgprint = function(msg, title) {
 		frappe.msg_dialog.wrapper.classList.add('msgprint-dialog');
 	}
 
+	if (data.scroll) {
+		frappe.msg_dialog.body.classList.add('msgprint-scroll');
+	} else {
+		// limit modal height and allow scrolling instead
+		if (frappe.msg_dialog.body.classList.contains('msgprint-scroll')) {
+			frappe.msg_dialog.body.classList.remove('msgprint-scroll');
+		}
+	}
+
 
 	if(msg_exists) {
 		frappe.msg_dialog.msg_area.append("<hr>");
