@@ -736,7 +736,7 @@ frappe.ui.form.Form = class FrappeForm {
 
 				var after_cancel = function(r) {
 					if (r.exc) {
-						handle_fail();
+						me.handle_save_fail(btn, on_error);
 					} else {
 						frappe.utils.play_sound("cancel");
 						me.refresh();
