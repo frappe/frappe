@@ -468,9 +468,21 @@ frappe.Application = Class.extend({
 		var me = this;
 		let change_log = frappe.boot.change_log;
 
+		// frappe.boot.change_log = [{
+		// 	"change_log": [
+		// 		[<version>, <change_log in markdown>],
+		// 		[<version>, <change_log in markdown>],
+		// 	],
+		// 	"description": "ERP made simple",
+		// 	"title": "ERPNext",
+		// 	"version": "12.2.0"
+		// }];
+
+		// Iterate over changelog
 		change_log.forEach(log => {
 			log.change_log.forEach(version_info => {
 				version_info[1] = version_info[1].replace(/#/, '##')
+				// replace all # with ## for rendering them as <h2>
 			})
 		})
 
