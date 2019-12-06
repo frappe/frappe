@@ -466,10 +466,19 @@ frappe.Application = Class.extend({
 
 	show_change_log: function() {
 		var me = this;
-		var d = frappe.msgprint(
-			frappe.render_template("change_log", {"change_log": frappe.boot.change_log}),
-			__("Updated To New Version")
-		);
+		let change_log = frappe.boot.change_log;
+
+		change_log.forEach(log => {
+			log.change_log.forEach(version_info => {
+				version_info[1] = version_info[1].replace(/#/, '##')
+			})
+		})
+
+		var d = frappe.msgprint({
+			message: frappe.render_template("change_log", {"change_log": change_log}),
+			title: __("Updated To New Version 🎉"),
+			wide: true
+		});
 		d.keep_open = true;
 		d.custom_onhide = function() {
 			frappe.call({
