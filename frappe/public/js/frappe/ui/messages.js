@@ -208,9 +208,9 @@ frappe.msgprint = function(msg, title) {
 	}
 
 	if (data.scroll) {
+		// limit modal height and allow scrolling instead
 		frappe.msg_dialog.body.classList.add('msgprint-scroll');
 	} else {
-		// limit modal height and allow scrolling instead
 		if (frappe.msg_dialog.body.classList.contains('msgprint-scroll')) {
 			frappe.msg_dialog.body.classList.remove('msgprint-scroll');
 		}
