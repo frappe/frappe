@@ -91,7 +91,6 @@ def get_default_address(doctype, name, sort_key='is_primary_address'):
 			dl.link_name = %s and ifnull(addr.disabled, 0) = 0
 		""" %(sort_key, '%s', '%s'), (doctype, name))
 
-
 	if out:
 		return sorted(out, key = functools.cmp_to_key(lambda x,y: cmp(y[1], x[1])))[0][0]
 	else:
