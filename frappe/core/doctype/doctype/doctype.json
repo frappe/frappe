@@ -1,4 +1,5 @@
 {
+ "actions": [],
  "allow_rename": 1,
  "autoname": "Prompt",
  "creation": "2013-02-18 13:36:19",
@@ -28,6 +29,7 @@
   "name_case",
   "column_break_15",
   "description",
+  "documentation",
   "form_settings_section",
   "image_field",
   "timeline_field",
@@ -57,6 +59,10 @@
   "restrict_to_domain",
   "read_only",
   "in_create",
+  "actions_section",
+  "actions",
+  "links_section",
+  "links",
   "web_view",
   "has_web_view",
   "allow_guest_to_view",
@@ -454,11 +460,39 @@
    "fieldname": "nsm_parent_field",
    "fieldtype": "Data",
    "label": "Parent Field (Tree)"
+  },
+  {
+   "description": "URL for documentation or help",
+   "fieldname": "documentation",
+   "fieldtype": "Data",
+   "label": "Documentation Link"
+  },
+  {
+   "fieldname": "actions_section",
+   "fieldtype": "Section Break",
+   "label": "Actions"
+  },
+  {
+   "fieldname": "actions",
+   "fieldtype": "Table",
+   "label": "Actions",
+   "options": "DocType Action"
+  },
+  {
+   "fieldname": "links_section",
+   "fieldtype": "Section Break",
+   "label": "Links Section"
+  },
+  {
+   "fieldname": "links",
+   "fieldtype": "Table",
+   "label": "Links",
+   "options": "DocType Link"
   }
  ],
  "icon": "fa fa-bolt",
  "idx": 6,
- "modified": "2019-09-07 14:28:05.392490",
+ "modified": "2019-11-25 17:24:03.690192",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocType",

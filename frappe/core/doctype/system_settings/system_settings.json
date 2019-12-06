@@ -1,4 +1,5 @@
 {
+ "actions": [],
  "creation": "2014-04-17 16:53:52.640856",
  "doctype": "DocType",
  "document_type": "System",
@@ -21,7 +22,7 @@
   "backup_limit",
   "background_workers",
   "enable_scheduler",
-  "scheduler_last_event",
+  "dormant_days",
   "permissions",
   "apply_strict_user_permissions",
   "column_break_21",
@@ -167,13 +168,6 @@
    "fieldtype": "Check",
    "hidden": 1,
    "label": "Enable Scheduled Jobs"
-  },
-  {
-   "fieldname": "scheduler_last_event",
-   "fieldtype": "Data",
-   "hidden": 1,
-   "label": "Scheduler Last Event",
-   "report_hide": 1
   },
   {
    "collapsible": 1,
@@ -397,11 +391,18 @@
    "fieldname": "allow_guests_to_upload_files",
    "fieldtype": "Check",
    "label": "Allow Guests to Upload Files"
+  },
+  {
+   "default": "4",
+   "description": "Will run scheduled jobs only once a day for inactive sites. Default 4 days if set to 0.",
+   "fieldname": "dormant_days",
+   "fieldtype": "Int",
+   "label": "Run Jobs only Daily if Inactive For (Days)"
   }
  ],
  "icon": "fa fa-cog",
  "issingle": 1,
- "modified": "2019-08-16 08:26:45.936626",
+ "modified": "2019-09-24 10:04:28.807388",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",
