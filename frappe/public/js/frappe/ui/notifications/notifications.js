@@ -49,7 +49,7 @@ frappe.ui.Notifications = class Notifications {
 		this.get_notifications_list(this.max_length).then(list => {
 			this.dropdown_items = list;
 			this.render_notifications_dropdown();
-			if (this.notification_settings && this.notifications_settings.seen == 0) {
+			if (this.notifications_settings.seen == 0) {
 				this.$notification_indicator.show();
 			}
 		});
