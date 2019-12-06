@@ -477,7 +477,8 @@ frappe.Application = Class.extend({
 		var d = frappe.msgprint({
 			message: frappe.render_template("change_log", {"change_log": change_log}),
 			title: __("Updated To New Version 🎉"),
-			wide: true
+			wide: true,
+			scroll: true
 		});
 		d.keep_open = true;
 		d.custom_onhide = function() {
