@@ -23,7 +23,6 @@ class ScheduledJobType(Document):
 	def enqueue(self):
 		# enqueue event if last execution is done
 		if self.is_event_due():
-			self.update_last_execution()
 			if frappe.flags.enqueued_jobs:
 				frappe.flags.enqueued_jobs.append(self.method)
 
@@ -39,11 +38,8 @@ class ScheduledJobType(Document):
 
 	def is_event_due(self, current_time = None):
 		'''Return true if event is due based on time lapsed since last execution'''
-		# save last execution in expected execution time as per cron
-		self.last_execution = self.get_next_execution()
-
 		# if the next scheduled event is before NOW, then its due!
-		return self.last_execution <= (current_time or now_datetime())
+		return self.get_next_execution() <= (current_time or now_datetime())
 
 	def is_job_in_queue(self):
 		queued_jobs = get_jobs(site=frappe.local.site, key='job_type')[frappe.local.site]
@@ -68,7 +64,7 @@ class ScheduledJobType(Document):
 			self.cron_format = CRON_MAP[self.frequency]
 
 		return croniter(self.cron_format,
-			get_datetime(self.last_execution)).get_next(datetime)
+			get_datetime(self.last_execution or datetime(2000, 1, 1))).get_next(datetime)
 
 	def execute(self):
 		self.scheduler_log = None
@@ -94,14 +90,15 @@ class ScheduledJobType(Document):
 		self.scheduler_log.db_set('status', status)
 		if status == 'Failed':
 			self.scheduler_log.db_set('details', frappe.get_traceback())
-		frappe.db.commit()
-
-	def update_last_execution(self):
-		self.db_set('last_execution', self.last_execution, update_modified=False)
+		if status == 'Start':
+			self.db_set('last_execution', now_datetime(), update_modified=False)
 		frappe.db.commit()
 
 	def get_queue_name(self):
 		return 'long' if ('Long' in self.frequency) else 'default'
+
+	def on_trash(self):
+		frappe.db.sql('delete from `tabScheduled Job Log` where scheduled_job_type=%s', self.name)
 
 @frappe.whitelist()
 def execute_event(doc):
