@@ -92,6 +92,24 @@ frappe.form.formatters = {
 	Link: function(value, docfield, options, doc) {
 		var doctype = docfield._options || docfield.options;
 		var original_value = value;
+		let title = null;
+
+		if (value) {
+			frappe.call({
+				'async': false,
+				'method': 'frappe.desk.search.get_title_for_link_display',
+				'args': {
+					doctype: doctype,
+					docname: value
+				},
+				callback: function (r) {
+					if (r && r.message) {
+						title = r.message;
+					}
+				}
+			});
+		}
+
 		if(value && value.match && value.match(/^['"].*['"]$/)) {
 			value.replace(/^.(.*).$/, "$1");
 		}
@@ -121,9 +139,9 @@ frappe.form.formatters = {
 				href="#Form/${encodeURIComponent(doctype)}/${encodeURIComponent(original_value)}"
 				data-doctype="${doctype}"
 				data-name="${original_value}">
-				${__(options && options.label || value)}</a>`
+				${__(options && options.label || title || value)}</a>`
 		} else {
-			return value;
+			return title || value;
 		}
 	},
 	Date: function(value) {

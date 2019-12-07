@@ -65,6 +65,30 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 			this.$input_area.find(".link-btn").remove();
 		}
 	},
+	set_formatted_input: function (value) {
+		let title_display = this.value;
+
+		if (value) {
+			frappe.call({
+				'async': false,
+				'method': 'frappe.desk.search.get_title_for_link_display',
+				'args': {
+					doctype: this.df.options,
+					docname: value
+				},
+				callback: function (r) {
+					if (r && r.message) {
+						title_display = r.message;
+					}
+				}
+			});
+		}
+		this.$input && this.$input.val(title_display);
+		this.$input && this.$input.data("value", value);
+	},
+	get_input_value: function () {
+		return this.$input ? this.$input.data("value") : undefined;
+	},
 	open_advanced_search: function() {
 		var doctype = this.get_options();
 		if(!doctype) return;
@@ -89,7 +113,7 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 		}
 
 		// partially entered name field
-		frappe.route_options.name_field = this.get_value();
+		frappe.route_options.name_field = this.get_input_value();
 
 		// reference to calling link
 		frappe._from_link = this;
@@ -215,6 +239,9 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 					me.awesomplete.list = me.$input.cache[doctype][term];
 				}
 			});
+			if (!me.$input.val()) {
+				me.set_input(null);
+			}
 		}, 500));
 
 		this.$input.on("blur", function() {

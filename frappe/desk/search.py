@@ -197,10 +197,22 @@ def get_title_field(meta, formatted_fields):
 	formatted_fields.insert(1, field)
 	return formatted_fields
 
+@frappe.whitelist()
+def get_title_for_link_display(doctype, docname):
+	meta = frappe.get_meta(doctype)
+
+	# Assume that there is no title_field, so name will be equal to docname
+	name = docname
+	if meta.title_field:
+		# If title_field, so name will be equal to title_field
+		name = frappe.db.get_value(doctype, docname, meta.title_field)
+
+	return name
+
 def build_for_autosuggest(res, query=False):
 	results = []
 	for r in res:
-		out = {"value": r[0], "description": ", ".join(unique(cstr(d) for d in r if d)[1:])}
+		out = {"value": r[0], "description": ", ".join(unique(cstr(d) for d in r if d))}
 		if not query:
 			out.update({"label": r[1]})
 		results.append(out)
