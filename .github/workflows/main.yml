@@ -36,10 +36,8 @@ jobs:
           curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.35.1/install.sh | bash
           source ./.nvm/nvm.sh
           nvm install v8.10.0
-          sudo pip install --upgrade pip
-
-          wget https://raw.githubusercontent.com/frappe/bench/master/playbooks/install.py
-          sudo python install.py --develop
+          git clone https://github.com/frappe/bench --depth 1
+          pip install -e ./bench
 
       - name: init bench
         run: |
