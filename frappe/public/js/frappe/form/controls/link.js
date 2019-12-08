@@ -69,22 +69,33 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 		let title_display = this.value;
 
 		if (value) {
-			frappe.call({
-				'async': false,
-				'method': 'frappe.desk.search.get_title_for_link_display',
-				'args': {
-					doctype: this.df.options,
-					docname: value
-				},
-				callback: function (r) {
-					if (r && r.message) {
-						title_display = r.message;
+			if (this.label) {
+				title_display = this.label;
+			} else {
+				frappe.call({
+					'async': false,
+					'method': 'frappe.desk.search.get_title_for_link_display',
+					'args': {
+						doctype: this.df.options,
+						docname: value
+					},
+					callback: function (r) {
+						if (r && r.message) {
+							title_display = r.message;
+						}
 					}
-				}
-			});
+				});
+			}
 		}
 		this.$input && this.$input.val(title_display);
 		this.$input && this.$input.data("value", value);
+	},
+	parse_validate_and_set_in_model: function(value, label, e) {
+		if(this.parse) {
+			value = this.parse(value);
+		}
+		this.label = label;
+		return this.validate_and_set_in_model(value, e);
 	},
 	get_input_value: function () {
 		return this.$input ? this.$input.data("value") : undefined;
@@ -293,7 +304,7 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 				frappe.boot.user.last_selected_values[me.df.options] = item.value;
 			}
 
-			me.parse_validate_and_set_in_model(item.value);
+			me.parse_validate_and_set_in_model(item.value, item.label);
 		});
 
 		this.$input.on("awesomplete-selectcomplete", function(e) {

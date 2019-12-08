@@ -212,7 +212,7 @@ def get_title_for_link_display(doctype, docname):
 def build_for_autosuggest(res, query=False):
 	results = []
 	for r in res:
-		out = {"value": r[0], "description": ", ".join(unique(cstr(d) for d in r if d))}
+		out = {"value": r[0], "description": ", ".join(unique(cstr(d) for d in r if d)[1:])}
 		if not query:
 			out.update({"label": r[1]})
 		results.append(out)
