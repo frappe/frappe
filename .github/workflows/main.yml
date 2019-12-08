@@ -45,6 +45,11 @@ jobs:
           python -m pip install --upgrade pip
           pip install -e ./bench
 
+      - name: Install redis
+        uses: zhulik/redis-action@v1.0.0
+        with:
+          redis version: '5'
+
       - name: init bench
         run: |
           echo $GITHUB_WORKSPACE
