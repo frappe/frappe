@@ -41,14 +41,9 @@ jobs:
           curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.35.1/install.sh | bash
           source ./.nvm/nvm.sh
           nvm install v8.10.0
-          git clone https://github.com/frappe/bench --depth 1
+          wget https://raw.githubusercontent.com/frappe/bench/master/playbooks/install.py
           python -m pip install --upgrade pip
-          pip install -e ./bench
-
-      - name: Install redis
-        uses: zhulik/redis-action@v1.0.0
-        with:
-          redis version: '5'
+          sudo python install.py --develop
 
       - name: init bench
         run: |
