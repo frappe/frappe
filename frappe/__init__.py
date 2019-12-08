@@ -10,7 +10,9 @@ from six import iteritems, binary_type, text_type, string_types
 from werkzeug.local import Local, release_local
 import os, sys, importlib, inspect, json
 from past.builtins import cmp
+from distutils.version import LooseVersion
 
+import faker
 from faker import Faker
 
 # public
@@ -1640,7 +1642,11 @@ def parse_json(val):
 
 def mock(type, size = 1, locale = 'en'):
 	results = [ ]
-	faker 	= Faker(locale)
+	if LooseVersion(faker.VERSION) >= LooseVersion("3.0.0"):
+		# Breaking changes in v3.0.0
+		# redefine Faker to the factory method
+		Faker = faker.factory.Factory.create
+	faker = Faker(locale)
 	if not type in dir(faker):
 		raise ValueError('Not a valid mock type.')
 	else:
