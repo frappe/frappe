@@ -41,12 +41,8 @@ jobs:
           curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.35.1/install.sh | bash
           source ./.nvm/nvm.sh
           nvm install v8.10.0
-          sudo pip install --upgrade setuptools cryptography ansible==2.8.5 pip
           wget https://raw.githubusercontent.com/frappe/bench/master/playbooks/install.py
-          pwd
-          ls
-          python -m pip install --upgrade pip
-          sudo python install.py --develop --mysql-root-password travis --admin-password admin
+          sudo python install.py --develop --mysql-root-password travis --admin-password admin --without-erpnext
 
       - name: init bench
         run: |
