@@ -21,6 +21,11 @@ jobs:
         with:
           fetch-depth: 1
 
+      - name: Set up Python 3.7
+        uses: actions/setup-python@v1
+        with:
+          python-version: 3.7
+
       - name: before_install
         run: |
           wget -O /tmp/wkhtmltox.tar.xz https://github.com/frappe/wkhtmltopdf/raw/master/wkhtmltox-0.12.3_linux-generic-amd64.tar.xz
@@ -32,11 +37,11 @@ jobs:
 
       - name: install bench
         run: |
-          cd ~
           curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.35.1/install.sh | bash
           source ./.nvm/nvm.sh
           nvm install v8.10.0
           git clone https://github.com/frappe/bench --depth 1
+          python -m pip install --upgrade pip
           pip install -e ./bench
 
       - name: init bench
