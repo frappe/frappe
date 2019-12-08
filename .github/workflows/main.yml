@@ -45,7 +45,7 @@ jobs:
           pwd
           ls
           python -m pip install --upgrade pip
-          sudo python install.py --develop --run-travis --container
+          sudo python install.py --develop --mysql-root-password travis --admin-password admin
 
       - name: init bench
         run: |
