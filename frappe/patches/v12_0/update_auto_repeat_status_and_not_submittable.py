@@ -21,5 +21,6 @@ def execute():
 		if doc.status in ["Draft", "Stopped", "Cancelled"]:
 			doc.disabled = 1
 
+		doc.flags.ignore_links = 1
 		#updates current status as Active, Disabled or Completed on validate
 		doc.save()

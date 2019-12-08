@@ -63,3 +63,14 @@ def setup_workflow():
 	create_todo_workflow()
 	create_todo_records()
 	frappe.clear_cache()
+
+@frappe.whitelist()
+def create_contact_phone_nos_records():
+	if frappe.db.get_all('Contact', {'first_name': 'Test Contact'}):
+		return
+
+	doc = frappe.new_doc('Contact')
+	doc.first_name = 'Test Contact'
+	for index in range(1000):
+		doc.append('phone_nos', {'phone': '123456{}'.format(index)})
+	doc.insert()

@@ -12,7 +12,6 @@ from frappe.utils.verified_command import get_signed_params, verify_request
 from html2text import html2text
 from frappe.utils import get_url, nowdate, encode, now_datetime, add_days, split_emails, cstr, cint
 from rq.timeouts import JobTimeoutException
-from frappe.utils.scheduler import log
 from six import text_type, string_types
 
 class EmailLimitCrossedError(frappe.ValidationError): pass
@@ -469,7 +468,7 @@ def send_one(email, smtpserver=None, auto_commit=True, now=False, from_test=Fals
 
 		else:
 			# log to Error Log
-			log('frappe.email.queue.flush', text_type(e))
+			frappe.log_error('frappe.email.queue.flush')
 
 def prepare_message(email, recipient, recipients_list):
 	message = email.message

@@ -31,12 +31,12 @@ def is_email_notifications_enabled_for_type(user, notification_type):
 		return True
 	return enabled
 
-@frappe.whitelist()
-def create_notification_settings():
-	_doc = frappe.new_doc('Notification Settings')
-	_doc.name = frappe.session.user
-	_doc.insert(ignore_permissions=True)
-	frappe.db.commit()
+def create_notification_settings(user):
+	if not frappe.db.exists("Notification Settings", user):
+		_doc = frappe.new_doc('Notification Settings')
+		_doc.name = user
+		_doc.insert(ignore_permissions=True)
+		frappe.db.commit()
 
 
 @frappe.whitelist()
@@ -60,3 +60,7 @@ def get_permission_query_conditions(user):
 	if not user: user = frappe.session.user
 
 	return '''(`tabNotification Settings`.user = '{user}')'''.format(user=user)
+
+@frappe.whitelist()
+def set_seen_value(value, user):
+	frappe.db.set_value('Notification Settings', user, 'seen', value, update_modified=False)

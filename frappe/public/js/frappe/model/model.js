@@ -525,7 +525,13 @@ $.extend(frappe.model, {
 	},
 
 	delete_doc: function(doctype, docname, callback) {
-		frappe.confirm(__("Permanently delete {0}?", [docname]), function() {
+		var title = docname;
+		var title_field = frappe.get_meta(doctype).title_field;
+		if (frappe.get_meta(doctype).autoname == "hash" && title_field) {
+			var title = frappe.model.get_value(doctype, docname, title_field);
+			title += " (" + docname + ")";
+		}
+		frappe.confirm(__("Permanently delete {0}?", [title]), function() {
 			return frappe.call({
 				method: 'frappe.client.delete',
 				args: {

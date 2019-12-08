@@ -82,14 +82,14 @@
    "fieldname": "timespan",
    "fieldtype": "Select",
    "label": "Timespan",
-   "options": "Last Year\nLast Quarter\nLast Month\nLast Week\nSelect Date Range"
+   "options": "All Time\nLast Year\nLast Quarter\nLast Month\nLast Week\nSelect Date Range"
   },
   {
    "depends_on": "timeseries",
    "fieldname": "time_interval",
    "fieldtype": "Select",
    "label": "Time Interval",
-   "options": "Quarterly\nMonthly\nWeekly\nDaily"
+   "options": "Yearly\nQuarterly\nMonthly\nWeekly\nDaily"
   },
   {
    "default": "0",
@@ -187,7 +187,7 @@
    "label": "To Date"
   }
  ],
- "modified": "2019-11-04 12:32:14.525409",
+ "modified": "2019-11-18 16:20:11.529496",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Dashboard Chart",

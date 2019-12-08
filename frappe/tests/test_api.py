@@ -5,13 +5,14 @@ from __future__ import unicode_literals
 import unittest, frappe, os
 from frappe.core.doctype.user.user import generate_keys
 from frappe.frappeclient import FrappeClient
+from frappe.utils.data import get_url
 
 import requests
 import base64
 
 class TestAPI(unittest.TestCase):
 	def test_insert_many(self):
-		server = FrappeClient(frappe.get_site_config().host_name, "Administrator", "admin", verify=False)
+		server = FrappeClient(get_url(), "Administrator", "admin", verify=False)
 		frappe.db.sql("delete from `tabNote` where title in ('Sing','a','song','of','sixpence')")
 		frappe.db.commit()
 
@@ -30,7 +31,7 @@ class TestAPI(unittest.TestCase):
 		self.assertTrue(frappe.db.get_value('Note', {'title': 'sixpence'}))
 
 	def test_create_doc(self):
-		server = FrappeClient(frappe.get_site_config().host_name, "Administrator", "admin", verify=False)
+		server = FrappeClient(get_url(), "Administrator", "admin", verify=False)
 		frappe.db.sql("delete from `tabNote` where title = 'test_create'")
 		frappe.db.commit()
 
@@ -39,13 +40,13 @@ class TestAPI(unittest.TestCase):
 		self.assertTrue(frappe.db.get_value('Note', {'title': 'test_create'}))
 
 	def test_list_docs(self):
-		server = FrappeClient(frappe.get_site_config().host_name, "Administrator", "admin", verify=False)
+		server = FrappeClient(get_url(), "Administrator", "admin", verify=False)
 		doc_list = server.get_list("Note")
 
 		self.assertTrue(len(doc_list))
 
 	def test_get_doc(self):
-		server = FrappeClient(frappe.get_site_config().host_name, "Administrator", "admin", verify=False)
+		server = FrappeClient(get_url(), "Administrator", "admin", verify=False)
 		frappe.db.sql("delete from `tabNote` where title = 'get_this'")
 		frappe.db.commit()
 
@@ -56,7 +57,7 @@ class TestAPI(unittest.TestCase):
 		self.assertTrue(doc)
 
 	def test_update_doc(self):
-		server = FrappeClient(frappe.get_site_config().host_name, "Administrator", "admin", verify=False)
+		server = FrappeClient(get_url(), "Administrator", "admin", verify=False)
 		frappe.db.sql("delete from `tabNote` where title in ('Sing','sing')")
 		frappe.db.commit()
 
@@ -68,7 +69,7 @@ class TestAPI(unittest.TestCase):
 		self.assertTrue(doc["title"] == changed_title)
 
 	def test_delete_doc(self):
-		server = FrappeClient(frappe.get_site_config().host_name, "Administrator", "admin", verify=False)
+		server = FrappeClient(get_url(), "Administrator", "admin", verify=False)
 		frappe.db.sql("delete from `tabNote` where title = 'delete'")
 		frappe.db.commit()
 
@@ -90,21 +91,21 @@ class TestAPI(unittest.TestCase):
 
 		api_key = frappe.db.get_value("User", "Administrator", "api_key")
 		header = {"Authorization": "token {}:{}".format(api_key, generated_secret)}
-		res = requests.post(frappe.get_site_config().host_name + "/api/method/frappe.auth.get_logged_user", headers=header)
+		res = requests.post(get_url() + "/api/method/frappe.auth.get_logged_user", headers=header)
 
 		self.assertEqual(res.status_code, 200)
 		self.assertEqual("Administrator", res.json()["message"])
 		self.assertEqual(keys['api_secret'], generated_secret)
 
 		header = {"Authorization": "Basic {}".format(base64.b64encode(frappe.safe_encode("{}:{}".format(api_key, generated_secret))).decode())}
-		res = requests.post(frappe.get_site_config().host_name + "/api/method/frappe.auth.get_logged_user", headers=header)
+		res = requests.post(get_url() + "/api/method/frappe.auth.get_logged_user", headers=header)
 		self.assertEqual(res.status_code, 200)
 		self.assertEqual("Administrator", res.json()["message"])
 
 		# Valid api key, invalid api secret
 		api_secret = "ksk&93nxoe3os"
 		header = {"Authorization": "token {}:{}".format(api_key, api_secret)}
-		res = requests.post(frappe.get_site_config().host_name + "/api/method/frappe.auth.get_logged_user", headers=header)
+		res = requests.post(get_url() + "/api/method/frappe.auth.get_logged_user", headers=header)
 		self.assertEqual(res.status_code, 403)
 
 
@@ -112,5 +113,5 @@ class TestAPI(unittest.TestCase):
 		api_key = "@3djdk3kld"
 		api_secret = "ksk&93nxoe3os"
 		header = {"Authorization": "token {}:{}".format(api_key, api_secret)}
-		res = requests.post(frappe.get_site_config().host_name + "/api/method/frappe.auth.get_logged_user", headers=header)
+		res = requests.post(get_url() + "/api/method/frappe.auth.get_logged_user", headers=header)
 		self.assertEqual(res.status_code, 401)

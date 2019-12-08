@@ -709,7 +709,7 @@ def pretty_date(iso_datetime):
 	elif dt_diff_days < 7.0:
 		return _('{0} days ago').format(cint(dt_diff_days))
 	elif dt_diff_days < 12:
-		return _('1 weeks ago')
+		return _('1 week ago')
 	elif dt_diff_days < 31.0:
 		return _('{0} weeks ago').format(cint(math.ceil(dt_diff_days / 7.0)))
 	elif dt_diff_days < 46:
@@ -721,13 +721,13 @@ def pretty_date(iso_datetime):
 	else:
 		return '{0} years ago'.format(cint(math.floor(dt_diff_days / 365.0)))
 
-def comma_or(some_list):
-	return comma_sep(some_list, frappe._("{0} or {1}"))
+def comma_or(some_list, add_quotes=True):
+	return comma_sep(some_list, frappe._("{0} or {1}"), add_quotes)
 
-def comma_and(some_list):
-	return comma_sep(some_list, frappe._("{0} and {1}"))
+def comma_and(some_list ,add_quotes=True):
+	return comma_sep(some_list, frappe._("{0} and {1}"), add_quotes)
 
-def comma_sep(some_list, pattern):
+def comma_sep(some_list, pattern, add_quotes=True):
 	if isinstance(some_list, (list, tuple)):
 		# list(some_list) is done to preserve the existing list
 		some_list = [text_type(s) for s in list(some_list)]
@@ -736,7 +736,7 @@ def comma_sep(some_list, pattern):
 		elif len(some_list) == 1:
 			return some_list[0]
 		else:
-			some_list = ["'%s'" % s for s in some_list]
+			some_list = ["'%s'" % s for s in some_list] if add_quotes else ["%s" % s for s in some_list]
 			return pattern.format(", ".join(frappe._(s) for s in some_list[:-1]), some_list[-1])
 	else:
 		return some_list
