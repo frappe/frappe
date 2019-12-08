@@ -42,8 +42,10 @@ jobs:
           source ./.nvm/nvm.sh
           nvm install v8.10.0
           wget https://raw.githubusercontent.com/frappe/bench/master/playbooks/install.py
+          pwd
+          ls
           python -m pip install --upgrade pip
-          sudo python install.py --develop --run-travis
+          python install.py --develop --run-travis
 
       - name: init bench
         run: |
