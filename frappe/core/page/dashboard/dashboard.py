@@ -36,13 +36,15 @@ def generate_and_cache_results(chart, chart_name, function, cache_key):
 
 def get_from_date_from_timespan(to_date, timespan):
 	days = months = years = 0
-	if "Last Week" == timespan:
+	if timespan == "Last Week":
 		days = -7
-	if "Last Month" == timespan:
+	if timespan == "Last Month":
 		months = -1
-	elif "Last Quarter" == timespan:
+	elif timespan == "Last Quarter":
 		months = -3
-	elif "Last Year" == timespan:
+	elif timespan == "Last Year":
 		years = -1
+	elif timespan == "All Time":
+		years = -50
 	return add_to_date(to_date, years=years, months=months, days=days,
 		as_datetime=True)

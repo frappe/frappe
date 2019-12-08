@@ -157,8 +157,8 @@ def create_http_request():
 	'''Get http request object.'''
 	set_request(method='POST', path='login')
 	enable_2fa()
-	frappe.form_dict['usr'] = 'test@erpnext.com'
-	frappe.form_dict['pwd'] = 'test'
+	frappe.form_dict['usr'] = 'test@example.com'
+	frappe.form_dict['pwd'] = 'Eastern_43A1W'
 	frappe.local.form_dict['cmd'] = 'login'
 	http_requests = HTTPRequest()
 	return http_requests
