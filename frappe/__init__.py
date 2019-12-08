@@ -1646,12 +1646,12 @@ def mock(type, size = 1, locale = 'en'):
 		# Breaking changes in v3.0.0
 		# redefine Faker to the factory method
 		Faker = faker.factory.Factory.create
-	faker = Faker(locale)
-	if not type in dir(faker):
+	_faker = Faker(locale)
+	if not type in dir(_faker):
 		raise ValueError('Not a valid mock type.')
 	else:
 		for i in range(size):
-			data = getattr(faker, type)()
+			data = getattr(_faker, type)()
 			results.append(data)
 
 	from frappe.chat.util import squashify
