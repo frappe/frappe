@@ -53,7 +53,7 @@ google-api-python-client
 google-auth
 google-auth-httplib2
 google-auth-oauthlib
-faker
+Faker==2.0.4
 stripe
 coverage
 urllib3
