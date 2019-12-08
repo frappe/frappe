@@ -45,9 +45,7 @@ jobs:
           pwd
           ls
           python -m pip install --upgrade pip
-          adduser travis
-          usermod -aG sudo travis
-          sudo python install.py --production --user travis --run-travis --container
+          sudo python install.py --develop --run-travis --container
 
       - name: init bench
         run: |
