@@ -43,7 +43,7 @@ jobs:
           nvm install v8.10.0
           wget https://raw.githubusercontent.com/frappe/bench/master/playbooks/install.py
           python -m pip install --upgrade pip
-          sudo python install.py --develop
+          sudo python install.py --develop --run-travis
 
       - name: init bench
         run: |
@@ -53,6 +53,7 @@ jobs:
 
           mkdir $GITHUB_WORKSPACE/frappe-bench/sites/test_site
           cp $GITHUB_WORKSPACE/.travis/$DB.json $GITHUB_WORKSPACE/frappe-bench/sites/test_site/site_config.json
+
       - name: setup database
         run: |
           mysql -u root -e "SET GLOBAL character_set_server = 'utf8mb4'";
