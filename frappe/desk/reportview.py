@@ -9,8 +9,10 @@ from six.moves import range
 import frappe.permissions
 from frappe.model.db_query import DatabaseQuery
 from frappe import _
-from six import text_type, string_types, StringIO
+from six import string_types, StringIO
 from frappe.core.doctype.access_log.access_log import make_access_log
+from frappe.utils import cstr
+
 
 @frappe.whitelist()
 @frappe.read_only()
@@ -170,11 +172,11 @@ def export_query():
 		writer = csv.writer(f)
 		for r in data:
 			# encode only unicode type strings and not int, floats etc.
-			writer.writerow([handle_html(frappe.as_unicode(v)).encode('utf-8') \
+			writer.writerow([handle_html(frappe.as_unicode(v)) \
 				if isinstance(v, string_types) else v for v in r])
 
 		f.seek(0)
-		frappe.response['result'] = text_type(f.read(), 'utf-8')
+		frappe.response['result'] = cstr(f.read())
 		frappe.response['type'] = 'csv'
 		frappe.response['doctype'] = title
 

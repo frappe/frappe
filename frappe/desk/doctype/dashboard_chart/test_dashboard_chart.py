@@ -36,6 +36,9 @@ class TestDashboardChart(unittest.TestCase):
 		self.assertEqual(get_period_ending('2019-10-01', 'Quarterly'),
 			getdate('2019-12-31'))
 
+		self.assertEqual(get_period_ending('2019-10-01', 'Yearly'),
+			getdate('2019-12-31'))
+
 	def test_dashboard_chart(self):
 		if frappe.db.exists('Dashboard Chart', 'Test Dashboard Chart'):
 			frappe.delete_doc('Dashboard Chart', 'Test Dashboard Chart')
