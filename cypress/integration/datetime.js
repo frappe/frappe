@@ -1,213 +1,124 @@
-/* Test date, time and datetime formats.
-* 
-* Date formats to test: yyyy-mm-dd, dd-mm-yyyy, dd/mm/yyyy, dd.mm.yyyy,
-*   mm/dd/yyyy, mm-dd-yyyy.
-* Time formats to test: HH:mm:ss, HH:mm
-*/
+import datetime_doctype from '../fixtures/datetime_doctype';
+const doctype_name = datetime_doctype.name;
 
-const ui_test_doctype = `{"image_view":0,"allow_import":0,"creation":"2019-03-15 06:29:07.215072","track_changes":1,"modified":"2019-03-15 06:33:52.572221","sort_order":"ASC","owner":"Administrator","editable_grid":1,"in_create":0,"read_only":0,"document_type":"","hide_heading":0,"modified_by":"Administrator","track_views":0,"allow_rename":0,"custom":1,"max_attachments":0,"docstatus":0,"is_submittable":0,"sort_field":"modified","allow_copy":0,"engine":"InnoDB","allow_guest_to_view":0,"istable":0,"allow_events_in_timeline":0,"has_web_view":0,"show_name_in_global_search":0,"beta":0,"read_only_onload":0,"module":"Custom","doctype":"DocType","issingle":1,"name":"UI Test","idx":0,"hide_toolbar":0,"track_seen":0,"name_case":"","fields":[{"collapsible":0,"no_copy":0,"creation":"2019-03-15 06:29:07.215072","translatable":0,"reqd":0,"in_list_view":0,"in_standard_filter":0,"owner":"Administrator","ignore_xss_filter":0,"in_global_search":0,"read_only":0,"print_hide":0,"modified_by":"Administrator","fetch_if_empty":0,"ignore_user_permissions":0,"length":0,"label":"Date","print_hide_if_no_value":0,"allow_bulk_edit":0,"set_only_once":0,"docstatus":0,"hidden":0,"in_filter":0,"permlevel":0,"columns":0,"bold":0,"parent":"UI Test","search_index":0,"allow_on_submit":0,"precision":"","remember_last_selected_value":0,"doctype":"DocField","unique":0,"name":"d04eded683","idx":1,"allow_in_quick_entry":0,"modified":"2019-03-15 06:50:50.538464","parenttype":"DocType","fieldname":"date","fieldtype":"Date","report_hide":0,"parentfield":"fields"},{"collapsible":0,"no_copy":0,"creation":"2019-03-15 06:29:07.215072","translatable":0,"reqd":0,"in_list_view":0,"in_standard_filter":0,"owner":"Administrator","ignore_xss_filter":0,"in_global_search":0,"read_only":0,"print_hide":0,"modified_by":"Administrator","fetch_if_empty":0,"ignore_user_permissions":0,"length":0,"label":"Time","print_hide_if_no_value":0,"allow_bulk_edit":0,"set_only_once":0,"docstatus":0,"hidden":0,"in_filter":0,"permlevel":0,"columns":0,"bold":0,"parent":"UI Test","search_index":0,"allow_on_submit":0,"precision":"","remember_last_selected_value":0,"doctype":"DocField","unique":0,"name":"72dae03915","idx":2,"allow_in_quick_entry":0,"modified":"2019-03-15 06:50:50.538464","parenttype":"DocType","fieldname":"time","fieldtype":"Time","report_hide":0,"parentfield":"fields"},{"collapsible":0,"no_copy":0,"creation":"2019-03-15 06:29:07.215072","translatable":0,"reqd":0,"in_list_view":0,"in_standard_filter":0,"owner":"Administrator","ignore_xss_filter":0,"in_global_search":0,"read_only":0,"print_hide":0,"modified_by":"Administrator","fetch_if_empty":0,"ignore_user_permissions":0,"length":0,"label":"Datetime","print_hide_if_no_value":0,"allow_bulk_edit":0,"set_only_once":0,"docstatus":0,"hidden":0,"in_filter":0,"permlevel":0,"columns":0,"bold":0,"parent":"UI Test","search_index":0,"allow_on_submit":0,"precision":"","remember_last_selected_value":0,"doctype":"DocField","unique":0,"name":"a5e6ba2d2e","idx":3,"allow_in_quick_entry":0,"modified":"2019-03-15 06:50:50.538464","parenttype":"DocType","fieldname":"datetime","fieldtype":"Datetime","report_hide":0,"parentfield":"fields"}],"permissions":[{"creation":"2019-03-15 06:29:07.215072","share":1,"doctype":"DocPerm","owner":"Administrator","export":0,"cancel":0,"set_user_permissions":0,"modified_by":"Administrator","create":1,"submit":0,"write":1,"role":"System Manager","print":1,"docstatus":0,"permlevel":0,"parent":"UI Test","read":1,"import":0,"report":0,"name":"83b10b4cfe","idx":1,"amend":0,"modified":"2019-03-15 06:50:50.538464","email":1,"parenttype":"DocType","parentfield":"permissions","if_owner":0,"delete":1}],"quick_entry":1}`;
-
-// For more thorough (but slow) testing, set fast_mode to false
-const fast_mode = true;
-
-const std_date_format = 'yyyy-mm-dd';
-const std_time_format = 'HH:mm:ss';
-const test_date1 = '1966-02-06';
-const test_date2 = '1987-12-27';
-
-// Formats: local fmt of test_date1, local data to enter, std format of that
-const date_formats_list = [
-	['dd-mm-yyyy', ['dd-mm-yyyy', test_date1, '06-02-1966', '27-12-1987', test_date2]],
-	['dd/mm/yyyy', ['dd/mm/yyyy', test_date1, '06/02/1966', '27/12/1987', test_date2]],
-	['dd.mm.yyyy', ['dd.mm.yyyy', test_date1, '06.02.1966', '27.12.1987', test_date2]],
-	['mm/dd/yyyy', ['mm/dd/yyyy', test_date1, '02/06/1966', '12/27/1987', test_date2]],
-	['mm-dd-yyyy', ['mm-dd-yyyy', test_date1, '02-06-1966', '12-27-1987', test_date2]],
-	['yyyy-mm-dd', ['yyyy-mm-dd', test_date1, '1966-02-06', '1987-12-27', test_date2]]
-];
-
-// Formats: local fmt of test_time1, local data to enter, std format of that
-const time_formats_list = [
-	['HH:mm:ss zeros', ['HH:mm:ss', '00:00:00', '00:00:00', '01:00:00', '01:00:00']],
-	['HH:mm', ['HH:mm', '01:23:45', '01:23', '23:59', '23:59:00']],
-	['HH:mm zeros', ['HH:mm', '00:00:00', '00:00', '01:00', '01:00:00']],
-	['HH:mm:ss', ['HH:mm:ss', '01:23:45', '01:23:45', '23:59:58', '23:59:58']]
-];
-
-if (fast_mode) {
-	date_formats_list.length = 1;
-	time_formats_list.length = 2;
-}
-
-// Convert date_format_list and time_format_list to objects
-const date_formats = {};
-date_formats_list.forEach(([key, val]) => {
-	date_formats[key] = val;
-});
-
-const time_formats = {};
-time_formats_list.forEach(([key, val]) => {
-	time_formats[key] = val;
-});
-
-// Construct datetime formats
-let datetime_formats = [];
-Object.keys(date_formats).forEach((date_format) => {
-	Object.keys(time_formats).forEach((time_format) => {
-		datetime_formats.push([date_format, time_format]);
-	});
-});
-
-Cypress.Commands.add('install_ui_test', () => {
-// Add the UI Test single doctype to the database. Should either succeed
-// with HTTP 200 or fail (already exists) with HTTP 409.
-	cy.window().its('frappe.csrf_token').then(csrf_token => {
-		cy.request({
-			method: 'POST',
-			url: '/api/resource/DocType',
-			body: ui_test_doctype,
-			headers: {
-				'Accept': 'application/json',
-				'Content-Type': 'application/json',
-				'X-Frappe-CSRF-Token': csrf_token
-			},
-			failOnStatusCode: false
-		}).then((response) => {
-			cy.expect(response.status).be.oneOf([200, 409]);
-		});
-	});
-});
-
-Cypress.Commands.add('update_datetime_formats', (date_format, time_format) => {
-// Update the Date Format and Time Format in System Settings
-	let docs = [{
-		doctype: "System Settings",
-		docname: "System Settings",
-		date_format: date_format,
-		time_format: time_format
-	}];
-	cy.call('frappe.client.bulk_update', {'docs': JSON.stringify(docs)}
-	).then((r) => {
-		expect(r.message.failed_docs).to.be.empty;
-	});
-});
-
-Cypress.Commands.add('update_test_data', (date, time, datetime) => {
-// Update the date, time and datetime entries on UI Test
-	let docs = [{
-		doctype: "UI Test",
-		docname: "UI Test",
-		date: date,
-		time: time,
-		datetime: datetime
-	}];
-	cy.call('frappe.client.bulk_update', {'docs': JSON.stringify(docs)}
-	).then((r) => {
-		expect(r.message.failed_docs).to.be.empty;
-		cy.window().then((win) => {
-			win.cur_frm.reload_doc();
-		});
-	});
-});
-
-Cypress.Commands.add('check_test_data', (date, time, datetime) => {
-// Check the date, time and datetime entries on UI Test
-	cy.request({
-		method: 'GET',
-		url: '/api/resource/UI Test/UI Test',
-		failOnStatusCode: true
-	}).then((response) => {
-		cy.expect(response.body.data).to.have.property('time', time);
-		cy.expect(response.body.data).to.have.property('date', date);
-		cy.expect(response.body.data).to.have.property('datetime', datetime);
-	});
-});
-
-Cypress.Commands.add('click_save_button', () => {
-	cy.wait(50);
-	cy.get('body', {timeout: 30000})
-		.should('have.attr', 'data-ajax-state', 'complete');
-	cy.contains('button.primary-action > span', 'Save')
-		.parent().click();
-	cy.wait(50);
-	cy.get('body', {timeout: 30000})
-		.should('have.attr', 'data-ajax-state', 'complete');
-});
-
-Cypress.Commands.add('get_field', (fieldname, fieldtype='Data') => {
-	let selector = `.form-control[data-fieldname="${fieldname}"]`;
-
-	if (fieldtype === 'Text Editor') {
-		selector = `[data-fieldname="${fieldname}"] .ql-editor`;
-	}
-
-	return cy.get('.page-container:visible ' + selector);
-});
-
-Cypress.Commands.add('delayed_type', {prevSubject: 'element'}, (subject, text) => {
-	// Wait for datepicker to open as it wipes out text entered
-	// prior to the datepicker finishing loading
-	cy.wrap(subject).click();
-	cy.wait(500);  // Sometimes fails at 250ms. No DOM element to watch here,
-	// and can look correct and then be overwritten by the datepicker, so
-	// this long wait is extremely difficult to avoid.
-	cy.wrap(subject).type('{selectall}{backspace}' + text).blur().should('have.value', text);
-});
-
-context('Datetime tests', () => {
+context('Control Date, Time and DateTime', () => {
 	before(() => {
 		cy.login();
 		cy.visit('/desk');
-		cy.install_ui_test();
-		cy.visit('/desk#Form/UI Test/UI Test');
-		cy.get('body', {timeout: 30000})
-			.should('have.attr', 'data-ajax-state', 'complete');
-		cy.update_datetime_formats(std_date_format, std_time_format);
-		cy.update_test_data('', '', '');
+		cy.insert_doc('DocType', datetime_doctype, true);
 	});
 
-	beforeEach(() => {
-		// Set the date format to the standard date format
-		cy.log('Set the date and time formats to the standard format');
-		cy.update_datetime_formats(std_date_format, std_time_format);
-	});
+	let date_formats = [
+		{
+			date_format: 'dd-mm-yyyy',
+			part: 2,
+			length: 4,
+			separator: '-'
+		},
+		{
+			date_format: 'mm/dd/yyyy',
+			part: 0,
+			length: 2,
+			separator: '/'
+		}
+	];
 
-	datetime_formats.forEach((datetime_format) => {
-		it('tests datetime format ' + datetime_format[0] + ' plus ' + datetime_format[1], function() {
-			let date_test_data = date_formats[datetime_format[0]];
-			let time_test_data = time_formats[datetime_format[1]];
-			cy.log('updating data via bulk_update');
-			cy.update_test_data(
-				date_test_data[1],
-				time_test_data[1],
-				date_test_data[1] + ' ' + time_test_data[1]
-			);
-			cy.log('updating date & time formats via bulk_update');
-			cy.update_datetime_formats(date_test_data[0], time_test_data[0]);
-			cy.reload();
-			cy.get('body', {timeout: 30000})
-				.should('have.attr', 'data-ajax-state', 'complete');
+	date_formats.forEach(d => {
+		it('test date format ' + d.date_format, () => {
+			cy.set_value('System Settings', 'System Settings', {
+				date_format: d.date_format
+			});
+			cy.window()
+				.its('frappe')
+				.then(frappe => {
+					// update sys_defaults value to avoid a reload
+					frappe.sys_defaults.date_format = d.date_format;
+				});
 
-			// Test that values are now in the test format
-			cy.get_field('date')
-				.should('have.value', date_test_data[2]);
-			cy.get_field('time')
-				.should('have.value', time_test_data[2]);
-			cy.get_field('datetime')
-				.should('have.value', date_test_data[2] + ' ' + time_test_data[2]);
+			cy.new_form(doctype_name);
+			cy.get('.form-control[data-fieldname=date]').focus();
+			cy.get('.datepickers-container .datepicker.active').should('be.visible');
+			cy.get(
+				'.datepickers-container .datepicker.active .datepicker--cell-day.-current-'
+			).click();
 
-			// Set values to second test data
-			cy.get_field('date').delayed_type(date_test_data[3]);
-			cy.get_field('time').delayed_type(time_test_data[3]);
-			cy.get_field('datetime').delayed_type(date_test_data[3] + ' ' + time_test_data[3]);
-			cy.click_save_button();
-
-			// Check that database values are set correctly
-			cy.check_test_data(
-				date_test_data[4],
-				time_test_data[4],
-				date_test_data[4] + ' ' + time_test_data[4]
-			);
+			cy.window()
+				.its('cur_frm')
+				.then(cur_frm => {
+					let formatted_value = cur_frm.get_field('date').input.value;
+					let parts = formatted_value.split(d.separator);
+					expect(parts[d.part].length).to.equal(d.length);
+				});
 		});
 	});
 
+	let time_formats = [
+		{
+			time_format: 'HH:mm:ss',
+			value: '11:00:12',
+			match_value: '11:00:12'
+		},
+		{
+			time_format: 'HH:mm',
+			value: '11:00:12',
+			match_value: '11:00'
+		}
+	];
+
+	time_formats.forEach(d => {
+		it('test time format ' + d.time_format, () => {
+			cy.set_value('System Settings', 'System Settings', {
+				time_format: d.time_format
+			});
+			cy.window()
+				.its('frappe')
+				.then(frappe => {
+					frappe.sys_defaults.time_format = d.time_format;
+				});
+			cy.new_form(doctype_name);
+			cy.fill_field('time', d.value, 'Time').blur();
+			cy.get_field('time').should('have.value', d.match_value);
+		});
+	});
+
+	let datetime_formats = [
+		{
+			date_format: 'dd.mm.yyyy',
+			time_format: 'HH:mm:ss',
+			value: '02.12.2019 11:00:12',
+			doc_value: '2019-12-02 11:00:12',
+			input_value: '02.12.2019 11:00:12'
+		},
+		{
+			date_format: 'mm-dd-yyyy',
+			time_format: 'HH:mm',
+			value: '12-02-2019 11:00:00',
+			doc_value: '2019-12-02 11:00:00',
+			input_value: '12-02-2019 11:00'
+		}
+	];
+
+	datetime_formats.forEach(d => {
+		it(`test datetime format ${d.date_format} ${d.time_format}`, () => {
+			cy.set_value('System Settings', 'System Settings', {
+				date_format: d.date_format,
+				time_format: d.time_format
+			});
+			cy.window()
+				.its('frappe')
+				.then(frappe => {
+					frappe.sys_defaults.date_format = d.date_format;
+					frappe.sys_defaults.time_format = d.time_format;
+				});
+			cy.new_form(doctype_name);
+			cy.fill_field('datetime', d.value, 'Datetime').blur();
+			cy.get_field('datetime').should('have.value', d.input_value);
+
+			cy.window()
+				.its('cur_frm')
+				.then(cur_frm => {
+					expect(cur_frm.doc.datetime).to.equal(d.doc_value);
+				});
+		});
+	});
 });
