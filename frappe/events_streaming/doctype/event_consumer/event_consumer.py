@@ -23,7 +23,7 @@ class EventConsumer(Document):
 		if not self.incoming_change:
 			self.update_consumer_status()
 		else:
-			frappe.db.set_value(self.doctype, self.name, 'incoming_change', False)
+			frappe.db.set_value(self.doctype, self.name, 'incoming_change', 0)
 
 	def update_consumer_status(self):
 		consumer_site = get_consumer_site(self.callback_url)

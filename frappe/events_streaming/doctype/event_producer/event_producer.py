@@ -30,7 +30,7 @@ class EventProducer(Document):
 			self.create_custom_fields()
 		else:
 			#when producer doc is updated it updates the consumer doc, set flag to avoid deadlock
-			frappe.db.set_value(self.doctype, self.name, 'incoming_change', False)
+			frappe.db.set_value(self.doctype, self.name, 'incoming_change', 0)
 
 	def create_event_consumer(self):
 		'''register event consumer on the producer site'''
