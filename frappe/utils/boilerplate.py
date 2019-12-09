@@ -256,6 +256,13 @@ app_license = "{app_license}"
 # 	"Task": "{app_name}.task.get_dashboard_data"
 # }}
 
+
+
+# Exempt doctype for cancel
+# -----------------------
+#
+# auto_cancel_exempt_doctypes = ["Auto Repeat"]
+
 """
 
 desktop_template = """# -*- coding: utf-8 -*-
