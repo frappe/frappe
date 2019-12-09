@@ -12,7 +12,8 @@
   "api_secret",
   "column_break_6",
   "user",
-  "incoming_change"
+  "incoming_change",
+  "in_test"
  ],
  "fields": [
   {
@@ -62,11 +63,20 @@
    "fieldname": "incoming_change",
    "fieldtype": "Check",
    "hidden": 1,
-   "label": "Incoming Change"
+   "label": "Incoming Change",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "in_test",
+   "fieldtype": "Check",
+   "hidden": 1,
+   "label": "In Test",
+   "read_only": 1
   }
  ],
  "in_create": 1,
- "modified": "2019-10-29 19:37:39.659615",
+ "modified": "2019-11-29 00:40:32.875022",
  "modified_by": "Administrator",
  "module": "Events Streaming",
  "name": "Event Consumer",

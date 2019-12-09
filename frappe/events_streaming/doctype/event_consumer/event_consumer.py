@@ -13,6 +13,12 @@ from frappe.events_streaming.doctype.event_producer.event_producer import get_cu
 from frappe.utils.background_jobs import get_jobs
 
 class EventConsumer(Document):
+	def validate(self):
+		if self.in_test:
+			for entry in self.subscribed_doctypes:
+				entry.status = 'Approved'
+			self.in_test = False
+
 	def on_update(self):
 		if not self.incoming_change:
 			self.update_consumer_status()
@@ -62,6 +68,7 @@ def register_consumer(data):
 	api_secret = frappe.generate_hash(length=10)
 	consumer.api_key = api_key
 	consumer.api_secret = api_secret
+	consumer.in_test = data['in_test']
 	consumer.insert(ignore_permissions = True)
 
 	# consumer's 'last_update' field should point to the latest update in producer's update log when subscribing

@@ -7,7 +7,7 @@ import frappe
 import unittest
 import time
 from frappe.frappeclient import FrappeClient
-from frappe.events_streaming.doctype.event_producer.event_producer import pull_from_node
+from frappe.events_streaming.doctype.event_producer.event_producer import pull_from_node, get_current_node
 
 def create_event_producer(producer_url):
 	event_producer = frappe.new_doc('Event Producer')
@@ -25,7 +25,7 @@ def create_event_producer(producer_url):
 
 class TestEventProducer(unittest.TestCase):
 	def setUp(self):
-		self.producer_url = 'http://test_site_producer:8000'
+		self.producer_url = 'http://test_site_producer:8010'
 		if not frappe.db.exists('Event Producer', self.producer_url):
 			create_event_producer(self.producer_url)
 		frappe.db.sql('delete from tabToDo')

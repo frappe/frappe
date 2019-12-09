@@ -19,6 +19,11 @@ class EventProducer(Document):
 		self.incoming_change = True
 		self.create_event_consumer()
 
+	def validate(self):
+		if frappe.flags.in_test:
+			for entry in self.event_configuration:
+				entry.status = 'Approved'
+
 	def on_update(self):
 		if not self.incoming_change:
 			self.update_event_consumer()
@@ -53,6 +58,7 @@ class EventProducer(Document):
 			'event_consumer': get_current_node(),
 			'subscribed_doctypes': json.dumps(subscribed_doctypes),
 			'user': self.user,
+			'in_test': frappe.flags.in_test
 		}
 
 	def create_custom_fields(self):
@@ -84,6 +90,8 @@ class EventProducer(Document):
 						'ref_doctype': ref_doctype,
 						'status': get_approval_status(config, ref_doctype)
 					})
+				if frappe.flags.in_test:
+					event_consumer.in_test = True
 				event_consumer.user = self.user
 				event_consumer.incoming_change = True
 				producer_site.update(event_consumer)
