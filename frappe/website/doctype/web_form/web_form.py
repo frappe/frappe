@@ -418,7 +418,7 @@ def accept(web_form, data, docname=None, for_payment=False):
 	if files_to_delete:
 		for f in files_to_delete:
 			if f:
-				remove_file_by_url(doc.get(fieldname), doctype=doc.doctype, name=doc.name)
+				remove_file_by_url(f, doctype=doc.doctype, name=doc.name) # f is the file_url. P.S: Does not handle files attached to child table
 
 
 	frappe.flags.web_form_doc = doc
