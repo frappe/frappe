@@ -1,4 +1,4 @@
-import { ModuleWidget } from './widget.js'
+import { get_widget_class } from './widget'
 
 class DeskSection {
 	constructor(opts) {
@@ -28,7 +28,8 @@ class DeskSection {
 
 	make_module_widget() {
 		this.modules.forEach(mod => {
-			this.widgets[mod.module_name] = new ModuleWidget({
+			let widget_class = get_widget_class(mod.type)
+			this.widgets[mod.module_name] = new widget_class({
 				container: this.modules_container,
 				module_data: mod
 			});
@@ -40,7 +41,6 @@ class DeskSection {
 		this.sortable = new Sortable(container, {
 			animation: 150,
 			onEnd: () => {
-				console.log("end")
 				let modules = Array.from(container.querySelectorAll('.module-box'))
 					.map(node => node.dataset.moduleName);
 
@@ -65,6 +65,7 @@ export default class Desk {
 		this.fetch_desktop_settings().then(() => {
 			this.make_container();
 			this.make_sections();
+			this.setup_events();
 		});
 	}
 
@@ -79,7 +80,7 @@ export default class Desk {
 
 	make_container() {
 		this.modules_section_container = $(`<div class="modules-page-container">
-			<a class="btn-show-hide text-muted text-medium">
+			<a class="btn-show-hide text-muted text-medium show-or-hide-cards">
 				${__('Show / Hide Cards')}
 			</a></div>`);
 
@@ -96,5 +97,13 @@ export default class Desk {
 				});
 			}
 		});
+	}
+
+	setup_events() {
+		this.setup_show_hide_cards();
+	}
+
+	setup_show_hide_cards() {
+		return
 	}
 }

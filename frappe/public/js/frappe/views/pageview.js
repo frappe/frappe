@@ -48,6 +48,7 @@ frappe.views.pageview = {
 					let container = $('<div class="container"></div>').appendTo(page);
 					container = $('<div></div>').appendTo(container);
 
+					console.time('app')
 					frappe.desk = new Desk({
 						container: container[0]
 					})
@@ -56,6 +57,7 @@ frappe.views.pageview = {
 					// 	el: container[0],
 					// 	render: h => h(Desktop)
 					// });
+					console.timeEnd('app')
 				}
 
 
