@@ -330,6 +330,53 @@ def get_context(context):
 
 @frappe.whitelist(allow_guest=True)
 def accept(web_form, data, docname=None, for_payment=False):
+	def find_or_create(docname):
+		doc = None
+
+		if docname:
+			# find
+			doc = frappe.get_doc(data.doctype, docname)
+		else:
+			# create
+			doc = frappe.new_doc(data.doctype)
+
+		return doc
+
+	def update_or_insert(doc,ignore_mandatory,web_form):
+		if doc.name:
+			if has_web_form_permission(doc.doctype, doc.name, "write"):
+				doc.save(ignore_permissions=True)
+			else:
+				# only save if permissions are present
+				doc.save()
+		else:
+			# insert
+			if web_form.login_required and frappe.session.user=="Guest":
+				frappe.throw(_("You must login to submit this form"))
+
+			doc.insert(ignore_permissions = True, ignore_mandatory = ignore_mandatory)
+
+	def add_or_replace_file(doc,file):
+		fieldname, filedata = f
+
+		# remove earlier attached file (if exists)
+		if doc.get(fieldname):
+			remove_file_by_url(doc.get(fieldname), doctype=doc.doctype, name=doc.name)
+
+		# save new file
+		filename, dataurl = filedata.split(',', 1)
+		_file = frappe.get_doc({
+			"doctype": "File",
+			"file_name": filename,
+			"attached_to_doctype": doc.doctype,
+			"attached_to_name": doc.name,
+			"content": dataurl,
+			"decode": True})
+		_file.save()
+
+		# update values
+		doc.set(fieldname, _file.file_url)
+
 	'''Save the web form'''
 	data = frappe._dict(json.loads(data))
 	for_payment = frappe.parse_json(for_payment)
@@ -344,13 +391,7 @@ def accept(web_form, data, docname=None, for_payment=False):
 
 	frappe.flags.in_web_form = True
 	meta = frappe.get_meta(data.doctype)
-
-	if docname:
-		# update
-		doc = frappe.get_doc(data.doctype, docname)
-	else:
-		# insert
-		doc = frappe.new_doc(data.doctype)
+	doc = find_or_create(docname)
 
 	# set values
 	for field in web_form.web_form_fields:
@@ -361,6 +402,7 @@ def accept(web_form, data, docname=None, for_payment=False):
 		if df and df.fieldtype in ('Attach', 'Attach Image'):
 			if value and 'data:' and 'base64' in value:
 				files.append((fieldname, value))
+
 				if not doc.name:
 					doc.set(fieldname, '')
 				continue
@@ -374,46 +416,12 @@ def accept(web_form, data, docname=None, for_payment=False):
 		web_form.validate_mandatory(doc)
 		doc.run_method('validate_payment')
 
-	if doc.name:
-		if has_web_form_permission(doc.doctype, doc.name, "write"):
-			doc.save(ignore_permissions=True)
-		else:
-			# only if permissions are present
-			doc.save()
+	ignore_mandatory = bool(files)
+	update_or_insert(doc,ignore_mandatory,web_form)
 
-	else:
-		# insert
-		if web_form.login_required and frappe.session.user=="Guest":
-			frappe.throw(_("You must login to submit this form"))
-
-		ignore_mandatory = True if files else False
-
-		doc.insert(ignore_permissions = True, ignore_mandatory = ignore_mandatory)
-
-	# add files
 	if files:
 		for f in files:
-			fieldname, filedata = f
-
-			# remove earlier attached file (if exists)
-			if doc.get(fieldname):
-				remove_file_by_url(doc.get(fieldname), doctype=doc.doctype, name=doc.name)
-
-			# save new file
-			filename, dataurl = filedata.split(',', 1)
-			_file = frappe.get_doc({
-				"doctype": "File",
-				"file_name": filename,
-				"attached_to_doctype": doc.doctype,
-				"attached_to_name": doc.name,
-				"content": dataurl,
-				"decode": True})
-			_file.save()
-
-			# update values
-			doc.set(fieldname, _file.file_url)
-
-		doc.save(ignore_permissions = True)
+			add_or_replace_file(doc,f)
 
 	if files_to_delete:
 		for f in files_to_delete:
@@ -427,6 +435,8 @@ def accept(web_form, data, docname=None, for_payment=False):
 		return web_form.get_payment_gateway_url(doc)
 	else:
 		return doc
+
+
 
 @frappe.whitelist()
 def delete(web_form_name, docname):
@@ -479,6 +489,7 @@ def make_route_string(parameters):
 
 @frappe.whitelist(allow_guest=True)
 def get_form_data(doctype, docname=None, web_form_name=None):
+	from frappe.website.doctype.web_form.web_list import get_in_list_view_fields
 	web_form = frappe.get_doc('Web Form', web_form_name)
 
 	if web_form.login_required and frappe.session.user == 'Guest':
