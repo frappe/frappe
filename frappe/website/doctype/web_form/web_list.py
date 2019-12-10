@@ -1,16 +1,4 @@
-from __future__ import unicode_literals
-import frappe, json, os
-from frappe.website.website_generator import WebsiteGenerator
-from frappe import _, scrub
-from frappe.utils import cstr
-from frappe.website.utils import get_comment_list
-from frappe.custom.doctype.customize_form.customize_form import docfield_properties
-from frappe.core.doctype.file.file import get_max_file_size
-from frappe.core.doctype.file.file import remove_file_by_url
-from frappe.modules.utils import export_module_json, get_doc_module
-from six.moves.urllib.parse import urlencode
-from frappe.integrations.utils import get_payment_gateway_controller
-from six import iteritems
+import frappe, json 
 
 @frappe.whitelist()
 def get_in_list_view_fields(doctype):
