@@ -1150,12 +1150,16 @@ body.no-sidebar {
 }
 
 .modules-container {
+	display: -ms-grid;
 	display: grid;
 	grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
 	grid-auto-rows: minmax(62px, 1fr);
-	column-gap: 15px;
+	-webkit-column-gap: 15px;
+	   -moz-column-gap: 15px;
+	        column-gap: 15px;
 	row-gap: 15px;
-	align-items: center;
+	-webkit-box-align: center;
+	        align-items: center;
 }
 
 
@@ -1199,6 +1203,7 @@ body.no-sidebar {
   p {
     margin-top: 5px;
     font-size: 80%;
+    display: -webkit-box;
     display: flex;
     overflow: hidden;
   }
@@ -1230,34 +1235,37 @@ body.no-sidebar {
 }
 
 .module-box-link {
-  flex: 1;
-  padding-top: 5px;
-  padding-bottom: 5px;
-  text-decoration: none;
-  --moz-text-decoration-line: none;
+	-webkit-box-flex: 1;
+	        flex: 1;
+	padding-top: 5px;
+	padding-bottom: 5px;
+	text-decoration: none !important;
+	--moz-text-decoration-line: none !important;
 }
 
 .icon-box {
-  padding: 15px;
-  width: 54px;
-  display: flex;
-  justify-content: center;
+	padding: 15px;
+	width: 54px;
+	display: -webkit-box;
+	display: flex;
+	-webkit-box-pack: center;
+	        justify-content: center;
 }
 
 .icon {
-  font-size: 24px;
+	font-size: 24px;
 }
 
 .open-notification {
-  top: -2px;
+	top: -2px;
 }
 
 .shortcut-tag {
-  margin-right: 5px;
+	margin-right: 5px;
 }
 
 .drag-handle {
-  font-size: 12px;
+	font-size: 12px;
 }
 
 .list-reset {
@@ -1277,5 +1285,6 @@ body.no-sidebar {
 
 .list-item {
 	padding: 14px;
+	-webkit-transition: all 0.1s ease-in;
 	transition: all 0.1s ease-in;
 }
