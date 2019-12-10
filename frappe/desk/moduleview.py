@@ -410,7 +410,7 @@ def update_modules_order(module_category, modules):
 	set_home_settings(home_settings)
 
 @frappe.whitelist()
-def update_links_for_module(module_name, links):
+def update_links_for_module(app, module_name, links):
 	links = frappe.parse_json(links)
 	home_settings = get_home_settings()
 
@@ -420,7 +420,9 @@ def update_links_for_module(module_name, links):
 
 	set_home_settings(home_settings)
 
-	return get_desktop_settings()
+	all_links = get_links(app, module_name)
+
+	return [data for data in all_links if data.get('name', '') in links]
 
 @frappe.whitelist()
 def get_options_for_show_hide_cards():

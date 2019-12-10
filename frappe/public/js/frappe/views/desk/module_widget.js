@@ -61,4 +61,45 @@ export default class ModuleWidget extends LinkWidget {
 			this.dropdown_body.hide();
 		});
 	}
+
+	setup_customize_button() {
+		this.customize_dropdown.on('click', () => {
+			const module_links = this.module_data.links;
+			const d = new frappe.ui.Dialog({
+				title: __('Customize Shortcuts'),
+				fields: [
+					{
+						label: __('Shortcuts'),
+						fieldname: 'links',
+						fieldtype: 'MultiSelectPills',
+						get_data: () => {
+							return frappe.xcall('frappe.desk.moduleview.get_links_for_module', {
+								app: this.module_data.app,
+								module: this.module_data.module_name,
+							}).then(links => {
+								return links;
+							});
+						},
+						default: this.module_data.links.filter(l => !l.hidden).map(l => l.name)
+					}
+				],
+				primary_action_label: __('Save'),
+				primary_action: ({ links }) => {
+					frappe.call('frappe.desk.moduleview.update_links_for_module', {
+						app: this.module_data.app,
+						module_name: this.module_data.module_name,
+						links: links || []
+					}).then(r => {
+						this.module_data.links = r.message;
+						this.make_dropdown();
+						this.setup_events();
+					});
+					d.hide();
+				}
+			});
+
+			d.show();
+		})
+	}
+
 }
