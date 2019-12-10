@@ -11,9 +11,7 @@ from frappe.custom.doctype.customize_form.customize_form import docfield_propert
 from frappe.core.doctype.file.file import get_max_file_size
 from frappe.core.doctype.file.file import remove_file_by_url
 from frappe.modules.utils import export_module_json, get_doc_module
-from six.moves.urllib.parse import urlencode
 from frappe.integrations.utils import get_payment_gateway_controller
-from six import iteritems
 
 
 class WebForm(WebsiteGenerator):
@@ -292,7 +290,7 @@ def get_context(context):
 				if not section:
 					section = add_section()
 					column = None
-				if column==None:
+				if column is None:
 					column = add_column()
 				column.append(df)
 

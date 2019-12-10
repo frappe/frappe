@@ -1,4 +1,4 @@
-import frappe, json 
+import frappe, json
 
 @frappe.whitelist()
 def get_in_list_view_fields(doctype):
