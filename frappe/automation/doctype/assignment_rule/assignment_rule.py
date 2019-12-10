@@ -151,16 +151,17 @@ def bulk_apply(doctype, docnames):
 			apply(None, doctype=doctype, name=name)
 
 def reopen_closed_assignment(doc):
-	todo = frappe.db.exists('ToDo', dict(
+	todo_list = frappe.db.get_all('ToDo', filters = dict(
 		reference_type = doc.doctype,
 		reference_name = doc.name,
 		status = 'Closed'
 	))
-	if not todo:
+	if not todo_list:
 		return False
-	todo = frappe.get_doc("ToDo", todo)
-	todo.status = 'Open'
-	todo.save(ignore_permissions=True)
+	for todo in todo_list:
+		todo_doc = frappe.get_doc('ToDo', todo.name)
+		todo_doc.status = 'Open'
+		todo_doc.save(ignore_permissions=True)
 	return True
 
 def apply(doc, method=None, doctype=None, name=None):
@@ -219,8 +220,8 @@ def apply(doc, method=None, doctype=None, name=None):
 				continue
 
 			if not new_apply:
-				# only reopen if assignment rule condition is satisfied
-				if assignment_rule.safe_eval('assign_condition', doc):
+				# only reopen if close condition is not satisfied
+				if not assignment_rule.safe_eval('close_condition', doc):
 					reopen =  reopen_closed_assignment(doc)
 					if reopen:
 						break
