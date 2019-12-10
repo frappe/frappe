@@ -1,49 +1,37 @@
 import { generate_route } from './utils';
-import Widget from './base_widget.js'
+import LinkWidget from './link_widget.js'
 
-export default class ModuleWidget extends Widget {
+export default class ModuleWidget extends LinkWidget {
 	constructor(opts) {
 		super(opts);
 	}
 
-	get_link() {
-		return this.module_data.type === 'module'
-			? '#modules/' + this.module_data.module_name
-			: this.module_data.link
-	}
-
 	make_widget() {
-		this.widget = $(`<div class="border module-box" data-module-name="${this.module_data.module_name}">
-			<div class="flush-top">
-				<div class="module-box-content">
-					<div class="level">
-						<a class="module-box-link" href="${this.get_link()}">
-							<h4 class="h4">
-							<div>
-								<i class="${this.module_data.icon}" style="color:#8d99a6;font-size:18px;margin-right:6px;"></i>
-								${this.module_data.label}
-							</div>
-							</h4>
-						</a>
-						${this.module_data.type === 'module' ? this.make_dropdown(): ''}
-					</div>
-				</div>
-			</div>
-		</div>`);
-		this.dropdown_button = this.widget.find('.octicon-chevron-down');
-		this.dropdown_body = this.widget.find('.dropdown-body');
-
-		this.widget.appendTo(this.container);
+		super.make_widget();
+		this.make_dropdown()
 	}
 
 	make_dropdown() {
+		this.dropdown && this.dropdown.remove();
+
+		this.dropdown = this.get_dropdown_body();
+
+		let wrapper = this.widget.find('.module-box-content-wrapper')
+		this.dropdown.appendTo(wrapper)
+
+		this.dropdown_button = this.dropdown.find('.octicon-chevron-down');
+		this.dropdown_body = this.dropdown.find('.dropdown-body');
+		this.customize_dropdown = this.dropdown.find('.customize-module');
+	}
+
+	get_dropdown_body() {
 		const list_html = this.module_data.links.map(item => {
 			return `<li class="${item.class || null}">
 					<a class="list-item" href="${generate_route(item)}">${item.label}</a>
 				</li>`
 		})
 
-		return `<div class="inline-block relative">
+		return $(`<div class="inline-block relative">
 					<div>
 						<span class="pull-right">
 							<i class="octicon octicon-chevron-down text-muted"></i>
@@ -52,14 +40,15 @@ export default class ModuleWidget extends Widget {
 					<div class="absolute mt-default z-20 pin-r dropdown-body" style="display: none;">
 						<ul class="list-reset border">
 							${list_html.join(' ')}
-							<li class="border-top"><div class="list-item">Customize</div></li>
+							<li class="border-top customize-module"><div class="list-item">Customize</div></li>
 						</ul>
 					</div>
-				</div>`
+				</div>`)
 	}
 
 	setup_events() {
 		this.setup_dropdown_events();
+		this.setup_customize_button();
 	}
 
 	setup_dropdown_events() {
