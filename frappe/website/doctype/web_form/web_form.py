@@ -243,13 +243,6 @@ def get_context(context):
 
 	def get_layout(self):
 		layout = []
-		def add_page(df=None):
-			new_page = {'sections': []}
-			layout.append(new_page)
-			if df and df.fieldtype=='Page Break':
-				new_page.update(df.as_dict())
-
-			return new_page
 
 		def add_section(df=None):
 			new_section = {'columns': []}
@@ -266,32 +259,20 @@ def get_context(context):
 				layout[-1]['sections'][-1]['columns'].append(new_col)
 
 			return new_col
+		
+		def get_break_layouts(df):
+			return ({
+				'Section Break': (add_section(df), None),
+				'Column Break': (None, add_column(df))
+			}.get(df.fieldtype, (None, None)))
 
-		page, section, column = None, None, None
+		section, column =  add_section(), add_column()
 		for df in self.web_form_fields:
 
-			# breaks
-			if df.fieldtype=='Page Break':
-				page = add_page(df)
-				section, column = None, None
-
-			if df.fieldtype=='Section Break':
-				section = add_section(df)
-				column = None
-
-			if df.fieldtype=='Column Break':
-				column = add_column(df)
-
+			if df.fieldtype in ('Section Break', 'Column Break'):
+				section, column = get_break_layouts(df)
 			# input
-			if df.fieldtype not in ('Section Break', 'Column Break', 'Page Break'):
-				if not page:
-					page = add_page()
-					section, column = None, None
-				if not section:
-					section = add_section()
-					column = None
-				if column is None:
-					column = add_column()
+			else:
 				column.append(df)
 
 		return layout
