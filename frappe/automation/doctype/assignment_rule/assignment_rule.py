@@ -31,12 +31,6 @@ class AssignmentRule(Document):
 
 		return False
 
-	def apply_close(self, doc, assignments):
-		if (self.close_assignments and
-			self.name in [d.assignment_rule for d in assignments]):
-			return self.close_assignments(doc)
-
-		return False
 
 	def apply_assign(self, doc):
 		if self.safe_eval('assign_condition', doc):
@@ -225,13 +219,12 @@ def apply(doc, method=None, doctype=None, name=None):
 				continue
 
 			if not new_apply:
-				reopen =  reopen_closed_assignment(doc)
-				if reopen:
-					break
-			close = assignment_rule.apply_close(doc, assignments)
-			if close:
-				break
-
+				# only reopen if assignment rule condition is satisfied
+				if assignment_rule.safe_eval('assign_condition', doc):
+					reopen =  reopen_closed_assignment(doc)
+					if reopen:
+						break
+			assignment_rule.close_assignments(doc)
 
 def get_assignment_rules():
 	return [d.document_type for d in frappe.db.get_all('Assignment Rule', fields=['document_type'], filters=dict(disabled = 0))]
