@@ -10,14 +10,19 @@ class DeskSection {
 	make() {
 		this.make_container();
 		this.make_module_widget();
-		this.setup_sortable();
+		this.sortable_config.enable && this.setup_sortable();
 	}
 
 	make_container() {
+
+		const get_title = () => {
+			return `<div class="section-header level text-muted">
+				<div class="module-category h6 uppercase">${ __(this.title) }</div>
+			</div>`
+		}
+
 		this.section_container = $(`<div class="modules-section">
-			<div class="section-header level text-muted">
-				<div class="module-category h6 uppercase">${ __(this.category) }</div>
-			</div>
+			${this.hide_title ? '' : get_title()}
 			<div class="modules-container"></div>
 		</div>`);
 
@@ -41,13 +46,7 @@ class DeskSection {
 		this.sortable = new Sortable(container, {
 			animation: 150,
 			onEnd: () => {
-				let modules = Array.from(container.querySelectorAll('.module-box'))
-					.map(node => node.dataset.moduleName);
-
-				frappe.call('frappe.desk.moduleview.update_modules_order', {
-					module_category: this.category,
-					modules: modules
-				});
+				this.sortable_config.after_sort(container, this.options)
 			}
 		})
 	}
@@ -96,9 +95,22 @@ export default class Desk {
 		this.module_categories.forEach(category => {
 			if (this.categories.hasOwnProperty(category) && this.categories[category].length) {
 				this.sections[category] = new DeskSection({
-					category: category,
+					title: category,
+					options: {'category': category},
 					modules: this.categories[category],
-					container: this.modules_section_container
+					container: this.modules_section_container,
+					sortable_config: {
+						enable: true,
+						after_sort: (container, options) => {
+							let modules = Array.from(container.querySelectorAll('.module-box'))
+								.map(node => node.dataset.moduleName);
+
+							frappe.call('frappe.desk.moduleview.update_modules_order', {
+								module_category: options.category,
+								modules: modules
+							});
+						}
+					},
 				});
 			}
 		});
