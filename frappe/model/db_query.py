@@ -501,6 +501,10 @@ class DatabaseQuery(object):
 				value = f.value or "''"
 				fallback = "''"
 
+			elif f.fieldname == 'name':
+				value = f.value or "''"
+				fallback = "''"
+
 			else:
 				value = flt(f.value)
 				fallback = 0
