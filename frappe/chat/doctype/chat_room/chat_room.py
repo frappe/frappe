@@ -93,14 +93,14 @@ class ChatRoom(Document):
 
 				frappe.publish_realtime('frappe.chat.room:update', update, room = self.name, after_commit = True)
 
-@frappe.whitelist(allow_guest = True)
-def get(user, rooms = None, fields = None, filters = None):
+@frappe.whitelist(allow_guest=True)
+def get(token, rooms=None, fields=None, filters=None):
 	# There is this horrible bug out here.
 	# Looks like if frappe.call sends optional arguments (not in right order), the argument turns to an empty string.
 	# I'm not even going to think searching for it.
 	# Hence, the hack was get_if_empty (previous assign_if_none)
 	# - Achilles Rasquinha achilles@frappe.io
-	authenticate(user)
+	authenticate(token)
 
 	rooms, fields, filters = safe_json_loads(rooms, fields, filters)
 
@@ -123,8 +123,8 @@ def get(user, rooms = None, fields = None, filters = None):
 
 	rooms   = frappe.get_all('Chat Room',
 		or_filters = [
-			['Chat Room', 	   'owner', '=', user],
-			['Chat Room User', 'user',  '=', user]
+			['Chat Room', 'owner', '=', frappe.session.user],
+			['Chat Room User', 'user', '=', frappe.session.user]
 		],
 		filters  = const,
 		fields   = param + ['name'] if param else default,
@@ -151,9 +151,9 @@ def get(user, rooms = None, fields = None, filters = None):
 
 	return rooms
 
-@frappe.whitelist(allow_guest = True)
-def create(kind, owner, users = None, name = None):
-	authenticate(owner)
+@frappe.whitelist(allow_guest=True)
+def create(kind, token, users=None, name=None):
+	authenticate(token)
 
 	users  = safe_json_loads(users)
 	create = True
@@ -163,16 +163,16 @@ def create(kind, owner, users = None, name = None):
 			SELECT name
 			FROM   `tabChat Room`
 			WHERE  owner = "{owner}"
-		""".format(owner = owner), as_dict = True))
+		""".format(owner=frappe.session.user), as_dict=True))
 
 		if room:
 			room   = frappe.get_doc('Chat Room', room.name)
 			create = False
 
 	if create:
-		room  		   = frappe.new_doc('Chat Room')
-		room.type 	   = kind
-		room.owner	   = owner
+		room = frappe.new_doc('Chat Room')
+		room.type = kind
+		room.owner = frappe.session.user
 		room.room_name = name
 
 	dusers = [ ]
@@ -181,13 +181,13 @@ def create(kind, owner, users = None, name = None):
 		if users:
 			users  = listify(users)
 			for user in users:
-				duser 	   = frappe.new_doc('Chat Room User')
+				duser = frappe.new_doc('Chat Room User')
 				duser.user = user
 				dusers.append(duser)
 
 			room.users = dusers
 	else:
-		dsettings	   = frappe.get_single('Website Settings')
+		dsettings = frappe.get_single('Website Settings')
 		room.room_name = dsettings.chat_room_name
 
 		users          = [user for user in room.users] if hasattr(room, 'users') else [ ]
@@ -201,11 +201,12 @@ def create(kind, owner, users = None, name = None):
 
 	room.save(ignore_permissions = True)
 
-	room  = get(owner, rooms = room.name)
-	users = [room.owner] + [u for u in room.users]
+	room  = get(token, rooms=room.name)
+	if room:
+		users = [room.owner] + [u for u in room.users]
 
-	for u in users:
-		frappe.publish_realtime('frappe.chat.room:create', room, user = u, after_commit = True)
+		for user in users:
+			frappe.publish_realtime('frappe.chat.room:create', room, user=user, after_commit=True)
 
 	return room
 
