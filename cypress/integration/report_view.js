@@ -15,7 +15,7 @@ context('Report View', () => {
 		}, true);
 
 	});
-	it('Field with enabled allow_on_edit should be editable.', () => {
+	it('Field with enabled allow_on_submit should be editable.', () => {
 		cy.server();
 		cy.route('POST', 'api/method/frappe.client.set_value').as('value-update');
 		cy.visit(`/desk#List/${doctype_name}/Report`);
