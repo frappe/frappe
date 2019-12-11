@@ -18,8 +18,16 @@ def handle():
 	cmd = frappe.local.form_dict.cmd
 	data = None
 
+	before_request = frappe.get_hooks("before_whitelisted_method", [])
+	for before_request_cmd in before_request:
+		frappe.call(get_attr(before_request_cmd), **frappe.form_dict)
+
 	if cmd!='login':
 		data = execute_cmd(cmd)
+
+	after_request = frappe.get_hooks("after_whitelisted_method", [])
+	for after_request_cmd in after_request:
+		frappe.call(get_attr(before_request_cmd), **frappe.form_dict)
 
 	# data can be an empty string or list which are valid responses
 	if data is not None:
