@@ -96,6 +96,8 @@ class DocType(Document):
 		if self.default_print_format and not self.custom:
 			frappe.throw(_('Standard DocType cannot have default print format, use Customize Form'))
 
+		self.validate_search_and_title_fields()
+
 
 	def set_default_in_list_view(self):
 		'''Set default in-list-view for first 4 mandatory fields'''
@@ -661,6 +663,14 @@ class DocType(Document):
 			is_a_valid_name = re.match("^(?![\W])[^\d_\s][\w ]+$", name, flags = re.ASCII)
 		if not is_a_valid_name:
 			frappe.throw(_("DocType's name should start with a letter and it can only consist of letters, numbers, spaces and underscores"), frappe.NameError)
+
+
+	def validate_search_and_title_fields(self):
+		if not (self.title_field or self.search_field):
+			return
+
+		if self.title_field in [field.strip() for field in self.search_fields.split(",") if field]:
+			frappe.throw("Title Field should not be present in Search Field.")
 
 
 def validate_fields_for_doctype(doctype):

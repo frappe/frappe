@@ -177,9 +177,6 @@ def get_std_fields_list(meta, key):
 			if d.strip() not in sflist:
 				sflist.append(d.strip())
 
-	if meta.title_field and meta.title_field not in sflist:
-		sflist.append(meta.title_field)
-
 	if key not in sflist:
 		sflist.append(key)
 
@@ -195,6 +192,7 @@ def get_title_field(meta, formatted_fields):
 		field = "NULL as `label`"
 
 	formatted_fields.insert(1, field)
+	print(formatted_fields)
 	return formatted_fields
 
 @frappe.whitelist()
@@ -212,9 +210,15 @@ def get_title_for_link_display(doctype, docname):
 def build_for_autosuggest(res, query=False):
 	results = []
 	for r in res:
-		out = {"value": r[0], "description": ", ".join(unique(cstr(d) for d in r if d)[1:])}
+		r = list(r)
+		out = {"value": r[0]}
+		r.pop(0)
+
 		if not query:
-			out.update({"label": r[1]})
+			out.update({"label": r[0]})
+			r.pop(0)
+
+		out.update({"description": ", ".join(unique(cstr(d) for d in r if d))})
 		results.append(out)
 	return results
 

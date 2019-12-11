@@ -161,6 +161,9 @@ class CustomizeForm(Document):
 		if not self.doc_type:
 			return
 
+		if self.title_field in [field.strip() for field in self.search_fields.split(",") if field]:
+			frappe.throw("Title Field should not be present in Search Field.")
+
 		self.flags.update_db = False
 		self.flags.rebuild_doctype_for_global_search = False
 

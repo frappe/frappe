@@ -26,7 +26,7 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 			setTimeout(function() {
 				if(me.$input.val() && me.get_options()) {
 					let doctype = me.get_options();
-					let name = me.$input.val();
+					let name = me.get_input_value();
 					me.$link.toggle(true);
 					me.$link_open.attr('href', frappe.utils.get_form_link(doctype, name));
 				}
@@ -146,6 +146,11 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 			maxItems: 99,
 			autoFirst: true,
 			list: [],
+			replace: function (suggestion) {
+				// Override Awesomeplete replace function as it is used to set the input value
+				// https://github.com/LeaVerou/awesomplete/issues/17104#issuecomment-359185403
+				this.input.value = suggestion.label || suggestion.value;
+			},
 			data: function (item) {
 				return {
 					label: item.label || item.value,
