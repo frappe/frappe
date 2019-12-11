@@ -39,8 +39,11 @@ export default class ModuleItemsWidget extends Widget {
 								<div class="small">${ item.incomplete_dependencies.join(", ") }</div>
 							</div>
 						</div>`;
-			else
-				return `<a href="${item.route}" class="link-content ellipsis">${item.label ? item.label : item.name}</a>`;
+
+			if (item.youtube_id)
+				return `<span class="link-content help-video-link ellipsis" data-youtubeid="${item.youtube_id}">${item.label ? item.label : item.name}</a>`
+
+			return `<a href="${item.route}" class="link-content ellipsis">${item.label ? item.label : item.name}</a>`;
 		}
 
 		this.link_list = this.data.items.map(item => {
@@ -48,6 +51,7 @@ export default class ModuleItemsWidget extends Widget {
 					<span class="indicator ${get_indicator_color(item)}"></span>
 					${get_link_for_item(item)}
 			</div>`);
+
 		});
 
 		this.link_list.forEach(link => link.appendTo(this.body));
@@ -65,13 +69,14 @@ export default class ModuleItemsWidget extends Widget {
 				link_label.mouseout(() => popover.hide());
 
 			} else {
-				link_label.click(() => {
-					if (item.youtube_id) {
-						frappe.help.show_video(item.youtube_id);
-					} else {
-						frappe.set_route(route);
-					}
-				});
+				if (link_label.hasClass('help-video-link')) {
+					link_label.click((event) => {
+						let yt_id = event.target.dataset.youtubeid;
+						frappe.help.show_video(yt_id)
+					});
+				} else {
+					link_label.click(() => frappe.set_route(route))
+				}
 			}
 		})
 	}
