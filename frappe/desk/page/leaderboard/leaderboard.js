@@ -43,7 +43,7 @@ class Leaderboard {
 			}
 			this.timespans = [
 				"This Week", "This Month", "This Quarter", "This Year",
-				"Last Week", "Last Quarter", "Last Year",
+				"Last Week", "Last Month", "Last Quarter", "Last Year",
 				"All Time", "Select From Date"
 			];
 
