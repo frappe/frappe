@@ -192,7 +192,7 @@ frappe.views.ModulesFactory = class ModulesFactory extends frappe.views.Factory 
 			// 	parent: this.make_page(true, page_name)
 			// });
 
-			frappe.modules = new ModulesPage({
+			new ModulesPage({
 				parent: this.make_page(true, page_name)
 			});
 		});

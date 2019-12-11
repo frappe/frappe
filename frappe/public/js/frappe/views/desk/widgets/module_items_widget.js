@@ -43,7 +43,7 @@ export default class ModuleItemsWidget extends Widget {
 			if (item.youtube_id)
 				return `<span class="link-content help-video-link ellipsis" data-youtubeid="${item.youtube_id}">${item.label ? item.label : item.name}</a>`
 
-			return `<a href="${item.route}" class="link-content ellipsis">${item.label ? item.label : item.name}</a>`;
+			return `<a data-route="${item.route}" class="link-content ellipsis">${item.label ? item.label : item.name}</a>`;
 		}
 
 		this.link_list = this.data.items.map(item => {
@@ -70,12 +70,15 @@ export default class ModuleItemsWidget extends Widget {
 
 			} else {
 				if (link_label.hasClass('help-video-link')) {
-					link_label.click((event) => {
+					link_label.click(event => {
 						let yt_id = event.target.dataset.youtubeid;
 						frappe.help.show_video(yt_id)
 					});
 				} else {
-					link_label.click(() => frappe.set_route(route))
+					link_label.click(event => {
+						let route = event.target.dataset.route;
+						frappe.set_route(route)
+					})
 				}
 			}
 		})
