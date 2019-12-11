@@ -4,7 +4,6 @@ import Widget from './base_widget.js'
 export default class ModuleItemsWidget extends Widget {
 	constructor(opts) {
 		super(opts);
-		window.widget = this;
 	}
 
 	refresh() {
@@ -13,10 +12,10 @@ export default class ModuleItemsWidget extends Widget {
 
 	set_body() {
 		const is_link_disabled = (item) => {
-			return item.dependencies && item.incomplete_dependencies
+			return item.dependencies && item.incomplete_dependencies;
 		}
 		const disabled_dependent = (item) => {
-			return is_link_disabled(item) ? 'disabled-link' : ''
+			return is_link_disabled(item) ? 'disabled-link' : '';
 		}
 
 		const get_indicator_color = (item) => {
@@ -39,9 +38,9 @@ export default class ModuleItemsWidget extends Widget {
 								<div class="small text-muted">${__("You need to create these first: ")}</div>
 								<div class="small">${ item.incomplete_dependencies.join(", ") }</div>
 							</div>
-						</div>`
+						</div>`;
 			else
-				return `<a href="${item.route}" class="link-content ellipsis">${item.label ? item.label : item.name}</a>`
+				return `<a href="${item.route}" class="link-content ellipsis">${item.label ? item.label : item.name}</a>`;
 		}
 
 		this.link_list = this.data.items.map(item => {
@@ -51,23 +50,20 @@ export default class ModuleItemsWidget extends Widget {
 			</div>`);
 		});
 
-		this.link_list.forEach(link => link.appendTo(this.body))
+		this.link_list.forEach(link => link.appendTo(this.body));
 	}
 
 	setup_events() {
 		this.link_list.forEach(link => {
 			// Bind Popver Event
-			const link_label = link.find('.link-content')
+			const link_label = link.find('.link-content');
 
 			if (link.hasClass('disabled-link')) {
-				const popover = link.find('.module-link-popover')
-				link_label.mouseover(() => {
-					popover.show()
-				})
+				const popover = link.find('.module-link-popover');
 
-				link_label.mouseout(() => {
-					popover.hide()
-				})
+				link_label.mouseover(() => popover.show());
+				link_label.mouseout(() => popover.hide());
+
 			} else {
 				link_label.click(() => {
 					if (item.youtube_id) {
@@ -75,7 +71,7 @@ export default class ModuleItemsWidget extends Widget {
 					} else {
 						frappe.set_route(route);
 					}
-				})
+				});
 			}
 		})
 	}

@@ -88,7 +88,7 @@ export default class ModulesPage {
 			widget_config: this.moduleview_data,
 			container: this.cards_container,
 			sortable_config: {
-				enable: true
+				enable: false
 			}
 		});
 	}

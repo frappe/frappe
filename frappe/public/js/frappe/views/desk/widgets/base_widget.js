@@ -22,7 +22,7 @@ export default class Widget {
 		</div>`);
 
 		this.title_field = this.widget.find('.widget-title');
-		this.body = this.widget.find('.widget-body')
+		this.body = this.widget.find('.widget-body');
 		this.set_title();
 		this.set_body();
 	}

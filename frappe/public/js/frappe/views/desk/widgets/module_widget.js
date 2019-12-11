@@ -8,7 +8,7 @@ export default class ModuleWidget extends LinkWidget {
 
 	make_widget() {
 		super.make_widget();
-		this.make_dropdown()
+		this.make_dropdown();
 	}
 
 	make_dropdown() {
@@ -16,8 +16,8 @@ export default class ModuleWidget extends LinkWidget {
 
 		this.dropdown = this.get_dropdown_body();
 
-		let wrapper = this.widget.find('.module-box-content-wrapper')
-		this.dropdown.appendTo(wrapper)
+		let wrapper = this.widget.find('.module-box-content-wrapper');
+		this.dropdown.appendTo(wrapper);
 
 		this.dropdown_button = this.dropdown.find('.octicon-chevron-down');
 		this.dropdown_body = this.dropdown.find('.dropdown-body');
@@ -28,7 +28,7 @@ export default class ModuleWidget extends LinkWidget {
 		const list_html = this.data.links.map(item => {
 			return `<li class="${item.class || null}">
 					<a class="list-item" href="${generate_route(item)}">${item.label}</a>
-				</li>`
+				</li>`;
 		})
 
 		return $(`<div class="inline-block relative">
@@ -43,7 +43,7 @@ export default class ModuleWidget extends LinkWidget {
 							<li class="border-top customize-module"><div class="list-item">Customize</div></li>
 						</ul>
 					</div>
-				</div>`)
+				</div>`);
 	}
 
 	setup_events() {

@@ -17,7 +17,7 @@ export default class DeskSection {
 		const get_title = () => {
 			return `<div class="section-header level text-muted">
 				<div class="module-category h6 uppercase">${ __(this.title) }</div>
-			</div>`
+			</div>`;
 		}
 
 		this.section_container = $(`<div class="modules-section">
@@ -25,7 +25,7 @@ export default class DeskSection {
 			<div class="modules-container"></div>
 		</div>`);
 
-		this.modules_container = this.section_container.find('.modules-container')
+		this.modules_container = this.section_container.find('.modules-container');
 
 		this.section_container.appendTo(this.container);
 	}
@@ -41,11 +41,11 @@ export default class DeskSection {
 	}
 
 	setup_sortable() {
-		const container = this.modules_container[0]
+		const container = this.modules_container[0];
 		this.sortable = new Sortable(container, {
 			animation: 150,
 			onEnd: () => {
-				this.sortable_config.after_sort(container, this.options)
+				this.sortable_config.after_sort(container, this.options);
 			}
 		})
 	}

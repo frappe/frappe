@@ -9,7 +9,7 @@ export default class LinkWidget extends Widget {
 	get_link() {
 		return this.data.type === 'module'
 			? '#modules/' + this.data.module_name
-			: this.data.link
+			: this.data.link;
 	}
 
 	make_widget() {
