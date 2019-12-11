@@ -176,17 +176,19 @@ Cypress.Commands.add('fill_field', (fieldname, value, fieldtype = 'Data') => {
 	cy.get_field(fieldname, fieldtype).as('input');
 
 	if (['Date', 'Time', 'Datetime'].includes(fieldtype)) {
-		cy.get('@input')
-			.click()
-			.wait(200);
+		cy.get('@input').click().wait(100);
+		cy.get('.datepickers-container .datepicker.active').should('exist');
 	}
-	cy.get('@input').clear();
+	if (fieldtype === 'Time') {
+		cy.get('@input').clear();
+	}
 
 	if (fieldtype === 'Select') {
-		return cy.get('@input').select(value);
+		cy.get('@input').select(value);
 	} else {
-		return cy.get('@input').type(value, { waitForAnimations: false });
+		cy.get('@input').type(value, { waitForAnimations: false });
 	}
+	return cy.get('@input');
 });
 
 Cypress.Commands.add('get_field', (fieldname, fieldtype = 'Data') => {
