@@ -127,6 +127,7 @@ def build_response(path, data, http_status_code, headers=None):
 	response.status_code = http_status_code
 	response.headers["X-Page-Name"] = path.encode("ascii", errors="xmlcharrefreplace")
 	response.headers["X-From-Cache"] = frappe.local.response.from_cache or False
+	response.headers["X-Frame-Options"] = "sameorigin"
 
 	if headers:
 		for key, val in iteritems(headers):
