@@ -175,7 +175,7 @@ frappe.show_message_page = function(opts) {
 frappe.views.ModulesFactory = class ModulesFactory extends frappe.views.Factory {
 	show() {
 		let current_route = frappe.get_route_str();
-		if (frappe.pages[current_route] && false) {
+		if (frappe.pages[current_route]) {
 			frappe.container.change_to(current_route);
 		} else {
 			this.make(current_route);
