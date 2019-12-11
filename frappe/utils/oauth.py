@@ -283,6 +283,12 @@ def update_oauth_user(user, data, provider):
 	if save:
 		user.flags.ignore_permissions = True
 		user.flags.no_welcome_mail = True
+
+		# set default signup role as per Portal Settings
+		default_role = frappe.db.get_single_value("Portal Settings", "default_role")
+		if default_role:
+			user.add_roles(default_role)
+
 		user.save()
 
 def get_first_name(data):

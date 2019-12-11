@@ -25,7 +25,7 @@ class PreparedReport(Document):
 		enqueue(run_background, prepared_report=self.name, timeout=6000)
 
 	def on_trash(self):
-		remove_all("PreparedReport", self.name, from_delete=True)
+		remove_all("Prepared Report", self.name)
 
 
 def run_background(prepared_report):
@@ -85,7 +85,8 @@ def create_json_gz_file(data, dt, dn):
 		"file_name": json_filename,
 		"attached_to_doctype": dt,
 		"attached_to_name": dn,
-		"content": compressed_content
+		"content": compressed_content,
+		"is_private": 1
 	})
 	_file.save(ignore_permissions=True)
 

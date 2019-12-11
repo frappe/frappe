@@ -80,8 +80,8 @@ def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reloa
 			if not (for_reload or frappe.flags.in_migrate or frappe.flags.in_install or frappe.flags.in_test):
 				try:
 					delete_controllers(name, doc.module)
-				except (FileNotFoundError, OSError):
-					# in case a doctype doesnt have any controller code
+				except (FileNotFoundError, OSError, KeyError):
+					# in case a doctype doesnt have any controller code  nor any app and module
 					pass
 
 		else:
@@ -332,8 +332,8 @@ def clear_references(doctype, reference_doctype, reference_name,
 		(reference_doctype, reference_name))
 
 def clear_timeline_references(link_doctype, link_name):
-	frappe.db.sql("""delete from `tabCommunication Link`
-		where `tabCommunication Link`.link_doctype='{0}' and `tabCommunication Link`.link_name='{1}'""".format(link_doctype, link_name)) # nosec
+	frappe.db.sql("""DELETE FROM `tabCommunication Link`
+		WHERE `tabCommunication Link`.link_doctype=%s AND `tabCommunication Link`.link_name=%s""", (link_doctype, link_name))
 
 def insert_feed(doc):
 	from frappe.utils import get_fullname
