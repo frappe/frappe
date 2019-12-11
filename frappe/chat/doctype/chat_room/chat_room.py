@@ -162,8 +162,8 @@ def create(kind, token, users=None, name=None):
 		room = squashify(frappe.db.sql("""
 			SELECT name
 			FROM   `tabChat Room`
-			WHERE  owner = "{owner}"
-		""".format(owner=frappe.session.user), as_dict=True))
+			WHERE  owner=%s
+			""", (frappe.session.user), as_dict=True))
 
 		if room:
 			room   = frappe.get_doc('Chat Room', room.name)
