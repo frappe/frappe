@@ -3,6 +3,7 @@
 
 import Desktop from './components/Desktop.vue';
 import Desk from './desk/desktop.js'
+import ModulesPage from './desk/modules.js'
 
 frappe.provide('frappe.views.pageview');
 frappe.provide("frappe.standard_pages");
@@ -48,7 +49,6 @@ frappe.views.pageview = {
 					let container = $('<div class="container"></div>').appendTo(page);
 					container = $('<div></div>').appendTo(container);
 
-					console.time('app')
 					frappe.desk = new Desk({
 						container: container[0]
 					})
@@ -57,7 +57,6 @@ frappe.views.pageview = {
 					// 	el: container[0],
 					// 	render: h => h(Desktop)
 					// });
-					console.timeEnd('app')
 				}
 
 
@@ -175,10 +174,11 @@ frappe.show_message_page = function(opts) {
 
 frappe.views.ModulesFactory = class ModulesFactory extends frappe.views.Factory {
 	show() {
-		if (frappe.pages.modules) {
-			frappe.container.change_to('modules');
+		let current_route = frappe.get_route_str();
+		if (frappe.pages[current_route] && false) {
+			frappe.container.change_to(current_route);
 		} else {
-			this.make('modules');
+			this.make(current_route);
 		}
 	}
 
@@ -188,7 +188,11 @@ frappe.views.ModulesFactory = class ModulesFactory extends frappe.views.Factory 
 		];
 
 		frappe.require(assets, () => {
-			frappe.modules.home = new frappe.modules.Home({
+			// frappe.modules.home = new frappe.modules.Home({
+			// 	parent: this.make_page(true, page_name)
+			// });
+
+			frappe.modules = new ModulesPage({
 				parent: this.make_page(true, page_name)
 			});
 		});
