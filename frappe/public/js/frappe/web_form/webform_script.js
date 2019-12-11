@@ -52,12 +52,13 @@ frappe.ready(function() {
 			const data = setup_fields(r.message);
 			let web_form_doc = data.web_form;
 
-			if (web_form_doc.doc_name && web_form_doc.allow_edit === 0) {
-				window.location.replace(window.location.pathname + "?new=1");
-				return;
+			if (web_form_doc.name && web_form_doc.allow_edit === 0) {
+				if (!window.location.href.includes("?new=1")) {
+					window.location.replace(window.location.pathname + "?new=1");
+				}
 			}
 			let doc = r.message.doc || build_doc(r.message);
-			web_form.prepare(web_form_doc, doc);
+			web_form.prepare(web_form_doc, r.message.doc && web_form_doc.allow_edit === 1 ? r.message.doc : {});
 			web_form.make();
 			web_form.set_default_values();
 		})

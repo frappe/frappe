@@ -12,7 +12,6 @@ import frappe
 from frappe import _, safe_decode, safe_encode
 from frappe.utils import (extract_email_id, convert_utc_to_user_timezone, now,
 	cint, cstr, strip, markdown, parse_addr)
-from frappe.utils.scheduler import log
 from frappe.core.doctype.file.file import get_random_filename, MaxFileSizeReachedError
 
 class EmailSizeExceededError(frappe.ValidationError): pass
@@ -80,7 +79,7 @@ class EmailServer:
 
 		except _socket.error:
 			# log performs rollback and logs error in Error Log
-			log("receive.connect_pop")
+			frappe.log_error("receive.connect_pop")
 
 			# Invalid mail server -- due to refusing connection
 			frappe.msgprint(_('Invalid Mail Server. Please rectify and try again.'))
@@ -255,7 +254,7 @@ class EmailServer:
 
 			else:
 				# log performs rollback and logs error in Error Log
-				log("receive.get_messages", self.make_error_msg(msg_num, incoming_mail))
+				frappe.log_error("receive.get_messages", self.make_error_msg(msg_num, incoming_mail))
 				self.errors = True
 				frappe.db.rollback()
 
@@ -457,9 +456,9 @@ class Email:
 	def show_attached_email_headers_in_content(self, part):
 		# get the multipart/alternative message
 		try:
-		    from html import escape  # python 3.x
+			from html import escape  # python 3.x
 		except ImportError:
-		    from cgi import escape  # python 2.x
+			from cgi import escape  # python 2.x
 
 		message = list(part.walk())[1]
 		headers = []
@@ -481,7 +480,7 @@ class Email:
 		"""Detect chartset."""
 		charset = part.get_content_charset()
 		if not charset:
-			charset = chardet.detect(frappe.safe_encode(part))['encoding']
+			charset = chardet.detect(cstr(part))['encoding']
 
 		return charset
 
@@ -515,7 +514,7 @@ class Email:
 				'fcontent': fcontent,
 			})
 
-			cid = (part.get("Content-Id") or "").strip("><")
+			cid = (cstr(part.get("Content-Id")) or "").strip("><")
 			if cid:
 				self.cid_map[fname] = cid
 

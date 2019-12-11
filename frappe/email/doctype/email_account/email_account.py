@@ -21,7 +21,6 @@ from frappe.desk.form import assign_to
 from frappe.utils.user import get_system_managers
 from frappe.utils.background_jobs import enqueue, get_jobs
 from frappe.core.doctype.communication.email import set_incoming_outgoing_accounts
-from frappe.utils.scheduler import log
 from frappe.utils.html_utils import clean_email_html
 from frappe.email.utils import get_port
 
@@ -284,7 +283,7 @@ class EmailAccount(Document):
 
 				except Exception:
 					frappe.db.rollback()
-					log('email_account.receive')
+					frappe.log_error('email_account.receive')
 					if self.use_imap:
 						self.handle_bad_emails(email_server, uid, msg, frappe.get_traceback())
 					exceptions.append(frappe.get_traceback())

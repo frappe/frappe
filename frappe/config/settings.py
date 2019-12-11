@@ -1,4 +1,5 @@
 from __future__ import unicode_literals
+import frappe
 from frappe import _
 from frappe.desk.moduleview import add_setup_section
 
@@ -88,7 +89,7 @@ def get_data():
 			]
 		},
 		{
-			"label": _("Email"),
+			"label": _("Email / Notifications"),
 			"icon": "fa fa-envelope",
 			"items": [
 				{
@@ -120,6 +121,12 @@ def get_data():
 					"type": "doctype",
 					"name": "Newsletter",
 					"description": _("Create and manage newsletter")
+				},
+				{
+					"type": "doctype",
+					"route": "Form/Notification Settings/{}".format(frappe.session.user),
+					"name": "Notification Settings",
+					"description": _("Configure notifications for mentions, assignments, energy points and more.")
 				}
 			]
 		},

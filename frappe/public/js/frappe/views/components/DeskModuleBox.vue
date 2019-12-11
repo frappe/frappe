@@ -63,7 +63,7 @@ export default {
       }
 	},
 	dropdown_links() {
-		return this.links.length > 0 ? this.links
+		return this.type === 'module' ? this.links
 			.filter(link => !link.hidden)
 			.concat([
 				{ label: __('Customize'), action: () => this.$emit('customize'), class: 'border-top' }
