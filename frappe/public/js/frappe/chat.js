@@ -718,7 +718,7 @@ frappe.chat.room.create = function (kind, owner, users, name, fn) {
 
 	return new Promise(resolve => {
 		frappe.call("frappe.chat.doctype.chat_room.chat_room.create",
-			{ kind: kind, owner: owner || frappe.session.user, users: users, name: name },
+			{ kind: kind, token: owner || frappe.session.user, users: users, name: name },
 			r => {
 				let room = r.message
 				room     = { ...room, creation: new frappe.datetime.datetime(room.creation) }
@@ -781,7 +781,7 @@ frappe.chat.room.get = function (names, fields, fn) {
 
 	return new Promise(resolve => {
 		frappe.call("frappe.chat.doctype.chat_room.chat_room.get",
-			{ user: frappe.session.user, rooms: names, fields: fields },
+			{ token: frappe.session.user, rooms: names, fields: fields },
 				response => {
 					let rooms = response.message
 					if ( rooms ) { // frappe.api BOGZ! (emtpy arrays are falsified, not good design).
