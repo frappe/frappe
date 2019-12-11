@@ -27,7 +27,7 @@ def handle():
 
 	after_request = frappe.get_hooks("after_whitelisted_method", [])
 	for after_request_cmd in after_request:
-		frappe.call(get_attr(before_request_cmd), **frappe.form_dict)
+		frappe.call(get_attr(after_request_cmd), **frappe.form_dict)
 
 	# data can be an empty string or list which are valid responses
 	if data is not None:
