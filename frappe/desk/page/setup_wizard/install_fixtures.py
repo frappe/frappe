@@ -21,19 +21,10 @@ def update_genders_and_salutations():
 	for record in records:
 		doc = frappe.new_doc(record.get("doctype"))
 		doc.update(record)
-
-		try:
-			doc.insert(ignore_permissions=True, ignore_if_duplicate=True)
-		except frappe.DuplicateEntryError as e:
-			pass
+		doc.insert(ignore_permissions=True, ignore_if_duplicate=True)
 
 def setup_email_linking():
 	doc = frappe.get_doc({
 		"doctype": "Email Account",
 		"email_id": "email_linking@example.com",
-	})
-
-	try:
-		doc.insert(ignore_permissions=True, ignore_if_duplicate=True)
-	except frappe.DuplicateEntryError as e:
-		pass
+	}).insert(ignore_permissions=True, ignore_if_duplicate=True)
