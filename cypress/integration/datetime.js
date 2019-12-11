@@ -115,10 +115,8 @@ context('Control Date, Time and DateTime', () => {
 			cy.get_field('datetime').should('have.value', d.input_value);
 
 			cy.window()
-				.its('cur_frm')
-				.then(cur_frm => {
-					expect(cur_frm.doc.datetime).to.equal(d.doc_value);
-				});
+				.its('cur_frm.doc.datetime')
+				.should('eq', d.doc_value);
 		});
 	});
 });
