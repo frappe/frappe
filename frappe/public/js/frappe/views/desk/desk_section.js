@@ -14,7 +14,6 @@ export default class DeskSection {
 	}
 
 	make_container() {
-
 		const get_title = () => {
 			return `<div class="section-header level text-muted">
 				<div class="module-category h6 uppercase">${ __(this.title) }</div>
@@ -32,11 +31,11 @@ export default class DeskSection {
 	}
 
 	make_module_widget() {
-		this.modules.forEach(mod => {
+		this.widget_config.forEach(mod => {
 			let widget_class = get_widget_class(mod.type)
 			this.widgets[mod.module_name] = new widget_class({
 				container: this.modules_container,
-				module_data: mod
+				data: mod
 			});
 		});
 	}

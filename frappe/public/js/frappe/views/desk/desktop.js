@@ -31,7 +31,7 @@ export default class Desk {
 	}
 
 	make_container() {
-		this.modules_section_container = $(`<div class="modules-page-container">
+		this.modules_section_container = $(`<div class="desk-modules-page-container">
 			<a class="btn-show-hide text-muted text-medium show-or-hide-cards">
 				${__('Show / Hide Cards')}
 			</a></div>`);
@@ -45,7 +45,7 @@ export default class Desk {
 				this.sections[category] = new DeskSection({
 					title: category,
 					options: {'category': category},
-					modules: this.categories[category],
+					widget_config: this.categories[category],
 					container: this.modules_section_container,
 					sortable_config: {
 						enable: true,
