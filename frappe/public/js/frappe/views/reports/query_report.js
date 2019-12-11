@@ -507,6 +507,9 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				})
 			};
 		}
+		options.axisOptions = {
+			shortenYAxisNumbers: 1
+		};
 
 		return options;
 	}
@@ -561,7 +564,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	get_possible_chart_options() {
 		const columns = this.columns;
 		const rows =  this.raw_data.result.filter(value => Object.keys(value).length);
-		const first_row = Array.isArray(rows[0]) ? rows[0] : Object.values(rows[0]);
+		const first_row = Array.isArray(rows[0]) ? rows[0] : columns.map(col => rows[0][col.fieldname]);
 		const me = this
 
 		const indices = first_row.reduce((accumulator, current_value, current_index) => {
