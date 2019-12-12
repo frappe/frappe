@@ -38,7 +38,7 @@ def handle():
 	validate_oauth()
 	validate_auth_via_api_keys()
 
-	parts = frappe.request.path[1:].split("/",3)
+	parts = frappe.request.path[1:].split("/")
 	call = doctype = name = None
 
 	if len(parts) > 1:
@@ -130,10 +130,29 @@ def handle():
 			else:
 				raise frappe.DoesNotExistError
 
+	elif get_request(call):
+		cmd = get_request(call)
+		frappe.local.form_dict.uri_params = parts[2:]
+		frappe.local.form_dict.cmd = cmd
+		return frappe.handler.handle()
+
 	else:
 		raise frappe.DoesNotExistError
 
 	return build_response("json")
+
+
+def get_request(request):
+	"""
+	Get requests meta from hooks
+
+	:param request: requested endpoint
+	"""
+	request = frappe.get_hooks("request", {}).get(request)
+	if len(request) > 1:
+		frappe.throw("Multiple methods registered for the same endpoint")
+	return request[0]
+
 
 def validate_oauth():
 	from frappe.oauth import get_url_delimiter
