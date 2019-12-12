@@ -195,11 +195,11 @@ class File(Document):
 			self.file_name = self.file_url.split('/')[-1]
 
 	def generate_content_hash(self):
-		if self.content_hash or not self.file_url:
+		if self.content_hash or not self.file_url or self.file_url.startswith('http'):
 			return
 
 		try:
-			with open(get_files_path(self.file_name.lstrip("/")), "rb") as f:
+			with open(get_files_path(self.file_name.lstrip("/"), is_private=self.is_private), "rb") as f:
 				self.content_hash = get_content_hash(f.read())
 		except IOError:
 			frappe.msgprint(_("File {0} does not exist").format(self.file_url))
