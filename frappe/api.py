@@ -38,7 +38,7 @@ def handle():
 	validate_oauth()
 	validate_auth_via_api_keys()
 
-	parts = frappe.request.path[1:].split("/")
+	parts = frappe.request.path[1:].split("/", 3)
 	call = doctype = name = None
 
 	if len(parts) > 1:
@@ -132,6 +132,7 @@ def handle():
 
 	elif get_request(call):
 		cmd = get_request(call)
+		parts = frappe.request.path[1:].split("/")
 		frappe.local.form_dict.uri_params = parts[2:]
 		frappe.local.form_dict.cmd = cmd
 		return frappe.handler.handle()
