@@ -4,25 +4,18 @@
 from __future__ import unicode_literals
 import frappe
 from six.moves import html_parser as HTMLParser
-import smtplib
-import quopri
-import json
+import smtplib, quopri, json
 from frappe import msgprint, throw, _, safe_decode
 from frappe.email.smtp import SMTPServer, get_outgoing_email_account
 from frappe.email.email_body import get_email, get_formatted_html, add_attachment
 from frappe.utils.verified_command import get_signed_params, verify_request
 from html2text import html2text
-from frappe.utils import get_url, nowdate, now_datetime, add_days, split_emails, cstr, cint
+from frappe.utils import get_url, nowdate, encode, now_datetime, add_days, split_emails, cstr, cint
 from rq.timeouts import JobTimeoutException
 from frappe.utils.scheduler import log
 from six import text_type, string_types
-from email.parser import Parser
-from email.policy import SMTP as SMTP_policy
-from frappe.email.rfc5322policy import RFC5322Policy
-
 
 class EmailLimitCrossedError(frappe.ValidationError): pass
-
 
 def send(recipients=None, sender=None, subject=None, message=None, text_content=None, reference_doctype=None,
 		reference_name=None, unsubscribe_method=None, unsubscribe_params=None, unsubscribe_message=None,
@@ -411,8 +404,9 @@ def send_one(email, smtpserver=None, auto_commit=True, now=False, from_test=Fals
 				continue
 
 			message = prepare_message(email, recipient.recipient, recipients_list)
+            message = message.replace('\n', '\r\n')
 			if not frappe.flags.in_test:
-				smtpserver.sess.sendmail(email.sender, recipient.recipient, message)
+				smtpserver.sess.sendmail(email.sender, recipient.recipient, encode(message))
 
 			recipient.status = "Sent"
 			frappe.db.sql("""update `tabEmail Queue Recipient` set status='Sent', modified=%s where name=%s""",
@@ -520,9 +514,10 @@ def prepare_message(email, recipient, recipients_list):
 	if not email.attachments:
 		return message
 
-	rfc_compliant_policy = RFC5322Policy(linesep="\r\n") + SMTP_policy(linesep="\r\n")
+	# On-demand attachments
+	from email.parser import Parser
 
-	msg_obj = Parser(policy=rfc_compliant_policy).parsestr(message)
+	msg_obj = Parser().parsestr(message)
 	attachments = json.loads(email.attachments)
 
 	for attachment in attachments:
