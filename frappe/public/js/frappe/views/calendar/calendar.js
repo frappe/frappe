@@ -308,6 +308,7 @@ frappe.views.Calendar = Class.extend({
 			doctype: this.doctype,
 			start: this.get_system_datetime(start),
 			end: this.get_system_datetime(end),
+			fields: this.fields,
 			filters: this.list_view.filter_area.get(),
 			field_map: this.field_map
 		};
@@ -356,9 +357,13 @@ frappe.views.Calendar = Class.extend({
 	prepare_colors: function(d) {
 		let color, color_name;
 		if(this.get_css_class) {
-			color_name = this.color_map[this.get_css_class(d)];
-			color_name = frappe.ui.color.validate_hex(color_name) ?
-				color_name : 'blue';
+			color_name = this.color_map[this.get_css_class(d)] || 'blue';
+
+			if (color_name.startsWith("#")) {
+				color_name = frappe.ui.color.validate_hex(color_name) ?
+					color_name : 'blue';
+			}
+
 			d.backgroundColor = frappe.ui.color.get(color_name, 'extra-light');
 			d.textColor = frappe.ui.color.get(color_name, 'dark');
 		} else {

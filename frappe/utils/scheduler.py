@@ -14,6 +14,7 @@ import frappe, os, time
 import schedule
 from frappe.utils import now_datetime, get_datetime
 from frappe.utils import get_sites
+from frappe.installer import update_site_config
 from frappe.core.doctype.user.user import STANDARD_USERS
 from frappe.utils.background_jobs import get_jobs
 
