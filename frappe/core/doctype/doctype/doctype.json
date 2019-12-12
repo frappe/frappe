@@ -37,7 +37,6 @@
   "max_attachments",
   "subject_field",
   "sender_field",
-  "status_field",
   "column_break_23",
   "hide_toolbar",
   "allow_copy",
@@ -508,17 +507,12 @@
    "fieldname": "email_append_to",
    "fieldtype": "Check",
    "label": "Allow document creation via Email"
-  },
-  {
-   "fieldname": "status_field",
-   "fieldtype": "Data",
-   "label": "Status Field"
   }
  ],
  "icon": "fa fa-bolt",
  "idx": 6,
  "links": [],
- "modified": "2019-12-12 12:05:39.317311",
+ "modified": "2019-12-12 19:16:50.130503",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocType",

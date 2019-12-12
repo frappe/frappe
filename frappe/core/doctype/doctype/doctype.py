@@ -1168,20 +1168,6 @@ def check_email_append_to(doc):
 	if not (doc.sender_field or sender_field):
 		frappe.throw(_("Add Sender Field for creating documents from Email"))
 
-	# Status Field
-	doc.status_field = doc.status_field.strip() if doc.status_field else None
-	status_field = get_field(doc, doc.status_field)
-
-	if not (doc.status_field or status_field):
-		frappe.throw(_("Add Status Field for creating documents from Email"))
-
-	if status_field.fieldtype != "Select":
-		frappe.throw(_("Status Field type should be Select"))
-
-	for option in ["Open", "Closed"]:
-		if not option in status_field.options:
-			frappe.throw(_("Status field should have status Open and Closed in options"))
-
 
 def get_field(doc, fieldname):
 	if not (doc or fieldname):

@@ -34,8 +34,7 @@ doctype_properties = {
 	'allow_import': 'Check',
 	'email_append_to': 'Check',
 	'subject_field': 'Data',
-	'sender_field': 'Data',
-	'status_field': 'Data'
+	'sender_field': 'Data'
 }
 
 docfield_properties = {

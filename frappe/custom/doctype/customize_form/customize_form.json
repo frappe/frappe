@@ -28,7 +28,6 @@
   "search_fields",
   "subject_field",
   "sender_field",
-  "status_field",
   "section_break_8",
   "sort_field",
   "column_break_10",
@@ -195,11 +194,6 @@
    "fieldname": "email_append_to",
    "fieldtype": "Check",
    "label": "Allow document creation via Email"
-  },
-  {
-   "fieldname": "status_field",
-   "fieldtype": "Data",
-   "label": "Status Field"
   }
  ],
  "hide_toolbar": 1,
@@ -207,7 +201,7 @@
  "idx": 1,
  "issingle": 1,
  "links": [],
- "modified": "2019-12-12 12:44:02.674456",
+ "modified": "2019-12-12 19:17:08.426469",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Customize Form",
