@@ -251,12 +251,28 @@ frappe.ui.form.Toolbar = Class.extend({
 				}
 			}, true);
 
-			if (frappe.boot.developer_mode===1) {
+			if (frappe.boot.developer_mode === 1) {
 				// edit doctype
-				this.page.add_menu_item(__("Edit DocType"), function() {
+				this.page.add_menu_item(__("Edit DocType"), function () {
 					frappe.set_route('Form', 'DocType', me.frm.doctype);
 				}, true);
 			}
+		}
+
+		// Expand all sections
+			let section_fields = this.frm.meta.fields.filter((field) => field.fieldtype == "Section Break" && field.collapsible == 1);		if (section_fields.length != 0) {
+			this.page.add_menu_item(__("Expand Sections"), function () {
+				me.toggleSectionBreaks(section_fields, false);
+			}, true);
+			this.page.add_action_icon("fa fa-angle-double-down fa-lg", function() {
+				me.toggleSectionBreaks(section_fields, false);
+			});
+			this.page.add_menu_item(__("Collapse Sections"), function () {
+				me.toggleSectionBreaks(section_fields, true);
+			}, true);
+			this.page.add_action_icon("fa fa-angle-double-up fa-lg", function() {
+				me.toggleSectionBreaks(section_fields, true);
+			});
 		}
 
 		// Auto Repeat
@@ -453,7 +469,11 @@ frappe.ui.form.Toolbar = Class.extend({
 
 		$(this.frm.wrapper).attr("data-state", this.frm.doc.__unsaved ? "dirty" : "clean");
 	},
-
+	toggleSectionBreaks: function(section_fields, collapse_state) {
+		for (let section of section_fields) {
+			this.frm.get_field(section.fieldname).collapse(collapse_state);
+		}
+	},
 	show_jump_to_field_dialog() {
 		let visible_fields_filter = f =>
 			!['Section Break', 'Column Break'].includes(f.df.fieldtype)
