@@ -21,8 +21,8 @@ export default class Widget {
 		    </div
 		</div>`);
 
-		this.title_field = this.widget.find('.widget-title');
-		this.body = this.widget.find('.widget-body');
+		this.title_field = this.widget.find(".widget-title");
+		this.body = this.widget.find(".widget-body");
 		this.set_title();
 		this.set_body();
 	}
@@ -31,9 +31,7 @@ export default class Widget {
 		this.title_field[0].innerHTML = this.data.label || this.data.name;
 	}
 
-	set_body() {
-
-	}
+	set_body() {}
 
 	setup_events() {
 		//
