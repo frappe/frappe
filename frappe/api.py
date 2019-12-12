@@ -151,7 +151,7 @@ def get_request(request):
 	"""
 	request = frappe.get_hooks("request", {}).get(request)
 	if len(request) > 1:
-		frappe.throw("Multiple methods registered for the same endpoint")
+		frappe.throw(_("Multiple methods registered for the same endpoint"))
 	return request[0]
 
 
