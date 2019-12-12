@@ -419,42 +419,30 @@ class EmailAccount(Document):
 
 		If no thread id is found and `append_to` is set for the email account,
 		it will create a new parent transaction (e.g. Issue)"""
-		parent = None
-
-		parent = self.find_parent_from_in_reply_to(communication, email)
+		parent = self.find_parent_from_in_reply_to(communication, email) or None
 
 		if not parent and self.append_to:
 			self.set_sender_field_and_subject_field()
-
-		if not parent and self.append_to:
 			parent = self.find_parent_based_on_subject_and_sender(communication, email)
 
-		if not parent and self.append_to and self.append_to!="Communication":
-			parent = self.create_new_parent(communication, email)
+			if self.append_to!="Communication":
+				parent = self.create_new_parent(communication, email)
 
 		if parent:
 			communication.reference_doctype = parent.doctype
 			communication.reference_name = parent.name
 
 		# check if message is notification and disable notifications for this message
-		isnotification = email.mail.get("isnotification")
-		if isnotification:
-			if "notification" in isnotification:
-				communication.unread_notification_sent = 1
+		if email.mail.get("isnotification") and "notification" in email.mail.get("isnotification"):
+			communication.unread_notification_sent = 1
 
 	def set_sender_field_and_subject_field(self):
 		'''Identify the sender and subject fields from the `append_to` DocType'''
 		# set subject_field and sender_field
-		meta_module = frappe.get_meta_module(self.append_to)
 		meta = frappe.get_meta(self.append_to)
 
-		self.subject_field = getattr(meta_module, "subject_field", "subject")
-		if not meta.get_field(self.subject_field):
-			self.subject_field = None
-
-		self.sender_field = getattr(meta_module, "sender_field", "sender")
-		if not meta.get_field(self.sender_field):
-			self.sender_field = None
+		self.subject_field = meta.subject_field if meta.subject_field else None
+		self.sender_field = meta.sender_field if meta.sender_field else None
 
 	def find_parent_based_on_subject_and_sender(self, communication, email):
 		'''Find parent document based on subject and sender match'''

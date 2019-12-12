@@ -93,6 +93,8 @@ class DocType(Document):
 		if not self.is_new():
 			self.setup_fields_to_fetch()
 
+		check_email_append_to(self)
+
 		if self.default_print_format and not self.custom:
 			frappe.throw(_('Standard DocType cannot have default print format, use Customize Form'))
 
@@ -1144,3 +1146,47 @@ def check_if_fieldname_conflicts_with_methods(doctype, fieldname):
 
 def clear_linked_doctype_cache():
 	frappe.cache().delete_value('linked_doctypes_without_ignore_user_permissions_enabled')
+
+def check_email_append_to(doc):
+	if not doc.email_append_to:
+		return
+
+	# Subject Field
+	doc.subject_field = doc.subject_field.strip() if doc.subject_field else None
+	subject_field = get_field(doc, doc.subject_field)
+
+	if not (doc.subject_field or subject_field):
+		frappe.throw(_("Add Subject Field for creating documents from Email"))
+
+	if subject_field.fieldtype not in ["Data", "Text", "Long Text", "Small Text", "Text Editor"]:
+		frappe.throw(_("Subject Field type should be Data, Text, Long Text, Small Text, Text Editor"))
+
+	# Sender Field
+	doc.sender_field = doc.sender_field.strip() if doc.sender_field else None
+	sender_field = get_field(doc, doc.sender_field)
+
+	if not (doc.sender_field or sender_field):
+		frappe.throw(_("Add Sender Field for creating documents from Email"))
+
+	# Status Field
+	doc.status_field = doc.status_field.strip() if doc.status_field else None
+	status_field = get_field(doc, doc.status_field)
+
+	if not (doc.status_field or status_field):
+		frappe.throw(_("Add Status Field for creating documents from Email"))
+
+	if status_field.fieldtype != "Select":
+		frappe.throw(_("Status Field type should be Select"))
+
+	for option in ["Open", "Closed"]:
+		if not option in status_field.options:
+			frappe.throw(_("Status field should have status Open and Closed in options"))
+
+
+def get_field(doc, fieldname):
+	if not (doc or fieldname):
+		return
+
+	for field in doc.fields:
+		if field.fieldname == fieldname:
+			return field

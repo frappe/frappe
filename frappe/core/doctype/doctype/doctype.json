@@ -35,6 +35,9 @@
   "timeline_field",
   "nsm_parent_field",
   "max_attachments",
+  "subject_field",
+  "sender_field",
+  "status_field",
   "column_break_23",
   "hide_toolbar",
   "allow_copy",
@@ -42,6 +45,7 @@
   "allow_import",
   "allow_events_in_timeline",
   "allow_auto_repeat",
+  "email_append_to",
   "view_settings",
   "title_field",
   "search_fields",
@@ -488,11 +492,33 @@
    "fieldtype": "Table",
    "label": "Links",
    "options": "DocType Link"
+  },
+  {
+   "fieldname": "subject_field",
+   "fieldtype": "Data",
+   "label": "Subject Field"
+  },
+  {
+   "fieldname": "sender_field",
+   "fieldtype": "Data",
+   "label": "Sender Field"
+  },
+  {
+   "default": "0",
+   "fieldname": "email_append_to",
+   "fieldtype": "Check",
+   "label": "Allow document creation via Email"
+  },
+  {
+   "fieldname": "status_field",
+   "fieldtype": "Data",
+   "label": "Status Field"
   }
  ],
  "icon": "fa fa-bolt",
  "idx": 6,
- "modified": "2019-11-25 17:24:03.690192",
+ "links": [],
+ "modified": "2019-12-12 12:05:39.317311",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocType",

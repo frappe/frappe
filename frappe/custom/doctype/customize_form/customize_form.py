@@ -12,7 +12,7 @@ from frappe import _
 from frappe.utils import cint
 from frappe.model.document import Document
 from frappe.model import no_value_fields, core_doctypes_list
-from frappe.core.doctype.doctype.doctype import validate_fields_for_doctype
+from frappe.core.doctype.doctype.doctype import validate_fields_for_doctype, check_email_append_to
 from frappe.custom.doctype.custom_field.custom_field import create_custom_field
 from frappe.model.docfield import supports_translation
 
@@ -32,7 +32,10 @@ doctype_properties = {
 	'track_views': 'Check',
 	'allow_auto_repeat': 'Check',
 	'allow_import': 'Check',
-	'allow_in_email_append_to': 'Check'
+	'email_append_to': 'Check',
+	'subject_field': 'Data',
+	'sender_field': 'Data',
+	'status_field': 'Data'
 }
 
 docfield_properties = {
@@ -165,7 +168,7 @@ class CustomizeForm(Document):
 		self.flags.update_db = False
 		self.flags.rebuild_doctype_for_global_search = False
 
-		self.check_email_append_to()
+		check_email_append_to(self)
 		self.set_property_setters()
 		self.update_custom_fields()
 		self.set_name_translation()
@@ -249,21 +252,6 @@ class CustomizeForm(Document):
 
 					self.make_property_setter(property=property, value=df.get(property),
 						property_type=docfield_properties[property], fieldname=df.fieldname)
-
-	def check_email_append_to(self):
-		meta = frappe.get_meta(self.doc_type)
-
-		if self.allow_in_email_append_to:
-			if not meta.has_field("subject"):
-				frappe.throw(_("Add custom fields for Subject in Document Type {0} to enable Email Append To").format(self.doc_type))
-
-			if not meta.has_field("status"):
-				frappe.throw(_("Add custom fields for Status in Document Type {0} to enable Email Append To").format(self.doc_type))
-			else:
-				status = meta.get_field("status")
-				for option in ["Open", "Closed"]:
-					if not option in status.options:
-						frappe.throw(_("Status field should have status {0} in options").format(option))
 
 	def update_custom_fields(self):
 		for i, df in enumerate(self.get("fields")):

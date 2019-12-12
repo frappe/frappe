@@ -1,4 +1,5 @@
 {
+ "actions": [],
  "autoname": "DL.####",
  "creation": "2013-01-29 17:55:08",
  "doctype": "DocType",
@@ -20,11 +21,14 @@
   "allow_auto_repeat",
   "allow_import",
   "image_view",
-  "allow_in_email_append_to",
+  "email_append_to",
   "column_break_5",
   "title_field",
   "image_field",
   "search_fields",
+  "subject_field",
+  "sender_field",
+  "status_field",
   "section_break_8",
   "sort_field",
   "column_break_10",
@@ -177,17 +181,33 @@
    "label": "Allow Import (via Data Import Tool)"
   },
   {
+   "fieldname": "subject_field",
+   "fieldtype": "Data",
+   "label": "Subject Field"
+  },
+  {
+   "fieldname": "sender_field",
+   "fieldtype": "Data",
+   "label": "Sender Field"
+  },
+  {
    "default": "0",
-   "fieldname": "allow_in_email_append_to",
+   "fieldname": "email_append_to",
    "fieldtype": "Check",
-   "label": "Allow in Email Append To"
+   "label": "Allow document creation via Email"
+  },
+  {
+   "fieldname": "status_field",
+   "fieldtype": "Data",
+   "label": "Status Field"
   }
  ],
  "hide_toolbar": 1,
  "icon": "fa fa-glass",
  "idx": 1,
  "issingle": 1,
- "modified": "2019-10-15 14:20:51.272870",
+ "links": [],
+ "modified": "2019-12-12 12:44:02.674456",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Customize Form",
