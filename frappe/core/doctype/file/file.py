@@ -104,21 +104,26 @@ class File(Document):
 		if frappe.db.exists('File', {'name': self.name, 'is_folder': 0}):
 			old_file_url = self.file_url
 			if not self.is_folder and (self.is_private != self.db_get('is_private')):
-				private_files = frappe.get_site_path('private', 'files')
-				public_files = frappe.get_site_path('public', 'files')
+				file_name = self.file_url.split('/')[-1]
+				old_file_path = get_files_path(file_name, is_private=self.db_get('is_private'))
+				new_file_path = get_files_path(file_name, is_private=self.is_private)
 
-				if not self.is_private:
-					shutil.move(os.path.join(private_files, self.file_name),
-						os.path.join(public_files, self.file_name))
+				existing_file_count = frape.db.count("File", {
+					"file_url": self.file_url,
+					"is_private": self.db_get('is_private')
+				})
 
-					self.file_url = "/files/{0}".format(self.file_name)
-
+				if existing_file_count > 1:
+					# we have multiple files with same file_url
+					# so lets copy instead of moving
+					shutil.copy(old_file_path, new_file_path)
 				else:
-					shutil.move(os.path.join(public_files, self.file_name),
-						os.path.join(private_files, self.file_name))
+					shutil.move(old_file_path, new_file_path)
 
-					self.file_url = "/private/files/{0}".format(self.file_name)
-
+				if self.is_private:
+					self.file_url = "/private/files/{0}".format(file_name)
+				else:
+					self.file_url = "/files/{0}".format(file_name)
 
 			# update documents image url with new file url
 			if self.attached_to_doctype and self.attached_to_name:
