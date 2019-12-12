@@ -523,12 +523,12 @@ def prepare_message(email, recipient, recipients_list):
 	# more than 998 characters, and SHOULD be no more than 78
 	# characters, excluding the CRLF.". To avoid msg-id tokens from being folded
 	# by means of RFC2047, fold identifier lines to the max length instead.
-	c1 = name.lower() in MSG_ID_HEADERS
-	c2 = self.max_line_length < 998
-	c3 = self.max_line_length - len(name) - 2 < len(value)
-
 	class MsgIdExemptPolicy(EmailPolicy):
 		def _fold(self, name, value, *args, **kwargs):
+			c1 = name.lower() in MSG_ID_HEADERS
+			c2 = self.max_line_length < 998
+			c3 = self.max_line_length - len(name) - 2 < len(value)
+
 			if c1 and c2 and c3:
 				return self.clone(max_line_length=998)._fold(name, value, *args, **kwargs)
 			return super()._fold(name, value, *args, **kwargs)
