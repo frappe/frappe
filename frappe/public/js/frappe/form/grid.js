@@ -195,11 +195,14 @@ export default class Grid {
 	}
 
 	delete_all_rows() {
-		this.frm.doc[this.df.fieldname] = [];
-		$(this.parent).find('.rows').empty();
-		this.grid_rows = [];
-		this.refresh();
-		frappe.utils.scroll_to(this.wrapper);
+		frappe.confirm(__("Are you sure you want to delete all rows?"), () => {
+			this.frm.doc[this.df.fieldname] = [];
+			$(this.parent).find('.rows').empty();
+			this.grid_rows = [];
+			this.refresh();
+			frappe.utils.scroll_to(this.wrapper);
+		});
+
 	}
 
 	select_row(name) {
