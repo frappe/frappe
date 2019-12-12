@@ -570,7 +570,7 @@ class File(Document):
 
 	def set_is_private(self):
 		if self.file_url:
-			self.is_private = self.file_url.startswith('/private')
+			self.is_private = cint(self.file_url.startswith('/private'))
 
 def on_doctype_update():
 	frappe.db.add_index("File", ["attached_to_doctype", "attached_to_name"])
