@@ -8,8 +8,6 @@ import json
 from frappe.model.document import Document
 from frappe.utils import get_fullname
 
-subject_field = "description"
-sender_field = "sender"
 exclude_from_linked_with = True
 
 class ToDo(Document):

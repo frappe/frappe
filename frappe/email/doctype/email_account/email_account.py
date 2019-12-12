@@ -637,21 +637,24 @@ class EmailAccount(Document):
 				frappe.throw(_("Automatic Linking can be activated only for one Email Account."))
 
 @frappe.whitelist()
-def get_append_to(doctype=None, txt=None, searchfield=None, start=None, page_len=None, filters=None):
-	if not txt: txt = ""
+def get_append_to(doctype=None, txt=None, searchfield=None, start=None, page_len=None, filters=None, reset_cache=False):
 
-	if frappe.cache().hget("email_append_to", "email_append_to_dts"):
-		return frappe.cache().hget("email_append_to", "email_append_to_dts")
+	if frappe.cache().hget("email_append_to", "email_append_to_doctypes") and not reset_cache:
+		return frappe.cache().hget("email_append_to", "email_append_to_doctypes")
 
-	email_append_to_list = frappe.get_hooks("email_append_to")
+	txt = txt if txt else ""
+	email_append_to_list = []
 
-	for dt in frappe.get_list("DocType", filters={"istable": 0, "issingle": 0}):
-		meta = frappe.get_meta(dt.name)
-		if meta.custom or (meta.get("allow_in_email_append_to") and meta.allow_in_email_append_to):
+	for dt in frappe.get_all("DocType", filters={"istable": 0, "issingle": 0}, fields=["name", "email_append_to"]):
+		if dt.get("email_append_to") and dt.email_append_to:
 			email_append_to_list.append(dt.name)
+		else:
+			meta = frappe.get_meta(dt.name)
+			if meta.get("email_append_to") and meta.email_append_to:
+				email_append_to_list.append(dt.name)
 
-	email_append = [[d] for d in set(email_append_to_list) if txt in d]
-	frappe.cache().hset("email_append_to", "email_append_to_dts", email_append)
+	email_append_to = [[d] for d in set(email_append_to_list) if txt in d]
+	frappe.cache().hset("email_append_to", "email_append_to_doctypes", email_append_to)
 
 	return email_append
 
