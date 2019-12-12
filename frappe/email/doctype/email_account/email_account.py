@@ -656,7 +656,7 @@ def get_append_to(doctype=None, txt=None, searchfield=None, start=None, page_len
 	email_append_to = [[d] for d in set(email_append_to_list) if txt in d]
 	frappe.cache().hset("email_append_to", "email_append_to_doctypes", email_append_to)
 
-	return email_append
+	return email_append_to
 
 def test_internet(host="8.8.8.8", port=53, timeout=3):
 	"""Returns True if internet is connected
