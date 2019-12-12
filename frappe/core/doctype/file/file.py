@@ -134,9 +134,10 @@ class File(Document):
 					frappe.db.set_value(self.attached_to_doctype, self.attached_to_name,
 						self.attached_to_field, self.file_url)
 
-		if (self.is_private and not self.file_url.startswith('/private')
-			or not self.is_private and self.file_url.startswith('/private')):
-			frappe.throw(_('Invalid file URL. Please contact System Administrator.'))
+		if self.file_url:
+			if (self.is_private and not self.file_url.startswith('/private'))
+				or (not self.is_private and self.file_url.startswith('/private')):
+				frappe.throw(_('Invalid file URL. Please contact System Administrator.'))
 
 	def set_folder_name(self):
 		"""Make parent folders if not exists based on reference doctype and name"""
