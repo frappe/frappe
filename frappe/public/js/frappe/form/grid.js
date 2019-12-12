@@ -304,11 +304,12 @@ export default class Grid {
 
 
 	render_result_rows($rows, append_row) {
-
 		let result_length = this.grid_pagination.get_result_length();
 		let page_index = this.grid_pagination.page_index;
 		let page_length = this.grid_pagination.page_length;
-
+		if (!this.grid_rows) {
+			return;
+		}
 		for (var ri = (page_index-1)*page_length; ri < result_length; ri++) {
 			var d = this.data[ri];
 			if (!d) {
@@ -364,9 +365,9 @@ export default class Grid {
 	truncate_rows() {
 		if (this.grid_rows.length > this.data.length) {
 			// remove extra rows
-			for (var i=this.data.length; i < this.grid_rows.length; i++) {
+			for (var i = this.data.length; i < this.grid_rows.length; i++) {
 				var grid_row = this.grid_rows[i];
-				grid_row.wrapper.remove();
+				if (grid_row) grid_row.wrapper.remove();
 			}
 			this.grid_rows.splice(this.data.length);
 		}
