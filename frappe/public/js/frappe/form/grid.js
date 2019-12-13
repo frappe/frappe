@@ -195,11 +195,14 @@ export default class Grid {
 	}
 
 	delete_all_rows() {
-		this.frm.doc[this.df.fieldname] = [];
-		$(this.parent).find('.rows').empty();
-		this.grid_rows = [];
-		this.refresh();
-		frappe.utils.scroll_to(this.wrapper);
+		frappe.confirm(__("Are you sure you want to delete all rows?"), () => {
+			this.frm.doc[this.df.fieldname] = [];
+			$(this.parent).find('.rows').empty();
+			this.grid_rows = [];
+			this.refresh();
+			frappe.utils.scroll_to(this.wrapper);
+		});
+
 	}
 
 	select_row(name) {
@@ -304,11 +307,12 @@ export default class Grid {
 
 
 	render_result_rows($rows, append_row) {
-
 		let result_length = this.grid_pagination.get_result_length();
 		let page_index = this.grid_pagination.page_index;
 		let page_length = this.grid_pagination.page_length;
-
+		if (!this.grid_rows) {
+			return;
+		}
 		for (var ri = (page_index-1)*page_length; ri < result_length; ri++) {
 			var d = this.data[ri];
 			if (!d) {
@@ -364,9 +368,9 @@ export default class Grid {
 	truncate_rows() {
 		if (this.grid_rows.length > this.data.length) {
 			// remove extra rows
-			for (var i=this.data.length; i < this.grid_rows.length; i++) {
+			for (var i = this.data.length; i < this.grid_rows.length; i++) {
 				var grid_row = this.grid_rows[i];
-				grid_row.wrapper.remove();
+				if (grid_row) grid_row.wrapper.remove();
 			}
 			this.grid_rows.splice(this.data.length);
 		}
