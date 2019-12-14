@@ -6,6 +6,7 @@ context('Report View', () => {
 		cy.login();
 		cy.visit('/desk');
 		cy.insert_doc('DocType', custom_submittable_doctype, true);
+		cy.clear_cache();
 		cy.insert_doc(doctype_name, {
 			'title': 'Doc 1',
 			'description': 'Random Text',
@@ -13,7 +14,6 @@ context('Report View', () => {
 			// submit document
 			'docstatus': 1
 		}, true).as('doc');
-
 	});
 	it('Field with enabled allow_on_submit should be editable.', () => {
 		cy.server();
