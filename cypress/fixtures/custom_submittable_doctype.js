@@ -1,5 +1,5 @@
 export default {
-	name: 'Custom Submittable Doctype',
+	name: 'Custom Submittable DocType',
 	custom: 1,
 	actions: [],
 	is_submittable: 1,
@@ -41,7 +41,9 @@ export default {
 			read: 1,
 			role: 'System Manager',
 			share: 1,
-			write: 1
+			write: 1,
+			submit: 1,
+			cancel: 1
 		}
 	],
 	quick_entry: 1,

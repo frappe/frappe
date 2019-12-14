@@ -207,7 +207,7 @@ Cypress.Commands.add('insert_doc', (doctype, args, ignore_duplicate) => {
 						status_codes.push(409);
 					}
 					expect(res.status).to.be.oneOf(status_codes);
-					return res.body;
+					return res.body.data;
 				});
 		});
 });
