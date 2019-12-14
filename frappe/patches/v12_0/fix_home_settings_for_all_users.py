@@ -2,7 +2,7 @@ import frappe
 from frappe.config import get_modules_from_all_apps_for_user
 import json
 def execute():
-	users = frappe.get_all('User', fields=['name', 'home_settings'], limit=2)
+	users = frappe.get_all('User', fields=['name', 'home_settings'])
 
 	for user in users:
 
