@@ -12,7 +12,7 @@ context('Report View', () => {
 			'enabled': 0,
 			// submit document
 			'docstatus': 1
-		}, true);
+		}, true).as('doc');
 
 	});
 	it('Field with enabled allow_on_submit should be editable.', () => {
@@ -25,5 +25,16 @@ context('Report View', () => {
 		cell.find('input[data-fieldname="enabled"]').check({force: true});
 		cy.get('.dt-row-0 > .dt-cell--col-4').click();
 		cy.wait('@value-update');
+		cy.get('@doc').then(doc => {
+			cy.call('frappe.client.get_value', {
+				doctype: doc.doctype,
+				filters: {
+					name: doc.name,
+				},
+				fieldname: 'enabled'
+			}).then(r => {
+				expect(r.message.enabled).to.equals(1);
+			});
+		});
 	});
 });
