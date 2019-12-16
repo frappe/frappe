@@ -998,7 +998,7 @@ li.user-progress .progress-bar {
 
 input[type="checkbox"] {
   position: relative;
-  visibility: hidden;
+  left: -999999px;
 }
 input[type="checkbox"]:before {
   position: absolute;
@@ -1016,7 +1016,7 @@ input[type="checkbox"]:before {
   -webkit-transition: 150ms color;
   -o-transition: 150ms color;
   transition: 150ms color;
-  left: 0px;
+  left: 999999px;
 }
 input[type="checkbox"]:focus:before {
   color: #8D99A6;
