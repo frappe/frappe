@@ -133,9 +133,8 @@ def handle():
 	elif get_request(call):
 		cmd = get_request(call)
 		parts = frappe.request.path[1:].split("/")
-		frappe.local.form_dict.uri_params = parts[2:]
 		frappe.local.form_dict.cmd = cmd
-		return frappe.handler.handle()
+		return frappe.handler.handle(parts[2:])
 
 	else:
 		raise frappe.DoesNotExistError
