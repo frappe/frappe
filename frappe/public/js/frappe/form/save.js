@@ -53,6 +53,8 @@ frappe.ui.form.save = function (frm, action, callback, btn) {
 			return frappe.model.is_table(d.doctype);
 		});
 
+		let modified_table_fields = [];
+
 		tables.map(
 			function(doc){
 				const cells = frappe.meta.docfield_list[doc.doctype] || [];
@@ -72,9 +74,14 @@ frappe.ui.form.save = function (frm, action, callback, btn) {
 
 				if (is_empty_row(in_list_view_cells)) {
 					frappe.model.clear_doc(doc.doctype, doc.name);
+					modified_table_fields.push(doc.parentfield);
 				}
 			}
 		);
+
+		modified_table_fields.forEach(field => {
+			frm.refresh_field(field);
+		});
 	};
 
 	var cancel = function () {
