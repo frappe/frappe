@@ -1021,7 +1021,7 @@ def read_file(path, raise_not_found=False):
 	else:
 		return None
 
-def get_attr(method_string, args=[]):
+def get_attr(method_string, args=None):
 	"""Get python method object from its name."""
 	app_name = method_string.split(".")[0]
 	if not local.flags.in_install and app_name not in get_installed_apps():
