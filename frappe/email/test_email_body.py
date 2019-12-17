@@ -7,7 +7,7 @@ from frappe.email.receive import Email
 from frappe.email.email_body import (replace_filename_with_cid,
 									 get_email, inline_style_in_html, get_header)
 from frappe.email.queue import prepare_message, get_email_queue
-import sys
+from six import PY3
 
 
 class TestEmailBody(unittest.TestCase):
@@ -42,7 +42,7 @@ This is the text version of this email
 
 	def test_prepare_message_returns_already_encoded_string(self):
 
-		if (sys.version_info)[0] > 2:
+		if PY3:
 			uni_chr1 = chr(40960)
 			uni_chr2 = chr(1972)
 		else:
@@ -68,7 +68,7 @@ This is the text version of this email
 			formatted='<h1>\n this is a test of newlines\n' + '</h1>',
 			text_content='whatever')
 		result = prepare_message(email=email, recipient='test@test.com', recipients_list=[])
-		if sys.version_info[0] > 2:
+		if PY3:
 			self.assertTrue(result.count('\n') == result.count("\r"))
 		else:
 			self.assertTrue(True)
@@ -81,7 +81,7 @@ This is the text version of this email
 			subject='Test Subject',
 			content='<h1>Whatever</h1>',
 			text_content='whatever',
-			message_id=	"a.really.long.message.id.that.should.not.wrap.until.998.if.it.does.then.exchange.will.break" +
+			message_id= "a.really.long.message.id.that.should.not.wrap.until.998.if.it.does.then.exchange.will.break" +
 						".really.long.message.id.that.should.not.wrap.unti")
 		result = prepare_message(email=email, recipient='test@test.com', recipients_list=[])
 		self.assertTrue(

@@ -4,7 +4,7 @@
 from __future__ import unicode_literals
 
 import unittest, frappe, re, email
-import sys
+from six import PY3
 
 from frappe.test_runner import make_test_records
 
@@ -116,7 +116,7 @@ class TestEmail(unittest.TestCase):
 			content = part.get_payload(decode=True)
 
 			if content:
-				if sys.version_info[0] > 2:
+				if PY3:
 					eol = "\r\n"
 				else:
 					eol = "\n"
