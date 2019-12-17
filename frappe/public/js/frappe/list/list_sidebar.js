@@ -40,9 +40,7 @@ frappe.views.ListSidebar = class ListSidebar {
 			this.sidebar.find('.sidebar-stat').remove();
 		} else {
 			this.sidebar.find('.list-stats').on('click', (e) => {
-				$(e.currentTarget).find('.stat-link').remove();
-				$(e.currentTarget).find('.stat-no-records').remove();
-				this.get_stats();
+				this.reload_stats();
 			});
 		}
 
