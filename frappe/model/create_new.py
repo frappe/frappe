@@ -61,6 +61,10 @@ def set_user_and_static_default_values(doc):
 
 			user_default_value = get_user_default_value(df, defaults, doctype_user_permissions, allowed_records, default_doc)
 			if user_default_value is not None:
+				# if fieldtype is link check if doc exists
+				if df.fieldtype == "Link":
+					if not frappe.db.exists(df.options, user_default_value, cache=True):
+						return
 				doc.set(df.fieldname, user_default_value)
 
 			else:
