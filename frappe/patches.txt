@@ -237,3 +237,4 @@ execute:frappe.delete_doc('Page', 'applications', ignore_missing=True)
 frappe.patches.v11_0.set_missing_creation_and_modified_value_for_user_permissions
 frappe.patches.v11_0.remove_doctype_user_permissions_for_page_and_report #2019-05-01
 frappe.patches.v11_0.apply_customization_to_custom_doctype
+frappe.patches.v11_0.make_all_prepared_report_attachments_private #2019-11-26

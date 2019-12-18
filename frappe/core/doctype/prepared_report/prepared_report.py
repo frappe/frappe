@@ -29,7 +29,7 @@ class PreparedReport(Document):
 		)
 
 	def on_trash(self):
-		remove_all("PreparedReport", self.name, from_delete=True)
+		remove_all("Prepared Report", self.name)
 
 
 def run_background(prepared_report):
@@ -81,7 +81,7 @@ def create_json_gz_file(data, dt, dn):
 		dt=dt,
 		dn=dn,
 		folder=None,
-		is_private=False)
+		is_private=True)
 
 
 @frappe.whitelist()
