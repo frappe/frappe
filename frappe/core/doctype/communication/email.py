@@ -399,7 +399,7 @@ def get_bcc(doc, recipients=None, fetched_from_email_account=False):
 	return bcc
 
 def add_attachments(name, attachments):
-	'''Add attachments to the given Communiction'''
+	'''Add attachments to the given Communication'''
 	# loop through attachments
 	for a in attachments:
 		if isinstance(a, string_types):
@@ -412,7 +412,9 @@ def add_attachments(name, attachments):
 				"file_url": attach.file_url,
 				"attached_to_doctype": "Communication",
 				"attached_to_name": name,
-				"folder": "Home/Attachments"})
+				"folder": "Home/Attachments",
+				"is_private": attach.is_private
+			})
 			_file.save(ignore_permissions=True)
 
 def filter_email_list(doc, email_list, exclude, is_cc=False, is_bcc=False):

@@ -9,7 +9,7 @@ frappe.ui.form.ControlFloat = frappe.ui.form.ControlInt.extend({
 		if (this.df.fieldtype==="Float" && this.df.options && this.df.options.trim()) {
 			number_format = this.get_number_format();
 		}
-		var formatted_value = format_number(parseFloat(value), number_format, this.get_precision());
+		var formatted_value = format_number(value, number_format, this.get_precision());
 		return isNaN(parseFloat(value)) ? "" : formatted_value;
 	},
 
