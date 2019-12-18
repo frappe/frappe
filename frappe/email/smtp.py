@@ -51,34 +51,37 @@ def get_outgoing_email_account(raise_exception_not_set=True, append_to=None, sen
 		or frappe.local.outgoing_email_account.get("default")):
 		email_account = None
 
-		if append_to:
-			# append_to is only valid when enable_incoming is checked
+		if sender_email_id:
+			# check if the sender has an email account with enable_outgoing
+			email_account = _get_email_account({"enable_outgoing": 1,
+					"email_id": sender_email_id})
 
-			# in case of multiple Email Accounts with same append_to
-			# narrow it down based on email_id
-			email_account = _get_email_account({
+		if not email_account and append_to:
+			# append_to is only valid when enable_incoming is checked
+			email_accounts = frappe.db.get_values("Email Account", {
 				"enable_outgoing": 1,
 				"enable_incoming": 1,
 				"append_to": append_to,
-				"email_id": sender_email_id
-			})
+			}, cache=True)
 
-			# else find the first Email Account with append_to
-			if not email_account:
+			if email_accounts:
+				_email_account = email_accounts[0]
+
+			else:
 				email_account = _get_email_account({
 					"enable_outgoing": 1,
 					"enable_incoming": 1,
 					"append_to": append_to
 				})
 
-		if not email_account and sender_email_id:
-			# check if the sender has email account with enable_outgoing
-			email_account = _get_email_account({"enable_outgoing": 1, "email_id": sender_email_id})
-
 		if not email_account:
 			# sender don't have the outging email account
 			sender_email_id = None
 			email_account = get_default_outgoing_email_account(raise_exception_not_set=raise_exception_not_set)
+
+		if not email_account and _email_account:
+			# if default email account is not configured then setup first email account based on append to
+			email_account = _email_account
 
 		if not email_account and raise_exception_not_set and cint(frappe.db.get_single_value('System Settings', 'setup_complete')):
 			frappe.throw(_("Please setup default Email Account from Setup > Email > Email Account"),
@@ -151,16 +154,19 @@ def _get_email_account(filters):
 	return frappe.get_doc("Email Account", name) if name else None
 
 class SMTPServer:
-	def __init__(self, login=None, password=None, server=None, port=None, use_tls=None, append_to=None):
+	def __init__(self, login=None, password=None, server=None, port=None, use_tls=None, use_ssl=None, append_to=None):
 		# get defaults from mail settings
 
 		self._sess = None
 		self.email_account = None
 		self.server = None
+		self.append_emails_to_sent_folder = None
+
 		if server:
 			self.server = server
 			self.port = port
 			self.use_tls = cint(use_tls)
+			self.use_ssl = cint(use_ssl)
 			self.login = login
 			self.password = password
 
@@ -182,6 +188,8 @@ class SMTPServer:
 			self.port = self.email_account.smtp_port
 			self.use_tls = self.email_account.use_tls
 			self.sender = self.email_account.email_id
+			self.use_ssl = self.email_account.use_ssl_for_outgoing
+			self.append_emails_to_sent_folder = self.email_account.append_emails_to_sent_folder
 			self.always_use_account_email_id_as_sender = cint(self.email_account.get("always_use_account_email_id_as_sender"))
 			self.always_use_account_name_as_sender_name = cint(self.email_account.get("always_use_account_name_as_sender_name"))
 
@@ -198,11 +206,23 @@ class SMTPServer:
 			raise frappe.OutgoingEmailError(err_msg)
 
 		try:
-			if self.use_tls and not self.port:
-				self.port = 587
+			if self.use_ssl:
+				if not self.port:
+					self.smtp_port = 465
 
+				self._sess = smtplib.SMTP_SSL((self.server or "").encode('utf-8'),
+						cint(self.port) or None)
+			else:
+				if self.use_tls and not self.port:
+					self.port = 587
+
+<<<<<<< HEAD
 			self._sess = smtplib.SMTP(cstr(self.server or ""),
 				cint(self.port) or None)
+=======
+				self._sess = smtplib.SMTP((self.server or "").encode('utf-8'),
+						cint(self.port) or None)
+>>>>>>> 6357a4a9a5... feat(email): allow ssl for outgoing emails, append to sent folder
 
 			if not self._sess:
 				err_msg = _('Could not connect to outgoing email server')

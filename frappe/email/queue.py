@@ -452,6 +452,9 @@ def send_one(email, smtpserver=None, auto_commit=True, now=False, from_test=Fals
 		if email.communication:
 			frappe.get_doc('Communication', email.communication).set_delivery_status(commit=auto_commit)
 
+		if smtpserver.append_emails_to_sent_folder and any("Sent" == s.status for s in recipients_list):
+			smtpserver.email_account.append_email_to_sent_folder(encode(message))
+
 	except (smtplib.SMTPServerDisconnected,
 			smtplib.SMTPConnectError,
 			smtplib.SMTPHeloError,

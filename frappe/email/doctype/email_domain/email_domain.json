@@ -1,4 +1,5 @@
 {
+ "actions": [],
  "autoname": "field:domain_name",
  "creation": "2016-03-29 10:50:48.848239",
  "doctype": "DocType",
@@ -18,6 +19,8 @@
   "outgoing_mail_settings",
   "smtp_server",
   "use_tls",
+  "use_ssl_for_outgoing",
+  "append_emails_to_sent_folder",
   "smtp_port"
  ],
  "fields": [
@@ -30,7 +33,7 @@
    "fieldtype": "Data",
    "label": "domain name",
    "read_only": 1,
-   "unique": 0
+   "unique": 1
   },
   {
    "fieldname": "email_id",
@@ -106,10 +109,23 @@
    "fieldname": "incoming_port",
    "fieldtype": "Data",
    "label": "Port"
+  },
+  {
+   "default": "0",
+   "fieldname": "append_emails_to_sent_folder",
+   "fieldtype": "Check",
+   "label": "Append Emails to Sent Folder"
+  },
+  {
+   "default": "0",
+   "fieldname": "use_ssl_for_outgoing",
+   "fieldtype": "Check",
+   "label": "Use SSL for Outgoing"
   }
  ],
  "icon": "icon-inbox",
- "modified": "2019-10-09 17:56:48.834704",
+ "links": [],
+ "modified": "2019-12-18 15:57:34.445308",
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Email Domain",

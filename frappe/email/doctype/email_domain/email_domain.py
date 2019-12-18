@@ -49,9 +49,22 @@ class EmailDomain(Document):
 				except Exception:
 					pass
 			try:
+<<<<<<< HEAD
 				if self.use_tls and not self.smtp_port:
 					self.smtp_port = 587
 				sess = smtplib.SMTP(cstr(self.smtp_server or ""), cint(self.smtp_port) or None)
+=======
+				if self.use_ssl_for_outgoing:
+					if not self.smtp_port:
+						self.smtp_port = 465
+
+					sess = smtplib.SMTP_SSL((self.smtp_server or "").encode('utf-8'),
+							cint(self.smtp_port) or None)
+				else:
+					if self.use_tls and not self.smtp_port:
+						self.smtp_port = 587
+					sess = smtplib.SMTP((self.smtp_server or "").encode('utf-8'), cint(self.smtp_port) or None)
+>>>>>>> 6357a4a9a5... feat(email): allow ssl for outgoing emails, append to sent folder
 				sess.quit()
 			except Exception:
 				frappe.throw(_("Outgoing email account not correct"))
@@ -73,7 +86,12 @@ class EmailDomain(Document):
 				email_account.set("attachment_limit",self.attachment_limit)
 				email_account.set("smtp_server",self.smtp_server)
 				email_account.set("smtp_port",self.smtp_port)
+<<<<<<< HEAD
 				email_account.set("incoming_port", self.incoming_port)
+=======
+				email_account.set("use_ssl_for_outgoing", self.use_ssl_for_outgoing)
+				email_account.set("append_emails_to_sent_folder", self.append_emails_to_sent_folder)
+>>>>>>> 6357a4a9a5... feat(email): allow ssl for outgoing emails, append to sent folder
 				email_account.save()
 			except Exception as e:
 				frappe.msgprint(email_account.name)
