@@ -32,7 +32,14 @@ frappe.ui.form.ControlAttach = frappe.ui.form.ControlData.extend({
 		if(this.frm) {
 			me.parse_validate_and_set_in_model(null);
 			me.refresh();
-			me.frm.attachments.remove_attachment_by_filename(me.value, function() {
+			let file_path;
+			// check if attached file is an image, otherwise default to current attached file
+			if (this.frm.meta.image_field) {
+				file_path = this.frm.doc[this.frm.meta.image_field];
+			} else {
+				file_path = this.value;
+			}
+			me.frm.attachments.remove_attachment_by_filename(file_path, function() {
 				me.parse_validate_and_set_in_model(null);
 				me.refresh();
 				me.frm.doc.docstatus == 1 ? me.frm.save('Update') : me.frm.save();
