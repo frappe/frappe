@@ -267,11 +267,9 @@ def get_sidebar_stats(stats, doctype, filters=[]):
 	data = frappe._dict(frappe.local.form_dict)
 	filters = json.loads(data["filters"])
 
-	if not frappe.cache().hget("Tags", doctype):
-		tags = set([tag.tag for tag in frappe.get_list("Tag Link", filters={"document_type": doctype}, fields=["tag"])])
-		frappe.cache().hset("Tags", doctype, tags)
-
-	for tag in list(frappe.cache().hget("Tags", doctype)):
+	tags = set([tag.tag for tag in frappe.get_list("Tag Link", filters={"document_type": doctype}, fields=["tag"])])
+	_user_tags = []
+	for tag in tags:
 		tag_filters = []
 		tag_filters.extend(filters)
 		tag_filters.extend([['Tag Link', 'tag', '=', tag]])
