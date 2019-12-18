@@ -1,4 +1,5 @@
 {
+ "actions": [],
  "allow_rename": 1,
  "autoname": "field:email_account_name",
  "creation": "2014-09-11 12:04:34.163728",
@@ -21,6 +22,7 @@
   "use_imap",
   "email_server",
   "use_ssl",
+  "append_emails_to_sent_folder",
   "incoming_port",
   "attachment_limit",
   "append_to",
@@ -37,6 +39,7 @@
   "enable_outgoing",
   "smtp_server",
   "use_tls",
+  "use_ssl_for_outgoing",
   "smtp_port",
   "default_outgoing",
   "always_use_account_email_id_as_sender",
@@ -389,10 +392,25 @@
    "fieldname": "incoming_port",
    "fieldtype": "Data",
    "label": "Port"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:!doc.domain && doc.enable_outgoing",
+   "fieldname": "append_emails_to_sent_folder",
+   "fieldtype": "Check",
+   "label": "Append Emails to Sent Folder"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:!doc.domain && doc.enable_outgoing",
+   "fieldname": "use_ssl_for_outgoing",
+   "fieldtype": "Check",
+   "label": "Use SSL for Outgoing"
   }
  ],
  "icon": "fa fa-inbox",
- "modified": "2019-08-31 18:01:15.568831",
+ "links": [],
+ "modified": "2019-12-18 15:56:39.744520",
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Email Account",
