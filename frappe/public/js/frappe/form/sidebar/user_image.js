@@ -88,7 +88,9 @@ frappe.ui.form.setup_user_image_event = function(frm) {
 			}
 			field.$input.trigger('click');
 		} else {
-			field.set_value('').then(() => frm.save());
+			frm.attachments.remove_attachment_by_filename(frm.doc[frm.meta.image_field] , function() {
+				field.set_value('').then(() => frm.save());
+			});
 		}
 	});
 }
