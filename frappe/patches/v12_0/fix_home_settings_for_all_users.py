@@ -25,7 +25,7 @@ def execute():
 		all_modules = set([m.get('name') or m.get('module_name') or m.get('label') \
 			for m in all_modules if m.get('category') in category_to_check])
 
-		hidden_modules = home_settings['hidden_modules']
+		hidden_modules = home_settings.get("hidden_modules", [])
 
 		modules_in_home_settings = set(visible_modules + hidden_modules)
 
