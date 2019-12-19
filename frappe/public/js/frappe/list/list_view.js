@@ -354,6 +354,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 					.then(() => this.filter_area.set(this.filters));
 			}
 		}
+		
 		return Promise.resolve();
 	}
 
