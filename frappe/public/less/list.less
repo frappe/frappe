@@ -293,7 +293,7 @@ input.list-check-all, input.list-row-checkbox {
 		border-radius:  5px;
 		background: lightyellow;
 		color: @text-light;
-		margin-left:  auto;
+		margin: auto 0 auto auto;
 		font-size: @text-small;
 		margin-top: 3px;
 		outline: 0;
@@ -301,6 +301,13 @@ input.list-check-all, input.list-row-checkbox {
 			padding-right: 5px;
 			font-size: 12px;
 		}
+	}
+}
+
+.frappe-rtl {
+	.restricted-list {
+		margin: auto auto auto 0;
+		direction: ltr;
 	}
 }
 
