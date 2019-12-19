@@ -71,7 +71,6 @@ frappe.ui.form.Sidebar = Class.extend({
 			this.sidebar.toggle(false);
 		} else {
 			this.sidebar.toggle(true);
-			$(document.body).toggleClass('no-sidebar', false);
 			this.frm.assign_to.refresh();
 			this.frm.attachments.refresh();
 			this.frm.shared.refresh();

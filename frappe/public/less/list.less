@@ -22,6 +22,20 @@
 	}
 }
 
+body.no-list-sidebar {
+	[data-page-route^="List/"] {
+		@media (min-width: @screen-md) {
+			.layout-side-section {
+				display: none;
+			}
+
+			.layout-main-section-wrapper {
+				width: 100% !important;
+			}
+		}
+	}
+}
+
 .freeze-row {
 	.level-left, .level-right, .list-row-col {
 		height: 100%;
