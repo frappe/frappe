@@ -337,7 +337,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 					.then(() => this.filter_area.set(this.filters));
 			}
 		}
-		this.show_or_hide_sidebar();
+
 		return Promise.resolve();
 	}
 
