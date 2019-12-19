@@ -117,6 +117,8 @@ def clear_doctype_map(doctype, name):
 	frappe.cache().hdel(cache_key, name)
 
 def build_table_count_cache():
+	if frappe.flags.in_patch or frappe.flags.in_install or frappe.flags.in_import:
+		return
 	_cache = frappe.cache()
 	data = frappe.db.multisql({
 		"mariadb": """
@@ -136,6 +138,8 @@ def build_table_count_cache():
 	return counts
 
 def build_domain_restriced_doctype_cache():
+	if frappe.flags.in_patch or frappe.flags.in_install or frappe.flags.in_import:
+		return
 	_cache = frappe.cache()
 	active_domains = frappe.get_active_domains()
 	doctypes = frappe.get_all("DocType", filters={'restrict_to_domain': ('IN', active_domains)})
@@ -145,6 +149,8 @@ def build_domain_restriced_doctype_cache():
 	return doctypes
 
 def build_domain_restriced_page_cache():
+	if frappe.flags.in_patch or frappe.flags.in_install or frappe.flags.in_import:
+		return
 	_cache = frappe.cache()
 	active_domains = frappe.get_active_domains()
 	pages = frappe.get_all("Page", filters={'restrict_to_domain': ('IN', active_domains)})
