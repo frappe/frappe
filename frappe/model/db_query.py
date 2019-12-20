@@ -501,6 +501,10 @@ class DatabaseQuery(object):
 				value = f.value or "''"
 				fallback = "''"
 
+			elif f.fieldname == 'name':
+				value = f.value or "''"
+				fallback = "''"
+
 			else:
 				value = flt(f.value)
 				fallback = 0
@@ -513,6 +517,8 @@ class DatabaseQuery(object):
 			or not can_be_null
 			or (f.value and f.operator.lower() in ('=', 'like'))
 			or 'ifnull(' in column_name.lower()):
+			if f.operator.lower() == 'like' and frappe.conf.get('db_type') == 'postgres':
+				f.operator = 'ilike'
 			condition = '{column_name} {operator} {value}'.format(
 				column_name=column_name, operator=f.operator,
 				value=value)

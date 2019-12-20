@@ -9,8 +9,10 @@ from six.moves import range
 import frappe.permissions
 from frappe.model.db_query import DatabaseQuery
 from frappe import _
-from six import text_type, string_types, StringIO
+from six import string_types, StringIO
 from frappe.core.doctype.access_log.access_log import make_access_log
+from frappe.utils import cstr
+
 
 @frappe.whitelist()
 @frappe.read_only()
@@ -170,11 +172,11 @@ def export_query():
 		writer = csv.writer(f)
 		for r in data:
 			# encode only unicode type strings and not int, floats etc.
-			writer.writerow([handle_html(frappe.as_unicode(v)).encode('utf-8') \
+			writer.writerow([handle_html(frappe.as_unicode(v)) \
 				if isinstance(v, string_types) else v for v in r])
 
 		f.seek(0)
-		frappe.response['result'] = text_type(f.read(), 'utf-8')
+		frappe.response['result'] = cstr(f.read())
 		frappe.response['type'] = 'csv'
 		frappe.response['doctype'] = title
 
@@ -261,17 +263,20 @@ def delete_bulk(doctype, items):
 @frappe.whitelist()
 @frappe.read_only()
 def get_sidebar_stats(stats, doctype, filters=[]):
+	_user_tags = []
+	data = frappe._dict(frappe.local.form_dict)
+	filters = json.loads(data["filters"])
 
-	if not frappe.cache().hget("tags_count", doctype):
-		tags = [tag.name for tag in frappe.get_list("Tag")]
-		_user_tags = []
-		for tag in tags:
-			count = frappe.db.count("Tag Link", filters={"document_type": doctype, "tag": tag})
-			if count > 0:
-				_user_tags.append([tag, count])
-		frappe.cache().hset("tags_count", doctype, _user_tags)
+	for tag in frappe.get_all("Tag Link", filters={"document_type": doctype}, fields=["tag"]):
+		tag_filters = []
+		tag_filters.extend(filters)
+		tag_filters.extend([['Tag Link', 'tag', '=', tag.tag]])
 
-	return {"stats": {"_user_tags": frappe.cache().hget("tags_count", doctype)}}
+		count = frappe.get_all(doctype, filters=tag_filters, fields=["count(*)"])
+		if count[0].get("count(*)") > 0:
+			_user_tags.append([tag.tag, count[0].get("count(*)")])
+
+	return {"stats": {"_user_tags": _user_tags}}
 
 @frappe.whitelist()
 @frappe.read_only()

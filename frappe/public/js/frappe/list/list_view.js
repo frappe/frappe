@@ -137,8 +137,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 	show_restricted_list_indicator_if_applicable() {
 		const match_rules_list = frappe.perm.get_match_rules(this.doctype);
-		if(match_rules_list.length) {
-			this.restricted_list = $('<button class="restricted-list form-group">Restricted</button>')
+		if (match_rules_list.length) {
+			this.restricted_list = $(`<button class="restricted-list form-group">${__('Restricted')}</button>`)
 				.prepend('<span class="octicon octicon-lock"></span>')
 				.click(() => this.show_restrictions(match_rules_list))
 				.appendTo(this.page.page_form);
@@ -148,7 +148,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	show_restrictions(match_rules_list=[]) {
 		frappe.msgprint(frappe.render_template('list_view_permission_restrictions', {
 			condition_list: match_rules_list
-		}), 'Restrictions');
+		}), __('Restrictions'));
 	}
 
 	set_fields() {
@@ -388,6 +388,10 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			sort_by: this.sort_selector.sort_by,
 			sort_order: this.sort_selector.sort_order
 		});
+	}
+
+	after_render() {
+		this.list_sidebar.reload_stats();
 	}
 
 	render() {
