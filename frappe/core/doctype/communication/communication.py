@@ -351,7 +351,7 @@ def get_contacts(email_strings):
 		email = get_email_without_link(email)
 		contact_name = get_contact_name(email)
 
-				if not contact_name and email:
+		if not contact_name and email:
 			email_parts = email.split("@")
 			first_name = frappe.unscrub(email_parts[0])
 
