@@ -127,7 +127,7 @@ def build_table_count_cache():
 			FROM information_schema.tables""",
 		"postgres": """
 			SELECT 	"relname" AS name,
-					"n_tup_ins" AS count,
+					"n_tup_ins" AS count
 			FROM "pg_stat_all_tables"
 		"""
 	}, as_dict=1)
