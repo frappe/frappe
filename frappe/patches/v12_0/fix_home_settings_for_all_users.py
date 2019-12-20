@@ -34,7 +34,7 @@ def execute():
 		missing_modules = all_modules - modules_in_home_settings
 
 		if missing_modules:
-			home_settings['hidden_modules'] += missing_modules
+			home_settings['hidden_modules'] = hidden_modules + missing_modules
 			home_settings = json.dumps(home_settings)
 			frappe.set_value('User', user.name, 'home_settings', home_settings)
 
