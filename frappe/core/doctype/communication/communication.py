@@ -356,13 +356,13 @@ def get_contacts(email_strings):
 			first_name = frappe.unscrub(email_parts[0])
 
 			try:
+				contact_name = '{0}-{1}'.format(first_name, email_parts[1]) if first_name == 'Contact' else first_name
 				contact = frappe.get_doc({
 					"doctype": "Contact",
-					"first_name": first_name,
+					"first_name": contact_name,
+					"name": contact_name
 				})
 				contact.add_email(email_id=email, is_primary=True)
-				contact.name = ('{0}-{1}'.format(first_name, email_parts[1])
-					if first_name == 'Contact' else first_name)
 				contact.insert(ignore_permissions=True)
 				contact_name = contact.name
 			except Exception:
