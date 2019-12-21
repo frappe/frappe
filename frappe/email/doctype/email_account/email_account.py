@@ -364,12 +364,13 @@ class EmailAccount(Document):
 			"doctype": "Communication",
 			"subject": email.subject,
 			"content": email.content,
-			'text_content': email.text_content,
+			"text_content": email.text_content,
 			"sent_or_received": "Received",
 			"sender_full_name": email.from_real_name,
 			"sender": email.from_email,
 			"recipients": email.mail.get("To"),
 			"cc": email.mail.get("CC"),
+			"bcc": email.mail.get("BCC"),
 			"email_account": self.name,
 			"communication_medium": "Email",
 			"uid": int(uid or -1),
@@ -378,7 +379,7 @@ class EmailAccount(Document):
 			"has_attachment": 1 if email.attachments else 0,
 			"seen": seen or 0
 		})
-
+		print(communication.as_dict())
 		self.set_thread(communication, email)
 		if communication.seen:
 			# get email account user and set communication as seen
