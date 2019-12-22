@@ -637,7 +637,8 @@ class FilterArea {
 				condition: condition,
 				default: default_value,
 				onchange: () => this.refresh_list_view(),
-				ignore_link_validation: fieldtype === 'Dynamic Link'
+				ignore_link_validation: fieldtype === 'Dynamic Link',
+				is_filter: 1,
 			};
 		}));
 
