@@ -13,7 +13,6 @@ from frappe.utils.verified_command import get_signed_params, verify_request
 from html2text import html2text
 from frappe.utils import get_url, nowdate, now_datetime, add_days, split_emails, cstr, cint
 from rq.timeouts import JobTimeoutException
-from frappe.utils.scheduler import log
 from six import text_type, string_types, PY3
 from email.parser import Parser
 
