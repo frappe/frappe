@@ -965,8 +965,10 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	}
 
 	get_data_for_csv(include_indentation) {
-		const indices = this.datatable.bodyRenderer.visibleRowIndices;
-		const rows = indices.map(i => this.datatable.datamanager.getRow(i));
+		const rows = this.datatable.bodyRenderer.visibleRows;
+		if (this.raw_data.add_total_row) {
+			rows.push(this.datatable.bodyRenderer.getTotalRow());
+		}
 		return rows.map(row => {
 			const standard_column_count = this.datatable.datamanager.getStandardColumnCount();
 			return row
