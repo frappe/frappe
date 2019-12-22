@@ -897,6 +897,7 @@ input[type="checkbox"] {
 	&:focus {
 		outline: none;
 	}
+
 	.fa-circle {
 		font-size: 10px;
 		margin: 0px 2px;
@@ -928,6 +929,7 @@ input[type="checkbox"] {
 	}
 	.lead {
 		margin-top: 20px;
+		font-weight: 500;
 	}
 	.success-state {
 		margin-bottom: 20px;
@@ -959,28 +961,39 @@ input[type="checkbox"] {
 	}
 }
 
-// User Progress Dialog
-.user-progress-dialog {
-	.slides-progress {
-		margin-top: 15px;
+// Onboarding Dialog
+.onboarding-dialog {
+
+	.slide-body {
+		width: 65%;
+		margin-right: auto;
+		margin-left: auto;
 	}
 
-	.done-state {
-		.check-container {
-			font-size: 64px;
-			margin: 40px;
-		}
+	.modal-dialog {
+		width: 50%;
+		height: 80%;
+		max-width: none;
+	}
 
-		.title {
-			font-weight: normal;
-		}
+	.onboarding-icon {
+		color: @text-muted;
+		margin-right: 5px;
+	}
 
-		.help-links {
+	.modal-content .slide-container {
+		height: auto;
+		min-height: 100%;
+		bottom: 0;
+	}
 
-			a {
-				margin: 0px 10px;
-			}
-		}
+	img {
+		max-height: 175px;
+		width: auto;
+	}
+
+	.slides-progress {
+		margin-top: 15px;
 	}
 
 }
