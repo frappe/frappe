@@ -6,11 +6,13 @@
             {{ app_info.title }}
 			<small>{{ __("updated to {0}", [app_info.version]) }}</small>
 		</h2>
-		{% for (var x=0, y=app_info.change_log.length; x < y; x++) {
-            var version_info = app_info.change_log[x];
-            if(version_info) { %}
-    			<p>{{ frappe.markdown(version_info[1]) }}</p>
-		    {% }
-        } %}
+		<div class="app-change-log-body">
+			{% for (var x=0, y=app_info.change_log.length; x < y; x++) {
+	            var version_info = app_info.change_log[x];
+	            if(version_info) { %}
+	    			<p>{{ frappe.markdown(version_info[1]) }}</p>
+			    {% }
+	        } %}
+	    </div>
 	</div>
 {% } %}
