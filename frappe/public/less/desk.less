@@ -771,7 +771,7 @@ li.user-progress {
 // custom font awesome checkbox
 input[type="checkbox"] {
 	position: relative;
-	left: -999999px;
+	visibility: hidden;
 
 	&:before {
 		position: absolute;
@@ -787,7 +787,7 @@ input[type="checkbox"] {
 		font-size: 14px;
 		color: @text-extra-muted;
 		.transition(150ms color);
-		left: 999999px;
+		left: 0px;
 	}
 
 	&:focus:before {
