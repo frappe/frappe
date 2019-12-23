@@ -2,7 +2,7 @@
 # MIT License. See license.txt
 
 from __future__ import unicode_literals, print_function
-import os, frappe, json, shutil, re, warnings
+import os, frappe, json, shutil, re, warnings, tempfile
 from os.path import exists as path_exists, join as join_path, abspath, isdir
 from distutils.spawn import find_executable
 from six import iteritems, text_type
@@ -11,6 +11,48 @@ from frappe.utils.minify import JavascriptMinify
 """
 Build the `public` folders and setup languages
 """
+
+
+def symlink(target, link_name, overwrite=False):
+	'''
+	Create a symbolic link named link_name pointing to target.
+	If link_name exists then FileExistsError is raised, unless overwrite=True.
+	When trying to overwrite a directory, IsADirectoryError is raised.
+
+	Source: https://stackoverflow.com/a/55742015/10309266
+	'''
+
+	if not overwrite:
+		os.symlink(target, linkname)
+		return
+
+	# os.replace() may fail if files are on different filesystems
+	link_dir = os.path.dirname(link_name)
+
+	# Create link to target with temporary filename
+	while True:
+		temp_link_name = tempfile.mktemp(dir=link_dir)
+
+		# os.* functions mimic as closely as possible system functions
+		# The POSIX symlink() returns EEXIST if link_name already exists
+		# https://pubs.opengroup.org/onlinepubs/9699919799/functions/symlink.html
+		try:
+			os.symlink(target, temp_link_name)
+			break
+		except FileExistsError:
+			pass
+
+	# Replace link_name with temp_link_name
+	try:
+		# Pre-empt os.replace on a directory with a nicer message
+		if os.path.isdir(link_name):
+			raise IsADirectoryError("Cannot symlink over existing directory: '{}'".format(link_name))
+		os.replace(temp_link_name, link_name)
+	except:
+		if os.path.islink(temp_link_name):
+			os.remove(temp_link_name)
+		raise
+
 
 app_paths = None
 def setup():
@@ -118,8 +160,7 @@ def make_asset_dirs(make_copy=False, restore=False):
 						else:
 							shutil.rmtree(target)
 					try:
-						os.unlink(target)
-						os.symlink(source, target)
+						symlink(source, target, overwrite=True)
 					except OSError:
 						print('Cannot link {} to {}'.format(source, target))
 			else:
