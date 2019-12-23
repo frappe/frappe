@@ -3,6 +3,7 @@ import os, json, inspect
 import mimetypes
 from html2text import html2text
 from RestrictedPython import compile_restricted, safe_globals
+import RestrictedPython.Guards
 import frappe
 import frappe.utils
 import frappe.utils.data
@@ -114,6 +115,10 @@ def get_safe_globals():
 	# default writer allows write access
 	out._write_ = _write
 	out._getitem_ = _getitem
+
+	# allow iterators and list comprehension
+	out._getiter_ = iter
+	out._iter_unpack_sequence_ = RestrictedPython.Guards.guarded_iter_unpack_sequence
 
 	return out
 
