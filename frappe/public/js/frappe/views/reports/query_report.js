@@ -452,6 +452,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 	render_datatable() {
 		let data = this.data;
+		let columns = this.columns.filter((col) => !col.hidden);
 
 		if (this.raw_data.add_total_row) {
 			data = data.slice();
@@ -460,10 +461,10 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 		if (this.datatable) {
 			this.datatable.options.treeView = this.tree_report;
-			this.datatable.refresh(data, this.columns);
+			this.datatable.refresh(data, columns);
 		} else {
 			let datatable_options = {
-				columns: this.columns.filter((col) => !col.hidden),
+				columns: columns,
 				data: data,
 				inlineFilters: true,
 				treeView: this.tree_report,
@@ -965,8 +966,10 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	}
 
 	get_data_for_csv(include_indentation) {
-		const indices = this.datatable.bodyRenderer.visibleRowIndices;
-		const rows = indices.map(i => this.datatable.datamanager.getRow(i));
+		const rows = this.datatable.bodyRenderer.visibleRows;
+		if (this.raw_data.add_total_row) {
+			rows.push(this.datatable.bodyRenderer.getTotalRow());
+		}
 		return rows.map(row => {
 			const standard_column_count = this.datatable.datamanager.getStandardColumnCount();
 			return row

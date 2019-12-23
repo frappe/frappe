@@ -183,3 +183,31 @@ Cypress.Commands.add('hide_dialog', () => {
 	cy.get_open_dialog().find('.btn-modal-close').click();
 	cy.get('.modal:visible').should('not.exist');
 });
+
+Cypress.Commands.add('insert_doc', (doctype, args, ignore_duplicate) => {
+	return cy
+		.window()
+		.its('frappe.csrf_token')
+		.then(csrf_token => {
+			return cy
+				.request({
+					method: 'POST',
+					url: `/api/resource/${doctype}`,
+					body: args,
+					headers: {
+						Accept: 'application/json',
+						'Content-Type': 'application/json',
+						'X-Frappe-CSRF-Token': csrf_token
+					},
+					failOnStatusCode: !ignore_duplicate
+				})
+				.then(res => {
+					let status_codes = [200];
+					if (ignore_duplicate) {
+						status_codes.push(409);
+					}
+					expect(res.status).to.be.oneOf(status_codes);
+					return res.body.data;
+				});
+		});
+});
