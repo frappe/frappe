@@ -50,6 +50,19 @@
 	}
 }
 
+body.no-list-sidebar {
+	[data-page-route^="List/"] {
+		@media (min-width: @screen-md) {
+			.layout-side-section {
+				display: none;
+			}
+
+			.layout-main-section-wrapper {
+				width: 100% !important;
+			}
+		}
+	}
+}
 
 .filter-list {
 	position: relative;
