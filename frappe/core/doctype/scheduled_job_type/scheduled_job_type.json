@@ -60,7 +60,7 @@
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Frequency",
-   "options": "All\nHourly\nDaily\nDaily Long\nWeekly\nWeekly Long\nMonthly\nMonthly Long\nCron\nYearly\nAnnual",
+   "options": "All\nHourly\nHourly Long\nDaily\nDaily Long\nWeekly\nWeekly Long\nMonthly\nMonthly Long\nCron\nYearly\nAnnual",
    "read_only": 1,
    "reqd": 1
   }
@@ -72,7 +72,7 @@
    "link_fieldname": "scheduled_job_type"
   }
  ],
- "modified": "2019-09-27 12:19:23.259989",
+ "modified": "2019-12-09 11:10:21.259929",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Scheduled Job Type",

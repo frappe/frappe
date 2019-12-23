@@ -90,6 +90,14 @@ $.extend(frappe.datetime, {
 		return moment().endOf("month").format();
 	},
 
+	quarter_start: function() {
+		return moment().startOf("quarter").format();
+	},
+
+	quarter_end: function() {
+		return moment().endOf("quarter").format();
+	},
+
 	year_start: function(){
 		return moment().startOf("year").format();
 	},

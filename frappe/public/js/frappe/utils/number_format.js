@@ -130,7 +130,7 @@ function format_currency(v, currency, decimals) {
 
 function get_currency_symbol(currency) {
 	if (frappe.boot) {
-		if (frappe.boot.sysdefaults.hide_currency_symbol == "Yes")
+		if (frappe.boot.sysdefaults && frappe.boot.sysdefaults.hide_currency_symbol == "Yes")
 			return null;
 
 		if (!currency)
@@ -144,10 +144,7 @@ function get_currency_symbol(currency) {
 }
 
 function get_number_format(currency) {
-	let format = null;
-	if (currency) format = frappe.model.get_value(":Currency", currency, "number_format");
-	
-	return format || (frappe.boot && frappe.boot.sysdefaults && frappe.boot.sysdefaults.number_format) || "#,###.##";
+	return (frappe.boot && frappe.boot.sysdefaults && frappe.boot.sysdefaults.number_format) || "#,###.##";
 }
 
 function get_number_format_info(format) {
