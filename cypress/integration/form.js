@@ -16,10 +16,12 @@ context('Form', () => {
 		cy.get('.primary-action').click();
 		cy.visit('/desk#List/ToDo');
 		cy.location('hash').should('eq', '#List/ToDo/List');
+		cy.get('h1').should('be.visible').and('contain', 'To Do');
 		cy.get('.list-row').should('contain', 'this is a test todo');
 	});
 	it('navigates between documents with child table list filters applied', () => {
 		cy.visit('/desk#List/Contact');
+		cy.location('hash').should('eq', '#List/Contact/List');
 		cy.get('.tag-filters-area .btn:contains("Add Filter")').click();
 		cy.get('.fieldname-select-area').should('exist');
 		cy.get('.fieldname-select-area input').type('Number{enter}', { force: true });
