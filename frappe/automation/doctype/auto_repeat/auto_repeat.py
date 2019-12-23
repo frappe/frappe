@@ -117,8 +117,8 @@ class AutoRepeat(Document):
 			start_date = get_next_schedule_date(start_date, self.frequency, self.repeat_on_day, self.repeat_on_last_day)
 
 		if self.end_date:
-			start_date = start_date = get_next_schedule_date(
-					start_date, self.frequency, self.repeat_on_day, self.repeat_on_last_day, end_date, for_full_schedule=True)
+			start_date = get_next_schedule_date(
+				start_date, self.frequency, self.repeat_on_day, self.repeat_on_last_day, for_full_schedule=True)
 			while (getdate(start_date) < getdate(end_date)):
 				row = {
 					"reference_document" : self.reference_document,
@@ -126,9 +126,8 @@ class AutoRepeat(Document):
 					"next_scheduled_date" : start_date
 				}
 				schedule_details.append(row)
-				start_date = start_date = get_next_schedule_date(
+				start_date = get_next_schedule_date(
 					start_date, self.frequency, self.repeat_on_day, self.repeat_on_last_day, end_date, for_full_schedule=True)
-
 
 		return schedule_details
 
