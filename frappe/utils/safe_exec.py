@@ -121,6 +121,7 @@ def get_safe_globals():
 	out._iter_unpack_sequence_ = RestrictedPython.Guards.guarded_iter_unpack_sequence
 
 	out._print_ = print
+	out.sorted = sorted
 
 	return out
 
