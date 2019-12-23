@@ -72,6 +72,13 @@ frappe.ui.form.Toolbar = Class.extend({
 	setup_editable_title: function () {
 		let me = this;
 
+		function document_unchanged(){
+			frappe.show_alert({
+				indicator: "yellow",
+				message: __("Unchanged")
+			})
+		}
+
 		this.page.$title_area.find(".title-text").on("click", () => {
 			let fields = [];
 			let doctype = me.frm.doctype;
@@ -118,30 +125,39 @@ frappe.ui.form.Toolbar = Class.extend({
 				d.set_primary_action(__("Rename"), function () {
 					let args = d.get_values();
 					if (args.title != me.frm.doc[title_field] || args.name != docname) {
-						frappe.call({
-							method: "frappe.model.rename_doc.update_document_title",
-							args: {
-								doctype,
-								docname,
-								title_field,
-								old_title: me.frm.doc[title_field],
-								new_title: args.title,
-								new_name: args.name,
-								merge: args.merge
-							},
-							btn: d.get_primary_btn()
-						}).then((res) => {
-							me.frm.reload_doc();
-							if (!res.exc && (args.name != docname)) {
-								$(document).trigger("rename", [doctype, docname, res.message || args.name]);
-								if (locals[doctype] && locals[doctype][docname]) delete locals[doctype][docname];
-							}
-						});
+						if (args.merge) {
+							let warning = __("This cannot be undone");
+							let message = __("Are you sure you want to merge {0} with {1}?", [docname.bold(), args.name.bold()])
+							let confirm_message = message + "<br><b>" + warning + "<b>";
+
+							frappe.confirm(
+								confirm_message,
+								function() {
+									frappe.call({
+										method: "frappe.model.rename_doc.update_document_title",
+										args: {
+											doctype,
+											docname,
+											title_field,
+											old_title: me.frm.doc[title_field],
+											new_title: args.title,
+											new_name: args.name,
+											merge: args.merge
+										},
+										btn: d.get_primary_btn()
+									}).then((res) => {
+										me.frm.reload_doc();
+										if (!res.exc && (args.name != docname)) {
+											$(document).trigger("rename", [doctype, docname, res.message || args.name]);
+											if (locals[doctype] && locals[doctype][docname]) delete locals[doctype][docname];
+										}
+									})
+								},
+								document_unchanged
+							);
+						}
 					} else {
-						frappe.show_alert({
-							indicator: "yellow",
-							message: __("Unchanged")
-						});
+						document_unchanged()
 					}
 					d.hide();
 				});
