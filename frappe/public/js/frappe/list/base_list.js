@@ -207,7 +207,7 @@ frappe.views.BaseList = class BaseList {
 
 	show_or_hide_sidebar() {
 		let show_sidebar = JSON.parse(localStorage.show_sidebar || 'true');
-		$(document.body).toggleClass('no-sidebar', !show_sidebar);
+		$(document.body).toggleClass('no-list-sidebar', !show_sidebar);
 	}
 
 	setup_main_section() {
