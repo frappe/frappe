@@ -87,7 +87,7 @@ class TestReport(unittest.TestCase):
 
 		report.report_script = '''
 totals = {}
-for user in frappe.get_all('User', fields = ['name', 'user_type']):
+for user in frappe.get_all('User', fields = ['name', 'user_type', 'creation']):
 	if not user.user_type in totals:
 		totals[user.user_type] = 0
 	totals[user.user_type] = totals[user.user_type] + 1

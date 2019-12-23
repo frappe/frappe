@@ -29,7 +29,7 @@ def safe_exec(script, _globals=None, _locals=None):
 	exec(compile_restricted(script), exec_globals, _locals) # pylint: disable=exec-used
 
 def get_safe_globals():
-	datautils = {}
+	datautils = frappe._dict()
 	if frappe.db:
 		date_format = frappe.db.get_default("date_format") or "yyyy-mm-dd"
 	else:
@@ -119,6 +119,8 @@ def get_safe_globals():
 	# allow iterators and list comprehension
 	out._getiter_ = iter
 	out._iter_unpack_sequence_ = RestrictedPython.Guards.guarded_iter_unpack_sequence
+
+	out._print_ = print
 
 	return out
 
