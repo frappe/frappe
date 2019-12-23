@@ -14,6 +14,8 @@ EVENT_MAP = {
 	'on_cancel': 'After Cancel',
 	'on_trash': 'Before Delete',
 	'after_delete': 'After Delete',
+	'before_update_after_submit': 'Before Save (Submitted Document)',
+	'on_update_after_submit': 'After Save (Submitted Document)'
 }
 
 def run_server_script_api(method):
