@@ -74,3 +74,21 @@ def create_contact_phone_nos_records():
 	for index in range(1000):
 		doc.append('phone_nos', {'phone': '123456{}'.format(index)})
 	doc.insert()
+
+@frappe.whitelist()
+def create_contact_records():
+	if frappe.db.get_all('Contact', {'first_name': 'Test Form Contact 1'}):
+		return
+
+	insert_contact('Test Form Contact 1', '12345')
+	insert_contact('Test Form Contact 2', '54321')
+	insert_contact('Test Form Contact 3', '12345')
+
+
+def insert_contact(first_name, phone_number):
+	doc = frappe.get_doc({
+		'doctype': 'Contact',
+		'first_name': first_name
+	})
+	doc.append('phone_nos', {'phone': phone_number})
+	doc.insert()
