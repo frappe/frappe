@@ -1,5 +1,6 @@
 context('Form', () => {
 	before(() => {
+		Cypress.config('defaultCommandTimeout', 100000);
 		cy.login();
 		cy.visit('/desk');
 		cy.window().its('frappe').then(frappe => {
@@ -26,10 +27,10 @@ context('Form', () => {
 		cy.get('.filter-field .input-with-feedback.form-control').type('123', { force: true });
 		cy.get('.filter-box .btn:contains("Apply")').click({ force: true });
 		cy.visit('/desk#Form/Contact/Test Form Contact 3');
-		cy.get('.prev-doc').click({ force: true });
+		cy.get('.prev-doc').click();
 		cy.get('.msgprint-dialog .modal-body').contains('No further records').should('be.visible');
 		cy.get('.btn-modal-close:visible').click();
-		cy.get('.next-doc').click({ force: true });
+		cy.get('.next-doc').click();
 		cy.wait(200);
 		cy.contains('Test Form Contact 2').should('not.exist');
 		cy.get('.page-title .title-text').should('contain', 'Test Form Contact 1');

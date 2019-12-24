@@ -727,8 +727,8 @@ def validate_fields(meta):
 				if not options:
 					frappe.throw(_("{0}: Options must be a valid DocType for field {1} in row {2}").format(docname, d.label, d.idx), WrongOptionsDoctypeLinkError)
 				elif not (options == d.options):
-					frappe.throw(_("{0}: Options {1} must be the same as doctype name {2} for the field {3}", DoctypeLinkError)
-						.format(docname, d.options, options, d.label))
+					frappe.throw(_("{0}: Options {1} must be the same as doctype name {2} for the field {3}")
+						.format(docname, d.options, options, d.label), DoctypeLinkError)
 				else:
 					# fix case
 					d.options = options
