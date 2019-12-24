@@ -271,10 +271,25 @@ frappe.form.formatters = {
 		rows = rows || [];
 		const meta = frappe.get_meta(df.options);
 		const link_field = meta.fields.find(df => df.fieldtype === 'Link');
-		const formatted_values = rows.map(row => {
+		let formatted_values = rows.map(row => {
 			const value = row[link_field.fieldname];
 			return frappe.format(value, link_field, options, row);
 		});
+
+		frappe.call({
+			'async': false,
+			'method': 'frappe.desk.search.get_title_for_table_multiselect',
+			'args': {
+				doctype: link_field.options,
+				values: formatted_values
+			},
+			callback: function (r) {
+				if (r && r.message) {
+					formatted_values = r.message;
+				}
+			}
+		});
+
 		return formatted_values.join(', ');
 	}
 }

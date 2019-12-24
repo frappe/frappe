@@ -299,7 +299,6 @@
    "label": "View Settings"
   },
   {
-   "depends_on": "eval:!doc.istable",
    "fieldname": "title_field",
    "fieldtype": "Data",
    "label": "Title Field"
@@ -492,7 +491,8 @@
  ],
  "icon": "fa fa-bolt",
  "idx": 6,
- "modified": "2019-11-25 17:24:03.690192",
+ "links": [],
+ "modified": "2019-12-17 20:00:59.549953",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocType",

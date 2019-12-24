@@ -666,7 +666,7 @@ class DocType(Document):
 
 
 	def validate_search_and_title_fields(self):
-		if not (self.title_field or self.search_field):
+		if not self.title_field or not self.search_fields:
 			return
 
 		if self.title_field in [field.strip() for field in self.search_fields.split(",") if field]:

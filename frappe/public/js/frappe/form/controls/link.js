@@ -87,7 +87,7 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 				});
 			}
 		}
-		this.$input && this.$input.val(title_display);
+		this.$input && this.$input.val(__(title_display));
 		this.$input && this.$input.data("value", value);
 	},
 	parse_validate_and_set_in_model: function(value, label, e) {

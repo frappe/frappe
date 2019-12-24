@@ -9,6 +9,7 @@ from frappe.permissions import has_permission
 from frappe import _
 from six import string_types
 import re
+import json
 
 UNTRANSLATED_DOCTYPES = ["DocType", "Role"]
 
@@ -206,6 +207,23 @@ def get_title_for_link_display(doctype, docname):
 		name = frappe.db.get_value(doctype, docname, meta.title_field)
 
 	return name
+
+@frappe.whitelist()
+def get_title_for_table_multiselect(doctype, values):
+	res = []
+	if not values:
+		return res
+
+	meta = frappe.get_meta(doctype)
+	values = json.loads(values)
+
+	# Assume that there is no title_field, so name will be equal to docname
+	if meta.title_field:
+		# If title_field, so name will be equal to title_field
+		for name in values:
+			res.append(frappe.db.get_value(doctype, name, meta.title_field))
+
+	return res or values
 
 def build_for_autosuggest(res, query=False):
 	results = []

@@ -106,10 +106,28 @@ frappe.ui.form.ControlTableMultiSelect = frappe.ui.form.ControlLink.extend({
 		});
 	},
 	set_formatted_input(value) {
+		if (!value) {return;}
+
 		this.rows = value || [];
 		const link_field = this.get_link_field();
-		const values = this.rows.map(row => row[link_field.fieldname]);
-		this.set_pill_html(values);
+		let values = this.rows.map(row => row[link_field.fieldname]);
+		let title_display = values;
+
+		frappe.call({
+			'async': false,
+			'method': 'frappe.desk.search.get_title_for_table_multiselect',
+			'args': {
+				doctype: this.get_options(),
+				values: values
+			},
+			callback: function (r) {
+				if (r && r.message) {
+					title_display = r.message;
+				}
+			}
+		});
+
+		this.set_pill_html(title_display);
 	},
 	set_pill_html(values) {
 		const html = values
