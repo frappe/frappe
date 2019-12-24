@@ -34,6 +34,8 @@ Cypress.Commands.add('login', (email, password) => {
 	cy.request({
 		url: '/api/method/login',
 		method: 'POST',
+		retryOnStatusCodeFailure: true,
+		failOnNetworkError: false,
 		body: {
 			usr: email,
 			pwd: password
@@ -47,7 +49,6 @@ Cypress.Commands.add('call', (method, args) => {
 			url: `/api/method/${method}`,
 			method: 'POST',
 			body: args,
-			retryOnStatusCodeFailure: true,
 			headers: {
 				'Accept': 'application/json',
 				'Content-Type': 'application/json',
