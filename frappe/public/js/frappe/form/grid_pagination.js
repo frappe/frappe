@@ -117,10 +117,10 @@ export default class GridPagination {
 		let page_length = this.page_length;
 		if (this.grid.data.length == page_length*total_pages) {
 			this.go_to_page(total_pages + 1);
+			frappe.utils.scroll_to(this.wrapper);
 		} else {
 			this.go_to_page(total_pages);
 		}
-		frappe.utils.scroll_to(this.wrapper);
 	}
 
 	get_result_length() {
