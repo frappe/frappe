@@ -1,14 +1,13 @@
 context('Form', () => {
-	beforeEach(() => {
-		cy.login();
-		cy.visit('/desk');
-	});
 	before(() => {
 		cy.login();
 		cy.visit('/desk');
 		cy.window().its('frappe').then(frappe => {
 			frappe.call("frappe.tests.ui_test_helpers.create_contact_records");
 		});
+	});
+	beforeEach(() => {
+		cy.visit('/desk');
 	});
 	it('create a new form', () => {
 		cy.visit('/desk#Form/ToDo/New ToDo 1');
@@ -27,10 +26,11 @@ context('Form', () => {
 		cy.get('.filter-field .input-with-feedback.form-control').type('123', { force: true });
 		cy.get('.filter-box .btn:contains("Apply")').click({ force: true });
 		cy.visit('/desk#Form/Contact/Test Form Contact 3');
-		cy.get('.prev-doc').click();
+		cy.get('.prev-doc').click({ force: true });
 		cy.get('.msgprint-dialog .modal-body').contains('No further records').should('be.visible');
-		cy.get('.modal-backdrop').click();
-		cy.get('.next-doc').click();
+		cy.get('.btn-modal-close:visible').click();
+		cy.get('.next-doc').click({ force: true });
+		cy.wait(200);
 		cy.contains('Test Form Contact 2').should('not.exist');
 		cy.get('.page-title .title-text').should('contain', 'Test Form Contact 1');
 		cy.visit('/desk#List/Contact');

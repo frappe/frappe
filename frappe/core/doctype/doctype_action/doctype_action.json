@@ -1,0 +1,57 @@
+{
+ "actions": [],
+ "creation": "2019-09-23 16:28:13.953520",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "label",
+  "action_type",
+  "action",
+  "group"
+ ],
+ "fields": [
+  {
+   "columns": 2,
+   "fieldname": "label",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Label",
+   "reqd": 1
+  },
+  {
+   "fieldname": "group",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Group"
+  },
+  {
+   "columns": 2,
+   "fieldname": "action_type",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Action Type",
+   "options": "Server Action",
+   "reqd": 1
+  },
+  {
+   "columns": 4,
+   "fieldname": "action",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Action",
+   "reqd": 1
+  }
+ ],
+ "istable": 1,
+ "modified": "2019-09-24 09:11:39.860100",
+ "modified_by": "Administrator",
+ "module": "Core",
+ "name": "DocType Action",
+ "owner": "Administrator",
+ "permissions": [],
+ "quick_entry": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}
