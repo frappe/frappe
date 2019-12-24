@@ -94,7 +94,7 @@ install:
   - if [ $TYPE == "ui" ]; then bench setup requirements --node; fi
 
   - bench start &
-  - if [ $TYPE == "ui" ]; then while ! nc -w5 -z localhost 8000 > /dev/null; do sleep 1; printf "%c" "."; done;
+  - if [ $TYPE == "ui" ]; then while ! nc -w5 -z localhost 8000 > /dev/null; do sleep 1; printf "%c" "."; done; fi
   - bench --site test_site reinstall --yes
   - bench build --app frappe
 
