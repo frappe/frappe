@@ -120,8 +120,6 @@ def get_safe_globals():
 	# allow iterators and list comprehension
 	out._getiter_ = iter
 	out._iter_unpack_sequence_ = RestrictedPython.Guards.guarded_iter_unpack_sequence
-
-	out._print_ = print
 	out.sorted = sorted
 
 	return out
