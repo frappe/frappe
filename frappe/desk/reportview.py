@@ -267,6 +267,7 @@ def get_sidebar_stats(stats, doctype, filters=[]):
 	data = frappe._dict(frappe.local.form_dict)
 	filters = json.loads(data["filters"])
 
+	# Show Tags irrespective of any tag filter set
 	for idx, flt in enumerate(filters):
 		if flt[0] == "Tag Link":
 			filters.pop(idx)
