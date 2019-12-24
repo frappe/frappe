@@ -858,7 +858,7 @@ frappe.ui.form.Form = class FrappeForm {
 	}
 
 	navigate_records(prev) {
-		let list_settings = frappe.get_user_settings(this.doctype)['List'];
+		let list_settings = frappe.get_user_settings(this.doctype, 'List');
 		let args = {
 			doctype: this.doctype,
 			value: this.docname,
