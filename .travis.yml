@@ -97,6 +97,7 @@ install:
   - bench --site test_site reinstall --yes
   - bench build --app frappe
   - if [ $TYPE == "ui" ]; then while ! nc -w5 -z test_site 8000; do sleep 1; printf "%c."; done; fi
+  - sleep 5
 
 after_script:
   - if [ $TYPE == "server" ]; then pip install python-coveralls; fi
