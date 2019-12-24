@@ -94,10 +94,10 @@ install:
   - if [ $TYPE == "ui" ]; then bench setup requirements --node; fi
 
   - bench start &
-  - if [ $TYPE == "ui" ]; then while ! nc -w5 -z localhost 8000 > /dev/null; do sleep 1; printf "%c" "."; done; fi
   - bench --site test_site reinstall --yes
   - bench build --app frappe
+  - if [ $TYPE == "ui" ]; then while ! nc -w5 -z test_site 8000 > /dev/null; do sleep 1; printf "%c" "."; done; fi
 
 after_script:
-  - if [ $TYPE == "server" ]; then pip install python-coveralls
-  - if [ $TYPE == "server" ]; then coveralls -b apps/frappe -d ../../sites/.coverage
+  - if [ $TYPE == "server" ]; then pip install python-coveralls; fi
+  - if [ $TYPE == "server" ]; then coveralls -b apps/frappe -d ../../sites/.coverage; fi
