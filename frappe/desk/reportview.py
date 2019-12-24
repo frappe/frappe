@@ -266,9 +266,13 @@ def get_sidebar_stats(stats, doctype, filters=[]):
 	_user_tags, tag_list = [], []
 	data = frappe._dict(frappe.local.form_dict)
 	filters = json.loads(data["filters"])
+	with_child_table_filter = ""
 
 	# Show Tags irrespective of any tag filter set
 	for idx, flt in enumerate(filters):
+		if flt[0] != "Tag Link" or flt[0] != doctype:
+			with_child_table_filter = "distinct"
+
 		if flt[0] == "Tag Link":
 			filters.pop(idx)
 
@@ -281,7 +285,9 @@ def get_sidebar_stats(stats, doctype, filters=[]):
 		tag_filters.extend(filters)
 		tag_filters.extend([['Tag Link', 'tag', '=', tag.tag]])
 
-		count = frappe.get_all(doctype, filters=tag_filters, fields=["count(distinct`tab{0}`.`name`) AS total_count".format(doctype)])
+		fields = ["count({0}`tab{1}`.`name`) AS total_count".format(with_child_table_filter, doctype)]
+		count = frappe.get_all(doctype, filters=tag_filters,fields=fields)
+
 		if count[0].get("total_count") > 0:
 			_user_tags.append([tag.tag, count[0].get("total_count")])
 
