@@ -4,7 +4,7 @@ import unittest
 
 import frappe
 from frappe.website import render
-from frappe.utils import set_request
+from frappe.utils import set_request, get_html_for_route
 
 
 class TestWebsite(unittest.TestCase):
