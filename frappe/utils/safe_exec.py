@@ -102,6 +102,7 @@ def get_safe_globals():
 			get_list = frappe.get_list,
 			get_all = frappe.get_all,
 			get_value = frappe.db.get_value,
+			set_value = frappe.db.set_value,
 			get_single_value = frappe.db.get_single_value,
 			get_default = frappe.db.get_default,
 			escape = frappe.db.escape,
