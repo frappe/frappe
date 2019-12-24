@@ -1542,4 +1542,4 @@ $(document).on('save', (event, doc) => {
 frappe.get_list_view = (doctype) => {
 	let route = `List/${doctype}/List`;
 	return frappe.views.list_view[route];
-}
+};
