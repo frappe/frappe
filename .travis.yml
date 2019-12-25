@@ -11,9 +11,9 @@ git:
   depth: 1
 
 cache:
-  - pip
-  - npm
-  - yarn
+  pip: true
+  npm: true
+  yarn: true
   directories:
     - ~/.cache
 
