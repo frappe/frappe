@@ -275,7 +275,6 @@ def get_sidebar_stats(stats, doctype, filters=[]):
 		elif len(filter) == 4 and filter[0] == doctype:
 			with_child_table_filter = "distinct"
 
-		if flt[0] == "Tag Link":
 			filters.pop(idx)
 
 	for tag in frappe.get_all("Tag Link", filters={"document_type": doctype}, fields=["tag"]):
