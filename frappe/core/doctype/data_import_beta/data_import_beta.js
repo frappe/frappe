@@ -82,10 +82,9 @@ frappe.ui.form.on('Data Import Beta', {
 				() => frappe.set_route('List', frm.doc.reference_doctype));
 		}
 
+		frm.disable_save();
 		if (frm.doc.status !== 'Success') {
-			if (frm.import_in_progress) {
-				frm.disable_save();
-			} else if (!frm.is_new() && frm.doc.import_file) {
+			if (!frm.is_new() && frm.doc.import_file) {
 				let label = frm.doc.status === 'Pending' ? __('Start Import') : __('Retry');
 				frm.page.set_primary_action(label, () => frm.events.start_import(frm));
 			} else {
@@ -323,13 +322,23 @@ frappe.ui.form.on('Data Import Beta', {
 			.map(log => {
 				let html = '';
 				if (log.success) {
-					html = __('Successfully imported {0}', [
-						`<span class="underline">${frappe.utils.get_form_link(
-							frm.doc.reference_doctype,
-							log.docname,
-							true
-						)}<span>`
-					]);
+					if (frm.doc.import_type === 'Insert New Records') {
+						html = __('Successfully imported {0}', [
+							`<span class="underline">${frappe.utils.get_form_link(
+								frm.doc.reference_doctype,
+								log.docname,
+								true
+							)}<span>`
+						]);
+					} else {
+						html = __('Successfully updated {0}', [
+							`<span class="underline">${frappe.utils.get_form_link(
+								frm.doc.reference_doctype,
+								log.docname,
+								true
+							)}<span>`
+						]);
+					}
 				} else {
 					let messages = log.messages
 						.map(JSON.parse)
