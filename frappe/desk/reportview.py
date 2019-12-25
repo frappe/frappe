@@ -266,15 +266,14 @@ def get_sidebar_stats(stats, doctype, filters=[]):
 	_user_tags, tag_list = [], []
 	data = frappe._dict(frappe.local.form_dict)
 	filters = json.loads(data["filters"])
-	with_child_table_filter = ""
+	with_child_table_filter = False
 
 	# Show Tags irrespective of any tag filter set
-	for idx, flt in enumerate(filters):
-		if flt[0] != "Tag Link" or flt[0] != doctype:
-			with_child_table_filter = "distinct"
-
-		if flt[0] == "Tag Link":
+	for idx, filter in enumerate(filters):
+		if len(filter) == 4 and filter[0] == 'Tag Link':
 			filters.pop(idx)
+		elif len(filter) == 4 and filter[0] == doctype:
+			with_child_table_filter = True
 
 	for tag in frappe.get_all("Tag Link", filters={"document_type": doctype}, fields=["tag"]):
 		if tag.tag in tag_list:
@@ -285,7 +284,7 @@ def get_sidebar_stats(stats, doctype, filters=[]):
 		tag_filters.extend(filters)
 		tag_filters.extend([['Tag Link', 'tag', '=', tag.tag]])
 
-		fields = ["count({0}`tab{1}`.`name`) AS total_count".format(with_child_table_filter, doctype)]
+		fields = ["count({0}`tab{1}`.`name`) AS total_count".format("distinct " if with_child_table_filter else "", doctype)]
 		count = frappe.get_all(doctype, filters=tag_filters,fields=fields)
 
 		if count[0].get("total_count") > 0:
