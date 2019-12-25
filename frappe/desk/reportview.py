@@ -269,7 +269,7 @@ def get_sidebar_stats(stats, doctype, filters=[]):
 	with_child_table_filter = ""
 
 	# Show Tags irrespective of any tag filter set
-	for idx, flt in enumerate(filters):
+	for idx, filter in enumerate(filters):
 		if filter[0] == 'Tag Link':
 			filters.pop(idx)
 		elif len(filter) == 4 and filter[0] == doctype:
