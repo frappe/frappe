@@ -265,14 +265,15 @@ def delete_bulk(doctype, items):
 def get_sidebar_stats(stats, doctype, filters=[]):
 	_user_tags, tag_list = [], []
 	data = frappe._dict(frappe.local.form_dict)
-	filters = json.loads(data["filters"])
+	filters = []
 	with_child_table_filter = False
 
 	# Show Tags irrespective of any tag filter set
-	for idx, filter in enumerate(filters):
-		if len(filter) == 4 and filter[0] == 'Tag Link':
-			filters.pop(idx)
-		elif len(filter) == 4 and filter[0] == doctype:
+	for filter in json.loads(data["filters"]):
+		if not filter[0] == 'Tag Link':
+			filters.append(filter)
+
+		if not filter[0] == doctype:
 			with_child_table_filter = True
 
 	for tag in frappe.get_all("Tag Link", filters={"document_type": doctype}, fields=["tag"]):
