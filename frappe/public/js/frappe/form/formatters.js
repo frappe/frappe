@@ -156,7 +156,8 @@ frappe.form.formatters = {
 			if(frappe.boot.sysdefaults.time_zone) {
 				m = m.tz(frappe.boot.sysdefaults.time_zone);
 			}
-			return m.format(frappe.boot.sysdefaults.date_format.toUpperCase() + ', h:mm a z');
+			return m.format(frappe.boot.sysdefaults.date_format.toUpperCase()
+				+  ' ' + frappe.boot.sysdefaults.time_format);
 		} else {
 			return "";
 		}
@@ -179,6 +180,13 @@ frappe.form.formatters = {
 		}
 
 		return frappe.form.formatters.Data(value);
+	},
+	Time: function(value) {
+		if (value) {
+			value = frappe.datetime.str_to_user(value, true);
+		}
+
+		return value || "";
 	},
 	LikedBy: function(value) {
 		var html = "";
