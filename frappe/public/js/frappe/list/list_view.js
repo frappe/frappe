@@ -704,7 +704,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 		const filters = this.get_filters_for_args();
 		const with_child_table_filter = filters.some(filter => {
-			return filter[0] !== this.doctype || filter[0] !== "Tag Link";
+			return filter[0] !== this.doctype;
 		});
 
 		const fields = [
