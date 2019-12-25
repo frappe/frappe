@@ -270,7 +270,9 @@ def get_sidebar_stats(stats, doctype, filters=[]):
 
 	# Show Tags irrespective of any tag filter set
 	for idx, flt in enumerate(filters):
-		if flt[0] != "Tag Link" or flt[0] != doctype:
+		if filter[0] == 'Tag Link':
+			filters.pop(idx)
+		elif len(filter) == 4 and filter[0] == doctype:
 			with_child_table_filter = "distinct"
 
 		if flt[0] == "Tag Link":
