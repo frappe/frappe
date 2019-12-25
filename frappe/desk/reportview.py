@@ -273,7 +273,7 @@ def get_sidebar_stats(stats, doctype, filters=[]):
 		if filter[0] == 'Tag Link':
 			filters.pop(idx)
 		elif len(filter) == 4 and filter[0] == doctype:
-			with_child_table_filter = "distinct"
+			with_child_table_filter = True
 
 			filters.pop(idx)
 
