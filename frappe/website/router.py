@@ -6,6 +6,7 @@ import frappe, os
 
 from frappe.website.utils import (can_cache, delete_page_cache, extract_title,
 	extract_comment_tag)
+from frappe.utils import cint
 from frappe.model.document import get_controller
 from six import text_type
 import io
@@ -95,8 +96,6 @@ def get_all_page_context_from_doctypes():
 def get_page_info_from_doctypes(path=None):
 	routes = {}
 	for doctype in get_doctypes_with_web_view():
-		condition = ""
-		values = []
 		controller = get_controller(doctype)
 		meta = frappe.get_meta(doctype)
 
@@ -104,25 +103,46 @@ def get_page_info_from_doctypes(path=None):
 		# custom doctypes dont have controllers and no website attribute
 			(controller.website.condition_field if not meta.custom else None))
 
-		if condition_field:
-			condition ="where {0}=1".format(condition_field)
+		if meta.issingle:
+			get_page_info_from_singles(path, routes, condition_field, doctype)
 
-		if path:
-			condition += ' {0} `route`=%s limit 1'.format('and' if 'where' in condition else 'where')
-			values.append(path)
+		else:
+			get_page_info_from_non_single_doctypes(path, routes, condition_field, doctype)
 
-		try:
-			for r in frappe.db.sql("""select route, name, modified from `tab{0}`
-					{1}""".format(doctype, condition), values=values, as_dict=True):
-				routes[r.route] = {"doctype": doctype, "name": r.name, "modified": r.modified}
-
-				# just want one path, return it!
-				if path:
-					return routes[r.route]
-		except Exception as e:
-			if not frappe.db.is_missing_column(e): raise e
+	if path:
+		return routes.get(path)
 
 	return routes
+
+def get_page_info_from_non_single_doctypes(path, routes, condition_field, doctype):
+	condition = ""
+	values = []
+
+	if condition_field:
+		condition ="where {0}=1".format(condition_field)
+
+	if path:
+		condition += ' {0} `route`=%s limit 1'.format('and' if 'where' in condition else 'where')
+		values.append(path)
+
+	try:
+		for r in frappe.db.sql("""select route, name, modified from `tab{0}`
+				{1}""".format(doctype, condition), values=values, as_dict=True):
+			routes[r.route] = {"doctype": doctype, "name": r.name, "modified": r.modified}
+
+	except Exception as e:
+		if not frappe.db.is_missing_column(e): raise e
+
+def get_page_info_from_singles(path, routes, condition_field, doctype):
+	route_details = frappe.db.get_singles_dict(doctype)
+
+	#condition field's fieldtype must have to be check
+	if condition_field and cint(route_details.get(condition_field)):
+		routes[route_details.route] = {
+			"doctype": doctype,
+			"name": route_details.name,
+			"modified": route_details.modified
+		}
 
 def get_pages(app=None):
 	'''Get all pages. Called for docs / sitemap'''
