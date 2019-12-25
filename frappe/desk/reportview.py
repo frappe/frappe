@@ -287,7 +287,10 @@ def get_sidebar_stats(stats, doctype, filters=[]):
 		tag_filters.extend(filters)
 		tag_filters.extend([['Tag Link', 'tag', '=', tag.tag]])
 
-		fields = ["count({0}`tab{1}`.`name`) AS total_count".format(with_child_table_filter, doctype)]
+		fields = ["count({0}`tab{1}`.`name`) AS total_count".format(
+			'distinct ' if with_child_table_filter else '', 
+			doctype
+		)]
 		count = frappe.get_all(doctype, filters=tag_filters,fields=fields)
 
 		if count[0].get("total_count") > 0:
