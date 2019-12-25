@@ -31,11 +31,12 @@ Cypress.Commands.add('login', (email, password) => {
 	if (!password) {
 		password = Cypress.config('adminPassword');
 	}
-	cy.request({
+	return cy.request({
 		url: '/api/method/login',
 		method: 'POST',
 		retryOnStatusCodeFailure: true,
 		failOnNetworkError: false,
+		retryOnNetworkFailure: true,
 		body: {
 			usr: email,
 			pwd: password
