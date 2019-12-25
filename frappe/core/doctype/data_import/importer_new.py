@@ -34,8 +34,11 @@ class Importer:
 			if self.data_import.template_options:
 				template_options = frappe.parse_json(self.data_import.template_options)
 				self.template_options.update(template_options)
+			self.import_type = self.data_import.import_type
 		else:
 			self.data_import = None
+
+		self.import_type = self.import_type or 'Insert New Records'
 
 		self.header_row = None
 		self.data = None
@@ -256,7 +259,7 @@ class Importer:
 					"fieldtype": "Data",
 					"fieldname": "name",
 					"label": "ID",
-					"reqd": self.data_import.import_type == "Update Existing Records",
+					"reqd": self.import_type == "Update Existing Records",
 					"parent": doctype,
 				}
 			)
@@ -602,8 +605,11 @@ class Importer:
 			return value
 
 		def parse_doc(doctype, docfields, values, row_number):
-			# new_doc returns a dict with default values set
-			doc = frappe.new_doc(doctype, as_dict=True)
+			doc = frappe._dict()
+			if self.import_type == 'Insert New Records':
+				# new_doc returns a dict with default values set
+				doc = frappe.new_doc(doctype, as_dict=True)
+
 			# remove standard fields and __islocal
 			for key in frappe.model.default_fields + ("__islocal",):
 				doc.pop(key, None)
@@ -620,7 +626,23 @@ class Importer:
 			return doc
 
 		def check_mandatory_fields(doctype, doc, row_number):
-			# check if mandatory fields are set (except table fields)
+			'''If import type is Insert:
+				Check for mandatory fields (except table fields) in doc
+			if import type is Update:
+				Check for name field or autoname field in doc
+			'''
+
+			if self.import_type == 'Update Existing Records':
+				id_field = self.get_id_field()
+				if doc.get(id_field.fieldname) in INVALID_VALUES:
+					self.warnings.append(
+						{
+							"row": row_number,
+							"message": _("{0} is a mandatory field").format(id_field.label),
+						}
+					)
+				return
+
 			meta = frappe.get_meta(doctype)
 			fields = [
 				df
@@ -708,11 +730,9 @@ class Importer:
 		return doc, rows, data[len(rows) :]
 
 	def process_doc(self, doc):
-		import_type = self.data_import.import_type
-
-		if import_type == "Insert New Records":
+		if self.import_type == "Insert New Records":
 			return self.insert_record(doc)
-		elif import_type == "Update Existing Records":
+		elif self.import_type == "Update Existing Records":
 			return self.update_record(doc)
 
 	def insert_record(self, doc):
@@ -817,11 +837,7 @@ class Importer:
 					df=col.df,
 				)
 
-	def get_id_fieldname(self):
-		autoname_field = self.get_autoname_field(self.doctype)
-		if autoname_field:
-			return autoname_field.fieldname
-		return "name"
+
 
 	def get_eta(self, current, total, processing_time):
 		remaining = total - current
@@ -838,6 +854,19 @@ class Importer:
 		if meta.autoname and meta.autoname.lower() == "prompt":
 			mandatory_fields_count += 1
 		return mandatory_fields_count == 1
+
+	def get_id_fieldname(self):
+		return self.get_id_field().fieldname
+
+	def get_id_field(self):
+		autoname_field = self.get_autoname_field(self.doctype)
+		if autoname_field:
+			return autoname_field
+		return frappe._dict({
+			'label': 'ID',
+			'fieldname': 'name',
+			'fieldtype': 'Data'
+		})
 
 	def get_autoname_field(self, doctype):
 		meta = frappe.get_meta(doctype)
