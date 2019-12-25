@@ -322,16 +322,16 @@ class EmailAccount(Document):
 			unhandled_email.insert(ignore_permissions=True)
 			frappe.db.commit()
 
-	def insert_communication(self, msg, args={}):
+	def insert_communication(self, msg, args=None):
 		if isinstance(msg, list):
 			raw, uid, seen = msg
 		else:
 			raw = msg
 			uid = -1
 			seen = 0
-
-		if args.get("uid", -1): uid = args.get("uid", -1)
-		if args.get("seen", 0): seen = args.get("seen", 0)
+		if isinstance(args, dict):
+			if args.get("uid", -1): uid = args.get("uid", -1)
+			if args.get("seen", 0): seen = args.get("seen", 0)
 
 		email = Email(raw)
 
@@ -355,7 +355,7 @@ class EmailAccount(Document):
 				name = names[0].get("name")
 				# email is already available update communication uid instead
 				frappe.db.set_value("Communication", name, "uid", uid, update_modified=False)
-				return
+				return frappe.get_doc("Communication", name)
 
 		if email.content_type == 'text/html':
 			email.content = clean_email_html(email.content)

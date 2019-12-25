@@ -27,4 +27,6 @@ def setup_email_linking():
 	doc = frappe.get_doc({
 		"doctype": "Email Account",
 		"email_id": "email_linking@example.com",
-	}).insert(ignore_permissions=True, ignore_if_duplicate=True)
+	})
+	doc.insert(ignore_permissions=True, ignore_if_duplicate=True)
+  
