@@ -42,95 +42,156 @@ Cypress.Commands.add('login', (email, password) => {
 });
 
 Cypress.Commands.add('call', (method, args) => {
-	return cy.window().its('frappe.csrf_token').then(csrf_token => {
-		return cy.request({
-			url: `/api/method/${method}`,
-			method: 'POST',
-			body: args,
-			headers: {
-				'Accept': 'application/json',
-				'Content-Type': 'application/json',
-				'X-Frappe-CSRF-Token': csrf_token
-			}
-		}).then(res => {
-			expect(res.status).eq(200);
-			return res.body;
+	return cy
+		.window()
+		.its('frappe.csrf_token')
+		.then(csrf_token => {
+			return cy
+				.request({
+					url: `/api/method/${method}`,
+					method: 'POST',
+					body: args,
+					headers: {
+						Accept: 'application/json',
+						'Content-Type': 'application/json',
+						'X-Frappe-CSRF-Token': csrf_token
+					}
+				})
+				.then(res => {
+					expect(res.status).eq(200);
+					return res.body;
+				});
 		});
-	});
 });
 
-Cypress.Commands.add('get_list', (doctype, fields=[], filters=[]) => {
-	return cy.window().its('frappe.csrf_token').then(csrf_token => {
-		return cy.request({
-			method: 'GET',
-			url: `/api/resource/${doctype}?fields=${JSON.stringify(fields)}&filters=${JSON.stringify(filters)}`,
-			headers: {
-				'Accept': 'application/json',
-				'X-Frappe-CSRF-Token': csrf_token
-			}
-		}).then(res => {
-			expect(res.status).eq(200);
-			return res.body;
+Cypress.Commands.add('get_list', (doctype, fields = [], filters = []) => {
+	filters = JSON.stringify(filters);
+	fields = JSON.stringify(fields);
+	let url = `/api/resource/${doctype}?fields=${fields}&filters=${filters}`;
+	return cy
+		.window()
+		.its('frappe.csrf_token')
+		.then(csrf_token => {
+			return cy
+				.request({
+					method: 'GET',
+					url,
+					headers: {
+						Accept: 'application/json',
+						'X-Frappe-CSRF-Token': csrf_token
+					}
+				})
+				.then(res => {
+					expect(res.status).eq(200);
+					return res.body;
+				});
 		});
-	});
 });
 
 Cypress.Commands.add('get_doc', (doctype, name) => {
-	return cy.window().its('frappe.csrf_token').then(csrf_token => {
-		return cy.request({
-			method: 'GET',
-			url: `/api/resource/${doctype}/${name}`,
-			headers: {
-				'Accept': 'application/json',
-				'X-Frappe-CSRF-Token': csrf_token
-			}
-		}).then(res => {
-			expect(res.status).eq(200);
-			return res.body;
+	return cy
+		.window()
+		.its('frappe.csrf_token')
+		.then(csrf_token => {
+			return cy
+				.request({
+					method: 'GET',
+					url: `/api/resource/${doctype}/${name}`,
+					headers: {
+						Accept: 'application/json',
+						'X-Frappe-CSRF-Token': csrf_token
+					}
+				})
+				.then(res => {
+					expect(res.status).eq(200);
+					return res.body;
+				});
 		});
-	});
 });
 
-Cypress.Commands.add('create_doc', (doctype, args) => {
-	return cy.window().its('frappe.csrf_token').then(csrf_token => {
-		return cy.request({
-			method: 'POST',
-			url: `/api/resource/${doctype}`,
-			body: args,
-			headers: {
-				'Accept': 'application/json',
-				'Content-Type': 'application/json',
-				'X-Frappe-CSRF-Token': csrf_token
-			}
-		}).then(res => {
-			expect(res.status).eq(200);
-			return res.body;
+Cypress.Commands.add('insert_doc', (doctype, args, ignore_duplicate) => {
+	return cy
+		.window()
+		.its('frappe.csrf_token')
+		.then(csrf_token => {
+			return cy
+				.request({
+					method: 'POST',
+					url: `/api/resource/${doctype}`,
+					body: args,
+					headers: {
+						Accept: 'application/json',
+						'Content-Type': 'application/json',
+						'X-Frappe-CSRF-Token': csrf_token
+					},
+					failOnStatusCode: !ignore_duplicate
+				})
+				.then(res => {
+					let status_codes = [200];
+					if (ignore_duplicate) {
+						status_codes.push(409);
+					}
+					expect(res.status).to.be.oneOf(status_codes);
+					return res.body;
+				});
 		});
-	});
 });
 
 Cypress.Commands.add('remove_doc', (doctype, name) => {
-	return cy.window().its('frappe.csrf_token').then(csrf_token => {
-		return cy.request({
-			method: 'DELETE',
-			url: `/api/resource/${doctype}/${name}`,
-			headers: {
-				'Accept': 'application/json',
-				'X-Frappe-CSRF-Token': csrf_token
-			}
-		}).then(res => {
-			expect(res.status).eq(202);
-			return res.body;
+	return cy
+		.window()
+		.its('frappe.csrf_token')
+		.then(csrf_token => {
+			return cy
+				.request({
+					method: 'DELETE',
+					url: `/api/resource/${doctype}/${name}`,
+					headers: {
+						Accept: 'application/json',
+						'X-Frappe-CSRF-Token': csrf_token
+					}
+				})
+				.then(res => {
+					expect(res.status).eq(202);
+					return res.body;
+				});
 		});
-	});
 });
 
-Cypress.Commands.add('create_records', (doc) => {
-	return cy.call('frappe.tests.ui_test_helpers.create_if_not_exists', { doc })
+Cypress.Commands.add('create_records', doc => {
+	return cy
+		.call('frappe.tests.ui_test_helpers.create_if_not_exists', { doc })
 		.then(r => r.message);
 });
 
-Cypress.Commands.add('fill_field', (fieldname, value, fieldtype='Data') => {
+Cypress.Commands.add('set_value', (doctype, name, obj) => {
+	return cy.call('frappe.client.set_value', {
+		doctype,
+		name,
+		fieldname: obj
+	});
+});
+
+Cypress.Commands.add('fill_field', (fieldname, value, fieldtype = 'Data') => {
+	cy.get_field(fieldname, fieldtype).as('input');
+
+	if (['Date', 'Time', 'Datetime'].includes(fieldtype)) {
+		cy.get('@input').click().wait(200);
+		cy.get('.datepickers-container .datepicker.active').should('exist');
+	}
+	if (fieldtype === 'Time') {
+		cy.get('@input').clear();
+	}
+
+	if (fieldtype === 'Select') {
+		cy.get('@input').select(value);
+	} else {
+		cy.get('@input').type(value, { waitForAnimations: false });
+	}
+	return cy.get('@input');
+});
+
+Cypress.Commands.add('get_field', (fieldname, fieldtype = 'Data') => {
 	let selector = `.form-control[data-fieldname="${fieldname}"]`;
 
 	if (fieldtype === 'Text Editor') {
@@ -140,34 +201,33 @@ Cypress.Commands.add('fill_field', (fieldname, value, fieldtype='Data') => {
 		selector = `[data-fieldname="${fieldname}"] .ace_text-input`;
 	}
 
-	cy.get(selector).as('input');
-
-	if (fieldtype === 'Select') {
-		return cy.get('@input').select(value);
-	} else {
-		return cy.get('@input').type(value, {waitForAnimations: false});
-	}
+	return cy.get(selector);
 });
 
-Cypress.Commands.add('awesomebar', (text) => {
+Cypress.Commands.add('awesomebar', text => {
 	cy.get('#navbar-search').type(`${text}{downarrow}{enter}`, { delay: 100 });
 });
 
-Cypress.Commands.add('new_form', (doctype) => {
-	cy.visit(`/desk#Form/${doctype}/New ${doctype} 1`);
+Cypress.Commands.add('new_form', doctype => {
+	let route = `Form/${doctype}/New ${doctype} 1`;
+	cy.visit(`/desk#${route}`);
+	cy.get('body').should('have.attr', 'data-route', route);
+	cy.get('body').should('have.attr', 'data-ajax-state', 'complete');
 });
 
-Cypress.Commands.add('go_to_list', (doctype) => {
+Cypress.Commands.add('go_to_list', doctype => {
 	cy.visit(`/desk#List/${doctype}/List`);
 });
 
 Cypress.Commands.add('clear_cache', () => {
-	cy.window().its('frappe').then(frappe => {
-		frappe.ui.toolbar.clear_cache();
-	});
+	cy.window()
+		.its('frappe')
+		.then(frappe => {
+			frappe.ui.toolbar.clear_cache();
+		});
 });
 
-Cypress.Commands.add('dialog', (opts) => {
+Cypress.Commands.add('dialog', opts => {
 	return cy.window().then(win => {
 		var d = new win.frappe.ui.Dialog(opts);
 		d.show();
@@ -180,7 +240,9 @@ Cypress.Commands.add('get_open_dialog', () => {
 });
 
 Cypress.Commands.add('hide_dialog', () => {
-	cy.get_open_dialog().find('.btn-modal-close').click();
+	cy.get_open_dialog()
+		.find('.btn-modal-close')
+		.click();
 	cy.get('.modal:visible').should('not.exist');
 });
 
