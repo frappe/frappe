@@ -55,7 +55,7 @@
  "modified": "2019-10-29 15:12:53.962591",
  "modified_by": "Administrator",
  "module": "Events Streaming",
- "name": "Event Configuration",
+ "name": "Event Producer Document Type",
  "owner": "Administrator",
  "permissions": [],
  "quick_entry": 1,

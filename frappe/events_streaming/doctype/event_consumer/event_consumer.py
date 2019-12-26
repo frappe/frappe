@@ -15,7 +15,7 @@ from frappe.utils.background_jobs import get_jobs
 class EventConsumer(Document):
 	def validate(self):
 		if self.in_test:
-			for entry in self.subscribed_doctypes:
+			for entry in self.consumer_doctypes:
 				entry.status = 'Approved'
 			self.in_test = False
 
@@ -28,17 +28,17 @@ class EventConsumer(Document):
 	def update_consumer_status(self):
 		consumer_site = get_consumer_site(self.callback_url)
 		event_producer = consumer_site.get_doc('Event Producer', get_current_node())
-		config = event_producer.event_configuration
-		event_producer.event_configuration = []
+		config = event_producer.producer_doctypes
+		event_producer.producer_doctypes = []
 		for entry in config:
 			if entry.get('has_mapping'):
 				ref_doctype = consumer_site.get_value('Document Type Mapping', entry.get('mapping'), 'remote_doctype')
 			else:
 				ref_doctype = entry.get('ref_doctype')
 
-			entry['status'] = frappe.db.get_value('Event Subscribed Document Type', {'parent': self.name, 'ref_doctype': ref_doctype}, 'status')
+			entry['status'] = frappe.db.get_value('Event Consumer Document Type', {'parent': self.name, 'ref_doctype': ref_doctype}, 'status')
 
-		event_producer.event_configuration = config
+		event_producer.producer_doctypes = config
 		# when producer doc is updated it updates the consumer doc, set flag to avoid deadlock
 		event_producer.incoming_change = True
 		consumer_site.update(event_producer)
@@ -56,10 +56,10 @@ def register_consumer(data):
 	consumer.callback_url = data['event_consumer']
 	consumer.user = data['user']
 	consumer.incoming_change = True
-	subscribed_doctypes = json.loads(data['subscribed_doctypes'])
+	consumer_doctypes = json.loads(data['consumer_doctypes'])
 
-	for entry in subscribed_doctypes:
-		consumer.append('subscribed_doctypes', {
+	for entry in consumer_doctypes:
+		consumer.append('consumer_doctypes', {
 			'ref_doctype': entry,
 			'status': 'Pending'
 		})
@@ -94,7 +94,7 @@ def get_last_update():
 
 @frappe.whitelist()
 def notify_event_consumers(doctype):
-	event_consumers = frappe.get_all('Event Subscribed Document Type', ['parent'], {'ref_doctype': doctype, 'status': 'Approved'})
+	event_consumers = frappe.get_all('Event Consumer Document Type', ['parent'], {'ref_doctype': doctype, 'status': 'Approved'})
 	for entry in event_consumers:
 		consumer = frappe.get_doc('Event Consumer', entry.parent)
 		consumer.flags.notified = False

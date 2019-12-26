@@ -12,11 +12,11 @@ from frappe.events_streaming.doctype.event_producer.event_producer import pull_f
 def create_event_producer(producer_url):
 	event_producer = frappe.new_doc('Event Producer')
 	event_producer.producer_url = producer_url
-	event_producer.append('event_configuration', {
+	event_producer.append('producer_doctypes', {
 		'ref_doctype': 'ToDo',
 		'use_same_name': 1
 	})
-	event_producer.append('event_configuration', {
+	event_producer.append('producer_doctypes', {
 		'ref_doctype': 'Note',
 		'use_same_name': 1
 	})
@@ -117,8 +117,8 @@ class TestEventProducer(unittest.TestCase):
 	def test_dynamic_link_dependencies_synced(self):
 		#unsubscribe for Note to check whether dependency is fulfilled
 		event_producer = frappe.get_doc('Event Producer', self.producer_url)
-		event_producer.event_configuration = []
-		event_producer.append('event_configuration', {
+		event_producer.producer_doctypes = []
+		event_producer.append('producer_doctypes', {
 			'ref_doctype': 'ToDo',
 			'use_same_name': 1
 		})
@@ -142,7 +142,7 @@ class TestEventProducer(unittest.TestCase):
 
 		#subscribe again
 		event_producer = frappe.get_doc('Event Producer', self.producer_url)
-		event_producer.append('event_configuration', {
+		event_producer.append('producer_doctypes', {
 			'ref_doctype': 'Note',
 			'use_same_name': 1
 		})
@@ -151,8 +151,8 @@ class TestEventProducer(unittest.TestCase):
 	def test_naming_configuration(self):
 		#test with use_same_name = 0
 		event_producer = frappe.get_doc('Event Producer', self.producer_url)
-		event_producer.event_configuration = []
-		event_producer.append('event_configuration', {
+		event_producer.producer_doctypes = []
+		event_producer.append('producer_doctypes', {
 			'ref_doctype': 'ToDo',
 			'use_same_name': 0
 		})
@@ -164,9 +164,9 @@ class TestEventProducer(unittest.TestCase):
 		self.assertTrue(frappe.db.exists('ToDo', {'remote_docname': producer_doc.name, 'remote_site_name': self.producer_url}))
 
 		event_producer = frappe.get_doc('Event Producer', self.producer_url)
-		event_producer.event_configuration = []
+		event_producer.producer_doctypes = []
 		#set use_same_name back to 1
-		event_producer.append('event_configuration', {
+		event_producer.append('producer_doctypes', {
 			'ref_doctype': 'ToDo',
 			'use_same_name': 1
 		})

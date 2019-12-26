@@ -3,7 +3,7 @@
 
 frappe.ui.form.on('Event Producer', {
 	refresh: function(frm) {
-		frm.set_query('ref_doctype', 'event_configuration', function() {
+		frm.set_query('ref_doctype', 'producer_doctypes', function() {
 			return {
 				filters: {
 					issingle: 0,

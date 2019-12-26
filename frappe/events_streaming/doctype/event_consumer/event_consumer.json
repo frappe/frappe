@@ -1,11 +1,12 @@
 {
+ "actions": [],
  "autoname": "field:callback_url",
  "creation": "2019-08-26 17:45:15.479530",
  "doctype": "DocType",
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
-  "subscribed_doctypes",
+  "consumer_doctypes",
   "callback_url",
   "section_break_3",
   "api_key",
@@ -23,13 +24,6 @@
    "label": "Callback URL",
    "reqd": 1,
    "unique": 1
-  },
-  {
-   "fieldname": "subscribed_doctypes",
-   "fieldtype": "Table",
-   "label": "Subscribed Document Types",
-   "options": "Event Subscribed Document Type",
-   "reqd": 1
   },
   {
    "fieldname": "api_key",
@@ -73,10 +67,18 @@
    "hidden": 1,
    "label": "In Test",
    "read_only": 1
+  },
+  {
+   "fieldname": "consumer_doctypes",
+   "fieldtype": "Table",
+   "label": "Event Consumer Document Types",
+   "options": "Event Consumer Document Type",
+   "reqd": 1
   }
  ],
  "in_create": 1,
- "modified": "2019-11-29 00:40:32.875022",
+ "links": [],
+ "modified": "2019-12-26 13:05:08.020129",
  "modified_by": "Administrator",
  "module": "Events Streaming",
  "name": "Event Consumer",

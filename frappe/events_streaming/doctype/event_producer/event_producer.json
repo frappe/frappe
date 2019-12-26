@@ -1,4 +1,5 @@
 {
+ "actions": [],
  "autoname": "field:producer_url",
  "creation": "2019-08-26 19:17:24.919196",
  "doctype": "DocType",
@@ -6,7 +7,7 @@
  "engine": "InnoDB",
  "field_order": [
   "producer_url",
-  "event_configuration",
+  "producer_doctypes",
   "section_break_3",
   "api_key",
   "api_secret",
@@ -50,13 +51,6 @@
    "reqd": 1
   },
   {
-   "fieldname": "event_configuration",
-   "fieldtype": "Table",
-   "label": "Event Configuration",
-   "options": "Event Configuration",
-   "reqd": 1
-  },
-  {
    "fieldname": "column_break_6",
    "fieldtype": "Column Break"
   },
@@ -70,9 +64,17 @@
    "fieldtype": "Check",
    "hidden": 1,
    "label": "Incoming Change"
+  },
+  {
+   "fieldname": "producer_doctypes",
+   "fieldtype": "Table",
+   "label": "Event Producer Document Types",
+   "options": "Event Producer Document Type",
+   "reqd": 1
   }
  ],
- "modified": "2019-10-29 14:56:30.854731",
+ "links": [],
+ "modified": "2019-12-26 13:04:11.438349",
  "modified_by": "Administrator",
  "module": "Events Streaming",
  "name": "Event Producer",
