@@ -136,8 +136,10 @@ data-fieldname="{{ df.fieldname }}" data-fieldtype="{{ df.fieldtype }}"
 		and frappe.utils.is_image(doc[df.fieldname]) %}
 		<img src="{{ doc[df.fieldname] }}" class="img-responsive"
 			{%- if df.print_width %} style="width: {{ get_width(df) }};"{% endif %}>
-    {% elif df.fieldtype=="HTML" %}
-        {{ frappe.render_template(df.options, {"doc":doc}) }}
+	{% elif df.fieldtype=="HTML" %}
+		{{ frappe.render_template(df.options, {"doc":doc}) }}
+	{% elif df.fieldtype=="Currency" %}
+		{{ doc.get_formatted(df.fieldname, doc, translated=df.translatable) }}
 	{% else %}
 		{{ doc.get_formatted(df.fieldname, parent_doc or doc, translated=df.translatable) }}
 	{% endif %}
