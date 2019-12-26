@@ -92,6 +92,7 @@ def create_doctype(name, fields):
 		"name": name
 	}).insert()
 
+@frappe.whitelist()
 def create_contact_records():
 	if frappe.db.get_all('Contact', {'first_name': 'Test Form Contact 1'}):
 		return
