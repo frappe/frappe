@@ -80,7 +80,7 @@
  "links": [],
  "modified": "2019-12-26 13:05:08.020129",
  "modified_by": "Administrator",
- "module": "Events Streaming",
+ "module": "Event Streaming",
  "name": "Event Consumer",
  "owner": "Administrator",
  "permissions": [

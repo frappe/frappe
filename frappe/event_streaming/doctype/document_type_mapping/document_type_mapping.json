@@ -47,7 +47,7 @@
  ],
  "modified": "2019-10-09 08:36:04.621397",
  "modified_by": "Administrator",
- "module": "Events Streaming",
+ "module": "Event Streaming",
  "name": "Document Type Mapping",
  "owner": "Administrator",
  "permissions": [

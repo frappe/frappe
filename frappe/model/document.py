@@ -952,7 +952,7 @@ class Document(BaseDocument):
 				make_event_update_log(self, update_type = 'Create')
 				self.flags.update_log_for_doc_creation = False
 			else:
-				from frappe.events_streaming.doctype.event_update_log.event_update_log import get_update
+				from frappe.event_streaming.doctype.event_update_log.event_update_log import get_update
 				diff = get_update(self._doc_before_save, self)
 				if diff:
 					doc = self

@@ -113,7 +113,7 @@
  "in_create": 1,
  "modified": "2019-10-07 13:22:10.401479",
  "modified_by": "Administrator",
- "module": "Events Streaming",
+ "module": "Event Streaming",
  "name": "Event Sync Log",
  "owner": "Administrator",
  "permissions": [

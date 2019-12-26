@@ -76,7 +76,7 @@
  "links": [],
  "modified": "2019-12-26 13:04:11.438349",
  "modified_by": "Administrator",
- "module": "Events Streaming",
+ "module": "Event Streaming",
  "name": "Event Producer",
  "owner": "Administrator",
  "permissions": [

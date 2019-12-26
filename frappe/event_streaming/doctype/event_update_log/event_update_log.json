@@ -44,7 +44,7 @@
  "in_create": 1,
  "modified": "2019-09-24 23:16:07.207707",
  "modified_by": "Administrator",
- "module": "Events Streaming",
+ "module": "Event Streaming",
  "name": "Event Update Log",
  "owner": "Administrator",
  "permissions": [

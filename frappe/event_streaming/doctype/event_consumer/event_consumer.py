@@ -9,7 +9,7 @@ import json
 import requests
 from frappe.model.document import Document
 from frappe.frappeclient import FrappeClient
-from frappe.events_streaming.doctype.event_producer.event_producer import get_current_node
+from frappe.event_streaming.doctype.event_producer.event_producer import get_current_node
 from frappe.utils.background_jobs import get_jobs
 
 class EventConsumer(Document):
@@ -107,7 +107,7 @@ def notify(consumer):
 		try:
 			client = get_consumer_site(consumer.callback_url)
 			client.post_request({
-				'cmd': 'frappe.events_streaming.doctype.event_producer.event_producer.new_event_notification',
+				'cmd': 'frappe.event_streaming.doctype.event_producer.event_producer.new_event_notification',
 				'producer_url': get_current_node()
 			})
 			consumer.flags.notified = True
@@ -118,7 +118,7 @@ def notify(consumer):
 
 	#enqueue another job if the site was not notified
 	if not consumer.flags.notified:
-		enqueued_method = 'frappe.events_streaming.doctype.event_consumer.event_consumer.notify'
+		enqueued_method = 'frappe.event_streaming.doctype.event_consumer.event_consumer.notify'
 		jobs = get_jobs()
 		if not jobs or enqueued_method not in jobs[frappe.local.site] and not consumer.flags.notifed:
 			frappe.enqueue(enqueued_method, queue = 'long', enqueue_after_commit = True, **{'consumer': consumer})

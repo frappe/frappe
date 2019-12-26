@@ -37,7 +37,7 @@ class EventProducer(Document):
 		if self.is_producer_online():
 			producer_site = FrappeClient(self.producer_url, verify=False)
 			response = producer_site.post_api(
-				'frappe.events_streaming.doctype.event_consumer.event_consumer.register_consumer',
+				'frappe.event_streaming.doctype.event_consumer.event_consumer.register_consumer',
 				params = {'data': json.dumps(self.get_request_data())}
 			)
 			response = json.loads(response)
@@ -355,7 +355,7 @@ def get_mapped_update(update):
 @frappe.whitelist()
 def new_event_notification(producer_url):
 	'''Pull data from producer when notified'''
-	enqueued_method = 'frappe.events_streaming.doctype.event_producer.event_producer.pull_from_node'
+	enqueued_method = 'frappe.event_streaming.doctype.event_producer.event_producer.pull_from_node'
 	jobs = get_jobs()
 	if not jobs or enqueued_method not in jobs[frappe.local.site]:
 		frappe.enqueue(enqueued_method, queue = 'default', **{'event_producer': producer_url})
