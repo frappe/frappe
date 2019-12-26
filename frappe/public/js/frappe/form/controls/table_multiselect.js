@@ -110,8 +110,7 @@ frappe.ui.form.ControlTableMultiSelect = frappe.ui.form.ControlLink.extend({
 
 		this.rows = value || [];
 		const link_field = this.get_link_field();
-		let values = this.rows.map(row => row[link_field.fieldname]);
-		let title_display = values;
+		let values = this.rows.map(row => ({"name": row[link_field.fieldname]}));
 
 		frappe.call({
 			'async': false,
@@ -122,12 +121,12 @@ frappe.ui.form.ControlTableMultiSelect = frappe.ui.form.ControlLink.extend({
 			},
 			callback: function (r) {
 				if (r && r.message) {
-					title_display = r.message;
+					values = r.message;
 				}
 			}
 		});
 
-		this.set_pill_html(title_display);
+		this.set_pill_html(values);
 	},
 	set_pill_html(values) {
 		const html = values
@@ -138,9 +137,9 @@ frappe.ui.form.ControlTableMultiSelect = frappe.ui.form.ControlLink.extend({
 		this.$input_area.prepend(html);
 	},
 	get_pill_html(value) {
-		const encoded_value = encodeURIComponent(value);
+		const encoded_value = encodeURIComponent(value.name);
 		return `<div class="btn-group tb-selected-value" data-value="${encoded_value}">
-			<button class="btn btn-default btn-xs btn-link-to-form">${__(value)}</button>
+			<button class="btn btn-default btn-xs btn-link-to-form">${__(value.title_field) || __(value.name)}</button>
 			<button class="btn btn-default btn-xs btn-remove">
 				<i class="fa fa-remove text-muted"></i>
 			</button>

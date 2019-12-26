@@ -271,23 +271,24 @@ frappe.form.formatters = {
 		rows = rows || [];
 		const meta = frappe.get_meta(df.options);
 		const link_field = meta.fields.find(df => df.fieldtype === 'Link');
-		let formatted_values = rows.map(row => {
-			const value = row[link_field.fieldname];
-			return frappe.format(value, link_field, options, row);
-		});
+		let values = rows.map(row => ({"name": row[link_field.fieldname], "doc": row}));
 
 		frappe.call({
 			'async': false,
 			'method': 'frappe.desk.search.get_title_for_table_multiselect',
 			'args': {
 				doctype: link_field.options,
-				values: formatted_values
+				values: values
 			},
 			callback: function (r) {
 				if (r && r.message) {
-					formatted_values = r.message;
+					values = r.message;
 				}
 			}
+		});
+
+		let formatted_values = values.map(value => {
+			return frappe.format(value.title_field || value.name, link_field, options, value.doc);
 		});
 
 		return formatted_values.join(', ');

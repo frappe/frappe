@@ -193,11 +193,14 @@ def get_title_field(meta, formatted_fields):
 		field = "NULL as `label`"
 
 	formatted_fields.insert(1, field)
-	print(formatted_fields)
+
 	return formatted_fields
 
 @frappe.whitelist()
 def get_title_for_link_display(doctype, docname):
+	if not doctype or not docname:
+		return
+
 	meta = frappe.get_meta(doctype)
 
 	# Assume that there is no title_field, so name will be equal to docname
@@ -210,18 +213,18 @@ def get_title_for_link_display(doctype, docname):
 
 @frappe.whitelist()
 def get_title_for_table_multiselect(doctype, values):
-	res = []
 	if not values:
-		return res
+		return []
 
 	meta = frappe.get_meta(doctype)
-	values = json.loads(values)
-
-	# Assume that there is no title_field, so name will be equal to docname
-	if meta.title_field:
-		# If title_field, so name will be equal to title_field
-		for name in values:
-			res.append(frappe.db.get_value(doctype, name, meta.title_field))
+	res = []
+	if meta.title_field
+		for value in json.loads(values):
+			res.append({
+				"name": value.get("name"),
+				"title_field": frappe.db.get_value(doctype, value.get("name"), meta.title_field),
+				"doc": value.get("doc") if value.get("doc") else None
+			})
 
 	return res or values
 
