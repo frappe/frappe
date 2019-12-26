@@ -21,13 +21,25 @@ def sync_fixtures(app=None):
 			for fname in fixture_files:
 				if fname.endswith(".json") or fname.endswith(".csv"):
 					import_doc(frappe.get_app_path(app, "fixtures", fname),
-						ignore_links=True, overwrite=True)
+						ignore_links=True, overwrite=can_overwrite(app, fname))
 
 		import_custom_scripts(app)
 
 	frappe.flags.in_fixtures = False
 
 	frappe.db.commit()
+
+def can_overwrite(app, fname):
+	overwrite = True
+
+	for fixture in  frappe.get_hooks("fixtures", app_name=app):
+		if isinstance(fixture, dict):
+			dt = fixture.get("doctype") or fixture.get("dt")
+			if frappe.scrub(dt) in fname:
+				overwrite = fixture.get('overwrite_in_import', True)
+				return overwrite
+
+	return overwrite
 
 def import_custom_scripts(app):
 	"""Import custom scripts from `[app]/fixtures/custom_scripts`"""

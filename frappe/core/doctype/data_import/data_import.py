@@ -57,7 +57,7 @@ def import_doc(path, overwrite=False, ignore_links=False, ignore_insert=False,
 	for f in files:
 		if f.endswith(".json"):
 			frappe.flags.mute_emails = True
-			frappe.modules.import_file.import_file_by_path(f, data_import=True, force=True, pre_process=pre_process, reset_permissions=True)
+			frappe.modules.import_file.import_file_by_path(f, data_import=True, force=overwrite, pre_process=pre_process, reset_permissions=True)
 			frappe.flags.mute_emails = False
 			frappe.db.commit()
 		elif f.endswith(".csv"):
