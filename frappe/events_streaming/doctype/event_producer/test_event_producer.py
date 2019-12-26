@@ -175,7 +175,7 @@ class TestEventProducer(unittest.TestCase):
 	def test_update_log(self):
 		producer = self.get_remote_site()
 		producer_doc = insert_into_producer(producer, 'test update log')
-		update_log_doc = producer.get_value('Update Log', 'docname', {'docname': producer_doc.get('name')})
+		update_log_doc = producer.get_value('Event Update Log', 'docname', {'docname': producer_doc.get('name')})
 		self.assertEqual(update_log_doc.get('docname'), producer_doc.get('name'))
 
 	def test_event_sync_log(self):

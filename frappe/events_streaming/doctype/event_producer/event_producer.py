@@ -260,7 +260,7 @@ def set_delete(update):
 
 def get_updates(producer_site, last_update, doctypes):
 	docs = producer_site.get_list(
-		doctype = 'Update Log',
+		doctype = 'Event Update Log',
 		filters = {'ref_doctype': ('in', doctypes), 'creation': ('>', last_update)},
 		fields = ['update_type', 'ref_doctype', 'docname', 'data', 'name', 'creation']
 	)

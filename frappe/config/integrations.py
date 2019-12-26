@@ -90,7 +90,7 @@ def get_data():
 				},
 				{
 					"type": "doctype",
-					"name": "Update Log",
+					"name": "Event Update Log",
 					"description": _("Maintains a Log of all inserts, updates and deletions on Event Producer site for documents that have consumers.")
 				},
 				{

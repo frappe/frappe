@@ -87,7 +87,7 @@ def get_consumer_site(consumer_url):
 	return consumer_site
 
 def get_last_update():
-	updates = frappe.get_list('Update Log', 'creation', ignore_permissions=True, limit = 1, order_by = 'creation desc')
+	updates = frappe.get_list('Event Update Log', 'creation', ignore_permissions=True, limit = 1, order_by = 'creation desc')
 	if updates:
 		return updates[0].creation
 	return frappe.utils.now_datetime()

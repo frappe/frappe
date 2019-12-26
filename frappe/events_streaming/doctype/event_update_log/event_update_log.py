@@ -8,7 +8,7 @@ from frappe.model.document import Document
 from frappe.utils.background_jobs import get_jobs
 from frappe.model import no_value_fields, table_fields
 
-class UpdateLog(Document):
+class EventUpdateLog(Document):
 	pass
 
 def notify_consumers(doc, method=None):
