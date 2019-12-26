@@ -63,12 +63,6 @@ frappe.ui.FilterGroup = class {
 	}
 
 	validate_args(doctype, fieldname) {
-		// Tags attached to the document are maintained seperately in Tag Link
-		// and is not the part of doctype meta therefore tag fieldname validation is ignored.
-		if (doctype === "Tag Link" && fieldname === "tag") {
-			return true;
-		}
-
 		if(doctype && fieldname
 			&& !frappe.meta.has_field(doctype, fieldname)
 			&& !frappe.model.std_fields_list.includes(fieldname)) {

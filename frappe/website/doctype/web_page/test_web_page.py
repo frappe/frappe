@@ -3,7 +3,7 @@ import unittest
 import frappe
 from frappe.website.router import resolve_route
 import frappe.website.render
-from frappe.utils import set_request
+from frappe.tests import set_request
 
 test_records = frappe.get_test_records('Web Page')
 

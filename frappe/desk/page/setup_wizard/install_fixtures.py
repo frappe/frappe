@@ -29,4 +29,3 @@ def setup_email_linking():
 		"email_id": "email_linking@example.com",
 	})
 	doc.insert(ignore_permissions=True, ignore_if_duplicate=True)
-  

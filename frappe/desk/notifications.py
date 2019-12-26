@@ -11,18 +11,14 @@ import json
 @frappe.whitelist()
 @frappe.read_only()
 def get_notifications():
-	out = {
-		"open_count_doctype": {},
-		"targets": {},
-	}
 	if (frappe.flags.in_install or
 		not frappe.db.get_single_value('System Settings', 'setup_complete')):
-		return out
+		return {
+			"open_count_doctype": {},
+			"targets": {},
+		}
 
 	config = get_notification_config()
-
-	if not config:
-		return out
 
 	groups = list(config.get("for_doctype")) + list(config.get("for_module"))
 	cache = frappe.cache()
@@ -35,10 +31,10 @@ def get_notifications():
 		if count is not None:
 			notification_count[name] = count
 
-	out['open_count_doctype'] = get_notifications_for_doctypes(config, notification_count)
-	out['targets'] = get_notifications_for_targets(config, notification_percent)
-
-	return out
+	return {
+		"open_count_doctype": get_notifications_for_doctypes(config, notification_count),
+		"targets": get_notifications_for_targets(config, notification_percent),
+	}
 
 def get_notifications_for_doctypes(config, notification_count):
 	"""Notifications for DocTypes"""
@@ -122,10 +118,6 @@ def clear_notifications(user=None):
 		return
 	cache = frappe.cache()
 	config = get_notification_config()
-
-	if not config:
-		return
-
 	for_doctype = list(config.get('for_doctype')) if config.get('for_doctype') else []
 	for_module = list(config.get('for_module')) if config.get('for_module') else []
 	groups = for_doctype + for_module
@@ -147,8 +139,6 @@ def delete_notification_count_for(doctype):
 
 def clear_doctype_notifications(doc, method=None, *args, **kwargs):
 	config = get_notification_config()
-	if not config:
-		return
 	if isinstance(doc, string_types):
 		doctype = doc # assuming doctype name was passed directly
 	else:

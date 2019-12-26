@@ -2,81 +2,75 @@ from __future__ import unicode_literals
 
 from unittest import TestCase
 from dateutil.relativedelta import relativedelta
-from frappe.core.doctype.scheduled_job_type.scheduled_job_type import sync_jobs
-from frappe.utils.background_jobs import enqueue, get_jobs
-from frappe.utils.scheduler import enqueue_events, is_dormant, schedule_jobs_based_on_activity
-from frappe.utils import add_days, get_datetime
+from frappe.utils.scheduler import (enqueue_applicable_events, restrict_scheduler_events_if_dormant,
+	get_enabled_scheduler_events)
+from frappe import _dict
+from frappe.utils.background_jobs import enqueue
+from frappe.utils import now_datetime, today, add_days, add_to_date
 
 import frappe
 import time
 
 def test_timeout():
+	'''This function needs to be pickleable'''
 	time.sleep(100)
-
-def test_timeout_10():
-	time.sleep(10)
-
-def test_method():
-	pass
 
 class TestScheduler(TestCase):
 	def setUp(self):
-		if not frappe.get_all('Scheduled Job Type', limit=1):
-			sync_jobs()
+		frappe.db.set_global('enabled_scheduler_events', "")
+		frappe.flags.ran_schedulers = []
 
-	def test_enqueue_jobs(self):
-		frappe.db.sql("update `tabScheduled Job Type` set last_execution = '2010-01-01 00:00:00'")
+	def test_all_events(self):
+		last = now_datetime() - relativedelta(hours=2)
+		enqueue_applicable_events(frappe.local.site, now_datetime(), last)
+		self.assertTrue("all" in frappe.flags.ran_schedulers)
 
-		frappe.flags.execute_job = True
-		enqueue_events(site = frappe.local.site)
-		frappe.flags.execute_job = False
+	def test_enabled_events(self):
+		frappe.flags.enabled_events = ["hourly", "hourly_long", "daily", "daily_long",
+			"weekly", "weekly_long", "monthly", "monthly_long"]
 
-		self.assertTrue('frappe.email.queue.clear_outbox', frappe.flags.enqueued_jobs)
-		self.assertTrue('frappe.utils.change_log.check_for_update', frappe.flags.enqueued_jobs)
-		self.assertTrue('frappe.email.doctype.auto_email_report.auto_email_report.send_monthly', frappe.flags.enqueued_jobs)
+		# maintain last_event and next_event on the same day
+		last_event = now_datetime().replace(hour=0, minute=0, second=0, microsecond=0)
+		next_event = last_event + relativedelta(minutes=30)
 
-	def test_queue_peeking(self):
-		job = get_test_job()
+		enqueue_applicable_events(frappe.local.site, next_event, last_event)
+		self.assertFalse("cron" in frappe.flags.ran_schedulers)
 
-		self.assertTrue(job.enqueue())
-		job.db_set('last_execution', '2010-01-01 00:00:00')
-		frappe.db.commit()
+		# maintain last_event and next_event on the same day
+		last_event = now_datetime().replace(hour=0, minute=0, second=0, microsecond=0)
+		next_event = last_event + relativedelta(hours=2)
 
-		# 1 job in queue
-		self.assertTrue(job.enqueue())
-		job.db_set('last_execution', '2010-01-01 00:00:00')
-		frappe.db.commit()
+		frappe.flags.ran_schedulers = []
+		enqueue_applicable_events(frappe.local.site, next_event, last_event)
+		self.assertTrue("all" in frappe.flags.ran_schedulers)
+		self.assertTrue("hourly" in frappe.flags.ran_schedulers)
 
-		# 2nd job not loaded
-		self.assertFalse(job.enqueue())
-		job.delete()
+		frappe.flags.enabled_events = None
 
-	def test_is_dormant(self):
-		self.assertTrue(is_dormant(check_time= get_datetime('2100-01-01 00:00:00')))
-		self.assertTrue(is_dormant(check_time = add_days(frappe.db.get_last_created('Activity Log'), 5)))
-		self.assertFalse(is_dormant(check_time = frappe.db.get_last_created('Activity Log')))
+	def test_enabled_events_day_change(self):
 
-	def test_once_a_day_for_dormant(self):
-		frappe.db.clear_table('Scheduled Job Log')
-		self.assertTrue(schedule_jobs_based_on_activity(check_time= get_datetime('2100-01-01 00:00:00')))
-		self.assertTrue(schedule_jobs_based_on_activity(check_time = add_days(frappe.db.get_last_created('Activity Log'), 5)))
+		# use flags instead of globals as this test fails intermittently
+		# the root cause has not been identified but the culprit seems cache
+		# since cache is mutable, it maybe be changed by a parallel process
+		frappe.flags.enabled_events = ["daily", "daily_long", "weekly", "weekly_long",
+			"monthly", "monthly_long"]
 
-		# create a fake job executed 5 days from now
-		job = get_test_job(method='frappe.tests.test_scheduler.test_method', frequency='Daily')
-		job.execute()
-		job_log = frappe.get_doc('Scheduled Job Log', dict(scheduled_job_type=job.name))
-		job_log.db_set('creation', add_days(frappe.db.get_last_created('Activity Log'), 5))
+		# maintain last_event and next_event on different days
+		next_event = now_datetime().replace(hour=0, minute=0, second=0, microsecond=0)
+		last_event = next_event - relativedelta(hours=2)
 
-		# inactive site with recent job, don't run
-		self.assertFalse(schedule_jobs_based_on_activity(check_time = add_days(frappe.db.get_last_created('Activity Log'), 5)))
+		frappe.flags.ran_schedulers = []
+		enqueue_applicable_events(frappe.local.site, next_event, last_event)
+		self.assertTrue("all" in frappe.flags.ran_schedulers)
+		self.assertFalse("hourly" in frappe.flags.ran_schedulers)
 
-		# one more day has passed
-		self.assertTrue(schedule_jobs_based_on_activity(check_time = add_days(frappe.db.get_last_created('Activity Log'), 6)))
+		frappe.flags.enabled_events = None
 
-		frappe.db.rollback()
+
+
+
 
 	def test_job_timeout(self):
-		return
 		job = enqueue(test_timeout, timeout=10)
 		count = 5
 		while count > 0:
@@ -87,19 +81,5 @@ class TestScheduler(TestCase):
 
 		self.assertTrue(job.is_failed)
 
-def get_test_job(method='frappe.tests.test_scheduler.test_timeout_10', frequency='All'):
-	if not frappe.db.exists('Scheduled Job Type', dict(method=method)):
-		job = frappe.get_doc(dict(
-			doctype = 'Scheduled Job Type',
-			method = method,
-			last_execution = '2010-01-01 00:00:00',
-			frequency = frequency
-		)).insert()
-	else:
-		job = frappe.get_doc('Scheduled Job Type', dict(method=method))
-		job.db_set('last_execution', '2010-01-01 00:00:00')
-		job.db_set('frequency', frequency)
-	frappe.db.commit()
-
-	return job
-
+	def tearDown(self):
+		frappe.flags.ran_schedulers = []

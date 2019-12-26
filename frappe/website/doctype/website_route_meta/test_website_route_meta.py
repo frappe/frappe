@@ -5,7 +5,7 @@ from __future__ import unicode_literals
 
 import frappe
 import unittest
-from frappe.utils import set_request
+from frappe.tests.test_website import set_request
 from frappe.website.render import render
 
 class TestWebsiteRouteMeta(unittest.TestCase):

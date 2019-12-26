@@ -76,7 +76,8 @@ leaderboards = "frappe.desk.leaderboard.get_leaderboards"
 
 on_session_creation = [
 	"frappe.core.doctype.activity_log.feed.login_feed",
-	"frappe.core.doctype.user.user.notify_admin_access_to_system_manager"
+	"frappe.core.doctype.user.user.notify_admin_access_to_system_manager",
+	"frappe.utils.scheduler.reset_enabled_scheduler_events",
 ]
 
 on_logout = "frappe.core.doctype.session_default_settings.session_default_settings.clear_session_defaults"
@@ -152,18 +153,14 @@ doc_events = {
 }
 
 scheduler_events = {
-	"cron": {
-		"0/15 * * * *": [
-			"frappe.oauth.delete_oauth2_data",
-			"frappe.website.doctype.web_page.web_page.check_publish_status",
-			"frappe.twofactor.delete_all_barcodes_for_users"
-		]
-	},
 	"all": [
 		"frappe.email.queue.flush",
 		"frappe.email.doctype.email_account.email_account.pull",
 		"frappe.email.doctype.email_account.email_account.notify_unreplied",
+		"frappe.oauth.delete_oauth2_data",
 		"frappe.integrations.doctype.razorpay_settings.razorpay_settings.capture_payment",
+		"frappe.twofactor.delete_all_barcodes_for_users",
+		"frappe.website.doctype.web_page.web_page.check_publish_status",
 		'frappe.utils.global_search.sync_global_search'
 	],
 	"hourly": [

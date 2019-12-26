@@ -452,7 +452,6 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 	render_datatable() {
 		let data = this.data;
-		let columns = this.columns.filter((col) => !col.hidden);
 
 		if (this.raw_data.add_total_row) {
 			data = data.slice();
@@ -461,10 +460,10 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 		if (this.datatable) {
 			this.datatable.options.treeView = this.tree_report;
-			this.datatable.refresh(data, columns);
+			this.datatable.refresh(data, this.columns);
 		} else {
 			let datatable_options = {
-				columns: columns,
+				columns: this.columns.filter((col) => !col.hidden),
 				data: data,
 				inlineFilters: true,
 				treeView: this.tree_report,

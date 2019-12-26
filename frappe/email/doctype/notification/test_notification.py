@@ -136,7 +136,7 @@ class TestNotification(unittest.TestCase):
 			"reference_name": event.name, "status": "Not Sent"}))
 
 		frappe.set_user('Administrator')
-		frappe.get_doc('Scheduled Job Type', dict(method='frappe.email.doctype.notification.notification.trigger_daily_alerts')).execute()
+		frappe.utils.scheduler.trigger(frappe.local.site, "daily", now=True)
 
 		# not today, so no alert
 		self.assertFalse(frappe.db.get_value("Email Queue", {"reference_doctype": "Event",
@@ -150,7 +150,7 @@ class TestNotification(unittest.TestCase):
 		self.assertFalse(frappe.db.get_value("Email Queue", {"reference_doctype": "Event",
 			"reference_name": event.name, "status": "Not Sent"}))
 
-		frappe.get_doc('Scheduled Job Type', dict(method='frappe.email.doctype.notification.notification.trigger_daily_alerts')).execute()
+		frappe.utils.scheduler.trigger(frappe.local.site, "daily", now=True)
 
 		# today so show alert
 		self.assertTrue(frappe.db.get_value("Email Queue", {"reference_doctype": "Event",

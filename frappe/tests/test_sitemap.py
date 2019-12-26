@@ -1,7 +1,7 @@
 from __future__ import unicode_literals
 
 import frappe, unittest
-from frappe.utils import get_html_for_route
+from frappe.tests.test_website import get_html_for_route
 
 class TestSitemap(unittest.TestCase):
 	def test_sitemap(self):
