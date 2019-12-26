@@ -31,6 +31,12 @@ class AssignmentRule(Document):
 
 		return False
 
+	def apply_close(self, doc, assignments):
+		if (self.close_assignments and
+			self.name in [d.assignment_rule for d in assignments]):
+			return self.close_assignments(doc)
+
+		return False
 
 	def apply_assign(self, doc):
 		if self.safe_eval('assign_condition', doc):
@@ -151,17 +157,16 @@ def bulk_apply(doctype, docnames):
 			apply(None, doctype=doctype, name=name)
 
 def reopen_closed_assignment(doc):
-	todo_list = frappe.db.get_all('ToDo', filters = dict(
+	todo = frappe.db.exists('ToDo', dict(
 		reference_type = doc.doctype,
 		reference_name = doc.name,
 		status = 'Closed'
 	))
-	if not todo_list:
+	if not todo:
 		return False
-	for todo in todo_list:
-		todo_doc = frappe.get_doc('ToDo', todo.name)
-		todo_doc.status = 'Open'
-		todo_doc.save(ignore_permissions=True)
+	todo = frappe.get_doc("ToDo", todo)
+	todo.status = 'Open'
+	todo.save(ignore_permissions=True)
 	return True
 
 def apply(doc, method=None, doctype=None, name=None):
@@ -220,12 +225,13 @@ def apply(doc, method=None, doctype=None, name=None):
 				continue
 
 			if not new_apply:
-				# only reopen if close condition is not satisfied
-				if not assignment_rule.safe_eval('close_condition', doc):
-					reopen =  reopen_closed_assignment(doc)
-					if reopen:
-						break
-			assignment_rule.close_assignments(doc)
+				reopen =  reopen_closed_assignment(doc)
+				if reopen:
+					break
+			close = assignment_rule.apply_close(doc, assignments)
+			if close:
+				break
+
 
 def get_assignment_rules():
 	return [d.document_type for d in frappe.db.get_all('Assignment Rule', fields=['document_type'], filters=dict(disabled = 0))]

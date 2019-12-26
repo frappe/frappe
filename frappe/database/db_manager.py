@@ -80,14 +80,12 @@ class DbManager:
 		if pipe:
 			print('Creating Database...')
 
-		command = '{pipe} mysql -u {user} -p{password} -h{host} ' + ('-P{port}' if frappe.db.port else '') + ' {target} {source}'
-		command = command.format(
+		command = '{pipe} mysql -u {user} -p{password} -h{host} {target} {source}'.format(
 			pipe=pipe,
 			user=esc(user),
 			password=esc(password),
 			host=esc(frappe.db.host),
 			target=esc(target),
-			source=source,
-			port=frappe.db.port
+			source=source
 		)
 		os.system(command)

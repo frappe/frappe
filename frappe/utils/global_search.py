@@ -302,7 +302,7 @@ def get_routes_to_index():
 
 def add_route_to_global_search(route):
 	from frappe.website.render import render_page
-	from frappe.utils import set_request
+	from frappe.tests.test_website import set_request
 	frappe.set_user('Guest')
 	frappe.local.no_cache = True
 

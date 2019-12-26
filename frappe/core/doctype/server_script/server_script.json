@@ -1,5 +1,4 @@
 {
- "actions": [],
  "autoname": "Prompt",
  "creation": "2019-09-30 11:56:57.943241",
  "doctype": "DocType",
@@ -44,7 +43,7 @@
    "fieldname": "doctype_event",
    "fieldtype": "Select",
    "label": "DocType Event",
-   "options": "Before Insert\nBefore Save\nAfter Save\nBefore Submit\nAfter Submit\nBefore Cancel\nAfter Cancel\nBefore Delete\nAfter Delete\nBefore Save (Submitted Document)\nAfter Save (Submitted Document)"
+   "options": "Before Insert\nBefore Save\nAfter Save\nBefore Submit\nAfter Submit\nBefore Cancel\nAfter Cancel\nBefore Delete\nAfter Delete"
   },
   {
    "depends_on": "eval:doc.script_type==='API'",
@@ -74,8 +73,7 @@
    "fieldtype": "Section Break"
   }
  ],
- "links": [],
- "modified": "2019-12-17 12:55:07.389775",
+ "modified": "2019-10-09 15:08:40.085059",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Server Script",

@@ -4,7 +4,8 @@
 from __future__ import unicode_literals
 import frappe
 from frappe.utils import is_image
-from frappe import _
+
+
 from frappe.model.document import Document
 
 class LetterHead(Document):
@@ -42,16 +43,3 @@ class LetterHead(Document):
 
 			# update control panel - so it loads new letter directly
 			frappe.db.set_default("default_letter_head_content", self.content)
-
-	def create_onboarding_docs(self, args):
-		letterhead = args.get('letterhead')
-		if letterhead:
-			try:
-				frappe.get_doc({
-					'doctype': self.doctype,
-					'image': letterhead,
-					'letter_head_name': _('Standard'),
-					'is_default': 1
-				}).insert()
-			except frappe.NameError:
-				pass

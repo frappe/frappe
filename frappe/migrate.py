@@ -15,7 +15,6 @@ from frappe.desk.notifications import clear_notifications
 from frappe.website import render
 from frappe.core.doctype.language.language import sync_languages
 from frappe.modules.utils import sync_customizations
-from frappe.core.doctype.scheduled_job_type.scheduled_job_type import sync_jobs
 from frappe.utils import global_search
 
 def migrate(verbose=True, rebuild_website=False, skip_failing=False):
@@ -47,11 +46,9 @@ def migrate(verbose=True, rebuild_website=False, skip_failing=False):
 
 		# run patches
 		frappe.modules.patch_handler.run_all(skip_failing)
-
 		# sync
 		frappe.model.sync.sync_all(verbose=verbose)
 		frappe.translate.clear_cache()
-		sync_jobs()
 		sync_fixtures()
 		sync_customizations()
 		sync_languages()

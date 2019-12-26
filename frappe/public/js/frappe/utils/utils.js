@@ -264,11 +264,11 @@ Object.assign(frappe.utils, {
 			if(has_words(["Pending", "Review", "Medium", "Not Approved"], text)) {
 				style = "warning";
 				colour = "orange";
-			} else if(has_words(["Open", "Urgent", "High", "Failed"], text)) {
+			} else if(has_words(["Open", "Urgent", "High"], text)) {
 				style = "danger";
 				colour = "red";
-			} else if(has_words(["Closed", "Finished", "Converted", "Completed", "Complete", "Confirmed",
-				"Approved", "Yes", "Active", "Available", "Paid", "Success"], text)) {
+			} else if(has_words(["Closed", "Finished", "Converted", "Completed", "Confirmed",
+				"Approved", "Yes", "Active", "Available", "Paid"], text)) {
 				style = "success";
 				colour = "green";
 			} else if(has_words(["Submitted"], text)) {

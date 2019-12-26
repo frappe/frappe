@@ -47,6 +47,13 @@
 						@click="toggle_log(user.name)"
 					>{{ user[key] }}</span>
 				</div>
+				<energy-point-history
+					v-show="show_log_for===user.name"
+					class="energy-point-history"
+					:user="user.name"
+					:from_date="from_date"
+					:key="user.name + user.energy_points"
+				></energy-point-history>
 			</li>
 			<li class="user-card text-muted" v-if="!filtered_users.length">{{__('No user found')}}</li>
 		</ul>

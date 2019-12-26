@@ -21,7 +21,7 @@
 	{% endif %}
 
 	{% for section in page %}
-    <div class="row section-break" data-label="{{ section.label or '' | e }}">
+    <div class="row section-break">
 		{%- if doc.print_line_breaks and loop.index != 1 -%}<hr>{%- endif -%}
 		{%- if doc.print_section_headings and section.label and section.has_data -%}
 		<h4 class='col-sm-12'>{{ _(section.label) }}</h4>

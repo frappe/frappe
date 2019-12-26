@@ -268,7 +268,7 @@ class AutoRepeat(Document):
 		)
 
 
-def get_next_schedule_date(start_date, frequency, repeat_on_day, repeat_on_last_day=False, end_date=None, for_full_schedule=False):
+def get_next_schedule_date(start_date, frequency, repeat_on_day, repeat_on_last_day = False, end_date = None, for_full_schedule=False):
 	month_count = month_map.get(frequency)
 	day_count = 0
 	if month_count and repeat_on_last_day:

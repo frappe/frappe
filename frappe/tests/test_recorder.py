@@ -7,7 +7,7 @@ from __future__ import unicode_literals
 import unittest
 import frappe
 import frappe.recorder
-from frappe.utils import set_request
+from .test_website import set_request
 
 import sqlparse
 

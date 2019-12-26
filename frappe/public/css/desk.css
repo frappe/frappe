@@ -1158,6 +1158,16 @@ input[type="checkbox"]:focus {
   color: #fff;
   border-color: #b1bdca;
 }
-.onboarding-dialog .slides-progress {
+.user-progress-dialog .slides-progress {
   margin-top: 15px;
+}
+.user-progress-dialog .done-state .check-container {
+  font-size: 64px;
+  margin: 40px;
+}
+.user-progress-dialog .done-state .title {
+  font-weight: normal;
+}
+.user-progress-dialog .done-state .help-links a {
+  margin: 0px 10px;
 }
