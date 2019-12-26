@@ -15,12 +15,10 @@ class DocumentTypeMapping(Document):
 
 				if mapping.is_child_table:
 					doc[mapping.local_fieldname] = self.get_mapped_child_table_docs(mapping.child_table_mapping, doc[mapping.remote_fieldname])
-					doc.pop(mapping.remote_fieldname, None)
-
 				else:
 					#copy value into local fieldname key and remove remote fieldname key
 					doc[mapping.local_fieldname] = doc[mapping.remote_fieldname]
-					doc.pop(mapping.remote_fieldname, None)
+				doc.pop(mapping.remote_fieldname, None)
 
 		doc['doctype'] = self.local_doctype
 		return frappe.as_json(doc)
@@ -28,8 +26,7 @@ class DocumentTypeMapping(Document):
 def get_mapped_child_table_docs(child_map, table_entries):
 	child_map = frappe.get_doc('Document Type Mapping', child_map)
 	mapped_entries = []
-	for entry in table_entries:
-		child_doc = entry
+	for child_doc in table_entries:
 		for mapping in child_map.field_mapping:
 			if child_doc.get(mapping.remote_fieldname):
 				child_doc[mapping.local_fieldname] = child_doc[mapping.remote_fieldname]

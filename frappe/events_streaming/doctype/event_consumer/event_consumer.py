@@ -86,10 +86,9 @@ def get_consumer_site(consumer_url):
 	)
 	return consumer_site
 
-@frappe.whitelist()
 def get_last_update():
-	updates = frappe.get_list('Update Log', 'creation', ignore_permissions=True)
-	if updates != []:
+	updates = frappe.get_list('Update Log', 'creation', ignore_permissions=True, limit = 1, order_by = 'creation desc')
+	if updates:
 		return updates[0].creation
 	return frappe.utils.now_datetime()
 
@@ -119,7 +118,6 @@ def notify(consumer):
 
 	#enqueue another job if the site was not notified
 	if not consumer.flags.notified:
-		time.sleep(20)
 		enqueued_method = 'frappe.events_streaming.doctype.event_consumer.event_consumer.notify'
 		jobs = get_jobs()
 		if not jobs or enqueued_method not in jobs[frappe.local.site] and not consumer.flags.notifed:

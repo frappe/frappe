@@ -98,16 +98,14 @@ class EventProducer(Document):
 
 	def is_producer_online(self):
 		'''check connection status for the Event Producer site'''
-		self.retry = 3
-		res = requests.get(self.producer_url)
-		while(res.status_code != 200 and self.retry > 0):
-			time.sleep(5)
+		retry = 3
+		while(retry > 0):
 			res = requests.get(self.producer_url)
-			self.retry -= 1
-		if res.status_code == 200:
-			return True
-		if res.status_code != 200 and self.retry == 0:
-			frappe.throw(_('Failed to connect to the Event Producer site. Retry after some time.'))
+			if res.status_code == 200:
+				return True
+			retry -= 1
+			time.sleep(5)
+		frappe.throw(_('Failed to connect to the Event Producer site. Retry after some time.'))
 
 def get_current_node():
 	current_node = frappe.utils.get_url()
