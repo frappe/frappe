@@ -218,7 +218,7 @@ def get_title_for_table_multiselect(doctype, values):
 
 	meta = frappe.get_meta(doctype)
 	res = []
-	if meta.title_field
+	if meta.title_field:
 		for value in json.loads(values):
 			res.append({
 				"name": value.get("name"),
