@@ -47,7 +47,10 @@ def symlink(target, link_name, overwrite=False):
 		# Pre-empt os.replace on a directory with a nicer message
 		if os.path.isdir(link_name):
 			raise IsADirectoryError("Cannot symlink over existing directory: '{}'".format(link_name))
-		os.replace(temp_link_name, link_name)
+		try:
+			os.replace(temp_link_name, link_name)
+		except AttributeError:
+			os.renames(temp_link_name, link_name)
 	except:
 		if os.path.islink(temp_link_name):
 			os.remove(temp_link_name)
