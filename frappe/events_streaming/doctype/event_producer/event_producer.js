@@ -3,7 +3,15 @@
 
 frappe.ui.form.on('Event Producer', {
 	refresh: function(frm) {
-		// formatter for subscribed doctype approval status
+		frm.set_query('ref_doctype', 'event_configuration', function() {
+			return {
+				filters: {
+					issingle: 0,
+					istable: 0
+				}
+			};
+		});
+
 		frm.set_indicator_formatter('status',
 			function(doc) {
 				let indicator = 'orange';
