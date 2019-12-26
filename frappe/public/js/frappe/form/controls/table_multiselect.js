@@ -106,8 +106,6 @@ frappe.ui.form.ControlTableMultiSelect = frappe.ui.form.ControlLink.extend({
 		});
 	},
 	set_formatted_input(value) {
-		if (!value) {return;}
-
 		this.rows = value || [];
 		const link_field = this.get_link_field();
 		let values = this.rows.map(row => ({"name": row[link_field.fieldname]}));
@@ -139,7 +137,7 @@ frappe.ui.form.ControlTableMultiSelect = frappe.ui.form.ControlLink.extend({
 	get_pill_html(value) {
 		const encoded_value = encodeURIComponent(value.name);
 		return `<div class="btn-group tb-selected-value" data-value="${encoded_value}">
-			<button class="btn btn-default btn-xs btn-link-to-form">${__(value.title_field) || __(value.name)}</button>
+			<button class="btn btn-default btn-xs btn-link-to-form">${__(value.link_display) || __(value.name)}</button>
 			<button class="btn btn-default btn-xs btn-remove">
 				<i class="fa fa-remove text-muted"></i>
 			</button>

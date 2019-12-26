@@ -66,11 +66,11 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 		}
 	},
 	set_formatted_input: function (value) {
-		let title_display = this.value;
+		let link_display = this.value;
 
 		if (value) {
 			if (this.label) {
-				title_display = this.label;
+				link_display = this.label;
 			} else {
 				frappe.call({
 					'async': false,
@@ -81,17 +81,17 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 					},
 					callback: function (r) {
 						if (r && r.message) {
-							title_display = r.message;
+							link_display = r.message;
 						}
 					}
 				});
 			}
 		}
-		this.$input && this.$input.val(__(title_display));
+		this.$input && this.$input.val(__(link_display));
 		this.$input && this.$input.data("value", value);
 	},
 	parse_validate_and_set_in_model: function(value, label, e) {
-		if(this.parse) {
+		if (this.parse) {
 			value = this.parse(value);
 		}
 		this.label = label;
@@ -255,9 +255,6 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 					me.awesomplete.list = me.$input.cache[doctype][term];
 				}
 			});
-			if (!me.$input.val()) {
-				me.set_input(null);
-			}
 		}, 500));
 
 		this.$input.on("blur", function() {
@@ -319,7 +316,6 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 			}
 		});
 	},
-
 	merge_duplicates(results) {
 		// in case of result like this
 		// [{value: 'Manufacturer 1', 'description': 'mobile part 1'},
@@ -336,7 +332,6 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 		}, []);
 		// returns [{value: 'Manufacturer 1', 'description': 'mobile part 1, mobile part 2'}]
 	},
-
 	get_filter_description(filters) {
 		let doctype = this.get_options();
 		let filter_array = [];
@@ -391,7 +386,6 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 
 		return __('Filters applied for {0}', [filter_string]);
 	},
-
 	set_custom_query: function(args) {
 		var set_nulls = function(obj) {
 			$.each(obj, function(key, value) {

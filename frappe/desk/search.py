@@ -218,11 +218,12 @@ def get_title_for_table_multiselect(doctype, values):
 
 	meta = frappe.get_meta(doctype)
 	res = []
+	values = json.loads(values)
 	if meta.title_field:
-		for value in json.loads(values):
+		for value in values:
 			res.append({
 				"name": value.get("name"),
-				"title_field": frappe.db.get_value(doctype, value.get("name"), meta.title_field),
+				"link_display": frappe.db.get_value(doctype, value.get("name"), meta.title_field),
 				"doc": value.get("doc") if value.get("doc") else None
 			})
 
