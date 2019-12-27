@@ -205,7 +205,7 @@ def get_title_for_link_display(doctype, docname):
 
 	# Assume that there is no title_field, so name will be equal to docname
 	name = docname
-	if meta.title_field:
+	if meta.get("title_field") and meta.get("show_title_field_in_link"):
 		# If title_field, so name will be equal to title_field
 		name = frappe.db.get_value(doctype, docname, meta.title_field)
 
@@ -219,7 +219,7 @@ def get_title_for_table_multiselect(doctype, values):
 	meta = frappe.get_meta(doctype)
 	res = []
 	values = json.loads(values)
-	if meta.title_field:
+	if meta.get("title_field") and meta.get("show_title_field_in_link"):
 		for value in values:
 			res.append({
 				"name": value.get("name"),

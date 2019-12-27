@@ -44,6 +44,7 @@
   "allow_auto_repeat",
   "view_settings",
   "title_field",
+  "show_title_field_in_link",
   "search_fields",
   "default_print_format",
   "sort_field",
@@ -299,6 +300,7 @@
    "label": "View Settings"
   },
   {
+   "depends_on": "eval:!doc.istable",
    "fieldname": "title_field",
    "fieldtype": "Data",
    "label": "Title Field"
@@ -487,12 +489,18 @@
    "fieldtype": "Table",
    "label": "Links",
    "options": "DocType Link"
+  },
+  {
+   "default": "0",
+   "fieldname": "show_title_field_in_link",
+   "fieldtype": "Check",
+   "label": "Show Title Field in Link and Table MultiSelect"
   }
  ],
  "icon": "fa fa-bolt",
  "idx": 6,
  "links": [],
- "modified": "2019-12-17 20:00:59.549953",
+ "modified": "2019-12-27 09:05:54.461091",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocType",
