@@ -40,8 +40,7 @@ frappe.views.ListSidebar = class ListSidebar {
 			this.sidebar.find('.sidebar-stat').remove();
 		} else {
 			this.sidebar.find('.list-stats').on('click', (e) => {
-				$(e.currentTarget).find('.stat-link').remove();
-				this.get_stats();
+				this.reload_stats();
 			});
 		}
 
@@ -253,13 +252,15 @@ frappe.views.ListSidebar = class ListSidebar {
 			let text_filter = $search_input.val().toLowerCase();
 			// Replace trailing and leading spaces
 			text_filter = text_filter.replace(/^\s+|\s+$/g, '');
-			let text;
 			for (var i = 0; i < $elements.length; i++) {
 				let text_element = $elements.eq(i).find(text_class);
 
 				let text = text_element.text().toLowerCase();
 				// Search data-name since label for current user is 'Me'
-				let name = text_element.data('name').toLowerCase();
+				let name = '';
+				if (text_element.data('name')) {
+					name = text_element.data('name').toLowerCase();
+				}
 				if (text.includes(text_filter) || name.includes(text_filter)) {
 					$elements.eq(i).css('display','');
 				} else {
