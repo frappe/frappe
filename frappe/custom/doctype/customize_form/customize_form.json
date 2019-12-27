@@ -26,12 +26,14 @@
   "title_field",
   "image_field",
   "search_fields",
-  "subject_field",
-  "sender_field",
   "section_break_8",
   "sort_field",
   "column_break_10",
   "sort_order",
+  "section_break_23",
+  "subject_field",
+  "cb_01",
+  "sender_field",
   "fields_section_break",
   "fields"
  ],
@@ -194,6 +196,15 @@
    "fieldname": "email_append_to",
    "fieldtype": "Check",
    "label": "Allow document creation via Email"
+  },
+  {
+   "depends_on": "doc_type",
+   "fieldname": "section_break_23",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "cb_01",
+   "fieldtype": "Column Break"
   }
  ],
  "hide_toolbar": 1,
@@ -201,7 +212,7 @@
  "idx": 1,
  "issingle": 1,
  "links": [],
- "modified": "2019-12-12 19:17:08.426469",
+ "modified": "2019-12-27 14:29:49.097980",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Customize Form",

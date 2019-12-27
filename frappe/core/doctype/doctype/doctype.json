@@ -35,8 +35,6 @@
   "timeline_field",
   "nsm_parent_field",
   "max_attachments",
-  "subject_field",
-  "sender_field",
   "column_break_23",
   "hide_toolbar",
   "allow_copy",
@@ -44,7 +42,6 @@
   "allow_import",
   "allow_events_in_timeline",
   "allow_auto_repeat",
-  "email_append_to",
   "view_settings",
   "title_field",
   "search_fields",
@@ -57,6 +54,10 @@
   "color",
   "show_preview_popup",
   "show_name_in_global_search",
+  "email_settings_sb",
+  "email_append_to",
+  "subject_field",
+  "sender_field",
   "sb2",
   "permissions",
   "restrict_to_domain",
@@ -493,11 +494,13 @@
    "options": "DocType Link"
   },
   {
+   "depends_on": "email_append_to",
    "fieldname": "subject_field",
    "fieldtype": "Data",
    "label": "Subject Field"
   },
   {
+   "depends_on": "email_append_to",
    "fieldname": "sender_field",
    "fieldtype": "Data",
    "label": "Sender Field"
@@ -507,12 +510,18 @@
    "fieldname": "email_append_to",
    "fieldtype": "Check",
    "label": "Allow document creation via Email"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "email_settings_sb",
+   "fieldtype": "Section Break",
+   "label": "Email Settings"
   }
  ],
  "icon": "fa fa-bolt",
  "idx": 6,
  "links": [],
- "modified": "2019-12-12 19:16:50.130503",
+ "modified": "2019-12-27 13:28:06.201814",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocType",
