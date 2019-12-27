@@ -94,13 +94,14 @@ class ChatRoom(Document):
 				frappe.publish_realtime('frappe.chat.room:update', update, room = self.name, after_commit = True)
 
 @frappe.whitelist(allow_guest=True)
-def get(token, rooms=None, fields=None, filters=None):
+def get(user=None, token=None, rooms=None, fields=None, filters=None):
 	# There is this horrible bug out here.
 	# Looks like if frappe.call sends optional arguments (not in right order), the argument turns to an empty string.
 	# I'm not even going to think searching for it.
 	# Hence, the hack was get_if_empty (previous assign_if_none)
 	# - Achilles Rasquinha achilles@frappe.io
-	authenticate(token)
+	data = user or token
+	authenticate(data)
 
 	rooms, fields, filters = safe_json_loads(rooms, fields, filters)
 
@@ -201,7 +202,7 @@ def create(kind, token, users=None, name=None):
 
 	room.save(ignore_permissions = True)
 
-	room  = get(token, rooms=room.name)
+	room  = get(token=token, rooms=room.name)
 	if room:
 		users = [room.owner] + [u for u in room.users]
 

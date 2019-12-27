@@ -781,7 +781,7 @@ frappe.chat.room.get = function (names, fields, fn) {
 
 	return new Promise(resolve => {
 		frappe.call("frappe.chat.doctype.chat_room.chat_room.get",
-			{ token: frappe.session.user, rooms: names, fields: fields },
+			{ user: frappe.session.user, rooms: names, fields: fields },
 				response => {
 					let rooms = response.message
 					if ( rooms ) { // frappe.api BOGZ! (emtpy arrays are falsified, not good design).
