@@ -10,7 +10,14 @@ frappe.ui.form.on("Event", {
 					"issingle": 0,
 				}
 			};
-		})
+		});
+		frm.set_query('google_calendar', function() {
+			return {
+				filters: {
+					"owner": frappe.session.user
+				}
+			};
+		});
 	},
 	refresh: function(frm) {
 		if(frm.doc.event_participants) {

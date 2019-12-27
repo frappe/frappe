@@ -46,8 +46,7 @@ def load_meta(doctype):
 	return Meta(doctype)
 
 def get_table_columns(doctype):
-	return frappe.cache().hget("table_columns", doctype,
-		lambda: frappe.db.get_table_columns(doctype))
+	return frappe.db.get_table_columns(doctype)
 
 def load_doctype_from_file(doctype):
 	fname = frappe.scrub(doctype)
@@ -408,8 +407,10 @@ class Meta(Document):
 	def get_dashboard_data(self):
 		'''Returns dashboard setup related to this doctype.
 
-		This method will return the `data` property in the
-		`[doctype]_dashboard.py` file in the doctype folder'''
+		This method will return the `data` property in the `[doctype]_dashboard.py`
+		file in the doctype's folder, along with any overrides or extensions
+		implemented in other Frappe applications via hooks.
+		'''
 		data = frappe._dict()
 		try:
 			module = load_doctype_module(self.name, suffix='_dashboard')
@@ -417,6 +418,9 @@ class Meta(Document):
 				data = frappe._dict(module.get_data())
 		except ImportError:
 			pass
+
+		for hook in frappe.get_hooks("override_doctype_dashboards", {}).get(self.name, []):
+			data = frappe.get_attr(hook)(data=data)
 
 		return data
 

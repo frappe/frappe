@@ -1,6 +1,6 @@
 <div class="filter-box">
 	<div class="list_filter row">
-		<div class="fieldname-select-area col-sm-4 form-group ui-front"></div>
+		<div class="fieldname-select-area col-sm-4 ui-front form-group"></div>
 		<div class="col-sm-2 form-group">
 			<select class="condition form-control">
 				{% for condition in conditions %}
@@ -8,17 +8,16 @@
 				{% endfor %}
 			</select>
 		</div>
-		<div class="col-sm-6 col-xs-12">
-			<div class="filter-field pull-left" style="width: calc(100% - 70px)"></div>
-			<div class="filter-actions pull-left">
-				<a class="set-filter-and-run btn btn-sm btn-primary pull-left">
-					<i class=" fa fa-check visible-xs"></i>
-					<span class="hidden-xs">{%= __("Apply") %}</span></a>
-				<a class="small grey remove-filter pull-left">
-					<i class="octicon octicon-trashcan visible-xs"></i>
-					<span class="hidden-xs">{%= __("Remove") %}</span></a>
+		<div class="col-sm-4 form-group">
+			<div class="filter-field"></div>
+		</div>
+		<div class="col-sm-2">
+			<div class="filter-actions">
+				<a class="set-filter-and-run btn btn-sm btn-primary">
+					<span>{%= __("Apply") %}</span></a>
+				<a class="small grey remove-filter">
+					<span>{%= __("Remove") %}</span></a>
 			</div>
-			<div class="clearfix"></div>
 		</div>
 	</div>
 </div>

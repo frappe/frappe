@@ -81,7 +81,10 @@ def handle():
 					frappe.local.response.update({"data": doc})
 
 				if frappe.local.request.method=="PUT":
-					data = json.loads(frappe.local.form_dict.data)
+					if frappe.local.form_dict.data is None:
+						data = json.loads(frappe.safe_decode(frappe.local.request.get_data()))
+					else:
+						data = json.loads(frappe.local.form_dict.data)
 					doc = frappe.get_doc(doctype, name)
 
 					if "flags" in data:
@@ -113,7 +116,10 @@ def handle():
 							doctype, **frappe.local.form_dict)})
 
 				if frappe.local.request.method=="POST":
-					data = json.loads(frappe.local.form_dict.data)
+					if frappe.local.form_dict.data is None:
+						data = json.loads(frappe.safe_decode(frappe.local.request.get_data()))
+					else:
+						data = json.loads(frappe.local.form_dict.data)
 					data.update({
 						"doctype": doctype
 					})

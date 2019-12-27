@@ -112,11 +112,9 @@ def clear_expired_sessions():
 		delete_session(sid, reason="Session Expired")
 
 def get():
+
 	"""get session boot info"""
-	from frappe.desk.notifications import \
-		get_notification_info_for_boot, get_notifications
 	from frappe.boot import get_bootinfo, get_unseen_notes
-	from frappe.limits import get_limits, get_expiry_message
 
 	bootinfo = None
 	if not getattr(frappe.conf,'disable_session_cache', None):
@@ -124,14 +122,12 @@ def get():
 		bootinfo = frappe.cache().hget("bootinfo", frappe.session.user)
 		if bootinfo:
 			bootinfo['from_cache'] = 1
-			bootinfo["notification_info"].update(get_notifications())
 			bootinfo["user"]["recent"] = json.dumps(\
 				frappe.cache().hget("user_recent", frappe.session.user))
 
 	if not bootinfo:
 		# if not create it
 		bootinfo = get_bootinfo()
-		bootinfo["notification_info"] = get_notification_info_for_boot()
 		frappe.cache().hset("bootinfo", frappe.session.user, bootinfo)
 		try:
 			frappe.cache().ping()
@@ -160,9 +156,6 @@ def get():
 
 	bootinfo["setup_complete"] = cint(frappe.db.get_single_value('System Settings', 'setup_complete'))
 
-	# limits
-	bootinfo.limits = get_limits()
-	bootinfo.expiry_message = get_expiry_message()
 
 	return bootinfo
 
@@ -258,13 +251,14 @@ class Session:
 	def resume(self):
 		"""non-login request: load a session"""
 		import frappe
-
+		from frappe.auth import validate_ip_address
 		data = self.get_session_record()
 
 		if data:
 			# set language
 			self.data.update({'data': data, 'user':data.user, 'sid': self.sid})
 			self.user = data.user
+			validate_ip_address(self.user)
 			self.device = data.device
 		else:
 			self.start_as_guest()

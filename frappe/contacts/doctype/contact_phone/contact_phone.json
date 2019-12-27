@@ -1,0 +1,47 @@
+{
+ "creation": "2019-08-02 13:10:37.890214",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "phone",
+  "is_primary_phone",
+  "is_primary_mobile_no"
+ ],
+ "fields": [
+  {
+   "fieldname": "phone",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Number",
+   "reqd": 1
+  },
+  {
+   "columns": 2,
+   "default": "0",
+   "fieldname": "is_primary_phone",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Is Primary Phone"
+  },
+  {
+   "columns": 2,
+   "default": "0",
+   "fieldname": "is_primary_mobile_no",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Is Primary Mobile"
+  }
+ ],
+ "istable": 1,
+ "modified": "2019-09-24 17:47:50.375326",
+ "modified_by": "Administrator",
+ "module": "Contacts",
+ "name": "Contact Phone",
+ "owner": "Administrator",
+ "permissions": [],
+ "quick_entry": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

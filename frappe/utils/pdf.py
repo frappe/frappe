@@ -3,7 +3,8 @@
 from __future__ import unicode_literals
 
 import pdfkit, os, frappe
-from frappe.utils import scrub_urls
+from distutils.version import LooseVersion
+from frappe.utils import scrub_urls, get_wkhtmltopdf_version
 from frappe import _
 import six, re, io
 from bs4 import BeautifulSoup
@@ -15,10 +16,12 @@ def get_pdf(html, options=None, output=None):
 
 	options.update({
 		"disable-javascript": "",
-		"disable-local-file-access": "",
+		"disable-local-file-access": ""
 	})
 
 	filedata = ''
+	if LooseVersion(get_wkhtmltopdf_version()) > LooseVersion('0.12.3'):
+		options.update({"disable-smart-shrinking": ""})
 
 	try:
 		# Set filename property to false, so no file is actually created
@@ -87,12 +90,14 @@ def prepare_options(html, options):
 		'quiet': None,
 		# 'no-outline': None,
 		'encoding': "UTF-8",
-		#'load-error-handling': 'ignore',
-
-		# defaults
-		'margin-right': '15mm',
-		'margin-left': '15mm'
+		#'load-error-handling': 'ignore'
 	})
+
+	if not options.get("margin-right"):
+		options['margin-right'] = '15mm'
+
+	if not options.get("margin-left"):
+		options['margin-left'] = '15mm'
 
 	html, html_options = read_options_from_html(html)
 	options.update(html_options or {})

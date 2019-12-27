@@ -56,16 +56,16 @@ frappe.ui.form.ControlInput = frappe.ui.form.Control.extend({
 	refresh_input: function() {
 		var me = this;
 		var make_input = function() {
-			if(!me.has_input) {
+			if (!me.has_input) {
 				me.make_input();
-				if(me.df.on_make) {
+				if (me.df.on_make) {
 					me.df.on_make(me);
 				}
 			}
 		};
 
 		var update_input = function() {
-			if(me.doctype && me.docname) {
+			if (me.doctype && me.docname) {
 				me.set_input(me.value);
 			} else {
 				me.set_input(me.value || null);
@@ -74,21 +74,20 @@ frappe.ui.form.ControlInput = frappe.ui.form.Control.extend({
 
 		if (me.disp_status != "None") {
 			// refresh value
-			if(me.frm) {
+			if (me.frm) {
 				me.value = frappe.model.get_value(me.doctype, me.docname, me.df.fieldname);
-			}
-			else if(me.doc) {
+			} else if (me.doc) {
 				me.value = me.doc[me.df.fieldname];
 			}
 
-			if(me.disp_status=="Write") {
+			if (me.can_write()) {
 				me.disp_area && $(me.disp_area).toggle(false);
 				$(me.input_area).toggle(true);
 				me.$input && me.$input.prop("disabled", false);
 				make_input();
 				update_input();
 			} else {
-				if(me.only_input) {
+				if (me.only_input) {
 					make_input();
 					update_input();
 				} else {
@@ -108,6 +107,10 @@ frappe.ui.form.ControlInput = frappe.ui.form.Control.extend({
 		}
 	},
 
+	can_write() {
+		return this.disp_status == "Write";
+	},
+
 	set_disp_area: function(value) {
 		if(in_list(["Currency", "Int", "Float"], this.df.fieldtype)
 			&& (this.value === 0 || value === 0)) {
@@ -116,9 +119,12 @@ frappe.ui.form.ControlInput = frappe.ui.form.Control.extend({
 		} else {
 			value = this.value || value;
 		}
-		this.disp_area && $(this.disp_area)
-			.html(frappe.format(value, this.df, {no_icon:true, inline:true},
-				this.doc || (this.frm && this.frm.doc)));
+		if (this.df.fieldtype === 'Data') {
+			value = frappe.utils.escape_html(value);
+		}
+		let doc = this.doc || (this.frm && this.frm.doc);
+		let display_value = frappe.format(value, this.df, { no_icon: true, inline: true }, doc);
+		this.disp_area && $(this.disp_area).html(display_value);
 	},
 
 	bind_change_event: function() {

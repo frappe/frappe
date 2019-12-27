@@ -3,9 +3,9 @@
 	<table class="table table-bordered" style="table-layout: fixed;">
 		<thead>
 			<tr>
-				<th style="width: 20%">{{ _("Queue / Worker") }}</th>
-				<th>{{ _("Job") }}</th>
-				<th style="width: 15%">{{ _("Created") }}</th>
+				<th style="width: 20%">{{ __("Queue / Worker") }}</th>
+				<th>{{ __("Job") }}</th>
+				<th style="width: 15%">{{ __("Created") }}</th>
 			</tr>
 		</thead>
 		<tbody>
@@ -28,13 +28,13 @@
 		</tbody>
 	</table>
 	<p>
-		<span class="indicator blue" style="margin-right: 20px;">{{ _("Started") }}</span>
-		<span class="indicator orange" style="margin-right: 20px;">{{ _("Queued") }}</span>
-		<span class="indicator red" style="margin-right: 20px;">{{ _("Failed") }}</span>
-		<span class="indicator green">{{ _("Finished") }}</span>
+		<span class="indicator blue" style="margin-right: 20px;">{{ __("Started") }}</span>
+		<span class="indicator orange" style="margin-right: 20px;">{{ __("Queued") }}</span>
+		<span class="indicator red" style="margin-right: 20px;">{{ __("Failed") }}</span>
+		<span class="indicator green">{{ __("Finished") }}</span>
 	</p>
 	{% else %}
-	<p class="text-muted">{{ _("No pending or current jobs for this site") }}</p>
+	<p class="text-muted">{{ __("No pending or current jobs for this site") }}</p>
 	{% endif %}
-	<p class="text-muted" style="margin-top: 30px;">{{ _("Last refreshed") }} {{ frappe.datetime.now_datetime() }}</p>
+	<p class="text-muted" style="margin-top: 30px;">{{ __("Last refreshed") }} {{ frappe.datetime.now_datetime() }}</p>
 </div>

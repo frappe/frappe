@@ -201,14 +201,13 @@ export default class WebFormList {
 			() => (window.location.href = window.location.pathname + "?new=1")
 		);
 
-		if (!(this.rows.length < this.page_length)) {
+		if (this.rows.length <= this.page_length) {
 			addButton(footer, "more", "secondary", false, "More", () =>  this.more());
 		}
 
 		function addButton(wrapper, id, type, hidden, name, action) {
 			const button = document.createElement("button");
-			button.classList.add("btn", "btn-primary", "btn-sm", "ml-2");
-			if (type == "secondary")
+			if (type == "secondary") {
 				button.classList.add(
 					"btn",
 					"btn-secondary",
@@ -216,7 +215,8 @@ export default class WebFormList {
 					"ml-2",
 					"text-white"
 				);
-			if (type == "danger")
+			}
+			else if (type == "danger") {
 				button.classList.add(
 					"btn",
 					"btn-danger",
@@ -224,6 +224,10 @@ export default class WebFormList {
 					"btn-sm",
 					"ml-2"
 				);
+			}
+			else {
+				button.classList.add("btn", "btn-primary", "btn-sm", "ml-2");
+			}
 
 			button.id = id;
 			button.innerText = name;

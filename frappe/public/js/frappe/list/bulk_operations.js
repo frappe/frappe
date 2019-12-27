@@ -106,6 +106,15 @@ export default class BulkOperations {
 		}
 	}
 
+	apply_assignment_rule(docnames, done) {
+		if (docnames.length > 0) {
+			frappe.call('frappe.automation.doctype.assignment_rule.assignment_rule.bulk_apply', {
+				doctype: this.doctype,
+				docnames: docnames
+			}).then(() => done());
+		}
+	}
+
 	submit_or_cancel(docnames, action='submit', done=null) {
 		action = action.toLowerCase();
 		frappe

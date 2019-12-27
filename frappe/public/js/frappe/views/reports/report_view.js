@@ -495,11 +495,14 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 			title: __("{0} Chart", [this.doctype]),
 			data: data,
 			type: args.chart_type,
+			truncateLegends: 1,
 			colors: ['#70E078', 'light-blue', 'orange', 'red'],
-
-			format_tooltip_x: value => value.doc.name,
-			format_tooltip_y:
-				value => frappe.format(value, get_df(value.field), { always_show_decimals: true, inline: true }, get_doc(value.doc))
+			axisOptions: {
+				shortenYAxisNumbers: 1
+			},
+			tooltipOptions: {
+				formatTooltipY: value => frappe.format(value, get_df(this.chart_args.y_axes[0]), { always_show_decimals: true, inline: true }, get_doc(value.doc))
+			}
 		});
 	}
 
@@ -612,15 +615,18 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 	}
 
 	is_editable(df, data) {
-		if (!df || data.docstatus !== 0) return false;
-		const is_standard_field = frappe.model.std_fields_list.includes(df.fieldname);
-		const can_edit = !(
-			is_standard_field
-			|| df.read_only
-			|| df.hidden
-			|| !frappe.model.can_write(this.doctype)
-		);
-		return can_edit;
+		if (df
+			&& frappe.model.can_write(this.doctype)
+			// not a submitted doc or field is allowed to edit after submit
+			&& (data.docstatus !== 1 || df.allow_on_submit)
+			// not a cancelled doc
+			&& data.docstatus !== 2
+			&& !df.read_only
+			&& !df.hidden
+			// not a standard field i.e., owner, modified_by, etc.
+			&& !frappe.model.std_fields_list.includes(df.fieldname))
+			return true;
+		return false;
 	}
 
 	get_data(values) {
@@ -768,21 +774,20 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 	get_columns_for_picker() {
 		let out = {};
 
-		const standard_fields_filter = df =>
-			!in_list(frappe.model.no_value_type, df.fieldtype) && !df.report_hide;
+		const standard_fields_filter = df => !in_list(frappe.model.no_value_type, df.fieldtype);
 
 		let doctype_fields = frappe.meta.get_docfields(this.doctype).filter(standard_fields_filter);
 
 		doctype_fields = [{
 			label: __('ID'),
 			fieldname: 'name',
-			fieldtype: 'Data'
+			fieldtype: 'Data',
+			reqd: 1
 		}].concat(doctype_fields, frappe.model.std_fields);
 
 		out[this.doctype] = doctype_fields;
 
-		const table_fields = frappe.meta.get_table_fields(this.doctype)
-			.filter(df => !df.hidden);
+		const table_fields = frappe.meta.get_table_fields(this.doctype);
 
 		table_fields.forEach(df => {
 			const cdt = df.options;
@@ -994,7 +999,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 					content: d[cdt_field(col.field)],
 					editable: Boolean(name && this.is_editable(col.docfield, d)),
 					format: value => {
-						return frappe.format(value, col.docfield, { always_show_decimals: true });
+						return frappe.format(value, col.docfield, { always_show_decimals: true }, d);
 					}
 				};
 			}
@@ -1166,7 +1171,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 					}
 
 					frappe.ui.get_print_settings(false, (print_settings) => {
-						var title =  __(this.doctype);
+						var title =  this.report_name || __(this.doctype);
 						frappe.render_grid({
 							title: title,
 							subtitle: this.get_filters_html_for_print(),
@@ -1228,27 +1233,32 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 				action: () => {
 					const args = this.get_args();
 					const selected_items = this.get_checked_items(true);
+					let fields = [
+						{
+							fieldtype: 'Select',
+							label: __('Select File Type'),
+							fieldname:'file_format_type',
+							options: ['Excel', 'CSV'],
+							default: 'Excel'
+						}
+					];
+
+					if (this.total_count > args.page_length) {
+						fields.push({
+							fieldtype: 'Check',
+							fieldname: 'export_all_rows',
+							label: __('Export All {0} rows?', [(this.total_count + "").bold()])
+						});
+					}
 
 					const d = new frappe.ui.Dialog({
 						title: __("Export Report: {0}",[__(this.doctype)]),
-						fields: [
-							{
-								fieldtype: 'Select',
-								label: __('Select File Type'),
-								fieldname:'file_format_type',
-								options: ['Excel', 'CSV'],
-								default: 'Excel'
-							},
-							{
-								fieldtype: 'Check',
-								fieldname: 'export_all_rows',
-								label: __('Export All {0} rows?', [(this.total_count + "").bold()])
-							}
-						],
+						fields: fields,
 						primary_action_label: __('Download'),
 						primary_action: (data) => {
 							args.cmd = 'frappe.desk.reportview.export_query';
 							args.file_format_type = data.file_format_type;
+							args.title = this.report_name || this.doctype;
 
 							if(this.add_totals_row) {
 								args.add_totals_row = 1;

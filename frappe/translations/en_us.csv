@@ -1,0 +1,18 @@
+apps/frappe/frappe/www/printview.py,Not allowed to print cancelled documents,Not allowed to print canceled documents
+apps/frappe/frappe/templates/pages/integrations/payment-cancel.html,Payment Cancelled,Payment Canceled
+apps/frappe/frappe/model/document.py,Cannot link cancelled document: {0},Cannot link canceled document: {0}
+DocType: Workflow State,zoom-out,zoom-out
+DocType: Print Settings,Allow Print for Cancelled,Allow Print for Canceled
+apps/frappe/frappe/utils/data.py,1 weeks ago,1 week ago
+DocType: Workflow State,facetime-video,Facetime-Video
+apps/frappe/frappe/desk/doctype/bulk_update/bulk_update.py,Cancelling {0},Canceling {0}
+apps/frappe/frappe/model/document.py,Cannot edit cancelled document,Cannot edit canceled document
+apps/frappe/frappe/templates/pages/integrations/payment-cancel.html,Your payment is cancelled.,Your payment is canceled.
+apps/frappe/frappe/public/js/frappe/list/bulk_operations.js,You selected Draft or Cancelled documents,You selected Draft or Canceled documents
+DocType: Workflow Document State,0 - Draft; 1 - Submitted; 2 - Cancelled,0 - Draft; 1 - Submitted; 2 - Canceled
+DocType: Comment,Cancelled,Canceled
+apps/frappe/frappe/public/js/frappe/form/save.js,Cancelling,Canceling
+apps/frappe/frappe/core/doctype/deleted_document/deleted_document.py,Cancelled Document restored as Draft,Canceled Document restored as Draft
+apps/frappe/frappe/config/settings.py,"States for workflow (e.g. Draft, Approved, Cancelled).","States for workflow (e.g. Draft, Approved, Canceled)."
+apps/frappe/frappe/workflow/doctype/workflow/workflow.py,Cannot change state of Cancelled Document. Transition row {0},Cannot change state of Canceled Document. Transition row {0}
+apps/frappe/frappe/public/js/frappe/form/footer/timeline.js,cancelled this document,canceled this document

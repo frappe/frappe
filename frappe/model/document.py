@@ -17,6 +17,7 @@ from frappe.model.workflow import validate_workflow
 from frappe.utils.global_search import update_global_search
 from frappe.integrations.doctype.webhook import run_webhooks
 from frappe.desk.form.document_follow import follow_document
+from frappe.core.doctype.server_script.server_script_utils import run_server_script_for_doc_event
 
 # once_only validation
 # methods
@@ -787,6 +788,7 @@ class Document(BaseDocument):
 
 		self.run_notifications(method)
 		run_webhooks(self, method)
+		run_server_script_for_doc_event(self, method)
 
 		return out
 
@@ -984,6 +986,7 @@ class Document(BaseDocument):
 			self.set("modified", now())
 			self.set("modified_by", frappe.session.user)
 
+		self.load_doc_before_save()
 		# to trigger notification on value change
 		self.run_method('before_change')
 
@@ -1230,6 +1233,18 @@ class Document(BaseDocument):
 				frappe.bold(self.meta.get_label(to_date_field)),
 				frappe.bold(self.meta.get_label(from_date_field)),
 			), frappe.exceptions.InvalidDates)
+
+	def get_assigned_users(self):
+		assignments = frappe.get_all('ToDo',
+			fields=['owner'],
+			filters={
+				'reference_type': self.doctype,
+				'reference_name': self.name,
+				'status': ('!=', 'Cancelled'),
+			})
+
+		users = set([assignment.owner for assignment in assignments])
+		return users
 
 def execute_action(doctype, name, action, **kwargs):
 	'''Execute an action on a document (called by background worker)'''

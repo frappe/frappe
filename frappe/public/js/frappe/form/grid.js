@@ -52,7 +52,7 @@ export default class Grid {
 
 		let template = `<div class="form-group">
 			<div class="clearfix">
-				<label class="control-label" style="padding-right: 0px;">${__(this.df.label)}</label>
+				<label class="control-label" style="padding-right: 0px;">${__(this.df.label || '')}</label>
 			</div>
 			<div class="form-grid">
 				<div class="grid-heading-row"></div>
@@ -347,7 +347,6 @@ export default class Grid {
 				if (!this.is_editable()) {
 					return false;
 				}
-
 				// prevent drag behaviour if _sortable property is "false"
 				let idx = $(event.dragged).closest('.grid-row').attr('data-idx');
 				let doc = this.get_data()[idx - 1];
@@ -359,7 +358,7 @@ export default class Grid {
 				let idx = $(event.item).closest('.grid-row').attr('data-idx');
 				let doc = this.get_data()[idx - 1];
 				this.renumber_based_on_dom();
-				this.frm.script_manager.trigger(this.df.fieldnathis + "_move", this.df.options, doc.nathis);
+				this.frm.script_manager.trigger(this.df.fieldname + "_move", this.df.options, doc.name);
 				this.refresh();
 				this.frm.dirty();
 			}

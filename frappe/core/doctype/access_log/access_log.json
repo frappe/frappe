@@ -1,0 +1,150 @@
+{
+ "autoname": "format:AL-{#####}",
+ "creation": "2019-07-25 15:44:44.955496",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "log_data_section",
+  "export_from",
+  "user",
+  "show_document",
+  "column_break_3",
+  "reference_document",
+  "timestamp",
+  "private_file_section",
+  "file_type",
+  "method",
+  "report_information_section",
+  "report_name",
+  "filters",
+  "show_report",
+  "raw_information_log_section",
+  "page",
+  "columns"
+ ],
+ "fields": [
+  {
+   "fieldname": "export_from",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Export From",
+   "read_only": 1
+  },
+  {
+   "fieldname": "user",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "User ",
+   "options": "User",
+   "read_only": 1
+  },
+  {
+   "default": "Now",
+   "fieldname": "timestamp",
+   "fieldtype": "Datetime",
+   "label": "Timestamp",
+   "read_only": 1
+  },
+  {
+   "fieldname": "reference_document",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Reference Document",
+   "read_only": 1
+  },
+  {
+   "fieldname": "file_type",
+   "fieldtype": "Data",
+   "label": "File Type",
+   "read_only": 1
+  },
+  {
+   "fieldname": "report_name",
+   "fieldtype": "Data",
+   "label": "Report Name",
+   "read_only": 1
+  },
+  {
+   "fieldname": "page",
+   "fieldtype": "HTML Editor",
+   "label": "HTML Page",
+   "read_only": 1
+  },
+  {
+   "fieldname": "log_data_section",
+   "fieldtype": "Section Break",
+   "label": "Log Data"
+  },
+  {
+   "fieldname": "column_break_3",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "private_file_section",
+   "fieldtype": "Section Break",
+   "label": "File Information"
+  },
+  {
+   "fieldname": "report_information_section",
+   "fieldtype": "Section Break",
+   "label": "Report Information"
+  },
+  {
+   "fieldname": "raw_information_log_section",
+   "fieldtype": "Section Break",
+   "label": "RAW Information Log"
+  },
+  {
+   "fieldname": "method",
+   "fieldtype": "Data",
+   "label": "Method",
+   "read_only": 1
+  },
+  {
+   "depends_on": "report_name",
+   "fieldname": "show_report",
+   "fieldtype": "Button",
+   "label": "Show Report"
+  },
+  {
+   "depends_on": "reference_document",
+   "fieldname": "show_document",
+   "fieldtype": "Button",
+   "label": "Show Document"
+  },
+  {
+   "depends_on": "eval: doc.filters != null",
+   "fieldname": "filters",
+   "fieldtype": "Code",
+   "label": "Filters",
+   "read_only": 1
+  },
+  {
+   "fieldname": "columns",
+   "fieldtype": "HTML Editor",
+   "label": "Columns / Fields",
+   "read_only": 1
+  }
+ ],
+ "modified": "2019-08-05 19:00:13.839471",
+ "modified_by": "Administrator",
+ "module": "Core",
+ "name": "Access Log",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_seen": 1
+}

@@ -30,7 +30,9 @@ frappe.ui.form.Timeline = class Timeline {
 			render_input: true,
 			only_input: true,
 			on_submit: (val) => {
-				strip_html(val) && this.insert_comment(val, this.comment_area.button);
+				if(strip_html(val).trim() != "") {
+					this.insert_comment(val, this.comment_area.button);
+				}
 			}
 		});
 
@@ -276,6 +278,10 @@ frappe.ui.form.Timeline = class Timeline {
 				e.preventDefault();
 				var name = $timeline_item.data('name');
 
+				// fix quill editor's tooltip
+				$timeline_item.attr('style', 'overflow: visible;');
+				$timeline_item.find('.timeline-content-show').attr('style', 'overflow: visible;');
+
 				if($timeline_item.hasClass('is-editing')) {
 					me.current_editing_area.submit();
 				} else {
@@ -371,11 +377,11 @@ frappe.ui.form.Timeline = class Timeline {
 		c["edit"] = "";
 		if(c.communication_type=="Comment" && (c.comment_type || "Comment") === "Comment") {
 			if(frappe.model.can_delete("Comment")) {
-				c["delete"] = '<a class="close delete-comment" title="Delete"  href="#"><i class="octicon octicon-x"></i></a>';
+				c["delete"] = `<a class="close delete-comment" title="${__('Delete')}"  href="#"><i class="octicon octicon-x"></i></a>`;
 			}
 
 			if(frappe.user.name == c.sender || (frappe.user.name == 'Administrator')) {
-				c["edit"] = '<a class="edit-comment text-muted" title="Edit" href="#">Edit</a>';
+				c["edit"] = `<a class="edit-comment text-muted" title="${__('Edit')}" href="#">${__('Edit')}</a>`;
 			}
 		}
 		let communication_date = c.communication_date || c.creation;
@@ -560,33 +566,45 @@ frappe.ui.form.Timeline = class Timeline {
 	build_version_comments(docinfo, out) {
 		var me = this;
 		docinfo.versions.forEach(function(version) {
-			if(!version.data) return;
+			if (!version.data) return;
 			var data = JSON.parse(version.data);
 
 			// comment
-			if(data.comment) {
+			if (data.comment) {
 				out.push(me.get_version_comment(version, data.comment, data.comment_type));
 				return;
 			}
 
+			let data_import_link = frappe.utils.get_form_link(
+				'Data Import Beta',
+				data.data_import,
+				true,
+				__('via Data Import')
+			);
+
 			// value changed in parent
-			if(data.changed && data.changed.length) {
+			if (data.changed && data.changed.length) {
 				var parts = [];
 				data.changed.every(function(p) {
-					if(p[0]==='docstatus') {
-						if(p[2]==1) {
-							out.push(me.get_version_comment(version, __('submitted this document')));
+					if (p[0]==='docstatus') {
+						if (p[2]==1) {
+							let message = data.data_import
+								? __('submitted this document {0}', [data_import_link])
+								: __('submitted this document');
+							out.push(me.get_version_comment(version, message));
 						} else if (p[2]==2) {
-							out.push(me.get_version_comment(version, __('cancelled this document')));
+							let message = data.data_import
+								? __('cancelled this document {0}', [data_import_link])
+								: __('cancelled this document');
+							out.push(me.get_version_comment(version, message));
 						}
 					} else {
-
-						var df = frappe.meta.get_docfield(me.frm.doctype, p[0], me.frm.docname);
-
-						if(df && !df.hidden) {
-							var field_display_status = frappe.perm.get_field_display_status(df, null,
+						p = p.map(frappe.utils.escape_html);
+						const df = frappe.meta.get_docfield(me.frm.doctype, p[0], me.frm.docname);
+						if (df && !df.hidden) {
+							const field_display_status = frappe.perm.get_field_display_status(df, null,
 								me.frm.perm);
-							if(field_display_status === 'Read' || field_display_status === 'Write') {
+							if (field_display_status === 'Read' || field_display_status === 'Write') {
 								parts.push(__('{0} from {1} to {2}', [
 									__(df.label),
 									(frappe.ellipsis(frappe.utils.html2text(p[1]), 40) || '""').bold(),
@@ -598,12 +616,18 @@ frappe.ui.form.Timeline = class Timeline {
 					return parts.length < 3;
 				});
 				if(parts.length) {
-					out.push(me.get_version_comment(version, __("changed value of {0}", [parts.join(', ').bold()])));
+					let message;
+					if (data.data_import) {
+						message = __("changed value of {0} {1}", [parts.join(', ').bold(), data_import_link]);
+					} else {
+						message = __("changed value of {0}", [parts.join(', ').bold()]);
+					}
+					out.push(me.get_version_comment(version, message));
 				}
 			}
 
 			// value changed in table field
-			if(data.row_changed && data.row_changed.length) {
+			if (data.row_changed && data.row_changed.length) {
 				var parts = [], count = 0;
 				data.row_changed.every(function(row) {
 					row[3].every(function(p) {
@@ -630,8 +654,13 @@ frappe.ui.form.Timeline = class Timeline {
 					return parts.length < 3;
 				});
 				if(parts.length) {
-					out.push(me.get_version_comment(version, __("changed values for {0}",
-						[parts.join(', ')])));
+					let message;
+					if (data.data_import) {
+						message = __("changed values for {0} {1}", [parts.join(', '), data_import_link]);
+					} else {
+						message = __("changed values for {0}", [parts.join(', ')]);
+					}
+					out.push(me.get_version_comment(version, message));
 				}
 			}
 

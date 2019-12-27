@@ -1,5 +1,4 @@
 import frappe
-import os
 
 def execute():
 	files = frappe.get_all('File',

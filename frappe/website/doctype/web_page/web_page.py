@@ -30,6 +30,7 @@ class WebPage(WebsiteGenerator):
 
 	def get_context(self, context):
 		context.main_section = get_html_content_based_on_type(self, 'main_section', self.content_type)
+		self.render_dynamic(context)
 
 		# if static page, get static content
 		if context.slideshow:
@@ -57,7 +58,7 @@ class WebPage(WebsiteGenerator):
 
 	def render_dynamic(self, context):
 		# dynamic
-		is_jinja = "<!-- jinja -->" in context.main_section
+		is_jinja = context.dynamic_template or "<!-- jinja -->" in context.main_section
 		if is_jinja or ("{{" in context.main_section):
 			try:
 				context["main_section"] = render_template(context.main_section,

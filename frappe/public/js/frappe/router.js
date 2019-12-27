@@ -51,7 +51,7 @@ frappe.route = function() {
 			frappe.views.pageview.show('');
 		}
 
-		if(route[1] && frappe.views[title_cased_route + "Factory"]) {
+		if (route[1] && frappe.views[title_cased_route + "Factory"]) {
 			// has a view generator, generate!
 			if(!frappe.view_factory[title_cased_route]) {
 				frappe.view_factory[title_cased_route] = new frappe.views[title_cased_route + "Factory"]();

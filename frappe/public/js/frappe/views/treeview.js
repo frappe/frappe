@@ -335,6 +335,15 @@ frappe.views.TreeView = Class.extend({
 		frappe.ui.get_print_settings(false, function(print_settings) {
 			var title =  __(me.docname || me.doctype);
 			frappe.render_tree({title: title, tree: tree, print_settings:print_settings});
+			frappe.call({
+				method: "frappe.core.doctype.access_log.access_log.make_access_log",
+				args: {
+					doctype: me.doctype,
+					report_name: me.page_name,
+					page: tree,
+					method: 'Print'
+				}
+			});
 		});
 	},
 	set_primary_action: function(){

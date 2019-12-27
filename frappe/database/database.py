@@ -174,6 +174,7 @@ class Database(object):
 					self.log_touched_tables(query)
 
 			if debug:
+				frappe.errprint(self._cursor.mogrify(query, values))
 				time_end = time()
 				frappe.errprint(("Execution time: {0} sec").format(round(time_end - time_start, 2)))
 
@@ -607,7 +608,7 @@ class Database(object):
 		"""Update multiple values. Alias for `set_value`."""
 		return self.set_value(*args, **kwargs)
 
-	def set_value(self, dt, dn, field, val, modified=None, modified_by=None,
+	def set_value(self, dt, dn, field, val=None, modified=None, modified_by=None,
 		update_modified=True, debug=False):
 		"""Set a single value in the database, do not call the ORM triggers
 		but update the modified timestamp (unless specified not to).
@@ -758,7 +759,10 @@ class Database(object):
 
 	def field_exists(self, dt, fn):
 		"""Return true of field exists."""
-		return self.sql("select name from tabDocField where fieldname=%s and parent=%s", (dt, fn))
+		return self.exists('DocField', {
+			'fieldname': fn,
+			'parent': dt
+		})
 
 	def table_exists(self, doctype):
 		"""Returns True if table for given doctype exists."""
@@ -842,16 +846,23 @@ class Database(object):
 
 	def get_db_table_columns(self, table):
 		"""Returns list of column names from given table."""
-		return [r[0] for r in self.sql('''
-			select column_name
-			from information_schema.columns
-			where table_name = %s ''', table)]
+		columns = frappe.cache().hget('table_columns', table)
+		if columns is None:
+			columns = [r[0] for r in self.sql('''
+				select column_name
+				from information_schema.columns
+				where table_name = %s ''', table)]
+
+			if columns:
+				frappe.cache().hset('table_columns', table, columns)
+
+		return columns
 
 	def get_table_columns(self, doctype):
 		"""Returns list of column names from given doctype."""
 		columns = self.get_db_table_columns('tab' + doctype)
 		if not columns:
-			raise self.TableMissingError
+			raise self.TableMissingError('DocType', doctype)
 		return columns
 
 	def has_column(self, doctype, column):
@@ -958,6 +969,27 @@ class Database(object):
 				frappe.flags.touched_tables = set()
 			frappe.flags.touched_tables.update(tables)
 
+	def bulk_insert(self, doctype, fields, values, ignore_duplicates=False):
+		"""
+			Insert multiple records at a time
+
+			:param doctype: Doctype name
+			:param fields: list of fields
+			:params values: list of list of values
+		"""
+		insert_list = []
+		fields = ", ".join(["`"+field+"`" for field in fields])
+
+		for idx, value in enumerate(values):
+			insert_list.append(tuple(value))
+			if idx and (idx%10000 == 0 or idx < len(values)-1):
+				self.sql("""INSERT {ignore_duplicates} INTO `tab{doctype}` ({fields}) VALUES {values}""".format(
+						ignore_duplicates="IGNORE" if ignore_duplicates else "",
+						doctype=doctype,
+						fields=fields,
+						values=", ".join(['%s'] * len(insert_list))
+					), tuple(insert_list))
+				insert_list = []
 
 def enqueue_jobs_after_commit():
 	if frappe.flags.enqueue_after_commit and len(frappe.flags.enqueue_after_commit) > 0:

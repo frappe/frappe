@@ -30,7 +30,8 @@ doctype_properties = {
 	'max_attachments': 'Int',
 	'track_changes': 'Check',
 	'track_views': 'Check',
-	'allow_auto_repeat': 'Check'
+	'allow_auto_repeat': 'Check',
+	'allow_import': 'Check'
 }
 
 docfield_properties = {
