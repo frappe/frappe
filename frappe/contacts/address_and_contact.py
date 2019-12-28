@@ -11,6 +11,7 @@ import re
 def load_address_and_contact(doc, key=None):
 	"""Loads address list and contact list in `__onload`"""
 	from frappe.contacts.doctype.address.address import get_address_display, get_condensed_address
+	from frappe.contacts.doctype.contact.contact import get_phone_number_types, get_phone_nos_for_onload
 
 	filters = [
 		["Dynamic Link", "link_doctype", "=", doc.doctype],
@@ -44,12 +45,7 @@ def load_address_and_contact(doc, key=None):
 				"is_primary": 0
 			}, fields=["email_id"])
 
-		contact["phone_nos"] = frappe.get_list("Contact Phone", filters={
-				"parenttype": "Contact",
-				"parent": contact.name,
-				"is_primary_phone": 0,
-				"is_primary_mobile_no": 0
-			}, fields=["phone"])
+		contact["phone_nos"] = get_phone_nos_for_onload(contact.name)
 
 		if contact.address:
 			address = frappe.get_doc("Address", contact.address)
