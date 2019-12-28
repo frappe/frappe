@@ -8,7 +8,7 @@ import smtplib
 import email.utils
 import _socket, sys
 from frappe import _
-from frappe.utils import cint, parse_addr
+from frappe.utils import cint, cstr, parse_addr
 
 def send(email, append_to=None, retry=1):
 	"""Deprecated: Send the message or add it to Outbox Email"""
@@ -202,7 +202,7 @@ class SMTPServer:
 			if self.use_tls and not self.port:
 				self.port = 587
 
-			self._sess = smtplib.SMTP((self.server or "").encode('utf-8'),
+			self._sess = smtplib.SMTP(cstr(self.server or ""),
 				cint(self.port) or None)
 
 			if not self._sess:
