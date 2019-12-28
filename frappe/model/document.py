@@ -577,7 +577,7 @@ class Document(BaseDocument):
 
 	def get_permlevel_access(self, permission_type='write'):
 		if not hasattr(self, "_has_access_to"):
-			self._has_access_to = frappe._dict()
+			self._has_access_to = {}
 
 		if not self._has_access_to.get(permission_type):
 			self._has_access_to[permission_type] = []
