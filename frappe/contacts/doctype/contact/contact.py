@@ -283,5 +283,4 @@ def get_phone_nos_for_onload(name):
 			"numbers": numbers
 		})
 
-	print(contacts)
 	return contacts
