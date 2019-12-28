@@ -6,7 +6,7 @@ from __future__ import unicode_literals
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils import validate_email_address ,cint
+from frappe.utils import validate_email_address ,cint, cstr
 import imaplib,poplib,smtplib
 from frappe.email.utils import get_port
 
@@ -51,7 +51,7 @@ class EmailDomain(Document):
 			try:
 				if self.use_tls and not self.smtp_port:
 					self.smtp_port = 587
-				sess = smtplib.SMTP((self.smtp_server or "").encode('utf-8'), cint(self.smtp_port) or None)
+				sess = smtplib.SMTP(cstr(self.smtp_server or ""), cint(self.smtp_port) or None)
 				sess.quit()
 			except Exception:
 				frappe.throw(_("Outgoing email account not correct"))
