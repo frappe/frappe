@@ -17,6 +17,7 @@
   "address",
   "phone",
   "mobile_no",
+  "whatsapp",
   "sync_with_google_contacts",
   "cb00",
   "status",
@@ -27,6 +28,7 @@
   "fax",
   "pager",
   "skype",
+  "telegram",
   "image",
   "sb_00",
   "google_contacts",
@@ -262,13 +264,25 @@
    "fieldtype": "Data",
    "label": "Skype",
    "read_only": 1
+  },
+  {
+   "fieldname": "whatsapp",
+   "fieldtype": "Data",
+   "label": "WhatsApp",
+   "read_only": 1
+  },
+  {
+   "fieldname": "telegram",
+   "fieldtype": "Data",
+   "label": "Telegram",
+   "read_only": 1
   }
  ],
  "icon": "fa fa-user",
  "idx": 1,
  "image_field": "image",
  "links": [],
- "modified": "2019-12-28 18:23:06.362059",
+ "modified": "2019-12-28 23:29:03.032927",
  "modified_by": "Administrator",
  "module": "Contacts",
  "name": "Contact",
