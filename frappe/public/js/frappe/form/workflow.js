@@ -105,7 +105,17 @@ frappe.ui.form.States = Class.extend({
 					});
 				}
 			});
-			this.setup_btn(added);
+			if (!added) {
+				//call function and clear cancel button if Cancel doc state is defined in the workfloe
+				frappe.xcall('frappe.model.workflow.can_cancel_document', {doc: this.frm.doc}).then((can_cancel) => {
+					if (!can_cancel) {
+						this.frm.page.clear_secondary_action();
+					}
+				});
+			} else {
+				this.setup_btn(added);
+			}
+			
 		});
 
 	},
