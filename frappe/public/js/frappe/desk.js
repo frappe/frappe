@@ -466,12 +466,27 @@ frappe.Application = Class.extend({
 
 	show_change_log: function() {
 		var me = this;
-		var d = frappe.msgprint(
-			frappe.render_template("change_log", {"change_log": frappe.boot.change_log}),
-			__("Updated To New Version")
-		);
-		d.keep_open = true;
-		d.custom_onhide = function() {
+		let change_log = frappe.boot.change_log;
+
+		// frappe.boot.change_log = [{
+		// 	"change_log": [
+		// 		[<version>, <change_log in markdown>],
+		// 		[<version>, <change_log in markdown>],
+		// 	],
+		// 	"description": "ERP made simple",
+		// 	"title": "ERPNext",
+		// 	"version": "12.2.0"
+		// }];
+
+		// Iterate over changelog
+		var change_log_dialog = frappe.msgprint({
+			message: frappe.render_template("change_log", {"change_log": change_log}),
+			title: __("Updated To New Version 🎉"),
+			wide: true,
+			scroll: true
+		});
+		change_log_dialog.keep_open = true;
+		change_log_dialog.custom_onhide = function() {
 			frappe.call({
 				"method": "frappe.utils.change_log.update_last_known_versions"
 			});
@@ -486,22 +501,14 @@ frappe.Application = Class.extend({
 	},
 
 	setup_onboarding_wizard: () => {
-		var me = this;
-		frappe.call('frappe.desk.doctype.setup_wizard_slide.setup_wizard_slide.get_onboarding_slides').then(res => {
+		frappe.call('frappe.desk.doctype.onboarding_slide.onboarding_slide.get_onboarding_slides').then(res => {
 			if (res.message) {
 				let slides = res.message;
 				if (slides.length) {
-					frappe.require("assets/frappe/js/frappe/ui/onboarding_dialog.js", () => {
-						me.progress_dialog = new frappe.setup.OnboardingDialog({
-							slides: slides
-						});
-						me.progress_dialog.show();
-						frappe.call({
-							method: "frappe.desk.page.setup_wizard.setup_wizard.reset_is_first_startup",
-							args: {},
-							callback: () => {}
-						});
+					this.progress_dialog = new frappe.setup.OnboardingDialog({
+						slides: slides
 					});
+					this.progress_dialog.show();
 				}
 			}
 		});

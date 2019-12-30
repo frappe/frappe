@@ -287,6 +287,7 @@ frappe.ui.Filter = class {
 	}
 
 	make_tag() {
+		if (!this.field) return;
 		this.$filter_tag = this.get_filter_tag_element()
 			.insertAfter(this.parent.find(".active-tag-filters .clear-filters"));
 		this.set_filter_button_text();

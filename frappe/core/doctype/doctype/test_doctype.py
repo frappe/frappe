@@ -96,14 +96,19 @@ class TestDocType(unittest.TestCase):
 	def test_all_depends_on_fields_conditions(self):
 		import re
 
-		docfields = frappe.get_all("DocField", or_filters={
+		docfields = frappe.get_all("DocField",
+			 or_filters={
 			"ifnull(depends_on, '')": ("!=", ''),
-			"ifnull(collapsible_depends_on, '')": ("!=", '')
-		}, fields=["parent", "depends_on", "collapsible_depends_on", "fieldname", "fieldtype"])
+			"ifnull(collapsible_depends_on, '')": ("!=", ''),
+			"ifnull(mandatory_depends_on, '')": ("!=", ''),
+			"ifnull(read_only_depends_on, '')": ("!=", '')
+			},
+			fields=["parent", "depends_on", "collapsible_depends_on", "mandatory_depends_on",\
+				"read_only_depends_on", "fieldname", "fieldtype"])
 
 		pattern = """[\w\.:_]+\s*={1}\s*[\w\.@'"]+"""
 		for field in docfields:
-			for depends_on in ["depends_on", "collapsible_depends_on"]:
+			for depends_on in ["depends_on", "collapsible_depends_on", "mandatory_depends_on", "read_only_depends_on"]:
 				condition = field.get(depends_on)
 				if condition:
 					self.assertFalse(re.match(pattern, condition))

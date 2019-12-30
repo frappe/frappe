@@ -111,6 +111,7 @@ frappe.ui.form.Form = class FrappeForm {
 			$("body").attr("data-sidebar", 1);
 		}
 		this.setup_file_drop();
+		this.setup_doctype_actions();
 
 		this.setup_done = true;
 	}
@@ -319,6 +320,29 @@ frappe.ui.form.Form = class FrappeForm {
 		}
 	}
 
+	// sets up the refresh event for custom buttons
+	// added via configuration
+	setup_doctype_actions() {
+		if (this.meta.actions) {
+			for (let action of this.meta.actions) {
+				frappe.ui.form.on(this.doctype, 'refresh', () => {
+					if (!this.is_new()) {
+						this.add_custom_button(action.label, () => {
+							if (action.action_type==='Server Action') {
+								frappe.xcall(action.action, {doc: this.doc}).then(() => {
+									frappe.msgprint({
+										message: __('{} Complete', [action.label]),
+										alert: true
+									});
+								});
+							}
+						}, action.group);
+					}
+				});
+			}
+		}
+	}
+
 	switch_doc(docname) {
 		// record switch
 		if(this.docname != docname && (!this.meta.in_dialog || this.in_form) && !this.meta.istable) {
@@ -328,7 +352,11 @@ frappe.ui.form.Form = class FrappeForm {
 			}
 		}
 		// reset visible columns, since column headings can change in different docs
-		this.grids.forEach(grid_obj => grid_obj.grid.visible_columns = null);
+		this.grids.forEach(grid_obj => {
+			grid_obj.grid.visible_columns = null
+			// reset page number to 1
+			grid_obj.grid.grid_pagination.go_to_page(1);
+		});
 		frappe.ui.form.close_grid_form();
 		this.docname = docname;
 	}
@@ -830,13 +858,27 @@ frappe.ui.form.Form = class FrappeForm {
 	}
 
 	navigate_records(prev) {
-		let list_settings = frappe.get_user_settings(this.doctype)['List'];
+		let filters, sort_field, sort_order;
+		let list_view = frappe.get_list_view(this.doctype);
+		if (list_view) {
+			filters = list_view.get_filters_for_args();
+			sort_field = list_view.sort_field;
+			sort_order = list_view.sort_order;
+		} else {
+			let list_settings = frappe.get_user_settings(this.doctype)['List'];
+			if (list_settings) {
+				filters = list_settings.filters;
+				sort_field = list_settings.sort_field;
+				sort_order = list_settings.sort_order;
+			}
+		}
+
 		let args = {
 			doctype: this.doctype,
 			value: this.docname,
-			filters: list_settings.filters,
-			sort_order: list_settings.sort_order,
-			sort_field: list_settings.sort_by,
+			filters,
+			sort_order,
+			sort_field,
 			prev,
 		};
 

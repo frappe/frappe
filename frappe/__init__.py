@@ -23,7 +23,7 @@ if sys.version[0] == '2':
 	reload(sys)
 	sys.setdefaultencoding("utf-8")
 
-__version__ = '12.0.20'
+__version__ = '12.1.0'
 __title__ = "Frappe Framework"
 
 local = Local()
@@ -123,7 +123,6 @@ def init(site, sites_path=None, new_site=False):
 	local.debug_log = []
 	local.realtime_log = []
 	local.flags = _dict({
-		"ran_schedulers": [],
 		"currently_saving": [],
 		"redirect_location": "",
 		"in_install_db": False,
@@ -1524,11 +1523,23 @@ def logger(module=None, with_more_info=True):
 
 def log_error(message=None, title=None):
 	'''Log error to Error Log'''
-	return get_doc(dict(
-		doctype='Error Log',
-		error=as_unicode(message or get_traceback()),
-		method=title
-	)).insert(ignore_permissions=True)
+
+	# AI ALERT:
+	# the title and message may be swapped
+	# the better API for this is log_error(title, message), and used in many cases this way
+	# this hack tries to be smart about whats a title (single line ;-)) and fixes it
+
+	if message:
+		if '\n' not in message:
+			title = message
+			error = get_traceback()
+		else:
+			error = message
+	else:
+		error = get_traceback()
+
+	return get_doc(dict(doctype='Error Log', error=as_unicode(error),
+		method=title)).insert(ignore_permissions=True)
 
 def get_desk_link(doctype, name):
 	html = '<a href="#Form/{doctype}/{name}" style="font-weight: bold;">{doctype_local} {name}</a>'
