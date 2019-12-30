@@ -51,8 +51,11 @@ class EventConsumer(Document):
 
 @frappe.whitelist(allow_guest=True)
 def register_consumer(data):
-	consumer = frappe.new_doc('Event Consumer')
 	data = json.loads(data)
+	# to ensure that consumer is created only once
+	if frappe.db.exists('Event Consumer', data['event_consumer']):
+		return
+	consumer = frappe.new_doc('Event Consumer')
 	consumer.callback_url = data['event_consumer']
 	consumer.user = data['user']
 	consumer.incoming_change = True

@@ -1,4 +1,5 @@
 {
+ "actions": [],
  "creation": "2019-10-03 21:08:25.890352",
  "doctype": "DocType",
  "editable_grid": 1,
@@ -17,7 +18,8 @@
    "in_list_view": 1,
    "label": "Document Type",
    "options": "DocType",
-   "reqd": 1
+   "reqd": 1,
+   "set_only_once": 1
   },
   {
    "default": "0",
@@ -52,7 +54,8 @@
   }
  ],
  "istable": 1,
- "modified": "2019-10-29 15:12:53.962591",
+ "links": [],
+ "modified": "2019-12-30 11:42:36.032351",
  "modified_by": "Administrator",
  "module": "Event Streaming",
  "name": "Event Producer Document Type",

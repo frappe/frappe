@@ -40,10 +40,13 @@ class EventProducer(Document):
 				'frappe.event_streaming.doctype.event_consumer.event_consumer.register_consumer',
 				params = {'data': json.dumps(self.get_request_data())}
 			)
-			response = json.loads(response)
-			self.api_key = response['api_key']
-			self.api_secret =  response['api_secret']
-			self.last_update = response['last_update']
+			if response:
+				response = json.loads(response)
+				self.api_key = response['api_key']
+				self.api_secret =  response['api_secret']
+				self.last_update = response['last_update']
+			else:
+				frappe.throw(_('Failed to create an Event Consumer or an Event Consumer for the current site is already registered.'))
 
 	def get_request_data(self):
 		consumer_doctypes = []
@@ -95,7 +98,6 @@ class EventProducer(Document):
 				event_consumer.user = self.user
 				event_consumer.incoming_change = True
 				producer_site.update(event_consumer)
-
 	def is_producer_online(self):
 		'''check connection status for the Event Producer site'''
 		retry = 3

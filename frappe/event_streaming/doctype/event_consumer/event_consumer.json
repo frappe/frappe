@@ -78,7 +78,7 @@
  ],
  "in_create": 1,
  "links": [],
- "modified": "2019-12-26 13:05:08.020129",
+ "modified": "2019-12-30 11:52:16.276047",
  "modified_by": "Administrator",
  "module": "Event Streaming",
  "name": "Event Consumer",
