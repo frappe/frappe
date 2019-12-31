@@ -182,6 +182,8 @@ def get_notification_info():
 	return out
 
 def get_notification_config():
+	user = frappe.session.user or 'Guest'
+
 	def _get():
 		subscribed_documents = get_subscribed_documents()
 		config = frappe._dict()
@@ -205,7 +207,7 @@ def get_notification_config():
 						config[key].update(nc.get(key, {}))
 		return config
 
-	return frappe.cache().hget("notification_config", frappe.session.user, _get)
+	return frappe.cache().hget("notification_config", user, _get)
 
 def get_filters_for(doctype):
 	'''get open filters for doctype'''

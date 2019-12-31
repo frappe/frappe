@@ -141,6 +141,7 @@ def update_system_settings(args):
 		"time_zone": args.get("timezone"),
 		"float_precision": 3,
 		'date_format': frappe.db.get_value("Country", args.get("country"), "date_format"),
+		'time_format': frappe.db.get_value("Country", args.get("country"), "time_format"),
 		'number_format': number_format,
 		'enable_scheduler': 1 if not frappe.flags.in_test else 0,
 		'backup_limit': 3 # Default for downloadable backups

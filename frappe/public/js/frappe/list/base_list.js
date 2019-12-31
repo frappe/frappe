@@ -207,7 +207,7 @@ frappe.views.BaseList = class BaseList {
 
 	show_or_hide_sidebar() {
 		let show_sidebar = JSON.parse(localStorage.show_sidebar || 'true');
-		$(document.body).toggleClass('no-sidebar', !show_sidebar);
+		$(document.body).toggleClass('no-list-sidebar', !show_sidebar);
 	}
 
 	setup_main_section() {
@@ -614,7 +614,7 @@ class FilterArea {
 			let options = df.options;
 			let condition = '=';
 			let fieldtype = df.fieldtype;
-			if (['Text', 'Small Text', 'Text Editor', 'Data', 'Code'].includes(fieldtype)) {
+			if (['Text', 'Small Text', 'Text Editor', 'HTML Editor', 'Data', 'Code'].includes(fieldtype)) {
 				fieldtype = 'Data';
 				condition = 'like';
 			}
@@ -637,7 +637,8 @@ class FilterArea {
 				condition: condition,
 				default: default_value,
 				onchange: () => this.refresh_list_view(),
-				ignore_link_validation: fieldtype === 'Dynamic Link'
+				ignore_link_validation: fieldtype === 'Dynamic Link',
+				is_filter: 1,
 			};
 		}));
 

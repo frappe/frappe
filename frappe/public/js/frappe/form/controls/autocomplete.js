@@ -10,13 +10,7 @@ frappe.ui.form.ControlAutocomplete = frappe.ui.form.ControlData.extend({
 	set_options() {
 		if (this.df.options) {
 			let options = this.df.options || [];
-			if (typeof options === 'string') {
-				options = options.split('\n');
-			}
-			if (typeof options[0] === 'string') {
-				options = options.map(o => ({ label: o, value: o }));
-			}
-			this._data = options;
+			this._data = this.parse_options(options);
 		}
 	},
 
@@ -100,6 +94,9 @@ frappe.ui.form.ControlAutocomplete = frappe.ui.form.ControlData.extend({
 	},
 
 	validate(value) {
+		if (this.df.ignore_validation) {
+			return value || '';
+		}
 		let valid_values = this.awesomplete._list.map(d => d.value);
 		if (!valid_values.length) {
 			return value;
@@ -111,11 +108,22 @@ frappe.ui.form.ControlAutocomplete = frappe.ui.form.ControlData.extend({
 		}
 	},
 
+	parse_options(options) {
+		if (typeof options === 'string') {
+			options = options.split('\n');
+		}
+		if (typeof options[0] === 'string') {
+			options = options.map(o => ({ label: o, value: o }));
+		}
+		return options;
+	},
+
 	get_data() {
 		return this._data || [];
 	},
 
 	set_data(data) {
+		data = this.parse_options(data);
 		if (this.awesomplete) {
 			this.awesomplete.list = data;
 		}

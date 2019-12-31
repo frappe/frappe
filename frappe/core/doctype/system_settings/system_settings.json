@@ -14,6 +14,7 @@
   "setup_complete",
   "date_and_number_format",
   "date_format",
+  "time_format",
   "column_break_7",
   "number_format",
   "float_precision",
@@ -116,6 +117,14 @@
    "fieldtype": "Select",
    "label": "Date Format",
    "options": "yyyy-mm-dd\ndd-mm-yyyy\ndd/mm/yyyy\ndd.mm.yyyy\nmm/dd/yyyy\nmm-dd-yyyy",
+   "reqd": 1
+  },
+  {
+   "default": "HH:mm:ss",
+   "fieldname": "time_format",
+   "fieldtype": "Select",
+   "label": "Time Format",
+   "options": "HH:mm:ss\nHH:mm",
    "reqd": 1
   },
   {

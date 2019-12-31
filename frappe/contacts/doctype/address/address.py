@@ -60,10 +60,6 @@ class Address(Document):
 			if not [row for row in self.links if row.link_doctype == "Company"]:
 				frappe.throw(_("Company is mandatory, as it is your company address"))
 
-			# removing other links
-			to_remove = [row for row in self.links if row.link_doctype != "Company"]
-			[ self.remove(row) for row in to_remove ]
-
 	def get_display(self):
 		return get_address_display(self.as_dict())
 
