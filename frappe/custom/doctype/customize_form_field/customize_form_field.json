@@ -5,6 +5,7 @@
  "doctype": "DocType",
  "document_type": "Setup",
  "editable_grid": 1,
+ "engine": "InnoDB",
  "field_order": [
   "label_and_type",
   "label",
@@ -37,6 +38,10 @@
   "allow_on_submit",
   "report_hide",
   "remember_last_selected_value",
+  "property_depends_on_section",
+  "mandatory_depends_on",
+  "column_break_33",
+  "read_only_depends_on",
   "display",
   "default",
   "in_filter",
@@ -354,6 +359,27 @@
    "fieldname": "allow_in_quick_entry",
    "fieldtype": "Check",
    "label": " Allow in Quick Entry "
+  },
+  {
+   "fieldname": "property_depends_on_section",
+   "fieldtype": "Section Break",
+   "label": "Property Depends On"
+  },
+  {
+   "fieldname": "mandatory_depends_on",
+   "fieldtype": "Code",
+   "label": "Mandatory Depends On",
+   "options": "JS"
+  },
+  {
+   "fieldname": "column_break_33",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "read_only_depends_on",
+   "fieldtype": "Code",
+   "label": "Read Only Depends On",
+   "options": "JS"
   }
  ],
  "idx": 1,
@@ -365,5 +391,6 @@
  "name": "Customize Form Field",
  "owner": "Administrator",
  "permissions": [],
+ "sort_field": "modified",
  "sort_order": "ASC"
 }
