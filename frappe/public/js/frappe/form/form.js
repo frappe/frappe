@@ -858,13 +858,27 @@ frappe.ui.form.Form = class FrappeForm {
 	}
 
 	navigate_records(prev) {
-		let list_settings = frappe.get_user_settings(this.doctype)['List'];
+		let filters, sort_field, sort_order;
+		let list_view = frappe.get_list_view(this.doctype);
+		if (list_view) {
+			filters = list_view.get_filters_for_args();
+			sort_field = list_view.sort_field;
+			sort_order = list_view.sort_order;
+		} else {
+			let list_settings = frappe.get_user_settings(this.doctype)['List'];
+			if (list_settings) {
+				filters = list_settings.filters;
+				sort_field = list_settings.sort_field;
+				sort_order = list_settings.sort_order;
+			}
+		}
+
 		let args = {
 			doctype: this.doctype,
 			value: this.docname,
-			filters: list_settings.filters,
-			sort_order: list_settings.sort_order,
-			sort_field: list_settings.sort_by,
+			filters,
+			sort_order,
+			sort_field,
 			prev,
 		};
 

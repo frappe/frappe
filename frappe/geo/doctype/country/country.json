@@ -77,6 +77,12 @@
    "unique": 0
   },
   {
+   "fieldname": "time_format",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Time format"
+  },
+  {
    "allow_bulk_edit": 0,
    "allow_in_quick_entry": 0,
    "allow_on_submit": 0,
