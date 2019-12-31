@@ -1,4 +1,5 @@
 {
+ "actions": [],
  "autoname": "hash",
  "creation": "2013-02-22 01:27:32",
  "doctype": "DocType",
@@ -16,6 +17,7 @@
   "in_standard_filter",
   "in_global_search",
   "bold",
+  "allow_in_quick_entry",
   "translatable",
   "column_break_7",
   "precision",
@@ -353,6 +355,12 @@
    "read_only": 1
   },
   {
+   "default": "0",
+   "fieldname": "allow_in_quick_entry",
+   "fieldtype": "Check",
+   "label": " Allow in Quick Entry "
+  },
+  {
    "fieldname": "property_depends_on_section",
    "fieldtype": "Section Break",
    "label": "Property Depends On"
@@ -376,8 +384,9 @@
  ],
  "idx": 1,
  "istable": 1,
- "modified": "2019-12-04 12:22:30.222892",
- "modified_by": "umair@erpnext.com",
+ "links": [],
+ "modified": "2019-12-27 12:50:51.419763",
+ "modified_by": "Administrator",
  "module": "Custom",
  "name": "Customize Form Field",
  "owner": "Administrator",
