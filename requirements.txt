@@ -58,7 +58,6 @@ stripe
 coverage
 urllib3
 GitPython==2.1.11
-psycopg2==2.8.4
 psycopg2-binary==2.8.4
 sqlparse==0.2.4
 Pygments==2.2.0
