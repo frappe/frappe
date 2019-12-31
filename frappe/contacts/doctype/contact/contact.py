@@ -76,11 +76,11 @@ class Contact(Document):
 		if autosave:
 			self.save(ignore_permissions=True)
 
-	def add_phone(self, phone, is_primary_phone=0, is_primary_mobile_no=0, autosave=False):
+	def add_phone(self, phone, phone_type="Phone", is_primary=0, autosave=False):
 		self.append("phone_nos", {
 			"phone": phone,
-			"is_primary_phone": is_primary_phone,
-			"is_primary_mobile_no": is_primary_mobile_no
+			"type": phone_type,
+			"is_primary": is_primary
 		})
 
 		if autosave:
