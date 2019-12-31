@@ -91,13 +91,15 @@ class Contact(Document):
 			self.email_id = ""
 			return
 
-		if len([email.email_id for email in self.email_ids if email.is_primary]) > 1:
-			frappe.throw(_("Only one {0} can be set as primary.").format(frappe.bold("Email ID")))
+		is_primary = None
 
 		for d in self.email_ids:
-			if d.is_primary == 1:
+			if d.is_primary:
+				if is_primary:
+					frappe.throw(_("Only one {0} can be set as primary.").format(frappe.bold("Email ID")))
+
+				is_primary = d.email_id.strip()
 				self.email_id = d.email_id.strip()
-				break
 
 	def set_primary_phone_numbers(self):
 		# Used to set primary mobile, phone no, fax, skype, pager.
@@ -108,10 +110,10 @@ class Contact(Document):
 			is_primary = None
 			for phone in self.phone_nos:
 				if phone.type == number_type and phone.is_primary:
-					if not is_primary:
-						is_primary = phone.phone
-					else:
+					if is_primary:
 						frappe.throw(_("Only one {0} can be set as primary.").format(frappe.bold(number_type)))
+
+					is_primary = phone.phone
 
 			setattr(self, frappe.scrub(number_type), is_primary)
 
