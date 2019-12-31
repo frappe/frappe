@@ -775,8 +775,8 @@ def get_meta_module(doctype):
 	import frappe.modules
 	return frappe.modules.load_doctype_module(doctype)
 
-def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reload=False,
-		ignore_permissions=False, flags=None, ignore_on_trash=False, ignore_missing=True):
+def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None,
+	for_reload=False, ignore_permissions=False, flags=None, ignore_on_trash=False, ignore_missing=True):
 	"""Delete a document. Calls `frappe.model.delete_doc.delete_doc`.
 
 	:param doctype: DocType of document to be delete.
@@ -1174,8 +1174,8 @@ def compare(val1, condition, val2):
 	return frappe.utils.compare(val1, condition, val2)
 
 def respond_as_web_page(title, html, success=None, http_status_code=None, context=None,
-		indicator_color=None, primary_action='/', primary_label = None, fullpage=False,
-		width=None, template='message'):
+	indicator_color=None, primary_action='/', primary_label = None, fullpage=False,
+	width=None, template='message'):
 	"""Send response as a web page with a message rather than JSON. Used to show permission errors etc.
 
 	:param title: Page title and heading.
@@ -1363,8 +1363,8 @@ def format(*args, **kwargs):
 	import frappe.utils.formatters
 	return frappe.utils.formatters.format_value(*args, **kwargs)
 
-def get_print(doctype=None, name=None, print_format=None, style=None, html=None, as_pdf=False, doc=None,
-		output=None, no_letterhead=0, password=None):
+def get_print(doctype=None, name=None, print_format=None, style=None,
+	html=None, as_pdf=False, doc=None, output=None, no_letterhead=0, password=None):
 	"""Get Print Format for given document.
 
 	:param doctype: DocType of document.
@@ -1395,8 +1395,8 @@ def get_print(doctype=None, name=None, print_format=None, style=None, html=None,
 	else:
 		return html
 
-def attach_print(doctype, name, file_name=None, print_format=None, style=None, html=None, doc=None,
-		lang=None, print_letterhead=True, password=None):
+def attach_print(doctype, name, file_name=None, print_format=None,
+	style=None, html=None, doc=None, lang=None, print_letterhead=True, password=None):
 	from frappe.utils import scrub_urls
 
 	if not file_name: file_name = name
