@@ -321,10 +321,18 @@ def msgprint(msg, title=None, raise_exception=0, as_table=False, indicator=None,
 		return
 
 	if as_table and type(msg) in (list, tuple):
-		table = ''.join(['<tr>'+''.join(['<td>%s</td>' % col for col in row])+'</tr>' for row in msg])
-		out.msg = '<table border="1px" style="border-collapse: collapse" cellpadding="2px">' + table + '</table>'
 
-	if flags.print_messages and out.msg:
+		table_rows = ''
+		for row in msg:
+			table_row_data = ''
+			for data in row:
+				table_row_data += '<td>{}</td>'.format(data)
+			table_rows += '<tr>{}</tr>'.format(table_row_data)
+
+		out.message = '''<table class="table table-bordered"
+			style="margin: 0;">{}</table>'''.format(table_rows)
+
+	if flags.print_messages and out.message:
 		print("Message: " + repr(out.msg).encode("utf-8"))
 
 	if title:
@@ -1584,7 +1592,7 @@ def get_version(doctype, name, limit=None, head=False, raise_err=True):
 	'''
 	Returns a list of version information of a given DocType.
 
-	Applicable only if DocType has changes tracked.
+	Note: Applicable only if DocType has changes tracked.
 
 	Example
 	>>> frappe.get_version('User', 'foobar@gmail.com')
@@ -1599,17 +1607,12 @@ def get_version(doctype, name, limit=None, head=False, raise_err=True):
 	'''
 	meta = get_meta(doctype)
 	if meta.track_changes:
-		names = db.sql("""
-			SELECT name from tabVersion
-			WHERE  ref_doctype = '{doctype}' AND docname = '{name}'
-			{order_by}
-			{limit}
-		""".format(
-			doctype=doctype,
-			name=name,
-			order_by='ORDER BY creation' if head  else '',
-			limit=('LIMIT %d' % limit) if limit else ''
-		))
+		names = db.get_all('Version', filters={
+			'ref_doctype': doctype,
+			'docname': name,
+			'order_by': 'creation' if head else None,
+			'limit': limit
+		}, as_list=1)
 
 		from frappe.chat.util import squashify, dictify, safe_json_loads
 
@@ -1632,7 +1635,7 @@ def get_version(doctype, name, limit=None, head=False, raise_err=True):
 		return versions
 	else:
 		if raise_err:
-			raise ValueError('{doctype} has no versions tracked.'.format(doctype=doctype))
+			raise ValueError(_('{0} has no versions tracked.').format(doctype))
 
 @whitelist(allow_guest=True)
 def ping():
