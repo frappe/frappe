@@ -23,13 +23,15 @@ class TestContact(unittest.TestCase):
 
 	def test_check_default_phone_and_mobile(self):
 		phones = [
-			{"phone": "+91 0000000000", "is_primary_phone": 0, "is_primary_mobile_no": 0},
-			{"phone": "+91 0000000001", "is_primary_phone": 0, "is_primary_mobile_no": 0},
-			{"phone": "+91 0000000002", "is_primary_phone": 1, "is_primary_mobile_no": 0},
-			{"phone": "+91 0000000003", "is_primary_phone": 0, "is_primary_mobile_no": 1},
+			{"phone": "+91 0000000000", "type": "Skype", "is_primary": 1},
+			{"phone": "+91 0000000001", "type": "Fax", "is_primary": 1},
+			{"phone": "+91 0000000002", "type": "Phone", "is_primary": 1},
+			{"phone": "+91 0000000003", "type": "Mobile No", "is_primary": 1},
 		]
 		contact = create_contact("Phone", "Mr", phones=phones)
 
+		self.assertEqual(contact.skype, "+91 0000000000")
+		self.assertEqual(contact.fax, "+91 0000000001")
 		self.assertEqual(contact.phone, "+91 0000000002")
 		self.assertEqual(contact.mobile_no, "+91 0000000003")
 
@@ -47,7 +49,7 @@ def create_contact(name, salutation, emails=None, phones=None, save=True):
 
 	if phones:
 		for d in phones:
-			doc.add_phone(d.get("phone"), d.get("is_primary_phone"), d.get("is_primary_mobile_no"))
+			doc.add_phone(d.get("phone"), d.get("type"), d.get("is_primary"))
 
 	if save:
 		doc.insert()

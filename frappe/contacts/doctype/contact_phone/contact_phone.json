@@ -1,12 +1,13 @@
 {
+ "actions": [],
  "creation": "2019-08-02 13:10:37.890214",
  "doctype": "DocType",
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
   "phone",
-  "is_primary_phone",
-  "is_primary_mobile_no"
+  "type",
+  "is_primary"
  ],
  "fields": [
   {
@@ -19,22 +20,22 @@
   {
    "columns": 2,
    "default": "0",
-   "fieldname": "is_primary_phone",
+   "fieldname": "is_primary",
    "fieldtype": "Check",
    "in_list_view": 1,
-   "label": "Is Primary Phone"
+   "label": "Is Primary"
   },
   {
-   "columns": 2,
-   "default": "0",
-   "fieldname": "is_primary_mobile_no",
-   "fieldtype": "Check",
+   "fieldname": "type",
+   "fieldtype": "Select",
    "in_list_view": 1,
-   "label": "Is Primary Mobile"
+   "label": "Type",
+   "options": "Phone\nMobile No\nFax\nPager\nSkype\nWhatsApp\nTelegram"
   }
  ],
  "istable": 1,
- "modified": "2019-09-24 17:47:50.375326",
+ "links": [],
+ "modified": "2019-12-28 23:28:04.705609",
  "modified_by": "Administrator",
  "module": "Contacts",
  "name": "Contact Phone",

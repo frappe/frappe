@@ -1,4 +1,5 @@
 {
+ "actions": [],
  "allow_events_in_timeline": 1,
  "allow_import": 1,
  "allow_rename": 1,
@@ -14,15 +15,20 @@
   "email_id",
   "user",
   "address",
+  "phone",
+  "mobile_no",
+  "whatsapp",
   "sync_with_google_contacts",
   "cb00",
   "status",
   "salutation",
   "designation",
   "gender",
-  "phone",
-  "mobile_no",
   "company_name",
+  "fax",
+  "pager",
+  "skype",
+  "telegram",
   "image",
   "sb_00",
   "google_contacts",
@@ -240,12 +246,43 @@
    "fieldname": "company_name",
    "fieldtype": "Data",
    "label": "Company Name"
+  },
+  {
+   "fieldname": "fax",
+   "fieldtype": "Data",
+   "label": "Fax",
+   "read_only": 1
+  },
+  {
+   "fieldname": "pager",
+   "fieldtype": "Data",
+   "label": "Pager",
+   "read_only": 1
+  },
+  {
+   "fieldname": "skype",
+   "fieldtype": "Data",
+   "label": "Skype",
+   "read_only": 1
+  },
+  {
+   "fieldname": "whatsapp",
+   "fieldtype": "Data",
+   "label": "WhatsApp",
+   "read_only": 1
+  },
+  {
+   "fieldname": "telegram",
+   "fieldtype": "Data",
+   "label": "Telegram",
+   "read_only": 1
   }
  ],
  "icon": "fa fa-user",
  "idx": 1,
  "image_field": "image",
- "modified": "2019-10-10 22:04:41.070479",
+ "links": [],
+ "modified": "2019-12-28 23:29:03.032927",
  "modified_by": "Administrator",
  "module": "Contacts",
  "name": "Contact",

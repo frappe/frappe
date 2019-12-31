@@ -30,8 +30,7 @@ class Contact(Document):
 
 	def validate(self):
 		self.set_primary_email()
-		self.set_primary("phone")
-		self.set_primary("mobile_no")
+		self.set_primary_phone_numbers()
 
 		self.set_user()
 
@@ -77,11 +76,11 @@ class Contact(Document):
 		if autosave:
 			self.save(ignore_permissions=True)
 
-	def add_phone(self, phone, is_primary_phone=0, is_primary_mobile_no=0, autosave=False):
+	def add_phone(self, phone, phone_type="Phone", is_primary=0, autosave=False):
 		self.append("phone_nos", {
 			"phone": phone,
-			"is_primary_phone": is_primary_phone,
-			"is_primary_mobile_no": is_primary_mobile_no
+			"type": phone_type,
+			"is_primary": is_primary
 		})
 
 		if autosave:
@@ -92,31 +91,31 @@ class Contact(Document):
 			self.email_id = ""
 			return
 
-		if len([email.email_id for email in self.email_ids if email.is_primary]) > 1:
-			frappe.throw(_("Only one {0} can be set as primary.").format(frappe.bold("Email ID")))
+		is_primary = None
 
 		for d in self.email_ids:
-			if d.is_primary == 1:
+			if d.is_primary:
+				if is_primary:
+					frappe.throw(_("Only one {0} can be set as primary.").format(frappe.bold("Email ID")))
+
+				is_primary = d.email_id.strip()
 				self.email_id = d.email_id.strip()
-				break
 
-	def set_primary(self, fieldname):
-		# Used to set primary mobile and phone no.
-		if len(self.phone_nos) == 0:
-			setattr(self, fieldname, "")
-			return
+	def set_primary_phone_numbers(self):
+		# Used to set primary mobile, phone no, fax, skype, pager.
+		for number_type in get_phone_number_types():
+			if not number_type:
+				continue
 
-		field_name = "is_primary_" + fieldname
+			is_primary = None
+			for phone in self.phone_nos:
+				if phone.type == number_type and phone.is_primary:
+					if is_primary:
+						frappe.throw(_("Only one {0} can be set as primary.").format(frappe.bold(number_type)))
 
-		is_primary = [phone.phone for phone in self.phone_nos if phone.get(field_name)]
+					is_primary = phone.phone
 
-		if len(is_primary) > 1:
-			frappe.throw(_("Only one {0} can be set as primary.").format(frappe.bold(frappe.unscrub(fieldname))))
-
-		for d in self.phone_nos:
-			if d.get(field_name) == 1:
-				setattr(self, fieldname, d.phone)
-				break
+			setattr(self, frappe.scrub(number_type), is_primary)
 
 def get_default_contact(doctype, name):
 	'''Returns default contact for the given doctype, name'''
@@ -257,3 +256,33 @@ def get_contact_with_phone_number(number):
 def get_contact_name(email_id):
 	contact = frappe.get_list("Contact Email", filters={"email_id": email_id}, fields=["parent"], limit=1)
 	return contact[0].parent if contact else None
+
+def get_phone_number_types():
+	meta = frappe.get_meta("Contact Phone")
+	return set(meta.get_field("type").options.split("\n"))
+
+def get_phone_nos_for_onload(name):
+	contact_phones = frappe.get_list("Contact Phone", filters={
+		"parenttype": "Contact",
+		"parent": name,
+	}, fields=["type", "phone", "is_primary"])
+
+	contacts = []
+	for number_type in get_phone_number_types():
+		numbers = []
+
+		for contact in contact_phones:
+			if not contact.type == number_type:
+				continue
+
+			if contact.is_primary:
+				numbers.insert(0, {"number": contact.phone, "is_primary": 1})
+			else:
+				numbers.append({"number": contact.phone, "is_primary": 0})
+
+		contacts.append({
+			"type": number_type,
+			"numbers": numbers
+		})
+
+	return contacts
