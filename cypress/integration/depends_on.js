@@ -1,4 +1,8 @@
 context('Depends On', () => {
+	beforeEach(() => {
+		cy.login();
+		cy.visit('/desk');
+	});
 	before(() => {
 		cy.login();
 		cy.visit('/desk');
@@ -49,6 +53,7 @@ context('Depends On', () => {
 		cy.get('.control-input [data-fieldname="dependant_field"]').should('not.be.disabled');
 	});
 	it('should display the field depending on other fields value', () => {
+		cy.new_form('Test Depends On');
 		cy.get('.control-input [data-fieldname="display_dependant_field"]').should('not.be.visible');
 		cy.get('.control-input [data-fieldname="test_field"]').clear();
 		cy.fill_field('test_field', 'Value');
