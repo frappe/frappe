@@ -905,7 +905,7 @@ def validate_fields(meta):
 
 	def check_illegal_depends_on_conditions(docfield):
 		''' assignment operation should not be allowed in the depends on condition.'''
-		depends_on_fields = ["depends_on", "collapsible_depends_on"]
+		depends_on_fields = ["depends_on", "collapsible_depends_on", "mandatory_depends_on", "read_only_depends_on"]
 		for field in depends_on_fields:
 			depends_on = docfield.get(field, None)
 			if depends_on and ("=" in depends_on) and \
