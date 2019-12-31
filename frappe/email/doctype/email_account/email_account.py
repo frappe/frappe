@@ -131,8 +131,8 @@ class EmailAccount(Document):
 			if not self.smtp_server:
 				frappe.throw(_("{0} is required").format("SMTP Server"))
 
-			server = SMTPServer(login = getattr(self, "login_id", None) \
-					or self.email_id,
+			server = SMTPServer(
+				login = getattr(self, "login_id", None) or self.email_id,
 				server=self.smtp_server,
 				port=cint(self.smtp_port),
 				use_tls=cint(self.use_tls),

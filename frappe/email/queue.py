@@ -383,6 +383,11 @@ def send_one(email, smtpserver=None, auto_commit=True, now=False, from_test=Fals
 
 	recipients_list = frappe.db.sql('''select name, recipient, status from
 		`tabEmail Queue Recipient` where parent=%s''', email.name, as_dict=1)
+<<<<<<< HEAD
+=======
+
+	email_sent_to_any_recipient = any("Sent" == s.status for s in recipients_list)
+>>>>>>> e2935b5ba6... refactor: Commonify sent mail checks
 
 	if frappe.are_emails_muted():
 		frappe.msgprint(_("Emails are muted"))
@@ -437,7 +442,11 @@ def send_one(email, smtpserver=None, auto_commit=True, now=False, from_test=Fals
 		email_sent_to_all_recipients = all("Sent" == s.status for s in recipients_list)
 
 		#if all are sent set status
+<<<<<<< HEAD
 		if email_sent_to_all_recipients:
+=======
+		if email_sent_to_any_recipient:
+>>>>>>> e2935b5ba6... refactor: Commonify sent mail checks
 			frappe.db.sql("""update `tabEmail Queue` set status='Sent', modified=%s where name=%s""",
 				(now_datetime(), email.name), auto_commit=auto_commit)
 		elif email_sent_to_any_recipient:
@@ -452,7 +461,7 @@ def send_one(email, smtpserver=None, auto_commit=True, now=False, from_test=Fals
 		if email.communication:
 			frappe.get_doc('Communication', email.communication).set_delivery_status(commit=auto_commit)
 
-		if smtpserver.append_emails_to_sent_folder and any("Sent" == s.status for s in recipients_list):
+		if smtpserver.append_emails_to_sent_folder and email_sent_to_any_recipient:
 			smtpserver.email_account.append_email_to_sent_folder(encode(message))
 
 	except (smtplib.SMTPServerDisconnected,
