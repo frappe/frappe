@@ -372,7 +372,6 @@ def throw(msg, exc=ValidationError, title=None):
 	msgprint(msg, raise_exception=exc, title=title, indicator='red')
 
 def emit_js(js, user=False, **kwargs):
-	from frappe.realtime import publish_realtime
 	if user == False:
 		user = session.user
 	publish_realtime('eval_js', js, user=user, **kwargs)
@@ -814,8 +813,8 @@ def reload_doc(module, dt=None, dn=None, force=False, reset_permissions=False):
 
 def rename_doc(*args, **kwargs):
 	"""Rename a document. Calls `frappe.model.rename_doc.rename_doc`"""
-	from frappe.model.rename_doc import rename_doc
-	return rename_doc(*args, **kwargs)
+	from frappe.model.rename_doc import rename_doc as _rename_doc
+	return _rename_doc(*args, **kwargs)
 
 def get_module(modulename):
 	"""Returns a module object for given Python module name using `importlib.import_module`."""
