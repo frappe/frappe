@@ -2,7 +2,11 @@
 
 from __future__ import unicode_literals, absolute_import, print_function
 import click
-import json, os, sys, subprocess
+import glob
+import json
+import os
+import subprocess
+import sys
 from distutils.spawn import find_executable
 import frappe
 from frappe.commands import pass_context, get_site
@@ -11,6 +15,11 @@ from frappe.utils.response import json_handler
 from coverage import Coverage
 import cProfile, pstats
 from six import StringIO
+
+
+SUPERVISOR_DIRS = ('/etc/supervisor/conf.d', '/etc/supervisor.d/',
+		   '/etc/supervisord/conf.d', '/etc/supervisord.d')
+
 
 @click.command('build')
 @click.option('--app', help='Build assets for app')
@@ -454,6 +463,24 @@ def console(context):
 def run_tests(context, app=None, module=None, doctype=None, test=(),
 	driver=None, profile=False, coverage=False, junit_xml_output=False, ui_tests = False,
 	doctype_list_path=None, skip_test_records=False, skip_before_tests=False, failfast=False):
+
+	supervisor_path = None
+	bench_name = os.path.basename(get_bench_path())
+	for sdir in SUPERVISOR_DIRS:
+		if os.path.exists(sdir):
+			supervisor_path = glob.glob(os.path.join(sdir, "{0}.*".format(bench_name)))
+			break
+
+	if not os.environ.get('CI') and (os.path.islink(supervisor_path)
+				or frappe.conf.get("restart_supervisor_on_update")
+				or not frappe.conf.get("developer_mode")):
+		print("""
+Cannot run tests in a production environment. Please use a development environment instead for testing.
+
+If the current instance is not a production environment, try enabling developer mode in site config.
+""")
+		sys.exit(1)
+
 
 	"Run tests"
 	import frappe.test_runner
