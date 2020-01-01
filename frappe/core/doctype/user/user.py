@@ -368,10 +368,10 @@ class User(Document):
 					(tab, field, '%s', field, '%s'), (new_name, old_name))
 
 		if frappe.db.exists("Chat Profile", old_name):
-			frappe.rename_doc("Chat Profile", old_name, new_name, force=True)
+			frappe.rename_doc("Chat Profile", old_name, new_name, force=True, show_alert=False)
 
 		if frappe.db.exists("Notification Settings", old_name):
-			frappe.rename_doc("Notification Settings", old_name, new_name, force=True)
+			frappe.rename_doc("Notification Settings", old_name, new_name, force=True, show_alert=False)
 
 		# set email
 		frappe.db.sql("""UPDATE `tabUser`
