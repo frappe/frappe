@@ -380,7 +380,7 @@ def send_one(email, smtpserver=None, auto_commit=True, now=False, from_test=Fals
 		for update''', email, as_dict=True)[0]
 
 	recipients_list = frappe.db.sql('''select name, recipient, status from
-		`tabEmail Queue Recipient` where parent=%s''',email.name,as_dict=1)
+		`tabEmail Queue Recipient` where parent=%s''', email.name, as_dict=1)
 
 	if frappe.are_emails_muted():
 		frappe.msgprint(_("Emails are muted"))
@@ -401,8 +401,16 @@ def send_one(email, smtpserver=None, auto_commit=True, now=False, from_test=Fals
 		frappe.get_doc('Communication', email.communication).set_delivery_status(commit=auto_commit)
 
 	try:
+		message = None
+
 		if not frappe.flags.in_test:
-			if not smtpserver: smtpserver = SMTPServer()
+			if not smtpserver:
+				smtpserver = SMTPServer()
+
+			# to avoid always using default email account for outgoing
+			if getattr(frappe.local, "outgoing_email_account", None):
+				frappe.local.outgoing_email_account = {}
+
 			smtpserver.setup_email_account(email.reference_doctype, sender=email.sender)
 
 		for recipient in recipients_list:
@@ -417,8 +425,10 @@ def send_one(email, smtpserver=None, auto_commit=True, now=False, from_test=Fals
 			frappe.db.sql("""update `tabEmail Queue Recipient` set status='Sent', modified=%s where name=%s""",
 				(now_datetime(), recipient.name), auto_commit=auto_commit)
 
+		email_sent_to_any_recipient = any("Sent" == s.status for s in recipients_list)
+
 		#if all are sent set status
-		if any("Sent" == s.status for s in recipients_list):
+		if email_sent_to_any_recipient:
 			frappe.db.sql("""update `tabEmail Queue` set status='Sent', modified=%s where name=%s""",
 				(now_datetime(), email.name), auto_commit=auto_commit)
 		else:
@@ -430,6 +440,9 @@ def send_one(email, smtpserver=None, auto_commit=True, now=False, from_test=Fals
 		if email.communication:
 			frappe.get_doc('Communication', email.communication).set_delivery_status(commit=auto_commit)
 
+		if smtpserver.append_emails_to_sent_folder and email_sent_to_any_recipient:
+			smtpserver.email_account.append_email_to_sent_folder(encode(message))
+
 	except (smtplib.SMTPServerDisconnected,
 			smtplib.SMTPConnectError,
 			smtplib.SMTPHeloError,
@@ -439,7 +452,7 @@ def send_one(email, smtpserver=None, auto_commit=True, now=False, from_test=Fals
 
 		# bad connection/timeout, retry later
 
-		if any("Sent" == s.status for s in recipients_list):
+		if email_sent_to_any_recipient:
 			frappe.db.sql("""update `tabEmail Queue` set status='Partially Sent', modified=%s where name=%s""",
 				(now_datetime(), email.name), auto_commit=auto_commit)
 		else:
@@ -459,7 +472,7 @@ def send_one(email, smtpserver=None, auto_commit=True, now=False, from_test=Fals
 			frappe.db.sql("""update `tabEmail Queue` set status='Not Sent', modified=%s, retry=retry+1 where name=%s""",
 				(now_datetime(), email.name), auto_commit=auto_commit)
 		else:
-			if any("Sent" == s.status for s in recipients_list):
+			if email_sent_to_any_recipient:
 				frappe.db.sql("""update `tabEmail Queue` set status='Partially Errored', error=%s where name=%s""",
 					(text_type(e), email.name), auto_commit=auto_commit)
 			else:
