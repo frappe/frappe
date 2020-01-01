@@ -382,8 +382,6 @@ def send_one(email, smtpserver=None, auto_commit=True, now=False, from_test=Fals
 	recipients_list = frappe.db.sql('''select name, recipient, status from
 		`tabEmail Queue Recipient` where parent=%s''', email.name, as_dict=1)
 
-	email_sent_to_any_recipient = any("Sent" == s.status for s in recipients_list)
-
 	if frappe.are_emails_muted():
 		frappe.msgprint(_("Emails are muted"))
 		return
@@ -426,6 +424,8 @@ def send_one(email, smtpserver=None, auto_commit=True, now=False, from_test=Fals
 			recipient.status = "Sent"
 			frappe.db.sql("""update `tabEmail Queue Recipient` set status='Sent', modified=%s where name=%s""",
 				(now_datetime(), recipient.name), auto_commit=auto_commit)
+
+		email_sent_to_any_recipient = any("Sent" == s.status for s in recipients_list)
 
 		#if all are sent set status
 		if email_sent_to_any_recipient:
