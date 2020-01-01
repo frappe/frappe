@@ -386,9 +386,12 @@ def send_one(email, smtpserver=None, auto_commit=True, now=False, from_test=Fals
 <<<<<<< HEAD
 =======
 
+<<<<<<< HEAD
 	email_sent_to_any_recipient = any("Sent" == s.status for s in recipients_list)
 >>>>>>> e2935b5ba6... refactor: Commonify sent mail checks
 
+=======
+>>>>>>> 4c138390b6... fix: move email status check to fix travis
 	if frappe.are_emails_muted():
 		frappe.msgprint(_("Emails are muted"))
 		return
@@ -439,7 +442,10 @@ def send_one(email, smtpserver=None, auto_commit=True, now=False, from_test=Fals
 				(now_datetime(), recipient.name), auto_commit=auto_commit)
 
 		email_sent_to_any_recipient = any("Sent" == s.status for s in recipients_list)
+<<<<<<< HEAD
 		email_sent_to_all_recipients = all("Sent" == s.status for s in recipients_list)
+=======
+>>>>>>> 4c138390b6... fix: move email status check to fix travis
 
 		#if all are sent set status
 <<<<<<< HEAD
