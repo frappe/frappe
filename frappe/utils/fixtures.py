@@ -30,13 +30,30 @@ def sync_fixtures(app=None):
 	frappe.db.commit()
 
 def can_overwrite(app, fname):
+	'''
+		The function will check for `can_overwrite` flag.
+		By default the system overwrites fixtures while migrating the site,
+		if flag set to false, the system will not overwrite particular fixture in migrate
+
+		eg:
+		fixtures = [
+			"Contact Us Settings",
+			{
+				"dt": "Web Page",
+				"overwrite": False
+			}
+		]
+
+		In this case, system always overwrite fixtures for "Contact Us Settings"
+		but for Web Page, if record already exists, the system will not overwrite it from fixtures
+	'''
 	overwrite = True
 
 	for fixture in  frappe.get_hooks("fixtures", app_name=app):
 		if isinstance(fixture, dict):
 			dt = fixture.get("doctype") or fixture.get("dt")
 			if frappe.scrub(dt) in fname:
-				overwrite = fixture.get('overwrite_in_import', True)
+				overwrite = fixture.get('can_overwrite', True)
 				return overwrite
 
 	return overwrite
