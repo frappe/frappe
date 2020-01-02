@@ -80,24 +80,27 @@ frappe.ui.form.Toolbar = Class.extend({
 		const title_field = this.frm.meta.title_field || '';
 		const doctype = this.frm.doctype;
 
-		const warning = __("This cannot be undone");
-		const message = __("Are you sure you want to merge {0} with {1}?", [docname.bold(), new_name.bold()]);
-		const confirm_message = message + "<br><b>" + warning + "<b>";
+		if (new_name) {
+			const warning = __("This cannot be undone");
+			const message = __("Are you sure you want to merge {0} with {1}?", [docname.bold(), new_name.bold()]);
+			const confirm_message = message + "<br><b>" + warning + "<b>";
+		}
 
 		let rename_document = () => {
 			return frappe.xcall("frappe.model.rename_doc.update_document_title", {
 				doctype,
 				docname,
+				new_name,
 				title_field,
 				old_title: this.frm.doc[title_field],
-				new_name: new_name,
-				new_title: new_title,
-				merge: merge
+				new_title,
+				merge
 			}).then(new_docname => {
 				if (new_name != docname) {
 					$(document).trigger("rename", [doctype, docname, new_docname || new_name]);
 					if (locals[doctype] && locals[doctype][docname]) delete locals[doctype][docname];
 				}
+				this.frm.reload_doc();
 			});
 		};
 
@@ -106,14 +109,11 @@ frappe.ui.form.Toolbar = Class.extend({
 				this.show_unchanged_document_alert();
 				resolve();
 			} else if (merge) {
-				frappe.confirm(confirm_message, () => {
-					rename_document().then(resolve).catch(reject);
-				}, reject);
+				frappe.confirm(confirm_message, function() { rename_document().then(resolve).catch(reject) }, reject);
 			} else {
 				rename_document().then(resolve).catch(reject);
 			}
 		});
-
 	},
 	setup_editable_title: function () {
 		let me = this;
