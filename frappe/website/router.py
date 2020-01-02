@@ -115,19 +115,20 @@ def get_page_info_from_doctypes(path=None):
 	return routes
 
 def get_page_info_from_non_single_doctypes(path, routes, condition_field, doctype):
-	condition = ""
-	values = []
+	conditions = {}
 
 	if condition_field:
-		condition ="where {0}=1".format(condition_field)
+		conditions.update({
+			condition_field: 1
+		})
 
 	if path:
-		condition += ' {0} `route`=%s limit 1'.format('and' if 'where' in condition else 'where')
-		values.append(path)
+		conditions.update({
+			"route": path
+		})
 
 	try:
-		for r in frappe.db.sql("""select route, name, modified from `tab{0}`
-				{1}""".format(doctype, condition), values=values, as_dict=True):
+		for r in frappe.get_all(doctype, filters=conditions, fields=["route", "name", "modified"], limit=1):
 			routes[r.route] = {"doctype": doctype, "name": r.name, "modified": r.modified}
 
 	except Exception as e:
