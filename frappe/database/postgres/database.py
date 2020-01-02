@@ -107,7 +107,7 @@ class PostgresDatabase(Database):
 			from information_schema.tables
 			where table_catalog='{0}'
 				and table_type = 'BASE TABLE'
-				and table_schema='public'""".format(frappe.conf.db_name))]
+				and table_schema='{1}'""".format(frappe.conf.db_name, frappe.conf.get("db_schema", "public")))]
 
 	def format_date(self, date):
 		if not date:
