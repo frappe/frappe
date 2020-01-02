@@ -457,9 +457,9 @@ class Email:
 	def show_attached_email_headers_in_content(self, part):
 		# get the multipart/alternative message
 		try:
-		    from html import escape  # python 3.x
+			from html import escape  # python 3.x
 		except ImportError:
-		    from cgi import escape  # python 2.x
+			from cgi import escape  # python 2.x
 
 		message = list(part.walk())[1]
 		headers = []
@@ -481,7 +481,7 @@ class Email:
 		"""Detect chartset."""
 		charset = part.get_content_charset()
 		if not charset:
-			charset = chardet.detect(frappe.safe_encode(part))['encoding']
+			charset = chardet.detect(safe_encode(cstr(part)))['encoding']
 
 		return charset
 
@@ -515,7 +515,7 @@ class Email:
 				'fcontent': fcontent,
 			})
 
-			cid = (part.get("Content-Id") or "").strip("><")
+			cid = (cstr(part.get("Content-Id")) or "").strip("><")
 			if cid:
 				self.cid_map[fname] = cid
 

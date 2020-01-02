@@ -507,6 +507,9 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				})
 			};
 		}
+		options.axisOptions = {
+			shortenYAxisNumbers: 1
+		};
 
 		return options;
 	}
@@ -561,7 +564,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	get_possible_chart_options() {
 		const columns = this.columns;
 		const rows =  this.raw_data.result.filter(value => Object.keys(value).length);
-		const first_row = Array.isArray(rows[0]) ? rows[0] : Object.values(rows[0]);
+		const first_row = Array.isArray(rows[0]) ? rows[0] : columns.map(col => rows[0][col.fieldname]);
 		const me = this
 
 		const indices = first_row.reduce((accumulator, current_value, current_index) => {
@@ -962,8 +965,10 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	}
 
 	get_data_for_csv(include_indentation) {
-		const indices = this.datatable.bodyRenderer.visibleRowIndices;
-		const rows = indices.map(i => this.datatable.datamanager.getRow(i));
+		const rows = this.datatable.bodyRenderer.visibleRows;
+		if (this.raw_data.add_total_row) {
+			rows.push(this.datatable.bodyRenderer.getTotalRow());
+		}
 		return rows.map(row => {
 			const standard_column_count = this.datatable.datamanager.getStandardColumnCount();
 			return row
