@@ -90,7 +90,7 @@ frappe.views.ListGroupBy = class ListGroupBy {
 					this.render_dropdown_items(field_count_list, dropdown);
 					this.sidebar.setup_dropdown_search(dropdown, '.group-by-value');
 				} else {
-					dropdown.find('.group-by-loading').hide();
+					dropdown.find('.group-by-loading').html(`${__("No filters found")}`);
 				}
 			});
 		});
