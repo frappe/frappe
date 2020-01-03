@@ -229,8 +229,9 @@ def get_prepared_report_result(report, filters, dn="", user=None):
 				"status": "Completed",
 				"filters": json.dumps(filters),
 				"owner": user,
-				"report_name": report.report_name
-			}
+				"report_name": report.custom_report or report.report_name
+			},
+			order_by = 'creation desc'
 		)
 
 		if doc_list:
