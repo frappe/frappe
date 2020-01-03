@@ -26,7 +26,10 @@ class TestDocType(unittest.TestCase):
 			}],
 			"permissions": [{
 				"role": "System Manager",
-				"read": 1
+				"read": 1,
+				"submit": 1,
+				"cancel": 1,
+
 			}],
 			"name": name
 		})
@@ -304,9 +307,6 @@ class TestDocType(unittest.TestCase):
 		link_doc = self.new_doctype('Test Linked Doctype')
 		link_doc.is_submittable = 1
 		field_1 = link_doc.append('fields', {})
-		for data in link_doc.get('permissions'):
-			data.submit = 1
-			data.cancel = 1
 		link_doc.insert()
 
 		doc = self.new_doctype('Test Doctype')
@@ -316,9 +316,6 @@ class TestDocType(unittest.TestCase):
 		field_2.fieldname  = 'test_linked_doctype'
 		field_2.fieldtype = 'Link'
 		field_2.options = 'Test Linked Doctype'
-		for data in link_doc.get('permissions'):
-			data.submit = 1
-			data.cancel = 1
 		doc.insert()
 
 		# create doctype data
