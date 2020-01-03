@@ -303,7 +303,6 @@ class TestDocType(unittest.TestCase):
 		#create doctype
 		link_doc = self.new_doctype('Test Linked Doctype')
 		link_doc.is_submittable = 1
-		field_1 = link_doc.append('fields', {})
 		for data in link_doc.get('permissions'):
 			data.submit = 1
 			data.cancel = 1
