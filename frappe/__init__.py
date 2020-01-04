@@ -1423,7 +1423,7 @@ def attach_print(doctype, name, file_name=None, print_format=None,
 
 	if int(print_settings.send_print_as_pdf or 0):
 		ext = ".pdf"
-		args["as_pdf"] = True,
+		kwargs["as_pdf"] = True
 	else:
 		ext = ".html"
 
