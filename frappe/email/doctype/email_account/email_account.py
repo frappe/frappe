@@ -247,13 +247,13 @@ class EmailAccount(Document):
 			exceptions = []
 			seen_status = []
 			uid_reindexed = False
+			email_server = None
 
 			if frappe.local.flags.in_test:
 				incoming_mails = test_mails
 			else:
 				email_sync_rule = self.build_email_sync_rule()
 
-				email_server = None
 				try:
 					email_server = self.get_incoming_server(in_receive=True, email_sync_rule=email_sync_rule)
 				except Exception:
