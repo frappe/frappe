@@ -1421,15 +1421,18 @@ def attach_print(doctype, name, file_name=None, print_format=None,
 		password=password
 	)
 
+	content = ''
 	if int(print_settings.send_print_as_pdf or 0):
 		ext = ".pdf"
 		kwargs["as_pdf"] = True
+		content = get_print(doctype, name, **kwargs)
 	else:
 		ext = ".html"
+		content = scrub_urls(get_print(doctype, name, **kwargs)).encode('utf-8')
 
 	out = {
 		"fname": file_name + ext,
-		"fcontent": scrub_urls(get_print(doctype, name, **kwargs)).encode("utf-8")
+		"fcontent": content
 	}
 
 	local.flags.ignore_print_permissions = False
