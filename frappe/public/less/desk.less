@@ -771,7 +771,7 @@ li.user-progress {
 // custom font awesome checkbox
 input[type="checkbox"] {
 	position: relative;
-	left: -999999px;
+	visibility: hidden;
 
 	&:before {
 		position: absolute;
@@ -787,7 +787,7 @@ input[type="checkbox"] {
 		font-size: 14px;
 		color: @text-extra-muted;
 		.transition(150ms color);
-		left: 999999px;
+		left: 0px;
 	}
 
 	&:focus:before {
@@ -897,6 +897,7 @@ input[type="checkbox"] {
 	&:focus {
 		outline: none;
 	}
+
 	.fa-circle {
 		font-size: 10px;
 		margin: 0px 2px;
@@ -928,6 +929,7 @@ input[type="checkbox"] {
 	}
 	.lead {
 		margin-top: 20px;
+		font-weight: 500;
 	}
 	.success-state {
 		margin-bottom: 20px;
@@ -959,28 +961,51 @@ input[type="checkbox"] {
 	}
 }
 
-// User Progress Dialog
-.user-progress-dialog {
-	.slides-progress {
-		margin-top: 15px;
+// Onboarding Dialog
+.onboarding-dialog {
+
+	.slide-body {
+		width: 65%;
+		margin-right: auto;
+		margin-left: auto;
 	}
 
-	.done-state {
-		.check-container {
-			font-size: 64px;
-			margin: 40px;
-		}
+	.modal-content {
+		border: 1px solid #d1d8dd;
+  		box-shadow: 0px 3px 5px rgba(0, 0, 0, 0.1);
+	}
 
-		.title {
-			font-weight: normal;
-		}
+	.modal-backdrop {
+		background-color: #ffffff;
+	}
 
-		.help-links {
+	.modal-backdrop.in {
+		opacity: 1;
+	}
 
-			a {
-				margin: 0px 10px;
-			}
-		}
+	.modal-dialog {
+		height: 80%;
+		max-width: none;
+	}
+
+	.onboarding-icon {
+		color: @text-muted;
+		margin-right: 5px;
+	}
+
+	.modal-content .slide-container {
+		height: auto;
+		min-height: 100%;
+		bottom: 0;
+	}
+
+	img {
+		max-height: 175px;
+		width: auto;
+	}
+
+	.slides-progress {
+		margin-top: 15px;
 	}
 
 }
@@ -1123,4 +1148,10 @@ body.no-sidebar {
 
 .alt-pressed .alt-underline {
 	text-decoration: underline;
+}
+
+.app-change-log-body {
+	h1 {
+		font-size: 20px;
+	}
 }

@@ -460,6 +460,15 @@ def run_tests(context, app=None, module=None, doctype=None, test=(),
 	tests = test
 
 	site = get_site(context)
+
+	allow_tests = frappe.get_conf(site).allow_tests
+
+	if not (allow_tests or os.environ.get('CI')):
+		click.secho('Testing is disabled for the site!', bold=True)
+		click.secho('You can enable tests by entering following command:')
+		click.secho('bench --site {0} set-config allow_tests true'.format(site), fg='green')
+		return
+
 	frappe.init(site=site)
 
 	frappe.flags.skip_before_tests = skip_before_tests
@@ -506,26 +515,6 @@ def run_ui_tests(context, app, headless=False):
 	command = '{site_env} {password_env} yarn run cypress:{run_or_open}'
 	formatted_command = command.format(site_env=site_env, password_env=password_env, run_or_open=run_or_open)
 	frappe.commands.popen(formatted_command, cwd=app_base_path, raise_err=True)
-
-@click.command('run-setup-wizard-ui-test')
-@click.option('--app', help="App to run tests on, leave blank for all apps")
-@click.option('--profile', is_flag=True, default=False)
-@pass_context
-def run_setup_wizard_ui_test(context, app=None, profile=False):
-	"Run setup wizard UI test"
-	import frappe.test_runner
-
-	site = get_site(context)
-	frappe.init(site=site)
-	frappe.connect()
-
-	ret = frappe.test_runner.run_setup_wizard_ui_test(app=app, verbose=context.verbose,
-		profile=profile)
-	if len(ret.failures) == 0 and len(ret.errors) == 0:
-		ret = 0
-
-	if os.environ.get('CI'):
-		sys.exit(ret)
 
 @click.command('serve')
 @click.option('--port', default=8000)
@@ -752,7 +741,6 @@ commands = [
 	reset_perms,
 	run_tests,
 	run_ui_tests,
-	run_setup_wizard_ui_test,
 	serve,
 	set_config,
 	show_config,

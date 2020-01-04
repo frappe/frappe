@@ -151,7 +151,7 @@ class Meta(Document):
 			if self.name!="DocType":
 				self._table_fields = self.get('fields', {"fieldtype": ['in', table_fields]})
 			else:
-				self._table_fields = doctype_table_fields
+				self._table_fields = DOCTYPE_TABLE_FIELDS
 
 		return self._table_fields
 
@@ -165,7 +165,7 @@ class Meta(Document):
 
 	def get_valid_columns(self):
 		if not hasattr(self, "_valid_columns"):
-			if self.name in ("DocType", "DocField", "DocPerm", "Property Setter"):
+			if self.name in ("DocType", "DocField", "DocPerm", 'DocType Action', 'DocType Link', "Property Setter"):
 				self._valid_columns = get_table_columns(self.name)
 			else:
 				self._valid_columns = self.default_fields + \
@@ -174,7 +174,12 @@ class Meta(Document):
 		return self._valid_columns
 
 	def get_table_field_doctype(self, fieldname):
-		return { "fields": "DocField", "permissions": "DocPerm"}.get(fieldname)
+		return {
+			"fields": "DocField",
+			"permissions": "DocPerm",
+			"actions": "DocType Action",
+			'links': 'DocType Link'
+		}.get(fieldname)
 
 	def get_field(self, fieldname):
 		'''Return docfield from meta'''
@@ -419,10 +424,43 @@ class Meta(Document):
 		except ImportError:
 			pass
 
+		self.add_doctype_links(data)
+
 		for hook in frappe.get_hooks("override_doctype_dashboards", {}).get(self.name, []):
 			data = frappe.get_attr(hook)(data=data)
 
 		return data
+
+	def add_doctype_links(self, data):
+		'''add `links` child table in standard link dashboard format'''
+		if hasattr(self, 'links') and self.links:
+			if not data.transactions:
+				# init groups
+				data.transactions = []
+				data.non_standard_fieldnames = {}
+
+			for link in self.links:
+				link.added = False
+				for group in data.transactions:
+					# group found
+					if group.label == link.label:
+						if not link.link_doctype in group.items:
+							group.items.append(link.link_doctype)
+						link.added = True
+
+				if not link.added:
+					# group not found, make a new group
+					data.transactions.append(dict(
+						label = link.group,
+						items = [link.link_doctype]
+					))
+
+				if link.link_fieldname != data.fieldname:
+					if data.fieldname:
+						data.non_standard_fieldnames[link.link_doctype] = link.link_fieldname
+					else:
+						data.fieldname = link.link_fieldname
+
 
 	def get_row_template(self):
 		return self.get_web_template(suffix='_row')
@@ -441,9 +479,11 @@ class Meta(Document):
 	def is_nested_set(self):
 		return self.has_field('lft') and self.has_field('rgt')
 
-doctype_table_fields = [
+DOCTYPE_TABLE_FIELDS = [
 	frappe._dict({"fieldname": "fields", "options": "DocField"}),
-	frappe._dict({"fieldname": "permissions", "options": "DocPerm"})
+	frappe._dict({"fieldname": "permissions", "options": "DocPerm"}),
+	frappe._dict({"fieldname": "actions", "options": "DocType Action"}),
+	frappe._dict({"fieldname": "links", "options": "DocType Link"}),
 ]
 
 #######

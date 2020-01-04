@@ -679,3 +679,16 @@ def create_batch(iterable, batch_size):
 	total_count = len(iterable)
 	for i in range(0, total_count, batch_size):
 		yield iterable[i:min(i + batch_size, total_count)]
+
+def set_request(**kwargs):
+	from werkzeug.test import EnvironBuilder
+	from werkzeug.wrappers import Request
+	builder = EnvironBuilder(**kwargs)
+	frappe.local.request = Request(builder.get_environ())
+
+def get_html_for_route(route):
+	from frappe.website import render
+	set_request(method='GET', path=route)
+	response = render.render()
+	html = frappe.safe_decode(response.get_data())
+	return html

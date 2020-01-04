@@ -615,15 +615,18 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 	}
 
 	is_editable(df, data) {
-		if (!df || data.docstatus !== 0) return false;
-		const is_standard_field = frappe.model.std_fields_list.includes(df.fieldname);
-		const can_edit = !(
-			is_standard_field
-			|| df.read_only
-			|| df.hidden
-			|| !frappe.model.can_write(this.doctype)
-		);
-		return can_edit;
+		if (df
+			&& frappe.model.can_write(this.doctype)
+			// not a submitted doc or field is allowed to edit after submit
+			&& (data.docstatus !== 1 || df.allow_on_submit)
+			// not a cancelled doc
+			&& data.docstatus !== 2
+			&& !df.read_only
+			&& !df.hidden
+			// not a standard field i.e., owner, modified_by, etc.
+			&& !frappe.model.std_fields_list.includes(df.fieldname))
+			return true;
+		return false;
 	}
 
 	get_data(values) {
@@ -996,7 +999,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 					content: d[cdt_field(col.field)],
 					editable: Boolean(name && this.is_editable(col.docfield, d)),
 					format: value => {
-						return frappe.format(value, col.docfield, { always_show_decimals: true });
+						return frappe.format(value, col.docfield, { always_show_decimals: true }, d);
 					}
 				};
 			}

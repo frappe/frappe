@@ -137,8 +137,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 	show_restricted_list_indicator_if_applicable() {
 		const match_rules_list = frappe.perm.get_match_rules(this.doctype);
-		if(match_rules_list.length) {
-			this.restricted_list = $('<button class="restricted-list form-group">Restricted</button>')
+		if (match_rules_list.length) {
+			this.restricted_list = $(`<button class="restricted-list form-group">${__('Restricted')}</button>`)
 				.prepend('<span class="octicon octicon-lock"></span>')
 				.click(() => this.show_restrictions(match_rules_list))
 				.appendTo(this.page.page_form);
@@ -148,7 +148,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	show_restrictions(match_rules_list=[]) {
 		frappe.msgprint(frappe.render_template('list_view_permission_restrictions', {
 			condition_list: match_rules_list
-		}), 'Restrictions');
+		}), __('Restrictions'));
 	}
 
 	set_fields() {
@@ -323,15 +323,32 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		this.columns = this.columns.slice(0, this.list_view_settings.column_count || column_count);
 	}
 
+	get_documentation_link() {
+		if (this.meta.documentation) {
+			return `<a href="${this.meta.documentation}" target="blank" class="meta-description small text-muted">Need Help?</a>`;
+		}
+		return '';
+	}
+
 	get_no_result_message() {
+		let help_link = this.get_documentation_link();
+		let filters = this.filter_area.get();
+		let no_result_message = filters.length ? __('No {0} found', [__(this.doctype)]) : __('You haven\'t created a {0} yet', [__(this.doctype)]);
+		let new_button_label = filters.length ? __('Create a new {0}', [__(this.doctype)]) : __('Create your first {0}', [__(this.doctype)]);
+		let empty_state_image = this.settings.empty_state_image || '/assets/frappe/images/ui-states/empty.png';
+
 		const new_button = this.can_create ?
 			`<p><button class="btn btn-primary btn-sm btn-new-doc">
-				${__('Create a new {0}', [__(this.doctype)])}
+				${new_button_label}
 			</button></p>` : '';
 
 		return `<div class="msg-box no-border">
-			<p>${__('No {0} found', [__(this.doctype)])}</p>
+			<div>
+				<img src="${empty_state_image}" alt="Generic Empty State" class="null-state">
+			</div>
+			<p>${no_result_message}</p>
 			${new_button}
+			${help_link}
 		</div>`;
 	}
 
@@ -410,6 +427,16 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			sort_by: this.sort_selector.sort_by,
 			sort_order: this.sort_selector.sort_order
 		});
+	}
+
+	after_render() {
+		this.$no_result.html(`
+			<div class="no-result text-muted flex justify-center align-center">
+				${this.get_no_result_message()}
+			</div>
+		`);
+		this.setup_new_doc_event();
+		this.list_sidebar.reload_stats();
 	}
 
 	render() {
@@ -599,7 +626,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 					data-filter="${fieldname},=,${value}">
 					${_value}
 				</a>`;
-			} else if (['Text Editor', 'Text', 'Small Text'].includes(df.fieldtype)) {
+			} else if (['Text Editor', 'Text', 'Small Text', 'HTML Editor'].includes(df.fieldtype)) {
 				html = `<span class="text-muted ellipsis">
 					${_value}
 				</span>`;
@@ -611,7 +638,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			}
 
 			return `<span class="ellipsis"
-				title="${__(label) + ': ' + _value}">
+				title="${__(label)}: ${escape(_value)}">
 				${html}
 			</span>`;
 		};
@@ -1541,3 +1568,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 $(document).on('save', (event, doc) => {
 	frappe.views.ListView.trigger_list_update(doc);
 });
+
+frappe.get_list_view = (doctype) => {
+	let route = `List/${doctype}/List`;
+	return frappe.views.list_view[route];
+};

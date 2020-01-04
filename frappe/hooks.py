@@ -76,8 +76,7 @@ leaderboards = "frappe.desk.leaderboard.get_leaderboards"
 
 on_session_creation = [
 	"frappe.core.doctype.activity_log.feed.login_feed",
-	"frappe.core.doctype.user.user.notify_admin_access_to_system_manager",
-	"frappe.utils.scheduler.reset_enabled_scheduler_events",
+	"frappe.core.doctype.user.user.notify_admin_access_to_system_manager"
 ]
 
 on_logout = "frappe.core.doctype.session_default_settings.session_default_settings.clear_session_defaults"
@@ -140,6 +139,7 @@ doc_events = {
 		"on_change": [
 			"frappe.social.doctype.energy_point_rule.energy_point_rule.process_energy_points"
 		],
+		"aftet_insert": "frappe.cache_manager.build_table_count_cache",
 	},
 	"Event": {
 		"after_insert": "frappe.integrations.doctype.google_calendar.google_calendar.insert_event_in_google_calendar",
@@ -149,18 +149,28 @@ doc_events = {
 	"Contact": {
 		"after_insert": "frappe.integrations.doctype.google_contacts.google_contacts.insert_contacts_to_google_contacts",
 		"on_update": "frappe.integrations.doctype.google_contacts.google_contacts.update_contacts_to_google_contacts",
+	},
+	"DocType": {
+		"after_save": "frappe.cache_manager.build_domain_restriced_doctype_cache",
+	},
+	"Page": {
+		"after_save": "frappe.cache_manager.build_domain_restriced_page_cache",
 	}
 }
 
 scheduler_events = {
+	"cron": {
+		"0/15 * * * *": [
+			"frappe.oauth.delete_oauth2_data",
+			"frappe.website.doctype.web_page.web_page.check_publish_status",
+			"frappe.twofactor.delete_all_barcodes_for_users"
+		]
+	},
 	"all": [
 		"frappe.email.queue.flush",
 		"frappe.email.doctype.email_account.email_account.pull",
 		"frappe.email.doctype.email_account.email_account.notify_unreplied",
-		"frappe.oauth.delete_oauth2_data",
 		"frappe.integrations.doctype.razorpay_settings.razorpay_settings.capture_payment",
-		"frappe.twofactor.delete_all_barcodes_for_users",
-		"frappe.website.doctype.web_page.web_page.check_publish_status",
 		'frappe.utils.global_search.sync_global_search'
 	],
 	"hourly": [
