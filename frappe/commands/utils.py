@@ -389,19 +389,17 @@ def postgres(context):
 @click.command('jupyter')
 @pass_context
 def jupyter(context):
-	try:
-		from pip import main
-	except ImportError:
-		from pip._internal import main
+	installed_packages = (r.split('==')[0] for r in subprocess.check_output([sys.executable, '-m', 'pip', 'freeze'], encoding='utf8'))
 
-	reqs = subprocess.check_output([sys.executable, '-m', 'pip', 'freeze'])
-	installed_packages = [r.decode().split('==')[0] for r in reqs.split()]
 	if 'jupyter' not in installed_packages:
-		main(['install', 'jupyter'])
+		subprocess.check_output([sys.executable, '-m', 'pip', 'install', 'jupyter'])
+
 	site = get_site(context)
 	frappe.init(site=site)
+
 	jupyter_notebooks_path = os.path.abspath(frappe.get_site_path('jupyter_notebooks'))
 	sites_path = os.path.abspath(frappe.get_site_path('..'))
+
 	try:
 		os.stat(jupyter_notebooks_path)
 	except OSError:
@@ -434,7 +432,7 @@ def console(context):
 	frappe.connect()
 	frappe.local.lang = frappe.db.get_default("lang")
 	import IPython
-	IPython.embed(display_banner = "")
+	IPython.embed(display_banner="")
 
 @click.command('run-tests')
 @click.option('--app', help="For App")
@@ -472,8 +470,8 @@ def run_tests(context, app=None, module=None, doctype=None, test=(),
 		cov.start()
 
 	ret = frappe.test_runner.main(app, module, doctype, context.verbose, tests=tests,
-		force=context.force, profile=profile, junit_xml_output=junit_xml_output,
-		ui_tests = ui_tests, doctype_list_path = doctype_list_path, failfast=failfast)
+								force=context.force, profile=profile, junit_xml_output=junit_xml_output,
+								ui_tests=ui_tests, doctype_list_path=doctype_list_path, failfast=failfast)
 
 	if coverage:
 		cov.stop()
