@@ -333,7 +333,7 @@ def msgprint(msg, title=None, raise_exception=0, as_table=False, indicator=None,
 			style="margin: 0;">{}</table>'''.format(table_rows)
 
 	if flags.print_messages and out.message:
-		print("Message: " + repr(out.msg).encode("utf-8"))
+		print("Message: " + repr(out.message).encode("utf-8"))
 
 	if title:
 		out.title = title
