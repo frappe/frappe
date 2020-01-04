@@ -305,7 +305,7 @@ class EmailAccount(Document):
 				raise Exception(frappe.as_json(exceptions))
 
 	def handle_bad_emails(self, email_server, uid, raw, reason):
-		if cint(email_server.settings.use_imap):
+		if email_server and cint(email_server.settings.use_imap):
 			import email
 			try:
 				mail = email.message_from_string(raw)
