@@ -41,6 +41,8 @@ def get_outgoing_email_account(raise_exception_not_set=True, append_to=None, sen
 		try getting settings from `site_config.json`."""
 
 	sender_email_id = None
+	_email_account = None
+
 	if sender:
 		sender_email_id = parse_addr(sender)[1]
 
