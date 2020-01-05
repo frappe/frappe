@@ -51,43 +51,6 @@ def get_outgoing_email_account(raise_exception_not_set=True, append_to=None, sen
 
 	email_account = None
 
-<<<<<<< HEAD
-		if sender_email_id:
-			# check if the sender has an email account with enable_outgoing
-			email_account = _get_email_account({"enable_outgoing": 1,
-					"email_id": sender_email_id})
-
-		if not email_account and append_to:
-			# append_to is only valid when enable_incoming is checked
-			email_accounts = frappe.db.get_values("Email Account", {
-				"enable_outgoing": 1,
-				"enable_incoming": 1,
-				"append_to": append_to,
-			}, cache=True)
-
-			if email_accounts:
-				_email_account = email_accounts[0]
-
-			else:
-				email_account = _get_email_account({
-					"enable_outgoing": 1,
-					"enable_incoming": 1,
-					"append_to": append_to
-				})
-
-		if not email_account:
-			# sender don't have the outging email account
-			sender_email_id = None
-			email_account = get_default_outgoing_email_account(raise_exception_not_set=raise_exception_not_set)
-
-		if not email_account and _email_account:
-			# if default email account is not configured then setup first email account based on append to
-			email_account = _email_account
-
-		if not email_account and raise_exception_not_set and cint(frappe.db.get_single_value('System Settings', 'setup_complete')):
-			frappe.throw(_("Please setup default Email Account from Setup > Email > Email Account"),
-				frappe.OutgoingEmailError)
-=======
 	if append_to and not frappe.local.outgoing_email_account.get(append_to):
 
 		# in case of multiple Email Accounts with same append_to
@@ -115,10 +78,12 @@ def get_outgoing_email_account(raise_exception_not_set=True, append_to=None, sen
 	# its possible here to not have an email account, if so then lets get the default one (if exists)
 	if not email_account:
 		email_account = get_default_outgoing_email_account(raise_exception_not_set=raise_exception_not_set)
->>>>>>> fcaa0c6bf7b945f04328f9dfbf026096724f4b97
 
-	# still possible to NOT have an email_account, if so then return Nothing
-	if not email_account:
+	# if there is no email account, and we've asked to raise the exception
+	if not email_account and raise_exception_not_set and cint(frappe.db.get_single_value('System Settings', 'setup_complete')):
+		frappe.throw(_("Please setup default Email Account from Setup > Email > Email Account"),
+			frappe.OutgoingEmailError)
+	else: # still possible to NOT have an email_account, if so then return Nothing
 		return None
 
 	# ok, we must have an outgoing account. lets populate local object and grab the important fields
@@ -134,6 +99,7 @@ def get_outgoing_email_account(raise_exception_not_set=True, append_to=None, sen
 	return frappe.local.outgoing_email_account.get(append_to) \
 			or frappe.local.outgoing_email_account.get(sender_email_id) \
 			or frappe.local.outgoing_email_account.get("default")
+
 
 def get_default_outgoing_email_account(raise_exception_not_set=True):
 	'''conf should be like:
