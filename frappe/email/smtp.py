@@ -49,11 +49,9 @@ def get_outgoing_email_account(raise_exception_not_set=True, append_to=None, sen
 	if not getattr(frappe.local, "outgoing_email_account", None):
 		frappe.local.outgoing_email_account = {}
 
-	if not (frappe.local.outgoing_email_account.get(append_to)
-		or frappe.local.outgoing_email_account.get(sender_email_id)
-		or frappe.local.outgoing_email_account.get("default")):
-		email_account = None
+	email_account = None
 
+<<<<<<< HEAD
 		if sender_email_id:
 			# check if the sender has an email account with enable_outgoing
 			email_account = _get_email_account({"enable_outgoing": 1,
@@ -89,20 +87,53 @@ def get_outgoing_email_account(raise_exception_not_set=True, append_to=None, sen
 		if not email_account and raise_exception_not_set and cint(frappe.db.get_single_value('System Settings', 'setup_complete')):
 			frappe.throw(_("Please setup default Email Account from Setup > Email > Email Account"),
 				frappe.OutgoingEmailError)
+=======
+	if append_to and not frappe.local.outgoing_email_account.get(append_to):
 
-		if email_account:
-			if email_account.enable_outgoing and not getattr(email_account, 'from_site_config', False):
-				raise_exception = True
-				if email_account.smtp_server in ['localhost','127.0.0.1'] or email_account.no_smtp_authentication:
-					raise_exception = False
-				email_account.password = email_account.get_password(raise_exception=raise_exception)
-			email_account.default_sender = email.utils.formataddr((email_account.name, email_account.get("email_id")))
+		# in case of multiple Email Accounts with same append_to
+		# narrow it down based on email_id
+		email_account = _get_email_account({
+			"enable_outgoing": 1,
+			"enable_incoming": 1,
+			"append_to": append_to,
+			"email_id": sender_email_id
+		})
 
-		frappe.local.outgoing_email_account[append_to or sender_email_id or "default"] = email_account
+		# else find the first Email Account with append_to
+		if not email_account:
+			email_account = _get_email_account({
+				"enable_outgoing": 1,
+				"enable_incoming": 1,
+				"append_to": append_to
+			})
 
+	if not email_account and sender_email_id and not frappe.local.outgoing_email_account.get(sender_email_id):
+
+		# check if the sender has email account with enable_outgoing, only get if can send out
+		email_account = _get_email_account({"enable_outgoing": 1, "email_id": sender_email_id})
+
+	# its possible here to not have an email account, if so then lets get the default one (if exists)
+	if not email_account:
+		email_account = get_default_outgoing_email_account(raise_exception_not_set=raise_exception_not_set)
+>>>>>>> fcaa0c6bf7b945f04328f9dfbf026096724f4b97
+
+	# still possible to NOT have an email_account, if so then return Nothing
+	if not email_account:
+		return None
+
+	# ok, we must have an outgoing account. lets populate local object and grab the important fields
+	if email_account.enable_outgoing and not getattr(email_account, 'from_site_config', False):
+		raise_exception = True
+		if email_account.smtp_server in ['localhost','127.0.0.1'] or email_account.no_smtp_authentication:
+			raise_exception = False
+		email_account.password = email_account.get_password(raise_exception=raise_exception)
+	email_account.default_sender = email.utils.formataddr((email_account.name, email_account.get("email_id")))
+
+	# return back what we've found and update frappe.local
+	frappe.local.outgoing_email_account[append_to or sender_email_id or "default"] = email_account
 	return frappe.local.outgoing_email_account.get(append_to) \
-		or frappe.local.outgoing_email_account.get(sender_email_id) \
-		or frappe.local.outgoing_email_account.get("default")
+			or frappe.local.outgoing_email_account.get(sender_email_id) \
+			or frappe.local.outgoing_email_account.get("default")
 
 def get_default_outgoing_email_account(raise_exception_not_set=True):
 	'''conf should be like:
