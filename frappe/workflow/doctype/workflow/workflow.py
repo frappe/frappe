@@ -59,14 +59,24 @@ class Workflow(Document):
 
 	def update_doc_status(self):
 		doc_before_save = self.get_doc_before_save()
+		before_save_states, new_states = {}, {}
 		if doc_before_save:
-			for current_doc_state, doc_before_save_state in zip(self.states, doc_before_save.states):
-				if not doc_before_save_state.doc_status == current_doc_state.doc_status:
-					frappe.db.set_value(self.document_type,
-						{self.workflow_state_field: doc_before_save_state.state},
-						'docstatus',
-						current_doc_state.doc_status
-					)
+			for d in doc_before_save.states:
+				before_save_states[d.state] = d
+			for d in self.states:
+				new_states[d.state] = d
+
+			for key in new_states:
+				if key in before_save_states:
+					if not new_states[key].doc_status == before_save_states[key].doc_status:
+						frappe.db.set_value(self.document_type,
+							{
+								self.workflow_state_field: before_save_states[key].state
+							},
+							'docstatus',
+							new_states[key].doc_status,
+							update_modified = False
+						)
 
 	def validate_docstatus(self):
 		def get_state(state):
