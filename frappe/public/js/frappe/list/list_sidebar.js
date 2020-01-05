@@ -335,14 +335,13 @@ frappe.views.ListSidebar = class ListSidebar {
 			field: field,
 			stat: stats,
 			sum: sum,
-			label: field === '_user_tags' ? (tags ? __(label) : __("Tag")) : __(label),
+			label: field === '_user_tags' ? (tags ? __(label) : __("Tags")) : __(label),
 		};
 		$(frappe.render_template("list_sidebar_stat", context))
 			.on("click", ".stat-link", function() {
-				var doctype = "Tag Link";
 				var fieldname = $(this).attr('data-field');
 				var label = $(this).attr('data-label');
-				var condition = "=";
+				var condition = "like";
 				var existing = me.list_view.filter_area.filter_list.get_filter(fieldname);
 				if(existing) {
 					existing.remove();
@@ -351,7 +350,7 @@ frappe.views.ListSidebar = class ListSidebar {
 					label = "%,%";
 					condition = "not like";
 				}
-				me.list_view.filter_area.filter_list.add_filter(doctype, fieldname, condition, label)
+				me.list_view.filter_area.filter_list.add_filter(me.list_view.doctype, fieldname, condition, label)
 					.then(function() {
 						me.list_view.refresh();
 					});
