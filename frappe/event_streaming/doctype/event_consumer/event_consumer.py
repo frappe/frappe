@@ -9,7 +9,7 @@ import json
 import requests
 from frappe.model.document import Document
 from frappe.frappeclient import FrappeClient
-from frappe.event_streaming.doctype.event_producer.event_producer import get_current_node
+from frappe.utils.data import get_url
 from frappe.utils.background_jobs import get_jobs
 
 class EventConsumer(Document):
@@ -27,7 +27,7 @@ class EventConsumer(Document):
 
 	def update_consumer_status(self):
 		consumer_site = get_consumer_site(self.callback_url)
-		event_producer = consumer_site.get_doc('Event Producer', get_current_node())
+		event_producer = consumer_site.get_doc('Event Producer', get_url())
 		config = event_producer.producer_doctypes
 		event_producer.producer_doctypes = []
 		for entry in config:
@@ -111,7 +111,7 @@ def notify(consumer):
 			client = get_consumer_site(consumer.callback_url)
 			client.post_request({
 				'cmd': 'frappe.event_streaming.doctype.event_producer.event_producer.new_event_notification',
-				'producer_url': get_current_node()
+				'producer_url': get_url()
 			})
 			consumer.flags.notified = True
 		except Exception:

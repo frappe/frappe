@@ -12,6 +12,7 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.frappeclient import FrappeClient
 from frappe.utils.background_jobs import get_jobs
+from frappe.utils.data import get_url
 from frappe.custom.doctype.custom_field.custom_field import create_custom_field
 
 class EventProducer(Document):
@@ -58,7 +59,7 @@ class EventProducer(Document):
 				consumer_doctypes.append(entry.ref_doctype)
 
 		return {
-			'event_consumer': get_current_node(),
+			'event_consumer': get_url(),
 			'consumer_doctypes': json.dumps(consumer_doctypes),
 			'user': self.user,
 			'in_test': frappe.flags.in_test
@@ -78,7 +79,7 @@ class EventProducer(Document):
 	def update_event_consumer(self):
 		if self.is_producer_online():
 			producer_site = get_producer_site(self.producer_url)
-			event_consumer = producer_site.get_doc('Event Consumer', get_current_node())
+			event_consumer = producer_site.get_doc('Event Consumer', get_url())
 			if event_consumer:
 				config = event_consumer.consumer_doctypes
 				event_consumer.consumer_doctypes = []
@@ -98,6 +99,7 @@ class EventProducer(Document):
 				event_consumer.user = self.user
 				event_consumer.incoming_change = True
 				producer_site.update(event_consumer)
+
 	def is_producer_online(self):
 		'''check connection status for the Event Producer site'''
 		retry = 3
@@ -108,14 +110,6 @@ class EventProducer(Document):
 			retry -= 1
 			time.sleep(5)
 		frappe.throw(_('Failed to connect to the Event Producer site. Retry after some time.'))
-
-def get_current_node():
-	current_node = frappe.utils.get_url()
-	parts = current_node.split(':')
-	if not len(parts) > 2:
-		port = frappe.conf.http_port or frappe.conf.webserver_port
-		current_node += ':' + str(port)
-	return current_node
 
 def get_producer_site(producer_url):
 	producer_doc = frappe.get_doc('Event Producer', producer_url)
@@ -136,7 +130,7 @@ def get_approval_status(config, ref_doctype):
 @frappe.whitelist()
 def pull_producer_data():
 	'''Fetch data from producer node.'''
-	response = requests.get(get_current_node())
+	response = requests.get(get_url())
 	if response.status_code == 200:
 		for event_producer in frappe.get_all('Event Producer'):
 			pull_from_node(event_producer.name)

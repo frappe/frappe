@@ -7,7 +7,7 @@ import frappe
 import unittest
 import time
 from frappe.frappeclient import FrappeClient
-from frappe.event_streaming.doctype.event_producer.event_producer import pull_from_node, get_current_node
+from frappe.event_streaming.doctype.event_producer.event_producer import pull_from_node
 
 def create_event_producer(producer_url):
 	event_producer = frappe.new_doc('Event Producer')
