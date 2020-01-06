@@ -321,10 +321,19 @@ def msgprint(msg, title=None, raise_exception=0, as_table=False, indicator=None,
 		return
 
 	if as_table and type(msg) in (list, tuple):
-		out.msg = '<table border="1px" style="border-collapse: collapse" cellpadding="2px">' + ''.join(['<tr>'+''.join(['<td>%s</td>' % c for c in r])+'</tr>' for r in msg]) + '</table>'
 
-	if flags.print_messages and out.msg:
-		print("Message: " + repr(out.msg).encode("utf-8"))
+		table_rows = ''
+		for row in msg:
+			table_row_data = ''
+			for data in row:
+				table_row_data += '<td>{}</td>'.format(data)
+			table_rows += '<tr>{}</tr>'.format(table_row_data)
+
+		out.message = '''<table class="table table-bordered"
+			style="margin: 0;">{}</table>'''.format(table_rows)
+
+	if flags.print_messages and out.message:
+		print("Message: " + repr(out.message).encode("utf-8"))
 
 	if title:
 		out.title = title
@@ -363,7 +372,6 @@ def throw(msg, exc=ValidationError, title=None):
 	msgprint(msg, raise_exception=exc, title=title, indicator='red')
 
 def emit_js(js, user=False, **kwargs):
-	from frappe.realtime import publish_realtime
 	if user == False:
 		user = session.user
 	publish_realtime('eval_js', js, user=user, **kwargs)
@@ -767,8 +775,8 @@ def get_meta_module(doctype):
 	import frappe.modules
 	return frappe.modules.load_doctype_module(doctype)
 
-def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reload=False,
-	ignore_permissions=False, flags=None, ignore_on_trash=False, ignore_missing=True):
+def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None,
+	for_reload=False, ignore_permissions=False, flags=None, ignore_on_trash=False, ignore_missing=True):
 	"""Delete a document. Calls `frappe.model.delete_doc.delete_doc`.
 
 	:param doctype: DocType of document to be delete.
@@ -805,8 +813,8 @@ def reload_doc(module, dt=None, dn=None, force=False, reset_permissions=False):
 
 def rename_doc(*args, **kwargs):
 	"""Rename a document. Calls `frappe.model.rename_doc.rename_doc`"""
-	from frappe.model.rename_doc import rename_doc
-	return rename_doc(*args, **kwargs)
+	from frappe.model.rename_doc import rename_doc as _rename_doc
+	return _rename_doc(*args, **kwargs)
 
 def get_module(modulename):
 	"""Returns a module object for given Python module name using `importlib.import_module`."""
@@ -814,11 +822,11 @@ def get_module(modulename):
 
 def scrub(txt):
 	"""Returns sluggified string. e.g. `Sales Order` becomes `sales_order`."""
-	return txt.replace(' ','_').replace('-', '_').lower()
+	return txt.replace(' ', '_').replace('-', '_').lower()
 
 def unscrub(txt):
 	"""Returns titlified string. e.g. `sales_order` becomes `Sales Order`."""
-	return txt.replace('_',' ').replace('-', ' ').title()
+	return txt.replace('_', ' ').replace('-', ' ').title()
 
 def get_module_path(module, *joins):
 	"""Get the path of the given module name.
@@ -980,7 +988,8 @@ def setup_module_map():
 	if not (local.app_modules and local.module_app):
 		local.module_app, local.app_modules = {}, {}
 		for app in get_all_apps(True):
-			if app=="webnotes": app="frappe"
+			if app == "webnotes":
+				app = "frappe"
 			local.app_modules.setdefault(app, [])
 			for module in get_module_list(app):
 				module = scrub(module)
@@ -999,7 +1008,10 @@ def get_file_items(path, raise_not_found=False, ignore_empty_lines=True):
 	if content:
 		content = frappe.utils.strip(content)
 
-		return [p.strip() for p in content.splitlines() if (not ignore_empty_lines) or (p.strip() and not p.startswith("#"))]
+		return [
+			p.strip() for p in content.splitlines()
+			if (not ignore_empty_lines) or (p.strip() and not p.startswith("#"))
+		]
 	else:
 		return []
 
@@ -1161,8 +1173,8 @@ def compare(val1, condition, val2):
 	import frappe.utils
 	return frappe.utils.compare(val1, condition, val2)
 
-def respond_as_web_page(title, html, success=None, http_status_code=None,
-	context=None, indicator_color=None, primary_action='/', primary_label = None, fullpage=False,
+def respond_as_web_page(title, html, success=None, http_status_code=None, context=None,
+	indicator_color=None, primary_action='/', primary_label = None, fullpage=False,
 	width=None, template='message'):
 	"""Send response as a web page with a message rather than JSON. Used to show permission errors etc.
 
@@ -1351,7 +1363,8 @@ def format(*args, **kwargs):
 	import frappe.utils.formatters
 	return frappe.utils.formatters.format_value(*args, **kwargs)
 
-def get_print(doctype=None, name=None, print_format=None, style=None, html=None, as_pdf=False, doc=None, output = None, no_letterhead = 0, password=None):
+def get_print(doctype=None, name=None, print_format=None, style=None,
+	html=None, as_pdf=False, doc=None, output=None, no_letterhead=0, password=None):
 	"""Get Print Format for given document.
 
 	:param doctype: DocType of document.
@@ -1382,7 +1395,8 @@ def get_print(doctype=None, name=None, print_format=None, style=None, html=None,
 	else:
 		return html
 
-def attach_print(doctype, name, file_name=None, print_format=None, style=None, html=None, doc=None, lang=None, print_letterhead=True, password=None):
+def attach_print(doctype, name, file_name=None, print_format=None,
+	style=None, html=None, doc=None, lang=None, print_letterhead=True, password=None):
 	from frappe.utils import scrub_urls
 
 	if not file_name: file_name = name
@@ -1398,16 +1412,28 @@ def attach_print(doctype, name, file_name=None, print_format=None, style=None, h
 
 	no_letterhead = not print_letterhead
 
+	kwargs = dict(
+		print_format=print_format,
+		style=style,
+		html=html,
+		doc=doc,
+		no_letterhead=no_letterhead,
+		password=password
+	)
+
+	content = ''
 	if int(print_settings.send_print_as_pdf or 0):
-		out = {
-			"fname": file_name + ".pdf",
-			"fcontent": get_print(doctype, name, print_format=print_format, style=style, html=html, as_pdf=True, doc=doc, no_letterhead=no_letterhead, password=password)
-		}
+		ext = ".pdf"
+		kwargs["as_pdf"] = True
+		content = get_print(doctype, name, **kwargs)
 	else:
-		out = {
-			"fname": file_name + ".html",
-			"fcontent": scrub_urls(get_print(doctype, name, print_format=print_format, style=style, html=html, doc=doc, no_letterhead=no_letterhead, password=password)).encode("utf-8")
-		}
+		ext = ".html"
+		content = scrub_urls(get_print(doctype, name, **kwargs)).encode('utf-8')
+
+	out = {
+		"fname": file_name + ext,
+		"fcontent": content
+	}
 
 	local.flags.ignore_print_permissions = False
 	#reset lang to original local lang
@@ -1526,7 +1552,12 @@ def log_error(message=None, title=None):
 		method=title)).insert(ignore_permissions=True)
 
 def get_desk_link(doctype, name):
-	return '<a href="#Form/{0}/{1}" style="font-weight: bold;">{2} {1}</a>'.format(doctype, name, _(doctype))
+	html = '<a href="#Form/{doctype}/{name}" style="font-weight: bold;">{doctype_local} {name}</a>'
+	return html.format(
+		doctype=doctype,
+		name=name,
+		doctype_local=_(doctype)
+	)
 
 def bold(text):
 	return '<b>{0}</b>'.format(text)
@@ -1545,10 +1576,9 @@ def safe_eval(code, eval_globals=None, eval_locals=None):
 
 	if not eval_globals:
 		eval_globals = {}
+
 	eval_globals['__builtins__'] = {}
-
 	eval_globals.update(whitelisted_globals)
-
 	return eval(code, eval_globals, eval_locals)
 
 def get_system_settings(key):
@@ -1560,9 +1590,11 @@ def get_active_domains():
 	from frappe.core.doctype.domain_settings.domain_settings import get_active_domains
 	return get_active_domains()
 
-def get_version(doctype, name, limit = None, head = False, raise_err = True):
+def get_version(doctype, name, limit=None, head=False, raise_err=True):
 	'''
-	Returns a list of version information of a given DocType (Applicable only if DocType has changes tracked).
+	Returns a list of version information of a given DocType.
+
+	Note: Applicable only if DocType has changes tracked.
 
 	Example
 	>>> frappe.get_version('User', 'foobar@gmail.com')
@@ -1575,34 +1607,29 @@ def get_version(doctype, name, limit = None, head = False, raise_err = True):
 		}
 	]
 	'''
-	meta  = get_meta(doctype)
+	meta = get_meta(doctype)
 	if meta.track_changes:
-		names = db.sql("""
-			SELECT name from tabVersion
-			WHERE  ref_doctype = '{doctype}' AND docname = '{name}'
-			{order_by}
-			{limit}
-		""".format(
-			doctype  = doctype,
-			name     = name,
-			order_by = 'ORDER BY creation'	 			     if head  else '',
-			limit    = 'LIMIT {limit}'.format(limit = limit) if limit else ''
-		))
+		names = db.get_all('Version', filters={
+			'ref_doctype': doctype,
+			'docname': name,
+			'order_by': 'creation' if head else None,
+			'limit': limit
+		}, as_list=1)
 
 		from frappe.chat.util import squashify, dictify, safe_json_loads
 
-		versions = [ ]
+		versions = []
 
 		for name in names:
 			name = squashify(name)
-			doc  = get_doc('Version', name)
+			doc = get_doc('Version', name)
 
 			data = doc.data
 			data = safe_json_loads(data)
 			data = dictify(dict(
-				version  = data,
-				user 	 = doc.owner,
-				creation = doc.creation
+				version=data,
+				user=doc.owner,
+				creation=doc.creation
 			))
 
 			versions.append(data)
@@ -1610,16 +1637,14 @@ def get_version(doctype, name, limit = None, head = False, raise_err = True):
 		return versions
 	else:
 		if raise_err:
-			raise ValueError('{doctype} has no versions tracked.'.format(
-				doctype = doctype
-			))
+			raise ValueError(_('{0} has no versions tracked.').format(doctype))
 
-@whitelist(allow_guest = True)
+@whitelist(allow_guest=True)
 def ping():
 	return "pong"
 
 
-def safe_encode(param, encoding = 'utf-8'):
+def safe_encode(param, encoding='utf-8'):
 	try:
 		param = param.encode(encoding)
 	except Exception:
@@ -1627,7 +1652,7 @@ def safe_encode(param, encoding = 'utf-8'):
 	return param
 
 
-def safe_decode(param, encoding = 'utf-8'):
+def safe_decode(param, encoding='utf-8'):
 	try:
 		param = param.decode(encoding)
 	except Exception:
@@ -1638,9 +1663,9 @@ def parse_json(val):
 	from frappe.utils import parse_json
 	return parse_json(val)
 
-def mock(type, size = 1, locale = 'en'):
-	results = [ ]
-	faker 	= Faker(locale)
+def mock(type, size=1, locale='en'):
+	results = []
+	faker = Faker(locale)
 	if not type in dir(faker):
 		raise ValueError('Not a valid mock type.')
 	else:
@@ -1649,7 +1674,4 @@ def mock(type, size = 1, locale = 'en'):
 			results.append(data)
 
 	from frappe.chat.util import squashify
-
-	results = squashify(results)
-
-	return results
+	return squashify(results)

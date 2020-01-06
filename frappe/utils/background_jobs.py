@@ -142,6 +142,8 @@ def start_worker(queue=None, quiet = False):
 	with Connection(redis_connection):
 		queues = get_queue_list(queue)
 		logging_level = "INFO"
+		if quiet:
+			logging_level = "WARNING"
 		Worker(queues, name=get_worker_name(queue)).work(logging_level = logging_level)
 
 def get_worker_name(queue):
