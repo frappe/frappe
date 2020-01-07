@@ -80,10 +80,12 @@ frappe.ui.form.Toolbar = Class.extend({
 		const title_field = this.frm.meta.title_field || '';
 		const doctype = this.frm.doctype;
 
+		let confirm_message=null;
+
 		if (new_name) {
 			const warning = __("This cannot be undone");
 			const message = __("Are you sure you want to merge {0} with {1}?", [docname.bold(), new_name.bold()]);
-			const confirm_message = message + "<br><b>" + warning + "<b>";
+			confirm_message = `${message}<br><b>${warning}<b>`;
 		}
 
 		let rename_document = () => {
@@ -109,7 +111,9 @@ frappe.ui.form.Toolbar = Class.extend({
 				this.show_unchanged_document_alert();
 				resolve();
 			} else if (merge) {
-				frappe.confirm(confirm_message, function() { rename_document().then(resolve).catch(reject) }, reject);
+				frappe.confirm(confirm_message, () => {
+					rename_document().then(resolve).catch(reject);
+				}, reject);
 			} else {
 				rename_document().then(resolve).catch(reject);
 			}
