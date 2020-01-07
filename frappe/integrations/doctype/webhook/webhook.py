@@ -18,9 +18,6 @@ from frappe.utils.jinja import validate_template
 
 
 class Webhook(Document):
-	def autoname(self):
-		self.name = self.webhook_doctype + "-" + self.webhook_docevent
-
 	def validate(self):
 		self.validate_docevent()
 		self.validate_condition()
