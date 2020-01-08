@@ -229,8 +229,9 @@ def get_prepared_report_result(report, filters, dn="", user=None):
 				"status": "Completed",
 				"filters": json.dumps(filters),
 				"owner": user,
-				"report_name": report.report_name
-			}
+				"report_name": report.custom_report or report.report_name
+			},
+			order_by = 'creation desc'
 		)
 
 		if doc_list:
@@ -424,9 +425,10 @@ def get_data_for_custom_report(columns):
 def save_report(reference_report, report_name, columns):
 	report_doc = get_report_doc(reference_report)
 
-	docname = frappe.db.exists("Report", report_name)
+	docname = frappe.db.exists("Report",
+		{'report_name': report_name, 'is_standard': 'No', 'report_type': 'Custom Report'})
 	if docname:
-		report = frappe.get_doc("Report", {'report_name': docname, 'is_standard': 'No', 'report_type': 'Custom Report'})
+		report = frappe.get_doc("Report", docname)
 		report.update({"json": columns})
 		report.save()
 		frappe.msgprint(_("Report updated successfully"))
@@ -510,7 +512,7 @@ def has_match(row, linked_doctypes, doctype_match_filters, ref_doctype, if_owner
 					cell_value = None
 					if isinstance(row, dict):
 						cell_value = row.get(idx)
-					elif isinstance(row, list):
+					elif isinstance(row, (list, tuple)):
 						cell_value = row[idx]
 
 					if dt in match_filters and cell_value not in match_filters.get(dt) and frappe.db.exists(dt, cell_value):

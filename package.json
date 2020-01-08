@@ -19,6 +19,7 @@
   "homepage": "https://frappe.io",
   "dependencies": {
     "ace-builds": "^1.4.1",
+    "air-datepicker": "http://github.com/frappe/air-datepicker",
     "awesomplete": "^1.1.2",
     "bootstrap": "^4.3.1",
     "cookie": "^0.3.1",
@@ -37,7 +38,7 @@
     "quill": "2.0.0-dev.2",
     "qz-tray": "^2.0.8",
     "redis": "^2.8.0",
-    "showdown": "^1.8.6",
+    "showdown": "^1.9.1",
     "socket.io": "^2.0.4",
     "superagent": "^3.8.2",
     "touch": "^3.1.0",

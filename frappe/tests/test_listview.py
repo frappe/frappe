@@ -6,7 +6,7 @@ import unittest
 import frappe
 import json
 
-from frappe.desk.listview import get_list_settings, set_list_settings
+from frappe.desk.listview import get_list_settings, set_list_settings, get_group_by_count
 
 class TestListView(unittest.TestCase):
 	def setUp(self):
@@ -51,3 +51,13 @@ class TestListView(unittest.TestCase):
 		self.assertEqual(settings.disable_count, 0)
 		self.assertEqual(settings.disable_sidebar_stats, 0)
 
+	def test_list_view_child_table_filter_with_created_by_filter(self):
+		if frappe.db.exists("Note", "Test created by filter with child table filter"):
+			frappe.delete_doc("Note", "Test created by filter with child table filter")
+
+		doc = frappe.get_doc({"doctype": "Note", "title": "Test created by filter with child table filter", "public": 1})
+		doc.append("seen_by", {"user": "Administrator"})
+		doc.insert()
+
+		data = {d.name: d.count for d in get_group_by_count('Note', '[["Note Seen By","user","=","Administrator"]]', 'owner')}
+		self.assertEqual(data['Administrator'], 1)

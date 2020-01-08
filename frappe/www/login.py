@@ -4,19 +4,24 @@
 from __future__ import unicode_literals
 import frappe
 import frappe.utils
-from frappe.utils.oauth import get_oauth2_authorize_url, get_oauth_keys, login_via_oauth2, login_via_oauth2_id_token, login_oauth_user as _login_oauth_user, redirect_post_login, oauth_decoder
+from frappe.utils.oauth import get_oauth2_authorize_url, get_oauth_keys, login_via_oauth2, login_via_oauth2_id_token, login_oauth_user as _login_oauth_user, redirect_post_login
 import json
 from frappe import _
 from frappe.auth import LoginManager
 from frappe.integrations.doctype.ldap_settings.ldap_settings import LDAPSettings
 from frappe.utils.password import get_decrypted_password
 from frappe.utils.html_utils import get_icon_html
+from frappe.integrations.oauth2_logins import decoder_compat
 
 no_cache = True
 
 def get_context(context):
+	redirect_to = frappe.local.request.args.get("redirect-to")
+
 	if frappe.session.user != "Guest":
-		frappe.local.flags.redirect_location = "/" if frappe.session.data.user_type=="Website User" else "/desk"
+		if not redirect_to:
+			redirect_to = "/" if frappe.session.data.user_type=="Website User" else "/desk"
+		frappe.local.flags.redirect_location = redirect_to
 		raise frappe.Redirect
 
 	# get settings from site config
@@ -34,14 +39,14 @@ def get_context(context):
 			context.provider_logins.append({
 				"name": provider,
 				"provider_name": frappe.get_value("Social Login Key", provider, "provider_name"),
-				"auth_url": get_oauth2_authorize_url(provider),
+				"auth_url": get_oauth2_authorize_url(provider, redirect_to),
 				"icon": icon
 			})
 			context["social_login"] = True
 	ldap_settings = LDAPSettings.get_ldap_client_settings()
 	context["ldap_settings"] = ldap_settings
 
-	login_name_placeholder = [_("Email Address")]
+	login_name_placeholder = [_("Email address")]
 
 	if frappe.utils.cint(frappe.get_system_settings("allow_login_using_mobile_number")):
 		login_name_placeholder.append(_("Mobile number"))
@@ -55,7 +60,7 @@ def get_context(context):
 
 @frappe.whitelist(allow_guest=True)
 def login_via_google(code, state):
-	login_via_oauth2("google", code, state, decoder=oauth_decoder)
+	login_via_oauth2("google", code, state, decoder=decoder_compat)
 
 @frappe.whitelist(allow_guest=True)
 def login_via_github(code, state):
@@ -63,15 +68,15 @@ def login_via_github(code, state):
 
 @frappe.whitelist(allow_guest=True)
 def login_via_facebook(code, state):
-	login_via_oauth2("facebook", code, state, decoder=oauth_decoder)
+	login_via_oauth2("facebook", code, state, decoder=decoder_compat)
 
 @frappe.whitelist(allow_guest=True)
 def login_via_frappe(code, state):
-	login_via_oauth2("frappe", code, state, decoder=oauth_decoder)
+	login_via_oauth2("frappe", code, state, decoder=decoder_compat)
 
 @frappe.whitelist(allow_guest=True)
 def login_via_office365(code, state):
-	login_via_oauth2_id_token("office_365", code, state, decoder=oauth_decoder)
+	login_via_oauth2_id_token("office_365", code, state, decoder=decoder_compat)
 
 @frappe.whitelist(allow_guest=True)
 def login_oauth_user(data=None, provider=None, state=None, email_id=None, key=None, generate_login_token=False):

@@ -9,6 +9,7 @@ frappe.start_app = function() {
 		return;
 	frappe.assets.check();
 	frappe.provide('frappe.app');
+	frappe.provide('frappe.desk');
 	frappe.app = new frappe.Application();
 };
 
@@ -87,6 +88,9 @@ frappe.Application = Class.extend({
 		}
 
 		this.show_update_available();
+		if (frappe.boot.is_first_startup) {
+			this.setup_onboarding_wizard();
+		}
 
 		if(frappe.ui.startup_setup_dialog && !frappe.boot.setup_complete) {
 			frappe.ui.startup_setup_dialog.pre_show();
@@ -135,11 +139,7 @@ frappe.Application = Class.extend({
 					method: 'frappe.core.page.background_jobs.background_jobs.get_scheduler_status',
 					callback: function(r) {
 						if (r.message[0] == __("Inactive")) {
-							frappe.msgprint({
-								title: __("Scheduler Inactive"),
-								indicator: "red",
-								message: __("Background jobs are not running. Please contact Administrator")
-							});
+							frappe.call('frappe.utils.scheduler.activate_scheduler');
 						}
 					}
 				});
@@ -466,12 +466,27 @@ frappe.Application = Class.extend({
 
 	show_change_log: function() {
 		var me = this;
-		var d = frappe.msgprint(
-			frappe.render_template("change_log", {"change_log": frappe.boot.change_log}),
-			__("Updated To New Version")
-		);
-		d.keep_open = true;
-		d.custom_onhide = function() {
+		let change_log = frappe.boot.change_log;
+
+		// frappe.boot.change_log = [{
+		// 	"change_log": [
+		// 		[<version>, <change_log in markdown>],
+		// 		[<version>, <change_log in markdown>],
+		// 	],
+		// 	"description": "ERP made simple",
+		// 	"title": "ERPNext",
+		// 	"version": "12.2.0"
+		// }];
+
+		// Iterate over changelog
+		var change_log_dialog = frappe.msgprint({
+			message: frappe.render_template("change_log", {"change_log": change_log}),
+			title: __("Updated To New Version 🎉"),
+			wide: true,
+			scroll: true
+		});
+		change_log_dialog.keep_open = true;
+		change_log_dialog.custom_onhide = function() {
 			frappe.call({
 				"method": "frappe.utils.change_log.update_last_known_versions"
 			});
@@ -482,6 +497,20 @@ frappe.Application = Class.extend({
 	show_update_available: () => {
 		frappe.call({
 			"method": "frappe.utils.change_log.show_update_popup"
+		});
+	},
+
+	setup_onboarding_wizard: () => {
+		frappe.call('frappe.desk.doctype.onboarding_slide.onboarding_slide.get_onboarding_slides').then(res => {
+			if (res.message) {
+				let slides = res.message;
+				if (slides.length) {
+					this.progress_dialog = new frappe.setup.OnboardingDialog({
+						slides: slides
+					});
+					this.progress_dialog.show();
+				}
+			}
 		});
 	},
 

@@ -41,7 +41,11 @@ class Leaderboard {
 					return field;
 				});
 			}
-			this.timespans = ["Week", "Month", "Quarter", "Year", "All Time"];
+			this.timespans = [
+				"This Week", "This Month", "This Quarter", "This Year",
+				"Last Week", "Last Month", "Last Quarter", "Last Year",
+				"All Time", "Select From Date"
+			];
 
 			// for saving current selected filters
 			const _initial_doctype = frappe.get_route()[1] || this.doctypes[0];
@@ -103,7 +107,8 @@ class Leaderboard {
 			this.timespans.map(d => {
 				return {"label": __(d), value: d };
 			})
-		);
+		);		
+		this.create_from_date_field();
 
 		this.type_select = this.page.add_select(__("Field"),
 			this.options.selected_filter.map(d => {
@@ -113,12 +118,39 @@ class Leaderboard {
 
 		this.timespan_select.on("change", (e) => {
 			this.options.selected_timespan = e.currentTarget.value;
-			this.make_request();
+			if (this.options.selected_timespan === 'Select From Date') {
+				this.from_date_field.show();
+			} else {
+				this.from_date_field.hide();
+				this.make_request();
+			}
 		});
 
 		this.type_select.on("change", (e) => {
 			this.options.selected_filter_item = e.currentTarget.value;
 			this.make_request();
+		});
+	}
+
+	create_from_date_field() {
+		let timespan_field = $(this.parent).find(`.frappe-control[data-original-title='Timespan']`);
+		this.from_date_field = $(`<div class="from-date-field"></div>`).insertAfter(timespan_field).hide();
+
+		let date_field = frappe.ui.form.make_control({
+			df: {
+				fieldtype: 'Date',
+				fieldname: 'selected_from_date',
+				placeholder: frappe.datetime.month_start(),
+				default: frappe.datetime.month_start(),
+				input_class: 'input-sm',
+				reqd: 1,
+				change: () => {
+					this.selected_from_date = date_field.get_value();
+					if (this.selected_from_date) this.make_request();
+				}
+			},
+			parent: $(this.parent).find('.from-date-field'),
+			render_input: 1
 		});
 	}
 
@@ -207,7 +239,6 @@ class Leaderboard {
 			this.leaderboard_config[this.options.selected_doctype].method,
 			{
 				'from_date': this.get_from_date(),
-				'timespan': this.options.selected_timespan,
 				'company': this.options.selected_company,
 				'field': this.options.selected_filter_item,
 				'limit': this.leaderboard_limit,
@@ -360,17 +391,20 @@ class Leaderboard {
 	get_from_date() {
 		let timespan = this.options.selected_timespan.toLowerCase();
 		let current_date = frappe.datetime.now_date();
-		let date = '';
-		if (timespan === "month") {
-			date = frappe.datetime.add_months(current_date, -1);
-		} else if (timespan === "quarter") {
-			date = frappe.datetime.add_months(current_date, -3);
-		} else if (timespan === "year") {
-			date = frappe.datetime.add_months(current_date, -12);
-		} else if (timespan === "week") {
-			date = frappe.datetime.add_days(current_date, -7);
+		let get_from_date = {
+			"this week": frappe.datetime.week_start(),
+			"this month": frappe.datetime.month_start(),
+			"this quarter": frappe.datetime.quarter_start(),
+			"this year": frappe.datetime.year_start(),
+			"last week": frappe.datetime.add_days(current_date, -7),
+			"last month": frappe.datetime.add_months(current_date, -1),
+			"last quarter": frappe.datetime.add_months(current_date, -3),
+			"last year": frappe.datetime.add_months(current_date, -12),
+			"all time": "",
+			"select from date": this.selected_from_date || frappe.datetime.month_start()
 		}
-		return date;
+
+		return get_from_date[timespan];
 	}
 
 }

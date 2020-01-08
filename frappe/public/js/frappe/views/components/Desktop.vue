@@ -116,6 +116,7 @@ export default {
 
 					user_section = [
 						{
+							fieldname: 'user_section',
 							fieldtype: 'Section Break',
 							depends_on: doc => doc.setup_for === user_value
 						}
@@ -134,6 +135,7 @@ export default {
 
 					global_section = [
 						{
+							fieldname: 'global_section',
 							fieldtype: 'Section Break',
 							depends_on: doc => doc.setup_for === 'Everyone'
 						}
@@ -188,8 +190,11 @@ export default {
 		update_global_modules(d) {
 			let blocked_modules = [];
 			for (let category of this.module_categories) {
-				let unchecked_options = d.get_field(`global:${category}`).get_unchecked_options();
-				blocked_modules = blocked_modules.concat(unchecked_options);
+				let field = d.get_field(`global:${category}`);
+				if (field) {
+					let unchecked_options = field.get_unchecked_options();
+					blocked_modules = blocked_modules.concat(unchecked_options);
+				}
 			}
 
 			frappe.call({

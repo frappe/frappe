@@ -520,19 +520,22 @@ frappe.search.utils = {
 
 		// **Specific use-case step**
 		keywords = keywords || '';
+		var item = __(_item || '');
+		var item_without_hyphen = item.replace(/-/g, " ");
 
-		var item = __(_item || '').replace(/-/g, " ");
-
-		var ilen = item.length;
-		var klen = keywords.length;
-		var length_ratio = klen/ilen;
+		var item_length = item.length;
+		var query_length = keywords.length;
+		var length_ratio = query_length / item_length;
 		var max_skips = 3, max_mismatch_len = 2;
 
-		if (klen > ilen) {
+		if (query_length > item_length) {
 			return 0;
 		}
 
-		if(keywords === item || item.toLowerCase().indexOf(keywords) === 0) {
+		// check for perfect string matches or
+		// matches that start with the keyword
+		if ([item, item_without_hyphen].includes(keywords)
+				|| [item, item_without_hyphen].some((txt) => txt.toLowerCase().indexOf(keywords) === 0)) {
 			return 10 + length_ratio;
 		}
 
@@ -548,12 +551,12 @@ frappe.search.utils = {
 		}
 
 		var skips = 0, mismatches = 0;
-		outer: for (var i = 0, j = 0; i < klen; i++) {
-			if(mismatches !== 0) skips++;
-			if(skips > max_skips) return 0;
+		outer: for (var i = 0, j = 0; i < query_length; i++) {
+			if (mismatches !== 0) skips++;
+			if (skips > max_skips) return 0;
 			var k_ch = keywords.charCodeAt(i);
 			mismatches = 0;
-			while (j < ilen) {
+			while (j < item_length) {
 				if (item.charCodeAt(j++) === k_ch) {
 					continue outer;
 				}
@@ -619,20 +622,21 @@ frappe.search.utils = {
 					value:  this.bolden_match_part(__(item.label), txt),
 					index: this.fuzzy_search(txt, target),
 					match: item.label,
-					onclick: item.action,
+					onclick: () => item.action.apply(this, item.args)
 				});
 			}
 		});
 		return results;
 	},
-	make_function_searchable(_function, label=null) {
+	make_function_searchable(_function, label=null, args=null) {
 		if (typeof _function !== 'function') {
 			throw new Error('First argument should be a function');
 		}
 
 		this.searchable_functions.push({
 			'label': label || _function.name,
-			'action': _function
+			'action': _function,
+			'args': args,
 		});
 	},
 	searchable_functions: [],

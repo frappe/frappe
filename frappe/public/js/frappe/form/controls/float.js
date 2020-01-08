@@ -1,9 +1,7 @@
 frappe.ui.form.ControlFloat = frappe.ui.form.ControlInt.extend({
 	parse: function(value) {
 		value = this.eval_expression(value);
-		// For #'###.## number format, if we enter 45'00 then it gets parsed as 45.00
-		// becoz number format isn't provided to flt()
-		return isNaN(parseFloat(value)) ? null : flt(value, this.get_precision(), this.get_number_format());
+		return isNaN(parseFloat(value)) ? null : flt(value, this.get_precision());
 	},
 
 	format_for_input: function(value) {
@@ -11,11 +9,10 @@ frappe.ui.form.ControlFloat = frappe.ui.form.ControlInt.extend({
 		if (this.df.fieldtype==="Float" && this.df.options && this.df.options.trim()) {
 			number_format = this.get_number_format();
 		}
-		var formatted_value = format_number(parseFloat(value), number_format, this.get_precision());
+		var formatted_value = format_number(value, number_format, this.get_precision());
 		return isNaN(parseFloat(value)) ? "" : formatted_value;
 	},
 
-	// even a float field can be formatted based on currency format instead of float format
 	get_number_format: function() {
 		var currency = frappe.meta.get_field_currency(this.df, this.get_doc());
 		return get_number_format(currency);

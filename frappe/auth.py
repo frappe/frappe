@@ -142,6 +142,7 @@ class LoginManager:
 		self.validate_hour()
 		self.get_user_info()
 		self.make_session()
+		self.setup_boot_cache()
 		self.set_user_info()
 
 	def get_user_info(self, resume=False):
@@ -149,6 +150,11 @@ class LoginManager:
 			["user_type", "first_name", "last_name", "user_image"], as_dict=1)
 
 		self.user_type = self.info.user_type
+
+	def setup_boot_cache(self):
+		frappe.cache_manager.build_table_count_cache()
+		frappe.cache_manager.build_domain_restriced_doctype_cache()
+		frappe.cache_manager.build_domain_restriced_page_cache()
 
 	def set_user_info(self, resume=False):
 		# set sid again
@@ -218,6 +224,10 @@ class LoginManager:
 	def force_user_to_reset_password(self):
 		if not self.user:
 			return
+
+		from frappe.core.doctype.user.user import STANDARD_USERS
+		if self.user in STANDARD_USERS:
+			return False
 
 		reset_pwd_after_days = cint(frappe.db.get_single_value("System Settings",
 			"force_user_to_reset_password"))

@@ -6,6 +6,7 @@ import frappe, unittest
 
 from frappe.model.db_query import DatabaseQuery
 from frappe.desk.reportview import get_filters_cond
+
 from frappe.permissions import add_user_permission, clear_user_permissions_for_doctype
 
 test_dependencies = ['User', 'Blog Post']
@@ -332,6 +333,16 @@ class TestReportview(unittest.TestCase):
 		self.assertTrue({'name': 'Prepared Report'} in res)
 		self.assertFalse({'name': 'Property Setter'} in res)
 
+	def test_set_field_tables(self):
+		# Tests _in_standard_sql_methods method in test_set_field_tables
+		# The following query will break if the above method is broken
+		data = frappe.db.get_list("Web Form",
+			filters=[['Web Form Field', 'reqd', '=', 1]],
+			group_by='amount_field',
+			fields=['count(*) as count', '`amount_field` as name'],
+			order_by='count desc',
+			limit=50,
+		)
 
 def create_event(subject="_Test Event", starts_on=None):
 	""" create a test event """

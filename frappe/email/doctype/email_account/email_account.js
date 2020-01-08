@@ -184,7 +184,7 @@ frappe.ui.form.on("Email Account", {
 				read as well as unread message from server. This may also cause the duplication\
 				of Communication (emails).");
 			frappe.confirm(msg, null, function() {
-				frm.set_value("email_sync_option", "UNSEEN");
+				frm.set_value("email_sync_option", "ALL");
 			});
 		}
 	}

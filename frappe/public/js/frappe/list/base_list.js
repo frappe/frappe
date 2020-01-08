@@ -207,7 +207,7 @@ frappe.views.BaseList = class BaseList {
 
 	show_or_hide_sidebar() {
 		let show_sidebar = JSON.parse(localStorage.show_sidebar || 'true');
-		$(document.body).toggleClass('no-sidebar', !show_sidebar);
+		$(document.body).toggleClass('no-list-sidebar', !show_sidebar);
 	}
 
 	setup_main_section() {
@@ -590,7 +590,7 @@ class FilterArea {
 		let fields = [
 			{
 				fieldtype: 'Data',
-				label: 'ID',
+				label: 'Name',
 				condition: 'like',
 				fieldname: 'name',
 				onchange: () => this.refresh_list_view()
@@ -606,14 +606,15 @@ class FilterArea {
 		}
 
 		const doctype_fields = this.list_view.meta.fields;
+		const title_field = this.list_view.meta.title_field;
+
 		fields = fields.concat(doctype_fields.filter(
-			df => df.in_standard_filter &&
-				frappe.model.is_value_type(df.fieldtype)
+			df => (df.fieldname === title_field) || (df.in_standard_filter && frappe.model.is_value_type(df.fieldtype))
 		).map(df => {
 			let options = df.options;
 			let condition = '=';
 			let fieldtype = df.fieldtype;
-			if (['Text', 'Small Text', 'Text Editor', 'Data'].includes(fieldtype)) {
+			if (['Text', 'Small Text', 'Text Editor', 'HTML Editor', 'Data', 'Code'].includes(fieldtype)) {
 				fieldtype = 'Data';
 				condition = 'like';
 			}
@@ -636,26 +637,12 @@ class FilterArea {
 				condition: condition,
 				default: default_value,
 				onchange: () => this.refresh_list_view(),
-				ignore_link_validation: fieldtype === 'Dynamic Link'
+				ignore_link_validation: fieldtype === 'Dynamic Link',
+				is_filter: 1,
 			};
 		}));
 
 		fields.map(df => this.list_view.page.add_field(df));
-
-		// search icon in name filter
-		$('<span class="octicon octicon-search text-muted small"></span>')
-			.appendTo(this.list_view.page.fields_dict.name.$wrapper)
-			.css({
-				'position': 'absolute',
-				'z-index': '1',
-				'right': '7px',
-				'top': '9px',
-				'font-size': '90%'
-			});
-
-		this.list_view.page.fields_dict.name.$wrapper
-			.find('.form-control')
-			.css('padding-right', '2em');
 	}
 
 	get_standard_filters() {
