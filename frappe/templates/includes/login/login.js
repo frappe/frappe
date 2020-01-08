@@ -65,6 +65,22 @@ login.bind_events = function() {
 			input.attr("type", "password");
 		}
 	});
+	
+	{% if ldap_settings.enabled %}
+		$(".btn-ldap-login").on("click", function(){
+			var args = {};
+			args.cmd = "{{ ldap_settings.method }}";
+			args.usr = ($("#login_email").val() || "").trim();
+			args.pwd = $("#login_password").val();
+			args.device = "desktop";
+			if(!args.usr || !args.pwd) {
+				login.set_indicator('{{ _("Both login and password required") }}', 'red');
+				return false;
+			}
+			login.call(args);
+			return false;
+		});
+	{% endif %}
 }
 
 
