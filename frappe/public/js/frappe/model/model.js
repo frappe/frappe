@@ -550,13 +550,18 @@ $.extend(frappe.model, {
 	},
 
 	rename_doc: function(doctype, docname, callback) {
+			let message = __("Merge with existing");
+			let warning = __("This cannot be undone");
+			let merge_label = message + " <b>(" + warning + ")</b>";
+
 		var d = new frappe.ui.Dialog({
 			title: __("Rename {0}", [__(docname)]),
 			fields: [
-				{label:__("New Name"), fieldname: "new_name", fieldtype:"Data", reqd:1, "default": docname},
-				{label:__("Merge with existing"), fieldtype:"Check", fieldname:"merge"},
+				{label: __("New Name"), fieldname: "new_name", fieldtype: "Data", reqd: 1, "default": docname},
+				{label: merge_label, fieldtype: "Check", fieldname: "merge"},
 			]
 		});
+
 		d.set_primary_action(__("Rename"), function() {
 			var args = d.get_values();
 			if(!args) return;
