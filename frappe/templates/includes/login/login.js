@@ -65,7 +65,7 @@ login.bind_events = function() {
 			input.attr("type", "password");
 		}
 	});
-	
+
 	{% if ldap_settings.enabled %}
 		$(".btn-ldap-login").on("click", function(){
 			var args = {};
