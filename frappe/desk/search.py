@@ -185,9 +185,10 @@ def get_std_fields_list(meta, key):
 
 def get_title_field(meta, formatted_fields):
 	sflist = meta.search_fields and meta.search_fields.split(",") or []
-	title_field = meta.title_field if (meta.title_field and meta.title_field not in sflist) else []
+	title_field = meta.title_field if (meta.title_field and meta.title_field not in sflist) else None
+	show_title_field_in_link = meta.show_title_field_in_link if meta.show_title_field_in_link else None
 
-	if title_field:
+	if title_field and show_title_field_in_link:
 		field = "`tab{0}`.{1} as `label`".format(meta.name, title_field)
 	else:
 		field = "NULL as `label`"

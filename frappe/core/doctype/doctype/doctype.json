@@ -494,13 +494,13 @@
    "default": "0",
    "fieldname": "show_title_field_in_link",
    "fieldtype": "Check",
-   "label": "Show Title Field in Link and Table MultiSelect"
+   "label": "Show Title in Link and Table MultiSelect Field"
   }
  ],
  "icon": "fa fa-bolt",
  "idx": 6,
  "links": [],
- "modified": "2019-12-27 09:05:54.461091",
+ "modified": "2020-01-08 14:26:00.170412",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocType",
