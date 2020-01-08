@@ -578,8 +578,7 @@ frappe.provide("frappe.views");
 
 		function bind_edit_card() {
 			self.$card.find('.kanban-card.content').on('click', function() {
-				frappe.set_route('Form', card.doctype, card.name);
-				// setup_edit_card();
+				window.open('#Form/'+card.doctype+'/'+card.name);
 			});
 		}
 
