@@ -6,7 +6,7 @@ globals attached to frappe module
 """
 from __future__ import unicode_literals, print_function
 
-from six import iteritems, binary_type, text_type, string_types
+from six import iteritems, binary_type, text_type, string_types, PY2
 from werkzeug.local import Local, release_local
 import os, sys, importlib, inspect, json
 from past.builtins import cmp
@@ -19,7 +19,7 @@ from .utils.jinja import (get_jenv, get_template, render_template, get_email_fro
 
 # Harmless for Python 3
 # For Python 2 set default encoding to utf-8
-if sys.version[0] == '2':
+if PY2:
 	reload(sys)
 	sys.setdefaultencoding("utf-8")
 
@@ -811,10 +811,16 @@ def reload_doc(module, dt=None, dn=None, force=False, reset_permissions=False):
 	import frappe.modules
 	return frappe.modules.reload_doc(module, dt, dn, force=force, reset_permissions=reset_permissions)
 
+@whitelist()
 def rename_doc(*args, **kwargs):
-	"""Rename a document. Calls `frappe.model.rename_doc.rename_doc`"""
-	from frappe.model.rename_doc import rename_doc as _rename_doc
-	return _rename_doc(*args, **kwargs)
+	"""
+		Renames a doc(dt, old) to doc(dt, new) and updates all linked fields of type "Link"
+
+		Calls `frappe.model.rename_doc.rename_doc`
+	"""
+	kwargs.pop('ignore_permissions', None)
+	from frappe.model.rename_doc import rename_doc
+	return rename_doc(*args, **kwargs)
 
 def get_module(modulename):
 	"""Returns a module object for given Python module name using `importlib.import_module`."""
@@ -1601,9 +1607,9 @@ def get_version(doctype, name, limit=None, head=False, raise_err=True):
 	>>>
 	[
 		{
-			 "version": [version.data], 	 # Refer Version DocType get_diff method and data attribute
-			    "user": "admin@gmail.com"    # User that created this version
-			"creation": <datetime.datetime>  # Creation timestamp of that object.
+			"version": [version.data],			# Refer Version DocType get_diff method and data attribute
+			"user": "admin@gmail.com",			# User that created this version
+			"creation": <datetime.datetime>		# Creation timestamp of that object.
 		}
 	]
 	'''
