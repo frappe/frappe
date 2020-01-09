@@ -46,8 +46,6 @@ def get_safe_globals():
 		json = json,
 		dict = dict,
 		frappe =  frappe._dict(
-			_ = frappe._,
-			_dict = frappe._dict,
 			flags = frappe.flags,
 
 			format = frappe.format_value,
@@ -86,6 +84,7 @@ def get_safe_globals():
 		get_toc =  get_toc,
 		get_next_link = get_next_link,
 		_ =  frappe._,
+		_dict = frappe._dict,
 		get_shade = get_shade,
 		scrub =  scrub,
 		guess_mimetype = mimetypes.guess_type,
