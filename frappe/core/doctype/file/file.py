@@ -587,7 +587,8 @@ def setup_folder_path(filename, new_parent):
 	file.save()
 
 	if file.is_folder:
-		frappe.rename_doc("File", file.name, file.get_name_based_on_parent_folder(), ignore_permissions=True)
+		from frappe.model.rename_doc import rename_doc
+		rename_doc("File", file.name, file.get_name_based_on_parent_folder(), ignore_permissions=True)
 
 def get_extension(filename, extn, content):
 	mimetype = None
