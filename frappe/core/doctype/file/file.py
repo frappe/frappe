@@ -517,11 +517,7 @@ class File(Document):
 			delete_file(self.thumbnail_url)
 
 	def is_downloadable(self):
-		if self.is_private:
-			if has_permission(self, 'read'):
-				return True
-
-			return False
+		return self.is_private and has_permission(self, 'read')
 
 	def get_extension(self):
 		'''returns split filename and extension'''
