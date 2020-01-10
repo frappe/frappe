@@ -186,7 +186,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		let report_script_name = this.report_doc.report_type === 'Custom Report'
 			? this.report_doc.reference_report
 			: this.report_name;
-		return frappe.query_reports[report_script_name];
+		return frappe.query_reports[report_script_name] || {};
 	}
 
 	setup_progress_bar() {
