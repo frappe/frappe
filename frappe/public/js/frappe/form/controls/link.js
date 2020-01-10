@@ -275,6 +275,11 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 			var value = me.get_input_value();
 			var label = me.get_label_value();
 
+			if (!label) {
+				me.reset_value();
+				return;
+			}
+
 			if (value !== me.last_value) {
 				me.parse_validate_and_set_in_model(value, label);
 			}
