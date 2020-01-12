@@ -272,10 +272,9 @@ def get_local_doc(update):
 		return
 
 def sync_dependencies(document, producer_site):
-	# current_doc refers to the doc whose dependencies are being syced
-	# current_doc is shared among all nested functions
-	dependencies = [document]
-	has_dependency = [True]
+	# dependencies is a dictionary to store all the docs having dependencies and their sync status
+	# dependencies is shared among all nested functions
+	dependencies = {document: True}
 
 	def check_doc_has_dependencies(doc, producer_site):
 		'''Sync child table link fields first,
@@ -291,13 +290,13 @@ def sync_dependencies(document, producer_site):
 			sync_link_dependencies(doc, link_fields, producer_site)
 		if dl_fields:
 			sync_dynamic_link_dependencies(doc, dl_fields, producer_site)
-		has_dependency[0] = False
 
 	def sync_child_table_dependencies(doc, table_fields, producer_site):
 		for df in table_fields:
 			child_table = doc.get(df.fieldname)
 			for entry in child_table:
-				set_dependencies(entry, frappe.get_meta(entry.doctype).get_link_fields(), producer_site)
+				child_doc = producer_site.get_doc(entry.doctype, entry.name)
+				set_dependencies(child_doc, frappe.get_meta(entry.doctype).get_link_fields(), producer_site)
 
 	def sync_link_dependencies(doc, link_fields, producer_site):
 		set_dependencies(doc, link_fields, producer_site)
@@ -309,7 +308,6 @@ def sync_dependencies(document, producer_site):
 			if docname and not check_dependency_fulfilled(linked_doctype, docname):
 				master_doc = producer_site.get_doc(linked_doctype, docname)
 				frappe.get_doc(master_doc).insert(set_name=docname)
-				frappe.db.commit()
 
 	def set_dependencies(doc, link_fields, producer_site):
 		for df in link_fields:
@@ -324,15 +322,29 @@ def sync_dependencies(document, producer_site):
 
 				#for dependency inside a dependency
 				except Exception:
-					has_dependency[0] = True
-					dependencies.append(frappe.get_doc(master_doc))
+					dependencies[doc] = True
 
 	def check_dependency_fulfilled(linked_doctype, docname):
 		return frappe.db.exists(linked_doctype, docname)
 
-	while has_dependency[0]:
-		# no more dependencies left to be synced
-		check_doc_has_dependencies(dependencies[-1], producer_site)
+	while dependencies[document]:
+		# find the first non synced dependency
+		for item in reversed(list(dependencies.keys())):
+			if dependencies[item]:
+				dependency = item
+				break
+
+		check_doc_has_dependencies(dependency, producer_site)
+
+		# mark synced for nested dependency
+		if dependency != document:
+			dependencies[dependency] = False
+			dependency.insert()
+
+		# no more dependencies left to be synced, the main doc is ready to be synced
+		# end the dependency loop
+		if not any(list(dependencies.values())[1:]):
+			dependencies[document] = False
 
 def log_event_sync(update, event_producer, sync_status, error=None):
 	doc = frappe.new_doc('Event Sync Log')

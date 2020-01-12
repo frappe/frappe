@@ -73,6 +73,7 @@ def register_consumer(data):
 	consumer.api_secret = api_secret
 	consumer.in_test = data['in_test']
 	consumer.insert(ignore_permissions = True)
+	frappe.db.commit()
 
 	# consumer's 'last_update' field should point to the latest update in producer's update log when subscribing
 	# so that, updates after subscribing are consumed and not the old ones.
