@@ -14,6 +14,7 @@ from frappe.frappeclient import FrappeClient
 from frappe.utils.background_jobs import get_jobs
 from frappe.utils.data import get_url
 from frappe.custom.doctype.custom_field.custom_field import create_custom_field
+from frappe.integrations.oauth2 import validate_url
 
 class EventProducer(Document):
 	def before_insert(self):
@@ -24,6 +25,9 @@ class EventProducer(Document):
 		if frappe.flags.in_test:
 			for entry in self.producer_doctypes:
 				entry.status = 'Approved'
+
+		if not validate_url(self.producer_url):
+			frappe.throw(_('Invalid URL'))
 
 	def on_update(self):
 		if not self.incoming_change:
