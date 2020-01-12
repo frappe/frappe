@@ -363,7 +363,7 @@ class Leaderboard {
 
 		const link = `#Form/${this.options.selected_doctype}/${item.name}`;
 		const name_html = item.formatted_name ?
-			`<span class="text-muted ellipsis">${item.formatted_name}</span>`
+			`<span class="text-muted ellipsis list-id">${item.formatted_name}</span>`
 			: `<a class="grey list-id ellipsis" href="${link}"> ${item.name} </a>`;
 		const html =
 			`<div class="list-item">
