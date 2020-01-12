@@ -187,7 +187,7 @@ class Leaderboard {
 	render_search_box() {
 
 		this.$search_box =
-			$(`<div class="leaderboard-search col-md-3">
+			$(`<div class="leaderboard-search form-group col-md-3">
 				<input type="text" placeholder="Search" class="form-control leaderboard-search-input input-sm">
 			</div>`);
 
