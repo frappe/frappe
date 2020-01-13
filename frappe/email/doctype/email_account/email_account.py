@@ -432,7 +432,7 @@ class EmailAccount(Document):
 			self.set_sender_field_and_subject_field()
 			parent = self.find_parent_based_on_subject_and_sender(communication, email)
 
-			if self.append_to!="Communication":
+			if not self.append_to == "Communication":
 				parent = self.create_new_parent(communication, email)
 
 		if parent:
@@ -447,9 +447,14 @@ class EmailAccount(Document):
 		'''Identify the sender and subject fields from the `append_to` DocType'''
 		# set subject_field and sender_field
 		meta = frappe.get_meta(self.append_to)
+		self.subject_field = None
+		self.sender_field = None
 
-		self.subject_field = meta.subject_field if meta.subject_field else None
-		self.sender_field = meta.sender_field if meta.sender_field else None
+		if hasattr(meta, "subject_field"):
+			self.subject_field = meta.subject_field
+
+		if hasattr(meta, "sender_field"):
+			self.sender_field = meta.sender_field
 
 	def find_parent_based_on_subject_and_sender(self, communication, email):
 		'''Find parent document based on subject and sender match'''
