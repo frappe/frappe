@@ -484,37 +484,35 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 	validate_link_and_fetch: function(df, doctype, docname, value) {
 		var me = this;
 
-		if(value) {
-			return new Promise((resolve) => {
-				var fetch = '';
+		return new Promise((resolve) => {
+			var fetch = '';
 
-				if(this.frm && this.frm.fetch_dict[df.fieldname]) {
-					fetch = this.frm.fetch_dict[df.fieldname].columns.join(', ');
-				}
+			if(this.frm && this.frm.fetch_dict[df.fieldname]) {
+				fetch = this.frm.fetch_dict[df.fieldname].columns.join(', ');
+			}
 
-				return frappe.call({
-					method:'frappe.desk.form.utils.validate_link',
-					type: "GET",
-					args: {
-						'value': value,
-						'options': doctype,
-						'fetch': fetch
-					},
-					no_spinner: true,
-					callback: function(r) {
-						if(r.message=='Ok') {
-							if(r.fetch_values && docname) {
-								me.set_fetch_values(df, docname, r.fetch_values);
-							}
-							resolve(r.valid_value);
-						} else {
-							me.reset_value();
-							resolve("");
+			return frappe.call({
+				method:'frappe.desk.form.utils.validate_link',
+				type: "GET",
+				args: {
+					'value': value,
+					'options': doctype,
+					'fetch': fetch
+				},
+				no_spinner: true,
+				callback: function(r) {
+					if(r.message=='Ok') {
+						if(r.fetch_values && docname) {
+							me.set_fetch_values(df, docname, r.fetch_values);
 						}
+						resolve(r.valid_value);
+					} else {
+						me.reset_value();
+						resolve("");
 					}
-				});
+				}
 			});
-		}
+		});
 	},
 	set_fetch_values: function(df, docname, fetch_values) {
 		var fl = this.frm.fetch_dict[df.fieldname].fields;
