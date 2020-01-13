@@ -179,6 +179,7 @@
   },
   {
    "default": "0",
+   "depends_on": "title_field",
    "fieldname": "show_title_field_in_link",
    "fieldtype": "Check",
    "label": "Show Title in Link and Table MultiSelect Field"
@@ -189,7 +190,7 @@
  "idx": 1,
  "issingle": 1,
  "links": [],
- "modified": "2020-01-08 14:25:42.972501",
+ "modified": "2020-01-13 10:21:32.042167",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Customize Form",

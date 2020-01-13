@@ -492,6 +492,7 @@
   },
   {
    "default": "0",
+   "depends_on": "title_field",
    "fieldname": "show_title_field_in_link",
    "fieldtype": "Check",
    "label": "Show Title in Link and Table MultiSelect Field"
@@ -500,7 +501,7 @@
  "icon": "fa fa-bolt",
  "idx": 6,
  "links": [],
- "modified": "2020-01-08 14:26:00.170412",
+ "modified": "2020-01-13 10:19:03.534781",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocType",
