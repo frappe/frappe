@@ -29,13 +29,13 @@
     <!-- body -->
     <tbody>
         {% for row in data %}
-            <tr>
+            <tr style="height: 30px">
             {% for col in columns %}
                 {% if col.name && col._id !== "_check" %}
 
                     {% var value = col.fieldname ? row[col.fieldname] : row[col.id]; %}
 
-                    <td>
+                    <td {% if row.bold == 1 %} style="font-weight: bold" {% endif %}>
                         <span {% if col._index == 0 %} style="padding-left: {%= cint(row.indent) * 2 %}em" {% endif %}>
                             {{
                                 col.formatter
