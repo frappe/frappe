@@ -1,10 +1,13 @@
 {
+ "actions": [],
+ "autoname": "naming_series:",
  "creation": "2017-09-08 16:16:13.060641",
  "doctype": "DocType",
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
   "sb_doc_events",
+  "naming_series",
   "webhook_doctype",
   "cb_doc_events",
   "webhook_docevent",
@@ -43,6 +46,7 @@
   {
    "fieldname": "webhook_docevent",
    "fieldtype": "Select",
+   "in_list_view": 1,
    "label": "Doc Event",
    "options": "after_insert\non_update\non_submit\non_cancel\non_trash\non_update_after_submit\non_change",
    "set_only_once": 1
@@ -117,9 +121,16 @@
    "fieldname": "webhook_json",
    "fieldtype": "Code",
    "label": "JSON Request Body"
+  },
+  {
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "label": "Naming Series",
+   "options": "\nHOOK-.####"
   }
  ],
- "modified": "2019-08-26 00:38:14.611267",
+ "links": [],
+ "modified": "2020-01-06 02:51:07.997566",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Webhook",
@@ -140,5 +151,6 @@
  ],
  "sort_field": "modified",
  "sort_order": "DESC",
+ "title_field": "webhook_doctype",
  "track_changes": 1
 }

@@ -219,7 +219,7 @@ export default class Grid {
 		this.remove_rows_button.toggleClass('hidden',
 			this.wrapper.find('.grid-body .grid-row-check:checked:first').length ? false : true);
 		this.remove_all_rows_button.toggleClass('hidden',
-			this.wrapper.find('.grid-body .grid-row-check:checked:first').length ? false : true);
+			this.wrapper.find('.grid-heading-row .grid-row-check:checked:first').length ? false : true);
 	}
 
 	get_selected() {
@@ -426,7 +426,7 @@ export default class Grid {
 				}
 			},
 			onUpdate: (event) => {
-				let idx = $(event.item).closest('.grid-row').attr('data-idx');
+				let idx = $(event.item).closest('.grid-row').attr('data-idx') - 1;
 				let doc = this.data[idx%this.grid_pagination.page_length];
 				this.renumber_based_on_dom();
 				this.frm.script_manager.trigger(this.df.fieldname + "_move", this.df.options, doc.name);

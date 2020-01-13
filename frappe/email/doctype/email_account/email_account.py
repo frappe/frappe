@@ -7,6 +7,7 @@ import imaplib
 import re
 import json
 import socket
+import time
 from frappe import _
 from frappe.model.document import Document
 from frappe.utils import validate_email_address, cint, get_datetime, DATE_FORMAT, strip, comma_or, sanitize_html
@@ -116,7 +117,8 @@ class EmailAccount(Document):
 			fields = [
 				"name as domain", "use_imap", "email_server",
 				"use_ssl", "smtp_server", "use_tls",
-				"smtp_port", "incoming_port"
+				"smtp_port", "incoming_port", "append_emails_to_sent_folder",
+				"use_ssl_for_outgoing"
 			]
 			return frappe.db.get_value("Email Domain", domain[1], fields, as_dict=True)
 		except Exception:
@@ -128,11 +130,12 @@ class EmailAccount(Document):
 			if not self.smtp_server:
 				frappe.throw(_("{0} is required").format("SMTP Server"))
 
-			server = SMTPServer(login = getattr(self, "login_id", None) \
-					or self.email_id,
-				server = self.smtp_server,
-				port = cint(self.smtp_port),
-				use_tls = cint(self.use_tls)
+			server = SMTPServer(
+				login = getattr(self, "login_id", None) or self.email_id,
+				server=self.smtp_server,
+				port=cint(self.smtp_port),
+				use_tls=cint(self.use_tls),
+				use_ssl=cint(self.use_ssl_for_outgoing)
 			)
 			if self.password and not self.no_smtp_authentication:
 				server.password = self.get_password()
@@ -244,13 +247,13 @@ class EmailAccount(Document):
 			exceptions = []
 			seen_status = []
 			uid_reindexed = False
+			email_server = None
 
 			if frappe.local.flags.in_test:
 				incoming_mails = test_mails
 			else:
 				email_sync_rule = self.build_email_sync_rule()
 
-				email_server = None
 				try:
 					email_server = self.get_incoming_server(in_receive=True, email_sync_rule=email_sync_rule)
 				except Exception:
@@ -291,7 +294,11 @@ class EmailAccount(Document):
 				else:
 					frappe.db.commit()
 					if communication:
-						attachments = [d.file_name for d in communication._attachments]
+						attachments = []
+
+						if hasattr(communication, '_attachments'):
+							attachments = [d.file_name for d in communication._attachments]
+
 						communication.notify(attachments=attachments, fetched_from_email_account=True)
 
 			#notify if user is linked to account
@@ -302,7 +309,7 @@ class EmailAccount(Document):
 				raise Exception(frappe.as_json(exceptions))
 
 	def handle_bad_emails(self, email_server, uid, raw, reason):
-		if cint(email_server.settings.use_imap):
+		if email_server and cint(email_server.settings.use_imap):
 			import email
 			try:
 				mail = email.message_from_string(raw)
@@ -647,6 +654,24 @@ class EmailAccount(Document):
 
 			if frappe.db.exists("Email Account", {"enable_automatic_linking": 1, "name": ('!=', self.name)}):
 				frappe.throw(_("Automatic Linking can be activated only for one Email Account."))
+
+
+	def append_email_to_sent_folder(self, message):
+
+		email_server = None
+		try:
+			email_server = self.get_incoming_server(in_receive=True)
+		except Exception:
+			frappe.log_error(title=_("Error while connecting to email account {0}").format(self.name))
+
+		if not email_server:
+			return
+
+		email_server.connect()
+
+		if email_server.imap:
+			email_server.imap.append("Sent", "\\Seen", imaplib.Time2Internaldate(time.time()), message)
+
 
 @frappe.whitelist()
 def get_append_to(doctype=None, txt=None, searchfield=None, start=None, page_len=None, filters=None):

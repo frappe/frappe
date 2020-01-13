@@ -105,7 +105,7 @@ def get_data():
 			"label": _('Leaderboard'),
 			"icon": "fa fa-trophy",
 			"type": 'link',
-			"link": '#social/users',
+			"link": '#leaderboard/User',
 			"color": '#FF4136',
 			'standard': 1,
 		},
