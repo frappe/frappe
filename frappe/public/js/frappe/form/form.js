@@ -681,16 +681,18 @@ frappe.ui.form.Form = class FrappeForm {
 				.filter((link) => link.doctype == doctype)
 				.map((link) => frappe.utils.get_form_link(link.doctype, link.name, true))
 				.join(", ");
-			links_text += `<li><strong>${doctype}</strong>: ${docnames}</li>`
+			links_text += `<li><strong>${doctype}</strong>: ${docnames}</li>`;
 		}
-		links_text = "<ul>" + links_text + "</ul>"
+		links_text = `<ul>${links_text}</ul>`;
 
-		let confirm_message = `<strong>${me.doc.doctype}</strong> ${me.doc.name} is linked with the following submitted documents: ${links_text}`
+		let confirm_message = __('{0} {1} is linked with the following submitted documents: {2}',
+			[(me.doc.doctype).bold(), me.doc.name, links_text]);
+
 		let can_cancel = links.every((link) => frappe.model.can_cancel(link.doctype));
 		if (can_cancel) {
-			confirm_message += `Do you want to cancel all linked documents?`;
+			confirm_message += __('Do you want to cancel all linked documents?');
 		} else {
-			confirm_message += `You do not have permissions to cancel all linked documents.`;
+			confirm_message += __('You do not have permissions to cancel all linked documents.');
 		}
 
 		// generate dialog box to cancel all linked docs
