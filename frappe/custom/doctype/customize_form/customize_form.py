@@ -31,7 +31,8 @@ doctype_properties = {
 	'track_changes': 'Check',
 	'track_views': 'Check',
 	'allow_auto_repeat': 'Check',
-	'allow_import': 'Check'
+	'allow_import': 'Check',
+	'show_title_field_in_link': 'Check'
 }
 
 docfield_properties = {
