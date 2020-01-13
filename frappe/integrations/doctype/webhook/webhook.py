@@ -69,9 +69,6 @@ class Webhook(Document):
 		if len(webhook_data) != len(set(webhook_data)):
 			frappe.throw(_("Same Field is entered more than once"))
 
-	def generate_secret(self):
-		self.webhook_secret = frappe.generate_hash(length=32)
-
 
 def get_context(doc):
 	return {"doc": doc, "utils": frappe.utils}

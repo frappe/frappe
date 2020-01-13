@@ -22,7 +22,6 @@
   "sb_security",
   "enable_security",
   "webhook_secret",
-  "generate_secret",
   "sb_webhook_headers",
   "webhook_headers",
   "sb_webhook_data",
@@ -148,16 +147,10 @@
    "fieldname": "webhook_secret",
    "fieldtype": "Password",
    "label": "Webhook Secret"
-  },
-  {
-   "depends_on": "eval:doc.enable_security == 1",
-   "fieldname": "generate_secret",
-   "fieldtype": "Button",
-   "label": "Generate Secret"
   }
  ],
  "links": [],
- "modified": "2020-01-13 01:11:29.392078",
+ "modified": "2020-01-13 01:53:04.459968",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Webhook",

@@ -70,11 +70,7 @@ frappe.ui.form.on('Webhook', {
 
 	enable_security: (frm) => {
 		frm.toggle_reqd('webhook_secret', frm.doc.enable_security);
-	},
-
-	generate_secret: (frm) => {
-		frm.call("generate_secret");
-	},
+	}
 });
 
 frappe.ui.form.on("Webhook Data", {
