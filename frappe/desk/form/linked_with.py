@@ -111,7 +111,7 @@ def get_exempted_doctypes():
 	""" Get list of doctypes exempted from being auto-cancelled """
 
 	auto_cancel_exempt_doctypes = []
-	for doctypes in frappe.get_hooks('auto_cancel_exempt_doctypes'):
+	for doctypes in frappe.get_hooks('auto_cancel_exempted_doctypes'):
 		auto_cancel_exempt_doctypes.append(doctypes)
 	return auto_cancel_exempt_doctypes
 

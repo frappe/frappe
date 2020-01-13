@@ -258,7 +258,7 @@ app_license = "{app_license}"
 
 # exempt linked doctypes from being automatically cancelled
 #
-# cancel_exempt_doctypes = ["Auto Repeat"]
+# auto_cancel_exempted_doctypes = ["Auto Repeat"]
 
 """
 
