@@ -170,7 +170,7 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 			},
 			item: function (item) {
 				var d = this.get_item(item.value);
-				if(!d.label) {
+				if (!d.label) {
 					d.label = d.value;
 				}
 
