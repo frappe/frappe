@@ -922,6 +922,9 @@ class Document(BaseDocument):
 		- `on_update`, `on_submit` for **Submit**.
 		- `on_cancel` for **Cancel**
 		- `update_after_submit` for **Update after Submit**"""
+
+		doc_before_save = self.get_doc_before_save()
+
 		if self._action=="save":
 			self.run_method("on_update")
 		elif self._action=="submit":
@@ -953,7 +956,7 @@ class Document(BaseDocument):
 				self.flags.update_log_for_doc_creation = False
 			else:
 				from frappe.event_streaming.doctype.event_update_log.event_update_log import get_update
-				diff = get_update(self._doc_before_save, self)
+				diff = get_update(doc_before_save, self)
 				if diff:
 					doc = self
 					doc.diff = diff

@@ -20,6 +20,7 @@ class EventProducer(Document):
 	def before_insert(self):
 		self.incoming_change = True
 		self.create_event_consumer()
+		self.create_custom_fields()
 
 	def validate(self):
 		if frappe.flags.in_test:
@@ -229,7 +230,7 @@ def set_update(update, producer_site):
 			local_doc.db_update_all()
 
 	except frappe.DoesNotExistError:
-		check_doc_has_dependencies(local_doc, producer_site)
+		sync_dependencies(local_doc, producer_site)
 
 def update_row_removed(local_doc, removed):
 	for tablename, rownames in iteritems(removed):

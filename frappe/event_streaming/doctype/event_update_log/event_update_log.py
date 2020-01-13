@@ -93,5 +93,5 @@ def check_for_deletions(out, df, old_value, new_row_by_name):
 def check_docstatus(out, old, new, for_child):
 	# docstatus
 	if not for_child and old.docstatus != new.docstatus:
-		out.changed.append(['docstatus', old.docstatus, new.docstatus])
+		out.changed['docstatus'] = new.docstatus
 	return out
