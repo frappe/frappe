@@ -1155,18 +1155,21 @@ def check_email_append_to(doc):
 	doc.subject_field = doc.subject_field.strip() if doc.subject_field else None
 	subject_field = get_field(doc, doc.subject_field)
 
-	if not (doc.subject_field or subject_field):
-		frappe.throw(_("Add Subject Field for creating documents from Email"))
+	if doc.subject_field and not subject_field:
+		frappe.throw(_("Select a valid Subject field for creating documents from Email"))
 
-	if subject_field.fieldtype not in ["Data", "Text", "Long Text", "Small Text", "Text Editor"]:
+	if subject_field and subject_field.fieldtype not in ["Data", "Text", "Long Text", "Small Text", "Text Editor"]:
 		frappe.throw(_("Subject Field type should be Data, Text, Long Text, Small Text, Text Editor"))
 
-	# Sender Field
+	# Sender Field is mandatory
 	doc.sender_field = doc.sender_field.strip() if doc.sender_field else None
 	sender_field = get_field(doc, doc.sender_field)
 
-	if not (doc.sender_field or sender_field):
-		frappe.throw(_("Add Sender Field for creating documents from Email"))
+	if doc.sender_field and not sender_field:
+		frappe.throw(_("Select a valid Sender Field for creating documents from Email"))
+
+	if not sender_field.options == "Email":
+		frappe.throw(_("Sender Field should have Email in options"))
 
 
 def get_field(doc, fieldname):
