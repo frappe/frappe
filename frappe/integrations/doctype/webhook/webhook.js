@@ -66,7 +66,15 @@ frappe.ui.form.on('Webhook', {
 
 	webhook_doctype: (frm) => {
 		frappe.webhook.set_fieldname_select(frm);
-	}
+	},
+
+	enable_security: (frm) => {
+		frm.toggle_reqd('webhook_secret', frm.doc.enable_security);
+	},
+
+	generate_secret: (frm) => {
+		frm.call("generate_secret");
+	},
 });
 
 frappe.ui.form.on("Webhook Data", {

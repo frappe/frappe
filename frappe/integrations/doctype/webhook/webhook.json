@@ -19,6 +19,10 @@
   "request_url",
   "cb_webhook",
   "request_structure",
+  "sb_security",
+  "enable_security",
+  "webhook_secret",
+  "generate_secret",
   "sb_webhook_headers",
   "webhook_headers",
   "sb_webhook_data",
@@ -127,10 +131,33 @@
    "fieldtype": "Select",
    "label": "Naming Series",
    "options": "\nHOOK-.####"
+  },
+  {
+   "fieldname": "sb_security",
+   "fieldtype": "Section Break",
+   "label": "Webhook Security"
+  },
+  {
+   "default": "0",
+   "fieldname": "enable_security",
+   "fieldtype": "Check",
+   "label": "Enable Security"
+  },
+  {
+   "depends_on": "eval:doc.enable_security == 1",
+   "fieldname": "webhook_secret",
+   "fieldtype": "Password",
+   "label": "Webhook Secret"
+  },
+  {
+   "depends_on": "eval:doc.enable_security == 1",
+   "fieldname": "generate_secret",
+   "fieldtype": "Button",
+   "label": "Generate Secret"
   }
  ],
  "links": [],
- "modified": "2020-01-06 02:51:07.997566",
+ "modified": "2020-01-13 01:11:29.392078",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Webhook",

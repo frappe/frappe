@@ -16,6 +16,8 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.utils.jinja import validate_template
 
+WEBHOOK_SECRET_HEADER = "X-Frappe-Webhook-Key"
+
 
 class Webhook(Document):
 	def validate(self):
@@ -67,6 +69,9 @@ class Webhook(Document):
 		if len(webhook_data) != len(set(webhook_data)):
 			frappe.throw(_("Same Field is entered more than once"))
 
+	def generate_secret(self):
+		self.webhook_secret = frappe.generate_hash(length=32)
+
 
 def get_context(doc):
 	return {"doc": doc, "utils": frappe.utils}
@@ -94,10 +99,15 @@ def enqueue_webhook(doc, webhook):
 
 def get_webhook_headers(doc, webhook):
 	headers = {}
+
+	if webhook.enable_security:
+		headers[WEBHOOK_SECRET_HEADER] = webhook.get_password("webhook_secret")
+
 	if webhook.webhook_headers:
 		for h in webhook.webhook_headers:
 			if h.get("key") and h.get("value"):
 				headers[h.get("key")] = h.get("value")
+
 	return headers
 
 
