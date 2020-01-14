@@ -335,10 +335,15 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				}
 				this.add_prepared_report_buttons(data.doc);
 			}
+
+			if (data.report_summary) {
+				this.$summary.empty()
+				this.render_summary(data.report_summary);
+			}
+
 			this.toggle_message(false);
 			if (data.result && data.result.length) {
 				this.prepare_report_data(data);
-
 				const chart_options = this.get_chart_options(data);
 				this.$chart.empty();
 				if(chart_options) {
@@ -361,6 +366,32 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			this.show_footer_message();
 			frappe.hide_progress();
 		});
+	}
+
+	render_summary(data) {
+		let build_summary_item = (summary) => {
+			let df = {fieldtype: summary.datatype};
+			let doc = null;
+
+			if (summary.datatype == "Currency") {
+				df.options = "currency";
+				doc = {currency: summary.currency};
+			}
+
+			let value = frappe.format(summary.value, df, null, doc)
+			let indicator = summary.indicator ? `indicator ${ summary.indicator.toLowerCase() }` : '';
+
+			return $(`<div class="col-sm-3">
+				<span class="summary-label small text-muted ${indicator}">${summary.label}</span>
+				<h1 class="summary-value">${ value }</h1>
+			</div>`);
+		}
+
+		data.forEach((summary) => {
+			let summary_message = build_summary_item(summary).appendTo(this.$summary);
+		})
+
+		this.$summary.show();
 	}
 
 	get_query_params() {
@@ -1272,6 +1303,9 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		this.$status = $(`<div class="form-message text-muted small"></div>`)
 			.hide().insertAfter(page_form);
 
+		this.$summary = $(`<div class="report-summary row"></div>`)
+			.hide().appendTo(this.page.main);
+
 		this.$chart = $('<div class="chart-wrapper">').hide().appendTo(this.page.main);
 		this.$report = $('<div class="report-wrapper">').appendTo(this.page.main);
 		this.$message = $(this.message_div('')).hide().appendTo(this.page.main);
@@ -1359,6 +1393,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		}
 		this.$report.toggle(!flag);
 		this.$chart.toggle(!flag);
+		this.$summary.toggle(!flag);
 	}
 	// backward compatibility
 	get get_values() {
