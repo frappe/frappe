@@ -51,7 +51,7 @@ def generate_report_result(report, filters=None, user=None):
 
 	if filters and isinstance(filters, string_types):
 		filters = json.loads(filters)
-	columns, result, message, chart, data_to_be_printed = [], [], None, None, None
+	columns, result, message, chart, report_summary = [], [], None, None, None
 	if report.report_type == "Query Report":
 		if not report.query:
 			status = "error"
@@ -73,7 +73,7 @@ def generate_report_result(report, filters=None, user=None):
 		if len(res) > 3:
 			chart = res[3]
 		if len(res) > 4:
-			data_to_be_printed = res[4]
+			report_summary = res[4]
 
 		if report.custom_columns:
 			columns = json.loads(report.custom_columns)
@@ -90,7 +90,7 @@ def generate_report_result(report, filters=None, user=None):
 		"columns": columns,
 		"message": message,
 		"chart": chart,
-		"data_to_be_printed": data_to_be_printed,
+		"report_summary": report_summary,
 		"status": status,
 		"execution_time": frappe.cache().hget('report_execution_time', report.name) or 0
 	}
