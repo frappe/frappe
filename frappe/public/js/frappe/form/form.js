@@ -648,18 +648,96 @@ frappe.ui.form.Form = class FrappeForm {
 	}
 
 	savecancel(btn, callback, on_error) {
-		var me = this;
-
+		const me = this;
 		this.validate_form_action('Cancel');
-		frappe.confirm(__("Permanently Cancel {0}?", [this.docname]), function() {
+
+		frappe.call({
+			method: "frappe.desk.form.linked_with.get_submitted_linked_docs",
+			args: {
+				doctype: me.doc.doctype,
+				name: me.doc.name
+			},
+			freeze: true,
+			callback: (r) => {
+				if (!r.exc && r.message.count > 0) {
+					me._cancel_all(r, btn, callback, on_error);
+				} else {
+					me._cancel(btn, callback, on_error, false);
+				}
+			}
+		});
+	}
+
+	_cancel_all(r, btn, callback, on_error) {
+		const me = this;
+
+		// add confirmation message for cancelling all linked docs
+		let links_text = "";
+		let links = r.message.docs;
+		const doctypes = Array.from(new Set(links.map(link => link.doctype)));
+
+		for (let doctype of doctypes) {
+			let docnames = links
+				.filter((link) => link.doctype == doctype)
+				.map((link) => frappe.utils.get_form_link(link.doctype, link.name, true))
+				.join(", ");
+			links_text += `<li><strong>${doctype}</strong>: ${docnames}</li>`;
+		}
+		links_text = `<ul>${links_text}</ul>`;
+
+		let confirm_message = __('{0} {1} is linked with the following submitted documents: {2}',
+			[(me.doc.doctype).bold(), me.doc.name, links_text]);
+
+		let can_cancel = links.every((link) => frappe.model.can_cancel(link.doctype));
+		if (can_cancel) {
+			confirm_message += __('Do you want to cancel all linked documents?');
+		} else {
+			confirm_message += __('You do not have permissions to cancel all linked documents.');
+		}
+
+		// generate dialog box to cancel all linked docs
+		let d = new frappe.ui.Dialog({
+			title: __("Cancel All Documents"),
+			fields: [{
+				fieldtype: "HTML",
+				options: `<p class="frappe-confirm-message">${confirm_message}</p>`
+			}]
+		}, () => me.handle_save_fail(btn, on_error));
+
+		// if user can cancel all linked docs, add action to the dialog
+		if (can_cancel) {
+			d.set_primary_action("Cancel All", () => {
+				d.hide();
+				frappe.call({
+					method: "frappe.desk.form.linked_with.cancel_all_linked_docs",
+					args: {
+						docs: links
+					},
+					freeze: true,
+					callback: (resp) => {
+						if (!resp.exc) {
+							me.reload_doc();
+							me._cancel(btn, callback, on_error, true);
+						}
+					}
+				});
+			});
+		}
+
+		d.show();
+	};
+
+	_cancel(btn, callback, on_error, skip_confirm) {
+		const me = this;
+		const cancel_doc = () => {
 			frappe.validated = true;
-			me.script_manager.trigger("before_cancel").then(function() {
-				if(!frappe.validated) {
+			me.script_manager.trigger("before_cancel").then(() => {
+				if (!frappe.validated) {
 					return me.handle_save_fail(btn, on_error);
 				}
 
 				var after_cancel = function(r) {
-					if(r.exc) {
+					if (r.exc) {
 						me.handle_save_fail(btn, on_error);
 					} else {
 						frappe.utils.play_sound("cancel");
@@ -670,8 +748,14 @@ frappe.ui.form.Form = class FrappeForm {
 				};
 				frappe.ui.form.save(me, "cancel", after_cancel, btn);
 			});
-		}, () => me.handle_save_fail(btn, on_error));
-	}
+		}
+
+		if (skip_confirm) {
+			cancel_doc();
+		} else {
+			frappe.confirm(__("Permanently Cancel {0}?", [this.docname]), cancel_doc, me.handle_save_fail(btn, on_error));
+		}
+	};
 
 	savetrash() {
 		this.validate_form_action("Delete");
