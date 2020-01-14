@@ -87,6 +87,15 @@
 
 	.kanban-card-wrapper {
 		position: relative;
+
+		.clickable-link {
+			display: block;
+
+			&:hover,
+			&:focus {
+				text-decoration: none;
+			}
+		}
 	}
 
 	.kanban-card:hover, .new-card-area, .edit-card-area {
