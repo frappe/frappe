@@ -269,7 +269,6 @@ def get_tags(doctype, name):
 
 def get_email_link(doctype, name):
 	email = get_automatic_email_link()
-	email = "support@example.com"
 	if not email:
 		return None
 
