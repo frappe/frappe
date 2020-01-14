@@ -105,6 +105,9 @@ class Report(Document):
 		else:
 			res = self.execute_script(filters)
 
+		if self.columns:
+			res[0] = self.get_columns()
+
 		# automatically set as prepared
 		execution_time = (datetime.datetime.now() - start_time).total_seconds()
 		if execution_time > threshold and not self.prepared_report:
@@ -113,6 +116,9 @@ class Report(Document):
 		frappe.cache().hset('report_execution_time', self.name, execution_time)
 
 		return res
+
+	def get_columns(self):
+		return [d.as_dict(no_default_fields = True) for d in self.columns]
 
 	def execute_module(self, filters):
 		# report in python module
@@ -127,113 +133,147 @@ class Report(Document):
 		return loc['data']
 
 	def get_data(self, filters=None, limit=None, user=None, as_dict=False):
-		columns = []
-		out = []
-
 		if self.report_type in ('Query Report', 'Script Report', 'Custom Report'):
-			# query and script reports
-			data = frappe.desk.query_report.run(self.name, filters=filters, user=user)
-			for d in data.get('columns'):
-				if isinstance(d, dict):
-					col = frappe._dict(d)
-					if not col.fieldname:
-						col.fieldname = col.label
-					columns.append(col)
-				else:
-					fieldtype, options = "Data", None
-					parts = d.split(':')
-					if len(parts) > 1:
-						if parts[1]:
-							fieldtype, options = parts[1], None
-							if fieldtype and '/' in fieldtype:
-								fieldtype, options = fieldtype.split('/')
-
-					columns.append(frappe._dict(label=parts[0], fieldtype=fieldtype, fieldname=parts[0], options=options))
-
-			out += data.get('result')
+			out, columns = self.run_query_script_report(filters, user)
 		else:
-			# standard report
-			params = json.loads(self.json)
-
-			if params.get('fields'):
-				columns = params.get('fields')
-			elif params.get('columns'):
-				columns = params.get('columns')
-			elif params.get('fields'):
-				columns = params.get('fields')
-			else:
-				columns = [['name', self.ref_doctype]]
-				for df in frappe.get_meta(self.ref_doctype).fields:
-					if df.in_list_view:
-						columns.append([df.fieldname, self.ref_doctype])
-
-			_filters = params.get('filters') or []
-
-			if filters:
-				for key, value in iteritems(filters):
-					condition, _value = '=', value
-					if isinstance(value, (list, tuple)):
-						condition, _value = value
-					_filters.append([key, condition, _value])
-
-			def _format(parts):
-				# sort by is saved as DocType.fieldname, covert it to sql
-				return '`tab{0}`.`{1}`'.format(*parts)
-
-			if params.get('sort_by'):
-				order_by = _format(params.get('sort_by').split('.')) + ' ' + params.get('sort_order')
-			elif params.get('order_by'):
-				order_by = params.get('order_by')
-			else:
-				order_by = _format([self.ref_doctype, 'modified']) + ' desc'
-
-			if params.get('sort_by_next'):
-				order_by += ', ' + _format(params.get('sort_by_next').split('.')) + ' ' + params.get('sort_order_next')
-
-			result = frappe.get_list(self.ref_doctype,
-				fields = [_format([c[1], c[0]]) for c in columns],
-				filters=_filters,
-				order_by = order_by,
-				as_list=True,
-				limit=limit,
-				user=user)
-
-			_columns = []
-
-			for (fieldname, doctype) in columns:
-				meta = frappe.get_meta(doctype)
-
-				if meta.get_field(fieldname):
-					field = meta.get_field(fieldname)
-				else:
-					field = frappe._dict(fieldname=fieldname, label=meta.get_label(fieldname))
-					# since name is the primary key for a document, it will always be a Link datatype
-					if fieldname == "name":
-						field.fieldtype = "Link"
-						field.options = doctype
-
-				_columns.append(field)
-			columns = _columns
-
-			out = out + [list(d) for d in result]
-
-			if params.get('add_totals_row'):
-				out = append_totals_row(out)
+			out, columns = self.run_standard_report(filters, limit, user)
 
 		if as_dict:
-			data = []
-			for row in out:
-				if isinstance(row, (list, tuple)):
-					_row = frappe._dict()
-					for i, val in enumerate(row):
-						_row[columns[i].get('fieldname')] = val
-				elif isinstance(row, dict):
-					# no need to convert from dict to dict
-					_row = frappe._dict(row)
-				data.append(_row)
+			data = self.build_data_dict(out)
 		else:
 			data = out
 		return columns, data
+
+	def run_query_script_report(self, filters, user):
+		columns = []
+		out = []
+
+		# query and script reports
+		data = frappe.desk.query_report.run(self.name, filters=filters, user=user)
+
+		for d in data.get('columns'):
+			if isinstance(d, dict):
+				col = frappe._dict(d)
+				if not col.fieldname:
+					col.fieldname = col.label
+				columns.append(col)
+			else:
+				fieldtype, options = "Data", None
+				parts = d.split(':')
+				if len(parts) > 1:
+					if parts[1]:
+						fieldtype, options = parts[1], None
+						if fieldtype and '/' in fieldtype:
+							fieldtype, options = fieldtype.split('/')
+
+				columns.append(frappe._dict(label=parts[0], fieldtype=fieldtype, fieldname=parts[0], options=options))
+
+		out += data.get('result')
+
+		return out, columns
+
+	def run_standard_report(self, filters, limit, user):
+		columns = []
+		out = []
+
+		# standard report
+		params = json.loads(self.json)
+		columns = self.get_standard_report_columns(params)
+
+		result = frappe.get_list(self.ref_doctype,
+			fields = [Report._format([c[1], c[0]]) for c in columns],
+			filters = self.get_standard_report_filters(params, filters),
+			order_by = self.get_standard_report_order_by(params),
+			as_list = True,
+			limit = limit,
+			user = user)
+
+		columns = self.build_standard_report_columns(columns)
+
+		out = out + [list(d) for d in result]
+
+		if params.get('add_totals_row'):
+			out = append_totals_row(out)
+
+		return out, columns
+
+	def get_standard_report_columns(self, params):
+		if params.get('fields'):
+			columns = params.get('fields')
+		elif params.get('columns'):
+			columns = params.get('columns')
+		elif params.get('fields'):
+			columns = params.get('fields')
+		else:
+			columns = [['name', self.ref_doctype]]
+			for df in frappe.get_meta(self.ref_doctype).fields:
+				if df.in_list_view:
+					columns.append([df.fieldname, self.ref_doctype])
+
+		return columns
+
+	def get_standard_report_filters(self, params, filters):
+		_filters = params.get('filters') or []
+
+		if filters:
+			for key, value in iteritems(filters):
+				condition, _value = '=', value
+				if isinstance(value, (list, tuple)):
+					condition, _value = value
+				_filters.append([key, condition, _value])
+
+		return _filters
+
+	def get_standard_report_order_by(self, params):
+		if params.get('sort_by'):
+			order_by = Report._format(params.get('sort_by').split('.')) + ' ' + params.get('sort_order')
+		elif params.get('order_by'):
+			order_by = params.get('order_by')
+		else:
+			order_by = Report._format([self.ref_doctype, 'modified']) + ' desc'
+
+		if params.get('sort_by_next'):
+			order_by += ', ' + Report._format(params.get('sort_by_next').split('.')) + ' ' + params.get('sort_order_next')
+
+		return order_by
+
+	def build_standard_report_columns(self, columns):
+		_columns = []
+
+		for (fieldname, doctype) in columns:
+			meta = frappe.get_meta(doctype)
+
+			if meta.get_field(fieldname):
+				field = meta.get_field(fieldname)
+			else:
+				field = frappe._dict(fieldname=fieldname, label=meta.get_label(fieldname))
+				# since name is the primary key for a document, it will always be a Link datatype
+				if fieldname == "name":
+					field.fieldtype = "Link"
+					field.options = doctype
+
+			_columns.append(field)
+
+		return _columns
+
+	def build_data_dict(self, out):
+		data = []
+		for row in out:
+			if isinstance(row, (list, tuple)):
+				_row = frappe._dict()
+				for i, val in enumerate(row):
+					_row[columns[i].get('fieldname')] = val
+			elif isinstance(row, dict):
+				# no need to convert from dict to dict
+				_row = frappe._dict(row)
+			data.append(_row)
+
+		return data
+
+	@staticmethod
+	def _format(parts):
+		# sort by is saved as DocType.fieldname, covert it to sql
+		return '`tab{0}`.`{1}`'.format(*parts)
 
 
 	@Document.whitelist

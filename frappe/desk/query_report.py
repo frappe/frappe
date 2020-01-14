@@ -62,12 +62,13 @@ def generate_report_result(report, filters=None, user=None):
 			frappe.msgprint(_("Query must be a SELECT"), raise_exception=True)
 
 		result = [list(t) for t in frappe.db.sql(report.query, filters)]
-		columns = [cstr(c[0]) for c in frappe.db.get_description()]
+
+		columns = report.get_columns() or [cstr(c[0]) for c in frappe.db.get_description()]
 
 	elif report.report_type == 'Script Report':
 		res = report.execute_script_report(filters)
 
-		columns, result = res[0], res[1]
+		columns, result = report.get_columns() or res[0], res[1]
 		if len(res) > 2:
 			message = res[2]
 		if len(res) > 3:

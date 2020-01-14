@@ -74,16 +74,20 @@ class TestReport(unittest.TestCase):
 
 	def test_non_standard_script_report(self):
 		report_name = 'Test Non Standard Script Report'
-		if not frappe.db.exists("Report", report_name):
-			report = frappe.get_doc({
-				'doctype': 'Report',
-				'ref_doctype': 'User',
-				'report_name': report_name,
-				'report_type': 'Script Report',
-				'is_standard': 'No',
-			}).insert(ignore_permissions=True)
-		else:
-			report = frappe.get_doc('Report', report_name)
+		if frappe.db.exists("Report", report_name):
+			frappe.delete_doc('Report', report_name)
+
+		report = frappe.get_doc({
+			'doctype': 'Report',
+			'ref_doctype': 'User',
+			'report_name': report_name,
+			'report_type': 'Script Report',
+			'is_standard': 'No',
+			'columns': [
+				dict(fieldname='type', label='Type', fieldtype='Data'),
+				dict(fieldname='value', label='Value', fieldtype='Int'),
+			]
+		}).insert(ignore_permissions=True)
 
 		report.report_script = '''
 totals = {}
@@ -93,10 +97,7 @@ for user in frappe.get_all('User', fields = ['name', 'user_type', 'creation']):
 	totals[user.user_type] = totals[user.user_type] + 1
 
 data = [
-	[
-		{'fieldname': 'type', 'label': 'Type'},
-		{'fieldname': 'value', 'label': 'Value'}
-	],
+	None,
 	[
 		{"type":key, "value": value} for key, value in totals.items()
 	]

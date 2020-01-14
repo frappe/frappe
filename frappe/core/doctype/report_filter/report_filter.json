@@ -1,0 +1,67 @@
+{
+ "actions": [],
+ "creation": "2020-01-14 11:38:58.016498",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "fieldname",
+  "label",
+  "fieldtype",
+  "mandatory",
+  "options",
+  "width"
+ ],
+ "fields": [
+  {
+   "fieldname": "fieldname",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Fieldname",
+   "reqd": 1
+  },
+  {
+   "fieldname": "label",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Label",
+   "reqd": 1
+  },
+  {
+   "fieldname": "fieldtype",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Fieldtype",
+   "options": "Check\nCurrency\nData\nDate\nDatetime\nDynamic Link\nFloat\nFold\nInt\nLink\nSelect\nTime",
+   "reqd": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "mandatory",
+   "fieldtype": "Check",
+   "label": "Mandatory"
+  },
+  {
+   "fieldname": "options",
+   "fieldtype": "Data",
+   "label": "Options"
+  },
+  {
+   "fieldname": "width",
+   "fieldtype": "Int",
+   "label": "Width"
+  }
+ ],
+ "istable": 1,
+ "links": [],
+ "modified": "2020-01-14 11:38:58.016498",
+ "modified_by": "Administrator",
+ "module": "Core",
+ "name": "Report Filter",
+ "owner": "Administrator",
+ "permissions": [],
+ "quick_entry": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}
