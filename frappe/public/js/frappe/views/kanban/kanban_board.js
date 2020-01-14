@@ -577,7 +577,7 @@ frappe.provide("frappe.views");
 		}
 
 		function add_task_link() {
-			var taskLink = frappe.utils.get_form_link(card.doctype, card.name);
+			let taskLink = frappe.utils.get_form_link(card.doctype, card.name);
 			self.$card.find('.clickable-link').attr('href', taskLink);			
 		}
 
