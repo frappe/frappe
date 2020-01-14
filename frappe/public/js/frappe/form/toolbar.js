@@ -256,7 +256,7 @@ frappe.ui.form.Toolbar = Class.extend({
 				}, true);
 			}
 
-			if (frappe.boot.developer_mode===1) {
+			if (frappe.boot.developer_mode===1 && !is_doctype_form) {
 				// edit doctype
 				this.page.add_menu_item(__("Edit DocType"), function() {
 					frappe.set_route('Form', 'DocType', me.frm.doctype);
