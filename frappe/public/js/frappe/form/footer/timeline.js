@@ -371,6 +371,10 @@ frappe.ui.form.Timeline = class Timeline {
 			c.sender = c.sender.split("<")[1].split(">")[0];
 		}
 
+		if (!c.doctype && ['Comment', 'Communication'].includes(c.communication_type)) {
+			c.doctype = c.communication_type;
+		}
+
 		c.user_info = frappe.user_info(c.sender);
 
 		c["delete"] = "";
