@@ -69,16 +69,65 @@ frappe.ui.form.Toolbar = Class.extend({
 	can_rename: function() {
 		return this.frm.perm[0].write && this.frm.meta.allow_rename && !this.frm.doc.__islocal;
 	},
+	show_unchanged_document_alert: function() {
+		frappe.show_alert({
+			indicator: "yellow",
+			message: __("Unchanged")
+		});
+	},
+	rename_document_title(new_name, new_title, merge=false) {
+		const docname = this.frm.doc.name;
+		const title_field = this.frm.meta.title_field || '';
+		const doctype = this.frm.doctype;
+
+		let confirm_message=null;
+
+		if (new_name) {
+			const warning = __("This cannot be undone");
+			const message = __("Are you sure you want to merge {0} with {1}?", [docname.bold(), new_name.bold()]);
+			confirm_message = `${message}<br><b>${warning}<b>`;
+		}
+
+		let rename_document = () => {
+			return frappe.xcall("frappe.model.rename_doc.update_document_title", {
+				doctype,
+				docname,
+				new_name,
+				title_field,
+				old_title: this.frm.doc[title_field],
+				new_title,
+				merge
+			}).then(new_docname => {
+				if (new_name != docname) {
+					$(document).trigger("rename", [doctype, docname, new_docname || new_name]);
+					if (locals[doctype] && locals[doctype][docname]) delete locals[doctype][docname];
+				}
+				this.frm.reload_doc();
+			});
+		};
+
+		return new Promise((resolve, reject) => {
+			if (new_title === this.frm.doc[title_field] && new_name === docname) {
+				this.show_unchanged_document_alert();
+				resolve();
+			} else if (merge) {
+				frappe.confirm(confirm_message, () => {
+					rename_document().then(resolve).catch(reject);
+				}, reject);
+			} else {
+				rename_document().then(resolve).catch(reject);
+			}
+		});
+	},
 	setup_editable_title: function () {
 		let me = this;
 
 		this.page.$title_area.find(".title-text").on("click", () => {
 			let fields = [];
-			let doctype = me.frm.doctype;
 			let docname = me.frm.doc.name;
 			let title_field = me.frm.meta.title_field || '';
 
-			// check if title is updateable
+			// check if title is updatable
 			if (me.is_title_editable()) {
 				let title_field_label = me.frm.get_docfield(title_field).label;
 
@@ -91,7 +140,7 @@ frappe.ui.form.Toolbar = Class.extend({
 				});
 			}
 
-			// check if docname is updateable
+			// check if docname is updatable
 			if (me.can_rename()) {
 				fields.push(...[{
 					label: __("New Name"),
@@ -114,36 +163,15 @@ frappe.ui.form.Toolbar = Class.extend({
 					fields: fields
 				});
 				d.show();
-
-				d.set_primary_action(__("Rename"), function () {
-					let args = d.get_values();
-					if (args.title != me.frm.doc[title_field] || args.name != docname) {
-						frappe.call({
-							method: "frappe.model.rename_doc.update_document_title",
-							args: {
-								doctype,
-								docname,
-								title_field,
-								old_title: me.frm.doc[title_field],
-								new_title: args.title,
-								new_name: args.name,
-								merge: args.merge
-							},
-							btn: d.get_primary_btn()
-						}).then((res) => {
-							me.frm.reload_doc();
-							if (!res.exc && (args.name != docname)) {
-								$(document).trigger("rename", [doctype, docname, res.message || args.name]);
-								if (locals[doctype] && locals[doctype][docname]) delete locals[doctype][docname];
-							}
+				d.set_primary_action(__("Rename"), (values) => {
+					d.disable_primary_action();
+					this.rename_document_title(values.name, values.title, values.merge)
+						.then(() => {
+							d.hide();
+						})
+						.catch(() => {
+							d.enable_primary_action();
 						});
-					} else {
-						frappe.show_alert({
-							indicator: "yellow",
-							message: __("Unchanged")
-						});
-					}
-					d.hide();
 				});
 			}
 		});
