@@ -144,7 +144,8 @@
    "fieldname": "sender",
    "fieldtype": "Data",
    "hidden": 1,
-   "label": "Sender"
+   "label": "Sender",
+   "options": "Email"
   },
   {
    "fieldname": "assignment_rule",
@@ -157,7 +158,7 @@
  "icon": "fa fa-check",
  "idx": 2,
  "links": [],
- "modified": "2019-12-27 14:45:25.161055",
+ "modified": "2020-01-14 17:04:36.971002",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "ToDo",
