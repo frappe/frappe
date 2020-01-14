@@ -270,13 +270,14 @@
    "fieldname": "sender",
    "fieldtype": "Data",
    "label": "Sender",
+   "options": "Email",
    "read_only": 1
   }
  ],
  "icon": "fa fa-calendar",
  "idx": 1,
  "links": [],
- "modified": "2019-12-27 14:45:51.332025",
+ "modified": "2020-01-14 21:47:15.825287",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Event",

@@ -1148,7 +1148,7 @@ def clear_linked_doctype_cache():
 	frappe.cache().delete_value('linked_doctypes_without_ignore_user_permissions_enabled')
 
 def check_email_append_to(doc):
-	if not doc.email_append_to:
+	if not hasattr(doc, "email_append_to") or not doc.email_append_to:
 		return
 
 	# Subject Field
