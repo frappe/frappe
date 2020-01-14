@@ -371,7 +371,7 @@ frappe.ui.form.Timeline = class Timeline {
 			c.sender = c.sender.split("<")[1].split(">")[0];
 		}
 
-		if (!c.doctype && c.communication_type == 'Comment' || c.communication_type == 'Communication') {
+		if (!c.doctype && ['Comment', 'Communication'].includes(c.communication_type)) {
 			c.doctype = c.communication_type;
 		}
 
