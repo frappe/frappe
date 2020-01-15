@@ -262,6 +262,7 @@ frappe.ui.form.MultiSelectDialog = Class.extend({
 			filters[this.date_field] = ['between', date_val];
 		}
 
+		let method = !this.method ? 'frappe.desk.search.search_widget' : this.method;
 		let args = {
 			doctype: me.doctype,
 			txt: me.dialog.fields_dict["search_term"].get_value(),
@@ -272,19 +273,21 @@ frappe.ui.form.MultiSelectDialog = Class.extend({
 			query: this.get_query ? this.get_query().query : '',
 			as_dict: 1
 		}
+
 		frappe.call({
 			type: "GET",
-			method:'frappe.desk.search.search_widget',
+			method: method,
 			no_spinner: true,
-			args: args,
+			args: this.method ? {method_args: this.method_args} : args,
 			callback: function(r) {
 				let results = [], more = 0;
-				if (r.values.length) {
-					if (r.values.length > me.page_length) {
-						r.values.pop();
+				var res = r.values ? r.values : r.message;
+				if (res.length) {
+					if (res.length > me.page_length) {
+						res.pop();
 						more = 1;
 					}
-					r.values.forEach(function(result) {
+					res.forEach(function(result) {
 						if(me.date_field in result) {
 							result["Date"] = result[me.date_field]
 						}
@@ -301,7 +304,7 @@ frappe.ui.form.MultiSelectDialog = Class.extend({
 					});
 
 					// Preselect oldest entry
-					if (me.start < 1 && r.values.length === 1) {
+					if (me.start < 1 && res.length === 1) {
 						results[0].checked = 1;
 					}
 				}
