@@ -1546,7 +1546,7 @@ def log_error(message=None, title=None):
 	# this hack tries to be smart about whats a title (single line ;-)) and fixes it
 
 	if message:
-		if '\n' not in message:
+		if '\n' not in message and not title:
 			title = message
 			error = get_traceback()
 		else:
