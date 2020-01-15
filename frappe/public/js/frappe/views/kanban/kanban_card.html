@@ -1,15 +1,11 @@
 <div class="kanban-card-wrapper {{ disable_click }}" data-name="{{name}}">
-	<div class="kanban-card content">
-		<div class="kanban-card-title">
-			<!-- Hack to retrieve task document number,
-				since TASK00001 looks bad on the card -->
-			<div class="text-muted">
-				<span>#{{ flt(name.split("TASK")[1]) }}</span>
-				<span class="pull-right">{{ doc.exp_end_date }}</span>
+	<a class="kanban-card-redirect" href="#" target="_blank">
+		<div class="kanban-card content">
+			<div class="kanban-card-title">
+				{{ title }}
 			</div>
-			{{ title }}
+			<div class="kanban-card-meta">
+			</div>
 		</div>
-		<div class="kanban-card-meta">
-		</div>
-	</div>
+	</a>
 </div>
