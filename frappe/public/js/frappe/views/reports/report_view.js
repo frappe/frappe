@@ -1021,17 +1021,16 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 					}
 				};
 			}
-			if (col.field == 'status') {
+			if (col.field === 'status' && !frappe.meta.has_field(this.doctype, 'status')) {
 				// get status from docstatus
 				let status = frappe.get_indicator(d, this.doctype)[0];
 				return {
 					name: d.name,
 					doctype: col.docfield.parent,
 					content: status,
-					editable: this.is_editable(col.docfield, d)
-				}
-			}
-			if (col.field in d) {
+					editable: false
+				};
+			} else if (col.field in d) {
 				const value = d[col.field];
 				return {
 					name: d.name,
