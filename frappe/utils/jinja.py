@@ -16,6 +16,7 @@ def get_jenv():
 		set_filters(jenv)
 
 		jenv.globals.update(get_safe_globals())
+		jenv.globals.update(get_jenv_customization('methods'))
 
 		frappe.local.jenv = jenv
 
@@ -124,4 +125,27 @@ def set_filters(jenv):
 	jenv.filters["flt"] = flt
 	jenv.filters["abs_url"] = abs_url
 
-	if frappe.flags.in_setup_help: return
+	if frappe.flags.in_setup_help:
+		return
+
+	jenv.filters.update(get_jenv_customization('filters'))
+
+
+def get_jenv_customization(customization_type):
+	'''Returns a dict with filter/method name as key and definition as value'''
+
+	import frappe
+
+	out = {}
+	if not getattr(frappe.local, "site", None):
+		return out
+
+	values = frappe.get_hooks("jenv", {}).get(customization_type)
+	if not values:
+		return out
+
+	for value in values:
+		fn_name, fn_string = value.split(":")
+		out[fn_name] = frappe.get_attr(fn_string)
+
+	return out

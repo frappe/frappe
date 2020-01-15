@@ -371,17 +371,21 @@ frappe.ui.form.Timeline = class Timeline {
 			c.sender = c.sender.split("<")[1].split(">")[0];
 		}
 
+		if (!c.doctype && ['Comment', 'Communication'].includes(c.communication_type)) {
+			c.doctype = c.communication_type;
+		}
+
 		c.user_info = frappe.user_info(c.sender);
 
 		c["delete"] = "";
 		c["edit"] = "";
 		if(c.communication_type=="Comment" && (c.comment_type || "Comment") === "Comment") {
 			if(frappe.model.can_delete("Comment")) {
-				c["delete"] = '<a class="close delete-comment" title="Delete"  href="#"><i class="octicon octicon-x"></i></a>';
+				c["delete"] = `<a class="close delete-comment" title="${__('Delete')}"  href="#"><i class="octicon octicon-x"></i></a>`;
 			}
 
 			if(frappe.user.name == c.sender || (frappe.user.name == 'Administrator')) {
-				c["edit"] = '<a class="edit-comment text-muted" title="Edit" href="#">Edit</a>';
+				c["edit"] = `<a class="edit-comment text-muted" title="${__('Edit')}" href="#">${__('Edit')}</a>`;
 			}
 		}
 		let communication_date = c.communication_date || c.creation;

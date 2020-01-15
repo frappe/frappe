@@ -12,6 +12,7 @@ from coverage import Coverage
 import cProfile, pstats
 from six import StringIO
 
+
 @click.command('build')
 @click.option('--app', help='Build assets for app')
 @click.option('--make-copy', is_flag=True, default=False, help='Copy the files instead of symlinking')
@@ -26,14 +27,14 @@ def build(app=None, make_copy=False, restore = False, verbose=False):
 	no_compress = frappe.local.conf.developer_mode or False
 	frappe.build.bundle(no_compress, app=app, make_copy=make_copy, restore = restore, verbose=verbose)
 
+
 @click.command('watch')
 def watch():
 	"Watch and concatenate JS and CSS files as and when they change"
-	# if os.environ.get('CI'):
-	# 	return
 	import frappe.build
 	frappe.init('')
 	frappe.build.watch(True)
+
 
 @click.command('clear-cache')
 @pass_context
@@ -51,6 +52,7 @@ def clear_cache(context):
 		finally:
 			frappe.destroy()
 
+
 @click.command('clear-website-cache')
 @pass_context
 def clear_website_cache(context):
@@ -63,6 +65,7 @@ def clear_website_cache(context):
 			frappe.website.render.clear_cache()
 		finally:
 			frappe.destroy()
+
 
 @click.command('destroy-all-sessions')
 @click.option('--reason')
@@ -79,6 +82,7 @@ def destroy_all_sessions(context, reason=None):
 		finally:
 			frappe.destroy()
 
+
 @click.command('show-config')
 @pass_context
 def show_config(context):
@@ -89,12 +93,14 @@ def show_config(context):
 	configuration = frappe.get_site_config(sites_path=sites_path, site_path=site_path)
 	print_config(configuration)
 
+
 def print_config(config):
 	for conf, value in config.items():
 		if isinstance(value, dict):
 			print_config(value)
 		else:
 			print("\t{:<50} {:<15}".format(conf, value))
+
 
 @click.command('reset-perms')
 @pass_context
@@ -111,6 +117,7 @@ def reset_perms(context):
 					reset_perms(d)
 		finally:
 			frappe.destroy()
+
 
 @click.command('execute')
 @click.argument('method')
@@ -191,6 +198,7 @@ def export_doc(context, doctype, docname):
 		finally:
 			frappe.destroy()
 
+
 @click.command('export-json')
 @click.argument('doctype')
 @click.argument('path')
@@ -207,6 +215,7 @@ def export_json(context, doctype, path, name=None):
 		finally:
 			frappe.destroy()
 
+
 @click.command('export-csv')
 @click.argument('doctype')
 @click.argument('path')
@@ -222,6 +231,7 @@ def export_csv(context, doctype, path):
 		finally:
 			frappe.destroy()
 
+
 @click.command('export-fixtures')
 @click.option('--app', default=None, help='Export fixtures of a specific app')
 @pass_context
@@ -235,6 +245,7 @@ def export_fixtures(context, app=None):
 			export_fixtures(app=app)
 		finally:
 			frappe.destroy()
+
 
 @click.command('import-doc')
 @click.argument('path')
@@ -257,12 +268,14 @@ def import_doc(context, path, force=False):
 		finally:
 			frappe.destroy()
 
+
 @click.command('import-csv')
 @click.argument('path')
 @click.option('--only-insert', default=False, is_flag=True, help='Do not overwrite existing records')
 @click.option('--submit-after-import', default=False, is_flag=True, help='Submit document after importing it')
 @click.option('--ignore-encoding-errors', default=False, is_flag=True, help='Ignore encoding errors while coverting to unicode')
 @click.option('--no-email', default=True, is_flag=True, help='Send email if applicable')
+
 
 @pass_context
 def import_csv(context, path, only_insert=False, submit_after_import=False, ignore_encoding_errors=False, no_email=True):
@@ -324,7 +337,7 @@ def data_import(context, file_path, doctype, import_type=None, submit_after_impo
 @click.argument('doctype')
 @click.argument('path')
 @pass_context
-def _bulk_rename(context, doctype, path):
+def bulk_rename(context, doctype, path):
 	"Rename multiple records via CSV file"
 	from frappe.model.rename_doc import bulk_rename
 	from frappe.utils.csvutils import read_csv_content
@@ -341,15 +354,6 @@ def _bulk_rename(context, doctype, path):
 
 	frappe.destroy()
 
-@click.command('mysql')
-def mysql():
-	"""
-		Deprecated
-	"""
-	click.echo("""
-mysql command is deprecated.
-Did you mean "bench mariadb"?
-""")
 
 @click.command('mariadb')
 @pass_context
@@ -374,6 +378,7 @@ def mariadb(context):
 		'--safe-updates',
 		"-A"])
 
+
 @click.command('postgres')
 @pass_context
 def postgres(context):
@@ -386,22 +391,21 @@ def postgres(context):
 	psql = find_executable('psql')
 	subprocess.run([ psql, '-d', frappe.conf.db_name])
 
+
 @click.command('jupyter')
 @pass_context
 def jupyter(context):
-	try:
-		from pip import main
-	except ImportError:
-		from pip._internal import main
+	installed_packages = (r.split('==')[0] for r in subprocess.check_output([sys.executable, '-m', 'pip', 'freeze'], encoding='utf8'))
 
-	reqs = subprocess.check_output([sys.executable, '-m', 'pip', 'freeze'])
-	installed_packages = [r.decode().split('==')[0] for r in reqs.split()]
 	if 'jupyter' not in installed_packages:
-		main(['install', 'jupyter'])
+		subprocess.check_output([sys.executable, '-m', 'pip', 'install', 'jupyter'])
+
 	site = get_site(context)
 	frappe.init(site=site)
+
 	jupyter_notebooks_path = os.path.abspath(frappe.get_site_path('jupyter_notebooks'))
 	sites_path = os.path.abspath(frappe.get_site_path('..'))
+
 	try:
 		os.stat(jupyter_notebooks_path)
 	except OSError:
@@ -425,6 +429,7 @@ frappe.db.connect()
 		jupyter_notebooks_path,
 	])
 
+
 @click.command('console')
 @pass_context
 def console(context):
@@ -434,7 +439,12 @@ def console(context):
 	frappe.connect()
 	frappe.local.lang = frappe.db.get_default("lang")
 	import IPython
-	IPython.embed(display_banner = "")
+	all_apps = frappe.get_installed_apps()
+	for app in all_apps:
+		locals()[app] = __import__(app)
+	print("Apps in this namespace:\n{}".format(", ".join(all_apps)))
+	IPython.embed(display_banner="", header="")
+
 
 @click.command('run-tests')
 @click.option('--app', help="For App")
@@ -460,6 +470,15 @@ def run_tests(context, app=None, module=None, doctype=None, test=(),
 	tests = test
 
 	site = get_site(context)
+
+	allow_tests = frappe.get_conf(site).allow_tests
+
+	if not (allow_tests or os.environ.get('CI')):
+		click.secho('Testing is disabled for the site!', bold=True)
+		click.secho('You can enable tests by entering following command:')
+		click.secho('bench --site {0} set-config allow_tests true'.format(site), fg='green')
+		return
+
 	frappe.init(site=site)
 
 	frappe.flags.skip_before_tests = skip_before_tests
@@ -472,8 +491,8 @@ def run_tests(context, app=None, module=None, doctype=None, test=(),
 		cov.start()
 
 	ret = frappe.test_runner.main(app, module, doctype, context.verbose, tests=tests,
-		force=context.force, profile=profile, junit_xml_output=junit_xml_output,
-		ui_tests = ui_tests, doctype_list_path = doctype_list_path, failfast=failfast)
+								force=context.force, profile=profile, junit_xml_output=junit_xml_output,
+								ui_tests=ui_tests, doctype_list_path=doctype_list_path, failfast=failfast)
 
 	if coverage:
 		cov.stop()
@@ -484,6 +503,7 @@ def run_tests(context, app=None, module=None, doctype=None, test=(),
 
 	if os.environ.get('CI'):
 		sys.exit(ret)
+
 
 @click.command('run-ui-tests')
 @click.argument('app')
@@ -507,6 +527,7 @@ def run_ui_tests(context, app, headless=False):
 	formatted_command = command.format(site_env=site_env, password_env=password_env, run_or_open=run_or_open)
 	frappe.commands.popen(formatted_command, cwd=app_base_path, raise_err=True)
 
+
 @click.command('serve')
 @click.option('--port', default=8000)
 @click.option('--profile', is_flag=True, default=False)
@@ -523,6 +544,7 @@ def serve(context, port=None, profile=False, no_reload=False, no_threading=False
 		site = context.sites[0]
 
 	frappe.app.serve(port=port, profile=profile, no_reload=no_reload, no_threading=no_threading, site=site, sites_path='.')
+
 
 @click.command('request')
 @click.option('--args', help='arguments like `?cmd=test&key=value` or `/api/request/method?..`')
@@ -556,6 +578,7 @@ def request(context, args=None, path=None):
 		finally:
 			frappe.destroy()
 
+
 @click.command('make-app')
 @click.argument('destination')
 @click.argument('app_name')
@@ -563,6 +586,7 @@ def make_app(destination, app_name):
 	"Creates a boilerplate app"
 	from frappe.utils.boilerplate import make_boilerplate
 	make_boilerplate(destination, app_name)
+
 
 @click.command('set-config')
 @click.argument('key')
@@ -587,6 +611,7 @@ def set_config(context, key, value, global_ = False, as_dict=False):
 			update_site_config(key, value, validate=False)
 			frappe.destroy()
 
+
 @click.command('version')
 def get_version():
 	"Show the versions of all the installed apps"
@@ -604,32 +629,6 @@ def get_version():
 		elif hasattr(module, "__version__"):
 			print("{0} {1}".format(m, module.__version__))
 
-
-@click.command('setup-global-help')
-@click.option('--db_type')
-@click.option('--root_password')
-def setup_global_help(db_type=None, root_password=None):
-	'''Deprecated: setup help table in a separate database that will be
-	shared by the whole bench and set `global_help_setup` as 1 in
-	common_site_config.json'''
-	print_in_app_help_deprecation()
-
-@click.command('get-docs-app')
-@click.argument('app')
-def get_docs_app(app):
-	'''Deprecated: Get the docs app for given app'''
-	print_in_app_help_deprecation()
-
-@click.command('get-all-docs-apps')
-def get_all_docs_apps():
-	'''Deprecated: Get docs apps for all apps'''
-	print_in_app_help_deprecation()
-
-@click.command('setup-help')
-@pass_context
-def setup_help(context):
-	'''Deprecated: Setup help table in the current site (called after migrate)'''
-	print_in_app_help_deprecation()
 
 @click.command('rebuild-global-search')
 @click.option('--static-pages', is_flag=True, default=False, help='Rebuild global search for static pages')
@@ -659,6 +658,7 @@ def rebuild_global_search(context, static_pages=False):
 
 		finally:
 			frappe.destroy()
+
 
 @click.command('auto-deploy')
 @click.argument('app')
@@ -704,9 +704,6 @@ def auto_deploy(context, app, migrate=False, restart=False, remote='upstream'):
 	else:
 		print('No Updates')
 
-def print_in_app_help_deprecation():
-	print("In app help has been removed.\nYou can access the documentation on erpnext.com/docs or frappe.io/docs")
-	return
 
 commands = [
 	build,
@@ -725,7 +722,6 @@ commands = [
 	data_import,
 	import_doc,
 	make_app,
-	mysql,
 	mariadb,
 	postgres,
 	request,
@@ -736,9 +732,7 @@ commands = [
 	set_config,
 	show_config,
 	watch,
-	_bulk_rename,
+	bulk_rename,
 	add_to_email_queue,
-	setup_global_help,
-	setup_help,
 	rebuild_global_search
 ]

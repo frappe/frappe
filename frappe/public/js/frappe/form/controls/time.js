@@ -45,7 +45,8 @@ frappe.ui.form.ControlTime = frappe.ui.form.ControlDate.extend({
 			&& ((this.last_value && this.last_value !== this.value)
 				|| (!this.datepicker.selectedDates.length))) {
 
-			var date_obj = frappe.datetime.moment_to_date_obj(moment(value, frappe.sys_defaults['time_format']));
+			let time_format = frappe.sys_defaults.time_format || 'HH:mm:ss';
+			var date_obj = frappe.datetime.moment_to_date_obj(moment(value, time_format));
 			this.datepicker.selectDate(date_obj);
 		}
 	},
