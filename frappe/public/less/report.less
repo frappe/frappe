@@ -121,6 +121,22 @@
 	}
 }
 
+body.full-width {
+	.report-summary > div.col-md-3 {
+		width: 16.66666667%;
+	}
+}
+
+@media (max-width: @screen-xs) {
+	.report-summary > div[class*="col-md-"] {
+		margin-top: 1em;
+	}
+
+	.report-summary > div[class*="col-md-"]:first-child {
+		margin-top: 0em !important;
+	}
+}
+
 // for sm and above
 @media (min-width: @screen-xs) {
 	.groupby-box .row > div[class*="col-sm-"] {
