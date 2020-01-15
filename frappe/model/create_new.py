@@ -66,7 +66,7 @@ def set_user_and_static_default_values(doc):
 					doc.set(df.fieldname, user_default_value)
 
 			else:
-				if df.fieldname != doc.meta.title_field:
+				if df.fieldname != doc.meta.title_field or df.fieldtype in ["Date", "Datetime"]:
 					static_default_value = get_static_default_value(df, doctype_user_permissions, allowed_records)
 					if static_default_value is not None:
 						doc.set(df.fieldname, static_default_value)
