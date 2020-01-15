@@ -684,7 +684,6 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 	}
 
 	build_fields() {
-		this.fields.push(['docstatus', this.doctype]);
 		super.build_fields();
 	}
 
@@ -778,12 +777,24 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 
 		let doctype_fields = frappe.meta.get_docfields(this.doctype).filter(standard_fields_filter);
 
+		// filter out docstatus field from picker
+		let std_fields = frappe.model.std_fields.filter( df => !in_list('docstatus', df.fieldname));
+
+		// add status field derived from docstatus, if status is not a standard field
+		if (!frappe.meta.has_field(this.doctype, 'status')) {
+			doctype_fields = [{
+				label: __('Status'),
+				fieldname: 'docstatus',
+				fieldtype: 'Data'
+			}].concat(doctype_fields, std_fields);
+		}
+
 		doctype_fields = [{
 			label: __('ID'),
 			fieldname: 'name',
 			fieldtype: 'Data',
 			reqd: 1
-		}].concat(doctype_fields, frappe.model.std_fields);
+		}].concat(doctype_fields);
 
 		out[this.doctype] = doctype_fields;
 
@@ -858,15 +869,22 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		this.columns_map = {};
 
 		for (let f of this.fields) {
+			let column;
 			if (f[0]!=='docstatus') {
-				let column = this.build_column(f);
-				if (column) {
-					if (column_widths) {
-						column.width = column_widths[column.id] || column.width || 120;
-					}
-					this.columns.push(column);
-					this.columns_map[column.id] = column;
+				column = this.build_column(f);
+			} else {
+				// if status is not in fields append status column derived from docstatus
+				if (!this.fields.includes(['status', this.doctype]) && !frappe.meta.has_field(this.doctype, 'status')) {
+					column = this.build_column(['status', this.doctype]);
 				}
+			}
+
+			if (column) {
+				if (column_widths) {
+					column.width = column_widths[column.id] || column.width || 120;
+				}
+				this.columns.push(column);
+				this.columns_map[column.id] = column;
 			}
 		}
 	}
@@ -1003,7 +1021,16 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 					}
 				};
 			}
-
+			if (col.field == 'status') {
+				// get status from docstatus
+				let status = frappe.get_indicator(d, this.doctype)[0];
+				return {
+					name: d.name,
+					doctype: col.docfield.parent,
+					content: status,
+					editable: this.is_editable(col.docfield, d)
+				}
+			}
 			if (col.field in d) {
 				const value = d[col.field];
 				return {
