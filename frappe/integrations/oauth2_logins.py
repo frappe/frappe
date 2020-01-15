@@ -32,6 +32,10 @@ def login_via_salesforce(code, state):
 	login_via_oauth2("salesforce", code, state, decoder=decoder_compat)
 
 @frappe.whitelist(allow_guest=True)
+def login_via_fairlogin(code, state):
+	login_via_oauth2("fairlogin", code, state, decoder=decoder_compat)
+
+@frappe.whitelist(allow_guest=True)
 def custom(code, state):
 	"""
 	Callback for processing code and state for user added providers
