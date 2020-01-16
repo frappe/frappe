@@ -302,10 +302,16 @@ frappe.search.SearchDialog = Class.extend({
 			return link;
 		}
 
-		if(result.image) {
-			$result.append('<a '+ get_link(result) +
-				'><div class="result-image"><img data-name="' + result.label
-					+ '" src="'+ result.image +'" alt="' + result.label + '"></div></a>');
+		if (result.image) {
+			$result.append(`<a ${get_link(result)}>
+				<div class="result-image">
+					<img
+						data-name="${result.label}"
+						src="${result.image}"
+						alt="${result.label}"
+						onerror="this.src='/assets/frappe/images/fallback-thumbnail.jpg'">
+				</div>
+			</a>`);
 		} else if (result.image === null) {
 			$result.append('<a '+ get_link(result) +
 				'><div class="result-image"><div class="flex-text"><span>'

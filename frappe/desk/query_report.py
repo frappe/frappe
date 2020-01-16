@@ -229,8 +229,9 @@ def get_prepared_report_result(report, filters, dn="", user=None):
 				"status": "Completed",
 				"filters": json.dumps(filters),
 				"owner": user,
-				"report_name": report.report_name
-			}
+				"report_name": report.get('custom_report') or report.get('report_name')
+			},
+			order_by = 'creation desc'
 		)
 
 		if doc_list:
@@ -510,7 +511,7 @@ def has_match(row, linked_doctypes, doctype_match_filters, ref_doctype, if_owner
 					cell_value = None
 					if isinstance(row, dict):
 						cell_value = row.get(idx)
-					elif isinstance(row, list):
+					elif isinstance(row, (list, tuple)):
 						cell_value = row[idx]
 
 					if dt in match_filters and cell_value not in match_filters.get(dt) and frappe.db.exists(dt, cell_value):
