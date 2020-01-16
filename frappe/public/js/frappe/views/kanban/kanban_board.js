@@ -538,7 +538,7 @@ frappe.provide("frappe.views");
 			if(!card) return;
 			make_dom();
 			render_card_meta();
-			bind_edit_card();
+			add_task_link();
 			// edit_card_title();
 		}
 
@@ -576,11 +576,9 @@ frappe.provide("frappe.views");
 			self.$card.find(".kanban-card-meta").empty().append(html);
 		}
 
-		function bind_edit_card() {
-			self.$card.find('.kanban-card.content').on('click', function() {
-				frappe.set_route('Form', card.doctype, card.name);
-				// setup_edit_card();
-			});
+		function add_task_link() {
+			let taskLink = frappe.utils.get_form_link(card.doctype, card.name);
+			self.$card.find('.kanban-card-redirect').attr('href', taskLink);			
 		}
 
 		function refresh_dialog() {
