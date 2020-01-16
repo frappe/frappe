@@ -778,7 +778,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		let doctype_fields = frappe.meta.get_docfields(this.doctype).filter(standard_fields_filter);
 
 		// filter out docstatus field from picker
-		let std_fields = frappe.model.std_fields.filter( df => !in_list('docstatus', df.fieldname));
+		let std_fields = frappe.model.std_fields.filter( df => df.fieldname !== 'docstatus');
 
 		// add status field derived from docstatus, if status is not a standard field
 		if (!frappe.meta.has_field(this.doctype, 'status')) {
@@ -786,7 +786,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 				label: __('Status'),
 				fieldname: 'docstatus',
 				fieldtype: 'Data'
-			}].concat(doctype_fields, std_fields);
+			}].concat(doctype_fields);
 		}
 
 		doctype_fields = [{
@@ -794,7 +794,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 			fieldname: 'name',
 			fieldtype: 'Data',
 			reqd: 1
-		}].concat(doctype_fields);
+		}].concat(doctype_fields, std_fields);
 
 		out[this.doctype] = doctype_fields;
 
@@ -875,7 +875,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 			} else {
 				// if status is not in fields append status column derived from docstatus
 				if (!this.fields.includes(['status', this.doctype]) && !frappe.meta.has_field(this.doctype, 'status')) {
-					column = this.build_column(['status', this.doctype]);
+					column = this.build_column(['docstatus', this.doctype]);
 				}
 			}
 
@@ -910,8 +910,13 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 					}
 				}
 				docfield.parent = this.doctype;
-				if (fieldname == "name") {
+				if (fieldname == 'name') {
 					docfield.options = this.doctype;
+				}
+				if (fieldname == 'docstatus' && !frappe.meta.has_field(this.doctype, 'status')) {
+					docfield.label = 'Status';
+					docfield.fieldtype = 'Data';
+					docfield.name = 'status';
 				}
 			}
 		}
@@ -1000,7 +1005,6 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 			totals_row[0].content = __('Totals').bold();
 			out.push(totals_row);
 		}
-
 		return out;
 	}
 
@@ -1021,7 +1025,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 					}
 				};
 			}
-			if (col.field === 'status' && !frappe.meta.has_field(this.doctype, 'status')) {
+			if (col.field === 'docstatus' && !frappe.meta.has_field(this.doctype, 'status')) {
 				// get status from docstatus
 				let status = frappe.get_indicator(d, this.doctype)[0];
 				return {
