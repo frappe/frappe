@@ -171,7 +171,6 @@ def get_documents_for_tag(tag):
 			"content": res.title
 		})
 
-	print(results)
 	return results
 
 @frappe.whitelist()
