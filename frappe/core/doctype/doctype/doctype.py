@@ -109,7 +109,11 @@ class DocType(Document):
 
 		from frappe.model.base_document import get_controller
 
-		controller = get_controller(self.name)
+		try:
+			controller = get_controller(self.name)
+		except ImportError:
+			controller = Document
+
 		available_objects = {x for x in dir(controller) if isinstance(x, str)}
 		property_set = {
 			x for x in available_objects if isinstance(getattr(controller, x, None), property)
