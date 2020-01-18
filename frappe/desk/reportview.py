@@ -263,20 +263,8 @@ def delete_bulk(doctype, items):
 @frappe.whitelist()
 @frappe.read_only()
 def get_sidebar_stats(stats, doctype, filters=[]):
-	_user_tags = []
-	data = frappe._dict(frappe.local.form_dict)
-	filters = json.loads(data["filters"])
 
-	for tag in frappe.get_all("Tag Link", filters={"document_type": doctype}, fields=["tag"]):
-		tag_filters = []
-		tag_filters.extend(filters)
-		tag_filters.extend([['Tag Link', 'tag', '=', tag.tag]])
-
-		count = frappe.get_all(doctype, filters=tag_filters, fields=["count(*)"])
-		if count[0].get("count(*)") > 0:
-			_user_tags.append([tag.tag, count[0].get("count(*)")])
-
-	return {"stats": {"_user_tags": _user_tags}}
+	return {"stats": get_stats(stats, doctype, filters)}
 
 @frappe.whitelist()
 @frappe.read_only()

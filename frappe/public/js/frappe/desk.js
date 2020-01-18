@@ -463,12 +463,26 @@ frappe.Application = Class.extend({
 
 	show_change_log: function() {
 		var me = this;
-		var d = frappe.msgprint(
-			frappe.render_template("change_log", {"change_log": frappe.boot.change_log}),
-			__("Updated To New Version")
-		);
-		d.keep_open = true;
-		d.custom_onhide = function() {
+		let change_log = frappe.boot.change_log;
+
+		// frappe.boot.change_log = [{
+		// 	"change_log": [
+		// 		[<version>, <change_log in markdown>],
+		// 		[<version>, <change_log in markdown>],
+		// 	],
+		// 	"description": "ERP made simple",
+		// 	"title": "ERPNext",
+		// 	"version": "12.2.0"
+		// }];
+
+		var change_log_dialog = frappe.msgprint({
+			message: frappe.render_template("change_log", {"change_log": change_log}),
+			title: __("Updated To New Version 🎉"),
+			wide: true,
+			scroll: true
+		});
+		change_log_dialog.keep_open = true;
+		change_log_dialog.custom_onhide = function() {
 			frappe.call({
 				"method": "frappe.utils.change_log.update_last_known_versions"
 			});

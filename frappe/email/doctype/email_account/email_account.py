@@ -292,7 +292,10 @@ class EmailAccount(Document):
 				else:
 					frappe.db.commit()
 					if communication:
-						attachments = [d.file_name for d in communication._attachments]
+						attachments = []
+						if hasattr(communication, '_attachments'):
+							attachments = [d.file_name for d in communication._attachments]
+
 						communication.notify(attachments=attachments, fetched_from_email_account=True)
 
 			#notify if user is linked to account
