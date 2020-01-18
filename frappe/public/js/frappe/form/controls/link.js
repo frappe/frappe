@@ -288,6 +288,7 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 		this.$input.on("awesomplete-open", function() {
 			me.$wrapper.css({"z-index": 100});
 			me.$wrapper.find('ul').css({"z-index": 100});
+			me.reset_value();
 			me.autocomplete_open = true;
 		});
 
@@ -312,6 +313,7 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 
 			if(item.action) {
 				item.value = "";
+				item.label = "";
 				item.action.apply(me);
 			}
 
@@ -529,4 +531,3 @@ if(Awesomplete) {
 		});
 	};
 }
-
