@@ -265,7 +265,7 @@ def get_tags(doctype, name):
 			"document_name": name
 		}, fields=["tag"])]
 
-	return ",".join([tag for tag in tags])
+	return ",".join(tags)
 
 def get_document_email(doctype, name):
 	email = get_automatic_email_link()
