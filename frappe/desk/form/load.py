@@ -103,7 +103,7 @@ def get_docinfo(doc=None, doctype=None, name=None):
 		"milestones": get_milestones(doc.doctype, doc.name),
 		"is_document_followed": is_document_followed(doc.doctype, doc.name, frappe.session.user),
 		"tags": get_tags(doc.doctype, doc.name),
-		"email_link": get_email_link(doc.doctype, doc.name)
+		"document_email": get_document_email(doc.doctype, doc.name)
 	}
 
 def get_milestones(doctype, name):
@@ -267,7 +267,7 @@ def get_tags(doctype, name):
 
 	return ",".join([tag for tag in tags])
 
-def get_email_link(doctype, name):
+def get_document_email(doctype, name):
 	email = get_automatic_email_link()
 	if not email:
 		return None
