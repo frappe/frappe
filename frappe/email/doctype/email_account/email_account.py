@@ -426,22 +426,28 @@ class EmailAccount(Document):
 
 		If no thread id is found and `append_to` is set for the email account,
 		it will create a new parent transaction (e.g. Issue)"""
-		parent = self.find_parent_from_in_reply_to(communication, email) or None
+		parent = None
+
+		parent = self.find_parent_from_in_reply_to(communication, email)
 
 		if not parent and self.append_to:
 			self.set_sender_field_and_subject_field()
+
+		if not parent and self.append_to:
 			parent = self.find_parent_based_on_subject_and_sender(communication, email)
 
-			if not self.append_to == "Communication":
-				parent = self.create_new_parent(communication, email)
+		if not parent and self.append_to and self.append_to!="Communication":
+			parent = self.create_new_parent(communication, email)
 
 		if parent:
 			communication.reference_doctype = parent.doctype
 			communication.reference_name = parent.name
 
 		# check if message is notification and disable notifications for this message
-		if email.mail.get("isnotification") and "notification" in email.mail.get("isnotification"):
-			communication.unread_notification_sent = 1
+		isnotification = email.mail.get("isnotification")
+		if isnotification:
+			if "notification" in isnotification:
+				communication.unread_notification_sent = 1
 
 	def set_sender_field_and_subject_field(self):
 		'''Identify the sender and subject fields from the `append_to` DocType'''
