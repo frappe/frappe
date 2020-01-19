@@ -118,7 +118,6 @@ frappe.ui.form.Timeline = class Timeline {
 	}
 
 	display_automatic_link_email() {
-		let me = this;
 		let docinfo = this.frm.get_docinfo();
 
 		if (docinfo.document_email){
