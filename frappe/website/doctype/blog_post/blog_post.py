@@ -54,6 +54,8 @@ class BlogPost(WebsiteGenerator):
 		# temp fields
 		context.full_name = get_fullname(self.owner)
 		context.updated = global_date_format(self.published_on)
+		context.author = context.full_name
+		context.published_on = self.published_on.isoformat()
 
 		if self.blogger:
 			context.blogger_info = frappe.get_doc("Blogger", self.blogger).as_dict()
