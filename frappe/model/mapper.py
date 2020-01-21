@@ -1,7 +1,7 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
-from __future__ import unicode_literals
+from __future__ import unicode_literals, annotations
 import frappe, json
 from frappe import _
 from frappe.utils import cstr
@@ -30,7 +30,8 @@ def make_mapped_doc(method, source_name, selected_children=None, args=None):
 	return method(source_name)
 
 @frappe.whitelist()
-def map_docs(method, source_names, target_doc):
+def map_docs(method, source_names, target_doc, args:str=None):
+	# args => "{ 'supplier': 100 }"
 	'''Returns the mapped document calling the given mapper method
 	with each of the given source docs on the target doc'''
 	method = frappe.get_attr(method)
@@ -38,8 +39,9 @@ def map_docs(method, source_names, target_doc):
 		raise frappe.PermissionError
 
 	for src in json.loads(source_names):
-		target_doc = method(src, target_doc)
-	return target_doc
+		_args = (src, target_doc, json.loads(args)) if args else (src, target_doc)
+		target_doc = method(*_args)
+		yield target_doc
 
 def get_mapped_doc(from_doctype, from_docname, table_maps, target_doc=None,
 		postprocess=None, ignore_permissions=False, ignore_child_tables=False):
