@@ -40,6 +40,7 @@ class TestFormLoad(unittest.TestCase):
 		user.add_roles('Blogger')
 
 		make_property_setter('Blog Post', 'published', 'permlevel',  1, 'Int')
+		reset('Blog Post')
 		add('Blog Post', 'Website Manager', 1)
 		update('Blog Post', 'Website Manager', 1, 'write', 1)
 
@@ -60,7 +61,6 @@ class TestFormLoad(unittest.TestCase):
 
 		frappe.set_user('Administrator')
 		user.add_roles('Website Manager')
-		frappe.cache().hdel("roles", user.name)
 		frappe.set_user(user.name)
 
 		doc = frappe.get_doc('Blog Post', blog.name)
