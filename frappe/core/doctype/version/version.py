@@ -43,7 +43,7 @@ def get_diff(old, new, for_child=False):
 	if not new:
 		return None
 
-	whitelist_fields = ["Markdown Editor"]
+	blacklisted_fields = ["Markdown Editor"]
 
 	# capture data import if set
 	data_import = new.flags.via_data_import
@@ -77,7 +77,7 @@ def get_diff(old, new, for_child=False):
 					out.removed.append([df.fieldname, d.as_dict()])
 
 		elif (old_value != new_value):
-			if df.fieldtype not in whitelist_fields:
+			if df.fieldtype not in blacklisted_fields:
 				old_value = old.get_formatted(df.fieldname)
 				new_value = new.get_formatted(df.fieldname)
 
