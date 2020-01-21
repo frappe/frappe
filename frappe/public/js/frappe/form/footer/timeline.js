@@ -15,7 +15,7 @@ frappe.ui.form.Timeline = class Timeline {
 		var me = this;
 		this.wrapper = $(frappe.render_template("timeline",{doctype: me.frm.doctype,allow_events_in_timeline: me.frm.meta.allow_events_in_timeline})).appendTo(me.parent);
 
-		this.set_automatic_link_email();
+		this.display_automatic_link_email();
 		this.list = this.wrapper.find(".timeline-items");
 		this.email_link = this.wrapper.find(".timeline-email-import");
 
@@ -117,31 +117,12 @@ frappe.ui.form.Timeline = class Timeline {
 			});
 	}
 
-	set_automatic_link_email() {
-		if (!frappe.email.automatic_link_email){
-			frappe.call("frappe.email.doctype.email_account.email_account.get_automatic_email_link").then((r) => {
-				if (r && r.message) {
-					frappe.email.automatic_link_email = r.message;
-				} else {
-					frappe.email.automatic_link_email = null;
-				}
-				this.display_automatic_link_email();
-			});
-		} else {
-			this.display_automatic_link_email();
-		}
-	}
-
 	display_automatic_link_email() {
-		var me = this;
-		if (frappe.email.automatic_link_email){
-			let email_id = frappe.email.automatic_link_email;
-			email_id =  email_id.split("@")[0] +"+"+ encodeURIComponent(me.frm.doctype) +"+"+ encodeURIComponent(me.frm.docname)
-				+"@"+ email_id.split("@")[1];
+		let docinfo = this.frm.get_docinfo();
 
-			$(".timeline-email-import-link").text(email_id);
-		} else {
-			$('.timeline-email-import').addClass("hide");
+		if (docinfo.document_email){
+			let link = __("Send an email to {0} to link it here", [`<b><a class="timeline-email-import-link copy-to-clipboard">${docinfo.document_email}</a></b>`]);
+			$('.timeline-email-import').html(link);
 		}
 	}
 
@@ -211,7 +192,7 @@ frappe.ui.form.Timeline = class Timeline {
 				me.render_timeline_item(d);
 			});
 
-
+		me.display_automatic_link_email();
 
 		// more btn
 		if (this.more===undefined && timeline.length===20) {
