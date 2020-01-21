@@ -28,7 +28,6 @@ class TestFormLoad(unittest.TestCase):
 			"blog_intro": "Test Blog Intro",
 			"blogger": "_Test Blogger 1",
 			"content": "Test Blog Content",
-			"doctype": "Blog Post",
 			"title": "_Test Blog Post {}".format(frappe.utils.now()),
 			"published": 0
 		})
@@ -76,7 +75,7 @@ class TestFormLoad(unittest.TestCase):
 
 
 def get_blog(blog_name):
+	frappe.response.docs = []
 	getdoc('Blog Post', blog_name)
 	doc = frappe.response.docs[0]
-	frappe.response.docs = []
 	return doc
