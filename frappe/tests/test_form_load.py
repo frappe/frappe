@@ -35,7 +35,9 @@ class TestFormLoad(unittest.TestCase):
 		blog.insert()
 
 		user = frappe.get_doc('User', 'test@example.com')
-		user.remove_roles('Website Manager', 'System Manager')
+
+		user_roles = frappe.get_roles()
+		user.remove_roles(*user_roles)
 		user.add_roles('Blogger')
 
 		make_property_setter('Blog Post', 'published', 'permlevel',  1, 'Int')
@@ -73,6 +75,9 @@ class TestFormLoad(unittest.TestCase):
 
 		frappe.set_user('Administrator')
 
+		# reset user roles
+		user.remove_roles('Blogger', 'Website Manager')
+		user.add_roles(*user_roles)
 
 def get_blog(blog_name):
 	frappe.response.docs = []
