@@ -137,12 +137,6 @@ def validate_workflow(doc):
 			frappe.throw(_('Workflow State transition not allowed from {0} to {1}').format(bold_current, bold_next),
 				WorkflowPermissionError)
 
-		transitions = get_transitions(doc._doc_before_save)
-		transition = [d for d in transitions if d.next_state == next_state]
-		if not transition:
-			frappe.throw(_('Workflow State transition not allowed from {0} to {1}').format(bold_current, bold_next),
-				WorkflowPermissionError)
-
 def get_workflow(doctype):
 	return frappe.get_doc('Workflow', get_workflow_name(doctype))
 
