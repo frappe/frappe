@@ -70,7 +70,8 @@ class TestAPI(unittest.TestCase):
 
 	def test_update_child_doc(self):
 		server = FrappeClient(get_url(), "Administrator", "admin", verify=False)
-		frappe.db.sql("delete from `tabContact` where first_name = 'George Steevens'")
+		frappe.db.sql("delete from `tabContact` where first_name = 'George' and last_name = 'Steevens'")
+		frappe.db.sql("delete from `tabContact` where first_name = 'William' and last_name = 'Shakespeare'")
 		frappe.db.sql("delete from `tabCommunication` where reference_doctype = 'Event'")
 		frappe.db.sql("delete from `tabCommunication Link` where link_doctype = 'Contact'")
 		frappe.db.sql("delete from `tabEvent` where subject = 'Sing a song of sixpence'")
@@ -102,8 +103,6 @@ class TestAPI(unittest.TestCase):
 
 		# the change should run the parent document's validations and
 		# create a Communication record with the new contact
-		frappe.db.commit()
-
 		self.assertTrue(frappe.db.exists("Communication Link", {"link_name": "William Shakespeare"}))
 
 	def test_delete_doc(self):
