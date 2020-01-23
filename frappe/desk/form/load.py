@@ -41,6 +41,7 @@ def getdoc(doctype, name, user=None):
 
 		# add file list
 		doc.add_viewed()
+		get_title_values(doc)
 		get_docinfo(doc)
 
 	except Exception:
@@ -88,6 +89,7 @@ def get_docinfo(doc=None, doctype=None, name=None):
 		doc = frappe.get_doc(doctype, name)
 		if not doc.has_permission("read"):
 			raise frappe.PermissionError
+
 	frappe.response["docinfo"] = {
 		"attachments": get_attachments(doc.doctype, doc.name),
 		"communications": _get_communications(doc.doctype, doc.name),
@@ -103,6 +105,71 @@ def get_docinfo(doc=None, doctype=None, name=None):
 		"is_document_followed": is_document_followed(doc.doctype, doc.name, frappe.session.user),
 		"tags": get_tags(doc.doctype, doc.name)
 	}
+
+def get_title_values(doc):
+	meta = frappe.get_meta(doc.doctype)
+	title_values = {}
+
+	_link_fields = get_link_field_title_values(doc, meta)
+	if _link_fields:
+		title_values.update(_link_fields)
+
+	_table_multiselect = get_table_multiselect_field_title_values(doc, meta)
+	if _table_multiselect:
+		title_values.update(_table_multiselect)
+
+	doc.set_onload("_title_values", title_values)
+
+	return doc
+
+def get_link_field_title_values(doc, meta):
+	title_values = {}
+	for field in meta.get_link_fields():
+		if not doc.get(field.fieldname):
+			continue
+
+		meta = frappe.get_meta(field.options)
+		if not meta or not (meta.title_field and meta.show_title_field_in_link):
+			continue
+
+		title_values[field.fieldname] = frappe.get_cached_value(field.options, doc.get(field.fieldname), meta.title_field)
+
+	return title_values
+
+def get_table_multiselect_field_title_values(doc, meta):
+
+	def get_table_multiselect_link_field_and_meta(dt):
+		_link_fields = frappe.get_meta(dt).get_link_fields()
+		if not _link_fields:
+			return None
+
+		return _link_fields[0], frappe.get_meta(_link_fields[0].options)
+
+	title_values = {}
+	for field in meta.get_table_multiselect_fields():
+		if not doc.get(field.fieldname):
+			continue
+
+		# Get meta and field of Table MultiSelect field
+		title_field_values = []
+		_link_field, _link_field_meta = get_table_multiselect_link_field_and_meta(field.options)
+
+		if not _link_field_meta or not (_link_field_meta.title_field and _link_field_meta.show_title_field_in_link):
+			continue
+
+		for value in doc.get(field.fieldname):
+			doctype = _link_field.options
+			name = value.get(_link_field.fieldname)
+			fieldname = _link_field_meta.title_field
+
+			title_field_values.append({
+				"name": value.get(_link_field.fieldname),
+				"link_display": frappe.get_cached_value(doctype, name, fieldname)
+			})
+
+		title_values[field.fieldname] = title_field_values
+
+	return title_values
 
 def get_milestones(doctype, name):
 	return frappe.db.get_all('Milestone', fields = ['creation', 'owner', 'track_field', 'value'],

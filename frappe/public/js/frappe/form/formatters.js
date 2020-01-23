@@ -94,20 +94,8 @@ frappe.form.formatters = {
 		var original_value = value;
 		let link_display = undefined;
 
-		if (value) {
-			frappe.call({
-				'async': false,
-				'method': 'frappe.desk.search.get_title_for_link_display',
-				'args': {
-					doctype: doctype,
-					docname: value
-				},
-				callback: function (r) {
-					if (r && r.message) {
-						link_display = r.message;
-					}
-				}
-			});
+		if (doc && doc.hasOwnProperty("__onload") && doc.__onload._title_values && doc.__onload._title_values[docfield.fieldname]) {
+			link_display = doc.__onload._title_values[docfield.fieldname];
 		}
 
 		if(value && value.match && value.match(/^['"].*['"]$/)) {
@@ -275,25 +263,15 @@ frappe.form.formatters = {
 		}
 		return value;
 	},
-	TableMultiSelect: function(rows, df, options) {
+	TableMultiSelect: function(rows, df, options, doc) {
 		rows = rows || [];
 		const meta = frappe.get_meta(df.options);
 		const link_field = meta.fields.find(df => df.fieldtype === 'Link');
 		let values = rows.map(row => ({"name": row[link_field.fieldname], "doc": row}));
 
-		frappe.call({
-			'async': false,
-			'method': 'frappe.desk.search.get_title_for_table_multiselect',
-			'args': {
-				doctype: link_field.options,
-				values: values
-			},
-			callback: function (r) {
-				if (r && r.message) {
-					values = r.message;
-				}
-			}
-		});
+		if (doc && doc.hasOwnProperty("__onload") && doc.__onload._title_values && doc.__onload._title_values[df.fieldname]) {
+			values = doc.__onload._title_values[df.fieldname];
+		}
 
 		let formatted_values = values.map(value => {
 			return frappe.format(value.link_display || value.name, link_field, options, value.doc);

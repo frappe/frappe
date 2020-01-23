@@ -50,6 +50,10 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 		this.translate_values = true;
 		this.setup_buttons();
 		this.setup_awesomeplete();
+
+		if (this.frm && this.frm.doc.hasOwnProperty("__onload") && this.frm.doc.__onload._title_values && this.frm.doc.__onload._title_values[this.df.fieldname]) {
+			this.title_values = this.frm.doc.__onload._title_values;
+		}
 	},
 	get_options: function() {
 		return this.df.options;
@@ -67,33 +71,23 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 		}
 	},
 	set_formatted_input: function (value) {
-		let link_display = this.value;
-
 		if (value) {
 			if (this.label) {
-				link_display = this.label;
+				this.set_data_value(this.label, value);
+			} else if (this.title_values && this.title_values[this.df.fieldname]) {
+				this.set_data_value(this.title_values[this.df.fieldname], value);
 			} else {
-				frappe.call({
-					'async': false,
-					'method': 'frappe.desk.search.get_title_for_link_display',
-					'args': {
-						doctype: this.df.options,
-						docname: value
-					},
-					callback: function (r) {
-						if (r && r.message) {
-							link_display = r.message;
-						}
-					}
-				});
+				this.set_data_value(value, value);
 			}
 		}
+	},
+	set_data_value: function(link_display, value) {
 		this.$input && this.$input.val(__(link_display));
 		this.$input && this.$input.attr("data-value", value);
 	},
 	parse_validate_and_set_in_model: function(value, label, e) {
 		if (this.parse) {
-			value = this.parse(value);
+			value = this.parse(value, label);
 		}
 		this.label = label;
 		return this.validate_and_set_in_model(value, e);

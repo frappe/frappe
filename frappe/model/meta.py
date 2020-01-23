@@ -155,6 +155,9 @@ class Meta(Document):
 
 		return self._table_fields
 
+	def get_table_multiselect_fields(self):
+		return self.get("fields", {"fieldtype": "Table MultiSelect", "options":["!=", "[Select]"]})
+
 	def get_global_search_fields(self):
 		'''Returns list of fields with `in_global_search` set and `name` if set'''
 		fields = self.get("fields", {"in_global_search": 1, "fieldtype": ["not in", no_value_fields]})
@@ -381,7 +384,6 @@ class Meta(Document):
 	def get_fieldnames_with_value(self):
 		return [df.fieldname for df in self.fields if df.fieldtype not in no_value_fields]
 
-
 	def get_fields_to_check_permissions(self, user_permission_doctypes):
 		fields = self.get("fields", {
 			"fieldtype":"Link",
@@ -460,7 +462,6 @@ class Meta(Document):
 						data.non_standard_fieldnames[link.link_doctype] = link.link_fieldname
 					else:
 						data.fieldname = link.link_fieldname
-
 
 	def get_row_template(self):
 		return self.get_web_template(suffix='_row')

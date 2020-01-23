@@ -28,6 +28,7 @@ frappe.ui.form.ControlTableMultiSelect = frappe.ui.form.ControlLink.extend({
 
 			this.parse_validate_and_set_in_model('');
 		});
+
 		this.$input_area.on('click', '.btn-link-to-form', (e) => {
 			const $target = $(e.currentTarget);
 			const $value = $target.closest('.tb-selected-value');
@@ -36,6 +37,7 @@ frappe.ui.form.ControlTableMultiSelect = frappe.ui.form.ControlLink.extend({
 			const link_field = this.get_link_field();
 			frappe.set_route('Form', link_field.options, value);
 		});
+
 		this.$input.on('keydown', e => {
 			// if backspace key pressed on empty input, delete last value
 			if (e.keyCode == frappe.ui.keyCode.BACKSPACE && e.target.value === '') {
@@ -43,22 +45,25 @@ frappe.ui.form.ControlTableMultiSelect = frappe.ui.form.ControlLink.extend({
 				this.parse_validate_and_set_in_model('');
 			}
 		});
+
+		if (this.frm && this.frm.doc.hasOwnProperty("__onload") && this.frm.doc.__onload._title_values && this.frm.doc.__onload._title_values[this.df.fieldname]) {
+			this.title_values = this.frm.doc.__onload._title_values;
+		}
 	},
 	setup_buttons() {
 		this.$input_area.find('.link-btn').remove();
 	},
-	parse(value) {
+	parse(value, label) {
 		const link_field = this.get_link_field();
 
 		if (value) {
 			if (this.frm) {
 				const new_row = frappe.model.add_child(this.frm.doc, this.df.options, this.df.fieldname);
 				new_row[link_field.fieldname] = value;
+				new_row["link_display"] = label;
 				this.rows = this.frm.doc[this.df.fieldname];
 			} else {
-				this.rows.push({
-					[link_field.fieldname]: value
-				});
+				this.rows.push({[link_field.fieldname]: value, ["link_display"]: label});
 			}
 		}
 
@@ -108,21 +113,20 @@ frappe.ui.form.ControlTableMultiSelect = frappe.ui.form.ControlLink.extend({
 	set_formatted_input(value) {
 		this.rows = value || [];
 		const link_field = this.get_link_field();
-		let values = this.rows.map(row => ({"name": row[link_field.fieldname]}));
+		let values = this.rows.map(row => ({"name": row[link_field.fieldname], "link_display": row["link_display"]}));
 
-		frappe.call({
-			'async': false,
-			'method': 'frappe.desk.search.get_title_for_table_multiselect',
-			'args': {
-				doctype: this.get_options(),
-				values: values
-			},
-			callback: function (r) {
-				if (r && r.message) {
-					values = r.message;
+		if (this.title_values && this.title_values[this.df.fieldname]) {
+			let title_values = this.title_values[this.df.fieldname];
+
+			for (let i in title_values) {
+				for (let j in values) {
+					if (title_values[i].name === values[j].name) {
+						values[j]["link_display"] = title_values[i]["link_display"];
+						break;
+					}
 				}
 			}
-		});
+		}
 
 		this.set_pill_html(values);
 	},
