@@ -1,0 +1,47 @@
+{
+ "actions": [],
+ "creation": "2020-01-23 13:44:59.248426",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "type",
+  "link_to",
+  "stats_filter"
+ ],
+ "fields": [
+  {
+   "fieldname": "type",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Type",
+   "options": "DocType\nReport",
+   "reqd": 1
+  },
+  {
+   "fieldname": "link_to",
+   "fieldtype": "Dynamic Link",
+   "in_list_view": 1,
+   "label": "Link To",
+   "options": "type",
+   "reqd": 1
+  },
+  {
+   "fieldname": "stats_filter",
+   "fieldtype": "Code",
+   "label": "Count Filter"
+  }
+ ],
+ "istable": 1,
+ "links": [],
+ "modified": "2020-01-23 14:14:17.654114",
+ "modified_by": "Administrator",
+ "module": "Desk",
+ "name": "Desk Shortcut",
+ "owner": "Administrator",
+ "permissions": [],
+ "quick_entry": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}
