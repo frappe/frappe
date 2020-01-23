@@ -160,7 +160,7 @@ frappe.views.ListSidebar = class ListSidebar {
 				reference_doctype: doctype
 			}
 		}).then(result => {
-			if (!result.length) return;
+			if (!(result && result.length)) return;
 			const calendar_views = result;
 			const $link_calendar = this.sidebar.find('.list-link[data-view="Calendar"]');
 
