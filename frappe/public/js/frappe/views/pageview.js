@@ -2,6 +2,7 @@
 // MIT License. See license.txt
 
 import Desktop from './components/Desktop.vue';
+import Desk from './desk/desk.js';
 
 frappe.provide('frappe.views.pageview');
 frappe.provide("frappe.standard_pages");
@@ -48,14 +49,13 @@ frappe.views.pageview = {
 					let container = $('<div class="container"></div>').appendTo(page);
 					container = $('<div></div>').appendTo(container);
 
-					new Vue({
-						el: container[0],
-						render: h => h(Desktop)
-					});
+					frappe.desk = new Desk({
+						wrapper: container
+					})
 				}
 
 				frappe.container.change_to('desktop');
-				frappe.utils.set_title(__('Home'));
+				frappe.utils.set_title(__('Desk'));
 				return;
 			}
 		}
