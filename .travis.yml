@@ -101,5 +101,6 @@ install:
   - bench build --app frappe
 
 after_script:
+  - if [ $TYPE == "server" ]; then pip install coverage==4.5.4 fi
   - if [ $TYPE == "server" ]; then pip install python-coveralls; fi
   - if [ $TYPE == "server" ]; then coveralls -b apps/frappe -d ../../sites/.coverage; fi

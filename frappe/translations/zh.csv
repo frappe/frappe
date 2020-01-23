@@ -4046,3 +4046,5 @@ apps/frappe/frappe/public/js/frappe/web_form/web_form.js,Saved Successfully,保�
 apps/frappe/frappe/core/doctype/user/user.py,Please ask your administrator to verify your sign-up,请向管理员询问，以确认您的注册
 DocType: Domain Settings,Active Domains,活动域
 apps/frappe/frappe/public/js/integrations/razorpay.js,Show Log,显示日志
+apps/frappe/frappe/desk/page/leaderboard/leaderboard.js,Leaderboard,排行榜
+apps/frappe/frappe/config/desktop.py,Leaderboard,排行榜
