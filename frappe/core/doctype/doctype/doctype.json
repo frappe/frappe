@@ -40,6 +40,7 @@
   "allow_copy",
   "allow_rename",
   "allow_import",
+  "allow_merge_with_existing",
   "allow_events_in_timeline",
   "allow_auto_repeat",
   "view_settings",
@@ -488,12 +489,19 @@
    "fieldtype": "Table",
    "label": "Links",
    "options": "DocType Link"
+  },
+  {
+   "default": "0",
+   "fieldname": "allow_merge_with_existing",
+   "fieldtype": "Check",
+   "label": "Allow merge with existing"
   }
  ],
  "icon": "fa fa-bolt",
  "idx": 6,
- "modified": "2019-11-25 17:24:03.690192",
- "modified_by": "Administrator",
+ "links": [],
+ "modified": "2020-01-23 17:58:29.235287",
+ "modified_by": "himanshu@erpnext.com",
  "module": "Core",
  "name": "DocType",
  "owner": "Administrator",

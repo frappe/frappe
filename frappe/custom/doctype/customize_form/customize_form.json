@@ -1,4 +1,5 @@
 {
+ "actions": [],
  "autoname": "DL.####",
  "creation": "2013-01-29 17:55:08",
  "doctype": "DocType",
@@ -18,6 +19,7 @@
   "track_changes",
   "track_views",
   "allow_auto_repeat",
+  "allow_merge_with_existing",
   "allow_import",
   "image_view",
   "column_break_5",
@@ -174,14 +176,21 @@
    "fieldname": "allow_import",
    "fieldtype": "Check",
    "label": "Allow Import (via Data Import Tool)"
+  },
+  {
+   "default": "0",
+   "fieldname": "allow_merge_with_existing",
+   "fieldtype": "Check",
+   "label": "Allow Merge with Existing"
   }
  ],
  "hide_toolbar": 1,
  "icon": "fa fa-glass",
  "idx": 1,
  "issingle": 1,
- "modified": "2019-10-08 11:16:36.698006",
- "modified_by": "Administrator",
+ "links": [],
+ "modified": "2020-01-23 18:00:02.093331",
+ "modified_by": "himanshu@erpnext.com",
  "module": "Custom",
  "name": "Customize Form",
  "owner": "Administrator",

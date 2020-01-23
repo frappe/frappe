@@ -222,6 +222,7 @@ CREATE TABLE "tabDocType" (
   "allow_guest_to_view" smallint NOT NULL DEFAULT 0,
   "route" varchar(255) DEFAULT NULL,
   "is_published_field" varchar(255) DEFAULT NULL,
+  "allow_merge_with_exsiting" smallint NOT NULL DEFAULT 0,
   PRIMARY KEY ("name")
 ) ;
 

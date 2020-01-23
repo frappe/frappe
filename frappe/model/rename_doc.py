@@ -94,9 +94,6 @@ def rename_doc(doctype, old, new, force=False, merge=False, ignore_permissions=F
 	else:
 		new_doc.add_comment('Edit', _("renamed from {0} to {1}").format(frappe.bold(old), frappe.bold(new)))
 
-	if merge:
-		frappe.delete_doc(doctype, old)
-
 	frappe.clear_cache()
 	frappe.enqueue('frappe.utils.global_search.rebuild_for_doctype', doctype=doctype)
 

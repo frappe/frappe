@@ -148,8 +148,12 @@ frappe.ui.form.Toolbar = Class.extend({
 					fieldtype: "Data",
 					reqd: 1,
 					default: docname
-				}, {
-					label: __("Merge with existing"),
+				}]);
+			}
+
+			if (me.can_rename() && me.frm.meta.allow_merge_with_existing) {
+				fields.push(...[{
+					label: __("Merge with Existing"),
 					fieldname: "merge",
 					fieldtype: "Check",
 					default: 0
