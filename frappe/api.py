@@ -96,6 +96,10 @@ def handle():
 					frappe.local.response.update({
 						"data": doc.save().as_dict()
 					})
+
+					if doc.parenttype and doc.parent:
+						frappe.get_doc(doc.parenttype, doc.parent).save()
+
 					frappe.db.commit()
 
 				if frappe.local.request.method=="DELETE":
