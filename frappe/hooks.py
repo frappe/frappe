@@ -139,7 +139,7 @@ doc_events = {
 		"on_change": [
 			"frappe.social.doctype.energy_point_rule.energy_point_rule.process_energy_points"
 		],
-		"aftet_insert": "frappe.cache_manager.build_table_count_cache",
+		"after_insert": "frappe.cache_manager.build_table_count_cache",
 	},
 	"Event": {
 		"after_insert": "frappe.integrations.doctype.google_calendar.google_calendar.insert_event_in_google_calendar",

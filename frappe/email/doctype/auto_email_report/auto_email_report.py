@@ -66,7 +66,7 @@ class AutoEmailReport(Document):
 			self.prepare_dynamic_filters()
 
 		columns, data = report.get_data(limit=self.no_of_rows or 100, user = self.user,
-			filters = self.filters, as_dict=True)
+			filters = self.filters, as_dict=True, ignore_prepared_report=True)
 
 		# add serial numbers
 		columns.insert(0, frappe._dict(fieldname='idx', label='', width='30px'))

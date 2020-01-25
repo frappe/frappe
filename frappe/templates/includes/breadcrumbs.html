@@ -1,7 +1,7 @@
 {% if not no_breadcrumbs and parents %}
 <div class="container mt-3">
 	<nav aria-label="breadcrumb">
-		<ol class="breadcrumb" itemscope itemtype="http://data-vocabulary.org/Breadcrumb">
+		<ol class="breadcrumb" itemscope itemtype="http://schema.org/BreadcrumbList">
 			{%- set parents = parents[-3:] %}
 			{% for parent in parents %}
 				<li class="breadcrumb-item">
