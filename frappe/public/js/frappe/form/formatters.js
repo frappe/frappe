@@ -116,13 +116,15 @@ frappe.form.formatters = {
 		if(!value) {
 			return "";
 		}
+
 		if(value[0] == "'" && value[value.length -1] == "'") {
 			return value.substring(1, value.length - 1);
 		}
-		if(docfield && docfield.link_onclick) {
+
+		if (docfield && docfield.link_onclick) {
 			return repl('<a onclick="%(onclick)s">%(value)s</a>',
 				{onclick: docfield.link_onclick.replace(/"/g, '&quot;'), value:value});
-		} else if(docfield && doctype) {
+		} else if (docfield && doctype) {
 			return `<a class="grey"
 				href="#Form/${encodeURIComponent(doctype)}/${encodeURIComponent(original_value)}"
 				data-doctype="${doctype}"

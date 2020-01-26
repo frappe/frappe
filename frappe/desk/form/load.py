@@ -136,7 +136,6 @@ def get_title_values_for_link_fields(meta, doc):
 		if not meta or not (meta.title_field and meta.show_title_field_in_link):
 			continue
 
-		# link_titles[field.fieldname] = frappe.get_cached_value(field.options, doc.get(field.fieldname), meta.title_field)
 		link_titles[doc.get(field.fieldname)] = frappe.get_cached_value(field.options, doc.get(field.fieldname), meta.title_field)
 
 	return link_titles
@@ -152,36 +151,40 @@ def get_title_values_for_dynamic_link_fields(meta, doc):
 			continue
 
 		link_titles[doc.get(field.fieldname)] = frappe.get_cached_value(doc.get(field.options), doc.get(field.fieldname), meta.title_field)
-		# link_titles[field.fieldname] = frappe.get_cached_value(doc.get(field.options), doc.get(field.fieldname), meta.title_field)
 
 	return link_titles
 
 def get_title_values_for_table_and_multiselect_fields(meta, doc):
 	link_titles = {}
 	for field in meta.get_table_fields():
+		if not doc.get(field.fieldname):
+			continue
+
 		if field.fieldtype == "Table MultiSelect":
 			_meta = frappe.get_meta(field.options)
-			__link_field = _meta.get_link_fields()[0]
-			link_titles.update(get_title_values_for_table_multiselect_fields(__link_field, field, doc))
+			_link_field = _meta.get_link_fields()[0]
+			link_titles.update(get_title_values_for_table_multiselect_fields(_link_field, field, doc))
 		elif field.fieldtype == "Table":
 			_meta = frappe.get_meta(field.options)
 			link_titles.update(get_title_values_for_table_fields(field, doc))
+		else:
+			pass
 
 	return link_titles
 
-def get_title_values_for_table_multiselect_fields(__link_field, field, doc):
+def get_title_values_for_table_multiselect_fields(_link_field, field, doc):
 	link_titles = {}
-	_meta = frappe.get_meta(__link_field.options)
+	_meta = frappe.get_meta(_link_field.options)
 
 	if not _meta or not (_meta.title_field and _meta.show_title_field_in_link):
 		return link_titles
 
 	for value in doc.get(field.fieldname):
-		doctype = __link_field.options
-		name = value.get(__link_field.fieldname)
+		doctype = _link_field.options
+		name = value.get(_link_field.fieldname)
 		fieldname = _meta.title_field
 
-		link_titles[value.get(__link_field.fieldname)] = frappe.get_cached_value(doctype, name, fieldname)
+		link_titles[value.get(_link_field.fieldname)] = frappe.get_cached_value(doctype, name, fieldname)
 
 	return link_titles
 
