@@ -3,28 +3,29 @@
 # MIT License. See license.txt
 from __future__ import unicode_literals
 
-import os
-from six import iteritems
 import logging
+import os
 
-from werkzeug.wrappers import Request
-from werkzeug.local import LocalManager
-from werkzeug.exceptions import HTTPException, NotFound
+from six import iteritems
 from werkzeug.contrib.profiler import ProfilerMiddleware
+from werkzeug.exceptions import HTTPException, NotFound
+from werkzeug.local import LocalManager
+from werkzeug.wrappers import Request
 from werkzeug.wsgi import SharedDataMiddleware
 
 import frappe
-import frappe.handler
-import frappe.auth
 import frappe.api
+import frappe.auth
+import frappe.handler
+import frappe.recorder
 import frappe.utils.response
 import frappe.website.render
-from frappe.utils import get_site_name
-from frappe.middlewares import StaticDataMiddleware
-from frappe.utils.error import make_error_snapshot
-from frappe.core.doctype.comment.comment import update_comments_in_parent_after_request
 from frappe import _
-import frappe.recorder
+from frappe.core.doctype.comment.comment import \
+    update_comments_in_parent_after_request
+from frappe.middlewares import StaticDataMiddleware
+from frappe.utils import get_site_name
+from frappe.utils.error import make_error_snapshot
 
 local_manager = LocalManager([frappe.local])
 
@@ -241,7 +242,7 @@ def serve(port=8000, profile=False, no_reload=False, no_threading=False, site=No
 		log.setLevel(logging.ERROR)
 
 	run_simple('0.0.0.0', int(port), application,
-		use_reloader=False if in_test_env else not no_reload,
+		use_reloader=False if (in_test_env or not frappe.can_use_reloader()) else not no_reload,
 		use_debugger=not in_test_env,
 		use_evalex=not in_test_env,
 		threaded=not no_threading)

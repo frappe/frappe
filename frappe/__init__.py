@@ -4,18 +4,22 @@
 globals attached to frappe module
 + some utility functions that should probably be moved
 """
-from __future__ import unicode_literals, print_function
+from __future__ import print_function, unicode_literals
 
-from six import iteritems, binary_type, text_type, string_types, PY2
-from werkzeug.local import Local, release_local
-import os, sys, importlib, inspect, json
-from past.builtins import cmp
+import importlib
+import inspect
+import json
+import os
+import sys
 
 from faker import Faker
+from past.builtins import cmp
+from six import PY2, binary_type, iteritems, string_types, text_type
+from werkzeug.local import Local, release_local
 
-# public
 from .exceptions import *
-from .utils.jinja import (get_jenv, get_template, render_template, get_email_from_template, get_jloader)
+from .utils.jinja import (get_email_from_template, get_jenv, get_jloader,
+                          get_template, render_template)
 
 # Harmless for Python 3
 # For Python 2 set default encoding to utf-8
@@ -1680,3 +1684,9 @@ def mock(type, size=1, locale='en'):
 
 	from frappe.chat.util import squashify
 	return squashify(results)
+
+def can_use_reloader():
+	return get_site_config().get('use_reloader')
+
+def is_dev_mode():
+	return get_site_config().get('developer_mode')
