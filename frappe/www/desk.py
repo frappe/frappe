@@ -1,15 +1,18 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
-from __future__ import unicode_literals, print_function
+from __future__ import print_function, unicode_literals
+
+import os
+import re
+
+import frappe
+import frappe.sessions
+from frappe import _
 
 no_cache = 1
 base_template_path = "templates/www/desk.html"
 
-import os, re
-import frappe
-from frappe import _
-import frappe.sessions
 
 def get_context(context):
 	if (frappe.session.user == "Guest" or
@@ -82,6 +85,8 @@ def get_desk_assets(build_version):
 	}
 
 def get_build_version():
+	if frappe.is_dev_mode():
+		return frappe.utils.random_string(8)
 	try:
 		return str(os.path.getmtime(os.path.join(frappe.local.sites_path, '.build')))
 	except OSError:
