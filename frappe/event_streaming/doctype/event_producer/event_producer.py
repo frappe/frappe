@@ -321,13 +321,13 @@ def sync_dependencies(document, producer_site):
 			if docname and not check_dependency_fulfilled(linked_doctype, docname):
 				master_doc = producer_site.get_doc(linked_doctype, docname)
 				try:
-					doc = frappe.get_doc(master_doc)
-					doc.insert(set_name=docname)
+					master_doc = frappe.get_doc(master_doc)
+					master_doc.insert(set_name=docname)
 					frappe.db.commit()
 
 				#for dependency inside a dependency
 				except Exception:
-					dependencies[doc] = True
+					dependencies[master_doc] = True
 
 	def check_dependency_fulfilled(linked_doctype, docname):
 		return frappe.db.exists(linked_doctype, docname)
