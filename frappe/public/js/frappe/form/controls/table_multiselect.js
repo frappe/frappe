@@ -46,8 +46,9 @@ frappe.ui.form.ControlTableMultiSelect = frappe.ui.form.ControlLink.extend({
 			}
 		});
 
-		if (this.frm && this.frm.doc.hasOwnProperty("__onload") && this.frm.doc.__onload._title_values && this.frm.doc.__onload._title_values[this.df.fieldname]) {
-			this.title_values = this.frm.doc.__onload._title_values;
+		// if (this.frm && this.frm.doc.hasOwnProperty("__onload") && this.frm.doc.__onload._link_titles && this.frm.doc.__onload._link_titles[this.df.fieldname]) {
+		if (this.frm && this.frm.doc.hasOwnProperty("__onload") && this.frm.doc.__onload._link_titles) {
+			this._link_titles = this.frm.doc.__onload._link_titles
 		}
 	},
 	setup_buttons() {
@@ -60,13 +61,15 @@ frappe.ui.form.ControlTableMultiSelect = frappe.ui.form.ControlLink.extend({
 			if (this.frm) {
 				const new_row = frappe.model.add_child(this.frm.doc, this.df.options, this.df.fieldname);
 				new_row[link_field.fieldname] = value;
-				new_row["link_display"] = label;
 				this.rows = this.frm.doc[this.df.fieldname];
 			} else {
-				this.rows.push({[link_field.fieldname]: value, ["link_display"]: label});
+				this.rows.push({
+					[link_field.fieldname]: value
+				});
 			}
 		}
-
+		this._link_titles[value] = label;
+		// this._link_titles.push({[link_field.fieldname]: value, ["link_display"]: label});
 		return this.rows;
 	},
 	validate(value) {
@@ -113,22 +116,21 @@ frappe.ui.form.ControlTableMultiSelect = frappe.ui.form.ControlLink.extend({
 	set_formatted_input(value) {
 		this.rows = value || [];
 		const link_field = this.get_link_field();
-		let values = this.rows.map(row => ({"name": row[link_field.fieldname], "link_display": row["link_display"]}));
+		const values = this.rows.map(row => ({"name": row[link_field.fieldname], "link_title": row["link_display"]}));
+		let __link_titles = [];
 
-		if (this.title_values && this.title_values[this.df.fieldname]) {
-			let title_values = this.title_values[this.df.fieldname];
-
-			for (let i in title_values) {
-				for (let j in values) {
-					if (title_values[i].name === values[j].name) {
-						values[j]["link_display"] = title_values[i]["link_display"];
-						break;
-					}
+		if (this._link_titles) {
+			for (let i in values) {
+				if (this._link_titles[values[i].name]) {
+					__link_titles.push({
+						"name": values[i].name,
+						"link_title": this._link_titles[values[i].name]
+					});
 				}
 			}
 		}
 
-		this.set_pill_html(values);
+		this.set_pill_html(__link_titles || values);
 	},
 	set_pill_html(values) {
 		const html = values
@@ -141,7 +143,7 @@ frappe.ui.form.ControlTableMultiSelect = frappe.ui.form.ControlLink.extend({
 	get_pill_html(value) {
 		const encoded_value = encodeURIComponent(value.name);
 		return `<div class="btn-group tb-selected-value" data-value="${encoded_value}">
-			<button class="btn btn-default btn-xs btn-link-to-form">${__(value.link_display) || __(value.name)}</button>
+			<button class="btn btn-default btn-xs btn-link-to-form">${__(value.link_title) || __(value.name)}</button>
 			<button class="btn btn-default btn-xs btn-remove">
 				<i class="fa fa-remove text-muted"></i>
 			</button>

@@ -92,10 +92,10 @@ frappe.form.formatters = {
 	Link: function(value, docfield, options, doc) {
 		var doctype = docfield._options || docfield.options;
 		var original_value = value;
-		let link_display = undefined;
+		let link_title = undefined;
 
-		if (doc && doc.hasOwnProperty("__onload") && doc.__onload._title_values && doc.__onload._title_values[docfield.fieldname]) {
-			link_display = doc.__onload._title_values[docfield.fieldname];
+		if (doc && doc.hasOwnProperty("__onload") && doc.__onload._title_values) {
+			link_title = doc.__onload._title_values[doc.get(docfield.fieldname)];
 		}
 
 		if(value && value.match && value.match(/^['"].*['"]$/)) {
@@ -127,9 +127,9 @@ frappe.form.formatters = {
 				href="#Form/${encodeURIComponent(doctype)}/${encodeURIComponent(original_value)}"
 				data-doctype="${doctype}"
 				data-name="${original_value}">
-				${__(options && options.label || link_display || value)}</a>`;
+				${__(options && options.label || link_title || value)}</a>`;
 		} else {
-			return link_display || value;
+			return link_title || value;
 		}
 	},
 	Date: function(value) {
@@ -269,12 +269,12 @@ frappe.form.formatters = {
 		const link_field = meta.fields.find(df => df.fieldtype === 'Link');
 		let values = rows.map(row => ({"name": row[link_field.fieldname], "doc": row}));
 
-		if (doc && doc.hasOwnProperty("__onload") && doc.__onload._title_values && doc.__onload._title_values[df.fieldname]) {
-			values = doc.__onload._title_values[df.fieldname];
+		if (doc && doc.hasOwnProperty("__onload") && doc.__onload._title_values) {
+			values = values.map(value => (value["link_title"] = doc.__onload._title_values[value.name]));
 		}
 
 		let formatted_values = values.map(value => {
-			return frappe.format(value.link_display || value.name, link_field, options, value.doc);
+			return frappe.format(value.link_title || value.name, link_field, options, value.doc);
 		});
 
 		return formatted_values.join(', ');

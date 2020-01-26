@@ -51,8 +51,9 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 		this.setup_buttons();
 		this.setup_awesomeplete();
 
-		if (this.frm && this.frm.doc.hasOwnProperty("__onload") && this.frm.doc.__onload._title_values && this.frm.doc.__onload._title_values[this.df.fieldname]) {
-			this.title_values = this.frm.doc.__onload._title_values;
+		// if (this.frm && this.frm.doc.hasOwnProperty("__onload") && this.frm.doc.__onload._link_titles && this.frm.doc.__onload._link_titles[this.df.fieldname]) {
+		if (this.frm && this.frm.doc.hasOwnProperty("__onload") && this.frm.doc.__onload._link_titles) {
+			this._link_titles = this.frm.doc.__onload._link_titles;
 		}
 	},
 	get_options: function() {
@@ -74,8 +75,8 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 		if (value) {
 			if (this.label) {
 				this.set_data_value(this.label, value);
-			} else if (this.title_values && this.title_values[this.df.fieldname]) {
-				this.set_data_value(this.title_values[this.df.fieldname], value);
+			} else if (this._link_titles && this._link_titles[value]) {
+				this.set_data_value(this._link_titles[value], value);
 			} else {
 				this.set_data_value(value, value);
 			}
@@ -282,7 +283,6 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 		this.$input.on("awesomplete-open", function() {
 			me.$wrapper.css({"z-index": 100});
 			me.$wrapper.find('ul').css({"z-index": 100});
-			me.reset_value();
 			me.autocomplete_open = true;
 		});
 

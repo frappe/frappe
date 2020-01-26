@@ -155,9 +155,6 @@ class Meta(Document):
 
 		return self._table_fields
 
-	def get_table_multiselect_fields(self):
-		return self.get("fields", {"fieldtype": "Table MultiSelect", "options":["!=", "[Select]"]})
-
 	def get_global_search_fields(self):
 		'''Returns list of fields with `in_global_search` set and `name` if set'''
 		fields = self.get("fields", {"in_global_search": 1, "fieldtype": ["not in", no_value_fields]})

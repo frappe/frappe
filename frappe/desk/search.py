@@ -197,39 +197,6 @@ def get_title_field(meta, formatted_fields):
 
 	return formatted_fields
 
-@frappe.whitelist()
-def get_title_for_link_display(doctype, docname):
-	if not doctype or not docname:
-		return
-
-	meta = frappe.get_meta(doctype)
-
-	# Assume that there is no title_field, so name will be equal to docname
-	name = docname
-	if meta.get("title_field") and meta.get("show_title_field_in_link"):
-		# If title_field, so name will be equal to title_field
-		name = frappe.db.get_value(doctype, docname, meta.title_field)
-
-	return name
-
-@frappe.whitelist()
-def get_title_for_table_multiselect(doctype, values):
-	if not values:
-		return []
-
-	meta = frappe.get_meta(doctype)
-	res = []
-	values = json.loads(values)
-	if meta.get("title_field") and meta.get("show_title_field_in_link"):
-		for value in values:
-			res.append({
-				"name": value.get("name"),
-				"link_display": frappe.db.get_value(doctype, value.get("name"), meta.title_field),
-				"doc": value.get("doc") if value.get("doc") else None
-			})
-
-	return res or values
-
 def build_for_autosuggest(res, query=False):
 	results = []
 	for r in res:
