@@ -254,7 +254,7 @@ apps/frappe/frappe/core/doctype/report/report.js,Disable Report,Inaktivera rappo
 DocType: Translation,Contributed Translation Doctype Name,Bidragsöversättning Doctype Name
 DocType: PayPal Settings,Redirect To,Omdirigering till
 DocType: Data Migration Mapping,Pull,Dra
-DocType: Report,JavaScript Format: frappe.query_reports['REPORTNAME'] = {},JavaScript Format: frappe.query_reports [&#39;rapportnamn&#39;] = {}
+DocType: Report,JavaScript Format: frappe.query_reports['REPORTNAME'] = {},JavaScript Format: frappe.query_reports ['rapportnamn'] = {}
 DocType: Bulk Update,Bulk Update,Bulk Update
 DocType: Workflow State,chevron-up,Chevron-up
 DocType: DocType,Allow Guest to View,Tillåta gäster att Visa
@@ -563,7 +563,7 @@ apps/frappe/frappe/public/js/frappe/file_uploader/FilePreview.vue,Upload Failed,
 apps/frappe/frappe/social/doctype/energy_point_log/energy_point_log.py,Stats based on last week's performance (from {0} to {1}),Statistik baserad på förra veckans resultat (från {0} till {1})
 DocType: LDAP Settings,LDAP Phone Field,LDAP-telefonfält
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js,"document type..., e.g. customer","dokumentstyp ..., t.ex. kund"
-apps/frappe/frappe/email/doctype/notification/notification.py,The Condition '{0}' is invalid,Tillståndet &#39;{0}&#39; är ogiltig
+apps/frappe/frappe/email/doctype/notification/notification.py,The Condition '{0}' is invalid,Tillståndet '{0}' är ogiltig
 DocType: Workflow State,barcode,streckkod
 apps/frappe/frappe/model/db_query.py,Use of sub-query or function is restricted,Användning av underfråga eller funktion är begränsad
 apps/frappe/frappe/config/customization.py,Add your own translations,Lägg till dina egna översättningar
@@ -777,7 +777,7 @@ DocType: Custom Field,Select the label after which you want to insert new field.
 ,Document Share Report,Dokument Dela Rapport
 DocType: Social Login Key,Base URL,Basadress
 DocType: User,Last Login,Senaste inloggning
-apps/frappe/frappe/custom/doctype/customize_form/customize_form.py,You can't set 'Translatable' for field {0},Du kan inte ställa in &#39;Translatable&#39; för fält {0}
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.py,You can't set 'Translatable' for field {0},Du kan inte ställa in 'Translatable' för fält {0}
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder_column_selector.html,Column,Spalt
 DocType: Chat Profile,Chat Profile,Chat profil
 DocType: Custom Field,Adds a custom field to a DocType,Lägger till ett anpassat fält till en DocType
@@ -786,7 +786,7 @@ DocType: File,Is Home Folder,Är Home Folder
 apps/frappe/frappe/website/doctype/website_theme/website_theme.js,Navbar Style,Navbar Style
 apps/frappe/frappe/utils/__init__.py,{0} is not a valid Email Address,{0} är inte en giltig e-postadress
 apps/frappe/frappe/public/js/frappe/list/bulk_operations.js,Select atleast 1 record for printing,Välj minst ett rekord för utskrift
-apps/frappe/frappe/core/doctype/has_role/has_role.py,User '{0}' already has the role '{1}',Användar {0} &quot;har redan rollen &#39;{1}&#39;
+apps/frappe/frappe/core/doctype/has_role/has_role.py,User '{0}' already has the role '{1}',Användar {0} &quot;har redan rollen '{1}'
 DocType: System Settings,Two Factor Authentication method,Tvåfaktorautentiseringsmetod
 apps/frappe/frappe/website/doctype/website_slideshow/website_slideshow.js,First set the name and save the record.,Ange först namnet och spara posten.
 apps/frappe/frappe/public/js/frappe/data_import/data_exporter.js,5 Records,5 poster
@@ -1456,7 +1456,7 @@ apps/frappe/frappe/contacts/report/addresses_and_contacts/addresses_and_contacts
 apps/frappe/frappe/core/doctype/role_permission_for_page_and_report/role_permission_for_page_and_report.js,Mandatory field: set role for,Obligatoriskt fält: set roll
 apps/frappe/frappe/public/js/frappe/utils/energy_point_utils.js,{0} criticized {1},{0} kritiserade {1}
 DocType: Data Migration Mapping,Mapping Name,Mapping Name
-apps/frappe/frappe/core/doctype/doctype/doctype.py,{0}: Field '{1}' cannot be set as Unique as it has non-unique values,{0}: Fältet &#39;{1}&#39; kan inte ställas in som unikt eftersom det har icke-unika värden
+apps/frappe/frappe/core/doctype/doctype/doctype.py,{0}: Field '{1}' cannot be set as Unique as it has non-unique values,{0}: Fältet '{1}' kan inte ställas in som unikt eftersom det har icke-unika värden
 apps/frappe/frappe/public/js/frappe/list/list_view.js,Navigate list down,Navigera listan ner
 DocType: Currency,A symbol for this currency. For e.g. $,En symbol för denna valuta. För t.ex. $
 apps/frappe/frappe/public/js/frappe/views/translation_manager.js,Successfully updated translations,Framgångsrikt uppdaterade översättningar
@@ -2168,7 +2168,7 @@ DocType: Data Migration Connector,Database Name,Databas namn
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js,Refresh Form,Uppdatera Formulär
 DocType: DocField,Select,Välj
 apps/frappe/frappe/public/js/frappe/ui/toolbar/energy_points_notifications.js,View Full Log,Visa fullständig logg
-DocType: Assignment Rule,"Simple Python Expression, Example: status == 'Open' and type == 'Bug'","Simple Python Expression, Exempel: status == &#39;Open&#39; och typ == &#39;Bug&#39;"
+DocType: Assignment Rule,"Simple Python Expression, Example: status == 'Open' and type == 'Bug'","Simple Python Expression, Exempel: status == 'Open' och typ == 'Bug'"
 apps/frappe/frappe/utils/csvutils.py,File not attached,Fil inte inlagd
 apps/frappe/frappe/public/js/frappe/dom.js,Connection lost. Some features might not work.,Anslutning förlorad. Vissa funktioner kanske inte fungerar.
 apps/frappe/frappe/utils/password_strength.py,"Repeats like ""aaa"" are easy to guess",Upprepningar som &quot;AAA&quot; är lätt att gissa
@@ -2300,7 +2300,7 @@ apps/frappe/frappe/email/doctype/email_unsubscribe/email_unsubscribe.py,{0} alre
 DocType: Data Import,Show only errors,Visa bara fel
 DocType: Website Settings,Banner HTML,Banner HTML
 DocType: Workflow,Send Email Alert,Skicka e-postmeddelande
-apps/frappe/frappe/integrations/doctype/razorpay_settings/razorpay_settings.py,Please select another payment method. Razorpay does not support transactions in currency '{0}',Välj en annan betalningsmetod. Razorpay stöder inte transaktioner i valuta &#39;{0}&#39;
+apps/frappe/frappe/integrations/doctype/razorpay_settings/razorpay_settings.py,Please select another payment method. Razorpay does not support transactions in currency '{0}',Välj en annan betalningsmetod. Razorpay stöder inte transaktioner i valuta '{0}'
 DocType: Data Import,In Progress,Pågående
 apps/frappe/frappe/integrations/doctype/google_drive/google_drive.py,Queued for backup. It may take a few minutes to an hour.,Kö för säkerhetskopiering. Det kan ta några minuter till en timme.
 DocType: Error Snapshot,Pyver,Pyver
@@ -2794,7 +2794,7 @@ apps/frappe/frappe/templates/includes/comments/comments.py,Comment Should be atl
 apps/frappe/frappe/core/doctype/deleted_document/deleted_document.py,Document Restored,Dokumentåterställt
 DocType: Data Export,Data Export,Data Export
 apps/frappe/frappe/public/js/frappe/form/print.js,Select Language...,Välj språk...
-apps/frappe/frappe/custom/doctype/customize_form/customize_form.py,You can't set 'Options' for field {0},Du kan inte ställa in &#39;Alternativ&#39; för fält {0}
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.py,You can't set 'Options' for field {0},Du kan inte ställa in 'Alternativ' för fält {0}
 DocType: Help Article,Author,Författare
 apps/frappe/frappe/email/doctype/email_queue/email_queue_list.js,Resume Sending,Återuppta uppta~~POS=HEADCOMP Sända
 apps/frappe/frappe/core/doctype/communication/communication.js,Reopen,Öppna igen
@@ -2816,7 +2816,7 @@ DocType: Data Import,Amended From,Ändrat Från
 apps/frappe/frappe/public/js/frappe/model/meta.js,Warning: Unable to find {0} in any table related to {1},Varning: Det går inte att hitta {0} i någon tabell relaterad till {1}
 DocType: S3 Backup Settings,eu-north-1,eu-nord-1
 apps/frappe/frappe/model/document.py,This document is currently queued for execution. Please try again,Detta dokument är för närvarande i kö för exekvering. Var god försök igen
-apps/frappe/frappe/core/doctype/file/file.py,File '{0}' not found,Arkiv &#39;{0}&#39; hittades inte
+apps/frappe/frappe/core/doctype/file/file.py,File '{0}' not found,Arkiv '{0}' hittades inte
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js,Remove Section,Avlägsna Avsnitt
 DocType: User,Change Password,Byt lösenord
 apps/frappe/frappe/public/js/frappe/views/reports/report_view.js,X Axis Field,Fält för X-axel
@@ -3006,7 +3006,7 @@ apps/frappe/frappe/model/base_document.py,Value missing for,Värde saknas för
 apps/frappe/frappe/public/js/frappe/views/treeview.js,Add Child,Lägg till underval
 apps/frappe/frappe/core/doctype/data_import_beta/data_import_beta.js,Import Progress,Importera framsteg
 DocType: Energy Point Rule,"If the condition is satisfied user will be rewarded with the points. eg. doc.status == 'Closed'
-",Om villkoret är uppfyllt kommer användaren att belönas med poängen. t.ex. doc.status == &#39;Stängt&#39;
+",Om villkoret är uppfyllt kommer användaren att belönas med poängen. t.ex. doc.status == 'Stängt'
 apps/frappe/frappe/model/delete_doc.py,{0} {1}: Submitted Record cannot be deleted.,{0} {1}: Inskickad information kan inte tas bort.
 DocType: GSuite Templates,Template Name,Mallnamn
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js,new type of document,nytt typ av dokument
@@ -3138,7 +3138,7 @@ DocType: Dashboard Chart,Chart Type,Diagramtyp
 DocType: DocType,Auto Name,Auto Namn
 apps/frappe/frappe/utils/password_strength.py,Avoid sequences like abc or 6543 as they are easy to guess,"Undvik sekvenser som abc eller 6543, eftersom de är lätta att gissa"
 apps/frappe/frappe/public/js/frappe/request.js,Please try again,Var god försök igen
-apps/frappe/frappe/core/doctype/file/file.py,URL must start with 'http://' or 'https://',URL måste börja med &#39;http: //&#39; eller &#39;https: //&#39;
+apps/frappe/frappe/core/doctype/file/file.py,URL must start with 'http://' or 'https://',URL måste börja med 'http: //' eller 'https: //'
 apps/frappe/frappe/custom/doctype/custom_field/custom_field.js,Option 3,Alternativ 3
 DocType: Communication,uid,uid
 DocType: Workflow State,Edit,Redigera
@@ -3879,7 +3879,7 @@ apps/frappe/frappe/public/js/frappe/form/templates/form_sidebar.html,Currently V
 DocType: DocField,Default,Standard
 DocType: Translation,Verified,Verifierad
 apps/frappe/frappe/public/js/frappe/form/link_selector.js,{0} added,{0} tillagd
-apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js,Search for '{0}',Sök efter &#39;{0}&#39;
+apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js,Search for '{0}',Sök efter '{0}'
 apps/frappe/frappe/public/js/frappe/views/reports/report_view.js,Please save the report first,Spara rapporten först
 apps/frappe/frappe/email/doctype/email_group/email_group.py,{0} subscribers added,{0} abonnenter tillagda
 apps/frappe/frappe/public/js/frappe/ui/filters/filter.js,Not In,Inte I
@@ -3916,7 +3916,7 @@ apps/frappe/frappe/public/js/frappe/list/list_sidebar_group_by.js,Me,Mig
 apps/frappe/frappe/workflow/doctype/workflow/workflow.py,{0} not a valid State,{0} inte en giltig stat
 apps/frappe/frappe/core/doctype/user_permission/user_permission_list.js,Apply to all Documents Types,Tillämpa alla dokumenttyper
 apps/frappe/frappe/social/doctype/energy_point_log/energy_point_log.py,Energy point update,Energipunktuppdatering
-apps/frappe/frappe/integrations/doctype/paypal_settings/paypal_settings.py,Please select another payment method. PayPal does not support transactions in currency '{0}',Välj en annan betalningsmetod. PayPal stöder inte transaktioner i valuta &#39;{0}&#39;
+apps/frappe/frappe/integrations/doctype/paypal_settings/paypal_settings.py,Please select another payment method. PayPal does not support transactions in currency '{0}',Välj en annan betalningsmetod. PayPal stöder inte transaktioner i valuta '{0}'
 DocType: Chat Message,Room Type,Rumstyp
 DocType: Data Import Beta,Import Log Preview,Förhandsvisning av importlogg
 apps/frappe/frappe/core/doctype/doctype/doctype.py,Search field {0} is not valid,Sökfält {0} är inte giltigt

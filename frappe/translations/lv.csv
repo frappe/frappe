@@ -564,7 +564,7 @@ apps/frappe/frappe/public/js/frappe/file_uploader/FilePreview.vue,Upload Failed,
 apps/frappe/frappe/social/doctype/energy_point_log/energy_point_log.py,Stats based on last week's performance (from {0} to {1}),Statistika balstās uz pagājušās nedēļas sniegumu (no {0} līdz {1})
 DocType: LDAP Settings,LDAP Phone Field,LDAP tālruņa lauks
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js,"document type..., e.g. customer","dokumenta veids ..., piemēram, klientu"
-apps/frappe/frappe/email/doctype/notification/notification.py,The Condition '{0}' is invalid,Nosacījums &#39;{0}&#39; ir nederīgs
+apps/frappe/frappe/email/doctype/notification/notification.py,The Condition '{0}' is invalid,Nosacījums '{0}' ir nederīgs
 DocType: Workflow State,barcode,svītrkoda
 apps/frappe/frappe/model/db_query.py,Use of sub-query or function is restricted,Apakšprasījuma vai funkcijas izmantošana ir ierobežota
 apps/frappe/frappe/config/customization.py,Add your own translations,Pievienojiet savu tulkojumu
@@ -787,7 +787,7 @@ DocType: File,Is Home Folder,Vai Mājas mape
 apps/frappe/frappe/website/doctype/website_theme/website_theme.js,Navbar Style,Navbar stils
 apps/frappe/frappe/utils/__init__.py,{0} is not a valid Email Address,{0} nav derīgs e-pasta adrese
 apps/frappe/frappe/public/js/frappe/list/bulk_operations.js,Select atleast 1 record for printing,Izvēlieties Vismaz 1 rekordu drukāšanai
-apps/frappe/frappe/core/doctype/has_role/has_role.py,User '{0}' already has the role '{1}',Lietotājs &#39;{0}&#39; jau ir nozīme &#39;{1}&#39;
+apps/frappe/frappe/core/doctype/has_role/has_role.py,User '{0}' already has the role '{1}',Lietotājs '{0}' jau ir nozīme '{1}'
 DocType: System Settings,Two Factor Authentication method,Divu faktoru autentifikācijas metode
 apps/frappe/frappe/website/doctype/website_slideshow/website_slideshow.js,First set the name and save the record.,Vispirms iestatiet nosaukumu un saglabājiet ierakstu.
 apps/frappe/frappe/public/js/frappe/data_import/data_exporter.js,5 Records,5 ieraksti
@@ -1040,7 +1040,7 @@ DocType: Property Setter,Property Setter,Īpašuma seters
 DocType: Web Form,Allow Print,atļaut drukāt
 DocType: Communication,Clicked,Uzklikšķināt
 apps/frappe/frappe/public/js/frappe/form/templates/form_sidebar.html,Unfollow,Neizsekot
-apps/frappe/frappe/public/js/frappe/form/form.js,No permission to '{0}' {1},Nav atļaujas &#39;{0}&#39; {1}
+apps/frappe/frappe/public/js/frappe/form/form.js,No permission to '{0}' {1},Nav atļaujas '{0}' {1}
 apps/frappe/frappe/email/doctype/auto_email_report/auto_email_report.js,Scheduled to send,Plānotais sūtīt
 DocType: DocType,Track Seen,Track Seen
 DocType: Dropbox Settings,File Backup,Failu dublējums
@@ -1456,7 +1456,7 @@ apps/frappe/frappe/contacts/report/addresses_and_contacts/addresses_and_contacts
 apps/frappe/frappe/core/doctype/role_permission_for_page_and_report/role_permission_for_page_and_report.js,Mandatory field: set role for,Obligāts lauks: noteikt loma
 apps/frappe/frappe/public/js/frappe/utils/energy_point_utils.js,{0} criticized {1},{0} kritizēja {1}
 DocType: Data Migration Mapping,Mapping Name,Kartēšanas nosaukums
-apps/frappe/frappe/core/doctype/doctype/doctype.py,{0}: Field '{1}' cannot be set as Unique as it has non-unique values,"{0}: Lauku &#39;{1}&#39; nevar iestatīt kā unikālu, jo tam ir unikālas vērtības"
+apps/frappe/frappe/core/doctype/doctype/doctype.py,{0}: Field '{1}' cannot be set as Unique as it has non-unique values,"{0}: Lauku '{1}' nevar iestatīt kā unikālu, jo tam ir unikālas vērtības"
 apps/frappe/frappe/public/js/frappe/list/list_view.js,Navigate list down,Pārvietojieties sarakstā uz leju
 DocType: Currency,A symbol for this currency. For e.g. $,"Simbols šajā valūtā. Lai, piemēram, $$"
 apps/frappe/frappe/public/js/frappe/views/translation_manager.js,Successfully updated translations,Veiksmīgi atjaunināti tulkojumi
@@ -2129,7 +2129,7 @@ DocType: System Settings,Session Expiry in Hours e.g. 06:00,"Sesija Derīguma st
 DocType: Customize Form Field,"This field will appear only if the fieldname defined here has value OR the rules are true (examples): 
 myfield
 eval:doc.myfield=='My Value'
-eval:doc.age>18","Šis lauks parādīsies tikai tad, ja šeit noteikts fieldname ir vērtība vai noteikumi ir taisnība (piemēri): myfield eval: doc.myfield == &#39;Mans Value &quot;eval: doc.age> 18"
+eval:doc.age>18","Šis lauks parādīsies tikai tad, ja šeit noteikts fieldname ir vērtība vai noteikumi ir taisnība (piemēri): myfield eval: doc.myfield == 'Mans Value &quot;eval: doc.age> 18"
 DocType: Social Login Key,Office 365,Office 365
 apps/frappe/frappe/public/js/frappe/ui/toolbar/energy_points_notifications.js,Today,šodien
 apps/frappe/frappe/public/js/frappe/ui/toolbar/energy_points_notifications.js,Today,šodien
@@ -2169,7 +2169,7 @@ DocType: Data Migration Connector,Database Name,Datubāzes nosaukums
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js,Refresh Form,Atsvaidzināt Form
 DocType: DocField,Select,Atlasīt
 apps/frappe/frappe/public/js/frappe/ui/toolbar/energy_points_notifications.js,View Full Log,Skatīt pilnu žurnālu
-DocType: Assignment Rule,"Simple Python Expression, Example: status == 'Open' and type == 'Bug'",Vienkāršs Python izteiksmes piemērs: status == &#39;Open&#39; un ierakstiet == &#39;Bug&#39;
+DocType: Assignment Rule,"Simple Python Expression, Example: status == 'Open' and type == 'Bug'",Vienkāršs Python izteiksmes piemērs: status == 'Open' un ierakstiet == 'Bug'
 apps/frappe/frappe/utils/csvutils.py,File not attached,Fails nav pievienots
 apps/frappe/frappe/public/js/frappe/dom.js,Connection lost. Some features might not work.,Savienojums zaudēts. Dažas funkcijas var nedarboties.
 apps/frappe/frappe/utils/password_strength.py,"Repeats like ""aaa"" are easy to guess","Atkārtojas, piemēram, &quot;AAA&quot; ir viegli uzminēt"
@@ -2301,7 +2301,7 @@ apps/frappe/frappe/email/doctype/email_unsubscribe/email_unsubscribe.py,{0} alre
 DocType: Data Import,Show only errors,Rādīt tikai kļūdas
 DocType: Website Settings,Banner HTML,Banner HTML
 DocType: Workflow,Send Email Alert,Nosūtīt e-pasta brīdinājumu
-apps/frappe/frappe/integrations/doctype/razorpay_settings/razorpay_settings.py,Please select another payment method. Razorpay does not support transactions in currency '{0}',"Lūdzu, izvēlieties citu maksājuma veidu. Razorpay neatbalsta darījumus valūtā &#39;{0}&#39;"
+apps/frappe/frappe/integrations/doctype/razorpay_settings/razorpay_settings.py,Please select another payment method. Razorpay does not support transactions in currency '{0}',"Lūdzu, izvēlieties citu maksājuma veidu. Razorpay neatbalsta darījumus valūtā '{0}'"
 DocType: Data Import,In Progress,Gaitā
 apps/frappe/frappe/integrations/doctype/google_drive/google_drive.py,Queued for backup. It may take a few minutes to an hour.,Rindā backup. Tas var ilgt dažas minūtes līdz stundai.
 DocType: Error Snapshot,Pyver,Pyver
@@ -2728,7 +2728,7 @@ apps/frappe/frappe/public/js/frappe/form/save.js,Amending,Ar ko groza
 apps/frappe/frappe/config/integrations.py,PayPal payment gateway settings,PayPal maksājumu vārteja iestatījumi
 apps/frappe/frappe/templates/emails/energy_points_summary.html,Top Performer,Labākais izpildītājs
 apps/frappe/frappe/custom/doctype/custom_field/custom_field.py,Custom Fields cannot be added to core DocTypes.,Pielāgotos laukus nevar pievienot galvenajiem DocTypes.
-apps/frappe/frappe/model/base_document.py,"{0}: '{1}' ({3}) will get truncated, as max characters allowed is {2}","{0}: &#39;{1}&#39; ({3}) tiks saīsināts, jo max atļautās rakstzīmes ir {2}"
+apps/frappe/frappe/model/base_document.py,"{0}: '{1}' ({3}) will get truncated, as max characters allowed is {2}","{0}: '{1}' ({3}) tiks saīsināts, jo max atļautās rakstzīmes ir {2}"
 DocType: OAuth Client,Response Type,Response Type
 DocType: Contact Us Settings,Send enquiries to this email address,Nosūtīt pieprasījumus uz šo e-pasta adresi
 DocType: Letter Head,Letter Head Name,Vēstule Head Name
@@ -2785,7 +2785,7 @@ apps/frappe/frappe/email/doctype/email_account/email_account.py,Append To can be
 DocType: Customize Form,Image View,Image View
 apps/frappe/frappe/integrations/doctype/paypal_settings/paypal_settings.py,"Looks like something went wrong during the transaction. Since we haven't confirmed the payment, Paypal will automatically refund you this amount. If it doesn't, please send us an email and mention the Correlation ID: {0}.","Izskatās kaut kas nogāja greizi darījuma laikā. Tā kā mēs neesam apstiprinājuši maksājumu, Paypal automātiski atdosim šo summu. Ja tas tā nav, lūdzu, sūtiet mums e-pastu un pieminēt korelācija ID: {0}."
 apps/frappe/frappe/public/js/frappe/form/controls/password.js,"Include symbols, numbers and capital letters in the password","Iekļaut simbolus, ciparus un ar lielajiem burtiem paroli"
-apps/frappe/frappe/custom/doctype/custom_field/custom_field.py,"Insert After field '{0}' mentioned in Custom Field '{1}', with label '{2}', does not exist","Ievietojiet Pēc lauka &#39;{0}&#39; minēts Custom Field &#39;{1}&#39;, ar marķējumu &#39;{2}&#39;, neeksistē"
+apps/frappe/frappe/custom/doctype/custom_field/custom_field.py,"Insert After field '{0}' mentioned in Custom Field '{1}', with label '{2}', does not exist","Ievietojiet Pēc lauka '{0}' minēts Custom Field '{1}', ar marķējumu '{2}', neeksistē"
 DocType: List Filter,List Filter,Saraksta filtrs
 DocType: Workflow State,signal,signāls
 apps/frappe/frappe/public/js/frappe/views/inbox/inbox_view.js,Has Attachments,Ir pielikumi
@@ -2795,7 +2795,7 @@ apps/frappe/frappe/templates/includes/comments/comments.py,Comment Should be atl
 apps/frappe/frappe/core/doctype/deleted_document/deleted_document.py,Document Restored,Dokumentu Atjaunota
 DocType: Data Export,Data Export,Datu eksportēšana
 apps/frappe/frappe/public/js/frappe/form/print.js,Select Language...,Izvēlēties valodu...
-apps/frappe/frappe/custom/doctype/customize_form/customize_form.py,You can't set 'Options' for field {0},Laukā {0} nevar iestatīt opcijas &#39;Opcijas&#39;
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.py,You can't set 'Options' for field {0},Laukā {0} nevar iestatīt opcijas 'Opcijas'
 DocType: Help Article,Author,autors
 apps/frappe/frappe/email/doctype/email_queue/email_queue_list.js,Resume Sending,atsākt sūtīšana
 apps/frappe/frappe/core/doctype/communication/communication.js,Reopen,Atjaunot
@@ -2809,8 +2809,8 @@ DocType: Web Page,Slideshow,Slaidrādi
 apps/frappe/frappe/contacts/doctype/address_template/address_template.py,Default Address Template cannot be deleted,Default Adrese Template nevar izdzēst
 DocType: Contact,Maintenance Manager,Uzturēšana vadītājs
 DocType: Workflow State,Search,Meklēšana
-apps/frappe/frappe/integrations/doctype/stripe_settings/stripe_settings.py,Please select another payment method. Stripe does not support transactions in currency '{0}',"Lūdzu, izvēlieties citu maksājuma veidu. Stripe neatbalsta darījumus valūtā &#39;{0}&#39;"
-apps/frappe/frappe/integrations/doctype/stripe_settings/stripe_settings.py,Please select another payment method. Stripe does not support transactions in currency '{0}',"Lūdzu, izvēlieties citu maksājuma veidu. Stripe neatbalsta darījumus valūtā &#39;{0}&#39;"
+apps/frappe/frappe/integrations/doctype/stripe_settings/stripe_settings.py,Please select another payment method. Stripe does not support transactions in currency '{0}',"Lūdzu, izvēlieties citu maksājuma veidu. Stripe neatbalsta darījumus valūtā '{0}'"
+apps/frappe/frappe/integrations/doctype/stripe_settings/stripe_settings.py,Please select another payment method. Stripe does not support transactions in currency '{0}',"Lūdzu, izvēlieties citu maksājuma veidu. Stripe neatbalsta darījumus valūtā '{0}'"
 apps/frappe/frappe/core/doctype/communication/communication.js,Move To Trash,Pārvietot uz miskasti
 DocType: Web Form,Web Form Fields,Web Form Fields
 DocType: Data Import,Amended From,Grozīts No
@@ -3008,7 +3008,7 @@ apps/frappe/frappe/model/base_document.py,Value missing for,Vērtība pazudis
 apps/frappe/frappe/public/js/frappe/views/treeview.js,Add Child,Pievienot Child
 apps/frappe/frappe/core/doctype/data_import_beta/data_import_beta.js,Import Progress,Importēšanas progress
 DocType: Energy Point Rule,"If the condition is satisfied user will be rewarded with the points. eg. doc.status == 'Closed'
-","Ja nosacījums ir izpildīts, lietotājs tiks apbalvots ar saņemtajiem punktiem. piem. doc.status == &#39;Slēgts&#39;"
+","Ja nosacījums ir izpildīts, lietotājs tiks apbalvots ar saņemtajiem punktiem. piem. doc.status == 'Slēgts'"
 apps/frappe/frappe/model/delete_doc.py,{0} {1}: Submitted Record cannot be deleted.,{0}{1}: Iesniegtie Record nevar izdzēst.
 DocType: GSuite Templates,Template Name,Veidnes nosaukums
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js,new type of document,jauna tipa dokumenta
@@ -3429,7 +3429,7 @@ apps/frappe/frappe/config/customization.py,Custom Translations,Custom Translatio
 apps/frappe/frappe/public/js/frappe/socketio_client.js,Progress,progress
 apps/frappe/frappe/public/js/frappe/form/workflow.js, by Role ,pēc lomas
 apps/frappe/frappe/public/js/frappe/form/save.js,Missing Fields,Trūkst Fields
-apps/frappe/frappe/core/doctype/doctype/doctype.py,Invalid fieldname '{0}' in autoname,Nederīga fieldname &#39;{0}&#39; in autoname
+apps/frappe/frappe/core/doctype/doctype/doctype.py,Invalid fieldname '{0}' in autoname,Nederīga fieldname '{0}' in autoname
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js,Search in a document type,Meklēt pēc dokumenta veida
 DocType: Custom DocPerm,Role and Level,Loma un Level
 DocType: File,Thumbnail URL,Thumbnail URL
@@ -3881,7 +3881,7 @@ apps/frappe/frappe/public/js/frappe/form/templates/form_sidebar.html,Currently V
 DocType: DocField,Default,Pēc noklusējuma
 DocType: Translation,Verified,Pārbaudīts
 apps/frappe/frappe/public/js/frappe/form/link_selector.js,{0} added,{0} pievienots
-apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js,Search for '{0}',Meklēt &#39;{0}&#39;
+apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js,Search for '{0}',Meklēt '{0}'
 apps/frappe/frappe/public/js/frappe/views/reports/report_view.js,Please save the report first,"Lūdzu, vispirms saglabājiet ziņojumu"
 apps/frappe/frappe/email/doctype/email_group/email_group.py,{0} subscribers added,{0} abonenti pievienotās
 apps/frappe/frappe/public/js/frappe/ui/filters/filter.js,Not In,Not In
@@ -3918,7 +3918,7 @@ apps/frappe/frappe/public/js/frappe/list/list_sidebar_group_by.js,Me,Es
 apps/frappe/frappe/workflow/doctype/workflow/workflow.py,{0} not a valid State,{0} nav derīgs valsts
 apps/frappe/frappe/core/doctype/user_permission/user_permission_list.js,Apply to all Documents Types,Piemērot visiem dokumentu veidiem
 apps/frappe/frappe/social/doctype/energy_point_log/energy_point_log.py,Energy point update,Enerģijas punkta atjaunināšana
-apps/frappe/frappe/integrations/doctype/paypal_settings/paypal_settings.py,Please select another payment method. PayPal does not support transactions in currency '{0}',"Lūdzu, izvēlieties citu maksājuma veidu. PayPal neatbalsta darījumus valūtā &#39;{0}&#39;"
+apps/frappe/frappe/integrations/doctype/paypal_settings/paypal_settings.py,Please select another payment method. PayPal does not support transactions in currency '{0}',"Lūdzu, izvēlieties citu maksājuma veidu. PayPal neatbalsta darījumus valūtā '{0}'"
 DocType: Chat Message,Room Type,Istabas tips
 DocType: Data Import Beta,Import Log Preview,Importēt žurnāla priekšskatījumu
 apps/frappe/frappe/core/doctype/doctype/doctype.py,Search field {0} is not valid,Meklēt lauks {0} nav derīgs

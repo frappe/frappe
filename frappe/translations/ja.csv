@@ -748,7 +748,7 @@ DocType: Currency,Currency Name,通貨名
 apps/frappe/frappe/public/js/frappe/views/inbox/inbox_view.js,No Emails,メールがありません
 apps/frappe/frappe/workflow/doctype/workflow_action/workflow_action.py,Link Expired,リンクが切れた
 apps/frappe/frappe/database/schema.py,"Reverting length to {0} for '{1}' in '{2}';
-							Setting the length as {3} will cause truncation of data.",&#39;{2}&#39;の &#39;{1}&#39;の長さを{0}に戻します。長さを{3}に設定すると、データが切り捨てられます。
+							Setting the length as {3} will cause truncation of data.",'{2}'の '{1}'の長さを{0}に戻します。長さを{3}に設定すると、データが切り捨てられます。
 apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,Select File Format,ファイル形式を選択
 DocType: Report,Javascript,Javascript
 DocType: File,Content Hash,コンテンツハッシュ
@@ -1442,7 +1442,7 @@ apps/frappe/frappe/contacts/report/addresses_and_contacts/addresses_and_contacts
 apps/frappe/frappe/core/doctype/role_permission_for_page_and_report/role_permission_for_page_and_report.js,Mandatory field: set role for,必須フィールド：役割設定先
 apps/frappe/frappe/public/js/frappe/utils/energy_point_utils.js,{0} criticized {1},{0}が{1}を批判しました
 DocType: Data Migration Mapping,Mapping Name,マッピング名
-apps/frappe/frappe/core/doctype/doctype/doctype.py,{0}: Field '{1}' cannot be set as Unique as it has non-unique values,{0}：フィールド &#39;{1}&#39;は一意でない値を持つため、一意に設定できません
+apps/frappe/frappe/core/doctype/doctype/doctype.py,{0}: Field '{1}' cannot be set as Unique as it has non-unique values,{0}：フィールド '{1}'は一意でない値を持つため、一意に設定できません
 apps/frappe/frappe/public/js/frappe/list/list_view.js,Navigate list down,リストを下に移動
 DocType: Currency,A symbol for this currency. For e.g. $,この通貨のシンボル（例：＄）
 apps/frappe/frappe/public/js/frappe/views/translation_manager.js,Successfully updated translations,翻訳を正常に更新しました
@@ -2007,7 +2007,7 @@ DocType: SMS Settings,"Enter static url parameters here (Eg. sender=ERPNext, use
 apps/frappe/frappe/website/doctype/website_theme/website_theme.js,Google Font,Googleフォント
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,"If these instructions where not helpful, please add in your suggestions on GitHub Issues.",これらの説明が役に立たなかった場合は、GitHubのIssueに提案を追加してください。
 DocType: Workflow State,bookmark,ブックマーク
-apps/frappe/frappe/public/js/frappe/views/file/file_view.js,Folder name should not include '/' (slash),フォルダ名に &#39;/&#39;（スラッシュ）を含めないでください
+apps/frappe/frappe/public/js/frappe/views/file/file_view.js,Folder name should not include '/' (slash),フォルダ名に '/'（スラッシュ）を含めないでください
 DocType: Note,Note,ノート
 apps/frappe/frappe/core/doctype/error_snapshot/error_snapshot.html,Error Report,エラーレポート
 apps/frappe/frappe/config/settings.py,Export Data in CSV / Excel format.,CSV / Excel形式でデータをエクスポートします。
@@ -2111,7 +2111,7 @@ DocType: System Settings,Session Expiry in Hours e.g. 06:00,セッション有�
 DocType: Customize Form Field,"This field will appear only if the fieldname defined here has value OR the rules are true (examples): 
 myfield
 eval:doc.myfield=='My Value'
-eval:doc.age>18",ここで定義されたフィールド名が値を持っているかのルールが真（例）である場合にのみ、このフィールドが表示されます：myFieldでのeval：doc.myfield == &#39;マイ値&#39;のeval：doc.age> 18
+eval:doc.age>18",ここで定義されたフィールド名が値を持っているかのルールが真（例）である場合にのみ、このフィールドが表示されます：myFieldでのeval：doc.myfield == 'マイ値'のeval：doc.age> 18
 DocType: Social Login Key,Office 365,Office 365
 apps/frappe/frappe/public/js/frappe/ui/toolbar/energy_points_notifications.js,Today,今日
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,"Once you have set this, the users will only be able access documents (eg. Blog Post) where the link exists (eg. Blogger).",この設定によりユーザーはリンクのあるドキュメント（ブログ記事など）にアクセス可能となります（例：Blogger）。
@@ -2150,7 +2150,7 @@ DocType: Data Migration Connector,Database Name,データベース名
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js,Refresh Form,フォームを更新
 DocType: DocField,Select,選択
 apps/frappe/frappe/public/js/frappe/ui/toolbar/energy_points_notifications.js,View Full Log,完全なログを表示
-DocType: Assignment Rule,"Simple Python Expression, Example: status == 'Open' and type == 'Bug'",単純なPython表現、例：status == &#39;Open&#39;、type == &#39;Bug&#39;
+DocType: Assignment Rule,"Simple Python Expression, Example: status == 'Open' and type == 'Bug'",単純なPython表現、例：status == 'Open'、type == 'Bug'
 apps/frappe/frappe/utils/csvutils.py,File not attached,ファイルが添付されていません
 apps/frappe/frappe/public/js/frappe/dom.js,Connection lost. Some features might not work.,接続切断。一部の機能が動作しない可能性があります。
 apps/frappe/frappe/utils/password_strength.py,"Repeats like ""aaa"" are easy to guess",「AAA」のような繰り返しは容易に推測されます
@@ -2794,7 +2794,7 @@ DocType: Data Import,Amended From,修正元
 apps/frappe/frappe/public/js/frappe/model/meta.js,Warning: Unable to find {0} in any table related to {1},警告：{1}に関連するすべてのテーブルに{0}を見つけることができません。
 DocType: S3 Backup Settings,eu-north-1,EU北1
 apps/frappe/frappe/model/document.py,This document is currently queued for execution. Please try again,この文書では、現在の実行のためにキューイングされます。もう一度やり直してください
-apps/frappe/frappe/core/doctype/file/file.py,File '{0}' not found,ファイル &#39;{0}&#39;が見つかりません
+apps/frappe/frappe/core/doctype/file/file.py,File '{0}' not found,ファイル '{0}'が見つかりません
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js,Remove Section,セクションを削除
 DocType: User,Change Password,パスワードを変更する
 apps/frappe/frappe/public/js/frappe/views/reports/report_view.js,X Axis Field,X軸フィールド
@@ -2981,7 +2981,7 @@ apps/frappe/frappe/model/base_document.py,Value missing for,値の記入漏れ
 apps/frappe/frappe/public/js/frappe/views/treeview.js,Add Child,子を追加
 apps/frappe/frappe/core/doctype/data_import_beta/data_import_beta.js,Import Progress,インポートの進行状況
 DocType: Energy Point Rule,"If the condition is satisfied user will be rewarded with the points. eg. doc.status == 'Closed'
-",条件が満たされればユーザーはポイントで報われます。例えば。 doc.status == &#39;終了&#39;
+",条件が満たされればユーザーはポイントで報われます。例えば。 doc.status == '終了'
 apps/frappe/frappe/model/delete_doc.py,{0} {1}: Submitted Record cannot be deleted.,{0} {1}：提出済レコードを削除することはできません。
 DocType: GSuite Templates,Template Name,テンプレート名
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js,new type of document,文書の新しいタイプ
@@ -3400,7 +3400,7 @@ apps/frappe/frappe/config/customization.py,Custom Translations,カスタム翻�
 apps/frappe/frappe/public/js/frappe/socketio_client.js,Progress,進捗
 apps/frappe/frappe/public/js/frappe/form/workflow.js, by Role ,役割
 apps/frappe/frappe/public/js/frappe/form/save.js,Missing Fields,行方不明のフィールド
-apps/frappe/frappe/core/doctype/doctype/doctype.py,Invalid fieldname '{0}' in autoname,AUTONAMEに無効なフィールド名 &#39;{0}&#39;
+apps/frappe/frappe/core/doctype/doctype/doctype.py,Invalid fieldname '{0}' in autoname,AUTONAMEに無効なフィールド名 '{0}'
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js,Search in a document type,文書タイプで検索
 DocType: Custom DocPerm,Role and Level,役割とレベル
 DocType: File,Thumbnail URL,サムネイルのURL
@@ -3500,7 +3500,7 @@ DocType: Dashboard Chart,Filters JSON,フィルタJSON
 apps/frappe/frappe/email/doctype/newsletter/newsletter.py,Click here to verify,クリックして認証
 DocType: Email Account,Disable SMTP server authentication,SMTPサーバー認証を無効にする
 apps/frappe/frappe/public/js/frappe/utils/utils.js,Copied to clipboard.,クリップボードにコピーしました。
-apps/frappe/frappe/utils/password_strength.py,Predictable substitutions like '@' instead of 'a' don't help very much.,予測可能なように置換 &#39;@&#39;の代わりに &#39;&#39;あまり役立ちません。
+apps/frappe/frappe/utils/password_strength.py,Predictable substitutions like '@' instead of 'a' don't help very much.,予測可能なように置換 '@'の代わりに ''あまり役立ちません。
 apps/frappe/frappe/desk/doctype/todo/todo_list.js,Assigned By Me,自分に割当
 apps/frappe/frappe/utils/data.py,Zero,ゼロ
 DocType: Google Drive,Backup Folder ID,バックアップフォルダID
@@ -3712,7 +3712,7 @@ DocType: Web Page,Web Page,ウェブページ
 DocType: Workflow Document State,Next Action Email Template,次のアクション電子メールテンプレート
 DocType: Blog Category,Blogger,ブロガー
 DocType: DocType,"If enabled, changes to the document are tracked and shown in timeline",有効にすると、ドキュメントへの変更が追跡され、タイムラインに表示されます。
-apps/frappe/frappe/core/doctype/doctype/doctype.py,'In Global Search' not allowed for type {0} in row {1},行{1}の{0}型に対して &#39;グローバル検索中&#39;が許可されていません
+apps/frappe/frappe/core/doctype/doctype/doctype.py,'In Global Search' not allowed for type {0} in row {1},行{1}の{0}型に対して 'グローバル検索中'が許可されていません
 DocType: Energy Point Log,Appreciation,感謝
 apps/frappe/frappe/public/js/frappe/views/treeview.js,View List,リスト表示
 DocType: Workflow,Don't Override Status,ステータスを上書きしないでください

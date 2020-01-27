@@ -62,7 +62,7 @@ apps/frappe/frappe/public/js/frappe/ui/toolbar/toolbar.js,An error occurred whil
 apps/frappe/frappe/public/js/frappe/model/model.js,Parent,والدین
 DocType: System Settings,"If enabled, the password strength will be enforced based on the Minimum Password Score value. A value of 2 being medium strong and 4 being very strong.",اگر فعال باشد، قدرت رمز عبور خواهد شد بر اساس حداقل ارزش کلمه عبور اجرا می شود. مقدار 2 که متوسط قوی و 4 بسیار قوی.
 DocType: About Us Settings,"""Team Members"" or ""Management""",&quot;اعضای تیم&quot; یا &quot;مدیریت&quot;
-apps/frappe/frappe/core/doctype/doctype/doctype.py,Default for 'Check' type of field must be either '0' or '1',به طور پیش فرض برای چک &#39;نوع درست یا باید به صورت&#39; 0 &#39;یا&#39; 1 &#39;است
+apps/frappe/frappe/core/doctype/doctype/doctype.py,Default for 'Check' type of field must be either '0' or '1',به طور پیش فرض برای چک 'نوع درست یا باید به صورت' 0 'یا' 1 'است
 apps/frappe/frappe/public/js/frappe/utils/pretty_date.js,Yesterday,دیروز
 DocType: Contact,Designation,تعیین
 apps/frappe/frappe/email/doctype/email_account/email_account.py,Automatic Linking can be activated only for one Email Account.,پیوند خودکار می تواند فقط برای یک حساب ایمیل فعال شود.
@@ -248,7 +248,7 @@ apps/frappe/frappe/core/doctype/report/report.js,Disable Report,غیر فعال 
 DocType: Translation,Contributed Translation Doctype Name,نام مستند ترجمه
 DocType: PayPal Settings,Redirect To,تغییر مسیر به
 DocType: Data Migration Mapping,Pull,کشیدن
-DocType: Report,JavaScript Format: frappe.query_reports['REPORTNAME'] = {},جاوا اسکریپت فرمت: frappe.query_reports [&#39;REPORTNAME&#39;] = {}
+DocType: Report,JavaScript Format: frappe.query_reports['REPORTNAME'] = {},جاوا اسکریپت فرمت: frappe.query_reports ['REPORTNAME'] = {}
 DocType: Bulk Update,Bulk Update,به روز رسانی فله
 DocType: Workflow State,chevron-up,شورون تا
 DocType: DocType,Allow Guest to View,اجازه مهمان نمایش
@@ -541,7 +541,7 @@ apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Per
 apps/frappe/frappe/public/js/frappe/file_uploader/FilePreview.vue,Upload Failed,آپلود نشد
 DocType: LDAP Settings,LDAP Phone Field,زمینه تلفن LDAP
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js,"document type..., e.g. customer",نوع سند ...، به عنوان مثال مشتری
-apps/frappe/frappe/email/doctype/notification/notification.py,The Condition '{0}' is invalid,وضعیت &#39;{0}&#39; نامعتبر است
+apps/frappe/frappe/email/doctype/notification/notification.py,The Condition '{0}' is invalid,وضعیت '{0}' نامعتبر است
 DocType: Workflow State,barcode,بارکد
 apps/frappe/frappe/model/db_query.py,Use of sub-query or function is restricted,استفاده از زیر پرس و جو یا تابع محدود شده است
 apps/frappe/frappe/config/customization.py,Add your own translations,اضافه کردن ترجمه خود را
@@ -730,7 +730,7 @@ DocType: Currency,Currency Name,نام ارز
 apps/frappe/frappe/public/js/frappe/views/inbox/inbox_view.js,No Emails,هیچ ایمیل
 apps/frappe/frappe/workflow/doctype/workflow_action/workflow_action.py,Link Expired,پیوند به پایان رسیده است
 apps/frappe/frappe/database/schema.py,"Reverting length to {0} for '{1}' in '{2}';
-							Setting the length as {3} will cause truncation of data.",بازگرداندن طول به {0} برای {1} &#39;در&#39; {2} &#39;؛ تنظیم طول به عنوان {3} باعث کاهش اطلاعات می شود.
+							Setting the length as {3} will cause truncation of data.",بازگرداندن طول به {0} برای {1} 'در' {2} '؛ تنظیم طول به عنوان {3} باعث کاهش اطلاعات می شود.
 apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,Select File Format,انتخاب فرمت فایل
 DocType: Report,Javascript,جاوا اسکریپت
 DocType: File,Content Hash,هش محتوا
@@ -751,7 +751,7 @@ DocType: Custom Field,Select the label after which you want to insert new field.
 ,Document Share Report,سند اشتراک گزارش
 DocType: Social Login Key,Base URL,URL پایه
 DocType: User,Last Login,تاریخ و زمان آخرین ورود
-apps/frappe/frappe/custom/doctype/customize_form/customize_form.py,You can't set 'Translatable' for field {0},شما نمی توانید &#39;Translatable&#39; را برای فیلد {0} تنظیم کنید
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.py,You can't set 'Translatable' for field {0},شما نمی توانید 'Translatable' را برای فیلد {0} تنظیم کنید
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder_column_selector.html,Column,ستون
 DocType: Chat Profile,Chat Profile,نمای چت
 DocType: Custom Field,Adds a custom field to a DocType,می افزاید: درست سفارشی را به یک DOCTYPE
@@ -760,7 +760,7 @@ DocType: File,Is Home Folder,صفحه اصلی پوشه است
 apps/frappe/frappe/website/doctype/website_theme/website_theme.js,Navbar Style,سبک نوار
 apps/frappe/frappe/utils/__init__.py,{0} is not a valid Email Address,{0} یک آدرس ایمیل معتبر نیست
 apps/frappe/frappe/public/js/frappe/list/bulk_operations.js,Select atleast 1 record for printing,حداقل 1 رکورد برای چاپ انتخاب کنید
-apps/frappe/frappe/core/doctype/has_role/has_role.py,User '{0}' already has the role '{1}',کاربر &#39;{0}&#39; در حال حاضر نقش دارد: &#39;{1}&#39;
+apps/frappe/frappe/core/doctype/has_role/has_role.py,User '{0}' already has the role '{1}',کاربر '{0}' در حال حاضر نقش دارد: '{1}'
 DocType: System Settings,Two Factor Authentication method,دو روش اعتبار فاکتور
 apps/frappe/frappe/website/doctype/website_slideshow/website_slideshow.js,First set the name and save the record.,اول نام را تنظیم کرده و رکورد را ذخیره کنید.
 apps/frappe/frappe/public/js/frappe/data_import/data_exporter.js,5 Records,5 رکورد
@@ -1006,7 +1006,7 @@ DocType: Property Setter,Property Setter,املاک گذارنده
 DocType: Web Form,Allow Print,اجازه چاپ
 DocType: Communication,Clicked,کلیک
 apps/frappe/frappe/public/js/frappe/form/templates/form_sidebar.html,Unfollow,لغو ادامه
-apps/frappe/frappe/public/js/frappe/form/form.js,No permission to '{0}' {1},بدون اجازه &#39;{0}&#39; {1}
+apps/frappe/frappe/public/js/frappe/form/form.js,No permission to '{0}' {1},بدون اجازه '{0}' {1}
 apps/frappe/frappe/email/doctype/auto_email_report/auto_email_report.js,Scheduled to send,برنامه ریزی به ارسال
 DocType: DocType,Track Seen,آهنگ دیده
 DocType: Dropbox Settings,File Backup,پشتیبان فایل
@@ -1033,7 +1033,7 @@ apps/frappe/frappe/custom/doctype/customize_form/customize_form.js,All customiza
 DocType: Page,Page HTML,صفحه HTML
 apps/frappe/frappe/core/doctype/data_import_beta/data_import_beta.js,Export Errored Rows,صادرات ردیف خطا
 apps/frappe/frappe/chat/doctype/chat_room/chat_room.py,Group name cannot be empty.,نام گروه نمیتواند خالی باشد
-apps/frappe/frappe/public/js/frappe/views/treeview.js,Further nodes can be only created under 'Group' type nodes,گره علاوه بر این می تواند تنها تحت نوع گره &#39;گروه&#39; ایجاد
+apps/frappe/frappe/public/js/frappe/views/treeview.js,Further nodes can be only created under 'Group' type nodes,گره علاوه بر این می تواند تنها تحت نوع گره 'گروه' ایجاد
 DocType: SMS Parameter,Header,سربرگ
 apps/frappe/frappe/public/js/frappe/model/model.js,Unknown Column: {0},ستون ناشناخته: {0}
 DocType: Notification Recipient,Email By Role,ایمیل توسط نقش
@@ -1946,7 +1946,7 @@ DocType: SMS Settings,"Enter static url parameters here (Eg. sender=ERPNext, use
 apps/frappe/frappe/website/doctype/website_theme/website_theme.js,Google Font,قلم گوگل
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,"If these instructions where not helpful, please add in your suggestions on GitHub Issues.",اگر این دستورالعمل که در آن مفید نیست، لطفا پیشنهادات خود را اضافه کنید در مسائل گیتهاب.
 DocType: Workflow State,bookmark,چوب الف
-apps/frappe/frappe/public/js/frappe/views/file/file_view.js,Folder name should not include '/' (slash),نام پوشه باید شامل از &#39;/&#39; (اسلش)
+apps/frappe/frappe/public/js/frappe/views/file/file_view.js,Folder name should not include '/' (slash),نام پوشه باید شامل از '/' (اسلش)
 DocType: Note,Note,یادداشت
 apps/frappe/frappe/core/doctype/error_snapshot/error_snapshot.html,Error Report,گزارش خطا
 apps/frappe/frappe/config/settings.py,Export Data in CSV / Excel format.,صادرات داده ها در قالب CSV / اکسل.
@@ -2048,7 +2048,7 @@ DocType: System Settings,Session Expiry in Hours e.g. 06:00,جلسه انقضا�
 DocType: Customize Form Field,"This field will appear only if the fieldname defined here has value OR the rules are true (examples): 
 myfield
 eval:doc.myfield=='My Value'
-eval:doc.age>18",در این زمینه به نظر می رسد تنها در صورتی که FIELDNAME تعریف شده در اینجا دارای ارزش و یا قوانین واقعی (مثال): myfield محاسبه-: doc.myfield == &#39;ارزش من &quot;تابع eval: doc.age> 18
+eval:doc.age>18",در این زمینه به نظر می رسد تنها در صورتی که FIELDNAME تعریف شده در اینجا دارای ارزش و یا قوانین واقعی (مثال): myfield محاسبه-: doc.myfield == 'ارزش من &quot;تابع eval: doc.age> 18
 DocType: Social Login Key,Office 365,دفتر 365
 apps/frappe/frappe/public/js/frappe/ui/toolbar/energy_points_notifications.js,Today,امروز
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,"Once you have set this, the users will only be able access documents (eg. Blog Post) where the link exists (eg. Blogger).",هنگامی که شما تعیین کرده اند این، کاربران تنها اسناد دسترسی قادر باشد (. به عنوان مثال وبلاگ پست) که در آن پیوند وجود دارد (به عنوان مثال بلاگر).
@@ -2086,7 +2086,7 @@ DocType: Data Migration Connector,Database Name,نام پایگاه داده
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js,Refresh Form,فرم تازه کردن
 DocType: DocField,Select,انتخاب
 apps/frappe/frappe/public/js/frappe/ui/toolbar/energy_points_notifications.js,View Full Log,مشاهده کامل گزارش
-DocType: Assignment Rule,"Simple Python Expression, Example: status == 'Open' and type == 'Bug'",بیان ساده پایتون ، مثال: status == &#39;Open&#39; و نوع == &#39;اشکال&#39;
+DocType: Assignment Rule,"Simple Python Expression, Example: status == 'Open' and type == 'Bug'",بیان ساده پایتون ، مثال: status == 'Open' و نوع == 'اشکال'
 apps/frappe/frappe/utils/csvutils.py,File not attached,فایل های پیوست نمی
 apps/frappe/frappe/public/js/frappe/dom.js,Connection lost. Some features might not work.,ارتباط از دست رفته برخی از ویژگی های ممکن است کار نکند.
 apps/frappe/frappe/utils/password_strength.py,"Repeats like ""aaa"" are easy to guess",تکرار مانند &quot;AAA&quot; به راحتی حدس زده
@@ -2213,7 +2213,7 @@ apps/frappe/frappe/email/doctype/email_unsubscribe/email_unsubscribe.py,{0} alre
 DocType: Data Import,Show only errors,فقط خطاها را نمایش دهید
 DocType: Website Settings,Banner HTML,بنر HTML
 DocType: Workflow,Send Email Alert,ارسال هشدار ایمیل
-apps/frappe/frappe/integrations/doctype/razorpay_settings/razorpay_settings.py,Please select another payment method. Razorpay does not support transactions in currency '{0}',لطفا روش پرداخت دیگری را انتخاب کنید. Razorpay از انجام تراکنش در ارز را پشتیبانی نمی کند &#39;{0}&#39;
+apps/frappe/frappe/integrations/doctype/razorpay_settings/razorpay_settings.py,Please select another payment method. Razorpay does not support transactions in currency '{0}',لطفا روش پرداخت دیگری را انتخاب کنید. Razorpay از انجام تراکنش در ارز را پشتیبانی نمی کند '{0}'
 DocType: Data Import,In Progress,در حال پیش رفت
 apps/frappe/frappe/integrations/doctype/google_drive/google_drive.py,Queued for backup. It may take a few minutes to an hour.,در صف برای تهیه پشتیبان. ممکن است چند دقیقه تا یک ساعت طول می کشد.
 DocType: Error Snapshot,Pyver,Pyver
@@ -2622,7 +2622,7 @@ apps/frappe/frappe/public/js/frappe/form/save.js,Amending,اصلاح
 apps/frappe/frappe/config/integrations.py,PayPal payment gateway settings,پی پال تنظیمات دروازه پرداخت
 apps/frappe/frappe/templates/emails/energy_points_summary.html,Top Performer,عمل کننده عالی
 apps/frappe/frappe/custom/doctype/custom_field/custom_field.py,Custom Fields cannot be added to core DocTypes.,زمینه های سفارشی را نمی توان به DocTypes اصلی اضافه کرد.
-apps/frappe/frappe/model/base_document.py,"{0}: '{1}' ({3}) will get truncated, as max characters allowed is {2}",{0}: &#39;{1}&#39; ({3}) کوتاه خواهد شد، به عنوان شخصیت های حداکثر مجاز {2}
+apps/frappe/frappe/model/base_document.py,"{0}: '{1}' ({3}) will get truncated, as max characters allowed is {2}",{0}: '{1}' ({3}) کوتاه خواهد شد، به عنوان شخصیت های حداکثر مجاز {2}
 DocType: OAuth Client,Response Type,نوع پاسخ
 DocType: Contact Us Settings,Send enquiries to this email address,ارسال سوالات به این آدرس ایمیل
 DocType: Letter Head,Letter Head Name,نام سر نامه
@@ -2676,7 +2676,7 @@ apps/frappe/frappe/email/doctype/email_account/email_account.py,Append To can be
 DocType: Customize Form,Image View,تصویر مشخصات
 apps/frappe/frappe/integrations/doctype/paypal_settings/paypal_settings.py,"Looks like something went wrong during the transaction. Since we haven't confirmed the payment, Paypal will automatically refund you this amount. If it doesn't, please send us an email and mention the Correlation ID: {0}.",نظر می رسد چیزی در معامله را اشتباه رفت. از آنجا که ما پرداخت را اعلام نکرده اند، پی پال به طور خودکار شما این مقدار بازپرداخت. اگر آن را ندارد، لطفا به ما ایمیل بفرستید و ذکر ID همبستگی: {0}.
 apps/frappe/frappe/public/js/frappe/form/controls/password.js,"Include symbols, numbers and capital letters in the password",شامل نمادها، اعداد و حروف بزرگ در رمز عبور
-apps/frappe/frappe/custom/doctype/custom_field/custom_field.py,"Insert After field '{0}' mentioned in Custom Field '{1}', with label '{2}', does not exist",قرار دادن بعد از میدان &#39;{0}&#39; ذکر شده در سفارشی درست &#39;{1}&#39;، با برچسب &#39;{2}، وجود ندارد
+apps/frappe/frappe/custom/doctype/custom_field/custom_field.py,"Insert After field '{0}' mentioned in Custom Field '{1}', with label '{2}', does not exist",قرار دادن بعد از میدان '{0}' ذکر شده در سفارشی درست '{1}'، با برچسب '{2}، وجود ندارد
 DocType: List Filter,List Filter,لیست فیلتر
 DocType: Workflow State,signal,سیگنال
 apps/frappe/frappe/public/js/frappe/views/inbox/inbox_view.js,Has Attachments,دارای فایل پیوست
@@ -2686,7 +2686,7 @@ apps/frappe/frappe/templates/includes/comments/comments.py,Comment Should be atl
 apps/frappe/frappe/core/doctype/deleted_document/deleted_document.py,Document Restored,سند ترمیم
 DocType: Data Export,Data Export,صادرات داده
 apps/frappe/frappe/public/js/frappe/form/print.js,Select Language...,زبان را انتخاب کنید...
-apps/frappe/frappe/custom/doctype/customize_form/customize_form.py,You can't set 'Options' for field {0},شما نمی توانید گزینه &#39;Options&#39; را برای فیلد {0} تنظیم کنید
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.py,You can't set 'Options' for field {0},شما نمی توانید گزینه 'Options' را برای فیلد {0} تنظیم کنید
 DocType: Help Article,Author,نویسنده
 apps/frappe/frappe/email/doctype/email_queue/email_queue_list.js,Resume Sending,رزومه ارسال
 apps/frappe/frappe/core/doctype/communication/communication.js,Reopen,بازگشایی
@@ -2700,7 +2700,7 @@ DocType: Web Page,Slideshow,نمایش به صورت اسلاید
 apps/frappe/frappe/contacts/doctype/address_template/address_template.py,Default Address Template cannot be deleted,به طور پیش فرض آدرس الگو نمی تواند حذف شود
 DocType: Contact,Maintenance Manager,مدیر نگهداری و تعمیرات
 DocType: Workflow State,Search,جستجو
-apps/frappe/frappe/integrations/doctype/stripe_settings/stripe_settings.py,Please select another payment method. Stripe does not support transactions in currency '{0}',لطفا روش پرداخت دیگری را انتخاب کنید. خط خطی انجام تراکنش در ارز را پشتیبانی نمی کند &#39;{0}&#39;
+apps/frappe/frappe/integrations/doctype/stripe_settings/stripe_settings.py,Please select another payment method. Stripe does not support transactions in currency '{0}',لطفا روش پرداخت دیگری را انتخاب کنید. خط خطی انجام تراکنش در ارز را پشتیبانی نمی کند '{0}'
 apps/frappe/frappe/core/doctype/communication/communication.js,Move To Trash,انتقال به سطل زباله
 DocType: Web Form,Web Form Fields,فرم وب
 DocType: Data Import,Amended From,اصلاح از
@@ -2887,7 +2887,7 @@ apps/frappe/frappe/model/base_document.py,Value missing for,ارزش از دست
 apps/frappe/frappe/public/js/frappe/views/treeview.js,Add Child,اضافه کردن کودک
 apps/frappe/frappe/core/doctype/data_import_beta/data_import_beta.js,Import Progress,پیشرفت واردات
 DocType: Energy Point Rule,"If the condition is satisfied user will be rewarded with the points. eg. doc.status == 'Closed'
-",اگر شرط راضی باشد کاربر با امتیاز پاداش می گیرد. به عنوان مثال. doc.status == &#39;بسته&#39;
+",اگر شرط راضی باشد کاربر با امتیاز پاداش می گیرد. به عنوان مثال. doc.status == 'بسته'
 apps/frappe/frappe/model/delete_doc.py,{0} {1}: Submitted Record cannot be deleted.,{0} {1}: رکورد ثبت شده نمی تواند حذف شود.
 DocType: GSuite Templates,Template Name,نام الگو
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js,new type of document,نوع جدیدی از سند
@@ -3291,7 +3291,7 @@ apps/frappe/frappe/config/customization.py,Custom Translations,ترجمه های
 apps/frappe/frappe/public/js/frappe/socketio_client.js,Progress,پیش رفتن
 apps/frappe/frappe/public/js/frappe/form/workflow.js, by Role ,توسط نقش
 apps/frappe/frappe/public/js/frappe/form/save.js,Missing Fields,زمینه های از دست رفته
-apps/frappe/frappe/core/doctype/doctype/doctype.py,Invalid fieldname '{0}' in autoname,FIELDNAME نامعتبر &#39;{0} در autoname
+apps/frappe/frappe/core/doctype/doctype/doctype.py,Invalid fieldname '{0}' in autoname,FIELDNAME نامعتبر '{0} در autoname
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js,Search in a document type,جستجو در یک نوع سند
 DocType: Custom DocPerm,Role and Level,نقش و سطح
 DocType: File,Thumbnail URL,URL تصویر بند انگشتی
@@ -3377,7 +3377,7 @@ DocType: Dashboard Chart,Filters JSON,فیلترهای JSON
 apps/frappe/frappe/email/doctype/newsletter/newsletter.py,Click here to verify,به منظور بررسی اینجا را کلیک کنید
 DocType: Email Account,Disable SMTP server authentication,تأیید هویت سرور SMTP را غیرفعال کنید
 apps/frappe/frappe/public/js/frappe/utils/utils.js,Copied to clipboard.,در کلیپ بورد کپی شد.
-apps/frappe/frappe/utils/password_strength.py,Predictable substitutions like '@' instead of 'a' don't help very much.,تعویض قابل پیش بینی مانند &#39;@&#39; به جای &#39;A&#39; خیلی زیاد کمک نمی کند.
+apps/frappe/frappe/utils/password_strength.py,Predictable substitutions like '@' instead of 'a' don't help very much.,تعویض قابل پیش بینی مانند '@' به جای 'A' خیلی زیاد کمک نمی کند.
 apps/frappe/frappe/desk/doctype/todo/todo_list.js,Assigned By Me,اختصاص داده شده توسط من
 apps/frappe/frappe/utils/data.py,Zero,صفر
 DocType: Google Drive,Backup Folder ID,شناسه پوشه پشتیبان
@@ -3427,7 +3427,7 @@ DocType: Notification,Reference Date,مرجع تاریخ
 apps/frappe/frappe/templates/includes/login/login.js,OTP setup using OTP App was not completed. Please contact Administrator.,نصب OTP با استفاده از برنامه OTP تکمیل نشد. لطفا با سرپرست تماس بگیرید.
 apps/frappe/frappe/core/doctype/sms_settings/sms_settings.py,Please enter valid mobile nos,لطفا NOS تلفن همراه معتبر وارد کنید
 apps/frappe/frappe/public/js/frappe/desk.js,Some of the features might not work in your browser. Please update your browser to the latest version.,برخی از ویژگی های ممکن را در مرورگر خود کار نمی کند. لطفا مرورگر خود را به آخرین نسخه به روز رسانی.
-apps/frappe/frappe/utils/bot.py,"Don't know, ask 'help'",هنوز مطمئن شوید که، از &#39;کمک&#39;
+apps/frappe/frappe/utils/bot.py,"Don't know, ask 'help'",هنوز مطمئن شوید که، از 'کمک'
 DocType: DocType,Comments and Communications will be associated with this linked document,نظرات و ارتباطات خواهد شد با این سند مرتبط مرتبط
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder_sidebar.html,Filter...,فیلتر ...
 DocType: Workflow State,bold,جسور
@@ -3723,7 +3723,7 @@ apps/frappe/frappe/public/js/frappe/form/templates/form_sidebar.html,Currently V
 DocType: DocField,Default,پیش فرض
 DocType: Translation,Verified,تأیید شده
 apps/frappe/frappe/public/js/frappe/form/link_selector.js,{0} added,{0} اضافه شد
-apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js,Search for '{0}',جستجو برای &#39;{0}
+apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js,Search for '{0}',جستجو برای '{0}
 apps/frappe/frappe/public/js/frappe/views/reports/report_view.js,Please save the report first,��طفا گزارش نجات اول
 apps/frappe/frappe/email/doctype/email_group/email_group.py,{0} subscribers added,{0} مشترک افزوده شد
 apps/frappe/frappe/public/js/frappe/ui/filters/filter.js,Not In,نه در
@@ -3758,14 +3758,14 @@ apps/frappe/frappe/public/js/frappe/list/list_sidebar_group_by.js,Me,من
 apps/frappe/frappe/workflow/doctype/workflow/workflow.py,{0} not a valid State,{0} نه دولت معتبر
 apps/frappe/frappe/core/doctype/user_permission/user_permission_list.js,Apply to all Documents Types,به کلیه انواع اسناد اعمال شود
 apps/frappe/frappe/social/doctype/energy_point_log/energy_point_log.py,Energy point update,به روز رسانی نقطه انرژی
-apps/frappe/frappe/integrations/doctype/paypal_settings/paypal_settings.py,Please select another payment method. PayPal does not support transactions in currency '{0}',لطفا روش پرداخت دیگری را انتخاب کنید. پی پال انجام تراکنش در ارز را پشتیبانی نمی کند &#39;{0}&#39;
+apps/frappe/frappe/integrations/doctype/paypal_settings/paypal_settings.py,Please select another payment method. PayPal does not support transactions in currency '{0}',لطفا روش پرداخت دیگری را انتخاب کنید. پی پال انجام تراکنش در ارز را پشتیبانی نمی کند '{0}'
 DocType: Chat Message,Room Type,نوع اتاق
 DocType: Data Import Beta,Import Log Preview,پیش نمایش ورود به سیستم واردات
 apps/frappe/frappe/core/doctype/doctype/doctype.py,Search field {0} is not valid,قسمت جستجو {0} معتبر نیست
 apps/frappe/frappe/public/js/frappe/file_uploader/FileUploader.vue,uploaded file,پرونده بارگذاری شده
 DocType: Workflow State,ok-circle,OK-دایره
 DocType: LDAP Settings,LDAP User Creation and Mapping,ایجاد و نقشه برداری کاربر LDAP
-apps/frappe/frappe/utils/bot.py,You can find things by asking 'find orange in customers',شما می توانید همه چیز را با پرسیدن &#39;پیدا کردن پرتقال در مشتریان پیدا
+apps/frappe/frappe/utils/bot.py,You can find things by asking 'find orange in customers',شما می توانید همه چیز را با پرسیدن 'پیدا کردن پرتقال در مشتریان پیدا
 apps/frappe/frappe/core/doctype/user/user.py,Sorry! User should have complete access to their own record.,با عرض پوزش! کاربر باید دسترسی کامل به رکورد خود را دارند.
 ,Usage Info,اطلاعات استفاده
 apps/frappe/frappe/public/js/frappe/ui/keyboard.js,Show Keyboard Shortcuts,میانبرهای صفحه کلید را نمایش دهید

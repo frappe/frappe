@@ -5,7 +5,7 @@ DocType: Event,Call,שיחה
 DocType: Email Account,GMail,GMail
 DocType: Auto Repeat,End Date,תאריך סיום
 DocType: Custom DocPerm,Apply this rule if the User is the Owner,"החל מכלל זה, אם המשתמש הוא בעל"
-apps/frappe/frappe/custom/doctype/custom_field/custom_field.py,"Insert After field '{0}' mentioned in Custom Field '{1}', with label '{2}', does not exist","הכנס לאחר שדה &#39;{0}&#39; המוזכר בשדה מותאם אישית &#39;{1}&#39;, עם התווית &#39;{2}&#39;, אינו קיים"
+apps/frappe/frappe/custom/doctype/custom_field/custom_field.py,"Insert After field '{0}' mentioned in Custom Field '{1}', with label '{2}', does not exist","הכנס לאחר שדה '{0}' המוזכר בשדה מותאם אישית '{1}', עם התווית '{2}', אינו קיים"
 DocType: Activity Log,Timeline DocType,DOCTYPE ציר הזמן
 DocType: ToDo,Assigned By,שהוקצה על ידי
 apps/frappe/frappe/core/doctype/data_import/data_import.js,Select All,בחר הכל
@@ -128,7 +128,7 @@ DocType: Address,Links,קישורים
 apps/frappe/frappe/utils/verified_command.py,Invalid Link,קישור לא חוקי
 DocType: Workflow State,Warning,אזהרה
 DocType: Comment,Comment Type,סוג התגובה
-apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js,You can add dynamic properties from the document by using Jinja templating.,אתה יכול להוסיף תכונות דינמיות מהמסמך באמצעות בניית תבנית ג&#39;ינג&#39;ה.
+apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js,You can add dynamic properties from the document by using Jinja templating.,אתה יכול להוסיף תכונות דינמיות מהמסמך באמצעות בניית תבנית ג'ינג'ה.
 apps/frappe/frappe/utils/file_manager.py,There is some problem with the file url: {0},יש קצת בעיה עם כתובת אתר הקובץ: {0}
 DocType: DocField,Collapsible,מתקפל
 apps/frappe/frappe/public/js/frappe/file_uploader/FileUploader.vue,Web Link,קישור אינטרנט
@@ -146,7 +146,7 @@ DocType: System Settings,Your organization name and address for the email footer
 DocType: Currency,Fraction Units,יחידות שבריר
 DocType: About Us Settings,"""Team Members"" or ""Management""","""חברי צוות"" או ""ניהול"""
 DocType: Top Bar Item,For top bar,לבר העליון
-apps/frappe/frappe/email/doctype/notification/notification.py,The Condition '{0}' is invalid,התנאי &#39;{0}&#39; אינו חוקי
+apps/frappe/frappe/email/doctype/notification/notification.py,The Condition '{0}' is invalid,התנאי '{0}' אינו חוקי
 DocType: Portal Settings,Portal Menu,תפריט פורטל
 DocType: Auto Repeat,Notification,הוֹדָעָה
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder_column_selector.html,"Check columns to select, drag to set order.","בדקו עמודות כדי לבחור, לגרור להגדיר סדר."
@@ -170,9 +170,9 @@ DocType: Comment,Assigned,שהוקצה
 apps/frappe/frappe/config/website.py,Single Post (article).,הודעה אחת (מאמר).
 DocType: Notification,"To add dynamic subject, use jinja tags like
 
-<div><pre><code>{{ doc.name }} Delivered</code></pre></div>","כדי להוסיף נושא דינמי, להשתמש בתגי ג&#39;ינג&#39;ה כמו <div style="";text-align:right;direction:rtl""><pre style="";text-align:right;direction:rtl""> <code>{{ doc.name }} Delivered</code> </pre> </div>"
+<div><pre><code>{{ doc.name }} Delivered</code></pre></div>","כדי להוסיף נושא דינמי, להשתמש בתגי ג'ינג'ה כמו <div style="";text-align:right;direction:rtl""><pre style="";text-align:right;direction:rtl""> <code>{{ doc.name }} Delivered</code> </pre> </div>"
 apps/frappe/frappe/config/settings.py,Drag and Drop tool to build and customize Print Formats.,גרור ושחררתם כלי לבנות ולהתאים אישית את תבניות הדפסה.
-apps/frappe/frappe/public/js/frappe/form/form.js,No permission to '{0}' {1},אין הרשאות ל&#39;{0} &#39;{1}
+apps/frappe/frappe/public/js/frappe/form/form.js,No permission to '{0}' {1},אין הרשאות ל'{0} '{1}
 DocType: User,Birth Date,תאריך לידה
 apps/frappe/frappe/public/js/frappe/form/save.js,Amending,הַתקָנָה
 apps/frappe/frappe/desk/query_report.py,Must specify a Query to run,חייב לציין שאילתה לרוץ
@@ -206,7 +206,7 @@ apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,"On
 DocType: Customize Form Field,"This field will appear only if the fieldname defined here has value OR the rules are true (examples): 
 myfield
 eval:doc.myfield=='My Value'
-eval:doc.age>18",שדה זה יופיע רק אם fieldname מוגדר כאן יש ערך או כללים נכונים (דוגמאות): myfield eval: doc.myfield == &#39;ערך שלי&#39; eval: doc.age> 18
+eval:doc.age>18",שדה זה יופיע רק אם fieldname מוגדר כאן יש ערך או כללים נכונים (דוגמאות): myfield eval: doc.myfield == 'ערך שלי' eval: doc.age> 18
 apps/frappe/frappe/core/doctype/data_import/data_import.js,Select Columns,בחרו עמודות
 DocType: Footer Item,URL,כתובת האתר
 DocType: Address,City/Town,עיר / יישוב
@@ -449,7 +449,7 @@ DocType: Chat Message,Room,חֶדֶר
 DocType: DocShare,Notify by Email,להודיע באמצעות דוא&quot;ל
 DocType: User,System User,משתמש מערכת
 DocType: DocField,Text Editor,עורך טקסט
-apps/frappe/frappe/core/doctype/file/file.py,File '{0}' not found,קובץ &#39;{0}&#39; לא נמצא
+apps/frappe/frappe/core/doctype/file/file.py,File '{0}' not found,קובץ '{0}' לא נמצא
 apps/frappe/frappe/www/update-password.html,Old Password,סיסמא הישנה
 DocType: Workflow State,hand-right,יד ימין
 DocType: Custom DocPerm,Export,יצוא
@@ -710,7 +710,7 @@ DocType: Workflow State,Download,הורדה
 apps/frappe/frappe/core/doctype/user/user.js,Refreshing...,מרענן ...
 apps/frappe/frappe/core/doctype/file/test_file.py,Test_Folder,Test_Folder
 apps/frappe/frappe/public/js/frappe/web_form/webform_script.js,You are not permitted to access this page.,אינכם מורשים לגשת לדף זה.
-apps/frappe/frappe/utils/password_strength.py,Predictable substitutions like '@' instead of 'a' don't help very much.,החלפות צפויות כמו &#39;@&#39; במקום &#39;a&#39; לא עזר לנו במיוחד.
+apps/frappe/frappe/utils/password_strength.py,Predictable substitutions like '@' instead of 'a' don't help very much.,החלפות צפויות כמו '@' במקום 'a' לא עזר לנו במיוחד.
 apps/frappe/frappe/config/desktop.py,Users and Permissions,משתמשים והרשאות
 DocType: Email Account,Default Outgoing,יוצא ברירת מחדל
 apps/frappe/frappe/public/js/frappe/ui/messages.js,Verify Password,אימות סיסמא
@@ -756,7 +756,7 @@ apps/frappe/frappe/core/doctype/data_import_beta/data_import_beta_list.js,Insert
 apps/frappe/frappe/public/js/frappe/request.js,Not Permitted,לא מורשה
 DocType: Data Import Beta,Preview,תצוגה מקדימה
 DocType: User,Karma,קארמה
-apps/frappe/frappe/custom/doctype/customize_form/customize_form.py,You cannot unset 'Read Only' for field {0},אתה לא יכול לבטל את הגדרה של &#39;קריאה בלבד&#39; לשדה {0}
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.py,You cannot unset 'Read Only' for field {0},אתה לא יכול לבטל את הגדרה של 'קריאה בלבד' לשדה {0}
 apps/frappe/frappe/utils/password_strength.py,Recent years are easy to guess.,בשנים האחרונות קלות לנחש.
 apps/frappe/frappe/desk/query_report.py,You don't have permission to get a report on: {0},אין לך הרשאה על מנת לקבל דיווח על: {0}
 DocType: Communication,Marked As Spam,סומן כדואר זבל
@@ -1411,7 +1411,7 @@ DocType: Print Settings,PDF Page Size,גודל דף PDF
 apps/frappe/frappe/public/js/frappe/views/treeview.js,Group Node,צומת קבוצה
 apps/frappe/frappe/config/website.py,Web Site,אתר אינטרנט
 apps/frappe/frappe/core/doctype/data_export/exporter.py,Info:,מידע:
-apps/frappe/frappe/utils/bot.py,You can find things by asking 'find orange in customers',אתה יכול למצוא דברים בשאלה &#39;למצוא כתום לקוחות&#39;
+apps/frappe/frappe/utils/bot.py,You can find things by asking 'find orange in customers',אתה יכול למצוא דברים בשאלה 'למצוא כתום לקוחות'
 DocType: Desktop Icon,Blocked,חָסוּם
 apps/frappe/frappe/config/customization.py,Add fields to forms.,הוספת שדות לצורות.
 DocType: Auto Repeat,Template,תבנית
@@ -1610,7 +1610,7 @@ apps/frappe/frappe/core/doctype/doctype/doctype.py,For {0} at level {1} in {2} i
 apps/frappe/frappe/public/js/frappe/views/communication.js,New Email,מייל חדש
 DocType: Social Login Key,GitHub,GitHub
 apps/frappe/frappe/public/js/frappe/ui/filters/filters.js,use % as wildcard,להשתמש% ככלליים
-apps/frappe/frappe/core/doctype/has_role/has_role.py,User '{0}' already has the role '{1}',משתמש &#39;{0}&#39; כבר יש את התפקיד &#39;{1}&#39;
+apps/frappe/frappe/core/doctype/has_role/has_role.py,User '{0}' already has the role '{1}',משתמש '{0}' כבר יש את התפקיד '{1}'
 DocType: Web Form,Login Required,כניסה לחשבון נדרש
 DocType: Data Import,Amended From,תוקן מ
 apps/frappe/frappe/email/doctype/email_unsubscribe/email_unsubscribe.py,Left this conversation,עזב את השיחה הזאת
@@ -1727,7 +1727,7 @@ apps/frappe/frappe/public/js/frappe/ui/toolbar/navbar.html,Search or type a comm
 DocType: Chat Message Attachment,Attachment,קובץ מצורף
 DocType: Assignment Rule Day,Sunday,יום ראשון
 apps/frappe/frappe/utils/jinja.py,Syntax error in template,שגיאת תחביר התבנית
-apps/frappe/frappe/config/desk.py,Chat messages and other notifications.,הודעות צ&#39;אט והודעות אחרות.
+apps/frappe/frappe/config/desk.py,Chat messages and other notifications.,הודעות צ'אט והודעות אחרות.
 DocType: Contact,Last Name,שם משפחה
 apps/frappe/frappe/core/doctype/data_import_beta/data_import_beta.js,Save,שמור
 DocType: Bulk Update,Bulk Update,עדכון גורף

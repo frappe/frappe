@@ -83,8 +83,8 @@ apps/frappe/frappe/public/js/frappe/list/list_view.js,Cancel {0} documents?,Tüh
 DocType: DocType,Is Published Field,Kas Avaldatud Field
 DocType: GCalendar Settings,GCalendar Settings,GCalendari seaded
 DocType: Email Group,Email Group,E Group
-apps/frappe/frappe/integrations/doctype/google_calendar/google_calendar.py,"Google Calendar - Could not delete Event {0} from Google Calendar, error code {1}.","Google&#39;i kalender - sündmust {0} ei saanud Google&#39;i kalendrist kustutada, veakood {1}."
-DocType: Event,Pulled from Google Calendar,Tõmmatud Google&#39;i kalendrist
+apps/frappe/frappe/integrations/doctype/google_calendar/google_calendar.py,"Google Calendar - Could not delete Event {0} from Google Calendar, error code {1}.","Google'i kalender - sündmust {0} ei saanud Google'i kalendrist kustutada, veakood {1}."
+DocType: Event,Pulled from Google Calendar,Tõmmatud Google'i kalendrist
 DocType: Note,Seen By,näinud
 apps/frappe/frappe/public/js/frappe/form/grid.js,Add Multiple,Lisa mitu
 apps/frappe/frappe/social/doctype/energy_point_log/energy_point_log.py,You gained some energy points,Saite mõned energiapunktid
@@ -102,7 +102,7 @@ DocType: Contact Us Settings,"Contact options, like ""Sales Query, Support Query
 apps/frappe/frappe/public/js/frappe/ui/tag_editor.js,Add a tag ...,Lisage silt ...
 apps/frappe/frappe/public/js/frappe/form/print.js,Portrait,Portree
 apps/frappe/frappe/core/doctype/data_import_beta/data_import_beta_list.js,Insert,Sisesta
-apps/frappe/frappe/integrations/doctype/google_drive/google_drive.py,Allow Google Drive Access,Luba Google Drive&#39;i juurdepääs
+apps/frappe/frappe/integrations/doctype/google_drive/google_drive.py,Allow Google Drive Access,Luba Google Drive'i juurdepääs
 apps/frappe/frappe/public/js/frappe/form/link_selector.js,Select {0},Vali {0}
 apps/frappe/frappe/integrations/doctype/social_login_key/social_login_key.py,Please enter Base URL,Palun sisestage Base URL
 DocType: DocType,"If enabled, the document is marked as seen, the first time a user opens it","Kui see on lubatud, märgistatakse dokument nähtavana, kui kasutaja selle esimest korda avab"
@@ -216,7 +216,7 @@ apps/frappe/frappe/templates/emails/auto_email_report.html,View report in your b
 apps/frappe/frappe/config/desk.py,Event and other calendars.,Sündmus ja teiste kalendreid.
 apps/frappe/frappe/public/js/frappe/data_import/data_exporter.js,{0} (1 row mandatory),{0} (1 rida kohustuslik)
 apps/frappe/frappe/templates/includes/comments/comments.html,All fields are necessary to submit the comment.,Kõik väljad on vajalik esitada kommentaari.
-DocType: Custom Script,Adds a client custom script to a DocType,Lisab kliendi kohandatud skripti DocType&#39;i
+DocType: Custom Script,Adds a client custom script to a DocType,Lisab kliendi kohandatud skripti DocType'i
 DocType: Print Settings,Printer Name,Printeri nimi
 DocType: Webhook,Form URL-Encoded,Vormi URL-i kodeering
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder_column_selector.html,Widths can be set in px or %.,Laiused saab määrata px või%.
@@ -252,7 +252,7 @@ apps/frappe/frappe/core/doctype/report/report.js,Disable Report,Keela teated
 DocType: Translation,Contributed Translation Doctype Name,Kaasatud tõlkedoktüübi nimi
 DocType: PayPal Settings,Redirect To,Suuna
 DocType: Data Migration Mapping,Pull,Tõmba
-DocType: Report,JavaScript Format: frappe.query_reports['REPORTNAME'] = {},JavaScript Formaat: frappe.query_reports [&#39;REPORTNAME&#39;] = {}
+DocType: Report,JavaScript Format: frappe.query_reports['REPORTNAME'] = {},JavaScript Formaat: frappe.query_reports ['REPORTNAME'] = {}
 DocType: Bulk Update,Bulk Update,hulgivärskendamine
 DocType: Workflow State,chevron-up,Chevron-up
 DocType: DocType,Allow Guest to View,Luba külastajana Vaata
@@ -287,7 +287,7 @@ DocType: Communication,Rating,Hinnang
 DocType: Customize Form Field,"Print Width of the field, if the field is a column in a table","Trüki laius alal, kui väli on veerg tabelis"
 DocType: Dropbox Settings,Dropbox Access Key,Dropbox Access Key
 apps/frappe/frappe/desk/form/utils.py,Wrong fieldname <b>{0}</b> in add_fetch configuration of custom script,Kohandatud skripti konfigureerimine add_fetchis vale väljanime <b>{0}</b>
-apps/frappe/frappe/contacts/doctype/contact/contact.py,Select Google Contacts to which contact should be synced.,"Valige Google&#39;i kontaktid, kellega kontakt tuleks sünkroonida."
+apps/frappe/frappe/contacts/doctype/contact/contact.py,Select Google Contacts to which contact should be synced.,"Valige Google'i kontaktid, kellega kontakt tuleks sünkroonida."
 DocType: Web Page,Main Section (HTML),Peaosa (HTML)
 DocType: Workflow State,headphones,kõrvaklapid
 apps/frappe/frappe/email/doctype/email_account/email_account.py,Password is required or select Awaiting Password,Parooli on vaja või valige Ootan salasõna
@@ -414,7 +414,7 @@ DocType: Assignment Rule,Assign To Users,Määra kasutajatele
 apps/frappe/frappe/public/js/frappe/utils/utils.js,or,või
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js,module name...,Mooduli nimetus ...
 apps/frappe/frappe/templates/pages/integrations/payment-success.html,Continue,Jätkama
-apps/frappe/frappe/integrations/doctype/google_drive/google_drive.py,Google Integration is disabled.,Google&#39;i integratsioon on keelatud.
+apps/frappe/frappe/integrations/doctype/google_drive/google_drive.py,Google Integration is disabled.,Google'i integratsioon on keelatud.
 DocType: Custom Field,Fieldname,Fieldname
 DocType: Workflow State,certificate,tunnistus
 apps/frappe/frappe/templates/includes/login/login.js,Verifying...,Kontrollimine ...
@@ -426,7 +426,7 @@ DocType: Energy Point Log,Review,Ülevaade
 DocType: User,Restrict IP,Keelatud IP
 apps/frappe/frappe/core/page/dashboard/dashboard.js,Dashboard,armatuurlaud
 apps/frappe/frappe/email/smtp.py,Unable to send emails at this time,Ei saa saata meile sel ajal
-apps/frappe/frappe/integrations/doctype/google_calendar/google_calendar.py,"Google Calendar - Could not update Event {0} in Google Calendar, error code {1}.","Google&#39;i kalender - sündmust {0} ei saanud Google&#39;i kalendris värskendada, veakood {1}."
+apps/frappe/frappe/integrations/doctype/google_calendar/google_calendar.py,"Google Calendar - Could not update Event {0} in Google Calendar, error code {1}.","Google'i kalender - sündmust {0} ei saanud Google'i kalendris värskendada, veakood {1}."
 apps/frappe/frappe/public/js/frappe/ui/toolbar/navbar.html,Search or type a command,Otsi või anna käsk
 DocType: Activity Log,Timeline Name,Timeline Nimi
 apps/frappe/frappe/contacts/doctype/contact/contact.py,Only one {0} can be set as primary.,Ainult ühte {0} saab seada primaarseks.
@@ -434,7 +434,7 @@ DocType: Email Account,e.g. smtp.gmail.com,nt smtp.gmail.com
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js,Add A New Rule,Lisa uus reegel
 DocType: Contact,Sales Master Manager,Müük Master Manager
 DocType: User Permission,For Value,Väärtuse jaoks
-DocType: Event,Google Calendar ID,Google&#39;i kalendri ID
+DocType: Event,Google Calendar ID,Google'i kalendri ID
 apps/frappe/frappe/www/complete_signup.html,One Last Step,One Last Step
 apps/frappe/frappe/config/settings.py,Import Data,Andmete importimine
 apps/frappe/frappe/custom/doctype/custom_field/custom_field.js,Name of the Document Type (DocType) you want this field to be linked to. e.g. Customer,Nimi Dokumendi liik (DocType) soovite selles valdkonnas siduda. nt Klienditeenindus
@@ -445,7 +445,7 @@ apps/frappe/frappe/templates/emails/auto_reply.html,"Your query has been receive
 apps/frappe/frappe/email/doctype/email_account/email_account.py,Automatic Linking can be activated only if Incoming is enabled.,"Automaatset linkimist saab aktiveerida ainult siis, kui sissetulev on lubatud."
 DocType: LDAP Settings,LDAP Middle Name Field,LDAP keskmise nime väli
 apps/frappe/frappe/integrations/doctype/google_contacts/google_contacts.js,Importing {0} of {1},{0} {1} importimine
-DocType: GCalendar Account,Allow GCalendar Access,Luba GCalendar&#39;i juurdepääs
+DocType: GCalendar Account,Allow GCalendar Access,Luba GCalendar'i juurdepääs
 apps/frappe/frappe/core/doctype/data_import/importer_new.py,{0} is a mandatory field,{0} on kohustuslik väli
 apps/frappe/frappe/templates/includes/login/login.js,Login token required,Sisselogimisnumber on nõutav
 apps/frappe/frappe/desk/page/user_profile/user_profile.js,Monthly Rank: ,Kuu asetus:
@@ -469,7 +469,7 @@ DocType: File,File URL,Faili URL
 DocType: Version,Table HTML,Tabel HTML
 apps/frappe/frappe/email/doctype/email_group/email_group.js,Add Subscribers,Lisa Abonentide
 apps/frappe/frappe/desk/doctype/event/event.py,Upcoming Events for Today,Tulevased sündmused Täna
-DocType: Google Calendar,Push to Google Calendar,Pöörake Google&#39;i kalendrisse
+DocType: Google Calendar,Push to Google Calendar,Pöörake Google'i kalendrisse
 DocType: Notification Recipient,Email By Document Field,Email dokumendi Field
 DocType: Domain Settings,Domain Settings,domeeni seaded
 apps/frappe/frappe/email/receive.py,Cannot connect: {0},Ei saa ühendust: {0}
@@ -499,7 +499,7 @@ DocType: Workflow State,plane,lennuk
 apps/frappe/frappe/website/doctype/website_theme/website_theme.js,Rounded Corners,Ümardatud nurgad
 apps/frappe/frappe/core/doctype/data_export/exporter.py,"If you are uploading new records, ""Naming Series"" becomes mandatory, if present.","Kui teil on üleslaadimise uusi rekordeid, &quot;nimetamine Series&quot; muutub kohustuslikuks, kui see on olemas."
 apps/frappe/frappe/email/doctype/notification/notification.js,Get Alerts for Today,Saada Märguanded Täna
-DocType: Contact,Google Contacts Id,Google&#39;i kontaktide ID
+DocType: Contact,Google Contacts Id,Google'i kontaktide ID
 apps/frappe/frappe/core/doctype/doctype/doctype.py,DocType can only be renamed by Administrator,DocType saab nimeks Administrator
 apps/frappe/frappe/public/js/frappe/ui/filters/filter.js,6 months,6 kuud
 apps/frappe/frappe/printing/doctype/letter_head/letter_head.py,Please attach an image file to set HTML,HTML-i seadistamiseks lisage pildifail
@@ -748,7 +748,7 @@ DocType: Currency,Currency Name,Valuuta nimi
 apps/frappe/frappe/public/js/frappe/views/inbox/inbox_view.js,No Emails,nr kirjad
 apps/frappe/frappe/workflow/doctype/workflow_action/workflow_action.py,Link Expired,Link aegunud
 apps/frappe/frappe/database/schema.py,"Reverting length to {0} for '{1}' in '{2}';
-							Setting the length as {3} will cause truncation of data.","Pikkuse ennistamine väärtusele {0} väärtuse &#39;{1}&#39; jaoks &#39;{2}&#39;; Kui määrate pikkuseks {3}, kärbitakse andmeid."
+							Setting the length as {3} will cause truncation of data.","Pikkuse ennistamine väärtusele {0} väärtuse '{1}' jaoks '{2}'; Kui määrate pikkuseks {3}, kärbitakse andmeid."
 apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,Select File Format,Vali failivorming
 DocType: Report,Javascript,Javascript
 DocType: File,Content Hash,Sisu Hash
@@ -763,7 +763,7 @@ apps/frappe/frappe/email/doctype/auto_email_report/auto_email_report.js,Send Now
 apps/frappe/frappe/core/doctype/doctype/doctype.py,"Standard DocType cannot have default print format, use Customize Form",Standard DocType ei saa vaikimisi trükiformaadis kasutada Kohanda vormi
 DocType: Report,Query,Query
 DocType: Customize Form,Sort Order,Järjekord
-apps/frappe/frappe/custom/doctype/customize_form/customize_form.py,'In List View' not allowed for type {0} in row {1},&quot;In List View &#39;ei ole lubatud tüüp {0} järjest {1}
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.py,'In List View' not allowed for type {0} in row {1},&quot;In List View 'ei ole lubatud tüüp {0} järjest {1}
 DocType: Letter Head,Footer HTML,Jaluse HTML
 DocType: Custom Field,Select the label after which you want to insert new field.,"Valige silt, mille järel soovite lisada uue valdkonna."
 ,Document Share Report,Dokumendi Jaga aruanne
@@ -778,7 +778,7 @@ DocType: File,Is Home Folder,Kas Home Folder
 apps/frappe/frappe/website/doctype/website_theme/website_theme.js,Navbar Style,Navbaari stiil
 apps/frappe/frappe/utils/__init__.py,{0} is not a valid Email Address,{0} ei ole kehtiv e-posti aadress
 apps/frappe/frappe/public/js/frappe/list/bulk_operations.js,Select atleast 1 record for printing,Valima vähemalt 1 kirje printimiseks
-apps/frappe/frappe/core/doctype/has_role/has_role.py,User '{0}' already has the role '{1}',Kasutaja {0} &#39;on juba roll &quot;{1}&quot;
+apps/frappe/frappe/core/doctype/has_role/has_role.py,User '{0}' already has the role '{1}',Kasutaja {0} 'on juba roll &quot;{1}&quot;
 DocType: System Settings,Two Factor Authentication method,Kaks teguri autentimise meetodit
 apps/frappe/frappe/website/doctype/website_slideshow/website_slideshow.js,First set the name and save the record.,Esmalt määrake nimi ja salvestage see kirje.
 apps/frappe/frappe/public/js/frappe/data_import/data_exporter.js,5 Records,5 plaati
@@ -969,13 +969,13 @@ DocType: Notification,"To add dynamic subject, use jinja tags like
 <div><pre><code>{{ doc.name }} Delivered</code></pre></div>","Lisada dünaamiline teema, kasutada Jinja sildid nagu <div><pre> <code>{{ doc.name }} Delivered</code> </pre> </div>"
 apps/frappe/frappe/desk/search.py,Invalid Search Field {0},Kehtetu otsinguväli {0}
 DocType: User,Modules HTML,Moodulid HTML
-apps/frappe/frappe/integrations/doctype/google_calendar/google_calendar.py,Allow Google Calendar Access,Luba Google&#39;i kalendri juurdepääs
+apps/frappe/frappe/integrations/doctype/google_calendar/google_calendar.py,Allow Google Calendar Access,Luba Google'i kalendri juurdepääs
 DocType: Assignment Rule,Higher priority rule will be applied first,Kõigepealt rakendatakse kõrgema prioriteediga reeglit
 DocType: Email Account,"Track if your email has been opened by the recipient.
 <br>
 Note: If you're sending to multiple recipients, even if 1 recipient reads the email, it'll be considered ""Opened""","Jälgige, kas saaja on teie e-posti avanud. <br> Märkus. Kui sa saadad mitmele adressaadile, isegi kui üks adressaat loeb e-kirja, loetakse see &quot;avatuks&quot;"
 apps/frappe/frappe/public/js/frappe/ui/field_group.js,Missing Values Required,Kadunud väärtusi Vajalikud
-apps/frappe/frappe/integrations/doctype/google_contacts/google_contacts.py,Allow Google Contacts Access,Luba Google&#39;i kontaktidele juurdepääs
+apps/frappe/frappe/integrations/doctype/google_contacts/google_contacts.py,Allow Google Contacts Access,Luba Google'i kontaktidele juurdepääs
 DocType: Data Migration Connector,Frappe,frappe
 apps/frappe/frappe/core/doctype/communication/communication_list.js,Mark as Unread,Märgi mitteloetuks
 DocType: Activity Log,Operation,Operation
@@ -1027,7 +1027,7 @@ DocType: Property Setter,Property Setter,Kinnisvara setter
 DocType: Web Form,Allow Print,Laske Prindi
 DocType: Communication,Clicked,Klõpsanud
 apps/frappe/frappe/public/js/frappe/form/templates/form_sidebar.html,Unfollow,Jälgi
-apps/frappe/frappe/public/js/frappe/form/form.js,No permission to '{0}' {1},Nr luba &quot;{0} &#39;{1}
+apps/frappe/frappe/public/js/frappe/form/form.js,No permission to '{0}' {1},Nr luba &quot;{0} '{1}
 apps/frappe/frappe/email/doctype/auto_email_report/auto_email_report.js,Scheduled to send,Plaanitud saata
 DocType: DocType,Track Seen,Rada näinud
 DocType: Dropbox Settings,File Backup,Faili varundamine
@@ -1072,7 +1072,7 @@ DocType: Address,Other Territory,Muu territoorium
 apps/frappe/frappe/config/website.py,Portal,Portal
 DocType: Email Account,Use Different Email Login ID,Kasutada erinevaid Saatke Sisene ID
 apps/frappe/frappe/desk/query_report.py,Must specify a Query to run,Peab määrata Query joosta
-apps/frappe/frappe/integrations/doctype/braintree_settings/braintree_settings.py,"There seems to be an issue with the server's braintree configuration. Don't worry, in case of failure, the amount will get refunded to your account.","Tundub, et serveri Braintree&#39;i konfiguratsiooniga on probleem. Ärge muretsege, ebaõnnestumise korral tagastatakse summa teie kontole."
+apps/frappe/frappe/integrations/doctype/braintree_settings/braintree_settings.py,"There seems to be an issue with the server's braintree configuration. Don't worry, in case of failure, the amount will get refunded to your account.","Tundub, et serveri Braintree'i konfiguratsiooniga on probleem. Ärge muretsege, ebaõnnestumise korral tagastatakse summa teie kontole."
 apps/frappe/frappe/www/me.html,Manage Third Party Apps,Kolmanda osapoole rakenduste haldamine
 DocType: Website Settings,Route Redirects,Marsruudi ümbersuunamised
 apps/frappe/frappe/config/settings.py,"Language, Date and Time settings","Keel, kuupäeva ja kellaaja seaded"
@@ -1139,7 +1139,7 @@ DocType: DocType,User Cannot Create,Kasutaja ei saa luua
 apps/frappe/frappe/social/doctype/energy_point_settings/energy_point_settings.js,Successfully Done,Edukalt tehtud
 apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py,Dropbox access is approved!,Dropbox juurdepääs on heaks!
 DocType: Customize Form,Enter Form Type,Sisesta vorm Type
-DocType: Google Drive,Authorize Google Drive Access,Google Drive&#39;i juurdepääsu volitamine
+DocType: Google Drive,Authorize Google Drive Access,Google Drive'i juurdepääsu volitamine
 apps/frappe/frappe/public/js/frappe/views/kanban/kanban_view.js,Missing parameter Kanban Board Name,Puudub parameeter Kanbani juhatuse nimi
 apps/frappe/frappe/public/js/frappe/list/list_sidebar_stat.html,No records tagged.,No arvestust märgistatud.
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js,Remove Field,Eemalda Field
@@ -1172,14 +1172,14 @@ DocType: Address,City/Town,City / Town
 DocType: Data Migration Connector,Connector Name,Ühendusnimi
 DocType: Address,Is Your Company Address,Kas teie firma Aadress
 DocType: Energy Point Log,Social,Sotsiaalne
-apps/frappe/frappe/integrations/doctype/google_calendar/google_calendar.py,"Google Calendar - Could not create Calendar for {0}, error code {1}.","Google&#39;i kalender - saidi {0} jaoks ei saanud kalendrit luua, veakood {1}."
+apps/frappe/frappe/integrations/doctype/google_calendar/google_calendar.py,"Google Calendar - Could not create Calendar for {0}, error code {1}.","Google'i kalender - saidi {0} jaoks ei saanud kalendrit luua, veakood {1}."
 apps/frappe/frappe/public/js/frappe/form/grid_row_form.js,Editing Row,Toimetajad Row
 DocType: Workflow Action Master,Workflow Action Master,Töövoo Action Master
 DocType: Custom Field,Field Type,Field Type
 apps/frappe/frappe/utils/data.py,only.,ainult.
 DocType: Route History,Route History,Marsruudi ajalugu
 apps/frappe/frappe/social/doctype/energy_point_settings/energy_point_settings.js,Give Review Points,Andke ülevaatuspunkte
-apps/frappe/frappe/integrations/doctype/google_contacts/google_contacts.py,"Google Calendar - Could not insert contact in Google Contacts {0}, error code {1}.","Google&#39;i kalender - kontakti ei saanud Google&#39;i kontaktidesse {0} sisestada, veakood {1}."
+apps/frappe/frappe/integrations/doctype/google_contacts/google_contacts.py,"Google Calendar - Could not insert contact in Google Contacts {0}, error code {1}.","Google'i kalender - kontakti ei saanud Google'i kontaktidesse {0} sisestada, veakood {1}."
 apps/frappe/frappe/core/doctype/user/user.py,OTP secret can only be reset by the Administrator.,OTP-salasõna võib administraator taastada.
 apps/frappe/frappe/utils/password_strength.py,Avoid years that are associated with you.,"Vältida aastat, mis on seotud teid."
 apps/frappe/frappe/config/users_and_permissions.py,Restrict user for specific document,Kasutaja piiramine konkreetse dokumendi jaoks
@@ -1226,7 +1226,7 @@ DocType: File,old_parent,old_parent
 apps/frappe/frappe/config/desk.py,"Newsletters to contacts, leads.","Uudiskirju kontaktid, viib."
 DocType: Email Account,"e.g. ""Support"", ""Sales"", ""Jerry Yang""","nt &quot;Support&quot;, &quot;Müük&quot;, &quot;Jerry Yang&quot;"
 apps/frappe/frappe/twofactor.py,Incorrect Verification code,Vale kinnituskood
-apps/frappe/frappe/integrations/doctype/google_contacts/google_contacts.py,Google Contacts Integration is disabled.,Google&#39;i kontaktide integreerimine on keelatud.
+apps/frappe/frappe/integrations/doctype/google_contacts/google_contacts.py,Google Contacts Integration is disabled.,Google'i kontaktide integreerimine on keelatud.
 DocType: Assignment Rule,Description,Kirjeldus
 DocType: Print Settings,Repeat Header and Footer in PDF,Korda Päis ja jalus PDF
 apps/frappe/frappe/core/doctype/data_import_beta/data_import_beta.js,Failure,Rike
@@ -1267,7 +1267,7 @@ apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Set
 DocType: Workflow State,align-justify,"viia, õigustada"
 DocType: User,Middle Name (Optional),Lähis nimi (valikuline)
 apps/frappe/frappe/public/js/frappe/request.js,Not Permitted,Ei ole lubatud
-apps/frappe/frappe/integrations/doctype/google_calendar/google_calendar.py,No Google Calendar Event to sync.,Sünkroonimiseks pole ühtegi Google&#39;i kalendri sündmust.
+apps/frappe/frappe/integrations/doctype/google_calendar/google_calendar.py,No Google Calendar Event to sync.,Sünkroonimiseks pole ühtegi Google'i kalendri sündmust.
 apps/frappe/frappe/public/js/frappe/ui/field_group.js,Following fields have missing values:,Pärast väljad on kadunud väärtusi:
 apps/frappe/frappe/public/js/frappe/utils/energy_point_utils.js,via automatic rule {0} on {1},automaatse reegli {0} kaudu {1}
 apps/frappe/frappe/core/report/transaction_log_report/transaction_log_report.py,First Transaction,Esimene tehing
@@ -1386,7 +1386,7 @@ DocType: OAuth Client,A list of resources which the Client App will have access 
 DocType: Translation,Translated Text,tõlgitud tekst
 DocType: Contact Us Settings,Query Options,Päringu valikud
 apps/frappe/frappe/public/js/frappe/social/components/PostLoader.vue,Fetching posts...,Postituste toomine ...
-apps/frappe/frappe/integrations/doctype/google_contacts/google_contacts.py,Contact Synced with Google Contacts.,Kontakt on sünkroonitud Google&#39;i kontaktidega.
+apps/frappe/frappe/integrations/doctype/google_contacts/google_contacts.py,Contact Synced with Google Contacts.,Kontakt on sünkroonitud Google'i kontaktidega.
 DocType: Access Log,Timestamp,Timestamp
 DocType: Patch Log,Patch Log,Patch Logi
 DocType: Data Migration Mapping,Local Primary Key,Kohalik peamine võti
@@ -1425,7 +1425,7 @@ DocType: Data Export,Fields Multicheck,Väli Multicheck
 DocType: Activity Log,Login,Logi sisse
 DocType: Web Form,Payments,Maksed
 apps/frappe/frappe/www/qrcode.html,Hi {0},Tere {0}
-apps/frappe/frappe/config/integrations.py,Google Drive Integration.,Google Drive&#39;i integreerimine.
+apps/frappe/frappe/config/integrations.py,Google Drive Integration.,Google Drive'i integreerimine.
 apps/frappe/frappe/public/js/frappe/ui/toolbar/energy_points_notifications.js,{0} reverted your points on {1} {2},{0} tõi teie punktid tagasi {1} {2}
 DocType: System Settings,Enable Scheduled Jobs,Luba Planeeritud Jobs
 apps/frappe/frappe/core/doctype/data_export/exporter.py,Notes:,Märkused:
@@ -1441,7 +1441,7 @@ apps/frappe/frappe/contacts/report/addresses_and_contacts/addresses_and_contacts
 apps/frappe/frappe/core/doctype/role_permission_for_page_and_report/role_permission_for_page_and_report.js,Mandatory field: set role for,Kohustuslik väli: määrata roll
 apps/frappe/frappe/public/js/frappe/utils/energy_point_utils.js,{0} criticized {1},{0} kritiseerisid {1}
 DocType: Data Migration Mapping,Mapping Name,Mapping Name
-apps/frappe/frappe/core/doctype/doctype/doctype.py,{0}: Field '{1}' cannot be set as Unique as it has non-unique values,"{0}: välja &#39;{1}&#39; ei saa seada unikaalseks, kuna sellel on mitte unikaalsed väärtused"
+apps/frappe/frappe/core/doctype/doctype/doctype.py,{0}: Field '{1}' cannot be set as Unique as it has non-unique values,"{0}: välja '{1}' ei saa seada unikaalseks, kuna sellel on mitte unikaalsed väärtused"
 apps/frappe/frappe/public/js/frappe/list/list_view.js,Navigate list down,Liikuge loendis allapoole
 DocType: Currency,A symbol for this currency. For e.g. $,Sümbol selle valuuta. Sest näiteks $
 apps/frappe/frappe/public/js/frappe/views/translation_manager.js,Successfully updated translations,Tõlked on uuendatud
@@ -1599,8 +1599,8 @@ DocType: OAuth Authorization Code,Redirect URI Bound To Auth Code,Ümber suunama
 apps/frappe/frappe/public/js/frappe/ui/keyboard.js,Open Help,Avage spikker
 DocType: DocType,Is Submittable,Kas esitatav
 apps/frappe/frappe/core/doctype/comment/comment.py,New Mention,Uus märkus
-apps/frappe/frappe/integrations/doctype/google_contacts/google_contacts.py,No new Google Contacts synced.,Uusi Google&#39;i kontakte ei sünkroonitud.
-DocType: File,Uploaded To Google Drive,Google Drive&#39;i üles laaditud
+apps/frappe/frappe/integrations/doctype/google_contacts/google_contacts.py,No new Google Contacts synced.,Uusi Google'i kontakte ei sünkroonitud.
+DocType: File,Uploaded To Google Drive,Google Drive'i üles laaditud
 apps/frappe/frappe/custom/doctype/property_setter/property_setter.js,Value for a check field can be either 0 or 1,Väärtus tšeki valdkonnas võib olla kas 0 või 1
 apps/frappe/frappe/model/document.py,Could not find {0},Ei leia {0}
 apps/frappe/frappe/public/js/frappe/form/controls/link.js,Filters applied for {0},Filtrid on taotletud {0}
@@ -1616,7 +1616,7 @@ DocType: Energy Point Rule,Maximum Points,Maksimaalne punktide arv
 apps/frappe/frappe/public/js/frappe/ui/toolbar/navbar.html,My Settings,Minu seaded
 apps/frappe/frappe/website/doctype/website_theme/website_theme.js,Text Color,Teksti värv
 apps/frappe/frappe/desk/page/backups/backups.py,Backup job is already queued. You will receive an email with the download link,Backup töö on juba järjekorras. Saate alla laadida linki
-apps/frappe/frappe/integrations/doctype/google_calendar/google_calendar.py,1 Google Calendar Event synced.,1 Google&#39;i kalendri sündmus on sünkroonitud.
+apps/frappe/frappe/integrations/doctype/google_calendar/google_calendar.py,1 Google Calendar Event synced.,1 Google'i kalendri sündmus on sünkroonitud.
 DocType: Desktop Icon,Force Show,Force Näita
 apps/frappe/frappe/auth.py,Invalid Request,Vale taotlus
 apps/frappe/frappe/public/js/frappe/form/layout.js,This form does not have any input,See vorm ei ole mingit sisendit
@@ -1865,7 +1865,7 @@ apps/frappe/frappe/integrations/doctype/razorpay_settings/razorpay_settings.py,"
 apps/frappe/frappe/public/js/frappe/list/list_view.js,Customize,Kohanda
 apps/frappe/frappe/core/doctype/user/user.js,View Permitted Documents,Vaadake lubatavaid dokumente
 apps/frappe/frappe/utils/print_format.py,You need to install pycups to use this feature!,Selle funktsiooni kasutamiseks peate installima pycupid!
-apps/frappe/frappe/templates/pages/integrations/gcalendar-success.html,Your connection request to Google Calendar was successfully accepted,Teie ühenduse taotlus Google&#39;i kalendrisse on edukalt vastu võetud
+apps/frappe/frappe/templates/pages/integrations/gcalendar-success.html,Your connection request to Google Calendar was successfully accepted,Teie ühenduse taotlus Google'i kalendrisse on edukalt vastu võetud
 DocType: Tag Link,Tag Link,Sildilink
 apps/frappe/frappe/core/report/transaction_log_report/transaction_log_report.py,Chain Integrity,Keti terviklikkus
 DocType: Data Export,CSV,CSV
@@ -1893,14 +1893,14 @@ DocType: S3 Backup Settings,ap-northeast-3,ap-kirde-3
 DocType: Data Migration Mapping,Remote Primary Key,Remote Primary Key
 apps/frappe/frappe/public/js/frappe/ui/filters/filters.js,In,Sisse
 DocType: Notification,Value Change,Väärtus Muutus
-DocType: Google Contacts,Authorize Google Contacts Access,Google&#39;i kontaktide juurdepääsu volitamine
+DocType: Google Contacts,Authorize Google Contacts Access,Google'i kontaktide juurdepääsu volitamine
 apps/frappe/frappe/public/js/frappe/views/reports/report_view.js,Showing only Numeric fields from Report,Kuvatakse aruandest ainult Numbrilised väljad
 DocType: Data Import Beta,Import Type,Impordi tüüp
 DocType: Access Log,HTML Page,HTML-leht
 DocType: Address,Subsidiary,Tütarettevõte
 apps/frappe/frappe/public/js/frappe/form/print.js,Attempting Connection to QZ Tray...,QZ-salvega ühenduse loomise proovimine ...
 DocType: System Settings,In Hours,Tundides
-apps/frappe/frappe/integrations/doctype/google_drive/google_drive.py,Google Drive - Could not find folder in Google Drive - Error Code {0},Google Drive - Google Drive&#39;ist ei leitud kausta - veakood {0}
+apps/frappe/frappe/integrations/doctype/google_drive/google_drive.py,Google Drive - Could not find folder in Google Drive - Error Code {0},Google Drive - Google Drive'ist ei leitud kausta - veakood {0}
 apps/frappe/frappe/public/js/frappe/list/bulk_operations.js,With Letterhead,Mis Letterhead
 apps/frappe/frappe/email/smtp.py,Invalid Outgoing Mail Server or Port,Vale Outgoing Mail Server või Port
 DocType: Custom DocPerm,Write,Kirjutage
@@ -2001,7 +2001,7 @@ apps/frappe/frappe/core/doctype/role_permission_for_page_and_report/role_permiss
 DocType: Activity Log,Logout,Logi välja
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Permissions at higher levels are Field Level permissions. All Fields have a Permission Level set against them and the rules defined at that permissions apply to the field. This is useful in case you want to hide or make certain field read-only for certain Roles.,"Õigused kõrgematel tasanditel on Field Tase õigused. Kõik väljad on õigustetasemele komplekt neile ja reeglid määratletud, et load kehtivad valdkonnas. See on kasulik, kui soovid peita või teha teatud valdkonnas lugemiseks vaid teatud rollid."
 DocType: SMS Settings,"Enter static url parameters here (Eg. sender=ERPNext, username=ERPNext, password=1234 etc.)","Sisesta staatiline url parameetrid (n. Saatjale = ERPNext, kasutajanimi = ERPNext parooliga 1234 jne)"
-apps/frappe/frappe/website/doctype/website_theme/website_theme.js,Google Font,Google&#39;i font
+apps/frappe/frappe/website/doctype/website_theme/website_theme.js,Google Font,Google'i font
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,"If these instructions where not helpful, please add in your suggestions on GitHub Issues.","Kui neid juhiseid, kus ei ole kasulik, lisage oma ettepanekuid github küsimused."
 DocType: Workflow State,bookmark,järjehoidja
 apps/frappe/frappe/public/js/frappe/views/file/file_view.js,Folder name should not include '/' (slash),Kausta nimi ei tohi sisaldada &quot;/&quot; (kaldkriipsuga)
@@ -2038,7 +2038,7 @@ DocType: Address,Fax,Fax
 apps/frappe/frappe/config/customization.py,Custom Tags,kohandatud sildid
 apps/frappe/frappe/email/smtp.py,Email Account not setup. Please create a new Email Account from Setup > Email > Email Account,E-posti konto pole seadistatud. Palun looge uus e-posti konto jaotises Seadistamine> E-post> E-posti konto
 DocType: Comment,Submitted,Esitatud
-DocType: Contact,Pulled from Google Contacts,Tõmmatud Google&#39;i kontaktidest
+DocType: Contact,Pulled from Google Contacts,Tõmmatud Google'i kontaktidest
 apps/frappe/frappe/integrations/doctype/paypal_settings/paypal_settings.py,In Valid Request,Kehtivas taotluses
 apps/frappe/frappe/website/doctype/website_theme/website_theme.py,Compiled Successfully,Koostatud edukalt
 DocType: System Settings,Email Footer Address,Email jalus Aadress
@@ -2118,7 +2118,7 @@ DocType: User,Bio,Bio
 DocType: OAuth Client,App Client Secret,App kliendi saladus
 apps/frappe/frappe/public/js/frappe/form/save.js,Submitting,Esitades
 apps/frappe/frappe/core/doctype/data_export/exporter.py,Parent is the name of the document to which the data will get added to.,"Vanem on dokumendi nimi, millele andmed lisatakse."
-apps/frappe/frappe/integrations/doctype/google_drive/google_drive.py,Google Drive - Could not create folder in Google Drive - Error Code {0},Google Drive - Google Drive&#39;is ei saanud kausta luua - veakood {0}
+apps/frappe/frappe/integrations/doctype/google_drive/google_drive.py,Google Drive - Could not create folder in Google Drive - Error Code {0},Google Drive - Google Drive'is ei saanud kausta luua - veakood {0}
 DocType: DocType,UPPER CASE,SUURTÄHTEDE
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js,Custom HTML,Custom HTML
 apps/frappe/frappe/public/js/frappe/views/file/file_view.js,Enter folder name,Sisesta kataloogi nimi
@@ -2147,7 +2147,7 @@ DocType: Data Migration Connector,Database Name,Andmebaasi nimi
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js,Refresh Form,Värskenda vorm
 DocType: DocField,Select,Valima
 apps/frappe/frappe/public/js/frappe/ui/toolbar/energy_points_notifications.js,View Full Log,Vaata kogu logi
-DocType: Assignment Rule,"Simple Python Expression, Example: status == 'Open' and type == 'Bug'","Lihtne Pythoni avaldus, näide: olek == &#39;Ava&#39; ja tippige == &#39;Viga&#39;"
+DocType: Assignment Rule,"Simple Python Expression, Example: status == 'Open' and type == 'Bug'","Lihtne Pythoni avaldus, näide: olek == 'Ava' ja tippige == 'Viga'"
 apps/frappe/frappe/utils/csvutils.py,File not attached,Faili ei kinnitatud
 apps/frappe/frappe/public/js/frappe/dom.js,Connection lost. Some features might not work.,Ühendus kaotsi läinud Mõned funktsioonid ei pruugi töötada.
 apps/frappe/frappe/utils/password_strength.py,"Repeats like ""aaa"" are easy to guess",Kordab nagu &quot;aaa&quot; on lihtne ära arvata
@@ -2182,7 +2182,7 @@ DocType: Email Unsubscribe,Global Unsubscribe,Global tellimine
 apps/frappe/frappe/utils/password_strength.py,This is a very common password.,See on väga levinud parool.
 apps/frappe/frappe/email/doctype/email_group/email_group.js,View,Vaade
 DocType: Comment,Assigned,Sihtotstarbelised
-apps/frappe/frappe/integrations/doctype/google_drive/google_drive.js,Click on <b>Authorize Google Drive Access</b> to authorize Google Drive Access.,<b>Google Drive&#39;i juurdepääsu autoriseerimiseks</b> klõpsake valikul <b>Volita</b> Google Drive&#39;i juurdepääsu.
+apps/frappe/frappe/integrations/doctype/google_drive/google_drive.js,Click on <b>Authorize Google Drive Access</b> to authorize Google Drive Access.,<b>Google Drive'i juurdepääsu autoriseerimiseks</b> klõpsake valikul <b>Volita</b> Google Drive'i juurdepääsu.
 DocType: Print Format,Js,Js
 apps/frappe/frappe/public/js/frappe/views/communication.js,Select Print Format,Valige Print Format
 apps/frappe/frappe/utils/password_strength.py,Short keyboard patterns are easy to guess,Lühike klaviatuuri mustrid on lihtne ära arvata
@@ -2220,7 +2220,7 @@ apps/frappe/frappe/core/doctype/system_settings/system_settings.py,Please select
 apps/frappe/frappe/public/js/frappe/form/footer/timeline.js,Added,Lisatud
 DocType: Personal Data Download Request,Personal Data Download Request,Isikuandmete allalaadimise taotlus
 DocType: DocField,Table MultiSelect,Tabel MultiSelect
-apps/frappe/frappe/config/integrations.py,Google Calendar Integration.,Google&#39;i kalendri integratsioon.
+apps/frappe/frappe/config/integrations.py,Google Calendar Integration.,Google'i kalendri integratsioon.
 DocType: Auto Repeat,Half-yearly,Poolaasta-
 apps/frappe/frappe/templates/emails/upcoming_events.html,Daily Event Digest is sent for Calendar Events where reminders are set.,Daily Event Digest saadetakse Üritused kus meeldetuletused seada.
 DocType: Braintree Settings,Header Image,Päise pilt
@@ -2263,7 +2263,7 @@ apps/frappe/frappe/public/js/frappe/ui/group_by/group_by.js,Average of {0},Keskm
 DocType: User,Logout from all devices while changing Password,Väljuge kõikidest seadmetest parooli vahetamisel
 apps/frappe/frappe/public/js/frappe/ui/messages.js,Verify Password,Kinnita parool
 apps/frappe/frappe/public/js/frappe/form/sidebar/attachments.js,There were errors,Vigu
-apps/frappe/frappe/integrations/doctype/google_calendar/google_calendar.py,Enter Client Id and Client Secret in Google Settings.,Sisestage Google&#39;i seadetes kliendi ID ja kliendi saladus.
+apps/frappe/frappe/integrations/doctype/google_calendar/google_calendar.py,Enter Client Id and Client Secret in Google Settings.,Sisestage Google'i seadetes kliendi ID ja kliendi saladus.
 apps/frappe/frappe/core/doctype/communication/communication.js,Close,Lähedane
 apps/frappe/frappe/model/document.py,Cannot change docstatus from 0 to 2,Ei saa muuta docstatus 0-2
 DocType: File,Attached To Field,Väli lisatud
@@ -2310,7 +2310,7 @@ DocType: Payment Gateway,Gateway,Gateway
 DocType: LDAP Settings,Path to Server Certificate,Tee serveri sertifikaadini
 apps/frappe/frappe/public/js/frappe/form/linked_with.js,Not enough permission to see links,Pole piisavalt luba näha lingid
 apps/frappe/frappe/contacts/doctype/address/address.py,Address Title is mandatory.,Aadress Pealkiri on kohustuslik.
-DocType: Google Contacts,Push to Google Contacts,Pöörake Google&#39;i kontaktidesse
+DocType: Google Contacts,Push to Google Contacts,Pöörake Google'i kontaktidesse
 DocType: Website Settings,"Added HTML in the <head> section of the web page, primarily used for website verification and SEO","Lisatud HTML <head> osas veebilehe, mida kasutatakse peamiselt veebilehel kontrollimist ja SEO"
 apps/frappe/frappe/core/doctype/error_snapshot/error_snapshot_list.js,Relapsed,Retsidiveerunud
 apps/frappe/frappe/utils/nestedset.py,Item cannot be added to its own descendents,Punkt ei saa lisada oma järeltulijad
@@ -2372,7 +2372,7 @@ DocType: DocField,Fetch From,Tõmba välja
 apps/frappe/frappe/modules/utils.py,App not found,App ei leitud
 apps/frappe/frappe/core/doctype/communication/communication.py,Cannot create a {0} against a child document: {1},Ei saa luua {0} lapse vastu dokument: {1}
 DocType: Social Login Key,Social Login Key,Sotsiaalse sisselogimise võti
-apps/frappe/frappe/core/doctype/doctype/doctype.py,{0}: Options {1} must be the same as doctype name {2} for the field {3},{0}: valikud {1} peavad olema väljal {3} samad kui doctype&#39;i nimi {2}
+apps/frappe/frappe/core/doctype/doctype/doctype.py,{0}: Options {1} must be the same as doctype name {2} for the field {3},{0}: valikud {1} peavad olema väljal {3} samad kui doctype'i nimi {2}
 apps/frappe/frappe/public/js/frappe/ui/keyboard.js,Clear Cache and Reload,Tühjendage vahemälu ja laadige uuesti
 DocType: Portal Settings,Custom Sidebar Menu,Custom Külgriba menüü
 DocType: Workflow State,pencil,pliiats
@@ -2431,7 +2431,7 @@ apps/frappe/frappe/public/js/frappe/form/print.js,This may get printed on multip
 DocType: Data Migration Run,Percent Complete,Protsent täidetud
 DocType: Tag Category,Tag Category,tag Kategooria
 apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,"For comparison, use >5, <10 or =324. For ranges, use 5:10 (for values between 5 &amp; 10).","Võrdluseks kasutage> 5, <10 või = 324. Vahemike jaoks kasutage 5:10 (väärtuste vahemikus 5–10)."
-DocType: Google Calendar,Pull from Google Calendar,Tõmmake Google&#39;i kalendrist
+DocType: Google Calendar,Pull from Google Calendar,Tõmmake Google'i kalendrist
 apps/frappe/frappe/core/doctype/data_import/data_import.js,Help,Aitama
 DocType: User,Login Before,Logi Enne
 DocType: Web Page,Insert Style,Sisesta Style
@@ -2468,7 +2468,7 @@ apps/frappe/frappe/email/smtp.py,Invalid recipient address,Vale saaja aadress
 DocType: Workflow State,step-forward,samm edasi
 DocType: System Settings,Allow Login After Fail,Luba sisselogimine pärast nurjumist
 DocType: Role Permission for Page and Report,Set Role For,Määra roll
-DocType: GCalendar Account,The name that will appear in Google Calendar,"Nimi, mis kuvatakse Google&#39;i kalendris"
+DocType: GCalendar Account,The name that will appear in Google Calendar,"Nimi, mis kuvatakse Google'i kalendris"
 apps/frappe/frappe/chat/doctype/chat_room/chat_room.py,Direct room with {0} already exists.,Otsene tuba {0} juba on olemas.
 apps/frappe/frappe/core/doctype/user/user.js,Refreshing...,Värskendav ...
 DocType: Event,Starts on,Algab
@@ -2480,7 +2480,7 @@ apps/frappe/frappe/public/js/frappe/form/footer/timeline.js,submitted this docum
 DocType: Workflow State,th,th
 DocType: Social Login Key,Provider Name,Pakkuja nimi
 apps/frappe/frappe/public/js/frappe/list/list_view.js,Create a new {0},Loo uus {0}
-DocType: Contact,Google Contacts,Google&#39;i kontaktid
+DocType: Contact,Google Contacts,Google'i kontaktid
 DocType: GCalendar Account,GCalendar Account,GCalendari konto
 DocType: Email Rule,Is Spam,Kas Spam
 apps/frappe/frappe/public/js/frappe/ui/toolbar/search_utils.js,Report {0},Aruanne {0}
@@ -2499,9 +2499,9 @@ apps/frappe/frappe/core/doctype/doctype/doctype.py,{0}: Field {1} in row {2} can
 DocType: Newsletter,Create and Send Newsletters,Loo ja saatke uudiskirju
 apps/frappe/frappe/templates/includes/comments/comments.html,Thank you for your comment. It will be published after approval,Aitäh kommentaari eest. See avaldatakse pärast heakskiitmist
 DocType: Address,Andaman and Nicobar Islands,Andamani ja Nicobari saared
-DocType: Google Contacts,Pull from Google Contacts,Tõmmake Google&#39;i kontaktide hulgast
+DocType: Google Contacts,Pull from Google Contacts,Tõmmake Google'i kontaktide hulgast
 apps/frappe/frappe/email/doctype/notification/notification.py,Please specify which value field must be checked,"Palun täpsustage, mis on väärtuse väljal tuleb kontrollida"
-DocType: Event,Google Calendar Event ID,Google&#39;i kalendri sündmuse ID
+DocType: Event,Google Calendar Event ID,Google'i kalendri sündmuse ID
 apps/frappe/frappe/core/doctype/data_export/exporter.py,"""Parent"" signifies the parent table in which this row must be added","&quot;Vanem&quot; tähendab vanemale tabeli, kus see rida tuleb lisada"
 apps/frappe/frappe/desk/page/user_profile/user_profile.js,Review Points: ,Ülevaatamispunktid:
 apps/frappe/frappe/public/js/frappe/form/templates/form_sidebar.html,Shared With,Jagada
@@ -2567,7 +2567,7 @@ apps/frappe/frappe/www/update-password.html,New Password Required.,New Password 
 apps/frappe/frappe/core/doctype/docshare/docshare.py,{0} shared this document with {1},{0} jagas seda dokumenti {1}ga
 DocType: Website Settings,Brand Image,kaubamärgi maine
 DocType: Print Settings,A4,A4
-apps/frappe/frappe/integrations/doctype/google_calendar/google_calendar.py,Google Calendar has been configured.,Google&#39;i kalender on konfigureeritud.
+apps/frappe/frappe/integrations/doctype/google_calendar/google_calendar.py,Google Calendar has been configured.,Google'i kalender on konfigureeritud.
 apps/frappe/frappe/config/website.py,"Setup of top navigation bar, footer and logo.","Setup top navigation bar, jalus ja logo."
 DocType: Web Form Field,Max Value,max Value
 apps/frappe/frappe/core/doctype/doctype/doctype.py,For {0} at level {1} in {2} in row {3},Sest {0} tasemel {1} on {2} järjest {3}
@@ -2591,7 +2591,7 @@ DocType: Dropbox Settings,Dropbox Access Token,Dropbox pääsuluba
 DocType: Workflow State,align-right,viia paremale
 DocType: Auto Email Report,Email To,Saada
 apps/frappe/frappe/core/doctype/file/file.py,Folder {0} is not empty,Folder {0} ei ole tühi
-apps/frappe/frappe/integrations/doctype/google_contacts/google_contacts.py,{0} Google Contacts synced.,{0} Google&#39;i kontaktid on sünkroonitud.
+apps/frappe/frappe/integrations/doctype/google_contacts/google_contacts.py,{0} Google Contacts synced.,{0} Google'i kontaktid on sünkroonitud.
 DocType: Page,Roles,Rollid
 apps/frappe/frappe/model/base_document.py,Error: Value missing for {0}: {1},Viga: Väärtus kadunud {0}: {1}
 DocType: Blog Post,Content (Markdown),Sisu (märgistus)
@@ -2679,10 +2679,10 @@ DocType: DocField,Ignore XSS Filter,Ignoreeri XSS Filter
 apps/frappe/frappe/public/js/frappe/form/footer/timeline.js,removed,eemaldatud
 apps/frappe/frappe/config/integrations.py,Dropbox backup settings,Dropbox backup seaded
 DocType: Webhook,Webhook Trigger,Webhooki päästik
-apps/frappe/frappe/integrations/doctype/google_calendar/google_calendar.py,{0} Google Calendar Events synced.,{0} Google&#39;i kalendri sündmused on sünkroonitud.
+apps/frappe/frappe/integrations/doctype/google_calendar/google_calendar.py,{0} Google Calendar Events synced.,{0} Google'i kalendri sündmused on sünkroonitud.
 DocType: Dashboard Chart,Time Series,Ajasari
 apps/frappe/frappe/core/doctype/user/user.py,User {0} cannot be disabled,Kasutaja {0} ei saa välja lülitada
-apps/frappe/frappe/integrations/doctype/google_calendar/google_calendar.js,Google Settings,Google&#39;i seaded
+apps/frappe/frappe/integrations/doctype/google_calendar/google_calendar.js,Google Settings,Google'i seaded
 apps/frappe/frappe/templates/emails/administrator_logged_in.html,"Dear System Manager,","Lugupeetud System Manager,"
 apps/frappe/frappe/desk/doctype/todo/todo.py,{0} self assigned this task: {1},{0} ise omistas selle ülesande: {1}
 apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js,Your Country,Sinu riik
@@ -2699,8 +2699,8 @@ apps/frappe/frappe/contacts/report/addresses_and_contacts/addresses_and_contacts
 apps/frappe/frappe/public/js/frappe/form/save.js,Amending,Millega muudetakse
 apps/frappe/frappe/config/integrations.py,PayPal payment gateway settings,PayPal makse gateway seaded
 apps/frappe/frappe/templates/emails/energy_points_summary.html,Top Performer,Tippnäitleja
-apps/frappe/frappe/custom/doctype/custom_field/custom_field.py,Custom Fields cannot be added to core DocTypes.,Kohandatud välju ei saa põhilistesse DocTypes&#39;i lisada.
-apps/frappe/frappe/model/base_document.py,"{0}: '{1}' ({3}) will get truncated, as max characters allowed is {2}","{0}: &#39;{1}&#39; ({3}) saavad kärbitud, kui max lubatud tähemärkide {2}"
+apps/frappe/frappe/custom/doctype/custom_field/custom_field.py,Custom Fields cannot be added to core DocTypes.,Kohandatud välju ei saa põhilistesse DocTypes'i lisada.
+apps/frappe/frappe/model/base_document.py,"{0}: '{1}' ({3}) will get truncated, as max characters allowed is {2}","{0}: '{1}' ({3}) saavad kärbitud, kui max lubatud tähemärkide {2}"
 DocType: OAuth Client,Response Type,Vastus Type
 DocType: Contact Us Settings,Send enquiries to this email address,Saada päringuid sellele aadressile
 DocType: Letter Head,Letter Head Name,Kiri Head nimi
@@ -2736,7 +2736,7 @@ DocType: Email Account,no failed attempts,no ebaõnnestunud katseid
 DocType: GSuite Settings,refresh_token,refresh_token
 DocType: Dropbox Settings,App Access Key,App Access Key
 apps/frappe/frappe/automation/doctype/auto_repeat/auto_repeat.py,Auto Repeat failed for {0},Automaatne kordus nurjus {0}
-apps/frappe/frappe/integrations/doctype/google_contacts/google_contacts.py,Enable Google API in Google Settings.,Luba Google&#39;i seadetes Google API.
+apps/frappe/frappe/integrations/doctype/google_contacts/google_contacts.py,Enable Google API in Google Settings.,Luba Google'i seadetes Google API.
 DocType: Session Default,Session Default,Seansi vaikimisi
 DocType: Chat Room,Last Message,Viimane sõnum
 DocType: OAuth Bearer Token,Access Token,Access Token
@@ -2767,7 +2767,7 @@ apps/frappe/frappe/templates/includes/comments/comments.py,Comment Should be atl
 apps/frappe/frappe/core/doctype/deleted_document/deleted_document.py,Document Restored,dokumendi taastatud
 DocType: Data Export,Data Export,Andmete eksportimine
 apps/frappe/frappe/public/js/frappe/form/print.js,Select Language...,Vali keel...
-apps/frappe/frappe/custom/doctype/customize_form/customize_form.py,You can't set 'Options' for field {0},Väljale {0} ei saa määrata &#39;Valikud&#39;
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.py,You can't set 'Options' for field {0},Väljale {0} ei saa määrata 'Valikud'
 DocType: Help Article,Author,autor
 apps/frappe/frappe/email/doctype/email_queue/email_queue_list.js,Resume Sending,Jätka saatmine
 apps/frappe/frappe/core/doctype/communication/communication.js,Reopen,Taastada
@@ -2788,7 +2788,7 @@ DocType: Data Import,Amended From,Muudetud From
 apps/frappe/frappe/public/js/frappe/model/meta.js,Warning: Unable to find {0} in any table related to {1},Hoiatus: Ei leia {0} tahes tabelis seotud {1}
 DocType: S3 Backup Settings,eu-north-1,eu-põhja-1
 apps/frappe/frappe/model/document.py,This document is currently queued for execution. Please try again,See dokument on praegu sabas täitmiseks. Palun proovi uuesti
-apps/frappe/frappe/core/doctype/file/file.py,File '{0}' not found,Faili &#39;{0}&#39; ei leitud
+apps/frappe/frappe/core/doctype/file/file.py,File '{0}' not found,Faili '{0}' ei leitud
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js,Remove Section,Eemalda jaos
 DocType: User,Change Password,Muuda salasõna
 apps/frappe/frappe/public/js/frappe/views/reports/report_view.js,X Axis Field,X-teljevälja
@@ -2798,7 +2798,7 @@ apps/frappe/frappe/config/integrations.py,Braintree payment gateway settings,Bra
 apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,Rebuild,Ümberehitada
 apps/frappe/frappe/www/third_party_apps.html,This will log out {0} from all other devices,See logib kõikidest teistest seadmetest välja {0}
 apps/frappe/frappe/desk/query_report.py,You don't have permission to get a report on: {0},Sa ei pea luba saada aruande: {0}
-apps/frappe/frappe/integrations/doctype/google_calendar/google_calendar.py,"Google Calendar - Could not insert event in Google Calendar {0}, error code {1}.","Google&#39;i kalender - sündmust ei õnnestunud Google&#39;i kalendrisse {0} sisestada, veakood {1}."
+apps/frappe/frappe/integrations/doctype/google_calendar/google_calendar.py,"Google Calendar - Could not insert event in Google Calendar {0}, error code {1}.","Google'i kalender - sündmust ei õnnestunud Google'i kalendrisse {0} sisestada, veakood {1}."
 DocType: System Settings,Apply Strict User Permissions,Ranged kasutajalubasid
 DocType: S3 Backup Settings,us-west-1,us-lääs-1
 DocType: DocField,Allow Bulk Edit,Luba Bulk Edit
@@ -2838,7 +2838,7 @@ apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,"To get the up
 apps/frappe/frappe/sessions.py,Redis cache server not running. Please contact Administrator / Tech support,Redis cache server ei tööta. Palun pöörduge administraatori / Tehniline tugi
 apps/frappe/frappe/public/js/frappe/ui/toolbar/search_header.html,Searching,otsimine
 DocType: Currency,Fraction,Murdosa
-apps/frappe/frappe/integrations/doctype/google_calendar/google_calendar.py,Event Synced with Google Calendar.,Sündmus on sünkroonitud Google&#39;i kalendriga.
+apps/frappe/frappe/integrations/doctype/google_calendar/google_calendar.py,Event Synced with Google Calendar.,Sündmus on sünkroonitud Google'i kalendriga.
 DocType: LDAP Settings,LDAP First Name Field,LDAP Eesnimi Field
 DocType: Contact,Middle Name,Keskmine nimi
 DocType: Custom Field,Field Description,Field kirjeldus
@@ -2853,7 +2853,7 @@ DocType: Address,Plant,Taim
 apps/frappe/frappe/core/doctype/communication/communication.js,Reply All,Vasta kõigile
 DocType: DocType,Setup,Setup
 apps/frappe/frappe/public/js/frappe/data_import/data_exporter.js,All Records,Kõik plaadid
-DocType: Google Contacts,Email Address whose Google Contacts are to be synced.,"E-posti aadress, mille Google&#39;i kontakte tuleb sünkroonida."
+DocType: Google Contacts,Email Address whose Google Contacts are to be synced.,"E-posti aadress, mille Google'i kontakte tuleb sünkroonida."
 DocType: Email Account,Initial Sync Count,Esmane Sync Krahv
 DocType: Workflow State,glass,klaas
 DocType: DocType,Timeline Field,Timeline Field
@@ -2930,7 +2930,7 @@ apps/frappe/frappe/core/doctype/data_import/importer_new.py,Invalid Template,Val
 apps/frappe/frappe/model/db_query.py,Illegal SQL Query,Ebaseaduslik SQL päring
 apps/frappe/frappe/core/doctype/data_export/exporter.py,Mandatory:,Kohustuslik:
 DocType: Chat Message,Mentions,Mainib
-apps/frappe/frappe/integrations/doctype/google_contacts/google_contacts.js,"To use Google Contacts, enable {0}.",Google&#39;i kontaktide kasutamiseks lubage {0}.
+apps/frappe/frappe/integrations/doctype/google_contacts/google_contacts.js,"To use Google Contacts, enable {0}.",Google'i kontaktide kasutamiseks lubage {0}.
 apps/frappe/frappe/public/js/frappe/utils/utils.js,{0} Modules,{0} moodulid
 DocType: Chat Room,Chat Room,Jututuba
 DocType: Chat Profile,Conversation Tones,Vestlushelinad
@@ -2969,13 +2969,13 @@ DocType: GSuite Settings,GSuite Settings,GSuite Seaded
 DocType: Address,Links,Lingid
 DocType: Email Account,Uses the Email Address Name mentioned in this Account as the Sender's Name for all emails sent using this Account.,Kasutab sellel kontol mainitud e-posti aadressinime saatja nimena kõigil selle konto kaudu saadetud meilidel.
 DocType: Energy Point Rule,Field To Check,Kontrollitav väli
-apps/frappe/frappe/integrations/doctype/google_contacts/google_contacts.py,"Google Contacts - Could not update contact in Google Contacts {0}, error code {1}.","Google&#39;i kontaktid - Google&#39;i kontaktide {0} kontakti ei saanud värskendada, veakood {1}."
+apps/frappe/frappe/integrations/doctype/google_contacts/google_contacts.py,"Google Contacts - Could not update contact in Google Contacts {0}, error code {1}.","Google'i kontaktid - Google'i kontaktide {0} kontakti ei saanud värskendada, veakood {1}."
 apps/frappe/frappe/core/doctype/data_export/data_export.js,Please select the Document Type.,Palun valige dokumendi tüüp.
 apps/frappe/frappe/model/base_document.py,Value missing for,Väärtus puuduvad
 apps/frappe/frappe/public/js/frappe/views/treeview.js,Add Child,Lisa Child
 apps/frappe/frappe/core/doctype/data_import_beta/data_import_beta.js,Import Progress,Impordi käik
 DocType: Energy Point Rule,"If the condition is satisfied user will be rewarded with the points. eg. doc.status == 'Closed'
-","Kui tingimus on täidetud, premeeritakse kasutajat punktidega. nt. doc.status == &#39;Suletud&#39;"
+","Kui tingimus on täidetud, premeeritakse kasutajat punktidega. nt. doc.status == 'Suletud'"
 apps/frappe/frappe/model/delete_doc.py,{0} {1}: Submitted Record cannot be deleted.,{0} {1}: Esitatud Record ei saa kustutada.
 DocType: GSuite Templates,Template Name,malli nimi
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js,new type of document,Uue dokumendi tüüp
@@ -3006,7 +3006,7 @@ DocType: Activity Log,Full Name,Täisnimi
 apps/frappe/frappe/public/js/frappe/list/list_filter.js,Duplicate Filter Name,Duplicate filtri nimi
 DocType: Chat Room User,Chat Room User,Jututuba Kasutaja
 apps/frappe/frappe/model/workflow.py,Workflow State not set,Töövoo olek pole määratud
-DocType: Google Calendar,Authorize Google Calendar Access,Google&#39;i kalendri juurdepääsu volitamine
+DocType: Google Calendar,Authorize Google Calendar Access,Google'i kalendri juurdepääsu volitamine
 apps/frappe/frappe/www/404.html,The page you are looking for is missing. This could be because it is moved or there is a typo in the link.,"Lehe otsite on puudu. See võiks olla, sest see liigub või on kirjaviga link."
 apps/frappe/frappe/www/404.html,Error Code: {0},Veakood: {0}
 DocType: Blog Post,"Description for listing page, in plain text, only a couple of lines. (max 140 characters)","Kirjeldus nimekirjade lehele, lihttekstina, ainult paar rida. (max 140 tähemärki)"
@@ -3021,7 +3021,7 @@ DocType: Web Form,Success URL,Edu URL
 DocType: Email Account,Append To,Lisab
 apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py,Number of DB backups cannot be less than 1,DB-i varukoopiate arv ei tohi olla väiksem kui 1
 DocType: Workflow Document State,Only Allow Edit For,Ainult Laske Muuda
-apps/frappe/frappe/integrations/doctype/google_drive/google_drive.js,Backing up to Google Drive.,Varundamine Google Drive&#39;i.
+apps/frappe/frappe/integrations/doctype/google_drive/google_drive.js,Backing up to Google Drive.,Varundamine Google Drive'i.
 apps/frappe/frappe/core/doctype/role_permission_for_page_and_report/role_permission_for_page_and_report.js,Mandatory field: {0},Kohustuslik väli: {0}
 apps/frappe/frappe/templates/includes/comments/comments.html,Your Name,Sinu nimi
 apps/frappe/frappe/templates/pages/integrations/gcalendar-success.html,Connection Success,Ühenduse edu
@@ -3128,7 +3128,7 @@ DocType: Milestone,Milestone,Verstapost
 DocType: User,User Image,Kasutaja Image
 apps/frappe/frappe/core/doctype/doctype/doctype.js,Go to {0},Minge lehele {0}
 apps/frappe/frappe/email/queue.py,Emails are muted,Kirjad on summutatud
-apps/frappe/frappe/config/integrations.py,Google Services,Google&#39;i teenused
+apps/frappe/frappe/config/integrations.py,Google Services,Google'i teenused
 apps/frappe/frappe/public/js/frappe/form/grid_row_form.js,Ctrl + Up,Ctrl + Up
 apps/frappe/frappe/utils/data.py,1 weeks ago,1 nädal tagasi
 DocType: Communication,Error,Eksimus
@@ -3149,7 +3149,7 @@ apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js,Se
 DocType: Custom Field,Options Help,Valikud Abi
 DocType: Footer Item,Group Label,Märgistus
 DocType: Kanban Board,Kanban Board,Kanban Board
-apps/frappe/frappe/integrations/doctype/google_contacts/google_contacts.py,Google Contacts has been configured.,Google&#39;i kontaktid on konfigureeritud.
+apps/frappe/frappe/integrations/doctype/google_contacts/google_contacts.py,Google Contacts has been configured.,Google'i kontaktid on konfigureeritud.
 apps/frappe/frappe/public/js/frappe/data_import/data_exporter.js,1 record will be exported,1 kirje eksporditakse
 DocType: DocField,Report Hide,Aruanne Peida
 apps/frappe/frappe/public/js/frappe/views/treeview.js,Tree view not available for {0},Puunäkymä ole saadaval {0}
@@ -3158,7 +3158,7 @@ DocType: Domain,Domain,Domeeni
 DocType: Custom Field,Label Help,Label Abi
 DocType: Workflow State,star-empty,star-tühi
 apps/frappe/frappe/utils/password_strength.py,Dates are often easy to guess.,Kuupäevad on sageli lihtne ära arvata.
-apps/frappe/frappe/integrations/doctype/google_contacts/google_contacts.py,"Google Contacts - Could not sync contacts from Google Contacts {0}, error code {1}.","Google&#39;i kontaktid - Google&#39;i kontaktide {0} kontakte ei saanud sünkroonida, veakood {1}."
+apps/frappe/frappe/integrations/doctype/google_contacts/google_contacts.py,"Google Contacts - Could not sync contacts from Google Contacts {0}, error code {1}.","Google'i kontaktid - Google'i kontaktide {0} kontakte ei saanud sünkroonida, veakood {1}."
 apps/frappe/frappe/public/js/frappe/form/workflow.js,Next actions,Järgmine tegevusi
 apps/frappe/frappe/email/doctype/notification/notification.py,"Cannot edit Standard Notification. To edit, please disable this and duplicate it",Standardteatise ei saa muuta. Muutmiseks keelake see välja ja kopeerige see
 apps/frappe/frappe/templates/includes/login/login.js,Verification code email not sent. Please contact Administrator.,Kontrollikoodi e-posti aadressi ei saadetud. Palun pöörduge administraatori poole.
@@ -3293,7 +3293,7 @@ apps/frappe/frappe/core/doctype/data_import/log_details.html,Row Status,Rida ole
 DocType: S3 Backup Settings,sa-east-1,sa-ida-1
 DocType: Workflow Transition,Workflow Transition,Töövoo Transition
 apps/frappe/frappe/public/js/frappe/utils/pretty_date.js,{0} months ago,{0} kuud tagasi
-apps/frappe/frappe/custom/doctype/custom_field/custom_field.py,Custom Fields can only be added to a standard DocType.,Kohandatud välju saab lisada ainult standardsesse DocType&#39;i.
+apps/frappe/frappe/custom/doctype/custom_field/custom_field.py,Custom Fields can only be added to a standard DocType.,Kohandatud välju saab lisada ainult standardsesse DocType'i.
 apps/frappe/frappe/public/js/frappe/list/list_sidebar_group_by.js,Created By,Loodud
 apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py,Dropbox Setup,Dropbox Setup
 DocType: Assignment Rule Day,Assignment Rule Day,Ülesannete reeglite päev
@@ -3511,7 +3511,7 @@ DocType: S3 Backup Settings,eu-west-3,eu-lääs-3
 apps/frappe/frappe/public/js/frappe/file_uploader/FileUploader.vue,Uploading {0} of {1},Üleslaadimine: {0} {1} -st
 DocType: DocType,DocType is a Table / Form in the application.,DocType on tabel / hagiavalduses.
 DocType: Social Login Key,Authorize URL,URL-i autoriseerimine
-apps/frappe/frappe/integrations/doctype/google_calendar/google_calendar.py,"Google Calendar - Could not fetch event from Google Calendar, error code {0}.","Google&#39;i kalender - sündmust ei õnnestunud Google&#39;i kalendrist tuua, veakood {0}."
+apps/frappe/frappe/integrations/doctype/google_calendar/google_calendar.py,"Google Calendar - Could not fetch event from Google Calendar, error code {0}.","Google'i kalender - sündmust ei õnnestunud Google'i kalendrist tuua, veakood {0}."
 apps/frappe/frappe/automation/doctype/auto_repeat/auto_repeat.py,Auto Repeat Document Creation Failed,Automaatne dokumendi loomine ebaõnnestus
 DocType: Email Account,GMail,GMail
 DocType: Letter Head,Letter Head Image,Kirja pea pilt
@@ -3529,7 +3529,7 @@ DocType: Chat Message,Visitor,Külastaja
 DocType: User,Allow user to login only before this hour (0-24),Luba kasutajal sisse logida ainult enne seda tund (0-24)
 apps/frappe/frappe/public/js/frappe/file_uploader/FileUploader.vue,"Drag and drop files, ",Failide lohistamine
 DocType: Social Login Key,Access Token URL,Juurdepääs Tokeni URL-ile
-apps/frappe/frappe/config/integrations.py,Google Drive Backup.,Google Drive&#39;i varundamine.
+apps/frappe/frappe/config/integrations.py,Google Drive Backup.,Google Drive'i varundamine.
 apps/frappe/frappe/desk/doctype/todo/todo.py,{0} assigned {1}: {2},{0} määratud {1}: {2}
 apps/frappe/frappe/www/contact.py,New Message from Website Contact Page,Uus Sõnum Veebileht Kontakt Page
 DocType: Notification,Reference Date,Viide kuupäev
@@ -3597,12 +3597,12 @@ DocType: Auto Email Report,Dynamic Report Filters,Dünaamilised aruandefiltrid
 DocType: Email Account,UIDVALIDITY,UIDVALIDITY
 apps/frappe/frappe/public/js/frappe/views/communication.js,New Email,New Post
 DocType: Custom DocPerm,Export,Eksport
-apps/frappe/frappe/integrations/doctype/google_calendar/google_calendar.js,"To use Google Calendar, enable {0}.",Google&#39;i kalendri kasutamiseks lubage {0}.
+apps/frappe/frappe/integrations/doctype/google_calendar/google_calendar.js,"To use Google Calendar, enable {0}.",Google'i kalendri kasutamiseks lubage {0}.
 apps/frappe/frappe/public/js/frappe/form/print.js,QZ Tray Failed: ,QZ-salve nurjus:
 DocType: Dropbox Settings,Dropbox Settings,Dropbox seaded
 DocType: About Us Settings,More content for the bottom of the page.,Rohkem sisu eest lehekülje allosas.
 apps/frappe/frappe/social/doctype/energy_point_log/energy_point_log.js,This document has been reverted,See dokument on tagasi võetud
-apps/frappe/frappe/integrations/doctype/google_drive/google_drive.py,Google Drive Backup Successful.,Google Drive&#39;i varundamine õnnestus.
+apps/frappe/frappe/integrations/doctype/google_drive/google_drive.py,Google Drive Backup Successful.,Google Drive'i varundamine õnnestus.
 DocType: Workflow,DocType on which this Workflow is applicable.,DocType millele see töövoog on kohaldatav.
 DocType: User,Enabled,Lubatud
 apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js,Failed to complete setup,Seadistamise lõpetamine ebaõnnestus
@@ -3667,7 +3667,7 @@ apps/frappe/frappe/templates/includes/login/login.js,Invalid Login. Try again.,V
 DocType: Auto Email Report,Send only if there is any data,"Saada ainult siis, kui on olemas kõik andmed"
 apps/frappe/frappe/public/js/frappe/views/reports/report_view.js,Totals Row,Totals Row
 apps/frappe/frappe/core/doctype/doctype/doctype.py,{0}: Permission at level 0 must be set before higher levels are set,{0}: Luba tasemel 0 tuleb kehtestada enne kõrgem tase määratakse
-DocType: Contact,Sync with Google Contacts,Sünkrooni Google&#39;i kontaktidega
+DocType: Contact,Sync with Google Contacts,Sünkrooni Google'i kontaktidega
 DocType: Tag Link,Document Tag,Dokumendi silt
 apps/frappe/frappe/desk/doctype/todo/todo.py,Assignment closed by {0},Ülesanne suletud {0}
 DocType: Integration Request,Remote,kauge
@@ -3683,7 +3683,7 @@ apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js,e.g. (55 + 434) / 
 apps/frappe/frappe/utils/csvutils.py,{0} is required,{0} on nõutav
 DocType: Integration Request,Integration Type,integratsiooni Type
 DocType: Newsletter,Send Attachements,Saada Kinnitused
-apps/frappe/frappe/config/integrations.py,Google Contacts Integration.,Google&#39;i kontaktide integreerimine.
+apps/frappe/frappe/config/integrations.py,Google Contacts Integration.,Google'i kontaktide integreerimine.
 DocType: Transaction Log,Transaction Log,Tehingute logi
 apps/frappe/frappe/social/doctype/energy_point_log/energy_point_log.py,Stats based on last month's performance (from {0} to {1}),Statistika põhineb eelmise kuu tootlusel (alates {0} kuni {1})
 DocType: Contact Us Settings,City,City
@@ -3807,7 +3807,7 @@ DocType: Prepared Report,Prepared Report,Ettevalmistatud aruanne
 apps/frappe/frappe/config/website.py,Add meta tags to your web pages,Lisage oma veebilehtedele metasilte
 DocType: Workflow State,User,Kasutaja
 DocType: Website Settings,"Show title in browser window as ""Prefix - title""",Show tiitli brauseri akna &quot;Eesliide - pealkiri&quot;
-DocType: Payment Gateway,Gateway Settings,Gateway&#39;i seaded
+DocType: Payment Gateway,Gateway Settings,Gateway'i seaded
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js,text in document type,teksti dokumendi tüüp
 apps/frappe/frappe/core/doctype/test_runner/test_runner.js,Run Tests,porrvitestid
 apps/frappe/frappe/handler.py,Logged Out,Välja logitud
@@ -3826,7 +3826,7 @@ apps/frappe/frappe/public/js/frappe/views/interaction.js,Summary,Kokkuvõte
 DocType: Event,Event Participants,Sündmuse osalised
 DocType: Auto Repeat,Frequency,sagedus
 DocType: Custom Field,Insert After,Sisesta Pärast
-DocType: Event,Sync with Google Calendar,Sünkrooni Google&#39;i kalendriga
+DocType: Event,Sync with Google Calendar,Sünkrooni Google'i kalendriga
 DocType: Access Log,Report Name,Aruande nimetus
 DocType: Desktop Icon,Reverse Icon Color,Tagurpidi Märk Värv
 apps/frappe/frappe/core/doctype/data_import_beta/data_import_beta.js,Save,Salvesta
@@ -3934,7 +3934,7 @@ apps/frappe/frappe/public/js/frappe/desk.js,Background jobs are not running. Ple
 DocType: Portal Settings,Custom Menu Items,Kohandatud menüü üksused
 apps/frappe/frappe/website/doctype/website_slideshow/website_slideshow.py,All Images attached to Website Slideshow should be public,Kõik veebisaidi slaidiseanssidest lisatud pildid peaksid olema avalikud
 DocType: Workflow State,chevron-right,Chevron paremas
-apps/frappe/frappe/integrations/doctype/google_drive/google_drive.js,"To use Google Drive, enable {0}.",Google Drive&#39;i kasutamiseks lubage {0}.
+apps/frappe/frappe/integrations/doctype/google_drive/google_drive.js,"To use Google Drive, enable {0}.",Google Drive'i kasutamiseks lubage {0}.
 apps/frappe/frappe/website/doctype/web_form/web_form.py,You need to be in developer mode to edit a Standard Web Form,Sa pead olema arendaja režiimi muutmine Standard Web Form
 DocType: Personal Data Deletion Request,Personal Data Deletion Request,Isikuandmete kustutamise taotlus
 DocType: Payment Gateway,Gateway Controller,Gateway Controller
@@ -3968,7 +3968,7 @@ DocType: Activity Log,Failed,Ebaõnnestunud
 DocType: Web Form,Allow Comments,Laske Kommentaarid
 DocType: Dashboard Chart,Last Week,Eelmine nädal
 DocType: System Settings,Bypass Two Factor Auth for users who login from restricted IP Address,"Kasutaja, kes siseneb piiratud IP-aadressist, mööda kaks tegurit Auth"
-DocType: Event,Google Calendar,Google&#39;i kalender
+DocType: Event,Google Calendar,Google'i kalender
 apps/frappe/frappe/email/queue.py,{0} to stop receiving emails of this type,"{0}, et lõpetada selliste e-kirjade saamine"
 apps/frappe/frappe/www/qrcode.html,Open your authentication app on your mobile phone.,Avage oma mobiiltelefoni autentimisrakendus.
 apps/frappe/frappe/model/rename_doc.py,merged {0} into {1},ühendati {0} arvesse {1}

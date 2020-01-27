@@ -755,7 +755,7 @@ DocType: Currency,Currency Name,Denumire valută
 apps/frappe/frappe/public/js/frappe/views/inbox/inbox_view.js,No Emails,Niciun e-mail
 apps/frappe/frappe/workflow/doctype/workflow_action/workflow_action.py,Link Expired,Link expirat
 apps/frappe/frappe/database/schema.py,"Reverting length to {0} for '{1}' in '{2}';
-							Setting the length as {3} will cause truncation of data.",Returnați lungimea la {0} pentru &#39;{1}&#39; în &#39;{2}&#39;; Setarea lungimii ca {3} va determina trunchierea datelor.
+							Setting the length as {3} will cause truncation of data.",Returnați lungimea la {0} pentru '{1}' în '{2}'; Setarea lungimii ca {3} va determina trunchierea datelor.
 apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,Select File Format,Selectați Format fișier
 DocType: Report,Javascript,Javascript
 DocType: File,Content Hash,Conținut Hash
@@ -786,7 +786,7 @@ DocType: File,Is Home Folder,Este Acasă Folder
 apps/frappe/frappe/website/doctype/website_theme/website_theme.js,Navbar Style,Navbar Style
 apps/frappe/frappe/utils/__init__.py,{0} is not a valid Email Address,{0} nu este o Adresă de Email validă
 apps/frappe/frappe/public/js/frappe/list/bulk_operations.js,Select atleast 1 record for printing,Selectați atleast 1 record pentru imprimare
-apps/frappe/frappe/core/doctype/has_role/has_role.py,User '{0}' already has the role '{1}',Utilizator &#39;{0}&#39; are deja rolul &quot;{1} &#39;
+apps/frappe/frappe/core/doctype/has_role/has_role.py,User '{0}' already has the role '{1}',Utilizator '{0}' are deja rolul &quot;{1} '
 DocType: System Settings,Two Factor Authentication method,Două metode de autentificare a factorilor
 apps/frappe/frappe/website/doctype/website_slideshow/website_slideshow.js,First set the name and save the record.,Mai întâi setați numele și salvați înregistrarea.
 apps/frappe/frappe/public/js/frappe/data_import/data_exporter.js,5 Records,5 înregistrări
@@ -2128,7 +2128,7 @@ DocType: System Settings,Session Expiry in Hours e.g. 06:00,Sesiunea de expirare
 DocType: Customize Form Field,"This field will appear only if the fieldname defined here has value OR the rules are true (examples): 
 myfield
 eval:doc.myfield=='My Value'
-eval:doc.age>18",Acest câmp va apărea numai în cazul în care numele_campului definit aici are valoare sau regulile sunt adevărate (exemple): myfield eval: doc.myfield == &#39;Valoarea mea&#39; eval: doc.age> 18
+eval:doc.age>18",Acest câmp va apărea numai în cazul în care numele_campului definit aici are valoare sau regulile sunt adevărate (exemple): myfield eval: doc.myfield == 'Valoarea mea' eval: doc.age> 18
 DocType: Social Login Key,Office 365,Biroul 365
 apps/frappe/frappe/public/js/frappe/ui/toolbar/energy_points_notifications.js,Today,Astăzi
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,"Once you have set this, the users will only be able access documents (eg. Blog Post) where the link exists (eg. Blogger).","După ce ați stabilit acest lucru, utilizatorii vor fi doar documente de acces capabile (ex. Blog post), în cazul în care există link-ul (de exemplu, Blogger)."
@@ -2167,7 +2167,7 @@ DocType: Data Migration Connector,Database Name,Nume Bază de Date
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js,Refresh Form,Actualizează Forma
 DocType: DocField,Select,Selectează
 apps/frappe/frappe/public/js/frappe/ui/toolbar/energy_points_notifications.js,View Full Log,Vizualizare jurnal complet
-DocType: Assignment Rule,"Simple Python Expression, Example: status == 'Open' and type == 'Bug'","Exprimare simplă Python, Exemplu: status == &#39;Deschis&#39; și tastați == &#39;Bug&#39;"
+DocType: Assignment Rule,"Simple Python Expression, Example: status == 'Open' and type == 'Bug'","Exprimare simplă Python, Exemplu: status == 'Deschis' și tastați == 'Bug'"
 apps/frappe/frappe/utils/csvutils.py,File not attached,Nu fișier atașat
 apps/frappe/frappe/public/js/frappe/dom.js,Connection lost. Some features might not work.,Conexiunea a fost pierdută. Este posibil ca unele funcții să nu funcționeze.
 apps/frappe/frappe/utils/password_strength.py,"Repeats like ""aaa"" are easy to guess","Repetări de genul &quot;aaa&quot;, sunt ușor de ghicit"
@@ -2725,7 +2725,7 @@ apps/frappe/frappe/public/js/frappe/form/save.js,Amending,Modificând
 apps/frappe/frappe/config/integrations.py,PayPal payment gateway settings,Setări gateway de plată PayPal
 apps/frappe/frappe/templates/emails/energy_points_summary.html,Top Performer,Performant de top
 apps/frappe/frappe/custom/doctype/custom_field/custom_field.py,Custom Fields cannot be added to core DocTypes.,Câmpurile personalizate nu pot fi adăugate la DocTypes de bază.
-apps/frappe/frappe/model/base_document.py,"{0}: '{1}' ({3}) will get truncated, as max characters allowed is {2}","{0}: &#39;{1}&#39; ({3}) vor primi trunchiate, ca și caractere maxim permis este {2}"
+apps/frappe/frappe/model/base_document.py,"{0}: '{1}' ({3}) will get truncated, as max characters allowed is {2}","{0}: '{1}' ({3}) vor primi trunchiate, ca și caractere maxim permis este {2}"
 DocType: OAuth Client,Response Type,Tip de răspuns
 DocType: Contact Us Settings,Send enquiries to this email address,Trimite întrebări cu privire la această adresă de e-mail
 DocType: Letter Head,Letter Head Name,Nume scrisoare cap
@@ -2782,7 +2782,7 @@ apps/frappe/frappe/email/doctype/email_account/email_account.py,Append To can be
 DocType: Customize Form,Image View,Imagine Vizualizare
 apps/frappe/frappe/integrations/doctype/paypal_settings/paypal_settings.py,"Looks like something went wrong during the transaction. Since we haven't confirmed the payment, Paypal will automatically refund you this amount. If it doesn't, please send us an email and mention the Correlation ID: {0}.","Se pare că ceva a mers prost în timpul tranzacției. Din moment ce nu am confirmat plata, Paypal va returna automat această sumă. În caz contrar, vă rugăm să ne trimiteți un e-mail și menționează ID-ul de corespondență: {0}."
 apps/frappe/frappe/public/js/frappe/form/controls/password.js,"Include symbols, numbers and capital letters in the password","Includeți simboluri, numere și majuscule în parolă"
-apps/frappe/frappe/custom/doctype/custom_field/custom_field.py,"Insert After field '{0}' mentioned in Custom Field '{1}', with label '{2}', does not exist","După ce se introduce câmpul &#39;{0}&#39; menționat în Câmpul personalizat &#39;{1}&#39;, cu eticheta &quot;{2} &#39;, nu există"
+apps/frappe/frappe/custom/doctype/custom_field/custom_field.py,"Insert After field '{0}' mentioned in Custom Field '{1}', with label '{2}', does not exist","După ce se introduce câmpul '{0}' menționat în Câmpul personalizat '{1}', cu eticheta &quot;{2} ', nu există"
 DocType: List Filter,List Filter,Filtrați lista
 DocType: Workflow State,signal,semnal
 apps/frappe/frappe/public/js/frappe/views/inbox/inbox_view.js,Has Attachments,Are atașamente
@@ -3005,7 +3005,7 @@ apps/frappe/frappe/model/base_document.py,Value missing for,Valoare lipsă pentr
 apps/frappe/frappe/public/js/frappe/views/treeview.js,Add Child,Adăugă Copil
 apps/frappe/frappe/core/doctype/data_import_beta/data_import_beta.js,Import Progress,Progresul importului
 DocType: Energy Point Rule,"If the condition is satisfied user will be rewarded with the points. eg. doc.status == 'Closed'
-","Dacă condiția este satisfăcută, utilizatorul va fi recompensat cu punctele. de exemplu. doc.status == &#39;Închis&#39;"
+","Dacă condiția este satisfăcută, utilizatorul va fi recompensat cu punctele. de exemplu. doc.status == 'Închis'"
 apps/frappe/frappe/model/delete_doc.py,{0} {1}: Submitted Record cannot be deleted.,{0} {1}: Înregistrarea introdusă nu poate fi ștearsă.
 DocType: GSuite Templates,Template Name,Numele de șablon
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js,new type of document,nou tip de document
@@ -3427,7 +3427,7 @@ apps/frappe/frappe/config/customization.py,Custom Translations,Traduceri persona
 apps/frappe/frappe/public/js/frappe/socketio_client.js,Progress,progres
 apps/frappe/frappe/public/js/frappe/form/workflow.js, by Role ,prin normă
 apps/frappe/frappe/public/js/frappe/form/save.js,Missing Fields,Câmpuri lipsă
-apps/frappe/frappe/core/doctype/doctype/doctype.py,Invalid fieldname '{0}' in autoname,numele_campului nevalid &#39;{0}&#39; în autoname
+apps/frappe/frappe/core/doctype/doctype/doctype.py,Invalid fieldname '{0}' in autoname,numele_campului nevalid '{0}' în autoname
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js,Search in a document type,Cauta un tip de document
 DocType: Custom DocPerm,Role and Level,Rol și Nivel
 DocType: File,Thumbnail URL,URL miniatură
@@ -3890,7 +3890,7 @@ apps/frappe/frappe/public/js/frappe/form/templates/form_sidebar.html,Currently V
 DocType: DocField,Default,Implicit
 DocType: Translation,Verified,Verificat
 apps/frappe/frappe/public/js/frappe/form/link_selector.js,{0} added,{0} adăugat
-apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js,Search for '{0}',Căutați pentru &#39;{0}&#39;
+apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js,Search for '{0}',Căutați pentru '{0}'
 apps/frappe/frappe/public/js/frappe/views/reports/report_view.js,Please save the report first,Vă rugăm să salvați raportul întâi
 apps/frappe/frappe/email/doctype/email_group/email_group.py,{0} subscribers added,{0} abonați adăugați
 apps/frappe/frappe/public/js/frappe/ui/filters/filter.js,Not In,Nu în

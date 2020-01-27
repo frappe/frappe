@@ -557,7 +557,7 @@ apps/frappe/frappe/public/js/frappe/file_uploader/FilePreview.vue,Upload Failed,
 apps/frappe/frappe/social/doctype/energy_point_log/energy_point_log.py,Stats based on last week's performance (from {0} to {1}),Estadísticas basadas en el rendimiento de la semana pasada (de {0} a {1})
 DocType: LDAP Settings,LDAP Phone Field,Campo de teléfono LDAP
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js,"document type..., e.g. customer","Tipo de documento, por ejemplo; Cliente"
-apps/frappe/frappe/email/doctype/notification/notification.py,The Condition '{0}' is invalid,La condición &#39;{0}&#39; no es válida
+apps/frappe/frappe/email/doctype/notification/notification.py,The Condition '{0}' is invalid,La condición '{0}' no es válida
 DocType: Workflow State,barcode,Código de barras
 apps/frappe/frappe/model/db_query.py,Use of sub-query or function is restricted,El uso de la sub-query o función está restringido.
 apps/frappe/frappe/config/customization.py,Add your own translations,Añada sus propias traducciones
@@ -748,7 +748,7 @@ DocType: Currency,Currency Name,Nombre de la divisa
 apps/frappe/frappe/public/js/frappe/views/inbox/inbox_view.js,No Emails,No hay mensajes de correo electrónico
 apps/frappe/frappe/workflow/doctype/workflow_action/workflow_action.py,Link Expired,Enlace Expirado
 apps/frappe/frappe/database/schema.py,"Reverting length to {0} for '{1}' in '{2}';
-							Setting the length as {3} will cause truncation of data.",Revertir la longitud a {0} para &#39;{1}&#39; en &#39;{2}&#39;; Establecer la longitud como {3} causará el truncamiento de los datos.
+							Setting the length as {3} will cause truncation of data.",Revertir la longitud a {0} para '{1}' en '{2}'; Establecer la longitud como {3} causará el truncamiento de los datos.
 apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,Select File Format,Seleccionar Formato de Archivo
 DocType: Report,Javascript,Javascript
 DocType: File,Content Hash,Contenido Hash
@@ -769,7 +769,7 @@ DocType: Custom Field,Select the label after which you want to insert new field.
 ,Document Share Report,Reporte de documentos compartidos
 DocType: Social Login Key,Base URL,URL Base
 DocType: User,Last Login,Último ingreso
-apps/frappe/frappe/custom/doctype/customize_form/customize_form.py,You can't set 'Translatable' for field {0},No puede establecer &#39;Translatable&#39; para el campo {0}
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.py,You can't set 'Translatable' for field {0},No puede establecer 'Translatable' para el campo {0}
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder_column_selector.html,Column,Columna
 DocType: Chat Profile,Chat Profile,Perfil de Chat
 DocType: Custom Field,Adds a custom field to a DocType,Añade un campo personalizado para el 'DocType'
@@ -778,7 +778,7 @@ DocType: File,Is Home Folder,Es Carpeta
 apps/frappe/frappe/website/doctype/website_theme/website_theme.js,Navbar Style,Estilo de barra de navegación
 apps/frappe/frappe/utils/__init__.py,{0} is not a valid Email Address,{0} no es una dirección de correo electrónico válida
 apps/frappe/frappe/public/js/frappe/list/bulk_operations.js,Select atleast 1 record for printing,Seleccionar al menos 1 registro para la impresión
-apps/frappe/frappe/core/doctype/has_role/has_role.py,User '{0}' already has the role '{1}',Usuario &#39;{0}&#39; ya tiene el papel &#39;{1}&#39;
+apps/frappe/frappe/core/doctype/has_role/has_role.py,User '{0}' already has the role '{1}',Usuario '{0}' ya tiene el papel '{1}'
 DocType: System Settings,Two Factor Authentication method,Método de autenticación de dos factores
 apps/frappe/frappe/website/doctype/website_slideshow/website_slideshow.js,First set the name and save the record.,Primero configure el nombre y guarde el registro.
 apps/frappe/frappe/public/js/frappe/data_import/data_exporter.js,5 Records,5 registros
@@ -1441,7 +1441,7 @@ apps/frappe/frappe/contacts/report/addresses_and_contacts/addresses_and_contacts
 apps/frappe/frappe/core/doctype/role_permission_for_page_and_report/role_permission_for_page_and_report.js,Mandatory field: set role for,Campo obligatorio: establecer rol para
 apps/frappe/frappe/public/js/frappe/utils/energy_point_utils.js,{0} criticized {1},{0} criticado {1}
 DocType: Data Migration Mapping,Mapping Name,Nombre de Mapeo
-apps/frappe/frappe/core/doctype/doctype/doctype.py,{0}: Field '{1}' cannot be set as Unique as it has non-unique values,{0}: El campo &#39;{1}&#39; no se puede establecer como Único ya que tiene valores no únicos
+apps/frappe/frappe/core/doctype/doctype/doctype.py,{0}: Field '{1}' cannot be set as Unique as it has non-unique values,{0}: El campo '{1}' no se puede establecer como Único ya que tiene valores no únicos
 apps/frappe/frappe/public/js/frappe/list/list_view.js,Navigate list down,Navegar por la lista hacia abajo
 DocType: Currency,A symbol for this currency. For e.g. $,"Un símbolo para esta moneda. Por ejemplo, $"
 apps/frappe/frappe/public/js/frappe/views/translation_manager.js,Successfully updated translations,Traducciones actualizadas con éxito
@@ -2108,7 +2108,7 @@ DocType: System Settings,Session Expiry in Hours e.g. 06:00,"Vencimiento de sesi
 DocType: Customize Form Field,"This field will appear only if the fieldname defined here has value OR the rules are true (examples): 
 myfield
 eval:doc.myfield=='My Value'
-eval:doc.age>18",aparecerá este campo sólo si el nombre del campo definido aquí tiene valor o las reglas son verdaderos (ejemplos): eval myfield: doc.myfield == &#39;Mi Valor&#39; eval: doc.age> 18
+eval:doc.age>18",aparecerá este campo sólo si el nombre del campo definido aquí tiene valor o las reglas son verdaderos (ejemplos): eval myfield: doc.myfield == 'Mi Valor' eval: doc.age> 18
 DocType: Social Login Key,Office 365,Office 365
 apps/frappe/frappe/public/js/frappe/ui/toolbar/energy_points_notifications.js,Today,Hoy
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,"Once you have set this, the users will only be able access documents (eg. Blog Post) where the link exists (eg. Blogger).","Una vez que haya establecido esto, los usuarios sólo podrán acceder a ciertos documentos, (por ejemplo: Entrada de blog si esta relacionado con  Blogger)."
@@ -2147,7 +2147,7 @@ DocType: Data Migration Connector,Database Name,Nombre de la base de datos
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js,Refresh Form,Actualizar formulario
 DocType: DocField,Select,Seleccionar
 apps/frappe/frappe/public/js/frappe/ui/toolbar/energy_points_notifications.js,View Full Log,Ver registro completo
-DocType: Assignment Rule,"Simple Python Expression, Example: status == 'Open' and type == 'Bug'","Expresión simple de Python, ejemplo: estado == &#39;Abrir&#39; y tipo == &#39;Error&#39;"
+DocType: Assignment Rule,"Simple Python Expression, Example: status == 'Open' and type == 'Bug'","Expresión simple de Python, ejemplo: estado == 'Abrir' y tipo == 'Error'"
 apps/frappe/frappe/utils/csvutils.py,File not attached,Archivo no adjuntado
 apps/frappe/frappe/public/js/frappe/dom.js,Connection lost. Some features might not work.,Conexión perdida. Algunas características pueden no funcionar.
 apps/frappe/frappe/utils/password_strength.py,"Repeats like ""aaa"" are easy to guess","Repeticiones como ""aaa"" son fáciles de adivinar"
@@ -2278,7 +2278,7 @@ apps/frappe/frappe/email/doctype/email_unsubscribe/email_unsubscribe.py,{0} alre
 DocType: Data Import,Show only errors,Mostrar solo errores
 DocType: Website Settings,Banner HTML,Banner HTML
 DocType: Workflow,Send Email Alert,Enviar Alerta de Correo Electrónico
-apps/frappe/frappe/integrations/doctype/razorpay_settings/razorpay_settings.py,Please select another payment method. Razorpay does not support transactions in currency '{0}',Por favor seleccione otro método de pago. Razorpay no admite transacciones en moneda &#39;{0}&#39;
+apps/frappe/frappe/integrations/doctype/razorpay_settings/razorpay_settings.py,Please select another payment method. Razorpay does not support transactions in currency '{0}',Por favor seleccione otro método de pago. Razorpay no admite transacciones en moneda '{0}'
 DocType: Data Import,In Progress,En Progreso
 apps/frappe/frappe/integrations/doctype/google_drive/google_drive.py,Queued for backup. It may take a few minutes to an hour.,En cola para copia de seguridad. Se puede tomar un par de minutos a una hora.
 DocType: Error Snapshot,Pyver,Pyver
@@ -2700,7 +2700,7 @@ apps/frappe/frappe/public/js/frappe/form/save.js,Amending,Corrigiento
 apps/frappe/frappe/config/integrations.py,PayPal payment gateway settings,Configuración de la pasarela de pago de PayPal
 apps/frappe/frappe/templates/emails/energy_points_summary.html,Top Performer,El mejor intérprete
 apps/frappe/frappe/custom/doctype/custom_field/custom_field.py,Custom Fields cannot be added to core DocTypes.,Los campos personalizados no se pueden agregar a los DocTypes principales.
-apps/frappe/frappe/model/base_document.py,"{0}: '{1}' ({3}) will get truncated, as max characters allowed is {2}","{0}: &#39;{1}&#39; ({3}) resultarán truncadas, como caracteres máximo permitido es {2}"
+apps/frappe/frappe/model/base_document.py,"{0}: '{1}' ({3}) will get truncated, as max characters allowed is {2}","{0}: '{1}' ({3}) resultarán truncadas, como caracteres máximo permitido es {2}"
 DocType: OAuth Client,Response Type,Tipo de respuesta
 DocType: Contact Us Settings,Send enquiries to this email address,Enviar solicitudes a esta dirección de correo electrónico
 DocType: Letter Head,Letter Head Name,Nombre de membrete
@@ -2781,14 +2781,14 @@ DocType: Web Page,Slideshow,Presentación
 apps/frappe/frappe/contacts/doctype/address_template/address_template.py,Default Address Template cannot be deleted,La plantilla de direcciones por defecto no puede ser eliminada
 DocType: Contact,Maintenance Manager,Gerente de Mantenimiento
 DocType: Workflow State,Search,Buscar
-apps/frappe/frappe/integrations/doctype/stripe_settings/stripe_settings.py,Please select another payment method. Stripe does not support transactions in currency '{0}',Seleccione otro método de pago. Stripe no admite transacciones en moneda &#39;{0}&#39;
+apps/frappe/frappe/integrations/doctype/stripe_settings/stripe_settings.py,Please select another payment method. Stripe does not support transactions in currency '{0}',Seleccione otro método de pago. Stripe no admite transacciones en moneda '{0}'
 apps/frappe/frappe/core/doctype/communication/communication.js,Move To Trash,Mover a la papelera
 DocType: Web Form,Web Form Fields,Campos de Formulario Web
 DocType: Data Import,Amended From,Modificado Desde
 apps/frappe/frappe/public/js/frappe/model/meta.js,Warning: Unable to find {0} in any table related to {1},Advertencia: No se puede encontrar {0} en cualquier tabla relacionada con {1}
 DocType: S3 Backup Settings,eu-north-1,eu-north-1
 apps/frappe/frappe/model/document.py,This document is currently queued for execution. Please try again,"Este documento se pone en cola para su ejecución actualmente. Por favor, inténtelo de nuevo"
-apps/frappe/frappe/core/doctype/file/file.py,File '{0}' not found,Archivo &#39;{0}&#39; no encontrado
+apps/frappe/frappe/core/doctype/file/file.py,File '{0}' not found,Archivo '{0}' no encontrado
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js,Remove Section,Remover la sección
 DocType: User,Change Password,Cambiar contraseña
 apps/frappe/frappe/public/js/frappe/views/reports/report_view.js,X Axis Field,Campo Eje X
@@ -2975,7 +2975,7 @@ apps/frappe/frappe/model/base_document.py,Value missing for,Falta un valor para
 apps/frappe/frappe/public/js/frappe/views/treeview.js,Add Child,Agregar hijo
 apps/frappe/frappe/core/doctype/data_import_beta/data_import_beta.js,Import Progress,Progreso de importación
 DocType: Energy Point Rule,"If the condition is satisfied user will be rewarded with the points. eg. doc.status == 'Closed'
-","Si se cumple la condición, el usuario será recompensado con los puntos. p.ej. doc.status == &#39;Cerrado&#39;"
+","Si se cumple la condición, el usuario será recompensado con los puntos. p.ej. doc.status == 'Cerrado'"
 apps/frappe/frappe/model/delete_doc.py,{0} {1}: Submitted Record cannot be deleted.,{0} {1}: El registro enviado no puede ser eliminado.
 DocType: GSuite Templates,Template Name,Nombre de Plantilla
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js,new type of document,nuevo tipo de documento
@@ -3107,7 +3107,7 @@ DocType: Dashboard Chart,Chart Type,Tipo de Gráfico
 DocType: DocType,Auto Name,Nombre Automático
 apps/frappe/frappe/utils/password_strength.py,Avoid sequences like abc or 6543 as they are easy to guess,"Evitar secuencias como abc o 6543, ya que son fáciles de adivinar"
 apps/frappe/frappe/public/js/frappe/request.js,Please try again,"Por favor, inténtelo de nuevo"
-apps/frappe/frappe/core/doctype/file/file.py,URL must start with 'http://' or 'https://',La URL debe comenzar con &#39;http: //&#39; o &#39;https: //&#39;
+apps/frappe/frappe/core/doctype/file/file.py,URL must start with 'http://' or 'https://',La URL debe comenzar con 'http: //' o 'https: //'
 apps/frappe/frappe/custom/doctype/custom_field/custom_field.js,Option 3,Opción 3
 DocType: Communication,uid,UID
 DocType: Workflow State,Edit,Editar
@@ -3346,7 +3346,7 @@ DocType: Notification,Send alert if this field's value changes,Enviar alerta si 
 apps/frappe/frappe/website/doctype/website_theme/website_theme.js,Theme Colors,Colores temáticos
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js,Select a DocType to make a new format,Seleccione un 'DocType' para crear un nuevo formato
 apps/frappe/frappe/desk/page/user_profile/user_profile.js,User does not exist,el usuario no existe
-apps/frappe/frappe/automation/doctype/auto_repeat/auto_repeat.py,'Recipients' not specified,&#39;Destinatarios&#39; no especificado
+apps/frappe/frappe/automation/doctype/auto_repeat/auto_repeat.py,'Recipients' not specified,'Destinatarios' no especificado
 apps/frappe/frappe/public/js/frappe/utils/pretty_date.js,just now,justo ahora
 apps/frappe/frappe/public/js/frappe/ui/filters/edit_filter.html,Apply,Aplicar
 DocType: Footer Item,Policy,Política
@@ -3706,7 +3706,7 @@ DocType: Web Page,Web Page,Página Web
 DocType: Workflow Document State,Next Action Email Template,Plantilla de Correo Electrónico de próxima acción
 DocType: Blog Category,Blogger,Blogger
 DocType: DocType,"If enabled, changes to the document are tracked and shown in timeline","Si está habilitado, los cambios en el documento se rastrean y se muestran en la línea de tiempo"
-apps/frappe/frappe/core/doctype/doctype/doctype.py,'In Global Search' not allowed for type {0} in row {1},&#39;En búsqueda global&#39; no se permite el tipo {0} en la fila {1}
+apps/frappe/frappe/core/doctype/doctype/doctype.py,'In Global Search' not allowed for type {0} in row {1},'En búsqueda global' no se permite el tipo {0} en la fila {1}
 DocType: Energy Point Log,Appreciation,Apreciación
 apps/frappe/frappe/public/js/frappe/views/treeview.js,View List,Ver Lista
 DocType: Workflow,Don't Override Status,No sobreescriba el estado
@@ -3853,7 +3853,7 @@ apps/frappe/frappe/public/js/frappe/form/templates/form_sidebar.html,Currently V
 DocType: DocField,Default,Predeterminado
 DocType: Translation,Verified,Verificado
 apps/frappe/frappe/public/js/frappe/form/link_selector.js,{0} added,{0} añadido
-apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js,Search for '{0}',Buscar por &#39;{0}&#39;
+apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js,Search for '{0}',Buscar por '{0}'
 apps/frappe/frappe/public/js/frappe/views/reports/report_view.js,Please save the report first,"Por favor, guarde el informe primero"
 apps/frappe/frappe/email/doctype/email_group/email_group.py,{0} subscribers added,{0} suscriptores añadidos
 apps/frappe/frappe/public/js/frappe/ui/filters/filter.js,Not In,No en
@@ -3889,14 +3889,14 @@ apps/frappe/frappe/public/js/frappe/list/list_sidebar_group_by.js,Me,Yo
 apps/frappe/frappe/workflow/doctype/workflow/workflow.py,{0} not a valid State,{0} no es un estado válido
 apps/frappe/frappe/core/doctype/user_permission/user_permission_list.js,Apply to all Documents Types,Aplicar a todos los tipos de documentos
 apps/frappe/frappe/social/doctype/energy_point_log/energy_point_log.py,Energy point update,Actualización de puntos de energía
-apps/frappe/frappe/integrations/doctype/paypal_settings/paypal_settings.py,Please select another payment method. PayPal does not support transactions in currency '{0}',Por favor seleccione otro método de pago. PayPal no admite transacciones en moneda &#39;{0}&#39;
+apps/frappe/frappe/integrations/doctype/paypal_settings/paypal_settings.py,Please select another payment method. PayPal does not support transactions in currency '{0}',Por favor seleccione otro método de pago. PayPal no admite transacciones en moneda '{0}'
 DocType: Chat Message,Room Type,Tipo de Habitación
 DocType: Data Import Beta,Import Log Preview,Vista previa de registro de importación
 apps/frappe/frappe/core/doctype/doctype/doctype.py,Search field {0} is not valid,campo de búsqueda {0} no es válido
 apps/frappe/frappe/public/js/frappe/file_uploader/FileUploader.vue,uploaded file,archivo subido
 DocType: Workflow State,ok-circle,ok- círculo
 DocType: LDAP Settings,LDAP User Creation and Mapping,Creación y mapeo de usuarios LDAP
-apps/frappe/frappe/utils/bot.py,You can find things by asking 'find orange in customers',Se pueden encontrar cosas preguntando &quot;encontrar naranja en los clientes &#39;
+apps/frappe/frappe/utils/bot.py,You can find things by asking 'find orange in customers',Se pueden encontrar cosas preguntando &quot;encontrar naranja en los clientes '
 apps/frappe/frappe/core/doctype/user/user.py,Sorry! User should have complete access to their own record.,"Lamentablemente, el usuario debe tener acceso completo a sus propios registros."
 ,Usage Info,Información de Uso
 apps/frappe/frappe/public/js/frappe/ui/keyboard.js,Show Keyboard Shortcuts,Mostrar atajos de teclado

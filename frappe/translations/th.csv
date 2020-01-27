@@ -564,7 +564,7 @@ apps/frappe/frappe/public/js/frappe/file_uploader/FilePreview.vue,Upload Failed,
 apps/frappe/frappe/social/doctype/energy_point_log/energy_point_log.py,Stats based on last week's performance (from {0} to {1}),สถิติขึ้นอยู่กับประสิทธิภาพของสัปดาห์ที่ผ่านมา (จาก {0} ถึง {1})
 DocType: LDAP Settings,LDAP Phone Field,ฟิลด์โทรศัพท์ LDAP
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js,"document type..., e.g. customer",ประเภทของเอกสาร ... ลูกค้าเช่น
-apps/frappe/frappe/email/doctype/notification/notification.py,The Condition '{0}' is invalid,สภาพ &#39;{0}&#39; ไม่ถูกต้อง
+apps/frappe/frappe/email/doctype/notification/notification.py,The Condition '{0}' is invalid,สภาพ '{0}' ไม่ถูกต้อง
 DocType: Workflow State,barcode,บาร์โค้ด
 apps/frappe/frappe/model/db_query.py,Use of sub-query or function is restricted,การใช้ข้อความค้นหาย่อยหรือฟังก์ชันถูก จำกัด ไว้
 apps/frappe/frappe/config/customization.py,Add your own translations,เพิ่มการแปลของคุณเอง
@@ -778,7 +778,7 @@ DocType: Custom Field,Select the label after which you want to insert new field.
 ,Document Share Report,แบ่งปันเอกสารรายงาน
 DocType: Social Login Key,Base URL,URL พื้นฐาน
 DocType: User,Last Login,เข้าสู่ระบบล่าสุด
-apps/frappe/frappe/custom/doctype/customize_form/customize_form.py,You can't set 'Translatable' for field {0},คุณไม่สามารถตั้งค่า &#39;แปลได้&#39; สำหรับฟิลด์ {0}
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.py,You can't set 'Translatable' for field {0},คุณไม่สามารถตั้งค่า 'แปลได้' สำหรับฟิลด์ {0}
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder_column_selector.html,Column,คอลัมน์
 DocType: Chat Profile,Chat Profile,โปรไฟล์แชท
 DocType: Custom Field,Adds a custom field to a DocType,เพิ่มฟิลด์ที่กำหนดเองเพื่อ DocType
@@ -787,7 +787,7 @@ DocType: File,Is Home Folder,เป็นโฟลเดอร์แรก
 apps/frappe/frappe/website/doctype/website_theme/website_theme.js,Navbar Style,สไตล์ Navbar
 apps/frappe/frappe/utils/__init__.py,{0} is not a valid Email Address,{0} ไม่ได้เป็นที่อยู่อีเมลที่ถูกต้อง
 apps/frappe/frappe/public/js/frappe/list/bulk_operations.js,Select atleast 1 record for printing,เลือกอย่างน้อย 1 รายการสำหรับการพิมพ์
-apps/frappe/frappe/core/doctype/has_role/has_role.py,User '{0}' already has the role '{1}',ผู้ใช้ &#39;{0}&#39; แล้วมีบทบาท &#39;{1}&#39;
+apps/frappe/frappe/core/doctype/has_role/has_role.py,User '{0}' already has the role '{1}',ผู้ใช้ '{0}' แล้วมีบทบาท '{1}'
 DocType: System Settings,Two Factor Authentication method,วิธีการตรวจสอบความถูกต้องของปัจจัยสองตัว
 apps/frappe/frappe/website/doctype/website_slideshow/website_slideshow.js,First set the name and save the record.,ก่อนตั้งชื่อและบันทึกข้อมูล
 apps/frappe/frappe/public/js/frappe/data_import/data_exporter.js,5 Records,5 จำนวน
@@ -1457,7 +1457,7 @@ apps/frappe/frappe/contacts/report/addresses_and_contacts/addresses_and_contacts
 apps/frappe/frappe/core/doctype/role_permission_for_page_and_report/role_permission_for_page_and_report.js,Mandatory field: set role for,ฟิลด์บังคับ: กำหนดบทบาท
 apps/frappe/frappe/public/js/frappe/utils/energy_point_utils.js,{0} criticized {1},{0} ถูกวิพากษ์วิจารณ์ {1}
 DocType: Data Migration Mapping,Mapping Name,ชื่อการแม็ป
-apps/frappe/frappe/core/doctype/doctype/doctype.py,{0}: Field '{1}' cannot be set as Unique as it has non-unique values,{0}: ฟิลด์ &#39;{1}&#39; ไม่สามารถตั้งค่าเป็นไม่ซ้ำเนื่องจากมีค่าที่ไม่ซ้ำกัน
+apps/frappe/frappe/core/doctype/doctype/doctype.py,{0}: Field '{1}' cannot be set as Unique as it has non-unique values,{0}: ฟิลด์ '{1}' ไม่สามารถตั้งค่าเป็นไม่ซ้ำเนื่องจากมีค่าที่ไม่ซ้ำกัน
 apps/frappe/frappe/public/js/frappe/list/list_view.js,Navigate list down,นำทางรายการลง
 DocType: Currency,A symbol for this currency. For e.g. $,สัญลักษณ์สำหรับสกุลเงินนี้. ตัวอย่างเช่น $
 apps/frappe/frappe/public/js/frappe/views/translation_manager.js,Successfully updated translations,อัปเดตการแปลสำเร็จแล้ว
@@ -1980,7 +1980,7 @@ apps/frappe/frappe/core/page/background_jobs/background_jobs.html,Queue / Worker
 DocType: S3 Backup Settings,ap-southeast-1,AP-ตะวันออกเฉียงใต้-1
 DocType: DocType,"Must be of type ""Attach Image""",ต้องเป็นชนิด &quot;แนบรูปภาพ&quot;
 apps/frappe/frappe/core/doctype/data_import/data_import.js,Unselect All,ไม่เลือกทั้งหมด
-apps/frappe/frappe/custom/doctype/customize_form/customize_form.py,You cannot unset 'Read Only' for field {0},คุณไม่สามารถล้าง &#39;อ่านอย่างเดียว&#39; สำหรับเขตข้อมูล {0}
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.py,You cannot unset 'Read Only' for field {0},คุณไม่สามารถล้าง 'อ่านอย่างเดียว' สำหรับเขตข้อมูล {0}
 DocType: Auto Email Report,Zero means send records updated at anytime,ศูนย์หมายถึงการส่งบันทึกการปรับปรุงตลอดเวลา
 DocType: Auto Email Report,Zero means send records updated at anytime,ศูนย์หมายถึงการส่งบันทึกการปรับปรุงตลอดเวลา
 apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js,Complete Setup,การติดตั้ง เสร็จสมบูรณ์
@@ -2025,7 +2025,7 @@ DocType: SMS Settings,"Enter static url parameters here (Eg. sender=ERPNext, use
 apps/frappe/frappe/website/doctype/website_theme/website_theme.js,Google Font,Google Font
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,"If these instructions where not helpful, please add in your suggestions on GitHub Issues.",ถ้า คำแนะนำเหล่านี้ ที่ ไม่เป็นประโยชน์ โปรดเพิ่ม ใน คำแนะนำของคุณ เกี่ยวกับ GitHub ปัญหา
 DocType: Workflow State,bookmark,คั่น
-apps/frappe/frappe/public/js/frappe/views/file/file_view.js,Folder name should not include '/' (slash),ชื่อโฟลเดอร์ไม่ควรมี &#39;/&#39; (เฉือน)
+apps/frappe/frappe/public/js/frappe/views/file/file_view.js,Folder name should not include '/' (slash),ชื่อโฟลเดอร์ไม่ควรมี '/' (เฉือน)
 DocType: Note,Note,หมายเหตุ
 apps/frappe/frappe/core/doctype/error_snapshot/error_snapshot.html,Error Report,รายงานข้อผิดพลาด
 apps/frappe/frappe/config/settings.py,Export Data in CSV / Excel format.,ส่งออกข้อมูลในรูปแบบ CSV / Excel
@@ -2131,7 +2131,7 @@ DocType: System Settings,Session Expiry in Hours e.g. 06:00,หมดอาย�
 DocType: Customize Form Field,"This field will appear only if the fieldname defined here has value OR the rules are true (examples): 
 myfield
 eval:doc.myfield=='My Value'
-eval:doc.age>18",ฟิลด์นี้จะปรากฏเฉพาะถ้า fieldname ที่กำหนดไว้ที่นี่มีค่าหรือกฎระเบียบที่เป็นจริง (ตัวอย่าง): myfield EVAL: doc.myfield == &#39;ค่าของฉัน&#39; EVAL: doc.age> 18
+eval:doc.age>18",ฟิลด์นี้จะปรากฏเฉพาะถ้า fieldname ที่กำหนดไว้ที่นี่มีค่าหรือกฎระเบียบที่เป็นจริง (ตัวอย่าง): myfield EVAL: doc.myfield == 'ค่าของฉัน' EVAL: doc.age> 18
 DocType: Social Login Key,Office 365,Office 365
 apps/frappe/frappe/public/js/frappe/ui/toolbar/energy_points_notifications.js,Today,ในวันนี้
 apps/frappe/frappe/public/js/frappe/ui/toolbar/energy_points_notifications.js,Today,ในวันนี้
@@ -2171,7 +2171,7 @@ DocType: Data Migration Connector,Database Name,ชื่อฐานข้อ�
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js,Refresh Form,แบบฟอร์มรีเฟรช
 DocType: DocField,Select,เลือก
 apps/frappe/frappe/public/js/frappe/ui/toolbar/energy_points_notifications.js,View Full Log,ดูบันทึกเต็ม
-DocType: Assignment Rule,"Simple Python Expression, Example: status == 'Open' and type == 'Bug'","Python Expression, ตัวอย่าง: status == &#39;Open&#39; และ type == &#39;Bug&#39;"
+DocType: Assignment Rule,"Simple Python Expression, Example: status == 'Open' and type == 'Bug'","Python Expression, ตัวอย่าง: status == 'Open' และ type == 'Bug'"
 apps/frappe/frappe/utils/csvutils.py,File not attached,ไฟล์ ที่แนบมา ไม่ได้
 apps/frappe/frappe/public/js/frappe/dom.js,Connection lost. Some features might not work.,การเชื่อมต่อสูญหาย คุณลักษณะบางอย่างอาจไม่ทำงาน
 apps/frappe/frappe/utils/password_strength.py,"Repeats like ""aaa"" are easy to guess",ซ้ำเช่น &quot;AAA&quot; เป็นเรื่องง่ายที่จะคาดเดา
@@ -2303,7 +2303,7 @@ apps/frappe/frappe/email/doctype/email_unsubscribe/email_unsubscribe.py,{0} alre
 DocType: Data Import,Show only errors,แสดงเฉพาะข้อผิดพลาด
 DocType: Website Settings,Banner HTML,แบนเนอร์ HTML
 DocType: Workflow,Send Email Alert,ส่งการแจ้งเตือนทางอีเมล
-apps/frappe/frappe/integrations/doctype/razorpay_settings/razorpay_settings.py,Please select another payment method. Razorpay does not support transactions in currency '{0}',โปรดเลือกวิธีการชำระเงินอีกครั้ง Razorpay ไม่สนับสนุนการทำธุรกรรมในสกุลเงิน &#39;{0}&#39;
+apps/frappe/frappe/integrations/doctype/razorpay_settings/razorpay_settings.py,Please select another payment method. Razorpay does not support transactions in currency '{0}',โปรดเลือกวิธีการชำระเงินอีกครั้ง Razorpay ไม่สนับสนุนการทำธุรกรรมในสกุลเงิน '{0}'
 DocType: Data Import,In Progress,กำลังดำเนินการ
 apps/frappe/frappe/integrations/doctype/google_drive/google_drive.py,Queued for backup. It may take a few minutes to an hour.,จัดคิวสำหรับการสำรองข้อมูล มันอาจใช้เวลาไม่กี่นาทีถึงหนึ่งชั่วโมง
 DocType: Error Snapshot,Pyver,Pyver
@@ -2730,7 +2730,7 @@ apps/frappe/frappe/public/js/frappe/form/save.js,Amending,แก้ไขเพ�
 apps/frappe/frappe/config/integrations.py,PayPal payment gateway settings,การตั้งค่าเกตเวย์การชำระเงิน PayPal
 apps/frappe/frappe/templates/emails/energy_points_summary.html,Top Performer,นักแสดงยอดนิยม
 apps/frappe/frappe/custom/doctype/custom_field/custom_field.py,Custom Fields cannot be added to core DocTypes.,ไม่สามารถเพิ่มฟิลด์ที่กำหนดเองลงใน DocTypes หลัก
-apps/frappe/frappe/model/base_document.py,"{0}: '{1}' ({3}) will get truncated, as max characters allowed is {2}",{0}: &quot;{1} &#39;({3}) จะได้รับการตัดเป็นตัวอักษรสูงสุดที่อนุญาตคือ {2}
+apps/frappe/frappe/model/base_document.py,"{0}: '{1}' ({3}) will get truncated, as max characters allowed is {2}",{0}: &quot;{1} '({3}) จะได้รับการตัดเป็นตัวอักษรสูงสุดที่อนุญาตคือ {2}
 DocType: OAuth Client,Response Type,พิมพ์คำตอบ
 DocType: Contact Us Settings,Send enquiries to this email address,ส่งคำถาม ไปยังที่อยู่ อีเมลนี้
 DocType: Letter Head,Letter Head Name,ชื่อหัวจดหมาย
@@ -2787,7 +2787,7 @@ apps/frappe/frappe/email/doctype/email_account/email_account.py,Append To can be
 DocType: Customize Form,Image View,ดูภาพ
 apps/frappe/frappe/integrations/doctype/paypal_settings/paypal_settings.py,"Looks like something went wrong during the transaction. Since we haven't confirmed the payment, Paypal will automatically refund you this amount. If it doesn't, please send us an email and mention the Correlation ID: {0}.",ดูเหมือนว่าสิ่งที่ผิดพลาดในระหว่างการทำธุรกรรม เนื่องจากเรายังไม่ได้รับการยืนยันการชำระเงินผ่าน Paypal โดยอัตโนมัติจะคืนเงินให้คุณเงินจำนวนนี้ ถ้ามันไม่ได้โปรดส่งอีเมลถึงเราและพูดถึงความสัมพันธ์ ID: {0}
 apps/frappe/frappe/public/js/frappe/form/controls/password.js,"Include symbols, numbers and capital letters in the password",รวมสัญลักษณ์ตัวเลขและตัวพิมพ์ใหญ่ในรหัสผ่าน
-apps/frappe/frappe/custom/doctype/custom_field/custom_field.py,"Insert After field '{0}' mentioned in Custom Field '{1}', with label '{2}', does not exist",ใส่หลังจากฟิลด์ &#39;{0}&#39; กล่าวถึงในฟิลด์ที่กำหนดเอง &#39;{1}&#39; ที่มีป้าย &#39;{2}&#39; ไม่ได้อยู่
+apps/frappe/frappe/custom/doctype/custom_field/custom_field.py,"Insert After field '{0}' mentioned in Custom Field '{1}', with label '{2}', does not exist",ใส่หลังจากฟิลด์ '{0}' กล่าวถึงในฟิลด์ที่กำหนดเอง '{1}' ที่มีป้าย '{2}' ไม่ได้อยู่
 DocType: List Filter,List Filter,ตัวกรองรายการ
 DocType: Workflow State,signal,สัญญาณ
 apps/frappe/frappe/public/js/frappe/views/inbox/inbox_view.js,Has Attachments,มีไฟล์แนบ
@@ -2811,15 +2811,15 @@ DocType: Web Page,Slideshow,สไลด์โชว์
 apps/frappe/frappe/contacts/doctype/address_template/address_template.py,Default Address Template cannot be deleted,แม่แบบเริ่มต้นที่อยู่ไม่สามารถลบได้
 DocType: Contact,Maintenance Manager,ผู้จัดการซ่อมบำรุง
 DocType: Workflow State,Search,ค้นหา
-apps/frappe/frappe/integrations/doctype/stripe_settings/stripe_settings.py,Please select another payment method. Stripe does not support transactions in currency '{0}',โปรดเลือกวิธีการชำระเงินอื่น แถบไม่รองรับธุรกรรมในสกุลเงิน &#39;{0}&#39;
-apps/frappe/frappe/integrations/doctype/stripe_settings/stripe_settings.py,Please select another payment method. Stripe does not support transactions in currency '{0}',โปรดเลือกวิธีการชำระเงินอื่น แถบไม่รองรับธุรกรรมในสกุลเงิน &#39;{0}&#39;
+apps/frappe/frappe/integrations/doctype/stripe_settings/stripe_settings.py,Please select another payment method. Stripe does not support transactions in currency '{0}',โปรดเลือกวิธีการชำระเงินอื่น แถบไม่รองรับธุรกรรมในสกุลเงิน '{0}'
+apps/frappe/frappe/integrations/doctype/stripe_settings/stripe_settings.py,Please select another payment method. Stripe does not support transactions in currency '{0}',โปรดเลือกวิธีการชำระเงินอื่น แถบไม่รองรับธุรกรรมในสกุลเงิน '{0}'
 apps/frappe/frappe/core/doctype/communication/communication.js,Move To Trash,ย้ายไปที่ถังขยะ
 DocType: Web Form,Web Form Fields,ช่องข้อมูลเว็บฟอร์ม
 DocType: Data Import,Amended From,แก้ไขเพิ่มเติมจาก
 apps/frappe/frappe/public/js/frappe/model/meta.js,Warning: Unable to find {0} in any table related to {1},คำเตือน: ไม่พบ {0} ในตารางใด ๆ ที่เกี่ยวข้องกับการ {1}
 DocType: S3 Backup Settings,eu-north-1,EU-เฉียงเหนือ 1
 apps/frappe/frappe/model/document.py,This document is currently queued for execution. Please try again,เอกสารฉบับนี้ถูกจัดคิวสำหรับการดำเนินการในขณะนี้ กรุณาลองอีกครั้ง
-apps/frappe/frappe/core/doctype/file/file.py,File '{0}' not found,File &#39;{0}&#39; ไม่พบ
+apps/frappe/frappe/core/doctype/file/file.py,File '{0}' not found,File '{0}' ไม่พบ
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js,Remove Section,นำมาตรา
 DocType: User,Change Password,เปลี่ยนรหัสผ่าน
 apps/frappe/frappe/public/js/frappe/views/reports/report_view.js,X Axis Field,ฟิลด์ Axis X
@@ -3009,7 +3009,7 @@ apps/frappe/frappe/model/base_document.py,Value missing for,ค่าที่�
 apps/frappe/frappe/public/js/frappe/views/treeview.js,Add Child,เพิ่ม เด็ก
 apps/frappe/frappe/core/doctype/data_import_beta/data_import_beta.js,Import Progress,นำเข้าความคืบหน้า
 DocType: Energy Point Rule,"If the condition is satisfied user will be rewarded with the points. eg. doc.status == 'Closed'
-",หากเงื่อนไขเป็นที่พอใจของผู้ใช้จะได้รับการตอบแทนด้วยคะแนน เช่น. doc.status == &#39;ปิด&#39;
+",หากเงื่อนไขเป็นที่พอใจของผู้ใช้จะได้รับการตอบแทนด้วยคะแนน เช่น. doc.status == 'ปิด'
 apps/frappe/frappe/model/delete_doc.py,{0} {1}: Submitted Record cannot be deleted.,{0} {1}: รายการที่ส่งแล้วไม่สามารถลบได้
 DocType: GSuite Templates,Template Name,ชื่อเทมเพลต
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js,new type of document,ชนิดใหม่ของเอกสาร
@@ -3142,7 +3142,7 @@ DocType: Dashboard Chart,Chart Type,ประเภทแผนภูมิ
 DocType: DocType,Auto Name,ชื่ออัตโนมัติ
 apps/frappe/frappe/utils/password_strength.py,Avoid sequences like abc or 6543 as they are easy to guess,หลีกเลี่ยงการลำดับเช่น ABC หรือ 6543 ที่พวกเขาเป็นเรื่องง่ายที่จะคาดเดา
 apps/frappe/frappe/public/js/frappe/request.js,Please try again,กรุณาลองอีกครั้ง
-apps/frappe/frappe/core/doctype/file/file.py,URL must start with 'http://' or 'https://',URL ต้องเริ่มต้นด้วย &#39;http: //&#39; หรือ &#39;https: //&#39;
+apps/frappe/frappe/core/doctype/file/file.py,URL must start with 'http://' or 'https://',URL ต้องเริ่มต้นด้วย 'http: //' หรือ 'https: //'
 apps/frappe/frappe/custom/doctype/custom_field/custom_field.js,Option 3,ตัวเลือกที่ 3
 DocType: Communication,uid,UID
 DocType: Workflow State,Edit,แก้ไข
@@ -3381,7 +3381,7 @@ DocType: Notification,Send alert if this field's value changes,ส่งกา�
 apps/frappe/frappe/website/doctype/website_theme/website_theme.js,Theme Colors,ธีมสี
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js,Select a DocType to make a new format,เลือก DocType ที่จะทำให้รูปแบบใหม่
 apps/frappe/frappe/desk/page/user_profile/user_profile.js,User does not exist,ไม่มีผู้ใช้
-apps/frappe/frappe/automation/doctype/auto_repeat/auto_repeat.py,'Recipients' not specified,&#39;ผู้รับ&#39; ไม่ได้ระบุ
+apps/frappe/frappe/automation/doctype/auto_repeat/auto_repeat.py,'Recipients' not specified,'ผู้รับ' ไม่ได้ระบุ
 apps/frappe/frappe/public/js/frappe/utils/pretty_date.js,just now,เมื่อสักครู่
 apps/frappe/frappe/public/js/frappe/ui/filters/edit_filter.html,Apply,ใช้
 DocType: Footer Item,Policy,นโยบาย
@@ -3430,7 +3430,7 @@ apps/frappe/frappe/config/customization.py,Custom Translations,คำที่�
 apps/frappe/frappe/public/js/frappe/socketio_client.js,Progress,ความคืบหน้า
 apps/frappe/frappe/public/js/frappe/form/workflow.js, by Role ,โดยบทบาท
 apps/frappe/frappe/public/js/frappe/form/save.js,Missing Fields,ทุ่งนาที่ขาดหายไป
-apps/frappe/frappe/core/doctype/doctype/doctype.py,Invalid fieldname '{0}' in autoname,fieldname ไม่ถูกต้อง &#39;{0}&#39; ใน autoname
+apps/frappe/frappe/core/doctype/doctype/doctype.py,Invalid fieldname '{0}' in autoname,fieldname ไม่ถูกต้อง '{0}' ใน autoname
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js,Search in a document type,ค้นหาในรูปแบบเอกสาร
 DocType: Custom DocPerm,Role and Level,บทบาท และ ระดับ
 DocType: File,Thumbnail URL,URL รูปขนาดย่อ
@@ -3531,7 +3531,7 @@ DocType: Dashboard Chart,Filters JSON,กรอง JSON
 apps/frappe/frappe/email/doctype/newsletter/newsletter.py,Click here to verify,คลิกที่นี่เพื่อตรวจสอบ
 DocType: Email Account,Disable SMTP server authentication,ปิดใช้งานการรับรองความถูกต้องเซิร์ฟเวอร์ SMTP
 apps/frappe/frappe/public/js/frappe/utils/utils.js,Copied to clipboard.,คัดลอกไปที่คลิปบอร์ดแล้ว
-apps/frappe/frappe/utils/password_strength.py,Predictable substitutions like '@' instead of 'a' don't help very much.,แทนคาดเดาได้เช่น &#39;@&#39; แทน &#39;a&#39; ไม่ได้ช่วยมาก
+apps/frappe/frappe/utils/password_strength.py,Predictable substitutions like '@' instead of 'a' don't help very much.,แทนคาดเดาได้เช่น '@' แทน 'a' ไม่ได้ช่วยมาก
 apps/frappe/frappe/desk/doctype/todo/todo_list.js,Assigned By Me,ได้รับมอบหมายจากฉัน
 apps/frappe/frappe/utils/data.py,Zero,ศูนย์
 DocType: Google Drive,Backup Folder ID,ID โฟลเดอร์สำรอง
@@ -3893,7 +3893,7 @@ apps/frappe/frappe/public/js/frappe/form/templates/form_sidebar.html,Currently V
 DocType: DocField,Default,ผิดนัด
 DocType: Translation,Verified,ได้รับการยืนยัน
 apps/frappe/frappe/public/js/frappe/form/link_selector.js,{0} added,{0} เพิ่มแล้ว
-apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js,Search for '{0}',ค้นหา &#39;{0}&#39;
+apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js,Search for '{0}',ค้นหา '{0}'
 apps/frappe/frappe/public/js/frappe/views/reports/report_view.js,Please save the report first,กรุณาบันทึกรายงานครั้งแรก
 apps/frappe/frappe/email/doctype/email_group/email_group.py,{0} subscribers added,{0} สมาชิกถูกเพิ่มแล้ว
 apps/frappe/frappe/public/js/frappe/ui/filters/filter.js,Not In,ไม่อยู่ใน
@@ -3930,14 +3930,14 @@ apps/frappe/frappe/public/js/frappe/list/list_sidebar_group_by.js,Me,ฉัน
 apps/frappe/frappe/workflow/doctype/workflow/workflow.py,{0} not a valid State,{0} สถานะไม่ถูกต้อง
 apps/frappe/frappe/core/doctype/user_permission/user_permission_list.js,Apply to all Documents Types,นำไปใช้กับเอกสารทุกประเภท
 apps/frappe/frappe/social/doctype/energy_point_log/energy_point_log.py,Energy point update,อัพเดตจุดพลังงาน
-apps/frappe/frappe/integrations/doctype/paypal_settings/paypal_settings.py,Please select another payment method. PayPal does not support transactions in currency '{0}',โปรดเลือกวิธีการชำระเงินอีกครั้ง PayPal ไม่สนับสนุนการทำธุรกรรมในสกุลเงิน &#39;{0}&#39;
+apps/frappe/frappe/integrations/doctype/paypal_settings/paypal_settings.py,Please select another payment method. PayPal does not support transactions in currency '{0}',โปรดเลือกวิธีการชำระเงินอีกครั้ง PayPal ไม่สนับสนุนการทำธุรกรรมในสกุลเงิน '{0}'
 DocType: Chat Message,Room Type,ประเภทห้อง
 DocType: Data Import Beta,Import Log Preview,นำเข้าบันทึกตัวอย่าง
 apps/frappe/frappe/core/doctype/doctype/doctype.py,Search field {0} is not valid,ช่องค้นหา {0} ไม่ถูกต้อง
 apps/frappe/frappe/public/js/frappe/file_uploader/FileUploader.vue,uploaded file,อัพโหลดไฟล์
 DocType: Workflow State,ok-circle,ok วงกลม
 DocType: LDAP Settings,LDAP User Creation and Mapping,การสร้างและการแมปผู้ใช้ LDAP
-apps/frappe/frappe/utils/bot.py,You can find things by asking 'find orange in customers',คุณสามารถค้นหาสิ่งที่โดยขอให้ &#39;พบส้มของลูกค้า
+apps/frappe/frappe/utils/bot.py,You can find things by asking 'find orange in customers',คุณสามารถค้นหาสิ่งที่โดยขอให้ 'พบส้มของลูกค้า
 apps/frappe/frappe/core/doctype/user/user.py,Sorry! User should have complete access to their own record.,ขออภัย! ผู้ใช้ควรมีการเข้าถึงที่สมบูรณ์ในการบันทึกของตัวเองของพวกเขา
 ,Usage Info,ข้อมูลการใช้งาน
 apps/frappe/frappe/public/js/frappe/ui/keyboard.js,Show Keyboard Shortcuts,แสดงแป้นพิมพ์ลัด

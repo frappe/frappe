@@ -560,7 +560,7 @@ DocType: Communication,Phone No.,Nº de Telefone.
 apps/frappe/frappe/desk/doctype/bulk_update/bulk_update.py +23,; not allowed in condition,; não permitido na condição
 DocType: Print Format,Custom HTML Help,Ajuda HTML Personalizado
 apps/frappe/frappe/website/doctype/contact_us_settings/contact_us_settings.js +3,See on Website,Veja no Site
-apps/frappe/frappe/model/db_schema.py +153,Reverting length to {0} for '{1}' in '{2}'; Setting the length as {3} will cause truncation of data.,Revertendo comprimento para {0} para &#39;{1}&#39; em &#39;{2}&#39;; Definir o comprimento como {3} irá causar truncamento de dados.
+apps/frappe/frappe/model/db_schema.py +153,Reverting length to {0} for '{1}' in '{2}'; Setting the length as {3} will cause truncation of data.,Revertendo comprimento para {0} para '{1}' em '{2}'; Definir o comprimento como {3} irá causar truncamento de dados.
 DocType: Print Format,Custom CSS,CSS Personalizado
 apps/frappe/frappe/model/rename_doc.py +429,Ignored: {0} to {1},Ignorados: {0} para {1}
 apps/frappe/frappe/config/setup.py +82,Log of error on automated events (scheduler).,Log de erro sobre eventos automatizados ( programador ) .
@@ -1050,7 +1050,7 @@ apps/frappe/frappe/contacts/doctype/address_template/address_template.py +33,Def
 DocType: Contact,Maintenance Manager,Gerente de Manutenção
 DocType: Website Theme,Top Bar Text Color,Cor do texto da barra superior
 DocType: Auto Repeat,Amended From,Corrigido a partir de
-apps/frappe/frappe/core/doctype/file/file.py +670,File '{0}' not found,Arquivo &#39;{0}&#39; não encontrado
+apps/frappe/frappe/core/doctype/file/file.py +670,File '{0}' not found,Arquivo '{0}' não encontrado
 DocType: User,Change Password,Alterar a senha
 apps/frappe/frappe/public/js/frappe/views/reports/report_view.js +398,X Axis Field,Campo do eixo X
 apps/frappe/frappe/public/js/frappe/form/controls/data.js +124,Invalid Email: {0},Email inválido: {0}
@@ -1454,7 +1454,7 @@ DocType: Workflow Action,Workflow Action,Ação do Fluxo de Trabalho
 DocType: Event,Send an email reminder in the morning,Enviar um email lembrete na parte da manhã
 DocType: Blog Post,Published On,Publicado no
 apps/frappe/frappe/website/doctype/web_form/web_form.py +350,Mandatory Information missing:,Informações obrigatórias ausente:
-apps/frappe/frappe/core/doctype/doctype/doctype.py +584,Field '{0}' cannot be set as Unique as it has non-unique values,"O campo &#39;{0}&#39; não pode ser definido como único, pois tem valores não-exclusivos"
+apps/frappe/frappe/core/doctype/doctype/doctype.py +584,Field '{0}' cannot be set as Unique as it has non-unique values,"O campo '{0}' não pode ser definido como único, pois tem valores não-exclusivos"
 apps/frappe/frappe/client.py +160,Only 200 inserts allowed in one request,São permitidas somente 200 inserções por solicitação
 DocType: Event,Repeat On,Repetir em
 DocType: Communication,Marked As Spam,Marcado como spam

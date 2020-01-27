@@ -254,7 +254,7 @@ apps/frappe/frappe/core/doctype/report/report.js,Disable Report,Išjungti ataska
 DocType: Translation,Contributed Translation Doctype Name,Pridėtas vertimo „Doctype“ vardas
 DocType: PayPal Settings,Redirect To,nukreipti į
 DocType: Data Migration Mapping,Pull,Traukti
-DocType: Report,JavaScript Format: frappe.query_reports['REPORTNAME'] = {},JavaScript Formatas: frappe.query_reports [ &#39;REPORTNAME&#39;] = {}
+DocType: Report,JavaScript Format: frappe.query_reports['REPORTNAME'] = {},JavaScript Formatas: frappe.query_reports [ 'REPORTNAME'] = {}
 DocType: Bulk Update,Bulk Update,Masiniai Atnaujinti
 DocType: Workflow State,chevron-up,&quot;Chevron viršų
 DocType: DocType,Allow Guest to View,Leiskite Svečių to Peržiūrėti
@@ -2131,7 +2131,7 @@ DocType: System Settings,Session Expiry in Hours e.g. 06:00,"Sesijos pabaiga val
 DocType: Customize Form Field,"This field will appear only if the fieldname defined here has value OR the rules are true (examples): 
 myfield
 eval:doc.myfield=='My Value'
-eval:doc.age>18","Šis laukas bus rodomas tik tada, jei čia apibrėžta nazwapola turi vertę arba taisyklės yra tikri (pavyzdžiai): myfield eval: doc.myfield == &#39;Mano vertė &quot;eval: doc.age> 18"
+eval:doc.age>18","Šis laukas bus rodomas tik tada, jei čia apibrėžta nazwapola turi vertę arba taisyklės yra tikri (pavyzdžiai): myfield eval: doc.myfield == 'Mano vertė &quot;eval: doc.age> 18"
 DocType: Social Login Key,Office 365,Office 365
 apps/frappe/frappe/public/js/frappe/ui/toolbar/energy_points_notifications.js,Today,šiandien
 apps/frappe/frappe/public/js/frappe/ui/toolbar/energy_points_notifications.js,Today,šiandien
@@ -2171,7 +2171,7 @@ DocType: Data Migration Connector,Database Name,Duomenų bazės pavadinimas
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js,Refresh Form,Atnaujinti forma
 DocType: DocField,Select,pasirinkti
 apps/frappe/frappe/public/js/frappe/ui/toolbar/energy_points_notifications.js,View Full Log,Žiūrėti visą žurnalą
-DocType: Assignment Rule,"Simple Python Expression, Example: status == 'Open' and type == 'Bug'","Paprastas Python išraiška, pavyzdys: status == &#39;Open&#39; ir įveskite == &#39;Bug&#39;"
+DocType: Assignment Rule,"Simple Python Expression, Example: status == 'Open' and type == 'Bug'","Paprastas Python išraiška, pavyzdys: status == 'Open' ir įveskite == 'Bug'"
 apps/frappe/frappe/utils/csvutils.py,File not attached,Failo neuždėtas
 apps/frappe/frappe/public/js/frappe/dom.js,Connection lost. Some features might not work.,Nutrūko ryšys. Kai kurios funkcijos gali neveikti.
 apps/frappe/frappe/utils/password_strength.py,"Repeats like ""aaa"" are easy to guess","Pakartoja, kaip &quot;AAA&quot; yra lengva atspėti"
@@ -2303,7 +2303,7 @@ apps/frappe/frappe/email/doctype/email_unsubscribe/email_unsubscribe.py,{0} alre
 DocType: Data Import,Show only errors,Rodyti tik klaidas
 DocType: Website Settings,Banner HTML,Reklaminis HTML
 DocType: Workflow,Send Email Alert,Siųsti el. Įspėjimą
-apps/frappe/frappe/integrations/doctype/razorpay_settings/razorpay_settings.py,Please select another payment method. Razorpay does not support transactions in currency '{0}',Prašome pasirinkti kitą mokėjimo būdą. Razorpay nepalaiko sandoriams valiuta &quot;{0} &#39;
+apps/frappe/frappe/integrations/doctype/razorpay_settings/razorpay_settings.py,Please select another payment method. Razorpay does not support transactions in currency '{0}',Prašome pasirinkti kitą mokėjimo būdą. Razorpay nepalaiko sandoriams valiuta &quot;{0} '
 DocType: Data Import,In Progress,&quot;Progress&quot;
 apps/frappe/frappe/integrations/doctype/google_drive/google_drive.py,Queued for backup. It may take a few minutes to an hour.,Eilėje atsarginę kopiją. Tai gali užtrukti keletą minučių iki valandos.
 DocType: Error Snapshot,Pyver,Pyver
@@ -2730,7 +2730,7 @@ apps/frappe/frappe/public/js/frappe/form/save.js,Amending,iš dalies keičiantis
 apps/frappe/frappe/config/integrations.py,PayPal payment gateway settings,PayPal mokėjimų vartai nustatymai
 apps/frappe/frappe/templates/emails/energy_points_summary.html,Top Performer,Geriausias atlikėjas
 apps/frappe/frappe/custom/doctype/custom_field/custom_field.py,Custom Fields cannot be added to core DocTypes.,Pasirinktinių laukų negalima pridėti prie pagrindinių „DocTypes“.
-apps/frappe/frappe/model/base_document.py,"{0}: '{1}' ({3}) will get truncated, as max characters allowed is {2}","{0}: {1} &#39;({3}) bus sutrumpintas, nes max leidžiamas simbolių yra {2}"
+apps/frappe/frappe/model/base_document.py,"{0}: '{1}' ({3}) will get truncated, as max characters allowed is {2}","{0}: {1} '({3}) bus sutrumpintas, nes max leidžiamas simbolių yra {2}"
 DocType: OAuth Client,Response Type,Atsako tipas
 DocType: Contact Us Settings,Send enquiries to this email address,Siųsti užklausas į šį elektroninio pašto adresą
 DocType: Letter Head,Letter Head Name,Laiškas vadovas Vardas
@@ -2787,7 +2787,7 @@ apps/frappe/frappe/email/doctype/email_account/email_account.py,Append To can be
 DocType: Customize Form,Image View,Vaizdo Peržiūrėti
 apps/frappe/frappe/integrations/doctype/paypal_settings/paypal_settings.py,"Looks like something went wrong during the transaction. Since we haven't confirmed the payment, Paypal will automatically refund you this amount. If it doesn't, please send us an email and mention the Correlation ID: {0}.","Atrodo, kad kažkas negerai sandorio metu. Kadangi mes nepatvirtino mokėjimo, PayPal automatiškai grąžinsime Jums šią sumą. Jei ne, atsiųskite mums elektroninį laišką ir paminėti koreliacijos ID: {0}."
 apps/frappe/frappe/public/js/frappe/form/controls/password.js,"Include symbols, numbers and capital letters in the password","Įtraukti simbolius, skaičius ir didžiųjų raidžių slaptažodį"
-apps/frappe/frappe/custom/doctype/custom_field/custom_field.py,"Insert After field '{0}' mentioned in Custom Field '{1}', with label '{2}', does not exist","Įdėkite Po srityje &quot;{0}&quot; paminėta Custom Field &quot;{1} &#39;, su etikete&quot; {2} &quot;neegzistuoja"
+apps/frappe/frappe/custom/doctype/custom_field/custom_field.py,"Insert After field '{0}' mentioned in Custom Field '{1}', with label '{2}', does not exist","Įdėkite Po srityje &quot;{0}&quot; paminėta Custom Field &quot;{1} ', su etikete&quot; {2} &quot;neegzistuoja"
 DocType: List Filter,List Filter,Sąrašo filtras
 DocType: Workflow State,signal,signalas
 apps/frappe/frappe/public/js/frappe/views/inbox/inbox_view.js,Has Attachments,Turi priedų
@@ -2811,15 +2811,15 @@ DocType: Web Page,Slideshow,Skaidrės
 apps/frappe/frappe/contacts/doctype/address_template/address_template.py,Default Address Template cannot be deleted,Numatytasis adresas Šablonas ištrinti negalima
 DocType: Contact,Maintenance Manager,priežiūra direktorius
 DocType: Workflow State,Search,Paieška
-apps/frappe/frappe/integrations/doctype/stripe_settings/stripe_settings.py,Please select another payment method. Stripe does not support transactions in currency '{0}',Prašome pasirinkti kitą mokėjimo būdą. Juostele nepalaiko sandoriams valiuta &quot;{0} &#39;
-apps/frappe/frappe/integrations/doctype/stripe_settings/stripe_settings.py,Please select another payment method. Stripe does not support transactions in currency '{0}',Prašome pasirinkti kitą mokėjimo būdą. Juostele nepalaiko sandoriams valiuta &quot;{0} &#39;
+apps/frappe/frappe/integrations/doctype/stripe_settings/stripe_settings.py,Please select another payment method. Stripe does not support transactions in currency '{0}',Prašome pasirinkti kitą mokėjimo būdą. Juostele nepalaiko sandoriams valiuta &quot;{0} '
+apps/frappe/frappe/integrations/doctype/stripe_settings/stripe_settings.py,Please select another payment method. Stripe does not support transactions in currency '{0}',Prašome pasirinkti kitą mokėjimo būdą. Juostele nepalaiko sandoriams valiuta &quot;{0} '
 apps/frappe/frappe/core/doctype/communication/communication.js,Move To Trash,Išmesti
 DocType: Web Form,Web Form Fields,Interneto formos laukus
 DocType: Data Import,Amended From,Iš dalies pakeistas Nuo
 apps/frappe/frappe/public/js/frappe/model/meta.js,Warning: Unable to find {0} in any table related to {1},"Įspėjimas: nepavyko rasti {0} bet lentelę, susijusią su {1}"
 DocType: S3 Backup Settings,eu-north-1,eu-šiaurė-1
 apps/frappe/frappe/model/document.py,This document is currently queued for execution. Please try again,"Šis dokumentas yra šiuo metu eilėje vykdymą. Prašau, pabandykite dar kartą"
-apps/frappe/frappe/core/doctype/file/file.py,File '{0}' not found,Failo &#39;{0} &quot;nerastas
+apps/frappe/frappe/core/doctype/file/file.py,File '{0}' not found,Failo '{0} &quot;nerastas
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js,Remove Section,pašalinti skyrius
 DocType: User,Change Password,Pakeisti slaptažodį
 apps/frappe/frappe/public/js/frappe/views/reports/report_view.js,X Axis Field,X ašies laukas
@@ -3431,7 +3431,7 @@ apps/frappe/frappe/config/customization.py,Custom Translations,Individualizuotos
 apps/frappe/frappe/public/js/frappe/socketio_client.js,Progress,Progresas
 apps/frappe/frappe/public/js/frappe/form/workflow.js, by Role ,pagal Pareigas
 apps/frappe/frappe/public/js/frappe/form/save.js,Missing Fields,Trūksta laukai
-apps/frappe/frappe/core/doctype/doctype/doctype.py,Invalid fieldname '{0}' in autoname,Neteisingas nazwapola &#39;{0} &quot;į autoname
+apps/frappe/frappe/core/doctype/doctype/doctype.py,Invalid fieldname '{0}' in autoname,Neteisingas nazwapola '{0} &quot;į autoname
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js,Search in a document type,Ieškoti dokumento tipą
 DocType: Custom DocPerm,Role and Level,Vaidmuo ir lygis
 DocType: File,Thumbnail URL,Miniatiūra adresas
@@ -3920,7 +3920,7 @@ apps/frappe/frappe/public/js/frappe/list/list_sidebar_group_by.js,Me,Aš
 apps/frappe/frappe/workflow/doctype/workflow/workflow.py,{0} not a valid State,{0} neleistina Būsena
 apps/frappe/frappe/core/doctype/user_permission/user_permission_list.js,Apply to all Documents Types,Taikyti visiems dokumentų tipams
 apps/frappe/frappe/social/doctype/energy_point_log/energy_point_log.py,Energy point update,Energijos taško atnaujinimas
-apps/frappe/frappe/integrations/doctype/paypal_settings/paypal_settings.py,Please select another payment method. PayPal does not support transactions in currency '{0}',Prašome pasirinkti kitą mokėjimo būdą. &quot;PayPal&quot; nepalaiko sandoriams valiuta &quot;{0} &#39;
+apps/frappe/frappe/integrations/doctype/paypal_settings/paypal_settings.py,Please select another payment method. PayPal does not support transactions in currency '{0}',Prašome pasirinkti kitą mokėjimo būdą. &quot;PayPal&quot; nepalaiko sandoriams valiuta &quot;{0} '
 DocType: Chat Message,Room Type,Kambario tipas
 DocType: Data Import Beta,Import Log Preview,Importuoti žurnalo peržiūrą
 apps/frappe/frappe/core/doctype/doctype/doctype.py,Search field {0} is not valid,Paieška laukas {0} negalioja

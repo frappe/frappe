@@ -194,7 +194,7 @@ apps/frappe/frappe/core/doctype/report/report.js +37,Disable Report,禁用報告
 DocType: Website Theme,Apply Text Styles,應用文本樣式
 apps/frappe/frappe/www/feedback.html +34,Detailed feedback,詳細的反饋
 DocType: Data Migration Mapping,Pull,拉
-DocType: Report,JavaScript Format: frappe.query_reports['REPORTNAME'] = {},JavaScript的格式：frappe.query_reports [&#39;REPORTNAME&#39;] = {}
+DocType: Report,JavaScript Format: frappe.query_reports['REPORTNAME'] = {},JavaScript的格式：frappe.query_reports ['REPORTNAME'] = {}
 DocType: Workflow State,chevron-up,人字形-上
 DocType: DocType,Allow Guest to View,允許訪客查看
 apps/frappe/frappe/public/js/frappe/ui/toolbar/navbar.html +58,Documentation,文檔
@@ -814,7 +814,7 @@ DocType: Kanban Board Column,Blue,藍色
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +168,All customizations will be removed. Please confirm.,所有自定義都將被刪除。請確認。
 DocType: Page,Page HTML,頁面的HTML
 apps/frappe/frappe/chat/doctype/chat_room/chat_room.py +68,Group name cannot be empty.,組名不能為空。
-apps/frappe/frappe/public/js/frappe/views/treeview.js +295,Further nodes can be only created under 'Group' type nodes,此外節點可以在&#39;集團&#39;類型的節點上創建
+apps/frappe/frappe/public/js/frappe/views/treeview.js +295,Further nodes can be only created under 'Group' type nodes,此外節點可以在'集團'類型的節點上創建
 DocType: SMS Parameter,Header,頁首
 apps/frappe/frappe/public/js/frappe/model/model.js +90,Unknown Column: {0},未知專欄： {0}
 DocType: Notification Recipient,Email By Role,電子郵件按角色
@@ -1505,7 +1505,7 @@ apps/frappe/frappe/core/doctype/communication/email.py +151,Leave this conversat
 apps/frappe/frappe/model/base_document.py +444,Options not set for link field {0},對於鏈接欄位沒有設置選項{0}
 DocType: Customize Form,"Must be of type ""Attach Image""",類型必須為“附加圖片”
 apps/frappe/frappe/core/doctype/data_import/data_import.js +220,Unselect All,全部取消選擇
-apps/frappe/frappe/custom/doctype/customize_form/customize_form.py +208,You cannot unset 'Read Only' for field {0},你不能沒有設置&#39;只讀&#39;現場{0}
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.py +208,You cannot unset 'Read Only' for field {0},你不能沒有設置'只讀'現場{0}
 DocType: Auto Email Report,Zero means send records updated at anytime,零表示隨時更新發送記錄
 DocType: Auto Email Report,Zero means send records updated at anytime,零表示隨時更新發送記錄
 apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js +55,Complete Setup,完成安裝
@@ -1615,7 +1615,7 @@ DocType: System Settings,Session Expiry in Hours e.g. 06:00,連線過期的小�
 DocType: Customize Form Field,"This field will appear only if the fieldname defined here has value OR the rules are true (examples): 
 myfield
 eval:doc.myfield=='My Value'
-eval:doc.age>18",該字段將顯示僅在此處定義的字段名具有值或規則是真實的（例子）：MyField的EVAL：doc.myfield ==&#39;我的價值&#39;的eval：doc.age> 18
+eval:doc.age>18",該字段將顯示僅在此處定義的字段名具有值或規則是真實的（例子）：MyField的EVAL：doc.myfield =='我的價值'的eval：doc.age> 18
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +35,"Once you have set this, the users will only be able access documents (eg. Blog Post) where the link exists (eg. Blogger).",一旦你設置這個，用戶將只能訪問有聯結的文檔（如博客文章）。
 DocType: Error Log,Log of Scheduler Errors,日程安排程序錯誤日誌
 DocType: User,Bio,生物
@@ -2674,7 +2674,7 @@ DocType: User,Allow user to login only after this hour (0-24),允許用戶在幾
 DocType: Integration Request,Subscription Notification,訂閱通知
 DocType: Auto Repeat,Start Date,開始日期
 apps/frappe/frappe/email/doctype/newsletter/newsletter.py +171,Click here to verify,點擊這裡核實
-apps/frappe/frappe/utils/password_strength.py +202,Predictable substitutions like '@' instead of 'a' don't help very much.,可預見的替換像&#39;@&#39;而不是&#39;一&#39;不要太大幫助。
+apps/frappe/frappe/utils/password_strength.py +202,Predictable substitutions like '@' instead of 'a' don't help very much.,可預見的替換像'@'而不是'一'不要太大幫助。
 apps/frappe/frappe/desk/doctype/todo/todo_list.js +22,Assigned By Me,指定由我
 apps/frappe/frappe/core/doctype/doctype/doctype.py +102,Not in Developer Mode! Set in site_config.json or make 'Custom' DocType.,不是在開發模式！坐落在site_config.json或進行“自定義”的DocType。
 DocType: Workflow State,globe,地球
@@ -2712,7 +2712,7 @@ DocType: Notification,Reference Date,參考日期
 apps/frappe/frappe/core/doctype/sms_settings/sms_settings.py +28,Please enter valid mobile nos,請輸入有效的手機號
 apps/frappe/frappe/public/js/frappe/desk.js +18,Some of the features might not work in your browser. Please update your browser to the latest version.,您的瀏覽器中的某些功能可能無法正常工作。請將您的瀏覽器更新到最新版本。
 apps/frappe/frappe/public/js/frappe/desk.js +18,Some of the features might not work in your browser. Please update your browser to the latest version.,您的瀏覽器中的某些功能可能無法正常工作。請將您的瀏覽器更新到最新版本。
-apps/frappe/frappe/utils/bot.py +185,"Don't know, ask 'help'",不知道，問&#39;幫助&#39;
+apps/frappe/frappe/utils/bot.py +185,"Don't know, ask 'help'",不知道，問'幫助'
 DocType: DocType,Comments and Communications will be associated with this linked document,評論與通訊將與此鏈接的文檔關聯
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder_sidebar.html +3,Filter...,過濾器...
 DocType: Workflow State,bold,粗體

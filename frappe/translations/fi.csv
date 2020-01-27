@@ -557,7 +557,7 @@ apps/frappe/frappe/public/js/frappe/file_uploader/FilePreview.vue,Upload Failed,
 apps/frappe/frappe/social/doctype/energy_point_log/energy_point_log.py,Stats based on last week's performance (from {0} to {1}),Tilastot perustuvat viime viikon suorituskykyyn (välillä {0} - {1})
 DocType: LDAP Settings,LDAP Phone Field,LDAP-puhelinkenttä
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js,"document type..., e.g. customer","dokumentin tyyppi.., esim. asiakas"
-apps/frappe/frappe/email/doctype/notification/notification.py,The Condition '{0}' is invalid,Ehto &#39;{0}&#39; ei kelpaa
+apps/frappe/frappe/email/doctype/notification/notification.py,The Condition '{0}' is invalid,Ehto '{0}' ei kelpaa
 DocType: Workflow State,barcode,Viivakoodi
 apps/frappe/frappe/model/db_query.py,Use of sub-query or function is restricted,Alihakemiston tai toiminnon käyttöä rajoitetaan
 apps/frappe/frappe/config/customization.py,Add your own translations,Lisää oma käännökset
@@ -769,7 +769,7 @@ DocType: Custom Field,Select the label after which you want to insert new field.
 ,Document Share Report,Dokumentin jako raportti
 DocType: Social Login Key,Base URL,Base URL
 DocType: User,Last Login,Viimeksi kirjautunut
-apps/frappe/frappe/custom/doctype/customize_form/customize_form.py,You can't set 'Translatable' for field {0},Et voi asettaa &#39;Translatable&#39; kentälle {0}
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.py,You can't set 'Translatable' for field {0},Et voi asettaa 'Translatable' kentälle {0}
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder_column_selector.html,Column,sarake
 DocType: Chat Profile,Chat Profile,Chat-profiili
 DocType: Custom Field,Adds a custom field to a DocType,Lisää oman kentän tietuetyyppiin
@@ -1441,7 +1441,7 @@ apps/frappe/frappe/contacts/report/addresses_and_contacts/addresses_and_contacts
 apps/frappe/frappe/core/doctype/role_permission_for_page_and_report/role_permission_for_page_and_report.js,Mandatory field: set role for,Pakollinen kenttä: set rooli
 apps/frappe/frappe/public/js/frappe/utils/energy_point_utils.js,{0} criticized {1},{0} arvosteli {1}
 DocType: Data Migration Mapping,Mapping Name,Mapping Name
-apps/frappe/frappe/core/doctype/doctype/doctype.py,{0}: Field '{1}' cannot be set as Unique as it has non-unique values,"{0}: Kenttää &#39;{1}&#39; ei voida asettaa yksilölliseksi, koska sillä on ei-ainutlaatuiset arvot"
+apps/frappe/frappe/core/doctype/doctype/doctype.py,{0}: Field '{1}' cannot be set as Unique as it has non-unique values,"{0}: Kenttää '{1}' ei voida asettaa yksilölliseksi, koska sillä on ei-ainutlaatuiset arvot"
 apps/frappe/frappe/public/js/frappe/list/list_view.js,Navigate list down,Selaa luetteloa alaspäin
 DocType: Currency,A symbol for this currency. For e.g. $,"valuutan symboli, esim €"
 apps/frappe/frappe/public/js/frappe/views/translation_manager.js,Successfully updated translations,Päivitetty käännökset
@@ -2004,7 +2004,7 @@ DocType: SMS Settings,"Enter static url parameters here (Eg. sender=ERPNext, use
 apps/frappe/frappe/website/doctype/website_theme/website_theme.js,Google Font,Google-fontti
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,"If these instructions where not helpful, please add in your suggestions on GitHub Issues.",elleivät nämä ohjeet auta lisää ehdotus GitHub:lle aiheesa
 DocType: Workflow State,bookmark,kirjanmerkki
-apps/frappe/frappe/public/js/frappe/views/file/file_view.js,Folder name should not include '/' (slash),Kansion nimi ei pitäisi sisällyttää &#39;/&#39; (kauttaviiva)
+apps/frappe/frappe/public/js/frappe/views/file/file_view.js,Folder name should not include '/' (slash),Kansion nimi ei pitäisi sisällyttää '/' (kauttaviiva)
 DocType: Note,Note,Muistiinpano
 apps/frappe/frappe/core/doctype/error_snapshot/error_snapshot.html,Error Report,Virheraportti
 apps/frappe/frappe/config/settings.py,Export Data in CSV / Excel format.,Vie tiedot CSV / Excel-muodossa.
@@ -2108,7 +2108,7 @@ DocType: System Settings,Session Expiry in Hours e.g. 06:00,"Istunto vanhenee (t
 DocType: Customize Form Field,"This field will appear only if the fieldname defined here has value OR the rules are true (examples): 
 myfield
 eval:doc.myfield=='My Value'
-eval:doc.age>18","Tämä kenttä näkyy vain, jos fieldname määritelty tässä on arvo TAI säännöt ovat totta (esimerkkejä): myfield eval: doc.myfield == &#39;My Arvo &quot;eval: doc.age> 18"
+eval:doc.age>18","Tämä kenttä näkyy vain, jos fieldname määritelty tässä on arvo TAI säännöt ovat totta (esimerkkejä): myfield eval: doc.myfield == 'My Arvo &quot;eval: doc.age> 18"
 DocType: Social Login Key,Office 365,Office 365
 apps/frappe/frappe/public/js/frappe/ui/toolbar/energy_points_notifications.js,Today,Tänään
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,"Once you have set this, the users will only be able access documents (eg. Blog Post) where the link exists (eg. Blogger).","Kun olet asettanut tämän, käyttäjät voivat vain tutustua asiakirjoihin (esim. Blogiviesti) jos linkki on olemassa (esim. Blogger)."
@@ -2147,7 +2147,7 @@ DocType: Data Migration Connector,Database Name,Tietokannan nimi
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js,Refresh Form,Päivitä muoto
 DocType: DocField,Select,Valitse
 apps/frappe/frappe/public/js/frappe/ui/toolbar/energy_points_notifications.js,View Full Log,Näytä koko loki
-DocType: Assignment Rule,"Simple Python Expression, Example: status == 'Open' and type == 'Bug'","Yksinkertainen Python-lauseke, esimerkki: status == &#39;Avaa&#39; ja kirjoita == &#39;Vika&#39;"
+DocType: Assignment Rule,"Simple Python Expression, Example: status == 'Open' and type == 'Bug'","Yksinkertainen Python-lauseke, esimerkki: status == 'Avaa' ja kirjoita == 'Vika'"
 apps/frappe/frappe/utils/csvutils.py,File not attached,Tiedostoa ei ole liitetty
 apps/frappe/frappe/public/js/frappe/dom.js,Connection lost. Some features might not work.,Yhteys kadotettu. Jotkin ominaisuudet eivät välttämättä toimi.
 apps/frappe/frappe/utils/password_strength.py,"Repeats like ""aaa"" are easy to guess",Toistot kuten &quot;aaa&quot; on helppo arvata
@@ -2757,7 +2757,7 @@ apps/frappe/frappe/email/doctype/email_account/email_account.py,Append To can be
 DocType: Customize Form,Image View,kuvanäkymä
 apps/frappe/frappe/integrations/doctype/paypal_settings/paypal_settings.py,"Looks like something went wrong during the transaction. Since we haven't confirmed the payment, Paypal will automatically refund you this amount. If it doesn't, please send us an email and mention the Correlation ID: {0}.","Näyttää jotain meni pieleen tapahtuman aikana. Koska emme ole vahvistaneet maksu, Paypal automaattisesti palautamme tämän määrän. Jos näin ei ole, lähetä meille sähköpostia ja mainita korrelaatio ID: {0}."
 apps/frappe/frappe/public/js/frappe/form/controls/password.js,"Include symbols, numbers and capital letters in the password","Sisältyä merkkejä, numeroita ja isoja kirjaimia salasanaa"
-apps/frappe/frappe/custom/doctype/custom_field/custom_field.py,"Insert After field '{0}' mentioned in Custom Field '{1}', with label '{2}', does not exist","Aseta jälkeen kenttä &#39;{0}&#39; mainitaan Oma kenttä &quot;{1}&quot;, jossa merkintä &quot;{2}&quot;, ei ole olemassa"
+apps/frappe/frappe/custom/doctype/custom_field/custom_field.py,"Insert After field '{0}' mentioned in Custom Field '{1}', with label '{2}', does not exist","Aseta jälkeen kenttä '{0}' mainitaan Oma kenttä &quot;{1}&quot;, jossa merkintä &quot;{2}&quot;, ei ole olemassa"
 DocType: List Filter,List Filter,Listan suodatin
 DocType: Workflow State,signal,Signaali
 apps/frappe/frappe/public/js/frappe/views/inbox/inbox_view.js,Has Attachments,Onko liitteitä
@@ -2767,7 +2767,7 @@ apps/frappe/frappe/templates/includes/comments/comments.py,Comment Should be atl
 apps/frappe/frappe/core/doctype/deleted_document/deleted_document.py,Document Restored,Dokumentti Palautettu
 DocType: Data Export,Data Export,Tietojen vienti
 apps/frappe/frappe/public/js/frappe/form/print.js,Select Language...,Valitse kieli...
-apps/frappe/frappe/custom/doctype/customize_form/customize_form.py,You can't set 'Options' for field {0},Et voi asettaa &#39;Options&#39; kentälle {0}
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.py,You can't set 'Options' for field {0},Et voi asettaa 'Options' kentälle {0}
 DocType: Help Article,Author,kirjailija
 apps/frappe/frappe/email/doctype/email_queue/email_queue_list.js,Resume Sending,jatka lähettäminen
 apps/frappe/frappe/core/doctype/communication/communication.js,Reopen,Avaa uudestaan
@@ -2781,14 +2781,14 @@ DocType: Web Page,Slideshow,Diaesitys
 apps/frappe/frappe/contacts/doctype/address_template/address_template.py,Default Address Template cannot be deleted,"oletus osoite, mallipohjaa ei voi poistaa"
 DocType: Contact,Maintenance Manager,Huollon ylläpitäjä
 DocType: Workflow State,Search,Haku
-apps/frappe/frappe/integrations/doctype/stripe_settings/stripe_settings.py,Please select another payment method. Stripe does not support transactions in currency '{0}',Valitse toinen maksutapa. Raita ei tue käteisrahaan &#39;{0}&#39;
+apps/frappe/frappe/integrations/doctype/stripe_settings/stripe_settings.py,Please select another payment method. Stripe does not support transactions in currency '{0}',Valitse toinen maksutapa. Raita ei tue käteisrahaan '{0}'
 apps/frappe/frappe/core/doctype/communication/communication.js,Move To Trash,Siirtää roskakoriin
 DocType: Web Form,Web Form Fields,Verkkosivun Lomakkeen kentät
 DocType: Data Import,Amended From,Korjattu mistä
 apps/frappe/frappe/public/js/frappe/model/meta.js,Warning: Unable to find {0} in any table related to {1},Varoitus: ei löydy {0} millään taulukossa liittyvät {1}
 DocType: S3 Backup Settings,eu-north-1,EU-pohjois-1
 apps/frappe/frappe/model/document.py,This document is currently queued for execution. Please try again,Tämä asiakirja on parhaillaan jonossa suoritettavaksi. Yritä uudelleen
-apps/frappe/frappe/core/doctype/file/file.py,File '{0}' not found,Tiedosto {0} &#39;ei löytynyt
+apps/frappe/frappe/core/doctype/file/file.py,File '{0}' not found,Tiedosto {0} 'ei löytynyt
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js,Remove Section,poista jakso
 DocType: User,Change Password,Vaihda salasana
 apps/frappe/frappe/public/js/frappe/views/reports/report_view.js,X Axis Field,X-akselikenttä
@@ -2975,7 +2975,7 @@ apps/frappe/frappe/model/base_document.py,Value missing for,Arvo puuttuu
 apps/frappe/frappe/public/js/frappe/views/treeview.js,Add Child,lisää alasidos
 apps/frappe/frappe/core/doctype/data_import_beta/data_import_beta.js,Import Progress,Tuo eteneminen
 DocType: Energy Point Rule,"If the condition is satisfied user will be rewarded with the points. eg. doc.status == 'Closed'
-","Jos ehto täyttyy, käyttäjä palkitaan pisteillä. esimerkiksi. doc.status == &#39;Suljettu&#39;"
+","Jos ehto täyttyy, käyttäjä palkitaan pisteillä. esimerkiksi. doc.status == 'Suljettu'"
 apps/frappe/frappe/model/delete_doc.py,{0} {1}: Submitted Record cannot be deleted.,{0} {1}: Vahvistettua tietuetta ei voi poistaa.
 DocType: GSuite Templates,Template Name,Mallin nimi
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js,new type of document,uudentyyppinen asiakirja
@@ -3107,7 +3107,7 @@ DocType: Dashboard Chart,Chart Type,Kaaviotyyppi
 DocType: DocType,Auto Name,Auto Name
 apps/frappe/frappe/utils/password_strength.py,Avoid sequences like abc or 6543 as they are easy to guess,"Vältä sekvenssit kuten abc tai 6543, koska ne on helppo arvata"
 apps/frappe/frappe/public/js/frappe/request.js,Please try again,Yritä uudelleen
-apps/frappe/frappe/core/doctype/file/file.py,URL must start with 'http://' or 'https://',URL-osoitteen on alkava &#39;http: //&#39; tai &#39;https: //&#39;
+apps/frappe/frappe/core/doctype/file/file.py,URL must start with 'http://' or 'https://',URL-osoitteen on alkava 'http: //' tai 'https: //'
 apps/frappe/frappe/custom/doctype/custom_field/custom_field.js,Option 3,Vaihtoehto 3
 DocType: Communication,uid,uid
 DocType: Workflow State,Edit,muokkaa
@@ -3346,7 +3346,7 @@ DocType: Notification,Send alert if this field's value changes,"Lähetä hälyty
 apps/frappe/frappe/website/doctype/website_theme/website_theme.js,Theme Colors,Teemavärit
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js,Select a DocType to make a new format,Valitse tietuetyyppi tehdäksesi uuden formaatin
 apps/frappe/frappe/desk/page/user_profile/user_profile.js,User does not exist,Käyttäjää ei ole olemassa
-apps/frappe/frappe/automation/doctype/auto_repeat/auto_repeat.py,'Recipients' not specified,&#39;Vastaanottajat&#39; ei ole määritelty
+apps/frappe/frappe/automation/doctype/auto_repeat/auto_repeat.py,'Recipients' not specified,'Vastaanottajat' ei ole määritelty
 apps/frappe/frappe/public/js/frappe/utils/pretty_date.js,just now,juuri nyt
 apps/frappe/frappe/public/js/frappe/ui/filters/edit_filter.html,Apply,Käytä
 DocType: Footer Item,Policy,Käytäntö
@@ -3394,7 +3394,7 @@ apps/frappe/frappe/config/customization.py,Custom Translations,Mukautetut kielik
 apps/frappe/frappe/public/js/frappe/socketio_client.js,Progress,Edistyminen
 apps/frappe/frappe/public/js/frappe/form/workflow.js, by Role ,Rooli
 apps/frappe/frappe/public/js/frappe/form/save.js,Missing Fields,Puuttuvia kenttiä
-apps/frappe/frappe/core/doctype/doctype/doctype.py,Invalid fieldname '{0}' in autoname,Virheellinen fieldname &#39;{0}&#39; in autoname
+apps/frappe/frappe/core/doctype/doctype/doctype.py,Invalid fieldname '{0}' in autoname,Virheellinen fieldname '{0}' in autoname
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js,Search in a document type,Haku asiakirjatyypit
 DocType: Custom DocPerm,Role and Level,Rooli ja Level
 DocType: File,Thumbnail URL,Pikkukuvan URL
@@ -3695,7 +3695,7 @@ DocType: Web Page,Web Page,Verkkosivu
 DocType: Workflow Document State,Next Action Email Template,Seuraava toiminto sähköpostimalli
 DocType: Blog Category,Blogger,Bloggaaja
 DocType: DocType,"If enabled, changes to the document are tracked and shown in timeline","Jos tämä on käytössä, asiakirjan muutoksia seurataan ja ne näytetään aikajanalla"
-apps/frappe/frappe/core/doctype/doctype/doctype.py,'In Global Search' not allowed for type {0} in row {1},&#39;Global haku&#39; kielletty tyyppi {0} rivillä {1}
+apps/frappe/frappe/core/doctype/doctype/doctype.py,'In Global Search' not allowed for type {0} in row {1},'Global haku' kielletty tyyppi {0} rivillä {1}
 DocType: Energy Point Log,Appreciation,arvostus
 apps/frappe/frappe/public/js/frappe/views/treeview.js,View List,Katso List
 DocType: Workflow,Don't Override Status,Älä poikkeuta tilaa

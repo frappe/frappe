@@ -562,7 +562,7 @@ apps/frappe/frappe/public/js/frappe/file_uploader/FilePreview.vue,Upload Failed,
 apps/frappe/frappe/social/doctype/energy_point_log/energy_point_log.py,Stats based on last week's performance (from {0} to {1}),Статистика заснована на учинку прошле недеље (од {0} до {1})
 DocType: LDAP Settings,LDAP Phone Field,ЛДАП телефонско поље
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js,"document type..., e.g. customer","Тип документа ..., на пример, купац"
-apps/frappe/frappe/email/doctype/notification/notification.py,The Condition '{0}' is invalid,Услов &#39;{0}&#39; је неважећи
+apps/frappe/frappe/email/doctype/notification/notification.py,The Condition '{0}' is invalid,Услов '{0}' је неважећи
 DocType: Workflow State,barcode,баркод
 apps/frappe/frappe/model/db_query.py,Use of sub-query or function is restricted,Употреба под-упита или функције је ограничена
 apps/frappe/frappe/config/customization.py,Add your own translations,Додајте своје преводе
@@ -712,7 +712,7 @@ DocType: Slack Webhook URL,Webhook URL,Вебхоок УРЛ
 apps/frappe/frappe/core/doctype/user/user.py,Username {0} already exists,Корисничко име {0} већ постоји
 apps/frappe/frappe/core/doctype/doctype/doctype.py,{0}: Cannot set import as {1} is not importable,{0} : Не удается установить импорт как {1} не является ввозу
 apps/frappe/frappe/contacts/doctype/address/address.py,There is an error in your Address Template {0},Постоји грешка у вашем Адреса Темплате {0}
-apps/frappe/frappe/automation/doctype/auto_repeat/auto_repeat.py,{0} is an invalid email address in 'Recipients',{0} је неважећа адреса е-поште у &#39;Примаоцима&#39;
+apps/frappe/frappe/automation/doctype/auto_repeat/auto_repeat.py,{0} is an invalid email address in 'Recipients',{0} је неважећа адреса е-поште у 'Примаоцима'
 DocType: Footer Item,"target = ""_blank""",таргет = &quot;_бланк&quot;
 DocType: Workflow State,hdd,хдд
 DocType: Integration Request,Host,Домаћин
@@ -754,7 +754,7 @@ DocType: Currency,Currency Name,Валута Име
 apps/frappe/frappe/public/js/frappe/views/inbox/inbox_view.js,No Emails,Но Емаил
 apps/frappe/frappe/workflow/doctype/workflow_action/workflow_action.py,Link Expired,Линк Истекао
 apps/frappe/frappe/database/schema.py,"Reverting length to {0} for '{1}' in '{2}';
-							Setting the length as {3} will cause truncation of data.",Враћање дужине на {0} за &#39;{1}&#39; у &#39;{2}&#39;; Подешавање дужине као {3} ће узроковати скраћивање података.
+							Setting the length as {3} will cause truncation of data.",Враћање дужине на {0} за '{1}' у '{2}'; Подешавање дужине као {3} ће узроковати скраћивање података.
 apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,Select File Format,Изаберите Филе Формат
 DocType: Report,Javascript,Јавасцрипт
 DocType: File,Content Hash,Содержимое Hash
@@ -776,7 +776,7 @@ DocType: Custom Field,Select the label after which you want to insert new field.
 ,Document Share Report,Документ Подели Пријави
 DocType: Social Login Key,Base URL,База УРЛ
 DocType: User,Last Login,Последњи Улазак
-apps/frappe/frappe/custom/doctype/customize_form/customize_form.py,You can't set 'Translatable' for field {0},Не можете поставити &#39;Транслатабле&#39; за поље {0}
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.py,You can't set 'Translatable' for field {0},Не можете поставити 'Транслатабле' за поље {0}
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder_column_selector.html,Column,Колона
 DocType: Chat Profile,Chat Profile,Цхат Профил
 DocType: Custom Field,Adds a custom field to a DocType,Додаје прилагођени поље за ДОЦТИПЕ
@@ -785,7 +785,7 @@ DocType: File,Is Home Folder,Ис Хоме Директоријум
 apps/frappe/frappe/website/doctype/website_theme/website_theme.js,Navbar Style,Навбар Стиле
 apps/frappe/frappe/utils/__init__.py,{0} is not a valid Email Address,{0} није валидна емаил адреса
 apps/frappe/frappe/public/js/frappe/list/bulk_operations.js,Select atleast 1 record for printing,Изабери покрвитеља 1 запис за штампање
-apps/frappe/frappe/core/doctype/has_role/has_role.py,User '{0}' already has the role '{1}',Усер &#39;{0}&#39; већ има улогу &#39;{1}&#39;
+apps/frappe/frappe/core/doctype/has_role/has_role.py,User '{0}' already has the role '{1}',Усер '{0}' већ има улогу '{1}'
 DocType: System Settings,Two Factor Authentication method,Два факторска аутентикацијска метода
 apps/frappe/frappe/website/doctype/website_slideshow/website_slideshow.js,First set the name and save the record.,Прво подесите име и сачувајте запис.
 apps/frappe/frappe/public/js/frappe/data_import/data_exporter.js,5 Records,5 Записа
@@ -1456,7 +1456,7 @@ apps/frappe/frappe/contacts/report/addresses_and_contacts/addresses_and_contacts
 apps/frappe/frappe/core/doctype/role_permission_for_page_and_report/role_permission_for_page_and_report.js,Mandatory field: set role for,Обавезно поље: сет улога
 apps/frappe/frappe/public/js/frappe/utils/energy_point_utils.js,{0} criticized {1},{0} критикован {1}
 DocType: Data Migration Mapping,Mapping Name,Име мапирања
-apps/frappe/frappe/core/doctype/doctype/doctype.py,{0}: Field '{1}' cannot be set as Unique as it has non-unique values,"{0}: Поље &#39;{1}&#39; се не може поставити као јединствено, јер има јединствене вредности"
+apps/frappe/frappe/core/doctype/doctype/doctype.py,{0}: Field '{1}' cannot be set as Unique as it has non-unique values,"{0}: Поље '{1}' се не може поставити као јединствено, јер има јединствене вредности"
 apps/frappe/frappe/public/js/frappe/list/list_view.js,Navigate list down,Навигација по листи доле
 DocType: Currency,A symbol for this currency. For e.g. $,Симбол за ову валуту. За пример $
 apps/frappe/frappe/public/js/frappe/views/translation_manager.js,Successfully updated translations,Успешно ажурирани преводи
@@ -1979,7 +1979,7 @@ apps/frappe/frappe/core/page/background_jobs/background_jobs.html,Queue / Worker
 DocType: S3 Backup Settings,ap-southeast-1,ап-југоисток-1
 DocType: DocType,"Must be of type ""Attach Image""",Мора бити типа &quot;Аттацх Имаге&quot;
 apps/frappe/frappe/core/doctype/data_import/data_import.js,Unselect All,Поништи све
-apps/frappe/frappe/custom/doctype/customize_form/customize_form.py,You cannot unset 'Read Only' for field {0},Не можете унсет &#39;Реад Онли &quot;за област {0}
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.py,You cannot unset 'Read Only' for field {0},Не можете унсет 'Реад Онли &quot;за област {0}
 DocType: Auto Email Report,Zero means send records updated at anytime,Нула значи послати евиденцију ажурира у било ком тренутку
 apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js,Complete Setup,завершение установки
 apps/frappe/frappe/public/js/frappe/list/bulk_operations.js,Updated successfully,Ажуриран успешно
@@ -2023,7 +2023,7 @@ DocType: SMS Settings,"Enter static url parameters here (Eg. sender=ERPNext, use
 apps/frappe/frappe/website/doctype/website_theme/website_theme.js,Google Font,Гоогле Фонт
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,"If these instructions where not helpful, please add in your suggestions on GitHub Issues.","Если эти инструкции , где не помогает, пожалуйста, добавьте в ваши предложения по вопросам GitHub ."
 DocType: Workflow State,bookmark,боокмарк
-apps/frappe/frappe/public/js/frappe/views/file/file_view.js,Folder name should not include '/' (slash),Назив фолдера не треба да садржи &#39;/&#39; (Сласх)
+apps/frappe/frappe/public/js/frappe/views/file/file_view.js,Folder name should not include '/' (slash),Назив фолдера не треба да садржи '/' (Сласх)
 DocType: Note,Note,Приметити
 apps/frappe/frappe/core/doctype/error_snapshot/error_snapshot.html,Error Report,Грешка Извештај
 apps/frappe/frappe/config/settings.py,Export Data in CSV / Excel format.,Извоз података у ЦСВ / Екцел формату.
@@ -2128,7 +2128,7 @@ DocType: System Settings,Session Expiry in Hours e.g. 06:00,Седница Ро�
 DocType: Customize Form Field,"This field will appear only if the fieldname defined here has value OR the rules are true (examples): 
 myfield
 eval:doc.myfield=='My Value'
-eval:doc.age>18",Ово поље ће се појавити само ако фиелднаме овде дефинисана је вредност или правила су прави (примери): мифиелд ЕВАЛ: доц.мифиелд == &#39;Мој Вредност&#39; евал: доц.аге> 18
+eval:doc.age>18",Ово поље ће се појавити само ако фиелднаме овде дефинисана је вредност или правила су прави (примери): мифиелд ЕВАЛ: доц.мифиелд == 'Мој Вредност' евал: доц.аге> 18
 DocType: Social Login Key,Office 365,Оффице 365
 apps/frappe/frappe/public/js/frappe/ui/toolbar/energy_points_notifications.js,Today,Данас
 apps/frappe/frappe/public/js/frappe/ui/toolbar/energy_points_notifications.js,Today,Данас
@@ -2168,7 +2168,7 @@ DocType: Data Migration Connector,Database Name,Име базе података
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js,Refresh Form,Рефресх Образац
 DocType: DocField,Select,Одабрати
 apps/frappe/frappe/public/js/frappe/ui/toolbar/energy_points_notifications.js,View Full Log,Погледајте цео дневник
-DocType: Assignment Rule,"Simple Python Expression, Example: status == 'Open' and type == 'Bug'","Симпле Питхон Екпрессион, Екампле: статус == &#39;Опен&#39; и откуцајте == &#39;Буг&#39;"
+DocType: Assignment Rule,"Simple Python Expression, Example: status == 'Open' and type == 'Bug'","Симпле Питхон Екпрессион, Екампле: статус == 'Опен' и откуцајте == 'Буг'"
 apps/frappe/frappe/utils/csvutils.py,File not attached,Файл не прилагается
 apps/frappe/frappe/public/js/frappe/dom.js,Connection lost. Some features might not work.,Конекција изгубљена. Неке функције можда неће радити.
 apps/frappe/frappe/utils/password_strength.py,"Repeats like ""aaa"" are easy to guess",Понавља као &quot;ааа&quot; су лако погодити
@@ -2300,7 +2300,7 @@ apps/frappe/frappe/email/doctype/email_unsubscribe/email_unsubscribe.py,{0} alre
 DocType: Data Import,Show only errors,Покажи само грешке
 DocType: Website Settings,Banner HTML,Банер ХТМЛ
 DocType: Workflow,Send Email Alert,Пошаљи Емаил Алерт
-apps/frappe/frappe/integrations/doctype/razorpay_settings/razorpay_settings.py,Please select another payment method. Razorpay does not support transactions in currency '{0}',Молимо одаберите други начин плаћања. Разорпаи не подржава трансакције у валути &#39;{0}&#39;
+apps/frappe/frappe/integrations/doctype/razorpay_settings/razorpay_settings.py,Please select another payment method. Razorpay does not support transactions in currency '{0}',Молимо одаберите други начин плаћања. Разорпаи не подржава трансакције у валути '{0}'
 DocType: Data Import,In Progress,У току
 apps/frappe/frappe/integrations/doctype/google_drive/google_drive.py,Queued for backup. It may take a few minutes to an hour.,Чекању за бацкуп. То може потрајати неколико минута до сат времена.
 DocType: Error Snapshot,Pyver,Пивер
@@ -2727,7 +2727,7 @@ apps/frappe/frappe/public/js/frappe/form/save.js,Amending,Изменама и д
 apps/frappe/frappe/config/integrations.py,PayPal payment gateway settings,ПаиПал Паимент Гатеваи поставке
 apps/frappe/frappe/templates/emails/energy_points_summary.html,Top Performer,Врхунски перформер
 apps/frappe/frappe/custom/doctype/custom_field/custom_field.py,Custom Fields cannot be added to core DocTypes.,Прилагођена поља се не могу додати у основне ДоцТипес.
-apps/frappe/frappe/model/base_document.py,"{0}: '{1}' ({3}) will get truncated, as max characters allowed is {2}","{0}: {1} &#39;({3}) би био скраћен, као мак знакова дозвољена је {2}"
+apps/frappe/frappe/model/base_document.py,"{0}: '{1}' ({3}) will get truncated, as max characters allowed is {2}","{0}: {1} '({3}) би био скраћен, као мак знакова дозвољена је {2}"
 DocType: OAuth Client,Response Type,Тип одговора
 DocType: Contact Us Settings,Send enquiries to this email address,Пошаљите питања на ову емаил адресу
 DocType: Letter Head,Letter Head Name,Писмо Глава Име
@@ -2783,7 +2783,7 @@ apps/frappe/frappe/email/doctype/email_account/email_account.py,Append To can be
 DocType: Customize Form,Image View,Слика Погледај
 apps/frappe/frappe/integrations/doctype/paypal_settings/paypal_settings.py,"Looks like something went wrong during the transaction. Since we haven't confirmed the payment, Paypal will automatically refund you this amount. If it doesn't, please send us an email and mention the Correlation ID: {0}.","Изгледа да нешто није у реду током трансакције. Пошто нисмо потврдили плаћање, ПаиПал ће вам аутоматски надокнадити тај износ. Ако се то не деси, пошаљите нам е-маил и споменути корелације ИД: {0}."
 apps/frappe/frappe/public/js/frappe/form/controls/password.js,"Include symbols, numbers and capital letters in the password","Укључују симболе, бројеве и велика слова у лозинку"
-apps/frappe/frappe/custom/doctype/custom_field/custom_field.py,"Insert After field '{0}' mentioned in Custom Field '{1}', with label '{2}', does not exist","Убаците Након пољу &#39;{0}&#39; помиње у прилагођеном пољу &#39;{1}&#39;, са ознаком &#39;{2}&#39;, не постоји"
+apps/frappe/frappe/custom/doctype/custom_field/custom_field.py,"Insert After field '{0}' mentioned in Custom Field '{1}', with label '{2}', does not exist","Убаците Након пољу '{0}' помиње у прилагођеном пољу '{1}', са ознаком '{2}', не постоји"
 DocType: List Filter,List Filter,Филтер листе
 DocType: Workflow State,signal,сигнал
 apps/frappe/frappe/public/js/frappe/views/inbox/inbox_view.js,Has Attachments,Има прилоге
@@ -2793,7 +2793,7 @@ apps/frappe/frappe/templates/includes/comments/comments.py,Comment Should be atl
 apps/frappe/frappe/core/doctype/deleted_document/deleted_document.py,Document Restored,dokument Ресторед
 DocType: Data Export,Data Export,Извоз података
 apps/frappe/frappe/public/js/frappe/form/print.js,Select Language...,Изаберите језик ...
-apps/frappe/frappe/custom/doctype/customize_form/customize_form.py,You can't set 'Options' for field {0},Не можете поставити &#39;Опције&#39; за поље {0}
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.py,You can't set 'Options' for field {0},Не можете поставити 'Опције' за поље {0}
 DocType: Help Article,Author,аутор
 apps/frappe/frappe/email/doctype/email_queue/email_queue_list.js,Resume Sending,nastavi слање
 apps/frappe/frappe/core/doctype/communication/communication.js,Reopen,Поново отворити
@@ -2807,15 +2807,15 @@ DocType: Web Page,Slideshow,Слидесхов
 apps/frappe/frappe/contacts/doctype/address_template/address_template.py,Default Address Template cannot be deleted,Уобичајено Адреса Шаблон не може бити обрисан
 DocType: Contact,Maintenance Manager,Менаџер Одржавање
 DocType: Workflow State,Search,Претрага
-apps/frappe/frappe/integrations/doctype/stripe_settings/stripe_settings.py,Please select another payment method. Stripe does not support transactions in currency '{0}',Молимо одаберите други начин плаћања. Трака не подржава трансакције у валути &#39;{0}&#39;
-apps/frappe/frappe/integrations/doctype/stripe_settings/stripe_settings.py,Please select another payment method. Stripe does not support transactions in currency '{0}',Молимо одаберите други начин плаћања. Трака не подржава трансакције у валути &#39;{0}&#39;
+apps/frappe/frappe/integrations/doctype/stripe_settings/stripe_settings.py,Please select another payment method. Stripe does not support transactions in currency '{0}',Молимо одаберите други начин плаћања. Трака не подржава трансакције у валути '{0}'
+apps/frappe/frappe/integrations/doctype/stripe_settings/stripe_settings.py,Please select another payment method. Stripe does not support transactions in currency '{0}',Молимо одаберите други начин плаћања. Трака не подржава трансакције у валути '{0}'
 apps/frappe/frappe/core/doctype/communication/communication.js,Move To Trash,Пошаљи У ђубре
 DocType: Web Form,Web Form Fields,Веб Форм Поља
 DocType: Data Import,Amended From,Измењена од
 apps/frappe/frappe/public/js/frappe/model/meta.js,Warning: Unable to find {0} in any table related to {1},Упозорење: Није могуће пронаћи {0} у сваком столу у вези са {1}
 DocType: S3 Backup Settings,eu-north-1,еу-север-1
 apps/frappe/frappe/model/document.py,This document is currently queued for execution. Please try again,"Овај документ је тренутно чекају на извршење. Молим вас, покушајте поново"
-apps/frappe/frappe/core/doctype/file/file.py,File '{0}' not found,Фајл &#39;{0}&#39; није пронађен
+apps/frappe/frappe/core/doctype/file/file.py,File '{0}' not found,Фајл '{0}' није пронађен
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js,Remove Section,Ремове секцију
 DocType: User,Change Password,Промена лозинке
 apps/frappe/frappe/public/js/frappe/views/reports/report_view.js,X Axis Field,Поље Кс оси
@@ -3004,7 +3004,7 @@ apps/frappe/frappe/model/base_document.py,Value missing for,Вредност н�
 apps/frappe/frappe/public/js/frappe/views/treeview.js,Add Child,Додај Цхилд
 apps/frappe/frappe/core/doctype/data_import_beta/data_import_beta.js,Import Progress,Увези напредак
 DocType: Energy Point Rule,"If the condition is satisfied user will be rewarded with the points. eg. doc.status == 'Closed'
-","Ако је увјет задовољен, корисник ће бити награђен бодовима. на пример. доц.статус == &#39;Затворено&#39;"
+","Ако је увјет задовољен, корисник ће бити награђен бодовима. на пример. доц.статус == 'Затворено'"
 apps/frappe/frappe/model/delete_doc.py,{0} {1}: Submitted Record cannot be deleted.,{0} {1}: Поставио Рекорд се не може избрисати.
 DocType: GSuite Templates,Template Name,Име шаблона
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js,new type of document,нови тип документа
@@ -3137,7 +3137,7 @@ DocType: Dashboard Chart,Chart Type,Тип графикона
 DocType: DocType,Auto Name,Ауто Име
 apps/frappe/frappe/utils/password_strength.py,Avoid sequences like abc or 6543 as they are easy to guess,"Избегавајте секвенце као што су АБЦ или 6543, јер је лако погодити"
 apps/frappe/frappe/public/js/frappe/request.js,Please try again,"Молим вас, покушајте поново"
-apps/frappe/frappe/core/doctype/file/file.py,URL must start with 'http://' or 'https://',УРЛ адреса мора почети са &#39;хттп: //&#39; или &#39;хттпс: //&#39;
+apps/frappe/frappe/core/doctype/file/file.py,URL must start with 'http://' or 'https://',УРЛ адреса мора почети са 'хттп: //' или 'хттпс: //'
 apps/frappe/frappe/custom/doctype/custom_field/custom_field.js,Option 3,Опција 3
 DocType: Communication,uid,? уид
 DocType: Workflow State,Edit,Едит
@@ -3376,7 +3376,7 @@ DocType: Notification,Send alert if this field's value changes,Пошаљи уп
 apps/frappe/frappe/website/doctype/website_theme/website_theme.js,Theme Colors,Боје тема
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js,Select a DocType to make a new format,Изаберите ДОЦТИПЕ да направи нови формат
 apps/frappe/frappe/desk/page/user_profile/user_profile.js,User does not exist,Корисник не постоји
-apps/frappe/frappe/automation/doctype/auto_repeat/auto_repeat.py,'Recipients' not specified,&#39;Примаоци&#39; нису наведени
+apps/frappe/frappe/automation/doctype/auto_repeat/auto_repeat.py,'Recipients' not specified,'Примаоци' нису наведени
 apps/frappe/frappe/public/js/frappe/utils/pretty_date.js,just now,управо сада
 apps/frappe/frappe/public/js/frappe/ui/filters/edit_filter.html,Apply,Применити
 DocType: Footer Item,Policy,политика
@@ -3425,7 +3425,7 @@ apps/frappe/frappe/config/customization.py,Custom Translations,Цустом Пр
 apps/frappe/frappe/public/js/frappe/socketio_client.js,Progress,напредак
 apps/frappe/frappe/public/js/frappe/form/workflow.js, by Role ,по улози
 apps/frappe/frappe/public/js/frappe/form/save.js,Missing Fields,миссинг Поља
-apps/frappe/frappe/core/doctype/doctype/doctype.py,Invalid fieldname '{0}' in autoname,Инвалид фиелднаме &#39;{0}&#39; у аутонаме
+apps/frappe/frappe/core/doctype/doctype/doctype.py,Invalid fieldname '{0}' in autoname,Инвалид фиелднаме '{0}' у аутонаме
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js,Search in a document type,Тражи у врсти документа
 DocType: Custom DocPerm,Role and Level,Роль и уровень
 DocType: File,Thumbnail URL,Умањени УРЛ адреса
@@ -3525,7 +3525,7 @@ DocType: Dashboard Chart,Filters JSON,Филтери ЈСОН
 apps/frappe/frappe/email/doctype/newsletter/newsletter.py,Click here to verify,Кликните овде да бисте проверили
 DocType: Email Account,Disable SMTP server authentication,Онемогући провјеру идентитета СМТП сервера
 apps/frappe/frappe/public/js/frappe/utils/utils.js,Copied to clipboard.,Копирано у међуспремник.
-apps/frappe/frappe/utils/password_strength.py,Predictable substitutions like '@' instead of 'a' don't help very much.,Предвидљива замене као што су &#39;@&#39; уместо &#39;А&#39; не помажу много.
+apps/frappe/frappe/utils/password_strength.py,Predictable substitutions like '@' instead of 'a' don't help very much.,Предвидљива замене као што су '@' уместо 'А' не помажу много.
 apps/frappe/frappe/desk/doctype/todo/todo_list.js,Assigned By Me,Ассигнед Би Ме
 apps/frappe/frappe/utils/data.py,Zero,Нула
 DocType: Google Drive,Backup Folder ID,ИД резервне мапе
@@ -3579,7 +3579,7 @@ apps/frappe/frappe/templates/includes/login/login.js,OTP setup using OTP App was
 apps/frappe/frappe/core/doctype/sms_settings/sms_settings.py,Please enter valid mobile nos,Введите действительные мобильных NOS
 apps/frappe/frappe/public/js/frappe/desk.js,Some of the features might not work in your browser. Please update your browser to the latest version.,Неке од функција неће радити у вашем бровсеру. Молимо Вас да ажурирате свој претраживач на најновију верзију.
 apps/frappe/frappe/public/js/frappe/desk.js,Some of the features might not work in your browser. Please update your browser to the latest version.,Неке од функција неће радити у вашем бровсеру. Молимо Вас да ажурирате свој претраживач на најновију верзију.
-apps/frappe/frappe/utils/bot.py,"Don't know, ask 'help'","Не знам, питај &#39;помоћ&#39;"
+apps/frappe/frappe/utils/bot.py,"Don't know, ask 'help'","Не знам, питај 'помоћ'"
 apps/frappe/frappe/public/js/frappe/form/footer/timeline.js,cancelled this document {0},отказао овај документ {0}
 DocType: DocType,Comments and Communications will be associated with this linked document,Коментари и комуникације ће бити повезана са овим везног документа
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder_sidebar.html,Filter...,Филтер ...
@@ -3738,8 +3738,8 @@ DocType: Web Page,Web Page,Веб страна
 DocType: Workflow Document State,Next Action Email Template,Следећа шаблона за акцију
 DocType: Blog Category,Blogger,Блоггер
 DocType: DocType,"If enabled, changes to the document are tracked and shown in timeline","Ако је омогућено, измене у документу се прате и приказују у временској траци"
-apps/frappe/frappe/core/doctype/doctype/doctype.py,'In Global Search' not allowed for type {0} in row {1},&#39;Глобал Сеарцх &quot;није дозвољено за тип {0} у реду {1}
-apps/frappe/frappe/core/doctype/doctype/doctype.py,'In Global Search' not allowed for type {0} in row {1},&#39;Глобал Сеарцх &quot;није дозвољено за тип {0} у реду {1}
+apps/frappe/frappe/core/doctype/doctype/doctype.py,'In Global Search' not allowed for type {0} in row {1},'Глобал Сеарцх &quot;није дозвољено за тип {0} у реду {1}
+apps/frappe/frappe/core/doctype/doctype/doctype.py,'In Global Search' not allowed for type {0} in row {1},'Глобал Сеарцх &quot;није дозвољено за тип {0} у реду {1}
 DocType: Energy Point Log,Appreciation,Захвалност
 apps/frappe/frappe/public/js/frappe/views/treeview.js,View List,виев Лист
 DocType: Workflow,Don't Override Status,Не замењују Статус
@@ -3887,7 +3887,7 @@ apps/frappe/frappe/public/js/frappe/form/templates/form_sidebar.html,Currently V
 DocType: DocField,Default,Уобичајено
 DocType: Translation,Verified,Проверено
 apps/frappe/frappe/public/js/frappe/form/link_selector.js,{0} added,{0} је додао
-apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js,Search for '{0}',Трагање за &#39;{0}&#39;
+apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js,Search for '{0}',Трагање за '{0}'
 apps/frappe/frappe/public/js/frappe/views/reports/report_view.js,Please save the report first,Сачувајте извештај први
 apps/frappe/frappe/email/doctype/email_group/email_group.py,{0} subscribers added,{0} је додао претплатници
 apps/frappe/frappe/public/js/frappe/ui/filters/filter.js,Not In,Није У
@@ -3924,14 +3924,14 @@ apps/frappe/frappe/public/js/frappe/list/list_sidebar_group_by.js,Me,Ја
 apps/frappe/frappe/workflow/doctype/workflow/workflow.py,{0} not a valid State,{0} није важећидржавни
 apps/frappe/frappe/core/doctype/user_permission/user_permission_list.js,Apply to all Documents Types,Применити на све врсте докумената
 apps/frappe/frappe/social/doctype/energy_point_log/energy_point_log.py,Energy point update,Ажурирање енергетске тачке
-apps/frappe/frappe/integrations/doctype/paypal_settings/paypal_settings.py,Please select another payment method. PayPal does not support transactions in currency '{0}',Молимо одаберите други начин плаћања. Паипал не подржава трансакције у валути &#39;{0}&#39;
+apps/frappe/frappe/integrations/doctype/paypal_settings/paypal_settings.py,Please select another payment method. PayPal does not support transactions in currency '{0}',Молимо одаберите други начин плаћања. Паипал не подржава трансакције у валути '{0}'
 DocType: Chat Message,Room Type,Врста собе
 DocType: Data Import Beta,Import Log Preview,Увези преглед прегледа
 apps/frappe/frappe/core/doctype/doctype/doctype.py,Search field {0} is not valid,поље за претрагу {0} није важећа
 apps/frappe/frappe/public/js/frappe/file_uploader/FileUploader.vue,uploaded file,отпремљена датотека
 DocType: Workflow State,ok-circle,ок-круг
 DocType: LDAP Settings,LDAP User Creation and Mapping,Стварање и мапирање ЛДАП корисника
-apps/frappe/frappe/utils/bot.py,You can find things by asking 'find orange in customers',Можете наћи ствари тражећи &quot;наћи наранџасто у купце &#39;
+apps/frappe/frappe/utils/bot.py,You can find things by asking 'find orange in customers',Можете наћи ствари тражећи &quot;наћи наранџасто у купце '
 apps/frappe/frappe/core/doctype/user/user.py,Sorry! User should have complete access to their own record.,Извини! Корисник треба да имају потпуни приступ свом запису.
 ,Usage Info,Употреба информације
 apps/frappe/frappe/public/js/frappe/ui/keyboard.js,Show Keyboard Shortcuts,Прикажи пречице на тастатури

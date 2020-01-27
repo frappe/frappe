@@ -557,7 +557,7 @@ apps/frappe/frappe/public/js/frappe/file_uploader/FilePreview.vue,Upload Failed,
 apps/frappe/frappe/social/doctype/energy_point_log/energy_point_log.py,Stats based on last week's performance (from {0} to {1}),الإحصائيات بناءً على أداء الأسبوع الماضي (من {0} إلى {1})
 DocType: LDAP Settings,LDAP Phone Field,حقل هاتف LDAP
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js,"document type..., e.g. customer",نوع الوثيقة ...، على سبيل المثال العملاء
-apps/frappe/frappe/email/doctype/notification/notification.py,The Condition '{0}' is invalid,الشرط &#39;{0}&#39; غير صالح
+apps/frappe/frappe/email/doctype/notification/notification.py,The Condition '{0}' is invalid,الشرط '{0}' غير صالح
 DocType: Workflow State,barcode,الباركود
 apps/frappe/frappe/model/db_query.py,Use of sub-query or function is restricted,استخدام الاستعلام الفرعي أو وظيفة مقيدة
 apps/frappe/frappe/config/customization.py,Add your own translations,أضف الترجمة  الخاصة بك
@@ -748,7 +748,7 @@ DocType: Currency,Currency Name,اسم العملة
 apps/frappe/frappe/public/js/frappe/views/inbox/inbox_view.js,No Emails,لا رسائل البريد الإلكتروني
 apps/frappe/frappe/workflow/doctype/workflow_action/workflow_action.py,Link Expired,انتهت صلاحية الرابط
 apps/frappe/frappe/database/schema.py,"Reverting length to {0} for '{1}' in '{2}';
-							Setting the length as {3} will cause truncation of data.",إرجاع الطول إلى {0} لـ &#39;{1}&#39; في &#39;{2}&#39;؛ سيتسبب تعيين الطول في {3} في اقتطاع البيانات.
+							Setting the length as {3} will cause truncation of data.",إرجاع الطول إلى {0} لـ '{1}' في '{2}'؛ سيتسبب تعيين الطول في {3} في اقتطاع البيانات.
 apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,Select File Format,حدد تنسيق الملف
 DocType: Report,Javascript,جافا سكريبت
 DocType: File,Content Hash,تجزئة المحتوى
@@ -769,7 +769,7 @@ DocType: Custom Field,Select the label after which you want to insert new field.
 ,Document Share Report,وثيقة حصة تقرير
 DocType: Social Login Key,Base URL,الرابط الأساسي
 DocType: User,Last Login,آخر تسجيل دخول
-apps/frappe/frappe/custom/doctype/customize_form/customize_form.py,You can't set 'Translatable' for field {0},لا يمكنك تعيين &#39;ترانزلاتابل&#39; للحقل {0}
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.py,You can't set 'Translatable' for field {0},لا يمكنك تعيين 'ترانزلاتابل' للحقل {0}
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder_column_selector.html,Column,عمود
 DocType: Chat Profile,Chat Profile,دردشة الملف الشخصي
 DocType: Custom Field,Adds a custom field to a DocType,DocType  اضافة حقل خاص ل
@@ -1441,7 +1441,7 @@ apps/frappe/frappe/contacts/report/addresses_and_contacts/addresses_and_contacts
 apps/frappe/frappe/core/doctype/role_permission_for_page_and_report/role_permission_for_page_and_report.js,Mandatory field: set role for,حقل إلزامي: ضع صلاحية المحددة ل
 apps/frappe/frappe/public/js/frappe/utils/energy_point_utils.js,{0} criticized {1},{0} انتقد {1}
 DocType: Data Migration Mapping,Mapping Name,اسم رسم الخرائط
-apps/frappe/frappe/core/doctype/doctype/doctype.py,{0}: Field '{1}' cannot be set as Unique as it has non-unique values,{0}: لا يمكن تعيين الحقل &#39;{1}&#39; على أنه فريد لأنه يحتوي على قيم غير فريدة
+apps/frappe/frappe/core/doctype/doctype/doctype.py,{0}: Field '{1}' cannot be set as Unique as it has non-unique values,{0}: لا يمكن تعيين الحقل '{1}' على أنه فريد لأنه يحتوي على قيم غير فريدة
 apps/frappe/frappe/public/js/frappe/list/list_view.js,Navigate list down,انتقل القائمة لأسفل
 DocType: Currency,A symbol for this currency. For e.g. $,رمز هذه العملة. ر.س مثلاً
 apps/frappe/frappe/public/js/frappe/views/translation_manager.js,Successfully updated translations,تم تحديث الترجمات بنجاح
@@ -2004,7 +2004,7 @@ DocType: SMS Settings,"Enter static url parameters here (Eg. sender=ERPNext, use
 apps/frappe/frappe/website/doctype/website_theme/website_theme.js,Google Font,خط جوجل
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,"If these instructions where not helpful, please add in your suggestions on GitHub Issues.",إذا هذه التعليمات حيث لم تكن مفيدة ، يرجى إضافة في اقتراحاتكم بشأن قضايا جيثب .
 DocType: Workflow State,bookmark,المرجعية
-apps/frappe/frappe/public/js/frappe/views/file/file_view.js,Folder name should not include '/' (slash),يجب ألا يتضمن اسم المجلد &#39;/&#39; (شرطة مائلة)
+apps/frappe/frappe/public/js/frappe/views/file/file_view.js,Folder name should not include '/' (slash),يجب ألا يتضمن اسم المجلد '/' (شرطة مائلة)
 DocType: Note,Note,ملاحظات
 apps/frappe/frappe/core/doctype/error_snapshot/error_snapshot.html,Error Report,أبلغ عن مشكلة
 apps/frappe/frappe/config/settings.py,Export Data in CSV / Excel format.,تصدير البيانات بتنسيق CSV / Excel.
@@ -2108,7 +2108,7 @@ DocType: System Settings,Session Expiry in Hours e.g. 06:00,انتهاء الا�
 DocType: Customize Form Field,"This field will appear only if the fieldname defined here has value OR the rules are true (examples): 
 myfield
 eval:doc.myfield=='My Value'
-eval:doc.age>18",سيظهر هذا المجال إلا إذا كان FIELDNAME المحدد هنا له قيمة أو قواعد صحيحة (أمثلة): myfield حدة التقييم: doc.myfield == &#39;بلدي القيمة &quot;وحدة التقييم: doc.age> 18
+eval:doc.age>18",سيظهر هذا المجال إلا إذا كان FIELDNAME المحدد هنا له قيمة أو قواعد صحيحة (أمثلة): myfield حدة التقييم: doc.myfield == 'بلدي القيمة &quot;وحدة التقييم: doc.age> 18
 DocType: Social Login Key,Office 365,مكتب 365
 apps/frappe/frappe/public/js/frappe/ui/toolbar/energy_points_notifications.js,Today,اليوم
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,"Once you have set this, the users will only be able access documents (eg. Blog Post) where the link exists (eg. Blogger).",وبمجرد الانتهاء من تعيين هذه ، سوف يكون المستخدمون قادرين فقط الوصول إلى المستندات (على سبيل المثال مدونة بوست) حيث يوجد رابط (مثل مدون ) .
@@ -2147,7 +2147,7 @@ DocType: Data Migration Connector,Database Name,اسم قاعدة البيانا
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js,Refresh Form,نموذج التحديث
 DocType: DocField,Select,حدد
 apps/frappe/frappe/public/js/frappe/ui/toolbar/energy_points_notifications.js,View Full Log,عرض السجل الكامل
-DocType: Assignment Rule,"Simple Python Expression, Example: status == 'Open' and type == 'Bug'",تعبير Python البسيط ، مثال: status == &#39;Open&#39; واكتب == &#39;Bug&#39;
+DocType: Assignment Rule,"Simple Python Expression, Example: status == 'Open' and type == 'Bug'",تعبير Python البسيط ، مثال: status == 'Open' واكتب == 'Bug'
 apps/frappe/frappe/utils/csvutils.py,File not attached,الملف غير مرفق
 apps/frappe/frappe/public/js/frappe/dom.js,Connection lost. Some features might not work.,فقد الاتصال، بعض الميزات قد لا تعمل.
 apps/frappe/frappe/utils/password_strength.py,"Repeats like ""aaa"" are easy to guess",كما يكرر &quot;AAA&quot; من السهل تخمين
@@ -2278,7 +2278,7 @@ apps/frappe/frappe/email/doctype/email_unsubscribe/email_unsubscribe.py,{0} alre
 DocType: Data Import,Show only errors,عرض الأخطاء فقط
 DocType: Website Settings,Banner HTML,راية HTML
 DocType: Workflow,Send Email Alert,إرسال تنبيه عبر البريد الإلكتروني
-apps/frappe/frappe/integrations/doctype/razorpay_settings/razorpay_settings.py,Please select another payment method. Razorpay does not support transactions in currency '{0}',يرجى تحديد طريقة دفع أخرى. Razorpay لا يعتمد المعاملات بالعملة &#39;{0}&#39;
+apps/frappe/frappe/integrations/doctype/razorpay_settings/razorpay_settings.py,Please select another payment method. Razorpay does not support transactions in currency '{0}',يرجى تحديد طريقة دفع أخرى. Razorpay لا يعتمد المعاملات بالعملة '{0}'
 DocType: Data Import,In Progress,في تَقَدم
 apps/frappe/frappe/integrations/doctype/google_drive/google_drive.py,Queued for backup. It may take a few minutes to an hour.,في قائمة الانتظار للنسخ الاحتياطي. قد يستغرق بضع دقائق إلى ساعة.
 DocType: Error Snapshot,Pyver,Pyver
@@ -2758,7 +2758,7 @@ apps/frappe/frappe/email/doctype/email_account/email_account.py,Append To can be
 DocType: Customize Form,Image View,عرض الصورة
 apps/frappe/frappe/integrations/doctype/paypal_settings/paypal_settings.py,"Looks like something went wrong during the transaction. Since we haven't confirmed the payment, Paypal will automatically refund you this amount. If it doesn't, please send us an email and mention the Correlation ID: {0}.",يبدو وكأنه شيء على ما يرام أثناء العملية. وبما أننا لم تؤكد عملية الدفع، سوف باي بال برد تلقائيا هذا المبلغ. إذا لم يحدث ذلك، يرجى مراسلتنا على البريد الإلكتروني، وأذكر معرف الارتباط: {0}.
 apps/frappe/frappe/public/js/frappe/form/controls/password.js,"Include symbols, numbers and capital letters in the password",تضمين الرموز والأرقام والأحرف الكبيرة في كلمة المرور
-apps/frappe/frappe/custom/doctype/custom_field/custom_field.py,"Insert After field '{0}' mentioned in Custom Field '{1}', with label '{2}', does not exist",إدراج بعد الحقل &#39;{0}&#39; المذكورة في حقل مخصص &#39;{1}&#39;، مع التسمية &#39;{2}&#39;، غير موجود
+apps/frappe/frappe/custom/doctype/custom_field/custom_field.py,"Insert After field '{0}' mentioned in Custom Field '{1}', with label '{2}', does not exist",إدراج بعد الحقل '{0}' المذكورة في حقل مخصص '{1}'، مع التسمية '{2}'، غير موجود
 DocType: List Filter,List Filter,تصفية القائمة
 DocType: Workflow State,signal,إشارة
 apps/frappe/frappe/public/js/frappe/views/inbox/inbox_view.js,Has Attachments,يحتوي على مرفقات
@@ -2782,7 +2782,7 @@ DocType: Web Page,Slideshow,عرض الشرائح
 apps/frappe/frappe/contacts/doctype/address_template/address_template.py,Default Address Template cannot be deleted,لا يمكن حذف القالب الافتراضي العنوان
 DocType: Contact,Maintenance Manager,مدير الصيانة
 DocType: Workflow State,Search,البحث
-apps/frappe/frappe/integrations/doctype/stripe_settings/stripe_settings.py,Please select another payment method. Stripe does not support transactions in currency '{0}',يرجى تحديد طريقة دفع أخرى. شريط لا يدعم المعاملات بالعملة &#39;{0}&#39;
+apps/frappe/frappe/integrations/doctype/stripe_settings/stripe_settings.py,Please select another payment method. Stripe does not support transactions in currency '{0}',يرجى تحديد طريقة دفع أخرى. شريط لا يدعم المعاملات بالعملة '{0}'
 apps/frappe/frappe/core/doctype/communication/communication.js,Move To Trash,ارسال الى سلة المحذوفات
 DocType: Web Form,Web Form Fields,الحقول نموذج ويب
 DocType: Data Import,Amended From,معدل من
@@ -2976,7 +2976,7 @@ apps/frappe/frappe/model/base_document.py,Value missing for,قيمة مفقود�
 apps/frappe/frappe/public/js/frappe/views/treeview.js,Add Child,إضافة الطفل
 apps/frappe/frappe/core/doctype/data_import_beta/data_import_beta.js,Import Progress,استيراد التقدم
 DocType: Energy Point Rule,"If the condition is satisfied user will be rewarded with the points. eg. doc.status == 'Closed'
-",إذا كانت الحالة راضية ، فسيتم مكافأة المستخدم بالنقاط. على سبيل المثال. doc.status == &#39;مغلق&#39;
+",إذا كانت الحالة راضية ، فسيتم مكافأة المستخدم بالنقاط. على سبيل المثال. doc.status == 'مغلق'
 apps/frappe/frappe/model/delete_doc.py,{0} {1}: Submitted Record cannot be deleted.,{0} {1}: لا يمكن حذف سجل مؤكد.
 DocType: GSuite Templates,Template Name,اسم القالب
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js,new type of document,نوع جديد من الوثيقة
@@ -3396,7 +3396,7 @@ apps/frappe/frappe/config/customization.py,Custom Translations,ترجمة مخص
 apps/frappe/frappe/public/js/frappe/socketio_client.js,Progress,تقدم
 apps/frappe/frappe/public/js/frappe/form/workflow.js, by Role ,حسب الصلاحية
 apps/frappe/frappe/public/js/frappe/form/save.js,Missing Fields,حقول مفقودة
-apps/frappe/frappe/core/doctype/doctype/doctype.py,Invalid fieldname '{0}' in autoname,FIELDNAME غير صالح &#39;{0}&#39; في autoname
+apps/frappe/frappe/core/doctype/doctype/doctype.py,Invalid fieldname '{0}' in autoname,FIELDNAME غير صالح '{0}' في autoname
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js,Search in a document type,بحث في نوع الوثيقة
 DocType: Custom DocPerm,Role and Level,مستوى الصلاحية
 DocType: File,Thumbnail URL,URL المصغرة
@@ -3497,7 +3497,7 @@ DocType: Dashboard Chart,Filters JSON,مرشحات JSON
 apps/frappe/frappe/email/doctype/newsletter/newsletter.py,Click here to verify,انقر هنا للتأكيد
 DocType: Email Account,Disable SMTP server authentication,تعطيل مصادقة خادم SMTP
 apps/frappe/frappe/public/js/frappe/utils/utils.js,Copied to clipboard.,نسخ إلى الحافظة.
-apps/frappe/frappe/utils/password_strength.py,Predictable substitutions like '@' instead of 'a' don't help very much.,بدائل يمكن التنبؤ بها مثل &#39;@&#39; بدلا من &#39;&#39; لا يساعد كثيرا جدا.
+apps/frappe/frappe/utils/password_strength.py,Predictable substitutions like '@' instead of 'a' don't help very much.,بدائل يمكن التنبؤ بها مثل '@' بدلا من '' لا يساعد كثيرا جدا.
 apps/frappe/frappe/desk/doctype/todo/todo_list.js,Assigned By Me,يسندها عني
 apps/frappe/frappe/utils/data.py,Zero,صفر
 DocType: Google Drive,Backup Folder ID,معرف مجلد النسخ الاحتياطي
@@ -3856,7 +3856,7 @@ apps/frappe/frappe/public/js/frappe/form/templates/form_sidebar.html,Currently V
 DocType: DocField,Default,الافتراضي
 DocType: Translation,Verified,التحقق
 apps/frappe/frappe/public/js/frappe/form/link_selector.js,{0} added,{0} أضيف
-apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js,Search for '{0}',البحث عن &#39;{0}&#39;
+apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js,Search for '{0}',البحث عن '{0}'
 apps/frappe/frappe/public/js/frappe/views/reports/report_view.js,Please save the report first,يرجى حفظ التقرير الأول
 apps/frappe/frappe/email/doctype/email_group/email_group.py,{0} subscribers added,{0}  مشتركين تم اضافتهم
 apps/frappe/frappe/public/js/frappe/ui/filters/filter.js,Not In,ليس في
@@ -3892,7 +3892,7 @@ apps/frappe/frappe/public/js/frappe/list/list_sidebar_group_by.js,Me,أنا
 apps/frappe/frappe/workflow/doctype/workflow/workflow.py,{0} not a valid State,{0}   ليست حالة صالحة
 apps/frappe/frappe/core/doctype/user_permission/user_permission_list.js,Apply to all Documents Types,تنطبق على جميع أنواع الوثائق
 apps/frappe/frappe/social/doctype/energy_point_log/energy_point_log.py,Energy point update,تحديث نقطة الطاقة
-apps/frappe/frappe/integrations/doctype/paypal_settings/paypal_settings.py,Please select another payment method. PayPal does not support transactions in currency '{0}',يرجى تحديد طريقة دفع أخرى. باي بال لا تدعم المعاملات بالعملة &#39;{0}&#39;
+apps/frappe/frappe/integrations/doctype/paypal_settings/paypal_settings.py,Please select another payment method. PayPal does not support transactions in currency '{0}',يرجى تحديد طريقة دفع أخرى. باي بال لا تدعم المعاملات بالعملة '{0}'
 DocType: Chat Message,Room Type,نوع الغرفة
 DocType: Data Import Beta,Import Log Preview,استيراد سجل معاينة
 apps/frappe/frappe/core/doctype/doctype/doctype.py,Search field {0} is not valid,حقل البحث {0} غير صالح

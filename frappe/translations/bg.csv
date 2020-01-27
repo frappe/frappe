@@ -252,7 +252,7 @@ apps/frappe/frappe/core/doctype/report/report.js,Disable Report,Неактиве
 DocType: Translation,Contributed Translation Doctype Name,Име на принос на превода
 DocType: PayPal Settings,Redirect To,пренасочи към
 DocType: Data Migration Mapping,Pull,дърпам
-DocType: Report,JavaScript Format: frappe.query_reports['REPORTNAME'] = {},JavaScript Формат: frappe.query_reports [&#39;REPORTNAME&#39;] = {}
+DocType: Report,JavaScript Format: frappe.query_reports['REPORTNAME'] = {},JavaScript Формат: frappe.query_reports ['REPORTNAME'] = {}
 DocType: Bulk Update,Bulk Update,Масова актуализация
 DocType: Workflow State,chevron-up,Стрелка-нагоре
 DocType: DocType,Allow Guest to View,Позволете гости да преглеждат
@@ -1027,7 +1027,7 @@ DocType: Property Setter,Property Setter,Property сетер
 DocType: Web Form,Allow Print,Разрешаване на печат
 DocType: Communication,Clicked,Кликнато
 apps/frappe/frappe/public/js/frappe/form/templates/form_sidebar.html,Unfollow,Не следвай
-apps/frappe/frappe/public/js/frappe/form/form.js,No permission to '{0}' {1},Няма разрешение за &#39;{0}&#39; {1}
+apps/frappe/frappe/public/js/frappe/form/form.js,No permission to '{0}' {1},Няма разрешение за '{0}' {1}
 apps/frappe/frappe/email/doctype/auto_email_report/auto_email_report.js,Scheduled to send,Планирана да изпратите
 DocType: DocType,Track Seen,Track Погледнато
 DocType: Dropbox Settings,File Backup,Архивиране на файлове
@@ -2147,7 +2147,7 @@ DocType: Data Migration Connector,Database Name,Име на базата дан�
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js,Refresh Form,Обновяване Form
 DocType: DocField,Select,Изберете
 apps/frappe/frappe/public/js/frappe/ui/toolbar/energy_points_notifications.js,View Full Log,Вижте пълния дневник
-DocType: Assignment Rule,"Simple Python Expression, Example: status == 'Open' and type == 'Bug'","Simple Python Expression, Example: status == &#39;Open&#39; и напишете == &#39;Bug&#39;"
+DocType: Assignment Rule,"Simple Python Expression, Example: status == 'Open' and type == 'Bug'","Simple Python Expression, Example: status == 'Open' и напишете == 'Bug'"
 apps/frappe/frappe/utils/csvutils.py,File not attached,Файлът не е прикачен
 apps/frappe/frappe/public/js/frappe/dom.js,Connection lost. Some features might not work.,Изгубената връзка. Възможно е някои функции да не работят.
 apps/frappe/frappe/utils/password_strength.py,"Repeats like ""aaa"" are easy to guess",Повторения като &quot;ААА&quot; са лесни за отгатване
@@ -2975,7 +2975,7 @@ apps/frappe/frappe/model/base_document.py,Value missing for,Липсва Цен�
 apps/frappe/frappe/public/js/frappe/views/treeview.js,Add Child,Добави Поделемент
 apps/frappe/frappe/core/doctype/data_import_beta/data_import_beta.js,Import Progress,Импортиране на напредъка
 DocType: Energy Point Rule,"If the condition is satisfied user will be rewarded with the points. eg. doc.status == 'Closed'
-","Ако условието е изпълнено, потребителят ще бъде възнаграден с точките. напр. doc.status == &#39;Затворен&#39;"
+","Ако условието е изпълнено, потребителят ще бъде възнаграден с точките. напр. doc.status == 'Затворен'"
 apps/frappe/frappe/model/delete_doc.py,{0} {1}: Submitted Record cannot be deleted.,{0} {1}: Осчетоводен Запис не може да бъде изтрит.
 DocType: GSuite Templates,Template Name,Име на шаблона
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js,new type of document,нов тип документ
@@ -3841,7 +3841,7 @@ apps/frappe/frappe/public/js/frappe/form/templates/form_sidebar.html,Currently V
 DocType: DocField,Default,Неустойка
 DocType: Translation,Verified,Потвърден
 apps/frappe/frappe/public/js/frappe/form/link_selector.js,{0} added,{0} добавен
-apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js,Search for '{0}',Търсене за &#39;{0}&#39;
+apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js,Search for '{0}',Търсене за '{0}'
 apps/frappe/frappe/public/js/frappe/views/reports/report_view.js,Please save the report first,"Моля, запишете справката първо"
 apps/frappe/frappe/email/doctype/email_group/email_group.py,{0} subscribers added,Добавени {0} абонати
 apps/frappe/frappe/public/js/frappe/ui/filters/filter.js,Not In,Не в

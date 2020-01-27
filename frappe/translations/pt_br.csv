@@ -935,7 +935,7 @@ DocType: Bulk Update,Bulk Update,Alteração em Massa
 DocType: Workflow State,zoom-out,diminuir zoom
 DocType: Communication,Email Status,Satus do Email
 apps/frappe/frappe/config/desk.py,Chat messages and other notifications.,Mensagens do chat e outras notificações.
-apps/frappe/frappe/core/doctype/file/file.py,File '{0}' not found,Arquivo &#39;{0}&#39; não encontrado
+apps/frappe/frappe/core/doctype/file/file.py,File '{0}' not found,Arquivo '{0}' não encontrado
 DocType: Print Settings,Compact Item Print,Imprimir item no formato compacto
 DocType: DocType,Track Seen,Marcar como visto
 apps/frappe/frappe/model/delete_doc.py,User not allowed to delete {0}: {1},Usuário não tem permissão para excluir {0}: {1}

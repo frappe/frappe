@@ -2169,7 +2169,7 @@ DocType: Data Migration Connector,Database Name,数据库名称
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js,Refresh Form,刷新表格
 DocType: DocField,Select,选择
 apps/frappe/frappe/public/js/frappe/ui/toolbar/energy_points_notifications.js,View Full Log,查看完整日志
-DocType: Assignment Rule,"Simple Python Expression, Example: status == 'Open' and type == 'Bug'",简单的Python表达式，例如：status ==&#39;Open&#39;并输入==&#39;Bug&#39;
+DocType: Assignment Rule,"Simple Python Expression, Example: status == 'Open' and type == 'Bug'",简单的Python表达式，例如：status =='Open'并输入=='Bug'
 apps/frappe/frappe/utils/csvutils.py,File not attached,文件未附加
 apps/frappe/frappe/public/js/frappe/dom.js,Connection lost. Some features might not work.,连接丢失。某些功能可能无法使用。
 apps/frappe/frappe/utils/password_strength.py,"Repeats like ""aaa"" are easy to guess",像“AAA”重复很容易被猜到
@@ -2817,7 +2817,7 @@ DocType: Data Import,Amended From,修订源
 apps/frappe/frappe/public/js/frappe/model/meta.js,Warning: Unable to find {0} in any table related to {1},警告：无法找到{0}与任何表{1}
 DocType: S3 Backup Settings,eu-north-1,欧盟 - 北 -  1
 apps/frappe/frappe/model/document.py,This document is currently queued for execution. Please try again,这份文件目前正在排队等待执行。请再试一次
-apps/frappe/frappe/core/doctype/file/file.py,File '{0}' not found,文件&#39;{0}&#39;未找到
+apps/frappe/frappe/core/doctype/file/file.py,File '{0}' not found,文件'{0}'未找到
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js,Remove Section,删除部分
 DocType: User,Change Password,更改密码
 apps/frappe/frappe/public/js/frappe/views/reports/report_view.js,X Axis Field,X轴字段
@@ -3008,7 +3008,7 @@ apps/frappe/frappe/model/base_document.py,Value missing for,缺少值
 apps/frappe/frappe/public/js/frappe/views/treeview.js,Add Child,添加子项
 apps/frappe/frappe/core/doctype/data_import_beta/data_import_beta.js,Import Progress,进口进度
 DocType: Energy Point Rule,"If the condition is satisfied user will be rewarded with the points. eg. doc.status == 'Closed'
-",如果条件满足，用户将获得积分奖励。例如。 doc.status ==&#39;已关闭&#39;
+",如果条件满足，用户将获得积分奖励。例如。 doc.status =='已关闭'
 apps/frappe/frappe/model/delete_doc.py,{0} {1}: Submitted Record cannot be deleted.,{0} {1}：提交记录不能被删除。
 DocType: GSuite Templates,Template Name,模板名称
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js,new type of document,新类型的文件
@@ -3381,7 +3381,7 @@ DocType: Notification,Send alert if this field's value changes,如果这个字�
 apps/frappe/frappe/website/doctype/website_theme/website_theme.js,Theme Colors,主题色彩
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js,Select a DocType to make a new format,请选择新格式的原始文档类型
 apps/frappe/frappe/desk/page/user_profile/user_profile.js,User does not exist,用户不存在
-apps/frappe/frappe/automation/doctype/auto_repeat/auto_repeat.py,'Recipients' not specified,&#39;收件人&#39;未指定
+apps/frappe/frappe/automation/doctype/auto_repeat/auto_repeat.py,'Recipients' not specified,'收件人'未指定
 apps/frappe/frappe/public/js/frappe/utils/pretty_date.js,just now,刚刚
 apps/frappe/frappe/public/js/frappe/ui/filters/edit_filter.html,Apply,应用
 DocType: Footer Item,Policy,政策
@@ -3531,7 +3531,7 @@ DocType: Dashboard Chart,Filters JSON,过滤JSON
 apps/frappe/frappe/email/doctype/newsletter/newsletter.py,Click here to verify,点击这里核实
 DocType: Email Account,Disable SMTP server authentication,禁用SMTP服务器验证
 apps/frappe/frappe/public/js/frappe/utils/utils.js,Copied to clipboard.,复制到剪贴板。
-apps/frappe/frappe/utils/password_strength.py,Predictable substitutions like '@' instead of 'a' don't help very much.,可预见的替换像&#39;@&#39;而不是&#39;一&#39;不要太大帮助。
+apps/frappe/frappe/utils/password_strength.py,Predictable substitutions like '@' instead of 'a' don't help very much.,可预见的替换像'@'而不是'一'不要太大帮助。
 apps/frappe/frappe/desk/doctype/todo/todo_list.js,Assigned By Me,由我指定
 apps/frappe/frappe/utils/data.py,Zero,零
 DocType: Google Drive,Backup Folder ID,备份文件夹ID
@@ -3585,7 +3585,7 @@ apps/frappe/frappe/templates/includes/login/login.js,OTP setup using OTP App was
 apps/frappe/frappe/core/doctype/sms_settings/sms_settings.py,Please enter valid mobile nos,请输入有效的手机号
 apps/frappe/frappe/public/js/frappe/desk.js,Some of the features might not work in your browser. Please update your browser to the latest version.,您的浏览器中的某些功能可能无法正常工作。请将您的浏览器更新到最新版本。
 apps/frappe/frappe/public/js/frappe/desk.js,Some of the features might not work in your browser. Please update your browser to the latest version.,您的浏览器中的某些功能可能无法正常工作。请将您的浏览器更新到最新版本。
-apps/frappe/frappe/utils/bot.py,"Don't know, ask 'help'",不知道，问&#39;帮助&#39;
+apps/frappe/frappe/utils/bot.py,"Don't know, ask 'help'",不知道，问'帮助'
 apps/frappe/frappe/public/js/frappe/form/footer/timeline.js,cancelled this document {0},取消了此文档{0}
 DocType: DocType,Comments and Communications will be associated with this linked document,评论与通讯将与此链接的文档关联
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder_sidebar.html,Filter...,过滤器...
