@@ -66,7 +66,7 @@ class EventProducer(Document):
 		consumer_doctypes = []
 		for entry in self.producer_doctypes:
 			if entry.has_mapping:
-				# if it has mapping then on event consumer's site it should subscribe to remote doctype
+				# if mapping, subscribe to remote doctype on consumer's site
 				consumer_doctypes.append(frappe.db.get_value('Document Type Mapping', entry.mapping, 'remote_doctype'))
 			else:
 				consumer_doctypes.append(entry.ref_doctype)
@@ -98,7 +98,7 @@ class EventProducer(Document):
 				event_consumer.consumer_doctypes = []
 				for entry in self.producer_doctypes:
 					if entry.has_mapping:
-						# if it has mapping then on event consumer's site it should subscribe to remote doctype
+						# if mapping, subscribe to remote doctype on consumer's site
 						ref_doctype = frappe.db.get_value('Document Type Mapping', entry.mapping, 'remote_doctype')
 					else:
 						ref_doctype = entry.ref_doctype
@@ -138,7 +138,7 @@ def get_producer_site(producer_url):
 
 
 def get_approval_status(config, ref_doctype):
-	"""check whether the doctype has been marked approved, rejected or pending for consumption"""
+	"""check the approval status for consumption"""
 	for entry in config:
 		if entry.get('ref_doctype') == ref_doctype:
 			return entry.get('status')
@@ -153,8 +153,7 @@ def pull_producer_data():
 		for event_producer in frappe.get_all('Event Producer'):
 			pull_from_node(event_producer.name)
 		return 'success'
-	else:
-		return None
+	return None
 
 
 @frappe.whitelist()
@@ -298,9 +297,9 @@ def set_delete(update):
 def get_updates(producer_site, last_update, doctypes):
 	"""Get all updates generated after the last update timestamp"""
 	docs = producer_site.get_list(
-		doctype = 'Event Update Log',
-		filters = {'ref_doctype': ('in', doctypes), 'creation': ('>', last_update)},
-		fields = ['update_type', 'ref_doctype', 'docname', 'data', 'name', 'creation']
+		doctype='Event Update Log',
+		filters={'ref_doctype': ('in', doctypes), 'creation': ('>', last_update)},
+		fields=['update_type', 'ref_doctype', 'docname', 'data', 'name', 'creation']
 	)
 	docs.reverse()
 	return [frappe._dict(d) for d in docs]
@@ -318,7 +317,8 @@ def get_local_doc(update):
 
 def sync_dependencies(document, producer_site):
 	"""
-	dependencies is a dictionary to store all the docs having dependencies and their sync status,
+	dependencies is a dictionary to store all the docs
+	having dependencies and their sync status,
 	which is shared among all nested functions.
 	"""
 	dependencies = {document: True}

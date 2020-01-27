@@ -193,7 +193,7 @@ class Document(BaseDocument):
 		raise frappe.PermissionError
 
 	def insert(self, ignore_permissions=None, ignore_links=None, ignore_if_duplicate=False,
-		ignore_mandatory=None, set_name=None, set_child_names=True):
+				ignore_mandatory=None, set_name=None, set_child_names=True):
 		"""Insert the document in the database (as a new document).
 		This will check for user permissions and execute `before_insert`,
 		`validate`, `on_update`, `after_insert` methods if they are written.

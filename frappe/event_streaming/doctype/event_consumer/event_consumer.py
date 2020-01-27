@@ -39,7 +39,8 @@ class EventConsumer(Document):
 			entry['status'] = frappe.db.get_value('Event Consumer Document Type', {'parent': self.name, 'ref_doctype': ref_doctype}, 'status')
 
 		event_producer.producer_doctypes = config
-		# when producer doc is updated it updates the consumer doc, set flag to avoid deadlock
+		# when producer doc is updated it updates the consumer doc
+		# set flag to avoid deadlock
 		event_producer.incoming_change = True
 		consumer_site.update(event_producer)
 
@@ -77,7 +78,8 @@ def register_consumer(data):
 	consumer.insert(ignore_permissions=True)
 	frappe.db.commit()
 
-	# consumer's 'last_update' field should point to the latest update in producer's update log when subscribing
+	# consumer's 'last_update' field should point to the latest update
+	# in producer's update log when subscribing
 	# so that, updates after subscribing are consumed and not the old ones.
 	last_update = str(get_last_update())
 	return json.dumps({'api_key': api_key, 'api_secret': api_secret, 'last_update': last_update})

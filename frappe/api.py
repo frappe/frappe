@@ -184,9 +184,7 @@ def validate_auth_via_api_keys():
 
 
 def validate_api_key_secret(api_key, api_secret, frappe_authorization_source=None):
-	"""
-	frappe_authorization_source to provide api key and secret for a doctype apart from User
-	"""
+	"""frappe_authorization_source to provide api key and secret for a doctype apart from User"""
 	doctype = frappe_authorization_source or 'User'
 	doc = frappe.db.get_value(
 		doctype=doctype,

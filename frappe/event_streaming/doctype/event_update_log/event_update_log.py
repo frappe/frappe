@@ -11,12 +11,15 @@ from frappe.model import no_value_fields, table_fields
 class EventUpdateLog(Document):
 	pass
 
+
 def notify_consumers(doc, _method=None):
-	"""Send update notification updates to event consumers whenever update log is generated"""
+	"""Send update notification updates to event consumers
+	whenever update log is generated"""
 	enqueued_method = 'frappe.event_streaming.doctype.event_consumer.event_consumer.notify_event_consumers'
 	jobs = get_jobs()
 	if not jobs or enqueued_method not in jobs[frappe.local.site]:
 		frappe.enqueue(enqueued_method, doctype=doc.ref_doctype, queue='long', enqueue_after_commit=True)
+
 
 def get_update(old, new, for_child=False):
 	"""
@@ -37,7 +40,7 @@ def get_update(old, new, for_child=False):
 	if not new:
 		return None
 
-	out = frappe._dict(changed = {}, added = {}, removed = {}, row_changed = {})
+	out = frappe._dict(changed={}, added={}, removed={}, row_changed={})
 	for df in new.meta.fields:
 		if df.fieldtype in no_value_fields and df.fieldtype not in table_fields:
 			continue
@@ -67,6 +70,7 @@ def make_maps(old_value, new_value):
 		new_row_by_name[d.name] = d
 	return old_row_by_name, new_row_by_name
 
+
 def check_for_additions(out, df, new_value, old_row_by_name):
 	"""check rows for additions, changes"""
 	for _i, d in enumerate(new_value):
@@ -83,6 +87,7 @@ def check_for_additions(out, df, new_value, old_row_by_name):
 			out.added[df.fieldname].append(d.as_dict())
 	return out
 
+
 def check_for_deletions(out, df, old_value, new_row_by_name):
 	"""check for deletions"""
 	for d in old_value:
@@ -91,6 +96,7 @@ def check_for_deletions(out, df, old_value, new_row_by_name):
 				out.removed[df.fieldname] = []
 			out.removed[df.fieldname].append(d.name)
 	return out
+
 
 def check_docstatus(out, old, new, for_child):
 	"""docstatus changes"""
