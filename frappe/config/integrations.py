@@ -75,32 +75,6 @@ def get_data():
 			]
 		},
 		{
-			"label": _("Event Streaming"),
-			"icon": "fa fa-random",
-			"items": [
-				{
-					"type": "doctype",
-					"name": "Event Producer",
-					"description": _("The site you want to subscribe to for consuming events.")
-				},
-				{
-					"type": "doctype",
-					"name": "Event Consumer",
-					"description": _("The site which is consuming your events.")
-				},
-				{
-					"type": "doctype",
-					"name": "Event Update Log",
-					"description": _("Maintains a Log of all inserts, updates and deletions on Event Producer site for documents that have consumers.")
-				},
-				{
-					"type": "doctype",
-					"name": "Event Sync Log",
-					"description": _("Maintains a log of every event consumed along with the status of the sync and a Resync button in case sync fails.")
-				}
-			]
-		},
-		{
 			"label": _("Webhook"),
 			"items": [
 				{
