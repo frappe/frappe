@@ -19,6 +19,7 @@ from frappe.integrations.oauth2 import validate_url
 
 class EventProducer(Document):
 	def before_insert(self):
+		self.check_url()
 		self.incoming_change = True
 		self.create_event_consumer()
 		self.create_custom_fields()
@@ -28,9 +29,6 @@ class EventProducer(Document):
 			for entry in self.producer_doctypes:
 				entry.status = 'Approved'
 
-		if not validate_url(self.producer_url):
-			frappe.throw(_('Invalid URL'))
-
 	def on_update(self):
 		if not self.incoming_change:
 			self.update_event_consumer()
@@ -38,6 +36,15 @@ class EventProducer(Document):
 		else:
 			# when producer doc is updated it updates the consumer doc, set flag to avoid deadlock
 			frappe.db.set_value(self.doctype, self.name, 'incoming_change', 0)
+
+	def check_url(self):
+		if not validate_url(self.producer_url):
+			frappe.throw(_('Invalid URL'))
+
+		# remove '/' from the end of the url like http://test_site.com/
+		# to prevent mismatch in get_url() results
+		if self.producer_url.endswith("/"):
+			self.producer_url = self.producer_url[:-1]
 
 	def create_event_consumer(self):
 		"""register event consumer on the producer site"""
