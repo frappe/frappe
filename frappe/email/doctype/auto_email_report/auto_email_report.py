@@ -12,6 +12,7 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.utils import (format_time, get_link_to_form, get_url_to_report,
 	global_date_format, now, now_datetime, validate_email_address, today, add_to_date)
+from frappe.model.naming import append_number_if_name_exists
 from frappe.utils.csvutils import to_csv
 from frappe.utils.xlsxutils import make_xlsx
 
@@ -21,6 +22,8 @@ max_reports_per_user = frappe.local.conf.max_reports_per_user or 3
 class AutoEmailReport(Document):
 	def autoname(self):
 		self.name = _(self.report)
+		if frappe.db.exists('Auto Email Report', self.name):
+			self.name = append_number_if_name_exists('Auto Email Report', self.name)
 
 	def validate(self):
 		self.validate_report_count()
