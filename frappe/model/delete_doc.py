@@ -123,7 +123,7 @@ def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reloa
 
 		# update log if doctype has event consumers
 		if not frappe.flags.in_install and not frappe.flags.in_migrate and check_doctype_has_consumers(doc.doctype):
-			make_event_update_log(doc, update_type = 'Delete')
+			make_event_update_log(doc, update_type='Delete')
 
 		if doc and not for_reload:
 			add_to_deleted_document(doc)

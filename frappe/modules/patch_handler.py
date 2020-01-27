@@ -119,7 +119,7 @@ def executed(patchmodule):
 	# 	print "Patch %s already executed in %s" % (patchmodule, frappe.db.cur_db_name)
 	return done
 
-def block_user(block, msg = None):
+def block_user(block, msg=None):
 	"""stop/start execution till patch is run"""
 	frappe.local.flags.in_patch = block
 	frappe.db.begin()

@@ -4,13 +4,13 @@
 
 from __future__ import unicode_literals
 import frappe
-import time
 import json
 import requests
 from frappe.model.document import Document
 from frappe.frappeclient import FrappeClient
 from frappe.utils.data import get_url
 from frappe.utils.background_jobs import get_jobs
+
 
 class EventConsumer(Document):
 	def validate(self):
@@ -49,12 +49,14 @@ class EventConsumer(Document):
 			return 'offline'
 		return 'online'
 
+
 @frappe.whitelist(allow_guest=True)
 def register_consumer(data):
+	"""create an event consumer document for registering a consumer"""
 	data = json.loads(data)
 	# to ensure that consumer is created only once
 	if frappe.db.exists('Event Consumer', data['event_consumer']):
-		return
+		return None
 	consumer = frappe.new_doc('Event Consumer')
 	consumer.callback_url = data['event_consumer']
 	consumer.user = data['user']
@@ -72,7 +74,7 @@ def register_consumer(data):
 	consumer.api_key = api_key
 	consumer.api_secret = api_secret
 	consumer.in_test = data['in_test']
-	consumer.insert(ignore_permissions = True)
+	consumer.insert(ignore_permissions=True)
 	frappe.db.commit()
 
 	# consumer's 'last_update' field should point to the latest update in producer's update log when subscribing
@@ -80,7 +82,9 @@ def register_consumer(data):
 	last_update = str(get_last_update())
 	return json.dumps({'api_key': api_key, 'api_secret': api_secret, 'last_update': last_update})
 
+
 def get_consumer_site(consumer_url):
+	"""create a FrappeClient object for event consumer site"""
 	consumer_doc = frappe.get_doc('Event Consumer', consumer_url)
 	consumer_site = FrappeClient(
 		url=consumer_url,
@@ -90,22 +94,28 @@ def get_consumer_site(consumer_url):
 	)
 	return consumer_site
 
+
 def get_last_update():
-	updates = frappe.get_list('Event Update Log', 'creation', ignore_permissions=True, limit = 1, order_by = 'creation desc')
+	"""get the creation timestamp of last update consumed"""
+	updates = frappe.get_list('Event Update Log', 'creation', ignore_permissions=True, limit=1, order_by='creation desc')
 	if updates:
 		return updates[0].creation
 	return frappe.utils.now_datetime()
 
+
 @frappe.whitelist()
 def notify_event_consumers(doctype):
+	"""get all event consumers and set flag for notification status"""
 	event_consumers = frappe.get_all('Event Consumer Document Type', ['parent'], {'ref_doctype': doctype, 'status': 'Approved'})
 	for entry in event_consumers:
 		consumer = frappe.get_doc('Event Consumer', entry.parent)
 		consumer.flags.notified = False
 		notify(consumer)
 
+
 @frappe.whitelist()
 def notify(consumer):
+	"""notify individual event consumers about a new update"""
 	consumer_status = consumer.get_consumer_status()
 	if consumer_status == 'online':
 		try:
@@ -120,9 +130,9 @@ def notify(consumer):
 	else:
 		consumer.flags.notified = False
 
-	#enqueue another job if the site was not notified
+	# enqueue another job if the site was not notified
 	if not consumer.flags.notified:
 		enqueued_method = 'frappe.event_streaming.doctype.event_consumer.event_consumer.notify'
 		jobs = get_jobs()
 		if not jobs or enqueued_method not in jobs[frappe.local.site] and not consumer.flags.notifed:
-			frappe.enqueue(enqueued_method, queue = 'long', enqueue_after_commit = True, **{'consumer': consumer})
+			frappe.enqueue(enqueued_method, queue='long', enqueue_after_commit=True, **{'consumer': consumer})

@@ -19,7 +19,7 @@ class FrappeException(Exception):
 	pass
 
 class FrappeClient(object):
-	def __init__(self, url, username=None, password=None, verify=True, api_key=None, api_secret=None, frappe_authorization_source = None):
+	def __init__(self, url, username=None, password=None, verify=True, api_key=None, api_secret=None, frappe_authorization_source=None):
 		self.headers = {
 			'Accept': 'application/json',
 			'content-type': 'application/x-www-form-urlencoded',

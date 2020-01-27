@@ -11,27 +11,29 @@ from frappe.model import no_value_fields, table_fields
 class EventUpdateLog(Document):
 	pass
 
-def notify_consumers(doc, method=None):
-	'''Send update notification updates to event consumers whenever update log is generated'''
+def notify_consumers(doc, _method=None):
+	"""Send update notification updates to event consumers whenever update log is generated"""
 	enqueued_method = 'frappe.event_streaming.doctype.event_consumer.event_consumer.notify_event_consumers'
 	jobs = get_jobs()
 	if not jobs or enqueued_method not in jobs[frappe.local.site]:
 		frappe.enqueue(enqueued_method, doctype=doc.ref_doctype, queue='long', enqueue_after_commit=True)
 
 def get_update(old, new, for_child=False):
-	'''Get document objects with updates only
+	"""
+	Get document objects with updates only
 	If there is a change, then returns a dict like:
-		{
-			"changed"    : {fieldname1: new_value1, fieldname2: new_value2, },
-			"added"      : {table_fieldname1: [{row_dict1}, {row_dict2}], },
-			"removed"    : {table_fieldname1: [row_name1, row_name2], },
-			"row_changed": {table_fieldname1:
-				{
-					child_fieldname1: new_val,
-					child_fieldname2: new_val
-				},
+	{
+		"changed"		: {fieldname1: new_value1, fieldname2: new_value2, },
+		"added"			: {table_fieldname1: [{row_dict1}, {row_dict2}], },
+		"removed"		: {table_fieldname1: [row_name1, row_name2], },
+		"row_changed"	: {table_fieldname1:
+			{
+				child_fieldname1: new_val,
+				child_fieldname2: new_val
 			},
-		}'''
+		},
+	}
+	"""
 	if not new:
 		return None
 
@@ -47,7 +49,7 @@ def get_update(old, new, for_child=False):
 			out = check_for_additions(out, df, new_value, old_row_by_name)
 			out = check_for_deletions(out, df, old_value, new_row_by_name)
 
-		elif (old_value != new_value):
+		elif old_value != new_value:
 			out.changed[df.fieldname] = new_value
 
 	out = check_docstatus(out, old, new, for_child)
@@ -57,7 +59,7 @@ def get_update(old, new, for_child=False):
 
 
 def make_maps(old_value, new_value):
-	# make maps
+	"""make maps"""
 	old_row_by_name, new_row_by_name = {}, {}
 	for d in old_value:
 		old_row_by_name[d.name] = d
@@ -66,7 +68,7 @@ def make_maps(old_value, new_value):
 	return old_row_by_name, new_row_by_name
 
 def check_for_additions(out, df, new_value, old_row_by_name):
-	# check rows for additions, changes
+	"""check rows for additions, changes"""
 	for _i, d in enumerate(new_value):
 		if d.name in old_row_by_name:
 			diff = get_update(old_row_by_name[d.name], d, for_child=True)
@@ -82,7 +84,7 @@ def check_for_additions(out, df, new_value, old_row_by_name):
 	return out
 
 def check_for_deletions(out, df, old_value, new_row_by_name):
-	# check for deletions
+	"""check for deletions"""
 	for d in old_value:
 		if d.name not in new_row_by_name:
 			if not out.removed.get(df.fieldname):
@@ -91,7 +93,7 @@ def check_for_deletions(out, df, old_value, new_row_by_name):
 	return out
 
 def check_docstatus(out, old, new, for_child):
-	# docstatus
+	"""docstatus changes"""
 	if not for_child and old.docstatus != new.docstatus:
 		out.changed['docstatus'] = new.docstatus
 	return out
