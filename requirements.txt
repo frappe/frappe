@@ -3,7 +3,7 @@ chardet
 dropbox==9.1.0
 gunicorn
 jinja2
-markdown2==2.3.5
+markdown2==2.3.6
 PyMySQL
 maxminddb-geolite2
 python-dateutil
@@ -53,13 +53,12 @@ google-api-python-client
 google-auth
 google-auth-httplib2
 google-auth-oauthlib
-faker
+Faker==2.0.4
 stripe
 coverage
 urllib3
 GitPython==2.1.11
-psycopg2==2.7.5
-psycopg2-binary==2.7.5
+psycopg2-binary==2.8.4
 sqlparse==0.2.4
 Pygments==2.2.0
 frontmatter

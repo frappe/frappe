@@ -351,16 +351,26 @@ def get_contacts(email_strings):
 		email = get_email_without_link(email)
 		contact_name = get_contact_name(email)
 
-		if not contact_name:
-			contact = frappe.get_doc({
-				"doctype": "Contact",
-				"first_name": frappe.unscrub(email.split("@")[0]),
-			})
-			contact.add_email(email_id=email, is_primary=True)
-			contact.insert(ignore_permissions=True)
-			contact_name = contact.name
+		if not contact_name and email:
+			email_parts = email.split("@")
+			first_name = frappe.unscrub(email_parts[0])
 
-		contacts.append(contact_name)
+			try:
+				contact_name = '{0}-{1}'.format(first_name, email_parts[1]) if first_name == 'Contact' else first_name
+				contact = frappe.get_doc({
+					"doctype": "Contact",
+					"first_name": contact_name,
+					"name": contact_name
+				})
+				contact.add_email(email_id=email, is_primary=True)
+				contact.insert(ignore_permissions=True)
+				contact_name = contact.name
+			except Exception:
+				traceback = frappe.get_traceback()
+				frappe.log_error(traceback)
+
+		if contact_name:
+			contacts.append(contact_name)
 
 	return contacts
 
@@ -381,7 +391,7 @@ def parse_email(communication, email_strings):
 		a doctype and docname ie in the format `admin+doctype+docname@example.com`,
 		the email is parsed and doctype and docname is extracted and timeline link is added.
 	"""
-	if not frappe.get_list("Email Account", filters={"enable_automatic_linking": 1}):
+	if not frappe.get_all("Email Account", filters={"enable_automatic_linking": 1}):
 		return
 
 	delimiter = "+"
@@ -406,7 +416,7 @@ def get_email_without_link(email):
 		returns email address without doctype links
 		returns admin@example.com for email admin+doctype+docname@example.com
 	"""
-	if not frappe.get_list("Email Account", filters={"enable_automatic_linking": 1}):
+	if not frappe.get_all("Email Account", filters={"enable_automatic_linking": 1}):
 		return email
 
 	email_id = email.split("@")[0].split("+")[0]

@@ -29,12 +29,16 @@ class GlobalSearchSettings(Document):
 			repeated_dts = (", ".join([frappe.bold(dt) for dt in repeated_dts]))
 			frappe.throw(_("Document Type {0} has been repeated.").format(repeated_dts))
 
-def get_doctypes_for_global_search():
-	doctypes = frappe.get_list("Global Search DocType", fields=["document_type"], order_by="idx ASC")
-	if not doctypes:
-		return []
+		# reset cache
+		frappe.cache().hdel('global_search', 'search_priorities')
 
-	return [d.document_type for d in doctypes]
+def get_doctypes_for_global_search():
+	def get_from_db():
+		doctypes = frappe.get_list("Global Search DocType", fields=["document_type"], order_by="idx ASC")
+		return [d.document_type for d in doctypes] or []
+
+	return frappe.cache().hget("global_search", "search_priorities", get_from_db)
+
 
 @frappe.whitelist()
 def reset_global_search_settings_doctypes():

@@ -41,40 +41,45 @@ frappe.ui.form.save = function (frm, action, callback, btn) {
 	};
 
 	var remove_empty_rows = function() {
-		/**
-		This function removes empty rows. Note that in this function, a row is considered
-		empty if the fields with `in_list_view: 1` are undefined or falsy because that's
-		what users also consider to be an empty row
-		 */
+		/*
+			This function removes empty rows. Note that in this function, a row is considered
+			empty if the fields with `in_list_view: 1` are undefined or falsy because that's
+			what users also consider to be an empty row
+		*/
 		const docs = frappe.model.get_all_docs(frm.doc);
 
 		// we should only worry about table data
-		const tables = docs.filter(function(d){
+		const tables = docs.filter(d => {
 			return frappe.model.is_table(d.doctype);
 		});
 
-		tables.map(
-			function(doc){
-				const cells = frappe.meta.docfield_list[doc.doctype] || [];
+		let modified_table_fields = [];
 
-				const in_list_view_cells = cells.filter(function(df) {
-					return cint(df.in_list_view) === 1;
-				});
+		tables.map(doc => {
+			const cells = frappe.meta.docfield_list[doc.doctype] || [];
 
-				var is_empty_row = function(cells) {
-					for (var i=0; i < cells.length; i++){
-						if(locals[doc.doctype][doc.name][cells[i].fieldname]){
-							return false;
-						}
+			const in_list_view_cells = cells.filter((df) => {
+				return cint(df.in_list_view) === 1;
+			});
+
+			const is_empty_row = function(cells) {
+				for (let i = 0; i < cells.length; i++) {
+					if (locals[doc.doctype][doc.name][cells[i].fieldname]) {
+						return false;
 					}
-					return true;
 				}
+				return true;
+			};
 
-				if (is_empty_row(in_list_view_cells)) {
-					frappe.model.clear_doc(doc.doctype, doc.name);
-				}
+			if (is_empty_row(in_list_view_cells)) {
+				frappe.model.clear_doc(doc.doctype, doc.name);
+				modified_table_fields.push(doc.parentfield);
 			}
-		);
+		});
+
+		modified_table_fields.forEach(field => {
+			frm.refresh_field(field);
+		});
 	};
 
 	var cancel = function () {

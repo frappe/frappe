@@ -1,27 +1,7 @@
 frappe.ui.form.ControlCurrency = frappe.ui.form.ControlFloat.extend({
-	eval_expression: function(value) {
-		if (typeof value ==='string' && value.match(/^[0-9+-/* ]+$/)) {
-			// Removes seperator
-			value = strip_number_groups(value, this.get_number_format());
-
-			try {
-				return eval(value);
-			} catch (e) {
-				return value;
-			}
-		}
-		// If not string
-		return value;
-	},
-
 	format_for_input: function(value) {
-		var formatted_value = format_number(parseFloat(value), this.get_number_format(), this.get_precision());
+		var formatted_value = format_number(value, this.get_number_format(), this.get_precision());
 		return isNaN(parseFloat(value)) ? "" : formatted_value;
-	},
-
-	get_number_format: function() {
-		var currency = frappe.meta.get_field_currency(this.df, this.get_doc());
-		return get_number_format(currency);
 	},
 
 	get_precision: function() {

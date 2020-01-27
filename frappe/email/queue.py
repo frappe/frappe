@@ -3,23 +3,26 @@
 
 from __future__ import unicode_literals
 import frappe
+import sys
 from six.moves import html_parser as HTMLParser
 import smtplib, quopri, json
-from frappe import msgprint, throw, _, safe_decode
+from frappe import msgprint, _, safe_decode, safe_encode
 from frappe.email.smtp import SMTPServer, get_outgoing_email_account
 from frappe.email.email_body import get_email, get_formatted_html, add_attachment
 from frappe.utils.verified_command import get_signed_params, verify_request
 from html2text import html2text
-from frappe.utils import get_url, nowdate, encode, now_datetime, add_days, split_emails, cstr, cint
+from frappe.utils import get_url, nowdate, now_datetime, add_days, split_emails, cstr, cint
 from rq.timeouts import JobTimeoutException
 from frappe.utils.scheduler import log
-from six import text_type, string_types
+from six import text_type, string_types, PY3
+from email.parser import Parser
+
 
 class EmailLimitCrossedError(frappe.ValidationError): pass
 
 def send(recipients=None, sender=None, subject=None, message=None, text_content=None, reference_doctype=None,
 		reference_name=None, unsubscribe_method=None, unsubscribe_params=None, unsubscribe_message=None,
-		attachments=None, reply_to=None, cc=[], bcc=[], message_id=None, in_reply_to=None, send_after=None,
+		attachments=None, reply_to=None, cc=None, bcc=None, message_id=None, in_reply_to=None, send_after=None,
 		expose_recipients=None, send_priority=1, communication=None, now=False, read_receipt=None,
 		queue_separately=False, is_notification=False, add_unsubscribe_link=1, inline_images=None,
 		header=None, print_letterhead=False):
@@ -53,6 +56,11 @@ def send(recipients=None, sender=None, subject=None, message=None, text_content=
 	if not recipients and not cc:
 		return
 
+	if not cc:
+		cc = []
+	if not bcc:
+		bcc = []
+
 	if isinstance(recipients, string_types):
 		recipients = split_emails(recipients)
 
@@ -68,7 +76,6 @@ def send(recipients=None, sender=None, subject=None, message=None, text_content=
 	email_account = get_outgoing_email_account(True, append_to=reference_doctype, sender=sender)
 	if not sender or sender == "Administrator":
 		sender = email_account.default_sender
-
 
 	if not text_content:
 		try:
@@ -405,7 +412,7 @@ def send_one(email, smtpserver=None, auto_commit=True, now=False, from_test=Fals
 
 			message = prepare_message(email, recipient.recipient, recipients_list)
 			if not frappe.flags.in_test:
-				smtpserver.sess.sendmail(email.sender, recipient.recipient, encode(message))
+				smtpserver.sess.sendmail(email.sender, recipient.recipient, message)
 
 			recipient.status = "Sent"
 			frappe.db.sql("""update `tabEmail Queue Recipient` set status='Sent', modified=%s where name=%s""",
@@ -510,37 +517,41 @@ def prepare_message(email, recipient, recipients_list):
 
 	message = (message and message.encode('utf8')) or ''
 	message = safe_decode(message)
-	if not email.attachments:
-		return message
 
-	# On-demand attachments
-	from email.parser import Parser
+	if PY3:
+		from email.policy import SMTPUTF8
+		message = Parser(policy=SMTPUTF8).parsestr(message)
+	else:
+		message = Parser().parsestr(message)
 
-	msg_obj = Parser().parsestr(message)
-	attachments = json.loads(email.attachments)
+	if email.attachments:
+		# On-demand attachments
 
-	for attachment in attachments:
-		if attachment.get('fcontent'): continue
+		attachments = json.loads(email.attachments)
 
-		fid = attachment.get("fid")
-		if fid:
-			_file = frappe.get_doc("File", fid)
-			fcontent = _file.get_content()
-			attachment.update({
-				'fname': _file.file_name,
-				'fcontent': fcontent,
-				'parent': msg_obj
-			})
-			attachment.pop("fid", None)
-			add_attachment(**attachment)
+		for attachment in attachments:
+			if attachment.get('fcontent'):
+				continue
 
-		elif attachment.get("print_format_attachment") == 1:
-			attachment.pop("print_format_attachment", None)
-			print_format_file = frappe.attach_print(**attachment)
-			print_format_file.update({"parent": msg_obj})
-			add_attachment(**print_format_file)
+			fid = attachment.get("fid")
+			if fid:
+				_file = frappe.get_doc("File", fid)
+				fcontent = _file.get_content()
+				attachment.update({
+					'fname': _file.file_name,
+					'fcontent': fcontent,
+					'parent': message
+				})
+				attachment.pop("fid", None)
+				add_attachment(**attachment)
 
-	return msg_obj.as_string()
+			elif attachment.get("print_format_attachment") == 1:
+				attachment.pop("print_format_attachment", None)
+				print_format_file = frappe.attach_print(**attachment)
+				print_format_file.update({"parent": message})
+				add_attachment(**print_format_file)
+
+	return safe_encode(message.as_string())
 
 def clear_outbox():
 	"""Remove low priority older than 31 days in Outbox and expire mails not sent for 7 days.

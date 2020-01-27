@@ -10,6 +10,7 @@ from frappe.desk.doctype.global_search_settings.global_search_settings import up
 def install():
 	update_genders_and_salutations()
 	update_global_search_doctypes()
+	setup_email_linking()
 
 @frappe.whitelist()
 def update_genders_and_salutations():
@@ -20,13 +21,11 @@ def update_genders_and_salutations():
 	for record in records:
 		doc = frappe.new_doc(record.get("doctype"))
 		doc.update(record)
+		doc.insert(ignore_permissions=True, ignore_if_duplicate=True)
 
-		try:
-			doc.insert(ignore_permissions=True)
-		except frappe.DuplicateEntryError as e:
-			# pass DuplicateEntryError and continue
-			if e.args and e.args[0]==doc.doctype and e.args[1]==doc.name:
-				# make sure DuplicateEntryError is for the exact same doc and not a related doc
-				pass
-			else:
-				raise
+def setup_email_linking():
+	doc = frappe.get_doc({
+		"doctype": "Email Account",
+		"email_id": "email_linking@example.com",
+	})
+	doc.insert(ignore_permissions=True, ignore_if_duplicate=True)

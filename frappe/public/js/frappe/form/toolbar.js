@@ -239,19 +239,24 @@ frappe.ui.form.Toolbar = Class.extend({
 			});
 		}
 
-		if(frappe.user_roles.includes("System Manager") && me.frm.meta.issingle === 0) {
-			this.page.add_menu_item(__("Customize"), function() {
+		if (frappe.user_roles.includes("System Manager") && me.frm.meta.issingle === 0) {
+			let is_doctype_form = me.frm.doctype === 'DocType';
+			let doctype = is_doctype_form ? me.frm.docname : me.frm.doctype;
+			let is_doctype_custom = is_doctype_form ? me.frm.doc.custom : false;
 
-				if (me.frm.meta && me.frm.meta.custom) {
-					frappe.set_route('Form', 'DocType', me.frm.doctype);
-				} else {
-					frappe.set_route('Form', 'Customize Form', {
-						doc_type: me.frm.doctype
-					});
-				}
-			}, true);
+			if (doctype != 'DocType' && !is_doctype_custom) {
+				this.page.add_menu_item(__("Customize"), function() {
+					if (me.frm.meta && me.frm.meta.custom) {
+						frappe.set_route('Form', 'DocType', doctype);
+					} else {
+						frappe.set_route('Form', 'Customize Form', {
+							doc_type: doctype
+						});
+					}
+				}, true);
+			}
 
-			if (frappe.boot.developer_mode===1) {
+			if (frappe.boot.developer_mode===1 && !is_doctype_form) {
 				// edit doctype
 				this.page.add_menu_item(__("Edit DocType"), function() {
 					frappe.set_route('Form', 'DocType', me.frm.doctype);
