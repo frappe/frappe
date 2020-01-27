@@ -192,7 +192,8 @@ class Document(BaseDocument):
 		frappe.flags.error_message = _('Insufficient Permission for {0}').format(self.doctype)
 		raise frappe.PermissionError
 
-	def insert(self, ignore_permissions=None, ignore_links=None, ignore_if_duplicate=False, ignore_mandatory=None, set_name=None, set_child_names=True):
+	def insert(self, ignore_permissions=None, ignore_links=None, ignore_if_duplicate=False,
+		ignore_mandatory=None, set_name=None, set_child_names=True):
 		"""Insert the document in the database (as a new document).
 		This will check for user permissions and execute `before_insert`,
 		`validate`, `on_update`, `after_insert` methods if they are written.
@@ -388,7 +389,7 @@ class Document(BaseDocument):
 		return getattr(self, '_doc_before_save', None)
 
 	def set_new_name(self, force=False, set_name=None, set_child_names=True):
-		"""Calls `frappe.naming.se_new_name` for parent and child docs."""
+		"""Calls `frappe.naming.set_new_name` for parent and child docs."""
 		if self.flags.name_set and not force:
 			return
 

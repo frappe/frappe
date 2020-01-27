@@ -275,7 +275,9 @@ def update_row_added(local_doc, added):
 		local_doc.extend(tablename, rows)
 		for child in rows:
 			child_doc = frappe.get_doc(child)
-			child_doc.insert(set_name=child_doc.name, set_child_names=False)
+			child_doc.parent = local_doc.name
+			child_doc.parenttype = local_doc.doctype
+			child_doc.insert(set_name=child_doc.name)
 	return local_doc
 
 
