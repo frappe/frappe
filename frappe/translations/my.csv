@@ -1427,7 +1427,7 @@ DocType: Report,Is Standard,Standard ဖြစ်ပါသည်
 DocType: Desktop Icon,_report,_report
 DocType: Desktop Icon,_report,_report
 DocType: Dashboard Chart,Full,ပြည့်သော
-DocType: DocField,"Don't HTML Encode HTML tags like &lt;script> or just characters like &lt; or >, as they could be intentionally used in this field","သူတို့ရည်ရွယ်ချက်ရှိရှိဒီလယ်ကွင်းများတွင်အသုံးပြုနိုင်အဖြစ်, &lt;script> သို့မဟုတ်ပဲဇာတ်ကောင်တူ &lt;သို့မဟုတ်> တူမက HTML encoding က HTML tags များလုပ်ပါ"
+DocType: DocField,"Don't HTML Encode HTML tags like <script> or just characters like < or >, as they could be intentionally used in this field","သူတို့ရည်ရွယ်ချက်ရှိရှိဒီလယ်ကွင်းများတွင်အသုံးပြုနိုင်အဖြစ်, <script> သို့မဟုတ်ပဲဇာတ်ကောင်တူ <သို့မဟုတ်> တူမက HTML encoding က HTML tags များလုပ်ပါ"
 apps/frappe/frappe/public/js/frappe/utils/energy_point_utils.js,{0} criticized on {1},{0} {1} အပေါ်ဝေဖန်
 DocType: Website Settings,FavIcon,FavIcon
 apps/frappe/frappe/data_migration/doctype/data_migration_plan/data_migration_plan.js,Run,ပွေးသှား
@@ -1809,7 +1809,7 @@ DocType: Letter Head,Footer will display correctly only in PDF,footer သာ PDF
 apps/frappe/frappe/core/doctype/data_import/data_import_list.js,Pending,လာမည့်
 DocType: System Settings,Allow only one session per user,အသုံးပြုသူတစ်ဦးလျှင်တစ်ဦးတည်းသာ session ကို Allow
 apps/frappe/frappe/core/doctype/file/test_file.py,Home/Test Folder 1/Test Folder 3,နေအိမ် / မရှိစမ်းသပ်ခြင်း Folder ကို 1 / မရှိစမ်းသပ်ခြင်း Folder ကို 3
-DocType: Website Settings,&lt;head> HTML,&lt;head> HTML ကို
+DocType: Website Settings,<head> HTML,<head> HTML ကို
 apps/frappe/frappe/public/js/frappe/views/calendar/calendar.js,Select or drag across time slots to create a new event.,ကိုရွေးပါသို့မဟုတ်အသစ်တစ်ခုကိုပွဲဖန်တီးရန်အချိန် slot များအနှံ့ဆွဲယူပါ။
 DocType: Contact,Contact Details,ဆက်သွယ်ရန်အသေးစိတ်
 DocType: DocField,In Filter,Filter ကိုအတွက်
@@ -2337,7 +2337,7 @@ apps/frappe/frappe/public/js/frappe/form/linked_with.js,Not enough permission to
 apps/frappe/frappe/public/js/frappe/form/linked_with.js,Not enough permission to see links,လင့်များကြည့်ဖို့မလုံလောက်ခွင့်ပြုချက်
 apps/frappe/frappe/contacts/doctype/address/address.py,Address Title is mandatory.,လိပ်စာခေါင်းစဉ်မဖြစ်မနေဖြစ်ပါတယ်။
 DocType: Google Contacts,Push to Google Contacts,Google အဆက်အသွယ်မှ Push
-DocType: Website Settings,"Added HTML in the &lt;head> section of the web page, primarily used for website verification and SEO",အဓိကအားဖြင့် Website ကိုစိစစ်အတည်ပြုခြင်းနှင့် SEO ဆိုသည်မှာများအတွက်အသုံးပြုတဲ့ဝဘ်စာမျက်နှာ၏ &lt;head> အပိုင်းအတွက် HTML ကို Added
+DocType: Website Settings,"Added HTML in the <head> section of the web page, primarily used for website verification and SEO",အဓိကအားဖြင့် Website ကိုစိစစ်အတည်ပြုခြင်းနှင့် SEO ဆိုသည်မှာများအတွက်အသုံးပြုတဲ့ဝဘ်စာမျက်နှာ၏ <head> အပိုင်းအတွက် HTML ကို Added
 apps/frappe/frappe/core/doctype/error_snapshot/error_snapshot_list.js,Relapsed,ပြန်ရောက်သွားတယ်
 apps/frappe/frappe/utils/nestedset.py,Item cannot be added to its own descendents,item ၎င်း၏ကိုယ်ပိုင်ဆင်းသက်လာမှဆက်ပြောသည်မရနိုင်ပါ
 DocType: Session Default Settings,Session Defaults,session Defaults ကို
@@ -2457,7 +2457,7 @@ DocType: Workflow State,Warning,သတိပေးခြင်း
 apps/frappe/frappe/public/js/frappe/form/print.js,This may get printed on multiple pages,ဒီအမျိုးစုံစာမျက်နှာများပေါ်တွင်ပုံနှိပ်ရစေခြင်းငှါ
 DocType: Data Migration Run,Percent Complete,ရာခိုင်နှုန်းကိုအပြီးအစီး
 DocType: Tag Category,Tag Category,tag ကို Category:
-apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,"For comparison, use >5, &lt;10 or =324. For ranges, use 5:10 (for values between 5 &amp; 10).","နှိုင်းယှဉ်မှုအဘို့,> 5, &lt;10 or = 324 ကိုအသုံးပြုပါ။ အကွာအဝေးများအတွက်, 5:10 (5 &amp; 10 အကြားတန်ဖိုးများအတွက်) ကိုသုံးပါ။"
+apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,"For comparison, use >5, <10 or =324. For ranges, use 5:10 (for values between 5 &amp; 10).","နှိုင်းယှဉ်မှုအဘို့,> 5, <10 or = 324 ကိုအသုံးပြုပါ။ အကွာအဝေးများအတွက်, 5:10 (5 &amp; 10 အကြားတန်ဖိုးများအတွက်) ကိုသုံးပါ။"
 DocType: Google Calendar,Pull from Google Calendar,Google ကပြက္ခဒိန်ထဲကနေဆွဲထုတ်
 apps/frappe/frappe/core/doctype/data_import/data_import.js,Help,ကူညီကြပါ
 DocType: User,Login Before,ခင်မှာ Login
@@ -3104,7 +3104,7 @@ DocType: DocField,Allow on Submit,Submit အပေါ် Allow
 DocType: DocField,HTML,HTML ကို
 DocType: Error Snapshot,Exception Type,ခြွင်းချက်ကအမျိုးအစား
 apps/frappe/frappe/public/js/frappe/views/reports/report_view.js,Pick Columns,-Columns Pick
-DocType: Web Page,Add code as &lt;script>,&lt;script> အဖြစ် code ကို Add
+DocType: Web Page,Add code as <script>,<script> အဖြစ် code ကို Add
 apps/frappe/frappe/core/doctype/user_permission/user_permission_list.js,Clear User Permissions,Clear ကိုအသုံးပြုသူခွင့်ပြုချက်များ
 DocType: Webhook,Headers,headers
 apps/frappe/frappe/public/js/frappe/social/components/ActivitySidebar.vue,Upcoming Events,လာမည့်အဖြစ်အပျက်များ
@@ -3481,16 +3481,16 @@ DocType: Workflow State,share-alt,ရှယ်ယာ-alt +
 apps/frappe/frappe/utils/background_jobs.py,Queue should be one of {0},တန်းစီ {0} ၏တဦးတည်းဖြစ်သင့်တယ်
 DocType: Address Template,"<h4>Default Template</h4>
 <p>Uses <a href=""http://jinja.pocoo.org/docs/templates/"">Jinja Templating</a> and all the fields of Address (including Custom Fields if any) will be available</p>
-<pre><code>{{ address_line1 }}&lt;br>
-{% if address_line2 %}{{ address_line2 }}&lt;br>{% endif -%}
-{{ city }}&lt;br>
-{% if state %}{{ state }}&lt;br>{% endif -%}
-{% if pincode %} PIN:  {{ pincode }}&lt;br>{% endif -%}
-{{ country }}&lt;br>
-{% if phone %}Phone: {{ phone }}&lt;br>{% endif -%}
-{% if fax %}Fax: {{ fax }}&lt;br>{% endif -%}
-{% if email_id %}Email: {{ email_id }}&lt;br>{% endif -%}
-</code></pre>","<h4> default Template: </h4><p> အသုံးပြုသည် <a href=""http://jinja.pocoo.org/docs/templates/"">Jinja Templates</a> နှင့် (Custom Field များရှိလျှင်အပါအဝင်) လိပ်စာအပေါင်းတို့သည်လယ်ကွင်းရရှိနိုင်ပါလိမ့်မည် </p><pre> <code>{{ address_line1 }}&lt;br> {% if address_line2 %}{{ address_line2 }}&lt;br>{% endif -%} {{ city }}&lt;br> {% if state %}{{ state }}&lt;br>{% endif -%} {% if pincode %} PIN: {{ pincode }}&lt;br>{% endif -%} {{ country }}&lt;br> {% if phone %}Phone: {{ phone }}&lt;br>{% endif -%} {% if fax %}Fax: {{ fax }}&lt;br>{% endif -%} {% if email_id %}Email: {{ email_id }}&lt;br>{% endif -%}</code> </pre>"
+<pre><code>{{ address_line1 }}<br>
+{% if address_line2 %}{{ address_line2 }}<br>{% endif -%}
+{{ city }}<br>
+{% if state %}{{ state }}<br>{% endif -%}
+{% if pincode %} PIN:  {{ pincode }}<br>{% endif -%}
+{{ country }}<br>
+{% if phone %}Phone: {{ phone }}<br>{% endif -%}
+{% if fax %}Fax: {{ fax }}<br>{% endif -%}
+{% if email_id %}Email: {{ email_id }}<br>{% endif -%}
+</code></pre>","<h4> default Template: </h4><p> အသုံးပြုသည် <a href=""http://jinja.pocoo.org/docs/templates/"">Jinja Templates</a> နှင့် (Custom Field များရှိလျှင်အပါအဝင်) လိပ်စာအပေါင်းတို့သည်လယ်ကွင်းရရှိနိုင်ပါလိမ့်မည် </p><pre> <code>{{ address_line1 }}<br> {% if address_line2 %}{{ address_line2 }}<br>{% endif -%} {{ city }}<br> {% if state %}{{ state }}<br>{% endif -%} {% if pincode %} PIN: {{ pincode }}<br>{% endif -%} {{ country }}<br> {% if phone %}Phone: {{ phone }}<br>{% endif -%} {% if fax %}Fax: {{ fax }}<br>{% endif -%} {% if email_id %}Email: {{ email_id }}<br>{% endif -%}</code> </pre>"
 DocType: Calendar View,Start Date Field,Start ကိုနေ့စွဲဖျော်ဖြေမှု
 DocType: Role,Role Name,အခန်းက္ပအမည်
 apps/frappe/frappe/templates/includes/navbar/navbar_login.html,Switch To Desk,Desk ရန် Switch

@@ -1411,7 +1411,7 @@ DocType: User,System User,システムユーザー
 DocType: Report,Is Standard,標準
 DocType: Desktop Icon,_report,_report
 DocType: Dashboard Chart,Full,フル
-DocType: DocField,"Don't HTML Encode HTML tags like &lt;script> or just characters like &lt; or >, as they could be intentionally used in this field",&lt;script> や単に &lt; または > などの文字は、このフィールドでは意図的に使用されるため、HTMLエンコードしないでください。
+DocType: DocField,"Don't HTML Encode HTML tags like <script> or just characters like < or >, as they could be intentionally used in this field",<script> や単に < または > などの文字は、このフィールドでは意図的に使用されるため、HTMLエンコードしないでください。
 apps/frappe/frappe/public/js/frappe/utils/energy_point_utils.js,{0} criticized on {1},{0}は{1}を批判しました
 DocType: Website Settings,FavIcon,FavIcon
 apps/frappe/frappe/data_migration/doctype/data_migration_plan/data_migration_plan.js,Run,実行
@@ -1792,7 +1792,7 @@ DocType: Letter Head,Footer will display correctly only in PDF,フッターはPD
 apps/frappe/frappe/core/doctype/data_import/data_import_list.js,Pending,保留
 DocType: System Settings,Allow only one session per user,ユーザーごとに1つだけのセッションを許可します
 apps/frappe/frappe/core/doctype/file/test_file.py,Home/Test Folder 1/Test Folder 3,ホーム/テスト フォルダ1 /テスト フォルダ3
-DocType: Website Settings,&lt;head> HTML,&lt;head>HTML
+DocType: Website Settings,<head> HTML,<head>HTML
 apps/frappe/frappe/public/js/frappe/views/calendar/calendar.js,Select or drag across time slots to create a new event.,新規イベントを作成するには時間スロットを選択するかドラッグしてください
 DocType: Contact,Contact Details,連絡先の詳細
 DocType: DocField,In Filter,フィルター内
@@ -2314,7 +2314,7 @@ DocType: LDAP Settings,Path to Server Certificate,サーバー証明書へのパ
 apps/frappe/frappe/public/js/frappe/form/linked_with.js,Not enough permission to see links,リンクを表示する権限がありません
 apps/frappe/frappe/contacts/doctype/address/address.py,Address Title is mandatory.,住所タイトルは必須です。
 DocType: Google Contacts,Push to Google Contacts,Googleコンタクトにプッシュ
-DocType: Website Settings,"Added HTML in the &lt;head> section of the web page, primarily used for website verification and SEO",主にWebサイトの検証とSEOのために使用するHTMLを<head>セクションに追加
+DocType: Website Settings,"Added HTML in the <head> section of the web page, primarily used for website verification and SEO",主にWebサイトの検証とSEOのために使用するHTMLを<head>セクションに追加
 apps/frappe/frappe/core/doctype/error_snapshot/error_snapshot_list.js,Relapsed,再発しました
 apps/frappe/frappe/utils/nestedset.py,Item cannot be added to its own descendents,アイテムは自身の子孫に追加することはできません
 DocType: Session Default Settings,Session Defaults,セッションのデフォルト
@@ -2433,7 +2433,7 @@ DocType: Workflow State,Warning,警告
 apps/frappe/frappe/public/js/frappe/form/print.js,This may get printed on multiple pages,これは複数のページに印刷されるかもしれません
 DocType: Data Migration Run,Percent Complete,完了率
 DocType: Tag Category,Tag Category,カテゴリーにタグ付け
-apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,"For comparison, use >5, &lt;10 or =324. For ranges, use 5:10 (for values between 5 &amp; 10).",比較のために、> 5、&lt;10または= 324を使用します。範囲の場合、5：10を使用します（5〜10の値の場合）。
+apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,"For comparison, use >5, <10 or =324. For ranges, use 5:10 (for values between 5 &amp; 10).",比較のために、> 5、<10または= 324を使用します。範囲の場合、5：10を使用します（5〜10の値の場合）。
 DocType: Google Calendar,Pull from Google Calendar,Googleカレンダーから取得
 apps/frappe/frappe/core/doctype/data_import/data_import.js,Help,ヘルプ
 DocType: User,Login Before,ログイン前
@@ -3075,7 +3075,7 @@ DocType: DocField,Allow on Submit,提出を許可
 DocType: DocField,HTML,HTML
 DocType: Error Snapshot,Exception Type,例外タイプ
 apps/frappe/frappe/public/js/frappe/views/reports/report_view.js,Pick Columns,列を選択
-DocType: Web Page,Add code as &lt;script>,&#060;script&#062;としてコード追加
+DocType: Web Page,Add code as <script>,&#060;script&#062;としてコード追加
 apps/frappe/frappe/core/doctype/user_permission/user_permission_list.js,Clear User Permissions,ユーザー権限の消去
 DocType: Webhook,Headers,ヘッダー
 apps/frappe/frappe/public/js/frappe/social/components/ActivitySidebar.vue,Upcoming Events,今後のイベント
@@ -3449,15 +3449,15 @@ DocType: Workflow State,share-alt,共有
 apps/frappe/frappe/utils/background_jobs.py,Queue should be one of {0},キューは{0}のいずれかでなければなりません
 DocType: Address Template,"<h4>Default Template</h4>
 <p>Uses <a href=""http://jinja.pocoo.org/docs/templates/"">Jinja Templating</a> and all the fields of Address (including Custom Fields if any) will be available</p>
-<pre><code>{{ address_line1 }}&lt;br>
-{% if address_line2 %}{{ address_line2 }}&lt;br>{% endif -%}
-{{ city }}&lt;br>
-{% if state %}{{ state }}&lt;br>{% endif -%}
-{% if pincode %} PIN:  {{ pincode }}&lt;br>{% endif -%}
-{{ country }}&lt;br>
-{% if phone %}Phone: {{ phone }}&lt;br>{% endif -%}
-{% if fax %}Fax: {{ fax }}&lt;br>{% endif -%}
-{% if email_id %}Email: {{ email_id }}&lt;br>{% endif -%}
+<pre><code>{{ address_line1 }}<br>
+{% if address_line2 %}{{ address_line2 }}<br>{% endif -%}
+{{ city }}<br>
+{% if state %}{{ state }}<br>{% endif -%}
+{% if pincode %} PIN:  {{ pincode }}<br>{% endif -%}
+{{ country }}<br>
+{% if phone %}Phone: {{ phone }}<br>{% endif -%}
+{% if fax %}Fax: {{ fax }}<br>{% endif -%}
+{% if email_id %}Email: {{ email_id }}<br>{% endif -%}
 </code></pre>","<H4>デフォルトのテンプレート</ H4> 
  <P>は（<a href=""http://jinja.pocoo.org/docs/templates/"">神社テンプレート化</a>と住所のすべてのフィールドを使用します{; BR＆GT; 
  {％ならaddress_line2％} {{address_line2}}＆LT; BRの＆GTカスタムフィールドもしあれば）</ P> 

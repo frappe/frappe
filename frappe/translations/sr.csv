@@ -1425,7 +1425,7 @@ DocType: Report,Is Standard,Је стандард
 DocType: Desktop Icon,_report,_извештај
 DocType: Desktop Icon,_report,_извештај
 DocType: Dashboard Chart,Full,Пуно
-DocType: DocField,"Don't HTML Encode HTML tags like &lt;script> or just characters like &lt; or >, as they could be intentionally used in this field","Не ХТМЛ-Кодирање ХТМЛ ознаке као што су: &lt;сцрипт> или само као ликови &lt;или>, јер може да се намерно користи у овој области"
+DocType: DocField,"Don't HTML Encode HTML tags like <script> or just characters like < or >, as they could be intentionally used in this field","Не ХТМЛ-Кодирање ХТМЛ ознаке као што су: <сцрипт> или само као ликови <или>, јер може да се намерно користи у овој области"
 apps/frappe/frappe/public/js/frappe/utils/energy_point_utils.js,{0} criticized on {1},{0} критикован је {1}
 DocType: Website Settings,FavIcon,Фавицон
 apps/frappe/frappe/data_migration/doctype/data_migration_plan/data_migration_plan.js,Run,Трцати
@@ -1807,7 +1807,7 @@ DocType: Letter Head,Footer will display correctly only in PDF,Фоотер ће
 apps/frappe/frappe/core/doctype/data_import/data_import_list.js,Pending,Нерешен
 DocType: System Settings,Allow only one session per user,Дозволите само једну седницу по кориснику
 apps/frappe/frappe/core/doctype/file/test_file.py,Home/Test Folder 1/Test Folder 3,Почетна / тест Папка 1 / тест Папка 3
-DocType: Website Settings,&lt;head> HTML,&lt;хеад> ХТМЛ-
+DocType: Website Settings,<head> HTML,<хеад> ХТМЛ-
 apps/frappe/frappe/public/js/frappe/views/calendar/calendar.js,Select or drag across time slots to create a new event.,Изаберите или превуците преко терминима да креирате нови догађај.
 DocType: Contact,Contact Details,Контакт Детаљи
 DocType: DocField,In Filter,У филтеру
@@ -2334,7 +2334,7 @@ apps/frappe/frappe/public/js/frappe/form/linked_with.js,Not enough permission to
 apps/frappe/frappe/public/js/frappe/form/linked_with.js,Not enough permission to see links,Није довољно дозвола да виде линкове
 apps/frappe/frappe/contacts/doctype/address/address.py,Address Title is mandatory.,Адрес Название является обязательным.
 DocType: Google Contacts,Push to Google Contacts,Притисните на Гоогле контакте
-DocType: Website Settings,"Added HTML in the &lt;head> section of the web page, primarily used for website verification and SEO","Додато ХТМЛ-у &lt;хеад> одељак веб странице, првенствено се користи за проверу сајта и СЕО"
+DocType: Website Settings,"Added HTML in the <head> section of the web page, primarily used for website verification and SEO","Додато ХТМЛ-у <хеад> одељак веб странице, првенствено се користи за проверу сајта и СЕО"
 apps/frappe/frappe/core/doctype/error_snapshot/error_snapshot_list.js,Relapsed,Релапсед
 apps/frappe/frappe/utils/nestedset.py,Item cannot be added to its own descendents,Продукт не может быть добавлен в своих собственных потомков
 DocType: Session Default Settings,Session Defaults,Задане поставке сесије
@@ -2454,7 +2454,7 @@ DocType: Workflow State,Warning,Упозорење
 apps/frappe/frappe/public/js/frappe/form/print.js,This may get printed on multiple pages,Ово може бити одштампано на више страница
 DocType: Data Migration Run,Percent Complete,Перцент Цомплете
 DocType: Tag Category,Tag Category,таг Категорија
-apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,"For comparison, use >5, &lt;10 or =324. For ranges, use 5:10 (for values between 5 &amp; 10).","За поређење користите> 5, &lt;10 или = 324. За опсеге користите 5:10 (за вредности између 5 и 10)."
+apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,"For comparison, use >5, <10 or =324. For ranges, use 5:10 (for values between 5 &amp; 10).","За поређење користите> 5, <10 или = 324. За опсеге користите 5:10 (за вредности између 5 и 10)."
 DocType: Google Calendar,Pull from Google Calendar,Повуците из Гоогле календара
 apps/frappe/frappe/core/doctype/data_import/data_import.js,Help,Помоћ
 DocType: User,Login Before,Пријава Пре
@@ -3099,7 +3099,7 @@ DocType: DocField,Allow on Submit,Дозволи на Субмит
 DocType: DocField,HTML,ХТМЛ-
 DocType: Error Snapshot,Exception Type,Екцептион
 apps/frappe/frappe/public/js/frappe/views/reports/report_view.js,Pick Columns,Пицк колоне
-DocType: Web Page,Add code as &lt;script>,Додајте код као &lt;сцрипт>
+DocType: Web Page,Add code as <script>,Додајте код као <сцрипт>
 apps/frappe/frappe/core/doctype/user_permission/user_permission_list.js,Clear User Permissions,Избриши дозволе корисника
 DocType: Webhook,Headers,Хеадерс
 apps/frappe/frappe/public/js/frappe/social/components/ActivitySidebar.vue,Upcoming Events,Предстојећи догађаји
@@ -3474,15 +3474,15 @@ DocType: Workflow State,share-alt,Удео-алт
 apps/frappe/frappe/utils/background_jobs.py,Queue should be one of {0},Ред треба да буде један од {0}
 DocType: Address Template,"<h4>Default Template</h4>
 <p>Uses <a href=""http://jinja.pocoo.org/docs/templates/"">Jinja Templating</a> and all the fields of Address (including Custom Fields if any) will be available</p>
-<pre><code>{{ address_line1 }}&lt;br>
-{% if address_line2 %}{{ address_line2 }}&lt;br>{% endif -%}
-{{ city }}&lt;br>
-{% if state %}{{ state }}&lt;br>{% endif -%}
-{% if pincode %} PIN:  {{ pincode }}&lt;br>{% endif -%}
-{{ country }}&lt;br>
-{% if phone %}Phone: {{ phone }}&lt;br>{% endif -%}
-{% if fax %}Fax: {{ fax }}&lt;br>{% endif -%}
-{% if email_id %}Email: {{ email_id }}&lt;br>{% endif -%}
+<pre><code>{{ address_line1 }}<br>
+{% if address_line2 %}{{ address_line2 }}<br>{% endif -%}
+{{ city }}<br>
+{% if state %}{{ state }}<br>{% endif -%}
+{% if pincode %} PIN:  {{ pincode }}<br>{% endif -%}
+{{ country }}<br>
+{% if phone %}Phone: {{ phone }}<br>{% endif -%}
+{% if fax %}Fax: {{ fax }}<br>{% endif -%}
+{% if email_id %}Email: {{ email_id }}<br>{% endif -%}
 </code></pre>","<Х4> Стандардно шаблона </ х4> 
  <п> <а Користи хреф=""хттп://јиња.поцоо.орг/доцс/темплатес/""> ЈИЊА Темплатинг </а> и све области Адреса ( укључујући цустом фиелдс ако их има) ће бити доступан </ п> 
  <пре> <цоде> {{аддресс_лине1}} & лт; бр & гт; 

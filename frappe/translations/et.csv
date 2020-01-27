@@ -1410,7 +1410,7 @@ DocType: User,System User,Süsteemi kasutaja
 DocType: Report,Is Standard,Kas Standard
 DocType: Desktop Icon,_report,_aruanne
 DocType: Dashboard Chart,Full,Täis
-DocType: DocField,"Don't HTML Encode HTML tags like &lt;script> or just characters like &lt; or >, as they could be intentionally used in this field","Ära HTML kodeerimine HTML nagu &lt;script> või lihtsalt sümboleid, näiteks &lt;või>, kuna neid võib tahtlikult kasutada selles valdkonnas"
+DocType: DocField,"Don't HTML Encode HTML tags like <script> or just characters like < or >, as they could be intentionally used in this field","Ära HTML kodeerimine HTML nagu <script> või lihtsalt sümboleid, näiteks <või>, kuna neid võib tahtlikult kasutada selles valdkonnas"
 apps/frappe/frappe/public/js/frappe/utils/energy_point_utils.js,{0} criticized on {1},{0} kritiseeriti saidil {1}
 DocType: Website Settings,FavIcon,Favicon
 apps/frappe/frappe/data_migration/doctype/data_migration_plan/data_migration_plan.js,Run,Jookse
@@ -1790,7 +1790,7 @@ DocType: Letter Head,Footer will display correctly only in PDF,Jalus kuvatakse �
 apps/frappe/frappe/core/doctype/data_import/data_import_list.js,Pending,Pooleliolev
 DocType: System Settings,Allow only one session per user,Luba ainult ühe seansi kasutaja kohta
 apps/frappe/frappe/core/doctype/file/test_file.py,Home/Test Folder 1/Test Folder 3,Home / Test Folder 1 / Test Folder 3
-DocType: Website Settings,&lt;head> HTML,&lt;head> HTML
+DocType: Website Settings,<head> HTML,<head> HTML
 apps/frappe/frappe/public/js/frappe/views/calendar/calendar.js,Select or drag across time slots to create a new event.,Vali ja lohista üle ajaühikud luua uus sündmus.
 DocType: Contact,Contact Details,Kontaktandmed
 DocType: DocField,In Filter,In Filter
@@ -2311,7 +2311,7 @@ DocType: LDAP Settings,Path to Server Certificate,Tee serveri sertifikaadini
 apps/frappe/frappe/public/js/frappe/form/linked_with.js,Not enough permission to see links,Pole piisavalt luba näha lingid
 apps/frappe/frappe/contacts/doctype/address/address.py,Address Title is mandatory.,Aadress Pealkiri on kohustuslik.
 DocType: Google Contacts,Push to Google Contacts,Pöörake Google&#39;i kontaktidesse
-DocType: Website Settings,"Added HTML in the &lt;head> section of the web page, primarily used for website verification and SEO","Lisatud HTML &lt;head> osas veebilehe, mida kasutatakse peamiselt veebilehel kontrollimist ja SEO"
+DocType: Website Settings,"Added HTML in the <head> section of the web page, primarily used for website verification and SEO","Lisatud HTML <head> osas veebilehe, mida kasutatakse peamiselt veebilehel kontrollimist ja SEO"
 apps/frappe/frappe/core/doctype/error_snapshot/error_snapshot_list.js,Relapsed,Retsidiveerunud
 apps/frappe/frappe/utils/nestedset.py,Item cannot be added to its own descendents,Punkt ei saa lisada oma järeltulijad
 DocType: Session Default Settings,Session Defaults,Seansi vaikeväärtused
@@ -2430,7 +2430,7 @@ DocType: Workflow State,Warning,Hoiatus
 apps/frappe/frappe/public/js/frappe/form/print.js,This may get printed on multiple pages,Selle võib printida mitmele lehele
 DocType: Data Migration Run,Percent Complete,Protsent täidetud
 DocType: Tag Category,Tag Category,tag Kategooria
-apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,"For comparison, use >5, &lt;10 or =324. For ranges, use 5:10 (for values between 5 &amp; 10).","Võrdluseks kasutage> 5, &lt;10 või = 324. Vahemike jaoks kasutage 5:10 (väärtuste vahemikus 5–10)."
+apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,"For comparison, use >5, <10 or =324. For ranges, use 5:10 (for values between 5 &amp; 10).","Võrdluseks kasutage> 5, <10 või = 324. Vahemike jaoks kasutage 5:10 (väärtuste vahemikus 5–10)."
 DocType: Google Calendar,Pull from Google Calendar,Tõmmake Google&#39;i kalendrist
 apps/frappe/frappe/core/doctype/data_import/data_import.js,Help,Aitama
 DocType: User,Login Before,Logi Enne
@@ -3069,7 +3069,7 @@ DocType: DocField,Allow on Submit,Laske Submit
 DocType: DocField,HTML,HTML
 DocType: Error Snapshot,Exception Type,Erand Type
 apps/frappe/frappe/public/js/frappe/views/reports/report_view.js,Pick Columns,Vali veerud
-DocType: Web Page,Add code as &lt;script>,Lisa koodi &lt;script>
+DocType: Web Page,Add code as <script>,Lisa koodi <script>
 apps/frappe/frappe/core/doctype/user_permission/user_permission_list.js,Clear User Permissions,Tühjenda kasutaja õigused
 DocType: Webhook,Headers,Päised
 apps/frappe/frappe/public/js/frappe/social/components/ActivitySidebar.vue,Upcoming Events,Sündmused
@@ -3443,16 +3443,16 @@ DocType: Workflow State,share-alt,aktsiate alt
 apps/frappe/frappe/utils/background_jobs.py,Queue should be one of {0},Järjekord peaks olema üks {0}
 DocType: Address Template,"<h4>Default Template</h4>
 <p>Uses <a href=""http://jinja.pocoo.org/docs/templates/"">Jinja Templating</a> and all the fields of Address (including Custom Fields if any) will be available</p>
-<pre><code>{{ address_line1 }}&lt;br>
-{% if address_line2 %}{{ address_line2 }}&lt;br>{% endif -%}
-{{ city }}&lt;br>
-{% if state %}{{ state }}&lt;br>{% endif -%}
-{% if pincode %} PIN:  {{ pincode }}&lt;br>{% endif -%}
-{{ country }}&lt;br>
-{% if phone %}Phone: {{ phone }}&lt;br>{% endif -%}
-{% if fax %}Fax: {{ fax }}&lt;br>{% endif -%}
-{% if email_id %}Email: {{ email_id }}&lt;br>{% endif -%}
-</code></pre>","<h4> Vaikemalliga </h4><p> Kasutab <a href=""http://jinja.pocoo.org/docs/templates/"">Jinja vormivad</a> kõik väljad Aadress (sh Custom Fields kui üldse) on saadaval </p><pre> <code>{{ address_line1 }}&lt;br> {% if address_line2 %}{{ address_line2 }}&lt;br>{% endif -%} {{ city }}&lt;br> {% if state %}{{ state }}&lt;br>{% endif -%} {% if pincode %} PIN: {{ pincode }}&lt;br>{% endif -%} {{ country }}&lt;br> {% if phone %}Phone: {{ phone }}&lt;br>{% endif -%} {% if fax %}Fax: {{ fax }}&lt;br>{% endif -%} {% if email_id %}Email: {{ email_id }}&lt;br>{% endif -%}</code> </pre>"
+<pre><code>{{ address_line1 }}<br>
+{% if address_line2 %}{{ address_line2 }}<br>{% endif -%}
+{{ city }}<br>
+{% if state %}{{ state }}<br>{% endif -%}
+{% if pincode %} PIN:  {{ pincode }}<br>{% endif -%}
+{{ country }}<br>
+{% if phone %}Phone: {{ phone }}<br>{% endif -%}
+{% if fax %}Fax: {{ fax }}<br>{% endif -%}
+{% if email_id %}Email: {{ email_id }}<br>{% endif -%}
+</code></pre>","<h4> Vaikemalliga </h4><p> Kasutab <a href=""http://jinja.pocoo.org/docs/templates/"">Jinja vormivad</a> kõik väljad Aadress (sh Custom Fields kui üldse) on saadaval </p><pre> <code>{{ address_line1 }}<br> {% if address_line2 %}{{ address_line2 }}<br>{% endif -%} {{ city }}<br> {% if state %}{{ state }}<br>{% endif -%} {% if pincode %} PIN: {{ pincode }}<br>{% endif -%} {{ country }}<br> {% if phone %}Phone: {{ phone }}<br>{% endif -%} {% if fax %}Fax: {{ fax }}<br>{% endif -%} {% if email_id %}Email: {{ email_id }}<br>{% endif -%}</code> </pre>"
 DocType: Calendar View,Start Date Field,Alguskuupäev
 DocType: Role,Role Name,Role nimi
 apps/frappe/frappe/templates/includes/navbar/navbar_login.html,Switch To Desk,Switch to Desk

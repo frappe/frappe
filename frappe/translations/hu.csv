@@ -1408,7 +1408,7 @@ DocType: User,System User,Rendszer felhasználó
 DocType: Report,Is Standard,Ez alapfelszereltség
 DocType: Desktop Icon,_report,_jelentés
 DocType: Dashboard Chart,Full,Tele
-DocType: DocField,"Don't HTML Encode HTML tags like &lt;script> or just characters like &lt; or >, as they could be intentionally used in this field","Ne kódoljon HTML címkéket, mint &lt; script > vagy csak karaktereket, mint &lt; or >, HTML-be, mivel ezek nem használhatók fel ebben a mezőben"
+DocType: DocField,"Don't HTML Encode HTML tags like <script> or just characters like < or >, as they could be intentionally used in this field","Ne kódoljon HTML címkéket, mint < script > vagy csak karaktereket, mint < or >, HTML-be, mivel ezek nem használhatók fel ebben a mezőben"
 apps/frappe/frappe/public/js/frappe/utils/energy_point_utils.js,{0} criticized on {1},{0} bírálták a (z) {1} -on
 DocType: Website Settings,FavIcon,Kedvencekikon
 apps/frappe/frappe/data_migration/doctype/data_migration_plan/data_migration_plan.js,Run,Futtatás
@@ -1788,7 +1788,7 @@ DocType: Letter Head,Footer will display correctly only in PDF,A lábléc csak P
 apps/frappe/frappe/core/doctype/data_import/data_import_list.js,Pending,Függő
 DocType: System Settings,Allow only one session per user,Csak egyetlen munkamenet engedélyezése felhasználónként
 apps/frappe/frappe/core/doctype/file/test_file.py,Home/Test Folder 1/Test Folder 3,Kezdőlap / Teszt mappa 1 / Teszt mappa 3
-DocType: Website Settings,&lt;head> HTML,&lt;head> HTML
+DocType: Website Settings,<head> HTML,<head> HTML
 apps/frappe/frappe/public/js/frappe/views/calendar/calendar.js,Select or drag across time slots to create a new event.,Válassza ki vagy húzza át az időkereteket egy új esemény létrehozásához.
 DocType: Contact,Contact Details,Kapcsolattartó részletei
 DocType: DocField,In Filter,Szűrőben
@@ -2308,7 +2308,7 @@ DocType: LDAP Settings,Path to Server Certificate,Út a kiszolgálói tanúsítv
 apps/frappe/frappe/public/js/frappe/form/linked_with.js,Not enough permission to see links,Nincs elég Jogosultság a linkek megtekintéséhez
 apps/frappe/frappe/contacts/doctype/address/address.py,Address Title is mandatory.,Cím felirat kötelező.
 DocType: Google Contacts,Push to Google Contacts,Nyomja meg a Google Névjegyeket
-DocType: Website Settings,"Added HTML in the &lt;head> section of the web page, primarily used for website verification and SEO","Hozzáadott HTML a fejléc részben a weboldalon, amit elsősorban a weboldal ellenőrzésére és SEO használja"
+DocType: Website Settings,"Added HTML in the <head> section of the web page, primarily used for website verification and SEO","Hozzáadott HTML a fejléc részben a weboldalon, amit elsősorban a weboldal ellenőrzésére és SEO használja"
 apps/frappe/frappe/core/doctype/error_snapshot/error_snapshot_list.js,Relapsed,Relapszusos
 apps/frappe/frappe/utils/nestedset.py,Item cannot be added to its own descendents,Tételt nem lehet hozzáadni a saját leszármazottaikhoz
 DocType: Session Default Settings,Session Defaults,Munkamenet alapértelmezései
@@ -2427,7 +2427,7 @@ DocType: Workflow State,Warning,Figyelmeztetés
 apps/frappe/frappe/public/js/frappe/form/print.js,This may get printed on multiple pages,"Előfordulhat, hogy több oldalra nyomtatják"
 DocType: Data Migration Run,Percent Complete,Százalék teljesítve
 DocType: Tag Category,Tag Category,Címke kategória
-apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,"For comparison, use >5, &lt;10 or =324. For ranges, use 5:10 (for values between 5 &amp; 10).","Összehasonlításként használjon> 5, &lt;10 vagy = 324. A tartományokhoz használja az 5:10 értéket (az 5 és 10 közötti értékekhez)."
+apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,"For comparison, use >5, <10 or =324. For ranges, use 5:10 (for values between 5 &amp; 10).","Összehasonlításként használjon> 5, <10 vagy = 324. A tartományokhoz használja az 5:10 értéket (az 5 és 10 közötti értékekhez)."
 DocType: Google Calendar,Pull from Google Calendar,Húzza a Google Naptárból
 apps/frappe/frappe/core/doctype/data_import/data_import.js,Help,Súgó
 DocType: User,Login Before,Bejelentkezés előtt
@@ -3066,7 +3066,7 @@ DocType: DocField,Allow on Submit,Benyújtáson engedélyezés
 DocType: DocField,HTML,HTML
 DocType: Error Snapshot,Exception Type,Kivétel típusa
 apps/frappe/frappe/public/js/frappe/views/reports/report_view.js,Pick Columns,Oszlopok kiválasztása
-DocType: Web Page,Add code as &lt;script>,Kód mint  script  hozzáadása
+DocType: Web Page,Add code as <script>,Kód mint  script  hozzáadása
 apps/frappe/frappe/core/doctype/user_permission/user_permission_list.js,Clear User Permissions,Felhasználói engedélyek törlése
 DocType: Webhook,Headers,Fejlécek
 apps/frappe/frappe/public/js/frappe/social/components/ActivitySidebar.vue,Upcoming Events,Közelgő események
@@ -3439,16 +3439,16 @@ DocType: Workflow State,share-alt,share-alt
 apps/frappe/frappe/utils/background_jobs.py,Queue should be one of {0},Sorba állításnak ennek az egyikének kell lennie {0}
 DocType: Address Template,"<h4>Default Template</h4>
 <p>Uses <a href=""http://jinja.pocoo.org/docs/templates/"">Jinja Templating</a> and all the fields of Address (including Custom Fields if any) will be available</p>
-<pre><code>{{ address_line1 }}&lt;br>
-{% if address_line2 %}{{ address_line2 }}&lt;br>{% endif -%}
-{{ city }}&lt;br>
-{% if state %}{{ state }}&lt;br>{% endif -%}
-{% if pincode %} PIN:  {{ pincode }}&lt;br>{% endif -%}
-{{ country }}&lt;br>
-{% if phone %}Phone: {{ phone }}&lt;br>{% endif -%}
-{% if fax %}Fax: {{ fax }}&lt;br>{% endif -%}
-{% if email_id %}Email: {{ email_id }}&lt;br>{% endif -%}
-</code></pre>","<H4> Default template </ h4> <p> a <a href=""http://jinja.pocoo.org/docs/templates/""> Jinja-sablonok </a> és valamennyi területen Cím (Custom Fields ha van ilyen) lesz elérhető </ p> <pre> <code> {{address_line1}} & lt; br & gt; {% If address_line2%} {{address_line2}} & lt; br & gt; {% endif -%} {{city}} & lt; br & gt; {%, Ha az állami%} {{állapotban}} & lt; br & gt; {% endif -%} {% if PIN%} PIN: {{PIN}} & lt; br & gt; {% endif -%} {{country}} & lt ; br & gt; {%, Ha telefonon%} Telefon: {{telefonon}} & lt; br & gt; {% endif -%} {% faxon%} Fax: {{Fax}} & lt; br & gt; {% endif -%} {% if email_id %} E-mail: {{email_id}} & lt; br & gt; {% endif -%} </ code> </ pre>"
+<pre><code>{{ address_line1 }}<br>
+{% if address_line2 %}{{ address_line2 }}<br>{% endif -%}
+{{ city }}<br>
+{% if state %}{{ state }}<br>{% endif -%}
+{% if pincode %} PIN:  {{ pincode }}<br>{% endif -%}
+{{ country }}<br>
+{% if phone %}Phone: {{ phone }}<br>{% endif -%}
+{% if fax %}Fax: {{ fax }}<br>{% endif -%}
+{% if email_id %}Email: {{ email_id }}<br>{% endif -%}
+</code></pre>","<H4> Default template </ h4> <p> a <a href=""http://jinja.pocoo.org/docs/templates/""> Jinja-sablonok </a> és valamennyi területen Cím (Custom Fields ha van ilyen) lesz elérhető </ p> <pre> <code> {{address_line1}} <br> {% If address_line2%} {{address_line2}} <br> {% endif -%} {{city}} <br> {%, Ha az állami%} {{állapotban}} <br> {% endif -%} {% if PIN%} PIN: {{PIN}} <br> {% endif -%} {{country}} & lt ; br> {%, Ha telefonon%} Telefon: {{telefonon}} <br> {% endif -%} {% faxon%} Fax: {{Fax}} <br> {% endif -%} {% if email_id %} E-mail: {{email_id}} <br> {% endif -%} </ code> </ pre>"
 DocType: Calendar View,Start Date Field,Kezdő dátum mezője
 DocType: Role,Role Name,Beosztás neve
 apps/frappe/frappe/templates/includes/navbar/navbar_login.html,Switch To Desk,Asztalra váltás

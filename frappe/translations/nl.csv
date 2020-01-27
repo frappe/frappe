@@ -1426,7 +1426,7 @@ DocType: Report,Is Standard,Is Standaard
 DocType: Desktop Icon,_report,_rapport
 DocType: Desktop Icon,_report,_rapport
 DocType: Dashboard Chart,Full,vol
-DocType: DocField,"Don't HTML Encode HTML tags like &lt;script> or just characters like &lt; or >, as they could be intentionally used in this field","Doe geen HTML coderen HTML-tags zoals &lt;script> of gewoon tekens zoals &lt;en>, omdat ze bewust kunnen worden gebruikt in dit gebied"
+DocType: DocField,"Don't HTML Encode HTML tags like <script> or just characters like < or >, as they could be intentionally used in this field","Doe geen HTML coderen HTML-tags zoals <script> of gewoon tekens zoals <en>, omdat ze bewust kunnen worden gebruikt in dit gebied"
 apps/frappe/frappe/public/js/frappe/utils/energy_point_utils.js,{0} criticized on {1},{0} bekritiseerd op {1}
 DocType: Website Settings,FavIcon,FavIcon
 apps/frappe/frappe/data_migration/doctype/data_migration_plan/data_migration_plan.js,Run,Rennen
@@ -1808,7 +1808,7 @@ DocType: Letter Head,Footer will display correctly only in PDF,Voettekst wordt a
 apps/frappe/frappe/core/doctype/data_import/data_import_list.js,Pending,In afwachting van
 DocType: System Settings,Allow only one session per user,Laat slechts één sessie per gebruiker
 apps/frappe/frappe/core/doctype/file/test_file.py,Home/Test Folder 1/Test Folder 3,Folder home / Test 1 / Test Folder 3
-DocType: Website Settings,&lt;head> HTML,&lt;head> HTML
+DocType: Website Settings,<head> HTML,<head> HTML
 apps/frappe/frappe/public/js/frappe/views/calendar/calendar.js,Select or drag across time slots to create a new event.,Selecteer of sleep over tijdsloten om een nieuwe gebeurtenis te maken.
 DocType: Contact,Contact Details,Contactgegevens
 DocType: DocField,In Filter,In Filter
@@ -2335,7 +2335,7 @@ apps/frappe/frappe/public/js/frappe/form/linked_with.js,Not enough permission to
 apps/frappe/frappe/public/js/frappe/form/linked_with.js,Not enough permission to see links,Niet genoeg toestemming om links te zien
 apps/frappe/frappe/contacts/doctype/address/address.py,Address Title is mandatory.,Adres titel is verplicht.
 DocType: Google Contacts,Push to Google Contacts,Push naar Google Contacten
-DocType: Website Settings,"Added HTML in the &lt;head> section of the web page, primarily used for website verification and SEO","Toegevoegd HTML in de &lt;head> sectie van de webpagina, voornamelijk gebruikt voor de website van verificatie en SEO"
+DocType: Website Settings,"Added HTML in the <head> section of the web page, primarily used for website verification and SEO","Toegevoegd HTML in de <head> sectie van de webpagina, voornamelijk gebruikt voor de website van verificatie en SEO"
 apps/frappe/frappe/core/doctype/error_snapshot/error_snapshot_list.js,Relapsed,Recidiverend
 apps/frappe/frappe/utils/nestedset.py,Item cannot be added to its own descendents,Artikel kan niet worden toegevoegd aan zijn eigen onderliggende artikelen.
 DocType: Session Default Settings,Session Defaults,Standaardwaarden sessie
@@ -2455,7 +2455,7 @@ DocType: Workflow State,Warning,Waarschuwing
 apps/frappe/frappe/public/js/frappe/form/print.js,This may get printed on multiple pages,Dit kan op meerdere pagina&#39;s worden afgedrukt
 DocType: Data Migration Run,Percent Complete,Percentage compleet
 DocType: Tag Category,Tag Category,tag Categorie
-apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,"For comparison, use >5, &lt;10 or =324. For ranges, use 5:10 (for values between 5 &amp; 10).","Gebruik voor vergelijking> 5, &lt;10 of = 324. Gebruik 5:10 voor bereiken (voor waarden tussen 5 en 10)."
+apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,"For comparison, use >5, <10 or =324. For ranges, use 5:10 (for values between 5 &amp; 10).","Gebruik voor vergelijking> 5, <10 of = 324. Gebruik 5:10 voor bereiken (voor waarden tussen 5 en 10)."
 DocType: Google Calendar,Pull from Google Calendar,Uit Google Agenda halen
 apps/frappe/frappe/core/doctype/data_import/data_import.js,Help,Help
 DocType: User,Login Before,Login Voor
@@ -3102,7 +3102,7 @@ DocType: DocField,Allow on Submit,Laat op Submit
 DocType: DocField,HTML,HTML
 DocType: Error Snapshot,Exception Type,Uitzondering Type
 apps/frappe/frappe/public/js/frappe/views/reports/report_view.js,Pick Columns,Kies Kolommen
-DocType: Web Page,Add code as &lt;script>,Voe code toe als <script>
+DocType: Web Page,Add code as <script>,Voe code toe als <script>
 apps/frappe/frappe/core/doctype/user_permission/user_permission_list.js,Clear User Permissions,Wis gebruikersrechten
 DocType: Webhook,Headers,headers
 apps/frappe/frappe/public/js/frappe/social/components/ActivitySidebar.vue,Upcoming Events,Geplande evenementen
@@ -3479,26 +3479,26 @@ DocType: Workflow State,share-alt,delen-alt
 apps/frappe/frappe/utils/background_jobs.py,Queue should be one of {0},Wachtrij moet onderdeel uitmaken van {0}
 DocType: Address Template,"<h4>Default Template</h4>
 <p>Uses <a href=""http://jinja.pocoo.org/docs/templates/"">Jinja Templating</a> and all the fields of Address (including Custom Fields if any) will be available</p>
-<pre><code>{{ address_line1 }}&lt;br>
-{% if address_line2 %}{{ address_line2 }}&lt;br>{% endif -%}
-{{ city }}&lt;br>
-{% if state %}{{ state }}&lt;br>{% endif -%}
-{% if pincode %} PIN:  {{ pincode }}&lt;br>{% endif -%}
-{{ country }}&lt;br>
-{% if phone %}Phone: {{ phone }}&lt;br>{% endif -%}
-{% if fax %}Fax: {{ fax }}&lt;br>{% endif -%}
-{% if email_id %}Email: {{ email_id }}&lt;br>{% endif -%}
+<pre><code>{{ address_line1 }}<br>
+{% if address_line2 %}{{ address_line2 }}<br>{% endif -%}
+{{ city }}<br>
+{% if state %}{{ state }}<br>{% endif -%}
+{% if pincode %} PIN:  {{ pincode }}<br>{% endif -%}
+{{ country }}<br>
+{% if phone %}Phone: {{ phone }}<br>{% endif -%}
+{% if fax %}Fax: {{ fax }}<br>{% endif -%}
+{% if email_id %}Email: {{ email_id }}<br>{% endif -%}
 </code></pre>","<H4> Standaardsjabloon </ h4> 
  <p> Gebruikt <a href=""http://jinja.pocoo.org/docs/templates/""> Jinja Templating </a> en al de velden van Address ( inclusief aangepaste velden eventuele) zal beschikbaar </ p> 
- <pre> <code> {{address_line1}} & lt; br & gt; 
- {% indien address_line2%} {{address_line2}} & lt; br & gt; { % endif -%} 
- {{city}} & lt; br & gt; 
- {% als state%} {{state}} & lt; br & gt; {% endif -%} 
- {% als pincode%} PIN: {{pincode}} & lt; br & gt; {% endif -%} 
- {{land}} & lt; br & gt; 
- {% wanneer de telefoon%} Telefoon: {{telefoon}} & lt; br & gt; { % endif -%} 
- {% per faxbericht%} Fax: {{fax}} & lt; br & gt; {% endif -%} 
- {% indien email_id%} E-mail: {{email_id}} & lt; br & gt ; {% endif -%} 
+ <pre> <code> {{address_line1}} <br> 
+ {% indien address_line2%} {{address_line2}} <br> { % endif -%} 
+ {{city}} <br> 
+ {% als state%} {{state}} <br> {% endif -%} 
+ {% als pincode%} PIN: {{pincode}} <br> {% endif -%} 
+ {{land}} <br> 
+ {% wanneer de telefoon%} Telefoon: {{telefoon}} <br> { % endif -%} 
+ {% per faxbericht%} Fax: {{fax}} <br> {% endif -%} 
+ {% indien email_id%} E-mail: {{email_id}} <br> {% endif -%} 
  </ code> </ pre>"
 DocType: Calendar View,Start Date Field,Begindataveld
 DocType: Role,Role Name,Rolnaam

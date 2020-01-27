@@ -1408,7 +1408,7 @@ DocType: Report,Is Standard,मानक आहे
 DocType: Desktop Icon,_report,_अहवाल द्या
 DocType: Desktop Icon,_report,_अहवाल द्या
 DocType: Dashboard Chart,Full,पूर्ण
-DocType: DocField,"Don't HTML Encode HTML tags like &lt;script> or just characters like &lt; or >, as they could be intentionally used in this field",साध्या भाषेतील &lt;script> सारखे HTML टॅग  किंवा &lt; or > सारखे वर्ण वापरू नका कारण ते हेतुपुरस्सर या क्षेत्रात वापरले जाऊ शकतात
+DocType: DocField,"Don't HTML Encode HTML tags like <script> or just characters like < or >, as they could be intentionally used in this field",साध्या भाषेतील <script> सारखे HTML टॅग  किंवा < or > सारखे वर्ण वापरू नका कारण ते हेतुपुरस्सर या क्षेत्रात वापरले जाऊ शकतात
 DocType: Website Settings,FavIcon,फेविकॉन
 apps/frappe/frappe/data_migration/doctype/data_migration_plan/data_migration_plan.js,Run,चालवा
 DocType: Blog Post,Content (HTML),सामग्री (एचटीएमएल)
@@ -1778,7 +1778,7 @@ DocType: Letter Head,Footer will display correctly only in PDF,फुटर क�
 apps/frappe/frappe/core/doctype/data_import/data_import_list.js,Pending,प्रलंबित
 DocType: System Settings,Allow only one session per user,प्रति वापरकर्ता फक्त एक सत्र परवानगी द्या
 apps/frappe/frappe/core/doctype/file/test_file.py,Home/Test Folder 1/Test Folder 3,मुख्यपृष्ठ / कसोटी फोल्डर 1 / कसोटी फोल्डर 3
-DocType: Website Settings,&lt;head> HTML,&lt;head> एचटीएमएल
+DocType: Website Settings,<head> HTML,<head> एचटीएमएल
 apps/frappe/frappe/public/js/frappe/views/calendar/calendar.js,Select or drag across time slots to create a new event.,नवीन कार्यक्रम तयार करण्याची वेळ स्लॉट ओलांडून  ड्रॅग करा किंवा निवडा.
 DocType: Contact,Contact Details,संपर्क माहिती
 DocType: DocField,In Filter,फिल्टर
@@ -2300,7 +2300,7 @@ apps/frappe/frappe/public/js/frappe/form/linked_with.js,Not enough permission to
 apps/frappe/frappe/public/js/frappe/form/linked_with.js,Not enough permission to see links,दुवे पहाण्यासाठी पुरेसे परवानगी
 apps/frappe/frappe/contacts/doctype/address/address.py,Address Title is mandatory.,पत्ता शीर्षक आवश्यक आहे.
 DocType: Google Contacts,Push to Google Contacts,Google संपर्कांवर ढकलणे
-DocType: Website Settings,"Added HTML in the &lt;head> section of the web page, primarily used for website verification and SEO","वेब पृष्ठ च्या  विभागमध्ये HTML जोडले, प्रामुख्याने वेबसाइट सत्यापन आणि SEO साठी  वापरले"
+DocType: Website Settings,"Added HTML in the <head> section of the web page, primarily used for website verification and SEO","वेब पृष्ठ च्या  विभागमध्ये HTML जोडले, प्रामुख्याने वेबसाइट सत्यापन आणि SEO साठी  वापरले"
 apps/frappe/frappe/core/doctype/error_snapshot/error_snapshot_list.js,Relapsed,हे जाणवले
 apps/frappe/frappe/utils/nestedset.py,Item cannot be added to its own descendents,आयटम त्याच्या स्वत: च्या descendents ला  जोडला  जाऊ शकत नाही
 DocType: Session Default Settings,Session Defaults,सत्र डीफॉल्ट
@@ -2417,7 +2417,7 @@ DocType: Workflow State,Warning,चेतावणी
 apps/frappe/frappe/public/js/frappe/form/print.js,This may get printed on multiple pages,हे एकाधिक पृष्ठांवर मुद्रित होऊ शकते
 DocType: Data Migration Run,Percent Complete,पूर्ण टक्के
 DocType: Tag Category,Tag Category,टॅग वर्ग
-apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,"For comparison, use >5, &lt;10 or =324. For ranges, use 5:10 (for values between 5 &amp; 10).","तुलनासाठी,> 5, &lt;10 किंवा = 324 वापरा. श्रेणीसाठी, 5:10 वापरा (5 आणि 10 मधील मूल्यांसाठी)."
+apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,"For comparison, use >5, <10 or =324. For ranges, use 5:10 (for values between 5 &amp; 10).","तुलनासाठी,> 5, <10 किंवा = 324 वापरा. श्रेणीसाठी, 5:10 वापरा (5 आणि 10 मधील मूल्यांसाठी)."
 DocType: Google Calendar,Pull from Google Calendar,Google कॅलेंडरमधून खेचा
 apps/frappe/frappe/core/doctype/data_import/data_import.js,Help,मदत
 DocType: User,Login Before,लॉग-इन करण्यापूर्वी
@@ -3047,7 +3047,7 @@ DocType: DocField,Allow on Submit,सबमिट परवानगी द्�
 DocType: DocField,HTML,HTML
 DocType: Error Snapshot,Exception Type,अपवाद प्रकार
 apps/frappe/frappe/public/js/frappe/views/reports/report_view.js,Pick Columns,स्तंभ निवडा
-DocType: Web Page,Add code as &lt;script>,&lt;Script> म्हणून कोड जोडा
+DocType: Web Page,Add code as <script>,<Script> म्हणून कोड जोडा
 apps/frappe/frappe/core/doctype/user_permission/user_permission_list.js,Clear User Permissions,वापरकर्त्याच्या परवानग्या साफ करा
 DocType: Webhook,Headers,शीर्षलेख
 apps/frappe/frappe/public/js/frappe/social/components/ActivitySidebar.vue,Upcoming Events,पुढील कार्यक्रम
@@ -3415,16 +3415,16 @@ DocType: Workflow State,share-alt,शेअर-Alt
 apps/frappe/frappe/utils/background_jobs.py,Queue should be one of {0},रांग एक असावे {0}
 DocType: Address Template,"<h4>Default Template</h4>
 <p>Uses <a href=""http://jinja.pocoo.org/docs/templates/"">Jinja Templating</a> and all the fields of Address (including Custom Fields if any) will be available</p>
-<pre><code>{{ address_line1 }}&lt;br>
-{% if address_line2 %}{{ address_line2 }}&lt;br>{% endif -%}
-{{ city }}&lt;br>
-{% if state %}{{ state }}&lt;br>{% endif -%}
-{% if pincode %} PIN:  {{ pincode }}&lt;br>{% endif -%}
-{{ country }}&lt;br>
-{% if phone %}Phone: {{ phone }}&lt;br>{% endif -%}
-{% if fax %}Fax: {{ fax }}&lt;br>{% endif -%}
-{% if email_id %}Email: {{ email_id }}&lt;br>{% endif -%}
-</code></pre>","<h4> डीफॉल्ट टेम्पलेट </h4><p> उपयोग <a href=""http://jinja.pocoo.org/docs/templates/"">Jinja Templating</a> आणि उपलब्ध असेल (जर असेल तर सानुकूल फील्ड समावेश) पत्ता सर्व फील्ड </p><pre> <code>{{ address_line1 }}&lt;br> {% if address_line2 %}{{ address_line2 }}&lt;br>{% endif -%} {{ city }}&lt;br> {% if state %}{{ state }}&lt;br>{% endif -%} {% if pincode %} PIN: {{ pincode }}&lt;br>{% endif -%} {{ country }}&lt;br> {% if phone %}Phone: {{ phone }}&lt;br>{% endif -%} {% if fax %}Fax: {{ fax }}&lt;br>{% endif -%} {% if email_id %}Email: {{ email_id }}&lt;br>{% endif -%}</code> </pre>"
+<pre><code>{{ address_line1 }}<br>
+{% if address_line2 %}{{ address_line2 }}<br>{% endif -%}
+{{ city }}<br>
+{% if state %}{{ state }}<br>{% endif -%}
+{% if pincode %} PIN:  {{ pincode }}<br>{% endif -%}
+{{ country }}<br>
+{% if phone %}Phone: {{ phone }}<br>{% endif -%}
+{% if fax %}Fax: {{ fax }}<br>{% endif -%}
+{% if email_id %}Email: {{ email_id }}<br>{% endif -%}
+</code></pre>","<h4> डीफॉल्ट टेम्पलेट </h4><p> उपयोग <a href=""http://jinja.pocoo.org/docs/templates/"">Jinja Templating</a> आणि उपलब्ध असेल (जर असेल तर सानुकूल फील्ड समावेश) पत्ता सर्व फील्ड </p><pre> <code>{{ address_line1 }}<br> {% if address_line2 %}{{ address_line2 }}<br>{% endif -%} {{ city }}<br> {% if state %}{{ state }}<br>{% endif -%} {% if pincode %} PIN: {{ pincode }}<br>{% endif -%} {{ country }}<br> {% if phone %}Phone: {{ phone }}<br>{% endif -%} {% if fax %}Fax: {{ fax }}<br>{% endif -%} {% if email_id %}Email: {{ email_id }}<br>{% endif -%}</code> </pre>"
 DocType: Calendar View,Start Date Field,प्रारंभ तारीख फील्ड
 DocType: Role,Role Name,भूमिका नाव
 apps/frappe/frappe/templates/includes/navbar/navbar_login.html,Switch To Desk,डेस्क स्विच

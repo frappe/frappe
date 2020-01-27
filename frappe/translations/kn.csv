@@ -1401,7 +1401,7 @@ DocType: Report,Is Standard,ಸ್ಟ್ಯಾಂಡರ್ಡ್
 DocType: Desktop Icon,_report,_ವರದಿ
 DocType: Desktop Icon,_report,_ವರದಿ
 DocType: Dashboard Chart,Full,ಪೂರ್ಣ
-DocType: DocField,"Don't HTML Encode HTML tags like &lt;script> or just characters like &lt; or >, as they could be intentionally used in this field",ಹಾಗೆ ಹಾಗೆ &lt;ಸ್ಕ್ರಿಪ್ಟ್> ಅಥವಾ ಕೇವಲ ಅವರು ಎಂದು ಉದ್ದೇಶಪೂರ್ವಕವಾಗಿ ಈ ಕ್ಷೇತ್ರದಲ್ಲಿ ಬಳಸಲಾಗುತ್ತದೆ ನಂತಹ &lt;ಅಥವಾ> ಪಾತ್ರಗಳು ಎಚ್ಟಿಎಮ್ಎಲ್ ಎನ್ಕೋಡ್ HTML ಟ್ಯಾಗ್ಗಳನ್ನು
+DocType: DocField,"Don't HTML Encode HTML tags like <script> or just characters like < or >, as they could be intentionally used in this field",ಹಾಗೆ ಹಾಗೆ <ಸ್ಕ್ರಿಪ್ಟ್> ಅಥವಾ ಕೇವಲ ಅವರು ಎಂದು ಉದ್ದೇಶಪೂರ್ವಕವಾಗಿ ಈ ಕ್ಷೇತ್ರದಲ್ಲಿ ಬಳಸಲಾಗುತ್ತದೆ ನಂತಹ <ಅಥವಾ> ಪಾತ್ರಗಳು ಎಚ್ಟಿಎಮ್ಎಲ್ ಎನ್ಕೋಡ್ HTML ಟ್ಯಾಗ್ಗಳನ್ನು
 DocType: Website Settings,FavIcon,ಫೆವಿಕಾನ್
 apps/frappe/frappe/data_migration/doctype/data_migration_plan/data_migration_plan.js,Run,ರನ್
 DocType: Blog Post,Content (HTML),ವಿಷಯ (HTML)
@@ -1770,7 +1770,7 @@ DocType: Letter Head,Footer will display correctly only in PDF,ಅಡಿಟಿ�
 apps/frappe/frappe/core/doctype/data_import/data_import_list.js,Pending,ಬಾಕಿ
 DocType: System Settings,Allow only one session per user,ಬಳಕೆದಾರ ಕೇವಲ ಒಂದು ಸೆಷನ್ ಅನುಮತಿಸಿ
 apps/frappe/frappe/core/doctype/file/test_file.py,Home/Test Folder 1/Test Folder 3,ಮುಖಪುಟ / ಟೆಸ್ಟ್ ಫೋಲ್ಡರ್ 1 / ಟೆಸ್ಟ್ ಫೋಲ್ಡರ್ 3
-DocType: Website Settings,&lt;head> HTML,&lt;head> ಎಚ್ಟಿಎಮ್ಎಲ್
+DocType: Website Settings,<head> HTML,<head> ಎಚ್ಟಿಎಮ್ಎಲ್
 apps/frappe/frappe/public/js/frappe/views/calendar/calendar.js,Select or drag across time slots to create a new event.,ಆಯ್ಕೆ ಅಥವಾ ಹೊಸ ಈವೆಂಟ್ ರಚಿಸಲು ಸಮಯಾವಧಿಗಳ ಅಡ್ಡಲಾಗಿ ಎಳೆಯಿರಿ .
 DocType: Contact,Contact Details,ಸಂಪರ್ಕ ವಿವರಗಳು
 DocType: DocField,In Filter,ಶೋಧಕಗಳು ರಲ್ಲಿ
@@ -2290,7 +2290,7 @@ apps/frappe/frappe/public/js/frappe/form/linked_with.js,Not enough permission to
 apps/frappe/frappe/public/js/frappe/form/linked_with.js,Not enough permission to see links,ಕೊಂಡಿಗಳು ನೋಡಲು ಸಾಕಷ್ಟು ಅನುಮತಿಯನ್ನು
 apps/frappe/frappe/contacts/doctype/address/address.py,Address Title is mandatory.,ವಿಳಾಸ ಶೀರ್ಷಿಕೆ ಕಡ್ಡಾಯ.
 DocType: Google Contacts,Push to Google Contacts,Google ಸಂಪರ್ಕಗಳಿಗೆ ತಳ್ಳಿರಿ
-DocType: Website Settings,"Added HTML in the &lt;head> section of the web page, primarily used for website verification and SEO",&lt;Head> ಸೇರಿಸಲಾಗಿದೆ HTML ವೆಬ್ ಪುಟ ಸೆಕ್ಷನ್ ಪ್ರಾಥಮಿಕವಾಗಿ ವೆಬ್ಸೈಟ್ ಪರಿಶೀಲನೆ ಮತ್ತು ಎಸ್ಇಒ ಬಳಸಲಾಗುತ್ತದೆ
+DocType: Website Settings,"Added HTML in the <head> section of the web page, primarily used for website verification and SEO",<Head> ಸೇರಿಸಲಾಗಿದೆ HTML ವೆಬ್ ಪುಟ ಸೆಕ್ಷನ್ ಪ್ರಾಥಮಿಕವಾಗಿ ವೆಬ್ಸೈಟ್ ಪರಿಶೀಲನೆ ಮತ್ತು ಎಸ್ಇಒ ಬಳಸಲಾಗುತ್ತದೆ
 apps/frappe/frappe/core/doctype/error_snapshot/error_snapshot_list.js,Relapsed,ಮರುಕಳಿಸಿತ್ತು
 apps/frappe/frappe/utils/nestedset.py,Item cannot be added to its own descendents,ಐಟಂ ತನ್ನದೇ ಸಂತತಿಯವರು ಸೇರಿಸಲಾಗಿದೆ ಸಾಧ್ಯವಿಲ್ಲ
 DocType: Session Default Settings,Session Defaults,ಸೆಷನ್ ಡೀಫಾಲ್ಟ್‌ಗಳು
@@ -2407,7 +2407,7 @@ DocType: Workflow State,Warning,ಎಚ್ಚರಿಕೆ
 apps/frappe/frappe/public/js/frappe/form/print.js,This may get printed on multiple pages,ಇದನ್ನು ಬಹು ಪುಟಗಳಲ್ಲಿ ಮುದ್ರಿಸಬಹುದು
 DocType: Data Migration Run,Percent Complete,ಪೂರ್ಣಗೊಂಡ ಶೇಕಡಾ
 DocType: Tag Category,Tag Category,ಟ್ಯಾಗ್ ವರ್ಗ
-apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,"For comparison, use >5, &lt;10 or =324. For ranges, use 5:10 (for values between 5 &amp; 10).","ಹೋಲಿಕೆಗಾಗಿ,> 5, &lt;10 ಅಥವಾ = 324 ಬಳಸಿ. ಶ್ರೇಣಿಗಳಿಗಾಗಿ, 5:10 ಬಳಸಿ (5 ಮತ್ತು 10 ರ ನಡುವಿನ ಮೌಲ್ಯಗಳಿಗೆ)."
+apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,"For comparison, use >5, <10 or =324. For ranges, use 5:10 (for values between 5 &amp; 10).","ಹೋಲಿಕೆಗಾಗಿ,> 5, <10 ಅಥವಾ = 324 ಬಳಸಿ. ಶ್ರೇಣಿಗಳಿಗಾಗಿ, 5:10 ಬಳಸಿ (5 ಮತ್ತು 10 ರ ನಡುವಿನ ಮೌಲ್ಯಗಳಿಗೆ)."
 DocType: Google Calendar,Pull from Google Calendar,Google ಕ್ಯಾಲೆಂಡರ್‌ನಿಂದ ಎಳೆಯಿರಿ
 apps/frappe/frappe/core/doctype/data_import/data_import.js,Help,ಸಹಾಯ
 DocType: User,Login Before,ಮೊದಲು ಲಾಗಿನ್ ಆಗಿ
@@ -3040,7 +3040,7 @@ DocType: DocField,Allow on Submit,ಸಲ್ಲಿಸಿ ಮೇಲೆ ಅನ�
 DocType: DocField,HTML,ಎಚ್ಟಿಎಮ್ಎಲ್
 DocType: Error Snapshot,Exception Type,ಎಕ್ಸೆಪ್ಶನ್
 apps/frappe/frappe/public/js/frappe/views/reports/report_view.js,Pick Columns,ಕಾಲಮ್ಗಳು ಆರಿಸಿ
-DocType: Web Page,Add code as &lt;script>,<script> ಮಾಹಿತಿ ಕೋಡ್ ಸೇರಿಸಿ
+DocType: Web Page,Add code as <script>,<script> ಮಾಹಿತಿ ಕೋಡ್ ಸೇರಿಸಿ
 apps/frappe/frappe/core/doctype/user_permission/user_permission_list.js,Clear User Permissions,ಬಳಕೆದಾರರ ಅನುಮತಿಗಳನ್ನು ತೆರವುಗೊಳಿಸಿ
 DocType: Webhook,Headers,ಶೀರ್ಷಿಕೆಗಳು
 apps/frappe/frappe/public/js/frappe/social/components/ActivitySidebar.vue,Upcoming Events,ಮುಂಬರುವ ಕಾರ್ಯಕ್ರಮಗಳು
@@ -3409,26 +3409,26 @@ DocType: Workflow State,share-alt,ಷೇರು ಹಳೆಯ
 apps/frappe/frappe/utils/background_jobs.py,Queue should be one of {0},ಕ್ಯೂ ಒಂದು ಆಗಿರಬೇಕು {0}
 DocType: Address Template,"<h4>Default Template</h4>
 <p>Uses <a href=""http://jinja.pocoo.org/docs/templates/"">Jinja Templating</a> and all the fields of Address (including Custom Fields if any) will be available</p>
-<pre><code>{{ address_line1 }}&lt;br>
-{% if address_line2 %}{{ address_line2 }}&lt;br>{% endif -%}
-{{ city }}&lt;br>
-{% if state %}{{ state }}&lt;br>{% endif -%}
-{% if pincode %} PIN:  {{ pincode }}&lt;br>{% endif -%}
-{{ country }}&lt;br>
-{% if phone %}Phone: {{ phone }}&lt;br>{% endif -%}
-{% if fax %}Fax: {{ fax }}&lt;br>{% endif -%}
-{% if email_id %}Email: {{ email_id }}&lt;br>{% endif -%}
+<pre><code>{{ address_line1 }}<br>
+{% if address_line2 %}{{ address_line2 }}<br>{% endif -%}
+{{ city }}<br>
+{% if state %}{{ state }}<br>{% endif -%}
+{% if pincode %} PIN:  {{ pincode }}<br>{% endif -%}
+{{ country }}<br>
+{% if phone %}Phone: {{ phone }}<br>{% endif -%}
+{% if fax %}Fax: {{ fax }}<br>{% endif -%}
+{% if email_id %}Email: {{ email_id }}<br>{% endif -%}
 </code></pre>","<H4> ಡೀಫಾಲ್ಟ್ ಟೆಂಪ್ಲೇಟು </ H4> 
- <p> <a href=""http://jinja.pocoo.org/docs/templates/""> ಜಿಂಜ Templating </a> ಮತ್ತು ವಿಳಾಸ ಎಲ್ಲಾ ಜಾಗ (ಉಪಯೋಗಗಳು {; ಬಿಆರ್; & gt; 
- {% ವೇಳೆ address_line2%} {{address_line2}} & lt; br & gt ಕಸ್ಟಮ್ ಫೀಲ್ಡ್ಸ್ ಯಾವುದಾದರೂ ಇದ್ದರೆ) </ p> 
+ <p> <a href=""http://jinja.pocoo.org/docs/templates/""> ಜಿಂಜ Templating </a> ಮತ್ತು ವಿಳಾಸ ಎಲ್ಲಾ ಜಾಗ (ಉಪಯೋಗಗಳು {; ಬಿಆರ್;> 
+ {% ವೇಳೆ address_line2%} {{address_line2}} <br & gt ಕಸ್ಟಮ್ ಫೀಲ್ಡ್ಸ್ ಯಾವುದಾದರೂ ಇದ್ದರೆ) </ p> 
  <pre> <ಕೋಡ್> {{address_line1}} & lt ಲಭ್ಯವಾಗುತ್ತದೆ ಸೇರಿದಂತೆ % endif -%} 
- {{ನಗರದ}} & lt; br & gt; 
- {% ವೇಳೆ ರಾಜ್ಯದ%} {{ರಾಜ್ಯದ}} & lt; br & gt; {% endif -%} 
- {% ವೇಳೆ ಪಿನ್%} ಪಿನ್: {{ಪಿನ್}} & lt; br & gt; {% endif -%} 
- {{ದೇಶದ}} & lt; br & gt; 
- {% ವೇಳೆ ಫೋನ್%} ದೂರವಾಣಿ: {{ಫೋನ್}} & lt; br & gt; { % endif -%} 
- {% ವೇಳೆ ಫ್ಯಾಕ್ಸ್%} ಫ್ಯಾಕ್ಸ್: {{ಫ್ಯಾಕ್ಸ್}} & lt; br & gt; {% endif -%} 
- {% ವೇಳೆ email_id%} ಇಮೇಲ್: {{email_id}} & lt; br & gt {% endif -%} 
+ {{ನಗರದ}} <br> 
+ {% ವೇಳೆ ರಾಜ್ಯದ%} {{ರಾಜ್ಯದ}} <br> {% endif -%} 
+ {% ವೇಳೆ ಪಿನ್%} ಪಿನ್: {{ಪಿನ್}} <br> {% endif -%} 
+ {{ದೇಶದ}} <br> 
+ {% ವೇಳೆ ಫೋನ್%} ದೂರವಾಣಿ: {{ಫೋನ್}} <br> { % endif -%} 
+ {% ವೇಳೆ ಫ್ಯಾಕ್ಸ್%} ಫ್ಯಾಕ್ಸ್: {{ಫ್ಯಾಕ್ಸ್}} <br> {% endif -%} 
+ {% ವೇಳೆ email_id%} ಇಮೇಲ್: {{email_id}} <br & gt {% endif -%} 
  </ code> </ ಪೂರ್ವ>"
 DocType: Calendar View,Start Date Field,ಪ್ರಾರಂಭ ದಿನಾಂಕ ಕ್ಷೇತ್ರ
 DocType: Role,Role Name,ಪಾತ್ರ ಹೆಸರು

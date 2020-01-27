@@ -1427,7 +1427,7 @@ DocType: Report,Is Standard,Je standardní
 DocType: Desktop Icon,_report,_správa
 DocType: Desktop Icon,_report,_správa
 DocType: Dashboard Chart,Full,plne
-DocType: DocField,"Don't HTML Encode HTML tags like &lt;script> or just characters like &lt; or >, as they could be intentionally used in this field","Nenechajte HTML Kódovanie HTML tagy ako &lt;script> alebo len znaky ako &lt;alebo>, pretože by mohli byť zámerne použité v tomto odbore"
+DocType: DocField,"Don't HTML Encode HTML tags like <script> or just characters like < or >, as they could be intentionally used in this field","Nenechajte HTML Kódovanie HTML tagy ako <script> alebo len znaky ako <alebo>, pretože by mohli byť zámerne použité v tomto odbore"
 apps/frappe/frappe/public/js/frappe/utils/energy_point_utils.js,{0} criticized on {1},{0} kritizovaný dňa {1}
 DocType: Website Settings,FavIcon,FavIcon
 apps/frappe/frappe/data_migration/doctype/data_migration_plan/data_migration_plan.js,Run,beh
@@ -1808,7 +1808,7 @@ DocType: Letter Head,Footer will display correctly only in PDF,Päta sa zobrazí
 apps/frappe/frappe/core/doctype/data_import/data_import_list.js,Pending,Čakajúce
 DocType: System Settings,Allow only one session per user,Umožňujú len jednu reláciu na jedného používateľa
 apps/frappe/frappe/core/doctype/file/test_file.py,Home/Test Folder 1/Test Folder 3,Home / Test Folder 1 / Test Folder 3
-DocType: Website Settings,&lt;head> HTML,&lt;head> HTML
+DocType: Website Settings,<head> HTML,<head> HTML
 apps/frappe/frappe/public/js/frappe/views/calendar/calendar.js,Select or drag across time slots to create a new event.,Nová událost: Zvolte nebo táhněte skrz Časová pole.
 DocType: Contact,Contact Details,Kontaktné údaje
 DocType: DocField,In Filter,Ve filtru
@@ -2335,7 +2335,7 @@ apps/frappe/frappe/public/js/frappe/form/linked_with.js,Not enough permission to
 apps/frappe/frappe/public/js/frappe/form/linked_with.js,Not enough permission to see links,Nedostatok povolenia na zobrazenie odkazov
 apps/frappe/frappe/contacts/doctype/address/address.py,Address Title is mandatory.,Názov adresy je povinný.
 DocType: Google Contacts,Push to Google Contacts,Push to Google Contacts
-DocType: Website Settings,"Added HTML in the &lt;head> section of the web page, primarily used for website verification and SEO","Pridané HTML do sekcie &lt;head> webovej stránky, používané najmä pre overovanie webových stránok a SEO"
+DocType: Website Settings,"Added HTML in the <head> section of the web page, primarily used for website verification and SEO","Pridané HTML do sekcie <head> webovej stránky, používané najmä pre overovanie webových stránok a SEO"
 apps/frappe/frappe/core/doctype/error_snapshot/error_snapshot_list.js,Relapsed,Relapsujúcou
 apps/frappe/frappe/utils/nestedset.py,Item cannot be added to its own descendents,Položka nemůže být přidána jako svůj vlastní podřízený potomek
 DocType: Session Default Settings,Session Defaults,Predvolené hodnoty relácie
@@ -2455,7 +2455,7 @@ DocType: Workflow State,Warning,Upozornění
 apps/frappe/frappe/public/js/frappe/form/print.js,This may get printed on multiple pages,Môže sa to vytlačiť na viacerých stranách
 DocType: Data Migration Run,Percent Complete,Percento dokončené
 DocType: Tag Category,Tag Category,tag Kategórie
-apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,"For comparison, use >5, &lt;10 or =324. For ranges, use 5:10 (for values between 5 &amp; 10).","Na porovnanie použite> 5, &lt;10 alebo = 324. Pre rozsahy použite 5:10 (pre hodnoty medzi 5 a 10)."
+apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,"For comparison, use >5, <10 or =324. For ranges, use 5:10 (for values between 5 &amp; 10).","Na porovnanie použite> 5, <10 alebo = 324. Pre rozsahy použite 5:10 (pre hodnoty medzi 5 a 10)."
 DocType: Google Calendar,Pull from Google Calendar,Vytiahnite z Kalendára Google
 apps/frappe/frappe/core/doctype/data_import/data_import.js,Help,Nápoveda
 DocType: User,Login Before,Přihlášení před
@@ -3100,7 +3100,7 @@ DocType: DocField,Allow on Submit,Povolit při Odeslání
 DocType: DocField,HTML,HTML
 DocType: Error Snapshot,Exception Type,Typ výnimky
 apps/frappe/frappe/public/js/frappe/views/reports/report_view.js,Pick Columns,Vybrat sloupce
-DocType: Web Page,Add code as &lt;script>,Pridať kód ako &lt;script>&lt;/script>
+DocType: Web Page,Add code as <script>,Pridať kód ako <script></script>
 apps/frappe/frappe/core/doctype/user_permission/user_permission_list.js,Clear User Permissions,Vymazať oprávnenie používateľa
 DocType: Webhook,Headers,hlavičky
 apps/frappe/frappe/public/js/frappe/social/components/ActivitySidebar.vue,Upcoming Events,Pripravované akcie
@@ -3477,26 +3477,26 @@ DocType: Workflow State,share-alt,share-alt
 apps/frappe/frappe/utils/background_jobs.py,Queue should be one of {0},Fronta by mala byť jedna z {0}
 DocType: Address Template,"<h4>Default Template</h4>
 <p>Uses <a href=""http://jinja.pocoo.org/docs/templates/"">Jinja Templating</a> and all the fields of Address (including Custom Fields if any) will be available</p>
-<pre><code>{{ address_line1 }}&lt;br>
-{% if address_line2 %}{{ address_line2 }}&lt;br>{% endif -%}
-{{ city }}&lt;br>
-{% if state %}{{ state }}&lt;br>{% endif -%}
-{% if pincode %} PIN:  {{ pincode }}&lt;br>{% endif -%}
-{{ country }}&lt;br>
-{% if phone %}Phone: {{ phone }}&lt;br>{% endif -%}
-{% if fax %}Fax: {{ fax }}&lt;br>{% endif -%}
-{% if email_id %}Email: {{ email_id }}&lt;br>{% endif -%}
+<pre><code>{{ address_line1 }}<br>
+{% if address_line2 %}{{ address_line2 }}<br>{% endif -%}
+{{ city }}<br>
+{% if state %}{{ state }}<br>{% endif -%}
+{% if pincode %} PIN:  {{ pincode }}<br>{% endif -%}
+{{ country }}<br>
+{% if phone %}Phone: {{ phone }}<br>{% endif -%}
+{% if fax %}Fax: {{ fax }}<br>{% endif -%}
+{% if email_id %}Email: {{ email_id }}<br>{% endif -%}
 </code></pre>","<H4> Default Template </ h4> 
  <p> <a Používá href=""http://jinja.pocoo.org/docs/templates/""> Jinja šablon </a> a všechna pole Adresa ( včetně Custom Fields-li nějaké) budou k dispozici </ p> 
- <pre> <code> {{address_line1}} & lt; br & gt; 
- {%, pokud address_line2%} {{address_line2}} & lt; br & gt; { % endif -%} {
- {}} city & lt; br & gt; 
- {%, pokud stav%} {{}} state & lt; br & gt; {% endif -%} {
-% v případě, PSC%} PIN: {{PSC}} & lt; br & gt; {% endif -%} 
- {{country}} & lt; br & gt; 
- {%, pokud telefon%} Telefon: {{tel}} & lt; br & gt; { % endif -%} 
- {% v případě, fax%} Fax: {{fax}} & lt; br & gt; {% endif -%} 
- {%, pokud email_id%} E-mail: {{email_id}} & lt; br & gt ; {% endif -%} 
+ <pre> <code> {{address_line1}} <br> 
+ {%, pokud address_line2%} {{address_line2}} <br> { % endif -%} {
+ {}} city <br> 
+ {%, pokud stav%} {{}} state <br> {% endif -%} {
+% v případě, PSC%} PIN: {{PSC}} <br> {% endif -%} 
+ {{country}} <br> 
+ {%, pokud telefon%} Telefon: {{tel}} <br> { % endif -%} 
+ {% v případě, fax%} Fax: {{fax}} <br> {% endif -%} 
+ {%, pokud email_id%} E-mail: {{email_id}} <br> {% endif -%} 
  </ code> </ pre>"
 DocType: Calendar View,Start Date Field,Pole Dátum začiatku
 DocType: Role,Role Name,Názov role

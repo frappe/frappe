@@ -1410,7 +1410,7 @@ DocType: User,System User,Korisnik sustava
 DocType: Report,Is Standard,Je Standardni
 DocType: Desktop Icon,_report,_report
 DocType: Dashboard Chart,Full,Pun
-DocType: DocField,"Don't HTML Encode HTML tags like &lt;script> or just characters like &lt; or >, as they could be intentionally used in this field","Nemojte HTML kodiranje HTML tagove kao &lt;script> ili samo likovi poput &lt;ili>, kao što se može namjerno koristiti u ovoj oblasti"
+DocType: DocField,"Don't HTML Encode HTML tags like <script> or just characters like < or >, as they could be intentionally used in this field","Nemojte HTML kodiranje HTML tagove kao <script> ili samo likovi poput <ili>, kao što se može namjerno koristiti u ovoj oblasti"
 apps/frappe/frappe/public/js/frappe/utils/energy_point_utils.js,{0} criticized on {1},{0} kritiziran na {1}
 DocType: Website Settings,FavIcon,Favicon
 apps/frappe/frappe/data_migration/doctype/data_migration_plan/data_migration_plan.js,Run,Trči
@@ -1790,7 +1790,7 @@ DocType: Letter Head,Footer will display correctly only in PDF,Footer će se isp
 apps/frappe/frappe/core/doctype/data_import/data_import_list.js,Pending,Čekanje
 DocType: System Settings,Allow only one session per user,Dopustite samo jedna sjednica po korisniku
 apps/frappe/frappe/core/doctype/file/test_file.py,Home/Test Folder 1/Test Folder 3,Početna / Test Folder 1 / Test Folder 3
-DocType: Website Settings,&lt;head> HTML,&lt;head> HTML
+DocType: Website Settings,<head> HTML,<head> HTML
 apps/frappe/frappe/public/js/frappe/views/calendar/calendar.js,Select or drag across time slots to create a new event.,Odaberite ili povucite preko minutaže stvoriti novi događaj.
 DocType: Contact,Contact Details,Kontakt podaci
 DocType: DocField,In Filter,U filtru
@@ -2312,7 +2312,7 @@ DocType: LDAP Settings,Path to Server Certificate,Put do sertifikata servera
 apps/frappe/frappe/public/js/frappe/form/linked_with.js,Not enough permission to see links,Nije dovoljno dozvolu da vidite linkove
 apps/frappe/frappe/contacts/doctype/address/address.py,Address Title is mandatory.,Naziv adrese je obavezan.
 DocType: Google Contacts,Push to Google Contacts,Pritisnite Google kontakte
-DocType: Website Settings,"Added HTML in the &lt;head> section of the web page, primarily used for website verification and SEO","Dodano HTML u &lt;head> odjeljku web stranice, prvenstveno koristi za web stranice verifikaciju i SEO"
+DocType: Website Settings,"Added HTML in the <head> section of the web page, primarily used for website verification and SEO","Dodano HTML u <head> odjeljku web stranice, prvenstveno koristi za web stranice verifikaciju i SEO"
 apps/frappe/frappe/core/doctype/error_snapshot/error_snapshot_list.js,Relapsed,Relaps
 apps/frappe/frappe/utils/nestedset.py,Item cannot be added to its own descendents,Stavka ne može se dodati u svojim potomcima
 DocType: Session Default Settings,Session Defaults,Neispunjene sesije
@@ -2431,7 +2431,7 @@ DocType: Workflow State,Warning,Upozorenje
 apps/frappe/frappe/public/js/frappe/form/print.js,This may get printed on multiple pages,Ovo se može otisnuti na više stranica
 DocType: Data Migration Run,Percent Complete,Percent Complete
 DocType: Tag Category,Tag Category,Tag Kategorija
-apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,"For comparison, use >5, &lt;10 or =324. For ranges, use 5:10 (for values between 5 &amp; 10).","Za usporedbu, koristite> 5, &lt;10 ili = 324. Za raspone koristite 5:10 (za vrijednosti između 5 i 10)."
+apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,"For comparison, use >5, <10 or =324. For ranges, use 5:10 (for values between 5 &amp; 10).","Za usporedbu, koristite> 5, <10 ili = 324. Za raspone koristite 5:10 (za vrijednosti između 5 i 10)."
 DocType: Google Calendar,Pull from Google Calendar,Povucite iz Google kalendara
 apps/frappe/frappe/core/doctype/data_import/data_import.js,Help,Pomoć
 DocType: User,Login Before,Prijavite Prije
@@ -3070,7 +3070,7 @@ DocType: DocField,Allow on Submit,Dopusti pri potvrdi
 DocType: DocField,HTML,HTML
 DocType: Error Snapshot,Exception Type,Izuzetak Tip
 apps/frappe/frappe/public/js/frappe/views/reports/report_view.js,Pick Columns,Odaberi kolone
-DocType: Web Page,Add code as &lt;script>,Dodaj kod kao
+DocType: Web Page,Add code as <script>,Dodaj kod kao
 apps/frappe/frappe/core/doctype/user_permission/user_permission_list.js,Clear User Permissions,Izbriši dozvole korisnika
 DocType: Webhook,Headers,Headers
 apps/frappe/frappe/public/js/frappe/social/components/ActivitySidebar.vue,Upcoming Events,Najave događaja
@@ -3442,26 +3442,26 @@ DocType: Workflow State,share-alt,Udio-alt
 apps/frappe/frappe/utils/background_jobs.py,Queue should be one of {0},Red bi trebao biti jedan od {0}
 DocType: Address Template,"<h4>Default Template</h4>
 <p>Uses <a href=""http://jinja.pocoo.org/docs/templates/"">Jinja Templating</a> and all the fields of Address (including Custom Fields if any) will be available</p>
-<pre><code>{{ address_line1 }}&lt;br>
-{% if address_line2 %}{{ address_line2 }}&lt;br>{% endif -%}
-{{ city }}&lt;br>
-{% if state %}{{ state }}&lt;br>{% endif -%}
-{% if pincode %} PIN:  {{ pincode }}&lt;br>{% endif -%}
-{{ country }}&lt;br>
-{% if phone %}Phone: {{ phone }}&lt;br>{% endif -%}
-{% if fax %}Fax: {{ fax }}&lt;br>{% endif -%}
-{% if email_id %}Email: {{ email_id }}&lt;br>{% endif -%}
+<pre><code>{{ address_line1 }}<br>
+{% if address_line2 %}{{ address_line2 }}<br>{% endif -%}
+{{ city }}<br>
+{% if state %}{{ state }}<br>{% endif -%}
+{% if pincode %} PIN:  {{ pincode }}<br>{% endif -%}
+{{ country }}<br>
+{% if phone %}Phone: {{ phone }}<br>{% endif -%}
+{% if fax %}Fax: {{ fax }}<br>{% endif -%}
+{% if email_id %}Email: {{ email_id }}<br>{% endif -%}
 </code></pre>","<H4> Standard Template </ h4> 
  <p> <a Koristi href=""http://jinja.pocoo.org/docs/templates/""> Jinja templating </a> i svim oblastima Adresa ( uključujući Custom Fields ako ih ima) će biti dostupan </ p> 
- <pre> <code> {{address_line1}} & lt; br & gt; 
- {% ako address_line2%} {{address_line2}} & lt; br & gt; { % endif -%} 
- {{}} gradu & lt; br & gt; 
- {% ako država%} {{}} države & lt; br & gt; {% endif -%} {
-% ako pincode%} PIN: {{pincode}} & lt; br & gt; {% endif -%} 
- {{zemlji}} & lt; br & gt; 
- {% ako telefon%} Telefon: {{telefonski}} & lt; br & gt; { % endif -%} 
- {% ako fax%} Fax: {{fax}} & lt; br & gt; {% endif -%} 
- {% ako email_id%} Email: {{email_id}} & lt; br & gt ; {% endif -%} 
+ <pre> <code> {{address_line1}} <br> 
+ {% ako address_line2%} {{address_line2}} <br> { % endif -%} 
+ {{}} gradu <br> 
+ {% ako država%} {{}} države <br> {% endif -%} {
+% ako pincode%} PIN: {{pincode}} <br> {% endif -%} 
+ {{zemlji}} <br> 
+ {% ako telefon%} Telefon: {{telefonski}} <br> { % endif -%} 
+ {% ako fax%} Fax: {{fax}} <br> {% endif -%} 
+ {% ako email_id%} Email: {{email_id}} <br> {% endif -%} 
  </ code> </ pre>"
 DocType: Calendar View,Start Date Field,Polje početnog datuma
 DocType: Role,Role Name,Uloga Ime

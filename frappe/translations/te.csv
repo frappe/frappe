@@ -1399,7 +1399,7 @@ DocType: Report,Is Standard,ప్రమాణం
 DocType: Desktop Icon,_report,_report
 DocType: Desktop Icon,_report,_report
 DocType: Dashboard Chart,Full,పూర్తి
-DocType: DocField,"Don't HTML Encode HTML tags like &lt;script> or just characters like &lt; or >, as they could be intentionally used in this field",అలా కాదు వంటి &lt;స్క్రిప్ట్> లేదా కేవలం వంటి పాత్రలు &lt;లేదా> వారు కావాలని ఈ రంగంలో వాడబడే వంటి HTML ఎన్కోడ్ HTML టాగ్లు
+DocType: DocField,"Don't HTML Encode HTML tags like <script> or just characters like < or >, as they could be intentionally used in this field",అలా కాదు వంటి <స్క్రిప్ట్> లేదా కేవలం వంటి పాత్రలు <లేదా> వారు కావాలని ఈ రంగంలో వాడబడే వంటి HTML ఎన్కోడ్ HTML టాగ్లు
 DocType: Website Settings,FavIcon,ఇష్టాంశ చిహ్నం
 apps/frappe/frappe/data_migration/doctype/data_migration_plan/data_migration_plan.js,Run,రన్
 DocType: Blog Post,Content (HTML),కంటెంట్ (HTML)
@@ -1769,7 +1769,7 @@ DocType: Letter Head,Footer will display correctly only in PDF,ఫుటరు P
 apps/frappe/frappe/core/doctype/data_import/data_import_list.js,Pending,పెండింగ్
 DocType: System Settings,Allow only one session per user,యూజర్ శాతం మాత్రమే ఒక సెషన్ని మాత్రమే అనుమతించు
 apps/frappe/frappe/core/doctype/file/test_file.py,Home/Test Folder 1/Test Folder 3,హోం / టెస్ట్ ఫోల్డర్ 1 / టెస్ట్ ఫోల్డర్ 3
-DocType: Website Settings,&lt;head> HTML,&lt;head> HTML
+DocType: Website Settings,<head> HTML,<head> HTML
 apps/frappe/frappe/public/js/frappe/views/calendar/calendar.js,Select or drag across time slots to create a new event.,ఎంచుకోండి లేదా ఒక కొత్త సంఘటన సృష్టించడానికి సమయ విభాగాలు అంతటా లాగండి.
 DocType: Contact,Contact Details,సంప్రదింపు వివరాలు
 DocType: DocField,In Filter,వడపోత లో
@@ -2285,7 +2285,7 @@ DocType: LDAP Settings,Path to Server Certificate,సర్వర్ సర్�
 apps/frappe/frappe/public/js/frappe/form/linked_with.js,Not enough permission to see links,లింకులు చూడటానికి తగినంత అనుమతి
 apps/frappe/frappe/contacts/doctype/address/address.py,Address Title is mandatory.,చిరునామా శీర్షిక తప్పనిసరి.
 DocType: Google Contacts,Push to Google Contacts,Google పరిచయాలకు నెట్టండి
-DocType: Website Settings,"Added HTML in the &lt;head> section of the web page, primarily used for website verification and SEO",&lt;Head> లో చేర్చబడింది HTML వెబ్ పేజీ యొక్క విభాగం ప్రధానంగా వెబ్సైట్ ధృవీకరణ మరియు SEO కోసం ఉపయోగిస్తారు
+DocType: Website Settings,"Added HTML in the <head> section of the web page, primarily used for website verification and SEO",<Head> లో చేర్చబడింది HTML వెబ్ పేజీ యొక్క విభాగం ప్రధానంగా వెబ్సైట్ ధృవీకరణ మరియు SEO కోసం ఉపయోగిస్తారు
 apps/frappe/frappe/core/doctype/error_snapshot/error_snapshot_list.js,Relapsed,Relapsed
 apps/frappe/frappe/utils/nestedset.py,Item cannot be added to its own descendents,అంశం దాని సొంత వంశస్థులు జోడించబడింది సాధ్యం కాదు
 DocType: Session Default Settings,Session Defaults,సెషన్ డిఫాల్ట్‌లు
@@ -2401,7 +2401,7 @@ DocType: Workflow State,Warning,హెచ్చరిక
 apps/frappe/frappe/public/js/frappe/form/print.js,This may get printed on multiple pages,ఇది బహుళ పేజీలలో ముద్రించబడవచ్చు
 DocType: Data Migration Run,Percent Complete,శాతం పూర్తయింది
 DocType: Tag Category,Tag Category,ట్యాగ్ వర్గం
-apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,"For comparison, use >5, &lt;10 or =324. For ranges, use 5:10 (for values between 5 &amp; 10).","పోలిక కోసం,> 5, &lt;10 లేదా = 324 ఉపయోగించండి. శ్రేణుల కోసం, 5:10 (5 &amp; 10 మధ్య విలువల కోసం) ఉపయోగించండి."
+apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,"For comparison, use >5, <10 or =324. For ranges, use 5:10 (for values between 5 &amp; 10).","పోలిక కోసం,> 5, <10 లేదా = 324 ఉపయోగించండి. శ్రేణుల కోసం, 5:10 (5 &amp; 10 మధ్య విలువల కోసం) ఉపయోగించండి."
 DocType: Google Calendar,Pull from Google Calendar,Google క్యాలెండర్ నుండి లాగండి
 apps/frappe/frappe/core/doctype/data_import/data_import.js,Help,సహాయం
 DocType: User,Login Before,లాగిన్ ముందు
@@ -3027,7 +3027,7 @@ DocType: DocField,Allow on Submit,సమర్పించండి అనుమ
 DocType: DocField,HTML,HTML
 DocType: Error Snapshot,Exception Type,అసాధారణ పరిస్థితి రకాన్ని
 apps/frappe/frappe/public/js/frappe/views/reports/report_view.js,Pick Columns,లు ఎంచుకోండి
-DocType: Web Page,Add code as &lt;script>,&lt;స్క్రిప్ట్> గా కోడ్ జోడించండి
+DocType: Web Page,Add code as <script>,<స్క్రిప్ట్> గా కోడ్ జోడించండి
 apps/frappe/frappe/core/doctype/user_permission/user_permission_list.js,Clear User Permissions,వినియోగదారు అనుమతులను క్లియర్ చేయండి
 DocType: Webhook,Headers,శీర్షికలు
 apps/frappe/frappe/public/js/frappe/social/components/ActivitySidebar.vue,Upcoming Events,రాబోయే ఈవెంట్స్
@@ -3395,16 +3395,16 @@ DocType: Workflow State,share-alt,వాటా-alt
 apps/frappe/frappe/utils/background_jobs.py,Queue should be one of {0},క్యూ ఒకటి ఉండాలి {0}
 DocType: Address Template,"<h4>Default Template</h4>
 <p>Uses <a href=""http://jinja.pocoo.org/docs/templates/"">Jinja Templating</a> and all the fields of Address (including Custom Fields if any) will be available</p>
-<pre><code>{{ address_line1 }}&lt;br>
-{% if address_line2 %}{{ address_line2 }}&lt;br>{% endif -%}
-{{ city }}&lt;br>
-{% if state %}{{ state }}&lt;br>{% endif -%}
-{% if pincode %} PIN:  {{ pincode }}&lt;br>{% endif -%}
-{{ country }}&lt;br>
-{% if phone %}Phone: {{ phone }}&lt;br>{% endif -%}
-{% if fax %}Fax: {{ fax }}&lt;br>{% endif -%}
-{% if email_id %}Email: {{ email_id }}&lt;br>{% endif -%}
-</code></pre>","<h4> Default మూస </h4><p> ఉపయోగాలు <a href=""http://jinja.pocoo.org/docs/templates/"">జింజ Templating</a> మరియు అందుబాటులో ఉంటుంది (ఏదైనా ఉంటే కస్టమ్ ఫీల్డ్స్ సహా) అడ్రస్ అన్ని రంగాల్లో </p><pre> <code>{{ address_line1 }}&lt;br> {% if address_line2 %}{{ address_line2 }}&lt;br>{% endif -%} {{ city }}&lt;br> {% if state %}{{ state }}&lt;br>{% endif -%} {% if pincode %} PIN: {{ pincode }}&lt;br>{% endif -%} {{ country }}&lt;br> {% if phone %}Phone: {{ phone }}&lt;br>{% endif -%} {% if fax %}Fax: {{ fax }}&lt;br>{% endif -%} {% if email_id %}Email: {{ email_id }}&lt;br>{% endif -%}</code> </pre>"
+<pre><code>{{ address_line1 }}<br>
+{% if address_line2 %}{{ address_line2 }}<br>{% endif -%}
+{{ city }}<br>
+{% if state %}{{ state }}<br>{% endif -%}
+{% if pincode %} PIN:  {{ pincode }}<br>{% endif -%}
+{{ country }}<br>
+{% if phone %}Phone: {{ phone }}<br>{% endif -%}
+{% if fax %}Fax: {{ fax }}<br>{% endif -%}
+{% if email_id %}Email: {{ email_id }}<br>{% endif -%}
+</code></pre>","<h4> Default మూస </h4><p> ఉపయోగాలు <a href=""http://jinja.pocoo.org/docs/templates/"">జింజ Templating</a> మరియు అందుబాటులో ఉంటుంది (ఏదైనా ఉంటే కస్టమ్ ఫీల్డ్స్ సహా) అడ్రస్ అన్ని రంగాల్లో </p><pre> <code>{{ address_line1 }}<br> {% if address_line2 %}{{ address_line2 }}<br>{% endif -%} {{ city }}<br> {% if state %}{{ state }}<br>{% endif -%} {% if pincode %} PIN: {{ pincode }}<br>{% endif -%} {{ country }}<br> {% if phone %}Phone: {{ phone }}<br>{% endif -%} {% if fax %}Fax: {{ fax }}<br>{% endif -%} {% if email_id %}Email: {{ email_id }}<br>{% endif -%}</code> </pre>"
 DocType: Calendar View,Start Date Field,ప్రారంభ తేదీ ఫీల్డ్
 DocType: Role,Role Name,కారెక్టర్ పేరు
 apps/frappe/frappe/templates/includes/navbar/navbar_login.html,Switch To Desk,డెస్క్ మారండి

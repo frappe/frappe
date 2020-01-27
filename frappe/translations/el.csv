@@ -1410,7 +1410,7 @@ DocType: User,System User,Χρήστης συστήματος
 DocType: Report,Is Standard,Είναι πρότυπο
 DocType: Desktop Icon,_report,_ΑΝΑΦΟΡΑ
 DocType: Dashboard Chart,Full,Γεμάτος
-DocType: DocField,"Don't HTML Encode HTML tags like &lt;script> or just characters like &lt; or >, as they could be intentionally used in this field","Μην ετικέτες HTML Encode HTML όπως &lt;script> ή απλά χαρακτήρες όπως &lt;ή>, καθώς θα μπορούσαν να χρησιμοποιούνται σκόπιμα σε αυτό το πεδίο"
+DocType: DocField,"Don't HTML Encode HTML tags like <script> or just characters like < or >, as they could be intentionally used in this field","Μην ετικέτες HTML Encode HTML όπως <script> ή απλά χαρακτήρες όπως <ή>, καθώς θα μπορούσαν να χρησιμοποιούνται σκόπιμα σε αυτό το πεδίο"
 apps/frappe/frappe/public/js/frappe/utils/energy_point_utils.js,{0} criticized on {1},{0} επικρίθηκε στις {1}
 DocType: Website Settings,FavIcon,Favicon
 apps/frappe/frappe/data_migration/doctype/data_migration_plan/data_migration_plan.js,Run,Τρέξιμο
@@ -1790,7 +1790,7 @@ DocType: Letter Head,Footer will display correctly only in PDF,Το υποσέλ
 apps/frappe/frappe/core/doctype/data_import/data_import_list.js,Pending,Εκκρεμής
 DocType: System Settings,Allow only one session per user,Επιτρέπουν μόνο μια συνεδρία ανά χρήστη
 apps/frappe/frappe/core/doctype/file/test_file.py,Home/Test Folder 1/Test Folder 3,Αρχική Σελίδα / Δοκιμή Φάκελος 1 / Έλεγχος φακέλου 3
-DocType: Website Settings,&lt;head> HTML,&lt;head> HTML
+DocType: Website Settings,<head> HTML,<head> HTML
 apps/frappe/frappe/public/js/frappe/views/calendar/calendar.js,Select or drag across time slots to create a new event.,Επιλέξτε ή σύρετε χρονοθυρίδες για να δημιουργήσετε ένα νέο συμβάν.
 DocType: Contact,Contact Details,Στοιχεία επικοινωνίας επαφής
 DocType: DocField,In Filter,Στο φίλτρο
@@ -2312,7 +2312,7 @@ DocType: LDAP Settings,Path to Server Certificate,Πιστοποιητικό δ�
 apps/frappe/frappe/public/js/frappe/form/linked_with.js,Not enough permission to see links,Δεν υπάρχει αρκετή άδεια για να δείτε συνδέσμους
 apps/frappe/frappe/contacts/doctype/address/address.py,Address Title is mandatory.,Ο τίτλος της διεύθυνσης είναι υποχρεωτικός.
 DocType: Google Contacts,Push to Google Contacts,Πατήστε στις Επαφές Google
-DocType: Website Settings,"Added HTML in the &lt;head> section of the web page, primarily used for website verification and SEO","Προστέθηκε HTML στην ενότητα &lt;head> της ιστοσελίδας, που χρησιμοποιούνται κυρίως για την επαλήθευση της ιστοσελίδας και SEO"
+DocType: Website Settings,"Added HTML in the <head> section of the web page, primarily used for website verification and SEO","Προστέθηκε HTML στην ενότητα <head> της ιστοσελίδας, που χρησιμοποιούνται κυρίως για την επαλήθευση της ιστοσελίδας και SEO"
 apps/frappe/frappe/core/doctype/error_snapshot/error_snapshot_list.js,Relapsed,Υποτροπή
 apps/frappe/frappe/utils/nestedset.py,Item cannot be added to its own descendents,Το είδος δεν μπορεί να προστεθεί στους δικούς του απογόνους
 DocType: Session Default Settings,Session Defaults,Προεπιλογές περιόδου σύνδεσης
@@ -2431,7 +2431,7 @@ DocType: Workflow State,Warning,Προειδοποίηση
 apps/frappe/frappe/public/js/frappe/form/print.js,This may get printed on multiple pages,Αυτό μπορεί να εκτυπωθεί σε πολλές σελίδες
 DocType: Data Migration Run,Percent Complete,Το ποσοστό ολοκληρώνεται
 DocType: Tag Category,Tag Category,Tag Κατηγορία
-apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,"For comparison, use >5, &lt;10 or =324. For ranges, use 5:10 (for values between 5 &amp; 10).","Για σύγκριση, χρησιμοποιήστε> 5, &lt;10 ή = 324. Για σειρές, χρησιμοποιήστε 5:10 (για τιμές μεταξύ 5 και 10)."
+apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,"For comparison, use >5, <10 or =324. For ranges, use 5:10 (for values between 5 &amp; 10).","Για σύγκριση, χρησιμοποιήστε> 5, <10 ή = 324. Για σειρές, χρησιμοποιήστε 5:10 (για τιμές μεταξύ 5 και 10)."
 DocType: Google Calendar,Pull from Google Calendar,Τραβήξτε από το Ημερολόγιο Google
 apps/frappe/frappe/core/doctype/data_import/data_import.js,Help,Βοήθεια
 DocType: User,Login Before,Είσοδος πριν από
@@ -3071,7 +3071,7 @@ DocType: DocField,Allow on Submit,Επιτρέπεται κατά την υπο�
 DocType: DocField,HTML,HTML
 DocType: Error Snapshot,Exception Type,Εξαίρεση Τύπος
 apps/frappe/frappe/public/js/frappe/views/reports/report_view.js,Pick Columns,Διαλέξτε Στήλες
-DocType: Web Page,Add code as &lt;script>,Προσθήκη κώδικα ως <script>
+DocType: Web Page,Add code as <script>,Προσθήκη κώδικα ως <script>
 apps/frappe/frappe/core/doctype/user_permission/user_permission_list.js,Clear User Permissions,Εκκαθάριση δικαιωμάτων χρήστη
 DocType: Webhook,Headers,Κεφαλίδες
 apps/frappe/frappe/public/js/frappe/social/components/ActivitySidebar.vue,Upcoming Events,Ανερχόμενες εκδηλώσεις
@@ -3445,15 +3445,15 @@ DocType: Workflow State,share-alt,Share-alt
 apps/frappe/frappe/utils/background_jobs.py,Queue should be one of {0},Η ουρά πρέπει να είναι μία από τις {0}
 DocType: Address Template,"<h4>Default Template</h4>
 <p>Uses <a href=""http://jinja.pocoo.org/docs/templates/"">Jinja Templating</a> and all the fields of Address (including Custom Fields if any) will be available</p>
-<pre><code>{{ address_line1 }}&lt;br>
-{% if address_line2 %}{{ address_line2 }}&lt;br>{% endif -%}
-{{ city }}&lt;br>
-{% if state %}{{ state }}&lt;br>{% endif -%}
-{% if pincode %} PIN:  {{ pincode }}&lt;br>{% endif -%}
-{{ country }}&lt;br>
-{% if phone %}Phone: {{ phone }}&lt;br>{% endif -%}
-{% if fax %}Fax: {{ fax }}&lt;br>{% endif -%}
-{% if email_id %}Email: {{ email_id }}&lt;br>{% endif -%}
+<pre><code>{{ address_line1 }}<br>
+{% if address_line2 %}{{ address_line2 }}<br>{% endif -%}
+{{ city }}<br>
+{% if state %}{{ state }}<br>{% endif -%}
+{% if pincode %} PIN:  {{ pincode }}<br>{% endif -%}
+{{ country }}<br>
+{% if phone %}Phone: {{ phone }}<br>{% endif -%}
+{% if fax %}Fax: {{ fax }}<br>{% endif -%}
+{% if email_id %}Email: {{ email_id }}<br>{% endif -%}
 </code></pre>","<H4> προεπιλεγμένο πρότυπο </ h4> 
  <p> <a χρήσεις href=""http://jinja.Pocoo.Org/docs/templates/""> τζίντζα templating </a> και όλα τα πεδία της διεύθυνσης ( συμπεριλαμβανομένων των προσαρμοσμένων πεδίων αν υπάρχουν) θα είναι διαθέσιμη </ p> 
  <pre> <κωδικός> {{address_line1}} & lt? br & gt? 

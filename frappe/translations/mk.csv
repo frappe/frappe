@@ -1401,7 +1401,7 @@ DocType: Report,Is Standard,Е стандард
 DocType: Desktop Icon,_report,_report
 DocType: Desktop Icon,_report,_report
 DocType: Dashboard Chart,Full,Целосно
-DocType: DocField,"Don't HTML Encode HTML tags like &lt;script> or just characters like &lt; or >, as they could be intentionally used in this field","Не HTML Кодираат HTML-ознаки како &lt;script> или само карактери како &lt;и>, како што може да се намерно употребени во оваа област"
+DocType: DocField,"Don't HTML Encode HTML tags like <script> or just characters like < or >, as they could be intentionally used in this field","Не HTML Кодираат HTML-ознаки како <script> или само карактери како <и>, како што може да се намерно употребени во оваа област"
 apps/frappe/frappe/public/js/frappe/utils/energy_point_utils.js,{0} criticized on {1},{0} критикуван на {1}
 DocType: Website Settings,FavIcon,Favicon
 apps/frappe/frappe/data_migration/doctype/data_migration_plan/data_migration_plan.js,Run,Стартувај
@@ -1768,7 +1768,7 @@ DocType: Letter Head,Footer will display correctly only in PDF,Подножје�
 apps/frappe/frappe/core/doctype/data_import/data_import_list.js,Pending,Во очекување
 DocType: System Settings,Allow only one session per user,Дозволи само на една седница на корисник
 apps/frappe/frappe/core/doctype/file/test_file.py,Home/Test Folder 1/Test Folder 3,Почетна / Тест папка 1 / Тест Папка 3
-DocType: Website Settings,&lt;head> HTML,&lt;head> HTML
+DocType: Website Settings,<head> HTML,<head> HTML
 apps/frappe/frappe/public/js/frappe/views/calendar/calendar.js,Select or drag across time slots to create a new event.,Одберете или повлечете низ времето слотови да се создаде нов настан.
 DocType: Contact,Contact Details,Податоци за контакт
 DocType: DocField,In Filter,Во филтерот
@@ -2284,7 +2284,7 @@ apps/frappe/frappe/public/js/frappe/form/linked_with.js,Not enough permission to
 apps/frappe/frappe/public/js/frappe/form/linked_with.js,Not enough permission to see links,Не е доволно дозволи за да ја видите линкови
 apps/frappe/frappe/contacts/doctype/address/address.py,Address Title is mandatory.,Наслов адреса е задолжително.
 DocType: Google Contacts,Push to Google Contacts,Притиснете кон Контактите на Google
-DocType: Website Settings,"Added HTML in the &lt;head> section of the web page, primarily used for website verification and SEO","Додадени HTML во &lt;head> секција на веб-страница, се користи првенствено за верификација вебсајт и SEO"
+DocType: Website Settings,"Added HTML in the <head> section of the web page, primarily used for website verification and SEO","Додадени HTML во <head> секција на веб-страница, се користи првенствено за верификација вебсајт и SEO"
 apps/frappe/frappe/core/doctype/error_snapshot/error_snapshot_list.js,Relapsed,Релапс
 apps/frappe/frappe/utils/nestedset.py,Item cannot be added to its own descendents,Точка не може да се додаде свои потомци
 DocType: Session Default Settings,Session Defaults,Сесија стандардно
@@ -2401,7 +2401,7 @@ DocType: Workflow State,Warning,Предупредување
 apps/frappe/frappe/public/js/frappe/form/print.js,This may get printed on multiple pages,Ова може да се печати на повеќе страници
 DocType: Data Migration Run,Percent Complete,Процент е комплетен
 DocType: Tag Category,Tag Category,таг Категорија
-apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,"For comparison, use >5, &lt;10 or =324. For ranges, use 5:10 (for values between 5 &amp; 10).","За споредба, користете> 5, &lt;10 или = 324. За опсег, користете 5:10 (за вредности помеѓу 5 и 10)."
+apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,"For comparison, use >5, <10 or =324. For ranges, use 5:10 (for values between 5 &amp; 10).","За споредба, користете> 5, <10 или = 324. За опсег, користете 5:10 (за вредности помеѓу 5 и 10)."
 DocType: Google Calendar,Pull from Google Calendar,Повлечете од Календарот на Google
 apps/frappe/frappe/core/doctype/data_import/data_import.js,Help,Помош
 DocType: User,Login Before,Влези Пред
@@ -3030,7 +3030,7 @@ DocType: DocField,Allow on Submit,Им овозможи на Поднесете
 DocType: DocField,HTML,HTML
 DocType: Error Snapshot,Exception Type,Исклучок Тип
 apps/frappe/frappe/public/js/frappe/views/reports/report_view.js,Pick Columns,Трансферот Колони
-DocType: Web Page,Add code as &lt;script>,Додади код како &lt;script>
+DocType: Web Page,Add code as <script>,Додади код како <script>
 apps/frappe/frappe/core/doctype/user_permission/user_permission_list.js,Clear User Permissions,Исчистете ги дозволите за корисниците
 DocType: Webhook,Headers,Заглавија
 apps/frappe/frappe/public/js/frappe/social/components/ActivitySidebar.vue,Upcoming Events,Престојни настани
@@ -3390,16 +3390,16 @@ DocType: Workflow State,share-alt,на акции alt
 apps/frappe/frappe/utils/background_jobs.py,Queue should be one of {0},Дното треба да биде еден од {0}
 DocType: Address Template,"<h4>Default Template</h4>
 <p>Uses <a href=""http://jinja.pocoo.org/docs/templates/"">Jinja Templating</a> and all the fields of Address (including Custom Fields if any) will be available</p>
-<pre><code>{{ address_line1 }}&lt;br>
-{% if address_line2 %}{{ address_line2 }}&lt;br>{% endif -%}
-{{ city }}&lt;br>
-{% if state %}{{ state }}&lt;br>{% endif -%}
-{% if pincode %} PIN:  {{ pincode }}&lt;br>{% endif -%}
-{{ country }}&lt;br>
-{% if phone %}Phone: {{ phone }}&lt;br>{% endif -%}
-{% if fax %}Fax: {{ fax }}&lt;br>{% endif -%}
-{% if email_id %}Email: {{ email_id }}&lt;br>{% endif -%}
-</code></pre>","<h4> Стандардно Шаблон </h4><p> Користи <a href=""http://jinja.pocoo.org/docs/templates/"">Jinja templating</a> и сите области на адресата (вклучувајќи сопствени полиња, ако ги има) ќе биде достапен </p><pre> <code>{{ address_line1 }}&lt;br> {% if address_line2 %}{{ address_line2 }}&lt;br>{% endif -%} {{ city }}&lt;br> {% if state %}{{ state }}&lt;br>{% endif -%} {% if pincode %} PIN: {{ pincode }}&lt;br>{% endif -%} {{ country }}&lt;br> {% if phone %}Phone: {{ phone }}&lt;br>{% endif -%} {% if fax %}Fax: {{ fax }}&lt;br>{% endif -%} {% if email_id %}Email: {{ email_id }}&lt;br>{% endif -%}</code> </pre>"
+<pre><code>{{ address_line1 }}<br>
+{% if address_line2 %}{{ address_line2 }}<br>{% endif -%}
+{{ city }}<br>
+{% if state %}{{ state }}<br>{% endif -%}
+{% if pincode %} PIN:  {{ pincode }}<br>{% endif -%}
+{{ country }}<br>
+{% if phone %}Phone: {{ phone }}<br>{% endif -%}
+{% if fax %}Fax: {{ fax }}<br>{% endif -%}
+{% if email_id %}Email: {{ email_id }}<br>{% endif -%}
+</code></pre>","<h4> Стандардно Шаблон </h4><p> Користи <a href=""http://jinja.pocoo.org/docs/templates/"">Jinja templating</a> и сите области на адресата (вклучувајќи сопствени полиња, ако ги има) ќе биде достапен </p><pre> <code>{{ address_line1 }}<br> {% if address_line2 %}{{ address_line2 }}<br>{% endif -%} {{ city }}<br> {% if state %}{{ state }}<br>{% endif -%} {% if pincode %} PIN: {{ pincode }}<br>{% endif -%} {{ country }}<br> {% if phone %}Phone: {{ phone }}<br>{% endif -%} {% if fax %}Fax: {{ fax }}<br>{% endif -%} {% if email_id %}Email: {{ email_id }}<br>{% endif -%}</code> </pre>"
 DocType: Calendar View,Start Date Field,Почетно поле за датум
 DocType: Role,Role Name,Улогата Име
 apps/frappe/frappe/templates/includes/navbar/navbar_login.html,Switch To Desk,Префрли се на маса

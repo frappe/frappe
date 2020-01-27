@@ -542,7 +542,7 @@ apps/frappe/frappe/config/setup.py +64,Report of all document shares,Relatório 
 apps/frappe/frappe/www/update-password.html +18,New Password,Nova senha
 apps/frappe/frappe/core/doctype/activity_log/activity_log.py +29,Sorry! You cannot delete auto-generated comments,Desculpe! Você não pode excluir comentários gerados automaticamente
 DocType: User,System User,Usuário do Sistema
-DocType: DocField,"Don't HTML Encode HTML tags like &lt;script> or just characters like &lt; or >, as they could be intentionally used in this field","Não etiquetas HTML Encode HTML como &lt;script> ou apenas caracteres como &lt;ou>, uma vez que poderia ser usado intencionalmente neste campo"
+DocType: DocField,"Don't HTML Encode HTML tags like <script> or just characters like < or >, as they could be intentionally used in this field","Não etiquetas HTML Encode HTML como <script> ou apenas caracteres como <ou>, uma vez que poderia ser usado intencionalmente neste campo"
 DocType: Workflow State,minus-sign,sinal de menos
 apps/frappe/frappe/public/js/frappe/request.js +110,Not Found,Não encontrado
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +92,Export Custom Permissions,Exportar Permissões Personalizadas
@@ -882,7 +882,7 @@ DocType: Workflow State,trash,lixo
 DocType: System Settings,Older backups will be automatically deleted,Os backups mais antigos serão apagados automaticamente
 DocType: Payment Gateway,Gateway,Porta de entrada
 apps/frappe/frappe/contacts/doctype/address/address.py +37,Address Title is mandatory.,Titulo do Endereço é obrigatório.
-DocType: Website Settings,"Added HTML in the &lt;head> section of the web page, primarily used for website verification and SEO","HTML adicionado na seção &lt;head> da página web, principalmente utilizadas para a verificação do site e SEO"
+DocType: Website Settings,"Added HTML in the <head> section of the web page, primarily used for website verification and SEO","HTML adicionado na seção <head> da página web, principalmente utilizadas para a verificação do site e SEO"
 apps/frappe/frappe/core/doctype/error_snapshot/error_snapshot_list.js +9,Relapsed,Reincidente
 apps/frappe/frappe/utils/nestedset.py +183,Item cannot be added to its own descendents,O artigo não pode ser acrescentado para os seus próprios descendentes
 DocType: Error Snapshot,Relapses,Recaídas
@@ -1306,26 +1306,26 @@ DocType: Error Snapshot,Parent Error Snapshot,Pai Snapshot de Erro
 DocType: Workflow State,share-alt,partes-alt
 DocType: Address Template,"<h4>Default Template</h4>
 <p>Uses <a href=""http://jinja.pocoo.org/docs/templates/"">Jinja Templating</a> and all the fields of Address (including Custom Fields if any) will be available</p>
-<pre><code>{{ address_line1 }}&lt;br>
-{% if address_line2 %}{{ address_line2 }}&lt;br>{% endif -%}
-{{ city }}&lt;br>
-{% if state %}{{ state }}&lt;br>{% endif -%}
-{% if pincode %} PIN:  {{ pincode }}&lt;br>{% endif -%}
-{{ country }}&lt;br>
-{% if phone %}Phone: {{ phone }}&lt;br>{% endif -%}
-{% if fax %}Fax: {{ fax }}&lt;br>{% endif -%}
-{% if email_id %}Email: {{ email_id }}&lt;br>{% endif -%}
+<pre><code>{{ address_line1 }}<br>
+{% if address_line2 %}{{ address_line2 }}<br>{% endif -%}
+{{ city }}<br>
+{% if state %}{{ state }}<br>{% endif -%}
+{% if pincode %} PIN:  {{ pincode }}<br>{% endif -%}
+{{ country }}<br>
+{% if phone %}Phone: {{ phone }}<br>{% endif -%}
+{% if fax %}Fax: {{ fax }}<br>{% endif -%}
+{% if email_id %}Email: {{ email_id }}<br>{% endif -%}
 </code></pre>","<H4> Default Template </ h4> 
  <p> <a Usa href=""http://jinja.pocoo.org/docs/templates/""> Jinja Templating </a> e todos os campos de Endereço ( incluindo campos personalizados se houver) estará disponível </ p> 
- <pre> <code> {{address_line1}} & lt; br & gt; 
- {% if address_line2%} {{address_line2}} & lt; br & gt; { endif% -%} 
- {{cidade}} & lt; br & gt; 
- {% if estado%} {{estado}} & lt; br & gt; {% endif -%} {% 
- se pincode%} PIN: {{pincode}} & lt; br & gt; {% endif -%} 
- {{país}} & lt; br & gt; 
- {% if telefone%} Telefone: {{telefone}} & lt; br & gt; { % endif -%} 
- {% if fax%} Fax: {{fax}} & lt; br & gt; {% endif -%} 
- {% if% email_id} Email: {{email_id}} & lt; br & gt ; {endif% -%} 
+ <pre> <code> {{address_line1}} <br> 
+ {% if address_line2%} {{address_line2}} <br> { endif% -%} 
+ {{cidade}} <br> 
+ {% if estado%} {{estado}} <br> {% endif -%} {% 
+ se pincode%} PIN: {{pincode}} <br> {% endif -%} 
+ {{país}} <br> 
+ {% if telefone%} Telefone: {{telefone}} <br> { % endif -%} 
+ {% if fax%} Fax: {{fax}} <br> {% endif -%} 
+ {% if% email_id} Email: {{email_id}} <br> {endif% -%} 
  </ code> </ pre>"
 apps/frappe/frappe/templates/includes/navbar/navbar_login.html +23,Switch To Desk,Ir para o Desktop
 DocType: Workflow Document State,Workflow Document State,Status do Documento do Fluxo de Trabalho

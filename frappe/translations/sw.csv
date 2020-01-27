@@ -1405,7 +1405,7 @@ DocType: User,System User,Mtumiaji wa Mfumo
 DocType: Report,Is Standard,Ni Standard
 DocType: Desktop Icon,_report,_report
 DocType: Dashboard Chart,Full,Kamili
-DocType: DocField,"Don't HTML Encode HTML tags like &lt;script> or just characters like &lt; or >, as they could be intentionally used in this field","Usiweke HTML lebo ya vitambulisho vya HTML kama &lt;script> au wahusika tu kama &lt;au>, kama inaweza kutumika kwa makusudi katika uwanja huu"
+DocType: DocField,"Don't HTML Encode HTML tags like <script> or just characters like < or >, as they could be intentionally used in this field","Usiweke HTML lebo ya vitambulisho vya HTML kama <script> au wahusika tu kama <au>, kama inaweza kutumika kwa makusudi katika uwanja huu"
 apps/frappe/frappe/public/js/frappe/utils/energy_point_utils.js,{0} criticized on {1},{0} alikosolewa kwenye {1}
 DocType: Website Settings,FavIcon,FavIcon
 apps/frappe/frappe/data_migration/doctype/data_migration_plan/data_migration_plan.js,Run,Run
@@ -1783,7 +1783,7 @@ DocType: Letter Head,Footer will display correctly only in PDF,Footer itaonyeshw
 apps/frappe/frappe/core/doctype/data_import/data_import_list.js,Pending,Inasubiri
 DocType: System Settings,Allow only one session per user,Ruhusu kikao kimoja tu kwa mtumiaji
 apps/frappe/frappe/core/doctype/file/test_file.py,Home/Test Folder 1/Test Folder 3,Folda ya Nyumbani / Mtihani 1 / Faili ya Mtihani 3
-DocType: Website Settings,&lt;head> HTML,&lt;kichwa> HTML
+DocType: Website Settings,<head> HTML,<kichwa> HTML
 apps/frappe/frappe/public/js/frappe/views/calendar/calendar.js,Select or drag across time slots to create a new event.,Chagua au gurudisha wakati unaofaa ili kuunda tukio jipya.
 DocType: Contact,Contact Details,Maelezo ya Mawasiliano
 DocType: DocField,In Filter,Katika Filter
@@ -2303,7 +2303,7 @@ DocType: LDAP Settings,Path to Server Certificate,Njia ya Cheti cha Seva
 apps/frappe/frappe/public/js/frappe/form/linked_with.js,Not enough permission to see links,Si idhini ya kutosha kuona viungo
 apps/frappe/frappe/contacts/doctype/address/address.py,Address Title is mandatory.,Cheti cha anwani ni lazima.
 DocType: Google Contacts,Push to Google Contacts,Sukuma kwa Anwani za Google
-DocType: Website Settings,"Added HTML in the &lt;head> section of the web page, primarily used for website verification and SEO","Aliongeza HTML katika sehemu ya &lt;kichwa> ya ukurasa wa wavuti, hasa kutumika kwa uthibitishaji wa tovuti na SEO"
+DocType: Website Settings,"Added HTML in the <head> section of the web page, primarily used for website verification and SEO","Aliongeza HTML katika sehemu ya <kichwa> ya ukurasa wa wavuti, hasa kutumika kwa uthibitishaji wa tovuti na SEO"
 apps/frappe/frappe/core/doctype/error_snapshot/error_snapshot_list.js,Relapsed,Ilirudiwa tena
 apps/frappe/frappe/utils/nestedset.py,Item cannot be added to its own descendents,Kipengee hawezi kuongezwa kwa wazazi wake
 DocType: Session Default Settings,Session Defaults,Defavers ya Kikao
@@ -2422,7 +2422,7 @@ DocType: Workflow State,Warning,Onyo
 apps/frappe/frappe/public/js/frappe/form/print.js,This may get printed on multiple pages,Hii inaweza kuchapishwa kwenye kurasa nyingi
 DocType: Data Migration Run,Percent Complete,Asilimia Imekamilika
 DocType: Tag Category,Tag Category,Jamii ya Tag
-apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,"For comparison, use >5, &lt;10 or =324. For ranges, use 5:10 (for values between 5 &amp; 10).","Kwa kulinganisha, tumia> 5, &lt;10 au = 324. Kwa safu, tumia 5:10 (kwa maadili kati ya 5 &amp; 10)."
+apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,"For comparison, use >5, <10 or =324. For ranges, use 5:10 (for values between 5 &amp; 10).","Kwa kulinganisha, tumia> 5, <10 au = 324. Kwa safu, tumia 5:10 (kwa maadili kati ya 5 &amp; 10)."
 DocType: Google Calendar,Pull from Google Calendar,Bonyeza kutoka Kalenda ya Google
 apps/frappe/frappe/core/doctype/data_import/data_import.js,Help,Msaada
 DocType: User,Login Before,Ingia Kabla
@@ -3058,7 +3058,7 @@ DocType: DocField,Allow on Submit,Ruhusu Kuwasilisha
 DocType: DocField,HTML,HTML
 DocType: Error Snapshot,Exception Type,Aina ya Ufikiaji
 apps/frappe/frappe/public/js/frappe/views/reports/report_view.js,Pick Columns,Piga nguzo
-DocType: Web Page,Add code as &lt;script>,Ongeza msimbo kama &lt;script>
+DocType: Web Page,Add code as <script>,Ongeza msimbo kama <script>
 apps/frappe/frappe/core/doctype/user_permission/user_permission_list.js,Clear User Permissions,Futa ruhusa za Mtumiaji
 DocType: Webhook,Headers,Vichwa
 apps/frappe/frappe/public/js/frappe/social/components/ActivitySidebar.vue,Upcoming Events,Matukio ijayo
@@ -3431,16 +3431,16 @@ DocType: Workflow State,share-alt,kushiriki-alt
 apps/frappe/frappe/utils/background_jobs.py,Queue should be one of {0},Foleni inapaswa kuwa moja ya {0}
 DocType: Address Template,"<h4>Default Template</h4>
 <p>Uses <a href=""http://jinja.pocoo.org/docs/templates/"">Jinja Templating</a> and all the fields of Address (including Custom Fields if any) will be available</p>
-<pre><code>{{ address_line1 }}&lt;br>
-{% if address_line2 %}{{ address_line2 }}&lt;br>{% endif -%}
-{{ city }}&lt;br>
-{% if state %}{{ state }}&lt;br>{% endif -%}
-{% if pincode %} PIN:  {{ pincode }}&lt;br>{% endif -%}
-{{ country }}&lt;br>
-{% if phone %}Phone: {{ phone }}&lt;br>{% endif -%}
-{% if fax %}Fax: {{ fax }}&lt;br>{% endif -%}
-{% if email_id %}Email: {{ email_id }}&lt;br>{% endif -%}
-</code></pre>","<h4> Kigezo cha Kigezo </h4><p> Inatumia <a href=""http://jinja.pocoo.org/docs/templates/"">Jinja Templating</a> na mashamba yote ya Anwani (ikiwa ni pamoja na Mashamba ya Desturi kama ipo) yatapatikana </p><pre> <code>{{ address_line1 }}&lt;br> {% if address_line2 %}{{ address_line2 }}&lt;br>{% endif -%} {{ city }}&lt;br> {% if state %}{{ state }}&lt;br>{% endif -%} {% if pincode %} PIN: {{ pincode }}&lt;br>{% endif -%} {{ country }}&lt;br> {% if phone %}Phone: {{ phone }}&lt;br>{% endif -%} {% if fax %}Fax: {{ fax }}&lt;br>{% endif -%} {% if email_id %}Email: {{ email_id }}&lt;br>{% endif -%}</code> </pre>"
+<pre><code>{{ address_line1 }}<br>
+{% if address_line2 %}{{ address_line2 }}<br>{% endif -%}
+{{ city }}<br>
+{% if state %}{{ state }}<br>{% endif -%}
+{% if pincode %} PIN:  {{ pincode }}<br>{% endif -%}
+{{ country }}<br>
+{% if phone %}Phone: {{ phone }}<br>{% endif -%}
+{% if fax %}Fax: {{ fax }}<br>{% endif -%}
+{% if email_id %}Email: {{ email_id }}<br>{% endif -%}
+</code></pre>","<h4> Kigezo cha Kigezo </h4><p> Inatumia <a href=""http://jinja.pocoo.org/docs/templates/"">Jinja Templating</a> na mashamba yote ya Anwani (ikiwa ni pamoja na Mashamba ya Desturi kama ipo) yatapatikana </p><pre> <code>{{ address_line1 }}<br> {% if address_line2 %}{{ address_line2 }}<br>{% endif -%} {{ city }}<br> {% if state %}{{ state }}<br>{% endif -%} {% if pincode %} PIN: {{ pincode }}<br>{% endif -%} {{ country }}<br> {% if phone %}Phone: {{ phone }}<br>{% endif -%} {% if fax %}Fax: {{ fax }}<br>{% endif -%} {% if email_id %}Email: {{ email_id }}<br>{% endif -%}</code> </pre>"
 DocType: Calendar View,Start Date Field,Shamba ya Tarehe ya Mwanzo
 DocType: Role,Role Name,Jina la majukumu
 apps/frappe/frappe/templates/includes/navbar/navbar_login.html,Switch To Desk,Badilisha kwenye dawati

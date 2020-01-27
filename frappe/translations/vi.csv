@@ -1424,7 +1424,7 @@ DocType: Report,Is Standard,Là tiêu chuẩn
 DocType: Desktop Icon,_report,_bài báo cáo
 DocType: Desktop Icon,_report,_report
 DocType: Dashboard Chart,Full,Đầy
-DocType: DocField,"Don't HTML Encode HTML tags like &lt;script> or just characters like &lt; or >, as they could be intentionally used in this field","Không thẻ HTML Mã hóa HTML như &lt;script> hay chỉ là nhân vật như &lt;hoặc>, vì chúng có thể được cố ý sử dụng trong lĩnh vực này"
+DocType: DocField,"Don't HTML Encode HTML tags like <script> or just characters like < or >, as they could be intentionally used in this field","Không thẻ HTML Mã hóa HTML như <script> hay chỉ là nhân vật như <hoặc>, vì chúng có thể được cố ý sử dụng trong lĩnh vực này"
 apps/frappe/frappe/public/js/frappe/utils/energy_point_utils.js,{0} criticized on {1},{0} bị chỉ trích vào {1}
 DocType: Website Settings,FavIcon,Favicon
 apps/frappe/frappe/data_migration/doctype/data_migration_plan/data_migration_plan.js,Run,Chạy
@@ -1806,7 +1806,7 @@ DocType: Letter Head,Footer will display correctly only in PDF,Footer sẽ chỉ
 apps/frappe/frappe/core/doctype/data_import/data_import_list.js,Pending,Chờ
 DocType: System Settings,Allow only one session per user,Chỉ cho phép một phiên mỗi người dùng
 apps/frappe/frappe/core/doctype/file/test_file.py,Home/Test Folder 1/Test Folder 3,Trang chủ / Kiểm tra Thư mục 1 / Kiểm tra thư mục 3
-DocType: Website Settings,&lt;head> HTML,HTML
+DocType: Website Settings,<head> HTML,HTML
 apps/frappe/frappe/public/js/frappe/views/calendar/calendar.js,Select or drag across time slots to create a new event.,Chọn hoặc kéo trên các khe thời gian để tạo ra một sự kiện mới.
 DocType: Contact,Contact Details,Chi tiết Liên hệ
 DocType: DocField,In Filter,Bộ lọc trong
@@ -2334,7 +2334,7 @@ DocType: LDAP Settings,Path to Server Certificate,Đường dẫn đến chứng
 apps/frappe/frappe/public/js/frappe/form/linked_with.js,Not enough permission to see links,Không có đủ quyền để xem liên kết
 apps/frappe/frappe/contacts/doctype/address/address.py,Address Title is mandatory.,Địa chỉ Tiêu đề là bắt buộc.
 DocType: Google Contacts,Push to Google Contacts,Nhấn vào Danh bạ Google
-DocType: Website Settings,"Added HTML in the &lt;head> section of the web page, primarily used for website verification and SEO","Thêm HTML vào trong &lt;head> của trang web, chủ yếu được sử dụng để xác minh trang web và SEO"
+DocType: Website Settings,"Added HTML in the <head> section of the web page, primarily used for website verification and SEO","Thêm HTML vào trong <head> của trang web, chủ yếu được sử dụng để xác minh trang web và SEO"
 apps/frappe/frappe/core/doctype/error_snapshot/error_snapshot_list.js,Relapsed,Tái phát
 apps/frappe/frappe/utils/nestedset.py,Item cannot be added to its own descendents,Mẫu hàng không thể được thêm vào các phần sau của mình
 DocType: Session Default Settings,Session Defaults,Mặc định phiên
@@ -2454,7 +2454,7 @@ DocType: Workflow State,Warning,Cảnh báo
 apps/frappe/frappe/public/js/frappe/form/print.js,This may get printed on multiple pages,Điều này có thể được in trên nhiều trang
 DocType: Data Migration Run,Percent Complete,Phần trăm hoàn thành
 DocType: Tag Category,Tag Category,Tag Thể loại
-apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,"For comparison, use >5, &lt;10 or =324. For ranges, use 5:10 (for values between 5 &amp; 10).","Để so sánh, sử dụng> 5, &lt;10 hoặc = 324. Đối với phạm vi, sử dụng 5:10 (cho các giá trị trong khoảng từ 5 đến 10)."
+apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,"For comparison, use >5, <10 or =324. For ranges, use 5:10 (for values between 5 &amp; 10).","Để so sánh, sử dụng> 5, <10 hoặc = 324. Đối với phạm vi, sử dụng 5:10 (cho các giá trị trong khoảng từ 5 đến 10)."
 DocType: Google Calendar,Pull from Google Calendar,Kéo từ Lịch Google
 apps/frappe/frappe/core/doctype/data_import/data_import.js,Help,Trợ giúp
 DocType: User,Login Before,Trước khi đăng nhập
@@ -3102,7 +3102,7 @@ DocType: DocField,Allow on Submit,Cho phép khi Đệ trình
 DocType: DocField,HTML,HTML
 DocType: Error Snapshot,Exception Type,Loại ngoại lệ
 apps/frappe/frappe/public/js/frappe/views/reports/report_view.js,Pick Columns,Chọn cột
-DocType: Web Page,Add code as &lt;script>,Thêm mã như <script>
+DocType: Web Page,Add code as <script>,Thêm mã như <script>
 apps/frappe/frappe/core/doctype/user_permission/user_permission_list.js,Clear User Permissions,Xóa quyền người dùng
 DocType: Webhook,Headers,Tiêu đề
 apps/frappe/frappe/public/js/frappe/social/components/ActivitySidebar.vue,Upcoming Events,sự kiện sắp tới
@@ -3479,26 +3479,26 @@ DocType: Workflow State,share-alt,cổ alt
 apps/frappe/frappe/utils/background_jobs.py,Queue should be one of {0},Hàng chờ nên là một trong {0}
 DocType: Address Template,"<h4>Default Template</h4>
 <p>Uses <a href=""http://jinja.pocoo.org/docs/templates/"">Jinja Templating</a> and all the fields of Address (including Custom Fields if any) will be available</p>
-<pre><code>{{ address_line1 }}&lt;br>
-{% if address_line2 %}{{ address_line2 }}&lt;br>{% endif -%}
-{{ city }}&lt;br>
-{% if state %}{{ state }}&lt;br>{% endif -%}
-{% if pincode %} PIN:  {{ pincode }}&lt;br>{% endif -%}
-{{ country }}&lt;br>
-{% if phone %}Phone: {{ phone }}&lt;br>{% endif -%}
-{% if fax %}Fax: {{ fax }}&lt;br>{% endif -%}
-{% if email_id %}Email: {{ email_id }}&lt;br>{% endif -%}
+<pre><code>{{ address_line1 }}<br>
+{% if address_line2 %}{{ address_line2 }}<br>{% endif -%}
+{{ city }}<br>
+{% if state %}{{ state }}<br>{% endif -%}
+{% if pincode %} PIN:  {{ pincode }}<br>{% endif -%}
+{{ country }}<br>
+{% if phone %}Phone: {{ phone }}<br>{% endif -%}
+{% if fax %}Fax: {{ fax }}<br>{% endif -%}
+{% if email_id %}Email: {{ email_id }}<br>{% endif -%}
 </code></pre>","<H4> Default Template </ h4> 
  <p> Sử dụng <a href=""http://jinja.pocoo.org/docs/templates/""> Jinja Templating </a> và tất cả các lĩnh vực của Địa chỉ ( bao gồm Tuỳ chỉnh Fields nếu có) sẽ có sẵn </ p> 
- <pre> <code> {{address_line1}} & lt; br & gt; 
- {% nếu address_line2%} {{address_line2}} & lt; br & gt; { endif% -%} {{
- thành phố}} & lt; br & gt; 
- {% nếu nhà nước%} {{}} nhà nước & lt; br & gt; {% endif -%} {
-% nếu mã pin%} PIN: {{mã pin}} & lt; br & gt; {% endif -%} 
- {{country}} & lt; br & gt; 
- {% nếu điện thoại%} Điện thoại: {{phone}} & lt; br & gt; { % endif -%} 
- {% nếu fax%} Fax: {{fax}} & lt; br & gt; {% endif -%} 
- {% nếu email_id%} Email: {{email_id}} & lt; br & gt ; {% endif -}% 
+ <pre> <code> {{address_line1}} <br> 
+ {% nếu address_line2%} {{address_line2}} <br> { endif% -%} {{
+ thành phố}} <br> 
+ {% nếu nhà nước%} {{}} nhà nước <br> {% endif -%} {
+% nếu mã pin%} PIN: {{mã pin}} <br> {% endif -%} 
+ {{country}} <br> 
+ {% nếu điện thoại%} Điện thoại: {{phone}} <br> { % endif -%} 
+ {% nếu fax%} Fax: {{fax}} <br> {% endif -%} 
+ {% nếu email_id%} Email: {{email_id}} <br> {% endif -}% 
  </ code> </ pre>"
 DocType: Calendar View,Start Date Field,Trường ngày bắt đầu
 DocType: Role,Role Name,Tên vai trò

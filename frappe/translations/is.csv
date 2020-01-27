@@ -1410,7 +1410,7 @@ DocType: User,System User,System User
 DocType: Report,Is Standard,er Standard
 DocType: Desktop Icon,_report,_report
 DocType: Dashboard Chart,Full,Fullt
-DocType: DocField,"Don't HTML Encode HTML tags like &lt;script> or just characters like &lt; or >, as they could be intentionally used in this field","Ekki HTML Encode HTML tög eins &lt;script> eða bara stafi eins &lt;eða>, eins og þeir gætu verið notuð af ásetningi á þessu sviði"
+DocType: DocField,"Don't HTML Encode HTML tags like <script> or just characters like < or >, as they could be intentionally used in this field","Ekki HTML Encode HTML tög eins <script> eða bara stafi eins <eða>, eins og þeir gætu verið notuð af ásetningi á þessu sviði"
 apps/frappe/frappe/public/js/frappe/utils/energy_point_utils.js,{0} criticized on {1},{0} gagnrýndur á {1}
 DocType: Website Settings,FavIcon,síðumerkis
 apps/frappe/frappe/data_migration/doctype/data_migration_plan/data_migration_plan.js,Run,Hlaupa
@@ -1790,7 +1790,7 @@ DocType: Letter Head,Footer will display correctly only in PDF,Footer mun aðein
 apps/frappe/frappe/core/doctype/data_import/data_import_list.js,Pending,Bíður
 DocType: System Settings,Allow only one session per user,Leyfa aðeins einn fundur á hvern notanda
 apps/frappe/frappe/core/doctype/file/test_file.py,Home/Test Folder 1/Test Folder 3,Forsíða / Test Folder 1 / Test Folder 3
-DocType: Website Settings,&lt;head> HTML,&lt;Head> HTML
+DocType: Website Settings,<head> HTML,<Head> HTML
 apps/frappe/frappe/public/js/frappe/views/calendar/calendar.js,Select or drag across time slots to create a new event.,Veldu eða draga yfir tímarásir til að búa til nýja atburði.
 DocType: Contact,Contact Details,Tengiliðaupplýsingar
 DocType: DocField,In Filter,í Sía
@@ -2311,7 +2311,7 @@ DocType: LDAP Settings,Path to Server Certificate,Slóð til netþjónsvottorðs
 apps/frappe/frappe/public/js/frappe/form/linked_with.js,Not enough permission to see links,Ekki nóg leyfi til að sjá tengla
 apps/frappe/frappe/contacts/doctype/address/address.py,Address Title is mandatory.,Heimilisfang Titill er nauðsynlegur.
 DocType: Google Contacts,Push to Google Contacts,Ýttu á Google tengiliði
-DocType: Website Settings,"Added HTML in the &lt;head> section of the web page, primarily used for website verification and SEO","Bætt við HTML í &lt;head> hluta af the vefur blaðsíða, fyrst og fremst notað fyrir vefsvæðið sannprófun og SEO"
+DocType: Website Settings,"Added HTML in the <head> section of the web page, primarily used for website verification and SEO","Bætt við HTML í <head> hluta af the vefur blaðsíða, fyrst og fremst notað fyrir vefsvæðið sannprófun og SEO"
 apps/frappe/frappe/core/doctype/error_snapshot/error_snapshot_list.js,Relapsed,endurkomið
 apps/frappe/frappe/utils/nestedset.py,Item cannot be added to its own descendents,Atriði er ekki hægt að bæta við eigin afkomenda sinna
 DocType: Session Default Settings,Session Defaults,Sjálfgefin seta
@@ -2430,7 +2430,7 @@ DocType: Workflow State,Warning,Viðvörun
 apps/frappe/frappe/public/js/frappe/form/print.js,This may get printed on multiple pages,Þetta gæti verið prentað á mörgum síðum
 DocType: Data Migration Run,Percent Complete,Hlutfall lokið
 DocType: Tag Category,Tag Category,tag Flokkur
-apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,"For comparison, use >5, &lt;10 or =324. For ranges, use 5:10 (for values between 5 &amp; 10).","Til samanburðar, notaðu> 5, &lt;10 eða = 324. Notaðu 5:10 (fyrir gildi á milli 5 og 10) fyrir svið."
+apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,"For comparison, use >5, <10 or =324. For ranges, use 5:10 (for values between 5 &amp; 10).","Til samanburðar, notaðu> 5, <10 eða = 324. Notaðu 5:10 (fyrir gildi á milli 5 og 10) fyrir svið."
 DocType: Google Calendar,Pull from Google Calendar,Dragðu úr Google dagatalinu
 apps/frappe/frappe/core/doctype/data_import/data_import.js,Help,Hjálp
 DocType: User,Login Before,Innskráning Áður
@@ -3069,7 +3069,7 @@ DocType: DocField,Allow on Submit,Leyfa á Senda
 DocType: DocField,HTML,HTML
 DocType: Error Snapshot,Exception Type,undantekning Type
 apps/frappe/frappe/public/js/frappe/views/reports/report_view.js,Pick Columns,Pick Dálkar
-DocType: Web Page,Add code as &lt;script>,Bæta kóða sem &lt;script>
+DocType: Web Page,Add code as <script>,Bæta kóða sem <script>
 apps/frappe/frappe/core/doctype/user_permission/user_permission_list.js,Clear User Permissions,Hreinsa leyfi notenda
 DocType: Webhook,Headers,Fyrirsagnir
 apps/frappe/frappe/public/js/frappe/social/components/ActivitySidebar.vue,Upcoming Events,Viðburðir á næstunni
@@ -3443,16 +3443,16 @@ DocType: Workflow State,share-alt,hlut-alt
 apps/frappe/frappe/utils/background_jobs.py,Queue should be one of {0},Biðröð ætti að vera einn af {0}
 DocType: Address Template,"<h4>Default Template</h4>
 <p>Uses <a href=""http://jinja.pocoo.org/docs/templates/"">Jinja Templating</a> and all the fields of Address (including Custom Fields if any) will be available</p>
-<pre><code>{{ address_line1 }}&lt;br>
-{% if address_line2 %}{{ address_line2 }}&lt;br>{% endif -%}
-{{ city }}&lt;br>
-{% if state %}{{ state }}&lt;br>{% endif -%}
-{% if pincode %} PIN:  {{ pincode }}&lt;br>{% endif -%}
-{{ country }}&lt;br>
-{% if phone %}Phone: {{ phone }}&lt;br>{% endif -%}
-{% if fax %}Fax: {{ fax }}&lt;br>{% endif -%}
-{% if email_id %}Email: {{ email_id }}&lt;br>{% endif -%}
-</code></pre>","<h4> Sjálfgefið sniðmát </h4><p> Notar <a href=""http://jinja.pocoo.org/docs/templates/"">Jinja Templating</a> og öll svið Address (þ.mt Custom Fields ef einhver) verður í boði </p><pre> <code>{{ address_line1 }}&lt;br> {% if address_line2 %}{{ address_line2 }}&lt;br>{% endif -%} {{ city }}&lt;br> {% if state %}{{ state }}&lt;br>{% endif -%} {% if pincode %} PIN: {{ pincode }}&lt;br>{% endif -%} {{ country }}&lt;br> {% if phone %}Phone: {{ phone }}&lt;br>{% endif -%} {% if fax %}Fax: {{ fax }}&lt;br>{% endif -%} {% if email_id %}Email: {{ email_id }}&lt;br>{% endif -%}</code> </pre>"
+<pre><code>{{ address_line1 }}<br>
+{% if address_line2 %}{{ address_line2 }}<br>{% endif -%}
+{{ city }}<br>
+{% if state %}{{ state }}<br>{% endif -%}
+{% if pincode %} PIN:  {{ pincode }}<br>{% endif -%}
+{{ country }}<br>
+{% if phone %}Phone: {{ phone }}<br>{% endif -%}
+{% if fax %}Fax: {{ fax }}<br>{% endif -%}
+{% if email_id %}Email: {{ email_id }}<br>{% endif -%}
+</code></pre>","<h4> Sjálfgefið sniðmát </h4><p> Notar <a href=""http://jinja.pocoo.org/docs/templates/"">Jinja Templating</a> og öll svið Address (þ.mt Custom Fields ef einhver) verður í boði </p><pre> <code>{{ address_line1 }}<br> {% if address_line2 %}{{ address_line2 }}<br>{% endif -%} {{ city }}<br> {% if state %}{{ state }}<br>{% endif -%} {% if pincode %} PIN: {{ pincode }}<br>{% endif -%} {{ country }}<br> {% if phone %}Phone: {{ phone }}<br>{% endif -%} {% if fax %}Fax: {{ fax }}<br>{% endif -%} {% if email_id %}Email: {{ email_id }}<br>{% endif -%}</code> </pre>"
 DocType: Calendar View,Start Date Field,Start Date Field
 DocType: Role,Role Name,hlutverk Name
 apps/frappe/frappe/templates/includes/navbar/navbar_login.html,Switch To Desk,Switch Til Desk

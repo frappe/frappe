@@ -67,7 +67,7 @@ apps/frappe/frappe/public/js/frappe/socketio_client.js,Progress,התקדמות
 DocType: Workflow State,random,אקראי
 DocType: Contact Email,Contact Email,"דוא""ל ליצירת קשר"
 apps/frappe/frappe/templates/emails/administrator_logged_in.html,"Dear System Manager,","מנהל מערכת יקר,"
-DocType: DocField,"Don't HTML Encode HTML tags like &lt;script> or just characters like &lt; or >, as they could be intentionally used in this field","האם לא תגי HTML קידוד HTML כמו &lt;script> או סתם דמויות כמו &lt;או>, כפי שיכלו לשמש במתכוון בתחום זה"
+DocType: DocField,"Don't HTML Encode HTML tags like <script> or just characters like < or >, as they could be intentionally used in this field","האם לא תגי HTML קידוד HTML כמו <script> או סתם דמויות כמו <או>, כפי שיכלו לשמש במתכוון בתחום זה"
 apps/frappe/frappe/public/js/frappe/request.js,Please try again,בבקשה נסה שוב
 DocType: Error Snapshot,Pyver,Pyver
 apps/frappe/frappe/sessions.py,Cache Cleared,מטמון נוקה
@@ -870,7 +870,7 @@ DocType: System Settings,yyyy-mm-dd,yyyy-mm-dd
 apps/frappe/frappe/templates/emails/new_user.html,Your login id is,מזהה הכניסה שלך הוא
 DocType: User,Last Login,הביקור אחרון
 apps/frappe/frappe/utils/csvutils.py,Unable to open attached file. Did you export it as CSV?,לא ניתן לפתוח את הקובץ המצורף. האם אתה לייצא אותו כקובץ CSV?
-DocType: Web Page,Add code as &lt;script>,הוסף את הקוד כ& lt; תסריט & gt;
+DocType: Web Page,Add code as <script>,הוסף את הקוד כ<תסריט>
 apps/frappe/frappe/templates/includes/contact.js,Thank you for your message,תודה לך על ההודעה שלך
 apps/frappe/frappe/config/core.py,"Customized Formats for Printing, Email","פורמטים מותאמים להדפסה, דוא&quot;ל"
 DocType: Print Settings,A4,A4
@@ -1026,7 +1026,7 @@ DocType: Print Settings,PDF Settings,הגדרות PDF
 DocType: User,Block Modules,מודולים בלוק
 apps/frappe/frappe/website/doctype/website_settings/website_settings.py,{0} does not exist in row {1},{0} אינו קיים בשורת {1}
 DocType: Communication,Received,קיבלתי
-DocType: Website Settings,"Added HTML in the &lt;head> section of the web page, primarily used for website verification and SEO","HTML הוסיף ב&lt; head> של דף האינטרנט, המשמש בעיקר לאימות אתר וקידום אתרים"
+DocType: Website Settings,"Added HTML in the <head> section of the web page, primarily used for website verification and SEO","HTML הוסיף ב< head> של דף האינטרנט, המשמש בעיקר לאימות אתר וקידום אתרים"
 apps/frappe/frappe/utils/password_strength.py,Straight rows of keys are easy to guess,בשורות ישרות מפתחות קלות לנחש
 DocType: Web Page,Enable Comments,אפשר תגובות
 apps/frappe/frappe/model/rename_doc.py,Ignored: {0} to {1},להתעלם ממנו: {0} {1}
@@ -1342,16 +1342,16 @@ DocType: Workflow State,ok-circle,בסדר-המעגל
 DocType: DocType,Editable Grid,רשת לעריכה
 DocType: Address Template,"<h4>Default Template</h4>
 <p>Uses <a href=""http://jinja.pocoo.org/docs/templates/"">Jinja Templating</a> and all the fields of Address (including Custom Fields if any) will be available</p>
-<pre><code>{{ address_line1 }}&lt;br>
-{% if address_line2 %}{{ address_line2 }}&lt;br>{% endif -%}
-{{ city }}&lt;br>
-{% if state %}{{ state }}&lt;br>{% endif -%}
-{% if pincode %} PIN:  {{ pincode }}&lt;br>{% endif -%}
-{{ country }}&lt;br>
-{% if phone %}Phone: {{ phone }}&lt;br>{% endif -%}
-{% if fax %}Fax: {{ fax }}&lt;br>{% endif -%}
-{% if email_id %}Email: {{ email_id }}&lt;br>{% endif -%}
-</code></pre>","<H4> תבנית ברירת מחדל </ h4> <p> שימושים </a> <a href=""http://jinja.pocoo.org/docs/templates/""> ג'ינג'ה בניית תבנית וכל תחומי כתובת (כוללים שדות מותאמים אישית אם בכלל) יהיה זמין </ p> <pre> <code> {{}} address_line1 & lt; br & gt; {% אם address_line2%} {{}} address_line2 & lt; br & gt; {% endif -%} {{העיר}} & lt; br & gt; {% אם% מדינת} {{המדינה}} & lt; br & gt; {% endif -%} {% אם% pincode} PIN: {{pincode}} & lt; br & gt; {% endif -%} {{ארץ}} & lt ; Br & gt; {% אם% טלפון} טלפון: {{טלפון}} & lt; br & gt; {% endif -%} {% אם פקס%} פקס: {{פקס}} & lt; br & gt; {% endif -%} {% אם email_id % דוא""ל}: {{}} email_id & lt; br & gt; {endif% -%} </ code> </ pre>"
+<pre><code>{{ address_line1 }}<br>
+{% if address_line2 %}{{ address_line2 }}<br>{% endif -%}
+{{ city }}<br>
+{% if state %}{{ state }}<br>{% endif -%}
+{% if pincode %} PIN:  {{ pincode }}<br>{% endif -%}
+{{ country }}<br>
+{% if phone %}Phone: {{ phone }}<br>{% endif -%}
+{% if fax %}Fax: {{ fax }}<br>{% endif -%}
+{% if email_id %}Email: {{ email_id }}<br>{% endif -%}
+</code></pre>","<H4> תבנית ברירת מחדל </ h4> <p> שימושים </a> <a href=""http://jinja.pocoo.org/docs/templates/""> ג'ינג'ה בניית תבנית וכל תחומי כתובת (כוללים שדות מותאמים אישית אם בכלל) יהיה זמין </ p> <pre> <code> {{}} address_line1 <br> {% אם address_line2%} {{}} address_line2 <br> {% endif -%} {{העיר}} <br> {% אם% מדינת} {{המדינה}} <br> {% endif -%} {% אם% pincode} PIN: {{pincode}} <br> {% endif -%} {{ארץ}} & lt ; Br> {% אם% טלפון} טלפון: {{טלפון}} <br> {% endif -%} {% אם פקס%} פקס: {{פקס}} <br> {% endif -%} {% אם email_id % דוא""ל}: {{}} email_id <br> {endif% -%} </ code> </ pre>"
 apps/frappe/frappe/public/js/frappe/views/treeview.js,Add Child,הוסף לילדים
 apps/frappe/frappe/public/js/frappe/ui/filters/filter.js,Equals,שווה
 DocType: Workflow State,arrow-right,חץ ימני
@@ -1466,7 +1466,7 @@ DocType: Comment,Attachment Removed,הוסר Attachment
 apps/frappe/frappe/core/doctype/user/user.py,Administrator accessed {0} on {1} via IP Address {2}.,מנהל נצפה {0} על {1} באמצעות כתובת IP {2}.
 DocType: Email Account,Ignore attachments over this size,התעלם קבצים מצורפים מעל הגודל הזה
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js,Edit Custom HTML,עריכה המותאמת אישית HTML
-DocType: Website Settings,&lt;head> HTML,&lt;ראש> HTML
+DocType: Website Settings,<head> HTML,<ראש> HTML
 DocType: Email Account,Notifications and bulk mails will be sent from this outgoing server.,הודעות ומיילים בתפוצה רחבה תישלחנה מהשרת דואר יוצא זה.
 DocType: Website Settings,Disable Customer Signup link in Login page,קישור הרשמה לקוחות השבת בדף כניסה
 DocType: Help Article,Likes,אוהב

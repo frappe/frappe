@@ -1427,7 +1427,7 @@ DocType: Report,Is Standard,เป็นมาตรฐาน
 DocType: Desktop Icon,_report,_รายงาน
 DocType: Desktop Icon,_report,_รายงาน
 DocType: Dashboard Chart,Full,เต็ม
-DocType: DocField,"Don't HTML Encode HTML tags like &lt;script> or just characters like &lt; or >, as they could be intentionally used in this field",ไม่ได้แท็ก HTML เข้ารหัส HTML เช่น &lt;script> หรือเพียงแค่ตัวอักษรเช่น &lt;หรือ> ขณะที่พวกเขาสามารถนำมาใช้โดยเจตนาในด้านนี้
+DocType: DocField,"Don't HTML Encode HTML tags like <script> or just characters like < or >, as they could be intentionally used in this field",ไม่ได้แท็ก HTML เข้ารหัส HTML เช่น <script> หรือเพียงแค่ตัวอักษรเช่น <หรือ> ขณะที่พวกเขาสามารถนำมาใช้โดยเจตนาในด้านนี้
 DocType: Website Settings,FavIcon,favicon
 apps/frappe/frappe/data_migration/doctype/data_migration_plan/data_migration_plan.js,Run,วิ่ง
 DocType: Blog Post,Content (HTML),เนื้อหา (HTML)
@@ -1808,7 +1808,7 @@ DocType: Letter Head,Footer will display correctly only in PDF,ส่วนท�
 apps/frappe/frappe/core/doctype/data_import/data_import_list.js,Pending,คาราคาซัง
 DocType: System Settings,Allow only one session per user,อนุญาตให้เพียงหนึ่งในเซสชั่นต่อผู้ใช้
 apps/frappe/frappe/core/doctype/file/test_file.py,Home/Test Folder 1/Test Folder 3,หน้าแรก / โฟลเดอร์ทดสอบ 1 / โฟลเดอร์ทดสอบ 3
-DocType: Website Settings,&lt;head> HTML,&lt;head> HTML
+DocType: Website Settings,<head> HTML,<head> HTML
 apps/frappe/frappe/public/js/frappe/views/calendar/calendar.js,Select or drag across time slots to create a new event.,เลือกหรือลากผ่านช่วงเวลาที่จะสร้างเหตุการณ์ใหม่
 DocType: Contact,Contact Details,รายละเอียดการติดต่อ
 DocType: DocField,In Filter,กรอง
@@ -2337,7 +2337,7 @@ apps/frappe/frappe/public/js/frappe/form/linked_with.js,Not enough permission to
 apps/frappe/frappe/public/js/frappe/form/linked_with.js,Not enough permission to see links,ไม่ได้รับอนุญาตเพียงพอสำหรับการดูลิงก์
 apps/frappe/frappe/contacts/doctype/address/address.py,Address Title is mandatory.,ที่อยู่ ชื่อเรื่อง มีผลบังคับใช้
 DocType: Google Contacts,Push to Google Contacts,กดไปที่ Google Contacts
-DocType: Website Settings,"Added HTML in the &lt;head> section of the web page, primarily used for website verification and SEO",เพิ่ม HTML ในส่วน &lt;head> ของหน้าเว็บส่วนใหญ่ใช้สำหรับการตรวจสอบเว็บไซต์และ SEO
+DocType: Website Settings,"Added HTML in the <head> section of the web page, primarily used for website verification and SEO",เพิ่ม HTML ในส่วน <head> ของหน้าเว็บส่วนใหญ่ใช้สำหรับการตรวจสอบเว็บไซต์และ SEO
 apps/frappe/frappe/core/doctype/error_snapshot/error_snapshot_list.js,Relapsed,อาการกำเริบ
 apps/frappe/frappe/utils/nestedset.py,Item cannot be added to its own descendents,รายการที่ ไม่สามารถเพิ่ม ไปยัง ลูกหลาน ของตัวเอง
 DocType: Session Default Settings,Session Defaults,ค่าเริ่มต้นของเซสชัน
@@ -2457,7 +2457,7 @@ DocType: Workflow State,Warning,คำเตือน
 apps/frappe/frappe/public/js/frappe/form/print.js,This may get printed on multiple pages,สิ่งนี้อาจถูกพิมพ์บนหลาย ๆ หน้า
 DocType: Data Migration Run,Percent Complete,เปอร์เซ็นต์ที่สมบูรณ์
 DocType: Tag Category,Tag Category,แท็กหมวดหมู่
-apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,"For comparison, use >5, &lt;10 or =324. For ranges, use 5:10 (for values between 5 &amp; 10).","สำหรับการเปรียบเทียบให้ใช้> 5, &lt;10 หรือ = 324 สำหรับช่วงใช้ 5:10 (สำหรับค่าระหว่าง 5 และ 10)"
+apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,"For comparison, use >5, <10 or =324. For ranges, use 5:10 (for values between 5 &amp; 10).","สำหรับการเปรียบเทียบให้ใช้> 5, <10 หรือ = 324 สำหรับช่วงใช้ 5:10 (สำหรับค่าระหว่าง 5 และ 10)"
 DocType: Google Calendar,Pull from Google Calendar,ดึงจาก Google Calendar
 apps/frappe/frappe/core/doctype/data_import/data_import.js,Help,ช่วย
 DocType: User,Login Before,เข้าสู่ระบบก่อน
@@ -3104,7 +3104,7 @@ DocType: DocField,Allow on Submit,อนุญาตให้ส่ง
 DocType: DocField,HTML,HTML
 DocType: Error Snapshot,Exception Type,ประเภทยกเว้น
 apps/frappe/frappe/public/js/frappe/views/reports/report_view.js,Pick Columns,เลือกคอลัมน์
-DocType: Web Page,Add code as &lt;script>,เพิ่มรหัสเป็น &lt;script>
+DocType: Web Page,Add code as <script>,เพิ่มรหัสเป็น <script>
 apps/frappe/frappe/core/doctype/user_permission/user_permission_list.js,Clear User Permissions,ล้างการอนุญาตผู้ใช้
 DocType: Webhook,Headers,ส่วนหัว
 apps/frappe/frappe/public/js/frappe/social/components/ActivitySidebar.vue,Upcoming Events,เหตุการณ์ที่จะเกิดขึ้น
@@ -3480,26 +3480,26 @@ DocType: Workflow State,share-alt,หุ้น Alt-
 apps/frappe/frappe/utils/background_jobs.py,Queue should be one of {0},คิวควรเป็นหนึ่งใน {0}
 DocType: Address Template,"<h4>Default Template</h4>
 <p>Uses <a href=""http://jinja.pocoo.org/docs/templates/"">Jinja Templating</a> and all the fields of Address (including Custom Fields if any) will be available</p>
-<pre><code>{{ address_line1 }}&lt;br>
-{% if address_line2 %}{{ address_line2 }}&lt;br>{% endif -%}
-{{ city }}&lt;br>
-{% if state %}{{ state }}&lt;br>{% endif -%}
-{% if pincode %} PIN:  {{ pincode }}&lt;br>{% endif -%}
-{{ country }}&lt;br>
-{% if phone %}Phone: {{ phone }}&lt;br>{% endif -%}
-{% if fax %}Fax: {{ fax }}&lt;br>{% endif -%}
-{% if email_id %}Email: {{ email_id }}&lt;br>{% endif -%}
+<pre><code>{{ address_line1 }}<br>
+{% if address_line2 %}{{ address_line2 }}<br>{% endif -%}
+{{ city }}<br>
+{% if state %}{{ state }}<br>{% endif -%}
+{% if pincode %} PIN:  {{ pincode }}<br>{% endif -%}
+{{ country }}<br>
+{% if phone %}Phone: {{ phone }}<br>{% endif -%}
+{% if fax %}Fax: {{ fax }}<br>{% endif -%}
+{% if email_id %}Email: {{ email_id }}<br>{% endif -%}
 </code></pre>","<h4> แม่แบบเริ่มต้น </ h4> 
  <p> ใช้ <a href=""http://jinja.pocoo.org/docs/templates/""> Jinja Templating a และทุกสาขาของที่อยู่ ( รวมถึงฟิลด์ที่กำหนดเองถ้ามี) จะสามารถใช้ได้ </ p> 
- <pre> <code> {{address_line1}} & lt; br & gt; 
- {% ถ้า address_line2%} {{address_line2}} & lt; br & gt; { endif% -%} 
- {{เมือง}} & lt; br & gt; 
- {% หากรัฐ%} {{รัฐ}} & lt; br & gt; {% endif -%} 
- {% ถ้า Pincode%} PIN: {{Pincode}} & lt; br & gt; {% endif -%} 
- {{ประเทศ}} & lt; br & gt; 
- {% ถ้าโทรศัพท์%} โทรศัพท์: {{โทรศัพท์}} & lt; br & gt; { % endif -%} 
- {% ถ้าโทรสาร%} โทรสาร: {{โทรสาร}} & lt; br & gt; {% endif -%} 
- {% ถ้า email_id%} อีเมล์: {{email_id}} & lt; br & gt ; {% endif -%} 
+ <pre> <code> {{address_line1}} <br> 
+ {% ถ้า address_line2%} {{address_line2}} <br> { endif% -%} 
+ {{เมือง}} <br> 
+ {% หากรัฐ%} {{รัฐ}} <br> {% endif -%} 
+ {% ถ้า Pincode%} PIN: {{Pincode}} <br> {% endif -%} 
+ {{ประเทศ}} <br> 
+ {% ถ้าโทรศัพท์%} โทรศัพท์: {{โทรศัพท์}} <br> { % endif -%} 
+ {% ถ้าโทรสาร%} โทรสาร: {{โทรสาร}} <br> {% endif -%} 
+ {% ถ้า email_id%} อีเมล์: {{email_id}} <br> {% endif -%} 
  </ code> </ pre>"
 DocType: Calendar View,Start Date Field,ฟิลด์วันที่เริ่มต้น
 DocType: Role,Role Name,ชื่อบทบาท

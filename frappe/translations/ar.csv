@@ -1410,7 +1410,7 @@ DocType: User,System User,نظام المستخدم
 DocType: Report,Is Standard,هو معيار
 DocType: Desktop Icon,_report,_تقرير
 DocType: Dashboard Chart,Full,ممتلئ
-DocType: DocField,"Don't HTML Encode HTML tags like &lt;script> or just characters like &lt; or >, as they could be intentionally used in this field",لا علامات HTML شفر HTML مثل &lt;script> أو مجرد شخصيات مثل &lt;أو>، لأنها يمكن أن تستخدم عمدا في هذا المجال
+DocType: DocField,"Don't HTML Encode HTML tags like <script> or just characters like < or >, as they could be intentionally used in this field",لا علامات HTML شفر HTML مثل <script> أو مجرد شخصيات مثل <أو>، لأنها يمكن أن تستخدم عمدا في هذا المجال
 apps/frappe/frappe/public/js/frappe/utils/energy_point_utils.js,{0} criticized on {1},{0} انتقد يوم {1}
 DocType: Website Settings,FavIcon,علامة المفضلة
 apps/frappe/frappe/data_migration/doctype/data_migration_plan/data_migration_plan.js,Run,يركض
@@ -1790,7 +1790,7 @@ DocType: Letter Head,Footer will display correctly only in PDF,سيعرض تذي
 apps/frappe/frappe/core/doctype/data_import/data_import_list.js,Pending,معلق
 DocType: System Settings,Allow only one session per user,السماح لجلسة واحدة فقط لكل مستخدم
 apps/frappe/frappe/core/doctype/file/test_file.py,Home/Test Folder 1/Test Folder 3,مجلد الوطن / اختبار 1 / مجلد اختبار 3
-DocType: Website Settings,&lt;head> HTML,<head> HTML
+DocType: Website Settings,<head> HTML,<head> HTML
 apps/frappe/frappe/public/js/frappe/views/calendar/calendar.js,Select or drag across time slots to create a new event.,اختر أو اسحب عبر فتحات الوقت لإنشاء حدث جديد.
 DocType: Contact,Contact Details,تفاصيل الاتصال
 DocType: DocField,In Filter,في تصفية
@@ -2311,7 +2311,7 @@ DocType: LDAP Settings,Path to Server Certificate,المسار إلى شهادة
 apps/frappe/frappe/public/js/frappe/form/linked_with.js,Not enough permission to see links,ليس هناك إذن كاف لمشاهدة الروابط
 apps/frappe/frappe/contacts/doctype/address/address.py,Address Title is mandatory.,إسم العنوان إلزامى (لابد من إدخاله)
 DocType: Google Contacts,Push to Google Contacts,اضغط على جهات اتصال Google
-DocType: Website Settings,"Added HTML in the &lt;head> section of the web page, primarily used for website verification and SEO",وأضاف HTML في القسم &lt;head> من صفحة الويب، تستخدم في المقام الأول للتحقق من الموقع وSEO
+DocType: Website Settings,"Added HTML in the <head> section of the web page, primarily used for website verification and SEO",وأضاف HTML في القسم <head> من صفحة الويب، تستخدم في المقام الأول للتحقق من الموقع وSEO
 apps/frappe/frappe/core/doctype/error_snapshot/error_snapshot_list.js,Relapsed,انتكس
 apps/frappe/frappe/utils/nestedset.py,Item cannot be added to its own descendents,البند لا يمكن أن تضاف إلى أحفاد الخاصة
 DocType: Session Default Settings,Session Defaults,الجلسة الافتراضية
@@ -2430,7 +2430,7 @@ DocType: Workflow State,Warning,تحذير
 apps/frappe/frappe/public/js/frappe/form/print.js,This may get printed on multiple pages,قد تتم طباعة هذا على صفحات متعددة
 DocType: Data Migration Run,Percent Complete,في المئة كاملة
 DocType: Tag Category,Tag Category,العلامة الفئة
-apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,"For comparison, use >5, &lt;10 or =324. For ranges, use 5:10 (for values between 5 &amp; 10).",للمقارنة ، استخدم> 5 ، &lt;10 أو = 324. للنطاقات ، استخدم 5:10 (للقيم بين 5 و 10).
+apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,"For comparison, use >5, <10 or =324. For ranges, use 5:10 (for values between 5 &amp; 10).",للمقارنة ، استخدم> 5 ، <10 أو = 324. للنطاقات ، استخدم 5:10 (للقيم بين 5 و 10).
 DocType: Google Calendar,Pull from Google Calendar,سحب من تقويم جوجل
 apps/frappe/frappe/core/doctype/data_import/data_import.js,Help,مساعدة
 DocType: User,Login Before,تسجيل الدخول قبل
@@ -3071,7 +3071,7 @@ DocType: DocField,Allow on Submit,السماح بالإعتماد
 DocType: DocField,HTML,HTML
 DocType: Error Snapshot,Exception Type,نوع الاستثناء
 apps/frappe/frappe/public/js/frappe/views/reports/report_view.js,Pick Columns,اختيار الأعمدة
-DocType: Web Page,Add code as &lt;script>,إضافة التعليمات البرمجية كما &lt;script>
+DocType: Web Page,Add code as <script>,إضافة التعليمات البرمجية كما <script>
 apps/frappe/frappe/core/doctype/user_permission/user_permission_list.js,Clear User Permissions,مسح أذونات المستخدم
 DocType: Webhook,Headers,الترويسات
 apps/frappe/frappe/public/js/frappe/social/components/ActivitySidebar.vue,Upcoming Events,الأحداث القادمة
@@ -3445,15 +3445,15 @@ DocType: Workflow State,share-alt,حصة بديل
 apps/frappe/frappe/utils/background_jobs.py,Queue should be one of {0},يجب أن تكون قائمة الانتظار واحدة من {0}
 DocType: Address Template,"<h4>Default Template</h4>
 <p>Uses <a href=""http://jinja.pocoo.org/docs/templates/"">Jinja Templating</a> and all the fields of Address (including Custom Fields if any) will be available</p>
-<pre><code>{{ address_line1 }}&lt;br>
-{% if address_line2 %}{{ address_line2 }}&lt;br>{% endif -%}
-{{ city }}&lt;br>
-{% if state %}{{ state }}&lt;br>{% endif -%}
-{% if pincode %} PIN:  {{ pincode }}&lt;br>{% endif -%}
-{{ country }}&lt;br>
-{% if phone %}Phone: {{ phone }}&lt;br>{% endif -%}
-{% if fax %}Fax: {{ fax }}&lt;br>{% endif -%}
-{% if email_id %}Email: {{ email_id }}&lt;br>{% endif -%}
+<pre><code>{{ address_line1 }}<br>
+{% if address_line2 %}{{ address_line2 }}<br>{% endif -%}
+{{ city }}<br>
+{% if state %}{{ state }}<br>{% endif -%}
+{% if pincode %} PIN:  {{ pincode }}<br>{% endif -%}
+{{ country }}<br>
+{% if phone %}Phone: {{ phone }}<br>{% endif -%}
+{% if fax %}Fax: {{ fax }}<br>{% endif -%}
+{% if email_id %}Email: {{ email_id }}<br>{% endif -%}
 </code></pre>","<H4> افتراضي قالب </ H4> 
  <p> ويستخدم <a href=""http://jinja.pocoo.org/docs/templates/""> جينجا قالبي templating </A> وجميع مجالات عنوان ( بما في ذلك الحقول المخصصة إن وجدت) سوف تكون متاحة </ P> 
  <قبل> <كود> {{address_line1}} العلامة & lt؛ BR & GT؛ 

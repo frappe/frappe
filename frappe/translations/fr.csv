@@ -1412,7 +1412,7 @@ DocType: User,System User,Utilisateur Système
 DocType: Report,Is Standard,Est Standard
 DocType: Desktop Icon,_report,_rapport
 DocType: Dashboard Chart,Full,Complet
-DocType: DocField,"Don't HTML Encode HTML tags like &lt;script> or just characters like &lt; or >, as they could be intentionally used in this field","Ne pas encoder les balises HTML en HTML comme &lt;script> ou tout simplement des caractères comme &lt; ou >, car ils pourraient être utilisés intentionnellement dans ce champ"
+DocType: DocField,"Don't HTML Encode HTML tags like <script> or just characters like < or >, as they could be intentionally used in this field","Ne pas encoder les balises HTML en HTML comme <script> ou tout simplement des caractères comme < ou >, car ils pourraient être utilisés intentionnellement dans ce champ"
 apps/frappe/frappe/public/js/frappe/utils/energy_point_utils.js,{0} criticized on {1},{0} critiqué le {1}
 DocType: Website Settings,FavIcon,FavIcon
 apps/frappe/frappe/data_migration/doctype/data_migration_plan/data_migration_plan.js,Run,Exécuter
@@ -1792,7 +1792,7 @@ DocType: Letter Head,Footer will display correctly only in PDF,Le pied de page n
 apps/frappe/frappe/core/doctype/data_import/data_import_list.js,Pending,En Attente
 DocType: System Settings,Allow only one session per user,Autoriser une seule session par utilisateur
 apps/frappe/frappe/core/doctype/file/test_file.py,Home/Test Folder 1/Test Folder 3,Accueil / Dossier Test 1 / Dossier Test 3
-DocType: Website Settings,&lt;head> HTML,HTML
+DocType: Website Settings,<head> HTML,HTML
 apps/frappe/frappe/public/js/frappe/views/calendar/calendar.js,Select or drag across time slots to create a new event.,Sélectionner ou glisser sur des intervalles de temps pour créer un nouvel événement.
 DocType: Contact,Contact Details,Coordonnées
 DocType: DocField,In Filter,Dans le Filtre
@@ -2314,7 +2314,7 @@ DocType: LDAP Settings,Path to Server Certificate,Chemin d&#39;accès au certifi
 apps/frappe/frappe/public/js/frappe/form/linked_with.js,Not enough permission to see links,Pas assez d'autorisations pour voir les liens
 apps/frappe/frappe/contacts/doctype/address/address.py,Address Title is mandatory.,Le Titre de l'Adresse est obligatoire.
 DocType: Google Contacts,Push to Google Contacts,Push to Google Contacts
-DocType: Website Settings,"Added HTML in the &lt;head> section of the web page, primarily used for website verification and SEO","HTML ajouté dans la section   de la page web, utilisé principalement pour la vérification de site et le référencement"
+DocType: Website Settings,"Added HTML in the <head> section of the web page, primarily used for website verification and SEO","HTML ajouté dans la section   de la page web, utilisé principalement pour la vérification de site et le référencement"
 apps/frappe/frappe/core/doctype/error_snapshot/error_snapshot_list.js,Relapsed,Rechuté
 apps/frappe/frappe/utils/nestedset.py,Item cannot be added to its own descendents,L'article ne peut être ajouté à ses propres descendants
 DocType: Session Default Settings,Session Defaults,Session par défaut
@@ -2433,7 +2433,7 @@ DocType: Workflow State,Warning,Avertissement
 apps/frappe/frappe/public/js/frappe/form/print.js,This may get printed on multiple pages,Cela peut être imprimé sur plusieurs pages
 DocType: Data Migration Run,Percent Complete,Pourcentage d'Avancement
 DocType: Tag Category,Tag Category,Catégorie de balise
-apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,"For comparison, use >5, &lt;10 or =324. For ranges, use 5:10 (for values between 5 &amp; 10).","Pour comparaison, utilisez> 5, &lt;10 ou = 324. Pour les plages, utilisez 5:10 (pour les valeurs entre 5 et 10)."
+apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,"For comparison, use >5, <10 or =324. For ranges, use 5:10 (for values between 5 &amp; 10).","Pour comparaison, utilisez> 5, <10 ou = 324. Pour les plages, utilisez 5:10 (pour les valeurs entre 5 et 10)."
 DocType: Google Calendar,Pull from Google Calendar,Tirez de Google Agenda
 apps/frappe/frappe/core/doctype/data_import/data_import.js,Help,Aide
 DocType: User,Login Before,Connexion Jusqu'à
@@ -3073,7 +3073,7 @@ DocType: DocField,Allow on Submit,Autoriser à la Soumission
 DocType: DocField,HTML,HTML
 DocType: Error Snapshot,Exception Type,Type d'Exception
 apps/frappe/frappe/public/js/frappe/views/reports/report_view.js,Pick Columns,Choisir des Colonnes
-DocType: Web Page,Add code as &lt;script>,Ajouter le code en tant que &lt;script>
+DocType: Web Page,Add code as <script>,Ajouter le code en tant que <script>
 apps/frappe/frappe/core/doctype/user_permission/user_permission_list.js,Clear User Permissions,Effacer les autorisations utilisateur
 DocType: Webhook,Headers,En-Têtes
 apps/frappe/frappe/public/js/frappe/social/components/ActivitySidebar.vue,Upcoming Events,Evénements à venir
@@ -3447,26 +3447,26 @@ DocType: Workflow State,share-alt,part-alt
 apps/frappe/frappe/utils/background_jobs.py,Queue should be one of {0},La Queue doit être parmi {0}
 DocType: Address Template,"<h4>Default Template</h4>
 <p>Uses <a href=""http://jinja.pocoo.org/docs/templates/"">Jinja Templating</a> and all the fields of Address (including Custom Fields if any) will be available</p>
-<pre><code>{{ address_line1 }}&lt;br>
-{% if address_line2 %}{{ address_line2 }}&lt;br>{% endif -%}
-{{ city }}&lt;br>
-{% if state %}{{ state }}&lt;br>{% endif -%}
-{% if pincode %} PIN:  {{ pincode }}&lt;br>{% endif -%}
-{{ country }}&lt;br>
-{% if phone %}Phone: {{ phone }}&lt;br>{% endif -%}
-{% if fax %}Fax: {{ fax }}&lt;br>{% endif -%}
-{% if email_id %}Email: {{ email_id }}&lt;br>{% endif -%}
+<pre><code>{{ address_line1 }}<br>
+{% if address_line2 %}{{ address_line2 }}<br>{% endif -%}
+{{ city }}<br>
+{% if state %}{{ state }}<br>{% endif -%}
+{% if pincode %} PIN:  {{ pincode }}<br>{% endif -%}
+{{ country }}<br>
+{% if phone %}Phone: {{ phone }}<br>{% endif -%}
+{% if fax %}Fax: {{ fax }}<br>{% endif -%}
+{% if email_id %}Email: {{ email_id }}<br>{% endif -%}
 </code></pre>","<H4> Modèle par défaut </ h4> 
  <p> <a Utilise href=""http://jinja.pocoo.org/docs/templates/""> Jinja Templating </a> et tous les champs d'adresse ( y compris les champs personnalisés le cas échéant) sera disponible </ p> 
- <pre> <code> {{address_line1}} & lt; br & gt; 
- {% si address_line2%} {{address_line2}} & lt; br & gt; { % endif -%} 
- {{ville}} & lt; br & gt; 
- {% si l'état%} {{}} Etat & lt; br & gt; {% endif -%} {% if 
- code PIN%} PIN: {{code PIN}} & lt; br & gt; {% endif -%} 
- {{pays}} & lt; br & gt; 
- {% si le téléphone%} Téléphone: {{téléphone}} & lt; br & gt; { % endif -%} 
- {% if télécopieur%} Fax: {{fax}} & lt; br & gt; {% endif -%} 
- {% si email_id%} Email: {{email_id}} & lt; br & gt ; {% endif -%} 
+ <pre> <code> {{address_line1}} <br> 
+ {% si address_line2%} {{address_line2}} <br> { % endif -%} 
+ {{ville}} <br> 
+ {% si l'état%} {{}} Etat <br> {% endif -%} {% if 
+ code PIN%} PIN: {{code PIN}} <br> {% endif -%} 
+ {{pays}} <br> 
+ {% si le téléphone%} Téléphone: {{téléphone}} <br> { % endif -%} 
+ {% if télécopieur%} Fax: {{fax}} <br> {% endif -%} 
+ {% si email_id%} Email: {{email_id}} <br> {% endif -%} 
  </ code> </ pre>"
 DocType: Calendar View,Start Date Field,Date de début
 DocType: Role,Role Name,Nom du Rôle

@@ -1403,7 +1403,7 @@ DocType: Report,Is Standard,ஸ்டாண்டர்ட் உள்ளது
 DocType: Desktop Icon,_report,அறிக்கை
 DocType: Desktop Icon,_report,அறிக்கை
 DocType: Dashboard Chart,Full,முழு
-DocType: DocField,"Don't HTML Encode HTML tags like &lt;script> or just characters like &lt; or >, as they could be intentionally used in this field","வேண்டாம் &lt;ஸ்கிரிப்ட்> அல்லது, அவர்கள் வேண்டுமென்றே இந்த துறையில் பயன்படுத்த முடியும் என போன்ற &lt;அல்லது> எழுத்துக்கள் போன்ற HTML என்கோடு HTML குறிச்சொற்களை"
+DocType: DocField,"Don't HTML Encode HTML tags like <script> or just characters like < or >, as they could be intentionally used in this field","வேண்டாம் <ஸ்கிரிப்ட்> அல்லது, அவர்கள் வேண்டுமென்றே இந்த துறையில் பயன்படுத்த முடியும் என போன்ற <அல்லது> எழுத்துக்கள் போன்ற HTML என்கோடு HTML குறிச்சொற்களை"
 DocType: Website Settings,FavIcon,ஃபேவிகான்
 apps/frappe/frappe/data_migration/doctype/data_migration_plan/data_migration_plan.js,Run,ரன்
 DocType: Blog Post,Content (HTML),உள்ளடக்கம் (HTML)
@@ -1772,7 +1772,7 @@ DocType: Letter Head,Footer will display correctly only in PDF,அடிக்�
 apps/frappe/frappe/core/doctype/data_import/data_import_list.js,Pending,முடிவுபெறாத
 DocType: System Settings,Allow only one session per user,பயனர் ஒன்றுக்கு ஒரே ஒரு அமர்வு அனுமதி
 apps/frappe/frappe/core/doctype/file/test_file.py,Home/Test Folder 1/Test Folder 3,முகப்பு / டெஸ்ட் அடைவு 1 / டெஸ்ட் அடைவு 3
-DocType: Website Settings,&lt;head> HTML,"&lt;தலையில்> HTML,"
+DocType: Website Settings,<head> HTML,"<தலையில்> HTML,"
 apps/frappe/frappe/public/js/frappe/views/calendar/calendar.js,Select or drag across time slots to create a new event.,தேர்வு அல்லது ஒரு புதிய நிகழ்வை உருவாக்க நேரம் இடங்கள் முழுவதும் இழுக்கவும்.
 DocType: Contact,Contact Details,விபரங்கள்
 DocType: DocField,In Filter,வடிகட்டி உள்ள
@@ -2292,7 +2292,7 @@ apps/frappe/frappe/public/js/frappe/form/linked_with.js,Not enough permission to
 apps/frappe/frappe/public/js/frappe/form/linked_with.js,Not enough permission to see links,இணைப்புகளைப் பார்க்கவும் போதுமான அனுமதி
 apps/frappe/frappe/contacts/doctype/address/address.py,Address Title is mandatory.,முகவரி தலைப்பு கட்டாயமாகும்.
 DocType: Google Contacts,Push to Google Contacts,Google தொடர்புகளுக்கு தள்ளவும்
-DocType: Website Settings,"Added HTML in the &lt;head> section of the web page, primarily used for website verification and SEO","&lt;Head> சேர்க்கப்பட்டது HTML வலை பக்கம் பிரிவு, முதன்மையாக வலைத்தளத்தில் சரிபார்ப்பு மற்றும் எஸ்சிஓ பயன்படுத்தப்படும்"
+DocType: Website Settings,"Added HTML in the <head> section of the web page, primarily used for website verification and SEO","<Head> சேர்க்கப்பட்டது HTML வலை பக்கம் பிரிவு, முதன்மையாக வலைத்தளத்தில் சரிபார்ப்பு மற்றும் எஸ்சிஓ பயன்படுத்தப்படும்"
 apps/frappe/frappe/core/doctype/error_snapshot/error_snapshot_list.js,Relapsed,மீண்டும் புகைக்க
 apps/frappe/frappe/utils/nestedset.py,Item cannot be added to its own descendents,பொருள் அதன் சொந்த ஆதரவாளர்வரை சேர்க்க முடியாது
 DocType: Session Default Settings,Session Defaults,அமர்வு இயல்புநிலைகள்
@@ -2409,7 +2409,7 @@ DocType: Workflow State,Warning,எச்சரிக்கை
 apps/frappe/frappe/public/js/frappe/form/print.js,This may get printed on multiple pages,இது பல பக்கங்களில் அச்சிடப்படலாம்
 DocType: Data Migration Run,Percent Complete,சதவீதம் முடிந்தது
 DocType: Tag Category,Tag Category,டேக் வகை
-apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,"For comparison, use >5, &lt;10 or =324. For ranges, use 5:10 (for values between 5 &amp; 10).","ஒப்பிட,> 5, &lt;10 அல்லது = 324 ஐப் பயன்படுத்தவும். வரம்புகளுக்கு, 5:10 ஐப் பயன்படுத்தவும் (5 &amp; 10 க்கு இடையிலான மதிப்புகளுக்கு)."
+apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,"For comparison, use >5, <10 or =324. For ranges, use 5:10 (for values between 5 &amp; 10).","ஒப்பிட,> 5, <10 அல்லது = 324 ஐப் பயன்படுத்தவும். வரம்புகளுக்கு, 5:10 ஐப் பயன்படுத்தவும் (5 &amp; 10 க்கு இடையிலான மதிப்புகளுக்கு)."
 DocType: Google Calendar,Pull from Google Calendar,Google கேலெண்டரிலிருந்து இழுக்கவும்
 apps/frappe/frappe/core/doctype/data_import/data_import.js,Help,உதவி
 DocType: User,Login Before,உள்நுழைவு முன்
@@ -3045,7 +3045,7 @@ DocType: DocField,Allow on Submit,சமர்ப்பி மீது அன�
 DocType: DocField,HTML,"HTML,"
 DocType: Error Snapshot,Exception Type,விதிவிலக்கு வகை
 apps/frappe/frappe/public/js/frappe/views/reports/report_view.js,Pick Columns,பத்திகள் தேர்வு
-DocType: Web Page,Add code as &lt;script>,&lt;script> என குறியீடு சேர்க்க
+DocType: Web Page,Add code as <script>,<script> என குறியீடு சேர்க்க
 apps/frappe/frappe/core/doctype/user_permission/user_permission_list.js,Clear User Permissions,பயனர் அனுமதிகளை அழி
 DocType: Webhook,Headers,தலைப்புகளிலும்
 apps/frappe/frappe/public/js/frappe/social/components/ActivitySidebar.vue,Upcoming Events,எதிர்வரும் நிகழ்வுகள்
@@ -3416,26 +3416,26 @@ DocType: Workflow State,share-alt,பங்கு-alt
 apps/frappe/frappe/utils/background_jobs.py,Queue should be one of {0},கியூ ஒன்றாக இருக்க வேண்டும் {0}
 DocType: Address Template,"<h4>Default Template</h4>
 <p>Uses <a href=""http://jinja.pocoo.org/docs/templates/"">Jinja Templating</a> and all the fields of Address (including Custom Fields if any) will be available</p>
-<pre><code>{{ address_line1 }}&lt;br>
-{% if address_line2 %}{{ address_line2 }}&lt;br>{% endif -%}
-{{ city }}&lt;br>
-{% if state %}{{ state }}&lt;br>{% endif -%}
-{% if pincode %} PIN:  {{ pincode }}&lt;br>{% endif -%}
-{{ country }}&lt;br>
-{% if phone %}Phone: {{ phone }}&lt;br>{% endif -%}
-{% if fax %}Fax: {{ fax }}&lt;br>{% endif -%}
-{% if email_id %}Email: {{ email_id }}&lt;br>{% endif -%}
+<pre><code>{{ address_line1 }}<br>
+{% if address_line2 %}{{ address_line2 }}<br>{% endif -%}
+{{ city }}<br>
+{% if state %}{{ state }}<br>{% endif -%}
+{% if pincode %} PIN:  {{ pincode }}<br>{% endif -%}
+{{ country }}<br>
+{% if phone %}Phone: {{ phone }}<br>{% endif -%}
+{% if fax %}Fax: {{ fax }}<br>{% endif -%}
+{% if email_id %}Email: {{ email_id }}<br>{% endif -%}
 </code></pre>","<H4> இயல்புநிலை டெம்ப்ளேட் </ H4> 
- <p> href=""http://jinja.pocoo.org/docs/templates/""> நிதானத்தில் மாதிரியாக்கம், </a> முகவரி, அனைத்து துறைகளிலும் (பயன்படுத்துகிறது {; br & gt; 
- {% என்றால் address_line2%} {{address_line2}}; & lt; br & gt விருப்ப புலங்கள் ஏதாவது இருந்தால்) </ p> 
+ <p> href=""http://jinja.pocoo.org/docs/templates/""> நிதானத்தில் மாதிரியாக்கம், </a> முகவரி, அனைத்து துறைகளிலும் (பயன்படுத்துகிறது {; br> 
+ {% என்றால் address_line2%} {{address_line2}}; <br & gt விருப்ப புலங்கள் ஏதாவது இருந்தால்) </ p> 
  <pre> <குறியீடு> {{address_line1}} & amp; lt கிடைக்கும் உட்பட % Endif -%} 
- {{நகரம்}}; & lt; br & gt; 
- {% மாநில%} {{மாநில}}; & lt; br & gt; {% Endif -%} 
- {% என்றால் பின்கோடு%} PIN: {{பின்கோடு}}; & lt; br & gt; {% Endif -%} 
- {{நாட்டின்}}; & lt; br & gt; 
- {%, தொலைபேசி%} தொலைபேசி: {{தொலைபேசி}}; & lt; br & gt; { % Endif -%} 
- {% என்றால் தொலைநகல்%} ஃபேக்ஸ்: {{தொலைநகல்}}; & lt; br & gt; {% Endif -%} 
- {% என்றால் email_id%} மின்னஞ்சல்: {{email_id}}; & lt; br & gt {% Endif -%} 
+ {{நகரம்}}; <br> 
+ {% மாநில%} {{மாநில}}; <br> {% Endif -%} 
+ {% என்றால் பின்கோடு%} PIN: {{பின்கோடு}}; <br> {% Endif -%} 
+ {{நாட்டின்}}; <br> 
+ {%, தொலைபேசி%} தொலைபேசி: {{தொலைபேசி}}; <br> { % Endif -%} 
+ {% என்றால் தொலைநகல்%} ஃபேக்ஸ்: {{தொலைநகல்}}; <br> {% Endif -%} 
+ {% என்றால் email_id%} மின்னஞ்சல்: {{email_id}}; <br & gt {% Endif -%} 
  </ குறியீடு> </ pre>"
 DocType: Calendar View,Start Date Field,தொடக்க தேதி புலம்
 DocType: Role,Role Name,பங்கு பெயர்

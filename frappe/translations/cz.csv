@@ -1144,7 +1144,7 @@ apps/frappe/frappe/database.py +217,Too many writes in one request. Please send 
 DocType: Workflow State,arrow-up,šipka-nahoru
 DocType: DocField,Allow on Submit,Povolit při Odeslání
 apps/frappe/frappe/core/page/desktop/desktop.js +48,All Applications,Všechny aplikace
-DocType: Web Page,Add code as &lt;script>,Přidat kód jako &lt;script>
+DocType: Web Page,Add code as <script>,Přidat kód jako <script>
 apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +7,Select Type,Vyberte typ
 apps/frappe/frappe/core/doctype/file_data/file_data.py +42,No permission to write / remove.,Bez oprávnění k zápisu / odebrání.
 DocType: Workflow,"All possible Workflow States and roles of the workflow. <br>Docstatus Options: 0 is""Saved"", 1 is ""Submitted"" and 2 is ""Cancelled""","Všechny možné stavy toků (workflow) a role toků. <br>Možnosti stavů dokumentů (Docstatus): 0 je ""Uloženo"", 1 je ""Vloženo"" a 2 je ""Zrušeno"""

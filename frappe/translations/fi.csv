@@ -1410,7 +1410,7 @@ DocType: User,System User,järjestelmäkäyttäjä
 DocType: Report,Is Standard,on perus
 DocType: Desktop Icon,_report,_report
 DocType: Dashboard Chart,Full,Koko
-DocType: DocField,"Don't HTML Encode HTML tags like &lt;script> or just characters like &lt; or >, as they could be intentionally used in this field","Älä HTML Pakkaa HTML tageja kuten &lt;script> tai vain merkkejä kuten &lt;tai>, koska ne voidaan tarkoituksellisesti käyttää tällä alalla"
+DocType: DocField,"Don't HTML Encode HTML tags like <script> or just characters like < or >, as they could be intentionally used in this field","Älä HTML Pakkaa HTML tageja kuten <script> tai vain merkkejä kuten <tai>, koska ne voidaan tarkoituksellisesti käyttää tällä alalla"
 apps/frappe/frappe/public/js/frappe/utils/energy_point_utils.js,{0} criticized on {1},{0} arvosteltiin {1}
 DocType: Website Settings,FavIcon,Faviconi
 apps/frappe/frappe/data_migration/doctype/data_migration_plan/data_migration_plan.js,Run,Juosta
@@ -1790,7 +1790,7 @@ DocType: Letter Head,Footer will display correctly only in PDF,Alatunniste näky
 apps/frappe/frappe/core/doctype/data_import/data_import_list.js,Pending,Odottaa
 DocType: System Settings,Allow only one session per user,Vain yksi istunto per käyttäjä
 apps/frappe/frappe/core/doctype/file/test_file.py,Home/Test Folder 1/Test Folder 3,Etusivu / Testi kansio 1 / Test-kansion 3
-DocType: Website Settings,&lt;head> HTML,&lt;Head> HTML
+DocType: Website Settings,<head> HTML,<Head> HTML
 apps/frappe/frappe/public/js/frappe/views/calendar/calendar.js,Select or drag across time slots to create a new event.,Valitse tai vieritä oikea aikaväli tehdäksesi uuden tapahtuman
 DocType: Contact,Contact Details,"yhteystiedot, lisätiedot"
 DocType: DocField,In Filter,suodatuksessa
@@ -2311,7 +2311,7 @@ DocType: LDAP Settings,Path to Server Certificate,Polku palvelinvarmenteeseen
 apps/frappe/frappe/public/js/frappe/form/linked_with.js,Not enough permission to see links,Ei tarpeeksi lupaa nähdä linkit
 apps/frappe/frappe/contacts/doctype/address/address.py,Address Title is mandatory.,osoiteotsikko on pakollinen.
 DocType: Google Contacts,Push to Google Contacts,Siirry Google-yhteystietoihin
-DocType: Website Settings,"Added HTML in the &lt;head> section of the web page, primarily used for website verification and SEO","Lisätty HTML &lt;head> -osioon sivun, käytetään pääasiassa verkkosivuilla todentaminen ja SEO"
+DocType: Website Settings,"Added HTML in the <head> section of the web page, primarily used for website verification and SEO","Lisätty HTML <head> -osioon sivun, käytetään pääasiassa verkkosivuilla todentaminen ja SEO"
 apps/frappe/frappe/core/doctype/error_snapshot/error_snapshot_list.js,Relapsed,Uusiutunut
 apps/frappe/frappe/utils/nestedset.py,Item cannot be added to its own descendents,tuotetta ei voi lisätä omaksi alatuotteekseen
 DocType: Session Default Settings,Session Defaults,Istunnon oletukset
@@ -2430,7 +2430,7 @@ DocType: Workflow State,Warning,Varoitus
 apps/frappe/frappe/public/js/frappe/form/print.js,This may get printed on multiple pages,Tämä voidaan tulostaa useille sivuille
 DocType: Data Migration Run,Percent Complete,Prosenttiosuus on täydellinen
 DocType: Tag Category,Tag Category,Tagi -kategoria
-apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,"For comparison, use >5, &lt;10 or =324. For ranges, use 5:10 (for values between 5 &amp; 10).","Vertailun vuoksi käytä> 5, &lt;10 tai = 324. Käytä alueita 5:10 (arvoille 5-10)."
+apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,"For comparison, use >5, <10 or =324. For ranges, use 5:10 (for values between 5 &amp; 10).","Vertailun vuoksi käytä> 5, <10 tai = 324. Käytä alueita 5:10 (arvoille 5-10)."
 DocType: Google Calendar,Pull from Google Calendar,Vedä Google-kalenterista
 apps/frappe/frappe/core/doctype/data_import/data_import.js,Help,Ohje
 DocType: User,Login Before,Kirjaudu Ennen
@@ -3069,7 +3069,7 @@ DocType: DocField,Allow on Submit,Salli vahvistuksessa
 DocType: DocField,HTML,HTML
 DocType: Error Snapshot,Exception Type,Poikkeus Tyyppi
 apps/frappe/frappe/public/js/frappe/views/reports/report_view.js,Pick Columns,Valitse sarakkeet
-DocType: Web Page,Add code as &lt;script>,Lisää koodi
+DocType: Web Page,Add code as <script>,Lisää koodi
 apps/frappe/frappe/core/doctype/user_permission/user_permission_list.js,Clear User Permissions,Tyhjennä käyttöoikeudet
 DocType: Webhook,Headers,otsikot
 apps/frappe/frappe/public/js/frappe/social/components/ActivitySidebar.vue,Upcoming Events,Tulevat tapahtumat
@@ -3443,16 +3443,16 @@ DocType: Workflow State,share-alt,Jaa-alt
 apps/frappe/frappe/utils/background_jobs.py,Queue should be one of {0},Jonon pitäisi olla yksi {0}
 DocType: Address Template,"<h4>Default Template</h4>
 <p>Uses <a href=""http://jinja.pocoo.org/docs/templates/"">Jinja Templating</a> and all the fields of Address (including Custom Fields if any) will be available</p>
-<pre><code>{{ address_line1 }}&lt;br>
-{% if address_line2 %}{{ address_line2 }}&lt;br>{% endif -%}
-{{ city }}&lt;br>
-{% if state %}{{ state }}&lt;br>{% endif -%}
-{% if pincode %} PIN:  {{ pincode }}&lt;br>{% endif -%}
-{{ country }}&lt;br>
-{% if phone %}Phone: {{ phone }}&lt;br>{% endif -%}
-{% if fax %}Fax: {{ fax }}&lt;br>{% endif -%}
-{% if email_id %}Email: {{ email_id }}&lt;br>{% endif -%}
-</code></pre>","<h4> Default Template </h4><p> Käyttää <a href=""http://jinja.pocoo.org/docs/templates/"">Jinja templaattimateriaalit</a> ja kaikilla aloilla Address (mukaan lukien omat kentät mahdollinen) on saatavilla </p><pre> <code>{{ address_line1 }}&lt;br> {% if address_line2 %}{{ address_line2 }}&lt;br>{% endif -%} {{ city }}&lt;br> {% if state %}{{ state }}&lt;br>{% endif -%} {% if pincode %} PIN: {{ pincode }}&lt;br>{% endif -%} {{ country }}&lt;br> {% if phone %}Phone: {{ phone }}&lt;br>{% endif -%} {% if fax %}Fax: {{ fax }}&lt;br>{% endif -%} {% if email_id %}Email: {{ email_id }}&lt;br>{% endif -%}</code> </pre>"
+<pre><code>{{ address_line1 }}<br>
+{% if address_line2 %}{{ address_line2 }}<br>{% endif -%}
+{{ city }}<br>
+{% if state %}{{ state }}<br>{% endif -%}
+{% if pincode %} PIN:  {{ pincode }}<br>{% endif -%}
+{{ country }}<br>
+{% if phone %}Phone: {{ phone }}<br>{% endif -%}
+{% if fax %}Fax: {{ fax }}<br>{% endif -%}
+{% if email_id %}Email: {{ email_id }}<br>{% endif -%}
+</code></pre>","<h4> Default Template </h4><p> Käyttää <a href=""http://jinja.pocoo.org/docs/templates/"">Jinja templaattimateriaalit</a> ja kaikilla aloilla Address (mukaan lukien omat kentät mahdollinen) on saatavilla </p><pre> <code>{{ address_line1 }}<br> {% if address_line2 %}{{ address_line2 }}<br>{% endif -%} {{ city }}<br> {% if state %}{{ state }}<br>{% endif -%} {% if pincode %} PIN: {{ pincode }}<br>{% endif -%} {{ country }}<br> {% if phone %}Phone: {{ phone }}<br>{% endif -%} {% if fax %}Fax: {{ fax }}<br>{% endif -%} {% if email_id %}Email: {{ email_id }}<br>{% endif -%}</code> </pre>"
 DocType: Calendar View,Start Date Field,Aloituspäiväkentä
 DocType: Role,Role Name,Rooli Name
 apps/frappe/frappe/templates/includes/navbar/navbar_login.html,Switch To Desk,Vaihda työpöydälle

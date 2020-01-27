@@ -1377,7 +1377,7 @@ DocType: User,System User,سیستم کاربر
 DocType: Report,Is Standard,آیا استاندارد
 DocType: Desktop Icon,_report,_گزارش
 DocType: Dashboard Chart,Full,پر شده
-DocType: DocField,"Don't HTML Encode HTML tags like &lt;script> or just characters like &lt; or >, as they could be intentionally used in this field",آیا دستورات HTML رمز HTML مانند &lt;script> به و یا فقط شخصیت های مانند &lt;یا>، به عنوان آنها می تواند به عمد در این زمینه استفاده می شود
+DocType: DocField,"Don't HTML Encode HTML tags like <script> or just characters like < or >, as they could be intentionally used in this field",آیا دستورات HTML رمز HTML مانند <script> به و یا فقط شخصیت های مانند <یا>، به عنوان آنها می تواند به عمد در این زمینه استفاده می شود
 DocType: Website Settings,FavIcon,موارد دلخواه
 apps/frappe/frappe/data_migration/doctype/data_migration_plan/data_migration_plan.js,Run,اجرا کن
 DocType: Blog Post,Content (HTML),محتوا (HTML)
@@ -1736,7 +1736,7 @@ DocType: Letter Head,Footer will display correctly only in PDF,پاورقی در
 apps/frappe/frappe/core/doctype/data_import/data_import_list.js,Pending,در انتظار
 DocType: System Settings,Allow only one session per user,اجازه می دهد تنها یک جلسه در هر کاربر
 apps/frappe/frappe/core/doctype/file/test_file.py,Home/Test Folder 1/Test Folder 3,پوشه اصلی / آزمایش / 1 تست پوشه 3
-DocType: Website Settings,&lt;head> HTML,HTML
+DocType: Website Settings,<head> HTML,HTML
 apps/frappe/frappe/public/js/frappe/views/calendar/calendar.js,Select or drag across time slots to create a new event.,انتخاب و یا کشیدن در سراسر شکاف زمان برای ایجاد یک رویداد جدید.
 DocType: Contact,Contact Details,اطلاعات تماس
 DocType: DocField,In Filter,در فیلتر
@@ -2244,7 +2244,7 @@ DocType: LDAP Settings,Path to Server Certificate,مسیر به گواهی سر�
 apps/frappe/frappe/public/js/frappe/form/linked_with.js,Not enough permission to see links,نه اجازه اندازه کافی برای دیدن لینک
 apps/frappe/frappe/contacts/doctype/address/address.py,Address Title is mandatory.,عنوان نشانی الزامی است.
 DocType: Google Contacts,Push to Google Contacts,به مخاطبین Google فشار دهید
-DocType: Website Settings,"Added HTML in the &lt;head> section of the web page, primarily used for website verification and SEO",اضافه شده در HTML قسمت &lt;head> بخش از صفحه وب، در درجه اول برای تأیید وب سایت و بهینه سازی سایت استفاده
+DocType: Website Settings,"Added HTML in the <head> section of the web page, primarily used for website verification and SEO",اضافه شده در HTML قسمت <head> بخش از صفحه وب، در درجه اول برای تأیید وب سایت و بهینه سازی سایت استفاده
 apps/frappe/frappe/core/doctype/error_snapshot/error_snapshot_list.js,Relapsed,دچار عود
 apps/frappe/frappe/utils/nestedset.py,Item cannot be added to its own descendents,مورد می تواند به بازماندگان خود را اضافه نمی شوند
 DocType: Session Default Settings,Session Defaults,جلسه پیش فرض
@@ -2360,7 +2360,7 @@ DocType: Workflow State,Warning,هشدار
 apps/frappe/frappe/public/js/frappe/form/print.js,This may get printed on multiple pages,این ممکن است در چندین صفحه چاپ شود
 DocType: Data Migration Run,Percent Complete,درصد کامل
 DocType: Tag Category,Tag Category,برچسب رده
-apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,"For comparison, use >5, &lt;10 or =324. For ranges, use 5:10 (for values between 5 &amp; 10).",برای مقایسه ، از 5 ، &lt;10 یا 324 استفاده کنید. برای محدوده ها ، از 5:10 (برای مقادیر بین 5 تا 10) استفاده کنید.
+apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,"For comparison, use >5, <10 or =324. For ranges, use 5:10 (for values between 5 &amp; 10).",برای مقایسه ، از 5 ، <10 یا 324 استفاده کنید. برای محدوده ها ، از 5:10 (برای مقادیر بین 5 تا 10) استفاده کنید.
 DocType: Google Calendar,Pull from Google Calendar,از تقویم Google بکشید
 apps/frappe/frappe/core/doctype/data_import/data_import.js,Help,کمک
 DocType: User,Login Before,ورود به قبل از
@@ -2979,7 +2979,7 @@ DocType: DocField,Allow on Submit,اجازه می دهد در ارسال
 DocType: DocField,HTML,HTML
 DocType: Error Snapshot,Exception Type,نوع استثنا
 apps/frappe/frappe/public/js/frappe/views/reports/report_view.js,Pick Columns,انتخاب ستون
-DocType: Web Page,Add code as &lt;script>,اضافه کردن کد به عنوان &lt;script> و
+DocType: Web Page,Add code as <script>,اضافه کردن کد به عنوان <script> و
 apps/frappe/frappe/core/doctype/user_permission/user_permission_list.js,Clear User Permissions,مجوزهای کاربر را پاک کنید
 DocType: Webhook,Headers,سربرگ ها
 apps/frappe/frappe/public/js/frappe/social/components/ActivitySidebar.vue,Upcoming Events,رویدادهای نزدیک
@@ -3338,16 +3338,16 @@ DocType: Workflow State,share-alt,سهم-ALT
 apps/frappe/frappe/utils/background_jobs.py,Queue should be one of {0},صف باید یکی از شود {0}
 DocType: Address Template,"<h4>Default Template</h4>
 <p>Uses <a href=""http://jinja.pocoo.org/docs/templates/"">Jinja Templating</a> and all the fields of Address (including Custom Fields if any) will be available</p>
-<pre><code>{{ address_line1 }}&lt;br>
-{% if address_line2 %}{{ address_line2 }}&lt;br>{% endif -%}
-{{ city }}&lt;br>
-{% if state %}{{ state }}&lt;br>{% endif -%}
-{% if pincode %} PIN:  {{ pincode }}&lt;br>{% endif -%}
-{{ country }}&lt;br>
-{% if phone %}Phone: {{ phone }}&lt;br>{% endif -%}
-{% if fax %}Fax: {{ fax }}&lt;br>{% endif -%}
-{% if email_id %}Email: {{ email_id }}&lt;br>{% endif -%}
-</code></pre>","<h4 style="";text-align:right;direction:rtl""> به طور پیش فرض الگو </h4><p style="";text-align:right;direction:rtl""> با استفاده از <a href=""http://jinja.pocoo.org/docs/templates/"">Jinja قالب</a> و تمامی زمینه های آدرس (از جمله زمینه های سفارشی در صورت وجود) در دسترس خواهد بود </p><pre style="";text-align:right;direction:rtl""> <code>{{ address_line1 }}&lt;br> {% if address_line2 %}{{ address_line2 }}&lt;br>{% endif -%} {{ city }}&lt;br> {% if state %}{{ state }}&lt;br>{% endif -%} {% if pincode %} PIN: {{ pincode }}&lt;br>{% endif -%} {{ country }}&lt;br> {% if phone %}Phone: {{ phone }}&lt;br>{% endif -%} {% if fax %}Fax: {{ fax }}&lt;br>{% endif -%} {% if email_id %}Email: {{ email_id }}&lt;br>{% endif -%}</code> </pre>"
+<pre><code>{{ address_line1 }}<br>
+{% if address_line2 %}{{ address_line2 }}<br>{% endif -%}
+{{ city }}<br>
+{% if state %}{{ state }}<br>{% endif -%}
+{% if pincode %} PIN:  {{ pincode }}<br>{% endif -%}
+{{ country }}<br>
+{% if phone %}Phone: {{ phone }}<br>{% endif -%}
+{% if fax %}Fax: {{ fax }}<br>{% endif -%}
+{% if email_id %}Email: {{ email_id }}<br>{% endif -%}
+</code></pre>","<h4 style="";text-align:right;direction:rtl""> به طور پیش فرض الگو </h4><p style="";text-align:right;direction:rtl""> با استفاده از <a href=""http://jinja.pocoo.org/docs/templates/"">Jinja قالب</a> و تمامی زمینه های آدرس (از جمله زمینه های سفارشی در صورت وجود) در دسترس خواهد بود </p><pre style="";text-align:right;direction:rtl""> <code>{{ address_line1 }}<br> {% if address_line2 %}{{ address_line2 }}<br>{% endif -%} {{ city }}<br> {% if state %}{{ state }}<br>{% endif -%} {% if pincode %} PIN: {{ pincode }}<br>{% endif -%} {{ country }}<br> {% if phone %}Phone: {{ phone }}<br>{% endif -%} {% if fax %}Fax: {{ fax }}<br>{% endif -%} {% if email_id %}Email: {{ email_id }}<br>{% endif -%}</code> </pre>"
 DocType: Calendar View,Start Date Field,فیلد تاریخ شروع
 DocType: Role,Role Name,نام نقش
 apps/frappe/frappe/templates/includes/navbar/navbar_login.html,Switch To Desk,تغییر به میز

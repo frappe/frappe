@@ -1427,7 +1427,7 @@ DocType: Report,Is Standard,Adalah Standard
 DocType: Desktop Icon,_report,_Lapor
 DocType: Desktop Icon,_report,_Lapor
 DocType: Dashboard Chart,Full,Penuh
-DocType: DocField,"Don't HTML Encode HTML tags like &lt;script> or just characters like &lt; or >, as they could be intentionally used in this field","Jangan tag HTML Encode HTML seperti &lt;script> atau hanya watak-watak seperti &lt;atau>, kerana mereka boleh sengaja digunakan dalam bidang ini"
+DocType: DocField,"Don't HTML Encode HTML tags like <script> or just characters like < or >, as they could be intentionally used in this field","Jangan tag HTML Encode HTML seperti <script> atau hanya watak-watak seperti <atau>, kerana mereka boleh sengaja digunakan dalam bidang ini"
 apps/frappe/frappe/public/js/frappe/utils/energy_point_utils.js,{0} criticized on {1},{0} dikritik di {1}
 DocType: Website Settings,FavIcon,Favicon
 apps/frappe/frappe/data_migration/doctype/data_migration_plan/data_migration_plan.js,Run,Jalankan
@@ -1809,7 +1809,7 @@ DocType: Letter Head,Footer will display correctly only in PDF,Footer akan dipap
 apps/frappe/frappe/core/doctype/data_import/data_import_list.js,Pending,Sementara menunggu
 DocType: System Settings,Allow only one session per user,Benarkan hanya satu sesi setiap pengguna
 apps/frappe/frappe/core/doctype/file/test_file.py,Home/Test Folder 1/Test Folder 3,Home / Ujian Folder 1 / Ujian Folder 3
-DocType: Website Settings,&lt;head> HTML,&lt;head> HTML
+DocType: Website Settings,<head> HTML,<head> HTML
 apps/frappe/frappe/public/js/frappe/views/calendar/calendar.js,Select or drag across time slots to create a new event.,Pilih atau seret di seluruh slot masa untuk mewujudkan satu acara baru.
 DocType: Contact,Contact Details,Butiran Hubungi
 DocType: DocField,In Filter,Dalam Penapis
@@ -2337,7 +2337,7 @@ apps/frappe/frappe/public/js/frappe/form/linked_with.js,Not enough permission to
 apps/frappe/frappe/public/js/frappe/form/linked_with.js,Not enough permission to see links,Tidak kebenaran yang cukup untuk melihat pautan
 apps/frappe/frappe/contacts/doctype/address/address.py,Address Title is mandatory.,Alamat Tajuk adalah wajib.
 DocType: Google Contacts,Push to Google Contacts,Tolak ke Kenalan Google
-DocType: Website Settings,"Added HTML in the &lt;head> section of the web page, primarily used for website verification and SEO","HTML ditambah dalam &lt;head> halaman web, terutamanya digunakan untuk pengesahan laman web dan SEO"
+DocType: Website Settings,"Added HTML in the <head> section of the web page, primarily used for website verification and SEO","HTML ditambah dalam <head> halaman web, terutamanya digunakan untuk pengesahan laman web dan SEO"
 apps/frappe/frappe/core/doctype/error_snapshot/error_snapshot_list.js,Relapsed,Kambuh
 apps/frappe/frappe/utils/nestedset.py,Item cannot be added to its own descendents,Item tidak boleh ditambah kepada keturunan sendiri
 DocType: Session Default Settings,Session Defaults,Default Sesi
@@ -2457,7 +2457,7 @@ DocType: Workflow State,Warning,Amaran
 apps/frappe/frappe/public/js/frappe/form/print.js,This may get printed on multiple pages,Ini mungkin boleh dicetak pada berbilang halaman
 DocType: Data Migration Run,Percent Complete,Peratus Selesai
 DocType: Tag Category,Tag Category,tag Kategori
-apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,"For comparison, use >5, &lt;10 or =324. For ranges, use 5:10 (for values between 5 &amp; 10).","Sebagai perbandingan, gunakan> 5, &lt;10 atau = 324. Untuk julat, gunakan 5:10 (untuk nilai antara 5 &amp; 10)."
+apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,"For comparison, use >5, <10 or =324. For ranges, use 5:10 (for values between 5 &amp; 10).","Sebagai perbandingan, gunakan> 5, <10 atau = 324. Untuk julat, gunakan 5:10 (untuk nilai antara 5 &amp; 10)."
 DocType: Google Calendar,Pull from Google Calendar,Tarik dari Kalendar Google
 apps/frappe/frappe/core/doctype/data_import/data_import.js,Help,Bantuan
 DocType: User,Login Before,Log masuk Sebelum
@@ -3104,7 +3104,7 @@ DocType: DocField,Allow on Submit,Benarkan di Hantar
 DocType: DocField,HTML,HTML
 DocType: Error Snapshot,Exception Type,Pengecualian Jenis
 apps/frappe/frappe/public/js/frappe/views/reports/report_view.js,Pick Columns,Pilih Kolum
-DocType: Web Page,Add code as &lt;script>,Tambah kod sebagai &lt;script>
+DocType: Web Page,Add code as <script>,Tambah kod sebagai <script>
 apps/frappe/frappe/core/doctype/user_permission/user_permission_list.js,Clear User Permissions,Hapuskan Kebenaran Pengguna
 DocType: Webhook,Headers,Tajuk
 apps/frappe/frappe/public/js/frappe/social/components/ActivitySidebar.vue,Upcoming Events,Acara akan datang
@@ -3481,16 +3481,16 @@ DocType: Workflow State,share-alt,saham alt
 apps/frappe/frappe/utils/background_jobs.py,Queue should be one of {0},Giliran harus menjadi salah satu {0}
 DocType: Address Template,"<h4>Default Template</h4>
 <p>Uses <a href=""http://jinja.pocoo.org/docs/templates/"">Jinja Templating</a> and all the fields of Address (including Custom Fields if any) will be available</p>
-<pre><code>{{ address_line1 }}&lt;br>
-{% if address_line2 %}{{ address_line2 }}&lt;br>{% endif -%}
-{{ city }}&lt;br>
-{% if state %}{{ state }}&lt;br>{% endif -%}
-{% if pincode %} PIN:  {{ pincode }}&lt;br>{% endif -%}
-{{ country }}&lt;br>
-{% if phone %}Phone: {{ phone }}&lt;br>{% endif -%}
-{% if fax %}Fax: {{ fax }}&lt;br>{% endif -%}
-{% if email_id %}Email: {{ email_id }}&lt;br>{% endif -%}
-</code></pre>","<h4> Templat lalai </h4><p> Menggunakan <a href=""http://jinja.pocoo.org/docs/templates/"">Jinja template</a> dan semua bidang Alamat (termasuk Custom Fields jika ada) boleh didapati </p><pre> <code>{{ address_line1 }}&lt;br> {% if address_line2 %}{{ address_line2 }}&lt;br>{% endif -%} {{ city }}&lt;br> {% if state %}{{ state }}&lt;br>{% endif -%} {% if pincode %} PIN: {{ pincode }}&lt;br>{% endif -%} {{ country }}&lt;br> {% if phone %}Phone: {{ phone }}&lt;br>{% endif -%} {% if fax %}Fax: {{ fax }}&lt;br>{% endif -%} {% if email_id %}Email: {{ email_id }}&lt;br>{% endif -%}</code> </pre>"
+<pre><code>{{ address_line1 }}<br>
+{% if address_line2 %}{{ address_line2 }}<br>{% endif -%}
+{{ city }}<br>
+{% if state %}{{ state }}<br>{% endif -%}
+{% if pincode %} PIN:  {{ pincode }}<br>{% endif -%}
+{{ country }}<br>
+{% if phone %}Phone: {{ phone }}<br>{% endif -%}
+{% if fax %}Fax: {{ fax }}<br>{% endif -%}
+{% if email_id %}Email: {{ email_id }}<br>{% endif -%}
+</code></pre>","<h4> Templat lalai </h4><p> Menggunakan <a href=""http://jinja.pocoo.org/docs/templates/"">Jinja template</a> dan semua bidang Alamat (termasuk Custom Fields jika ada) boleh didapati </p><pre> <code>{{ address_line1 }}<br> {% if address_line2 %}{{ address_line2 }}<br>{% endif -%} {{ city }}<br> {% if state %}{{ state }}<br>{% endif -%} {% if pincode %} PIN: {{ pincode }}<br>{% endif -%} {{ country }}<br> {% if phone %}Phone: {{ phone }}<br>{% endif -%} {% if fax %}Fax: {{ fax }}<br>{% endif -%} {% if email_id %}Email: {{ email_id }}<br>{% endif -%}</code> </pre>"
 DocType: Calendar View,Start Date Field,Mula Tarikh Bidang
 DocType: Role,Role Name,Nama Peranan
 apps/frappe/frappe/templates/includes/navbar/navbar_login.html,Switch To Desk,Tukar Ke Meja

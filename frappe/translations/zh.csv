@@ -1425,7 +1425,7 @@ DocType: Report,Is Standard,是否为标准
 DocType: Desktop Icon,_report,_报告
 DocType: Desktop Icon,_report,_报告
 DocType: Dashboard Chart,Full,充分
-DocType: DocField,"Don't HTML Encode HTML tags like &lt;script> or just characters like &lt; or >, as they could be intentionally used in this field",不要HTML编码的HTML标签，如&lt;SCRIPT>或者就像字符&lt;或>，因为他们可以在此字段中故意使用
+DocType: DocField,"Don't HTML Encode HTML tags like <script> or just characters like < or >, as they could be intentionally used in this field",不要HTML编码的HTML标签，如<SCRIPT>或者就像字符<或>，因为他们可以在此字段中故意使用
 apps/frappe/frappe/public/js/frappe/utils/energy_point_utils.js,{0} criticized on {1},{0}批评{1}
 DocType: Website Settings,FavIcon,网站图标
 apps/frappe/frappe/data_migration/doctype/data_migration_plan/data_migration_plan.js,Run,跑
@@ -1807,7 +1807,7 @@ DocType: Letter Head,Footer will display correctly only in PDF,页脚仅以PDF�
 apps/frappe/frappe/core/doctype/data_import/data_import_list.js,Pending,有待
 DocType: System Settings,Allow only one session per user,允许每个用户只有一个会话
 apps/frappe/frappe/core/doctype/file/test_file.py,Home/Test Folder 1/Test Folder 3,主页/测试文件夹1 /测试文件夹3
-DocType: Website Settings,&lt;head> HTML,&lt;HEAD> HTML
+DocType: Website Settings,<head> HTML,<HEAD> HTML
 apps/frappe/frappe/public/js/frappe/views/calendar/calendar.js,Select or drag across time slots to create a new event.,选择或拖动整个时隙，以创建一个新的事件。
 DocType: Contact,Contact Details,联系人信息
 DocType: DocField,In Filter,在过滤器中
@@ -2335,7 +2335,7 @@ apps/frappe/frappe/public/js/frappe/form/linked_with.js,Not enough permission to
 apps/frappe/frappe/public/js/frappe/form/linked_with.js,Not enough permission to see links,没有足够的权限查看链接
 apps/frappe/frappe/contacts/doctype/address/address.py,Address Title is mandatory.,地址标题是必须项。
 DocType: Google Contacts,Push to Google Contacts,推送到Google通讯录
-DocType: Website Settings,"Added HTML in the &lt;head> section of the web page, primarily used for website verification and SEO",在&lt;head>添加HTML网页的部分，主要用于网站的验证和搜索引擎优化
+DocType: Website Settings,"Added HTML in the <head> section of the web page, primarily used for website verification and SEO",在<head>添加HTML网页的部分，主要用于网站的验证和搜索引擎优化
 apps/frappe/frappe/core/doctype/error_snapshot/error_snapshot_list.js,Relapsed,复发
 apps/frappe/frappe/utils/nestedset.py,Item cannot be added to its own descendents,项目不能被添加到自己的后代
 DocType: Session Default Settings,Session Defaults,会话默认值
@@ -2455,7 +2455,7 @@ DocType: Workflow State,Warning,警告
 apps/frappe/frappe/public/js/frappe/form/print.js,This may get printed on multiple pages,这可能会打印在多个页面上
 DocType: Data Migration Run,Percent Complete,完成百分比
 DocType: Tag Category,Tag Category,标签类别
-apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,"For comparison, use >5, &lt;10 or =324. For ranges, use 5:10 (for values between 5 &amp; 10).",为了进行比较，请使用> 5，&lt;10或= 324。对于范围，请使用5:10（对于5到10之间的值）。
+apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,"For comparison, use >5, <10 or =324. For ranges, use 5:10 (for values between 5 &amp; 10).",为了进行比较，请使用> 5，<10或= 324。对于范围，请使用5:10（对于5到10之间的值）。
 DocType: Google Calendar,Pull from Google Calendar,从Google日历中提取
 apps/frappe/frappe/core/doctype/data_import/data_import.js,Help,帮助
 DocType: User,Login Before,登录前
@@ -3103,7 +3103,7 @@ DocType: DocField,Allow on Submit,允许提交
 DocType: DocField,HTML,HTML
 DocType: Error Snapshot,Exception Type,异常类型
 apps/frappe/frappe/public/js/frappe/views/reports/report_view.js,Pick Columns,摘列
-DocType: Web Page,Add code as &lt;script>,添加为script标签
+DocType: Web Page,Add code as <script>,添加为script标签
 apps/frappe/frappe/core/doctype/user_permission/user_permission_list.js,Clear User Permissions,清除用户权限
 DocType: Webhook,Headers,头
 apps/frappe/frappe/public/js/frappe/social/components/ActivitySidebar.vue,Upcoming Events,即将举行的活动
@@ -3480,15 +3480,15 @@ DocType: Workflow State,share-alt,share-alt
 apps/frappe/frappe/utils/background_jobs.py,Queue should be one of {0},队列应该是{0}
 DocType: Address Template,"<h4>Default Template</h4>
 <p>Uses <a href=""http://jinja.pocoo.org/docs/templates/"">Jinja Templating</a> and all the fields of Address (including Custom Fields if any) will be available</p>
-<pre><code>{{ address_line1 }}&lt;br>
-{% if address_line2 %}{{ address_line2 }}&lt;br>{% endif -%}
-{{ city }}&lt;br>
-{% if state %}{{ state }}&lt;br>{% endif -%}
-{% if pincode %} PIN:  {{ pincode }}&lt;br>{% endif -%}
-{{ country }}&lt;br>
-{% if phone %}Phone: {{ phone }}&lt;br>{% endif -%}
-{% if fax %}Fax: {{ fax }}&lt;br>{% endif -%}
-{% if email_id %}Email: {{ email_id }}&lt;br>{% endif -%}
+<pre><code>{{ address_line1 }}<br>
+{% if address_line2 %}{{ address_line2 }}<br>{% endif -%}
+{{ city }}<br>
+{% if state %}{{ state }}<br>{% endif -%}
+{% if pincode %} PIN:  {{ pincode }}<br>{% endif -%}
+{{ country }}<br>
+{% if phone %}Phone: {{ phone }}<br>{% endif -%}
+{% if fax %}Fax: {{ fax }}<br>{% endif -%}
+{% if email_id %}Email: {{ email_id }}<br>{% endif -%}
 </code></pre>","<H4>默认模板</ H4> 
  <p> <a用途神社href=""http://jinja.pocoo.org/docs/templates/"">模板</A>和地址的所有领域（包括自定义字段如果有的话）将可</ P> 
  <前> <代码> {{address_line1}}＆LT; BR＆GT; 

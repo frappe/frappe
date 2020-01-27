@@ -1396,7 +1396,7 @@ DocType: Report,Is Standard,സ്റ്റാൻഡേർഡ് Is
 DocType: Desktop Icon,_report,_രെപൊര്ത്
 DocType: Desktop Icon,_report,_രെപൊര്ത്
 DocType: Dashboard Chart,Full,പൂർണ്ണമായ
-DocType: DocField,"Don't HTML Encode HTML tags like &lt;script> or just characters like &lt; or >, as they could be intentionally used in this field",അവർ ബോധപൂർവം ഈ ഫീൽഡ് ഉപയോഗിക്കാനുമാകും പോലെ &lt;സ്ക്രിപ്റ്റ്> അല്ലെങ്കിൽ അക്ഷരങ്ങൾ പോലെ &lt;അല്ലെങ്കിൽ> പോലെയല്ല എച്ച്ടിഎംഎൽ എൻകോഡ് HTML ടാഗുകൾ ചെയ്ക
+DocType: DocField,"Don't HTML Encode HTML tags like <script> or just characters like < or >, as they could be intentionally used in this field",അവർ ബോധപൂർവം ഈ ഫീൽഡ് ഉപയോഗിക്കാനുമാകും പോലെ <സ്ക്രിപ്റ്റ്> അല്ലെങ്കിൽ അക്ഷരങ്ങൾ പോലെ <അല്ലെങ്കിൽ> പോലെയല്ല എച്ച്ടിഎംഎൽ എൻകോഡ് HTML ടാഗുകൾ ചെയ്ക
 DocType: Website Settings,FavIcon,ഫെവിക്കോൺ
 apps/frappe/frappe/data_migration/doctype/data_migration_plan/data_migration_plan.js,Run,പ്രവർത്തിപ്പിക്കുക
 DocType: Blog Post,Content (HTML),ഉള്ളടക്കം (HTML)
@@ -1765,7 +1765,7 @@ DocType: Letter Head,Footer will display correctly only in PDF,അടിക്�
 apps/frappe/frappe/core/doctype/data_import/data_import_list.js,Pending,തീർച്ചപ്പെടുത്തിയിട്ടില്ല
 DocType: System Settings,Allow only one session per user,ഓരോ ഉപയോക്താവിനും ഒരേയൊരു സെഷന് അനുവദിക്കുക
 apps/frappe/frappe/core/doctype/file/test_file.py,Home/Test Folder 1/Test Folder 3,ഹോം / ടെസ്റ്റ് ഫോള്ഡര് 1 / ടെസ്റ്റ് ഫോൾഡർ 3
-DocType: Website Settings,&lt;head> HTML,&lt;തല> HTML
+DocType: Website Settings,<head> HTML,<തല> HTML
 apps/frappe/frappe/public/js/frappe/views/calendar/calendar.js,Select or drag across time slots to create a new event.,തിരഞ്ഞെടുക്കുക അല്ലെങ്കിൽ ഒരു പുതിയ ഇവന്റ് സൃഷ്ടിക്കാൻ സമയം സ്ലോട്ടുകൾ കുറുകെ ഡ്രാഗ്.
 DocType: Contact,Contact Details,കോൺടാക്റ്റ് വിശദാംശങ്ങൾ
 DocType: DocField,In Filter,ഫിൽറ്റർ ൽ
@@ -2283,7 +2283,7 @@ apps/frappe/frappe/public/js/frappe/form/linked_with.js,Not enough permission to
 apps/frappe/frappe/public/js/frappe/form/linked_with.js,Not enough permission to see links,ലിങ്കുകൾ കാണുന്നതിന് ആവശ്യമായ അനുമതി
 apps/frappe/frappe/contacts/doctype/address/address.py,Address Title is mandatory.,വിലാസം ശീർഷകം നിർബന്ധമാണ്.
 DocType: Google Contacts,Push to Google Contacts,Google കോൺ‌ടാക്റ്റുകളിലേക്ക് പുഷ് ചെയ്യുക
-DocType: Website Settings,"Added HTML in the &lt;head> section of the web page, primarily used for website verification and SEO","പ്രാഥമികമായി വെബ്സൈറ്റ് സ്ഥിരീകരണം, എസ്.ഇ.ഒ. ഉപയോഗിക്കുന്ന വെബ് പേജിന്റെ &lt;തല> വിഭാഗത്തിൽ, ചേർത്തു എച്ച്ടിഎംഎൽ"
+DocType: Website Settings,"Added HTML in the <head> section of the web page, primarily used for website verification and SEO","പ്രാഥമികമായി വെബ്സൈറ്റ് സ്ഥിരീകരണം, എസ്.ഇ.ഒ. ഉപയോഗിക്കുന്ന വെബ് പേജിന്റെ <തല> വിഭാഗത്തിൽ, ചേർത്തു എച്ച്ടിഎംഎൽ"
 apps/frappe/frappe/core/doctype/error_snapshot/error_snapshot_list.js,Relapsed,Relapsed
 apps/frappe/frappe/utils/nestedset.py,Item cannot be added to its own descendents,ഇനം അതിന്റേതായ descendents ചേർക്കില്ല കഴിയില്ല
 DocType: Session Default Settings,Session Defaults,സെഷൻ സ്ഥിരസ്ഥിതികൾ
@@ -2401,7 +2401,7 @@ DocType: Workflow State,Warning,മുന്നറിയിപ്പ്
 apps/frappe/frappe/public/js/frappe/form/print.js,This may get printed on multiple pages,ഇത് ഒന്നിലധികം പേജുകളിൽ അച്ചടിച്ചേക്കാം
 DocType: Data Migration Run,Percent Complete,പൂർത്തിയായി
 DocType: Tag Category,Tag Category,ടാഗ് വർഗ്ഗം
-apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,"For comparison, use >5, &lt;10 or =324. For ranges, use 5:10 (for values between 5 &amp; 10).","താരതമ്യത്തിന്,> 5, &lt;10 അല്ലെങ്കിൽ = 324 ഉപയോഗിക്കുക. ശ്രേണികൾക്കായി, 5:10 ഉപയോഗിക്കുക (5 നും 10 നും ഇടയിലുള്ള മൂല്യങ്ങൾക്ക്)."
+apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,"For comparison, use >5, <10 or =324. For ranges, use 5:10 (for values between 5 &amp; 10).","താരതമ്യത്തിന്,> 5, <10 അല്ലെങ്കിൽ = 324 ഉപയോഗിക്കുക. ശ്രേണികൾക്കായി, 5:10 ഉപയോഗിക്കുക (5 നും 10 നും ഇടയിലുള്ള മൂല്യങ്ങൾക്ക്)."
 DocType: Google Calendar,Pull from Google Calendar,Google കലണ്ടറിൽ നിന്ന് വലിക്കുക
 apps/frappe/frappe/core/doctype/data_import/data_import.js,Help,സഹായിക്കൂ
 DocType: User,Login Before,"മുമ്പ്, ലോഗിൻ"
@@ -3032,7 +3032,7 @@ DocType: DocField,Allow on Submit,സമർപ്പിക്കുക അനു
 DocType: DocField,HTML,എച്ച്ടിഎംഎൽ
 DocType: Error Snapshot,Exception Type,ഒഴിവാക്കൽ തരം
 apps/frappe/frappe/public/js/frappe/views/reports/report_view.js,Pick Columns,നിരകൾ തിരഞ്ഞെടുക്കുക
-DocType: Web Page,Add code as &lt;script>,&lt;സ്ക്രിപ്റ്റ്> പോലെ കോഡ് ചേർക്കുക
+DocType: Web Page,Add code as <script>,<സ്ക്രിപ്റ്റ്> പോലെ കോഡ് ചേർക്കുക
 apps/frappe/frappe/core/doctype/user_permission/user_permission_list.js,Clear User Permissions,ഉപയോക്തൃ അനുമതികൾ മായ്‌ക്കുക
 DocType: Webhook,Headers,തലക്കെട്ടുകൾ
 apps/frappe/frappe/public/js/frappe/social/components/ActivitySidebar.vue,Upcoming Events,വരാനിരിക്കുന്ന
@@ -3402,16 +3402,16 @@ DocType: Workflow State,share-alt,പങ്ക്-Alt
 apps/frappe/frappe/utils/background_jobs.py,Queue should be one of {0},ക്യൂ {0} ഒന്നായിരിക്കണം
 DocType: Address Template,"<h4>Default Template</h4>
 <p>Uses <a href=""http://jinja.pocoo.org/docs/templates/"">Jinja Templating</a> and all the fields of Address (including Custom Fields if any) will be available</p>
-<pre><code>{{ address_line1 }}&lt;br>
-{% if address_line2 %}{{ address_line2 }}&lt;br>{% endif -%}
-{{ city }}&lt;br>
-{% if state %}{{ state }}&lt;br>{% endif -%}
-{% if pincode %} PIN:  {{ pincode }}&lt;br>{% endif -%}
-{{ country }}&lt;br>
-{% if phone %}Phone: {{ phone }}&lt;br>{% endif -%}
-{% if fax %}Fax: {{ fax }}&lt;br>{% endif -%}
-{% if email_id %}Email: {{ email_id }}&lt;br>{% endif -%}
-</code></pre>","<h4> സ്ഥിരസ്ഥിതി ഫലകം </h4><p> ഉപയോഗിക്കുന്നു <a href=""http://jinja.pocoo.org/docs/templates/"">Jinja Templating</a> ആൻഡ് (കസ്റ്റം ഫീൽഡ് എന്തെങ്കിലും ഉണ്ടെങ്കിൽ ഉൾപ്പെടെ) വിലാസം എല്ലാ നിലങ്ങളും ലഭ്യമാകും </p><pre> <code>{{ address_line1 }}&lt;br> {% if address_line2 %}{{ address_line2 }}&lt;br>{% endif -%} {{ city }}&lt;br> {% if state %}{{ state }}&lt;br>{% endif -%} {% if pincode %} PIN: {{ pincode }}&lt;br>{% endif -%} {{ country }}&lt;br> {% if phone %}Phone: {{ phone }}&lt;br>{% endif -%} {% if fax %}Fax: {{ fax }}&lt;br>{% endif -%} {% if email_id %}Email: {{ email_id }}&lt;br>{% endif -%}</code> </pre>"
+<pre><code>{{ address_line1 }}<br>
+{% if address_line2 %}{{ address_line2 }}<br>{% endif -%}
+{{ city }}<br>
+{% if state %}{{ state }}<br>{% endif -%}
+{% if pincode %} PIN:  {{ pincode }}<br>{% endif -%}
+{{ country }}<br>
+{% if phone %}Phone: {{ phone }}<br>{% endif -%}
+{% if fax %}Fax: {{ fax }}<br>{% endif -%}
+{% if email_id %}Email: {{ email_id }}<br>{% endif -%}
+</code></pre>","<h4> സ്ഥിരസ്ഥിതി ഫലകം </h4><p> ഉപയോഗിക്കുന്നു <a href=""http://jinja.pocoo.org/docs/templates/"">Jinja Templating</a> ആൻഡ് (കസ്റ്റം ഫീൽഡ് എന്തെങ്കിലും ഉണ്ടെങ്കിൽ ഉൾപ്പെടെ) വിലാസം എല്ലാ നിലങ്ങളും ലഭ്യമാകും </p><pre> <code>{{ address_line1 }}<br> {% if address_line2 %}{{ address_line2 }}<br>{% endif -%} {{ city }}<br> {% if state %}{{ state }}<br>{% endif -%} {% if pincode %} PIN: {{ pincode }}<br>{% endif -%} {{ country }}<br> {% if phone %}Phone: {{ phone }}<br>{% endif -%} {% if fax %}Fax: {{ fax }}<br>{% endif -%} {% if email_id %}Email: {{ email_id }}<br>{% endif -%}</code> </pre>"
 DocType: Calendar View,Start Date Field,ആരംഭിക്കുന്ന ഫീൽഡ് ഫീൽഡ്
 DocType: Role,Role Name,റോൾ പേര്
 apps/frappe/frappe/templates/includes/navbar/navbar_login.html,Switch To Desk,പഴകിയ മാറുക
