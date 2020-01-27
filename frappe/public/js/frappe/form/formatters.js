@@ -89,12 +89,12 @@ frappe.form.formatters = {
 			return '<i class="fa fa-square disabled-check"></i>';
 		}
 	},
-	Link: function(value, docfield, options, doc) {
+	Link: function(value, docfield, options, doc, _link_title) {
 		var doctype = docfield._options || docfield.options;
 		var original_value = value;
-		let link_title = undefined;
+		let link_title = _link_title;
 
-		if (doc && doc.hasOwnProperty("__onload") && doc.__onload._title_values) {
+		if (doc && !_link_title && doc.hasOwnProperty("__onload") && doc.__onload._title_values) {
 			link_title = doc.__onload._title_values[doc.get(docfield.fieldname)];
 		}
 
@@ -128,7 +128,8 @@ frappe.form.formatters = {
 			return `<a class="grey"
 				href="#Form/${encodeURIComponent(doctype)}/${encodeURIComponent(original_value)}"
 				data-doctype="${doctype}"
-				data-name="${original_value}">
+				data-name="${original_value}"
+				data-value="${original_value}">
 				${__(options && options.label || link_title || value)}</a>`;
 		} else {
 			return link_title || value;
@@ -289,7 +290,7 @@ frappe.form.get_formatter = function(fieldtype) {
 	return frappe.form.formatters[fieldtype.replace(/ /g, "")] || frappe.form.formatters.Data;
 }
 
-frappe.format = function(value, df, options, doc) {
+frappe.format = function(value, df, options, doc, _link_title) {
 	if(!df) df = {"fieldtype":"Data"};
 	var fieldtype = df.fieldtype || "Data";
 
@@ -301,7 +302,7 @@ frappe.format = function(value, df, options, doc) {
 
 	var formatter = df.formatter || frappe.form.get_formatter(fieldtype);
 
-	var formatted = formatter(value, df, options, doc);
+	var formatted = formatter(value, df, options, doc, _link_title);
 
 	if (typeof formatted == "string")
 		formatted = frappe.dom.remove_script_and_style(formatted);

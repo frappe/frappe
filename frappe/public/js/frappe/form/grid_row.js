@@ -8,6 +8,7 @@ export default class GridRow {
 		this.columns_list = [];
 		$.extend(this, opts);
 		this.row_check_html = '<input type="checkbox" class="grid-row-check pull-left">';
+		this.set_link_titles();
 		this.make();
 	}
 	make() {
@@ -245,19 +246,18 @@ export default class GridRow {
 		for(var ci in this.grid.visible_columns) {
 			var df = this.grid.visible_columns[ci][0],
 				colsize = this.grid.visible_columns[ci][1],
-				txt = this.doc ?
-					frappe.format(this.doc[df.fieldname], df, null, this.doc) :
-					__(df.label);
+				_link_title = this.get_link_title(df),
+				txt = this.doc ? frappe.format(this.doc[df.fieldname], df, null, this.doc, _link_title) : __(df.label);
 
 			if(this.doc && df.fieldtype === "Select") {
 				txt = __(txt);
 			}
 
 			if(!this.columns[df.fieldname]) {
-				var column = this.make_column(df, colsize, txt, ci);
+				var column = this.make_column(df, colsize, _link_title, txt, ci);
 			} else {
 				var column = this.columns[df.fieldname];
-				this.refresh_field(df.fieldname, txt);
+				this.refresh_field(df.fieldname, txt, _link_title);
 			}
 
 			// background color for cellz
@@ -272,7 +272,7 @@ export default class GridRow {
 		}
 	}
 
-	make_column(df, colsize, txt, ci) {
+	make_column(df, colsize, _link_title, txt, ci) {
 		let me = this;
 		var add_class = ((["Text", "Small Text"].indexOf(df.fieldtype)!==-1) ?
 			" grid-overflow-no-ellipsis" : "");
@@ -299,7 +299,7 @@ export default class GridRow {
 			});
 
 		$col.field_area = $('<div class="field-area"></div>').appendTo($col).toggle(false);
-		$col.static_area = $('<div class="static-area ellipsis"></div>').appendTo($col).html(txt);
+		$col.static_area = $('<div class="static-area ellipsis"></div>').appendTo($col).html(_link_title || txt);
 		$col.df = df;
 		$col.column_index = ci;
 
@@ -344,12 +344,12 @@ export default class GridRow {
 
 				if(!this.frm) {
 					let df = this.grid.visible_columns[index][0]
-
+					let _link_title = this.get_link_title(df);
 					let txt = this.doc ?
-						frappe.format(this.doc[df.fieldname], df, null, this.doc) :
+						frappe.format(this.doc[df.fieldname], df, null, this.doc, _link_title) :
 						__(df.label);
 
-					this.refresh_field(df.fieldname, txt)
+					this.refresh_field(df.fieldname, txt, _link_title)
 				}
 
 				if (!column.df.hidden) {
@@ -391,7 +391,7 @@ export default class GridRow {
 		// sync get_query
 		field.get_query = this.grid.get_field(df.fieldname).get_query;
 		field.df.onchange = function() {
-			me.grid.grid_rows[this.doc.idx-1].refresh_field(this.df.fieldname);
+			me.grid.grid_rows[this.doc.idx-1].refresh_field(this.df.fieldname, this.get_link_title(df));
 		};
 		field.refresh();
 		if(field.$input) {
@@ -563,7 +563,7 @@ export default class GridRow {
 			this.grid.add_new_row(null, null, true);
 		}
 	}
-	refresh_field(fieldname, txt) {
+	refresh_field(fieldname, txt, _link_title) {
 		var df = this.grid.get_docfield(fieldname) || undefined;
 
 		// format values if no frm
@@ -573,19 +573,19 @@ export default class GridRow {
 			});
 			if(df && this.doc) {
 				var txt = frappe.format(this.doc[fieldname], df[0],
-					null, this.doc);
+					null, this.doc, _link_title);
 			}
 		}
 
 		if(txt===undefined && this.frm) {
 			var txt = frappe.format(this.doc[fieldname], df,
-				null, this.frm.doc);
+				null, this.frm.doc, _link_title);
 		}
 
 		// reset static value
 		var column = this.columns[fieldname];
 		if(column) {
-			column.static_area.html(txt || "");
+			column.static_area.html(_link_title || txt || "");
 			if(df && df.reqd) {
 				column.toggleClass('error', !!(txt===null || txt===''));
 			}
@@ -600,7 +600,7 @@ export default class GridRow {
 
 		// in form
 		if(this.grid_form) {
-			this.grid_form.refresh_field(fieldname);
+			this.grid_form.refresh_field(fieldname, _link_title);
 		}
 	}
 	get_field(fieldname) {
@@ -651,5 +651,15 @@ export default class GridRow {
 	}
 	toggle_editable(fieldname, editable) {
 		this.set_field_property(fieldname, 'read_only', editable ? 0 : 1);
+	}
+	set_link_titles() {
+		this.link_titles = undefined;
+
+		if (this.frm.doc.__onload && this.frm.doc.__onload._link_titles) {
+			this.link_titles = this.frm.doc.__onload._link_titles;
+		}
+	}
+	get_link_title(df) {
+		return (this.doc && this.link_titles) ? this.link_titles[this.doc[df.fieldname]] : undefined
 	}
 };
