@@ -327,4 +327,4 @@ def evaluate_alert(doc, alert, event):
 			frappe.utils.get_link_to_form('Error Log', error_log.name))))
 
 def get_context(doc):
-	return {"doc": doc, "nowdate": nowdate, "frappe.utils": frappe.utils}
+	return {"doc": doc.as_dict(), "nowdate": nowdate, "frappe.utils": frappe.utils}
