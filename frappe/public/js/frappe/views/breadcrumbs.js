@@ -17,8 +17,8 @@ frappe.breadcrumbs = {
 		'Custom': 'Settings',
 		'Workflow': 'Settings',
 		'Printing': 'Settings',
-		'Automation': 'Settings',
 		'Setup': 'Settings',
+		'Event Streaming': 'Automation'
 	},
 
 	set_doctype_module: function(doctype, module) {
