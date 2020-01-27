@@ -217,3 +217,16 @@ def show_progress(docnames, message, i, description):
 			title = message,
 			description = description
 		)
+
+def set_workflow_state_on_action(doc, workflow_name, action):
+	workflow = frappe.get_doc('Workflow', workflow_name)
+	workflow_state_field = workflow.workflow_state_field
+	action_map = {
+		'submit': '1',
+		'cancel': '2'
+	}
+	docstatus = action_map[action]
+	for state in workflow.states:
+		if state.doc_status == docstatus:
+			doc.set(workflow_state_field, state.state)
+			return
