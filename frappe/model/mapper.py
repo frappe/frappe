@@ -1,7 +1,7 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
-from __future__ import unicode_literals, annotations
+from __future__ import unicode_literals
 import frappe, json
 from frappe import _
 from frappe.utils import cstr
@@ -30,11 +30,11 @@ def make_mapped_doc(method, source_name, selected_children=None, args=None):
 	return method(source_name)
 
 @frappe.whitelist()
-def map_docs(method, source_names, target_doc, args: str = None):
+def map_docs(method, source_names, target_doc, args=None):
 	''' Returns the mapped document calling the given mapper method
 	with each of the given source docs on the target doc
 
-	:param args: Args to pass to the mapper method
+	:param args: Args as string to pass to the mapper method
 	E.g. args: "{ 'supplier': 'XYZ' }" '''
 
 	method = frappe.get_attr(method)
