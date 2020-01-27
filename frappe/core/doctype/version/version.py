@@ -43,7 +43,7 @@ def get_diff(old, new, for_child=False):
 	if not new:
 		return None
 
-	blacklisted_fields = ["Markdown Editor"]
+	blacklisted_fields = ["Markdown Editor", "Text Editor", "Code", "HTML Editor"]
 
 	# capture data import if set
 	data_import = new.flags.via_data_import
