@@ -4,15 +4,15 @@ apps/frappe/frappe/core/doctype/system_settings/system_settings.py,Please select
 DocType: Currency,Smallest Currency Fraction Value,Valor de la fracción de moneda más pequeña
 DocType: Address Template,"<h4>Default Template</h4>
 <p>Uses <a href=""http://jinja.pocoo.org/docs/templates/"">Jinja Templating</a> and all the fields of Address (including Custom Fields if any) will be available</p>
-<pre><code>{{ address_line1 }}&lt;br&gt;
-{% if address_line2 %}{{ address_line2 }}&lt;br&gt;{% endif -%}
-{{ city }}&lt;br&gt;
-{% if state %}{{ state }}&lt;br&gt;{% endif -%}
-{% if pincode %} PIN:  {{ pincode }}&lt;br&gt;{% endif -%}
-{{ country }}&lt;br&gt;
-{% if phone %}Phone: {{ phone }}&lt;br&gt;{% endif -%}
-{% if fax %}Fax: {{ fax }}&lt;br&gt;{% endif -%}
-{% if email_id %}Email: {{ email_id }}&lt;br&gt;{% endif -%}
+<pre><code>{{ address_line1 }}&lt;br>
+{% if address_line2 %}{{ address_line2 }}&lt;br>{% endif -%}
+{{ city }}&lt;br>
+{% if state %}{{ state }}&lt;br>{% endif -%}
+{% if pincode %} PIN:  {{ pincode }}&lt;br>{% endif -%}
+{{ country }}&lt;br>
+{% if phone %}Phone: {{ phone }}&lt;br>{% endif -%}
+{% if fax %}Fax: {{ fax }}&lt;br>{% endif -%}
+{% if email_id %}Email: {{ email_id }}&lt;br>{% endif -%}
 </code></pre>","<h4> Por defecto la plantilla <!-- h4--> 
  <p> <a href=""http://jinja.pocoo.org/docs/templates/""> Jinja Templating </a> y todos los campos de la Dirección ( incluyendo campos personalizados en su caso) estará disponible <!-- p--> 
  </p><pre> <code> {{address_line1}} &amp; lt; br &amp; gt; 
@@ -26,4 +26,4 @@ DocType: Address Template,"<h4>Default Template</h4>
  {% if email_ID%} Email: {{email_ID}} &amp; lt; br &amp; gt ; {% endif -%} 
  <!-- code--> <!-- pre--></code></pre></h4>"
 DocType: Data Migration Plan,Postprocess Method,Método de Postproceso
-DocType: Website Settings,&lt;head&gt; HTML,&lt;head&gt; HTML
+DocType: Website Settings,&lt;head> HTML,&lt;head> HTML

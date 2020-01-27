@@ -1144,7 +1144,7 @@ apps/frappe/frappe/database.py +217,Too many writes in one request. Please send 
 DocType: Workflow State,arrow-up,šipka-nahoru
 DocType: DocField,Allow on Submit,Povolit při Odeslání
 apps/frappe/frappe/core/page/desktop/desktop.js +48,All Applications,Všechny aplikace
-DocType: Web Page,Add code as &lt;script&gt;,Přidat kód jako &lt;script&gt;
+DocType: Web Page,Add code as &lt;script>,Přidat kód jako &lt;script>
 apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +7,Select Type,Vyberte typ
 apps/frappe/frappe/core/doctype/file_data/file_data.py +42,No permission to write / remove.,Bez oprávnění k zápisu / odebrání.
 DocType: Workflow,"All possible Workflow States and roles of the workflow. <br>Docstatus Options: 0 is""Saved"", 1 is ""Submitted"" and 2 is ""Cancelled""","Všechny možné stavy toků (workflow) a role toků. <br>Možnosti stavů dokumentů (Docstatus): 0 je ""Uloženo"", 1 je ""Vloženo"" a 2 je ""Zrušeno"""
@@ -1159,7 +1159,7 @@ apps/frappe/frappe/desk/form/save.py +30,Did not save,Nebylo uloženo
 DocType: Property Setter,Property,Vlastnost
 DocType: Website Slideshow,"Note: For best results, images must be of the same size and width must be greater than height.","Poznámka: Pro nejlepší výsledky, obrázky musí být stejné velikosti a šířka musí být větší než výška."
 DocType: DocType,Auto Name,Automatický název
-apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +169,Permissions can be managed via Setup &gt; Role Permissions Manager,Oprávnění mohou být spravována přes Nastavení &gt; Správce rolí a oprávnění
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +169,Permissions can be managed via Setup > Role Permissions Manager,Oprávnění mohou být spravována přes Nastavení > Správce rolí a oprávnění
 apps/frappe/frappe/core/page/data_import_tool/importer.py +67,Please make sure that there are no empty columns in the file.,"Prosím ujistěte se, zda v souboru nejsou prázdné sloupce."
 sites/assets/js/desk.min.js +600,You have unsaved changes in this form. Please save before you continue.,"V tomto formuláři máte neuložené změny. Prosím, uložte změny než budete pokračovat."
 apps/frappe/frappe/core/doctype/doctype/doctype.py +269,Default for {0} must be an option,Výchozí pro {0} musí být možnost
@@ -1377,7 +1377,7 @@ apps/frappe/frappe/templates/generators/web_form.html +18,Please login to create
 apps/frappe/frappe/desk/reportview.py +69,{0} is saved,{0} uloženo
 apps/frappe/frappe/core/doctype/user/user.py +234,User {0} cannot be renamed,Uživatel: {0} nemůže být přejmenován
 apps/frappe/frappe/website/doctype/website_settings/website_settings.js +17,Exported,Exportováno
-DocType: DocPerm,"JSON list of DocTypes used to apply User Permissions. If empty, all linked DocTypes will be used to apply User Permissions.","JSON sezam DocTypes použitých pro aplikování uživatelských oprávnění. Pakliže je prázdný, všechny provázané DocTypes budou použity pro aplikování uživatelských oprávnění."
+DocType: DocPerm,"JSON list of DocTypes used to apply User Permissions. If empty, all linked DocTypes will be used to apply User Permissions.","JSON sezam DocTypes použitých pro aplikování uživatelských oprávnění. Pakliže je prázdný, v��echny provázané DocTypes budou použity pro aplikování uživatelských oprávnění."
 DocType: Report,Ref DocType,Referenční DocType
 apps/frappe/frappe/core/doctype/doctype/doctype.py +390,{0}: Cannot set Amend without Cancel,{0}: Nelze Změnit bez Zrušení
 sites/assets/js/form.min.js +256,Full Page,Full Page

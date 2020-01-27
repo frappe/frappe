@@ -1031,7 +1031,7 @@ apps/frappe/frappe/public/js/frappe/list/list_view.js,No {0} found,Нема {0} 
 apps/frappe/frappe/config/customization.py,Add custom forms.,Додадете сопствени форми.
 apps/frappe/frappe/desk/like.py,{0}: {1} in {2},{0}: {1} на {2}
 apps/frappe/frappe/public/js/frappe/form/footer/timeline.js,submitted this document,поднесено овој документ
-apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Setup &gt; User Permissions,Поставување&gt; Кориснички дозволи
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Setup > User Permissions,Поставување> Кориснички дозволи
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,The system provides many pre-defined roles. You can add new roles to set finer permissions.,Системот обезбедува многу пред-дефинирани улоги. Можете да додавате нови улоги за да го поставите пофини дозволи.
 DocType: Communication,CC,CC
 DocType: Country,Geo,Гео
@@ -1246,7 +1246,7 @@ apps/frappe/frappe/contacts/doctype/contact/contact.py,Please set Email Address,
 DocType: User,"If the user has any role checked, then the user becomes a ""System User"". ""System User"" has access to the desktop","Ако корисникот има било провери улога, тогаш корисникот ќе стане &quot;Систем за корисникот&quot;. &quot;Систем за корисникот&quot; има пристап на работната површина"
 DocType: System Settings,Date and Number Format,Датум и број формат
 apps/frappe/frappe/model/document.py,one of,еден од
-apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Setup &gt; Customize Form,Поставување&gt; Персонализирајте форма
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Setup > Customize Form,Поставување> Персонализирајте форма
 apps/frappe/frappe/public/js/frappe/desk.js,Checking one moment,Проверка еден момент
 apps/frappe/frappe/public/js/frappe/list/list_sidebar.html,Show Tags,Прикажи Тагови
 DocType: DocField,HTML Editor,HTML Editor
@@ -1254,7 +1254,7 @@ DocType: System Settings,"If Apply Strict User Permission is checked and User Pe
 DocType: Address,Billing,Платежна
 DocType: Email Queue,Not Sent,Не Испратени
 DocType: Web Form,Actions,Активности
-apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Setup &gt; User,Поставување&gt; Корисник
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Setup > User,Поставување> Корисник
 DocType: Workflow State,align-justify,усогласат-оправдаат
 DocType: User,Middle Name (Optional),Татково име (опционално)
 apps/frappe/frappe/public/js/frappe/request.js,Not Permitted,Не е дозволено
@@ -1401,7 +1401,7 @@ DocType: Report,Is Standard,Е стандард
 DocType: Desktop Icon,_report,_report
 DocType: Desktop Icon,_report,_report
 DocType: Dashboard Chart,Full,Целосно
-DocType: DocField,"Don't HTML Encode HTML tags like &lt;script&gt; or just characters like &lt; or &gt;, as they could be intentionally used in this field","Не HTML Кодираат HTML-ознаки како &lt;script&gt; или само карактери како &lt;и&gt;, како што може да се намерно употребени во оваа област"
+DocType: DocField,"Don't HTML Encode HTML tags like &lt;script> or just characters like &lt; or >, as they could be intentionally used in this field","Не HTML Кодираат HTML-ознаки како &lt;script> или само карактери како &lt;и>, како што може да се намерно употребени во оваа област"
 apps/frappe/frappe/public/js/frappe/utils/energy_point_utils.js,{0} criticized on {1},{0} критикуван на {1}
 DocType: Website Settings,FavIcon,Favicon
 apps/frappe/frappe/data_migration/doctype/data_migration_plan/data_migration_plan.js,Run,Стартувај
@@ -1768,7 +1768,7 @@ DocType: Letter Head,Footer will display correctly only in PDF,Подножје�
 apps/frappe/frappe/core/doctype/data_import/data_import_list.js,Pending,Во очекување
 DocType: System Settings,Allow only one session per user,Дозволи само на една седница на корисник
 apps/frappe/frappe/core/doctype/file/test_file.py,Home/Test Folder 1/Test Folder 3,Почетна / Тест папка 1 / Тест Папка 3
-DocType: Website Settings,&lt;head&gt; HTML,&lt;head&gt; HTML
+DocType: Website Settings,&lt;head> HTML,&lt;head> HTML
 apps/frappe/frappe/public/js/frappe/views/calendar/calendar.js,Select or drag across time slots to create a new event.,Одберете или повлечете низ времето слотови да се создаде нов настан.
 DocType: Contact,Contact Details,Податоци за контакт
 DocType: DocField,In Filter,Во филтерот
@@ -1998,7 +1998,7 @@ apps/frappe/frappe/website/doctype/personal_data_deletion_request/personal_data_
 apps/frappe/frappe/auth.py,Login not allowed at this time,Пријавата не е дозволено во овој момент
 DocType: Data Migration Run,Current Mapping Action,Тековна акција за мапирање
 DocType: Dashboard Chart Source,Source Name,извор Име
-apps/frappe/frappe/public/js/frappe/views/inbox/inbox_view.js,No email account associated with the User. Please add an account under User &gt; Email Inbox.,"Нема сметка за е-пошта поврзана со Корисникот. Ве молиме, додадете сметка под Корисникот&gt; Е-пошта во пошта."
+apps/frappe/frappe/public/js/frappe/views/inbox/inbox_view.js,No email account associated with the User. Please add an account under User > Email Inbox.,"Нема сметка за е-пошта поврзана со Корисникот. Ве молиме, додадете сметка под Корисникот> Е-пошта во пошта."
 DocType: Email Account,Email Sync Option,Е-Sync Опција
 apps/frappe/frappe/core/doctype/data_import/log_details.html,Row No,Ред бр
 DocType: Async Task,Runtime,Траење
@@ -2012,7 +2012,7 @@ apps/frappe/frappe/desk/form/assign_to.py,Already in user's To Do list,Веќе 
 DocType: User Email,Enable Outgoing,Овозможи заминување
 DocType: Address,Fax,Факс
 apps/frappe/frappe/config/customization.py,Custom Tags,Прилагодено Тагови
-apps/frappe/frappe/email/smtp.py,Email Account not setup. Please create a new Email Account from Setup &gt; Email &gt; Email Account,"Не е поставена сметка за е-пошта. Ве молиме, креирајте нова сметка за е-пошта од Поставување&gt; Е-пошта&gt; Сметка за е-пошта"
+apps/frappe/frappe/email/smtp.py,Email Account not setup. Please create a new Email Account from Setup > Email > Email Account,"Не е поставена сметка за е-пошта. Ве молиме, креирајте нова сметка за е-пошта од Поставување> Е-пошта> Сметка за е-пошта"
 DocType: Comment,Submitted,Поднесени
 DocType: Contact,Pulled from Google Contacts,Извлечено од Контактите на Google
 apps/frappe/frappe/integrations/doctype/paypal_settings/paypal_settings.py,In Valid Request,Во валидно барање
@@ -2085,7 +2085,7 @@ DocType: System Settings,Session Expiry in Hours e.g. 06:00,Сесија Важ�
 DocType: Customize Form Field,"This field will appear only if the fieldname defined here has value OR the rules are true (examples): 
 myfield
 eval:doc.myfield=='My Value'
-eval:doc.age&gt;18",Ова поле ќе се појави само ако fieldname дефинирани овде има вредност или правилата се точни (примери): eval myfield: doc.myfield == &quot;Мојот вредност &#39;eval: doc.age&gt; 18
+eval:doc.age>18",Ова поле ќе се појави само ако fieldname дефинирани овде има вредност или правилата се точни (примери): eval myfield: doc.myfield == &quot;Мојот вредност &#39;eval: doc.age> 18
 DocType: Social Login Key,Office 365,Office 365
 apps/frappe/frappe/public/js/frappe/ui/toolbar/energy_points_notifications.js,Today,денес
 apps/frappe/frappe/public/js/frappe/ui/toolbar/energy_points_notifications.js,Today,денес
@@ -2099,7 +2099,7 @@ apps/frappe/frappe/core/doctype/data_export/exporter.py,Parent is the name of th
 DocType: DocType,UPPER CASE,ГОЛЕМИ
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js,Custom HTML,Прилагодено HTML
 apps/frappe/frappe/public/js/frappe/views/file/file_view.js,Enter folder name,Внесете име на папка
-apps/frappe/frappe/contacts/doctype/address/address.py,No default Address Template found. Please create a new one from Setup &gt; Printing and Branding &gt; Address Template.,"Не е пронајдена стандардна образец за адреса. Ве молиме, создадете нова од Поставување&gt; Печатење и брендирање&gt; Шаблон за адреса."
+apps/frappe/frappe/contacts/doctype/address/address.py,No default Address Template found. Please create a new one from Setup > Printing and Branding > Address Template.,"Не е пронајдена стандардна образец за адреса. Ве молиме, создадете нова од Поставување> Печатење и брендирање> Шаблон за адреса."
 apps/frappe/frappe/auth.py,Unknown User,Непознат корисник
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js,Select Role,Изберете Улогата
 DocType: Comment,Deleted,Избришани
@@ -2284,7 +2284,7 @@ apps/frappe/frappe/public/js/frappe/form/linked_with.js,Not enough permission to
 apps/frappe/frappe/public/js/frappe/form/linked_with.js,Not enough permission to see links,Не е доволно дозволи за да ја видите линкови
 apps/frappe/frappe/contacts/doctype/address/address.py,Address Title is mandatory.,Наслов адреса е задолжително.
 DocType: Google Contacts,Push to Google Contacts,Притиснете кон Контактите на Google
-DocType: Website Settings,"Added HTML in the &lt;head&gt; section of the web page, primarily used for website verification and SEO","Додадени HTML во &lt;head&gt; секција на веб-страница, се користи првенствено за верификација вебсајт и SEO"
+DocType: Website Settings,"Added HTML in the &lt;head> section of the web page, primarily used for website verification and SEO","Додадени HTML во &lt;head> секција на веб-страница, се користи првенствено за верификација вебсајт и SEO"
 apps/frappe/frappe/core/doctype/error_snapshot/error_snapshot_list.js,Relapsed,Релапс
 apps/frappe/frappe/utils/nestedset.py,Item cannot be added to its own descendents,Точка не може да се додаде свои потомци
 DocType: Session Default Settings,Session Defaults,Сесија стандардно
@@ -2401,7 +2401,7 @@ DocType: Workflow State,Warning,Предупредување
 apps/frappe/frappe/public/js/frappe/form/print.js,This may get printed on multiple pages,Ова може да се печати на повеќе страници
 DocType: Data Migration Run,Percent Complete,Процент е комплетен
 DocType: Tag Category,Tag Category,таг Категорија
-apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,"For comparison, use &gt;5, &lt;10 or =324. For ranges, use 5:10 (for values between 5 &amp; 10).","За споредба, користете&gt; 5, &lt;10 или = 324. За опсег, користете 5:10 (за вредности помеѓу 5 и 10)."
+apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,"For comparison, use >5, &lt;10 or =324. For ranges, use 5:10 (for values between 5 &amp; 10).","За споредба, користете> 5, &lt;10 или = 324. За опсег, користете 5:10 (за вредности помеѓу 5 и 10)."
 DocType: Google Calendar,Pull from Google Calendar,Повлечете од Календарот на Google
 apps/frappe/frappe/core/doctype/data_import/data_import.js,Help,Помош
 DocType: User,Login Before,Влези Пред
@@ -2857,7 +2857,7 @@ DocType: Custom Script,Custom Script,Прилагодено сценарио
 DocType: Address,Address Line 2,Адреса Линија 2
 DocType: Address,Reference,Референтен
 apps/frappe/frappe/public/js/frappe/list/list_sidebar_group_by.js,Assigned To,Доделени
-apps/frappe/frappe/email/smtp.py,Please setup default Email Account from Setup &gt; Email &gt; Email Account,Ве молиме поставете ја стандардната сметка за е-пошта од Поставување&gt; Е-пошта&gt; Сметка за е-пошта
+apps/frappe/frappe/email/smtp.py,Please setup default Email Account from Setup > Email > Email Account,Ве молиме поставете ја стандардната сметка за е-пошта од Поставување> Е-пошта> Сметка за е-пошта
 DocType: Data Migration Mapping Detail,Data Migration Mapping Detail,Детали за картирање на миграција на податоци
 DocType: Data Import,Action,Акција
 DocType: GSuite Settings,Script URL,Script URL
@@ -3030,7 +3030,7 @@ DocType: DocField,Allow on Submit,Им овозможи на Поднесете
 DocType: DocField,HTML,HTML
 DocType: Error Snapshot,Exception Type,Исклучок Тип
 apps/frappe/frappe/public/js/frappe/views/reports/report_view.js,Pick Columns,Трансферот Колони
-DocType: Web Page,Add code as &lt;script&gt;,Додади код како &lt;script&gt;
+DocType: Web Page,Add code as &lt;script>,Додади код како &lt;script>
 apps/frappe/frappe/core/doctype/user_permission/user_permission_list.js,Clear User Permissions,Исчистете ги дозволите за корисниците
 DocType: Webhook,Headers,Заглавија
 apps/frappe/frappe/public/js/frappe/social/components/ActivitySidebar.vue,Upcoming Events,Престојни настани
@@ -3390,16 +3390,16 @@ DocType: Workflow State,share-alt,на акции alt
 apps/frappe/frappe/utils/background_jobs.py,Queue should be one of {0},Дното треба да биде еден од {0}
 DocType: Address Template,"<h4>Default Template</h4>
 <p>Uses <a href=""http://jinja.pocoo.org/docs/templates/"">Jinja Templating</a> and all the fields of Address (including Custom Fields if any) will be available</p>
-<pre><code>{{ address_line1 }}&lt;br&gt;
-{% if address_line2 %}{{ address_line2 }}&lt;br&gt;{% endif -%}
-{{ city }}&lt;br&gt;
-{% if state %}{{ state }}&lt;br&gt;{% endif -%}
-{% if pincode %} PIN:  {{ pincode }}&lt;br&gt;{% endif -%}
-{{ country }}&lt;br&gt;
-{% if phone %}Phone: {{ phone }}&lt;br&gt;{% endif -%}
-{% if fax %}Fax: {{ fax }}&lt;br&gt;{% endif -%}
-{% if email_id %}Email: {{ email_id }}&lt;br&gt;{% endif -%}
-</code></pre>","<h4> Стандардно Шаблон </h4><p> Користи <a href=""http://jinja.pocoo.org/docs/templates/"">Jinja templating</a> и сите области на адресата (вклучувајќи сопствени полиња, ако ги има) ќе биде достапен </p><pre> <code>{{ address_line1 }}&lt;br&gt; {% if address_line2 %}{{ address_line2 }}&lt;br&gt;{% endif -%} {{ city }}&lt;br&gt; {% if state %}{{ state }}&lt;br&gt;{% endif -%} {% if pincode %} PIN: {{ pincode }}&lt;br&gt;{% endif -%} {{ country }}&lt;br&gt; {% if phone %}Phone: {{ phone }}&lt;br&gt;{% endif -%} {% if fax %}Fax: {{ fax }}&lt;br&gt;{% endif -%} {% if email_id %}Email: {{ email_id }}&lt;br&gt;{% endif -%}</code> </pre>"
+<pre><code>{{ address_line1 }}&lt;br>
+{% if address_line2 %}{{ address_line2 }}&lt;br>{% endif -%}
+{{ city }}&lt;br>
+{% if state %}{{ state }}&lt;br>{% endif -%}
+{% if pincode %} PIN:  {{ pincode }}&lt;br>{% endif -%}
+{{ country }}&lt;br>
+{% if phone %}Phone: {{ phone }}&lt;br>{% endif -%}
+{% if fax %}Fax: {{ fax }}&lt;br>{% endif -%}
+{% if email_id %}Email: {{ email_id }}&lt;br>{% endif -%}
+</code></pre>","<h4> Стандардно Шаблон </h4><p> Користи <a href=""http://jinja.pocoo.org/docs/templates/"">Jinja templating</a> и сите области на адресата (вклучувајќи сопствени полиња, ако ги има) ќе биде достапен </p><pre> <code>{{ address_line1 }}&lt;br> {% if address_line2 %}{{ address_line2 }}&lt;br>{% endif -%} {{ city }}&lt;br> {% if state %}{{ state }}&lt;br>{% endif -%} {% if pincode %} PIN: {{ pincode }}&lt;br>{% endif -%} {{ country }}&lt;br> {% if phone %}Phone: {{ phone }}&lt;br>{% endif -%} {% if fax %}Fax: {{ fax }}&lt;br>{% endif -%} {% if email_id %}Email: {{ email_id }}&lt;br>{% endif -%}</code> </pre>"
 DocType: Calendar View,Start Date Field,Почетно поле за датум
 DocType: Role,Role Name,Улогата Име
 apps/frappe/frappe/templates/includes/navbar/navbar_login.html,Switch To Desk,Префрли се на маса

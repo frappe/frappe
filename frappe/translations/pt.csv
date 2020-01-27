@@ -747,7 +747,7 @@ apps/frappe/frappe/desk/page/backups/backups.py,File backup is ready,O backup do
 DocType: DocField,In Global Search,Em Global Search
 DocType: System Settings,Brute Force Security,Segurança da força bruta
 DocType: Workflow State,indent-left,travessão-esquerdo
-apps/frappe/frappe/public/js/frappe/utils/pretty_date.js,&gt; {0} year(s) ago,&gt; {0} ano (s) atrás
+apps/frappe/frappe/public/js/frappe/utils/pretty_date.js,> {0} year(s) ago,> {0} ano (s) atrás
 apps/frappe/frappe/utils/file_manager.py,It is risky to delete this file: {0}. Please contact your System Manager.,"É arriscado eliminar este ficheiro: {0}. Por favor, contate o administrador do sistema."
 DocType: Currency,Currency Name,Nome da Moeda
 apps/frappe/frappe/public/js/frappe/views/inbox/inbox_view.js,No Emails,não há e-mails
@@ -1043,7 +1043,7 @@ apps/frappe/frappe/public/js/frappe/list/list_view.js,No {0} found,Não foi enco
 apps/frappe/frappe/config/customization.py,Add custom forms.,Adicione formulários personalizados.
 apps/frappe/frappe/desk/like.py,{0}: {1} in {2},{0}: {1} em {2}
 apps/frappe/frappe/public/js/frappe/form/footer/timeline.js,submitted this document,apresentou este documento
-apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Setup &gt; User Permissions,Configuração&gt; Permissões do Usuário
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Setup > User Permissions,Configuração> Permissões do Usuário
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,The system provides many pre-defined roles. You can add new roles to set finer permissions.,O sistema proporciona várias funções pré - definidas . Você pode adicionar novas funções para definir as permissões mais finos.
 DocType: Communication,CC,CC
 DocType: Country,Geo,Geo
@@ -1264,7 +1264,7 @@ apps/frappe/frappe/contacts/doctype/contact/contact.py,Please set Email Address,
 DocType: User,"If the user has any role checked, then the user becomes a ""System User"". ""System User"" has access to the desktop","Se o utilizador tiver alguma função selecionada, então o utilizador torna-se um ""Utilizador do Sistema"". Um ""Utilizador do Sistema"" tem acesso à área de trabalho"
 DocType: System Settings,Date and Number Format,Data e Formato de Número
 apps/frappe/frappe/model/document.py,one of,um dos
-apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Setup &gt; Customize Form,Configuração&gt; Personalizar formulário
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Setup > Customize Form,Configuração> Personalizar formulário
 apps/frappe/frappe/public/js/frappe/desk.js,Checking one moment,Verificando um momento
 apps/frappe/frappe/public/js/frappe/list/list_sidebar.html,Show Tags,Mostrar as tags
 DocType: DocField,HTML Editor,Editor de HTML
@@ -1272,7 +1272,7 @@ DocType: System Settings,"If Apply Strict User Permission is checked and User Pe
 DocType: Address,Billing,Faturação
 DocType: Email Queue,Not Sent,Não Enviado
 DocType: Web Form,Actions,Ações
-apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Setup &gt; User,Configuração&gt; Usuário
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Setup > User,Configuração> Usuário
 DocType: Workflow State,align-justify,alinhar justificado
 DocType: User,Middle Name (Optional),Nome do Meio (Opcional)
 apps/frappe/frappe/public/js/frappe/request.js,Not Permitted,Não Permitido
@@ -1421,7 +1421,7 @@ DocType: Report,Is Standard,É Padrão
 DocType: Desktop Icon,_report,_relatório
 DocType: Desktop Icon,_report,_relatório
 DocType: Dashboard Chart,Full,Cheio
-DocType: DocField,"Don't HTML Encode HTML tags like &lt;script&gt; or just characters like &lt; or &gt;, as they could be intentionally used in this field","Não Codifique tags de HTML como &lt;script&gt; ou só como caracteres como &lt; or &gt;, pois podem ser utilizados intencionalmente neste campo"
+DocType: DocField,"Don't HTML Encode HTML tags like &lt;script> or just characters like &lt; or >, as they could be intentionally used in this field","Não Codifique tags de HTML como &lt;script> ou só como caracteres como &lt; or >, pois podem ser utilizados intencionalmente neste campo"
 apps/frappe/frappe/public/js/frappe/utils/energy_point_utils.js,{0} criticized on {1},{0} criticado em {1}
 DocType: Website Settings,FavIcon,FavIcon
 apps/frappe/frappe/data_migration/doctype/data_migration_plan/data_migration_plan.js,Run,Corre
@@ -1803,7 +1803,7 @@ DocType: Letter Head,Footer will display correctly only in PDF,Rodapé será exi
 apps/frappe/frappe/core/doctype/data_import/data_import_list.js,Pending,Pendente
 DocType: System Settings,Allow only one session per user,Permitir somente uma sessão por utilizador
 apps/frappe/frappe/core/doctype/file/test_file.py,Home/Test Folder 1/Test Folder 3,Início/Pasta de Teste 1/Pasta de Teste 3
-DocType: Website Settings,&lt;head&gt; HTML,&lt;head&gt; HTML
+DocType: Website Settings,&lt;head> HTML,&lt;head> HTML
 apps/frappe/frappe/public/js/frappe/views/calendar/calendar.js,Select or drag across time slots to create a new event.,Selecione ou arraste intervalos de tempo para criar um novo evento.
 DocType: Contact,Contact Details,Dados de Contacto
 DocType: DocField,In Filter,No Filtro
@@ -2037,7 +2037,7 @@ apps/frappe/frappe/website/doctype/personal_data_deletion_request/personal_data_
 apps/frappe/frappe/auth.py,Login not allowed at this time,Neste momento não é permitido iniciar sessão
 DocType: Data Migration Run,Current Mapping Action,Ação de Mapeamento atual
 DocType: Dashboard Chart Source,Source Name,Nome da Fonte
-apps/frappe/frappe/public/js/frappe/views/inbox/inbox_view.js,No email account associated with the User. Please add an account under User &gt; Email Inbox.,Nenhuma conta de email associada ao usuário. Adicione uma conta em Usuário&gt; Caixa de entrada de email.
+apps/frappe/frappe/public/js/frappe/views/inbox/inbox_view.js,No email account associated with the User. Please add an account under User > Email Inbox.,Nenhuma conta de email associada ao usuário. Adicione uma conta em Usuário> Caixa de entrada de email.
 DocType: Email Account,Email Sync Option,Sincronizar e-mail Opção
 apps/frappe/frappe/core/doctype/data_import/log_details.html,Row No,Row No
 DocType: Async Task,Runtime,Tempo de Execução
@@ -2052,7 +2052,7 @@ apps/frappe/frappe/desk/form/assign_to.py,Already in user's To Do list,Já está
 DocType: User Email,Enable Outgoing,Ativar Enviar
 DocType: Address,Fax,Fax
 apps/frappe/frappe/config/customization.py,Custom Tags,Etiquetas personalizadas
-apps/frappe/frappe/email/smtp.py,Email Account not setup. Please create a new Email Account from Setup &gt; Email &gt; Email Account,Conta de e-mail não configurada. Crie uma nova conta de email em Configuração&gt; Email&gt; Conta de email
+apps/frappe/frappe/email/smtp.py,Email Account not setup. Please create a new Email Account from Setup > Email > Email Account,Conta de e-mail não configurada. Crie uma nova conta de email em Configuração> Email> Conta de email
 DocType: Comment,Submitted,Enviado
 DocType: Contact,Pulled from Google Contacts,Extraído dos Contatos do Google
 apps/frappe/frappe/integrations/doctype/paypal_settings/paypal_settings.py,In Valid Request,Pedido inválido
@@ -2126,7 +2126,7 @@ DocType: System Settings,Session Expiry in Hours e.g. 06:00,"Caducidade sessão 
 DocType: Customize Form Field,"This field will appear only if the fieldname defined here has value OR the rules are true (examples): 
 myfield
 eval:doc.myfield=='My Value'
-eval:doc.age&gt;18",Este campo aparecerá apenas se o nome do campo definido aqui tem valor ou as regras são verdadeiros (exemplos): myfield eval: doc.myfield == &#39;Meu Valor&#39; eval: doc.age&gt; 18
+eval:doc.age>18",Este campo aparecerá apenas se o nome do campo definido aqui tem valor ou as regras são verdadeiros (exemplos): myfield eval: doc.myfield == &#39;Meu Valor&#39; eval: doc.age> 18
 DocType: Social Login Key,Office 365,Office 365
 apps/frappe/frappe/public/js/frappe/ui/toolbar/energy_points_notifications.js,Today,Hoje
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,"Once you have set this, the users will only be able access documents (eg. Blog Post) where the link exists (eg. Blogger).","Depois de ter definido isso, os utilizadores só poderão ser capazes de aceder a documentos (ex: Post de Blog) onde existir a ligação (ex: Blogger)."
@@ -2140,7 +2140,7 @@ apps/frappe/frappe/integrations/doctype/google_drive/google_drive.py,Google Driv
 DocType: DocType,UPPER CASE,MAIÚSCULAS
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js,Custom HTML,HTML Personalizada
 apps/frappe/frappe/public/js/frappe/views/file/file_view.js,Enter folder name,Insira o nome da pasta
-apps/frappe/frappe/contacts/doctype/address/address.py,No default Address Template found. Please create a new one from Setup &gt; Printing and Branding &gt; Address Template.,Nenhum modelo de endereço padrão encontrado. Crie um novo em Configuração&gt; Impressão e identidade visual&gt; Modelo de endereço.
+apps/frappe/frappe/contacts/doctype/address/address.py,No default Address Template found. Please create a new one from Setup > Printing and Branding > Address Template.,Nenhum modelo de endereço padrão encontrado. Crie um novo em Configuração> Impressão e identidade visual> Modelo de endereço.
 apps/frappe/frappe/auth.py,Unknown User,Usuário desconhecido
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js,Select Role,Selecione Papel
 DocType: Comment,Deleted,Eliminados
@@ -2331,7 +2331,7 @@ apps/frappe/frappe/public/js/frappe/form/linked_with.js,Not enough permission to
 apps/frappe/frappe/public/js/frappe/form/linked_with.js,Not enough permission to see links,Não há permissão suficiente para ver links
 apps/frappe/frappe/contacts/doctype/address/address.py,Address Title is mandatory.,É obrigatório colocar o Título do Endereço.
 DocType: Google Contacts,Push to Google Contacts,Enviar para os Contatos do Google
-DocType: Website Settings,"Added HTML in the &lt;head&gt; section of the web page, primarily used for website verification and SEO","HTML adicionado na seção do &lt;livro&gt; da página web, utilizada principalmente para a verificação do website e SEO"
+DocType: Website Settings,"Added HTML in the &lt;head> section of the web page, primarily used for website verification and SEO","HTML adicionado na seção do &lt;livro> da página web, utilizada principalmente para a verificação do website e SEO"
 apps/frappe/frappe/core/doctype/error_snapshot/error_snapshot_list.js,Relapsed,Reincidência
 apps/frappe/frappe/utils/nestedset.py,Item cannot be added to its own descendents,O item não pode ser acrescentado para aos seus próprios subitens
 DocType: Session Default Settings,Session Defaults,Padrões de Sessão
@@ -2450,7 +2450,7 @@ DocType: Workflow State,Warning,Aviso
 apps/frappe/frappe/public/js/frappe/form/print.js,This may get printed on multiple pages,Isso pode ser impresso em várias páginas
 DocType: Data Migration Run,Percent Complete,Percentagem completa
 DocType: Tag Category,Tag Category,tag Categoria
-apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,"For comparison, use &gt;5, &lt;10 or =324. For ranges, use 5:10 (for values between 5 &amp; 10).","Para comparação, use&gt; 5, &lt;10 ou = 324. Para intervalos, use 5:10 (para valores entre 5 e 10)."
+apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,"For comparison, use >5, &lt;10 or =324. For ranges, use 5:10 (for values between 5 &amp; 10).","Para comparação, use> 5, &lt;10 ou = 324. Para intervalos, use 5:10 (para valores entre 5 e 10)."
 DocType: Google Calendar,Pull from Google Calendar,Puxe do Google Agenda
 apps/frappe/frappe/core/doctype/data_import/data_import.js,Help,Ajuda
 DocType: User,Login Before,Iniciar Sessão Antes
@@ -2918,7 +2918,7 @@ DocType: Custom Script,Custom Script,Script Personalizado
 DocType: Address,Address Line 2,Endereço Linha 2
 DocType: Address,Reference,Referência
 apps/frappe/frappe/public/js/frappe/list/list_sidebar_group_by.js,Assigned To,Atribuído A
-apps/frappe/frappe/email/smtp.py,Please setup default Email Account from Setup &gt; Email &gt; Email Account,Configure a Conta de email padrão em Configuração&gt; Email&gt; Conta de email
+apps/frappe/frappe/email/smtp.py,Please setup default Email Account from Setup > Email > Email Account,Configure a Conta de email padrão em Configuração> Email> Conta de email
 DocType: Data Migration Mapping Detail,Data Migration Mapping Detail,Detalhes do mapeamento de migração de dados
 DocType: Data Import,Action,Ação
 DocType: GSuite Settings,Script URL,URL do script
@@ -3096,7 +3096,7 @@ DocType: DocField,Allow on Submit,Permitir ao Enviar
 DocType: DocField,HTML,HTML
 DocType: Error Snapshot,Exception Type,Tipo de Exceção
 apps/frappe/frappe/public/js/frappe/views/reports/report_view.js,Pick Columns,Escolher Colunas
-DocType: Web Page,Add code as &lt;script&gt;,Adicionar código como &lt;script&gt;
+DocType: Web Page,Add code as &lt;script>,Adicionar código como &lt;script>
 apps/frappe/frappe/core/doctype/user_permission/user_permission_list.js,Clear User Permissions,Limpar permissões do usuário
 DocType: Webhook,Headers,Cabeçalhos
 apps/frappe/frappe/public/js/frappe/social/components/ActivitySidebar.vue,Upcoming Events,próximos eventos
@@ -3473,26 +3473,26 @@ DocType: Workflow State,share-alt,partes alt-
 apps/frappe/frappe/utils/background_jobs.py,Queue should be one of {0},A fila deve ser uma de {0}
 DocType: Address Template,"<h4>Default Template</h4>
 <p>Uses <a href=""http://jinja.pocoo.org/docs/templates/"">Jinja Templating</a> and all the fields of Address (including Custom Fields if any) will be available</p>
-<pre><code>{{ address_line1 }}&lt;br&gt;
-{% if address_line2 %}{{ address_line2 }}&lt;br&gt;{% endif -%}
-{{ city }}&lt;br&gt;
-{% if state %}{{ state }}&lt;br&gt;{% endif -%}
-{% if pincode %} PIN:  {{ pincode }}&lt;br&gt;{% endif -%}
-{{ country }}&lt;br&gt;
-{% if phone %}Phone: {{ phone }}&lt;br&gt;{% endif -%}
-{% if fax %}Fax: {{ fax }}&lt;br&gt;{% endif -%}
-{% if email_id %}Email: {{ email_id }}&lt;br&gt;{% endif -%}
+<pre><code>{{ address_line1 }}&lt;br>
+{% if address_line2 %}{{ address_line2 }}&lt;br>{% endif -%}
+{{ city }}&lt;br>
+{% if state %}{{ state }}&lt;br>{% endif -%}
+{% if pincode %} PIN:  {{ pincode }}&lt;br>{% endif -%}
+{{ country }}&lt;br>
+{% if phone %}Phone: {{ phone }}&lt;br>{% endif -%}
+{% if fax %}Fax: {{ fax }}&lt;br>{% endif -%}
+{% if email_id %}Email: {{ email_id }}&lt;br>{% endif -%}
 </code></pre>","<h4>Modelo Padrão</h4>
 <p>Utiliza <a href=""http://jinja.pocoo.org/docs/templates/""> O Modelo Jinja</a> e todos os campos do Endereço (incluindo Campos Personalizados, caso haja) estarão disponíveis</p>
-<pre><code>{{ address_line1 }}&lt;br&gt;
-{% if address_line2 %}{{ address_line2 }}&lt;br&gt;{% endif -%}
-{{ city }}&lt;br&gt;
-{% if state %}{{ state }}&lt;br&gt;{% endif -%}
-{% if pincode %} PIN:  {{ pincode }}&lt;br&gt;{% endif -%}
-{{ country }}&lt;br&gt;
-{% if phone %}Telefone: {{ phone }}&lt;br&gt;{% endif -%}
-{% if fax %}Fax: {{ fax }}&lt;br&gt;{% endif -%}
-{% if email_id %}Email: {{ email_id }}&lt;br&gt;{% endif -%}
+<pre><code>{{ address_line1 }}&lt;br>
+{% if address_line2 %}{{ address_line2 }}&lt;br>{% endif -%}
+{{ city }}&lt;br>
+{% if state %}{{ state }}&lt;br>{% endif -%}
+{% if pincode %} PIN:  {{ pincode }}&lt;br>{% endif -%}
+{{ country }}&lt;br>
+{% if phone %}Telefone: {{ phone }}&lt;br>{% endif -%}
+{% if fax %}Fax: {{ fax }}&lt;br>{% endif -%}
+{% if email_id %}Email: {{ email_id }}&lt;br>{% endif -%}
 </code></pre>"
 DocType: Calendar View,Start Date Field,Campo de Data de Início
 DocType: Role,Role Name,Nome da Função

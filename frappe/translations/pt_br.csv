@@ -85,7 +85,7 @@ apps/frappe/frappe/public/js/frappe/ui/filters/filters.js,Edit Filter,Edit Filte
 DocType: Customize Form Field,"This field will appear only if the fieldname defined here has value OR the rules are true (examples): 
 myfield
 eval:doc.myfield=='My Value'
-eval:doc.age&gt;18",Este campo aparecerá apenas se o nome do campo definido está preenchido ou se as regras são verdadeiros (exemplos): meu_campo eval: doc.meu_campo=='Valor' eval: doc.idade&gt;18
+eval:doc.age>18",Este campo aparecerá apenas se o nome do campo definido está preenchido ou se as regras são verdadeiros (exemplos): meu_campo eval: doc.meu_campo=='Valor' eval: doc.idade>18
 DocType: File,File URL,URL do arquivo
 DocType: Website Settings,Disable Customer Signup link in Login page,Desativar Link de Inscrição na Página de Login
 apps/frappe/frappe/auth.py,Invalid Request,Requisição Inválida
@@ -215,7 +215,7 @@ apps/frappe/frappe/core/page/dashboard/dashboard.js,Loading...,Carregando...
 apps/frappe/frappe/utils/password.py,Password cannot be more than 100 characters long,A senha não pode ter mais de 100 caracteres
 DocType: Portal Settings,Standard Sidebar Menu,Menu Lateral Padrão
 DocType: Help Article,Likes,Likes
-DocType: DocField,"Don't HTML Encode HTML tags like &lt;script&gt; or just characters like &lt; or &gt;, as they could be intentionally used in this field","Não etiquetas HTML Encode HTML como &lt;script&gt; ou apenas caracteres como &lt;ou&gt;, uma vez que poderia ser usado intencionalmente neste campo"
+DocType: DocField,"Don't HTML Encode HTML tags like &lt;script> or just characters like &lt; or >, as they could be intentionally used in this field","Não etiquetas HTML Encode HTML como &lt;script> ou apenas caracteres como &lt;ou>, uma vez que poderia ser usado intencionalmente neste campo"
 apps/frappe/frappe/core/doctype/data_import/importer.py,Please do not change the rows above {0},"Por favor, não alterar as linhas acima {0}"
 apps/frappe/frappe/core/doctype/data_import/data_import.js,Select All,Selecionar Tudo
 apps/frappe/frappe/public/js/frappe/ui/slides.js,Add More,Adicionar mais
@@ -871,7 +871,7 @@ apps/frappe/frappe/website/doctype/website_settings/website_settings.py,Invalid 
 apps/frappe/frappe/core/doctype/file/file.py,File {0} does not exist,Arquivo {0} não existe
 apps/frappe/frappe/email/smtp.py,Unable to send emails at this time,Não é possível enviar emails neste momento
 DocType: Workflow State,remove-sign,remover-assinar
-DocType: Website Settings,"Added HTML in the &lt;head&gt; section of the web page, primarily used for website verification and SEO","HTML adicionado na seção &lt;head&gt; da página web, principalmente utilizadas para a verificação do site e SEO"
+DocType: Website Settings,"Added HTML in the &lt;head> section of the web page, primarily used for website verification and SEO","HTML adicionado na seção &lt;head> da página web, principalmente utilizadas para a verificação do site e SEO"
 apps/frappe/frappe/templates/emails/auto_reply.html,"Your query has been received. We will reply back shortly. If you have any additional information, please reply to this mail.","Sua consulta foi recebida. Nós responderemos de volta em breve. Se você tiver qualquer informação adicional, por favor responda a este email."
 apps/frappe/frappe/printing/doctype/print_format/print_format.js,Please duplicate this to make changes,"Por favor, duplicar este para fazer mudanças"
 apps/frappe/frappe/email/doctype/email_group/email_group.py,{0} subscribers added,{0} assinantes acrescentados
@@ -1193,15 +1193,15 @@ DocType: Milestone,Milestone,Marco
 DocType: DocField,In Standard Filter,Em Filtro Padrão
 DocType: Address Template,"<h4>Default Template</h4>
 <p>Uses <a href=""http://jinja.pocoo.org/docs/templates/"">Jinja Templating</a> and all the fields of Address (including Custom Fields if any) will be available</p>
-<pre><code>{{ address_line1 }}&lt;br&gt;
-{% if address_line2 %}{{ address_line2 }}&lt;br&gt;{% endif -%}
-{{ city }}&lt;br&gt;
-{% if state %}{{ state }}&lt;br&gt;{% endif -%}
-{% if pincode %} PIN:  {{ pincode }}&lt;br&gt;{% endif -%}
-{{ country }}&lt;br&gt;
-{% if phone %}Phone: {{ phone }}&lt;br&gt;{% endif -%}
-{% if fax %}Fax: {{ fax }}&lt;br&gt;{% endif -%}
-{% if email_id %}Email: {{ email_id }}&lt;br&gt;{% endif -%}
+<pre><code>{{ address_line1 }}&lt;br>
+{% if address_line2 %}{{ address_line2 }}&lt;br>{% endif -%}
+{{ city }}&lt;br>
+{% if state %}{{ state }}&lt;br>{% endif -%}
+{% if pincode %} PIN:  {{ pincode }}&lt;br>{% endif -%}
+{{ country }}&lt;br>
+{% if phone %}Phone: {{ phone }}&lt;br>{% endif -%}
+{% if fax %}Fax: {{ fax }}&lt;br>{% endif -%}
+{% if email_id %}Email: {{ email_id }}&lt;br>{% endif -%}
 </code></pre>","<H4> Default Template </ h4> 
  <p> <a Usa href=""http://jinja.pocoo.org/docs/templates/""> Jinja Templating </a> e todos os campos de Endereço ( incluindo campos personalizados se houver) estará disponível </ p> 
  <pre> <code> {{address_line1}} & lt; br & gt; 

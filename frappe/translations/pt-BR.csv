@@ -542,7 +542,7 @@ apps/frappe/frappe/config/setup.py +64,Report of all document shares,Relatório 
 apps/frappe/frappe/www/update-password.html +18,New Password,Nova senha
 apps/frappe/frappe/core/doctype/activity_log/activity_log.py +29,Sorry! You cannot delete auto-generated comments,Desculpe! Você não pode excluir comentários gerados automaticamente
 DocType: User,System User,Usuário do Sistema
-DocType: DocField,"Don't HTML Encode HTML tags like &lt;script&gt; or just characters like &lt; or &gt;, as they could be intentionally used in this field","Não etiquetas HTML Encode HTML como &lt;script&gt; ou apenas caracteres como &lt;ou&gt;, uma vez que poderia ser usado intencionalmente neste campo"
+DocType: DocField,"Don't HTML Encode HTML tags like &lt;script> or just characters like &lt; or >, as they could be intentionally used in this field","Não etiquetas HTML Encode HTML como &lt;script> ou apenas caracteres como &lt;ou>, uma vez que poderia ser usado intencionalmente neste campo"
 DocType: Workflow State,minus-sign,sinal de menos
 apps/frappe/frappe/public/js/frappe/request.js +110,Not Found,Não encontrado
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +92,Export Custom Permissions,Exportar Permissões Personalizadas
@@ -810,7 +810,7 @@ DocType: System Settings,Session Expiry in Hours e.g. 06:00,"Duração da sessã
 DocType: Customize Form Field,"This field will appear only if the fieldname defined here has value OR the rules are true (examples): 
 myfield
 eval:doc.myfield=='My Value'
-eval:doc.age&gt;18",Este campo aparecerá apenas se o nome do campo definido está preenchido ou se as regras são verdadeiros (exemplos): meu_campo eval: doc.meu_campo=='Valor' eval: doc.idade&gt;18
+eval:doc.age>18",Este campo aparecerá apenas se o nome do campo definido está preenchido ou se as regras são verdadeiros (exemplos): meu_campo eval: doc.meu_campo=='Valor' eval: doc.idade>18
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +35,"Once you have set this, the users will only be able access documents (eg. Blog Post) where the link exists (eg. Blogger).","Depois de ter definido isso, os usuários só poderão ser acessar documentos capazes (ex. Blog Post) onde existe a ligação (por exemplo, Blogger ) ."
 DocType: Error Log,Log of Scheduler Errors,Log de Erros Scheduler
 DocType: User,Bio,Bio
@@ -882,7 +882,7 @@ DocType: Workflow State,trash,lixo
 DocType: System Settings,Older backups will be automatically deleted,Os backups mais antigos serão apagados automaticamente
 DocType: Payment Gateway,Gateway,Porta de entrada
 apps/frappe/frappe/contacts/doctype/address/address.py +37,Address Title is mandatory.,Titulo do Endereço é obrigatório.
-DocType: Website Settings,"Added HTML in the &lt;head&gt; section of the web page, primarily used for website verification and SEO","HTML adicionado na seção &lt;head&gt; da página web, principalmente utilizadas para a verificação do site e SEO"
+DocType: Website Settings,"Added HTML in the &lt;head> section of the web page, primarily used for website verification and SEO","HTML adicionado na seção &lt;head> da página web, principalmente utilizadas para a verificação do site e SEO"
 apps/frappe/frappe/core/doctype/error_snapshot/error_snapshot_list.js +9,Relapsed,Reincidente
 apps/frappe/frappe/utils/nestedset.py +183,Item cannot be added to its own descendents,O artigo não pode ser acrescentado para os seus próprios descendentes
 DocType: Error Snapshot,Relapses,Recaídas
@@ -1181,7 +1181,7 @@ DocType: Async Task,Reference Doc,Documento de Referência
 DocType: Communication,Keep a track of all communications,Manter registros de todas as comunicações
 apps/frappe/frappe/desk/form/save.py +34,Did not save,Não salvou
 DocType: Website Slideshow,"Note: For best results, images must be of the same size and width must be greater than height.","Observação: Para melhores resultados, as imagens devem ser do mesmo tamanho, e a largura não deve ser maior do que a altura."
-apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +229,Permissions can be managed via Setup &gt; Role Permissions Manager,As permissões podem ser gerenciados através de Configuração &gt; Gestor de Permissões por Função
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +229,Permissions can be managed via Setup > Role Permissions Manager,As permissões podem ser gerenciados através de Configuração > Gestor de Permissões por Função
 DocType: Contact Us Settings,Pincode,CEP
 apps/frappe/frappe/core/doctype/data_import/importer.py +106,Please make sure that there are no empty columns in the file.,"Por favor, certifique-se de que não existem colunas vazias no arquivo."
 apps/frappe/frappe/utils/oauth.py +184,Please ensure that your profile has an email address,Verifique se o seu perfil tem um endereço de email
@@ -1306,15 +1306,15 @@ DocType: Error Snapshot,Parent Error Snapshot,Pai Snapshot de Erro
 DocType: Workflow State,share-alt,partes-alt
 DocType: Address Template,"<h4>Default Template</h4>
 <p>Uses <a href=""http://jinja.pocoo.org/docs/templates/"">Jinja Templating</a> and all the fields of Address (including Custom Fields if any) will be available</p>
-<pre><code>{{ address_line1 }}&lt;br&gt;
-{% if address_line2 %}{{ address_line2 }}&lt;br&gt;{% endif -%}
-{{ city }}&lt;br&gt;
-{% if state %}{{ state }}&lt;br&gt;{% endif -%}
-{% if pincode %} PIN:  {{ pincode }}&lt;br&gt;{% endif -%}
-{{ country }}&lt;br&gt;
-{% if phone %}Phone: {{ phone }}&lt;br&gt;{% endif -%}
-{% if fax %}Fax: {{ fax }}&lt;br&gt;{% endif -%}
-{% if email_id %}Email: {{ email_id }}&lt;br&gt;{% endif -%}
+<pre><code>{{ address_line1 }}&lt;br>
+{% if address_line2 %}{{ address_line2 }}&lt;br>{% endif -%}
+{{ city }}&lt;br>
+{% if state %}{{ state }}&lt;br>{% endif -%}
+{% if pincode %} PIN:  {{ pincode }}&lt;br>{% endif -%}
+{{ country }}&lt;br>
+{% if phone %}Phone: {{ phone }}&lt;br>{% endif -%}
+{% if fax %}Fax: {{ fax }}&lt;br>{% endif -%}
+{% if email_id %}Email: {{ email_id }}&lt;br>{% endif -%}
 </code></pre>","<H4> Default Template </ h4> 
  <p> <a Usa href=""http://jinja.pocoo.org/docs/templates/""> Jinja Templating </a> e todos os campos de Endereço ( incluindo campos personalizados se houver) estará disponível </ p> 
  <pre> <code> {{address_line1}} & lt; br & gt; 

@@ -737,7 +737,7 @@ apps/frappe/frappe/desk/page/backups/backups.py,File backup is ready,ফাই�
 DocType: DocField,In Global Search,বৈশ্বিক অনুসন্ধান
 DocType: System Settings,Brute Force Security,ব্রাউন ফোর্স নিরাপত্তা
 DocType: Workflow State,indent-left,ইন্ডেন্ট-বাম
-apps/frappe/frappe/public/js/frappe/utils/pretty_date.js,&gt; {0} year(s) ago,&gt; {0} বছর আগে
+apps/frappe/frappe/public/js/frappe/utils/pretty_date.js,> {0} year(s) ago,> {0} বছর আগে
 apps/frappe/frappe/utils/file_manager.py,It is risky to delete this file: {0}. Please contact your System Manager.,এটা এই ফাইলটি মোছার জন্য ঝুঁকিপূর্ণ: {0}. আপনার সিস্টেম ম্যানেজার সাথে যোগাযোগ করুন.
 DocType: Currency,Currency Name,মুদ্রার নাম
 apps/frappe/frappe/public/js/frappe/views/inbox/inbox_view.js,No Emails,কোন ইমেল
@@ -1025,7 +1025,7 @@ apps/frappe/frappe/public/js/frappe/list/list_view.js,No {0} found,কোন {0}
 apps/frappe/frappe/config/customization.py,Add custom forms.,নিজস্ব ফর্ম যুক্ত করো.
 apps/frappe/frappe/desk/like.py,{0}: {1} in {2},{0}: {1} মধ্যে {2}
 apps/frappe/frappe/public/js/frappe/form/footer/timeline.js,submitted this document,এই দলিল পেশ
-apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Setup &gt; User Permissions,সেটআপ&gt; ব্যবহারকারীর অনুমতি
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Setup > User Permissions,সেটআপ> ব্যবহারকারীর অনুমতি
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,The system provides many pre-defined roles. You can add new roles to set finer permissions.,সিস্টেম অনেক পূর্ব নির্ধারিত ভূমিকা প্রদান করে. আপনি তীক্ষ্ণ স্বরূপ অনুমতি সেট করতে নতুন ভূমিকা যোগ করতে পারেন.
 DocType: Communication,CC,সিসি
 DocType: Country,Geo,জিও
@@ -1242,7 +1242,7 @@ apps/frappe/frappe/contacts/doctype/contact/contact.py,Please set Email Address,
 DocType: User,"If the user has any role checked, then the user becomes a ""System User"". ""System User"" has access to the desktop","ব্যবহারকারী কোনো ভূমিকা পরীক্ষিত থাকে, তাহলে ব্যবহারকারী একটি &quot;সিস্টেম ব্যবহারকারী&quot; হয়ে. &quot;সিস্টেম ব্যবহারকারী&quot; ডেস্কটপ অ্যাক্সেস রয়েছে"
 DocType: System Settings,Date and Number Format,তারিখ এবং সংখ্যার বিন্যাস
 apps/frappe/frappe/model/document.py,one of,অন্যতম
-apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Setup &gt; Customize Form,সেটআপ&gt; স্বনির্ধারিত ফর্ম
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Setup > Customize Form,সেটআপ> স্বনির্ধারিত ফর্ম
 apps/frappe/frappe/public/js/frappe/desk.js,Checking one moment,এক মুহূর্ত চেক করা হচ্ছে
 apps/frappe/frappe/public/js/frappe/list/list_sidebar.html,Show Tags,দেখান ট্যাগ
 DocType: DocField,HTML Editor,এইচটিএমএল সম্পাদক
@@ -1250,7 +1250,7 @@ DocType: System Settings,"If Apply Strict User Permission is checked and User Pe
 DocType: Address,Billing,বিলিং
 DocType: Email Queue,Not Sent,পাঠাই নি
 DocType: Web Form,Actions,পদক্ষেপ
-apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Setup &gt; User,সেটআপ&gt; ব্যবহারকারী
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Setup > User,সেটআপ> ব্যবহারকারী
 DocType: Workflow State,align-justify,সারিবদ্ধ-ন্যায্যতা
 DocType: User,Middle Name (Optional),মধ্য নাম (ঐচ্ছিক)
 apps/frappe/frappe/public/js/frappe/request.js,Not Permitted,অননুমোদিত
@@ -1394,7 +1394,7 @@ DocType: User,System User,সিস্টেম ব্যবহারকার�
 DocType: Report,Is Standard,মান
 DocType: Desktop Icon,_report,প্রতিবেদন
 DocType: Dashboard Chart,Full,সম্পূর্ণ
-DocType: DocField,"Don't HTML Encode HTML tags like &lt;script&gt; or just characters like &lt; or &gt;, as they could be intentionally used in this field","না মত &lt;স্ক্রিপ্ট&gt; বা শুধু অক্ষর মত &lt;বা&gt;, যেমন তারা ইচ্ছাকৃতভাবে এই ক্ষেত্রে ব্যবহার করা যেতে পারে এইচটিএমএল এনকোড এইচটিএমএল ট্যাগ"
+DocType: DocField,"Don't HTML Encode HTML tags like &lt;script> or just characters like &lt; or >, as they could be intentionally used in this field","না মত &lt;স্ক্রিপ্ট> বা শুধু অক্ষর মত &lt;বা>, যেমন তারা ইচ্ছাকৃতভাবে এই ক্ষেত্রে ব্যবহার করা যেতে পারে এইচটিএমএল এনকোড এইচটিএমএল ট্যাগ"
 DocType: Website Settings,FavIcon,ফেভিকন
 apps/frappe/frappe/data_migration/doctype/data_migration_plan/data_migration_plan.js,Run,চালান
 DocType: Blog Post,Content (HTML),সামগ্রী (এইচটিএমএল)
@@ -1764,7 +1764,7 @@ DocType: Letter Head,Footer will display correctly only in PDF,পাদলে�
 apps/frappe/frappe/core/doctype/data_import/data_import_list.js,Pending,বিচারাধীন
 DocType: System Settings,Allow only one session per user,ব্যবহারকারী প্রতি শুধুমাত্র এক অধিবেশন মঞ্জুর করুন
 apps/frappe/frappe/core/doctype/file/test_file.py,Home/Test Folder 1/Test Folder 3,হোম / Test ফোল্ডার 1 / Test ফোল্ডার 3
-DocType: Website Settings,&lt;head&gt; HTML,&lt;Head&gt; এইচটিএমএল
+DocType: Website Settings,&lt;head> HTML,&lt;Head> এইচটিএমএল
 apps/frappe/frappe/public/js/frappe/views/calendar/calendar.js,Select or drag across time slots to create a new event.,নির্বাচন করুন অথবা একটি নতুন ইভেন্ট তৈরি করতে সময় স্লট জুড়ে টেনে আনুন.
 DocType: Contact,Contact Details,যোগাযোগের ঠিকানা
 DocType: DocField,In Filter,ফিল্টার
@@ -1993,7 +1993,7 @@ apps/frappe/frappe/website/doctype/personal_data_deletion_request/personal_data_
 apps/frappe/frappe/auth.py,Login not allowed at this time,এই সময়ে অনুমোদিত নয় লগইন
 DocType: Data Migration Run,Current Mapping Action,বর্তমান ম্যাপিং অ্যাকশন
 DocType: Dashboard Chart Source,Source Name,উত্স নাম
-apps/frappe/frappe/public/js/frappe/views/inbox/inbox_view.js,No email account associated with the User. Please add an account under User &gt; Email Inbox.,ব্যবহারকারীর সাথে কোনও ইমেল অ্যাকাউন্ট যুক্ত নেই। ব্যবহারকারী&gt; ইমেল ইনবক্সের অধীনে একটি অ্যাকাউন্ট যুক্ত করুন।
+apps/frappe/frappe/public/js/frappe/views/inbox/inbox_view.js,No email account associated with the User. Please add an account under User > Email Inbox.,ব্যবহারকারীর সাথে কোনও ইমেল অ্যাকাউন্ট যুক্ত নেই। ব্যবহারকারী> ইমেল ইনবক্সের অধীনে একটি অ্যাকাউন্ট যুক্ত করুন।
 DocType: Email Account,Email Sync Option,ইমেইল সিঙ্ক অপশন
 apps/frappe/frappe/core/doctype/data_import/log_details.html,Row No,রো নং
 DocType: Async Task,Runtime,রানটাইম
@@ -2003,11 +2003,11 @@ apps/frappe/frappe/public/js/frappe/social/components/Post.vue,Pin Globally,ব�
 apps/frappe/frappe/public/js/frappe/form/templates/form_sidebar.html,Followed by,অনুসরণ করেছে
 DocType: LDAP Settings,LDAP Email Field,দ্বারা LDAP ইমেল ফিল্ড
 apps/frappe/frappe/core/page/dashboard/dashboard.js,{0} List,{0} তালিকা
-apps/frappe/frappe/desk/form/assign_to.py,Already in user's To Do list,ইতিমধ্যে ব্যবহারকারীর মধ্যে তালিকার কি
+apps/frappe/frappe/desk/form/assign_to.py,Already in user's To Do list,ইতিম���্যে ব্যবহারকারীর মধ্যে তালিকার কি
 DocType: User Email,Enable Outgoing,আউটগোয়িং কলের সক্রিয়
 DocType: Address,Fax,ফ্যাক্স
 apps/frappe/frappe/config/customization.py,Custom Tags,কাস্টম ট্যাগ
-apps/frappe/frappe/email/smtp.py,Email Account not setup. Please create a new Email Account from Setup &gt; Email &gt; Email Account,ইমেল অ্যাকাউন্ট সেটআপ করা হয়নি। দয়া করে সেটআপ&gt; ইমেল&gt; ইমেল অ্যাকাউন্ট থেকে একটি নতুন ইমেল অ্যাকাউন্ট তৈরি করুন
+apps/frappe/frappe/email/smtp.py,Email Account not setup. Please create a new Email Account from Setup > Email > Email Account,ইমেল অ্যাকাউন্ট সেটআপ করা হয়নি। দয়া করে সেটআপ> ইমেল> ইমেল অ্যাকাউন্ট থেকে একটি নতুন ইমেল অ্যাকাউন্ট তৈরি করুন
 DocType: Comment,Submitted,উপস্থাপিত
 DocType: Contact,Pulled from Google Contacts,গুগল পরিচিতিগুলি থেকে টানা
 apps/frappe/frappe/integrations/doctype/paypal_settings/paypal_settings.py,In Valid Request,অনুরোধ অগ্রহণযোগ্য
@@ -2078,7 +2078,7 @@ DocType: System Settings,Session Expiry in Hours e.g. 06:00,ঘন্টা য�
 DocType: Customize Form Field,"This field will appear only if the fieldname defined here has value OR the rules are true (examples): 
 myfield
 eval:doc.myfield=='My Value'
-eval:doc.age&gt;18",এই ক্ষেত্রটি প্রদর্শিত হবে শুধুমাত্র যদি FIELDNAME এখানে সংজ্ঞায়িত মূল্য আছে বা নিয়ম সত্য (উদাহরণ) হয়: myfield Eval: doc.myfield == &#39;আমার মূল্য&#39; Eval: doc.age&gt; 18
+eval:doc.age>18",এই ক্ষেত্রটি প্রদর্শিত হবে শুধুমাত্র যদি FIELDNAME এখানে সংজ্ঞায়িত মূল্য আছে বা নিয়ম সত্য (উদাহরণ) হয়: myfield Eval: doc.myfield == &#39;আমার মূল্য&#39; Eval: doc.age> 18
 DocType: Social Login Key,Office 365,অফিস 365
 apps/frappe/frappe/public/js/frappe/ui/toolbar/energy_points_notifications.js,Today,আজ
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,"Once you have set this, the users will only be able access documents (eg. Blog Post) where the link exists (eg. Blogger).","আপনি এই সেট করে থাকেন, শুধুমাত্র সেই ব্যবহারকারীদের ক্ষেত্রে সক্ষম এক্সেস নথি হতে হবে (যেমন. ব্লগ পোস্ট) লিংক (যেমন. ব্লগার) যেখানে বিদ্যমান."
@@ -2092,7 +2092,7 @@ apps/frappe/frappe/integrations/doctype/google_drive/google_drive.py,Google Driv
 DocType: DocType,UPPER CASE,বড় হাতের
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js,Custom HTML,কাস্টম এইচটিএমএল
 apps/frappe/frappe/public/js/frappe/views/file/file_view.js,Enter folder name,ফোল্ডারের নাম লিখুন
-apps/frappe/frappe/contacts/doctype/address/address.py,No default Address Template found. Please create a new one from Setup &gt; Printing and Branding &gt; Address Template.,কোনও ডিফল্ট ঠিকানা টেম্পলেট পাওয়া যায় নি। দয়া করে সেটআপ&gt; মুদ্রণ ও ব্র্যান্ডিং&gt; ঠিকানা টেম্পলেট থেকে একটি নতুন তৈরি করুন।
+apps/frappe/frappe/contacts/doctype/address/address.py,No default Address Template found. Please create a new one from Setup > Printing and Branding > Address Template.,কোনও ডিফল্ট ঠিকানা টেম্পলেট পাওয়া যায় নি। দয়া করে সেটআপ> মুদ্রণ ও ব্র্যান্ডিং> ঠিকানা টেম্পলেট থেকে একটি নতুন তৈরি করুন।
 apps/frappe/frappe/auth.py,Unknown User,অপরিচিত ব্যবহারকারী
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js,Select Role,নির্বাচন ভূমিকা
 DocType: Comment,Deleted,মোছা
@@ -2276,7 +2276,7 @@ DocType: LDAP Settings,Path to Server Certificate,সার্ভার শং�
 apps/frappe/frappe/public/js/frappe/form/linked_with.js,Not enough permission to see links,লিঙ্ক দেখতে যথেষ্ট অনুমতি
 apps/frappe/frappe/contacts/doctype/address/address.py,Address Title is mandatory.,ঠিকানা শিরোনাম বাধ্যতামূলক.
 DocType: Google Contacts,Push to Google Contacts,গুগল পরিচিতিতে ঠেলাও
-DocType: Website Settings,"Added HTML in the &lt;head&gt; section of the web page, primarily used for website verification and SEO",&lt;Head&gt; যোগ এইচটিএমএল ওয়েব পৃষ্ঠার বিভাগে প্রাথমিকভাবে ওয়েবসাইটে যাচাই এবং এসইও জন্য ব্যবহৃত
+DocType: Website Settings,"Added HTML in the &lt;head> section of the web page, primarily used for website verification and SEO",&lt;Head> যোগ এইচটিএমএল ওয়েব পৃষ্ঠার বিভাগে প্রাথমিকভাবে ওয়েবসাইটে যাচাই এবং এসইও জন্য ব্যবহৃত
 apps/frappe/frappe/core/doctype/error_snapshot/error_snapshot_list.js,Relapsed,Relapsed
 apps/frappe/frappe/utils/nestedset.py,Item cannot be added to its own descendents,আইটেমটি নিজস্ব সন্তান যোগ করা যাবে না
 DocType: Session Default Settings,Session Defaults,সেশন ডিফল্ট
@@ -2392,7 +2392,7 @@ DocType: Workflow State,Warning,সতর্কতা
 apps/frappe/frappe/public/js/frappe/form/print.js,This may get printed on multiple pages,এটি একাধিক পৃষ্ঠায় মুদ্রিত হতে পারে
 DocType: Data Migration Run,Percent Complete,শতাংশ সম্পূর্ণ
 DocType: Tag Category,Tag Category,ট্যাগ শ্রেণী
-apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,"For comparison, use &gt;5, &lt;10 or =324. For ranges, use 5:10 (for values between 5 &amp; 10).","তুলনার জন্য,&gt; 5, &lt;10 বা = 324 ব্যবহার করুন। ব্যাপ্তিগুলির জন্য, 5:10 ব্যবহার করুন (5 এবং 10 এর মধ্যে মানের জন্য)।"
+apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,"For comparison, use >5, &lt;10 or =324. For ranges, use 5:10 (for values between 5 &amp; 10).","তুলনার জন্য,> 5, &lt;10 বা = 324 ব্যবহার করুন। ব্যাপ্তিগুলির জন্য, 5:10 ব্যবহার করুন (5 এবং 10 এর মধ্যে মানের জন্য)।"
 DocType: Google Calendar,Pull from Google Calendar,গুগল ক্যালেন্ডার থেকে টানুন
 apps/frappe/frappe/core/doctype/data_import/data_import.js,Help,সাহায্য
 DocType: User,Login Before,লগইন আগে
@@ -2496,7 +2496,7 @@ DocType: Webhook,Request Structure,অনুরোধ কাঠামো
 DocType: Personal Data Deletion Request,Pending Verification,অপেক্ষারত যাচাই
 DocType: Website Meta Tag,Website Meta Tag,ওয়েবসাইট মেটা ট্যাগ
 DocType: Email Account,"If non standard port (e.g. 587). If on Google Cloud, try port 2525.",যদি অ স্ট্যান্ডার্ড পোর্ট (যেমন 587)। যদি Google ক্লাউডে থাকে তবে পোর্ট 2525 দেখুন।
-apps/frappe/frappe/website/doctype/web_page/web_page.py,"Clearing end date, as it cannot be in the past for published pages.","ক্লিয়ারিং শেষ তারিখ, কারণ এটি প্রকাশিত পৃষ্ঠাগুলির জন্য অতীতের মতো হতে পারে না।"
+apps/frappe/frappe/website/doctype/web_page/web_page.py,"Clearing end date, as it cannot be in the past for published pages.","ক্লিয়ারিং শে��� তারিখ, কারণ এটি প্রকাশিত পৃষ্ঠাগুলির জন্য অতীতের মতো হতে পারে না।"
 DocType: User,Send Me A Copy of Outgoing Emails,আমাকে আউটগোইং ইমেইলের একটি কপি পাঠান
 DocType: System Settings,Scheduler Last Event,নির্ধারণকারী সর্বশেষ ইভেন্ট
 DocType: Website Settings,Add Google Analytics ID: eg. UA-89XXX57-1. Please search help on Google Analytics for more information.,Google এনালিটিক্স আইডি যোগ করুন যেমন. ইউএ-89XXX57-1. আরো তথ্যের জন্য Google এনালিটিক্স সহায়তার অনুসন্ধান করুন.
@@ -2845,7 +2845,7 @@ DocType: Custom Script,Custom Script,কাস্টম স্ক্রিপ্
 DocType: Address,Address Line 2,ঠিকানা লাইন ২
 DocType: Address,Reference,উল্লেখ
 apps/frappe/frappe/public/js/frappe/list/list_sidebar_group_by.js,Assigned To,নিযুক্ত করা
-apps/frappe/frappe/email/smtp.py,Please setup default Email Account from Setup &gt; Email &gt; Email Account,সেটআপ&gt; ইমেল&gt; ইমেল অ্যাকাউন্ট থেকে ডিফল্ট ইমেল অ্যাকাউন্ট সেটআপ করুন
+apps/frappe/frappe/email/smtp.py,Please setup default Email Account from Setup > Email > Email Account,সেটআপ> ইমেল> ইমেল অ্যাকাউন্ট থেকে ডিফল্ট ইমেল অ্যাকাউন্ট সেটআপ করুন
 DocType: Data Migration Mapping Detail,Data Migration Mapping Detail,ডেটা মাইগ্রেশন ম্যাপিং বিস্তারিত
 DocType: Data Import,Action,কর্ম
 DocType: GSuite Settings,Script URL,স্ক্রিপ্ট URL-
@@ -2993,7 +2993,7 @@ apps/frappe/frappe/templates/includes/contact.js,"Please enter both your email a
 DocType: Assignment Rule,"Simple Python Expression, Example: Status in (""Closed"", ""Cancelled"")","সাধারণ পাইথন এক্সপ্রেশন, উদাহরণ: স্থিতি (&quot;বন্ধ&quot;, &quot;বাতিল&quot;)"
 apps/frappe/frappe/email/smtp.py,Could not connect to outgoing email server,বহির্গামী ইমেইল সার্ভারের সাথে সংযোগ করা যায়নি
 DocType: Blog Post,Rich Text,রিচ টেক্সট
-apps/frappe/frappe/email/doctype/newsletter/newsletter.py,Thank you for your interest in subscribing to our updates,আমাদের আপডেট সাবস্ক্রাইব আপনার আগ্রহের জন্য আপনাকে ধন্যবাদ
+apps/frappe/frappe/email/doctype/newsletter/newsletter.py,Thank you for your interest in subscribing to our updates,আমাদের আপডেট সাবস্ক্রাইব আপনার আগ্রহের জন্য আ���নাকে ধন্যবাদ
 DocType: Braintree Settings,Payment Gateway Name,পেমেন্ট গেটওয়ে নাম
 DocType: Workflow State,resize-full,পুনরায় আকার-পূর্ণ
 DocType: Workflow State,off,বন্ধ
@@ -3016,7 +3016,7 @@ DocType: DocField,Allow on Submit,জমা দিন মঞ্জুরি দ�
 DocType: DocField,HTML,এইচটিএমএল
 DocType: Error Snapshot,Exception Type,ব্যতিক্রম ধরণ
 apps/frappe/frappe/public/js/frappe/views/reports/report_view.js,Pick Columns,কলাম চয়ন
-DocType: Web Page,Add code as &lt;script&gt;,&lt;Script&gt; হিসাবে কোড যোগ
+DocType: Web Page,Add code as &lt;script>,&lt;Script> হিসাবে কোড যোগ
 apps/frappe/frappe/core/doctype/user_permission/user_permission_list.js,Clear User Permissions,ব্যবহারকারী অনুমতি পরিষ্কার করুন
 DocType: Webhook,Headers,শিরোলেখ
 apps/frappe/frappe/public/js/frappe/social/components/ActivitySidebar.vue,Upcoming Events,আসন্ন ঘটনাবলী
@@ -3384,16 +3384,16 @@ DocType: Workflow State,share-alt,শেয়ার-Alt
 apps/frappe/frappe/utils/background_jobs.py,Queue should be one of {0},সারি কোনো একটি হওয়া আবশ্যক {0}
 DocType: Address Template,"<h4>Default Template</h4>
 <p>Uses <a href=""http://jinja.pocoo.org/docs/templates/"">Jinja Templating</a> and all the fields of Address (including Custom Fields if any) will be available</p>
-<pre><code>{{ address_line1 }}&lt;br&gt;
-{% if address_line2 %}{{ address_line2 }}&lt;br&gt;{% endif -%}
-{{ city }}&lt;br&gt;
-{% if state %}{{ state }}&lt;br&gt;{% endif -%}
-{% if pincode %} PIN:  {{ pincode }}&lt;br&gt;{% endif -%}
-{{ country }}&lt;br&gt;
-{% if phone %}Phone: {{ phone }}&lt;br&gt;{% endif -%}
-{% if fax %}Fax: {{ fax }}&lt;br&gt;{% endif -%}
-{% if email_id %}Email: {{ email_id }}&lt;br&gt;{% endif -%}
-</code></pre>","<h4> ডিফল্ট টেমপ্লেট </h4><p> ব্যবহার <a href=""http://jinja.pocoo.org/docs/templates/"">Jinja টেমপ্লেট</a> এবং উপলব্ধ করা হবে (যদি থাকে কাস্টম ক্ষেত্র সহ) ঠিকানা সব ক্ষেত্র </p><pre> <code>{{ address_line1 }}&lt;br&gt; {% if address_line2 %}{{ address_line2 }}&lt;br&gt;{% endif -%} {{ city }}&lt;br&gt; {% if state %}{{ state }}&lt;br&gt;{% endif -%} {% if pincode %} PIN: {{ pincode }}&lt;br&gt;{% endif -%} {{ country }}&lt;br&gt; {% if phone %}Phone: {{ phone }}&lt;br&gt;{% endif -%} {% if fax %}Fax: {{ fax }}&lt;br&gt;{% endif -%} {% if email_id %}Email: {{ email_id }}&lt;br&gt;{% endif -%}</code> </pre>"
+<pre><code>{{ address_line1 }}&lt;br>
+{% if address_line2 %}{{ address_line2 }}&lt;br>{% endif -%}
+{{ city }}&lt;br>
+{% if state %}{{ state }}&lt;br>{% endif -%}
+{% if pincode %} PIN:  {{ pincode }}&lt;br>{% endif -%}
+{{ country }}&lt;br>
+{% if phone %}Phone: {{ phone }}&lt;br>{% endif -%}
+{% if fax %}Fax: {{ fax }}&lt;br>{% endif -%}
+{% if email_id %}Email: {{ email_id }}&lt;br>{% endif -%}
+</code></pre>","<h4> ডিফল্ট টেমপ্লেট </h4><p> ব্যবহার <a href=""http://jinja.pocoo.org/docs/templates/"">Jinja টেমপ্লেট</a> এবং উপলব্ধ করা হবে (যদি থাকে কাস্টম ক্ষেত্র সহ) ঠিকানা সব ক্ষেত্র </p><pre> <code>{{ address_line1 }}&lt;br> {% if address_line2 %}{{ address_line2 }}&lt;br>{% endif -%} {{ city }}&lt;br> {% if state %}{{ state }}&lt;br>{% endif -%} {% if pincode %} PIN: {{ pincode }}&lt;br>{% endif -%} {{ country }}&lt;br> {% if phone %}Phone: {{ phone }}&lt;br>{% endif -%} {% if fax %}Fax: {{ fax }}&lt;br>{% endif -%} {% if email_id %}Email: {{ email_id }}&lt;br>{% endif -%}</code> </pre>"
 DocType: Calendar View,Start Date Field,তারিখ ক্ষেত্র শুরু করুন
 DocType: Role,Role Name,ভূমিকা নাম
 apps/frappe/frappe/templates/includes/navbar/navbar_login.html,Switch To Desk,ডেস্ক স্যুইচ

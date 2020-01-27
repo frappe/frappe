@@ -165,7 +165,7 @@ DocType: Email Account,Use TLS,Utilice TLS
 apps/frappe/frappe/contacts/doctype/address_template/address_template.py +33,Default Address Template cannot be deleted,Plantilla de la Direcciones Predeterminadas no puede eliminarse
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +34,Select Document Types to set which User Permissions are used to limit access.,Seleccione los Tipos de Documento para establecer los Permisos de Usuario para limitar el acceso.
 apps/frappe/frappe/website/doctype/website_theme/website_theme.py +30,You are not allowed to delete a standard Website Theme,No se le permite eliminar un tema Sitio web estándar
-apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +229,Permissions can be managed via Setup &gt; Role Permissions Manager,Los permisos se pueden gestionar a través de Configuración > Administrador de Funciones
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +229,Permissions can be managed via Setup > Role Permissions Manager,Los permisos se pueden gestionar a través de Configuración > Administrador de Funciones
 apps/frappe/frappe/core/doctype/doctype/doctype.py +796,{0}: Permission at level 0 must be set before higher levels are set,{0} : Permiso en el nivel 0 se debe establecer antes de fijar niveles más altos
 DocType: System Settings,dd-mm-yyyy,dd- mm- aaaa
 apps/frappe/frappe/config/desk.py +54,"Newsletters to contacts, leads.","Boletines para contactos, clientes potenciales ."

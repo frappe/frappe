@@ -750,7 +750,7 @@ apps/frappe/frappe/desk/page/backups/backups.py,File backup is ready,파일 백�
 DocType: DocField,In Global Search,글로벌 검색
 DocType: System Settings,Brute Force Security,무차별 공격 보안
 DocType: Workflow State,indent-left,들여 쓰기 왼쪽
-apps/frappe/frappe/public/js/frappe/utils/pretty_date.js,&gt; {0} year(s) ago,&gt; {0} 년 전
+apps/frappe/frappe/public/js/frappe/utils/pretty_date.js,> {0} year(s) ago,> {0} 년 전
 apps/frappe/frappe/utils/file_manager.py,It is risky to delete this file: {0}. Please contact your System Manager.,그것은이 파일을 삭제하는 위험 : {0}. 시스템 관리자에게 문의하시기 바랍니다.
 DocType: Currency,Currency Name,통화 명
 apps/frappe/frappe/public/js/frappe/views/inbox/inbox_view.js,No Emails,어떤 이메일 없습니다
@@ -1049,7 +1049,7 @@ apps/frappe/frappe/public/js/frappe/list/list_view.js,No {0} found,없음 {0} �
 apps/frappe/frappe/config/customization.py,Add custom forms.,사용자 지정 양식을 추가합니다.
 apps/frappe/frappe/desk/like.py,{0}: {1} in {2},{0} : {1}에서 {2}
 apps/frappe/frappe/public/js/frappe/form/footer/timeline.js,submitted this document,이 문서를 제출
-apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Setup &gt; User Permissions,설정&gt; 사용자 권한
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Setup > User Permissions,설정> 사용자 권한
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,The system provides many pre-defined roles. You can add new roles to set finer permissions.,이 시스템은 많은 사전 정의 된 역할을 제공합니다.당신은 미세한 권한을 설정하는 새로운 역할을 추가 할 수 있습니다.
 DocType: Communication,CC,CC
 DocType: Country,Geo,지오
@@ -1270,7 +1270,7 @@ apps/frappe/frappe/contacts/doctype/contact/contact.py,Please set Email Address,
 DocType: User,"If the user has any role checked, then the user becomes a ""System User"". ""System User"" has access to the desktop","사용자가 확인하는 역할을한다면, 사용자는 &quot;시스템 사용자&quot;가된다. &quot;시스템 사용자는&quot;데스크톱에 액세스 할 수 있습니다"
 DocType: System Settings,Date and Number Format,날짜 및 숫자 형식
 apps/frappe/frappe/model/document.py,one of,하나의
-apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Setup &gt; Customize Form,설정&gt; 양식 사용자 정의
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Setup > Customize Form,설정> 양식 사용자 정의
 apps/frappe/frappe/public/js/frappe/desk.js,Checking one moment,한 순간 확인
 apps/frappe/frappe/public/js/frappe/list/list_sidebar.html,Show Tags,보기 태그
 DocType: DocField,HTML Editor,HTML 편집기
@@ -1278,7 +1278,7 @@ DocType: System Settings,"If Apply Strict User Permission is checked and User Pe
 DocType: Address,Billing,청구
 DocType: Email Queue,Not Sent,보낼 수 없습니다
 DocType: Web Form,Actions,수행
-apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Setup &gt; User,설정&gt; 사용자
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Setup > User,설정> 사용자
 DocType: Workflow State,align-justify,정렬 정당화
 DocType: User,Middle Name (Optional),중간 이름 (선택 사항)
 apps/frappe/frappe/public/js/frappe/request.js,Not Permitted,허용하지 않음
@@ -1427,7 +1427,7 @@ DocType: Report,Is Standard,표준입니다
 DocType: Desktop Icon,_report,_보고서
 DocType: Desktop Icon,_report,_보고서
 DocType: Dashboard Chart,Full,완전한
-DocType: DocField,"Don't HTML Encode HTML tags like &lt;script&gt; or just characters like &lt; or &gt;, as they could be intentionally used in this field","안 &lt;스크립트&gt; 또는 그냥 문자가 의도적으로이 분야에 사용될 수있는 바와 같이, 같은 &lt;또는&gt;와 같은 HTML 인코딩 HTML 태그"
+DocType: DocField,"Don't HTML Encode HTML tags like &lt;script> or just characters like &lt; or >, as they could be intentionally used in this field","안 &lt;스크립트> 또는 그냥 문자가 의도적으로이 분야에 사용될 수있는 바와 같이, 같은 &lt;또는>와 같은 HTML 인코딩 HTML 태그"
 apps/frappe/frappe/public/js/frappe/utils/energy_point_utils.js,{0} criticized on {1},{0}이 (가) {1}에 대해 비판했습니다.
 DocType: Website Settings,FavIcon,파비콘
 apps/frappe/frappe/data_migration/doctype/data_migration_plan/data_migration_plan.js,Run,운영
@@ -1809,7 +1809,7 @@ DocType: Letter Head,Footer will display correctly only in PDF,꼬리말은 PDF�
 apps/frappe/frappe/core/doctype/data_import/data_import_list.js,Pending,대기 중
 DocType: System Settings,Allow only one session per user,사용자 당 하나의 세션 만 허용
 apps/frappe/frappe/core/doctype/file/test_file.py,Home/Test Folder 1/Test Folder 3,홈 / 테스트 폴더 1 / 테스트 폴더 3
-DocType: Website Settings,&lt;head&gt; HTML,&lt;HEAD&gt; HTML
+DocType: Website Settings,&lt;head> HTML,&lt;HEAD> HTML
 apps/frappe/frappe/public/js/frappe/views/calendar/calendar.js,Select or drag across time slots to create a new event.,선택하거나 새 이벤트를 만들 시간 슬롯을 가로 질러 드래그합니다.
 DocType: Contact,Contact Details,연락처 세부 사항
 DocType: DocField,In Filter,필터
@@ -2043,7 +2043,7 @@ apps/frappe/frappe/website/doctype/personal_data_deletion_request/personal_data_
 apps/frappe/frappe/auth.py,Login not allowed at this time,로그인이 시간에 허용되지
 DocType: Data Migration Run,Current Mapping Action,현재 매핑 작업
 DocType: Dashboard Chart Source,Source Name,원본 이름
-apps/frappe/frappe/public/js/frappe/views/inbox/inbox_view.js,No email account associated with the User. Please add an account under User &gt; Email Inbox.,사용자와 연결된 이메일 계정이 없습니다. 사용자&gt; 이메일받은 편지함에 계정을 추가하십시오.
+apps/frappe/frappe/public/js/frappe/views/inbox/inbox_view.js,No email account associated with the User. Please add an account under User > Email Inbox.,사용자와 연결된 이메일 계정이 없습니다. 사용자> 이메일받은 편지함에 계정을 추가하십시오.
 DocType: Email Account,Email Sync Option,이메일 동기화 옵션
 apps/frappe/frappe/core/doctype/data_import/log_details.html,Row No,행 번호
 DocType: Async Task,Runtime,런타임
@@ -2058,7 +2058,7 @@ apps/frappe/frappe/desk/form/assign_to.py,Already in user's To Do list,사용자
 DocType: User Email,Enable Outgoing,보내는 사용
 DocType: Address,Fax,팩스
 apps/frappe/frappe/config/customization.py,Custom Tags,사용자 정의 태그
-apps/frappe/frappe/email/smtp.py,Email Account not setup. Please create a new Email Account from Setup &gt; Email &gt; Email Account,이메일 계정이 설정되지 않았습니다. 설정&gt; 이메일&gt; 이메일 계정에서 새 이메일 계정을 만드십시오
+apps/frappe/frappe/email/smtp.py,Email Account not setup. Please create a new Email Account from Setup > Email > Email Account,이메일 계정이 설정되지 않았습니다. 설정> 이메일> 이메일 계정에서 새 이메일 계정을 만드십시오
 DocType: Comment,Submitted,제출
 DocType: Contact,Pulled from Google Contacts,Google 주소록에서 가져옴
 apps/frappe/frappe/integrations/doctype/paypal_settings/paypal_settings.py,In Valid Request,잘못된 요청
@@ -2132,7 +2132,7 @@ DocType: System Settings,Session Expiry in Hours e.g. 06:00,"6시 예를 들어,
 DocType: Customize Form Field,"This field will appear only if the fieldname defined here has value OR the rules are true (examples): 
 myfield
 eval:doc.myfield=='My Value'
-eval:doc.age&gt;18",여기에 정의 된 필드 이름 값을 가지고 또는 규칙이 참 (예) 경우에만이 필드가 나타납니다 myfield 평가 : doc.myfield == &#39;나의 가치&#39;평가 : doc.age&gt; (18)
+eval:doc.age>18",여기에 정의 된 필드 이름 값을 가지고 또는 규칙이 참 (예) 경우에만이 필드가 나타납니다 myfield 평가 : doc.myfield == &#39;나의 가치&#39;평가 : doc.age> (18)
 DocType: Social Login Key,Office 365,Office 365
 apps/frappe/frappe/public/js/frappe/ui/toolbar/energy_points_notifications.js,Today,오늘
 apps/frappe/frappe/public/js/frappe/ui/toolbar/energy_points_notifications.js,Today,오늘
@@ -2147,7 +2147,7 @@ apps/frappe/frappe/integrations/doctype/google_drive/google_drive.py,Google Driv
 DocType: DocType,UPPER CASE,대문자
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js,Custom HTML,사용자 정의 HTML
 apps/frappe/frappe/public/js/frappe/views/file/file_view.js,Enter folder name,폴더 이름을 입력합니다
-apps/frappe/frappe/contacts/doctype/address/address.py,No default Address Template found. Please create a new one from Setup &gt; Printing and Branding &gt; Address Template.,기본 주소 템플릿이 없습니다. 설정&gt; 인쇄 및 브랜딩&gt; 주소 템플릿에서 새로 만드십시오.
+apps/frappe/frappe/contacts/doctype/address/address.py,No default Address Template found. Please create a new one from Setup > Printing and Branding > Address Template.,기본 주소 템플릿이 없습니다. 설정> 인쇄 및 브랜딩> 주소 템플릿에서 새로 만드십시오.
 apps/frappe/frappe/auth.py,Unknown User,알 수없는 사용자
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js,Select Role,역할 선택
 DocType: Comment,Deleted,삭제
@@ -2338,7 +2338,7 @@ apps/frappe/frappe/public/js/frappe/form/linked_with.js,Not enough permission to
 apps/frappe/frappe/public/js/frappe/form/linked_with.js,Not enough permission to see links,링크를 볼 권한이 없습니다.
 apps/frappe/frappe/contacts/doctype/address/address.py,Address Title is mandatory.,주소 제목은 필수입니다.
 DocType: Google Contacts,Push to Google Contacts,Google 주소록으로 푸시
-DocType: Website Settings,"Added HTML in the &lt;head&gt; section of the web page, primarily used for website verification and SEO",&lt;헤드&gt;에서 추가 된 HTML 웹 페이지의 섹션은 주로 웹 사이트 확인 및 검색 엔진 최적화에 사용
+DocType: Website Settings,"Added HTML in the &lt;head> section of the web page, primarily used for website verification and SEO",&lt;헤드>에서 추가 된 HTML 웹 페이지의 섹션은 주로 웹 사이트 확인 및 검색 엔진 최적화에 사용
 apps/frappe/frappe/core/doctype/error_snapshot/error_snapshot_list.js,Relapsed,재발
 apps/frappe/frappe/utils/nestedset.py,Item cannot be added to its own descendents,항목은 자체 하위에 추가 할 수없는
 DocType: Session Default Settings,Session Defaults,세션 기본값
@@ -2458,7 +2458,7 @@ DocType: Workflow State,Warning,경고
 apps/frappe/frappe/public/js/frappe/form/print.js,This may get printed on multiple pages,여러 페이지에 인쇄 될 수 있습니다.
 DocType: Data Migration Run,Percent Complete,완료율
 DocType: Tag Category,Tag Category,태그 카테고리
-apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,"For comparison, use &gt;5, &lt;10 or =324. For ranges, use 5:10 (for values between 5 &amp; 10).","비교하려면&gt; 5, &lt;10 또는 = 324를 사용하십시오. 범위의 경우 5:10을 사용하십시오 (5와 10 사이의 값)."
+apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,"For comparison, use >5, &lt;10 or =324. For ranges, use 5:10 (for values between 5 &amp; 10).","비교하려면> 5, &lt;10 또는 = 324를 사용하십시오. 범위의 경우 5:10을 사용하십시오 (5와 10 사이의 값)."
 DocType: Google Calendar,Pull from Google Calendar,Google 캘린더에서 가져 오기
 apps/frappe/frappe/core/doctype/data_import/data_import.js,Help,도움말
 DocType: User,Login Before,전에 로그인
@@ -2927,7 +2927,7 @@ DocType: Custom Script,Custom Script,사용자 정의 스크립트
 DocType: Address,Address Line 2,2 호선 주소
 DocType: Address,Reference,참고
 apps/frappe/frappe/public/js/frappe/list/list_sidebar_group_by.js,Assigned To,담당자
-apps/frappe/frappe/email/smtp.py,Please setup default Email Account from Setup &gt; Email &gt; Email Account,설정&gt; 이메일&gt; 이메일 계정에서 기본 이메일 계정을 설정하십시오
+apps/frappe/frappe/email/smtp.py,Please setup default Email Account from Setup > Email > Email Account,설정> 이메일> 이메일 계정에서 기본 이메일 계정을 설정하십시오
 DocType: Data Migration Mapping Detail,Data Migration Mapping Detail,데이터 마이그레이션 매핑 세부 정보
 DocType: Data Import,Action,수행
 DocType: GSuite Settings,Script URL,스크립트 URL
@@ -3106,7 +3106,7 @@ DocType: DocField,Allow on Submit,제출에 허용
 DocType: DocField,HTML,HTML
 DocType: Error Snapshot,Exception Type,예외 유형
 apps/frappe/frappe/public/js/frappe/views/reports/report_view.js,Pick Columns,열 선택
-DocType: Web Page,Add code as &lt;script&gt;,<SCRIPT>과 같은 코드를 추가
+DocType: Web Page,Add code as &lt;script>,<SCRIPT>과 같은 코드를 추가
 apps/frappe/frappe/core/doctype/user_permission/user_permission_list.js,Clear User Permissions,사용자 권한 지우기
 DocType: Webhook,Headers,헤더
 apps/frappe/frappe/public/js/frappe/social/components/ActivitySidebar.vue,Upcoming Events,다가오는 이벤트
@@ -3483,15 +3483,15 @@ DocType: Workflow State,share-alt,공유 - 고도
 apps/frappe/frappe/utils/background_jobs.py,Queue should be one of {0},대기열은 {0} 중 하나 여야합니다.
 DocType: Address Template,"<h4>Default Template</h4>
 <p>Uses <a href=""http://jinja.pocoo.org/docs/templates/"">Jinja Templating</a> and all the fields of Address (including Custom Fields if any) will be available</p>
-<pre><code>{{ address_line1 }}&lt;br&gt;
-{% if address_line2 %}{{ address_line2 }}&lt;br&gt;{% endif -%}
-{{ city }}&lt;br&gt;
-{% if state %}{{ state }}&lt;br&gt;{% endif -%}
-{% if pincode %} PIN:  {{ pincode }}&lt;br&gt;{% endif -%}
-{{ country }}&lt;br&gt;
-{% if phone %}Phone: {{ phone }}&lt;br&gt;{% endif -%}
-{% if fax %}Fax: {{ fax }}&lt;br&gt;{% endif -%}
-{% if email_id %}Email: {{ email_id }}&lt;br&gt;{% endif -%}
+<pre><code>{{ address_line1 }}&lt;br>
+{% if address_line2 %}{{ address_line2 }}&lt;br>{% endif -%}
+{{ city }}&lt;br>
+{% if state %}{{ state }}&lt;br>{% endif -%}
+{% if pincode %} PIN:  {{ pincode }}&lt;br>{% endif -%}
+{{ country }}&lt;br>
+{% if phone %}Phone: {{ phone }}&lt;br>{% endif -%}
+{% if fax %}Fax: {{ fax }}&lt;br>{% endif -%}
+{% if email_id %}Email: {{ email_id }}&lt;br>{% endif -%}
 </code></pre>","<H4> 기본 템플릿 </ H4>는 
  <p> <a href=""http://jinja.pocoo.org/docs/templates/""> 신사 템플릿 생성 </A> 및 주소의 모든 필드를 (사용 {; BR한다; 
  {% 경우 address_line2 %} {{address_line2}} & LT; BR된다 사용자 정의 필드 경우) </ P> 

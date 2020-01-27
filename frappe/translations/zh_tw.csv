@@ -710,7 +710,7 @@ apps/frappe/frappe/email/doctype/newsletter/newsletter.py,Scheduled to send to {
 apps/frappe/frappe/public/js/frappe/ui/keyboard.js,Page Shortcuts,頁面快捷方式
 DocType: DocShare,Everyone,大家
 DocType: Workflow State,backward,落後
-apps/frappe/frappe/core/doctype/doctype/doctype.py,"{0}: Only one rule allowed with the same Role, Level and {1}",{0}：只具允許有一個同的角色，級別和{1}
+apps/frappe/frappe/core/doctype/doctype/doctype.py,"{0}: Only one rule allowed with the same Role, Level and {1}",{0}：���具允許有一個同的角色，級別和{1}
 DocType: Email Queue,Add Unsubscribe Link,添加退訂鏈接
 apps/frappe/frappe/templates/includes/comments/comments.html,No comments yet. Start a new discussion.,還沒有評論。開始一個新的討論。
 apps/frappe/frappe/config/settings.py,Set numbering series for transactions.,設置編號系列交易。
@@ -902,7 +902,7 @@ DocType: Dropbox Settings,File Backup,文件備份
 apps/frappe/frappe/public/js/frappe/list/list_view.js,No {0} found,沒有找到{0}
 apps/frappe/frappe/config/customization.py,Add custom forms.,添加自定義表單。
 apps/frappe/frappe/public/js/frappe/form/footer/timeline.js,submitted this document,提交這份文件
-apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Setup &gt; User Permissions,設置&gt;用戶權限
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Setup > User Permissions,設置>用戶權限
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,The system provides many pre-defined roles. You can add new roles to set finer permissions.,該系統提供了許多預先定義的角色。您可以添加新的角色設定更精細的權限。
 DocType: Communication,CC,CC
 DocType: Data Migration Run,Trigger Name,觸發器名稱
@@ -1104,14 +1104,14 @@ DocType: Transaction Log,Chaining Hash,鏈接哈希
 apps/frappe/frappe/contacts/doctype/contact/contact.py,Please set Email Address,請設置電子郵件地址
 DocType: User,"If the user has any role checked, then the user becomes a ""System User"". ""System User"" has access to the desktop",如果用戶有任何檢查的作用，那麼用戶就變成了“系統用戶”。 “系統用戶”訪問桌面
 DocType: System Settings,Date and Number Format,日期和數字格式
-apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Setup &gt; Customize Form,設置&gt;自定義表格
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Setup > Customize Form,設置>自定義表格
 apps/frappe/frappe/public/js/frappe/desk.js,Checking one moment,檢查一個時刻
 apps/frappe/frappe/public/js/frappe/list/list_sidebar.html,Show Tags,顯示標籤
 DocType: DocField,HTML Editor,HTML編輯器
 DocType: System Settings,"If Apply Strict User Permission is checked and User Permission is defined for a DocType for a User, then all the documents where value of the link is blank, will not be shown to that User",如果選中了“嚴格用戶權限”，並為用戶定義了“用戶權限”，則該鏈接的值為空的所有文檔將不會顯示給該用戶
 DocType: Address,Billing,計費
 DocType: Email Queue,Not Sent,未發送
-apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Setup &gt; User,設置&gt;用戶
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Setup > User,設置>用戶
 DocType: Workflow State,align-justify,對齊對齊
 DocType: User,Middle Name (Optional),中間名（可選）
 apps/frappe/frappe/public/js/frappe/request.js,Not Permitted,不允許
@@ -1238,7 +1238,7 @@ DocType: User,System User,系統用戶
 DocType: Report,Is Standard,為標準
 DocType: Desktop Icon,_report,_報告
 DocType: Desktop Icon,_report,_報告
-DocType: DocField,"Don't HTML Encode HTML tags like &lt;script&gt; or just characters like &lt; or &gt;, as they could be intentionally used in this field",不要HTML編碼的HTML標籤，如&lt;SCRIPT&gt;或者就像字符&lt;或&gt;，因為他們可以在此字段中故意使用
+DocType: DocField,"Don't HTML Encode HTML tags like &lt;script> or just characters like &lt; or >, as they could be intentionally used in this field",不要HTML編碼的HTML標籤，如&lt;SCRIPT>或者就像字符&lt;或>，因為他們可以在此字段中故意使用
 apps/frappe/frappe/public/js/frappe/utils/energy_point_utils.js,{0} criticized on {1},{0}批評{1}
 DocType: Website Settings,FavIcon,網站圖標
 DocType: Blog Post,Content (HTML),內容（HTML）
@@ -1762,7 +1762,7 @@ apps/frappe/frappe/website/doctype/personal_data_deletion_request/personal_data_
 apps/frappe/frappe/auth.py,Login not allowed at this time,在這個時候不允許登錄
 DocType: Data Migration Run,Current Mapping Action,當前映射行為
 DocType: Dashboard Chart Source,Source Name,源名稱
-apps/frappe/frappe/public/js/frappe/views/inbox/inbox_view.js,No email account associated with the User. Please add an account under User &gt; Email Inbox.,沒有與該用戶關聯的電子郵件帳戶。請在“用戶”&gt;“電子郵件收件箱”下添加一個帳戶。
+apps/frappe/frappe/public/js/frappe/views/inbox/inbox_view.js,No email account associated with the User. Please add an account under User > Email Inbox.,沒有與該用戶關聯的電子郵件帳戶。請在“用戶”>“電子郵件收件箱”下添加一個帳戶。
 DocType: Email Account,Email Sync Option,電子郵件同步選項
 apps/frappe/frappe/core/doctype/data_import/log_details.html,Row No,行號
 DocType: Async Task,Runtime,運行時
@@ -1775,7 +1775,7 @@ apps/frappe/frappe/desk/form/assign_to.py,Already in user's To Do list,已經在
 DocType: User Email,Enable Outgoing,啟用外
 DocType: Address,Fax,傳真
 apps/frappe/frappe/config/customization.py,Custom Tags,自定義標記
-apps/frappe/frappe/email/smtp.py,Email Account not setup. Please create a new Email Account from Setup &gt; Email &gt; Email Account,電子郵件帳戶未設置。請從設置&gt;電子郵件&gt;電子郵件帳戶創建一個新的電子郵件帳戶
+apps/frappe/frappe/email/smtp.py,Email Account not setup. Please create a new Email Account from Setup > Email > Email Account,電子郵件帳戶未設置。請從設置>電子郵件>電子郵件帳戶創建一個新的電子郵件帳戶
 DocType: Comment,Submitted,提交
 DocType: Contact,Pulled from Google Contacts,來自Google通訊錄
 apps/frappe/frappe/integrations/doctype/paypal_settings/paypal_settings.py,In Valid Request,非法請求
@@ -1840,7 +1840,7 @@ DocType: System Settings,Session Expiry in Hours e.g. 06:00,連線過期的小�
 DocType: Customize Form Field,"This field will appear only if the fieldname defined here has value OR the rules are true (examples): 
 myfield
 eval:doc.myfield=='My Value'
-eval:doc.age&gt;18",該字段將顯示僅在此處定義的字段名具有值或規則是真實的（例子）：MyField的EVAL：doc.myfield ==&#39;我的價值&#39;的eval：doc.age&gt; 18
+eval:doc.age>18",該字段將顯示僅在此處定義的字段名具有值或規則是真實的（例子）：MyField的EVAL：doc.myfield ==&#39;我的價值&#39;的eval：doc.age> 18
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,"Once you have set this, the users will only be able access documents (eg. Blog Post) where the link exists (eg. Blogger).",一旦你設置這個，用戶將只能訪問有聯結的文檔（如博客文章）。
 DocType: Data Import Beta,Submit After Import,導入後提交
 DocType: Error Log,Log of Scheduler Errors,日程安排程序錯誤日誌
@@ -1851,7 +1851,7 @@ apps/frappe/frappe/integrations/doctype/google_drive/google_drive.py,Google Driv
 DocType: DocType,UPPER CASE,大寫字母
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js,Custom HTML,自定義HTML
 apps/frappe/frappe/public/js/frappe/views/file/file_view.js,Enter folder name,輸入文件夾名稱
-apps/frappe/frappe/contacts/doctype/address/address.py,No default Address Template found. Please create a new one from Setup &gt; Printing and Branding &gt; Address Template.,找不到默認的地址模板。請從設置&gt;打印和品牌&gt;地址模板中創建一個新地址。
+apps/frappe/frappe/contacts/doctype/address/address.py,No default Address Template found. Please create a new one from Setup > Printing and Branding > Address Template.,找不到默認的地址模板。請從設置>打印和品牌>地址模板中創建一個新地址。
 apps/frappe/frappe/auth.py,Unknown User,未知用戶
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js,Select Role,選擇角色
 DocType: Comment,Deleted,刪除
@@ -2019,7 +2019,7 @@ apps/frappe/frappe/public/js/frappe/form/linked_with.js,Not enough permission to
 apps/frappe/frappe/public/js/frappe/form/linked_with.js,Not enough permission to see links,沒有足夠的權限查看鏈接
 apps/frappe/frappe/contacts/doctype/address/address.py,Address Title is mandatory.,地址標題是強制性的。
 DocType: Google Contacts,Push to Google Contacts,推送到Google通訊錄
-DocType: Website Settings,"Added HTML in the &lt;head&gt; section of the web page, primarily used for website verification and SEO",在&lt;head&gt;添加HTML網頁的部分，主要用於網站的驗證和搜索引擎優化
+DocType: Website Settings,"Added HTML in the &lt;head> section of the web page, primarily used for website verification and SEO",在&lt;head>添加HTML網頁的部分，主要用於網站的驗證和搜索引擎優化
 apps/frappe/frappe/core/doctype/error_snapshot/error_snapshot_list.js,Relapsed,復發
 apps/frappe/frappe/utils/nestedset.py,Item cannot be added to its own descendents,項目不能被添加到自己的後代
 DocType: Session Default Settings,Session Defaults,會話默認值
@@ -2127,7 +2127,7 @@ DocType: Deleted Document,Deleted DocType,刪除的DocType
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Permission Levels,權限級別
 apps/frappe/frappe/public/js/frappe/form/print.js,This may get printed on multiple pages,這可能會打印在多個頁面上
 DocType: Tag Category,Tag Category,標籤分類
-apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,"For comparison, use &gt;5, &lt;10 or =324. For ranges, use 5:10 (for values between 5 &amp; 10).",為了進行比較，請使用&gt; 5，&lt;10或= 324。對於範圍，請使用5:10（對於5到10之間的值）。
+apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,"For comparison, use >5, &lt;10 or =324. For ranges, use 5:10 (for values between 5 &amp; 10).",為了進行比較，請使用> 5，&lt;10或= 324。對於範圍，請使用5:10（對於5到10之間的值）。
 DocType: Google Calendar,Pull from Google Calendar,從Google日曆中提取
 apps/frappe/frappe/core/doctype/data_import/data_import.js,Help,幫助
 DocType: User,Login Before,登錄前
@@ -2539,7 +2539,7 @@ apps/frappe/frappe/model/rename_doc.py,{0} not allowed to be renamed,{0}不允�
 DocType: Custom Script,Custom Script,自定義腳本
 DocType: Address,Reference,參考
 apps/frappe/frappe/public/js/frappe/list/list_sidebar_group_by.js,Assigned To,指派給
-apps/frappe/frappe/email/smtp.py,Please setup default Email Account from Setup &gt; Email &gt; Email Account,請從設置&gt;電子郵件&gt;電子郵件帳戶設置默認的電子郵件帳戶
+apps/frappe/frappe/email/smtp.py,Please setup default Email Account from Setup > Email > Email Account,請從設置>電子郵件>電子郵件帳戶設置默認的電子郵件帳戶
 DocType: Data Migration Mapping Detail,Data Migration Mapping Detail,數據遷移映射細節
 DocType: Data Import,Action,行動
 DocType: GSuite Settings,Script URL,腳本網址
@@ -2692,7 +2692,7 @@ apps/frappe/frappe/automation/doctype/auto_repeat/auto_repeat.js,"To configure A
 DocType: OAuth Bearer Token,Expires In,過期日期在
 DocType: DocField,Allow on Submit,允許在提交
 DocType: Error Snapshot,Exception Type,異常類型
-DocType: Web Page,Add code as &lt;script&gt;,添加源碼為&lt;script&gt;
+DocType: Web Page,Add code as &lt;script>,添加源碼為&lt;script>
 apps/frappe/frappe/core/doctype/user_permission/user_permission_list.js,Clear User Permissions,清除用戶權限
 DocType: Webhook,Headers,頭
 apps/frappe/frappe/public/js/frappe/social/components/ActivitySidebar.vue,Upcoming Events,活動預告
@@ -3012,15 +3012,15 @@ DocType: Workflow State,share-alt,股份ALT
 apps/frappe/frappe/utils/background_jobs.py,Queue should be one of {0},隊列應該是{0}
 DocType: Address Template,"<h4>Default Template</h4>
 <p>Uses <a href=""http://jinja.pocoo.org/docs/templates/"">Jinja Templating</a> and all the fields of Address (including Custom Fields if any) will be available</p>
-<pre><code>{{ address_line1 }}&lt;br&gt;
-{% if address_line2 %}{{ address_line2 }}&lt;br&gt;{% endif -%}
-{{ city }}&lt;br&gt;
-{% if state %}{{ state }}&lt;br&gt;{% endif -%}
-{% if pincode %} PIN:  {{ pincode }}&lt;br&gt;{% endif -%}
-{{ country }}&lt;br&gt;
-{% if phone %}Phone: {{ phone }}&lt;br&gt;{% endif -%}
-{% if fax %}Fax: {{ fax }}&lt;br&gt;{% endif -%}
-{% if email_id %}Email: {{ email_id }}&lt;br&gt;{% endif -%}
+<pre><code>{{ address_line1 }}&lt;br>
+{% if address_line2 %}{{ address_line2 }}&lt;br>{% endif -%}
+{{ city }}&lt;br>
+{% if state %}{{ state }}&lt;br>{% endif -%}
+{% if pincode %} PIN:  {{ pincode }}&lt;br>{% endif -%}
+{{ country }}&lt;br>
+{% if phone %}Phone: {{ phone }}&lt;br>{% endif -%}
+{% if fax %}Fax: {{ fax }}&lt;br>{% endif -%}
+{% if email_id %}Email: {{ email_id }}&lt;br>{% endif -%}
 </code></pre>","<H4>默認模板</ H4> 
  <p> <a用途神社href=""http://jinja.pocoo.org/docs/templates/"">模板</A>和地址的所有領域（包括自定義字段如果有的話）將可</ P> 
  <前> <代碼> {{address_line1}}＆LT; BR＆GT; 

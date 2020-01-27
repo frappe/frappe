@@ -1095,7 +1095,7 @@ DocType: User,System User,系統用戶
 DocType: Report,Is Standard,為標準
 DocType: Desktop Icon,_report,_報告
 DocType: Desktop Icon,_report,_報告
-DocType: DocField,"Don't HTML Encode HTML tags like &lt;script&gt; or just characters like &lt; or &gt;, as they could be intentionally used in this field",不要HTML編碼的HTML標籤，如&lt;SCRIPT&gt;或者就像字符&lt;或&gt;，因為他們可以在此字段中故意使用
+DocType: DocField,"Don't HTML Encode HTML tags like &lt;script> or just characters like &lt; or >, as they could be intentionally used in this field",不要HTML編碼的HTML標籤，如&lt;SCRIPT>或者就像字符&lt;或>，因為他們可以在此字段中故意使用
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +278,Specify a default value,指定一個預設值
 DocType: Website Settings,FavIcon,網站圖標
 apps/frappe/frappe/core/doctype/feedback_trigger/feedback_trigger.py +116,At least one reply is mandatory before requesting feedback,至少有一個答复要求得到反饋前強制性
@@ -1615,7 +1615,7 @@ DocType: System Settings,Session Expiry in Hours e.g. 06:00,連線過期的小�
 DocType: Customize Form Field,"This field will appear only if the fieldname defined here has value OR the rules are true (examples): 
 myfield
 eval:doc.myfield=='My Value'
-eval:doc.age&gt;18",該字段將顯示僅在此處定義的字段名具有值或規則是真實的（例子）：MyField的EVAL：doc.myfield ==&#39;我的價值&#39;的eval：doc.age&gt; 18
+eval:doc.age>18",該字段將顯示僅在此處定義的字段名具有值或規則是真實的（例子）：MyField的EVAL：doc.myfield ==&#39;我的價值&#39;的eval：doc.age> 18
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +35,"Once you have set this, the users will only be able access documents (eg. Blog Post) where the link exists (eg. Blogger).",一旦你設置這個，用戶將只能訪問有聯結的文檔（如博客文章）。
 DocType: Error Log,Log of Scheduler Errors,日程安排程序錯誤日誌
 DocType: User,Bio,生物
@@ -1763,7 +1763,7 @@ DocType: Payment Gateway,Gateway,網關
 apps/frappe/frappe/public/js/frappe/form/linked_with.js +104,Not enough permission to see links,沒有足夠的權限查看鏈接
 apps/frappe/frappe/public/js/frappe/form/linked_with.js +104,Not enough permission to see links,沒有足夠的權限查看鏈接
 apps/frappe/frappe/contacts/doctype/address/address.py +37,Address Title is mandatory.,地址標題是強制性的。
-DocType: Website Settings,"Added HTML in the &lt;head&gt; section of the web page, primarily used for website verification and SEO",在&lt;head&gt;添加HTML網頁的部分，主要用於網站的驗證和搜索引擎優化
+DocType: Website Settings,"Added HTML in the &lt;head> section of the web page, primarily used for website verification and SEO",在&lt;head>添加HTML網頁的部分，主要用於網站的驗證和搜索引擎優化
 apps/frappe/frappe/core/doctype/error_snapshot/error_snapshot_list.js +9,Relapsed,復發
 apps/frappe/frappe/utils/nestedset.py +183,Item cannot be added to its own descendents,項目不能被添加到自己的後代
 DocType: System Settings,Expiry time of QR Code Image Page,QR碼圖像頁面的到期時間
@@ -2354,7 +2354,7 @@ DocType: Workflow State,arrow-up,向上箭頭
 DocType: OAuth Bearer Token,Expires In,過期日期在
 DocType: DocField,Allow on Submit,允許在提交
 DocType: Error Snapshot,Exception Type,異常類型
-DocType: Web Page,Add code as &lt;script&gt;,添加源碼為&lt;script&gt;
+DocType: Web Page,Add code as &lt;script>,添加源碼為&lt;script>
 DocType: Webhook,Headers,頭
 apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.js +35,Please enter values for App Access Key and App Secret Key,為App訪問鍵和App保密密鑰請輸入值
 apps/frappe/frappe/config/core.py +62,A log of request errors,日誌請求錯誤的
@@ -2386,7 +2386,7 @@ apps/frappe/frappe/utils/password_strength.py +125,Avoid sequences like abc or 6
 apps/frappe/frappe/public/js/frappe/request.js +144,Please try again,請再試一次
 apps/frappe/frappe/custom/doctype/custom_field/custom_field.js +63,Option 3,選項3
 DocType: Workflow State,Edit,編輯
-apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +229,Permissions can be managed via Setup &gt; Role Permissions Manager,權限可以通過設置＆gt進行管理;角色權限管理
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +229,Permissions can be managed via Setup > Role Permissions Manager,權限可以通過設置＆gt進行管理;角色權限管理
 DocType: Website Settings,Chat Operators,聊天運營商
 DocType: Contact Us Settings,Pincode,PIN代碼
 apps/frappe/frappe/core/doctype/data_import/importer.py +106,Please make sure that there are no empty columns in the file.,請確保沒有空欄在文件中。
@@ -2636,15 +2636,15 @@ DocType: Workflow State,share-alt,股份ALT
 apps/frappe/frappe/utils/background_jobs.py +216,Queue should be one of {0},隊列應該是{0}
 DocType: Address Template,"<h4>Default Template</h4>
 <p>Uses <a href=""http://jinja.pocoo.org/docs/templates/"">Jinja Templating</a> and all the fields of Address (including Custom Fields if any) will be available</p>
-<pre><code>{{ address_line1 }}&lt;br&gt;
-{% if address_line2 %}{{ address_line2 }}&lt;br&gt;{% endif -%}
-{{ city }}&lt;br&gt;
-{% if state %}{{ state }}&lt;br&gt;{% endif -%}
-{% if pincode %} PIN:  {{ pincode }}&lt;br&gt;{% endif -%}
-{{ country }}&lt;br&gt;
-{% if phone %}Phone: {{ phone }}&lt;br&gt;{% endif -%}
-{% if fax %}Fax: {{ fax }}&lt;br&gt;{% endif -%}
-{% if email_id %}Email: {{ email_id }}&lt;br&gt;{% endif -%}
+<pre><code>{{ address_line1 }}&lt;br>
+{% if address_line2 %}{{ address_line2 }}&lt;br>{% endif -%}
+{{ city }}&lt;br>
+{% if state %}{{ state }}&lt;br>{% endif -%}
+{% if pincode %} PIN:  {{ pincode }}&lt;br>{% endif -%}
+{{ country }}&lt;br>
+{% if phone %}Phone: {{ phone }}&lt;br>{% endif -%}
+{% if fax %}Fax: {{ fax }}&lt;br>{% endif -%}
+{% if email_id %}Email: {{ email_id }}&lt;br>{% endif -%}
 </code></pre>","<H4>默認模板</ H4> 
  <p> <a用途神社href=""http://jinja.pocoo.org/docs/templates/"">模板</A>和地址的所有領域（包括自定義字段如果有的話）將可</ P> 
  <前> <代碼> {{address_line1}}＆LT; BR＆GT; 

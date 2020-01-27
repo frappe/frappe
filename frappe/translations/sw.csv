@@ -1033,7 +1033,7 @@ apps/frappe/frappe/public/js/frappe/list/list_view.js,No {0} found,Hakuna {0} ku
 apps/frappe/frappe/config/customization.py,Add custom forms.,Ongeza fomu za desturi.
 apps/frappe/frappe/desk/like.py,{0}: {1} in {2},{0}: {1} katika {2}
 apps/frappe/frappe/public/js/frappe/form/footer/timeline.js,submitted this document,iliwasilisha hati hii
-apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Setup &gt; User Permissions,Sanidi&gt; Ruhusa za Mtumiaji
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Setup > User Permissions,Sanidi> Ruhusa za Mtumiaji
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,The system provides many pre-defined roles. You can add new roles to set finer permissions.,Mfumo hutoa majukumu mengi ya awali. Unaweza kuongeza majukumu mapya ya kuweka vibali vyema.
 DocType: Communication,CC,CC
 DocType: Country,Geo,Geo
@@ -1250,7 +1250,7 @@ apps/frappe/frappe/contacts/doctype/contact/contact.py,Please set Email Address,
 DocType: User,"If the user has any role checked, then the user becomes a ""System User"". ""System User"" has access to the desktop","Ikiwa mtumiaji ana jukumu lolote la kuchunguza, basi mtumiaji huwa &quot;Mtumiaji wa Mfumo&quot;. &quot;Mtumiaji wa Mfumo&quot; ana upatikanaji wa desktop"
 DocType: System Settings,Date and Number Format,Tarehe na Nambari ya Nambari
 apps/frappe/frappe/model/document.py,one of,moja ya
-apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Setup &gt; Customize Form,Usanidi&gt; Fomu ya Kubinafsisha
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Setup > Customize Form,Usanidi> Fomu ya Kubinafsisha
 apps/frappe/frappe/public/js/frappe/desk.js,Checking one moment,Kuangalia wakati mmoja
 apps/frappe/frappe/public/js/frappe/list/list_sidebar.html,Show Tags,Onyesha Vitambulisho
 DocType: DocField,HTML Editor,Mhariri wa HTML
@@ -1258,7 +1258,7 @@ DocType: System Settings,"If Apply Strict User Permission is checked and User Pe
 DocType: Address,Billing,Ulipaji
 DocType: Email Queue,Not Sent,Haikutumwa
 DocType: Web Form,Actions,Vitendo
-apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Setup &gt; User,Sanidi&gt; Mtumiaji
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Setup > User,Sanidi> Mtumiaji
 DocType: Workflow State,align-justify,onyesha-hakikisha
 DocType: User,Middle Name (Optional),Jina la Kati (Hiari)
 apps/frappe/frappe/public/js/frappe/request.js,Not Permitted,Hairuhusiwi
@@ -1405,7 +1405,7 @@ DocType: User,System User,Mtumiaji wa Mfumo
 DocType: Report,Is Standard,Ni Standard
 DocType: Desktop Icon,_report,_report
 DocType: Dashboard Chart,Full,Kamili
-DocType: DocField,"Don't HTML Encode HTML tags like &lt;script&gt; or just characters like &lt; or &gt;, as they could be intentionally used in this field","Usiweke HTML lebo ya vitambulisho vya HTML kama &lt;script&gt; au wahusika tu kama &lt;au&gt;, kama inaweza kutumika kwa makusudi katika uwanja huu"
+DocType: DocField,"Don't HTML Encode HTML tags like &lt;script> or just characters like &lt; or >, as they could be intentionally used in this field","Usiweke HTML lebo ya vitambulisho vya HTML kama &lt;script> au wahusika tu kama &lt;au>, kama inaweza kutumika kwa makusudi katika uwanja huu"
 apps/frappe/frappe/public/js/frappe/utils/energy_point_utils.js,{0} criticized on {1},{0} alikosolewa kwenye {1}
 DocType: Website Settings,FavIcon,FavIcon
 apps/frappe/frappe/data_migration/doctype/data_migration_plan/data_migration_plan.js,Run,Run
@@ -1783,7 +1783,7 @@ DocType: Letter Head,Footer will display correctly only in PDF,Footer itaonyeshw
 apps/frappe/frappe/core/doctype/data_import/data_import_list.js,Pending,Inasubiri
 DocType: System Settings,Allow only one session per user,Ruhusu kikao kimoja tu kwa mtumiaji
 apps/frappe/frappe/core/doctype/file/test_file.py,Home/Test Folder 1/Test Folder 3,Folda ya Nyumbani / Mtihani 1 / Faili ya Mtihani 3
-DocType: Website Settings,&lt;head&gt; HTML,&lt;kichwa&gt; HTML
+DocType: Website Settings,&lt;head> HTML,&lt;kichwa> HTML
 apps/frappe/frappe/public/js/frappe/views/calendar/calendar.js,Select or drag across time slots to create a new event.,Chagua au gurudisha wakati unaofaa ili kuunda tukio jipya.
 DocType: Contact,Contact Details,Maelezo ya Mawasiliano
 DocType: DocField,In Filter,Katika Filter
@@ -2014,7 +2014,7 @@ apps/frappe/frappe/website/doctype/personal_data_deletion_request/personal_data_
 apps/frappe/frappe/auth.py,Login not allowed at this time,Ingia haruhusiwi kwa wakati huu
 DocType: Data Migration Run,Current Mapping Action,Hatua ya Sasa ya Ramani
 DocType: Dashboard Chart Source,Source Name,Jina la Chanzo
-apps/frappe/frappe/public/js/frappe/views/inbox/inbox_view.js,No email account associated with the User. Please add an account under User &gt; Email Inbox.,Hakuna akaunti ya barua pepe inayohusiana na Mtumiaji. Tafadhali ongeza akaunti chini ya Mtumiaji&gt; Kikasha cha barua pepe.
+apps/frappe/frappe/public/js/frappe/views/inbox/inbox_view.js,No email account associated with the User. Please add an account under User > Email Inbox.,Hakuna akaunti ya barua pepe inayohusiana na Mtumiaji. Tafadhali ongeza akaunti chini ya Mtumiaji> Kikasha cha barua pepe.
 DocType: Email Account,Email Sync Option,Option Sync Option
 apps/frappe/frappe/core/doctype/data_import/log_details.html,Row No,Row No
 DocType: Async Task,Runtime,Runtime
@@ -2029,7 +2029,7 @@ apps/frappe/frappe/desk/form/assign_to.py,Already in user's To Do list,Tayari kw
 DocType: User Email,Enable Outgoing,Wezesha Kuondoka
 DocType: Address,Fax,Faksi
 apps/frappe/frappe/config/customization.py,Custom Tags,Tags Custom
-apps/frappe/frappe/email/smtp.py,Email Account not setup. Please create a new Email Account from Setup &gt; Email &gt; Email Account,Akaunti ya barua pepe sio kusanidi. Tafadhali unda Akaunti mpya ya Barua pepe kutoka kwa Kusanidi&gt; Barua pepe&gt; Akaunti ya barua pepe
+apps/frappe/frappe/email/smtp.py,Email Account not setup. Please create a new Email Account from Setup > Email > Email Account,Akaunti ya barua pepe sio kusanidi. Tafadhali unda Akaunti mpya ya Barua pepe kutoka kwa Kusanidi> Barua pepe> Akaunti ya barua pepe
 DocType: Comment,Submitted,Iliwasilishwa
 DocType: Contact,Pulled from Google Contacts,Iliyohamishwa kutoka Anwani za Google
 apps/frappe/frappe/integrations/doctype/paypal_settings/paypal_settings.py,In Valid Request,Katika Ombi Sahihi
@@ -2101,7 +2101,7 @@ DocType: System Settings,Session Expiry in Hours e.g. 06:00,Mwisho wa Kikao kwa 
 DocType: Customize Form Field,"This field will appear only if the fieldname defined here has value OR the rules are true (examples): 
 myfield
 eval:doc.myfield=='My Value'
-eval:doc.age&gt;18",Shamba hii itaonekana tu kama jina la uwanja linalotafsiriwa hapa lina thamani OR LA sheria ni za kweli (mifano): myfield eval: doc.myfield == &#39;Thamani yangu&#39; eval: doc.age&gt; 18
+eval:doc.age>18",Shamba hii itaonekana tu kama jina la uwanja linalotafsiriwa hapa lina thamani OR LA sheria ni za kweli (mifano): myfield eval: doc.myfield == &#39;Thamani yangu&#39; eval: doc.age> 18
 DocType: Social Login Key,Office 365,Ofisi 365
 apps/frappe/frappe/public/js/frappe/ui/toolbar/energy_points_notifications.js,Today,Leo
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,"Once you have set this, the users will only be able access documents (eg. Blog Post) where the link exists (eg. Blogger).","Mara baada ya kuweka hii, watumiaji wataweza kufikia nyaraka (kwa mfano Blog post) ambako kiungo hipo (kwa mfano Blogger)."
@@ -2115,7 +2115,7 @@ apps/frappe/frappe/integrations/doctype/google_drive/google_drive.py,Google Driv
 DocType: DocType,UPPER CASE,JINSI YA UPANDA
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js,Custom HTML,HTML ya kawaida
 apps/frappe/frappe/public/js/frappe/views/file/file_view.js,Enter folder name,Ingiza jina la folda
-apps/frappe/frappe/contacts/doctype/address/address.py,No default Address Template found. Please create a new one from Setup &gt; Printing and Branding &gt; Address Template.,Hakuna Kiolezo cha anwani default kilichopatikana. Tafadhali unda mpya kutoka kwa Kusanidi&gt; Kuchapa na Kuweka alama&gt; Kiolezo cha Anwani.
+apps/frappe/frappe/contacts/doctype/address/address.py,No default Address Template found. Please create a new one from Setup > Printing and Branding > Address Template.,Hakuna Kiolezo cha anwani default kilichopatikana. Tafadhali unda mpya kutoka kwa Kusanidi> Kuchapa na Kuweka alama> Kiolezo cha Anwani.
 apps/frappe/frappe/auth.py,Unknown User,Mtumiaji asiyejulikana
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js,Select Role,Chagua Shauku
 DocType: Comment,Deleted,Imefutwa
@@ -2303,7 +2303,7 @@ DocType: LDAP Settings,Path to Server Certificate,Njia ya Cheti cha Seva
 apps/frappe/frappe/public/js/frappe/form/linked_with.js,Not enough permission to see links,Si idhini ya kutosha kuona viungo
 apps/frappe/frappe/contacts/doctype/address/address.py,Address Title is mandatory.,Cheti cha anwani ni lazima.
 DocType: Google Contacts,Push to Google Contacts,Sukuma kwa Anwani za Google
-DocType: Website Settings,"Added HTML in the &lt;head&gt; section of the web page, primarily used for website verification and SEO","Aliongeza HTML katika sehemu ya &lt;kichwa&gt; ya ukurasa wa wavuti, hasa kutumika kwa uthibitishaji wa tovuti na SEO"
+DocType: Website Settings,"Added HTML in the &lt;head> section of the web page, primarily used for website verification and SEO","Aliongeza HTML katika sehemu ya &lt;kichwa> ya ukurasa wa wavuti, hasa kutumika kwa uthibitishaji wa tovuti na SEO"
 apps/frappe/frappe/core/doctype/error_snapshot/error_snapshot_list.js,Relapsed,Ilirudiwa tena
 apps/frappe/frappe/utils/nestedset.py,Item cannot be added to its own descendents,Kipengee hawezi kuongezwa kwa wazazi wake
 DocType: Session Default Settings,Session Defaults,Defavers ya Kikao
@@ -2422,7 +2422,7 @@ DocType: Workflow State,Warning,Onyo
 apps/frappe/frappe/public/js/frappe/form/print.js,This may get printed on multiple pages,Hii inaweza kuchapishwa kwenye kurasa nyingi
 DocType: Data Migration Run,Percent Complete,Asilimia Imekamilika
 DocType: Tag Category,Tag Category,Jamii ya Tag
-apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,"For comparison, use &gt;5, &lt;10 or =324. For ranges, use 5:10 (for values between 5 &amp; 10).","Kwa kulinganisha, tumia&gt; 5, &lt;10 au = 324. Kwa safu, tumia 5:10 (kwa maadili kati ya 5 &amp; 10)."
+apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,"For comparison, use >5, &lt;10 or =324. For ranges, use 5:10 (for values between 5 &amp; 10).","Kwa kulinganisha, tumia> 5, &lt;10 au = 324. Kwa safu, tumia 5:10 (kwa maadili kati ya 5 &amp; 10)."
 DocType: Google Calendar,Pull from Google Calendar,Bonyeza kutoka Kalenda ya Google
 apps/frappe/frappe/core/doctype/data_import/data_import.js,Help,Msaada
 DocType: User,Login Before,Ingia Kabla
@@ -2882,7 +2882,7 @@ DocType: Custom Script,Custom Script,Script Custom
 DocType: Address,Address Line 2,Anwani ya Anwani 2
 DocType: Address,Reference,Kumbukumbu
 apps/frappe/frappe/public/js/frappe/list/list_sidebar_group_by.js,Assigned To,Iliyopewa
-apps/frappe/frappe/email/smtp.py,Please setup default Email Account from Setup &gt; Email &gt; Email Account,Tafadhali weka Akaunti ya barua pepe ya usanidi kutoka kwa Usanidi&gt; Barua pepe&gt; Akaunti ya barua pepe
+apps/frappe/frappe/email/smtp.py,Please setup default Email Account from Setup > Email > Email Account,Tafadhali weka Akaunti ya barua pepe ya usanidi kutoka kwa Usanidi> Barua pepe> Akaunti ya barua pepe
 DocType: Data Migration Mapping Detail,Data Migration Mapping Detail,Maelezo ya Ramani ya Uhamiaji wa Data
 DocType: Data Import,Action,Hatua
 DocType: GSuite Settings,Script URL,URL ya Hati
@@ -3058,7 +3058,7 @@ DocType: DocField,Allow on Submit,Ruhusu Kuwasilisha
 DocType: DocField,HTML,HTML
 DocType: Error Snapshot,Exception Type,Aina ya Ufikiaji
 apps/frappe/frappe/public/js/frappe/views/reports/report_view.js,Pick Columns,Piga nguzo
-DocType: Web Page,Add code as &lt;script&gt;,Ongeza msimbo kama &lt;script&gt;
+DocType: Web Page,Add code as &lt;script>,Ongeza msimbo kama &lt;script>
 apps/frappe/frappe/core/doctype/user_permission/user_permission_list.js,Clear User Permissions,Futa ruhusa za Mtumiaji
 DocType: Webhook,Headers,Vichwa
 apps/frappe/frappe/public/js/frappe/social/components/ActivitySidebar.vue,Upcoming Events,Matukio ijayo
@@ -3431,16 +3431,16 @@ DocType: Workflow State,share-alt,kushiriki-alt
 apps/frappe/frappe/utils/background_jobs.py,Queue should be one of {0},Foleni inapaswa kuwa moja ya {0}
 DocType: Address Template,"<h4>Default Template</h4>
 <p>Uses <a href=""http://jinja.pocoo.org/docs/templates/"">Jinja Templating</a> and all the fields of Address (including Custom Fields if any) will be available</p>
-<pre><code>{{ address_line1 }}&lt;br&gt;
-{% if address_line2 %}{{ address_line2 }}&lt;br&gt;{% endif -%}
-{{ city }}&lt;br&gt;
-{% if state %}{{ state }}&lt;br&gt;{% endif -%}
-{% if pincode %} PIN:  {{ pincode }}&lt;br&gt;{% endif -%}
-{{ country }}&lt;br&gt;
-{% if phone %}Phone: {{ phone }}&lt;br&gt;{% endif -%}
-{% if fax %}Fax: {{ fax }}&lt;br&gt;{% endif -%}
-{% if email_id %}Email: {{ email_id }}&lt;br&gt;{% endif -%}
-</code></pre>","<h4> Kigezo cha Kigezo </h4><p> Inatumia <a href=""http://jinja.pocoo.org/docs/templates/"">Jinja Templating</a> na mashamba yote ya Anwani (ikiwa ni pamoja na Mashamba ya Desturi kama ipo) yatapatikana </p><pre> <code>{{ address_line1 }}&lt;br&gt; {% if address_line2 %}{{ address_line2 }}&lt;br&gt;{% endif -%} {{ city }}&lt;br&gt; {% if state %}{{ state }}&lt;br&gt;{% endif -%} {% if pincode %} PIN: {{ pincode }}&lt;br&gt;{% endif -%} {{ country }}&lt;br&gt; {% if phone %}Phone: {{ phone }}&lt;br&gt;{% endif -%} {% if fax %}Fax: {{ fax }}&lt;br&gt;{% endif -%} {% if email_id %}Email: {{ email_id }}&lt;br&gt;{% endif -%}</code> </pre>"
+<pre><code>{{ address_line1 }}&lt;br>
+{% if address_line2 %}{{ address_line2 }}&lt;br>{% endif -%}
+{{ city }}&lt;br>
+{% if state %}{{ state }}&lt;br>{% endif -%}
+{% if pincode %} PIN:  {{ pincode }}&lt;br>{% endif -%}
+{{ country }}&lt;br>
+{% if phone %}Phone: {{ phone }}&lt;br>{% endif -%}
+{% if fax %}Fax: {{ fax }}&lt;br>{% endif -%}
+{% if email_id %}Email: {{ email_id }}&lt;br>{% endif -%}
+</code></pre>","<h4> Kigezo cha Kigezo </h4><p> Inatumia <a href=""http://jinja.pocoo.org/docs/templates/"">Jinja Templating</a> na mashamba yote ya Anwani (ikiwa ni pamoja na Mashamba ya Desturi kama ipo) yatapatikana </p><pre> <code>{{ address_line1 }}&lt;br> {% if address_line2 %}{{ address_line2 }}&lt;br>{% endif -%} {{ city }}&lt;br> {% if state %}{{ state }}&lt;br>{% endif -%} {% if pincode %} PIN: {{ pincode }}&lt;br>{% endif -%} {{ country }}&lt;br> {% if phone %}Phone: {{ phone }}&lt;br>{% endif -%} {% if fax %}Fax: {{ fax }}&lt;br>{% endif -%} {% if email_id %}Email: {{ email_id }}&lt;br>{% endif -%}</code> </pre>"
 DocType: Calendar View,Start Date Field,Shamba ya Tarehe ya Mwanzo
 DocType: Role,Role Name,Jina la majukumu
 apps/frappe/frappe/templates/includes/navbar/navbar_login.html,Switch To Desk,Badilisha kwenye dawati
