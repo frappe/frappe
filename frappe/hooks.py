@@ -155,6 +155,9 @@ doc_events = {
 	},
 	"Page": {
 		"after_save": "frappe.cache_manager.build_domain_restriced_page_cache",
+	},
+	"Event Update Log": {
+		"after_insert": "frappe.event_streaming.doctype.event_update_log.event_update_log.notify_consumers"
 	}
 }
 
