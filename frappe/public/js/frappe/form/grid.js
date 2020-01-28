@@ -212,17 +212,16 @@ export default class Grid {
 	}
 
 	refresh_remove_rows_button() {
-		this.remove_rows_button.toggleClass('hidden',
-			this.wrapper.find('.grid-body .grid-row-check:checked:first').length ? false : true);
-		this.remove_all_rows_button.toggleClass('hidden',
-			this.wrapper.find('.grid-heading-row .grid-row-check:checked:first').length ? false : true);
+		let is_visible = this.wrapper.find('.grid-body .grid-row-check:checked:first').length ? false : true;
+		this.remove_rows_button.toggleClass('hidden', is_visible);
+		this.remove_all_rows_button.toggleClass('hidden', is_visible);
 	}
 
 	get_selected() {
 		return (this.grid_rows || []).map(row => {
 			return row.doc.__checked ? row.doc.name : null;
 		}).filter(d => {
-			return d; 
+			return d;
 		});
 	}
 
