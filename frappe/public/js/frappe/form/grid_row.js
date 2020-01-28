@@ -367,7 +367,8 @@ export default class GridRow {
 
 		var me = this,
 			parent = column.field_area,
-			df = column.df;
+			df = column.df,
+			_link_title = this.get_link_title(df);
 
 		// no text editor in grid
 		if (df.fieldtype=='Text Editor') {
@@ -391,7 +392,7 @@ export default class GridRow {
 		// sync get_query
 		field.get_query = this.grid.get_field(df.fieldname).get_query;
 		field.df.onchange = function() {
-			me.grid.grid_rows[this.doc.idx-1].refresh_field(this.df.fieldname, this.get_link_title(df));
+			me.grid.grid_rows[this.doc.idx-1].refresh_field(this.df.fieldname, _link_title);
 		};
 		field.refresh();
 		if(field.$input) {
