@@ -129,7 +129,10 @@ class DashboardChart {
 			this.prepare_chart_object();
 			this.prepare_container();
 			this.prepare_chart_actions();
-			this.fetch(this.filters).then((data) => {
+			this.fetch(this.filters).then( data => {
+				if (this.chart_doc.chart_type == 'Report') {
+					data = this.get_report_chart_data(data);
+				}
 				this.update_last_synced();
 				this.data = data;
 				this.render();
@@ -155,6 +158,21 @@ class DashboardChart {
 		last_synced_text.prependTo(this.chart_container);
 	}
 
+	get_report_chart_data(result) {
+		let chart_fields = {
+			y_field: this.chart_doc.y_field,
+			x_field: this.chart_doc.x_field,
+			chart_type: this.chart_doc.type,
+			color: this.chart_doc.color
+		}
+		let columns = result.columns.map((col)=> {
+			return frappe.report_utils.prepare_field_from_column(col);
+		});
+
+		let data = frappe.report_utils.make_chart_options(columns, result, chart_fields).data;
+		return data;
+	}
+
 	prepare_chart_actions() {
 		let actions = [
 			{
@@ -162,6 +180,9 @@ class DashboardChart {
 				action: 'action-refresh',
 				handler: () => {
 					this.fetch(this.filters, true).then(data => {
+						if (this.chart_doc.chart_type == 'Report') {
+							data = this.get_report_chart_data(data);
+						}
 						this.update_chart_object();
 						this.data = data;
 						this.render();
@@ -210,14 +231,23 @@ class DashboardChart {
 		this.chart_container.find('.chart-loading-state').removeClass('hide');
 		let method = this.settings ? this.settings.method
 			: 'frappe.desk.doctype.dashboard_chart.dashboard_chart.get';
+		let args;
 
-		return frappe.xcall(
-			method,
-			{
+		if (this.chart_doc.chart_type == 'Report') {
+			args = {
+				report_name: this.chart_doc.report_name,
+				filters: filters,
+			}
+		} else {
+			args = {
 				chart_name: this.chart_doc.name,
 				filters: filters,
 				refresh: refresh ? 1 : 0,
 			}
+		}
+		return frappe.xcall(
+			method,
+			args
 		);
 	}
 
@@ -280,6 +310,11 @@ class DashboardChart {
 						this.settings = frappe.dashboards.chart_sources[this.chart_doc.source];
 					});
 			}
+		} else if (this.chart_doc.chart_type == 'Report') {
+			this.settings = {
+				'method': 'frappe.desk.query_report.run',
+			}
+			return Promise.resolve();
 		} else {
 			return Promise.resolve();
 		}

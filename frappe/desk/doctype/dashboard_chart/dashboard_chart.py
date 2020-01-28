@@ -8,6 +8,7 @@ from frappe import _
 import datetime
 from frappe.core.page.dashboard.dashboard import cache_source, get_from_date_from_timespan
 from frappe.utils import nowdate, add_to_date, getdate, get_last_day, formatdate
+from frappe.model.naming import append_number_if_name_exists
 from frappe.model.document import Document
 
 @frappe.whitelist()
@@ -37,6 +38,28 @@ def get(chart_name = None, chart = None, no_cache = None, from_date = None, to_d
 
 	return chart_config
 
+@frappe.whitelist()
+def create_report_chart(args):
+	args = frappe.parse_json(args)
+	_doc = frappe.new_doc('Dashboard Chart')
+	print('ARGS', args)
+	_doc.update(args)
+	if frappe.db.exists('Dashboard Chart', args.chart_name):
+		args.chart_name = append_number_if_name_exists('Dashboard Chart', args.chart_name)
+		_doc.chart_name = args.chart_name
+	_doc.insert(ignore_permissions=True)
+
+	if args.dashboard:
+		add_chart_to_dashboard(args)
+
+def add_chart_to_dashboard(args):
+	dashboard = frappe.get_doc('Dashboard', args.dashboard)
+	dashboard_link = frappe.new_doc('Dashboard Chart Link')
+	dashboard_link.chart = args.chart_name
+
+	dashboard.append('charts', dashboard_link)
+	dashboard.save()
+	frappe.db.commit()
 
 def get_chart_config(chart, filters, timespan, timegrain, from_date, to_date):
 	if not from_date:
@@ -277,7 +300,7 @@ class DashboardChart(Document):
 		frappe.cache().delete_key('chart-data:{}'.format(self.name))
 
 	def validate(self):
-		if self.chart_type != 'Custom':
+		if self.chart_type != 'Custom' and self.chart_type != 'Report':
 			self.check_required_field()
 		self.check_document_type()
 
