@@ -58,8 +58,8 @@ class Address(Document):
 	def validate_reference(self):
 		if self.is_your_company_address:
 			if not [row for row in self.links if row.link_doctype == "Company"]:
-				frappe.throw(_("""Address needs to be linked to a Company.
-				Please add a row for {0} in the Links table below.""").format(frappe.bold("Company")),
+				frappe.throw(_("Address needs to be linked to a Company.Please add a row for {0} in the Links table below.")\
+				.format(frappe.bold(_("Company"))),
 				title =_("Address not Linked"))
 
 	def get_display(self):
