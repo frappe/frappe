@@ -67,7 +67,7 @@ def get_context(context):
 		temp_doc = frappe.new_doc(self.document_type)
 		if self.condition:
 			try:
-				frappe.safe_eval(self.condition, None, get_context(temp_doc))
+				frappe.safe_eval(self.condition, None, {'doc': temp_doc.as_dict()})
 			except Exception:
 				frappe.throw(_("The Condition '{0}' is invalid").format(self.condition))
 
@@ -327,4 +327,4 @@ def evaluate_alert(doc, alert, event):
 			frappe.utils.get_link_to_form('Error Log', error_log.name))))
 
 def get_context(doc):
-	return {"doc": doc.as_dict(), "nowdate": nowdate, "frappe.utils": frappe.utils}
+	return {"doc": doc, "nowdate": nowdate, "frappe.utils": frappe.utils}
