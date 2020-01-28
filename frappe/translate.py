@@ -145,7 +145,7 @@ def get_dict_from_hooks(fortype, name):
 	return translated_dict
 
 def add_lang_dict(code):
-	"""Extracts messages and returns Javascript code snippet to be appened at the end
+	"""Extracts messages and returns Javascript code snippet to be append at the end
 	of the given script
 
 	:param code: Javascript code snippet to which translations needs to be appended."""
@@ -506,7 +506,7 @@ def get_messages_from_file(path):
 		return []
 
 def extract_messages_from_code(code, is_py=False):
-	"""Extracts translatable srings from a code file
+	"""Extracts translatable strings from a code file
 
 	:param code: code from which translatable files are to be extracted
 	:param is_py: include messages in triple quotes e.g. `_('''message''')`"""
@@ -517,10 +517,18 @@ def extract_messages_from_code(code, is_py=False):
 		pass
 
 	messages = []
-	messages += [(m.start(), m.groups()[0]) for m in re.compile('_\("([^"]*)"').finditer(code)]
-	messages += [(m.start(), m.groups()[0]) for m in re.compile("_\('([^']*)'").finditer(code)]
-	if is_py:
-		messages += [(m.start(), m.groups()[0]) for m in re.compile('_\("{3}([^"]*)"{3}.*\)').finditer(code)]
+	pattern = r"_\(([\"'])(((?!\1).)*)\1(\s*,\s*context\s*=\s*([\"'])(((?!\5).)*)\5)*"
+
+	for m in re.compile(pattern).finditer(code):
+		message = m.groups()[1]
+		context = m.groups()[5]
+		if context:
+			message += ':' + context
+
+		messages += [(m.start(), message)]
+
+	# if is_py:
+	# 	messages += [(m.start(), m.groups()[0]) for m in re.compile('_\("{3}([^"]*)"{3}.*\)').finditer(code)]
 
 	messages = [(pos, message) for pos, message in messages if is_translatable(message)]
 	return pos_to_line_no(messages, code)
