@@ -212,9 +212,13 @@ export default class Grid {
 	}
 
 	refresh_remove_rows_button() {
-		let is_visible = this.wrapper.find('.grid-body .grid-row-check:checked:first').length ? false : true;
-		this.remove_rows_button.toggleClass('hidden', is_visible);
-		this.remove_all_rows_button.toggleClass('hidden', is_visible);
+		let row_count = (this.grid_rows && this.grid_rows.length) ? false : true;
+
+		let is_delete_hidden = this.wrapper.find('.grid-body .grid-row-check:checked:first').length ? false : true
+		this.remove_rows_button.toggleClass('hidden', is_delete_hidden || row_count);
+
+		let is_delete_all_hidden = this.wrapper.find('.grid-heading-row .grid-row-check:checked:first').length ? false : true
+		this.remove_all_rows_button.toggleClass('hidden', is_delete_all_hidden || row_count);
 	}
 
 	get_selected() {
