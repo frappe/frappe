@@ -158,7 +158,7 @@ def get_script(report_name):
 
 @frappe.whitelist()
 @frappe.read_only()
-def run(report_name, filters=None, user=None):
+def run(report_name, filters=None, user=None, ignore_prepared_report=False):
 
 	report = get_report_doc(report_name)
 	if not user:
@@ -169,7 +169,7 @@ def run(report_name, filters=None, user=None):
 
 	result = None
 
-	if report.prepared_report and not report.disable_prepared_report:
+	if report.prepared_report and not report.disable_prepared_report and not ignore_prepared_report:
 		if filters:
 			if isinstance(filters, string_types):
 				filters = json.loads(filters)
