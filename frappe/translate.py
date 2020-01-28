@@ -499,13 +499,13 @@ def get_messages_from_file(path):
 	if os.path.exists(path):
 		with open(path, 'r') as sourcefile:
 			data = [(os.path.relpath(path, apps_path),
-					message) for message in  extract_messages_from_code(sourcefile.read(), path.endswith(".py"))]
+					message) for message in  extract_messages_from_code(sourcefile.read())]
 			return data
 	else:
 		# print "Translate: {0} missing".format(os.path.abspath(path))
 		return []
 
-def extract_messages_from_code(code, is_py=False):
+def extract_messages_from_code(code):
 	"""Extracts translatable strings from a code file
 
 	:param code: code from which translatable files are to be extracted
@@ -517,18 +517,16 @@ def extract_messages_from_code(code, is_py=False):
 		pass
 
 	messages = []
-	pattern = r"_\(([\"'])(((?!\1).)*)\1(\s*,\s*context\s*=\s*([\"'])(((?!\5).)*)\5)*"
+	pattern = r"_\(([\"']{,3})(?P<message>((?!\1).)*)\1(\s*,\s*context\s*=\s*([\"'])(?P<py_context>((?!\5).)*)\5)*(\s*,\s*(.)*?\s*(,\s*([\"'])(?P<js_context>((?!\11).)*)\11)*)*\)"
 
 	for m in re.compile(pattern).finditer(code):
-		message = m.groups()[1]
-		context = m.groups()[5]
+		message = m.group('message')
+		context = m.group('py_context') or m.group('js_context')
+
 		if context:
 			message += ':' + context
 
 		messages += [(m.start(), message)]
-
-	# if is_py:
-	# 	messages += [(m.start(), m.groups()[0]) for m in re.compile('_\("{3}([^"]*)"{3}.*\)').finditer(code)]
 
 	messages = [(pos, message) for pos, message in messages if is_translatable(message)]
 	return pos_to_line_no(messages, code)
