@@ -119,11 +119,12 @@ def executed(patchmodule):
 	# 	print "Patch %s already executed in %s" % (patchmodule, frappe.db.cur_db_name)
 	return done
 
-def block_user(block):
+def block_user(block, msg=None):
 	"""stop/start execution till patch is run"""
 	frappe.local.flags.in_patch = block
 	frappe.db.begin()
-	msg = "Patches are being executed in the system. Please try again in a few moments."
+	if not msg:
+		msg = "Patches are being executed in the system. Please try again in a few moments."
 	frappe.db.set_global('__session_status', block and 'stop' or None)
 	frappe.db.set_global('__session_status_message', block and msg or None)
 	frappe.db.commit()
