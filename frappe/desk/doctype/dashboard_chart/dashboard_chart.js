@@ -13,6 +13,9 @@ frappe.ui.form.on('Dashboard Chart', {
 		frm.chart_filters = null;
 		frm.set_df_property("filters_section", "hidden", 1);
 		frm.trigger('update_options');
+		if (frm.doc.report_name) {
+			frm.trigger('set_chart_report_filters');
+		}
 	},
 
 	source: function(frm) {
@@ -20,13 +23,23 @@ frappe.ui.form.on('Dashboard Chart', {
 	},
 
 	chart_type: function(frm) {
-		// set timeseries based on chart type
-		if (['Count', 'Average', 'Sum'].includes(frm.doc.chart_type)) {
-			frm.set_value('timeseries', 1);
+		if (frm.doc.chart_type == 'Report') {
+			frm.set_query('report_name', () => {
+				return {
+					filters: {
+						'report_type': ['!=', 'Report Builder']
+					}
+				}
+			});
 		} else {
-			frm.set_value('timeseries', 0);
+			// set timeseries based on chart type
+			if (['Count', 'Average', 'Sum'].includes(frm.doc.chart_type)) {
+				frm.set_value('timeseries', 1);
+			} else {
+				frm.set_value('timeseries', 0);
+			}
+			frm.set_value('document_type', '');
 		}
-		frm.set_value('document_type', '');
 	},
 
 	document_type: function(frm) {
@@ -36,6 +49,58 @@ frappe.ui.form.on('Dashboard Chart', {
 		frm.set_value('value_based_on', '');
 		frm.set_value('filters_json', '{}');
 		frm.trigger('update_options');
+	},
+
+	report_name: function(frm) {
+		frm.set_value('x_field', '');
+		frm.set_value('y_field', '');
+		frm.set_df_property('x_field', 'options', []);
+		frm.set_df_property('y_field', 'options', []);
+		frm.set_value('filters_json', '{}');
+		frm.trigger('set_chart_report_filters');
+	},
+
+
+	set_chart_report_filters: function(frm) {
+		let report_name = frm.doc.report_name;
+
+		if (report_name) {
+			if (frm.doc.filters_json.length > 2) {
+				frm.trigger("show_filters");
+				frm.trigger("set_chart_field_options");
+			} else {
+				frappe.report_utils.get_report_filters(report_name).then(filters => {
+					if (filters) {
+						frm.chart_filters = filters;
+						let filter_values = frappe.report_utils.get_filter_values(filters);
+						frm.set_value('filters_json', JSON.stringify(filter_values));
+						frm.trigger("show_filters");
+						frm.trigger("set_chart_field_options");
+					}
+
+				});
+			}
+
+		}
+	},
+
+	set_chart_field_options: function(frm) {
+		let filters = JSON.parse(frm.doc.filters_json);
+		frappe.xcall(
+			'frappe.desk.query_report.run',
+			{
+				report_name: frm.doc.report_name,
+				filters: filters
+			}
+		).then(data => {
+			if (data.result.length) {
+				let field_options = frappe.report_utils.get_possible_chart_options(data.columns, data);
+				frm.set_df_property('x_field', 'options', field_options.non_numeric_fields);
+				frm.set_df_property('y_field', 'options', field_options.numeric_fields);
+			} else {
+				frappe.msgprint(__('Report has no data, please modify the filters or change the Report Name'));
+			}
+		});
 	},
 
 	timespan: function(frm) {
@@ -111,6 +176,13 @@ frappe.ui.form.on('Dashboard Chart', {
 					frm.chart_filters = [];
 					frm.trigger('render_filters_table');
 				}
+			} else if (frm.doc.chart_type === 'Report') {
+				frappe.report_utils.get_report_filters(frm.doc.report_name).then(filters => {
+					if (filters) {
+						frm.chart_filters = filters;
+						frm.trigger('render_filters_table');
+					}
+				});
 			} else {
 				// standard filters
 				if (frm.doc.document_type) {
@@ -134,7 +206,7 @@ frappe.ui.form.on('Dashboard Chart', {
 							frm.trigger('render_filters_table');
 						});
 					});
-				}
+				} 
 			}
 
 		}
@@ -158,6 +230,14 @@ frappe.ui.form.on('Dashboard Chart', {
 
 		let filters = JSON.parse(frm.doc.filters_json || '{}');
 		var filters_set = false;
+
+		fields = fields.filter(f => {
+			// Ask about MultiSelectList
+			// if (f.fieldtype == 'MultiSelectList') {
+			// 	if (f.fi)
+			// }
+			return f.fieldname;
+		});
 		fields.map( f => {
 			if (filters[f.fieldname]) {
 				const filter_row = $(`<tr><td>${f.label}</td><td>${filters[f.fieldname] || ""}</td></tr>`);
@@ -178,10 +258,14 @@ frappe.ui.form.on('Dashboard Chart', {
 				fields: fields,
 				primary_action: function() {
 					let values = this.get_values();
-					if(values) {
+					if (values) {
 						this.hide();
 						frm.set_value('filters_json', JSON.stringify(values));
 						frm.trigger('show_filters');
+
+						if (frm.doc.chart_type == 'Report') {
+							frm.trigger('set_chart_report_filters');
+						}
 					}
 				},
 				primary_action_label: "Set"

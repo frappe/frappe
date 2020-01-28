@@ -1,4 +1,5 @@
 {
+ "actions": [],
  "allow_rename": 1,
  "autoname": "field:chart_name",
  "creation": "2019-01-10 12:28:06.282875",
@@ -8,6 +9,9 @@
  "field_order": [
   "chart_name",
   "chart_type",
+  "report_name",
+  "x_field",
+  "y_field",
   "source",
   "document_type",
   "based_on",
@@ -45,7 +49,7 @@
    "fieldname": "chart_type",
    "fieldtype": "Select",
    "label": "Chart Type",
-   "options": "Count\nSum\nAverage\nCustom\nGroup By"
+   "options": "Count\nSum\nAverage\nGroup By\nCustom\nReport"
   },
   {
    "depends_on": "eval:doc.chart_type === 'Custom'",
@@ -55,7 +59,7 @@
    "options": "Dashboard Chart Source"
   },
   {
-   "depends_on": "eval: doc.chart_type !== 'Custom'",
+   "depends_on": "eval: doc.chart_type !== 'Custom' && doc.chart_type !== 'Report'",
    "fieldname": "document_type",
    "fieldtype": "Link",
    "label": "Document Type",
@@ -82,14 +86,14 @@
    "fieldname": "timespan",
    "fieldtype": "Select",
    "label": "Timespan",
-   "options": "All Time\nLast Year\nLast Quarter\nLast Month\nLast Week\nSelect Date Range"
+   "options": "Last Year\nLast Quarter\nLast Month\nLast Week\nSelect Date Range"
   },
   {
    "depends_on": "timeseries",
    "fieldname": "time_interval",
    "fieldtype": "Select",
    "label": "Time Interval",
-   "options": "Yearly\nQuarterly\nMonthly\nWeekly\nDaily"
+   "options": "Quarterly\nMonthly\nWeekly\nDaily"
   },
   {
    "default": "0",
@@ -185,9 +189,31 @@
    "fieldname": "to_date",
    "fieldtype": "Date",
    "label": "To Date"
+  },
+  {
+   "depends_on": "eval:doc.report_name",
+   "fieldname": "x_field",
+   "fieldtype": "Select",
+   "label": "X Field",
+   "reqd": 1
+  },
+  {
+   "depends_on": "eval:doc.report_name",
+   "fieldname": "y_field",
+   "fieldtype": "Select",
+   "label": "Y Field",
+   "reqd": 1
+  },
+  {
+   "depends_on": "eval:doc.chart_type === 'Report'",
+   "fieldname": "report_name",
+   "fieldtype": "Link",
+   "label": "Report Name",
+   "options": "Report"
   }
  ],
- "modified": "2019-11-18 16:20:11.529496",
+ "links": [],
+ "modified": "2020-01-28 17:46:15.911306",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Dashboard Chart",
