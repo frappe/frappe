@@ -99,11 +99,11 @@ def confirm_action(doctype, docname, user, action):
 
 def return_success_page(doc):
 	frappe.respond_as_web_page(_("Success"),
-		_("{0}: {1} is set to state {2}".format(
+		_("{0}: {1} is set to state {2}").format(
 			doc.get('doctype'),
 			frappe.bold(doc.get('name')),
 			frappe.bold(get_doc_workflow_state(doc))
-		)), indicator_color='green')
+		), indicator_color='green')
 
 def return_action_confirmation_page(doc, action, action_link, alert_doc_change=False):
 	template_params = {
