@@ -121,6 +121,9 @@ frappe.ui.form.MultiSelectDialog = Class.extend({
 		this.$results = this.$wrapper.find('.results');
 		this.$results.append(this.make_list_row());
 
+		if (this.args) {
+			this.method_args = this.args;
+		}
 		this.args = {};
 
 		this.bind_events();
@@ -262,7 +265,7 @@ frappe.ui.form.MultiSelectDialog = Class.extend({
 			filters[this.date_field] = ['between', date_val];
 		}
 
-		let method = !this.method ? 'frappe.desk.search.search_widget' : this.method;
+		let method = this.method || 'frappe.desk.search.search_widget';
 		let args = {
 			doctype: me.doctype,
 			txt: me.dialog.fields_dict["search_term"].get_value(),
@@ -278,7 +281,7 @@ frappe.ui.form.MultiSelectDialog = Class.extend({
 			type: "GET",
 			method: method,
 			no_spinner: true,
-			args: this.method ? {method_args: this.method_args} : args,
+			args: this.method_args || args,
 			callback: function(r) {
 				let results = [], more = 0;
 				var res = r.values ? r.values : r.message;
