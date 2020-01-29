@@ -186,26 +186,8 @@ frappe.ui.form.on('Dashboard Chart', {
 			} else {
 				// standard filters
 				if (frm.doc.document_type) {
-					// allow all link and select fields as filters
 					frm.chart_filters = [];
-					frappe.model.with_doctype(frm.doc.document_type, () => {
-						frappe.get_meta(frm.doc.document_type).fields.map(df => {
-							if (['Link', 'Select'].includes(df.fieldtype)) {
-								let _df = copy_dict(df);
-
-								// nothing is mandatory
-								_df.reqd = 0;
-								_df.default = null;
-								_df.depends_on = null;
-								_df.read_only = 0;
-								_df.permlevel = 1;
-								_df.hidden = 0;
-
-								frm.chart_filters.push(_df);
-							}
-							frm.trigger('render_filters_table');
-						});
-					});
+					frm.trigger('render_filters_table');
 				} 
 			}
 
@@ -214,13 +196,14 @@ frappe.ui.form.on('Dashboard Chart', {
 
 	render_filters_table: function(frm) {
 		frm.set_df_property("filters_section", "hidden", 0);
-		let fields = frm.chart_filters;
+		let is_document_type = frm.doc.chart_type!== 'Report' && frm.doc.chart_type!=='Custom';
 
 		let wrapper = $(frm.get_field('filters_json').wrapper).empty();
 		let table = $(`<table class="table table-bordered" style="cursor:pointer; margin:0px;">
 			<thead>
 				<tr>
-					<th style="width: 50%">${__('Filter')}</th>
+					<th style="width: 33%">${__('Filter')}</th>
+					<th style="width: 33%">${__('Condition')}</th>
 					<th>${__('Value')}</th>
 				</tr>
 			</thead>
@@ -231,28 +214,47 @@ frappe.ui.form.on('Dashboard Chart', {
 		let filters = JSON.parse(frm.doc.filters_json || '{}');
 		var filters_set = false;
 
-		fields = fields.filter(f => {
-			// Ask about MultiSelectList
-			// if (f.fieldtype == 'MultiSelectList') {
-			// 	if (f.fi)
-			// }
-			return f.fieldname;
-		});
-		fields.map( f => {
-			if (filters[f.fieldname]) {
-				const filter_row = $(`<tr><td>${f.label}</td><td>${filters[f.fieldname] || ""}</td></tr>`);
-				table.find('tbody').append(filter_row);
-				filters_set = true;
+		let fields;
+		if (is_document_type) {
+			fields = [
+				{
+					fieldtype: 'HTML',
+					fieldname: 'filter_area',
+				}
+			]
+			if (Object.keys(filters).length !== 0) {
+				for (let key of Object.keys(filters)) {
+					const filter_row = $(`<tr><td>${key}</td><td>${filters[key][0] || ""}</td><td>${filters[key][1]}</td></tr>`);
+					table.find('tbody').append(filter_row);
+					filters_set = true;
+				}
 			}
-		});
+		} else {
+			fields = frm.chart_filters.filter(f => {
+				// Ask about MultiSelectList plus get_query plus get_data
+				// if (f.fieldtype == 'MultiSelectList') {
+				// 	if (f.fi)
+				// }
+				return f.fieldname;
+			});
+			fields.map( f => {
+				if (filters[f.fieldname]) {
+					let condition = '=';
+					const filter_row = $(`<tr><td>${f.label}</td><td>${condition}</td><td>${filters[f.fieldname] || ""}</td></tr>`);
+					table.find('tbody').append(filter_row);
+					filters_set = true;
+				}
+			});
+		}
 
 		if (!filters_set) {
-			const filter_row = $(`<tr><td colspan="2" class="text-muted text-center">
+			const filter_row = $(`<tr><td colspan="3" class="text-muted text-center">
 				${__("Click to Set Filters")}</td></tr>`);
 			table.find('tbody').append(filter_row);
 		}
 
 		table.on('click', () => {
+
 			let dialog = new frappe.ui.Dialog({
 				title: __('Set Filters'),
 				fields: fields,
@@ -260,9 +262,14 @@ frappe.ui.form.on('Dashboard Chart', {
 					let values = this.get_values();
 					if (values) {
 						this.hide();
-						frm.set_value('filters_json', JSON.stringify(values));
-						frm.trigger('show_filters');
+						if (is_document_type) {
+							let filters = frm.filter_group.get_filters_as_object();
+							frm.set_value('filters_json', JSON.stringify(filters));
+						} else {
+							frm.set_value('filters_json', JSON.stringify(values));
+						}
 
+						frm.trigger('show_filters');
 						if (frm.doc.chart_type == 'Report') {
 							frm.trigger('set_chart_report_filters');
 						}
@@ -270,11 +277,27 @@ frappe.ui.form.on('Dashboard Chart', {
 				},
 				primary_action_label: "Set"
 			});
+			frappe.dashboards.filters_dialog = dialog;
+
+			if (is_document_type) {
+				frm.filter_group = new frappe.ui.FilterGroup({
+					parent: dialog.get_field('filter_area').$wrapper,
+					doctype: frm.doc.document_type,
+					on_change: () => {},
+				});
+		
+				frm.filter_group.add_filters_to_filter_group(filters, frm.doc.document_type);
+			}
+
 			dialog.show();
 			dialog.set_values(filters);
-			frappe.dashboards.filters_dialog = dialog;
 		});
+	},
+
+	create_filter_group: function(frm) {
+		
 	}
+
 });
 
 
