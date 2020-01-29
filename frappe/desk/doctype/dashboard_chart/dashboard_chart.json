@@ -191,18 +191,18 @@
    "label": "To Date"
   },
   {
-   "depends_on": "eval:doc.report_name",
+   "depends_on": "eval:doc.chart_type == 'Report'",
    "fieldname": "x_field",
    "fieldtype": "Select",
    "label": "X Field",
-   "reqd": 1
+   "mandatory_depends_on": "eval:doc.report_name"
   },
   {
-   "depends_on": "eval:doc.report_name",
+   "depends_on": "eval:doc.chart_type == 'Report'",
    "fieldname": "y_field",
    "fieldtype": "Select",
    "label": "Y Field",
-   "reqd": 1
+   "mandatory_depends_on": "eval:doc.report_name"
   },
   {
    "depends_on": "eval:doc.chart_type === 'Report'",
@@ -213,8 +213,8 @@
   }
  ],
  "links": [],
- "modified": "2020-01-28 17:46:15.911306",
- "modified_by": "Administrator",
+ "modified": "2020-01-29 17:17:06.239511",
+ "modified_by": "umair@erpnext.com",
  "module": "Desk",
  "name": "Dashboard Chart",
  "owner": "Administrator",
