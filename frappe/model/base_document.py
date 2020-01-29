@@ -392,7 +392,7 @@ class BaseDocument(object):
 			if df:
 				label = df.label
 
-			frappe.msgprint(_("{0} must be unique".format(label or fieldname)))
+			frappe.msgprint(_("{0} must be unique").format(label or fieldname))
 
 		# this is used to preserve traceback
 		raise frappe.UniqueValidationError(self.doctype, self.name, e)

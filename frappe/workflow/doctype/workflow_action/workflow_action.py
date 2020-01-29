@@ -125,12 +125,12 @@ def return_action_confirmation_page(doc, action, action_link, alert_doc_change=F
 
 def return_link_expired_page(doc, doc_workflow_state):
 	frappe.respond_as_web_page(_("Link Expired"),
-		_("Document {0} has been set to state {1} by {2}"
+		_("Document {0} has been set to state {1} by {2}")
 			.format(
 				frappe.bold(doc.get('name')),
 				frappe.bold(doc_workflow_state),
 				frappe.bold(frappe.get_value('User', doc.get("modified_by"), 'full_name'))
-			)), indicator_color='blue')
+			), indicator_color='blue')
 
 def clear_old_workflow_actions(doc, user=None):
 	user = user if user else frappe.session.user
@@ -276,7 +276,7 @@ def get_common_email_args(doc):
 		response = frappe.render_template(email_template.response, vars(doc))
 	else:
 		subject = _('Workflow Action')
-		response = _('{0}: {1}'.format(doctype, docname))
+		response = _('{0}: {1}').format(doctype, docname)
 
 	common_args = {
 		'template': 'workflow_action',

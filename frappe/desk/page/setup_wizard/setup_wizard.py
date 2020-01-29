@@ -69,7 +69,8 @@ def setup_complete(args):
 			for task in stage.get('tasks'):
 				current_task = task
 				task.get('fn')(task.get('args'))
-	except Exception:
+	except Exception as e:
+		print(e)
 		handle_setup_exception(args)
 		return {'status': 'fail', 'fail': current_task.get('fail_msg')}
 	else:
