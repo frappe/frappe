@@ -236,6 +236,7 @@
 		"public/js/frappe/social/social_factory.js",
 		"public/js/frappe/utils/energy_point_utils.js",
 		"public/js/frappe/ui/chart.js",
+		"public/js/frappe/ui/dashboard_chart.js",
 		"public/js/frappe/barcode_scanner/index.js"
 	],
 	"css/module.min.css": [
