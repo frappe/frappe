@@ -1,32 +1,223 @@
 @import "variables.less";
 
 .desk-container {
+	margin-top: 20px;
+
 	.desk-sidebar {
-		width: 20%;
-		display: flex;
-		position: relative;
+		width: 24rem;
+		display: block;
+		position: fixed;
+		z-index: 1;
 		min-height: 1px;
 		padding-right: 15px;
 		padding-left: 15px;
 		float: left;
+
+		.sidebar-item {
+			font-size: 16px;
+			margin-top: 8px;
+			font-weight: 500;
+			display: flex;
+			padding: 5px 8px;
+			border-radius: 5px;
+			cursor: pointer;
+
+			&:hover {
+				background-color: @panel-bg;
+			}
+
+			&.selected {
+				background-color: @panel-bg;
+				border: 1px solid @border-color;
+				// .octicon {
+				// 	color: @brand-primary;
+				// }
+			}
+
+			.icon {
+				color: @text-muted;
+				padding-right: 1rem;
+				align-self: center;
+			}
+
+			.sidebar-item-title {
+				align-self: center;
+			}
+		}
 	}
 
 	.desk-body {
-		width: 80%;
+		padding-left: calc(24rem + 15px)  ;
 		display: flex;
 		flex-direction: column;
   		height: 100%;
 		position: relative;
 		min-height: 1px;
 		padding-right: 15px;
-		padding-left: 15px;
-		float: left;
+
+		.widget-group {
+			margin-bottom: 25px;
+		}
+
+		.grid-col-3 {
+			display: grid;
+			grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+			// grid-auto-rows: minmax(62px, 1fr);
+			column-gap: 15px;
+			row-gap: 15px;
+			align-items: center;
+		}
+
+		.grid-col-1 {
+			display: grid;
+			grid-template-columns: repeat(1fr);
+			// grid-auto-rows: minmax(62px, 1fr);
+			column-gap: 15px;
+			row-gap: 15px;
+			align-items: center;
+		}
 	}
 }
 
+.widget {
+	display: flex;
+	flex-direction: column;
+	min-height: 1px;
+	padding: 15px;
+	border-radius: 5px;
+	border: 1px solid @border-color;
+	height: 100%;
+
+	.widget-head {
+		display: flex;
+		justify-content: space-between;
+
+		.widget-title {
+			align-self: center;
+			font-size: 16px;
+			font-family: inherit;
+			font-weight: 500;
+			line-height: 1.3em;
+			color: inherit;
+		}
+		.widget-control {
+			align-self: center;
+		}
+	}
+
+	// Overrides for each widgets
+	&.dashboard-widget-box {
+		padding-bottom: 10px !important;
+
+		.chart-column-container {
+			padding-right: 0px !important;
+			padding-left: 0px !important;
+		}
+	}
+
+	&.shortcut-widget-box {
+		cursor: pointer;
+
+		&:hover {
+			border-color: @text-muted;
+		}
+
+		.widget-head {
+			margin-top: 5px;
+			margin-bottom: 5px;
+		}
+	}
+
+	&.links-widget-box {
+
+		.link-item {
+			position: relative;
+			margin: 10px 0px;
+			cursor: default;
+
+			&:first-child {
+				margin-top: 15px;
+			}
+
+			&:last-child {
+				margin-bottom: 0px !important;
+			}
+
+			.link-content {
+				flex: 1;
+			}
+
+			.indicator {
+				margin-right: 5px;
+				color: inherit;
+				font-weight: inherit;
+			}
+		}
+	}
+}
+
+
+.pill {
+	position: relative;
+	left: 2px;
+	// font-weight: bold;
+	display: inline-block;
+	background:	@text-muted;
+	font-size: 12px;
+	line-height: 20px;
+	padding: 0 8px;
+	color: #fff;
+	border-radius: 10px;
+}
+
+.pill-green {
+	background:	#71b92c;
+	// color: #000;
+}
+
+.pill-red {
+	background:	@red;
+}
+
+.pill-blue {
+	background:	@blue;
+}
+
+.pill-yellow {
+	background:	@yellow;
+}
+
+.pill-orange {
+	background:	@orange;
+}
+
+// .pill-green {
+// 	background:	@green-light;
+// 	color: @green-dark;
+// }
+
+// .pill-red {
+// 	background:	@red-light;
+// 	color: @red-dark;
+// }
+
+// .pill-blue {
+// 	background:	@blue-light;
+// 	color: @blue-dark;
+// }
+
+// .pill-yellow {
+// 	background:	@yellow-light;
+// 	color: @yellow-dark;
+// }
+
+// .pill-orange {
+// 	background:	@orange-light;
+// 	color: @orange-dark;
+// }
+
 .skeleton {
 	width: 100%;
-	margin-top: 20px;
 	background-image: linear-gradient(90deg, @btn-bg, @panel-bg, @btn-bg);
 	// background-image: linear-gradient(90deg, black, white, black);
 	animation: shine-lines 0.8s infinite cubic-bezier(.65,.05,.36,1)
@@ -36,37 +227,37 @@
 	flex: 1 1 auto;
 }
 
-.skeleton.skeleton-100 {
-	height: 90%;
-}
+// .skeleton.skeleton-100 {
+// 	height: 90%;
+// }
 
-.skeleton.skeleton-50 {
-	height: 50%;
-}
+// .skeleton.skeleton-50 {
+// 	height: 50%;
+// }
 
-.skeleton.skeleton-40 {
-	height: 40%;
-}
+// .skeleton.skeleton-40 {
+// 	height: 40%;
+// }
 
-.skeleton.skeleton-30 {
-	height: 30%;
-}
+// .skeleton.skeleton-30 {
+// 	height: 30%;
+// }
 
-.skeleton.skeleton-20 {
-	height: 20%;
-}
+// .skeleton.skeleton-20 {
+// 	height: 20%;
+// }
 
-.skeleton.skeleton-10 {
-	height: 10%;
-}
+// .skeleton.skeleton-10 {
+// 	height: 10%;
+// }
 
-.skeleton.skeleton-8 {
-	height: 8%;
-}
+// .skeleton.skeleton-8 {
+// 	height: 8%;
+// }
 
-.skeleton.skeleton-3 {
-	height: 3%;
-}
+// .skeleton.skeleton-3 {
+// 	height: 3%;
+// }
 
 @keyframes shine-lines {
 	0% {
