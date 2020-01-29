@@ -1,0 +1,36 @@
+<div>
+	<h3>Untranslated Messages</h3>
+	<table class="table">
+		<thead>
+			<tr>
+				<th>Message</th>
+				<th>Location</th>
+			</tr>
+		</thead>
+		<tbody>
+			{% untranslated_messages.forEach((obj) => { %}
+			<tr>
+				<td>{{obj[1]}}</td>
+				<td>{{obj[0]}}</td>
+			</tr>
+			{% }) %}
+		</tbody>
+	</table>
+	<h3>Translated Messages</h3>
+	<table class="table">
+		<thead>
+			<tr>
+				<th>Message</th>
+				<th>Location</th>
+			</tr>
+		</thead>
+		<tbody>
+			{% translated_messages.forEach((obj) => { %}
+			<tr>
+				<td>{{obj[1]}}</td>
+				<td>{{obj[0]}}</td>
+			</tr>
+			{% }) %}
+		</tbody>
+	</table>
+</div>

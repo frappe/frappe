@@ -1,0 +1,23 @@
+{
+ "content": null,
+ "creation": "2020-01-29 16:11:05.152944",
+ "docstatus": 0,
+ "doctype": "Page",
+ "idx": 0,
+ "modified": "2020-01-29 16:11:05.152944",
+ "modified_by": "Administrator",
+ "module": "Core",
+ "name": "translator",
+ "owner": "Administrator",
+ "page_name": "Translator",
+ "roles": [
+  {
+   "role": "System Manager"
+  }
+ ],
+ "script": null,
+ "standard": "Yes",
+ "style": null,
+ "system_page": 1,
+ "title": "Translation Portal"
+}

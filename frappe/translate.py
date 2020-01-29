@@ -5,6 +5,8 @@ from __future__ import unicode_literals, print_function
 
 from six import iteritems, text_type, string_types, PY2
 
+from frappe.utils import cstr
+
 """
 	frappe.translate
 	~~~~~~~~~~~~~~~~
@@ -625,7 +627,7 @@ def get_untranslated(lang, untranslated_file, get_all=False):
 			with open(untranslated_file, "w") as f:
 				for m in untranslated:
 					# replace \n with ||| so that internal linebreaks don't get split
-					f.write((escape_newlines(m) + os.linesep).encode("utf-8"))
+					f.write(cstr(frappe.safe_encode(escape_newlines(m) + os.linesep)))
 		else:
 			print("all translated!")
 
@@ -762,3 +764,16 @@ def get_translations(source_name):
 			'source_name': source_name
 		}
 	)
+
+@frappe.whitelist()
+def get_messages():
+	clear_cache()
+	apps = frappe.get_all_apps(True)
+
+	messages = []
+	untranslated = []
+	for app in apps:
+		messages.extend(get_messages_for_app(app))
+
+	return messages
+
