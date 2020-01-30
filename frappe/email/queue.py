@@ -256,7 +256,7 @@ def get_emails_sent_this_month():
 
 def get_emails_sent_today():
 	return frappe.db.sql("""SELECT COUNT(`name`) FROM `tabEmail Queue` WHERE
-		`status`='Sent' AND `creation` > (NOW() - INTERVAL '24' HOUR)""")[0][0]
+		`status` in ('Sent', 'Not Sent', 'Sending') AND `creation` > (NOW() - INTERVAL '24' HOUR)""")[0][0]
 
 def get_unsubscribe_message(unsubscribe_message, expose_recipients):
 	if unsubscribe_message:

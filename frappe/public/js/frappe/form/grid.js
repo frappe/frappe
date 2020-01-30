@@ -64,31 +64,17 @@ export default class Grid {
 			</div>
 			<div class="small form-clickable-section grid-footer">
 				<div class="row">
-					<div class="col-sm-5 grid-buttons">
-						<button type="reset"
-							class="btn btn-xs btn-danger grid-remove-rows hidden"
-							style="margin-right: 4px;"
-							data-action="delete_rows">
-							${__("Delete")}
-						</button>
-						<button type="reset"
-							class="btn btn-xs btn-danger grid-remove-all-rows hidden"
-							style="margin-right: 4px;"
-							data-action="delete_all_rows">
-							${__("Delete All")}
-						</button>
-						<button type="reset"
-							class="grid-add-multiple-rows btn btn-xs btn-default hidden"
+					<div class="col-sm-6 grid-buttons">
+						<button class="btn btn-xs btn-danger grid-remove-rows hidden"
+							style="margin-right: 4px;">
+							${__("Delete")}</button>
+						<button class="grid-add-multiple-rows btn btn-xs btn-default hidden"
 							style="margin-right: 4px;">
 							${__("Add Multiple")}</a>
 						</button>
 						<!-- hack to allow firefox include this in tabs -->
-						<button type="reset"
-							class="btn btn-xs btn-default grid-add-row">
-							${__("Add Row")}
-						</button>
-					</div>
-					<div class="col-sm-4 grid-pagination">
+						<button class="btn btn-xs btn-default grid-add-row">
+							${__("Add Row")}</button>
 					</div>
 					<div class="col-sm-3 text-right">
 						<a href="#" class="grid-download btn btn-xs btn-default hidden"
@@ -226,7 +212,7 @@ export default class Grid {
 		return (this.grid_rows || []).map(row => {
 			return row.doc.__checked ? row.doc.name : null;
 		}).filter(d => {
-			return d; 
+			return d;
 		});
 	}
 
