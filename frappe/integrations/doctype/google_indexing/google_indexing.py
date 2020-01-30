@@ -11,7 +11,9 @@ import os
 
 from frappe import _
 from googleapiclient.errors import HttpError
+from frappe.utils import get_request_site_address
 from frappe.model.document import Document
+from six.moves.urllib.parse import quote
 from frappe.integrations.doctype.google_settings.google_settings import get_auth_url
 
 SCOPES = "https://www.googleapis.com/auth/indexing"
@@ -59,7 +61,7 @@ def authorize_access(reauthorize=None):
 
 	redirect_uri = get_request_site_address(True) + "?cmd=frappe.integrations.doctype.google_indexing.google_indexing.google_callback"
 
-	if not google_drive.authorization_code or reauthorize:
+	if not google_indexing.authorization_code or reauthorize:
 		return get_authentication_url(client_id=google_settings.client_id, redirect_uri=redirect_uri)
 	else:
 		try:
@@ -117,4 +119,15 @@ def get_google_indexing_object():
 	credentials = google.oauth2.credentials.Credentials(**credentials_dict)
 	google_indexing = googleapiclient.discovery.build("indexing", "v3", credentials=credentials)
 
-	return google_indexing, account
+	return google_indexing
+
+def publish_site(url, operation_type="URL_UPDATED"):
+	google_indexing = get_google_indexing_object()
+	body = { 
+		"url": url,
+		"type": operation_type
+	}
+	try:
+		google_indexing.urlNotifications().publish(body=body, x__xgafv='2').execute()
+	except HttpError as e:
+		frappe.log_error(message=e, title='API Indexing Issue')
