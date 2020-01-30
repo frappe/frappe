@@ -197,7 +197,7 @@ frappe.form.formatters = {
 		return html;
 	},
 	Comment: function(value) {
-		return $("<div></div>").text(value).html();
+		return value;
 	},
 	Assign: function(value) {
 		var html = "";
