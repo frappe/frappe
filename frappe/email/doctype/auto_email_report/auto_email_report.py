@@ -53,8 +53,8 @@ class AutoEmailReport(Document):
 		""" check if user has select correct report format """
 		valid_report_formats = ["HTML", "XLSX", "CSV"]
 		if self.format not in valid_report_formats:
-			frappe.throw(_("%s is not a valid report format. Report format should \
-				one of the following %s"%(frappe.bold(self.format), frappe.bold(", ".join(valid_report_formats)))))
+			frappe.throw(_("{0} is not a valid report format. Report format should one of the following {1}")
+				.format(frappe.bold(self.format), frappe.bold(", ".join(valid_report_formats))))
 
 	def get_report_content(self):
 		'''Returns file in for the report in given format'''

@@ -52,8 +52,8 @@ class EmailAccount(Document):
 			"name": ("!=", self.name)
 		})
 		if duplicate_email_account:
-			frappe.throw(_("Email ID must be unique, Email Account already exists \
-				for {0}".format(frappe.bold(self.email_id))))
+			frappe.throw(_("Email ID must be unique, Email Account already exists for {0}") \
+				.format(frappe.bold(self.email_id)))
 
 		if frappe.local.flags.in_patch or frappe.local.flags.in_test:
 			return
@@ -175,7 +175,7 @@ class EmailAccount(Document):
 				# if called via self.receive and it leads to authentication error, disable incoming
 				# and send email to system manager
 				self.handle_incoming_connect_error(
-					description=_('Authentication failed while receiving emails from Email Account {0}. Message from server: {1}'.format(self.name, e.message))
+					description=_('Authentication failed while receiving emails from Email Account {0}. Message from server: {1}').format(self.name, e.message)
 				)
 
 				return None
