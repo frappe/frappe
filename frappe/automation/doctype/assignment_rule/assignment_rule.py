@@ -16,7 +16,7 @@ class AssignmentRule(Document):
 		assignment_days = self.get_assignment_days()
 		if not len(set(assignment_days)) == len(assignment_days):
 			repeated_days = get_repeated(assignment_days)
-			frappe.throw(_("Assignment Day {0} has been repeated.".format(frappe.bold(repeated_days))))
+			frappe.throw(_("Assignment Day {0} has been repeated.").format(frappe.bold(repeated_days)))
 
 	def on_update(self): # pylint: disable=no-self-use
 		frappe.cache_manager.clear_doctype_map('Assignment Rule', self.name)
@@ -31,12 +31,6 @@ class AssignmentRule(Document):
 
 		return False
 
-	def apply_close(self, doc, assignments):
-		if (self.close_assignments and
-			self.name in [d.assignment_rule for d in assignments]):
-			return self.close_assignments(doc)
-
-		return False
 
 	def apply_assign(self, doc):
 		if self.safe_eval('assign_condition', doc):
@@ -157,16 +151,17 @@ def bulk_apply(doctype, docnames):
 			apply(None, doctype=doctype, name=name)
 
 def reopen_closed_assignment(doc):
-	todo = frappe.db.exists('ToDo', dict(
+	todo_list = frappe.db.get_all('ToDo', filters = dict(
 		reference_type = doc.doctype,
 		reference_name = doc.name,
 		status = 'Closed'
 	))
-	if not todo:
+	if not todo_list:
 		return False
-	todo = frappe.get_doc("ToDo", todo)
-	todo.status = 'Open'
-	todo.save(ignore_permissions=True)
+	for todo in todo_list:
+		todo_doc = frappe.get_doc('ToDo', todo.name)
+		todo_doc.status = 'Open'
+		todo_doc.save(ignore_permissions=True)
 	return True
 
 def apply(doc, method=None, doctype=None, name=None):
@@ -225,13 +220,12 @@ def apply(doc, method=None, doctype=None, name=None):
 				continue
 
 			if not new_apply:
-				reopen =  reopen_closed_assignment(doc)
-				if reopen:
-					break
-			close = assignment_rule.apply_close(doc, assignments)
-			if close:
-				break
-
+				# only reopen if close condition is not satisfied
+				if not assignment_rule.safe_eval('close_condition', doc):
+					reopen =  reopen_closed_assignment(doc)
+					if reopen:
+						break
+			assignment_rule.close_assignments(doc)
 
 def get_assignment_rules():
 	return [d.document_type for d in frappe.db.get_all('Assignment Rule', fields=['document_type'], filters=dict(disabled = 0))]

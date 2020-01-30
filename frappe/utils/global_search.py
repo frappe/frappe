@@ -81,6 +81,10 @@ def rebuild_for_doctype(doctype):
 		return filters
 
 	meta = frappe.get_meta(doctype)
+	
+	if cint(meta.issingle) == 1:
+		return
+	
 	if cint(meta.istable) == 1:
 		parent_doctypes = frappe.get_all("DocField", fields="parent", filters={
 			"fieldtype": ["in", frappe.model.table_fields],
@@ -137,8 +141,8 @@ def rebuild_for_doctype(doctype):
 				"name": frappe.db.escape(doc.name),
 				"content": frappe.db.escape(' ||| '.join(content or '')),
 				"published": published,
-				"title": frappe.db.escape(title or '')[:int(frappe.db.VARCHAR_LEN)],
-				"route": frappe.db.escape(route or '')[:int(frappe.db.VARCHAR_LEN)]
+				"title": frappe.db.escape((title or '')[:int(frappe.db.VARCHAR_LEN)]),
+				"route": frappe.db.escape((route or '')[:int(frappe.db.VARCHAR_LEN)])
 			})
 	if all_contents:
 		insert_values_for_multiple_docs(all_contents)

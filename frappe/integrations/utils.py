@@ -77,12 +77,12 @@ def get_payment_gateway_controller(payment_gateway):
 		try:
 			return frappe.get_doc("{0} Settings".format(payment_gateway))
 		except Exception:
-			frappe.throw(_("{0} Settings not found".format(payment_gateway)))
+			frappe.throw(_("{0} Settings not found").format(payment_gateway))
 	else:
 		try:
 			return frappe.get_doc(gateway.gateway_settings, gateway.gateway_controller)
 		except Exception:
-			frappe.throw(_("{0} Settings not found".format(payment_gateway)))
+			frappe.throw(_("{0} Settings not found").format(payment_gateway))
 
 
 @frappe.whitelist(allow_guest=True, xss_safe=True)

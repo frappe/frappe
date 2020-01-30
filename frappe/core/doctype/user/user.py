@@ -262,7 +262,7 @@ class User(Document):
 		if not subject:
 			site_name = frappe.db.get_default('site_name') or frappe.get_conf().get("site_name")
 			if site_name:
-				subject = _("Welcome to {0}".format(site_name))
+				subject = _("Welcome to {0}").format(site_name)
 			else:
 				subject = _("Complete Registration")
 
@@ -368,10 +368,10 @@ class User(Document):
 					(tab, field, '%s', field, '%s'), (new_name, old_name))
 
 		if frappe.db.exists("Chat Profile", old_name):
-			frappe.rename_doc("Chat Profile", old_name, new_name, force=True)
+			frappe.rename_doc("Chat Profile", old_name, new_name, force=True, show_alert=False)
 
 		if frappe.db.exists("Notification Settings", old_name):
-			frappe.rename_doc("Notification Settings", old_name, new_name, force=True)
+			frappe.rename_doc("Notification Settings", old_name, new_name, force=True, show_alert=False)
 
 		# set email
 		frappe.db.sql("""UPDATE `tabUser`

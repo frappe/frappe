@@ -16,6 +16,7 @@ class Workflow(Document):
 		self.validate_docstatus()
 
 	def on_update(self):
+		self.update_doc_status()
 		frappe.clear_cache(doctype=self.document_type)
 		frappe.cache().delete_key('workflow_' + self.name) # clear cache created in model/workflow.py
 
@@ -55,6 +56,29 @@ class Workflow(Document):
 				(d.state, d.doc_status))
 
 				docstatus_map[d.doc_status] = d.state
+
+	def update_doc_status(self):
+		'''
+			Checks if the docstatus of a state was updated. 
+			If yes then the docstatus of the document with same state will be updated
+		'''
+		doc_before_save = self.get_doc_before_save()
+		before_save_states, new_states = {}, {}
+		if doc_before_save:
+			for d in doc_before_save.states:
+				before_save_states[d.state] = d
+			for d in self.states:
+				new_states[d.state] = d
+
+			for key in new_states:
+				if key in before_save_states:
+					if not new_states[key].doc_status == before_save_states[key].doc_status:
+						frappe.db.set_value(self.document_type, {
+								self.workflow_state_field: before_save_states[key].state
+							},
+							'docstatus',
+							new_states[key].doc_status,
+							update_modified = False)
 
 	def validate_docstatus(self):
 		def get_state(state):

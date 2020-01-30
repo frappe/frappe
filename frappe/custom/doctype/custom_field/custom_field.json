@@ -1,4 +1,5 @@
 {
+ "actions": [],
  "allow_import": 1,
  "creation": "2013-01-10 16:34:01",
  "description": "Adds a custom field to a DocType",
@@ -24,10 +25,8 @@
   "collapsible_depends_on",
   "default",
   "depends_on",
-  "description",
-  "permlevel",
-  "width",
-  "columns",
+  "mandatory_depends_on",
+  "read_only_depends_on",
   "properties",
   "reqd",
   "unique",
@@ -46,7 +45,11 @@
   "report_hide",
   "search_index",
   "ignore_xss_filter",
-  "translatable"
+  "translatable",
+  "description",
+  "permlevel",
+  "width",
+  "columns"
  ],
  "fields": [
   {
@@ -349,11 +352,24 @@
    "fieldname": "length",
    "fieldtype": "Int",
    "label": "Length"
+  },
+  {
+   "fieldname": "mandatory_depends_on",
+   "fieldtype": "Code",
+   "label": "Mandatory Depends On",
+   "length": 255
+  },
+  {
+   "fieldname": "read_only_depends_on",
+   "fieldtype": "Code",
+   "label": "Read Only Depends On",
+   "length": 255
   }
  ],
  "icon": "fa fa-glass",
  "idx": 1,
- "modified": "2019-09-11 12:57:19.268934",
+ "links": [],
+ "modified": "2019-12-12 21:31:08.209996",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Custom Field",

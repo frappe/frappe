@@ -3,9 +3,13 @@
 from __future__ import unicode_literals
 
 import unittest, os, base64
+from frappe import safe_decode
 from frappe.email.receive import Email
 from frappe.email.email_body import (replace_filename_with_cid,
-	get_email, inline_style_in_html, get_header)
+					get_email, inline_style_in_html, get_header)
+from frappe.email.queue import prepare_message, get_email_queue
+from six import PY3
+
 
 class TestEmailBody(unittest.TestCase):
 	def setUp(self):
@@ -37,6 +41,55 @@ This is the text version of this email
 			text_content=email_text
 		).as_string()
 
+	def test_prepare_message_returns_already_encoded_string(self):
+
+		if PY3:
+			uni_chr1 = chr(40960)
+			uni_chr2 = chr(1972)
+		else:
+			uni_chr1 = unichr(40960)
+			uni_chr2 = unichr(1972)
+
+		email = get_email_queue(
+			recipients=['test@example.com'],
+			sender='me@example.com',
+			subject='Test Subject',
+			content='<h1>' + uni_chr1 + 'abcd' + uni_chr2 + '</h1>',
+			formatted='<h1>' + uni_chr1 + 'abcd' + uni_chr2 + '</h1>',
+			text_content='whatever')
+		result = prepare_message(email=email, recipient='test@test.com', recipients_list=[])
+		self.assertTrue(b"<h1>=EA=80=80abcd=DE=B4</h1>" in result)
+
+	def test_prepare_message_returns_cr_lf(self):
+		email = get_email_queue(
+			recipients=['test@example.com'],
+			sender='me@example.com',
+			subject='Test Subject',
+			content='<h1>\n this is a test of newlines\n' + '</h1>',
+			formatted='<h1>\n this is a test of newlines\n' + '</h1>',
+			text_content='whatever')
+		result = safe_decode(prepare_message(email=email,
+						recipient='test@test.com', recipients_list=[]))
+		if PY3:
+			self.assertTrue(result.count('\n') == result.count("\r"))
+		else:
+			self.assertTrue(True)
+
+	def test_rfc_5322_header_is_wrapped_at_998_chars(self):
+		# unfortunately the db can only hold 140 chars so this can't be tested properly. test at max chars anyway.
+		email = get_email_queue(
+			recipients=['test@example.com'],
+			sender='me@example.com',
+			subject='Test Subject',
+			content='<h1>Whatever</h1>',
+			text_content='whatever',
+			message_id="a.really.long.message.id.that.should.not.wrap.until.998.if.it.does.then.exchange.will.break" +
+			".really.long.message.id.that.should.not.wrap.unti")
+		result = safe_decode(prepare_message(email=email, recipient='test@test.com',
+					recipients_list=[]))
+		self.assertTrue(
+			"a.really.long.message.id.that.should.not.wrap.until.998.if.it.does.then.exchange.will.break" +
+			".really.long.message.id.that.should.not.wrap.unti" in result)
 
 	def test_image(self):
 		img_signature = '''
@@ -49,7 +102,6 @@ Content-Disposition: inline; filename="favicon.png"
 		self.assertTrue(img_signature in self.email_string)
 		self.assertTrue(self.img_base64 in self.email_string)
 
-
 	def test_text_content(self):
 		text_content = '''
 Content-Type: text/plain; charset="utf-8"
@@ -61,7 +113,6 @@ Hey John Doe!
 This is the text version of this email
 '''
 		self.assertTrue(text_content in self.email_string)
-
 
 	def test_email_content(self):
 		html_head = '''
@@ -78,7 +129,6 @@ w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
 		self.assertTrue(html_head in self.email_string)
 		self.assertTrue(html in self.email_string)
-
 
 	def test_replace_filename_with_cid(self):
 		original_message = '''
@@ -152,6 +202,7 @@ Reply-To: test2_@erpnext.com
 		mail = Email(content_bytes)
 		self.assertEqual(mail.text_content, text_content)
 
+
 def fixed_column_width(string, chunk_size):
-	parts = [string[0+i:chunk_size+i] for i in range(0, len(string), chunk_size)]
+	parts = [string[0 + i:chunk_size + i] for i in range(0, len(string), chunk_size)]
 	return '\n'.join(parts)

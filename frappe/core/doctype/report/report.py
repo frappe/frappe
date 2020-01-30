@@ -126,13 +126,15 @@ class Report(Document):
 		safe_exec(self.report_script, None, loc)
 		return loc['data']
 
-	def get_data(self, filters=None, limit=None, user=None, as_dict=False):
+	def get_data(self, filters=None, limit=None, user=None, as_dict=False, ignore_prepared_report=False):
 		columns = []
 		out = []
 
 		if self.report_type in ('Query Report', 'Script Report', 'Custom Report'):
 			# query and script reports
-			data = frappe.desk.query_report.run(self.name, filters=filters, user=user)
+			data = frappe.desk.query_report.run(self.name,
+				filters=filters, user=user, ignore_prepared_report=ignore_prepared_report)
+
 			for d in data.get('columns'):
 				if isinstance(d, dict):
 					col = frappe._dict(d)

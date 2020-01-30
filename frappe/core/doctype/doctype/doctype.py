@@ -247,7 +247,7 @@ class DocType(Document):
 		if autoname and autoname.startswith('field:'):
 			field = autoname.split(":")[1]
 			if not field or field not in [ df.fieldname for df in self.fields ]:
-				frappe.throw(_("Invalid fieldname '{0}' in autoname".format(field)))
+				frappe.throw(_("Invalid fieldname '{0}' in autoname").format(field))
 			else:
 				for df in self.fields:
 					if df.fieldname == field:
@@ -727,8 +727,8 @@ def validate_fields(meta):
 				if not options:
 					frappe.throw(_("{0}: Options must be a valid DocType for field {1} in row {2}").format(docname, d.label, d.idx), WrongOptionsDoctypeLinkError)
 				elif not (options == d.options):
-					frappe.throw(_("{0}: Options {1} must be the same as doctype name {2} for the field {3}", DoctypeLinkError)
-						.format(docname, d.options, options, d.label))
+					frappe.throw(_("{0}: Options {1} must be the same as doctype name {2} for the field {3}")
+						.format(docname, d.options, options, d.label), DoctypeLinkError)
 				else:
 					# fix case
 					d.options = options
@@ -905,7 +905,7 @@ def validate_fields(meta):
 
 	def check_illegal_depends_on_conditions(docfield):
 		''' assignment operation should not be allowed in the depends on condition.'''
-		depends_on_fields = ["depends_on", "collapsible_depends_on"]
+		depends_on_fields = ["depends_on", "collapsible_depends_on", "mandatory_depends_on", "read_only_depends_on"]
 		for field in depends_on_fields:
 			depends_on = docfield.get(field, None)
 			if depends_on and ("=" in depends_on) and \
