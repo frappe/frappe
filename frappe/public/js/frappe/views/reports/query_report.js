@@ -941,25 +941,13 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 				frappe.tools.downloadify(out, null, this.report_name);
 			} else {
-				let filters = this.get_filter_values(true);
-				if (frappe.urllib.get_dict("prepared_report_name")) {
-					filters = Object.assign(frappe.urllib.get_dict("prepared_report_name"), filters);
-				}
-
-				const visible_idx = this.datatable.bodyRenderer.visibleRowIndices;
-				if (visible_idx.length + 1 === this.data.length) {
-					visible_idx.push(visible_idx.length);
-				}
-
 				const args = {
 					cmd: 'frappe.desk.query_report.export_query',
 					report_name: this.report_name,
 					file_format_type: file_format,
-					filters: filters,
-					visible_idx,
-					include_indentation,
+					columns: columns,
+					data: this.get_data_for_csv(include_indentation),
 				};
-
 				open_url_post(frappe.request.url, args);
 			}
 		}, __('Export Report: '+ this.report_name), __('Download'));

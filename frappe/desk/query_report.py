@@ -8,7 +8,7 @@ import os, json
 
 from frappe import _
 from frappe.modules import scrub, get_module_path
-from frappe.utils import flt, cint, get_html_format, cstr, get_url_to_form
+from frappe.utils import flt, cint, get_html_format, cstr, get_url_to_form, formatdate, DATE_FORMAT
 from frappe.model.utils import render_include
 from frappe.translate import send_translations
 import frappe.desk.reportview
@@ -279,8 +279,6 @@ def export_query():
 	if "csrf_token" in data:
 		del data["csrf_token"]
 
-	if isinstance(data.get("filters"), string_types):
-		filters = json.loads(data["filters"])
 	if isinstance(data.get("report_name"), string_types):
 		report_name = data["report_name"]
 		frappe.permissions.can_export(
@@ -290,24 +288,30 @@ def export_query():
 	if isinstance(data.get("file_format_type"), string_types):
 		file_format_type = data["file_format_type"]
 
-	include_indentation = data["include_indentation"]
-	if isinstance(data.get("visible_idx"), string_types):
-		visible_idx = json.loads(data.get("visible_idx"))
-	else:
-		visible_idx = None
-
 	if file_format_type == "Excel":
-		data = run(report_name, filters)
-		data = frappe._dict(data)
-		columns = get_columns_dict(data.columns)
-
 		from frappe.utils.xlsxutils import make_xlsx
-		xlsx_data = build_xlsx_data(columns, data, visible_idx, include_indentation)
+		xlsx_data = json.loads(data.get('data'))
+		columns = json.loads(data.get('columns'))
+		xlsx_data = format_xlsx_data(columns, xlsx_data)
 		xlsx_file = make_xlsx(xlsx_data, "Query Report")
 
 		frappe.response['filename'] = report_name + '.xlsx'
 		frappe.response['filecontent'] = xlsx_file.getvalue()
 		frappe.response['type'] = 'binary'
+
+
+def format_xlsx_data(columns, data):
+	# Date formatting
+	date_column_indices = [i for i, col in enumerate(columns) if col.get('fieldtype') == "Date"]
+	date_format = frappe.db.get_single_value('System Settings', 'date_format') or DATE_FORMAT
+	for col_index in date_column_indices:
+		for row in data:
+			date_str = formatdate(row[col_index], date_format)
+			row[col_index] = date_str
+
+	# Header Row
+	header_row = [[str(col['label']) for col in columns]]
+	return header_row + data
 
 
 def build_xlsx_data(columns, data, visible_idx,include_indentation):
