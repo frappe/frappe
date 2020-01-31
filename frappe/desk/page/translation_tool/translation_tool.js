@@ -15,6 +15,7 @@ class TranslationTool {
 		this.wrapper.append(frappe.render_template("translation_tool"));
 		frappe.utils.bind_actions_with_object(this.wrapper, this);
 		this.active_translation = null;
+		this.setup_search_box();
 		this.setup_language_filter();
 	}
 
@@ -40,19 +41,36 @@ class TranslationTool {
 		language_selector.set_value("hi"); // frappe.boot.lang
 	}
 
-	fetch_messages_then_render() {
-		this.fetch_messages().then(messages => {
+	setup_search_box() {
+		let search_box = this.page.add_field({
+			fieldname: "search",
+			fieldtype: "Data",
+			label: __("Search Source Text"),
+			change: () => {
+				let search_text = search_box.get_value();
+				this.fetch_messages_then_render(search_text);
+			}
+		});
+	}
+
+	fetch_messages_then_render(search_text) {
+		this.fetch_messages(search_text).then(messages => {
 			this.messages = messages;
 			this.render_messages(messages);
 		});
 	}
 
-	fetch_messages() {
+	fetch_messages(search_text) {
+		frappe.dom.freeze(__('Fetching...'));
 		return frappe
 			.call("frappe.translate.get_messages", {
-				language: this.language
+				language: this.language,
+				search_text: search_text
 			})
-			.then(r => r.message);
+			.then(r => {
+				frappe.dom.unfreeze();
+				return r.message;
+			});
 	}
 
 	render_messages(messages) {

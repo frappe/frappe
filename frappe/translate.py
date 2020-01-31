@@ -767,7 +767,7 @@ def get_translations(source_name):
 	)
 
 @frappe.whitelist()
-def get_messages(language, start=0, page_length=1000):
+def get_messages(language, start=0, page_length=1000, search_text=''):
 
 	messages = frappe.cache().hget('translation_tool_messages', language)
 	if not messages:
@@ -810,6 +810,9 @@ def get_messages(language, start=0, page_length=1000):
 
 		frappe.clear_messages()
 		frappe.cache().hset('translation_tool_messages', language, messages)
+
+	if search_text:
+		messages = [message for message in messages if search_text in message.source_text.lower()]
 
 	messages = sorted(messages, key=lambda x: x.translated_text, reverse=False)
 
