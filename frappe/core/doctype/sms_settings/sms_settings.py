@@ -68,7 +68,7 @@ def send_via_gateway(arg):
 	headers = get_headers(ss)
 	use_json = "Content-Type" in headers and headers["Content-Type"] == "application/json"
 
-	message = arg.get('message').decode('utf-8') if use_json else arg.get('message')
+	message = frappe.safe_decode(arg.get('message'))
 	args = {ss.message_parameter: message}
 	for d in ss.get("parameters"):
 		if not d.header:
