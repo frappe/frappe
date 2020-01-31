@@ -81,8 +81,18 @@ class WebsiteGenerator(Document):
 		'''Return breadcrumbs'''
 		pass
 
+	def on_update(self):
+		if frappe.db.get_single_value('Google Indexing', 'enable_indexing'):
+			url = frappe.utils.get_url(self.route)
+			frappe.enqueue('frappe.integrations.doctype.google_indexing.google_indexing.publish_site', \
+				url=url)
+
 	def on_trash(self):
 		self.clear_cache()
+		if frappe.db.get_single_value('Google Indexing', 'enable_indexing'):
+			url = frappe.utils.get_url(self.route)
+			frappe.enqueue('frappe.integrations.doctype.google_indexing.google_indexing.publish_site', \
+				url=url, operation_type='URL_DELETED')
 
 	def is_website_published(self):
 		"""Return true if published in website"""
