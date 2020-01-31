@@ -166,11 +166,18 @@ frappe.ui.form.MultiSelectDialog = Class.extend({
 	},
 
 	get_checked_values: function() {
+		// Return name of checked value.
 		return this.$results.find('.list-item-container').map(function() {
 			if ($(this).find('.list-row-check:checkbox:checked').length > 0 ) {
 				return $(this).attr('data-item-name');
 			}
 		}).get();
+	},
+
+	get_checked_items: function() {
+		// Return checked items with all the column values.
+		let checked_values = this.get_checked_values();
+		return this.results.filter(res => checked_values.includes(res.name));
 	},
 
 	make_list_row: function(result={}) {
@@ -209,18 +216,17 @@ frappe.ui.form.MultiSelectDialog = Class.extend({
 			${contents}
 		</div>`);
 
-
 		head ? $row.addClass('list-item--head')
 			: $row = $(`<div class="list-item-container" data-item-name="${result.name}"></div>`).append($row);
 		return $row;
 	},
 
-	render_result_list: function(results, more = 0) {
+	render_result_list: function(results, more = 0, empty=true) {
 		var me = this;
 		var more_btn = me.dialog.fields_dict.more_btn.$wrapper;
 
 		// Make empty result set if filter is set
-		if (!frappe.flags.auto_scroll) {
+		if (!frappe.flags.auto_scroll && empty) {
 			this.empty_list();
 		}
 		more_btn.hide();
@@ -228,9 +234,13 @@ frappe.ui.form.MultiSelectDialog = Class.extend({
 		if (results.length === 0) return;
 		if (more) more_btn.show();
 
-		results.forEach((result) => {
-			me.$results.append(me.make_list_row(result));
-		});
+		let checked = this.get_checked_values();
+
+		results
+			.filter(result => !checked.includes(result.name))
+			.forEach(result => {
+				me.$results.append(me.make_list_row(result));
+			});
 
 		if (frappe.flags.auto_scroll) {
 			this.$results.animate({scrollTop: me.$results.prop('scrollHeight')}, 500);
@@ -238,12 +248,18 @@ frappe.ui.form.MultiSelectDialog = Class.extend({
 	},
 
 	empty_list: function() {
+		let checked = this.get_checked_items().map(item => {
+			return {
+				...item,
+				checked: true
+			}
+		});
 		this.$results.find('.list-item-container').remove();
+		this.render_result_list(checked, 0, false);
 	},
 
 	get_results: function() {
 		let me = this;
-
 		let filters = this.get_query ? this.get_query().filters : {};
 		let filter_fields = [me.date_field];
 		if($.isArray(this.setters)) {
@@ -265,7 +281,6 @@ frappe.ui.form.MultiSelectDialog = Class.extend({
 			filters[this.date_field] = ['between', date_val];
 		}
 
-		let method = this.method || 'frappe.desk.search.search_widget';
 		let args = {
 			doctype: me.doctype,
 			txt: me.dialog.fields_dict["search_term"].get_value(),
@@ -279,12 +294,12 @@ frappe.ui.form.MultiSelectDialog = Class.extend({
 
 		frappe.call({
 			type: "GET",
-			method: method,
+			method: 'frappe.desk.search.search_widget',
 			no_spinner: true,
-			args: this.method_args || args,
+			args: args,
 			callback: function(r) {
-				let results = [], more = 0;
-				var res = r.values ? r.values : r.message;
+				let more = 0, res = r.values;
+				me.results = [];
 				if (res.length) {
 					if (res.length > me.page_length) {
 						res.pop();
@@ -296,22 +311,22 @@ frappe.ui.form.MultiSelectDialog = Class.extend({
 						}
 						result.checked = 0;
 						result.parsed_date = Date.parse(result["Date"]);
-						results.push(result);
+						me.results.push(result);
 					});
-					results.map( (result) => {
+					me.results.map( (result) => {
 						result["Date"] = frappe.format(result["Date"], {"fieldtype":"Date"});
 					})
 
-					results.sort((a, b) => {
+					me.results.sort((a, b) => {
 						return a.parsed_date - b.parsed_date;
 					});
 
 					// Preselect oldest entry
 					if (me.start < 1 && res.length === 1) {
-						results[0].checked = 1;
+						me.results[0].checked = 1;
 					}
 				}
-				me.render_result_list(results, more);
+				me.render_result_list(me.results, more);
 			}
 		});
 	},
