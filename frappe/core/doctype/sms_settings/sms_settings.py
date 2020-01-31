@@ -66,7 +66,7 @@ def send_sms(receiver_list, msg, sender_name = '', success_msg = True):
 def send_via_gateway(arg):
 	ss = frappe.get_doc('SMS Settings', 'SMS Settings')
 	headers = get_headers(ss)
-	use_json = "Content-Type" in headers and headers["Content-Type"] == "application/json"
+	use_json = headers.get("Content-Type") == "application/json"
 
 	message = frappe.safe_decode(arg.get('message'))
 	args = {ss.message_parameter: message}
