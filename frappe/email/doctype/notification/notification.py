@@ -129,11 +129,14 @@ def get_context(context):
 			allow_update = True
 			if doc.docstatus == 1 and not doc.meta.get_field(self.set_property_after_alert).allow_on_submit:
 				allow_update = False
-
-			if allow_update:
-				frappe.db.set_value(doc.doctype, doc.name, self.set_property_after_alert,
-					self.property_value, update_modified = False)
-				doc.set(self.set_property_after_alert, self.property_value)
+			try:
+				if allow_update:
+					frappe.db.set_value(doc.doctype, doc.name, self.set_property_after_alert,
+						self.property_value, update_modified = False)
+					doc.set(self.set_property_after_alert, self.property_value)
+					doc.save()
+			except Exception as e:
+				frappe.log_error(title=_('Document update failed'), message=frappe.get_traceback())
 
 	def send_an_email(self, doc, context):
 		from email.utils import formataddr

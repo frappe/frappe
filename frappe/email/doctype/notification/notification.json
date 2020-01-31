@@ -1,4 +1,5 @@
 {
+ "actions": [],
  "allow_rename": 1,
  "autoname": "Prompt",
  "creation": "2014-07-11 17:18:09.923399",
@@ -30,6 +31,7 @@
   "property_section",
   "set_property_after_alert",
   "property_value",
+  "trigger_document_events",
   "column_break_5",
   "recipients",
   "message_sb",
@@ -260,10 +262,17 @@
    "fieldtype": "Link",
    "label": "Print Format",
    "options": "Print Format"
+  },
+  {
+   "default": "0",
+   "fieldname": "trigger_document_events",
+   "fieldtype": "Check",
+   "label": "Trigger Document Events"
   }
  ],
  "icon": "fa fa-envelope",
- "modified": "2019-07-15 13:17:02.585013",
+ "links": [],
+ "modified": "2020-01-24 11:26:48.454013",
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Notification",
