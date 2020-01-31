@@ -152,7 +152,7 @@ def add_lang_dict(code):
 
 	:param code: Javascript code snippet to which translations needs to be appended."""
 	messages = extract_messages_from_code(code)
-	messages = [message for pos, message in messages]
+	messages = [message for line, message, context in messages]
 	code += "\n\n$.extend(frappe._messages, %s)" % json.dumps(make_dict_from_messages(messages))
 	return code
 
@@ -501,7 +501,7 @@ def get_messages_from_file(path):
 	if os.path.exists(path):
 		with open(path, 'r') as sourcefile:
 			data = [(os.path.relpath(path, apps_path),
-					message) for message in  extract_messages_from_code(sourcefile.read())]
+					message, context, line) for line, message, context in  extract_messages_from_code(sourcefile.read())]
 			return data
 	else:
 		# print "Translate: {0} missing".format(os.path.abspath(path))
@@ -524,31 +524,32 @@ def extract_messages_from_code(code):
 	for m in re.compile(pattern).finditer(code):
 		message = m.group('message')
 		context = m.group('py_context') or m.group('js_context')
+		pos = m.start()
 
 		if context:
 			message += ':' + context
 
-		messages += [(m.start(), message)]
+		if is_translatable(message):
+			messages.append([pos, message, context])
 
-	messages = [(pos, message) for pos, message in messages if is_translatable(message)]
-	return pos_to_line_no(messages, code)
+	return add_line_number(messages, code)
 
 def is_translatable(m):
 	if re.search("[a-zA-Z]", m) and not m.startswith("fa fa-") and not m.endswith("px") and not m.startswith("eval:"):
 		return True
 	return False
 
-def pos_to_line_no(messages, code):
+def add_line_number(messages, code):
 	ret = []
 	messages = sorted(messages, key=lambda x: x[0])
 	newlines = [m.start() for m in re.compile('\\n').finditer(code)]
 	line = 1
 	newline_i = 0
-	for pos, message in messages:
+	for pos, message, context in messages:
 		while newline_i < len(newlines) and pos > newlines[newline_i]:
 			line+=1
 			newline_i+= 1
-		ret.append((message))
+		ret.append([line, message, context])
 	return ret
 
 def read_csv_file(path):
@@ -766,14 +767,51 @@ def get_translations(source_name):
 	)
 
 @frappe.whitelist()
-def get_messages():
-	clear_cache()
-	apps = frappe.get_all_apps(True)
+def get_messages(language, start=0, page_length=1000):
 
-	messages = []
-	untranslated = []
-	for app in apps:
-		messages.extend(get_messages_for_app(app))
+	messages = frappe.cache().hget('translation_tool_messages', language)
+	if not messages:
+		apps = frappe.get_all_apps(True)
 
-	return messages
+		messages = []
+		translated_message_dict = load_lang(lang=language)
+		user_translation_dict = get_user_translations(language)
+
+		for app in apps:
+			for message in get_messages_for_app(app):
+				path_or_doctype = message[0] or ''
+				source_text = message[1]
+				line = None
+				context = None
+
+				if len(message) > 2:
+					context = message[2]
+					line = message[3]
+
+				doctype = path_or_doctype if path_or_doctype.startswith('DocType:') else None
+
+				user_translated_text = user_translation_dict.get(source_text)
+				translated_text = translated_message_dict.get(source_text)
+
+				id = source_text
+				if context:
+					source_text = source_text.rsplit(':' + context)[0]
+
+				messages.append(frappe._dict({
+					'id': id,
+					'source_text': source_text,
+					'translated_text': user_translated_text or translated_text or '',
+					'user_translated': bool(user_translated_text),
+					'context': context,
+					'line': line,
+					'path': path_or_doctype if not doctype else None,
+					'doctype': doctype
+				}))
+
+		frappe.clear_messages()
+		frappe.cache().hset('translation_tool_messages', language, messages)
+
+	messages = sorted(messages, key=lambda x: x.translated_text, reverse=False)
+
+	return messages[start:start + page_length]
 

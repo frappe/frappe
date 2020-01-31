@@ -1,0 +1,18 @@
+.translation-item {
+	font-size: 12px;
+	padding: 12px 15px;
+	min-height: 40px;
+	cursor: pointer;
+	overflow: hidden;
+}
+.translation-item:hover {
+	background-color: #fafbfc;
+}
+.translation-item.active {
+	background-color: #fffce7;
+}
+
+.translation-item-container {
+	height: calc(100vh - 220px);
+	overflow: auto;
+}
