@@ -51,8 +51,8 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 		this.setup_buttons();
 		this.setup_awesomeplete();
 
-		// if (this.frm && this.frm.doc.hasOwnProperty("__onload") && this.frm.doc.__onload._link_titles && this.frm.doc.__onload._link_titles[this.df.fieldname]) {
-		if (this.frm && this.frm.doc.hasOwnProperty("__onload") && this.frm.doc.__onload._link_titles) {
+		this._link_titles = {};
+		if (this.frm && this.frm.doc && this.frm.doc.hasOwnProperty("__onload") && this.frm.doc.__onload._link_titles) {
 			this._link_titles = this.frm.doc.__onload._link_titles;
 		}
 	},
@@ -72,11 +72,13 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 		}
 	},
 	set_formatted_input: function (value) {
+		let doctype = this.get_options();
 		if (value) {
 			if (this.label) {
 				this.set_data_value(this.label, value);
-			} else if (this._link_titles && this._link_titles[value]) {
-				this.set_data_value(this._link_titles[value], value);
+				this.add_link_title(doctype, this.label, value);
+			} else if (this._link_titles && this._link_titles[doctype + "::" + value]) {
+				this.set_data_value(this._link_titles[doctype + "::" + value], value);
 			} else {
 				this.set_data_value(value, value);
 			}
@@ -85,6 +87,9 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 	set_data_value: function(link_display, value) {
 		this.$input && this.$input.val(__(link_display));
 		this.$input && this.$input.attr("data-value", value);
+	},
+	set_label: function(label) {
+		this.$input && this.$input.val(__(label));
 	},
 	parse_validate_and_set_in_model: function(value, label, e) {
 		if (this.parse) {
@@ -127,7 +132,7 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 		}
 
 		// partially entered name field
-		frappe.route_options.name_field = this.get_input_value();
+		frappe.route_options.name_field = this.get_label_value();
 
 		// reference to calling link
 		frappe._from_link = this;
@@ -514,6 +519,14 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 		var fl = this.frm.fetch_dict[df.fieldname].fields;
 		for(var i=0; i < fl.length; i++) {
 			frappe.model.set_value(df.parent, docname, fl[i], fetch_values[i], df.fieldtype);
+		}
+	},
+	add_link_title: function(doctype, label, value) {
+		if (this.frm && this.frm.doc && this.frm.doc.hasOwnProperty("__onload") && this.frm.doc.__onload._link_titles &&
+			!this.frm.doc.__onload._link_titles[doctype + "::" + value]) {
+
+			this._link_titles[doctype + "::" + value] = label;
+			this.frm.doc.__onload._link_titles[doctype + "::" + value] = label;
 		}
 	}
 });

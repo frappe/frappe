@@ -46,9 +46,9 @@ frappe.ui.form.ControlTableMultiSelect = frappe.ui.form.ControlLink.extend({
 			}
 		});
 
-		// if (this.frm && this.frm.doc.hasOwnProperty("__onload") && this.frm.doc.__onload._link_titles && this.frm.doc.__onload._link_titles[this.df.fieldname]) {
-		if (this.frm && this.frm.doc.hasOwnProperty("__onload") && this.frm.doc.__onload._link_titles) {
-			this._link_titles = this.frm.doc.__onload._link_titles
+		this._link_titles = {};
+		if (this.frm && this.frm.doc && this.frm.doc.hasOwnProperty("__onload") && this.frm.doc.__onload._link_titles) {
+			this._link_titles = this.frm.doc.__onload._link_titles;
 		}
 	},
 	setup_buttons() {
@@ -67,9 +67,8 @@ frappe.ui.form.ControlTableMultiSelect = frappe.ui.form.ControlLink.extend({
 					[link_field.fieldname]: value
 				});
 			}
+			this.add_link_title(link_field.options, label, value);
 		}
-		this._link_titles[value] = label;
-		// this._link_titles.push({[link_field.fieldname]: value, ["link_display"]: label});
 		return this.rows;
 	},
 	validate(value) {
@@ -116,21 +115,18 @@ frappe.ui.form.ControlTableMultiSelect = frappe.ui.form.ControlLink.extend({
 	set_formatted_input(value) {
 		this.rows = value || [];
 		const link_field = this.get_link_field();
-		const values = this.rows.map(row => ({"name": row[link_field.fieldname], "link_title": row["link_display"]}));
-		let __link_titles = [];
+		let values = [];
 
-		if (this._link_titles) {
-			for (let i in values) {
-				if (this._link_titles[values[i].name]) {
-					__link_titles.push({
-						"name": values[i].name,
-						"link_title": this._link_titles[values[i].name]
-					});
-				}
+		for (let i in this.rows) {
+			let row = this.rows[i];
+			let _row = {"name": row[link_field.fieldname]};
+			if (this._link_titles && this._link_titles[link_field.options + "::" + row[link_field.fieldname]]) {
+				_row._link_title = this._link_titles[link_field.options + "::" + row[link_field.fieldname]];
 			}
+			values.push(_row);
 		}
 
-		this.set_pill_html(__link_titles || values);
+		this.set_pill_html(values);
 	},
 	set_pill_html(values) {
 		const html = values
@@ -142,8 +138,9 @@ frappe.ui.form.ControlTableMultiSelect = frappe.ui.form.ControlLink.extend({
 	},
 	get_pill_html(value) {
 		const encoded_value = encodeURIComponent(value.name);
+		const pill_name = value._link_title ? value._link_title : value.name;
 		return `<div class="btn-group tb-selected-value" data-value="${encoded_value}">
-			<button class="btn btn-default btn-xs btn-link-to-form">${__(value.link_title) || __(value.name)}</button>
+			<button class="btn btn-default btn-xs btn-link-to-form">${__(pill_name)}</button>
 			<button class="btn btn-default btn-xs btn-remove">
 				<i class="fa fa-remove text-muted"></i>
 			</button>
@@ -162,4 +159,12 @@ frappe.ui.form.ControlTableMultiSelect = frappe.ui.form.ControlLink.extend({
 		}
 		return this._link_field;
 	},
+	add_link_title(doctype, label, value) {
+		if (this.frm && this.frm.doc && this.frm.doc.hasOwnProperty("__onload") && this.frm.doc.__onload._link_titles &&
+			!this.frm.doc.__onload._link_titles[doctype + "::" + value]) {
+
+			this._link_titles[doctype + "::" + value] = label;
+			this.frm.doc.__onload._link_titles[doctype + "::" + value] = label;
+		}
+	}
 });

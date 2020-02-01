@@ -89,21 +89,21 @@ frappe.form.formatters = {
 			return '<i class="fa fa-square disabled-check"></i>';
 		}
 	},
-	Link: function(value, docfield, options, doc, _link_title) {
+	Link: function(value, docfield, options, doc) {
 		var doctype = docfield._options || docfield.options;
 		var original_value = value;
-		let link_title = _link_title;
-
-		if (doc && !_link_title && doc.hasOwnProperty("__onload") && doc.__onload._title_values) {
-			link_title = doc.__onload._title_values[doc.get(docfield.fieldname)];
-		}
+		let _link_title = {};
 
 		if(value && value.match && value.match(/^['"].*['"]$/)) {
 			value.replace(/^.(.*).$/, "$1");
 		}
 
+		if (doc && doc.hasOwnProperty("__onload") && doc.__onload._link_titles) {
+			_link_title = doc.__onload._link_titles[doctype + "::" + value];
+		}
+
 		if(options && (options.for_print || options.only_value)) {
-			return value;
+			return _link_title || value;
 		}
 
 		if(frappe.form.link_formatters[doctype]) {
@@ -130,9 +130,9 @@ frappe.form.formatters = {
 				data-doctype="${doctype}"
 				data-name="${original_value}"
 				data-value="${original_value}">
-				${__(options && options.label || link_title || value)}</a>`;
+				${__(options && options.label || _link_title || value)}</a>`
 		} else {
-			return link_title || value;
+			return _link_title || value;
 		}
 	},
 	Date: function(value) {
@@ -270,14 +270,16 @@ frappe.form.formatters = {
 		rows = rows || [];
 		const meta = frappe.get_meta(df.options);
 		const link_field = meta.fields.find(df => df.fieldtype === 'Link');
-		let values = rows.map(row => ({"name": row[link_field.fieldname], "doc": row}));
+		let _link_titles = {};
 
-		if (doc && doc.hasOwnProperty("__onload") && doc.__onload._title_values) {
-			values = values.map(value => (value["link_title"] = doc.__onload._title_values[value.name]));
+		if (doc && doc.hasOwnProperty("__onload") && doc.__onload._link_titles) {
+			_link_titles = doc.__onload._link_titles;
 		}
 
-		let formatted_values = values.map(value => {
-			return frappe.format(value.link_title || value.name, link_field, options, value.doc);
+		const formatted_values = rows.map(row => {
+			const value = row[link_field.fieldname];
+			row.__onload = {"_link_titles": _link_titles}
+			return frappe.format(value, link_field, options, row);
 		});
 
 		return formatted_values.join(', ');
@@ -290,7 +292,7 @@ frappe.form.get_formatter = function(fieldtype) {
 	return frappe.form.formatters[fieldtype.replace(/ /g, "")] || frappe.form.formatters.Data;
 }
 
-frappe.format = function(value, df, options, doc, _link_title) {
+frappe.format = function(value, df, options, doc) {
 	if(!df) df = {"fieldtype":"Data"};
 	var fieldtype = df.fieldtype || "Data";
 
@@ -302,7 +304,7 @@ frappe.format = function(value, df, options, doc, _link_title) {
 
 	var formatter = df.formatter || frappe.form.get_formatter(fieldtype);
 
-	var formatted = formatter(value, df, options, doc, _link_title);
+	var formatted = formatter(value, df, options, doc);
 
 	if (typeof formatted == "string")
 		formatted = frappe.dom.remove_script_and_style(formatted);

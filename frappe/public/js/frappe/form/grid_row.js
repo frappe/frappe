@@ -244,20 +244,20 @@ export default class GridRow {
 		this.grid.setup_visible_columns();
 
 		for(var ci in this.grid.visible_columns) {
+			this.set_onload();
 			var df = this.grid.visible_columns[ci][0],
 				colsize = this.grid.visible_columns[ci][1],
-				_link_title = this.get_link_title(df),
-				txt = this.doc ? frappe.format(this.doc[df.fieldname], df, null, this.doc, _link_title) : __(df.label);
+				txt = this.doc ? frappe.format(this.doc[df.fieldname], df, null, this.doc) : __(df.label);
 
 			if(this.doc && df.fieldtype === "Select") {
 				txt = __(txt);
 			}
 
 			if(!this.columns[df.fieldname]) {
-				var column = this.make_column(df, colsize, _link_title, txt, ci);
+				var column = this.make_column(df, colsize, txt, ci);
 			} else {
 				var column = this.columns[df.fieldname];
-				this.refresh_field(df.fieldname, txt, _link_title);
+				this.refresh_field(df.fieldname, txt);
 			}
 
 			// background color for cellz
@@ -272,7 +272,7 @@ export default class GridRow {
 		}
 	}
 
-	make_column(df, colsize, _link_title, txt, ci) {
+	make_column(df, colsize, txt, ci) {
 		let me = this;
 		var add_class = ((["Text", "Small Text"].indexOf(df.fieldtype)!==-1) ?
 			" grid-overflow-no-ellipsis" : "");
@@ -299,7 +299,7 @@ export default class GridRow {
 			});
 
 		$col.field_area = $('<div class="field-area"></div>').appendTo($col).toggle(false);
-		$col.static_area = $('<div class="static-area ellipsis"></div>').appendTo($col).html(_link_title || txt);
+		$col.static_area = $('<div class="static-area ellipsis"></div>').appendTo($col).html(txt);
 		$col.df = df;
 		$col.column_index = ci;
 
@@ -343,13 +343,13 @@ export default class GridRow {
 			this.columns_list.forEach((column, index) => {
 
 				if(!this.frm) {
-					let df = this.grid.visible_columns[index][0]
-					let _link_title = this.get_link_title(df);
+					this.set_onload();
+					let df = this.grid.visible_columns[index][0];
 					let txt = this.doc ?
-						frappe.format(this.doc[df.fieldname], df, null, this.doc, _link_title) :
+						frappe.format(this.doc[df.fieldname], df, null, this.doc) :
 						__(df.label);
 
-					this.refresh_field(df.fieldname, txt, _link_title)
+					this.refresh_field(df.fieldname, txt)
 				}
 
 				if (!column.df.hidden) {
@@ -367,8 +367,7 @@ export default class GridRow {
 
 		var me = this,
 			parent = column.field_area,
-			df = column.df,
-			_link_title = this.get_link_title(df);
+			df = column.df;
 
 		// no text editor in grid
 		if (df.fieldtype=='Text Editor') {
@@ -392,7 +391,7 @@ export default class GridRow {
 		// sync get_query
 		field.get_query = this.grid.get_field(df.fieldname).get_query;
 		field.df.onchange = function() {
-			me.grid.grid_rows[this.doc.idx-1].refresh_field(this.df.fieldname, _link_title);
+			me.grid.grid_rows[this.doc.idx-1].refresh_field(this.df.fieldname);
 		};
 		field.refresh();
 		if(field.$input) {
@@ -564,7 +563,7 @@ export default class GridRow {
 			this.grid.add_new_row(null, null, true);
 		}
 	}
-	refresh_field(fieldname, txt, _link_title) {
+	refresh_field(fieldname, txt) {
 		var df = this.grid.get_docfield(fieldname) || undefined;
 
 		// format values if no frm
@@ -574,19 +573,19 @@ export default class GridRow {
 			});
 			if(df && this.doc) {
 				var txt = frappe.format(this.doc[fieldname], df[0],
-					null, this.doc, _link_title);
+					null, this.doc);
 			}
 		}
 
 		if(txt===undefined && this.frm) {
 			var txt = frappe.format(this.doc[fieldname], df,
-				null, this.frm.doc, _link_title);
+				null, this.frm.doc);
 		}
 
 		// reset static value
 		var column = this.columns[fieldname];
 		if(column) {
-			column.static_area.html(_link_title || txt || "");
+			column.static_area.html(txt || "");
 			if(df && df.reqd) {
 				column.toggleClass('error', !!(txt===null || txt===''));
 			}
@@ -601,7 +600,7 @@ export default class GridRow {
 
 		// in form
 		if(this.grid_form) {
-			this.grid_form.refresh_field(fieldname, _link_title);
+			this.grid_form.refresh_field(fieldname);
 		}
 	}
 	get_field(fieldname) {
@@ -654,13 +653,18 @@ export default class GridRow {
 		this.set_field_property(fieldname, 'read_only', editable ? 0 : 1);
 	}
 	set_link_titles() {
-		this.link_titles = undefined;
+		this._link_titles = {};
 
-		if (this.frm.doc.__onload && this.frm.doc.__onload._link_titles) {
-			this.link_titles = this.frm.doc.__onload._link_titles;
+		if (this.frm && this.frm.doc && this.frm.doc.__onload && this.frm.doc.__onload._link_titles) {
+			this._link_titles = this.frm.doc.__onload._link_titles;
 		}
 	}
 	get_link_title(df) {
-		return (this.doc && this.link_titles) ? this.link_titles[this.doc[df.fieldname]] : undefined
+		return this._link_titles ? this._link_titles[this.doc.doctype + "::" + this.doc[df.fieldname]] : undefined;
+	}
+	set_onload() {
+		if (this.doc && this._link_titles) {
+			this.doc.__onload = {"_link_titles": this._link_titles};
+		}
 	}
 };
