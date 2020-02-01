@@ -544,7 +544,7 @@ def only_for(roles, message=False):
 	myroles = set(get_roles())
 	if not roles.intersection(myroles):
 		if message:
-			msgprint(_('Only for {}'.format(', '.join(roles))))
+			msgprint(_('Only for {}').format(', '.join(roles)))
 		raise PermissionError
 
 def get_domain_data(module):
