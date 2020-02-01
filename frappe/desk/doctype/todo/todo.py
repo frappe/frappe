@@ -31,7 +31,7 @@ class ToDo(Document):
 			# NOTE the previous value is only available in validate method
 			if self.get_db_value("status") != self.status:
 				self._assignment = {
-					"text": frappe._("Assignment closed by {0}".format(get_fullname(frappe.session.user))),
+					"text": frappe._("Assignment closed by {0}").format(get_fullname(frappe.session.user)),
 					"comment_type": "Assignment Completed"
 				}
 
