@@ -196,7 +196,7 @@ export default class Grid {
 			this.frm.doc[this.df.fieldname] = [];
 			$(this.parent).find('.rows').empty();
 			this.grid_rows = [];
-			console.log('unchecking');
+
 			this.wrapper.find('.grid-heading-row .grid-row-check:checked:first').prop('checked', 0);
 			this.refresh();
 			frappe.utils.scroll_to(this.wrapper);
