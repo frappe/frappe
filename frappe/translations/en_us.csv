@@ -3,7 +3,6 @@ apps/frappe/frappe/templates/pages/integrations/payment-cancel.html,Payment Canc
 apps/frappe/frappe/model/document.py,Cannot link cancelled document: {0},Cannot link canceled document: {0}
 DocType: Workflow State,zoom-out,zoom-out
 DocType: Print Settings,Allow Print for Cancelled,Allow Print for Canceled
-apps/frappe/frappe/utils/data.py,1 weeks ago,1 week ago
 DocType: Workflow State,facetime-video,Facetime-Video
 apps/frappe/frappe/desk/doctype/bulk_update/bulk_update.py,Cancelling {0},Canceling {0}
 apps/frappe/frappe/model/document.py,Cannot edit cancelled document,Cannot edit canceled document
