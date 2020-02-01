@@ -274,13 +274,11 @@ def get_next_schedule_date(schedule_date, frequency, start_date, repeat_on_day=N
 	else:
 		month_count = 0
 
-	day_count = 0
+	day_count = 31
 	if month_count and repeat_on_last_day:
-		next_date = get_next_date(start_date, month_count, 31)
 		day_count = 31
 		next_date = get_next_date(start_date, month_count, day_count)
 	elif month_count and repeat_on_day:
-		next_date = get_next_date(start_date, month_count, repeat_on_day)
 		day_count = repeat_on_day
 		next_date = get_next_date(start_date, month_count, day_count)
 	elif month_count:
