@@ -185,6 +185,7 @@ export default class Grid {
 
 		frappe.run_serially(tasks);
 
+		this.wrapper.find('.grid-heading-row .grid-row-check:checked:first').prop('checked', 0);
 		if (selected_children.length == this.grid_pagination.page_length) {
 			frappe.utils.scroll_to(this.wrapper);
 		}
@@ -195,6 +196,8 @@ export default class Grid {
 			this.frm.doc[this.df.fieldname] = [];
 			$(this.parent).find('.rows').empty();
 			this.grid_rows = [];
+			console.log('unchecking');
+			this.wrapper.find('.grid-heading-row .grid-row-check:checked:first').prop('checked', 0);
 			this.refresh();
 			frappe.utils.scroll_to(this.wrapper);
 		});
@@ -212,13 +215,10 @@ export default class Grid {
 	}
 
 	refresh_remove_rows_button() {
-		let row_count = (this.grid_rows && this.grid_rows.length) ? false : true;
-
-		let is_delete_hidden = this.wrapper.find('.grid-body .grid-row-check:checked:first').length ? false : true;
-		this.remove_rows_button.toggleClass('hidden', is_delete_hidden || row_count);
-
-		let is_delete_all_hidden = this.wrapper.find('.grid-heading-row .grid-row-check:checked:first').length ? false : true;
-		this.remove_all_rows_button.toggleClass('hidden', is_delete_all_hidden || row_count);
+		this.remove_rows_button.toggleClass('hidden',
+			this.wrapper.find('.grid-body .grid-row-check:checked:first').length ? false : true);
+		this.remove_all_rows_button.toggleClass('hidden',
+			this.wrapper.find('.grid-heading-row .grid-row-check:checked:first').length ? false : true);
 	}
 
 	get_selected() {
