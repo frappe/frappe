@@ -444,7 +444,7 @@ def save_report(reference_report, report_name, columns):
 			'report_type': 'Custom Report',
 			'reference_report': reference_report
 		}).insert(ignore_permissions = True)
-		frappe.msgprint(_("{0} saved successfully".format(new_report.name)))
+		frappe.msgprint(_("{0} saved successfully").format(new_report.name))
 		return new_report.name
 
 
