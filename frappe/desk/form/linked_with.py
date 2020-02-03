@@ -216,7 +216,8 @@ def get_linked_doctypes(doctype, without_ignore_user_permissions_enabled=False):
 	else:
 		return frappe.cache().hget("linked_doctypes", doctype, lambda: _get_linked_doctypes(doctype))
 
-def _get_linked_doctypes(doctype, without_ignore_user_permissions_enabled=False):
+def _get_linked_doctypes(doctype, without_ignore_user_permissions_enabled=False,
+	force_include_all_doctypes=False):
 	ret = {}
 	# find fields where this doctype is linked
 	ret.update(get_linked_fields(doctype, without_ignore_user_permissions_enabled))
@@ -240,7 +241,7 @@ def _get_linked_doctypes(doctype, without_ignore_user_permissions_enabled=False)
 			# or in case of module rename eg. (Schools -> Education)
 			continue
 
-		if getattr(doctype_module, "exclude_from_linked_with", False):
+		if not force_include_all_doctypes and getattr(doctype_module, "exclude_from_linked_with", False):
 			del ret[dt]
 
 	return ret

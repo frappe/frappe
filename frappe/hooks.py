@@ -127,7 +127,10 @@ doc_events = {
 			"frappe.automation.doctype.assignment_rule.assignment_rule.apply",
 			"frappe.automation.doctype.milestone_tracker.milestone_tracker.evaluate_milestone"
 		],
-		"after_rename": "frappe.desk.notifications.clear_doctype_notifications",
+		"after_rename": [
+			"frappe.desk.notifications.clear_doctype_notifications",
+			"frappe.desk.doctype.dashboard_chart.dashboard_chart.rename_value_in_dashboard_chart_filter",
+		],
 		"on_cancel": [
 			"frappe.desk.notifications.clear_doctype_notifications",
 			"frappe.workflow.doctype.workflow_action.workflow_action.process_workflow_actions"
