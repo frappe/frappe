@@ -10,8 +10,13 @@ frappe.ui.form.Attachments = Class.extend({
 	},
 	make: function() {
 		var me = this;
+		this.toggle_download_all_button();
 		this.parent.find(".add-attachment").click(function() {
 			me.new_attachment();
+		});
+
+		this.parent.find(".download-attachments").click(function() {
+			me.download_attachments();
 		});
 		this.add_attachment_wrapper = this.parent.find(".add_attachment").parent();
 		this.attachments_label = this.parent.find(".attachments-label");
@@ -152,8 +157,30 @@ frappe.ui.form.Attachments = Class.extend({
 			folder: 'Home/Attachments',
 			on_success: (file_doc) => {
 				this.attachment_uploaded(file_doc);
+				this.toggle_download_all_button();
 			}
 		});
+	},
+	toggle_download_all_button: function() {
+		var form_attachments = this.get_attachments();
+		var attachments_count = form_attachments ? form_attachments.length : 0;
+		this.parent.find(".download-attachments").toggle(attachments_count > 1 ? true:false);
+	},
+	download_attachments: function() {
+		let filters = {
+			doctype: this.frm.doctype,
+			docname: this.frm.docname,
+		}
+
+		var w = window.open(
+			frappe.urllib.get_full_url(
+				"/api/method/frappe.core.doctype.file.file.download_zip_files?" 
+				+ "filters=" + JSON.stringify(filters)
+			)
+		);
+		if (!w) {
+			frappe.msgprint(__("Please enable pop-ups")); return;
+		}
 	},
 	get_args: function() {
 		return {

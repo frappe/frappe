@@ -33,6 +33,7 @@ from six import StringIO, string_types
 from six.moves.urllib.parse import unquote, quote
 from six import text_type, PY2
 import zipfile
+from frappe.desk.form.load import get_attachments
 
 class MaxFileSizeReachedError(frappe.ValidationError):
 	pass
@@ -768,7 +769,6 @@ def get_file_name(fname, optional_suffix):
 		partial, extn = f[0], "." + f[1]
 	return '{partial}{suffix}{extn}'.format(partial=partial, extn=extn, suffix=optional_suffix)
 
-
 @frappe.whitelist()
 def download_file(file_url):
 	"""
@@ -784,6 +784,33 @@ def download_file(file_url):
 
 	frappe.local.response.filename = os.path.basename(file_url)
 	frappe.local.response.filecontent = file_doc.get_content()
+	frappe.local.response.type = "download"
+
+@frappe.whitelist()
+def download_zip_files(filters):
+	if isinstance(filters, string_types):
+		filters = json.loads(filters)
+
+	output_filename = "{0}_{1}.zip".format(filters.get("doctype"), filters.get("docname"))
+	output_path = frappe.get_site_path('private', 'files', output_filename)
+
+	if not frappe.db.exists("File", output_filename):
+		attachments = get_attachments(filters.get("doctype"), filters.get("docname"))
+
+		input_files = []
+		for d in attachments:
+			doc = frappe.get_doc("File", d.name)
+			input_files.append(doc.get_full_path())
+
+		with zipfile.ZipFile(output_path, 'w') as output_zip:
+			for input_file in input_files:
+				output_zip.write(input_file, arcname=os.path.basename(input_file))
+
+	with open(output_path, 'rb') as fileobj:
+		filedata = fileobj.read()
+
+	frappe.local.response.filename = output_filename
+	frappe.local.response.filecontent = filedata
 	frappe.local.response.type = "download"
 
 def extract_images_from_doc(doc, fieldname):
