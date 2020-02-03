@@ -220,10 +220,7 @@ class AutoRepeat(Document):
 				file_name=new_doc.name, print_format=print_format)]
 
 		except frappe.PermissionError:
-			error_string = _('''A recurring {0} {1} has been created for you via Auto Repeat {2}.
-				<br><br><b>Note</b>: Failed to attach new recurring document.
-				To enable attaching document in the auto repeat notification email,
-				enable <b>Allow Print for Draft</b> in Print Settings''').format(new_doc.doctype, new_doc.name, self.name)
+			error_string = _("A recurring {0} {1} has been created for you via Auto Repeat {2}. <br><br><b>Note</b>: Failed to attach new recurring document. To enable attaching document in the auto repeat notification email, enable <b>Allow Print for Draft</b> in Print Settings").format(new_doc.doctype, new_doc.name, self.name)
 			attachments = '[]'
 
 		if error_string:
