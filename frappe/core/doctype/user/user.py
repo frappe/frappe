@@ -97,8 +97,8 @@ class User(Document):
 		self.share_with_self()
 		clear_notifications(user=self.name)
 		frappe.clear_cache(user=self.name)
+		self.send_password_notification(self.__new_password)
 		if self.__new_password:
-			self.send_password_notification(self.__new_password)
 			self.reset_password_key = ''
 		create_contact(self, ignore_mandatory=True)
 		if self.name not in ('Administrator', 'Guest') and not self.user_image:
@@ -262,7 +262,7 @@ class User(Document):
 		if not subject:
 			site_name = frappe.db.get_default('site_name') or frappe.get_conf().get("site_name")
 			if site_name:
-				subject = _("Welcome to {0}".format(site_name))
+				subject = _("Welcome to {0}").format(site_name)
 			else:
 				subject = _("Complete Registration")
 
