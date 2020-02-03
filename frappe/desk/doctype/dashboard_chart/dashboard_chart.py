@@ -31,7 +31,7 @@ def get(chart_name = None, chart = None, no_cache = None, from_date = None, to_d
 	filters['docstatus'] = ('<', 2)
 
 	if chart.chart_type == 'Group By':
-		chart_config = get_group_by_chart_config(chart, filters)
+		chart_config = get_group_by_chart_config(chart, filters, timespan, from_date, to_date)
 	else:
 		chart_config =  get_chart_config(chart, filters, timespan, timegrain, from_date, to_date)
 
@@ -86,16 +86,23 @@ def get_chart_config(chart, filters, timespan, timegrain, from_date, to_date):
 	return chart_config
 
 
-def get_group_by_chart_config(chart, filters):
+def get_group_by_chart_config(chart, filters, timespan, from_date, to_date):
+	if not to_date:
+		to_date = datetime.datetime.now()
+
+	if not from_date:
+		from_date = get_from_date_from_timespan(to_date, timespan)
+
 	conditions, values = frappe.db.build_conditions(filters)
 	data = frappe.db.sql('''
-		select
-			{aggregate_function}({value_field}) as count,
-			{group_by_field} as name
-		from `tab{doctype}`
-		where {conditions}
-		group by {group_by_field}
-		order by count desc
+		SELECT
+			{aggregate_function}({value_field}) AS `count`,
+			{group_by_field} AS `name`
+		FROM `tab{doctype}`
+		WHERE {conditions}
+			AND `creation` BETWEEN '{from_date}' AND '{to_date}'
+		GROUP BY {group_by_field}
+		ORDER BY `count` DESC
 	'''.format(
 		aggregate_function = get_aggregate_function(chart.group_by_type),
 		value_field = chart.aggregate_function_based_on or '1',
@@ -103,6 +110,8 @@ def get_group_by_chart_config(chart, filters):
 		group_by_field = chart.group_by_based_on,
 		doctype = chart.document_type,
 		conditions = conditions,
+		from_date = from_date.strftime('%Y-%m-%d'),
+		to_date = to_date.strftime('%Y-%m-%d')
 	), values, as_dict = True)
 
 	if data:
