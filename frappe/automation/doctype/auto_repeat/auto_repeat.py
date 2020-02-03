@@ -212,15 +212,26 @@ class AutoRepeat(Document):
 		elif "{" in self.subject:
 			subject = frappe.render_template(self.subject, {'doc': new_doc})
 
-		if not self.message:
+		print_format = self.print_format or 'Standard'
+		error_string = None
+
+		try:
+			attachments = [frappe.attach_print(new_doc.doctype, new_doc.name,
+				file_name=new_doc.name, print_format=print_format)]
+
+		except frappe.PermissionError:
+			error_string = _('''A recurring {0} {1} has been created for you via Auto Repeat {2}.
+				<br><br><b>Note</b>: Failed to attach new recurring document.
+				To enable attaching document in the auto repeat notification email,
+				enable <b>Allow Print for Draft</b> in Print Settings''').format(new_doc.doctype, new_doc.name, self.name)
+			attachments = '[]'
+
+		if error_string:
+			message = error_string
+		elif not self.message:
 			message = _("Please find attached {0}: {1}").format(new_doc.doctype, new_doc.name)
 		elif "{" in self.message:
 			message = frappe.render_template(self.message, {'doc': new_doc})
-
-		print_format = self.print_format or 'Standard'
-
-		attachments = [frappe.attach_print(new_doc.doctype, new_doc.name,
-			file_name=new_doc.name, print_format=print_format)]
 
 		recipients = self.recipients.split('\n')
 
