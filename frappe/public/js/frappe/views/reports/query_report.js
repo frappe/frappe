@@ -459,8 +459,8 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			data.splice(-1, 1);
 		}
 
-		if (this.datatable 
-			&& this.datatable_options.showTotalRow === (this.raw_data.add_total_row 
+		if (this.datatable && this.datatable.options
+			&& this.datatable.options.showTotalRow === (this.raw_data.add_total_row 
 			&& (!this.raw_data.skip_total_row))) {
 			this.datatable.options.treeView = this.tree_report;
 			this.datatable.refresh(data, columns);
