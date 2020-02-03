@@ -195,7 +195,7 @@ frappe.ui.Filter = class {
 		// called when condition is changed,
 		// don't change if all is well
 		if(this.field && cur.fieldname == fieldname && df.fieldtype == cur.fieldtype &&
-			df.parent == cur.parent) {
+			df.parent == cur.parent && df.options == cur.options) {
 			return;
 		}
 
