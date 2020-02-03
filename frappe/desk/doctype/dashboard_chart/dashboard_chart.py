@@ -7,25 +7,33 @@ import frappe
 from frappe import _
 import datetime
 from frappe.core.page.dashboard.dashboard import cache_source, get_from_date_from_timespan
-from frappe.utils import nowdate, add_to_date, getdate, get_last_day, formatdate
+from frappe.utils import nowdate, add_to_date, getdate, get_last_day, formatdate, get_datetime
 from frappe.model.naming import append_number_if_name_exists
 from frappe.model.document import Document
 
 @frappe.whitelist()
 @cache_source
-def get(chart_name = None, chart = None, no_cache = None, from_date = None, to_date = None, refresh = None):
+def get(chart_name = None, chart = None, no_cache = None, from_date = None, to_date = None, timespan = None, time_interval = None, refresh = None):
 	if chart_name:
 		chart = frappe.get_doc('Dashboard Chart', chart_name)
 	else:
 		chart = frappe._dict(frappe.parse_json(chart))
 
-	timespan = chart.timespan
 
-	if chart.timespan == 'Select Date Range':
-		from_date = chart.from_date
-		to_date = chart.to_date
+	timespan = timespan or chart.timespan
 
-	timegrain = chart.time_interval
+	if timespan == 'Select Date Range':
+		if from_date and len(from_date):
+			from_date = get_datetime(from_date)
+		else:
+			from_date = chart.from_date
+
+		if to_date and len(to_date):
+			to_date = get_datetime(to_date)
+		else:
+			to_date = chart.to_date
+
+	timegrain = time_interval or chart.time_interval
 	filters = frappe.parse_json(chart.filters_json)
 
 	# don't include cancelled documents
