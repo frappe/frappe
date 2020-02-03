@@ -158,7 +158,7 @@ def get_script(report_name):
 
 @frappe.whitelist()
 @frappe.read_only()
-def run(report_name, filters=None, user=None):
+def run(report_name, filters=None, user=None, ignore_prepared_report=False):
 
 	report = get_report_doc(report_name)
 	if not user:
@@ -169,7 +169,7 @@ def run(report_name, filters=None, user=None):
 
 	result = None
 
-	if report.prepared_report and not report.disable_prepared_report:
+	if report.prepared_report and not report.disable_prepared_report and not ignore_prepared_report:
 		if filters:
 			if isinstance(filters, string_types):
 				filters = json.loads(filters)
@@ -229,8 +229,9 @@ def get_prepared_report_result(report, filters, dn="", user=None):
 				"status": "Completed",
 				"filters": json.dumps(filters),
 				"owner": user,
-				"report_name": report.report_name
-			}
+				"report_name": report.get('custom_report') or report.get('report_name')
+			},
+			order_by = 'creation desc'
 		)
 
 		if doc_list:
@@ -424,9 +425,10 @@ def get_data_for_custom_report(columns):
 def save_report(reference_report, report_name, columns):
 	report_doc = get_report_doc(reference_report)
 
-	docname = frappe.db.exists("Report", report_name)
+	docname = frappe.db.exists("Report",
+		{'report_name': report_name, 'is_standard': 'No', 'report_type': 'Custom Report'})
 	if docname:
-		report = frappe.get_doc("Report", {'report_name': docname, 'is_standard': 'No', 'report_type': 'Custom Report'})
+		report = frappe.get_doc("Report", docname)
 		report.update({"json": columns})
 		report.save()
 		frappe.msgprint(_("Report updated successfully"))
@@ -442,7 +444,7 @@ def save_report(reference_report, report_name, columns):
 			'report_type': 'Custom Report',
 			'reference_report': reference_report
 		}).insert(ignore_permissions = True)
-		frappe.msgprint(_("{0} saved successfully".format(new_report.name)))
+		frappe.msgprint(_("{0} saved successfully").format(new_report.name))
 		return new_report.name
 
 

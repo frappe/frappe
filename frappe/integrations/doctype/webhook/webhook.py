@@ -4,7 +4,10 @@
 
 from __future__ import unicode_literals
 
+import base64
 import datetime
+import hashlib
+import hmac
 import json
 from time import sleep
 
@@ -16,11 +19,10 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.utils.jinja import validate_template
 
+WEBHOOK_SECRET_HEADER = "X-Frappe-Webhook-Signature"
+
 
 class Webhook(Document):
-	def autoname(self):
-		self.name = self.webhook_doctype + "-" + self.webhook_docevent
-
 	def validate(self):
 		self.validate_docevent()
 		self.validate_condition()
@@ -97,10 +99,23 @@ def enqueue_webhook(doc, webhook):
 
 def get_webhook_headers(doc, webhook):
 	headers = {}
+
+	if webhook.enable_security:
+		data = get_webhook_data(doc, webhook)
+		signature = base64.b64encode(
+			hmac.new(
+				webhook.get_password("webhook_secret").encode("utf8"),
+				json.dumps(data).encode("utf8"),
+				hashlib.sha256
+			).digest()
+		)
+		headers[WEBHOOK_SECRET_HEADER] = signature
+
 	if webhook.webhook_headers:
 		for h in webhook.webhook_headers:
 			if h.get("key") and h.get("value"):
 				headers[h.get("key")] = h.get("value")
+
 	return headers
 
 

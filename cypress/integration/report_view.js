@@ -19,11 +19,13 @@ context('Report View', () => {
 		cy.server();
 		cy.route('POST', 'api/method/frappe.client.set_value').as('value-update');
 		cy.visit(`/desk#List/${doctype_name}/Report`);
-		let cell = cy.get('.dt-row-0 > .dt-cell--col-3');
+		// check status column added from docstatus
+		cy.get('.dt-row-0 > .dt-cell--col-3').should('contain', 'Submitted');
+		let cell = cy.get('.dt-row-0 > .dt-cell--col-4');
 		// select the cell
 		cell.dblclick();
 		cell.find('input[data-fieldname="enabled"]').check({force: true});
-		cy.get('.dt-row-0 > .dt-cell--col-4').click();
+		cy.get('.dt-row-0 > .dt-cell--col-5').click();
 		cy.wait('@value-update');
 		cy.get('@doc').then(doc => {
 			cy.call('frappe.client.get_value', {

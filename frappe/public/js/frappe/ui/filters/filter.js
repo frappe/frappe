@@ -174,11 +174,6 @@ frappe.ui.Filter = class {
 
 		let original_docfield = (this.fieldselect.fields_by_name[doctype] || {})[fieldname];
 
-		if (doctype === "Tag Link" || fieldname === "_user_tags") {
-			original_docfield = {fieldname: "tag", fieldtype: "Data", label: "Tags", parent: "Tag Link"};
-			doctype = "Tag Link";
-		}
-
 		if(!original_docfield) {
 			console.warn(`Field ${fieldname} is not selectable.`);
 			this.remove();
@@ -200,7 +195,7 @@ frappe.ui.Filter = class {
 		// called when condition is changed,
 		// don't change if all is well
 		if(this.field && cur.fieldname == fieldname && df.fieldtype == cur.fieldtype &&
-			df.parent == cur.parent) {
+			df.parent == cur.parent && df.options == cur.options) {
 			return;
 		}
 
