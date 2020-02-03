@@ -160,7 +160,7 @@ frappe.ui.form.ControlTableMultiSelect = frappe.ui.form.ControlLink.extend({
 		return this._link_field;
 	},
 	add_link_title(doctype, label, value) {
-		if (this.frm && this.frm.doc && this.frm.doc.hasOwnProperty("__onload") && this.frm.doc.__onload._link_titles &&
+		if (this.frm && this.frm.doc && this.frm.doc.__onload && this.frm.doc.__onload._link_titles &&
 			!this.frm.doc.__onload._link_titles[doctype + "::" + value]) {
 
 			this._link_titles[doctype + "::" + value] = label;

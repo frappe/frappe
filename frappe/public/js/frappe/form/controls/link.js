@@ -48,6 +48,7 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 		this.input = this.$input.get(0);
 		this.has_input = true;
 		this.translate_values = true;
+		this.setup_meta(me.get_options());
 		this.setup_buttons();
 		this.setup_awesomeplete();
 
@@ -88,9 +89,6 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 		this.$input && this.$input.val(__(link_display));
 		this.$input && this.$input.attr("data-value", value);
 	},
-	set_label: function(label) {
-		this.$input && this.$input.val(__(label));
-	},
 	parse_validate_and_set_in_model: function(value, label, e) {
 		if (this.parse) {
 			value = this.parse(value, label);
@@ -103,6 +101,9 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 	},
 	get_label_value: function () {
 		return this.$input ? this.$input.val() : undefined;
+	},
+	set_input_label: function(label) {
+		this.$input && this.$input.val(__(label));
 	},
 	reset_value: function () {
 		this.$input && this.$input.val("");
@@ -124,11 +125,11 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 
 		if(!doctype) return;
 
+		frappe.route_options = {};
+
 		// set values to fill in the new document
 		if(this.df.get_route_options_for_new_doc) {
 			frappe.route_options = this.df.get_route_options_for_new_doc(this);
-		} else {
-			frappe.route_options = {};
 		}
 
 		// partially entered name field
@@ -139,7 +140,7 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 		frappe._from_link_scrollY = $(document).scrollTop();
 
 		frappe.ui.form.make_quick_entry(doctype, (doc) => {
-			return me.set_value(doc.name);
+			return me.parse_validate_and_set_in_model(doc.name, doc[this.meta.title_field])
 		});
 
 		return false;
@@ -522,12 +523,19 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 		}
 	},
 	add_link_title: function(doctype, label, value) {
-		if (this.frm && this.frm.doc && this.frm.doc.hasOwnProperty("__onload") && this.frm.doc.__onload._link_titles &&
+		if (this.frm && this.frm.doc && this.frm.doc.__onload && this.frm.doc.__onload._link_titles &&
 			!this.frm.doc.__onload._link_titles[doctype + "::" + value]) {
 
 			this._link_titles[doctype + "::" + value] = label;
 			this.frm.doc.__onload._link_titles[doctype + "::" + value] = label;
 		}
+	},
+	setup_meta: function(doctype) {
+		this.meta = null;
+
+		frappe.model.with_doctype(doctype, () => {
+			this.meta = frappe.get_meta(doctype);
+		});
 	}
 });
 

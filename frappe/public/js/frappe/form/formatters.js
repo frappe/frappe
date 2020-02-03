@@ -98,7 +98,7 @@ frappe.form.formatters = {
 			value.replace(/^.(.*).$/, "$1");
 		}
 
-		if (doc && doc.hasOwnProperty("__onload") && doc.__onload._link_titles) {
+		if (doc && doc.__onload && doc.__onload._link_titles) {
 			_link_title = doc.__onload._link_titles[doctype + "::" + value];
 		}
 
@@ -272,7 +272,7 @@ frappe.form.formatters = {
 		const link_field = meta.fields.find(df => df.fieldtype === 'Link');
 		let _link_titles = {};
 
-		if (doc && doc.hasOwnProperty("__onload") && doc.__onload._link_titles) {
+		if (doc && doc.__onload && doc.__onload._link_titles) {
 			_link_titles = doc.__onload._link_titles;
 		}
 
