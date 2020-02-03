@@ -54,7 +54,7 @@ frappe.ui.form.on('Dashboard Chart', {
 		frm.set_value('source', '');
 		frm.set_value('based_on', '');
 		frm.set_value('value_based_on', '');
-		frm.set_value('filters_json', '{}');
+		frm.set_value('filters_json', '[]');
 		frm.trigger('update_options');
 	},
 
@@ -218,7 +218,7 @@ frappe.ui.form.on('Dashboard Chart', {
 		</table>`).appendTo(wrapper);
 		$(`<p class="text-muted small">${__("Click table to edit")}</p>`).appendTo(wrapper);
 
-		let filters = JSON.parse(frm.doc.filters_json || '{}');
+		let filters = JSON.parse(frm.doc.filters_json || '[]');
 		var filters_set = false;
 
 		let fields;
@@ -229,12 +229,12 @@ frappe.ui.form.on('Dashboard Chart', {
 					fieldname: 'filter_area',
 				}
 			]
-			if (Object.keys(filters).length !== 0) {
-				for (let key of Object.keys(filters)) {
-					const filter_row = $(`<tr><td>${key}</td><td>${filters[key][0] || ""}</td><td>${filters[key][1]}</td></tr>`);
+			if (filters.length > 0) {
+				filters.forEach( filter => {
+					const filter_row = $(`<tr><td>${filter[1]}</td><td>${filter[2] || ""}</td><td>${filter[3]}</td></tr>`);
 					table.find('tbody').append(filter_row);
 					filters_set = true;
-				}
+				});
 			}
 		} else {
 			fields = frm.chart_filters.filter(f => {
@@ -270,7 +270,7 @@ frappe.ui.form.on('Dashboard Chart', {
 					if (values) {
 						this.hide();
 						if (is_document_type) {
-							let filters = frm.filter_group.get_filters_as_object();
+							let filters = frm.filter_group.get_filters();
 							frm.set_value('filters_json', JSON.stringify(filters));
 						} else {
 							frm.set_value('filters_json', JSON.stringify(values));
@@ -293,7 +293,7 @@ frappe.ui.form.on('Dashboard Chart', {
 					on_change: () => {},
 				});
 		
-				frm.filter_group.add_filters_to_filter_group(filters, frm.doc.document_type);
+				frm.filter_group.add_filters_to_filter_group(filters);
 			}
 
 			dialog.show();

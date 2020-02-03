@@ -37,7 +37,7 @@ def get(chart_name = None, chart = None, no_cache = None, from_date = None, to_d
 	filters = frappe.parse_json(chart.filters_json)
 
 	# don't include cancelled documents
-	filters['docstatus'] = ('<', 2)
+	filters.append([chart.document_type, 'docstatus', '<', 2, False])
 
 	if chart.chart_type == 'Group By':
 		chart_config = get_group_by_chart_config(chart, filters)
@@ -50,7 +50,7 @@ def get(chart_name = None, chart = None, no_cache = None, from_date = None, to_d
 def create_report_chart(args):
 	args = frappe.parse_json(args)
 	_doc = frappe.new_doc('Dashboard Chart')
-	print('ARGS', args)
+
 	_doc.update(args)
 	if frappe.db.exists('Dashboard Chart', args.chart_name):
 		args.chart_name = append_number_if_name_exists('Dashboard Chart', args.chart_name)
@@ -75,31 +75,35 @@ def get_chart_config(chart, filters, timespan, timegrain, from_date, to_date):
 	if not to_date:
 		to_date = datetime.datetime.now()
 
-	# get conditions from filters
-	conditions, values = frappe.db.build_conditions(filters)
-	# query will return year, unit and aggregate value
-	data = frappe.db.sql('''
-		select
-			extract(year from {datefield}) as _year,
-			{unit_function} as _unit,
-			{aggregate_function}({value_field})
-		from `tab{doctype}`
-		where
-			{conditions}
-			and {datefield} >= '{from_date}'
-			and {datefield} <= '{to_date}'
-		group by _year, _unit
-		order by _year asc, _unit asc
-	'''.format(
-		unit_function = get_unit_function(chart.based_on, timegrain),
-		datefield = chart.based_on,
-		aggregate_function = get_aggregate_function(chart.chart_type),
-		value_field = chart.value_based_on or '1',
-		doctype = chart.document_type,
-		conditions = conditions,
-		from_date = from_date.strftime('%Y-%m-%d'),
-		to_date = to_date
-	), values)
+	unit_function = get_unit_function(chart.document_type, chart.based_on, timegrain)
+	datefield = chart.based_on
+	aggregate_function = get_aggregate_function(chart.chart_type)
+	value_field = chart.value_based_on or '1'
+	doctype = chart.document_type
+	from_date = from_date.strftime('%Y-%m-%d')
+	to_date = to_date
+	
+	filters.append([chart.document_type, datefield, '>=', from_date, False])
+	filters.append([chart.document_type, datefield, '<=', to_date, False])
+
+	fields = [
+			'extract(year from `tab{doctype}`.{datefield}) as _year'.format(doctype=chart.document_type, datefield=datefield),
+			'{} as _unit'.format(unit_function),
+			'{aggregate_function}({value_field}) as count'.format(aggregate_function=aggregate_function, value_field=value_field),
+	]
+
+	data = frappe.db.get_all(
+		chart.document_type,
+		fields = [
+			'extract(year from `tab{doctype}`.{datefield}) as _year'.format(doctype=chart.document_type, datefield=datefield),
+			'{} as _unit'.format(unit_function),
+			'{aggregate_function}({value_field})'.format(aggregate_function=aggregate_function, value_field=value_field),
+		],
+		filters = filters,
+		group_by = '_year, _unit',
+		order_by = '_year asc, _unit asc'
+	)
+
 
 	# result given as year, unit -> convert it to end of period of that unit
 	result = convert_to_dates(data, timegrain)
@@ -118,23 +122,23 @@ def get_chart_config(chart, filters, timespan, timegrain, from_date, to_date):
 
 
 def get_group_by_chart_config(chart, filters):
-	conditions, values = frappe.db.build_conditions(filters)
-	data = frappe.db.sql('''
-		select
-			{aggregate_function}({value_field}) as count,
-			{group_by_field} as name
-		from `tab{doctype}`
-		where {conditions}
-		group by {group_by_field}
-		order by count desc
-	'''.format(
-		aggregate_function = get_aggregate_function(chart.group_by_type),
-		value_field = chart.aggregate_function_based_on or '1',
-		field = chart.aggregate_function_based_on or chart.group_by_based_on,
-		group_by_field = chart.group_by_based_on,
-		doctype = chart.document_type,
-		conditions = conditions,
-	), values, as_dict = True)
+
+	aggregate_function = get_aggregate_function(chart.group_by_type)
+	value_field = chart.aggregate_function_based_on or '1'
+	field = chart.aggregate_function_based_on or chart.group_by_based_on
+	group_by_field = chart.group_by_based_on
+	doctype = chart.document_type
+
+	data = frappe.db.get_all(
+		chart.document_type,
+		fields = [
+			'{} as name'.format(group_by_field),
+			'{aggregate_function}({value_field}) as count'.format(aggregate_function=aggregate_function, value_field=value_field),
+		],
+		filters = filters,
+		group_by = group_by_field,
+		order_by = 'count desc'
+	)
 
 	if data:
 		if chart.number_of_groups and chart.number_of_groups < len(data):
@@ -182,18 +186,19 @@ def convert_to_dates(data, timegrain):
 
 	return result
 
-def get_unit_function(datefield, timegrain):
+def get_unit_function(doctype, datefield, timegrain):
 	unit_function = ''
 	if timegrain=='Daily':
 		if frappe.db.db_type == 'mariadb':
-			unit_function = 'dayofyear({})'.format(datefield)
+			unit_function = 'extract(day_minute from `tab{doctype}`.{datefield})'.format(
+				doctype=doctype, datefield=datefield)
 		else:
-			unit_function = 'extract(doy from {datefield})'.format(
-				datefield=datefield)
+			unit_function = 'extract(doy from `tab{doctype}`.{datefield})'.format(
+				doctype=doctype, datefield=datefield)
 
 	else:
-		unit_function = 'extract({unit} from {datefield})'.format(
-			unit = timegrain[:-2].lower(), datefield=datefield)
+		unit_function = 'extract({unit} from `tab{doctype}`.{datefield})'.format(
+			unit = timegrain[:-2].lower(), doctype=doctype, datefield=datefield)
 
 	return unit_function
 

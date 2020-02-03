@@ -177,9 +177,10 @@ frappe.ui.FilterGroup = class {
 		return filters;
 	}
 
-	add_filters_to_filter_group(filters, doctype) {
-		for (let key of Object.keys(filters)) {
-			this.add_filter(doctype, key, filters[key][0], filters[key][1]);
-		}
+	add_filters_to_filter_group(filters) {
+
+		filters.forEach(filter => {
+			this.add_filter(filter[0], filter[1], filter[2], filter[3]);
+		})
 	}
 };
