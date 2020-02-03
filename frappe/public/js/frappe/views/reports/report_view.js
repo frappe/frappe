@@ -1059,7 +1059,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 					};
 				} else {
 					// no status values found
-					this.remove_column_from_datatable(col)
+					this.remove_column_from_datatable(col);
 				}
 			} else if (col.field in d) {
 				const value = d[col.field];
