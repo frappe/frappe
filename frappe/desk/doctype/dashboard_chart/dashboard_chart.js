@@ -82,9 +82,8 @@ frappe.ui.form.on('Dashboard Chart', {
 						let filter_values = frappe.report_utils.get_filter_values(filters);
 						frm.set_value('filters_json', JSON.stringify(filter_values));
 						frm.trigger("show_filters");
-						frm.trigger("set_chart_field_options");
 					}
-
+					frm.trigger("set_chart_field_options");
 				});
 			}
 
@@ -92,7 +91,7 @@ frappe.ui.form.on('Dashboard Chart', {
 	},
 
 	set_chart_field_options: function(frm) {
-		let filters = JSON.parse(frm.doc.filters_json);
+		let filters = frm.doc.filters_json.length > 2? JSON.parse(frm.doc.filters_json): null;
 		frappe.xcall(
 			'frappe.desk.query_report.run',
 			{
