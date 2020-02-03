@@ -1115,9 +1115,9 @@ class Document(BaseDocument):
 			label = doc.meta.get_label(fieldname)
 			condition_str = error_condition_map.get(condition, condition)
 			if doc.parentfield:
-				msg = _("Incorrect value in row {0}: {1} must be {2} {3}".format(doc.idx, label, condition_str, val2))
+				msg = _("Incorrect value in row {0}: {1} must be {2} {3}").format(doc.idx, label, condition_str, val2)
 			else:
-				msg = _("Incorrect value: {0} must be {1} {2}".format(label, condition_str, val2))
+				msg = _("Incorrect value: {0} must be {1} {2}").format(label, condition_str, val2)
 
 			# raise passed exception or True
 			msgprint(msg, raise_exception=raise_exception or True)
