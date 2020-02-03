@@ -223,11 +223,10 @@ class AutoRepeat(Document):
 			error_string = _("A recurring {0} {1} has been created for you via Auto Repeat {2}.").format(new_doc.doctype, new_doc.name, self.name)
 			error_string += "<br><br>"
 
-			error_string += _("{0}: Failed to attach new recurring document. To enable attaching document in the auto repeat notification email, enable {1} in Print Settings")
-				.format(
-					frappe.bold(_('Note')),
-					frappe.bold(_('Allow Print for Draft'))
-				)
+			error_string += _("{0}: Failed to attach new recurring document. To enable attaching document in the auto repeat notification email, enable {1} in Print Settings").format(
+				frappe.bold(_('Note')),
+				frappe.bold(_('Allow Print for Draft'))
+			)
 			attachments = '[]'
 
 		if error_string:
