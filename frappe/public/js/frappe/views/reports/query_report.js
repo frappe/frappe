@@ -454,12 +454,14 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	render_datatable() {
 		let data = this.data;
 
-		if (this.raw_data.add_total_row) {
+		if (this.raw_data.add_total_row && (!this.raw_data.skip_total_row)) {
 			data = data.slice();
 			data.splice(-1, 1);
 		}
 
-		if (this.datatable) {
+		if (this.datatable 
+			&& this.datatable_options.showTotalRow === (this.raw_data.add_total_row 
+			&& (!this.raw_data.skip_total_row))) {
 			this.datatable.options.treeView = this.tree_report;
 			this.datatable.refresh(data, this.columns);
 		} else {
@@ -470,7 +472,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				treeView: this.tree_report,
 				layout: 'fixed',
 				cellHeight: 33,
-				showTotalRow: this.raw_data.add_total_row,
+				showTotalRow: this.raw_data.add_total_row && (!this.raw_data.skip_total_row),
 				direction: frappe.utils.is_rtl() ? 'rtl' : 'ltr',
 				hooks: {
 					columnTotal: frappe.utils.report_column_total
@@ -994,7 +996,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			}
 		}).filter(Boolean);
 
-		if (this.raw_data.add_total_row) {
+		if (this.raw_data.add_total_row && (!this.raw_data.skip_total_row)) {
 			let totalRow = this.datatable.bodyRenderer.getTotalRow().reduce((row, cell) => {
 				row[cell.column.id] = cell.content;
 				return row;
