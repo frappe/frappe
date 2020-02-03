@@ -154,3 +154,29 @@ class TestDashboardChart(unittest.TestCase):
 		self.assertEqual(result.get('datasets')[0].get('values')[0], todo_status_count)
 
 		frappe.db.rollback()
+
+	def test_doc_rename_updates_filter_value(self):
+		new_user = frappe.get_doc(dict(
+			doctype='User',
+			email='dashboarduser@test.com',
+			first_name='Tester')).insert(ignore_if_duplicate=True)
+
+		if frappe.db.exists('Dashboard Chart', 'Test Group By Dashboard Chart'):
+			frappe.delete_doc('Dashboard Chart', 'Test Group By Dashboard Chart')
+
+		doc = frappe.get_doc(dict(
+			doctype = 'Dashboard Chart',
+			chart_name = 'Test Group By Dashboard Chart',
+			chart_type = 'Group By',
+			document_type = 'ToDo',
+			group_by_based_on = 'status',
+			filters_json = '{"assigned_by": "dashboarduser@test.com"}',
+		)).insert()
+
+		frappe.delete_doc('User', 'dashboard-user@test.com')
+		frappe.delete_doc('Notification Settings', 'dashboard-user@test.com')
+		new_doc = frappe.rename_doc('User', 'dashboarduser@test.com', 'dashboard-user@test.com')
+
+		updated_doc = frappe.get_doc('Dashboard Chart', doc.name)
+
+		self.assertEqual(updated_doc.filters_json, '{"assigned_by": "dashboard-user@test.com"}')
