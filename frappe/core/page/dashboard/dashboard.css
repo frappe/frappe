@@ -24,9 +24,17 @@
 }
 
 .chart-actions {
-    position: absolute;
-    right: 30px;
-    top: 26px;
+    position: relative;
+    right: 0px;
+    top: 25px;
+    margin-right: 10px;
+}
+
+.dashboard-date-field {
+    width: 14%;
+    margin-right: 10px;
+    position: relative;
+    top: 5px;
 }
 
 .chart-column-container {
@@ -36,7 +44,7 @@
 .last-synced-text {
     position: absolute;
     top: 28px;
-    right: 60px;
+    left: 50px;
     font-size: 12px;
 }
 

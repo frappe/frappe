@@ -128,6 +128,10 @@ class DashboardChart {
 		this.get_settings().then(() => {
 			this.prepare_chart_object();
 			this.prepare_container();
+
+			if (this.chart_doc.timeseries && this.chart_doc.chart_type !== 'Custom') {
+				this.render_time_series_filters();
+			}
 			this.prepare_chart_actions();
 			this.fetch(this.filters).then( data => {
 				if (this.chart_doc.chart_type == 'Report') {
@@ -158,6 +162,120 @@ class DashboardChart {
 		last_synced_text.prependTo(this.chart_container);
 	}
 
+	render_time_series_filters() {
+		let filters = [
+			{
+				label: this.chart_doc.timespan,
+				options: ['Select Date Range', 'Last Year', 'Last Quarter', 'Last Month', 'Last Week'],
+				action: (selected_item) => {
+					this.selected_timespan = selected_item;
+
+					if (this.selected_timespan === 'Select Date Range') {
+						this.render_date_range_fields();
+					} else {
+						this.selected_from_date = null;
+						this.selected_to_date = null;
+						if (this.date_field_wrapper) this.date_field_wrapper.hide();
+						this.fetch_and_update_chart();
+					}
+				}
+			},
+			{
+				label: this.chart_doc.time_interval,
+				options: ['Yearly', 'Quarterly', 'Monthly', 'Weekly', 'Daily'],
+				action: (selected_item) => {
+					this.selected_time_interval = selected_item;
+					this.fetch_and_update_chart();
+				}
+			},
+		];
+
+		this.render_chart_filters(filters, this.chart_container, 1);
+	}
+
+	fetch_and_update_chart() {
+		this.args = {
+			timespan: this.selected_timespan,
+			time_interval: this.selected_time_interval,
+			from_date: this.selected_from_date,
+			to_date: this.selected_to_date
+		}
+
+		this.fetch(this.filters, true, this.args).then(data => {
+			this.update_chart_object();
+			this.data = data;
+			this.render();
+		});
+	}
+
+	render_date_range_fields() {
+		if (!this.date_field_wrapper || !this.date_field_wrapper.is(':visible')) {
+			this.date_field_wrapper = 
+				$(`<div class="dashboard-date-field pull-right"></div>`)
+					.insertBefore(this.chart_container.find('.chart-wrapper'));
+
+			this.date_range_field = frappe.ui.form.make_control({
+				df: {
+					fieldtype: 'DateRange',
+					fieldname: 'from_date',
+					placeholder: 'Date Range',
+					input_class: 'input-xs',
+					reqd: 1,
+					change: () => {
+						let selected_date_range = this.date_range_field.get_value();
+						this.selected_from_date = selected_date_range[0];
+						this.selected_to_date = selected_date_range[1];
+
+						if (selected_date_range && selected_date_range.length == 2) {
+							this.fetch_and_update_chart();
+						}
+					}
+				},
+				parent: this.date_field_wrapper,
+				render_input: 1
+			});
+		}
+	}
+
+	render_chart_filters(filters, container, append) {
+		filters.forEach(filter => {
+			let chart_filter_html = `<div class="chart-actions btn-group dropdown pull-right">
+				<a class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+					<button class="btn btn-default btn-xs">
+						<span class="filter-label">${filter.label}</span>
+						<span class="caret"></span>
+					</button>
+				</a>`;
+			let options_html;
+
+			if (filter.fieldnames) {
+				options_html = filter.options.map((option, i) =>
+					`<li><a data-fieldname = "${filter.fieldnames[i]}">${option}</a></li>`).join('');
+			} else {
+				options_html = filter.options.map( option => `<li><a>${option}</a></li>`).join('');
+			}
+
+			let dropdown_html = chart_filter_html + `<ul class="dropdown-menu">${options_html}</ul></div>`;
+			let $chart_filter = $(dropdown_html);
+
+			if (append) {
+				$chart_filter.prependTo(container);
+			} else $chart_filter.appendTo(container);
+
+			$chart_filter.find('.dropdown-menu').on('click', 'li a', (e) => {
+				let $el = $(e.currentTarget);
+				let fieldname;
+				if ($el.attr('data-fieldname')) {
+					fieldname = $el.attr('data-fieldname');
+				}
+				let selected_item = $el.text();
+				$el.parents('.chart-actions').find('.filter-label').text(selected_item);
+				filter.action(selected_item, fieldname);
+			});
+		});
+
+	}
+
 	get_report_chart_data(result) {
 		let chart_fields = {
 			y_field: this.chart_doc.y_field,
@@ -179,14 +297,7 @@ class DashboardChart {
 				label: __("Refresh"),
 				action: 'action-refresh',
 				handler: () => {
-					this.fetch(this.filters, true).then(data => {
-						if (this.chart_doc.chart_type == 'Report') {
-							data = this.get_report_chart_data(data);
-						}
-						this.update_chart_object();
-						this.data = data;
-						this.render();
-					});
+					this.fetch_and_update_chart();
 				}
 			},
 			{
@@ -227,11 +338,10 @@ class DashboardChart {
 		this.chart_actions.prependTo(this.chart_container);
 	}
 
-	fetch(filters, refresh=false) {
+	fetch(filters, refresh=false, args) {
 		this.chart_container.find('.chart-loading-state').removeClass('hide');
 		let method = this.settings ? this.settings.method
 			: 'frappe.desk.doctype.dashboard_chart.dashboard_chart.get';
-		let args;
 
 		if (this.chart_doc.chart_type == 'Report') {
 			args = {
@@ -243,6 +353,10 @@ class DashboardChart {
 				chart_name: this.chart_doc.name,
 				filters: filters,
 				refresh: refresh ? 1 : 0,
+				time_interval: args && args.time_interval? args.time_interval: null,
+				timespan: args && args.timespan? args.timespan: null,
+				from_date: args && args.from_date? args.from_date: null,
+				to_date: args && args.to_date? args.to_date: null,
 			}
 		}
 		return frappe.xcall(
