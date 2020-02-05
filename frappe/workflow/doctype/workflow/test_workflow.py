@@ -23,14 +23,6 @@ class TestWorkflow(unittest.TestCase):
 
 		return todo
 
-	def test_if_workflow_set_on_action(self):
-		todo = create_new_todo()
-		self.assertEqual(todo.docstatus, 0)
-		todo.submit()
-		todo = frappe.get_doc('ToDo', todo.name)
-		self.assertEqual(todo.docstatus, 1)
-		self.assertEqual(todo.workflow_state, 'Approved')
-
 	def test_approve(self, doc=None):
 		'''test simple workflow'''
 		todo = doc or self.test_default_condition()
@@ -108,6 +100,15 @@ class TestWorkflow(unittest.TestCase):
 		self.workflow.save()
 		todo.reload()
 		self.assertEqual(todo.docstatus, 1)
+
+	def test_if_workflow_set_on_action(self):
+		self.workflow.states[1].doc_status = 1
+		self.workflow.save()
+		todo = create_new_todo()
+		self.assertEqual(todo.docstatus, 0)
+		todo.submit()
+		self.assertEqual(todo.docstatus, 1)
+		self.assertEqual(todo.workflow_state, 'Approved')
 
 def create_todo_workflow():
 	if frappe.db.exists('Workflow', 'Test ToDo'):
