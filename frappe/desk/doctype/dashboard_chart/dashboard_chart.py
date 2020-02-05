@@ -27,7 +27,7 @@ def get(chart_name = None, chart = None, no_cache = None, from_date = None, to_d
 	timegrain = chart.time_interval
 	filters = frappe.parse_json(chart.filters_json)
 
-	from_date, to_date = get_formatted_date_range(from_date, to_date, timespan)
+	from_date, to_date = get_date_range(from_date, to_date, timespan)
 
 	# don't include cancelled documents
 	filters['docstatus'] = ('<', 2)
@@ -124,13 +124,13 @@ def get_group_by_chart_config(chart, filters, timespan, from_date, to_date):
 	else:
 		return None
 
-def get_formatted_date_range(to_date, from_date, timespan):
+def get_date_range(to_date, from_date, timespan):
 	if not to_date:
-		to_date = datetime.datetime.now()
+		to_date = frappe.utils.now()
 	if not from_date:
 		from_date = get_from_date_from_timespan(to_date, timespan)
 
-	return from_date.strftime('%Y-%m-%d'), to_date.strftime('%Y-%m-%d')
+	return from_date, to_date
 
 
 def get_aggregate_function(chart_type):
