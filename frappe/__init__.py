@@ -8,7 +8,7 @@ from __future__ import unicode_literals, print_function
 
 from six import iteritems, binary_type, text_type, string_types
 from werkzeug.local import Local, release_local
-import os, sys, importlib, inspect, json
+import os, sys, importlib, inspect, json, frappe
 from past.builtins import cmp
 
 from faker import Faker
@@ -448,7 +448,9 @@ def sendmail(recipients=[], sender="", subject="No Subject", message="No Message
 	:param args: Arguments for rendering the template
 	:param header: Append header in email
 	"""
-
+	if not sender:
+		sender = frappe.db.get_value('User', frappe.session.user, 'email')
+		
 	text_content = None
 	if template:
 		message, text_content = get_email_from_template(template, args)
