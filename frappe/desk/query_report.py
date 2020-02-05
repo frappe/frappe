@@ -84,7 +84,7 @@ def generate_report_result(report, filters=None, user=None):
 	if result:
 		result = get_filtered_data(report.ref_doctype, columns, result, user)
 
-	if cint(report.add_total_row) and result and (not skip_total_row):
+	if cint(report.add_total_row) and result and not skip_total_row:
 		result = add_total_row(result, columns)
 
 	return {
@@ -185,7 +185,7 @@ def run(report_name, filters=None, user=None, ignore_prepared_report=False):
 	else:
 		result = generate_report_result(report, filters, user)
 
-	result["add_total_row"] = report.add_total_row
+	result["add_total_row"] = report.add_total_row and not result['skip_total_row']
 
 	return result
 
