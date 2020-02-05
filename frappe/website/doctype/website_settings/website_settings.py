@@ -2,6 +2,7 @@
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
+import requests
 import frappe
 from frappe import _
 from frappe.utils import get_request_site_address, encode
@@ -9,12 +10,16 @@ from frappe.model.document import Document
 from six.moves.urllib.parse import quote
 from frappe.website.router import resolve_route
 from frappe.website.doctype.website_theme.website_theme import add_website_theme
+from frappe.integrations.doctype.google_settings.google_settings import get_auth_url
+
+INDEXING_SCOPES = "https://www.googleapis.com/auth/indexing"
 
 class WebsiteSettings(Document):
 	def validate(self):
 		self.validate_top_bar_items()
 		self.validate_footer_items()
 		self.validate_home_page()
+		self.validate_google_settings()
 
 	def validate_home_page(self):
 		if frappe.flags.in_install:
@@ -53,6 +58,10 @@ class WebsiteSettings(Document):
 					frappe.throw(_("{0} in row {1} cannot have both URL and child items").format(footer_item.parent_label,
 						footer_item.idx))
 
+	def validate_google_settings(self):
+		if not frappe.db.get_single_value("Google Settings", "enable"):
+			frappe.throw(_("Enable Google API in Google Settings."))
+
 	def on_update(self):
 		self.clear_cache()
 
@@ -66,6 +75,33 @@ class WebsiteSettings(Document):
 
 		# clears role based home pages
 		frappe.clear_cache()
+
+	def get_access_token(self):
+		google_settings = frappe.get_doc("Google Settings")
+
+		if not google_settings.enable:
+			frappe.throw(_("Google Integration is disabled."))
+
+		if not self.refresh_token:
+			button_label = frappe.bold(_("Allow API Indexing Access"))
+			raise frappe.ValidationError(_("Click on {0} to generate Refresh Token.").format(button_label))
+
+		data = {
+			"client_id": google_settings.client_id,
+			"client_secret": google_settings.get_password(fieldname="client_secret", raise_exception=False),
+			"refresh_token": self.get_password(fieldname="indexing_refresh_token", raise_exception=False),
+			"grant_type": "refresh_token",
+			"scope": INDEXING_SCOPES
+		}
+
+		try:
+			res = requests.post(get_auth_url(), data=data).json()
+		except requests.exceptions.HTTPError:
+			button_label = frappe.bold(_("Allow Google Indexing Access"))
+			frappe.throw(_("Something went wrong during the token generation. Click on {0} to generate a new one.").format(button_label))
+
+		return res.get("access_token")
+
 
 def get_website_settings():
 	hooks = frappe.get_hooks()

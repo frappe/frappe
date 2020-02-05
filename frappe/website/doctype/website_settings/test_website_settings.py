@@ -6,5 +6,5 @@ from __future__ import unicode_literals
 # import frappe
 import unittest
 
-class TestGoogleIndexing(unittest.TestCase):
+class TestWebsiteSettings(unittest.TestCase):
 	pass

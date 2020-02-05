@@ -82,17 +82,11 @@ class WebsiteGenerator(Document):
 		pass
 
 	def on_update(self):
-		if frappe.db.get_single_value('Google Indexing', 'enable_indexing'):
-			url = frappe.utils.get_url(self.route)
-			frappe.enqueue('frappe.integrations.doctype.google_indexing.google_indexing.publish_site', \
-				url=url)
+		self.send_indexing_request()
 
 	def on_trash(self):
 		self.clear_cache()
-		if frappe.db.get_single_value('Google Indexing', 'enable_indexing'):
-			url = frappe.utils.get_url(self.route)
-			frappe.enqueue('frappe.integrations.doctype.google_indexing.google_indexing.publish_site', \
-				url=url, operation_type='URL_DELETED')
+		self.send_indexing_request('URL_DELETED')
 
 	def is_website_published(self):
 		"""Return true if published in website"""
@@ -126,3 +120,13 @@ class WebsiteGenerator(Document):
 			route.page_title = self.get(self.get_title_field())
 
 		return route
+
+	def send_indexing_request(self, operation_type='URL_UPDATED'):
+		''' Send indexing request on update/trash operation '''
+
+		if frappe.db.get_single_value('Google Indexing', 'enable_indexing')\
+			and self.meta.is_published_field and self.meta.allow_guest_to_view:
+
+			url = frappe.utils.get_url(self.route)
+			frappe.enqueue('frappe.integrations.doctype.google_indexing.google_indexing.publish_site', \
+				url=url, operation_type=operation_type)
