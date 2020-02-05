@@ -15,7 +15,7 @@ export default class ChartWidget extends Widget {
 
 	make_chart() {
 		this.body.empty()
-		frappe.model.with_doc("Dashboard Chart", this.options.chart_name).then(chart_doc => {
+		frappe.model.with_doc("Dashboard Chart", this.chart_name).then(chart_doc => {
 			chart_doc.width = 'Full'
 			let dashboard_chart = new frappe.ui.DashboardChart(chart_doc, this.body, { hide_title: true, hide_last_sync: true, hide_actions: true });
 			dashboard_chart.show();
@@ -30,8 +30,9 @@ export default class ChartWidget extends Widget {
 	}
 
 	set_summary() {
-		let summary = $(`<h2>$ 5423</h2>`);
-		summary.appendTo(this.head);
+		let summary = $(`<span class="dashboard-summary">$ 54,231</span>`);
+		this.title_field.addClass('text-muted')
+		summary.appendTo(this.body);
 	}
 
 	setup_events() {
