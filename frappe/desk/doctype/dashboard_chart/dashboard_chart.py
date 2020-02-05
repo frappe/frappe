@@ -27,6 +27,8 @@ def get(chart_name = None, chart = None, no_cache = None, from_date = None, to_d
 	timegrain = chart.time_interval
 	filters = frappe.parse_json(chart.filters_json)
 
+	from_date, to_date = get_formatted_date_range(from_date, to_date, timespan)
+
 	# don't include cancelled documents
 	filters['docstatus'] = ('<', 2)
 
@@ -39,11 +41,6 @@ def get(chart_name = None, chart = None, no_cache = None, from_date = None, to_d
 
 
 def get_chart_config(chart, filters, timespan, timegrain, from_date, to_date):
-	if not from_date:
-		from_date = get_from_date_from_timespan(to_date, timespan)
-	if not to_date:
-		to_date = datetime.datetime.now()
-
 	# get conditions from filters
 	conditions, values = frappe.db.build_conditions(filters)
 	# query will return year, unit and aggregate value
@@ -66,7 +63,7 @@ def get_chart_config(chart, filters, timespan, timegrain, from_date, to_date):
 		value_field = chart.value_based_on or '1',
 		doctype = chart.document_type,
 		conditions = conditions,
-		from_date = from_date.strftime('%Y-%m-%d'),
+		from_date = from_date,
 		to_date = to_date
 	), values)
 
@@ -87,12 +84,6 @@ def get_chart_config(chart, filters, timespan, timegrain, from_date, to_date):
 
 
 def get_group_by_chart_config(chart, filters, timespan, from_date, to_date):
-	if not to_date:
-		to_date = datetime.datetime.now()
-
-	if not from_date:
-		from_date = get_from_date_from_timespan(to_date, timespan)
-
 	conditions, values = frappe.db.build_conditions(filters)
 	data = frappe.db.sql('''
 		SELECT
@@ -110,8 +101,8 @@ def get_group_by_chart_config(chart, filters, timespan, from_date, to_date):
 		group_by_field = chart.group_by_based_on,
 		doctype = chart.document_type,
 		conditions = conditions,
-		from_date = from_date.strftime('%Y-%m-%d'),
-		to_date = to_date.strftime('%Y-%m-%d')
+		from_date = from_date,
+		to_date = to_date
 	), values, as_dict = True)
 
 	if data:
@@ -132,6 +123,14 @@ def get_group_by_chart_config(chart, filters, timespan, from_date, to_date):
 		return chart_config
 	else:
 		return None
+
+def get_formatted_date_range(to_date, from_date, timespan):
+	if not to_date:
+		to_date = datetime.datetime.now()
+	if not from_date:
+		from_date = get_from_date_from_timespan(to_date, timespan)
+
+	return from_date.strftime('%Y-%m-%d'), to_date.strftime('%Y-%m-%d')
 
 
 def get_aggregate_function(chart_type):
