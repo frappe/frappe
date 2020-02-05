@@ -1,12 +1,12 @@
 import ChartWidget from "../widgets/chart_widget";
 import BaseWidget from "../widgets/base_widget";
-import BookmarkWidget from "../widgets/bookmark_widget";
+import ShortcutWidget from "../widgets/shortcut_widget";
 import LinksWidget from "../widgets/links_widget";
 
 const widget_factory = {
 	chart: ChartWidget,
 	base: BaseWidget,
-	bookmark: BookmarkWidget,
+	bookmark: ShortcutWidget,
 	links: LinksWidget
 };
 
