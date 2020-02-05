@@ -450,7 +450,6 @@ def sendmail(recipients=[], sender="", subject="No Subject", message="No Message
 	"""
 	if not sender:
 		sender = frappe.db.get_value('User', frappe.session.user, 'email')
-		
 	text_content = None
 	if template:
 		message, text_content = get_email_from_template(template, args)
