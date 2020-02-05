@@ -73,17 +73,17 @@ export default class Desk {
 
 	make_sidebar() {
 		const get_sidebar_item = function(item) {
-			let icon = `<i class="icon ${item.icon}"></i>`;
-			if (item.icon.includes("frapicon-")) {
-				icon = `<img class="icon" src="/assets/frappe/icons/${
-					item.icon
-				}.svg">`;
-			}
+			// let icon_class = item.icon ? item.icon : 'frapicon-dashboard'
+			// let icon = `<i class="icon ${icon_class}"></i>`;
+			// if (icon_class.includes("frapicon-")) {
+			// 	icon = `<img class="icon" src="/assets/frappe/icons/${
+			// 		icon_class
+			// 	}.svg">`;
+			// }
 
 			return $(`<div href="#" class="sidebar-item ${
 				item.selected ? "selected" : ""
 			}">
-					${icon}
 					<span class="sidebar-item-title">${item.name}</span>
 				</div>`);
 		};
@@ -110,53 +110,91 @@ class DeskPage {
 	constructor({ container, page_name }) {
 		this.container = container;
 		this.page_name = page_name;
+		window.desk_page = this;
+		this.sections = {}
 		this.make();
 	}
 
 	make() {
-		new WidgetGroup({
+		// this.bootstrap()
+		this.get_data().then(res => {
+			this.data = res.message;
+			this.make_charts()
+			this.make_shortcuts()
+			this.make_cards()
+		})
+	}
+
+	get_data() {
+		return frappe.call('frappe.desk.desktop.get_desktop_page', { page: 'CRM' } )
+	}
+
+	make_charts() {
+		this.sections['charts'] = new WidgetGroup({
 			title: `${this.page_name} Dashboard`,
 			container: this.container,
 			type: "chart",
 			columns: 1,
-			widgets: [
-				{
-					label: "Incoming Bills (Purchase Invoice)",
-					options: {
-						chart_name: "Incoming Bills (Purchase Invoice)"
-					}
-				}
-			]
+			widgets: this.data.charts
 		});
+	}
 
-		new WidgetGroup({
-			title: `Your Bookmarks`,
+	make_shortcuts() {
+		console.log(this.data.shortcuts)
+		this.sections['shortcuts'] = new WidgetGroup({
+			title: `Your Shortcuts`,
 			container: this.container,
 			type: "bookmark",
 			columns: 3,
 			allow_sorting: 1,
-			widgets: [
-				{
-					label: "Customers",
-					options: {
-						color: "green",
-						count: 120,
-						format_string: "{} Active"
-					}
-				},
-				{
-					label: "Sales Invoice",
-					options: {
-						color: "red",
-						count: 14,
-						format_string: "{} Open"
-					}
-				},
-				{
-					label: "Accounts Receivable"
-				}
-			]
+			widgets: this.data.shortcuts
 		});
+	}
+
+	make_cards() {
+		// new WidgetGroup({
+		// 	title: `${this.page_name} Dashboard`,
+		// 	container: this.container,
+		// 	type: "chart",
+		// 	columns: 1,
+		// 	widgets: [
+		// 		{
+		// 			label: "Incoming Bills (Purchase Invoice)",
+		// 			options: {
+		// 				chart_name: "Incoming Bills (Purchase Invoice)"
+		// 			}
+		// 		}
+		// 	]
+		// });
+
+		// new WidgetGroup({
+		// 	title: `Your shortcuts`,
+		// 	container: this.container,
+		// 	type: "bookmark",
+		// 	columns: 3,
+		// 	allow_sorting: 1,
+		// 	widgets: [
+		// 		{
+		// 			label: "Customers",
+		// 			options: {
+		// 				color: "green",
+		// 				count: 120,
+		// 				format_string: "{} Active"
+		// 			}
+		// 		},
+		// 		{
+		// 			label: "Sales Invoice",
+		// 			options: {
+		// 				color: "red",
+		// 				count: 14,
+		// 				format_string: "{} Open"
+		// 			}
+		// 		},
+		// 		{
+		// 			label: "Accounts Receivable"
+		// 		}
+		// 	]
+		// });
 
 		new WidgetGroup({
 			title: `Reports & Masters`,
