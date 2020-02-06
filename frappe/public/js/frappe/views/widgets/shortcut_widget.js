@@ -24,7 +24,6 @@ export default class ShortcutWidget extends Widget {
 	set_actions() {
 		this.widget.addClass('shortcut-widget-box');
 		const get_filter = new Function(`return ${this.stats_filter}`)
-		console.log(get_filter())
 		if (this.type == "DocType" && this.stats_filter) {
 			frappe.db.count(this.link_to, {
 				filters: get_filter()
