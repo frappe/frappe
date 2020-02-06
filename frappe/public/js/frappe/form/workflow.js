@@ -106,8 +106,14 @@ frappe.ui.form.States = Class.extend({
 				}
 			});
 			if (!added) {
-				//call function and clear cancel button if Cancel doc state is defined in the workfloe
-				frappe.xcall('frappe.model.workflow.can_cancel_document', {doc: this.frm.doc}).then((can_cancel) => {
+				//call function and clear cancel button if Cancel doc state is defined in the workflow
+				frappe.xcall(
+					'frappe.model.workflow.can_cancel_document',
+					{
+						doctype: this.frm.doc.doctype, 
+						docname: this.frm.doc.name
+					}
+				).then((can_cancel) => {
 					if (!can_cancel) {
 						this.frm.page.clear_secondary_action();
 					}
