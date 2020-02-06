@@ -50,9 +50,14 @@ def sanitize_searchfield(searchfield):
 
 # this is called by the Link Field
 @frappe.whitelist()
-def search_link(doctype, txt, query=None, filters=None, page_length=20, searchfield=None, reference_doctype=None, ignore_user_permissions=False):
-	search_widget(doctype, txt.strip(), query, searchfield=searchfield, page_length=page_length, filters=filters, reference_doctype=reference_doctype, ignore_user_permissions=ignore_user_permissions)
-	frappe.response["results"] = build_for_autosuggest(frappe.response["values"], query=True if query else False)
+def search_link(doctype, txt, query=None, filters=None, page_length=20, searchfield=None, reference_doctype=None,
+	ignore_user_permissions=False):
+
+	search_widget(doctype, txt.strip(), query, searchfield=searchfield, page_length=page_length, filters=filters,
+		reference_doctype=reference_doctype, ignore_user_permissions=ignore_user_permissions)
+	frappe.response["results"] = build_for_autosuggest(frappe.response["values"], doctype=doctype,
+		is_query=True if query else False)
+
 	del frappe.response["values"]
 
 # this is called by the search box
@@ -197,18 +202,19 @@ def get_title_field(meta, formatted_fields):
 
 	return formatted_fields
 
-def build_for_autosuggest(res, query=False):
+def build_for_autosuggest(res, doctype, is_query):
 	results = []
 	for r in res:
-		r = list(r)
-		out = {"value": r[0]}
-		r.pop(0)
+		if is_query or doctype in (frappe.get_hooks().standard_queries or {}):
+			out = {"value": r[0], "description": ", ".join(unique(cstr(d) for d in r if d)[1:])}
+		else:
+			r = list(r)
+			out = {
+				"value": r[0],
+				"label": r[1]
+			}
+			out.update({"description": ", ".join(unique(cstr(d) for d in r if d)[2:])})
 
-		if not query:
-			out.update({"label": r[0]})
-			r.pop(0)
-
-		out.update({"description": ", ".join(unique(cstr(d) for d in r if d))})
 		results.append(out)
 	return results
 
@@ -218,3 +224,12 @@ def scrub_custom_query(query, key, txt):
 	if '%s' in query:
 		query = query.replace('%s', ((txt or '') + '%'))
 	return query
+
+@frappe.whitelist()
+def get_link_title(doctype, docname):
+	meta = frappe.get_meta(doctype)
+
+	if meta.title_field and meta.show_title_field_in_link:
+		return frappe.get_cached_value(doctype, docname, meta.title_field)
+
+	return docname

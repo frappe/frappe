@@ -183,7 +183,9 @@ frappe.ui.form.QuickEntryForm = Class.extend({
 							me.open_form_if_not_list();
 						}
 
-						me.after_insert(me.dialog.doc);
+						if (me.after_insert) {
+							me.after_insert(me.dialog.doc);
+						}
 					}
 				},
 				error: function() {

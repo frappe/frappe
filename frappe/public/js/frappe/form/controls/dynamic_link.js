@@ -11,7 +11,7 @@ frappe.ui.form.ControlDynamicLink = frappe.ui.form.ControlLink.extend({
 		else if (!cur_frm) {
 			const selector = `input[data-fieldname="${this.df.options}"]`;
 			let input = null;
-			if (cur_list) {
+			if (cur_list && cur_list.filter_area) {
 				// for list page
 				input = cur_list.filter_area.standard_filters_wrapper.find(selector);
 			}

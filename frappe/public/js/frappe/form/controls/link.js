@@ -48,7 +48,6 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 		this.input = this.$input.get(0);
 		this.has_input = true;
 		this.translate_values = true;
-		this.setup_meta(me.get_options());
 		this.setup_buttons();
 		this.setup_awesomeplete();
 
@@ -122,8 +121,13 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 	new_doc: function() {
 		var doctype = this.get_options();
 		var me = this;
+		let meta = null;
 
 		if(!doctype) return;
+
+		frappe.model.with_doctype(doctype, () => {
+			meta = frappe.get_meta(doctype);
+		});
 
 		frappe.route_options = {};
 
@@ -140,7 +144,12 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 		frappe._from_link_scrollY = $(document).scrollTop();
 
 		frappe.ui.form.make_quick_entry(doctype, (doc) => {
-			return me.parse_validate_and_set_in_model(doc.name, doc[this.meta.title_field])
+			let label = undefined;
+			if (meta && meta.title_field) {
+				label = doc[meta.title_field];
+			}
+
+			return me.parse_validate_and_set_in_model(doc.name, label);
 		});
 
 		return false;
@@ -529,13 +538,6 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 			this._link_titles[doctype + "::" + value] = label;
 			this.frm.doc.__onload._link_titles[doctype + "::" + value] = label;
 		}
-	},
-	setup_meta: function(doctype) {
-		this.meta = null;
-
-		frappe.model.with_doctype(doctype, () => {
-			this.meta = frappe.get_meta(doctype);
-		});
 	}
 });
 
