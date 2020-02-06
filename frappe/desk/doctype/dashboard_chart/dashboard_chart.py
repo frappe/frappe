@@ -82,7 +82,7 @@ def get_chart_config(chart, filters, timespan, timegrain, from_date, to_date):
 	doctype = chart.document_type
 	from_date = from_date.strftime('%Y-%m-%d')
 	to_date = to_date
-	
+
 	filters.append([chart.document_type, datefield, '>=', from_date, False])
 	filters.append([chart.document_type, datefield, '<=', to_date, False])
 
@@ -101,7 +101,8 @@ def get_chart_config(chart, filters, timespan, timegrain, from_date, to_date):
 		],
 		filters = filters,
 		group_by = '_year, _unit',
-		order_by = '_year asc, _unit asc'
+		order_by = '_year asc, _unit asc',
+		as_list = True
 	)
 
 
@@ -172,17 +173,18 @@ def convert_to_dates(data, timegrain):
 	""" Converts individual dates within data to the end of period """
 	result = []
 	for d in data:
-		if timegrain == 'Daily':
-			result.append([add_to_date('{:d}-01-01'.format(int(d[0])), days = d[1] - 1), d[2]])
-		elif timegrain == 'Weekly':
-			result.append([add_to_date(add_to_date('{:d}-01-01'.format(int(d[0])), weeks = d[1] + 1), days = -1), d[2]])
-		elif timegrain == 'Monthly':
-			result.append([add_to_date(add_to_date('{:d}-01-01'.format(int(d[0])), months=d[1]), days = -1), d[2]])
-		elif timegrain == 'Quarterly':
-			result.append([add_to_date(add_to_date('{:d}-01-01'.format(int(d[0])), months=d[1] * 3), days = -1), d[2]])
-		elif timegrain == 'Yearly':
-			result.append([add_to_date(add_to_date('{:d}-01-01'.format(int(d[0])), months=12), days = -1), d[2]])
-		result[-1][0] = getdate(result[-1][0])
+		if d[2] != 0:
+			if timegrain == 'Daily':
+				result.append([add_to_date('{:d}-01-01'.format(int(d[0])), days = d[1] - 1), d[2]])
+			elif timegrain == 'Weekly':
+				result.append([add_to_date(add_to_date('{:d}-01-01'.format(int(d[0])), weeks = d[1] + 1), days = -1), d[2]])
+			elif timegrain == 'Monthly':
+				result.append([add_to_date(add_to_date('{:d}-01-01'.format(int(d[0])), months=d[1]), days = -1), d[2]])
+			elif timegrain == 'Quarterly':
+				result.append([add_to_date(add_to_date('{:d}-01-01'.format(int(d[0])), months=d[1] * 3), days = -1), d[2]])
+			elif timegrain == 'Yearly':
+				result.append([add_to_date(add_to_date('{:d}-01-01'.format(int(d[0])), months=12), days = -1), d[2]])
+			result[-1][0] = getdate(result[-1][0])
 
 	return result
 
@@ -190,7 +192,7 @@ def get_unit_function(doctype, datefield, timegrain):
 	unit_function = ''
 	if timegrain=='Daily':
 		if frappe.db.db_type == 'mariadb':
-			unit_function = 'extract(day_minute from `tab{doctype}`.{datefield})'.format(
+			unit_function = 'dayofyear({datefield})'.format(
 				doctype=doctype, datefield=datefield)
 		else:
 			unit_function = 'extract(doy from `tab{doctype}`.{datefield})'.format(

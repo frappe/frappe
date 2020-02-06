@@ -93,7 +93,7 @@
    "fieldname": "time_interval",
    "fieldtype": "Select",
    "label": "Time Interval",
-   "options": "Quarterly\nMonthly\nWeekly\nDaily"
+   "options": "Yearly\nQuarterly\nMonthly\nWeekly\nDaily"
   },
   {
    "default": "0",
@@ -213,8 +213,8 @@
   }
  ],
  "links": [],
- "modified": "2020-01-29 17:17:06.239511",
- "modified_by": "umair@erpnext.com",
+ "modified": "2020-02-06 12:26:08.949451",
+ "modified_by": "Administrator",
  "module": "Desk",
  "name": "Dashboard Chart",
  "owner": "Administrator",

@@ -125,7 +125,7 @@ class UserProfile {
 	}
 
 	render_line_chart() {
-		this.line_chart_filters = {'user': this.user_id};
+		this.line_chart_filters = [['Energy Point Log', 'user', '=', this.user_id, false]];
 		this.line_chart_config = {
 			timespan: 'Last Month',
 			time_interval: 'Daily',
@@ -200,14 +200,18 @@ class UserProfile {
 				label: 'All',
 				options: ['All', 'Auto', 'Criticism', 'Appreciation', 'Revert'],
 				action: (selected_item) => {
-					if (selected_item === 'All') delete this.line_chart_filters.type;
-					else this.line_chart_filters.type = selected_item;
+					if (selected_item === 'All') {
+						if (this.line_chart_filters.length > 1) this.line_chart_filters.pop();
+					}
+					else {
+						this.line_chart_filters[1] = ['Energy Point Log', 'type', '=', selected_item, false];
+					};
 					this.update_line_chart_data();
 				}
 			},
 			{
 				label: 'Last Month',
-				options: ['Last Week', 'Last Month', 'Last Quarter'],
+				options: ['Last Week', 'Last Month', 'Last Quarter', 'Last Year'],
 				action: (selected_item) => {
 					this.line_chart_config.timespan = selected_item;
 					this.update_line_chart_data();
@@ -222,7 +226,7 @@ class UserProfile {
 				}
 			},
 		];
-		this.render_chart_filters(filters, '.line-chart-container', 1);
+		frappe.dashboard_utils.render_chart_filters(filters, 'chart-filter', '.line-chart-container', 1);
 	}
 
 	create_percentage_chart_filters() {
@@ -237,7 +241,7 @@ class UserProfile {
 				}
 			},
 		];
-		this.render_chart_filters(filters, '.percentage-chart-container');
+		frappe.dashboard_utils.render_chart_filters(filters, 'chart-filter', '.percentage-chart-container');
 	}
 
 	create_heatmap_chart_filters() {
@@ -250,47 +254,9 @@ class UserProfile {
 				}
 			},
 		];
-		this.render_chart_filters(filters, '.heatmap-container');
+		frappe.dashboard_utils.render_chart_filters(filters, 'chart-filter', '.heatmap-container');
 	}
 
-	render_chart_filters(filters, container, append) {
-		filters.forEach(filter => {
-			let chart_filter_html = `<div class="chart-filter pull-right">
-				<a class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-					<button class="btn btn-default btn-xs">
-						<span class="filter-label">${filter.label}</span>
-						<span class="caret"></span>
-					</button>
-				</a>`;
-			let options_html;
-
-			if (filter.fieldnames) {
-				options_html = filter.options.map((option, i) =>
-					`<li><a data-fieldname = "${filter.fieldnames[i]}">${option}</a></li>`).join('');
-			} else {
-				options_html = filter.options.map( option => `<li><a>${option}</a></li>`).join('');
-			}
-
-			let dropdown_html = chart_filter_html + `<ul class="dropdown-menu">${options_html}</ul></div>`;
-			let $chart_filter = $(dropdown_html);
-
-			if (append) {
-				$chart_filter.prependTo(this.wrapper.find(container));
-			} else $chart_filter.appendTo(this.wrapper.find(container));
-
-			$chart_filter.find('.dropdown-menu').on('click', 'li a', (e) => {
-				let $el = $(e.currentTarget);
-				let fieldname;
-				if ($el.attr('data-fieldname')) {
-					fieldname = $el.attr('data-fieldname');
-				}
-				let selected_item = $el.text();
-				$el.parents('.chart-filter').find('.filter-label').text(selected_item);
-				filter.action(selected_item, fieldname);
-			});
-		});
-
-	}
 
 	edit_profile() {
 		let edit_profile_dialog = new frappe.ui.Dialog({

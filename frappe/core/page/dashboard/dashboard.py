@@ -15,7 +15,7 @@ def cache_source(function):
 			chart = kwargs.get("chart")
 		no_cache = kwargs.get("no_cache")
 		if no_cache:
-			return function(args)
+			return function(chart = chart, no_cache = no_cache)
 		chart_name = frappe.parse_json(chart).name
 		cache_key = "chart-data:{}".format(chart_name)
 		if int(kwargs.get("refresh") or 0):
