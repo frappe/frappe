@@ -43,7 +43,7 @@ export default class Widget {
 		this.title_field = this.widget.find(".widget-title");
 		this.body = this.widget.find(".widget-body");
 		this.action_area = this.widget.find(".widget-control");
-		this.head = this.widget.find("widget-head");
+		this.head = this.widget.find(".widget-head");
 		this.set_title();
 		this.set_actions();
 		this.set_body();
