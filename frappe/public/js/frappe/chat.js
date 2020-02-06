@@ -1421,7 +1421,7 @@ class extends Component {
 			const state     = [ ]
 
 			for (const room of rooms)
-				if ( ["Group", "Visitor"].includes(room.type) || room.owner === frappe.session.user || room.last_message ) {
+				  if ( ["Group", "Visitor"].includes(room.type) || room.owner === frappe.session.user || room.last_message || room.users.includes(frappe.session.user)) {
 					frappe.log.info(`Adding ${room.name} to component.`)
 					state.push(room)
 				}
@@ -1569,7 +1569,7 @@ class extends Component {
 					<span class="indicator yellow"/> <b>${frappe.user.first_name(r.user)}</b>: ${r.content}
 				</span>
 				`
-				frappe.show_alert(alert, 3, {
+				frappe.show_alert(alert, 15, {
 					"show-message": function (r) {
 						this.room.select(r.room)
 						this.base.firstChild._component.toggle()

@@ -10,8 +10,8 @@ def clean_html(html):
 		return html
 
 	return bleach.clean(clean_script_and_style(html),
-		tags=['div', 'p', 'br', 'ul', 'ol', 'li', 'b', 'i', 'em',
-                'table', 'thead', 'tbody', 'td', 'tr'],
+		tags=['div', 'p', 'br', 'ul', 'ol', 'li', 'strong', 'b', 'em', 'i', 'u',
+			'table', 'thead', 'tbody', 'td', 'tr'],
 		attributes=[],
 		styles=['color', 'border', 'border-color'],
 		strip=True, strip_comments=True)
@@ -21,7 +21,7 @@ def clean_email_html(html):
 		return html
 
 	return bleach.clean(clean_script_and_style(html),
-		tags=['div', 'p', 'br', 'ul', 'ol', 'li', 'b', 'i', 'em', 'a',
+		tags=['div', 'p', 'br', 'ul', 'ol', 'li', 'strong', 'b', 'em', 'i', 'u', 'a',
 			'table', 'thead', 'tbody', 'td', 'tr', 'th', 'pre', 'code',
 			'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'button', 'img'],
 		attributes=['border', 'colspan', 'rowspan',
@@ -91,6 +91,7 @@ def get_icon_html(icon, small=False):
 		u"(\ud83c[\udde0-\uddff])"
 		"+", flags=re.UNICODE)
 
+	icon = icon or ""
 	if icon and emoji_pattern.match(icon):
 		return '<span class="text-muted">' + icon + '</span>'
 
@@ -162,7 +163,8 @@ acceptable_attributes = [
 	'width', 'wrap', 'xml:lang', 'data-row', 'data-list', 'data-language',
 	'data-value', 'role', 'frameborder', 'allowfullscreen', 'spellcheck',
 	'data-mode', 'data-gramm', 'data-placeholder', 'data-comment',
-	'data-id', 'data-denotation-char'
+	'data-id', 'data-denotation-char', 'itemprop', 'itemscope',
+	'itemtype', 'itemid', 'itemref', 'datetime'
 ]
 
 mathml_attributes = [

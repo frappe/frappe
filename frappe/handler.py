@@ -9,6 +9,7 @@ import frappe.sessions
 import frappe.desk.form.run_method
 from frappe.utils.response import build_response
 from frappe.utils import cint
+from frappe.core.doctype.server_script.server_script_utils import run_server_script_api
 from werkzeug.wrappers import Response
 from six import string_types
 
@@ -37,6 +38,10 @@ def execute_cmd(cmd, from_async=False):
 		# override using the first hook
 		cmd = hook
 		break
+
+	# via server script
+	if run_server_script_api(cmd):
+		return None
 
 	try:
 		method = get_attr(cmd)
@@ -139,8 +144,16 @@ def uploadfile():
 
 	return ret
 
-@frappe.whitelist()
+@frappe.whitelist(allow_guest=True)
 def upload_file():
+	if frappe.session.user == 'Guest':
+		if frappe.get_system_settings('allow_guests_to_upload_files'):
+			ignore_permissions = True
+		else:
+			return
+	else:
+		ignore_permissions = False
+
 	files = frappe.request.files
 	is_private = frappe.form_dict.is_private
 	doctype = frappe.form_dict.doctype
@@ -160,6 +173,12 @@ def upload_file():
 	frappe.local.uploaded_file = content
 	frappe.local.uploaded_filename = filename
 
+	if frappe.session.user == 'Guest':
+		import mimetypes
+		filetype = mimetypes.guess_type(filename)[0]
+		if filetype not in ['image/png', 'image/jpeg', 'application/pdf']:
+			frappe.throw("You can only upload JPG, PNG or PDF files.")
+
 	if method:
 		method = frappe.get_attr(method)
 		is_whitelisted(method)
@@ -176,7 +195,7 @@ def upload_file():
 			"is_private": cint(is_private),
 			"content": content
 		})
-		ret.save()
+		ret.save(ignore_permissions=ignore_permissions)
 		return ret
 
 

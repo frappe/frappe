@@ -6,14 +6,14 @@ from __future__ import unicode_literals
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils import validate_email_address ,cint
+from frappe.utils import validate_email_address ,cint, cstr
 import imaplib,poplib,smtplib
+from frappe.email.utils import get_port
 
 class EmailDomain(Document):
 	def autoname(self):
 		if self.domain_name:
 			self.name = self.domain_name
-
 
 	def validate(self):
 		"""Validate email id and check POP3/IMAP and SMTP connections is enabled."""
@@ -27,15 +27,15 @@ class EmailDomain(Document):
 			try:
 				if self.use_imap:
 					if self.use_ssl:
-						test = imaplib.IMAP4_SSL(self.email_server)
+						test = imaplib.IMAP4_SSL(self.email_server, port=get_port(self))
 					else:
-						test = imaplib.IMAP4(self.email_server)
+						test = imaplib.IMAP4(self.email_server, port=get_port(self))
 
 				else:
 					if self.use_ssl:
-						test = poplib.POP3_SSL(self.email_server)
+						test = poplib.POP3_SSL(self.email_server, port=get_port(self))
 					else:
-						test = poplib.POP3(self.email_server)
+						test = poplib.POP3(self.email_server, port=get_port(self))
 
 			except Exception:
 				frappe.throw(_("Incoming email account not correct"))
@@ -51,7 +51,7 @@ class EmailDomain(Document):
 			try:
 				if self.use_tls and not self.smtp_port:
 					self.smtp_port = 587
-				sess = smtplib.SMTP((self.smtp_server or "").encode('utf-8'), cint(self.smtp_port) or None)
+				sess = smtplib.SMTP(cstr(self.smtp_server or ""), cint(self.smtp_port) or None)
 				sess.quit()
 			except Exception:
 				frappe.throw(_("Outgoing email account not correct"))
@@ -78,4 +78,3 @@ class EmailDomain(Document):
 				frappe.msgprint(email_account.name)
 				frappe.throw(e)
 				return None
-

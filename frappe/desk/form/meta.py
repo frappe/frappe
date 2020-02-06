@@ -233,4 +233,3 @@ def get_js(path):
 	js = frappe.read_file(path)
 	if js:
 		return render_include(js)
-

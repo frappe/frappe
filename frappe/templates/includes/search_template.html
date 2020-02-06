@@ -27,6 +27,9 @@
 					</button>
 				</div>
 			</div>
+			{% if frappe.form_dict.scope %}
+				<input type="text" hidden name="scope" value="{{ frappe.form_dict.scope }}">
+			{% endif %}
 		</form>
 	</div>
 </div>

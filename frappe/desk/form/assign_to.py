@@ -7,7 +7,9 @@ from __future__ import unicode_literals
 import frappe
 from frappe import _
 from frappe.desk.form.document_follow import follow_document
-from frappe.utils import cint
+from frappe.desk.doctype.notification_log.notification_log import enqueue_create_notification,\
+	get_title, get_title_html
+import frappe.utils
 import frappe.share
 
 class DuplicateToDoError(frappe.ValidationError): pass
@@ -20,7 +22,7 @@ def get(args=None):
 	return frappe.get_all('ToDo', fields = ['owner', 'description'], filters = dict(
 		reference_type = args.get('doctype'),
 		reference_name = args.get('name'),
-		status = 'Open'
+		status = ('!=', 'Cancelled')
 	), limit = 5)
 
 @frappe.whitelist()
@@ -47,9 +49,6 @@ def add(args=None):
 		frappe.throw(_("Already in user's To Do list"), DuplicateToDoError)
 	else:
 		from frappe.utils import nowdate
-
-		# if args.get("re_assign"):
-		# 	remove_from_todo_if_already_assigned(args['doctype'], args['name'])
 
 		if not args.get('description'):
 			args['description'] = _('Assignment for {0} {1}'.format(args['doctype'], args['name']))
@@ -83,7 +82,7 @@ def add(args=None):
 
 	# notify
 	notify_assignment(d.assigned_by, d.owner, d.reference_type, d.reference_name, action='ASSIGN',\
-			 description=args.get("description"), notify=args.get('notify'))
+			description=args.get("description"))
 
 	return get(args)
 
@@ -100,20 +99,29 @@ def add_multiple(args=None):
 		args.update({"name": docname})
 		add(args)
 
-def remove_from_todo_if_already_assigned(doctype, docname):
-	owner = frappe.db.get_value("ToDo", {"reference_type": doctype, "reference_name": docname,
-		"status":"Open"}, "owner")
-	if owner:
-		remove(doctype, docname, owner)
+def close_all_assignments(doctype, name):
+	assignments = frappe.db.get_all('ToDo', fields=['owner'], filters =
+		dict(reference_type = doctype, reference_name = name, status=('!=', 'Cancelled')))
+	if not assignments:
+		return False
+
+	for assign_to in assignments:
+		set_status(doctype, name, assign_to.owner, status="Closed")
+
+	return True
 
 @frappe.whitelist()
 def remove(doctype, name, assign_to):
+	return set_status(doctype, name, assign_to, status="Cancelled")
+
+def set_status(doctype, name, assign_to, status="Cancelled"):
 	"""remove from todo"""
 	try:
-		todo = frappe.db.get_value("ToDo", {"reference_type":doctype, "reference_name":name, "owner":assign_to, "status":"Open"})
+		todo = frappe.db.get_value("ToDo", {"reference_type":doctype,
+		"reference_name":name, "owner":assign_to, "status": ('!=', status)})
 		if todo:
 			todo = frappe.get_doc("ToDo", todo)
-			todo.status = "Closed"
+			todo.status = status
 			todo.save(ignore_permissions=True)
 
 			notify_assignment(todo.assigned_by, todo.owner, todo.reference_type, todo.reference_name)
@@ -121,7 +129,7 @@ def remove(doctype, name, assign_to):
 		pass
 
 	# clear assigned_to if field exists
-	if frappe.get_meta(doctype).get_field("assigned_to"):
+	if frappe.get_meta(doctype).get_field("assigned_to") and status=="Cancelled":
 		frappe.db.set_value(doctype, name, "assigned_to", None)
 
 	return get({"doctype": doctype, "name": name})
@@ -136,12 +144,12 @@ def clear(doctype, name):
 		return False
 
 	for assign_to in assignments:
-		remove(doctype, name, assign_to.owner)
+		set_status(doctype, name, assign_to.owner, "Cancelled")
 
 	return True
 
 def notify_assignment(assigned_by, owner, doc_type, doc_name, action='CLOSE',
-	description=None, notify=0):
+	description=None):
 	"""
 		Notify assignee that there is a change in assignment
 	"""
@@ -152,56 +160,26 @@ def notify_assignment(assigned_by, owner, doc_type, doc_name, action='CLOSE',
 		return
 
 	# Search for email address in description -- i.e. assignee
-	from frappe.utils import get_link_to_form
-	assignment = get_link_to_form(doc_type, doc_name, label="%s: %s" % (doc_type, doc_name))
-	owner_name = frappe.get_cached_value('User', owner, 'full_name')
 	user_name = frappe.get_cached_value('User', frappe.session.user, 'full_name')
+	title = get_title(doc_type, doc_name)
+	description_html =  "<div>{0}</div>".format(description) if description else None
+
 	if action=='CLOSE':
-		if owner == frappe.session.get('user'):
-			arg = {
-				'contact': assigned_by,
-				'txt': _("The task {0}, that you assigned to {1}, has been closed.").format(assignment,
-						owner_name)
-			}
-		else:
-			arg = {
-				'contact': assigned_by,
-				'txt': _("The task {0}, that you assigned to {1}, has been closed by {2}.").format(assignment,
-					owner_name, user_name)
-			}
+		subject = _('Your assignment on {0} {1} has been removed').format(frappe.bold(doc_type), get_title_html(title))
 	else:
-		description_html = "<p>{0}</p>".format(description)
-		arg = {
-			'contact': owner,
-			'txt': _("A new task, {0}, has been assigned to you by {1}. {2}").format(assignment,
-				user_name, description_html),
-			'notify': notify
-		}
+		user_name = frappe.bold(user_name)
+		document_type = frappe.bold(doc_type)
+		title = get_title_html(title)
+		subject = _('{0} assigned a new task {1} {2} to you').format(user_name, document_type, title)
 
-	if arg and cint(arg.get("notify")):
-		_notify(arg)
+	notification_doc = {
+		'type': 'Assignment',
+		'document_type': doc_type,
+		'subject': subject,
+		'document_name': doc_name,
+		'from_user': frappe.session.user,
+		'email_content': description_html
+	}
 
-def _notify(args):
-	from frappe.utils import get_fullname, get_url
+	enqueue_create_notification(owner, notification_doc)
 
-	args = frappe._dict(args)
-	contact = args.contact
-	txt = args.txt
-
-	try:
-		if not isinstance(contact, list):
-			contact = [frappe.db.get_value("User", contact, "email") or contact]
-
-		frappe.sendmail(\
-			recipients=contact,
-			sender= frappe.db.get_value("User", frappe.session.user, "email"),
-			subject=_("New message from {0}").format(get_fullname(frappe.session.user)),
-			template="new_message",
-			args={
-				"from": get_fullname(frappe.session.user),
-				"message": txt,
-				"link": get_url()
-			},
-			header=[_('New Message'), 'orange'])
-	except frappe.OutgoingEmailError:
-		pass

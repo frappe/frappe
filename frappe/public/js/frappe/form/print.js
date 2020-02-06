@@ -198,7 +198,10 @@ frappe.ui.form.PrintPreview = Class.extend({
 	},
 	preview: function () {
 		var me = this;
-		this.get_print_html(function (out) {
+		this.get_print_html(out => {
+			if (!out.html) {
+				out.html = this.get_no_preview_html();
+			}
 			const $print_format = me.wrapper.find(".print-format");
 			$print_format.html(out.html);
 			me.show_footer();
@@ -306,6 +309,13 @@ frappe.ui.form.PrintPreview = Class.extend({
 		}
 	},
 	get_print_html: function (callback) {
+		let print_format = this.get_print_format();
+		if (print_format.raw_printing) {
+			callback({
+				html: this.get_no_preview_html()
+			});
+			return;
+		}
 		if (this._req) {
 			this._req.abort();
 		}
@@ -323,6 +333,11 @@ frappe.ui.form.PrintPreview = Class.extend({
 				}
 			}
 		});
+	},
+	get_no_preview_html() {
+		return `<div class="text-muted text-center" style="font-size: 1.2em;">
+			${__("No Preview Available")}
+		</div>` ;
 	},
 	get_raw_commands: function (callback) {
 		// fetches rendered raw commands from the server for the current print format.
@@ -455,7 +470,7 @@ frappe.ui.form.PrintPreview = Class.extend({
 	}
 });
 
-frappe.ui.get_print_settings = function (pdf, callback, letter_head) {
+frappe.ui.get_print_settings = function (pdf, callback, letter_head, pick_columns) {
 	var print_settings = locals[":Print Settings"]["Print Settings"];
 
 	var default_letter_head = locals[":Company"] && frappe.defaults.get_default('company')
@@ -483,6 +498,27 @@ frappe.ui.get_print_settings = function (pdf, callback, letter_head) {
 		],
 		default: "Landscape"
 	}];
+
+	if (pick_columns) {
+		columns.push(
+			{
+				label: __("Pick Columns"),
+				fieldtype: "Check",
+				fieldname: "pick_columns",
+			},
+			{
+				label: __("Select Columns"),
+				fieldtype: "MultiCheck",
+				fieldname: "columns",
+				depends_on: "pick_columns",
+				columns: 2,
+				options: pick_columns.map(df => ({
+					label: __(df.label),
+					value: df.fieldname
+				}))
+			}
+		);
+	}
 
 	return frappe.prompt(columns, function (data) {
 		var data = $.extend(print_settings, data);

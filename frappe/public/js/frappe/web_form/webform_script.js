@@ -52,15 +52,24 @@ frappe.ready(function() {
 			const data = setup_fields(r.message);
 			let web_form_doc = data.web_form;
 
-			if (web_form_doc.doc_name && web_form_doc.allow_edit === 0) {
-				window.location.replace(window.location.pathname + "?new=1");
-				return;
+			if (web_form_doc.name && web_form_doc.allow_edit === 0) {
+				if (!window.location.href.includes("?new=1")) {
+					window.location.replace(window.location.pathname + "?new=1");
+				}
 			}
-
-			web_form.prepare(web_form_doc, r.message.doc || {});
+			let doc = r.message.doc || build_doc(r.message);
+			web_form.prepare(web_form_doc, r.message.doc && web_form_doc.allow_edit === 1 ? r.message.doc : {});
 			web_form.make();
 			web_form.set_default_values();
 		})
+
+		function build_doc(form_data) {
+			let doc = {};
+			form_data.web_form.web_form_fields.forEach(df => {
+				if (df.default) return doc[df.fieldname] = df.default;
+			});
+			return doc;
+		}
 
 		function get_data() {
 			return frappe.call({
@@ -100,7 +109,14 @@ frappe.ready(function() {
 
 					return df;
 				}
-				if (df.fieldtype === "Link") df.only_select = true;
+				if (df.fieldtype === "Link") {
+					df.only_select = true;
+				}
+				if (["Attach", "Attach Image"].includes(df.fieldtype)) {
+					if (!df.options)
+						df.options = {};
+					df.options.disable_file_browser = true;
+				}
 			});
 
 			return form_data;

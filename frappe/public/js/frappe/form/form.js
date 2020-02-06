@@ -117,18 +117,20 @@ frappe.ui.form.Form = class FrappeForm {
 
 	add_nav_keyboard_shortcuts() {
 		frappe.ui.keys.add_shortcut({
-			shortcut: 'shift+>',
+			shortcut: 'shift+ctrl+>',
 			action: () => this.navigate_records(0),
 			page: this.page,
 			description: __('Go to next record'),
+			ignore_inputs: true,
 			condition: () => !this.is_new()
 		});
 
 		frappe.ui.keys.add_shortcut({
-			shortcut: 'shift+<',
+			shortcut: 'shift+ctrl+<',
 			action: () => this.navigate_records(1),
 			page: this.page,
 			description: __('Go to previous record'),
+			ignore_inputs: true,
 			condition: () => !this.is_new()
 		});
 	}
@@ -188,8 +190,12 @@ frappe.ui.form.Form = class FrappeForm {
 				} else {
 					me.dirty();
 				}
-				me.fields_dict[fieldname]
-					&& me.fields_dict[fieldname].refresh(fieldname);
+
+				let field = me.fields_dict[fieldname];
+				field && field.refresh(fieldname);
+
+				// Validate value for link field explicitly
+				field && ["Link", "Dynamic Link"].includes(field.df.fieldtype) && field.validate && field.validate(value);
 
 				me.layout.refresh_dependency();
 				let object = me.script_manager.trigger(fieldname, doc.doctype, doc.name);
@@ -556,7 +562,10 @@ frappe.ui.form.Form = class FrappeForm {
 			resolve();
 		};
 
-		var fail = () => {
+		var fail = (e) => {
+			if (e) {
+				console.error(e)
+			}
 			btn && $(btn).prop("disabled", false);
 			if(on_error) {
 				on_error();
@@ -821,25 +830,45 @@ frappe.ui.form.Form = class FrappeForm {
 	}
 
 	navigate_records(prev) {
-		let list_settings = frappe.get_user_settings(this.doctype)['List'];
+		let filters, sort_field, sort_order;
+		let list_view = frappe.get_list_view(this.doctype);
+		if (list_view) {
+			filters = list_view.get_filters_for_args();
+			sort_field = list_view.sort_field;
+			sort_order = list_view.sort_order;
+		} else {
+			let list_settings = frappe.get_user_settings(this.doctype)['List'];
+			if (list_settings) {
+				filters = list_settings.filters;
+				sort_field = list_settings.sort_field;
+				sort_order = list_settings.sort_order;
+			}
+		}
+
 		let args = {
 			doctype: this.doctype,
 			value: this.docname,
-			filters: list_settings.filters,
-			sort_order: list_settings.sort_order,
-			sort_field: list_settings.sort_by,
+			filters,
+			sort_order,
+			sort_field,
 			prev,
 		};
 
 		frappe.call('frappe.desk.form.utils.get_next', args).then(r => {
 			if (r.message) {
 				frappe.set_route('Form', this.doctype, r.message);
+				this.focus_on_first_input();
 			}
 		});
 	}
 
+	focus_on_first_input() {
+		let $first_input_el = $(frappe.container.page).find('.frappe-control:visible').eq(0);
+		$first_input_el.find('input, select, textarea').focus();
+	}
+
 	rename_doc() {
-		frappe.model.rename_doc(this.doctype, this.docname);
+		frappe.model.rename_doc(this.doctype, this.docname, () => this.refresh_header());
 	}
 
 	share_doc() {
@@ -1354,6 +1383,8 @@ frappe.ui.form.Form = class FrappeForm {
 				frappe.get_meta(doctype).fields.forEach(function(df) {
 					if(df.fieldtype==='Link' && df.options===me.doctype) {
 						new_doc[df.fieldname] = me.doc.name;
+					} else if (['Link', 'Dynamic Link'].includes(df.fieldtype) && me.doc[df.fieldname]) {
+						new_doc[df.fieldname] = me.doc[df.fieldname];
 					}
 				});
 
@@ -1379,6 +1410,28 @@ frappe.ui.form.Form = class FrappeForm {
 			sum += d[fieldname];
 		}
 		return sum;
+	}
+
+	scroll_to_field(fieldname) {
+		let field = this.get_field(fieldname);
+		if (!field) return;
+
+		let $el = field.$wrapper;
+
+		// uncollapse section
+		if (field.section.is_collapsed()) {
+			field.section.collapse(false);
+		}
+
+		// scroll to input
+		frappe.utils.scroll_to($el);
+
+		// highlight input
+		$el.addClass('has-error');
+		setTimeout(() => {
+			$el.removeClass('has-error');
+			$el.find('input, select, textarea').focus();
+		}, 1000);
 	}
 };
 

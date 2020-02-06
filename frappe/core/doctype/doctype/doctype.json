@@ -12,6 +12,7 @@
   "is_submittable",
   "istable",
   "issingle",
+  "is_tree",
   "editable_grid",
   "quick_entry",
   "cb01",
@@ -30,6 +31,7 @@
   "form_settings_section",
   "image_field",
   "timeline_field",
+  "nsm_parent_field",
   "max_attachments",
   "column_break_23",
   "hide_toolbar",
@@ -395,6 +397,7 @@
    "oldfieldtype": "Check"
   },
   {
+   "depends_on": "eval:doc.custom===0",
    "fieldname": "web_view",
    "fieldtype": "Section Break",
    "label": "Web View"
@@ -438,11 +441,24 @@
    "fieldtype": "Select",
    "label": "Database Engine",
    "options": "InnoDB\nMyISAM"
+  },
+  {
+   "default": "0",
+   "description": "Tree structures are implemented using Nested Set",
+   "fieldname": "is_tree",
+   "fieldtype": "Check",
+   "label": "Is Tree"
+  },
+  {
+   "depends_on": "is_tree",
+   "fieldname": "nsm_parent_field",
+   "fieldtype": "Data",
+   "label": "Parent Field (Tree)"
   }
  ],
  "icon": "fa fa-bolt",
  "idx": 6,
- "modified": "2019-07-04 23:23:17.174960",
+ "modified": "2019-09-07 14:28:05.392490",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocType",

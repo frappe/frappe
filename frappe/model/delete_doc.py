@@ -2,19 +2,26 @@
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
+import os
+from six import string_types, integer_types
+import shutil
 
 import frappe
-import frappe.model.meta
-from frappe.model.dynamic_links import get_dynamic_link_map
 import frappe.defaults
+import frappe.model.meta
+from frappe import _
+from frappe import get_module_path
+from frappe.model.dynamic_links import get_dynamic_link_map
 from frappe.core.doctype.file.file import remove_all
 from frappe.utils.password import delete_all_passwords_for
-from frappe import _
 from frappe.model.naming import revert_series_if_last
 from frappe.utils.global_search import delete_for_document
-from six import string_types, integer_types
+from frappe.desk.doctype.tag.tag import delete_tags_for_document
+from frappe.exceptions import FileNotFoundError
 
-doctypes_to_skip = ("Communication", "ToDo", "DocShare", "Email Unsubscribe", "Activity Log", "File", "Version", "Document Follow", "Comment" , "View Log")
+
+doctypes_to_skip = ("Communication", "ToDo", "DocShare", "Email Unsubscribe", "Activity Log", "File",
+	"Version", "Document Follow", "Comment" , "View Log", "Tag Link", "Notification Log", "Email Queue")
 
 def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reload=False,
 	ignore_permissions=False, flags=None, ignore_on_trash=False, ignore_missing=True):
@@ -70,6 +77,13 @@ def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reloa
 
 			delete_from_table(doctype, name, ignore_doctypes, None)
 
+			if not (for_reload or frappe.flags.in_migrate or frappe.flags.in_install or frappe.flags.in_test):
+				try:
+					delete_controllers(name, doc.module)
+				except (FileNotFoundError, OSError):
+					# in case a doctype doesnt have any controller code
+					pass
+
 		else:
 			doc = frappe.get_doc(doctype, name)
 
@@ -81,9 +95,6 @@ def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reloa
 					doc.run_method("on_trash")
 					doc.flags.in_delete = True
 					doc.run_method('on_change')
-
-				frappe.enqueue('frappe.model.delete_doc.delete_dynamic_links', doctype=doc.doctype, name=doc.name,
-					is_async=False if frappe.flags.in_test else True)
 
 				# check if links exist
 				if not force:
@@ -97,8 +108,18 @@ def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reloa
 			# delete attachments
 			remove_all(doctype, name, from_delete=True)
 
+			if not for_reload:
+				# Enqueued at the end, because it gets committed
+				# All the linked docs should be checked beforehand
+				frappe.enqueue('frappe.model.delete_doc.delete_dynamic_links',
+					doctype=doc.doctype, name=doc.name,
+					is_async=False if frappe.flags.in_test else True)
+
+
 		# delete global search entry
 		delete_for_document(doc)
+		# delete tag link entry
+		delete_tags_for_document(doc)
 
 		if doc and not for_reload:
 			add_to_deleted_document(doc)
@@ -144,6 +165,9 @@ def delete_from_table(doctype, name, ignore_doctypes, doc):
 
 	else:
 		def get_table_fields(field_doctype):
+			if field_doctype == 'Custom Field':
+				return []
+
 			return [r[0] for r in frappe.get_all(field_doctype,
 				fields='options',
 				filters={
@@ -198,13 +222,16 @@ def check_if_doc_is_linked(doc, method="Delete"):
 			for item in frappe.db.get_values(link_dt, {link_field:doc.name},
 				["name", "parent", "parenttype", "docstatus"], as_dict=True):
 				linked_doctype = item.parenttype if item.parent else link_dt
-				if linked_doctype in doctypes_to_skip:
+
+				ignore_linked_doctypes = doc.get('ignore_linked_doctypes') or []
+
+				if linked_doctype in doctypes_to_skip or (linked_doctype in ignore_linked_doctypes and method == 'Cancel'):
 					# don't check for communication and todo!
 					continue
 
 				if not item:
 					continue
-				elif (method != "Delete" or item.docstatus == 2) and (method != "Cancel" or item.docstatus != 1):
+				elif method != "Delete"  and (method != "Cancel" or item.docstatus != 1):
 					# don't raise exception if not
 					# linked to a non-cancelled doc when deleting or to a submitted doc when cancelling
 					continue
@@ -223,7 +250,10 @@ def check_if_doc_is_linked(doc, method="Delete"):
 def check_if_doc_is_dynamically_linked(doc, method="Delete"):
 	'''Raise `frappe.LinkExistsError` if the document is dynamically linked'''
 	for df in get_dynamic_link_map().get(doc.doctype, []):
-		if df.parent in doctypes_to_skip:
+
+		ignore_linked_doctypes = doc.get('ignore_linked_doctypes') or []
+
+		if df.parent in doctypes_to_skip or (df.parent in ignore_linked_doctypes and method == 'Cancel'):
 			# don't check for communication and todo!
 			continue
 
@@ -276,6 +306,7 @@ def delete_dynamic_links(doctype, name):
 	delete_references('Comment', doctype, name)
 	delete_references('View Log', doctype, name)
 	delete_references('Document Follow', doctype, name, 'ref_doctype', 'ref_docname')
+	delete_references('Notification Log', doctype, name, 'document_type', 'document_name')
 
 	# unlink communications
 	clear_timeline_references(doctype, name)
@@ -301,8 +332,8 @@ def clear_references(doctype, reference_doctype, reference_name,
 		(reference_doctype, reference_name))
 
 def clear_timeline_references(link_doctype, link_name):
-	frappe.db.sql("""delete from `tabCommunication Link`
-		where `tabCommunication Link`.link_doctype='{0}' and `tabCommunication Link`.link_name='{1}'""".format(link_doctype, link_name)) # nosec
+	frappe.db.sql("""DELETE FROM `tabCommunication Link`
+		WHERE `tabCommunication Link`.link_doctype=%s AND `tabCommunication Link`.link_name=%s""", (link_doctype, link_name))
 
 def insert_feed(doc):
 	from frappe.utils import get_fullname
@@ -317,3 +348,12 @@ def insert_feed(doc):
 		"subject": "{0} {1}".format(_(doc.doctype), doc.name),
 		"full_name": get_fullname(doc.owner)
 	}).insert(ignore_permissions=True)
+
+def delete_controllers(doctype, module):
+	"""
+	Delete controller code in the doctype folder
+	"""
+	module_path = get_module_path(module)
+	dir_path = os.path.join(module_path, 'doctype', frappe.scrub(doctype))
+
+	shutil.rmtree(dir_path)

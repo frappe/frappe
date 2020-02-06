@@ -15,6 +15,7 @@ from frappe.core.doctype.comment.comment import update_comment_in_doc
 from email.utils import parseaddr
 from six.moves.urllib.parse import unquote
 from collections import Counter
+from frappe.contacts.doctype.contact.contact import get_contact_name
 
 exclude_from_linked_with = True
 
@@ -160,8 +161,22 @@ class Communication(Document):
 				sender_name, sender_email = parse_addr(self.sender)
 				if sender_name == sender_email:
 					sender_name = None
+
 				self.sender = sender_email
-				self.sender_full_name = sender_name or frappe.db.exists("Contact", {"email_id": sender_email}) or sender_email
+				self.sender_full_name = sender_name
+
+				if not self.sender_full_name:
+					self.sender_full_name = frappe.db.get_value('User', self.sender, 'full_name')
+
+				if not self.sender_full_name:
+					first_name, last_name = frappe.db.get_value('Contact',
+						filters={'email_id': sender_email},
+						fieldname=['first_name', 'last_name']
+					) or [None, None]
+					self.sender_full_name = (first_name or '') + (last_name or '')
+
+				if not self.sender_full_name:
+					self.sender_full_name = sender_email
 
 	def send(self, print_html=None, print_format=None, attachments=None,
 		send_me_a_copy=False, recipients=None):
@@ -334,17 +349,28 @@ def get_contacts(email_strings):
 	contacts = []
 	for email in email_addrs:
 		email = get_email_without_link(email)
-		contact_name = frappe.db.get_value('Contact', {'email_id': email})
+		contact_name = get_contact_name(email)
 
-		if not contact_name:
-			contact = frappe.get_doc({
+		if not contact_name and email:
+			email_parts = email.split("@")
+			first_name = frappe.unscrub(email_parts[0])
+
+			try:
+				contact_name = '{0}-{1}'.format(first_name, email_parts[1]) if first_name == 'Contact' else first_name
+				contact = frappe.get_doc({
 					"doctype": "Contact",
-					"first_name": frappe.unscrub(email.split("@")[0]),
-					"email_id": email
-				}).insert(ignore_permissions=True)
-			contact_name = contact.name
+					"first_name": contact_name,
+					"name": contact_name
+				})
+				contact.add_email(email_id=email, is_primary=True)
+				contact.insert(ignore_permissions=True)
+				contact_name = contact.name
+			except Exception:
+				traceback = frappe.get_traceback()
+				frappe.log_error(traceback)
 
-		contacts.append(contact_name)
+		if contact_name:
+			contacts.append(contact_name)
 
 	return contacts
 
@@ -365,6 +391,9 @@ def parse_email(communication, email_strings):
 		a doctype and docname ie in the format `admin+doctype+docname@example.com`,
 		the email is parsed and doctype and docname is extracted and timeline link is added.
 	"""
+	if not frappe.get_all("Email Account", filters={"enable_automatic_linking": 1}):
+		return
+
 	delimiter = "+"
 
 	for email_string in email_strings:
@@ -372,9 +401,12 @@ def parse_email(communication, email_strings):
 			for email in email_string.split(","):
 				if delimiter in email:
 					email = email.split("@")[0]
+					email_local_parts = email.split(delimiter)
+					if not len(email_local_parts) == 3:
+						continue
 
-					doctype = unquote(email.split(delimiter)[1])
-					docname = unquote(email.split(delimiter)[2])
+					doctype = unquote(email_local_parts[1])
+					docname = unquote(email_local_parts[2])
 
 					if doctype and docname and frappe.db.exists(doctype, docname):
 						communication.add_link(doctype, docname)
@@ -384,6 +416,9 @@ def get_email_without_link(email):
 		returns email address without doctype links
 		returns admin@example.com for email admin+doctype+docname@example.com
 	"""
+	if not frappe.get_all("Email Account", filters={"enable_automatic_linking": 1}):
+		return email
+
 	email_id = email.split("@")[0].split("+")[0]
 	email_host = email.split("@")[1]
 

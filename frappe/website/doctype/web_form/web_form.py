@@ -221,7 +221,7 @@ def get_context(context):
 				"payer_name": frappe.utils.get_fullname(frappe.session.user),
 				"order_id": doc.name,
 				"currency": self.currency,
-				"redirect_to": frappe.utils.get_url(self.route)
+				"redirect_to": frappe.utils.get_url(self.success_url or self.route)
 			}
 
 			# Redirect the user to this url
@@ -526,6 +526,14 @@ def get_form_data(doctype, docname=None, web_form_name=None):
 		if field.fieldtype == "Table":
 			field.fields = get_in_list_view_fields(field.options)
 			out.update({field.fieldname: field.fields})
+
+		if field.fieldtype == "Link":
+			field.fieldtype = "Autocomplete"
+			field.options = get_link_options(
+				web_form_name,
+				field.options,
+				field.allow_read_on_all_link_options
+			)
 
 	return out
 

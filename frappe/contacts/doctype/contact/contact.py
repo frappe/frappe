@@ -29,12 +29,19 @@ class Contact(Document):
 			break
 
 	def validate(self):
-		if self.email_id:
-			self.email_id = self.email_id.strip()
+		self.set_primary_email()
+		self.set_primary("phone")
+		self.set_primary("mobile_no")
+
 		self.set_user()
+
 		set_link_title(self)
+
 		if self.email_id and not self.image:
 			self.image = has_gravatar(self.email_id)
+
+		if self.get("sync_with_google_contacts") and not self.get("google_contacts"):
+			frappe.throw(_("Select Google Contacts to which contact should be synced."))
 
 		deduplicate_dynamic_links(self)
 
@@ -61,6 +68,55 @@ class Contact(Document):
 			if (link.link_doctype, link.link_name) in reference_links:
 				return True
 
+	def add_email(self, email_id, is_primary=0, autosave=False):
+		self.append("email_ids", {
+			"email_id": email_id,
+			"is_primary": is_primary
+		})
+
+		if autosave:
+			self.save(ignore_permissions=True)
+
+	def add_phone(self, phone, is_primary_phone=0, is_primary_mobile_no=0, autosave=False):
+		self.append("phone_nos", {
+			"phone": phone,
+			"is_primary_phone": is_primary_phone,
+			"is_primary_mobile_no": is_primary_mobile_no
+		})
+
+		if autosave:
+			self.save(ignore_permissions=True)
+
+	def set_primary_email(self):
+		if not self.email_ids:
+			self.email_id = ""
+			return
+
+		if len([email.email_id for email in self.email_ids if email.is_primary]) > 1:
+			frappe.throw(_("Only one {0} can be set as primary.").format(frappe.bold("Email ID")))
+
+		for d in self.email_ids:
+			if d.is_primary == 1:
+				self.email_id = d.email_id.strip()
+				break
+
+	def set_primary(self, fieldname):
+		# Used to set primary mobile and phone no.
+		if len(self.phone_nos) == 0:
+			setattr(self, fieldname, "")
+			return
+
+		field_name = "is_primary_" + fieldname
+
+		is_primary = [phone.phone for phone in self.phone_nos if phone.get(field_name)]
+
+		if len(is_primary) > 1:
+			frappe.throw(_("Only one {0} can be set as primary.").format(frappe.bold(frappe.unscrub(fieldname))))
+
+		for d in self.phone_nos:
+			if d.get(field_name) == 1:
+				setattr(self, fieldname, d.phone)
+				break
 
 def get_default_contact(doctype, name):
 	'''Returns default contact for the given doctype, name'''
@@ -162,15 +218,42 @@ def contact_query(doctype, txt, searchfield, start, page_len, filters):
 			'link_doctype': link_doctype
 		})
 
+@frappe.whitelist()
+def address_query(links):
+	import json
+
+	links = [{"link_doctype": d.get("link_doctype"), "link_name": d.get("link_name")} for d in json.loads(links)]
+	result = []
+
+	for link in links:
+		if not frappe.has_permission(doctype=link.get("link_doctype"), ptype="read", doc=link.get("link_name")):
+			continue
+
+		res = frappe.db.sql("""
+			SELECT `tabAddress`.name
+			FROM `tabAddress`, `tabDynamic Link`
+			WHERE `tabDynamic Link`.parenttype='Address'
+				AND `tabDynamic Link`.parent=`tabAddress`.name
+				AND `tabDynamic Link`.link_doctype = %(link_doctype)s
+				AND `tabDynamic Link`.link_name = %(link_name)s
+		""", {
+			"link_doctype": link.get("link_doctype"),
+			"link_name": link.get("link_name"),
+		}, as_dict=True)
+
+		result.extend([l.name for l in res])
+
+	return result
 
 def get_contact_with_phone_number(number):
 	if not number: return
 
-	contacts = frappe.get_all('Contact', or_filters={
-		'phone': ['like', '%{}'.format(number)],
-		'mobile_no': ['like', '%{}'.format(number)]
-	}, limit=1)
+	contacts = frappe.get_all('Contact Phone', filters=[
+		['phone', 'like', '%{0}'.format(number)]
+	], fields=["parent"], limit=1)
 
-	contact = contacts[0].name if contacts else None
+	return contacts[0].parent if contacts else None
 
-	return contact
+def get_contact_name(email_id):
+	contact = frappe.get_list("Contact Email", filters={"email_id": email_id}, fields=["parent"], limit=1)
+	return contact[0].parent if contact else None

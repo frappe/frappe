@@ -18,6 +18,7 @@
   "end_date",
   "sb1",
   "content_type",
+  "dynamic_template",
   "main_section",
   "main_section_md",
   "main_section_html",
@@ -109,7 +110,7 @@
   {
    "depends_on": "eval:doc.content_type==='Rich Text'",
    "fieldname": "main_section",
-   "fieldtype": "HTML Editor",
+   "fieldtype": "Text Editor",
    "ignore_xss_filter": 1,
    "in_global_search": 1,
    "label": "Main Section"
@@ -118,14 +119,14 @@
    "depends_on": "eval:doc.content_type==='Markdown'",
    "fieldname": "main_section_md",
    "fieldtype": "Markdown Editor",
-   "label": "Main Section"
+   "label": "Main Section (Markdown)"
   },
   {
    "depends_on": "eval:doc.content_type==='HTML'",
    "fieldname": "main_section_html",
    "fieldtype": "HTML Editor",
    "ignore_xss_filter": 1,
-   "label": "Main Section"
+   "label": "Main Section (HTML)"
   },
   {
    "collapsible": 1,
@@ -235,6 +236,12 @@
    "fieldname": "set_meta_tags",
    "fieldtype": "Button",
    "label": "Set Meta Tags"
+  },
+  {
+   "default": "0",
+   "fieldname": "dynamic_template",
+   "fieldtype": "Check",
+   "label": "Dynamic Template"
   }
  ],
  "has_web_view": 1,
@@ -242,7 +249,7 @@
  "idx": 1,
  "is_published_field": "published",
  "max_attachments": 20,
- "modified": "2019-09-03 04:04:29.585330",
+ "modified": "2019-10-02 13:58:50.825481",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Web Page",

@@ -22,8 +22,6 @@
   "column_break_10",
   "attached_to_name",
   "attached_to_field",
-  "lft",
-  "rgt",
   "old_parent",
   "content_hash",
   "uploaded_to_dropbox",
@@ -146,18 +144,6 @@
    "read_only": 1
   },
   {
-   "fieldname": "lft",
-   "fieldtype": "Int",
-   "hidden": 1,
-   "label": "lft"
-  },
-  {
-   "fieldname": "rgt",
-   "fieldtype": "Int",
-   "hidden": 1,
-   "label": "rgt"
-  },
-  {
    "fieldname": "old_parent",
    "fieldtype": "Data",
    "hidden": 1,
@@ -186,7 +172,7 @@
  ],
  "icon": "fa fa-file",
  "idx": 1,
- "modified": "2019-08-16 16:41:03.086023",
+ "modified": "2019-08-30 19:46:20.796453",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "File",

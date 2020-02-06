@@ -84,8 +84,7 @@ def get_rendered_template(doc, name=None, print_format=None, meta=None,
 		if doc.docstatus==2 and not cint(print_settings.allow_print_for_cancelled):
 			frappe.throw(_("Not allowed to print cancelled documents"), frappe.PermissionError)
 
-	if hasattr(doc, "before_print"):
-		doc.before_print()
+	doc.run_method("before_print")
 
 	if not hasattr(doc, "print_heading"): doc.print_heading = None
 	if not hasattr(doc, "sub_heading"): doc.sub_heading = None
@@ -185,16 +184,15 @@ def get_html_and_style(doc, name=None, print_format=None, meta=None,
 
 	print_format = get_print_format_doc(print_format, meta=meta or frappe.get_meta(doc.doctype))
 
-	if print_format and print_format.raw_printing:
-		return {
-			"html": '<div class="text-muted text-center" style="font-size: 2em; margin-top: 80px;">'
-		+ _("No Preview Available")
-		+ '</div>'
-		}
+	try:
+		html = get_rendered_template(doc, name=name, print_format=print_format, meta=meta,
+			no_letterhead=no_letterhead, trigger_print=trigger_print)
+	except frappe.TemplateNotFoundError:
+		frappe.clear_last_message()
+		html = None
 
 	return {
-		"html": get_rendered_template(doc, name=name, print_format=print_format, meta=meta,
-	no_letterhead=no_letterhead, trigger_print=trigger_print),
+		"html": html,
 		"style": get_print_style(style=style, print_format=print_format)
 	}
 
@@ -249,13 +247,13 @@ def get_print_format(doctype, print_format):
 		with open(path, "r") as pffile:
 			return pffile.read()
 	else:
-		if print_format.html and not print_format.raw_printing:
-			return print_format.html
-		elif print_format.raw_commands and print_format.raw_printing:
+		if print_format.raw_printing:
 			return print_format.raw_commands
-		else:
-			frappe.throw(_("No template found at path: {0}").format(path),
-				frappe.TemplateNotFoundError)
+		if print_format.html:
+			return print_format.html
+
+		frappe.throw(_("No template found at path: {0}").format(path),
+			frappe.TemplateNotFoundError)
 
 def make_layout(doc, meta, format_data=None):
 	"""Builds a hierarchical layout object from the fields list to be rendered
@@ -316,6 +314,10 @@ def make_layout(doc, meta, format_data=None):
 
 		if df.fieldtype=="HTML" and df.options:
 			doc.set(df.fieldname, True) # show this field
+
+		if df.fieldtype=='Signature' and not doc.get(df.fieldname):
+			placeholder_image = '/assets/frappe/images/signature-placeholder.png'
+			doc.set(df.fieldname, placeholder_image)
 
 		if is_visible(df, doc) and has_value(df, doc):
 			append_empty_field_dict_to_page_column(page)

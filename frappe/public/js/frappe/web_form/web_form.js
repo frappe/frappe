@@ -40,7 +40,7 @@ export default class WebForm extends frappe.ui.FieldGroup {
 	}
 
 	set_field_values() {
-		if (this.doc_name) this.set_values(this.doc);
+		if (this.doc.name) this.set_values(this.doc);
 		else return;
 	}
 
@@ -86,7 +86,11 @@ export default class WebForm extends frappe.ui.FieldGroup {
 	}
 
 	setup_delete_button() {
-		this.add_button_to_header("Delete", "danger", () => this.delete());
+		this.add_button_to_header(
+			'<i class="fa fa-trash" aria-hidden="true"></i>',
+			"light",
+			() => this.delete()
+		);
 	}
 
 	setup_print_button() {
@@ -97,20 +101,19 @@ export default class WebForm extends frappe.ui.FieldGroup {
 		);
 	}
 
-	get_values(ignore_errors) {
-		let values = super.get_values(ignore_errors);
-		values.doctype = this.doc_type;
-		values.name = this.doc_name;
-		values.web_form_name = this.name;
-		return values;
-	}
-
 	save() {
 		this.validate && this.validate();
 
+		// validation hack: get_values will check for missing data
+		let isvalid = super.get_values(this.allow_incomplete);
+
+		if (!isvalid) return;
+
+		if (window.saving) return;
 		let for_payment = Boolean(this.accept_payment && !this.doc.paid);
-		let data = this.get_values(this.allow_incomplete);
-		if (!data || window.saving) return;
+
+		this.doc.doctype = this.doc_type;
+		this.doc.web_form_name = this.name;
 
 		// Save
 		window.saving = true;
@@ -120,7 +123,7 @@ export default class WebForm extends frappe.ui.FieldGroup {
 			type: "POST",
 			method: "frappe.website.doctype.web_form.web_form.accept",
 			args: {
-				data: data,
+				data: this.doc,
 				web_form: this.name,
 				docname: this.doc.name,
 				for_payment
@@ -152,10 +155,10 @@ export default class WebForm extends frappe.ui.FieldGroup {
 	}
 
 	print() {
-		window.location.href = `/printview?
+		window.open(`/printview?
 			doctype=${this.doc_type}
 			&name=${this.doc.name}
-			&format=${this.print_format || "Standard"}`;
+			&format=${this.print_format || "Standard"}`, '_blank');
 	}
 
 	cancel() {
@@ -170,13 +173,11 @@ export default class WebForm extends frappe.ui.FieldGroup {
 		const success_dialog = new frappe.ui.Dialog({
 			title: __("Saved Successfully"),
 			secondary_action: () => {
-				if (this.login_required) {
-					if (this.route_to_success_link) {
-						window.location.pathname = this.success_url;
-					} else {
-						window.location.href =
-							window.location.pathname + "?name=" + data.name;
-					}
+				if (this.success_url) {
+					window.location.pathname = this.success_url;
+				} else if(this.login_required) {
+					window.location.href =
+						window.location.pathname + "?name=" + data.name;
 				}
 			}
 		});

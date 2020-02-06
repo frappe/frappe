@@ -30,6 +30,7 @@ def get_controller(doctype):
 
 	:param doctype: DocType name as string."""
 	from frappe.model.document import Document
+	from frappe.utils.nestedset import NestedSet
 	global _classes
 
 	if not doctype in _classes:
@@ -37,7 +38,11 @@ def get_controller(doctype):
 			or ["Core", False]
 
 		if custom:
-			_class = Document
+			if frappe.db.field_exists("DocType", "is_tree"):
+				is_tree = frappe.db.get_value("DocType", doctype, "is_tree", cache=True)
+			else:
+				is_tree = False
+			_class = NestedSet if is_tree else Document
 		else:
 			module = load_doctype_module(doctype, module_name)
 			classname = doctype.replace(" ", "").replace("-", "")
@@ -228,8 +233,8 @@ class BaseDocument(object):
 				if isinstance(d[fieldname], list) and df.fieldtype not in table_fields:
 					frappe.throw(_('Value for {0} cannot be a list').format(_(df.label)))
 
-				if convert_dates_to_str and isinstance(d[fieldname], (datetime.datetime, datetime.time, datetime.timedelta)):
-					d[fieldname] = str(d[fieldname])
+			if convert_dates_to_str and isinstance(d[fieldname], (datetime.datetime, datetime.time, datetime.timedelta)):
+				d[fieldname] = str(d[fieldname])
 
 			if d[fieldname] == None and ignore_nulls:
 				del d[fieldname]
@@ -268,7 +273,7 @@ class BaseDocument(object):
 		doc["doctype"] = self.doctype
 		for df in self.meta.get_table_fields():
 			children = self.get(df.fieldname) or []
-			doc[df.fieldname] = [d.as_dict(no_nulls=no_nulls) for d in children]
+			doc[df.fieldname] = [d.as_dict(convert_dates_to_str=convert_dates_to_str, no_nulls=no_nulls) for d in children]
 
 		if no_nulls:
 			for k in list(doc):
@@ -653,7 +658,7 @@ class BaseDocument(object):
 				continue
 
 			else:
-				sanitized_value = sanitize_html(value, linkify=df.fieldtype=='Text Editor')
+				sanitized_value = sanitize_html(value, linkify=df and df.fieldtype=='Text Editor')
 
 			self.set(fieldname, sanitized_value)
 

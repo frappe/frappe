@@ -33,6 +33,7 @@ class DBTable:
 		if self.is_new():
 			self.create()
 		else:
+			frappe.cache().hdel('table_columns', self.table_name)
 			self.alter()
 
 	def create(self):
@@ -351,5 +352,3 @@ def add_column(doctype, column_name, fieldtype, precision=None):
 	frappe.db.commit()
 	frappe.db.sql("alter table `tab%s` add column %s %s" % (doctype,
 		column_name, get_definition(fieldtype, precision)))
-
-

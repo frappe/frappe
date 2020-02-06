@@ -169,6 +169,10 @@ class PostgresDatabase(Database):
 	def is_duplicate_fieldname(e):
 		return e.pgcode == '42701'
 
+	@staticmethod
+	def is_data_too_long(e):
+		return e.pgcode == '22001'
+
 	def create_auth_table(self):
 		self.sql_ddl("""create table if not exists "__Auth" (
 				"doctype" VARCHAR(140) NOT NULL,
