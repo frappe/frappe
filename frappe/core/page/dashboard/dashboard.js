@@ -202,6 +202,10 @@ class DashboardChart {
 		}
 
 		this.fetch(this.filters, true, this.args).then(data => {
+			if (this.chart_doc.chart_type == 'Report') {
+				data = this.get_report_chart_data(data);
+			}
+
 			this.update_chart_object();
 			this.data = data;
 			this.render();

@@ -237,10 +237,10 @@ frappe.ui.form.on('Dashboard Chart', {
 			}
 		} else {
 			fields = frm.chart_filters.filter(f => {
-				// Ask about MultiSelectList plus get_query plus get_data
-				// if (f.fieldtype == 'MultiSelectList') {
-				// 	if (f.fi)
-				// }
+				if (f.get_query || f.get_data || f.on_change) {
+					return false;
+				}
+
 				return f.fieldname;
 			});
 			fields.map( f => {
