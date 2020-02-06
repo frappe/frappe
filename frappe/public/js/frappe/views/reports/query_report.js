@@ -386,7 +386,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 			let fullwidth = JSON.parse(localStorage.container_fullwidth || 'false');
 
-			return $(`<div class="col-sm-4 col-md-3">
+			return $(`<div class="summary-item">
 				<span class="summary-label small text-muted ${indicator}">${summary.label}</span>
 				<h1 class="summary-value">${ value }</h1>
 			</div>`);
@@ -1310,7 +1310,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		this.$status = $(`<div class="form-message text-muted small"></div>`)
 			.hide().insertAfter(page_form);
 
-		this.$summary = $(`<div class="report-summary row"></div>`)
+		this.$summary = $(`<div class="report-summary"></div>`)
 			.hide().appendTo(this.page.main);
 
 		this.$chart = $('<div class="chart-wrapper">').hide().appendTo(this.page.main);

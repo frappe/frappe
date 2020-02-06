@@ -96,6 +96,13 @@
 }
 
 .report-summary {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+	grid-auto-rows: minmax(62px, 1fr);
+	column-gap: 15px;
+	row-gap: 20px;
+	align-items: center;
+
 	padding: 15px 15px;
 	border-bottom: 1px solid @border-color;
 	margin-right: 0px;
@@ -118,22 +125,6 @@
 			text-overflow: ellipsis;
 			white-space: nowrap;
 		}
-	}
-}
-
-body.full-width {
-	.report-summary > div.col-md-3 {
-		width: 16.66666667%;
-	}
-}
-
-@media (max-width: @screen-xs) {
-	.report-summary > div[class*="col-md-"] {
-		margin-top: 1em;
-	}
-
-	.report-summary > div[class*="col-md-"]:first-child {
-		margin-top: 0em !important;
 	}
 }
 
