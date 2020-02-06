@@ -544,7 +544,7 @@ def only_for(roles, message=False):
 	myroles = set(get_roles())
 	if not roles.intersection(myroles):
 		if message:
-			msgprint(_('Only for {}'.format(', '.join(roles))))
+			msgprint(_('Only for {}').format(', '.join(roles)))
 		raise PermissionError
 
 def get_domain_data(module):
@@ -1537,7 +1537,7 @@ def logger(module=None, with_more_info=True):
 	from frappe.utils.logger import get_logger
 	return get_logger(module or 'default', with_more_info=with_more_info)
 
-def log_error(message=None, title=None):
+def log_error(message=None, title=_("Error")):
 	'''Log error to Error Log'''
 
 	# AI ALERT:
@@ -1546,9 +1546,8 @@ def log_error(message=None, title=None):
 	# this hack tries to be smart about whats a title (single line ;-)) and fixes it
 
 	if message:
-		if '\n' not in message:
-			title = message
-			error = get_traceback()
+		if '\n' in title:
+			error, title = title, message
 		else:
 			error = message
 	else:

@@ -65,26 +65,22 @@ export default class Grid {
 			<div class="small form-clickable-section grid-footer">
 				<div class="row">
 					<div class="col-sm-5 grid-buttons">
-						<button type="reset"
-							class="btn btn-xs btn-danger grid-remove-rows hidden"
+						<button class="btn btn-xs btn-danger grid-remove-rows hidden"
 							style="margin-right: 4px;"
 							data-action="delete_rows">
 							${__("Delete")}
 						</button>
-						<button type="reset"
-							class="btn btn-xs btn-danger grid-remove-all-rows hidden"
+						<button class="btn btn-xs btn-danger grid-remove-all-rows hidden"
 							style="margin-right: 4px;"
 							data-action="delete_all_rows">
 							${__("Delete All")}
 						</button>
-						<button type="reset"
-							class="grid-add-multiple-rows btn btn-xs btn-default hidden"
+						<button class="grid-add-multiple-rows btn btn-xs btn-default hidden"
 							style="margin-right: 4px;">
 							${__("Add Multiple")}</a>
 						</button>
 						<!-- hack to allow firefox include this in tabs -->
-						<button type="reset"
-							class="btn btn-xs btn-default grid-add-row">
+						<button class="btn btn-xs btn-default grid-add-row">
 							${__("Add Row")}
 						</button>
 					</div>
@@ -189,6 +185,7 @@ export default class Grid {
 
 		frappe.run_serially(tasks);
 
+		this.wrapper.find('.grid-heading-row .grid-row-check:checked:first').prop('checked', 0);
 		if (selected_children.length == this.grid_pagination.page_length) {
 			frappe.utils.scroll_to(this.wrapper);
 		}
@@ -199,6 +196,8 @@ export default class Grid {
 			this.frm.doc[this.df.fieldname] = [];
 			$(this.parent).find('.rows').empty();
 			this.grid_rows = [];
+
+			this.wrapper.find('.grid-heading-row .grid-row-check:checked:first').prop('checked', 0);
 			this.refresh();
 			frappe.utils.scroll_to(this.wrapper);
 		});
@@ -226,7 +225,7 @@ export default class Grid {
 		return (this.grid_rows || []).map(row => {
 			return row.doc.__checked ? row.doc.name : null;
 		}).filter(d => {
-			return d; 
+			return d;
 		});
 	}
 
