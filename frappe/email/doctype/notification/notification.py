@@ -131,11 +131,8 @@ def get_context(context):
 				allow_update = False
 			try:
 				if allow_update:
-					frappe.db.set_value(doc.doctype, doc.name, self.set_property_after_alert,
-						self.property_value, update_modified = False)
 					doc.set(self.set_property_after_alert, self.property_value)
-					if self.trigger_document_events:
-						doc.save()
+					doc.save()
 			except Exception as e:
 				frappe.log_error(title=_('Document update failed'), message=frappe.get_traceback())
 
