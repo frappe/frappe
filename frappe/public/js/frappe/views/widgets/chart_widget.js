@@ -21,7 +21,7 @@ export default class ChartWidget extends Widget {
 			dashboard_chart.show();
 		});
 
-		this.set_summary();
+		this.summary && this.set_summary();
 	}
 
 	set_body() {
