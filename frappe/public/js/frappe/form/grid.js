@@ -66,8 +66,15 @@ export default class Grid {
 				<div class="row">
 					<div class="col-sm-6 grid-buttons">
 						<button class="btn btn-xs btn-danger grid-remove-rows hidden"
-							style="margin-right: 4px;">
-							${__("Delete")}</button>
+							style="margin-right: 4px;"
+							data-action="delete_rows">
+							${__("Delete")}
+						</button>
+						<button class="btn btn-xs btn-danger grid-remove-all-rows hidden"
+							style="margin-right: 4px;"
+							data-action="delete_all_rows">
+							${__("Delete All")}
+						</button>
 						<button class="grid-add-multiple-rows btn btn-xs btn-default hidden"
 							style="margin-right: 4px;">
 							${__("Add Multiple")}</a>
@@ -185,6 +192,8 @@ export default class Grid {
 			this.frm.doc[this.df.fieldname] = [];
 			$(this.parent).find('.rows').empty();
 			this.grid_rows = [];
+
+			this.wrapper.find('.grid-heading-row .grid-row-check:checked:first').prop('checked', 0);
 			this.refresh();
 			frappe.utils.scroll_to(this.wrapper);
 		});
@@ -205,7 +214,7 @@ export default class Grid {
 		this.remove_rows_button.toggleClass('hidden',
 			this.wrapper.find('.grid-body .grid-row-check:checked:first').length ? false : true);
 		this.remove_all_rows_button.toggleClass('hidden',
-			this.wrapper.find('.grid-body .grid-row-check:checked:first').length ? false : true);
+			this.wrapper.find('.grid-heading-row .grid-row-check:checked:first').length ? false : true);
 	}
 
 	get_selected() {
