@@ -2,12 +2,14 @@ import ChartWidget from "../widgets/chart_widget";
 import BaseWidget from "../widgets/base_widget";
 import ShortcutWidget from "../widgets/shortcut_widget";
 import LinksWidget from "../widgets/links_widget";
+import OnboardingWidget from "../widgets/onboarding_widget";
 
 const widget_factory = {
 	chart: ChartWidget,
 	base: BaseWidget,
 	bookmark: ShortcutWidget,
-	links: LinksWidget
+	links: LinksWidget,
+	onboarding: OnboardingWidget
 };
 
 export default class WidgetGroup {
