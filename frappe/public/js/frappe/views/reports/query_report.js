@@ -460,7 +460,8 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			data.splice(-1, 1);
 		}
 
-		if (this.datatable) {
+		if (this.datatable && this.datatable.options
+			&& (this.datatable.options.showTotalRow ===this.raw_data.add_total_row)) {
 			this.datatable.options.treeView = this.tree_report;
 			this.datatable.refresh(data, columns);
 		} else {
@@ -1126,7 +1127,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 								label: df.label,
 								link_field: this.doctype_field_map[values.doctype],
 								doctype: values.doctype,
-								options: df.fieldtype === "Link" ? frappe.model.unscrub(df.fieldname) : undefined,
+								options: df.fieldtype === "Link" ? df.options : undefined,
 								width: 100
 							});
 
