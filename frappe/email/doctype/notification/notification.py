@@ -132,6 +132,10 @@ def get_context(context):
 			try:
 				if allow_update:
 					doc.set(self.set_property_after_alert, self.property_value)
+					doc.flags.updater_reference = {
+						'doctype': self.doctype,
+						'docname': self.name
+					}
 					doc.save()
 			except Exception as e:
 				frappe.log_error(title=_('Document update failed'), message=frappe.get_traceback())
