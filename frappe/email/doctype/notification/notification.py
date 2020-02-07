@@ -307,18 +307,18 @@ def evaluate_alert(doc, alert, event):
 				return
 
 		if event=="Value Change" and not doc.is_new():
-			try:
-				db_value = doc._doc_before_save.get(alert.value_changed)
-			except Exception as e:
-				if frappe.db.is_missing_column(e):
-					alert.db_set('enabled', 0)
-					frappe.log_error('Notification {0} has been disabled due to missing field'.format(alert.name))
-					return
-				else:
-					raise
-			db_value = parse_val(db_value)
-			if (doc.get(alert.value_changed) == db_value) or (not db_value and not doc.get(alert.value_changed)):
-				return # value not changed
+			if not frappe.db.has_column(doc.doctype, alert.value_changed):
+				alert.db_set('enabled', 0)
+				frappe.log_error('Notification {0} has been disabled due to missing field'.format(alert.name))
+				return
+
+			doc_before_save = doc.get_doc_before_save()
+			field_value_before_save = doc_before_save.get(alert.value_changed) if doc_before_save else None
+
+			field_value_before_save = parse_val(field_value_before_save)
+			if (doc.get(alert.value_changed) == field_value_before_save):
+				# value not changed
+				return
 
 		if event != "Value Change" and not doc.is_new():
 			# reload the doc for the latest values & comments,
