@@ -147,10 +147,14 @@ def update_completed_workflow_actions(doc, user=None):
 def get_next_possible_transitions(workflow_name, state, doc=None):
 	transitions = frappe.get_all('Workflow Transition',
 <<<<<<< HEAD
+<<<<<<< HEAD
 		fields=['allowed', 'action', 'state', 'allow_self_approval', 'next_state', '`condition`'],
 =======
 		fields=['allowed', 'action', 'state', 'allow_self_approval', 'next_state', 'condition'],
 >>>>>>> 0461696fd8 (fix: De-duplicate actions sent in mail)
+=======
+		fields=['allowed', 'action', 'state', 'allow_self_approval', 'next_state', '`condition`'],
+>>>>>>> ddd091d9f7 (fix: Wrap condition field with bactick since it is a reserved keyword)
 		filters=[['parent', '=', workflow_name],
 		['state', '=', state]])
 
