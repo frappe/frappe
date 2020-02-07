@@ -139,7 +139,7 @@ def get_context(context):
 					}
 					doc.save()
 			except Exception as e:
-				frappe.log_error(title=_('Document update failed'), message=frappe.get_traceback())
+				frappe.log_error(title='Document update failed', message=frappe.get_traceback())
 
 	def send_an_email(self, doc, context):
 		from email.utils import formataddr
