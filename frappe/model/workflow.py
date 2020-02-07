@@ -176,7 +176,8 @@ def bulk_workflow_approval(docnames, doctype, action):
 			show_progress(docnames, _('Applying: {0}').format(action), i, docname)
 			apply_workflow(frappe.get_doc(doctype, docname), action)
 		except frappe.ValidationError:
-			pass
+			frappe.log_error(frappe.get_traceback(), "Workflow {0} threw an error for {1} {2}".format(action, doctype, docname))
+			frappe.db.rollback()
 
 @frappe.whitelist()
 def get_common_transition_actions(docs, doctype):
