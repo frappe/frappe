@@ -61,6 +61,6 @@ stripe==2.40.0
 unittest-xml-reporting==2.5.2
 urllib3==1.25.7
 watchdog==0.8.0
-Werkzeug==0.16.0
+Werkzeug==0.16.1
 xlrd==1.2.0
 zxcvbn-python==4.4.24
