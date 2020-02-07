@@ -146,7 +146,11 @@ def update_completed_workflow_actions(doc, user=None):
 
 def get_next_possible_transitions(workflow_name, state, doc=None):
 	transitions = frappe.get_all('Workflow Transition',
+<<<<<<< HEAD
 		fields=['allowed', 'action', 'state', 'allow_self_approval', 'next_state', '`condition`'],
+=======
+		fields=['allowed', 'action', 'state', 'allow_self_approval', 'next_state', 'condition'],
+>>>>>>> 0461696fd8 (fix: De-duplicate actions sent in mail)
 		filters=[['parent', '=', workflow_name],
 		['state', '=', state]])
 
@@ -155,6 +159,8 @@ def get_next_possible_transitions(workflow_name, state, doc=None):
 	for transition in transitions:
 		is_next_state_optional = get_state_optional_field_value(workflow_name, transition.next_state)
 		# skip transition if next state of the transition is optional
+		if transition.condition and not frappe.safe_eval(transition.condition, None, {'doc': doc.as_dict()}):
+			continue
 		if is_next_state_optional:
 			continue
 		if not is_transition_condition_satisfied(transition, doc):
@@ -200,7 +206,11 @@ def send_workflow_action_email(users_data, doc):
 		email_args = {
 			'recipients': [d.get('email')],
 			'args': {
+<<<<<<< HEAD
 				'actions': list(deduplicate_actions(d.get('possible_actions'))),
+=======
+				'actions': deduplicate_actions(d.get('possible_actions')),
+>>>>>>> 0461696fd8 (fix: De-duplicate actions sent in mail)
 				'message': message
 			},
 			'reference_name': doc.name,
