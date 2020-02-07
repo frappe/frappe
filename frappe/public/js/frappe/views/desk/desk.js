@@ -5,7 +5,9 @@ export default class Desk {
 	constructor({ wrapper }) {
 		this.wrapper = wrapper;
 		window.desk = this;
-		this.pages = {}
+		this.pages = {};
+		this.sidebar_items = {};
+		this.sidebar_items_list = [];
 		this.make();
 	}
 
@@ -14,7 +16,7 @@ export default class Desk {
 		this.show_loading_state();
 		this.fetch_desktop_settings().then(() => {
 			this.make_sidebar();
-			this.make_body();
+			this.make_page("Accounts");
 			this.setup_events;
 			this.hide_loading_state();
 		});
@@ -73,14 +75,6 @@ export default class Desk {
 
 	make_sidebar() {
 		const get_sidebar_item = function(item) {
-			// let icon_class = item.icon ? item.icon : 'frapicon-dashboard'
-			// let icon = `<i class="icon ${icon_class}"></i>`;
-			// if (icon_class.includes("frapicon-")) {
-			// 	icon = `<img class="icon" src="/assets/frappe/icons/${
-			// 		icon_class
-			// 	}.svg">`;
-			// }
-
 			return $(`<div href="#" class="sidebar-item ${
 				item.selected ? "selected" : ""
 			}">
@@ -91,16 +85,38 @@ export default class Desk {
 		this.desktop_settings.forEach((item, idx) => {
 			if (idx == 0) {
 				item.selected = true;
+				this.current_page = item.name;
 			}
-			get_sidebar_item(item).appendTo(this.sidebar);
+			let $item = get_sidebar_item(item)
+			$item.on('click', () => {
+				this.show_page(item.name);
+			})
+			$item.appendTo(this.sidebar);
+
+			this.sidebar_items_list.push($item);
+			this.sidebar_items[item.name] = $item;
 		});
 	}
 
-	make_body() {
-		this.pages['CRM'] = new DeskPage({
+	show_page(page) {
+		if (this.current_page && this.pages[this.current_page]) {
+			this.pages[this.current_page].hide()
+		}
+		this.sidebar_items[this.current_page].removeClass("selected")
+		this.sidebar_items[page].addClass("selected")
+		this.current_page = page
+
+		this.pages[page] ? this.pages[page].show() : this.make_page(page);
+	}
+
+	make_page(page) {
+		const $page = new DeskPage({
 			container: this.body,
-			page_name: "CRM"
+			page_name: page
 		});
+
+		this.pages[page] = $page;
+		return $page
 	}
 
 	setup_events() {}
@@ -115,17 +131,21 @@ class DeskPage {
 	}
 
 	show() {
+		this.page.show();
+	}
 
+	hide() {
+		this.page.hide();
 	}
 
 	make() {
 		this.make_page()
 		this.get_data().then(res => {
 			this.data = res.message;
-			this.make_onboarding()
-			// this.make_charts()
-			this.make_shortcuts()
-			this.make_cards()
+			// this.make_onboarding()
+			this.data.charts.length && this.make_charts()
+			this.data.shortcuts.length && this.make_shortcuts()
+			this.data.cards.length && this.make_cards()
 		})
 	}
 
