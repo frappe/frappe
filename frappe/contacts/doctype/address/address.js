@@ -30,7 +30,7 @@ frappe.ui.form.on("Address", {
 				let link = frm.doc.links[i];
 				frm.add_custom_button(__("{0}: {1}", [__(link.link_doctype), __(link.link_name)]), function() {
 					frappe.set_route("Form", link.link_doctype, link.link_name);
-				}, "Links");
+				}, __("Links"));
 			}
 		}
 	},
