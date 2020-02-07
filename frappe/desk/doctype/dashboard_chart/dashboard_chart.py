@@ -124,7 +124,7 @@ def get_group_by_chart_config(chart, filters, timespan, from_date, to_date):
 	else:
 		return None
 
-def get_date_range(to_date, from_date, timespan):
+def get_date_range(from_date, to_date, timespan):
 	if not to_date:
 		to_date = frappe.utils.now()
 	if not from_date:
