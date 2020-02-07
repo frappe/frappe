@@ -92,17 +92,16 @@ frappe.ui.SortSelector = Class.extend({
 		var meta = frappe.get_meta(this.doctype);
 		if (!meta) return;
 
+		// default sort order
+		this.args.sort_by = 'modified';
+		this.args.sort_order = 'desc';
+
 		var { meta_sort_field, meta_sort_order } = this.get_meta_sort_field();
 
-		if(!this.args.sort_by) {
-			if(meta_sort_field) {
-				this.args.sort_by = meta_sort_field;
-				this.args.sort_order = meta_sort_order;
-			} else {
-				// default
-				this.args.sort_by = 'modified';
-				this.args.sort_order = 'desc';
-			}
+		// If sort field is set in meta, use it else fallabck to default
+		if(meta_sort_field && meta_sort_order) {
+			this.args.sort_by = meta_sort_field;
+			this.args.sort_order = meta_sort_order;
 		}
 
 		if(!this.args.sort_by_label) {
