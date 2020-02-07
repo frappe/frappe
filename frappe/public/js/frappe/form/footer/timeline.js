@@ -562,20 +562,14 @@ frappe.ui.form.Timeline = class Timeline {
 
 			let updater_reference_link = null;
 
-			if (data.data_import) {
-				updater_reference_link = frappe.utils.get_form_link(
-					'Data Import Beta',
-					data.data_import,
-					true,
-					__('via Data Import')
-				);
-			} else if (!$.isEmptyObject(data.updater_reference)) {
+			if (!$.isEmptyObject(data.updater_reference)) {
+				let label = updater_reference.label || __('via {0}', [updater_reference.doctype]);
 				let updater_reference = data.updater_reference;
 				updater_reference_link = frappe.utils.get_form_link(
 					updater_reference.doctype,
 					updater_reference.docname,
 					true,
-					__('via {0}', [updater_reference.doctype])
+					label
 				);
 			}
 
@@ -650,10 +644,10 @@ frappe.ui.form.Timeline = class Timeline {
 					});
 					return parts.length < 3;
 				});
-				if(parts.length) {
+				if (parts.length) {
 					let message;
-					if (data.data_import) {
-						message = __("changed values for {0} {1}", [parts.join(', '), data_import_link]);
+					if (updater_reference_link) {
+						message = __("changed values for {0} {1}", [parts.join(', '), updater_reference_link]);
 					} else {
 						message = __("changed values for {0}", [parts.join(', ')]);
 					}
