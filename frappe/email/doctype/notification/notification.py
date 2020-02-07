@@ -134,7 +134,8 @@ def get_context(context):
 					doc.set(self.set_property_after_alert, self.property_value)
 					doc.flags.updater_reference = {
 						'doctype': self.doctype,
-						'docname': self.name
+						'docname': self.name,
+						'label': _('via Notification')
 					}
 					doc.save()
 			except Exception as e:
@@ -307,7 +308,7 @@ def evaluate_alert(doc, alert, event):
 
 		if event=="Value Change" and not doc.is_new():
 			try:
-				db_value = frappe.db.get_value(doc.doctype, doc.name, alert.value_changed)
+				db_value = doc._doc_before_save.get(alert.value_changed)
 			except Exception as e:
 				if frappe.db.is_missing_column(e):
 					alert.db_set('enabled', 0)
