@@ -9,7 +9,6 @@ maxminddb-geolite2
 python-dateutil
 pytz
 six
-werkzeug
 semantic_version
 rauth>=0.6.2
 requests
