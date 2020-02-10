@@ -321,7 +321,6 @@ $.extend(frappe.model, {
 	}
 });
 
-frappe.create_routes = {};
 frappe.new_doc = function (doctype, opts, init_callback) {
 	if (doctype === 'File') {
 		new frappe.ui.FileUploader({
@@ -334,13 +333,8 @@ frappe.new_doc = function (doctype, opts, init_callback) {
 			frappe.route_options = opts;
 		}
 		frappe.model.with_doctype(doctype, function() {
-			if(frappe.create_routes[doctype]) {
-				frappe.set_route(frappe.create_routes[doctype])
-					.then(() => resolve());
-			} else {
-				frappe.ui.form.make_quick_entry(doctype, null, init_callback)
-					.then(() => resolve());
-			}
+			frappe.ui.form.make_quick_entry(doctype, null, init_callback)
+				.then(() => resolve());
 		});
 
 	});
