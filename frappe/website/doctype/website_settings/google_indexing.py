@@ -29,12 +29,12 @@ def authorize_access(reauthorize=None):
 
 	redirect_uri = get_request_site_address(True) + "?cmd=frappe.website.doctype.website_settings.google_indexing.google_callback"
 
-	if not website_settings.authorization_code or reauthorize:
+	if not website_settings.indexing_authorization_code or reauthorize:
 		return get_authentication_url(client_id=google_settings.client_id, redirect_uri=redirect_uri)
 	else:
 		try:
 			data = {
-				"code": website_settings.authorization_code,
+				"code": website_settings.indexing_authorization_code,
 				"client_id": google_settings.client_id,
 				"client_secret": google_settings.get_password(fieldname="client_secret", raise_exception=False),
 				"redirect_uri": redirect_uri,
@@ -43,7 +43,7 @@ def authorize_access(reauthorize=None):
 			res = requests.post(get_auth_url(), data=data).json()
 
 			if "refresh_token" in res:
-				frappe.db.set_value("Website Settings", website_settings.name, "refresh_token", res.get("refresh_token"))
+				frappe.db.set_value("Website Settings", website_settings.name, "indexing_refresh_token", res.get("refresh_token"))
 				frappe.db.commit()
 
 			frappe.local.response["type"] = "redirect"
@@ -65,7 +65,7 @@ def google_callback(code=None):
 	"""
 		Authorization code is sent to callback as per the API configuration
 	"""
-	frappe.db.set_value("Website Settings", None, "authorization_code", code)
+	frappe.db.set_value("Website Settings", None, "indexing_authorization_code", code)
 	frappe.db.commit()
 
 	authorize_access()
@@ -80,7 +80,7 @@ def get_google_indexing_object():
 
 	credentials_dict = {
 		"token": account.get_access_token(),
-		"refresh_token": account.get_password(fieldname="refresh_token", raise_exception=False),
+		"refresh_token": account.get_password(fieldname="indexing_refresh_token", raise_exception=False),
 		"token_uri": get_auth_url(),
 		"client_id": google_settings.client_id,
 		"client_secret": google_settings.get_password(fieldname="client_secret", raise_exception=False),

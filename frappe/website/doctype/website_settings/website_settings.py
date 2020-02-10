@@ -82,7 +82,7 @@ class WebsiteSettings(Document):
 		if not google_settings.enable:
 			frappe.throw(_("Google Integration is disabled."))
 
-		if not self.refresh_token:
+		if not self.indexing_refresh_token:
 			button_label = frappe.bold(_("Allow API Indexing Access"))
 			raise frappe.ValidationError(_("Click on {0} to generate Refresh Token.").format(button_label))
 
