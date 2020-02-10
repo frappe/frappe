@@ -302,22 +302,32 @@ def rename_value_in_dashboard_chart_filter(doc, method, old_docname, new_docname
 
 	if not doctype_lists: return
 
-	dashboard_charts = frappe.get_all('Dashboard Chart', fields=['name', 'filters_json', 'document_type'], filters={
-		'document_type': ['in', doctype_lists],
-		'filters_json': ['!=', '{}']
-	})
+	dashboard_charts = frappe.get_all('Dashboard Chart',
+		fields=['name', 'filters_json', 'document_type', 'chart_type', 'source'],
+		filters={
+			'filters_json': ['!=', '{}']
+		},
+		or_filters={
+			'document_type': ['in', doctype_lists],
+			'chart_type': 'Custom'
+		})
 
 	for chart in dashboard_charts:
+		fieldname = []
 		chart_filter = frappe.parse_json(chart.filters_json)
-		field_info = linked_doctypes.get(chart.document_type)
 
-		fieldnames = field_info.get('fieldname')
-		doctype_fieldname = field_info.get('doctype_fieldname')
-		child_doctype = field_info.get('child_doctype')
+		if chart.chart_type == 'Custom':
+			fieldnames = get_doctype_link_fieldnames(chart.source, doc.doctype)
+		else:
+			field_info = linked_doctypes.get(chart.document_type)
 
-		# considering dashboard chart does not accept dynamic link & child table filters
-		# dashboard_chart.js line 77
-		if doctype_fieldname or child_doctype: continue
+			fieldnames = field_info.get('fieldname')
+			doctype_fieldname = field_info.get('doctype_fieldname')
+			child_doctype = field_info.get('child_doctype')
+
+			# considering dashboard chart does not accept dynamic link & child table filters
+			# dashboard_chart.js line 77
+			if doctype_fieldname or child_doctype: continue
 
 		update_required = False
 		for fieldname in fieldnames:
@@ -327,3 +337,26 @@ def rename_value_in_dashboard_chart_filter(doc, method, old_docname, new_docname
 
 		if update_required:
 			frappe.set_value('Dashboard Chart', chart.name, 'filters_json', json.dumps(chart_filter))
+
+
+def get_doctype_link_fieldnames(chart_source, doctype):
+	'''
+		Extracts fieldname of link fields for passed doctype from the given chart source
+	'''
+	from frappe.desk.doctype.dashboard_chart_source.dashboard_chart_source import get_config
+	import re
+
+	config = get_config(chart_source)
+
+	filter_data = re.compile(r'([\'"])*filters\1*\s*:\s*\[(?P<filters>[^\]]*)]').search(config).group('filters')
+
+	fieldnames = []
+	if filter_data:
+		df_list = re.compile(r'{[^{]*}').findall(filter_data)
+		for df_data in df_list:
+			df_pattern = re.compile(r'((["\']*)(?P<key>fieldname|options|fieldtype)\2*\s*:\s*(["\']*)(?P<value>.*?)\4)')
+			df = {m.group('key'): m.group('value') for m in df_pattern.finditer(df_data)}
+			if df.get('fieldtype') == 'Link' and df.get('options') == doctype:
+				fieldnames.append(df.get('fieldname'))
+
+	return fieldnames
