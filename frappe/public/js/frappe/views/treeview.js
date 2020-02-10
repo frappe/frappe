@@ -193,7 +193,7 @@ frappe.views.TreeView = Class.extend({
 					return me.can_create && node.expandable && !node.hide_add;
 				},
 				click: function(node) {
-					me.new_node();
+					me.add_new_node();
 				},
 				btnClass: "hidden-xs"
 			},
@@ -235,6 +235,14 @@ frappe.views.TreeView = Class.extend({
 			return this.opts.toolbar
 		} else {
 			return toolbar
+		}
+	},
+	add_new_node: function () {
+		var me = this;
+		if (frappe.get_meta(me.doctype).quick_entry) {
+			me.new_node();
+		} else {
+			frappe.new_doc(me.doctype);
 		}
 	},
 	new_node: function() {
@@ -349,8 +357,8 @@ frappe.views.TreeView = Class.extend({
 	set_primary_action: function(){
 		var me = this;
 		if (!this.opts.disable_add_node && this.can_create) {
-			me.page.set_primary_action(__("New"), function() {
-				me.new_node();
+			me.page.set_primary_action(__("New"), function () {
+				me.add_new_node();
 			}, "octicon octicon-plus")
 		}
 	},
@@ -395,11 +403,3 @@ frappe.views.TreeView = Class.extend({
 		});
 	}
 });
-
-
-
-
-
-
-
-
