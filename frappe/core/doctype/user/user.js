@@ -73,7 +73,6 @@ frappe.ui.form.on('User', {
 
 		if(!frm.is_new()) {
 			if(has_access_to_edit_user()) {
-
 				frm.add_custom_button(__("Resend Welcome Email"), function(){
 					frappe.call({
 						method : 'frappe.core.doctype.user.user.resend_welcome_email',
@@ -82,7 +81,6 @@ frappe.ui.form.on('User', {
 						},
 					})
 				})
-
 
 				frm.add_custom_button(__("Set User Permissions"), function() {
 					frappe.route_options = {
