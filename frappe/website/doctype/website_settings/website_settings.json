@@ -303,11 +303,13 @@
    "fieldname": "indexing_refresh_token",
    "fieldtype": "Password",
    "hidden": 1,
-   "label": "Indexing Refresh Token"
+   "label": "Indexing Refresh Token",
+   "read_only": 1
   },
   {
    "fieldname": "indexing_authorization_code",
    "fieldtype": "Password",
+   "hidden": 1,
    "label": "Indexing Authorization Code",
    "read_only": 1
   },
@@ -323,7 +325,7 @@
  "issingle": 1,
  "links": [],
  "max_attachments": 10,
- "modified": "2020-02-11 00:44:26.731674",
+ "modified": "2020-02-11 09:53:08.872362",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Website Settings",

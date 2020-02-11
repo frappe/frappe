@@ -124,9 +124,9 @@ class WebsiteGenerator(Document):
 	def send_indexing_request(self, operation_type='URL_UPDATED'):
 		''' Send indexing request on update/trash operation '''
 
-		if frappe.db.get_single_value('Google Indexing', 'enable_indexing')\
+		if frappe.db.get_single_value('Website Settings', 'enable_google_indexing')\
 			and self.meta.is_published_field and self.meta.allow_guest_to_view:
 
 			url = frappe.utils.get_url(self.route)
-			frappe.enqueue('frappe.integrations.doctype.google_indexing.google_indexing.publish_site', \
+			frappe.enqueue('frappe.website.doctype.website_settings.google_indexing.publish_site', \
 				url=url, operation_type=operation_type)

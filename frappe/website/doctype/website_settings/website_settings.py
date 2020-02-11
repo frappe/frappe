@@ -59,7 +59,7 @@ class WebsiteSettings(Document):
 						footer_item.idx))
 
 	def validate_google_settings(self):
-		if not frappe.db.get_single_value("Google Settings", "enable"):
+		if self.enable_google_indexing and not frappe.db.get_single_value("Google Settings", "enable"):
 			frappe.throw(_("Enable Google API in Google Settings."))
 
 	def on_update(self):
