@@ -787,7 +787,6 @@ class Document(BaseDocument):
 			fn = lambda self, *args, **kwargs: None
 
 		fn.__name__ = str(method)
-		print("**********************************", fn)
 		out = Document.hook(fn)(self, *args, **kwargs)
 
 		self.run_notifications(method)
@@ -1058,7 +1057,6 @@ class Document(BaseDocument):
 				+ doc_events.get("*", {}).get(method, []):
 				hooks.append(frappe.get_attr(handler))
 
-			print("------------------------------------------------", f)
 			composed = compose(f, *hooks)
 			return composed(self, method, *args, **kwargs)
 

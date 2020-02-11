@@ -608,7 +608,6 @@ def resend_welcome_email(email):
 	user_doc = frappe.get_doc("User",email)
 	user_doc.send_welcome_mail_to_user()
 	
-
 @frappe.whitelist(allow_guest=False)
 def get_email_awaiting(user):
 	waiting = frappe.db.sql("""select email_account,email_id
