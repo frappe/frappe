@@ -47,7 +47,7 @@ frappe.ui.form.on("Address", {
 			() => frappe.timeout(1),
 			() => {
 				const last_doc = frappe.contacts.get_last_doc(frm);
-				if(frappe.dynamic_link && frappe.dynamic_link.doc && frappe.dynamic_link.doc.name == last_doc.docname) {
+				if (frappe.dynamic_link && frappe.dynamic_link.doc && frappe.dynamic_link.doc.name == last_doc.docname) {
 					for (let i in frm.doc.links) {
 						let link = frm.doc.links[i];
 						if (last_doc.doctype == link.link_doctype && last_doc.docname == link.link_name) {
