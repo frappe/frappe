@@ -37,7 +37,7 @@ frappe.ui.form.on('Website Settings', {
 
 	authorize_api_indexing_access: function(frm) {
 		let reauthorize = 0;
-		if(frm.doc.authorization_code) {
+		if (frm.doc.authorization_code) {
 			reauthorize = 1;
 		}
 
@@ -48,7 +48,7 @@ frappe.ui.form.on('Website Settings', {
 				"reauthorize": reauthorize
 			},
 			callback: function(r) {
-				if(!r.exc) {
+				if (!r.exc) {
 					frm.save();
 					window.open(r.message.url);
 				}
