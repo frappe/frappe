@@ -139,7 +139,7 @@ def validate_workflow(doc):
 
 	state_row = [d for d in workflow.states if d.state == current_state]
 	if not state_row:
-		frappe.throw(_('{0} is not a valid Workflow State. Please update your Workflow and try again.'.format(frappe.bold(current_state))))
+		frappe.throw(_('{0} is not a valid Workflow State. Please update your Workflow and try again.').format(frappe.bold(current_state)))
 	state_row = state_row[0]
 
 	# if transitioning, check if user is allowed to transition
@@ -217,3 +217,22 @@ def show_progress(docnames, message, i, description):
 			title = message,
 			description = description
 		)
+
+def set_workflow_state_on_action(doc, workflow_name, action):
+	workflow = frappe.get_doc('Workflow', workflow_name)
+	workflow_state_field = workflow.workflow_state_field
+
+	# If workflow state of doc is already correct, don't set workflow state
+	for state in workflow.states:
+		if state.state == doc.get(workflow_state_field) and doc.docstatus == cint(state.doc_status):
+			return
+
+	action_map = {
+		'submit': '1',
+		'cancel': '2'
+	}
+	docstatus = action_map[action]
+	for state in workflow.states:
+		if state.doc_status == docstatus:
+			doc.set(workflow_state_field, state.state)
+			return

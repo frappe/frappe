@@ -51,7 +51,7 @@ def add(args=None):
 		from frappe.utils import nowdate
 
 		if not args.get('description'):
-			args['description'] = _('Assignment for {0} {1}'.format(args['doctype'], args['name']))
+			args['description'] = _('Assignment for {0} {1}').format(args['doctype'], args['name'])
 
 		d = frappe.get_doc({
 			"doctype":"ToDo",

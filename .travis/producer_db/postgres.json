@@ -1,6 +1,6 @@
 {
     "db_host": "localhost",
-    "db_name": "test_frappe",
+    "db_name": "test_frappe_producer",
     "db_password": "test_frappe",
     "db_type": "postgres",
     "auto_email_id": "test@example.com",
@@ -10,6 +10,5 @@
     "admin_password": "admin",
     "root_login": "postgres",
     "root_password": "travis",
-    "host_name": "http://test_site:8000",
-    "server_script_enabled": true
+    "host_name": "http://test_site_producer:8000"
 }

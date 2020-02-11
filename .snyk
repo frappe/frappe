@@ -1,5 +1,5 @@
 # Snyk (https://snyk.io) policy file, patches or ignores known vulnerabilities.
-version: v1.13.3
+version: v1.14.0
 # ignores vulnerabilities until expiry date; change duration by modifying expiry date
 ignore:
   SNYK-JS-AWESOMPLETE-174474:
@@ -15,3 +15,6 @@ patch:
   'npm:extend:20180424':
     - superagent > extend:
         patched: '2019-05-09T10:14:19.246Z'
+  SNYK-JS-LODASH-450202:
+    - frappe-datatable > lodash:
+        patched: '2020-01-31T01:33:09.889Z'
