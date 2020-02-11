@@ -347,6 +347,9 @@ def msgprint(msg, title=None, raise_exception=0, as_table=False, indicator=None,
 	if alert:
 		out.alert = 1
 
+	if raise_exception:
+		out.raise_exception = 1
+
 	if primary_action:
 		out.primary_action = primary_action
 
@@ -359,6 +362,13 @@ def msgprint(msg, title=None, raise_exception=0, as_table=False, indicator=None,
 
 def clear_messages():
 	local.message_log = []
+
+def get_message_log():
+	log = []
+	for msg_out in local.message_log:
+		log.append(json.loads(msg_out))
+
+	return log
 
 def clear_last_message():
 	if len(local.message_log) > 0:
