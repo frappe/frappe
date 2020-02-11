@@ -114,7 +114,6 @@ frappe.ui.form.on('User', {
 				});
 			}, __("Password"));
 
-
 			frm.trigger('enabled');
 
 			if (frm.roles_editor && frm.can_edit_roles) {
