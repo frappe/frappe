@@ -382,12 +382,22 @@ frappe.views.BaseList = class BaseList {
 
 	prepare_data(r) {
 		let data = r.message || {};
+		let _link_titles = r.message._link_titles ? r.message._link_titles : {};
 		data = !Array.isArray(data) ? frappe.utils.dict(data.keys, data.values) : data;
+
+		// Set Link Titles in doc.__onload for the formatter
+		this.__onload = {
+			"__onload": {
+				"_link_titles": {}
+			}
+		};
 
 		if (this.start === 0) {
 			this.data = data;
+			this.__onload.__onload._link_titles = _link_titles;
 		} else {
 			this.data = this.data.concat(data);
+			this.__onload.__onload._link_titles = Object.assign({}, _link_titles, this.__onload.__onload._link_titles);
 		}
 
 		this.data = this.data.uniqBy(d => d.name);

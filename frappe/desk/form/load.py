@@ -117,9 +117,9 @@ def set_link_titles(doc):
 
 	doc.set_onload("_link_titles", _link_titles)
 
-def get_title_values_for_link_fields(meta, doc):
+def get_title_values_for_link_fields(meta, doc, link_fields=None):
 	_link_titles = {}
-	for field in meta.get_link_fields():
+	for field in link_fields or meta.get_link_fields():
 		if not doc.get(field.fieldname):
 			continue
 
@@ -132,9 +132,9 @@ def get_title_values_for_link_fields(meta, doc):
 
 	return _link_titles
 
-def get_title_values_for_dynamic_link_fields(meta, doc):
+def get_title_values_for_dynamic_link_fields(meta, doc, dynamic_link_fields=None):
 	_link_titles = {}
-	for field in meta.get_dynamic_link_fields():
+	for field in dynamic_link_fields or meta.get_dynamic_link_fields():
 		if not doc.get(field.fieldname):
 			continue
 
@@ -147,9 +147,9 @@ def get_title_values_for_dynamic_link_fields(meta, doc):
 
 	return _link_titles
 
-def get_title_values_for_table_and_multiselect_fields(meta, doc):
+def get_title_values_for_table_and_multiselect_fields(meta, doc, table_fields=None):
 	_link_titles = {}
-	for field in meta.get_table_fields():
+	for field in table_fields or meta.get_table_fields():
 		if not doc.get(field.fieldname):
 			continue
 

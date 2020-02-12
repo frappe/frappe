@@ -270,6 +270,10 @@ frappe.ui.Filter = class {
 		return this.utils.get_selected_value(this.field, this.get_condition());
 	}
 
+	get_selected_label() {
+		return this.utils.get_selected_label(this.field);
+	}
+
 	get_condition() {
 		return this.filter_edit_area.find('.condition').val();
 	}
@@ -304,7 +308,7 @@ frappe.ui.Filter = class {
 	}
 
 	get_filter_button_text() {
-		let value = this.utils.get_formatted_value(this.field, this.get_selected_value());
+		let value = this.utils.get_formatted_value(this.field, this.get_selected_label() || this.get_selected_value());
 		return `${__(this.field.df.label)} ${__(this.get_condition())} ${__(value)}`;
 	}
 
@@ -389,6 +393,12 @@ frappe.ui.filter_utils = {
 		}
 
 		return val;
+	},
+
+	get_selected_label(field) {
+		if (in_list(["Link", "Dynamic Link"], field.df.fieldtype)) {
+			return field.get_label_value()
+		}
 	},
 
 	get_default_condition(df) {
