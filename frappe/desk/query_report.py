@@ -185,7 +185,8 @@ def run(report_name, filters=None, user=None, ignore_prepared_report=False):
 	else:
 		result = generate_report_result(report, filters, user)
 
-	result["add_total_row"] = report.add_total_row and not result['skip_total_row']
+	skip_total_row = result['skip_total_row'] if 'skip_total_row' in result else ''
+	result["add_total_row"] = report.add_total_row and not skip_total_row
 
 	return result
 
