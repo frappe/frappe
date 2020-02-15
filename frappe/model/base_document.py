@@ -216,6 +216,9 @@ class BaseDocument(object):
 
 			df = self.meta.get_field(fieldname)
 			if df:
+				if df.fieldtype in ('Data','Link') and d[fieldname]:
+					d[fieldname] = d[fieldname].strip()
+					
 				if df.fieldtype=="Check":
 					d[fieldname] = 1 if cint(d[fieldname]) else 0
 
