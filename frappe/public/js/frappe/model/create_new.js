@@ -144,10 +144,9 @@ $.extend(frappe.model, {
 				return default_doc;
 			}
 
-			if(df.ignore_user_permissions) {
-				// 2 - If User Permission is ignored, only then set docfield default
-				user_default = df["default"];
-			} else {
+			user_default = df["default"];
+
+			if(!df.ignore_user_permissions && !user_default) {
 				// 2 - look in user defaults
 				var user_defaults = frappe.defaults.get_user_defaults(df.options);
 				if (user_defaults && user_defaults.length===1) {
