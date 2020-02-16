@@ -155,10 +155,10 @@ export default class WebForm extends frappe.ui.FieldGroup {
 	}
 
 	print() {
-		window.location.href = `/printview?
+		window.open(`/printview?
 			doctype=${this.doc_type}
 			&name=${this.doc.name}
-			&format=${this.print_format || "Standard"}`;
+			&format=${this.print_format || "Standard"}`, '_blank');
 	}
 
 	cancel() {
