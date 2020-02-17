@@ -186,7 +186,7 @@ def get_unit_function(doctype, datefield, timegrain):
 	unit_function = ''
 	if timegrain=='Daily':
 		if frappe.db.db_type == 'mariadb':
-			unit_function = 'dayofyear({datefield})'.format(
+			unit_function = 'dayofyear(`tab{doctype}`.{datefield})'.format(
 				doctype=doctype, datefield=datefield)
 		else:
 			unit_function = 'extract(doy from `tab{doctype}`.{datefield})'.format(

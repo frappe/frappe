@@ -261,7 +261,7 @@ class DatabaseQuery(object):
 		if self.fields:
 			for f in self.fields:
 				if ( not ("tab" in f and "." in f) ) or ("locate(" in f) or ("strpos(" in f) or \
-					("count(" in f) or ("avg(" in f)  or ("sum(" in f) or ("extract(" in f):
+					("count(" in f) or ("avg(" in f)  or ("sum(" in f) or ("extract(" in f) or ("dayofyear(" in f):
 					continue
 
 				table_name = f.split('.')[0]
