@@ -994,9 +994,9 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 
 	setup_realtime_updates() {
-		if (this.list_view_settings && !this.list_view_settings.disable_auto_refresh) {
-		//	return;
-		//}
+		if (this.list_view_settings && this.list_view_settings.disable_auto_refresh) {
+			return;
+		}
 		frappe.realtime.on('list_update', data => {
 			if (this.filter_area.is_being_edited()) {
 				return;
@@ -1056,7 +1056,6 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 					this.render();
 				});
 		});
-	    }
 	}
 
 	on_row_checked() {
