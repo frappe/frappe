@@ -201,7 +201,7 @@ export default class WebFormList {
 			() => (window.location.href = window.location.pathname + "?new=1")
 		);
 
-		if (this.rows.length <= this.page_length) {
+		if (this.rows.length >= this.page_length) {
 			addButton(footer, "more", "secondary", false, "More", () =>  this.more());
 		}
 

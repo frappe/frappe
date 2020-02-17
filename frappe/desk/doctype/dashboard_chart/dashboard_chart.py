@@ -228,8 +228,11 @@ def get_week_ending(date):
 	# for 2019 it is Monday
 
 	week_of_the_year = int(date.strftime('%U'))
+
+	if week_of_the_year == 52:
+		date = add_to_date(date, years=1)
 	# first day of next week
-	date = add_to_date('{}-01-01'.format(date.year), weeks = week_of_the_year + 1)
+	date = add_to_date('{}-01-01'.format(date.year), weeks = (week_of_the_year + 1)%52)
 	# last day of this week
 	return add_to_date(date, days = -1)
 

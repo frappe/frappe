@@ -430,7 +430,7 @@ def sendmail(recipients=[], sender="", subject="No Subject", message="No Message
 
 
 	:param recipients: List of recipients.
-	:param sender: Email sender. Default is current user.
+	:param sender: Email sender. Default is current user or default outgoing account.
 	:param subject: Email Subject.
 	:param message: (or `content`) Email Content.
 	:param as_markdown: Convert content markdown to HTML.
@@ -452,7 +452,6 @@ def sendmail(recipients=[], sender="", subject="No Subject", message="No Message
 	:param args: Arguments for rendering the template
 	:param header: Append header in email
 	"""
-
 	text_content = None
 	if template:
 		message, text_content = get_email_from_template(template, args)

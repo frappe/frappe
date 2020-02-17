@@ -97,9 +97,7 @@ class User(Document):
 		self.share_with_self()
 		clear_notifications(user=self.name)
 		frappe.clear_cache(user=self.name)
-		if self.__new_password:
-			self.send_password_notification(self.__new_password)
-			self.reset_password_key = ''
+		self.send_password_notification(self.__new_password)
 		create_contact(self, ignore_mandatory=True)
 		if self.name not in ('Administrator', 'Guest') and not self.user_image:
 			frappe.enqueue('frappe.core.doctype.user.user.update_gravatar', name=self.name)
@@ -175,7 +173,6 @@ class User(Document):
 			from `tabRole` where desk_access=1
 				and name in ({0}) limit 1""".format(', '.join(['%s'] * len(self.roles))),
 				[d.role for d in self.roles]))
-
 
 	def share_with_self(self):
 		if self.user_type=="System User":
@@ -564,8 +561,8 @@ def update_password(new_password, logout_all_sessions=0, key=None, old_password=
 
 	frappe.local.login_manager.login_as(user)
 
-	frappe.db.set_value("User", user,
-		'last_password_reset_date', today())
+	frappe.db.set_value("User", user, "last_password_reset_date", today())
+	frappe.db.set_value("User", user, "reset_password_key", "")
 
 	if user_doc.user_type == "System User":
 		return "/desk"

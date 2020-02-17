@@ -1,6 +1,5 @@
 language: python
 dist: trusty
-sudo: required
 
 addons:
   hosts:
@@ -39,6 +38,16 @@ matrix:
     env: DB=mariadb TYPE=server
     script: bench --site test_site run-tests --coverage
 
+before_install:
+  # install wkhtmltopdf
+  - wget -O /tmp/wkhtmltox.tar.xz https://github.com/frappe/wkhtmltopdf/raw/master/wkhtmltox-0.12.3_linux-generic-amd64.tar.xz
+  - tar -xf /tmp/wkhtmltox.tar.xz -C /tmp
+  - sudo mv /tmp/wkhtmltox/bin/wkhtmltopdf /usr/local/bin/wkhtmltopdf
+  - sudo chmod o+x /usr/local/bin/wkhtmltopdf
+
+  # install cups
+  - sudo apt-get install libcups2-dev
+
 install:
   - cd ~
   - source ./.nvm/nvm.sh
@@ -52,23 +61,20 @@ install:
   - mkdir ~/frappe-bench/sites/test_site
   - cp $TRAVIS_BUILD_DIR/.travis/$DB.json ~/frappe-bench/sites/test_site/site_config.json
 
-  - mysql -u root -e "SET GLOBAL character_set_server = 'utf8mb4'"
-  - mysql -u root -e "SET GLOBAL collation_server = 'utf8mb4_unicode_ci'"
+  - if [ $DB == "mariadb" ];then
+      mysql -u root -e "SET GLOBAL character_set_server = 'utf8mb4'";
+      mysql -u root -e "SET GLOBAL collation_server = 'utf8mb4_unicode_ci'";
+      mysql -u root -e "CREATE DATABASE test_frappe";
+      mysql -u root -e "CREATE USER 'test_frappe'@'localhost' IDENTIFIED BY 'test_frappe'";
+      mysql -u root -e "GRANT ALL PRIVILEGES ON \`test_frappe\`.* TO 'test_frappe'@'localhost'";
+      mysql -u root -e "UPDATE mysql.user SET Password=PASSWORD('travis') WHERE User='root'";
+      mysql -u root -e "FLUSH PRIVILEGES";
+    fi
 
-  - mysql -u root -e "CREATE DATABASE test_frappe"
-  - mysql -u root -e "CREATE USER 'test_frappe'@'localhost' IDENTIFIED BY 'test_frappe'"
-  - mysql -u root -e "GRANT ALL PRIVILEGES ON \`test_frappe\`.* TO 'test_frappe'@'localhost'"
-
-  - mysql -u root -e "UPDATE mysql.user SET Password=PASSWORD('travis') WHERE User='root'"
-  - mysql -u root -e "FLUSH PRIVILEGES"
-
-  - psql -c "CREATE DATABASE test_frappe" -U postgres
-  - psql -c "CREATE USER test_frappe WITH PASSWORD 'test_frappe'" -U postgres
-
-  - wget -O /tmp/wkhtmltox.tar.xz https://github.com/frappe/wkhtmltopdf/raw/master/wkhtmltox-0.12.3_linux-generic-amd64.tar.xz
-  - tar -xf /tmp/wkhtmltox.tar.xz -C /tmp
-  - sudo mv /tmp/wkhtmltox/bin/wkhtmltopdf /usr/local/bin/wkhtmltopdf
-  - sudo chmod o+x /usr/local/bin/wkhtmltopdf
+  - if [ $DB == "postgres" ];then
+      psql -c "CREATE DATABASE test_frappe" -U postgres;
+      psql -c "CREATE USER test_frappe WITH PASSWORD 'test_frappe'" -U postgres;
+    fi
 
   - cd ./frappe-bench
 
@@ -85,5 +91,6 @@ install:
   - bench build --app frappe
 
 after_script:
+  - pip install coverage==4.5.4
   - pip install python-coveralls
   - coveralls -b apps/frappe -d ../../sites/.coverage

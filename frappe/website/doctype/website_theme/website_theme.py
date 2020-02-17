@@ -112,4 +112,5 @@ def generate_theme_files_if_not_exist():
 			doc.generate_theme_if_not_exist()
 			doc.save()
 		except Exception:
+			frappe.log_error(frappe.get_traceback(), "Theme File Generation Failed")
 			pass
