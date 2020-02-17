@@ -45,6 +45,7 @@
   "bold",
   "report_hide",
   "search_index",
+  "allow_in_quick_entry",
   "ignore_xss_filter",
   "translatable"
  ],
@@ -349,11 +350,17 @@
    "fieldname": "length",
    "fieldtype": "Int",
    "label": "Length"
+  },
+  {
+   "default": "0",
+   "fieldname": "allow_in_quick_entry",
+   "fieldtype": "Check",
+   "label": "Allow in Quick Entry"
   }
  ],
  "icon": "fa fa-glass",
  "idx": 1,
- "modified": "2019-09-11 12:57:19.268934",
+ "modified": "2020-02-01 12:08:07.430090",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Custom Field",
