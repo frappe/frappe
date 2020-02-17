@@ -144,7 +144,7 @@ $.extend(frappe.model, {
 				return default_doc;
 			}
 
-			if (df["default"] && (!has_user_permissions || allowed_records.includes(df["default"]))) {
+			if (this.check_permission(df["default"], has_user_permissions, allowed_records)) {
 				user_default = df["default"];
 			}
 
@@ -165,8 +165,7 @@ $.extend(frappe.model, {
 				user_default = frappe.boot.user.last_selected_values[df.options];
 			}
 
-			var is_allowed_user_default = user_default &&
-				(!has_user_permissions || allowed_records.includes(user_default));
+			var is_allowed_user_default = this.check_permission(user_default, has_user_permissions, allowed_records);
 
 			// is this user default also allowed as per user permissions?
 			if (is_allowed_user_default) {
@@ -322,6 +321,10 @@ $.extend(frappe.model, {
 				}
 			}
 		})
+	},
+
+	check_permission: function(default_value, has_user_permissions, allowed_records) {
+		return default_value && (!has_user_permissions || allowed_records.includes(default_value));
 	}
 });
 
