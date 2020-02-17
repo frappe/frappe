@@ -158,6 +158,11 @@ frappe.ui.form.on('Data Import Beta', {
 			} else {
 				frm.data_exporter.dialog.set_value('export_records', 'all');
 			}
+			// Force ID field to be exported when updating existing records
+			let id_field = frm.data_exporter.dialog.get_field(frm.doc.reference_doctype).options[0];
+			if (id_field.value === 'name' && id_field.$checkbox) {
+				id_field.$checkbox.find('input').prop('disabled', frm.doc.import_type === 'Update Existing Records');
+			}
 		}
 	},
 
