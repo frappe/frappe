@@ -148,7 +148,7 @@ $.extend(frappe.model, {
 				user_default = df["default"];
 			}
 
-			if(!df.ignore_user_permissions && !user_default) {
+			if (!df.ignore_user_permissions && !user_default) {
 				// 2 - look in user defaults
 				var user_defaults = frappe.defaults.get_user_defaults(df.options);
 				if (user_defaults && user_defaults.length===1) {
