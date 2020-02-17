@@ -1021,7 +1021,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 
 	setup_realtime_updates() {
-		if (this.list_view_settings.disable_auto_refresh) {
+		if (this.list_view_settings && this.list_view_settings.disable_auto_refresh) {
 			return;
 		}
 		frappe.realtime.on('list_update', data => {
