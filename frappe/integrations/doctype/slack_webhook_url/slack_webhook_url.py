@@ -37,5 +37,19 @@ def send_slack_message(webhook_url, message, reference_doctype, reference_name):
 		return 'success'
 
 	elif r.ok == False:
-		frappe.log_error(r.error, _('Slack Webhook Error'))
+		status = r.status_code
+		if status == 400:
+			message = _("400 - Invalid payload or user not found")
+		elif status == 403:
+			message = _("403 - Action Prohibited")
+		elif status == 404:
+			message = _("404 - Channel not found")
+		elif status == 410:
+			message = _("410 - The Channel is Archived")
+		elif status == 500:
+			message = _("500 - Rollup error, slack seems down")
+		else:
+			message = r.status_code
+
+		frappe.log_error(message, _('Slack Webhook Error'))
 		return 'error'
