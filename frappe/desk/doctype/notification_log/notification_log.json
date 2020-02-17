@@ -1,0 +1,108 @@
+{
+ "creation": "2019-08-26 13:37:34.165254",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "subject",
+  "for_user",
+  "type",
+  "email_content",
+  "column_break_4",
+  "document_type",
+  "read",
+  "document_name",
+  "from_user"
+ ],
+ "fields": [
+  {
+   "fieldname": "subject",
+   "fieldtype": "Text",
+   "in_list_view": 1,
+   "label": "Subject",
+   "read_only": 1
+  },
+  {
+   "fieldname": "for_user",
+   "fieldtype": "Link",
+   "label": "For User",
+   "options": "User",
+   "read_only": 1
+  },
+  {
+   "fieldname": "type",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Type",
+   "options": "Mention\nEnergy Point\nAssignment\nShare",
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "email_content",
+   "fieldtype": "Text",
+   "label": "Email Content",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_4",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "document_type",
+   "fieldtype": "Link",
+   "label": "Document Type",
+   "options": "DocType",
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "document_name",
+   "fieldtype": "Data",
+   "label": "Document Name",
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "from_user",
+   "fieldtype": "Link",
+   "label": "From User",
+   "options": "User",
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "read",
+   "fieldtype": "Check",
+   "hidden": 1,
+   "ignore_user_permissions": 1,
+   "label": "Read"
+  }
+ ],
+ "in_create": 1,
+ "modified": "2019-11-12 15:22:35.283678",
+ "modified_by": "umair@erpnext.com",
+ "module": "Desk",
+ "name": "Notification Log",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "All",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "title_field": "subject",
+ "track_changes": 1,
+ "track_seen": 1
+}

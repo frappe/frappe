@@ -3,32 +3,49 @@
 # For license information, please see license.txt
 
 from __future__ import unicode_literals
-import frappe, json
+import frappe
 from frappe import _
+import datetime
 from frappe.core.page.dashboard.dashboard import cache_source, get_from_date_from_timespan
 from frappe.utils import nowdate, add_to_date, getdate, get_last_day, formatdate
 from frappe.model.document import Document
 
 @frappe.whitelist()
 @cache_source
-def get(chart_name, from_date=None, to_date=None, refresh = None):
-	chart = frappe.get_doc('Dashboard Chart', chart_name)
+def get(chart_name = None, chart = None, no_cache = None, from_date = None, to_date = None, refresh = None):
+	if chart_name:
+		chart = frappe.get_doc('Dashboard Chart', chart_name)
+	else:
+		chart = frappe._dict(frappe.parse_json(chart))
 
 	timespan = chart.timespan
+
+	if chart.timespan == 'Select Date Range':
+		from_date = chart.from_date
+		to_date = chart.to_date
+
 	timegrain = chart.time_interval
-	filters = json.loads(chart.filters_json)
+	filters = frappe.parse_json(chart.filters_json)
 
 	# don't include cancelled documents
 	filters['docstatus'] = ('<', 2)
 
+	if chart.chart_type == 'Group By':
+		chart_config = get_group_by_chart_config(chart, filters)
+	else:
+		chart_config =  get_chart_config(chart, filters, timespan, timegrain, from_date, to_date)
+
+	return chart_config
+
+
+def get_chart_config(chart, filters, timespan, timegrain, from_date, to_date):
 	if not from_date:
 		from_date = get_from_date_from_timespan(to_date, timespan)
 	if not to_date:
-		to_date = nowdate()
+		to_date = datetime.datetime.now()
 
 	# get conditions from filters
 	conditions, values = frappe.db.build_conditions(filters)
-
 	# query will return year, unit and aggregate value
 	data = frappe.db.sql('''
 		select
@@ -45,7 +62,7 @@ def get(chart_name, from_date=None, to_date=None, refresh = None):
 	'''.format(
 		unit_function = get_unit_function(chart.based_on, timegrain),
 		datefield = chart.based_on,
-		aggregate_function = chart.chart_type,
+		aggregate_function = get_aggregate_function(chart.chart_type),
 		value_field = chart.value_based_on or '1',
 		doctype = chart.document_type,
 		conditions = conditions,
@@ -59,7 +76,7 @@ def get(chart_name, from_date=None, to_date=None, refresh = None):
 	# add missing data points for periods where there was no result
 	result = add_missing_values(result, timegrain, from_date, to_date)
 
-	return {
+	chart_config = {
 		"labels": [formatdate(r[0].strftime('%Y-%m-%d')) for r in result],
 		"datasets": [{
 			"name": chart.name,
@@ -67,11 +84,60 @@ def get(chart_name, from_date=None, to_date=None, refresh = None):
 		}]
 	}
 
+	return chart_config
+
+
+def get_group_by_chart_config(chart, filters):
+	conditions, values = frappe.db.build_conditions(filters)
+	data = frappe.db.sql('''
+		select
+			{aggregate_function}({value_field}) as count,
+			{group_by_field} as name
+		from `tab{doctype}`
+		where {conditions}
+		group by {group_by_field}
+		order by count desc
+	'''.format(
+		aggregate_function = get_aggregate_function(chart.group_by_type),
+		value_field = chart.aggregate_function_based_on or '1',
+		field = chart.aggregate_function_based_on or chart.group_by_based_on,
+		group_by_field = chart.group_by_based_on,
+		doctype = chart.document_type,
+		conditions = conditions,
+	), values, as_dict = True)
+
+	if data:
+		if chart.number_of_groups and chart.number_of_groups < len(data):
+			other_count = 0
+			for i in range(chart.number_of_groups - 1, len(data)):
+				other_count += data[i]['count']
+			data = data[0: chart.number_of_groups - 1]
+			data.append({'name': 'Other', 'count': other_count})
+
+		chart_config = {
+			"labels": [item['name'] if item['name'] else 'Not Specified' for item in data],
+			"datasets": [{
+				"name": chart.name,
+				"values": [item['count'] for item in data]
+			}]
+		}
+		return chart_config
+	else:
+		return None
+
+
+def get_aggregate_function(chart_type):
+	return {
+		"Sum": "SUM",
+		"Count": "COUNT",
+		"Average": "AVG",
+	}[chart_type]
+
 def convert_to_dates(data, timegrain):
 	result = []
 	for d in data:
 		if timegrain == 'Daily':
-			result.append([add_to_date('{:d}-01-01'.format(int(d[0])), days = d[1]), d[2]])
+			result.append([add_to_date('{:d}-01-01'.format(int(d[0])), days = d[1] - 1), d[2]])
 		elif timegrain == 'Weekly':
 			result.append([add_to_date(add_to_date('{:d}-01-01'.format(int(d[0])), weeks = d[1] + 1), days = -1), d[2]])
 		elif timegrain == 'Monthly':
@@ -130,7 +196,7 @@ def add_missing_values(data, timegrain, from_date, to_date):
 			next_expected_date = get_next_expected_date(next_expected_date, timegrain)
 
 	# add date for the last period (if missing)
-	if get_period_ending(to_date, timegrain) > result[-1][0]:
+	if result and get_period_ending(to_date, timegrain) > result[-1][0]:
 		result.append([get_period_ending(to_date, timegrain), 0.0])
 
 	return result
@@ -162,8 +228,11 @@ def get_week_ending(date):
 	# for 2019 it is Monday
 
 	week_of_the_year = int(date.strftime('%U'))
+
+	if week_of_the_year == 52:
+		date = add_to_date(date, years=1)
 	# first day of next week
-	date = add_to_date('{}-01-01'.format(date.year), weeks = week_of_the_year + 1)
+	date = add_to_date('{}-01-01'.format(date.year), weeks = (week_of_the_year + 1)%52)
 	# last day of this week
 	return add_to_date(date, days = -1)
 
@@ -199,7 +268,14 @@ class DashboardChart(Document):
 			self.check_required_field()
 
 	def check_required_field(self):
-		if not self.based_on:
-			frappe.throw(_("Time series based on is required to create a dashboard chart"))
 		if not self.document_type:
-			frappe.throw(_("Document type is required to create a dashboard chart"))
+				frappe.throw(_("Document type is required to create a dashboard chart"))
+
+		if self.chart_type == 'Group By':
+			if not self.group_by_based_on:
+				frappe.throw(_("Group By field is required to create a dashboard chart"))
+			if self.group_by_type in ['Sum', 'Average'] and not self.aggregate_function_based_on:
+				frappe.throw(_("Aggregate Function field is required to create a dashboard chart"))
+		else:
+			if not self.based_on:
+				frappe.throw(_("Time series based on is required to create a dashboard chart"))

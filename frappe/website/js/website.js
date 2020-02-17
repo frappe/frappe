@@ -132,12 +132,12 @@ $.extend(frappe, {
 
 		if (data._server_messages) {
 			var server_messages = JSON.parse(data._server_messages || '[]');
-			server_messages = $.map(server_messages, function(v) {
+			server_messages.map((msg) => {
 				// temp fix for messages sent as dict
 				try {
-					return JSON.parse(v).message;
+					return JSON.parse(msg);
 				} catch (e) {
-					return v;
+					return msg;
 				}
 			}).join('<br>');
 
@@ -459,7 +459,7 @@ frappe.ready(function() {
 		method: 'frappe.website.doctype.website_settings.website_settings.is_chat_enabled',
 		callback: (r) => {
 			if (r.message) {
-				frappe.require('/assets/js/moment-bundle.min.js', () => {
+				frappe.require(['/assets/js/moment-bundle.min.js', "/assets/css/frappe-chat-web.css", "/assets/frappe/js/lib/socket.io.min.js"], () => {
 					frappe.require('/assets/js/chat.js', () => {
 						frappe.chat.setup();
 					});

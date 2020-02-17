@@ -36,7 +36,7 @@ class MyLink extends Link {
 	}
 }
 
-Quill.register(MyLink);
+Quill.register(MyLink, true);
 
 // image uploader
 const Uploader = Quill.import('modules/uploader');

@@ -29,6 +29,12 @@ frappe.pages['activity'].on_page_load = function(wrapper) {
 			doctype = $(this).attr("data-doctype"),
 			docname = $(this).attr("data-docname");
 
+		[link_doctype, link_name, doctype, docname] =
+			[link_doctype, link_name, doctype, docname].map(decodeURIComponent);
+
+		link_doctype = link_doctype && link_doctype !== 'null' ? link_doctype : null;
+		link_name = link_name && link_name !== 'null' ? link_name : null;
+
 		if (doctype && docname) {
 			if (link_doctype && link_name) {
 				frappe.route_options = {
@@ -147,10 +153,10 @@ frappe.activity.render_heatmap = function(page) {
 					start: new Date(moment().subtract(1, 'year').toDate()),
 					countLabel: "actions",
 					discreteDomains: 0,
-					data: {}
+					data: {
+						'dataPoints': r.message
+					}
 				});
-
-				heatmap.update(r.message);
 			}
 		}
 	})

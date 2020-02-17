@@ -11,6 +11,7 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.utils import cint, split_emails
 from frappe.utils.background_jobs import enqueue
+from rq.timeouts import JobTimeoutException
 from botocore.exceptions import ClientError
 
 class S3BackupSettings(Document):
@@ -105,9 +106,8 @@ def send_email(success, service_name, error_status=None):
 	if not frappe.db:
 		frappe.connect()
 
-	if frappe.db.get_value("S3 Backup Settings", None, "notification_email"):
-		recipients = split_emails(frappe.db.get_value("S3 Backup Settings", None, "notification_email"))
-		frappe.sendmail(recipients=recipients, subject=subject, message=message)
+	recipients = split_emails(frappe.db.get_value("S3 Backup Settings", None, "notify_email"))
+	frappe.sendmail(recipients=recipients, subject=subject, message=message)
 
 
 def backup_to_s3():
@@ -162,8 +162,9 @@ def delete_old_backups(limit, bucket):
 			)
 	bucket = s3.Bucket(bucket)
 	objects = bucket.meta.client.list_objects_v2(Bucket=bucket.name, Delimiter='/')
-	for obj in objects.get('CommonPrefixes'):
-		all_backups.append(obj.get('Prefix'))
+	if objects:
+		for obj in objects.get('CommonPrefixes'):
+			all_backups.append(obj.get('Prefix'))
 
 	oldest_backup = sorted(all_backups)[0]
 

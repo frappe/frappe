@@ -13,10 +13,10 @@ frappe.ui.LinkPreview = class {
 			this.element = $(e.currentTarget);
 			this.is_link = this.element.get(0).tagName.toLowerCase() === 'a';
 
-			if(!this.element.parents().find('.popover').length) {
+			if (!this.element.parents().find('.popover').length) {
 				this.identify_doc();
 				this.popover = this.element.data("bs.popover");
-				if(this.name && this.doctype) {
+				if (this.name && this.doctype) {
 					this.setup_popover_control(e);
 				}
 			}
@@ -39,18 +39,18 @@ frappe.ui.LinkPreview = class {
 	}
 
 	setup_popover_control(e) {
+		if (!(frappe.boot.link_preview_doctypes || []).includes(this.doctype)) {
+			return;
+		}
 		//If control field value is changed, new popover has to be created
-		this.element.on('change',()=> {
+		this.element.on('change', () => {
 			this.new_popover = true;
 		});
-		if(!this.popover || this.new_popover) {
-			this.get_preview_fields().then(preview_fields => {
-				if(preview_fields.length) {
-					this.data_timeout = setTimeout(() => {
-						this.create_popover(e, preview_fields);
-					}, 100);
-				}
-			});
+		if (!this.popover || this.new_popover) {
+			this.data_timeout = setTimeout(() => {
+				this.create_popover(e);
+			}, 100);
+
 		} else {
 			this.popover_timeout = setTimeout(() => {
 				if (this.element.is(':focus')) {
@@ -61,20 +61,20 @@ frappe.ui.LinkPreview = class {
 		}
 	}
 
-	create_popover(e, preview_fields) {
+	create_popover(e) {
 		this.new_popover = false;
 		if (this.element.is(':focus')) {
 			return;
 		}
 
-		this.get_preview_fields_value(preview_fields).then((preview_data)=> {
-			if(preview_data) {
-				if(this.popover_timeout) {
+		this.get_preview_data().then(preview_data => {
+			if (preview_data) {
+				if (this.popover_timeout) {
 					clearTimeout(this.popover_timeout);
 				}
 
 				this.popover_timeout = setTimeout(() => {
-					if(this.popover) {
+					if (this.popover) {
 						let new_content = this.get_popover_html(preview_data);
 						this.popover.options.content = new_content;
 					} else {
@@ -88,16 +88,15 @@ frappe.ui.LinkPreview = class {
 	}
 
 	show_popover(e) {
-
-		this.default_timeout = setTimeout(()=> {
+		this.default_timeout = setTimeout(() => {
 			this.clear_all_popovers();
 		}, 10000);
 
-		if(!this.is_link) {
+		if (!this.is_link) {
 			var left = e.pageX;
 			this.element.popover('show');
 			var width = $('.popover').width();
-			$('.control-field-popover').css('left', (left-(width/2)) + 'px');
+			$('.control-field-popover').css('left', (left - (width / 2)) + 'px');
 		} else {
 			this.element.popover('show');
 		}
@@ -109,14 +108,14 @@ frappe.ui.LinkPreview = class {
 			if (!$('.popover:hover').length) {
 				this.link_hovered = false;
 			}
-			if(!this.link_hovered) {
-				if(this.data_timeout) {
+			if (!this.link_hovered) {
+				if (this.data_timeout) {
 					clearTimeout(this.data_timeout);
 				}
 				if (this.popover_timeout) {
 					clearTimeout(this.popover_timeout);
 				}
-				if(this.default_timeout) {
+				if (this.default_timeout) {
 					clearTimeout(this.default_timeout);
 				}
 				this.clear_all_popovers();
@@ -132,45 +131,10 @@ frappe.ui.LinkPreview = class {
 		this.popovers_list.forEach($el => $el.hide());
 	}
 
-	get_preview_fields() {
-		return new Promise((resolve) => {
-			let dt = this.doctype;
-			let fields = [];
-			frappe.model.with_doctype(dt, () => {
-				let meta = frappe.get_meta(dt);
-				let meta_fields = meta.fields;
-
-				if (!meta.show_preview_popup) {
-					// no preview
-					resolve([]);
-					return;
-				}
-
-				meta_fields.filter((field) => {
-					// build list of fields to fetch
-					if(field.in_preview) {
-						fields.push({'name':field.fieldname,'type':field.fieldtype});
-					}
-				});
-
-				// no preview fields defined, build list from mandatory fields
-				if(!fields.length) {
-					meta_fields.filter((field) => {
-						if(field.reqd) {
-							fields.push({'name':field.fieldname,'type':field.fieldtype});
-						}
-					});
-				}
-				resolve(fields);
-			});
-		});
-	}
-
-	get_preview_fields_value(field_list) {
+	get_preview_data() {
 		return frappe.xcall('frappe.desk.link_preview.get_preview_data', {
 			'doctype': this.doctype,
 			'docname': this.name,
-			'fields': field_list,
 		});
 	}
 
@@ -195,56 +159,50 @@ frappe.ui.LinkPreview = class {
 	}
 
 	get_popover_html(preview_data) {
-		if(!this.href) {
+		if (!this.href) {
 			this.href = window.location.href;
 		}
 
-		if(this.href && this.href.includes(' ')) {
+		if (this.href && this.href.includes(' ')) {
 			this.href = this.href.replace(new RegExp(' ', 'g'), '%20');
 		}
 
 		let image_html = '';
 		let id_html = '';
 		let content_html = '';
-		let meta = frappe.get_meta(this.doctype);
-		let title = preview_data.title;
 
-		if(preview_data[meta.image_field]) {
-			let image_url = encodeURI(preview_data[meta.image_field]);
-			image_html += `
-			<div class="preview-header">
-				<img src=${image_url} class="preview-image"></img>
-			</div>`;
+		if (preview_data.preview_image) {
+			let image_url = encodeURI(preview_data.preview_image);
+			image_html = `
+				<div class="preview-header">
+					<img src="${image_url}" onerror="this.src='/assets/frappe/images/fallback-thumbnail.jpg'" class="preview-image"></img>
+				</div>
+			`;
 		}
 
-
-		if(title && title != preview_data.name) {
-			id_html+= `<a class="text-muted" href=${this.href}>${preview_data.name}</a>`;
-		}
-		if(!title) {
-			title = preview_data.name;
+		if (preview_data.preview_title != preview_data.name) {
+			id_html = `<a class="text-muted" href=${this.href}>${preview_data.name}</a>`;
 		}
 
 		Object.keys(preview_data).forEach(key => {
-			if(key!=meta.image_field && key!='name' && key!=meta.title_field) {
-				let value = this.truncate_value(preview_data[key]);
-				let label = this.truncate_value(frappe.meta.get_label(this.doctype, key));
+			if (!['preview_image', 'preview_title', 'name'].includes(key)) {
+				let value = frappe.ellipsis(preview_data[key], 280);
+				let label = key;
 				content_html += `
-				<div class="preview-field">
-					<div class='small preview-label text-muted bold'>${label}</div>
-					<div class="small preview-value"> ${value} </div>
-				</div>
+					<div class="preview-field">
+						<div class='small preview-label text-muted bold'>${label}</div>
+						<div class="small preview-value">${value}</div>
+					</div>
 				`;
 			}
 		});
-
 		content_html = `<div class="preview-table">${content_html}</div>`;
 
-		let popover_content =
-			`<div class="preview-popover-header">${image_html}
+		let popover_content =`
+			<div class="preview-popover-header">${image_html}
 				<div class="preview-header">
 					<div class="preview-main">
-						<a class="preview-name bold" href=${this.href}>${title}</a>
+						<a class="preview-name bold" href=${this.href}>${preview_data.preview_title}</a>
 						<span class="text-muted small">${this.doctype} ${id_html}</span>
 					</div>
 				</div>
@@ -252,16 +210,10 @@ frappe.ui.LinkPreview = class {
 			<hr>
 			<div class="popover-body">
 				${content_html}
-			</div>`;
+			</div>
+		`;
 
 		return popover_content;
-	}
-
-	truncate_value(value) {
-		if (value.length > 280) {
-			value = value.slice(0,280) + '...';
-		}
-		return value;
 	}
 
 };

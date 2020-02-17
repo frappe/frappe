@@ -115,9 +115,12 @@ def set_maintenance_mode(context, state, site=None):
 
 @click.command('doctor') #Passing context always gets a site and if there is no use site it breaks
 @click.option('--site', help='site name')
-def doctor(site=None):
+@pass_context
+def doctor(context, site=None):
 	"Get diagnostic info about background workers"
 	from frappe.utils.doctor import doctor as _doctor
+	if not site:
+		site = get_site(context)
 	return _doctor(site=site)
 
 @click.command('show-pending-jobs')

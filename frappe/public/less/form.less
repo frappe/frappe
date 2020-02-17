@@ -56,6 +56,14 @@
 		background-color: @blue-extra-light;
 }
 
+.form-message.red {
+		background-color: @red-extra-light;
+}
+
+.form-message.green {
+		background-color: @green-extra-light;
+}
+
 .document-flow-wrapper {
 	padding: 40px 15px 30px;
 	font-size: @text-medium;
@@ -363,7 +371,7 @@ h6.uppercase, .h6.uppercase {
 	margin-top: 0px;
 
 	b {
-		color: @text-color !important;
+		color: @text-light !important;
 	}
 
 	blockquote {
@@ -975,4 +983,19 @@ body[data-route^="Form/Communication"] textarea[data-fieldname="subject"] {
 
 .followed-by-label{
 	margin-top: 30px;
+}
+
+// Data Import
+
+.map-columns .form-section {
+	padding: 0 7px 7px;
+	border-bottom: none;
+
+	.clearfix {
+		display: none;
+	}
+}
+
+.map-columns .form-section:first-child {
+	padding-top: 7px;
 }

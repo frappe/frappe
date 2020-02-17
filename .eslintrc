@@ -51,7 +51,11 @@
 		],
 		"no-control-regex": [
 			"off"
-		]
+		],
+		"space-before-blocks": "warn",
+		"keyword-spacing": "warn",
+		"comma-spacing": "warn",
+		"key-spacing": "warn",
 	},
 	"root": true,
 	"globals": {
@@ -91,6 +95,7 @@
 		"CANCEL": true,
 		"copy_dict": true,
 		"get_number_format_info": true,
+		"strip_number_groups": true,
 		"print_table": true,
 		"Layout": true,
 		"web_form_settings": true,

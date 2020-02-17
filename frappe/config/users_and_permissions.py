@@ -64,4 +64,22 @@ def get_data():
 				}
 			]
 		},
+		{
+			"label": _("Logs"),
+			"icon": "fa fa-group",
+			"items": [
+				{
+					"type": "doctype",
+					"name": "Activity Log",
+					"label": _("Activity Log"),
+					"description": _("Activity Log by ")
+				},
+				{
+					"type": "doctype",
+					"name": "Access Log",
+					"label": _("Access Log"),
+					"description": _("View Log of all print, download and export events")
+				}
+			]
+		}
 	]

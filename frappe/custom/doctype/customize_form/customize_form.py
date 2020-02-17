@@ -30,7 +30,8 @@ doctype_properties = {
 	'max_attachments': 'Int',
 	'track_changes': 'Check',
 	'track_views': 'Check',
-	'allow_auto_repeat': 'Check'
+	'allow_auto_repeat': 'Check',
+	'allow_import': 'Check'
 }
 
 docfield_properties = {
@@ -67,7 +68,8 @@ docfield_properties = {
 	'columns': 'Int',
 	'remember_last_selected_value': 'Check',
 	'allow_bulk_edit': 'Check',
-	'auto_repeat': 'Link'
+	'auto_repeat': 'Link',
+	'allow_in_quick_entry': 'Check'
 }
 
 allowed_fieldtype_change = (('Currency', 'Float', 'Percent'), ('Small Text', 'Data'),

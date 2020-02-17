@@ -18,6 +18,7 @@
   "track_changes",
   "track_views",
   "allow_auto_repeat",
+  "allow_import",
   "image_view",
   "column_break_5",
   "title_field",
@@ -167,13 +168,19 @@
    "fieldname": "allow_auto_repeat",
    "fieldtype": "Check",
    "label": "Allow Auto Repeat"
+  },
+  {
+   "default": "0",
+   "fieldname": "allow_import",
+   "fieldtype": "Check",
+   "label": "Allow Import (via Data Import Tool)"
   }
  ],
  "hide_toolbar": 1,
  "icon": "fa fa-glass",
  "idx": 1,
  "issingle": 1,
- "modified": "2019-07-01 22:50:50.372465",
+ "modified": "2019-10-08 11:16:36.698006",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Customize Form",

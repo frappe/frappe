@@ -127,9 +127,9 @@ frappe.views.CommunicationComposer = Class.extend({
 		this.setup_last_edited_communication();
 		this.setup_email_template();
 
-		this.dialog.fields_dict.recipients.set_value(this.recipients || '');
-		this.dialog.fields_dict.cc.set_value(this.cc || '');
-		this.dialog.fields_dict.bcc.set_value(this.bcc || '');
+		this.dialog.set_value("recipients", this.recipients || '');
+		this.dialog.set_value("cc", this.cc || '');
+		this.dialog.set_value("bcc", this.bcc || '');
 
 		if(this.dialog.fields_dict.sender) {
 			this.dialog.fields_dict.sender.set_value(this.sender || '');
@@ -181,6 +181,10 @@ frappe.views.CommunicationComposer = Class.extend({
 				}
 			}
 		}
+
+		if (this.frm && !this.recipients) {
+			this.recipients = this.frm.doc[this.frm.email_field];
+		}
 	},
 
 	setup_email_template: function() {
@@ -207,9 +211,8 @@ frappe.views.CommunicationComposer = Class.extend({
 				}
 
 				content_field.set_value(content.join(''));
-				if(subject === "") {
-					subject_field.set_value(reply.subject);
-				}
+
+				subject_field.set_value(reply.subject);
 
 				me.reply_added = email_template;
 			}
@@ -691,6 +694,7 @@ frappe.views.CommunicationComposer = Class.extend({
 		}
 		fields.content.set_value(content);
 	},
+
 	html2text: function(html) {
 		// convert HTML to text and try and preserve whitespace
 		var d = document.createElement( 'div' );

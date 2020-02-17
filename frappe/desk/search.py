@@ -153,7 +153,8 @@ def search_widget(doctype, txt, query=None, searchfield=None, start=0,
 				order_by=order_by,
 				ignore_permissions=ignore_permissions,
 				reference_doctype=reference_doctype,
-				as_list=not as_dict)
+				as_list=not as_dict,
+				strict=False)
 
 			if doctype in UNTRANSLATED_DOCTYPES:
 				values = tuple([v for v in list(values) if re.search(txt+".*", (_(v.name) if as_dict else _(v[0])), re.IGNORECASE)])
@@ -168,11 +169,17 @@ def search_widget(doctype, txt, query=None, searchfield=None, start=0,
 
 def get_std_fields_list(meta, key):
 	# get additional search fields
-	sflist = meta.search_fields and meta.search_fields.split(",") or []
-	title_field = [meta.title_field] if (meta.title_field and meta.title_field not in sflist) else []
-	sflist = ['name'] + sflist + title_field
-	if not key in sflist:
-		sflist = sflist + [key]
+	sflist = ["name"]
+	if meta.search_fields:
+		for d in meta.search_fields.split(","):
+			if d.strip() not in sflist:
+				sflist.append(d.strip())
+
+	if meta.title_field and meta.title_field not in sflist:
+		sflist.append(meta.title_field)
+
+	if key not in sflist:
+		sflist.append(key)
 
 	return sflist
 

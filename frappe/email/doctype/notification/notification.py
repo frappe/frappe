@@ -67,7 +67,7 @@ def get_context(context):
 		temp_doc = frappe.new_doc(self.document_type)
 		if self.condition:
 			try:
-				frappe.safe_eval(self.condition, None, get_context(temp_doc))
+				frappe.safe_eval(self.condition, None, get_context(temp_doc.as_dict()))
 			except Exception:
 				frappe.throw(_("The Condition '{0}' is invalid").format(self.condition))
 
@@ -143,6 +143,8 @@ def get_context(context):
 
 		attachments = self.get_attachment(doc)
 		recipients, cc, bcc = self.get_list_of_recipients(doc, context)
+		if not (recipients or cc or bcc):
+			return
 		sender = None
 		if self.sender and self.sender_email:
 			sender = formataddr((self.sender, self.sender_email))
@@ -309,9 +311,7 @@ def evaluate_alert(doc, alert, event):
 				else:
 					raise
 			db_value = parse_val(db_value)
-			if (doc.get(alert.value_changed) == db_value) or \
-				(not db_value and not doc.get(alert.value_changed)):
-
+			if (doc.get(alert.value_changed) == db_value) or (not db_value and not doc.get(alert.value_changed)):
 				return # value not changed
 
 		if event != "Value Change" and not doc.is_new():

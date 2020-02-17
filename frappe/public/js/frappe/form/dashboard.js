@@ -92,11 +92,14 @@ frappe.ui.form.Dashboard = Class.extend({
 
 	show_progress: function(title, percent, message) {
 		this._progress_map = this._progress_map || {};
-		if (!this._progress_map[title]) {
-			const progress_chart = this.add_progress(title, percent, message);
+		let progress_chart = this._progress_map[title];
+		// create a new progress chart if it doesnt exist
+		// or the previous one got detached from the DOM
+		if (!progress_chart || progress_chart.parent().length == 0) {
+			progress_chart = this.add_progress(title, percent, message);
 			this._progress_map[title] = progress_chart;
 		}
-		let progress_chart = this._progress_map[title];
+
 		if (!$.isArray(percent)) {
 			percent = this.format_percent(title, percent);
 		}
@@ -123,11 +126,7 @@ frappe.ui.form.Dashboard = Class.extend({
 
 	format_percent: function(title, percent) {
 		var width = cint(percent) < 1 ? 1 : cint(percent);
-		var progress_class = "";
-		if(width < 10)
-			progress_class = "progress-bar-danger";
-		if(width > 99.9)
-			progress_class = "progress-bar-success";
+		var progress_class = "progress-bar-success";
 
 		return [{
 			title: title,
@@ -371,15 +370,24 @@ frappe.ui.form.Dashboard = Class.extend({
 				});
 
 				// update from internal links
-				$.each(me.data.internal_links, function(doctype, link) {
-					var table_fieldname = link[0], link_fieldname = link[1];
-					var names = [];
-					(me.frm.doc[table_fieldname] || []).forEach(function(d) {
-						var value = d[link_fieldname];
-						if(value && names.indexOf(value)===-1) {
+				$.each(me.data.internal_links, (doctype, link) => {
+					let names = [];
+					if (typeof link === 'string' || link instanceof String) {
+						// get internal links in parent document
+						let value = me.frm.doc[link];
+						if (value && !names.includes(value)) {
 							names.push(value);
 						}
-					});
+					} else if (Array.isArray(link)) {
+						// get internal links in child documents
+						let [table_fieldname, link_fieldname] = link;
+						(me.frm.doc[table_fieldname] || []).forEach(d => {
+							let value = d[link_fieldname];
+							if (value && !names.includes(value)) {
+								names.push(value);
+							}
+						});
+					}
 					me.frm.dashboard.set_badge_count(doctype, 0, names.length, names);
 				});
 
@@ -495,7 +503,11 @@ frappe.ui.form.Dashboard = Class.extend({
 		this.chart_area.empty().removeClass('hidden');
 		$.extend(args, {
 			type: 'line',
-			colors: ['green']
+			colors: ['green'],
+			truncateLegends: 1,
+			axisOptions: {
+				shortenYAxisNumbers: 1
+			}
 		});
 		this.show();
 

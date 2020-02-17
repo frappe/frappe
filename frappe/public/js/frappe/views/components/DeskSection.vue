@@ -1,7 +1,7 @@
 <template>
   <div>
     <div class="section-header level text-muted">
-      <div class="module-category h6 uppercase">{{ category }}</div>
+      <div class="module-category h6 uppercase">{{ __(this.category) }}</div>
     </div>
 
     <div class="modules-container" :class="{'dragging': dragging}" ref="modules-container">
@@ -26,11 +26,14 @@ export default {
 	},
 	data() {
 		return {
-			dragging: false
+			dragging: false,
+			fetched_module_links: {}
 		}
 	},
 	mounted() {
-		this.setup_sortable();
+		if (!frappe.utils.is_mobile()) {
+			this.setup_sortable();
+		}
 	},
 	methods: {
 		setup_sortable() {
@@ -51,6 +54,7 @@ export default {
 			})
 		},
 		show_module_card_customize_dialog(module) {
+			const me = this;
 			const d = new frappe.ui.Dialog({
 				title: __('Customize Shortcuts'),
 				fields: [
@@ -58,11 +62,19 @@ export default {
 						label: __('Shortcuts'),
 						fieldname: 'links',
 						fieldtype: 'MultiSelectPills',
-						get_data() {
-							return frappe.call('frappe.desk.moduleview.get_links_for_module', {
-								app: module.app,
-								module: module.module_name,
-							}).then(r => r.message);
+						get_data: () => {
+							const module_links = me.fetched_module_links[module.module_name];
+							if (!module_links) {
+								return frappe.xcall('frappe.desk.moduleview.get_links_for_module', {
+									app: module.app,
+									module: module.module_name,
+								}).then(links => {
+									me.fetched_module_links[module.module_name] = links;
+									return links;
+								});
+							} else {
+								return module_links;
+							}
 						},
 						default: module.links.filter(l => !l.hidden).map(l => l.name)
 					}
@@ -71,7 +83,7 @@ export default {
 				primary_action: ({ links }) => {
 					frappe.call('frappe.desk.moduleview.update_links_for_module', {
 						module_name: module.module_name,
-						links
+						links: links || []
 					}).then(r => {
 						this.$emit('update-desktop-settings', r.message);
 					});

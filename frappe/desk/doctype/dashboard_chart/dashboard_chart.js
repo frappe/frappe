@@ -23,6 +23,8 @@ frappe.ui.form.on('Dashboard Chart', {
 		// set timeseries based on chart type
 		if (['Count', 'Average', 'Sum'].includes(frm.doc.chart_type)) {
 			frm.set_value('timeseries', 1);
+		} else {
+			frm.set_value('timeseries', 0);
 		}
 		frm.set_value('document_type', '');
 	},
@@ -36,6 +38,19 @@ frappe.ui.form.on('Dashboard Chart', {
 		frm.trigger('update_options');
 	},
 
+	timespan: function(frm) {
+		const time_interval_options = {
+			"Select Date Range": ["Quarterly", "Monthly", "Weekly", "Daily"],
+			"Last Year": ["Quarterly", "Monthly", "Weekly", "Daily"],
+			"Last Quarter": ["Monthly", "Weekly", "Daily"],
+			"Last Month": ["Weekly", "Daily"],
+			"Last Week": ["Daily"]
+		};
+		if (frm.doc.timespan) {
+			frm.set_df_property('time_interval', 'options', time_interval_options[frm.doc.timespan]);
+		}
+	},
+
 	update_options: function(frm) {
 		let doctype = frm.doc.document_type;
 		let date_fields = [
@@ -43,10 +58,14 @@ frappe.ui.form.on('Dashboard Chart', {
 			{label: __('Last Modified On'), value: 'modified'}
 		];
 		let value_fields = [];
+		let group_by_fields = [];
+		let aggregate_function_fields = [];
 		let update_form = function() {
 			// update select options
 			frm.set_df_property('based_on', 'options', date_fields);
 			frm.set_df_property('value_based_on', 'options', value_fields);
+			frm.set_df_property('group_by_based_on', 'options', group_by_fields);
+			frm.set_df_property('aggregate_function_based_on', 'options', aggregate_function_fields);
 			frm.trigger("show_filters");
 		}
 
@@ -60,6 +79,10 @@ frappe.ui.form.on('Dashboard Chart', {
 					}
 					if (['Int', 'Float', 'Currency', 'Percent'].includes(df.fieldtype)) {
 						value_fields.push({label: df.label, value: df.fieldname});
+						aggregate_function_fields.push({label: df.label, value: df.fieldname});
+					}
+					if (['Link', 'Select'].includes(df.fieldtype)) {
+						group_by_fields.push({label: df.label, value: df.fieldname});
 					}
 				});
 				update_form();
@@ -90,9 +113,8 @@ frappe.ui.form.on('Dashboard Chart', {
 			} else {
 				// standard filters
 				if (frm.doc.document_type) {
-					// allow all link and select fields as filters
-					frm.chart_filters = [];
 					frappe.model.with_doctype(frm.doc.document_type, () => {
+						frm.chart_filters = [];
 						frappe.get_meta(frm.doc.document_type).fields.map(df => {
 							if (['Link', 'Select'].includes(df.fieldtype)) {
 								let _df = copy_dict(df);
@@ -107,8 +129,8 @@ frappe.ui.form.on('Dashboard Chart', {
 
 								frm.chart_filters.push(_df);
 							}
-							frm.trigger('render_filters_table');
 						});
+						frm.trigger('render_filters_table');
 					});
 				}
 			}
@@ -134,7 +156,7 @@ frappe.ui.form.on('Dashboard Chart', {
 
 		let filters = JSON.parse(frm.doc.filters_json || '{}');
 		var filters_set = false;
-		fields.map( f => {
+		fields.map(f => {
 			if (filters[f.fieldname]) {
 				const filter_row = $(`<tr><td>${f.label}</td><td>${filters[f.fieldname] || ""}</td></tr>`);
 				table.find('tbody').append(filter_row);

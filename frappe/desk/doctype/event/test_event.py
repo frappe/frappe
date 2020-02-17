@@ -112,7 +112,7 @@ class TestEvent(unittest.TestCase):
 			"starts_on": "2014-02-01",
 			"event_type": "Public",
 			"repeat_this_event": 1,
-			"repeat_on": "Every Year"
+			"repeat_on": "Yearly"
 		})
 		ev.insert()
 

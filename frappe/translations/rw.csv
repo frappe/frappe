@@ -1,0 +1,11 @@
+apps/frappe/frappe/email/doctype/email_account/email_account.py,{0} is mandatory,{0} ningombwa
+apps/frappe/frappe/desk/page/activity/activity_row.html,{0} {1} to {2},{0} {1} kugeza kuri {2}
+apps/frappe/frappe/desk/reportview.py,{0} is saved,{0} yabitswe
+apps/frappe/frappe/permissions.py,{0} {1} not found,{0} {1} Ntayihari
+apps/frappe/frappe/desk/form/save.py,{0} {1} already exists,{0} {1} Isanzwe Irimo
+apps/frappe/frappe/public/js/frappe/form/link_selector.js,{0} {1} added,{0} {1} Igiyemo
+apps/frappe/frappe/public/js/frappe/form/sidebar/form_sidebar.js,{0} edited this {1},{0} yahinduye iyi {1}
+apps/frappe/frappe/utils/data.py,{0} or {1},{0} cyangwa {1}
+apps/frappe/frappe/utils/data.py,{0} and {1},{0} na {1}
+apps/frappe/frappe/desk/doctype/desktop_icon/desktop_icon.py,{0} not found,{0} ntayihari
+apps/frappe/frappe/utils/csvutils.py,{0} is required,{0} ningombwa

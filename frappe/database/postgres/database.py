@@ -65,7 +65,7 @@ class PostgresDatabase(Database):
 
 	def get_connection(self):
 		# warnings.filterwarnings('ignore', category=psycopg2.Warning)
-		conn = psycopg2.connect('host={} dbname={} user={} password={} port={}'.format(
+		conn = psycopg2.connect("host='{}' dbname='{}' user='{}' password='{}' port={}".format(
 			self.host, self.user, self.user, self.password, self.port
 		))
 		conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT) # TODO: Remove this
@@ -168,6 +168,10 @@ class PostgresDatabase(Database):
 	@staticmethod
 	def is_duplicate_fieldname(e):
 		return e.pgcode == '42701'
+
+	@staticmethod
+	def is_data_too_long(e):
+		return e.pgcode == '22001'
 
 	def create_auth_table(self):
 		self.sql_ddl("""create table if not exists "__Auth" (

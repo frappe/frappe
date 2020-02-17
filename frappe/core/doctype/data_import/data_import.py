@@ -15,7 +15,7 @@ from frappe.utils.background_jobs import enqueue
 class DataImport(Document):
 	def autoname(self):
 		if not self.name:
-			self.name = "Import on "+ format_datetime(self.creation)
+			self.name = "Import on " +format_datetime(self.creation)
 
 	def validate(self):
 		if not self.import_file:
@@ -28,6 +28,10 @@ class DataImport(Document):
 		if self.import_file and not self.total_rows:
 			upload(data_import_doc=self, from_data_import="Yes", validate_template=True)
 
+
+@frappe.whitelist()
+def get_importable_doctypes():
+	return frappe.cache().hget("can_import", frappe.session.user)
 
 @frappe.whitelist()
 def import_data(data_import):

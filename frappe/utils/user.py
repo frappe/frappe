@@ -157,8 +157,13 @@ class UserPermissions:
 				self.can_read.remove(dt)
 
 		if "System Manager" in self.get_roles():
-			self.can_import = list(filter(lambda d: d in self.can_create,
-				frappe.db.sql_list("""select name from `tabDocType` where allow_import = 1""")))
+			docs = frappe.get_all("DocType", {'allow_import': 1})
+			self.can_import += [doc.name for doc in docs]
+
+			customizations = frappe.get_all("Property Setter", fields=['doc_type'], filters={'property': 'allow_import', 'value': 1})
+			self.can_import += [custom.doc_type for custom in customizations]
+
+		frappe.cache().hset("can_import", frappe.session.user, self.can_import)
 
 	def get_defaults(self):
 		import frappe.defaults
@@ -178,7 +183,7 @@ class UserPermissions:
 
 	def load_user(self):
 		d = frappe.db.sql("""select email, first_name, last_name, creation,
-			email_signature, user_type, language, background_style, background_image,
+			email_signature, user_type, language,
 			mute_sounds, send_me_a_copy, document_follow_notify
 			from tabUser where name = %s""", (self.name,), as_dict=1)[0]
 
@@ -306,40 +311,6 @@ def set_last_active_to_now(user):
 	from frappe.utils import now_datetime
 	frappe.db.set_value("User", user, "last_active", now_datetime())
 
-def disable_users(limits=None):
-	if not limits:
-		return
-
-	if limits.get('users'):
-		system_manager = get_system_managers(only_name=True)
-		user_list = ['Administrator', 'Guest']
-		if system_manager:
-			user_list.append(system_manager[-1])
-		#exclude system manager from active user list
-		# active_users =  frappe.db.sql_list("""select name from tabUser
-		# 	where name not in ('Administrator', 'Guest', %s) and user_type = 'System User' and enabled=1
-		# 	order by creation desc""", system_manager)
-
-		active_users = frappe.get_all("User", filters={"user_type":"System User", "enabled":1, "name": ["not in", user_list]}, fields=["name"])
-
-		user_limit = cint(limits.get('users')) - 1
-
-		if len(active_users) > user_limit:
-
-			# if allowed user limit 1 then deactivate all additional users
-			# else extract additional user from active user list and deactivate them
-			if cint(limits.get('users')) != 1:
-				active_users = active_users[:-1 * user_limit]
-
-			for user in active_users:
-				frappe.db.set_value("User", user, 'enabled', 0)
-
-		from frappe.core.doctype.user.user import get_total_users
-
-		if get_total_users() > cint(limits.get('users')):
-			reset_simultaneous_sessions(cint(limits.get('users')))
-
-	frappe.db.commit()
 
 def reset_simultaneous_sessions(user_limit):
 	for user in frappe.db.sql("""select name, simultaneous_sessions from tabUser

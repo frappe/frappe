@@ -74,45 +74,86 @@ export default {
 		show_hide_cards_dialog() {
 			frappe.call('frappe.desk.moduleview.get_options_for_show_hide_cards')
 				.then(r => {
-					let module_options = r.message;
-					let fields = this.module_categories.map(category => {
-						let options = module_options.filter(m => m.category === category);
+					let { user_options, global_options } = r.message;
+
+					let user_value = `User (${frappe.session.user})`
+					let fields = [
+						{
+							label: __('Setup For'),
+							fieldname: 'setup_for',
+							fieldtype: 'Select',
+							options: [
+								{
+									label: __('User ({0})', [frappe.session.user]),
+									value: user_value
+								},
+								{
+									label: __('Everyone'),
+									value: 'Everyone'
+								}
+							],
+							default: user_value,
+							depends_on: doc => frappe.user_roles.includes('System Manager'),
+							onchange() {
+								let value = d.get_value('setup_for');
+								let field = d.get_field('setup_for');
+								let description = value === 'Everyone' ? __('Hide cards for all users') : '';
+								field.set_description(description);
+							}
+						}
+					];
+
+					let user_section = this.module_categories.map(category => {
+						let options = user_options.filter(m => m.category === category);
 						return {
 							label: category,
-							fieldname: category,
+							fieldname: `user:${category}`,
 							fieldtype: 'MultiCheck',
 							options,
 							columns: 2
 						}
 					}).filter(f => f.options.length > 0);
 
-					let old_values = null;
+					user_section = [
+						{
+							fieldname: 'user_section',
+							fieldtype: 'Section Break',
+							depends_on: doc => doc.setup_for === user_value
+						}
+					].concat(user_section);
 
+					let global_section = this.module_categories.map(category => {
+						let options = global_options.filter(m => m.category === category);
+						return {
+							label: category,
+							fieldname: `global:${category}`,
+							fieldtype: 'MultiCheck',
+							options,
+							columns: 2
+						}
+					}).filter(f => f.options.length > 0);
+
+					global_section = [
+						{
+							fieldname: 'global_section',
+							fieldtype: 'Section Break',
+							depends_on: doc => doc.setup_for === 'Everyone'
+						}
+					].concat(global_section);
+
+					fields = fields.concat(user_section, global_section);
+
+					let old_values = null;
 					const d = new frappe.ui.Dialog({
 						title: __('Show / Hide Cards'),
 						fields: fields,
 						primary_action_label: __('Save'),
 						primary_action: (values) => {
-
-							let category_map = {};
-							for (let category of this.module_categories) {
-								let old_modules = old_values[category] || [];
-								let new_modules = values[category] || [];
-
-								let removed = old_modules.filter(module => !new_modules.includes(module));
-								let added = new_modules.filter(module => !old_modules.includes(module));
-
-								category_map[category] = { added, removed };
- 							}
-
-							frappe.call({
-								method: 'frappe.desk.moduleview.update_hidden_modules',
-								args: { category_map },
-								btn: d.get_primary_btn()
-							}).then(r => {
-								this.update_desktop_settings(r.message)
-								d.hide();
-							});
+							if (values.setup_for === 'Everyone') {
+								this.update_global_modules(d);
+							} else {
+								this.update_user_modules(d, old_values);
+							}
 						}
 					});
 
@@ -121,6 +162,51 @@ export default {
 					// deepcopy
 					old_values = JSON.parse(JSON.stringify(d.get_values()));
 				});
+		},
+
+		update_user_modules(d, old_values) {
+			let new_values = d.get_values();
+			let category_map = {};
+			for (let category of this.module_categories) {
+				let old_modules = old_values[`user:${category}`] || [];
+				let new_modules = new_values[`user:${category}`] || [];
+
+				let removed = old_modules.filter(module => !new_modules.includes(module));
+				let added = new_modules.filter(module => !old_modules.includes(module));
+
+				category_map[category] = { added, removed };
+			}
+
+			frappe.call({
+				method: 'frappe.desk.moduleview.update_hidden_modules',
+				args: { category_map },
+				btn: d.get_primary_btn()
+			}).then(r => {
+				this.update_desktop_settings(r.message);
+				d.hide();
+			});
+		},
+
+		update_global_modules(d) {
+			let blocked_modules = [];
+			for (let category of this.module_categories) {
+				let field = d.get_field(`global:${category}`);
+				if (field) {
+					let unchecked_options = field.get_unchecked_options();
+					blocked_modules = blocked_modules.concat(unchecked_options);
+				}
+			}
+
+			frappe.call({
+				method: 'frappe.desk.moduleview.update_global_hidden_modules',
+				args: {
+					modules: blocked_modules
+				},
+				btn: d.get_primary_btn()
+			}).then(r => {
+				this.update_desktop_settings(r.message);
+				d.hide();
+			});
 		}
 	}
 }

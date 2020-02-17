@@ -725,6 +725,19 @@ Object.assign(frappe.utils, {
 	},
 	is_rtl() {
 		return ["ar", "he", "fa"].includes(frappe.boot.lang);
+	},
+	bind_actions_with_object($el, object) {
+		// remove previously bound event
+		$($el).off('click.class_actions');
+		// attach new event
+		$($el).on('click.class_actions', '[data-action]', e => {
+			let $target = $(e.currentTarget);
+			let action = $target.data('action');
+			let method = object[action];
+			method ? object[action](e, $target) : null;
+		});
+
+		return $el;
 	}
 });
 

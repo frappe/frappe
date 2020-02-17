@@ -323,6 +323,12 @@ $.extend(frappe.model, {
 
 frappe.create_routes = {};
 frappe.new_doc = function (doctype, opts, init_callback) {
+	if (doctype === 'File') {
+		new frappe.ui.FileUploader({
+			folder: opts ? opts.folder : 'Home'
+		});
+		return;
+	}
 	return new Promise(resolve => {
 		if(opts && $.isPlainObject(opts)) {
 			frappe.route_options = opts;

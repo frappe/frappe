@@ -52,7 +52,7 @@ export default class Grid {
 
 		let template = `<div class="form-group">
 			<div class="clearfix">
-				<label class="control-label" style="padding-right: 0px;">${__(this.df.label)}</label>
+				<label class="control-label" style="padding-right: 0px;">${__(this.df.label || '')}</label>
 			</div>
 			<div class="form-grid">
 				<div class="grid-heading-row"></div>
@@ -64,16 +64,14 @@ export default class Grid {
 			<div class="small form-clickable-section grid-footer">
 				<div class="row">
 					<div class="col-sm-6 grid-buttons">
-						<button type="reset"
-							class="btn btn-xs btn-danger grid-remove-rows hidden"
+						<button class="btn btn-xs btn-danger grid-remove-rows hidden"
 							style="margin-right: 4px;">
 							${__("Delete")}</button>
-						<button type="reset"
-							class="grid-add-multiple-rows btn btn-xs btn-default hidden"
+						<button class="grid-add-multiple-rows btn btn-xs btn-default hidden"
 							style="margin-right: 4px;">
 							${__("Add Multiple")}</a>
 						<!-- hack to allow firefox include this in tabs -->
-						<button type="reset" class="btn btn-xs btn-default grid-add-row">
+						<button class="btn btn-xs btn-default grid-add-row">
 							${__("Add Row")}</button>
 					</div>
 					<div class="col-sm-6 text-right">
@@ -347,7 +345,6 @@ export default class Grid {
 				if (!this.is_editable()) {
 					return false;
 				}
-
 				// prevent drag behaviour if _sortable property is "false"
 				let idx = $(event.dragged).closest('.grid-row').attr('data-idx');
 				let doc = this.get_data()[idx - 1];
@@ -359,7 +356,7 @@ export default class Grid {
 				let idx = $(event.item).closest('.grid-row').attr('data-idx');
 				let doc = this.get_data()[idx - 1];
 				this.renumber_based_on_dom();
-				this.frm.script_manager.trigger(this.df.fieldnathis + "_move", this.df.options, doc.nathis);
+				this.frm.script_manager.trigger(this.df.fieldname + "_move", this.df.options, doc.name);
 				this.refresh();
 				this.frm.dirty();
 			}

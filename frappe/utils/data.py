@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 
 # IMPORTANT: only import safe functions as this module will be included in jinja environment
 import frappe
+import subprocess
 import operator
 import re, datetime, math, time
 import babel.dates
@@ -293,6 +294,19 @@ def flt(s, precision=None):
 		num = 0
 
 	return num
+
+def get_wkhtmltopdf_version():
+	wkhtmltopdf_version = frappe.cache().hget("wkhtmltopdf_version", None)
+
+	if not wkhtmltopdf_version:
+		try:
+			res = subprocess.check_output(["wkhtmltopdf", "--version"])
+			wkhtmltopdf_version = res.decode('utf-8').split(" ")[1]
+			frappe.cache().hset("wkhtmltopdf_version", None, wkhtmltopdf_version)
+		except Exception:
+			pass
+
+	return (wkhtmltopdf_version or '0')
 
 def cint(s):
 	"""Convert to integer"""
@@ -655,7 +669,7 @@ def pretty_date(iso_datetime):
 	elif dt_diff_days < 7.0:
 		return _('{0} days ago').format(cint(dt_diff_days))
 	elif dt_diff_days < 12:
-		return _('1 weeks ago')
+		return _('1 week ago')
 	elif dt_diff_days < 31.0:
 		return _('{0} weeks ago').format(cint(math.ceil(dt_diff_days / 7.0)))
 	elif dt_diff_days < 46:
@@ -714,9 +728,10 @@ def get_url(uri=None, full_address=False):
 		return uri
 
 	if not host_name:
-		if hasattr(frappe.local, "request") and frappe.local.request and frappe.local.request.host:
-			protocol = 'https://' if 'https' == frappe.get_request_header('X-Forwarded-Proto', "") else 'http://'
-			host_name = protocol + frappe.local.request.host
+		request_host_name = get_host_name_from_request()
+
+		if request_host_name:
+			host_name = request_host_name
 
 		elif frappe.local.site:
 			protocol = 'http://'
@@ -752,6 +767,11 @@ def get_url(uri=None, full_address=False):
 	url = urljoin(host_name, uri) if uri else host_name
 
 	return url
+
+def get_host_name_from_request():
+	if hasattr(frappe.local, "request") and frappe.local.request and frappe.local.request.host:
+		protocol = 'https://' if 'https' == frappe.get_request_header('X-Forwarded-Proto', "") else 'http://'
+		return protocol + frappe.local.request.host
 
 def url_contains_port(url):
 	parts = url.split(':')
@@ -966,8 +986,7 @@ def expand_relative_urls(html):
 	html = re.sub('(href|src){1}([\s]*=[\s]*[\'"]?)((?!http)[^\'" >]+)([\'"]?)', _expand_relative_urls, html)
 
 	# background-image: url('/assets/...')
-	html = re.sub('(:[\s]?url)(\([\'"]?)([^\)]*)([\'"]?\))', _expand_relative_urls, html)
-
+	html = re.sub('(:[\s]?url)(\([\'"]?)((?!http)[^\'" >]+)([\'"]?\))', _expand_relative_urls, html)
 	return html
 
 def quoted(url):

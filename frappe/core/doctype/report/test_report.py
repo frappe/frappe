@@ -6,6 +6,7 @@ import frappe, json, os
 import unittest
 
 test_records = frappe.get_test_records('Report')
+test_dependencies = ['User']
 
 class TestReport(unittest.TestCase):
 	def test_report_builder(self):
@@ -28,7 +29,8 @@ class TestReport(unittest.TestCase):
 		self.assertEqual(columns[1].get('label'), 'Module')
 		self.assertTrue('User' in [d[0] for d in data])
 
-	def test_report_permisisons(self):
+	def test_report_permissions(self):
+		frappe.set_user('test@example.com')
 		frappe.db.sql("""delete from `tabHas Role` where parent = %s
 			and role = 'Test Has Role'""", frappe.session.user, auto_commit=1)
 
@@ -53,6 +55,7 @@ class TestReport(unittest.TestCase):
 			report = frappe.get_doc('Report', 'Test Report')
 
 		self.assertNotEquals(report.is_permitted(), True)
+		frappe.set_user('Administrator')
 
 	# test for the `_format` method if report data doesn't have sort_by parameter
 	def test_format_method(self):
@@ -68,3 +71,32 @@ class TestReport(unittest.TestCase):
 		self.assertEqual(columns[1].get('label'), 'User Type')
 		self.assertTrue('Administrator' in [d[0] for d in data])
 		frappe.delete_doc('Report', 'User Activity Report Without Sort')
+
+	def test_non_standard_script_report(self):
+		report_name = 'Test Non Standard Script Report'
+		if not frappe.db.exists("Report", report_name):
+			report = frappe.get_doc({
+				'doctype': 'Report',
+				'ref_doctype': 'User',
+				'report_name': report_name,
+				'report_type': 'Script Report',
+				'is_standard': 'No',
+			}).insert(ignore_permissions=True)
+		else:
+			report = frappe.get_doc('Report', report_name)
+
+		report.report_script = '''
+data = [
+	[{'fieldname': 'name', 'label': 'ID'}],
+	[frappe.db.get_all('User', dict(user_type="System User"))]
+]
+'''
+		report.save()
+		data = report.get_data()
+
+		# check columns
+		self.assertEqual(data[0][0]['label'], 'ID')
+
+		# check values
+		self.assertTrue('Administrator' in [d.get('name') for d in data[1][0]])
+

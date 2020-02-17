@@ -2,11 +2,14 @@
 // MIT License. See license.txt
 /* eslint-disable no-console */
 
+// __('Modules') __('Domains') __('Places') __('Administration') # for translation, don't remove
+
 frappe.start_app = function() {
 	if(!frappe.Application)
 		return;
 	frappe.assets.check();
 	frappe.provide('frappe.app');
+	frappe.provide('frappe.desk');
 	frappe.app = new frappe.Application();
 };
 
@@ -72,23 +75,20 @@ frappe.Application = Class.extend({
 		// trigger app startup
 		$(document).trigger('startup');
 
-		this.start_notification_updates();
-
 		$(document).trigger('app_ready');
 
 		if (frappe.boot.messages) {
 			frappe.msgprint(frappe.boot.messages);
 		}
 
-		if (frappe.boot.change_log && frappe.boot.change_log.length && !window.Cypress) {
+		if (frappe.user_roles.includes('System Manager')) {
 			this.show_change_log();
-		} else {
-			this.show_notes();
+			this.show_update_available();
 		}
 
-		this.show_update_available();
+		this.show_notes();
 
-		if(frappe.ui.startup_setup_dialog && !frappe.boot.setup_complete) {
+		if (frappe.ui.startup_setup_dialog && !frappe.boot.setup_complete) {
 			frappe.ui.startup_setup_dialog.pre_show();
 			frappe.ui.startup_setup_dialog.show();
 		}
@@ -119,15 +119,30 @@ frappe.Application = Class.extend({
 		// listen to build errors
 		this.setup_build_error_listener();
 
-		if (frappe.sys_defaults.email_user_password){
+		if (frappe.sys_defaults.email_user_password) {
 			var email_list =  frappe.sys_defaults.email_user_password.split(',');
 			for (var u in email_list) {
-				if (email_list[u]===frappe.user.name){
+				if (email_list[u]===frappe.user.name) {
 					this.set_password(email_list[u]);
 				}
 			}
 		}
 		this.link_preview = new frappe.ui.LinkPreview();
+
+		if (!frappe.boot.developer_mode) {
+			setInterval(function() {
+				frappe.call({
+					method: 'frappe.core.page.background_jobs.background_jobs.get_scheduler_status',
+					callback: function(r) {
+						if (r.message[0] == __("Inactive")) {
+							frappe.call('frappe.utils.scheduler.activate_scheduler');
+						}
+					}
+				});
+			}, 300000); // check every 5 minutes
+		}
+
+		this.fetch_tags();
 	},
 
 	setup_frappe_vue() {
@@ -244,54 +259,6 @@ frappe.Application = Class.extend({
 		if(frappe.boot.metadata_version != localStorage.metadata_version) {
 			frappe.assets.clear_local_storage();
 			frappe.assets.init_local_storage();
-		}
-	},
-
-	start_notification_updates: function() {
-		var me = this;
-
-		// refresh_notifications will be called only once during a 1 second window
-		this.refresh_notifications = frappe.utils.debounce(this.refresh_notifications.bind(this), 1000);
-
-		// kickoff
-		this.refresh_notifications();
-
-		frappe.realtime.on('clear_notifications', () => {
-			me.refresh_notifications();
-		});
-
-		// first time loaded in boot
-		$(document).trigger("notification-update");
-
-		// refresh notifications if user is back after sometime
-		$(document).on("session_alive", function() {
-			me.refresh_notifications();
-		});
-	},
-
-	refresh_notifications: function() {
-		var me = this;
-		if(frappe.session_alive && frappe.boot && frappe.boot.home_page !== 'setup-wizard') {
-			if (this._refresh_notifications) {
-				this._refresh_notifications.abort();
-			}
-			this._refresh_notifications = frappe.call({
-				type: 'GET',
-				method: "frappe.desk.notifications.get_notifications",
-				callback: function(r) {
-					if(r.message) {
-						$.extend(frappe.boot.notification_info, r.message);
-						$(document).trigger("notification-update");
-
-						if(frappe.get_route()[0] != "messages") {
-							if(r.message.new_messages.length) {
-								frappe.utils.set_title_prefix("(" + r.message.new_messages.length + ")");
-							}
-						}
-					}
-				},
-				freeze: false
-			});
 		}
 	},
 
@@ -495,12 +462,31 @@ frappe.Application = Class.extend({
 
 	show_change_log: function() {
 		var me = this;
-		var d = frappe.msgprint(
-			frappe.render_template("change_log", {"change_log": frappe.boot.change_log}),
-			__("Updated To New Version")
-		);
-		d.keep_open = true;
-		d.custom_onhide = function() {
+		let change_log = frappe.boot.change_log;
+
+		// frappe.boot.change_log = [{
+		// 	"change_log": [
+		// 		[<version>, <change_log in markdown>],
+		// 		[<version>, <change_log in markdown>],
+		// 	],
+		// 	"description": "ERP made simple",
+		// 	"title": "ERPNext",
+		// 	"version": "12.2.0"
+		// }];
+
+		if (!Array.isArray(change_log) || !change_log.length || window.Cypress) {
+			return;
+		}
+
+		// Iterate over changelog
+		var change_log_dialog = frappe.msgprint({
+			message: frappe.render_template("change_log", {"change_log": change_log}),
+			title: __("Updated To New Version 🎉"),
+			wide: true,
+			scroll: true
+		});
+		change_log_dialog.keep_open = true;
+		change_log_dialog.custom_onhide = function() {
 			frappe.call({
 				"method": "frappe.utils.change_log.update_last_known_versions"
 			});
@@ -580,6 +566,10 @@ frappe.Application = Class.extend({
 			frappe.show_alert(message);
 		});
 	},
+
+	fetch_tags() {
+		frappe.tags.utils.fetch_tags();
+	}
 });
 
 frappe.get_module = function(m, default_module) {

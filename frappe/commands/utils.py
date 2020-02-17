@@ -293,6 +293,33 @@ def import_csv(context, path, only_insert=False, submit_after_import=False, igno
 
 	frappe.destroy()
 
+
+@click.command('data-import')
+@click.option('--file', 'file_path', type=click.Path(), required=True, help="Path to import file (.csv, .xlsx)")
+@click.option('--doctype', type=str, required=True)
+@click.option('--type', 'import_type', type=click.Choice(['Insert', 'Update'], case_sensitive=False), default='Insert', help="Insert New Records or Update Existing Records")
+@click.option('--submit-after-import', default=False, is_flag=True, help='Submit document after importing it')
+@click.option('--mute-emails', default=True, is_flag=True, help='Mute emails during import')
+@pass_context
+def data_import(context, file_path, doctype, import_type=None, submit_after_import=False, mute_emails=True):
+	"Import documents in bulk from CSV or XLSX using data import"
+	from frappe.core.doctype.data_import.importer_new import Importer
+	site = get_site(context)
+
+	frappe.init(site=site)
+	frappe.connect()
+
+	data_import = frappe.new_doc('Data Import Beta')
+	data_import.submit_after_import = submit_after_import
+	data_import.mute_emails = mute_emails
+	data_import.import_type = 'Insert New Records' if import_type.lower() == 'insert' else 'Update Existing Records'
+
+	i = Importer(doctype=doctype, file_path=file_path, data_import=data_import, console=True)
+	i.import_data()
+
+	frappe.destroy()
+
+
 @click.command('bulk-rename')
 @click.argument('doctype')
 @click.argument('path')
@@ -433,6 +460,15 @@ def run_tests(context, app=None, module=None, doctype=None, test=(),
 	tests = test
 
 	site = get_site(context)
+
+	allow_tests = frappe.get_conf(site).allow_tests
+
+	if not (allow_tests or os.environ.get('CI')):
+		click.secho('Testing is disabled for the site!', bold=True)
+		click.secho('You can enable tests by entering following command:')
+		click.secho('bench --site {0} set-config allow_tests true'.format(site), fg='green')
+		return
+
 	frappe.init(site=site)
 
 	frappe.flags.skip_before_tests = skip_before_tests
@@ -476,7 +512,7 @@ def run_ui_tests(context, app, headless=False):
 
 	# run for headless mode
 	run_or_open = 'run' if headless else 'open'
-	command = '{site_env} {password_env} yarn run cypress {run_or_open}'
+	command = '{site_env} {password_env} yarn run cypress:{run_or_open}'
 	formatted_command = command.format(site_env=site_env, password_env=password_env, run_or_open=run_or_open)
 	frappe.commands.popen(formatted_command, cwd=app_base_path, raise_err=True)
 
@@ -715,6 +751,7 @@ commands = [
 	export_json,
 	get_version,
 	import_csv,
+	data_import,
 	import_doc,
 	make_app,
 	mysql,

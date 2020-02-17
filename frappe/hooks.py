@@ -36,7 +36,6 @@ app_include_js = [
 	"assets/js/form.min.js",
 	"assets/js/control.min.js",
 	"assets/js/report.min.js",
-	"assets/frappe/js/frappe/toolbar.js"
 ]
 app_include_css = [
 	"assets/css/desk.min.css",
@@ -71,12 +70,13 @@ get_rooms = 'frappe.chat.doctype.chat_room.chat_room.get_rooms'
 
 calendars = ["Event"]
 
+leaderboards = "frappe.desk.leaderboard.get_leaderboards"
+
 # login
 
 on_session_creation = [
 	"frappe.core.doctype.activity_log.feed.login_feed",
 	"frappe.core.doctype.user.user.notify_admin_access_to_system_manager",
-	"frappe.limits.check_if_expired",
 	"frappe.utils.scheduler.reset_enabled_scheduler_events",
 ]
 
@@ -88,6 +88,8 @@ permission_query_conditions = {
 	"Event": "frappe.desk.doctype.event.event.get_permission_query_conditions",
 	"ToDo": "frappe.desk.doctype.todo.todo.get_permission_query_conditions",
 	"User": "frappe.core.doctype.user.user.get_permission_query_conditions",
+	"Notification Log": "frappe.desk.doctype.notification_log.notification_log.get_permission_query_conditions",
+	"Notification Settings": "frappe.desk.doctype.notification_settings.notification_settings.get_permission_query_conditions",
 	"Note": "frappe.desk.doctype.note.note.get_permission_query_conditions",
 	"Kanban Board": "frappe.desk.doctype.kanban_board.kanban_board.get_permission_query_conditions",
 	"Contact": "frappe.contacts.address_and_contact.get_permission_query_conditions_for_contact",
@@ -138,9 +140,22 @@ doc_events = {
 		"on_change": [
 			"frappe.social.doctype.energy_point_rule.energy_point_rule.process_energy_points"
 		],
+		"after_insert": "frappe.cache_manager.build_table_count_cache",
 	},
-	"Email Group Member": {
-		"validate": "frappe.email.doctype.email_group.email_group.restrict_email_group"
+	"Event": {
+		"after_insert": "frappe.integrations.doctype.google_calendar.google_calendar.insert_event_in_google_calendar",
+		"on_update": "frappe.integrations.doctype.google_calendar.google_calendar.update_event_in_google_calendar",
+		"on_trash": "frappe.integrations.doctype.google_calendar.google_calendar.delete_event_from_google_calendar",
+	},
+	"Contact": {
+		"after_insert": "frappe.integrations.doctype.google_contacts.google_contacts.insert_contacts_to_google_contacts",
+		"on_update": "frappe.integrations.doctype.google_contacts.google_contacts.update_contacts_to_google_contacts",
+	},
+	"DocType": {
+		"after_save": "frappe.cache_manager.build_domain_restriced_doctype_cache",
+	},
+	"Page": {
+		"after_save": "frappe.cache_manager.build_domain_restriced_page_cache",
 	}
 }
 
@@ -152,7 +167,6 @@ scheduler_events = {
 		"frappe.oauth.delete_oauth2_data",
 		"frappe.integrations.doctype.razorpay_settings.razorpay_settings.capture_payment",
 		"frappe.twofactor.delete_all_barcodes_for_users",
-		"frappe.integrations.doctype.gcalendar_settings.gcalendar_settings.sync",
 		"frappe.website.doctype.web_page.web_page.check_publish_status",
 		'frappe.utils.global_search.sync_global_search'
 	],
@@ -161,10 +175,9 @@ scheduler_events = {
 		'frappe.model.utils.user_settings.sync_user_settings',
 		"frappe.utils.error.collect_error_snapshots",
 		"frappe.desk.page.backups.backups.delete_downloadable_backups",
-		"frappe.limits.update_space_usage",
-		"frappe.limits.update_site_usage",
 		"frappe.deferred_insert.save_to_db",
 		"frappe.desk.form.document_follow.send_hourly_updates",
+		"frappe.integrations.doctype.google_calendar.google_calendar.sync"
 	],
 	"daily": [
 		"frappe.email.queue.clear_outbox",
@@ -174,7 +187,6 @@ scheduler_events = {
 		"frappe.sessions.clear_expired_sessions",
 		"frappe.email.doctype.notification.notification.trigger_daily_alerts",
 		"frappe.realtime.remove_old_task_logs",
-		"frappe.utils.scheduler.disable_scheduler_on_expiry",
 		"frappe.utils.scheduler.restrict_scheduler_events_if_dormant",
 		"frappe.email.doctype.auto_email_report.auto_email_report.send_daily",
 		"frappe.core.doctype.activity_log.activity_log.clear_authentication_logs",
@@ -183,19 +195,22 @@ scheduler_events = {
 		"frappe.social.doctype.energy_point_settings.energy_point_settings.allocate_review_points",
 		"frappe.integrations.doctype.google_contacts.google_contacts.sync",
 		"frappe.automation.doctype.auto_repeat.auto_repeat.make_auto_repeat_entry",
-		"frappe.automation.doctype.auto_repeat.auto_repeat.set_auto_repeat_as_completed"
+		"frappe.automation.doctype.auto_repeat.auto_repeat.set_auto_repeat_as_completed",
+		"frappe.email.doctype.unhandled_email.unhandled_email.remove_old_unhandled_emails"
 	],
 	"daily_long": [
 		"frappe.integrations.doctype.dropbox_settings.dropbox_settings.take_backups_daily",
-		"frappe.integrations.doctype.s3_backup_settings.s3_backup_settings.take_backups_daily"
+		"frappe.utils.change_log.check_for_update",
+		"frappe.integrations.doctype.s3_backup_settings.s3_backup_settings.take_backups_daily",
+		"frappe.integrations.doctype.google_drive.google_drive.daily_backup"
 	],
 	"weekly_long": [
 		"frappe.integrations.doctype.dropbox_settings.dropbox_settings.take_backups_weekly",
 		"frappe.integrations.doctype.s3_backup_settings.s3_backup_settings.take_backups_weekly",
-		"frappe.utils.change_log.check_for_update",
 		"frappe.desk.doctype.route_history.route_history.flush_old_route_records",
 		"frappe.desk.form.document_follow.send_weekly_updates",
-		"frappe.social.doctype.energy_point_log.energy_point_log.send_weekly_summary"
+		"frappe.social.doctype.energy_point_log.energy_point_log.send_weekly_summary",
+		"frappe.integrations.doctype.google_drive.google_drive.weekly_backup"
 	],
 	"monthly": [
 		"frappe.email.doctype.auto_email_report.auto_email_report.send_monthly",
@@ -236,7 +251,6 @@ bot_parsers = [
 ]
 
 setup_wizard_exception = "frappe.desk.page.setup_wizard.setup_wizard.email_setup_wizard_exception"
-before_write_file = "frappe.limits.validate_space_limit"
 
 before_migrate = ['frappe.patches.v11_0.sync_user_permission_doctype_before_migrate.execute']
 after_migrate = ['frappe.website.doctype.website_theme.website_theme.generate_theme_files_if_not_exist']
@@ -271,6 +285,10 @@ user_privacy_documents = [
 		'personal_fields': ['first_name', 'last_name', 'phone', 'mobile_no'],
 	},
 	{
+		'doctype': 'Contact Email',
+		'match_field': 'email_id',
+	},
+	{
 		'doctype': 'Address',
 		'match_field': 'email_id',
 		'personal_fields': ['address_title', 'address_line1', 'address_line2', 'city', 'county', 'state', 'pincode',
@@ -289,8 +307,27 @@ user_privacy_documents = [
 		'doctype': 'User',
 		'match_field': 'name',
 		'personal_fields': ['email', 'username', 'first_name', 'middle_name', 'last_name', 'full_name', 'birth_date',
-			'user_image', 'phone', 'mobile_no', 'location', 'banner_image', 'interest', 'bio', 'email_signature', 'background_image'],
+			'user_image', 'phone', 'mobile_no', 'location', 'banner_image', 'interest', 'bio', 'email_signature'],
 		'applies_to_website_user': 1
 	},
 
 ]
+
+global_search_doctypes = {
+	"Default": [
+		{"doctype": "Contact"},
+		{"doctype": "Address"},
+		{"doctype": "ToDo"},
+		{"doctype": "Note"},
+		{"doctype": "Event"},
+		{"doctype": "Blog Post"},
+		{"doctype": "Dashboard"},
+		{"doctype": "Country"},
+		{"doctype": "Currency"},
+		{"doctype": "Newsletter"},
+		{"doctype": "Letter Head"},
+		{"doctype": "Workflow"},
+		{"doctype": "Web Page"},
+		{"doctype": "Web Form"}
+	]
+}
