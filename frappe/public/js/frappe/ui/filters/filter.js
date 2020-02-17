@@ -174,11 +174,6 @@ frappe.ui.Filter = class {
 
 		let original_docfield = (this.fieldselect.fields_by_name[doctype] || {})[fieldname];
 
-		if (doctype === "Tag Link" || fieldname === "_user_tags") {
-			original_docfield = {fieldname: "tag", fieldtype: "Data", label: "Tags", parent: "Tag Link"};
-			doctype = "Tag Link";
-		}
-
 		if(!original_docfield) {
 			console.warn(`Field ${fieldname} is not selectable.`);
 			this.remove();
@@ -200,7 +195,7 @@ frappe.ui.Filter = class {
 		// called when condition is changed,
 		// don't change if all is well
 		if(this.field && cur.fieldname == fieldname && df.fieldtype == cur.fieldtype &&
-			df.parent == cur.parent) {
+			df.parent == cur.parent && df.options == cur.options) {
 			return;
 		}
 
@@ -367,24 +362,28 @@ frappe.ui.filter_utils = {
 	get_selected_value(field, condition) {
 		let val = field.get_value();
 
-		if(typeof val==='string') {
+		if (typeof val === 'string') {
 			val = strip(val);
 		}
 
-		if(field.df.original_type == 'Check') {
+		if (condition == 'is' && !val) {
+			val = field.df.options[0].value;
+		}
+
+		if (field.df.original_type == 'Check') {
 			val = (val=='Yes' ? 1 :0);
 		}
 
-		if(condition.indexOf('like', 'not like')!==-1) {
+		if (condition.indexOf('like', 'not like') !== -1) {
 			// automatically append wildcards
-			if(val && !(val.startsWith('%') || val.endsWith('%'))) {
+			if (val && !(val.startsWith('%') || val.endsWith('%'))) {
 				val = '%' + val + '%';
 			}
-		} else if(in_list(["in", "not in"], condition)) {
-			if(val) {
+		} else if (in_list(["in", "not in"], condition)) {
+			if (val) {
 				val = val.split(',').map(v => strip(v));
 			}
-		} if(val === '%') {
+		} if (val === '%') {
 			val = "";
 		}
 

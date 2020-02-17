@@ -18,6 +18,9 @@
 	"js/frappe-recorder.min.js": [
 		"public/js/frappe/recorder/recorder.js"
 	],
+	"js/checkout.min.js": [
+		"public/js/integrations/razorpay.js"
+	],
 	"js/frappe-web.min.js": [
 		"public/js/frappe/class.js",
 		"public/js/frappe/polyfill.js",

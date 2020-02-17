@@ -81,6 +81,10 @@ def rebuild_for_doctype(doctype):
 		return filters
 
 	meta = frappe.get_meta(doctype)
+	
+	if cint(meta.issingle) == 1:
+		return
+	
 	if cint(meta.istable) == 1:
 		parent_doctypes = frappe.get_all("DocField", fields="parent", filters={
 			"fieldtype": ["in", frappe.model.table_fields],
@@ -418,25 +422,31 @@ def search(text, start=0, limit=20, doctype=""):
 	from frappe.desk.doctype.global_search_settings.global_search_settings import get_doctypes_for_global_search
 
 	results = []
-	texts = [t.strip() for t in text.split('&') if t]
-	priorities = get_doctypes_for_global_search()
-	allowed_doctypes = ",".join(["'{0}'".format(dt) for dt in priorities])
-	for text in texts:
-		mariadb_conditions = ''
-		postgres_conditions = ''
-		offset = ''
+	sorted_results = []
 
-		if doctype:
-			mariadb_conditions = postgres_conditions = '`doctype` = {} AND '.format(frappe.db.escape(doctype))
+	allowed_doctypes = get_doctypes_for_global_search()
+
+	for text in set(text.split('&')):
+		text = text.strip()
+		if not text:
+			continue
+
+		conditions = '1=1'
+		offset = ''
 
 		mariadb_text = frappe.db.escape('+' + text + '*')
 
 		mariadb_fields = '`doctype`, `name`, `content`, MATCH (`content`) AGAINST ({} IN BOOLEAN MODE) AS rank'.format(mariadb_text)
 		postgres_fields = '`doctype`, `name`, `content`, TO_TSVECTOR("content") @@ PLAINTO_TSQUERY({}) AS rank'.format(frappe.db.escape(text))
 
-		if allowed_doctypes:
-			mariadb_conditions += '`doctype` IN ({})'.format(allowed_doctypes)
-			postgres_conditions += '`doctype` IN ({})'.format(allowed_doctypes)
+		values = {}
+
+		if doctype:
+			conditions = '`doctype` = %(doctype)s'
+			values['doctype'] = doctype
+		elif allowed_doctypes:
+			conditions = '`doctype` IN %(allowed_doctypes)s'
+			values['allowed_doctypes'] = tuple(allowed_doctypes)
 
 		if int(start) > 0:
 			offset = 'OFFSET {}'.format(start)
@@ -451,40 +461,26 @@ def search(text, start=0, limit=20, doctype=""):
 			"""
 
 		result = frappe.db.multisql({
-				'mariadb': common_query.format(fields=mariadb_fields, conditions=mariadb_conditions, limit=limit, offset=offset),
-				'postgres': common_query.format(fields=postgres_fields, conditions=postgres_conditions, limit=limit, offset=offset)
-			}, as_dict=True)
+				'mariadb': common_query.format(fields=mariadb_fields, conditions=conditions, limit=limit, offset=offset),
+				'postgres': common_query.format(fields=postgres_fields, conditions=conditions, limit=limit, offset=offset)
+			}, values=values, as_dict=True)
 
-		tmp_result=[]
-		for i in result:
-			if i.rank > 0.0:
-				if i in results or not results:
-					tmp_result.extend([i])
-		results.extend(tmp_result)
+		results.extend(result)
 
-	for r in results:
-		try:
-			if frappe.get_meta(r.doctype).image_field:
-				r.image = frappe.db.get_value(r.doctype, r.name, frappe.get_meta(r.doctype).image_field)
-		except Exception:
-			frappe.clear_messages()
-
-	sorted_results = []
-
-	for priority in priorities:
-		tmp_result = []
-		if not results:
-			break
-
+	# sort results based on allowed_doctype's priority
+	for doctype in allowed_doctypes:
 		for index, r in enumerate(results):
-			if r.doctype == priority:
-				tmp_result.extend([r])
-				results.pop(index)
+			if r.doctype == doctype and r.rank > 0.0:
+				try:
+					meta = frappe.get_meta(r.doctype)
+					if meta.image_field:
+						r.image = frappe.db.get_value(r.doctype, r.name, meta.image_field)
+				except Exception:
+					frappe.clear_messages()
 
-		sorted_results.extend(tmp_result)
+				sorted_results.extend([r])
 
 	return sorted_results
-
 
 @frappe.whitelist(allow_guest=True)
 def web_search(text, scope=None, start=0, limit=20):

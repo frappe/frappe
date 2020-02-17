@@ -33,6 +33,19 @@
 	}
 }
 
+body.no-list-sidebar {
+	[data-page-route^="List/"] {
+		@media (min-width: @screen-md) {
+			.layout-side-section {
+				display: none;
+			}
+
+			.layout-main-section-wrapper {
+				width: 100% !important;
+			}
+		}
+	}
+}
 
 .filter-list {
 	position: relative;
@@ -276,14 +289,20 @@ input.list-check-all, input.list-row-checkbox {
 		border-radius:  5px;
 		background: lightyellow;
 		color: @text-light;
-		margin-left:  auto;
+		margin: auto 5px auto auto;
 		font-size: @text-small;
-		margin-top: 3px;
 		outline: 0;
 		.octicon {
 			padding-right: 5px;
 			font-size: 12px;
 		}
+	}
+}
+
+.frappe-rtl {
+	.restricted-list {
+		margin: auto auto auto 5px;
+		direction: ltr;
 	}
 }
 

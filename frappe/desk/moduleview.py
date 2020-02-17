@@ -7,6 +7,7 @@ import json
 from frappe import _
 from frappe.boot import get_allowed_pages, get_allowed_reports
 from frappe.desk.doctype.desktop_icon.desktop_icon import set_hidden, clear_desktop_icons_cache
+from frappe.cache_manager import build_domain_restriced_doctype_cache, build_domain_restriced_page_cache, build_table_count_cache
 
 @frappe.whitelist()
 def get(module):
@@ -24,6 +25,13 @@ def get(module):
 def hide_module(module):
 	set_hidden(module, frappe.session.user, 1)
 	clear_desktop_icons_cache()
+
+def get_table_with_counts():
+	counts = frappe.cache().get_value("information_schema:counts")
+	if counts:
+		return counts
+	else:
+		return build_table_count_cache()
 
 def get_data(module, build=True):
 	"""Get module data for the module view `desk/#Module/[name]`"""
@@ -44,10 +52,10 @@ def get_data(module, build=True):
 	# set_last_modified(data)
 
 	if build:
-		exists_cache = {}
+		exists_cache = get_table_with_counts()
 		def doctype_contains_a_record(name):
 			exists = exists_cache.get(name)
-			if not exists:
+			if not type(exists) == int:
 				if not frappe.db.get_value('DocType', name, 'issingle'):
 					exists = frappe.db.count(name)
 				else:
@@ -96,19 +104,17 @@ def build_config_from_file(module):
 
 def filter_by_restrict_to_domain(data):
 	""" filter Pages and DocType depending on the Active Module(s) """
-	mapper = {
-		"page": "Page",
-		"doctype": "DocType"
-	}
-	active_domains = frappe.get_active_domains()
+	doctypes = frappe.cache().get_value("domain_restricted_doctypes") or build_domain_restriced_doctype_cache()
+	pages = frappe.cache().get_value("domain_restricted_pages") or build_domain_restriced_page_cache()
 
 	for d in data:
 		_items = []
 		for item in d.get("items", []):
-			doctype = mapper.get(item.get("type"))
 
-			doctype_domain = frappe.db.get_value(doctype, item.get("name"), "restrict_to_domain") or ''
-			if not doctype_domain or (doctype_domain in active_domains):
+			item_type = item.get("type")
+			item_name = item.get("name")
+
+			if (item_name in pages) or (item_name in doctypes) or item_type == 'report':
 				_items.append(item)
 
 		d.update({ "items": _items })
@@ -234,8 +240,11 @@ def get_config(app, module):
 		for item in section["items"]:
 			if item["type"]=="report" and item["name"] in disabled_reports:
 				continue
+			# some module links might not have name
+			if not item.get("name"):
+				item["name"] = item.get("label")
 			if not item.get("label"):
-				item["label"] = _(item["name"])
+				item["label"] = _(item.get("name"))
 			items.append(item)
 		section['items'] = items
 
@@ -297,7 +306,7 @@ def get_onboard_items(app, module):
 
 @frappe.whitelist()
 def get_links_for_module(app, module):
-	return [l.get('label') for l in get_links(app, module)]
+	return [{'value': l.get('name'), 'label': l.get('label')} for l in get_links(app, module)]
 
 def get_links(app, module):
 	try:
@@ -330,13 +339,13 @@ def get_desktop_settings():
 	def apply_user_saved_links(module):
 		module = frappe._dict(module)
 		all_links = get_links(module.app, module.module_name)
-		module_links_by_label = {}
+		module_links_by_name = {}
 		for link in all_links:
-			module_links_by_label[link['label']] = link
+			module_links_by_name[link['name']] = link
 
 		if module.module_name in user_saved_links_by_module:
 			user_links = frappe.parse_json(user_saved_links_by_module[module.module_name])
-			module.links = [module_links_by_label[l] for l in user_links if l in module_links_by_label]
+			module.links = [module_links_by_name[l] for l in user_links if l in module_links_by_name]
 
 		return module
 

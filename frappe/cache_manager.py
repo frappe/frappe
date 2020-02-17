@@ -115,3 +115,46 @@ def get_doctype_map(doctype, name, filters, order_by=None):
 def clear_doctype_map(doctype, name):
 	cache_key = frappe.scrub(doctype) + '_map'
 	frappe.cache().hdel(cache_key, name)
+
+def build_table_count_cache(*args, **kwargs):
+	if frappe.flags.in_patch or frappe.flags.in_install or frappe.flags.in_import:
+		return
+	_cache = frappe.cache()
+	data = frappe.db.multisql({
+		"mariadb": """
+			SELECT 	table_name AS name,
+					table_rows AS count
+			FROM information_schema.tables""",
+		"postgres": """
+			SELECT 	"relname" AS name,
+					"n_tup_ins" AS count
+			FROM "pg_stat_all_tables"
+		"""
+	}, as_dict=1)
+
+	counts = {d.get('name').lstrip('tab'): d.get('count', None) for d in data}
+	_cache.set_value("information_schema:counts", counts)
+
+	return counts
+
+def build_domain_restriced_doctype_cache(*args, **kwargs):
+	if frappe.flags.in_patch or frappe.flags.in_install or frappe.flags.in_import:
+		return
+	_cache = frappe.cache()
+	active_domains = frappe.get_active_domains()
+	doctypes = frappe.get_all("DocType", filters={'restrict_to_domain': ('IN', active_domains)})
+	doctypes = [doc.name for doc in doctypes]
+	_cache.set_value("domain_restricted_doctypes", doctypes)
+
+	return doctypes
+
+def build_domain_restriced_page_cache(*args, **kwargs):
+	if frappe.flags.in_patch or frappe.flags.in_install or frappe.flags.in_import:
+		return
+	_cache = frappe.cache()
+	active_domains = frappe.get_active_domains()
+	pages = frappe.get_all("Page", filters={'restrict_to_domain': ('IN', active_domains)})
+	pages = [page.name for page in pages]
+	_cache.set_value("domain_restricted_pages", pages)
+
+	return pages

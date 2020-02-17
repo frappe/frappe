@@ -18,9 +18,6 @@ from frappe.utils.jinja import validate_template
 
 
 class Webhook(Document):
-	def autoname(self):
-		self.name = self.webhook_doctype + "-" + self.webhook_docevent
-
 	def validate(self):
 		self.validate_docevent()
 		self.validate_condition()
@@ -106,13 +103,12 @@ def get_webhook_headers(doc, webhook):
 
 def get_webhook_data(doc, webhook):
 	data = {}
+	doc = doc.as_dict(convert_dates_to_str=True)
+
 	if webhook.webhook_data:
-		for w in webhook.webhook_data:
-			value = doc.get(w.fieldname)
-			if isinstance(value, datetime.datetime):
-				value = frappe.utils.get_datetime_str(value)
-			data[w.key] = value
+		data = {w.key: doc.get(w.fieldname) for w in webhook.webhook_data}
 	elif webhook.webhook_json:
 		data = frappe.render_template(webhook.webhook_json, get_context(doc))
 		data = json.loads(data)
+
 	return data

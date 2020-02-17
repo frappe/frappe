@@ -19,6 +19,8 @@ from frappe.model import no_value_fields, table_fields
 
 INVALID_VALUES = ["", None]
 MAX_ROWS_IN_PREVIEW = 10
+INSERT = "Insert New Records"
+UPDATE = "Update Existing Records"
 
 # pylint: disable=R0201
 class Importer:
@@ -34,8 +36,11 @@ class Importer:
 			if self.data_import.template_options:
 				template_options = frappe.parse_json(self.data_import.template_options)
 				self.template_options.update(template_options)
+			self.import_type = self.data_import.import_type
 		else:
 			self.data_import = None
+
+		self.import_type = self.import_type or INSERT
 
 		self.header_row = None
 		self.data = None
@@ -54,8 +59,10 @@ class Importer:
 		extension = None
 		if self.data_import and self.data_import.import_file:
 			file_doc = frappe.get_doc("File", {"file_url": self.data_import.import_file})
+			parts = file_doc.get_extension()
+			extension = parts[1]
 			content = file_doc.get_content()
-			extension = file_doc.file_name.split(".")[1]
+			extension = extension.lstrip(".")
 
 		if file_path:
 			content, extension = self.read_file(file_path)
@@ -79,12 +86,23 @@ class Importer:
 		return file_content, extn
 
 	def read_content(self, content, extension):
+		error_title = _("Template Error")
+		if extension not in ("csv", "xlsx", "xls"):
+			frappe.throw(
+				_("Import template should be of type .csv, .xlsx or .xls"), title=error_title
+			)
+
 		if extension == "csv":
 			data = read_csv_content(content)
 		elif extension == "xlsx":
 			data = read_xlsx_file_from_attached_file(fcontent=content)
 		elif extension == "xls":
 			data = read_xls_file_from_attached_file(content)
+
+		if len(data) <= 1:
+			frappe.throw(
+				_("Import template should contain a Header and atleast one row."), title=error_title
+			)
 
 		self.header_row = data[0]
 		self.data = data[1:]
@@ -243,7 +261,7 @@ class Importer:
 					"fieldtype": "Data",
 					"fieldname": "name",
 					"label": "ID",
-					"reqd": self.data_import.import_type == "Update Existing Records",
+					"reqd": self.import_type == UPDATE,
 					"parent": doctype,
 				}
 			)
@@ -333,27 +351,25 @@ class Importer:
 		return value
 
 	def parse_date_format(self, value, df):
-		date_format = self.guess_date_format_for_column(df.fieldname)
+		date_format = self.guess_date_format_for_column(df)
 		if date_format:
 			return datetime.strptime(value, date_format)
 		return value
 
-	def guess_date_format_for_column(self, fieldname):
+	def guess_date_format_for_column(self, df):
 		""" Guesses date format for a column by parsing the first 10 values in the column,
 		getting the date format and then returning the one which has the maximum frequency
 		"""
 		PARSE_ROW_COUNT = 10
 
-		if not self._guessed_date_formats.get(fieldname):
-			column_index = -1
+		if not self._guessed_date_formats.get(df.fieldname):
+			matches = [col for col in self.columns if col.df == df]
+			if not matches:
+				self._guessed_date_formats[df.fieldname] = None
+				return
 
-			for i, field in enumerate(self.header_row):
-				if self.meta.has_field(field) and field == fieldname:
-					column_index = i
-					break
-
-			if column_index == -1:
-				self._guessed_date_formats[fieldname] = None
+			column = matches[0]
+			column_index = column.index - 1
 
 			date_values = [
 				row[column_index] for row in self.data[:PARSE_ROW_COUNT] if row[column_index]
@@ -362,9 +378,9 @@ class Importer:
 			if not date_formats:
 				return
 			max_occurred_date_format = max(set(date_formats), key=date_formats.count)
-			self._guessed_date_formats[fieldname] = max_occurred_date_format
+			self._guessed_date_formats[df.fieldname] = max_occurred_date_format
 
-		return self._guessed_date_formats[fieldname]
+		return self._guessed_date_formats[df.fieldname]
 
 	def import_data(self):
 		# set user lang for translations
@@ -589,8 +605,11 @@ class Importer:
 			return value
 
 		def parse_doc(doctype, docfields, values, row_number):
-			# new_doc returns a dict with default values set
-			doc = frappe.new_doc(doctype, as_dict=True)
+			doc = frappe._dict()
+			if self.import_type == INSERT:
+				# new_doc returns a dict with default values set
+				doc = frappe.new_doc(doctype, as_dict=True)
+
 			# remove standard fields and __islocal
 			for key in frappe.model.default_fields + ("__islocal",):
 				doc.pop(key, None)
@@ -603,12 +622,46 @@ class Importer:
 				if value:
 					doc[df.fieldname] = self.parse_value(value, df)
 
+			is_table = frappe.get_meta(doctype).istable
+			is_update = self.import_type == UPDATE
+			if is_table and is_update and doc.get("name") in INVALID_VALUES:
+				# for table rows being inserted in update
+				# create a new doc with defaults set
+				new_doc = frappe.new_doc(doctype, as_dict=True)
+				new_doc.update(doc)
+				doc = new_doc
+
 			check_mandatory_fields(doctype, doc, row_number)
 			return doc
 
 		def check_mandatory_fields(doctype, doc, row_number):
-			# check if mandatory fields are set (except table fields)
+			"""If import type is Insert:
+				Check for mandatory fields (except table fields) in doc
+			if import type is Update:
+				Check for name field or autoname field in doc
+			"""
 			meta = frappe.get_meta(doctype)
+			if self.import_type == UPDATE:
+				if meta.istable:
+					# when updating records with table rows,
+					# there are two scenarios:
+					# 1. if row 'name' is provided in the template
+					# the table row will be updated
+					# 2. if row 'name' is not provided
+					# then a new row will be added
+					# so we dont need to check for mandatory
+					return
+
+				id_field = self.get_id_field(doctype)
+				if doc.get(id_field.fieldname) in INVALID_VALUES:
+					self.warnings.append(
+						{
+							"row": row_number,
+							"message": _("{0} is a mandatory field").format(id_field.label),
+						}
+					)
+				return
+
 			fields = [
 				df
 				for df in meta.fields
@@ -685,21 +738,17 @@ class Importer:
 			)
 		elif mandatory_table_fields:
 			fields_string = ", ".join([df.label for df in mandatory_table_fields])
-			self.warnings.append(
-				{
-					"row": first_row[0],
-					"message": _("There should be atleast one row for the following tables: {0}").format(fields_string),
-				}
+			message = _("There should be atleast one row for the following tables: {0}").format(
+				fields_string
 			)
+			self.warnings.append({"row": first_row[0], "message": message})
 
 		return doc, rows, data[len(rows) :]
 
 	def process_doc(self, doc):
-		import_type = self.data_import.import_type
-
-		if import_type == "Insert New Records":
+		if self.import_type == INSERT:
 			return self.insert_record(doc)
-		elif import_type == "Update Existing Records":
+		elif self.import_type == UPDATE:
 			return self.update_record(doc)
 
 	def insert_record(self, doc):
@@ -747,7 +796,7 @@ class Importer:
 				d.missing_values.remove(link_value)
 
 	def update_record(self, doc):
-		id_fieldname = self.get_id_fieldname()
+		id_fieldname = self.get_id_fieldname(self.doctype)
 		id_value = doc[id_fieldname]
 		existing_doc = frappe.get_doc(self.doctype, id_value)
 		existing_doc.flags.via_data_import = self.data_import.name
@@ -804,12 +853,6 @@ class Importer:
 					df=col.df,
 				)
 
-	def get_id_fieldname(self):
-		autoname_field = self.get_autoname_field(self.doctype)
-		if autoname_field:
-			return autoname_field.fieldname
-		return "name"
-
 	def get_eta(self, current, total, processing_time):
 		remaining = total - current
 		eta = processing_time * remaining
@@ -825,6 +868,15 @@ class Importer:
 		if meta.autoname and meta.autoname.lower() == "prompt":
 			mandatory_fields_count += 1
 		return mandatory_fields_count == 1
+
+	def get_id_fieldname(self, doctype):
+		return self.get_id_field(doctype).fieldname
+
+	def get_id_field(self, doctype):
+		autoname_field = self.get_autoname_field(doctype)
+		if autoname_field:
+			return autoname_field
+		return frappe._dict({"label": "ID", "fieldname": "name", "fieldtype": "Data"})
 
 	def get_autoname_field(self, doctype):
 		meta = frappe.get_meta(doctype)
@@ -862,15 +914,15 @@ class Importer:
 
 		if failed_records:
 			print("Failed to import {0} records".format(len(failed_records)))
-			file_name = '{0}_import_on_{1}.txt'.format(self.doctype, frappe.utils.now())
-			print('Check {0} for errors'.format(os.path.join('sites', file_name)))
+			file_name = "{0}_import_on_{1}.txt".format(self.doctype, frappe.utils.now())
+			print("Check {0} for errors".format(os.path.join("sites", file_name)))
 			text = ""
 			for w in failed_records:
-				text += "Row Indexes: {0}\n".format(str(w.get('row_indexes', [])))
-				text += "Messages:\n{0}\n".format('\n'.join(w.get('messages', [])))
-				text += "Traceback:\n{0}\n\n".format(w.get('exception'))
+				text += "Row Indexes: {0}\n".format(str(w.get("row_indexes", [])))
+				text += "Messages:\n{0}\n".format("\n".join(w.get("messages", [])))
+				text += "Traceback:\n{0}\n\n".format(w.get("exception"))
 
-			with open(file_name, 'w') as f:
+			with open(file_name, "w") as f:
 				f.write(text)
 
 

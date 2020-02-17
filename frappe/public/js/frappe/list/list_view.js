@@ -137,8 +137,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 	show_restricted_list_indicator_if_applicable() {
 		const match_rules_list = frappe.perm.get_match_rules(this.doctype);
-		if(match_rules_list.length) {
-			this.restricted_list = $('<button class="restricted-list form-group">Restricted</button>')
+		if (match_rules_list.length) {
+			this.restricted_list = $(`<button class="restricted-list form-group">${__('Restricted')}</button>`)
 				.prepend('<span class="octicon octicon-lock"></span>')
 				.click(() => this.show_restrictions(match_rules_list))
 				.appendTo(this.page.page_form);
@@ -148,7 +148,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	show_restrictions(match_rules_list=[]) {
 		frappe.msgprint(frappe.render_template('list_view_permission_restrictions', {
 			condition_list: match_rules_list
-		}), 'Restrictions');
+		}), __('Restrictions'));
 	}
 
 	set_fields() {
@@ -390,6 +390,10 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		});
 	}
 
+	after_render() {
+		this.list_sidebar.reload_stats();
+	}
+
 	render() {
 		this.render_list();
 		this.on_row_checked();
@@ -443,7 +447,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 			tag_editor.wrapper.on('click', '.tagit-label', (e) => {
 				const $this = $(e.currentTarget);
-				this.filter_area.add('Tag Link', 'tag', '=', $this.text());
+				this.filter_area.add(this.doctype, '_user_tags', '=', $this.text());
 			});
 		});
 	}
@@ -577,7 +581,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 					data-filter="${fieldname},=,${value}">
 					${_value}
 				</a>`;
-			} else if (['Text Editor', 'Text', 'Small Text'].includes(df.fieldtype)) {
+			} else if (['Text Editor', 'Text', 'Small Text', 'HTML Editor'].includes(df.fieldtype)) {
 				html = `<span class="text-muted ellipsis">
 					${_value}
 				</span>`;
@@ -589,7 +593,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			}
 
 			return `<span class="ellipsis"
-				title="${__(label) + ': ' + _value}">
+				title="${__(label)}: ${escape(_value)}">
 				${html}
 			</span>`;
 		};
@@ -1077,8 +1081,19 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 					});
 					this.toggle_result_area();
 					this.render_list();
+					if (this.$checks.length) {
+						this.set_rows_as_checked();
+					}
 				});
 		});
+	}
+
+	set_rows_as_checked() {
+		$.each(this.$checks, (i, el) => {
+			let docname = $(el).attr('data-name');
+			this.$result.find(`.list-row-checkbox[data-name='${docname}']`).prop('checked', true);
+		});
+		this.on_row_checked();
 	}
 
 	on_row_checked() {
@@ -1500,3 +1515,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 $(document).on('save', (event, doc) => {
 	frappe.views.ListView.trigger_list_update(doc);
 });
+
+frappe.get_list_view = (doctype) => {
+	let route = `List/${doctype}/List`;
+	return frappe.views.list_view[route];
+};

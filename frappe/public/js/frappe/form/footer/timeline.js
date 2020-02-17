@@ -15,7 +15,7 @@ frappe.ui.form.Timeline = class Timeline {
 		var me = this;
 		this.wrapper = $(frappe.render_template("timeline",{doctype: me.frm.doctype,allow_events_in_timeline: me.frm.meta.allow_events_in_timeline})).appendTo(me.parent);
 
-		this.set_automatic_link_email();
+		this.display_automatic_link_email();
 		this.list = this.wrapper.find(".timeline-items");
 		this.email_link = this.wrapper.find(".timeline-email-import");
 
@@ -117,31 +117,12 @@ frappe.ui.form.Timeline = class Timeline {
 			});
 	}
 
-	set_automatic_link_email() {
-		if (!frappe.email.automatic_link_email){
-			frappe.call("frappe.email.doctype.email_account.email_account.get_automatic_email_link").then((r) => {
-				if (r && r.message) {
-					frappe.email.automatic_link_email = r.message;
-				} else {
-					frappe.email.automatic_link_email = null;
-				}
-				this.display_automatic_link_email();
-			});
-		} else {
-			this.display_automatic_link_email();
-		}
-	}
-
 	display_automatic_link_email() {
-		var me = this;
-		if (frappe.email.automatic_link_email){
-			let email_id = frappe.email.automatic_link_email;
-			email_id =  email_id.split("@")[0] +"+"+ encodeURIComponent(me.frm.doctype) +"+"+ encodeURIComponent(me.frm.docname)
-				+"@"+ email_id.split("@")[1];
+		let docinfo = this.frm.get_docinfo();
 
-			$(".timeline-email-import-link").text(email_id);
-		} else {
-			$('.timeline-email-import').addClass("hide");
+		if (docinfo.document_email){
+			let link = __("Send an email to {0} to link it here", [`<b><a class="timeline-email-import-link copy-to-clipboard">${docinfo.document_email}</a></b>`]);
+			$('.timeline-email-import').html(link);
 		}
 	}
 
@@ -211,7 +192,7 @@ frappe.ui.form.Timeline = class Timeline {
 				me.render_timeline_item(d);
 			});
 
-
+		me.display_automatic_link_email();
 
 		// more btn
 		if (this.more===undefined && timeline.length===20) {
@@ -371,17 +352,21 @@ frappe.ui.form.Timeline = class Timeline {
 			c.sender = c.sender.split("<")[1].split(">")[0];
 		}
 
+		if (!c.doctype && ['Comment', 'Communication'].includes(c.communication_type)) {
+			c.doctype = c.communication_type;
+		}
+
 		c.user_info = frappe.user_info(c.sender);
 
 		c["delete"] = "";
 		c["edit"] = "";
 		if(c.communication_type=="Comment" && (c.comment_type || "Comment") === "Comment") {
 			if(frappe.model.can_delete("Comment")) {
-				c["delete"] = '<a class="close delete-comment" title="Delete"  href="#"><i class="octicon octicon-x"></i></a>';
+				c["delete"] = `<a class="close delete-comment" title="${__('Delete')}"  href="#"><i class="octicon octicon-x"></i></a>`;
 			}
 
 			if(frappe.user.name == c.sender || (frappe.user.name == 'Administrator')) {
-				c["edit"] = '<a class="edit-comment text-muted" title="Edit" href="#">Edit</a>';
+				c["edit"] = `<a class="edit-comment text-muted" title="${__('Edit')}" href="#">${__('Edit')}</a>`;
 			}
 		}
 		let communication_date = c.communication_date || c.creation;

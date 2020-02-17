@@ -67,6 +67,43 @@ class TestAPI(unittest.TestCase):
 		doc = server.update(doc)
 		self.assertTrue(doc["title"] == changed_title)
 
+	def test_update_child_doc(self):
+		server = FrappeClient(frappe.get_site_config().host_name, "Administrator", "admin", verify=False)
+		frappe.db.sql("delete from `tabContact` where first_name = 'George' and last_name = 'Steevens'")
+		frappe.db.sql("delete from `tabContact` where first_name = 'William' and last_name = 'Shakespeare'")
+		frappe.db.sql("delete from `tabCommunication` where reference_doctype = 'Event'")
+		frappe.db.sql("delete from `tabCommunication Link` where link_doctype = 'Contact'")
+		frappe.db.sql("delete from `tabEvent` where subject = 'Sing a song of sixpence'")
+		frappe.db.sql("delete from `tabEvent Participants` where reference_doctype = 'Contact'")
+		frappe.db.commit()
+
+		# create multiple contacts
+		server.insert_many([
+			{"doctype": "Contact", "first_name": "George", "last_name": "Steevens"},
+			{"doctype": "Contact", "first_name": "William", "last_name": "Shakespeare"}
+		])
+
+		# create an event with one of the created contacts
+		event = server.insert({
+			"doctype": "Event",
+			"subject": "Sing a song of sixpence",
+			"event_participants": [{
+				"reference_doctype": "Contact",
+				"reference_docname": "George Steevens"
+			}]
+		})
+
+		# update the event's contact to the second contact
+		server.update({
+			"doctype": "Event Participants",
+			"name": event.get("event_participants")[0].get("name"),
+			"reference_docname": "William Shakespeare"
+		})
+
+		# the change should run the parent document's validations and
+		# create a Communication record with the new contact
+		self.assertTrue(frappe.db.exists("Communication Link", {"link_name": "William Shakespeare"}))
+
 	def test_delete_doc(self):
 		server = FrappeClient(frappe.get_site_config().host_name, "Administrator", "admin", verify=False)
 		frappe.db.sql("delete from `tabNote` where title = 'delete'")

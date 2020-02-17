@@ -713,6 +713,7 @@ li.user-progress {
 			height: 60px;
 			width: 60px;
 			background-color: #fafbfc;
+			overflow: hidden;
 
 			.flex-text {
 				display: flex;
@@ -771,7 +772,7 @@ li.user-progress {
 // custom font awesome checkbox
 input[type="checkbox"] {
 	position: relative;
-	left: -999999px;
+	visibility: hidden;
 
 	&:before {
 		position: absolute;
@@ -787,7 +788,7 @@ input[type="checkbox"] {
 		font-size: 14px;
 		color: @text-extra-muted;
 		.transition(150ms color);
-		left: 999999px;
+		left: 0px;
 	}
 
 	&:focus:before {
@@ -1123,4 +1124,10 @@ body.no-sidebar {
 
 .alt-pressed .alt-underline {
 	text-decoration: underline;
+}
+
+.app-change-log-body {
+	h1 {
+		font-size: 20px;
+	}
 }
