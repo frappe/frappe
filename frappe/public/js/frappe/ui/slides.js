@@ -149,9 +149,14 @@ frappe.ui.Slide = class Slide {
 	bind_fields_to_action_btn() {
 		var me = this;
 		this.reqd_fields.map((field) => {
-			field.$wrapper.on('change input', () => {
+			field.$wrapper.on('change input click', () => {
 				me.reset_action_button_state();
 			});
+			field.$wrapper.on('keydown', 'input', e => {
+				if (e.key == 'Enter') {
+					me.reset_action_button_state();
+				}
+			})
 		});
 	}
 
