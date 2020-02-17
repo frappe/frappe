@@ -181,6 +181,6 @@ frappe.ui.FilterGroup = class {
 
 		filters.forEach(filter => {
 			this.add_filter(filter[0], filter[1], filter[2], filter[3]);
-		})
+		});
 	}
 };

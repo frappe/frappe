@@ -33,6 +33,7 @@ def generate_and_cache_results(args, function, cache_key):
 	args = frappe._dict(args)
 	results = function(
 		chart_name = args.chart_name,
+		filters = args.filters or None,
 		from_date = args.from_date or None,
 		to_date = args.to_date or None,
 		time_interval = args.time_interval or None,

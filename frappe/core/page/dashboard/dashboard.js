@@ -129,6 +129,10 @@ class DashboardChart {
 			this.prepare_chart_object();
 			this.prepare_container();
 
+			if (this.chart_doc.chart_type !== 'Custom' && this.chart_doc.chart_type !== 'Report') {
+				this.setup_filter_button();
+			}
+
 			if (this.chart_doc.timeseries && this.chart_doc.chart_type !== 'Custom') {
 				this.render_time_series_filters();
 			}
@@ -285,6 +289,44 @@ class DashboardChart {
 		this.set_chart_actions(actions);
 	}
 
+	setup_filter_button() {
+		this.filter_button = $(`<div class="filter-chart btn btn-default btn-xs pull-right">Add Filter</div>`);
+		this.filter_button.prependTo(this.chart_container);
+
+		let me = this;
+		this.filter_button.on('click', () => {
+			let dialog = new frappe.ui.Dialog({
+				title: __('Set Filters'),
+				fields: [{
+					fieldtype: 'HTML',
+					fieldname: 'filter_area',
+				}],
+				primary_action: function() {
+					let values = this.get_values();
+					if (values) {
+						this.hide();
+						me.filters = me.filter_group.get_filters();
+						me.fetch_and_update_chart();
+					}
+				},
+				primary_action_label: "Set"
+			});
+
+			this.filter_group = new frappe.ui.FilterGroup({
+				parent: dialog.get_field('filter_area').$wrapper,
+				doctype: this.chart_doc.document_type,
+				on_change: () => {},
+			});
+
+			frappe.model.with_doctype(this.chart_doc.document_type, () => {
+				this.filter_group.add_filters_to_filter_group(this.filters);
+			});
+
+			dialog.show();
+			dialog.set_values(this.filters);
+		});
+	}
+
 	set_chart_actions(actions) {
 		this.chart_actions = $(`<div class="chart-actions btn-group dropdown pull-right">
 			<a class="dropdown-toggle" data-toggle="dropdown"
@@ -372,7 +414,7 @@ class DashboardChart {
 	}
 
 	prepare_chart_object() {
-		this.filters = JSON.parse(this.chart_doc.filters_json || '{}');
+		this.filters = this.filters || JSON.parse(this.chart_doc.filters_json || '[]');
 	}
 
 	get_settings() {

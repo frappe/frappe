@@ -30,6 +30,12 @@
     margin-right: 10px;
 }
 
+.filter-chart {
+    position: relative;
+    right: 10px;
+    top: 25px;
+}
+
 .dashboard-date-field {
     width: 14%;
     margin-right: 10px;

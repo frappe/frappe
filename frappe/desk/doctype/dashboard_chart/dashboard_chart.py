@@ -13,7 +13,7 @@ from frappe.model.document import Document
 
 @frappe.whitelist()
 @cache_source
-def get(chart_name = None, chart = None, no_cache = None, from_date = None, to_date = None, timespan = None, time_interval = None, refresh = None):
+def get(chart_name = None, chart = None, no_cache = None, filters = None, from_date = None, to_date = None, timespan = None, time_interval = None, refresh = None):
 	if chart_name:
 		chart = frappe.get_doc('Dashboard Chart', chart_name)
 	else:
@@ -34,7 +34,7 @@ def get(chart_name = None, chart = None, no_cache = None, from_date = None, to_d
 			to_date = chart.to_date
 
 	timegrain = time_interval or chart.time_interval
-	filters = frappe.parse_json(chart.filters_json)
+	filters = frappe.parse_json(filters) or frappe.parse_json(chart.filters_json)
 
 	# don't include cancelled documents
 	filters.append([chart.document_type, 'docstatus', '<', 2, False])
