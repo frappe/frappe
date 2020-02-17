@@ -10,8 +10,19 @@ from frappe import _
 import requests
 import json
 
+
+error_messages = {
+	400: "400: Invalid Payload or User not found",
+	403: "403: Action Prohibited",
+	404: "404: Channel not found",
+	410: "410: The Channel is Archived",
+	500: "500: Rollup Error, Slack seems to be down"
+}
+
+
 class SlackWebhookURL(Document):
 	pass
+
 
 def send_slack_message(webhook_url, message, reference_doctype, reference_name):
 	slack_url = frappe.db.get_value("Slack Webhook URL", webhook_url, "webhook_url")
@@ -21,10 +32,10 @@ def send_slack_message(webhook_url, message, reference_doctype, reference_name):
 			"fallback": _("See the document at {0}").format(doc_url),
 			"actions": [
 				{
-				"type": "button",
-				"text": _("Go to the document"),
-				"url": doc_url,
-				"style": "primary"
+					"type": "button",
+					"text": _("Go to the document"),
+					"url": doc_url,
+					"style": "primary"
 				}
 			]
 		}
@@ -32,10 +43,9 @@ def send_slack_message(webhook_url, message, reference_doctype, reference_name):
 	data = {"text": message, "attachments": attachments}
 	r = requests.post(slack_url, data=json.dumps(data))
 
-
-	if r.ok == True:
-		return 'success'
-
-	elif r.ok == False:
-		frappe.log_error(r.error, _('Slack Webhook Error'))
+	if not r.ok:
+		message = error_messages.get(r.status_code, r.status_code)
+		frappe.log_error(message, _('Slack Webhook Error'))
 		return 'error'
+
+	return 'success'
