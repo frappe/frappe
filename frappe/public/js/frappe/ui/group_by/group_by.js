@@ -84,7 +84,6 @@ frappe.ui.GroupBy = class {
 
 		// Extract fieldname from `tabdoctype`.`fieldname`
 		let group_by_fieldname = settings.group_by.split('.')[1].replace(/`/g, '');
-
 		this.groupby_select.val(group_by_fieldname);
 		this.aggregate_function_select.val(settings.aggregate_function);
 		this.show_hide_aggregate_on();
