@@ -128,10 +128,7 @@ class DashboardChart {
 		this.get_settings().then(() => {
 			this.prepare_chart_object();
 			this.prepare_container();
-
-			if (this.chart_doc.chart_type !== 'Custom' && this.chart_doc.chart_type !== 'Report') {
-				this.setup_filter_button();
-			}
+			this.setup_filter_button();
 
 			if (this.chart_doc.timeseries && this.chart_doc.chart_type !== 'Custom') {
 				this.render_time_series_filters();
@@ -290,40 +287,83 @@ class DashboardChart {
 	}
 
 	setup_filter_button() {
-		this.filter_button = $(`<div class="filter-chart btn btn-default btn-xs pull-right">Add Filter</div>`);
+		
+		this.is_document_type = this.chart_doc.chart_type!== 'Report' && this.chart_doc.chart_type!=='Custom';
+		this.filter_button = $(`<div class="filter-chart btn btn-default btn-xs pull-right">${__("Set Filters")}</div>`);
 		this.filter_button.prependTo(this.chart_container);
 
-		let me = this;
 		this.filter_button.on('click', () => {
-			let dialog = new frappe.ui.Dialog({
-				title: __('Set Filters'),
-				fields: [{
-					fieldtype: 'HTML',
-					fieldname: 'filter_area',
-				}],
-				primary_action: function() {
-					let values = this.get_values();
-					if (values) {
-						this.hide();
-						me.filters = me.filter_group.get_filters();
-						me.fetch_and_update_chart();
+			let fields;
+			frappe.dashboard_utils.get_filters_for_chart_type(this.chart_doc)
+				.then((filters) => {
+					if (!this.is_document_type) {
+						if (!filters) {
+							fields = [{
+								fieldtype:"HTML",
+								options:__("No Filters Set")
+							}];
+						} else {
+							fields = filters.filter(f => {
+								if (f.on_change) {
+									return false;
+								}
+								if (f.get_query || f.get_data) {
+									f.read_only = 1;
+								}
+								return f.fieldname;
+							});
+						}
+					} else {
+						fields = [{
+							fieldtype: 'HTML',
+							fieldname: 'filter_area',
+						}];
 					}
-				},
-				primary_action_label: "Set"
-			});
 
-			this.filter_group = new frappe.ui.FilterGroup({
-				parent: dialog.get_field('filter_area').$wrapper,
-				doctype: this.chart_doc.document_type,
-				on_change: () => {},
-			});
+					this.setup_filter_dialog(fields);
+				});
+		});
+	}
 
-			frappe.model.with_doctype(this.chart_doc.document_type, () => {
-				this.filter_group.add_filters_to_filter_group(this.filters);
-			});
+	setup_filter_dialog(fields) {
 
-			dialog.show();
-			dialog.set_values(this.filters);
+		let me = this;
+		let dialog = new frappe.ui.Dialog({
+			title: __(`Set Filters for ${this.chart_doc.chart_name}`),
+			fields: fields,
+			primary_action: function() {
+				let values = this.get_values();
+				if (values) {
+					this.hide();
+					if (me.is_document_type) {
+						me.filters = me.filter_group.get_filters();
+					} else {
+						me.filters = values;
+					}
+					me.fetch_and_update_chart();
+				}
+			},
+			primary_action_label: "Set"
+		});
+
+		if (this.is_document_type) {
+			this.create_filter_group_and_add_filters(dialog.get_field('filter_area').$wrapper);
+		}
+
+		dialog.show();
+		dialog.set_values(this.filters);	
+	
+	}
+
+	create_filter_group_and_add_filters(parent) {
+		this.filter_group = new frappe.ui.FilterGroup({
+			parent: parent,
+			doctype: this.chart_doc.document_type,
+			on_change: () => {},
+		});
+
+		frappe.model.with_doctype(this.chart_doc.document_type, () => {
+			this.filter_group.add_filters_to_filter_group(this.filters);
 		});
 	}
 

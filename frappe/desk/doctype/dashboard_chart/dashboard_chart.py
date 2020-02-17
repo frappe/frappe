@@ -86,12 +86,6 @@ def get_chart_config(chart, filters, timespan, timegrain, from_date, to_date):
 	filters.append([chart.document_type, datefield, '>=', from_date, False])
 	filters.append([chart.document_type, datefield, '<=', to_date, False])
 
-	fields = [
-			'extract(year from `tab{doctype}`.{datefield}) as _year'.format(doctype=chart.document_type, datefield=datefield),
-			'{} as _unit'.format(unit_function),
-			'{aggregate_function}({value_field}) as count'.format(aggregate_function=aggregate_function, value_field=value_field),
-	]
-
 	data = frappe.db.get_all(
 		chart.document_type,
 		fields = [
