@@ -111,7 +111,6 @@ frappe.ui.form.States = Class.extend({
 					'frappe.model.workflow.can_cancel_document',
 					{
 						doctype: this.frm.doc.doctype, 
-						docname: this.frm.doc.name
 					}
 				).then((can_cancel) => {
 					if (!can_cancel) {
