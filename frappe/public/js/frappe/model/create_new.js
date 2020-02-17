@@ -144,7 +144,9 @@ $.extend(frappe.model, {
 				return default_doc;
 			}
 
-			user_default = df["default"];
+			if (df["default"] && (!has_user_permissions || allowed_records.includes(df["default"]))) {
+				user_default = df["default"];
+			}
 
 			if(!df.ignore_user_permissions && !user_default) {
 				// 2 - look in user defaults
