@@ -22,8 +22,6 @@ frappe.setup.OnboardingSlide = class OnboardingSlide extends frappe.ui.Slide {
 			this.setup_help_links();
 		}
 
-		// the onboarding dialog will be closed
-		// and shown again on refresh until all slides are completed.
 		this.$skip_btn = this.slides_footer.find('.skip-btn').on('click', () => {
 			$('.onboarding-dialog').modal('toggle');
 			this.reset_is_first_startup();
@@ -33,6 +31,14 @@ frappe.setup.OnboardingSlide = class OnboardingSlide extends frappe.ui.Slide {
 	setup_form() {
 		super.setup_form();
 		const fields = this.get_atomic_fields();
+
+		// remove link indicator
+		fields.map((field, i) => {
+			if (field.fieldtype == 'Link') {
+				$('.link-btn').remove();
+			}
+		});
+
 		if (fields.length == 1) {
 			this.$form_wrapper.addClass("text-center");
 		} else {
