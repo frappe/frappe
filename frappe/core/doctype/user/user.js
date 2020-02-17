@@ -78,6 +78,7 @@ frappe.ui.form.on('User', {
 						frappe.msgprint(__("Email has been sent to {0}", [frm.doc.email]));
 					});
 				});
+				
 				frm.add_custom_button(__("Set User Permissions"), function() {
 					frappe.route_options = {
 						"user": doc.name
