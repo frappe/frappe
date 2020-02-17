@@ -281,6 +281,14 @@ class DashboardChart {
 				handler: () => {
 					frappe.set_route('List', this.chart_doc.document_type);
 				}
+			});
+		} else if (this.chart_doc.chart_type === 'Report') {
+			actions.push({
+				label: __("{0} Report", [this.chart_doc.report_name]),
+				action: 'action-list',
+				handler: () => {
+					frappe.set_route('query-report', this.chart_doc.report_name);
+				}
 			})
 		}
 		this.set_chart_actions(actions);
