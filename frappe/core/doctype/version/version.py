@@ -78,8 +78,8 @@ def get_diff(old, new, for_child=False):
 
 		elif (old_value != new_value):
 			if df.fieldtype not in blacklisted_fields:
-				old_value = old.get_formatted(df.fieldname)
-				new_value = new.get_formatted(df.fieldname)
+				old_value = old.get_formatted(df.fieldname) if old_value else old_value
+				new_value = new.get_formatted(df.fieldname) if new_value else new_value
 
 			if old_value != new_value:
 				out.changed.append((df.fieldname, old_value, new_value))
