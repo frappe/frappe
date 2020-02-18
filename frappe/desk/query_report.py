@@ -185,7 +185,7 @@ def run(report_name, filters=None, user=None, ignore_prepared_report=False):
 	else:
 		result = generate_report_result(report, filters, user)
 
-	result["add_total_row"] = report.add_total_row and not result['skip_total_row']
+	result["add_total_row"] = report.add_total_row and not result.get('skip_total_row', False)
 
 	return result
 
@@ -303,6 +303,11 @@ def export_query():
 	if file_format_type == "Excel":
 		data = run(report_name, filters)
 		data = frappe._dict(data)
+		if not data.columns:
+			frappe.respond_as_web_page(_("No data to export"),
+			_("You can try changing the filters of your report."))
+			return
+
 		columns = get_columns_dict(data.columns)
 
 		from frappe.utils.xlsxutils import make_xlsx
