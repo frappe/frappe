@@ -1200,7 +1200,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			})
 		}
 
-		return items
+		return items;
 	}
 
 	add_portrait_warning(dialog) {
