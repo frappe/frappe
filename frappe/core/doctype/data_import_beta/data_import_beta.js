@@ -20,11 +20,12 @@ frappe.ui.form.on('Data Import Beta', {
 			let seconds = Math.floor(data.eta);
 			let minutes = Math.floor(data.eta / 60);
 			let eta_message =
+				// prettier-ignore
 				seconds < 60
 					? __('About {0} seconds remaining', [seconds])
-					: minutes === 1
-					? __('About {0} minute remaining', [minutes])
-					: __('About {0} minutes remaining', [minutes]);
+                    : minutes === 1
+					    ? __('About {0} minute remaining', [minutes])
+					    : __('About {0} minutes remaining', [minutes]);
 
 			let message;
 			if (data.success) {
