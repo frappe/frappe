@@ -11,7 +11,7 @@ from frappe.utils.verified_command import get_signed_params, verify_request
 from frappe.utils.background_jobs import enqueue
 from frappe.email.queue import send
 from frappe.email.doctype.email_group.email_group import add_subscribers
-from frappe.utils import parse_addr
+from frappe.utils import parse_addr, now_datetime
 from frappe.utils import validate_email_address
 
 
@@ -250,3 +250,11 @@ def get_newsletter_list(doctype, txt, filters, limit_start, limit_page_length=20
 			'''.format(','.join(['%s'] * len(email_group_list)),
 					limit_page_length, limit_start), email_group_list, as_dict=1)
 
+def send_scheduled_email():
+	''' Send scheduled newsletter to the recipients '''
+	scheduled_newsletter = frappe.get_all('Newsletter', filters = {
+		'schedule_send': ('<=', now_datetime()),
+		'email_sent': 0
+	}, fields = ['name'])
+	for newsletter in scheduled_newsletter:
+		send_newsletter(newsletter.name)
