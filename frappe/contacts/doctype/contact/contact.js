@@ -58,10 +58,13 @@ frappe.ui.form.on("Contact", {
 					}
 				}
 			});
+		}
 
+		if (!frm.doc.__islocal && frm.doc.links) {
 			for (let i in frm.doc.links) {
 				let link = frm.doc.links[i];
 				frm.add_custom_button(__("{0}: {1}", [__(link.link_doctype), __(link.link_name)]), function() {
+					frappe.dynamic_link = {};
 					frappe.set_route("Form", link.link_doctype, link.link_name);
 				}, __("Links"));
 			}
