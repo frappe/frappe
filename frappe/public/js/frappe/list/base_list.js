@@ -540,7 +540,7 @@ class FilterArea {
 			out.promise = out.promise || Promise.resolve();
 			out.non_standard_filters = out.non_standard_filters || [];
 
-			if (fields_dict[fieldname] && condition === '=') {
+			if (fields_dict[fieldname] && (condition === '=' || condition === "like")) {
 				// standard filter
 				out.promise = out.promise.then(
 					() => fields_dict[fieldname].set_value(value)
