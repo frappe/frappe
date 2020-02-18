@@ -1163,7 +1163,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			}
 		];
 
-		if(frappe.user.is_report_manager()) {
+		if (frappe.user.is_report_manager()) {
 			items.push({
 				label: __('Save'),
 				action: () => {
