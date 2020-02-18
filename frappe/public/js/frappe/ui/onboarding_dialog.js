@@ -33,7 +33,7 @@ frappe.setup.OnboardingSlide = class OnboardingSlide extends frappe.ui.Slide {
 		const fields = this.get_atomic_fields();
 
 		// remove link indicator
-		fields.map((field, i) => {
+		fields.map((field) => {
 			if (field.fieldtype == 'Link') {
 				$('.link-btn').remove();
 			}

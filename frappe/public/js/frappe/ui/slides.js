@@ -156,7 +156,7 @@ frappe.ui.Slide = class Slide {
 				if (e.key == 'Enter') {
 					me.reset_action_button_state();
 				}
-			})
+			});
 		});
 	}
 
