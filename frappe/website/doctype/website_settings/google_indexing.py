@@ -11,7 +11,6 @@ import google.oauth2.credentials
 from frappe import _
 from googleapiclient.errors import HttpError
 from frappe.utils import get_request_site_address
-from frappe.model.document import Document
 from six.moves.urllib.parse import quote
 from frappe.integrations.doctype.google_settings.google_settings import get_auth_url
 
@@ -73,7 +72,7 @@ def google_callback(code=None):
 
 def get_google_indexing_object():
 	"""
-		Returns an object of Website Settings Service
+		Returns an object of Google Indexing object
 	"""
 	google_settings = frappe.get_doc("Google Settings")
 	account = frappe.get_doc("Website Settings")
