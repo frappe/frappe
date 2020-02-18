@@ -9,7 +9,7 @@ import timeit
 import frappe
 from datetime import datetime
 from frappe import _
-from frappe.utils import cint, flt, update_progress_bar
+from frappe.utils import cint, flt, update_progress_bar, cstr
 from frappe.utils.csvutils import read_csv_content
 from frappe.utils.xlsxutils import (
 	read_xlsx_file_from_attached_file,
@@ -338,6 +338,8 @@ class Importer:
 		return columns_with_serial_no, data_with_serial_no
 
 	def parse_value(self, value, df):
+		value = cstr(value)
+
 		# convert boolean values to 0 or 1
 		if df.fieldtype == "Check" and value.lower().strip() in ["t", "f", "true", "false"]:
 			value = value.lower().strip()
