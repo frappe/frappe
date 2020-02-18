@@ -106,7 +106,7 @@ def apply_workflow(doc, action):
 	return doc
 
 @frappe.whitelist()
-def can_cancel_document(doctype, docname):
+def can_cancel_document(doctype):
 	workflow = get_workflow(doctype)
 	for state_doc in workflow.states:
 		if state_doc.doc_status == '2':
