@@ -156,10 +156,12 @@ class Importer:
 		out.data = list(self.rows)
 		out.columns = self.columns
 		out.warnings = self.warnings
-		if len(out.data) > MAX_ROWS_IN_PREVIEW:
+		total_number_of_rows = len(out.data)
+		if total_number_of_rows > MAX_ROWS_IN_PREVIEW:
 			out.data = out.data[:MAX_ROWS_IN_PREVIEW]
 			out.max_rows_exceeded = True
 			out.max_rows_in_preview = MAX_ROWS_IN_PREVIEW
+			out.total_number_of_rows = total_number_of_rows
 		return out
 
 	def parse_data_from_template(self):

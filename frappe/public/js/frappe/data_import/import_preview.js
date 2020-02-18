@@ -124,11 +124,11 @@ frappe.data_import.ImportPreview = class ImportPreview {
 			disableReorderColumn: true
 		});
 
-		let { max_rows_exceeded, max_rows_in_preview } = this.preview_data;
+		let { max_rows_exceeded, max_rows_in_preview, total_number_of_rows } = this.preview_data;
 		if (max_rows_exceeded) {
 			this.wrapper.find('.table-message').html(`
 				<div class="text-muted margin-top text-medium">
-				${__('Showing only first {0} rows in preview', [max_rows_in_preview])}
+				${__('Showing only first {0} rows out of {1}', [max_rows_in_preview, total_number_of_rows])}
 				</div>
 			`);
 		}
