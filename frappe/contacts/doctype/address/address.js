@@ -25,7 +25,7 @@ frappe.ui.form.on("Address", {
 		});
 		frm.refresh_field("links");
 
-		if (frm.doc.links) {
+		if (!frm.doc.__islocal && frm.doc.links) {
 			for (let i in frm.doc.links) {
 				let link = frm.doc.links[i];
 				frm.add_custom_button(__("{0}: {1}", [__(link.link_doctype), __(link.link_name)]), function() {
@@ -51,6 +51,7 @@ frappe.ui.form.on("Address", {
 					for (let i in frm.doc.links) {
 						let link = frm.doc.links[i];
 						if (last_doc.doctype == link.link_doctype && last_doc.docname == link.link_name) {
+							frappe.dynamic_link = {};
 							frappe.set_route('Form', last_doc.doctype, last_doc.docname);
 						}
 					}
