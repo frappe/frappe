@@ -25,9 +25,8 @@ context('Awesome Bar', () => {
 
 		cy.get('h1').should('contain', 'To Do');
 
-		cy.get('.toggle-filter')
-			.should('have.length', 1)
-			.should('contain', 'ID like %test%');
+		cy.get('[data-original-title="Name"] > .input-with-feedback')
+			.should('have.value', '%test%');
 	});
 
 	it('navigates to new form', () => {
