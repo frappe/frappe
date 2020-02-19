@@ -2,12 +2,13 @@ frappe.dashboard_utils = {
 
 	render_chart_filters: function(filters, button_class, container, append) {
 		filters.forEach(filter => {
-			let chart_filter_html = `<div class="${button_class} btn-group dropdown pull-right">
-				<a class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-					<button class="btn btn-default btn-xs">
-						<span class="filter-label">${filter.label}</span>
-						<span class="caret"></span>
-					</button>
+			let chart_filter_html = 
+				`<div class="${button_class} btn-group dropdown pull-right">
+					<a class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+						<button class="btn btn-default btn-xs">
+							<span class="filter-label">${filter.label}</span>
+							<span class="caret"></span>
+						</button>
 				</a>`;
 			let options_html;
 
@@ -31,6 +32,7 @@ frappe.dashboard_utils = {
 				if ($el.attr('data-fieldname')) {
 					fieldname = $el.attr('data-fieldname');
 				}
+
 				let selected_item = $el.text();
 				$el.parents(`.${button_class}`).find('.filter-label').text(selected_item);
 				filter.action(selected_item, fieldname);

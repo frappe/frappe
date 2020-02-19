@@ -52,6 +52,7 @@ frappe.report_utils = {
 			}
 			return accumulator;
 		}, []);
+
 		function get_options(fields) {
 			return fields.map((field) => {
 				if (field.fieldname) {
@@ -62,6 +63,7 @@ frappe.report_utils = {
 				}
 			});
 		}
+
 		const numeric_fields = columns.filter((col, i) => indices.includes(i));
 		const non_numeric_fields = columns.filter((col, i) => !indices.includes(i))
 
@@ -134,40 +136,4 @@ frappe.report_utils = {
 		return filter_values;
 	},
 
-	// get_filter(fieldname, report_name) {
-	// 	let filters = frappe.query_reports[report_name].filters;
-	// 	console.log('filters', filters);
-	// 	const field = (filters || []).find(f => f.fieldname === fieldname);
-	// 	if (!field) {
-	// 		console.warn(`[Query Report] Invalid filter: ${fieldname}`);
-	// 	}
-	// 	return field;
-	// },
-
-	// get_filter_value(fieldname, report_name) {
-	// 	const field = this.get_filter(fieldname, report_name);
-	// 	console.log('field', field);
-	// 	return field ? field.get_value() : null;
-	// },
-
-	// set_filter_value(fieldname, value) {
-	// 	let field_value_map = {};
-	// 	if (typeof fieldname === 'string') {
-	// 		field_value_map[fieldname] = value;
-	// 	} else {
-	// 		field_value_map = fieldname;
-	// 	}
-
-	// 	this._no_refresh = true;
-	// 	Object.keys(field_value_map)
-	// 		.forEach((fieldname, i, arr) => {
-	// 			const value = field_value_map[fieldname];
-
-	// 			if (i === arr.length - 1) {
-	// 				this._no_refresh = false;
-	// 			}
-
-	// 			this.get_filter(fieldname).set_value(value);
-	// 		});
-	// },
 };

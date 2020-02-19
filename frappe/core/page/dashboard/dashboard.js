@@ -297,7 +297,8 @@ class DashboardChart {
 	setup_filter_button() {
 		
 		this.is_document_type = this.chart_doc.chart_type!== 'Report' && this.chart_doc.chart_type!=='Custom';
-		this.filter_button = $(`<div class="filter-chart btn btn-default btn-xs pull-right">${__("Set Filters")}</div>`);
+		this.filter_button = 
+			$(`<div class="filter-chart btn btn-default btn-xs pull-right">${__("Set Filters")}</div>`);
 		this.filter_button.prependTo(this.chart_container);
 
 		this.filter_button.on('click', () => {
@@ -377,8 +378,8 @@ class DashboardChart {
 
 	set_chart_actions(actions) {
 		this.chart_actions = $(`<div class="chart-actions btn-group dropdown pull-right">
-			<a class="dropdown-toggle" data-toggle="dropdown"
-				aria-haspopup="true" aria-expanded="false"> <button class="btn btn-default btn-xs"><span class="caret"></span></button>
+			<a class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+				<button class="btn btn-default btn-xs"><span class="caret"></span></button>
 			</a>
 			<ul class="dropdown-menu" style="max-height: 300px; overflow-y: auto;">
 				${actions.map(action => `<li><a data-action="${action.action}">${action.label}</a></li>`).join('')}

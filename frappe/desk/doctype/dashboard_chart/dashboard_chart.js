@@ -248,7 +248,13 @@ frappe.ui.form.on('Dashboard Chart', {
 			]
 			if (filters.length > 0) {
 				filters.forEach( filter => {
-					const filter_row = $(`<tr><td>${filter[1]}</td><td>${filter[2] || ""}</td><td>${filter[3]}</td></tr>`);
+					const filter_row = 
+						$(`<tr>
+							<td>${filter[1]}</td>
+							<td>${filter[2] || ""}</td>
+							<td>${filter[3]}</td>
+						</tr>`);
+
 					table.find('tbody').append(filter_row);
 					filters_set = true;
 				});
@@ -265,7 +271,13 @@ frappe.ui.form.on('Dashboard Chart', {
 			fields.map( f => {
 				if (filters[f.fieldname]) {
 					let condition = '=';
-					const filter_row = $(`<tr><td>${f.label}</td><td>${condition}</td><td>${filters[f.fieldname] || ""}</td></tr>`);
+					const filter_row = 
+						$(`<tr>
+							<td>${f.label}</td>
+							<td>${condition}</td>
+							<td>${filters[f.fieldname] || ""}</td>
+						</tr>`);
+
 					table.find('tbody').append(filter_row);
 					filters_set = true;
 				}
