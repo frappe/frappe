@@ -6,6 +6,7 @@ from __future__ import unicode_literals
 import frappe
 from frappe import _
 import datetime
+import json
 from frappe.core.page.dashboard.dashboard import cache_source, get_from_date_from_timespan
 from frappe.utils import nowdate, add_to_date, getdate, get_last_day, formatdate, get_datetime
 from frappe.model.naming import append_number_if_name_exists
@@ -58,9 +59,11 @@ def create_report_chart(args):
 	_doc.insert(ignore_permissions=True)
 
 	if args.dashboard:
-		add_chart_to_dashboard(args)
+		add_chart_to_dashboard(json.dumps(args))
 
+@frappe.whitelist()
 def add_chart_to_dashboard(args):
+	args = frappe.parse_json(args)
 	dashboard = frappe.get_doc('Dashboard', args.dashboard)
 	dashboard_link = frappe.new_doc('Dashboard Chart Link')
 	dashboard_link.chart = args.chart_name
