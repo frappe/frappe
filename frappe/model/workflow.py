@@ -173,8 +173,8 @@ def bulk_workflow_approval(docnames, doctype, action):
 	from collections import defaultdict
 
 	# dictionaries for logging
-	errored_documents = defaultdict(list)
-	successful_documents = defaultdict(list)
+	errored_transactions = defaultdict(list)
+	successful_transactions = defaultdict(list)
 
 	# WARN: message log is cleared
 	print("Clearing frappe.message_log...")
@@ -197,16 +197,23 @@ def bulk_workflow_approval(docnames, doctype, action):
 					message_dict = {"docname": docname, "message": message.get("message")}
 
 					if message.get("raise_exception", False):
-						errored_documents[docname].append(message_dict)
+						errored_transactions[docname].append(message_dict)
 					else:
-						successful_documents[docname].append(message_dict)
+						successful_transactions[docname].append(message_dict)
 			else:
-				successful_documents[docname].append({"docname": docname, "message": None})
+				successful_transactions[docname].append({"docname": docname, "message": None})
 
-	print_workflow_log(errored_documents, "Errored Documents", doctype)
-	print_workflow_log(successful_documents, "Successful Documents", doctype)
+	if errored_transactions and successful_transactions:
+		indicator = "orange"
+	elif errored_transactions:
+		indicator  = "red"
+	else:
+		indicator = "green"
 
-def print_workflow_log(messages, title, doctype):
+	print_workflow_log(errored_transactions, _("Errored Transactions"), doctype, indicator)
+	print_workflow_log(successful_transactions, _("Successful Transactions"), doctype, indicator)
+
+def print_workflow_log(messages, title, doctype, indicator):
 	if messages.keys():
 		msg = "<h4>{0}</h4>".format(title)
 
@@ -221,7 +228,7 @@ def print_workflow_log(messages, title, doctype):
 				html = "<div>{0}</div>".format(doc)
 			msg += html
 
-		frappe.msgprint(msg, title="Workflow Log")
+		frappe.msgprint(msg, title=_("Workflow Status"), indicator=indicator)
 
 @frappe.whitelist()
 def get_common_transition_actions(docs, doctype):
