@@ -8,7 +8,6 @@ export default class GridRow {
 		this.columns_list = [];
 		$.extend(this, opts);
 		this.row_check_html = '<input type="checkbox" class="grid-row-check pull-left">';
-		this.set_link_titles();
 		this.make();
 	}
 	make() {
@@ -244,7 +243,6 @@ export default class GridRow {
 		this.grid.setup_visible_columns();
 
 		for(var ci in this.grid.visible_columns) {
-			this.set_onload();
 			var df = this.grid.visible_columns[ci][0],
 				colsize = this.grid.visible_columns[ci][1],
 				txt = this.doc ? frappe.format(this.doc[df.fieldname], df, null, this.doc) : __(df.label);
@@ -343,7 +341,6 @@ export default class GridRow {
 			this.columns_list.forEach((column, index) => {
 
 				if(!this.frm) {
-					this.set_onload();
 					let df = this.grid.visible_columns[index][0];
 					let txt = this.doc ?
 						frappe.format(this.doc[df.fieldname], df, null, this.doc) :
@@ -651,20 +648,5 @@ export default class GridRow {
 	}
 	toggle_editable(fieldname, editable) {
 		this.set_field_property(fieldname, 'read_only', editable ? 0 : 1);
-	}
-	set_link_titles() {
-		this._link_titles = {};
-
-		if (this.frm && this.frm.doc && this.frm.doc.__onload && this.frm.doc.__onload._link_titles) {
-			this._link_titles = this.frm.doc.__onload._link_titles;
-		}
-	}
-	get_link_title(df) {
-		return this._link_titles ? this._link_titles[this.doc.doctype + "::" + this.doc[df.fieldname]] : undefined;
-	}
-	set_onload() {
-		if (this.doc && this._link_titles) {
-			this.doc.__onload = {"_link_titles": this._link_titles};
-		}
 	}
 };

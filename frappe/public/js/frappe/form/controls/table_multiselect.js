@@ -45,11 +45,6 @@ frappe.ui.form.ControlTableMultiSelect = frappe.ui.form.ControlLink.extend({
 				this.parse_validate_and_set_in_model('');
 			}
 		});
-
-		this._link_titles = {};
-		if (this.frm && this.frm.doc && this.frm.doc.hasOwnProperty("__onload") && this.frm.doc.__onload._link_titles) {
-			this._link_titles = this.frm.doc.__onload._link_titles;
-		}
 	},
 	setup_buttons() {
 		this.$input_area.find('.link-btn').remove();
@@ -67,7 +62,7 @@ frappe.ui.form.ControlTableMultiSelect = frappe.ui.form.ControlLink.extend({
 					[link_field.fieldname]: value
 				});
 			}
-			this.add_link_title(link_field.options, label, value);
+			frappe.add_link_title(link_field.options, value, label);
 		}
 		return this.rows;
 	},
@@ -119,11 +114,10 @@ frappe.ui.form.ControlTableMultiSelect = frappe.ui.form.ControlLink.extend({
 
 		for (let i in this.rows) {
 			let row = this.rows[i];
-			let _row = {"name": row[link_field.fieldname]};
-			if (this._link_titles && this._link_titles[link_field.options + "::" + row[link_field.fieldname]]) {
-				_row._link_title = this._link_titles[link_field.options + "::" + row[link_field.fieldname]];
-			}
-			values.push(_row);
+			values.push({
+				"name": row[link_field.fieldname],
+				"_link_title": frappe.get_link_title(link_field.options, row[link_field.fieldname]) || undefined
+			});
 		}
 
 		this.set_pill_html(values);
@@ -158,13 +152,5 @@ frappe.ui.form.ControlTableMultiSelect = frappe.ui.form.ControlLink.extend({
 			}
 		}
 		return this._link_field;
-	},
-	add_link_title(doctype, label, value) {
-		if (this.frm && this.frm.doc && this.frm.doc.__onload && this.frm.doc.__onload._link_titles &&
-			!this.frm.doc.__onload._link_titles[doctype + "::" + value]) {
-
-			this._link_titles[doctype + "::" + value] = label;
-			this.frm.doc.__onload._link_titles[doctype + "::" + value] = label;
-		}
 	}
 });

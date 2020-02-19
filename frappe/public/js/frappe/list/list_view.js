@@ -562,7 +562,6 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		const label = df.label;
 		const fieldname = df.fieldname;
 		const value = doc[fieldname] || '';
-		let _link_titles = this.__onload.__onload._link_titles;
 
 		const format = () => {
 			if (df.fieldtype === 'Code') {
@@ -575,7 +574,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 						</div>
 					</div>`;
 			} else {
-				return frappe.format(value, df, null, Object.assign({}, doc, _link_titles));
+				return frappe.format(value, df, null, doc);
 			}
 		};
 
@@ -603,7 +602,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			} else if (df.fieldtype === 'Link') {
 				html = `<a class="filterable text-muted ellipsis"
 					data-filter="${fieldname},=,${value}">
-					${_link_titles[df.options + "::" + _value] || _value}
+					${frappe.get_link_title(df.options, _value) || _value}
 				</a>`;
 			} else if (['Text Editor', 'Text', 'Small Text', 'HTML Editor'].includes(df.fieldtype)) {
 				html = `<span class="text-muted ellipsis">

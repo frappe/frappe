@@ -231,6 +231,11 @@ frappe.request.call = function(opts) {
 					$.extend(frappe._messages, data.__messages);
 				}
 
+				// sync link titles
+				if(data._link_titles) {
+					$.extend(frappe._link_titles, data._link_titles);
+				}
+
 				// callbacks
 				var status_code_handler = statusCode[xhr.statusCode().status];
 				if (status_code_handler) {

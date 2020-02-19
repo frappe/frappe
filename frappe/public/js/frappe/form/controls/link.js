@@ -50,11 +50,6 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 		this.translate_values = true;
 		this.setup_buttons();
 		this.setup_awesomeplete();
-
-		this._link_titles = {};
-		if (this.frm && this.frm.doc && this.frm.doc.hasOwnProperty("__onload") && this.frm.doc.__onload._link_titles) {
-			this._link_titles = this.frm.doc.__onload._link_titles;
-		}
 	},
 	get_options: function() {
 		return this.df.options;
@@ -76,9 +71,9 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 		if (value) {
 			if (this.label) {
 				this.set_data_value(this.label, value);
-				this.add_link_title(doctype, this.label, value);
-			} else if (this._link_titles && this._link_titles[doctype + "::" + value]) {
-				this.set_data_value(this._link_titles[doctype + "::" + value], value);
+				frappe.add_link_title(doctype, value, this.label)
+			} else if (frappe.get_link_title(doctype, value)) {
+				this.set_data_value(frappe.get_link_title(doctype, value), value);
 			} else {
 				this.set_data_value(value, value);
 			}
@@ -127,32 +122,31 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 
 		frappe.model.with_doctype(doctype, () => {
 			meta = frappe.get_meta(doctype);
-		});
+			frappe.route_options = {};
 
-		frappe.route_options = {};
-
-		// set values to fill in the new document
-		if(this.df.get_route_options_for_new_doc) {
-			frappe.route_options = this.df.get_route_options_for_new_doc(this);
-		}
-
-		// partially entered name field
-		frappe.route_options.name_field = this.get_label_value();
-
-		// reference to calling link
-		frappe._from_link = this;
-		frappe._from_link_scrollY = $(document).scrollTop();
-
-		frappe.ui.form.make_quick_entry(doctype, (doc) => {
-			let label = undefined;
-			if (meta && meta.title_field) {
-				label = doc[meta.title_field];
+			// set values to fill in the new document
+			if(this.df.get_route_options_for_new_doc) {
+				frappe.route_options = this.df.get_route_options_for_new_doc(this);
 			}
 
-			return me.parse_validate_and_set_in_model(doc.name, label);
-		});
+			// partially entered name field
+			frappe.route_options.name_field = this.get_label_value();
 
-		return false;
+			// reference to calling link
+			frappe._from_link = this;
+			frappe._from_link_scrollY = $(document).scrollTop();
+
+			frappe.ui.form.make_quick_entry(doctype, (doc) => {
+				let label = undefined;
+				if (meta && meta.title_field) {
+					label = doc[meta.title_field];
+				}
+
+				return me.parse_validate_and_set_in_model(doc.name, label);
+			});
+
+			return false;
+		});
 	},
 	setup_awesomeplete: function() {
 		var me = this;
@@ -529,14 +523,6 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 		var fl = this.frm.fetch_dict[df.fieldname].fields;
 		for(var i=0; i < fl.length; i++) {
 			frappe.model.set_value(df.parent, docname, fl[i], fetch_values[i], df.fieldtype);
-		}
-	},
-	add_link_title: function(doctype, label, value) {
-		if (this.frm && this.frm.doc && this.frm.doc.__onload && this.frm.doc.__onload._link_titles &&
-			!this.frm.doc.__onload._link_titles[doctype + "::" + value]) {
-
-			this._link_titles[doctype + "::" + value] = label;
-			this.frm.doc.__onload._link_titles[doctype + "::" + value] = label;
 		}
 	}
 });

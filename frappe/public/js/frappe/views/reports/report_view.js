@@ -162,22 +162,12 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 
 	prepare_data(r) {
 		let data = r.message || {};
-		let _link_titles = r.message._link_titles ? r.message._link_titles : {};
 		data = frappe.utils.dict(data.keys, data.values);
-
-		// Set Link Titles in doc.__onload for the formatter
-		this.__onload = {
-			"__onload": {
-				"_link_titles": {}
-			}
-		};
 
 		if (this.start === 0) {
 			this.data = data;
-			this.__onload.__onload._link_titles = _link_titles;
 		} else {
 			this.data = this.data.concat(data);
-			this.__onload.__onload._link_titles = Object.assign({}, _link_titles, this.__onload.__onload._link_titles);
 		}
 	}
 
@@ -511,7 +501,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 				shortenYAxisNumbers: 1
 			},
 			tooltipOptions: {
-				formatTooltipY: value => frappe.format(value, get_df(this.chart_args.y_axes[0]), { always_show_decimals: true, inline: true }, Object.assign({}, get_doc(value.doc), this.__onload))
+				formatTooltipY: value => frappe.format(value, get_df(this.chart_args.y_axes[0]), { always_show_decimals: true, inline: true }, get_doc(value.doc))
 			}
 		});
 	}
@@ -1008,7 +998,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 					doc = row;
 				}
 
-				return frappe.format(value, column.docfield, { always_show_decimals: true }, Object.assign({}, doc, this.__onload));
+				return frappe.format(value, column.docfield, { always_show_decimals: true }, doc);
 			}
 		};
 	}
@@ -1047,7 +1037,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 					content: d[cdt_field(col.field)],
 					editable: Boolean(name && this.is_editable(col.docfield, d)),
 					format: value => {
-						return frappe.format(value, col.docfield, { always_show_decimals: true }, Object.assign({}, d, this.__onload));
+						return frappe.format(value, col.docfield, { always_show_decimals: true }, d);
 					}
 				};
 			}

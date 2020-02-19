@@ -92,18 +92,13 @@ frappe.form.formatters = {
 	Link: function(value, docfield, options, doc) {
 		var doctype = docfield._options || docfield.options;
 		var original_value = value;
-		let _link_title = {};
 
 		if(value && value.match && value.match(/^['"].*['"]$/)) {
 			value.replace(/^.(.*).$/, "$1");
 		}
 
-		if (doc && doc.__onload && doc.__onload._link_titles) {
-			_link_title = doc.__onload._link_titles;
-		}
-
 		if(options && (options.for_print || options.only_value)) {
-			return _link_title[doctype + "::" + value] || value;
+			return frappe.get_link_title(doctype, value) || value;
 		}
 
 		if(frappe.form.link_formatters[doctype]) {
@@ -119,11 +114,11 @@ frappe.form.formatters = {
 
 		if(value[0] == "'" && value[value.length -1] == "'") {
 			value = value.substring(1, value.length - 1)
-			return _link_title[doctype + "::" + value] || value;
+			return frappe.get_link_title(doctype, value) || value;
 		}
 
 		if (docfield && docfield.link_onclick) {
-			value = _link_title[doctype + "::" + value] || value;
+			value = frappe.get_link_title(doctype, value) || value;
 			return repl('<a onclick="%(onclick)s">%(value)s</a>',
 				{onclick: docfield.link_onclick.replace(/"/g, '&quot;'), value:value});
 		} else if (docfield && doctype) {
@@ -132,9 +127,9 @@ frappe.form.formatters = {
 				data-doctype="${doctype}"
 				data-name="${original_value}"
 				data-value="${original_value}">
-				${__(options && options.label || _link_title[doctype + "::" + value] || value)}</a>`
+				${__(options && options.label || frappe.get_link_title(doctype, value) || value)}</a>`
 		} else {
-			return _link_title[doctype + "::" + value] || value;
+			return frappe.get_link_title(doctype, value) || value;
 		}
 	},
 	Date: function(value) {
@@ -262,19 +257,13 @@ frappe.form.formatters = {
 		}
 		return value;
 	},
-	TableMultiSelect: function(rows, df, options, doc) {
+	TableMultiSelect: function(rows, df, options) {
 		rows = rows || [];
 		const meta = frappe.get_meta(df.options);
 		const link_field = meta.fields.find(df => df.fieldtype === 'Link');
-		let _link_titles = {};
-
-		if (doc && doc.__onload && doc.__onload._link_titles) {
-			_link_titles = doc.__onload._link_titles;
-		}
 
 		const formatted_values = rows.map(row => {
 			const value = row[link_field.fieldname];
-			row.__onload = {"_link_titles": _link_titles}
 			return frappe.format(value, link_field, options, row);
 		});
 

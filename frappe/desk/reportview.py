@@ -12,7 +12,7 @@ from frappe import _
 from six import string_types, StringIO
 from frappe.core.doctype.access_log.access_log import make_access_log
 from frappe.utils import cstr
-from frappe.desk.form.load import get_title_values_for_link_fields, get_title_values_for_dynamic_link_fields, get_title_values_for_table_and_multiselect_fields
+from frappe.desk.form.load import get_title_values_for_link_and_dynamic_fields, get_title_values_for_table_and_multiselect_fields, send_link_titles
 
 
 @frappe.whitelist()
@@ -87,7 +87,7 @@ def compress(data, args = {}):
 	values = []
 	keys = list(data[0])
 
-	_link_titles = {}
+	link_titles = {}
 	meta = frappe.get_meta(args.doctype)
 	link_fields = meta.get_link_fields()
 	dynamic_link_fields = meta.get_dynamic_link_fields()
@@ -98,18 +98,18 @@ def compress(data, args = {}):
 		for key in keys:
 			new_row.append(row.get(key))
 
-		_link_titles.update(get_title_values_for_link_fields(meta, row, link_fields))
-		_link_titles.update(get_title_values_for_dynamic_link_fields(meta, row, dynamic_link_fields))
-		_link_titles.update(get_title_values_for_table_and_multiselect_fields(meta, row, table_fields))
+		link_titles.update(get_title_values_for_link_and_dynamic_fields(meta, row, link_fields))
+		link_titles.update(get_title_values_for_table_and_multiselect_fields(meta, row, table_fields))
 		values.append(new_row)
 
 	if args.get("add_total_row"):
 		values = add_total_row(values, keys, meta)
 
+	send_link_titles(link_titles)
+
 	return {
 		"keys": keys,
-		"values": values,
-		"_link_titles" : _link_titles
+		"values": values
 	}
 
 @frappe.whitelist()
