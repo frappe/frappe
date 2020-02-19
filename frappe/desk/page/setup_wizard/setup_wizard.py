@@ -352,6 +352,11 @@ def email_setup_wizard_exception(traceback, args):
 		message=message,
 		delayed=False)
 
+def log_setup_wizard_exception(traceback, args):
+	with open('../logs/setup-wizard.log', 'w+') as setup_log:
+		setup_log.write(traceback)
+		setup_log.write(json.dumps(args))
+
 def get_language_code(lang):
 	return frappe.db.get_value('Language', {'language_name':lang})
 
