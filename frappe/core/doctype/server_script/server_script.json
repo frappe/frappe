@@ -1,0 +1,100 @@
+{
+ "actions": [],
+ "autoname": "Prompt",
+ "creation": "2019-09-30 11:56:57.943241",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "script_type",
+  "disabled",
+  "column_break_3",
+  "reference_doctype",
+  "doctype_event",
+  "api_method",
+  "allow_guest",
+  "section_break_8",
+  "script"
+ ],
+ "fields": [
+  {
+   "fieldname": "script_type",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Script Type",
+   "options": "DocType Event\nAPI",
+   "reqd": 1
+  },
+  {
+   "fieldname": "script",
+   "fieldtype": "Code",
+   "label": "Script",
+   "reqd": 1
+  },
+  {
+   "depends_on": "eval:doc.script_type==='DocType Event'",
+   "fieldname": "reference_doctype",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Reference Document Type",
+   "options": "DocType"
+  },
+  {
+   "depends_on": "eval:doc.script_type==='DocType Event'",
+   "fieldname": "doctype_event",
+   "fieldtype": "Select",
+   "label": "DocType Event",
+   "options": "Before Insert\nBefore Save\nAfter Save\nBefore Submit\nAfter Submit\nBefore Cancel\nAfter Cancel\nBefore Delete\nAfter Delete\nBefore Save (Submitted Document)\nAfter Save (Submitted Document)"
+  },
+  {
+   "depends_on": "eval:doc.script_type==='API'",
+   "fieldname": "api_method",
+   "fieldtype": "Data",
+   "label": "API Method"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:doc.script_type==='API'",
+   "fieldname": "allow_guest",
+   "fieldtype": "Check",
+   "label": "Allow Guest"
+  },
+  {
+   "default": "0",
+   "fieldname": "disabled",
+   "fieldtype": "Check",
+   "label": "Disabled"
+  },
+  {
+   "fieldname": "column_break_3",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_8",
+   "fieldtype": "Section Break"
+  }
+ ],
+ "links": [],
+ "modified": "2019-12-17 12:55:07.389775",
+ "modified_by": "Administrator",
+ "module": "Core",
+ "name": "Server Script",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Script Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

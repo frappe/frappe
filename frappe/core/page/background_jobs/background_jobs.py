@@ -6,7 +6,7 @@ import frappe
 
 from rq import Queue, Worker
 from frappe.utils.background_jobs import get_redis_conn
-from frappe.utils import format_datetime, cint
+from frappe.utils import format_datetime, cint, convert_utc_to_user_timezone
 from frappe.utils.scheduler import is_scheduler_inactive
 from frappe import _
 
@@ -29,9 +29,9 @@ def get_info(show_failed=False):
 			jobs.append({
 				'job_name': j.kwargs.get('kwargs', {}).get('playbook_method') \
 					or str(j.kwargs.get('job_name')),
-				'status': j.status, 'queue': name,
-				'creation': format_datetime(j.created_at),
-				'color': colors[j.status]
+				'status': j.get_status(), 'queue': name,
+				'creation': format_datetime(convert_utc_to_user_timezone(j.created_at)),
+				'color': colors[j.get_status()]
 			})
 			if j.exc_info:
 				jobs[-1]['exc_info'] = j.exc_info

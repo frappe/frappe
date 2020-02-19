@@ -22,6 +22,8 @@ max_positive_value = {
 	'bigint': 2 ** 63
 }
 
+DOCTYPES_FOR_DOCTYPE = ('DocType', 'DocField', 'DocPerm', 'DocType Action', 'DocType Link')
+
 _classes = {}
 
 def get_controller(doctype):
@@ -30,6 +32,7 @@ def get_controller(doctype):
 
 	:param doctype: DocType name as string."""
 	from frappe.model.document import Document
+	from frappe.utils.nestedset import NestedSet
 	global _classes
 
 	if not doctype in _classes:
@@ -37,7 +40,11 @@ def get_controller(doctype):
 			or ["Core", False]
 
 		if custom:
-			_class = Document
+			if frappe.db.field_exists("DocType", "is_tree"):
+				is_tree = frappe.db.get_value("DocType", doctype, "is_tree", cache=True)
+			else:
+				is_tree = False
+			_class = NestedSet if is_tree else Document
 		else:
 			module = load_doctype_module(doctype, module_name)
 			classname = doctype.replace(" ", "").replace("-", "")
@@ -228,8 +235,8 @@ class BaseDocument(object):
 				if isinstance(d[fieldname], list) and df.fieldtype not in table_fields:
 					frappe.throw(_('Value for {0} cannot be a list').format(_(df.label)))
 
-				if convert_dates_to_str and isinstance(d[fieldname], (datetime.datetime, datetime.time, datetime.timedelta)):
-					d[fieldname] = str(d[fieldname])
+			if convert_dates_to_str and isinstance(d[fieldname], (datetime.datetime, datetime.time, datetime.timedelta)):
+				d[fieldname] = str(d[fieldname])
 
 			if d[fieldname] == None and ignore_nulls:
 				del d[fieldname]
@@ -250,7 +257,7 @@ class BaseDocument(object):
 
 	def get_valid_columns(self):
 		if self.doctype not in frappe.local.valid_columns:
-			if self.doctype in ("DocField", "DocPerm") and self.parent in ("DocType", "DocField", "DocPerm"):
+			if self.doctype in DOCTYPES_FOR_DOCTYPE:
 				from frappe.model.meta import get_table_columns
 				valid = get_table_columns(self.doctype)
 			else:
@@ -268,7 +275,7 @@ class BaseDocument(object):
 		doc["doctype"] = self.doctype
 		for df in self.meta.get_table_fields():
 			children = self.get(df.fieldname) or []
-			doc[df.fieldname] = [d.as_dict(no_nulls=no_nulls) for d in children]
+			doc[df.fieldname] = [d.as_dict(convert_dates_to_str=convert_dates_to_str, no_nulls=no_nulls) for d in children]
 
 		if no_nulls:
 			for k in list(doc):
@@ -307,7 +314,7 @@ class BaseDocument(object):
 			self.created_by = self.modified_by = frappe.session.user
 
 		# if doctype is "DocType", don't insert null values as we don't know who is valid yet
-		d = self.get_valid_dict(convert_dates_to_str=True, ignore_nulls = self.doctype in ('DocType', 'DocField', 'DocPerm'))
+		d = self.get_valid_dict(convert_dates_to_str=True, ignore_nulls = self.doctype in DOCTYPES_FOR_DOCTYPE)
 
 		columns = list(d)
 		try:
@@ -342,7 +349,7 @@ class BaseDocument(object):
 			self.db_insert()
 			return
 
-		d = self.get_valid_dict(convert_dates_to_str=True, ignore_nulls = self.doctype in ('DocType', 'DocField', 'DocPerm'))
+		d = self.get_valid_dict(convert_dates_to_str=True, ignore_nulls = self.doctype in DOCTYPES_FOR_DOCTYPE)
 
 		# don't update name, as case might've been changed
 		name = d['name']
@@ -362,6 +369,14 @@ class BaseDocument(object):
 			else:
 				raise
 
+	def db_update_all(self):
+		"""Raw update parent + children
+		DOES NOT VALIDATE AND CALL TRIGGERS"""
+		self.db_update()
+		for df in self.meta.get_table_fields():
+			for doc in self.get(df.fieldname):
+				doc.db_update()
+
 	def show_unique_validation_message(self, e):
 		# TODO: Find a better way to extract fieldname
 		if frappe.db.db_type != 'postgres':
@@ -377,13 +392,13 @@ class BaseDocument(object):
 			if df:
 				label = df.label
 
-			frappe.msgprint(_("{0} must be unique".format(label or fieldname)))
+			frappe.msgprint(_("{0} must be unique").format(label or fieldname))
 
 		# this is used to preserve traceback
 		raise frappe.UniqueValidationError(self.doctype, self.name, e)
 
 	def update_modified(self):
-		'''Update modified timestamp'''
+		"""Update modified timestamp"""
 		self.set("modified", now())
 		frappe.db.set_value(self.doctype, self.name, 'modified', self.modified, update_modified=False)
 
@@ -430,7 +445,7 @@ class BaseDocument(object):
 		return missing
 
 	def get_invalid_links(self, is_submittable=False):
-		'''Returns list of invalid links and also updates fetch values if not set'''
+		"""Returns list of invalid links and also updates fetch values if not set"""
 		def get_msg(df, docname):
 			if self.parentfield:
 				return "{} #{}: {}: {}".format(_("Row"), self.idx, _(df.label), docname)
@@ -653,12 +668,12 @@ class BaseDocument(object):
 				continue
 
 			else:
-				sanitized_value = sanitize_html(value, linkify=df.fieldtype=='Text Editor')
+				sanitized_value = sanitize_html(value, linkify=df and df.fieldtype=='Text Editor')
 
 			self.set(fieldname, sanitized_value)
 
 	def _save_passwords(self):
-		'''Save password field values in __Auth table'''
+		"""Save password field values in __Auth table"""
 		if self.flags.ignore_save_passwords is True:
 			return
 

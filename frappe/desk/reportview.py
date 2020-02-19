@@ -9,8 +9,10 @@ from six.moves import range
 import frappe.permissions
 from frappe.model.db_query import DatabaseQuery
 from frappe import _
-from six import text_type, string_types, StringIO
+from six import string_types, StringIO
 from frappe.core.doctype.access_log.access_log import make_access_log
+from frappe.utils import cstr
+
 
 @frappe.whitelist()
 @frappe.read_only()
@@ -52,6 +54,8 @@ def get_form_params():
 		key = field.split(" as ")[0]
 
 		if key.startswith('count('): continue
+		if key.startswith('sum('): continue
+		if key.startswith('avg('): continue
 
 		if "." in key:
 			parenttype, fieldname = key.split(".")[0][4:-1], key.split(".")[1].strip("`")
@@ -118,12 +122,16 @@ def save_report():
 @frappe.read_only()
 def export_query():
 	"""export from report builder"""
+	title = frappe.form_dict.title
+	frappe.form_dict.pop('title', None)
+
 	form_params = get_form_params()
 	form_params["limit_page_length"] = None
 	form_params["as_list"] = True
 	doctype = form_params.doctype
 	add_totals_row = None
 	file_format_type = form_params["file_format_type"]
+	title = title or doctype
 
 	del form_params["doctype"]
 	del form_params["file_format_type"]
@@ -164,20 +172,20 @@ def export_query():
 		writer = csv.writer(f)
 		for r in data:
 			# encode only unicode type strings and not int, floats etc.
-			writer.writerow([handle_html(frappe.as_unicode(v)).encode('utf-8') \
+			writer.writerow([handle_html(frappe.as_unicode(v)) \
 				if isinstance(v, string_types) else v for v in r])
 
 		f.seek(0)
-		frappe.response['result'] = text_type(f.read(), 'utf-8')
+		frappe.response['result'] = cstr(f.read())
 		frappe.response['type'] = 'csv'
-		frappe.response['doctype'] = doctype
+		frappe.response['doctype'] = title
 
 	elif file_format_type == "Excel":
 
 		from frappe.utils.xlsxutils import make_xlsx
 		xlsx_file = make_xlsx(data, doctype)
 
-		frappe.response['filename'] = doctype + '.xlsx'
+		frappe.response['filename'] = title + '.xlsx'
 		frappe.response['filecontent'] = xlsx_file.getvalue()
 		frappe.response['type'] = 'binary'
 
@@ -206,6 +214,8 @@ def get_labels(fields, doctype):
 	labels = []
 	for key in fields:
 		key = key.split(" as ")[0]
+
+		if key.startswith(('count(', 'sum(', 'avg(')): continue
 
 		if "." in key:
 			parenttype, fieldname = key.split(".")[0][4:-1], key.split(".")[1].strip("`")
@@ -236,7 +246,6 @@ def delete_items():
 		delete_bulk(doctype, items)
 
 def delete_bulk(doctype, items):
-	failed = []
 	for i, d in enumerate(items):
 		try:
 			frappe.delete_doc(doctype, d)
@@ -244,19 +253,18 @@ def delete_bulk(doctype, items):
 				frappe.publish_realtime("progress",
 					dict(progress=[i+1, len(items)], title=_('Deleting {0}').format(doctype), description=d),
 						user=frappe.session.user)
+			# Commit after successful deletion
+			frappe.db.commit()
 		except Exception:
-			failed.append(d)
+			# rollback if any record failed to delete
+			# if not rollbacked, queries get committed on after_request method in app.py
+			frappe.db.rollback()
 
 @frappe.whitelist()
 @frappe.read_only()
 def get_sidebar_stats(stats, doctype, filters=[]):
-	cat_tags = frappe.db.sql("""select `tag`.parent as `category`, `tag`.tag_name as `tag`
-		from `tabTag Doc Category` as `docCat`
-		INNER JOIN  `tabTag` as `tag` on `tag`.parent = `docCat`.parent
-		where `docCat`.tagdoc=%s
-		ORDER BY `tag`.parent asc, `tag`.idx""", doctype, as_dict=1)
 
-	return {"defined_cat":cat_tags, "stats":get_stats(stats, doctype, filters)}
+	return {"stats": get_stats(stats, doctype, filters)}
 
 @frappe.whitelist()
 @frappe.read_only()

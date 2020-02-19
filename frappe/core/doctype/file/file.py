@@ -26,6 +26,7 @@ from frappe.utils import get_hook_method, get_files_path, random_string, encode,
 from frappe import _
 from frappe import conf
 from frappe.utils.nestedset import NestedSet
+from frappe.model.document import Document
 from frappe.utils import strip
 from PIL import Image, ImageOps
 from six import StringIO, string_types
@@ -42,8 +43,7 @@ class FolderNotEmpty(frappe.ValidationError): pass
 exclude_from_linked_with = True
 
 
-class File(NestedSet):
-	nsm_parent_field = 'folder'
+class File(Document):
 	no_feed_on_delete = True
 
 	def before_insert(self):
@@ -56,9 +56,7 @@ class File(NestedSet):
 
 	def get_name_based_on_parent_folder(self):
 		if self.folder:
-			path = get_breadcrumbs(self.folder)
-			folder_name = frappe.get_value("File", self.folder, "file_name")
-			return "/".join([d.file_name for d in path] + [folder_name, self.file_name])
+			return "/".join([self.folder, self.file_name])
 
 	def autoname(self):
 		"""Set name for folder"""
@@ -72,8 +70,6 @@ class File(NestedSet):
 			self.name = frappe.generate_hash("", 10)
 
 	def after_insert(self):
-		self.update_parent_folder_size()
-
 		if not self.is_folder:
 			self.add_comment_in_reference_doc('Attachment',
 				_('Added {0}').format("<a href='{file_url}' target='_blank'>{file_name}</a>{icon}".format(**{
@@ -84,15 +80,18 @@ class File(NestedSet):
 
 	def after_rename(self, olddn, newdn, merge=False):
 		for successor in self.get_successor():
-			setup_folder_path(successor, self.name)
+			setup_folder_path(successor[0], self.name)
 
 	def get_successor(self):
-		return frappe.db.sql_list("select name from tabFile where folder='%s'"%self.name) or []
+		return frappe.db.get_values(doctype='File',
+						filters={'folder': self.name},
+						fieldname='name')
 
 	def validate(self):
 		if self.is_new():
+			self.set_is_private()
+			self.set_file_name()
 			self.validate_duplicate_entry()
-			self.validate_file_name()
 		self.validate_folder()
 
 		if not self.file_url and not self.flags.ignore_file_validate:
@@ -100,7 +99,6 @@ class File(NestedSet):
 				self.validate_file()
 			self.generate_content_hash()
 
-		self.set_folder_size()
 		self.validate_url()
 
 		if frappe.db.exists('File', {'name': self.name, 'is_folder': 0}):
@@ -136,30 +134,8 @@ class File(NestedSet):
 					frappe.db.set_value(self.attached_to_doctype, self.attached_to_name,
 						self.attached_to_field, self.file_url)
 
-
-	def set_folder_size(self):
-		"""Set folder size if folder"""
-		if self.is_folder and not self.is_new():
-			self.file_size = cint(self.get_folder_size())
-			self.db_set('file_size', self.file_size)
-
-			for folder in self.get_ancestors():
-				frappe.db.set_value("File", folder, "file_size", self.get_folder_size(folder))
-
-	def get_folder_size(self, folder=None):
-		"""Returns folder size for current folder"""
-		if not folder:
-			folder = self.name
-
-		file_size =  frappe.db.sql("""select ifnull(sum(file_size), 0)
-			from tabFile where folder=%s """, (folder))[0][0]
-
-		return file_size
-
-	def update_parent_folder_size(self):
-		"""Update size of parent folder"""
-		if self.folder and not self.is_folder: # it not home
-			frappe.get_doc("File", self.folder).set_folder_size()
+		if self.file_url and (self.is_private != self.file_url.startswith('/private')):
+			frappe.throw(_('Invalid file URL. Please contact System Administrator.'))
 
 	def set_folder_name(self):
 		"""Make parent folders if not exists based on reference doctype and name"""
@@ -185,9 +161,11 @@ class File(NestedSet):
 
 	def validate_duplicate_entry(self):
 		if not self.flags.ignore_duplicate_entry_error and not self.is_folder:
-			# check duplicate name
+			if not self.content_hash:
+				self.generate_content_hash()
 
-			# check duplicate assignement
+			# check duplicate name
+			# check duplicate assignment
 			filters = {
 				'content_hash': self.content_hash,
 				'is_private': self.is_private,
@@ -198,34 +176,39 @@ class File(NestedSet):
 					'attached_to_doctype': self.attached_to_doctype,
 					'attached_to_name': self.attached_to_name
 				})
-			duplicate_file = frappe.db.get_value('File', filters)
+			duplicate_file = frappe.db.get_value('File', filters, ['name', 'file_url'], as_dict=1)
 
 			if duplicate_file:
-				self.duplicate_entry = duplicate_file
-				frappe.throw(_("Same file has already been attached to the record"),
-					frappe.DuplicateEntryError)
+				duplicate_file_doc = frappe.get_cached_doc('File', duplicate_file.name)
+				if duplicate_file_doc.exists_on_disk():
+					# if it is attached to a document then throw DuplicateEntryError
+					if self.attached_to_doctype and self.attached_to_name:
+						self.duplicate_entry = duplicate_file.name
+						frappe.throw(_("Same file has already been attached to the record"),
+							frappe.DuplicateEntryError)
+					# else just use the url, to avoid uploading a duplicate
+					else:
+						self.file_url = duplicate_file.file_url
 
-	def validate_file_name(self):
+	def set_file_name(self):
 		if not self.file_name and self.file_url:
 			self.file_name = self.file_url.split('/')[-1]
 
 	def generate_content_hash(self):
-		if self.content_hash or not self.file_url:
+		if self.content_hash or not self.file_url or self.file_url.startswith('http'):
 			return
-
-		if self.file_url.startswith("/files/"):
-			try:
-				with open(get_files_path(self.file_name.lstrip("/")), "rb") as f:
-					self.content_hash = get_content_hash(f.read())
-			except IOError:
-				frappe.msgprint(_("File {0} does not exist").format(self.file_url))
-				raise
+		file_name = self.file_url.split('/')[-1]
+		try:
+			with open(get_files_path(file_name, is_private=self.is_private), "rb") as f:
+				self.content_hash = get_content_hash(f.read())
+		except IOError:
+			frappe.msgprint(_("File {0} does not exist").format(self.file_url))
+			raise
 
 	def on_trash(self):
 		if self.is_home_folder or self.is_attachments_folder:
 			frappe.throw(_("Cannot delete Home and Attachments folders"))
 		self.check_folder_is_empty()
-		super(File, self).on_trash()
 		self.call_delete_file()
 		if not self.is_folder:
 			self.add_comment_in_reference_doc('Attachment Removed', _("Removed {0}").format(self.file_name))
@@ -266,9 +249,6 @@ class File(NestedSet):
 				return
 
 			return thumbnail_url
-
-	def after_delete(self):
-		self.update_parent_folder_size()
 
 	def check_folder_is_empty(self):
 		"""Throw exception if folder is not empty"""
@@ -327,40 +307,10 @@ class File(NestedSet):
 		data = frappe.db.get_value("File", self.file_data_name, ["file_name", "file_url"], as_dict=True)
 		return data.file_url or data.file_name
 
+	def exists_on_disk(self):
+		exists = os.path.exists(self.get_full_path())
+		return exists
 
-	def upload(self):
-		# get record details
-		self.attached_to_doctype = frappe.form_dict.doctype
-		self.attached_to_name = frappe.form_dict.docname
-		self.attached_to_field = frappe.form_dict.docfield
-		self.file_url = frappe.form_dict.file_url
-		self.file_name = frappe.form_dict.filename
-		frappe.form_dict.is_private = cint(frappe.form_dict.is_private)
-
-		if not self.file_name and not self.file_url:
-			frappe.msgprint(_("Please select a file or url"),
-				raise_exception=True)
-
-		file_doc = self.get_file_doc()
-
-		comment = {}
-		if self.attached_to_doctype and self.attached_to_name:
-			comment = frappe.get_doc(self.attached_to_doctype, self.attached_to_name).add_comment("Attachment",
-			_	("added {0}").format("<a href='{file_url}' target='_blank'>{file_name}</a>{icon}".format(**{
-					"icon": ' <i class="fa fa-lock text-warning"></i>' \
-						if file_doc.is_private else "",
-					"file_url": file_doc.file_url.replace("#", "%23") \
-						if file_doc.file_name else file_doc.file_url,
-					"file_name": file_doc.file_name or file_doc.file_url
-				})))
-
-		return {
-			"name": file_doc.name,
-			"file_name": file_doc.file_name,
-			"file_url": file_doc.file_url,
-			"is_private": file_doc.is_private,
-			"comment": comment.as_dict() if comment else {}
-		}
 
 	def get_content(self):
 		"""Returns [`file_name`, `content`] for given file name `fname`"""
@@ -490,24 +440,26 @@ class File(NestedSet):
 		self.content_hash = get_content_hash(self.content)
 		self.content_type = mimetypes.guess_type(self.file_name)[0]
 
-		_file = False
+		duplicate_file = None
 
 		# check if a file exists with the same content hash and is also in the same folder (public or private)
 		if not ignore_existing_file_check:
-			_file = frappe.get_value("File", {
+			duplicate_file = frappe.get_value("File", {
 					"content_hash": self.content_hash,
 					"is_private": self.is_private
 				},
-				["file_url"])
+				["file_url", "name"], as_dict=True)
 
-		if _file:
-			self.file_url  = _file
-			file_exists = True
+		if duplicate_file:
+			file_doc = frappe.get_cached_doc('File', duplicate_file.name)
+			if file_doc.exists_on_disk():
+				self.file_url  = duplicate_file.file_url
+				file_exists = True
+
+		if os.path.exists(encode(get_files_path(self.file_name, is_private=self.is_private))):
+			self.file_name = get_file_name(self.file_name, self.content_hash[-6:])
 
 		if not file_exists:
-			if os.path.exists(encode(get_files_path(self.file_name))):
-				self.file_name = get_file_name(self.file_name, self.content_hash[-6:])
-
 			call_hook_method("before_write_file", file_size=self.file_size)
 			write_file_method = get_hook_method('write_file')
 			if write_file_method:
@@ -565,11 +517,7 @@ class File(NestedSet):
 			delete_file(self.thumbnail_url)
 
 	def is_downloadable(self):
-		if self.is_private:
-			if has_permission(self, 'read'):
-				return True
-
-			return False
+		return self.is_private and has_permission(self, 'read')
 
 	def get_extension(self):
 		'''returns split filename and extension'''
@@ -583,10 +531,12 @@ class File(NestedSet):
 			except frappe.DoesNotExistError:
 				frappe.clear_messages()
 
+	def set_is_private(self):
+		if self.file_url:
+			self.is_private = cint(self.file_url.startswith('/private'))
 
 def on_doctype_update():
 	frappe.db.add_index("File", ["attached_to_doctype", "attached_to_name"])
-	frappe.db.add_index("File", ["lft", "rgt"])
 
 def make_home_folder():
 	home = frappe.get_doc({
@@ -604,15 +554,6 @@ def make_home_folder():
 		"file_name": _("Attachments")
 	}).insert()
 
-@frappe.whitelist()
-def get_breadcrumbs(folder):
-	"""returns name, file_name of parent folder"""
-	values = frappe.db.get_value("File", folder, ["lft", "rgt"], as_dict=True)
-	if not values:
-		frappe.throw(_("Folder {0} does not exist").format(folder))
-
-	return frappe.db.sql("""select name, file_name from tabFile
-		where lft < %s and rgt > %s order by lft asc""", (values.lft, values.rgt), as_dict=1)
 
 @frappe.whitelist()
 def create_new_folder(file_name, folder):
@@ -642,7 +583,8 @@ def setup_folder_path(filename, new_parent):
 	file.save()
 
 	if file.is_folder:
-		frappe.rename_doc("File", file.name, file.get_name_based_on_parent_folder(), ignore_permissions=True)
+		from frappe.model.rename_doc import rename_doc
+		rename_doc("File", file.name, file.get_name_based_on_parent_folder(), ignore_permissions=True)
 
 def get_extension(filename, extn, content):
 	mimetype = None
@@ -887,7 +829,7 @@ def extract_images_from_html(doc, content):
 
 		return '<img src="{file_url}"'.format(file_url=file_url)
 
-	if content:
+	if content and isinstance(content, string_types):
 		content = re.sub('<img[^>]*src\s*=\s*["\'](?=data:)(.*?)["\']', _save_file, content)
 
 	return content

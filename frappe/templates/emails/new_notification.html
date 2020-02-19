@@ -1,0 +1,13 @@
+<p>
+	<p class="text-color">{{ body_content }}</p>
+</p>
+{% if description %}
+<blockquote
+	style="border-left: 3px solid #d1d8dd; padding: 7px 15px; margin-left: 0px;">
+	{{ description | markdown }}
+</blockquote>
+{% endif %}
+<div class="more-info">
+	<a href="{{ doc_link }}">{{ _("Login and view in Browser") }}</a>
+</div>
+	

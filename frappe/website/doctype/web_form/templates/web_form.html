@@ -28,6 +28,7 @@ data-web-form="{{ name }}" data-web-form-doctype="{{ doc_type }}" data-login-req
 <div>
 	{% if is_list %}
 	{# web form list #}
+	<div class="web-form-wrapper" {{ container_attributes() }}></div>
 	<div id="list-filters" class="row"></div>
 	<div id="datatable" class="pt-3"></div>
 	<div class="list-view-footer text-right"></div>
@@ -132,6 +133,9 @@ frappe.init_client_script = () => {
 <style>
 {% if style is defined %}
 	{{ style }}
+{% endif %}
+{% if custom_css %}
+	{{ custom_css }}
 {% endif %}
 </style>
 {% endblock %}

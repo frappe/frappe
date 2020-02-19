@@ -23,12 +23,14 @@
 							:accept="restrictions.allowed_file_types.join(', ')"
 						>
 					</label>
-					{{ __('choose an') }}
-					<a href="#" class="text-primary bold"
-						@click.stop.prevent="show_file_browser = true"
-					>
-						{{ __('uploaded file') }}
-					</a>
+					<span v-if="!disable_file_browser">
+						{{ __('choose an') }}
+						<a href="#" class="text-primary bold"
+							@click.stop.prevent="show_file_browser = true"
+						>
+							{{ __('uploaded file') }}
+						</a>
+					</span>
 					{{ __('or attach a') }}
 					<a class="text-primary bold" href
 						@click.stop.prevent="show_web_link = true"
@@ -105,7 +107,7 @@
 		</div>
 		<FileBrowser
 			ref="file_browser"
-			v-if="show_file_browser"
+			v-if="show_file_browser && !disable_file_browser"
 			@hide-browser="show_file_browser = false"
 		/>
 		<WebLink
@@ -126,6 +128,9 @@ export default {
 	props: {
 		show_upload_button: {
 			default: true
+		},
+		disable_file_browser: {
+			default: false
 		},
 		allow_multiple: {
 			default: true
@@ -185,7 +190,7 @@ export default {
 			return this.files.length > 0
 				&& this.files.every(
 					file => file.total !== 0 && file.progress === file.total);
-		},
+		}
 	},
 	methods: {
 		dragover() {
@@ -362,6 +367,13 @@ export default {
 							if (this.on_success) {
 								this.on_success(file_doc, r);
 							}
+						} else if (xhr.status === 403) {
+							let response = JSON.parse(xhr.responseText);
+							frappe.msgprint({
+								title: __('Not permitted'),
+								indicator: 'red',
+								message: response._error_message
+							});
 						} else {
 							file.failed = true;
 							let error = null;

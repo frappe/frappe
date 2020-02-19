@@ -41,6 +41,31 @@ frappe.ui.form.on("Contact", {
 			}
 		});
 		frm.refresh_field("links");
+
+		if (frm.doc.links) {
+			frappe.call({
+				method: "frappe.contacts.doctype.contact.contact.address_query",
+				args: {links: frm.doc.links},
+				callback: function(r) {
+					if (r && r.message) {
+						frm.set_query("address", function () {
+							return {
+								filters: {
+									name: ["in", r.message],
+								}
+							}
+						});
+					}
+				}
+			});
+
+			for (let i in frm.doc.links) {
+				let link = frm.doc.links[i];
+				frm.add_custom_button(__("{0}: {1}", [__(link.link_doctype), __(link.link_name)]), function() {
+					frappe.set_route("Form", link.link_doctype, link.link_name);
+				}, __("Links"));
+			}
+		}
 	},
 	validate: function(frm) {
 		// clear linked customer / supplier / sales partner on saving...
@@ -55,12 +80,25 @@ frappe.ui.form.on("Contact", {
 			() => frappe.timeout(1),
 			() => {
 				const last_doc = frappe.contacts.get_last_doc(frm);
-				if(frappe.dynamic_link && frappe.dynamic_link.doc
-					&& frappe.dynamic_link.doc.name == last_doc.docname){
-					frappe.set_route('Form', last_doc.doctype, last_doc.docname);
+				if (frappe.dynamic_link && frappe.dynamic_link.doc && frappe.dynamic_link.doc.name == last_doc.docname) {
+					for (let i in frm.doc.links) {
+						let link = frm.doc.links[i];
+						if (last_doc.doctype == link.link_doctype && last_doc.docname == link.link_name) {
+							frappe.set_route('Form', last_doc.doctype, last_doc.docname);
+						}
+					}
 				}
 			}
 		]);
+	},
+	sync_with_google_contacts: function(frm) {
+		if (frm.doc.sync_with_google_contacts) {
+			frappe.db.get_value("Google Contacts", {"email_id": frappe.session.user}, "name", (r) => {
+				if (r && r.name) {
+					frm.set_value("google_contacts", r.name);
+				}
+			})
+		}
 	}
 });
 

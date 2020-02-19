@@ -107,7 +107,7 @@ class PostgresDatabase(Database):
 			from information_schema.tables
 			where table_catalog='{0}'
 				and table_type = 'BASE TABLE'
-				and table_schema='public'""".format(frappe.conf.db_name))]
+				and table_schema='{1}'""".format(frappe.conf.db_name, frappe.conf.get("db_schema", "public")))]
 
 	def format_date(self, date):
 		if not date:
@@ -168,6 +168,10 @@ class PostgresDatabase(Database):
 	@staticmethod
 	def is_duplicate_fieldname(e):
 		return e.pgcode == '42701'
+
+	@staticmethod
+	def is_data_too_long(e):
+		return e.pgcode == '22001'
 
 	def create_auth_table(self):
 		self.sql_ddl("""create table if not exists "__Auth" (

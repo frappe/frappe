@@ -11,6 +11,6 @@
   "redirect_uris": "http://localhost", 
   "response_type": "Code", 
   "scopes": "all openid", 
-  "skip_authorization": 0
+  "skip_authorization": 1
  }
 ]

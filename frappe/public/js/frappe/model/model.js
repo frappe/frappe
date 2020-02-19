@@ -525,7 +525,13 @@ $.extend(frappe.model, {
 	},
 
 	delete_doc: function(doctype, docname, callback) {
-		frappe.confirm(__("Permanently delete {0}?", [docname]), function() {
+		var title = docname;
+		var title_field = frappe.get_meta(doctype).title_field;
+		if (frappe.get_meta(doctype).autoname == "hash" && title_field) {
+			var title = frappe.model.get_value(doctype, docname, title_field);
+			title += " (" + docname + ")";
+		}
+		frappe.confirm(__("Permanently delete {0}?", [title]), function() {
 			return frappe.call({
 				method: 'frappe.client.delete',
 				args: {
@@ -544,23 +550,28 @@ $.extend(frappe.model, {
 	},
 
 	rename_doc: function(doctype, docname, callback) {
+			let message = __("Merge with existing");
+			let warning = __("This cannot be undone");
+			let merge_label = message + " <b>(" + warning + ")</b>";
+
 		var d = new frappe.ui.Dialog({
 			title: __("Rename {0}", [__(docname)]),
 			fields: [
-				{label:__("New Name"), fieldname: "new_name", fieldtype:"Data", reqd:1, "default": docname},
-				{label:__("Merge with existing"), fieldtype:"Check", fieldname:"merge"},
+				{label: __("New Name"), fieldname: "new_name", fieldtype: "Data", reqd: 1, "default": docname},
+				{label: merge_label, fieldtype: "Check", fieldname: "merge"},
 			]
 		});
+
 		d.set_primary_action(__("Rename"), function() {
 			var args = d.get_values();
 			if(!args) return;
 			return frappe.call({
-				method:"frappe.model.rename_doc.rename_doc",
+				method:"frappe.rename_doc",
 				args: {
 					doctype: doctype,
 					old: docname,
-					"new": args.new_name,
-					"merge": args.merge
+					new: args.new_name,
+					merge: args.merge
 				},
 				btn: d.get_primary_btn(),
 				callback: function(r,rt) {

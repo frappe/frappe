@@ -9,7 +9,6 @@ from frappe import throw, _
 from frappe.website.website_generator import WebsiteGenerator
 from frappe.utils.verified_command import get_signed_params, verify_request
 from frappe.utils.background_jobs import enqueue
-from frappe.utils.scheduler import log
 from frappe.email.queue import send
 from frappe.email.doctype.email_group.email_group import add_subscribers
 from frappe.utils import parse_addr
@@ -40,20 +39,23 @@ class Newsletter(WebsiteGenerator):
 
 		self.recipients = self.get_recipients()
 
-		if getattr(frappe.local, "is_ajax", False):
-			self.validate_send()
+		if self.recipients:
+			if getattr(frappe.local, "is_ajax", False):
+				self.validate_send()
 
-			# using default queue with a longer timeout as this isn't a scheduled task
-			enqueue(send_newsletter, queue='default', timeout=6000, event='send_newsletter',
-				newsletter=self.name)
+				# using default queue with a longer timeout as this isn't a scheduled task
+				enqueue(send_newsletter, queue='default', timeout=6000, event='send_newsletter',
+					newsletter=self.name)
 
+			else:
+				self.queue_all()
+
+			frappe.msgprint(_("Scheduled to send to {0} recipients").format(len(self.recipients)))
+
+			frappe.db.set(self, "email_sent", 1)
+			frappe.db.set(self, 'scheduled_to_send', len(self.recipients))
 		else:
-			self.queue_all()
-
-		frappe.msgprint(_("Scheduled to send to {0} recipients").format(len(self.recipients)))
-
-		frappe.db.set(self, "email_sent", 1)
-		frappe.db.set(self, 'scheduled_to_send', len(self.recipients))
+			frappe.msgprint(_("Newsletter should have atleast one recipient"))
 
 	def queue_all(self):
 		if not self.get("recipients"):
@@ -210,7 +212,7 @@ def send_newsletter(newsletter):
 		doc.db_set("email_sent", 0)
 		frappe.db.commit()
 
-		log("send_newsletter")
+		frappe.log_error("send_newsletter")
 
 		raise
 

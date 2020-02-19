@@ -31,7 +31,7 @@ def get_emails_from_role(role):
 
 	for user in users:
 		user_email, enabled = frappe.db.get_value("User", user.parent, ["email", "enabled"])
-		if enabled:
+		if enabled and user_email not in ["admin@example.com", "guest@example.com"]:
 			emails.append(user_email)
 
 	return emails

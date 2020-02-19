@@ -98,6 +98,7 @@ frappe.call = function(opts) {
 		freeze: opts.freeze,
 		freeze_message: opts.freeze_message,
 		headers: opts.headers || {},
+		error_handlers: opts.error_handlers || {},
 		// show_spinner: !opts.no_spinner,
 		async: opts.async,
 		url,
@@ -324,9 +325,12 @@ frappe.request.cleanup = function(opts, r) {
 			return;
 		}
 
-		// global error handlers
+		// error handlers
+		let global_handlers = frappe.request.error_handlers[r.exc_type] || [];
+		let request_handler = opts.error_handlers ? opts.error_handlers[r.exc_type] : null;
+		let handlers = [].concat(global_handlers, request_handler).filter(Boolean);
+
 		if (r.exc_type) {
-			let handlers = frappe.request.error_handlers[r.exc_type] || [];
 			handlers.forEach(handler => {
 				handler(r);
 			});
@@ -334,9 +338,8 @@ frappe.request.cleanup = function(opts, r) {
 
 		// show messages
 		if(r._server_messages && !opts.silent) {
-			let handlers = frappe.request.error_handlers[r.exc_type] || [];
-			// dont show server messages if their handlers exist
-			if (!handlers.length) {
+			// show server messages if no handlers exist
+			if (handlers.length === 0) {
 				r._server_messages = JSON.parse(r._server_messages);
 				frappe.hide_msgprint();
 				frappe.msgprint(r._server_messages);

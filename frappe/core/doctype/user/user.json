@@ -38,7 +38,6 @@
   "mute_sounds",
   "change_password",
   "new_password",
-  "send_password_update_notification",
   "logout_all_sessions",
   "reset_password_key",
   "last_password_reset_date",
@@ -301,13 +300,6 @@
   },
   {
    "default": "0",
-   "depends_on": "eval:!doc.__islocal",
-   "fieldname": "send_password_update_notification",
-   "fieldtype": "Check",
-   "label": "Send Password Update Notification"
-  },
-  {
-   "default": "0",
    "fieldname": "logout_all_sessions",
    "fieldtype": "Check",
    "label": "Logout from all devices while changing Password"
@@ -424,6 +416,7 @@
   {
    "fieldname": "home_settings",
    "fieldtype": "Code",
+   "hidden": 1,
    "label": "Home Settings"
   },
   {
@@ -593,7 +586,7 @@
  "idx": 413,
  "image_field": "user_image",
  "max_attachments": 5,
- "modified": "2019-08-09 10:34:56.912283",
+ "modified": "2019-10-22 14:16:34.810223",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "User",

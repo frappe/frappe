@@ -695,7 +695,8 @@ frappe.PrintFormatBuilder = Class.extend({
 				{
 					fieldname: "content",
 					fieldtype: "Code",
-					label: label
+					label: label,
+					options: "HTML"
 				},
 				{
 					fieldname: "help",

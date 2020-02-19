@@ -30,6 +30,10 @@ class DataImport(Document):
 
 
 @frappe.whitelist()
+def get_importable_doctypes():
+	return frappe.cache().hget("can_import", frappe.session.user)
+
+@frappe.whitelist()
 def import_data(data_import):
 	frappe.db.set_value("Data Import", data_import, "import_status", "In Progress", update_modified=False)
 	frappe.publish_realtime("data_import_progress", {"progress": "0",

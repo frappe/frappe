@@ -70,7 +70,7 @@ def get_value(doctype, fieldname, filters=None, as_dict=True, debug=False, paren
 		check_parent_permission(parent, doctype)
 
 	if not frappe.has_permission(doctype):
-		frappe.throw(_("No permission for {0}".format(doctype)), frappe.PermissionError)
+		frappe.throw(_("No permission for {0}").format(doctype), frappe.PermissionError)
 
 	filters = get_safe_filters(filters)
 
@@ -377,3 +377,14 @@ def check_parent_permission(parent, child_doctype):
 	# Either parent not passed or the user doesn't have permission on parent doctype of child table!
 	raise frappe.PermissionError
 
+@frappe.whitelist()
+def is_document_amended(doctype, docname):
+	if frappe.permissions.has_permission(doctype):
+		try:
+			return frappe.db.exists(doctype, {
+				'amended_from': docname
+			})
+		except frappe.db.InternalError:
+			pass
+
+	return False

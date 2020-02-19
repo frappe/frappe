@@ -6,6 +6,7 @@ import frappe, json, os
 import unittest
 
 test_records = frappe.get_test_records('Report')
+test_dependencies = ['User']
 
 class TestReport(unittest.TestCase):
 	def test_report_builder(self):
@@ -28,7 +29,8 @@ class TestReport(unittest.TestCase):
 		self.assertEqual(columns[1].get('label'), 'Module')
 		self.assertTrue('User' in [d[0] for d in data])
 
-	def test_report_permisisons(self):
+	def test_report_permissions(self):
+		frappe.set_user('test@example.com')
 		frappe.db.sql("""delete from `tabHas Role` where parent = %s
 			and role = 'Test Has Role'""", frappe.session.user, auto_commit=1)
 
@@ -53,6 +55,7 @@ class TestReport(unittest.TestCase):
 			report = frappe.get_doc('Report', 'Test Report')
 
 		self.assertNotEquals(report.is_permitted(), True)
+		frappe.set_user('Administrator')
 
 	# test for the `_format` method if report data doesn't have sort_by parameter
 	def test_format_method(self):
@@ -68,3 +71,43 @@ class TestReport(unittest.TestCase):
 		self.assertEqual(columns[1].get('label'), 'User Type')
 		self.assertTrue('Administrator' in [d[0] for d in data])
 		frappe.delete_doc('Report', 'User Activity Report Without Sort')
+
+	def test_non_standard_script_report(self):
+		report_name = 'Test Non Standard Script Report'
+		if not frappe.db.exists("Report", report_name):
+			report = frappe.get_doc({
+				'doctype': 'Report',
+				'ref_doctype': 'User',
+				'report_name': report_name,
+				'report_type': 'Script Report',
+				'is_standard': 'No',
+			}).insert(ignore_permissions=True)
+		else:
+			report = frappe.get_doc('Report', report_name)
+
+		report.report_script = '''
+totals = {}
+for user in frappe.get_all('User', fields = ['name', 'user_type', 'creation']):
+	if not user.user_type in totals:
+		totals[user.user_type] = 0
+	totals[user.user_type] = totals[user.user_type] + 1
+
+data = [
+	[
+		{'fieldname': 'type', 'label': 'Type'},
+		{'fieldname': 'value', 'label': 'Value'}
+	],
+	[
+		{"type":key, "value": value} for key, value in totals.items()
+	]
+]
+'''
+		report.save()
+		data = report.get_data()
+
+		# check columns
+		self.assertEqual(data[0][0]['label'], 'Type')
+
+		# check values
+		self.assertTrue('System User' in [d.get('type') for d in data[1]])
+

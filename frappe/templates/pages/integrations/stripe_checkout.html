@@ -12,15 +12,15 @@
 
 {%- block page_content -%}
 
-<div class="row stripe" style="min-height: 400px; padding-bottom: 50px; margin-top:100px;">
-	<div class="col-sm-8 col-sm-offset-2">
+<div class="stripe" style="min-height: 400px; padding-bottom: 50px; margin-top:100px;margin-left:250px;">
+	<div class="col-sm-10 col-sm-offset-2">
 		{% if image %}
 			<img src={{image}}>
 		{% endif %}
 		<h2 class="text-center">{{description}}</h2>
 		<form id="payment-form">
-			<div class="form-row">
-				<div class="group">
+			<div class="form-row row">
+				<div class="group col-12">
 					<div>
 						<label>
 							<span>{{ _("Name") }}</span>
@@ -28,7 +28,7 @@
 					</label>
 					</div>
 				</div>
-				<div class="group">
+				<div class="group col-12">
 					<div>
 						<label>
 							<span>{{ _("Email") }}</span>
@@ -36,7 +36,7 @@
 					</label>
 					</div>
 				</div>
-				<div class="group">
+				<div class="group col-12">
 					<label>
 					<span>{{ _("Card Details") }}</span>
 				<div id="card-element" name="card-element" class="field"></div>

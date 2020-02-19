@@ -264,11 +264,11 @@ Object.assign(frappe.utils, {
 			if(has_words(["Pending", "Review", "Medium", "Not Approved"], text)) {
 				style = "warning";
 				colour = "orange";
-			} else if(has_words(["Open", "Urgent", "High"], text)) {
+			} else if(has_words(["Open", "Urgent", "High", "Failed", "Rejected"], text)) {
 				style = "danger";
 				colour = "red";
-			} else if(has_words(["Closed", "Finished", "Converted", "Completed", "Confirmed",
-				"Approved", "Yes", "Active", "Available", "Paid"], text)) {
+			} else if(has_words(["Closed", "Finished", "Converted", "Completed", "Complete", "Confirmed",
+				"Approved", "Yes", "Active", "Available", "Paid", "Success"], text)) {
 				style = "success";
 				colour = "green";
 			} else if(has_words(["Submitted"], text)) {
@@ -725,6 +725,19 @@ Object.assign(frappe.utils, {
 	},
 	is_rtl() {
 		return ["ar", "he", "fa"].includes(frappe.boot.lang);
+	},
+	bind_actions_with_object($el, object) {
+		// remove previously bound event
+		$($el).off('click.class_actions');
+		// attach new event
+		$($el).on('click.class_actions', '[data-action]', e => {
+			let $target = $(e.currentTarget);
+			let action = $target.data('action');
+			let method = object[action];
+			method ? object[action](e, $target) : null;
+		});
+
+		return $el;
 	}
 });
 

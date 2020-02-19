@@ -68,6 +68,10 @@
 	}
 }
 
+.report-wrapper {
+	overflow: auto;
+}
+
 .groupby-box {
 	border-bottom: 1px solid #d1d8dd;
 	padding: 10px 15px 3px;
@@ -108,4 +112,9 @@
     top: 0px;
     right: 0px;
     display: flex;
+}
+
+// Enable tnum for report
+.dt-scrollable .dt-cell__content {
+	font-feature-settings: "tnum", "zero";
 }

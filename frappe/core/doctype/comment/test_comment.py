@@ -53,5 +53,7 @@ class TestComment(unittest.TestCase):
 			reference_name = test_blog.name
 		))), 0)
 
+		test_blog.delete()
+
 
 

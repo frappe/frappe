@@ -10,6 +10,7 @@ from .html_utils import sanitize_html
 import frappe
 from frappe.utils.identicon import Identicon
 from email.utils import parseaddr, formataddr
+from email.header import decode_header, make_header
 # utility functions like cint, int, flt, etc.
 from frappe.utils.data import *
 from six.moves.urllib.parse import quote
@@ -59,13 +60,13 @@ def get_email_address(user=None):
 	if not user:
 		user = frappe.session.user
 
-	return frappe.db.get_value("User", user, ["email"], as_dict=True).get("email")
+	return frappe.db.get_value("User", user, "email")
 
 def get_formatted_email(user):
 	"""get Email Address of user formatted as: `John Doe <johndoe@example.com>`"""
 	fullname = get_fullname(user)
 	mail = get_email_address(user)
-	return formataddr((fullname, mail))
+	return cstr(make_header(decode_header(formataddr((fullname, mail)))))
 
 def extract_email_id(email):
 	"""fetch only the email part of the Email Address"""
@@ -670,3 +671,24 @@ def get_safe_filters(filters):
 		pass
 
 	return filters
+
+def create_batch(iterable, batch_size):
+	"""
+	Convert an iterable to multiple batches of constant size of batch_size
+	"""
+	total_count = len(iterable)
+	for i in range(0, total_count, batch_size):
+		yield iterable[i:min(i + batch_size, total_count)]
+
+def set_request(**kwargs):
+	from werkzeug.test import EnvironBuilder
+	from werkzeug.wrappers import Request
+	builder = EnvironBuilder(**kwargs)
+	frappe.local.request = Request(builder.get_environ())
+
+def get_html_for_route(route):
+	from frappe.website import render
+	set_request(method='GET', path=route)
+	response = render.render()
+	html = frappe.safe_decode(response.get_data())
+	return html

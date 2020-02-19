@@ -132,12 +132,12 @@ $.extend(frappe, {
 
 		if (data._server_messages) {
 			var server_messages = JSON.parse(data._server_messages || '[]');
-			server_messages = $.map(server_messages, function(v) {
+			server_messages.map((msg) => {
 				// temp fix for messages sent as dict
 				try {
-					return JSON.parse(v).message;
+					return JSON.parse(msg);
 				} catch (e) {
-					return v;
+					return msg;
 				}
 			}).join('<br>');
 
@@ -375,7 +375,8 @@ $.extend(frappe, {
 
 window.valid_email = function(id) {
 	// eslint-disable-next-line
-	return /[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/.test(id.toLowerCase());
+	// copied regex from frappe/utils.js validate_type
+	return /^((([a-z]|\d|[!#\$%&'\*\+\-\/=\?\^_`{\|}~]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])+(\.([a-z]|\d|[!#\$%&'\*\+\-\/=\?\^_`{\|}~]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])+)*)|((\x22)((((\x20|\x09)*(\x0d\x0a))?(\x20|\x09)+)?(([\x01-\x08\x0b\x0c\x0e-\x1f\x7f]|\x21|[\x23-\x5b]|[\x5d-\x7e]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(\\([\x01-\x09\x0b\x0c\x0d-\x7f]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]))))*(((\x20|\x09)*(\x0d\x0a))?(\x20|\x09)+)?(\x22)))@((([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.)+(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))$/.test(id.toLowerCase());
 }
 
 window.validate_email = valid_email;
@@ -459,7 +460,7 @@ frappe.ready(function() {
 		method: 'frappe.website.doctype.website_settings.website_settings.is_chat_enabled',
 		callback: (r) => {
 			if (r.message) {
-				frappe.require('/assets/js/moment-bundle.min.js', () => {
+				frappe.require(['/assets/js/moment-bundle.min.js', "/assets/css/frappe-chat-web.css", "/assets/frappe/js/lib/socket.io.min.js"], () => {
 					frappe.require('/assets/js/chat.js', () => {
 						frappe.chat.setup();
 					});

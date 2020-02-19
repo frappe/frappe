@@ -30,19 +30,26 @@ def make_mapped_doc(method, source_name, selected_children=None, args=None):
 	return method(source_name)
 
 @frappe.whitelist()
-def map_docs(method, source_names, target_doc):
-	'''Returns the mapped document calling the given mapper method
-	with each of the given source docs on the target doc'''
+def map_docs(method, source_names, target_doc, args=None):
+	''' Returns the mapped document calling the given mapper method
+	with each of the given source docs on the target doc
+
+	:param args: Args as string to pass to the mapper method
+	E.g. args: "{ 'supplier': 'XYZ' }" '''
+
 	method = frappe.get_attr(method)
 	if method not in frappe.whitelisted:
 		raise frappe.PermissionError
 
 	for src in json.loads(source_names):
-		target_doc = method(src, target_doc)
+		_args = (src, target_doc, json.loads(args)) if args else (src, target_doc)
+		target_doc = method(*_args)
 	return target_doc
 
 def get_mapped_doc(from_doctype, from_docname, table_maps, target_doc=None,
 		postprocess=None, ignore_permissions=False, ignore_child_tables=False):
+
+	apply_strict_user_permissions = frappe.get_system_settings("apply_strict_user_permissions")
 
 	# main
 	if not target_doc:
@@ -50,7 +57,8 @@ def get_mapped_doc(from_doctype, from_docname, table_maps, target_doc=None,
 	elif isinstance(target_doc, string_types):
 		target_doc = frappe.get_doc(json.loads(target_doc))
 
-	if not ignore_permissions and not target_doc.has_permission("create"):
+	if (not apply_strict_user_permissions
+		and not ignore_permissions and not target_doc.has_permission("create")):
 		target_doc.raise_no_permission_to("create")
 
 	source_doc = frappe.get_doc(from_doctype, from_docname)
@@ -113,6 +121,11 @@ def get_mapped_doc(from_doctype, from_docname, table_maps, target_doc=None,
 		postprocess(source_doc, target_doc)
 
 	target_doc.set_onload("load_after_mapping", True)
+
+	if (apply_strict_user_permissions
+		and not ignore_permissions and not target_doc.has_permission("create")):
+		target_doc.raise_no_permission_to("create")
+
 	return target_doc
 
 def map_doc(source_doc, target_doc, table_map, source_parent=None):

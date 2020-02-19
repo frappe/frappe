@@ -19,6 +19,7 @@ def execute():
 				non_unique
 			FROM information_schema.STATISTICS
 			WHERE table_name=%s
+			AND column_name!='name'
 			AND non_unique=0
 			ORDER BY index_name;
 		""", table, as_dict=1)

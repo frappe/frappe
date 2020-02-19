@@ -11,9 +11,9 @@ from frappe.desk.notifications import (delete_notification_count_for,
 common_default_keys = ["__default", "__global"]
 
 global_cache_keys = ("app_hooks", "installed_apps",
-		"app_modules", "module_app", "notification_config", 'system_settings',
+		"app_modules", "module_app", "system_settings",
 		'scheduler_events', 'time_zone', 'webhooks', 'active_domains',
-		'active_modules', 'assignment_rule')
+		'active_modules', 'assignment_rule', 'server_script_map', 'wkhtmltopdf_version')
 
 user_cache_keys = ("bootinfo", "user_recent", "roles", "user_doc", "lang",
 		"defaults", "user_permissions", "home_page", "linked_with",
@@ -115,3 +115,46 @@ def get_doctype_map(doctype, name, filters, order_by=None):
 def clear_doctype_map(doctype, name):
 	cache_key = frappe.scrub(doctype) + '_map'
 	frappe.cache().hdel(cache_key, name)
+
+def build_table_count_cache(*args, **kwargs):
+	if frappe.flags.in_patch or frappe.flags.in_install or frappe.flags.in_import:
+		return
+	_cache = frappe.cache()
+	data = frappe.db.multisql({
+		"mariadb": """
+			SELECT 	table_name AS name,
+					table_rows AS count
+			FROM information_schema.tables""",
+		"postgres": """
+			SELECT 	"relname" AS name,
+					"n_tup_ins" AS count
+			FROM "pg_stat_all_tables"
+		"""
+	}, as_dict=1)
+
+	counts = {d.get('name').lstrip('tab'): d.get('count', None) for d in data}
+	_cache.set_value("information_schema:counts", counts)
+
+	return counts
+
+def build_domain_restriced_doctype_cache(*args, **kwargs):
+	if frappe.flags.in_patch or frappe.flags.in_install or frappe.flags.in_import:
+		return
+	_cache = frappe.cache()
+	active_domains = frappe.get_active_domains()
+	doctypes = frappe.get_all("DocType", filters={'restrict_to_domain': ('IN', active_domains)})
+	doctypes = [doc.name for doc in doctypes]
+	_cache.set_value("domain_restricted_doctypes", doctypes)
+
+	return doctypes
+
+def build_domain_restriced_page_cache(*args, **kwargs):
+	if frappe.flags.in_patch or frappe.flags.in_install or frappe.flags.in_import:
+		return
+	_cache = frappe.cache()
+	active_domains = frappe.get_active_domains()
+	pages = frappe.get_all("Page", filters={'restrict_to_domain': ('IN', active_domains)})
+	pages = [page.name for page in pages]
+	_cache.set_value("domain_restricted_pages", pages)
+
+	return pages

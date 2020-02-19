@@ -52,7 +52,7 @@ class Event(Document):
 					["Communication Link", "link_doctype", "=", participant.reference_doctype],
 					["Communication Link", "link_name", "=", participant.reference_docname]
 				]
-				comms = frappe.get_list("Communication", filters=filters, fields=["name"])
+				comms = frappe.get_all("Communication", filters=filters, fields=["name"])
 
 				if comms:
 					for comm in comms:
@@ -73,6 +73,8 @@ class Event(Document):
 		communication.subject = self.subject
 		communication.content = self.description if self.description else self.subject
 		communication.communication_date = self.starts_on
+		communication.sender = self.owner
+		communication.sender_full_name = frappe.utils.get_fullname(self.owner)
 		communication.reference_doctype = self.doctype
 		communication.reference_name = self.name
 		communication.communication_medium = communication_mapping.get(self.event_category) if self.event_category else ""
@@ -148,6 +150,12 @@ def get_events(start, end, user=None, for_reminder=False, filters=None):
 	if isinstance(filters, string_types):
 		filters = json.loads(filters)
 
+	filter_condition = get_filters_cond('Event', filters, [])
+
+	tables = ["`tabEvent`"]
+	if "`tabEvent Participants`" in filter_condition:
+		tables.append("`tabEvent Participants`")
+
 	events = frappe.db.sql("""
 		SELECT `tabEvent`.name,
 				`tabEvent`.subject,
@@ -168,7 +176,7 @@ def get_events(start, end, user=None, for_reminder=False, filters=None):
 				`tabEvent`.friday,
 				`tabEvent`.saturday,
 				`tabEvent`.sunday
-		FROM `tabEvent`
+		FROM {tables}
 		WHERE (
 				(
 					(date(`tabEvent`.starts_on) BETWEEN date(%(start)s) AND date(%(end)s))
@@ -199,7 +207,8 @@ def get_events(start, end, user=None, for_reminder=False, filters=None):
 			)
 		AND `tabEvent`.status='Open'
 		ORDER BY `tabEvent`.starts_on""".format(
-			filter_condition=get_filters_cond('Event', filters, []),
+			tables=", ".join(tables),
+			filter_condition=filter_condition,
 			reminder_condition="AND coalesce(`tabEvent`.send_reminder, 0)=1" if for_reminder else ""
 		), {
 			"start": start,

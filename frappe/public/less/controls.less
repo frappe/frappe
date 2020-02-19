@@ -131,3 +131,37 @@
 		overflow: auto;
 	}
 }
+
+.barcode-scanner {
+	position: relative;
+
+	& > canvas, & > video {
+		max-width: 100%;
+		width: 100%;
+	}
+
+	canvas.drawing, canvas.drawingBuffer {
+		position: absolute;
+		left: 0;
+		top: 0;
+	}
+}
+
+.frappe-control[data-fieldtype="Select"] .control-input {
+	position: relative;
+
+	select {
+		/* for Firefox */
+		-moz-appearance: none;
+		/* for Chrome */
+		-webkit-appearance: none;
+	}
+
+	.octicon-chevron-down {
+		position: absolute;
+		top: 8px;
+		height: 15px;
+		right: 12px;
+		top: 8px;
+	}
+}

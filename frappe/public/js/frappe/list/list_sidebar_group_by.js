@@ -7,7 +7,7 @@ frappe.views.ListGroupBy = class ListGroupBy {
 		this.make_wrapper();
 
 		this.user_settings = frappe.get_user_settings(this.doctype);
-		this.group_by_fields = ['assigned_to'];
+		this.group_by_fields = ['assigned_to', 'owner'];
 		if(this.user_settings.group_by_fields) {
 			this.group_by_fields = this.group_by_fields.concat(this.user_settings.group_by_fields);
 		}
@@ -24,7 +24,7 @@ frappe.views.ListGroupBy = class ListGroupBy {
 		});
 		d.set_primary_action("Save", ({ group_by_fields }) => {
 			frappe.model.user_settings.save(this.doctype, 'group_by_fields', group_by_fields || null);
-			this.group_by_fields = group_by_fields ? ['assigned_to', ...group_by_fields] : ['assigned_to'];
+			this.group_by_fields = group_by_fields ? ['assigned_to', 'owner', ...group_by_fields] : ['assigned_to', 'owner'];
 			this.render_group_by_items();
 			d.hide();
 		});
@@ -53,9 +53,14 @@ frappe.views.ListGroupBy = class ListGroupBy {
 
 	render_group_by_items() {
 		let get_item_html = (fieldname) => {
-			let label = fieldname === 'assigned_to'
-				? __('Assigned To')
-				: frappe.meta.get_label(this.doctype, fieldname);
+			let label;
+			if (fieldname === 'assigned_to') {
+				label = __('Assigned To');
+			} else if (fieldname === 'owner') {
+				label = __('Created By');
+			} else {
+				label = frappe.meta.get_label(this.doctype, fieldname);
+			}
 
 			return `<li class="group-by-field list-link">
 				<div class="btn-group">
@@ -85,7 +90,7 @@ frappe.views.ListGroupBy = class ListGroupBy {
 					this.render_dropdown_items(field_count_list, dropdown);
 					this.sidebar.setup_dropdown_search(dropdown, '.group-by-value');
 				} else {
-					dropdown.find('.group-by-loading').hide();
+					dropdown.find('.group-by-loading').html(`${__("No filters found")}`);
 				}
 			});
 		});

@@ -17,7 +17,7 @@ def setup_database(force, source_sql, verbose):
 	subprocess_env['PGPASSWORD'] = str(frappe.conf.db_password)
 	# bootstrap db
 	subprocess.check_output([
-		'psql', frappe.conf.db_name, '-h', frappe.conf.db_host, '-U',
+		'psql', frappe.conf.db_name, '-h', frappe.conf.db_host or 'localhost', '-U',
 		frappe.conf.db_name, '-f',
 		os.path.join(os.path.dirname(__file__), 'framework_postgres.sql')
 	], env=subprocess_env)

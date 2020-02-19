@@ -2,7 +2,7 @@ frappe.ui.form.ControlMultiSelectList = frappe.ui.form.ControlData.extend({
 	make_input() {
 		let template  = `
 			<div class="multiselect-list dropdown">
-				<div class="form-control cursor-pointer dropdown-toggle input-sm" data-toggle="dropdown">
+				<div class="form-control cursor-pointer dropdown-toggle input-sm" data-toggle="dropdown" tabindex=0>
 					<span class="status-text ellipsis"></span>
 				</div>
 				<ul class="dropdown-menu">
@@ -17,6 +17,7 @@ frappe.ui.form.ControlMultiSelectList = frappe.ui.form.ControlData.extend({
 
 		this.$list_wrapper = $(template);
 		this.$input = $('<input>');
+		this.input = this.$input.get(0);
 		this.$list_wrapper.prependTo(this.input_area);
 		this.$filter_input = this.$list_wrapper.find('input');
 		this.$list_wrapper.on('click', '.dropdown-menu', e => {
@@ -35,10 +36,10 @@ frappe.ui.form.ControlMultiSelectList = frappe.ui.form.ControlData.extend({
 						if (this.values.includes(opt.value)) {
 							return true;
 						}
-						match = Awesomplete.FILTER_CONTAINS(opt.label, txt);
-						if (!match) {
-							match = Awesomplete.FILTER_CONTAINS(opt.value, txt);
-						}
+						match = Awesomplete.FILTER_CONTAINS(opt.label, txt)
+							|| Awesomplete.FILTER_CONTAINS(opt.value, txt)
+							|| Awesomplete.FILTER_CONTAINS(opt.description, txt);
+
 						return match;
 					});
 					let options = this._selected_values
@@ -57,6 +58,15 @@ frappe.ui.form.ControlMultiSelectList = frappe.ui.form.ControlData.extend({
 					this.toggle_select_item(this._$last_highlighted);
 					return false;
 				}
+			}
+		});
+
+		this.$list_wrapper.on('keydown', e => {
+			if ($(e.target).is('input')) {
+				return;
+			}
+			if (e.key === 'Backspace') {
+				this.set_value([]);
 			}
 		});
 
@@ -195,8 +205,11 @@ frappe.ui.form.ControlMultiSelectList = frappe.ui.form.ControlData.extend({
 			let encoded_value = encodeURIComponent(option.value);
 			let selected = this.values.includes(option.value) ? 'selected' : '';
 			return `<li class="selectable-item ${selected}" data-value="${encoded_value}">
-				${option.label}
-				<span class="octicon octicon-check text-muted"></span>
+				<div>
+					<strong>${option.label}</strong>
+					<div class="small">${option.description}</div>
+				</div>
+				<div><span class="octicon octicon-check text-muted"></span></div>
 			</li>`;
 		}).join('');
 		if (!html) {
