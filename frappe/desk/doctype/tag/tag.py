@@ -81,7 +81,7 @@ class DocTags:
 		if not tl:
 			tags = ''
 		else:
-			tl = list(set(filter(lambda x: x, tl)))
+			tl = list(dict.fromkeys(filter(lambda x: x, tl)))
 			tags = ',' + ','.join(tl)
 		try:
 			frappe.db.sql("update `tab%s` set _user_tags=%s where name=%s" % \
