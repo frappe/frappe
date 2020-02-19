@@ -1,4 +1,5 @@
 {
+ "actions": [],
  "autoname": "Prompt",
  "creation": "2016-05-25 09:43:44.767581",
  "doctype": "DocType",
@@ -14,8 +15,9 @@
    "label": "Description"
   }
  ],
- "modified": "2019-09-25 17:47:41.712237",
- "modified_by": "Administrator",
+ "links": [],
+ "modified": "2020-02-19 10:08:48.633408",
+ "modified_by": "priyanka@bloomstack.com",
  "module": "Desk",
  "name": "Tag",
  "owner": "Administrator",
@@ -45,5 +47,5 @@
   }
  ],
  "sort_field": "modified",
- "sort_order": "DESC"
+ "sort_order": "ASC"
 }
