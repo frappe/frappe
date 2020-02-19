@@ -245,7 +245,9 @@ export default class GridRow {
 		for(var ci in this.grid.visible_columns) {
 			var df = this.grid.visible_columns[ci][0],
 				colsize = this.grid.visible_columns[ci][1],
-				txt = this.doc ? frappe.format(this.doc[df.fieldname], df, null, this.doc) : __(df.label);
+				txt = this.doc ?
+					frappe.format(this.doc[df.fieldname], df, null, this.doc) :
+					__(df.label);
 
 			if(this.doc && df.fieldtype === "Select") {
 				txt = __(txt);
@@ -341,7 +343,8 @@ export default class GridRow {
 			this.columns_list.forEach((column, index) => {
 
 				if(!this.frm) {
-					let df = this.grid.visible_columns[index][0];
+					let df = this.grid.visible_columns[index][0]
+
 					let txt = this.doc ?
 						frappe.format(this.doc[df.fieldname], df, null, this.doc) :
 						__(df.label);

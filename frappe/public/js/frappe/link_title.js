@@ -8,7 +8,7 @@ frappe.get_link_title = function(doctype, name) {
 	if (!doctype || !name) {
 		return;
 	}
-	console.log(frappe._link_titles[doctype + "::" + name]);
+
 	return frappe._link_titles[doctype + "::" + name];
 }
 

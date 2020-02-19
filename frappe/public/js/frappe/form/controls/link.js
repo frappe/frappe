@@ -116,37 +116,28 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 	new_doc: function() {
 		var doctype = this.get_options();
 		var me = this;
-		let meta = null;
 
 		if(!doctype) return;
 
-		frappe.model.with_doctype(doctype, () => {
-			meta = frappe.get_meta(doctype);
-			frappe.route_options = {};
+		frappe.route_options = {};
 
-			// set values to fill in the new document
-			if(this.df.get_route_options_for_new_doc) {
-				frappe.route_options = this.df.get_route_options_for_new_doc(this);
-			}
+		// set values to fill in the new document
+		if(this.df.get_route_options_for_new_doc) {
+			frappe.route_options = this.df.get_route_options_for_new_doc(this);
+		}
 
-			// partially entered name field
-			frappe.route_options.name_field = this.get_label_value();
+		// partially entered name field
+		frappe.route_options.name_field = this.get_label_value();
 
-			// reference to calling link
-			frappe._from_link = this;
-			frappe._from_link_scrollY = $(document).scrollTop();
+		// reference to calling link
+		frappe._from_link = this;
+		frappe._from_link_scrollY = $(document).scrollTop();
 
-			frappe.ui.form.make_quick_entry(doctype, (doc) => {
-				let label = undefined;
-				if (meta && meta.title_field) {
-					label = doc[meta.title_field];
-				}
-
-				return me.parse_validate_and_set_in_model(doc.name, label);
-			});
-
-			return false;
+		frappe.ui.form.make_quick_entry(doctype, (doc) => {
+			return me.set_value(doc.name);
 		});
+
+		return false;
 	},
 	setup_awesomeplete: function() {
 		var me = this;

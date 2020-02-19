@@ -44,9 +44,7 @@ frappe.ui.form.QuickEntryForm = Class.extend({
 	},
 
 	set_meta_and_mandatory_fields: function(){
-		this.meta = frappe.get_meta(this.doctype);
-		let fields = this.meta.fields;
-
+		let fields = frappe.get_meta(this.doctype).fields;
 		if (fields.length < 7) {
 			// if less than 7 fields, then show everything
 			this.mandatory = fields;
@@ -55,7 +53,7 @@ frappe.ui.form.QuickEntryForm = Class.extend({
 			this.mandatory = $.map(fields,
 				function(d) { return ((d.reqd || d.bold || d.allow_in_quick_entry) && !d.read_only) ? $.extend({}, d) : null; });
 		}
-
+		this.meta = frappe.get_meta(this.doctype);
 		if (!this.doc) {
 			this.doc = frappe.model.get_new_doc(this.doctype, null, null, true);
 		}
@@ -176,15 +174,14 @@ frappe.ui.form.QuickEntryForm = Class.extend({
 						// delete the old doc
 						frappe.model.clear_doc(me.dialog.doc.doctype, me.dialog.doc.name);
 						me.dialog.doc = r.message;
-
 						if(frappe._from_link) {
 							frappe.ui.form.update_calling_link(me.dialog.doc);
 						} else {
-							me.open_form_if_not_list();
-						}
-
-						if (me.after_insert) {
-							me.after_insert(me.dialog.doc);
+							if(me.after_insert) {
+								me.after_insert(me.dialog.doc);
+							} else {
+								me.open_form_if_not_list();
+							}
 						}
 					}
 				},
