@@ -84,7 +84,8 @@ def process_energy_points(doc, state):
 	if (frappe.flags.in_patch
 		or frappe.flags.in_install
 		or frappe.flags.in_migrate
-		or frappe.flags.in_import):
+		or frappe.flags.in_import
+		or frappe.flags.in_setup_wizard):
 		return
 
 	if not is_energy_point_enabled():
