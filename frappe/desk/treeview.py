@@ -57,9 +57,6 @@ def add_node():
 	args = make_tree_args(**frappe.form_dict)
 	doc = frappe.get_doc(args)
 
-	if args.doctype == "Sales Person":
-		doc.employee = frappe.form_dict.get('employee')
-
 	doc.save()
 
 def make_tree_args(**kwarg):
