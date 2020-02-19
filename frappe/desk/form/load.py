@@ -71,7 +71,7 @@ def getdoctype(doctype, with_parent=False, cached_timestamp=None):
 
 	frappe.response['user_settings'] = get_user_settings(parent_dt or doctype)
 
-	if cached_timestamp and docs[0].modified==cached_timestamp:
+	if cached_timestamp and docs[0].modified == cached_timestamp:
 		return "use_cache"
 
 	frappe.response.docs.extend(docs)
@@ -110,12 +110,12 @@ def get_docinfo(doc=None, doctype=None, name=None):
 def set_link_titles(doc):
 	meta = frappe.get_meta(doc.doctype)
 	link_titles = {}
-	link_titles.update(get_title_values_for_link_and_dynamic_fields(meta, doc))
+	link_titles.update(get_title_values_for_link_and_dynamic_link_fields(meta, doc))
 	link_titles.update(get_title_values_for_table_and_multiselect_fields(meta, doc))
 
 	send_link_titles(link_titles)
 
-def get_title_values_for_link_and_dynamic_fields(meta, doc, link_fields=None):
+def get_title_values_for_link_and_dynamic_link_fields(meta, doc, link_fields=None):
 	link_titles = {}
 
 	if not link_fields:
@@ -136,21 +136,6 @@ def get_title_values_for_link_and_dynamic_fields(meta, doc, link_fields=None):
 
 	return link_titles
 
-def get_title_values_for_dynamic_link_fields(meta, doc, dynamic_link_fields=None):
-	_link_titles = {}
-	for field in dynamic_link_fields or meta.get_dynamic_link_fields():
-		if not doc.get(field.fieldname):
-			continue
-
-		meta = frappe.get_meta(doc.get(field.options))
-		if not meta or not (meta.title_field and meta.show_title_field_in_link):
-			continue
-
-		_link_title = frappe.get_cached_value(doc.get(field.options), doc.get(field.fieldname), meta.title_field)
-		_link_titles.update({doc.get(field.options) + "::" + doc.get(field.fieldname): _link_title})
-
-	return _link_titles
-
 def get_title_values_for_table_and_multiselect_fields(meta, doc, table_fields=None):
 	link_titles = {}
 
@@ -163,7 +148,7 @@ def get_title_values_for_table_and_multiselect_fields(meta, doc, table_fields=No
 
 		_meta = frappe.get_meta(field.options)
 		for value in doc.get(field.fieldname):
-			link_titles.update(get_title_values_for_link_and_dynamic_fields(_meta, value))
+			link_titles.update(get_title_values_for_link_and_dynamic_link_fields(_meta, value))
 
 	return link_titles
 
@@ -211,7 +196,7 @@ def get_point_logs(doctype, docname):
 def _get_communications(doctype, name, start=0, limit=20):
 	communications = get_communication_data(doctype, name, start, limit)
 	for c in communications:
-		if c.communication_type=="Communication":
+		if c.communication_type == "Communication":
 			c.attachments = json.dumps(frappe.get_all("File",
 				fields=["file_url", "is_private"],
 				filters={"attached_to_doctype": "Communication",
@@ -240,7 +225,7 @@ def get_communication_data(doctype, name, start=0, limit=20, after=None, fields=
 			AND C.creation > {0}
 		'''.format(after)
 
-	if doctype=='User':
+	if doctype == 'User':
 		conditions += '''
 			AND NOT (C.reference_doctype='User' AND C.communication_type='Communication')
 		'''

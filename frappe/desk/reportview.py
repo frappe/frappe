@@ -12,7 +12,7 @@ from frappe import _
 from six import string_types, StringIO
 from frappe.core.doctype.access_log.access_log import make_access_log
 from frappe.utils import cstr
-from frappe.desk.form.load import get_title_values_for_link_and_dynamic_fields, get_title_values_for_table_and_multiselect_fields, send_link_titles
+from frappe.desk.form.load import get_title_values_for_link_and_dynamic_link_fields, get_title_values_for_table_and_multiselect_fields, send_link_titles
 
 
 @frappe.whitelist()
@@ -89,8 +89,7 @@ def compress(data, args = {}):
 
 	link_titles = {}
 	meta = frappe.get_meta(args.doctype)
-	link_fields = meta.get_link_fields()
-	dynamic_link_fields = meta.get_dynamic_link_fields()
+	link_fields = meta.get_link_fields() + meta.get_dynamic_link_fields()
 	table_fields = meta.get_table_fields()
 
 	for row in data:
@@ -98,7 +97,7 @@ def compress(data, args = {}):
 		for key in keys:
 			new_row.append(row.get(key))
 
-		link_titles.update(get_title_values_for_link_and_dynamic_fields(meta, row, link_fields))
+		link_titles.update(get_title_values_for_link_and_dynamic_link_fields(meta, row, link_fields))
 		link_titles.update(get_title_values_for_table_and_multiselect_fields(meta, row, table_fields))
 		values.append(new_row)
 

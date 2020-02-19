@@ -381,6 +381,7 @@ class Meta(Document):
 	def get_fieldnames_with_value(self):
 		return [df.fieldname for df in self.fields if df.fieldtype not in no_value_fields]
 
+
 	def get_fields_to_check_permissions(self, user_permission_doctypes):
 		fields = self.get("fields", {
 			"fieldtype":"Link",
@@ -459,6 +460,7 @@ class Meta(Document):
 						data.non_standard_fieldnames[link.link_doctype] = link.link_fieldname
 					else:
 						data.fieldname = link.link_fieldname
+
 
 	def get_row_template(self):
 		return self.get_web_template(suffix='_row')

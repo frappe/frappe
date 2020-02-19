@@ -9,7 +9,6 @@ from frappe.permissions import has_permission
 from frappe import _
 from six import string_types
 import re
-import json
 
 UNTRANSLATED_DOCTYPES = ["DocType", "Role"]
 
@@ -205,15 +204,18 @@ def get_title_field(meta, formatted_fields):
 def build_for_autosuggest(res, doctype, is_query):
 	results = []
 	for r in res:
+		r = list(r)
 		if is_query or doctype in (frappe.get_hooks().standard_queries or {}):
-			out = {"value": r[0], "description": ", ".join(unique(cstr(d) for d in r if d)[1:])}
-		else:
-			r = list(r)
 			out = {
 				"value": r[0],
-				"label": r[1]
+				"description": ", ".join(unique(cstr(d) for d in r[1:] if d))
 			}
-			out.update({"description": ", ".join(unique(cstr(d) for d in r if d)[2:])})
+		else:
+			out = {
+				"value": r[0],
+				"label": r[1],
+				"description": ", ".join(unique(cstr(d) for d in r[2:] if d))
+			}
 
 		results.append(out)
 	return results
