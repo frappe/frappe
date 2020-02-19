@@ -4,7 +4,14 @@ import ColumnPickerFields from './column_picker_fields';
 frappe.provide('frappe.data_import');
 
 frappe.data_import.ImportPreview = class ImportPreview {
-	constructor({ wrapper, doctype, preview_data, frm, import_log, events = {} }) {
+	constructor({
+		wrapper,
+		doctype,
+		preview_data,
+		frm,
+		import_log,
+		events = {}
+	}) {
 		this.wrapper = wrapper;
 		this.doctype = doctype;
 		this.preview_data = preview_data;
@@ -85,10 +92,23 @@ frappe.data_import.ImportPreview = class ImportPreview {
 				};
 			}
 
+			let date_format = col.date_format
+				? col.date_format
+						.replace('%Y', 'yyyy')
+						.replace('%y', 'yy')
+						.replace('%m', 'mm')
+						.replace('%d', 'dd')
+				: null;
+
+			let column_title = `<span class="indicator green">
+				${col.header_title || df.label}
+				${date_format ? `(${date_format})` : ''}
+			</span>`;
+
 			return {
 				id: df.fieldname,
 				name: col.header_title,
-				content: `<span class="indicator green">${col.header_title || df.label}</span>`,
+				content: column_title,
 				df: df,
 				editable: false,
 				align: 'left',
@@ -124,11 +144,18 @@ frappe.data_import.ImportPreview = class ImportPreview {
 			disableReorderColumn: true
 		});
 
-		let { max_rows_exceeded, max_rows_in_preview, total_number_of_rows } = this.preview_data;
+		let {
+			max_rows_exceeded,
+			max_rows_in_preview,
+			total_number_of_rows
+		} = this.preview_data;
 		if (max_rows_exceeded) {
 			this.wrapper.find('.table-message').html(`
 				<div class="text-muted margin-top text-medium">
-				${__('Showing only first {0} rows out of {1}', [max_rows_in_preview, total_number_of_rows])}
+				${__('Showing only first {0} rows out of {1}', [
+					max_rows_in_preview,
+					total_number_of_rows
+				])}
 				</div>
 			`);
 		}
@@ -160,7 +187,7 @@ frappe.data_import.ImportPreview = class ImportPreview {
 		this.datatable.style.setStyle(row_classes, {
 			pointerEvents: 'none',
 			backgroundColor: frappe.ui.color.get_color_shade('white', 'light'),
-			color: frappe.ui.color.get_color_shade('black', 'extra-light'),
+			color: frappe.ui.color.get_color_shade('black', 'extra-light')
 		});
 	}
 
@@ -183,12 +210,14 @@ frappe.data_import.ImportPreview = class ImportPreview {
 			}
 		];
 
-		let html = actions.filter(action => action.condition).map(action => {
-			return `<button class="btn btn-sm btn-default" data-action="${action.handler}">
+		let html = actions
+			.filter(action => action.condition)
+			.map(action => {
+				return `<button class="btn btn-sm btn-default" data-action="${action.handler}">
 					${action.label}
 				</button>
 			`;
-		});
+			});
 
 		this.wrapper.find('.table-actions').html(html);
 	}
@@ -203,8 +232,8 @@ frappe.data_import.ImportPreview = class ImportPreview {
 
 	show_column_warning(_, $target) {
 		let $warning = this.frm
-			.get_field('import_warnings').$wrapper
-			.find(`[data-col=${$target.data('col')}]`);
+			.get_field('import_warnings')
+			.$wrapper.find(`[data-col=${$target.data('col')}]`);
 		frappe.utils.scroll_to($warning, true, 30);
 	}
 
@@ -221,9 +250,10 @@ frappe.data_import.ImportPreview = class ImportPreview {
 			if (!df) {
 				fieldname = null;
 			} else {
-				fieldname = df.parent === this.doctype
-					? df.fieldname
-					: `${df.parent}:${df.fieldname}`;
+				fieldname =
+					df.parent === this.doctype
+						? df.fieldname
+						: `${df.parent}:${df.fieldname}`;
 			}
 			return [
 				{
@@ -266,7 +296,10 @@ frappe.data_import.ImportPreview = class ImportPreview {
 				fieldname: 'heading',
 				options: `
 					<div class="margin-top text-muted">
-					${__('Map columns from {0} to fields in {1}', [file_name.bold(), this.doctype.bold()])}
+					${__('Map columns from {0} to fields in {1}', [
+						file_name.bold(),
+						this.doctype.bold()
+					])}
 					</div>
 				`
 			},
@@ -278,7 +311,7 @@ frappe.data_import.ImportPreview = class ImportPreview {
 		let dialog = new frappe.ui.Dialog({
 			title: __('Map Columns'),
 			fields,
-			primary_action: (values) => {
+			primary_action: values => {
 				let changed_map = {};
 				changed.map(i => {
 					let header_row_index = i - 1;
