@@ -9,7 +9,7 @@ import frappe
 import boto3
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils import cint, split_emails
+from frappe.utils import cint
 from frappe.utils.background_jobs import enqueue
 from rq.timeouts import JobTimeoutException
 from botocore.exceptions import ClientError

@@ -4,8 +4,9 @@
 
 from __future__ import unicode_literals
 import frappe
-import glob, os
-from frappe.utils import cint, split_emails, get_backups_path
+import glob
+import os
+from frappe.utils import split_emails, get_backups_path
 
 def send_email(success, service_name, doctype, recipients, error_status=None):
 	if success:
@@ -28,10 +29,7 @@ def get_recipients(service_name, email_field):
 	if not frappe.db:
 		frappe.connect()
 
-	if frappe.db.get_value(service_name, None, email_field):
-		return split_emails(frappe.db.get_value(service_name, None, email_field))
-	else:
-		return []
+	return split_emails(frappe.db.get_value(service_name, None, email_field))
 
 def get_latest_backup_file():
 	list_of_files = glob.glob(os.path.join(get_backups_path(), '*.sql.gz'))
