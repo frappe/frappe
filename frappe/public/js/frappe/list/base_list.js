@@ -230,7 +230,7 @@ frappe.views.BaseList = class BaseList {
 	setup_filter_area() {
 		this.filter_area = new FilterArea(this);
 
-		if (this.filters.length > 0) {
+		if (this.filters && this.filters.length > 0) {
 			return this.filter_area.set(this.filters);
 		}
 	}
@@ -540,7 +540,7 @@ class FilterArea {
 			out.promise = out.promise || Promise.resolve();
 			out.non_standard_filters = out.non_standard_filters || [];
 
-			if (fields_dict[fieldname] && condition === '=') {
+			if (fields_dict[fieldname] && (condition === '=' || condition === "like")) {
 				// standard filter
 				out.promise = out.promise.then(
 					() => fields_dict[fieldname].set_value(value)
