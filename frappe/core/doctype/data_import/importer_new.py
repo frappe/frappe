@@ -325,7 +325,7 @@ class Importer:
 
 	def detect_date_formats(self, columns):
 		for col in columns:
-			if col.df.fieldtype in ['Date', 'Time', 'Datetime']:
+			if col.df and col.df.fieldtype in ['Date', 'Time', 'Datetime']:
 				col.date_format = self.guess_date_format_for_column(col, columns)
 		return columns
 
