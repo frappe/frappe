@@ -23,9 +23,9 @@ frappe.ui.form.on('Data Import Beta', {
 				// prettier-ignore
 				seconds < 60
 					? __('About {0} seconds remaining', [seconds])
-                    : minutes === 1
-					    ? __('About {0} minute remaining', [minutes])
-					    : __('About {0} minutes remaining', [minutes]);
+					: minutes === 1
+						? __('About {0} minute remaining', [minutes])
+						: __('About {0} minutes remaining', [minutes]);
 
 			let message;
 			if (data.success) {

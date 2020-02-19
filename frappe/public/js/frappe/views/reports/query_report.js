@@ -1022,7 +1022,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	}
 
 	get_menu_items() {
-		return [
+		let items = [
 			{
 				label: __('Refresh'),
 				action: () => this.refresh(),
@@ -1153,6 +1153,18 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				standard: true
 			},
 			{
+				label: __('User Permissions'),
+				action: () => frappe.set_route('List', 'User Permission', {
+					doctype: 'Report',
+					name: this.report_name
+				}),
+				condition: () => frappe.model.can_set_user_permissions('Report'),
+				standard: true
+			}
+		];
+
+		if (frappe.user.is_report_manager()) {
+			items.push({
 				label: __('Save'),
 				action: () => {
 					let d = new frappe.ui.Dialog({
@@ -1163,6 +1175,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 								fieldname: 'report_name',
 								label: __("Report Name"),
 								default: this.report_doc.is_standard == 'No' ? this.report_name : "",
+								reqd: true
 							}
 						],
 						primary_action: (values) => {
@@ -1184,17 +1197,10 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 					d.show();
 				},
 				standard: true
-			},
-			{
-				label: __('User Permissions'),
-				action: () => frappe.set_route('List', 'User Permission', {
-					doctype: 'Report',
-					name: this.report_name
-				}),
-				condition: () => frappe.model.can_set_user_permissions('Report'),
-				standard: true
-			}
-		];
+			})
+		}
+
+		return items;
 	}
 
 	add_portrait_warning(dialog) {

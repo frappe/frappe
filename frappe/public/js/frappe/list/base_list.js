@@ -230,7 +230,7 @@ frappe.views.BaseList = class BaseList {
 	setup_filter_area() {
 		this.filter_area = new FilterArea(this);
 
-		if (this.filters.length > 0) {
+		if (this.filters && this.filters.length > 0) {
 			return this.filter_area.set(this.filters);
 		}
 	}
