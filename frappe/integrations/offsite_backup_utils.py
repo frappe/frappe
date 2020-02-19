@@ -28,7 +28,7 @@ def get_recipients(service_name, email_field):
 	if not frappe.db:
 		frappe.connect()
 
-	if frappe.db.get_value("S3 Backup Settings", None, "notification_email"):
+	if frappe.db.get_value(service_name, None, email_field):
 		return split_emails(frappe.db.get_value(service_name, None, email_field))
 	else:
 		return []
