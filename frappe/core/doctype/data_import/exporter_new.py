@@ -96,6 +96,7 @@ class Exporter:
 				"parent": doctype,
 			}
 		)
+		all_fields = [name_field] + all_fields
 
 		if self.export_fields == "Mandatory":
 			fields = [df for df in all_fields if df.reqd]
