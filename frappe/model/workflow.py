@@ -105,6 +105,17 @@ def apply_workflow(doc, action):
 
 	return doc
 
+@frappe.whitelist()
+def can_cancel_document(doctype):
+	workflow = get_workflow(doctype)
+	for state_doc in workflow.states:
+		if state_doc.doc_status == '2':
+			for transition in workflow.transitions:
+				if transition.next_state == state_doc.state:
+					return False
+			return True
+	return True
+
 def validate_workflow(doc):
 	'''Validate Workflow State and Transition for the current user.
 
@@ -205,3 +216,23 @@ def show_progress(docnames, message, i, description):
 			title = message,
 			description = description
 		)
+
+
+def set_workflow_state_on_action(doc, workflow_name, action):
+	workflow = frappe.get_doc('Workflow', workflow_name)
+	workflow_state_field = workflow.workflow_state_field
+
+	# If workflow state of doc is already correct, don't set workflow state
+	for state in workflow.states:
+		if state.state == doc.get(workflow_state_field) and doc.docstatus == cint(state.doc_status):
+			return
+
+	action_map = {
+		'submit': '1',
+		'cancel': '2'
+	}
+	docstatus = action_map[action]
+	for state in workflow.states:
+		if state.doc_status == docstatus:
+			doc.set(workflow_state_field, state.state)
+			return 
