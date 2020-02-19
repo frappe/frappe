@@ -72,7 +72,7 @@ def take_backups_s3(retry_count=0):
 		validate_file_size()
 
 		backup_to_s3()
-		recipients = get_recipients("S3 Backup Settings", email_field='notification_email')
+		recipients = get_recipients("S3 Backup Settings", email_field='notify_email')
 		send_email(True, 'Amazon S3', "S3 Backup Settings", recipients)
 	except JobTimeoutException:
 		if retry_count < 2:
