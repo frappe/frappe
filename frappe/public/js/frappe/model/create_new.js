@@ -135,16 +135,19 @@ $.extend(frappe.model, {
 			&& df.ignore_user_permissions != 1
 			&& allowed_records.length);
 
+		function is_document_allowed(doc) {
+			return doc && (!has_user_permissions || allowed_records.includes(doc));
+		}
+
 		// don't set defaults for "User" link field using User Permissions!
 		if (df.fieldtype==="Link" && df.options!=="User") {
 			// 1 - look in user permissions for document_type=="Setup".
 			// We don't want to include permissions of transactions to be used for defaults.
-			if (df.linked_document_type==="Setup"
-				&& has_user_permissions && default_doc) {
+			if (df.linked_document_type==="Setup" && has_user_permissions && default_doc) {
 				return default_doc;
 			}
 
-			if (this.check_permission(df["default"], has_user_permissions, allowed_records)) {
+			if (is_document_allowed(df["default"])) {
 				user_default = df["default"];
 			}
 
@@ -165,10 +168,8 @@ $.extend(frappe.model, {
 				user_default = frappe.boot.user.last_selected_values[df.options];
 			}
 
-			var is_allowed_user_default = this.check_permission(user_default, has_user_permissions, allowed_records);
-
 			// is this user default also allowed as per user permissions?
-			if (is_allowed_user_default) {
+			if (is_document_allowed(user_default)) {
 				return user_default;
 			}
 		}
@@ -190,9 +191,8 @@ $.extend(frappe.model, {
 
 			} else if (df["default"][0]===":") {
 				var boot_doc = frappe.model.get_default_from_boot_docs(df, doc, parent_doc);
-				var is_allowed_boot_doc = !has_user_permissions || allowed_records.includes(boot_doc);
 
-				if (is_allowed_boot_doc) {
+				if (is_document_allowed(boot_doc)) {
 					return boot_doc;
 				}
 			} else if (df.fieldname===meta.title_field) {
@@ -201,8 +201,7 @@ $.extend(frappe.model, {
 			}
 
 			// is this default value is also allowed as per user permissions?
-			var is_allowed_default = !has_user_permissions || allowed_records.includes(df.default);
-			if (df.fieldtype!=="Link" || df.options==="User" || is_allowed_default) {
+			if (df.fieldtype!=="Link" || df.options==="User" || is_document_allowed(df.default)) {
 				return df["default"];
 			}
 
@@ -321,10 +320,6 @@ $.extend(frappe.model, {
 				}
 			}
 		})
-	},
-
-	check_permission: function(default_value, has_user_permissions, allowed_records) {
-		return default_value && (!has_user_permissions || allowed_records.includes(default_value));
 	}
 });
 
