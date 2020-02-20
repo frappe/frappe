@@ -34,6 +34,10 @@ export default class WidgetGroup {
 
 	make() {
 		this.make_container();
+		this.refresh();
+	}
+
+	refresh() {
 		this.title && this.set_title(this.title);
 		this.widgets && this.make_widgets();
 		this.allow_sorting && this.setup_sortable();
@@ -57,6 +61,7 @@ export default class WidgetGroup {
 	}
 
 	make_widgets() {
+		this.body.empty()
 		const widget_class = widget_factory[this.type];
 
 		this.widgets.forEach(widget => {
