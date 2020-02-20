@@ -1,6 +1,6 @@
 // Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
-import Desk from './desk/desk.js';
+import Desktop from './desktop/desktop.js';
 
 frappe.provide('frappe.views.pageview');
 frappe.provide("frappe.standard_pages");
@@ -47,7 +47,7 @@ frappe.views.pageview = {
 					let container = $('<div class="container"></div>').appendTo(page);
 					container = $('<div></div>').appendTo(container);
 
-					frappe.desk = new Desk({
+					frappe.desktop = new Desktop({
 						wrapper: container
 					})
 				}
