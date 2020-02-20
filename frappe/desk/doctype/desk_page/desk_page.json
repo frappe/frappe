@@ -8,14 +8,15 @@
  "engine": "InnoDB",
  "field_order": [
   "label",
+  "restrict_to_domain",
   "module",
   "category",
   "icon",
   "column_break_3",
-  "restrict_to_domain",
   "onboarding",
   "developer_mode_only",
   "pin_to_top",
+  "disable_user_customization",
   "section_break_2",
   "charts",
   "shortcuts",
@@ -26,6 +27,7 @@
    "fieldname": "label",
    "fieldtype": "Data",
    "label": "Name",
+   "length": 22,
    "unique": 1
   },
   {
@@ -93,10 +95,16 @@
    "fieldname": "pin_to_top",
    "fieldtype": "Check",
    "label": "Pin To Top"
+  },
+  {
+   "default": "0",
+   "fieldname": "disable_user_customization",
+   "fieldtype": "Check",
+   "label": "Disable User Customization"
   }
  ],
  "links": [],
- "modified": "2020-02-20 12:57:57.422923",
+ "modified": "2020-02-20 15:11:17.369348",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Desk Page",
