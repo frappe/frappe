@@ -1,4 +1,5 @@
 import Widget from "./base_widget.js";
+import { generate_route } from "./utils";
 // import { get_luminosity, shadeColor } from "./utils";
 
 String.prototype.format = function () {
@@ -18,7 +19,10 @@ export default class ShortcutWidget extends Widget {
 	}
 
 	setup_events() {
-		//
+		this.widget.click(() => {
+			let route = generate_route(this)
+  			frappe.set_route(route)
+		})
 	}
 
 	set_actions() {

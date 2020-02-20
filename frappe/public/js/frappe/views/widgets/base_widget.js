@@ -18,18 +18,6 @@ export default class Widget {
 		this.setup_events();
 	}
 
-	// get_grid() {
-	// 	const width_map = {
-	// 		'One Third': 'col-sm-4',
-	// 		'Two Third': 'col-sm-8 ',
-	// 		'Half': 'col-sm-6',
-	// 		'Full': 'col-sm-12',
-	// 		'auto': 'col-sm-4'
-	// 	}
-
-	// 	return width_map[this.width] || 'col-sm-12'
-	// }
-
 	make_widget() {
 		this.widget = $(`<div class="widget">
 			<div class="widget-head">
