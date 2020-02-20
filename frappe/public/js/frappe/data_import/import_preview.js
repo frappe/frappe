@@ -94,10 +94,10 @@ frappe.data_import.ImportPreview = class ImportPreview {
 
 			let date_format = col.date_format
 				? col.date_format
-						.replace('%Y', 'yyyy')
-						.replace('%y', 'yy')
-						.replace('%m', 'mm')
-						.replace('%d', 'dd')
+					.replace('%Y', 'yyyy')
+					.replace('%y', 'yy')
+					.replace('%m', 'mm')
+					.replace('%d', 'dd')
 				: null;
 
 			let column_title = `<span class="indicator green">
@@ -150,12 +150,10 @@ frappe.data_import.ImportPreview = class ImportPreview {
 			total_number_of_rows
 		} = this.preview_data;
 		if (max_rows_exceeded) {
+			let parts = [max_rows_in_preview, total_number_of_rows];
 			this.wrapper.find('.table-message').html(`
 				<div class="text-muted margin-top text-medium">
-				${__('Showing only first {0} rows out of {1}', [
-					max_rows_in_preview,
-					total_number_of_rows
-				])}
+				${__('Showing only first {0} rows out of {1}', parts)}
 				</div>
 			`);
 		}
@@ -290,16 +288,14 @@ frappe.data_import.ImportPreview = class ImportPreview {
 		// flatten the array
 		fields = fields.reduce((acc, curr) => [...acc, ...curr]);
 		let file_name = (this.frm.doc.import_file || '').split('/').pop();
+		let parts = [file_name.bold(), this.doctype.bold()];
 		fields = [
 			{
 				fieldtype: 'HTML',
 				fieldname: 'heading',
 				options: `
 					<div class="margin-top text-muted">
-					${__('Map columns from {0} to fields in {1}', [
-						file_name.bold(),
-						this.doctype.bold()
-					])}
+					${__('Map columns from {0} to fields in {1}', parts)}
 					</div>
 				`
 			},
