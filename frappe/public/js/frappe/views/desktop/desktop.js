@@ -1,7 +1,7 @@
 import ChartWidget from "../widgets/chart_widget";
 import WidgetGroup from "../widgets/widget_group";
 
-export default class Desk {
+export default class Desktop {
 	constructor({ wrapper }) {
 		this.wrapper = wrapper;
 		window.desk = this;
@@ -110,7 +110,7 @@ export default class Desk {
 	}
 
 	make_page(page) {
-		const $page = new DeskPage({
+		const $page = new DesktopPage({
 			container: this.body,
 			page_name: page
 		});
@@ -122,7 +122,7 @@ export default class Desk {
 	setup_events() {}
 }
 
-class DeskPage {
+class DesktopPage {
 	constructor({ container, page_name }) {
 		this.container = container;
 		this.page_name = page_name;
