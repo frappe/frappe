@@ -16,11 +16,12 @@
 		.sidebar-item {
 			font-size: 12px;
 			font-weight: bold;
-			margin-top: 8px;
+			margin-bottom: 1px;
 			display: flex;
-			padding: 5px 8px;
-			border-radius: 5px;
+			padding: 10px 15px;
+			border-radius: 4px;
 			cursor: pointer;
+			text-rendering: optimizelegibility;
 
 			&:hover {
 				background-color: @panel-bg;
@@ -28,10 +29,6 @@
 
 			&.selected {
 				background-color: @panel-bg;
-				border: 1px solid @border-color;
-				// .octicon {
-				// 	color: @brand-primary;
-				// }
 			}
 
 			.icon {
