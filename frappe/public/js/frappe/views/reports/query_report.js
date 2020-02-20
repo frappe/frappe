@@ -143,7 +143,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	}
 
 	add_chart_to_dashboard() {
-
+		console.log('chart fields', this.chart_fields);
 		if (this.chart_fields) {
 			const dialog = new frappe.ui.Dialog({
 				title: __('Create Chart'),
@@ -153,7 +153,6 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 						label: 'Choose Dashboard',
 						fieldtype: 'Link',
 						options: 'Dashboard',
-						// reqd: 1,
 					},
 					{
 						fieldname: 'dashboard_chart_name',
@@ -167,6 +166,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 					dialog.hide();
 				}
 			});
+
 			dialog.show();
 		} else {
 			frappe.msgprint(__('Please Set Chart'));
@@ -177,6 +177,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		let x_field_title = toTitle(chart_args.x_field);
 		let y_field_title = toTitle(chart_args.y_field);
 		chart_name = chart_name || (`${this.report_name}: ${x_field_title} vs ${y_field_title}`);
+
 		let args = {
 			'dashboard': dashboard_name || null,
 			'chart_name': chart_name,
@@ -185,7 +186,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			'x_field': chart_args.x_field,
 			'y_field': chart_args.y_field,
 			'type': chart_args.chart_type,
-			'color': chart_args.chart_color,
+			'color': chart_args.color,
 			'filters_json': JSON.stringify(this.get_filter_values()),
 		}
 
@@ -200,6 +201,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			} else {
 				message = __(`New Dashboard Chart ${chart_name} created`);
 			}
+
 			frappe.msgprint(message);
 		});
 	}
@@ -704,7 +706,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 					click: () => {
 						let values = dialog.get_values();
 						me.chart_fields = values;
-						this.add_chart_to_dashboard(values);
+						this.add_chart_to_dashboard();
 					}
 				}
 			],
