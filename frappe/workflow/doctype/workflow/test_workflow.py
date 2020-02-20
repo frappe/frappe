@@ -88,6 +88,28 @@ class TestWorkflow(unittest.TestCase):
 		self.assertEqual(workflow_actions[0].status, 'Completed')
 		frappe.set_user('Administrator')
 
+def test_update_docstatus(self):
+		todo = create_new_todo()
+		apply_workflow(todo, 'Approve')
+
+		self.workflow.states[1].doc_status = 0
+		self.workflow.save()
+		todo.reload()
+		self.assertEqual(todo.docstatus, 0)
+		self.workflow.states[1].doc_status = 1
+		self.workflow.save()
+		todo.reload()
+		self.assertEqual(todo.docstatus, 1)
+
+def test_if_workflow_set_on_action(self):
+	self.workflow.states[1].doc_status = 1
+	self.workflow.save()
+	todo = create_new_todo()
+	self.assertEqual(todo.docstatus, 0)
+	todo.submit()
+	self.assertEqual(todo.docstatus, 1)
+	self.assertEqual(todo.workflow_state, 'Approved')
+
 def create_todo_workflow():
 	if frappe.db.exists('Workflow', 'Test ToDo'):
 		return frappe.get_doc('Workflow', 'Test ToDo').save(ignore_permissions=True)

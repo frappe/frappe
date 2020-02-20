@@ -291,8 +291,11 @@ class EmailAccount(Document):
 
 				else:
 					frappe.db.commit()
-					if communication and hasattr(communication, "_attachments"):
-						attachments = [d.file_name for d in communication._attachments]
+					if communication:
+						attachments = []
+						if hasattr(communication, '_attachments'):
+							attachments = [d.file_name for d in communication._attachments]
+
 						communication.notify(attachments=attachments, fetched_from_email_account=True)
 
 			#notify if user is linked to account
@@ -741,7 +744,3 @@ def get_max_email_uid(email_account):
 	else:
 		max_uid = cint(result[0].get("uid", 0)) + 1
 		return max_uid
-
-@frappe.whitelist()
-def get_automatic_email_link():
-	return frappe.db.get_value("Email Account", {"enable_incoming": 1, "enable_automatic_linking": 1}, "email_id")

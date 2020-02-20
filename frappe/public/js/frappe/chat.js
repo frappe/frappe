@@ -1569,7 +1569,7 @@ class extends Component {
 					<span class="indicator yellow"/> <b>${frappe.user.first_name(r.user)}</b>: ${r.content}
 				</span>
 				`
-				frappe.show_alert(alert, 3, {
+				frappe.show_alert(alert, 15, {
 					"show-message": function (r) {
 						this.room.select(r.room)
 						this.base.firstChild._component.toggle()

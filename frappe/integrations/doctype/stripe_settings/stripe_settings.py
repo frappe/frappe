@@ -76,7 +76,7 @@ class StripeSettings(Document):
 	def create_charge_on_stripe(self):
 		import stripe
 		try:
-			charge = stripe.Charge.create(amount=cint(flt(self.data.amount)*100), currency=self.data.currency, source=self.data.stripe_token_id, description=self.data.description)
+			charge = stripe.Charge.create(amount=cint(flt(self.data.amount)*100), currency=self.data.currency, source=self.data.stripe_token_id, description=self.data.description, receipt_email=self.data.payer_email)
 
 			if charge.captured == True:
 				self.integration_request.db_set('status', 'Completed', update_modified=False)

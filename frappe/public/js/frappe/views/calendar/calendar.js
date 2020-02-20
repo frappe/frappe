@@ -350,6 +350,9 @@ frappe.views.Calendar = Class.extend({
 
 			me.fix_end_date_for_event_render(d);
 			me.prepare_colors(d);
+
+			d.title = frappe.utils.html2text(d.title);
+			
 			return d;
 		});
 	},
