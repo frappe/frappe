@@ -128,14 +128,14 @@ def get_snapshot(exception, context=10):
 				value = pydoc.text.repr(getattr(evalue, name))
 
 				# render multilingual string properly
-				if type(value)==str and value.startswith(b"u'"):
+				if isinstance(value, six.text_type):
 					value = eval(value)
 
 				s['exception'][name] = encode(value)
 
 	# add all local values (of last frame) to the snapshot
 	for name, value in locals.items():
-		if type(value)==str and value.startswith(b"u'"):
+		if isinstance(value, six.text_type):
 			value = eval(value)
 
 		s['locals'][name] = pydoc.text.repr(value)
