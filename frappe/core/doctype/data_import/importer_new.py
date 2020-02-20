@@ -9,7 +9,7 @@ import timeit
 import frappe
 from datetime import datetime
 from frappe import _
-from frappe.utils import cint, flt, update_progress_bar
+from frappe.utils import cint, flt, update_progress_bar, cstr
 from frappe.utils.csvutils import read_csv_content
 from frappe.utils.xlsxutils import (
 	read_xlsx_file_from_attached_file,
@@ -156,14 +156,17 @@ class Importer:
 		out.data = list(self.rows)
 		out.columns = self.columns
 		out.warnings = self.warnings
-		if len(out.data) > MAX_ROWS_IN_PREVIEW:
+		total_number_of_rows = len(out.data)
+		if total_number_of_rows > MAX_ROWS_IN_PREVIEW:
 			out.data = out.data[:MAX_ROWS_IN_PREVIEW]
 			out.max_rows_exceeded = True
 			out.max_rows_in_preview = MAX_ROWS_IN_PREVIEW
+			out.total_number_of_rows = total_number_of_rows
 		return out
 
 	def parse_data_from_template(self):
 		columns = self.parse_columns_from_header_row()
+		columns = self.detect_date_formats(columns)
 		columns, data = self.add_serial_no_column(columns, self.data)
 
 		self.columns = columns
@@ -320,6 +323,12 @@ class Importer:
 			out.append(df)
 		return out
 
+	def detect_date_formats(self, columns):
+		for col in columns:
+			if col.df and col.df.fieldtype in ['Date', 'Time', 'Datetime']:
+				col.date_format = self.guess_date_format_for_column(col, columns)
+		return columns
+
 	def add_serial_no_column(self, columns, data):
 		columns_with_serial_no = [
 			frappe._dict({"header_title": "Sr. No", "skip_import": True})
@@ -336,6 +345,8 @@ class Importer:
 		return columns_with_serial_no, data_with_serial_no
 
 	def parse_value(self, value, df):
+		value = cstr(value)
+
 		# convert boolean values to 0 or 1
 		if df.fieldtype == "Check" and value.lower().strip() in ["t", "f", "true", "false"]:
 			value = value.lower().strip()
@@ -351,27 +362,36 @@ class Importer:
 		return value
 
 	def parse_date_format(self, value, df):
-		date_format = self.guess_date_format_for_column(df.fieldname)
+		date_format = self.get_date_format_for_df(df)
 		if date_format:
-			return datetime.strptime(value, date_format)
+			try:
+				return datetime.strptime(value, date_format)
+			except:
+				# ignore date values that dont match the format
+				# import will break for these values later
+				pass
 		return value
 
-	def guess_date_format_for_column(self, fieldname):
+	def get_date_format_for_df(self, df):
+		return self._guessed_date_formats.get(df.parent + df.fieldname)
+
+	def guess_date_format_for_column(self, column, columns):
 		""" Guesses date format for a column by parsing the first 10 values in the column,
 		getting the date format and then returning the one which has the maximum frequency
 		"""
 		PARSE_ROW_COUNT = 10
 
-		if not self._guessed_date_formats.get(fieldname):
-			column_index = -1
+		df = column.df
+		key = df.parent + df.fieldname
 
-			for i, field in enumerate(self.header_row):
-				if self.meta.has_field(field) and field == fieldname:
-					column_index = i
-					break
+		if not self._guessed_date_formats.get(key):
+			matches = [col for col in columns if col.df == df]
+			if not matches:
+				self._guessed_date_formats[key] = None
+				return
 
-			if column_index == -1:
-				self._guessed_date_formats[fieldname] = None
+			column = matches[0]
+			column_index = column.index
 
 			date_values = [
 				row[column_index] for row in self.data[:PARSE_ROW_COUNT] if row[column_index]
@@ -380,9 +400,9 @@ class Importer:
 			if not date_formats:
 				return
 			max_occurred_date_format = max(set(date_formats), key=date_formats.count)
-			self._guessed_date_formats[fieldname] = max_occurred_date_format
+			self._guessed_date_formats[key] = max_occurred_date_format
 
-		return self._guessed_date_formats[fieldname]
+		return self._guessed_date_formats[key]
 
 	def import_data(self):
 		# set user lang for translations

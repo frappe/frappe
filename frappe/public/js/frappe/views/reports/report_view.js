@@ -684,7 +684,6 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 	}
 
 	build_fields() {
-		this.fields.push(['docstatus', this.doctype]);
 		super.build_fields();
 	}
 
@@ -742,6 +741,16 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		}
 	}
 
+	add_status_dependency_column(col, doctype) {
+		// Adds dependent column from which status is derived if required
+		if (!this.fields.find(f => f[0] === col)) {
+			const field = [col, doctype];
+			this.fields.push(field);
+			this.refresh();
+			frappe.show_alert(__('Also adding the status dependency field {0}', [field[0].bold()]));
+		}
+	}
+
 	remove_column_from_datatable(column) {
 		const index = this.fields.findIndex(f => column.field === f[0]);
 		if (index === -1) return;
@@ -778,12 +787,30 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 
 		let doctype_fields = frappe.meta.get_docfields(this.doctype).filter(standard_fields_filter);
 
+		// filter out docstatus field from picker
+		let std_fields = frappe.model.std_fields.filter( df => df.fieldname !== 'docstatus');
+
+		// add status field derived from docstatus, if status is not a standard field
+		let has_status_values = false;
+
+		if (this.data) {
+			has_status_values = frappe.get_indicator(this.data[0], this.doctype);
+		}
+
+		if (!frappe.meta.has_field(this.doctype, 'status') && has_status_values) {
+			doctype_fields = [{
+				label: __('Status'),
+				fieldname: 'docstatus',
+				fieldtype: 'Data'
+			}].concat(doctype_fields);
+		}
+
 		doctype_fields = [{
 			label: __('ID'),
 			fieldname: 'name',
 			fieldtype: 'Data',
 			reqd: 1
-		}].concat(doctype_fields, frappe.model.std_fields);
+		}].concat(doctype_fields, std_fields);
 
 		out[this.doctype] = doctype_fields;
 
@@ -858,15 +885,22 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		this.columns_map = {};
 
 		for (let f of this.fields) {
+			let column;
 			if (f[0]!=='docstatus') {
-				let column = this.build_column(f);
-				if (column) {
-					if (column_widths) {
-						column.width = column_widths[column.id] || column.width || 120;
-					}
-					this.columns.push(column);
-					this.columns_map[column.id] = column;
+				column = this.build_column(f);
+			} else {
+				// if status is not in fields append status column derived from docstatus
+				if (!this.fields.includes(['status', this.doctype]) && !frappe.meta.has_field(this.doctype, 'status')) {
+					column = this.build_column(['docstatus', this.doctype]);
 				}
+			}
+
+			if (column) {
+				if (column_widths) {
+					column.width = column_widths[column.id] || column.width || 120;
+				}
+				this.columns.push(column);
+				this.columns_map[column.id] = column;
 			}
 		}
 	}
@@ -892,8 +926,13 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 					}
 				}
 				docfield.parent = this.doctype;
-				if (fieldname == "name") {
+				if (fieldname == 'name') {
 					docfield.options = this.doctype;
+				}
+				if (fieldname == 'docstatus' && !frappe.meta.has_field(this.doctype, 'status')) {
+					docfield.label = 'Status';
+					docfield.fieldtype = 'Data';
+					docfield.name = 'status';
 				}
 			}
 		}
@@ -982,7 +1021,6 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 			totals_row[0].content = __('Totals').bold();
 			out.push(totals_row);
 		}
-
 		return out;
 	}
 
@@ -1003,8 +1041,27 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 					}
 				};
 			}
-
-			if (col.field in d) {
+			if (col.field === 'docstatus' && !frappe.meta.has_field(this.doctype, 'status')) {
+				// get status from docstatus
+				let status = frappe.get_indicator(d, this.doctype);
+				if (status) {
+					if (!status[0]) {
+						// get_indicator returns the dependent field's condition as the 3rd parameter
+						let dependent_col = status[2].split(',')[0];
+						// add status dependency column
+						this.add_status_dependency_column(dependent_col, this.doctype);
+					}
+					return {
+						name: d.name,
+						doctype: col.docfield.parent,
+						content: status[0],
+						editable: false
+					};
+				} else {
+					// no status values found
+					this.remove_column_from_datatable(col);
+				}
+			} else if (col.field in d) {
 				const value = d[col.field];
 				return {
 					name: d.name,
