@@ -1,5 +1,5 @@
-import { generate_route } from "./utils";
 import Widget from "./base_widget.js";
+import { generate_route } from "./utils";
 
 export default class LinksWidget extends Widget {
 	constructor(opts) {

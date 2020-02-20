@@ -1,12 +1,12 @@
 function generate_route(item) {
-	if (item.type === "doctype") {
+	if (item.type === "DocType") {
 		item.doctype = item.name;
 	}
 	let route = "";
 	if (!item.route) {
 		if (item.link) {
 			route = strip(item.link, "#");
-		} else if (item.type === "doctype") {
+		} else if (item.type === "DocType") {
 			if (frappe.model.is_single(item.doctype)) {
 				route = "Form/" + item.doctype;
 			} else {
@@ -15,9 +15,9 @@ function generate_route(item) {
 				}
 				route = "List/" + item.doctype;
 			}
-		} else if (item.type === "report" && item.is_query_report) {
+		} else if (item.type === "Report" && item.is_query_report) {
 			route = "query-report/" + item.name;
-		} else if (item.type === "report") {
+		} else if (item.type === "Report") {
 			route = "List/" + item.doctype + "/Report/" + item.name;
 		} else if (item.type === "page") {
 			route = item.name;
