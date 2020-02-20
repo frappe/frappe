@@ -303,13 +303,14 @@ class DashboardChart {
 
 		this.filter_button.on('click', () => {
 			let fields;
+	
 			frappe.dashboard_utils.get_filters_for_chart_type(this.chart_doc)
-				.then((filters) => {
+				.then(filters => {
 					if (!this.is_document_type) {
 						if (!filters) {
 							fields = [{
-								fieldtype:"HTML",
-								options:__("No Filters Set")
+								fieldtype: "HTML",
+								options: __("No Filters Set")
 							}];
 						} else {
 							fields = filters.filter(f => {
@@ -474,8 +475,9 @@ class DashboardChart {
 				return Promise.resolve();
 			} else {
 				return frappe.xcall('frappe.desk.doctype.dashboard_chart_source.dashboard_chart_source.get_config',
-					{name: this.chart_doc.source})
-					.then(config => {
+					{
+						name: this.chart_doc.source
+					}).then(config => {
 						frappe.dom.eval(config);
 						this.settings = frappe.dashboards.chart_sources[this.chart_doc.source];
 					});
@@ -483,7 +485,7 @@ class DashboardChart {
 		} else if (this.chart_doc.chart_type == 'Report') {
 			this.settings = {
 				'method': 'frappe.desk.query_report.run',
-			}
+			};
 			return Promise.resolve();
 		} else {
 			return Promise.resolve();

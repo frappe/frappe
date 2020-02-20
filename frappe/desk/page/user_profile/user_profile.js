@@ -202,10 +202,9 @@ class UserProfile {
 				action: (selected_item) => {
 					if (selected_item === 'All') {
 						if (this.line_chart_filters.length > 1) this.line_chart_filters.pop();
-					}
-					else {
+					} else {
 						this.line_chart_filters[1] = ['Energy Point Log', 'type', '=', selected_item, false];
-					};
+					}
 					this.update_line_chart_data();
 				}
 			},

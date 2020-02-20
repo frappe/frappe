@@ -42,8 +42,7 @@ frappe.ui.form.on('Dashboard Chart', {
 
 			if (!frm.doc.chart_name) {
 				frappe.msgprint(__('Please create chart first'));
-			}
-			else {
+			} else {
 				d.show();
 			}
 		});
@@ -245,7 +244,8 @@ frappe.ui.form.on('Dashboard Chart', {
 					fieldtype: 'HTML',
 					fieldname: 'filter_area',
 				}
-			]
+			];
+
 			if (filters.length > 0) {
 				filters.forEach( filter => {
 					const filter_row = 

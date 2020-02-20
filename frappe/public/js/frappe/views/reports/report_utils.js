@@ -12,7 +12,7 @@ frappe.report_utils = {
 
 		let dataset_values = get_column_values(y_field).map(d => Number(d));
 
-		if(raw_data.add_total_row) {
+		if (raw_data.add_total_row) {
 			labels = labels.slice(0, -1);
 			dataset_values = dataset_values.slice(0, -1);
 		}
@@ -65,7 +65,7 @@ frappe.report_utils = {
 		}
 
 		const numeric_fields = columns.filter((col, i) => indices.includes(i));
-		const non_numeric_fields = columns.filter((col, i) => !indices.includes(i))
+		const non_numeric_fields = columns.filter((col, i) => !indices.includes(i));
 
 		let numeric_field_options = get_options(numeric_fields);
 		let non_numeric_field_options = get_options(non_numeric_fields);
@@ -113,11 +113,13 @@ frappe.report_utils = {
 
 		return frappe.xcall(
 			'frappe.desk.query_report.get_script',
-			{ report_name: report_name }
+			{ 
+				report_name: report_name
+			}
 		).then(r => {
 			frappe.dom.eval(r.script || '');
 			let filters = frappe.query_reports[report_name].filters;
-			return Promise.resolve(filters)
+			return Promise.resolve(filters);
 		});
 	},
 

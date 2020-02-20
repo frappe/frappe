@@ -143,7 +143,6 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	}
 
 	add_chart_to_dashboard() {
-		console.log('chart fields', this.chart_fields);
 		if (this.chart_fields) {
 			const dialog = new frappe.ui.Dialog({
 				title: __('Create Chart'),
@@ -188,7 +187,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			'type': chart_args.chart_type,
 			'color': chart_args.color,
 			'filters_json': JSON.stringify(this.get_filter_values()),
-		}
+		};
 
 		frappe.xcall(
 			'frappe.desk.doctype.dashboard_chart.dashboard_chart.create_report_chart', 
