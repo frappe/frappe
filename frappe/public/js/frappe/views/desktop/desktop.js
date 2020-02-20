@@ -16,7 +16,7 @@ export default class Desktop {
 		this.show_loading_state();
 		this.fetch_desktop_settings().then(() => {
 			this.make_sidebar();
-			this.make_page("Accounts");
+			this.make_page(this.desktop_settings[0].name);
 			this.setup_events;
 			this.hide_loading_state();
 		});
