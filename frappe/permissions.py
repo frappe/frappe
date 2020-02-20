@@ -33,7 +33,7 @@ def print_has_permission_check_logs(func):
 			msgprint(
 				title=_("Not Permitted"),
 				msg=('<br>').join(frappe.flags.get('has_permission_check_logs', []))
-				raise_exception=True
+				raise_exception=frappe.PermissionError
 			)
 		frappe.flags.pop('has_permission_check_logs', None)
 		return result
