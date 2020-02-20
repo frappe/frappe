@@ -54,7 +54,7 @@ export default class Desk {
 
 	fetch_desktop_settings() {
 		return frappe
-			.call("frappe.desk.desktop.get_base_configuration_for_desk")
+			.call("frappe.desk.desktop.get_desk_sidebar_items")
 			.then(response => {
 				if (response.message) {
 					this.desktop_settings = response.message;
@@ -142,7 +142,7 @@ class DeskPage {
 		this.make_page()
 		this.get_data().then(res => {
 			this.data = res.message;
-			// this.make_onboarding()
+			this.make_onboarding()
 			this.data.charts.length && this.make_charts()
 			this.data.shortcuts.length && this.make_shortcuts()
 			this.data.cards.length && this.make_cards()

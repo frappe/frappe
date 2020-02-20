@@ -1,3 +1,5 @@
+"""Summary
+"""
 # Copyright (c) 2020, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 # Author - Shivam Mishra <shivam@frappe.io>
@@ -10,6 +12,15 @@ from frappe.boot import get_allowed_pages, get_allowed_reports
 
 @frappe.whitelist()
 def get_desktop_page(page):
+	"""Applies permissions, customizations and returns the configruration for a page
+	on desk.
+
+	Args:
+		page (string): page name
+
+	Returns:
+		dict: dictionary of cards, charts and shortcuts to be displayed on website
+	"""
 	try:
 		doc = frappe.get_doc("Desk Page", page)
 	except frappe.DoesNotExistError:
@@ -30,34 +41,31 @@ def get_desktop_page(page):
 	return {'charts': doc.charts, 'shortcuts': shortcuts, 'cards': cards}
 
 def prepare_shortcuts(data):
-	# def prepare_filters(filters):
-	# 	args = {
-	# 		'user': frappe.session.user
-	# 	}
-	# 	filters = json.loads(filters)
-	# 	for key in filters.keys():
-	# 		val = filters[key]
-	# 		if isinstance(val, list):
-	# 			val = [v.format(**args) for v in val]
-	# 		if isinstance(val, str):
-	# 			val = val.format(**args)
-	# 		filters[key] = val
+	""" Preprocess shortcut cards (translations, keys, etc)
 
-	# 	return filters
+	Args:
+		data (list): List of dictionaries containing config
 
+	Returns:
+		list: List of dictionaries containing config
+	"""
 	items = []
 	for item in data:
 		new_item = item.as_dict().copy()
 		new_item['name'] = _(item.link_to)
-
-		# if item.stats_filter:
-		# 	new_item['stats_filter'] = prepare_filters(item.stats_filter)
-
 		items.append(new_item)
 
 	return items
 
 def apply_permissions(data):
+	"""Applied permissions to card to add or remove links
+
+	Args:
+		data (list): List of dicts with card data
+
+	Returns:
+		TYPE: List of dicts with card data
+	"""
 	default_country = frappe.db.get_default("country")
 
 	user = frappe.get_user()
@@ -91,55 +99,16 @@ def apply_permissions(data):
 
 	return new_data
 
-# @frappe.whitelist()
-# def get_desktop_settings():
-# 	# from frappe.config import get_modules_from_all_apps_for_user
-# 	# all_modules = get_modules_from_all_apps_for_user()
-
-
-# 	all_doctypes = standard_permissions + custom_permissions
-# 	modules = []
-
-# 	for doctype in all_doctypes:
-# 		modules.append(frappe.db.get_value("DocType", doctype, 'module'))
-
-# 	return set(modules)
-
-# @frappe.whitelist()
-# def get_modules_doctpes_and_reports():
-# 	from collections import defaultdict
-
-# 	# Query all doctypes and reports
-# 	doctypes = frappe.db.sql("SELECT name, module from `tabDocType`", as_dict=1)
-# 	reports = frappe.db.sql("SELECT name, module from `tabReport`", as_dict=1)
-
-# 	all_data = doctypes + reports
-
-# 	# filter based on restricted domains
-# 	active_domains = frappe.get_active_domains();
-# 	modules_query ="""
-# 		SELECT name, restrict_to_domain
-# 		FROM `tabModule Def`
-# 		WHERE
-# 			`restrict_to_domain` IN ({}) OR
-# 			`restrict_to_domain` IS NULL
-# 		""".format(", ".join(["%s"]*len(active_domains)))
-
-# 	active_modules_based_on_domains = tuple([item[0] for item in frappe.db.sql(modules_query, active_domains)])
-
-# 	grouped = defaultdict(list)
-# 	for item in all_data:
-# 		if item['module'] in active_modules_based_on_domains or True:
-# 			grouped[item['module']].append(item['name'])
-
-# 	return grouped
-
 @frappe.whitelist()
-def get_base_configuration_for_desk():
+def get_desk_sidebar_items():
+	"""Get list of sidebar items for desk
+	"""
 	pages = [frappe.get_doc("Desk Page", item['name']) for item in frappe.get_all("Desk Page", order_by="name")]
 	return pages
 
 def make_them_pages():
+	"""Helper function to make pages
+	"""
 	pages = [
 				('Desk', 'frappe', 'octicon octicon-calendar'),
 				('Settings', 'frappe', 'octicon octicon-settings'),
