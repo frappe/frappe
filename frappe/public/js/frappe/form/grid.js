@@ -666,7 +666,7 @@ export default class Grid {
 				} else {
 					var colsize = 2;
 					switch (df.fieldtype) {
-						case "Text":
+						case "Text": break;
 						case "Small Text": colsize = 3; break;
 						case "Check": colsize = 1;
 					}
