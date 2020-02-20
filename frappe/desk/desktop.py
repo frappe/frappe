@@ -103,8 +103,12 @@ def apply_permissions(data):
 def get_desk_sidebar_items():
 	"""Get list of sidebar items for desk
 	"""
-	pages = [frappe.get_doc("Desk Page", item['name']) for item in frappe.get_all("Desk Page", order_by="pin_to_top desc, name asc")]
-	return pages
+	from collections import defaultdict
+	sidebar_items = defaultdict(list)
+	pages = frappe.get_all("Desk Page", fields=["name", "category"], order_by="pin_to_top desc, name asc", ignore_permissions=True)
+	for page in pages:
+		sidebar_items[page["category"]].append(page)
+	return sidebar_items
 
 def make_them_pages():
 	"""Helper function to make pages
