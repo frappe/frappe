@@ -91,7 +91,7 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 		return this.validate_and_set_in_model(value, e);
 	},
 	get_input_value: function () {
-		return this.$input ? decodeURIComponent(this.$input.attr("data-value")) : null;
+		return (this.$input && this.$input.attr("data-value")) ? decodeURIComponent(this.$input.attr("data-value")) : null;
 	},
 	get_label_value: function () {
 		return this.$input ? this.$input.val() : null;
