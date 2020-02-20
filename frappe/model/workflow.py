@@ -182,13 +182,65 @@ def get_workflow_field_value(workflow_name, field):
 
 @frappe.whitelist()
 def bulk_workflow_approval(docnames, doctype, action):
+	from collections import defaultdict
+
+	# dictionaries for logging
+	errored_transactions = defaultdict(list)
+	successful_transactions = defaultdict(list)
+
+	# WARN: message log is cleared
+	print("Clearing frappe.message_log...")
+	frappe.clear_messages()
+
 	docnames = json.loads(docnames)
-	for (i, docname) in enumerate(docnames, 1):
+	for (idx, docname) in enumerate(docnames, 1):
 		try:
-			show_progress(docnames, _('Applying: {0}').format(action), i, docname)
+			show_progress(docnames, _('Applying: {0}').format(action), idx, docname)
 			apply_workflow(frappe.get_doc(doctype, docname), action)
+			frappe.db.commit()
 		except frappe.ValidationError:
-			pass
+			frappe.log_error(frappe.get_traceback(), "Workflow {0} threw an error for {1} {2}".format(action, doctype, docname))
+			frappe.db.rollback()
+		finally:
+			if frappe.message_log:
+				messages = frappe.get_message_log()
+				for message in messages:
+					frappe.message_log.pop()
+					message_dict = {"docname": docname, "message": message.get("message")}
+
+					if message.get("raise_exception", False):
+						errored_transactions[docname].append(message_dict)
+					else:
+						successful_transactions[docname].append(message_dict)
+			else:
+				successful_transactions[docname].append({"docname": docname, "message": None})
+
+	if errored_transactions and successful_transactions:
+		indicator = "orange"
+	elif errored_transactions:
+		indicator  = "red"
+	else:
+		indicator = "green"
+
+	print_workflow_log(errored_transactions, _("Errored Transactions"), doctype, indicator)
+	print_workflow_log(successful_transactions, _("Successful Transactions"), doctype, indicator)
+
+def print_workflow_log(messages, title, doctype, indicator):
+	if messages.keys():
+		msg = "<h4>{0}</h4>".format(title)
+
+		for doc in messages.keys():
+			if len(messages[doc]):
+				html = "<details><summary>{0}</summary>".format(frappe.utils.get_link_to_form(doctype, doc))
+				for log in messages[doc]:
+					if log.get('message'):
+						html += "<div class='small text-muted' style='padding:2.5px'>{0}</div>".format(log.get('message'))
+				html += "</details>"
+			else:
+				html = "<div>{0}</div>".format(doc)
+			msg += html
+
+		frappe.msgprint(msg, title=_("Workflow Status"), indicator=indicator)
 
 @frappe.whitelist()
 def get_common_transition_actions(docs, doctype):
