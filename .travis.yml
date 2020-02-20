@@ -59,5 +59,6 @@ script:
   - bench --site test_site run-tests --coverage
 
 after_script:
+  - pip install coverage==4.5.4
   - pip install python-coveralls
   - coveralls -b apps/frappe -d ../../sites/.coverage
