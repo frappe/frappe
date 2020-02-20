@@ -6,12 +6,20 @@
 	.desk-sidebar {
 		width: 24rem;
 		display: block;
-		// position: fixed;
+		position: fixed;
 		z-index: 1;
 		min-height: 1px;
 		padding-right: 15px;
-		padding-left: 15px;
+		scroll-behavior: auto;
+		overflow-y: scroll;
+		top: 40px;
+		scrollbar-width: none;
+		bottom: 0;
 		float: left;
+
+		&::-webkit-scrollbar {
+			display: none;
+		}
 
 		.sidebar-item {
 			font-size: 12px;
@@ -31,20 +39,31 @@
 				background-color: @panel-bg;
 			}
 
+			&:last-child {
+				margin-bottom: 30px;
+			}
+
 			.icon {
 				color: @text-muted;
 				padding-right: 1rem;
 				align-self: center;
 			}
+		}
 
-			.sidebar-item-title {
-				align-self: center;
+		.sidebar-group-title {
+			margin-top: 30px;
+			padding: 0px 15px;
+			text-rendering: optimizelegibility;
+
+			&:first-child {
+				// To compensate for top value in desk-sidebar
+				margin-top: 30px;
 			}
 		}
 	}
 
 	.desk-body {
-		// padding-left: calc(24rem + 15px);
+		padding-left: calc(24rem + 15px);
 		display: flex;
 		flex-direction: column;
   		height: 100%;

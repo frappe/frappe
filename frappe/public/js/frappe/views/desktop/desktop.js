@@ -7,20 +7,26 @@ export default class Desktop {
 		window.desk = this;
 		this.pages = {};
 		this.sidebar_items = {};
-		this.sidebar_items_list = [];
+		this.sidebar_categories = [
+			"Modules",
+			"Domains",
+			"Places",
+			"Administration"
+		];
 		this.make();
 	}
 
 	make() {
 		this.make_container();
-		this.show_loading_state();
+		// this.show_loading_state();
 		this.fetch_desktop_settings().then(() => {
+			this.make_page(this.desktop_settings['Modules'][0].name);
 			this.make_sidebar();
-			this.make_page(this.desktop_settings[0].name);
 			this.setup_events;
-			this.hide_loading_state();
+			// this.hide_loading_state();
 		});
 	}
+
 
 	make_container() {
 		this.container = $(`<div class="desk-container row">
@@ -75,36 +81,48 @@ export default class Desktop {
 
 	make_sidebar() {
 		const get_sidebar_item = function(item) {
-			return $(`<div href="#" class="sidebar-item ${
+			return $(`<div class="sidebar-item ${
 				item.selected ? "selected" : ""
 			}">
-					<span class="sidebar-item-title">${item.name}</span>
+					<span>${item.name}</span>
 				</div>`);
 		};
 
-		this.desktop_settings.forEach((item, idx) => {
-			if (idx == 0) {
+		const make_sidebar_category_item = (item, outer_idx, idx) => {
+			if (outer_idx + idx == 0) {
 				item.selected = true;
 				this.current_page = item.name;
 			}
-			let $item = get_sidebar_item(item)
-			$item.on('click', () => {
+			let $item = get_sidebar_item(item);
+			$item.on("click", () => {
 				this.show_page(item.name);
-			})
+			});
 			$item.appendTo(this.sidebar);
-
-			this.sidebar_items_list.push($item);
 			this.sidebar_items[item.name] = $item;
+		}
+
+		const make_category_title = (name) => {
+			let $title = $(`<div class="sidebar-group-title h6 uppercase">${name}</div>`);
+			$title.appendTo(this.sidebar);
+		}
+
+		this.sidebar_categories.forEach((category, outer_idx) => {
+			if (this.desktop_settings.hasOwnProperty(category)) {
+				make_category_title(category)
+				this.desktop_settings[category].forEach((item, idx) => {
+					make_sidebar_category_item(item, outer_idx, idx)
+				});
+			}
 		});
 	}
 
 	show_page(page) {
 		if (this.current_page && this.pages[this.current_page]) {
-			this.pages[this.current_page].hide()
+			this.pages[this.current_page].hide();
 		}
-		this.sidebar_items[this.current_page].removeClass("selected")
-		this.sidebar_items[page].addClass("selected")
-		this.current_page = page
+		this.sidebar_items[this.current_page].removeClass("selected");
+		this.sidebar_items[page].addClass("selected");
+		this.current_page = page;
 
 		this.pages[page] ? this.pages[page].show() : this.make_page(page);
 	}
@@ -116,7 +134,7 @@ export default class Desktop {
 		});
 
 		this.pages[page] = $page;
-		return $page
+		return $page;
 	}
 
 	setup_events() {}
@@ -126,7 +144,7 @@ class DesktopPage {
 	constructor({ container, page_name }) {
 		this.container = container;
 		this.page_name = page_name;
-		this.sections = {}
+		this.sections = {};
 		this.make();
 	}
 
@@ -139,62 +157,70 @@ class DesktopPage {
 	}
 
 	make() {
-		this.make_page()
+		this.make_page();
 		this.get_data().then(res => {
 			this.data = res.message;
-			this.make_onboarding()
-			!this.sections['onboarding'] && this.data.charts.length && this.make_charts()
-			this.data.shortcuts.length && this.make_shortcuts()
-			this.data.cards.length && this.make_cards()
-		})
+			// this.make_onboarding()
+			!this.sections["onboarding"] &&
+				this.data.charts.length &&
+				this.make_charts();
+			this.data.shortcuts.length && this.make_shortcuts();
+			this.data.cards.length && this.make_cards();
+		});
 	}
 
 	make_page() {
-		this.page = $(`<div class="desk-page" data-page-name=${this.page_name}></div>`)
-		this.page.appendTo(this.container)
+		this.page = $(
+			`<div class="desk-page" data-page-name=${this.page_name}></div>`
+		);
+		this.page.appendTo(this.container);
 	}
 
 	get_data() {
-		return frappe.call('frappe.desk.desktop.get_desktop_page', { page: this.page_name } )
+		return frappe.call("frappe.desk.desktop.get_desktop_page", {
+			page: this.page_name
+		});
 	}
 
 	make_onboarding() {
-		this.sections['onboarding'] = new WidgetGroup({
+		this.sections["onboarding"] = new WidgetGroup({
 			title: `Getting Started`,
 			container: this.page,
 			type: "onboarding",
 			columns: 1,
-			widgets:  [{
-				label: "Unlock Great Customer Experience",
-				subtitle: "Just a few steps, and you’re good to go.",
-				steps: [
-					{
-						label: "Configure Lead Sources",
-						completed: true
-					},
-					{
-						label: "Add Your Leads",
-						completed: false
-					},
-					{
-						label: "Create Your First Opportunity",
-						completed: false
-					},
-					{
-						label: "Onboard your Sales Team",
-						completed: false
-					},
-					{
-						label: "Assign Territories",
-						completed: false
-					}
-				]
-			}]
+			widgets: [
+				{
+					label: "Unlock Great Customer Experience",
+					subtitle: "Just a few steps, and you’re good to go.",
+					steps: [
+						{
+							label: "Configure Lead Sources",
+							completed: true
+						},
+						{
+							label: "Add Your Leads",
+							completed: false
+						},
+						{
+							label: "Create Your First Opportunity",
+							completed: false
+						},
+						{
+							label: "Onboard your Sales Team",
+							completed: false
+						},
+						{
+							label: "Assign Territories",
+							completed: false
+						}
+					]
+				}
+			]
 		});
 	}
 
 	make_charts() {
-		this.sections['charts'] = new WidgetGroup({
+		this.sections["charts"] = new WidgetGroup({
 			title: `${this.page_name} Dashboard`,
 			container: this.page,
 			type: "chart",
@@ -204,7 +230,7 @@ class DesktopPage {
 	}
 
 	make_shortcuts() {
-		this.sections['shortcuts'] = new WidgetGroup({
+		this.sections["shortcuts"] = new WidgetGroup({
 			title: `Your Shortcuts`,
 			container: this.page,
 			type: "bookmark",
@@ -215,7 +241,7 @@ class DesktopPage {
 	}
 
 	make_cards() {
-		this.sections['cards'] = new WidgetGroup({
+		this.sections["cards"] = new WidgetGroup({
 			title: `Reports & Masters`,
 			container: this.page,
 			type: "links",
