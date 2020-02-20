@@ -143,7 +143,7 @@ class DesktopPage {
 		this.get_data().then(res => {
 			this.data = res.message;
 			this.make_onboarding()
-			this.data.charts.length && this.make_charts()
+			!this.sections['onboarding'] && this.data.charts.length && this.make_charts()
 			this.data.shortcuts.length && this.make_shortcuts()
 			this.data.cards.length && this.make_cards()
 		})
