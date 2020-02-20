@@ -81,7 +81,7 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 	},
 	set_data_value: function(link_display, value) {
 		this.$input && this.$input.val(__(link_display));
-		this.$input && this.$input.attr("data-value", value);
+		this.$input && this.$input.attr("data-value", encodeURIComponent(value));
 	},
 	parse_validate_and_set_in_model: function(value, label, e) {
 		if (this.parse) {
@@ -91,10 +91,10 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 		return this.validate_and_set_in_model(value, e);
 	},
 	get_input_value: function () {
-		return this.$input ? this.$input.attr("data-value") : undefined;
+		return this.$input ? decodeURIComponent(this.$input.attr("data-value")) : null;
 	},
 	get_label_value: function () {
-		return this.$input ? this.$input.val() : undefined;
+		return this.$input ? this.$input.val() : null;
 	},
 	set_input_label: function(label) {
 		this.$input && this.$input.val(__(label));
