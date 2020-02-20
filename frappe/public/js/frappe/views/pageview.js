@@ -1,7 +1,5 @@
 // Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
-
-import Desktop from './components/Desktop.vue';
 import Desk from './desk/desk.js';
 
 frappe.provide('frappe.views.pageview');
