@@ -186,7 +186,7 @@
    "collapsible": 1,
    "fieldname": "integrations",
    "fieldtype": "Section Break",
-   "label": "Integrations"
+   "label": "Google Integrations"
   },
   {
    "description": "Add Google Analytics ID: eg. UA-89XXX57-1. Please search help on Google Analytics for more information.",
@@ -295,20 +295,21 @@
   },
   {
    "default": "0",
+   "description": "To use Google Indexing, enable <a href=\"#Form/Google Settings\">Google Settings</a>.",
    "fieldname": "enable_google_indexing",
    "fieldtype": "Check",
    "label": "Enable Google Indexing"
   },
   {
    "fieldname": "indexing_refresh_token",
-   "fieldtype": "Password",
+   "fieldtype": "Data",
    "hidden": 1,
    "label": "Indexing Refresh Token",
    "read_only": 1
   },
   {
    "fieldname": "indexing_authorization_code",
-   "fieldtype": "Password",
+   "fieldtype": "Data",
    "hidden": 1,
    "label": "Indexing Authorization Code",
    "read_only": 1
@@ -325,7 +326,7 @@
  "issingle": 1,
  "links": [],
  "max_attachments": 10,
- "modified": "2020-02-11 09:53:08.872362",
+ "modified": "2020-02-21 16:46:59.947403",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Website Settings",
