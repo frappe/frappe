@@ -270,7 +270,7 @@ frappe.ui.form.update_calling_link = (newdoc) => {
 				});
 			} else {
 				if (meta.title_field && meta.show_title_field_in_link) {
-					frappe.add_link_title(newdoc.doctype, newdoc.name, newdoc[meta.title_field])
+					frappe.add_link_title(newdoc.doctype, newdoc.name, newdoc[meta.title_field]);
 				}
 				frappe._from_link.set_value(newdoc.name);
 			}

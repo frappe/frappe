@@ -397,7 +397,7 @@ frappe.ui.filter_utils = {
 
 	get_selected_label(field) {
 		if (in_list(["Link", "Dynamic Link"], field.df.fieldtype)) {
-			return field.get_label_value()
+			return field.get_label_value();
 		}
 	},
 

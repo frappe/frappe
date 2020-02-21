@@ -10,7 +10,7 @@ frappe.get_link_title = function(doctype, name) {
 	}
 
 	return frappe._link_titles[doctype + "::" + name];
-}
+};
 
 frappe.add_link_title = function (doctype, name, value) {
 	if (!doctype || !name) {
@@ -18,4 +18,4 @@ frappe.add_link_title = function (doctype, name, value) {
 	}
 
 	frappe._link_titles[doctype + "::" + name] = value;
-}
+};

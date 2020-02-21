@@ -638,7 +638,7 @@ frappe.ui.Page = Class.extend({
 		}
 
 		if(in_list(["Link", "Dynamic Link"], df.fieldtype)) {
-			df.onchange = () => this.set_link_title(f)
+			df.onchange = () => this.set_link_title(f);
 		}
 
 		if(df["default"])

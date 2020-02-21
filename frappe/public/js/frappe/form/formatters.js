@@ -113,7 +113,7 @@ frappe.form.formatters = {
 		}
 
 		if(value[0] == "'" && value[value.length -1] == "'") {
-			value = value.substring(1, value.length - 1)
+			value = value.substring(1, value.length - 1);
 			return frappe.get_link_title(doctype, value) || value;
 		}
 
@@ -127,7 +127,7 @@ frappe.form.formatters = {
 				data-doctype="${doctype}"
 				data-name="${original_value}"
 				data-value="${original_value}">
-				${__(options && options.label || frappe.get_link_title(doctype, value) || value)}</a>`
+				${__(options && options.label || frappe.get_link_title(doctype, value) || value)}</a>`;
 		} else {
 			return frappe.get_link_title(doctype, value) || value;
 		}
