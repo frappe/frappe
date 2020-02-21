@@ -70,8 +70,8 @@ class Address(Document):
 				for link in self.links:
 					address = get_preferred_address(link.link_doctype, link.link_name, field)
 
-				if address:
-					update_preferred_address(address, field)
+					if address:
+						update_preferred_address(address, field)
 
 	def get_display(self):
 		return get_address_display(self.as_dict())
