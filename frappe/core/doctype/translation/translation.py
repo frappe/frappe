@@ -59,3 +59,38 @@ def contribute_translation(language, contributor, source_name, target_name, doc_
 	elif response.get("message").get("message") == "Added to contribution list":
 		frappe.set_value("Translation", doc_name, "contributed_translation_doctype_name", response.get("message").get("doc_name"))
 		frappe.msgprint("Translation successfully contributed")
+
+
+@frappe.whitelist()
+def create_translations(translation_map, language):
+	translation_map = json.loads(translation_map)
+
+	# first create / update local user translations
+	for source_text, translation_dict in translation_map.items():
+		translation_dict = frappe._dict(translation_dict)
+		existing_doc_name = frappe.db.exists('Translation', {
+			'source_name': source_text,
+			'context': translation_dict.context
+		})
+		if existing_doc_name:
+			frappe.set_value('Translation', existing_doc_name, 'target_name', translation_dict.translated_text)
+		else:
+			doc = frappe.get_doc({
+				'doctype': 'Translation',
+				'source_name': source_text,
+				'target_name': translation_dict.translated_text,
+				'context': translation_dict.context,
+				'language': language
+			})
+			doc.insert()
+
+	data_map = {
+		'data': json.dumps({
+			'language': language,
+			'contributor_email': frappe.session.user,
+			'contributor_name': frappe.utils.get_fullname(frappe.session.user),
+			'translation_map': translation_map
+		})
+	}
+
+	make_post_request(url=frappe.get_hooks("translation_contribution_url_bulk")[0], data=data_map)

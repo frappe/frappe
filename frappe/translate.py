@@ -254,9 +254,17 @@ def get_user_translations(lang):
 	out = frappe.cache().hget('lang_user_translations', lang)
 	if out is None:
 		out = {}
-		for fields in frappe.get_all('Translation',
-			fields= ["source_name", "target_name"], filters={'language': lang}):
-				out.update({fields.source_name: fields.target_name})
+		user_translations = frappe.get_all('Translation',
+			fields=["source_name", "target_name", "context"],
+			filters={'language': lang})
+
+		for translation in user_translations:
+			key = translation.source_name
+			value = translation.target_name
+			if translation.context:
+				key+= ':' + translation.context
+			out[key] = value
+
 		frappe.cache().hset('lang_user_translations', lang, out)
 
 	return out
@@ -526,11 +534,11 @@ def extract_messages_from_code(code):
 		context = m.group('py_context') or m.group('js_context')
 		pos = m.start()
 
-		if context:
-			message += ':' + context
-
 		if is_translatable(message):
 			messages.append([pos, message, context])
+			if context:
+				message += ':' + context
+				messages.append([pos, message, context])
 
 	return add_line_number(messages, code)
 
@@ -769,52 +777,53 @@ def get_translations(source_name):
 @frappe.whitelist()
 def get_messages(language, start=0, page_length=1000, search_text=''):
 
-	messages = frappe.cache().hget('translation_tool_messages', language)
-	if not messages:
-		apps = frappe.get_all_apps(True)
+	apps = frappe.get_all_apps(True)
 
-		messages = []
-		translated_message_dict = load_lang(lang=language)
-		user_translation_dict = get_user_translations(language)
+	messages = []
+	translated_message_dict = load_lang(lang=language)
+	user_translation_dict = get_user_translations(language)
 
+	app_messages = frappe.cache().hget('app_messages', language) or []
+	if not app_messages:
 		for app in apps:
-			for message in get_messages_for_app(app):
-				path_or_doctype = message[0] or ''
-				source_text = message[1]
-				line = None
-				context = None
+			app_messages += get_messages_for_app(app)
 
-				if len(message) > 2:
-					context = message[2]
-					line = message[3]
+		frappe.cache().hset('app_messages', language, app_messages)
 
-				doctype = path_or_doctype if path_or_doctype.startswith('DocType:') else None
+	for message in app_messages:
+		path_or_doctype = message[0] or ''
+		source_text = message[1]
+		line = None
+		context = None
 
-				user_translated_text = user_translation_dict.get(source_text)
-				translated_text = translated_message_dict.get(source_text)
+		if len(message) > 2:
+			context = message[2]
+			line = message[3]
 
-				id = source_text
-				if context:
-					source_text = source_text.rsplit(':' + context)[0]
+		doctype = path_or_doctype.rsplit('DocType: ')[1] if path_or_doctype.startswith('DocType:') else None
+		user_translated_text = user_translation_dict.get(source_text)
+		translated_text = translated_message_dict.get(source_text)
 
-				messages.append(frappe._dict({
-					'id': id,
-					'source_text': source_text,
-					'translated_text': user_translated_text or translated_text or '',
-					'user_translated': bool(user_translated_text),
-					'context': context,
-					'line': line,
-					'path': path_or_doctype if not doctype else None,
-					'doctype': doctype
-				}))
+		id = source_text
+		if context:
+			source_text = source_text.rsplit(':' + context)[0]
 
-		frappe.clear_messages()
-		frappe.cache().hset('translation_tool_messages', language, messages)
+		messages.append(frappe._dict({
+			'id': id,
+			'source_text': source_text,
+			'translated_text': user_translated_text or translated_text or '',
+			'user_translated': bool(user_translated_text),
+			'context': context,
+			'line': line,
+			'path': path_or_doctype if not doctype else None,
+			'doctype': doctype
+		}))
+
+	frappe.clear_messages()
 
 	if search_text:
-		messages = [message for message in messages if search_text in message.source_text.lower()]
+		messages = [message for message in messages if search_text in message.source_text]
 
 	messages = sorted(messages, key=lambda x: x.translated_text, reverse=False)
 
 	return messages[start:start + page_length]
-

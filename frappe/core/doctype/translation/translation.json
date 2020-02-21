@@ -1,4 +1,5 @@
 {
+ "actions": [],
  "allow_import": 1,
  "autoname": "hash",
  "creation": "2016-02-17 12:21:16.175465",
@@ -9,6 +10,7 @@
   "language",
   "section_break_4",
   "source_name",
+  "context",
   "column_break_6",
   "target_name",
   "section_break_6",
@@ -19,7 +21,6 @@
   {
    "fieldname": "language",
    "fieldtype": "Link",
-   "in_standard_filter": 1,
    "label": "Language",
    "options": "Language",
    "search_index": 1
@@ -63,9 +64,16 @@
    "hidden": 1,
    "label": "Contributed Translation Doctype Name",
    "read_only": 1
+  },
+  {
+   "fieldname": "context",
+   "fieldtype": "Data",
+   "label": "Context",
+   "read_only": 1
   }
  ],
- "modified": "2019-06-18 19:03:38.640990",
+ "links": [],
+ "modified": "2020-02-03 23:55:55.694401",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Translation",
