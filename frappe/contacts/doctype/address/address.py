@@ -64,10 +64,6 @@ class Address(Document):
 
 	def validate_preferred_address(self):
 		preferred_fields = ['is_primary_address', 'is_shipping_address']
-		label_map = {
-			'is_primary_address': 'Preferred Billing Address',
-			'is_shipping_address': 'Preferred Shipping Address'
-		}
 
 		for field in preferred_fields:
 			if self.get(field):
@@ -92,9 +88,6 @@ class Address(Document):
 				return True
 
 		return False
-
-def update_address(address, field):
-	frappe.db.set_value('Address', address, field, 0)
 
 def get_preferred_address(doctype, name, preferred_key='is_primary_address'):
 	if preferred_key not in ['is_shipping_address', 'is_primary_address']:
@@ -297,6 +290,5 @@ def get_condensed_address(doc):
 	fields = ["address_title", "address_line1", "address_line2", "city", "county", "state", "country"]
 	return ", ".join([doc.get(d) for d in fields if doc.get(d)])
 
-@frappe.whitelist()
 def update_preferred_address(address, field):
 	frappe.db.set_value('Address', address, field, 0)
