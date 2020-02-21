@@ -174,7 +174,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 	create_dashboard_chart(chart_args, dashboard_name, chart_name) {
 		let x_field_title = toTitle(chart_args.x_field);
-		let y_field_title = toTitle(chart_args.y_field);
+		let y_field_title = toTitle(chart_args.y_fields[0]);
 		chart_name = chart_name || (`${this.report_name}: ${x_field_title} vs ${y_field_title}`);
 
 		let args = {
@@ -183,7 +183,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			'chart_type': 'Report',
 			'report_name': this.report_name,
 			'x_field': chart_args.x_field,
-			'y_field': chart_args.y_field,
+			'y_field': JSON.stringify(chart_args.y_fields),
 			'type': chart_args.chart_type,
 			'color': chart_args.color,
 			'filters_json': JSON.stringify(this.get_filter_values()),
@@ -631,11 +631,16 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	open_create_chart_dialog() {
 		const me = this;
 		let field_options = frappe.report_utils.get_possible_chart_options(this.columns, this.raw_data);
-
 		function preview_chart() {
 			const wrapper = $(dialog.fields_dict["chart_preview"].wrapper);
 			const values = dialog.get_values(true);
-			if (values.x_field && values.y_field) {
+			if (values.x_field && values.y_fields) {
+				values.y_fields = 
+					values.y_fields
+						.split(',')
+						.map(d => d.trim())
+						.filter(Boolean);
+
 				let options = frappe.report_utils.make_chart_options(me.columns, me.raw_data, values);
 				wrapper.empty();
 				new frappe.Chart(wrapper[0], options);
@@ -653,9 +658,9 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			title: __('Create Chart'),
 			fields: [
 				{
-					fieldname: 'y_field',
+					fieldname: 'y_fields',
 					label: 'Y Field',
-					fieldtype: 'Select',
+					fieldtype: 'MultiSelect',
 					default: me.chart_fields? me.chart_fields.y_field: null, 
 					options: field_options.numeric_fields,
 					onchange: preview_chart
@@ -711,6 +716,12 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			],
 			primary_action_label: __('Create'),
 			primary_action: (values) => {
+				values.y_fields = 
+					values.y_fields
+						.split(',')
+						.map(d => d.trim())
+						.filter(Boolean);
+
 				let options = 
 					frappe.report_utils.make_chart_options(
 						this.columns,
@@ -721,7 +732,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 				let x_field_label = 
 					field_options.numeric_fields.filter(field => 
-						field.value == values.y_field
+						field.value == values.y_fields[0]
 					)[0].label;
 				let y_field_label = 
 					field_options.non_numeric_fields.filter(field => 

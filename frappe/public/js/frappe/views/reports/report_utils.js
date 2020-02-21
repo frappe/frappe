@@ -2,27 +2,27 @@ frappe.provide('frappe.report_utils');
 
 frappe.report_utils = {
 
-	make_chart_options: function(columns, raw_data, { y_field, x_field, chart_type, color }) {
+	make_chart_options: function(columns, raw_data, { y_fields, x_field, chart_type, color }) {
 		const type = chart_type.toLowerCase();
 		const colors = color ? [color] : undefined;
 
 		let rows =  raw_data.result.filter(value => Object.keys(value).length);
 
 		let labels = get_column_values(x_field);
-
-		let dataset_values = get_column_values(y_field).map(d => Number(d));
+		let datasets = y_fields.map(y_field => ({
+			name: frappe.model.unscrub(y_field),
+			values: get_column_values(y_field).map(d => Number(d))
+		}));
 
 		if (raw_data.add_total_row) {
 			labels = labels.slice(0, -1);
-			dataset_values = dataset_values.slice(0, -1);
+			datasets[0].values = datasets[0].values.slice(0, -1);
 		}
 
 		return {
 			data: {
 				labels: labels,
-				datasets: [
-					{ values: dataset_values }
-				]
+				datasets: datasets
 			},
 			truncateLegends: 1,
 			type: type,

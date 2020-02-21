@@ -243,8 +243,10 @@ class DashboardChart {
 	}
 
 	get_report_chart_data(result) {
+		let	y_fields = JSON.parse(this.chart_doc.y_field);
+
 		let chart_fields = {
-			y_field: this.chart_doc.y_field,
+			y_fields: y_fields,
 			x_field: this.chart_doc.x_field,
 			chart_type: this.chart_doc.type,
 			color: this.chart_doc.color
