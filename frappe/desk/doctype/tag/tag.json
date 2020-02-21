@@ -1,5 +1,4 @@
 {
- "actions": [],
  "autoname": "Prompt",
  "creation": "2016-05-25 09:43:44.767581",
  "doctype": "DocType",
@@ -15,8 +14,7 @@
    "label": "Description"
   }
  ],
- "links": [],
- "modified": "2020-02-19 13:07:14.809377",
+ "modified": "2019-09-25 17:47:41.712237",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Tag",
@@ -47,5 +45,5 @@
   }
  ],
  "sort_field": "modified",
- "sort_order": "ASC"
+ "sort_order": "DESC"
 }
