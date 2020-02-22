@@ -72,8 +72,7 @@ def take_backups_s3(retry_count=0):
 		validate_file_size()
 
 		backup_to_s3()
-		recipients = get_recipients("S3 Backup Settings", email_field='notify_email')
-		send_email(True, 'Amazon S3', "S3 Backup Settings", recipients)
+		send_email(True, "Amazon S3", "S3 Backup Settings", "notify_email")
 	except JobTimeoutException:
 		if retry_count < 2:
 			args = {
@@ -88,8 +87,7 @@ def take_backups_s3(retry_count=0):
 
 def notify():
 	error_message = frappe.get_traceback()
-	recipients = get_recipients("S3 Backup Settings", email_field='notify_email')
-	send_email(False, 'Amazon S3', "S3 Backup Settings", recipients, error_message)
+	send_email(False, 'Amazon S3', "S3 Backup Settings", "notify_email", error_message)
 
 def backup_to_s3():
 	from frappe.utils.backups import new_backup

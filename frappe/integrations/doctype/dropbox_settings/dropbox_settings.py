@@ -55,8 +55,7 @@ def take_backup_to_dropbox(retry_count=0, upload_db_backup=True):
 			did_not_upload, error_log = backup_to_dropbox(upload_db_backup)
 			if did_not_upload: raise Exception
 
-			recipients = get_recipients("Drobox Settings", email_field='send_notifications_to')
-			send_email(True, "Dropbox", "Drobox Settings", recipients)
+			send_email(True, "Dropbox", "Drobox Settings", "send_notifications_to")
 	except JobTimeoutException:
 		if retry_count < 2:
 			args = {
@@ -72,8 +71,7 @@ def take_backup_to_dropbox(retry_count=0, upload_db_backup=True):
 			file_and_error = [" - ".join(f) for f in zip(did_not_upload, error_log)]
 			error_message = ("\n".join(file_and_error) + "\n" + frappe.get_traceback())
 
-		recipients = get_recipients("Drobox Settings", email_field='send_notifications_to')
-		send_email(False, "Dropbox", "Dropbox Settings", recipients, error_message)
+		send_email(False, "Dropbox", "Dropbox Settings", "send_notifications_to", error_message)
 
 def backup_to_dropbox(upload_db_backup=True):
 	if not frappe.db:

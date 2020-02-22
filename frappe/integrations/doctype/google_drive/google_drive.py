@@ -211,12 +211,11 @@ def upload_system_backup_to_google_drive():
 			progress(2, "Uploading backup to Google Drive.")
 			google_drive.files().create(body=file_metadata, media_body=media, fields="id").execute()
 		except HttpError as e:
-			recipients = get_recipients("Google Drive", email_field="email")
-			send_email(False, "Google Drive", "Google Drive", recipients, error_message=e)
+			send_email(False, "Google Drive", "Google Drive", "email", error_message=e)
 
 	progress(3, "Uploading successful.")
 	frappe.db.set_value("Google Drive", None, "last_backup_on", frappe.utils.now_datetime())
-	send_email(True, "Google Drive", "Google Drive", recipients)
+	send_email(True, "Google Drive", "Google Drive", "email")
 	return _("Google Drive Backup Successful.")
 
 def daily_backup():
