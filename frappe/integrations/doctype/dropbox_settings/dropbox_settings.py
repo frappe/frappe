@@ -49,7 +49,6 @@ def take_backup_to_dropbox(retry_count=0, upload_db_backup=True):
 	did_not_upload, error_log = [], []
 	try:
 		if cint(frappe.db.get_value("Dropbox Settings", None, "enabled")):
-			frappe.flags.create_new_backup = False
 			validate_file_size()
 
 			did_not_upload, error_log = backup_to_dropbox(upload_db_backup)

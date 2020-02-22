@@ -57,6 +57,7 @@ def get_file_size(file_path, unit):
 	return file_size
 
 def validate_file_size():
+	frappe.flags.create_new_backup = True
 	latest_file = get_latest_backup_file()
 	file_size = get_file_size(latest_file, unit='GB')
 

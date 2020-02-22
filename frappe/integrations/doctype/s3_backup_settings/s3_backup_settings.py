@@ -68,9 +68,7 @@ def take_backups_if(freq):
 @frappe.whitelist()
 def take_backups_s3(retry_count=0):
 	try:
-		frappe.flags.create_new_backup = False
 		validate_file_size()
-
 		backup_to_s3()
 		send_email(True, "Amazon S3", "S3 Backup Settings", "notify_email")
 	except JobTimeoutException:
