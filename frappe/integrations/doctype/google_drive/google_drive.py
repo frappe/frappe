@@ -193,8 +193,7 @@ def upload_system_backup_to_google_drive():
 		fileurl_public_files = os.path.basename(backup.backup_path_files)
 		fileurl_private_files = os.path.basename(backup.backup_path_private_files)
 	else:
-		# add support to backup files
-		fileurl_backup = get_latest_backup_file()
+		fileurl_backup, fileurl_public_files, fileurl_private_files = get_latest_backup_file(with_files=True)
 
 	for fileurl in [fileurl_backup, fileurl_public_files, fileurl_private_files]:
 		file_metadata = {
