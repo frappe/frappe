@@ -24,7 +24,6 @@ frappe.setup.OnboardingSlide = class OnboardingSlide extends frappe.ui.Slide {
 
 		this.$skip_btn = this.slides_footer.find('.skip-btn').on('click', () => {
 			$('.onboarding-dialog').modal('toggle');
-			this.reset_is_first_startup();
 		});
 	}
 
@@ -47,8 +46,13 @@ frappe.setup.OnboardingSlide = class OnboardingSlide extends frappe.ui.Slide {
 	}
 
 	before_show() {
-		(this.id === 0) ?
-			this.$next_btn.text(__('Let\'s Start')) : this.$next_btn.text(__('Next'));
+		if (this.id === 0) {
+			this.$next_btn.text(__('Let\'s Go'))
+			this.$skip_btn.removeClass('hide');
+		} else {
+			this.$next_btn.text(__('Next'));
+			this.$skip_btn.addClass('hide');
+		}
 		//last slide
 		if (this.is_last_slide()) {
 			this.$complete_btn.removeClass('hide').addClass('action primary');
@@ -158,8 +162,8 @@ frappe.setup.OnboardingDialog  = class OnboardingDialog {
 				$footer.find('.prev-btn').addClass('hide');
 				$footer.find('.next-btn').removeClass('btn-default').addClass('btn-primary action');
 				$footer.find('.prev-div').prepend(
-					$(`<a class="skip-btn text-muted btn btn-link btn-sm">
-				${__("Skip All")}</a>`));
+					$(`<a class="skip-btn text-muted btn btn-link btn-sm hide">
+				${__("Do It Later")}</a>`));
 				$footer.find('.next-div').prepend(
 					$(`<a class="complete-btn btn btn-primary btn-sm hide">
 				${__("Complete")}</a>`));
