@@ -19,7 +19,7 @@ from apiclient.http import MediaFileUpload
 from frappe.utils import get_backups_path, get_bench_path
 from frappe.utils.backups import new_backup
 from frappe.integrations.doctype.google_settings.google_settings import get_auth_url
-from frappe.integrations.offsite_backup_utils import get_latest_backup_file, send_email, get_recipients, validate_file_size
+from frappe.integrations.offsite_backup_utils import get_latest_backup_file, send_email, validate_file_size
 
 SCOPES = "https://www.googleapis.com/auth/drive"
 
@@ -210,7 +210,7 @@ def upload_system_backup_to_google_drive():
 			progress(2, "Uploading backup to Google Drive.")
 			google_drive.files().create(body=file_metadata, media_body=media, fields="id").execute()
 		except HttpError as e:
-			send_email(False, "Google Drive", "Google Drive", "email", error_message=e)
+			send_email(False, "Google Drive", "Google Drive", "email", error_status=e)
 
 	progress(3, "Uploading successful.")
 	frappe.db.set_value("Google Drive", None, "last_backup_on", frappe.utils.now_datetime())

@@ -13,7 +13,7 @@ from frappe.utils import cint
 from frappe.utils.background_jobs import enqueue
 from rq.timeouts import JobTimeoutException
 from botocore.exceptions import ClientError
-from frappe.integrations.offsite_backup_utils import get_latest_backup_file, send_email, get_recipients, validate_file_size
+from frappe.integrations.offsite_backup_utils import get_latest_backup_file, send_email, validate_file_size
 
 class S3BackupSettings(Document):
 
