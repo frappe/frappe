@@ -170,8 +170,11 @@ scheduler_events = {
 		"frappe.email.doctype.email_account.email_account.notify_unreplied",
 		"frappe.oauth.delete_oauth2_data",
 		"frappe.integrations.doctype.razorpay_settings.razorpay_settings.capture_payment",
+<<<<<<< HEAD
 		"frappe.twofactor.delete_all_barcodes_for_users",
 		"frappe.website.doctype.web_page.web_page.check_publish_status",
+=======
+>>>>>>> af3c4feb64 (feat: Monitor)
 		'frappe.utils.global_search.sync_global_search',
 		"frappe.monitor.flush",
 	],

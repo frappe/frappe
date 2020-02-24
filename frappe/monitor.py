@@ -1,9 +1,14 @@
 # -*- coding: utf-8 -*-
+<<<<<<< HEAD
 # Copyright (c) 2020, Frappe Technologies Pvt. Ltd. and Contributors
+=======
+# Copyright (c) 2019, Frappe Technologies Pvt. Ltd. and Contributors
+>>>>>>> af3c4feb64 (feat: Monitor)
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
 
+<<<<<<< HEAD
 from datetime import datetime
 import json
 import traceback
@@ -15,16 +20,38 @@ import rq
 
 MONITOR_REDIS_KEY = "monitor-transactions"
 MONITOR_MAX_ENTRIES = 1000000
+=======
+from datetime import datetime, timezone
+import json
+import time
+import traceback
+import frappe
+import os
+
+
+MONITOR_REDIS_KEY = "monitor-transactions"
+>>>>>>> af3c4feb64 (feat: Monitor)
 
 
 def start(transaction_type="request", method=None, kwargs=None):
 	if frappe.conf.monitor:
+<<<<<<< HEAD
 		frappe.local.monitor = Monitor(transaction_type, method, kwargs)
 
 
 def stop(response=None):
 	if hasattr(frappe.local, "monitor"):
 		frappe.local.monitor.dump(response)
+=======
+		frappe.local.monitor = Monitor(
+			transaction_type=transaction_type, method=method, kwargs=kwargs
+		)
+
+
+def stop():
+	if frappe.conf.monitor and hasattr(frappe.local, "monitor"):
+		frappe.local.monitor.dump()
+>>>>>>> af3c4feb64 (feat: Monitor)
 
 
 def log_file():
@@ -32,6 +59,7 @@ def log_file():
 
 
 class Monitor:
+<<<<<<< HEAD
 	def __init__(self, transaction_type, method, kwargs):
 		try:
 			self.data = frappe._dict(
@@ -96,12 +124,69 @@ class Monitor:
 			frappe.cache().ltrim(MONITOR_REDIS_KEY, 1, -1)
 		serialized = json.dumps(self.data, sort_keys=True, default=str)
 		frappe.cache().rpush(MONITOR_REDIS_KEY, serialized)
+=======
+	def __init__(self, transaction_type=None, method=None, kwargs=None):
+		try:
+			self.site = frappe.local.site
+			self.timestamp = datetime.now(timezone.utc)
+			self.transaction_type = transaction_type
+
+			if self.transaction_type == "request":
+				self.data = frappe.form_dict
+				self.headers = dict(frappe.request.headers)
+				self.method = frappe.request.method
+				self.path = frappe.request.path
+			else:
+				self.kwargs = kwargs
+				self.method = method
+		except Exception:
+			traceback.print_exc()
+
+	def dump(self):
+		try:
+			timediff = datetime.now(timezone.utc) - self.timestamp
+			# Obtain duration in microseconds
+			self.duration = int(timediff.total_seconds() * 1000000)
+			data = {
+				"duration": self.duration,
+				"site": self.site,
+				"timestamp": self.timestamp.isoformat(sep=" "),
+				"transaction_type": self.transaction_type,
+			}
+
+			if self.transaction_type == "request":
+				update = {
+					"data": self.data,
+					"headers": self.headers,
+					"method": self.method,
+					"path": self.path,
+				}
+			else:
+				update = {
+					"kwargs": self.kwargs,
+					"method": self.method,
+				}
+			data.update(update)
+			json_data = json.dumps(data, sort_keys=True, default=str)
+			store(json_data)
+		except Exception:
+			traceback.print_exc()
+
+
+def store(json_data):
+	if frappe.cache().llen(MONITOR_REDIS_KEY) >= 1000000:
+		frappe.cache().ltrim(MONITOR_REDIS_KEY, len(logs) - 1, -1)
+		frappe.cache().rpush(MONITOR_REDIS_KEY, json_data)
+	else:
+		frappe.cache().rpush(MONITOR_REDIS_KEY, json_data)
+>>>>>>> af3c4feb64 (feat: Monitor)
 
 
 def flush():
 	try:
 		# Fetch all the logs without removing from cache
 		logs = frappe.cache().lrange(MONITOR_REDIS_KEY, 0, -1)
+<<<<<<< HEAD
 		if logs:
 			logs = list(map(frappe.safe_decode, logs))
 			with open(log_file(), "a", os.O_NONBLOCK) as f:
@@ -109,5 +194,13 @@ def flush():
 				f.write("\n")
 			# Remove fetched entries from cache
 			frappe.cache().ltrim(MONITOR_REDIS_KEY, len(logs) - 1, -1)
+=======
+		logs = list(map(frappe.safe_decode, logs))
+		with open(log_file(), "a", os.O_NONBLOCK) as f:
+			f.write("\n".join(logs))
+
+		# Remove fetched entries from cache
+		frappe.cache().ltrim(MONITOR_REDIS_KEY, len(logs) - 1, -1)
+>>>>>>> af3c4feb64 (feat: Monitor)
 	except Exception:
 		traceback.print_exc()

@@ -142,6 +142,16 @@ class RedisWrapper(redis.Redis):
 
 	def lrange(self, key, start, stop):
 		return super(RedisWrapper, self).lrange(self.make_key(key), start, stop)
+<<<<<<< HEAD
+=======
+
+	def ltrim(self, key, start, stop):
+		return super(RedisWrapper, self).ltrim(self.make_key(key), start, stop)
+
+	def hset(self, name, key, value, shared=False):
+		if key is None:
+			return
+>>>>>>> af3c4feb64 (feat: Monitor)
 
 	def ltrim(self, key, start, stop):
 		return super(RedisWrapper, self).ltrim(self.make_key(key), start, stop)

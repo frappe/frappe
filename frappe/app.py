@@ -26,7 +26,10 @@ from frappe.core.doctype.comment.comment import update_comments_in_parent_after_
 from frappe import _
 import frappe.recorder
 import frappe.monitor
+<<<<<<< HEAD
 import frappe.rate_limiter
+=======
+>>>>>>> af3c4feb64 (feat: Monitor)
 
 local_manager = LocalManager([frappe.local])
 
@@ -55,7 +58,10 @@ def application(request):
 
 		frappe.recorder.record()
 		frappe.monitor.start()
+<<<<<<< HEAD
 		frappe.rate_limiter.apply()
+=======
+>>>>>>> af3c4feb64 (feat: Monitor)
 
 		if request.method == "OPTIONS":
 			response = Response()
@@ -94,8 +100,16 @@ def application(request):
 		if request.method in ("POST", "PUT") and frappe.db and rollback:
 			frappe.db.rollback()
 
+<<<<<<< HEAD
 		frappe.rate_limiter.update()
 		frappe.monitor.stop(response)
+=======
+		# set cookies
+		if response and hasattr(frappe.local, 'cookie_manager'):
+			frappe.local.cookie_manager.flush_cookies(response=response)
+
+		frappe.monitor.stop()
+>>>>>>> af3c4feb64 (feat: Monitor)
 		frappe.recorder.dump()
 		process_response(response)
 		frappe.destroy()
