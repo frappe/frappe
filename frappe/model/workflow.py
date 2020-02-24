@@ -194,26 +194,36 @@ def bulk_workflow_approval(docnames, doctype, action):
 
 	docnames = json.loads(docnames)
 	for (idx, docname) in enumerate(docnames, 1):
+		message_dict = {}
 		try:
 			show_progress(docnames, _('Applying: {0}').format(action), idx, docname)
 			apply_workflow(frappe.get_doc(doctype, docname), action)
 			frappe.db.commit()
-		except frappe.ValidationError:
-			frappe.log_error(frappe.get_traceback(), "Workflow {0} threw an error for {1} {2}".format(action, doctype, docname))
-			frappe.db.rollback()
-		finally:
-			if frappe.message_log:
-				messages = frappe.get_message_log()
-				for message in messages:
-					frappe.message_log.pop()
-					message_dict = {"docname": docname, "message": message.get("message")}
+		except Exception as e:
+			if not frappe.message_log:
+				# Exception is  raised manually and not from msgprint or throw
+				message = "{0}".format(e.__class__.__name__)
+				if e.args:
+					message +=  " : {0}".format(e.args[0])
+				message_dict = {"docname": docname, "message": message}
+				errored_transactions[docname].append(message_dict)
 
-					if message.get("raise_exception", False):
-						errored_transactions[docname].append(message_dict)
-					else:
-						successful_transactions[docname].append(message_dict)
-			else:
-				successful_transactions[docname].append({"docname": docname, "message": None})
+			frappe.db.rollback()
+			frappe.log_error(frappe.get_traceback(), "Workflow {0} threw an error for {1} {2}".format(action, doctype, docname))
+		finally:
+			if not message_dict:
+				if frappe.message_log:
+					messages = frappe.get_message_log()
+					for message in messages:
+						frappe.message_log.pop()
+						message_dict = {"docname": docname, "message": message.get("message")}
+
+						if message.get("raise_exception", False):
+							errored_transactions[docname].append(message_dict)
+						else:
+							successful_transactions[docname].append(message_dict)
+				else:
+					successful_transactions[docname].append({"docname": docname, "message": None})
 
 	if errored_transactions and successful_transactions:
 		indicator = "orange"
