@@ -6,7 +6,6 @@ from __future__ import unicode_literals
 
 from datetime import datetime, timezone
 import json
-import time
 import traceback
 import frappe
 import os
