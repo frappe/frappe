@@ -27,7 +27,7 @@ class S3BackupSettings(Document):
 		)
 
 		bucket_lower = str(self.bucket)
-		
+
 		bucket_name_exist = False
 		try:
 			response = conn.list_buckets()
