@@ -9,6 +9,7 @@ import json
 import traceback
 import frappe
 import os
+import uuid
 
 
 MONITOR_REDIS_KEY = "monitor-transactions"
@@ -36,6 +37,7 @@ class Monitor:
 			self.site = frappe.local.site
 			self.timestamp = datetime.now(timezone.utc)
 			self.transaction_type = transaction_type
+			self.uuid = uuid.uuid4()
 
 			if self.transaction_type == "request":
 				self.data = frappe.form_dict
@@ -54,6 +56,7 @@ class Monitor:
 			# Obtain duration in microseconds
 			self.duration = int(timediff.total_seconds() * 1000000)
 			data = {
+				"uuid": self.uuid,
 				"duration": self.duration,
 				"site": self.site,
 				"timestamp": self.timestamp.isoformat(sep=" "),
