@@ -139,6 +139,7 @@ class Monitor:
 			if self.transaction_type == "request":
 				self.data = frappe.form_dict
 				self.headers = dict(frappe.request.headers)
+				self.ip = frappe.local.request_ip
 				self.method = frappe.request.method
 				self.path = frappe.request.path
 			else:
@@ -164,6 +165,7 @@ class Monitor:
 				update = {
 					"data": self.data,
 					"headers": self.headers,
+					"ip": self.ip,
 					"method": self.method,
 					"path": self.path,
 				}
