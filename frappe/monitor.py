@@ -81,11 +81,10 @@ class Monitor:
 
 
 def store(json_data):
-	if frappe.cache().llen(MONITOR_REDIS_KEY) >= 1000000:
-		frappe.cache().ltrim(MONITOR_REDIS_KEY, len(logs) - 1, -1)
-		frappe.cache().rpush(MONITOR_REDIS_KEY, json_data)
-	else:
-		frappe.cache().rpush(MONITOR_REDIS_KEY, json_data)
+	MAX_LOGS = 1000000
+	if frappe.cache().llen(MONITOR_REDIS_KEY) > MAX_LOGS:
+		frappe.cache().ltrim(MONITOR_REDIS_KEY, 1, -1)
+	frappe.cache().rpush(MONITOR_REDIS_KEY, json_data)
 
 
 def flush():
