@@ -98,8 +98,6 @@ class User(Document):
 		clear_notifications(user=self.name)
 		frappe.clear_cache(user=self.name)
 		self.send_password_notification(self.__new_password)
-		if self.__new_password:
-			self.reset_password_key = ''
 		create_contact(self, ignore_mandatory=True)
 		if self.name not in ('Administrator', 'Guest') and not self.user_image:
 			frappe.enqueue('frappe.core.doctype.user.user.update_gravatar', name=self.name)
@@ -564,8 +562,8 @@ def update_password(new_password, logout_all_sessions=0, key=None, old_password=
 
 	frappe.local.login_manager.login_as(user)
 
-	frappe.db.set_value("User", user,
-		'last_password_reset_date', today())
+	frappe.db.set_value("User", user, "last_password_reset_date", today())
+	frappe.db.set_value("User", user, "reset_password_key", "")
 
 	if user_doc.user_type == "System User":
 		return "/desk"
