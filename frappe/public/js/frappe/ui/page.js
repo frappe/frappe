@@ -637,28 +637,10 @@ frappe.ui.Page = Class.extend({
 			f.$input.addClass("btn-sm").css({"width": "100%", "margin-top": "-1px"});
 		}
 
-		if(in_list(["Link", "Dynamic Link"], df.fieldtype)) {
-			df.onchange = () => this.set_link_title(f);
-		}
-
 		if(df["default"])
 			f.set_input(df["default"])
 		this.fields_dict[df.fieldname || df.label] = f;
 		return f;
-	},
-	set_link_title: function(f) {
-		let doctype = f.get_options();
-		let docname = f.get_input_value();
-
-		if (!doctype || !docname) {
-			return;
-		}
-
-		frappe.xcall("frappe.desk.search.get_link_title", {"doctype": doctype, "docname": docname}).then((r) => {
-			if (r && docname !== r) {
-				f.set_input_label(r);
-			}
-		});
 	},
 	clear_fields: function() {
 		this.page_form.empty();

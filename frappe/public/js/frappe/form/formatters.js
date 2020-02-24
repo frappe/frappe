@@ -92,13 +92,18 @@ frappe.form.formatters = {
 	Link: function(value, docfield, options, doc) {
 		var doctype = docfield._options || docfield.options;
 		var original_value = value;
+		let link_title = frappe.get_link_title(doctype, value);
+
+		if (frappe.get_route()[2] === "Report") {
+			link_title = null;
+		}
 
 		if(value && value.match && value.match(/^['"].*['"]$/)) {
 			value.replace(/^.(.*).$/, "$1");
 		}
 
 		if(options && (options.for_print || options.only_value)) {
-			return frappe.get_link_title(doctype, value) || value;
+			return link_title || value;
 		}
 
 		if(frappe.form.link_formatters[doctype]) {
@@ -114,11 +119,11 @@ frappe.form.formatters = {
 
 		if(value[0] == "'" && value[value.length -1] == "'") {
 			value = value.substring(1, value.length - 1);
-			return frappe.get_link_title(doctype, value) || value;
+			return link_title || value;
 		}
 
 		if (docfield && docfield.link_onclick) {
-			value = frappe.get_link_title(doctype, value) || value;
+			value = link_title || value;
 			return repl('<a onclick="%(onclick)s">%(value)s</a>',
 				{onclick: docfield.link_onclick.replace(/"/g, '&quot;'), value:value});
 		} else if (docfield && doctype) {
@@ -127,9 +132,9 @@ frappe.form.formatters = {
 				data-doctype="${doctype}"
 				data-name="${original_value}"
 				data-value="${original_value}">
-				${__(options && options.label || frappe.get_link_title(doctype, value) || value)}</a>`;
+				${__(options && options.label || link_title || value)}</a>`;
 		} else {
-			return frappe.get_link_title(doctype, value) || value;
+			return link_title || value;
 		}
 	},
 	Date: function(value) {
