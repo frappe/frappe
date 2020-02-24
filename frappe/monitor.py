@@ -96,6 +96,7 @@ def flush():
 		logs = list(map(frappe.safe_decode, logs))
 		with open(log_file(), "a", os.O_NONBLOCK) as f:
 			f.write("\n".join(logs))
+			f.write("\n")
 
 		# Remove fetched entries from cache
 		frappe.cache().ltrim(MONITOR_REDIS_KEY, len(logs) - 1, -1)
