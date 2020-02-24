@@ -48,7 +48,7 @@ frappe.dashboard_utils = {
 					name: chart.source
 				}).then(config => {
 					frappe.dom.eval(config);
-					return frappe.dashboards.chart_sources[frm.doc.source].filters;
+					return frappe.dashboards.chart_sources[chart.source].filters;
 				});
 		} else if (chart.chart_type === 'Report') {
 			return frappe.report_utils.get_report_filters(chart.report_name).then(filters => {
