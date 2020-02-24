@@ -47,6 +47,7 @@ frappe.ui.form.on('Dashboard Chart', {
 			}
 		});
 
+		$(frm.get_field('y_field').wrapper).empty();
 		frm.set_df_property("filters_section", "hidden", 1);
 		frm.set_query('document_type', function() {
 			return {
@@ -105,7 +106,6 @@ frappe.ui.form.on('Dashboard Chart', {
 		frm.set_value('x_field', '');
 		frm.set_value('y_field', '[]');
 		frm.set_df_property('x_field', 'options', []);
-		$(frm.get_field('y_field').wrapper).empty();
 		frm.set_value('filters_json', '{}');
 		frm.trigger('set_chart_report_filters');
 	},

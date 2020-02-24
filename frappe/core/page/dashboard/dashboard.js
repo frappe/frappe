@@ -432,10 +432,9 @@ class DashboardChart {
 			"Pie": 'pie'
 		};
 
-		let chart_type = chart_type_map[this.chart_doc.chart_type];
 		let colors = [];
 
-		if (chart_type in ['Line', 'Bar']) {
+		if (['Line', 'Bar'].includes(this.chart_doc.type)) {
 			colors = [this.chart_doc.color || "light-blue"];
 		}
 
