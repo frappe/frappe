@@ -130,14 +130,16 @@ def get_context(context):
 			if doc.docstatus == 1 and not doc.meta.get_field(self.set_property_after_alert).allow_on_submit:
 				allow_update = False
 			try:
-				if allow_update:
+				if allow_update and not doc.flags.in_notification_update:
 					doc.set(self.set_property_after_alert, self.property_value)
 					doc.flags.updater_reference = {
 						'doctype': self.doctype,
 						'docname': self.name,
 						'label': _('via Notification')
 					}
-					doc.save()
+					doc.flags.in_notification_update = True
+					doc.save(ignore_permissions=True)
+					doc.flags.in_notification_update = False
 			except Exception as e:
 				frappe.log_error(title='Document update failed', message=frappe.get_traceback())
 
@@ -323,7 +325,7 @@ def evaluate_alert(doc, alert, event):
 		if event != "Value Change" and not doc.is_new():
 			# reload the doc for the latest values & comments,
 			# except for validate type event.
-			doc = frappe.get_doc(doc.doctype, doc.name)
+			doc.reload()
 		alert.send(doc)
 	except TemplateError:
 		frappe.throw(_("Error while evaluating Notification {0}. Please fix your template.").format(alert))
