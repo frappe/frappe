@@ -27,18 +27,24 @@ class S3BackupSettings(Document):
 		)
 
 		bucket_lower = str(self.bucket)
-
+		
+		bucket_name_exist = False
 		try:
-			conn.list_buckets()
+			response = conn.list_buckets()
+			for bucket in response['Buckets']:
+				if bucket['Name'] == bucket_lower:
+					bucket_name_exist = True
+					break
 
 		except ClientError:
 			frappe.throw(_("Invalid Access Key ID or Secret Access Key."))
 
-		try:
-			conn.create_bucket(Bucket=bucket_lower, CreateBucketConfiguration={
-				'LocationConstraint': self.region})
-		except ClientError:
-			frappe.throw(_("Unable to create bucket: {0}. Change it to a more unique name.").format(bucket_lower))
+		if not bucket_name_exist:
+			try:
+				conn.create_bucket(Bucket=bucket_lower, CreateBucketConfiguration={
+					'LocationConstraint': self.region})
+			except ClientError:
+				frappe.throw(_("Unable to create bucket: {0}. Change it to a more unique name.").format(bucket_lower))
 
 
 @frappe.whitelist()
