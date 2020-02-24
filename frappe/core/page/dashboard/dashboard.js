@@ -428,7 +428,16 @@ class DashboardChart {
 		const chart_type_map = {
 			"Line": "line",
 			"Bar": "bar",
+			"Percentage": 'percentage',
+			"Pie": 'pie'
 		};
+
+		let chart_type = chart_type_map[this.chart_doc.chart_type];
+		let colors = [];
+
+		if (chart_type in ['Line', 'Bar']) {
+			colors = [this.chart_doc.color || "light-blue"];
+		}
 
 		this.chart_container.find('.chart-loading-state').addClass('hide');
 		if (!this.data) {
@@ -438,7 +447,7 @@ class DashboardChart {
 				title: this.chart_doc.chart_name,
 				data: this.data,
 				type: chart_type_map[this.chart_doc.type],
-				colors: [this.chart_doc.color || "light-blue"],
+				colors: colors,
 				axisOptions: {
 					xIsSeries: this.chart_doc.timeseries,
 					shortenYAxisNumbers: 1

@@ -66,7 +66,7 @@
    "options": "DocType"
   },
   {
-   "depends_on": "eval: ['Count', 'Sum', 'Average'].includes(doc.chart_type)",
+   "depends_on": "eval: doc.timeseries && ['Count', 'Sum', 'Average'].includes(doc.chart_type)",
    "fieldname": "based_on",
    "fieldtype": "Select",
    "label": "Time Series Based On"
@@ -123,7 +123,7 @@
    "fieldname": "type",
    "fieldtype": "Select",
    "label": "Type",
-   "options": "Line\nBar",
+   "options": "Line\nBar\nPercentage\nPie",
    "reqd": 1
   },
   {
@@ -214,7 +214,7 @@
   }
  ],
  "links": [],
- "modified": "2020-02-21 12:03:13.948121",
+ "modified": "2020-02-24 15:42:07.841449",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Dashboard Chart",

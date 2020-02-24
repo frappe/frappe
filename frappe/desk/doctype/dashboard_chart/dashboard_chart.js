@@ -81,6 +81,13 @@ frappe.ui.form.on('Dashboard Chart', {
 			} else {
 				frm.set_value('timeseries', 0);
 			}
+
+			if (frm.doc.chart_type == 'Group By') {
+				frm.set_df_property('type', 'options', ['Line', 'Bar', 'Percentage', 'Pie']);
+			} else {
+				frm.set_df_property('type', 'options', ['Line', 'Bar']);
+			}
+
 			frm.set_value('document_type', '');
 		}
 	},
