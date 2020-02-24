@@ -9,6 +9,7 @@
 from __future__ import unicode_literals
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 from datetime import datetime
 import json
 import traceback
@@ -22,6 +23,9 @@ MONITOR_REDIS_KEY = "monitor-transactions"
 MONITOR_MAX_ENTRIES = 1000000
 =======
 from datetime import datetime, timezone
+=======
+from datetime import datetime
+>>>>>>> cb3507f5e4 (fix(monitor): Use datetime.utcnow() instead of timezone.utc)
 import json
 import traceback
 import frappe
@@ -128,7 +132,7 @@ class Monitor:
 	def __init__(self, transaction_type=None, method=None, kwargs=None):
 		try:
 			self.site = frappe.local.site
-			self.timestamp = datetime.now(timezone.utc)
+			self.timestamp = datetime.utcnow()
 			self.transaction_type = transaction_type
 			self.uuid = uuid.uuid4()
 
@@ -145,7 +149,7 @@ class Monitor:
 
 	def dump(self):
 		try:
-			timediff = datetime.now(timezone.utc) - self.timestamp
+			timediff = datetime.utcnow() - self.timestamp
 			# Obtain duration in microseconds
 			self.duration = int(timediff.total_seconds() * 1000000)
 			data = {
