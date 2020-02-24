@@ -23,7 +23,6 @@ MONITOR_MAX_ENTRIES = 1000000
 =======
 from datetime import datetime, timezone
 import json
-import time
 import traceback
 import frappe
 import os
