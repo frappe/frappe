@@ -7,6 +7,7 @@ import frappe
 import json
 from frappe import _, DoesNotExistError
 from frappe.boot import get_allowed_pages, get_allowed_reports
+from frappe.cache_manager import build_table_count_cache
 
 @frappe.whitelist()
 def get_desktop_page(page):
@@ -34,6 +35,7 @@ def get_desktop_page(page):
 	# print(all_permissions)
 
 	cards = apply_permissions(doc.cards)
+	# return cards
 	shortcuts = prepare_shortcuts(doc.shortcuts)
 
 	return {'charts': doc.charts, 'shortcuts': shortcuts, 'cards': cards}
@@ -55,6 +57,13 @@ def prepare_shortcuts(data):
 
 	return items
 
+def get_table_with_counts():
+	counts = frappe.cache().get_value("information_schema:counts")
+	if counts:
+		return counts
+	else:
+		return build_table_count_cache()
+
 def apply_permissions(data):
 	"""Applied permissions to card to add or remove links
 
@@ -71,6 +80,37 @@ def apply_permissions(data):
 
 	allowed_pages = get_allowed_pages()
 	allowed_reports = get_allowed_reports()
+	exists_cache = get_table_with_counts()
+
+	def _doctype_contains_a_record(name):
+		exists = exists_cache.get(name)
+		if not exists:
+			if not frappe.db.get_value('DocType', name, 'issingle'):
+				exists = frappe.db.count(name)
+			else:
+				exists = True
+			exists_cache[name] = exists
+		return exists
+
+	def _get_incomplete_dependencies(name):
+		return []
+
+
+	def _prepare_item(item):
+		if item.dependencies:
+			incomplete_dependencies = [d for d in item.dependencies if not _doctype_contains_a_record(d)]
+			if len(incomplete_dependencies):
+				item.incomplete_dependencies = incomplete_dependencies
+
+		if item.onboard:
+			# Mark Spotlights for initial
+			if item.get("type") == "doctype":
+				name = item.get("name")
+				count = _doctype_contains_a_record(name)
+
+				item["count"] = count
+
+		return item
 
 	new_data = []
 	for section in data:
@@ -79,13 +119,17 @@ def apply_permissions(data):
 		for item in links:
 			item = frappe._dict(item)
 
+			# Condition: based on country
 			if item.country and item.country!=default_country:
 				continue
 
+			# Check if user is allowed to view
 			if ((item.type=="doctype" and item.name in user.can_read)
 				or (item.type=="page" and item.name in allowed_pages)
 				or (item.type=="report" and item.name in allowed_reports)
 				or item.type=="help"):
+
+				prepared_item = _prepare_item(item)
 
 				new_items.append(item)
 
