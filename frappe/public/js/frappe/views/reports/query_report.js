@@ -706,7 +706,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 					fieldname: 'create_dashoard_chart',
 					label: 'Add Chart to Dashboard',
 					fieldtype: 'Button',
-					depends_on: doc => doc.x_field && doc.y_field,
+					depends_on: doc => doc.x_field && doc.y_fields,
 					click: () => {
 						let values = dialog.get_values();
 						me.chart_fields = values;
