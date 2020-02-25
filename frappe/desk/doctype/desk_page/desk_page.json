@@ -8,8 +8,8 @@
  "engine": "InnoDB",
  "field_order": [
   "label",
-  "restrict_to_domain",
   "module",
+  "restrict_to_domain",
   "category",
   "icon",
   "column_break_3",
@@ -82,8 +82,9 @@
   },
   {
    "fieldname": "category",
-   "fieldtype": "Data",
-   "label": "Category"
+   "fieldtype": "Select",
+   "label": "Category",
+   "options": "Modules\nDomains\nPlaces\nAdministration"
   },
   {
    "default": "0",
@@ -105,7 +106,7 @@
   }
  ],
  "links": [],
- "modified": "2020-02-25 15:31:13.218582",
+ "modified": "2020-02-25 17:54:55.324832",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Desk Page",
