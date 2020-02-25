@@ -241,6 +241,8 @@ frappe.ui.form.on('Dashboard Chart', {
 			},
 			render_input: true
 		});
+
+		frm.y_axis_field.set_value(JSON.parse(frm.doc.y_field).join());
 	},
 
 	render_filters_table: function(frm) {
