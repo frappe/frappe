@@ -17,7 +17,7 @@ class TwilioSettings(Document):
 	pass
 
 @frappe.whitelist()
-def send_whatsapp_message(sender, receiver_list, msg):
+def send_whatsapp_message(sender, receiver_list, message):
 	import json
 	if isinstance(receiver_list, string_types):
 		receiver_list = json.loads(receiver_list)
