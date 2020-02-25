@@ -300,7 +300,7 @@ class DashboardChart {
 		
 		this.is_document_type = this.chart_doc.chart_type!== 'Report' && this.chart_doc.chart_type!=='Custom';
 		this.filter_button = 
-			$(`<div class="filter-chart btn btn-default btn-xs pull-right">${__("Set Filters")}</div>`);
+			$(`<div class="filter-chart btn btn-default btn-xs pull-right">${__("Filter")}</div>`);
 		this.filter_button.prependTo(this.chart_container);
 
 		this.filter_button.on('click', () => {
@@ -316,7 +316,7 @@ class DashboardChart {
 							}];
 						} else {
 							fields = filters.filter(f => {
-								if (f.on_change) {
+								if (f.on_change && !f.reqd) {
 									return false;
 								}
 								if (f.get_query || f.get_data) {

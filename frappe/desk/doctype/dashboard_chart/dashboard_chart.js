@@ -287,7 +287,10 @@ frappe.ui.form.on('Dashboard Chart', {
 			}
 		} else {
 			fields = frm.chart_filters.filter(f => {
-				if (f.get_query || f.get_data || f.on_change) {
+				if (f.on_change && !f.reqd) {
+					return false;
+				}
+				if (f.get_query || f.get_data) {
 					f.read_only = 1;
 				}
 
