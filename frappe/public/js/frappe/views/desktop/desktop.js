@@ -241,7 +241,7 @@ class DesktopPage {
 	}
 
 	make_cards() {
-		this.sections["cards"] = new WidgetGroup({
+		let cards = new WidgetGroup({
 			title: `Reports & Masters`,
 			container: this.page,
 			type: "links",
@@ -249,5 +249,31 @@ class DesktopPage {
 			allow_sorting: 1,
 			widgets: this.data.cards
 		});
+
+		this.sections["cards"] = cards
+
+		const legend = [
+			{
+				'color': 'blue',
+				'description': __('Important DocType')
+			},
+			{
+				'color': 'orange',
+				'description': __('No Records Created')
+			},
+			{
+				'color': 'red',
+				'description': __('DocType has Open Entries')
+			}
+		].map(item => {
+			return `<div class="legend-item small text-muted justify-flex-start">
+				<span class="indicator ${item.color}"></span>
+				<span class="link-content ellipsis" draggable="false">${item.description}</span>
+			</div>`
+		})
+
+		$(`<div id="legend" style="padding: 15px; display:flex;">
+			${legend.join('\n')}
+		</div>`).insertAfter(cards.body);
 	}
 }
