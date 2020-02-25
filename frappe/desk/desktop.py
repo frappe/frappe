@@ -25,24 +25,27 @@ def get_desktop_page(page):
 	except frappe.DoesNotExistError:
 		frappe.throw(_("Desk Page {0} does not exist").format(page))
 
-	# query = """SELECT parent from `tabDocPerm` where `role` in ({})""".format(", ".join(["%s"]*len(frappe.get_roles())))
-	# standard_permissions = [item[0] for item in frappe.db.sql(query, frappe.get_roles())]
+	user = frappe.get_user()
+	user.build_permissions()
+	allowed_pages = get_allowed_pages()
+	allowed_reports = get_allowed_reports()
 
-	# query = """SELECT parent from `tabCustom DocPerm` where `role` in ({})""".format(", ".join(["%s"]*len(frappe.get_roles())))
-	# custom_permissions = [item[0] for item in frappe.db.sql(query, frappe.get_roles())]
-
-	# all_permissions = standard_permissions + custom_permissions
-	# print(all_permissions)
-
+	# prepare cards
 	all_cards = doc.cards + get_custom_reports_and_doctypes(doc.module)
+	cards = apply_permissions(all_cards, user, allowed_pages, allowed_reports)
 
-	cards = apply_permissions(all_cards)
-	# return cards
-	shortcuts = prepare_shortcuts(doc.shortcuts)
+	# prepare shortcuts
+	shortcuts = prepare_shortcuts(doc.shortcuts, user, allowed_pages, allowed_reports)
 
-	return {'charts': doc.charts, 'shortcuts': shortcuts, 'cards': cards}
+	# prepare charts
+	charts = prepare_charts(doc.charts, user)
 
-def prepare_shortcuts(data):
+	return {'charts': charts, 'shortcuts': shortcuts, 'cards': cards}
+
+def prepare_charts(data, user):
+	return [chart for chart in data if frappe.has_permission("Dashboard Chart", chart.chart_name, throw=False)]
+
+def prepare_shortcuts(data, user, allowed_pages, allowed_reports):
 	""" Preprocess shortcut cards (translations, keys, etc)
 
 	Args:
@@ -75,7 +78,7 @@ def get_table_with_counts():
 	else:
 		return build_table_count_cache()
 
-def apply_permissions(data):
+def apply_permissions(data, user, allowed_pages, allowed_reports):
 	"""Applied permissions to card to add or remove links
 
 	Args:
@@ -85,12 +88,6 @@ def apply_permissions(data):
 		TYPE: List of dicts with card data
 	"""
 	default_country = frappe.db.get_default("country")
-
-	user = frappe.get_user()
-	user.build_permissions()
-
-	allowed_pages = get_allowed_pages()
-	allowed_reports = get_allowed_reports()
 	exists_cache = get_table_with_counts()
 
 	def _doctype_contains_a_record(name):
@@ -183,7 +180,7 @@ def get_custom_reports_and_doctypes(module):
 	]
 
 def get_doctype_list(module, is_standard=False):
-	doctypes =  frappe.get_list("DocType", fields=["name"], filters={"custom": 1, "istable": 0, "module": module}, order_by="name")
+	doctypes =  frappe.get_list("DocType", fields=["name"], filters={"custom": 1, "istable": 0, "module": module}, order_by="name", ignore_permissions=True)
 
 	out = []
 	for d in doctypes:
@@ -200,7 +197,7 @@ def get_report_list(module, is_standard="No"):
 	"""Returns list on new style reports for modules."""
 	reports =  frappe.get_list("Report", fields=["name", "ref_doctype", "report_type"], filters=
 		{"is_standard": is_standard, "disabled": 0, "module": module},
-		order_by="name")
+		order_by="name", ignore_permissions=True)
 
 	out = []
 	for r in reports:
