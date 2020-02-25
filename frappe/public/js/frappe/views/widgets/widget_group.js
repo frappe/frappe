@@ -45,13 +45,16 @@ export default class WidgetGroup {
 
 	make_container() {
 		const widget_area = $(`<div class="widget-group">
-				<div class="widget-group-title h6 uppercase">
+				<div class="widget-group-head">
+					<div class="widget-group-title h6 uppercase"></div>
+					<div class="widget-group-control h6 text-muted"></div>
 				</div>
 				<div class="widget-group-body grid-col-${this.columns}">
 				</div>
 			</div>`);
 		this.widget_area = widget_area;
 		this.title_area = widget_area.find(".widget-group-title");
+		this.control_area = widget_area.find(".widget-group-control");
 		this.body = widget_area.find(".widget-group-body");
 		widget_area.appendTo(this.container);
 	}
