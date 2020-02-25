@@ -218,14 +218,15 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			if (df.on_change) f.on_change = df.on_change;
 
 			df.onchange = () => {
+				let current_filters = this.get_filter_value();
 				if (this.previous_filters
-					&& (JSON.stringify(this.previous_filters) == JSON.stringify(this.get_filter_values()))) {
+					&& (JSON.stringify(this.previous_filters) === JSON.stringify(current_filters))) {
 					// filter values have not changed
 					return;
 				}
-				this.previous_filters = this.get_filter_values();
 
-				// clear previous_filters after 3 seconds, to allow refresh for new data
+				// clear previous_filters after 10 seconds, to allow refresh for new data
+				this.previous_filters = current_filters;
 				setTimeout(() => this.previous_filters = null, 10000);
 
 				if (f.on_change) {
@@ -459,7 +460,8 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			data.splice(-1, 1);
 		}
 
-		if (this.datatable) {
+		if (this.datatable && this.datatable.options
+			&& (this.datatable.options.showTotalRow ===this.raw_data.add_total_row)) {
 			this.datatable.options.treeView = this.tree_report;
 			this.datatable.refresh(data, columns);
 		} else {
@@ -1020,7 +1022,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	}
 
 	get_menu_items() {
-		return [
+		let items = [
 			{
 				label: __('Refresh'),
 				action: () => this.refresh(),
@@ -1125,7 +1127,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 								label: df.label,
 								link_field: this.doctype_field_map[values.doctype],
 								doctype: values.doctype,
-								options: df.fieldtype === "Link" ? frappe.model.unscrub(df.fieldname) : undefined,
+								options: df.fieldtype === "Link" ? df.options : undefined,
 								width: 100
 							});
 
@@ -1151,6 +1153,18 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				standard: true
 			},
 			{
+				label: __('User Permissions'),
+				action: () => frappe.set_route('List', 'User Permission', {
+					doctype: 'Report',
+					name: this.report_name
+				}),
+				condition: () => frappe.model.can_set_user_permissions('Report'),
+				standard: true
+			}
+		];
+
+		if (frappe.user.is_report_manager()) {
+			items.push({
 				label: __('Save'),
 				action: () => {
 					let d = new frappe.ui.Dialog({
@@ -1161,6 +1175,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 								fieldname: 'report_name',
 								label: __("Report Name"),
 								default: this.report_doc.is_standard == 'No' ? this.report_name : "",
+								reqd: true
 							}
 						],
 						primary_action: (values) => {
@@ -1182,17 +1197,10 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 					d.show();
 				},
 				standard: true
-			},
-			{
-				label: __('User Permissions'),
-				action: () => frappe.set_route('List', 'User Permission', {
-					doctype: 'Report',
-					name: this.report_name
-				}),
-				condition: () => frappe.model.can_set_user_permissions('Report'),
-				standard: true
-			}
-		];
+			})
+		}
+
+		return items;
 	}
 
 	add_portrait_warning(dialog) {

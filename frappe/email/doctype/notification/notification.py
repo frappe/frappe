@@ -67,7 +67,7 @@ def get_context(context):
 		temp_doc = frappe.new_doc(self.document_type)
 		if self.condition:
 			try:
-				frappe.safe_eval(self.condition, None, get_context(temp_doc))
+				frappe.safe_eval(self.condition, None, get_context(temp_doc.as_dict()))
 			except Exception:
 				frappe.throw(_("The Condition '{0}' is invalid").format(self.condition))
 
@@ -323,8 +323,8 @@ def evaluate_alert(doc, alert, event):
 		frappe.throw(_("Error while evaluating Notification {0}. Please fix your template.").format(alert))
 	except Exception as e:
 		error_log = frappe.log_error(message=frappe.get_traceback(), title=str(e))
-		frappe.throw(_("Error in Notification: {}".format(
-			frappe.utils.get_link_to_form('Error Log', error_log.name))))
+		frappe.throw(_("Error in Notification: {}").format(
+			frappe.utils.get_link_to_form('Error Log', error_log.name)))
 
 def get_context(doc):
 	return {"doc": doc, "nowdate": nowdate, "frappe.utils": frappe.utils}

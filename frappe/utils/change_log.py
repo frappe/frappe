@@ -240,7 +240,7 @@ def show_update_popup():
 					title             = app.title
 				)
 			if release_links:
-				update_message += _("New {} releases for the following apps are available".format(update_type)) + ":<br><br>{}".format(release_links)
+				update_message += _("New {} releases for the following apps are available").format(update_type) + ":<br><br>{}".format(release_links)
 
 	if update_message:
 		frappe.msgprint(update_message, title=_("New updates are available"), indicator='green')
