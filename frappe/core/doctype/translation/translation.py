@@ -63,6 +63,8 @@ def contribute_translation(language, contributor, source_name, target_name, doc_
 
 @frappe.whitelist()
 def create_translations(translation_map, language):
+	from frappe.frappeclient import FrappeClient
+
 	translation_map = json.loads(translation_map)
 
 	# first create / update local user translations
@@ -84,13 +86,12 @@ def create_translations(translation_map, language):
 			})
 			doc.insert()
 
-	data_map = {
-		'data': json.dumps({
-			'language': language,
-			'contributor_email': frappe.session.user,
-			'contributor_name': frappe.utils.get_fullname(frappe.session.user),
-			'translation_map': translation_map
-		})
+	params = {
+		'language': language,
+		'contributor_email': frappe.session.user,
+		'contributor_name': frappe.utils.get_fullname(frappe.session.user),
+		'translation_map': translation_map
 	}
 
-	make_post_request(url=frappe.get_hooks("translation_contribution_url_bulk")[0], data=data_map)
+	translator = FrappeClient(frappe.conf.translator_url)
+	return translator.post_api('translator.api.add_translations', params=params)
