@@ -8,7 +8,7 @@
 		"message": "New comment {{ doc.content }} created",
 		"condition": "doc.communication_type=='Comment'",
 		"recipients": [
-			{ "email_by_document_field": "owner" }
+			{ "receiver_by_document_field": "owner" }
 		]
 	},
 	{
@@ -20,7 +20,7 @@
 		"message": "New comment {{ doc.content }} saved",
 		"condition": "doc.communication_type=='Comment'",
 		"recipients": [
-			{ "email_by_document_field": "owner" }
+			{ "receiver_by_document_field": "owner" }
 		],
 		"set_property_after_alert": "subject",
 		"property_value": "__testing__"
@@ -34,7 +34,7 @@
 		"condition": "doc.event_type=='Public'",
 		"message": "A new public event {{ doc.subject }} on {{ doc.starts_on }} is created",
 		"recipients": [
-			{ "email_by_document_field": "owner" }
+			{ "receiver_by_document_field": "owner" }
 		]
 	},
 	{
@@ -46,7 +46,7 @@
 		"value_changed": "description",
 		"message": "Description changed",
 		"recipients": [
-			{ "email_by_document_field": "owner" }
+			{ "receiver_by_document_field": "owner" }
 		]
 	},
 	{
@@ -59,7 +59,7 @@
 		"days_in_advance": 2,
 		"message": "Description changed",
 		"recipients": [
-			{ "email_by_document_field": "owner" }
+			{ "receiver_by_document_field": "owner" }
 		]
 	},
 	{
@@ -70,7 +70,7 @@
 		"attach_print": 0,
 		"message": "New user {{ doc.name }} created",
 		"recipients": [
-			{ "email_by_document_field": "owner", "cc": "{{ doc.email }}" }
+			{ "receiver_by_document_field": "owner", "cc": "{{ doc.email }}" }
 		]
 	}
 ]

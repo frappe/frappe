@@ -14,6 +14,7 @@ from frappe.modules.utils import export_module_json, get_doc_module
 from six import string_types
 from frappe.integrations.doctype.slack_webhook_url.slack_webhook_url import send_slack_message
 from frappe.integrations.doctype.twilio_settings.twilio_settings import send_whatsapp_message
+from frappe.core.doctype.sms_settings.sms_settings import send_sms
 
 class Notification(Document):
 	def onload(self):
@@ -129,6 +130,9 @@ def get_context(context):
 		if self.channel in ('WhatsApp', 'SMS', 'MMS'):
 			self.send_whatsapp_msg(doc, context)
 
+		if self.channel == 'SMS':
+			self.send_sms(doc, context)
+
 		if self.set_property_after_alert:
 			allow_update = True
 			if doc.docstatus == 1 and not doc.meta.get_field(self.set_property_after_alert).allow_on_submit:
@@ -174,12 +178,15 @@ def get_context(context):
 
 	def send_whatsapp_msg(self, doc, context):
 		send_whatsapp_message(
-			phone_number=self.twilio_number,
+			sender=self.twilio_number,
+			receiver_list=[''],
 			message=frappe.render_template(self.message, context),
-			recipients=[''],
-			channel=self.channel,
-			reference_doctype = doc.doctype,
-			reference_name = doc.name
+		)
+
+	def send_sms(self, doc, context):
+		send_sms(
+			receiver_list=[''],
+			msg=frappe.render_template(self.message, context)
 		)
 
 	def get_list_of_recipients(self, doc, context):
@@ -190,8 +197,8 @@ def get_context(context):
 			if recipient.condition:
 				if not frappe.safe_eval(recipient.condition, None, context):
 					continue
-			if recipient.email_by_document_field:
-				email_ids_value = doc.get(recipient.email_by_document_field)
+			if recipient.receiver_by_document_field:
+				email_ids_value = doc.get(recipient.receiver_by_document_field)
 				if validate_email_address(email_ids_value):
 					email_ids = email_ids_value.replace(",", "\n")
 					recipients = recipients + email_ids.split("\n")
@@ -213,8 +220,8 @@ def get_context(context):
 				bcc = bcc + recipient.bcc.split("\n")
 
 			#For sending emails to specified role
-			if recipient.email_by_role:
-				emails = get_emails_from_role(recipient.email_by_role)
+			if recipient.receiver_by_role:
+				emails = get_emails_from_role(recipient.receiver_by_role)
 
 				for email in emails:
 					recipients = recipients + email.split("\n")

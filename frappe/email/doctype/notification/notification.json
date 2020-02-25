@@ -201,7 +201,7 @@
    "label": "Value To Be Set"
   },
   {
-   "depends_on": "eval:doc.channel=='Email'",
+   "depends_on": "eval:in_list(['Email', 'SMS', 'WhatsApp'], doc.channel)",
    "fieldname": "column_break_5",
    "fieldtype": "Section Break",
    "label": "Recipients"
@@ -264,7 +264,7 @@
    "options": "Print Format"
   },
   {
-   "depends_on": "eval: in_list(['WhatsApp', 'SMS'], doc.channel)",
+   "depends_on": "eval: doc.channel==='WhatsApp'",
    "fieldname": "twilio_number",
    "fieldtype": "Int",
    "label": "Twilio Number",
@@ -273,7 +273,7 @@
  ],
  "icon": "fa fa-envelope",
  "links": [],
- "modified": "2020-01-01 14:16:31.075094",
+ "modified": "2020-02-20 14:17:34.090828",
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Notification",
