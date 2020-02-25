@@ -1,12 +1,14 @@
 function generate_route(item) {
-	if (item.type === "DocType") {
+	console.log(item)
+	const type = item.type.toLowerCase()
+	if (type === "doctype") {
 		item.doctype = item.name;
 	}
 	let route = "";
 	if (!item.route) {
 		if (item.link) {
 			route = strip(item.link, "#");
-		} else if (item.type === "DocType") {
+		} else if (type === "doctype") {
 			if (frappe.model.is_single(item.doctype)) {
 				route = "Form/" + item.doctype;
 			} else {
@@ -15,11 +17,11 @@ function generate_route(item) {
 				}
 				route = "List/" + item.doctype;
 			}
-		} else if (item.type === "Report" && item.is_query_report) {
+		} else if (type === "report" && item.is_query_report) {
 			route = "query-report/" + item.name;
-		} else if (item.type === "Report") {
+		} else if (type === "report") {
 			route = "List/" + item.doctype + "/Report/" + item.name;
-		} else if (item.type === "page") {
+		} else if (type === "page") {
 			route = item.name;
 		}
 
@@ -38,7 +40,7 @@ function generate_route(item) {
 			}).join("&");
 	}
 
-	// if(item.type==="page" || item.type==="help" || item.type==="report" ||
+	// if(type==="page" || type==="help" || type==="report" ||
 	// (item.doctype && frappe.model.can_read(item.doctype))) {
 	//     item.shown = true;
 	// }
