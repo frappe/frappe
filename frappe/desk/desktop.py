@@ -1,5 +1,3 @@
-"""Summary
-"""
 # Copyright (c) 2020, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 # Author - Shivam Mishra <shivam@frappe.io>
