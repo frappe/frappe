@@ -121,25 +121,30 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		this.datatable = null;
 		this.prepared_report_action = "New";
 
-
 		frappe.run_serially([
 			() => this.get_report_doc(),
 			() => this.get_report_settings(),
 			() => this.setup_progress_bar(),
 			() => this.setup_page_head(),
 			() => this.refresh_report(),
-			() => this.add_make_chart_button()
+			() => this.add_chart_buttons_to_toolbar()
 		]);
 	}
 
-	add_make_chart_button(){
-		this.page.add_inner_button(__("Set Chart"), () => {
-			this.open_create_chart_dialog();
-		});
+	add_chart_buttons_to_toolbar(show) {
+		if (show) {
+			this.page.add_inner_button(__("Set Chart"), () => {
+				this.open_create_chart_dialog();
+			});
 
-		this.page.add_inner_button(__("Add Chart to Dashboard"), () => {
-			this.add_chart_to_dashboard();
-		});
+			if (this.chart_fields) {
+				this.page.add_inner_button(__("Add Chart to Dashboard"), () => {
+					this.add_chart_to_dashboard();
+				});
+			}
+		} else {
+			this.page.clear_inner_toolbar();
+		}
 	}
 
 	add_chart_to_dashboard() {
@@ -432,9 +437,11 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 					}
 				}
 				this.render_datatable();
+				this.add_chart_buttons_to_toolbar(true);
 			} else {
 				this.data = [];
 				this.toggle_nothing_to_show(true);
+				this.add_chart_buttons_to_toolbar(false);
 			}
 
 			this.show_footer_message();
@@ -742,6 +749,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				options.title = __(`${this.report_name}: ${x_field_label} vs ${y_field_label}`);
 
 				this.render_chart(options);
+				this.add_chart_buttons_to_toolbar(true);
 
 				dialog.hide();
 			}
