@@ -82,6 +82,7 @@ def get_bootinfo():
 	bootinfo.points = get_energy_points(frappe.session.user)
 	bootinfo.frequently_visited_links = frequently_visited_links()
 	bootinfo.link_preview_doctypes = get_link_preview_doctypes()
+	bootinfo.doctypes_with_show_link_field_title = doctypes_with_show_link_field_title()
 
 	return bootinfo
 
@@ -267,3 +268,8 @@ def get_success_action():
 
 def get_link_preview_doctypes():
 	return [d.name for d in frappe.db.get_all('DocType', {'show_preview_popup': 1})]
+
+def doctypes_with_show_link_field_title():
+	doctypes = frappe.get_all("DocType", {"show_title_field_in_link": 1}) + frappe.get_all("Property Setter", {"field_name": "show_title_field_in_link", "value": 1})
+
+	return [d.name for d in doctypes if d]

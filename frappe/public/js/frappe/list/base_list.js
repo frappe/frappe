@@ -43,7 +43,7 @@ frappe.views.BaseList = class BaseList {
 		this.page_length = 20;
 		this.data = [];
 		this.method = 'frappe.desk.reportview.get';
-		this.view = 'List';
+		this.view = this.view_name;
 
 		this.can_create = frappe.model.can_create(this.doctype);
 		this.can_write = frappe.model.can_write(this.doctype);
@@ -638,10 +638,7 @@ class FilterArea {
 				fieldname: df.fieldname,
 				condition: condition,
 				default: default_value,
-				onchange: () => {
-					frappe.set_link_title(this.get_field(df.fieldname));
-					this.refresh_list_view();
-				},
+				onchange: () => this.refresh_list_view(),
 				ignore_link_validation: fieldtype === 'Dynamic Link',
 				is_filter: 1,
 			};

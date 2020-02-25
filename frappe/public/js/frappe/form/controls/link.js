@@ -90,11 +90,43 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 		this.label = label;
 		return this.validate_and_set_in_model(value, e);
 	},
+	validate_and_set_in_model: function(value, e) {
+		var me = this;
+		if(this.inside_change_event) {
+			return Promise.resolve();
+		}
+		this.inside_change_event = true;
+		var set = function(value) {
+			me.inside_change_event = false;
+			return frappe.run_serially([
+				() => me.set_model_value(value),
+				() => {
+					me.set_mandatory && me.set_mandatory(value);
+
+					if(me.df.change || me.df.onchange) {
+						// onchange event specified in df
+						frappe.set_link_title(me);
+						return (me.df.change || me.df.onchange).apply(me, [e]);
+					}
+				}
+			]);
+		};
+
+		value = this.validate(value);
+		if (value && value.then) {
+			// got a promise
+			return value.then((value) => set(value));
+		} else {
+			// all clear
+			return set(value);
+		}
+	},
 	get_input_value: function () {
-		return (this.$input && this.$input.attr("data-value")) ? decodeURIComponent(this.$input.attr("data-value")) : null;
+		return (this.$input && this.$input.attr("data-value") && this.$input.val()) ?
+			decodeURIComponent(this.$input.attr("data-value")) : "";
 	},
 	get_label_value: function () {
-		return this.$input ? this.$input.val() : null;
+		return this.$input ? this.$input.val() : "";
 	},
 	set_input_label: function(label) {
 		this.$input && this.$input.val(__(label));
@@ -269,11 +301,6 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 			}
 			var value = me.get_input_value();
 			var label = me.get_label_value();
-
-			if (!label) {
-				me.reset_value();
-				return;
-			}
 
 			if (value !== me.last_value) {
 				me.parse_validate_and_set_in_model(value, label);
@@ -480,35 +507,37 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 	validate_link_and_fetch: function(df, doctype, docname, value) {
 		var me = this;
 
-		return new Promise((resolve) => {
-			var fetch = '';
+		if(value) {
+			return new Promise((resolve) => {
+				var fetch = '';
 
-			if(this.frm && this.frm.fetch_dict[df.fieldname]) {
-				fetch = this.frm.fetch_dict[df.fieldname].columns.join(', ');
-			}
-
-			return frappe.call({
-				method:'frappe.desk.form.utils.validate_link',
-				type: "GET",
-				args: {
-					'value': value,
-					'options': doctype,
-					'fetch': fetch
-				},
-				no_spinner: true,
-				callback: function(r) {
-					if(r.message=='Ok') {
-						if(r.fetch_values && docname) {
-							me.set_fetch_values(df, docname, r.fetch_values);
-						}
-						resolve(r.valid_value);
-					} else {
-						me.reset_value();
-						resolve("");
-					}
+				if(this.frm && this.frm.fetch_dict[df.fieldname]) {
+					fetch = this.frm.fetch_dict[df.fieldname].columns.join(', ');
 				}
+
+				return frappe.call({
+					method:'frappe.desk.form.utils.validate_link',
+					type: "GET",
+					args: {
+						'value': value,
+						'options': doctype,
+						'fetch': fetch
+					},
+					no_spinner: true,
+					callback: function(r) {
+						if(r.message=='Ok') {
+							if(r.fetch_values && docname) {
+								me.set_fetch_values(df, docname, r.fetch_values);
+							}
+							resolve(r.valid_value);
+						} else {
+							me.reset_value();
+							resolve("");
+						}
+					}
+				});
 			});
-		});
+		}
 	},
 	set_fetch_values: function(df, docname, fetch_values) {
 		var fl = this.frm.fetch_dict[df.fieldname].fields;

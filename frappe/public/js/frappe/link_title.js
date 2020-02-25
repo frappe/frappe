@@ -21,14 +21,11 @@ frappe.add_link_title = function (doctype, name, value) {
 };
 
 frappe.set_link_title =  function(f) {
-	if(!in_list(["Link", "Dynamic Link"], f.df.fieldtype)) {
-		return;
-	}
-
 	let doctype = f.get_options();
 	let docname = f.get_input_value();
 
-	if (!doctype || !docname) {
+	if ((!in_list(frappe.boot.doctypes_with_show_link_field_title, doctype)) || (!doctype || !docname) ||
+		(frappe.get_link_title(doctype, docname))) {
 		return;
 	}
 

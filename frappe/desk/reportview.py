@@ -99,7 +99,7 @@ def compress(data, args = {}, view="List"):
 		for key in keys:
 			new_row.append(row.get(key))
 
-		if view == "List":
+		if not view == "Report":
 			link_titles.update(get_title_values_for_link_and_dynamic_link_fields(meta, row, link_fields))
 			link_titles.update(get_title_values_for_table_and_multiselect_fields(meta, row, table_fields))
 
