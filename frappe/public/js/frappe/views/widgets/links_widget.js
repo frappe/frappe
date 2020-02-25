@@ -75,7 +75,6 @@ export default class LinksWidget extends Widget {
 				const popover = link.find(".module-link-popover");
 
 				link_label.mouseover(() => {
-					console.log("mosueover");
 					popover.show();
 				});
 				link_label.mouseout(() => popover.hide());
