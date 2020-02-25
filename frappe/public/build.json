@@ -345,9 +345,6 @@
 	"js/social.min.js": [
 		"public/js/frappe/social/social_home.js"
 	],
-	"js/modules.min.js": [
-		"public/js/frappe/views/modules_home.js"
-	],
 	"js/barcode_scanner.min.js": [
 		"public/js/frappe/barcode_scanner/quagga.js"
 	],
