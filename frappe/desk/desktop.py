@@ -34,7 +34,9 @@ def get_desktop_page(page):
 	# all_permissions = standard_permissions + custom_permissions
 	# print(all_permissions)
 
-	cards = apply_permissions(doc.cards)
+	all_cards = doc.cards + get_custom_reports_and_doctypes(doc.module)
+
+	cards = apply_permissions(all_cards)
 	# return cards
 	shortcuts = prepare_shortcuts(doc.shortcuts)
 
@@ -115,7 +117,11 @@ def apply_permissions(data):
 	new_data = []
 	for section in data:
 		new_items = []
-		links = json.loads(section.links)
+		if isinstance(section.links, str):
+			links = json.loads(section.links)
+		else:
+			links = section.links
+
 		for item in links:
 			item = frappe._dict(item)
 
@@ -134,7 +140,10 @@ def apply_permissions(data):
 				new_items.append(item)
 
 		if new_items:
-			new_section = section.as_dict().copy()
+			if isinstance(section, frappe._dict):
+				new_section = section.copy()
+			else:
+				new_section = section.as_dict().copy()
 			new_section["links"] = new_items
 			new_section["label"] = section.title
 			new_data.append(new_section)
@@ -151,6 +160,50 @@ def get_desk_sidebar_items():
 	for page in pages:
 		sidebar_items[page["category"]].append(page)
 	return sidebar_items
+
+def get_custom_reports_and_doctypes(module):
+	return [
+		frappe._dict({
+			"title": "Custom Reports",
+			"links": get_report_list(module)
+		}),
+		frappe._dict({
+			"title": "Custom DocTypes",
+			"links": get_doctype_list(module)
+		})
+	]
+
+def get_doctype_list(module, is_standard=False):
+	doctypes =  frappe.get_list("DocType", fields=["name"], filters={"custom": 1, "istable": 0, "module": module}, order_by="name")
+
+	out = []
+	for d in doctypes:
+		out.append({
+			"type": "doctype",
+			"name": d.name,
+			"label": _(d.name)
+		})
+
+	return out
+
+
+def get_report_list(module, is_standard="No"):
+	"""Returns list on new style reports for modules."""
+	reports =  frappe.get_list("Report", fields=["name", "ref_doctype", "report_type"], filters=
+		{"is_standard": is_standard, "disabled": 0, "module": module},
+		order_by="name")
+
+	out = []
+	for r in reports:
+		out.append({
+			"type": "report",
+			"doctype": r.ref_doctype,
+			"is_query_report": 1 if r.report_type in ("Query Report", "Script Report", "Custom Report") else 0,
+			"label": _(r.name),
+			"name": r.name
+		})
+
+	return out
 
 def make_them_pages():
 	"""Helper function to make pages
