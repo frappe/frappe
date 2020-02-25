@@ -55,7 +55,16 @@ def prepare_shortcuts(data):
 	for item in data:
 		new_item = item.as_dict().copy()
 		new_item['name'] = _(item.link_to)
-		items.append(new_item)
+		if ((item.type=="DocType" and item.link_to in user.can_read)
+			or (item.type=="Page" and item.link_to in allowed_pages)
+			or (item.type=="Report" and item.link_to in allowed_reports)
+			or item.type=="help"):
+
+			if item.type == "Page":
+				page = allowed_pages[item.link_to]
+				new_item['label'] = _(page.get("title", frappe.unscrub(item.link_to)))
+
+			items.append(new_item)
 
 	return items
 
