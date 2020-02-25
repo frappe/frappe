@@ -127,7 +127,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			() => this.setup_progress_bar(),
 			() => this.setup_page_head(),
 			() => this.refresh_report(),
-			() => this.add_chart_buttons_to_toolbar()
+			() => this.add_chart_buttons_to_toolbar(true)
 		]);
 	}
 
@@ -137,7 +137,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				this.open_create_chart_dialog();
 			});
 
-			if (this.chart_fields) {
+			if (this.chart_fields || this.chart_options) {
 				this.page.add_inner_button(__("Add Chart to Dashboard"), () => {
 					this.add_chart_to_dashboard();
 				});
@@ -148,7 +148,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	}
 
 	add_chart_to_dashboard() {
-		if (this.chart_fields) {
+		if (this.chart_fields || this.chart_options) {
 			const dialog = new frappe.ui.Dialog({
 				title: __('Create Chart'),
 				fields: [
@@ -166,7 +166,11 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				],
 				primary_action_label: __('Add'),
 				primary_action: (values) => {
-					this.create_dashboard_chart(this.chart_fields, values.dashboard, values.dashboard_chart_name);
+					this.create_dashboard_chart(
+						this.chart_fields || this.chart_options,
+						values.dashboard,
+						values.dashboard_chart_name
+					);
 					dialog.hide();
 				}
 			});
@@ -178,21 +182,38 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	}
 
 	create_dashboard_chart(chart_args, dashboard_name, chart_name) {
-		let x_field_title = toTitle(chart_args.x_field);
-		let y_field_title = toTitle(chart_args.y_fields[0]);
-		chart_name = chart_name || (`${this.report_name}: ${x_field_title} vs ${y_field_title}`);
 
 		let args = {
 			'dashboard': dashboard_name || null,
-			'chart_name': chart_name,
 			'chart_type': 'Report',
 			'report_name': this.report_name,
-			'x_field': chart_args.x_field,
-			'y_field': JSON.stringify(chart_args.y_fields),
-			'type': chart_args.chart_type,
+			'type': chart_args.chart_type || frappe.model.unscrub(chart_args.type),
 			'color': chart_args.color,
 			'filters_json': JSON.stringify(this.get_filter_values()),
-		};
+		}
+
+		if (this.chart_fields) {
+			let x_field_title = toTitle(chart_args.x_field);
+			let y_field_title = toTitle(chart_args.y_fields[0]);
+			chart_name = chart_name || (`${this.report_name}: ${x_field_title} vs ${y_field_title}`);
+	
+			Object.assign(args, 
+				{
+					'chart_name': chart_name,
+					'x_field': chart_args.x_field,
+					'y_field': JSON.stringify(chart_args.y_fields),
+					'is_custom': 0
+				}
+			);
+		} else {
+			chart_name = chart_name || this.report_name;
+			Object.assign(args, 
+				{
+					'chart_name': chart_name,
+					'is_custom': 1
+				}
+			);
+		}
 
 		frappe.xcall(
 			'frappe.desk.doctype.dashboard_chart.dashboard_chart.create_report_chart', 
@@ -419,21 +440,22 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			this.toggle_message(false);
 			if (data.result && data.result.length) {
 				this.prepare_report_data(data);
-				const chart_options = this.get_chart_options(data);
+				this.chart_options = this.get_chart_options(data);
+
 				this.$chart.empty();
-				if(chart_options) {
-					this.render_chart(chart_options);
+				if(this.chart_options) {
+					this.render_chart(this.chart_options);
 				}
 				else {
 					this.$chart.empty();
 					if (this.chart_fields) {
-						const chart_options = 
+						this.chart_options = 
 							frappe.report_utils.make_chart_options(
 								this.columns,
 								this.raw_data,
 								this.chart_fields
 							);
-						chart_options && this.render_chart(chart_options);
+						this.chart_options && this.render_chart(chart_options);
 					}
 				}
 				this.render_datatable();

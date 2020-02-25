@@ -10,6 +10,7 @@
   "chart_name",
   "chart_type",
   "report_name",
+  "is_custom",
   "x_field",
   "y_field",
   "source",
@@ -191,18 +192,18 @@
    "label": "To Date"
   },
   {
-   "depends_on": "eval:doc.chart_type == 'Report'",
+   "depends_on": "eval:doc.report_name && !doc.is_custom",
    "fieldname": "x_field",
    "fieldtype": "Select",
    "label": "X Field",
-   "mandatory_depends_on": "eval:doc.report_name"
+   "mandatory_depends_on": "eval: doc.report_name && !doc.is_custom"
   },
   {
-   "depends_on": "eval:doc.chart_type == 'Report'",
+   "depends_on": "eval:doc.report_name && !doc.is_custom",
    "fieldname": "y_field",
    "fieldtype": "Code",
    "label": "Y Field",
-   "mandatory_depends_on": "eval:doc.report_name",
+   "mandatory_depends_on": "eval:doc.report_name && !doc.is_custom",
    "options": "JSON"
   },
   {
@@ -211,10 +212,17 @@
    "fieldtype": "Link",
    "label": "Report Name",
    "options": "Report"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval: doc.report_name",
+   "fieldname": "is_custom",
+   "fieldtype": "Check",
+   "label": "Is Custom"
   }
  ],
  "links": [],
- "modified": "2020-02-24 15:42:07.841449",
+ "modified": "2020-02-25 18:56:40.198625",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Dashboard Chart",

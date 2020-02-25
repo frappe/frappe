@@ -142,14 +142,24 @@ frappe.ui.form.on('Dashboard Chart', {
 				filters: filters
 			}
 		).then(data => {
-			if (data.result.length) {
-				frm.field_options = frappe.report_utils.get_possible_chart_options(data.columns, data);
-				frm.set_df_property('x_field', 'options', frm.field_options.non_numeric_fields);
-				frm.trigger('render_y_field');
-			} else {
-				frappe.msgprint(__('Report has no data, please modify the filters or change the Report Name'));
+			frm.report_data = data;
+			if (!frm.doc.is_custom) {
+				if (data.result.length) {
+					frm.field_options = frappe.report_utils.get_possible_chart_options(data.columns, data);
+					frm.set_df_property('x_field', 'options', frm.field_options.non_numeric_fields);
+					frm.trigger('render_y_field');
+				} else {
+					frappe.msgprint(__('Report has no data, please modify the filters or change the Report Name'));
+				}
 			}
 		});
+	},
+
+	is_custom: function(frm) {
+		if (frm.report_data && !frm.report_data.chart) {
+			frappe.msgprint(__('Report has no custom chart'));
+			frm.set_value('is_custom', 0);
+		}
 	},
 
 	timespan: function(frm) {

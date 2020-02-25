@@ -243,20 +243,24 @@ class DashboardChart {
 	}
 
 	get_report_chart_data(result) {
-		let	y_fields = JSON.parse(this.chart_doc.y_field);
+		if (result.chart) {
+			return result.chart.data;
+		} else {
+			let	y_fields = JSON.parse(this.chart_doc.y_field);
 
-		let chart_fields = {
-			y_fields: y_fields,
-			x_field: this.chart_doc.x_field,
-			chart_type: this.chart_doc.type,
-			color: this.chart_doc.color
+			let chart_fields = {
+				y_fields: y_fields,
+				x_field: this.chart_doc.x_field,
+				chart_type: this.chart_doc.type,
+				color: this.chart_doc.color
+			}
+			let columns = result.columns.map((col)=> {
+				return frappe.report_utils.prepare_field_from_column(col);
+			});
+
+			let data = frappe.report_utils.make_chart_options(columns, result, chart_fields).data;
+			return data;
 		}
-		let columns = result.columns.map((col)=> {
-			return frappe.report_utils.prepare_field_from_column(col);
-		});
-
-		let data = frappe.report_utils.make_chart_options(columns, result, chart_fields).data;
-		return data;
 	}
 
 	prepare_chart_actions() {
@@ -494,7 +498,7 @@ class DashboardChart {
 			}
 		} else if (this.chart_doc.chart_type == 'Report') {
 			this.settings = {
-				'method': 'frappe.desk.query_report.run',
+				'method': 'frappe.desk.query_report.run'
 			};
 			return Promise.resolve();
 		} else {
