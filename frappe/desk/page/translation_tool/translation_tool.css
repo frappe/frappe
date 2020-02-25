@@ -16,3 +16,7 @@
 	height: calc(100vh - 220px);
 	overflow: auto;
 }
+
+.translation-edit-form {
+	overflow: auto;
+}
