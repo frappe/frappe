@@ -1,5 +1,4 @@
 function generate_route(item) {
-	console.log(item)
 	const type = item.type.toLowerCase()
 	if (type === "doctype") {
 		item.doctype = item.name;
