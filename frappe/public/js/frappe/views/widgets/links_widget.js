@@ -11,9 +11,9 @@ export default class LinksWidget extends Widget {
 	}
 
 	set_body() {
-		this.options = {}
-		this.options.links = this.links
-		this.widget.addClass('links-widget-box')
+		this.options = {};
+		this.options.links = this.links;
+		this.widget.addClass("links-widget-box");
 		const is_link_disabled = item => {
 			return item.dependencies && item.incomplete_dependencies;
 		};
@@ -32,8 +32,8 @@ export default class LinksWidget extends Widget {
 		};
 
 		const get_link_for_item = item => {
-			if (is_link_disabled(item))
-				return `<span class="link-content ellipsis">${
+			if (is_link_disabled(item)) {
+				return `<span class="link-content ellipsis disabled-link">${
 					item.label ? item.label : item.name
 				}</span>
 						<div class="module-link-popover popover fade top in" role="tooltip" style="display: none;">
@@ -41,23 +41,20 @@ export default class LinksWidget extends Widget {
 							<h3 class="popover-title" style="display: none;"></h3>
 							<div class="popover-content" style="padding: 12px;">
 								<div class="small text-muted">${__("You need to create these first: ")}</div>
-								<div class="small">${item.incomplete_dependencies.join(", ")}</div>
+		 						<div class="small">${item.incomplete_dependencies.join(", ")}</div>
 							</div>
 						</div>`;
+			}
 
 			if (item.youtube_id)
-				return `<span class="link-content help-video-link ellipsis" data-youtubeid="${
-					item.youtube_id
-				}">${item.label ? item.label : item.name}</a>`;
+				return `<span class="link-content help-video-link ellipsis" data-youtubeid="${item.youtube_id}">
+						${item.label ? item.label : item.name}</span>`;
 
-			return `<a data-route="${
-				item.route
-			}" class="link-content ellipsis">${
-				item.label ? item.label : item.name
-			}</a>`;
+			return `<a data-route="${generate_route(item)}" class="link-content ellipsis">
+					${item.label ? item.label : item.name}</a>`;
 		};
 
-		this.link_list = this.options.links.map(item => {
+		this.link_list = this.links.map(item => {
 			return $(`<div class="link-item flush-top small ${
 				item.onboard ? "onboard-spotlight" : ""
 			} ${disabled_dependent(item)}" type="${item.type}">
@@ -77,7 +74,10 @@ export default class LinksWidget extends Widget {
 			if (link.hasClass("disabled-link")) {
 				const popover = link.find(".module-link-popover");
 
-				link_label.mouseover(() => popover.show());
+				link_label.mouseover(() => {
+					console.log("mosueover");
+					popover.show();
+				});
 				link_label.mouseout(() => popover.hide());
 			} else {
 				if (link_label.hasClass("help-video-link")) {

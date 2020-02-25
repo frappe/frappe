@@ -213,7 +213,6 @@
 	}
 
 	&.links-widget-box {
-
 		.link-item {
 			position: relative;
 			margin: 10px 0px;
@@ -229,6 +228,20 @@
 
 			.link-content {
 				flex: 1;
+			}
+
+			.disabled-link {
+				color: @text-muted;
+			}
+
+			.popover {
+				display: block;
+				top: -60px;
+				max-width: 220px;
+
+				&.top > .arrow {
+					left: 20%;
+				}
 			}
 
 			.indicator {
