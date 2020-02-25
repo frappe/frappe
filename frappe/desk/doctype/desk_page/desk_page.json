@@ -61,6 +61,7 @@
    "fieldname": "module",
    "fieldtype": "Link",
    "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Module",
    "options": "Module Def"
   },
@@ -104,7 +105,7 @@
   }
  ],
  "links": [],
- "modified": "2020-02-20 15:11:17.369348",
+ "modified": "2020-02-25 15:31:13.218582",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Desk Page",
