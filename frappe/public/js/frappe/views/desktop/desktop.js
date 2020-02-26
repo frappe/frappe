@@ -20,7 +20,7 @@ export default class Desktop {
 		this.make_container();
 		// this.show_loading_state();
 		this.fetch_desktop_settings().then(() => {
-			this.make_page(this.desktop_settings['Modules'][0].name);
+			this.make_page(this.get_last_opened_page());
 			this.make_sidebar();
 			this.setup_events;
 			// this.hide_loading_state();
@@ -88,8 +88,8 @@ export default class Desktop {
 				</div>`);
 		};
 
-		const make_sidebar_category_item = (item, outer_idx, idx) => {
-			if (outer_idx + idx == 0) {
+		const make_sidebar_category_item = (item) => {
+			if (item.name == this.get_last_opened_page()) {
 				item.selected = true;
 				this.current_page = item.name;
 			}
@@ -106,11 +106,11 @@ export default class Desktop {
 			$title.appendTo(this.sidebar);
 		}
 
-		this.sidebar_categories.forEach((category, outer_idx) => {
+		this.sidebar_categories.forEach((category) => {
 			if (this.desktop_settings.hasOwnProperty(category)) {
 				make_category_title(category)
-				this.desktop_settings[category].forEach((item, idx) => {
-					make_sidebar_category_item(item, outer_idx, idx)
+				this.desktop_settings[category].forEach((item) => {
+					make_sidebar_category_item(item)
 				});
 			}
 		});
@@ -123,8 +123,15 @@ export default class Desktop {
 		this.sidebar_items[this.current_page].removeClass("selected");
 		this.sidebar_items[page].addClass("selected");
 		this.current_page = page;
+		localStorage.current_desk_page = page;
 
 		this.pages[page] ? this.pages[page].show() : this.make_page(page);
+	}
+
+	get_last_opened_page() {
+		return localStorage.current_desk_page
+			? localStorage.current_desk_page
+			: this.desktop_settings['Modules'][0].name
 	}
 
 	make_page(page) {
