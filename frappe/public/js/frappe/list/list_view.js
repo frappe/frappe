@@ -602,7 +602,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			} else if (df.fieldtype === 'Link') {
 				html = `<a class="filterable text-muted ellipsis"
 					data-filter="${fieldname},=,${value}">
-					${frappe.get_link_title(df.options, _value) || _value}
+					${_value}
 				</a>`;
 			} else if (['Text Editor', 'Text', 'Small Text', 'HTML Editor'].includes(df.fieldtype)) {
 				html = `<span class="text-muted ellipsis">

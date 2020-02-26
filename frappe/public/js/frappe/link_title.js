@@ -34,4 +34,4 @@ frappe.set_link_title =  function(f) {
 			f.set_input_label(r);
 		}
 	});
-}
+};

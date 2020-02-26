@@ -92,7 +92,7 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 	},
 	validate_and_set_in_model: function(value, e) {
 		var me = this;
-		if(this.inside_change_event) {
+		if (this.inside_change_event) {
 			return Promise.resolve();
 		}
 		this.inside_change_event = true;
@@ -103,7 +103,7 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 				() => {
 					me.set_mandatory && me.set_mandatory(value);
 
-					if(me.df.change || me.df.onchange) {
+					if (me.df.change || me.df.onchange) {
 						// onchange event specified in df
 						frappe.set_link_title(me);
 						return (me.df.change || me.df.onchange).apply(me, [e]);

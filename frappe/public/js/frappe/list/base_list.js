@@ -43,7 +43,6 @@ frappe.views.BaseList = class BaseList {
 		this.page_length = 20;
 		this.data = [];
 		this.method = 'frappe.desk.reportview.get';
-		this.view = this.view_name;
 
 		this.can_create = frappe.model.can_create(this.doctype);
 		this.can_write = frappe.model.can_write(this.doctype);
@@ -345,8 +344,7 @@ frappe.views.BaseList = class BaseList {
 			filters: this.get_filters_for_args(),
 			order_by: this.sort_selector.get_sql_string(),
 			start: this.start,
-			page_length: this.page_length,
-			view: this.view
+			page_length: this.page_length
 		};
 	}
 
@@ -683,10 +681,6 @@ class FilterArea {
 		// returns true if user is currently editing filters
 		return this.filter_list &&
 			this.filter_list.wrapper.find('.filter-box:visible').length > 0;
-	}
-
-	get_field(field) {
-		return this.list_view.page.fields_dict[field];
 	}
 }
 

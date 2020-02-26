@@ -188,7 +188,6 @@ def get_std_fields_list(meta, key):
 	return sflist
 
 def get_title_field(meta, formatted_fields):
-	sflist = meta.search_fields and meta.search_fields.split(",") or []
 	title_field = meta.title_field if meta.title_field else None
 	show_title_field_in_link = meta.show_title_field_in_link if meta.show_title_field_in_link else None
 
