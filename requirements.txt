@@ -13,9 +13,15 @@ dropbox==9.1.0
 email-reply-parser==0.5.9
 Faker==2.0.4
 future==0.18.2
+<<<<<<< HEAD
 GitPython==2.1.15
 gitdb2==2.0.6;python_version<'3.4'
 google-api-python-client==1.9.3
+=======
+GitPython==2.1.11
+gitdb2==2.0.6;python_version<'3.4'
+google-api-python-client==1.7.11
+>>>>>>> 41a176aa77 (chore: pin gitdb due to package update in PYPI (#9553))
 google-auth-httplib2==0.0.3
 google-auth-oauthlib==0.4.1
 google-auth==1.19.1
