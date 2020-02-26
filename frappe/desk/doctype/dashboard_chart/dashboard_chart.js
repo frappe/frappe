@@ -160,6 +160,10 @@ frappe.ui.form.on('Dashboard Chart', {
 			frappe.msgprint(__('Report has no custom chart'));
 			frm.set_value('is_custom', 0);
 		}
+
+		if (frm.doc.is_custom == 0) {
+			frm.trigger('set_chart_report_filters');
+		}
 	},
 
 	timespan: function(frm) {

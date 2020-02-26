@@ -243,7 +243,7 @@ class DashboardChart {
 	}
 
 	get_report_chart_data(result) {
-		if (result.chart) {
+		if (result.chart && this.chart_doc.is_custom) {
 			return result.chart.data;
 		} else {
 			let	y_fields = JSON.parse(this.chart_doc.y_field);
