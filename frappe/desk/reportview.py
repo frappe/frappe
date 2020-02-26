@@ -12,15 +12,14 @@ from frappe import _
 from six import string_types, StringIO
 from frappe.core.doctype.access_log.access_log import make_access_log
 from frappe.utils import cstr
-from frappe.desk.form.load import get_title_values_for_link_and_dynamic_link_fields, get_title_values_for_table_and_multiselect_fields, send_link_titles
 
 
 @frappe.whitelist()
 @frappe.read_only()
 def get():
-	args, view = get_form_params()
+	args = get_form_params()
 
-	data = compress(execute(**args), args=args, view=view)
+	data = compress(execute(**args), args = args)
 
 	return data
 
@@ -30,9 +29,7 @@ def execute(doctype, *args, **kwargs):
 def get_form_params():
 	"""Stringify GET request parameters."""
 	data = frappe._dict(frappe.local.form_dict)
-	view = data.get('view')
 
-	data.pop('view', None)
 	data.pop('cmd', None)
 	data.pop('data', None)
 	data.pop('ignore_permissions', None)
@@ -79,36 +76,24 @@ def get_form_params():
 	data.query = None
 	data.strict = None
 
-	return data, view
+	return data
 
-def compress(data, args = {}, view="List"):
+def compress(data, args = {}):
 	"""separate keys and values"""
 	from frappe.desk.query_report import add_total_row
 
 	if not data: return data
 	values = []
 	keys = list(data[0])
-
-	link_titles = {}
-	meta = frappe.get_meta(args.doctype)
-	link_fields = meta.get_link_fields() + meta.get_dynamic_link_fields()
-	table_fields = meta.get_table_fields()
-
 	for row in data:
 		new_row = []
 		for key in keys:
 			new_row.append(row.get(key))
-
-		if not view == "Report":
-			link_titles.update(get_title_values_for_link_and_dynamic_link_fields(meta, row, link_fields))
-			link_titles.update(get_title_values_for_table_and_multiselect_fields(meta, row, table_fields))
-
 		values.append(new_row)
 
 	if args.get("add_total_row"):
+		meta = frappe.get_meta(args.doctype)
 		values = add_total_row(values, keys, meta)
-
-	send_link_titles(link_titles)
 
 	return {
 		"keys": keys,
