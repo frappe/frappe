@@ -47,7 +47,7 @@ frappe.setup.OnboardingSlide = class OnboardingSlide extends frappe.ui.Slide {
 
 	before_show() {
 		if (this.id === 0) {
-			this.$next_btn.text(__('Let\'s Go'))
+			this.$next_btn.text(__('Let\'s Go'));
 			this.$skip_btn.removeClass('hide');
 		} else {
 			this.$next_btn.text(__('Next'));
