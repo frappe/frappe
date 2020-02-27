@@ -292,7 +292,7 @@ class DesktopPage {
 			</div>`;
 		});
 
-		$(`<div id="legend" style="padding: 15px; display:flex;">
+		$(`<div class="legend">
 			${legend.join("\n")}
 		</div>`).insertAfter(cards.body);
 	}
