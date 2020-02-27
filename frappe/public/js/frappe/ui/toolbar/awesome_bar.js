@@ -168,6 +168,7 @@ frappe.search.AwesomeBar = Class.extend({
 		this.make_search_in_current(txt);
 		this.make_calculator(txt);
 		this.make_random(txt);
+		this.make_coin_toss(txt);
 	},
 
 	build_options: function(txt) {
@@ -292,6 +293,20 @@ frappe.search.AwesomeBar = Class.extend({
 				value: frappe.utils.get_random(16),
 				onclick: function() {
 					frappe.msgprint(frappe.utils.get_random(16), "Result");
+				}
+			})
+		}
+	},
+
+	make_coin_toss: function(txt) {
+		txt = txt.toLowerCase()
+		if(txt.includes('tos') || txt.includes('coin')) {
+			let result = Math.random() > 0.5 ? "Heads" : "Tails";
+			this.options.push({
+				label: "Toss a Coin",
+				value: result,
+				onclick: function() {
+					frappe.msgprint(result, "Result");
 				}
 			})
 		}
