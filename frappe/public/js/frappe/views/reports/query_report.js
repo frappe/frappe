@@ -287,7 +287,6 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	}
 
 	refresh() {
-		window.report = this;
 		this.toggle_message(true);
 		this.toggle_report(false);
 		let filters = this.get_filter_values(true);
