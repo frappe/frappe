@@ -384,8 +384,6 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			let value = frappe.format(summary.value, df, null, doc);
 			let indicator = summary.indicator ? `indicator ${ summary.indicator.toLowerCase() }` : '';
 
-			let fullwidth = JSON.parse(localStorage.container_fullwidth || 'false');
-
 			return $(`<div class="summary-item">
 				<span class="summary-label small text-muted ${indicator}">${summary.label}</span>
 				<h1 class="summary-value">${ value }</h1>
