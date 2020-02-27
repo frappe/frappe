@@ -23,7 +23,7 @@ google-auth==1.7.1
 googlemaps==3.1.1
 gunicorn==19.10.0
 html2text==2016.9.19
-ipython==5.8.0
+ipython==5.9.0
 Jinja2==2.10.3
 markdown2==2.3.7
 maxminddb-geolite2==2018.703
