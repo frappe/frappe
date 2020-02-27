@@ -663,10 +663,18 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		function preview_chart() {
 			const wrapper = $(dialog.fields_dict["chart_preview"].wrapper);
 			const values = dialog.get_values(true);
-			if (values.x_field && values.y_fields) {
+			values.y_fields = [];
+			values.colors = [];
+			if (values.y_axis_fields) {
+				values.y_axis_fields.map(f => {
+					values.y_fields.push(f.y_field);
+					values.colors.push(f.color);
+				});
+			}
+
+			if (values.x_field && values.y_fields.length) {
 				values.y_fields = 
 					values.y_fields
-						.split(',')
 						.map(d => d.trim())
 						.filter(Boolean);
 
@@ -687,20 +695,11 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			title: __('Create Chart'),
 			fields: [
 				{
-					fieldname: 'y_fields',
-					label: 'Y Field',
-					fieldtype: 'MultiSelect',
-					default: me.chart_fields? me.chart_fields.y_field: null, 
-					options: field_options.numeric_fields,
-					onchange: preview_chart
-				},
-				{
 					fieldname: 'x_field',
 					label: 'X Field',
 					fieldtype: 'Select',
 					default: me.chart_fields? me.chart_fields.x_field: null, 
 					options: field_options.non_numeric_fields,
-					onchange: preview_chart
 				},
 				{
 					fieldname: 'cb_1',
@@ -712,17 +711,40 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 					fieldtype: 'Select',
 					options: ['Bar', 'Line', 'Percentage', 'Pie', 'Donut'],
 					default: me.chart_fields? me.chart_fields.chart_type: 'Bar',
-					onchange: preview_chart
-				},
-				{
-					fieldname: 'color',
-					label: 'Color',
-					fieldtype: 'Color',
-					depends_on: doc => ['Bar', 'Line'].includes(doc.chart_type),
-					onchange: preview_chart,
 				},
 				{
 					fieldname: 'sb_1',
+					fieldtype: 'Section Break',
+					label: 'Y axis'
+				},
+				{
+					fieldname: 'y_axis_fields', fieldtype: 'Table', label: __('Y Fields'),
+					fields: [
+						{
+							fieldtype:'Select',
+							fieldname:'y_field',
+							name: 'y_field',
+							label: __('Y Field'),
+							options: field_options.numeric_fields,
+							in_list_view:1,
+						},
+						{
+							fieldtype:'Color',
+							fieldname:'color',
+							name:'color',
+							label: __('Color'),
+							in_list_view:1,
+						},
+					],
+				},
+				{
+					fieldname: 'preview_chart_button',
+					fieldtype: 'Button',
+					label: 'Preview Chart',
+					click: preview_chart
+				},
+				{
+					fieldname: 'sb_2',
 					fieldtype: 'Section Break',
 					label: 'Chart Preview'
 				},
@@ -745,9 +767,17 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			],
 			primary_action_label: __('Create'),
 			primary_action: (values) => {
+				values.y_fields = [];
+				values.colors = [];
+
+				if (values.y_axis_fields) {
+					values.y_axis_fields.map(f => {
+						values.y_fields.push(f.y_field);
+						values.colors.push(f.color);
+					});
+				}
 				values.y_fields = 
 					values.y_fields
-						.split(',')
 						.map(d => d.trim())
 						.filter(Boolean);
 

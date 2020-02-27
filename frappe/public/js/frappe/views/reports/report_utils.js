@@ -2,9 +2,8 @@ frappe.provide('frappe.report_utils');
 
 frappe.report_utils = {
 
-	make_chart_options: function(columns, raw_data, { y_fields, x_field, chart_type, color }) {
+	make_chart_options: function(columns, raw_data, { y_fields, x_field, chart_type, colors }) {
 		const type = chart_type.toLowerCase();
-		const colors = color ? [color] : undefined;
 
 		let rows =  raw_data.result.filter(value => Object.keys(value).length);
 
