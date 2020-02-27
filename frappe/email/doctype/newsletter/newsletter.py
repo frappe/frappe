@@ -164,20 +164,20 @@ def subscribe(email, email_group=_('Website')):
 	url = frappe.utils.get_url("/api/method/frappe.email.doctype.newsletter.newsletter.confirm_subscription") +\
 		"?" + get_signed_params({"email": email, "email_group": email_group})
 
-	confirmation_template = frappe.db.get_value('Email Group', email_group, ['confirmation_email'])
+	email_template = frappe.db.get_value('Email Group', email_group, ['confirmation_email_template'])
 
-	if confirmation_email:
-		args = frappe._dict(dict(
-			user_email=email,
+	content=''
+	if email_template:
+		args = dict(
+			email=email,
 			confirmation_url=url,
 			email_group=email_group
-		))
+		)
 
-		email_template = frappe.get_doc("Email Template", welcome_email)
+		email_template = frappe.get_doc("Email Template", email_template)
 		content = frappe.render_template(email_template.response, args)
 
-
-	if not message:
+	if not content:
 		messages = (
 			_("Thank you for your interest in subscribing to our updates"),
 			_("Please verify your Email Address"),
@@ -190,35 +190,23 @@ def subscribe(email, email_group=_('Website')):
 		<p><a href="{2}">{3}</a></p>
 		""".format(*messages)
 
-	frappe.sendmail(email, subject=email_template.subject or _("Confirm Your Email"), content=content)
+	frappe.sendmail(email, subject=getattr('email_template', 'subject', '') or _("Confirm Your Email"), content=content)
 
 @frappe.whitelist(allow_guest=True)
 def confirm_subscription(email, email_group=_('Website')):
 	if not verify_request():
 		return
 
-	if not frappe.db.exists("Email Group", _("Website")):
+	if not frappe.db.exists("Email Group", email_group):
 		frappe.get_doc({
 			"doctype": "Email Group",
-			"title": _("Website")
+			"title": email_group
 		}).insert(ignore_permissions=True)
 
 	frappe.flags.ignore_permissions = True
 
-	add_subscribers(_("Website"), email)
+	add_subscribers(email_group, email)
 	frappe.db.commit()
-
-	welcome_email = frappe.db.get_value('Email Group', _('Website'), 'welcome_email')
-
-	if welcome_email:
-		args = frappe._dict(dict(
-			user_email=email,
-			email_group=email_group
-		))
-
-		email_template = frappe.get_doc("Email Template", welcome_email)
-		message = frappe.render_template(email_template.response, args)
-		frappe.sendmail(email, subject=email_template.subject, message=message)
 
 	frappe.respond_as_web_page(_("Confirmed"),
 		_("{0} has been successfully added to the Email Group.").format(email),
