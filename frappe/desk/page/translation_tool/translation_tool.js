@@ -18,7 +18,7 @@ class TranslationTool {
 		this.edited_translations = {};
 		this.setup_search_box();
 		this.setup_language_filter();
-		this.page.set_primary_action(__('Submit Translations'), this.create_translations.bind(this));
+		this.page.set_primary_action(__('Contribute Translations'), this.create_translations.bind(this));
 		this.update_header();
 	}
 
@@ -111,6 +111,11 @@ class TranslationTool {
 			this.form = new frappe.ui.FieldGroup({
 				fields: [
 					{
+						fieldtype: "HTML",
+						fieldname: "status",
+						read_only: 1
+					},
+					{
 						label: "Source Text",
 						fieldtype: "Code",
 						fieldname: "source_text",
@@ -144,7 +149,7 @@ class TranslationTool {
 						}
 					},
 					{
-						label: "Add Translation",
+						label: __("Contribute Translation"),
 						fieldtype: "Button",
 						fieldname: "add_translation_btn",
 						click: (values) => {
@@ -174,7 +179,34 @@ class TranslationTool {
 
 		let source_text = this.form.get_field("source_text");
 
-		source_text.$wrapper.append('')
+		this.form.get_field('status').$wrapper.html(`<div>
+			<span class="indicator ${this.get_indicator_color(translation)}">${this.get_indicator_status_text(translation)}</span>
+		</div>`);
+
+		this.setup_contributions(translation.contributions);
+
+		source_text.$wrapper.append('');
+	}
+
+	setup_contributions(contributions) {
+		let contributions_dom = ``;
+		if (contributions.length) {
+			contributions_dom += `
+				<h4>Other Contributions</h4>
+			`;
+
+			contributions.forEach(contribution => {
+				contributions_dom += `<div>
+					<span class="pull-right text-muted">${frappe.datetime.comment_when(contribution.creation)}</span>
+					<div class="text-muted">By ${contribution.contributor_name} </div>
+					<span> ${contribution.translated_string} </span>
+				</div>`;
+			});
+
+		}
+
+		this.wrapper.find(".other-contributions").html(contributions_dom);
+
 	}
 
 	create_translations() {

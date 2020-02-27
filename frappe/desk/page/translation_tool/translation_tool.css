@@ -13,10 +13,15 @@
 }
 
 .translation-item-container {
-	height: calc(100vh - 220px);
+	height: calc(100vh - 320px);
 	overflow: auto;
 }
 
-.translation-edit-form {
+.translation-edit-section {
+	height: calc(100vh - 240px);
 	overflow: auto;
+}
+
+.translation-edit-form .ace-editor-target {
+	height: 180px !important;
 }
