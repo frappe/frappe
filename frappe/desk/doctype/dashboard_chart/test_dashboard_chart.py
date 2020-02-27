@@ -150,6 +150,7 @@ class TestDashboardChart(unittest.TestCase):
 
 		frappe.db.rollback()
 
+<<<<<<< HEAD
 	def test_daily_dashboard_chart(self):
 		insert_test_records()
 
@@ -261,3 +262,19 @@ def create_new_communication(subject, date, rating):
 	comm = frappe.get_doc(communication)
 	if not frappe.db.exists("Communication", {'subject' : comm.subject}):
 		comm.insert()
+=======
+	def test_dashboard_with_single_doctype(self):
+		if frappe.db.exists('Dashboard Chart', 'Test Single DocType In Dashboard Chart'):
+			frappe.delete_doc('Dashboard Chart', 'Test Single DocType In Dashboard Chart')
+
+		chart_doc = frappe.get_doc(dict(
+			doctype = 'Dashboard Chart',
+			chart_name = 'Test Single DocType In Dashboard Chart',
+			chart_type = 'Count',
+			document_type = 'System Settings',
+			group_by_based_on = 'Created On',
+			filters_json = '{}',
+		))
+
+		self.assertRaises(frappe.ValidationError, chart_doc.insert)
+>>>>>>> 23ae536c78 (feat: tests for single doctype validation)
