@@ -28,8 +28,14 @@
 			display: flex;
 			padding: 10px 15px;
 			border-radius: 4px;
+			text-decoration: none;
 			cursor: pointer;
 			text-rendering: optimizelegibility;
+
+			&:focus {
+				background-color: @panel-bg;
+				outline: 0;
+			}
 
 			&:hover {
 				background-color: @panel-bg;
@@ -95,7 +101,7 @@
 			}
 
 			.legend-item {
-				margin-right: 15px;
+				margin-right: 20px;
 			}
 		}
 

@@ -20,13 +20,16 @@ export default class Desktop {
 		this.make_container();
 		// this.show_loading_state();
 		this.fetch_desktop_settings().then(() => {
-			this.make_page(this.get_last_opened_page());
 			this.make_sidebar();
-			this.setup_events;
+			this.make_page(this.get_page_to_show());
+			this.setup_events();
 			// this.hide_loading_state();
 		});
 	}
 
+	route() {
+		this.show_page(this.get_page_to_show());
+	}
 
 	make_container() {
 		this.container = $(`<div class="desk-container row">
@@ -81,36 +84,36 @@ export default class Desktop {
 
 	make_sidebar() {
 		const get_sidebar_item = function(item) {
-			return $(`<div class="sidebar-item ${
+			return $(`<a href="${"desk#workspace/" +
+				item.name}" class="sidebar-item ${
 				item.selected ? "selected" : ""
 			}">
 					<span>${item.name}</span>
 				</div>`);
 		};
 
-		const make_sidebar_category_item = (item) => {
-			if (item.name == this.get_last_opened_page()) {
+		const make_sidebar_category_item = item => {
+			if (item.name == this.get_page_to_show()) {
 				item.selected = true;
 				this.current_page = item.name;
 			}
 			let $item = get_sidebar_item(item);
-			$item.on("click", () => {
-				this.show_page(item.name);
-			});
 			$item.appendTo(this.sidebar);
 			this.sidebar_items[item.name] = $item;
-		}
+		};
 
-		const make_category_title = (name) => {
-			let $title = $(`<div class="sidebar-group-title h6 uppercase">${name}</div>`);
+		const make_category_title = name => {
+			let $title = $(
+				`<div class="sidebar-group-title h6 uppercase">${name}</div>`
+			);
 			$title.appendTo(this.sidebar);
-		}
+		};
 
-		this.sidebar_categories.forEach((category) => {
+		this.sidebar_categories.forEach(category => {
 			if (this.desktop_settings.hasOwnProperty(category)) {
-				make_category_title(category)
-				this.desktop_settings[category].forEach((item) => {
-					make_sidebar_category_item(item)
+				make_category_title(category);
+				this.desktop_settings[category].forEach(item => {
+					make_sidebar_category_item(item);
 				});
 			}
 		});
@@ -128,10 +131,14 @@ export default class Desktop {
 		this.pages[page] ? this.pages[page].show() : this.make_page(page);
 	}
 
-	get_last_opened_page() {
-		return localStorage.current_desk_page
-			? localStorage.current_desk_page
-			: this.desktop_settings['Modules'][0].name
+	get_page_to_show() {
+		let page =
+			frappe.get_route()[1] ||
+			localStorage.current_desk_page ||
+			this.desktop_settings["Modules"][0].name;
+
+		frappe.set_route("workspace", page);
+		return page;
 	}
 
 	make_page(page) {
@@ -144,7 +151,13 @@ export default class Desktop {
 		return $page;
 	}
 
-	setup_events() {}
+	setup_events() {
+		$(document).keydown(e => {
+			if (e.keyCode == 9) {
+				console.log("navigate");
+			}
+		});
+	}
 }
 
 class DesktopPage {
@@ -257,30 +270,30 @@ class DesktopPage {
 			widgets: this.data.cards
 		});
 
-		this.sections["cards"] = cards
+		this.sections["cards"] = cards;
 
 		const legend = [
 			{
-				'color': 'blue',
-				'description': __('Important DocType')
+				color: "blue",
+				description: __("Important")
 			},
 			{
-				'color': 'orange',
-				'description': __('No Records Created')
+				color: "orange",
+				description: __("No Records Created")
 			},
 			{
-				'color': 'red',
-				'description': __('DocType has Open Entries')
+				color: "red",
+				description: __("DocType has Open Entries")
 			}
 		].map(item => {
 			return `<div class="legend-item small text-muted justify-flex-start">
 				<span class="indicator ${item.color}"></span>
 				<span class="link-content ellipsis" draggable="false">${item.description}</span>
-			</div>`
-		})
+			</div>`;
+		});
 
 		$(`<div id="legend" style="padding: 15px; display:flex;">
-			${legend.join('\n')}
+			${legend.join("\n")}
 		</div>`).insertAfter(cards.body);
 	}
 }
