@@ -12,6 +12,13 @@ frappe.ui.form.on('Dashboard Chart', {
 	refresh: function(frm) {
 		frm.chart_filters = null;
 		frm.set_df_property("filters_section", "hidden", 1);
+		frm.set_query('document_type', function() {
+			return {
+				filters: {
+					'issingle': false
+				}
+			}
+		});
 		frm.trigger('update_options');
 	},
 
