@@ -1,5 +1,5 @@
 Babel==2.6.0
-beautifulsoup4==4.8.1
+beautifulsoup4==4.8.2
 bleach-whitelist==0.0.10
 bleach==2.1.4
 boto3==1.10.18
