@@ -1,14 +1,13 @@
 {
  "actions": [],
- "creation": "2020-01-02 11:21:44.457163",
+ "creation": "2020-01-28 15:21:44.457163",
  "doctype": "DocType",
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
   "account_sid",
-  "column_break_2",
   "auth_token",
-  "section_break_4",
+  "column_break_2",
   "twilio_number"
  ],
  "fields": [
@@ -27,10 +26,6 @@
    "fieldtype": "Column Break"
   },
   {
-   "fieldname": "section_break_4",
-   "fieldtype": "Section Break"
-  },
-  {
    "fieldname": "twilio_number",
    "fieldtype": "Table",
    "label": "Twilio Number",
@@ -39,7 +34,7 @@
  ],
  "issingle": 1,
  "links": [],
- "modified": "2020-02-21 10:22:28.331997",
+ "modified": "2020-02-28 16:38:04.589780",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Twilio Settings",

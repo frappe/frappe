@@ -7,14 +7,14 @@ import frappe
 import json, os
 from frappe import _
 from frappe.model.document import Document
-from frappe.core.doctype.role.role import get_emails_from_role
+from frappe.core.doctype.role.role import get_info_based_on_role
 from frappe.utils import validate_email_address, nowdate, parse_val, is_html, add_to_date
 from frappe.utils.jinja import validate_template
 from frappe.modules.utils import export_module_json, get_doc_module
 from six import string_types
 from frappe.integrations.doctype.slack_webhook_url.slack_webhook_url import send_slack_message
 from frappe.integrations.doctype.twilio_settings.twilio_settings import send_whatsapp_message
-from frappe.core.doctype.sms_settings.sms_settings import send_sms
+from frappe.core.doctype.sms_settings.sms_settings import send_sms, validate_receiver_nos
 
 class Notification(Document):
 	def onload(self):
@@ -127,7 +127,7 @@ def get_context(context):
 		if self.channel == 'Slack':
 			self.send_a_slack_msg(doc, context)
 
-		if self.channel in ('WhatsApp', 'SMS', 'MMS'):
+		if self.channel == 'WhatsApp':
 			self.send_whatsapp_msg(doc, context)
 
 		if self.channel == 'SMS':
@@ -179,13 +179,13 @@ def get_context(context):
 	def send_whatsapp_msg(self, doc, context):
 		send_whatsapp_message(
 			sender=self.twilio_number,
-			receiver_list=[''],
+			receiver_list=self.get_receiver_list(doc, context),
 			message=frappe.render_template(self.message, context),
 		)
 
 	def send_sms(self, doc, context):
 		send_sms(
-			receiver_list=[''],
+			receiver_list=self.get_receiver_list(doc, context),
 			msg=frappe.render_template(self.message, context)
 		)
 
@@ -221,7 +221,7 @@ def get_context(context):
 
 			#For sending emails to specified role
 			if recipient.receiver_by_role:
-				emails = get_emails_from_role(recipient.receiver_by_role)
+				emails = get_info_based_on_role(recipient.receiver_by_role, 'email')
 
 				for email in emails:
 					recipients = recipients + email.split("\n")
@@ -229,6 +229,23 @@ def get_context(context):
 		if not recipients and not cc and not bcc:
 			return None, None, None
 		return list(set(recipients)), list(set(cc)), list(set(bcc))
+
+	def get_receiver_list(self, doc, context):
+		''' return receiver list based on the doc field and role specified '''
+		receiver_list = []
+		for recipient in self.recipients:
+			if recipient.condition:
+				if not frappe.safe_eval(recipient.condition, None, context):
+					continue
+
+			if recipient.receiver_by_document_field:
+				receiver_list.append(doc.get(recipient.receiver_by_document_field))
+
+			#For sending messages to specified role
+			if recipient.receiver_by_role:
+				receiver_list += get_info_based_on_role(recipient.receiver_by_role, 'mobile_no')
+
+		return receiver_list
 
 	def get_attachment(self, doc):
 		""" check print settings are attach the pdf """

@@ -151,6 +151,7 @@
    "label": "Value Changed"
   },
   {
+   "depends_on": "eval: doc.channel == 'Email'",
    "fieldname": "sender",
    "fieldtype": "Link",
    "label": "Sender",
@@ -266,14 +267,14 @@
   {
    "depends_on": "eval: doc.channel==='WhatsApp'",
    "fieldname": "twilio_number",
-   "fieldtype": "Int",
+   "fieldtype": "Link",
    "label": "Twilio Number",
-   "options": "Twilio Settings"
+   "options": "Twilio Number Group"
   }
  ],
  "icon": "fa fa-envelope",
  "links": [],
- "modified": "2020-02-20 14:17:34.090828",
+ "modified": "2020-02-28 14:04:21.546481",
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Notification",

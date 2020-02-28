@@ -22,16 +22,16 @@ class Role(Document):
 				frappe.db.sql("delete from `tabHas Role` where role = %s", self.name)
 				frappe.clear_cache()
 
-# Get email addresses of all users that have been assigned this role
-def get_emails_from_role(role):
-	emails = []
+def get_info_based_on_role(role, field='email'):
+	''' Get information of all users that have been assigned this role '''
+	info_list = []
 
 	users = frappe.get_list("Has Role", filters={"role": role, "parenttype": "User"},
 		fields=["parent"])
 
 	for user in users:
-		user_email, enabled = frappe.db.get_value("User", user.parent, ["email", "enabled"])
-		if enabled and user_email not in ["admin@example.com", "guest@example.com"]:
-			emails.append(user_email)
+		user_info, enabled = frappe.db.get_value("User", user.parent, [field, "enabled"])
+		if enabled and user_info not in ["admin@example.com", "guest@example.com"]:
+			info_list.append(user_info)
 
-	return emails
+	return info_list

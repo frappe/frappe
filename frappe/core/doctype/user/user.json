@@ -1,4 +1,5 @@
 {
+ "actions": [],
  "allow_import": 1,
  "allow_rename": 1,
  "creation": "2014-03-11 14:55:00",
@@ -237,12 +238,14 @@
   {
    "fieldname": "phone",
    "fieldtype": "Data",
-   "label": "Phone"
+   "label": "Phone",
+   "options": "Phone"
   },
   {
    "fieldname": "mobile_no",
    "fieldtype": "Data",
    "label": "Mobile No",
+   "options": "Phone",
    "unique": 1
   },
   {
@@ -585,8 +588,9 @@
  "icon": "fa fa-user",
  "idx": 413,
  "image_field": "user_image",
+ "links": [],
  "max_attachments": 5,
- "modified": "2019-10-22 14:16:34.810223",
+ "modified": "2020-03-02 14:18:01.958906",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "User",
