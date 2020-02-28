@@ -190,7 +190,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			'type': chart_args.chart_type || frappe.model.unscrub(chart_args.type),
 			'color': chart_args.color,
 			'filters_json': JSON.stringify(this.get_filter_values()),
-		}
+		};
 
 		if (this.chart_fields) {
 			let x_field_title = toTitle(chart_args.x_field);
@@ -443,7 +443,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				this.chart_options = this.get_chart_options(data);
 
 				this.$chart.empty();
-				if(this.chart_options) {
+				if (this.chart_options) {
 					this.render_chart(this.chart_options);
 				}
 				else {
@@ -455,7 +455,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 								this.raw_data,
 								this.chart_fields
 							);
-						this.chart_options && this.render_chart(chart_options);
+						this.chart_options && this.render_chart(this.chart_options);
 					}
 				}
 				this.render_datatable();
@@ -721,19 +721,19 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 					fieldname: 'y_axis_fields', fieldtype: 'Table', label: __('Y Fields'),
 					fields: [
 						{
-							fieldtype:'Select',
-							fieldname:'y_field',
+							fieldtype: 'Select',
+							fieldname: 'y_field',
 							name: 'y_field',
 							label: __('Y Field'),
 							options: field_options.numeric_fields,
-							in_list_view:1,
+							in_list_view: 1,
 						},
 						{
-							fieldtype:'Color',
-							fieldname:'color',
-							name:'color',
+							fieldtype: 'Color',
+							fieldname: 'color',
+							name: 'color',
 							label: __('Color'),
-							in_list_view:1,
+							in_list_view: 1,
 						},
 					],
 				},
