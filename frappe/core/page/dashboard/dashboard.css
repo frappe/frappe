@@ -28,18 +28,19 @@
 	position: relative;
 	right: 0px;
 	top: 25px;
-	margin-right: 10px;
+	margin-right: 5px;
 }
 
 .filter-chart {
 	position: relative;
-	right: 10px;
+	right: 5px;
 	top: 25px;
 }
 
 .dashboard-date-field {
 	width: 14%;
-	margin-right: 10px;
+	height: 0;
+	margin-right: 5px;
 	position: relative;
 	top: 5px;
 }
