@@ -9,6 +9,123 @@ from frappe import _, DoesNotExistError
 from frappe.boot import get_allowed_pages, get_allowed_reports
 from frappe.cache_manager import build_table_count_cache
 
+class Workspace:
+	def __init__(self, page_name):
+		self.page_name = page_name
+		self.build_cache()
+
+	def build_cache(self):
+		try:
+			self.doc = frappe.get_doc("Desk Page", self.page_name)
+		except frappe.DoesNotExistError:
+			frappe.throw(_("Desk Page {0} does not exist").format(page))
+
+		user = frappe.get_user()
+		user.build_permissions()
+		self.user = user
+
+		self.allowed_pages = get_allowed_pages()
+		self.allowed_reports = get_allowed_reports()
+
+		self.table_counts = build_table_count_cache()
+
+	def is_item_allowed(self, name, item_type):
+		item_type = item_type.lower()
+
+		if item_type == "doctype":
+			return name in self.user.can_read
+		if item_type == "page":
+			return name in self.allowed_pages
+		if item_type == "report":
+			return name in self.allowed_reports
+		if item_type == "help":
+			return True
+
+		return False
+
+	def build_workspace(self):
+		self.cards = self.get_cards()
+		self.charts = self.get_charts()
+		self.shortcuts = self.get_shortcuts()
+
+	def get_cards(self):
+		cards = self.doc.cards + get_custom_reports_and_doctypes(self.doc.module)
+		default_country = frappe.db.get_default("country")
+
+		def _doctype_contains_a_record(name):
+			exists = self.table_counts.get(name)
+			if not exists:
+				if not frappe.db.get_value('DocType', name, 'issingle'):
+					exists = frappe.db.count(name)
+				else:
+					exists = True
+				self.table_counts[name] = exists
+			return exists
+
+		def _prepare_item(item):
+			if item.dependencies:
+				incomplete_dependencies = [d for d in item.dependencies if not _doctype_contains_a_record(d)]
+				if len(incomplete_dependencies):
+					item.incomplete_dependencies = incomplete_dependencies
+
+			if item.onboard:
+				# Mark Spotlights for initial
+				if item.get("type") == "doctype":
+					name = item.get("name")
+					count = _doctype_contains_a_record(name)
+
+					item["count"] = count
+
+			return item
+
+		new_data = []
+		for section in cards:
+			new_items = []
+			if isinstance(section.links, str):
+				links = json.loads(section.links)
+			else:
+				links = section.links
+
+			for item in links:
+				item = frappe._dict(item)
+
+				# Condition: based on country
+				if item.country and item.country != default_country:
+					continue
+
+				# Check if user is allowed to view
+				if self.is_item_allowed(item.name, item.type):
+					prepared_item = _prepare_item(item)
+					new_items.append(item)
+
+			if new_items:
+				if isinstance(section, frappe._dict):
+					new_section = section.copy()
+				else:
+					new_section = section.as_dict().copy()
+				new_section["links"] = new_items
+				new_section["label"] = section.title
+				new_data.append(new_section)
+
+		return new_data
+
+	def get_charts(self):
+		return [chart for chart in self.doc.charts if frappe.has_permission("Dashboard Chart", chart.chart_name, throw=False)]
+
+	def get_shortcuts(self):
+		items = []
+		for item in self.doc.shortcuts:
+			new_item = item.as_dict().copy()
+			new_item['name'] = _(item.link_to)
+			if self.is_item_allowed(item.link_to, item.type):
+				if item.type == "Page":
+					page = self.allowed_pages[item.link_to]
+					new_item['label'] = _(page.get("title", frappe.unscrub(item.link_to)))
+
+				items.append(new_item)
+
+		return items
+
 @frappe.whitelist()
 def get_desktop_page(page):
 	"""Applies permissions, customizations and returns the configruration for a page
@@ -20,141 +137,10 @@ def get_desktop_page(page):
 	Returns:
 		dict: dictionary of cards, charts and shortcuts to be displayed on website
 	"""
-	try:
-		doc = frappe.get_doc("Desk Page", page)
-	except frappe.DoesNotExistError:
-		frappe.throw(_("Desk Page {0} does not exist").format(page))
+	wspace = Workspace(page)
+	wspace.build_workspace()
 
-	user = frappe.get_user()
-	user.build_permissions()
-	allowed_pages = get_allowed_pages()
-	allowed_reports = get_allowed_reports()
-
-	# prepare cards
-	all_cards = doc.cards + get_custom_reports_and_doctypes(doc.module)
-	cards = apply_permissions(all_cards, user, allowed_pages, allowed_reports)
-
-	# prepare shortcuts
-	shortcuts = prepare_shortcuts(doc.shortcuts, user, allowed_pages, allowed_reports)
-
-	# prepare charts
-	charts = prepare_charts(doc.charts, user)
-
-	return {'charts': charts, 'shortcuts': shortcuts, 'cards': cards}
-
-def prepare_charts(data, user):
-	return [chart for chart in data if frappe.has_permission("Dashboard Chart", chart.chart_name, throw=False)]
-
-def prepare_shortcuts(data, user, allowed_pages, allowed_reports):
-	""" Preprocess shortcut cards (translations, keys, etc)
-
-	Args:
-		data (list): List of dictionaries containing config
-
-	Returns:
-		list: List of dictionaries containing config
-	"""
-	items = []
-	for item in data:
-		new_item = item.as_dict().copy()
-		new_item['name'] = _(item.link_to)
-		if ((item.type=="DocType" and item.link_to in user.can_read)
-			or (item.type=="Page" and item.link_to in allowed_pages)
-			or (item.type=="Report" and item.link_to in allowed_reports)
-			or item.type=="help"):
-
-			if item.type == "Page":
-				page = allowed_pages[item.link_to]
-				new_item['label'] = _(page.get("title", frappe.unscrub(item.link_to)))
-
-			items.append(new_item)
-
-	return items
-
-def get_table_with_counts():
-	counts = frappe.cache().get_value("information_schema:counts")
-	if counts:
-		return counts
-	else:
-		return build_table_count_cache()
-
-def apply_permissions(data, user, allowed_pages, allowed_reports):
-	"""Applied permissions to card to add or remove links
-
-	Args:
-		data (list): List of dicts with card data
-
-	Returns:
-		TYPE: List of dicts with card data
-	"""
-	default_country = frappe.db.get_default("country")
-	exists_cache = get_table_with_counts()
-
-	def _doctype_contains_a_record(name):
-		exists = exists_cache.get(name)
-		if not exists:
-			if not frappe.db.get_value('DocType', name, 'issingle'):
-				exists = frappe.db.count(name)
-			else:
-				exists = True
-			exists_cache[name] = exists
-		return exists
-
-	def _get_incomplete_dependencies(name):
-		return []
-
-
-	def _prepare_item(item):
-		if item.dependencies:
-			incomplete_dependencies = [d for d in item.dependencies if not _doctype_contains_a_record(d)]
-			if len(incomplete_dependencies):
-				item.incomplete_dependencies = incomplete_dependencies
-
-		if item.onboard:
-			# Mark Spotlights for initial
-			if item.get("type") == "doctype":
-				name = item.get("name")
-				count = _doctype_contains_a_record(name)
-
-				item["count"] = count
-
-		return item
-
-	new_data = []
-	for section in data:
-		new_items = []
-		if isinstance(section.links, str):
-			links = json.loads(section.links)
-		else:
-			links = section.links
-
-		for item in links:
-			item = frappe._dict(item)
-
-			# Condition: based on country
-			if item.country and item.country!=default_country:
-				continue
-
-			# Check if user is allowed to view
-			if ((item.type=="doctype" and item.name in user.can_read)
-				or (item.type=="page" and item.name in allowed_pages)
-				or (item.type=="report" and item.name in allowed_reports)
-				or item.type=="help"):
-
-				prepared_item = _prepare_item(item)
-
-				new_items.append(item)
-
-		if new_items:
-			if isinstance(section, frappe._dict):
-				new_section = section.copy()
-			else:
-				new_section = section.as_dict().copy()
-			new_section["links"] = new_items
-			new_section["label"] = section.title
-			new_data.append(new_section)
-
-	return new_data
+	return {'charts': wspace.charts, 'shortcuts': wspace.shortcuts, 'cards': wspace.cards}
 
 @frappe.whitelist()
 def get_desk_sidebar_items():
@@ -167,19 +153,26 @@ def get_desk_sidebar_items():
 		sidebar_items[page["category"]].append(page)
 	return sidebar_items
 
+def get_table_with_counts():
+	counts = frappe.cache().get_value("information_schema:counts")
+	if not counts:
+		counts = build_table_count_cache()
+
+	return counts
+
 def get_custom_reports_and_doctypes(module):
 	return [
 		frappe._dict({
 			"title": "Custom Reports",
-			"links": get_report_list(module)
+			"links": get_custom_report_list(module)
 		}),
 		frappe._dict({
 			"title": "Custom DocTypes",
-			"links": get_doctype_list(module)
+			"links": get_custom_doctype_list(module)
 		})
 	]
 
-def get_doctype_list(module, is_standard=False):
+def get_custom_doctype_list(module):
 	doctypes =  frappe.get_list("DocType", fields=["name"], filters={"custom": 1, "istable": 0, "module": module}, order_by="name", ignore_permissions=True)
 
 	out = []
@@ -193,10 +186,10 @@ def get_doctype_list(module, is_standard=False):
 	return out
 
 
-def get_report_list(module, is_standard="No"):
+def get_custom_report_list(module):
 	"""Returns list on new style reports for modules."""
 	reports =  frappe.get_list("Report", fields=["name", "ref_doctype", "report_type"], filters=
-		{"is_standard": is_standard, "disabled": 0, "module": module},
+		{"is_standard": "No", "disabled": 0, "module": module},
 		order_by="name", ignore_permissions=True)
 
 	out = []
