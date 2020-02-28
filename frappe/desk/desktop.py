@@ -7,7 +7,7 @@ import frappe
 import json
 from frappe import _, DoesNotExistError
 from frappe.boot import get_allowed_pages, get_allowed_reports
-from frappe.cache_manager import build_table_count_cache
+from frappe.cache_manager import build_domain_restriced_doctype_cache, build_domain_restriced_page_cache, build_table_count_cache
 
 class Workspace:
 	def __init__(self, page_name):
@@ -28,14 +28,16 @@ class Workspace:
 		self.allowed_reports = get_allowed_reports()
 
 		self.table_counts = build_table_count_cache()
+		self.restricted_doctypes = build_domain_restriced_doctype_cache()
+		self.restricted_pages = build_domain_restriced_page_cache()
 
 	def is_item_allowed(self, name, item_type):
 		item_type = item_type.lower()
 
 		if item_type == "doctype":
-			return name in self.user.can_read
+			return (name in self.user.can_read and name in self.restricted_doctypes)
 		if item_type == "page":
-			return name in self.allowed_pages
+			return (name in self.allowed_pages and name in self.restricted_pages)
 		if item_type == "report":
 			return name in self.allowed_reports
 		if item_type == "help":
@@ -146,10 +148,18 @@ def get_desktop_page(page):
 def get_desk_sidebar_items():
 	"""Get list of sidebar items for desk
 	"""
+	# don't get domain restricted pages
+	filters = {'restrict_to_domain': ['in', frappe.get_active_domains()]}
+
+	# pages sorted based on pinned to top and then by name
+	order_by = "pin_to_top desc, name asc"
+	pages = frappe.get_all("Desk Page", fields=["name", "category"], filters=filters, order_by=order_by, ignore_permissions=True)
+
 	from collections import defaultdict
 	sidebar_items = defaultdict(list)
-	pages = frappe.get_all("Desk Page", fields=["name", "category"], order_by="pin_to_top desc, name asc", ignore_permissions=True)
+
 	for page in pages:
+		# The order will be maintained while categorizing
 		sidebar_items[page["category"]].append(page)
 	return sidebar_items
 
