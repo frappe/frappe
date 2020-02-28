@@ -140,6 +140,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 	refresh_report() {
 		this.toggle_message(true);
+		this.toggle_report(false);
 
 		return frappe.run_serially([
 			() => this.setup_filters(),
@@ -287,6 +288,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 	refresh() {
 		this.toggle_message(true);
+		this.toggle_report(false);
 		let filters = this.get_filter_values(true);
 
 		// only one refresh at a time
@@ -336,10 +338,15 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				}
 				this.add_prepared_report_buttons(data.doc);
 			}
+
+			if (data.report_summary) {
+				this.$summary.empty();
+				this.render_summary(data.report_summary);
+			}
+
 			this.toggle_message(false);
 			if (data.result && data.result.length) {
 				this.prepare_report_data(data);
-
 				const chart_options = this.get_chart_options(data);
 				this.$chart.empty();
 				if(chart_options) {
@@ -352,7 +359,6 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 						chart_options && this.render_chart(chart_options);
 					}
 				}
-
 				this.render_datatable();
 			} else {
 				this.data = [];
@@ -362,6 +368,32 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			this.show_footer_message();
 			frappe.hide_progress();
 		});
+	}
+
+	render_summary(data) {
+		let build_summary_item = (summary) => {
+			let df = {fieldtype: summary.datatype};
+			let doc = null;
+
+			if (summary.datatype == "Currency") {
+				df.options = "currency";
+				doc = {currency: summary.currency};
+			}
+
+			let value = frappe.format(summary.value, df, null, doc);
+			let indicator = summary.indicator ? `indicator ${ summary.indicator.toLowerCase() }` : '';
+
+			return $(`<div class="summary-item">
+				<span class="summary-label small text-muted ${indicator}">${summary.label}</span>
+				<h1 class="summary-value">${ value }</h1>
+			</div>`);
+		};
+
+		data.forEach((summary) => {
+			build_summary_item(summary).appendTo(this.$summary);
+		})
+
+		this.$summary.show();
 	}
 
 	get_query_params() {
@@ -491,6 +523,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		if (this.report_settings.after_datatable_render) {
 			this.report_settings.after_datatable_render(this.datatable);
 		}
+		this.$report.show();
 	}
 
 	get_chart_options(data) {
@@ -519,8 +552,8 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 	render_chart(options) {
 		this.$chart.empty();
-		this.chart = new frappe.Chart(this.$chart[0], options);
 		this.$chart.show();
+		this.chart = new frappe.Chart(this.$chart[0], options);
 	}
 
 	make_chart_options({ y_field, x_field, chart_type, color }) {
@@ -1280,6 +1313,9 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		this.$status = $(`<div class="form-message text-muted small"></div>`)
 			.hide().insertAfter(page_form);
 
+		this.$summary = $(`<div class="report-summary"></div>`)
+			.hide().appendTo(this.page.main);
+
 		this.$chart = $('<div class="chart-wrapper">').hide().appendTo(this.page.main);
 		this.$report = $('<div class="report-wrapper">').appendTo(this.page.main);
 		this.$message = $(this.message_div('')).hide().appendTo(this.page.main);
@@ -1365,8 +1401,12 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		} else {
 			this.$message.hide();
 		}
-		this.$report.toggle(!flag);
-		this.$chart.toggle(!flag);
+	}
+
+	toggle_report(flag) {
+		this.$report.toggle(flag);
+		this.$chart.toggle(flag);
+		this.$summary.toggle(flag);
 	}
 	// backward compatibility
 	get get_values() {

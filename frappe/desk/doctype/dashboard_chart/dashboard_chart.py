@@ -279,6 +279,7 @@ class DashboardChart(Document):
 	def validate(self):
 		if self.chart_type != 'Custom':
 			self.check_required_field()
+		self.check_document_type()
 
 	def check_required_field(self):
 		if not self.document_type:
@@ -292,3 +293,7 @@ class DashboardChart(Document):
 		else:
 			if not self.based_on:
 				frappe.throw(_("Time series based on is required to create a dashboard chart"))
+
+	def check_document_type(self):
+		if frappe.get_meta(self.document_type).issingle:
+			frappe.throw("You cannot create a dashboard chart from single DocTypes")
