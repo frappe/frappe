@@ -20,15 +20,16 @@ export default class Desktop {
 		this.make_container();
 		// this.show_loading_state();
 		this.fetch_desktop_settings().then(() => {
+			this.route();
 			this.make_sidebar();
-			this.make_page(this.get_page_to_show());
 			this.setup_events();
 			// this.hide_loading_state();
 		});
 	}
 
 	route() {
-		this.show_page(this.get_page_to_show());
+		let page = this.get_page_to_show();
+		this.show_page(page);
 	}
 
 	make_container() {
@@ -123,10 +124,14 @@ export default class Desktop {
 		if (this.current_page && this.pages[this.current_page]) {
 			this.pages[this.current_page].hide();
 		}
-		this.sidebar_items[this.current_page].removeClass("selected");
-		this.sidebar_items[page].addClass("selected");
+
+		if (this.sidebar_items && this.sidebar_items[this.current_page]) {
+			this.sidebar_items[this.current_page].removeClass("selected");
+			this.sidebar_items[page].addClass("selected");
+		}
 		this.current_page = page;
 		localStorage.current_desk_page = page;
+		frappe.set_route("workspace", page);
 
 		this.pages[page] ? this.pages[page].show() : this.make_page(page);
 	}
@@ -136,8 +141,6 @@ export default class Desktop {
 			frappe.get_route()[1] ||
 			localStorage.current_desk_page ||
 			this.desktop_settings["Modules"][0].name;
-
-		frappe.set_route("workspace", page);
 		return page;
 	}
 

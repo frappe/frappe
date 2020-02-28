@@ -66,7 +66,7 @@ frappe.route = function() {
 		}
 	} else {
 		// Show desk
-		frappe.set_route("workspace")
+		frappe.views.pageview.show('');
 	}
 
 
