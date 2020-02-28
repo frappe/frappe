@@ -12,13 +12,9 @@ from frappe.cache_manager import build_domain_restriced_doctype_cache, build_dom
 class Workspace:
 	def __init__(self, page_name):
 		self.page_name = page_name
-		self.build_cache()
 
 	def build_cache(self):
-		try:
-			self.doc = frappe.get_doc("Desk Page", self.page_name)
-		except frappe.DoesNotExistError:
-			frappe.throw(_("Desk Page {0} does not exist").format(page))
+		self.doc = frappe.get_doc("Desk Page", self.page_name)
 
 		user = frappe.get_user()
 		user.build_permissions()
@@ -140,9 +136,14 @@ def get_desktop_page(page):
 		dict: dictionary of cards, charts and shortcuts to be displayed on website
 	"""
 	wspace = Workspace(page)
-	wspace.build_workspace()
-
-	return {'charts': wspace.charts, 'shortcuts': wspace.shortcuts, 'cards': wspace.cards}
+	try:
+		wspace.build_cache()
+		wspace.build_workspace()
+		return {'charts': wspace.charts, 'shortcuts': wspace.shortcuts, 'cards': wspace.cards}
+	except DoesNotExistError:
+		if frappe.message_log:
+			frappe.message_log.pop()
+		return None
 
 @frappe.whitelist()
 def get_desk_sidebar_items():
