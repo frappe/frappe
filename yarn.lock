@@ -629,10 +629,10 @@ atob@^2.1.1:
   resolved "https://registry.yarnpkg.com/atob/-/atob-2.1.2.tgz#6d9517eb9e030d2436666651e86bd9f6f13533c9"
   integrity sha512-Wm6ukoaOGJi/73p/cl2GvLjTI5JM1k/O14isD73YML8StrH/7/lRFgmg8nICZgD3bZZvjwCGxtMOD3wWNAu8cg==
 
-awesomplete@^1.1.2:
-  version "1.1.4"
-  resolved "https://registry.yarnpkg.com/awesomplete/-/awesomplete-1.1.4.tgz#cdfcbbb2391857ff3a3340b5b1ebde7701b355e6"
-  integrity sha512-AgYrODNlVD3ZJ6Em54YesLnOSusuVCjoRAt0l5bi3L1Oiv5r5dkPdxVPJaG3/wnPlxRUmGcpGnK02VK7N02kCg==
+awesomplete@^1.1.5:
+  version "1.1.5"
+  resolved "https://registry.yarnpkg.com/awesomplete/-/awesomplete-1.1.5.tgz#1b2b5dd106d3955595619c03da472a1dc0faf0af"
+  integrity sha512-UFw1mPW8NaSECDSTC36HbAOTpF9JK2wBUJcNn4MSvlNtK7SZ9N72gB+ajHtA6D1abYXRcszZnBA4nHBwvFwzHw==
 
 aws-sign2@~0.7.0:
   version "0.7.0"
