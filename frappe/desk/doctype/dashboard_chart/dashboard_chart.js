@@ -47,7 +47,6 @@ frappe.ui.form.on('Dashboard Chart', {
 			}
 		});
 
-		$(frm.get_field('y_field').wrapper).empty();
 		frm.set_df_property("filters_section", "hidden", 1);
 		frm.set_query('document_type', function() {
 			return {
@@ -104,7 +103,6 @@ frappe.ui.form.on('Dashboard Chart', {
 
 	report_name: function(frm) {
 		frm.set_value('x_field', '');
-		frm.set_value('y_field', '[]');
 		frm.set_df_property('x_field', 'options', []);
 		frm.set_value('filters_json', '{}');
 		frm.trigger('set_chart_report_filters');
@@ -143,27 +141,24 @@ frappe.ui.form.on('Dashboard Chart', {
 			}
 		).then(data => {
 			frm.report_data = data;
+			if (!data.chart) {
+				frm.set_value('is_custom', 0)
+				frm.set_df_property('is_custom', 'hidden', 1);
+			} else {
+				frm.set_df_property('is_custom', 'hidden', 0);
+			}
+
 			if (!frm.doc.is_custom) {
 				if (data.result.length) {
 					frm.field_options = frappe.report_utils.get_possible_chart_options(data.columns, data);
 					frm.set_df_property('x_field', 'options', frm.field_options.non_numeric_fields);
-					frm.trigger('render_y_field');
+					let y_field_df = frappe.meta.get_docfield('Dashboard Chart Field', 'y_field', frm.doc.name);
+					y_field_df.options = frm.field_options.numeric_fields;
 				} else {
 					frappe.msgprint(__('Report has no data, please modify the filters or change the Report Name'));
 				}
 			}
 		});
-	},
-
-	is_custom: function(frm) {
-		if (frm.report_data && !frm.report_data.chart) {
-			frappe.msgprint(__('Report has no custom chart'));
-			frm.set_value('is_custom', 0);
-		}
-
-		if (frm.doc.is_custom == 0) {
-			frm.trigger('set_chart_report_filters');
-		}
 	},
 
 	timespan: function(frm) {
@@ -236,27 +231,6 @@ frappe.ui.form.on('Dashboard Chart', {
 				frm.trigger('render_filters_table');
 			});
 		}
-	},
-
-	render_y_field: function(frm) {
-		let parent = $(frm.get_field('y_field').wrapper).empty();
-
-		frm.y_axis_field = frappe.ui.form.make_control({
-			parent: parent,
-			df: {
-				label: __('Y Field'),
-				fieldname: 'y_field',
-				fieldtype: 'MultiSelect',
-				options: frm.field_options.numeric_fields,
-				change: () => {
-					let y_fields  = frm.y_axis_field.get_values();
-					frm.set_value('y_field', JSON.stringify(y_fields));
-				}
-			},
-			render_input: true
-		});
-
-		frm.y_axis_field.set_value(JSON.parse(frm.doc.y_field).join());
 	},
 
 	render_filters_table: function(frm) {

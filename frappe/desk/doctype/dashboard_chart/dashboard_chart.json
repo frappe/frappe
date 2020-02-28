@@ -12,7 +12,7 @@
   "report_name",
   "is_custom",
   "x_field",
-  "y_field",
+  "y_axis",
   "source",
   "document_type",
   "based_on",
@@ -139,6 +139,7 @@
    "fieldtype": "Column Break"
   },
   {
+   "depends_on": "eval:doc.chart_type !== 'Report'",
    "fieldname": "color",
    "fieldtype": "Color",
    "label": "Color"
@@ -199,14 +200,6 @@
    "mandatory_depends_on": "eval: doc.report_name && !doc.is_custom"
   },
   {
-   "depends_on": "eval:doc.report_name && !doc.is_custom",
-   "fieldname": "y_field",
-   "fieldtype": "Code",
-   "label": "Y Field",
-   "mandatory_depends_on": "eval:doc.report_name && !doc.is_custom",
-   "options": "JSON"
-  },
-  {
    "depends_on": "eval:doc.chart_type === 'Report'",
    "fieldname": "report_name",
    "fieldtype": "Link",
@@ -219,10 +212,18 @@
    "fieldname": "is_custom",
    "fieldtype": "Check",
    "label": "Is Custom"
+  },
+  {
+   "depends_on": "eval:doc.report_name && !doc.is_custom",
+   "fieldname": "y_axis",
+   "fieldtype": "Table",
+   "label": "Y Axis",
+   "mandatory_depends_on": "eval:doc.report_name && !doc.is_custom",
+   "options": "Dashboard Chart Field"
   }
  ],
  "links": [],
- "modified": "2020-02-25 18:56:40.198625",
+ "modified": "2020-02-28 12:49:28.127819",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Dashboard Chart",

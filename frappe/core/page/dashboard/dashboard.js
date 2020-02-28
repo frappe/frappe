@@ -246,7 +246,10 @@ class DashboardChart {
 		if (result.chart && this.chart_doc.is_custom) {
 			return result.chart.data;
 		} else {
-			let	y_fields = JSON.parse(this.chart_doc.y_field);
+			let y_fields = [];
+			this.chart_doc.y_axis.map( field => {
+				y_fields.push(field.y_field);
+			});
 
 			let chart_fields = {
 				y_fields: y_fields,
@@ -430,15 +433,19 @@ class DashboardChart {
 
 	render() {
 		const chart_type_map = {
-			"Line": "line",
-			"Bar": "bar",
-			"Percentage": 'percentage',
-			"Pie": 'pie'
+			'Line': 'line',
+			'Bar': 'bar',
+			'Percentage': 'percentage',
+			'Pie': 'pie'
 		};
 
 		let colors = [];
 
-		if (['Line', 'Bar'].includes(this.chart_doc.type)) {
+		if (this.chart_doc.y_axis.length) {
+			this.chart_doc.y_axis.map( field => {
+				colors.push(field.color);
+			});
+		} else if (['Line', 'Bar'].includes(this.chart_doc.type)) {
 			colors = [this.chart_doc.color || "light-blue"];
 		}
 
