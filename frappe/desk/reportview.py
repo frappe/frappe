@@ -31,6 +31,7 @@ def get_form_params():
 	data = frappe._dict(frappe.local.form_dict)
 
 	is_report = data.get('view') == 'Report'
+<<<<<<< HEAD
 	for param in (
 		"cmd",
 		"data",
@@ -41,6 +42,16 @@ def get_form_params():
 		"join"
 	):
 		data.pop(param, None)
+=======
+
+	data.pop('cmd', None)
+	data.pop('data', None)
+	data.pop('ignore_permissions', None)
+	data.pop('view', None)
+
+	if "csrf_token" in data:
+		del data["csrf_token"]
+>>>>>>> 6807427383 (fix(Report): Remove field from query only if view is Report)
 
 	if isinstance(data.get("filters"), string_types):
 		data["filters"] = json.loads(data["filters"])
