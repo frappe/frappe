@@ -60,13 +60,12 @@ frappe.ui.GroupBy = class {
 					// pick numeric fields for sum / avg
 					if(frappe.model.is_numeric_field(field.fieldtype)) {
 						let option_text = doctype == this.doctype
-						? field.label
-						: `${field.label} (${doctype})`
+							? field.label
+							: `${field.label} (${doctype})`;
 						this.aggregate_on_select.append(
 							$(`<option data-doctype="${doctype}" 
-								value="${field.fieldname}">>`,
-								{ value : field.fieldname })
-								.text(option_text));
+							value="${field.fieldname}">>`,
+							{ value: field.fieldname }).text(option_text));
 					}
 					this.aggregate_on_select.show();
 				} else {
