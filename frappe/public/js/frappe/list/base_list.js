@@ -426,8 +426,7 @@ frappe.views.BaseList = class BaseList {
 
 	call_for_selected_items(method, args = {}) {
 		args.names = this.get_checked_items(true);
-		console.log(this.listview_settings)
-		console.log(this.settings)
+
 		frappe.call({
 			method: method,
 			args: args,
