@@ -344,7 +344,8 @@ frappe.views.BaseList = class BaseList {
 			filters: this.get_filters_for_args(),
 			order_by: this.sort_selector.get_sql_string(),
 			start: this.start,
-			page_length: this.page_length
+			page_length: this.page_length,
+			view: this.view
 		};
 	}
 
@@ -425,7 +426,8 @@ frappe.views.BaseList = class BaseList {
 
 	call_for_selected_items(method, args = {}) {
 		args.names = this.get_checked_items(true);
-
+		console.log(this.listview_settings)
+		console.log(this.settings)
 		frappe.call({
 			method: method,
 			args: args,
