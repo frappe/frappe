@@ -937,7 +937,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 				}
 			}
 		}
-		if (!docfield) return;
+		if (!docfield || docfield.report_hide) return;
 
 		let title = __(docfield ? docfield.label : toTitle(fieldname));
 		if (doctype !== this.doctype) {
