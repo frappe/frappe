@@ -117,15 +117,16 @@ frappe.ui.GroupBy = class {
 
 	apply_group_by() {
 		this.group_by_doctype = this.groupby_select.find(':selected').attr('data-doctype');
-		this.aggregate_on_doctype = this.aggregate_on_select.find(':selected').attr('data-doctype');
 		this.group_by_field = this.groupby_select.val();
 		this.group_by = '`tab' + this.group_by_doctype + '`.`' + this.group_by_field + '`';
 		this.aggregate_function = this.aggregate_function_select.val();
 
 		if (this.aggregate_function === 'count') {
 			this.aggregate_on = 'name';
+			this.aggregate_on_doctype = null;
 		} else {
 			this.aggregate_on = this.aggregate_on_select.val();
+			this.aggregate_on_doctype = this.aggregate_on_select.find(':selected').attr('data-doctype');
 		}
 
 
@@ -153,12 +154,13 @@ frappe.ui.GroupBy = class {
 
 	set_args(args) {
 		if (this.aggregate_function && this.group_by) {
-			let aggregate_column;
+			let aggregate_column, aggregate_on_field;
 			if (this.aggregate_function === 'count') {
 				aggregate_column = 'count(`tab'+ this.doctype + '`.`name`)';
 			} else {
 				aggregate_column = 
 					`${this.aggregate_function}(\`tab${this.aggregate_on_doctype}\`.\`${this.aggregate_on}\`)`;
+				aggregate_on_field = '`tab' + this.aggregate_on_doctype + '`.`' + this.aggregate_on + '`';
 			}
 
 			this.report_view.group_by = this.group_by;
@@ -177,11 +179,13 @@ frappe.ui.GroupBy = class {
 			// rebuild fields for group by
 			args.fields = this.report_view.get_fields();
 
-			// add aggregate column in both query args and report view
-			this.report_view.fields.push(['_aggregate_column', this.aggregate_on_doctype]);
-			let aggregate_on_field = '`tab' + this.aggregate_on_doctype + '`.`' + this.aggregate_on + '`';
-			args.fields.push(aggregate_on_field);
+			// add aggregate column in both query args and report views
+			this.report_view.fields.push(['_aggregate_column', this.aggregate_on_doctype || this.doctype]);
 			args.fields.push(aggregate_column + ' as _aggregate_column');
+
+			if (aggregate_on_field) {
+				args.fields.push(aggregate_on_field);
+			}
 
 			// setup columns in datatable
 			this.report_view.setup_columns();
