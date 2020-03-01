@@ -27,22 +27,22 @@
 .chart-actions {
 	position: relative;
 	right: 0px;
-	top: 25px;
+	top: 20px;
 	margin-right: 5px;
 }
 
 .filter-chart {
 	position: relative;
 	right: 5px;
-	top: 25px;
+	top: 20px;
 }
 
 .dashboard-date-field {
 	width: 14%;
 	height: 0;
-	margin-right: 5px;
+	margin-right: 10px;
 	position: relative;
-	top: 5px;
+	top: 0px;
 }
 
 .chart-column-container {
