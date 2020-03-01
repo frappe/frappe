@@ -39,7 +39,7 @@
     "quagga": "^0.12.1",
     "quill": "2.0.0-dev.2",
     "qz-tray": "^2.0.8",
-    "redis": "^2.8.0",
+    "redis": "^3.0.2",
     "showdown": "^1.9.1",
     "socket.io": "^2.0.4",
     "superagent": "^3.8.2",
