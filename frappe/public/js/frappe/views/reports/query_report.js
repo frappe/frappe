@@ -201,7 +201,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				{
 					'chart_name': chart_name,
 					'x_field': chart_args.x_field,
-					'y_field': JSON.stringify(chart_args.y_fields),
+					'y_axis': chart_args.y_axis_fields.map(f => {return {'y_field': f.y_field, 'color': f.color}}),
 					'is_custom': 0
 				}
 			);
@@ -660,9 +660,8 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	open_create_chart_dialog() {
 		const me = this;
 		let field_options = frappe.report_utils.get_possible_chart_options(this.columns, this.raw_data);
-		function preview_chart() {
-			const wrapper = $(dialog.fields_dict["chart_preview"].wrapper);
-			const values = dialog.get_values(true);
+
+		function set_chart_values(values) {
 			values.y_fields = [];
 			values.colors = [];
 			if (values.y_axis_fields) {
@@ -672,20 +671,33 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				});
 			}
 
-			if (values.x_field && values.y_fields.length) {
-				values.y_fields = 
-					values.y_fields
-						.map(d => d.trim())
-						.filter(Boolean);
+			values.y_fields = 
+				values.y_fields
+					.map(d => d.trim())
+					.filter(Boolean);
 
+			return values;
+		}
+
+		function preview_chart() {
+			const wrapper = $(dialog.fields_dict["chart_preview"].wrapper);
+			let values = dialog.get_values(true);
+			values = set_chart_values(values);
+
+			if (values.x_field && values.y_fields.length) {
 				let options = frappe.report_utils.make_chart_options(me.columns, me.raw_data, values);
+				me.chart_fields = values;
 				wrapper.empty();
 				new frappe.Chart(wrapper[0], options);
 				wrapper.find('.chart-container .title, .chart-container .sub-title').hide();
 				wrapper.show();
+
+				dialog.fields_dict['create_dashoard_chart'].df.hidden = 0
+				dialog.refresh();
 			}
 			else {
-				wrapper[0].innerHTML = `<div class="flex justify-center align-center text-muted" style="height: 120px; display: flex;">
+				wrapper[0].innerHTML = 
+				`<div class="flex justify-center align-center text-muted" style="height: 120px; display: flex;">
 					<div>Please select X and Y fields</div>
 				</div>`;
 			}
@@ -757,29 +769,16 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 					fieldname: 'create_dashoard_chart',
 					label: 'Add Chart to Dashboard',
 					fieldtype: 'Button',
-					depends_on: doc => doc.x_field && doc.y_fields,
+					hidden: 1,
 					click: () => {
-						let values = dialog.get_values();
-						me.chart_fields = values;
+						dialog.hide();
 						this.add_chart_to_dashboard();
 					}
 				}
 			],
 			primary_action_label: __('Create'),
 			primary_action: (values) => {
-				values.y_fields = [];
-				values.colors = [];
-
-				if (values.y_axis_fields) {
-					values.y_axis_fields.map(f => {
-						values.y_fields.push(f.y_field);
-						values.colors.push(f.color);
-					});
-				}
-				values.y_fields = 
-					values.y_fields
-						.map(d => d.trim())
-						.filter(Boolean);
+				values = set_chart_values(values)
 
 				let options = 
 					frappe.report_utils.make_chart_options(
@@ -789,11 +788,11 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 					);
 				me.chart_fields = values
 
-				let x_field_label = 
+				let x_field_label =
 					field_options.numeric_fields.filter(field => 
 						field.value == values.y_fields[0]
 					)[0].label;
-				let y_field_label = 
+				let y_field_label =
 					field_options.non_numeric_fields.filter(field => 
 						field.value == values.x_field
 					)[0].label;

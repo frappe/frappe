@@ -314,7 +314,7 @@ class DashboardChart(Document):
 	def validate(self):
 		if self.chart_type != 'Custom' and self.chart_type != 'Report':
 			self.check_required_field()
-		self.check_document_type()
+			self.check_document_type()
 
 	def check_required_field(self):
 		if not self.document_type:
