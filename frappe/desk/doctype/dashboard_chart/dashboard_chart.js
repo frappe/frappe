@@ -103,6 +103,7 @@ frappe.ui.form.on('Dashboard Chart', {
 
 	report_name: function(frm) {
 		frm.set_value('x_field', '');
+		frm.set_value('y_axis', []);
 		frm.set_df_property('x_field', 'options', []);
 		frm.set_value('filters_json', '{}');
 		frm.trigger('set_chart_report_filters');
@@ -118,13 +119,15 @@ frappe.ui.form.on('Dashboard Chart', {
 				frm.trigger('set_chart_field_options');
 			} else {
 				frappe.report_utils.get_report_filters(report_name).then(filters => {
-					if (filters) {
-						frm.chart_filters = filters;
-						let filter_values = frappe.report_utils.get_filter_values(filters);
-						frm.set_value('filters_json', JSON.stringify(filter_values));
+					frappe.after_ajax(()=> {
+						if (filters) {
+							frm.chart_filters = filters;
+							let filter_values = frappe.report_utils.get_filter_values(filters);
+							frm.set_value('filters_json', JSON.stringify(filter_values));
+						}
 						frm.trigger('show_filters');
-					}
-					frm.trigger('set_chart_field_options');
+						frm.trigger('set_chart_field_options');
+					});
 				});
 			}
 
@@ -152,8 +155,12 @@ frappe.ui.form.on('Dashboard Chart', {
 				if (data.result.length) {
 					frm.field_options = frappe.report_utils.get_possible_chart_options(data.columns, data);
 					frm.set_df_property('x_field', 'options', frm.field_options.non_numeric_fields);
-					let y_field_df = frappe.meta.get_docfield('Dashboard Chart Field', 'y_field', frm.doc.name);
-					y_field_df.options = frm.field_options.numeric_fields;
+					if (!frm.field_options.numeric_fields.length) {
+						frappe.msgprint(__(`Report has no numeric fields, please change the Report Name`));
+					} else {
+						let y_field_df = frappe.meta.get_docfield('Dashboard Chart Field', 'y_field', frm.doc.name);
+						y_field_df.options = frm.field_options.numeric_fields;
+					}
 				} else {
 					frappe.msgprint(__('Report has no data, please modify the filters or change the Report Name'));
 				}
@@ -219,18 +226,16 @@ frappe.ui.form.on('Dashboard Chart', {
 	},
 
 	show_filters: function(frm) {
-		if (frm.chart_filters && frm.chart_filters.length) {
-			frm.trigger('render_filters_table');
-		} else {
-			frm.chart_filters = [];
-			frappe.dashboard_utils.get_filters_for_chart_type(frm.doc).then(filters => {
+		frm.chart_filters = [];
+		frappe.dashboard_utils.get_filters_for_chart_type(frm.doc).then(filters => {
+			frappe.after_ajax(() => {
 				if (filters) {
 					frm.chart_filters = filters;
 				}
 
 				frm.trigger('render_filters_table');
-			});
-		}
+			})
+		});
 	},
 
 	render_filters_table: function(frm) {
@@ -275,7 +280,7 @@ frappe.ui.form.on('Dashboard Chart', {
 					filters_set = true;
 				});
 			}
-		} else {
+		} else if (frm.chart_filters.length) {
 			fields = frm.chart_filters.filter(f => {
 				if (f.on_change && !f.reqd) {
 					return false;

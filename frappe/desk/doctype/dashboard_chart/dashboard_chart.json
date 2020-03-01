@@ -193,7 +193,7 @@
    "label": "To Date"
   },
   {
-   "depends_on": "eval:doc.report_name && !doc.is_custom",
+   "depends_on": "eval:doc.chart_type == 'Report' && doc.report_name && !doc.is_custom",
    "fieldname": "x_field",
    "fieldtype": "Select",
    "label": "X Field",
@@ -214,7 +214,7 @@
    "label": "Is Custom"
   },
   {
-   "depends_on": "eval:doc.report_name && !doc.is_custom",
+   "depends_on": "eval:doc.chart_type == 'Report' && doc.report_name && !doc.is_custom",
    "fieldname": "y_axis",
    "fieldtype": "Table",
    "label": "Y Axis",
@@ -223,7 +223,7 @@
   }
  ],
  "links": [],
- "modified": "2020-02-28 12:49:28.127819",
+ "modified": "2020-03-01 22:08:47.135523",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Dashboard Chart",
