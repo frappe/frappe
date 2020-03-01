@@ -1484,10 +1484,10 @@ cwise-compiler@^1.1.2:
   dependencies:
     uniq "^1.0.0"
 
-cypress-file-upload@^3.1.0:
-  version "3.1.0"
-  resolved "https://registry.yarnpkg.com/cypress-file-upload/-/cypress-file-upload-3.1.0.tgz#9da7ed60619631231bd2caaf9844874e7cec6f69"
-  integrity sha512-zJh6Qwh+BZz6j3oCxMgRmfSsHJ+vSm2FrsZ1j/hG3s1O+6UPhOCDGeJucMUGBivWb1IsHrLKJP4LfgHSooPZHw==
+cypress-file-upload@^3.5.3:
+  version "3.5.3"
+  resolved "https://registry.yarnpkg.com/cypress-file-upload/-/cypress-file-upload-3.5.3.tgz#cd706485de3fb2cbd4a8c2dd90fe96d537bb4311"
+  integrity sha512-S/czzqAj1BYz6Xxnfpx2aSc6hXsj76fd8/iuycJ2RxoxCcQMliw8eQV0ugzVlkzr1GD5dKGviNFGYqv3nRJ+Tg==
 
 cypress@^3.1.1:
   version "3.1.5"
