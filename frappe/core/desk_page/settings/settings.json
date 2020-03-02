@@ -31,7 +31,7 @@
    "title": "Workflow"
   }
  ],
- "category": "Places",
+ "category": "Administration",
  "charts": [],
  "creation": "2020-03-02 15:09:40.527211",
  "developer_mode_only": 0,
@@ -40,7 +40,7 @@
  "doctype": "Desk Page",
  "idx": 0,
  "label": "Settings",
- "modified": "2020-03-02 15:22:44.323046",
+ "modified": "2020-03-02 19:29:22.923060",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Settings",
