@@ -119,7 +119,9 @@ class Workspace:
 		return new_data
 
 	def get_charts(self):
-		return [chart for chart in self.doc.charts if frappe.has_permission("Dashboard Chart", chart.chart_name, throw=False)]
+		if frappe.has_permission("Dashboard Chart", throw=False):
+			return [chart for chart in self.doc.charts]
+		return []
 
 	def get_shortcuts(self):
 		items = []
