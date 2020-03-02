@@ -142,23 +142,19 @@ def get_context(context):
 		if self.is_standard:
 			self.use_meta_fields()
 
-		if not context._login_required:
-			if self.allow_edit:
-				if self.allow_multiple:
-					if not frappe.form_dict.name and not frappe.form_dict.new:
-						# list data is queried via JS
-						context.is_list = True
-				else:
-					if frappe.session.user != 'Guest' and not frappe.form_dict.name:
-						frappe.form_dict.name = frappe.db.get_value(self.doc_type, {"owner": frappe.session.user}, "name")
+		if self.allow_multiple:
+			if not frappe.form_dict.name and not frappe.form_dict.new:
+				# list data is queried via JS
+				context.is_list = True
 
-					if not frappe.form_dict.name:
-						# only a single doc allowed and no existing doc, hence new
-						frappe.form_dict.new = 1
+		if not self.login_required:
+			if not self.allow_multiple:
+				if frappe.session.user != 'Guest' and not frappe.form_dict.name:
+					frappe.form_dict.name = frappe.db.get_value(self.doc_type, {"owner": frappe.session.user}, "name")
 
-		# always render new form if login is not required or doesn't allow editing existing ones
-		if not self.login_required or not self.allow_edit:
-			frappe.form_dict.new = 1
+				if not frappe.form_dict.name:
+					# only a single doc allowed and no existing doc, hence new
+					frappe.form_dict.new = 1
 
 		self.load_document(context)
 		context.parents = self.get_parents(context)
