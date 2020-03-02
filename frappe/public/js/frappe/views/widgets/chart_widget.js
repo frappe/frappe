@@ -47,6 +47,7 @@ export default class ChartWidget extends Widget {
 	}
 
 	set_actions() {
+		return
 		this.action_area.empty()
 		const buttons = $(`<div class="btn-group btn-group-xs" role="group" aria-label="Basic example">
 						<button type="button" class="btn btn-secondary btn-default selected">Monthly</button>
