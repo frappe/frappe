@@ -34,7 +34,6 @@ class S3BackupSettings(Document):
 		except ClientError:
 			frappe.throw(_("Invalid Access Key ID or Secret Access Key."))
 
-		bucket_name_exist = False
 		try:
 			response = conn.head_bucket(Bucket=bucket_lower)
 			# The operation returns a 200 OK if the bucket exists and you have permission to access it.
@@ -50,13 +49,6 @@ class S3BackupSettings(Document):
 					'LocationConstraint': self.region})
 			else:
 				frappe.throw(e)
-		if not bucket_name_exist:
-			try:
-				conn.create_bucket(Bucket=bucket_lower, CreateBucketConfiguration={
-					'LocationConstraint': self.region})
-			except ClientError:
-				frappe.throw(_("Unable to create bucket: {0}. Change it to a more unique name.").format(bucket_lower))
-
 
 @frappe.whitelist()
 def take_backup():
