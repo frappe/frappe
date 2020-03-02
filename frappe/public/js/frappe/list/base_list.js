@@ -344,7 +344,8 @@ frappe.views.BaseList = class BaseList {
 			filters: this.get_filters_for_args(),
 			order_by: this.sort_selector.get_sql_string(),
 			start: this.start,
-			page_length: this.page_length
+			page_length: this.page_length,
+			view: this.view
 		};
 	}
 
@@ -614,7 +615,7 @@ class FilterArea {
 			let options = df.options;
 			let condition = '=';
 			let fieldtype = df.fieldtype;
-			if (['Text', 'Small Text', 'Text Editor', 'HTML Editor', 'Data', 'Code'].includes(fieldtype)) {
+			if (['Text', 'Small Text', 'Text Editor', 'HTML Editor', 'Data', 'Code', 'Read Only'].includes(fieldtype)) {
 				fieldtype = 'Data';
 				condition = 'like';
 			}

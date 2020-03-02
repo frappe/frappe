@@ -14,6 +14,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		super.setup_defaults();
 		this.page_title = __('Report:') + ' ' + this.page_title;
 		this.menu_items = this.report_menu_items();
+		this.view = 'Report';
 
 		const route = frappe.get_route();
 		if (route.length === 4) {
@@ -936,7 +937,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 				}
 			}
 		}
-		if (!docfield) return;
+		if (!docfield || docfield.report_hide) return;
 
 		let title = __(docfield ? docfield.label : toTitle(fieldname));
 		if (doctype !== this.doctype) {
