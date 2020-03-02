@@ -268,7 +268,7 @@ def make_them_pages():
 		make_them_cards(page[0], page[2])
 
 
-def make_them_cards(page_name, from_module=None, to_module=None, icon="frapicon-dashboard"):
+def make_them_cards(page_name, from_module=None, to_module=None, icon=None):
 	from frappe.desk.moduleview import get
 
 	if not from_module:
@@ -294,7 +294,12 @@ def make_them_cards(page_name, from_module=None, to_module=None, icon="frapicon-
 		print("--- New Page: {0}".format(page.name))
 
 		# Guess Which Module
-		if frappe.db.exists("Module Def", page_name):
+		if not to_module and frappe.db.exists("Module Def", page_name):
+			page.module = page_name
+
+		if to_module:
+			page.module = to_module
+		elif frappe.db.exists("Module Def", page_name):
 			page.module = page_name
 
 	for data in modules:
