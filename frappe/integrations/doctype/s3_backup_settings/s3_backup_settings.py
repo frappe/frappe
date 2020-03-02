@@ -28,17 +28,26 @@ class S3BackupSettings(Document):
 
 		bucket_lower = str(self.bucket)
 
-		bucket_name_exist = False
 		try:
-			response = conn.list_buckets()
-			for bucket in response['Buckets']:
-				if bucket['Name'] == bucket_lower:
-					bucket_name_exist = True
-					break
-
+			conn.list_buckets()
 		except ClientError:
 			frappe.throw(_("Invalid Access Key ID or Secret Access Key."))
 
+		bucket_name_exist = False
+		try:
+			response = conn.head_bucket(Bucket=bucket_lower)
+			# The operation returns a 200 OK if the bucket exists and you have permission to access it.
+			bucket_name_exist = True
+		except ClientError as e:
+			# If a client error is thrown, then check that it was a 403 error or 404 error.
+			error_code = e.response['Error']['Code']
+			if error_code == '403':
+				frappe.throw(_(f"403 Forbidden. Do not have permission to access this bucket: {bucket_lower}"))
+			elif error_code == '404':
+				# Bucket not found, set bucket_name_exist flag to False to try create bucket
+				bucket_name_exist = False
+			else:
+				frappe.throw(e)
 		if not bucket_name_exist:
 			try:
 				conn.create_bucket(Bucket=bucket_lower, CreateBucketConfiguration={
