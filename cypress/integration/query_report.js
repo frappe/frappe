@@ -1,7 +1,7 @@
 context('Form', () => {
 	before(() => {
 		cy.login();
-		cy.visit('/desk');
+		cy.visit('/desk#workspace/Website');
 	});
 
 	it('add custom column in report', () => {
