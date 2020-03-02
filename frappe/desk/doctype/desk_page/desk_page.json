@@ -155,7 +155,7 @@
   }
  ],
  "links": [],
- "modified": "2020-03-02 11:30:34.045332",
+ "modified": "2020-03-02 20:08:44.856046",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Desk Page",
@@ -172,6 +172,15 @@
    "role": "System Manager",
    "share": 1,
    "write": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "All",
+   "share": 1
   }
  ],
  "sort_field": "modified",
