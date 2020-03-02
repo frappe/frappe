@@ -65,7 +65,8 @@ def contribute_translation(language, contributor, source_name, target_name, doc_
 def create_translations(translation_map, language):
 	from frappe.frappeclient import FrappeClient
 
-	translation_map = json.loads(translation_map)
+	translation_map_str = translation_map
+	translation_map = json.loads(translation_map_str)
 
 	# first create / update local user translations
 	for source_text, translation_dict in translation_map.items():
@@ -90,7 +91,7 @@ def create_translations(translation_map, language):
 		'language': language,
 		'contributor_email': frappe.session.user,
 		'contributor_name': frappe.utils.get_fullname(frappe.session.user),
-		'translation_map': translation_map
+		'translation_map': translation_map_str
 	}
 
 	translator = FrappeClient(frappe.conf.translator_url)

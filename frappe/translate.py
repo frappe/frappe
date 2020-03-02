@@ -236,24 +236,29 @@ def load_lang(lang, apps=None):
 
 def get_translation_dict_from_file(path, lang, app):
 	"""load translation dict from given path"""
-	cleaned = {}
+	translation_map = {}
 	if os.path.exists(path):
 		csv_content = read_csv_file(path)
 
 		for item in csv_content:
-			if len(item)==3:
-				# with file and line numbers
-				cleaned[item[1]] = strip(item[2])
 
-			elif len(item)==2:
-				cleaned[item[0]] = strip(item[1])
-
+			if len(item)==2:
+				translation_map[item[0]] = strip(item[1])
+			elif len(item)==3:
+				# with file and line numbers or path
+				translation_map[item[1]] = strip(item[2])
+			elif len(item)==4:
+				key = item[1]
+				# context
+				if item[3]:
+					key += ':' + item[3]
+				translation_map[key] = strip(item[2])
 			elif item:
 				raise Exception("Bad translation in '{app}' for language '{lang}': {values}".format(
 					app=app, lang=lang, values=repr(item).encode("utf-8")
 				))
 
-	return cleaned
+	return translation_map
 
 def get_user_translations(lang):
 	out = frappe.cache().hget('lang_user_translations', lang)
@@ -367,7 +372,6 @@ def get_messages_from_doctype(name):
 
 	# workflow based on doctype
 	messages.extend(get_messages_from_workflow(doctype=name))
-
 	return messages
 
 def get_messages_from_workflow(doctype=None, app_name=None):
