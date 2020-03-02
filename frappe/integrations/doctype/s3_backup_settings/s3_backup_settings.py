@@ -46,7 +46,8 @@ class S3BackupSettings(Document):
 				frappe.throw(_(f"403 Forbidden. Do not have permission to access this bucket: {bucket_lower}"))
 			elif error_code == '404':
 				# Bucket not found, set bucket_name_exist flag to False to try create bucket
-				bucket_name_exist = False
+				conn.create_bucket(Bucket=bucket_lower, CreateBucketConfiguration={
+					'LocationConstraint': self.region})
 			else:
 				frappe.throw(e)
 		if not bucket_name_exist:
