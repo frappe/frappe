@@ -4988,10 +4988,10 @@ quill@2.0.0-dev.2:
     parchment quilljs/parchment#487850f7eb030a6c4e750ba809e58b09444e0bdb
     quill-delta "^3.6.2"
 
-qz-tray@^2.0.8:
-  version "2.0.8"
-  resolved "https://registry.yarnpkg.com/qz-tray/-/qz-tray-2.0.8.tgz#5e15d102cf3a11a31ddb332891c7f8a6af8f6ad5"
-  integrity sha512-lncGYzz7/sTORZuC1S3ukNlMPCMOmsHWNvJF4FjMCZ2+0UV3txi6kgPd754B7kDFKm0J587sIODgxIlFY7qU4w==
+qz-tray@^2.1.0:
+  version "2.1.0"
+  resolved "https://registry.yarnpkg.com/qz-tray/-/qz-tray-2.1.0.tgz#afe78a07d46a2e98dc5696bef777246ad55ca669"
+  integrity sha512-7vE7aU5u2JYScEZyjh1PSg3N4r77YMx5zIuIIoXO2Xnz77cjpi2S5b3BiuNtIZ697kEkrcVASRIL+CE+pKAlcA==
 
 ramda@0.24.1:
   version "0.24.1"
