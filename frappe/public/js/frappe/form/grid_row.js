@@ -318,10 +318,10 @@ export default class GridRow {
 		var me = this;
 		// show static for field based on
 		// whether grid is editable
-		if(this.grid.allow_on_grid_editing() && this.grid.is_editable() && this.doc && show !== false) {
+		if (this.grid.allow_on_grid_editing() && this.grid.is_editable() && this.doc && show !== false) {
 
 			// disable other editable row
-			if(frappe.ui.form.editable_row
+			if (frappe.ui.form.editable_row
 				&& frappe.ui.form.editable_row !== this) {
 				frappe.ui.form.editable_row.toggle_editable_row(false);
 			}
@@ -329,10 +329,15 @@ export default class GridRow {
 			this.row.toggleClass('editable-row', true);
 
 			// setup controls
-			this.columns_list.forEach(function(column) {
-				me.make_control(column);
-				column.static_area.toggle(false);
-				column.field_area.toggle(true);
+			this.columns_list.forEach((column, index) => {
+				if (column.df.read_only) {
+					this.set_field_as_static(column, index);
+					column.addClass('non-editable-field');
+				} else {
+					this.make_control(column);
+					column.static_area.toggle(false);
+					column.field_area.toggle(true);
+				}
 			});
 
 			frappe.ui.form.editable_row = this;
@@ -341,25 +346,28 @@ export default class GridRow {
 			this.row.toggleClass('editable-row', false);
 
 			this.columns_list.forEach((column, index) => {
-
-				if(!this.frm) {
-					let df = this.grid.visible_columns[index][0]
-
-					let txt = this.doc ?
-						frappe.format(this.doc[df.fieldname], df, null, this.doc) :
-						__(df.label);
-
-					this.refresh_field(df.fieldname, txt)
-				}
-
-				if (!column.df.hidden) {
-					column.static_area.toggle(true);
-				}
-
-				column.field_area && column.field_area.toggle(false);
+				this.set_field_as_static(column, index);
 			});
 			frappe.ui.form.editable_row = null;
 		}
+	}
+
+	set_field_as_static(column, index) {
+		if (!this.frm) {
+			let df = this.grid.visible_columns[index][0]
+
+			let txt = this.doc ?
+				frappe.format(this.doc[df.fieldname], df, null, this.doc) :
+				__(df.label);
+
+			this.refresh_field(df.fieldname, txt)
+		}
+
+		if (!column.df.hidden) {
+			column.static_area.toggle(true);
+		}
+
+		column.field_area && column.field_area.toggle(false);
 	}
 
 	make_control(column) {
