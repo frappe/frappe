@@ -169,6 +169,9 @@ def get_desk_sidebar_items():
 	# don't get domain restricted pages
 	filters = {'restrict_to_domain': ['in', frappe.get_active_domains()]}
 
+	if not frappe.local.conf.developer_mode:
+		filters['developer_mode_only'] = '0'
+
 	# pages sorted based on pinned to top and then by name
 	order_by = "pin_to_top desc, pin_to_bottom asc, name asc"
 	pages = frappe.get_all("Desk Page", fields=["name", "category"], filters=filters, order_by=order_by, ignore_permissions=True)
