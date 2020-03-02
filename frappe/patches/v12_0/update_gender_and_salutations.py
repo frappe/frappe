@@ -11,5 +11,5 @@ def execute():
 	frappe.reload_doc('contacts', 'doctype', 'gender')
 	frappe.reload_doc('contacts', 'doctype', 'salutation')
 
-update_genders() 
-update_salutations()
+    update_genders() 
+    update_salutations()
