@@ -30,9 +30,12 @@ def get_form_params():
 	"""Stringify GET request parameters."""
 	data = frappe._dict(frappe.local.form_dict)
 
+	is_report = data.get('view') == 'Report'
+
 	data.pop('cmd', None)
 	data.pop('data', None)
 	data.pop('ignore_permissions', None)
+	data.pop('view', None)
 
 	if "csrf_token" in data:
 		del data["csrf_token"]
@@ -65,10 +68,11 @@ def get_form_params():
 
 		df = frappe.get_meta(parenttype).get_field(fieldname)
 
+		fieldname = df.fieldname if df else None
 		report_hide = df.report_hide if df else None
 
-		# remove the field from the query if the report hide flag is set
-		if report_hide:
+		# remove the field from the query if the report hide flag is set and current view is Report
+		if report_hide and is_report:
 			fields.remove(field)
 
 

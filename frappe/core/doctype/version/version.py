@@ -43,6 +43,8 @@ def get_diff(old, new, for_child=False):
 	if not new:
 		return None
 
+	blacklisted_fields = ["Markdown Editor", "Text Editor", "Code", "HTML Editor"]
+
 	# capture data import if set
 	data_import = new.flags.via_data_import
 	out = frappe._dict(changed = [], added = [], removed = [], row_changed = [], data_import=data_import)
@@ -75,12 +77,12 @@ def get_diff(old, new, for_child=False):
 					out.removed.append([df.fieldname, d.as_dict()])
 
 		elif (old_value != new_value):
-			# Check for None values
-			old_data = old.get_formatted(df.fieldname) if old_value else old_value
-			new_data = new.get_formatted(df.fieldname) if new_value else new_value
+			if df.fieldtype not in blacklisted_fields:
+				old_value = old.get_formatted(df.fieldname) if old_value else old_value
+				new_value = new.get_formatted(df.fieldname) if new_value else new_value
 
-			if old_data != new_data:
-				out.changed.append((df.fieldname, old_data, new_data))
+			if old_value != new_value:
+				out.changed.append((df.fieldname, old_value, new_value))
 
 	# docstatus
 	if not for_child and old.docstatus != new.docstatus:
