@@ -4,7 +4,7 @@ frappe.ui.DashboardChart = class DashboardChart {
 	constructor(chart_doc, chart_container, options) {
 		this.chart_doc = chart_doc;
 		this.container = chart_container;
-		this.options = options;
+		this.options = options || {};
 		this.chart_args = {};
 	}
 
