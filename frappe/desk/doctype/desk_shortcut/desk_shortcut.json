@@ -6,13 +6,15 @@
  "engine": "InnoDB",
  "field_order": [
   "type",
+  "icon",
+  "column_break_4",
   "link_to",
   "is_query_report",
-  "column_break_3",
-  "format",
-  "color",
   "section_break_5",
-  "stats_filter"
+  "stats_filter",
+  "column_break_3",
+  "color",
+  "format"
  ],
  "fields": [
   {
@@ -20,7 +22,7 @@
    "fieldtype": "Select",
    "in_list_view": 1,
    "label": "Type",
-   "options": "DocType\nReport",
+   "options": "DocType\nReport\nPage",
    "reqd": 1
   },
   {
@@ -49,7 +51,8 @@
   },
   {
    "fieldname": "section_break_5",
-   "fieldtype": "Section Break"
+   "fieldtype": "Section Break",
+   "label": "Count Filter"
   },
   {
    "fieldname": "color",
@@ -62,11 +65,20 @@
    "fieldname": "is_query_report",
    "fieldtype": "Check",
    "label": "Is Query Report"
+  },
+  {
+   "fieldname": "icon",
+   "fieldtype": "Data",
+   "label": "Icon"
+  },
+  {
+   "fieldname": "column_break_4",
+   "fieldtype": "Column Break"
   }
  ],
  "istable": 1,
  "links": [],
- "modified": "2020-02-20 16:07:30.504319",
+ "modified": "2020-02-28 12:59:46.870172",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Desk Shortcut",

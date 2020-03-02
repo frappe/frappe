@@ -190,10 +190,10 @@ class DesktopPage {
 			}
 
 			!this.sections["onboarding"] &&
-				this.data.charts.length &&
+				this.data.charts.items.length &&
 				this.make_charts();
-			this.data.shortcuts.length && this.make_shortcuts();
-			this.data.cards.length && this.make_cards();
+			this.data.shortcuts.items.length && this.make_shortcuts();
+			this.data.cards.items.length && this.make_cards();
 		});
 	}
 
@@ -249,33 +249,33 @@ class DesktopPage {
 
 	make_charts() {
 		this.sections["charts"] = new WidgetGroup({
-			title: `${this.page_name} Dashboard`,
+			title: this.data.charts.label || `${this.page_name} Dashboard`,
 			container: this.page,
 			type: "chart",
 			columns: 1,
-			widgets: this.data.charts
+			widgets: this.data.charts.items
 		});
 	}
 
 	make_shortcuts() {
 		this.sections["shortcuts"] = new WidgetGroup({
-			title: `Your Shortcuts`,
+			title: this.data.shortcuts.label || `Your Shortcuts`,
 			container: this.page,
 			type: "bookmark",
 			columns: 3,
 			allow_sorting: 1,
-			widgets: this.data.shortcuts
+			widgets: this.data.shortcuts.items
 		});
 	}
 
 	make_cards() {
 		let cards = new WidgetGroup({
-			title: `Reports & Masters`,
+			title: this.data.cards.label || `Reports & Masters`,
 			container: this.page,
 			type: "links",
 			columns: 3,
 			allow_sorting: 1,
-			widgets: this.data.cards
+			widgets: this.data.cards.items
 		});
 
 		this.sections["cards"] = cards;

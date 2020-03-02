@@ -42,9 +42,20 @@ class Workspace:
 		return False
 
 	def build_workspace(self):
-		self.cards = self.get_cards()
-		self.charts = self.get_charts()
-		self.shortcuts = self.get_shortcuts()
+		self.cards = {
+			'label': self.doc.charts_label,
+			'items': self.get_cards()
+		}
+
+		self.charts = {
+			'label': self.doc.shortcuts_label,
+			'items': self.get_charts()
+		}
+
+		self.shortcuts = {
+			'label': self.doc.shortcuts_label,
+			'items': self.get_shortcuts()
+		}
 
 	def get_cards(self):
 		cards = self.doc.cards + get_custom_reports_and_doctypes(self.doc.module)
@@ -139,7 +150,13 @@ def get_desktop_page(page):
 	try:
 		wspace.build_cache()
 		wspace.build_workspace()
-		return {'charts': wspace.charts, 'shortcuts': wspace.shortcuts, 'cards': wspace.cards}
+		return {
+			'charts': wspace.charts,
+			'shortcuts': wspace.shortcuts,
+			'cards': wspace.cards,
+			'allow_customization': not wspace.doc.disable_user_customization
+		}
+
 	except DoesNotExistError:
 		if frappe.message_log:
 			frappe.message_log.pop()
@@ -153,7 +170,7 @@ def get_desk_sidebar_items():
 	filters = {'restrict_to_domain': ['in', frappe.get_active_domains()]}
 
 	# pages sorted based on pinned to top and then by name
-	order_by = "pin_to_top desc, name asc"
+	order_by = "pin_to_top desc, pin_to_bottom asc, name asc"
 	pages = frappe.get_all("Desk Page", fields=["name", "category"], filters=filters, order_by=order_by, ignore_permissions=True)
 
 	from collections import defaultdict
