@@ -15,11 +15,17 @@
   "column_break_3",
   "onboarding",
   "developer_mode_only",
-  "pin_to_top",
   "disable_user_customization",
+  "pin_to_top",
+  "pin_to_bottom",
   "section_break_2",
+  "charts_label",
   "charts",
+  "section_break_15",
+  "shortcuts_label",
   "shortcuts",
+  "section_break_18",
+  "cards_label",
   "cards"
  ],
  "fields": [
@@ -31,8 +37,10 @@
    "unique": 1
   },
   {
+   "collapsible": 1,
    "fieldname": "section_break_2",
-   "fieldtype": "Section Break"
+   "fieldtype": "Section Break",
+   "label": "Dashboards"
   },
   {
    "fieldname": "charts",
@@ -55,7 +63,8 @@
    "fieldname": "restrict_to_domain",
    "fieldtype": "Link",
    "label": "Restrict to Domain",
-   "options": "Domain"
+   "options": "Domain",
+   "search_index": 1
   },
   {
    "fieldname": "module",
@@ -84,29 +93,69 @@
    "fieldname": "category",
    "fieldtype": "Select",
    "label": "Category",
-   "options": "Modules\nDomains\nPlaces\nAdministration"
+   "options": "Modules\nDomains\nPlaces\nAdministration",
+   "search_index": 1
   },
   {
    "default": "0",
    "fieldname": "developer_mode_only",
    "fieldtype": "Check",
-   "label": "Developer Mode Only"
+   "label": "Developer Mode Only",
+   "search_index": 1
   },
   {
    "default": "0",
+   "depends_on": "eval:doc.pin_to_bottom!=1",
    "fieldname": "pin_to_top",
    "fieldtype": "Check",
-   "label": "Pin To Top"
+   "label": "Pin To Top",
+   "search_index": 1
   },
   {
    "default": "0",
    "fieldname": "disable_user_customization",
    "fieldtype": "Check",
-   "label": "Disable User Customization"
+   "label": "Disable User Customization",
+   "search_index": 1
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:doc.pin_to_top!=1",
+   "fieldname": "pin_to_bottom",
+   "fieldtype": "Check",
+   "label": "Pin To Bottom",
+   "search_index": 1
+  },
+  {
+   "fieldname": "charts_label",
+   "fieldtype": "Data",
+   "label": "Label"
+  },
+  {
+   "fieldname": "shortcuts_label",
+   "fieldtype": "Data",
+   "label": "Label"
+  },
+  {
+   "fieldname": "cards_label",
+   "fieldtype": "Data",
+   "label": "Label"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "section_break_15",
+   "fieldtype": "Section Break",
+   "label": "Shortcuts"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "section_break_18",
+   "fieldtype": "Section Break",
+   "label": "Link Cards"
   }
  ],
  "links": [],
- "modified": "2020-02-25 17:54:55.324832",
+ "modified": "2020-03-02 11:30:34.045332",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Desk Page",
