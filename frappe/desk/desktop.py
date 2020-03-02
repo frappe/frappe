@@ -132,6 +132,10 @@ class Workspace:
 				if item.type == "Page":
 					page = self.allowed_pages[item.link_to]
 					new_item['label'] = _(page.get("title", frappe.unscrub(item.link_to)))
+				if item.type == "Report":
+					report = self.allowed_reports.get(item.link_to, {})
+					if report.get("report_type") in ["Query Report", "Script Report"]:
+						new_item['is_query_report'] = 1
 
 				items.append(new_item)
 
