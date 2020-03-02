@@ -120,7 +120,6 @@
    "label": "Recipients"
   },
   {
-   "depends_on": "eval: !doc.email_sent",
    "fieldname": "schedule_send",
    "fieldtype": "Datetime",
    "label": "Schedule Send"
@@ -136,7 +135,7 @@
  "is_published_field": "published",
  "links": [],
  "max_attachments": 3,
- "modified": "2020-02-18 09:51:41.090261",
+ "modified": "2020-03-02 06:26:51.622521",
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Newsletter",

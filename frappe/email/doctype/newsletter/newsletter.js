@@ -4,20 +4,31 @@
 frappe.ui.form.on('Newsletter', {
 	refresh(frm) {
 		let doc = frm.doc;
-		let today = new Date();
 		if (!doc.__islocal && !cint(doc.email_sent) && !doc.__unsaved
 				&& in_list(frappe.boot.user.can_write, doc.doctype)) {
 			frm.add_custom_button(__('Send Now'), function() {
 				frappe.confirm(__("Do you really want to send this email?"), function() {
 					frm.call('send_emails').then(() => {
-						frm.refresh();
+						frm.set_value('schedule_send', new Date());
+						frm.save();
 					});
 				});
 			}, "fa fa-play", "btn-success");
 		}
+		if (!doc.__islocal && cint(doc.email_sent)) {
+			frm.set_df_property('schedule_send', "read_only", 1);
+		}
 
 		frm.events.setup_dashboard(frm);
 
+		if (doc.__islocal && !doc.send_from) {
+			let { fullname, email } = frappe.user_info(doc.owner);
+			frm.set_value('send_from', `${fullname} <${email}>`);
+		}
+	},
+
+	schedule_send(frm) {
+		let today = new Date();
 		// setting datepicker options to set min date & min time
 		frm.get_field('schedule_send').$input.datepicker({
 			maxMinutes: 0,
@@ -37,11 +48,6 @@ frappe.ui.form.on('Newsletter', {
 				}
 			}
 		});
-
-		if(doc.__islocal && !doc.send_from) {
-			let { fullname, email } = frappe.user_info(doc.owner);
-			frm.set_value('send_from', `${fullname} <${email}>`);
-		}
 	},
 
 	setup_dashboard(frm) {
