@@ -441,8 +441,15 @@ frappe.PrintFormatBuilder = Class.extend({
 		});
 	},
 	setup_field_settings: function() {
+<<<<<<< HEAD
 		this.page.main.find(".field-settings").on("click", e => {
 			const field = $(e.currentTarget).parent();
+=======
+
+		this.page.main.find(".field-settings").on("click", () => {
+			var field = $(this).parent();
+
+>>>>>>> 1ee0f69044 (fix: click event being triggered multiple times)
 			// new dialog
 			var d = new frappe.ui.Dialog({
 				title: "Set Properties",
