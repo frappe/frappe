@@ -1,6 +1,6 @@
 {
  "actions": [],
- "autoname": "phone_number",
+ "autoname": "field:phone_number",
  "creation": "2020-02-24 13:58:58.036914",
  "doctype": "DocType",
  "editable_grid": 1,
@@ -13,12 +13,13 @@
    "fieldname": "phone_number",
    "fieldtype": "Data",
    "in_list_view": 1,
-   "label": "Phone Number"
+   "label": "Phone Number",
+   "unique": 1
   }
  ],
  "istable": 1,
  "links": [],
- "modified": "2020-02-28 15:59:57.357735",
+ "modified": "2020-03-02 14:54:34.396254",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Twilio Number Group",

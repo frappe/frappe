@@ -173,8 +173,8 @@ def get_context(context):
 		send_slack_message(
 			webhook_url=self.slack_webhook_url,
 			message=frappe.render_template(self.message, context),
-			reference_doctype = doc.doctype,
-			reference_name = doc.name)
+			reference_doctype=doc.doctype,
+			reference_name=doc.name)
 
 	def send_whatsapp_msg(self, doc, context):
 		send_whatsapp_message(

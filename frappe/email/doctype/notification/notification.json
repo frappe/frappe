@@ -37,7 +37,6 @@
   "message_sb",
   "message",
   "message_examples",
-  "slack_message_examples",
   "view_properties",
   "column_break_25",
   "attach_print",
@@ -226,18 +225,10 @@
    "label": "Message"
   },
   {
-   "depends_on": "eval:doc.channel=='Email'",
    "fieldname": "message_examples",
    "fieldtype": "HTML",
    "label": "Message Examples",
    "options": "<h5>Message Example</h5>\n\n<pre>&lt;h3&gt;Order Overdue&lt;/h3&gt;\n\n&lt;p&gt;Transaction {{ doc.name }} has exceeded Due Date. Please take necessary action.&lt;/p&gt;\n\n&lt;!-- show last comment --&gt;\n{% if comments %}\nLast comment: {{ comments[-1].comment }} by {{ comments[-1].by }}\n{% endif %}\n\n&lt;h4&gt;Details&lt;/h4&gt;\n\n&lt;ul&gt;\n&lt;li&gt;Customer: {{ doc.customer }}\n&lt;li&gt;Amount: {{ doc.grand_total }}\n&lt;/ul&gt;\n</pre>"
-  },
-  {
-   "depends_on": "eval:doc.channel=='Slack'",
-   "fieldname": "slack_message_examples",
-   "fieldtype": "HTML",
-   "label": "Message Examples",
-   "options": "<h5>Message Example</h5>\n\n<pre>*Order Overdue*\n\nTransaction {{ doc.name }} has exceeded Due Date. Please take necessary action.\n\n<!-- show last comment -->\n{% if comments %}\nLast comment: {{ comments[-1].comment }} by {{ comments[-1].by }}\n{% endif %}\n\n*Details*\n\n\u2022 Customer: {{ doc.customer }}\n\u2022 Amount: {{ doc.grand_total }}\n</pre>"
   },
   {
    "fieldname": "view_properties",
@@ -274,7 +265,7 @@
  ],
  "icon": "fa fa-envelope",
  "links": [],
- "modified": "2020-02-28 14:04:21.546481",
+ "modified": "2020-03-02 16:44:18.764675",
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Notification",

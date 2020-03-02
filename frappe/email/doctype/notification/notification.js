@@ -80,6 +80,55 @@ frappe.notification = {
 
 			frm.fields_dict.recipients.grid.refresh();
 		});
+	},
+	setup_example_message: function(frm) {
+		let template = '';
+		if (frm.doc.channel === 'WhatsApp') {
+			template = `<h5>Message Example</h5>
+<h6><strong>Warning:</strong> Only Use Pre-Approved WhatsApp for Business Template</h6>
+
+<pre>Your {{ doc.name }} order of {{ doc.total }} has shipped and should be delivered on {{ doc.date }}. Details : {{ doc.customer }}
+</pre>`;
+		} else if (frm.doc.channel === 'Email') {
+			template = `<h5>Message Example</h5>
+
+<pre>&lt;h3&gt;Order Overdue&lt;/h3&gt;
+
+&lt;p&gt;Transaction {{ doc.name }} has exceeded Due Date. Please take necessary action.&lt;/p&gt;
+
+&lt;!-- show last comment --&gt;
+{% if comments %}
+Last comment: {{ comments[-1].comment }} by {{ comments[-1].by }}
+{% endif %}
+
+&lt;h4&gt;Details&lt;/h4&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Customer: {{ doc.customer }}
+&lt;li&gt;Amount: {{ doc.grand_total }}
+&lt;/ul&gt;
+</pre>
+			`;
+		} else {
+			template = `<h5>Message Example</h5>
+
+<pre>*Order Overdue*
+
+Transaction {{ doc.name }} has exceeded Due Date. Please take necessary action.
+
+<!-- show last comment -->
+{% if comments %}
+Last comment: {{ comments[-1].comment }} by {{ comments[-1].by }}
+{% endif %}
+
+*Details*
+
+• Customer: {{ doc.customer }}
+• Amount: {{ doc.grand_total }}
+</pre>`;
+		}
+		frm.set_df_property('message_examples', 'options', template);
+
 	}
 };
 
@@ -136,5 +185,6 @@ frappe.ui.form.on('Notification', {
 	channel: function(frm) {
 		frm.toggle_reqd('recipients', frm.doc.channel == 'Email');
 		frappe.notification.setup_fieldname_select(frm);
+		frappe.notification.setup_example_message(frm);
 	}
 });

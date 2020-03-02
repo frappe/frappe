@@ -4,12 +4,9 @@
 
 from __future__ import unicode_literals
 import frappe
-import requests
 from frappe.model.document import Document
 from twilio.rest import Client
-from frappe.core.doctype.sms_settings.sms_settings import validate_receiver_nos
 from frappe import _
-from frappe.utils.print_format import download_pdf
 
 from six import string_types
 
@@ -29,13 +26,13 @@ def send_whatsapp_message(sender, receiver_list, message):
 	client = Client(twilio_settings.account_sid, twilio_settings.auth_token)
 	args = {
 		"from_": 'whatsapp:{}'.format(sender),
-		"body": msg
+		"body": message
 	}
 
 	failed_delivery = []
 
 	for rec in receiver_list:
-		message_kwargs.update({"to": 'whatsapp:{}'.format(rec)})
+		args.update({"to": 'whatsapp:{}'.format(rec)})
 		resp = _send_whatsapp(args, client)
 		if not resp:
 			failed_delivery.append(rec)
