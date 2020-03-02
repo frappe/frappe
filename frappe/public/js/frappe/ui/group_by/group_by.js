@@ -25,7 +25,7 @@ frappe.ui.GroupBy = class {
 		this.groupby_select = this.groupby_edit_area.find('select.groupby');
 		this.aggregate_function_select = this.groupby_edit_area.find('select.aggregate-function');
 		this.aggregate_on_select = this.groupby_edit_area.find('select.aggregate-on');
-
+		this.aggregate_on_html = ``;
 		// set default to count
 		this.aggregate_function_select.val("count");
 		this.page.wrapper.find(".frappe-list").append(
@@ -51,28 +51,31 @@ frappe.ui.GroupBy = class {
 	}
 
 	show_hide_aggregate_on() {
+		let fn = this.aggregate_function_select.val();
+		if (fn === 'sum' || fn === 'avg') {
+			if (!this.aggregate_on_html.length) {
+				this.aggregate_on_html = `<option value="" disabled selected>
+					${__("Select Field...")}</option>`;
 
-		for (let doctype in this.all_fields) {
-			const doctype_fields = this.all_fields[doctype];
-			doctype_fields.forEach(field => {
-				let fn = this.aggregate_function_select.val();
-				if(fn === 'sum' || fn === 'avg') {
-					// pick numeric fields for sum / avg
-					if(frappe.model.is_numeric_field(field.fieldtype)) {
-						let option_text = doctype == this.doctype
-							? field.label
-							: `${field.label} (${doctype})`;
-						this.aggregate_on_select.append(
-							$(`<option data-doctype="${doctype}" 
-							value="${field.fieldname}">>`,
-							{ value: field.fieldname }).text(option_text));
-					}
-					this.aggregate_on_select.show();
-				} else {
-					// count, so no aggregate function
-					this.aggregate_on_select.hide();
+				for (let doctype in this.all_fields) {
+					const doctype_fields = this.all_fields[doctype];
+					doctype_fields.forEach(field => {
+						// pick numeric fields for sum / avg
+						if (frappe.model.is_numeric_field(field.fieldtype)) {
+							let option_text = doctype == this.doctype
+								? field.label
+								: `${field.label} (${doctype})`;
+							this.aggregate_on_html+= `<option data-doctype="${doctype}"
+								value="${field.fieldname}">${option_text}</option>`;
+						}
+					});
 				}
-			});
+			}
+			this.aggregate_on_select.html(this.aggregate_on_html);
+			this.aggregate_on_select.show();
+		} else {
+			// count, so no aggregate function
+			this.aggregate_on_select.hide();
 		}
 	}
 
