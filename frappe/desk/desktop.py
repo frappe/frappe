@@ -268,11 +268,17 @@ def make_them_pages():
 		make_them_cards(page[0], page[2])
 
 
-def make_them_cards(page_name, icon="frapicon-dashboard"):
+def make_them_cards(page_name, from_module=None, to_module=None, icon="frapicon-dashboard"):
 	from frappe.desk.moduleview import get
 
+	if not from_module:
+		from_module = page_name
+
+	if not to_module:
+		to_module = page_name
+
 	try:
-		modules = get(page_name)['data']
+		modules = get(from_module)['data']
 	except:
 		return
 
@@ -305,8 +311,6 @@ def make_them_cards(page_name, icon="frapicon-dashboard"):
 		# Set Child doc values
 		card.title = data['label']
 		card.icon = data.get('icon')
-		for item in data['items']:
-			item.pop("count", None)
 		# Pretty dump JSON
 		card.links = json.dumps(data['items'], indent=4, sort_keys=True)
 
