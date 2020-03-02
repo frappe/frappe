@@ -305,6 +305,8 @@ def make_them_cards(page_name, icon="frapicon-dashboard"):
 		# Set Child doc values
 		card.title = data['label']
 		card.icon = data.get('icon')
+		for item in data['items']:
+			item.pop("count", None)
 		# Pretty dump JSON
 		card.links = json.dumps(data['items'], indent=4, sort_keys=True)
 
