@@ -30,6 +30,7 @@ class S3BackupSettings(Document):
 
 		try:
 			conn.list_buckets()
+
 		except ClientError:
 			frappe.throw(_("Invalid Access Key ID or Secret Access Key."))
 
