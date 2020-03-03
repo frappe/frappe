@@ -37,7 +37,6 @@ class S3BackupSettings(Document):
 		try:
 			response = conn.head_bucket(Bucket=bucket_lower)
 			# The operation returns a 200 OK if the bucket exists and you have permission to access it.
-			bucket_name_exist = True
 		except ClientError as e:
 			# If a client error is thrown, then check that it was a 403 error or 404 error.
 			error_code = e.response['Error']['Code']
