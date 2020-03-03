@@ -40,7 +40,7 @@ pyasn1==0.4.8
 Pygments==2.5.2
 PyJWT==1.7.1
 PyMySQL==0.9.3
-pyOpenSSL==19.0.0
+pyOpenSSL==19.1.0
 pyotp==2.3.0
 PyPDF2==1.26.0
 pypng==0.0.20
