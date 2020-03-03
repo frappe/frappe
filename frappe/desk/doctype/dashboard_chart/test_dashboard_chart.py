@@ -154,3 +154,18 @@ class TestDashboardChart(unittest.TestCase):
 		self.assertEqual(result.get('datasets')[0].get('values')[0], todo_status_count)
 
 		frappe.db.rollback()
+
+	def test_dashboard_with_single_doctype(self):
+		if frappe.db.exists('Dashboard Chart', 'Test Single DocType In Dashboard Chart'):
+			frappe.delete_doc('Dashboard Chart', 'Test Single DocType In Dashboard Chart')
+
+		chart_doc = frappe.get_doc(dict(
+			doctype = 'Dashboard Chart',
+			chart_name = 'Test Single DocType In Dashboard Chart',
+			chart_type = 'Count',
+			document_type = 'System Settings',
+			group_by_based_on = 'Created On',
+			filters_json = '{}',
+		))
+
+		self.assertRaises(frappe.ValidationError, chart_doc.insert)

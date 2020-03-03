@@ -78,8 +78,11 @@ class WebsiteTheme(Document):
 
 	def generate_theme_if_not_exist(self):
 		bench_path = frappe.utils.get_bench_path()
-		theme_path = join_path(bench_path, 'sites', self.theme_url[1:])
-		if not path_exists(theme_path):
+		if self.theme_url:
+			theme_path = join_path(bench_path, 'sites', self.theme_url[1:])
+			if not path_exists(theme_path):
+				self.generate_bootstrap_theme()
+		else:
 			self.generate_bootstrap_theme()
 
 	def set_as_default(self):
