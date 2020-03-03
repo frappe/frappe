@@ -60,7 +60,7 @@ six==1.14.0
 sqlparse==0.2.4
 stripe==2.40.0
 unittest-xml-reporting==2.5.2
-urllib3==1.25.7
+urllib3==1.25.8
 watchdog==0.8.0
 Werkzeug==0.16.1
 xlrd==1.2.0
