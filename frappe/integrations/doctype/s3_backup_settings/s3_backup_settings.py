@@ -42,7 +42,7 @@ class S3BackupSettings(Document):
 			# If a client error is thrown, then check that it was a 403 error or 404 error.
 			error_code = e.response['Error']['Code']
 			if error_code == '403':
-				frappe.throw(_(f"403 Forbidden. Do not have permission to access this bucket: {bucket_lower}"))
+				frappe.throw(_("403 Forbidden. Do not have permission to access {0} bucket.").format(bucket_lower))
 			elif error_code == '404':
 				# Bucket not found, set bucket_name_exist flag to False to try create bucket
 				conn.create_bucket(Bucket=bucket_lower, CreateBucketConfiguration={
