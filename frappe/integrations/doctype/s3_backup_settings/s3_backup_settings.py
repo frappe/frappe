@@ -35,17 +35,17 @@ class S3BackupSettings(Document):
 			frappe.throw(_("Invalid Access Key ID or Secret Access Key."))
 
 		try:
-			# The response returns a 200 OK if the bucket exists and you have permission to access it.
-			response = conn.head_bucket(Bucket=bucket_lower)
+			# Head_bucket returns a 200 OK if the bucket exists and have access to it.
+			conn.head_bucket(Bucket=bucket_lower)
 		except ClientError as e:
-			# If a client error is thrown, then check if it is 403 error, other 4xx errors should follow a operation to create a new bucket.
 			error_code = e.response['Error']['Code']
 			if error_code == '403':
-				frappe.throw(_("403 Forbidden. Do not have permission to access {0} bucket.").format(bucket_lower))
+				frappe.throw(_("Do not have permission to access {0} bucket.").format(bucket_lower))
 			else:   # '400'-Bad request or '404'-Not Found return
 				# try to create bucket
 				conn.create_bucket(Bucket=bucket_lower, CreateBucketConfiguration={
 					'LocationConstraint': self.region})
+
 
 @frappe.whitelist()
 def take_backup():
