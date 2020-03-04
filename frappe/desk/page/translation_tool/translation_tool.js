@@ -85,11 +85,7 @@ class TranslationTool {
 				<div class="bold ellipsis">
 					<span class="indicator ${this.get_indicator_color(message)}"></span>
 					<span>${message.source_text}</span>
-					<div class="pull-right">
-						<!--<span class="text-muted">${this.get_indicator_status_text(message)}</span>-->
-					</div>
 				</div>
-				<!--<span class="text-muted">Context: ${message.context}</span>-->
 				<div class="text-muted">${message.path || message.doctype}</div>
 			</div>
 		`;
@@ -119,7 +115,8 @@ class TranslationTool {
 						label: "Source Text",
 						fieldtype: "Code",
 						fieldname: "source_text",
-						read_only: 1
+						read_only: 1,
+						enable_copy_button: 1
 					},
 					{
 						label: "Context",
@@ -169,6 +166,7 @@ class TranslationTool {
 		this.form.set_values(translation);
 		this.form.set_df_property("doctype", "hidden", !translation.doctype);
 		this.form.set_df_property("context", "hidden", !translation.context);
+		this.form.set_df_property("translated_text", "read_only", Boolean(translation.translated_text));
 		this.form.set_df_property("path", "hidden", !translation.path);
 		if (translation.path) {
 			let path = this.form.get_field("path");
@@ -180,7 +178,9 @@ class TranslationTool {
 		let source_text = this.form.get_field("source_text");
 
 		this.form.get_field('status').$wrapper.html(`<div>
-			<span class="indicator ${this.get_indicator_color(translation)}">${this.get_indicator_status_text(translation)}</span>
+			<span class="indicator ${this.get_indicator_color(translation)} text-muted">
+				${this.get_indicator_status_text(translation)}
+			</span>
 		</div>`);
 
 		this.setup_contributions(translation.contributions);
@@ -210,7 +210,7 @@ class TranslationTool {
 	}
 
 	create_translations() {
-		frappe.dom.freeze(__('Submitting...'));
+		// frappe.dom.freeze(__('Submitting...'));
 		frappe.xcall('frappe.core.doctype.translation.translation.create_translations', {
 			translation_map: this.edited_translations,
 			language: this.language
@@ -220,7 +220,7 @@ class TranslationTool {
 			this.edited_translations = {};
 			this.update_header();
 			this.fetch_messages_then_render();
-		}).catch(frappe.dom.unfreeze).finally(frappe.dom.unfreeze);
+		}).catch(() => frappe.dom.unfreeze()).finally(() => frappe.dom.unfreeze());
 	}
 
 	update_header() {
