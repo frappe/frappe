@@ -784,4 +784,4 @@ def get_translations(source_name):
 def get_messages(language, start=0, page_length=1000, search_text=''):
 	from frappe.frappeclient import FrappeClient
 	translator = FrappeClient(frappe.conf.translator_url)
-	return translator.post_api('translator.translator.utils.get_strings_for_translation', params=locals())
+	return translator.post_api('translator.api.get_strings_for_translation', params=locals())
