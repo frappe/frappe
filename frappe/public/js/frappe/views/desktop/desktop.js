@@ -168,6 +168,7 @@ class DesktopPage {
 		this.container = container;
 		this.page_name = page_name;
 		this.sections = {};
+		this.allow_customization = false
 		this.make();
 	}
 
@@ -183,6 +184,7 @@ class DesktopPage {
 		this.make_page();
 		this.get_data().then(res => {
 			this.data = res.message;
+			this.allow_customization = this.data.allow_customization
 			// this.make_onboarding()
 			if (!this.data) {
 				delete localStorage.current_desk_page
@@ -263,7 +265,7 @@ class DesktopPage {
 			container: this.page,
 			type: "bookmark",
 			columns: 3,
-			allow_sorting: 1,
+			allow_sorting: this.allow_customization && frappe.is_mobile(),
 			widgets: this.data.shortcuts.items
 		});
 	}
@@ -274,7 +276,7 @@ class DesktopPage {
 			container: this.page,
 			type: "links",
 			columns: 3,
-			allow_sorting: 1,
+			allow_sorting: this.allow_customization && frappe.is_mobile(),
 			widgets: this.data.cards.items
 		});
 
