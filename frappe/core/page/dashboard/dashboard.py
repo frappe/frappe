@@ -4,10 +4,12 @@ from __future__ import unicode_literals
 import json
 import frappe
 from frappe import _
+from functools import wraps
 from frappe.utils import add_to_date, get_link_to_form
 
 
 def cache_source(function):
+	@wraps(function)
 	def wrapper(*args, **kwargs):
 		if kwargs.get("chart_name"):
 			chart = frappe.get_doc('Dashboard Chart', kwargs.get("chart_name"))
