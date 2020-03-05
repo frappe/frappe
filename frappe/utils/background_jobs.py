@@ -97,7 +97,7 @@ def execute_job(site, method, event, job_name, kwargs, user=None, is_async=True,
 	else:
 		method_name = cstr(method.__name__)
 
-	frappe.monitor.start(transaction_type="job", method=method_name, kwargs=kwargs)
+	frappe.monitor.start("job", method_name, kwargs)
 	try:
 		method(**kwargs)
 
