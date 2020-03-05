@@ -1,9 +1,13 @@
 # -*- coding: utf-8 -*-
 <<<<<<< HEAD
+<<<<<<< HEAD
 # Copyright (c) 2020, Frappe Technologies Pvt. Ltd. and Contributors
 =======
 # Copyright (c) 2019, Frappe Technologies Pvt. Ltd. and Contributors
 >>>>>>> af3c4feb64 (feat: Monitor)
+=======
+# Copyright (c) 2020, Frappe Technologies Pvt. Ltd. and Contributors
+>>>>>>> 4740e4f7e6 (refactor: Monitor)
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
@@ -17,6 +21,7 @@ import frappe
 import os
 import uuid
 import rq
+<<<<<<< HEAD
 
 
 MONITOR_REDIS_KEY = "monitor-transactions"
@@ -35,10 +40,17 @@ import uuid
 
 MONITOR_REDIS_KEY = "monitor-transactions"
 >>>>>>> af3c4feb64 (feat: Monitor)
+=======
+
+
+MONITOR_REDIS_KEY = "monitor-transactions"
+MONITOR_MAX_ENTRIES = 1000000
+>>>>>>> 4740e4f7e6 (refactor: Monitor)
 
 
 def start(transaction_type="request", method=None, kwargs=None):
 	if frappe.conf.monitor:
+<<<<<<< HEAD
 <<<<<<< HEAD
 		frappe.local.monitor = Monitor(transaction_type, method, kwargs)
 
@@ -50,12 +62,19 @@ def stop(response=None):
 		frappe.local.monitor = Monitor(
 			transaction_type=transaction_type, method=method, kwargs=kwargs
 		)
+=======
+		frappe.local.monitor = Monitor(transaction_type, method, kwargs)
+>>>>>>> 4740e4f7e6 (refactor: Monitor)
 
 
-def stop():
+def stop(response=None):
 	if frappe.conf.monitor and hasattr(frappe.local, "monitor"):
+<<<<<<< HEAD
 		frappe.local.monitor.dump()
 >>>>>>> af3c4feb64 (feat: Monitor)
+=======
+		frappe.local.monitor.dump(response)
+>>>>>>> 4740e4f7e6 (refactor: Monitor)
 
 
 def log_file():
@@ -63,6 +82,7 @@ def log_file():
 
 
 class Monitor:
+<<<<<<< HEAD
 <<<<<<< HEAD
 	def __init__(self, transaction_type, method, kwargs):
 		try:
@@ -130,56 +150,62 @@ class Monitor:
 		frappe.cache().rpush(MONITOR_REDIS_KEY, serialized)
 =======
 	def __init__(self, transaction_type=None, method=None, kwargs=None):
+=======
+	def __init__(self, transaction_type, method, kwargs):
+>>>>>>> 4740e4f7e6 (refactor: Monitor)
 		try:
-			self.site = frappe.local.site
-			self.timestamp = datetime.utcnow()
-			self.transaction_type = transaction_type
-			self.uuid = uuid.uuid4()
+			self.data = frappe._dict(
+				{
+					"site": frappe.local.site,
+					"timestamp": datetime.utcnow(),
+					"transaction_type": transaction_type,
+					"uuid": str(uuid.uuid4()),
+				}
+			)
 
-			if self.transaction_type == "request":
-				self.data = frappe.form_dict
-				self.headers = dict(frappe.request.headers)
-				self.ip = frappe.local.request_ip
-				self.method = frappe.request.method
-				self.path = frappe.request.path
+			if transaction_type == "request":
+				self.collect_request_meta()
 			else:
-				self.kwargs = kwargs
-				self.method = method
+				self.collect_job_meta(method, kwargs)
 		except Exception:
 			traceback.print_exc()
 
-	def dump(self):
-		try:
-			timediff = datetime.utcnow() - self.timestamp
-			# Obtain duration in microseconds
-			self.duration = int(timediff.total_seconds() * 1000000)
-			data = {
-				"uuid": self.uuid,
-				"duration": self.duration,
-				"site": self.site,
-				"timestamp": self.timestamp.isoformat(sep=" "),
-				"transaction_type": self.transaction_type,
+	def collect_request_meta(self):
+		self.data.request = frappe._dict(
+			{
+				"ip": frappe.local.request_ip,
+				"method": frappe.request.method,
+				"path": frappe.request.path,
 			}
+		)
 
-			if self.transaction_type == "request":
-				update = {
-					"data": self.data,
-					"headers": self.headers,
-					"ip": self.ip,
-					"method": self.method,
-					"path": self.path,
-				}
-			else:
-				update = {
-					"kwargs": self.kwargs,
-					"method": self.method,
-				}
-			data.update(update)
-			json_data = json.dumps(data, sort_keys=True, default=str)
-			store(json_data)
+	def collect_job_meta(self, method, kwargs):
+		self.data.job = frappe._dict({"method": method, "scheduled": False, "wait": 0})
+		if "run_scheduled_job" in method:
+			self.data.job.method = kwargs["job_type"]
+			self.data.job.scheduled = True
+
+		job = rq.get_current_job()
+		if job:
+			self.data.uuid = job.id
+			waitdiff = self.data.timestamp - job.enqueued_at
+			self.data.job.wait = int(waitdiff.total_seconds() * 1000000)
+
+	def dump(self, response=None):
+		try:
+			timediff = datetime.utcnow() - self.data.timestamp
+			# Obtain duration in microseconds
+			self.data.duration = int(timediff.total_seconds() * 1000000)
+
+			if self.data.transaction_type == "request":
+				self.data.request.status_code = response.status_code
+				self.data.request.response_length = int(response.headers["Content-Length"])
+
+			self.store()
 		except Exception:
 			traceback.print_exc()
 
+<<<<<<< HEAD
 
 def store(json_data):
 <<<<<<< HEAD
@@ -195,6 +221,13 @@ def store(json_data):
 		frappe.cache().ltrim(MONITOR_REDIS_KEY, 1, -1)
 	frappe.cache().rpush(MONITOR_REDIS_KEY, json_data)
 >>>>>>> 96d9f2624b (fix(monitor): Maintain MAX_LOG entries in cache)
+=======
+	def store(self):
+		if frappe.cache().llen(MONITOR_REDIS_KEY) > MONITOR_MAX_ENTRIES:
+			frappe.cache().ltrim(MONITOR_REDIS_KEY, 1, -1)
+		serialized = json.dumps(self.data, sort_keys=True, default=str)
+		frappe.cache().rpush(MONITOR_REDIS_KEY, serialized)
+>>>>>>> 4740e4f7e6 (refactor: Monitor)
 
 
 def flush():
@@ -202,6 +235,9 @@ def flush():
 		# Fetch all the logs without removing from cache
 		logs = frappe.cache().lrange(MONITOR_REDIS_KEY, 0, -1)
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 4740e4f7e6 (refactor: Monitor)
 		if logs:
 			logs = list(map(frappe.safe_decode, logs))
 			with open(log_file(), "a", os.O_NONBLOCK) as f:
@@ -209,6 +245,7 @@ def flush():
 				f.write("\n")
 			# Remove fetched entries from cache
 			frappe.cache().ltrim(MONITOR_REDIS_KEY, len(logs) - 1, -1)
+<<<<<<< HEAD
 =======
 		logs = list(map(frappe.safe_decode, logs))
 		with open(log_file(), "a", os.O_NONBLOCK) as f:
@@ -218,5 +255,7 @@ def flush():
 		# Remove fetched entries from cache
 		frappe.cache().ltrim(MONITOR_REDIS_KEY, len(logs) - 1, -1)
 >>>>>>> af3c4feb64 (feat: Monitor)
+=======
+>>>>>>> 4740e4f7e6 (refactor: Monitor)
 	except Exception:
 		traceback.print_exc()

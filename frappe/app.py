@@ -108,8 +108,12 @@ def application(request):
 		if response and hasattr(frappe.local, 'cookie_manager'):
 			frappe.local.cookie_manager.flush_cookies(response=response)
 
+<<<<<<< HEAD
 		frappe.monitor.stop()
 >>>>>>> af3c4feb64 (feat: Monitor)
+=======
+		frappe.monitor.stop(response)
+>>>>>>> 4740e4f7e6 (refactor: Monitor)
 		frappe.recorder.dump()
 		process_response(response)
 		frappe.destroy()

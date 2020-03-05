@@ -98,10 +98,14 @@ def execute_job(site, method, event, job_name, kwargs, user=None, is_async=True,
 		method_name = cstr(method.__name__)
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 	frappe.monitor.start("job", method_name, kwargs)
 =======
 	frappe.monitor.start(transaction_type="job", method=method_name, kwargs=kwargs)
 >>>>>>> af3c4feb64 (feat: Monitor)
+=======
+	frappe.monitor.start("job", method_name, kwargs)
+>>>>>>> 4740e4f7e6 (refactor: Monitor)
 	try:
 		method(**kwargs)
 
