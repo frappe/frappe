@@ -152,7 +152,7 @@ def _get_email_account(filters):
 	return frappe.get_doc("Email Account", name) if name else None
 
 class SMTPServer:
-	def __init__(self, login=None, password=None, server=None, port=None, use_tls=None, append_to=None):
+	def __init__(self, login=None, password=None, server=None, port=None, use_tls=None, append_to=None, sender=None):
 		# get defaults from mail settings
 
 		self._sess = None
@@ -166,7 +166,7 @@ class SMTPServer:
 			self.password = password
 
 		else:
-			self.setup_email_account(append_to)
+			self.setup_email_account(append_to, sender)
 
 	def setup_email_account(self, append_to=None, sender=None):
 		self.email_account = get_outgoing_email_account(raise_exception_not_set=False, append_to=append_to, sender=sender)

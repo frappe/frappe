@@ -403,8 +403,8 @@ def send_one(email, smtpserver=None, auto_commit=True, now=False, from_test=Fals
 
 	try:
 		if not frappe.flags.in_test:
-			if not smtpserver: smtpserver = SMTPServer()
-			smtpserver.setup_email_account(email.reference_doctype, sender=email.sender)
+			if not smtpserver: smtpserver = SMTPServer(append_to=email.reference_doctype, sender=email.sender)
+			smtpserver.setup_email_account(append_to=email.reference_doctype, sender=email.sender)
 
 		for recipient in recipients_list:
 			if recipient.status != "Not Sent":
@@ -484,7 +484,7 @@ def prepare_message(email, recipient, recipients_list):
 		return ""
 
 	# Parse "Email Account" from "Email Sender"
-	email_account = get_outgoing_email_account(raise_exception_not_set=False, sender=email.sender)
+	email_account = get_outgoing_email_account(raise_exception_not_set=False, append_to=email.reference_doctype, sender=email.sender)
 	if frappe.conf.use_ssl and email_account.track_email_status:
 		# Using SSL => Publically available domain => Email Read Reciept Possible
 		message = message.replace("<!--email open check-->", quopri.encodestring('<img src="https://{}/api/method/frappe.core.doctype.communication.email.mark_email_as_seen?name={}"/>'.format(frappe.local.site, email.communication).encode()).decode())
