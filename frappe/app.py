@@ -93,7 +93,7 @@ def application(request):
 		if response and hasattr(frappe.local, 'cookie_manager'):
 			frappe.local.cookie_manager.flush_cookies(response=response)
 
-		frappe.monitor.stop()
+		frappe.monitor.stop(response)
 		frappe.recorder.dump()
 
 		frappe.destroy()
