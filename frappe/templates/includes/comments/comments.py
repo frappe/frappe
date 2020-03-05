@@ -13,19 +13,17 @@ def add_comment(comment, comment_email, comment_by, reference_doctype, reference
 	doc = frappe.get_doc(reference_doctype, reference_name)
 
 	if len(comment) < 10:
-		frappe.msgprint(_('Comment Should be atleast 10 characters'))
-		return ''
+		frappe.throw(_('Comment Should be atleast 10 characters'))
 
 	blacklist = ['http://', 'https://', '@gmail.com']
 
 	if any([b in comment for b in blacklist]):
-		frappe.msgprint(_('Comments cannot have links or email addresses'))
-		return ''
+		frappe.throw(_('Comments cannot have links or email addresses'))
 
 	if comment_email:
 		if frappe.db.exists("User", comment_email) and \
 			frappe.session.user != comment_email:
-			frappe.msgprint(_('User already exists in the system. Please login and comment.'))
+			frappe.throw(_('User already exists in the system. Please login and comment.'))
 
 	comment = doc.add_comment(
 		text=comment,
