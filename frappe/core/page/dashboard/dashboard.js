@@ -413,7 +413,7 @@ class DashboardChart {
 			args = {
 				report_name: this.chart_doc.report_name,
 				filters: filters,
-			}
+			};
 		} else {
 			args = {
 				chart_name: this.chart_doc.name,
@@ -495,14 +495,12 @@ class DashboardChart {
 				this.settings = frappe.dashboards.chart_sources[this.chart_doc.source];
 				return Promise.resolve();
 			} else {
-				return frappe.xcall('frappe.desk.doctype.dashboard_chart_source.dashboard_chart_source.get_config',
-					{
-						name: this.chart_doc.source
-					})
-				.then(config => {
-					frappe.dom.eval(config);
-					this.settings = frappe.dashboards.chart_sources[this.chart_doc.source];
-				});
+				return frappe.xcall(
+					'frappe.desk.doctype.dashboard_chart_source.dashboard_chart_source.get_config',
+					{name: this.chart_doc.source}).then(config => {
+						frappe.dom.eval(config);
+						this.settings = frappe.dashboards.chart_sources[this.chart_doc.source];
+					});
 			}
 		} else if (this.chart_doc.chart_type == 'Report') {
 			this.settings = {
