@@ -703,7 +703,8 @@ frappe.ui.form.Timeline = class Timeline {
 				reference_doctype: this.frm.doctype,
 				reference_name: this.frm.docname,
 				content: comment,
-				comment_email: frappe.session.user
+				comment_email: frappe.session.user,
+				comment_by: frappe.session.user_fullname
 			},
 			btn: btn,
 			callback: function(r) {
