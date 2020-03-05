@@ -115,3 +115,17 @@ def get_permission_query_condition(user):
 
 	return """`tabPrepared Report`.ref_report_doctype in ({reports})"""\
 			.format(reports=','.join(reports))
+
+
+def has_permission(doc, user):
+	if not user: user = frappe.session.user
+	if user == "Administrator":
+		return True
+
+	from frappe.utils.user import UserPermissions
+	user = UserPermissions(user)
+
+	if "System Manager" in user.roles:
+		return True
+
+	return doc.ref_report_doctype in user.get_all_reports().keys()
