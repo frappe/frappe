@@ -99,7 +99,8 @@ def get_chart_config(chart, filters, timespan, timegrain, from_date, to_date):
 		filters = filters,
 		group_by = '_year, _unit',
 		order_by = '_year asc, _unit asc',
-		as_list = True
+		as_list = True,
+		ignore_ifnull = True
 	)
 
 
@@ -135,7 +136,8 @@ def get_group_by_chart_config(chart, filters):
 		],
 		filters = filters,
 		group_by = group_by_field,
-		order_by = 'count desc'
+		order_by = 'count desc',
+		ignore_ifnull = True
 	)
 
 	if data:
