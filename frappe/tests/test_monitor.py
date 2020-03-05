@@ -35,10 +35,6 @@ class TestMonitor(unittest.TestCase):
 		self.assertEqual(log.transaction_type, "request")
 		self.assertEqual(log.request["method"], "GET")
 
-		# Reponse body will be set as "{}"
-		self.assertEqual(log.request["response_length"], 2)
-		self.assertEqual(log.request["status_code"], 200)
-
 	def test_job(self):
 		frappe.utils.background_jobs.execute_job(
 			frappe.local.site, "frappe.ping", None, None, {}, is_async=False
