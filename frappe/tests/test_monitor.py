@@ -55,6 +55,7 @@ class TestMonitor(unittest.TestCase):
 		self.assertEqual(log.transaction_type, "request")
 		self.assertEqual(log.request["method"], "GET")
 
+<<<<<<< HEAD
 	def test_job(self):
 		frappe.utils.background_jobs.execute_job(
 			frappe.local.site, "frappe.ping", None, None, {}, is_async=False
@@ -122,6 +123,8 @@ class TestMonitor(unittest.TestCase):
 		self.assertEqual(log.request["status_code"], 200)
 >>>>>>> 4740e4f7e6 (refactor: Monitor)
 
+=======
+>>>>>>> 542a3ce222 (fix: Remove flaky assertions)
 	def test_job(self):
 		frappe.utils.background_jobs.execute_job(
 			frappe.local.site, "frappe.ping", None, None, {}, is_async=False
