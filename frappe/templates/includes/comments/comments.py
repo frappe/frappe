@@ -26,12 +26,11 @@ def add_comment(comment, comment_email, comment_by, reference_doctype, reference
 		if frappe.db.exists("User", comment_email) and \
 			frappe.session.user != comment_email:
 			frappe.msgprint(_('User already exists in the system. Please login and comment.'))
-			return ''
 
 	comment = doc.add_comment(
-		text = comment,
-		comment_email = comment_email,
-		comment_by = comment_by)
+		text=comment,
+		comment_email=comment_email,
+		comment_by=comment_by)
 
 	comment.db_set('published', 1)
 
