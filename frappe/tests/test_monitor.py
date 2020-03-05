@@ -22,8 +22,11 @@ from frappe.monitor import MONITOR_REDIS_KEY
 from frappe.utils import set_request
 from frappe.utils.response import build_response
 from frappe.monitor import MONITOR_REDIS_KEY
+<<<<<<< HEAD
 import json
 >>>>>>> af3c4feb64 (feat: Monitor)
+=======
+>>>>>>> 4e69326fac (style: Remove unused imports)
 
 
 class TestMonitor(unittest.TestCase):
