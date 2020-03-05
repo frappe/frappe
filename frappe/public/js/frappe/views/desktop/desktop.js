@@ -255,6 +255,7 @@ class DesktopPage {
 			container: this.page,
 			type: "chart",
 			columns: 1,
+			allow_sorting: false,
 			widgets: this.data.charts.items
 		});
 	}
