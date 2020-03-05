@@ -22,6 +22,12 @@ def add_comment(comment, comment_email, comment_by, reference_doctype, reference
 		frappe.msgprint(_('Comments cannot have links or email addresses'))
 		return ''
 
+	if comment_email:
+		if frappe.db.exists("User", comment_email) and \
+			frappe.session.user != comment_email:
+			frappe.msgprint(_('User already exists in the system. Please login and comment.'))
+			return ''
+
 	comment = doc.add_comment(
 		text = comment,
 		comment_email = comment_email,
