@@ -791,8 +791,8 @@ class BaseDocument(object):
 			else:
 				# get values from old doc
 				if self.get('parent_doc'):
-					self.parent_doc.get_latest()
-					ref_doc = [d for d in self.parent_doc.get(self.parentfield) if d.name == self.name][0]
+					parent_doc = self.parent_doc.get_latest()
+					ref_doc = [d for d in parent_doc.get(self.parentfield) if d.name == self.name][0]
 				else:
 					ref_doc = self.get_latest()
 
