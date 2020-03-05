@@ -423,7 +423,7 @@ class DashboardChart {
 				timespan: args && args.timespan? args.timespan: null,
 				from_date: args && args.from_date? args.from_date: null,
 				to_date: args && args.to_date? args.to_date: null,
-			}
+			};
 		}
 		return frappe.xcall(
 			method,
@@ -498,10 +498,11 @@ class DashboardChart {
 				return frappe.xcall('frappe.desk.doctype.dashboard_chart_source.dashboard_chart_source.get_config',
 					{
 						name: this.chart_doc.source
-					}).then(config => {
-						frappe.dom.eval(config);
-						this.settings = frappe.dashboards.chart_sources[this.chart_doc.source];
-					});
+					})
+				.then(config => {
+					frappe.dom.eval(config);
+					this.settings = frappe.dashboards.chart_sources[this.chart_doc.source];
+				});
 			}
 		} else if (this.chart_doc.chart_type == 'Report') {
 			this.settings = {

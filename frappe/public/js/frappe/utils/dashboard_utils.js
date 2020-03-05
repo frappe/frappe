@@ -46,10 +46,11 @@ frappe.dashboard_utils = {
 			return frappe.xcall('frappe.desk.doctype.dashboard_chart_source.dashboard_chart_source.get_config',
 				{
 					name: chart.source
-				}).then(config => {
-					frappe.dom.eval(config);
-					return frappe.dashboards.chart_sources[chart.source].filters;
-				});
+				})
+			.then(config => {
+				frappe.dom.eval(config);
+				return frappe.dashboards.chart_sources[chart.source].filters;
+			});
 		} else if (chart.chart_type === 'Report') {
 			return frappe.report_utils.get_report_filters(chart.report_name).then(filters => {
 				return filters;

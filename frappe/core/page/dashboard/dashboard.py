@@ -41,7 +41,7 @@ def generate_and_cache_results(args, function, cache_key):
 			timespan = args.timespan or None,
 		)
 	except TypeError as e:
-		if e.message == "'NoneType' object is not iterable":
+		if str(e) == "'NoneType' object is not iterable":
 			# Probably because of invalid link filter
 			#
 			# Note: Do not try to find the right way of doing this because

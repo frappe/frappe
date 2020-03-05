@@ -145,7 +145,7 @@ frappe.ui.form.on('Dashboard Chart', {
 		).then(data => {
 			frm.report_data = data;
 			if (!data.chart) {
-				frm.set_value('is_custom', 0)
+				frm.set_value('is_custom', 0);
 				frm.set_df_property('is_custom', 'hidden', 1);
 			} else {
 				frm.set_df_property('is_custom', 'hidden', 0);
@@ -234,7 +234,7 @@ frappe.ui.form.on('Dashboard Chart', {
 				}
 
 				frm.trigger('render_filters_table');
-			})
+			});
 		});
 	},
 

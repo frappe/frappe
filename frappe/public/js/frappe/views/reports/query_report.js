@@ -201,7 +201,9 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				{
 					'chart_name': chart_name,
 					'x_field': chart_args.x_field,
-					'y_axis': chart_args.y_axis_fields.map(f => {return {'y_field': f.y_field, 'color': f.color}}),
+					'y_axis': chart_args.y_axis_fields.map(f => {
+						return {'y_field': f.y_field, 'color': f.color};
+					}),
 					'is_custom': 0
 				}
 			);
@@ -222,9 +224,9 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			let message;
 			if (dashboard_name) {
 				let dashboard_route_html = `<a href = "#dashboard/${dashboard_name}">${dashboard_name}</a>`;
-				message = __(`New Dashboard Chart ${chart_name} add to Dashboard ` + dashboard_route_html);
+				message = __(`New Dashboard Chart ${chart_name} added to Dashboard ` + dashboard_route_html);
 			} else {
-				message = __(`New Dashboard Chart ${chart_name} created`);
+				message = __(`New chart ${chart_name} created`);
 			}
 
 			frappe.msgprint(message);
@@ -692,7 +694,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				wrapper.find('.chart-container .title, .chart-container .sub-title').hide();
 				wrapper.show();
 
-				dialog.fields_dict['create_dashoard_chart'].df.hidden = 0
+				dialog.fields_dict['create_dashoard_chart'].df.hidden = 0;
 				dialog.refresh();
 			}
 			else {
@@ -778,7 +780,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			],
 			primary_action_label: __('Create'),
 			primary_action: (values) => {
-				values = set_chart_values(values)
+				values = set_chart_values(values);
 
 				let options = 
 					frappe.report_utils.make_chart_options(
