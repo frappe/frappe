@@ -229,7 +229,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				message = __(`New chart ${chart_name} created`);
 			}
 
-			frappe.msgprint(message);
+			frappe.msgprint(message, __('New Chart Created'));
 		});
 	}
 
