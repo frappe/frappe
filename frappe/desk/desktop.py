@@ -319,6 +319,7 @@ def make_them_cards(page_name, from_module=None, to_module=None, icon=None):
 		for item in data['items']:
 			try:
 				del item['count']
+				del item['incomplete_dependencies']
 			except KeyError:
 				pass
 
