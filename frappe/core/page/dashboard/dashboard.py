@@ -21,17 +21,17 @@ def cache_source(function):
 		chart_name = frappe.parse_json(chart).name
 		cache_key = "chart-data:{}".format(chart_name)
 		if int(kwargs.get("refresh") or 0):
-			results = generate_and_cache_results(kwargs, function, cache_key)
+			results = generate_and_cache_results(kwargs, function, cache_key, chart)
 		else:
 			cached_results = frappe.cache().get_value(cache_key)
 			if cached_results:
 				results = frappe.parse_json(frappe.safe_decode(cached_results))
 			else:
-				results = generate_and_cache_results(kwargs, function, cache_key)
+				results = generate_and_cache_results(kwargs, function, cache_key, chart)
 		return results
 	return wrapper
 
-def generate_and_cache_results(args, function, cache_key):
+def generate_and_cache_results(args, function, cache_key, chart):
 	try:
 		args = frappe._dict(args)
 		results = function(
@@ -55,7 +55,6 @@ def generate_and_cache_results(args, function, cache_key):
 		else:
 			raise
 
-	frappe.cache().set_value(cache_key, json.dumps(results, default=str))
 	frappe.db.set_value("Dashboard Chart", args.chart_name, "last_synced_on", frappe.utils.now(), update_modified = False)
 	return results
 

@@ -200,7 +200,7 @@ class DashboardChart {
 			time_interval: this.selected_time_interval,
 			from_date: this.selected_from_date,
 			to_date: this.selected_to_date
-		}
+		};
 
 		this.fetch(this.filters, true, this.args).then(data => {
 			if (this.chart_doc.chart_type == 'Report') {
@@ -256,7 +256,7 @@ class DashboardChart {
 				x_field: this.chart_doc.x_field,
 				chart_type: this.chart_doc.type,
 				color: this.chart_doc.color
-			}
+			};
 			let columns = result.columns.map((col)=> {
 				return frappe.report_utils.prepare_field_from_column(col);
 			});
@@ -495,12 +495,11 @@ class DashboardChart {
 				this.settings = frappe.dashboards.chart_sources[this.chart_doc.source];
 				return Promise.resolve();
 			} else {
-				return frappe.xcall(
-					'frappe.desk.doctype.dashboard_chart_source.dashboard_chart_source.get_config',
-					{name: this.chart_doc.source}).then(config => {
-						frappe.dom.eval(config);
-						this.settings = frappe.dashboards.chart_sources[this.chart_doc.source];
-					});
+				const method = 'frappe.desk.doctype.dashboard_chart_source.dashboard_chart_source.get_config';
+				return frappe.xcall(method, {name: this.chart_doc.source}).then(config => {
+					frappe.dom.eval(config);
+					this.settings = frappe.dashboards.chart_sources[this.chart_doc.source];
+				});
 			}
 		} else if (this.chart_doc.chart_type == 'Report') {
 			this.settings = {

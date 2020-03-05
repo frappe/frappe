@@ -79,21 +79,21 @@ def get_chart_config(chart, filters, timespan, timegrain, from_date, to_date):
 	if not to_date:
 		to_date = datetime.datetime.now()
 
-	unit_function = get_unit_function(chart.document_type, chart.based_on, timegrain)
+	doctype = chart.document_type
+	unit_function = get_unit_function(doctype, chart.based_on, timegrain)
 	datefield = chart.based_on
 	aggregate_function = get_aggregate_function(chart.chart_type)
 	value_field = chart.value_based_on or '1'
-	doctype = chart.document_type
 	from_date = from_date.strftime('%Y-%m-%d')
 	to_date = to_date
 
-	filters.append([chart.document_type, datefield, '>=', from_date, False])
-	filters.append([chart.document_type, datefield, '<=', to_date, False])
+	filters.append([doctype, datefield, '>=', from_date, False])
+	filters.append([doctype, datefield, '<=', to_date, False])
 
 	data = frappe.db.get_all(
-		chart.document_type,
+		doctype,
 		fields = [
-			'extract(year from `tab{doctype}`.{datefield}) as _year'.format(doctype=chart.document_type, datefield=datefield),
+			'extract(year from `tab{doctype}`.{datefield}) as _year'.format(doctype=doctype, datefield=datefield),
 			'{} as _unit'.format(unit_function),
 			'{aggregate_function}({value_field})'.format(aggregate_function=aggregate_function, value_field=value_field),
 		],
@@ -125,12 +125,11 @@ def get_group_by_chart_config(chart, filters):
 
 	aggregate_function = get_aggregate_function(chart.group_by_type)
 	value_field = chart.aggregate_function_based_on or '1'
-	field = chart.aggregate_function_based_on or chart.group_by_based_on
 	group_by_field = chart.group_by_based_on
 	doctype = chart.document_type
 
 	data = frappe.db.get_all(
-		chart.document_type,
+		doctype,
 		fields = [
 			'{} as name'.format(group_by_field),
 			'{aggregate_function}({value_field}) as count'.format(aggregate_function=aggregate_function, value_field=value_field),
@@ -156,6 +155,7 @@ def get_group_by_chart_config(chart, filters):
 				"values": [item['count'] for item in data]
 			}]
 		}
+
 		return chart_config
 	else:
 		return None
