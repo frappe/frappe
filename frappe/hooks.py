@@ -94,7 +94,8 @@ permission_query_conditions = {
 	"Contact": "frappe.contacts.address_and_contact.get_permission_query_conditions_for_contact",
 	"Address": "frappe.contacts.address_and_contact.get_permission_query_conditions_for_address",
 	"Communication": "frappe.core.doctype.communication.communication.get_permission_query_conditions_for_communication",
-	"Workflow Action": "frappe.workflow.doctype.workflow_action.workflow_action.get_permission_query_conditions"
+	"Workflow Action": "frappe.workflow.doctype.workflow_action.workflow_action.get_permission_query_conditions",
+	"Prepared Report": "frappe.core.doctype.prepared_report.prepared_report.get_permission_query_condition"
 }
 
 has_permission = {
