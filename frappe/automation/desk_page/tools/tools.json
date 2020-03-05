@@ -11,11 +11,11 @@
   },
   {
    "icon": "fa fa-cog",
-   "links": "[\n\t{\n\t\t\"type\": \"doctype\",\n\t\t\"name\": \"Assignment Rule\",\n\t\t\"description\": \"Set up rules for user assignments.\",\n\t\t\"label\": \"Assignment Rule\"\n\t},\n\t{\n\t\t\"type\": \"doctype\",\n\t\t\"name\": \"Milestone\",\n\t\t\"description\": \"Tracks milestones on the lifecycle of a document if it undergoes multiple stages.\",\n\t\t\"label\": \"Milestone\"\n\t},\n\t{\n\t\t\"type\": \"doctype\",\n\t\t\"name\": \"Auto Repeat\",\n\t\t\"description\": \"Automatically generates recurring documents.\",\n\t\t\"label\": \"Auto Repeat\"\n\t}\n]",
+   "links": "[\n    {\n        \"type\": \"doctype\",\n        \"name\": \"Assignment Rule\",\n        \"description\": \"Set up rules for user assignments.\",\n        \"label\": \"Assignment Rule\"\n    },\n    {\n        \"type\": \"doctype\",\n        \"name\": \"Milestone\",\n        \"description\": \"Tracks milestones on the lifecycle of a document if it undergoes multiple stages.\",\n        \"label\": \"Milestone\"\n    },\n    {\n        \"type\": \"doctype\",\n        \"name\": \"Auto Repeat\",\n        \"description\": \"Automatically generates recurring documents.\",\n        \"label\": \"Auto Repeat\"\n    }\n]",
    "title": "Automation"
   },
   {
-   "links": "[\n\t{\n\t\t\"type\": \"doctype\",\n\t\t\"name\": \"Event Producer\",\n\t\t\"description\": \"The site you want to subscribe to for consuming events.\",\n\t\t\"label\": \"Event Producer\"\n\t},\n\t{\n\t\t\"type\": \"doctype\",\n\t\t\"name\": \"Event Consumer\",\n\t\t\"description\": \"The site which is consuming your events.\",\n\t\t\"label\": \"Event Consumer\"\n\t},\n\t{\n\t\t\"type\": \"doctype\",\n\t\t\"name\": \"Event Update Log\",\n\t\t\"description\": \"Maintains a Log of all inserts, updates and deletions on Event Producer site for documents that have consumers.\",\n\t\t\"label\": \"Event Update Log\"\n\t},\n\t{\n\t\t\"type\": \"doctype\",\n\t\t\"name\": \"Event Sync Log\",\n\t\t\"description\": \"Maintains a log of every event consumed along with the status of the sync and a Resync button in case sync fails.\",\n\t\t\"label\": \"Event Sync Log\"\n\t},\n\t{\n\t\t\"type\": \"doctype\",\n\t\t\"name\": \"Document Type Mapping\",\n\t\t\"description\": \"The mapping configuration between two doctypes.\",\n\t\t\"label\": \"Document Type Mapping\"\n\t}\n]",
+   "links": "[\n    {\n        \"type\": \"doctype\",\n        \"name\": \"Event Producer\",\n        \"description\": \"The site you want to subscribe to for consuming events.\",\n        \"label\": \"Event Producer\"\n    },\n    {\n        \"type\": \"doctype\",\n        \"name\": \"Event Consumer\",\n        \"description\": \"The site which is consuming your events.\",\n        \"label\": \"Event Consumer\"\n    },\n    {\n        \"type\": \"doctype\",\n        \"name\": \"Event Update Log\",\n        \"description\": \"Maintains a Log of all inserts, updates and deletions on Event Producer site for documents that have consumers.\",\n        \"label\": \"Event Update Log\"\n    },\n    {\n        \"type\": \"doctype\",\n        \"name\": \"Event Sync Log\",\n        \"description\": \"Maintains a log of every event consumed along with the status of the sync and a Resync button in case sync fails.\",\n        \"label\": \"Event Sync Log\"\n    },\n    {\n        \"type\": \"doctype\",\n        \"name\": \"Document Type Mapping\",\n        \"description\": \"The mapping configuration between two doctypes.\",\n        \"label\": \"Document Type Mapping\"\n    }\n]",
    "title": "Event Streaming"
   }
  ],
@@ -28,7 +28,7 @@
  "doctype": "Desk Page",
  "idx": 0,
  "label": "Tools",
- "modified": "2020-03-02 15:22:52.666707",
+ "modified": "2020-03-05 11:27:26.106013",
  "modified_by": "Administrator",
  "module": "Automation",
  "name": "Tools",
