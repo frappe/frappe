@@ -1,11 +1,11 @@
 context('Grid Pagination', () => {
 	beforeEach(() => {
 		cy.login();
-		cy.visit('/desk');
+		cy.visit('/desk#workspace/Website');
 	});
 	before(() => {
 		cy.login();
-		cy.visit('/desk');
+		cy.visit('/desk#workspace/Website');
 		cy.window().its('frappe').then(frappe => {
 			frappe.call("frappe.tests.ui_test_helpers.create_contact_phone_nos_records");
 		});
