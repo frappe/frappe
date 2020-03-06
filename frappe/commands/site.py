@@ -50,10 +50,6 @@ def _new_site(db_name, site, mariadb_root_username=None, mariadb_root_password=N
 		print('--no-mariadb-socket requires db_type to be set to mariadb.')
 		sys.exit(1)
 
-	if no_mariadb_socket:
-		print('Using % as Database Host.')
-		db_host = "%"
-
 	if not db_name:
 		db_name = '_' + hashlib.sha1(site.encode()).hexdigest()[:16]
 
@@ -77,7 +73,7 @@ def _new_site(db_name, site, mariadb_root_username=None, mariadb_root_password=N
 
 		install_db(root_login=mariadb_root_username, root_password=mariadb_root_password,
 				   db_name=db_name, admin_password=admin_password, verbose=verbose,
-				   source_sql=source_sql, force=force, reinstall=reinstall, db_type=db_type, db_host=db_host, db_port=db_port)
+				   source_sql=source_sql, force=force, reinstall=reinstall, db_type=db_type, db_host=db_host, db_port=db_port, no_mariadb_socket=no_mariadb_socket)
 
 		apps_to_install = ['frappe'] + (frappe.conf.get("install_apps") or []) + (list(install_apps) or [])
 		for app in apps_to_install:
