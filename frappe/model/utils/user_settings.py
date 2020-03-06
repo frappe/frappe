@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 import frappe, json
 from six import iteritems, string_types
 from frappe import safe_decode
+from frappe.desk.doctype.user_settings.user_settings import get_settings
 
 # dict for mapping the index and index type for the filters of different views
 filter_dict = {
@@ -15,18 +16,18 @@ filter_dict = {
 }
 
 def get_user_settings(doctype, for_update=False):
-	user_settings = frappe.cache().hget('_user_settings',
-		'{0}::{1}'.format(doctype, frappe.session.user))
+	user_settings = frappe.cache().hget('_user_settings', '{0}::{1}'.format(doctype, frappe.session.user))
 
-	if user_settings is None:
-		user_settings = frappe.db.sql('''select data from `__UserSettings`
-			where `user`=%s and `doctype`=%s''', (frappe.session.user, doctype))
-		user_settings = user_settings and user_settings[0][0] or '{}'
+	if user_settings:
+		return user_settings or "{}"
 
-		if not for_update:
-			update_user_settings(doctype, user_settings, True)
+	user_settings = get_settings(doctype, frappe.session.user)
+	print(user_settings)
 
-	return user_settings or '{}'
+	if not for_update:
+		update_user_settings(doctype, user_settings, True)
+
+	return user_settings
 
 def update_user_settings(doctype, user_settings, for_update=False):
 	'''update user settings in cache'''
@@ -50,15 +51,35 @@ def sync_user_settings():
 	for key, data in iteritems(frappe.cache().hgetall('_user_settings')):
 		key = safe_decode(key)
 		doctype, user = key.split('::') # WTF?
-		frappe.db.multisql({
-			'mariadb': """INSERT INTO `__UserSettings`(`user`, `doctype`, `data`)
-				VALUES (%s, %s, %s)
-				ON DUPLICATE key UPDATE `data`=%s""",
-			'postgres': """INSERT INTO `__UserSettings` (`user`, `doctype`, `data`)
-				VALUES (%s, %s, %s)
-				ON CONFLICT ("user", "doctype") DO UPDATE SET `data`=%s""",
-		}, (user, doctype, data, data), as_dict=1)
+		user_settings_doc = get_user_settings_doc(doctype, user)
 
+		if isinstance(data, string_types):
+			data = json.loads(data)
+
+		user_settings_doc.updated_on = data.get("updated_on")
+		user_settings_doc.last_view = data.get("last_view")
+		for view in ['List', 'Gantt', 'Kanban', 'Calendar', 'Image', 'Inbox', 'Report']:
+			view_data = data.get(view)
+
+			if not view_data:
+				continue
+
+			if isinstance(view_data, string_types):
+				view_data = json.loads(view_data)
+
+			user_settings_doc.update_view({
+				"view": view,
+				"document_type": doctype,
+				"sort_by": view_data.get("sort_by") if view_data else None,
+				"sort_order": view_data.get("sort_order") if view_data else None,
+				"filters": json.dumps(view_data.get("filters")) if view_data else json.dumps([]),
+				"fields": json.dumps(view_data.get("fields")) if view_data else json.dumps([]),
+				"add_totals_row": view_data.get("add_totals_row") if view_data else None,
+				"last_calendar": view_data.get("last_calendar") if view_data else None,
+				"group_by": view_data.get("group_by") if view_data else None
+			})
+
+		user_settings_doc.save()
 
 @frappe.whitelist()
 def save(doctype, user_settings):
@@ -69,7 +90,6 @@ def save(doctype, user_settings):
 @frappe.whitelist()
 def get(doctype):
 	return get_user_settings(doctype)
-
 
 def update_user_settings_data(user_setting, fieldname, old, new, condition_fieldname=None, condition_values=None):
 	data = user_setting.get("data")
@@ -87,9 +107,48 @@ def update_user_settings_data(user_setting, fieldname, old, new, condition_field
 						view_filter[filter_dict[fieldname]] = new
 						update = True
 		if update:
-			frappe.db.sql("update __UserSettings set data=%s where doctype=%s and user=%s",
-				(json.dumps(data), user_setting.doctype, user_setting.user))
+			sync_settings(user_setting.doctype, user_setting.user, json.dumps(data))
 
 			# clear that user settings from the redis cache
-			frappe.cache().hset('_user_settings', '{0}::{1}'.format(user_setting.doctype,
-				user_setting.user), None)
+			frappe.cache().hset('_user_settings', '{0}::{1}'.format(user_setting.doctype, user_setting.user), None)
+
+def sync_settings(doctype, user, data):
+	'''Sync from to database'''
+	user_settings_doc = get_user_settings_doc(doctype, user)
+	data = json.loads(data)
+
+	user_settings_doc.updated_on = data.get("updated_on")
+	user_settings_doc.last_view = data.get("last_view")
+
+	for view in ['List', 'Gantt', 'Kanban', 'Calendar', 'Image', 'Inbox', 'Report']:
+		view_data = data.get(view)
+
+		if not view_data:
+			continue
+
+		if isinstance(view_data, string_types):
+			view_data = json.loads(view_data)
+
+		user_settings_doc.update_view({
+			"view": view,
+			"document_type": doctype,
+			"sort_by": view_data.get("sort_by") if view_data else None,
+			"sort_order": view_data.get("sort_order") if view_data else None,
+			"filters": json.dumps(view_data.get("filters")) if view_data else json.dumps([]),
+			"fields": json.dumps(view_data.get("fields")) if view_data else json.dumps([]),
+			"add_totals_row": view_data.get("add_totals_row") if view_data else None,
+			"last_calendar": view_data.get("last_calendar") if view_data else None,
+			"group_by": view_data.get("group_by") if view_data else None
+		})
+
+	user_settings_doc.save()
+
+def get_user_settings_doc(doctype, user):
+	if frappe.db.exists("User Settings", {"user": user, "document_type": doctype}):
+		return frappe.get_doc("User Settings", "{0}-{1}".format(doctype, user))
+
+	return frappe.get_doc({
+		"doctype": "User Settings",
+		"user": user,
+		"document_type": doctype
+	}).insert(ignore_permissions=True, ignore_if_duplicate=True, ignore_mandatory=True, ignore_links=True)

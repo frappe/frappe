@@ -1,0 +1,65 @@
+{
+ "actions": [],
+ "autoname": "format:{document_type}-{user}",
+ "creation": "2020-03-04 08:47:35.785545",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "user",
+  "document_type",
+  "last_view",
+  "updated_on",
+  "views"
+ ],
+ "fields": [
+  {
+   "fieldname": "user",
+   "fieldtype": "Data",
+   "label": "User"
+  },
+  {
+   "fieldname": "document_type",
+   "fieldtype": "Data",
+   "label": "Document Type"
+  },
+  {
+   "fieldname": "last_view",
+   "fieldtype": "Data",
+   "label": "Last View"
+  },
+  {
+   "fieldname": "updated_on",
+   "fieldtype": "Data",
+   "label": "Updated On"
+  },
+  {
+   "fieldname": "views",
+   "fieldtype": "Table",
+   "label": "Views",
+   "options": "User View Settings"
+  }
+ ],
+ "links": [],
+ "modified": "2020-03-06 12:17:58.413354",
+ "modified_by": "Administrator",
+ "module": "Desk",
+ "name": "User Settings",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC"
+}

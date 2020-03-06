@@ -12,7 +12,7 @@ from frappe import _
 from frappe.utils import cint
 from frappe.model.document import Document
 from frappe.model import no_value_fields, core_doctypes_list
-from frappe.core.doctype.doctype.doctype import validate_fields_for_doctype
+from frappe.core.doctype.doctype.doctype import validate_fields_for_doctype, reset_sort_field_and_order
 from frappe.custom.doctype.custom_field.custom_field import create_custom_field
 from frappe.model.docfield import supports_translation
 
@@ -84,6 +84,7 @@ class CustomizeForm(Document):
 	def on_update(self):
 		frappe.db.sql("delete from tabSingles where doctype='Customize Form'")
 		frappe.db.sql("delete from `tabCustomize Form Field`")
+		reset_sort_field_and_order(self)
 
 	def fetch_to_customize(self):
 		self.clear_existing_doc()
