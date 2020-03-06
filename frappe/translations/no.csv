@@ -46,7 +46,6 @@ apps/frappe/frappe/public/js/frappe/views/kanban/kanban_view.js,There was an err
 DocType: Custom DocPerm,This role update User Permissions for a user,Denne rollen oppdatere brukertillatelser for en bruker
 apps/frappe/frappe/public/js/frappe/model/model.js,Rename {0},Gi nytt navn til {0}
 DocType: Workflow State,zoom-out,zoome ut
-DocType: Data Import Beta,Import Options,Importer alternativer
 apps/frappe/frappe/public/js/frappe/form/form.js,Cannot open {0} when its instance is open,Kan ikke åpne {0} når sitt eksempel er åpen
 apps/frappe/frappe/model/document.py,Table {0} cannot be empty,Tabell {0} kan ikke være tomt
 DocType: SMS Parameter,Parameter,Parameter
@@ -84,7 +83,6 @@ apps/frappe/frappe/public/js/frappe/list/list_view.js,Cancel {0} documents?,Avbr
 DocType: DocType,Is Published Field,Er Publisert Feltet
 DocType: GCalendar Settings,GCalendar Settings,GCalendar-innstillinger
 DocType: Email Group,Email Group,E-post-konsernet
-apps/frappe/frappe/__init__.py,Only for {},Bare for {}
 apps/frappe/frappe/integrations/doctype/google_calendar/google_calendar.py,"Google Calendar - Could not delete Event {0} from Google Calendar, error code {1}.","Google Kalender - Kunne ikke slette hendelse {0} fra Google Kalender, feilkode {1}."
 DocType: Event,Pulled from Google Calendar,Trekkes fra Google Kalender
 DocType: Note,Seen By,Sett av
@@ -92,9 +90,11 @@ apps/frappe/frappe/public/js/frappe/form/grid.js,Add Multiple,Legg til flere
 apps/frappe/frappe/core/doctype/user/user.py,Not a valid User Image.,Ikke et gyldig brukerbilde.
 DocType: Energy Point Log,Reverted,falt
 DocType: Success Action,First Success Message,Første suksessmelding
+DocType: Document Type Mapping,Document Type Mapping,Kartlegging av dokumenttype
 apps/frappe/frappe/public/js/frappe/ui/filters/filters.js,Not Like,Ikke like
 apps/frappe/frappe/model/document.py,Incorrect value: {0} must be {1} {2},Feil verdi: {0} må være {1} {2}
 apps/frappe/frappe/config/customization.py,"Change field properties (hide, readonly, permission etc.)","Endre feltegenskaper (hjem, skrivebeskyttet, tillatelse etc.)"
+apps/frappe/frappe/config/automation.py,The site which is consuming your events.,Nettstedet som konsumerer hendelsene dine.
 apps/frappe/frappe/public/js/frappe/form/sidebar/review.js,Appreciate,Sette pris på
 DocType: Notification Settings,Document Share,Dokumentandel
 DocType: Workflow State,lock,låse
@@ -114,11 +114,13 @@ apps/frappe/frappe/public/js/frappe/ui/notifications/notifications.js,Mark all a
 DocType: Data Migration Run,Log,Logg
 DocType: Workflow State,indent-right,innrykk høyre
 DocType: Has Role,Has Role,har rolle
+apps/frappe/frappe/event_streaming/doctype/event_sync_log/event_sync_log.js,Resync,resync
 DocType: System Settings,Time in seconds to retain QR code image on server. Min:<strong>240</strong>,Tid i sekunder for å beholde QR-kodebilde på serveren. Min: <strong>240</strong>
 apps/frappe/frappe/core/doctype/doctype/doctype.py,{0}:Fieldtype {1} for {2} cannot be indexed,{0}: Feltype {1} for {2} kan ikke indekseres
 DocType: Dashboard Chart,Timespan,Tidsrom
 apps/frappe/frappe/public/js/frappe/file_uploader/FileUploader.vue,Web Link,Internettlink
 DocType: Deleted Document,Restored,restaurert
+apps/frappe/frappe/public/js/frappe/form/print.js,"Error connecting to QZ Tray Application...<br><br> You need to have QZ Tray application installed and running, to use the Raw Print feature.<br><br><a href=""https://qz.io/download/"" target=""_blank"">Click here to Download and install QZ Tray</a>.<br> <a href=""https://erpnext.com/docs/user/manual/en/setting-up/print/raw-printing"" target=""_blank"">Click here to learn more about Raw Printing</a>.","Feil ved tilkobling til QZ Tray Application ... <br><br> Du må ha QZ Tray-applikasjon installert og kjørt for å bruke Raw Print-funksjonen. <br><br> <a href=""https://qz.io/download/"" target=""_blank"">Klikk her for å laste ned og installere QZ Tray</a> . <br> <a href=""https://erpnext.com/docs/user/manual/en/setting-up/print/raw-printing"" target=""_blank"">Klikk her for å lære mer om Raw Printing</a> ."
 apps/frappe/frappe/public/js/frappe/utils/pretty_date.js,1 minute ago,1 minutt siden
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,"Apart from System Manager, roles with Set User Permissions right can set permissions for other users for that Document Type.","Bortsett fra System Manager, roller med Set brukertillatelser høyre kan angi tillatelser for andre brukere for at dokumenttype."
 apps/frappe/frappe/website/doctype/website_theme/website_theme.js,Configure Theme,Konfigurer tema
@@ -189,6 +191,7 @@ DocType: Email Account,UNSEEN,USETT
 apps/frappe/frappe/public/js/frappe/views/file/file_view.js,File Manager,Filbehandler
 DocType: Website Settings,"HTML Header, Robots and Redirects","HTML-topptekst, roboter og viderekoblinger"
 DocType: GCalendar Account,Refresh Token,Refresh Token
+apps/frappe/frappe/event_streaming/doctype/event_producer/event_producer.py,Failed to connect to the Event Producer site. Retry after some time.,Kunne ikke koble til nettstedet Eventprodusent. Prøv igjen etter litt tid.
 DocType: Address,Goa,Goa
 apps/frappe/frappe/core/page/background_jobs/background_jobs.html,No pending or current jobs for this site,Ingen ventende eller nåværende jobber for dette nettstedet
 DocType: Webhook,Doc Event,Doc Event
@@ -211,6 +214,7 @@ DocType: Server Script,Script Manager,Manusmanager
 apps/frappe/frappe/public/js/frappe/ui/notifications/notifications.js,No activity,Ingen aktivitet
 apps/frappe/frappe/www/third_party_apps.html,Third Party Apps,Tredjepartsprogrammer
 apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js,The first user will become the System Manager (you can change this later).,Den første brukeren vil bli System Manager (du kan endre dette senere).
+apps/frappe/frappe/desk/query_report.py,You can try changing the filters of your report.,Du kan prøve å endre filterene i rapporten.
 apps/frappe/frappe/public/js/frappe/ui/notifications/notifications.js,No Events Today,Ingen hendelser i dag
 apps/frappe/frappe/social/doctype/energy_point_log/energy_point_log.py,You cannot give review points to yourself,Du kan ikke gi vurderingspoeng til deg selv
 apps/frappe/frappe/integrations/doctype/webhook/webhook.py,DocType must be Submittable for the selected Doc Event,DocType må være Submitterable for den valgte Doc Event
@@ -241,6 +245,7 @@ apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Per
 apps/frappe/frappe/public/js/frappe/views/communication.js,You are not allowed to send emails related to this document,Du har ikke lov til å sende e-poster knyttet til dette dokumentet
 apps/frappe/frappe/model/db_query.py,Please select atleast 1 column from {0} to sort/group,Velg minst en kolonne fra {0} til å sortere / gruppe
 apps/frappe/frappe/permissions.py,Not allowed for {0}: {1}. Restricted field: {2},Ikke tillatt for {0}: {1}. Begrenset felt: {2}
+apps/frappe/frappe/contacts/doctype/address/address.py,Company not Linked,Selskapet ikke tilknyttet
 DocType: PayPal Settings,Check this if you are testing your payment using the Sandbox API,Sjekk dette hvis du tester din betaling med Sandbox API
 apps/frappe/frappe/website/doctype/website_theme/website_theme.py,You are not allowed to delete a standard Website Theme,Du har ikke lov til å slette en standard nettside Theme
 apps/frappe/frappe/public/js/frappe/list/list_view.js,Create your first {0},Lag din første {0}
@@ -261,7 +266,6 @@ apps/frappe/frappe/desk/doctype/bulk_update/bulk_update.py,Updating {0},Oppdater
 apps/frappe/frappe/desk/doctype/onboarding_slide/onboarding_slide.py,An Onboarding Slide <b>{0}</b> with the same slide order already exists,En Onboarding-lysbilde <b>{0}</b> med samme lysbilde-rekkefølge eksisterer allerede
 apps/frappe/frappe/core/doctype/report/report.js,Disable Report,Deaktiver Rapporter
 DocType: Translation,Contributed Translation Doctype Name,Bidragt oversettelse Doctype Name
-apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Setup &gt; Customize Form,Oppsett&gt; Tilpass skjema
 DocType: PayPal Settings,Redirect To,omdirigere å
 DocType: Data Migration Mapping,Pull,Dra
 DocType: Report,JavaScript Format: frappe.query_reports['REPORTNAME'] = {},Javascript Format: frappe.query_reports [&#39;rapportnavn&#39;] = {}
@@ -274,6 +278,7 @@ apps/frappe/frappe/public/js/frappe/list/list_view.js,Delete {0} items permanent
 apps/frappe/frappe/utils/oauth.py,Not Allowed,Ikke tillatt
 DocType: DocShare,Internal record of document shares,Intern oversikt over dokument aksjer
 DocType: Energy Point Settings,Review Levels,Anmeldelse Levels
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Setup &gt; User Permissions,Oppsett&gt; Brukertillatelser
 DocType: Workflow State,Comment,Kommentar
 DocType: Data Migration Plan,Postprocess Method,Etterprosessmetode
 DocType: DocType Action,Action Type,Handlingstype
@@ -324,13 +329,14 @@ apps/frappe/frappe/public/js/frappe/views/calendar/calendar.js,Show Weekends,Vis
 DocType: Workflow State,remove-circle,fjern-sirkel
 apps/frappe/frappe/public/js/frappe/ui/toolbar/navbar.html,My Profile,Min profil
 DocType: Help Article,Beginner,Nybegynner
+apps/frappe/frappe/__init__.py,This action is only allowed for {},Denne handlingen er bare tillatt for {}
 DocType: Contact,Is Primary Contact,Er Primær kontaktperson
+DocType: Event Consumer,Event Consumer,Eventforbruker
 apps/frappe/frappe/config/website.py,Javascript to append to the head section of the page.,Script for å føye til hodet delen av siden.
 apps/frappe/frappe/core/doctype/user_permission/user_permission_list.js,Add / Update,Legg til / oppdater
 apps/frappe/frappe/www/printview.py,Not allowed to print draft documents,Ikke lov til å skrive ut kladder
 apps/frappe/frappe/core/doctype/role_permission_for_page_and_report/role_permission_for_page_and_report.js,Reset to defaults,Tilbakestill til standard
 DocType: Workflow,Transition Rules,Overgangsregler
-apps/frappe/frappe/public/js/frappe/data_import/import_preview.js,Showing only first {0} rows in preview,Viser bare de første {0} radene i forhåndsvisning
 apps/frappe/frappe/core/doctype/report/report.js,Example:,Eksempel:
 apps/frappe/frappe/public/js/frappe/list/list_view.js,Restrictions,Begrensninger
 DocType: Workflow,Defines workflow states and rules for a document.,Definerer arbeidsflyt stater og regler for et dokument.
@@ -481,7 +487,6 @@ apps/frappe/frappe/public/js/frappe/list/list_view.js,Select multiple list items
 DocType: Event,Repeat Till,Gjenta Till
 apps/frappe/frappe/public/js/frappe/ui/toolbar/search_utils.js,New,Ny
 apps/frappe/frappe/public/js/frappe/views/components/ModuleLinkItem.vue,You need to create these first: ,Du må opprette disse først:
-DocType: Google Maps Settings,Google Maps Settings,Innstillinger for Google Maps
 apps/frappe/frappe/core/page/dashboard/dashboard.js,Loading...,Laster inn ...
 DocType: DocField,Password,Passord
 apps/frappe/frappe/utils/response.py,Your system is being updated. Please refresh again after a few moments,Systemet blir oppdatert. Vennligst oppdater igjen etter en liten stund
@@ -574,6 +579,7 @@ DocType: Onboarding Slide,Onboarding Slide,Onboarding Slide
 apps/frappe/frappe/core/doctype/user/user.py,Invalid Password: ,Ugyldig passord:
 apps/frappe/frappe/core/doctype/user/user.py,Invalid Password: ,Ugyldig passord:
 DocType: Print Settings,Send document web view link in email,Send dokumentet web visning linken i e-post
+DocType: Event Consumer Document Type,Event Consumer Document Type,Forbrukerdokumenttype
 apps/frappe/frappe/public/js/frappe/ui/slides.js,Previous,Forrige
 apps/frappe/frappe/email/doctype/email_account/email_account.py,Re:,Re:
 DocType: LDAP Settings,Require Trusted Certificate,Krev pålitelig sertifikat
@@ -649,6 +655,7 @@ DocType: Workflow State,volume-down,volum-ned
 DocType: Onboarding Slide,Help Links,Hjelp lenker
 apps/frappe/frappe/auth.py,Access not allowed from this IP Address,Tilgang ikke tillatt fra denne IP-adressen
 DocType: Notification Settings,Enable Email Notifications,Aktiver e-postvarsler
+DocType: Document Type Field Mapping,Event Streaming,Begivenhetsstrømming
 apps/frappe/frappe/desk/reportview.py,No Tags,ingen tagger
 DocType: Email Account,Send Notification to,Sende melding til
 DocType: DocField,Collapsible,Sammenleggbar
@@ -665,11 +672,13 @@ apps/frappe/frappe/public/js/frappe/list/list_sidebar_group_by.js,Filter By,Filt
 apps/frappe/frappe/database/database.py,No conditions provided,Ingen betingelser
 apps/frappe/frappe/public/js/frappe/views/reports/report_view.js,Y Axis Fields,Y aksefelt
 apps/frappe/frappe/core/doctype/doctype/doctype.py,Sort field {0} must be a valid fieldname,Sorteringsfelt {0} må være en gyldig feltnavn
+apps/frappe/frappe/contacts/doctype/address/address.py,No default Address Template found. Please create a new one from Setup &gt; Printing and Branding &gt; Address Template.,Ingen standard adressemaler funnet. Opprett en ny fra Oppsett&gt; Utskrift og merkevarebygging&gt; Adressemal.
 apps/frappe/frappe/public/js/frappe/list/base_list.js,More,Mer
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js,Create a new record,Lag en ny post
 DocType: Contact,Sales Manager,Salgssjef
 apps/frappe/frappe/public/js/frappe/model/model.js,Rename,Gi nytt navn
 DocType: Print Format,Format Data,Formater data
+apps/frappe/frappe/email/doctype/auto_email_report/auto_email_report.py,{0} is not a valid report format. Report format should one of the following {1},{0} er ikke et gyldig rapportformat. Rapportformat skal være ett av følgende {1}
 DocType: List Filter,Filter Name,Filternavn
 apps/frappe/frappe/public/js/frappe/ui/filters/filters.js,Like,Som
 DocType: Assignment Rule,Automation,Automasjon
@@ -688,6 +697,7 @@ DocType: User,Reset Password Key,Reset Password Key
 DocType: Dashboard Chart,All Time,Hele tiden
 apps/frappe/frappe/model/workflow.py,Illegal Document Status for {0},Ulovlig dokumentstatus for {0}
 DocType: Email Account,Enable Auto Reply,Aktiver automatisk svar
+apps/frappe/frappe/desk/query_report.py,No data to export,Ingen data å eksportere
 apps/frappe/frappe/core/doctype/error_log/error_log_list.js,Not Seen,Ikke sett
 apps/frappe/frappe/public/js/frappe/form/print.js,Cannot have multiple printers mapped to a single print format.,Kan ikke ha flere skrivere kartlagt til et enkelt utskriftsformat.
 DocType: Workflow State,zoom-in,zoom inn
@@ -840,6 +850,7 @@ apps/frappe/frappe/desk/page/user_profile/user_profile.js,Change User,Bytt bruke
 apps/frappe/frappe/public/js/frappe/form/grid_pagination.js,First,Først
 apps/frappe/frappe/public/js/frappe/views/translation_manager.js,Update Translations,Oppdater oversettelser
 DocType: Error Snapshot,Exception,Unntak
+DocType: Event Consumer,Event Consumer Document Types,Forbrukerdokumenttyper
 DocType: Email Account,Use IMAP,Bruk IMAP
 DocType: Activity Log,Activity Log,Aktivitetsloggen
 DocType: View Log,Viewed By,Sett av
@@ -878,6 +889,7 @@ apps/frappe/frappe/config/settings.py,Set numbering series for transactions.,Set
 apps/frappe/frappe/public/js/frappe/list/list_sidebar.html,Configure Charts,Konfigurer diagrammer
 DocType: User,Last IP,Siste IP
 apps/frappe/frappe/automation/doctype/auto_repeat/auto_repeat.py,Please add a subject to your email,Vennligst legg til et emne i din epost
+apps/frappe/frappe/model/workflow.py,Errored Transactions,Feilte transaksjoner
 DocType: Data Migration Connector,Data Migration Connector,Datamigreringskobling
 apps/frappe/frappe/public/js/frappe/utils/energy_point_utils.js,{0} reverted {1},{0} tilbakeført {1}
 DocType: Email Account,Track Email Status,Spor e-poststatus
@@ -909,6 +921,7 @@ DocType: Email Queue,Attachments,Vedlegg
 apps/frappe/frappe/website/doctype/web_form/web_form.py,You don't have the permissions to access this document,Du har ikke tillatelse til å få tilgang til dette dokumentet
 DocType: Language,Language Name,språk Name
 DocType: Email Group Member,Email Group Member,Send e-post Gruppe Medlem
+apps/frappe/frappe/public/js/frappe/views/inbox/inbox_view.js,No email account associated with the User. Please add an account under User &gt; Email Inbox.,Ingen e-postkonto tilknyttet brukeren. Legg til en konto under Bruker&gt; E-postinnboks.
 apps/frappe/frappe/auth.py,Your account has been locked and will resume after {0} seconds,Kontoen din er låst og vil fortsette etter {0} sekunder
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,User Permissions are used to limit users to specific records.,Bruker Tillatelser brukes til å begrense brukere til bestemte poster.
 DocType: Notification,Value Changed,Verdi Endret
@@ -1001,6 +1014,7 @@ DocType: PayPal Settings,Mention transaction completion page URL,Nevn transaksjo
 DocType: Help Article,Expert,Ekspert
 DocType: Workflow State,circle-arrow-right,sirkel-pil høyre
 DocType: Role Profile,Role Profile,Rollespill
+DocType: Document Type Mapping,Remote Document Type,Ekstern dokumenttype
 apps/frappe/frappe/permissions.py,Document Type is not importable,Dokumenttype kan ikke importeres
 DocType: LDAP Settings,LDAP Server Url,LDAP Server Url
 apps/frappe/frappe/public/js/frappe/form/form.js,Cannot open instance when its {0} is open,Kan ikke åpne eksempel når sin {0} er åpen
@@ -1086,7 +1100,7 @@ DocType: Web Form,Allow Print,lar utskrifts
 DocType: Communication,Clicked,Klikket
 apps/frappe/frappe/public/js/frappe/form/templates/form_sidebar.html,Unfollow,Slutt å følge
 apps/frappe/frappe/public/js/frappe/form/form.js,No permission to '{0}' {1},Ingen tillatelse til {0} {1}
-apps/frappe/frappe/email/smtp.py,Please setup default Email Account from Setup &gt; Email &gt; Email Account,Angi standard e-postkonto fra Oppsett&gt; E-post&gt; E-postkonto
+apps/frappe/frappe/public/js/frappe/data_import/import_preview.js,Showing only first {0} rows out of {1},Viser bare de første {0} radene av {1}
 apps/frappe/frappe/email/doctype/auto_email_report/auto_email_report.js,Scheduled to send,Planlagt å sende
 DocType: DocType,Track Seen,Track Seen
 DocType: Dropbox Settings,File Backup,File Backup
@@ -1157,6 +1171,7 @@ apps/frappe/frappe/public/js/frappe/file_uploader/FileUploader.vue,choose an,vel
 DocType: Data Export,Filter List,Filterliste
 DocType: Data Export,Excel,utmerke
 DocType: System Settings,HH:mm,HH: mm
+DocType: Event Sync Log,Event Configurations,Arrangementskonfigurasjoner
 DocType: Email Account,Auto Reply Message,Auto svarmelding
 DocType: Data Migration Mapping,Condition,Tilstand
 apps/frappe/frappe/utils/data.py,{0} hours ago,{0} timer siden
@@ -1216,9 +1231,8 @@ DocType: Email Account,Always use Account's Email Address as Sender,Bruk alltid 
 apps/frappe/frappe/templates/includes/comments/comments.html,Login to comment,Logg inn for å kommentere
 apps/frappe/frappe/core/doctype/data_import/importer.py,Start entering data below this line,Begynne å legge inn data under denne linjen
 apps/frappe/frappe/public/js/frappe/form/footer/timeline.js,changed values for {0},endrede verdier for {0}
-apps/frappe/frappe/email/doctype/email_account/email_account.py,"Email ID must be unique, Email Account already exists \
-				for {0}","E-post-ID må være unikt, E-postkonto eksisterer allerede \ for {0}"
 DocType: Workflow State,retweet,retweet
+apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,"For comparison, use &gt;5, &lt;10 or =324. For ranges, use 5:10 (for values between 5 &amp; 10).","Til sammenligning, bruk&gt; 5, &lt;10 eller = 324. For områder kan du bruke 5:10 (for verdier mellom 5 og 10)."
 apps/frappe/frappe/public/js/frappe/form/templates/print_layout.html,Customize...,Tilpass ...
 DocType: Print Format,Align Labels to the Right,Juster etiketter til høyre
 DocType: Assignment Rule,Disabled,Funksjonshemmede
@@ -1267,8 +1281,10 @@ apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js,"tag name..., e.g.
 apps/frappe/frappe/public/js/frappe/ui/keyboard.js,Keyboard Shortcuts,Tastatursnarveier
 DocType: Post,Comments,Kommentarer
 apps/frappe/frappe/public/js/frappe/dom.js,Confirm,Bekrefte
+DocType: Event Sync Log,Update Type,Oppdateringstype
 apps/frappe/frappe/public/js/frappe/desk.js,Authenticating...,Godkjenner ...
 apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,Collapse All,Skjul alle
+DocType: Event Producer,Last Update,Siste oppdatering
 apps/frappe/frappe/www/login.html,Forgot Password?,Glemt passord?
 DocType: System Settings,yyyy-mm-dd,åååå-mm-dd
 apps/frappe/frappe/desk/report/todo/todo.py,ID,ID
@@ -1309,6 +1325,7 @@ apps/frappe/frappe/core/doctype/version/version_view.html,Table Field,Tabell Fel
 apps/frappe/frappe/public/js/frappe/views/kanban/kanban_view.js,Columns based on,Kolonner basert på
 apps/frappe/frappe/core/doctype/data_import_beta/data_import_beta.js,"Importing {0} of {1}, {2}","Importerer {0} av {1}, {2}"
 DocType: Workflow State,move,trekk
+apps/frappe/frappe/event_streaming/doctype/event_producer/event_producer.py,Failed to create an Event Consumer or an Event Consumer for the current site is already registered.,Kunne ikke opprette en begivenhetsforbruker eller en begivenhetsforbruker for det nåværende nettstedet er allerede registrert.
 apps/frappe/frappe/model/document.py,Action Failed,handling Kunne
 apps/frappe/frappe/core/doctype/user_permission/user_permission_list.js,For User,for bruker
 DocType: View Log,View log,Se Logg
@@ -1472,6 +1489,7 @@ DocType: DefaultValue,Key,Nøkkel
 DocType: Address,Contacts,Kontakt
 DocType: System Settings,Setup Complete,Setup Complete
 apps/frappe/frappe/config/users_and_permissions.py,Report of all document shares,Rapport fra alle dokument aksjer
+DocType: Event Consumer,Callback URL,Tilbakeringingsadresse
 apps/frappe/frappe/core/doctype/data_import/importer_new.py,"Import template should be of type .csv, .xlsx or .xls","Importmalen skal være av typen .csv, .xlsx eller .xls"
 apps/frappe/frappe/www/update-password.html,New Password,Nytt Passord
 apps/frappe/frappe/public/js/frappe/ui/filters/filters.js,Filter {0} missing,Filter {0} mangler
@@ -1538,7 +1556,7 @@ apps/frappe/frappe/www/update-password.html,Success! You are good to go 👍,Suk
 apps/frappe/frappe/desk/doctype/bulk_update/bulk_update.py,; not allowed in condition,; Ikke tillatt i tilstand
 DocType: Async Task,Async Task,Async Task
 DocType: Workflow State,picture,bilde
-apps/frappe/frappe/public/js/frappe/ui/onboarding_dialog.js,Complete,Fullstendig
+DocType: Scheduled Job Log,Complete,Fullstendig
 DocType: DocType,Image Field,Bilde Felt
 DocType: Print Format,Custom HTML Help,Custom HTML-hjelp
 DocType: LDAP Settings,Default Role on Creation,Standard rolle for oppretting
@@ -1564,6 +1582,7 @@ apps/frappe/frappe/core/doctype/data_import_beta/data_import_beta.js,Go to {0} L
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js,Help on Search,Hjelp til søk
 DocType: Milestone,Milestone Tracker,Milestone Tracker
 apps/frappe/frappe/core/doctype/user/user.py,Registered but disabled,Registrert men deaktivert
+apps/frappe/frappe/contacts/doctype/address/address.py,Address needs to be linked to a Company. Please add a row for Company in the Links table below.,Adressen må kobles til et selskap. Legg til en rad for selskapet i koblingen-tabellen nedenfor.
 apps/frappe/frappe/templates/emails/auto_repeat_fail.html,The Auto Repeat for this document has been disabled.,Auto Repeat for dette dokumentet er deaktivert.
 DocType: DocType,Hide Copy,Skjule Kopier
 apps/frappe/frappe/public/js/frappe/roles_editor.js,Clear all roles,Fjerne alle roller
@@ -1602,6 +1621,7 @@ DocType: Bulk Update,Field,feltet
 DocType: Communication,Received,Mottatt
 DocType: Notification,"Trigger on valid methods like ""before_insert"", ""after_update"", etc (will depend on the DocType selected)","Trigger på gyldige metoder som &quot;before_insert&quot;, &quot;after_update&quot;, etc (vil avhenge av valgt DOCTYPE)"
 apps/frappe/frappe/public/js/frappe/form/footer/timeline.js,changed value of {0} {1},endret verdi på {0} {1}
+apps/frappe/frappe/public/js/frappe/desk.js,Email Account setup please enter your password for: {0},Oppsett av e-postkonto vennligst skriv inn passordet ditt for: {0}
 apps/frappe/frappe/core/doctype/user/user.py,Adding System Manager to this User as there must be atleast one System Manager,Legge System Manager til denne bruker som det må være minst én System Manager
 DocType: Chat Message,URLs,webadresser
 DocType: Data Migration Run,Total Pages,Totalt antall sider
@@ -1609,7 +1629,6 @@ apps/frappe/frappe/core/doctype/user_permission/user_permission.py,{0} has alrea
 DocType: DocField,Attach Image,Fest bilde
 DocType: Workflow State,list-alt,list-alt
 apps/frappe/frappe/www/update-password.html,Password Updated,Passord Oppdatert
-apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Setup &gt; User Permissions,Oppsett&gt; Brukertillatelser
 apps/frappe/frappe/www/qrcode.html,Steps to verify your login,Trinn for å bekrefte innlogging
 apps/frappe/frappe/utils/password.py,Password not found,Passord ikke funnet
 DocType: Webhook,Webhook Secret,Webhook Secret
@@ -1625,8 +1644,6 @@ apps/frappe/frappe/config/integrations.py,Google API Settings.,Innstillinger for
 DocType: Report,Query Report,Query Rapporter
 DocType: User,Set New Password,Set New Password
 apps/frappe/frappe/permissions.py,Not allowed for {0}: {1},Ikke tillatt for {0}: {1}
-apps/frappe/frappe/email/doctype/auto_email_report/auto_email_report.py,"%s is not a valid report format. Report format should \
-				one of the following %s",% S er ikke en gyldig rapportformat. Rapporter format skal \ ett av følgende% s
 DocType: Chat Message,Chat,Chat
 apps/frappe/frappe/public/js/frappe/ui/toolbar/search.js,No documents found tagged with {0},Ingen dokumenter funnet tagget med {0}
 DocType: LDAP Group Mapping,LDAP Group Mapping,LDAP-gruppekartlegging
@@ -1662,7 +1679,6 @@ apps/frappe/frappe/public/js/frappe/ui/messages.js,Enter your password,Skriv inn
 DocType: Dropbox Settings,Dropbox Access Secret,Dropbox Tilgang Secret
 DocType: Tag Link,Document Title,Dokument tittel
 apps/frappe/frappe/public/js/frappe/data_import/data_exporter.js,(Mandatory),"(Påbudt, bindende)"
-apps/frappe/frappe/public/js/frappe/utils/pretty_date.js,&gt; {0} year(s) ago,&gt; {0} år siden
 DocType: Social Login Key,Social Login Provider,Sosial innloggingsleverandør
 apps/frappe/frappe/templates/includes/comments/comments.html,Add Another Comment,Legg til en kommentar
 apps/frappe/frappe/core/doctype/data_import/importer.py,No data found in the file. Please reattach the new file with data.,Ingen data funnet i filen. Vennligst sett den nye filen på nytt med data.
@@ -1710,6 +1726,7 @@ DocType: Footer Item,"Select target = ""_blank"" to open in a new page.",Velg ta
 apps/frappe/frappe/public/js/frappe/ui/filters/filter.js,1 year,1 år
 apps/frappe/frappe/public/js/frappe/model/model.js,Permanently delete {0}?,Slette {0}?
 apps/frappe/frappe/core/doctype/file/file.py,Same file has already been attached to the record,Samme filen er allerede festet til posten
+DocType: Event Sync Log,Synced,synkronisert
 apps/frappe/frappe/model/workflow.py,{0} is not a valid Workflow State. Please update your Workflow and try again.,{0} er ikke en gyldig arbeidsflytstat. Oppdater arbeidsflyten din og prøv igjen.
 apps/frappe/frappe/templates/emails/energy_points_summary.html,gave {0} points,ga {0} poeng
 DocType: Workflow State,wrench,skiftenøkkel
@@ -1812,6 +1829,7 @@ apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js,Starting Frappé ...,S
 DocType: Web Form Field,Max Length,Maks lengde
 DocType: Print Format,Jinja,Jinja
 DocType: Workflow State,map-marker,map-markør
+apps/frappe/frappe/config/automation.py,The mapping configuration between two doctypes.,Kartleggingskonfigurasjonen mellom to dokktyper.
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Submit an Issue,Send inn et problem
 DocType: Event,Repeat this Event,Gjenta dette arrangementet
 DocType: Address,Maintenance User,Vedlikehold Bruker
@@ -1871,6 +1889,7 @@ apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,"Ce
 DocType: Newsletter,Test Email Address,Test e-postadresse
 DocType: Auto Repeat,Reference Document Type,Reference Document Type
 DocType: ToDo,Sender,Avsender
+DocType: Event Consumer,Incoming Change,Innkommende endring
 DocType: Google Drive,Backup Folder Name,Navn på sikkerhetskopimappe
 apps/frappe/frappe/email/doctype/notification/notification.py,Error while evaluating Notification {0}. Please fix your template.,Feil under vurdering av varsel {0}. Vennligst lagre malen din.
 DocType: GSuite Settings,Google Apps Script,Google Apps Script
@@ -1933,9 +1952,10 @@ apps/frappe/frappe/public/js/frappe/form/print.js,New Print Format Name,Nytt uts
 apps/frappe/frappe/templates/emails/data_deletion_approval.html,Click on the link below to approve the request,Klikk på lenken nedenfor for å godkjenne forespørselen
 DocType: Workflow State,align-left,justere venstre
 DocType: Onboarding Slide,Action Settings,Handlingsinnstillinger
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Setup &gt; User,Oppsett&gt; Bruker
 DocType: User,Defaults,Mislighold
-apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,"For comparison, use &gt;5, &lt;10 or =324. For ranges, use 5:10 (for values between 5 &amp; 10).","Til sammenligning, bruk&gt; 5, &lt;10 eller = 324. For områder kan du bruke 5:10 (for verdier mellom 5 og 10)."
 DocType: Energy Point Log,Revert Of,Revert Of
+DocType: Document Type Mapping,Field Mapping,Feltkartlegging
 apps/frappe/frappe/public/js/frappe/model/model.js,Merge with existing,Slå sammen med eksisterende
 DocType: User,Birth Date,Bursdag
 DocType: Communication Link,Link Title,Link Title
@@ -1963,6 +1983,7 @@ apps/frappe/frappe/templates/pages/integrations/gcalendar-success.html,Your conn
 DocType: Tag Link,Tag Link,Tagg Link
 apps/frappe/frappe/core/report/transaction_log_report/transaction_log_report.py,Chain Integrity,Kjedeintegritet
 DocType: Data Export,CSV,CSV
+DocType: Event Consumer,In Test,I test
 DocType: Currency,"1 Currency = [?] Fraction
 For e.g. 1 USD = 100 Cent",1 Valuta = [?] Fraction For eksempel 1 USD = 100 Cent
 DocType: Data Import,Partially Successful,Delvis vellykket
@@ -1972,6 +1993,7 @@ apps/frappe/frappe/public/js/frappe/form/link_selector.js,You can use wildcard %
 DocType: LDAP Settings,LDAP Group Mappings,LDAP-gruppekartlegging
 DocType: Chat Message Attachment,Chat Message Attachment,Chat Melding Vedlegg
 DocType: LDAP Settings,Path to CA Certs File,Sti til CA Certs-fil
+DocType: Event Producer Document Type,If the document has different field names on the Producer and Consumer's end check this and set up the Mapping,"Hvis dokumentet har forskjellige feltnavn på produsentens og forbrukerens slutt, sjekk dette og sett opp kartleggingen"
 DocType: Address,Manipur,Manipur
 DocType: Web Form Field,Allow Read On All Link Options,Tillat lesing på alle koblingsalternativer
 DocType: DocType,Database Engine,database Engine
@@ -2106,6 +2128,7 @@ apps/frappe/frappe/public/js/frappe/views/file/file_view.js,Folder name should n
 DocType: Note,Note,Notat
 apps/frappe/frappe/core/doctype/error_snapshot/error_snapshot.html,Error Report,Feilrapport
 apps/frappe/frappe/config/settings.py,Export Data in CSV / Excel format.,Eksporter data i CSV / Excel-format.
+DocType: Document Type Field Mapping,Document Type Field Mapping,Feltkartlegging av dokumenttype
 apps/frappe/frappe/desk/doctype/global_search_settings/global_search_settings.py,Setting up Global Search documents.,Sette opp Global Search-dokumenter.
 apps/frappe/frappe/www/qrcode.html,Authentication Apps you can use are: ,Autentiseringsprogrammer du kan bruke er:
 apps/frappe/frappe/public/js/frappe/form/controls/data.js,{0} already exists. Select another name,{0} eksisterer allerede. Velg et annet navn
@@ -2181,7 +2204,6 @@ DocType: Workflow State,Upload,Last opp
 DocType: User Permission,Advanced Control,Avansert kontroll
 DocType: System Settings,Date Format,Datoformat
 apps/frappe/frappe/website/doctype/blog_post/blog_post_list.js,Not Published,Ikke publisert
-apps/frappe/frappe/contacts/doctype/address/address.py,No default Address Template found. Please create a new one from Setup &gt; Printing and Branding &gt; Address Template.,Ingen standard adressemaler funnet. Opprett en ny fra Oppsett&gt; Utskrift og merkevarebygging&gt; Adressemal.
 apps/frappe/frappe/config/settings.py,"Actions for workflow (e.g. Approve, Cancel).",Initiativer for arbeidsflyt (f.eks godkjenne Avbryt).
 DocType: Data Import,Skip rows with errors,Hopp over rader med feil
 DocType: Workflow State,flag,flagg
@@ -2244,6 +2266,7 @@ apps/frappe/frappe/core/doctype/error_snapshot/error_snapshot_list.js,First Leve
 DocType: Workflow Document State,Represents the states allowed in one document and role assigned to change the state.,Representerer statene tillatt i ett dokument og rolle tildelt endre staten.
 DocType: Data Migration Connector,Database Name,Database navn
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js,Refresh Form,Refresh Form
+DocType: Event Producer,Event Producer,Eventprodusent
 DocType: DocField,Select,Velg
 apps/frappe/frappe/public/js/frappe/ui/notifications/notifications.js,View Full Log,Vis full logg
 DocType: Assignment Rule,"Simple Python Expression, Example: status == 'Open' and type == 'Bug'","Simple Python Expression, Eksempel: status == &#39;Open&#39; og skriv == &#39;Bug&#39;"
@@ -2345,6 +2368,7 @@ DocType: DocType,User Cannot Search,Bruker kan ikke søke
 DocType: Communication Link,Communication Link,Kommunikasjonslink
 apps/frappe/frappe/email/doctype/auto_email_report/auto_email_report.py,Invalid Output Format,Ugyldig Output Format
 apps/frappe/frappe/public/js/frappe/list/bulk_operations.js,Cannot {0} {1},Kan ikke {0} {1}
+apps/frappe/frappe/automation/doctype/auto_repeat/auto_repeat.py,A recurring {0} {1} has been created for you via Auto Repeat {2}.,En tilbakevendende {0} {1} er opprettet for deg via Auto Repeat {2}.
 DocType: Custom DocPerm,Apply this rule if the User is the Owner,Gjelder denne regelen dersom Bruker er eier
 DocType: Global Search Settings,Global Search Settings,Globale søkeinnstillinger
 apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js,Will be your login ID,Vil være innloggings-IDen din
@@ -2362,12 +2386,14 @@ apps/frappe/frappe/www/qrcode.html,QR Code for Login Verification,QR-kode for in
 apps/frappe/frappe/public/js/frappe/form/sidebar/assign_to.js,Add to To Do,Legg til å gjøre
 DocType: Footer Item,Company,Selskap
 apps/frappe/frappe/public/js/frappe/ui/group_by/group_by.js,Average of {0},Gjennomsnitt av {0}
+apps/frappe/frappe/model/workflow.py,Successful Transactions,Vellykkede transaksjoner
 DocType: Scheduled Job Log,Scheduled,Planlagt
 DocType: User,Logout from all devices while changing Password,Logg ut fra alle enheter mens du endrer passord
 apps/frappe/frappe/public/js/frappe/ui/messages.js,Verify Password,Bekreft Passord
 apps/frappe/frappe/public/js/frappe/form/sidebar/attachments.js,There were errors,Det var feil
 apps/frappe/frappe/integrations/doctype/google_calendar/google_calendar.py,Enter Client Id and Client Secret in Google Settings.,Skriv inn klient-id og klienthemmelighet i Google-innstillinger.
 apps/frappe/frappe/core/doctype/communication/communication.js,Close,Lukk
+apps/frappe/frappe/email/doctype/email_account/email_account.py,"Email ID must be unique, Email Account already exists for {0}",E-post-ID må være unik. E-postkonto eksisterer allerede for {0}
 apps/frappe/frappe/model/document.py,Cannot change docstatus from 0 to 2,Kan ikke endre docstatus fra 0 til 2
 DocType: File,Attached To Field,Vedlagt til felt
 apps/frappe/frappe/core/doctype/data_import_beta/data_import_beta_list.js,Update,Oppdater
@@ -2475,6 +2501,7 @@ apps/frappe/frappe/public/js/frappe/views/gantt/gantt_view.js,Month,Måned
 DocType: Email Account,ProTip: Add <code>Reference: {{ reference_doctype }} {{ reference_name }}</code> to send document reference,Protip: Legg <code>Reference: {{ reference_doctype }} {{ reference_name }}</code> å sende dokumentreferanse
 apps/frappe/frappe/public/js/frappe/form/sidebar/review.js,Only users involved in the document are listed,"Bare brukere som er involvert i dokumentet, vises"
 DocType: DocField,Fetch From,Hent fra
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Setup &gt; Customize Form,Oppsett&gt; Tilpass skjema
 apps/frappe/frappe/modules/utils.py,App not found,App ikke funnet
 apps/frappe/frappe/core/doctype/communication/communication.py,Cannot create a {0} against a child document: {1},Kan ikke opprette en {0} mot et barn dokument: {1}
 DocType: Social Login Key,Social Login Key,Sosiale innloggingsnøkkel
@@ -2486,7 +2513,6 @@ apps/frappe/frappe/config/desk.py,Chat messages and other notifications.,Chat me
 apps/frappe/frappe/public/js/frappe/social/Home.vue,Social Home,Sosialt hjem
 apps/frappe/frappe/custom/doctype/custom_field/custom_field.py,Insert After cannot be set as {0},Sett Etter kan ikke settes som {0}
 apps/frappe/frappe/public/js/frappe/form/sidebar/share.js,Share {0} with,Del {0} med
-apps/frappe/frappe/public/js/frappe/desk.js,Email Account setup please enter your password for: ,E-postkonto oppsett må oppgi passord for:
 DocType: Workflow State,hand-up,hand-up
 DocType: Blog Settings,Writers Introduction,Writers Introduksjon
 DocType: Address,Phone,Telefon
@@ -2545,7 +2571,7 @@ DocType: Web Page,Insert Style,Sett stil
 DocType: Prepared Report,Error Message,Feilmelding
 apps/frappe/frappe/public/js/frappe/views/reports/report_view.js,New Report name,Ny rapport navn
 apps/frappe/frappe/public/js/frappe/views/calendar/calendar.js,Hide Weekends,Skjul helger
-apps/frappe/frappe/config/settings.py,Automatically generates recurring documents.,Genererer automatisk gjentagende dokumenter.
+apps/frappe/frappe/config/automation.py,Automatically generates recurring documents.,Genererer automatisk gjentagende dokumenter.
 apps/frappe/frappe/public/js/frappe/ui/filters/filter.js,Is,Er
 DocType: Onboarding Slide,ERPNext,ERPNext
 DocType: Workflow State,info-sign,info-skilt
@@ -2553,7 +2579,6 @@ apps/frappe/frappe/model/base_document.py,Value for {0} cannot be a list,Verdi f
 DocType: Currency,"How should this currency be formatted? If not set, will use system defaults","Hvordan skal denne valutaen være formatert? Dersom ikke satt, vil bruke systemstandarder"
 apps/frappe/frappe/public/js/frappe/list/list_view.js,Submit {0} documents?,Send {0} dokumenter?
 apps/frappe/frappe/utils/response.py,You need to be logged in and have System Manager Role to be able to access backups.,Du må være logget inn og ha System Manager Rolle å kunne få tilgang til backup.
-apps/frappe/frappe/public/js/frappe/form/print.js,"Error connecting to QZ Tray Application...<br><br> You need to have QZ Tray application installed and running, to use the Raw Print feature.<br><br><a href=""https://qz.io/download/"" target=""_blank"">Click here to Download and install QZ Tray</a>.<br> <a href=""https://erpnext.com/docs/user/manual/en/setting-up/print/raw-printing"" target=""_blank"">Click here to learn more about Raw Printing</a>.","Feil ved tilkobling til QZ Tray Application ... <br><br> Du må ha QZ Tray-applikasjon installert og kjørt for å bruke Raw Print-funksjonen. <br><br> <a href=""https://qz.io/download/"" target=""_blank"">Klikk her for å laste ned og installere QZ Tray</a> . <br> <a href=""https://erpnext.com/docs/user/manual/en/setting-up/print/raw-printing"" target=""_blank"">Klikk her for å lære mer om Raw Printing</a> ."
 apps/frappe/frappe/public/js/frappe/form/print.js,Printer Mapping,Skriverkartlegging
 apps/frappe/frappe/public/js/frappe/form/form.js,Please save before attaching.,Vennligst spare før du fester.
 apps/frappe/frappe/public/js/frappe/form/form.js,Do you want to cancel all linked documents?,Vil du avbryte alle koblede dokumenter?
@@ -2583,6 +2608,7 @@ DocType: Role Permission for Page and Report,Set Role For,Sett rolle for
 DocType: GCalendar Account,The name that will appear in Google Calendar,Navnet som vil vises i Google Kalender
 apps/frappe/frappe/chat/doctype/chat_room/chat_room.py,Direct room with {0} already exists.,Direkte rom med {0} eksisterer allerede.
 apps/frappe/frappe/core/doctype/user/user.js,Refreshing...,Forfriskende ...
+apps/frappe/frappe/core/page/dashboard/dashboard.py,Please check the filter values set for Dashboard Chart: {},Sjekk filterverdiene som er angitt for Dashboard Chart: {}
 DocType: Event,Starts on,Starter på
 DocType: System Settings,System Settings,Systeminnstillinger
 DocType: GCalendar Settings,Google API Credentials,Google API-legitimasjon
@@ -2608,6 +2634,7 @@ DocType: Workflow State,ok-sign,ok-tegn
 apps/frappe/frappe/config/settings.py,Deleted Documents,Slettede dokumenter
 apps/frappe/frappe/public/js/frappe/form/grid.js,The CSV format is case sensitive,CSV-formatet er saksfølsomt
 apps/frappe/frappe/desk/doctype/desktop_icon/desktop_icon.py,Desktop Icon already exists,Desktop Icon eksisterer allerede
+DocType: Event Consumer Document Type,Approval Status,Godkjenningsstatus
 DocType: Onboarding Slide,Specify in what all domains should the slides show up. If nothing is specified the slide is shown in all domains by default.,"Spesifiser i hvilke domener lysbildene skal vises. Hvis ingenting er spesifisert, vises lysbildet som standard i alle domener."
 apps/frappe/frappe/public/js/frappe/form/toolbar.js,Duplicate,Duplisere
 apps/frappe/frappe/core/doctype/doctype/doctype.py,{0}: Field {1} in row {2} cannot be hidden and mandatory without default,{0}: Felt {1} i rad {2} kan ikke være skjult og obligatorisk uten standard
@@ -2627,6 +2654,7 @@ apps/frappe/frappe/automation/doctype/auto_repeat/auto_repeat.js,Message not set
 DocType: Help Category,Help Articles,Hjelp artikler
 apps/frappe/frappe/core/doctype/data_export/exporter.py,Type:,Type:
 apps/frappe/frappe/templates/pages/integrations/payment-failed.html,Your payment has failed.,Din betaling har mislyktes.
+DocType: Event Producer,Producer URL,Produsentens URL
 DocType: Comment,Unshared,udelte
 DocType: Address,Karnataka,Karnataka
 apps/frappe/frappe/desk/moduleview.py,Module Not Found,Module Not Found
@@ -2638,6 +2666,7 @@ apps/frappe/frappe/core/doctype/docshare/docshare.py,"You need to have ""Share""
 DocType: Comment,Assignment Completed,Overdragelse Fullført
 apps/frappe/frappe/public/js/frappe/form/grid.js,Bulk Edit {0},Bulk Edit {0}
 apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,Download Report,Last ned rapport
+apps/frappe/frappe/model/workflow.py,Workflow Status,Arbeidsflytstatus
 apps/frappe/frappe/workflow/doctype/workflow/workflow_list.js,Not active,Ikke aktiv
 apps/frappe/frappe/desk/doctype/dashboard_chart_source/dashboard_chart_source.py,Only Administrator is allowed to create Dashboard Chart Sources,Det er bare administratorer som har lov til å opprette kartkildekilder
 DocType: About Us Settings,Settings for the About Us Page,Innstillinger for oss siden
@@ -2647,6 +2676,7 @@ apps/frappe/frappe/public/js/frappe/form/print.js,Print Sent to the printer!,Skr
 DocType: Notification Settings,Energy Points,Energipoeng
 apps/frappe/frappe/public/js/frappe/form/controls/time.js,Time {0} must be in format: {1},Tid {0} må være i format: {1}
 DocType: Email Account,e.g. pop.gmail.com / imap.gmail.com,f.eks pop.gmail.com / imap.gmail.com
+apps/frappe/frappe/automation/doctype/auto_repeat/auto_repeat.py,"{0}: Failed to attach new recurring document. To enable attaching document in the auto repeat notification email, enable {1} in Print Settings","{0}: Kunne ikke legge ved nytt gjentakende dokument. For å aktivere vedleggsdokument i e-postmeldingen om automatisk gjenta varsling, aktiverer du {1} i Utskriftsinnstillinger"
 DocType: User,Generate Keys,Generere nøkler
 apps/frappe/frappe/templates/emails/delete_data_confirmation.html,This will permanently remove your data.,Dette vil fjerne dataene dine permanent.
 DocType: DocType,View Settings,Vis innstillinger
@@ -2698,6 +2728,7 @@ apps/frappe/frappe/social/doctype/energy_point_log/energy_point_log.py,{0} criti
 DocType: Contact,All,Alt
 DocType: Email Queue,Recipient,Mottaker
 DocType: Webhook,Webhook Security,Webhook Security
+DocType: Event Sync Log,Producer Document Name,Produsentens dokumentnavn
 DocType: Communication,Has  Attachment,har Vedlegg
 DocType: Address,Sales User,Salg User
 apps/frappe/frappe/config/settings.py,Drag and Drop tool to build and customize Print Formats.,Dra og slipp verktøy for å bygge og tilpasse utskriftsformater.
@@ -2733,6 +2764,7 @@ DocType: Address,Arunachal Pradesh,Arunachal Pradesh
 DocType: DocType,Child Tables are shown as a Grid in other DocTypes,Barnetabeller vises som et rutenett i andre DocTypes
 apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,Setup Auto Email,Oppsett Auto E-post
 apps/frappe/frappe/public/js/frappe/form/grid_row_form.js,Ctrl + Down,Ctrl + Ned
+apps/frappe/frappe/config/automation.py,The site you want to subscribe to for consuming events.,Nettstedet du vil abonnere på for konsumerende hendelser.
 DocType: Chat Profile,Message Preview,Forhåndsvisning av melding
 apps/frappe/frappe/utils/password_strength.py,This is a top-10 common password.,Dette er en topp-ti felles passord.
 DocType: User,User Defaults,Bruker Defaults
@@ -2765,6 +2797,7 @@ DocType: Dashboard Chart,Last Synced On,Sist synkronisert på
 DocType: Comment,Comment Type,Kommentar Type
 DocType: OAuth Client,OAuth Client,OAuth-klient
 DocType: Assignment Rule,Users,Brukere
+DocType: Document Type Mapping,Local Document Type,Lokal dokumenttype
 DocType: Address,Odisha,Odisha
 DocType: Report,Report Type,Rapporttype
 DocType: DocField,Signature,Signatur
@@ -2807,6 +2840,7 @@ apps/frappe/frappe/templates/emails/administrator_logged_in.html,"Dear System Ma
 apps/frappe/frappe/desk/doctype/todo/todo.py,{0} self assigned this task: {1},{0} selv tilordnet denne oppgaven: {1}
 apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js,Your Country,Ditt land
 DocType: Assignment Rule Day,Sunday,Søndag
+apps/frappe/frappe/config/automation.py,"Maintains a Log of all inserts, updates and deletions on Event Producer site for documents that have consumers.","Opprettholder en logg over alle innlegg, oppdateringer og slettinger på Event Produsent nettsted for dokumenter som har forbrukere."
 apps/frappe/frappe/core/doctype/doctype/doctype.py,{0}: Fieldname cannot be one of {1},{0}: Feltnavn kan ikke være et av {1}
 apps/frappe/frappe/templates/emails/energy_points_summary.html,Standings,plasseringer
 apps/frappe/frappe/core/doctype/doctype/doctype.js,In Grid View,I Grid View
@@ -2954,7 +2988,6 @@ DocType: Web Page,Sidebar and Comments,Sidepanel og kommentarer
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,"When you Amend a document after Cancel and save it, it will get a new number that is a version of the old number.","Når du Endre et dokument etter Avbryt og lagre det, vil det bli et nytt nummer som er en versjon av det gamle nummeret."
 apps/frappe/frappe/email/doctype/notification/notification.py,"Not allowed to attach {0} document,
 				please enable Allow Print For {0} in Print Settings","Ikke tillatt å legge ved {0} dokument, vennligst aktiver Tillat utskrift for {0} i utskriftsinnstillinger"
-apps/frappe/frappe/email/smtp.py,Email Account not setup. Please create a new Email Account from Setup &gt; Email &gt; Email Account,E-postkonto er ikke konfigurert. Opprett en ny e-postkonto fra Oppsett&gt; E-post&gt; E-postkonto
 apps/frappe/frappe/integrations/doctype/slack_webhook_url/slack_webhook_url.py,See the document at {0},Se dokumentet på {0}
 DocType: Stripe Settings,Publishable Key,Publiserbar nøkkel
 DocType: Stripe Settings,Publishable Key,Publiserbar nøkkel
@@ -3032,7 +3065,6 @@ apps/frappe/frappe/core/doctype/data_export/exporter.py,Info:,Info:
 DocType: Custom Field,Permission Level,Tillatelse nivå
 apps/frappe/frappe/core/doctype/doctype/doctype.py,"{0}: Cannot set Submit, Cancel, Amend without Write","{0}: Kan ikke sette Send, Avbryt: Bedre uten Write"
 DocType: List View Setting,Disable Count,Deaktiver telling
-DocType: Google Maps Settings,Client Key,Klientnøkkel
 apps/frappe/frappe/public/js/frappe/form/sidebar/attachments.js,Are you sure you want to delete the attachment?,Er du sikker på at du vil slette vedlegget?
 apps/frappe/frappe/__init__.py,Thank you,Takk
 apps/frappe/frappe/public/js/frappe/form/save.js,Saving,Besparende
@@ -3159,6 +3191,7 @@ DocType: Workflow Document State,Only Allow Edit For,Bare Tillat Rediger For
 apps/frappe/frappe/integrations/doctype/google_drive/google_drive.js,Backing up to Google Drive.,Sikkerhetskopiere til Google Drive.
 apps/frappe/frappe/core/doctype/role_permission_for_page_and_report/role_permission_for_page_and_report.js,Mandatory field: {0},Obligatorisk felt: {0}
 apps/frappe/frappe/templates/includes/comments/comments.html,Your Name,Navnet ditt
+DocType: Event Producer Document Type,Event Producer Document Type,Eventprodusentens dokumenttype
 apps/frappe/frappe/templates/pages/integrations/gcalendar-success.html,Connection Success,Tilkoblingssuksess
 DocType: DocType,InnoDB,Uskyldig
 apps/frappe/frappe/desk/doctype/onboarding_slide/onboarding_slide.py,An Onboarding Slide of Slide Type Continue already exists.,En Onboarding-lysbilde av lysbildetype Fortsett eksisterer allerede.
@@ -3229,6 +3262,7 @@ DocType: Address,Postal Code,postnummer
 apps/frappe/frappe/core/doctype/communication/communication.js,Relink Communication,Koble på nytt Kommunikasjon
 DocType: Translation,Contributed,bidratt
 apps/frappe/frappe/config/customization.py,Form Customization,Formtilpasning
+DocType: Event Update Log,Event Update Log,Hendelsesoppdateringslogg
 apps/frappe/frappe/www/third_party_apps.html,No Active Sessions,Ingen aktive økter
 DocType: Web Form,Route to Success Link,Rute til suksesslink
 DocType: Onboarding Slide Field,Right,Rett
@@ -3255,7 +3289,7 @@ DocType: Website Settings,Chat Operators,Chatoperatører
 DocType: S3 Backup Settings,ca-central-1,ca-sentral-1
 DocType: Contact Us Settings,Pincode,Pinkode
 apps/frappe/frappe/core/doctype/data_import/importer.py,Please make sure that there are no empty columns in the file.,Vennligst sørg for at det ikke er tomme kolonner i filen.
-apps/frappe/frappe/config/settings.py,Tracks milestones on the lifecycle of a document if it undergoes multiple stages.,Sporer milepæler i livssyklusen til et dokument hvis det gjennomgår flere stadier.
+apps/frappe/frappe/config/automation.py,Tracks milestones on the lifecycle of a document if it undergoes multiple stages.,Sporer milepæler i livssyklusen til et dokument hvis det gjennomgår flere stadier.
 apps/frappe/frappe/core/doctype/doctype/doctype.py,"Renamed files and replaced code in controllers, please check!","Omdøpt filer og erstattet kode i kontrollere, vennligst sjekk!"
 apps/frappe/frappe/utils/oauth.py,Please ensure that your profile has an email address,Sørg for at profilen din har en e-postadresse
 apps/frappe/frappe/public/js/frappe/model/create_new.js,You have unsaved changes in this form. Please save before you continue.,Du har ulagrede endringer i dette skjemaet. Vennligst lagre før du fortsetter.
@@ -3282,7 +3316,6 @@ apps/frappe/frappe/utils/response.py,You don't have permission to access this fi
 apps/frappe/frappe/core/doctype/user/user.js,Save API Secret: ,Lagre API-hemmelighet:
 apps/frappe/frappe/model/document.py,Cannot link cancelled document: {0},Kan ikke koble avbestilling dokumentet: {0}
 apps/frappe/frappe/core/doctype/report/report.py,Cannot edit a standard report. Please duplicate and create a new report,Kan ikke redigere en standardrapport. Vennligst kopiere og opprette en ny rapport
-apps/frappe/frappe/contacts/doctype/address/address.py,"Company is mandatory, as it is your company address","Selskapet er obligatorisk, så det er et selskap adresse"
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js,"For example: If you want to include the document ID, use {0}","For eksempel: Hvis du vil inkludere dokumentet ID, bruker {0}"
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js,Select Table Columns for {0},Velg Tabell Kolonner for {0}
 DocType: Custom Field,Options Help,Alternativer Hjelp
@@ -3290,7 +3323,6 @@ DocType: Footer Item,Group Label,Gruppe etikett
 DocType: Kanban Board,Kanban Board,Kanban Board
 apps/frappe/frappe/integrations/doctype/google_contacts/google_contacts.py,Google Contacts has been configured.,Google-kontakter er konfigurert.
 apps/frappe/frappe/public/js/frappe/data_import/data_exporter.js,1 record will be exported,1 post blir eksportert
-apps/frappe/frappe/public/js/frappe/views/inbox/inbox_view.js,No email account associated with the User. Please add an account under User &gt; Email Inbox.,Ingen e-postkonto tilknyttet brukeren. Legg til en konto under Bruker&gt; E-postinnboks.
 DocType: DocField,Report Hide,Rapporter Skjul
 apps/frappe/frappe/public/js/frappe/views/treeview.js,Tree view not available for {0},Trevisning ikke tilgjengelig for {0}
 DocType: DocType,Restrict To Domain,Begrens til domene
@@ -3356,7 +3388,9 @@ apps/frappe/frappe/printing/doctype/print_format/print_format.py,Standard Print 
 apps/frappe/frappe/core/doctype/doctype/doctype.py,{0}: Field {1} of type {2} cannot be mandatory,{0}: Felt {1} av typen {2} kan ikke være obligatorisk
 DocType: System Settings,In Days,I dager
 apps/frappe/frappe/desk/page/setup_wizard/install_fixtures.py,Miss,Gå glipp av
+DocType: Event Producer Document Type,Has Mapping,Har kartlegging
 apps/frappe/frappe/public/js/frappe/model/model.js,Please specify,Vennligst spesifiser
+apps/frappe/frappe/core/page/dashboard/dashboard.py,Invalid Filter Value,Ugyldig filterverdi
 DocType: Comment,Bot,Bot
 DocType: Help Article,Help Article,Hjelp Artikkel
 DocType: Page,Page Name,Page Name
@@ -3464,7 +3498,7 @@ apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,"Pe
 DocType: Auto Repeat,Print Format,Print Format
 apps/frappe/frappe/public/js/frappe/views/file/file_view.js,Toggle Grid View,Veksle gridvisning
 apps/frappe/frappe/public/js/frappe/form/form.js,Go to next record,Gå til neste post
-DocType: System Settings,Time Format,Tidsformat
+DocType: Country,Time Format,Tidsformat
 apps/frappe/frappe/integrations/doctype/paypal_settings/paypal_settings.py,Invalid payment gateway credentials,Ugyldige betaling gateway legitimasjon
 DocType: Data Import,This is the template file generated with only the rows having some error. You should use this file for correction and import.,Dette er malfilen som genereres med bare radene som har noen feil. Du bør bruke denne filen for korrigering og import.
 apps/frappe/frappe/config/users_and_permissions.py,Set Permissions on Document Types and Roles,Angi tillatelser på dokumenttyper og roller
@@ -3787,6 +3821,7 @@ DocType: Webhook,on_update_after_submit,on_update_after_submit
 DocType: System Settings,Allow Login using User Name,Tillat innlogging med brukernavn
 apps/frappe/frappe/core/doctype/report/report.js,Enable Report,Aktiver Rapporter
 DocType: DocField,Display Depends On,Visningen avhenger
+apps/frappe/frappe/public/js/frappe/utils/pretty_date.js,&gt; {0} year(s) ago,&gt; {0} år siden
 DocType: Social Login Key,API Endpoint,API Endpoint
 DocType: Web Page,Insert Code,Sett inn kode
 DocType: Data Migration Run,Current Mapping Type,Aktuell kartleggingstype
@@ -3840,6 +3875,8 @@ apps/frappe/frappe/email/doctype/newsletter/newsletter.py,Confirm Your Email,Bek
 apps/frappe/frappe/www/login.html,Or login with,Eller logg inn med
 DocType: Error Snapshot,Locals,Lokalbefolkningen
 apps/frappe/frappe/desk/page/activity/activity_row.html,Communicated via {0} on {1}: {2},Kommunisert via {0} på {1}: {2}
+DocType: Event Producer,Event Producer Document Types,Eventprodusentens dokumenttyper
+apps/frappe/frappe/email/smtp.py,Please setup default Email Account from Setup &gt; Email &gt; Email Account,Angi standard e-postkonto fra Oppsett&gt; E-post&gt; E-postkonto
 apps/frappe/frappe/public/js/frappe/ui/group_by/group_by.html,Select Group By...,Velg gruppe etter ...
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js,e.g. (55 + 434) / 4 or =Math.sin(Math.PI/2)...,eg (55 + 434) / 4 eller = tak i Math.sin (Math.PI / 2) ...
 apps/frappe/frappe/utils/csvutils.py,{0} is required,{0} er nødvendig
@@ -3872,9 +3909,11 @@ apps/frappe/frappe/public/js/frappe/file_uploader/FileUploader.vue,Upload {0} fi
 DocType: Deleted Document,GCalendar Sync ID,GCalendar Sync ID
 DocType: Prepared Report,Report Start Time,Rapporter starttidspunkt
 apps/frappe/frappe/public/js/frappe/data_import/data_exporter.js,Export Data,Eksporter data
+apps/frappe/frappe/config/automation.py,Maintains a log of every event consumed along with the status of the sync and a Resync button in case sync fails.,Opprettholder en logg over alle hendelser som konsumeres sammen med status for synkronisering og en Resync-knapp i tilfelle synkronisering mislykkes.
 apps/frappe/frappe/core/doctype/data_import/data_import.js,Select Columns,Velg kolonner
 DocType: Translation,Source Text,kilde Tekst
 apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,This is a background report. Please set the appropriate filters and then generate a new one.,Dette er en bakgrunnsrapport. Angi riktig filter og generer deretter et nytt.
+apps/frappe/frappe/email/smtp.py,Email Account not setup. Please create a new Email Account from Setup &gt; Email &gt; Email Account,E-postkonto er ikke konfigurert. Opprett en ny e-postkonto fra Oppsett&gt; E-post&gt; E-postkonto
 apps/frappe/frappe/www/login.py,Missing parameters for login,Manglende parametere for pålogging
 DocType: Workflow State,folder-open,mappe-open
 DocType: DocType,"Once submitted, submittable documents cannot be changed. They can only be Cancelled and Amended.","Når de er sendt inn, kan ikke sendbare dokumenter endres. De kan bare avbrytes og endres."
@@ -3954,6 +3993,7 @@ DocType: Blog Post,Published On,Publisert på
 DocType: Contact,Gender,Kjønn
 apps/frappe/frappe/website/doctype/web_form/web_form.py,Mandatory Information missing:,Obligatorisk informasjon mangler:
 apps/frappe/frappe/social/doctype/energy_point_log/energy_point_log.py,{0} reverted your points on {1},{0} tilbakeførte poengene dine på {1}
+DocType: Event Consumer,Event Subscriber,Arrangementsabonnent
 apps/frappe/frappe/integrations/doctype/webhook/webhook.py,Check Request URL,Sjekk forespørselsadresse
 apps/frappe/frappe/client.py,Only 200 inserts allowed in one request,Bare 200 inserts tillatt i en forespørsel
 DocType: Footer Item,URL,URL
@@ -3966,6 +4006,7 @@ DocType: Auto Email Report,Half Yearly,Halvårlig
 DocType: Communication,Marked As Spam,Merket som spam
 apps/frappe/frappe/utils/file_manager.py,There is some problem with the file url: {0},Det er noe problem med filen url: {0}
 apps/frappe/frappe/public/js/frappe/list/list_sidebar.html,Tree,Tre
+DocType: Event Producer Document Type,Use Same Name,Bruk samme navn
 apps/frappe/frappe/public/js/frappe/views/treeview.js,You are not allowed to print this report,Du har ikke lov til å skrive ut denne rapporten
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,User Permissions,Brukertillatelser
 DocType: Workflow State,warning-sign,varselskilt
@@ -3975,6 +4016,7 @@ DocType: Workflow State,User,Bruker
 DocType: Website Settings,"Show title in browser window as ""Prefix - title""",Vis tittel i nettleservinduet som &quot;Prefix - title&quot;
 DocType: Payment Gateway,Gateway Settings,Gateway Innstillinger
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js,text in document type,tekst i dokumenttype
+DocType: Event Sync Log,Event Sync Log,Hendelsessynkroniseringslogg
 apps/frappe/frappe/handler.py,Logged Out,Logget ut
 apps/frappe/frappe/public/js/frappe/ui/toolbar/search.js,More...,Mer...
 DocType: System Settings,User can login using Email id or Mobile number,Brukeren kan logge inn med e-post-ID eller mobilnummer
@@ -4015,12 +4057,14 @@ apps/frappe/frappe/email/doctype/email_group/email_group.py,{0} subscribers adde
 apps/frappe/frappe/public/js/frappe/ui/filters/filter.js,Not In,Ikke I
 DocType: Workflow State,star,stjerne
 apps/frappe/frappe/public/js/frappe/ui/toolbar/search_utils.js,Hub,Hub
+DocType: Event Producer Document Type,If this is checked the documents will have the same name as they have on the Event Producer's site,"Hvis dette er merket, vil dokumentene ha samme navn som de har på Eventprodusentens nettsted"
 apps/frappe/frappe/public/js/frappe/ui/filters/filters.js,values separated by commas,verdier atskilt med komma
 apps/frappe/frappe/core/doctype/doctype/doctype.py,Max width for type Currency is 100px in row {0},Maks bredde for type Valuta er 100px i rad {0}
 apps/frappe/frappe/config/website.py,Content web page.,Innholds nettside.
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Add a New Role,Legg til en ny rolle
 apps/frappe/frappe/website/doctype/website_route_meta/website_route_meta.js,Visit Web Page,Besøk websiden
 apps/frappe/frappe/desk/doctype/notification_log/notification_log.py,New Assignment,Ny oppgave
+DocType: Event Consumer Document Type,Approved,Godkjent
 DocType: Google Contacts,Last Sync On,Sist synk på
 DocType: Deleted Document,Deleted Document,slettet Document
 apps/frappe/frappe/templates/includes/login/login.js,Oops! Something went wrong,Oops! Noe gikk galt
@@ -4073,7 +4117,6 @@ DocType: DocField,Unique,Unique
 apps/frappe/frappe/public/js/frappe/utils/energy_point_utils.js,{0} appreciated on {1},{0} verdsatt {1}
 apps/frappe/frappe/core/doctype/data_import/data_import_list.js,Partial Success,Delvis suksess
 DocType: Email Account,Service,Tjeneste
-apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Setup &gt; User,Oppsett&gt; Bruker
 DocType: File,File Name,Filnavn
 apps/frappe/frappe/core/doctype/data_import/importer.py,Did not find {0} for {0} ({1}),Fant du ikke {0} for {0} ({1})
 apps/frappe/frappe/core/doctype/communication/communication.js,Res: {0},Res: {0}
@@ -4085,11 +4128,10 @@ DocType: Calendar View,Calendar View,Kalendervisning
 apps/frappe/frappe/printing/doctype/print_format/print_format.js,Edit Format,Edit Format
 apps/frappe/frappe/templates/emails/new_user.html,Complete Registration,Komplett Registrering
 DocType: GCalendar Settings,Enable,Aktiver
-DocType: Google Maps Settings,Home Address,Hjemmeadresse
 apps/frappe/frappe/core/doctype/data_export/exporter.py,You can only upload upto 5000 records in one go. (may be less in some cases),Du kan bare laste opp 5000 poster på en gang. (Kan være mindre i noen tilfeller)
 DocType: Report,"output in the form of `data = [columns, result]`","output i form av `data = [kolonner, resultat]`"
 apps/frappe/frappe/core/doctype/user_permission/user_permission_list.js,Applicable Document Types,Gjeldende dokumenttyper
-apps/frappe/frappe/config/settings.py,Set up rules for user assignments.,Sett opp regler for brukeroppdrag.
+apps/frappe/frappe/config/automation.py,Set up rules for user assignments.,Sett opp regler for brukeroppdrag.
 apps/frappe/frappe/model/document.py,Insufficient Permission for {0},Utilstrekkelig Tillatelse for {0}
 apps/frappe/frappe/model/document.py,Insufficient Permission for {0},Utilstrekkelig Tillatelse for {0}
 apps/frappe/frappe/public/js/frappe/views/reports/report_view.js,Report was not saved (there were errors),Rapporten ble ikke lagret (det var feil)

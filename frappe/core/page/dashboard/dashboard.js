@@ -85,7 +85,7 @@ class Dashboard {
 				chart_container.appendTo(this.container);
 
 				frappe.model.with_doc("Dashboard Chart", chart.chart).then( chart_doc => {
-					let dashboard_chart = new DashboardChart(chart_doc, chart_container);
+					let dashboard_chart = new frappe.ui.DashboardChart(chart_doc, chart_container);
 					dashboard_chart.show();
 				});
 			});
@@ -215,7 +215,7 @@ class DashboardChart {
 
 	render_date_range_fields() {
 		if (!this.date_field_wrapper || !this.date_field_wrapper.is(':visible')) {
-			this.date_field_wrapper = 
+			this.date_field_wrapper =
 				$(`<div class="dashboard-date-field pull-right"></div>`)
 					.insertBefore(this.chart_container.find('.chart-wrapper'));
 
@@ -304,15 +304,15 @@ class DashboardChart {
 	}
 
 	setup_filter_button() {
-		
+
 		this.is_document_type = this.chart_doc.chart_type!== 'Report' && this.chart_doc.chart_type!=='Custom';
-		this.filter_button = 
+		this.filter_button =
 			$(`<div class="filter-chart btn btn-default btn-xs pull-right">${__("Filter")}</div>`);
 		this.filter_button.prependTo(this.chart_container);
 
 		this.filter_button.on('click', () => {
 			let fields;
-	
+
 			frappe.dashboard_utils.get_filters_for_chart_type(this.chart_doc)
 				.then(filters => {
 					if (!this.is_document_type) {
@@ -370,8 +370,8 @@ class DashboardChart {
 		}
 
 		dialog.show();
-		dialog.set_values(this.filters);	
-	
+		dialog.set_values(this.filters);
+
 	}
 
 	create_filter_group_and_add_filters(parent) {
