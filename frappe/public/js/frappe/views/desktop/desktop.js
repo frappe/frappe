@@ -137,10 +137,11 @@ export default class Desktop {
 	}
 
 	get_page_to_show() {
+		const default_page = this.desktop_settings ? this.desktop_settings["Modules"][0].name : "Website";
 		let page =
 			frappe.get_route()[1] ||
 			localStorage.current_desk_page ||
-			this.desktop_settings["Modules"][0].name;
+			default_page
 		return page;
 	}
 
