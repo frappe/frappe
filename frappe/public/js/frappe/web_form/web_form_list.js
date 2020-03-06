@@ -88,6 +88,10 @@ export default class WebFormList {
 	}
 
 	fetch_data() {
+		if (frappe.system_user === "yes") {
+			this.filters.raised_by = frappe.session.user;
+		}
+
 		return frappe.call({
 			method: "frappe.www.list.get_list_data",
 			args: {
