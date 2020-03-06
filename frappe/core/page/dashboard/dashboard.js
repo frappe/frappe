@@ -119,9 +119,11 @@ class Dashboard {
 }
 
 class DashboardChart {
-	constructor(chart_doc, chart_container) {
+	constructor(chart_doc, chart_container, options) {
 		this.chart_doc = chart_doc;
 		this.container = chart_container;
+		this.options = options || {};
+		this.chart_args = {};
 	}
 
 	show() {
@@ -130,15 +132,22 @@ class DashboardChart {
 			this.prepare_container();
 			this.setup_filter_button();
 
-			if (this.chart_doc.timeseries && this.chart_doc.chart_type !== 'Custom') {
-				this.render_time_series_filters();
+			if (!this.options.hide_actions || this.options.hide_actions == undefined) {
+				this.prepare_chart_actions();
+
+				if (this.chart_doc.timeseries && this.chart_doc.chart_type !== 'Custom') {
+					this.render_time_series_filters();
+				}
 			}
+
 			this.prepare_chart_actions();
 			this.fetch(this.filters).then( data => {
 				if (this.chart_doc.chart_type == 'Report') {
 					data = this.get_report_chart_data(data);
 				}
-				this.update_last_synced();
+				if (!this.options.hide_last_sync || this.options.hide_last_sync == undefined) {
+					this.update_last_synced();
+				}
 				this.data = data;
 				this.render();
 			});
@@ -159,8 +168,10 @@ class DashboardChart {
 		</div>`);
 		this.chart_container.appendTo(this.container);
 
-		let last_synced_text = $(`<span class="text-muted last-synced-text"></span>`);
-		last_synced_text.prependTo(this.chart_container);
+		if (!this.options.hide_last_sync || this.options.hide_last_sync == undefined) {
+			let last_synced_text = $(`<span class="text-muted last-synced-text"></span>`);
+			last_synced_text.prependTo(this.chart_container);
+		}
 	}
 
 	render_time_series_filters() {
@@ -453,8 +464,13 @@ class DashboardChart {
 		if (!this.data) {
 			this.chart_container.find('.chart-empty-state').removeClass('hide');
 		} else {
+			let title = null;
+			if (!this.options.hide_title || this.options.hide_title == undefined) {
+				title = this.chart_doc.chart_name;
+			}
+
 			let chart_args = {
-				title: this.chart_doc.chart_name,
+				title: title,
 				data: this.data,
 				type: chart_type_map[this.chart_doc.type],
 				colors: colors,

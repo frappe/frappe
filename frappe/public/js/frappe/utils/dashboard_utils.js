@@ -1,8 +1,7 @@
 frappe.dashboard_utils = {
-
 	render_chart_filters: function(filters, button_class, container, append) {
 		filters.forEach(filter => {
-			let chart_filter_html = 
+			let chart_filter_html =
 				`<div class="${button_class} btn-group dropdown pull-right">
 					<a class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
 						<button class="btn btn-default btn-xs">
