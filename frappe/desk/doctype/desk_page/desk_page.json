@@ -14,6 +14,7 @@
   "icon",
   "column_break_3",
   "onboarding",
+  "is_standard",
   "developer_mode_only",
   "disable_user_customization",
   "pin_to_top",
@@ -152,10 +153,16 @@
    "fieldname": "section_break_18",
    "fieldtype": "Section Break",
    "label": "Link Cards"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_standard",
+   "fieldtype": "Check",
+   "label": "Is Standard"
   }
  ],
  "links": [],
- "modified": "2020-03-02 20:08:44.856046",
+ "modified": "2020-03-05 15:39:17.658280",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Desk Page",
