@@ -363,13 +363,15 @@ class Importer:
 
 	def parse_date_format(self, value, df):
 		date_format = self.get_date_format_for_df(df)
-		if date_format:
-			try:
-				return datetime.strptime(value, date_format)
-			except:
-				# ignore date values that dont match the format
-				# import will break for these values later
-				pass
+		if not date_format:
+			date_format = '%Y-%m-%d %H:%M:%S'
+
+		try:
+			return datetime.strptime(value, date_format)
+		except:
+			# ignore date values that dont match the format
+			# import will break for these values later
+			pass
 		return value
 
 	def get_date_format_for_df(self, df):
@@ -396,7 +398,7 @@ class Importer:
 			date_values = [
 				row[column_index] for row in self.data[:PARSE_ROW_COUNT] if row[column_index]
 			]
-			date_formats = [guess_date_format(d) for d in date_values]
+			date_formats = [guess_date_format(d) if type(d) == str else None for d in date_values]
 			if not date_formats:
 				return
 			max_occurred_date_format = max(set(date_formats), key=date_formats.count)
