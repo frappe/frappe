@@ -164,10 +164,10 @@ class CustomizeForm(Document):
 
 		self.flags.update_db = False
 		self.flags.rebuild_doctype_for_global_search = False
-		validate_fields_for_doctype(self.doc_type)
 		self.set_property_setters()
 		self.update_custom_fields()
 		self.set_name_translation()
+		validate_fields_for_doctype(self.doc_type)
 
 		if self.flags.update_db:
 			frappe.db.updatedb(self.doc_type)
@@ -363,11 +363,11 @@ class CustomizeForm(Document):
 		for allowed_changes in allowed_fieldtype_change:
 			if (old_value in allowed_changes and new_value in allowed_changes):
 				allowed = True
-				self.flags.update_db = True
 				if frappe.db.type_map.get(old_value)[1] > frappe.db.type_map.get(new_value)[1]:
-
 					self.check_length_for_fieldtypes.append({'df': df, 'old_value': old_value})
 					self.validate_fieldtype_length()
+				else:
+					self.flags.update_db = True
 				break
 		if not allowed:
 			frappe.throw(_("Fieldtype cannot be changed from {0} to {1} in row {2}").format(old_value, new_value, df.idx))
@@ -392,8 +392,10 @@ class CustomizeForm(Document):
 			links_str = ', '.join(links)
 
 		if len(docs):
-			frappe.throw(_('Value for field <b>{label}</b> is too long in {links_str}. Length should be lesser than {max_length}')
+			frappe.throw(_('Value for field <b>{label}</b> is too long in {links_str}. Length should be lesser than <b>{max_length}</b> characters')
 				.format(label=label, max_length=max_length, links_str=links_str), title='Data Too Long')
+		else:
+			self.flags.update_db = True
 
 	def reset_to_defaults(self):
 		if not self.doc_type:
