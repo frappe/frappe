@@ -200,7 +200,7 @@ def send_workflow_action_email(users_data, doc):
 		email_args = {
 			'recipients': [d.get('email')],
 			'args': {
-				'actions': deduplicate_actions(d.get('possible_actions')),
+				'actions': list(deduplicate_actions(d.get('possible_actions'))),
 				'message': message
 			},
 			'reference_name': doc.name,
