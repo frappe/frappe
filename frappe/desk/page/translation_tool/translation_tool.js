@@ -151,7 +151,7 @@ class TranslationTool {
 						fieldname: "add_translation_btn",
 						click: (values) => {
 							values = this.form.get_values();
-							this.edited_translations[values.source_text] = values;
+							this.edited_translations[translation.id] = values;
 							this.update_header();
 						}
 					}
