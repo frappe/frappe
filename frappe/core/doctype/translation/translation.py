@@ -69,10 +69,10 @@ def create_translations(translation_map, language):
 	translation_map = json.loads(translation_map_str)
 
 	# first create / update local user translations
-	for source_text, translation_dict in translation_map.items():
+	for source_id, translation_dict in translation_map.items():
 		translation_dict = frappe._dict(translation_dict)
 		existing_doc_name = frappe.db.exists('Translation', {
-			'source_name': source_text,
+			'source_name': translation_dict.source_text,
 			'context': translation_dict.context
 		})
 		if existing_doc_name:
@@ -80,7 +80,7 @@ def create_translations(translation_map, language):
 		else:
 			doc = frappe.get_doc({
 				'doctype': 'Translation',
-				'source_name': source_text,
+				'source_name': translation_dict.source_text,
 				'target_name': translation_dict.translated_text,
 				'context': translation_dict.context,
 				'language': language

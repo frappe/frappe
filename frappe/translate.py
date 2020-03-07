@@ -146,16 +146,6 @@ def get_dict_from_hooks(fortype, name):
 
 	return translated_dict
 
-def add_lang_dict(code):
-	"""Extracts messages and returns Javascript code snippet to be append at the end
-	of the given script
-
-	:param code: Javascript code snippet to which translations needs to be appended."""
-	messages = extract_messages_from_code(code)
-	messages = [message for line, message, context in messages]
-	code += "\n\n$.extend(frappe._messages, %s)" % json.dumps(make_dict_from_messages(messages))
-	return code
-
 def make_dict_from_messages(messages, full_dict=None):
 	"""Returns translated messages as a dict in Language specified in `frappe.local.lang`
 
@@ -449,7 +439,7 @@ def get_messages_from_report(name):
 	report = frappe.get_doc("Report", name)
 	messages = _get_messages_from_page_or_report("Report", name,
 		frappe.db.get_value("DocType", report.ref_doctype, "module"))
-	# TODO position here!
+
 	if report.query:
 		messages.extend([(None, message) for message in re.findall('"([^:,^"]*):', report.query) if is_translatable(message)])
 	messages.append((None,report.report_name))
