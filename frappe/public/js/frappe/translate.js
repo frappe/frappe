@@ -4,6 +4,9 @@
 // for translation
 frappe._messages = {};
 frappe._ = function(txt, replace, context = null) {
+	if ($.isEmptyObject(frappe._messages)) {
+		$.extend(frappe._messages, frappe.boot.__messages);
+	}
 	if (!txt) return txt;
 	if (typeof txt != "string") return txt;
 
