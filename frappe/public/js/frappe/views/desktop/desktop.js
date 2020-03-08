@@ -185,12 +185,14 @@ class DesktopPage {
 		this.make_page();
 		this.get_data().then(res => {
 			this.data = res.message;
-			this.allow_customization = this.data.allow_customization
 			// this.make_onboarding()
 			if (!this.data) {
 				delete localStorage.current_desk_page
 				frappe.set_route('workspace')
+				return
 			}
+
+			this.allow_customization = this.data.allow_customization || false
 
 			!this.sections["onboarding"] &&
 				this.data.charts.items.length &&
