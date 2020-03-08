@@ -112,8 +112,9 @@ def update_user_settings_data(user_setting, fieldname, old, new, condition_field
 			# clear that user settings from the redis cache
 			frappe.cache().hset('_user_settings', '{0}::{1}'.format(user_setting.doctype, user_setting.user), None)
 
+
 def sync_settings(doctype, user, data):
-	'''Sync from to database'''
+	"""Sync User Settings from cache to db"""
 	user_settings_doc = get_user_settings_doc(doctype, user)
 	data = json.loads(data)
 

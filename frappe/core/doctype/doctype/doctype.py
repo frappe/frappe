@@ -1148,10 +1148,13 @@ def clear_linked_doctype_cache():
 
 
 def reset_sort_field_and_order(doc, from_db, doctype):
-	# Reset Sort By
-	if doc.sort_field and from_db.sort_field and not "," in doc.sort_field and not doc.sort_field == from_db.sort_field:
-		frappe.db.sql("""UPDATE `tabUser View Settings` SET `sort_by`=%s WHERE `document_type`=%s""", (doc.sort_field.strip(), doctype))
+	"""Reset Sort By and Sort Order"""
+	if doc.sort_field and from_db.sort_field and "," not in doc.sort_field and not doc.sort_field == from_db.sort_field:
+		frappe.db.sql("""
+			UPDATE `tabUser View Settings` SET `sort_by`=%s WHERE `document_type`=%s
+		""", (doc.sort_field.strip(), doctype))
 
-	# Reset Sort Order
 	if doc.sort_order and from_db.sort_order and not doc.sort_order == from_db.sort_order:
-		frappe.db.sql("""UPDATE `tabUser View Settings` SET `sort_order`=%s WHERE `document_type`=%s""", (doc.sort_order.strip(), doctype))
+		frappe.db.sql("""
+			UPDATE `tabUser View Settings` SET `sort_order`=%s WHERE `document_type`=%s
+		""", (doc.sort_order.strip(), doctype))

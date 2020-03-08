@@ -25,6 +25,8 @@ class UserSettings(Document):
 			if view.view == view_name:
 				return view
 
+		return None
+
 	def get_user_settings(self):
 		settings = {
 			"last_view": self.last_view,
