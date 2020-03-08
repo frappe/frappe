@@ -141,7 +141,7 @@ export default class Desktop {
 		let page =
 			frappe.get_route()[1] ||
 			localStorage.current_desk_page ||
-			default_page
+			default_page;
 		return page;
 	}
 
