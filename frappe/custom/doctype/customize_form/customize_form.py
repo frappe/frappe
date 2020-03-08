@@ -84,7 +84,6 @@ class CustomizeForm(Document):
 	def on_update(self):
 		frappe.db.sql("delete from tabSingles where doctype='Customize Form'")
 		frappe.db.sql("delete from `tabCustomize Form Field`")
-		reset_sort_field_and_order(self)
 
 	def fetch_to_customize(self):
 		self.clear_existing_doc()
@@ -165,6 +164,7 @@ class CustomizeForm(Document):
 		if not self.doc_type:
 			return
 
+		self.before_update = frappe.get_meta(self.doc_type)
 		self.flags.update_db = False
 		self.flags.rebuild_doctype_for_global_search = False
 
@@ -184,6 +184,8 @@ class CustomizeForm(Document):
 		if self.flags.rebuild_doctype_for_global_search:
 			frappe.enqueue('frappe.utils.global_search.rebuild_for_doctype',
 				now=True, doctype=self.doc_type)
+
+		reset_sort_field_and_order(self, self.before_update, self.doc_type)
 
 	def set_property_setters(self):
 		meta = frappe.get_meta(self.doc_type)

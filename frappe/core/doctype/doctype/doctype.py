@@ -96,7 +96,6 @@ class DocType(Document):
 		if self.default_print_format and not self.custom:
 			frappe.throw(_('Standard DocType cannot have default print format, use Customize Form'))
 
-		reset_sort_field_and_order(self)
 
 	def set_default_in_list_view(self):
 		'''Set default in-list-view for first 4 mandatory fields'''
@@ -312,6 +311,7 @@ class DocType(Document):
 			del frappe.local.meta_cache[self.name]
 
 		clear_linked_doctype_cache()
+		reset_sort_field_and_order(self, self.before_update, self.name)
 
 	def delete_duplicate_custom_fields(self):
 		if not (frappe.db.table_exists(self.name) and frappe.db.table_exists("Custom Field")):
@@ -1146,13 +1146,12 @@ def check_if_fieldname_conflicts_with_methods(doctype, fieldname):
 def clear_linked_doctype_cache():
 	frappe.cache().delete_value('linked_doctypes_without_ignore_user_permissions_enabled')
 
-def reset_sort_field_and_order(doc):
-	from_db = doc.load_from_db()
 
+def reset_sort_field_and_order(doc, from_db, doctype):
 	# Reset Sort By
-	if doc.sort_field and not "," in doc.sort_field and not doc.sort_field == from_db.sort_field:
-		frappe.db.sql("""UPDATE `tabUser View Settings` SET `sort_by`=%s WHERE `doctype`=%s""", (doc.sort_field.strip(), doc.doctype))
+	if doc.sort_field and from_db.sort_field and not "," in doc.sort_field and not doc.sort_field == from_db.sort_field:
+		frappe.db.sql("""UPDATE `tabUser View Settings` SET `sort_by`=%s WHERE `document_type`=%s""", (doc.sort_field.strip(), doctype))
 
 	# Reset Sort Order
-	if doc.sort_order and not doc.sort_field == from_db.sort_field:
-		frappe.db.sql("""UPDATE `tabUser View Settings` SET `sort_order`=%s WHERE `doctype`=%s""", (doc.sort_order.strip(), doc.doctype))
+	if doc.sort_order and from_db.sort_order and not doc.sort_order == from_db.sort_order:
+		frappe.db.sql("""UPDATE `tabUser View Settings` SET `sort_order`=%s WHERE `document_type`=%s""", (doc.sort_order.strip(), doctype))
