@@ -89,8 +89,6 @@ class DocType(Document):
 
 		if not self.is_new():
 			self.before_update = frappe.get_doc('DocType', self.name)
-
-		if not self.is_new():
 			self.setup_fields_to_fetch()
 
 		if self.default_print_format and not self.custom:
@@ -311,7 +309,9 @@ class DocType(Document):
 			del frappe.local.meta_cache[self.name]
 
 		clear_linked_doctype_cache()
-		reset_sort_field_and_order(self, self.before_update, self.name)
+
+		if not self.is_new():
+			reset_sort_field_and_order(self, self.before_update, self.name)
 
 	def delete_duplicate_custom_fields(self):
 		if not (frappe.db.table_exists(self.name) and frappe.db.table_exists("Custom Field")):
