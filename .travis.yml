@@ -33,7 +33,6 @@ matrix:
     env: DB=mariadb TYPE=ui
     before_script:
     - bench --site test_site execute frappe.utils.install.complete_setup_wizard
-    - bench --site test_site_producer execute frappe.utils.install.complete_setup_wizard
     script: bench --site test_site run-ui-tests frappe --headless
 
   - name: "Python 2.7 MariaDB"
@@ -43,13 +42,15 @@ matrix:
 
 before_install:
   # install wkhtmltopdf
-  - wget -O /tmp/wkhtmltox.tar.xz https://github.com/frappe/wkhtmltopdf/raw/master/wkhtmltox-0.12.3_linux-generic-amd64.tar.xz
-  - tar -xf /tmp/wkhtmltox.tar.xz -C /tmp
-  - sudo mv /tmp/wkhtmltox/bin/wkhtmltopdf /usr/local/bin/wkhtmltopdf
-  - sudo chmod o+x /usr/local/bin/wkhtmltopdf
+  - if [ $TYPE == "server" ];then
+    wget -O /tmp/wkhtmltox.tar.xz https://github.com/frappe/wkhtmltopdf/raw/master/wkhtmltox-0.12.3_linux-generic-amd64.tar.xz;
+    tar -xf /tmp/wkhtmltox.tar.xz -C /tmp;
+    sudo mv /tmp/wkhtmltox/bin/wkhtmltopdf /usr/local/bin/wkhtmltopdf;
+    sudo chmod o+x /usr/local/bin/wkhtmltopdf;
 
-  # install cups
-  - sudo apt-get install libcups2-dev
+    # install cups
+    sudo apt-get install libcups2-dev;
+  fi
 
 install:
   - cd ~
@@ -64,8 +65,10 @@ install:
   - mkdir ~/frappe-bench/sites/test_site
   - cp $TRAVIS_BUILD_DIR/.travis/consumer_db/$DB.json ~/frappe-bench/sites/test_site/site_config.json
 
-  - mkdir ~/frappe-bench/sites/test_site_producer
-  - cp $TRAVIS_BUILD_DIR/.travis/producer_db/$DB.json ~/frappe-bench/sites/test_site_producer/site_config.json
+  - if [ $TYPE == "server" ];then
+      mkdir ~/frappe-bench/sites/test_site_producer;
+      cp $TRAVIS_BUILD_DIR/.travis/producer_db/$DB.json ~/frappe-bench/sites/test_site_producer/site_config.json;
+    fi
 
   - if [ $DB == "mariadb" ];then
       mysql -u root -e "SET GLOBAL character_set_server = 'utf8mb4'";
@@ -107,6 +110,8 @@ install:
   - bench build --app frappe
 
 after_script:
-  - pip install coverage==4.5.4
-  - pip install python-coveralls
-  - coveralls -b apps/frappe -d ../../sites/.coverage
+  - if [ $TYPE == "server" ];then
+      pip install coverage==4.5.4;
+      pip install python-coveralls;
+      coveralls -b apps/frappe -d ../../sites/.coverage;
+    fi
