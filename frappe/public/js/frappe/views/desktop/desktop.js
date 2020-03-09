@@ -187,12 +187,12 @@ class DesktopPage {
 			this.data = res.message;
 			// this.make_onboarding()
 			if (!this.data) {
-				delete localStorage.current_desk_page
-				frappe.set_route('workspace')
-				return
+				delete localStorage.current_desk_page;
+				frappe.set_route('workspace');
+				return;
 			}
 
-			this.allow_customization = this.data.allow_customization || false
+			this.allow_customization = this.data.allow_customization || false;
 
 			!this.sections["onboarding"] &&
 				this.data.charts.items.length &&
