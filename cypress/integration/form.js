@@ -1,13 +1,13 @@
 context('Form', () => {
 	before(() => {
 		cy.login();
-		cy.visit('/desk');
+		cy.visit('/desk#workspace/Website');
 		cy.window().its('frappe').then(frappe => {
 			frappe.call("frappe.tests.ui_test_helpers.create_contact_records");
 		});
 	});
 	beforeEach(() => {
-		cy.visit('/desk');
+		cy.visit('/desk#workspace/Website');
 	});
 	it('create a new form', () => {
 		cy.visit('/desk#Form/ToDo/New ToDo 1');

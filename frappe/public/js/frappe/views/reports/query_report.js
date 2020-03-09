@@ -121,20 +121,115 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		this.datatable = null;
 		this.prepared_report_action = "New";
 
-
 		frappe.run_serially([
 			() => this.get_report_doc(),
 			() => this.get_report_settings(),
 			() => this.setup_progress_bar(),
 			() => this.setup_page_head(),
 			() => this.refresh_report(),
-			() => this.add_make_chart_button()
+			() => this.add_chart_buttons_to_toolbar(true)
 		]);
 	}
 
-	add_make_chart_button(){
-		this.page.add_inner_button(__("Set Chart"), () => {
-			this.get_possible_chart_options();
+	add_chart_buttons_to_toolbar(show) {
+		if (show) {
+			this.page.add_inner_button(__("Set Chart"), () => {
+				this.open_create_chart_dialog();
+			});
+
+			if (this.chart_fields || this.chart_options) {
+				this.page.add_inner_button(__("Add Chart to Dashboard"), () => {
+					this.add_chart_to_dashboard();
+				});
+			}
+		} else {
+			this.page.clear_inner_toolbar();
+		}
+	}
+
+	add_chart_to_dashboard() {
+		if (this.chart_fields || this.chart_options) {
+			const dialog = new frappe.ui.Dialog({
+				title: __('Create Chart'),
+				fields: [
+					{
+						fieldname: 'dashboard',
+						label: 'Choose Dashboard',
+						fieldtype: 'Link',
+						options: 'Dashboard',
+					},
+					{
+						fieldname: 'dashboard_chart_name',
+						label: 'Chart Name',
+						fieldtype: 'Data',
+					}
+				],
+				primary_action_label: __('Add'),
+				primary_action: (values) => {
+					this.create_dashboard_chart(
+						this.chart_fields || this.chart_options,
+						values.dashboard,
+						values.dashboard_chart_name
+					);
+					dialog.hide();
+				}
+			});
+
+			dialog.show();
+		} else {
+			frappe.msgprint(__('Please Set Chart'));
+		}
+	}
+
+	create_dashboard_chart(chart_args, dashboard_name, chart_name) {
+
+		let args = {
+			'dashboard': dashboard_name || null,
+			'chart_type': 'Report',
+			'report_name': this.report_name,
+			'type': chart_args.chart_type || frappe.model.unscrub(chart_args.type),
+			'color': chart_args.color,
+			'filters_json': JSON.stringify(this.get_filter_values()),
+		};
+
+		if (this.chart_fields) {
+			let x_field_title = toTitle(chart_args.x_field);
+			let y_field_title = toTitle(chart_args.y_fields[0]);
+			chart_name = chart_name || (`${this.report_name}: ${x_field_title} vs ${y_field_title}`);
+	
+			Object.assign(args, 
+				{
+					'chart_name': chart_name,
+					'x_field': chart_args.x_field,
+					'y_axis': chart_args.y_axis_fields.map(f => {
+						return {'y_field': f.y_field, 'color': f.color};
+					}),
+					'is_custom': 0
+				}
+			);
+		} else {
+			chart_name = chart_name || this.report_name;
+			Object.assign(args, 
+				{
+					'chart_name': chart_name,
+					'is_custom': 1
+				}
+			);
+		}
+
+		frappe.xcall(
+			'frappe.desk.doctype.dashboard_chart.dashboard_chart.create_report_chart', 
+			{args: args}
+		).then( () => {
+			let message;
+			if (dashboard_name) {
+				let dashboard_route_html = `<a href = "#dashboard/${dashboard_name}">${dashboard_name}</a>`;
+				message = __(`New Dashboard Chart ${chart_name} added to Dashboard ` + dashboard_route_html);
+			} else {
+				message = __(`New chart ${chart_name} created`);
+			}
+
+			frappe.msgprint(message, __('New Chart Created'));
 		});
 	}
 
@@ -347,22 +442,30 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			this.toggle_message(false);
 			if (data.result && data.result.length) {
 				this.prepare_report_data(data);
-				const chart_options = this.get_chart_options(data);
+				this.chart_options = this.get_chart_options(data);
+
 				this.$chart.empty();
-				if(chart_options) {
-					this.render_chart(chart_options);
+				if (this.chart_options) {
+					this.render_chart(this.chart_options);
 				}
 				else {
 					this.$chart.empty();
 					if (this.chart_fields) {
-						const chart_options = this.make_chart_options(this.chart_fields);
-						chart_options && this.render_chart(chart_options);
+						this.chart_options = 
+							frappe.report_utils.make_chart_options(
+								this.columns,
+								this.raw_data,
+								this.chart_fields
+							);
+						this.chart_options && this.render_chart(this.chart_options);
 					}
 				}
 				this.render_datatable();
+				this.add_chart_buttons_to_toolbar(true);
 			} else {
 				this.data = [];
 				this.toggle_nothing_to_show(true);
+				this.add_chart_buttons_to_toolbar(false);
 			}
 
 			this.show_footer_message();
@@ -556,102 +659,61 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		this.chart = new frappe.Chart(this.$chart[0], options);
 	}
 
-	make_chart_options({ y_field, x_field, chart_type, color }) {
-		const type = chart_type.toLowerCase();
-		const colors = color ? [color] : undefined;
+	open_create_chart_dialog() {
+		const me = this;
+		let field_options = frappe.report_utils.get_possible_chart_options(this.columns, this.raw_data);
 
-		let columns = this.columns;
-		let rows =  this.raw_data.result.filter(value => Object.keys(value).length);
+		function set_chart_values(values) {
+			values.y_fields = [];
+			values.colors = [];
+			if (values.y_axis_fields) {
+				values.y_axis_fields.map(f => {
+					values.y_fields.push(f.y_field);
+					values.colors.push(f.color);
+				});
+			}
 
-		let labels = get_column_values(x_field);
+			values.y_fields = 
+				values.y_fields
+					.map(d => d.trim())
+					.filter(Boolean);
 
-		let dataset_values = get_column_values(y_field).map(d => Number(d));
-
-		if(this.raw_data.add_total_row) {
-			labels = labels.slice(0, -1);
-			dataset_values = dataset_values.slice(0, -1);
+			return values;
 		}
-
-		return {
-			data: {
-				labels: labels,
-				datasets: [
-					{ values: dataset_values }
-				]
-			},
-			truncateLegends: 1,
-			type: type,
-			colors: colors,
-			axisOptions: {
-				shortenYAxisNumbers: 1
-			}
-		};
-
-		function get_column_values(column_name) {
-			if (Array.isArray(rows[0])) {
-				let column_index = columns.findIndex(column => column.fieldname == column_name);
-				return rows.map(row => row[column_index]);
-			} else {
-				return rows.map(row => row[column_name]);
-			}
-		}
-	}
-
-	get_possible_chart_options() {
-		const columns = this.columns;
-		const rows =  this.raw_data.result.filter(value => Object.keys(value).length);
-		const first_row = Array.isArray(rows[0]) ? rows[0] : columns.map(col => rows[0][col.fieldname]);
-		const me = this
-
-		const indices = first_row.reduce((accumulator, current_value, current_index) => {
-			if (Number.isFinite(current_value)) {
-				accumulator.push(current_index);
-			}
-			return accumulator;
-		}, []);
 
 		function preview_chart() {
 			const wrapper = $(dialog.fields_dict["chart_preview"].wrapper);
-			const values = dialog.get_values(true);
-			if (values.x_field && values.y_field) {
-				let options = me.make_chart_options(values);
+			let values = dialog.get_values(true);
+			values = set_chart_values(values);
+
+			if (values.x_field && values.y_fields.length) {
+				let options = frappe.report_utils.make_chart_options(me.columns, me.raw_data, values);
+				me.chart_fields = values;
 				wrapper.empty();
 				new frappe.Chart(wrapper[0], options);
 				wrapper.find('.chart-container .title, .chart-container .sub-title').hide();
 				wrapper.show();
+
+				dialog.fields_dict['create_dashoard_chart'].df.hidden = 0;
+				dialog.refresh();
 			}
 			else {
-				wrapper[0].innerHTML = `<div class="flex justify-center align-center text-muted" style="height: 120px; display: flex;">
+				wrapper[0].innerHTML = 
+				`<div class="flex justify-center align-center text-muted" style="height: 120px; display: flex;">
 					<div>Please select X and Y fields</div>
 				</div>`;
 			}
 		}
 
-		function get_options(fields) {
-			return fields.map((field) => {
-				return {label: field.label, value: field.fieldname};
-			});
-		}
-
-		const numeric_fields = columns.filter((col, i) => indices.includes(i));
-		const non_numeric_fields = columns.filter((col, i) => !indices.includes(i))
-
 		const dialog = new frappe.ui.Dialog({
 			title: __('Create Chart'),
 			fields: [
 				{
-					fieldname: 'y_field',
-					label: 'Y Field',
-					fieldtype: 'Select',
-					options: get_options(numeric_fields),
-					onchange: preview_chart
-				},
-				{
 					fieldname: 'x_field',
 					label: 'X Field',
 					fieldtype: 'Select',
-					options: get_options(non_numeric_fields),
-					onchange: preview_chart
+					default: me.chart_fields? me.chart_fields.x_field: null, 
+					options: field_options.non_numeric_fields,
 				},
 				{
 					fieldname: 'cb_1',
@@ -662,18 +724,41 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 					label: 'Type of Chart',
 					fieldtype: 'Select',
 					options: ['Bar', 'Line', 'Percentage', 'Pie', 'Donut'],
-					default: 'Bar',
-					onchange: preview_chart
-				},
-				{
-					fieldname: 'color',
-					label: 'Color',
-					fieldtype: 'Color',
-					depends_on: doc => ['Bar', 'Line'].includes(doc.chart_type),
-					onchange: preview_chart,
+					default: me.chart_fields? me.chart_fields.chart_type: 'Bar',
 				},
 				{
 					fieldname: 'sb_1',
+					fieldtype: 'Section Break',
+					label: 'Y axis'
+				},
+				{
+					fieldname: 'y_axis_fields', fieldtype: 'Table',
+					fields: [
+						{
+							fieldtype: 'Select',
+							fieldname: 'y_field',
+							name: 'y_field',
+							label: __('Y Field'),
+							options: field_options.numeric_fields,
+							in_list_view: 1,
+						},
+						{
+							fieldtype: 'Color',
+							fieldname: 'color',
+							name: 'color',
+							label: __('Color'),
+							in_list_view: 1,
+						},
+					],
+				},
+				{
+					fieldname: 'preview_chart_button',
+					fieldtype: 'Button',
+					label: 'Preview Chart',
+					click: preview_chart
+				},
+				{
+					fieldname: 'sb_2',
 					fieldtype: 'Section Break',
 					label: 'Chart Preview'
 				},
@@ -681,19 +766,43 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 					fieldname: 'chart_preview',
 					label: 'Chart Preview',
 					fieldtype: 'HTML',
+				},
+				{
+					fieldname: 'create_dashoard_chart',
+					label: 'Add Chart to Dashboard',
+					fieldtype: 'Button',
+					hidden: 1,
+					click: () => {
+						dialog.hide();
+						this.add_chart_to_dashboard();
+					}
 				}
 			],
 			primary_action_label: __('Create'),
 			primary_action: (values) => {
-				let options = me.make_chart_options(values);
+				values = set_chart_values(values);
+
+				let options = 
+					frappe.report_utils.make_chart_options(
+						this.columns,
+						this.raw_data,
+						values
+					);
 				me.chart_fields = values
 
-				let x_field_label = numeric_fields.filter((field) => field.fieldname == values.y_field)[0].label;
-				let y_field_label = non_numeric_fields.filter((field) => field.fieldname == values.x_field)[0].label;
+				let x_field_label =
+					field_options.numeric_fields.filter(field => 
+						field.value == values.y_fields[0]
+					)[0].label;
+				let y_field_label =
+					field_options.non_numeric_fields.filter(field => 
+						field.value == values.x_field
+					)[0].label;
 
 				options.title = __(`${this.report_name}: ${x_field_label} vs ${y_field_label}`);
 
 				this.render_chart(options);
+				this.add_chart_buttons_to_toolbar(true);
 
 				dialog.hide();
 			}
@@ -714,30 +823,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 	prepare_columns(columns) {
 		return columns.map(column => {
-			if (typeof column === 'string') {
-				if (column.includes(':')) {
-					let [label, fieldtype, width] = column.split(':');
-					let options;
-
-					if (fieldtype.includes('/')) {
-						[fieldtype, options] = fieldtype.split('/');
-					}
-
-					column = {
-						label,
-						fieldname: label,
-						fieldtype,
-						width,
-						options
-					};
-				} else {
-					column = {
-						label: column,
-						fieldname: column,
-						fieldtype: 'Data'
-					};
-				}
-			}
+			column = frappe.report_utils.prepare_field_from_column(column);
 
 			const format_cell = (value, row, column, data) => {
 				if (column.isHeader && !data && this.data) {
