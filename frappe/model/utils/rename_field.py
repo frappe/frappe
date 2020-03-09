@@ -138,8 +138,18 @@ def update_user_settings(doctype, old_fieldname, new_fieldname):
 	# store the user settings data from the redis to db
 	sync_user_settings()
 
-	user_settings = frappe.db.sql(''' select user, doctype, data from `__UserSettings`
-		where doctype=%s and data like "%%%s%%"''', (doctype, old_fieldname), as_dict=1)
+	user_settings = frappe.get_all("User View Settings", filters={
+		"document_type": doctype,
+		"filters": ("like", old_fieldname),
+	}, or_filters={
+		"fields": ("like", old_fieldname),
+	}, fields=["parent"])
 
 	for user_setting in user_settings:
-		update_user_settings_data(user_setting, "docfield", old_fieldname, new_fieldname)
+		settings = frappe.get_doc("User Settings", user_setting.parent)
+		user_setting_dict = {
+			"user": settings.user,
+			"doctype": settings.document_type,
+			"data": settings.get_user_settings()
+		}
+		update_user_settings_data(user_setting_dict, "docfield", old_fieldname, new_fieldname)

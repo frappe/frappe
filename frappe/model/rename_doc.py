@@ -118,16 +118,23 @@ def update_user_settings(old, new, link_fields):
 
 	# find the user settings for the linked doctypes
 	linked_doctypes = set([d.parent for d in link_fields if not d.issingle])
-	user_settings_details = frappe.db.sql('''SELECT `user`, `doctype`, `data`
-			FROM `__UserSettings`
-			WHERE `data` like %s
-			AND `doctype` IN ('{doctypes}')'''.format(doctypes="', '".join(linked_doctypes)), (old), as_dict=1)
+	user_settings_details = frappe.get_all("User View Settings", filters={
+		"document_type": ("in", linked_doctypes),
+		"filters": ("like", old)
+	}, or_filters={
+		"fields": ("like", old)
+	}, fields=["parent"])
 
 	# create the dict using the doctype name as key and values as list of the user settings
 	from collections import defaultdict
 	user_settings_dict = defaultdict(list)
 	for user_setting in user_settings_details:
-		user_settings_dict[user_setting.doctype].append(user_setting)
+		user_settings = frappe.get_doc("User Settings", user_setting.parent)
+		user_settings_dict[user_setting.document_type].append({
+			"user": user_settings.user,
+			"doctype": user_settings.document_type,
+			"data": user_settings.get_user_settings()
+		})
 
 	# update the name in linked doctype whose user settings exists
 	for fields in link_fields:

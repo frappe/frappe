@@ -16,22 +16,26 @@
   {
    "fieldname": "user",
    "fieldtype": "Data",
-   "label": "User"
+   "label": "User",
+   "read_only": 1
   },
   {
    "fieldname": "document_type",
    "fieldtype": "Data",
-   "label": "Document Type"
+   "label": "Document Type",
+   "read_only": 1
   },
   {
    "fieldname": "last_view",
    "fieldtype": "Data",
-   "label": "Last View"
+   "label": "Last View",
+   "read_only": 1
   },
   {
    "fieldname": "updated_on",
    "fieldtype": "Data",
-   "label": "Updated On"
+   "label": "Updated On",
+   "read_only": 1
   },
   {
    "fieldname": "views",
@@ -40,8 +44,9 @@
    "options": "User View Settings"
   }
  ],
+ "in_create": 1,
  "links": [],
- "modified": "2020-03-06 23:22:13.543229",
+ "modified": "2020-03-09 12:23:51.944902",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "User Settings",
@@ -58,8 +63,21 @@
    "role": "System Manager",
    "share": 1,
    "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "All",
+   "share": 1,
+   "write": 1
   }
  ],
+ "read_only": 1,
  "sort_field": "modified",
  "sort_order": "DESC"
 }
