@@ -30,17 +30,20 @@ def execute():
 
 		frappe.db.sql("RENAME TABLE __ListSettings to __UserSettings")
 	else:
-		if not frappe.db.table_exists("__UserSettings"):
-			frappe.db.create_user_settings_table()
+		try:
+			if not frappe.db.table_exists("__UserSettings"):
+				frappe.db.create_user_settings_table()
 
-		for user in frappe.db.get_all('User', {'user_type': 'System User'}):
-			defaults = frappe.defaults.get_defaults_for(user.name)
-			for key, value in iteritems(defaults):
-				if key.startswith('_list_settings:'):
-					doctype = key.replace('_list_settings:', '')
-					columns = ['`tab{1}`.`{0}`'.format(*c) for c in json.loads(value)]
-					for col in columns:
-						if "name as" in col:
-							columns.remove(col)
+			for user in frappe.db.get_all('User', {'user_type': 'System User'}):
+				defaults = frappe.defaults.get_defaults_for(user.name)
+				for key, value in iteritems(defaults):
+					if key.startswith('_list_settings:'):
+						doctype = key.replace('_list_settings:', '')
+						columns = ['`tab{1}`.`{0}`'.format(*c) for c in json.loads(value)]
+						for col in columns:
+							if "name as" in col:
+								columns.remove(col)
 
-					update_user_settings(doctype, {'fields': columns})
+						update_user_settings(doctype, {'fields': columns})
+		except Exception:
+			pass

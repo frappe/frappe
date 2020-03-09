@@ -40,7 +40,6 @@ def install_db(root_login="root", root_password=None, db_name=None, source_sql=N
 
 	frappe.db.create_auth_table()
 	frappe.db.create_global_search_table()
-	frappe.db.create_user_settings_table()
 
 	frappe.flags.in_install_db = False
 

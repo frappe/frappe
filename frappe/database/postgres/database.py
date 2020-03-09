@@ -194,9 +194,6 @@ class PostgresDatabase(Database):
 				published int not null default 0,
 				unique (doctype, name))'''.format(self.VARCHAR_LEN))
 
-	def create_user_settings_table(self):
-		frappe.reload_doctype("User View Settings")
-		frappe.reload_doctype("User Settings")
 	def create_help_table(self):
 		self.sql('''CREATE TABLE "help"(
 				"path" varchar(255),

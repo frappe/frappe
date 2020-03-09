@@ -205,10 +205,6 @@ class MariaDBDatabase(Database):
 				ENGINE=MyISAM
 				CHARACTER SET=utf8mb4'''.format(self.VARCHAR_LEN))
 
-	def create_user_settings_table(self):
-		frappe.reload_doctype("User View Settings")
-		frappe.reload_doctype("User Settings")
-
 	def create_help_table(self):
 		self.sql('''create table help(
 				path varchar(255),
