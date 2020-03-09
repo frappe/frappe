@@ -1,4 +1,4 @@
-context('Form', () => {
+context('Query Report', () => {
 	before(() => {
 		cy.login();
 		cy.visit('/desk#workspace/Website');
