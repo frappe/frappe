@@ -18,6 +18,8 @@ def get_context(context):
 
 	try:
 		doc = frappe.get_doc("Integration Request", frappe.form_dict['token'])
+		if doc.status != 'Queued':
+			raise Exception
 		payment_details = json.loads(doc.data)
 
 		for key in expected_keys:
