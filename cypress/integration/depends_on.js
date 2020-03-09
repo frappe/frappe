@@ -1,7 +1,7 @@
 context('Depends On', () => {
 	beforeEach(() => {
 		cy.login();
-		cy.visit('/desk#workspace/Website');
+		cy.visit('/desk');
 	});
 	before(() => {
 		cy.login();
