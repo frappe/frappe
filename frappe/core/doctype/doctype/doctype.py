@@ -310,7 +310,7 @@ class DocType(Document):
 
 		clear_linked_doctype_cache()
 
-		if not self.is_new() and not (frappe.flags.in_migrate or frappe.flags.in_install):
+		if not self.is_new() and hasattr(self, "before_update") and not (frappe.flags.in_migrate or frappe.flags.in_install):
 			reset_sort_field_and_order(self, self.before_update, self.name)
 
 	def delete_duplicate_custom_fields(self):
