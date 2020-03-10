@@ -19,6 +19,7 @@ class TranslationTool {
 		this.setup_search_box();
 		this.setup_language_filter();
 		this.page.set_primary_action(__('Contribute Translations'), this.create_translations.bind(this));
+		this.page.set_secondary_action(__('Refresh'), this.fetch_messages_then_render.bind(this));
 		this.update_header();
 	}
 
@@ -41,7 +42,7 @@ class TranslationTool {
 			}
 		});
 
-		language_selector.set_value("hi"); // frappe.boot.lang
+		language_selector.set_value(frappe.boot.lang);
 	}
 
 	setup_search_box() {
@@ -83,10 +84,10 @@ class TranslationTool {
 				data-message-id="${encodeURIComponent(message.id)}"
 				data-action="on_translation_click">
 				<div class="bold ellipsis">
-					<span class="indicator ${this.get_indicator_color(message)}"></span>
-					<span>${message.source_text}</span>
+					<span class="indicator ${this.get_indicator_color(message)}">
+						<span>${frappe.utils.escape_html(message.source_text)}</span>
+					</span>
 				</div>
-				<div class="text-muted">${message.path || message.doctype}</div>
 			</div>
 		`;
 
@@ -110,6 +111,11 @@ class TranslationTool {
 						fieldtype: "HTML",
 						fieldname: "status",
 						read_only: 1
+					},
+					{
+						fieldtype: "Data",
+						fieldname: "id",
+						hidden: 1
 					},
 					{
 						label: "Source Text",
@@ -151,7 +157,7 @@ class TranslationTool {
 						fieldname: "add_translation_btn",
 						click: (values) => {
 							values = this.form.get_values();
-							this.edited_translations[translation.id] = values;
+							this.edited_translations[values.id] = values;
 							this.update_header();
 						}
 					}
@@ -166,47 +172,50 @@ class TranslationTool {
 		this.form.set_values(translation);
 		this.form.set_df_property("doctype", "hidden", !translation.doctype);
 		this.form.set_df_property("context", "hidden", !translation.context);
-		this.form.set_df_property("translated_text", "read_only", Boolean(translation.translated_text));
 		this.form.set_df_property("path", "hidden", !translation.path);
 		if (translation.path) {
 			let path = this.form.get_field("path");
 			setTimeout(() => {
-				path.$wrapper.find('pre').wrap(`<a href="${this.get_code_url(translation.path, translation.line)}"></a>`);
+				path.$wrapper.find('pre').wrap(`<a href="${this.get_code_url(translation.path, translation.line_no)}"></a>`);
 			}, 200);
 		}
 
 		let source_text = this.form.get_field("source_text");
 
-		this.form.get_field('status').$wrapper.html(`<div>
-			<span class="indicator ${this.get_indicator_color(translation)} text-muted">
-				${this.get_indicator_status_text(translation)}
-			</span>
-		</div>`);
+		this.form.get_field('status').$wrapper.html(`
+			<div>
+				<span class="indicator ${this.get_indicator_color(translation)} text-muted">
+					${this.get_indicator_status_text(translation)}
+				</span>
+			</div>
+		`);
 
-		this.setup_contributions(translation.contributions);
+		this.setup_contributions(translation.id);
 
 		source_text.$wrapper.append('');
 	}
 
-	setup_contributions(contributions) {
-		let contributions_dom = ``;
-		if (contributions.length) {
-			contributions_dom += `
-				<h4>Other Contributions</h4>
-			`;
+	setup_contributions(source_id) {
+		frappe.xcall('frappe.translate.get_contributions', {
+			'source': source_id,
+			'language': this.page.fields_dict['language'].get_value()
+		}).then(contributions => {
+			let contributions_dom = ``;
+			if (contributions && contributions.length) {
+				contributions_dom += `
+					<h4>Other Contributions</h4>
+				`;
 
-			contributions.forEach(contribution => {
-				contributions_dom += `<div>
-					<span class="pull-right text-muted">${frappe.datetime.comment_when(contribution.creation)}</span>
-					<div class="text-muted">By ${contribution.contributor_name} </div>
-					<span> ${contribution.translated_string} </span>
-				</div>`;
-			});
-
-		}
-
-		this.wrapper.find(".other-contributions").html(contributions_dom);
-
+				contributions.forEach(contribution => {
+					contributions_dom += `<div>
+						<span class="pull-right text-muted">${frappe.datetime.comment_when(contribution.creation)}</span>
+						<div class="text-muted">By ${contribution.contributor_name} </div>
+						<span> ${contribution.translated} </span>
+					</div>`;
+				});
+			}
+			this.wrapper.find(".other-contributions").html(contributions_dom);
+		});
 	}
 
 	create_translations() {
@@ -234,11 +243,11 @@ class TranslationTool {
 	}
 
 	get_indicator_color(message_obj) {
-		return message_obj.translated_text === '' ? 'red' : message_obj.user_translated ? 'orange' : 'blue';
+		return !message_obj.translated ? 'red' : message_obj.translated_by_google ? 'orange' : 'blue';
 	}
 
 	get_indicator_status_text(message_obj) {
-		return message_obj.translated_text === '' ? __('Untranslated') : message_obj.user_translated ? __('Contributed') : __('Translated');
+		return !message_obj.translated ? __('Untranslated') : message_obj.translated_by_google ? __('Google Translation') : __('Community Contribution');
 	}
 
 	get_code_url(path, line_no) {
