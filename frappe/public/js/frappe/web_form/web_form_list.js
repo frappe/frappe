@@ -67,7 +67,7 @@ export default class WebFormList {
 	}
 
 	add_filter(field, value, fieldtype) {
-		if (!value && field in this.filters) {
+		if (!value) {
 			delete this.filters[field]
 		}
 		else {
