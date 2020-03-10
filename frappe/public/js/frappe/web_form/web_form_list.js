@@ -190,11 +190,17 @@ export default class WebFormList {
 	make_actions() {
 		const actions = document.querySelector(".list-view-actions");
 
+<<<<<<< HEAD
 		frappe.has_permission(this.doctype, "", "delete", () => {
 			this.addButton(actions, "delete-rows", "danger", true, "Delete", () =>
 				this.delete_rows()
 			);
 		});
+=======
+		this.addButton(actions, "delete-rows", "danger", true, "Delete", () =>
+			this.delete_rows()
+		);
+>>>>>>> 303ba2daa3 (fix: create option to load more entries)
 
 		this.addButton(
 			actions,
