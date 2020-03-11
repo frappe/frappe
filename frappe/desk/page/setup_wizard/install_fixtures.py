@@ -13,8 +13,15 @@ def install():
 	setup_email_linking()
 
 @frappe.whitelist()
-def update_genders_and_salutations():
-	default_genders = [_("Male"), _("Female"), _("Other")]
+def update_genders():
+    	default_genders = [_("Male"), _("Female"), _("Other"), _("Trans Man"), _("Trans Woman"), _("Transgender"), _("Genderqueer"),
+	_("Gender Non-Conforming"), _("Questioning"), _("Prefer not to say")]
+	records = [{'doctype': 'Gender', 'gender': d} for d in default_genders]
+	for record in records:
+		frappe.get_doc(record).insert(ignore_permissions=True, ignore_if_duplicate=True)
+
+@frappe.whitelist()
+def update_salutations():
 	default_salutations = [_("Mr"), _("Ms"), _('Mx'), _("Dr"), _("Mrs"), _("Madam"), _("Miss"), _("Master"), _("Prof")]
 	records = [{'doctype': 'Gender', 'gender': d} for d in default_genders]
 	records += [{'doctype': 'Salutation', 'salutation': d} for d in default_salutations]
