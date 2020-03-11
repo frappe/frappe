@@ -19,9 +19,7 @@ def update_genders():
 	_("Non-Conforming"), _("Prefer not to say")]
 	records = [{'doctype': 'Gender', 'gender': d} for d in default_genders]
 	for record in records:
-		doc = frappe.new_doc(record.get("doctype"))
-		doc.update(record)
-		doc.insert(ignore_permissions=True, ignore_if_duplicate=True)
+		frappe.get_doc(record).insert(ignore_permissions=True, ignore_if_duplicate=True)
 
 @frappe.whitelist()
 def update_salutations():
