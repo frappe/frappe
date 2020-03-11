@@ -109,7 +109,7 @@ class TranslationTool {
 				fields: [
 					{
 						fieldtype: "HTML",
-						fieldname: "status",
+						fieldname: "header",
 						read_only: 1
 					},
 					{
@@ -125,15 +125,13 @@ class TranslationTool {
 						enable_copy_button: 1
 					},
 					{
+						fieldtype: "HTML",
+						fieldname: "positions",
+					},
+					{
 						label: "Context",
 						fieldtype: "Code",
 						fieldname: "context",
-						read_only: 1
-					},
-					{
-						label: "Path",
-						fieldtype: "Code",
-						fieldname: "path",
 						read_only: 1
 					},
 					{
@@ -165,57 +163,99 @@ class TranslationTool {
 				body: this.wrapper.find(".translation-edit-form")
 			});
 			this.form.make();
+			this.setup_header();
 			let add_translation_btn = this.form.get_field("add_translation_btn");
-			// add_translation_btn.$input.addClass("btn-primary btn-sm").removeClass("btn-xs");
 			add_translation_btn.$wrapper.removeClass("input-max-width").addClass("text-right");
 		}
 		this.form.set_values(translation);
 		this.form.set_df_property("doctype", "hidden", !translation.doctype);
 		this.form.set_df_property("context", "hidden", !translation.context);
-		this.form.set_df_property("path", "hidden", !translation.path);
-		if (translation.path) {
-			let path = this.form.get_field("path");
-			setTimeout(() => {
-				path.$wrapper.find('pre').wrap(`<a href="${this.get_code_url(translation.path, translation.line_no)}"></a>`);
-			}, 200);
-		}
-
-		let source_text = this.form.get_field("source_text");
-
-		this.form.get_field('status').$wrapper.html(`
-			<div>
-				<span class="indicator ${this.get_indicator_color(translation)} text-muted">
-					${this.get_indicator_status_text(translation)}
-				</span>
-			</div>
-		`);
-
-		this.setup_contributions(translation.id);
-
-		source_text.$wrapper.append('');
+		this.set_status(translation);
+		this.setup_additional_info(translation.id);
 	}
 
-	setup_contributions(source_id) {
-		frappe.xcall('frappe.translate.get_contributions', {
+	setup_additional_info(source_id) {
+		frappe.xcall('frappe.translate.get_source_additional_info', {
 			'source': source_id,
 			'language': this.page.fields_dict['language'].get_value()
-		}).then(contributions => {
-			let contributions_dom = ``;
-			if (contributions && contributions.length) {
-				contributions_dom += `
-					<h4>Other Contributions</h4>
-				`;
-
-				contributions.forEach(contribution => {
-					contributions_dom += `<div>
-						<span class="pull-right text-muted">${frappe.datetime.comment_when(contribution.creation)}</span>
-						<div class="text-muted">By ${contribution.contributor_name} </div>
-						<span> ${contribution.translated} </span>
-					</div>`;
-				});
-			}
-			this.wrapper.find(".other-contributions").html(contributions_dom);
+		}).then(data => {
+			this.setup_positions(data.positions);
+			// this.setup_contributions(data.contributions);
 		});
+	}
+
+	setup_header() {
+		this.form.get_field('header').$wrapper.html(`<div>
+			<span class="translation-status"></span>
+			<span class="pull-right">
+				<a class="text-muted no-decoration">
+					<i class="fa fa-chevron-left prev-item"></i>
+				</a>
+				<a class="text-muted no-decoration">
+					<i class="fa fa-chevron-right next-item"></i>
+				</a>
+			</span>
+		</div>`);
+		this.setup_navigation_control();
+	}
+
+	set_status(translation) {
+		this.form.get_field('header').$wrapper.find('.translation-status').html(`
+			<span class="indicator ${this.get_indicator_color(translation)} text-muted">
+				${this.get_indicator_status_text(translation)}
+			</span>
+		`);
+	}
+
+	setup_navigation_control() {
+		const prev_item_btn = this.form.get_field('header').$wrapper.find('.prev-item');
+		const next_item_btn = this.form.get_field('header').$wrapper.find('.next-item');
+		prev_item_btn.click(() => {
+			this.wrapper.find(".translation-item.active").prev().trigger('click');
+		});
+		next_item_btn.click(() => {
+			this.wrapper.find(".translation-item.active").next().trigger('click');
+		});
+	}
+
+	setup_positions(positions) {
+		let position_dom = ``;
+		if (positions && positions.length) {
+			position_dom += `
+				<div class="control-label">Positions</div>
+			`;
+
+			positions.forEach(position => {
+				if (position.path.startsWith('DocType: ')) {
+					position_dom += `<div>
+						<span class="text-muted">${position.path}</span>
+					</div>`;
+				} else {
+					position_dom += `<div>
+						<a class="text-muted" target="_blank" href="${this.get_code_url(position.path, position.line_no, position.app)}">${position.path}</a>
+					</div>`;
+				}
+			});
+		}
+		this.form.get_field('positions').$wrapper.html(position_dom);
+	}
+
+	setup_contributions(contributions) {
+		let contributions_dom = ``;
+		if (contributions && contributions.length) {
+			contributions_dom += `
+				<h4>Other Contributions</h4>
+			`;
+
+			contributions.forEach(contribution => {
+				contributions_dom += `<div>
+					<span class="pull-right text-muted">${frappe.datetime.comment_when(contribution.creation)}</span>
+					<div class="text-muted">By ${contribution.contributor_name} </div>
+					<span> ${contribution.translated} </span>
+				</div>`;
+			});
+		}
+		this.wrapper.find(".other-contributions").html(contributions_dom);
 	}
 
 	create_translations() {
@@ -250,10 +290,9 @@ class TranslationTool {
 		return !message_obj.translated ? __('Untranslated') : message_obj.translated_by_google ? __('Google Translation') : __('Community Contribution');
 	}
 
-	get_code_url(path, line_no) {
-		const app = path.split('/')[1];
+	get_code_url(path, line_no, app) {
 		const code_path = path.substring(`apps/${app}`.length);
-		return `https://github.com/frappe/${app}/blob/develop/${code_path}#L${line_no}`
+		return `https://github.com/frappe/${app}/blob/develop/${code_path}#L${line_no}`;
 	}
 
 }

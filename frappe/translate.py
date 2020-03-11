@@ -274,7 +274,7 @@ def clear_cache():
 	cache.delete_key("translation_assets", shared=True)
 	cache.delete_key("lang_user_translations")
 
-def get_messages_for_app(app):
+def get_messages_for_app(app, deduplicate=True):
 	"""Returns all messages (list) for a specified `app`"""
 	messages = []
 	modules = ", ".join(['"{}"'.format(m.title().replace("_", " ")) \
@@ -314,7 +314,9 @@ def get_messages_for_app(app):
 
 	# server_messages
 	messages.extend(get_server_messages(app))
-	return deduplicate_messages(messages)
+	if deduplicate:
+		messages = deduplicate_messages(messages)
+	return messages
 
 def get_messages_from_doctype(name):
 	"""Extract all translatable messages for a doctype. Includes labels, Python code,
@@ -770,7 +772,7 @@ def get_messages(language, start=0, page_length=100, search_text=''):
 	return translator.post_api('translator.api.get_strings_for_translation', params=locals())
 
 @frappe.whitelist()
-def get_contributions(source, language=''):
+def get_source_additional_info(source, language=''):
 	from frappe.frappeclient import FrappeClient
 	translator = FrappeClient(frappe.conf.translator_url)
-	return translator.post_api('translator.api.get_contributions', params=locals())
+	return translator.post_api('translator.api.get_source_additional_info', params=locals())
