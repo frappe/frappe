@@ -345,6 +345,9 @@ class Importer:
 		return columns_with_serial_no, data_with_serial_no
 
 	def parse_value(self, value, df):
+		if isinstance(value, datetime) and df.fieldtype in ["Date", "Datetime"]:
+			return value
+
 		value = cstr(value)
 
 		# convert boolean values to 0 or 1
