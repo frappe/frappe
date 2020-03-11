@@ -515,16 +515,14 @@ def whitelist(allow_guest=False, xss_safe=False):
 	return innerfn
 
 def timing(f):
-
-    @wraps(f)
-    def wrap(*args, **kw):
-        ts = time()
-        result = f(*args, **kw)
-        te = time()
-        print('TIMING: {0} > {1} took: {2:2.4f} sec'.format(f.__module__, f.__name__, te-ts))
-        return result
-
-    return wrap
+	@wraps(f)
+	def wrap(*args, **kw):
+		ts = time()
+		result = f(*args, **kw)
+		te = time()
+		print('TIMING: {0} > {1} took: {2:2.4f} sec'.format(f.__module__, f.__name__, te-ts))
+		return result
+	return wrap
 
 def read_only():
 	def innfn(fn):
