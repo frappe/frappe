@@ -25,9 +25,10 @@ class TranslationTool {
 
 	setup_language_filter() {
 		let languages = Object.keys(frappe.boot.lang_dict).map(language_label => {
+			let value = frappe.boot.lang_dict[language_label];
 			return {
-				label: language_label,
-				value: frappe.boot.lang_dict[language_label]
+				label: `${language_label} (${value})`,
+				value: value
 			};
 		});
 
@@ -37,12 +38,25 @@ class TranslationTool {
 			options: languages,
 			change: () => {
 				let language = language_selector.get_value();
+				localStorage.setItem('translation_language', language);
 				this.language = language;
 				this.fetch_messages_then_render();
 			}
 		});
-
-		language_selector.set_value(frappe.boot.lang);
+		let translation_language = localStorage.getItem('translation_language');
+		if (translation_language || frappe.boot.lang !== 'en') {
+			language_selector.set_value(translation_language || frappe.boot.lang);
+		} else {
+			frappe.prompt({
+				label: __('Please select target language for translation'),
+				fieldname: 'language',
+				fieldtype: 'Select',
+				options: languages,
+				reqd: 1
+			}, (values) => {
+				language_selector.set_value(values.language);
+			}, __('Select Language'));
+		}
 	}
 
 	setup_search_box() {
@@ -67,13 +81,14 @@ class TranslationTool {
 	fetch_messages() {
 		frappe.dom.freeze(__('Fetching...'));
 		return frappe
-			.call("frappe.translate.get_messages", {
+			.xcall("frappe.translate.get_messages", {
 				language: this.language,
 				search_text: this.search_text
 			})
-			.then(r => {
+			.then(messages => {
+				return messages;
+			}).finally(() => {
 				frappe.dom.unfreeze();
-				return r.message;
 			});
 	}
 
