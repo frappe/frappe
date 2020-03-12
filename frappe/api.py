@@ -2,14 +2,23 @@
 # MIT License. See license.txt
 from __future__ import unicode_literals
 
-import json
-import frappe
-import frappe.handler
-import frappe.client
-from frappe.utils.response import build_response
-from frappe import _
-from six.moves.urllib.parse import urlparse, urlencode
 import base64
+import binascii
+import json
+
+from six.moves.urllib.parse import urlencode, urlparse
+
+import frappe
+import frappe.client
+import frappe.handler
+from frappe import _
+from frappe.utils.response import build_response
+
+
+class InvalidAuthorizationHeader(frappe.CSRFTokenError): pass
+class InvalidAuthorizationPrefix(frappe.CSRFTokenError): pass
+class InvalidAuthorizationToken(frappe.CSRFTokenError): pass
+
 
 def handle():
 	"""
@@ -143,39 +152,68 @@ def handle():
 	return build_response("json")
 
 
+def validate_auth():
+	if frappe.get_request_header("Authorization") is None:
+		return
+
+	VALID_AUTH_PREFIX_TYPES = ['basic', 'bearer', 'token']
+	VALID_AUTH_PREFIX_STRING = ", ".join(VALID_AUTH_PREFIX_TYPES).title()
+
+	authorization_header = frappe.get_request_header("Authorization", str()).split(" ")
+	authorization_type = authorization_header[0].lower()
+
+	if len(authorization_header) == 1:
+		frappe.throw(_('Invalid Authorization headers, add a token with a prefix from one of the following: {0}.'.format(VALID_AUTH_PREFIX_STRING)), InvalidAuthorizationHeader)
+
+	if authorization_type == "bearer":
+		validate_oauth(authorization_header)
+	elif authorization_type in VALID_AUTH_PREFIX_TYPES:
+		validate_auth_via_api_keys(authorization_header)
+	else:
+		frappe.throw(_('Invalid Authorization Type {0}, must be one of {1}.'.format(authorization_type, VALID_AUTH_PREFIX_STRING)), InvalidAuthorizationPrefix)
+
+
 def validate_oauth(authorization_header):
-	""" authentication using oauth """
+	"""
+	Authenticate request using OAuth and set session user
+
+	Args:
+		authorization_header (list of str): The 'Authorization' header containing the prefix and token
+	"""
+
 	from frappe.oauth import get_url_delimiter
-	form_dict = frappe.local.form_dict
 	from frappe.integrations.oauth2 import get_oauth_server
 
+	form_dict = frappe.local.form_dict
+	token = authorization_header[1]
+	req = frappe.request
+	parsed_url = urlparse(req.url)
+	access_token = {"access_token": token}
+	uri = parsed_url.scheme + "://" + parsed_url.netloc + parsed_url.path + "?" + urlencode(access_token)
+	http_method = req.method
+	body = req.get_data()
+	headers = req.headers
+
 	try:
-		token = authorization_header[1]
-		req = frappe.request
-		parsed_url = urlparse(req.url)
-		access_token = {"access_token": token}
-		uri = parsed_url.scheme + "://" + parsed_url.netloc + parsed_url.path + "?" + urlencode(access_token)
-		http_method = req.method
-		body = req.get_data()
-		headers = req.headers
-
 		required_scopes = frappe.db.get_value("OAuth Bearer Token", token, "scopes").split(get_url_delimiter())
+	except AttributeError:
+		frappe.throw(_("Invalid Bearer token, please provide a valid access token with prefix 'Bearer'."), InvalidAuthorizationToken)
 
-		valid, _oauthlib_request = get_oauth_server().verify_request(uri, http_method, body, headers, required_scopes)
+	valid, oauthlib_request = get_oauth_server().verify_request(uri, http_method, body, headers, required_scopes)
 
-		if valid:
-			frappe.set_user(frappe.db.get_value("OAuth Bearer Token", token, "user"))
-			frappe.local.form_dict = form_dict
-	except (IndexError,AttributeError):
-		frappe.throw(_('Invalid Bearer token, please provide a valid Access Token with prefix Bearer.'), frappe.CSRFTokenError)
+	if valid:
+		frappe.set_user(frappe.db.get_value("OAuth Bearer Token", token, "user"))
+		frappe.local.form_dict = form_dict
 
 
 def validate_auth_via_api_keys(authorization_header):
 	"""
-	authentication using api key and api secret
+	Authenticate request using API keys and set session user
 
-	set user
+	Args:
+		authorization_header (list of str): The 'Authorization' header containing the prefix and token
 	"""
+
 	try:
 		auth_type, auth_token = authorization_header
 		authorization_source = frappe.get_request_header("Frappe-Authorization-Source")
@@ -185,30 +223,10 @@ def validate_auth_via_api_keys(authorization_header):
 		elif auth_type.lower() == 'token':
 			api_key, api_secret = auth_token.split(":")
 			validate_api_key_secret(api_key, api_secret, authorization_source)
-	except (IndexError,AttributeError):
-		frappe.throw(_('Invalid token, please provide a valid Token with prefix Basic or Token.'),frappe.CSRFTokenError)
-
-
-def validate_auth():
-	if frappe.get_request_header("Authorization") is None:
-		return
-
-	try:
-		AUTHORIZATION_API_SUFFIX_KEYS = ['basic', 'token', 'bearer']
-		authorization_header = frappe.get_request_header("Authorization", str()).split(" ")
-		authorization_type = authorization_header[0].lower()
-	except AttributeError:
-		frappe.throw('Invalid Authorization headers.',frappe.CSRFTokenError)
-
-	if len(authorization_header) <= 1:
-		frappe.throw('Invalid Authorization headers, add a token with prefix {0}.'.format(", ".join(AUTHORIZATION_API_SUFFIX_KEYS).title()),frappe.CSRFTokenError)
-
-	if  authorization_type == "bearer":
-		validate_oauth(authorization_header)
-	elif authorization_type in AUTHORIZATION_API_SUFFIX_KEYS:
-		validate_auth_via_api_keys(authorization_header)
-	else:
-		frappe.throw('Invalid Authorization Type {0}, must be one of {1}.'.format(authorization_type,", ".join(AUTHORIZATION_API_SUFFIX_KEYS).title()),frappe.CSRFTokenError)
+	except (AttributeError, TypeError, ValueError):
+		frappe.throw(_("Invalid token, please provide a valid token with prefix 'Basic' or 'Token'."), InvalidAuthorizationToken)
+	except binascii.Error:
+		frappe.throw(_("Failed to decode token, please provide a valid base64-encoded token."), InvalidAuthorizationToken)
 
 
 
