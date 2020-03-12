@@ -15,5 +15,8 @@ class DeskPage(Document):
 			frappe.throw(_("You need to be in developer mode to edit this document"))
 
 	def on_update(self):
-		if frappe.conf.developer_mode and not self.is_standard:
+		if frappe.flags.in_install or frappe.flags.in_patch or frappe.flags.in_test or frappe.flags.in_fixtures:
+			return
+
+		if frappe.conf.developer_mode and self.is_standard:
 			export_to_files(record_list=[['Desk Page', self.name]], record_module=self.module)
