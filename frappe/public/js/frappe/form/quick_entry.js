@@ -103,7 +103,7 @@ frappe.ui.form.QuickEntryForm = Class.extend({
 		this.dialog = new frappe.ui.Dialog({
 			title: __("New {0}", [__(this.doctype)]),
 			fields: this.mandatory,
-			doc = this.doc
+			doc: this.doc
 		});
 
 		this.register_primary_action();
