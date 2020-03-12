@@ -8,12 +8,15 @@
  "engine": "InnoDB",
  "field_order": [
   "label",
+  "extends",
   "module",
-  "restrict_to_domain",
   "category",
+  "restrict_to_domain",
+  "onboarding",
   "icon",
   "column_break_3",
-  "onboarding",
+  "extends_another_page",
+  "is_standard",
   "developer_mode_only",
   "disable_user_customization",
   "pin_to_top",
@@ -55,6 +58,7 @@
    "options": "Desk Shortcut"
   },
   {
+   "depends_on": "eval:doc.extends_another_page == 0",
    "fieldname": "onboarding",
    "fieldtype": "Data",
    "label": "Onboarding"
@@ -64,6 +68,7 @@
    "fieldtype": "Link",
    "label": "Restrict to Domain",
    "options": "Domain",
+   "read_only_depends_on": "eval:doc.extends_another_page == 0",
    "search_index": 1
   },
   {
@@ -75,6 +80,7 @@
    "options": "Module Def"
   },
   {
+   "depends_on": "eval:doc.extends_another_page == 0",
    "fieldname": "icon",
    "fieldtype": "Data",
    "label": "Icon"
@@ -94,10 +100,12 @@
    "fieldtype": "Select",
    "label": "Category",
    "options": "Modules\nDomains\nPlaces\nAdministration",
+   "read_only_depends_on": "eval:doc.extends_another_page == 1",
    "search_index": 1
   },
   {
    "default": "0",
+   "depends_on": "eval:doc.extends_another_page == 0",
    "fieldname": "developer_mode_only",
    "fieldtype": "Check",
    "label": "Developer Mode Only",
@@ -105,7 +113,7 @@
   },
   {
    "default": "0",
-   "depends_on": "eval:doc.pin_to_bottom!=1",
+   "depends_on": "eval:doc.pin_to_bottom!=1 && doc.extends_another_page == 0",
    "fieldname": "pin_to_top",
    "fieldtype": "Check",
    "label": "Pin To Top",
@@ -113,6 +121,7 @@
   },
   {
    "default": "0",
+   "depends_on": "eval:doc.extends_another_page == 0",
    "fieldname": "disable_user_customization",
    "fieldtype": "Check",
    "label": "Disable User Customization",
@@ -120,7 +129,7 @@
   },
   {
    "default": "0",
-   "depends_on": "eval:doc.pin_to_top!=1",
+   "depends_on": "eval:doc.pin_to_top!=1 && doc.extends_another_page == 0",
    "fieldname": "pin_to_bottom",
    "fieldtype": "Check",
    "label": "Pin To Bottom",
@@ -152,10 +161,29 @@
    "fieldname": "section_break_18",
    "fieldtype": "Section Break",
    "label": "Link Cards"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_standard",
+   "fieldtype": "Check",
+   "label": "Is Standard"
+  },
+  {
+   "default": "0",
+   "fieldname": "extends_another_page",
+   "fieldtype": "Check",
+   "label": "Extends Another Page"
+  },
+  {
+   "depends_on": "eval:doc.extends_another_page == 1",
+   "fieldname": "extends",
+   "fieldtype": "Link",
+   "label": "Extends",
+   "options": "Desk Page"
   }
  ],
  "links": [],
- "modified": "2020-03-02 20:08:44.856046",
+ "modified": "2020-03-12 16:38:16.206732",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Desk Page",
