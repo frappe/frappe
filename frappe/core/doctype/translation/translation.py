@@ -11,11 +11,11 @@ import json
 
 class Translation(Document):
 	def validate(self):
-		if is_html(self.source_name):
+		if is_html(self.source_text):
 			self.remove_html_from_source()
 
 	def remove_html_from_source(self):
-		self.source_name = strip_html_tags(self.source_name).strip()
+		self.source_text = strip_html_tags(self.source_text).strip()
 
 	def on_update(self):
 		clear_user_translation_cache(self.language)
@@ -23,6 +23,11 @@ class Translation(Document):
 	def on_trash(self):
 		clear_user_translation_cache(self.language)
 
+	def contribute(self):
+		pass
+
+	def get_contribution_status(self):
+		pass
 
 @frappe.whitelist()
 def create_translations(translation_map, language):
@@ -35,16 +40,23 @@ def create_translations(translation_map, language):
 	for source_id, translation_dict in translation_map.items():
 		translation_dict = frappe._dict(translation_dict)
 		existing_doc_name = frappe.db.exists('Translation', {
-			'source_name': translation_dict.source_text,
-			'context': translation_dict.context
+			'source_text': translation_dict.source_text,
+			'context': translation_dict.context,
+			'language': language,
 		})
 		if existing_doc_name:
-			frappe.set_value('Translation', existing_doc_name, 'target_name', translation_dict.translated_text)
+			frappe.set_values('Translation', existing_doc_name, {
+				'translated_text': translation_dict.translated_text,
+				'contributed': 1,
+				'contribution_status': 'Pending'
+			})
 		else:
 			doc = frappe.get_doc({
 				'doctype': 'Translation',
-				'source_name': translation_dict.source_text,
-				'target_name': translation_dict.translated_text,
+				'source_text': translation_dict.source_text,
+				'contributed': 1,
+				'contribution_status': 'Pending',
+				'translated_text': translation_dict.translated_text,
 				'context': translation_dict.context,
 				'language': language
 			})

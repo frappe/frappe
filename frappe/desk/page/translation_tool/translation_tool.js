@@ -5,7 +5,7 @@ frappe.pages["translation-tool"].on_page_load = function(wrapper) {
 		single_column: true
 	});
 
-	new TranslationTool(page);
+	frappe.translation_tool = new TranslationTool(page);
 };
 
 class TranslationTool {
@@ -18,7 +18,7 @@ class TranslationTool {
 		this.edited_translations = {};
 		this.setup_search_box();
 		this.setup_language_filter();
-		this.page.set_primary_action(__('Contribute Translations'), this.create_translations.bind(this));
+		this.page.set_primary_action(__('Contribute Translations'), this.show_confirmation_dialog.bind(this));
 		this.page.set_secondary_action(__('Refresh'), this.fetch_messages_then_render.bind(this));
 		this.update_header();
 	}
@@ -76,6 +76,7 @@ class TranslationTool {
 			this.messages = messages;
 			this.render_messages(messages);
 		});
+		this.setup_local_contributions();
 	}
 
 	fetch_messages() {
@@ -160,17 +161,15 @@ class TranslationTool {
 						fieldtype: "Code",
 						fieldname: "translated_text",
 						change: () => {
-							let add_translation_btn = this.form.get_field("add_translation_btn");
-							add_translation_btn.$input.attr('disabled', this.form.get_value('translated_text') === '');
-						}
-					},
-					{
-						label: __("Contribute Translation"),
-						fieldtype: "Button",
-						fieldname: "add_translation_btn",
-						click: (values) => {
-							values = this.form.get_values();
-							this.edited_translations[values.id] = values;
+							let values = this.form.get_values();
+							if (!values.translated_text) {
+								delete this.edited_translations[values.id];
+							}
+							if (this.form.translation_dict.translated_text !== values.translated_text) {
+								this.edited_translations[values.id] = values;
+							} else {
+								delete this.edited_translations[values.id];
+							}
 							this.update_header();
 						}
 					}
@@ -179,10 +178,9 @@ class TranslationTool {
 			});
 			this.form.make();
 			this.setup_header();
-			let add_translation_btn = this.form.get_field("add_translation_btn");
-			add_translation_btn.$wrapper.removeClass("input-max-width").addClass("text-right");
 		}
 		this.form.set_values(translation);
+		this.form.translation_dict = translation;
 		this.form.set_df_property("doctype", "hidden", !translation.doctype);
 		this.form.set_df_property("context", "hidden", !translation.context);
 		this.set_status(translation);
@@ -272,10 +270,59 @@ class TranslationTool {
 		}
 		this.wrapper.find(".other-contributions").html(contributions_dom);
 	}
-
+	show_confirmation_dialog() {
+		this.confirmation_dialog = new frappe.ui.Dialog({
+			fields: [
+				{
+					label: __('Language'),
+					fieldname: 'language',
+					fieldtype: 'Data',
+					read_only: 1,
+					bold: 1,
+					default: this.language
+				},
+				{
+					label: __('Translations'),
+					fieldname: 'translation_data',
+					fieldtype: 'Table',
+					fields: [
+						{
+							label: __('Source Text'),
+							fieldname: 'source_text',
+							fieldtype: 'Link',
+							options: 'Language',
+							in_list_view: 1,
+							read_only: 1,
+							columns: 3
+						},
+						{
+							fieldname: 'source',
+							fieldtype: 'Data',
+							hidden: 1,
+						},
+						{
+							label: __('Translation Text'),
+							fieldname: 'translated_text',
+							fieldtype: 'Text',
+							in_list_view: 1,
+							columns: 7
+						}
+					],
+					data: Object.values(this.edited_translations)
+				}
+			],
+			title: __('Confirm Translations'),
+			no_submit_on_enter: true,
+			primary_action_label: __('Submit'),
+			primary_action: (values) => {
+				this.create_translations(values).then(this.confirmation_dialog.hide());
+			}
+		});
+		this.confirmation_dialog.show();
+	}
 	create_translations() {
-		// frappe.dom.freeze(__('Submitting...'));
-		frappe.xcall('frappe.core.doctype.translation.translation.create_translations', {
+		frappe.dom.freeze(__('Submitting...'));
+		return frappe.xcall('frappe.core.doctype.translation.translation.create_translations', {
 			translation_map: this.edited_translations,
 			language: this.language
 		}).then(() => {
@@ -284,7 +331,32 @@ class TranslationTool {
 			this.edited_translations = {};
 			this.update_header();
 			this.fetch_messages_then_render();
-		}).catch(() => frappe.dom.unfreeze()).finally(() => frappe.dom.unfreeze());
+		}).finally(() => frappe.dom.unfreeze());
+	}
+
+	setup_local_contributions() {
+		// TODO: Refactor
+		frappe
+			.xcall("frappe.translate.get_contributions", {
+				language: this.language
+			})
+			.then(messages => {
+				let template = message => `
+					<div
+						class="translation-item"
+						data-message-id="${encodeURIComponent(message.id)}"
+						data-action="on_translation_click">
+						<div class="bold ellipsis">
+							<span class="indicator ${this.get_contribution_indicator_color(message)}">
+								<span>${frappe.utils.escape_html(message.source_text)}</span>
+							</span>
+						</div>
+					</div>
+				`;
+
+				let html = messages.map(template).join("");
+				this.wrapper.find(".translation-item-tr").html(html);
+			});
 	}
 
 	update_header() {
@@ -303,6 +375,10 @@ class TranslationTool {
 
 	get_indicator_status_text(message_obj) {
 		return !message_obj.translated ? __('Untranslated') : message_obj.translated_by_google ? __('Google Translation') : __('Community Contribution');
+	}
+
+	get_contribution_indicator_color(message_obj) {
+		return message_obj.contribution_status == 'Pending' ? 'orange' : 'green';
 	}
 
 	get_code_url(path, line_no, app) {

@@ -782,3 +782,9 @@ def get_source_additional_info(source, language=''):
 	from frappe.frappeclient import FrappeClient
 	translator = FrappeClient(frappe.conf.translator_url)
 	return translator.post_api('translator.api.get_source_additional_info', params=locals())
+
+@frappe.whitelist()
+def get_contributions(language):
+	return frappe.get_all('Translation', fields=['*'], filters={
+		'contributed': 1,
+	})
