@@ -43,12 +43,12 @@ matrix:
 
 before_install:
   - if [ $TYPE == "server" ];then
-      wget -O /tmp/wkhtmltox.tar.xz https://github.com/frappe/wkhtmltopdf/raw/master/wkhtmltox-0.12.3_linux-generic-amd64.tar.xz
-      tar -xf /tmp/wkhtmltox.tar.xz -C /tmp
-      sudo mv /tmp/wkhtmltox/bin/wkhtmltopdf /usr/local/bin/wkhtmltopdf
-      sudo chmod o+x /usr/local/bin/wkhtmltopdf
+      wget -O /tmp/wkhtmltox.tar.xz https://github.com/frappe/wkhtmltopdf/raw/master/wkhtmltox-0.12.3_linux-generic-amd64.tar.xz;
+      tar -xf /tmp/wkhtmltox.tar.xz -C /tmp;
+      sudo mv /tmp/wkhtmltox/bin/wkhtmltopdf /usr/local/bin/wkhtmltopdf;
+      sudo chmod o+x /usr/local/bin/wkhtmltopdf;
 
-      sudo apt-get install libcups2-dev
+      sudo apt-get install libcups2-dev;
     fi
 
 install:
@@ -114,7 +114,7 @@ install:
 
 after_script:
   - if [ $TYPE == "server" ];then
-      pip install coverage==4.5.4
-      pip install python-coveralls
-      coveralls -b apps/frappe -d ../../sites/.coverage
+      pip install coverage==4.5.4;
+      pip install python-coveralls;
+      coveralls -b apps/frappe -d ../../sites/.coverage;
     fi
