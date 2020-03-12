@@ -30,7 +30,7 @@ class TestExporter(unittest.TestCase):
 		e = Exporter('Web Page', export_fields=export_fields)
 		csv_array = e.get_csv_array()
 		header = csv_array[0]
-		self.assertEqual(header, ['ID', 'Title', 'Route', 'Published'])
+		self.assertEqual(header, ['Title', 'Route', 'Published'])
 
 
 	def test_exports_data(self):

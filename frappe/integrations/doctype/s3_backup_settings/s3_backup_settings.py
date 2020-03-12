@@ -106,9 +106,8 @@ def send_email(success, service_name, error_status=None):
 	if not frappe.db:
 		frappe.connect()
 
-	if frappe.db.get_value("S3 Backup Settings", None, "notification_email"):
-		recipients = split_emails(frappe.db.get_value("S3 Backup Settings", None, "notification_email"))
-		frappe.sendmail(recipients=recipients, subject=subject, message=message)
+	recipients = split_emails(frappe.db.get_value("S3 Backup Settings", None, "notify_email"))
+	frappe.sendmail(recipients=recipients, subject=subject, message=message)
 
 
 def backup_to_s3():

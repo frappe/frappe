@@ -175,7 +175,8 @@ scheduler_events = {
 		"frappe.email.doctype.email_account.email_account.pull",
 		"frappe.email.doctype.email_account.email_account.notify_unreplied",
 		"frappe.integrations.doctype.razorpay_settings.razorpay_settings.capture_payment",
-		'frappe.utils.global_search.sync_global_search'
+		'frappe.utils.global_search.sync_global_search',
+		"frappe.monitor.flush",
 	],
 	"hourly": [
 		"frappe.model.utils.link_count.update_link_count",

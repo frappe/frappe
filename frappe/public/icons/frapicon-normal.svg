@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="16px" height="16px" viewBox="0 0 16 16" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 61.2 (89653) - https://sketch.com -->
+    <title>icons/folder/normal</title>
+    <desc>Created with Sketch.</desc>
+    <g id="icons/folder/normal" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="folder-15" transform="translate(0.000000, 0.700000)" fill="#415668" fill-rule="nonzero">
+            <path d="M8.33333333,2.66666667 L6.33333333,0 L0.666666667,0 C0.298476833,0 0,0.298476833 0,0.666666667 L0,12.6666667 C0,13.7712362 0.8954305,14.6666667 2,14.6666667 L14,14.6666667 C15.1045695,14.6666667 16,13.7712362 16,12.6666667 L16,3.33333333 C16,2.9651435 15.7015232,2.66666667 15.3333333,2.66666667 L8.33333333,2.66666667 Z" id="Path"></path>
+        </g>
+    </g>
+</svg>
