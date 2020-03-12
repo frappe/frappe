@@ -51,7 +51,7 @@ class TestDashboardChart(unittest.TestCase):
 			based_on = 'creation',
 			timespan = 'Last Year',
 			time_interval = 'Monthly',
-			filters_json = '{}',
+			filters_json = '[]',
 			timeseries = 1
 		)).insert()
 
@@ -83,7 +83,7 @@ class TestDashboardChart(unittest.TestCase):
 			based_on = 'creation',
 			timespan = 'Last Year',
 			time_interval = 'Monthly',
-			filters_json = '{}',
+			filters_json = '[]',
 			timeseries = 1
 		)).insert()
 
@@ -115,7 +115,7 @@ class TestDashboardChart(unittest.TestCase):
 			based_on = 'creation',
 			timespan = 'Last Year',
 			time_interval = 'Monthly',
-			filters_json = '{}',
+			filters_json = '[]',
 			timeseries = 1
 		)).insert()
 
@@ -145,7 +145,7 @@ class TestDashboardChart(unittest.TestCase):
 			chart_type = 'Group By',
 			document_type = 'ToDo',
 			group_by_based_on = 'status',
-			filters_json = '{}',
+			filters_json = '[]',
 		)).insert()
 
 		result = get(chart_name ='Test Group By Dashboard Chart', refresh = 1)

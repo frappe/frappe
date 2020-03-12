@@ -46,7 +46,6 @@ apps/frappe/frappe/public/js/frappe/views/kanban/kanban_view.js,There was an err
 DocType: Custom DocPerm,This role update User Permissions for a user,Ky rol përditësimin Drejtat e përdoruesit për një përdorues
 apps/frappe/frappe/public/js/frappe/model/model.js,Rename {0},Rename {0}
 DocType: Workflow State,zoom-out,zoom-out
-DocType: Data Import Beta,Import Options,Opsionet e importit
 apps/frappe/frappe/public/js/frappe/form/form.js,Cannot open {0} when its instance is open,"Nuk mund të hapni {0}, kur shembull i saj është i hapur"
 apps/frappe/frappe/model/document.py,Table {0} cannot be empty,Tabela {0} nuk mund të jetë bosh
 DocType: SMS Parameter,Parameter,Parametër
@@ -83,16 +82,18 @@ apps/frappe/frappe/public/js/frappe/list/list_view.js,Cancel {0} documents?,Anul
 DocType: DocType,Is Published Field,Publikohet Fusha
 DocType: GCalendar Settings,GCalendar Settings,Cilësimet e GCalendar
 DocType: Email Group,Email Group,Email Group
-apps/frappe/frappe/__init__.py,Only for {},Vetëm për {}
+apps/frappe/frappe/integrations/doctype/google_calendar/google_calendar.py,"Google Calendar - Could not delete Event {0} from Google Calendar, error code {1}.","Kalendari Google - Nuk mund të fshihet Ngjarja {0} nga Kalendari Google, kodi i gabimit {1}."
 DocType: Event,Pulled from Google Calendar,U tërhoq nga Kalendari Google
 DocType: Note,Seen By,E pare nga
 apps/frappe/frappe/public/js/frappe/form/grid.js,Add Multiple,Shto Multiple
 apps/frappe/frappe/core/doctype/user/user.py,Not a valid User Image.,Nuk është një përdorues i vlefshëm.
 DocType: Energy Point Log,Reverted,rikthyer
 DocType: Success Action,First Success Message,Mesazhi i parë i suksesit
+DocType: Document Type Mapping,Document Type Mapping,Hartimi i llojit të dokumentit
 apps/frappe/frappe/public/js/frappe/ui/filters/filters.js,Not Like,Jo si
 apps/frappe/frappe/model/document.py,Incorrect value: {0} must be {1} {2},Vlera e pasaktë: {0} duhet të jetë {1} {2}
 apps/frappe/frappe/config/customization.py,"Change field properties (hide, readonly, permission etc.)","Pronat ndryshim në terren (të fshehur, Readonly, leje, etj)"
+apps/frappe/frappe/config/automation.py,The site which is consuming your events.,Faqja që po konsumon ngjarjet tuaja.
 apps/frappe/frappe/public/js/frappe/form/sidebar/review.js,Appreciate,vlerësoj
 DocType: Notification Settings,Document Share,Ndarja e dokumenteve
 DocType: Workflow State,lock,bllokohet
@@ -112,11 +113,13 @@ apps/frappe/frappe/public/js/frappe/ui/notifications/notifications.js,Mark all a
 DocType: Data Migration Run,Log,Identifikohu
 DocType: Workflow State,indent-right,indent djathtë
 DocType: Has Role,Has Role,ka rolin
+apps/frappe/frappe/event_streaming/doctype/event_sync_log/event_sync_log.js,Resync,Sinkronizo sërish
 DocType: System Settings,Time in seconds to retain QR code image on server. Min:<strong>240</strong>,Koha në sekonda për të ruajtur imazhin e kodit QR në server. Min: <strong>240</strong>
 apps/frappe/frappe/core/doctype/doctype/doctype.py,{0}:Fieldtype {1} for {2} cannot be indexed,{0}: Fieldtype {1} për {2} nuk mund të indeksohet
 DocType: Dashboard Chart,Timespan,Intervalin kohor
 apps/frappe/frappe/public/js/frappe/file_uploader/FileUploader.vue,Web Link,Web Lidhje
 DocType: Deleted Document,Restored,Restored
+apps/frappe/frappe/public/js/frappe/form/print.js,"Error connecting to QZ Tray Application...<br><br> You need to have QZ Tray application installed and running, to use the Raw Print feature.<br><br><a href=""https://qz.io/download/"" target=""_blank"">Click here to Download and install QZ Tray</a>.<br> <a href=""https://erpnext.com/docs/user/manual/en/setting-up/print/raw-printing"" target=""_blank"">Click here to learn more about Raw Printing</a>.","Gabim në lidhjen me aplikacionin e tabaka QZ ... <br><br> Ju duhet të keni të instaluar dhe ekzekutuar aplikacionin QZ Tray, për të përdorur veçorinë Raw Print. <br><br> <a href=""https://qz.io/download/"" target=""_blank"">Klikoni këtu për të Shkarkuar dhe instaluar QZ Tray</a> . <br> <a href=""https://erpnext.com/docs/user/manual/en/setting-up/print/raw-printing"" target=""_blank"">Klikoni këtu për të mësuar më shumë rreth Printimit të Lartë</a> ."
 apps/frappe/frappe/public/js/frappe/utils/pretty_date.js,1 minute ago,1 minutë më parë
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,"Apart from System Manager, roles with Set User Permissions right can set permissions for other users for that Document Type.","Përveç Sistemit Menaxher, rolet me grup Drejtat User drejtë mund të rregulloni lejet për përdoruesit e tjerë për këtë Document Type."
 apps/frappe/frappe/website/doctype/website_theme/website_theme.js,Configure Theme,Konfiguro Temën
@@ -186,6 +189,7 @@ DocType: Email Account,UNSEEN,i padukshëm
 apps/frappe/frappe/public/js/frappe/views/file/file_view.js,File Manager,File Manager
 DocType: Website Settings,"HTML Header, Robots and Redirects","Header HTML, Robots dhe Redirects"
 DocType: GCalendar Account,Refresh Token,Refresh Token
+apps/frappe/frappe/event_streaming/doctype/event_producer/event_producer.py,Failed to connect to the Event Producer site. Retry after some time.,Nuk arriti të lidhej në faqen e Prodhuesit të Ngjarjes. Provoni përsëri pas ca kohësh.
 DocType: Address,Goa,Goa
 apps/frappe/frappe/core/page/background_jobs/background_jobs.html,No pending or current jobs for this site,Asnjë vend pune në pritje ose aktual për këtë sit
 DocType: Webhook,Doc Event,Ngjarja e Doc
@@ -207,6 +211,7 @@ DocType: Server Script,Script Manager,Menaxher i Skenarit
 apps/frappe/frappe/public/js/frappe/ui/notifications/notifications.js,No activity,Asnjë veprimtari
 apps/frappe/frappe/www/third_party_apps.html,Third Party Apps,Aplikacionet e palës së tretë
 apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js,The first user will become the System Manager (you can change this later).,Përdorues i parë do të bëhet i Sistemit Menaxher (ju mund ta ndryshoni këtë më vonë).
+apps/frappe/frappe/desk/query_report.py,You can try changing the filters of your report.,Mund të provoni të ndryshoni filtrat e raportit tuaj.
 apps/frappe/frappe/public/js/frappe/ui/notifications/notifications.js,No Events Today,Asnjë Ngjarje Sot
 apps/frappe/frappe/social/doctype/energy_point_log/energy_point_log.py,You cannot give review points to yourself,Ju nuk mund t&#39;i jepni vetes pikat e rishikimit
 apps/frappe/frappe/integrations/doctype/webhook/webhook.py,DocType must be Submittable for the selected Doc Event,DocType duhet të jetë Submittable për Eventin e zgjedhur të Doc
@@ -236,6 +241,7 @@ apps/frappe/frappe/config/desk.py,Files,Files
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Permissions get applied on Users based on what Roles they are assigned.,Drejtat merrni aplikuar për përdoruesit bazuar në atë që Rolet ata janë të caktuar.
 apps/frappe/frappe/public/js/frappe/views/communication.js,You are not allowed to send emails related to this document,Ju nuk jeni i lejuar për të dërguar email në lidhje me këtë dokument
 apps/frappe/frappe/model/db_query.py,Please select atleast 1 column from {0} to sort/group,Ju lutemi të zgjedhur atleast 1 kolonë nga {0} të lloj / grup
+apps/frappe/frappe/contacts/doctype/address/address.py,Company not Linked,Ndërmarrja nuk është e lidhur
 DocType: PayPal Settings,Check this if you are testing your payment using the Sandbox API,Kontrolloni këtë në qoftë se ju jeni të testimit pagesën tuaj duke përdorur API Sandbox
 apps/frappe/frappe/website/doctype/website_theme/website_theme.py,You are not allowed to delete a standard Website Theme,Ju nuk jeni i lejuar për të fshirë një standard Website Theme
 DocType: Data Import,Log Details,Detaje të Regjistrit
@@ -254,7 +260,6 @@ apps/frappe/frappe/core/doctype/communication/communication_list.js,Mark as Read
 apps/frappe/frappe/desk/doctype/bulk_update/bulk_update.py,Updating {0},Përditësimi i {0}
 apps/frappe/frappe/core/doctype/report/report.js,Disable Report,Disable Raport
 DocType: Translation,Contributed Translation Doctype Name,Kontribuar Emri Doctype i Përkthimit
-apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Setup &gt; Customize Form,Setup&gt; Rregulloje formularin
 DocType: PayPal Settings,Redirect To,Redirect To
 DocType: Data Migration Mapping,Pull,Tërhiqe
 DocType: Report,JavaScript Format: frappe.query_reports['REPORTNAME'] = {},JavaScript Formati: frappe.query_reports [&#39;REPORTNAME&#39;] = {}
@@ -266,6 +271,7 @@ apps/frappe/frappe/public/js/frappe/list/list_view.js,Delete {0} items permanent
 apps/frappe/frappe/utils/oauth.py,Not Allowed,Nuk lejohet
 DocType: DocShare,Internal record of document shares,Rekord i brendshëm i aksioneve dokument
 DocType: Energy Point Settings,Review Levels,Nivelet e Rishikimit
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Setup &gt; User Permissions,Setup&gt; Lejet e Përdoruesit
 DocType: Workflow State,Comment,Koment
 DocType: Data Migration Plan,Postprocess Method,Metoda e Postprocesit
 DocType: DocType Action,Action Type,Lloji i veprimit
@@ -315,7 +321,9 @@ apps/frappe/frappe/public/js/frappe/views/calendar/calendar.js,Show Weekends,Tre
 DocType: Workflow State,remove-circle,hiqni-rrethi
 apps/frappe/frappe/public/js/frappe/ui/toolbar/navbar.html,My Profile,Profili im
 DocType: Help Article,Beginner,fillestar
+apps/frappe/frappe/__init__.py,This action is only allowed for {},Ky veprim lejohet vetëm për {}
 DocType: Contact,Is Primary Contact,Është Kontaktoni Primar
+DocType: Event Consumer,Event Consumer,Konsumatori i Ngjarjes
 apps/frappe/frappe/config/website.py,Javascript to append to the head section of the page.,Javascript për të append në seksionin kokë të faqes.
 apps/frappe/frappe/core/doctype/user_permission/user_permission_list.js,Add / Update,Shto / Përditëso
 apps/frappe/frappe/www/printview.py,Not allowed to print draft documents,Nuk lejohet për të shtypur draft dokumentet
@@ -465,7 +473,6 @@ apps/frappe/frappe/public/js/frappe/list/list_view.js,Select multiple list items
 DocType: Event,Repeat Till,Përsëriteni Deri
 apps/frappe/frappe/public/js/frappe/ui/toolbar/search_utils.js,New,I ri
 apps/frappe/frappe/public/js/frappe/views/components/ModuleLinkItem.vue,You need to create these first: ,Ju duhet të krijoni këto të parat:
-DocType: Google Maps Settings,Google Maps Settings,Cilësimet e Google Maps
 apps/frappe/frappe/core/page/dashboard/dashboard.js,Loading...,Duke u ngarkuar ...
 DocType: DocField,Password,Fjalëkalim
 apps/frappe/frappe/utils/response.py,Your system is being updated. Please refresh again after a few moments,Sistemi juaj është duke u përditësuar. Ju lutemi të rifreskoni përsëri pas disa çaste
@@ -557,6 +564,7 @@ DocType: Onboarding Slide,Onboarding Slide,Rrëshqitje në bord
 apps/frappe/frappe/core/doctype/user/user.py,Invalid Password: ,Fjalëkalim i pavlefshëm:
 apps/frappe/frappe/core/doctype/user/user.py,Invalid Password: ,Fjalëkalim i pavlefshëm:
 DocType: Print Settings,Send document web view link in email,Dërgo dokument view web lidhjen në email
+DocType: Event Consumer Document Type,Event Consumer Document Type,Lloji i Dokumentit të Konsumatorit të Ngjarjes
 apps/frappe/frappe/public/js/frappe/ui/slides.js,Previous,I mëparshëm
 apps/frappe/frappe/email/doctype/email_account/email_account.py,Re:,Re:
 DocType: LDAP Settings,Require Trusted Certificate,Kërkoni një Certifikatë të Besuar
@@ -630,6 +638,7 @@ DocType: Workflow State,volume-down,vëllimit-down
 DocType: Onboarding Slide,Help Links,Ndihmë Lidhje
 apps/frappe/frappe/auth.py,Access not allowed from this IP Address,Qasja nuk lejohet nga kjo Adresë IP
 DocType: Notification Settings,Enable Email Notifications,Aktivizo njoftimet me postë elektronike
+DocType: Document Type Field Mapping,Event Streaming,Transmetimi i ngjarjeve
 apps/frappe/frappe/desk/reportview.py,No Tags,Asnjë Tags
 DocType: Email Account,Send Notification to,Dërgo Njoftimi për
 DocType: DocField,Collapsible,Që paloset
@@ -646,6 +655,7 @@ apps/frappe/frappe/public/js/frappe/list/list_sidebar_group_by.js,Filter By,Filt
 apps/frappe/frappe/database/database.py,No conditions provided,Nuk ka kushte të parashikuara
 apps/frappe/frappe/public/js/frappe/views/reports/report_view.js,Y Axis Fields,Y Fushat e Boshtit
 apps/frappe/frappe/core/doctype/doctype/doctype.py,Sort field {0} must be a valid fieldname,Renditur fushë {0} duhet të jetë një fieldname vlefshme
+apps/frappe/frappe/contacts/doctype/address/address.py,No default Address Template found. Please create a new one from Setup &gt; Printing and Branding &gt; Address Template.,Nuk u gjet asnjë shabllon i adresës së paracaktuar. Ju lutemi krijoni një të re nga Setup&gt; Printimi dhe Markimi&gt; Modeli i Adresave.
 apps/frappe/frappe/public/js/frappe/list/base_list.js,More,Më shumë
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js,Create a new record,Krijoni një rekord të ri
 DocType: Contact,Sales Manager,Sales Manager
@@ -669,6 +679,7 @@ DocType: User,Reset Password Key,Fjalëkalimi Key Reset
 DocType: Dashboard Chart,All Time,Gjithe kohes
 apps/frappe/frappe/model/workflow.py,Illegal Document Status for {0},Statusi i dokumentit ilegal për {0}
 DocType: Email Account,Enable Auto Reply,Aktivizo Auto Përgjigje
+apps/frappe/frappe/desk/query_report.py,No data to export,Nuk ka të dhëna për eksport
 apps/frappe/frappe/core/doctype/error_log/error_log_list.js,Not Seen,Nuk shihet
 apps/frappe/frappe/public/js/frappe/form/print.js,Cannot have multiple printers mapped to a single print format.,Nuk mund të ketë shumë printerë të skeduar në një format të vetëm printimi.
 DocType: Workflow State,zoom-in,zoom-në
@@ -818,6 +829,7 @@ apps/frappe/frappe/desk/page/user_profile/user_profile.js,Change User,Ndrysho p�
 apps/frappe/frappe/public/js/frappe/form/grid_pagination.js,First,i parë
 apps/frappe/frappe/public/js/frappe/views/translation_manager.js,Update Translations,Përditësimi i përkthimeve
 DocType: Error Snapshot,Exception,Përjashtim
+DocType: Event Consumer,Event Consumer Document Types,Llojet e Dokumentit të Konsumatorit të Ngjarjeve
 DocType: Email Account,Use IMAP,Përdorimi IMAP
 DocType: Activity Log,Activity Log,Aktiviteti Identifikohu
 DocType: View Log,Viewed By,Shikuar nga
@@ -856,6 +868,7 @@ apps/frappe/frappe/config/settings.py,Set numbering series for transactions.,Set
 apps/frappe/frappe/public/js/frappe/list/list_sidebar.html,Configure Charts,Konfiguro tabelat
 DocType: User,Last IP,IP e fundit
 apps/frappe/frappe/automation/doctype/auto_repeat/auto_repeat.py,Please add a subject to your email,Ju lutemi shtoni një subjekt në email-in tuaj
+apps/frappe/frappe/model/workflow.py,Errored Transactions,Transaksionet e gabuara
 DocType: Data Migration Connector,Data Migration Connector,Lidhësi i Migracionit të të Dhënave
 apps/frappe/frappe/public/js/frappe/utils/energy_point_utils.js,{0} reverted {1},{0} u kthye {1}
 DocType: Email Account,Track Email Status,Gjurmoni statusin e emailit
@@ -885,6 +898,7 @@ DocType: Email Queue,Attachments,Attachments
 apps/frappe/frappe/website/doctype/web_form/web_form.py,You don't have the permissions to access this document,Ju nuk keni leje për të hyrë në këtë dokument
 DocType: Language,Language Name,Gjuha Emri
 DocType: Email Group Member,Email Group Member,Dërgojani Group Anëtar
+apps/frappe/frappe/public/js/frappe/views/inbox/inbox_view.js,No email account associated with the User. Please add an account under User &gt; Email Inbox.,Asnjë llogari emaili e lidhur me Përdoruesin. Ju lutemi shtoni një llogari nën Përdoruesin&gt; Kutia e postës elektronike.
 apps/frappe/frappe/auth.py,Your account has been locked and will resume after {0} seconds,Llogaria juaj është bllokuar dhe do të rifillojë pas {0} sekondave
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,User Permissions are used to limit users to specific records.,Lejet e Përdoruesit përdoren për të kufizuar përdoruesit në regjistra të caktuar.
 DocType: Notification,Value Changed,Vlera Ndryshuar
@@ -977,6 +991,7 @@ DocType: PayPal Settings,Mention transaction completion page URL,Përmend transa
 DocType: Help Article,Expert,ekspert
 DocType: Workflow State,circle-arrow-right,rrethi-shigjetë djathtë
 DocType: Role Profile,Role Profile,Profili i roleve
+DocType: Document Type Mapping,Remote Document Type,Lloji i dokumentit në distancë
 apps/frappe/frappe/permissions.py,Document Type is not importable,Lloji i dokumentit nuk është i importueshëm
 DocType: LDAP Settings,LDAP Server Url,LDAP Server Url
 apps/frappe/frappe/public/js/frappe/form/form.js,Cannot open instance when its {0} is open,Nuk mund të hapni shembull kur e saj {0} është e hapur
@@ -1061,7 +1076,6 @@ DocType: Web Form,Allow Print,Lejo Printo
 DocType: Communication,Clicked,Klikuar
 apps/frappe/frappe/public/js/frappe/form/templates/form_sidebar.html,Unfollow,Unfollow
 apps/frappe/frappe/public/js/frappe/form/form.js,No permission to '{0}' {1},Nuk ka leje për të &#39;{0}&#39; {1}
-apps/frappe/frappe/email/smtp.py,Please setup default Email Account from Setup &gt; Email &gt; Email Account,Ju lutemi konfiguroni llogarinë e paracaktuar të postës elektronike nga Konfigurimi&gt; Email&gt; Llogari Email
 apps/frappe/frappe/email/doctype/auto_email_report/auto_email_report.js,Scheduled to send,Planifikuar për të dërguar
 DocType: DocType,Track Seen,Track Parë
 DocType: Dropbox Settings,File Backup,Rikthim i dokumentit
@@ -1131,6 +1145,7 @@ apps/frappe/frappe/public/js/frappe/file_uploader/FileUploader.vue,choose an,zgj
 DocType: Data Export,Filter List,Lista e filtrave
 DocType: Data Export,Excel,shquhem
 DocType: System Settings,HH:mm,HH: mm
+DocType: Event Sync Log,Event Configurations,Konfigurimet e ngjarjeve
 DocType: Email Account,Auto Reply Message,Auto Përgjigju Mesazh
 DocType: Data Migration Mapping,Condition,Kusht
 apps/frappe/frappe/utils/data.py,{0} hours ago,{0} orëve
@@ -1189,9 +1204,8 @@ DocType: Email Account,Always use Account's Email Address as Sender,Gjithmonë p
 apps/frappe/frappe/templates/includes/comments/comments.html,Login to comment,Identifikohuni për të komentuar
 apps/frappe/frappe/core/doctype/data_import/importer.py,Start entering data below this line,Filloni hedhjen e të dhënave nën këtë linjë
 apps/frappe/frappe/public/js/frappe/form/footer/timeline.js,changed values for {0},vlerat e ndryshuar {0}
-apps/frappe/frappe/email/doctype/email_account/email_account.py,"Email ID must be unique, Email Account already exists \
-				for {0}","Email ID duhet të jetë unik, Llogaria e Email tashmë ekziston \ for {0}"
 DocType: Workflow State,retweet,retweet
+apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,"For comparison, use &gt;5, &lt;10 or =324. For ranges, use 5:10 (for values between 5 &amp; 10).","Për krahasim, përdorni&gt; 5, &lt;10 ose = 324. Për vargjet, përdorni 5:10 (për vlerat midis 5 dhe 10)."
 apps/frappe/frappe/public/js/frappe/form/templates/print_layout.html,Customize...,Customize ...
 DocType: Print Format,Align Labels to the Right,Align Etiketa në të Drejtën
 DocType: Assignment Rule,Disabled,I paaftë
@@ -1235,8 +1249,10 @@ apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js,"tag name..., e.g.
 apps/frappe/frappe/public/js/frappe/ui/keyboard.js,Keyboard Shortcuts,Shkurtoret e tastierës
 DocType: Post,Comments,Komente
 apps/frappe/frappe/public/js/frappe/dom.js,Confirm,Konfirmoj
+DocType: Event Sync Log,Update Type,Lloji i azhurnimit
 apps/frappe/frappe/public/js/frappe/desk.js,Authenticating...,Saktëson ...
 apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,Collapse All,Collapse All
+DocType: Event Producer,Last Update,Përditësimi i fundit
 apps/frappe/frappe/www/login.html,Forgot Password?,Keni harruar fjalëkalimin?
 DocType: System Settings,yyyy-mm-dd,yyyy-mm-dd
 apps/frappe/frappe/desk/report/todo/todo.py,ID,ID
@@ -1277,6 +1293,7 @@ apps/frappe/frappe/core/doctype/version/version_view.html,Table Field,Tabela Fie
 apps/frappe/frappe/public/js/frappe/views/kanban/kanban_view.js,Columns based on,Columns bazuar në
 apps/frappe/frappe/core/doctype/data_import_beta/data_import_beta.js,"Importing {0} of {1}, {2}","Importimi {0} nga {1}, {2}"
 DocType: Workflow State,move,veprim
+apps/frappe/frappe/event_streaming/doctype/event_producer/event_producer.py,Failed to create an Event Consumer or an Event Consumer for the current site is already registered.,Nuk arriti të krijojë një Konsumator të Ngjarjes ose një Konsumator të Ngjarjeve për sitin aktual është regjistruar tashmë.
 apps/frappe/frappe/model/document.py,Action Failed,Veprimi dështoi
 apps/frappe/frappe/core/doctype/user_permission/user_permission_list.js,For User,për anëtarët e
 DocType: View Log,View log,Shikoni log
@@ -1437,6 +1454,7 @@ DocType: DefaultValue,Key,Kyç
 DocType: Address,Contacts,Kontaktet
 DocType: System Settings,Setup Complete,Setup Complete
 apps/frappe/frappe/config/users_and_permissions.py,Report of all document shares,Raporti i të gjitha aksioneve dokument
+DocType: Event Consumer,Callback URL,URL e kthimit të thirrjeve
 apps/frappe/frappe/core/doctype/data_import/importer_new.py,"Import template should be of type .csv, .xlsx or .xls","Modeli i importit duhet të jetë i llojit .csv, .xlsx ose .xls"
 apps/frappe/frappe/www/update-password.html,New Password,New Fjalëkalimi
 apps/frappe/frappe/public/js/frappe/ui/filters/filters.js,Filter {0} missing,Filter {0} zhdukur
@@ -1503,7 +1521,7 @@ apps/frappe/frappe/www/update-password.html,Success! You are good to go 👍,Suk
 apps/frappe/frappe/desk/doctype/bulk_update/bulk_update.py,; not allowed in condition,; nuk lejohet në gjendje
 DocType: Async Task,Async Task,Asinkron Task
 DocType: Workflow State,picture,foto
-apps/frappe/frappe/public/js/frappe/ui/onboarding_dialog.js,Complete,I plotë
+DocType: Scheduled Job Log,Complete,I plotë
 DocType: DocType,Image Field,Image Field
 DocType: Print Format,Custom HTML Help,Custom HTML Ndihmë
 DocType: LDAP Settings,Default Role on Creation,Roli i paracaktuar në krijim
@@ -1528,6 +1546,7 @@ apps/frappe/frappe/core/doctype/data_import_beta/data_import_beta.js,Go to {0} L
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js,Help on Search,Të ndihmojë në Kërko
 DocType: Milestone,Milestone Tracker,Gjurmues i Milestoneve
 apps/frappe/frappe/core/doctype/user/user.py,Registered but disabled,Regjistruar por me aftësi të kufizuara
+apps/frappe/frappe/contacts/doctype/address/address.py,Address needs to be linked to a Company. Please add a row for Company in the Links table below.,Adresa duhet të lidhet me një kompani. Ju lutemi shtoni një rresht për kompaninë në tabelën e Lidhjeve më poshtë.
 apps/frappe/frappe/templates/emails/auto_repeat_fail.html,The Auto Repeat for this document has been disabled.,Përsëritja automatike për këtë dokument është çaktivizuar.
 DocType: DocType,Hide Copy,Fshih Copy
 apps/frappe/frappe/public/js/frappe/roles_editor.js,Clear all roles,Qartë të gjitha rolet
@@ -1570,7 +1589,6 @@ DocType: Data Migration Run,Total Pages,Totali i faqeve
 DocType: DocField,Attach Image,Bashkangjit Image
 DocType: Workflow State,list-alt,list-alt
 apps/frappe/frappe/www/update-password.html,Password Updated,Fjalëkalimi Përditësuar
-apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Setup &gt; User Permissions,Setup&gt; Lejet e Përdoruesit
 apps/frappe/frappe/www/qrcode.html,Steps to verify your login,Hapat për të verifikuar hyrjen tënde
 apps/frappe/frappe/utils/password.py,Password not found,Password nuk u gjet
 DocType: Webhook,Webhook Secret,Sekreti i faqes në internet
@@ -1585,8 +1603,6 @@ DocType: Website Settings,Brand,Markë
 apps/frappe/frappe/config/integrations.py,Google API Settings.,Cilësimet e Google API.
 DocType: Report,Query Report,Query Raport
 DocType: User,Set New Password,Set fjalëkalim të ri
-apps/frappe/frappe/email/doctype/auto_email_report/auto_email_report.py,"%s is not a valid report format. Report format should \
-				one of the following %s",% S nuk është një format i vlefshëm raport. Raporti format duhet të \ një nga këto% s
 DocType: Chat Message,Chat,Bisedë
 apps/frappe/frappe/public/js/frappe/ui/toolbar/search.js,No documents found tagged with {0},Nuk u gjet asnjë dokument i etiketuar me {0}
 DocType: LDAP Group Mapping,LDAP Group Mapping,Hartimi i grupit LDAP
@@ -1620,7 +1636,6 @@ apps/frappe/frappe/public/js/frappe/ui/messages.js,Enter your password,Fusni fja
 DocType: Dropbox Settings,Dropbox Access Secret,Dropbox Qasja Sekret
 DocType: Tag Link,Document Title,Titulli i dokumentit
 apps/frappe/frappe/public/js/frappe/data_import/data_exporter.js,(Mandatory),(Detyrueshëm)
-apps/frappe/frappe/public/js/frappe/utils/pretty_date.js,&gt; {0} year(s) ago,&gt; {0} vit më parë
 DocType: Social Login Key,Social Login Provider,Ofruesi i Identifikimit Social
 apps/frappe/frappe/templates/includes/comments/comments.html,Add Another Comment,Shto Një tjetër koment
 apps/frappe/frappe/core/doctype/data_import/importer.py,No data found in the file. Please reattach the new file with data.,Nuk gjenden të dhëna në skedar. Ju lutemi ri-vendosni skedarin e ri me të dhëna.
@@ -1666,6 +1681,7 @@ DocType: Footer Item,"Select target = ""_blank"" to open in a new page.",Zgjidh 
 apps/frappe/frappe/public/js/frappe/ui/filters/filter.js,1 year,1 vit
 apps/frappe/frappe/public/js/frappe/model/model.js,Permanently delete {0}?,Përgjithmonë fshini {0}?
 apps/frappe/frappe/core/doctype/file/file.py,Same file has already been attached to the record,Same skeda është tashmë i lidhur me rekord
+DocType: Event Sync Log,Synced,synced
 apps/frappe/frappe/model/workflow.py,{0} is not a valid Workflow State. Please update your Workflow and try again.,{0} nuk është një shtet i vlefshëm i fluksit të punës. Ju lutemi update Workflow tuaj dhe provoni përsëri.
 apps/frappe/frappe/templates/emails/energy_points_summary.html,gave {0} points,dha {0} pikë
 DocType: Workflow State,wrench,pikëllim
@@ -1764,6 +1780,7 @@ apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js,Starting Frappé ...,D
 DocType: Web Form Field,Max Length,Max Length
 DocType: Print Format,Jinja,Jinja
 DocType: Workflow State,map-marker,harta-shënues
+apps/frappe/frappe/config/automation.py,The mapping configuration between two doctypes.,Konfigurimi i hartës midis dy doktrinave.
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Submit an Issue,Submit një çështje
 DocType: Event,Repeat this Event,Përsëriteni këtë ngjarje
 DocType: Address,Maintenance User,Mirëmbajtja User
@@ -1821,6 +1838,7 @@ apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,"Ce
 DocType: Newsletter,Test Email Address,Test Adresa Email
 DocType: Auto Repeat,Reference Document Type,Referenca Document Type
 DocType: ToDo,Sender,Dërgues
+DocType: Event Consumer,Incoming Change,Ndryshimi i ardhshëm
 DocType: Google Drive,Backup Folder Name,Emri i dosjes rezervë
 apps/frappe/frappe/email/doctype/notification/notification.py,Error while evaluating Notification {0}. Please fix your template.,Gabim gjatë vlerësimit të Njoftimit {0}. Ju lutemi rregulloni shabllonin tuaj.
 DocType: GSuite Settings,Google Apps Script,Google Apps Script
@@ -1881,9 +1899,10 @@ apps/frappe/frappe/public/js/frappe/form/print.js,New Print Format Name,Emri i f
 apps/frappe/frappe/templates/emails/data_deletion_approval.html,Click on the link below to approve the request,Klikoni në lidhjen më poshtë për të aprovuar kërkesën
 DocType: Workflow State,align-left,lidhur-la
 DocType: Onboarding Slide,Action Settings,Cilësimet e veprimit
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Setup &gt; User,Konfigurimi&gt; Përdoruesi
 DocType: User,Defaults,Defaults
-apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,"For comparison, use &gt;5, &lt;10 or =324. For ranges, use 5:10 (for values between 5 &amp; 10).","Për krahasim, përdorni&gt; 5, &lt;10 ose = 324. Për vargjet, përdorni 5:10 (për vlerat midis 5 dhe 10)."
 DocType: Energy Point Log,Revert Of,Kthehu
+DocType: Document Type Mapping,Field Mapping,Hartimi në terren
 apps/frappe/frappe/public/js/frappe/model/model.js,Merge with existing,Përziej me ekzistuese
 DocType: User,Birth Date,Data e lindjes
 DocType: Communication Link,Link Title,Link Titulli
@@ -1911,6 +1930,7 @@ apps/frappe/frappe/templates/pages/integrations/gcalendar-success.html,Your conn
 DocType: Tag Link,Tag Link,Lidhje Tag
 apps/frappe/frappe/core/report/transaction_log_report/transaction_log_report.py,Chain Integrity,Integriteti i Zinxhirit
 DocType: Data Export,CSV,CSV
+DocType: Event Consumer,In Test,Në Test
 DocType: Currency,"1 Currency = [?] Fraction
 For e.g. 1 USD = 100 Cent",1 Valute = [?] Nenfish per p.sh. 1 USD = 100 Cent
 DocType: Data Import,Partially Successful,Pjesërisht i suksesshëm
@@ -1920,6 +1940,7 @@ apps/frappe/frappe/public/js/frappe/form/link_selector.js,You can use wildcard %
 DocType: LDAP Settings,LDAP Group Mappings,Pamjet e Grupit LDAP
 DocType: Chat Message Attachment,Chat Message Attachment,Mesazhi i mesazhit të bisedës
 DocType: LDAP Settings,Path to CA Certs File,Shtegu te Dosja e Certifikatave të CA
+DocType: Event Producer Document Type,If the document has different field names on the Producer and Consumer's end check this and set up the Mapping,"Nëse dokumenti ka emra të ndryshëm të fushës në fund të Prodhuesit dhe Konsumatorit, kontrolloni këtë dhe vendosni Harta"
 DocType: Address,Manipur,Manipur
 DocType: Web Form Field,Allow Read On All Link Options,Lejo leximin e të gjitha opsioneve të lidhjes
 DocType: DocType,Database Engine,Baza e të dhënave Engine
@@ -2053,6 +2074,7 @@ apps/frappe/frappe/public/js/frappe/views/file/file_view.js,Folder name should n
 DocType: Note,Note,Shënim
 apps/frappe/frappe/core/doctype/error_snapshot/error_snapshot.html,Error Report,Gabim Raport
 apps/frappe/frappe/config/settings.py,Export Data in CSV / Excel format.,Të dhënat e eksportit në formatin CSV / Excel.
+DocType: Document Type Field Mapping,Document Type Field Mapping,Hartimi në terren i llojit të dokumentit
 apps/frappe/frappe/desk/doctype/global_search_settings/global_search_settings.py,Setting up Global Search documents.,Vendosja e dokumenteve të Kërkimit Global.
 apps/frappe/frappe/www/qrcode.html,Authentication Apps you can use are: ,Aplikacionet e autentifikimit që mund të përdorni janë:
 apps/frappe/frappe/public/js/frappe/form/controls/data.js,{0} already exists. Select another name,{0} tashmë ekziston. Zgjidh një emër tjetër
@@ -2127,7 +2149,6 @@ DocType: Workflow State,Upload,Ngarko
 DocType: User Permission,Advanced Control,Kontroll i avancuar
 DocType: System Settings,Date Format,Data Format
 apps/frappe/frappe/website/doctype/blog_post/blog_post_list.js,Not Published,Jo Publikuar
-apps/frappe/frappe/contacts/doctype/address/address.py,No default Address Template found. Please create a new one from Setup &gt; Printing and Branding &gt; Address Template.,Nuk u gjet asnjë shabllon i adresës së paracaktuar. Ju lutemi krijoni një të re nga Setup&gt; Printimi dhe Markimi&gt; Modeli i Adresave.
 apps/frappe/frappe/config/settings.py,"Actions for workflow (e.g. Approve, Cancel).","Veprimet për workflow (p.sh. miratojë, Cancel)."
 DocType: Data Import,Skip rows with errors,Kalo rreshta me gabime
 DocType: Workflow State,flag,flamur
@@ -2189,6 +2210,7 @@ apps/frappe/frappe/core/doctype/error_snapshot/error_snapshot_list.js,First Leve
 DocType: Workflow Document State,Represents the states allowed in one document and role assigned to change the state.,Përfaqëson shtetet të lejuara në një dokument dhe rolin e caktuar për të ndryshuar gjendjen.
 DocType: Data Migration Connector,Database Name,Emri i bazës së të dhënave
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js,Refresh Form,Refresh Form
+DocType: Event Producer,Event Producer,Prodhuesi i ngjarjeve
 DocType: DocField,Select,Përzgjedh
 apps/frappe/frappe/public/js/frappe/ui/notifications/notifications.js,View Full Log,Shikoni Regjistrin e plotë
 DocType: Assignment Rule,"Simple Python Expression, Example: status == 'Open' and type == 'Bug'","Shprehje e thjeshtë e Pythonit, Shembull: statusi == &#39;Hapni&#39; dhe shkruani == &#39;Bug&#39;"
@@ -2302,6 +2324,7 @@ DocType: GSuite Settings,Google Credentials,Kredenciale të Google
 apps/frappe/frappe/www/qrcode.html,QR Code for Login Verification,QR Kodi për Verifikimin e Identifikimit
 apps/frappe/frappe/public/js/frappe/form/sidebar/assign_to.js,Add to To Do,Add to duhet të bëni
 DocType: Footer Item,Company,Kompani
+apps/frappe/frappe/model/workflow.py,Successful Transactions,Transaksione të suksesshme
 DocType: Scheduled Job Log,Scheduled,Planifikuar
 DocType: User,Logout from all devices while changing Password,Dilni nga të gjitha pajisjet duke ndryshuar Fjalëkalimin
 apps/frappe/frappe/public/js/frappe/ui/messages.js,Verify Password,Verifikoni fjalëkalimin
@@ -2412,6 +2435,7 @@ apps/frappe/frappe/public/js/frappe/views/gantt/gantt_view.js,Month,Muaj
 DocType: Email Account,ProTip: Add <code>Reference: {{ reference_doctype }} {{ reference_name }}</code> to send document reference,ProTip: Shto <code>Reference: {{ reference_doctype }} {{ reference_name }}</code> për të dërguar referencë dokument
 apps/frappe/frappe/public/js/frappe/form/sidebar/review.js,Only users involved in the document are listed,Vetëm përdoruesit e përfshirë në dokument janë të listuara
 DocType: DocField,Fetch From,Fetch From
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Setup &gt; Customize Form,Setup&gt; Rregulloje formularin
 apps/frappe/frappe/modules/utils.py,App not found,App nuk u gjet
 apps/frappe/frappe/core/doctype/communication/communication.py,Cannot create a {0} against a child document: {1},nuk mund të krijojë një {0} kundër një dokument të fëmijëve: {1}
 DocType: Social Login Key,Social Login Key,Çelësi i identifikimit shoqëror
@@ -2423,7 +2447,6 @@ apps/frappe/frappe/config/desk.py,Chat messages and other notifications.,Chat me
 apps/frappe/frappe/public/js/frappe/social/Home.vue,Social Home,Shtëpi sociale
 apps/frappe/frappe/custom/doctype/custom_field/custom_field.py,Insert After cannot be set as {0},Fut Pas nuk mund të vendosen si {0}
 apps/frappe/frappe/public/js/frappe/form/sidebar/share.js,Share {0} with,Share {0} me
-apps/frappe/frappe/public/js/frappe/desk.js,Email Account setup please enter your password for: ,Email Setup Llogaria ju lutemi shkruani fjalëkalimin tuaj për:
 DocType: Workflow State,hand-up,dorë-up
 DocType: Blog Settings,Writers Introduction,Shkrimtarëve Hyrje
 DocType: Address,Phone,Telefon
@@ -2482,7 +2505,7 @@ DocType: Web Page,Insert Style,Fut Style
 DocType: Prepared Report,Error Message,Mesazh gabimi
 apps/frappe/frappe/public/js/frappe/views/reports/report_view.js,New Report name,Raporti emri i ri
 apps/frappe/frappe/public/js/frappe/views/calendar/calendar.js,Hide Weekends,Fshih fundjavat
-apps/frappe/frappe/config/settings.py,Automatically generates recurring documents.,Prodhon automatikisht dokumente të përsëritura.
+apps/frappe/frappe/config/automation.py,Automatically generates recurring documents.,Prodhon automatikisht dokumente të përsëritura.
 apps/frappe/frappe/public/js/frappe/ui/filters/filter.js,Is,Është
 DocType: Onboarding Slide,ERPNext,ERPNext
 DocType: Workflow State,info-sign,info-shenjë
@@ -2490,7 +2513,6 @@ apps/frappe/frappe/model/base_document.py,Value for {0} cannot be a list,Vlera p
 DocType: Currency,"How should this currency be formatted? If not set, will use system defaults","Si duhet të jetë i formatuar këtë monedhë? Nëse nuk është caktuar, do të përdorë standarte të sistemit"
 apps/frappe/frappe/public/js/frappe/list/list_view.js,Submit {0} documents?,Dërgoni {0} dokumente?
 apps/frappe/frappe/utils/response.py,You need to be logged in and have System Manager Role to be able to access backups.,Ju duhet të keni hyrë brenda dhe kanë Sistemit Menaxher rol për të të jetë në gjendje për të hyrë në backups.
-apps/frappe/frappe/public/js/frappe/form/print.js,"Error connecting to QZ Tray Application...<br><br> You need to have QZ Tray application installed and running, to use the Raw Print feature.<br><br><a href=""https://qz.io/download/"" target=""_blank"">Click here to Download and install QZ Tray</a>.<br> <a href=""https://erpnext.com/docs/user/manual/en/setting-up/print/raw-printing"" target=""_blank"">Click here to learn more about Raw Printing</a>.","Gabim në lidhjen me aplikacionin e tabaka QZ ... <br><br> Ju duhet të keni të instaluar dhe ekzekutuar aplikacionin QZ Tray, për të përdorur veçorinë Raw Print. <br><br> <a href=""https://qz.io/download/"" target=""_blank"">Klikoni këtu për të Shkarkuar dhe instaluar QZ Tray</a> . <br> <a href=""https://erpnext.com/docs/user/manual/en/setting-up/print/raw-printing"" target=""_blank"">Klikoni këtu për të mësuar më shumë rreth Printimit të Lartë</a> ."
 apps/frappe/frappe/public/js/frappe/form/print.js,Printer Mapping,Hartimi i Printerit
 apps/frappe/frappe/public/js/frappe/form/form.js,Please save before attaching.,Ju lutem kurseni para bashkëngjitur.
 apps/frappe/frappe/public/js/frappe/form/form.js,Do you want to cancel all linked documents?,A doni të anuloni të gjitha dokumentet e lidhura?
@@ -2520,6 +2542,7 @@ DocType: Role Permission for Page and Report,Set Role For,Set rol për
 DocType: GCalendar Account,The name that will appear in Google Calendar,Emri që do të shfaqet në Google Calendar
 apps/frappe/frappe/chat/doctype/chat_room/chat_room.py,Direct room with {0} already exists.,Dhoma e drejtpërdrejtë me {0} tashmë ekziston.
 apps/frappe/frappe/core/doctype/user/user.js,Refreshing...,Freskuese ...
+apps/frappe/frappe/core/page/dashboard/dashboard.py,Please check the filter values set for Dashboard Chart: {},Ju lutemi kontrolloni vlerat e filtrit të përcaktuara për Tabelën e Panelit: {}
 DocType: Event,Starts on,Fillon më
 DocType: System Settings,System Settings,Parametrat e Sistemit
 DocType: GCalendar Settings,Google API Credentials,Kredencialet API të Google
@@ -2544,6 +2567,7 @@ DocType: Workflow State,ok-sign,ok-shenjë
 apps/frappe/frappe/config/settings.py,Deleted Documents,Dokumentet Deleted
 apps/frappe/frappe/public/js/frappe/form/grid.js,The CSV format is case sensitive,Formati CSV është i ndjeshëm nga rasti
 apps/frappe/frappe/desk/doctype/desktop_icon/desktop_icon.py,Desktop Icon already exists,Desktop Icon tashmë ekziston
+DocType: Event Consumer Document Type,Approval Status,Miratimi Statusi
 DocType: Onboarding Slide,Specify in what all domains should the slides show up. If nothing is specified the slide is shown in all domains by default.,"Specifikoni se në çfarë duhet të shfaqen të gjitha sferat. Nëse asgjë nuk specifikohet, rrëshqitja shfaqet në të gjitha fushat si parazgjedhje."
 apps/frappe/frappe/public/js/frappe/form/toolbar.js,Duplicate,I kopjuar
 apps/frappe/frappe/core/doctype/doctype/doctype.py,{0}: Field {1} in row {2} cannot be hidden and mandatory without default,{0}: Fusha {1} në rresht {2} nuk mund të fshihet dhe e detyrueshme pa paracaktuar
@@ -2563,6 +2587,7 @@ apps/frappe/frappe/automation/doctype/auto_repeat/auto_repeat.js,Message not set
 DocType: Help Category,Help Articles,Ndihmë Artikuj
 apps/frappe/frappe/core/doctype/data_export/exporter.py,Type:,Lloji:
 apps/frappe/frappe/templates/pages/integrations/payment-failed.html,Your payment has failed.,pagesa juaj ka dështuar.
+DocType: Event Producer,Producer URL,URL e prodhuesit
 DocType: Comment,Unshared,i pandarë
 DocType: Address,Karnataka,Karnataka
 apps/frappe/frappe/desk/moduleview.py,Module Not Found,Moduli Not Found
@@ -2574,6 +2599,7 @@ apps/frappe/frappe/core/doctype/docshare/docshare.py,"You need to have ""Share""
 DocType: Comment,Assignment Completed,Caktimi Kompletuar
 apps/frappe/frappe/public/js/frappe/form/grid.js,Bulk Edit {0},Bulk Ndrysho {0}
 apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,Download Report,Shkarko Raportin
+apps/frappe/frappe/model/workflow.py,Workflow Status,Statusi i rrjedhës së punës
 apps/frappe/frappe/workflow/doctype/workflow/workflow_list.js,Not active,Jo aktiv
 apps/frappe/frappe/desk/doctype/dashboard_chart_source/dashboard_chart_source.py,Only Administrator is allowed to create Dashboard Chart Sources,Vetëm Administratori lejohet të krijojë Burimet e Grafikut të Panelit
 DocType: About Us Settings,Settings for the About Us Page,Cilësimet për ne në lidhje me Page
@@ -2582,6 +2608,7 @@ apps/frappe/frappe/config/integrations.py,Stripe payment gateway settings,Shirit
 apps/frappe/frappe/public/js/frappe/form/print.js,Print Sent to the printer!,Printoni Dërguar në printer!
 DocType: Notification Settings,Energy Points,Pikat e energjisë
 DocType: Email Account,e.g. pop.gmail.com / imap.gmail.com,p.sh. pop.gmail.com / imap.gmail.com
+apps/frappe/frappe/automation/doctype/auto_repeat/auto_repeat.py,"{0}: Failed to attach new recurring document. To enable attaching document in the auto repeat notification email, enable {1} in Print Settings","{0}: Nuk arriti të bashkëngjitni një dokument të ri përsëritës. Për të mundësuar bashkëngjitjen e dokumentit në emailin e njoftimit për përsëritje automatike, aktivizoni {1} në Cilësimet Print"
 DocType: User,Generate Keys,Krijo çelësat
 apps/frappe/frappe/templates/emails/delete_data_confirmation.html,This will permanently remove your data.,Kjo do të heqë përgjithmonë të dhënat tuaja.
 DocType: DocType,View Settings,Shiko Cilësimet
@@ -2632,6 +2659,7 @@ DocType: User Social Login,User Social Login,Identifikimi i përdoruesit
 DocType: Contact,All,Të gjithë
 DocType: Email Queue,Recipient,Marrës
 DocType: Webhook,Webhook Security,Siguria e faqes në internet
+DocType: Event Sync Log,Producer Document Name,Emri i Dokumentit të Prodhuesit
 DocType: Communication,Has  Attachment,ka Attachment
 DocType: Address,Sales User,Sales i përdoruesit
 apps/frappe/frappe/config/settings.py,Drag and Drop tool to build and customize Print Formats.,Drag and Drop mjet për ndërtimin dhe përshtatjen e formate të shtypura.
@@ -2665,6 +2693,7 @@ DocType: Address,Arunachal Pradesh,Arunachal Pradesh
 DocType: DocType,Child Tables are shown as a Grid in other DocTypes,Tabelat e fëmijëve tregohen si Rrjet në Dokumentet e tjera
 apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,Setup Auto Email,Setup Auto Email
 apps/frappe/frappe/public/js/frappe/form/grid_row_form.js,Ctrl + Down,Ctrl + Poshte
+apps/frappe/frappe/config/automation.py,The site you want to subscribe to for consuming events.,Faqja në të cilën dëshironi të abonoheni për konsumimin e ngjarjeve.
 DocType: Chat Profile,Message Preview,Pamja e mesazhit
 apps/frappe/frappe/utils/password_strength.py,This is a top-10 common password.,Kjo është një fjalëkalim top-10 të përbashkët.
 DocType: User,User Defaults,Defaults User
@@ -2697,6 +2726,7 @@ DocType: Dashboard Chart,Last Synced On,E fundit e Sinkronizuar
 DocType: Comment,Comment Type,Koment Type
 DocType: OAuth Client,OAuth Client,OAuth Client
 DocType: Assignment Rule,Users,Përdoruesit
+DocType: Document Type Mapping,Local Document Type,Lloji i dokumentit lokal
 DocType: Address,Odisha,Odisha
 DocType: Report,Report Type,Raporti Type
 DocType: DocField,Signature,Nënshkrim
@@ -2737,6 +2767,7 @@ apps/frappe/frappe/templates/emails/administrator_logged_in.html,"Dear System Ma
 apps/frappe/frappe/desk/doctype/todo/todo.py,{0} self assigned this task: {1},{0} vetë e caktoi këtë detyrë: {1}
 apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js,Your Country,Vendi juaj
 DocType: Assignment Rule Day,Sunday,E diel
+apps/frappe/frappe/config/automation.py,"Maintains a Log of all inserts, updates and deletions on Event Producer site for documents that have consumers.","Mban një regjistër të të gjitha futjeve, azhurnimeve dhe fshirjeve në faqen e Prodhuesit të Ngjarjeve për dokumentet që kanë konsumatorët."
 apps/frappe/frappe/templates/emails/energy_points_summary.html,Standings,Renditja
 apps/frappe/frappe/core/doctype/doctype/doctype.js,In Grid View,In Grid View
 apps/frappe/frappe/desk/page/user_profile/user_profile.js,No More Activity,Nuk ka më aktivitet
@@ -2879,7 +2910,6 @@ DocType: Web Page,Sidebar and Comments,Sidebar dhe Komente
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,"When you Amend a document after Cancel and save it, it will get a new number that is a version of the old number.","Kur ju të ndryshojë një dokument pasi Cancel dhe për të shpëtuar atë, ajo do të merrni një numër të ri që është një version i numrit të vjetër."
 apps/frappe/frappe/email/doctype/notification/notification.py,"Not allowed to attach {0} document,
 				please enable Allow Print For {0} in Print Settings","Nuk lejohet të bashkëngjitni dokumentin {0}, ju lutemi, aktivizoni Lejo Printimin Për {0} në Cilësimet e Printimit"
-apps/frappe/frappe/email/smtp.py,Email Account not setup. Please create a new Email Account from Setup &gt; Email &gt; Email Account,Llogaria e postës elektronike nuk është konfiguruar. Ju lutemi krijoni një llogari të re Email nga Konfigurimi&gt; Email&gt; Llogaria e postës elektronike
 apps/frappe/frappe/integrations/doctype/slack_webhook_url/slack_webhook_url.py,See the document at {0},Shikoni dokumentin në {0}
 DocType: Stripe Settings,Publishable Key,Key publikueshme
 apps/frappe/frappe/core/doctype/data_import/data_import.js,Start Import,Filloni Importin
@@ -2954,7 +2984,6 @@ apps/frappe/frappe/core/doctype/data_export/exporter.py,Info:,Info:
 DocType: Custom Field,Permission Level,Niveli leje
 apps/frappe/frappe/core/doctype/doctype/doctype.py,"{0}: Cannot set Submit, Cancel, Amend without Write","{0}: Nuk mund të vënë Submit, Cancel Ndreqni pa Shkruani"
 DocType: List View Setting,Disable Count,Disaktivizo numërimin
-DocType: Google Maps Settings,Client Key,Klienti Çelësi
 apps/frappe/frappe/public/js/frappe/form/sidebar/attachments.js,Are you sure you want to delete the attachment?,A jeni i sigurt se doni të fshini shtojcën?
 apps/frappe/frappe/__init__.py,Thank you,Faleminderit
 apps/frappe/frappe/public/js/frappe/form/save.js,Saving,Kursim
@@ -3078,6 +3107,7 @@ DocType: Workflow Document State,Only Allow Edit For,Vetëm Lejo Edit për
 apps/frappe/frappe/integrations/doctype/google_drive/google_drive.js,Backing up to Google Drive.,Rikthim në Google Drive.
 apps/frappe/frappe/core/doctype/role_permission_for_page_and_report/role_permission_for_page_and_report.js,Mandatory field: {0},fushë detyrueshme: {0}
 apps/frappe/frappe/templates/includes/comments/comments.html,Your Name,Emri juaj
+DocType: Event Producer Document Type,Event Producer Document Type,Lloji i dokumentit të prodhuesit të ngjarjeve
 apps/frappe/frappe/templates/pages/integrations/gcalendar-success.html,Connection Success,Suksesi i Lidhjes
 DocType: DocType,InnoDB,InnoDB
 apps/frappe/frappe/desk/doctype/onboarding_slide/onboarding_slide.py,An Onboarding Slide of Slide Type Continue already exists.,Një rrëshqitje në bord e llojit të rrëshqitjes Vazhdoni tashmë ekziston.
@@ -3147,6 +3177,7 @@ DocType: Address,Postal Code,Kodi Postar
 apps/frappe/frappe/core/doctype/communication/communication.js,Relink Communication,Komunikimi relink
 DocType: Translation,Contributed,kontribuar
 apps/frappe/frappe/config/customization.py,Form Customization,Përshtatja e formës
+DocType: Event Update Log,Event Update Log,Log-azhurnimi i ngjarjeve
 apps/frappe/frappe/www/third_party_apps.html,No Active Sessions,Nuk ka Sesione Aktive
 DocType: Web Form,Route to Success Link,Rruga drejt suksesit Link
 DocType: Onboarding Slide Field,Right,E drejtë
@@ -3172,7 +3203,7 @@ DocType: Website Settings,Chat Operators,Operatorët Chat
 DocType: S3 Backup Settings,ca-central-1,Ca-qendror-1
 DocType: Contact Us Settings,Pincode,Pincode
 apps/frappe/frappe/core/doctype/data_import/importer.py,Please make sure that there are no empty columns in the file.,Ju lutem sigurohuni që nuk ka kolona bosh në dosjen.
-apps/frappe/frappe/config/settings.py,Tracks milestones on the lifecycle of a document if it undergoes multiple stages.,Gjurmon piketa në ciklin e jetës së një dokumenti nëse ai kalon në faza të shumta.
+apps/frappe/frappe/config/automation.py,Tracks milestones on the lifecycle of a document if it undergoes multiple stages.,Gjurmon piketa në ciklin e jetës së një dokumenti nëse ai kalon në faza të shumta.
 apps/frappe/frappe/core/doctype/doctype/doctype.py,"Renamed files and replaced code in controllers, please check!","Skedarët e riemërtuar dhe kodin e zëvendësuar në kontrollorët, ju lutemi kontrolloni!"
 apps/frappe/frappe/utils/oauth.py,Please ensure that your profile has an email address,Ju lutemi të siguruar që profili juaj ka një adresë e-mail
 apps/frappe/frappe/public/js/frappe/model/create_new.js,You have unsaved changes in this form. Please save before you continue.,Ju keni ndryshime të paruajtura në këtë formë. Ju lutem kurseni para se të vazhdoni.
@@ -3197,7 +3228,6 @@ apps/frappe/frappe/utils/response.py,You don't have permission to access this fi
 apps/frappe/frappe/core/doctype/user/user.js,Save API Secret: ,Save Secret API:
 apps/frappe/frappe/model/document.py,Cannot link cancelled document: {0},Nuk mund të lidhni dokumentin anuluar: {0}
 apps/frappe/frappe/core/doctype/report/report.py,Cannot edit a standard report. Please duplicate and create a new report,Nuk mund të modifikoni një raport standarde. Ju lutemi të kopjuar dhe për të krijuar një raport të ri
-apps/frappe/frappe/contacts/doctype/address/address.py,"Company is mandatory, as it is your company address","Kompania është e detyrueshme, pasi ajo është adresa kompania juaj"
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js,"For example: If you want to include the document ID, use {0}","Për shembull: Nëse ju doni të përfshijë ID dokument, përdorni {0}"
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js,Select Table Columns for {0},Zgjidhni Tabela Kolumne për {0}
 DocType: Custom Field,Options Help,Options Ndihmë
@@ -3205,7 +3235,6 @@ DocType: Footer Item,Group Label,Grupi Label
 DocType: Kanban Board,Kanban Board,kanban Board
 apps/frappe/frappe/integrations/doctype/google_contacts/google_contacts.py,Google Contacts has been configured.,Kontaktet e Google janë konfiguruar.
 apps/frappe/frappe/public/js/frappe/data_import/data_exporter.js,1 record will be exported,1 rekord do të eksportohet
-apps/frappe/frappe/public/js/frappe/views/inbox/inbox_view.js,No email account associated with the User. Please add an account under User &gt; Email Inbox.,Asnjë llogari emaili e lidhur me Përdoruesin. Ju lutemi shtoni një llogari nën Përdoruesin&gt; Kutia e postës elektronike.
 DocType: DocField,Report Hide,Raporti Hide
 apps/frappe/frappe/public/js/frappe/views/treeview.js,Tree view not available for {0},view Tree nuk është në dispozicion për {0}
 DocType: DocType,Restrict To Domain,Kufizo në domenin
@@ -3268,7 +3297,9 @@ DocType: DocField,Fold,Dele
 apps/frappe/frappe/printing/doctype/print_format/print_format.py,Standard Print Format cannot be updated,Standard Format Print nuk mund të rifreskohet
 DocType: System Settings,In Days,Në ditë
 apps/frappe/frappe/desk/page/setup_wizard/install_fixtures.py,Miss,humbas
+DocType: Event Producer Document Type,Has Mapping,Ka hartografinë
 apps/frappe/frappe/public/js/frappe/model/model.js,Please specify,Ju lutem specifikoni
+apps/frappe/frappe/core/page/dashboard/dashboard.py,Invalid Filter Value,Vlera e pavlefshme e filtrit
 DocType: Comment,Bot,bot
 DocType: Help Article,Help Article,Ndihmë Neni
 DocType: Page,Page Name,Faqe
@@ -3374,7 +3405,7 @@ apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,"Pe
 DocType: Auto Repeat,Print Format,Format Print
 apps/frappe/frappe/public/js/frappe/views/file/file_view.js,Toggle Grid View,Ndrysho Pamjen e Rrjetit
 apps/frappe/frappe/public/js/frappe/form/form.js,Go to next record,Shko te rekordi tjetër
-DocType: System Settings,Time Format,Formati i kohës
+DocType: Country,Time Format,Formati i kohës
 apps/frappe/frappe/integrations/doctype/paypal_settings/paypal_settings.py,Invalid payment gateway credentials,Pavlefshme kredencialet e pagesës portë
 DocType: Data Import,This is the template file generated with only the rows having some error. You should use this file for correction and import.,Ky është skedari i skedarit i gjeneruar vetëm me rreshta që kanë ndonjë gabim. Ju duhet ta përdorni këtë skedar për korrigjim dhe importim.
 apps/frappe/frappe/config/users_and_permissions.py,Set Permissions on Document Types and Roles,Drejtat vendosur në llojet e dokumenteve dhe Rolet
@@ -3684,6 +3715,7 @@ DocType: Webhook,on_update_after_submit,on_update_after_submit
 DocType: System Settings,Allow Login using User Name,Lejo hyrjen duke përdorur emrin e përdoruesit
 apps/frappe/frappe/core/doctype/report/report.js,Enable Report,Aktivizo Raportin
 DocType: DocField,Display Depends On,Display varet
+apps/frappe/frappe/public/js/frappe/utils/pretty_date.js,&gt; {0} year(s) ago,&gt; {0} vit më parë
 DocType: Social Login Key,API Endpoint,API Endpoint
 DocType: Web Page,Insert Code,Fut Kodi
 DocType: Data Migration Run,Current Mapping Type,Lloji aktual i hartës
@@ -3736,6 +3768,8 @@ apps/frappe/frappe/email/doctype/newsletter/newsletter.py,Confirm Your Email,Kon
 apps/frappe/frappe/www/login.html,Or login with,Ose kyçuni me
 DocType: Error Snapshot,Locals,Vendorët
 apps/frappe/frappe/desk/page/activity/activity_row.html,Communicated via {0} on {1}: {2},Komunikohet nëpërmjet {0} në {1}: {2}
+DocType: Event Producer,Event Producer Document Types,Llojet e dokumenteve të prodhuesit të ngjarjeve
+apps/frappe/frappe/email/smtp.py,Please setup default Email Account from Setup &gt; Email &gt; Email Account,Ju lutemi konfiguroni llogarinë e paracaktuar të postës elektronike nga Konfigurimi&gt; Email&gt; Llogaria e postës elektronike
 apps/frappe/frappe/public/js/frappe/ui/group_by/group_by.html,Select Group By...,Zgjidh Grupin Nga ...
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js,e.g. (55 + 434) / 4 or =Math.sin(Math.PI/2)...,p.sh. (55 + 434) / 4 ose = Math.sin (Math.PI / 2) ...
 apps/frappe/frappe/utils/csvutils.py,{0} is required,{0} është e nevojshme
@@ -3767,9 +3801,11 @@ apps/frappe/frappe/email/doctype/newsletter/newsletter.py,Newsletter should have
 DocType: Deleted Document,GCalendar Sync ID,GCalendar Sync ID
 DocType: Prepared Report,Report Start Time,Raporti i fillimit të kohës
 apps/frappe/frappe/public/js/frappe/data_import/data_exporter.js,Export Data,Të dhënat e eksportit
+apps/frappe/frappe/config/automation.py,Maintains a log of every event consumed along with the status of the sync and a Resync button in case sync fails.,Mban një regjistër të çdo ngjarje të konsumuar së bashku me statusin e sinkronizimit dhe një buton Resync në rast se sinkronizimi dështon.
 apps/frappe/frappe/core/doctype/data_import/data_import.js,Select Columns,Zgjidhni Kolumne
 DocType: Translation,Source Text,burimi Text
 apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,This is a background report. Please set the appropriate filters and then generate a new one.,Ky është një raport sfond. Ju lutemi vendosni filtrat e duhur dhe më pas gjeneroni një të ri.
+apps/frappe/frappe/email/smtp.py,Email Account not setup. Please create a new Email Account from Setup &gt; Email &gt; Email Account,Llogaria e postës elektronike nuk është konfiguruar. Ju lutemi krijoni një llogari të re Email nga Konfigurimi&gt; Email&gt; Llogaria e postës elektronike
 apps/frappe/frappe/www/login.py,Missing parameters for login,Parametrat mungon për hyrje me emrin përkatës
 DocType: Workflow State,folder-open,folder-hapur
 DocType: DocType,"Once submitted, submittable documents cannot be changed. They can only be Cancelled and Amended.","Pasi të paraqiten, dokumentet e paraqitura nuk mund të ndryshohen. Ato mund të anulohen dhe ndryshohen."
@@ -3848,6 +3884,7 @@ DocType: Blog Post,Published On,Publikuar On
 DocType: Contact,Gender,Gjini
 apps/frappe/frappe/website/doctype/web_form/web_form.py,Mandatory Information missing:,Detyrueshme Informacione të humbur:
 apps/frappe/frappe/social/doctype/energy_point_log/energy_point_log.py,{0} reverted your points on {1},{0} riktheu pikët tuaja në {1}
+DocType: Event Consumer,Event Subscriber,Pajtimtar i ngjarjes
 apps/frappe/frappe/integrations/doctype/webhook/webhook.py,Check Request URL,Kontrolloni URL-në e Kërkesës
 apps/frappe/frappe/client.py,Only 200 inserts allowed in one request,Vetëm 200 fut lejohet në një kërkesë
 DocType: Footer Item,URL,URL
@@ -3860,6 +3897,7 @@ DocType: Auto Email Report,Half Yearly,Gjysma vjetore
 DocType: Communication,Marked As Spam,Shënuar si spam
 apps/frappe/frappe/utils/file_manager.py,There is some problem with the file url: {0},Ka disa probleme me file url: {0}
 apps/frappe/frappe/public/js/frappe/list/list_sidebar.html,Tree,pemë
+DocType: Event Producer Document Type,Use Same Name,Përdorni të njëjtin emër
 apps/frappe/frappe/public/js/frappe/views/treeview.js,You are not allowed to print this report,Ju nuk jeni i lejuar për të shtypur këtë raport
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,User Permissions,Drejtat e përdoruesit
 DocType: Workflow State,warning-sign,paralajmërim-shenjë
@@ -3869,6 +3907,7 @@ DocType: Workflow State,User,Përdorues
 DocType: Website Settings,"Show title in browser window as ""Prefix - title""",Shfaq Titulli në dritare të shfletuesit si &quot;Parashtesa - Titulli&quot;
 DocType: Payment Gateway,Gateway Settings,Cilësimet e portës
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js,text in document type,Teksti në llojin e dokumentit
+DocType: Event Sync Log,Event Sync Log,Regjistri i sinkronizimit të ngjarjeve
 apps/frappe/frappe/handler.py,Logged Out,Identifikuar Out
 apps/frappe/frappe/public/js/frappe/ui/toolbar/search.js,More...,Më shumë ...
 DocType: System Settings,User can login using Email id or Mobile number,Përdoruesi mund të identifikoheni duke përdorur Email ID ose numrin e celularit
@@ -3908,12 +3947,14 @@ apps/frappe/frappe/email/doctype/email_group/email_group.py,{0} subscribers adde
 apps/frappe/frappe/public/js/frappe/ui/filters/filter.js,Not In,Jo Në
 DocType: Workflow State,star,yll
 apps/frappe/frappe/public/js/frappe/ui/toolbar/search_utils.js,Hub,Qendër
+DocType: Event Producer Document Type,If this is checked the documents will have the same name as they have on the Event Producer's site,"Nëse kontrollohet kjo, dokumentet do të kenë të njëjtin emër si ato në faqen e Prodhuesit të Ngjarjes"
 apps/frappe/frappe/public/js/frappe/ui/filters/filters.js,values separated by commas,Vlerat ndara me presje
 apps/frappe/frappe/core/doctype/doctype/doctype.py,Max width for type Currency is 100px in row {0},Max width për tip monedhe është 100px në rresht {0}
 apps/frappe/frappe/config/website.py,Content web page.,Përmbajtja web faqe.
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Add a New Role,Shto një rol të ri
 apps/frappe/frappe/website/doctype/website_route_meta/website_route_meta.js,Visit Web Page,Vizitoni faqen në internet
 apps/frappe/frappe/desk/doctype/notification_log/notification_log.py,New Assignment,Caktimi i ri
+DocType: Event Consumer Document Type,Approved,I miratuar
 DocType: Google Contacts,Last Sync On,Sinjali i fundit në
 DocType: Deleted Document,Deleted Document,Dokumenti fshihen
 apps/frappe/frappe/templates/includes/login/login.js,Oops! Something went wrong,Oops! Diçka shkoi keq
@@ -3965,7 +4006,6 @@ DocType: DocField,Unique,Unik
 apps/frappe/frappe/public/js/frappe/utils/energy_point_utils.js,{0} appreciated on {1},{0} vlerësuar në {1}
 apps/frappe/frappe/core/doctype/data_import/data_import_list.js,Partial Success,Suksesi i pjesshëm
 DocType: Email Account,Service,Shërbim
-apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Setup &gt; User,Konfigurimi&gt; Përdoruesi
 DocType: File,File Name,File Name
 apps/frappe/frappe/core/doctype/data_import/importer.py,Did not find {0} for {0} ({1}),A nuk gjeni {0} për {0} ({1})
 apps/frappe/frappe/utils/bot.py,"Oops, you are not allowed to know that","Oops, nuk ju lejohet të dinë se"
@@ -3976,11 +4016,10 @@ DocType: Calendar View,Calendar View,Shikoni kalendarin
 apps/frappe/frappe/printing/doctype/print_format/print_format.js,Edit Format,Ndrysho Format
 apps/frappe/frappe/templates/emails/new_user.html,Complete Registration,Complete Regjistrimi
 DocType: GCalendar Settings,Enable,mundësoj
-DocType: Google Maps Settings,Home Address,Adresa e shtepise
 apps/frappe/frappe/core/doctype/data_export/exporter.py,You can only upload upto 5000 records in one go. (may be less in some cases),Ju vetëm mund të ngarkoni upto 5000 të dhënat në një të shkojnë. (Mund të jetë më pak në disa raste)
 DocType: Report,"output in the form of `data = [columns, result]`","prodhimi në formën e &#39;të dhënave = [kolonave, rezultatit] `"
 apps/frappe/frappe/core/doctype/user_permission/user_permission_list.js,Applicable Document Types,Llojet e zbatueshme të dokumentit
-apps/frappe/frappe/config/settings.py,Set up rules for user assignments.,Vendosni rregulla për detyrat e përdoruesit.
+apps/frappe/frappe/config/automation.py,Set up rules for user assignments.,Vendosni rregulla për detyrat e përdoruesit.
 apps/frappe/frappe/model/document.py,Insufficient Permission for {0},Permission pamjaftueshme {0}
 apps/frappe/frappe/model/document.py,Insufficient Permission for {0},Permission pamjaftueshme {0}
 apps/frappe/frappe/public/js/frappe/views/reports/report_view.js,Report was not saved (there were errors),Raporti nuk u shpëtoi (kishte gabime)
