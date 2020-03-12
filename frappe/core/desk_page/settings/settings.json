@@ -39,8 +39,9 @@
  "docstatus": 0,
  "doctype": "Desk Page",
  "idx": 0,
+ "is_standard": 1,
  "label": "Settings",
- "modified": "2020-03-05 11:27:25.766522",
+ "modified": "2020-03-12 11:30:18.393761",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Settings",
@@ -66,5 +67,6 @@
    "link_to": "Website Settings",
    "type": "DocType"
   }
- ]
+ ],
+ "shortcuts_label": "Settings"
 }
