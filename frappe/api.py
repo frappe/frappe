@@ -35,8 +35,8 @@ def handle():
 	`/api/resource/{doctype}/{name}?run_method={method}` will run a whitelisted controller method
 	"""
 
-	validate_oauth()
-	validate_auth_via_api_keys()
+
+	validate_auth()
 
 	parts = frappe.request.path[1:].split("/",3)
 	call = doctype = name = None
@@ -143,13 +143,13 @@ def handle():
 	return build_response("json")
 
 
-def validate_oauth():
+def validate_oauth(authorization_header):
 	""" authentication using oauth """
 	from frappe.oauth import get_url_delimiter
 	form_dict = frappe.local.form_dict
-	authorization_header = frappe.get_request_header("Authorization", "").split(" ")
-	if authorization_header and authorization_header[0].lower() == "bearer":
-		from frappe.integrations.oauth2 import get_oauth_server
+	from frappe.integrations.oauth2 import get_oauth_server
+
+	try:
 		token = authorization_header[1]
 		req = frappe.request
 		parsed_url = urlparse(req.url)
@@ -166,25 +166,50 @@ def validate_oauth():
 		if valid:
 			frappe.set_user(frappe.db.get_value("OAuth Bearer Token", token, "user"))
 			frappe.local.form_dict = form_dict
+	except (IndexError,AttributeError):
+		frappe.throw(_('Invalid Bearer token, please provide a valid Access Token with prefix Bearer.'), frappe.CSRFTokenError)
 
 
-def validate_auth_via_api_keys():
+def validate_auth_via_api_keys(authorization_header):
 	"""
 	authentication using api key and api secret
 
 	set user
 	"""
 	try:
-		authorization_header = frappe.get_request_header("Authorization", "").split(" ")
+		auth_type, auth_token = authorization_header
 		authorization_source = frappe.get_request_header("Frappe-Authorization-Source")
-		if authorization_header and authorization_header[0] == 'Basic':
-			token = frappe.safe_decode(base64.b64decode(authorization_header[1])).split(":")
-			validate_api_key_secret(token[0], token[1], authorization_source)
-		elif authorization_header and authorization_header[0] == 'token':
-			token = authorization_header[1].split(":")
-			validate_api_key_secret(token[0], token[1], authorization_source)
-	except Exception as e:
-		raise e
+		if auth_type.lower() == 'basic':
+			api_key, api_secret = frappe.safe_decode(base64.b64decode(auth_token)).split(":")
+			validate_api_key_secret(api_key, api_secret, authorization_source)
+		elif auth_type.lower() == 'token':
+			api_key, api_secret = auth_token.split(":")
+			validate_api_key_secret(api_key, api_secret, authorization_source)
+	except (IndexError,AttributeError):
+		frappe.throw(_('Invalid token, please provide a valid Token with prefix Basic or Token.'),frappe.CSRFTokenError)
+
+
+def validate_auth():
+	if frappe.get_request_header("Authorization") is None:
+		return
+
+	try:
+		AUTHORIZATION_API_SUFFIX_KEYS = ['basic', 'token', 'bearer']
+		authorization_header = frappe.get_request_header("Authorization", str()).split(" ")
+		authorization_type = authorization_header[0].lower()
+	except AttributeError:
+		frappe.throw('Invalid Authorization headers.',frappe.CSRFTokenError)
+
+	if len(authorization_header) <= 1:
+		frappe.throw('Invalid Authorization headers, add a token with prefix {0}.'.format(", ".join(AUTHORIZATION_API_SUFFIX_KEYS).title()),frappe.CSRFTokenError)
+
+	if  authorization_type == "bearer":
+		validate_oauth(authorization_header)
+	elif authorization_type in AUTHORIZATION_API_SUFFIX_KEYS:
+		validate_auth_via_api_keys(authorization_header)
+	else:
+		frappe.throw('Invalid Authorization Type {0}, must be one of {1}.'.format(authorization_type,", ".join(AUTHORIZATION_API_SUFFIX_KEYS).title()),frappe.CSRFTokenError)
+
 
 
 def validate_api_key_secret(api_key, api_secret, frappe_authorization_source=None):
