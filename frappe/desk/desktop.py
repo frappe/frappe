@@ -15,6 +15,7 @@ class Workspace:
 
 	def build_cache(self):
 		self.doc = frappe.get_doc("Desk Page", self.page_name)
+		self.get_pages_to_extend()
 
 		user = frappe.get_user()
 		user.build_permissions()
@@ -26,6 +27,22 @@ class Workspace:
 		self.table_counts = build_table_count_cache()
 		self.restricted_doctypes = build_domain_restriced_doctype_cache()
 		self.restricted_pages = build_domain_restriced_page_cache()
+
+	def get_pages_to_extend(self):
+		pages = frappe.get_all("Desk Page", filters={
+			"extends": self.page_name,
+			'restrict_to_domain': ['in', frappe.get_active_domains()]
+		})
+
+		pages = [frappe.get_doc("Desk Page", page['name']) for page in pages]
+		self.extended_cards = []
+		self.extended_charts = []
+		self.extended_shortcuts = []
+
+		for page in pages:
+			self.extended_cards = self.extended_cards + page.cards
+			self.extended_charts = self.extended_charts + page.charts
+			self.extended_shortcuts = self.extended_shortcuts + page.shortcuts
 
 	def is_item_allowed(self, name, item_type):
 		item_type = item_type.lower()
@@ -59,6 +76,9 @@ class Workspace:
 
 	def get_cards(self):
 		cards = self.doc.cards + get_custom_reports_and_doctypes(self.doc.module)
+		if len(self.extended_cards):
+			cards = cards + self.extended_cards
+		print(cards)
 		default_country = frappe.db.get_default("country")
 
 		def _doctype_contains_a_record(name):
@@ -120,7 +140,10 @@ class Workspace:
 
 	def get_charts(self):
 		if frappe.has_permission("Dashboard Chart", throw=False):
-			return [chart for chart in self.doc.charts]
+			charts = self.doc.charts
+			if len(self.extended_charts):
+				charts = charts + self.extended_charts
+			return [chart for chart in charts]
 		return []
 
 	def get_shortcuts(self):
@@ -132,7 +155,11 @@ class Workspace:
 				return item.restrict_to_domain in frappe.get_active_domains()
 
 		items = []
-		for item in self.doc.shortcuts:
+		shortcuts = self.doc.shortcuts
+		if len(self.extended_shortcuts):
+			shortcuts = shortcuts + self.extended_shortcuts
+
+		for item in shortcuts:
 			new_item = item.as_dict().copy()
 			new_item['name'] = _(item.link_to)
 			if self.is_item_allowed(item.link_to, item.type) and _in_active_domains(item):
@@ -180,7 +207,10 @@ def get_desk_sidebar_items():
 	"""Get list of sidebar items for desk
 	"""
 	# don't get domain restricted pages
-	filters = {'restrict_to_domain': ['in', frappe.get_active_domains()]}
+	filters = {
+		'restrict_to_domain': ['in', frappe.get_active_domains()],
+		'extends_another_page': False
+	}
 
 	if not frappe.local.conf.developer_mode:
 		filters['developer_mode_only'] = '0'
