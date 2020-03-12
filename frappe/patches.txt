@@ -266,3 +266,5 @@ frappe.patches.v12_0.change_existing_dashboard_chart_filters
 execute:frappe.delete_doc("Test Runner")
 execute:frappe.delete_doc_if_exists('DocType', 'Google Maps Settings')
 execute:frappe.db.set_default('desktop:home_page', 'workspace')
+execute:frappe.delete_doc_if_exists('DocType', 'GSuite Settings')
+execute:frappe.delete_doc_if_exists('DocType', 'GSuite Templates')
