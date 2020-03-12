@@ -78,7 +78,6 @@ class Workspace:
 		cards = self.doc.cards + get_custom_reports_and_doctypes(self.doc.module)
 		if len(self.extended_cards):
 			cards = cards + self.extended_cards
-		print(cards)
 		default_country = frappe.db.get_default("country")
 
 		def _doctype_contains_a_record(name):
