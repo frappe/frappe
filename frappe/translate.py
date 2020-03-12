@@ -248,12 +248,12 @@ def get_user_translations(lang):
 	if out is None:
 		out = {}
 		user_translations = frappe.get_all('Translation',
-			fields=["source_name", "target_name", "context"],
+			fields=["source_text", "translated_text", "context"],
 			filters={'language': lang})
 
 		for translation in user_translations:
-			key = translation.source_name
-			value = translation.target_name
+			key = translation.source_text
+			value = translation.translated_text
 			if translation.context:
 				key+= ':' + translation.context
 			out[key] = value
@@ -510,10 +510,11 @@ def get_messages_from_file(path):
 		return []
 
 def extract_messages_from_code(code):
-	"""Extracts translatable strings from a code file
-
-	:param code: code from which translatable files are to be extracted
-	:param is_py: include messages in triple quotes e.g. `_('''message''')`"""
+	"""
+		Extracts translatable strings from a code file
+		:param code: code from which translatable files are to be extracted
+		:param is_py: include messages in triple quotes e.g. `_('''message''')`
+	"""
 	try:
 		code = frappe.as_unicode(render_include(code))
 	except (TemplateError, ImportError, InvalidIncludePath, IOError):
@@ -732,11 +733,13 @@ def update_translations_for_source(source=None, translation_dict=None):
 	translation_dict = json.loads(translation_dict)
 
 	# for existing records
-	translation_records = frappe.db.get_values('Translation', { 'source_name': source }, ['name', 'language'],  as_dict=1)
+	translation_records = frappe.db.get_values('Translation', {
+		'source_text': source
+	}, ['name', 'language'],  as_dict=1)
 	for d in translation_records:
 		if translation_dict.get(d.language, None):
 			doc = frappe.get_doc('Translation', d.name)
-			doc.target_name = translation_dict.get(d.language)
+			doc.translated_text = translation_dict.get(d.language)
 			doc.save()
 			# done with this lang value
 			translation_dict.pop(d.language)
@@ -744,24 +747,24 @@ def update_translations_for_source(source=None, translation_dict=None):
 			frappe.delete_doc('Translation', d.name)
 
 	# remaining values are to be inserted
-	for lang, target_name in iteritems(translation_dict):
+	for lang, translated_text in iteritems(translation_dict):
 		doc = frappe.new_doc('Translation')
 		doc.language = lang
-		doc.source_name = source
-		doc.target_name = target_name
+		doc.source_text = source
+		doc.translated_text = translated_text
 		doc.save()
 
 	return translation_records
 
 @frappe.whitelist()
-def get_translations(source_name):
-	if is_html(source_name):
-		source_name = strip_html_tags(source_name)
+def get_translations(source_text):
+	if is_html(source_text):
+		source_text = strip_html_tags(source_text)
 
 	return frappe.db.get_list('Translation',
-		fields = ['name', 'language', 'target_name as translation'],
+		fields = ['name', 'language', 'translated_text as translation'],
 		filters = {
-			'source_name': source_name
+			'source_text': source_text
 		}
 	)
 
@@ -769,7 +772,10 @@ def get_translations(source_name):
 def get_messages(language, start=0, page_length=100, search_text=''):
 	from frappe.frappeclient import FrappeClient
 	translator = FrappeClient(frappe.conf.translator_url)
-	return translator.post_api('translator.api.get_strings_for_translation', params=locals())
+	translated_dict = translator.post_api('translator.api.get_strings_for_translation', params=locals())
+
+	return translated_dict
+
 
 @frappe.whitelist()
 def get_source_additional_info(source, language=''):

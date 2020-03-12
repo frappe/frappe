@@ -114,7 +114,7 @@ frappe.ui.form.Control = Class.extend({
 				if (!this.doc.__islocal) {
 					new frappe.views.TranslationManager({
 						'df': this.df,
-						'source_name': value,
+						'source_text': value,
 						'target_language': this.doc.language,
 						'doc': this.doc
 					});
