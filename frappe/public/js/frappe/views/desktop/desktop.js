@@ -294,7 +294,7 @@ class DesktopPage {
 			},
 			{
 				color: "red",
-				description: __("DocType has Open Entries")
+				description: __("Has Open Entries")
 			}
 		].map(item => {
 			return `<div class="legend-item small text-muted justify-flex-start">

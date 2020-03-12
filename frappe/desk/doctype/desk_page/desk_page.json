@@ -164,7 +164,6 @@
   },
   {
    "default": "0",
-   "depends_on": "eval:doc.extends_another_page == 0",
    "fieldname": "is_standard",
    "fieldtype": "Check",
    "label": "Is Standard"
@@ -184,7 +183,7 @@
   }
  ],
  "links": [],
- "modified": "2020-03-12 15:14:51.365782",
+ "modified": "2020-03-12 16:38:16.206732",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Desk Page",
