@@ -608,7 +608,7 @@ def has_permission(doctype=None, ptype="read", doc=None, user=None, verbose=Fals
 		doctype = doc.doctype
 
 	import frappe.permissions
-	out = frappe.permissions.has_permission(doctype, ptype, doc=doc, verbose=verbose, user=user)
+	out = frappe.permissions.has_permission(doctype, ptype, doc=doc, verbose=verbose, user=user, raise_exception=throw)
 	if throw and not out:
 		if doc:
 			frappe.throw(_("No permission for {0}").format(doc.doctype + " " + doc.name))

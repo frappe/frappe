@@ -46,8 +46,7 @@ frappe.route = function() {
 
 	if(route[0]) {
 		const title_cased_route = frappe.utils.to_title_case(route[0]);
-
-		if (title_cased_route === 'Desktop') {
+		if (title_cased_route === 'Workspace') {
 			frappe.views.pageview.show('');
 		}
 
