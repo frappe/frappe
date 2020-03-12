@@ -10,8 +10,6 @@ from six import iteritems, binary_type, text_type, string_types
 from werkzeug.local import Local, release_local
 import os, sys, importlib, inspect, json
 from past.builtins import cmp
-from functools import wraps
-from time import time
 
 from faker import Faker
 
@@ -505,16 +503,6 @@ def whitelist(allow_guest=False, xss_safe=False):
 		return fn
 
 	return innerfn
-
-def timing(f):
-	@wraps(f)
-	def wrap(*args, **kw):
-		ts = time()
-		result = f(*args, **kw)
-		te = time()
-		print('TIMING: {0} > {1} took: {2:2.4f} sec'.format(f.__module__, f.__name__, te-ts))
-		return result
-	return wrap
 
 def read_only():
 	def innfn(fn):
