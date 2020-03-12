@@ -10,8 +10,8 @@ frappe.ui.form.on('Desk Page', {
 			frm.fields
 				.filter(field => field.has_input)
 				.forEach(field => {
-					frm.set_df_property(field.df.fieldname, "read_only", "1")
-				})
+					frm.set_df_property(field.df.fieldname, "read_only", "1");
+				});
 			frm.disable_save();
 		}
 	}
