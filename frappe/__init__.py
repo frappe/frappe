@@ -10,8 +10,6 @@ from six import iteritems, binary_type, text_type, string_types, PY2
 from werkzeug.local import Local, release_local
 import os, sys, importlib, inspect, json
 from past.builtins import cmp
-from functools import wraps
-from time import time
 
 from faker import Faker
 
@@ -439,7 +437,7 @@ def sendmail(recipients=[], sender="", subject="No Subject", message="No Message
 
 
 	:param recipients: List of recipients.
-	:param sender: Email sender. Default is current user.
+	:param sender: Email sender. Default is current user or default outgoing account.
 	:param subject: Email Subject.
 	:param message: (or `content`) Email Content.
 	:param as_markdown: Convert content markdown to HTML.
@@ -461,7 +459,6 @@ def sendmail(recipients=[], sender="", subject="No Subject", message="No Message
 	:param args: Arguments for rendering the template
 	:param header: Append header in email
 	"""
-
 	text_content = None
 	if template:
 		message, text_content = get_email_from_template(template, args)
@@ -514,16 +511,6 @@ def whitelist(allow_guest=False, xss_safe=False):
 
 	return innerfn
 
-def timing(f):
-	@wraps(f)
-	def wrap(*args, **kw):
-		ts = time()
-		result = f(*args, **kw)
-		te = time()
-		print('TIMING: {0} > {1} took: {2:2.4f} sec'.format(f.__module__, f.__name__, te-ts))
-		return result
-	return wrap
-
 def read_only():
 	def innfn(fn):
 		def wrapper_fn(*args, **kwargs):
@@ -556,7 +543,7 @@ def only_for(roles, message=False):
 	myroles = set(get_roles())
 	if not roles.intersection(myroles):
 		if message:
-			msgprint(_('Only for {}').format(', '.join(roles)))
+			msgprint(_('This action is only allowed for {}').format(bold(', '.join(roles))), _('Not Permitted'))
 		raise PermissionError
 
 def get_domain_data(module):
