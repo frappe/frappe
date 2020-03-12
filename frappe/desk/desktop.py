@@ -43,12 +43,12 @@ class Workspace:
 
 	def build_workspace(self):
 		self.cards = {
-			'label': self.doc.charts_label,
+			'label': self.doc.cards_label,
 			'items': self.get_cards()
 		}
 
 		self.charts = {
-			'label': self.doc.shortcuts_label,
+			'label': self.doc.charts_label,
 			'items': self.get_charts()
 		}
 
@@ -124,11 +124,18 @@ class Workspace:
 		return []
 
 	def get_shortcuts(self):
+
+		def _in_active_domains(item):
+			if not item.restrict_to_domain:
+				return True
+			else:
+				return item.restrict_to_domain in frappe.get_active_domains()
+
 		items = []
 		for item in self.doc.shortcuts:
 			new_item = item.as_dict().copy()
 			new_item['name'] = _(item.link_to)
-			if self.is_item_allowed(item.link_to, item.type):
+			if self.is_item_allowed(item.link_to, item.type) and _in_active_domains(item):
 				if item.type == "Page":
 					page = self.allowed_pages[item.link_to]
 					new_item['label'] = _(page.get("title", frappe.unscrub(item.link_to)))
