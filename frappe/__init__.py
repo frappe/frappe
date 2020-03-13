@@ -289,7 +289,7 @@ def log(msg):
 
 	debug_log.append(as_unicode(msg))
 
-def msgprint(msg, title=None, raise_exception=0, as_table=False, indicator=None, alert=False, primary_action=None):
+def msgprint(msg, title=None, raise_exception=0, as_table=False, indicator=None, alert=False, primary_action=None, is_minimizable=None):
 	"""Print a message to the user (via HTTP response).
 	Messages are sent in the `__server_messages` property in the
 	response JSON and shown in a pop-up / modal.
@@ -344,6 +344,9 @@ def msgprint(msg, title=None, raise_exception=0, as_table=False, indicator=None,
 	if indicator:
 		out.indicator = indicator
 
+	if is_minimizable:
+		out.is_minimizable = is_minimizable
+
 	if alert:
 		out.alert = 1
 
@@ -374,12 +377,12 @@ def clear_last_message():
 	if len(local.message_log) > 0:
 		local.message_log = local.message_log[:-1]
 
-def throw(msg, exc=ValidationError, title=None):
+def throw(msg, exc=ValidationError, title=None, is_minimizable=None):
 	"""Throw execption and show message (`msgprint`).
 
 	:param msg: Message.
 	:param exc: Exception class. Default `frappe.ValidationError`"""
-	msgprint(msg, raise_exception=exc, title=title, indicator='red')
+	msgprint(msg, raise_exception=exc, title=title, indicator='red', is_minimizable=is_minimizable)
 
 def emit_js(js, user=False, **kwargs):
 	if user == False:
@@ -605,7 +608,7 @@ def has_permission(doctype=None, ptype="read", doc=None, user=None, verbose=Fals
 		doctype = doc.doctype
 
 	import frappe.permissions
-	out = frappe.permissions.has_permission(doctype, ptype, doc=doc, verbose=verbose, user=user)
+	out = frappe.permissions.has_permission(doctype, ptype, doc=doc, verbose=verbose, user=user, raise_exception=throw)
 	if throw and not out:
 		if doc:
 			frappe.throw(_("No permission for {0}").format(doc.doctype + " " + doc.name))
