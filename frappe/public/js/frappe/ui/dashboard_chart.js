@@ -14,9 +14,9 @@ frappe.ui.DashboardChart = class DashboardChart {
 		this.get_settings().then(() => {
 			this.prepare_chart_object();
 			this.prepare_container();
-			this.setup_filter_button();
 
 			if (!this.options.hide_actions || this.options.hide_actions == undefined) {
+				this.setup_filter_button();
 				if (this.chart_doc.timeseries && this.chart_doc.chart_type !== 'Custom') {
 					this.render_time_series_filters();
 				}

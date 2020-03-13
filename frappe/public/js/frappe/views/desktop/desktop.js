@@ -137,10 +137,11 @@ export default class Desktop {
 	}
 
 	get_page_to_show() {
+		const default_page = this.desktop_settings ? this.desktop_settings["Modules"][0].name : "Website";
 		let page =
 			frappe.get_route()[1] ||
 			localStorage.current_desk_page ||
-			this.desktop_settings["Modules"][0].name;
+			default_page;
 		return page;
 	}
 
@@ -184,12 +185,14 @@ class DesktopPage {
 		this.make_page();
 		this.get_data().then(res => {
 			this.data = res.message;
-			this.allow_customization = this.data.allow_customization
 			// this.make_onboarding()
 			if (!this.data) {
-				delete localStorage.current_desk_page
-				frappe.set_route('workspace')
+				delete localStorage.current_desk_page;
+				frappe.set_route('workspace');
+				return;
 			}
+
+			this.allow_customization = this.data.allow_customization || false;
 
 			!this.sections["onboarding"] &&
 				this.data.charts.items.length &&
@@ -294,7 +297,7 @@ class DesktopPage {
 			},
 			{
 				color: "red",
-				description: __("DocType has Open Entries")
+				description: __("Has Open Entries")
 			}
 		].map(item => {
 			return `<div class="legend-item small text-muted justify-flex-start">
