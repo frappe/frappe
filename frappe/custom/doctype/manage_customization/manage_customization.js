@@ -28,7 +28,7 @@ frappe.ui.form.on('Manage Customization', {
 						cmd: 'frappe.custom.doctype.manage_customization.manage_customization.export_customizations',
 						data: r.message.data
 					};
-					open_url_post(frappe.request.url, args);
+					open_url_post(frappe.request.url, args, true);
 				}
 			}
 		});

@@ -52,7 +52,7 @@ def import_customizations():
 
 	for idx, doc in enumerate(content.get("message").get("data")):
 		frappe.publish_realtime("exporting_progress", dict(progress=idx, total=length, message=doc.get("doctype")), user=frappe.session.user)
-		frappe.get_doc(doc).insert(ignore_permissions=True)
+		frappe.get_doc(doc).insert(ignore_permissions=True, ignore_if_duplicate=True)
 
 def post_process(customizations):
 	del_keys = ('modified_by', 'creation', 'owner', 'idx', 'name', 'modified', 'docstatus')
