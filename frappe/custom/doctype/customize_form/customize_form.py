@@ -392,11 +392,11 @@ class CustomizeForm(Document):
 				links.append(frappe.utils.get_link_to_form(self.doc_type, doc.name))
 			links_str = ', '.join(links)
 
-		if len(docs):
-			frappe.throw(_('Value for field {0} is too long in {1}. Length should be lesser than {2} characters')
-				.format(frappe.bold(label), links_str, frappe.bold(max_length)), title='Data Too Long', is_minimizable=True)
-		else:
-			self.flags.update_db = True
+			if docs:
+				frappe.throw(_('Value for field {0} is too long in {1}. Length should be lesser than {2} characters')
+					.format(frappe.bold(label), links_str, frappe.bold(max_length)), title=_('Data Too Long'), is_minimizable=len(docs) > 1)
+
+		self.flags.update_db = True
 
 	def reset_to_defaults(self):
 		if not self.doc_type:
