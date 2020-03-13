@@ -1,0 +1,56 @@
+{
+ "actions": [],
+ "creation": "2020-03-12 14:51:09.260025",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "document_type",
+  "sb_00",
+  "filters",
+  "cb_00",
+  "or_filters"
+ ],
+ "fields": [
+  {
+   "fieldname": "document_type",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Document Type",
+   "options": "DocType",
+   "reqd": 1
+  },
+  {
+   "fieldname": "filters",
+   "fieldtype": "Code",
+   "in_list_view": 1,
+   "label": "Filters"
+  },
+  {
+   "fieldname": "or_filters",
+   "fieldtype": "Code",
+   "in_list_view": 1,
+   "label": "Or Filters"
+  },
+  {
+   "fieldname": "sb_00",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "cb_00",
+   "fieldtype": "Column Break"
+  }
+ ],
+ "istable": 1,
+ "links": [],
+ "modified": "2020-03-13 16:53:15.214275",
+ "modified_by": "Administrator",
+ "module": "Custom",
+ "name": "Customization Export",
+ "owner": "Administrator",
+ "permissions": [],
+ "quick_entry": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

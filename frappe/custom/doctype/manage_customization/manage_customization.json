@@ -1,0 +1,73 @@
+{
+ "actions": [],
+ "creation": "2020-03-01 23:21:17.394500",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "sb_00",
+  "export_customization",
+  "export",
+  "sb_01",
+  "import_customization",
+  "import"
+ ],
+ "fields": [
+  {
+   "fieldname": "export_customization",
+   "fieldtype": "Table",
+   "label": "Customizations to Export",
+   "options": "Customization Export"
+  },
+  {
+   "fieldname": "sb_00",
+   "fieldtype": "Section Break",
+   "label": "Export Customizations"
+  },
+  {
+   "fieldname": "sb_01",
+   "fieldtype": "Section Break",
+   "label": "Import Customizations"
+  },
+  {
+   "fieldname": "import_customization",
+   "fieldtype": "Attach",
+   "label": "Attach"
+  },
+  {
+   "depends_on": "export_customization",
+   "fieldname": "export",
+   "fieldtype": "Button",
+   "label": "Export"
+  },
+  {
+   "depends_on": "import_customization",
+   "fieldname": "import",
+   "fieldtype": "Button",
+   "label": "Import"
+  }
+ ],
+ "issingle": 1,
+ "links": [],
+ "modified": "2020-03-13 17:14:00.382402",
+ "modified_by": "Administrator",
+ "module": "Custom",
+ "name": "Manage Customization",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "quick_entry": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}
