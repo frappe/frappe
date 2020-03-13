@@ -33,7 +33,7 @@ pyopenssl
 ndg-httpsclient
 pyasn1
 zxcvbn-python
-unittest-xml-reporting
+unittest-xml-reporting==2.5.2;python_version<"3.0"
 oauthlib
 requests-oauthlib
 pdfkit
