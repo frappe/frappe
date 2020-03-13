@@ -19,7 +19,7 @@ export default class Desktop {
 		this.fetch_desktop_settings().then(() => {
 			this.route();
 			this.make_sidebar();
-			this.setup_events();
+			// this.setup_events();
 			// this.hide_loading_state();
 		});
 	}
@@ -153,11 +153,11 @@ export default class Desktop {
 	}
 
 	setup_events() {
-		$(document).keydown(e => {
-			if (e.keyCode == 9) {
-				console.log("navigate");
-			}
-		});
+		// $(document).keydown(e => {
+		// 	if (e.keyCode == 9) {
+		// 		console.log("navigate");
+		// 	}
+		// });
 	}
 }
 
@@ -250,7 +250,6 @@ class DesktopPage {
 	}
 
 	make_charts() {
-		console.log(this.data.charts.items)
 		this.sections["charts"] = new frappe.widget.WidgetGroup({
 			title: this.data.charts.label || `${this.page_name} Dashboard`,
 			container: this.page,
