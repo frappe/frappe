@@ -111,7 +111,7 @@ def get_permission_query_condition(user):
 	if "System Manager" in user.roles:
 		return None
 
-	reports = [ '"%s"'%report for report in user.get_all_reports().keys() ]
+	reports = [frappe.db.escape(report) for report in user.get_all_reports().keys()]
 
 	return """`tabPrepared Report`.ref_report_doctype in ({reports})"""\
 			.format(reports=','.join(reports))
