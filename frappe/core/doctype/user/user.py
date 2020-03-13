@@ -1037,7 +1037,7 @@ def update_roles(role_profile):
 def create_contact(user, ignore_links=False, ignore_mandatory=False):
 	if user.name in ["Administrator", "Guest"]: return
 
-	contact_name = frappe.db.get_value("Contact Email", {"email_id": email_id}, 'parent')
+	contact_name = frappe.db.get_value("Contact Email", {"email_id": user.email}, 'parent')
 	contact_name = frappe.db.exists("Contact", contact_name)
 	if not contact_name:
 		contact = frappe.get_doc({

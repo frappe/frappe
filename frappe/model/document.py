@@ -46,6 +46,7 @@ def get_doc(*args, **kwargs):
 		# create new object with keyword arguments
 		user = get_doc(doctype='User', email_id='test@example.com')
 	"""
+	doctype = None
 	if args:
 		if isinstance(args[0], BaseDocument):
 			# already a document
@@ -55,12 +56,12 @@ def get_doc(*args, **kwargs):
 
 		elif isinstance(args[0], dict):
 			# passed a dict
-			kwargs = args[0]
+			kwargs.update(args[0])
 
 		else:
 			raise ValueError('First non keyword argument must be a string or dict')
 
-	if kwargs:
+	if kwargs and not doctype:
 		if 'doctype' in kwargs:
 			doctype = kwargs['doctype']
 		else:
@@ -108,7 +109,7 @@ class Document(BaseDocument):
 					# while selecting the document (used in a background job)
 					# use `SELECT FOR UPDATE` while selecting this document
 					if kwargs and 'for_update' in kwargs:
-						self.flags.for_update = for_update
+						self.flags.for_update = kwargs['for_update']
 
 			self.load_from_db()
 			return
@@ -152,7 +153,7 @@ class Document(BaseDocument):
 			self._fix_numeric_types()
 
 		else:
-			d = frappe.db.get_value(self.doctype, self.name, "*", as_dict=1, for_update=True)
+			d = frappe.db.get_value(self.doctype, self.name, "*", as_dict=1, for_update=self.flags.for_update)
 			if not d:
 				frappe.throw(_("{0} {1} not found").format(_(self.doctype), self.name), frappe.DoesNotExistError)
 
