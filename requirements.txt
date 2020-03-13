@@ -33,7 +33,7 @@ pyopenssl
 ndg-httpsclient
 pyasn1
 zxcvbn-python
-unittest-xml-reporting
+unittest-xml-reporting==2.5.2
 oauthlib
 requests-oauthlib
 pdfkit
@@ -46,7 +46,8 @@ pypng
 premailer
 croniter
 googlemaps
-braintree
+braintree==3.59.0;python_version<"3.6"
+braintree==4.0.0;python_version>="3.6"
 future
 passlib
 google-api-python-client
@@ -57,4 +58,4 @@ faker
 stripe
 coverage
 urllib3==1.23
-GitPython==2.1.11
+GitPython==2.1.15
