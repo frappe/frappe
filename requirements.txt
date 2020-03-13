@@ -33,7 +33,7 @@ pyopenssl
 ndg-httpsclient
 pyasn1
 zxcvbn-python
-unittest-xml-reporting==2.5.2;python_version<"3.0"
+unittest-xml-reporting==2.5.2
 oauthlib
 requests-oauthlib
 pdfkit
@@ -47,6 +47,7 @@ premailer
 croniter
 googlemaps
 braintree==3.59.0;python_version<"3.6"
+braintree==4.0.0;python_version>"3.6"
 future
 passlib
 google-api-python-client
