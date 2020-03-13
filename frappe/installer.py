@@ -21,12 +21,12 @@ from frappe.database import setup_database
 
 def install_db(root_login="root", root_password=None, db_name=None, source_sql=None,
 	admin_password=None, verbose=True, force=0, site_config=None, reinstall=False,
-	db_type=None):
+	db_password=None, db_type=None):
 
 	if not db_type:
 		db_type = frappe.conf.db_type or 'mariadb'
 
-	make_conf(db_name, site_config=site_config, db_type=db_type)
+	make_conf(db_name, site_config=site_config, db_password=db_password, db_type=db_type)
 	frappe.flags.in_install_db = True
 
 	frappe.flags.root_login = root_login
