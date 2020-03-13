@@ -379,9 +379,10 @@ class CustomizeForm(Document):
 			df = field.get('df')
 			max_length = frappe.db.type_map.get(df.fieldtype)[1]
 			fieldname = df.fieldname
-			docs = frappe.db.sql('''select name, {fieldname}, length({fieldname}) as len
-				from `tab{doctype}`
-				where length({fieldname}) > {max_length}
+			docs = frappe.db.sql('''
+				SELECT name, {fieldname}, LENGTH({fieldname}) AS len
+				FROM `tab{doctype}`
+				WHERE LENGTH({fieldname}) > {max_length}
 			'''.format(
 				fieldname = fieldname,
 				doctype = self.doc_type,
@@ -394,8 +395,8 @@ class CustomizeForm(Document):
 			links_str = ', '.join(links)
 
 		if len(docs):
-			frappe.throw(_('Value for field <b>{label}</b> is too long in {links_str}. Length should be lesser than <b>{max_length}</b> characters')
-				.format(label=label, max_length=max_length, links_str=links_str), title='Data Too Long')
+			frappe.throw(_('Value for field {0} is too long in {1}. Length should be lesser than {2} characters')
+				.format(frappe.bold(label), links_str, frappe.bold(max_length)), title='Data Too Long')
 		else:
 			self.flags.update_db = True
 
