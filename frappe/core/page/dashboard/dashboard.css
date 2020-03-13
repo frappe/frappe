@@ -1,46 +1,62 @@
 .chart-wrapper {
-    border: 1px solid #d1d8dd;
-    border-radius: 4px;
-    height: 320px;
-    margin: 15px 0;
-    padding-left: 15px;
-    padding-right: 15px;
+	border: 1px solid #d1d8dd;
+	border-radius: 4px;
+	margin: 15px 0;
+	padding-left: 15px;
+	padding-right: 15px;
+	height: 320px;
 }
 
 .chart-container {
-    margin-top: 30px;
+	top: 50%;
+	transform: translateY(-50%);
 }
 
 .frappe-chart > text.title {
-    margin: 0px;
-    font-size: 14px !important;
-    font-weight: bold;
+	margin: 0px;
+	font-size: 14px !important;
+	font-weight: bold;
 }
 
 .chart-loading-state, .chart-empty-state {
-    height: 100%;
-    margin-top: 160px;
-    text-align: center;
+	height: 100%;
+	margin-top: 160px;
+	text-align: center;
 }
 
 .chart-actions {
-    position: absolute;
-    right: 30px;
-    top: 26px;
+	position: relative;
+	right: 0px;
+	top: 20px;
+	margin-right: 5px;
+}
+
+.filter-chart {
+	position: relative;
+	right: 5px;
+	top: 20px;
+}
+
+.dashboard-date-field {
+	width: 14%;
+	height: 0;
+	margin-right: 10px;
+	position: relative;
+	top: 0px;
 }
 
 .chart-column-container {
-    position: relative;
+	position: relative;
 }
 
 .last-synced-text {
-    position: absolute;
-    top: 28px;
-    right: 60px;
-    font-size: 12px;
+	position: absolute;
+	top: 28px;
+	left: 50px;
+	font-size: 12px;
 }
 
 .dashboard-graph {
-    padding-top: 15px;
-    overflow: hidden;
+	padding-top: 15px;
+	overflow: hidden;
 }

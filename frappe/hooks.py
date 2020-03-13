@@ -139,7 +139,7 @@ doc_events = {
 		"on_change": [
 			"frappe.social.doctype.energy_point_rule.energy_point_rule.process_energy_points"
 		],
-		"aftet_insert": "frappe.cache_manager.build_table_count_cache",
+		"after_insert": "frappe.cache_manager.build_table_count_cache",
 	},
 	"Event": {
 		"after_insert": "frappe.integrations.doctype.google_calendar.google_calendar.insert_event_in_google_calendar",
@@ -155,6 +155,9 @@ doc_events = {
 	},
 	"Page": {
 		"after_save": "frappe.cache_manager.build_domain_restriced_page_cache",
+	},
+	"Event Update Log": {
+		"after_insert": "frappe.event_streaming.doctype.event_update_log.event_update_log.notify_consumers"
 	}
 }
 
@@ -171,7 +174,8 @@ scheduler_events = {
 		"frappe.email.doctype.email_account.email_account.pull",
 		"frappe.email.doctype.email_account.email_account.notify_unreplied",
 		"frappe.integrations.doctype.razorpay_settings.razorpay_settings.capture_payment",
-		'frappe.utils.global_search.sync_global_search'
+		'frappe.utils.global_search.sync_global_search',
+		"frappe.monitor.flush",
 	],
 	"hourly": [
 		"frappe.model.utils.link_count.update_link_count",

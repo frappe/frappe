@@ -2,7 +2,6 @@ apps/frappe/frappe/utils/change_log.py,New {} releases for the following apps ar
 apps/frappe/frappe/website/doctype/web_form/web_form.py,Please select a Amount Field.,Vă rugăm să selectați o Suma de câmp.
 apps/frappe/frappe/core/doctype/data_import_beta/data_import_beta.js,Loading import file...,Se încarcă fișierul de import ...
 DocType: Assignment Rule,Last User,Ultimul utilizator
-apps/frappe/frappe/desk/form/assign_to.py,"A new task, {0}, has been assigned to you by {1}. {2}","O nouă sarcină, {0}, v-a fost atribuită de catre {1}. {2}"
 apps/frappe/frappe/public/js/frappe/ui/toolbar/toolbar.js,Session Defaults Saved,Salvarea implicită a sesiunii
 apps/frappe/frappe/public/js/frappe/form/controls/attach.js,Reload File,Reîncărcați fișierul
 DocType: Email Queue,Email Queue records.,înregistrări de e-mail coadă.
@@ -28,6 +27,7 @@ apps/frappe/frappe/public/js/frappe/views/treeview.js,{0} Tree,{0} arbore
 DocType: User,User Emails,E-mailurile utilizator
 DocType: User,Username,Nume de utilizator
 apps/frappe/frappe/public/js/frappe/views/file/file_view.js,Import Zip,Importați zip
+DocType: Scheduled Job Type,Create Log,Creați jurnal
 apps/frappe/frappe/model/base_document.py,Value too big,Valoare prea mare
 DocType: DocField,DocField,DocField
 DocType: GSuite Settings,Run Script Test,Executați testul Script
@@ -46,7 +46,6 @@ apps/frappe/frappe/public/js/frappe/views/kanban/kanban_view.js,There was an err
 DocType: Custom DocPerm,This role update User Permissions for a user,Acest rol Permisiunile actualizare pentru utilizator unui utilizator
 apps/frappe/frappe/public/js/frappe/model/model.js,Rename {0},Redenumește {0}
 DocType: Workflow State,zoom-out,mareste
-DocType: Data Import Beta,Import Options,Opțiuni de import
 apps/frappe/frappe/public/js/frappe/form/form.js,Cannot open {0} when its instance is open,"Nu se poate deschide {0}, atunci când de exemplu sa este deschis"
 apps/frappe/frappe/model/document.py,Table {0} cannot be empty,Tabelul {0} nu poate fi gol
 DocType: SMS Parameter,Parameter,Parametru
@@ -73,7 +72,7 @@ DocType: Auto Repeat,Monthly,Lunar
 DocType: Address,Uttarakhand,Uttarakhand
 DocType: Email Account,Enable Incoming,Activați intrare
 apps/frappe/frappe/core/doctype/version/version_view.html,Danger,Pericol
-DocType: Address,Email Address,Adresa De E-Mail
+apps/frappe/frappe/www/login.py,Email Address,Adresa De E-Mail
 DocType: Workflow State,th-large,th-mare
 DocType: Communication,Unread Notification Sent,Notificare necitit Trimis
 apps/frappe/frappe/public/js/frappe/utils/tools.js,Export not allowed. You need {0} role to export.,Export nu este permisă. Ai nevoie de {0} rolul de a exporta.
@@ -88,14 +87,16 @@ apps/frappe/frappe/integrations/doctype/google_calendar/google_calendar.py,"Goog
 DocType: Event,Pulled from Google Calendar,Extras din Google Calendar
 DocType: Note,Seen By,Văzut de
 apps/frappe/frappe/public/js/frappe/form/grid.js,Add Multiple,Adăugați mai multe
-apps/frappe/frappe/social/doctype/energy_point_log/energy_point_log.py,You gained some energy points,Ai câștigat câteva puncte de energie
 apps/frappe/frappe/core/doctype/user/user.py,Not a valid User Image.,Nu este o imagine validă a utilizatorului.
 DocType: Energy Point Log,Reverted,Reluat
 DocType: Success Action,First Success Message,Primul mesaj de succes
+DocType: Document Type Mapping,Document Type Mapping,Cartografiere tip document
 apps/frappe/frappe/public/js/frappe/ui/filters/filters.js,Not Like,Nu ca
 apps/frappe/frappe/model/document.py,Incorrect value: {0} must be {1} {2},Valoare incorectă: {0} trebuie sa fie {1} {2}
 apps/frappe/frappe/config/customization.py,"Change field properties (hide, readonly, permission etc.)","Proprietățile schimbare de câmp (ascunde, readonly, permisiunea etc)"
+apps/frappe/frappe/config/automation.py,The site which is consuming your events.,Site-ul care vă consumă evenimentele.
 apps/frappe/frappe/public/js/frappe/form/sidebar/review.js,Appreciate,A aprecia
+DocType: Notification Settings,Document Share,Partajarea documentelor
 DocType: Workflow State,lock,blocare
 apps/frappe/frappe/config/website.py,Settings for Contact Us Page.,Setări pentru Contacteaza-ne.
 apps/frappe/frappe/core/doctype/user/user.py,Administrator Logged In,Administratorul a fost autentificat
@@ -109,14 +110,17 @@ apps/frappe/frappe/integrations/doctype/social_login_key/social_login_key.py,Ple
 DocType: DocType,"If enabled, the document is marked as seen, the first time a user opens it","Dacă este activat, documentul este marcat ca văzut, prima dată când un utilizator îl deschide"
 DocType: Auto Repeat,Repeat on Day,Repetați în Ziua
 DocType: DocField,Color,Culoare
+apps/frappe/frappe/public/js/frappe/ui/notifications/notifications.js,Mark all as Read,Marcheaza totul ca fiind citit
 DocType: Data Migration Run,Log,Buturuga
 DocType: Workflow State,indent-right,liniuța-dreapta
 DocType: Has Role,Has Role,are rol
+apps/frappe/frappe/event_streaming/doctype/event_sync_log/event_sync_log.js,Resync,Resincronizați
 DocType: System Settings,Time in seconds to retain QR code image on server. Min:<strong>240</strong>,Timp în secunde pentru a păstra imaginea codului QR pe server. Min .: <strong>240</strong>
 apps/frappe/frappe/core/doctype/doctype/doctype.py,{0}:Fieldtype {1} for {2} cannot be indexed,{0}: Tipul de câmp {1} pentru {2} nu poate fi indexat
 DocType: Dashboard Chart,Timespan,Interval de timp
 apps/frappe/frappe/public/js/frappe/file_uploader/FileUploader.vue,Web Link,Web Link
 DocType: Deleted Document,Restored,Restaurat
+apps/frappe/frappe/public/js/frappe/form/print.js,"Error connecting to QZ Tray Application...<br><br> You need to have QZ Tray application installed and running, to use the Raw Print feature.<br><br><a href=""https://qz.io/download/"" target=""_blank"">Click here to Download and install QZ Tray</a>.<br> <a href=""https://erpnext.com/docs/user/manual/en/setting-up/print/raw-printing"" target=""_blank"">Click here to learn more about Raw Printing</a>.","Eroare la conectarea la aplicația de tavă QZ ... <br><br> Trebuie să aveți aplicația QZ Tray instalată și rulată, pentru a utiliza caracteristica Print Raw. <br><br> <a href=""https://qz.io/download/"" target=""_blank"">Faceți clic aici pentru a descărca și instala QZ Tray</a> . <br> <a href=""https://erpnext.com/docs/user/manual/en/setting-up/print/raw-printing"" target=""_blank"">Faceți clic aici pentru a afla mai multe despre tipărirea brută</a> ."
 apps/frappe/frappe/public/js/frappe/utils/pretty_date.js,1 minute ago,in urma cu 1 minut
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,"Apart from System Manager, roles with Set User Permissions right can set permissions for other users for that Document Type.","În afară de System Manager, roluri cu un set permisiunile de user poate seta permisiuni pentru alți utilizatori pentru acest tip de document."
 apps/frappe/frappe/website/doctype/website_theme/website_theme.js,Configure Theme,Configurați Tema
@@ -127,6 +131,7 @@ apps/frappe/frappe/config/integrations.py,Webhooks calling API requests into web
 apps/frappe/frappe/core/doctype/data_import_beta/data_import_beta.js,Show Traceback,Afișare Traceback
 DocType: DocType,Default Print Format,Implicit Print Format
 DocType: Workflow State,Tags,Etichete
+DocType: Onboarding Slide,Slide Type,Tip diapozitiv
 apps/frappe/frappe/public/js/frappe/form/workflow.js,None: End of Workflow,Nici una: Sfârșitul de flux de lucru
 apps/frappe/frappe/database/mariadb/schema.py,"{0} field cannot be set as unique in {1}, as there are non-unique existing values","{0} câmpul nu poate fi setat ca unic în {1}, deoarece sunt valori existente non-unice"
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js,Document Types,Tipuri de Documente
@@ -136,7 +141,6 @@ DocType: Language,Guest,Oaspete
 DocType: DocType,Title Field,Titlu de câmp
 DocType: Error Log,Error Log,eroare Log
 apps/frappe/frappe/public/js/frappe/file_uploader/FileUploader.vue,Invalid URL,URL invalid
-apps/frappe/frappe/public/js/frappe/ui/toolbar/energy_points_notifications.js,Last 7 days,Ultimele 7 zile
 apps/frappe/frappe/utils/password_strength.py,"Repeats like ""abcabcabc"" are only slightly harder to guess than ""abc""","Repetări, cum ar fi &quot;abcabcabc&quot; sunt doar puțin mai greu de ghicit decât &quot;abc&quot;"
 DocType: Notification,Channel,Canal
 apps/frappe/frappe/templates/emails/administrator_logged_in.html,"If you think this is unauthorized, please change the Administrator password.","Dacă credeți că acest lucru este neautorizată, vă rugăm să schimbați parola de administrator."
@@ -155,6 +159,7 @@ DocType: OAuth Authorization Code,Client,Client
 apps/frappe/frappe/public/js/frappe/views/reports/report_view.js,Select Column,Selectați Coloana
 apps/frappe/frappe/public/js/frappe/form/form.js,This form has been modified after you have loaded it,Această formă a fost modificat după ce ați încărcat
 DocType: Address,Himachal Pradesh,Himachal Pradesh
+DocType: Notification Log,Notification Log,Jurnalul de notificări
 DocType: System Settings,"If not set, the currency precision will depend on number format","Dacă nu este setat, precizia valută va depinde de formatul numărului"
 DocType: System Settings,"If not set, the currency precision will depend on number format","Dacă nu este setat, precizia valută va depinde de formatul numărului"
 apps/frappe/frappe/public/js/frappe/ui/keyboard.js,Open Awesomebar,Deschideți Awesomebar
@@ -165,7 +170,7 @@ apps/frappe/frappe/config/website.py,Embed image slideshows in website pages.,Sl
 apps/frappe/frappe/email/doctype/newsletter/newsletter.js,Send,Trimiteți
 DocType: Workflow Action Master,Workflow Action Name,Flux de lucru Acțiune Nume
 apps/frappe/frappe/core/doctype/doctype/doctype.py,DocType can not be merged,DocType nu se pot uni
-DocType: Web Form Field,Fieldtype,Tip câmp
+DocType: Onboarding Slide Field,Fieldtype,Tip câmp
 apps/frappe/frappe/core/doctype/file/file.py,Not a zip file,Nu este un fișier zip
 DocType: Global Search DocType,Global Search DocType,Căutare globală DocType
 DocType: Auto Repeat,"To add dynamic subject, use jinja tags like
@@ -178,12 +183,15 @@ DocType: Newsletter,Email Sent?,Email Trimis?
 apps/frappe/frappe/public/js/frappe/views/reports/report_view.js,Toggle Chart,Comutare Diagramă
 apps/frappe/frappe/desk/form/save.py,Did not cancel,Nu a anula
 DocType: Social Login Key,Client Information,Informații despre client
+DocType: Energy Point Rule,Apply this rule only once per document,Aplicați această regulă o singură dată pe document
 DocType: Workflow State,plus,plus
+DocType: DocField,Read Only Depends On,Citește doar Citește
 apps/frappe/frappe/integrations/oauth2.py,Logged in as Guest or Administrator,Autentificat ca invitat sau Administrator
 DocType: Email Account,UNSEEN,NEVĂZUT
 apps/frappe/frappe/public/js/frappe/views/file/file_view.js,File Manager,Manager de fișiere
 DocType: Website Settings,"HTML Header, Robots and Redirects","Antet HTML, roboți și redirecții"
 DocType: GCalendar Account,Refresh Token,Actualizează Indicativ
+apps/frappe/frappe/event_streaming/doctype/event_producer/event_producer.py,Failed to connect to the Event Producer site. Retry after some time.,Eroare la conectarea la site-ul Producător de evenimente. Încercați din nou după ceva timp.
 DocType: Address,Goa,Goa
 apps/frappe/frappe/core/page/background_jobs/background_jobs.html,No pending or current jobs for this site,Nu există locuri de muncă în curs sau în curs pentru acest site
 DocType: Webhook,Doc Event,Eveniment Doc
@@ -202,9 +210,12 @@ DocType: Communication,BCC,CCA
 DocType: Unhandled Email,Reason,Motiv
 DocType: Email Unsubscribe,Email Unsubscribe,Email Dezabonare
 DocType: Website Settings,Select an image of approx width 150px with a transparent background for best results.,"Selectați o imagine de lățime de aproximativ 150px cu un fundal transparent, pentru cele mai bune rezultate."
-apps/frappe/frappe/public/js/frappe/ui/toolbar/energy_points_notifications.js,No activity,Fără activitate
+DocType: Server Script,Script Manager,Script Manager
+apps/frappe/frappe/public/js/frappe/ui/notifications/notifications.js,No activity,Fără activitate
 apps/frappe/frappe/www/third_party_apps.html,Third Party Apps,Aplicații terță parte
 apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js,The first user will become the System Manager (you can change this later).,Primul Utilizatorul va deveni System Manager (puteți schimba asta mai târziu).
+apps/frappe/frappe/desk/query_report.py,You can try changing the filters of your report.,Puteți încerca să schimbați filtrele raportului.
+apps/frappe/frappe/public/js/frappe/ui/notifications/notifications.js,No Events Today,Nu există evenimente astăzi
 apps/frappe/frappe/social/doctype/energy_point_log/energy_point_log.py,You cannot give review points to yourself,Nu puteți da puncte de recenzie pentru dvs.
 apps/frappe/frappe/integrations/doctype/webhook/webhook.py,DocType must be Submittable for the selected Doc Event,DocType trebuie să fie transmisibil pentru Evenimentul Doc selectat
 DocType: Workflow State,circle-arrow-up,cerc-săgeată-up
@@ -234,8 +245,10 @@ apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Per
 apps/frappe/frappe/public/js/frappe/views/communication.js,You are not allowed to send emails related to this document,Nu vi se permite trimitea e-mailuri relaționate cu acest document
 apps/frappe/frappe/model/db_query.py,Please select atleast 1 column from {0} to sort/group,Vă rugăm să selectați atleast 1 coloana din {0} pentru a sorta / grup
 apps/frappe/frappe/permissions.py,Not allowed for {0}: {1}. Restricted field: {2},Nu este permis pentru {0}: {1}. Câmp restricționat: {2}
+apps/frappe/frappe/contacts/doctype/address/address.py,Company not Linked,Companie care nu are legătură
 DocType: PayPal Settings,Check this if you are testing your payment using the Sandbox API,Verifica acest lucru dacă testați plata utilizând API-ul Sandbox
 apps/frappe/frappe/website/doctype/website_theme/website_theme.py,You are not allowed to delete a standard Website Theme,Nu vi se permite să ștergeți o temă Website standard de
+apps/frappe/frappe/public/js/frappe/list/list_view.js,Create your first {0},Creați primul dvs. {0}
 DocType: Data Import,Log Details,Detaliile jurnalelor
 DocType: Workflow Transition,Example,Exemplu
 DocType: Webhook Header,Webhook Header,Antetul Webhook
@@ -250,6 +263,7 @@ apps/frappe/frappe/public/js/frappe/request.js,The resource you are looking for 
 DocType: Chat Profile,Chat Background,Context de chat
 apps/frappe/frappe/core/doctype/communication/communication_list.js,Mark as Read,Marcheaza ca citit
 apps/frappe/frappe/desk/doctype/bulk_update/bulk_update.py,Updating {0},Actualizarea {0}
+apps/frappe/frappe/desk/doctype/onboarding_slide/onboarding_slide.py,An Onboarding Slide <b>{0}</b> with the same slide order already exists,Există deja o diapozitivă de bord <b>{0}</b> cu aceeași ordine de diapozitive
 apps/frappe/frappe/core/doctype/report/report.js,Disable Report,Dezactivați Raport
 DocType: Translation,Contributed Translation Doctype Name,Traducere contribuită Nume Doctype
 DocType: PayPal Settings,Redirect To,Redirectionare catre
@@ -264,8 +278,10 @@ apps/frappe/frappe/public/js/frappe/list/list_view.js,Delete {0} items permanent
 apps/frappe/frappe/utils/oauth.py,Not Allowed,Nu permise
 DocType: DocShare,Internal record of document shares,Rezultatele intern de acțiuni de documente
 DocType: Energy Point Settings,Review Levels,Niveluri de revizuire
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Setup &gt; User Permissions,Configurare&gt; Permisii utilizator
 DocType: Workflow State,Comment,Comentariu
 DocType: Data Migration Plan,Postprocess Method,Metoda postproces
+DocType: DocType Action,Action Type,Tipul de acțiune
 apps/frappe/frappe/public/js/frappe/ui/capture.js,Take Photo,Fa o poza
 DocType: Assignment Rule,Round Robin,Robin rotund
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,"You can change Submitted documents by cancelling them and then, amending them.","Puteți schimba documentele prezentate de anularea lor și apoi, de modificare a acestora."
@@ -279,6 +295,7 @@ apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,"If
 apps/frappe/frappe/public/js/frappe/views/reports/report_view.js,Save As,Salvează ca
 DocType: Comment,Seen,Văzut
 apps/frappe/frappe/public/js/frappe/form/layout.js,Show more details,Arată mai multe detalii
+DocType: Server Script,Before Submit,Înainte de Trimitere
 DocType: System Settings,Run scheduled jobs only if checked,Rulați locuri de muncă programate numai dacă verificate
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js,Will only be shown if section headings are enabled,Va fi afișată numai în cazul în care pozițiile sunt activate secțiuni
 apps/frappe/frappe/public/js/frappe/views/kanban/kanban_column.html,Archive,Arhiva
@@ -291,10 +308,12 @@ DocType: Dropbox Settings,Dropbox Access Key,Cheie de Acces Dropbox
 apps/frappe/frappe/desk/form/utils.py,Wrong fieldname <b>{0}</b> in add_fetch configuration of custom script,Adresă greșită <b>{0}</b> în configurația add_fetch a scriptului personalizat
 apps/frappe/frappe/contacts/doctype/contact/contact.py,Select Google Contacts to which contact should be synced.,Selectați Contacte Google la care contact trebuie sincronizat.
 DocType: Web Page,Main Section (HTML),Secțiunea principală (HTML)
+DocType: Scheduled Job Type,Annual,Anual
 DocType: Workflow State,headphones,căști
 apps/frappe/frappe/email/doctype/email_account/email_account.py,Password is required or select Awaiting Password,Parola este necesară sau selectați Asteptand parolă
 DocType: Email Account,e.g. replies@yourcomany.com. All replies will come to this inbox.,"de exemplu, replies@yourcomany.com. Toate răspunsurile vor veni la acest inbox."
 DocType: Slack Webhook URL,Slack Webhook URL,Slack Webhook URL
+DocType: Onboarding Slide,"Determines the order of the slide in the wizard. If the slide is not to be displayed, priority should be set to 0.","Determină ordinea diapozitivului în vrăjitor. Dacă diapozitivul nu este afișat, prioritatea trebuie să fie setată pe 0."
 DocType: Data Migration Run,Current Mapping,Cartografiere Curentă
 apps/frappe/frappe/templates/includes/login/login.js,Valid email and name required,Este necesar un nume și un email valid
 apps/frappe/frappe/public/js/frappe/file_uploader/FileUploader.vue,Make all attachments private,Faceți toate atașamentele private
@@ -310,14 +329,16 @@ apps/frappe/frappe/public/js/frappe/views/calendar/calendar.js,Show Weekends,Afi
 DocType: Workflow State,remove-circle,elimina-cerc
 apps/frappe/frappe/public/js/frappe/ui/toolbar/navbar.html,My Profile,Profilul meu
 DocType: Help Article,Beginner,Începător
+apps/frappe/frappe/__init__.py,This action is only allowed for {},Această acțiune este permisă doar pentru {}
 DocType: Contact,Is Primary Contact,Este primar Contact
+DocType: Event Consumer,Event Consumer,Consumator eveniment
 apps/frappe/frappe/config/website.py,Javascript to append to the head section of the page.,Javascript pentru a adăuga la secțiunea șef al paginii.
 apps/frappe/frappe/core/doctype/user_permission/user_permission_list.js,Add / Update,Adăugați / actualizați
 apps/frappe/frappe/www/printview.py,Not allowed to print draft documents,Nu este permis să imprime schiţe de documente
 apps/frappe/frappe/core/doctype/role_permission_for_page_and_report/role_permission_for_page_and_report.js,Reset to defaults,Resetați la valorile implicite
 DocType: Workflow,Transition Rules,Reguli de tranziție
-apps/frappe/frappe/public/js/frappe/data_import/import_preview.js,Showing only first {0} rows in preview,Se afișează doar primele {0} rânduri în previzualizare
 apps/frappe/frappe/core/doctype/report/report.js,Example:,Exemplu:
+apps/frappe/frappe/public/js/frappe/list/list_view.js,Restrictions,restricţii
 DocType: Workflow,Defines workflow states and rules for a document.,Definește state flux de lucru și reguli de un document.
 DocType: Workflow State,Filter,filtru
 apps/frappe/frappe/automation/doctype/auto_repeat/auto_repeat.py,Check the Error Log for more information: {0},Verificați jurnalul de erori pentru mai multe informații: {0}
@@ -329,6 +350,7 @@ apps/frappe/frappe/model/document.py,Error: Document has been modified after you
 apps/frappe/frappe/core/page/background_jobs/background_jobs.html,Job,Loc de munca
 apps/frappe/frappe/core/doctype/activity_log/feed.py,{0} logged out: {1},{0} logged out: {1}
 DocType: Address,West Bengal,Bengalul de Vest
+DocType: Onboarding Slide,Information,informație
 apps/frappe/frappe/core/doctype/doctype/doctype.py,{0}: Cannot set Assign Submit if not Submittable,{0}: Nu se poate seta Alocați Introducere dacă nu există posibilitate de introducere
 DocType: Transaction Log,Row Index,Indicele rândului
 DocType: Social Login Key,Facebook,Facebook
@@ -347,7 +369,9 @@ apps/frappe/frappe/core/doctype/doctype/doctype.py,{0}: Options must be a valid 
 DocType: Web Form,Button Help,butonul Ajutor
 DocType: Kanban Board Column,purple,Violet
 DocType: About Us Settings,Team Members,Membrii echipei
+DocType: System Settings,Will run scheduled jobs only once a day for inactive sites. Default 4 days if set to 0.,Va rula lucrări programate doar o dată pe zi pentru site-uri inactive. Implicit 4 zile dacă este setat la 0.
 DocType: Assignment Rule,System Manager,System Manager
+DocType: Scheduled Job Log,Scheduled Job,Job programat
 DocType: Custom DocPerm,Permissions,Permisiuni
 apps/frappe/frappe/config/integrations.py,Slack Webhooks for internal integration,Slack Webhooks pentru integrarea interna
 DocType: Dropbox Settings,Allow Dropbox Access,Permiteţi accesul Dropbox
@@ -402,6 +426,7 @@ apps/frappe/frappe/public/js/frappe/barcode_scanner/quagga.js,Scan Barcode,Scane
 DocType: Email Flag Queue,Email Flag Queue,E-mail Flag Coadă
 DocType: Access Log,Columns / Fields,Coloane / Câmpuri
 apps/frappe/frappe/config/settings.py,Stylesheets for Print Formats,Stiluri pentru formate de tipărire
+apps/frappe/frappe/desk/doctype/dashboard_chart/dashboard_chart.py,Aggregate Function field is required to create a dashboard chart,Câmpul Funcție agregată este necesar pentru a crea o diagramă de bord
 apps/frappe/frappe/utils/bot.py,Can't identify open {0}. Try something else.,Nu se poate identifica deschis {0}. Încercați altceva.
 apps/frappe/frappe/public/js/frappe/web_form/web_form.js,Your information has been submitted,Informațiile dvs. au fost depuse
 apps/frappe/frappe/core/doctype/user/user.py,User {0} cannot be deleted,Utilizatorul {0} nu poate fi ștearsă
@@ -418,11 +443,12 @@ DocType: Property Setter,Field Name,Nume câmp
 DocType: Assignment Rule,Assign To Users,Alocare utilizatorilor
 apps/frappe/frappe/public/js/frappe/utils/utils.js,or,sau
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js,module name...,nume de modul ...
-apps/frappe/frappe/templates/pages/integrations/payment-success.html,Continue,Continua
+DocType: Onboarding Slide,Continue,Continua
 apps/frappe/frappe/integrations/doctype/google_drive/google_drive.py,Google Integration is disabled.,Integrarea Google este dezactivată.
 DocType: Custom Field,Fieldname,Nume câmp
 DocType: Workflow State,certificate,certificat
 apps/frappe/frappe/templates/includes/login/login.js,Verifying...,Se verifică ...
+apps/frappe/frappe/desk/form/assign_to.py,Your assignment on {0} {1} has been removed,Sarcina dvs. din {0} {1} a fost eliminată
 apps/frappe/frappe/core/doctype/data_export/exporter.py,First data column must be blank.,Coloană în prima date trebuie să fie gol.
 apps/frappe/frappe/core/doctype/version/version.js,Show all Versions,Afișați toate versiunile
 apps/frappe/frappe/templates/includes/comments/comments.py,View Comment,Vezi comentariu
@@ -432,12 +458,14 @@ DocType: User,Restrict IP,Restricționeaza IP
 apps/frappe/frappe/core/page/dashboard/dashboard.js,Dashboard,Tablou de Bord
 apps/frappe/frappe/email/smtp.py,Unable to send emails at this time,Nu s-au putut trimite email-uri în acest moment
 apps/frappe/frappe/integrations/doctype/google_calendar/google_calendar.py,"Google Calendar - Could not update Event {0} in Google Calendar, error code {1}.","Google Calendar - Nu s-a putut actualiza Evenimentul {0} în Google Calendar, codul de eroare {1}."
+DocType: Notification Log,Email Content,Conținut prin e-mail
 apps/frappe/frappe/public/js/frappe/ui/toolbar/navbar.html,Search or type a command,Căutare sau tastați o comandă
 DocType: Activity Log,Timeline Name,Nume cronologie
 apps/frappe/frappe/contacts/doctype/contact/contact.py,Only one {0} can be set as primary.,Doar unul {0} poate fi setat ca principal.
 DocType: Email Account,e.g. smtp.gmail.com,"de exemplu, smtp.gmail.com"
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js,Add A New Rule,Adăuga o regulă nouă
 DocType: Contact,Sales Master Manager,Vânzări Maestru de Management
+apps/frappe/frappe/www/login.html,You need to enable JavaScript for your app to work.,Trebuie să activați JavaScript pentru ca aplicația dvs. să funcționeze.
 DocType: User Permission,For Value,Pentru valoare
 DocType: Event,Google Calendar ID,Codul Google Calendar
 apps/frappe/frappe/www/complete_signup.html,One Last Step,Unul ultim pas
@@ -452,13 +480,13 @@ DocType: LDAP Settings,LDAP Middle Name Field,Câmpul Nume mediu LDAP
 apps/frappe/frappe/integrations/doctype/google_contacts/google_contacts.js,Importing {0} of {1},Importarea {0} din {1}
 DocType: GCalendar Account,Allow GCalendar Access,Permiteți accesul GCalendar
 apps/frappe/frappe/core/doctype/data_import/importer_new.py,{0} is a mandatory field,{0} este un câmp obligatoriu
+DocType: DocType,Documentation Link,Link de documentare
 apps/frappe/frappe/templates/includes/login/login.js,Login token required,Este necesar un jeton de conectare
 apps/frappe/frappe/desk/page/user_profile/user_profile.js,Monthly Rank: ,Rang lunar:
 apps/frappe/frappe/public/js/frappe/list/list_view.js,Select multiple list items,Selectați mai multe articole din listă
 DocType: Event,Repeat Till,Repetați Până la
 apps/frappe/frappe/public/js/frappe/ui/toolbar/search_utils.js,New,Nou
 apps/frappe/frappe/public/js/frappe/views/components/ModuleLinkItem.vue,You need to create these first: ,Mai întâi trebuie să le creați:
-DocType: Google Maps Settings,Google Maps Settings,Setările Google Maps
 apps/frappe/frappe/core/page/dashboard/dashboard.js,Loading...,Se încarcă...
 DocType: DocField,Password,Parolă
 apps/frappe/frappe/utils/response.py,Your system is being updated. Please refresh again after a few moments,Sistemul dvs. este în curs de actualizare. Vă rugăm să actualizați din nou după câteva momente
@@ -473,6 +501,7 @@ apps/frappe/frappe/printing/page/print_format_builder/print_format_builder_layou
 DocType: File,File URL,URL fișier
 DocType: Version,Table HTML,Tabelul HTML
 apps/frappe/frappe/email/doctype/email_group/email_group.js,Add Subscribers,Adăugaţi Abonați
+DocType: Notification Log,Energy Point,Punctul de energie
 apps/frappe/frappe/desk/doctype/event/event.py,Upcoming Events for Today,Evenimente viitoare de azi
 DocType: Google Calendar,Push to Google Calendar,Apăsați pe Google Calendar
 DocType: Notification Recipient,Email By Document Field,E-mail prin documentul de câmp
@@ -488,12 +517,12 @@ apps/frappe/frappe/templates/includes/search_template.html,No matching records. 
 DocType: Chat Profile,Away,Departe
 DocType: Currency,Fraction Units,Unități de Fractiune
 apps/frappe/frappe/public/js/frappe/form/footer/timeline.js,{0} from {1} to {2},{0} de la {1} pana la {2}
-apps/frappe/frappe/public/js/frappe/ui/toolbar/user_progress_dialog.js,Mark as Done,Marcați ca terminat
 DocType: Chat Message,Type,Tip
 DocType: Google Settings,OAuth Client ID,ID client OAuth
 DocType: Auto Repeat,Subject,Subiect
 apps/frappe/frappe/templates/pages/integrations/gcalendar-success.html,Back to Desk,Înapoi la birou
 DocType: Web Form,Amount Based On Field,Suma bazată pe câmp
+apps/frappe/frappe/__init__.py,{0} has no versions tracked.,{0} nu a urmărit versiuni.
 apps/frappe/frappe/core/doctype/docshare/docshare.py,User is mandatory for Share,Utilizatorul este obligatorie pentru cota
 DocType: DocField,Hidden,ascuns
 DocType: Web Form,Allow Incomplete Forms,Permiteţi Formulare Incomplete
@@ -516,6 +545,7 @@ DocType: Report,JSON,JSON
 apps/frappe/frappe/core/doctype/user/user.py,Please check your email for verification,Vă rugăm să verificați e-mail-ul pentru verificare
 apps/frappe/frappe/core/doctype/doctype/doctype.py,Fold can not be at the end of the form,Fold nu poate fi la sfârșitul formularului
 DocType: Communication,Bounced,Returnate
+apps/frappe/frappe/public/js/frappe/form/grid_pagination.js,of,de
 DocType: Deleted Document,Deleted Name,Nume șters
 apps/frappe/frappe/config/users_and_permissions.py,System and Website Users,De sistem și site Utilizatori
 DocType: Workflow Document State,Doc Status,Doc Starea
@@ -526,6 +556,7 @@ DocType: Language,Language Code,Codul de limbă
 DocType: Dropbox Settings,Note: By default emails for failed backups are sent.,"Notă: În mod prestabilit, e-mailurile pentru copii de siguranță eșuate sunt trimise."
 apps/frappe/frappe/public/js/frappe/ui/filters/filters.js,Add Filter,Adăugați filtru
 apps/frappe/frappe/core/doctype/sms_settings/sms_settings.py,SMS sent to following numbers: {0},SMS expediat la următoarele numere: {0}
+DocType: Notification Settings,Assignments,Alocări
 apps/frappe/frappe/utils/data.py,{0} and {1},{0} și {1}
 apps/frappe/frappe/public/js/frappe/chat.js,Start a conversation.,Începeți o conversație.
 DocType: Print Settings,"Always add ""Draft"" Heading for printing draft documents","Întotdeauna adăugați Rubrica ""Schiţă"" pentru schiţa de imprimare documente"
@@ -534,6 +565,7 @@ DocType: Data Migration Run,Current Mapping Start,Înregistrarea curentă a cart
 apps/frappe/frappe/core/doctype/communication/communication.js,Email has been marked as spam,E-mailul a fost marcat ca spam
 DocType: Comment,Website Manager,Site-ul Manager de
 apps/frappe/frappe/public/js/frappe/socketio_client.js,File Upload Disconnected. Please try again.,Încărcarea fișierului este deconectată. Vă rugăm să încercați din nou.
+DocType: Data Import Beta,Show Failed Logs,Afișează jurnalele eșuate
 apps/frappe/frappe/public/js/frappe/views/translation_manager.js,Translations,Traduceri
 apps/frappe/frappe/public/js/frappe/list/bulk_operations.js,You selected Draft or Cancelled documents,Ați selectat documente de tip Proiect sau anulate
 apps/frappe/frappe/workflow/doctype/workflow_action/workflow_action.py,Document {0} has been set to state {1} by {2},Documentul {0} a fost setat la starea {1} până la {2}
@@ -541,10 +573,13 @@ apps/frappe/frappe/model/document.py,Document Queued,documentul Queued
 DocType: GSuite Templates,Destination ID,ID-ul destinației
 DocType: Desktop Icon,List,Listă
 DocType: Activity Log,Link Name,link Nume
+apps/frappe/frappe/public/js/frappe/list/list_view.js,You haven\,Nu ai \
 DocType: System Settings,mm/dd/yyyy,mm/dd/aaaa
+DocType: Onboarding Slide,Onboarding Slide,Diapozitiv de bord
 apps/frappe/frappe/core/doctype/user/user.py,Invalid Password: ,Parolă Invalidă:
 apps/frappe/frappe/core/doctype/user/user.py,Invalid Password: ,Parolă Invalidă:
 DocType: Print Settings,Send document web view link in email,Link-ul de documente a trimite web vizualizare în e-mail
+DocType: Event Consumer Document Type,Event Consumer Document Type,Tip de document pentru consumatorul evenimentului
 apps/frappe/frappe/public/js/frappe/ui/slides.js,Previous,Precedenta
 apps/frappe/frappe/email/doctype/email_account/email_account.py,Re:,Re:
 DocType: LDAP Settings,Require Trusted Certificate,Necesită certificat de încredere
@@ -603,6 +638,7 @@ DocType: Kanban Board Column,darkgrey,gri inchis
 apps/frappe/frappe/model/rename_doc.py,Successful: {0} to {1},De succes: {0} {1} la
 apps/frappe/frappe/core/doctype/user/user.py,Cannot change user details in demo. Please signup for a new account at https://erpnext.com,Nu se pot schimba detaliile utilizatorului în demo. Înscrieți-vă pentru un cont nou la adresa https://erpnext.com
 apps/frappe/frappe/public/js/frappe/ui/dropzone.js,Drop,cădere brusca
+DocType: Dashboard Chart,Aggregate Function Based On,Funcție agregată bazată pe
 apps/frappe/frappe/printing/doctype/print_format/print_format.js,Please duplicate this to make changes,Vă rugăm să duplicat acest lucru pentru a face schimbări
 apps/frappe/frappe/public/js/frappe/list/list_filter.js,Press Enter to save,Apăsați Enter pentru a salva
 apps/frappe/frappe/utils/pdf.py,PDF generation failed because of broken image links,Generație PDF a eșuat din cauza link-uri imagine rupte
@@ -616,7 +652,10 @@ DocType: Notification,Days Before,Zilele Înainte de
 apps/frappe/frappe/desk/doctype/event/event.py,Daily Events should finish on the Same Day.,Evenimentele zilnice ar trebui să termine în aceeași zi.
 apps/frappe/frappe/core/page/dashboard/dashboard.js,Edit...,Editați | ×...
 DocType: Workflow State,volume-down,volum-jos
+DocType: Onboarding Slide,Help Links,Link-uri de ajutor
 apps/frappe/frappe/auth.py,Access not allowed from this IP Address,Accesul nu este permis de la această adresă IP
+DocType: Notification Settings,Enable Email Notifications,Activați notificările prin e-mail
+DocType: Document Type Field Mapping,Event Streaming,Transmiterea evenimentelor
 apps/frappe/frappe/desk/reportview.py,No Tags,Fără Etichete
 DocType: Email Account,Send Notification to,Trimite Notificarea
 DocType: DocField,Collapsible,Rabatabil
@@ -633,11 +672,13 @@ apps/frappe/frappe/public/js/frappe/list/list_sidebar_group_by.js,Filter By,Filt
 apps/frappe/frappe/database/database.py,No conditions provided,Nu sunt furnizate condiții
 apps/frappe/frappe/public/js/frappe/views/reports/report_view.js,Y Axis Fields,Terenurile axei Y
 apps/frappe/frappe/core/doctype/doctype/doctype.py,Sort field {0} must be a valid fieldname,Sortare câmp {0} trebuie să fie un numele_campului valid
+apps/frappe/frappe/contacts/doctype/address/address.py,No default Address Template found. Please create a new one from Setup &gt; Printing and Branding &gt; Address Template.,Nu a fost găsit un șablon de adresă implicit. Vă rugăm să creați unul nou din Setare&gt; Tipărire și Branding&gt; Șablon adresă
 apps/frappe/frappe/public/js/frappe/list/base_list.js,More,Mai mult
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js,Create a new record,Creați o înregistrare nouă
 DocType: Contact,Sales Manager,Director De Vânzări
 apps/frappe/frappe/public/js/frappe/model/model.js,Rename,Redenumire
 DocType: Print Format,Format Data,Format de date
+apps/frappe/frappe/email/doctype/auto_email_report/auto_email_report.py,{0} is not a valid report format. Report format should one of the following {1},{0} nu este un format de raport valid. Formatul raportului ar trebui să fie unul dintre următoarele {1}
 DocType: List Filter,Filter Name,Numele filtru
 apps/frappe/frappe/public/js/frappe/ui/filters/filters.js,Like,Îmi place
 DocType: Assignment Rule,Automation,Automatizare
@@ -645,6 +686,7 @@ DocType: Google Drive,Last Backup On,Ultima copie de rezervă activată
 DocType: Customize Form Field,Customize Form Field,Particularizare Câmp Formular
 DocType: Energy Point Rule,For Document Event,Pentru evenimentul documentului
 DocType: Website Settings,Chat Room Name,Numele camerei de chat
+apps/frappe/frappe/public/js/frappe/form/toolbar.js,Unchanged,Neschimbat
 DocType: OAuth Client,Grant Type,Tipul de grant
 apps/frappe/frappe/config/users_and_permissions.py,Check which Documents are readable by a User,Verificați care Documentele sunt ușor de citit de către un utilizator
 DocType: Deleted Document,Hub Sync ID,Hub ID de sincronizare
@@ -652,8 +694,10 @@ apps/frappe/frappe/public/js/frappe/ui/filters/filters.js,use % as wildcard,util
 DocType: Auto Repeat,Quarterly,Trimestrial
 apps/frappe/frappe/email/doctype/email_account/email_account.js,"Email Domain not configured for this account, Create one?","E-mail domeniu nu este configurată pentru acest cont, creați una?"
 DocType: User,Reset Password Key,Resetează Cheie Parolă
+DocType: Dashboard Chart,All Time,Tot timpul
 apps/frappe/frappe/model/workflow.py,Illegal Document Status for {0},Starea documentului ilegal pentru {0}
 DocType: Email Account,Enable Auto Reply,Activați Auto Raspunde
+apps/frappe/frappe/desk/query_report.py,No data to export,Nu există date de exportat
 apps/frappe/frappe/core/doctype/error_log/error_log_list.js,Not Seen,Nu a vazut
 apps/frappe/frappe/public/js/frappe/form/print.js,Cannot have multiple printers mapped to a single print format.,Nu poate fi imprimată mai multe imprimante într-un format de imprimare unic.
 DocType: Workflow State,zoom-in,micsoreaza
@@ -664,6 +708,7 @@ apps/frappe/frappe/public/js/frappe/views/communication.js,Message clipped,Mesaj
 DocType: Email Account,Notify if unreplied,Anunta dacă fara raspuns
 apps/frappe/frappe/www/qrcode.html,Scan the QR Code and enter the resulting code displayed.,Scanați codul QR și introduceți codul rezultat afișat.
 apps/frappe/frappe/website/doctype/website_theme/website_theme.js,Enable Gradients,Activați Gradienți
+DocType: Scheduled Job Type,Hourly Long,Pe oră lungă
 DocType: System Settings,Minimum Password Score,Scorul minim al parolei
 DocType: System Settings,Minimum Password Score,Scorul minim al parolei
 DocType: DocType,Fields,Câmpuri
@@ -672,11 +717,13 @@ apps/frappe/frappe/core/doctype/data_import/importer.py,Parent Table,Parent Tabe
 apps/frappe/frappe/integrations/doctype/s3_backup_settings/s3_backup_settings.js,S3 Backup complete!,S3 Backup complet!
 apps/frappe/frappe/config/desktop.py,Developer,Dezvoltator
 apps/frappe/frappe/public/js/frappe/form/footer/timeline.js,Created,Creat
+apps/frappe/frappe/www/login.html,To enable it follow the instructions in the following link: {0},"Pentru ao activa, urmați instrucțiunile din următorul link: {0}"
 apps/frappe/frappe/website/doctype/website_settings/website_settings.py,{0} in row {1} cannot have both URL and child items,{0} din rândul {1} nu poate avea atât URL cât și articole copil
 apps/frappe/frappe/core/doctype/data_import/importer_new.py,There should be atleast one row for the following tables: {0},Trebuie să existe cel puțin un rând pentru următoarele tabele: {0}
 DocType: Print Format,Default Print Language,Limbă de imprimare implicită
 apps/frappe/frappe/public/js/frappe/ui/filters/filter.js,Ancestors Of,Strămoșii din
 apps/frappe/frappe/utils/nestedset.py,Root {0} cannot be deleted,Rădăcină {0} nu poate fi ștearsă
+apps/frappe/frappe/core/doctype/data_import_beta/data_import_beta.js,No failed logs,Nu există jurnalele eșuate
 apps/frappe/frappe/website/doctype/blog_post/blog_post.py,No comments yet,Nu există comentarii încă
 apps/frappe/frappe/core/doctype/system_settings/system_settings.py,"Please setup SMS before setting it as an authentication method, via SMS Settings","Configurați SMS-ul înainte de al seta ca metodă de autentificare, prin intermediul setărilor SMS"
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js,Both DocType and Name required,Atât tipul de document cât  și denumirea sunt necesare
@@ -700,6 +747,7 @@ DocType: Website Settings,Footer Items,Subsol Articole
 apps/frappe/frappe/public/js/frappe/ui/page.html,Menu,Meniu
 DocType: DefaultValue,DefaultValue,DefaultValue
 DocType: Auto Repeat,Daily,Zilnic
+DocType: Onboarding Slide,Max Count,Contele Max
 apps/frappe/frappe/config/users_and_permissions.py,User Roles,Roluri de utilizator
 DocType: Property Setter,Property Setter overrides a standard DocType or Field property,Proprietatea Setter suprascrie un DocType standard sau proprietate teren
 apps/frappe/frappe/core/doctype/user/user.py,Cannot Update: Incorrect / Expired Link.,Nu pot actualiza: incorectă / expirat Link.
@@ -718,6 +766,7 @@ DocType: Footer Item,"target = ""_blank""","target = ""_blank"""
 DocType: Workflow State,hdd,hdd
 DocType: Integration Request,Host,Gazdă
 DocType: Data Import Beta,Import File,Fișier de import
+apps/frappe/frappe/core/doctype/data_import/importer_new.py,Template Error,Model de eroare
 apps/frappe/frappe/desk/doctype/kanban_board/kanban_board.py,Column <b>{0}</b> already exist.,Coloana <b>{0}</b> există deja.
 DocType: ToDo,High,Ridicat
 apps/frappe/frappe/public/js/frappe/form/templates/timeline.html,New Event,Eveniment nou
@@ -733,6 +782,7 @@ DocType: Web Form Field,Show in filter,Afișați în filtru
 DocType: Address,Daman and Diu,Daman și Diu
 apps/frappe/frappe/public/js/frappe/views/kanban/kanban_view.js,Project,Proiect
 DocType: Address,Personal,Trader
+apps/frappe/frappe/public/js/frappe/form/templates/print_layout.html,Raw Printing Settings...,Setări de imprimare brute ...
 DocType: S3 Backup Settings,See https://docs.aws.amazon.com/de_de/general/latest/gr/rande.html#s3_region for details.,Consultați https://docs.aws.amazon.com/de_de/general/latest/gr/rande.html#s3_region pentru detalii.
 apps/frappe/frappe/config/settings.py,Bulk Rename,Redenumire în masă
 DocType: Email Queue,Show as cc,Arată ca cc
@@ -742,6 +792,7 @@ apps/frappe/frappe/public/js/frappe/ui/capture.js,Take Video,Luați video
 DocType: Contact Us Settings,Introductory information for the Contact Us Page,Informații introductive pentru Contactati-ne Pagina
 DocType: Print Style,CSS,CSS
 DocType: Workflow State,thumbs-down,degetele-jos
+apps/frappe/frappe/desk/form/linked_with.py,Cancelling documents,Anularea documentelor
 DocType: User,Send Notifications for Email threads,Trimiteți notificări pentru subiectele de e-mail
 apps/frappe/frappe/desk/page/setup_wizard/install_fixtures.py,Prof,prof
 apps/frappe/frappe/core/doctype/page/page.py,Not in Developer Mode,Nu în modul Developer
@@ -749,7 +800,6 @@ apps/frappe/frappe/desk/page/backups/backups.py,File backup is ready,Suportul de
 DocType: DocField,In Global Search,În căutare globală
 DocType: System Settings,Brute Force Security,Siguranța Forței de Securitate
 DocType: Workflow State,indent-left,liniuța-stânga
-apps/frappe/frappe/public/js/frappe/utils/pretty_date.js,&gt; {0} year(s) ago,&gt; {0} an (i) în urmă
 apps/frappe/frappe/utils/file_manager.py,It is risky to delete this file: {0}. Please contact your System Manager.,Este riscant să ștergeți acest fișier: {0}. Vă rugăm să contactați Managerul de sistem.
 DocType: Currency,Currency Name,Denumire valută
 apps/frappe/frappe/public/js/frappe/views/inbox/inbox_view.js,No Emails,Niciun e-mail
@@ -764,11 +814,13 @@ DocType: Energy Point Rule,User Field,Câmpul utilizator
 DocType: DocType,MyISAM,MyISAM
 DocType: Data Migration Run,Push Delete,Apăsați Ștergeți
 apps/frappe/frappe/email/doctype/email_unsubscribe/email_unsubscribe.py,{0} already unsubscribed for {1} {2},{0} deja dezabonat de la {1} {2}
+DocType: Scheduled Job Type,Stopped,Oprita
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js,Did not remove,Nu a eliminat
 apps/frappe/frappe/desk/like.py,Liked,Apreciate
 apps/frappe/frappe/email/doctype/auto_email_report/auto_email_report.js,Send Now,Trimite Acum
 apps/frappe/frappe/core/doctype/doctype/doctype.py,"Standard DocType cannot have default print format, use Customize Form","Standard DocType nu poate avea format de imprimare implicit, utilizați Customize Form"
 apps/frappe/frappe/core/doctype/doctype/doctype.py,"Standard DocType cannot have default print format, use Customize Form","Standard DocType nu poate avea format de imprimare implicit, utilizați Customize Form"
+DocType: Server Script,Allow Guest,Permiteți oaspeților
 DocType: Report,Query,Interogare
 DocType: Customize Form,Sort Order,Ordine de sortare
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.py,'In List View' not allowed for type {0} in row {1},"""În vizualizare listă"" nu este permisã pentru tipul {0} în rândul {1}"
@@ -790,12 +842,15 @@ apps/frappe/frappe/core/doctype/has_role/has_role.py,User '{0}' already has the 
 DocType: System Settings,Two Factor Authentication method,Două metode de autentificare a factorilor
 apps/frappe/frappe/website/doctype/website_slideshow/website_slideshow.js,First set the name and save the record.,Mai întâi setați numele și salvați înregistrarea.
 apps/frappe/frappe/public/js/frappe/data_import/data_exporter.js,5 Records,5 înregistrări
+DocType: DocType Link,Link Fieldname,Numele câmpului de legătură
 apps/frappe/frappe/public/js/frappe/form/sidebar/share.js,Shared with {0},În comun cu {0}
 apps/frappe/frappe/email/queue.py,Unsubscribe,Dezabonare
 DocType: View Log,Reference Name,Nume Referință
 apps/frappe/frappe/desk/page/user_profile/user_profile.js,Change User,Schimbă utilizatorul
+apps/frappe/frappe/public/js/frappe/form/grid_pagination.js,First,Primul
 apps/frappe/frappe/public/js/frappe/views/translation_manager.js,Update Translations,Actualizați traducerile
 DocType: Error Snapshot,Exception,Excepţie
+DocType: Event Consumer,Event Consumer Document Types,Tipuri de documente pentru consumatorii de evenimente
 DocType: Email Account,Use IMAP,Utilizarea IMAP
 DocType: Activity Log,Activity Log,Jurnal Activitate
 DocType: View Log,Viewed By,Vizualizat de
@@ -808,6 +863,7 @@ apps/frappe/frappe/custom/doctype/property_setter/property_setter.py,Field type 
 DocType: Workflow,Rules defining transition of state in the workflow.,Normele care definesc tranziție de stat în fluxul de lucru.
 DocType: File,Folder,Dosar
 DocType: Website Route Meta,Website Route Meta,Website Route Meta
+DocType: Onboarding Slide Field,Onboarding Slide Field,Câmp de diapozitive la bord
 DocType: DocField,Index,Index
 DocType: Email Group,Newsletter Manager,Newsletter Director
 apps/frappe/frappe/custom/doctype/custom_field/custom_field.js,Option 1,Opțiunea 1
@@ -834,7 +890,7 @@ apps/frappe/frappe/config/settings.py,Set numbering series for transactions.,Set
 apps/frappe/frappe/public/js/frappe/list/list_sidebar.html,Configure Charts,Configurează Diagrame
 DocType: User,Last IP,Ultima adresă IP
 apps/frappe/frappe/automation/doctype/auto_repeat/auto_repeat.py,Please add a subject to your email,Adăugă un subiect la adresa e-mail-ul tău
-apps/frappe/frappe/share.py,A new document {0} has been shared by with you {1}.,Un nou document {0} a fost împărtășit cu dvs. {1}.
+apps/frappe/frappe/model/workflow.py,Errored Transactions,Tranzacții eronate
 DocType: Data Migration Connector,Data Migration Connector,Conector Migrație Date
 apps/frappe/frappe/public/js/frappe/utils/energy_point_utils.js,{0} reverted {1},{0} inversat {1}
 DocType: Email Account,Track Email Status,Urmăriți starea e-mailului
@@ -866,6 +922,7 @@ DocType: Email Queue,Attachments,Ataşamente
 apps/frappe/frappe/website/doctype/web_form/web_form.py,You don't have the permissions to access this document,Nu aveți permisiunea de a accesa acest document
 DocType: Language,Language Name,Nume limbă
 DocType: Email Group Member,Email Group Member,E-mail Membru Grup
+apps/frappe/frappe/public/js/frappe/views/inbox/inbox_view.js,No email account associated with the User. Please add an account under User &gt; Email Inbox.,Niciun cont de e-mail asociat cu Utilizatorul. Vă rugăm să adăugați un cont în User&gt; Inbox.
 apps/frappe/frappe/auth.py,Your account has been locked and will resume after {0} seconds,Contul dvs. a fost blocat și va fi reluat după {0} secunde
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,User Permissions are used to limit users to specific records.,Permisiunile utilizatorilor sunt utilizate pentru a limita utilizatorii la înregistrări specifice.
 DocType: Notification,Value Changed,Valoarea Schimbat
@@ -887,6 +944,7 @@ DocType: Email Account,Default Outgoing,Implicit ieșire
 DocType: Workflow State,play,Joacă
 apps/frappe/frappe/templates/emails/new_user.html,Click on the link below to complete your registration and set a new password,Faceți clic pe linkul de mai jos pentru a finaliza înregistrarea și setați o parolă nouă
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js,Did not add,Nu a adăuga
+apps/frappe/frappe/social/doctype/energy_point_log/energy_point_log.py,{0} gained {1} points for {2} {3},{0} a câștigat {1} puncte pentru {2} {3}
 apps/frappe/frappe/public/js/frappe/views/inbox/inbox_view.js,No Email Accounts Assigned,Nu există conturi e-mail atribuite
 DocType: S3 Backup Settings,eu-west-2,UE-vest-2
 DocType: Contact Us Settings,Contact Us Settings,Contactati-ne Setări
@@ -894,6 +952,7 @@ apps/frappe/frappe/public/js/frappe/ui/toolbar/search.js,Searching ...,In cautar
 DocType: Workflow State,text-width,text cu lățime
 apps/frappe/frappe/public/js/frappe/form/form.js,Maximum Attachment Limit for this record reached.,Limita maxima Anexa pentru acest record atins.
 apps/frappe/frappe/public/js/frappe/file_uploader/FileBrowser.vue,Search by filename or extension,Căutare după nume de fișier sau extensie
+DocType: Onboarding Slide,Slide Title,Titlu de prezentare
 DocType: Notification,View Properties (via Customize Form),Vezi Properties (prin Customize Formular)
 apps/frappe/frappe/public/js/frappe/file_uploader/FileUploader.vue,Click on a file to select it.,Faceți clic pe un fișier pentru a-l selecta.
 DocType: Note Seen By,Note Seen By,Notă văzut de
@@ -920,13 +979,13 @@ apps/frappe/frappe/core/doctype/doctype/doctype.py,Report cannot be set for Sing
 apps/frappe/frappe/public/js/frappe/list/list_view.js,Share URL,Distribuiți adresa URL
 DocType: System Settings,Allow Consecutive Login Attempts ,Permiteți încercări de conectare consecutive
 apps/frappe/frappe/templates/pages/integrations/stripe_checkout.html,An error occured during the payment process. Please contact us.,A apărut o eroare în timpul procesului de plată. Va rog sa ne contactati.
+DocType: Onboarding Slide,If Slide Type is Create or Settings there should be a 'create_onboarding_docs' method in the {ref_doctype}.py file bound to be executed after the slide is completed.,"Dacă tipul de diapozitiv este Creat sau Setări, ar trebui să existe o metodă &#39;create_onboarding_docs&#39; în fișierul {ref_doctype} .py care trebuie executat după finalizarea diapozitivului."
 apps/frappe/frappe/public/js/frappe/utils/pretty_date.js,{0} days ago,{0} zile în urmă
 DocType: Email Account,Awaiting Password,Asteapta parola
 DocType: Address,Address Line 1,Adresă Linie 1
 apps/frappe/frappe/public/js/frappe/ui/filters/filter.js,Not Descendants Of,Nu sunt urmașii
 DocType: Contact,Company Name,Denumire Furnizor
 DocType: Custom DocPerm,Role,Rol
-apps/frappe/frappe/public/js/frappe/form/templates/print_layout.html,Settings...,Setări ...
 apps/frappe/frappe/templates/emails/delete_data_confirmation.html, to your browser,la browserul dvs.
 apps/frappe/frappe/utils/data.py,Cent,Cent
 ,Recorder,Recorder
@@ -955,6 +1014,7 @@ DocType: PayPal Settings,Mention transaction completion page URL,Menționezi tra
 DocType: Help Article,Expert,Expert
 DocType: Workflow State,circle-arrow-right,cerc-săgeată-dreapta
 DocType: Role Profile,Role Profile,Profil Rol
+DocType: Document Type Mapping,Remote Document Type,Tip document de la distanță
 apps/frappe/frappe/permissions.py,Document Type is not importable,Tipul de document nu este importabil
 DocType: LDAP Settings,LDAP Server Url,Server LDAP Url
 apps/frappe/frappe/public/js/frappe/form/form.js,Cannot open instance when its {0} is open,"Nu se poate deschide exemplu, atunci când sa {0} este deschis"
@@ -986,6 +1046,7 @@ DocType: Email Account,"Track if your email has been opened by the recipient.
 Note: If you're sending to multiple recipients, even if 1 recipient reads the email, it'll be considered ""Opened""","Urmăriți dacă e-mailul dvs. a fost deschis de către destinatar. <br> Notă: dacă trimiteți la mai mulți destinatari, chiar dacă un destinatar citește e-mailul, acesta va fi considerat &quot;Deschis&quot;"
 apps/frappe/frappe/public/js/frappe/ui/field_group.js,Missing Values Required,Valorile lipsă necesare
 apps/frappe/frappe/integrations/doctype/google_contacts/google_contacts.py,Allow Google Contacts Access,Permiteți accesul contactelor Google
+apps/frappe/frappe/public/js/frappe/list/list_view.js,Restricted,restricționat
 DocType: Data Migration Connector,Frappe,Frappé
 apps/frappe/frappe/core/doctype/communication/communication_list.js,Mark as Unread,Marcheaza ca necitit
 DocType: Activity Log,Operation,Operație
@@ -1039,6 +1100,7 @@ DocType: Web Form,Allow Print,Se permite Print
 DocType: Communication,Clicked,Clic pe
 apps/frappe/frappe/public/js/frappe/form/templates/form_sidebar.html,Unfollow,Nu mai urmări
 apps/frappe/frappe/public/js/frappe/form/form.js,No permission to '{0}' {1},Permisiunea de a '{0}' {1}
+apps/frappe/frappe/public/js/frappe/data_import/import_preview.js,Showing only first {0} rows out of {1},Se afișează doar primele {0} rânduri din {1}
 apps/frappe/frappe/email/doctype/auto_email_report/auto_email_report.js,Scheduled to send,Programată pentru a trimite
 DocType: DocType,Track Seen,Văzut pe șenile
 DocType: Dropbox Settings,File Backup,File Backup
@@ -1047,12 +1109,11 @@ apps/frappe/frappe/public/js/frappe/list/list_view.js,No {0} found,Nr {0} găsit
 apps/frappe/frappe/config/customization.py,Add custom forms.,Adăugaţi formulare personalizate.
 apps/frappe/frappe/desk/like.py,{0}: {1} in {2},{0}: {1} din {2}
 apps/frappe/frappe/public/js/frappe/form/footer/timeline.js,submitted this document,a prezentat acest document
-apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Setup &gt; User Permissions,Configurare&gt; Permisii utilizator
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,The system provides many pre-defined roles. You can add new roles to set finer permissions.,Sistemul oferă multe roluri predefinite. Puteți adăuga noi roluri pentru a seta permisiuni fine.
 DocType: Communication,CC,CC
 DocType: Country,Geo,Geo
 DocType: Data Migration Run,Trigger Name,Numele de declanșare
-apps/frappe/frappe/public/js/frappe/desk.js,Domains,Domenii
+DocType: Onboarding Slide,Domains,Domenii
 DocType: Blog Category,Blog Category,Categorie Blog
 apps/frappe/frappe/model/mapper.py,Cannot map because following condition fails: ,
 DocType: Role Permission for Page and Report,Roles HTML,Roluri HTML
@@ -1093,7 +1154,6 @@ DocType: Assignment Rule Day,Saturday,Sâmbătă
 DocType: User,Represents a User in the system.,Reprezintă un Utilizator în sistem.
 DocType: List View Setting,Disable Auto Refresh,Dezactivați actualizarea automată
 DocType: Comment,Label,Etichetă
-apps/frappe/frappe/desk/form/assign_to.py,"The task {0}, that you assigned to {1}, has been closed.","Sarcina {0}, care atribuit {1}, a fost închis."
 apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py,Please close this window,Închideți această fereastră
 DocType: Print Format,Print Format Type,Print Format Tip
 DocType: Newsletter,A Lead with this Email Address should exist,Ar trebui să existe o Pistă cu această adresă de E-mail
@@ -1110,6 +1170,8 @@ DocType: Email Account,SMTP Settings for outgoing emails,Setări SMTP pentru e-m
 apps/frappe/frappe/public/js/frappe/file_uploader/FileUploader.vue,choose an,alege un
 DocType: Data Export,Filter List,Filtrați lista
 DocType: Data Export,Excel,excela
+DocType: System Settings,HH:mm,HH: mm
+DocType: Event Sync Log,Event Configurations,Configurații eveniment
 DocType: Email Account,Auto Reply Message,Mesaj Răspuns Automat
 DocType: Data Migration Mapping,Condition,Condiție
 apps/frappe/frappe/utils/data.py,{0} hours ago,Cu {0} ore in urma
@@ -1128,12 +1190,14 @@ DocType: Workflow,"Field that represents the Workflow State of the transaction (
 DocType: Help Article,Knowledge Base Contributor,Baza de cunoștințe Colaborator
 DocType: Communication,Sent Read Receipt,Trimis Citire Chitanță
 DocType: Email Queue,Unsubscribe Method,Metoda de dezabonare
+DocType: Onboarding Slide,Add More Button,Adaugă butonul Mai mult
 DocType: GSuite Templates,Related DocType,DocType asociat
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js,Edit to add content,Editează pentru a adăuga conținut
 apps/frappe/frappe/public/js/frappe/views/communication.js,Select Languages,selectaţi limba
 apps/frappe/frappe/templates/pages/integrations/stripe_checkout.html,Card Details,Detaliile cardului
 apps/frappe/frappe/__init__.py,No permission for {0},Nu permisiune pentru {0}
 DocType: DocType,Advanced,Avansat
+DocType: Onboarding Slide,Slide Image Source,Slide Image Source
 apps/frappe/frappe/integrations/doctype/razorpay_settings/razorpay_settings.py,Seems API Key or API Secret is wrong !!!,Se pare că cheia API sau API-ul Secret este greșit !!!
 apps/frappe/frappe/templates/emails/auto_reply.html,Reference: {0} {1},Referință: {0} {1}
 apps/frappe/frappe/desk/page/setup_wizard/install_fixtures.py,Mrs,doamna
@@ -1150,6 +1214,7 @@ apps/frappe/frappe/desk/page/setup_wizard/install_fixtures.py,Master,Master
 DocType: DocType,User Cannot Create,Utilizatorul nu poate crea
 apps/frappe/frappe/social/doctype/energy_point_settings/energy_point_settings.js,Successfully Done,Realizat cu succes
 apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py,Dropbox access is approved!,acces Dropbox este aprobat!
+apps/frappe/frappe/public/js/frappe/form/toolbar.js,Are you sure you want to merge {0} with {1}?,Sigur doriți să îmbinați {0} cu {1}?
 DocType: Customize Form,Enter Form Type,Introduceți tip formular
 DocType: Google Drive,Authorize Google Drive Access,Autorizați Google Drive Access
 apps/frappe/frappe/public/js/frappe/views/kanban/kanban_view.js,Missing parameter Kanban Board Name,Lipsește parametrul Kanban Board Name
@@ -1159,7 +1224,6 @@ apps/frappe/frappe/public/js/frappe/request.js,You are not connected to Internet
 apps/frappe/frappe/public/js/frappe/form/form.js,"Allowing DocType, DocType. Be careful!","Permiterea Tip Document, Tip Document. Fiți atent!"
 apps/frappe/frappe/config/core.py,"Customized Formats for Printing, Email","Formate personalizate pentru imprimare, e-mail"
 apps/frappe/frappe/public/js/frappe/ui/group_by/group_by.js,Sum of {0},Suma {0}
-apps/frappe/frappe/public/js/frappe/desk.js,Updated To New Version,Actualizat la noua versiune
 DocType: Custom Field,Depends On,Depinde
 DocType: Kanban Board Column,Green,Verde
 DocType: Custom DocPerm,Additional Permissions,Permisiuni suplimentare
@@ -1167,9 +1231,8 @@ DocType: Email Account,Always use Account's Email Address as Sender,Utilizați �
 apps/frappe/frappe/templates/includes/comments/comments.html,Login to comment,Autentifica-te pentru a comenta
 apps/frappe/frappe/core/doctype/data_import/importer.py,Start entering data below this line,Începeți introducerea datelor de mai jos această linie
 apps/frappe/frappe/public/js/frappe/form/footer/timeline.js,changed values for {0},valori modificate pentru {0}
-apps/frappe/frappe/email/doctype/email_account/email_account.py,"Email ID must be unique, Email Account already exists \
-				for {0}","ID-ul de e-mail trebuie să fie unic, contul de e-mail există deja \ pentru {0}"
 DocType: Workflow State,retweet,retweet
+apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,"For comparison, use &gt;5, &lt;10 or =324. For ranges, use 5:10 (for values between 5 &amp; 10).","Pentru comparație, utilizați&gt; 5, &lt;10 sau = 324. Pentru intervale, utilizați 5:10 (pentru valori cuprinse între 5 și 10)."
 apps/frappe/frappe/public/js/frappe/form/templates/print_layout.html,Customize...,Personalizați ...
 DocType: Print Format,Align Labels to the Right,Aliniați etichetele la dreapta
 DocType: Assignment Rule,Disabled,Dezactivat
@@ -1187,6 +1250,7 @@ DocType: Energy Point Log,Social,Social
 apps/frappe/frappe/integrations/doctype/google_calendar/google_calendar.py,"Google Calendar - Could not create Calendar for {0}, error code {1}.","Google Calendar - Nu s-a putut crea Calendar pentru {0}, cod de eroare {1}."
 apps/frappe/frappe/public/js/frappe/form/grid_row_form.js,Editing Row,Editarea Row
 DocType: Workflow Action Master,Workflow Action Master,Workflow Acțiune Masterat
+apps/frappe/frappe/public/js/frappe/form/grid.js,Delete All,Sterge tot
 DocType: Custom Field,Field Type,Tip de câmp
 apps/frappe/frappe/utils/data.py,only.,numai.
 DocType: Route History,Route History,Istoric Traseu
@@ -1217,17 +1281,21 @@ apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js,"tag name..., e.g.
 apps/frappe/frappe/public/js/frappe/ui/keyboard.js,Keyboard Shortcuts,Comenzile rapide de la tastatură
 DocType: Post,Comments,Comentarii
 apps/frappe/frappe/public/js/frappe/dom.js,Confirm,Confirma
+DocType: Event Sync Log,Update Type,Tip de actualizare
 apps/frappe/frappe/public/js/frappe/desk.js,Authenticating...,Autentifică ...
 apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,Collapse All,Reduceți totul În această
+DocType: Event Producer,Last Update,Ultima actualizare
 apps/frappe/frappe/www/login.html,Forgot Password?,Aţi uitat parola?
 DocType: System Settings,yyyy-mm-dd,aaaa-ll-zz
 apps/frappe/frappe/desk/report/todo/todo.py,ID,ID-ul
 apps/frappe/frappe/integrations/doctype/stripe_settings/stripe_settings.py,Server Error,Eroare de server
+DocType: Server Script,After Delete,După Ștergere
 apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,See all past reports.,Vedeți toate rapoartele anterioare.
 apps/frappe/frappe/email/doctype/email_account/email_account.py,Login Id is required,Este necesară autentificare Id
 DocType: Website Slideshow,Website Slideshow,Site-ul Slideshow
 apps/frappe/frappe/core/page/dashboard/dashboard.js,No Data,No Data
 DocType: Website Settings,"Link that is the website home page. Standard Links (index, login, products, blog, about, contact)","Link, care este pagina de start site-ul web. Link-uri standard (index, autentificare, produse, blog, despre, contact)"
+DocType: Server Script,After Submit,După Trimitere
 apps/frappe/frappe/email/doctype/email_account/email_account.py,Authentication failed while receiving emails from Email Account {0}. Message from server: {1},Autentificarea a eșuat în timp ce a primit e-mailuri de la e-mail Contul {0}. Mesaj de pe server: {1}
 DocType: User,Banner Image,Imagine banner
 DocType: Custom Field,Custom Field,Câmp personalizat
@@ -1257,6 +1325,7 @@ apps/frappe/frappe/core/doctype/version/version_view.html,Table Field,Tabel Câm
 apps/frappe/frappe/public/js/frappe/views/kanban/kanban_view.js,Columns based on,Coloane bazate pe
 apps/frappe/frappe/core/doctype/data_import_beta/data_import_beta.js,"Importing {0} of {1}, {2}","Importarea {0} din {1}, {2}"
 DocType: Workflow State,move,Mutare
+apps/frappe/frappe/event_streaming/doctype/event_producer/event_producer.py,Failed to create an Event Consumer or an Event Consumer for the current site is already registered.,Nu a reușit să creeze un consumator de eveniment sau un consumator de evenimente pentru site-ul curent este deja înregistrat.
 apps/frappe/frappe/model/document.py,Action Failed,Acţiune Eșuată
 apps/frappe/frappe/core/doctype/user_permission/user_permission_list.js,For User,pentru utilizator
 DocType: View Log,View log,Vizualizare jurnal
@@ -1268,15 +1337,13 @@ apps/frappe/frappe/contacts/doctype/contact/contact.py,Please set Email Address,
 DocType: User,"If the user has any role checked, then the user becomes a ""System User"". ""System User"" has access to the desktop","În cazul în care utilizatorul are nici un rol verificat, atunci utilizatorul devine un &quot;sistem de utilizatori&quot;. &quot;Utilizator System&quot; are acces la spațiul de lucru"
 DocType: System Settings,Date and Number Format,Format Dată și Număr
 apps/frappe/frappe/model/document.py,one of,unul dintre
-apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Setup &gt; Customize Form,Configurare&gt; Formularizare personalizare
 apps/frappe/frappe/public/js/frappe/desk.js,Checking one moment,Verificarea un moment
 apps/frappe/frappe/public/js/frappe/list/list_sidebar.html,Show Tags,Arată Etichete
 DocType: DocField,HTML Editor,Editor HTML
 DocType: System Settings,"If Apply Strict User Permission is checked and User Permission is defined for a DocType for a User, then all the documents where value of the link is blank, will not be shown to that User","Dacă este bifată opțiunea Aplicare permisă de utilizator și Permisiunea utilizatorului este definită pentru un DocType pentru un utilizator, atunci toate documentele în care valoarea linkului este necompletată nu vor fi afișate acelui utilizator"
 DocType: Address,Billing,Facturare
 DocType: Email Queue,Not Sent,Nu a fost trimis
-DocType: Web Form,Actions,Acțiuni
-apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Setup &gt; User,Configurare&gt; Utilizator
+DocType: DocType,Actions,Acțiuni
 DocType: Workflow State,align-justify,aliniați-justify
 DocType: User,Middle Name (Optional),Al Doilea Nume (Opțional)
 apps/frappe/frappe/public/js/frappe/request.js,Not Permitted,Nu este permisă
@@ -1291,6 +1358,7 @@ apps/frappe/frappe/public/js/frappe/form/link_selector.js,No Results,Nici un rez
 DocType: System Settings,Security,Securitate
 apps/frappe/frappe/email/doctype/newsletter/newsletter.py,Scheduled to send to {0} recipients,Programat pentru a trimite la {0} destinatari
 apps/frappe/frappe/public/js/frappe/views/file/file_view.js,Cut,A taia
+DocType: Server Script,After Save,După Salvare
 apps/frappe/frappe/model/rename_doc.py,renamed from {0} to {1},redenumit de la {0} la {1}
 apps/frappe/frappe/public/js/frappe/list/list_view.js,{0} of {1} ({2} rows with children),{0} din {1} ({2} rânduri cu copii)
 DocType: Currency,**Currency** Master,Master **Monedă**
@@ -1317,16 +1385,19 @@ DocType: Prepared Report,Filter Values,Valoarea filtrului
 DocType: Communication,User Tags,Etichete Utilizator
 DocType: Data Migration Run,Fail,eșua
 DocType: Workflow State,download-alt,descarcati-alt
+DocType: Scheduled Job Type,Last Execution,Ultima executie
 DocType: Data Migration Run,Pull Failed,Trageți eșuat
 apps/frappe/frappe/public/js/frappe/views/components/Desktop.vue,Show / Hide Cards,Afișați / Ascundeți cărțile
 DocType: Communication,Feedback Request,Feedback cerere
 apps/frappe/frappe/config/settings.py,Import Data from CSV / Excel files.,Importați date din fișiere CSV / Excel.
 apps/frappe/frappe/website/doctype/web_form/web_form.py,Following fields are missing:,Următoarele câmpuri lipsește:
+DocType: Notification Log,From User,De la Utilizator
 apps/frappe/frappe/desk/doctype/bulk_update/bulk_update.py,Cancelling {0},Anulează {0}
 DocType: Web Page,Main Section,Secțiune Principală
 DocType: Page,Icon,icoană
 apps/frappe/frappe/www/update-password.html,"Hint: Include symbols, numbers and capital letters in the password","Sugestie: Includeți simboluri, numere și majuscule în parolă"
 apps/frappe/frappe/www/update-password.html,"Hint: Include symbols, numbers and capital letters in the password","Sugestie: Includeți simboluri, numere și majuscule în parolă"
+apps/frappe/frappe/config/settings.py,"Configure notifications for mentions, assignments, energy points and more.","Configurați notificările pentru mențiuni, atribuții, puncte de energie și multe altele."
 DocType: DocField,Allow in Quick Entry,Permiteți înregistrarea rapidă
 apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,PDF,PDF
 DocType: System Settings,dd/mm/yyyy,zz / ll / aaaa
@@ -1358,7 +1429,6 @@ DocType: Website Theme,Theme URL,URL temă
 DocType: Customize Form,Sort Field,Un fel de câmp
 DocType: Razorpay Settings,Razorpay Settings,Setări Razorpay
 apps/frappe/frappe/public/js/frappe/ui/filters/filters.js,Edit Filter,Editare filtru
-apps/frappe/frappe/public/js/frappe/ui/slides.js,Add More,Adăugă Mai Mult
 DocType: System Settings,Session Expiry Mobile,Sesiune de expirare Mobile
 apps/frappe/frappe/utils/password.py,Incorrect User or Password,Utilizator incorect sau parolă
 apps/frappe/frappe/templates/includes/search_box.html,Search results for,cauta rezultate pentru
@@ -1374,8 +1444,10 @@ apps/frappe/frappe/utils/password_strength.py,Let's avoid repeated words and cha
 DocType: Energy Point Rule,Energy Point Rule,Regula punctului energetic
 DocType: Communication,Delayed,Întârziat
 apps/frappe/frappe/config/settings.py,List of backups available for download,Listă de backup disponibile pentru descărcare
+apps/frappe/frappe/core/doctype/data_import/data_import_list.js,Try the new Data Import,Încercați noul Import de date
 apps/frappe/frappe/www/login.html,Sign up,Inscrie-te
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.py,Row {0}: Not allowed to disable Mandatory for standard fields,Rând {0}: Nu este permisă dezactivarea obligatorie pentru câmpurile standard
+DocType: Webhook,Enable Security,Activați securitatea
 apps/frappe/frappe/config/customization.py,Dashboards,Tablourile de bord
 DocType: Test Runner,Output,producție
 DocType: Milestone,Track Field,Pista de alergat
@@ -1383,6 +1455,7 @@ DocType: Notification,Set Property After Alert,Setați proprietatea după alert�
 apps/frappe/frappe/config/customization.py,Add fields to forms.,Adăugați câmpuri în formulare.
 apps/frappe/frappe/integrations/doctype/paypal_settings/paypal_settings.py,Looks like something is wrong with this site's Paypal configuration.,Se pare că ceva nu este în neregulă cu configurația PayPal a acestui site.
 apps/frappe/frappe/public/js/frappe/form/sidebar/review.js,Add Review,Adăugați recenzia
+apps/frappe/frappe/desk/form/assign_to.py,{0} assigned a new task {1} {2} to you,{0} v-a atribuit o nouă sarcină {1} {2}
 apps/frappe/frappe/website/doctype/website_theme/website_theme.js,Font Size (px),Dimensiunea fontului (px)
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.py,Only standard DocTypes are allowed to be customized from Customize Form.,Doar DocTypes standard este permis să fie personalizat din Formularizare personalizată.
 DocType: Email Account,Sendgrid,Sendgrid
@@ -1394,8 +1467,10 @@ DocType: Portal Menu Item,Portal Menu Item,Meniu portal Articol
 apps/frappe/frappe/desk/doctype/dashboard_chart/dashboard_chart.js,Set Filters,Setați filtrele
 DocType: Contact Us Settings,Email ID,Id Email
 DocType: Energy Point Rule,Multiplier Field,Câmp multiplicator
+apps/frappe/frappe/integrations/doctype/razorpay_settings/razorpay_settings.py,Could not create Razorpay order. Please contact Administrator,Nu s-a putut crea o comandă Razorpay. Vă rugăm să contactați administratorul
 DocType: Dashboard Chart,Time Interval,Interval de timp
 DocType: Activity Log,Keep track of all update feeds,Urmăriți toate feedurile de actualizare
+apps/frappe/frappe/share.py,{0} shared a document {1} {2} with you,{0} a distribuit un document {1} {2} cu tine
 DocType: OAuth Client,A list of resources which the Client App will have access to after the user allows it.<br> e.g. project,"O listă de resurse pe care App Clientul va avea acces la după ce utilizatorul permite acest lucru. <br> de exemplu, proiect"
 DocType: Translation,Translated Text,Textul tradus
 DocType: Contact Us Settings,Query Options,Opțiuni de interogare
@@ -1414,6 +1489,8 @@ DocType: DefaultValue,Key,Cheie
 DocType: Address,Contacts,Persoane de Contact
 DocType: System Settings,Setup Complete,Configurare completă
 apps/frappe/frappe/config/users_and_permissions.py,Report of all document shares,Raportul de toate acțiunile de documente
+DocType: Event Consumer,Callback URL,Adresa URL de apel invers
+apps/frappe/frappe/core/doctype/data_import/importer_new.py,"Import template should be of type .csv, .xlsx or .xls","Modelul de import trebuie să fie de tipul .csv, .xlsx sau .xls"
 apps/frappe/frappe/www/update-password.html,New Password,Parola nouă
 apps/frappe/frappe/public/js/frappe/ui/filters/filters.js,Filter {0} missing,Filtru {0} lipsă
 apps/frappe/frappe/core/doctype/activity_log/activity_log.py,Sorry! You cannot delete auto-generated comments,Ne pare rău! Nu puteți șterge comentariile generate automat
@@ -1430,6 +1507,7 @@ apps/frappe/frappe/public/js/frappe/utils/energy_point_utils.js,{0} criticized o
 DocType: Website Settings,FavIcon,Favicon
 apps/frappe/frappe/data_migration/doctype/data_migration_plan/data_migration_plan.js,Run,Rulează
 DocType: Blog Post,Content (HTML),Conținut (HTML)
+apps/frappe/frappe/public/js/frappe/views/components/Desktop.vue,Setup for,Configurare pentru
 DocType: Personal Data Download Request,User Name,Nume de utilizator
 DocType: Workflow State,minus-sign,minus-sign
 apps/frappe/frappe/public/js/frappe/request.js,Not Found,Nu a fost găsit
@@ -1437,11 +1515,11 @@ apps/frappe/frappe/www/printview.py,No {0} permission,Nu {0} permisiunea
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js,Export Custom Permissions,Export personalizate Permisiuni
 apps/frappe/frappe/desk/page/leaderboard/leaderboard.js,No items found.,Nu au fost gasite articolele.
 DocType: Data Export,Fields Multicheck,Câmpurile Multicheck
+apps/frappe/frappe/public/js/frappe/form/form.js,{} Complete,{} Complet
 DocType: Activity Log,Login,Conectare
 DocType: Web Form,Payments,Plăți
 apps/frappe/frappe/www/qrcode.html,Hi {0},Bună {0}
 apps/frappe/frappe/config/integrations.py,Google Drive Integration.,Integrare Google Drive
-apps/frappe/frappe/public/js/frappe/ui/toolbar/energy_points_notifications.js,{0} reverted your points on {1} {2},{0} a revenit punctele tale în {1} {2}
 DocType: System Settings,Enable Scheduled Jobs,Activați Jobs programate
 apps/frappe/frappe/core/doctype/data_export/exporter.py,Notes:,Observații:
 apps/frappe/frappe/core/page/background_jobs/background_jobs.py,Inactive,Inactiv
@@ -1466,6 +1544,7 @@ apps/frappe/frappe/config/settings.py,Email Templates for common queries.,Șablo
 apps/frappe/frappe/email/doctype/newsletter/newsletter.py,Permission Error,Eroare de permisiune
 apps/frappe/frappe/model/naming.py,Name of {0} cannot be {1},Numele de {0} nu poate fi {1}
 DocType: User Permission,Applicable For,Aplicabil pentru
+DocType: Dashboard Chart,From Date,Din data
 apps/frappe/frappe/core/doctype/version/version_view.html,Success,Succes
 apps/frappe/frappe/public/js/frappe/desk.js,Session Expired,Sesiunea a expirat
 apps/frappe/frappe/public/js/frappe/desk.js,Session Expired,Sesiunea a expirat
@@ -1478,7 +1557,7 @@ apps/frappe/frappe/www/update-password.html,Success! You are good to go 👍,Suc
 apps/frappe/frappe/desk/doctype/bulk_update/bulk_update.py,; not allowed in condition,; nu este permis în stare
 DocType: Async Task,Async Task,Asincron Sarcina
 DocType: Workflow State,picture,poză
-apps/frappe/frappe/www/complete_signup.html,Complete,Complet
+DocType: Scheduled Job Log,Complete,Complet
 DocType: DocType,Image Field,Imagine Câmp
 DocType: Print Format,Custom HTML Help,Personalizat HTML Help
 DocType: LDAP Settings,Default Role on Creation,Rolul implicit la creație
@@ -1486,6 +1565,7 @@ apps/frappe/frappe/website/doctype/contact_us_settings/contact_us_settings.js,Se
 DocType: Workflow Transition,Next State,State următor
 DocType: User,Block Modules,Module de blocare
 DocType: Print Format,Custom CSS,CSS personalizat
+DocType: Energy Point Rule,Apply Only Once,Aplicați o singură dată
 apps/frappe/frappe/public/js/frappe/form/controls/comment.js,Add a comment,Adăugaţi un comentariu
 DocType: Webhook,on_update,on_update
 apps/frappe/frappe/model/rename_doc.py,Ignored: {0} to {1},Ignorat: {0} {1} la
@@ -1497,14 +1577,17 @@ DocType: Email Account,Default Incoming,Implicit intrare
 DocType: Workflow State,repeat,repetă
 DocType: Website Settings,Banner,Banner
 apps/frappe/frappe/core/doctype/data_import/importer_new.py,Value must be one of {0},Valoarea trebuie să fie una dintre {0}
+apps/frappe/frappe/public/js/frappe/form/form.js,Cancel All Documents,Anulați toate documentele
 DocType: Role,"If disabled, this role will be removed from all users.","Dacă este dezactivat, acest rol va fi eliminat de la toți utilizatorii."
 apps/frappe/frappe/core/doctype/data_import_beta/data_import_beta.js,Go to {0} List,Accesați lista {0}
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js,Help on Search,Ajutor pe Cautare
 DocType: Milestone,Milestone Tracker,Urmăritor de urmărire
 apps/frappe/frappe/core/doctype/user/user.py,Registered but disabled,Înregistrat dar dezactivat
+apps/frappe/frappe/contacts/doctype/address/address.py,Address needs to be linked to a Company. Please add a row for Company in the Links table below.,Adresa trebuie să fie legată de o companie. Vă rugăm să adăugați un rând pentru companie în tabelul Linkuri de mai jos.
 apps/frappe/frappe/templates/emails/auto_repeat_fail.html,The Auto Repeat for this document has been disabled.,Repetarea automată pentru acest document a fost dezactivată.
 DocType: DocType,Hide Copy,Ascunde Copy
 apps/frappe/frappe/public/js/frappe/roles_editor.js,Clear all roles,Șterge toate rolurile
+DocType: Server Script,Before Save,Înainte de a salva
 apps/frappe/frappe/model/base_document.py,{0} must be unique,{0} trebuie să fie unic
 apps/frappe/frappe/model/base_document.py,Row,Rând
 apps/frappe/frappe/public/js/frappe/views/communication.js,"CC, BCC & Email Template","CC, BCC și e-mail"
@@ -1515,7 +1598,6 @@ DocType: Chat Profile,Offline,Deconectat
 apps/frappe/frappe/core/doctype/data_import_beta/data_import_beta.js,Successfully imported {0},Importat cu succes {0}
 DocType: User,API Key,Cheie API
 DocType: Email Account,Send unsubscribe message in email,Trimite mesajul dezabonare de e-mail
-apps/frappe/frappe/public/js/frappe/form/toolbar.js,Edit Title,Editează Titlu
 apps/frappe/frappe/custom/doctype/custom_field/custom_field.js,Fieldname which will be the DocType for this link field.,Nume câmp care va fi DocType.Referinta pentru acest domeniu link.
 apps/frappe/frappe/config/desk.py,Documents assigned to you and by you.,Documente atribuite pentru tine si de tine.
 apps/frappe/frappe/templates/emails/delete_data_confirmation.html,You can also copy-paste this ,"Puteți, de asemenea, copia-lipiți acest lucru"
@@ -1540,6 +1622,7 @@ DocType: Bulk Update,Field,Camp
 DocType: Communication,Received,Primit
 DocType: Notification,"Trigger on valid methods like ""before_insert"", ""after_update"", etc (will depend on the DocType selected)","Declanșare la metode valide, cum ar fi &quot;before_insert&quot;, &quot;after_update&quot;, etc (depinde de DocType.Referinta selectate)"
 apps/frappe/frappe/public/js/frappe/form/footer/timeline.js,changed value of {0} {1},valoarea modificată a {0} {1}
+apps/frappe/frappe/public/js/frappe/desk.js,Email Account setup please enter your password for: {0},Configurarea contului de e-mail vă rugăm să introduceți parola pentru: {0}
 apps/frappe/frappe/core/doctype/user/user.py,Adding System Manager to this User as there must be atleast one System Manager,Adaug Manager de Sistem acestui utilizator pentru că trebuie să existe cel puțin un Manager de Sistem
 DocType: Chat Message,URLs,URL-uri
 DocType: Data Migration Run,Total Pages,Total Pagini
@@ -1549,6 +1632,7 @@ DocType: Workflow State,list-alt,Lista-alt
 apps/frappe/frappe/www/update-password.html,Password Updated,Parola Actualizat
 apps/frappe/frappe/www/qrcode.html,Steps to verify your login,Pași pentru a vă verifica datele de conectare
 apps/frappe/frappe/utils/password.py,Password not found,Parola nu a fost găsit
+DocType: Webhook,Webhook Secret,Secret Webhook
 DocType: Data Migration Mapping,Page Length,Lungime Pagină
 DocType: Email Queue,Expose Recipients,Expose Destinatari
 apps/frappe/frappe/email/doctype/email_account/email_account.py,Append To is mandatory for incoming mails,Adăugare Pentru a este obligatorie pentru mail-uri primite
@@ -1561,8 +1645,6 @@ apps/frappe/frappe/config/integrations.py,Google API Settings.,Setări API Googl
 DocType: Report,Query Report,Raport de interogare
 DocType: User,Set New Password,Set New Password
 apps/frappe/frappe/permissions.py,Not allowed for {0}: {1},Nu este permis pentru {0}: {1}
-apps/frappe/frappe/email/doctype/auto_email_report/auto_email_report.py,"%s is not a valid report format. Report format should \
-				one of the following %s",%s formatul raportului nu este valid. Formatul raportului poate fi unul \unele dintre urmatoarele %s
 DocType: Chat Message,Chat,Chat
 apps/frappe/frappe/public/js/frappe/ui/toolbar/search.js,No documents found tagged with {0},Nu au fost găsite documente etichetate cu {0}
 DocType: LDAP Group Mapping,LDAP Group Mapping,Cartografierea grupului LDAP
@@ -1576,6 +1658,7 @@ DocType: Customize Form Field,Number of columns for a field in a Grid (Total Col
 DocType: DocType,System,Sistem
 DocType: Web Form,Max Attachment Size (in MB),Dimensiunea maximă a atașamentului (în MB)
 apps/frappe/frappe/www/login.html,Have an account? Login,Ai un cont? Conecta
+apps/frappe/frappe/public/js/frappe/form/templates/print_layout.html,Print Settings...,Setări tipărire ...
 DocType: Workflow State,arrow-down,săgeată-în jos
 apps/frappe/frappe/core/doctype/data_import_beta/data_import_beta.js,Row {0},Rândul {0}
 apps/frappe/frappe/model/delete_doc.py,User not allowed to delete {0}: {1},Utilizatorul nu este permis pentru a șterge {0}: {1}
@@ -1611,11 +1694,12 @@ DocType: Workflow State,hand-down,mână-jos
 apps/frappe/frappe/public/js/frappe/views/kanban/kanban_view.js,"No fields found that can be used as a Kanban Column. Use the Customize Form to add a Custom Field of type ""Select"".",Nu au fost găsite câmpuri care să poată fi utilizate ca o coloană Kanban. Folosiți Formularul de personalizare pentru a adăuga un câmp personalizat de tip „Selectați”.
 DocType: Address,GST State,Statul GST
 apps/frappe/frappe/core/doctype/doctype/doctype.py,{0}: Cannot set Cancel without Submit,{0}: Nu se poate seta Anulați fără sa transmiteți
+apps/frappe/frappe/public/js/frappe/views/components/Desktop.vue,User ({0}),Utilizator ({0})
 DocType: Website Theme,Theme,Temă
 DocType: OAuth Authorization Code,Redirect URI Bound To Auth Code,Redirect URI legat la Codul Aut
 apps/frappe/frappe/public/js/frappe/ui/keyboard.js,Open Help,Deschideți ajutorul
 DocType: DocType,Is Submittable,Este Submittable
-apps/frappe/frappe/core/doctype/comment/comment.py,New Mention,Mențiune nouă
+apps/frappe/frappe/desk/doctype/notification_log/notification_log.py,New Mention,Mențiune nouă
 apps/frappe/frappe/integrations/doctype/google_contacts/google_contacts.py,No new Google Contacts synced.,Nu s-au sincronizat noi contacte Google.
 DocType: File,Uploaded To Google Drive,Încărcat pe Google Drive
 apps/frappe/frappe/custom/doctype/property_setter/property_setter.js,Value for a check field can be either 0 or 1,Valoarea pentru un câmp de verificare poate fi 0 sau 1
@@ -1627,7 +1711,7 @@ apps/frappe/frappe/social/doctype/energy_point_log/energy_point_log.py,{0} criti
 DocType: Workflow State,Inbox,Inbox
 DocType: Kanban Board Column,Red,Roșu
 DocType: Workflow State,Tag,Etichetă
-DocType: Custom Script,Script,Scenariu
+DocType: Report,Script,Scenariu
 apps/frappe/frappe/core/doctype/data_import/log_details.html,Document can't saved.,Documentul nu poate fi salvat.
 DocType: Energy Point Rule,Maximum Points,Puncte maxime
 apps/frappe/frappe/public/js/frappe/ui/toolbar/navbar.html,My Settings,Setările mele
@@ -1643,6 +1727,7 @@ DocType: Footer Item,"Select target = ""_blank"" to open in a new page.","Select
 apps/frappe/frappe/public/js/frappe/ui/filters/filter.js,1 year,1 an
 apps/frappe/frappe/public/js/frappe/model/model.js,Permanently delete {0}?,Șterge definitiv {0}?
 apps/frappe/frappe/core/doctype/file/file.py,Same file has already been attached to the record,Același dosar a fost deja atașat la dosarul
+DocType: Event Sync Log,Synced,sincronizat
 apps/frappe/frappe/model/workflow.py,{0} is not a valid Workflow State. Please update your Workflow and try again.,{0} nu este un flux de lucru valid. Actualizați fluxul de lucru și încercați din nou.
 apps/frappe/frappe/templates/emails/energy_points_summary.html,gave {0} points,a dat {0} puncte
 DocType: Workflow State,wrench,cheie
@@ -1657,9 +1742,12 @@ DocType: Address,Haryana,Haryana
 apps/frappe/frappe/public/js/frappe/form/sidebar/review.js,{0} appreciation points for {1} {2},{0} puncte de apreciere pentru {1} {2}
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Roles can be set for users from their User page.,Rolurile pot fi setate pentru utilizatorii de la pagina lor de utilizare.
 apps/frappe/frappe/templates/includes/comments/comments.html,Add Comment,Adăugă Comentariu
+DocType: Dashboard Chart,Select Date Range,Selectați intervalul de date
 DocType: DocField,Mandatory,Obligatoriu
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js,Module to Export,Modul de a exporta
+DocType: Scheduled Job Type,Monthly Long,Lunar lunga
 apps/frappe/frappe/core/doctype/doctype/doctype.py,{0}: No basic permissions set,{0}: Nici o permisiune de bază nu a fost configurată
+apps/frappe/frappe/public/js/frappe/form/footer/timeline.js,Send an email to {0} to link it here,Trimiteți un e-mail la {0} pentru a-l lega aici
 apps/frappe/frappe/utils/backups.py,Download link for your backup will be emailed on the following email address: {0},Descarcă link-ul pentru backup-ul va fi trimis pe adresa de e-mail: {0}
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,"Meaning of Submit, Cancel, Amend","Înțeles Trimiteti, anula, modifică"
 apps/frappe/frappe/desk/doctype/todo/todo_list.js,To Do,Sarcină de îndeplinit
@@ -1668,7 +1756,6 @@ DocType: Milestone Tracker,Track milestones for any document,Urmăriți repere p
 DocType: Social Login Key,Identity Details,Detalii de identitate
 apps/frappe/frappe/model/workflow.py,Workflow State transition not allowed from {0} to {1},Tranziția statului de lucru nu este permisă de la {0} la {1}
 apps/frappe/frappe/desk/doctype/dashboard/dashboard.js,Show Dashboard,Show Dashboard
-apps/frappe/frappe/desk/form/assign_to.py,New Message,Mesaj Nou
 DocType: File,Preview HTML,Previzualizare HTML
 DocType: Desktop Icon,query-report,interogare raport
 DocType: Data Import Beta,Template Warnings,Avertismente șablon
@@ -1679,18 +1766,21 @@ apps/frappe/frappe/public/js/frappe/form/linked_with.js,Linked With,Inlănțuit 
 apps/frappe/frappe/templates/emails/auto_email_report.html,Edit Auto Email Report Settings,Editați setările raportului automat de e-mail
 DocType: Chat Room,Message Count,Numărătoarea mesajelor
 DocType: Workflow State,book,carte
+apps/frappe/frappe/public/js/frappe/form/form.js,{0} {1} is linked with the following submitted documents: {2},{0} {1} este legat de următoarele documente trimise: {2}
 DocType: Communication,Read by Recipient,Citiți de către destinatar
 DocType: Website Settings,Landing Page,Landing Page
 apps/frappe/frappe/public/js/frappe/form/script_manager.js,Error in Custom Script,Eroare în script personalizat
 apps/frappe/frappe/public/js/frappe/form/quick_entry.js,{0} Name,{0} Nume
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js,No Permissions set for this criteria.,Permisiuni stabilit pentru acest criteriu.
 DocType: Auto Email Report,Auto Email Report,Raport E-mail automat
+apps/frappe/frappe/desk/doctype/notification_log/notification_log.py,New Document Shared,Nou document partajat
 apps/frappe/frappe/public/js/frappe/form/footer/timeline.js,Delete comment?,Ștergeți comentariul?
 DocType: Address Template,This format is used if country specific format is not found,Acest format este utilizat în cazul în format specific țării nu este găsit
 DocType: System Settings,Allow Login using Mobile Number,Permiteți conectarea utilizând numărul de telefon mobil
 apps/frappe/frappe/public/js/frappe/request.js,You do not have enough permissions to access this resource. Please contact your manager to get access.,Nu aveți suficiente permisiuni pentru a accesa această resursă. Vă rugăm să contactați managerul pentru a obține acces.
 DocType: Custom Field,Custom,Personalizat
 DocType: System Settings,"If enabled, users who login from Restricted IP Address, won't be prompted for Two Factor Auth","Dacă este activată, utilizatorii care se conectează la adresa IP restricționată nu vor fi înștiințați pentru Two Factor Auth"
+DocType: Server Script,After Cancel,După anulare
 DocType: Auto Repeat,Get Contacts,Obțineți contacte
 apps/frappe/frappe/website/doctype/blog_post/blog_post.py,Posts filed under {0},Posturile de depusă în conformitate cu {0}
 apps/frappe/frappe/core/doctype/data_import/importer_new.py,Skipping Untitled Column,Sărind coloana fără titlu
@@ -1701,6 +1791,7 @@ DocType: User,Login After,Autentifică-te După
 DocType: Print Format,Monospace,Monospace
 DocType: Letter Head,Printing,Tipărire
 DocType: Workflow State,thumbs-up,thumbs-up
+DocType: Notification Log,Mention,Menţiune
 DocType: DocPerm,DocPerm,DocPerm
 DocType: Print Settings,Fonts,Fonturi
 apps/frappe/frappe/core/doctype/doctype/doctype.py,Precision should be between 1 and 6,Precizie trebuie să fie între 1 și 6
@@ -1708,7 +1799,7 @@ apps/frappe/frappe/core/doctype/communication/communication.js,Fw: {0},Fw: {0}
 apps/frappe/frappe/public/js/frappe/utils/utils.js,and,și
 apps/frappe/frappe/templates/emails/auto_email_report.html,This report was generated on {0},Acest raport a fost generat la {0}
 DocType: Error Snapshot,Frames,Rame
-apps/frappe/frappe/patches/v6_19/comment_feed_communication.py,Assignment,Misiune
+DocType: Notification Log,Assignment,Misiune
 DocType: Notification,Slack Channel,Slack Channel
 DocType: About Us Team Member,Image Link,Imagine Link
 DocType: Auto Email Report,Report Filters,Filtre raport
@@ -1725,7 +1816,9 @@ apps/frappe/frappe/templates/includes/login/login.js,Enter Code displayed in OTP
 apps/frappe/frappe/public/js/frappe/views/calendar/calendar.js,Unable to update event,Imposibil de a actualiza eveniment
 apps/frappe/frappe/twofactor.py,Verification code has been sent to your registered email address.,Codul de verificare a fost trimis la adresa dvs. de e-mail înregistrată.
 apps/frappe/frappe/core/doctype/user/user.py,Throttled,gâtuit
+apps/frappe/frappe/public/js/frappe/ui/notifications/notifications.js,Your Target,Ținta ta
 apps/frappe/frappe/utils/data.py,"Filter must have 4 values (doctype, fieldname, operator, value): {0}","Filtrul trebuie să aibă 4 valori (doctype, nume de câmp, operator, valoare): {0}"
+apps/frappe/frappe/model/naming.py,No Name Specified for {0},Nicio denumire specificată pentru {0}
 apps/frappe/frappe/public/js/frappe/list/list_view.js,Apply Assignment Rule,Aplicați norma de atribuire
 apps/frappe/frappe/utils/bot.py,show,spectacol
 apps/frappe/frappe/utils/data.py,Invalid field name {0},Numele câmpului nevalid {0}
@@ -1735,9 +1828,9 @@ DocType: Workflow State,text-height,text-înălțime
 DocType: Data Migration Plan Mapping,Data Migration Plan Mapping,Mapare Plan de Migrare a Datelor
 apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js,Starting Frappé ...,Incepand cu Frappe ...
 DocType: Web Form Field,Max Length,Lungime maxima
-apps/frappe/frappe/public/js/frappe/ui/toolbar/energy_points_notifications.js,For {0} {1},Pentru {0} {1}
 DocType: Print Format,Jinja,Jinja
 DocType: Workflow State,map-marker,marcator-hartă
+apps/frappe/frappe/config/automation.py,The mapping configuration between two doctypes.,Configurația de mapare între două tipuri.
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Submit an Issue,Prezenta eroare
 DocType: Event,Repeat this Event,Repetați acest Eveniment
 DocType: Address,Maintenance User,Întreținere utilizator
@@ -1771,6 +1864,7 @@ apps/frappe/frappe/www/404.html,Page missing or moved,Pagina lipsește sau a fos
 apps/frappe/frappe/public/js/frappe/form/templates/form_sidebar.html,Reviews,opinii
 DocType: DocType,Route,Traseu
 apps/frappe/frappe/config/integrations.py,Razorpay Payment gateway settings,Setări gateway de plată Razorpay
+apps/frappe/frappe/social/doctype/energy_point_log/energy_point_log.py,{0} gained {1} point for {2} {3},{0} a câștigat {1} punct pentru {2} {3}
 apps/frappe/frappe/website/doctype/website_slideshow/website_slideshow.js,Fetch attached images from document,Descărcați imagini atașate din document
 DocType: Chat Room,Name,Nume
 DocType: Contact Us Settings,Skype,Skype
@@ -1781,7 +1875,6 @@ apps/frappe/frappe/public/js/frappe/form/controls/link.js,Open Link,Deschide lin
 apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js,Your Language,Limba ta
 DocType: Dashboard Chart,Average,In medie
 apps/frappe/frappe/public/js/frappe/form/grid.js,Add Row,Adăugă Rând
-DocType: Tag Category,Doctypes,doctypes
 apps/frappe/frappe/public/js/frappe/form/print.js,Printer,Imprimanta
 apps/frappe/frappe/desk/query_report.py,Query must be a SELECT,Interogare trebuie să fie un SELECT
 DocType: Auto Repeat,Completed,Finalizat
@@ -1797,6 +1890,7 @@ apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,"Ce
 DocType: Newsletter,Test Email Address,Adresa de e-mail de testare
 DocType: Auto Repeat,Reference Document Type,Referință Document Type
 DocType: ToDo,Sender,Expeditor
+DocType: Event Consumer,Incoming Change,Schimbare de intrare
 DocType: Google Drive,Backup Folder Name,Numele folderului de rezervă
 apps/frappe/frappe/email/doctype/notification/notification.py,Error while evaluating Notification {0}. Please fix your template.,Eroare la evaluarea Notificării {0}. Corectați-vă șablonul.
 DocType: GSuite Settings,Google Apps Script,Scriptul Google Apps
@@ -1841,6 +1935,7 @@ DocType: GCalendar Account,Next Sync Token,Următorul cod de sincronizare
 DocType: Energy Point Settings,Energy Point Settings,Setări punct de energie
 DocType: Async Task,Succeeded,Reușit
 apps/frappe/frappe/public/js/frappe/form/save.js,Mandatory fields required in {0},Campuri obligatorii prevăzute în {0}
+DocType: Onboarding Slide Field,Align,Alinia
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js,Reset Permissions for {0}?,Resetați Permisiunile pentru {0}?
 apps/frappe/frappe/config/desktop.py,Users and Permissions,Utilizatori și permisiuni
 DocType: S3 Backup Settings,S3 Backup Settings,S3 Backup Settings
@@ -1857,8 +1952,11 @@ DocType: DocType,ASC,ASC
 apps/frappe/frappe/public/js/frappe/form/print.js,New Print Format Name,Nume format format nou
 apps/frappe/frappe/templates/emails/data_deletion_approval.html,Click on the link below to approve the request,Faceți clic pe linkul de mai jos pentru a aproba solicitarea
 DocType: Workflow State,align-left,aliniați-stânga
+DocType: Onboarding Slide,Action Settings,Setări de acțiune
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Setup &gt; User,Configurare&gt; Utilizator
 DocType: User,Defaults,Implicite
 DocType: Energy Point Log,Revert Of,Revenire
+DocType: Document Type Mapping,Field Mapping,Mapare câmp
 apps/frappe/frappe/public/js/frappe/model/model.js,Merge with existing,Merge cu existente
 DocType: User,Birth Date,Dată naștere
 DocType: Communication Link,Link Title,Link Title
@@ -1886,6 +1984,7 @@ apps/frappe/frappe/templates/pages/integrations/gcalendar-success.html,Your conn
 DocType: Tag Link,Tag Link,Link de etichete
 apps/frappe/frappe/core/report/transaction_log_report/transaction_log_report.py,Chain Integrity,Integritatea lanțului
 DocType: Data Export,CSV,CSV
+DocType: Event Consumer,In Test,În test
 DocType: Currency,"1 Currency = [?] Fraction
 For e.g. 1 USD = 100 Cent","1 monedă = [?] Fracțiunea pentru, de exemplu 1 USD = 100 Cenți"
 DocType: Data Import,Partially Successful,Parțial reușit
@@ -1895,6 +1994,7 @@ apps/frappe/frappe/public/js/frappe/form/link_selector.js,You can use wildcard %
 DocType: LDAP Settings,LDAP Group Mappings,Mapări de grupuri LDAP
 DocType: Chat Message Attachment,Chat Message Attachment,Chat atașament mesaj
 DocType: LDAP Settings,Path to CA Certs File,Calea către fișierul certificatelor CA
+DocType: Event Producer Document Type,If the document has different field names on the Producer and Consumer's end check this and set up the Mapping,"Dacă documentul are nume de câmpuri diferite la finalul producătorului și consumatorului, verificați acest lucru și configurați maparea"
 DocType: Address,Manipur,Manipur
 DocType: Web Form Field,Allow Read On All Link Options,Permiteți citirea tuturor opțiunilor de legătură
 DocType: DocType,Database Engine,Motor Bază de Date
@@ -1912,6 +2012,7 @@ apps/frappe/frappe/public/js/frappe/ui/filters/filters.js,In,Î
 DocType: Notification,Value Change,Valoarea variației
 DocType: Google Contacts,Authorize Google Contacts Access,Autorizați Accesul Google Contacte
 apps/frappe/frappe/public/js/frappe/views/reports/report_view.js,Showing only Numeric fields from Report,Se afișează numai câmpurile Numeric din raport
+apps/frappe/frappe/utils/data.py,1 week ago,1 săptămână în urmă
 DocType: Data Import Beta,Import Type,Tip import
 DocType: Access Log,HTML Page,Pagina HTML
 DocType: Address,Subsidiary,Filială
@@ -1921,7 +2022,6 @@ apps/frappe/frappe/integrations/doctype/google_drive/google_drive.py,Google Driv
 apps/frappe/frappe/public/js/frappe/list/bulk_operations.js,With Letterhead,Cu antet
 apps/frappe/frappe/email/smtp.py,Invalid Outgoing Mail Server or Port,Invalid server de mail de ieșire sau Port
 DocType: Custom DocPerm,Write,Scrie
-apps/frappe/frappe/core/doctype/report/report.py,Only Administrator allowed to create Query / Script Reports,Numai Administrator permis de a crea Cautare / Script Rapoarte
 apps/frappe/frappe/public/js/frappe/form/save.js,Updating,Actualizarea
 DocType: Data Import Beta,Preview,Previzualizați
 apps/frappe/frappe/desk/doctype/bulk_update/bulk_update.js,"Field ""value"" is mandatory. Please specify value to be updated",Câmp &quot;Valoarea&quot; este obligatorie. Vă rugăm să specificați o valoare care urmează să fie actualizată
@@ -1931,6 +2031,7 @@ apps/frappe/frappe/contacts/doctype/contact/contact.js,Invite as User,Invitați 
 DocType: Data Migration Run,Started,A început
 apps/frappe/frappe/permissions.py,User {0} does not have access to this document,Utilizatorul {0} nu are acces la acest document
 DocType: Data Migration Run,End Time,End Time
+DocType: Dashboard Chart,Group By Based On,În funcție de grup
 apps/frappe/frappe/public/js/frappe/views/interaction.js,Select Attachments,Selectați atașate
 apps/frappe/frappe/model/naming.py, for {0},pentru {0}
 apps/frappe/frappe/public/js/frappe/form/print.js,You are not allowed to print this document,Nu vi se permite să imprimați acest document
@@ -1972,6 +2073,7 @@ apps/frappe/frappe/public/js/frappe/ui/messages.js,Verify,Verifica
 DocType: Workflow Document State,Update Field,Actualizare câmp
 DocType: Chat Profile,Enable Chat,Activați Chat
 DocType: LDAP Settings,Base Distinguished Name (DN),Baza de numele distinctiv (DN)
+DocType: Server Script,API,API-ul
 apps/frappe/frappe/email/doctype/email_account/email_account.py,Leave this conversation,Lasă această conversație
 apps/frappe/frappe/model/base_document.py,Options not set for link field {0},Opțiuni nu este setat pentru câmp legătură {0}
 apps/frappe/frappe/core/page/background_jobs/background_jobs.html,Queue / Worker,Coadă / lucrător
@@ -2026,6 +2128,7 @@ apps/frappe/frappe/public/js/frappe/views/file/file_view.js,Folder name should n
 DocType: Note,Note,Notă
 apps/frappe/frappe/core/doctype/error_snapshot/error_snapshot.html,Error Report,Eroare Raport
 apps/frappe/frappe/config/settings.py,Export Data in CSV / Excel format.,Exportați date în format CSV / Excel.
+DocType: Document Type Field Mapping,Document Type Field Mapping,Tip de documentare Mapping Field
 apps/frappe/frappe/desk/doctype/global_search_settings/global_search_settings.py,Setting up Global Search documents.,Configurarea documentelor de căutare globală.
 apps/frappe/frappe/www/qrcode.html,Authentication Apps you can use are: ,Aplicațiile de autentificare pe care le puteți utiliza sunt:
 apps/frappe/frappe/public/js/frappe/form/controls/data.js,{0} already exists. Select another name,{0} există deja. Selectați un alt nume
@@ -2039,12 +2142,12 @@ apps/frappe/frappe/website/doctype/personal_data_deletion_request/personal_data_
 apps/frappe/frappe/auth.py,Login not allowed at this time,Autentificare nu este permis în acest moment
 DocType: Data Migration Run,Current Mapping Action,Acțiune actuală de cartografiere
 DocType: Dashboard Chart Source,Source Name,sursa Nume
-apps/frappe/frappe/public/js/frappe/views/inbox/inbox_view.js,No email account associated with the User. Please add an account under User &gt; Email Inbox.,Niciun cont de e-mail asociat cu Utilizatorul. Vă rugăm să adăugați un cont în User&gt; Inbox.
 DocType: Email Account,Email Sync Option,E-mail Opțiunea de sincronizare
 apps/frappe/frappe/core/doctype/data_import/log_details.html,Row No,Rândul nr
 DocType: Async Task,Runtime,Runtime
 DocType: Post,Is Pinned,Este fixat
 DocType: Contact Us Settings,Introduction,Introducere
+apps/frappe/frappe/public/js/frappe/ui/onboarding_dialog.js,Need Help?,Nevoie de ajutor?
 apps/frappe/frappe/public/js/frappe/social/components/Post.vue,Pin Globally,Pin la nivel global
 apps/frappe/frappe/public/js/frappe/form/templates/form_sidebar.html,Followed by,Urmat de
 DocType: LDAP Settings,LDAP Email Field,LDAP E-mail Câmp
@@ -2054,7 +2157,6 @@ apps/frappe/frappe/desk/form/assign_to.py,Already in user's To Do list,Există d
 DocType: User Email,Enable Outgoing,Activați ieșire
 DocType: Address,Fax,Fax
 apps/frappe/frappe/config/customization.py,Custom Tags,Etichete Personalizate
-apps/frappe/frappe/email/smtp.py,Email Account not setup. Please create a new Email Account from Setup &gt; Email &gt; Email Account,Contul de e-mail nu este configurat. Vă rugăm să creați un nou cont de e-mail din Configurare&gt; Email&gt; Cont de e-mail
 DocType: Comment,Submitted,Inscrisa
 DocType: Contact,Pulled from Google Contacts,Extras din Contacte Google
 apps/frappe/frappe/integrations/doctype/paypal_settings/paypal_settings.py,In Valid Request,Cerere invalida
@@ -2075,9 +2177,10 @@ apps/frappe/frappe/core/doctype/file/test_file.py,Home/Test Folder 1,Prima / Fol
 apps/frappe/frappe/public/js/frappe/form/sidebar/assign_to.js,Assign to me,Alocare la mine
 DocType: DocField,Dynamic Link,Link dinamic
 apps/frappe/frappe/public/js/frappe/ui/keyboard.js,Press Alt Key to trigger additional shortcuts in Menu and Sidebar,Apăsați Tasta Altă pentru a declanșa comenzi rapide suplimentare în Meniu și Bara laterală
+DocType: Dashboard Chart,To Date,La Data
 DocType: List View Setting,List View Setting,Setare vizualizare listă
 apps/frappe/frappe/core/page/background_jobs/background_jobs_outer.html,Show failed jobs,Afișați locuri de muncă nu a reușit
-DocType: Event,Details,Detalii
+DocType: Scheduled Job Log,Details,Detalii
 DocType: Property Setter,DocType or Field,DocType sau câmp
 apps/frappe/frappe/public/js/frappe/form/sidebar/document_follow.js,You unfollowed this document,Ați desfășurat acest document
 apps/frappe/frappe/website/doctype/website_theme/website_theme.js,Primary Color,Culoare primară
@@ -2086,7 +2189,6 @@ DocType: System Settings,"If enabled, all users can login from any IP Address us
 apps/frappe/frappe/integrations/doctype/stripe_settings/stripe_settings.py,Seems Publishable Key or Secret Key is wrong !!!,Se pare că cheia publicabilă sau cheia secretă este greșită!
 apps/frappe/frappe/integrations/doctype/stripe_settings/stripe_settings.py,Seems Publishable Key or Secret Key is wrong !!!,Se pare că cheia publicabilă sau cheia secretă este greșită!
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Quick Help for Setting Permissions,Ajutor Rapid pentru Setare Permisiuni
-DocType: Tag Doc Category,Doctype to Assign Tags,Doctype pentru a atribui etichete
 apps/frappe/frappe/core/doctype/error_snapshot/error_snapshot.js,Show Relapses,Arată Recidivele
 apps/frappe/frappe/core/doctype/communication/communication.js,Email has been moved to trash,E-mailul a fost mutat în coșul de gunoi
 DocType: Report,Report Builder,Constructor Raport
@@ -2111,7 +2213,6 @@ apps/frappe/frappe/public/js/frappe/list/bulk_operations.js,Print Documents,Impr
 apps/frappe/frappe/public/js/frappe/form/toolbar.js,Jump to field,Salt la câmp
 DocType: Contact Us Settings,Forward To Email Address,Mai departe la adresa de email
 DocType: Contact Phone,Is Primary Phone,Este telefon primar
-apps/frappe/frappe/public/js/frappe/form/templates/timeline.html,Send an email to {0} to link it here.,Trimiteți un e-mail la {0} pentru a-l lega aici.
 DocType: Auto Email Report,Weekdays,Zilele saptamanii
 apps/frappe/frappe/public/js/frappe/data_import/data_exporter.js,{0} records will be exported,Înregistrările {0} vor fi exportate
 apps/frappe/frappe/core/doctype/doctype/doctype.py,Title field must be a valid fieldname,Câmp titlu trebuie să fie un fieldname valid
@@ -2119,7 +2220,7 @@ DocType: Post Comment,Post Comment,posteaza comentariu
 apps/frappe/frappe/config/core.py,Documents,Documente
 apps/frappe/frappe/config/users_and_permissions.py,Activity Log by ,Jurnal de activitate
 DocType: Social Login Key,Custom Base URL,Adresa URL de bază personalizată
-DocType: Email Flag Queue,Is Completed,Este gata
+DocType: Onboarding Slide,Is Completed,Este gata
 apps/frappe/frappe/website/doctype/web_form/web_form.js,Get Fields,Obțineți câmpuri
 apps/frappe/frappe/desk/page/user_profile/user_profile.js,Edit Profile,Editează profilul
 DocType: Kanban Board Column,Archived,Arhivat
@@ -2130,11 +2231,12 @@ myfield
 eval:doc.myfield=='My Value'
 eval:doc.age&gt;18",Acest câmp va apărea numai în cazul în care numele_campului definit aici are valoare sau regulile sunt adevărate (exemple): myfield eval: doc.myfield == &#39;Valoarea mea&#39; eval: doc.age&gt; 18
 DocType: Social Login Key,Office 365,Biroul 365
-apps/frappe/frappe/public/js/frappe/ui/toolbar/energy_points_notifications.js,Today,Astăzi
+apps/frappe/frappe/public/js/frappe/form/controls/date.js,Today,Astăzi
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,"Once you have set this, the users will only be able access documents (eg. Blog Post) where the link exists (eg. Blogger).","După ce ați stabilit acest lucru, utilizatorii vor fi doar documente de acces capabile (ex. Blog post), în cazul în care există link-ul (de exemplu, Blogger)."
 DocType: Data Import Beta,Submit After Import,Trimiteți după import
 DocType: Error Log,Log of Scheduler Errors,Log de erori Scheduler
 DocType: User,Bio,Biografie
+DocType: Onboarding Slide Help Link,Onboarding Slide Help Link,Link de ajutor pentru diapozitive la bord
 DocType: OAuth Client,App Client Secret,Aplicația Client Secret
 apps/frappe/frappe/public/js/frappe/form/save.js,Submitting,Inscrierea
 apps/frappe/frappe/core/doctype/data_export/exporter.py,Parent is the name of the document to which the data will get added to.,Parentul este numele documentului la care vor fi adăugate datele.
@@ -2142,7 +2244,6 @@ apps/frappe/frappe/integrations/doctype/google_drive/google_drive.py,Google Driv
 DocType: DocType,UPPER CASE,MAJUSCULE
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js,Custom HTML,Personalizat HTML
 apps/frappe/frappe/public/js/frappe/views/file/file_view.js,Enter folder name,Introduceți numele folderului
-apps/frappe/frappe/contacts/doctype/address/address.py,No default Address Template found. Please create a new one from Setup &gt; Printing and Branding &gt; Address Template.,Nu a fost găsit un șablon de adresă implicit. Vă rugăm să creați unul nou din Setare&gt; Tipărire și Branding&gt; Model de adrese.
 apps/frappe/frappe/auth.py,Unknown User,Utilizator necunoscut
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js,Select Role,Selectați Rolul
 DocType: Comment,Deleted,Șters
@@ -2158,15 +2259,16 @@ DocType: Chat Token,Chat Token,Chat Token
 apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,Create Chart,Creați grafic
 apps/frappe/frappe/templates/pages/integrations/stripe_checkout.html,john@doe.com,john@doe.com
 apps/frappe/frappe/public/js/frappe/data_import/import_preview.js,Don't Import,Nu importați
-DocType: Web Page,Center,Centru
+DocType: Onboarding Slide Field,Center,Centru
 DocType: Notification,Value To Be Set,Valoare de setat
 apps/frappe/frappe/public/js/frappe/views/reports/report_view.js,Edit {0},Editați {0}
 apps/frappe/frappe/core/doctype/error_snapshot/error_snapshot_list.js,First Level,Primul nivel
 DocType: Workflow Document State,Represents the states allowed in one document and role assigned to change the state.,Reprezintă statele permise într-un document și rol atribuit pentru a schimba starea.
 DocType: Data Migration Connector,Database Name,Nume Bază de Date
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js,Refresh Form,Actualizează Forma
+DocType: Event Producer,Event Producer,Producător de evenimente
 DocType: DocField,Select,Selectează
-apps/frappe/frappe/public/js/frappe/ui/toolbar/energy_points_notifications.js,View Full Log,Vizualizare jurnal complet
+apps/frappe/frappe/public/js/frappe/ui/notifications/notifications.js,View Full Log,Vizualizare jurnal complet
 DocType: Assignment Rule,"Simple Python Expression, Example: status == 'Open' and type == 'Bug'","Exprimare simplă Python, Exemplu: status == &#39;Deschis&#39; și tastați == &#39;Bug&#39;"
 apps/frappe/frappe/utils/csvutils.py,File not attached,Nu fișier atașat
 apps/frappe/frappe/public/js/frappe/dom.js,Connection lost. Some features might not work.,Conexiunea a fost pierdută. Este posibil ca unele funcții să nu funcționeze.
@@ -2198,6 +2300,7 @@ DocType: Web Page,HTML for header section. Optional,HTML pentru secțiunea antet
 apps/frappe/frappe/public/js/frappe/form/templates/form_sidebar.html,This feature is brand new and still experimental,Această caracteristică este brand nou și încă experimental
 apps/frappe/frappe/model/rename_doc.py,Maximum {0} rows allowed,Maxime {0} rânduri permis
 DocType: Dashboard Chart Link,Chart,Diagramă
+DocType: Scheduled Job Type,Cron,cron
 DocType: Email Unsubscribe,Global Unsubscribe,Global Dezabonare
 apps/frappe/frappe/utils/password_strength.py,This is a very common password.,Aceasta este o parolă foarte frecvente.
 apps/frappe/frappe/email/doctype/email_group/email_group.js,View,Vedere
@@ -2214,6 +2317,7 @@ DocType: Data Migration Connector,Hostname,Numele gazdei
 DocType: Data Migration Mapping,Condition Detail,Detaliile condiției
 apps/frappe/frappe/integrations/doctype/stripe_settings/stripe_settings.py,"For currency {0}, the minimum transaction amount should be {1}","Pentru valuta {0}, suma minimă a tranzacției ar trebui să fie {1}"
 DocType: DocField,Print Hide,Imprimare Ascunde
+DocType: System Settings,HH:mm:ss,HH: mm: ss
 apps/frappe/frappe/public/js/frappe/form/sidebar/review.js,To User,Utilizatorului
 apps/frappe/frappe/public/js/frappe/ui/messages.js,Enter Value,Introduceți valoarea
 DocType: Workflow State,tint,tentă
@@ -2264,6 +2368,7 @@ DocType: DocType,User Cannot Search,Utilizatorul nu poate căuta
 DocType: Communication Link,Communication Link,Link de comunicare
 apps/frappe/frappe/email/doctype/auto_email_report/auto_email_report.py,Invalid Output Format,Format Ieșire nevalid
 apps/frappe/frappe/public/js/frappe/list/bulk_operations.js,Cannot {0} {1},Nu poate fi {0} {1}
+apps/frappe/frappe/automation/doctype/auto_repeat/auto_repeat.py,A recurring {0} {1} has been created for you via Auto Repeat {2}.,O repetare {0} {1} a fost creată pentru dvs. prin repetare automată {2}.
 DocType: Custom DocPerm,Apply this rule if the User is the Owner,Aplicați această regulă în cazul în care utilizatorul este proprietarul
 DocType: Global Search Settings,Global Search Settings,Setări globale de căutare
 apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js,Will be your login ID,Va fi ID-ul dvs. de conectare
@@ -2281,11 +2386,14 @@ apps/frappe/frappe/www/qrcode.html,QR Code for Login Verification,Cod QR pentru 
 apps/frappe/frappe/public/js/frappe/form/sidebar/assign_to.js,Add to To Do,Adăugați Sarcină de îndeplinit
 DocType: Footer Item,Company,Compania
 apps/frappe/frappe/public/js/frappe/ui/group_by/group_by.js,Average of {0},Media de {0}
+apps/frappe/frappe/model/workflow.py,Successful Transactions,Tranzacții de succes
+DocType: Scheduled Job Log,Scheduled,Programat
 DocType: User,Logout from all devices while changing Password,Deconectați-vă de la toate dispozitivele în timp ce modificați parola
 apps/frappe/frappe/public/js/frappe/ui/messages.js,Verify Password,Verifică Parola
 apps/frappe/frappe/public/js/frappe/form/sidebar/attachments.js,There were errors,Au fost erori
 apps/frappe/frappe/integrations/doctype/google_calendar/google_calendar.py,Enter Client Id and Client Secret in Google Settings.,Introduceți ID-ul și secretul clientului în Setările Google.
 apps/frappe/frappe/core/doctype/communication/communication.js,Close,Închideți
+apps/frappe/frappe/email/doctype/email_account/email_account.py,"Email ID must be unique, Email Account already exists for {0}","ID-ul de e-mail trebuie să fie unic, Contul de e-mail există deja pentru {0}"
 apps/frappe/frappe/model/document.py,Cannot change docstatus from 0 to 2,Nu se poate schimba docstatus 0-2
 DocType: File,Attached To Field,Atașat la câmp
 apps/frappe/frappe/core/doctype/data_import_beta/data_import_beta_list.js,Update,Actualizare
@@ -2306,7 +2414,7 @@ DocType: Error Snapshot,Pyver,Pyver
 apps/frappe/frappe/core/doctype/user_permission/user_permission.py,User permission already exists,Permisiunea utilizatorului există deja
 apps/frappe/frappe/core/doctype/data_import/importer_new.py,Mapping column {0} to field {1},Maparea coloanei {0} în câmpul {1}
 apps/frappe/frappe/automation/doctype/auto_repeat/auto_repeat.js,View {0},Vizualizați {0}
-DocType: User,Hourly,ore
+DocType: Scheduled Job Type,Hourly,ore
 apps/frappe/frappe/config/integrations.py,Register OAuth Client App,Înregistrează Aplicație client OAuth
 DocType: DocField,Fetch If Empty,Fetch Dacă gol
 DocType: Data Migration Connector,Authentication Credentials,Acreditări autentificare
@@ -2317,10 +2425,10 @@ DocType: SMS Settings,SMS Gateway URL,SMS Gateway URL
 apps/frappe/frappe/model/base_document.py,"{0} {1} cannot be ""{2}"". It should be one of ""{3}""","{0} {1} nu poate fi ""{2}"". Ar trebui să fie unul dintre ""{3}"""
 apps/frappe/frappe/public/js/frappe/utils/energy_point_utils.js,gained by {0} via automatic rule {1},câștigat de {0} prin regula automată {1}
 apps/frappe/frappe/utils/data.py,{0} or {1},{0} sau {1}
+apps/frappe/frappe/public/js/frappe/ui/onboarding_dialog.js,You are all set up!,Sunteți cu toții înființați!
 DocType: Workflow State,trash,gunoi
 DocType: System Settings,Older backups will be automatically deleted,backup-uri mai vechi vor fi șterse automat
 apps/frappe/frappe/integrations/doctype/s3_backup_settings/s3_backup_settings.py,Invalid Access Key ID or Secret Access Key.,Codul cheie de acces invalid sau cheia de acces secret.
-apps/frappe/frappe/social/doctype/energy_point_log/energy_point_log.py,You lost some energy points,Ai pierdut câteva puncte de energie
 DocType: Post,Is Globally Pinned,Este conectat la nivel global
 apps/frappe/frappe/desk/page/user_profile/user_profile.html,Recent Activity,activitate recenta
 DocType: Workflow Transition,Conditions,Condiții
@@ -2329,6 +2437,7 @@ apps/frappe/frappe/email/doctype/newsletter/newsletter.py,Confirmed,Confirmat
 DocType: Event,Ends on,Se termină pe
 DocType: Payment Gateway,Gateway,Portal
 DocType: LDAP Settings,Path to Server Certificate,Path to Certificate Server
+apps/frappe/frappe/www/login.html,Javascript is disabled on your browser,Javascript este dezactivat pe browserul dvs.
 apps/frappe/frappe/public/js/frappe/form/linked_with.js,Not enough permission to see links,Nu este suficientă permisiunea de a vedea legături
 apps/frappe/frappe/public/js/frappe/form/linked_with.js,Not enough permission to see links,Nu este suficientă permisiune pentru a vedea legături
 apps/frappe/frappe/contacts/doctype/address/address.py,Address Title is mandatory.,Titlul adresei este obligatoriu.
@@ -2348,7 +2457,6 @@ apps/frappe/frappe/permissions.py,Not allowed for {0}: {1} in Row {2}. Restricte
 DocType: S3 Backup Settings,eu-west-1,UE-vest-1
 DocType: Data Import,"If this is checked, rows with valid data will be imported and invalid rows will be dumped into a new file for you to import later.","Dacă aceasta este bifată, vor fi importate rânduri cu date valide și rândurile nevalide vor fi aruncate într-un fișier nou pentru a le importa mai târziu."
 apps/frappe/frappe/public/js/frappe/form/workflow.js,Document is only editable by users of role,Documentul este editabil doar de către utilizatorii de rol
-apps/frappe/frappe/desk/form/assign_to.py,"The task {0}, that you assigned to {1}, has been closed by {2}.","Sarcina {0}, care atribuit {1}, a fost închis de {2}."
 DocType: Print Format,Show Line Breaks after Sections,Afișează sfârșiturile de linie după secțiunile
 DocType: Communication,Read by Recipient On,Citiți de către destinatari activat
 DocType: Blogger,Short Name,Numele scurt
@@ -2381,6 +2489,7 @@ DocType: Translation,PR sent,PR trimis
 DocType: Auto Email Report,Only Send Records Updated in Last X Hours,Trimiteți doar înregistrările actualizate în ultimele X ore
 DocType: Auto Email Report,Only Send Records Updated in Last X Hours,Trimiteți doar înregistrările actualizate în ultimele X ore
 DocType: Communication,Feedback,Reactie
+apps/frappe/frappe/public/js/frappe/desk.js,Updated To A New Version 🎉,Actualizat la o nouă versiune 🎉
 apps/frappe/frappe/public/js/frappe/form/controls/base_control.js,Open Translation,Traducerea deschisă
 apps/frappe/frappe/templates/emails/auto_repeat_fail.html,This email is autogenerated,Acest e-mail este generat automat
 DocType: Workflow State,Icon will appear on the button,Pictograma va apărea pe butonul
@@ -2392,6 +2501,7 @@ apps/frappe/frappe/public/js/frappe/views/gantt/gantt_view.js,Month,Lună
 DocType: Email Account,ProTip: Add <code>Reference: {{ reference_doctype }} {{ reference_name }}</code> to send document reference,Protip: Adăugați <code>Reference: {{ reference_doctype }} {{ reference_name }}</code> pentru a trimite documentul de referință
 apps/frappe/frappe/public/js/frappe/form/sidebar/review.js,Only users involved in the document are listed,Sunt enumerați doar utilizatorii implicați în document
 DocType: DocField,Fetch From,Fetch From
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Setup &gt; Customize Form,Configurare&gt; Formularizare personalizare
 apps/frappe/frappe/modules/utils.py,App not found,Aplicaţia nu a fost găsită
 apps/frappe/frappe/core/doctype/communication/communication.py,Cannot create a {0} against a child document: {1},Nu se poate crea o {0} împotriva unui document de copil: {1}
 DocType: Social Login Key,Social Login Key,Tasta de conectare socială
@@ -2403,7 +2513,6 @@ apps/frappe/frappe/config/desk.py,Chat messages and other notifications.,Chat me
 apps/frappe/frappe/public/js/frappe/social/Home.vue,Social Home,Cămin social
 apps/frappe/frappe/custom/doctype/custom_field/custom_field.py,Insert After cannot be set as {0},Introduceți După ce nu poate fi setat ca {0}
 apps/frappe/frappe/public/js/frappe/form/sidebar/share.js,Share {0} with,Distribuiți {0} cu
-apps/frappe/frappe/public/js/frappe/desk.js,Email Account setup please enter your password for: ,Configurarea contului de e-mail vă rugăm să introduceți parola pentru:
 DocType: Workflow State,hand-up,mână-sus
 DocType: Blog Settings,Writers Introduction,Scriitori Introducere
 DocType: Address,Phone,Telefon
@@ -2419,6 +2528,8 @@ apps/frappe/frappe/public/js/frappe/views/container.js,Page not found,Pagina nu 
 DocType: DocField,Precision,Precizie
 DocType: Website Slideshow,Slideshow Items,Prezentarea Articole
 apps/frappe/frappe/utils/password_strength.py,Try to avoid repeated words and characters,Încercați să evitați cuvinte și caractere repetate
+apps/frappe/frappe/public/js/frappe/ui/notifications/notifications.js,Notifications Disabled,Notificări dezactivate
+apps/frappe/frappe/public/js/frappe/form/grid.js,Are you sure you want to delete all rows?,Sigur doriți să ștergeți toate rândurile?
 DocType: Workflow Action,Workflow State,Stare flux de lucru
 apps/frappe/frappe/core/doctype/version/version_view.html,Rows Added,Rânduri Adăugate
 apps/frappe/frappe/www/list.py,My Account,Contul Meu
@@ -2427,6 +2538,7 @@ apps/frappe/frappe/templates/emails/password_reset.html,Please click on the foll
 DocType: Notification,Days After,Zilele După
 apps/frappe/frappe/public/js/frappe/form/print.js,QZ Tray Connection Active!,Conexiune tavă QZ activă!
 DocType: Contact Us Settings,Settings for Contact Us Page,Setări pentru Contactați-ne Pagina
+DocType: Server Script,Script Type,Script-ul de tip
 DocType: Print Settings,Enable Print Server,Activați serverul de imprimare
 apps/frappe/frappe/public/js/frappe/utils/pretty_date.js,{0} weeks ago,Acum {0} săptămâni
 DocType: Email Account,Footer,Subsol
@@ -2452,8 +2564,6 @@ apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Per
 DocType: Workflow State,Warning,Avertisment
 apps/frappe/frappe/public/js/frappe/form/print.js,This may get printed on multiple pages,Aceasta poate fi tipărită pe mai multe pagini
 DocType: Data Migration Run,Percent Complete,Procentul complet
-DocType: Tag Category,Tag Category,Etichetă Categorie
-apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,"For comparison, use &gt;5, &lt;10 or =324. For ranges, use 5:10 (for values between 5 &amp; 10).","Pentru comparație, utilizați&gt; 5, &lt;10 sau = 324. Pentru intervale, utilizați 5:10 (pentru valori cuprinse între 5 și 10)."
 DocType: Google Calendar,Pull from Google Calendar,Trageți din Google Calendar
 apps/frappe/frappe/core/doctype/data_import/data_import.js,Help,Ajutor
 DocType: User,Login Before,Înainte de conectare
@@ -2461,8 +2571,9 @@ DocType: Web Page,Insert Style,Introduceți Style
 DocType: Prepared Report,Error Message,Mesaj de eroare
 apps/frappe/frappe/public/js/frappe/views/reports/report_view.js,New Report name,Nume raport nou
 apps/frappe/frappe/public/js/frappe/views/calendar/calendar.js,Hide Weekends,Ascundeți sfârșitul săptămânii
-apps/frappe/frappe/config/settings.py,Automatically generates recurring documents.,Generează automat documente recurente.
+apps/frappe/frappe/config/automation.py,Automatically generates recurring documents.,Generează automat documente recurente.
 apps/frappe/frappe/public/js/frappe/ui/filters/filter.js,Is,Este
+DocType: Onboarding Slide,ERPNext,ERPNext
 DocType: Workflow State,info-sign,info-semn
 apps/frappe/frappe/model/base_document.py,Value for {0} cannot be a list,Valoare pentru {0} nu poate fi o listă
 DocType: Currency,"How should this currency be formatted? If not set, will use system defaults","Cum ar trebui să fie formatata aceasta valuta? Dacă este setat, se vor folosi valorile implicite de sistem"
@@ -2470,10 +2581,12 @@ apps/frappe/frappe/public/js/frappe/list/list_view.js,Submit {0} documents?,Trim
 apps/frappe/frappe/utils/response.py,You need to be logged in and have System Manager Role to be able to access backups.,Trebuie să fii autentificat și să ai System Manager Rolul a putea accesa backup-uri.
 apps/frappe/frappe/public/js/frappe/form/print.js,Printer Mapping,Maparea imprimantei
 apps/frappe/frappe/public/js/frappe/form/form.js,Please save before attaching.,Vă rugăm să salvați înainte de a atașa.
+apps/frappe/frappe/public/js/frappe/form/form.js,Do you want to cancel all linked documents?,Doriți să anulați toate documentele legate?
 apps/frappe/frappe/public/js/frappe/form/link_selector.js,Added {0} ({1}),Adăugat {0} ({1})
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.py,Fieldtype cannot be changed from {0} to {1} in row {2},FIELDTYPE nu poate fi schimbat de la {0} la {1} în rândul {2}
 apps/frappe/frappe/public/js/frappe/roles_editor.js,Role Permissions,Permisiuni Rol
 DocType: Help Article,Intermediate,Intermediar
+apps/frappe/frappe/config/settings.py,Email / Notifications,Notificări prin email
 apps/frappe/frappe/public/js/frappe/form/footer/timeline.js,{0} changed {1} to {2},{0} schimbat {1} în {2}
 apps/frappe/frappe/core/doctype/deleted_document/deleted_document.py,Cancelled Document restored as Draft,Documentul anularizat restaurat ca schiță
 DocType: Data Migration Run,Start Time,Ora de începere
@@ -2490,10 +2603,12 @@ apps/frappe/frappe/public/js/frappe/form/templates/set_sharing.html,Can Share,Po
 apps/frappe/frappe/email/smtp.py,Invalid recipient address,Adresa destinatarului invalid
 DocType: Workflow State,step-forward,pas înainte
 DocType: System Settings,Allow Login After Fail,Permiteți conectarea după eșec
+DocType: DocType Link,DocType Link,Link DocType
 DocType: Role Permission for Page and Report,Set Role For,Set Rol pentru
 DocType: GCalendar Account,The name that will appear in Google Calendar,Numele care va apărea în Google Calendar
 apps/frappe/frappe/chat/doctype/chat_room/chat_room.py,Direct room with {0} already exists.,Camera directă cu {0} există deja.
 apps/frappe/frappe/core/doctype/user/user.js,Refreshing...,Împrospătare ...
+apps/frappe/frappe/core/page/dashboard/dashboard.py,Please check the filter values set for Dashboard Chart: {},Vă rugăm să verificați valorile de filtru setate pentru graficul de bord: {}
 DocType: Event,Starts on,Începe pe
 DocType: System Settings,System Settings,Setări de sistem
 DocType: GCalendar Settings,Google API Credentials,Acreditare API Google
@@ -2507,6 +2622,7 @@ apps/frappe/frappe/public/js/frappe/list/list_view.js,Create a new {0},Creează 
 DocType: Contact,Google Contacts,Contacte Google
 DocType: GCalendar Account,GCalendar Account,Contul GCalendar
 DocType: Email Rule,Is Spam,este Spam
+apps/frappe/frappe/public/js/frappe/form/grid_pagination.js,Last,Ultimul
 apps/frappe/frappe/public/js/frappe/ui/toolbar/search_utils.js,Report {0},Raport {0}
 apps/frappe/frappe/desk/doctype/todo/todo_list.js,Open {0},Deschide {0}
 DocType: Data Import Beta,Import Warnings,Importați avertismente
@@ -2518,6 +2634,8 @@ DocType: Workflow State,ok-sign,ok-semn
 apps/frappe/frappe/config/settings.py,Deleted Documents,Documente șterse
 apps/frappe/frappe/public/js/frappe/form/grid.js,The CSV format is case sensitive,Formatul CSV este sensibil la minuscule
 apps/frappe/frappe/desk/doctype/desktop_icon/desktop_icon.py,Desktop Icon already exists,Desktop Icon există deja
+DocType: Event Consumer Document Type,Approval Status,Status aprobare
+DocType: Onboarding Slide,Specify in what all domains should the slides show up. If nothing is specified the slide is shown in all domains by default.,"Specificați în ce domenii ar trebui să apară diapozitivele. Dacă nu este specificat nimic, în mod implicit, diapozitivul este afișat în toate domeniile."
 apps/frappe/frappe/public/js/frappe/form/toolbar.js,Duplicate,Duplicat
 apps/frappe/frappe/core/doctype/doctype/doctype.py,{0}: Field {1} in row {2} cannot be hidden and mandatory without default,{0}: Câmpul {1} din rândul {2} nu poate fi ascuns și obligatoriu fără implicit
 DocType: Newsletter,Create and Send Newsletters,A crea și trimite Buletine
@@ -2528,12 +2646,15 @@ apps/frappe/frappe/email/doctype/notification/notification.py,Please specify whi
 DocType: Event,Google Calendar Event ID,Cod eveniment Google Calendar
 apps/frappe/frappe/core/doctype/data_export/exporter.py,"""Parent"" signifies the parent table in which this row must be added","""Părinte"" semnifică tabelul părinte în care trebuie să se adauge acestă înregistrare"
 apps/frappe/frappe/desk/page/user_profile/user_profile.js,Review Points: ,Puncte de recenzie:
+DocType: Scheduled Job Log,Scheduled Job Log,Registrul de lucru planificat
+DocType: Server Script,Before Delete,Înainte de Ștergere
 apps/frappe/frappe/public/js/frappe/form/templates/form_sidebar.html,Shared With,În comun cu
 apps/frappe/frappe/website/doctype/website_slideshow/website_slideshow.js,Attach files / urls and add in table.,Atașați fișiere / url-uri și adăugați-le în tabel.
 apps/frappe/frappe/automation/doctype/auto_repeat/auto_repeat.js,Message not setup,Mesajul nu este setat
 DocType: Help Category,Help Articles,Articole de ajutor
 apps/frappe/frappe/core/doctype/data_export/exporter.py,Type:,Tip:
 apps/frappe/frappe/templates/pages/integrations/payment-failed.html,Your payment has failed.,Plata dvs. a eșuat.
+DocType: Event Producer,Producer URL,Adresa URL a producătorului
 DocType: Comment,Unshared,unshared
 DocType: Address,Karnataka,Karnataka
 apps/frappe/frappe/desk/moduleview.py,Module Not Found,Modulul Nu a fost găsit
@@ -2545,24 +2666,28 @@ apps/frappe/frappe/core/doctype/docshare/docshare.py,"You need to have ""Share""
 DocType: Comment,Assignment Completed,Atribuire Finalizata
 apps/frappe/frappe/public/js/frappe/form/grid.js,Bulk Edit {0},Editare în masă {0}
 apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,Download Report,Descărcați raportul
+apps/frappe/frappe/model/workflow.py,Workflow Status,Starea fluxului de lucru
 apps/frappe/frappe/workflow/doctype/workflow/workflow_list.js,Not active,Nu este activ
 apps/frappe/frappe/desk/doctype/dashboard_chart_source/dashboard_chart_source.py,Only Administrator is allowed to create Dashboard Chart Sources,Numai administrator este permis să creeze surse de diagramă de bord
 DocType: About Us Settings,Settings for the About Us Page,Setări pentru Pagina Despre Noi.
 apps/frappe/frappe/config/integrations.py,Stripe payment gateway settings,Setări pentru gateway-ul de plată
 apps/frappe/frappe/public/js/frappe/form/print.js,Print Sent to the printer!,Imprimare Trimisă imprimantei!
-apps/frappe/frappe/public/js/frappe/ui/toolbar/energy_points_notifications.js,Energy Points,Puncte de energie
+DocType: Notification Settings,Energy Points,Puncte de energie
+apps/frappe/frappe/public/js/frappe/form/controls/time.js,Time {0} must be in format: {1},Ora {0} trebuie să fie în format: {1}
 DocType: Email Account,e.g. pop.gmail.com / imap.gmail.com,"de exemplu, pop.gmail.com / imap.gmail.com"
+apps/frappe/frappe/automation/doctype/auto_repeat/auto_repeat.py,"{0}: Failed to attach new recurring document. To enable attaching document in the auto repeat notification email, enable {1} in Print Settings","{0}: nu a reușit să atașeze un nou document recurent. Pentru a activa atașarea documentului în e-mailul de notificare repetare automată, activați {1} în Setări de imprimare"
 DocType: User,Generate Keys,Generați chei
 apps/frappe/frappe/templates/emails/delete_data_confirmation.html,This will permanently remove your data.,Acest lucru vă va elimina definitiv datele.
 DocType: DocType,View Settings,Setări de vizualizare
+apps/frappe/frappe/desk/doctype/notification_log/notification_log.py,New Notification,Nouă notificare
 DocType: Email Account,Outlook.com,Outlook.com
 DocType: Webhook,Request Structure,Structura solicitării
+apps/frappe/frappe/integrations/doctype/razorpay_settings/razorpay_settings.py,Controller method get_razorpay_order missing,Metoda controlorului get_razorpay_order lipsește
 DocType: Personal Data Deletion Request,Pending Verification,Verificare in Asteptare
 DocType: Website Meta Tag,Website Meta Tag,Eticheta site-ului web
 DocType: Email Account,"If non standard port (e.g. 587). If on Google Cloud, try port 2525.",Dacă port non-standard (de ex. 587). Dacă în Google Cloud încercați portul 2525.
 apps/frappe/frappe/website/doctype/web_page/web_page.py,"Clearing end date, as it cannot be in the past for published pages.","Ștergerea datei de încheiere, deoarece nu poate fi în trecut pentru paginile publicate."
 DocType: User,Send Me A Copy of Outgoing Emails,Trimiteți-mi o copie a e-mailurilor trimise
-DocType: System Settings,Scheduler Last Event,Scheduler pentru ultimul eveniment
 DocType: Website Settings,Add Google Analytics ID: eg. UA-89XXX57-1. Please search help on Google Analytics for more information.,Adaugaţi Google Analytics ID: de ex. UA-89XXX57-1. Vă rugăm să căutați ajutor la Google Analytics pentru mai multe informații.
 apps/frappe/frappe/utils/password.py,Password cannot be more than 100 characters long,Parola nu poate fi mai mult de 100 de caractere
 DocType: OAuth Client,App Client ID,Aplicatia Client ID
@@ -2591,6 +2716,7 @@ apps/frappe/frappe/www/update-password.html,New Password Required.,Parola nouă 
 apps/frappe/frappe/core/doctype/docshare/docshare.py,{0} shared this document with {1},{0} a partajat acest document cu {1}
 DocType: Website Settings,Brand Image,Imaginea marcii
 DocType: Print Settings,A4,A4
+apps/frappe/frappe/core/doctype/data_import/importer_new.py,Import template should contain a Header and atleast one row.,Șablonul de importare ar trebui să conțină un antet și cel puțin un rând.
 apps/frappe/frappe/integrations/doctype/google_calendar/google_calendar.py,Google Calendar has been configured.,Google Calendar a fost configurat.
 apps/frappe/frappe/config/website.py,"Setup of top navigation bar, footer and logo.","Setup de bara de navigare de sus, subsol și logo-ul."
 DocType: Web Form Field,Max Value,Valoarea maximă
@@ -2600,6 +2726,8 @@ DocType: User Social Login,User Social Login,Conectare socială utilizator
 apps/frappe/frappe/social/doctype/energy_point_log/energy_point_log.py,{0} criticized your work on {1} with {2} point,{0} a criticat munca ta din {1} cu {2} punct
 DocType: Contact,All,Tot
 DocType: Email Queue,Recipient,Destinatar
+DocType: Webhook,Webhook Security,Securitate Webhook
+DocType: Event Sync Log,Producer Document Name,Numele documentului producătorului
 DocType: Communication,Has  Attachment,are Atașament
 DocType: Address,Sales User,Vânzări de utilizare
 apps/frappe/frappe/config/settings.py,Drag and Drop tool to build and customize Print Formats.,Drag and drop instrument pentru a construi și personaliza formate de imprimare.
@@ -2635,6 +2763,7 @@ DocType: Address,Arunachal Pradesh,Arunachal Pradesh
 DocType: DocType,Child Tables are shown as a Grid in other DocTypes,Tabelele pentru copii sunt afișate ca o grilă în alte documente DocTypes
 apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,Setup Auto Email,Setare automată E-mail
 apps/frappe/frappe/public/js/frappe/form/grid_row_form.js,Ctrl + Down,Ctrl + Jos
+apps/frappe/frappe/config/automation.py,The site you want to subscribe to for consuming events.,Site-ul pe care doriți să vă abonați pentru evenimente consumatoare.
 DocType: Chat Profile,Message Preview,Previzualizare mesaj
 apps/frappe/frappe/utils/password_strength.py,This is a top-10 common password.,Aceasta este o parolă comună de top-10.
 DocType: User,User Defaults,Prestabilite de utilizator
@@ -2666,8 +2795,8 @@ DocType: Data Migration Mapping,Migration ID Field,Câmp ID de migrare
 DocType: Dashboard Chart,Last Synced On,Ultima sincronizare activată
 DocType: Comment,Comment Type,Comentariu Tip
 DocType: OAuth Client,OAuth Client,Client OAuth
-apps/frappe/frappe/public/js/frappe/ui/toolbar/energy_points_notifications.js,{0} criticized your work on {1} {2},{0} v-a criticat munca pe {1} {2}
 DocType: Assignment Rule,Users,Utilizatori
+DocType: Document Type Mapping,Local Document Type,Tip document local
 DocType: Address,Odisha,Odisha
 DocType: Report,Report Type,Tip Raport
 DocType: DocField,Signature,Semnătura
@@ -2692,14 +2821,12 @@ DocType: Website Slideshow Item,Website Slideshow Item,Site-ul Slideshow Articol
 apps/frappe/frappe/model/workflow.py,Self approval is not allowed,Nu este permisă auto-aprobarea
 DocType: GSuite Templates,Template ID,ID-ul șablonului
 apps/frappe/frappe/integrations/doctype/oauth_client/oauth_client.py,Combination of Grant Type (<code>{0}</code>) and Response Type (<code>{1}</code>) not allowed,Nu este permisă combinarea tipului de finanțare ( <code>{0}</code> ) și a tipului de răspuns ( <code>{1}</code> )
-apps/frappe/frappe/desk/form/assign_to.py,New Message from {0},Mesaj nou de la {0}
 DocType: Portal Settings,Default Role at Time of Signup,Rolul implicit la Ora Înscriere
 DocType: DocType,Title Case,Denumirea dosarului
 apps/frappe/frappe/templates/emails/download_data.html,Click on the link below to download your data,Faceți clic pe linkul de mai jos pentru a descărca datele dvs.
 apps/frappe/frappe/core/doctype/user/user.py,Enabled email inbox for user {0},Mesajele primite ale poștei pentru utilizatorul {0}
 DocType: Data Migration Run,Data Migration Run,Execută Migrarea Datelor
 DocType: Blog Post,Email Sent,E-mail trimis
-apps/frappe/frappe/public/js/frappe/ui/toolbar/energy_points_notifications.js,Older,Mai in varsta
 DocType: DocField,Ignore XSS Filter,Ignore XSS Filtru
 apps/frappe/frappe/public/js/frappe/form/footer/timeline.js,removed,eliminat
 apps/frappe/frappe/config/integrations.py,Dropbox backup settings,Setări Dropbox de rezervă
@@ -2712,6 +2839,7 @@ apps/frappe/frappe/templates/emails/administrator_logged_in.html,"Dear System Ma
 apps/frappe/frappe/desk/doctype/todo/todo.py,{0} self assigned this task: {1},{0} auto-desemnat această sarcină: {1}
 apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js,Your Country,Tara ta
 DocType: Assignment Rule Day,Sunday,Duminică
+apps/frappe/frappe/config/automation.py,"Maintains a Log of all inserts, updates and deletions on Event Producer site for documents that have consumers.","Menține un jurnal al tuturor inserțiilor, actualizărilor și ștergerilor pe site-ul Producător de evenimente pentru documentele care au consumatori."
 apps/frappe/frappe/core/doctype/doctype/doctype.py,{0}: Fieldname cannot be one of {1},{0}: Numele de câmp nu poate fi unul dintre {1}
 apps/frappe/frappe/templates/emails/energy_points_summary.html,Standings,Clasamente
 apps/frappe/frappe/core/doctype/doctype/doctype.js,In Grid View,În Grid View
@@ -2754,6 +2882,7 @@ DocType: Async Task,Queued,Coada de așteptare
 DocType: Braintree Settings,Use Sandbox,utilizare Sandbox
 apps/frappe/frappe/utils/goal.py,This month,Luna aceasta
 apps/frappe/frappe/public/js/frappe/form/print.js,New Custom Print Format,Nou format personalizat Print
+DocType: Server Script,Before Save (Submitted Document),Înainte de a salva (documentul trimis)
 DocType: Custom DocPerm,Create,Creează
 apps/frappe/frappe/public/js/frappe/web_form/web_form_list.js,No more items to display,Nu mai există articole de afișat
 apps/frappe/frappe/public/js/frappe/form/form.js,Go to previous record,Accesați înregistrarea anterioară
@@ -2811,6 +2940,7 @@ apps/frappe/frappe/integrations/doctype/stripe_settings/stripe_settings.py,Pleas
 apps/frappe/frappe/core/doctype/communication/communication.js,Move To Trash,Aruncă la gunoi
 DocType: Web Form,Web Form Fields,Câmpuri formular Web
 DocType: Data Import,Amended From,Modificat din
+DocType: Onboarding Slide,Add a help video link just in case user has no idea about what to fill in the slide.,Adăugați un link video de ajutor doar în cazul în care utilizatorul nu are idee despre ce să completeze diapozitivul.
 apps/frappe/frappe/public/js/frappe/model/meta.js,Warning: Unable to find {0} in any table related to {1},Avertizare: Imposibil de găsit {0} în orice masă legată de {1}
 DocType: S3 Backup Settings,eu-north-1,ue-nord-1
 apps/frappe/frappe/model/document.py,This document is currently queued for execution. Please try again,Acest document este în prezent în coada de așteptare pentru execuție. Vă rugăm să încercați din nou
@@ -2833,6 +2963,7 @@ DocType: Blog Post,Blog Post,Postare blog
 DocType: Access Log,Export From,Exportă din
 apps/frappe/frappe/public/js/frappe/form/controls/link.js,Advanced Search,Cautare avansată
 apps/frappe/frappe/email/doctype/newsletter/newsletter.py,You are not permitted to view the newsletter.,Nu aveți permisiunea de a vizualiza buletinul informativ.
+DocType: Dashboard Chart,Group By,Grupul De
 DocType: User,Interests,interese
 apps/frappe/frappe/core/doctype/user/user.py,Password reset instructions have been sent to your email,Instrucțiuni de resetare a parolei au fost trimise la adresa dvs. de email
 DocType: Energy Point Rule,Allot Points To Assigned Users,Alocați puncte utilizatorilor alocați
@@ -2848,6 +2979,7 @@ DocType: Assignment Rule,Assignment Rule,Regula de atribuire
 apps/frappe/frappe/core/doctype/user/user.py,Suggested Username: {0},Utilizator Sugestii: {0}
 DocType: Assignment Rule Day,Day,Zi
 apps/frappe/frappe/public/js/frappe/desk.js,Modules,modulele
+DocType: DocField,Mandatory Depends On,Obligatoriu depinde
 apps/frappe/frappe/templates/pages/integrations/payment-success.html,Payment Success,Succesul de plată
 apps/frappe/frappe/public/js/frappe/views/inbox/inbox_view.js,No {0} mail,Nu {0} e-mail
 DocType: OAuth Bearer Token,Revoked,Revocat
@@ -2870,13 +3002,13 @@ DocType: Currency,Fraction,Fracțiune
 apps/frappe/frappe/integrations/doctype/google_calendar/google_calendar.py,Event Synced with Google Calendar.,Eveniment sincronizat cu Google Calendar.
 DocType: LDAP Settings,LDAP First Name Field,LDAP Nume câmp
 DocType: Contact,Middle Name,Al doilea nume
+DocType: DocField,Property Depends On,Proprietatea depinde de
 DocType: Custom Field,Field Description,Descriere câmp
 apps/frappe/frappe/model/naming.py,Name not set via Prompt,Nume nu a stabilit prin Prompt
 apps/frappe/frappe/public/js/frappe/ui/toolbar/search_utils.js,Email Inbox,Inbox E-mail
 apps/frappe/frappe/core/doctype/data_import_beta/data_import_beta.js,"Updating {0} of {1}, {2}","Actualizarea {0} din {1}, {2}"
 DocType: Auto Email Report,Filters Display,filtre de afișare
 apps/frappe/frappe/public/js/frappe/form/form.js,"""amended_from"" field must be present to do an amendment.",Câmpul „amendat_de la„ trebuie să fie prezent pentru a face o modificare.
-apps/frappe/frappe/public/js/frappe/ui/toolbar/energy_points_notifications.js,{0} appreciated your work on {1} {2},{0} a apreciat munca ta în {1} {2}
 apps/frappe/frappe/public/js/frappe/views/kanban/kanban_view.js,Save filters,Salvați filtrele
 DocType: Address,Plant,Instalarea
 apps/frappe/frappe/core/doctype/communication/communication.js,Reply All,Răspunde Tuturor
@@ -2917,11 +3049,11 @@ DocType: Workflow State,folder-close,folder-close
 apps/frappe/frappe/public/js/frappe/views/reports/report_view.js,Report:,Raport:
 DocType: Print Settings,Print taxes with zero amount,Imprimă taxele cu suma zero
 apps/frappe/frappe/model/rename_doc.py,{0} not allowed to be renamed,{0} nu este permisă redenumirea
+DocType: Server Script,Before Insert,Înainte de a introduce
 DocType: Custom Script,Custom Script,Script personalizat
 DocType: Address,Address Line 2,Adresă Linie 2
 DocType: Address,Reference,Referință
 apps/frappe/frappe/public/js/frappe/list/list_sidebar_group_by.js,Assigned To,Atribuit pentru
-apps/frappe/frappe/email/smtp.py,Please setup default Email Account from Setup &gt; Email &gt; Email Account,Vă rugăm să configurați contul de e-mail implicit din Configurare&gt; Email&gt; Cont de e-mail
 DocType: Data Migration Mapping Detail,Data Migration Mapping Detail,Detalii de Mapare a Migrării Datelor
 DocType: Data Import,Action,Acțiune:
 DocType: GSuite Settings,Script URL,Script URL
@@ -2933,7 +3065,6 @@ apps/frappe/frappe/core/doctype/data_export/exporter.py,Info:,Info:
 DocType: Custom Field,Permission Level,Nivelul de permisiune
 apps/frappe/frappe/core/doctype/doctype/doctype.py,"{0}: Cannot set Submit, Cancel, Amend without Write","{0}: Nu se poate configura Transmiteți, Anulați, Modificați fără sa Scrieți"
 DocType: List View Setting,Disable Count,Dezactivați numărul
-DocType: Google Maps Settings,Client Key,Cheia clientului
 apps/frappe/frappe/public/js/frappe/form/sidebar/attachments.js,Are you sure you want to delete the attachment?,Sunteţi sigur că doriți ștergerea atașamentului ?
 apps/frappe/frappe/__init__.py,Thank you,Mulțumesc
 apps/frappe/frappe/public/js/frappe/form/save.js,Saving,Se salveaza...
@@ -2947,11 +3078,13 @@ DocType: User,Api Access,Api Acces
 DocType: DocField,In List View,În Vizualizare listă
 DocType: Email Account,Use TLS,Utilizați TLS
 apps/frappe/frappe/email/smtp.py,Invalid login or password,Autentificare invalid sau parola
+DocType: Scheduled Job Type,Weekly Long,Săptămânal lung
 apps/frappe/frappe/core/doctype/data_import/data_import.js,Download Template,Descărcați Sablon
 apps/frappe/frappe/config/customization.py,Add custom javascript to forms.,Adăugaţi javascript personalizat în formulare.
 ,Role Permissions Manager,Manager Permisiuni Rol
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js,Name of the new Print Format,Numele de noul format de imprimare
 apps/frappe/frappe/public/js/frappe/list/list_view.js,Toggle Sidebar,Comutați bara laterală
+DocType: Server Script,After Save (Submitted Document),După salvare (document trimis)
 DocType: Data Migration Run,Pull Insert,Trageți inserați
 DocType: Energy Point Rule,"Maximum points allowed after multiplying points with the multiplier value
 (Note: For no limit leave this field empty or set 0)",Puncte maxime permise după înmulțirea punctelor cu valoarea multiplicatorului (Notă: Pentru nicio limită nu lăsați acest câmp gol sau setați 0)
@@ -2971,6 +3104,7 @@ apps/frappe/frappe/templates/includes/blog/blog.html,Blog,Blog
 apps/frappe/frappe/integrations/doctype/ldap_settings/ldap_settings.py,LDAP Not Installed,LDAP nu este instalat
 apps/frappe/frappe/core/doctype/data_import/data_import.js,Download with data,Descarcă cu date
 apps/frappe/frappe/public/js/frappe/form/footer/timeline.js,changed values for {0} {1},valori modificate pentru {0} {1}
+DocType: Server Script,Before Cancel,Înainte de a anula
 DocType: Workflow State,hand-right,mana-dreapta
 DocType: Website Settings,Subdomain,Subdomeniu
 DocType: S3 Backup Settings,Region,Regiune
@@ -3017,12 +3151,14 @@ apps/frappe/frappe/www/update-password.html,Old Password,Parola Veche
 DocType: S3 Backup Settings,us-east-1,ne-est-1
 apps/frappe/frappe/website/doctype/blog_post/blog_post.py,Posts by {0},Mesajele de {0}
 apps/frappe/frappe/core/doctype/report/report.js,"To format columns, give column labels in the query.","Pentru a formata coloanele, da etichete de coloană în interogare."
+DocType: Onboarding Slide,Slide Fields,Slide Fields
 DocType: Has Domain,Has Domain,Are domeniu
 DocType: User,Allowed In Mentions,Permise în mențiuni
 apps/frappe/frappe/www/login.html,Don't have an account? Sign up,Nu ai cont? Inscrie
 apps/frappe/frappe/public/js/frappe/views/reports/report_view.js,Cannot remove ID field,Nu se poate elimina câmpul ID
 apps/frappe/frappe/core/doctype/doctype/doctype.py,{0}: Cannot set Assign Amend if not Submittable,{0}: Nu se poate seta Alocați Modificare dacă nu există posibilitate de introducere
 DocType: Address,Bihar,Bihar
+DocType: Notification Settings,Subscribed Documents,Documente abonate
 apps/frappe/frappe/desk/page/user_profile/user_profile_sidebar.html,User Settings,Setarile utilizatorului
 DocType: Report,Reference Report,Raport de referință
 DocType: Activity Log,Link DocType,link DocType
@@ -3040,6 +3176,7 @@ DocType: Google Calendar,Authorize Google Calendar Access,Autorizați Google Cal
 apps/frappe/frappe/www/404.html,The page you are looking for is missing. This could be because it is moved or there is a typo in the link.,"Pagina pe care o căutați lipsesc. Acest lucru ar putea fi, pentru că este mutat sau există o greșeală de scriere în link-ul."
 apps/frappe/frappe/www/404.html,Error Code: {0},Cod de eroare: {0}
 DocType: Blog Post,"Description for listing page, in plain text, only a couple of lines. (max 140 characters)","Descriere pentru pagina de listare, în text simplu, doar o pereche de linii. (Maxim 140 de caractere)"
+DocType: Server Script,DocType Event,Eveniment DocType
 apps/frappe/frappe/core/doctype/data_import/importer_new.py,{0} are mandatory fields,{0} sunt câmpuri obligatorii
 DocType: Workflow,Allow Self Approval,Permiteți aprobarea de sine
 DocType: Event,Event Category,Categorie Eveniment
@@ -3054,8 +3191,10 @@ DocType: Workflow Document State,Only Allow Edit For,Permiteți numai Editare pe
 apps/frappe/frappe/integrations/doctype/google_drive/google_drive.js,Backing up to Google Drive.,Copie de rezervă la Google Drive.
 apps/frappe/frappe/core/doctype/role_permission_for_page_and_report/role_permission_for_page_and_report.js,Mandatory field: {0},Câmp obligatoriu: {0}
 apps/frappe/frappe/templates/includes/comments/comments.html,Your Name,Numele dumneavoastră
+DocType: Event Producer Document Type,Event Producer Document Type,Tip de document producător de evenimente
 apps/frappe/frappe/templates/pages/integrations/gcalendar-success.html,Connection Success,Succesul conexiunii
 DocType: DocType,InnoDB,InnoDB
+apps/frappe/frappe/desk/doctype/onboarding_slide/onboarding_slide.py,An Onboarding Slide of Slide Type Continue already exists.,Există deja o prezentare la bord de tip diapozitiv.
 DocType: DocType,Default Sort Field,Câmpul de sortare implicit
 DocType: File,Is Folder,Este Folder
 DocType: Document Follow,DocType,DocType
@@ -3094,8 +3233,10 @@ apps/frappe/frappe/core/doctype/version/version_view.html,Values Changed,valori 
 DocType: Workflow State,arrow-up,săgeată-în sus
 DocType: Dynamic Link,Link Document Type,Tip de document de legătură
 apps/frappe/frappe/core/doctype/data_import/importer_new.py,There should be atleast one row for {0} table,Ar trebui să existe cel puțin un rând pentru tabela {0}
+DocType: Server Script,Server Script,Script de server
 apps/frappe/frappe/automation/doctype/auto_repeat/auto_repeat.js,"To configure Auto Repeat, enable ""Allow Auto Repeat"" from {0}.","Pentru a configura repetarea automată, activați „Permite repetarea automată” de la {0}."
 DocType: OAuth Bearer Token,Expires In,Expira in
+DocType: Onboarding Slide,"The amount of times you want to repeat the set of fields (eg: if you want 3 customers in the slide, set this field to 3. Only the first set of fields is shown as mandatory in the slide)","Cantitatea de ori pe care doriți să o repetați setul de câmpuri (de exemplu: dacă doriți 3 clienți în diapozitiv, setați acest câmp pe 3. Doar primul set de câmpuri este afișat ca obligatoriu în diapozitiv)"
 DocType: DocField,Allow on Submit,Permiteţi după introducere
 DocType: DocField,HTML,HTML
 DocType: Error Snapshot,Exception Type,Excepție de tip
@@ -3105,6 +3246,7 @@ apps/frappe/frappe/core/doctype/user_permission/user_permission_list.js,Clear Us
 DocType: Webhook,Headers,Cap
 apps/frappe/frappe/public/js/frappe/social/components/ActivitySidebar.vue,Upcoming Events,evenimente viitoare
 apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.js,Please enter values for App Access Key and App Secret Key,Vă rugăm să introduceți valori pentru App Cheie de acces și App Secret Key
+DocType: Email Account,Append Emails to Sent Folder,Adăugați e-mailuri la folderul trimis
 DocType: Web Form,Accept Payment,Accept Plata
 apps/frappe/frappe/public/js/frappe/list/list_view.js,Select list item,Selectați elementul listei
 apps/frappe/frappe/config/core.py,A log of request errors,Un jurnal cu erorile de cerere
@@ -3121,9 +3263,10 @@ DocType: Address,Postal Code,Cod poștal
 apps/frappe/frappe/core/doctype/communication/communication.js,Relink Communication,Comunicare Reconectare
 DocType: Translation,Contributed,Contribuit
 apps/frappe/frappe/config/customization.py,Form Customization,Personalizare formular
+DocType: Event Update Log,Event Update Log,Jurnalul de actualizare a evenimentelor
 apps/frappe/frappe/www/third_party_apps.html,No Active Sessions,Nu există sesiuni active
 DocType: Web Form,Route to Success Link,Traseul spre succes
-DocType: Top Bar Item,Right,Dreapta
+DocType: Onboarding Slide Field,Right,Dreapta
 apps/frappe/frappe/public/js/frappe/social/components/ActivitySidebar.vue,No Upcoming Events,Nu există evenimente viitoare
 DocType: User,User Type,Tip utilizator
 DocType: Prepared Report,Ref Report DocType,Ref Report DocType
@@ -3141,18 +3284,18 @@ apps/frappe/frappe/public/js/frappe/request.js,Please try again,Vă rugăm să �
 apps/frappe/frappe/core/doctype/file/file.py,URL must start with 'http://' or 'https://',URL trebuie să înceapă cu „http: //” sau „https: //”
 apps/frappe/frappe/custom/doctype/custom_field/custom_field.js,Option 3,Opțiunea 3
 DocType: Communication,uid,uid
+apps/frappe/frappe/public/js/frappe/model/model.js,This cannot be undone,Acest lucru nu poate fi anulat
 DocType: Workflow State,Edit,Editare
 DocType: Website Settings,Chat Operators,Operatori de chat
 DocType: S3 Backup Settings,ca-central-1,ca-central-1
 DocType: Contact Us Settings,Pincode,Parola așa
 apps/frappe/frappe/core/doctype/data_import/importer.py,Please make sure that there are no empty columns in the file.,Vă rugăm să asigurați-vă că nu există coloane goale în fișierul.
-apps/frappe/frappe/config/settings.py,Tracks milestones on the lifecycle of a document if it undergoes multiple stages.,Urmărește repere pe ciclul de viață al unui document dacă acesta trece prin mai multe etape.
+apps/frappe/frappe/config/automation.py,Tracks milestones on the lifecycle of a document if it undergoes multiple stages.,Urmărește repere pe ciclul de viață al unui document dacă acesta trece prin mai multe etape.
 apps/frappe/frappe/core/doctype/doctype/doctype.py,"Renamed files and replaced code in controllers, please check!","Redenumirea fișierelor și codul înlocuit în controlere, vă rugăm să verificați!"
 apps/frappe/frappe/utils/oauth.py,Please ensure that your profile has an email address,Asigurați-vă că profilul dvs. are o adresa de email
 apps/frappe/frappe/public/js/frappe/model/create_new.js,You have unsaved changes in this form. Please save before you continue.,Aveți modificări nesalvate din acest formular. Vă rugăm să salvați înainte de a continua.
 DocType: Address,Telangana,Telangana
 apps/frappe/frappe/core/doctype/doctype/doctype.py,Default for {0} must be an option,Implicit pentru {0} trebuie să fie o opțiune
-DocType: Tag Doc Category,Tag Doc Category,Eticheta Doc Categorie
 apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,Report with more than 10 columns looks better in Landscape mode.,Raportul cu mai mult de 10 coloane arată mai bine în modul Peisaj.
 apps/frappe/frappe/database/database.py,Invalid field name: {0},Numele câmpului nevalid: {0}
 DocType: Milestone,Milestone,Milestone
@@ -3161,7 +3304,7 @@ apps/frappe/frappe/core/doctype/doctype/doctype.js,Go to {0},Accesați {0}
 apps/frappe/frappe/email/queue.py,Emails are muted,E-mailuri sunt dezactivate
 apps/frappe/frappe/config/integrations.py,Google Services,Serviciile Google
 apps/frappe/frappe/public/js/frappe/form/grid_row_form.js,Ctrl + Up,Ctrl + Sus
-apps/frappe/frappe/utils/data.py,1 weeks ago,saptamana trecuta
+DocType: Onboarding Slide,Slide Description,Descrierea diapozitivei
 DocType: Communication,Error,Eroare
 apps/frappe/frappe/automation/doctype/auto_repeat/auto_repeat.js,Please setup a message first,Vă rugăm să configurați mai întâi un mesaj
 DocType: Auto Repeat,End Date,Dată finalizare
@@ -3174,7 +3317,6 @@ apps/frappe/frappe/utils/response.py,You don't have permission to access this fi
 apps/frappe/frappe/core/doctype/user/user.js,Save API Secret: ,Salvați secretul API:
 apps/frappe/frappe/model/document.py,Cannot link cancelled document: {0},Nu se poate lega Document anulat: {0}
 apps/frappe/frappe/core/doctype/report/report.py,Cannot edit a standard report. Please duplicate and create a new report,Nu puteți edita un raport standard. Vă rugăm să duplicați și să creeați un nou raport
-apps/frappe/frappe/contacts/doctype/address/address.py,"Company is mandatory, as it is your company address","Firma este obligatorie, deoarece este adresa companiei"
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js,"For example: If you want to include the document ID, use {0}","De exemplu: Dacă doriți să includă ID-ul documentului, utilizați {0}"
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js,Select Table Columns for {0},Selectați Coloane de masă pentru {0}
 DocType: Custom Field,Options Help,Opțiuni Ajutor
@@ -3186,6 +3328,7 @@ DocType: DocField,Report Hide,Ascunde raportul
 apps/frappe/frappe/public/js/frappe/views/treeview.js,Tree view not available for {0},arborescentă nu este disponibilă pentru {0}
 DocType: DocType,Restrict To Domain,Limitează la Domeniu
 DocType: Domain,Domain,Domeniu
+apps/frappe/frappe/core/doctype/file/file.py,Invalid file URL. Please contact System Administrator.,Adresa URL a fișierului este nevalidă. Vă rugăm să contactați administratorul de sistem.
 DocType: Custom Field,Label Help,Eticheta Ajutor
 DocType: Workflow State,star-empty,stele gol
 apps/frappe/frappe/utils/password_strength.py,Dates are often easy to guess.,Datele sunt adesea ușor de ghicit.
@@ -3210,6 +3353,7 @@ DocType: Workflow State,hand-left,mână-stânga
 DocType: Data Import,If you are updating/overwriting already created records.,Dacă actualizați / suprascrieți înregistrările deja create.
 apps/frappe/frappe/public/js/frappe/list/list_filter.js,Is Global,Este Global
 DocType: Email Account,Use SSL,Utilizați SSL
+DocType: Webhook,HOOK-.####,CÂRLIG-.####
 DocType: Workflow State,play-circle,play-cerc
 apps/frappe/frappe/public/js/frappe/views/interaction.js,The document could not be correctly assigned,Documentul nu a putut fi atribuit corect
 apps/frappe/frappe/public/js/frappe/form/layout.js,"Invalid ""depends_on"" expression",Expresia &quot;dependent_on&quot; nu este validă
@@ -3226,6 +3370,7 @@ apps/frappe/frappe/templates/includes/comments/comments.html,Please enter a vali
 apps/frappe/frappe/core/page/background_jobs/background_jobs.html,Last refreshed,Ultima reîmprospătare
 apps/frappe/frappe/core/doctype/user_permission/user_permission_list.js,For Document Type,Pentru tipul de document
 DocType: Workflow State,arrow-right,săgeată-în dreapta
+DocType: Server Script,API Method,Metoda API
 DocType: Workflow State,Workflow state represents the current state of a document.,De stat Workflow reprezintă starea actuală a unui document.
 DocType: Letter Head,Letter Head Based On,Cap de scrisoare bazat pe
 apps/frappe/frappe/utils/oauth.py,Token is missing,Token lipsește
@@ -3244,7 +3389,9 @@ apps/frappe/frappe/printing/doctype/print_format/print_format.py,Standard Print 
 apps/frappe/frappe/core/doctype/doctype/doctype.py,{0}: Field {1} of type {2} cannot be mandatory,{0}: Câmpul {1} de tip {2} nu poate fi obligatoriu
 DocType: System Settings,In Days,În Zile
 apps/frappe/frappe/desk/page/setup_wizard/install_fixtures.py,Miss,domnișoară
+DocType: Event Producer Document Type,Has Mapping,Are mapare
 apps/frappe/frappe/public/js/frappe/model/model.js,Please specify,Vă rugăm să specificați
+apps/frappe/frappe/core/page/dashboard/dashboard.py,Invalid Filter Value,Valoare filtru nevalidă
 DocType: Comment,Bot,Bot
 DocType: Help Article,Help Article,articol de ajutor
 DocType: Page,Page Name,Nume Pagină
@@ -3265,6 +3412,7 @@ DocType: Comment,Relinked,Reconectat
 DocType: Print Settings,Compact Item Print,Compact Postul de imprimare
 DocType: Email Account,uidnext,uidnext
 DocType: User,Redirect URL,Redirecționare URL-ul
+DocType: Onboarding Slide Field,Placeholder,Substitut
 DocType: SMS Settings,Enter url parameter for receiver nos,Introduceți parametru url pentru receptor nos
 DocType: Chat Profile,Online,Pe net
 DocType: Email Account,Always use Account's Name as Sender's Name,Utilizați întotdeauna numele contului ca nume al expeditorului
@@ -3274,7 +3422,6 @@ DocType: Workflow State,Home,Acasă
 DocType: OAuth Provider Settings,Auto,Auto
 DocType: System Settings,User can login using Email id or User Name,Utilizatorul se poate conecta utilizând id-ul de e-mail sau numele de utilizator
 DocType: Workflow State,question-sign,întrebare-semn
-apps/frappe/frappe/model/base_document.py,{0} is disabled,{0} este dezactivat
 apps/frappe/frappe/core/doctype/doctype/doctype.py,"Field ""route"" is mandatory for Web Views",Calea &quot;traseu&quot; este obligatorie pentru vizualizările Web
 apps/frappe/frappe/public/js/frappe/views/reports/report_view.js,Insert Column Before {0},Inserați o coloană înainte de {0}
 DocType: Energy Point Rule,The user from this field will be rewarded points,Utilizatorul din acest câmp va primi puncte recompensate
@@ -3299,6 +3446,7 @@ apps/frappe/frappe/core/doctype/doctype/doctype.py,If Owner,Dacă Proprietar
 DocType: Data Migration Mapping,Push,Apăsaţi
 apps/frappe/frappe/public/js/frappe/file_uploader/FileUploader.vue,Drop files here,Aruncați fișierele aici
 DocType: OAuth Authorization Code,Expiration time,timp de expirare
+apps/frappe/frappe/public/js/frappe/ui/notifications/notifications.js,Open Documents,Documente deschise
 DocType: Web Page,Website Sidebar,Bară Laterală Site Web
 DocType: Web Form,Show Sidebar,Afișează Bară Laterală
 apps/frappe/frappe/website/doctype/web_form/web_form.py,You need to be logged in to access this {0}.,Aveți nevoie pentru a fi conectat pentru a accesa acest {0}.
@@ -3314,6 +3462,7 @@ apps/frappe/frappe/public/js/frappe/ui/keyboard.js,Global Shortcuts,Comenzi rapi
 DocType: Desktop Icon,Page,Pagină
 apps/frappe/frappe/utils/bot.py,Could not find {0} in {1},Nu s-au găsit {0} în {1}
 apps/frappe/frappe/utils/password_strength.py,Names and surnames by themselves are easy to guess.,"Numele și prenumele, prin ele însele sunt ușor de ghicit."
+apps/frappe/frappe/model/rename_doc.py,Document renamed from {0} to {1},Document redenumit de la {0} la {1}
 apps/frappe/frappe/config/website.py,Knowledge Base,Bază de cunoștințe
 DocType: Workflow State,briefcase,servietă
 apps/frappe/frappe/model/document.py,Value cannot be changed for {0},Valoare nu poate fi schimbat pentru {0}
@@ -3350,6 +3499,7 @@ apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,"Pe
 DocType: Auto Repeat,Print Format,Print Format
 apps/frappe/frappe/public/js/frappe/views/file/file_view.js,Toggle Grid View,Comutați afișarea în grila
 apps/frappe/frappe/public/js/frappe/form/form.js,Go to next record,Accesați înregistrarea următoare
+DocType: Country,Time Format,Format de timp
 apps/frappe/frappe/integrations/doctype/paypal_settings/paypal_settings.py,Invalid payment gateway credentials,acreditările gateway de plată nevalide
 DocType: Data Import,This is the template file generated with only the rows having some error. You should use this file for correction and import.,Acesta este fișierul șablon generat numai cu rânduri care au o eroare. Ar trebui să utilizați acest fișier pentru corecție și import.
 apps/frappe/frappe/config/users_and_permissions.py,Set Permissions on Document Types and Roles,Setează Permisiuni pe Tipuri de Documente și Roluri
@@ -3393,12 +3543,14 @@ apps/frappe/frappe/core/doctype/communication/communication.js,Reply,Răspunde
 apps/frappe/frappe/config/core.py,Pages in Desk (place holders),Articole din birou (titularii loc)
 DocType: DocField,Collapsible Depends On,Pliabile Depinde
 DocType: Print Style,Print Style Name,Tipul stilului de imprimare
+apps/frappe/frappe/desk/doctype/dashboard_chart/dashboard_chart.py,Group By field is required to create a dashboard chart,Grupul Pe câmp este necesar pentru a crea un grafic de bord
 DocType: Print Settings,Allow page break inside tables,Se lasă de pagină în interiorul tabele
 DocType: Email Account,SMTP Server,Server SMTP
 DocType: Print Format,Print Format Help,Print Format Ajutor
 apps/frappe/frappe/chat/doctype/chat_room/chat_room.py,{0} room must have atmost one user.,{0} camera trebuie să aibă cel puțin un utilizator.
 DocType: DocType,Beta,beta
 DocType: Dashboard Chart,Count,Numara
+DocType: Dashboard Chart,Group By Type,Grup după tip
 apps/frappe/frappe/templates/includes/comments/comments.py,New Comment on {0}: {1},Comentariu nou pentru {0}: {1}
 apps/frappe/frappe/core/doctype/deleted_document/deleted_document.py,restored {0} as {1},restaurat {0} {1} ca
 apps/frappe/frappe/core/doctype/data_export/exporter.py,"If you are updating, please select ""Overwrite"" else existing rows will not be deleted.","Dacă actualizați, vă rugăm să selectați ""Overwrite"" rânduri altfel existente nu vor fi șterse."
@@ -3409,8 +3561,10 @@ apps/frappe/frappe/desk/page/user_profile/user_profile.js,User Profile,Profil de
 DocType: Web Form,Web Form,Formular Web
 apps/frappe/frappe/public/js/frappe/form/controls/date.js,Date {0} must be in format: {1},Data {0} trebuie să fie în format: {1}
 DocType: About Us Settings,Org History Heading,Org Istorie rubrica
+DocType: Scheduled Job Type,Scheduled Job Type,Tip de lucru programat
 DocType: Print Settings,Allow Print for Cancelled,Print pentru a permite Anulată
 DocType: Communication,Integrations can use this field to set email delivery status,Integrări poate folosi acest câmp pentru a seta starea de livrare e-mail
+apps/frappe/frappe/public/js/frappe/form/form.js,You do not have permissions to cancel all linked documents.,Nu aveți permisiuni pentru a anula toate documentele legate.
 DocType: Web Form,Web Page Link Text,Text Legătură Pagină Web
 DocType: Page,System Page,Pagină Sistem
 DocType: Page,System Page,Pagină Sistem
@@ -3418,6 +3572,7 @@ apps/frappe/frappe/config/settings.py,"Set default format, page size, print styl
 apps/frappe/frappe/public/js/frappe/form/grid_row_form.js,ESC,ESC
 apps/frappe/frappe/modules/utils.py,Customizations for <b>{0}</b> exported to:<br>{1},Personalizările pentru <b>{0}</b> exportate către: <br> {1}
 DocType: Website Settings,Include Search in Top Bar,Căutare în Top Include Bar
+DocType: Scheduled Job Type,Daily Long,Zilnic lung
 DocType: GSuite Settings,Allow GSuite access,Permiteți accesul GSuite
 DocType: DocType,DESC,DESC
 DocType: DocType,Naming,Naming
@@ -3521,6 +3676,7 @@ DocType: Notification,Send days before or after the reference date,Trimite zile 
 DocType: User,Allow user to login only after this hour (0-24),Permiteţi utilizatorului sa se poată loga doar după această oră (0-24)
 apps/frappe/frappe/automation/doctype/assignment_rule/assignment_rule.js,"Assign one by one, in sequence","Alocați unul câte unul, în secvență"
 DocType: Integration Request,Subscription Notification,Notificare privind abonamentul
+DocType: Customize Form Field, Allow in Quick Entry ,Permiteți introducerea rapidă
 apps/frappe/frappe/public/js/frappe/file_uploader/FileUploader.vue,or attach a,sau atașați o
 DocType: Auto Repeat,Start Date,Data începerii
 apps/frappe/frappe/public/js/frappe/form/link_selector.js,Value,Valoare
@@ -3535,6 +3691,7 @@ DocType: Google Drive,Backup Folder ID,ID dosar copie de rezervă
 apps/frappe/frappe/core/doctype/doctype/doctype.py,Not in Developer Mode! Set in site_config.json or make 'Custom' DocType.,"Nu în modul Developer! Amplasat în site_config.json sau face DocType ""personalizat""."
 DocType: Workflow State,globe,glob
 DocType: System Settings,dd.mm.yyyy,zz.ll.aaaa
+DocType: Onboarding Slide Help Link,Video,Video
 DocType: Assignment Rule,Priority,Prioritate
 DocType: Email Queue,Unsubscribe Param,dezabonare de Param
 DocType: DocType,Hide Sidebar and Menu,Ascundeți Bara laterală și meniul
@@ -3546,6 +3703,7 @@ DocType: DocType,Allow Import (via Data Import Tool),Permite Import (prin instru
 apps/frappe/frappe/public/js/frappe/web_form/web_form_list.js,Sr,sr
 DocType: DocField,Float,Plutitor
 DocType: Print Settings,Page Settings,Setări Pagină
+DocType: Notification Settings,Notification Settings,Setări de notificare
 apps/frappe/frappe/public/js/frappe/form/quick_entry.js,Saving...,Economisire...
 apps/frappe/frappe/www/update-password.html,Invalid Password,Parolă Invalidă
 apps/frappe/frappe/core/doctype/data_import_beta/data_import_beta.js,Successfully imported {0} record out of {1}.,Importă cu succes {0} înregistrare din {1}.
@@ -3561,6 +3719,7 @@ apps/frappe/frappe/automation/doctype/auto_repeat/auto_repeat.py,Auto Repeat Doc
 DocType: Email Account,GMail,GMail
 DocType: Letter Head,Letter Head Image,Imaginea capului literei
 DocType: Address,Party GSTIN,Partidul GSTIN
+DocType: Scheduled Job Type,Cron Format,Format Cron
 apps/frappe/frappe/public/js/frappe/utils/utils.js,{0} Report,{0} Raportează
 DocType: SMS Settings,Use POST,Utilizați POST
 DocType: Communication,SMS,mesaj
@@ -3606,18 +3765,20 @@ DocType: Workflow,Allow approval for creator of the document,Permiteți aprobare
 apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,Save Report,Salvează raportul
 DocType: Webhook,on_cancel,on_cancel
 DocType: Social Login Key,API Endpoint Args,API Endpoint Args
+DocType: DocType Action,Server Action,Server Action
 apps/frappe/frappe/core/doctype/user/user.py,Administrator accessed {0} on {1} via IP Address {2}.,Administratorul a accesat {0} în data de {1} prin adresa IP {2}.
 apps/frappe/frappe/core/doctype/doctype/doctype.py,Parent Field must be a valid fieldname,Câmpul părinte trebuie să fie un nume de câmp valabil
 apps/frappe/frappe/integrations/doctype/paypal_settings/paypal_settings.py,Failed while amending subscription,Eroare la modificarea abonamentului
 DocType: LDAP Settings,LDAP Group Field,Câmpul grupului LDAP
+DocType: Notification Subscribed Document,Notification Subscribed Document,Notificare Document subscris
 apps/frappe/frappe/public/js/frappe/ui/filters/filter.js,Equals,Egal
 apps/frappe/frappe/core/doctype/doctype/doctype.py,Options 'Dynamic Link' type of field must point to another Link Field with options as 'DocType',"""Dynamic Link"" tip opțiuni de câmp trebuie să indice un alt Link câmp cu opțiuni precum ""DocType"""
 DocType: About Us Settings,Team Members Heading,Membrii echipei Rubrică
 apps/frappe/frappe/utils/csvutils.py,Invalid CSV Format,Format CSV nevalid
-apps/frappe/frappe/public/js/frappe/form/print.js,"Error connecting to QZ Tray Application...<br><br> You need to have QZ Tray application installed and running, to use the Raw Print feature.<br><br><a href=""https://qz.io/download/"" target=""_blank"">Click here to Download and install QZ Tray</a>.<br> <a href=""https://erpnext.com/docs/user/manual/en/setting-up/print/raw-printing"" target=""_blank"">Click here to learn more about Raw Printing</a>.","Eroare la conectarea la aplicația de tavă QZ ... <br><br> Trebuie să aveți aplicația QZ Tray instalată și rulată, pentru a utiliza caracteristica Print Raw. <br><br> <a href=""https://qz.io/download/"" target=""_blank"">Faceți clic aici pentru a descărca și instala QZ Tray</a> . <br> <a href=""https://erpnext.com/docs/user/manual/en/setting-up/print/raw-printing"" target=""_blank"">Faceți clic aici pentru a afla mai multe despre tipărirea brută</a> ."
 apps/frappe/frappe/desk/page/backups/backups.js,Set Number of Backups,Număr set de Backupurile
 DocType: DocField,Do not allow user to change after set the first time,Nu permite utilizatorului să se schimbe după seta prima dată
 apps/frappe/frappe/utils/data.py,1 year ago,anul trecut
+DocType: DocType,Links Section,Secțiunea Linkuri
 apps/frappe/frappe/config/users_and_permissions.py,"View Log of all print, download and export events","Vizualizați Jurnalul tuturor evenimentelor de tipărire, descărcare și export"
 apps/frappe/frappe/public/js/frappe/ui/filters/filter.js,1 month,1 lună
 DocType: Contact,Contact,Persoana de Contact
@@ -3644,16 +3805,19 @@ DocType: Email Account,UIDVALIDITY,UIDVALIDITY
 apps/frappe/frappe/public/js/frappe/views/communication.js,New Email,Email nou
 DocType: Custom DocPerm,Export,Exportă
 apps/frappe/frappe/integrations/doctype/google_calendar/google_calendar.js,"To use Google Calendar, enable {0}.","Pentru a utiliza Google Calendar, activați {0}."
+apps/frappe/frappe/public/js/frappe/views/reports/report_view.js,Also adding the status dependency field {0},Adăugarea de asemenea a câmpului de dependență de stare {0}
+apps/frappe/frappe/core/doctype/data_import_beta/data_import_beta.js,Successfully updated {0},Actualizate cu succes {0}
 apps/frappe/frappe/public/js/frappe/form/print.js,QZ Tray Failed: ,Tava QZ a eșuat:
 DocType: Dropbox Settings,Dropbox Settings,Setări Dropbox
 DocType: About Us Settings,More content for the bottom of the page.,Mai mult conținut pentru partea de jos a paginii.
 apps/frappe/frappe/social/doctype/energy_point_log/energy_point_log.js,This document has been reverted,Acest document a fost inversat
 apps/frappe/frappe/integrations/doctype/google_drive/google_drive.py,Google Drive Backup Successful.,Backup Google Drive de succes.
+DocType: Webhook,Naming Series,Naming Series
 DocType: Workflow,DocType on which this Workflow is applicable.,DocType pe care acest flux de lucru este aplicabil.
 DocType: User,Enabled,Activat
 apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js,Failed to complete setup,Setarea nu a reușit
 apps/frappe/frappe/automation/doctype/auto_repeat/auto_repeat.py,New {0}: {1},Nou {0}: {1}
-DocType: Tag Category,Category Name,Nume Categorie
+DocType: Blog Category,Category Name,Nume Categorie
 apps/frappe/frappe/model/db_query.py,Parent is required to get child table data,Părinții trebuie să obțină date de tabel pentru copii
 apps/frappe/frappe/email/doctype/email_group/email_group.js,Import Subscribers,Abonații de import
 DocType: Print Settings,PDF Settings,Setări PDF
@@ -3672,6 +3836,7 @@ DocType: Webhook,on_update_after_submit,on_update_after_submit
 DocType: System Settings,Allow Login using User Name,Permiteți conectarea utilizând numele de utilizator
 apps/frappe/frappe/core/doctype/report/report.js,Enable Report,Activați Raport
 DocType: DocField,Display Depends On,Depinde de afișare
+apps/frappe/frappe/public/js/frappe/utils/pretty_date.js,&gt; {0} year(s) ago,&gt; {0} an (i) în urmă
 DocType: Social Login Key,API Endpoint,API Endpoint
 DocType: Web Page,Insert Code,Introduceți codul
 DocType: Data Migration Run,Current Mapping Type,Tipul actual de cartografiere
@@ -3689,6 +3854,7 @@ apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js,No
 DocType: Workflow State,Calendar,Calendar
 apps/frappe/frappe/client.py,No document found for given filters,Nu sa găsit niciun document pentru filtrele date
 apps/frappe/frappe/config/website.py,A user who posts blogs.,Un utilizator care postează bloguri.
+DocType: DocType Action,DocType Action,Acțiune DocType
 apps/frappe/frappe/model/rename_doc.py,"Another {0} with name {1} exists, select another name","Există un alt {0} cu numele {1}, selectați un alt nume"
 DocType: DocType,Custom?,Personalizat?
 DocType: Website Settings,Website Theme Image,Site-ul Theme Image
@@ -3698,6 +3864,7 @@ apps/frappe/frappe/public/js/frappe/model/model.js,Unable to load: {0},Imposibil
 apps/frappe/frappe/config/integrations.py,Backup,Backup
 apps/frappe/frappe/desk/doctype/dashboard_chart/dashboard_chart.py,Document type is required to create a dashboard chart,Tipul de document este necesar pentru a crea o diagramă de bord
 DocType: DocField,Read Only,Doar Citire
+apps/frappe/frappe/integrations/doctype/razorpay_settings/razorpay_settings.py,Could not create razorpay order,Nu s-a putut crea o comandă razorpay
 apps/frappe/frappe/email/doctype/email_group/email_group.js,New Newsletter,Noi Newsletter
 DocType: Energy Point Log,Energy Point Log,Jurnalul punctelor energetice
 DocType: Print Settings,Send Print as PDF,Trimite Printeaza ca PDF
@@ -3723,16 +3890,19 @@ apps/frappe/frappe/email/doctype/newsletter/newsletter.py,Confirm Your Email,Con
 apps/frappe/frappe/www/login.html,Or login with,Sau Login cu
 DocType: Error Snapshot,Locals,Localnicii
 apps/frappe/frappe/desk/page/activity/activity_row.html,Communicated via {0} on {1}: {2},Comunicate prin intermediul {0} pe {1}: {2}
-apps/frappe/frappe/core/doctype/comment/comment.py,{0} mentioned you in a comment in {1},{0} te-a menționat într-un comentariu in {1}
+DocType: Event Producer,Event Producer Document Types,Tipuri de documente pentru producătorul de evenimente
+apps/frappe/frappe/email/smtp.py,Please setup default Email Account from Setup &gt; Email &gt; Email Account,Vă rugăm să configurați contul de e-mail implicit din Configurare&gt; Email&gt; Cont de e-mail
 apps/frappe/frappe/public/js/frappe/ui/group_by/group_by.html,Select Group By...,Selectați grupul după ...
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js,e.g. (55 + 434) / 4 or =Math.sin(Math.PI/2)...,ex (55 + 434) / 4 sau = Math.sin (Math.PI / 2) ...
 apps/frappe/frappe/utils/csvutils.py,{0} is required,{0} este necesar
 DocType: Integration Request,Integration Type,Tipul de integrare
 DocType: Newsletter,Send Attachements,Trimite Accesorii si atașamente
+apps/frappe/frappe/public/js/frappe/list/list_sidebar_group_by.js,No filters found,Nu s-au găsit filtre
 apps/frappe/frappe/config/integrations.py,Google Contacts Integration.,Integrare Google Contacte.
 DocType: Transaction Log,Transaction Log,Jurnal de tranzacții
 apps/frappe/frappe/social/doctype/energy_point_log/energy_point_log.py,Stats based on last month's performance (from {0} to {1}),Statistici bazate pe performanța de luna trecută (de la {0} la {1})
 DocType: Contact Us Settings,City,Oraș
+apps/frappe/frappe/public/js/frappe/views/components/Desktop.vue,Hide cards for all users,Ascundeți cardurile pentru toți utilizatorii
 apps/frappe/frappe/automation/doctype/auto_repeat/auto_repeat.py,Enable Allow Auto Repeat for the doctype {0} in Customize Form,Activați Permiterea repetării automate pentru doctype {0} în Formularizare personalizată
 DocType: DocField,Perm Level,Nivelul Perm
 apps/frappe/frappe/www/confirm_workflow_action.html,View document,Vizualizați documentul
@@ -3744,6 +3914,7 @@ DocType: DocType,"If enabled, changes to the document are tracked and shown in t
 apps/frappe/frappe/core/doctype/doctype/doctype.py,'In Global Search' not allowed for type {0} in row {1},"""În Căutarea Globală"" nu este permis pentru tipul {0} în rândul {1}"
 apps/frappe/frappe/core/doctype/doctype/doctype.py,'In Global Search' not allowed for type {0} in row {1},"""În Căutarea Globală"" nu este permis pentru tipul {0} în rândul {1}"
 DocType: Energy Point Log,Appreciation,Apreciere
+DocType: Dashboard Chart,Number of Groups,Număr de grupuri
 apps/frappe/frappe/public/js/frappe/views/treeview.js,View List,Vizualizare Listă
 DocType: Workflow,Don't Override Status,Nu Override Stare
 apps/frappe/frappe/public/js/frappe/form/multi_select_dialog.js,Search term,Termen de căutare
@@ -3753,9 +3924,11 @@ apps/frappe/frappe/public/js/frappe/file_uploader/FileUploader.vue,Upload {0} fi
 DocType: Deleted Document,GCalendar Sync ID,GCalendar Sync ID
 DocType: Prepared Report,Report Start Time,Raportați Oră de Începere
 apps/frappe/frappe/public/js/frappe/data_import/data_exporter.js,Export Data,Export de date
+apps/frappe/frappe/config/automation.py,Maintains a log of every event consumed along with the status of the sync and a Resync button in case sync fails.,Menține un jurnal al fiecărui eveniment consumat împreună cu starea sincronizării și un buton Resync în cazul în care sincronizarea eșuează.
 apps/frappe/frappe/core/doctype/data_import/data_import.js,Select Columns,Selectați coloane
 DocType: Translation,Source Text,Text sursă
 apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,This is a background report. Please set the appropriate filters and then generate a new one.,Acesta este un raport de fond. Vă rugăm să setați filtrele corespunzătoare și apoi să generați unul nou.
+apps/frappe/frappe/email/smtp.py,Email Account not setup. Please create a new Email Account from Setup &gt; Email &gt; Email Account,Contul de e-mail nu este configurat. Vă rugăm să creați un nou cont de e-mail din Configurare&gt; Email&gt; Cont de e-mail
 apps/frappe/frappe/www/login.py,Missing parameters for login,Parametrii lipsă de autentificare
 DocType: Workflow State,folder-open,-folder deschis
 DocType: DocType,"Once submitted, submittable documents cannot be changed. They can only be Cancelled and Amended.","Odată depuse, documentele expediate nu pot fi modificate. Acestea pot fi anulate și modificate."
@@ -3785,7 +3958,6 @@ apps/frappe/frappe/public/js/frappe/form/sidebar/review.js,{0} appreciation poin
 DocType: S3 Backup Settings,cn-northwest-1,cn-NV-1
 DocType: Dropbox Settings,Limit Number of DB Backups,Limitați numărul de copii de rezervă DB
 DocType: Custom DocPerm,Level,Nivel
-apps/frappe/frappe/public/js/frappe/ui/toolbar/energy_points_notifications.js,Last 30 days,Ultimele 30 de zile
 DocType: Custom DocPerm,Report,Raport
 apps/frappe/frappe/website/doctype/web_form/web_form.py,Amount must be greater than 0.,Suma trebuie să fie mai mare decât 0.
 apps/frappe/frappe/public/js/frappe/form/print.js,Connected to QZ Tray!,Conectat la tava QZ!
@@ -3802,6 +3974,7 @@ DocType: S3 Backup Settings,us-west-2,ne-vest-2
 apps/frappe/frappe/custom/doctype/custom_script/custom_script.js,Select Child Table,Selectați tabelul copilului
 apps/frappe/frappe/public/js/frappe/ui/keyboard.js,Trigger Primary Action,Declanșarea acțiunii primare
 apps/frappe/frappe/public/js/frappe/form/templates/form_sidebar.html,Change,Schimbă
+DocType: Social Login Key,User ID Property,Proprietate ID utilizator
 DocType: Email Domain,domain name,numele domeniului
 DocType: Contact Email,Contact Email,Email Persoana de Contact
 DocType: Kanban Board Column,Order,Ordin
@@ -3824,7 +3997,7 @@ DocType: Contact,Last Name,Nume
 DocType: Event,Private,Privat
 apps/frappe/frappe/email/doctype/notification/notification.js,No alerts for today,Nu există alerte pentru ziua de azi
 DocType: Print Settings,Send Email Print Attachments as PDF (Recommended),Trimite e-mail Print atașate în format PDF (recomandat)
-DocType: Web Page,Left,Stânga
+DocType: Onboarding Slide Field,Left,Stânga
 DocType: Event,All Day,Toată ziua
 apps/frappe/frappe/integrations/utils.py,Looks like something is wrong with this site's payment gateway configuration. No payment has been made.,Se pare că ceva este în neregulă cu configurația gateway de plată a acestui site. Nici plata a fost făcută.
 DocType: GCalendar Settings,State,Stat
@@ -3835,6 +4008,7 @@ DocType: Blog Post,Published On,Publicat în data de
 DocType: Contact,Gender,Sex
 apps/frappe/frappe/website/doctype/web_form/web_form.py,Mandatory Information missing:,Informații obligatorii lipsesc:
 apps/frappe/frappe/social/doctype/energy_point_log/energy_point_log.py,{0} reverted your points on {1},{0} a revenit punctele tale în {1}
+DocType: Event Consumer,Event Subscriber,Abonat eveniment
 apps/frappe/frappe/integrations/doctype/webhook/webhook.py,Check Request URL,Verificați adresa URL de solicitare
 apps/frappe/frappe/client.py,Only 200 inserts allowed in one request,Doar 200 inserții permise într-o singură cerere
 DocType: Footer Item,URL,URL-ul
@@ -3847,6 +4021,7 @@ DocType: Auto Email Report,Half Yearly,Semestrial
 DocType: Communication,Marked As Spam,Marcate ca spam
 apps/frappe/frappe/utils/file_manager.py,There is some problem with the file url: {0},Există unele probleme cu URL-ul fișierului: {0}
 apps/frappe/frappe/public/js/frappe/list/list_sidebar.html,Tree,Copac
+DocType: Event Producer Document Type,Use Same Name,Utilizați același nume
 apps/frappe/frappe/public/js/frappe/views/treeview.js,You are not allowed to print this report,Nu aveți permisiunea de a imprima acest raport
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,User Permissions,Permisiunile utilizatorului
 DocType: Workflow State,warning-sign,semn de avertizare
@@ -3856,7 +4031,7 @@ DocType: Workflow State,User,Utilizator
 DocType: Website Settings,"Show title in browser window as ""Prefix - title""",Arată titlu în fereastra browser-ului ca &quot;Prefix - titlu&quot;
 DocType: Payment Gateway,Gateway Settings,Setările gateway-ului
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js,text in document type,text de tip de document
-apps/frappe/frappe/core/doctype/test_runner/test_runner.js,Run Tests,Executați teste
+DocType: Event Sync Log,Event Sync Log,Jurnalul de sincronizare a evenimentelor
 apps/frappe/frappe/handler.py,Logged Out,Delogat
 apps/frappe/frappe/public/js/frappe/ui/toolbar/search.js,More...,Mai Mult...
 DocType: System Settings,User can login using Email id or Mobile number,Utilizatorul se poate conecta utilizând ID-ul de e-mail sau numărul de telefon mobil
@@ -3873,6 +4048,7 @@ apps/frappe/frappe/core/doctype/data_import_beta/data_import_beta.js,Successfull
 apps/frappe/frappe/public/js/frappe/views/interaction.js,Summary,Rezumat
 DocType: Event,Event Participants,Participanții la eveniment
 DocType: Auto Repeat,Frequency,Frecvență
+DocType: Onboarding Slide,Slide Order,Comanda de diapozitive
 DocType: Custom Field,Insert After,Introduceți După
 DocType: Event,Sync with Google Calendar,Sincronizare cu Google Calendar
 DocType: Access Log,Report Name,Nume Raport
@@ -3896,10 +4072,14 @@ apps/frappe/frappe/email/doctype/email_group/email_group.py,{0} subscribers adde
 apps/frappe/frappe/public/js/frappe/ui/filters/filter.js,Not In,Nu în
 DocType: Workflow State,star,stea
 apps/frappe/frappe/public/js/frappe/ui/toolbar/search_utils.js,Hub,Butuc
+DocType: Event Producer Document Type,If this is checked the documents will have the same name as they have on the Event Producer's site,"Dacă se verifică acest lucru, documentele vor avea același nume ca și pe site-ul producătorului de evenimente"
 apps/frappe/frappe/public/js/frappe/ui/filters/filters.js,values separated by commas,valori separate prin virgule
 apps/frappe/frappe/core/doctype/doctype/doctype.py,Max width for type Currency is 100px in row {0},Lățimea maximă pentru tipul de valuta este de 100px la rând {0}
 apps/frappe/frappe/config/website.py,Content web page.,Pagina web de conținut.
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Add a New Role,Adăugaţi un nou rol
+apps/frappe/frappe/website/doctype/website_route_meta/website_route_meta.js,Visit Web Page,Accesați pagina web
+apps/frappe/frappe/desk/doctype/notification_log/notification_log.py,New Assignment,Nou atribuire
+DocType: Event Consumer Document Type,Approved,Aprobat
 DocType: Google Contacts,Last Sync On,Ultima sincronizare activată
 DocType: Deleted Document,Deleted Document,Documentul a fost șters
 apps/frappe/frappe/templates/includes/login/login.js,Oops! Something went wrong,Hopa! Ceva a mers prost
@@ -3910,7 +4090,7 @@ apps/frappe/frappe/public/js/frappe/form/print.js,Landscape,Peisaj
 apps/frappe/frappe/config/core.py,Client side script extensions in Javascript,Extensii script partea de client în Javascript
 DocType: Webhook,on_trash,on_trash
 apps/frappe/frappe/core/doctype/user_permission/user_permission_help.html,Records for following doctypes will be filtered,Înregistrările pentru următoarele doctypes vor fi filtrate
-apps/frappe/frappe/public/js/frappe/desk.js,Scheduler Inactive,Planificator inactiv
+apps/frappe/frappe/core/doctype/data_import_beta/data_import_beta.py,Scheduler Inactive,Planificator inactiv
 DocType: Blog Settings,Blog Introduction,Introducere blog
 DocType: Global Search Settings,Search Priorities,Priorități de căutare
 DocType: Address,Office,Birou
@@ -3920,13 +4100,13 @@ DocType: Dashboard Chart Link,Dashboard Chart Link,Dashboard Chart Link
 DocType: User,Email Settings,Setări e-mail
 apps/frappe/frappe/public/js/frappe/ui/dropzone.js,Drop Here,Aruncați aici
 DocType: User,"If enabled,  user can login from any IP Address using Two Factor Auth, this can also be set for all users in System Settings","Dacă este activat, utilizatorul se poate autentifica de pe orice adresă IP folosind Autorul cu doi factori, aceasta poate fi setată și pentru toți utilizatorii din Setările sistemului"
-apps/frappe/frappe/public/js/frappe/form/templates/print_layout.html,Printer Settings...,Setări imprimantă ...
 apps/frappe/frappe/public/js/frappe/desk.js,Please Enter Your Password to Continue,Introduceți parola pentru a continua
 apps/frappe/frappe/public/js/frappe/desk.js,Please Enter Your Password to Continue,Introduceți parola pentru a continua
 apps/frappe/frappe/public/js/frappe/list/list_sidebar_group_by.js,Me,Pe mine
 apps/frappe/frappe/workflow/doctype/workflow/workflow.py,{0} not a valid State,{0} nu este un stat valid
 apps/frappe/frappe/core/doctype/user_permission/user_permission_list.js,Apply to all Documents Types,Aplicați la toate tipurile de documente
-apps/frappe/frappe/social/doctype/energy_point_log/energy_point_log.py,Energy point update,Actualizare punct energetic
+apps/frappe/frappe/desk/doctype/notification_log/notification_log.py,Energy point update,Actualizare punct energetic
+DocType: System Settings,Run Jobs only Daily if Inactive For (Days),Rulați locuri de muncă numai zilnic dacă sunt inactive timp de (zile)
 apps/frappe/frappe/integrations/doctype/paypal_settings/paypal_settings.py,Please select another payment method. PayPal does not support transactions in currency '{0}',Vă rugăm să selectați o altă metodă de plată. PayPal nu acceptă tranzacții în valută „{0}“
 DocType: Chat Message,Room Type,Tip Cameră
 DocType: Data Import Beta,Import Log Preview,Importați previzualizarea jurnalului
@@ -3935,6 +4115,7 @@ apps/frappe/frappe/public/js/frappe/file_uploader/FileUploader.vue,uploaded file
 DocType: Workflow State,ok-circle,ok-cerc
 DocType: LDAP Settings,LDAP User Creation and Mapping,Creare și mapare utilizator LDAP
 apps/frappe/frappe/utils/bot.py,You can find things by asking 'find orange in customers',Poti gasi lucruri întrebând &quot;găsi portocaliu în clienți&quot;
+apps/frappe/frappe/public/js/frappe/ui/notifications/notifications.js,Today's Events,Evenimente de astăzi
 apps/frappe/frappe/core/doctype/user/user.py,Sorry! User should have complete access to their own record.,Ne pare rău! Utilizatorul trebuie să aibă acces complet la propriul record.
 ,Usage Info,Informații de utilizare
 apps/frappe/frappe/public/js/frappe/ui/keyboard.js,Show Keyboard Shortcuts,Afișează comenzi rapide de la tastatură
@@ -3962,10 +4143,10 @@ DocType: Calendar View,Calendar View,Vezi Calendar
 apps/frappe/frappe/printing/doctype/print_format/print_format.js,Edit Format,Editare format
 apps/frappe/frappe/templates/emails/new_user.html,Complete Registration,Finalizează Înregistrare
 DocType: GCalendar Settings,Enable,Activare
-DocType: Google Maps Settings,Home Address,Adresa de acasa
 apps/frappe/frappe/core/doctype/data_export/exporter.py,You can only upload upto 5000 records in one go. (may be less in some cases),Puteți încărca doar pana la 5000 de înregistrări într-o singură. (Poate fi mai puțin în unele cazuri)
+DocType: Report,"output in the form of `data = [columns, result]`","ieșire sub forma „date = [coloane, rezultat]`"
 apps/frappe/frappe/core/doctype/user_permission/user_permission_list.js,Applicable Document Types,Tipuri de documente aplicabile
-apps/frappe/frappe/config/settings.py,Set up rules for user assignments.,Setați reguli pentru atribuirile utilizatorilor.
+apps/frappe/frappe/config/automation.py,Set up rules for user assignments.,Setați reguli pentru atribuirile utilizatorilor.
 apps/frappe/frappe/model/document.py,Insufficient Permission for {0},Permisă insuficientă pentru {0}
 apps/frappe/frappe/model/document.py,Insufficient Permission for {0},Permisă insuficientă pentru {0}
 apps/frappe/frappe/public/js/frappe/views/reports/report_view.js,Report was not saved (there were errors),Raport nu a fost salvat (au existat erori)
@@ -3981,7 +4162,6 @@ DocType: Communication,To and CC,Către și CC
 DocType: SMS Settings,Static Parameters,Parametrii statice
 DocType: Chat Message,Room,Cameră
 apps/frappe/frappe/public/js/frappe/change_log.html,updated to {0},actualizat la {0}
-apps/frappe/frappe/public/js/frappe/desk.js,Background jobs are not running. Please contact Administrator,Joburile de fond nu se execută. Vă rugăm să contactați administratorul
 DocType: Portal Settings,Custom Menu Items,Meniu personalizat Articole
 apps/frappe/frappe/website/doctype/website_slideshow/website_slideshow.py,All Images attached to Website Slideshow should be public,Toate imaginile atașate site-ului Slideshow ar trebui să fie publice
 DocType: Workflow State,chevron-right,Chevron-dreapta
@@ -3996,11 +4176,13 @@ apps/frappe/frappe/integrations/doctype/google_drive/google_drive.js,Take Backup
 apps/frappe/frappe/public/js/frappe/form/controls/multiselect_list.js,{0} values selected,Valorile {0} selectate
 DocType: DocType,Allow Auto Repeat,Permiteți repetarea automată
 apps/frappe/frappe/public/js/frappe/form/controls/multiselect_list.js,No values to show,Nu există valori de afișat
+DocType: DocType,URL for documentation or help,URL pentru documentare sau ajutor
 DocType: Desktop Icon,_doctype,_doctype
 DocType: Communication,Email Template,Șablon de e-mail
 apps/frappe/frappe/core/doctype/data_import_beta/data_import_beta.js,Successfully updated {0} record.,Înregistrare actualizată cu succes {0}.
 apps/frappe/frappe/permissions.py,User {0} does not have doctype access via role permission for document {1},Utilizatorul {0} nu are acces doctype prin permisiunea rolului pentru documentul {1}
 apps/frappe/frappe/templates/includes/login/login.js,Both login and password required,Atât logarea cât și parola sunt necesare
+apps/frappe/frappe/public/js/frappe/ui/onboarding_dialog.js,Let\,Lăsa\
 apps/frappe/frappe/model/document.py,Please refresh to get the latest document.,Vă rugăm să reîmprospătați pentru a obține cel mai recent document.
 DocType: User,Security Settings,Setări de securitate
 apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,Add Column,Adăugaţi Coloană
@@ -4010,6 +4192,7 @@ apps/frappe/frappe/public/js/frappe/views/reports/report_view.js,Export Report: 
 DocType: Auto Email Report,Filter Meta,Filtru Meta
 apps/frappe/frappe/automation/doctype/auto_repeat/auto_repeat.py,Please find attached {0}: {1},Vă rugăm să găsiți atașat {0}: {1}
 DocType: Web Page,Set Meta Tags,Setați etichete meta
+DocType: Email Account,Use SSL for Outgoing,Utilizați SSL pentru ieșire
 DocType: Web Form,Text to be displayed for Link to Web Page if this form has a web page. Link route will be automatically generated based on `page_name` and `parent_website_route`,Text de afișat pentru link catre pagina de web în cazul în care acest formular are o pagină web. Link traseu vor fi generate automat pe baza `` page_name` și parent_website_route`
 DocType: S3 Backup Settings,Backup Limit,Limita de rezervă
 DocType: Dashboard Chart,Line,Linia
@@ -4042,4 +4225,3 @@ DocType: DocField,Ignore User Permissions,Ignora Permisiunile utilizatorului
 apps/frappe/frappe/public/js/frappe/web_form/web_form.js,Saved Successfully,Salvat cu succes
 apps/frappe/frappe/core/doctype/user/user.py,Please ask your administrator to verify your sign-up,Vă rugăm să întrebați administratorul dvs. pentru a verifica înregistrarea în vederea
 DocType: Domain Settings,Active Domains,Domenii active
-apps/frappe/frappe/public/js/integrations/razorpay.js,Show Log,Arată jurnal

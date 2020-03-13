@@ -13,7 +13,7 @@ class Leaderboard {
 	constructor(parent) {
 		frappe.ui.make_app_page({
 			parent: parent,
-			title: "Leaderboard",
+			title: __("Leaderboard"),
 			single_column: false
 		});
 		this.parent = parent;

@@ -35,10 +35,16 @@ class S3BackupSettings(Document):
 			frappe.throw(_("Invalid Access Key ID or Secret Access Key."))
 
 		try:
-			conn.create_bucket(Bucket=bucket_lower, CreateBucketConfiguration={
-				'LocationConstraint': self.region})
-		except ClientError:
-			frappe.throw(_("Unable to create bucket: {0}. Change it to a more unique name.").format(bucket_lower))
+			# Head_bucket returns a 200 OK if the bucket exists and have access to it.
+			conn.head_bucket(Bucket=bucket_lower)
+		except ClientError as e:
+			error_code = e.response['Error']['Code']
+			if error_code == '403':
+				frappe.throw(_("Do not have permission to access {0} bucket.").format(bucket_lower))
+			else:   # '400'-Bad request or '404'-Not Found return
+				# try to create bucket
+				conn.create_bucket(Bucket=bucket_lower, CreateBucketConfiguration={
+					'LocationConstraint': self.region})
 
 
 @frappe.whitelist()
@@ -106,9 +112,8 @@ def send_email(success, service_name, error_status=None):
 	if not frappe.db:
 		frappe.connect()
 
-	if frappe.db.get_value("S3 Backup Settings", None, "notification_email"):
-		recipients = split_emails(frappe.db.get_value("S3 Backup Settings", None, "notification_email"))
-		frappe.sendmail(recipients=recipients, subject=subject, message=message)
+	recipients = split_emails(frappe.db.get_value("S3 Backup Settings", None, "notify_email"))
+	frappe.sendmail(recipients=recipients, subject=subject, message=message)
 
 
 def backup_to_s3():
