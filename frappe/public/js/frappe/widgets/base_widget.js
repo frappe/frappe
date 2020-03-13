@@ -5,7 +5,9 @@ export default class Widget {
 	}
 
 	refresh() {
-		//
+		this.set_title();
+		this.set_actions();
+		this.set_body();
 	}
 
 	customize() {
