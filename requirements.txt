@@ -46,7 +46,7 @@ pypng
 premailer
 croniter
 googlemaps
-braintree
+braintree==3.59.0
 future
 passlib
 google-api-python-client
