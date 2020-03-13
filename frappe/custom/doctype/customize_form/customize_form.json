@@ -21,7 +21,6 @@
   "allow_auto_repeat",
   "allow_import",
   "image_view",
-  "email_append_to",
   "column_break_5",
   "title_field",
   "image_field",
@@ -31,6 +30,7 @@
   "column_break_10",
   "sort_order",
   "section_break_23",
+  "email_append_to",
   "subject_field",
   "cb_01",
   "sender_field",
@@ -182,14 +182,17 @@
    "label": "Allow Import (via Data Import Tool)"
   },
   {
+   "depends_on": "email_append_to",
    "fieldname": "subject_field",
    "fieldtype": "Data",
    "label": "Subject Field"
   },
   {
+   "depends_on": "email_append_to",
    "fieldname": "sender_field",
    "fieldtype": "Data",
-   "label": "Sender Field"
+   "label": "Sender Field",
+   "mandatory_depends_on": "email_append_to"
   },
   {
    "default": "0",
@@ -212,7 +215,7 @@
  "idx": 1,
  "issingle": 1,
  "links": [],
- "modified": "2019-12-27 14:29:49.097980",
+ "modified": "2020-03-13 19:54:39.652134",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Customize Form",

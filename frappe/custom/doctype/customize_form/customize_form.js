@@ -139,16 +139,6 @@ frappe.ui.form.on("Customize Form", {
 			}, 1000);
 		}
 
-	},
-
-	email_append_to: function(frm) {
-		frm.set_df_property("subject_field", "reqd", 0);
-		frm.set_df_property("sender_field", "reqd", 0);
-
-		if (frm.doc.email_append_to) {
-			frm.set_df_property("subject_field", "reqd", 1);
-			frm.set_df_property("sender_field", "reqd", 1);
-		}
 	}
 });
 

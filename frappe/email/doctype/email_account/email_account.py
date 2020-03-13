@@ -678,9 +678,9 @@ def get_append_to(doctype=None, txt=None, searchfield=None, start=None, page_len
 	email_append_to_list = []
 
 	# Set Email Append To DocTypes via DocType
-	for dt in frappe.get_all("DocType", filters={"istable": 0, "issingle": 0}, fields=["name", "email_append_to"]):
-		if dt.get("email_append_to") and dt.email_append_to:
-			email_append_to_list.append(dt.name)
+	filters = {"istable": 0, "issingle": 0, "email_append_to": 1}
+	for dt in frappe.get_all("DocType", filters=filters, fields=["name", "email_append_to"]):
+		email_append_to_list.append(dt.name)
 
 	# Set Email Append To DocTypes set via Customize Form
 	for dt in frappe.get_list("Property Setter", filters={"property": "email_append_to", "value": 1}, fields=["doc_type"]):
