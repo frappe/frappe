@@ -264,7 +264,7 @@ Object.assign(frappe.utils, {
 			if(has_words(["Pending", "Review", "Medium", "Not Approved"], text)) {
 				style = "warning";
 				colour = "orange";
-			} else if(has_words(["Open", "Urgent", "High"], text)) {
+			} else if(has_words(["Open", "Urgent", "High", "Failed", "Rejected", "Error"], text)) {
 				style = "danger";
 				colour = "red";
 			} else if(has_words(["Closed", "Finished", "Converted", "Completed", "Confirmed",

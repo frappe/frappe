@@ -14,6 +14,7 @@ from werkzeug.exceptions import NotFound, Forbidden
 import hashlib, json
 from frappe.model import optional_fields, table_fields
 from frappe.model.workflow import validate_workflow
+from frappe.model.workflow import set_workflow_state_on_action
 from frappe.utils.global_search import update_global_search
 from frappe.integrations.doctype.webhook import run_webhooks
 from frappe.desk.form.document_follow import follow_document
@@ -482,8 +483,11 @@ class Document(BaseDocument):
 	def validate_workflow(self):
 		'''Validate if the workflow transition is valid'''
 		if frappe.flags.in_install == 'frappe': return
-		if self.meta.get_workflow():
+		workflow = self.meta.get_workflow()
+		if workflow:
 			validate_workflow(self)
+			if not self._action == 'save':
+				set_workflow_state_on_action(self, workflow, self._action)
 
 	def validate_set_only_once(self):
 		'''Validate that fields are not changed if not in insert'''
@@ -570,21 +574,24 @@ class Document(BaseDocument):
 
 		# check for child tables
 		for df in self.meta.get_table_fields():
-			high_permlevel_fields = frappe.get_meta(df.options).meta.get_high_permlevel_fields()
+			high_permlevel_fields = frappe.get_meta(df.options).get_high_permlevel_fields()
 			if high_permlevel_fields:
 				for d in self.get(df.fieldname):
 					d.reset_values_if_no_permlevel_access(has_access_to, high_permlevel_fields)
 
 	def get_permlevel_access(self, permission_type='write'):
 		if not hasattr(self, "_has_access_to"):
+			self._has_access_to = {}
+
+		if not self._has_access_to.get(permission_type):
+			self._has_access_to[permission_type] = []
 			roles = frappe.get_roles()
-			self._has_access_to = []
 			for perm in self.get_permissions():
 				if perm.role in roles and perm.permlevel > 0 and perm.get(permission_type):
-					if perm.permlevel not in self._has_access_to:
-						self._has_access_to.append(perm.permlevel)
+					if perm.permlevel not in self._has_access_to[permission_type]:
+						self._has_access_to[permission_type].append(perm.permlevel)
 
-		return self._has_access_to
+		return self._has_access_to[permission_type]
 
 	def has_permlevel_access_to(self, fieldname, df=None, permission_type='read'):
 		if not df:

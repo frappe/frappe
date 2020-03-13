@@ -43,3 +43,6 @@ class LetterHead(Document):
 
 			# update control panel - so it loads new letter directly
 			frappe.db.set_default("default_letter_head_content", self.content)
+		else:
+			frappe.defaults.clear_default('letter_head', self.name)
+			frappe.defaults.clear_default("default_letter_head_content", self.content)

@@ -16,15 +16,14 @@ def update_document_title(doctype, docname, title_field=None, old_title=None, ne
 	"""
 		Update title from header in form view
 	"""
+	if docname and new_name and not docname == new_name:
+		docname = rename_doc(doctype=doctype, old=docname, new=new_name, merge=merge)
+
 	if old_title and new_title and not old_title == new_title:
 		frappe.db.set_value(doctype, docname, title_field, new_title)
 		frappe.msgprint(_('Saved'), alert=True, indicator='green')
 
-	if docname and new_name and not docname == new_name:
-		return rename_doc(doctype=doctype, old=docname, new=new_name, merge=merge)
-
 	return docname
-
 
 @frappe.whitelist()
 def rename_doc(doctype, old, new, force=False, merge=False, ignore_permissions=False, ignore_if_exists=False):

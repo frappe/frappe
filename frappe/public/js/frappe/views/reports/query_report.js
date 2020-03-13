@@ -218,14 +218,15 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			if (df.on_change) f.on_change = df.on_change;
 
 			df.onchange = () => {
+				let current_filters = this.get_filter_value();
 				if (this.previous_filters
-					&& (JSON.stringify(this.previous_filters) == JSON.stringify(this.get_filter_values()))) {
+					&& (JSON.stringify(this.previous_filters) === JSON.stringify(current_filters))) {
 					// filter values have not changed
 					return;
 				}
-				this.previous_filters = this.get_filter_values();
 
-				// clear previous_filters after 3 seconds, to allow refresh for new data
+				// clear previous_filters after 10 seconds, to allow refresh for new data
+				this.previous_filters = current_filters;
 				setTimeout(() => this.previous_filters = null, 10000);
 
 				if (f.on_change) {
@@ -458,7 +459,8 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			data.splice(-1, 1);
 		}
 
-		if (this.datatable) {
+		if (this.datatable && this.datatable.options
+			&& (this.datatable.options.showTotalRow ===this.raw_data.add_total_row)) {
 			this.datatable.options.treeView = this.tree_report;
 			this.datatable.refresh(data, this.columns);
 		} else {
@@ -1124,7 +1126,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 								label: df.label,
 								link_field: this.doctype_field_map[values.doctype],
 								doctype: values.doctype,
-								options: df.fieldtype === "Link" ? frappe.model.unscrub(df.fieldname) : undefined,
+								options: df.fieldtype === "Link" ? df.options : undefined,
 								width: 100
 							});
 

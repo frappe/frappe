@@ -105,6 +105,17 @@ def apply_workflow(doc, action):
 
 	return doc
 
+@frappe.whitelist()
+def can_cancel_document(doctype):
+	workflow = get_workflow(doctype)
+	for state_doc in workflow.states:
+		if state_doc.doc_status == '2':
+			for transition in workflow.transitions:
+				if transition.next_state == state_doc.state:
+					return False
+			return True
+	return True
+
 def validate_workflow(doc):
 	'''Validate Workflow State and Transition for the current user.
 
@@ -170,13 +181,75 @@ def get_workflow_field_value(workflow_name, field):
 
 @frappe.whitelist()
 def bulk_workflow_approval(docnames, doctype, action):
+	from collections import defaultdict
+
+	# dictionaries for logging
+	errored_transactions = defaultdict(list)
+	successful_transactions = defaultdict(list)
+
+	# WARN: message log is cleared
+	print("Clearing frappe.message_log...")
+	frappe.clear_messages()
+
 	docnames = json.loads(docnames)
-	for (i, docname) in enumerate(docnames, 1):
+	for (idx, docname) in enumerate(docnames, 1):
+		message_dict = {}
 		try:
-			show_progress(docnames, _('Applying: {0}').format(action), i, docname)
+			show_progress(docnames, _('Applying: {0}').format(action), idx, docname)
 			apply_workflow(frappe.get_doc(doctype, docname), action)
-		except frappe.ValidationError:
-			pass
+			frappe.db.commit()
+		except Exception as e:
+			if not frappe.message_log:
+				# Exception is  raised manually and not from msgprint or throw
+				message = "{0}".format(e.__class__.__name__)
+				if e.args:
+					message +=  " : {0}".format(e.args[0])
+				message_dict = {"docname": docname, "message": message}
+				errored_transactions[docname].append(message_dict)
+
+			frappe.db.rollback()
+			frappe.log_error(frappe.get_traceback(), "Workflow {0} threw an error for {1} {2}".format(action, doctype, docname))
+		finally:
+			if not message_dict:
+				if frappe.message_log:
+					messages = frappe.get_message_log()
+					for message in messages:
+						frappe.message_log.pop()
+						message_dict = {"docname": docname, "message": message.get("message")}
+
+						if message.get("raise_exception", False):
+							errored_transactions[docname].append(message_dict)
+						else:
+							successful_transactions[docname].append(message_dict)
+				else:
+					successful_transactions[docname].append({"docname": docname, "message": None})
+
+	if errored_transactions and successful_transactions:
+		indicator = "orange"
+	elif errored_transactions:
+		indicator  = "red"
+	else:
+		indicator = "green"
+
+	print_workflow_log(errored_transactions, _("Errored Transactions"), doctype, indicator)
+	print_workflow_log(successful_transactions, _("Successful Transactions"), doctype, indicator)
+
+def print_workflow_log(messages, title, doctype, indicator):
+	if messages.keys():
+		msg = "<h4>{0}</h4>".format(title)
+
+		for doc in messages.keys():
+			if len(messages[doc]):
+				html = "<details><summary>{0}</summary>".format(frappe.utils.get_link_to_form(doctype, doc))
+				for log in messages[doc]:
+					if log.get('message'):
+						html += "<div class='small text-muted' style='padding:2.5px'>{0}</div>".format(log.get('message'))
+				html += "</details>"
+			else:
+				html = "<div>{0}</div>".format(doc)
+			msg += html
+
+		frappe.msgprint(msg, title=_("Workflow Status"), indicator=indicator)
 
 @frappe.whitelist()
 def get_common_transition_actions(docs, doctype):
@@ -205,3 +278,23 @@ def show_progress(docnames, message, i, description):
 			title = message,
 			description = description
 		)
+
+
+def set_workflow_state_on_action(doc, workflow_name, action):
+	workflow = frappe.get_doc('Workflow', workflow_name)
+	workflow_state_field = workflow.workflow_state_field
+
+	# If workflow state of doc is already correct, don't set workflow state
+	for state in workflow.states:
+		if state.state == doc.get(workflow_state_field) and doc.docstatus == cint(state.doc_status):
+			return
+
+	action_map = {
+		'submit': '1',
+		'cancel': '2'
+	}
+	docstatus = action_map[action]
+	for state in workflow.states:
+		if state.doc_status == docstatus:
+			doc.set(workflow_state_field, state.state)
+			return 

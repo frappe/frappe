@@ -81,15 +81,14 @@ frappe.Application = Class.extend({
 			frappe.msgprint(frappe.boot.messages);
 		}
 
-		if (frappe.boot.change_log && frappe.boot.change_log.length && !window.Cypress) {
+		if (frappe.user_roles.includes('System Manager')) {
 			this.show_change_log();
-		} else {
-			this.show_notes();
+			this.show_update_available();
 		}
 
-		this.show_update_available();
+		this.show_notes();
 
-		if(frappe.ui.startup_setup_dialog && !frappe.boot.setup_complete) {
+		if (frappe.ui.startup_setup_dialog && !frappe.boot.setup_complete) {
 			frappe.ui.startup_setup_dialog.pre_show();
 			frappe.ui.startup_setup_dialog.show();
 		}
@@ -120,10 +119,10 @@ frappe.Application = Class.extend({
 		// listen to build errors
 		this.setup_build_error_listener();
 
-		if (frappe.sys_defaults.email_user_password){
+		if (frappe.sys_defaults.email_user_password) {
 			var email_list =  frappe.sys_defaults.email_user_password.split(',');
 			for (var u in email_list) {
-				if (email_list[u]===frappe.user.name){
+				if (email_list[u]===frappe.user.name) {
 					this.set_password(email_list[u]);
 				}
 			}
@@ -475,6 +474,11 @@ frappe.Application = Class.extend({
 		// 	"version": "12.2.0"
 		// }];
 
+		if (!Array.isArray(change_log) || !change_log.length || window.Cypress) {
+			return;
+		}
+
+		// Iterate over changelog
 		var change_log_dialog = frappe.msgprint({
 			message: frappe.render_template("change_log", {"change_log": change_log}),
 			title: __("Updated To New Version 🎉"),
