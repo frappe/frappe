@@ -396,7 +396,7 @@ class CustomizeForm(Document):
 
 		if len(docs):
 			frappe.throw(_('Value for field {0} is too long in {1}. Length should be lesser than {2} characters')
-				.format(frappe.bold(label), links_str, frappe.bold(max_length)), title='Data Too Long')
+				.format(frappe.bold(label), links_str, frappe.bold(max_length)), title='Data Too Long', is_minimizable=True)
 		else:
 			self.flags.update_db = True
 
