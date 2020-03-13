@@ -1,4 +1,3 @@
-apps/frappe/frappe/contacts/doctype/address/address.py,"Company is mandatory, as it is your company address","Compañía es obligatoria, igual que la dirección de la empresa"
 DocType: Address Template,"<h4>Default Template</h4>
 <p>Uses <a href=""http://jinja.pocoo.org/docs/templates/"">Jinja Templating</a> and all the fields of Address (including Custom Fields if any) will be available</p>
 <pre><code>{{ address_line1 }}&lt;br&gt;

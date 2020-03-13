@@ -14,17 +14,30 @@ frappe.setup.OnboardingSlide = class OnboardingSlide extends frappe.ui.Slide {
 		this.$next_btn = this.slides_footer.find('.next-btn');
 		this.$complete_btn = this.slides_footer.find('.complete-btn');
 		this.$action_button = this.slides_footer.find('.next-btn');
+
 		if (this.help_links) {
 			this.$help_links = $(`<div class="text-center">
 				<div class="help-links"></div>
 			</div>`).appendTo(this.$body);
 			this.setup_help_links();
 		}
+
+		this.$skip_btn = this.slides_footer.find('.skip-btn').on('click', () => {
+			$('.onboarding-dialog').modal('toggle');
+		});
 	}
 
 	setup_form() {
 		super.setup_form();
 		const fields = this.get_atomic_fields();
+
+		// remove link indicator
+		fields.map((field) => {
+			if (field.fieldtype == 'Link') {
+				$('.link-btn').remove();
+			}
+		});
+
 		if (fields.length == 1) {
 			this.$form_wrapper.addClass("text-center");
 		} else {
@@ -33,8 +46,13 @@ frappe.setup.OnboardingSlide = class OnboardingSlide extends frappe.ui.Slide {
 	}
 
 	before_show() {
-		(this.id === 0) ?
-			this.$next_btn.text(__('Let\'s Start')) : this.$next_btn.text(__('Next'));
+		if (this.id === 0) {
+			this.$next_btn.text(__('Let\'s Go'));
+			this.$skip_btn.removeClass('hide');
+		} else {
+			this.$next_btn.text(__('Next'));
+			this.$skip_btn.addClass('hide');
+		}
 		//last slide
 		if (this.is_last_slide()) {
 			this.$complete_btn.removeClass('hide').addClass('action primary');
@@ -143,7 +161,10 @@ frappe.setup.OnboardingDialog  = class OnboardingDialog {
 			before_load: ($footer) => {
 				$footer.find('.prev-btn').addClass('hide');
 				$footer.find('.next-btn').removeClass('btn-default').addClass('btn-primary action');
-				$footer.find('.text-right').prepend(
+				$footer.find('.prev-div').prepend(
+					$(`<a class="skip-btn text-muted btn btn-link btn-sm hide">
+				${__("Do It Later")}</a>`));
+				$footer.find('.next-div').prepend(
 					$(`<a class="complete-btn btn btn-primary btn-sm hide">
 				${__("Complete")}</a>`));
 			}

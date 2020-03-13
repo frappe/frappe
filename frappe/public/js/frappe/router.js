@@ -46,8 +46,7 @@ frappe.route = function() {
 
 	if(route[0]) {
 		const title_cased_route = frappe.utils.to_title_case(route[0]);
-
-		if (title_cased_route === 'Desktop') {
+		if (title_cased_route === 'Workspace') {
 			frappe.views.pageview.show('');
 		}
 
@@ -201,7 +200,7 @@ $(window).on('hashchange', function() {
 		return;
 
 	// hide open dialog
-	if(window.cur_dialog && cur_dialog.hide_on_page_refresh) {
+	if(window.cur_dialog) {
 		if (!cur_dialog.minimizable) {
 			cur_dialog.hide();
 		} else if (!cur_dialog.is_minimized) {
