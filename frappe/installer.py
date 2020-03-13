@@ -22,12 +22,12 @@ from frappe.core.doctype.scheduled_job_type.scheduled_job_type import sync_jobs
 
 def install_db(root_login="root", root_password=None, db_name=None, source_sql=None,
 			   admin_password=None, verbose=True, force=0, site_config=None, reinstall=False,
-			   db_type=None, db_host=None, db_port=None, no_mariadb_socket=False):
+			   db_password=None, db_type=None, db_host=None, db_port=None, no_mariadb_socket=False):
 
 	if not db_type:
 		db_type = frappe.conf.db_type or 'mariadb'
 
-	make_conf(db_name, site_config=site_config, db_type=db_type, db_host=db_host, db_port=db_port)
+	make_conf(db_name, site_config=site_config, db_password=db_password, db_type=db_type, db_host=db_host, db_port=db_port)
 	frappe.flags.in_install_db = True
 
 	frappe.flags.root_login = root_login
