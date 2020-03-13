@@ -36,10 +36,8 @@ frappe.ui.form.on('Manage Customization', {
 	import: function(frm) {
 		frappe.call({
 			method: 'frappe.custom.doctype.manage_customization.manage_customization.import_customizations',
-			callback: function(r) {
-				if (r.message) {
-					console.log("done")
-				}
+			callback: function() {
+				frappe.msgprint(__("Customizations Imported."));
 			}
 		});
 	}

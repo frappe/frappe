@@ -39,16 +39,20 @@ def export_customizations():
 def import_customizations():
 	"""Import fixtures as JSON"""
 
-	import_customizations_doc = frappe.get_single("Manage Customization")
+	import_file = frappe.get_all("File", filters={
+		"attached_to_doctype": "Manage Customization",
+		"attached_to_name": "Manage Customization"
+	}, limit=1, order_by="creation desc")
 
-	with open(frappe.utils.get_url() + import_customizations_doc.import_customization, 'r') as f:
-		f = json.loads(f)
+	if not import_file:
+		return
 
-		length = f.get("data")
+	content = json.loads(frappe.get_doc("File", import_file[0].name).get_content())
+	length = len(content)
 
-		for idx, doc in enumerate(f.get("data")):
-			frappe.publish_realtime("exporting_progress", dict(progress=idx, total=length, message=doc.get("doctype")), user=frappe.session.user)
-			frappe.get_doc(doc).insert(ignore_permissions=True)
+	for idx, doc in enumerate(content.get("message").get("data")):
+		frappe.publish_realtime("exporting_progress", dict(progress=idx, total=length, message=doc.get("doctype")), user=frappe.session.user)
+		frappe.get_doc(doc).insert(ignore_permissions=True)
 
 def post_process(customizations):
 	del_keys = ('modified_by', 'creation', 'owner', 'idx', 'name', 'modified', 'docstatus')
