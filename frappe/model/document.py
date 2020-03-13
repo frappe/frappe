@@ -14,6 +14,7 @@ from werkzeug.exceptions import NotFound, Forbidden
 import hashlib, json
 from frappe.model import optional_fields, table_fields
 from frappe.model.workflow import validate_workflow
+from frappe.model.workflow import set_workflow_state_on_action
 from frappe.utils.global_search import update_global_search
 from frappe.integrations.doctype.webhook import run_webhooks
 from frappe.desk.form.document_follow import follow_document
@@ -491,8 +492,11 @@ class Document(BaseDocument):
 	def validate_workflow(self):
 		"""Validate if the workflow transition is valid"""
 		if frappe.flags.in_install == 'frappe': return
-		if self.meta.get_workflow():
+		workflow = self.meta.get_workflow()
+		if workflow:
 			validate_workflow(self)
+			if not self._action == 'save':
+				set_workflow_state_on_action(self, workflow, self._action)
 
 	def validate_set_only_once(self):
 		"""Validate that fields are not changed if not in insert"""
@@ -579,7 +583,7 @@ class Document(BaseDocument):
 
 		# check for child tables
 		for df in self.meta.get_table_fields():
-			high_permlevel_fields = frappe.get_meta(df.options).meta.get_high_permlevel_fields()
+			high_permlevel_fields = frappe.get_meta(df.options).get_high_permlevel_fields()
 			if high_permlevel_fields:
 				for d in self.get(df.fieldname):
 					d.reset_values_if_no_permlevel_access(has_access_to, high_permlevel_fields)
@@ -1115,9 +1119,9 @@ class Document(BaseDocument):
 			label = doc.meta.get_label(fieldname)
 			condition_str = error_condition_map.get(condition, condition)
 			if doc.parentfield:
-				msg = _("Incorrect value in row {0}: {1} must be {2} {3}".format(doc.idx, label, condition_str, val2))
+				msg = _("Incorrect value in row {0}: {1} must be {2} {3}").format(doc.idx, label, condition_str, val2)
 			else:
-				msg = _("Incorrect value: {0} must be {1} {2}".format(label, condition_str, val2))
+				msg = _("Incorrect value: {0} must be {1} {2}").format(label, condition_str, val2)
 
 			# raise passed exception or True
 			msgprint(msg, raise_exception=raise_exception or True)

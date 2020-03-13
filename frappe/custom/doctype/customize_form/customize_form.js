@@ -20,7 +20,8 @@ frappe.ui.form.on("Customize Form", {
 		frm.set_query("default_print_format", function() {
 			return {
 				filters: {
-					'print_format_type': ['!=', 'JS']
+					'print_format_type': ['!=', 'JS'],
+					'doc_type': ['=', frm.doc.doc_type]
 				}
 			}
 		});
