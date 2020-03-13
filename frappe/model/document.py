@@ -86,6 +86,7 @@ class Document(BaseDocument):
 		self.doctype = self.name = None
 		self._default_new_docs = {}
 		self.flags = frappe._dict()
+		
 
 		if args and args[0] and isinstance(args[0], string_types):
 			# first arugment is doctype
@@ -95,13 +96,19 @@ class Document(BaseDocument):
 			else:
 				self.doctype = args[0]
 				if isinstance(args[1], dict):
-					# filter
+					# select by filter
 					self.name = frappe.db.get_value(args[0], args[1], "name")
 					if self.name is None:
 						frappe.throw(_("{0} {1} not found").format(_(args[0]), args[1]),
 							frappe.DoesNotExistError)
 				else:
 					self.name = args[1]
+
+					# for_update = True is set when row level locking is required
+					# while selecting the document (used in a background job)
+					# use `SELECT FOR UPDATE` while selecting this document
+					if kwargs and 'for_update' in kwargs:
+						self.flags.for_update = for_update
 
 			self.load_from_db()
 			return
@@ -133,6 +140,7 @@ class Document(BaseDocument):
 		"""Load document and children from database and create properties
 		from fields"""
 		if not getattr(self, "_metaclass", False) and self.meta.issingle:
+			# single doc
 			single_doc = frappe.db.get_singles_dict(self.doctype)
 			if not single_doc:
 				single_doc = frappe.new_doc(self.doctype).as_dict()
@@ -144,7 +152,7 @@ class Document(BaseDocument):
 			self._fix_numeric_types()
 
 		else:
-			d = frappe.db.get_value(self.doctype, self.name, "*", as_dict=1)
+			d = frappe.db.get_value(self.doctype, self.name, "*", as_dict=1, for_update=True)
 			if not d:
 				frappe.throw(_("{0} {1} not found").format(_(self.doctype), self.name), frappe.DoesNotExistError)
 
