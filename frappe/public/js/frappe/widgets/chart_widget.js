@@ -16,21 +16,21 @@ export default class ChartWidget extends Widget {
 	}
 
 	set_body() {
-		this.widget.addClass('dashboard-widget-box')
+		this.widget.addClass('dashboard-widget-box');
 		if (this.width == "Full") {
-			this.widget.addClass('full-width')
+			this.widget.addClass('full-width');
 		}
 		this.make_chart();
 	}
 
 	set_summary() {
 		let summary = $(`<span class="dashboard-summary">$ 54,231</span>`);
-		this.title_field.addClass('text-muted')
+		this.title_field.addClass('text-muted');
 		summary.prependTo(this.body);
 	}
 
 	make_chart() {
-		this.body.empty()
+		this.body.empty();
 		this.get_settings().then(() => {
 			this.prepare_chart_object();
 			this.prepare_container();
@@ -47,7 +47,7 @@ export default class ChartWidget extends Widget {
 			// this.setup_refresh_button();
 			// this.setup_filter_button();
 			// if (this.chart_doc.timeseries && this.chart_doc.chart_type !== 'Custom') {
-				// this.render_time_series_filters();
+			//	this.render_time_series_filters();
 			// }
 
 			this.fetch(this.filters).then(data => {
@@ -64,7 +64,7 @@ export default class ChartWidget extends Widget {
 	}
 
 	setup_customize_actions() {
-		this.action_area.empty()
+		this.action_area.empty();
 		const buttons = $(`<button type="button" class="btn btn-xs btn-secondary btn-default selected">Resize</button>
 					<button class="btn btn-secondary btn-light btn-danger btn-xs"><i class="fa fa-trash" aria-hidden="true"></i></button>`);
 		buttons.appendTo(this.action_area);
