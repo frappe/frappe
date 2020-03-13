@@ -118,6 +118,8 @@ export default class GridPagination {
 		if (this.grid.data.length == page_length*total_pages) {
 			this.go_to_page(total_pages + 1);
 			frappe.utils.scroll_to(this.wrapper);
+		} else if (this.page_index == this.total_pages) {
+			return;
 		} else {
 			this.go_to_page(total_pages);
 		}

@@ -529,7 +529,9 @@ def get_field_currency(df, doc=None):
 				if currency:
 					ref_docname = doc.name
 				else:
-					currency = frappe.db.get_value(doc.parenttype, doc.parent, df.get("options"))
+					if frappe.get_meta(doc.parenttype).has_field(df.get("options")):
+						# only get_value if parent has currency field
+						currency = frappe.db.get_value(doc.parenttype, doc.parent, df.get("options"))
 
 		if currency:
 			frappe.local.field_currency.setdefault((doc.doctype, ref_docname), frappe._dict())\
