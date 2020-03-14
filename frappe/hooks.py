@@ -135,13 +135,13 @@ doc_events = {
 		],
 		"on_trash": [
 			"frappe.desk.notifications.clear_doctype_notifications",
-			"frappe.workflow.doctype.workflow_action.workflow_action.process_workflow_actions"
+			"frappe.workflow.doctype.workflow_action.workflow_action.process_workflow_actions",
+			"frappe.cache_manager.build_table_count_cache"
 		],
 		"on_change": [
 			"frappe.social.doctype.energy_point_rule.energy_point_rule.process_energy_points"
 		],
-		"after_insert": "frappe.cache_manager.build_table_count_cache",
-		"on_trash": "frappe.cache_manager.build_table_count_cache",
+		"after_insert": "frappe.cache_manager.build_table_count_cache"
 	},
 	"Event": {
 		"after_insert": "frappe.integrations.doctype.google_calendar.google_calendar.insert_event_in_google_calendar",
