@@ -20,8 +20,9 @@ from frappe.modules.utils import sync_customizations
 from frappe.database import setup_database
 
 def install_db(root_login="root", root_password=None, db_name=None, source_sql=None,
-	admin_password=None, verbose=True, force=0, site_config=None, reinstall=False,
-	db_password=None, db_type=None):
+			   admin_password=None, verbose=True, force=0, site_config=None, reinstall=False,
+			   db_type=None, db_host=None, db_port=None,
+			   db_password=None, no_mariadb_socket=False):
 
 	if not db_type:
 		db_type = frappe.conf.db_type or 'mariadb'
@@ -31,7 +32,7 @@ def install_db(root_login="root", root_password=None, db_name=None, source_sql=N
 
 	frappe.flags.root_login = root_login
 	frappe.flags.root_password = root_password
-	setup_database(force, source_sql, verbose)
+	setup_database(force, source_sql, verbose, no_mariadb_socket)
 
 	frappe.conf.admin_password = frappe.conf.admin_password or admin_password
 
