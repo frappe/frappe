@@ -12,6 +12,7 @@ from six import text_type
 @click.command('new-site')
 @click.argument('site')
 @click.option('--db-name', help='Database name')
+@click.option('--db-password', help='Database password')
 @click.option('--db-type', default='mariadb', type=click.Choice(['mariadb', 'postgres']), help='Optional "postgres" or "mariadb". Default is "mariadb"')
 @click.option('--mariadb-root-username', default='root', help='Root username for MariaDB')
 @click.option('--mariadb-root-password', help='Root password for MariaDB')
@@ -22,21 +23,21 @@ from six import text_type
 @click.option('--install-app', multiple=True, help='Install app after installation')
 def new_site(site, mariadb_root_username=None, mariadb_root_password=None, admin_password=None,
 	verbose=False, install_apps=None, source_sql=None, force=None, install_app=None,
-	db_name=None, db_type=None):
+	db_name=None, db_password=None, db_type=None):
 	"Create a new site"
 	frappe.init(site=site, new_site=True)
 
 	_new_site(db_name, site, mariadb_root_username=mariadb_root_username,
 			mariadb_root_password=mariadb_root_password, admin_password=admin_password,
 			verbose=verbose, install_apps=install_app, source_sql=source_sql, force=force,
-			db_type=db_type)
+			db_password=db_password, db_type=db_type)
 
 	if len(frappe.utils.get_sites()) == 1:
 		use(site)
 
 def _new_site(db_name, site, mariadb_root_username=None, mariadb_root_password=None,
 	admin_password=None, verbose=False, install_apps=None, source_sql=None, force=False,
-	reinstall=False, db_type=None):
+	reinstall=False, db_password=None, db_type=None):
 	"""Install a new Frappe site"""
 
 	if not force and os.path.exists(site):
@@ -66,7 +67,7 @@ def _new_site(db_name, site, mariadb_root_username=None, mariadb_root_password=N
 
 		install_db(root_login=mariadb_root_username, root_password=mariadb_root_password,
 			db_name=db_name, admin_password=admin_password, verbose=verbose,
-			source_sql=source_sql, force=force, reinstall=reinstall, db_type=db_type)
+			source_sql=source_sql, force=force, reinstall=reinstall, db_password=db_password, db_type=db_type)
 
 		apps_to_install = ['frappe'] + (frappe.conf.get("install_apps") or []) + (list(install_apps) or [])
 		for app in apps_to_install:
