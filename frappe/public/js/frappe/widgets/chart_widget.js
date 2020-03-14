@@ -33,22 +33,15 @@ export default class ChartWidget extends Widget {
 		this.body.empty();
 		this.get_settings().then(() => {
 			this.prepare_chart_object();
-			this.prepare_container();
-
-			if (!this.options.hide_actions || this.options.hide_actions == undefined) {
-				this.setup_filter_button();
-				if (this.chart_doc.timeseries && this.chart_doc.chart_type !== 'Custom') {
-					this.render_time_series_filters();
-				}
-			}
+			// this.prepare_container();
 
 			this.action_area.empty();
 			this.prepare_chart_actions();
 			// this.setup_refresh_button();
-			// this.setup_filter_button();
-			// if (this.chart_doc.timeseries && this.chart_doc.chart_type !== 'Custom') {
-			//	this.render_time_series_filters();
-			// }
+			this.setup_filter_button();
+			if (this.chart_doc.timeseries && this.chart_doc.chart_type !== 'Custom') {
+				this.render_time_series_filters();
+			}
 
 			this.fetch(this.filters).then(data => {
 				if (this.chart_doc.chart_type == 'Report') {
@@ -104,7 +97,7 @@ export default class ChartWidget extends Widget {
 			},
 		];
 
-		frappe.dashboard_utils.render_chart_filters(filters, 'chart-actions', this.action_area, 1);
+		frappe.dashboard_utils.render_chart_filters(filters, 'chart-actions', this.action_area, 0);
 	}
 
 	fetch_and_update_chart() {
@@ -298,9 +291,9 @@ export default class ChartWidget extends Widget {
 			this.filter_group.add_filters_to_filter_group(this.filters);
 		});
 	}
-
+//
 	set_chart_actions(actions) {
-		this.chart_actions = $(`<div class="chart-actions btn-group dropdown pull-right">
+		this.chart_actions = $(`<div class="chart-actions dropdown pull-right">
 			<a class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
 				<button class="btn btn-default btn-xs"><span class="caret"></span></button>
 			</a>
