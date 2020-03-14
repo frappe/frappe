@@ -1,58 +1,58 @@
 {
  "actions": [],
- "creation": "2020-03-01 23:21:17.394500",
+ "creation": "2020-03-14 11:20:14.850552",
  "doctype": "DocType",
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
   "sb_00",
-  "export_customization",
+  "export_package",
   "export",
   "sb_01",
-  "import_customization",
+  "import_package",
   "import"
  ],
  "fields": [
   {
-   "fieldname": "export_customization",
-   "fieldtype": "Table",
-   "label": "Customizations to Export",
-   "options": "Customization Export"
-  },
-  {
    "fieldname": "sb_00",
    "fieldtype": "Section Break",
-   "label": "Export Customizations"
+   "label": "Export Package"
   },
   {
-   "fieldname": "sb_01",
-   "fieldtype": "Section Break",
-   "label": "Import Customizations"
-  },
-  {
-   "fieldname": "import_customization",
-   "fieldtype": "Attach",
-   "label": "Attach"
-  },
-  {
-   "depends_on": "export_customization",
+   "depends_on": "export_package",
    "fieldname": "export",
    "fieldtype": "Button",
    "label": "Export"
   },
   {
-   "depends_on": "import_customization",
+   "fieldname": "sb_01",
+   "fieldtype": "Section Break",
+   "label": "Import Package"
+  },
+  {
+   "depends_on": "import_package",
    "fieldname": "import",
    "fieldtype": "Button",
    "label": "Import"
+  },
+  {
+   "fieldname": "export_package",
+   "fieldtype": "Table",
+   "label": "Package",
+   "options": "Package DocType"
+  },
+  {
+   "fieldname": "import_package",
+   "fieldtype": "Attach",
+   "label": "Attach"
   }
  ],
  "issingle": 1,
  "links": [],
- "modified": "2020-03-13 17:14:00.382402",
+ "modified": "2020-03-14 11:52:58.221081",
  "modified_by": "Administrator",
  "module": "Custom",
- "name": "Manage Customization",
+ "name": "Package",
  "owner": "Administrator",
  "permissions": [
   {
@@ -62,6 +62,16 @@
    "print": 1,
    "read": 1,
    "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "All",
    "share": 1,
    "write": 1
   }

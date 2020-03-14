@@ -7,17 +7,17 @@ import frappe
 from frappe.model.document import Document
 import json
 
-class ManageCustomization(Document):
+class Package(Document):
 	pass
 
 @frappe.whitelist()
-def export_customizations():
-	"""Export fixtures as JSON"""
+def export_package():
+	"""Export package as JSON"""
 
-	export_customizations_doc = frappe.get_single("Manage Customization")
-	customizations = []
+	package_doc = frappe.get_single("Package")
+	package = []
 
-	for doctype in export_customizations_doc.export_customization:
+	for doctype in package_doc.export_package:
 		filters, or_filters = {}, {}
 
 		if doctype.get("filters"):
@@ -28,36 +28,36 @@ def export_customizations():
 		docs = frappe.get_all(doctype.get("document_type"), filters=filters, or_filters=or_filters)
 		length = len(docs)
 		for idx, doc in enumerate(docs):
-			frappe.publish_realtime("exporting_progress", dict(progress=idx, total=length, message=doctype.get("document_type")), user=frappe.session.user)
-			customizations.append(frappe.get_doc(doctype.get("document_type"), doc.name).as_dict())
+			frappe.publish_realtime("exporting_package", dict(progress=idx, total=length, message=doctype.get("document_type")), user=frappe.session.user)
+			package.append(frappe.get_doc(doctype.get("document_type"), doc.name).as_dict())
 
 	return frappe._dict({
-		"data": post_process(customizations)
+		"data": post_process(package)
 	})
 
 @frappe.whitelist()
-def import_customizations():
-	"""Import fixtures as JSON"""
+def import_package():
+	"""Import package from JSON"""
 
-	import_file = frappe.get_all("File", filters={
-		"attached_to_doctype": "Manage Customization",
-		"attached_to_name": "Manage Customization"
+	package_file = frappe.get_all("File", filters={
+		"attached_to_doctype": "Package",
+		"attached_to_name": "Package"
 	}, limit=1, order_by="creation desc")
 
-	if not import_file:
+	if not package_file:
 		return
 
-	content = json.loads(frappe.get_doc("File", import_file[0].name).get_content())
+	content = json.loads(frappe.get_doc("File", package_file[0].name).get_content())
 	length = len(content)
 
 	for idx, doc in enumerate(content.get("message").get("data")):
-		frappe.publish_realtime("exporting_progress", dict(progress=idx, total=length, message=doc.get("doctype")), user=frappe.session.user)
+		frappe.publish_realtime("importing_package", dict(progress=idx, total=length, message=doc.get("doctype")), user=frappe.session.user)
 		frappe.get_doc(doc).insert(ignore_permissions=True, ignore_if_duplicate=True)
 
-def post_process(customizations):
+def post_process(package):
 	del_keys = ('modified_by', 'creation', 'owner', 'idx', 'name', 'modified', 'docstatus')
 
-	for doc in customizations:
+	for doc in package:
 		for key in del_keys:
 			if key in doc:
 				del doc[key]
@@ -71,12 +71,12 @@ def post_process(customizations):
 					if key in child:
 						del child[key]
 
-	return customizations
+	return package
 
 @frappe.whitelist()
-def download_customization_json():
+def download_package():
 	data = frappe._dict(frappe.local.form_dict)
-	frappe.response['filename'] = 'Customizations.json'
+	frappe.response['filename'] = 'Package.json'
 	frappe.response['filecontent'] = data.get("data")
 	frappe.response['content_type'] = 'application/json'
 	frappe.response['type'] = 'download'

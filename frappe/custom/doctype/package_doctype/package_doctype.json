@@ -1,6 +1,6 @@
 {
  "actions": [],
- "creation": "2020-03-12 14:51:09.260025",
+ "creation": "2020-03-14 11:20:42.875446",
  "doctype": "DocType",
  "editable_grid": 1,
  "engine": "InnoDB",
@@ -21,32 +21,32 @@
    "reqd": 1
   },
   {
+   "fieldname": "sb_00",
+   "fieldtype": "Section Break"
+  },
+  {
    "fieldname": "filters",
    "fieldtype": "Code",
    "in_list_view": 1,
    "label": "Filters"
   },
   {
+   "fieldname": "cb_00",
+   "fieldtype": "Column Break"
+  },
+  {
    "fieldname": "or_filters",
    "fieldtype": "Code",
    "in_list_view": 1,
    "label": "Or Filters"
-  },
-  {
-   "fieldname": "sb_00",
-   "fieldtype": "Section Break"
-  },
-  {
-   "fieldname": "cb_00",
-   "fieldtype": "Column Break"
   }
  ],
  "istable": 1,
  "links": [],
- "modified": "2020-03-13 16:53:15.214275",
+ "modified": "2020-03-14 11:20:42.875446",
  "modified_by": "Administrator",
  "module": "Custom",
- "name": "Customization Export",
+ "name": "Package DocType",
  "owner": "Administrator",
  "permissions": [],
  "quick_entry": 1,
