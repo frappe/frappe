@@ -205,16 +205,39 @@
 			padding-left: 0px !important;
 		}
 
-		.dashboard-summary {
-			font-size: 32px !important;
-			margin-top: 0px !important;
-			margin-bottom: 8px !important;
-			font-weight: 500;
-		}
-
 		.widget-footer {
 			font-size: 85%;
 			color: @text-muted;
+		}
+
+		.report-summary {
+			grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+			padding: 15px 20px;
+			border-top: 1px solid @border-color;
+			border-bottom: 1px solid @border-color;
+			margin: 0px -15px;
+			margin-top: 15px;
+
+			.summary-label {
+				font-weight: normal !important;
+			}
+
+			.summary-value {
+				font-size: 20px;
+				margin-top: 8px;
+				margin-bottom: 5px;
+				overflow: hidden !important;
+				text-overflow: ellipsis;
+				white-space: nowrap;
+				font-feature-settings: "tnum";
+
+				div {
+					text-align: left !important;
+					overflow: hidden !important;
+					text-overflow: ellipsis;
+					white-space: nowrap;
+				}
+			}
 		}
 	}
 
