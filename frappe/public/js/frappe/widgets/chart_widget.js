@@ -291,7 +291,7 @@ export default class ChartWidget extends Widget {
 			this.filter_group.add_filters_to_filter_group(this.filters);
 		});
 	}
-//
+
 	set_chart_actions(actions) {
 		this.chart_actions = $(`<div class="chart-actions dropdown pull-right">
 			<a class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -375,7 +375,7 @@ export default class ChartWidget extends Widget {
 
 	update_last_synced() {
 		let last_synced_text = __("Last synced {0}", [comment_when(this.chart_doc.last_synced_on)]);
-		this.container.find(".last-synced-text").html(last_synced_text);
+		this.footer.html(last_synced_text);
 	}
 
 	update_chart_object() {
