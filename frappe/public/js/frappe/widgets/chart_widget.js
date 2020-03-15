@@ -25,8 +25,6 @@ export default class ChartWidget extends Widget {
 	}
 
 	set_summary() {
-		// this.summary.length && this.title_field.addClass('text-muted');
-
 		let $summary = $(`<div class="report-summary"></div>`).hide().prependTo(this.body);
 
 		this.summary.forEach((summary) => {
