@@ -1,4 +1,5 @@
 import Widget from "./base_widget.js";
+import { build_summary_item } from "./utils";
 frappe.provide('frappe.dashboards');
 frappe.provide('frappe.dashboards.chart_sources');
 
@@ -24,9 +25,14 @@ export default class ChartWidget extends Widget {
 	}
 
 	set_summary() {
-		let summary = $(`<span class="dashboard-summary">$ 54,231</span>`);
-		this.title_field.addClass('text-muted');
-		summary.prependTo(this.body);
+		// this.summary.length && this.title_field.addClass('text-muted');
+
+		let $summary = $(`<div class="report-summary"></div>`).hide().prependTo(this.body);
+
+		this.summary.forEach((summary) => {
+			build_summary_item(summary).appendTo($summary);
+		})
+		this.summary.length && $summary.show();
 	}
 
 	make_chart() {
@@ -44,7 +50,9 @@ export default class ChartWidget extends Widget {
 			}
 
 			this.fetch(this.filters).then(data => {
+				this.summary = []
 				if (this.chart_doc.chart_type == 'Report') {
+					this.summary = data.report_summary;
 					data = this.get_report_chart_data(data);
 				}
 				this.update_last_synced();
@@ -52,6 +60,7 @@ export default class ChartWidget extends Widget {
 				// Delete existing chart when refreshing
 				delete this.dashboardchart;
 				this.render();
+				this.set_summary();
 			});
 		});
 	}
