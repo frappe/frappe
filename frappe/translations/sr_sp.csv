@@ -271,7 +271,7 @@ DocType: GCalendar Settings,State,Država (USA)
 DocType: Activity Log,Closed,Zatvoreno
 apps/frappe/frappe/core/doctype/has_role/has_role.py,User '{0}' already has the role '{1}',Korisnik '{0}' već sarži rolu  '{1}'
 apps/frappe/frappe/public/js/frappe/list/list_view.js,Create a new {0},Kreirajte {0}
-apps/frappe/frappe/core/page/dashboard/dashboard.js,Loading...,Učitavanje ...
+apps/frappe/frappe/public/js/frappe/list/list_sidebar_group_by.js,Loading...,Učitavanje ...
 apps/frappe/frappe/public/js/frappe/form/sidebar/form_sidebar.js,{0} edited this {1},{1} {0} je izmijenio/la ovo
 DocType: Error Log,Error Log,Log grešaka
 DocType: Assignment Rule,Description,Opis
@@ -389,7 +389,7 @@ apps/frappe/frappe/public/js/frappe/model/model.js,Merge with existing,Spoji sa 
 DocType: Print Settings,Send Print as PDF,Štampaj u PDF
 apps/frappe/frappe/public/js/frappe/ui/toolbar/navbar.html,My Settings,Moja podešavanja
 apps/frappe/frappe/public/js/frappe/ui/toolbar/search_utils.js,Email Inbox,Email primljene
-apps/frappe/frappe/core/page/dashboard/dashboard.js,{0} List,{0} Lista
+apps/frappe/frappe/public/js/frappe/utils/utils.js,{0} List,{0} Lista
 DocType: Report,Letter Head,Zaglavlje
 DocType: Workflow State,Home,Naslovna
 apps/frappe/frappe/public/js/frappe/list/list_filter.js,Duplicate Filter Name,Ime filtera već postoji

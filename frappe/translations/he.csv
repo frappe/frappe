@@ -240,7 +240,7 @@ apps/frappe/frappe/public/js/frappe/form/form.js,Permanently Cancel {0}?,באו�
 apps/frappe/frappe/public/js/frappe/form/controls/link.js,Advanced Search,חיפוש מתקדם
 DocType: Auto Email Report,Half Yearly,חצי שנתי
 DocType: File,Attached To Name,מצורף לשם
-apps/frappe/frappe/core/page/dashboard/dashboard.js,No Data,אין נתונים
+apps/frappe/frappe/public/js/frappe/ui/dashboard_chart.js,No Data,אין נתונים
 DocType: SMS Settings,Eg. smsgateway.com/api/send_sms.cgi,לדוגמא. smsgateway.com/api/send_sms.cgi
 apps/frappe/frappe/public/js/frappe/utils/pretty_date.js,1 minute ago,לפני דקה 1
 DocType: Address,Shop,חנות
@@ -439,12 +439,12 @@ apps/frappe/frappe/workflow/doctype/workflow/workflow.py,Cannot cancel before su
 DocType: Bulk Update,Max 500 records at a time,מקס 500 רשום בכל פעם
 DocType: Access Log,Method,שיטה
 DocType: Email Group,Email Group,קבוצת דוא&quot;ל
-apps/frappe/frappe/public/js/frappe/desk.js,Modules,מודולים
+DocType: Desk Page,Modules,מודולים
 apps/frappe/frappe/www/login.html,Forgot Password?,שכחת את הסיסמא?
 DocType: DocType,Actions,פעולות
 apps/frappe/frappe/core/doctype/data_export/exporter.py,Please do not change the template headings.,נא לא לשנות את כותרות התבנית.
 DocType: Email Account,Notify if unreplied for (in mins),נא להודיע אם unreplied ל( בדקות)
-DocType: Desktop Icon,Category,קָטֵגוֹרִיָה
+DocType: Desk Page,Category,קָטֵגוֹרִיָה
 DocType: Website Settings,Hide Footer Signup,הסתר תחתונה הרשמה
 DocType: Chat Message,Room,חֶדֶר
 DocType: DocShare,Notify by Email,להודיע באמצעות דוא&quot;ל
@@ -549,7 +549,7 @@ DocType: Chat Message,Group,קבוצה
 apps/frappe/frappe/website/doctype/web_form/web_form.py,You need to be logged in to access this {0}.,אתה צריך להיות מחובר כדי לגשת זה {0}.
 DocType: Notification,Send days before or after the reference date,שלח ימים לפני או אחרי תאריך ההתייחסות
 apps/frappe/frappe/config/website.py,Embed image slideshows in website pages.,מצגות טבע תמונה בדפי אתר.
-DocType: Onboarding Slide,Domains,תחומים
+DocType: Desk Page,Domains,תחומים
 DocType: Email Account,e.g. replies@yourcomany.com. All replies will come to this inbox.,למשל replies@yourcomany.com. כל התשובות יגיעו לתיבת דואר נכנסת של זה.
 DocType: Footer Item,"target = ""_blank""","target = ""_blank"""
 DocType: Workflow State,Print,הדפסה
@@ -774,7 +774,7 @@ apps/frappe/frappe/core/doctype/sms_settings/sms_settings.py,SMS sent to followi
 apps/frappe/frappe/core/doctype/doctype/doctype.py,Max width for type Currency is 100px in row {0},רוחב מרבי למטבע סוג הוא 100px בשורת {0}
 DocType: Currency,"How should this currency be formatted? If not set, will use system defaults","איך מטבע זה צריך להיות מעוצב? אם לא מוגדר, ישתמש ברירות המחדל של מערכת"
 DocType: Workflow State,share-alt,מניות alt
-apps/frappe/frappe/desk/page/backups/backups.html,Size,גודל
+DocType: Desk Chart,Size,גודל
 apps/frappe/frappe/desk/doctype/todo/todo_list.js,Open {0},להרחיב {0}
 apps/frappe/frappe/www/printview.py,Not allowed to print draft documents,אסור להדפיס מסמכי טיוטה
 DocType: Scheduled Job Type,Annual,שנתי
@@ -1377,7 +1377,7 @@ DocType: Website Settings,Title Prefix,כותרת קידומת
 apps/frappe/frappe/public/js/frappe/list/list_sidebar_group_by.js,Assigned To,מוקצה ל
 DocType: Braintree Settings,Integrations,אינטגרציות
 DocType: Desktop Icon,Idx,IDX
-apps/frappe/frappe/core/page/dashboard/dashboard.js,{0} List,{0} רשימה
+apps/frappe/frappe/public/js/frappe/utils/utils.js,{0} List,{0} רשימה
 apps/frappe/frappe/model/document.py,Record does not exist,רשומה לא קיימת
 apps/frappe/frappe/desk/page/activity/activity_row.html,Communicated via {0} on {1}: {2},הודעה דרך {0} על {1}: {2}
 DocType: About Us Settings,About Us Settings,אודות הגדרות קשר
@@ -1539,6 +1539,7 @@ apps/frappe/frappe/utils/password_strength.py,Avoid dates and years that are ass
 DocType: Workflow State,folder-close,תיקייה-קרוב
 DocType: SMS Settings,Enter url parameter for receiver nos,הזן פרמטר url למקלט nos
 apps/frappe/frappe/public/js/frappe/form/quick_entry.js,{0} Name,{0} שם
+DocType: Dashboard Chart,Percentage,אֲחוּזִים
 DocType: Communication,Recipient Unsubscribed,נמען לא רשום
 DocType: Web Page,Show Title,כותרת הצג
 DocType: User,Last Known Versions,גרסאות ידוע אחרונות
@@ -1779,7 +1780,7 @@ DocType: Communication,Error,שגיאה
 apps/frappe/frappe/public/js/frappe/ui/filters/filters.js,values separated by commas,ערכים מופרדים בפסיקים
 DocType: Custom Field,Insert After,הכנס לאחר
 DocType: Workflow State,Edit,עריכה
-apps/frappe/frappe/core/page/dashboard/dashboard.js,Loading...,Loading ...
+apps/frappe/frappe/public/js/frappe/list/list_sidebar_group_by.js,Loading...,Loading ...
 apps/frappe/frappe/public/js/frappe/views/treeview.js,{0} Tree,{0} עץ
 apps/frappe/frappe/core/doctype/report/report.js,"To format columns, give column labels in the query.","לעמודים בפורמט, לתת תוויות עמודה בשאילתא."
 DocType: Workflow Action Master,Workflow Action Master,Workflow הפעולה Master

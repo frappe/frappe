@@ -222,7 +222,7 @@ apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Per
 DocType: SMS Settings,"Enter static url parameters here (Eg. sender=ERPNext, username=ERPNext, password=1234 etc.)","Introduzca los parámetros de URL estáticas aquí (Ej. sender = ERPNext , nombre de usuario = ERPNext , contraseña = 1234 etc )"
 DocType: Currency,Symbol,Símbolo
 apps/frappe/frappe/model/base_document.py,Row #{0}:,Fila # {0}:
-apps/frappe/frappe/core/page/dashboard/dashboard.js,{0} List,Listado: {0}
+apps/frappe/frappe/public/js/frappe/utils/utils.js,{0} List,Listado: {0}
 DocType: User Email,Enable Outgoing,Habilitar saliente
 DocType: Comment,Submitted,Enviado
 DocType: Property Setter,DocType or Field,DocType o campo

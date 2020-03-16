@@ -211,7 +211,7 @@ apps/frappe/frappe/utils/nestedset.py,Item cannot be added to its own descendent
 DocType: Module Def,App Name,Nome do App
 DocType: Property Setter,Property Type,Tipo de propriedade
 DocType: DocType,Setup,Configuração
-apps/frappe/frappe/core/page/dashboard/dashboard.js,Loading...,Carregando...
+apps/frappe/frappe/public/js/frappe/list/list_sidebar_group_by.js,Loading...,Carregando...
 apps/frappe/frappe/utils/password.py,Password cannot be more than 100 characters long,A senha não pode ter mais de 100 caracteres
 DocType: Portal Settings,Standard Sidebar Menu,Menu Lateral Padrão
 DocType: Help Article,Likes,Likes
@@ -488,7 +488,6 @@ apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Use
 DocType: Workflow State,align-justify,Justificar
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js,module name...,nome do módulo ...
 apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,Export Report: ,Exportar Relatório:
-DocType: GSuite Settings,Allow GSuite access,Permitir acesso ao GSuite
 DocType: Workflow State,magnet,ímã
 DocType: Workflow State,resize-full,redimensionamento completo
 DocType: Email Account,Auto Reply Message,Resposta Automática
@@ -1137,7 +1136,7 @@ DocType: Communication,Communication Type,Tipo de comunicação
 DocType: ToDo,High,Alta
 apps/frappe/frappe/core/doctype/data_export/exporter.py,"If you are updating, please select ""Overwrite"" else existing rows will not be deleted.","Se você estiver atualizando, por favor selecione ""Substituir"" linhas outra existentes não serão excluídos."
 apps/frappe/frappe/config/users_and_permissions.py,Check which Documents are readable by a User,Confira quais os documentos são lidos por um Usuário
-apps/frappe/frappe/core/page/dashboard/dashboard.js,{0} List,{0} Lista(s)
+apps/frappe/frappe/public/js/frappe/utils/utils.js,{0} List,{0} Lista(s)
 apps/frappe/frappe/public/js/frappe/form/templates/timeline_item.html,Liked by {0},Aprovado por {0}
 apps/frappe/frappe/printing/doctype/print_format/print_format.py,Standard Print Format cannot be updated,Formato de impressão padrão não pode ser atualizado
 DocType: Email Queue,Expose Recipients,Mostrar Destinatários
@@ -1183,7 +1182,7 @@ apps/frappe/frappe/public/js/frappe/form/sidebar/assign_to.js,Assignment Complet
 DocType: DocType,Default Print Format,Formato de impressão padrão
 DocType: System Settings,Session Expiry,Duração da Sessão
 apps/frappe/frappe/utils/password_strength.py,Avoid dates and years that are associated with you.,Evite datas e anos associados a você.
-apps/frappe/frappe/public/js/frappe/desk.js,Modules,módulos
+DocType: Desk Page,Modules,módulos
 DocType: Milestone,Milestone,Marco
 DocType: DocField,In Standard Filter,Em Filtro Padrão
 DocType: Address Template,"<h4>Default Template</h4>
