@@ -21,6 +21,9 @@ class DocumentTypeMapping(Document):
 					doc[mapping.local_fieldname] = doc[mapping.remote_fieldname]
 				doc.pop(mapping.remote_fieldname, None)
 
+			elif mapping.has_default_value:
+				doc[mapping.local_fieldname] = mapping.default_value
+
 		doc['doctype'] = self.local_doctype
 		return frappe.as_json(doc)
 
