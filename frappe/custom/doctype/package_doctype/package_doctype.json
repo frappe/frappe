@@ -6,10 +6,8 @@
  "engine": "InnoDB",
  "field_order": [
   "document_type",
-  "sb_00",
-  "filters",
-  "cb_00",
-  "or_filters"
+  "section_break_4",
+  "filters_json"
  ],
  "fields": [
   {
@@ -21,29 +19,19 @@
    "reqd": 1
   },
   {
-   "fieldname": "sb_00",
+   "fieldname": "filters_json",
+   "fieldtype": "Code",
+   "label": "Filters",
+   "options": "JSON"
+  },
+  {
+   "fieldname": "section_break_4",
    "fieldtype": "Section Break"
-  },
-  {
-   "fieldname": "filters",
-   "fieldtype": "Code",
-   "in_list_view": 1,
-   "label": "Filters"
-  },
-  {
-   "fieldname": "cb_00",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "or_filters",
-   "fieldtype": "Code",
-   "in_list_view": 1,
-   "label": "Or Filters"
   }
  ],
  "istable": 1,
  "links": [],
- "modified": "2020-03-14 11:20:42.875446",
+ "modified": "2020-03-16 22:11:40.479498",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Package DocType",

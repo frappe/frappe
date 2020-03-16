@@ -18,14 +18,12 @@ def export_package():
 	package = []
 
 	for doctype in package_doc.export_package:
-		filters, or_filters = {}, {}
+		filters = []
 
-		if doctype.get("filters"):
-			filters = json.loads(doctype.get("filters"))
-		if doctype.get("or_filters"):
-			or_filters = json.loads(doctype.get("or_filters"))
+		if doctype.get("filters_json"):
+			filters = json.loads(doctype.get("filters_json"))
 
-		docs = frappe.get_all(doctype.get("document_type"), filters=filters, or_filters=or_filters)
+		docs = frappe.get_all(doctype.get("document_type"), filters=filters)
 		length = len(docs)
 		for idx, doc in enumerate(docs):
 			frappe.publish_realtime("exporting_package", dict(progress=idx, total=length, message=doctype.get("document_type")), user=frappe.session.user)
@@ -36,18 +34,21 @@ def export_package():
 	})
 
 @frappe.whitelist()
-def import_package():
+def import_package(package=None):
 	"""Import package from JSON"""
 
-	package_file = frappe.get_all("File", filters={
-		"attached_to_doctype": "Package",
-		"attached_to_name": "Package"
-	}, limit=1, order_by="creation desc")
+	if not package:
+		package_file = frappe.get_all("File", filters={
+			"attached_to_doctype": "Package",
+			"attached_to_name": "Package"
+		}, limit=1, order_by="creation desc")
 
-	if not package_file:
-		return
+		if not package_file:
+			return
 
-	content = json.loads(frappe.get_doc("File", package_file[0].name).get_content())
+		package = frappe.get_doc("File", package_file[0].name).get_content()
+
+	content = json.loads(package)
 	length = len(content)
 
 	for idx, doc in enumerate(content):
