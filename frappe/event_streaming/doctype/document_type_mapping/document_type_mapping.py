@@ -11,18 +11,22 @@ from frappe.model.document import Document
 class DocumentTypeMapping(Document):
 	def get_mapped_doc(self, update):
 		doc = frappe._dict(json.loads(update))
+		remote_fields = []
 		for mapping in self.field_mapping:
 			if doc.get(mapping.remote_fieldname):
-
 				if mapping.is_child_table:
 					doc[mapping.local_fieldname] = self.get_mapped_child_table_docs(mapping.child_table_mapping, doc[mapping.remote_fieldname])
 				else:
 					# copy value into local fieldname key and remove remote fieldname key
 					doc[mapping.local_fieldname] = doc[mapping.remote_fieldname]
-				doc.pop(mapping.remote_fieldname, None)
+				remote_fields.append(mapping.remote_fieldname)
 
 			elif mapping.has_default_value:
 				doc[mapping.local_fieldname] = mapping.default_value
+
+		#remove the remote fieldnames
+		for field in remote_fields:
+			doc.pop(field, None)
 
 		doc['doctype'] = self.local_doctype
 		return frappe.as_json(doc)
