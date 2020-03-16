@@ -15,7 +15,6 @@ body {
 }
 article,
 aside,
-details,
 figcaption,
 figure,
 footer,
@@ -24,8 +23,7 @@ hgroup,
 main,
 menu,
 nav,
-section,
-summary {
+section {
   display: block;
 }
 audio,
