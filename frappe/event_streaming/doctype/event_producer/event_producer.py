@@ -224,7 +224,9 @@ def set_insert(update, producer_site, event_producer):
 		# doc already created
 		return
 	doc = frappe.get_doc(update.data)
-	sync_dependencies(doc, producer_site)
+
+	if not update.mapping:
+		sync_dependencies(doc, producer_site)
 	if update.use_same_name:
 		doc.insert(set_name=update.docname, set_child_names=False)
 	else:
@@ -254,7 +256,8 @@ def set_update(update, producer_site):
 			local_doc.db_update_all()
 
 	except frappe.DoesNotExistError:
-		sync_dependencies(local_doc, producer_site)
+		if not update.mapping:
+			sync_dependencies(local_doc, producer_site)
 
 
 def update_row_removed(local_doc, removed):
