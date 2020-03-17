@@ -261,3 +261,5 @@ frappe.patches.v11_0.make_all_prepared_report_attachments_private #2019-11-26
 frappe.patches.v12_0.setup_email_linking
 frappe.patches.v12_0.fix_home_settings_for_all_users
 execute:frappe.delete_doc_if_exists('DocType', 'Google Maps Settings')
+execute:frappe.delete_doc_if_exists('DocType', 'GSuite Settings')
+execute:frappe.delete_doc_if_exists('DocType', 'GSuite Templates')
