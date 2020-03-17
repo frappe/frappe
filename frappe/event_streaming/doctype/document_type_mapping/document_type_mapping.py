@@ -9,27 +9,52 @@ from frappe.model.document import Document
 
 
 class DocumentTypeMapping(Document):
-	def get_mapped_doc(self, update):
-		doc = frappe._dict(json.loads(update))
+	def get_mapped_update(self, doc, producer_site):
 		remote_fields = []
+		# list of tuples (local_fieldname, dependent_doc)
+		dependencies = []
+
 		for mapping in self.field_mapping:
 			if doc.get(mapping.remote_fieldname):
-				if mapping.is_child_table:
-					doc[mapping.local_fieldname] = self.get_mapped_child_table_docs(mapping.child_table_mapping, doc[mapping.remote_fieldname])
+				if mapping.mapping_type == 'Document':
+					dependency = self.get_mapped_dependency(mapping, producer_site, doc.get(mapping.remote_fieldname), mapping.remote_fieldname)
+					dependencies.append((mapping.local_fieldname, dependency))
+
+				if mapping.mapping_type == 'Child Table':
+						doc[mapping.local_fieldname] = self.get_mapped_child_table_docs(mapping.child_table_mapping, doc[mapping.remote_fieldname])
 				else:
 					# copy value into local fieldname key and remove remote fieldname key
 					doc[mapping.local_fieldname] = doc[mapping.remote_fieldname]
 				remote_fields.append(mapping.remote_fieldname)
 
-			elif mapping.has_default_value:
+			if not doc.get(mapping.local_fieldname) and mapping.default_value:
 				doc[mapping.local_fieldname] = mapping.default_value
 
 		#remove the remote fieldnames
 		for field in remote_fields:
 			doc.pop(field, None)
-
 		doc['doctype'] = self.local_doctype
-		return frappe.as_json(doc)
+
+		mapped_update = {'doc': frappe.as_json(doc)}
+		if len(dependencies):
+			mapped_update['dependencies'] = dependencies
+		return mapped_update
+
+
+	def get_mapped_dependency(self, mapping, producer_site, dependent_field_val, dependent_field):
+		inner_mapping = frappe.get_doc('Document Type Mapping', mapping.mapping)
+		filters = {}
+		for pair in inner_mapping.field_mapping:
+			if pair.remote_fieldname == dependent_field:
+				filters[pair.remote_fieldname] = dependent_field_val
+				break
+
+		matching_docs = producer_site.get_doc(inner_mapping.remote_doctype, filters=filters)
+		if len(matching_docs):
+			remote_docname = matching_docs[0].get('name')
+		remote_doc = producer_site.get_doc(inner_mapping.remote_doctype, remote_docname)
+		doc = inner_mapping.get_mapped_update(remote_doc, producer_site).get('doc')
+		return doc
 
 
 def get_mapped_child_table_docs(child_map, table_entries):
