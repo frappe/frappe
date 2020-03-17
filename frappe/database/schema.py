@@ -69,6 +69,7 @@ class DBTable:
 		lengths = {}
 		precisions = {}
 		uniques = {}
+		fieldtype = ''
 
 		# optional fields like _comments
 		if not self.meta.istable:
@@ -100,7 +101,7 @@ class DBTable:
 				filters={
 					"doc_type": self.doctype,
 					"doctype_or_field": "DocField",
-					"property": ["in", ["precision", "length", "unique"]]
+					"property": ["in", ["precision", "length", "unique", "fieldtype"]]
 				}):
 
 				if ps.property=="length":
@@ -112,10 +113,13 @@ class DBTable:
 				elif ps.property=="unique":
 					uniques[ps.field_name] = cint(ps.value)
 
+				if ps.property=="fieldtype":
+					fieldtype = ps.value
+
 		for f in fl:
 			self.columns[f['fieldname']] = DbColumn(self,
 				f['fieldname'],
-				f['fieldtype'],
+				fieldtype or f['fieldtype'],
 				lengths.get(f["fieldname"]) or f.get('length'),
 				f.get('default'),
 				f.get('search_index'),
