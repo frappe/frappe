@@ -5,10 +5,23 @@
 from __future__ import unicode_literals
 import frappe
 import json
+from frappe import _
 from frappe.model.document import Document
 
 
 class DocumentTypeMapping(Document):
+	def validate(self):
+		# if inner mapping exists, the remote doctype should be common in both mappings
+		# Only then the exact remote dependency doc can be fetched
+		for field_map in self.field_mapping:
+			if field_map.mapping_type == 'Document':
+				inner_mapped_doctype = frappe.db.get_value('Document Type Mapping', field_map.mapping, 'remote_doctype')
+				if self.remote_doctype != inner_mapped_doctype:
+					msg = _('Row #{0}: The Remote Document Type of mapping').format(field_map.idx)
+					msg += " <b><a href='#Form/{0}/{1}'>{1}</a></b> ".format(self.doctype, field_map.mapping)
+					msg += _('and the current mapping should be the same.')
+					frappe.throw(msg, title='Remote Document Type Mismatch')
+
 	def get_mapped_update(self, doc, producer_site):
 		remote_fields = []
 		# list of tuples (local_fieldname, dependent_doc)
