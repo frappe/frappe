@@ -256,11 +256,15 @@ $.extend(frappe.meta, {
 		if (df && cint(df.precision)) {
 			precision = cint(df.precision);
 		} else if(df && df.fieldtype === "Currency") {
-			precision = cint(frappe.defaults.get_default("currency_precision"));
-			if(!precision) {
-				var number_format = get_number_format();
-				var number_format_info = get_number_format_info(number_format);
-				precision = number_format_info.precision;
+			if (df.precision && cint(df.precision) === 0) {
+				precision = cint(df.precision);
+			} else {
+				precision = cint(frappe.defaults.get_default("currency_precision"));
+				if(!precision) {
+					var number_format = get_number_format();
+					var number_format_info = get_number_format_info(number_format);
+					precision = number_format_info.precision;
+				}
 			}
 		} else {
 			precision = cint(frappe.defaults.get_default("float_precision")) || 3;
