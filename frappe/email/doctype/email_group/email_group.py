@@ -98,7 +98,7 @@ def add_subscribers(name, email_list):
 	return frappe.get_doc("Email Group", name).update_total_subscribers()
 
 def send_welcome_email(welcome_email, email, email_group):
-	''' Send welcome email for the subscribers of a given email group '''
+	''' Send welcome email for the subscribers of a given email group. '''
 
 	if not welcome_email:
 		return

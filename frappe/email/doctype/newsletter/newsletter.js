@@ -7,7 +7,7 @@ frappe.ui.form.on('Newsletter', {
 		if (!doc.__islocal && !cint(doc.email_sent) && !doc.__unsaved
 				&& in_list(frappe.boot.user.can_write, doc.doctype)) {
 			frm.add_custom_button(__('Send Now'), function() {
-				frappe.confirm(__("Do you really want to send this email?"), function() {
+				frappe.confirm(__("Do you really want to send this email newsletter?"), function() {
 					frm.call('send_emails').then(() => {
 						frm.set_value('schedule_send', new Date());
 						frm.save();

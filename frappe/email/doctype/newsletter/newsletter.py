@@ -264,7 +264,7 @@ def get_newsletter_list(doctype, txt, filters, limit_start, limit_page_length=20
 					limit_page_length, limit_start), email_group_list, as_dict=1)
 
 def send_scheduled_email():
-	''' Send scheduled newsletter to the recipients '''
+	''' Send scheduled newsletter to the recipients. '''
 	scheduled_newsletter = frappe.get_all('Newsletter', filters = {
 		'schedule_send': ('<=', now_datetime()),
 		'email_sent': 0
