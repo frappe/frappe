@@ -63,8 +63,8 @@ frappe.form.formatters = {
 		var currency  = frappe.meta.get_field_currency(docfield, doc);
 		var precision;
 
-		if (docfield.precision === 0) {
-			precision = docfield.precision;
+		if (docfield.precision && cint(docfield.precision) === 0) {
+			precision = 0;
 		} else {
 			precision = docfield.precision || cint(frappe.boot.sysdefaults.currency_precision) || 2;
 		}
