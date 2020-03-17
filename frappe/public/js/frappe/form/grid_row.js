@@ -22,7 +22,9 @@ export default class GridRow {
 				if(me.grid.allow_on_grid_editing() && me.grid.is_editable()) {
 					// pass
 				} else {
-					me.docfields.map(df => df.read_only = 1);
+					if (me.grid.allow_on_grid_editing()) {
+						me.docfields.map(df => df.read_only = 1);
+					}
 					me.toggle_view();
 					return false;
 				}
