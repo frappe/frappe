@@ -8,6 +8,7 @@ import frappe
 import os, socket, time
 from frappe import _
 from six import string_types
+from uuid import uuid4
 
 # imports - third-party imports
 import pymysql
@@ -155,7 +156,8 @@ def get_worker_name(queue):
 
 	if queue:
 		# hostname.pid is the default worker name
-		name = '{hostname}.{pid}.{queue}'.format(
+		name = '{uuid}.{hostname}.{pid}.{queue}'.format(
+			uuid=uuid4().hex,
 			hostname=socket.gethostname(),
 			pid=os.getpid(),
 			queue=queue)
