@@ -212,7 +212,7 @@ class DocType(Document):
 			if d.fieldtype:
 				if (not getattr(d, "fieldname", None)):
 					if d.label:
-						d.fieldname = d.label.strip().lower().replace(' ','_')
+						d.fieldname = d.label.strip().lower().replace(' ','_').strip('?')
 						if d.fieldname in restricted:
 							d.fieldname = d.fieldname + '1'
 						if d.fieldtype=='Section Break':
@@ -954,7 +954,7 @@ def validate_fields(meta):
 		if not d.permlevel: d.permlevel = 0
 		if d.fieldtype not in table_fields: d.allow_bulk_edit = 0
 		if not d.fieldname:
-			d.fieldname = d.fieldname.lower()
+			d.fieldname = d.fieldname.lower().strip('?')
 
 		check_illegal_characters(d.fieldname)
 		check_invalid_fieldnames(meta.get("name"), d.fieldname)

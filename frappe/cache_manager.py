@@ -117,6 +117,8 @@ def clear_doctype_map(doctype, name):
 	frappe.cache().hdel(cache_key, name)
 
 def build_table_count_cache(*args, **kwargs):
+	return {}
+
 	if (frappe.flags.in_patch
 		or frappe.flags.in_install
 		or frappe.flags.in_migrate

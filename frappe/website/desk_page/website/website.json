@@ -34,7 +34,7 @@
  "idx": 0,
  "is_standard": 1,
  "label": "Website",
- "modified": "2020-03-12 16:30:43.092622",
+ "modified": "2020-03-17 15:13:53.203131",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Website",
@@ -42,6 +42,21 @@
  "pin_to_bottom": 0,
  "pin_to_top": 0,
  "shortcuts": [
+  {
+   "is_query_report": 0,
+   "link_to": "Web Page",
+   "type": "DocType"
+  },
+  {
+   "is_query_report": 0,
+   "link_to": "Web View",
+   "type": "DocType"
+  },
+  {
+   "is_query_report": 0,
+   "link_to": "Web Form",
+   "type": "DocType"
+  },
   {
    "color": "",
    "format": "{} Published",
@@ -55,16 +70,6 @@
    "is_query_report": 0,
    "link_to": "Blogger",
    "stats_filter": "{\"disabled\": 0}",
-   "type": "DocType"
-  },
-  {
-   "is_query_report": 0,
-   "link_to": "Web Page",
-   "type": "DocType"
-  },
-  {
-   "is_query_report": 0,
-   "link_to": "Web Form",
    "type": "DocType"
   },
   {

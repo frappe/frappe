@@ -10,6 +10,7 @@ from os.path import join as join_path, exists as path_exists
 class WebsiteTheme(Document):
 	def validate(self):
 		self.validate_if_customizable()
+		self.render_theme()
 		self.validate_theme()
 
 	def on_update(self):
@@ -35,12 +36,16 @@ class WebsiteTheme(Document):
 		if self.is_standard_and_not_valid_user():
 			frappe.throw(_("Please Duplicate this Website Theme to customize."))
 
+	def render_theme(self):
+		if self.google_font:
+			self.google_font = self.google_font.replace(' ', '+')
+		self.theme_scss = frappe.render_template('frappe/website/doctype/website_theme/website_theme_template.scss', self.as_dict())
+
 	def validate_theme(self):
 		'''Generate theme css if theme_scss has changed'''
-		if self.theme_scss:
-			doc_before_save = self.get_doc_before_save()
-			if doc_before_save is None or self.theme_scss != doc_before_save.theme_scss:
-				self.generate_bootstrap_theme()
+		doc_before_save = self.get_doc_before_save()
+		if doc_before_save is None or get_scss(self) != get_scss(doc_before_save):
+			self.generate_bootstrap_theme()
 
 	def export_doc(self):
 		"""Export to standard folder `[module]/website_theme/[name]/[name].json`."""
@@ -59,7 +64,7 @@ class WebsiteTheme(Document):
 
 		file_name = frappe.scrub(self.name) + '_' + frappe.generate_hash('Website Theme', 8) + '.css'
 		output_path = join_path(frappe.utils.get_bench_path(), 'sites', 'assets', 'css', file_name)
-		content = self.theme_scss
+		content = get_scss(self)
 		content = content.replace('\n', '\\n')
 		command = ['node', 'generate_bootstrap_theme.js', output_path, content]
 
@@ -116,3 +121,7 @@ def generate_theme_files_if_not_exist():
 			doc.save()
 		except Exception:
 			frappe.log_error(frappe.get_traceback(), "Theme File Generation Failed")
+
+def get_scss(doc):
+	return doc.theme_scss + '\n' + doc.custom_scss
+

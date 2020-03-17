@@ -1,4 +1,5 @@
 {
+ "actions": [],
  "allow_import": 1,
  "autoname": "field:theme",
  "creation": "2015-02-18 12:46:38.168929",
@@ -9,7 +10,18 @@
   "theme",
   "module",
   "custom",
+  "configuration_section",
+  "google_font",
+  "font_size",
+  "column_break_7",
+  "primary_color",
+  "text_color",
+  "light_color",
+  "dark_color",
+  "background_color",
+  "stylesheet_section",
   "theme_scss",
+  "custom_scss",
   "theme_json",
   "theme_url",
   "custom_js_section",
@@ -43,7 +55,8 @@
    "fieldname": "theme_scss",
    "fieldtype": "Code",
    "label": "Theme",
-   "options": "SCSS"
+   "options": "SCSS",
+   "read_only": 1
   },
   {
    "fieldname": "theme_url",
@@ -68,9 +81,64 @@
    "hidden": 1,
    "label": "Theme JSON",
    "options": "JSON"
+  },
+  {
+   "fieldname": "configuration_section",
+   "fieldtype": "Section Break",
+   "label": "Configuration"
+  },
+  {
+   "fieldname": "google_font",
+   "fieldtype": "Data",
+   "label": "Google Font"
+  },
+  {
+   "fieldname": "font_size",
+   "fieldtype": "Data",
+   "label": "Font Size"
+  },
+  {
+   "fieldname": "column_break_7",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "primary_color",
+   "fieldtype": "Color",
+   "label": "Primary Color"
+  },
+  {
+   "fieldname": "text_color",
+   "fieldtype": "Color",
+   "label": "Text Color"
+  },
+  {
+   "fieldname": "dark_color",
+   "fieldtype": "Color",
+   "label": "Dark Color"
+  },
+  {
+   "fieldname": "background_color",
+   "fieldtype": "Color",
+   "label": "Background Color"
+  },
+  {
+   "fieldname": "stylesheet_section",
+   "fieldtype": "Section Break",
+   "label": "Stylesheet"
+  },
+  {
+   "fieldname": "custom_scss",
+   "fieldtype": "Code",
+   "label": "Custom SCSS"
+  },
+  {
+   "fieldname": "light_color",
+   "fieldtype": "Color",
+   "label": "Light Color"
   }
  ],
- "modified": "2019-06-14 18:36:21.283390",
+ "links": [],
+ "modified": "2020-03-17 16:52:18.541152",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Website Theme",
