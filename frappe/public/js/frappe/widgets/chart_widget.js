@@ -58,7 +58,7 @@ export default class ChartWidget extends Widget {
 				// Delete existing chart when refreshing
 				delete this.dashboardchart;
 				this.render();
-				this.set_summary();
+				this.width == "Full" && this.set_summary();
 			});
 		});
 	}
