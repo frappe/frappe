@@ -12,9 +12,18 @@ from frappe.model.document import Document
 
 class DocumentTypeMapping(Document):
 	def validate(self):
-		# if inner mapping exists, the remote doctype should be common in both mappings
-		# Only then the exact remote dependency doc can be fetched
+		self.validate_inner_mapping()
+
+	def validate_inner_mapping(self):
+		meta = frappe.get_meta(self.local_doctype)
 		for field_map in self.field_mapping:
+			if meta.get_field(field_map.local_fieldname).fieldtype in ['Link', 'Dynamic Link', 'Table'] and not field_map.mapping:
+				msg = _('Row #{0}: Please set Mapping for the field {1} since its a dependency field').format(
+					field_map.idx, frappe.bold(field_map.local_fieldname))
+				frappe.throw(msg, title='Inner Mapping Missing')
+
+			# if inner mapping exists, the remote doctype should be common in both mappings
+			# Only then the exact remote dependency doc can be fetched
 			if field_map.mapping_type == 'Document':
 				inner_mapped_doctype = frappe.db.get_value('Document Type Mapping', field_map.mapping, 'remote_doctype')
 				if self.remote_doctype != inner_mapped_doctype:
@@ -73,7 +82,7 @@ class DocumentTypeMapping(Document):
 				dependencies += doc_map.get('dependencies')
 
 		if update_diff.removed:
-			mapping = self.map_row_removed(update_diff, mapping)
+			mapping = self.map_rows_removed(update_diff, mapping)
 		if update_diff.added:
 			mapping = self.map_rows(update_diff, mapping, producer_site, operation='added')
 		if update_diff.row_changed:
@@ -100,7 +109,7 @@ class DocumentTypeMapping(Document):
 			return doc
 		return
 
-	def map_row_removed(self, update_diff, mapping):
+	def map_rows_removed(self, update_diff, mapping):
 		removed = []
 		mapping['removed'] = update_diff.removed
 		for key, value in iteritems(update_diff.removed.copy()):

@@ -465,11 +465,11 @@ def new_event_notification(producer_url):
 def resync(update):
 	"""Retry syncing update if failed"""
 	update = frappe._dict(json.loads(update))
-	if update.mapping:
-		update = get_mapped_update(update)
-		update.data = json.loads(update.data)
 	producer_site = get_producer_site(update.event_producer)
 	event_producer = frappe.get_doc('Event Producer', update.event_producer)
+	if update.mapping:
+		update = get_mapped_update(update, producer_site)
+		update.data = json.loads(update.data)
 	return sync(update, producer_site, event_producer, in_retry=True)
 
 

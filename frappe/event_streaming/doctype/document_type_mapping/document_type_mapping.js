@@ -2,6 +2,17 @@
 // For license information, please see license.txt
 
 frappe.ui.form.on('Document Type Mapping', {
+	refresh: function(frm) {
+		frm.set_query('mapping', 'field_mapping', (doc) => {
+			return {
+				filters: {
+					'remote_doctype': doc.remote_doctype,
+					'name': ['!=', doc.name]
+				},
+			};
+		});
+	},
+
 	local_doctype: function(frm) {
 		if (frm.doc.local_doctype) {
 			frappe.model.clear_table(frm.doc, 'field_mapping');
