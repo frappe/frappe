@@ -45,7 +45,7 @@ class TestComment(unittest.TestCase):
 
 		frappe.db.sql("delete from `tabComment` where reference_doctype = 'Blog Post'")
 
-		self.assertRaises(frappe.exceptions.ValidationError, add_comment('pleez vizits my site http://mysite.com', 'test@test.com', 'bad commentor',
+		self.assertRaises(frappe.exceptions.ValidationError, add_comment, ('pleez vizits my site http://mysite.com', 'test@test.com', 'bad commentor',
 			'Blog Post', test_blog.name, test_blog.route))
 
 		test_blog.delete()
