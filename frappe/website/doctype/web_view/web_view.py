@@ -18,29 +18,44 @@ class WebView(WebsiteGenerator):
 				self.add_default_section(context)
 
 			if item.element_type=='Section':
-				item.elements = []
-				context.sections.append(item)
-
-				if item.section_intro:
-					item.section_intro = markdown(item.section_intro)
-
+				self.add_section(context, item)
 			else:
-				if item.hide:
-					continue
+				self.add_item(context, item)
 
-				if item.web_content_type == 'Markdown':
-					item.web_content_html = markdown(item.web_content_markdown)
+			self.add_css_class(context, item)
 
-				if item.title:
-					item.element_id = frappe.scrub(item.title)
+		return context
 
-				context.sections[-1].elements.append(item)
+	def add_section(self, context, item):
+		item.elements = []
+		context.sections.append(item)
 
-			if item.element_class:
-				css, is_dynamic = frappe.db.get_value('CSS Class', item.element_class, ['css', 'is_dynamic'])
-				if is_dynamic:
-					css = frappe.render_template(css, self.get_theme())
-				context.css_rules.append(css)
+		if item.section_intro:
+			item.section_intro = markdown(item.section_intro)
+
+	def add_item(self, context, item):
+		if item.hide:
+			return
+
+		if item.web_content_type == 'Markdown':
+			item.web_content_html = markdown(item.web_content_markdown)
+
+		if item.title:
+			item.element_id = frappe.scrub(item.title)
+
+		context.sections[-1].elements.append(item)
+
+	def add_css_class(self, context, item):
+		# add css class definitions selected by the user
+		if item.element_class and not item.hide:
+			css, is_dynamic = frappe.db.get_value('CSS Class', item.element_class, ['css', 'is_dynamic'])
+			if is_dynamic:
+				css = frappe.render_template(css, self.get_theme())
+			context.css_rules.append(css)
+
+	def render_content(self):
+		# webview can be rendered as an object (see footer)
+		return frappe.render_template("frappe/website/doctype/web_view/templates/web_view_content.html", self.get_context(self.as_dict()))
 
 	def get_theme(self):
 		# get theme properties

@@ -113,6 +113,7 @@ def get_website_settings():
 			context[key] = context[key][-1]
 
 	add_website_theme(context)
+	add_webviews(context, settings)
 
 	if not context.get("favicon"):
 		context["favicon"] = "/assets/frappe/images/favicon.png"
@@ -121,6 +122,17 @@ def get_website_settings():
 		context["favicon"] = settings.favicon
 
 	return context
+
+def add_webviews(context, settings):
+	# render footer as webview, not standard view
+	# see base.html for how this is handled
+	if settings.footer_type=='Web View' and settings.footer_web_view:
+		context.footer_content = frappe.get_doc('Web View',
+			settings.footer_web_view).render_content()
+
+	if settings.top_bar_type=='Web View' and settings.top_bar_web_view:
+		context.navbar_content = frappe.get_doc('Web View',
+			settings.top_bar_web_view).render_content()
 
 def get_items(parentfield):
 	all_top_items = frappe.db.sql("""\

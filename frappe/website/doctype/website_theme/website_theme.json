@@ -13,6 +13,7 @@
   "configuration_section",
   "google_font",
   "font_size",
+  "font_properties",
   "column_break_7",
   "primary_color",
   "text_color",
@@ -135,10 +136,16 @@
    "fieldname": "light_color",
    "fieldtype": "Color",
    "label": "Light Color"
+  },
+  {
+   "default": "300,600",
+   "fieldname": "font_properties",
+   "fieldtype": "Data",
+   "label": "Font Properties"
   }
  ],
  "links": [],
- "modified": "2020-03-17 16:52:18.541152",
+ "modified": "2020-03-18 18:24:57.469492",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Website Theme",
