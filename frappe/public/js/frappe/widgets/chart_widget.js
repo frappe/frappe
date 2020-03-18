@@ -24,9 +24,15 @@ export default class ChartWidget extends Widget {
 		this.make_chart();
 	}
 
+	set_loading_state() {
+		this.loading = $(`<div class="chart-loading-state text-muted" style="height: 200px;">${__("Loading...")}</div>`)
+		this.loading.appendTo(this.body)
+	}
+
 	set_summary() {
 		if (!this.$summary) {
-			this.$summary = $(`<div class="report-summary"></div>`).hide().prependTo(this.body);
+			this.$summary = $(`<div class="report-summary"></div>`).hide();
+			this.head.after(this.$summary);
 		} else {
 			this.$summary.empty();
 		}
@@ -40,6 +46,7 @@ export default class ChartWidget extends Widget {
 	make_chart() {
 		this.body.empty();
 		this.get_settings().then(() => {
+			this.set_loading_state();
 			this.prepare_chart_object();
 			// this.prepare_container();
 
@@ -114,8 +121,8 @@ export default class ChartWidget extends Widget {
 
 			this.update_chart_object();
 			this.data = data;
+			this.loading.remove();
 			this.render();
-			this.summary && this.set_summary();
 		});
 	}
 
@@ -178,7 +185,8 @@ export default class ChartWidget extends Widget {
 				label: __("Refresh"),
 				action: 'action-refresh',
 				handler: () => {
-					this.fetch_and_update_chart();
+					delete this.dashboard_chart;
+					this.make_chart();
 				}
 			},
 			{
@@ -311,7 +319,6 @@ export default class ChartWidget extends Widget {
 	}
 
 	fetch(filters, refresh=false, args) {
-		// this.chart_container.find('.chart-loading-state').removeClass('hide');
 		let method = this.settings ? this.settings.method
 			: 'frappe.desk.doctype.dashboard_chart.dashboard_chart.get';
 
@@ -355,7 +362,10 @@ export default class ChartWidget extends Widget {
 			colors = [this.chart_doc.color || "light-blue"];
 		}
 
-		if (this.data) {
+		if (!this.data || !Object.keys(this.data).length) {
+			const empty = $(`<div class="chart-loading-state text-muted" style="height: 200px;">${__("No Data...")}</div>`)
+			empty.appendTo(this.body)
+		} else {
 			let chart_args = {
 				data: this.data,
 				type: chart_type_map[this.chart_doc.type],
@@ -370,6 +380,7 @@ export default class ChartWidget extends Widget {
 			} else {
 				this.dashboard_chart.update(this.data);
 			}
+			this.width == "Full" && this.summary && this.set_summary();
 		}
 	}
 
