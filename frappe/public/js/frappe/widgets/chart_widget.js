@@ -60,7 +60,7 @@ export default class ChartWidget extends Widget {
 				this.update_last_synced();
 				this.data = data;
 				// Delete existing chart when refreshing
-				delete this.dashboardchart;
+				delete this.dashboard_chart;
 				this.render();
 				this.width == "Full" && this.summary && this.set_summary();
 			});
@@ -378,10 +378,10 @@ export default class ChartWidget extends Widget {
 					shortenYAxisNumbers: 1
 				}
 			};
-			if (!this.dashboardchart) {
-				this.dashboardchart = new frappe.Chart(this.body[0], chart_args);
+			if (!this.dashboard_chart) {
+				this.dashboard_chart = new frappe.Chart(this.body[0], chart_args);
 			} else {
-				this.dashboardchart.update(this.data);
+				this.dashboard_chart.update(this.data);
 			}
 		}
 	}
