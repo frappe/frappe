@@ -1,60 +1,79 @@
-frappe.provide('ui')
+import Widget from "./base_widget.js";
+import { build_summary_item } from "./utils";
 frappe.provide('frappe.dashboards');
 frappe.provide('frappe.dashboards.chart_sources');
 
-frappe.ui.DashboardChart = class DashboardChart {
-	constructor(chart_doc, chart_container, options) {
-		this.chart_doc = chart_doc;
-		this.container = chart_container;
-		this.options = options || {};
-		this.chart_args = {};
+export default class ChartWidget extends Widget {
+	constructor(opts) {
+		super(opts);
 	}
 
-	show() {
+	refresh() {
+		this.make_chart();
+	}
+
+	customize() {
+		this.setup_customize_actions();
+	}
+
+	set_body() {
+		this.widget.addClass('dashboard-widget-box');
+		if (this.width == "Full") {
+			this.widget.addClass('full-width');
+		}
+		this.make_chart();
+	}
+
+	set_summary() {
+		let $summary = $(`<div class="report-summary"></div>`).hide().prependTo(this.body);
+
+		this.summary.forEach((summary) => {
+			build_summary_item(summary).appendTo($summary);
+		})
+		this.summary.length && $summary.show();
+	}
+
+	make_chart() {
+		this.body.empty();
 		this.get_settings().then(() => {
 			this.prepare_chart_object();
-			this.prepare_container();
+			// this.prepare_container();
 
-			if (!this.options.hide_actions || this.options.hide_actions == undefined) {
-				this.setup_filter_button();
-				if (this.chart_doc.timeseries && this.chart_doc.chart_type !== 'Custom') {
-					this.render_time_series_filters();
-				}
-
-				this.prepare_chart_actions();
+			this.action_area.empty();
+			this.prepare_chart_actions();
+			// this.setup_refresh_button();
+			this.setup_filter_button();
+			if (this.chart_doc.timeseries && this.chart_doc.chart_type !== 'Custom') {
+				this.render_time_series_filters();
 			}
 
-			this.fetch(this.filters).then( data => {
+			this.fetch(this.filters).then(data => {
+				this.summary = [];
 				if (this.chart_doc.chart_type == 'Report') {
+					this.summary = data.report_summary;
 					data = this.get_report_chart_data(data);
 				}
-				if (!this.options.hide_last_sync || this.options.hide_last_sync == undefined) {
-					this.update_last_synced();
-				}
+				this.update_last_synced();
 				this.data = data;
+				// Delete existing chart when refreshing
+				delete this.dashboardchart;
 				this.render();
+				this.width == "Full" && this.set_summary();
 			});
 		});
 	}
 
-	prepare_container() {
-		const column_width_map = {
-			"Half": "6",
-			"Full": "12",
-		};
-		let columns = column_width_map[this.chart_doc.width];
-		this.chart_container = $(`<div class="col-sm-${columns} chart-column-container">
-			<div class="chart-wrapper">
-				<div class="chart-loading-state text-muted">${__("Loading...")}</div>
-				<div class="chart-empty-state hide text-muted">${__("No Data")}</div>
-			</div>
-		</div>`);
-		this.chart_container.appendTo(this.container);
+	setup_customize_actions() {
+		this.action_area.empty();
+		const buttons = $(`<button type="button" class="btn btn-xs btn-secondary btn-default selected">Resize</button>
+					<button class="btn btn-secondary btn-light btn-danger btn-xs"><i class="fa fa-trash" aria-hidden="true"></i></button>`);
+		buttons.appendTo(this.action_area);
+	}
 
-		if (!this.options.hide_last_sync || this.options.hide_last_sync == undefined) {
-			let last_synced_text = $(`<span class="text-muted last-synced-text"></span>`);
-			last_synced_text.prependTo(this.chart_container);
-		}
+	setup_refresh_button() {
+		const refresh_button = $(`<button class="btn btn-secondary btn-light btn-default btn-xs"><i class="fa fa-refresh" aria-hidden="true"></i></button>`);
+		refresh_button.appendTo(this.action_area);
+		refresh_button.on('click', () => this.refresh());
 	}
 
 	render_time_series_filters() {
@@ -85,7 +104,7 @@ frappe.ui.DashboardChart = class DashboardChart {
 			},
 		];
 
-		frappe.dashboard_utils.render_chart_filters(filters, 'chart-actions', this.chart_container, 1);
+		frappe.dashboard_utils.render_chart_filters(filters, 'chart-actions', this.action_area, 0);
 	}
 
 	fetch_and_update_chart() {
@@ -111,7 +130,7 @@ frappe.ui.DashboardChart = class DashboardChart {
 		if (!this.date_field_wrapper || !this.date_field_wrapper.is(':visible')) {
 			this.date_field_wrapper =
 				$(`<div class="dashboard-date-field pull-right"></div>`)
-					.insertBefore(this.chart_container.find('.chart-wrapper'));
+					.appendTo(this.action_area);
 
 			this.date_range_field = frappe.ui.form.make_control({
 				df: {
@@ -177,6 +196,7 @@ frappe.ui.DashboardChart = class DashboardChart {
 				}
 			}
 		];
+
 		if (this.chart_doc.document_type) {
 			actions.push({
 				label: __("{0} List", [this.chart_doc.document_type]),
@@ -198,11 +218,10 @@ frappe.ui.DashboardChart = class DashboardChart {
 	}
 
 	setup_filter_button() {
-
 		this.is_document_type = this.chart_doc.chart_type!== 'Report' && this.chart_doc.chart_type!=='Custom';
 		this.filter_button =
 			$(`<div class="filter-chart btn btn-default btn-xs pull-right">${__("Filter")}</div>`);
-		this.filter_button.prependTo(this.chart_container);
+		this.filter_button.appendTo(this.action_area);
 
 		this.filter_button.on('click', () => {
 			let fields;
@@ -281,7 +300,7 @@ frappe.ui.DashboardChart = class DashboardChart {
 	}
 
 	set_chart_actions(actions) {
-		this.chart_actions = $(`<div class="chart-actions btn-group dropdown pull-right">
+		this.chart_actions = $(`<div class="chart-actions dropdown pull-right">
 			<a class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
 				<button class="btn btn-default btn-xs"><span class="caret"></span></button>
 			</a>
@@ -295,11 +314,11 @@ frappe.ui.DashboardChart = class DashboardChart {
 			const action = o.dataset.action;
 			$(o).click(actions.find(a => a.action === action));
 		});
-		this.chart_actions.prependTo(this.chart_container);
+		this.chart_actions.appendTo(this.action_area);
 	}
 
 	fetch(filters, refresh=false, args) {
-		this.chart_container.find('.chart-loading-state').removeClass('hide');
+		// this.chart_container.find('.chart-loading-state').removeClass('hide');
 		let method = this.settings ? this.settings.method
 			: 'frappe.desk.doctype.dashboard_chart.dashboard_chart.get';
 
@@ -343,17 +362,8 @@ frappe.ui.DashboardChart = class DashboardChart {
 			colors = [this.chart_doc.color || "light-blue"];
 		}
 
-		this.chart_container.find('.chart-loading-state').addClass('hide');
-		if (!this.data) {
-			this.chart_container.find('.chart-empty-state').removeClass('hide');
-		} else {
-			let title = null;
-			if (!this.options.hide_title || this.options.hide_title == undefined) {
-				title = this.chart_doc.chart_name;
-			}
-
+		if (this.data) {
 			let chart_args = {
-				title: title,
 				data: this.data,
 				type: chart_type_map[this.chart_doc.type],
 				colors: colors,
@@ -362,17 +372,17 @@ frappe.ui.DashboardChart = class DashboardChart {
 					shortenYAxisNumbers: 1
 				}
 			};
-			if (!this.chart) {
-				this.chart = new frappe.Chart(this.chart_container.find(".chart-wrapper")[0], chart_args);
+			if (!this.dashboardchart) {
+				this.dashboardchart = new frappe.Chart(this.body[0], chart_args);
 			} else {
-				this.chart.update(this.data);
+				this.dashboardchart.update(this.data);
 			}
 		}
 	}
 
 	update_last_synced() {
 		let last_synced_text = __("Last synced {0}", [comment_when(this.chart_doc.last_synced_on)]);
-		this.container.find(".last-synced-text").html(last_synced_text);
+		this.footer.html(last_synced_text);
 	}
 
 	update_chart_object() {
@@ -388,25 +398,28 @@ frappe.ui.DashboardChart = class DashboardChart {
 	}
 
 	get_settings() {
-		if (this.chart_doc.chart_type == 'Custom') {
-			// custom source
-			if (frappe.dashboards.chart_sources[this.chart_doc.source]) {
-				this.settings = frappe.dashboards.chart_sources[this.chart_doc.source];
+		return frappe.model.with_doc("Dashboard Chart", this.chart_name).then(chart_doc => {
+			this.chart_doc = chart_doc;
+			if (this.chart_doc.chart_type == 'Custom') {
+				// custom source
+				if (frappe.dashboards.chart_sources[this.chart_doc.source]) {
+					this.settings = frappe.dashboards.chart_sources[this.chart_doc.source];
+					return Promise.resolve();
+				} else {
+					const method = 'frappe.desk.doctype.dashboard_chart_source.dashboard_chart_source.get_config';
+					return frappe.xcall(method, {name: this.chart_doc.source}).then(config => {
+						frappe.dom.eval(config);
+						this.settings = frappe.dashboards.chart_sources[this.chart_doc.source];
+					});
+				}
+			} else if (this.chart_doc.chart_type == 'Report') {
+				this.settings = {
+					'method': 'frappe.desk.query_report.run'
+				};
 				return Promise.resolve();
 			} else {
-				const method = 'frappe.desk.doctype.dashboard_chart_source.dashboard_chart_source.get_config';
-				return frappe.xcall(method, {name: this.chart_doc.source}).then(config => {
-					frappe.dom.eval(config);
-					this.settings = frappe.dashboards.chart_sources[this.chart_doc.source];
-				});
+				return Promise.resolve();
 			}
-		} else if (this.chart_doc.chart_type == 'Report') {
-			this.settings = {
-				'method': 'frappe.desk.query_report.run'
-			};
-			return Promise.resolve();
-		} else {
-			return Promise.resolve();
-		}
+		});
 	}
 }

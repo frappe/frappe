@@ -5,7 +5,9 @@ export default class Widget {
 	}
 
 	refresh() {
-		//
+		this.set_title();
+		this.set_actions();
+		this.set_body();
 	}
 
 	customize() {
@@ -26,12 +28,15 @@ export default class Widget {
 			</div>
 		    <div class="widget-body">
 		    </div>
+		    <div class="widget-footer">
+		    </div>
 		</div>`);
 
 		this.title_field = this.widget.find(".widget-title");
 		this.body = this.widget.find(".widget-body");
 		this.action_area = this.widget.find(".widget-control");
 		this.head = this.widget.find(".widget-head");
+		this.footer = this.widget.find(".widget-footer");
 		this.set_title();
 		this.set_actions();
 		this.set_body();

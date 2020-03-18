@@ -1,6 +1,3 @@
-import ChartWidget from "../widgets/chart_widget";
-import WidgetGroup from "../widgets/widget_group";
-
 export default class Desktop {
 	constructor({ wrapper }) {
 		this.wrapper = wrapper;
@@ -22,7 +19,7 @@ export default class Desktop {
 		this.fetch_desktop_settings().then(() => {
 			this.route();
 			this.make_sidebar();
-			this.setup_events();
+			// this.setup_events();
 			// this.hide_loading_state();
 		});
 	}
@@ -156,11 +153,11 @@ export default class Desktop {
 	}
 
 	setup_events() {
-		$(document).keydown(e => {
-			if (e.keyCode == 9) {
-				console.log("navigate");
-			}
-		});
+		// $(document).keydown(e => {
+		// 	if (e.keyCode == 9) {
+		// 		console.log("navigate");
+		// 	}
+		// });
 	}
 }
 
@@ -185,7 +182,7 @@ class DesktopPage {
 		this.make_page();
 		this.get_data().then(res => {
 			this.data = res.message;
-			// this.make_onboarding()
+			// this.make_onboarding();
 			if (!this.data) {
 				delete localStorage.current_desk_page;
 				frappe.set_route('workspace');
@@ -216,7 +213,7 @@ class DesktopPage {
 	}
 
 	make_onboarding() {
-		this.sections["onboarding"] = new WidgetGroup({
+		this.sections["onboarding"] = new frappe.widget.WidgetGroup({
 			title: `Getting Started`,
 			container: this.page,
 			type: "onboarding",
@@ -253,7 +250,7 @@ class DesktopPage {
 	}
 
 	make_charts() {
-		this.sections["charts"] = new WidgetGroup({
+		this.sections["charts"] = new frappe.widget.WidgetGroup({
 			title: this.data.charts.label || `${this.page_name} Dashboard`,
 			container: this.page,
 			type: "chart",
@@ -264,7 +261,7 @@ class DesktopPage {
 	}
 
 	make_shortcuts() {
-		this.sections["shortcuts"] = new WidgetGroup({
+		this.sections["shortcuts"] = new frappe.widget.WidgetGroup({
 			title: this.data.shortcuts.label || `Your Shortcuts`,
 			container: this.page,
 			type: "bookmark",
@@ -275,7 +272,7 @@ class DesktopPage {
 	}
 
 	make_cards() {
-		let cards = new WidgetGroup({
+		let cards = new frappe.widget.WidgetGroup({
 			title: this.data.cards.label || `Reports & Masters`,
 			container: this.page,
 			type: "links",
@@ -284,7 +281,7 @@ class DesktopPage {
 			widgets: this.data.cards.items
 		});
 
-		this.sections["cards"] = cards;
+		this.sections['cards'] = cards;
 
 		const legend = [
 			{
