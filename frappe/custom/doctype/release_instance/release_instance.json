@@ -1,29 +1,72 @@
 {
  "actions": [],
+ "autoname": "field:instance",
  "creation": "2020-03-17 12:24:29.615432",
  "doctype": "DocType",
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
-  "instance"
+  "instance",
+  "user",
+  "password"
  ],
  "fields": [
   {
    "fieldname": "instance",
-   "fieldtype": "Link",
+   "fieldtype": "Data",
    "in_list_view": 1,
-   "label": "Instance",
-   "options": "Remote Instance"
+   "in_standard_filter": 1,
+   "label": "Instance URL",
+   "unique": 1
+  },
+  {
+   "fieldname": "user",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "User",
+   "options": "Email"
+  },
+  {
+   "fieldname": "password",
+   "fieldtype": "Password",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Password"
   }
  ],
- "istable": 1,
  "links": [],
- "modified": "2020-03-17 13:35:38.456830",
+ "modified": "2020-03-18 18:54:55.801749",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Release Instance",
  "owner": "Administrator",
- "permissions": [],
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "All",
+   "share": 1,
+   "write": 1
+  }
+ ],
  "quick_entry": 1,
  "sort_field": "modified",
  "sort_order": "DESC",

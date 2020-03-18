@@ -12,12 +12,12 @@
    "fieldname": "instances",
    "fieldtype": "Table",
    "label": "Instances",
-   "options": "Release Instance"
+   "options": "Release Instance List"
   }
  ],
  "issingle": 1,
  "links": [],
- "modified": "2020-03-17 15:37:21.813063",
+ "modified": "2020-03-18 18:25:23.539372",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Release",

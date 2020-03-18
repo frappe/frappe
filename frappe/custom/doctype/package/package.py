@@ -5,9 +5,11 @@
 from __future__ import unicode_literals
 import frappe
 import json
+import pickle
 from frappe.model.document import Document
 from frappe.core.doctype.version.version import get_diff
 from frappe.utils.file_manager import save_file
+from frappe import _
 
 class Package(Document):
 	pass
@@ -29,7 +31,7 @@ def export_package():
 		length = len(docs)
 
 		for idx, doc in enumerate(docs):
-			frappe.publish_realtime("exporting_package", {"progress":idx, "total":length, "message":doctype.get("document_type")},
+			frappe.publish_realtime("package", {"progress":idx, "total":length, "message":doctype.get("document_type"), "prefix": _("Exporting")},
 				user=frappe.session.user)
 
 			document = frappe.get_doc(doctype.get("document_type"), doc.name).as_dict()
@@ -51,15 +53,13 @@ def export_package():
 			document.update({"modified": frappe.utils.get_datetime_str(document.get("modified"))})
 			package.append(document)
 
-	return frappe._dict({
-		"data": post_process(package)
-	})
+	return post_process(package)
 
 @frappe.whitelist()
 def import_package(package=None):
 	"""Import package from JSON"""
 
-	content = json.loads(package)
+	content = pickle.loads(package)
 	length = len(content)
 
 	for doc in content:
@@ -85,7 +85,12 @@ def add_attachment(attachments, doc):
 		save_file(attachment.get("fname"), attachment.get("content"), doc.get("doctype"), doc.get("name"))
 
 def post_process(package):
+	"""
+		Remove the keys from Document and Child Document
+		Convert datetime, date, time to str
+	"""
 	del_keys = ('modified_by', 'creation', 'owner', 'idx', 'docstatus')
+	child_del_keys = ('modified_by', 'creation', 'owner', 'idx', 'docstatus', 'name')
 
 	for doc in package:
 		for key in del_keys:
@@ -97,7 +102,7 @@ def post_process(package):
 				continue
 
 			for child in value:
-				for key in del_keys + ('name'):
+				for key in child_del_keys:
 					if key in child:
 						del child[key]
 

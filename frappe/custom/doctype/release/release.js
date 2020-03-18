@@ -8,12 +8,13 @@ frappe.ui.form.on('Release', {
 		});
 
 		frm.add_custom_button(__("Release"), function() {
-			frm.call("create_release").then(() => {});
+			frm.call("create_release");
 		});
 
-		frappe.realtime.on("exporting_package", (data) => {
-			if (data.progress !== (data.total-1)) {
-				frm.dashboard.show_progress("Releasing Package", data.progress / data.total * 100, __("{0}", [data.message]));
+		frappe.realtime.on("package", (data) => {
+			frm.dashboard.show_progress(data.prefix, data.progress / data.total * 100, __("{0}", [data.message]));
+			if ((data.progress+1) != data.total) {
+				frm.dashboard.show_progress(data.prefix, data.progress / data.total * 100, __("{0}", [data.message]));
 			} else {
 				frm.dashboard.hide_progress();
 			}
