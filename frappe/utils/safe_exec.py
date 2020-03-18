@@ -125,6 +125,12 @@ def get_safe_globals():
 	out._iter_unpack_sequence_ = RestrictedPython.Guards.guarded_iter_unpack_sequence
 	out.sorted = sorted
 
+	installed_apps = frappe._dict()
+	all_apps = frappe.get_installed_apps()
+	for app in all_apps:
+		installed_apps[app] = __import__(app)
+	out.update(installed_apps)
+
 	return out
 
 def _getitem(obj, key):
