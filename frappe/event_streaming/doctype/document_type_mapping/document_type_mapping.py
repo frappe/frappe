@@ -68,57 +68,11 @@ class DocumentTypeMapping(Document):
 			mapping.changed = json.loads(mapped_doc)
 
 		if update_diff.removed:
-			removed = []
-			mapping['removed'] = update_diff.removed
-			for key, value in iteritems(update_diff.removed.copy()):
-				local_table_name = frappe.db.get_value('Document Type Field Mapping', {
-					'remote_fieldname': key,
-					'parent': self.name
-				},'local_fieldname')
-				mapping.removed[local_table_name] = value
-				if local_table_name != key:
-					removed.append(key)
-
-			#remove the remote fieldnames
-			for field in removed:
-				mapping.removed.pop(field, None)
-
+			mapping = self.map_row_removed(update_diff, mapping)
 		if update_diff.added:
-			added = []
-			for tablename, entries in iteritems(update_diff.added.copy()):
-				local_table_name = frappe.db.get_value('Document Type Field Mapping', {'remote_fieldname': tablename}, 'local_fieldname')
-				table_map = frappe.db.get_value('Document Type Field Mapping', {'local_fieldname': local_table_name, 'parent': self.name}, 'mapping')
-				table_map = frappe.get_doc('Document Type Mapping', table_map)
-				docs_added = []
-				for entry in entries:
-					mapped_doc = table_map.get_mapping(entry, producer_site, 'Update').get('doc')
-					docs_added.append(json.loads(mapped_doc))
-				mapping.added[local_table_name] = docs_added
-				if local_table_name != tablename:
-					added.append(tablename)
-
-			# remove the remote fieldnames
-			for field in added:
-				mapping.added.pop(field, None)
-
+			mapping = self.map_rows(update_diff, mapping, producer_site, operation='added')
 		if update_diff.row_changed:
-			changed = []
-			for tablename, entries in iteritems(update_diff.row_changed.copy()):
-				local_table_name = frappe.db.get_value('Document Type Field Mapping', {'remote_fieldname': tablename}, 'local_fieldname')
-				table_map = frappe.db.get_value('Document Type Field Mapping', {'local_fieldname': local_table_name, 'parent': self.name}, 'mapping')
-				table_map = frappe.get_doc('Document Type Mapping', table_map)
-				docs_changed = []
-				for entry in entries:
-					mapped_doc = table_map.get_mapping(entry, producer_site, 'Update').get('doc')
-					docs_changed.append(json.loads(mapped_doc))
-				mapping.row_changed[local_table_name] = docs_changed
-				if local_table_name != tablename:
-					changed.append(tablename)
-
-			# remove the remote fieldnames
-			for field in changed:
-				mapping.row_changed.pop(field, None)
-
+			mapping = self.map_rows(update_diff, mapping, producer_site, operation='row_changed')
 
 		return frappe.as_json(mapping)
 
@@ -137,6 +91,42 @@ class DocumentTypeMapping(Document):
 		doc = inner_mapping.get_mapping(remote_doc, producer_site, 'Insert').get('doc')
 		return doc
 
+	def map_row_removed(self, update_diff, mapping):
+		removed = []
+		mapping['removed'] = update_diff.removed
+		for key, value in iteritems(update_diff.removed.copy()):
+			local_table_name = frappe.db.get_value('Document Type Field Mapping', {
+				'remote_fieldname': key,
+				'parent': self.name
+			},'local_fieldname')
+			mapping.removed[local_table_name] = value
+			if local_table_name != key:
+				removed.append(key)
+
+		#remove the remote fieldnames
+		for field in removed:
+			mapping.removed.pop(field, None)
+		return mapping
+
+	def map_rows(self, update_diff, mapping, producer_site, operation):
+		remote_fields = []
+		for tablename, entries in iteritems(update_diff.get(operation).copy()):
+			local_table_name = frappe.db.get_value('Document Type Field Mapping', {'remote_fieldname': tablename}, 'local_fieldname')
+			table_map = frappe.db.get_value('Document Type Field Mapping', {'local_fieldname': local_table_name, 'parent': self.name}, 'mapping')
+			table_map = frappe.get_doc('Document Type Mapping', table_map)
+			docs = []
+			for entry in entries:
+				mapped_doc = table_map.get_mapping(entry, producer_site, 'Update').get('doc')
+				docs.append(json.loads(mapped_doc))
+			mapping.get(operation)[local_table_name] = docs
+			if local_table_name != tablename:
+				remote_fields.append(tablename)
+
+		# remove the remote fieldnames
+		for field in remote_fields:
+			mapping.get(operation).pop(field, None)
+
+		return mapping
 
 def get_mapped_child_table_docs(child_map, table_entries):
 	"""Get mapping for child doctypes"""
