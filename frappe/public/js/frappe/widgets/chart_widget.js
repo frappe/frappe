@@ -50,20 +50,7 @@ export default class ChartWidget extends Widget {
 			if (this.chart_doc.timeseries && this.chart_doc.chart_type !== 'Custom') {
 				this.render_time_series_filters();
 			}
-
-			this.fetch(this.filters).then(data => {
-				this.summary = [];
-				if (this.chart_doc.chart_type == 'Report') {
-					this.summary = data.report_summary;
-					data = this.get_report_chart_data(data);
-				}
-				this.update_last_synced();
-				this.data = data;
-				// Delete existing chart when refreshing
-				delete this.dashboard_chart;
-				this.render();
-				this.width == "Full" && this.summary && this.set_summary();
-			});
+			this.fetch_and_update_chart();
 		});
 	}
 
