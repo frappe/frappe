@@ -199,7 +199,6 @@ class FrappeClient(object):
 
 		res = self.session.get(self.url + "/api/resource/" + doctype + "/" + name,
 			params=params, verify=self.verify, headers=self.headers)
-		print('==================res', res.text, filters)
 
 		return self.post_process(res)
 

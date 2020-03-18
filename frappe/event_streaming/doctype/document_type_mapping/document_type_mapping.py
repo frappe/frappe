@@ -33,7 +33,8 @@ class DocumentTypeMapping(Document):
 			if doc.get(mapping.remote_fieldname):
 				if mapping.mapping_type == 'Document':
 					dependency = self.get_mapped_dependency(mapping, producer_site, doc.get(mapping.remote_fieldname), mapping.remote_fieldname)
-					dependencies.append((mapping.local_fieldname, dependency))
+					if dependency:
+						dependencies.append((mapping.local_fieldname, dependency))
 
 				if mapping.mapping_type == 'Child Table' and update_type != 'Update':
 						doc[mapping.local_fieldname] = get_mapped_child_table_docs(mapping.mapping, doc[mapping.remote_fieldname])
@@ -63,9 +64,13 @@ class DocumentTypeMapping(Document):
 	def get_mapped_update(self, update, producer_site):
 		update_diff = frappe._dict(json.loads(update.data))
 		mapping = update_diff
+		dependencies = []
 		if update_diff.changed:
-			mapped_doc = self.get_mapping(update_diff.changed, producer_site, 'Update').get('doc')
+			doc_map = self.get_mapping(update_diff.changed, producer_site, 'Update')
+			mapped_doc = doc_map.get('doc')
 			mapping.changed = json.loads(mapped_doc)
+			if doc_map.get('dependencies'):
+				dependencies += doc_map.get('dependencies')
 
 		if update_diff.removed:
 			mapping = self.map_row_removed(update_diff, mapping)
@@ -74,7 +79,10 @@ class DocumentTypeMapping(Document):
 		if update_diff.row_changed:
 			mapping = self.map_rows(update_diff, mapping, producer_site, operation='row_changed')
 
-		return frappe.as_json(mapping)
+		update = {'doc': frappe.as_json(mapping)}
+		if len(dependencies):
+			update['dependencies'] = dependencies
+		return update
 
 	def get_mapped_dependency(self, mapping, producer_site, dependent_field_val, dependent_field):
 		inner_mapping = frappe.get_doc('Document Type Mapping', mapping.mapping)
@@ -87,9 +95,10 @@ class DocumentTypeMapping(Document):
 		matching_docs = producer_site.get_doc(inner_mapping.remote_doctype, filters=filters)
 		if len(matching_docs):
 			remote_docname = matching_docs[0].get('name')
-		remote_doc = producer_site.get_doc(inner_mapping.remote_doctype, remote_docname)
-		doc = inner_mapping.get_mapping(remote_doc, producer_site, 'Insert').get('doc')
-		return doc
+			remote_doc = producer_site.get_doc(inner_mapping.remote_doctype, remote_docname)
+			doc = inner_mapping.get_mapping(remote_doc, producer_site, 'Insert').get('doc')
+			return doc
+		return
 
 	def map_row_removed(self, update_diff, mapping):
 		removed = []

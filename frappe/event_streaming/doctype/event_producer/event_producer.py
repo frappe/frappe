@@ -245,27 +245,27 @@ def set_insert(update, producer_site, event_producer):
 def set_update(update, producer_site):
 	"""Sync update type update"""
 	local_doc = get_local_doc(update)
-	try:
-		if local_doc:
-			data = frappe._dict(update.data)
+	if local_doc:
+		data = frappe._dict(update.data)
 
-			if data.changed:
-				local_doc.update(data.changed)
-			if data.removed:
-				update_row_removed(local_doc, data.removed)
-			if data.row_changed:
-				update_row_changed(local_doc, data.row_changed)
-			if data.added:
-				local_doc = update_row_added(local_doc, data.added)
+		if data.changed:
+			local_doc.update(data.changed)
+		if data.removed:
+			update_row_removed(local_doc, data.removed)
+		if data.row_changed:
+			update_row_changed(local_doc, data.row_changed)
+		if data.added:
+			local_doc = update_row_added(local_doc, data.added)
 
-			local_doc.save()
-			local_doc.db_update_all()
-
-	except frappe.DoesNotExistError:
 		if update.mapping:
-			pass
+			dependencies_created = sync_mapped_dependencies(update.dependencies, producer_site)
+			for fieldname, value in iteritems(dependencies_created):
+				local_doc.update({ fieldname : value })
 		else:
 			sync_dependencies(local_doc, producer_site)
+
+		local_doc.save()
+		local_doc.db_update_all()
 
 
 def update_row_removed(local_doc, removed):
@@ -444,7 +444,9 @@ def get_mapped_update(update, producer_site):
 		update.data = mapped_update.get('doc')
 		update.dependencies = mapped_update.get('dependencies', None)
 	elif update.update_type == 'Update':
-		update.data = mapping.get_mapped_update(update, producer_site)
+		mapped_update = mapping.get_mapped_update(update, producer_site)
+		update.data = mapped_update.get('doc')
+		update.dependencies = mapped_update.get('dependencies', None)
 
 	update['ref_doctype'] = mapping.local_doctype
 	return update
