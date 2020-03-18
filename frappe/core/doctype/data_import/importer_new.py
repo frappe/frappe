@@ -368,7 +368,7 @@ class Importer:
 		date_format = self.get_date_format_for_df(df) or DATETIME_FORMAT
 		try:
 			return datetime.strptime(value, date_format)
-		except:
+		except ValueError:
 			# ignore date values that dont match the format
 			# import will break for these values later
 			pass
@@ -398,7 +398,8 @@ class Importer:
 			date_values = [
 				row[column_index] for row in self.data[:PARSE_ROW_COUNT] if row[column_index]
 			]
-			date_formats = [guess_date_format(d) if isinstance(d, str) else None for d in date_values]
+			date_formats = [guess_date_format(d) if isinstance(d, str) else None
+							for d in date_values]
 			if not date_formats:
 				return
 			max_occurred_date_format = max(set(date_formats), key=date_formats.count)
