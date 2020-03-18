@@ -140,7 +140,7 @@ def get_context(context):
 					doc.flags.in_notification_update = True
 					doc.save(ignore_permissions=True)
 					doc.flags.in_notification_update = False
-			except Exception as e:
+			except Exception:
 				frappe.log_error(title='Document update failed', message=frappe.get_traceback())
 
 	def send_an_email(self, doc, context):
