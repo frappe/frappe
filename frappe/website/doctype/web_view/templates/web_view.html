@@ -1,65 +1,7 @@
 {% extends "templates/web.html" %}
 
 {% block page_content %}
-
-{% if css_rules or css %}
-<style>
-{% for css_rule in css_rules %}
-	{{ css_rule }}
-{% endfor %}
-{{ css }}
-</style>
-{% endif %}
-
-{% macro render_element(element) %}
-	{% if element.element_type=='Content' %}
-		{{ element.web_content_html }}
-	{% elif element.element_type=='Image' %}
-		<img src='{{ element.image_url }}' {% if element.element_class %}class='{{ element.element_class }}'{% endif %}>
-	{% endif %}
-{% endmacro %}
-
-
-{% for section in sections %}
-<section class='section {{ section.element_class or "" }} {{ section.hide and "hidden" or "" }}'>
-	<div class='section-body container'>
-	{% if section.section_intro %}
-		<div class='section-intro'>{{ section.section_intro }}</div>
-	{% endif %}
-	{% if section.section_type == 'List' %}
-		{% for element in section.elements %}
-			{{ render_element(element) }}
-		{% endfor %}
-	{% elif section.section_type == 'Grid' %}
-		<div class='row'>
-		{% for element in section.elements %}
-			<div class='web-content col col-md-{{ element.columns or 6 }} {{ element.element_class or "" }}'>
-			{{ render_element(element) }}
-			</div>
-		{% endfor %}
-		</div>
-	{% elif section.section_type == 'Tabbed' %}
-		<ul class="nav" role="tablist">
-			{% for element in section.elements %}
-			<li class="nav-item">
-				<a class="nav-link {{ loop.index == 1 and 'active' or ''}}" href="#{{ element.element_id }}" role="tab" data-toggle="tab">
-					{{ element.title }}
-				</a>
-			</li>
-			{% endfor %}
-		</ul>
-		<div class="tab-content">
-			{% for element in section.elements %}
-			<div class="web-content tab-pane {{ loop.index == 1 and 'show active' or ''}}" role="tabpanel" id="{{ element.element_id }}">
-				{{ render_element(element) }}
-			</div>
-			{% endfor %}
-		</div>
-
-	{% endif %}
-	</div>
-</section>
-{% endfor %}
+	{% include "frappe/website/doctype/web_view/templates/web_view_content.html" %}
 {% endblock %}
 
 <!-- this is a sample default web page template -->

@@ -1,6 +1,6 @@
 {% if google_font %}
-@import url('https://fonts.googleapis.com/css?family={{ google_font }}:400,400italic,600&subset=latin,latin-ext');
-$font-family-sans-serif: "{{ google_font }}", '-apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif';
+@import url('https://fonts.googleapis.com/css?family={{ google_font }}:{{ font_properties }}&display=swap');
+$font-family-sans-serif: "{{ google_font }}", -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
 {% endif %}
 
 {% if primary_color %}$primary: {{ primary_color }};{% endif %}
