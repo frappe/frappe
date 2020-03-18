@@ -48,7 +48,7 @@ export default class ChartWidget extends Widget {
 			}
 
 			this.fetch(this.filters).then(data => {
-				this.summary = []
+				this.summary = [];
 				if (this.chart_doc.chart_type == 'Report') {
 					this.summary = data.report_summary;
 					data = this.get_report_chart_data(data);
