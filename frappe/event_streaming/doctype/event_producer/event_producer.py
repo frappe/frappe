@@ -262,7 +262,9 @@ def set_update(update, producer_site):
 			local_doc.db_update_all()
 
 	except frappe.DoesNotExistError:
-		if not update.mapping:
+		if update.mapping:
+			pass
+		else:
 			sync_dependencies(local_doc, producer_site)
 
 
@@ -436,13 +438,15 @@ def log_event_sync(update, event_producer, sync_status, error=None):
 def get_mapped_update(update, producer_site):
 	"""get the new update document with mapped fields"""
 	mapping = frappe.get_doc('Document Type Mapping', update.mapping)
-	if update.update_type != 'Delete':
+	if update.update_type == 'Create':
 		doc = frappe._dict(json.loads(update.data))
-		mapped_update = mapping.get_mapped_update(doc, producer_site)
+		mapped_update = mapping.get_mapping(doc, producer_site, update.update_type)
 		update.data = mapped_update.get('doc')
 		update.dependencies = mapped_update.get('dependencies', None)
+	elif update.update_type == 'Update':
+		update.data = mapping.get_mapped_update(update, producer_site)
 
-	update.ref_doctype = mapping.local_doctype
+	update['ref_doctype'] = mapping.local_doctype
 	return update
 
 
