@@ -46,7 +46,11 @@ def sync_for(app_name, force=0, sync_everything = False, verbose=False, reset_pe
 			("data_migration", "data_migration_plan"),
 			("desk", "onboarding_slide_field"),
 			("desk", "onboarding_slide_help_link"),
-			("desk", "onboarding_slide")):
+			("desk", "onboarding_slide"),
+			("desk", "desk_card"),
+			("desk", "desk_chart"),
+			("desk", "desk_shortcut"),
+			("desk", "desk_page")):
 			files.append(os.path.join(frappe.get_app_path("frappe"), d[0],
 				"doctype", d[1], d[1] + ".json"))
 
@@ -75,7 +79,7 @@ def get_doc_files(files, start_path, force=0, sync_everything = False, verbose=F
 	# load in sequence - warning for devs
 	document_types = ['doctype', 'page', 'report', 'dashboard_chart_source', 'print_format',
 		'website_theme', 'web_form', 'notification', 'print_style',
-		'data_migration_mapping', 'data_migration_plan', 'onboarding_slide']
+		'data_migration_mapping', 'data_migration_plan', 'onboarding_slide', 'desk_page']
 	for doctype in document_types:
 		doctype_path = os.path.join(start_path, doctype)
 		if os.path.exists(doctype_path):

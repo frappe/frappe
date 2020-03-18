@@ -79,7 +79,7 @@ frappe.prompt = function(fields, callback, title, primary_label) {
 	return d;
 }
 
-frappe.msgprint = function(msg, title) {
+frappe.msgprint = function(msg, title, is_minimizable) {
 	if(!msg) return;
 
 	if($.isPlainObject(msg)) {
@@ -117,7 +117,8 @@ frappe.msgprint = function(msg, title) {
 					frappe.msg_dialog.custom_onhide();
 				}
 				frappe.msg_dialog.msg_area.empty();
-			}
+			},
+			minimizable: data.is_minimizable || is_minimizable
 		});
 
 		// class "msgprint" is used in tests

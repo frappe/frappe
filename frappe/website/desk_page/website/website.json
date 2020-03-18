@@ -1,0 +1,76 @@
+{
+ "cards": [
+  {
+   "icon": "fa fa-cog",
+   "links": "[\n    {\n        \"description\": \"Setup of top navigation bar, footer and logo.\",\n        \"label\": \"Website Settings\",\n        \"name\": \"Website Settings\",\n        \"onboard\": 1,\n        \"type\": \"doctype\"\n    },\n    {\n        \"description\": \"List of themes for Website.\",\n        \"label\": \"Website Theme\",\n        \"name\": \"Website Theme\",\n        \"onboard\": 1,\n        \"type\": \"doctype\"\n    },\n    {\n        \"description\": \"Javascript to append to the head section of the page.\",\n        \"label\": \"Website Script\",\n        \"name\": \"Website Script\",\n        \"type\": \"doctype\"\n    },\n    {\n        \"description\": \"Settings for About Us Page.\",\n        \"label\": \"About Us Settings\",\n        \"name\": \"About Us Settings\",\n        \"type\": \"doctype\"\n    },\n    {\n        \"description\": \"Settings for Contact Us Page.\",\n        \"label\": \"Contact Us Settings\",\n        \"name\": \"Contact Us Settings\",\n        \"type\": \"doctype\"\n    }\n]",
+   "title": "Setup"
+  },
+  {
+   "links": "[\n    {\n        \"description\": \"Single Post (article).\",\n        \"label\": \"Blog Post\",\n        \"name\": \"Blog Post\",\n        \"onboard\": 1,\n        \"type\": \"doctype\"\n    },\n    {\n        \"description\": \"A user who posts blogs.\",\n        \"label\": \"Blogger\",\n        \"name\": \"Blogger\",\n        \"type\": \"doctype\"\n    },\n    {\n        \"description\": \"Categorize blog posts.\",\n        \"label\": \"Blog Category\",\n        \"name\": \"Blog Category\",\n        \"type\": \"doctype\"\n    }\n]",
+   "title": "Blog"
+  },
+  {
+   "icon": "fa fa-star",
+   "links": "[\n    {\n        \"description\": \"Content web page.\",\n        \"label\": \"Web Page\",\n        \"name\": \"Web Page\",\n        \"onboard\": 1,\n        \"type\": \"doctype\"\n    },\n    {\n        \"description\": \"User editable form on Website.\",\n        \"label\": \"Web Form\",\n        \"name\": \"Web Form\",\n        \"onboard\": 1,\n        \"type\": \"doctype\"\n    },\n    {\n        \"label\": \"Website Sidebar\",\n        \"name\": \"Website Sidebar\",\n        \"type\": \"doctype\"\n    },\n    {\n        \"description\": \"Embed image slideshows in website pages.\",\n        \"label\": \"Website Slideshow\",\n        \"name\": \"Website Slideshow\",\n        \"type\": \"doctype\"\n    },\n    {\n        \"description\": \"Add meta tags to your web pages\",\n        \"label\": \"Website Route Meta\",\n        \"name\": \"Website Route Meta\",\n        \"type\": \"doctype\"\n    }\n]",
+   "title": "Web Site"
+  },
+  {
+   "links": "[\n    {\n        \"label\": \"Portal Settings\",\n        \"name\": \"Portal Settings\",\n        \"onboard\": 1,\n        \"type\": \"doctype\"\n    }\n]",
+   "title": "Portal"
+  },
+  {
+   "links": "[\n    {\n        \"label\": \"Help Category\",\n        \"name\": \"Help Category\",\n        \"type\": \"doctype\"\n    },\n    {\n        \"label\": \"Help Article\",\n        \"name\": \"Help Article\",\n        \"type\": \"doctype\"\n    }\n]",
+   "title": "Knowledge Base"
+  }
+ ],
+ "category": "Modules",
+ "charts": [],
+ "creation": "2020-03-02 14:13:51.089373",
+ "developer_mode_only": 0,
+ "disable_user_customization": 0,
+ "docstatus": 0,
+ "doctype": "Desk Page",
+ "extends_another_page": 0,
+ "idx": 0,
+ "is_standard": 1,
+ "label": "Website",
+ "modified": "2020-03-12 16:30:43.092622",
+ "modified_by": "Administrator",
+ "module": "Website",
+ "name": "Website",
+ "owner": "Administrator",
+ "pin_to_bottom": 0,
+ "pin_to_top": 0,
+ "shortcuts": [
+  {
+   "color": "",
+   "format": "{} Published",
+   "is_query_report": 0,
+   "link_to": "Blog Post",
+   "stats_filter": "{\"published\":\"1\"}",
+   "type": "DocType"
+  },
+  {
+   "format": "{} Active",
+   "is_query_report": 0,
+   "link_to": "Blogger",
+   "stats_filter": "{\"disabled\": 0}",
+   "type": "DocType"
+  },
+  {
+   "is_query_report": 0,
+   "link_to": "Web Page",
+   "type": "DocType"
+  },
+  {
+   "is_query_report": 0,
+   "link_to": "Web Form",
+   "type": "DocType"
+  },
+  {
+   "is_query_report": 0,
+   "link_to": "Website Settings",
+   "type": "DocType"
+  }
+ ]
+}
