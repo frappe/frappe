@@ -7,6 +7,7 @@ import frappe
 import json
 from frappe import _, DoesNotExistError
 from frappe.boot import get_allowed_pages, get_allowed_reports
+from six import string_types
 from frappe.cache_manager import build_domain_restriced_doctype_cache, build_domain_restriced_page_cache, build_table_count_cache
 
 class Workspace:
@@ -109,7 +110,7 @@ class Workspace:
 		new_data = []
 		for section in cards:
 			new_items = []
-			if isinstance(section.links, str):
+			if isinstance(section.links, string_types):
 				links = json.loads(section.links)
 			else:
 				links = section.links
