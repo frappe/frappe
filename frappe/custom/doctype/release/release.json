@@ -1,27 +1,26 @@
 {
  "actions": [],
- "creation": "2020-03-17 00:13:31.851579",
+ "creation": "2020-03-17 13:27:30.158389",
  "doctype": "DocType",
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
-  "attach"
+  "instances"
  ],
  "fields": [
   {
-   "fieldname": "attach",
-   "fieldtype": "Attach",
-   "in_list_view": 1,
-   "label": "Attach",
-   "reqd": 1
+   "fieldname": "instances",
+   "fieldtype": "Table",
+   "label": "Instances",
+   "options": "Release Instance"
   }
  ],
  "issingle": 1,
  "links": [],
- "modified": "2020-03-17 10:00:26.676328",
+ "modified": "2020-03-17 15:37:21.813063",
  "modified_by": "Administrator",
  "module": "Custom",
- "name": "Package Migration",
+ "name": "Release",
  "owner": "Administrator",
  "permissions": [
   {

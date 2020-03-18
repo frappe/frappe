@@ -1,35 +1,48 @@
 {
  "actions": [],
- "creation": "2020-03-14 11:20:14.850552",
+ "autoname": "field:instance",
+ "creation": "2020-03-17 12:08:33.304631",
  "doctype": "DocType",
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
-  "export_package"
+  "instance",
+  "user",
+  "password"
  ],
  "fields": [
   {
-   "description": "Click on the row for accessing filters.",
-   "fieldname": "export_package",
-   "fieldtype": "Table",
-   "label": "Package",
-   "options": "Package DocType"
+   "fieldname": "instance",
+   "fieldtype": "Data",
+   "label": "Instance",
+   "unique": 1
+  },
+  {
+   "fieldname": "user",
+   "fieldtype": "Data",
+   "label": "User"
+  },
+  {
+   "fieldname": "password",
+   "fieldtype": "Password",
+   "label": "Password"
   }
  ],
- "issingle": 1,
  "links": [],
- "modified": "2020-03-17 16:41:13.542896",
+ "modified": "2020-03-17 13:34:40.924501",
  "modified_by": "Administrator",
  "module": "Custom",
- "name": "Package",
+ "name": "Remote Instance",
  "owner": "Administrator",
  "permissions": [
   {
    "create": 1,
    "delete": 1,
    "email": 1,
+   "export": 1,
    "print": 1,
    "read": 1,
+   "report": 1,
    "role": "System Manager",
    "share": 1,
    "write": 1
@@ -38,8 +51,10 @@
    "create": 1,
    "delete": 1,
    "email": 1,
+   "export": 1,
    "print": 1,
    "read": 1,
+   "report": 1,
    "role": "All",
    "share": 1,
    "write": 1
