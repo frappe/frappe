@@ -152,13 +152,7 @@ export default class Desktop {
 		return $page;
 	}
 
-	setup_events() {
-		// $(document).keydown(e => {
-		// 	if (e.keyCode == 9) {
-		// 		console.log("navigate");
-		// 	}
-		// });
-	}
+	setup_events() { }
 }
 
 class DesktopPage {
