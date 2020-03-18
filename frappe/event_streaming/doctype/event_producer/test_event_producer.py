@@ -198,6 +198,42 @@ class TestEventProducer(unittest.TestCase):
 		)
 		return producer_site
 
+	def test_mapping(self):
+		event_producer = frappe.get_doc('Event Producer', self.producer_url)
+		event_producer.producer_doctypes = []
+		mapping = [{
+			'local_fieldname': 'description',
+			'remote_fieldname': 'content'
+		}]
+		event_producer.append('producer_doctypes', {
+			'ref_doctype': 'ToDo',
+			'use_same_name': 1,
+			'has_mapping': 1,
+			'mapping': get_mapping('ToDo to Note', 'ToDo', 'Note', mapping)
+		})
+		event_producer.save()
+		producer = self.get_remote_site()
+		producer_note = frappe.get_doc(dict(doctype='Note', title='Test Mapping', content='Test Mapping'))
+		delete_on_remote_if_exists(producer, 'Note', {'title': producer_note.title})
+		producer_note = producer.insert(producer_note)
+		self.pull_producer_data()
+		#check inserted
+		self.assertTrue(frappe.db.exists('ToDo', {'description': producer_note.content}))
+
+		#update in producer
+		producer_note['content'] = 'test mapped doc update sync'
+		producer_note = producer.update(producer_note)
+		self.pull_producer_data()
+		time.sleep(5)
+		# check updated
+		self.assertTrue(frappe.db.exists('ToDo', {'description': producer_note['content']}))
+
+		producer.delete('Note', producer_note.name)
+		self.pull_producer_data()
+		#check delete
+		self.assertFalse(frappe.db.exists('ToDo', {'description': producer_note.content}))
+
+
 def insert_into_producer(producer, description):
 		#create and insert todo on remote site
 		todo = frappe.get_doc(dict(doctype='ToDo', description=description, assigned_by='Administrator'))
@@ -207,3 +243,18 @@ def delete_on_remote_if_exists(producer, doctype, filters):
 	remote_doc = producer.get_value(doctype, 'name', filters)
 	if remote_doc:
 		producer.delete(doctype, remote_doc.get('name'))
+
+def get_mapping(name, local, remote, field_map):
+	name = frappe.db.exists('Document Type Mapping', name)
+	if name:
+		doc = frappe.get_doc('Document Type Mapping', doc)
+	else:
+		doc = frappe.new_doc('Document Type Mapping')
+
+	doc.mapping_name = name
+	doc.local_doctype = local
+	doc.remote_doctype = remote
+	for entry in field_map
+		doc.append('field_mapping', entry)
+	doc.save()
+	return doc.name

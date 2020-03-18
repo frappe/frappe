@@ -227,9 +227,10 @@ def set_insert(update, producer_site, event_producer):
 	doc = frappe.get_doc(update.data)
 
 	if update.mapping:
-		dependencies_created = sync_mapped_dependencies(update.dependencies, producer_site)
-		for fieldname, value in iteritems(dependencies_created):
-			doc.update({ fieldname : value })
+		if update.get('dependencies'):
+			dependencies_created = sync_mapped_dependencies(update.dependencies, producer_site)
+			for fieldname, value in iteritems(dependencies_created):
+				doc.update({ fieldname : value })
 	else:
 		sync_dependencies(doc, producer_site)
 
@@ -258,9 +259,10 @@ def set_update(update, producer_site):
 			local_doc = update_row_added(local_doc, data.added)
 
 		if update.mapping:
-			dependencies_created = sync_mapped_dependencies(update.dependencies, producer_site)
-			for fieldname, value in iteritems(dependencies_created):
-				local_doc.update({ fieldname : value })
+			if update.get('dependencies'):
+				dependencies_created = sync_mapped_dependencies(update.dependencies, producer_site)
+				for fieldname, value in iteritems(dependencies_created):
+					local_doc.update({ fieldname : value })
 		else:
 			sync_dependencies(local_doc, producer_site)
 
