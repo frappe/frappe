@@ -25,12 +25,16 @@ export default class ChartWidget extends Widget {
 	}
 
 	set_summary() {
-		let $summary = $(`<div class="report-summary"></div>`).hide().prependTo(this.body);
+		if (!this.$summary) {
+			this.$summary = $(`<div class="report-summary"></div>`).hide().prependTo(this.body);
+		} else {
+			this.$summary.empty();
+		}
 
 		this.summary.forEach((summary) => {
-			build_summary_item(summary).appendTo($summary);
+			build_summary_item(summary).appendTo(this.$summary);
 		})
-		this.summary.length && $summary.show();
+		this.summary.length && this.$summary.show();
 	}
 
 	make_chart() {
@@ -58,7 +62,7 @@ export default class ChartWidget extends Widget {
 				// Delete existing chart when refreshing
 				delete this.dashboardchart;
 				this.render();
-				this.width == "Full" && this.set_summary();
+				this.width == "Full" && this.summary && this.set_summary();
 			});
 		});
 	}
@@ -117,12 +121,14 @@ export default class ChartWidget extends Widget {
 
 		this.fetch(this.filters, true, this.args).then(data => {
 			if (this.chart_doc.chart_type == 'Report') {
+				this.summary = data.report_summary;
 				data = this.get_report_chart_data(data);
 			}
 
 			this.update_chart_object();
 			this.data = data;
 			this.render();
+			this.summary && this.set_summary();
 		});
 	}
 
