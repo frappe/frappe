@@ -9,7 +9,7 @@ import timeit
 import frappe
 from datetime import datetime
 from frappe import _
-from frappe.utils import cint, flt, update_progress_bar, cstr
+from frappe.utils import cint, flt, update_progress_bar, cstr, DATETIME_FORMAT
 from frappe.utils.csvutils import read_csv_content
 from frappe.utils.xlsxutils import (
 	read_xlsx_file_from_attached_file,
@@ -365,7 +365,7 @@ class Importer:
 		return value
 
 	def parse_date_format(self, value, df):
-		date_format = self.get_date_format_for_df(df) or '%Y-%m-%d %H:%M:%S'
+		date_format = self.get_date_format_for_df(df) or DATETIME_FORMAT
 		try:
 			return datetime.strptime(value, date_format)
 		except:
