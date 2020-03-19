@@ -98,7 +98,7 @@ frappe.ui.form.on('User', {
 			}, __("Password"));
 
 			frappe.db.get_single_value("LDAP Settings", "enabled").then((value) => {
-				if (value === 1 && frm.name != "Administrator") {
+				if (value === 1 && frm.doc.name != "Administrator") {
 					frm.add_custom_button(__("Reset LDAP Password"), function(){
 						const d = new frappe.ui.Dialog({
 							title: __("Reset LDAP Password"),
