@@ -6,9 +6,10 @@ from __future__ import unicode_literals
 import frappe
 import json
 import datetime
+import base64
 from frappe.model.document import Document
 from frappe.core.doctype.version.version import get_diff
-from frappe.utils.file_manager import save_file
+from frappe.utils.file_manager import save_file, get_file
 from frappe import _
 
 class Package(Document):
@@ -35,22 +36,19 @@ def export_package():
 				user=frappe.session.user)
 
 			document = frappe.get_doc(doctype.get("document_type"), doc.name).as_dict()
+			attachments = []
 
 			if doctype.attachments:
-				attachments = []
-				filters = {"attached_to_doctype": document.get("doctype"), "attached_to_name": document.get("doctype")}
+				filters = {"attached_to_doctype": document.get("doctype"), "attached_to_name": document.get("name")}
 				for f in frappe.get_list("File", filters=filters):
-					attachments.append({
-						"fname": f.name,
-						"content": frappe.get_doc("File", f.name).get_content()
-					})
+					fname, fcontents = get_file(f.name)
+					attachments.append({"fname": fname, "content": base64.b64encode(fcontents).decode('ascii')})
 
-				document.update({"attachments": json.dumps(attachments)})
+			document.update({
+				"attachments": attachments,
+				"overwrite": True if doctype.overwrite else False
+			})
 
-			if doctype.overwrite:
-				document.update({"overwrite": 1})
-
-			document.update({"modified": frappe.utils.get_datetime_str(document.get("modified"))})
 			package.append(document)
 
 	return post_process(package)
@@ -66,23 +64,24 @@ def import_package(package=None):
 		docname = doc.pop("name")
 		modified = doc.pop("modified")
 		overwrite = doc.pop("overwrite")
+		attachments = doc.get("attachments")
 		exists = frappe.db.exists(doc.get("doctype"), docname)
 
 		if not exists:
 			d = frappe.get_doc(doc).insert(ignore_permissions=True, ignore_if_duplicate=True)
-			if doc.get("attachments"):
-				add_attachment(doc.get("attachments"), d)
+			if attachments:
+				add_attachment(attachments, d)
 		elif exists and overwrite:
-			document = frappe.get_doc(doc.get("doctype"), doc.pop("name"))
+			document = frappe.get_doc(doc.get("doctype"), docname)
 			if frappe.utils.get_datetime(document.modified) < frappe.utils.get_datetime(modified):
 				document.update(doc)
 				document.save()
-				if doc.get("attachments"):
-					add_attachment(doc.get("attachments"), document)
+				if attachments:
+					add_attachment(attachments, document)
 
 def add_attachment(attachments, doc):
 	for attachment in attachments:
-		save_file(attachment.get("fname"), attachment.get("content"), doc.get("doctype"), doc.get("name"))
+		save_file(attachment.get("fname"), base64.b64decode(attachment.get("content")), doc.get("doctype"), doc.get("name"))
 
 def post_process(package):
 	"""

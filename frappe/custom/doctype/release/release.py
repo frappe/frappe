@@ -5,7 +5,6 @@
 from __future__ import unicode_literals
 import frappe
 import json
-import pickle
 from frappe import _
 from frappe.model.document import Document
 from frappe.custom.doctype.package.package import export_package
@@ -23,7 +22,7 @@ class Release(Document):
 			frappe.delete_doc_if_exists("File", dt_file.name)
 
 		file_name = make_autoname("Package")
-		save_file(file_name, pickle.dumps(package), "Release", "Release")
+		save_file(file_name, json.dumps(package), "Release", "Release")
 
 		length = len(self.instances)
 		for idx, instance in enumerate(self.instances):
@@ -39,7 +38,7 @@ class Release(Document):
 		try:
 			connection.post_request({
 				"cmd": "frappe.custom.doctype.package.package.import_package",
-				"package": pickle.dumps(package)
+				"package": json.dumps(package)
 			})
 		except Exception as e:
 			frappe.log_error(frappe.get_traceback())
