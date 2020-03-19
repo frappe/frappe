@@ -25,8 +25,8 @@ export default class ChartWidget extends Widget {
 	}
 
 	set_loading_state() {
-		this.loading = $(`<div class="chart-loading-state text-muted" style="height: 200px;">${__("Loading...")}</div>`)
-		this.loading.appendTo(this.body)
+		this.loading = $(`<div class="chart-loading-state text-muted" style="height: 200px;">${__("Loading...")}</div>`);
+		this.loading.appendTo(this.body);
 	}
 
 	set_summary() {
@@ -363,8 +363,8 @@ export default class ChartWidget extends Widget {
 		}
 
 		if (!this.data || !Object.keys(this.data).length) {
-			const empty = $(`<div class="chart-loading-state text-muted" style="height: 200px;">${__("No Data...")}</div>`)
-			empty.appendTo(this.body)
+			const empty = $(`<div class="chart-loading-state text-muted" style="height: 200px;">${__("No Data...")}</div>`);
+			empty.appendTo(this.body);
 		} else {
 			let chart_args = {
 				data: this.data,
