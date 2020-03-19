@@ -15,12 +15,9 @@ export default class Desktop {
 
 	make() {
 		this.make_container();
-		// this.show_loading_state();
 		this.fetch_desktop_settings().then(() => {
 			this.route();
 			this.make_sidebar();
-			// this.setup_events();
-			// this.hide_loading_state();
 		});
 	}
 
@@ -38,25 +35,6 @@ export default class Desktop {
 		this.container.appendTo(this.wrapper);
 		this.sidebar = this.container.find(".desk-sidebar");
 		this.body = this.container.find(".desk-body");
-	}
-
-	show_loading_state() {
-		// Add skeleton
-		let loading_sidebar = $(
-			'<div class="skeleton skeleton-full" style="height: 90vh;"></div>'
-		);
-		let loading_body = $(
-			`<div class="skeleton skeleton-full" style="height: 90vh;"></div>`
-		);
-
-		// Append skeleton to body
-		loading_sidebar.appendTo(this.sidebar);
-		loading_body.appendTo(this.body);
-	}
-
-	hide_loading_state() {
-		// Remove all skeleton
-		this.container.find(".skeleton").remove();
 	}
 
 	fetch_desktop_settings() {
