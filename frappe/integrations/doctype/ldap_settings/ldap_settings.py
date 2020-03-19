@@ -196,7 +196,9 @@ class LDAPSettings(Document):
 				else:
 					frappe.throw(_("Failed to change password."))
 			else:
-				frappe.throw(_("LDAP User does not exist!"))
+				frappe.throw(_("No Entry for the User {0} found within LDAP!").format(user))
+		else:
+			frappe.throw(_("LDAP User does not exist!"))
 
 	def convert_ldap_entry_to_dict(self, user_entry):
 
