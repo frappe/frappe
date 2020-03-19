@@ -5,7 +5,7 @@
 from __future__ import unicode_literals
 import frappe
 import json
-import pickle
+import datetime
 from frappe.model.document import Document
 from frappe.core.doctype.version.version import get_diff
 from frappe.utils.file_manager import save_file
@@ -59,7 +59,7 @@ def export_package():
 def import_package(package=None):
 	"""Import package from JSON"""
 
-	content = pickle.loads(package)
+	content = json.loads(package)
 	length = len(content)
 
 	for doc in content:
@@ -98,12 +98,33 @@ def post_process(package):
 				del doc[key]
 
 		for key, value in doc.items():
+			stringified_value = get_stringified_value(value)
+			if stringified_value:
+				doc[key] = stringified_value
+
 			if not isinstance(value, list):
 				continue
 
 			for child in value:
-				for key in child_del_keys:
-					if key in child:
-						del child[key]
+				for child_key in child_del_keys:
+					if child_key in child:
+						del child[child_key]
+
+				for child_key, child_value in child.items():
+					stringified_value = get_stringified_value(child_value)
+					if stringified_value:
+						child[child_key] = stringified_value
 
 	return package
+
+def get_stringified_value(value):
+	if isinstance(value, datetime.datetime):
+		return frappe.utils.get_datetime_str(value)
+
+	if isinstance(value, datetime.date):
+		return frappe.utils.get_date_str(value)
+
+	if isinstance(value, datetime.timedelta):
+		return frappe.utils.get_time_str(value)
+
+	return None
