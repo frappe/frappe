@@ -198,7 +198,7 @@ class LDAPSettings(Document):
 			else:
 				frappe.throw(_("No Entry for the User {0} found within LDAP!").format(user))
 		else:
-			frappe.throw(_("LDAP User does not exist!"))
+			frappe.throw(_("No LDAP User found for email: {0}").format(user))
 
 	def convert_ldap_entry_to_dict(self, user_entry):
 
