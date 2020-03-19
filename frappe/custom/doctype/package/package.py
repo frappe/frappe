@@ -61,19 +61,19 @@ def import_package(package=None):
 	length = len(content)
 
 	for doc in content:
-		docname = doc.pop("name")
 		modified = doc.pop("modified")
 		overwrite = doc.pop("overwrite")
-		attachments = doc.get("attachments")
-		exists = frappe.db.exists(doc.get("doctype"), docname)
+		attachments = doc.pop("attachments")
+		exists = frappe.db.exists(doc.get("doctype"), doc.get("name"))
 
 		if not exists:
 			d = frappe.get_doc(doc).insert(ignore_permissions=True, ignore_if_duplicate=True)
 			if attachments:
 				add_attachment(attachments, d)
-		elif exists and overwrite:
+		elif exists:
+			docname = doc.pop("name")
 			document = frappe.get_doc(doc.get("doctype"), docname)
-			if frappe.utils.get_datetime(document.modified) < frappe.utils.get_datetime(modified):
+			if frappe.utils.get_datetime(document.modified) < frappe.utils.get_datetime(modified) and not overwrite:
 				document.update(doc)
 				document.save()
 				if attachments:
