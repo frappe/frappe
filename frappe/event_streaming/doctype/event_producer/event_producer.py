@@ -412,8 +412,12 @@ def sync_mapped_dependencies(dependencies, producer_site):
 	dependencies_created = {}
 	for entry in dependencies:
 		doc = frappe._dict(json.loads(entry[1]))
-		doc = frappe.get_doc(doc).insert(set_child_names=False)
-		dependencies_created[entry[0]] = doc.name
+		docname = frappe.db.exists(doc.doctype, doc.name)
+		if not docname:
+			doc = frappe.get_doc(doc).insert(set_child_names=False)
+			dependencies_created[entry[0]] = doc.name
+		else:
+			dependencies_created[entry[0]] = docname
 
 	return dependencies_created
 

@@ -8,7 +8,7 @@ import json
 from frappe import _
 from six import iteritems
 from frappe.model.document import Document
-
+from frappe.model import default_fields
 
 class DocumentTypeMapping(Document):
 	def validate(self):
@@ -17,21 +17,22 @@ class DocumentTypeMapping(Document):
 	def validate_inner_mapping(self):
 		meta = frappe.get_meta(self.local_doctype)
 		for field_map in self.field_mapping:
-			if meta.get_field(field_map.local_fieldname).fieldtype in ['Link', 'Dynamic Link', 'Table'] and not field_map.mapping:
-				msg = _('Row #{0}: Please set Mapping for the field {1} since its a dependency field').format(
-					field_map.idx, frappe.bold(field_map.local_fieldname))
-				frappe.throw(msg, title='Inner Mapping Missing')
+			if not field_map.local_fieldname in default_fields:
+				field = meta.get_field(field_map.local_fieldname)
+				if not field:
+					frappe.throw(_('Row #{0}: Invalid Local Fieldname').format(field_map.idx))
 
-			# if inner mapping exists, the remote doctype should be common in both mappings
-			# Only then the exact remote dependency doc can be fetched
-			if field_map.mapping_type == 'Document':
-				inner_mapped_doctype = frappe.db.get_value('Document Type Mapping', field_map.mapping, 'remote_doctype')
-				if self.remote_doctype != inner_mapped_doctype:
-					msg = _('Row #{0}: The Remote Document Type of mapping').format(field_map.idx)
-					msg += " <b><a href='#Form/{0}/{1}'>{1}</a></b> ".format(self.doctype, field_map.mapping)
-					msg += _('and the current mapping should be the same.')
-					frappe.throw(msg, title='Remote Document Type Mismatch')
+			fieldtype = field.get('fieldtype')
+			if fieldtype in ['Link', 'Dynamic Link', 'Table']:
+				if not field_map.mapping and not field_map.default_value:
+					msg = _('Row #{0}: Please set Mapping or Default Value for the field {1} since its a dependency field').format(
+						field_map.idx, frappe.bold(field_map.local_fieldname))
+					frappe.throw(msg, title='Inner Mapping Missing')
 
+			if field_map.mapping_type == 'Document' and not field_map.remote_value_filters:
+				msg = _('Row #{0}: Please set remote value filters for the field {1} to fetch the unique remote dependency document').format(
+					field_map.idx, frappe.bold(field_map.remote_fieldname))
+				frappe.throw(msg, title='Remote Value Filters Missing')
 
 	def get_mapping(self, doc, producer_site, update_type):
 		remote_fields = []
@@ -41,12 +42,15 @@ class DocumentTypeMapping(Document):
 		for mapping in self.field_mapping:
 			if doc.get(mapping.remote_fieldname):
 				if mapping.mapping_type == 'Document':
-					dependency = self.get_mapped_dependency(mapping, producer_site, doc.get(mapping.remote_fieldname), mapping.remote_fieldname)
-					if dependency:
-						dependencies.append((mapping.local_fieldname, dependency))
+					if not mapping.default_value:
+						dependency = self.get_mapped_dependency(mapping, producer_site, doc)
+						if dependency:
+							dependencies.append((mapping.local_fieldname, dependency))
+					else:
+						doc[mapping.local_fieldname] = mapping.default_value
 
 				if mapping.mapping_type == 'Child Table' and update_type != 'Update':
-						doc[mapping.local_fieldname] = get_mapped_child_table_docs(mapping.mapping, doc[mapping.remote_fieldname])
+						doc[mapping.local_fieldname] = get_mapped_child_table_docs(mapping.mapping, doc[mapping.remote_fieldname], producer_site)
 				else:
 					# copy value into local fieldname key and remove remote fieldname key
 					doc[mapping.local_fieldname] = doc[mapping.remote_fieldname]
@@ -93,14 +97,15 @@ class DocumentTypeMapping(Document):
 			update['dependencies'] = dependencies
 		return update
 
-	def get_mapped_dependency(self, mapping, producer_site, dependent_field_val, dependent_field):
+	def get_mapped_dependency(self, mapping, producer_site, doc):
 		inner_mapping = frappe.get_doc('Document Type Mapping', mapping.mapping)
-		filters = {}
-		for pair in inner_mapping.field_mapping:
-			if pair.remote_fieldname == dependent_field:
-				filters[pair.remote_fieldname] = dependent_field_val
-				break
-
+		filters = json.loads(mapping.remote_value_filters)
+		for key, value in iteritems(filters):
+			if value.startswith('eval:'):
+				val = frappe.safe_eval(value[5:], dict(frappe=frappe))
+				filters[key] = val
+			if doc.get(value):
+				filters[key] = doc.get(value)
 		matching_docs = producer_site.get_doc(inner_mapping.remote_doctype, filters=filters)
 		if len(matching_docs):
 			remote_docname = matching_docs[0].get('name')
@@ -146,7 +151,7 @@ class DocumentTypeMapping(Document):
 
 		return mapping
 
-def get_mapped_child_table_docs(child_map, table_entries):
+def get_mapped_child_table_docs(child_map, table_entries, producer_site):
 	"""Get mapping for child doctypes"""
 	child_map = frappe.get_doc('Document Type Mapping', child_map)
 	mapped_entries = []

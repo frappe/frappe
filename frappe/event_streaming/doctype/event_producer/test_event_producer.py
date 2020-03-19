@@ -254,7 +254,7 @@ def get_mapping(name, local, remote, field_map):
 	doc.mapping_name = name
 	doc.local_doctype = local
 	doc.remote_doctype = remote
-	for entry in field_map
+	for entry in field_map:
 		doc.append('field_mapping', entry)
 	doc.save()
 	return doc.name

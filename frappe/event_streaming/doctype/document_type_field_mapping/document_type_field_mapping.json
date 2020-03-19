@@ -6,11 +6,12 @@
  "engine": "InnoDB",
  "field_order": [
   "local_fieldname",
-  "remote_fieldname",
-  "default_value",
-  "column_break_5",
   "mapping_type",
-  "mapping"
+  "mapping",
+  "remote_value_filters",
+  "column_break_5",
+  "remote_fieldname",
+  "default_value"
  ],
  "fields": [
   {
@@ -47,11 +48,19 @@
    "fieldtype": "Link",
    "label": "Mapping",
    "options": "Document Type Mapping"
+  },
+  {
+   "depends_on": "eval:doc.mapping_type==\"Document\";",
+   "fieldname": "remote_value_filters",
+   "fieldtype": "Code",
+   "label": "Remote Value Filters",
+   "mandatory_depends_on": "eval:doc.mapping_type===\"Document\";",
+   "options": "JSON"
   }
  ],
  "istable": 1,
  "links": [],
- "modified": "2020-03-16 14:54:33.546135",
+ "modified": "2020-03-19 13:56:36.223799",
  "modified_by": "Administrator",
  "module": "Event Streaming",
  "name": "Document Type Field Mapping",
