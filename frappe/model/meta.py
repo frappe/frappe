@@ -489,7 +489,9 @@ def get_field_currency(df, doc=None):
 				if currency:
 					ref_docname = doc.name
 				else:
-					currency = frappe.db.get_value(doc.parenttype, doc.parent, df.get("options"))
+					if frappe.get_meta(doc.parenttype).has_field(df.get("options")):
+						# only get_value if parent has currency field
+						currency = frappe.db.get_value(doc.parenttype, doc.parent, df.get("options"))
 
 		if currency:
 			frappe.local.field_currency.setdefault((doc.doctype, ref_docname), frappe._dict())\
@@ -502,7 +504,7 @@ def get_field_precision(df, doc=None, currency=None):
 	"""get precision based on DocField options and fieldvalue in doc"""
 	from frappe.utils import get_number_format_info
 
-	if cint(df.precision):
+	if df.precision:
 		precision = cint(df.precision)
 
 	elif df.fieldtype == "Currency":

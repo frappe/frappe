@@ -61,6 +61,7 @@ def setup_complete(args):
 	stages = get_setup_stages(args)
 
 	try:
+		frappe.flags.in_setup_wizard = True
 		current_task = None
 		for idx, stage in enumerate(stages):
 			frappe.publish_realtime('setup_task', {"progress": [idx, len(stages)],
@@ -75,6 +76,8 @@ def setup_complete(args):
 	else:
 		run_setup_success(args)
 		return {'status': 'ok'}
+	finally:
+		frappe.flags.in_setup_wizard = False
 
 def update_global_settings(args):
 	if args.language and args.language != "English":
@@ -347,6 +350,11 @@ def email_setup_wizard_exception(traceback, args):
 		subject="Setup failed: {}".format(frappe.local.site),
 		message=message,
 		delayed=False)
+
+def log_setup_wizard_exception(traceback, args):
+	with open('../logs/setup-wizard.log', 'w+') as setup_log:
+		setup_log.write(traceback)
+		setup_log.write(json.dumps(args))
 
 def get_language_code(lang):
 	return frappe.db.get_value('Language', {'language_name':lang})

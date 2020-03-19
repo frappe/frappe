@@ -14,7 +14,8 @@ email-reply-parser==0.5.9
 Faker==2.0.4
 frontmatter==3.0.5
 future==0.18.2
-GitPython==2.1.11
+GitPython==2.1.15
+gitdb2==2.0.6;python_version<'3.4'
 google-api-python-client==1.7.11
 google-auth-httplib2==0.0.3
 google-auth-oauthlib==0.4.1
