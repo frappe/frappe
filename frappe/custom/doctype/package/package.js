@@ -8,6 +8,14 @@ frappe.ui.form.on('Package', {
 				frappe.set_route("Form", "Release", "Release");
 			});
 		}
+
+		frm.set_query("document_type", "export_package", function () {
+			return {
+				filters: {
+					"istable": 0,
+				}
+			};
+		})
 	},
 });
 
@@ -54,6 +62,11 @@ frappe.ui.form.on('Package DocType', {
 		_show_filters(filters, table);
 
 		table.on('click', () => {
+			if (!row.document_type) {
+				frappe.msgprint(__("Select Document Type."));
+				return;
+			}
+
 			frappe.model.with_doctype(row.document_type, function() {
 				let dialog = new frappe.ui.Dialog({
 					title: __('Set Filters'),
