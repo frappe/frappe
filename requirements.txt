@@ -12,7 +12,7 @@ cryptography==2.8
 dropbox==9.1.0
 email-reply-parser==0.5.9
 Faker==2.0.4
-frontmatter==3.0.5
+frontmatter==3.0.6
 future==0.18.2
 GitPython==2.1.15
 gitdb2==2.0.6;python_version<'3.4'
