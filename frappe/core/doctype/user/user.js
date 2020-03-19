@@ -99,7 +99,7 @@ frappe.ui.form.on('User', {
 
 			frappe.db.get_single_value("LDAP Settings", "enabled").then((value) => {
 				if (value === 1 && frm.doc.name != "Administrator") {
-					frm.add_custom_button(__("Reset LDAP Password"), function(){
+					frm.add_custom_button(__("Reset LDAP Password"), function() {
 						const d = new frappe.ui.Dialog({
 							title: __("Reset LDAP Password"),
 							fields: [
@@ -123,7 +123,7 @@ frappe.ui.form.on('User', {
 							],
 							primary_action: (values) => {
 								d.hide();
-								if(values.new_password !== values.confirm_password) {
+								if (values.new_password !== values.confirm_password) {
 									frappe.throw(__("Passwords do not match!"));
 								}
 								frappe.call(
