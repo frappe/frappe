@@ -165,7 +165,7 @@ export default class ChartWidget extends Widget {
 				`<div class="dashboard-date-field pull-right"></div>`
 			).appendTo(this.action_area);
 
-			if(this.width != "Full" && this.widget.width() < 700) {
+			if (this.width != "Full" && this.widget.width() < 700) {
 				this.title_field.hide();
 				this.head.css('flex-direction', "row-reverse");
 			}
@@ -363,6 +363,7 @@ export default class ChartWidget extends Widget {
 	}
 
 	set_chart_actions(actions) {
+		/* eslint-disable indent */
 		this.chart_actions = $(`<div class="chart-actions dropdown pull-right">
 			<a class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
 				<button class="btn btn-default btn-xs"><span class="caret"></span></button>
@@ -379,6 +380,7 @@ export default class ChartWidget extends Widget {
 			</ul>
 		</div>
 		`);
+		/* eslint-enable indent */
 
 		this.chart_actions.find("a[data-action]").each((i, o) => {
 			const action = o.dataset.action;
