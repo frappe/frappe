@@ -183,9 +183,22 @@
 			display: flex;
 			flex-direction: row-reverse;
 
-			.btn {
+			// Any immidiate child
+			>* {
 				align-self: center;
 				margin-left: 5px;
+			}
+
+			.dashboard-date-field {
+				.clearfix,
+				.help-box {
+					display: none;
+				}
+
+				.frappe-control,
+				.form-group {
+					margin-bottom: 0px !important;
+				}
 			}
 		}
 	}
