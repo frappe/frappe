@@ -288,14 +288,14 @@ frappe.utils.sanitise_redirect = (url) => {
 		// please do not ask how or why
 		const REGEX_SCRIPT = /j[\s]*(&#x.{1,7})?a[\s]*(&#x.{1,7})?v[\s]*(&#x.{1,7})?a[\s]*(&#x.{1,7})?s[\s]*(&#x.{1,7})?c[\s]*(&#x.{1,7})?r[\s]*(&#x.{1,7})?i[\s]*(&#x.{1,7})?p[\s]*(&#x.{1,7})?t/gi;
 
-		return url.replace(REGEX_SCRIPT, "")
+		return url.replace(REGEX_SCRIPT, "");
 	});
 
 	if (is_absolute(url) && is_external(url)) {
 		return '';
 	}
 
-	return sanitise_javascript(frappe.utils.xss_sanitise(url, {strategies: ["js"]}))
+	return sanitise_javascript(frappe.utils.xss_sanitise(url, {strategies: ["js"]}));
 }
 
 frappe.utils.new_auto_repeat_prompt = function(frm) {
