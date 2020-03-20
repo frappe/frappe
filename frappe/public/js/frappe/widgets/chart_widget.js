@@ -436,6 +436,7 @@ export default class ChartWidget extends Widget {
 		if (!this.data || !this.data.labels.length || !Object.keys(this.data).length) {
 			this.chart_wrapper.hide();
 			this.loading.hide();
+			this.$summary.hide();
 			this.empty.show();
 		} else {
 			this.loading.hide();
