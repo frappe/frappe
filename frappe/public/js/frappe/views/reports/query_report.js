@@ -66,6 +66,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 	setup_events() {
 		frappe.realtime.on("report_generated", (data) => {
+			this.toggle_primary_button_disabled(false);
 			if(data.report_name) {
 				this.prepared_report_action = "Rebuild";
 				// If generated report and currently active Prepared Report has same fiters
@@ -660,29 +661,37 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		// 1. First time with given filters, no data.
 		// 2. Showing data from specific report
 		// 3. Showing data from an old report without specific report name
-		if(this.prepared_report_action == "New") {
-			this.page.set_primary_action(
-				__("Generate New Report"),
-				() => {
-					this.generate_background_report();
-				}
-			);
-		} else if(this.prepared_report_action == "Edit") {
-			this.page.set_primary_action(
-				__("Edit"),
-				() => {
-					frappe.set_route(frappe.get_route());
-				}
-			);
-		} else if(this.prepared_report_action == "Rebuild"){
-			this.page.set_primary_action(
-				__("Rebuild"),
-				this.generate_background_report.bind(this)
+		this.primary_action_map = {
+			"New": {
+				label: __("Generate New Report"),
+				action: () => this.generate_background_report()
+			},
+			"Edit": {
+				label: __("Edit"),
+				action: () => frappe.set_route(frappe.get_route())
+			},
+			"Rebuild": {
+				label:	__("Rebuild"),
+				action: () => this.generate_background_report()
+			}
+		}
+		let primary_action = this.primary_action_map[this.prepared_report_action];
+
+		if (!this.primary_button || this.primary_button.text() !== primary_action.label) {
+			this.primary_button = this.page.set_primary_action(
+				primary_action.label,
+				primary_action.action
 			);
 		}
 	}
 
+	toggle_primary_button_disabled(disable) {
+		this.primary_button.prop('disabled', disable);
+	}
+
 	generate_background_report() {
+		this.toggle_primary_button_disabled(true);
+
 		let mandatory = this.filters.filter(f => f.df.reqd);
 		let missing_mandatory = mandatory.filter(f => !f.get_value());
 		if (!missing_mandatory.length){
@@ -1619,7 +1628,9 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 		if (flag && this.prepared_report) {
 			this.prepared_report_action = "New";
-			this.add_prepared_report_buttons();
+			if (!this.primary_button.is(':visible')) {
+				this.add_prepared_report_buttons();
+			}
 		}
 	}
 
