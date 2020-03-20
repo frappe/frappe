@@ -241,9 +241,6 @@
 		"public/js/frappe/ui/chart.js",
 		"public/js/frappe/barcode_scanner/index.js"
 	],
-	"css/module.min.css": [
-		"public/less/module.less"
-	],
 	"css/form.min.css": [
 		"public/less/form_grid.less"
 	],
