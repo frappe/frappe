@@ -27,7 +27,15 @@ frappe.ui.form.on('Newsletter', {
 		}
 	},
 
+	onload_post_render(frm) {
+		frm.trigger('setup_schedule_send');
+	},
+
 	schedule_send(frm) {
+		frm.trigger('setup_schedule_send');
+	},
+
+	setup_schedule_send(frm) {
 		let today = new Date();
 		// setting datepicker options to set min date & min time
 		frm.get_field('schedule_send').$input.datepicker({
