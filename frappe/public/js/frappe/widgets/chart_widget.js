@@ -102,8 +102,15 @@ export default class ChartWidget extends Widget {
 					} else {
 						this.selected_from_date = null;
 						this.selected_to_date = null;
-						if (this.date_field_wrapper)
+						if (this.date_field_wrapper) {
 							this.date_field_wrapper.hide();
+
+							// Title maybe hidden becuase of date range fields
+							// in half width chart
+							this.title_field.show();
+							this.head.css('flex-direction', "row");
+						}
+
 						this.fetch_and_update_chart();
 					}
 				}
@@ -155,6 +162,11 @@ export default class ChartWidget extends Widget {
 			this.date_field_wrapper = $(
 				`<div class="dashboard-date-field pull-right"></div>`
 			).appendTo(this.action_area);
+
+			if(this.width != "Full" && this.widget.width() < 700) {
+				this.title_field.hide();
+				this.head.css('flex-direction', "row-reverse");
+			}
 
 			this.date_range_field = frappe.ui.form.make_control({
 				df: {
