@@ -11,9 +11,22 @@ from frappe.model.document import Document
 from frappe.core.doctype.version.version import get_diff
 from frappe.utils.file_manager import save_file, get_file
 from frappe import _
+from six import string_types
 
 class Package(Document):
-	pass
+
+	def import_from_package(self):
+		filters = {"attached_to_doctype": "Package", "attached_to_name": "Package"}
+		files = frappe.get_list("File", filters=filters, limit=1, order_by="creation desc")
+		if not files:
+			frappe.msgprint(_("No file attach for Importing."))
+			return
+
+		for f in files:
+			fname, fcontents = get_file(f.name)
+			import_package(fcontents)
+
+		frappe.msgprint(_("Package Imported."))
 
 @frappe.whitelist()
 def export_package():
@@ -57,10 +70,10 @@ def export_package():
 def import_package(package=None):
 	"""Import package from JSON"""
 
-	content = json.loads(package)
-	length = len(content)
+	if isinstance(package, string_types):
+		package = json.loads(package)
 
-	for doc in content:
+	for doc in package:
 		modified = doc.pop("modified")
 		overwrite = doc.pop("overwrite")
 		attachments = doc.pop("attachments")

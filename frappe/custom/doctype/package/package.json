@@ -5,7 +5,10 @@
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
-  "export_package"
+  "export_package",
+  "import_section",
+  "attach",
+  "import"
  ],
  "fields": [
   {
@@ -14,11 +17,28 @@
    "fieldtype": "Table",
    "label": "Package",
    "options": "Package DocType"
+  },
+  {
+   "collapsible": 1,
+   "collapsible_depends_on": "attach",
+   "fieldname": "import_section",
+   "fieldtype": "Section Break",
+   "label": "Import Package"
+  },
+  {
+   "fieldname": "import",
+   "fieldtype": "Button",
+   "label": "Import"
+  },
+  {
+   "fieldname": "attach",
+   "fieldtype": "Attach",
+   "label": "Attach Package"
   }
  ],
  "issingle": 1,
  "links": [],
- "modified": "2020-03-17 16:41:13.542896",
+ "modified": "2020-03-19 22:03:06.012473",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Package",

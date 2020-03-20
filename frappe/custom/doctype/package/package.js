@@ -17,6 +17,9 @@ frappe.ui.form.on('Package', {
 			};
 		})
 	},
+	import: function(frm) {
+		frm.call("import_from_package");
+	}
 });
 
 frappe.ui.form.on('Package DocType', {

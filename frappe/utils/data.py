@@ -216,7 +216,7 @@ def get_date_str(date_obj):
 
 def get_time_str(timedelta_obj):
 	if isinstance(timedelta_obj, string_types):
-		timedelta_obj = to_timedelta(date_obj)
+		timedelta_obj = to_timedelta(timedelta_obj)
 
 	hours, remainder = divmod(timedelta_obj.seconds, 3600)
 	minutes, seconds = divmod(remainder, 60)
