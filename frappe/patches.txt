@@ -263,3 +263,5 @@ frappe.patches.v12_0.fix_home_settings_for_all_users
 execute:frappe.delete_doc_if_exists('DocType', 'Google Maps Settings')
 execute:frappe.delete_doc_if_exists('DocType', 'GSuite Settings')
 execute:frappe.delete_doc_if_exists('DocType', 'GSuite Templates')
+execute:frappe.delete_doc_if_exists('DocType', 'GCalendar Account')
+execute:frappe.delete_doc_if_exists('DocType', 'GCalendar Settings')
