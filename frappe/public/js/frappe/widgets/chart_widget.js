@@ -397,7 +397,8 @@ export default class ChartWidget extends Widget {
 		if (this.chart_doc.chart_type == "Report") {
 			args = {
 				report_name: this.chart_doc.report_name,
-				filters: filters
+				filters: filters,
+				ignore_prepared_report: 1
 			};
 		} else {
 			args = {
