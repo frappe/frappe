@@ -117,7 +117,7 @@ frappe.report_utils = {
 			}
 		).then(r => {
 			frappe.dom.eval(r.script || '');
-			frappe.after_ajax(() => {
+			return frappe.after_ajax(() => {
 				return frappe.query_reports[report_name].filters;
 			})
 		});
