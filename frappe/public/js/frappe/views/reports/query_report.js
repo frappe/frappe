@@ -196,8 +196,8 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			let x_field_title = toTitle(chart_args.x_field);
 			let y_field_title = toTitle(chart_args.y_fields[0]);
 			chart_name = chart_name || (`${this.report_name}: ${x_field_title} vs ${y_field_title}`);
-	
-			Object.assign(args, 
+
+			Object.assign(args,
 				{
 					'chart_name': chart_name,
 					'x_field': chart_args.x_field,
@@ -209,7 +209,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			);
 		} else {
 			chart_name = chart_name || this.report_name;
-			Object.assign(args, 
+			Object.assign(args,
 				{
 					'chart_name': chart_name,
 					'is_custom': 1
@@ -218,7 +218,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		}
 
 		frappe.xcall(
-			'frappe.desk.doctype.dashboard_chart.dashboard_chart.create_report_chart', 
+			'frappe.desk.doctype.dashboard_chart.dashboard_chart.create_report_chart',
 			{args: args}
 		).then( () => {
 			let message;
@@ -451,7 +451,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				else {
 					this.$chart.empty();
 					if (this.chart_fields) {
-						this.chart_options = 
+						this.chart_options =
 							frappe.report_utils.make_chart_options(
 								this.columns,
 								this.raw_data,
@@ -673,7 +673,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				});
 			}
 
-			values.y_fields = 
+			values.y_fields =
 				values.y_fields
 					.map(d => d.trim())
 					.filter(Boolean);
@@ -698,7 +698,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				dialog.refresh();
 			}
 			else {
-				wrapper[0].innerHTML = 
+				wrapper[0].innerHTML =
 				`<div class="flex justify-center align-center text-muted" style="height: 120px; display: flex;">
 					<div>Please select X and Y fields</div>
 				</div>`;
@@ -712,7 +712,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 					fieldname: 'x_field',
 					label: 'X Field',
 					fieldtype: 'Select',
-					default: me.chart_fields? me.chart_fields.x_field: null, 
+					default: me.chart_fields? me.chart_fields.x_field: null,
 					options: field_options.non_numeric_fields,
 				},
 				{
@@ -782,7 +782,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			primary_action: (values) => {
 				values = set_chart_values(values);
 
-				let options = 
+				let options =
 					frappe.report_utils.make_chart_options(
 						this.columns,
 						this.raw_data,
@@ -791,11 +791,11 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				me.chart_fields = values
 
 				let x_field_label =
-					field_options.numeric_fields.filter(field => 
+					field_options.numeric_fields.filter(field =>
 						field.value == values.y_fields[0]
 					)[0].label;
 				let y_field_label =
-					field_options.non_numeric_fields.filter(field => 
+					field_options.non_numeric_fields.filter(field =>
 						field.value == values.x_field
 					)[0].label;
 
@@ -1486,6 +1486,14 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			this.$message.show();
 		} else {
 			this.$message.hide();
+		}
+	}
+
+	toggle_filter(fieldname, flag) {
+		if (flag) {
+			$(`div[data-fieldname=${fieldname}]`).addClass('hide-control');
+		} else {
+			$(`div[data-fieldname=${fieldname}]`).removeClass('hide-control');
 		}
 	}
 
