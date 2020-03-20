@@ -112,7 +112,9 @@ export default class Desktop {
 	}
 
 	get_page_to_show() {
-		const default_page = this.desktop_settings ? this.desktop_settings["Modules"][0].name : "Website";
+		const default_page = this.desktop_settings
+			? this.desktop_settings["Modules"][0].name
+			: "Website";
 		let page =
 			frappe.get_route()[1] ||
 			localStorage.current_desk_page ||
@@ -130,7 +132,7 @@ export default class Desktop {
 		return $page;
 	}
 
-	setup_events() { }
+	setup_events() {}
 }
 
 class DesktopPage {
@@ -138,7 +140,7 @@ class DesktopPage {
 		this.container = container;
 		this.page_name = page_name;
 		this.sections = {};
-		this.allow_customization = false
+		this.allow_customization = false;
 		this.make();
 	}
 
@@ -157,7 +159,7 @@ class DesktopPage {
 			// this.make_onboarding();
 			if (!this.data) {
 				delete localStorage.current_desk_page;
-				frappe.set_route('workspace');
+				frappe.set_route("workspace");
 				return;
 			}
 
@@ -253,7 +255,7 @@ class DesktopPage {
 			widgets: this.data.cards.items
 		});
 
-		this.sections['cards'] = cards;
+		this.sections["cards"] = cards;
 
 		const legend = [
 			{
