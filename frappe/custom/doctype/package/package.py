@@ -8,7 +8,6 @@ import json
 import datetime
 import base64
 from frappe.model.document import Document
-from frappe.core.doctype.version.version import get_diff
 from frappe.utils.file_manager import save_file, get_file
 from frappe import _
 from six import string_types
@@ -30,7 +29,7 @@ class Package(Document):
 
 @frappe.whitelist()
 def export_package():
-	"""Export package as JSON"""
+	"""Export package as JSON."""
 
 	package_doc = frappe.get_single("Package")
 	package = []
@@ -68,7 +67,7 @@ def export_package():
 
 @frappe.whitelist()
 def import_package(package=None):
-	"""Import package from JSON"""
+	"""Import package from JSON."""
 
 	if isinstance(package, string_types):
 		package = json.loads(package)
@@ -97,10 +96,8 @@ def add_attachment(attachments, doc):
 		save_file(attachment.get("fname"), base64.b64decode(attachment.get("content")), doc.get("doctype"), doc.get("name"))
 
 def post_process(package):
-	"""
-		Remove the keys from Document and Child Document
-		Convert datetime, date, time to str
-	"""
+	"""Remove the keys from Document and Child Document. Convert datetime, date, time to str."""
+
 	del_keys = ('modified_by', 'creation', 'owner', 'idx', 'docstatus')
 	child_del_keys = ('modified_by', 'creation', 'owner', 'idx', 'docstatus', 'name')
 

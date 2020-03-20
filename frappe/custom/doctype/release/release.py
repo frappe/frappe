@@ -33,13 +33,18 @@ class Release(Document):
 
 	def install_package_to_remote(self, package, instance):
 		remote = frappe.get_doc("Release Instance", instance.instance)
-		connection = FrappeClient(remote.instance, remote.user, get_decrypted_password(remote.doctype, remote.name))
+
+		try:
+			connection = FrappeClient(remote.instance, remote.user, get_decrypted_password(remote.doctype, remote.name))
+		except Exception:
+			frappe.log_error(frappe.get_traceback())
+			frappe.throw(_("Couldn't connect to site {0}. Please check Error Logs.").format(remote.instance))
 
 		try:
 			connection.post_request({
 				"cmd": "frappe.custom.doctype.package.package.import_package",
 				"package": json.dumps(package)
 			})
-		except Exception as e:
+		except Exception:
 			frappe.log_error(frappe.get_traceback())
 			frappe.throw(_("Error while installing package to site {0}. Please check Error Logs.").format(remote.instance))

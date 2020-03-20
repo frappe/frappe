@@ -82,7 +82,7 @@ frappe.ui.form.on('Package DocType', {
 					],
 					primary_action: function() {
 						let values = filter_group.get_filters();
-						let flt = []
+						let flt = [];
 						if (values) {
 							values.forEach(function(value) {
 								flt.push([value[0], value[1], value[2], value[3]]);
@@ -102,7 +102,7 @@ frappe.ui.form.on('Package DocType', {
 				});
 				filter_group.add_filters_to_filter_group(filters);
 				dialog.show();
-			})
+			});
 		});
 	},
 });
