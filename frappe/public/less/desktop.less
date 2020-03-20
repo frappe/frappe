@@ -154,6 +154,14 @@
 				margin-right: 20px;
 			}
 		}
+
+		.grid-col-2 {
+			grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+			.full-width {
+				grid-column-start: 1;
+				grid-column-end: 2;
+			}
+		}
 	}
 }
 
