@@ -6,6 +6,7 @@ frappe.provide("frappe.dashboards.chart_sources");
 export default class ChartWidget extends Widget {
 	constructor(opts) {
 		super(opts);
+		this.height = 240;
 	}
 
 	refresh() {
@@ -24,13 +25,25 @@ export default class ChartWidget extends Widget {
 		this.make_chart();
 	}
 
-	set_loading_state() {
+	setup_container() {
+		this.body.empty();
+
 		this.loading = $(
-			`<div class="chart-loading-state text-muted" style="height: 200px;">${__(
+			`<div class="chart-loading-state text-muted" style="height: ${this.height}px;">${__(
 				"Loading..."
 			)}</div>`
 		);
-		this.loading.appendTo(this.body);
+		this.loading.hide().appendTo(this.body);
+
+		this.empty = $(
+			`<div class="chart-loading-state text-muted" style="height: ${this.height}px;">${__(
+				"No Data..."
+			)}</div>`
+		);
+		this.empty.hide().appendTo(this.body);
+
+		this.chart_wrapper = $(`<div></div>`);
+		this.chart_wrapper.appendTo(this.body);
 	}
 
 	set_summary() {
@@ -48,22 +61,20 @@ export default class ChartWidget extends Widget {
 	}
 
 	make_chart() {
-		this.body.empty();
 		this.get_settings().then(() => {
-			this.set_loading_state();
+			this.setup_container();
 			this.prepare_chart_object();
-			// this.prepare_container();
-
 			this.action_area.empty();
 			this.prepare_chart_actions();
-			// this.setup_refresh_button();
 			this.setup_filter_button();
+
 			if (
 				this.chart_doc.timeseries &&
 				this.chart_doc.chart_type !== "Custom"
 			) {
 				this.render_time_series_filters();
 			}
+
 			this.fetch_and_update_chart();
 		});
 	}
@@ -73,14 +84,6 @@ export default class ChartWidget extends Widget {
 		const buttons = $(`<button type="button" class="btn btn-xs btn-secondary btn-default selected">Resize</button>
 					<button class="btn btn-secondary btn-light btn-danger btn-xs"><i class="fa fa-trash" aria-hidden="true"></i></button>`);
 		buttons.appendTo(this.action_area);
-	}
-
-	setup_refresh_button() {
-		const refresh_button = $(
-			`<button class="btn btn-secondary btn-light btn-default btn-xs"><i class="fa fa-refresh" aria-hidden="true"></i></button>`
-		);
-		refresh_button.appendTo(this.action_area);
-		refresh_button.on("click", () => this.refresh());
 	}
 
 	render_time_series_filters() {
@@ -149,7 +152,6 @@ export default class ChartWidget extends Widget {
 
 			this.update_chart_object();
 			this.data = data;
-			this.loading.remove();
 			this.render();
 		});
 	}
@@ -428,18 +430,20 @@ export default class ChartWidget extends Widget {
 			colors = [this.chart_doc.color || "light-blue"];
 		}
 
-		if (!this.data.labels || !this.data || !Object.keys(this.data).length) {
-			const empty = $(
-				`<div class="chart-loading-state text-muted" style="height: 200px;">${__(
-					"No Data..."
-				)}</div>`
-			);
-			empty.appendTo(this.body);
+		if (!this.data || !this.data.labels.length || !Object.keys(this.data).length) {
+			this.chart_wrapper.hide();
+			this.loading.hide();
+			this.empty.show();
 		} else {
+			this.loading.hide();
+			this.empty.hide();
+			this.chart_wrapper.show();
+
 			let chart_args = {
 				data: this.data,
 				type: chart_type_map[this.chart_doc.type],
 				colors: colors,
+				height: this.height,
 				axisOptions: {
 					xIsSeries: this.chart_doc.timeseries,
 					shortenYAxisNumbers: 1
@@ -447,7 +451,7 @@ export default class ChartWidget extends Widget {
 			};
 			if (!this.dashboard_chart) {
 				this.dashboard_chart = new frappe.Chart(
-					this.body[0],
+					this.chart_wrapper[0],
 					chart_args
 				);
 			} else {
