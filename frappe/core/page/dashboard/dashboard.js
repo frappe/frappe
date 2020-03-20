@@ -22,7 +22,7 @@ class Dashboard {
 	constructor(wrapper) {
 		this.wrapper = $(wrapper);
 		$(`<div class="dashboard">
-			<div class="dashboard-graph row"></div>
+			<div class="dashboard-graph"></div>
 		</div>`).appendTo(this.wrapper.find(".page-content").empty());
 		this.container = this.wrapper.find(".dashboard-graph");
 		this.page = wrapper.page;
@@ -78,16 +78,22 @@ class Dashboard {
 	refresh() {
 		this.get_dashboard_doc().then((doc) => {
 			this.dashboard_doc = doc;
-			this.charts = this.dashboard_doc.charts;
+			this.charts = this.dashboard_doc.charts
+							.map(chart => {
+								return {
+									chart_name: chart.chart,
+									label: chart.chart,
+									...chart
+								}
+							});
 
-			this.charts.map((chart) => {
-				let chart_container = $("<div></div>");
-				chart_container.appendTo(this.container);
-
-				frappe.model.with_doc("Dashboard Chart", chart.chart).then( chart_doc => {
-					let dashboard_chart = new frappe.ui.DashboardChart(chart_doc, chart_container);
-					dashboard_chart.show();
-				});
+			this.chart_group = new frappe.widget.WidgetGroup({
+				title: null,
+				container: this.container,
+				type: "chart",
+				columns: 2,
+				allow_sorting: true,
+				widgets: this.charts,
 			});
 		});
 	}
