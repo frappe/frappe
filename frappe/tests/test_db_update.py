@@ -56,7 +56,7 @@ def get_other_fields_meta(meta):
 		'creation': ('Datetime', 0),
 		'modified': ('Datetime', 0),
 		'idx': ('Int', 8),
-		'docstatus': ('Int', 1)
+		'docstatus': ('Check', 0)
 	}
 
 	optional_fields = frappe.db.OPTIONAL_COLUMNS
