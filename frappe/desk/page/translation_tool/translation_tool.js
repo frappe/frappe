@@ -131,6 +131,22 @@ class TranslationTool {
 	}
 
 	edit_translation(translation) {
+		if (this.form) {
+			this.form.set_values({});
+		}
+		this.get_additional_info(translation.id).then(data =>
+			this.make_edit_form(translation, data)
+		);
+	}
+
+	get_additional_info(source_id) {
+		return frappe.xcall('frappe.translate.get_source_additional_info', {
+			source: source_id,
+			language: this.page.fields_dict['language'].get_value()
+		});
+	}
+
+	make_edit_form(translation, { contributions, positions }) {
 		if (!this.form) {
 			this.form = new frappe.ui.FieldGroup({
 				fields: [
@@ -168,37 +184,62 @@ class TranslationTool {
 						read_only: 1
 					},
 					{
+						fieldtype: 'HTML',
+						fieldname: 'contributed_translations'
+					},
+					{
 						label: 'Translated Text',
-						fieldtype: 'Code',
+						fieldtype: 'Small Text',
 						fieldname: 'translated_text',
 						change: () => {
-							let values = this.form.get_values();
-							if (!values.translated_text) {
-								delete this.edited_translations[values.id];
-							}
+							let { id, translated_text, source_text } = this.form.get_values();
+							let existing_value = this.form.translation_dict.translated_text;
 							if (
-								this.form.translation_dict.translated_text !==
-								values.translated_text
+								is_null(translated_text) ||
+								existing_value === translated_text
 							) {
-								this.edited_translations[values.id] = values;
-							} else {
-								delete this.edited_translations[values.id];
+								delete this.edited_translations[id];
+							} else if (existing_value !== translated_text) {
+								this.edited_translations[id] = {
+									id,
+									translated_text,
+									source_text
+								};
 							}
 							this.update_header();
 						}
+					},
+					{
+						label: 'Suggest',
+						fieldtype: 'Button',
+						click() {}
 					}
 				],
 				body: this.wrapper.find('.translation-edit-form')
 			});
+
 			this.form.make();
 			this.setup_header();
 		}
+
 		this.form.set_values(translation);
 		this.form.translation_dict = translation;
 		this.form.set_df_property('doctype', 'hidden', !translation.doctype);
 		this.form.set_df_property('context', 'hidden', !translation.context);
 		this.set_status(translation);
-		this.setup_additional_info(translation.id);
+
+		let contributions_html = contributions.map(c => {
+			return `
+			<div class="attached-file flex justify-between align-center" style="display: flex;">
+				<div class="ellipsis">${JSON.stringify(c)}</div>
+				<div>
+					<button class="btn btn-xs btn-default" data-action="reload_attachment">Upvote</button>
+					<button class="btn btn-xs btn-default" data-action="clear_attachment">Report</button>
+				</div>
+			</div>
+			`;
+		});
+		this.form.get_field('contributed_translations').html(contributions_html);
 	}
 
 	setup_additional_info(source_id) {
@@ -314,33 +355,8 @@ class TranslationTool {
 					default: this.language
 				},
 				{
-					label: __('Translations'),
-					fieldname: 'translation_data',
-					fieldtype: 'Table',
-					fields: [
-						{
-							label: __('Source Text'),
-							fieldname: 'source_text',
-							fieldtype: 'Link',
-							options: 'Language',
-							in_list_view: 1,
-							read_only: 1,
-							columns: 3
-						},
-						{
-							fieldname: 'source',
-							fieldtype: 'Data',
-							hidden: 1
-						},
-						{
-							label: __('Translation Text'),
-							fieldname: 'translated_text',
-							fieldtype: 'Text',
-							in_list_view: 1,
-							columns: 7
-						}
-					],
-					data: Object.values(this.edited_translations)
+					fieldtype: 'HTML',
+					fieldname: 'edited_translations'
 				}
 			],
 			title: __('Confirm Translations'),
@@ -350,6 +366,19 @@ class TranslationTool {
 				this.create_translations(values).then(this.confirmation_dialog.hide());
 			}
 		});
+		this.confirmation_dialog.get_field('edited_translations').html(`
+			<table class="table table-bordered">
+				<tr>
+					<th>${__('Source Text')}</th>
+					<th>${__('Translated Text')}</th>
+				</tr>
+				${Object.values(this.edited_translations)
+					.map(t => `<tr>
+						<td>${t.source_text}</td>
+						<td>${t.translated_text}</td>
+					</tr>`).join('')}
+			</table>
+		`);
 		this.confirmation_dialog.show();
 	}
 	create_translations() {
