@@ -165,7 +165,7 @@ class Meta(Document):
 
 	def get_valid_columns(self):
 		if not hasattr(self, "_valid_columns"):
-			if self.name in ("DocType", "DocField", "DocPerm", "Property Setter"):
+			if self.name in ("DocType", "DocField", "DocPerm"):
 				self._valid_columns = get_table_columns(self.name)
 			else:
 				self._valid_columns = self.default_fields + \
@@ -285,17 +285,17 @@ class Meta(Document):
 		return get_workflow_name(self.name)
 
 	def add_custom_fields(self):
-		try:
-			self.extend("fields", frappe.db.sql("""SELECT * FROM `tabCustom Field`
-				WHERE dt = %s AND docstatus < 2""", (self.name,), as_dict=1,
-				update={"is_custom_field": 1}))
-		except Exception as e:
-			if frappe.db.is_table_missing(e):
-				return
-			else:
-				raise
+		if not frappe.db.table_exists('Custom Field'):
+			return
+
+		self.extend("fields", frappe.db.sql("""SELECT * FROM `tabCustom Field`
+			WHERE dt = %s AND docstatus < 2""", (self.name,), as_dict=1,
+			update={"is_custom_field": 1}))
 
 	def apply_property_setters(self):
+		if not frappe.db.table_exists('Property Setter'):
+			return
+
 		property_setters = frappe.db.sql("""select * from `tabProperty Setter` where
 			doc_type=%s""", (self.name,), as_dict=1)
 
@@ -365,6 +365,7 @@ class Meta(Document):
 		'''Reset `permissions` with Custom DocPerm if exists'''
 		if frappe.flags.in_patch or frappe.flags.in_install:
 			return
+
 
 		if not self.istable and self.name not in ('DocType', 'DocField', 'DocPerm',
 			'Custom DocPerm'):
