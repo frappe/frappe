@@ -68,7 +68,7 @@ class DBTable:
 		fields = self.meta.get_fieldnames_with_value(True)
 
 		# optional fields like _comments
-		if not self.meta.istable:
+		if not self.meta.get('istable'):
 			for fieldname in frappe.db.OPTIONAL_COLUMNS:
 				fields.append({
 					"fieldname": fieldname,
@@ -76,7 +76,7 @@ class DBTable:
 				})
 
 			# add _seen column if track_seen
-			if getattr(self.meta, 'track_seen', False):
+			if self.meta.get('track_seen'):
 				fields.append({
 					'fieldname': '_seen',
 					'fieldtype': 'Text'
