@@ -374,7 +374,7 @@ class Meta(Document):
 				self.permissions = [Document(d) for d in custom_perms]
 
 	def get_fieldnames_with_value(self, with_field_meta=False):
-		return [df if with_meta else df.fieldname for df in self.fields if df.fieldtype not in no_value_fields]
+		return [df if with_field_meta else df.fieldname for df in self.fields if df.fieldtype not in no_value_fields]
 
 
 	def get_fields_to_check_permissions(self, user_permission_doctypes):
