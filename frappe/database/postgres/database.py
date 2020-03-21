@@ -282,7 +282,7 @@ class PostgresDatabase(Database):
 				ELSE a.data_type
 			END AS type,
 			COUNT(b.indexdef) AS Index,
-			COALESCE(a.column_default, NULL) AS default,
+			SPLIT_PART(COALESCE(a.column_default, NULL), '::', 1) AS default,
 			BOOL_OR(b.unique) AS unique
 			FROM information_schema.columns a
 			LEFT JOIN
