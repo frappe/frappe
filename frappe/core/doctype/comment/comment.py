@@ -143,7 +143,7 @@ def update_comments_in_parent(reference_doctype, reference_name, _comments):
 	"""Updates `_comments` property in parent Document with given dict.
 
 	:param _comments: Dict of comments."""
-	if not reference_doctype or frappe.db.get_value("DocType", reference_doctype, "issingle"):
+	if not reference_doctype or not reference_name or frappe.db.get_value("DocType", reference_doctype, "issingle"):
 		return
 
 	try:

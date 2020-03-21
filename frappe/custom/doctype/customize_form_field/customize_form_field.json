@@ -149,7 +149,7 @@
    "fieldname": "precision",
    "fieldtype": "Select",
    "label": "Precision",
-   "options": "\n1\n2\n3\n4\n5\n6\n7\n8\n9"
+   "options": "\n0\n1\n2\n3\n4\n5\n6\n7\n8\n9"
   },
   {
    "depends_on": "eval:in_list(['Data', 'Link', 'Dynamic Link', 'Password', 'Select', 'Read Only', 'Attach', 'Attach Image'], doc.fieldtype)",
@@ -385,7 +385,7 @@
  "idx": 1,
  "istable": 1,
  "links": [],
- "modified": "2019-12-27 12:50:51.419763",
+ "modified": "2020-03-16 14:53:40.619043",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Customize Form Field",

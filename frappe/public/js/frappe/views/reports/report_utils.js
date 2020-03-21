@@ -112,13 +112,14 @@ frappe.report_utils = {
 
 		return frappe.xcall(
 			'frappe.desk.query_report.get_script',
-			{ 
+			{
 				report_name: report_name
 			}
 		).then(r => {
 			frappe.dom.eval(r.script || '');
-			let filters = frappe.query_reports[report_name].filters;
-			return Promise.resolve(filters);
+			return frappe.after_ajax(() => {
+				return frappe.query_reports[report_name].filters;
+			})
 		});
 	},
 

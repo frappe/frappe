@@ -42,7 +42,6 @@ app_include_css = [
 	"assets/css/list.min.css",
 	"assets/css/form.min.css",
 	"assets/css/report.min.css",
-	"assets/css/module.min.css"
 ]
 
 web_include_js = [
@@ -134,12 +133,13 @@ doc_events = {
 		],
 		"on_trash": [
 			"frappe.desk.notifications.clear_doctype_notifications",
-			"frappe.workflow.doctype.workflow_action.workflow_action.process_workflow_actions"
+			"frappe.workflow.doctype.workflow_action.workflow_action.process_workflow_actions",
+			"frappe.cache_manager.build_table_count_cache"
 		],
 		"on_change": [
 			"frappe.social.doctype.energy_point_rule.energy_point_rule.process_energy_points"
 		],
-		"after_insert": "frappe.cache_manager.build_table_count_cache",
+		"after_insert": "frappe.cache_manager.build_table_count_cache"
 	},
 	"Event": {
 		"after_insert": "frappe.integrations.doctype.google_calendar.google_calendar.insert_event_in_google_calendar",
@@ -257,7 +257,10 @@ bot_parsers = [
 	'frappe.utils.bot.CountBot'
 ]
 
-setup_wizard_exception = "frappe.desk.page.setup_wizard.setup_wizard.email_setup_wizard_exception"
+setup_wizard_exception = [
+	"frappe.desk.page.setup_wizard.setup_wizard.email_setup_wizard_exception",
+	"frappe.desk.page.setup_wizard.setup_wizard.log_setup_wizard_exception"
+]
 
 before_migrate = ['frappe.patches.v11_0.sync_user_permission_doctype_before_migrate.execute']
 after_migrate = ['frappe.website.doctype.website_theme.website_theme.generate_theme_files_if_not_exist']
