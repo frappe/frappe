@@ -83,7 +83,8 @@ class DBTable:
 				})
 
 		for field in fields:
-			self.columns[field.get('fieldname')] = DbColumn(self,
+			self.columns[field.get('fieldname')] = DbColumn(
+				self,
 				field.get('fieldname'),
 				field.get('fieldtype'),
 				field.get('length'),
@@ -91,7 +92,8 @@ class DBTable:
 				field.get('search_index'),
 				field.get('options'),
 				field.get('unique'),
-				field.get('precision'))
+				field.get('precision')
+			)
 
 	def validate(self):
 		"""Check if change in varchar length isn't truncating the columns"""
