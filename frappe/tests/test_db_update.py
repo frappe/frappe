@@ -13,8 +13,6 @@ class TestDBUpdate(unittest.TestCase):
 		make_property_setter(doctype, 'bio', 'fieldtype', 'Text', 'Data')
 		make_property_setter(doctype, 'enabled', 'default', '1', 'Int')
 
-		meta = frappe.get_meta(doctype, cached=False)
-
 		frappe.db.updatedb(doctype)
 
 		field_defs = get_field_defs(doctype)
@@ -30,9 +28,8 @@ class TestDBUpdate(unittest.TestCase):
 
 			default = field_def.default if field_def.default is not None else 'NULL'
 
-			self.assertEquals(fieldtype, table_column.type)
+			self.assertEqual(fieldtype, table_column.type)
 			self.assertIn(table_column.default or 'NULL', [default, "'{}'".format(default), '0'])
-
 
 def get_fieldtype_from_def(field_def):
 	fieldtuple = frappe.db.type_map.get(field_def.fieldtype, ('', 0))
@@ -48,7 +45,6 @@ def get_field_defs(doctype):
 	return field_defs
 
 def get_other_fields_meta(meta):
-	from frappe.model import optional_fields
 	default_fields_map = {
 		'name': ('Data', 0),
 		'owner': ('Data', 0),

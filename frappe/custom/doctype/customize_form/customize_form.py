@@ -382,10 +382,10 @@ class CustomizeForm(Document):
 				FROM `tab{doctype}`
 				WHERE LENGTH({fieldname}) > {max_length}
 			'''.format(
-				fieldname = fieldname,
-				doctype = self.doc_type,
-				max_length = max_length
-			), as_dict = True)
+				fieldname=fieldname,
+				doctype=self.doc_type,
+				max_length=max_length
+			), as_dict=True)
 			links = []
 			label = df.label
 			for doc in docs:
@@ -394,7 +394,11 @@ class CustomizeForm(Document):
 
 			if docs:
 				frappe.throw(_('Value for field {0} is too long in {1}. Length should be lesser than {2} characters')
-					.format(frappe.bold(label), links_str, frappe.bold(max_length)), title=_('Data Too Long'), is_minimizable=len(docs) > 1)
+					.format(
+						frappe.bold(label),
+						links_str,
+						frappe.bold(max_length)
+					), title=_('Data Too Long'), is_minimizable=len(docs) > 1)
 
 		self.flags.update_db = True
 

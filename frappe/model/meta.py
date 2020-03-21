@@ -288,9 +288,12 @@ class Meta(Document):
 		if not frappe.db.table_exists('Custom Field'):
 			return
 
-		self.extend("fields", frappe.db.sql("""SELECT * FROM `tabCustom Field`
-			WHERE dt = %s AND docstatus < 2""", (self.name,), as_dict=1,
-			update={"is_custom_field": 1}))
+		custom_fields = frappe.db.sql("""
+			SELECT * FROM `tabCustom Field`
+			WHERE dt = %s AND docstatus < 2
+		""", (self.name,), as_dict=1, update={"is_custom_field": 1})
+
+		self.extend("fields", custom_fields)
 
 	def apply_property_setters(self):
 		if not frappe.db.table_exists('Property Setter'):
@@ -366,7 +369,6 @@ class Meta(Document):
 		if frappe.flags.in_patch or frappe.flags.in_install:
 			return
 
-
 		if not self.istable and self.name not in ('DocType', 'DocField', 'DocPerm',
 			'Custom DocPerm'):
 			custom_perms = frappe.get_all('Custom DocPerm', fields='*',
@@ -375,7 +377,8 @@ class Meta(Document):
 				self.permissions = [Document(d) for d in custom_perms]
 
 	def get_fieldnames_with_value(self, with_field_meta=False):
-		return [df if with_field_meta else df.fieldname for df in self.fields if df.fieldtype not in no_value_fields]
+		return [df if with_field_meta else df.fieldname \
+			for df in self.fields if df.fieldtype not in no_value_fields]
 
 
 	def get_fields_to_check_permissions(self, user_permission_doctypes):
