@@ -178,7 +178,7 @@
   {
    "fieldname": "time_zone",
    "fieldtype": "Select",
-   "label": "Timezone"
+   "label": "Time zone"
   },
   {
    "description": "Get your globally recognized avatar from Gravatar.com",
@@ -302,7 +302,7 @@
    "default": "0",
    "fieldname": "logout_all_sessions",
    "fieldtype": "Check",
-   "label": "Logout from all devices while changing Password"
+   "label": "Logout from all devices while changing password"
   },
   {
    "fieldname": "reset_password_key",
@@ -338,7 +338,7 @@
    "default": "0",
    "fieldname": "document_follow_notify",
    "fieldtype": "Check",
-   "label": "Send Notifications for documents followed by me"
+   "label": "Send notifications for documents followed by me"
   },
   {
    "default": "Daily",
@@ -359,19 +359,19 @@
    "default": "1",
    "fieldname": "thread_notify",
    "fieldtype": "Check",
-   "label": "Send Notifications for Email threads"
+   "label": "Send notifications for email threads"
   },
   {
    "default": "0",
    "fieldname": "send_me_a_copy",
    "fieldtype": "Check",
-   "label": "Send Me A Copy of Outgoing Emails"
+   "label": "Send me a copy of outgoing emails"
   },
   {
    "default": "1",
    "fieldname": "allowed_in_mentions",
    "fieldtype": "Check",
-   "label": "Allowed In Mentions"
+   "label": "Allowed in mentions"
   },
   {
    "fieldname": "email_signature",
