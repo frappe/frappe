@@ -3,6 +3,7 @@ import BaseWidget from "../widgets/base_widget";
 import ShortcutWidget from "../widgets/shortcut_widget";
 import LinksWidget from "../widgets/links_widget";
 import OnboardingWidget from "../widgets/onboarding_widget";
+import NewWidget from "../widgets/new_widget";
 
 frappe.provide('frappe.widget')
 
@@ -11,26 +12,15 @@ const widget_factory = {
 	base: BaseWidget,
 	bookmark: ShortcutWidget,
 	links: LinksWidget,
-	onboarding: OnboardingWidget
+	onboarding: OnboardingWidget,
+	new: NewWidget
 };
 
 export default class WidgetGroup {
 	constructor(opts) {
 		Object.assign(this, opts);
-		// opts = {
-		// 	title: "CRM Dashboard",
-		//  container: $(''),
-		// 	widgets: [
-		// 		{type: "dashboard", width: "Full", options: {}}.
-		// 		{type: "dashboard", width: "Full", options: {}}
-		// 	],
-		// 	allow_delete: true,
-		// 	allow_create: true,
-		// 	allow_rearrange: true,
-		// 	hide_edit_option: false,
-		// 	collapsible: false
-		// }
-		window.wid_area = this;
+		this.widgets_list = [];
+		this.widgets_dict = {};
 		this.make();
 	}
 
@@ -42,7 +32,7 @@ export default class WidgetGroup {
 	refresh() {
 		this.title && this.set_title(this.title);
 		this.widgets && this.make_widgets();
-		this.allow_sorting && this.setup_sortable();
+		this.options.allow_sorting && this.setup_sortable();
 	}
 
 	make_container() {
@@ -70,11 +60,33 @@ export default class WidgetGroup {
 		const widget_class = widget_factory[this.type];
 
 		this.widgets.forEach(widget => {
-			new widget_class({
+			let widget_object = new widget_class({
 				...widget,
-				container: this.body
-			})
+				container: this.body,
+				on_delete: (name) => this.on_delete(name)
+			});
+			this.widgets_list.push(widget_object);
+			this.widgets_dict[widget.name] = widget_object;
 		});
+	}
+
+	customize() {
+		const options = {
+			delete: this.options.allow_delete,
+			sort: this.options.allow_sorting
+		}
+
+		this.widgets_list.forEach(wid => {
+			wid.customize(options);
+		})
+
+		this.options.allow_create && new NewWidget({
+			container: this.body
+		})
+	}
+
+	on_delete(name) {
+		this.widgets_list = this.widgets_list.filter(wid => name != wid.name)
 	}
 
 	setup_sortable() {
