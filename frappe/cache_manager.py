@@ -5,7 +5,7 @@ from __future__ import unicode_literals
 
 import frappe, json
 import frappe.defaults
-from   frappe.model.document import Document
+from frappe.model.document import Document
 from frappe.desk.notifications import (delete_notification_count_for,
 	clear_notifications)
 
