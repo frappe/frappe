@@ -229,7 +229,13 @@ class DesktopPage {
 			container: this.page,
 			type: "chart",
 			columns: 1,
-			allow_sorting: false,
+			options: {
+				allow_sorting: false,
+				allow_create: this.allow_customization,
+				allow_delete: this.allow_customization,
+				allow_hiding: false,
+				allow_edit: this.allow_customization,
+			},
 			widgets: this.data.charts.items
 		});
 	}
@@ -240,7 +246,13 @@ class DesktopPage {
 			container: this.page,
 			type: "bookmark",
 			columns: 3,
-			allow_sorting: this.allow_customization && frappe.is_mobile(),
+			options: {
+				allow_sorting: this.allow_customization && frappe.is_mobile(),
+				allow_create: this.allow_customization,
+				allow_delete: this.allow_customization,
+				allow_hiding: false,
+				allow_edit: this.allow_customization,
+			},
 			widgets: this.data.shortcuts.items
 		});
 	}
@@ -251,7 +263,13 @@ class DesktopPage {
 			container: this.page,
 			type: "links",
 			columns: 3,
-			allow_sorting: this.allow_customization && frappe.is_mobile(),
+			options: {
+				allow_sorting: this.allow_customization && frappe.is_mobile(),
+				allow_create: false,
+				allow_delete: false,
+				allow_hiding: this.allow_customization,
+				allow_edit: false,
+			},
 			widgets: this.data.cards.items
 		});
 

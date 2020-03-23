@@ -92,7 +92,13 @@ class Dashboard {
 				container: this.container,
 				type: "chart",
 				columns: 2,
-				allow_sorting: false,
+				options: {
+					allow_sorting: false,
+					allow_create: false,
+					allow_delete: false,
+					allow_hiding: false,
+					allow_edit: false,
+				}
 				widgets: this.charts,
 			});
 		});
