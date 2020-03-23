@@ -1490,11 +1490,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	}
 
 	toggle_filter(fieldname, flag) {
-		if (flag) {
-			$(`div[data-fieldname=${fieldname}]`).addClass('hide-control');
-		} else {
-			$(`div[data-fieldname=${fieldname}]`).removeClass('hide-control');
-		}
+		$(`div[data-fieldname=${fieldname}]`).toggleClass('hide-control', flag);
 	}
 
 	toggle_report(flag) {
