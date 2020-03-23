@@ -98,7 +98,7 @@ frappe.views.ListGroupBy = class ListGroupBy {
 
 	get_group_by_dropdown_fields() {
 		let group_by_fields = [];
-		let fields = this.list_view.meta.fields.filter((f)=> ["Select", "Link"].includes(f.fieldtype));
+		let fields = this.list_view.meta.fields.filter((f)=> ["Select", "Link", "Data", "Int", "Check"].includes(f.fieldtype));
 		group_by_fields.push({
 			label: __(this.doctype),
 			fieldname: 'group_by_fields',
@@ -167,7 +167,7 @@ frappe.views.ListGroupBy = class ListGroupBy {
 		this.$wrapper.on('click', '.group-by-item', (e) => {
 			let $target = $(e.currentTarget);
 			let fieldname = $target.parents('.group-by-field').find('a').data('fieldname');
-			let value = decodeURIComponent($target.data('value').trim());
+			let value = $target.data('value') instanceof String? decodeURIComponent($target.data('value').trim()): $target.data('value');
 			fieldname = fieldname === 'assigned_to' ? '_assign': fieldname;
 
 			return this.list_view.filter_area.remove(fieldname)
