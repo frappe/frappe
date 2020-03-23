@@ -25,7 +25,7 @@ class Workspace:
 		self.allowed_pages = get_allowed_pages()
 		self.allowed_reports = get_allowed_reports()
 
-		self.table_counts = build_table_count_cache()
+		self.table_counts = get_table_with_counts()
 		self.restricted_doctypes = build_domain_restriced_doctype_cache()
 		self.restricted_pages = build_domain_restriced_page_cache()
 
