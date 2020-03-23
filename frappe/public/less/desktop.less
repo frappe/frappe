@@ -76,6 +76,20 @@
 		position: relative;
 		min-height: 1px;
 		padding-right: 15px;
+
+		.desk-page.allow-customization {
+			.customize-page {
+				text-align: right;
+				margin-top: 7px;
+				color: @text-muted;
+				cursor: pointer;
+				z-index: 99;
+			}
+
+			.widget-group:nth-child(2) {
+				margin-top: -25px;
+			}
+		}
 	}
 
 	@media (max-width: 768px) {
@@ -218,6 +232,16 @@
 	&.sortable-ghost {
 		background-color: @disabled-background;
 		border-color: @disabled-background
+	}
+
+	&.new-widget {
+		min-height: 65px;
+		background-color: @disabled-background;
+		color: @text-muted;
+		display: flex;
+		align-content: center;
+		justify-content: center;
+		cursor: pointer;
 	}
 
 	// Overrides for each widgets

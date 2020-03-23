@@ -152,6 +152,16 @@ class DesktopPage {
 		this.page.hide();
 	}
 
+	make_customization_link() {
+		this.customize_link = $(`<div class="small customize-page">Customize Workspace</div>`);
+		this.customize_link.on('click', () => {
+			this.customize();
+		})
+
+		this.customize_link.appendTo(this.page);
+		this.page.addClass('allow-customization');
+	}
+
 	make() {
 		this.make_page();
 		this.get_data().then(res => {
@@ -164,6 +174,7 @@ class DesktopPage {
 			}
 
 			this.allow_customization = this.data.allow_customization || false;
+			this.allow_customization && this.make_customization_link();
 
 			!this.sections["onboarding"] &&
 				this.data.charts.items.length &&
@@ -221,6 +232,12 @@ class DesktopPage {
 				}
 			]
 		});
+	}
+
+	customize() {
+		Object.keys(this.sections).forEach(section => {
+			this.sections[section].customize();
+		})
 	}
 
 	make_charts() {
