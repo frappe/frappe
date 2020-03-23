@@ -13,10 +13,6 @@ export default class ChartWidget extends Widget {
 		this.make_chart();
 	}
 
-	customize() {
-		this.setup_customize_actions();
-	}
-
 	set_body() {
 		this.widget.addClass("dashboard-widget-box");
 		if (this.width == "Full") {
@@ -77,13 +73,6 @@ export default class ChartWidget extends Widget {
 
 			this.fetch_and_update_chart();
 		});
-	}
-
-	setup_customize_actions() {
-		this.action_area.empty();
-		const buttons = $(`<button type="button" class="btn btn-xs btn-secondary btn-default selected">Resize</button>
-					<button class="btn btn-secondary btn-light btn-danger btn-xs"><i class="fa fa-trash" aria-hidden="true"></i></button>`);
-		buttons.appendTo(this.action_area);
 	}
 
 	render_time_series_filters() {
