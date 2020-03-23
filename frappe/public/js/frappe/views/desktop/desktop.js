@@ -141,6 +141,7 @@ class DesktopPage {
 		this.page_name = page_name;
 		this.sections = {};
 		this.allow_customization = false;
+		this.in_customize_mode = false;
 		this.make();
 	}
 
@@ -153,12 +154,27 @@ class DesktopPage {
 	}
 
 	make_customization_link() {
-		this.customize_link = $(`<div class="small customize-page">Customize Workspace</div>`);
+		this.customize_link = $(`<div class="small customize-options" style="cursor: pointer;">Customize Workspace</div>`);
+		this.customize_link.appendTo(this.page);
 		this.customize_link.on('click', () => {
 			this.customize();
 		})
 
-		this.customize_link.appendTo(this.page);
+		this.save_or_discard_link = $(`<div class="small customize-options small-bounce">
+			<span class="save-customization">Save</span> / <span class="discard-customization">Discard</span>
+			</div>`).hide();
+
+		this.save_or_discard_link.appendTo(this.page);
+		this.save_or_discard_link.find(".save-customization").on("click", () => {
+			console.log("Save Customization");
+		});
+
+		this.save_or_discard_link.find(".discard-customization").on("click", () => {
+			this.in_customize_mode = false;
+			this.container.empty();
+			this.make();
+		})
+
 		this.page.addClass('allow-customization');
 	}
 
@@ -235,9 +251,17 @@ class DesktopPage {
 	}
 
 	customize() {
+		if (this.in_customize_mode) {
+			return
+		}
+
+		this.customize_link.hide();
+		this.save_or_discard_link.show();
+
 		Object.keys(this.sections).forEach(section => {
 			this.sections[section].customize();
 		})
+		this.in_customize_mode = true;
 	}
 
 	make_charts() {
@@ -264,7 +288,7 @@ class DesktopPage {
 			type: "bookmark",
 			columns: 3,
 			options: {
-				allow_sorting: this.allow_customization && frappe.is_mobile(),
+				allow_sorting: this.allow_customization && !frappe.is_mobile(),
 				allow_create: this.allow_customization,
 				allow_delete: this.allow_customization,
 				allow_hiding: false,
@@ -281,7 +305,7 @@ class DesktopPage {
 			type: "links",
 			columns: 3,
 			options: {
-				allow_sorting: this.allow_customization && frappe.is_mobile(),
+				allow_sorting: this.allow_customization && !frappe.is_mobile(),
 				allow_create: false,
 				allow_delete: false,
 				allow_hiding: this.allow_customization,
