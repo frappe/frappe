@@ -10,14 +10,35 @@ export default class Widget {
 		this.set_body();
 	}
 
-	customize() {
+	customize(options) {
+		this.action_area.empty();
 
+		options.allow_delete &&
+			this.add_custom_button(
+				'<i class="fa fa-trash" aria-hidden="true"></i>',
+				() => this.delete()
+			);
+		options.allow_sorting &&
+			this.add_custom_button(
+				'<i class="fa fa-arrows" aria-hidden="true"></i>',
+				null,
+				"drag-handle"
+			);
+		options.allow_hiding &&
+			this.add_custom_button(
+				'<i class="fa fa-eye-slash" aria-hidden="true"></i>',
+				() => this.hide()
+			);
+		options.allow_edit &&
+			this.add_custom_button(
+				'<i class="fa fa-pencil" aria-hidden="true"></i>',
+				() => this.edit()
+			);
 	}
 
 	make() {
 		this.make_widget();
 		this.widget.appendTo(this.container);
-		this.setup_events();
 	}
 
 	make_widget() {
@@ -46,15 +67,38 @@ export default class Widget {
 		this.title_field[0].innerHTML = this.label || this.name;
 	}
 
+	add_custom_button(html, action, class_name = "") {
+		let button = $(
+			`<button class="btn btn-default btn-xs ${class_name}">${html}</button>`
+		);
+		action && button.on("click", () => action());
+		button.appendTo(this.action_area);
+	}
+
+	delete() {
+		this.widget.addClass("zoomOutDelete");
+		// wait for animation
+		setTimeout(() => {
+			this.widget.remove();
+			this.on_delete && this.on_delete(this.name);
+		}, 300);
+	}
+
+	edit() {
+		this.on_edit && this.on_edit(this.name);
+	}
+
+	hide() {
+		this.body.css("opacity", 0.5);
+		this.title_field.css("opacity", 0.5);
+		this.footer.css("opacity", 0.5);
+	}
+
 	set_actions() {
 		//
 	}
 
 	set_body() {
-		//
-	}
-
-	setup_events() {
 		//
 	}
 }

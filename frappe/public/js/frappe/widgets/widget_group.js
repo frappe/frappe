@@ -32,7 +32,6 @@ export default class WidgetGroup {
 	refresh() {
 		this.title && this.set_title(this.title);
 		this.widgets && this.make_widgets();
-		this.options.allow_sorting && this.setup_sortable();
 	}
 
 	make_container() {
@@ -63,7 +62,10 @@ export default class WidgetGroup {
 			let widget_object = new widget_class({
 				...widget,
 				container: this.body,
-				on_delete: (name) => this.on_delete(name)
+				options: {
+					...this.options,
+					on_delete: (name) => this.on_delete(name)
+				}
 			});
 			this.widgets_list.push(widget_object);
 			this.widgets_dict[widget.name] = widget_object;
@@ -71,18 +73,16 @@ export default class WidgetGroup {
 	}
 
 	customize() {
-		const options = {
-			delete: this.options.allow_delete,
-			sort: this.options.allow_sorting
-		}
-
 		this.widgets_list.forEach(wid => {
-			wid.customize(options);
+			wid.customize(this.options);
 		})
 
 		this.options.allow_create && new NewWidget({
-			container: this.body
+			container: this.body,
+			type: this.type
 		})
+
+		this.options.allow_sorting && this.setup_sortable();
 	}
 
 	on_delete(name) {
@@ -93,11 +93,10 @@ export default class WidgetGroup {
 		const container = this.body[0];
 		this.sortable = new Sortable(container, {
 			animation: 150,
+			handle: ".drag-handle",
 			onEnd: () => {
 				console.log("Sorting")
-			},
-			// onChoose: (evt) => this.sortable_config.on_choose(evt, container),
-			// onStart: (evt) => this.sortable_config.on_start(evt, container)
+			},			// onStart: (evt) => this.sortable_config.on_start(evt, container)
 		});
 	}
 }
