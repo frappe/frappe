@@ -464,7 +464,11 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 	set_fetch_values: function(df, docname, fetch_values) {
 		var fl = this.frm.fetch_dict[df.fieldname].fields;
 		for(var i=0; i < fl.length; i++) {
-			frappe.model.set_value(df.parent, docname, fl[i], fetch_values[i], df.fieldtype);
+			const fieldtype = frappe.meta.get_docfield(this.doctype, fl[i]).fieldtype;
+			let value = ['Text', 'Small Text'].includes(fieldtype)
+				? strip_html(fetch_values[i])
+				: fetch_values[i];
+			frappe.model.set_value(df.parent, docname, fl[i], value, df.fieldtype);
 		}
 	}
 });
