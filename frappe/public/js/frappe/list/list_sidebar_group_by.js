@@ -167,7 +167,7 @@ frappe.views.ListGroupBy = class ListGroupBy {
 		this.$wrapper.on('click', '.group-by-item', (e) => {
 			let $target = $(e.currentTarget);
 			let fieldname = $target.parents('.group-by-field').find('a').data('fieldname');
-			let value = $target.data('value') instanceof String? decodeURIComponent($target.data('value').trim()): $target.data('value');
+			let value = typeof $target.data('value') === 'string' ? decodeURIComponent($target.data('value').trim()) : $target.data('value');
 			fieldname = fieldname === 'assigned_to' ? '_assign': fieldname;
 
 			return this.list_view.filter_area.remove(fieldname)
