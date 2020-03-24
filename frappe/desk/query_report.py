@@ -42,7 +42,7 @@ def get_report_doc(report_name):
 	return doc
 
 
-def generate_report_result(report, custom_columns, filters=None, user=None):
+def generate_report_result(report, filters=None, user=None, custom_columns=None):
 	status = None
 	if not user:
 		user = frappe.session.user
@@ -188,7 +188,7 @@ def run(report_name, filters=None, user=None, ignore_prepared_report=False, cust
 			dn = ""
 		result = get_prepared_report_result(report, filters, dn, user)
 	else:
-		result = generate_report_result(report, custom_columns, filters, user)
+		result = generate_report_result(report, filters, user, custom_columns)
 
 	result["add_total_row"] = report.add_total_row and not result.get('skip_total_row', False)
 
