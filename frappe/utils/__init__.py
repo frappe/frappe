@@ -3,7 +3,7 @@
 
 # util __init__.py
 
-from __future__ import unicode_literals, print_function
+from __future__ import unicode_literals, print_function, annotations
 from werkzeug.test import Client
 import os, re, sys, json, hashlib, requests, traceback
 from .html_utils import sanitize_html
@@ -80,6 +80,19 @@ def validate_email_add(email_str, throw=False):
 	validate_email_add will be renamed to the validate_email_address in v12
 	"""
 	return validate_email_address(email_str, throw=False)
+
+def validate_phone_number(phone_number: str, throw: bool = False):
+	"""Returns True if valid phone number"""
+	if not phone_number:
+		return False
+
+	phone_number = phone_number.strip()
+	match = re.match("([0-9\ \+\_\-\,\.\*\#\(\)]){1,20}$", phone_number)
+
+	if not match and throw:
+		frappe.throw(frappe._("{0} is not a valid Phone Number").format(phone_number), frappe.InvalidPhoneNumberError)
+
+	return bool(match)
 
 def validate_email_address(email_str, throw=False):
 	"""Validates the email string"""
