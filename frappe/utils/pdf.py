@@ -15,6 +15,8 @@ from PyPDF2 import PdfFileReader, PdfFileWriter
 import frappe
 from frappe import _
 from frappe.utils import get_wkhtmltopdf_version, scrub_urls
+from bleach._vendor import html5lib
+
 
 PDF_CONTENT_ERRORS = ["ContentNotFoundError", "ContentOperationNotPermittedError",
 	"UnknownContentError", "RemoteHostClosedError"]
@@ -120,7 +122,7 @@ def prepare_options(html, options):
 
 def read_options_from_html(html):
 	options = {}
-	soup = BeautifulSoup(html, "bleach._vendor.html5lib")
+	soup = BeautifulSoup(html, "html5lib")
 
 	options.update(prepare_header_footer(soup))
 

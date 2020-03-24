@@ -1,7 +1,10 @@
 from __future__ import unicode_literals
 import frappe
-import json, re
-import bleach, bleach_whitelist.bleach_whitelist as bleach_whitelist
+import json
+import re
+import bleach
+import bleach_whitelist.bleach_whitelist as bleach_whitelist
+import bleach._vendor.html5lib as html5lib
 from six import string_types
 from bs4 import BeautifulSoup
 
@@ -39,7 +42,7 @@ def clean_email_html(html):
 
 def clean_script_and_style(html):
 	# remove script and style
-	soup = BeautifulSoup(html, 'bleach._vendor.html5lib')
+	soup = BeautifulSoup(html, 'html5lib')
 	for s in soup(['script', 'style']):
 		s.decompose()
 	return frappe.as_unicode(soup)
@@ -47,7 +50,7 @@ def clean_script_and_style(html):
 def sanitize_html(html, linkify=False):
 	"""
 	Sanitize HTML tags, attributes and style to prevent XSS attacks
-	Based on bleach clean, bleach whitelist and bleach._vendor.html5lib's Sanitizer defaults
+	Based on bleach clean, bleach whitelist and html5lib's Sanitizer defaults
 
 	Does not sanitize JSON, as it could lead to future problems
 	"""
