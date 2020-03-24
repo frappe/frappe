@@ -10,7 +10,6 @@ import frappe
 from six import iteritems
 from past.builtins import cmp
 from frappe.utils import markdown
-from frappe.website.utils import get_full_index
 
 
 def delete_page_cache(path):
