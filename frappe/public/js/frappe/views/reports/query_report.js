@@ -307,12 +307,12 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 					this.evaluate_depends_on_value(filter.df.depends_on, filter.df.label);
 
 				if (filter.guardian_has_value) {
-					if(filter.df.hidden_due_to_dependency) {
+					if (filter.df.hidden_due_to_dependency) {
 						filter.df.hidden_due_to_dependency = false;
 						this.toggle_filter_display(filter.df.fieldname, false);
 					}
 				} else {
-					if(!filter.df.hidden_due_to_dependency) {
+					if (!filter.df.hidden_due_to_dependency) {
 						filter.df.hidden_due_to_dependency = true;
 						this.toggle_filter_display(filter.df.fieldname, true);
 						filter.set_value(filter.df.default || null);
@@ -327,17 +327,17 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		let out = null;
 		let doc = this.get_filter_values();
 		if (doc) {
-			if(typeof(expression) === 'boolean') {
+			if (typeof expression === 'boolean') {
 				out = expression;
-			} else if(expression.substr(0,5)=='eval:') {
+			} else if (expression.substr(0, 5) == 'eval:') {
 				try {
 					out = eval(expression.substr(5));
-				} catch(e) {
+				} catch (e) {
 					frappe.throw(__(`Invalid "depends_on" expression set in filter ${filter_label}`));
 				}
 			} else {
 				var value = doc[expression];
-				if($.isArray(value)) {
+				if ($.isArray(value)) {
 					out = !!value.length;
 				} else {
 					out = !!value;
