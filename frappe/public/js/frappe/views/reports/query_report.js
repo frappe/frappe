@@ -1,6 +1,7 @@
 // Copyright (c) 2018, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 import DataTable from 'frappe-datatable';
+import { build_summary_item } from "../../widgets/utils";
 
 frappe.provide('frappe.views');
 frappe.provide('frappe.query_reports');
@@ -196,8 +197,8 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			let x_field_title = toTitle(chart_args.x_field);
 			let y_field_title = toTitle(chart_args.y_fields[0]);
 			chart_name = chart_name || (`${this.report_name}: ${x_field_title} vs ${y_field_title}`);
-	
-			Object.assign(args, 
+
+			Object.assign(args,
 				{
 					'chart_name': chart_name,
 					'x_field': chart_args.x_field,
@@ -209,7 +210,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			);
 		} else {
 			chart_name = chart_name || this.report_name;
-			Object.assign(args, 
+			Object.assign(args,
 				{
 					'chart_name': chart_name,
 					'is_custom': 1
@@ -218,7 +219,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		}
 
 		frappe.xcall(
-			'frappe.desk.doctype.dashboard_chart.dashboard_chart.create_report_chart', 
+			'frappe.desk.doctype.dashboard_chart.dashboard_chart.create_report_chart',
 			{args: args}
 		).then( () => {
 			let message;
@@ -451,7 +452,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				else {
 					this.$chart.empty();
 					if (this.chart_fields) {
-						this.chart_options = 
+						this.chart_options =
 							frappe.report_utils.make_chart_options(
 								this.columns,
 								this.raw_data,
@@ -474,24 +475,6 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	}
 
 	render_summary(data) {
-		let build_summary_item = (summary) => {
-			let df = {fieldtype: summary.datatype};
-			let doc = null;
-
-			if (summary.datatype == "Currency") {
-				df.options = "currency";
-				doc = {currency: summary.currency};
-			}
-
-			let value = frappe.format(summary.value, df, null, doc);
-			let indicator = summary.indicator ? `indicator ${ summary.indicator.toLowerCase() }` : '';
-
-			return $(`<div class="summary-item">
-				<span class="summary-label small text-muted ${indicator}">${summary.label}</span>
-				<h1 class="summary-value">${ value }</h1>
-			</div>`);
-		};
-
 		data.forEach((summary) => {
 			build_summary_item(summary).appendTo(this.$summary);
 		})
@@ -673,7 +656,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				});
 			}
 
-			values.y_fields = 
+			values.y_fields =
 				values.y_fields
 					.map(d => d.trim())
 					.filter(Boolean);
@@ -698,7 +681,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				dialog.refresh();
 			}
 			else {
-				wrapper[0].innerHTML = 
+				wrapper[0].innerHTML =
 				`<div class="flex justify-center align-center text-muted" style="height: 120px; display: flex;">
 					<div>Please select X and Y fields</div>
 				</div>`;
@@ -712,7 +695,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 					fieldname: 'x_field',
 					label: 'X Field',
 					fieldtype: 'Select',
-					default: me.chart_fields? me.chart_fields.x_field: null, 
+					default: me.chart_fields? me.chart_fields.x_field: null,
 					options: field_options.non_numeric_fields,
 				},
 				{
@@ -782,7 +765,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			primary_action: (values) => {
 				values = set_chart_values(values);
 
-				let options = 
+				let options =
 					frappe.report_utils.make_chart_options(
 						this.columns,
 						this.raw_data,
@@ -791,11 +774,11 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				me.chart_fields = values
 
 				let x_field_label =
-					field_options.numeric_fields.filter(field => 
+					field_options.numeric_fields.filter(field =>
 						field.value == values.y_fields[0]
 					)[0].label;
 				let y_field_label =
-					field_options.non_numeric_fields.filter(field => 
+					field_options.non_numeric_fields.filter(field =>
 						field.value == values.x_field
 					)[0].label;
 
@@ -1487,6 +1470,10 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		} else {
 			this.$message.hide();
 		}
+	}
+
+	toggle_filter(fieldname, flag) {
+		$(`div[data-fieldname=${fieldname}]`).toggleClass('hide-control', flag);
 	}
 
 	toggle_report(flag) {

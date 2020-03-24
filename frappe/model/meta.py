@@ -544,7 +544,7 @@ def get_field_precision(df, doc=None, currency=None):
 	"""get precision based on DocField options and fieldvalue in doc"""
 	from frappe.utils import get_number_format_info
 
-	if cint(df.precision):
+	if df.precision:
 		precision = cint(df.precision)
 
 	elif df.fieldtype == "Currency":

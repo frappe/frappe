@@ -1,4 +1,5 @@
 {
+ "actions": [],
  "allow_import": 1,
  "allow_rename": 1,
  "creation": "2014-03-11 14:55:00",
@@ -178,7 +179,7 @@
   {
    "fieldname": "time_zone",
    "fieldtype": "Select",
-   "label": "Timezone"
+   "label": "Time Zone"
   },
   {
    "description": "Get your globally recognized avatar from Gravatar.com",
@@ -302,7 +303,7 @@
    "default": "0",
    "fieldname": "logout_all_sessions",
    "fieldtype": "Check",
-   "label": "Logout from all devices while changing Password"
+   "label": "Logout From All Devices After Changing Password"
   },
   {
    "fieldname": "reset_password_key",
@@ -338,7 +339,7 @@
    "default": "0",
    "fieldname": "document_follow_notify",
    "fieldtype": "Check",
-   "label": "Send Notifications for documents followed by me"
+   "label": "Send Notifications For Documents Followed By Me"
   },
   {
    "default": "Daily",
@@ -359,7 +360,7 @@
    "default": "1",
    "fieldname": "thread_notify",
    "fieldtype": "Check",
-   "label": "Send Notifications for Email threads"
+   "label": "Send Notifications For Email Threads"
   },
   {
    "default": "0",
@@ -496,7 +497,7 @@
    "description": "If enabled,  user can login from any IP Address using Two Factor Auth, this can also be set for all users in System Settings",
    "fieldname": "bypass_restrict_ip_check_if_2fa_enabled",
    "fieldtype": "Check",
-   "label": "Bypass restricted IP Address check If Two Factor Auth Enabled"
+   "label": "Bypass Restricted IP Address Check If Two Factor Auth Enabled"
   },
   {
    "fieldname": "column_break1",
@@ -585,8 +586,9 @@
  "icon": "fa fa-user",
  "idx": 413,
  "image_field": "user_image",
+ "links": [],
  "max_attachments": 5,
- "modified": "2019-10-22 14:16:34.810223",
+ "modified": "2020-03-23 22:59:26.154985",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "User",

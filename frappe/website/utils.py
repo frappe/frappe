@@ -107,7 +107,7 @@ def is_signup_enabled():
 def cleanup_page_name(title):
 	"""make page name from title"""
 	if not title:
-		return title
+		return ''
 
 	name = title.lower()
 	name = re.sub('[~!@#$%^&*+()<>,."\'\?]', '', name)
