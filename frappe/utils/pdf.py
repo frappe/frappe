@@ -15,7 +15,6 @@ from PyPDF2 import PdfFileReader, PdfFileWriter
 import frappe
 from frappe import _
 from frappe.utils import get_wkhtmltopdf_version, scrub_urls
-from bleach._vendor import html5lib
 
 
 PDF_CONTENT_ERRORS = ["ContentNotFoundError", "ContentOperationNotPermittedError",
