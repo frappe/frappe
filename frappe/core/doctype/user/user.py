@@ -101,7 +101,8 @@ class User(Document):
 		frappe.enqueue(
 			'frappe.core.doctype.user.user.create_contact',
 			user=self,
-			ignore_mandatory=True
+			ignore_mandatory=True,
+			now=frappe.flags.in_test
 		)
 		if self.name not in ('Administrator', 'Guest') and not self.user_image:
 			frappe.enqueue('frappe.core.doctype.user.user.update_gravatar', name=self.name)
@@ -1037,8 +1038,7 @@ def update_roles(role_profile):
 def create_contact(user, ignore_links=False, ignore_mandatory=False):
 	if user.name in ["Administrator", "Guest"]: return
 
-	contact_name = frappe.db.get_value("Contact Email", {"email_id": user.email}, 'parent')
-	contact_name = frappe.db.exists("Contact", contact_name)
+	contact_name = get_contact_name(user.email)
 	if not contact_name:
 		contact = frappe.get_doc({
 			"doctype": "Contact",

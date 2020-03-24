@@ -10,6 +10,7 @@ from frappe.model.document import Document
 from frappe.social.doctype.energy_point_settings.energy_point_settings import is_energy_point_enabled
 from frappe.social.doctype.energy_point_log.energy_point_log import \
 	create_energy_points_log
+from frappe.utils import extract_email_id
 
 class EnergyPointRule(Document):
 	def on_update(self):
@@ -47,7 +48,7 @@ class EnergyPointRule(Document):
 					if not user or user == 'Administrator': continue
 					create_energy_points_log(reference_doctype, reference_name, {
 						'points': points,
-						'user': user,
+						'user': extract_email_id(user),
 						'rule': rule
 					}, self.apply_only_once)
 			except Exception as e:
@@ -84,7 +85,8 @@ def process_energy_points(doc, state):
 	if (frappe.flags.in_patch
 		or frappe.flags.in_install
 		or frappe.flags.in_migrate
-		or frappe.flags.in_import):
+		or frappe.flags.in_import
+		or frappe.flags.in_setup_wizard):
 		return
 
 	if not is_energy_point_enabled():

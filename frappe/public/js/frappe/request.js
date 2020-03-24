@@ -394,11 +394,11 @@ frappe.after_ajax = function(fn) {
 	return new Promise(resolve => {
 		if(frappe.request.ajax_count) {
 			frappe.request.waiting_for_ajax.push(() => {
-				if(fn) fn();
+				if(fn) return resolve(fn());
 				resolve();
 			});
 		} else {
-			if(fn) fn();
+			if(fn) return resolve(fn());
 			resolve();
 		}
 	});
