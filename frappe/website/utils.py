@@ -3,10 +3,15 @@
 
 from __future__ import unicode_literals
 import functools
-import frappe, re, os
+import re
+import os
+import frappe
+
 from six import iteritems
 from past.builtins import cmp
 from frappe.utils import markdown
+from frappe.website.utils import get_full_index
+
 
 def delete_page_cache(path):
 	cache = frappe.cache()
@@ -20,7 +25,7 @@ def delete_page_cache(path):
 			cache.delete_key(name)
 
 def find_first_image(html):
-	m = re.finditer("""<img[^>]*src\s?=\s?['"]([^'"]*)['"]""", html)
+	m = re.finditer(r"""<img[^>]*src\s?=\s?['"]([^'"]*)['"]""", html)
 	try:
 		return next(m).groups()[0]
 	except StopIteration:
@@ -110,7 +115,7 @@ def cleanup_page_name(title):
 		return ''
 
 	name = title.lower()
-	name = re.sub('[~!@#$%^&*+()<>,."\'\?]', '', name)
+	name = re.sub(r'[~!@#$%^&*+()<>,."\'\?]', '', name)
 	name = re.sub('[:/]', '-', name)
 
 	name = '-'.join(name.split())
@@ -212,7 +217,6 @@ def abs_url(path):
 
 def get_toc(route, url_prefix=None, app=None):
 	'''Insert full index (table of contents) for {index} tag'''
-	from frappe.website.utils import get_full_index
 
 	full_index = get_full_index(app=app)
 
