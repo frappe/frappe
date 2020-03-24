@@ -42,7 +42,7 @@ def get_report_doc(report_name):
 	return doc
 
 
-def generate_report_result(report, filters=None, user=None):
+def generate_report_result(report, custom_columns, filters=None, user=None):
 	status = None
 	if not user:
 		user = frappe.session.user
@@ -80,6 +80,11 @@ def generate_report_result(report, filters=None, user=None):
 	if report.custom_columns:
 		columns = json.loads(report.custom_columns)
 		result = add_data_to_custom_columns(columns, result)
+	elif custom_columns:
+		result = add_data_to_custom_columns(custom_columns, result)
+
+		for custom_column in custom_columns:
+			columns.insert(custom_column['insert_after_index'] + 1, custom_column)
 
 	if result:
 		result = get_filtered_data(report.ref_doctype, columns, result, user)
@@ -161,7 +166,7 @@ def get_script(report_name):
 
 @frappe.whitelist()
 @frappe.read_only()
-def run(report_name, filters=None, user=None, ignore_prepared_report=False):
+def run(report_name, filters=None, user=None, ignore_prepared_report=False, custom_columns=None):
 
 	report = get_report_doc(report_name)
 	if not user:
@@ -183,7 +188,7 @@ def run(report_name, filters=None, user=None, ignore_prepared_report=False):
 			dn = ""
 		result = get_prepared_report_result(report, filters, dn, user)
 	else:
-		result = generate_report_result(report, filters, user)
+		result = generate_report_result(report, custom_columns, filters, user)
 
 	result["add_total_row"] = report.add_total_row and not result.get('skip_total_row', False)
 
@@ -294,6 +299,8 @@ def export_query():
 	if isinstance(data.get("file_format_type"), string_types):
 		file_format_type = data["file_format_type"]
 
+	custom_columns = frappe.parse_json(data["custom_columns"])
+
 	include_indentation = data["include_indentation"]
 	if isinstance(data.get("visible_idx"), string_types):
 		visible_idx = json.loads(data.get("visible_idx"))
@@ -301,7 +308,7 @@ def export_query():
 		visible_idx = None
 
 	if file_format_type == "Excel":
-		data = run(report_name, filters)
+		data = run(report_name, filters, custom_columns=custom_columns)
 		data = frappe._dict(data)
 		if not data.columns:
 			frappe.respond_as_web_page(_("No data to export"),
