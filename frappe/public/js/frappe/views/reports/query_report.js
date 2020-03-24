@@ -1278,7 +1278,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 							const custom_columns = [];
 							let df = frappe.meta.get_docfield(values.doctype, values.field);
 							const insert_after_index = this.columns
-								.findIndex(column => column.label === values.insert_after)
+								.findIndex(column => column.label === values.insert_after);
 							custom_columns.push({
 								fieldname: df.fieldname,
 								fieldtype: df.fieldtype,
