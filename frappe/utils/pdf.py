@@ -120,7 +120,7 @@ def prepare_options(html, options):
 
 def read_options_from_html(html):
 	options = {}
-	soup = BeautifulSoup(html, "html5lib")
+	soup = BeautifulSoup(html, "html.parser")
 
 	options.update(prepare_header_footer(soup))
 
