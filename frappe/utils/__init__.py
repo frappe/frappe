@@ -75,12 +75,6 @@ def extract_email_id(email):
 		email_id = email_id.decode("utf-8", "ignore")
 	return email_id
 
-def validate_email_add(email_str, throw=False):
-	"""
-	validate_email_add will be renamed to the validate_email_address in v12
-	"""
-	return validate_email_address(email_str, throw=False)
-
 def validate_phone_number(phone_number: str, throw: bool = False):
 	"""Returns True if valid phone number"""
 	if not phone_number:
