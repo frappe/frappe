@@ -3,7 +3,7 @@
 
 # util __init__.py
 
-from __future__ import unicode_literals, print_function, annotations
+from __future__ import unicode_literals, print_function
 from werkzeug.test import Client
 import os, re, sys, json, hashlib, requests, traceback
 from .html_utils import sanitize_html
@@ -75,7 +75,7 @@ def extract_email_id(email):
 		email_id = email_id.decode("utf-8", "ignore")
 	return email_id
 
-def validate_phone_number(phone_number: str, throw: bool = False):
+def validate_phone_number(phone_number, throw=False):
 	"""Returns True if valid phone number"""
 	if not phone_number:
 		return False
