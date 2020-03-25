@@ -112,13 +112,13 @@ frappe.ui.form.ControlData = frappe.ui.form.ControlInput.extend({
 			if (!email_list) {
 				return '';
 			} else {
-				let emph = false;
+				let email_invalid = false;
 				email_list.forEach(function(email) {
 					if (!validate_email(email)) {
-						emph = emph || true;
+						email_invalid = true;
 					}
 				});
-				this.df.invalid = emph;
+				this.df.invalid = email_invalid;
 				return v;
 			}
 		} else {
