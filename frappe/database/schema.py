@@ -13,7 +13,7 @@ class DBTable:
 	def __init__(self, doctype, meta=None):
 		self.doctype = doctype
 		self.table_name = 'tab{}'.format(doctype)
-		self.meta = meta or frappe.get_meta(doctype)
+		self.meta = meta or frappe.get_meta(doctype, False)
 		self.columns = {}
 		self.current_columns = {}
 
