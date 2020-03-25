@@ -1582,7 +1582,7 @@ class extends Component {
 				frappe.notify(`${frappe.user.first_name(r.user)}`, {
 					body: r.content,
 					icon: frappe.user.image(r.user),
-					requireInteraction: true
+					tag: r.user
 				})
 			}
 
