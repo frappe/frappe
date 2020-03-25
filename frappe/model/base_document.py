@@ -548,12 +548,13 @@ class BaseDocument(object):
 		# data_field options defined in frappe.model.data_field_options
 		for data_field in self.meta.get_data_fields():
 			data = self.get(data_field.fieldname)
+			data_field_options = data_field.get("options")
 
-			if data_field.options == "Email":
+			if data_field_options == "Email":
 				for email_address in frappe.utils.split_emails(data):
 					frappe.utils.validate_email_address(email_address, throw=True)
 
-			if data_field.options == "Phone":
+			if data_field_options == "Phone":
 				frappe.utils.validate_phone_number(data, throw=True)
 
 	def _validate_constants(self):
