@@ -270,3 +270,4 @@ execute:frappe.delete_doc_if_exists('DocType', 'GSuite Settings')
 execute:frappe.delete_doc_if_exists('DocType', 'GSuite Templates')
 execute:frappe.delete_doc_if_exists('DocType', 'GCalendar Account')
 execute:frappe.delete_doc_if_exists('DocType', 'GCalendar Settings')
+frappe.patches.v12_0.set_default_password_reset_limit

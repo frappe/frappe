@@ -39,6 +39,7 @@
   "password_settings",
   "logout_on_password_reset",
   "force_user_to_reset_password",
+  "password_reset_limit",
   "column_break_31",
   "enable_password_policy",
   "minimum_password_score",
@@ -410,6 +411,13 @@
    "label": "Run Jobs only Daily if Inactive For (Days)"
   },
   {
+   "default": "3",
+   "description": "Hourly rate limit for generating password reset links",
+   "fieldname": "password_reset_limit",
+   "fieldtype": "Int",
+   "label": "Password Reset Link Generation Limit"
+  },
+  {
    "default": "1",
    "fieldname": "logout_on_password_reset",
    "fieldtype": "Check",
@@ -419,7 +427,7 @@
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
- "modified": "2020-03-16 14:50:40.914532",
+ "modified": "2020-03-25 11:47:54.376083",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",
