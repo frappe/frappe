@@ -16,6 +16,7 @@ import frappe
 from frappe import _
 from frappe.utils import get_wkhtmltopdf_version, scrub_urls
 
+
 PDF_CONTENT_ERRORS = ["ContentNotFoundError", "ContentOperationNotPermittedError",
 	"UnknownContentError", "RemoteHostClosedError"]
 

@@ -298,6 +298,55 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		}, 1000);
 	}
 
+	refresh_filters_dependency() {
+		this.filters.forEach(filter => {
+			filter.guardian_has_value = true;
+
+			if (filter.df.depends_on) {
+				filter.guardian_has_value =
+					this.evaluate_depends_on_value(filter.df.depends_on, filter.df.label);
+
+				if (filter.guardian_has_value) {
+					if (filter.df.hidden_due_to_dependency) {
+						filter.df.hidden_due_to_dependency = false;
+						this.toggle_filter_display(filter.df.fieldname, false);
+					}
+				} else {
+					if (!filter.df.hidden_due_to_dependency) {
+						filter.df.hidden_due_to_dependency = true;
+						this.toggle_filter_display(filter.df.fieldname, true);
+						filter.set_value(filter.df.default || null);
+					}
+				}
+			}
+
+		});
+	}
+
+	evaluate_depends_on_value(expression, filter_label) {
+		let out = null;
+		let filters = this.get_filter_values();
+		if (filters) {
+			if (typeof expression === 'boolean') {
+				out = expression;
+			} else if (expression.substr(0, 5) == 'eval:') {
+				try {
+					out = eval(expression.substr(5));
+				} catch (e) {
+					frappe.throw(__(`Invalid "depends_on" expression set in filter ${filter_label}`));
+				}
+			} else {
+				var value = filters[expression];
+				if ($.isArray(value)) {
+					out = !!value.length;
+				} else {
+					out = !!value;
+				}
+			}
+		}
+		return out;
+	}
+
 	setup_filters() {
 		this.clear_filters();
 		const { filters = [] } = this.report_settings;
@@ -315,6 +364,8 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			if (df.on_change) f.on_change = df.on_change;
 
 			df.onchange = () => {
+				this.refresh_filters_dependency();
+
 				let current_filters = this.get_filter_value();
 				if (this.previous_filters
 					&& (JSON.stringify(this.previous_filters) === JSON.stringify(current_filters))) {
@@ -344,6 +395,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 		}).filter(Boolean);
 
+		this.refresh_filters_dependency();
 		if (this.filters.length === 0) {
 			// hide page form if no filters
 			this.page.hide_form();
@@ -1470,6 +1522,10 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		} else {
 			this.$message.hide();
 		}
+	}
+
+	toggle_filter_display(fieldname, flag) {
+		this.$page.find(`div[data-fieldname=${fieldname}]`).toggleClass('hide-control', flag);
 	}
 
 	toggle_report(flag) {
