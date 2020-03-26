@@ -10,7 +10,7 @@ frappe.provide('frappe.widget')
 const widget_factory = {
 	chart: ChartWidget,
 	base: BaseWidget,
-	bookmark: ShortcutWidget,
+	shortcut: ShortcutWidget,
 	links: LinksWidget,
 	onboarding: OnboardingWidget,
 	new: NewWidget

@@ -296,7 +296,7 @@ class DesktopPage {
 		this.sections["shortcuts"] = new frappe.widget.WidgetGroup({
 			title: this.data.shortcuts.label || `Your Shortcuts`,
 			container: this.page,
-			type: "bookmark",
+			type: "shortcut",
 			columns: 3,
 			options: {
 				allow_sorting: this.allow_customization && !frappe.is_mobile(),
