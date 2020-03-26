@@ -76,7 +76,8 @@ def get_google_indexing_object():
 		"token": account.get_access_token(),
 		"refresh_token": account.get_password(fieldname="indexing_refresh_token", raise_exception=False),
 		"token_uri": get_auth_url(),
-		"client_id": google_settings.client_i . "client_secret": google_settings.get_password(fieldname="client_secret", raise_exception=False),
+		"client_id": google_settings.client_id,
+		"client_secret": google_settings.get_password(fieldname="client_secret", raise_exception=False),
 		"scopes": "https://www.googleapis.com/auth/indexing"
 	}
 
