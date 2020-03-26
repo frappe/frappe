@@ -4,7 +4,8 @@
 from __future__ import unicode_literals, print_function
 import frappe
 from frappe.model.document import Document
-from frappe.utils import cint, has_gravatar, format_datetime, now_datetime, get_formatted_email, today
+from frappe.utils import (cint, has_gravatar, format_datetime,
+				now_datetime, get_formatted_email, today, get_url)
 from frappe import throw, msgprint, _
 from frappe.utils.password import update_password as _update_password
 from frappe.desk.notifications import clear_notifications
@@ -223,7 +224,7 @@ class User(Document):
 		pass
 
 	def reset_password(self, send_email=False, password_expired=False):
-		from frappe.utils import random_string, get_url
+		from frappe.utils import random_string
 
 		key = random_string(32)
 		self.db_set("reset_password_key", key)
@@ -256,7 +257,6 @@ class User(Document):
 			"password_reset", {"link": link}, now=True)
 
 	def send_welcome_mail_to_user(self):
-		from frappe.utils import get_url
 		link = self.reset_password()
 		subject = None
 		method = frappe.get_hooks("welcome_email")
@@ -278,7 +278,6 @@ class User(Document):
 	def send_login_mail(self, subject, template, add_args, now=None):
 		"""send mail with login details"""
 		from frappe.utils.user import get_user_fullname
-		from frappe.utils import get_url
 
 		full_name = get_user_fullname(frappe.session['user'])
 		if full_name == "Guest":
@@ -751,13 +750,7 @@ def sign_up(email, full_name, redirect_to):
 	if not is_signup_enabled():
 		frappe.throw(_('Sign Up is disabled'), title='Not Allowed')
 
-	user = frappe.db.get("User", {"email": email})
-	if user:
-		if user.disabled:
-			return 0, _("Registered but disabled")
-		else:
-			return 0, _("Already Registered")
-	else:
+	if not frappe.db.exists("User", {"email": email}):
 		if frappe.db.sql("""select count(*) from tabUser where
 			HOUR(TIMEDIFF(CURRENT_TIMESTAMP, TIMESTAMP(modified)))=1""")[0][0] > 300:
 
@@ -767,7 +760,7 @@ def sign_up(email, full_name, redirect_to):
 
 		from frappe.utils import random_string
 		user = frappe.get_doc({
-			"doctype":"User",
+			"doctype": "User",
 			"email": email,
 			"first_name": full_name,
 			"enabled": 1,
@@ -785,11 +778,26 @@ def sign_up(email, full_name, redirect_to):
 
 		if redirect_to:
 			frappe.cache().hset('redirect_after_login', user.name, redirect_to)
+	else:
+		user = frappe.get_doc("User", email)
+		if not user.enabled:
+			site_url = get_url()
+			subject = _("ERPNext User Account Disabled")
+			if site_url:
+				subject = ": ".join([subject, site_url.rsplit('//', 1)[-1]])
 
-		if user.flags.email_sent:
-			return 1, _("Please check your email for verification")
-		else:
-			return 2, _("Please ask your administrator to verify your sign-up")
+			args = {
+				"site_url": site_url,
+				"full_name": user.full_name,
+				"email": user.email
+			}
+			frappe.sendmail(recipients=user.email, sender=None, subject=subject,
+					template="disabled_user", args=args,
+					header=[subject, "red"], retry=3)
+
+	if not user.enabled or user.flags.email_sent:
+		return 1, _("Please check your email for verification")
+	return 1, _("Please ask your administrator to verify your sign-up")
 
 @frappe.whitelist(allow_guest=True)
 def reset_password(user):
