@@ -195,17 +195,11 @@ login.login_handlers = (function() {
 					window.location.href = data.home_page;
 				}
 			} else if(window.location.hash === '#forgot') {
-				if(data.message==='not found') {
-					login.set_indicator('{{ _("Not a valid user") }}', 'red');
-				} else if (data.message=='not allowed') {
+				if (data.message=='not allowed') {
 					login.set_indicator('{{ _("Not Allowed") }}', 'red');
-				} else if (data.message=='disabled') {
-					login.set_indicator('{{ _("Not Allowed: Disabled User") }}', 'red');
 				} else {
 					login.set_indicator('{{ _("Instructions Emailed") }}', 'green');
 				}
-
-
 			} else if(window.location.hash === '#signup') {
 				if(cint(data.message[0])==0) {
 					login.set_indicator(data.message[1], 'red');

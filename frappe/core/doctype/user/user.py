@@ -793,22 +793,20 @@ def sign_up(email, full_name, redirect_to):
 
 @frappe.whitelist(allow_guest=True)
 def reset_password(user):
-	if user=="Administrator":
+	if user == "Administrator":
 		return 'not allowed'
 
 	try:
 		user = frappe.get_doc("User", user)
 		if not user.enabled:
-			return 'disabled'
+			return
 
 		user.validate_reset_password()
 		user.reset_password(send_email=True)
 
-		return frappe.msgprint(_("Password reset instructions have been sent to your email"))
-
 	except frappe.DoesNotExistError:
 		frappe.clear_messages()
-		return 'not found'
+		return
 
 def user_query(doctype, txt, searchfield, start, page_len, filters):
 	from frappe.desk.reportview import get_match_cond
