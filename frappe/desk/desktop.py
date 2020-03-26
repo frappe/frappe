@@ -25,7 +25,7 @@ class Workspace:
 		self.allowed_pages = get_allowed_pages()
 		self.allowed_reports = get_allowed_reports()
 
-		self.table_counts = build_table_count_cache()
+		self.table_counts = get_table_with_counts()
 		self.restricted_doctypes = build_domain_restriced_doctype_cache()
 		self.restricted_pages = build_domain_restriced_page_cache()
 
@@ -139,12 +139,17 @@ class Workspace:
 		return new_data
 
 	def get_charts(self):
+		all_charts = []
 		if frappe.has_permission("Dashboard Chart", throw=False):
 			charts = self.doc.charts
 			if len(self.extended_charts):
 				charts = charts + self.extended_charts
-			return [chart for chart in charts]
-		return []
+
+			for chart in charts:
+				chart.label = chart.label if chart.label else chart.chart_name
+				all_charts.append(chart)
+
+		return all_charts
 
 	def get_shortcuts(self):
 
