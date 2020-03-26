@@ -105,15 +105,15 @@ def validate_email_address(email_str, throw=False):
 			_valid = False
 
 		else:
-			e = extract_email_id(e)
-			match = re.match("[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?", e.lower()) if e else None
+			email_id = extract_email_id(e)
+			match = re.match("[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?", email_id.lower()) if email_id else None
 
 			if not match:
 				_valid = False
 			else:
 				matched = match.group(0)
 				if match:
-					match = matched==e.lower()
+					match = matched==email_id.lower()
 
 		if not _valid:
 			if throw:
