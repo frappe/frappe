@@ -21,6 +21,7 @@ export default class WidgetGroup {
 		Object.assign(this, opts);
 		this.widgets_list = [];
 		this.widgets_dict = {};
+		this.widget_order = [];
 		this.make();
 	}
 
@@ -86,7 +87,19 @@ export default class WidgetGroup {
 	}
 
 	on_delete(name) {
-		this.widgets_list = this.widgets_list.filter(wid => name != wid.name)
+		this.widgets_list = this.widgets_list.filter(wid => name != wid.name);
+		delete this.widgets_dict[name];
+		this.update_widget_order();
+	}
+
+	update_widget_order() {
+		this.widget_order = [];
+		this.body.children().each((index, element) => {
+			let name = element.dataset.widgetName;
+			if (name) {
+				this.widget_order.push(name);
+			}
+		})
 	}
 
 	setup_sortable() {
@@ -94,10 +107,24 @@ export default class WidgetGroup {
 		this.sortable = new Sortable(container, {
 			animation: 150,
 			handle: ".drag-handle",
-			onEnd: () => {
-				console.log("Sorting")
-			},			// onStart: (evt) => this.sortable_config.on_start(evt, container)
+			onEnd: () => this.update_widget_order(),
 		});
+	}
+
+	get_widget_config() {
+		this.update_widget_order();
+		let prepared_dict = {};
+
+		this.widgets_list.forEach(wid => {
+			let config = wid.get_config()
+			let name = config.docname ? config.docname : config.name
+			prepared_dict[name] = config
+		});
+
+		return {
+			order: this.widget_order,
+			widgets: prepared_dict
+		}
 	}
 }
 
