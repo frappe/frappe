@@ -165,9 +165,7 @@ class DesktopPage {
 			</div>`).hide();
 
 		this.save_or_discard_link.appendTo(this.page);
-		this.save_or_discard_link.find(".save-customization").on("click", () => {
-			console.log("Save Customization");
-		});
+		this.save_or_discard_link.find(".save-customization").on("click", () => this.save_customization());
 
 		this.save_or_discard_link.find(".discard-customization").on("click", () => {
 			this.in_customize_mode = false;
@@ -264,6 +262,19 @@ class DesktopPage {
 		this.in_customize_mode = true;
 	}
 
+	save_customization() {
+		const config = {};
+
+		if (this.sections.charts) config.charts = this.sections.charts.get_widget_config();
+		if (this.sections.shortcuts) config.shortcuts = this.sections.shortcuts.get_widget_config();
+		if (this.sections.cards) config.cards = this.sections.cards.get_widget_config();
+
+		return frappe.call('frappe.desk.desktop.save_customization', {
+			page: this.page_name,
+			config: config
+		})
+	}
+
 	make_charts() {
 		this.sections["charts"] = new frappe.widget.WidgetGroup({
 			title: this.data.charts.label || `${this.page_name} Dashboard`,
@@ -275,7 +286,7 @@ class DesktopPage {
 				allow_create: this.allow_customization,
 				allow_delete: this.allow_customization,
 				allow_hiding: false,
-				allow_edit: this.allow_customization,
+				allow_edit: false,
 			},
 			widgets: this.data.charts.items
 		});
@@ -292,7 +303,7 @@ class DesktopPage {
 				allow_create: this.allow_customization,
 				allow_delete: this.allow_customization,
 				allow_hiding: false,
-				allow_edit: this.allow_customization,
+				allow_edit: false,
 			},
 			widgets: this.data.shortcuts.items
 		});
@@ -308,7 +319,7 @@ class DesktopPage {
 				allow_sorting: this.allow_customization && !frappe.is_mobile(),
 				allow_create: false,
 				allow_delete: false,
-				allow_hiding: this.allow_customization,
+				allow_hiding: false,
 				allow_edit: false,
 			},
 			widgets: this.data.cards.items
