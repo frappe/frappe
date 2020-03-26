@@ -670,6 +670,56 @@ def validate_fields_for_doctype(doctype):
 	validate_fields(frappe.get_meta(doctype, cached=False))
 
 
+def validate_fieldtype_change(doctype, df, old_value, new_value):
+	allowed_fieldtype_change = (('Currency', 'Float', 'Percent'), ('Small Text', 'Data'),
+	('Text', 'Data'), ('Text', 'Text Editor', 'Code', 'Signature', 'HTML Editor'), ('Data', 'Select'),
+	('Text', 'Small Text'), ('Text', 'Data', 'Barcode'), ('Code', 'Geolocation'), ('Table', 'Table MultiSelect'))
+	allowed = False
+	check_length_for_fieldtypes = []
+	for allowed_changes in allowed_fieldtype_change:
+		if (old_value in allowed_changes and new_value in allowed_changes):
+			allowed = True
+
+			if frappe.db.type_map.get(old_value)[1] > frappe.db.type_map.get(new_value)[1]:
+				check_length_for_fieldtypes.append({'df': df, 'old_value': old_value})
+				validate_fieldtype_length(doctype, check_length_for_fieldtypes)
+
+	if not allowed:
+		frappe.throw(_("Fieldtype cannot be changed from {0} to {1} in row {2}").format(old_value, new_value, df.idx))
+
+	return allowed
+
+def validate_fieldtype_length(doctype, check_length_for_fieldtypes):
+
+	for field in check_length_for_fieldtypes:
+		df = field.get('df')
+		max_length = frappe.db.type_map.get(df.fieldtype)[1]
+		fieldname = df.fieldname
+		docs = frappe.db.sql('''
+			SELECT name, {fieldname}, LENGTH({fieldname}) AS len
+			FROM `tab{doctype}`
+			WHERE LENGTH({fieldname}) > {max_length}
+		'''.format(
+			fieldname=fieldname,
+			doctype=doctype,
+			max_length=max_length
+		), as_dict=True)
+		links = []
+		label = df.label
+		for doc in docs:
+			links.append(frappe.utils.get_link_to_form(doctype, doc.name))
+		links_str = ', '.join(links)
+
+		if docs:
+			frappe.throw(_('Value for field {0} is too long in {1}. Length should be lesser than {2} characters')
+				.format(
+					frappe.bold(label),
+					links_str,
+					frappe.bold(max_length)
+				), title=_('Data Too Long'), is_minimizable=len(docs) > 1)
+	return True
+
+
 # this is separate because it is also called via custom field
 def validate_fields(meta):
 	"""Validate doctype fields. Checks
@@ -973,6 +1023,14 @@ def validate_fields(meta):
 		check_table_multiselect_option(d)
 		scrub_options_in_select(d)
 		scrub_fetch_from(d)
+
+		if meta.get('custom'):
+			doc_before_update = frappe.get_doc('DocType', meta.get('name'))
+			df_before_update = doc_before_update.get("fields", {"fieldname": d.fieldname})
+			old_value = df_before_update[0].fieldtype
+			new_value = d.fieldtype
+			if old_value != new_value:
+				validate_fieldtype_change(meta.get('name'), d, old_value, new_value)
 
 	check_fold(fields)
 	check_search_fields(meta, fields)
