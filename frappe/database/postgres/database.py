@@ -92,7 +92,7 @@ class PostgresDatabase(Database):
 
 	# pylint: disable=W0221
 	def sql(self, *args, **kwargs):
-		if len(args):
+		if args:
 			# since tuple is immutable
 			args = list(args)
 			args[0] = modify_query(args[0])
@@ -276,13 +276,13 @@ class PostgresDatabase(Database):
 		# pylint: disable=W1401
 		return self.sql('''
 			SELECT a.column_name AS name,
-			CASE a.data_type
+			CASE LOWER(a.data_type)
 				WHEN 'character varying' THEN CONCAT('varchar(', a.character_maximum_length ,')')
-				WHEN 'timestamp without TIME zone' THEN 'timestamp'
+				WHEN 'timestamp without time zone' THEN 'timestamp'
 				ELSE a.data_type
 			END AS type,
 			COUNT(b.indexdef) AS Index,
-			COALESCE(a.column_default, NULL) AS default,
+			SPLIT_PART(COALESCE(a.column_default, NULL), '::', 1) AS default,
 			BOOL_OR(b.unique) AS unique
 			FROM information_schema.columns a
 			LEFT JOIN
