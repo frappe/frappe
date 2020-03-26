@@ -196,6 +196,7 @@ class Workspace:
 		return items
 
 @frappe.whitelist()
+@frappe.read_only()
 def get_desktop_page(page):
 	"""Applies permissions, customizations and returns the configruration for a page
 	on desk.
