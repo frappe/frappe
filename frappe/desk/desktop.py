@@ -4,7 +4,7 @@
 
 from __future__ import unicode_literals
 import frappe
-import json
+from json import loads, dumps
 from frappe import _, DoesNotExistError
 from frappe.boot import get_allowed_pages, get_allowed_reports
 from six import string_types
@@ -13,10 +13,24 @@ from frappe.cache_manager import build_domain_restriced_doctype_cache, build_dom
 class Workspace:
 	def __init__(self, page_name):
 		self.page_name = page_name
+		self.extended_cards = []
+		self.extended_charts = []
+		self.extended_shortcuts = []
 
-	def build_cache(self):
-		self.doc = frappe.get_doc("Desk Page", self.page_name)
-		self.get_pages_to_extend()
+	def get_page_for_user(self):
+		filters = {
+			'extends': self.page_name,
+			'for_user': frappe.session.user
+		}
+		pages = frappe.get_list("Desk Page", filters=filters)
+		if pages:
+			return frappe.get_doc("Desk Page", pages[0])
+		else:
+			self.get_pages_to_extend()
+			return frappe.get_doc("Desk Page", self.page_name)
+
+	def init(self):
+		self.doc = self.get_page_for_user()
 
 		user = frappe.get_user()
 		user.build_permissions()
@@ -32,13 +46,11 @@ class Workspace:
 	def get_pages_to_extend(self):
 		pages = frappe.get_all("Desk Page", filters={
 			"extends": self.page_name,
-			'restrict_to_domain': ['in', frappe.get_active_domains()]
+			'restrict_to_domain': ['in', frappe.get_active_domains()],
+			'for_user': ''
 		})
 
 		pages = [frappe.get_doc("Desk Page", page['name']) for page in pages]
-		self.extended_cards = []
-		self.extended_charts = []
-		self.extended_shortcuts = []
 
 		for page in pages:
 			self.extended_cards = self.extended_cards + page.cards
@@ -111,7 +123,7 @@ class Workspace:
 		for section in cards:
 			new_items = []
 			if isinstance(section.links, string_types):
-				links = json.loads(section.links)
+				links = loads(section.links)
 			else:
 				links = section.links
 
@@ -134,6 +146,7 @@ class Workspace:
 					new_section = section.as_dict().copy()
 				new_section["links"] = new_items
 				new_section["label"] = section.title
+				new_section["docname"] = section.name
 				new_data.append(new_section)
 
 		return new_data
@@ -147,6 +160,7 @@ class Workspace:
 
 			for chart in charts:
 				chart.label = chart.label if chart.label else chart.chart_name
+				chart.docname = chart.name
 				all_charts.append(chart)
 
 		return all_charts
@@ -166,6 +180,7 @@ class Workspace:
 
 		for item in shortcuts:
 			new_item = item.as_dict().copy()
+			new_item['docname'] = item.name
 			new_item['name'] = _(item.link_to)
 			if self.is_item_allowed(item.link_to, item.type) and _in_active_domains(item):
 				if item.type == "Page":
@@ -193,7 +208,7 @@ def get_desktop_page(page):
 	"""
 	wspace = Workspace(page)
 	try:
-		wspace.build_cache()
+		wspace.init()
 		wspace.build_workspace()
 		return {
 			'charts': wspace.charts,
@@ -205,7 +220,7 @@ def get_desktop_page(page):
 	except DoesNotExistError:
 		if frappe.message_log:
 			frappe.message_log.pop()
-		return None
+		return Nonee
 
 @frappe.whitelist()
 def get_desk_sidebar_items():
@@ -214,7 +229,9 @@ def get_desk_sidebar_items():
 	# don't get domain restricted pages
 	filters = {
 		'restrict_to_domain': ['in', frappe.get_active_domains()],
-		'extends_another_page': False
+		'extends_another_page': 0,
+		'is_standard': 1,
+		'for_user': ''
 	}
 
 	if not frappe.local.conf.developer_mode:
@@ -279,104 +296,72 @@ def get_custom_report_list(module):
 
 	return out
 
-def make_them_pages():
-	"""Helper function to make pages
-	"""
-	pages = [
-				('Desk', 'frappe', 'octicon octicon-calendar'),
-				('Settings', 'frappe', 'octicon octicon-settings'),
-				('Users and Permissions', 'frappe', 'octicon octicon-settings'),
-				('Customization', 'frappe', 'octicon octicon-settings'),
-				('Integrations', 'frappe', 'octicon octicon-globe'),
-				('Core', 'frappe', 'octicon octicon-circuit-board'),
-				('Website', 'frappe', 'octicon octicon-globe'),
-				('Getting Started', 'erpnext', 'fa fa-check-square-o'),
-				('Accounts', 'erpnext', 'octicon octicon-repo'),
-				('Selling', 'erpnext', 'octicon octicon-tag'),
-				('Buying', 'erpnext', 'octicon octicon-briefcase'),
-				('Stock', 'erpnext', 'octicon octicon-package'),
-				('Assets', 'erpnext', 'octicon octicon-database'),
-				('Projects', 'erpnext', 'octicon octicon-rocket'),
-				('CRM', 'erpnext', 'octicon octicon-broadcast'),
-				('Support', 'erpnext', 'fa fa-check-square-o'),
-				('HR', 'erpnext', 'octicon octicon-organization'),
-				('Quality Management', 'erpnext', 'fa fa-check-square-o'),
-				('Manufacturing', 'erpnext', 'octicon octicon-tools'),
-				('Retail', 'erpnext', 'octicon octicon-credit-card'),
-				('Education', 'erpnext', 'octicon octicon-mortar-board'),
-				('Healthcare', 'erpnext', 'fa fa-heartbeat'),
-				('Agriculture', 'erpnext', 'octicon octicon-globe'),
-				('Non Profit', 'erpnext', 'octicon octicon-heart'),
-				('Help', 'erpnext', 'octicon octicon-device-camera-video')
-			]
-
-	for page in pages:
-		print("Processing Page: {0}".format(page[0]))
-		make_them_cards(page[0], page[2])
-
-
-def make_them_cards(page_name, from_module=None, to_module=None, icon=None):
-	from frappe.desk.moduleview import get
-
-	if not from_module:
-		from_module = page_name
-
-	if not to_module:
-		to_module = page_name
-
-	try:
-		modules = get(from_module)['data']
-	except:
-		return
-
-	# Find or make page doc
-	if frappe.db.exists("Desk Page", page_name):
-		page = frappe.get_doc("Desk Page", page_name)
-		print("--- Got Page: {0}".format(page.name))
+def get_custom_workspace_for_user(page):
+	filters = {
+		'extends': page,
+		'for_user': frappe.session.user
+	}
+	pages = frappe.get_list("Desk Page", filters=filters)
+	if pages:
+		return frappe.get_doc("Desk Page", pages[0])
 	else:
-		page = frappe.new_doc("Desk Page")
-		page.label = page_name
-		page.cards = []
-		page.icon = icon
-		print("--- New Page: {0}".format(page.name))
+		doc = frappe.new_doc("Desk Page")
+		doc.extends = page
+		doc.for_user = frappe.session.user
+		return doc
 
-		# Guess Which Module
-		if not to_module and frappe.db.exists("Module Def", page_name):
-			page.module = page_name
 
-		if to_module:
-			page.module = to_module
-		elif frappe.db.exists("Module Def", page_name):
-			page.module = page_name
+@frappe.whitelist()
+def save_customization(page, config):
+	original_page = frappe.get_doc("Desk Page", page)
+	page_doc = get_custom_workspace_for_user(page)
 
-	for data in modules:
-		# Create a New Card Child Doc
-		card = frappe.new_doc("Desk Card")
+	# Update field values
+	page_doc.charts_label = original_page.charts_label
+	page_doc.cards_label = original_page.cards_label
+	page_doc.shortcuts_label = original_page.shortcuts_label
+	page_doc.charts_label = original_page.charts_label
+	page_doc.icon = original_page.icon
+	page_doc.module = original_page.module
+	page_doc.developer_mode_only = original_page.developer_mode_only
+	page_doc.category = original_page.category
 
-		# Data clean up
-		for item in data['items']:
-			try:
-				del item['count']
-				del item['incomplete_dependencies']
-			except KeyError:
-				pass
 
-		# Set Child doc values
-		card.title = data['label']
-		card.icon = data.get('icon')
-		# Pretty dump JSON
-		card.links = json.dumps(data['items'], indent=4, sort_keys=True)
+	config = frappe._dict(loads(config))
 
-		# Set Parent attributes
-		card.parent = page.name
-		card.parenttype = page.doctype
-		card.parentfield = "cards"
+	page_doc.charts = prepare_widget(config.charts, "Desk Chart", "charts")
+	page_doc.shortcuts = prepare_widget(config.shortcuts, "Desk Shortcut", "shortcuts")
+	page_doc.cards = prepare_widget(config.cards, "Desk Card", "cards")
 
-		# Add cards to page doc
-		print("------- Adding Card: {0}".format(card.title))
-		page.cards.append(card)
+	# Set label
+	page_doc.label = page + '-' + frappe.session.user
 
-	# End it all
-	page.save()
-	frappe.db.commit()
-	return
+	if page_doc.is_new():
+		page_doc.insert()
+	else:
+		page_doc.save()
+
+def prepare_widget(config, doctype, parentfield):
+	if not config:
+		return
+	order = config.get('order')
+	widgets = config.get('widgets')
+	prepare_widget_list = []
+	for idx, name in enumerate(order):
+		wid_config = widgets[name].copy()
+		# Some cleanup
+		wid_config.pop("name", None)
+		wid_config.pop("docname", None)
+
+		# New Doc
+		doc = frappe.new_doc(doctype)
+		doc.update(wid_config)
+
+		# Manually Set IDX
+		doc.idx = idx + 1
+
+		# Set Parent Field
+		doc.parentfield = parentfield
+
+		prepare_widget_list.append(doc)
+	return prepare_widget_list
