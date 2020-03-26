@@ -35,7 +35,7 @@ export default class Widget {
 		options.allow_hiding &&
 			this.add_custom_button(
 				'<i class="fa fa-eye-slash" aria-hidden="true"></i>',
-				() => this.hide()
+				() => this.hide_or_show()
 			);
 		options.allow_edit &&
 			this.add_custom_button(
@@ -90,7 +90,8 @@ export default class Widget {
 		// wait for animation
 		setTimeout(() => {
 			this.widget.remove();
-			this.on_delete && this.on_delete(this.name);
+			this.options.on_delete
+				&& this.options.on_delete(this.name);
 		}, 300);
 	}
 
@@ -98,10 +99,18 @@ export default class Widget {
 		this.on_edit && this.on_edit(this.name);
 	}
 
-	hide() {
-		this.body.css("opacity", 0.5);
-		this.title_field.css("opacity", 0.5);
-		this.footer.css("opacity", 0.5);
+	hide_or_show() {
+		if (!this.hidden) {
+			this.body.css("opacity", 0.5);
+			this.title_field.css("opacity", 0.5);
+			this.footer.css("opacity", 0.5);
+			this.hidden = true;
+		} else {
+			this.body.css("opacity", 1);
+			this.title_field.css("opacity", 1);
+			this.footer.css("opacity", 1);
+			this.hidden = false;
+		}
 	}
 
 	set_actions() {
