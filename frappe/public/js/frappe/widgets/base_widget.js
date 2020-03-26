@@ -10,6 +10,14 @@ export default class Widget {
 		this.set_body();
 	}
 
+	get_config() {
+		return {
+			name: this.name,
+			docname: this.docname,
+			label: this.label,
+		}
+	}
+
 	customize(options) {
 		this.action_area.empty();
 

@@ -18,6 +18,20 @@ export default class ShortcutWidget extends Widget {
 		//
 	}
 
+	get_config() {
+		return {
+			name: this.name,
+			docname: this.docname,
+			icon: this.icon,
+			label: this.label,
+			format: this.format,
+			link_to: this.link_to,
+			restrict_to_domain: this.restrict_to_domain,
+			stats_filter: this.stats_filter,
+			type: this.type
+		}
+	}
+
 	setup_events() {
 		this.widget.click(() => {
 			let route = generate_route(this)

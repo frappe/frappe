@@ -9,6 +9,15 @@ export default class ChartWidget extends Widget {
 		this.height = 240;
 	}
 
+	get_config() {
+		return {
+			name: this.name,
+			docname: this.docname,
+			chart_name: this.chart_name,
+			label: this.label,
+		}
+	}
+
 	refresh() {
 		this.make_chart();
 	}
