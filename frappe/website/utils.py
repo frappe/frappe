@@ -89,7 +89,7 @@ def is_signup_enabled():
 def cleanup_page_name(title):
 	"""make page name from title"""
 	if not title:
-		return title
+		return ''
 
 	name = title.lower()
 	name = re.sub('[~!@#$%^&*+()<>,."\'\?]', '', name)
@@ -287,7 +287,9 @@ def extract_title(source, path):
 	if not title and "<h1>" in source:
 		# extract title from h1
 		match = re.findall('<h1>([^<]*)', source)
-		title = match[0].strip()[:300]
+		title_content = match[0].strip()[:300]
+		if '{{' not in title_content:
+			title = title_content
 
 	if not title:
 		# make title from name

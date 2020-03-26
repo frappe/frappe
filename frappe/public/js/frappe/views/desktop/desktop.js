@@ -1,6 +1,3 @@
-import ChartWidget from "../widgets/chart_widget";
-import WidgetGroup from "../widgets/widget_group";
-
 export default class Desktop {
 	constructor({ wrapper }) {
 		this.wrapper = wrapper;
@@ -18,12 +15,9 @@ export default class Desktop {
 
 	make() {
 		this.make_container();
-		// this.show_loading_state();
 		this.fetch_desktop_settings().then(() => {
 			this.route();
 			this.make_sidebar();
-			this.setup_events();
-			// this.hide_loading_state();
 		});
 	}
 
@@ -41,25 +35,6 @@ export default class Desktop {
 		this.container.appendTo(this.wrapper);
 		this.sidebar = this.container.find(".desk-sidebar");
 		this.body = this.container.find(".desk-body");
-	}
-
-	show_loading_state() {
-		// Add skeleton
-		let loading_sidebar = $(
-			'<div class="skeleton skeleton-full" style="height: 90vh;"></div>'
-		);
-		let loading_body = $(
-			`<div class="skeleton skeleton-full" style="height: 90vh;"></div>`
-		);
-
-		// Append skeleton to body
-		loading_sidebar.appendTo(this.sidebar);
-		loading_body.appendTo(this.body);
-	}
-
-	hide_loading_state() {
-		// Remove all skeleton
-		this.container.find(".skeleton").remove();
 	}
 
 	fetch_desktop_settings() {
@@ -137,7 +112,9 @@ export default class Desktop {
 	}
 
 	get_page_to_show() {
-		const default_page = this.desktop_settings ? this.desktop_settings["Modules"][0].name : "Website";
+		const default_page = this.desktop_settings
+			? this.desktop_settings["Modules"][0].name
+			: "Website";
 		let page =
 			frappe.get_route()[1] ||
 			localStorage.current_desk_page ||
@@ -155,13 +132,7 @@ export default class Desktop {
 		return $page;
 	}
 
-	setup_events() {
-		$(document).keydown(e => {
-			if (e.keyCode == 9) {
-				console.log("navigate");
-			}
-		});
-	}
+	setup_events() {}
 }
 
 class DesktopPage {
@@ -169,7 +140,7 @@ class DesktopPage {
 		this.container = container;
 		this.page_name = page_name;
 		this.sections = {};
-		this.allow_customization = false
+		this.allow_customization = false;
 		this.make();
 	}
 
@@ -185,10 +156,10 @@ class DesktopPage {
 		this.make_page();
 		this.get_data().then(res => {
 			this.data = res.message;
-			// this.make_onboarding()
+			// this.make_onboarding();
 			if (!this.data) {
 				delete localStorage.current_desk_page;
-				frappe.set_route('workspace');
+				frappe.set_route("workspace");
 				return;
 			}
 
@@ -216,7 +187,7 @@ class DesktopPage {
 	}
 
 	make_onboarding() {
-		this.sections["onboarding"] = new WidgetGroup({
+		this.sections["onboarding"] = new frappe.widget.WidgetGroup({
 			title: `Getting Started`,
 			container: this.page,
 			type: "onboarding",
@@ -253,7 +224,7 @@ class DesktopPage {
 	}
 
 	make_charts() {
-		this.sections["charts"] = new WidgetGroup({
+		this.sections["charts"] = new frappe.widget.WidgetGroup({
 			title: this.data.charts.label || `${this.page_name} Dashboard`,
 			container: this.page,
 			type: "chart",
@@ -264,7 +235,7 @@ class DesktopPage {
 	}
 
 	make_shortcuts() {
-		this.sections["shortcuts"] = new WidgetGroup({
+		this.sections["shortcuts"] = new frappe.widget.WidgetGroup({
 			title: this.data.shortcuts.label || `Your Shortcuts`,
 			container: this.page,
 			type: "bookmark",
@@ -275,7 +246,7 @@ class DesktopPage {
 	}
 
 	make_cards() {
-		let cards = new WidgetGroup({
+		let cards = new frappe.widget.WidgetGroup({
 			title: this.data.cards.label || `Reports & Masters`,
 			container: this.page,
 			type: "links",

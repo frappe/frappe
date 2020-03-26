@@ -32,7 +32,9 @@ frappe.ui.form.Sidebar = Class.extend({
 
 		this.make_tags();
 		this.make_like();
-		this.make_follow();
+		if (frappe.boot.user.document_follow_notify) {
+			this.make_follow();
+		}
 
 		this.bind_events();
 		this.setup_keyboard_shortcuts();
@@ -74,7 +76,9 @@ frappe.ui.form.Sidebar = Class.extend({
 			this.frm.assign_to.refresh();
 			this.frm.attachments.refresh();
 			this.frm.shared.refresh();
-			this.frm.follow.refresh();
+			if (frappe.boot.user.document_follow_notify) {
+				this.frm.follow.refresh();
+			}
 			this.frm.viewers.refresh();
 			this.frm.tags && this.frm.tags.refresh(this.frm.get_docinfo().tags);
 			this.sidebar.find(".modified-by").html(__("{0} edited this {1}",
