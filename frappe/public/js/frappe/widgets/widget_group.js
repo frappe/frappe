@@ -57,20 +57,25 @@ export default class WidgetGroup {
 
 	make_widgets() {
 		this.body.empty()
+		this.widgets.forEach(widget => {
+			this.add_widget(widget)
+		});
+	}
+
+	add_widget(widget) {
 		const widget_class = widget_factory[this.type];
 
-		this.widgets.forEach(widget => {
-			let widget_object = new widget_class({
-				...widget,
-				container: this.body,
-				options: {
-					...this.options,
-					on_delete: (name) => this.on_delete(name)
-				}
-			});
-			this.widgets_list.push(widget_object);
-			this.widgets_dict[widget.name] = widget_object;
+		let widget_object = new widget_class({
+			...widget,
+			container: this.body,
+			options: {
+				...this.options,
+				on_delete: (name) => this.on_delete(name)
+			}
 		});
+
+		this.widgets_list.push(widget_object);
+		this.widgets_dict[widget.name] = widget_object;
 	}
 
 	customize() {
@@ -78,10 +83,17 @@ export default class WidgetGroup {
 			wid.customize(this.options);
 		})
 
-		this.options.allow_create && new NewWidget({
-			container: this.body,
-			type: this.type
-		})
+		if (this.options.allow_create) {
+			this.new_widget = new NewWidget({
+				container: this.body,
+				type: this.type,
+				on_create: (config) => {
+					this.new_widget.delete();
+					this.add_widget(config);
+					this.customize();
+				}
+			})
+		}
 
 		this.options.allow_sorting && this.setup_sortable();
 	}
