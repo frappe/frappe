@@ -15,6 +15,7 @@ from frappe.model import display_fieldtypes, data_fieldtypes
 from frappe.utils.password import get_decrypted_password, set_encrypted_password
 from frappe.utils import (cint, flt, now, cstr, strip_html, getdate, get_datetime, to_timedelta,
 	sanitize_html, sanitize_email, cast_fieldtype)
+from frappe.utils.html_utils import unescape_html
 
 max_positive_value = {
 	'smallint': 2 ** 15,
@@ -502,7 +503,15 @@ class BaseDocument(object):
 
 					for _df in fields_to_fetch:
 						if self.is_new() or self.docstatus != 1 or _df.allow_on_submit:
-							setattr(self, _df.fieldname, values[_df.fetch_from.split('.')[-1]])
+							fetch_from_fieldname = _df.fetch_from.split('.')[-1]
+							value = values[fetch_from_fieldname]
+							if _df.fieldtype == 'Small Text' or _df.fieldtype == 'Text' or _df.fieldtype == 'Data':
+								fetch_from_df = frappe.get_meta(doctype).get_field(fetch_from_fieldname)
+								fetch_from_ft = fetch_from_df and fetch_from_df.fieldtype
+
+								if fetch_from_ft == 'Text Editor' and value:
+									value = unescape_html(strip_html(value))
+							setattr(self, _df.fieldname, value)
 
 					notify_link_count(doctype, docname)
 
