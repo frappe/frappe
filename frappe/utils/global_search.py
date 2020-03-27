@@ -499,7 +499,7 @@ def web_search(text, scope=None, start=0, limit=20):
 		common_query = ''' SELECT `doctype`, `name`, `content`, `title`, `route`
 			FROM `__global_search`
 			WHERE {conditions}
-			LIMIT %(limit)s OFFSET %(start)s}'''
+			LIMIT %(limit)s OFFSET %(start)s'''
 
 		scope_condition = '`route` like "%(scope)s" AND ' if scope else ''
 		published_condition = '`published` = 1 AND '
