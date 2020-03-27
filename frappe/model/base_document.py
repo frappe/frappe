@@ -7,6 +7,7 @@ from six import iteritems, string_types
 import frappe
 import datetime
 from frappe import _
+from frappe.core.doctype.user.user import STANDARD_USERS
 from frappe.model import default_fields, table_fields
 from frappe.model.naming import set_new_name
 from frappe.model.utils.link_count import notify_link_count
@@ -551,6 +552,8 @@ class BaseDocument(object):
 			data_field_options = data_field.get("options")
 
 			if data_field_options == "Email":
+				if (self.owner in STANDARD_USERS) and (data in STANDARD_USERS):
+					return
 				for email_address in frappe.utils.split_emails(data):
 					frappe.utils.validate_email_address(email_address, throw=True)
 
