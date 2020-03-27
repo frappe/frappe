@@ -26,17 +26,28 @@ export default class Widget {
 				'<i class="fa fa-trash" aria-hidden="true"></i>',
 				() => this.delete()
 			);
+
 		options.allow_sorting &&
 			this.add_custom_button(
 				'<i class="fa fa-arrows" aria-hidden="true"></i>',
 				null,
 				"drag-handle"
 			);
-		options.allow_hiding &&
+
+		if (options.allow_hiding) {
+			if (this.hidden) {
+				this.widget.removeClass('hidden')
+				this.body.css("opacity", 0.5);
+				this.title_field.css("opacity", 0.5);
+				this.footer.css("opacity", 0.5);
+			}
+
 			this.add_custom_button(
 				'<i class="fa fa-eye-slash" aria-hidden="true"></i>',
 				() => this.hide_or_show()
 			);
+		}
+
 		options.allow_edit &&
 			this.add_custom_button(
 				'<i class="fa fa-pencil" aria-hidden="true"></i>',
@@ -50,7 +61,7 @@ export default class Widget {
 	}
 
 	make_widget() {
-		this.widget = $(`<div class="widget" data-widget-name=${
+		this.widget = $(`<div class="widget ${this.hidden ? 'hidden' : ''}" data-widget-name=${
 			this.docname ? this.docname : this.name
 		}>
 			<div class="widget-head">
