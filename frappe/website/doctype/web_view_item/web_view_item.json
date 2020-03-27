@@ -11,6 +11,7 @@
   "column_break_3",
   "columns",
   "element_class",
+  "element_style",
   "section_break_5",
   "section_type",
   "web_content_type",
@@ -98,11 +99,16 @@
    "fieldname": "hide",
    "fieldtype": "Check",
    "label": "Hide"
+  },
+  {
+   "fieldname": "element_style",
+   "fieldtype": "Small Text",
+   "label": "Element Style"
   }
  ],
  "istable": 1,
  "links": [],
- "modified": "2020-03-17 17:06:37.157763",
+ "modified": "2020-03-18 23:14:24.020488",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Web View Item",

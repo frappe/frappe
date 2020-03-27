@@ -10,11 +10,26 @@
 
 {%- macro render_element(element) -%}
 	{%- if element.element_type=='Content' -%}
+		<div class="web-content {{ element_class(element) }}" {{ element_style(element) }}>
 		{{ element.web_content_html }}
+		</div>
 	{%- elif element.element_type=='Image' -%}
-		<img src='{{ element.image_url }}' {%- if element.element_class -%}class='{{ element.element_class }}'{%- endif -%}>
+		<img src='{{ element.image_url }}'
+			{%- if element.element_class -%}class='{{ element.element_class }}'{%- endif -%}
+			{{ element_style(element) }}>
 	{%- endif -%}
 {%- endmacro -%}
+
+{%- macro element_class(element) -%}
+	{{ element.element_class or "" }}
+{%- endmacro -%}
+
+{%- macro element_style(element) -%}
+	{%- if element.element_style -%}
+	style = "{{ element.element_style }}"
+	{%- endif -%}
+{%- endmacro -%}
+
 
 {%- for section in sections -%}
 <section class='section {{ section.element_class or "" }} {{ section.hide and "hidden" or "" }}'>
@@ -32,7 +47,7 @@
 	{%- elif section.section_type == 'Grid' -%}
 		<div class='row'>
 		{%- for element in section.elements -%}
-			<div class='web-content col-md-{{ element.columns or 6 }} {{ element.element_class or "" }}'>
+			<div class='col-md-{{ element.columns or 6 }}'>
 			{{ render_element(element) }}
 			</div>
 		{%- endfor -%}
@@ -50,7 +65,7 @@
 		</ul>
 		<div class="tab-content">
 			{%- for element in section.elements -%}
-			<div class="web-content tab-pane {{ loop.index == 1 and 'show active' or ''}}" role="tabpanel" id="{{ element.element_id }}">
+			<div class="tab-pane {{ loop.index == 1 and 'show active' or ''}}" role="tabpanel" id="{{ element.element_id }}">
 				{{ render_element(element) }}
 			</div>
 			{%- endfor -%}
