@@ -119,11 +119,19 @@ export default class Widget {
 			this.body.css("opacity", 0.5);
 			this.title_field.css("opacity", 0.5);
 			this.footer.css("opacity", 0.5);
+			this.show_or_hide_button.empty();
+			$(`<i class="fa fa-eye" aria-hidden="true"></i>`).appendTo(
+				this.show_or_hide_button
+			);
 			this.hidden = true;
 		} else {
 			this.body.css("opacity", 1);
 			this.title_field.css("opacity", 1);
 			this.footer.css("opacity", 1);
+			this.show_or_hide_button.empty();
+			$(`<i class="fa fa-eye-slash" aria-hidden="true"></i>`).appendTo(
+				this.show_or_hide_button
+			);
 			this.hidden = false;
 		}
 	}
