@@ -41,9 +41,9 @@ export default class Widget {
 				this.title_field.css("opacity", 0.5);
 				this.footer.css("opacity", 0.5);
 			}
-
+			const classname = this.hidden ? 'fa fa-eye' : 'fa fa-eye-slash';
 			this.add_custom_button(
-				'<i class="fa fa-eye-slash" aria-hidden="true"></i>',
+				`<i class="${classname}" aria-hidden="true"></i>`,
 				() => this.hide_or_show(),
 				"show-or-hide-button"
 			);
@@ -119,21 +119,19 @@ export default class Widget {
 			this.body.css("opacity", 0.5);
 			this.title_field.css("opacity", 0.5);
 			this.footer.css("opacity", 0.5);
-			this.show_or_hide_button.empty();
-			$(`<i class="fa fa-eye" aria-hidden="true"></i>`).appendTo(
-				this.show_or_hide_button
-			);
 			this.hidden = true;
 		} else {
 			this.body.css("opacity", 1);
 			this.title_field.css("opacity", 1);
 			this.footer.css("opacity", 1);
-			this.show_or_hide_button.empty();
-			$(`<i class="fa fa-eye-slash" aria-hidden="true"></i>`).appendTo(
-				this.show_or_hide_button
-			);
 			this.hidden = false;
 		}
+		this.show_or_hide_button.empty();
+
+		const classname = this.hidden ? 'fa fa-eye' : 'fa fa-eye-slash';
+		$(`<i class="${classname}" aria-hidden="true"></i>`).appendTo(
+			this.show_or_hide_button
+		);
 	}
 
 	set_actions() {
