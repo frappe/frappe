@@ -1024,7 +1024,7 @@ def validate_fields(meta):
 		scrub_options_in_select(d)
 		scrub_fetch_from(d)
 
-		if meta.get('custom'):
+		if meta.get('custom') and not meta.is_new():
 			doc_before_update = frappe.get_doc('DocType', meta.get('name'))
 			df_before_update = doc_before_update.get("fields", {"fieldname": d.fieldname})
 			old_value = df_before_update[0].fieldtype
