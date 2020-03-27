@@ -37,8 +37,6 @@ class WebsiteTheme(Document):
 			frappe.throw(_("Please Duplicate this Website Theme to customize."))
 
 	def render_theme(self):
-		if self.google_font:
-			self.google_font = self.google_font.replace(' ', '+')
 		self.theme_scss = frappe.render_template('frappe/website/doctype/website_theme/website_theme_template.scss', self.as_dict())
 
 	def validate_theme(self):

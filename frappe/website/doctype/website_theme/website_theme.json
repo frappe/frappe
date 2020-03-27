@@ -14,6 +14,7 @@
   "google_font",
   "font_size",
   "font_properties",
+  "use_full_width",
   "column_break_7",
   "primary_color",
   "text_color",
@@ -142,10 +143,16 @@
    "fieldname": "font_properties",
    "fieldtype": "Data",
    "label": "Font Properties"
+  },
+  {
+   "description": "Content will not be inside a \"container\" class, you will have to add your own containers for different sections.",
+   "fieldname": "use_full_width",
+   "fieldtype": "Data",
+   "label": "Use Full Width"
   }
  ],
  "links": [],
- "modified": "2020-03-18 18:24:57.469492",
+ "modified": "2020-03-19 09:46:48.750150",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Website Theme",

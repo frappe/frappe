@@ -1,5 +1,5 @@
 {% if google_font %}
-@import url('https://fonts.googleapis.com/css?family={{ google_font }}:{{ font_properties }}&display=swap');
+@import url('https://fonts.googleapis.com/css?family={{ google_font.replace(' ', '+') }}:{{ font_properties }}&display=swap');
 $font-family-sans-serif: "{{ google_font }}", -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
 {% endif %}
 
@@ -18,6 +18,4 @@ body {
     {% if font_size %}
     font-size: {{ font_size }};
     {% endif %}
-    font-smoothing: antialiased;
-	-webkit-font-smoothing: antialiased;
 }
