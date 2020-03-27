@@ -142,6 +142,7 @@ class DesktopPage {
 		this.sections = {};
 		this.allow_customization = false;
 		this.in_customize_mode = false;
+		this.container.empty();
 		this.make();
 	}
 
@@ -151,6 +152,12 @@ class DesktopPage {
 
 	hide() {
 		this.page.hide();
+	}
+
+	reload() {
+		this.in_customize_mode = false;
+		this.container.empty();
+		this.make();
 	}
 
 	make_customization_link() {
@@ -167,11 +174,7 @@ class DesktopPage {
 		this.save_or_discard_link.appendTo(this.page);
 		this.save_or_discard_link.find(".save-customization").on("click", () => this.save_customization());
 
-		this.save_or_discard_link.find(".discard-customization").on("click", () => {
-			this.in_customize_mode = false;
-			this.container.empty();
-			this.make();
-		})
+		this.save_or_discard_link.find(".discard-customization").on("click", () => this.reload())
 
 		this.page.addClass('allow-customization');
 	}
@@ -269,9 +272,11 @@ class DesktopPage {
 		if (this.sections.shortcuts) config.shortcuts = this.sections.shortcuts.get_widget_config();
 		if (this.sections.cards) config.cards = this.sections.cards.get_widget_config();
 
-		return frappe.call('frappe.desk.desktop.save_customization', {
+		frappe.call('frappe.desk.desktop.save_customization', {
 			page: this.page_name,
 			config: config
+		}).then(res => {
+			this.reload();
 		})
 	}
 
@@ -319,7 +324,7 @@ class DesktopPage {
 				allow_sorting: this.allow_customization && !frappe.is_mobile(),
 				allow_create: false,
 				allow_delete: false,
-				allow_hiding: false,
+				allow_hiding: this.allow_customization,
 				allow_edit: false,
 			},
 			widgets: this.data.cards.items
