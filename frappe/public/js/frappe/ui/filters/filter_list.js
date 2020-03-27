@@ -167,4 +167,20 @@ frappe.ui.FilterGroup = class {
 		</div>
 		<div class="filter-edit-area"></div>`);
 	}
+
+	get_filters_as_object() {
+		let filters = this.get_filters().reduce((acc, filter) => {
+			return Object.assign(acc, {
+				[filter[1]]: [filter[2], filter[3]]
+			});
+		}, {});
+		return filters;
+	}
+
+	add_filters_to_filter_group(filters) {
+
+		filters.forEach(filter => {
+			this.add_filter(filter[0], filter[1], filter[2], filter[3]);
+		});
+	}
 };

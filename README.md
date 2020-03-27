@@ -14,8 +14,8 @@
 </div>
 
 <div align="center">
-    <a href="https://travis-ci.org/frappe/frappe">
-        <img src="https://img.shields.io/travis/frappe/frappe.svg?style=flat-square">
+    <a href="https://travis-ci.com/frappe/frappe">
+        <img src="https://travis-ci.com/frappe/frappe.svg?branch=develop">
     </a>
     <a href='https://frappe.io/docs'>
         <img src='https://img.shields.io/badge/docs-📖-7575FF.svg?style=flat-square'/>

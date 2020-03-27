@@ -40,6 +40,7 @@ class Address(Document):
 	def validate(self):
 		self.link_address()
 		self.validate_reference()
+		self.validate_preferred_address()
 		set_link_title(self)
 		deduplicate_dynamic_links(self)
 
@@ -58,7 +59,19 @@ class Address(Document):
 	def validate_reference(self):
 		if self.is_your_company_address:
 			if not [row for row in self.links if row.link_doctype == "Company"]:
-				frappe.throw(_("Company is mandatory, as it is your company address"))
+				frappe.throw(_("Address needs to be linked to a Company. Please add a row for Company in the Links table below."),
+					title =_("Company not Linked"))
+
+	def validate_preferred_address(self):
+		preferred_fields = ['is_primary_address', 'is_shipping_address']
+
+		for field in preferred_fields:
+			if self.get(field):
+				for link in self.links:
+					address = get_preferred_address(link.link_doctype, link.link_name, field)
+
+					if address:
+						update_preferred_address(address, field)
 
 	def get_display(self):
 		return get_address_display(self.as_dict())
@@ -75,6 +88,23 @@ class Address(Document):
 				return True
 
 		return False
+
+def get_preferred_address(doctype, name, preferred_key='is_primary_address'):
+	if preferred_key in ['is_shipping_address', 'is_primary_address']:
+		address = frappe.db.sql(""" SELECT
+				addr.name
+			FROM
+				`tabAddress` addr, `tabDynamic Link` dl
+			WHERE
+				dl.parent = addr.name and dl.link_doctype = %s and
+				dl.link_name = %s and ifnull(addr.disabled, 0) = 0 and
+				%s = %s
+			""" % ('%s', '%s', preferred_key, '%s'), (doctype, name, 1), as_dict=1)
+
+		if address:
+			return address[0].name
+
+	return
 
 @frappe.whitelist()
 def get_default_address(doctype, name, sort_key='is_primary_address'):
@@ -257,3 +287,6 @@ def address_query(doctype, txt, searchfield, start, page_len, filters):
 def get_condensed_address(doc):
 	fields = ["address_title", "address_line1", "address_line2", "city", "county", "state", "country"]
 	return ", ".join([doc.get(d) for d in fields if doc.get(d)])
+
+def update_preferred_address(address, field):
+	frappe.db.set_value('Address', address, field, 0)

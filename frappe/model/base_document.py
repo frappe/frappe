@@ -392,7 +392,7 @@ class BaseDocument(object):
 			if df:
 				label = df.label
 
-			frappe.msgprint(_("{0} must be unique".format(label or fieldname)))
+			frappe.msgprint(_("{0} must be unique").format(label or fieldname))
 
 		# this is used to preserve traceback
 		raise frappe.UniqueValidationError(self.doctype, self.name, e)
@@ -801,8 +801,8 @@ class BaseDocument(object):
 			else:
 				# get values from old doc
 				if self.get('parent_doc'):
-					self.parent_doc.get_latest()
-					ref_doc = [d for d in self.parent_doc.get(self.parentfield) if d.name == self.name][0]
+					parent_doc = self.parent_doc.get_latest()
+					ref_doc = [d for d in parent_doc.get(self.parentfield) if d.name == self.name][0]
 				else:
 					ref_doc = self.get_latest()
 

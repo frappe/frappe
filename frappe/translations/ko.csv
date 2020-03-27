@@ -2,7 +2,6 @@ apps/frappe/frappe/utils/change_log.py,New {} releases for the following apps ar
 apps/frappe/frappe/website/doctype/web_form/web_form.py,Please select a Amount Field.,금액 필드를 선택하십시오.
 apps/frappe/frappe/core/doctype/data_import_beta/data_import_beta.js,Loading import file...,가져 오기 파일로드 중 ...
 DocType: Assignment Rule,Last User,최종 사용자
-apps/frappe/frappe/desk/form/assign_to.py,"A new task, {0}, has been assigned to you by {1}. {2}","새 작업은, {0}, {1}가 할당되었습니다. {2}"
 apps/frappe/frappe/public/js/frappe/ui/toolbar/toolbar.js,Session Defaults Saved,세션 기본값 저장 됨
 apps/frappe/frappe/public/js/frappe/form/controls/attach.js,Reload File,파일 새로 고침
 DocType: Email Queue,Email Queue records.,이메일 큐 기록합니다.
@@ -28,6 +27,7 @@ apps/frappe/frappe/public/js/frappe/views/treeview.js,{0} Tree,{0} 트리
 DocType: User,User Emails,사용자 이메일
 DocType: User,Username,사용자 이름
 apps/frappe/frappe/public/js/frappe/views/file/file_view.js,Import Zip,우편 번호 가져 오기
+DocType: Scheduled Job Type,Create Log,로그 생성
 apps/frappe/frappe/model/base_document.py,Value too big,너무 큰 값
 DocType: DocField,DocField,DocField
 DocType: GSuite Settings,Run Script Test,스크립트 테스트 실행
@@ -46,7 +46,6 @@ apps/frappe/frappe/public/js/frappe/views/kanban/kanban_view.js,There was an err
 DocType: Custom DocPerm,This role update User Permissions for a user,사용자에 대한이 역할은 업데이트 사용자 권한
 apps/frappe/frappe/public/js/frappe/model/model.js,Rename {0},이름 바꾸기 {0}
 DocType: Workflow State,zoom-out,줌 아웃
-DocType: Data Import Beta,Import Options,가져 오기 옵션
 apps/frappe/frappe/public/js/frappe/form/form.js,Cannot open {0} when its instance is open,해당 인스턴스가 열려있을 때 {0} 열 수 없습니다
 apps/frappe/frappe/model/document.py,Table {0} cannot be empty,테이블 {0} 비워 둘 수 없습니다
 DocType: SMS Parameter,Parameter,매개변수
@@ -73,7 +72,7 @@ DocType: Auto Repeat,Monthly,월
 DocType: Address,Uttarakhand,우타 라칸 드
 DocType: Email Account,Enable Incoming,수신 사용
 apps/frappe/frappe/core/doctype/version/version_view.html,Danger,위험
-DocType: Address,Email Address,이메일 주소
+apps/frappe/frappe/www/login.py,Email Address,이메일 주소
 DocType: Workflow State,th-large,일 대형
 DocType: Communication,Unread Notification Sent,보낸 읽지 않은 알림
 apps/frappe/frappe/public/js/frappe/utils/tools.js,Export not allowed. You need {0} role to export.,수출은 허용되지 않습니다.당신은 수출 {0} 역할을해야합니다.
@@ -88,14 +87,16 @@ apps/frappe/frappe/integrations/doctype/google_calendar/google_calendar.py,"Goog
 DocType: Event,Pulled from Google Calendar,Google 캘린더에서 가져옴
 DocType: Note,Seen By,볼
 apps/frappe/frappe/public/js/frappe/form/grid.js,Add Multiple,여러 항목 추가
-apps/frappe/frappe/social/doctype/energy_point_log/energy_point_log.py,You gained some energy points,에너지 포인트를 얻었습니다.
 apps/frappe/frappe/core/doctype/user/user.py,Not a valid User Image.,유효한 사용자 이미지가 아닙니다.
 DocType: Energy Point Log,Reverted,되 돌린
 DocType: Success Action,First Success Message,첫 번째 성공 메시지
+DocType: Document Type Mapping,Document Type Mapping,문서 유형 매핑
 apps/frappe/frappe/public/js/frappe/ui/filters/filters.js,Not Like,좋아하지
 apps/frappe/frappe/model/document.py,Incorrect value: {0} must be {1} {2},잘못된 값 : {0}이어야합니다 {1} {2}
 apps/frappe/frappe/config/customization.py,"Change field properties (hide, readonly, permission etc.)","변경 필드 속성 (숨김, 읽기 전용, 권한 등)"
+apps/frappe/frappe/config/automation.py,The site which is consuming your events.,이벤트를 소비하는 사이트입니다.
 apps/frappe/frappe/public/js/frappe/form/sidebar/review.js,Appreciate,고맙다
+DocType: Notification Settings,Document Share,문서 공유
 DocType: Workflow State,lock,"자물쇠를 채우다, ~을 잠그다"
 apps/frappe/frappe/config/website.py,Settings for Contact Us Page.,문의 페이지에 대한 설정.
 apps/frappe/frappe/core/doctype/user/user.py,Administrator Logged In,관리자 기록 된에
@@ -109,14 +110,17 @@ apps/frappe/frappe/integrations/doctype/social_login_key/social_login_key.py,Ple
 DocType: DocType,"If enabled, the document is marked as seen, the first time a user opens it",사용하도록 설정하면 사용자가 처음 열 때 문서가 표시된 것으로 표시됩니다.
 DocType: Auto Repeat,Repeat on Day,하루에 반복하기
 DocType: DocField,Color,색상
+apps/frappe/frappe/public/js/frappe/ui/notifications/notifications.js,Mark all as Read,모두 읽은 상태로 표시
 DocType: Data Migration Run,Log,기록
 DocType: Workflow State,indent-right,들여 쓰기 오른쪽
 DocType: Has Role,Has Role,역할을
+apps/frappe/frappe/event_streaming/doctype/event_sync_log/event_sync_log.js,Resync,재 동기화
 DocType: System Settings,Time in seconds to retain QR code image on server. Min:<strong>240</strong>,서버에 QR 코드 이미지를 보관할 시간 (초). 최소 : <strong>240</strong>
 apps/frappe/frappe/core/doctype/doctype/doctype.py,{0}:Fieldtype {1} for {2} cannot be indexed,{0} : {2}의 필드 유형 {1}을 (를) 인덱싱 할 수 없습니다.
 DocType: Dashboard Chart,Timespan,시간 범위
 apps/frappe/frappe/public/js/frappe/file_uploader/FileUploader.vue,Web Link,웹 링크
 DocType: Deleted Document,Restored,복원
+apps/frappe/frappe/public/js/frappe/form/print.js,"Error connecting to QZ Tray Application...<br><br> You need to have QZ Tray application installed and running, to use the Raw Print feature.<br><br><a href=""https://qz.io/download/"" target=""_blank"">Click here to Download and install QZ Tray</a>.<br> <a href=""https://erpnext.com/docs/user/manual/en/setting-up/print/raw-printing"" target=""_blank"">Click here to learn more about Raw Printing</a>.","QZ 트레이 응용 프로그램 연결 오류 ... <br><br> Raw Print 기능을 사용하려면 QZ Tray 응용 프로그램이 설치되어 실행 중이어야합니다. <br><br> <a href=""https://qz.io/download/"" target=""_blank"">QZ 트레이를 다운로드하여 설치하려면 여기를 클릭하십시오</a> . <br> <a href=""https://erpnext.com/docs/user/manual/en/setting-up/print/raw-printing"" target=""_blank"">Raw Printing에 대한 자세한 내용을 보려면 여기를 클릭하십시오</a> ."
 apps/frappe/frappe/public/js/frappe/utils/pretty_date.js,1 minute ago,분 전
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,"Apart from System Manager, roles with Set User Permissions right can set permissions for other users for that Document Type.","외에도 시스템 관리자에서, 사용자 설정 권한과 역할은 그 권리를 문서 형식에 대한 다른 사용자의 권한을 설정할 수 있습니다."
 apps/frappe/frappe/website/doctype/website_theme/website_theme.js,Configure Theme,테마 구성
@@ -127,6 +131,7 @@ apps/frappe/frappe/config/integrations.py,Webhooks calling API requests into web
 apps/frappe/frappe/core/doctype/data_import_beta/data_import_beta.js,Show Traceback,역 추적 표시
 DocType: DocType,Default Print Format,기본 인쇄 형식
 DocType: Workflow State,Tags,태그
+DocType: Onboarding Slide,Slide Type,슬라이드 타입
 apps/frappe/frappe/public/js/frappe/form/workflow.js,None: End of Workflow,없음 : 워크 플로우의 끝
 apps/frappe/frappe/database/mariadb/schema.py,"{0} field cannot be set as unique in {1}, as there are non-unique existing values",고유하지 않은 기존의 값이 있기 때문에 {0} 필드는 {1}에 독특한 설정할 수 없습니다
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js,Document Types,문서 유형
@@ -136,7 +141,6 @@ DocType: Language,Guest,손님
 DocType: DocType,Title Field,제목 필드
 DocType: Error Log,Error Log,오류 로그
 apps/frappe/frappe/public/js/frappe/file_uploader/FileUploader.vue,Invalid URL,잘못된 URL
-apps/frappe/frappe/public/js/frappe/ui/toolbar/energy_points_notifications.js,Last 7 days,지난 7 일
 apps/frappe/frappe/utils/password_strength.py,"Repeats like ""abcabcabc"" are only slightly harder to guess than ""abc""",&quot;abcabcabc&quot;약간 어렵게은 &quot;ABC&quot;보다 생각하는 것처럼 반복
 DocType: Notification,Channel,채널
 apps/frappe/frappe/templates/emails/administrator_logged_in.html,"If you think this is unauthorized, please change the Administrator password.","이 권한이없는 생각한다면, 관리자 암호를 변경하십시오."
@@ -155,6 +159,7 @@ DocType: OAuth Authorization Code,Client,클라이언트
 apps/frappe/frappe/public/js/frappe/views/reports/report_view.js,Select Column,열 선택
 apps/frappe/frappe/public/js/frappe/form/form.js,This form has been modified after you have loaded it,당신이 그것을로드 한 후이 양식은 수정되었습니다
 DocType: Address,Himachal Pradesh,히 마찰 프라데시
+DocType: Notification Log,Notification Log,알림 로그
 DocType: System Settings,"If not set, the currency precision will depend on number format",설정되지 않은 경우 통화 정밀도는 숫자 형식에 따라 달라집니다.
 DocType: System Settings,"If not set, the currency precision will depend on number format",설정되지 않은 경우 통화 정밀도는 숫자 형식에 따라 달라집니다.
 apps/frappe/frappe/public/js/frappe/ui/keyboard.js,Open Awesomebar,신난다 열기
@@ -165,7 +170,7 @@ apps/frappe/frappe/config/website.py,Embed image slideshows in website pages.,�
 apps/frappe/frappe/email/doctype/newsletter/newsletter.js,Send,보내기
 DocType: Workflow Action Master,Workflow Action Name,워크 플로 작업 이름
 apps/frappe/frappe/core/doctype/doctype/doctype.py,DocType can not be merged,문서 종류는 병합 할 수 없습니다
-DocType: Web Form Field,Fieldtype,Fieldtype
+DocType: Onboarding Slide Field,Fieldtype,Fieldtype
 apps/frappe/frappe/core/doctype/file/file.py,Not a zip file,아니 zip 파일
 DocType: Global Search DocType,Global Search DocType,글로벌 검색 DocType
 DocType: Auto Repeat,"To add dynamic subject, use jinja tags like
@@ -178,12 +183,15 @@ DocType: Newsletter,Email Sent?,이메일 전송?
 apps/frappe/frappe/public/js/frappe/views/reports/report_view.js,Toggle Chart,차트 전환
 apps/frappe/frappe/desk/form/save.py,Did not cancel,취소하지 않았다
 DocType: Social Login Key,Client Information,고객 정보
+DocType: Energy Point Rule,Apply this rule only once per document,이 규칙은 문서 당 한 번만 적용하십시오
 DocType: Workflow State,plus,플러스
+DocType: DocField,Read Only Depends On,읽기 전용
 apps/frappe/frappe/integrations/oauth2.py,Logged in as Guest or Administrator,고객 또는 관리자로 로그인
 DocType: Email Account,UNSEEN,보이지 않는 것
 apps/frappe/frappe/public/js/frappe/views/file/file_view.js,File Manager,파일 관리자
 DocType: Website Settings,"HTML Header, Robots and Redirects","HTML 헤더, 로봇 및 리디렉션"
 DocType: GCalendar Account,Refresh Token,새로 고침 토큰
+apps/frappe/frappe/event_streaming/doctype/event_producer/event_producer.py,Failed to connect to the Event Producer site. Retry after some time.,Event Producer 사이트에 연결하지 못했습니다. 잠시 후 다시 시도하십시오.
 DocType: Address,Goa,고아
 apps/frappe/frappe/core/page/background_jobs/background_jobs.html,No pending or current jobs for this site,이 사이트에 대해 보류 중이거나 현재 작업이 없습니다
 DocType: Webhook,Doc Event,문서 이벤트
@@ -202,9 +210,12 @@ DocType: Communication,BCC,숨은 참조
 DocType: Unhandled Email,Reason,이유
 DocType: Email Unsubscribe,Email Unsubscribe,이메일 수신 거부
 DocType: Website Settings,Select an image of approx width 150px with a transparent background for best results.,최상의 결과를 위해 투명 배경으로 약 폭 150 픽셀의 이미지를 선택합니다.
-apps/frappe/frappe/public/js/frappe/ui/toolbar/energy_points_notifications.js,No activity,활동 없음
+DocType: Server Script,Script Manager,스크립트 관리자
+apps/frappe/frappe/public/js/frappe/ui/notifications/notifications.js,No activity,활동 없음
 apps/frappe/frappe/www/third_party_apps.html,Third Party Apps,제 3 자 앱
 apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js,The first user will become the System Manager (you can change this later).,시스템 관리자가 될 것이다 첫 번째 사용자 (이 나중에 변경할 수 있습니다).
+apps/frappe/frappe/desk/query_report.py,You can try changing the filters of your report.,보고서 필터를 변경해 볼 수 있습니다.
+apps/frappe/frappe/public/js/frappe/ui/notifications/notifications.js,No Events Today,오늘은 이벤트가 없습니다
 apps/frappe/frappe/social/doctype/energy_point_log/energy_point_log.py,You cannot give review points to yourself,자신에게 리뷰 포인트를 줄 수는 없습니다.
 apps/frappe/frappe/integrations/doctype/webhook/webhook.py,DocType must be Submittable for the selected Doc Event,DocType은 선택한 Doc 이벤트에 대해 제출 가능해야합니다.
 DocType: Workflow State,circle-arrow-up,원형 화살표 업
@@ -234,8 +245,10 @@ apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Per
 apps/frappe/frappe/public/js/frappe/views/communication.js,You are not allowed to send emails related to this document,당신은이 문서와 관련된 이메일을 보낼 수 없습니다
 apps/frappe/frappe/model/db_query.py,Please select atleast 1 column from {0} to sort/group,{0} 정렬 / 그룹이어야 한 열을 선택하세요
 apps/frappe/frappe/permissions.py,Not allowed for {0}: {1}. Restricted field: {2},{0}에는 허용되지 않습니다 : {1}. 제한된 필드 : {2}
+apps/frappe/frappe/contacts/doctype/address/address.py,Company not Linked,연결되지 않은 회사
 DocType: PayPal Settings,Check this if you are testing your payment using the Sandbox API,당신이 샌드 박스 API를 사용하여 결제를 테스트하는 경우이 옵션을 선택합니다
 apps/frappe/frappe/website/doctype/website_theme/website_theme.py,You are not allowed to delete a standard Website Theme,당신은 표준 웹 사이트 테마를 삭제할 수 없습니다
+apps/frappe/frappe/public/js/frappe/list/list_view.js,Create your first {0},첫 번째 {0}을 (를) 작성하십시오
 DocType: Data Import,Log Details,로그 세부 정보
 DocType: Workflow Transition,Example,예
 DocType: Webhook Header,Webhook Header,Webhook 헤더
@@ -250,6 +263,7 @@ apps/frappe/frappe/public/js/frappe/request.js,The resource you are looking for 
 DocType: Chat Profile,Chat Background,채팅 배경
 apps/frappe/frappe/core/doctype/communication/communication_list.js,Mark as Read,읽은 상태로 표시
 apps/frappe/frappe/desk/doctype/bulk_update/bulk_update.py,Updating {0},{0}을 (를) 업데이트 중입니다.
+apps/frappe/frappe/desk/doctype/onboarding_slide/onboarding_slide.py,An Onboarding Slide <b>{0}</b> with the same slide order already exists,슬라이드 순서가 동일한 온 보딩 슬라이드 <b>{0}</b> 이 (가) 이미 존재합니다
 apps/frappe/frappe/core/doctype/report/report.js,Disable Report,사용 안 함 보고서
 DocType: Translation,Contributed Translation Doctype Name,제공된 번역 Doctype 이름
 DocType: PayPal Settings,Redirect To,리디렉션
@@ -264,8 +278,10 @@ apps/frappe/frappe/public/js/frappe/list/list_view.js,Delete {0} items permanent
 apps/frappe/frappe/utils/oauth.py,Not Allowed,사용할 수 없음
 DocType: DocShare,Internal record of document shares,문서 공유의 내부 기록
 DocType: Energy Point Settings,Review Levels,레벨 검토
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Setup &gt; User Permissions,설정&gt; 사용자 권한
 DocType: Workflow State,Comment,코멘트
 DocType: Data Migration Plan,Postprocess Method,후 처리 방법
+DocType: DocType Action,Action Type,액션 타입
 apps/frappe/frappe/public/js/frappe/ui/capture.js,Take Photo,사진을 찍다
 DocType: Assignment Rule,Round Robin,라운드 로빈
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,"You can change Submitted documents by cancelling them and then, amending them.","당신이 그들을 개정, 다음이를 취소에 의해 제출 된 문서를 변경할 수 있습니다."
@@ -279,6 +295,7 @@ apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,"If
 apps/frappe/frappe/public/js/frappe/views/reports/report_view.js,Save As,다른 이름으로 저장
 DocType: Comment,Seen,신
 apps/frappe/frappe/public/js/frappe/form/layout.js,Show more details,자세한 내용보기
+DocType: Server Script,Before Submit,제출하기 전에
 DocType: System Settings,Run scheduled jobs only if checked,선택하는 경우에만 예약 된 작업을 실행
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js,Will only be shown if section headings are enabled,섹션 제목이 활성화 된 경우에만 표시됩니다
 apps/frappe/frappe/public/js/frappe/views/kanban/kanban_column.html,Archive,아카이브
@@ -291,10 +308,12 @@ DocType: Dropbox Settings,Dropbox Access Key,보관 용 액세스 키
 apps/frappe/frappe/desk/form/utils.py,Wrong fieldname <b>{0}</b> in add_fetch configuration of custom script,사용자 정의 스크립트의 add_fetch 구성에서 잘못된 필드 이름 <b>{0}</b>
 apps/frappe/frappe/contacts/doctype/contact/contact.py,Select Google Contacts to which contact should be synced.,연락처를 동기화 할 Google 주소록을 선택하십시오.
 DocType: Web Page,Main Section (HTML),메인 섹션 (HTML)
+DocType: Scheduled Job Type,Annual,연간
 DocType: Workflow State,headphones,헤드폰
 apps/frappe/frappe/email/doctype/email_account/email_account.py,Password is required or select Awaiting Password,암호가 필요하거나 대기 비밀번호를 선택한다
 DocType: Email Account,e.g. replies@yourcomany.com. All replies will come to this inbox.,예) replies@yourcomany.com.모든 응답이받은 편지함으로 올 것이다.
 DocType: Slack Webhook URL,Slack Webhook URL,슬랙 웹 훅 URL
+DocType: Onboarding Slide,"Determines the order of the slide in the wizard. If the slide is not to be displayed, priority should be set to 0.",마법사에서 슬라이드 순서를 결정합니다. 슬라이드가 표시되지 않으면 우선 순위를 0으로 설정해야합니다.
 DocType: Data Migration Run,Current Mapping,현재 매핑
 apps/frappe/frappe/templates/includes/login/login.js,Valid email and name required,필요한 유효한 이메일 주소와 이름
 apps/frappe/frappe/public/js/frappe/file_uploader/FileUploader.vue,Make all attachments private,모든 첨부 파일을 비공개로 설정
@@ -310,14 +329,16 @@ apps/frappe/frappe/public/js/frappe/views/calendar/calendar.js,Show Weekends,주
 DocType: Workflow State,remove-circle,제거 - 원
 apps/frappe/frappe/public/js/frappe/ui/toolbar/navbar.html,My Profile,내 프로필
 DocType: Help Article,Beginner,초보자
+apps/frappe/frappe/__init__.py,This action is only allowed for {},이 작업은 {}에만 허용됩니다.
 DocType: Contact,Is Primary Contact,기본 연락처는
+DocType: Event Consumer,Event Consumer,이벤트 소비자
 apps/frappe/frappe/config/website.py,Javascript to append to the head section of the page.,자바 스크립트는 페이지의 헤드 부에 추가한다.
 apps/frappe/frappe/core/doctype/user_permission/user_permission_list.js,Add / Update,추가 / 업데이트
 apps/frappe/frappe/www/printview.py,Not allowed to print draft documents,아니 초안 문서를 인쇄 할 수
 apps/frappe/frappe/core/doctype/role_permission_for_page_and_report/role_permission_for_page_and_report.js,Reset to defaults,기본값으로 재설정
 DocType: Workflow,Transition Rules,전환 규칙
-apps/frappe/frappe/public/js/frappe/data_import/import_preview.js,Showing only first {0} rows in preview,미리보기에서 첫 번째 {0} 행만 표시
 apps/frappe/frappe/core/doctype/report/report.js,Example:,예
+apps/frappe/frappe/public/js/frappe/list/list_view.js,Restrictions,제한 사항
 DocType: Workflow,Defines workflow states and rules for a document.,문서 워크 플로우 상태와 규칙을 정의합니다.
 DocType: Workflow State,Filter,필터
 apps/frappe/frappe/automation/doctype/auto_repeat/auto_repeat.py,Check the Error Log for more information: {0},자세한 내용은 오류 로그를 확인하십시오 : {0}
@@ -329,6 +350,7 @@ apps/frappe/frappe/model/document.py,Error: Document has been modified after you
 apps/frappe/frappe/core/page/background_jobs/background_jobs.html,Job,일
 apps/frappe/frappe/core/doctype/activity_log/feed.py,{0} logged out: {1},{0} 로그 아웃 : {1}
 DocType: Address,West Bengal,서 벵골
+DocType: Onboarding Slide,Information,정보
 apps/frappe/frappe/core/doctype/doctype/doctype.py,{0}: Cannot set Assign Submit if not Submittable,{0} : 지정 제출을 설정할 수 없습니다 Submittable없는 경우
 DocType: Transaction Log,Row Index,행 색인
 DocType: Social Login Key,Facebook,페이스북
@@ -347,7 +369,9 @@ apps/frappe/frappe/core/doctype/doctype/doctype.py,{0}: Options must be a valid 
 DocType: Web Form,Button Help,버튼 도움말
 DocType: Kanban Board Column,purple,자
 DocType: About Us Settings,Team Members,팀 회원
+DocType: System Settings,Will run scheduled jobs only once a day for inactive sites. Default 4 days if set to 0.,비활성 사이트에 대해 하루에 한 번만 예약 된 작업을 실행합니다. 0으로 설정하면 기본값은 4 일입니다.
 DocType: Assignment Rule,System Manager,시스템 관리자
+DocType: Scheduled Job Log,Scheduled Job,예정된 직업
 DocType: Custom DocPerm,Permissions,허가 (또는 접근 권한)
 apps/frappe/frappe/config/integrations.py,Slack Webhooks for internal integration,내부 통합을위한 Webhooks 여유
 DocType: Dropbox Settings,Allow Dropbox Access,보관 용 접근이 허용
@@ -402,6 +426,7 @@ apps/frappe/frappe/public/js/frappe/barcode_scanner/quagga.js,Scan Barcode,바�
 DocType: Email Flag Queue,Email Flag Queue,이메일 플래그 큐
 DocType: Access Log,Columns / Fields,열 / 필드
 apps/frappe/frappe/config/settings.py,Stylesheets for Print Formats,인쇄 형식 스타일 시트
+apps/frappe/frappe/desk/doctype/dashboard_chart/dashboard_chart.py,Aggregate Function field is required to create a dashboard chart,대시 보드 차트를 작성하려면 집계 함수 필드가 필요합니다
 apps/frappe/frappe/utils/bot.py,Can't identify open {0}. Try something else.,오픈 식별 할 수없는 {0}. 다른 것을 시도하십시오.
 apps/frappe/frappe/public/js/frappe/web_form/web_form.js,Your information has been submitted,귀하의 정보가 제출되었습니다
 apps/frappe/frappe/core/doctype/user/user.py,User {0} cannot be deleted,{0} 사용자가 삭제할 수 없습니다
@@ -418,11 +443,12 @@ DocType: Property Setter,Field Name,필드 이름
 DocType: Assignment Rule,Assign To Users,사용자에게 할당
 apps/frappe/frappe/public/js/frappe/utils/utils.js,or,또는
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js,module name...,모듈 이름 ...
-apps/frappe/frappe/templates/pages/integrations/payment-success.html,Continue,계속
+DocType: Onboarding Slide,Continue,계속
 apps/frappe/frappe/integrations/doctype/google_drive/google_drive.py,Google Integration is disabled.,Google 통합이 사용 중지되었습니다.
 DocType: Custom Field,Fieldname,필드 이름
 DocType: Workflow State,certificate,증명서
 apps/frappe/frappe/templates/includes/login/login.js,Verifying...,확인 중 ...
+apps/frappe/frappe/desk/form/assign_to.py,Your assignment on {0} {1} has been removed,{0} {1}에 대한 과제가 제거되었습니다.
 apps/frappe/frappe/core/doctype/data_export/exporter.py,First data column must be blank.,첫 번째 데이터 열은 비어 있어야합니다.
 apps/frappe/frappe/core/doctype/version/version.js,Show all Versions,모든 버전보기
 apps/frappe/frappe/templates/includes/comments/comments.py,View Comment,댓글보기
@@ -432,12 +458,14 @@ DocType: User,Restrict IP,IP에게 제한
 apps/frappe/frappe/core/page/dashboard/dashboard.js,Dashboard,계기반
 apps/frappe/frappe/email/smtp.py,Unable to send emails at this time,이 시간에 이메일을 보낼 수 없습니다
 apps/frappe/frappe/integrations/doctype/google_calendar/google_calendar.py,"Google Calendar - Could not update Event {0} in Google Calendar, error code {1}.",Google 캘린더-Google 캘린더에서 이벤트 {0}을 (를) 업데이트 할 수 없습니다. 오류 코드 {1}.
+DocType: Notification Log,Email Content,이메일 내용
 apps/frappe/frappe/public/js/frappe/ui/toolbar/navbar.html,Search or type a command,명령을 검색하거나 입력
 DocType: Activity Log,Timeline Name,타임 라인 이름
 apps/frappe/frappe/contacts/doctype/contact/contact.py,Only one {0} can be set as primary.,하나의 {0} 만 기본으로 설정할 수 있습니다.
 DocType: Email Account,e.g. smtp.gmail.com,예) smtp.gmail.com
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js,Add A New Rule,새 규칙 추가
 DocType: Contact,Sales Master Manager,판매 마스터 관리자
+apps/frappe/frappe/www/login.html,You need to enable JavaScript for your app to work.,앱이 작동하려면 JavaScript를 활성화해야합니다.
 DocType: User Permission,For Value,가치를 위해
 DocType: Event,Google Calendar ID,Google 캘린더 ID
 apps/frappe/frappe/www/complete_signup.html,One Last Step,마지막 단계
@@ -453,13 +481,13 @@ DocType: LDAP Settings,LDAP Middle Name Field,LDAP 중간 이름 필드
 apps/frappe/frappe/integrations/doctype/google_contacts/google_contacts.js,Importing {0} of {1},{1} 중 {0} 가져 오는 중
 DocType: GCalendar Account,Allow GCalendar Access,GCalendar 액세스 허용
 apps/frappe/frappe/core/doctype/data_import/importer_new.py,{0} is a mandatory field,{0}은 (는) 필수 입력란입니다.
+DocType: DocType,Documentation Link,문서 링크
 apps/frappe/frappe/templates/includes/login/login.js,Login token required,로그인 토큰 필요
 apps/frappe/frappe/desk/page/user_profile/user_profile.js,Monthly Rank: ,월간 순위 :
 apps/frappe/frappe/public/js/frappe/list/list_view.js,Select multiple list items,여러 목록 항목 선택
 DocType: Event,Repeat Till,까지 반복
 apps/frappe/frappe/public/js/frappe/ui/toolbar/search_utils.js,New,신규
 apps/frappe/frappe/public/js/frappe/views/components/ModuleLinkItem.vue,You need to create these first: ,먼저 다음을 작성해야합니다.
-DocType: Google Maps Settings,Google Maps Settings,Google지도 설정
 apps/frappe/frappe/core/page/dashboard/dashboard.js,Loading...,로딩 중...
 DocType: DocField,Password,비밀번호
 apps/frappe/frappe/utils/response.py,Your system is being updated. Please refresh again after a few moments,시스템이 업데이트되고있다. 잠시 후 다시 새로 고침하세요
@@ -474,6 +502,7 @@ apps/frappe/frappe/printing/page/print_format_builder/print_format_builder_layou
 DocType: File,File URL,파일의 URL
 DocType: Version,Table HTML,표 HTML
 apps/frappe/frappe/email/doctype/email_group/email_group.js,Add Subscribers,가입자 추가
+DocType: Notification Log,Energy Point,에너지 포인트
 apps/frappe/frappe/desk/doctype/event/event.py,Upcoming Events for Today,오늘을 위해 예정 이벤트
 DocType: Google Calendar,Push to Google Calendar,Google 캘린더로 푸시
 DocType: Notification Recipient,Email By Document Field,문서 필드에 이메일
@@ -489,12 +518,12 @@ apps/frappe/frappe/templates/includes/search_template.html,No matching records. 
 DocType: Chat Profile,Away,떨어져
 DocType: Currency,Fraction Units,분수 단위
 apps/frappe/frappe/public/js/frappe/form/footer/timeline.js,{0} from {1} to {2},{0}에서 {1}에 {2}
-apps/frappe/frappe/public/js/frappe/ui/toolbar/user_progress_dialog.js,Mark as Done,완료로 표시
 DocType: Chat Message,Type,종류
 DocType: Google Settings,OAuth Client ID,OAuth 클라이언트 ID
 DocType: Auto Repeat,Subject,주제
 apps/frappe/frappe/templates/pages/integrations/gcalendar-success.html,Back to Desk,데스크로 돌아 가기
 DocType: Web Form,Amount Based On Field,금액 필드를 기준으로
+apps/frappe/frappe/__init__.py,{0} has no versions tracked.,{0}에 추적 된 버전이 없습니다.
 apps/frappe/frappe/core/doctype/docshare/docshare.py,User is mandatory for Share,사용자는 공유를위한 필수입니다
 DocType: DocField,Hidden,숨겨진
 DocType: Web Form,Allow Incomplete Forms,불완전한 양식 허용
@@ -517,6 +546,7 @@ DocType: Report,JSON,JSON
 apps/frappe/frappe/core/doctype/user/user.py,Please check your email for verification,확인을 위해 이메일을 확인하시기 바랍니다
 apps/frappe/frappe/core/doctype/doctype/doctype.py,Fold can not be at the end of the form,배량 형태의 끝에있을 수 없다
 DocType: Communication,Bounced,부도
+apps/frappe/frappe/public/js/frappe/form/grid_pagination.js,of,의
 DocType: Deleted Document,Deleted Name,삭제 된 이름
 apps/frappe/frappe/config/users_and_permissions.py,System and Website Users,시스템 및 웹 사이트 사용자
 DocType: Workflow Document State,Doc Status,문서의 상태
@@ -527,6 +557,7 @@ DocType: Language,Language Code,언어 코드
 DocType: Dropbox Settings,Note: By default emails for failed backups are sent.,참고 : 기본적으로 실패한 백업에 대한 전자 메일이 전송됩니다.
 apps/frappe/frappe/public/js/frappe/ui/filters/filters.js,Add Filter,필터 추가
 apps/frappe/frappe/core/doctype/sms_settings/sms_settings.py,SMS sent to following numbers: {0},SMS는 다음 번호로 전송 : {0}
+DocType: Notification Settings,Assignments,과제
 apps/frappe/frappe/utils/data.py,{0} and {1},{0}과 {1}
 apps/frappe/frappe/public/js/frappe/chat.js,Start a conversation.,대화를 시작하십시오.
 DocType: Print Settings,"Always add ""Draft"" Heading for printing draft documents",항상 인쇄 초안 문서 제목 &quot;초안&quot;을 추가
@@ -535,6 +566,7 @@ DocType: Data Migration Run,Current Mapping Start,현재 매핑 시작
 apps/frappe/frappe/core/doctype/communication/communication.js,Email has been marked as spam,이메일이 스팸으로 표시되었습니다.
 DocType: Comment,Website Manager,웹 사이트 관리자
 apps/frappe/frappe/public/js/frappe/socketio_client.js,File Upload Disconnected. Please try again.,파일 업로드 연결이 끊어졌습니다. 다시 시도하십시오.
+DocType: Data Import Beta,Show Failed Logs,실패한 로그 표시
 apps/frappe/frappe/public/js/frappe/views/translation_manager.js,Translations,번역
 apps/frappe/frappe/public/js/frappe/list/bulk_operations.js,You selected Draft or Cancelled documents,초안 또는 취소 된 문서를 선택했습니다.
 apps/frappe/frappe/workflow/doctype/workflow_action/workflow_action.py,Document {0} has been set to state {1} by {2},문서 {0}이 {2} (으)로 {1} (으)로 설정되었습니다.
@@ -542,10 +574,13 @@ apps/frappe/frappe/model/document.py,Document Queued,문서 대기
 DocType: GSuite Templates,Destination ID,목적지 ID
 DocType: Desktop Icon,List,명부
 DocType: Activity Log,Link Name,링크 이름
+apps/frappe/frappe/public/js/frappe/list/list_view.js,You haven\,당신은 \
 DocType: System Settings,mm/dd/yyyy,yyyy/mm/dd
+DocType: Onboarding Slide,Onboarding Slide,온 보딩 슬라이드
 apps/frappe/frappe/core/doctype/user/user.py,Invalid Password: ,유효하지 않은 비밀번호:
 apps/frappe/frappe/core/doctype/user/user.py,Invalid Password: ,유효하지 않은 비밀번호:
 DocType: Print Settings,Send document web view link in email,이메일에 문서 웹보기 링크 보내기
+DocType: Event Consumer Document Type,Event Consumer Document Type,이벤트 소비자 문서 유형
 apps/frappe/frappe/public/js/frappe/ui/slides.js,Previous,이전
 apps/frappe/frappe/email/doctype/email_account/email_account.py,Re:,제목 : Re :
 DocType: LDAP Settings,Require Trusted Certificate,신뢰할 수있는 인증서 필요
@@ -604,6 +639,7 @@ DocType: Kanban Board Column,darkgrey,어두운 회색
 apps/frappe/frappe/model/rename_doc.py,Successful: {0} to {1},성공 : {0}에 {1}
 apps/frappe/frappe/core/doctype/user/user.py,Cannot change user details in demo. Please signup for a new account at https://erpnext.com,데모에서는 사용자 세부 정보를 변경할 수 없습니다. https://erpnext.com에서 새 계정을 만드십시오.
 apps/frappe/frappe/public/js/frappe/ui/dropzone.js,Drop,하락
+DocType: Dashboard Chart,Aggregate Function Based On,에 기반한 집계 함수
 apps/frappe/frappe/printing/doctype/print_format/print_format.js,Please duplicate this to make changes,변경하려면이 중복하십시오
 apps/frappe/frappe/public/js/frappe/list/list_filter.js,Press Enter to save,저장하려면 Enter 키를 누릅니다.
 apps/frappe/frappe/utils/pdf.py,PDF generation failed because of broken image links,PDF 생성으로 인해 깨진 이미지 링크 실패
@@ -617,7 +653,10 @@ DocType: Notification,Days Before,일전
 apps/frappe/frappe/desk/doctype/event/event.py,Daily Events should finish on the Same Day.,일일 행사는 당일에 끝나야합니다.
 apps/frappe/frappe/core/page/dashboard/dashboard.js,Edit...,편집하다...
 DocType: Workflow State,volume-down,볼륨 다운
+DocType: Onboarding Slide,Help Links,도움말 링크
 apps/frappe/frappe/auth.py,Access not allowed from this IP Address,이 IP 주소에서 액세스 할 수 없습니다
+DocType: Notification Settings,Enable Email Notifications,이메일 알림 활성화
+DocType: Document Type Field Mapping,Event Streaming,이벤트 스트리밍
 apps/frappe/frappe/desk/reportview.py,No Tags,태그가 없습니다
 DocType: Email Account,Send Notification to,에 통지를 보내
 DocType: DocField,Collapsible,접을 수있는
@@ -634,11 +673,13 @@ apps/frappe/frappe/public/js/frappe/list/list_sidebar_group_by.js,Filter By,필�
 apps/frappe/frappe/database/database.py,No conditions provided,제공된 조건 없음
 apps/frappe/frappe/public/js/frappe/views/reports/report_view.js,Y Axis Fields,Y 축 필드
 apps/frappe/frappe/core/doctype/doctype/doctype.py,Sort field {0} must be a valid fieldname,정렬 필드 {0} 유효한 필드 이름이어야합니다
+apps/frappe/frappe/contacts/doctype/address/address.py,No default Address Template found. Please create a new one from Setup &gt; Printing and Branding &gt; Address Template.,기본 주소 템플릿이 없습니다. 설정&gt; 인쇄 및 브랜딩&gt; 주소 템플릿에서 새로 만드십시오.
 apps/frappe/frappe/public/js/frappe/list/base_list.js,More,더
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js,Create a new record,새 레코드 만들기
 DocType: Contact,Sales Manager,영업 관리자
 apps/frappe/frappe/public/js/frappe/model/model.js,Rename,이름
 DocType: Print Format,Format Data,형식 데이터
+apps/frappe/frappe/email/doctype/auto_email_report/auto_email_report.py,{0} is not a valid report format. Report format should one of the following {1},{0}은 (는) 유효한 보고서 형식이 아닙니다. 보고서 형식은 다음 {1} 중 하나 여야합니다.
 DocType: List Filter,Filter Name,필터 이름
 apps/frappe/frappe/public/js/frappe/ui/filters/filters.js,Like,같은
 DocType: Assignment Rule,Automation,오토메이션
@@ -646,6 +687,7 @@ DocType: Google Drive,Last Backup On,마지막 백업
 DocType: Customize Form Field,Customize Form Field,양식 필드에게 사용자 지정
 DocType: Energy Point Rule,For Document Event,문서 이벤트
 DocType: Website Settings,Chat Room Name,대화방 이름
+apps/frappe/frappe/public/js/frappe/form/toolbar.js,Unchanged,변하지 않은
 DocType: OAuth Client,Grant Type,그랜트 유형
 apps/frappe/frappe/config/users_and_permissions.py,Check which Documents are readable by a User,문서는 사용자가 읽을 수있는 확인
 DocType: Deleted Document,Hub Sync ID,허브 동기화 ID
@@ -653,8 +695,10 @@ apps/frappe/frappe/public/js/frappe/ui/filters/filters.js,use % as wildcard,와�
 DocType: Auto Repeat,Quarterly,분기 별
 apps/frappe/frappe/email/doctype/email_account/email_account.js,"Email Domain not configured for this account, Create one?",이메일 도메인을 만들고이 계정에 대해 구성되지?
 DocType: User,Reset Password Key,암호 재설정 키
+DocType: Dashboard Chart,All Time,모든 시간
 apps/frappe/frappe/model/workflow.py,Illegal Document Status for {0},{0}의 잘못된 문서 상태
 DocType: Email Account,Enable Auto Reply,자동 응답 사용
+apps/frappe/frappe/desk/query_report.py,No data to export,내보낼 데이터가 없습니다.
 apps/frappe/frappe/core/doctype/error_log/error_log_list.js,Not Seen,보지
 apps/frappe/frappe/public/js/frappe/form/print.js,Cannot have multiple printers mapped to a single print format.,여러 프린터를 단일 인쇄 형식으로 매핑 할 수 없습니다.
 DocType: Workflow State,zoom-in,확대에서
@@ -665,6 +709,7 @@ apps/frappe/frappe/public/js/frappe/views/communication.js,Message clipped,메�
 DocType: Email Account,Notify if unreplied,UNREPLIED 경우 알림
 apps/frappe/frappe/www/qrcode.html,Scan the QR Code and enter the resulting code displayed.,QR 코드를 스캔하고 표시된 결과 코드를 입력하십시오.
 apps/frappe/frappe/website/doctype/website_theme/website_theme.js,Enable Gradients,그라디언트 사용
+DocType: Scheduled Job Type,Hourly Long,시간별 길게
 DocType: System Settings,Minimum Password Score,최소 암호 점수
 DocType: System Settings,Minimum Password Score,최소 암호 점수
 DocType: DocType,Fields,필드
@@ -673,11 +718,13 @@ apps/frappe/frappe/core/doctype/data_import/importer.py,Parent Table,부모 테�
 apps/frappe/frappe/integrations/doctype/s3_backup_settings/s3_backup_settings.js,S3 Backup complete!,S3 백업이 완료되었습니다!
 apps/frappe/frappe/config/desktop.py,Developer,개발자
 apps/frappe/frappe/public/js/frappe/form/footer/timeline.js,Created,생성
+apps/frappe/frappe/www/login.html,To enable it follow the instructions in the following link: {0},이를 사용하려면 다음 링크의 지시 사항을 따르십시오. {0}
 apps/frappe/frappe/website/doctype/website_settings/website_settings.py,{0} in row {1} cannot have both URL and child items,{0} 행 {1}의 URL 및 하위 항목을 모두 가질 수 없습니다
 apps/frappe/frappe/core/doctype/data_import/importer_new.py,There should be atleast one row for the following tables: {0},다음 테이블에 대해 최소한 하나의 행이 있어야합니다. {0}
 DocType: Print Format,Default Print Language,기본 인쇄 언어
 apps/frappe/frappe/public/js/frappe/ui/filters/filter.js,Ancestors Of,조상
 apps/frappe/frappe/utils/nestedset.py,Root {0} cannot be deleted,루트 {0} 삭제할 수 없습니다
+apps/frappe/frappe/core/doctype/data_import_beta/data_import_beta.js,No failed logs,실패한 로그가 없습니다.
 apps/frappe/frappe/website/doctype/blog_post/blog_post.py,No comments yet,아직 코멘트가 없습니다
 apps/frappe/frappe/core/doctype/system_settings/system_settings.py,"Please setup SMS before setting it as an authentication method, via SMS Settings",SMS 설정을 통해 인증 방법으로 설정하기 전에 SMS를 설정하십시오.
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js,Both DocType and Name required,필요한 모두에서 DocType과 이름
@@ -701,6 +748,7 @@ DocType: Website Settings,Footer Items,바닥 글 항목
 apps/frappe/frappe/public/js/frappe/ui/page.html,Menu,메뉴
 DocType: DefaultValue,DefaultValue,DEFAULTVALUE
 DocType: Auto Repeat,Daily,매일
+DocType: Onboarding Slide,Max Count,최대 수
 apps/frappe/frappe/config/users_and_permissions.py,User Roles,사용자 역할
 DocType: Property Setter,Property Setter overrides a standard DocType or Field property,부동산 세터는 표준에서 DocType 또는 필드 속성을 재정의
 apps/frappe/frappe/core/doctype/user/user.py,Cannot Update: Incorrect / Expired Link.,업데이트 할 수 없습니다 만료 / 잘못된 링크.
@@ -719,6 +767,7 @@ DocType: Footer Item,"target = ""_blank""","대상 = ""_blank"""
 DocType: Workflow State,hdd,하드 디스크
 DocType: Integration Request,Host,주인
 DocType: Data Import Beta,Import File,파일 가져 오기
+apps/frappe/frappe/core/doctype/data_import/importer_new.py,Template Error,템플릿 오류
 apps/frappe/frappe/desk/doctype/kanban_board/kanban_board.py,Column <b>{0}</b> already exist.,열 <b>{0}이 (가)</b> 이미 존재합니다.
 DocType: ToDo,High,높음
 apps/frappe/frappe/public/js/frappe/form/templates/timeline.html,New Event,새로운 이벤트
@@ -734,6 +783,7 @@ DocType: Web Form Field,Show in filter,필터에 표시
 DocType: Address,Daman and Diu,Daman과 Diu
 apps/frappe/frappe/public/js/frappe/views/kanban/kanban_view.js,Project,프로젝트
 DocType: Address,Personal,개인의
+apps/frappe/frappe/public/js/frappe/form/templates/print_layout.html,Raw Printing Settings...,원시 인쇄 설정 ...
 DocType: S3 Backup Settings,See https://docs.aws.amazon.com/de_de/general/latest/gr/rande.html#s3_region for details.,자세한 내용은 https://docs.aws.amazon.com/de_de/general/latest/gr/rande.html#s3_region을 참조하십시오.
 apps/frappe/frappe/config/settings.py,Bulk Rename,대량 이름 바꾸기
 DocType: Email Queue,Show as cc,CC로보기
@@ -743,6 +793,7 @@ apps/frappe/frappe/public/js/frappe/ui/capture.js,Take Video,비디오 촬영
 DocType: Contact Us Settings,Introductory information for the Contact Us Page,문의 페이지에 대한 소개 정보
 DocType: Print Style,CSS,CSS
 DocType: Workflow State,thumbs-down,엄지 손가락 아래로
+apps/frappe/frappe/desk/form/linked_with.py,Cancelling documents,문서 취소
 DocType: User,Send Notifications for Email threads,전자 메일 스레드에 대한 알림 보내기
 apps/frappe/frappe/desk/page/setup_wizard/install_fixtures.py,Prof,교수
 apps/frappe/frappe/core/doctype/page/page.py,Not in Developer Mode,아니 개발자 모드에서
@@ -750,7 +801,6 @@ apps/frappe/frappe/desk/page/backups/backups.py,File backup is ready,파일 백�
 DocType: DocField,In Global Search,글로벌 검색
 DocType: System Settings,Brute Force Security,무차별 공격 보안
 DocType: Workflow State,indent-left,들여 쓰기 왼쪽
-apps/frappe/frappe/public/js/frappe/utils/pretty_date.js,&gt; {0} year(s) ago,&gt; {0} 년 전
 apps/frappe/frappe/utils/file_manager.py,It is risky to delete this file: {0}. Please contact your System Manager.,그것은이 파일을 삭제하는 위험 : {0}. 시스템 관리자에게 문의하시기 바랍니다.
 DocType: Currency,Currency Name,통화 명
 apps/frappe/frappe/public/js/frappe/views/inbox/inbox_view.js,No Emails,어떤 이메일 없습니다
@@ -765,11 +815,13 @@ DocType: Energy Point Rule,User Field,사용자 입력란
 DocType: DocType,MyISAM,의 MyISAM
 DocType: Data Migration Run,Push Delete,푸시 삭제
 apps/frappe/frappe/email/doctype/email_unsubscribe/email_unsubscribe.py,{0} already unsubscribed for {1} {2},{0}에 대해 이미 탈퇴 {1} {2}
+DocType: Scheduled Job Type,Stopped,중지
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js,Did not remove,제거하지 않은
 apps/frappe/frappe/desk/like.py,Liked,좋아요
 apps/frappe/frappe/email/doctype/auto_email_report/auto_email_report.js,Send Now,지금 보내기
 apps/frappe/frappe/core/doctype/doctype/doctype.py,"Standard DocType cannot have default print format, use Customize Form",표준 DocType은 기본 인쇄 형식을 가질 수 없습니다. 양식 사용자 정의를 사용하십시오.
 apps/frappe/frappe/core/doctype/doctype/doctype.py,"Standard DocType cannot have default print format, use Customize Form",표준 DocType은 기본 인쇄 형식을 가질 수 없습니다. 양식 사용자 정의를 사용하십시오.
+DocType: Server Script,Allow Guest,손님 허용
 DocType: Report,Query,질문
 DocType: Customize Form,Sort Order,정렬 순서
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.py,'In List View' not allowed for type {0} in row {1},'목록보기'허용되지 않는 유형에 대한 {0} 행에서 {1}
@@ -791,12 +843,15 @@ apps/frappe/frappe/core/doctype/has_role/has_role.py,User '{0}' already has the 
 DocType: System Settings,Two Factor Authentication method,2 요소 인증 방법
 apps/frappe/frappe/website/doctype/website_slideshow/website_slideshow.js,First set the name and save the record.,먼저 이름을 설정하고 레코드를 저장하십시오.
 apps/frappe/frappe/public/js/frappe/data_import/data_exporter.js,5 Records,5 기록
+DocType: DocType Link,Link Fieldname,링크 필드 이름
 apps/frappe/frappe/public/js/frappe/form/sidebar/share.js,Shared with {0},함께 공유 {0}
 apps/frappe/frappe/email/queue.py,Unsubscribe,가입 취소
 DocType: View Log,Reference Name,참조명(Reference Name)
 apps/frappe/frappe/desk/page/user_profile/user_profile.js,Change User,사용자 변경
+apps/frappe/frappe/public/js/frappe/form/grid_pagination.js,First,먼저
 apps/frappe/frappe/public/js/frappe/views/translation_manager.js,Update Translations,번역 업데이트
 DocType: Error Snapshot,Exception,예외
+DocType: Event Consumer,Event Consumer Document Types,이벤트 소비자 문서 유형
 DocType: Email Account,Use IMAP,사용 IMAP
 DocType: Activity Log,Activity Log,활동 로그
 DocType: View Log,Viewed By,조회수
@@ -809,6 +864,7 @@ apps/frappe/frappe/custom/doctype/property_setter/property_setter.py,Field type 
 DocType: Workflow,Rules defining transition of state in the workflow.,워크 플로의 상태 전환을 정의하는 규칙.
 DocType: File,Folder,폴더
 DocType: Website Route Meta,Website Route Meta,웹 사이트 경로 메타
+DocType: Onboarding Slide Field,Onboarding Slide Field,온 보딩 슬라이드 필드
 DocType: DocField,Index,목차
 DocType: Email Group,Newsletter Manager,뉴스 관리자
 apps/frappe/frappe/custom/doctype/custom_field/custom_field.js,Option 1,옵션 1
@@ -835,7 +891,7 @@ apps/frappe/frappe/config/settings.py,Set numbering series for transactions.,트
 apps/frappe/frappe/public/js/frappe/list/list_sidebar.html,Configure Charts,차트 구성
 DocType: User,Last IP,마지막 IP
 apps/frappe/frappe/automation/doctype/auto_repeat/auto_repeat.py,Please add a subject to your email,이메일에 제목을 추가하십시오.
-apps/frappe/frappe/share.py,A new document {0} has been shared by with you {1}.,새 문서 {0}이 (가) {1}과 (과) 공유되었습니다.
+apps/frappe/frappe/model/workflow.py,Errored Transactions,오류 거래
 DocType: Data Migration Connector,Data Migration Connector,데이터 마이그레이션 커넥터
 apps/frappe/frappe/public/js/frappe/utils/energy_point_utils.js,{0} reverted {1},{0}이 (가) {1} (으)로 되돌아갔습니다.
 DocType: Email Account,Track Email Status,이메일 상태 추적
@@ -867,6 +923,7 @@ DocType: Email Queue,Attachments,첨부
 apps/frappe/frappe/website/doctype/web_form/web_form.py,You don't have the permissions to access this document,이 문서에 액세스 할 수있는 권한이 없습니다
 DocType: Language,Language Name,언어 이름
 DocType: Email Group Member,Email Group Member,그룹 회원에게 메일 보내기
+apps/frappe/frappe/public/js/frappe/views/inbox/inbox_view.js,No email account associated with the User. Please add an account under User &gt; Email Inbox.,사용자와 연결된 이메일 계정이 없습니다. 사용자&gt; 이메일받은 편지함에 계정을 추가하십시오.
 apps/frappe/frappe/auth.py,Your account has been locked and will resume after {0} seconds,귀하의 계정은 잠기고 {0} 초 후에 재개됩니다.
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,User Permissions are used to limit users to specific records.,사용자 권한은 사용자를 특정 레코드로 제한하는 데 사용됩니다.
 DocType: Notification,Value Changed,값 변경
@@ -888,6 +945,7 @@ DocType: Email Account,Default Outgoing,기본 발신
 DocType: Workflow State,play,재생
 apps/frappe/frappe/templates/emails/new_user.html,Click on the link below to complete your registration and set a new password,아래에 등록을 완료하려면 링크를 클릭하고 새 암호를 설정
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js,Did not add,추가하지 않은
+apps/frappe/frappe/social/doctype/energy_point_log/energy_point_log.py,{0} gained {1} points for {2} {3},{0}이 {2} {3}에 대해 {1} 점을 얻었습니다.
 apps/frappe/frappe/public/js/frappe/views/inbox/inbox_view.js,No Email Accounts Assigned,어떤 이메일 계정이 할당되지
 DocType: S3 Backup Settings,eu-west-2,유럽 서부 -2
 DocType: Contact Us Settings,Contact Us Settings,연락처 설정
@@ -896,6 +954,7 @@ apps/frappe/frappe/public/js/frappe/ui/toolbar/search.js,Searching ...,검색 �
 DocType: Workflow State,text-width,텍스트 폭
 apps/frappe/frappe/public/js/frappe/form/form.js,Maximum Attachment Limit for this record reached.,이 레코드의 최대 첨부 파일 제한에 도달했습니다.
 apps/frappe/frappe/public/js/frappe/file_uploader/FileBrowser.vue,Search by filename or extension,파일 이름 또는 확장자로 검색
+DocType: Onboarding Slide,Slide Title,슬라이드 제목
 DocType: Notification,View Properties (via Customize Form),(지정 양식)보기 속성
 apps/frappe/frappe/public/js/frappe/file_uploader/FileUploader.vue,Click on a file to select it.,파일을 클릭하여 선택하십시오.
 DocType: Note Seen By,Note Seen By,볼 참고
@@ -922,13 +981,13 @@ apps/frappe/frappe/core/doctype/doctype/doctype.py,Report cannot be set for Sing
 apps/frappe/frappe/public/js/frappe/list/list_view.js,Share URL,공유 URL
 DocType: System Settings,Allow Consecutive Login Attempts ,연속 로그인 시도 허용
 apps/frappe/frappe/templates/pages/integrations/stripe_checkout.html,An error occured during the payment process. Please contact us.,결제 과정에서 오류가 발생했습니다. 문의하시기 바랍니다.
+DocType: Onboarding Slide,If Slide Type is Create or Settings there should be a 'create_onboarding_docs' method in the {ref_doctype}.py file bound to be executed after the slide is completed.,슬라이드 유형이 작성 또는 설정 인 경우 슬라이드가 완료된 후 {ref_doctype} .py 파일에 &#39;create_onboarding_docs&#39;메소드가 바인딩되어 있어야합니다.
 apps/frappe/frappe/public/js/frappe/utils/pretty_date.js,{0} days ago,{0} 일 전
 DocType: Email Account,Awaiting Password,대기 비밀번호
 DocType: Address,Address Line 1,1 호선 주소
 apps/frappe/frappe/public/js/frappe/ui/filters/filter.js,Not Descendants Of,후손이 아닌
 DocType: Contact,Company Name,회사 명
 DocType: Custom DocPerm,Role,역할
-apps/frappe/frappe/public/js/frappe/form/templates/print_layout.html,Settings...,설정 ...
 apps/frappe/frappe/templates/emails/delete_data_confirmation.html, to your browser,브라우저로
 apps/frappe/frappe/utils/data.py,Cent,센트
 ,Recorder,리코더
@@ -957,6 +1016,7 @@ DocType: PayPal Settings,Mention transaction completion page URL,거래 완료 �
 DocType: Help Article,Expert,전문가
 DocType: Workflow State,circle-arrow-right,원형 화살표 오른쪽
 DocType: Role Profile,Role Profile,역할 프로필
+DocType: Document Type Mapping,Remote Document Type,원격 문서 유형
 apps/frappe/frappe/permissions.py,Document Type is not importable,문서 유형을 가져올 수 없습니다.
 DocType: LDAP Settings,LDAP Server Url,LDAP 서버 URL
 apps/frappe/frappe/public/js/frappe/form/form.js,Cannot open instance when its {0} is open,그 {0}이 열려있을 때 인스턴스를 열 수 없습니다
@@ -988,6 +1048,7 @@ DocType: Email Account,"Track if your email has been opened by the recipient.
 Note: If you're sending to multiple recipients, even if 1 recipient reads the email, it'll be considered ""Opened""","받는 사람이 전자 메일을 열 었는지 추적합니다. <br> 참고 : 여러 명의 수신자에게 보내는 경우, 수신자 1 명이 이메일을 읽더라도 &quot;열림&quot;으로 간주됩니다."
 apps/frappe/frappe/public/js/frappe/ui/field_group.js,Missing Values Required,필요없는 값
 apps/frappe/frappe/integrations/doctype/google_contacts/google_contacts.py,Allow Google Contacts Access,Google 주소록 액세스 허용
+apps/frappe/frappe/public/js/frappe/list/list_view.js,Restricted,한정된
 DocType: Data Migration Connector,Frappe,프라페
 apps/frappe/frappe/core/doctype/communication/communication_list.js,Mark as Unread,읽지 않은 상태로 표시
 DocType: Activity Log,Operation,작업
@@ -1041,6 +1102,7 @@ DocType: Web Form,Allow Print,인쇄 허용
 DocType: Communication,Clicked,클릭
 apps/frappe/frappe/public/js/frappe/form/templates/form_sidebar.html,Unfollow,팔로우 해제
 apps/frappe/frappe/public/js/frappe/form/form.js,No permission to '{0}' {1},에 대한 권한이 없습니다 '{0}'{1}
+apps/frappe/frappe/public/js/frappe/data_import/import_preview.js,Showing only first {0} rows out of {1},{1}에서 첫 번째 {0} 행만 표시
 apps/frappe/frappe/email/doctype/auto_email_report/auto_email_report.js,Scheduled to send,보낼 예정
 DocType: DocType,Track Seen,트랙 신
 DocType: Dropbox Settings,File Backup,파일 백업
@@ -1049,12 +1111,11 @@ apps/frappe/frappe/public/js/frappe/list/list_view.js,No {0} found,없음 {0} �
 apps/frappe/frappe/config/customization.py,Add custom forms.,사용자 지정 양식을 추가합니다.
 apps/frappe/frappe/desk/like.py,{0}: {1} in {2},{0} : {1}에서 {2}
 apps/frappe/frappe/public/js/frappe/form/footer/timeline.js,submitted this document,이 문서를 제출
-apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Setup &gt; User Permissions,설정&gt; 사용자 권한
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,The system provides many pre-defined roles. You can add new roles to set finer permissions.,이 시스템은 많은 사전 정의 된 역할을 제공합니다.당신은 미세한 권한을 설정하는 새로운 역할을 추가 할 수 있습니다.
 DocType: Communication,CC,CC
 DocType: Country,Geo,지오
 DocType: Data Migration Run,Trigger Name,트리거 이름
-apps/frappe/frappe/public/js/frappe/desk.js,Domains,도메인
+DocType: Onboarding Slide,Domains,도메인
 DocType: Blog Category,Blog Category,블로그 카테고리
 apps/frappe/frappe/model/mapper.py,Cannot map because following condition fails: ,
 DocType: Role Permission for Page and Report,Roles HTML,역할 HTML
@@ -1095,7 +1156,6 @@ DocType: Assignment Rule Day,Saturday,토요일
 DocType: User,Represents a User in the system.,시스템의 사용자를 나타냅니다.
 DocType: List View Setting,Disable Auto Refresh,자동 새로 고침 사용 안 함
 DocType: Comment,Label,라벨
-apps/frappe/frappe/desk/form/assign_to.py,"The task {0}, that you assigned to {1}, has been closed.","작업 {0}, 당신이 {1}, 닫힌에 할당있다."
 apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py,Please close this window,이 창을 닫으십시오
 DocType: Print Format,Print Format Type,인쇄 형식 유형
 DocType: Newsletter,A Lead with this Email Address should exist,이 이메일 주소와 리드가 존재한다
@@ -1112,6 +1172,8 @@ DocType: Email Account,SMTP Settings for outgoing emails,보내는 이메일에 
 apps/frappe/frappe/public/js/frappe/file_uploader/FileUploader.vue,choose an,선택
 DocType: Data Export,Filter List,필터 목록
 DocType: Data Export,Excel,뛰어나다
+DocType: System Settings,HH:mm,HH : mm
+DocType: Event Sync Log,Event Configurations,이벤트 구성
 DocType: Email Account,Auto Reply Message,자동 응답 메시지
 DocType: Data Migration Mapping,Condition,조건
 apps/frappe/frappe/utils/data.py,{0} hours ago,{0} 시간 전
@@ -1130,12 +1192,14 @@ DocType: Workflow,"Field that represents the Workflow State of the transaction (
 DocType: Help Article,Knowledge Base Contributor,기술 자료 기여자
 DocType: Communication,Sent Read Receipt,보낸 읽음
 DocType: Email Queue,Unsubscribe Method,수신 거부 방법
+DocType: Onboarding Slide,Add More Button,추가 버튼
 DocType: GSuite Templates,Related DocType,관련 DocType
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js,Edit to add content,편집(내용 추가)
 apps/frappe/frappe/public/js/frappe/views/communication.js,Select Languages,선택 언어
 apps/frappe/frappe/templates/pages/integrations/stripe_checkout.html,Card Details,카드 정보
 apps/frappe/frappe/__init__.py,No permission for {0},에 대한 권한이 없습니다 {0}
 DocType: DocType,Advanced,고급
+DocType: Onboarding Slide,Slide Image Source,슬라이드 이미지 소스
 apps/frappe/frappe/integrations/doctype/razorpay_settings/razorpay_settings.py,Seems API Key or API Secret is wrong !!!,API 키를 보인다 또는 API 비밀은 잘못된 것입니다!
 apps/frappe/frappe/templates/emails/auto_reply.html,Reference: {0} {1},참조 : {0} {1}
 apps/frappe/frappe/desk/page/setup_wizard/install_fixtures.py,Mrs,부인
@@ -1152,6 +1216,7 @@ apps/frappe/frappe/desk/page/setup_wizard/install_fixtures.py,Master,지도자
 DocType: DocType,User Cannot Create,사용자가 만들 수 없습니다
 apps/frappe/frappe/social/doctype/energy_point_settings/energy_point_settings.js,Successfully Done,성공적으로 완료되었습니다.
 apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py,Dropbox access is approved!,보관 용 액세스가 승인!
+apps/frappe/frappe/public/js/frappe/form/toolbar.js,Are you sure you want to merge {0} with {1}?,{0}을 (를) {1}과 병합 하시겠습니까?
 DocType: Customize Form,Enter Form Type,양식 유형을 입력
 DocType: Google Drive,Authorize Google Drive Access,Google 드라이브 액세스 권한 부여
 apps/frappe/frappe/public/js/frappe/views/kanban/kanban_view.js,Missing parameter Kanban Board Name,누락 된 매개 변수 Kanban 보드 이름
@@ -1161,7 +1226,6 @@ apps/frappe/frappe/public/js/frappe/request.js,You are not connected to Internet
 apps/frappe/frappe/public/js/frappe/form/form.js,"Allowing DocType, DocType. Be careful!","허용 문서 종류, 문서 종류.주의!"
 apps/frappe/frappe/config/core.py,"Customized Formats for Printing, Email","인쇄, 이메일, 사용자 정의 형식"
 apps/frappe/frappe/public/js/frappe/ui/group_by/group_by.js,Sum of {0},{0}의 합
-apps/frappe/frappe/public/js/frappe/desk.js,Updated To New Version,새로운 버전으로 업데이트
 DocType: Custom Field,Depends On,에 따라 달라집니다
 DocType: Kanban Board Column,Green,녹색
 DocType: Custom DocPerm,Additional Permissions,추가 권한
@@ -1169,9 +1233,8 @@ DocType: Email Account,Always use Account's Email Address as Sender,항상 보�
 apps/frappe/frappe/templates/includes/comments/comments.html,Login to comment,남기려면 로그인
 apps/frappe/frappe/core/doctype/data_import/importer.py,Start entering data below this line,이 라인 아래에 데이터를 입력 시작
 apps/frappe/frappe/public/js/frappe/form/footer/timeline.js,changed values for {0},에 대한 변경된 값 {0}
-apps/frappe/frappe/email/doctype/email_account/email_account.py,"Email ID must be unique, Email Account already exists \
-				for {0}","이메일 ID는 고유해야하며, 이메일 계정은 이미 \ {0}"
 DocType: Workflow State,retweet,리트 위트 (retweet)
+apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,"For comparison, use &gt;5, &lt;10 or =324. For ranges, use 5:10 (for values between 5 &amp; 10).","비교하려면&gt; 5, &lt;10 또는 = 324를 사용하십시오. 범위의 경우 5:10을 사용하십시오 (5와 10 사이의 값)."
 apps/frappe/frappe/public/js/frappe/form/templates/print_layout.html,Customize...,사용자 정의 ...
 DocType: Print Format,Align Labels to the Right,레이블을 오른쪽 정렬
 DocType: Assignment Rule,Disabled,사용 안함
@@ -1189,6 +1252,7 @@ DocType: Energy Point Log,Social,사회적인
 apps/frappe/frappe/integrations/doctype/google_calendar/google_calendar.py,"Google Calendar - Could not create Calendar for {0}, error code {1}.","Google 캘린더-{0}, 오류 코드 {1}에 대한 캘린더를 만들 수 없습니다."
 apps/frappe/frappe/public/js/frappe/form/grid_row_form.js,Editing Row,행 편집
 DocType: Workflow Action Master,Workflow Action Master,워크 플로 작업 마스터
+apps/frappe/frappe/public/js/frappe/form/grid.js,Delete All,모두 삭제
 DocType: Custom Field,Field Type,필드 유형
 apps/frappe/frappe/utils/data.py,only.,만.
 DocType: Route History,Route History,경로 기록
@@ -1219,17 +1283,21 @@ apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js,"tag name..., e.g.
 apps/frappe/frappe/public/js/frappe/ui/keyboard.js,Keyboard Shortcuts,키보드 단축키
 DocType: Post,Comments,비고
 apps/frappe/frappe/public/js/frappe/dom.js,Confirm,확인
+DocType: Event Sync Log,Update Type,업데이트 유형
 apps/frappe/frappe/public/js/frappe/desk.js,Authenticating...,인증 중 ...
 apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,Collapse All,모든 축소
+DocType: Event Producer,Last Update,마지막 업데이트
 apps/frappe/frappe/www/login.html,Forgot Password?,비밀번호를 잊으 셨나요?
 DocType: System Settings,yyyy-mm-dd,YYYY-MM-DD
 apps/frappe/frappe/desk/report/todo/todo.py,ID,신분증
 apps/frappe/frappe/integrations/doctype/stripe_settings/stripe_settings.py,Server Error,서버 오류
+DocType: Server Script,After Delete,삭제 후
 apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,See all past reports.,모든 과거 보고서를보십시오.
 apps/frappe/frappe/email/doctype/email_account/email_account.py,Login Id is required,로그인 아이디가 필요합니다
 DocType: Website Slideshow,Website Slideshow,웹 사이트 슬라이드 쇼
 apps/frappe/frappe/core/page/dashboard/dashboard.js,No Data,데이터가 없습니다
 DocType: Website Settings,"Link that is the website home page. Standard Links (index, login, products, blog, about, contact)","즉, 웹 사이트의 홈 페이지입니다 연결합니다.표준 링크 (인덱스, 로그인, 제품, 블로그, 대한, 접촉)"
+DocType: Server Script,After Submit,제출 후
 apps/frappe/frappe/email/doctype/email_account/email_account.py,Authentication failed while receiving emails from Email Account {0}. Message from server: {1},이메일 계정 {0}에서 이메일을 수신하는 동안 인증에 실패했습니다. 서버에서 메시지 : {1}
 DocType: User,Banner Image,배너 이미지
 DocType: Custom Field,Custom Field,사용자 정의 필드
@@ -1259,6 +1327,7 @@ apps/frappe/frappe/core/doctype/version/version_view.html,Table Field,테이블 
 apps/frappe/frappe/public/js/frappe/views/kanban/kanban_view.js,Columns based on,열을 기반으로
 apps/frappe/frappe/core/doctype/data_import_beta/data_import_beta.js,"Importing {0} of {1}, {2}","{1}, {2}의 {0} 가져 오기"
 DocType: Workflow State,move,움직임
+apps/frappe/frappe/event_streaming/doctype/event_producer/event_producer.py,Failed to create an Event Consumer or an Event Consumer for the current site is already registered.,현재 사이트에 대한 이벤트 소비자 또는 이벤트 소비자를 만들지 못했습니다. 이미 등록되었습니다.
 apps/frappe/frappe/model/document.py,Action Failed,작업 실패
 apps/frappe/frappe/core/doctype/user_permission/user_permission_list.js,For User,사용자에 대한
 DocType: View Log,View log,로그보기
@@ -1270,15 +1339,13 @@ apps/frappe/frappe/contacts/doctype/contact/contact.py,Please set Email Address,
 DocType: User,"If the user has any role checked, then the user becomes a ""System User"". ""System User"" has access to the desktop","사용자가 확인하는 역할을한다면, 사용자는 &quot;시스템 사용자&quot;가된다. &quot;시스템 사용자는&quot;데스크톱에 액세스 할 수 있습니다"
 DocType: System Settings,Date and Number Format,날짜 및 숫자 형식
 apps/frappe/frappe/model/document.py,one of,하나의
-apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Setup &gt; Customize Form,설정&gt; 양식 사용자 정의
 apps/frappe/frappe/public/js/frappe/desk.js,Checking one moment,한 순간 확인
 apps/frappe/frappe/public/js/frappe/list/list_sidebar.html,Show Tags,보기 태그
 DocType: DocField,HTML Editor,HTML 편집기
 DocType: System Settings,"If Apply Strict User Permission is checked and User Permission is defined for a DocType for a User, then all the documents where value of the link is blank, will not be shown to that User",엄격한 사용자 권한 적용이 선택되어 있고 사용자의 DocType에 대한 사용자 권한이 정의되어 있으면 링크 값이 비어있는 모든 문서가 해당 사용자에게 표시되지 않습니다
 DocType: Address,Billing,청구
 DocType: Email Queue,Not Sent,보낼 수 없습니다
-DocType: Web Form,Actions,수행
-apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Setup &gt; User,설정&gt; 사용자
+DocType: DocType,Actions,수행
 DocType: Workflow State,align-justify,정렬 정당화
 DocType: User,Middle Name (Optional),중간 이름 (선택 사항)
 apps/frappe/frappe/public/js/frappe/request.js,Not Permitted,허용하지 않음
@@ -1293,6 +1360,7 @@ apps/frappe/frappe/public/js/frappe/form/link_selector.js,No Results,검색 결�
 DocType: System Settings,Security,보안
 apps/frappe/frappe/email/doctype/newsletter/newsletter.py,Scheduled to send to {0} recipients,{0}받는 사람에게 보낼 예정
 apps/frappe/frappe/public/js/frappe/views/file/file_view.js,Cut,절단
+DocType: Server Script,After Save,저장 후
 apps/frappe/frappe/model/rename_doc.py,renamed from {0} to {1},에서 이름이 {0}에 {1}
 apps/frappe/frappe/public/js/frappe/list/list_view.js,{0} of {1} ({2} rows with children),{1} 중 {0} (어린이가있는 {2} 개의 행)
 DocType: Currency,**Currency** Master,** 통화 ** 마스터
@@ -1319,16 +1387,19 @@ DocType: Prepared Report,Filter Values,필터 값
 DocType: Communication,User Tags,사용자 태그
 DocType: Data Migration Run,Fail,실패
 DocType: Workflow State,download-alt,다운로드 - 고도
+DocType: Scheduled Job Type,Last Execution,마지막 실행
 DocType: Data Migration Run,Pull Failed,당겨 실패
 apps/frappe/frappe/public/js/frappe/views/components/Desktop.vue,Show / Hide Cards,카드 보이기 / 숨기기
 DocType: Communication,Feedback Request,의견 요청
 apps/frappe/frappe/config/settings.py,Import Data from CSV / Excel files.,CSV / Excel 파일에서 데이터 가져 오기.
 apps/frappe/frappe/website/doctype/web_form/web_form.py,Following fields are missing:,다음 필드가 누락되었습니다 :
+DocType: Notification Log,From User,사용자로부터
 apps/frappe/frappe/desk/doctype/bulk_update/bulk_update.py,Cancelling {0},{0} 취소 중
 DocType: Web Page,Main Section,메인 섹션
 DocType: Page,Icon,아이콘
 apps/frappe/frappe/www/update-password.html,"Hint: Include symbols, numbers and capital letters in the password","힌트 : 암호에 기호, 숫자 및 대문자를 포함하십시오."
 apps/frappe/frappe/www/update-password.html,"Hint: Include symbols, numbers and capital letters in the password","힌트 : 암호에 기호, 숫자 및 대문자를 포함하십시오."
+apps/frappe/frappe/config/settings.py,"Configure notifications for mentions, assignments, energy points and more.","멘션, 과제, 에너지 포인트 등에 대한 알림을 구성합니다."
 DocType: DocField,Allow in Quick Entry,빠른 입력 허용
 apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,PDF,PDF
 DocType: System Settings,dd/mm/yyyy,체크인 yyyy / MM / dd
@@ -1360,7 +1431,6 @@ DocType: Website Theme,Theme URL,주제 URL
 DocType: Customize Form,Sort Field,정렬 필드
 DocType: Razorpay Settings,Razorpay Settings,Razorpay 설정
 apps/frappe/frappe/public/js/frappe/ui/filters/filters.js,Edit Filter,필터 편집
-apps/frappe/frappe/public/js/frappe/ui/slides.js,Add More,더 추가
 DocType: System Settings,Session Expiry Mobile,세션 만료 모바일
 apps/frappe/frappe/utils/password.py,Incorrect User or Password,잘못된 사용자 또는 암호
 apps/frappe/frappe/templates/includes/search_box.html,Search results for,에 대한 검색 결과
@@ -1376,8 +1446,10 @@ apps/frappe/frappe/utils/password_strength.py,Let's avoid repeated words and cha
 DocType: Energy Point Rule,Energy Point Rule,에너지 포인트 규칙
 DocType: Communication,Delayed,지연
 apps/frappe/frappe/config/settings.py,List of backups available for download,다운로드 할 수있는 백업의 목록
+apps/frappe/frappe/core/doctype/data_import/data_import_list.js,Try the new Data Import,새로운 데이터 가져 오기 시도
 apps/frappe/frappe/www/login.html,Sign up,가입
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.py,Row {0}: Not allowed to disable Mandatory for standard fields,행 {0} : 사용 불가능 표준 필드에 필수
+DocType: Webhook,Enable Security,보안 활성화
 apps/frappe/frappe/config/customization.py,Dashboards,대시 보드
 DocType: Test Runner,Output,산출
 DocType: Milestone,Track Field,트랙 경기장
@@ -1385,6 +1457,7 @@ DocType: Notification,Set Property After Alert,경고 후 속성 설정
 apps/frappe/frappe/config/customization.py,Add fields to forms.,양식에 필드를 추가합니다.
 apps/frappe/frappe/integrations/doctype/paypal_settings/paypal_settings.py,Looks like something is wrong with this site's Paypal configuration.,이 사이트의 Paypal 구성에 문제가있는 것 같습니다.
 apps/frappe/frappe/public/js/frappe/form/sidebar/review.js,Add Review,검토 추가
+apps/frappe/frappe/desk/form/assign_to.py,{0} assigned a new task {1} {2} to you,{0}이 (가) 새 작업 {1} {2}을 (를) 할당했습니다
 apps/frappe/frappe/website/doctype/website_theme/website_theme.js,Font Size (px),글꼴 크기 (px)
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.py,Only standard DocTypes are allowed to be customized from Customize Form.,표준 DocTypes 만 사용자 정의 양식에서 사용자 정의 할 수 있습니다.
 DocType: Email Account,Sendgrid,Sendgrid
@@ -1396,8 +1469,10 @@ DocType: Portal Menu Item,Portal Menu Item,포털 메뉴 항목
 apps/frappe/frappe/desk/doctype/dashboard_chart/dashboard_chart.js,Set Filters,필터 설정
 DocType: Contact Us Settings,Email ID,이메일 ID
 DocType: Energy Point Rule,Multiplier Field,배율기 필드
+apps/frappe/frappe/integrations/doctype/razorpay_settings/razorpay_settings.py,Could not create Razorpay order. Please contact Administrator,Razorpay 주문을 만들 수 없습니다. 관리자에게 문의하십시오
 DocType: Dashboard Chart,Time Interval,시간 간격
 DocType: Activity Log,Keep track of all update feeds,모든 업데이트 피드를 추적합니다.
+apps/frappe/frappe/share.py,{0} shared a document {1} {2} with you,{0}이 (가) {1} {2} 문서를 공유했습니다
 DocType: OAuth Client,A list of resources which the Client App will have access to after the user allows it.<br> e.g. project,클라이언트 응용 프로그램은 사용자가 허용 한 후에 액세스 할 수 있습니다 자원의 목록입니다. <br> 예를 들어 프로젝트
 DocType: Translation,Translated Text,번역 된 텍스트
 DocType: Contact Us Settings,Query Options,쿼리 옵션
@@ -1416,6 +1491,8 @@ DocType: DefaultValue,Key,키
 DocType: Address,Contacts,주소록
 DocType: System Settings,Setup Complete,설치 완료
 apps/frappe/frappe/config/users_and_permissions.py,Report of all document shares,모든 문서 공유의 보고서
+DocType: Event Consumer,Callback URL,콜백 URL
+apps/frappe/frappe/core/doctype/data_import/importer_new.py,"Import template should be of type .csv, .xlsx or .xls","가져 오기 템플릿은 .csv, .xlsx 또는 .xls 유형이어야합니다."
 apps/frappe/frappe/www/update-password.html,New Password,새로운 비밀번호
 apps/frappe/frappe/public/js/frappe/ui/filters/filters.js,Filter {0} missing,필터 {0} 누락
 apps/frappe/frappe/core/doctype/activity_log/activity_log.py,Sorry! You cannot delete auto-generated comments,죄송합니다! 당신은 자동 생성 주석을 삭제할 수 없습니다
@@ -1432,6 +1509,7 @@ apps/frappe/frappe/public/js/frappe/utils/energy_point_utils.js,{0} criticized o
 DocType: Website Settings,FavIcon,파비콘
 apps/frappe/frappe/data_migration/doctype/data_migration_plan/data_migration_plan.js,Run,운영
 DocType: Blog Post,Content (HTML),콘텐츠 (HTML)
+apps/frappe/frappe/public/js/frappe/views/components/Desktop.vue,Setup for,설정
 DocType: Personal Data Download Request,User Name,사용자 이름
 DocType: Workflow State,minus-sign,마이너스 기호
 apps/frappe/frappe/public/js/frappe/request.js,Not Found,찾을 수 없음
@@ -1439,11 +1517,11 @@ apps/frappe/frappe/www/printview.py,No {0} permission,어떤 {0} 권한이 없�
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js,Export Custom Permissions,수출 사용자 지정 권한
 apps/frappe/frappe/desk/page/leaderboard/leaderboard.js,No items found.,제품을 찾지 못했습니다.
 DocType: Data Export,Fields Multicheck,필드 멀티 체크
+apps/frappe/frappe/public/js/frappe/form/form.js,{} Complete,{} 완료
 DocType: Activity Log,Login,로그인
 DocType: Web Form,Payments,지불
 apps/frappe/frappe/www/qrcode.html,Hi {0},안녕하세요. {0}
 apps/frappe/frappe/config/integrations.py,Google Drive Integration.,Google 드라이브 통합.
-apps/frappe/frappe/public/js/frappe/ui/toolbar/energy_points_notifications.js,{0} reverted your points on {1} {2},{0}이 (가) {1} {2}에서 포인트를 되돌 렸습니다.
 DocType: System Settings,Enable Scheduled Jobs,예약 된 작업 사용
 apps/frappe/frappe/core/doctype/data_export/exporter.py,Notes:,주석:
 apps/frappe/frappe/core/page/background_jobs/background_jobs.py,Inactive,비활성
@@ -1468,6 +1546,7 @@ apps/frappe/frappe/config/settings.py,Email Templates for common queries.,공통
 apps/frappe/frappe/email/doctype/newsletter/newsletter.py,Permission Error,권한 오류
 apps/frappe/frappe/model/naming.py,Name of {0} cannot be {1},{0}의 이름이 될 수 없습니다 {1}
 DocType: User Permission,Applicable For,에 적용
+DocType: Dashboard Chart,From Date,날짜
 apps/frappe/frappe/core/doctype/version/version_view.html,Success,성공
 apps/frappe/frappe/public/js/frappe/desk.js,Session Expired,세션 만료 됨
 apps/frappe/frappe/public/js/frappe/desk.js,Session Expired,세션 만료 됨
@@ -1480,7 +1559,7 @@ apps/frappe/frappe/www/update-password.html,Success! You are good to go 👍,성
 apps/frappe/frappe/desk/doctype/bulk_update/bulk_update.py,; not allowed in condition,; 조건에 허용되지 않음
 DocType: Async Task,Async Task,비동기 작업
 DocType: Workflow State,picture,사진
-apps/frappe/frappe/www/complete_signup.html,Complete,완전한
+DocType: Scheduled Job Log,Complete,완전한
 DocType: DocType,Image Field,이미지 필드
 DocType: Print Format,Custom HTML Help,사용자 정의 HTML 도움말
 DocType: LDAP Settings,Default Role on Creation,창조의 기본 역할
@@ -1488,6 +1567,7 @@ apps/frappe/frappe/website/doctype/contact_us_settings/contact_us_settings.js,Se
 DocType: Workflow Transition,Next State,다음 주
 DocType: User,Block Modules,블록 모듈
 DocType: Print Format,Custom CSS,사용자 정의 CSS
+DocType: Energy Point Rule,Apply Only Once,한 번만 적용
 apps/frappe/frappe/public/js/frappe/form/controls/comment.js,Add a comment,코멘트 추가
 DocType: Webhook,on_update,on_update
 apps/frappe/frappe/model/rename_doc.py,Ignored: {0} to {1},무시 : {0}에 {1}
@@ -1499,14 +1579,17 @@ DocType: Email Account,Default Incoming,기본 수신
 DocType: Workflow State,repeat,반복
 DocType: Website Settings,Banner,기치
 apps/frappe/frappe/core/doctype/data_import/importer_new.py,Value must be one of {0},값은 {0} 중 하나 여야합니다
+apps/frappe/frappe/public/js/frappe/form/form.js,Cancel All Documents,모든 서류 취소
 DocType: Role,"If disabled, this role will be removed from all users.","사용할 경우,이 역할은 모든 사용자에서 제거됩니다."
 apps/frappe/frappe/core/doctype/data_import_beta/data_import_beta.js,Go to {0} List,{0} 목록으로 이동하십시오.
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js,Help on Search,검색에 대한 도움말
 DocType: Milestone,Milestone Tracker,마일스톤 트래커
 apps/frappe/frappe/core/doctype/user/user.py,Registered but disabled,등록하지만 비활성화
+apps/frappe/frappe/contacts/doctype/address/address.py,Address needs to be linked to a Company. Please add a row for Company in the Links table below.,주소는 회사에 연결되어 있어야합니다. 아래 링크 테이블에서 회사 행을 추가하십시오.
 apps/frappe/frappe/templates/emails/auto_repeat_fail.html,The Auto Repeat for this document has been disabled.,이 문서의 자동 반복 기능이 비활성화되었습니다.
 DocType: DocType,Hide Copy,복사에게 숨기기
 apps/frappe/frappe/public/js/frappe/roles_editor.js,Clear all roles,모든 역할을 취소합니다
+DocType: Server Script,Before Save,저장하기 전에
 apps/frappe/frappe/model/base_document.py,{0} must be unique,{0} 고유해야합니다
 apps/frappe/frappe/model/base_document.py,Row,Row
 apps/frappe/frappe/public/js/frappe/views/communication.js,"CC, BCC & Email Template","참조, 숨은 참조 및 이메일 템플릿"
@@ -1517,7 +1600,6 @@ DocType: Chat Profile,Offline,오프라인
 apps/frappe/frappe/core/doctype/data_import_beta/data_import_beta.js,Successfully imported {0},{0}을 (를) 성공적으로 가져 왔습니다
 DocType: User,API Key,API 키
 DocType: Email Account,Send unsubscribe message in email,이메일 수신 거부 메시지 보내기
-apps/frappe/frappe/public/js/frappe/form/toolbar.js,Edit Title,편집 제목
 apps/frappe/frappe/custom/doctype/custom_field/custom_field.js,Fieldname which will be the DocType for this link field.,이 링크 필드에 대한 문서 종류가 될 것입니다 필드 이름.
 apps/frappe/frappe/config/desk.py,Documents assigned to you and by you.,당신과 당신에 의해 할당 된 문서.
 apps/frappe/frappe/templates/emails/delete_data_confirmation.html,You can also copy-paste this ,이 파일을 복사하여 붙여 넣기 할 수도 있습니다.
@@ -1542,6 +1624,7 @@ DocType: Bulk Update,Field,들
 DocType: Communication,Received,획득
 DocType: Notification,"Trigger on valid methods like ""before_insert"", ""after_update"", etc (will depend on the DocType selected)","&quot;before_insert&quot;, &quot;after_update&quot;등 같은 유효한 방법에 대한 트리거 (선택 doctype이에 따라 달라집니다)"
 apps/frappe/frappe/public/js/frappe/form/footer/timeline.js,changed value of {0} {1},{0}의 값 변경 {1}
+apps/frappe/frappe/public/js/frappe/desk.js,Email Account setup please enter your password for: {0},이메일 계정 설정 : {0}의 비밀번호를 입력하십시오.
 apps/frappe/frappe/core/doctype/user/user.py,Adding System Manager to this User as there must be atleast one System Manager,이상이어야 하나의 시스템 관리자가 있어야합니다으로이 사용하기 위해 시스템 관리자를 추가
 DocType: Chat Message,URLs,URL
 DocType: Data Migration Run,Total Pages,총 페이지 수
@@ -1551,6 +1634,7 @@ DocType: Workflow State,list-alt,목록 - 고도
 apps/frappe/frappe/www/update-password.html,Password Updated,암호 업데이트
 apps/frappe/frappe/www/qrcode.html,Steps to verify your login,로그인 확인 단계
 apps/frappe/frappe/utils/password.py,Password not found,비밀 번호를 찾을 수 없습니다
+DocType: Webhook,Webhook Secret,웹 후크 비밀
 DocType: Data Migration Mapping,Page Length,페이지 길이
 DocType: Email Queue,Expose Recipients,받는 사람 노출
 apps/frappe/frappe/email/doctype/email_account/email_account.py,Append To is mandatory for incoming mails,로 들어오는 메일에 대한 필수 추가
@@ -1563,8 +1647,6 @@ apps/frappe/frappe/config/integrations.py,Google API Settings.,Google API 설정
 DocType: Report,Query Report,쿼리 보고서
 DocType: User,Set New Password,새 암호 설정
 apps/frappe/frappe/permissions.py,Not allowed for {0}: {1},{0}에는 사용할 수 없습니다 : {1}
-apps/frappe/frappe/email/doctype/auto_email_report/auto_email_report.py,"%s is not a valid report format. Report format should \
-				one of the following %s",% s는 유효한 보고서 형식이 아닙니다. 다음 % s의 중 하나를 \해야 보고서 형식
 DocType: Chat Message,Chat,채팅
 apps/frappe/frappe/public/js/frappe/ui/toolbar/search.js,No documents found tagged with {0},{0} 태그가있는 문서를 찾을 수 없습니다
 DocType: LDAP Group Mapping,LDAP Group Mapping,LDAP 그룹 매핑
@@ -1578,6 +1660,7 @@ DocType: Customize Form Field,Number of columns for a field in a Grid (Total Col
 DocType: DocType,System,시스템
 DocType: Web Form,Max Attachment Size (in MB),(MB)에서 최대 첨부 파일 크기
 apps/frappe/frappe/www/login.html,Have an account? Login,계정이있으세요? 로그인
+apps/frappe/frappe/public/js/frappe/form/templates/print_layout.html,Print Settings...,인쇄 설정 ...
 DocType: Workflow State,arrow-down,화살표 아래로
 apps/frappe/frappe/core/doctype/data_import_beta/data_import_beta.js,Row {0},행 {0}
 apps/frappe/frappe/model/delete_doc.py,User not allowed to delete {0}: {1},사용자가 삭제할 수 없습니다 {0} {1}
@@ -1613,11 +1696,12 @@ DocType: Workflow State,hand-down,손 다운
 apps/frappe/frappe/public/js/frappe/views/kanban/kanban_view.js,"No fields found that can be used as a Kanban Column. Use the Customize Form to add a Custom Field of type ""Select"".",Kanban 열로 사용할 수있는 필드가 없습니다. 사용자 정의 양식을 사용하여 &quot;선택&quot;유형의 사용자 정의 필드를 추가하십시오.
 DocType: Address,GST State,GST 주
 apps/frappe/frappe/core/doctype/doctype/doctype.py,{0}: Cannot set Cancel without Submit,{0} : 설정할 수 없습니다 제출하지 않고 취소
+apps/frappe/frappe/public/js/frappe/views/components/Desktop.vue,User ({0}),사용자 ({0})
 DocType: Website Theme,Theme,테마
 DocType: OAuth Authorization Code,Redirect URI Bound To Auth Code,URI는 인증 코드에 바인딩 리디렉션
 apps/frappe/frappe/public/js/frappe/ui/keyboard.js,Open Help,도움말 열기
 DocType: DocType,Is Submittable,Submittable입니다
-apps/frappe/frappe/core/doctype/comment/comment.py,New Mention,새로운 언급
+apps/frappe/frappe/desk/doctype/notification_log/notification_log.py,New Mention,새로운 언급
 apps/frappe/frappe/integrations/doctype/google_contacts/google_contacts.py,No new Google Contacts synced.,새로운 Google 주소록이 동기화되지 않았습니다.
 DocType: File,Uploaded To Google Drive,Google 드라이브에 업로드
 apps/frappe/frappe/custom/doctype/property_setter/property_setter.js,Value for a check field can be either 0 or 1,체크 필드의 값은 0 또는 1이 될 수 있습니다
@@ -1629,7 +1713,7 @@ apps/frappe/frappe/social/doctype/energy_point_log/energy_point_log.py,{0} criti
 DocType: Workflow State,Inbox,받은 편지함
 DocType: Kanban Board Column,Red,빨간
 DocType: Workflow State,Tag,(소)<title> 태그
-DocType: Custom Script,Script,스크립트
+DocType: Report,Script,스크립트
 apps/frappe/frappe/core/doctype/data_import/log_details.html,Document can't saved.,문서를 저장할 수 없습니다.
 DocType: Energy Point Rule,Maximum Points,최대 포인트
 apps/frappe/frappe/public/js/frappe/ui/toolbar/navbar.html,My Settings,내 설정
@@ -1645,6 +1729,7 @@ DocType: Footer Item,"Select target = ""_blank"" to open in a new page.","선택
 apps/frappe/frappe/public/js/frappe/ui/filters/filter.js,1 year,일년
 apps/frappe/frappe/public/js/frappe/model/model.js,Permanently delete {0}?,영구적으로 {0}을 삭제 하시겠습니까?
 apps/frappe/frappe/core/doctype/file/file.py,Same file has already been attached to the record,동일한 파일이 이미 첨부되어 있습니다
+DocType: Event Sync Log,Synced,동기화
 apps/frappe/frappe/model/workflow.py,{0} is not a valid Workflow State. Please update your Workflow and try again.,{0}은 (는) 유효한 워크 플로 상태가 아닙니다. 워크 플로를 업데이트하고 다시 시도하십시오.
 apps/frappe/frappe/templates/emails/energy_points_summary.html,gave {0} points,준 {0} 점
 DocType: Workflow State,wrench,렌치
@@ -1659,9 +1744,12 @@ DocType: Address,Haryana,하리야나
 apps/frappe/frappe/public/js/frappe/form/sidebar/review.js,{0} appreciation points for {1} {2},{1} {2}에 대한 감사 점수 {0}
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Roles can be set for users from their User page.,역할은 사용자 페이지에서 사용자가 설정할 수 있습니다.
 apps/frappe/frappe/templates/includes/comments/comments.html,Add Comment,코멘트를 추가
+DocType: Dashboard Chart,Select Date Range,기간 선택
 DocType: DocField,Mandatory,필수
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js,Module to Export,모듈 내보내는
+DocType: Scheduled Job Type,Monthly Long,월간 긴
 apps/frappe/frappe/core/doctype/doctype/doctype.py,{0}: No basic permissions set,{0} : 없음 기본 사용 권한을 설정하지
+apps/frappe/frappe/public/js/frappe/form/footer/timeline.js,Send an email to {0} to link it here,여기에 링크하려면 {0}에게 이메일을 보내십시오.
 apps/frappe/frappe/utils/backups.py,Download link for your backup will be emailed on the following email address: {0},백업에 대한 다운로드 링크는 다음 이메일 주소에 이메일로 전송 될 것입니다 : {0}
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,"Meaning of Submit, Cancel, Amend","의 제출을 취소, 개정의 의미"
 apps/frappe/frappe/desk/doctype/todo/todo_list.js,To Do,할일
@@ -1670,7 +1758,6 @@ DocType: Milestone Tracker,Track milestones for any document,모든 문서의 �
 DocType: Social Login Key,Identity Details,신원 정보
 apps/frappe/frappe/model/workflow.py,Workflow State transition not allowed from {0} to {1},{0}에서 {1} (으) 로의 워크 플로 상태 전환 허용 안 됨
 apps/frappe/frappe/desk/doctype/dashboard/dashboard.js,Show Dashboard,대시 보드 표시
-apps/frappe/frappe/desk/form/assign_to.py,New Message,새로운 메시지
 DocType: File,Preview HTML,미리보기 HTML
 DocType: Desktop Icon,query-report,쿼리 보고서
 DocType: Data Import Beta,Template Warnings,템플릿 경고
@@ -1681,18 +1768,21 @@ apps/frappe/frappe/public/js/frappe/form/linked_with.js,Linked With,와 연결
 apps/frappe/frappe/templates/emails/auto_email_report.html,Edit Auto Email Report Settings,자동 전자 메일 보고서 설정 편집
 DocType: Chat Room,Message Count,메시지 수
 DocType: Workflow State,book,"~을 기입하다, ~을 예약하다"
+apps/frappe/frappe/public/js/frappe/form/form.js,{0} {1} is linked with the following submitted documents: {2},{0} {1}은 (는) 제출 된 다음 문서와 연결되어 있습니다 : {2}
 DocType: Communication,Read by Recipient,수신자가 읽음
 DocType: Website Settings,Landing Page,방문 페이지
 apps/frappe/frappe/public/js/frappe/form/script_manager.js,Error in Custom Script,사용자 정의 스크립트 오류
 apps/frappe/frappe/public/js/frappe/form/quick_entry.js,{0} Name,{0} 이름
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js,No Permissions set for this criteria.,사용 권한이 기준이 설정되어 있지.
 DocType: Auto Email Report,Auto Email Report,자동 이메일 보고서
+apps/frappe/frappe/desk/doctype/notification_log/notification_log.py,New Document Shared,새로운 문서 공유
 apps/frappe/frappe/public/js/frappe/form/footer/timeline.js,Delete comment?,댓글을 삭제 하시겠습니까?
 DocType: Address Template,This format is used if country specific format is not found,국가 별 형식을 찾을 수없는 경우이 형식이 사용됩니다
 DocType: System Settings,Allow Login using Mobile Number,휴대 전화 번호로 로그인 허용
 apps/frappe/frappe/public/js/frappe/request.js,You do not have enough permissions to access this resource. Please contact your manager to get access.,이 리소스에 액세스 할 수있는 충분한 권한이 없습니다. 액세스 권한을 얻으려면 관리자에게 문의하시기 바랍니다.
 DocType: Custom Field,Custom,사용자 지정
 DocType: System Settings,"If enabled, users who login from Restricted IP Address, won't be prompted for Two Factor Auth",이 옵션을 사용하면 제한된 IP 주소에서 로그인 한 사용자는 Two Factor Auth
+DocType: Server Script,After Cancel,취소 후
 DocType: Auto Repeat,Get Contacts,연락처 가져 오기
 apps/frappe/frappe/website/doctype/blog_post/blog_post.py,Posts filed under {0},아래에 제출 한 게시물 {0}
 apps/frappe/frappe/core/doctype/data_import/importer_new.py,Skipping Untitled Column,제목없는 열 건너 뛰기
@@ -1703,6 +1793,7 @@ DocType: User,Login After,후 로그인
 DocType: Print Format,Monospace,모노 스페이스
 DocType: Letter Head,Printing,인쇄
 DocType: Workflow State,thumbs-up,엄지 손가락 최대
+DocType: Notification Log,Mention,언급하다
 DocType: DocPerm,DocPerm,DocPerm
 DocType: Print Settings,Fonts,글꼴
 apps/frappe/frappe/core/doctype/doctype/doctype.py,Precision should be between 1 and 6,정밀는 1과 6 사이 여야합니다
@@ -1710,7 +1801,7 @@ apps/frappe/frappe/core/doctype/communication/communication.js,Fw: {0},FW : {0}
 apps/frappe/frappe/public/js/frappe/utils/utils.js,and,손목
 apps/frappe/frappe/templates/emails/auto_email_report.html,This report was generated on {0},이 보고서는 {0}에 생성되었습니다.
 DocType: Error Snapshot,Frames,프레임
-apps/frappe/frappe/patches/v6_19/comment_feed_communication.py,Assignment,할당
+DocType: Notification Log,Assignment,할당
 DocType: Notification,Slack Channel,슬랙 채널
 DocType: About Us Team Member,Image Link,이미지 링크
 DocType: Auto Email Report,Report Filters,보고서 필터
@@ -1727,7 +1818,9 @@ apps/frappe/frappe/templates/includes/login/login.js,Enter Code displayed in OTP
 apps/frappe/frappe/public/js/frappe/views/calendar/calendar.js,Unable to update event,이벤트를 업데이트 할 수 없습니다
 apps/frappe/frappe/twofactor.py,Verification code has been sent to your registered email address.,인증 코드가 등록 된 이메일 주소로 발송되었습니다.
 apps/frappe/frappe/core/doctype/user/user.py,Throttled,스로틀 됨
+apps/frappe/frappe/public/js/frappe/ui/notifications/notifications.js,Your Target,당신의 목표
 apps/frappe/frappe/utils/data.py,"Filter must have 4 values (doctype, fieldname, operator, value): {0}","필터에는 4 가지 값 (doctype, fieldname, operator, value)이 있어야합니다 : {0}"
+apps/frappe/frappe/model/naming.py,No Name Specified for {0},{0}에 지정된 이름이 없습니다.
 apps/frappe/frappe/public/js/frappe/list/list_view.js,Apply Assignment Rule,할당 규칙 적용
 apps/frappe/frappe/utils/bot.py,show,보여 주다
 apps/frappe/frappe/utils/data.py,Invalid field name {0},잘못된 필드 이름 {0}
@@ -1737,9 +1830,9 @@ DocType: Workflow State,text-height,텍스트 높이
 DocType: Data Migration Plan Mapping,Data Migration Plan Mapping,데이터 마이그레이션 계획 매핑
 apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js,Starting Frappé ...,Frappé 시작 ...
 DocType: Web Form Field,Max Length,최대 길이
-apps/frappe/frappe/public/js/frappe/ui/toolbar/energy_points_notifications.js,For {0} {1},{0} {1}의 경우
 DocType: Print Format,Jinja,진자
 DocType: Workflow State,map-marker,지도 마커
+apps/frappe/frappe/config/automation.py,The mapping configuration between two doctypes.,두 doctype 간의 매핑 구성
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Submit an Issue,문제 제출
 DocType: Event,Repeat this Event,이 이벤트를 반복
 DocType: Address,Maintenance User,유지 보수 사용자
@@ -1773,6 +1866,7 @@ apps/frappe/frappe/www/404.html,Page missing or moved,누락 또는 이동 페�
 apps/frappe/frappe/public/js/frappe/form/templates/form_sidebar.html,Reviews,리뷰
 DocType: DocType,Route,노선
 apps/frappe/frappe/config/integrations.py,Razorpay Payment gateway settings,Razorpay 지불 게이트웨이 설정
+apps/frappe/frappe/social/doctype/energy_point_log/energy_point_log.py,{0} gained {1} point for {2} {3},{0}이 {2} {3}에서 {1} 점을 얻었습니다.
 apps/frappe/frappe/website/doctype/website_slideshow/website_slideshow.js,Fetch attached images from document,문서에서 첨부 된 이미지 가져 오기
 DocType: Chat Room,Name,이름
 DocType: Contact Us Settings,Skype,Skype
@@ -1783,7 +1877,6 @@ apps/frappe/frappe/public/js/frappe/form/controls/link.js,Open Link,링크 열�
 apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js,Your Language,당신의 언어
 DocType: Dashboard Chart,Average,평균
 apps/frappe/frappe/public/js/frappe/form/grid.js,Add Row,행 추가
-DocType: Tag Category,Doctypes,doctype에
 apps/frappe/frappe/public/js/frappe/form/print.js,Printer,인쇄기
 apps/frappe/frappe/desk/query_report.py,Query must be a SELECT,쿼리는 SELECT해야합니다
 DocType: Auto Repeat,Completed,완료
@@ -1799,6 +1892,7 @@ apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,"Ce
 DocType: Newsletter,Test Email Address,테스트 이메일 주소
 DocType: Auto Repeat,Reference Document Type,참조 문서 유형
 DocType: ToDo,Sender,보낸 사람
+DocType: Event Consumer,Incoming Change,들어오는 변화
 DocType: Google Drive,Backup Folder Name,백업 폴더 이름
 apps/frappe/frappe/email/doctype/notification/notification.py,Error while evaluating Notification {0}. Please fix your template.,알림 {0}을 평가하는 동안 오류가 발생했습니다. 템플릿을 수정하십시오.
 DocType: GSuite Settings,Google Apps Script,Google Apps Script
@@ -1843,6 +1937,7 @@ DocType: GCalendar Account,Next Sync Token,다음 동기화 토큰
 DocType: Energy Point Settings,Energy Point Settings,에너지 포인트 설정
 DocType: Async Task,Succeeded,성공
 apps/frappe/frappe/public/js/frappe/form/save.js,Mandatory fields required in {0},에 필요한 필수 필드 {0}
+DocType: Onboarding Slide Field,Align,정렬
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js,Reset Permissions for {0}?,{0}에 대한 사용 권한을 다시 설정?
 apps/frappe/frappe/config/desktop.py,Users and Permissions,사용자 및 권한
 DocType: S3 Backup Settings,S3 Backup Settings,S3 백업 설정
@@ -1859,8 +1954,11 @@ DocType: DocType,ASC,ASC
 apps/frappe/frappe/public/js/frappe/form/print.js,New Print Format Name,새 인쇄 형식 이름
 apps/frappe/frappe/templates/emails/data_deletion_approval.html,Click on the link below to approve the request,요청을 승인하려면 아래 링크를 클릭하십시오.
 DocType: Workflow State,align-left,정렬에서 왼쪽으로
+DocType: Onboarding Slide,Action Settings,동작 설정
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Setup &gt; User,설정&gt; 사용자
 DocType: User,Defaults,기본값
 DocType: Energy Point Log,Revert Of,되돌리기
+DocType: Document Type Mapping,Field Mapping,필드 매핑
 apps/frappe/frappe/public/js/frappe/model/model.js,Merge with existing,기존에 병합
 DocType: User,Birth Date,생년월일
 DocType: Communication Link,Link Title,링크 타이틀
@@ -1888,6 +1986,7 @@ apps/frappe/frappe/templates/pages/integrations/gcalendar-success.html,Your conn
 DocType: Tag Link,Tag Link,태그 링크
 apps/frappe/frappe/core/report/transaction_log_report/transaction_log_report.py,Chain Integrity,체인 무결성
 DocType: Data Export,CSV,CSV
+DocType: Event Consumer,In Test,테스트 중
 DocType: Currency,"1 Currency = [?] Fraction
 For e.g. 1 USD = 100 Cent","(1) 환율 = [?]예를 들어 1 USD를 들어 분수 
  = 100 센트"
@@ -1898,6 +1997,7 @@ apps/frappe/frappe/public/js/frappe/form/link_selector.js,You can use wildcard %
 DocType: LDAP Settings,LDAP Group Mappings,LDAP 그룹 매핑
 DocType: Chat Message Attachment,Chat Message Attachment,채팅 메시지 첨부 파일
 DocType: LDAP Settings,Path to CA Certs File,CA 인증서 파일 경로
+DocType: Event Producer Document Type,If the document has different field names on the Producer and Consumer's end check this and set up the Mapping,생산자와 소비자가 문서의 필드 이름이 다른 경우이를 확인하고 매핑을 설정하십시오.
 DocType: Address,Manipur,마니 푸르
 DocType: Web Form Field,Allow Read On All Link Options,모든 링크 옵션에서 읽기 허용
 DocType: DocType,Database Engine,데이터베이스 엔진
@@ -1915,6 +2015,7 @@ apps/frappe/frappe/public/js/frappe/ui/filters/filters.js,In,"결과적으로, �
 DocType: Notification,Value Change,값 변경
 DocType: Google Contacts,Authorize Google Contacts Access,Google 주소록 액세스 권한 부여
 apps/frappe/frappe/public/js/frappe/views/reports/report_view.js,Showing only Numeric fields from Report,보고서의 숫자 필드 만 표시
+apps/frappe/frappe/utils/data.py,1 week ago,1 주 전
 DocType: Data Import Beta,Import Type,수입품
 DocType: Access Log,HTML Page,HTML 페이지
 DocType: Address,Subsidiary,자회사
@@ -1924,7 +2025,6 @@ apps/frappe/frappe/integrations/doctype/google_drive/google_drive.py,Google Driv
 apps/frappe/frappe/public/js/frappe/list/bulk_operations.js,With Letterhead,레터
 apps/frappe/frappe/email/smtp.py,Invalid Outgoing Mail Server or Port,잘못된 보내는 메일 서버 또는 포트
 DocType: Custom DocPerm,Write,쓰기
-apps/frappe/frappe/core/doctype/report/report.py,Only Administrator allowed to create Query / Script Reports,관리자 만 조회 / 스크립트 보고서를 작성할 수
 apps/frappe/frappe/public/js/frappe/form/save.js,Updating,업데이트
 DocType: Data Import Beta,Preview,미리보기
 apps/frappe/frappe/desk/doctype/bulk_update/bulk_update.js,"Field ""value"" is mandatory. Please specify value to be updated",이 필드를 &quot;값은&quot;필수입니다. 업데이트 할 값을 지정하십시오
@@ -1934,6 +2034,7 @@ apps/frappe/frappe/contacts/doctype/contact/contact.js,Invite as User,사용자�
 DocType: Data Migration Run,Started,시작됨
 apps/frappe/frappe/permissions.py,User {0} does not have access to this document,사용자 {0}이 (가)이 문서에 액세스 할 수 없습니다.
 DocType: Data Migration Run,End Time,종료 시간
+DocType: Dashboard Chart,Group By Based On,기준으로 그룹화
 apps/frappe/frappe/public/js/frappe/views/interaction.js,Select Attachments,첨부 파일을 선택합니다
 apps/frappe/frappe/model/naming.py, for {0},{0}에 대한
 apps/frappe/frappe/public/js/frappe/form/print.js,You are not allowed to print this document,당신은이 문서를 인쇄 할 수 없습니다
@@ -1975,6 +2076,7 @@ apps/frappe/frappe/public/js/frappe/ui/messages.js,Verify,확인
 DocType: Workflow Document State,Update Field,필드 업데이트
 DocType: Chat Profile,Enable Chat,채팅 사용
 DocType: LDAP Settings,Base Distinguished Name (DN),기본 식별 이름 (DN)
+DocType: Server Script,API,API
 apps/frappe/frappe/email/doctype/email_account/email_account.py,Leave this conversation,이 대화를 남겨주세요
 apps/frappe/frappe/model/base_document.py,Options not set for link field {0},옵션 링크 필드에 대해 설정되지 {0}
 apps/frappe/frappe/core/page/background_jobs/background_jobs.html,Queue / Worker,대기열 / 작업자
@@ -2030,6 +2132,7 @@ apps/frappe/frappe/public/js/frappe/views/file/file_view.js,Folder name should n
 DocType: Note,Note,정보
 apps/frappe/frappe/core/doctype/error_snapshot/error_snapshot.html,Error Report,오류 보고서
 apps/frappe/frappe/config/settings.py,Export Data in CSV / Excel format.,CSV / Excel 형식으로 데이터를 내 보냅니다.
+DocType: Document Type Field Mapping,Document Type Field Mapping,문서 유형 필드 매핑
 apps/frappe/frappe/desk/doctype/global_search_settings/global_search_settings.py,Setting up Global Search documents.,글로벌 검색 문서 설정
 apps/frappe/frappe/www/qrcode.html,Authentication Apps you can use are: ,인증 응용 프로그램은 다음과 같습니다.
 apps/frappe/frappe/public/js/frappe/form/controls/data.js,{0} already exists. Select another name,{0}이 (가) 이미 있습니다. 다른 이름 선택
@@ -2043,12 +2146,12 @@ apps/frappe/frappe/website/doctype/personal_data_deletion_request/personal_data_
 apps/frappe/frappe/auth.py,Login not allowed at this time,로그인이 시간에 허용되지
 DocType: Data Migration Run,Current Mapping Action,현재 매핑 작업
 DocType: Dashboard Chart Source,Source Name,원본 이름
-apps/frappe/frappe/public/js/frappe/views/inbox/inbox_view.js,No email account associated with the User. Please add an account under User &gt; Email Inbox.,사용자와 연결된 이메일 계정이 없습니다. 사용자&gt; 이메일받은 편지함에 계정을 추가하십시오.
 DocType: Email Account,Email Sync Option,이메일 동기화 옵션
 apps/frappe/frappe/core/doctype/data_import/log_details.html,Row No,행 번호
 DocType: Async Task,Runtime,런타임
 DocType: Post,Is Pinned,고정되어있다.
 DocType: Contact Us Settings,Introduction,소개
+apps/frappe/frappe/public/js/frappe/ui/onboarding_dialog.js,Need Help?,도움이 필요하다?
 apps/frappe/frappe/public/js/frappe/social/components/Post.vue,Pin Globally,글로벌 핀
 apps/frappe/frappe/public/js/frappe/form/templates/form_sidebar.html,Followed by,뒤따라
 DocType: LDAP Settings,LDAP Email Field,LDAP 이메일 필드
@@ -2058,7 +2161,6 @@ apps/frappe/frappe/desk/form/assign_to.py,Already in user's To Do list,사용자
 DocType: User Email,Enable Outgoing,보내는 사용
 DocType: Address,Fax,팩스
 apps/frappe/frappe/config/customization.py,Custom Tags,사용자 정의 태그
-apps/frappe/frappe/email/smtp.py,Email Account not setup. Please create a new Email Account from Setup &gt; Email &gt; Email Account,이메일 계정이 설정되지 않았습니다. 설정&gt; 이메일&gt; 이메일 계정에서 새 이메일 계정을 만드십시오
 DocType: Comment,Submitted,제출
 DocType: Contact,Pulled from Google Contacts,Google 주소록에서 가져옴
 apps/frappe/frappe/integrations/doctype/paypal_settings/paypal_settings.py,In Valid Request,잘못된 요청
@@ -2079,9 +2181,10 @@ apps/frappe/frappe/core/doctype/file/test_file.py,Home/Test Folder 1,홈 / 테�
 apps/frappe/frappe/public/js/frappe/form/sidebar/assign_to.js,Assign to me,나에게 할당
 DocType: DocField,Dynamic Link,동적 링크
 apps/frappe/frappe/public/js/frappe/ui/keyboard.js,Press Alt Key to trigger additional shortcuts in Menu and Sidebar,메뉴 및 사이드 바에서 추가 단축키를 실행하려면 Alt 키를 누릅니다.
+DocType: Dashboard Chart,To Date,현재까지
 DocType: List View Setting,List View Setting,목록보기 설정
 apps/frappe/frappe/core/page/background_jobs/background_jobs_outer.html,Show failed jobs,쇼 실패한 작업
-DocType: Event,Details,세부 정보
+DocType: Scheduled Job Log,Details,세부 정보
 DocType: Property Setter,DocType or Field,문서 종류 또는 필드
 apps/frappe/frappe/public/js/frappe/form/sidebar/document_follow.js,You unfollowed this document,이 문서를 팔로우 해제했습니다.
 apps/frappe/frappe/website/doctype/website_theme/website_theme.js,Primary Color,원색
@@ -2090,7 +2193,6 @@ DocType: System Settings,"If enabled, all users can login from any IP Address us
 apps/frappe/frappe/integrations/doctype/stripe_settings/stripe_settings.py,Seems Publishable Key or Secret Key is wrong !!!,게시 가능한 키 또는 비밀 키가 잘못되었습니다 !!!
 apps/frappe/frappe/integrations/doctype/stripe_settings/stripe_settings.py,Seems Publishable Key or Secret Key is wrong !!!,게시 가능한 키 또는 비밀 키가 잘못되었습니다 !!!
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Quick Help for Setting Permissions,권한 설정에 대한 빠른 도움말
-DocType: Tag Doc Category,Doctype to Assign Tags,태그를 지정하는 문서 타입
 apps/frappe/frappe/core/doctype/error_snapshot/error_snapshot.js,Show Relapses,쇼 재발
 apps/frappe/frappe/core/doctype/communication/communication.js,Email has been moved to trash,이메일이 휴지통으로 이동되었습니다.
 DocType: Report,Report Builder,보고서 작성기
@@ -2115,7 +2217,6 @@ apps/frappe/frappe/public/js/frappe/list/bulk_operations.js,Print Documents,문�
 apps/frappe/frappe/public/js/frappe/form/toolbar.js,Jump to field,필드로 이동
 DocType: Contact Us Settings,Forward To Email Address,앞으로 이메일 주소
 DocType: Contact Phone,Is Primary Phone,기본 전화입니까
-apps/frappe/frappe/public/js/frappe/form/templates/timeline.html,Send an email to {0} to link it here.,{0}에 이메일을 보내 여기에 연결하십시오.
 DocType: Auto Email Report,Weekdays,평일
 apps/frappe/frappe/public/js/frappe/data_import/data_exporter.js,{0} records will be exported,{0} 레코드가 내보내집니다
 apps/frappe/frappe/core/doctype/doctype/doctype.py,Title field must be a valid fieldname,제목 필드는 유효한 필드 이름이어야합니다
@@ -2123,7 +2224,7 @@ DocType: Post Comment,Post Comment,댓글 달기
 apps/frappe/frappe/config/core.py,Documents,서류
 apps/frappe/frappe/config/users_and_permissions.py,Activity Log by ,활동 기록
 DocType: Social Login Key,Custom Base URL,맞춤 기본 URL
-DocType: Email Flag Queue,Is Completed,완료
+DocType: Onboarding Slide,Is Completed,완료
 apps/frappe/frappe/website/doctype/web_form/web_form.js,Get Fields,필드 가져 오기
 apps/frappe/frappe/desk/page/user_profile/user_profile.js,Edit Profile,프로필 수정
 DocType: Kanban Board Column,Archived,보관
@@ -2134,12 +2235,13 @@ myfield
 eval:doc.myfield=='My Value'
 eval:doc.age&gt;18",여기에 정의 된 필드 이름 값을 가지고 또는 규칙이 참 (예) 경우에만이 필드가 나타납니다 myfield 평가 : doc.myfield == &#39;나의 가치&#39;평가 : doc.age&gt; (18)
 DocType: Social Login Key,Office 365,Office 365
-apps/frappe/frappe/public/js/frappe/ui/toolbar/energy_points_notifications.js,Today,오늘
-apps/frappe/frappe/public/js/frappe/ui/toolbar/energy_points_notifications.js,Today,오늘
+apps/frappe/frappe/public/js/frappe/form/controls/date.js,Today,오늘
+apps/frappe/frappe/public/js/frappe/form/controls/date.js,Today,오늘
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,"Once you have set this, the users will only be able access documents (eg. Blog Post) where the link exists (eg. Blogger).","이 설정되면, 사용자는 수 액세스 문서 (예 될 것입니다링크가 존재하는 블로그의 포스트) (예 :블로거)."
 DocType: Data Import Beta,Submit After Import,수입 후 제출
 DocType: Error Log,Log of Scheduler Errors,스케줄러 오류의 로그
 DocType: User,Bio,바이오
+DocType: Onboarding Slide Help Link,Onboarding Slide Help Link,온 보딩 슬라이드 도움말 링크
 DocType: OAuth Client,App Client Secret,응용 프로그램 클라이언트 비밀
 apps/frappe/frappe/public/js/frappe/form/save.js,Submitting,제출
 apps/frappe/frappe/core/doctype/data_export/exporter.py,Parent is the name of the document to which the data will get added to.,Parent는 데이터가 추가 될 문서의 이름입니다.
@@ -2147,7 +2249,6 @@ apps/frappe/frappe/integrations/doctype/google_drive/google_drive.py,Google Driv
 DocType: DocType,UPPER CASE,대문자
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js,Custom HTML,사용자 정의 HTML
 apps/frappe/frappe/public/js/frappe/views/file/file_view.js,Enter folder name,폴더 이름을 입력합니다
-apps/frappe/frappe/contacts/doctype/address/address.py,No default Address Template found. Please create a new one from Setup &gt; Printing and Branding &gt; Address Template.,기본 주소 템플릿이 없습니다. 설정&gt; 인쇄 및 브랜딩&gt; 주소 템플릿에서 새로 만드십시오.
 apps/frappe/frappe/auth.py,Unknown User,알 수없는 사용자
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js,Select Role,역할 선택
 DocType: Comment,Deleted,삭제
@@ -2163,15 +2264,16 @@ DocType: Chat Token,Chat Token,채팅 토큰
 apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,Create Chart,차트 만들기
 apps/frappe/frappe/templates/pages/integrations/stripe_checkout.html,john@doe.com,john@doe.com
 apps/frappe/frappe/public/js/frappe/data_import/import_preview.js,Don't Import,가져 오지마
-DocType: Web Page,Center,가운데
+DocType: Onboarding Slide Field,Center,가운데
 DocType: Notification,Value To Be Set,설정 될 값
 apps/frappe/frappe/public/js/frappe/views/reports/report_view.js,Edit {0},{0} 수정
 apps/frappe/frappe/core/doctype/error_snapshot/error_snapshot_list.js,First Level,첫 번째 수준
 DocType: Workflow Document State,Represents the states allowed in one document and role assigned to change the state.,상태를 변경하기 위해 할당 한 문서 및 역할에 허용 된 상태를 나타냅니다.
 DocType: Data Migration Connector,Database Name,데이터베이스 이름
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.js,Refresh Form,새로 고침 양식
+DocType: Event Producer,Event Producer,이벤트 프로듀서
 DocType: DocField,Select,고르기
-apps/frappe/frappe/public/js/frappe/ui/toolbar/energy_points_notifications.js,View Full Log,전체 로그보기
+apps/frappe/frappe/public/js/frappe/ui/notifications/notifications.js,View Full Log,전체 로그보기
 DocType: Assignment Rule,"Simple Python Expression, Example: status == 'Open' and type == 'Bug'","간단한 파이썬 표현식, 예 : 상태 == &#39;열기&#39;와 타입 == &#39;버그&#39;"
 apps/frappe/frappe/utils/csvutils.py,File not attached,파일이 첨부되지 않았습니다
 apps/frappe/frappe/public/js/frappe/dom.js,Connection lost. Some features might not work.,연결이 끊어졌습니다. 일부 기능이 작동하지 않을 수 있습니다.
@@ -2203,6 +2305,7 @@ DocType: Web Page,HTML for header section. Optional,머리글 구역에 대한 H
 apps/frappe/frappe/public/js/frappe/form/templates/form_sidebar.html,This feature is brand new and still experimental,이 기능은 여전히 새로운 실험이다
 apps/frappe/frappe/model/rename_doc.py,Maximum {0} rows allowed,최대 {0} 행이 허용
 DocType: Dashboard Chart Link,Chart,차트
+DocType: Scheduled Job Type,Cron,크론
 DocType: Email Unsubscribe,Global Unsubscribe,글로벌 탈퇴
 apps/frappe/frappe/utils/password_strength.py,This is a very common password.,이것은 매우 일반적인 암호입니다.
 apps/frappe/frappe/email/doctype/email_group/email_group.js,View,전망
@@ -2219,6 +2322,7 @@ DocType: Data Migration Connector,Hostname,호스트 이름
 DocType: Data Migration Mapping,Condition Detail,조건 세부 정보
 apps/frappe/frappe/integrations/doctype/stripe_settings/stripe_settings.py,"For currency {0}, the minimum transaction amount should be {1}",통화 {0}의 경우 최소 거래 금액은 {1}이어야합니다.
 DocType: DocField,Print Hide,인쇄 숨기기
+DocType: System Settings,HH:mm:ss,HH : mm : ss
 apps/frappe/frappe/public/js/frappe/form/sidebar/review.js,To User,사용자에게
 apps/frappe/frappe/public/js/frappe/ui/messages.js,Enter Value,반환 값 입력
 DocType: Workflow State,tint,색조
@@ -2269,6 +2373,7 @@ DocType: DocType,User Cannot Search,사용자는 검색 할 수 없습니다
 DocType: Communication Link,Communication Link,통신 링크
 apps/frappe/frappe/email/doctype/auto_email_report/auto_email_report.py,Invalid Output Format,잘못된 출력 형식
 apps/frappe/frappe/public/js/frappe/list/bulk_operations.js,Cannot {0} {1},{0} {1} 할 수 없습니다.
+apps/frappe/frappe/automation/doctype/auto_repeat/auto_repeat.py,A recurring {0} {1} has been created for you via Auto Repeat {2}.,자동 반복 {2}을 (를) 통해 반복적 인 {0} {1}이 (가) 생성되었습니다.
 DocType: Custom DocPerm,Apply this rule if the User is the Owner,사용자가 소유자 인 경우이 규칙 적용
 DocType: Global Search Settings,Global Search Settings,글로벌 검색 설정
 apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js,Will be your login ID,로그인 ID가됩니다.
@@ -2286,11 +2391,14 @@ apps/frappe/frappe/www/qrcode.html,QR Code for Login Verification,로그인 확�
 apps/frappe/frappe/public/js/frappe/form/sidebar/assign_to.js,Add to To Do,할일 추가
 DocType: Footer Item,Company,회사
 apps/frappe/frappe/public/js/frappe/ui/group_by/group_by.js,Average of {0},평균 {0}
+apps/frappe/frappe/model/workflow.py,Successful Transactions,성공적인 거래
+DocType: Scheduled Job Log,Scheduled,예약된
 DocType: User,Logout from all devices while changing Password,암호를 변경하는 동안 모든 장치에서 로그 아웃
 apps/frappe/frappe/public/js/frappe/ui/messages.js,Verify Password,비밀번호 확인
 apps/frappe/frappe/public/js/frappe/form/sidebar/attachments.js,There were errors,오류가 발생했습니다
 apps/frappe/frappe/integrations/doctype/google_calendar/google_calendar.py,Enter Client Id and Client Secret in Google Settings.,Google 설정에서 고객 ID 및 고객 비밀번호를 입력합니다.
 apps/frappe/frappe/core/doctype/communication/communication.js,Close,닫기
+apps/frappe/frappe/email/doctype/email_account/email_account.py,"Email ID must be unique, Email Account already exists for {0}",이메일 ID는 고유해야합니다. 이메일 계정은 {0}에 대해 이미 존재합니다
 apps/frappe/frappe/model/document.py,Cannot change docstatus from 0 to 2,0-2 docstatus을 변경할 수 없습니다
 DocType: File,Attached To Field,필드에 연결됨
 apps/frappe/frappe/core/doctype/data_import_beta/data_import_beta_list.js,Update,업데이트
@@ -2311,7 +2419,7 @@ DocType: Error Snapshot,Pyver,Pyver
 apps/frappe/frappe/core/doctype/user_permission/user_permission.py,User permission already exists,사용자 권한이 이미 있습니다.
 apps/frappe/frappe/core/doctype/data_import/importer_new.py,Mapping column {0} to field {1},{0} 열을 {1} 필드에 맵핑
 apps/frappe/frappe/automation/doctype/auto_repeat/auto_repeat.js,View {0},보기 {0}
-DocType: User,Hourly,매시간
+DocType: Scheduled Job Type,Hourly,매시간
 apps/frappe/frappe/config/integrations.py,Register OAuth Client App,OAuth를 클라이언트 응용 프로그램을 등록
 DocType: DocField,Fetch If Empty,빈 경우 가져 오기
 DocType: Data Migration Connector,Authentication Credentials,인증 자격 증명
@@ -2322,10 +2430,10 @@ DocType: SMS Settings,SMS Gateway URL,SMS 게이트웨이 URL
 apps/frappe/frappe/model/base_document.py,"{0} {1} cannot be ""{2}"". It should be one of ""{3}""","{0} {1}  ""{2}""가 될 수 없습니다.  ""{3}""중 하나입니다."
 apps/frappe/frappe/public/js/frappe/utils/energy_point_utils.js,gained by {0} via automatic rule {1},자동 규칙 {1}을 (를) 통해 {0}에 의해 획득되었습니다.
 apps/frappe/frappe/utils/data.py,{0} or {1},{0} 또는 {1}
+apps/frappe/frappe/public/js/frappe/ui/onboarding_dialog.js,You are all set up!,당신은 모두 설정되었습니다!
 DocType: Workflow State,trash,쓰레기
 DocType: System Settings,Older backups will be automatically deleted,이전 백업은 자동으로 삭제됩니다
 apps/frappe/frappe/integrations/doctype/s3_backup_settings/s3_backup_settings.py,Invalid Access Key ID or Secret Access Key.,잘못된 액세스 키 ID 또는 비밀 액세스 키.
-apps/frappe/frappe/social/doctype/energy_point_log/energy_point_log.py,You lost some energy points,에너지 점수를 잃었 어.
 DocType: Post,Is Globally Pinned,전역으로 고정되어 있습니까?
 apps/frappe/frappe/desk/page/user_profile/user_profile.html,Recent Activity,최근 활동
 DocType: Workflow Transition,Conditions,정황
@@ -2334,6 +2442,7 @@ apps/frappe/frappe/email/doctype/newsletter/newsletter.py,Confirmed,확인 된
 DocType: Event,Ends on,에 종료
 DocType: Payment Gateway,Gateway,게이트웨이
 DocType: LDAP Settings,Path to Server Certificate,서버 인증서 경로
+apps/frappe/frappe/www/login.html,Javascript is disabled on your browser,브라우저에서 자바 스크립트를 사용할 수 없습니다
 apps/frappe/frappe/public/js/frappe/form/linked_with.js,Not enough permission to see links,링크를 볼 권한이 없습니다.
 apps/frappe/frappe/public/js/frappe/form/linked_with.js,Not enough permission to see links,링크를 볼 권한이 없습니다.
 apps/frappe/frappe/contacts/doctype/address/address.py,Address Title is mandatory.,주소 제목은 필수입니다.
@@ -2353,7 +2462,6 @@ apps/frappe/frappe/permissions.py,Not allowed for {0}: {1} in Row {2}. Restricte
 DocType: S3 Backup Settings,eu-west-1,서해 -1
 DocType: Data Import,"If this is checked, rows with valid data will be imported and invalid rows will be dumped into a new file for you to import later.",이 옵션을 선택하면 유효한 데이터가있는 행을 가져오고 나중에 가져올 수 있도록 잘못된 행이 새 파일로 덤프됩니다.
 apps/frappe/frappe/public/js/frappe/form/workflow.js,Document is only editable by users of role,문서 역할의 사용자 만 편집 할 수 있습니다
-apps/frappe/frappe/desk/form/assign_to.py,"The task {0}, that you assigned to {1}, has been closed by {2}.","당신이 {1}, {2}에 의해 닫힌에 할당 한 작업 {0}."
 DocType: Print Format,Show Line Breaks after Sections,쇼 라인 섹션 후 휴식
 DocType: Communication,Read by Recipient On,수신자가 읽음
 DocType: Blogger,Short Name,짧은 이름
@@ -2386,6 +2494,7 @@ DocType: Translation,PR sent,홍보 전달
 DocType: Auto Email Report,Only Send Records Updated in Last X Hours,지난 X 시간 동안 업데이트 된 레코드 만 보내기
 DocType: Auto Email Report,Only Send Records Updated in Last X Hours,지난 X 시간 동안 업데이트 된 레코드 만 보내기
 DocType: Communication,Feedback,피드백
+apps/frappe/frappe/public/js/frappe/desk.js,Updated To A New Version 🎉,새 버전으로 업데이트 🎉
 apps/frappe/frappe/public/js/frappe/form/controls/base_control.js,Open Translation,열린 번역
 apps/frappe/frappe/templates/emails/auto_repeat_fail.html,This email is autogenerated,이 이메일은 자동 생성되었습니다.
 DocType: Workflow State,Icon will appear on the button,아이콘이 버튼에 나타납니다
@@ -2397,6 +2506,7 @@ apps/frappe/frappe/public/js/frappe/views/gantt/gantt_view.js,Month,월
 DocType: Email Account,ProTip: Add <code>Reference: {{ reference_doctype }} {{ reference_name }}</code> to send document reference,ProTip : 추가 <code>Reference: {{ reference_doctype }} {{ reference_name }}</code> 보낼 문서 참조
 apps/frappe/frappe/public/js/frappe/form/sidebar/review.js,Only users involved in the document are listed,문서에 관련된 사용자 만 나열됩니다.
 DocType: DocField,Fetch From,가져 오기 시작
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Setup &gt; Customize Form,설정&gt; 양식 사용자 정의
 apps/frappe/frappe/modules/utils.py,App not found,앱을 찾을 수 없습니다
 apps/frappe/frappe/core/doctype/communication/communication.py,Cannot create a {0} against a child document: {1},만들 수 없습니다 {0} 하위 문서에 대해 : {1}
 DocType: Social Login Key,Social Login Key,소셜 로그인 키
@@ -2408,7 +2518,6 @@ apps/frappe/frappe/config/desk.py,Chat messages and other notifications.,메시�
 apps/frappe/frappe/public/js/frappe/social/Home.vue,Social Home,소셜 홈
 apps/frappe/frappe/custom/doctype/custom_field/custom_field.py,Insert After cannot be set as {0},으로 설정 될 수없는 후에 삽입 {0}
 apps/frappe/frappe/public/js/frappe/form/sidebar/share.js,Share {0} with,공유 {0}와
-apps/frappe/frappe/public/js/frappe/desk.js,Email Account setup please enter your password for: ,이메일 계정 설정 비밀번호를위한 입력 해주세요
 DocType: Workflow State,hand-up,손으로 업
 DocType: Blog Settings,Writers Introduction,작가 소개
 DocType: Address,Phone,휴대폰
@@ -2424,6 +2533,8 @@ apps/frappe/frappe/public/js/frappe/views/container.js,Page not found,페이지�
 DocType: DocField,Precision,정확
 DocType: Website Slideshow,Slideshow Items,슬라이드 쇼 항목
 apps/frappe/frappe/utils/password_strength.py,Try to avoid repeated words and characters,반복되는 단어 또는 문자를 피하십시오
+apps/frappe/frappe/public/js/frappe/ui/notifications/notifications.js,Notifications Disabled,알림 비활성화
+apps/frappe/frappe/public/js/frappe/form/grid.js,Are you sure you want to delete all rows?,모든 행을 삭제 하시겠습니까?
 DocType: Workflow Action,Workflow State,워크 플로 상태
 apps/frappe/frappe/core/doctype/version/version_view.html,Rows Added,행 추가
 apps/frappe/frappe/www/list.py,My Account,내 계정
@@ -2432,6 +2543,7 @@ apps/frappe/frappe/templates/emails/password_reset.html,Please click on the foll
 DocType: Notification,Days After,일 후
 apps/frappe/frappe/public/js/frappe/form/print.js,QZ Tray Connection Active!,QZ 트레이 연결 활성!
 DocType: Contact Us Settings,Settings for Contact Us Page,문의 페이지에 대한 설정
+DocType: Server Script,Script Type,스크립트 유형
 DocType: Print Settings,Enable Print Server,인쇄 서버 활성화
 apps/frappe/frappe/public/js/frappe/utils/pretty_date.js,{0} weeks ago,{0} 주 전
 DocType: Email Account,Footer,바닥 글
@@ -2457,8 +2569,6 @@ apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Per
 DocType: Workflow State,Warning,경고
 apps/frappe/frappe/public/js/frappe/form/print.js,This may get printed on multiple pages,여러 페이지에 인쇄 될 수 있습니다.
 DocType: Data Migration Run,Percent Complete,완료율
-DocType: Tag Category,Tag Category,태그 카테고리
-apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,"For comparison, use &gt;5, &lt;10 or =324. For ranges, use 5:10 (for values between 5 &amp; 10).","비교하려면&gt; 5, &lt;10 또는 = 324를 사용하십시오. 범위의 경우 5:10을 사용하십시오 (5와 10 사이의 값)."
 DocType: Google Calendar,Pull from Google Calendar,Google 캘린더에서 가져 오기
 apps/frappe/frappe/core/doctype/data_import/data_import.js,Help,도움말
 DocType: User,Login Before,전에 로그인
@@ -2466,8 +2576,9 @@ DocType: Web Page,Insert Style,스타일 삽입
 DocType: Prepared Report,Error Message,에러 메시지
 apps/frappe/frappe/public/js/frappe/views/reports/report_view.js,New Report name,새 보고서 이름
 apps/frappe/frappe/public/js/frappe/views/calendar/calendar.js,Hide Weekends,주말 숨기기
-apps/frappe/frappe/config/settings.py,Automatically generates recurring documents.,반복되는 문서를 자동으로 생성합니다.
+apps/frappe/frappe/config/automation.py,Automatically generates recurring documents.,반복되는 문서를 자동으로 생성합니다.
 apps/frappe/frappe/public/js/frappe/ui/filters/filter.js,Is,가
+DocType: Onboarding Slide,ERPNext,ERPNext
 DocType: Workflow State,info-sign,정보 기호
 apps/frappe/frappe/model/base_document.py,Value for {0} cannot be a list,{0} 목록이 될 수 없습니다 용
 DocType: Currency,"How should this currency be formatted? If not set, will use system defaults","어떻게 통화를 포맷해야 하는가?설정하지 않은 경우, 시스템 기본값을 사용합니다"
@@ -2475,10 +2586,12 @@ apps/frappe/frappe/public/js/frappe/list/list_view.js,Submit {0} documents?,{0} 
 apps/frappe/frappe/utils/response.py,You need to be logged in and have System Manager Role to be able to access backups.,당신은 로그인 및 백업 액세스 할 수 있도록 시스템 관리자 역할을해야합니다.
 apps/frappe/frappe/public/js/frappe/form/print.js,Printer Mapping,프린터 매핑
 apps/frappe/frappe/public/js/frappe/form/form.js,Please save before attaching.,첨부하기 전에 저장하십시오.
+apps/frappe/frappe/public/js/frappe/form/form.js,Do you want to cancel all linked documents?,링크 된 모든 문서를 취소 하시겠습니까?
 apps/frappe/frappe/public/js/frappe/form/link_selector.js,Added {0} ({1}),추가 {0} ({1})
 apps/frappe/frappe/custom/doctype/customize_form/customize_form.py,Fieldtype cannot be changed from {0} to {1} in row {2},Fieldtype의 정보는 다음의 제품에 {0}을 변경할 수 없습니다 {1} 행의 {2}
 apps/frappe/frappe/public/js/frappe/roles_editor.js,Role Permissions,역할 권한
 DocType: Help Article,Intermediate,중간의
+apps/frappe/frappe/config/settings.py,Email / Notifications,이메일 알림
 apps/frappe/frappe/public/js/frappe/form/footer/timeline.js,{0} changed {1} to {2},{0}이 (가) {1}을 (를) {2} (으)로 변경했습니다.
 apps/frappe/frappe/core/doctype/deleted_document/deleted_document.py,Cancelled Document restored as Draft,초안으로 복원 된 취소 된 문서
 DocType: Data Migration Run,Start Time,시작 시간
@@ -2495,10 +2608,12 @@ apps/frappe/frappe/public/js/frappe/form/templates/set_sharing.html,Can Share,�
 apps/frappe/frappe/email/smtp.py,Invalid recipient address,잘못된받는 사람 주소
 DocType: Workflow State,step-forward,단계 앞으로
 DocType: System Settings,Allow Login After Fail,실패 후 로그인 허용
+DocType: DocType Link,DocType Link,독 타입 링크
 DocType: Role Permission for Page and Report,Set Role For,에 대한 설정 역할
 DocType: GCalendar Account,The name that will appear in Google Calendar,Google 캘린더에 표시 될 이름입니다.
 apps/frappe/frappe/chat/doctype/chat_room/chat_room.py,Direct room with {0} already exists.,{0}이 (가)있는 방이 이미 있습니다.
 apps/frappe/frappe/core/doctype/user/user.js,Refreshing...,상쾌한 ...
+apps/frappe/frappe/core/page/dashboard/dashboard.py,Please check the filter values set for Dashboard Chart: {},대시 보드 차트에 설정된 필터 값을 확인하십시오 : {}
 DocType: Event,Starts on,에 시작
 DocType: System Settings,System Settings,시스템 설정
 DocType: GCalendar Settings,Google API Credentials,Google API 자격증 명
@@ -2512,6 +2627,7 @@ apps/frappe/frappe/public/js/frappe/list/list_view.js,Create a new {0},새 {0} �
 DocType: Contact,Google Contacts,Google 주소록
 DocType: GCalendar Account,GCalendar Account,GCalendar 계정
 DocType: Email Rule,Is Spam,스팸인가
+apps/frappe/frappe/public/js/frappe/form/grid_pagination.js,Last,마지막
 apps/frappe/frappe/public/js/frappe/ui/toolbar/search_utils.js,Report {0},보고서 {0}
 apps/frappe/frappe/desk/doctype/todo/todo_list.js,Open {0},열기 {0}
 DocType: Data Import Beta,Import Warnings,수입 경고
@@ -2523,6 +2639,8 @@ DocType: Workflow State,ok-sign,확인 서명
 apps/frappe/frappe/config/settings.py,Deleted Documents,삭제 된 문서
 apps/frappe/frappe/public/js/frappe/form/grid.js,The CSV format is case sensitive,CSV 형식은 대소 문자를 구분합니다.
 apps/frappe/frappe/desk/doctype/desktop_icon/desktop_icon.py,Desktop Icon already exists,바탕 화면 아이콘이 이미 있습니다.
+DocType: Event Consumer Document Type,Approval Status,승인 상태
+DocType: Onboarding Slide,Specify in what all domains should the slides show up. If nothing is specified the slide is shown in all domains by default.,슬라이드를 표시 할 모든 도메인을 지정하십시오. 아무것도 지정하지 않으면 기본적으로 슬라이드가 모든 도메인에 표시됩니다.
 apps/frappe/frappe/public/js/frappe/form/toolbar.js,Duplicate,복제
 apps/frappe/frappe/core/doctype/doctype/doctype.py,{0}: Field {1} in row {2} cannot be hidden and mandatory without default,{0} : {2} 행의 {1} 필드를 숨길 수 없으며 기본값없이 필수입니다.
 DocType: Newsletter,Create and Send Newsletters,작성 및 보내기 뉴스 레터
@@ -2533,12 +2651,15 @@ apps/frappe/frappe/email/doctype/notification/notification.py,Please specify whi
 DocType: Event,Google Calendar Event ID,Google 캘린더 이벤트 ID
 apps/frappe/frappe/core/doctype/data_export/exporter.py,"""Parent"" signifies the parent table in which this row must be added","""상위항목"" 테이블에서 열이 추가되어야 합니다."
 apps/frappe/frappe/desk/page/user_profile/user_profile.js,Review Points: ,검토 포인트 :
+DocType: Scheduled Job Log,Scheduled Job Log,예약 된 작업 로그
+DocType: Server Script,Before Delete,삭제하기 전에
 apps/frappe/frappe/public/js/frappe/form/templates/form_sidebar.html,Shared With,함께 공유
 apps/frappe/frappe/website/doctype/website_slideshow/website_slideshow.js,Attach files / urls and add in table.,파일 / URL을 첨부하고 표에 추가하십시오.
 apps/frappe/frappe/automation/doctype/auto_repeat/auto_repeat.js,Message not setup,메시지가 설정되지 않았습니다.
 DocType: Help Category,Help Articles,도움말 기사
 apps/frappe/frappe/core/doctype/data_export/exporter.py,Type:,유형 :
 apps/frappe/frappe/templates/pages/integrations/payment-failed.html,Your payment has failed.,지불이 실패했습니다.
+DocType: Event Producer,Producer URL,프로듀서 URL
 DocType: Comment,Unshared,비공유
 DocType: Address,Karnataka,카르 나 타카
 apps/frappe/frappe/desk/moduleview.py,Module Not Found,모듈을 찾을 수 없음
@@ -2550,25 +2671,29 @@ apps/frappe/frappe/core/doctype/docshare/docshare.py,"You need to have ""Share""
 DocType: Comment,Assignment Completed,지정 완료
 apps/frappe/frappe/public/js/frappe/form/grid.js,Bulk Edit {0},대량 편집 {0}
 apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,Download Report,보고서 다운로드
+apps/frappe/frappe/model/workflow.py,Workflow Status,워크 플로우 상태
 apps/frappe/frappe/workflow/doctype/workflow/workflow_list.js,Not active,활성 없음
 apps/frappe/frappe/desk/doctype/dashboard_chart_source/dashboard_chart_source.py,Only Administrator is allowed to create Dashboard Chart Sources,관리자 만 대시 보드 차트 원본을 만들 수 있습니다.
 DocType: About Us Settings,Settings for the About Us Page,회사 소개 페이지에 대한 설정
 apps/frappe/frappe/config/integrations.py,Stripe payment gateway settings,스트라이프 결제 게이트웨이 설정
 apps/frappe/frappe/config/integrations.py,Stripe payment gateway settings,스트라이프 결제 게이트웨이 설정
 apps/frappe/frappe/public/js/frappe/form/print.js,Print Sent to the printer!,인쇄가 프린터로 전송되었습니다!
-apps/frappe/frappe/public/js/frappe/ui/toolbar/energy_points_notifications.js,Energy Points,에너지 포인트
+DocType: Notification Settings,Energy Points,에너지 포인트
+apps/frappe/frappe/public/js/frappe/form/controls/time.js,Time {0} must be in format: {1},{0} 시간은 {1} 형식이어야합니다.
 DocType: Email Account,e.g. pop.gmail.com / imap.gmail.com,예) pop.gmail.com / imap.gmail.com
+apps/frappe/frappe/automation/doctype/auto_repeat/auto_repeat.py,"{0}: Failed to attach new recurring document. To enable attaching document in the auto repeat notification email, enable {1} in Print Settings",{0} : 새 되풀이 문서를 첨부하지 못했습니다. 자동 반복 알림 이메일에 문서를 첨부하려면 인쇄 설정에서 {1}을 사용하십시오.
 DocType: User,Generate Keys,키 생성
 apps/frappe/frappe/templates/emails/delete_data_confirmation.html,This will permanently remove your data.,이렇게하면 데이터가 영구적으로 삭제됩니다.
 DocType: DocType,View Settings,보기 설정
+apps/frappe/frappe/desk/doctype/notification_log/notification_log.py,New Notification,새로운 알림
 DocType: Email Account,Outlook.com,Outlook.com
 DocType: Webhook,Request Structure,요청 구조
+apps/frappe/frappe/integrations/doctype/razorpay_settings/razorpay_settings.py,Controller method get_razorpay_order missing,컨트롤러 메소드 get_razorpay_order가 누락되었습니다.
 DocType: Personal Data Deletion Request,Pending Verification,대기중인 인증
 DocType: Website Meta Tag,Website Meta Tag,웹 사이트 메타 태그
 DocType: Email Account,"If non standard port (e.g. 587). If on Google Cloud, try port 2525.",비표준 포트 (예 : 587). Google 클라우드에있는 경우 포트 2525를 사용해보세요.
 apps/frappe/frappe/website/doctype/web_page/web_page.py,"Clearing end date, as it cannot be in the past for published pages.",게시 된 페이지의 과거 날짜 일 수 없으므로 종료 날짜를 지 웁니다.
 DocType: User,Send Me A Copy of Outgoing Emails,나가는 이메일 사본 보내기
-DocType: System Settings,Scheduler Last Event,스케줄러 마지막 이벤트
 DocType: Website Settings,Add Google Analytics ID: eg. UA-89XXX57-1. Please search help on Google Analytics for more information.,Google 웹 로그 분석 ID를 추가 : 예.UA-89XXX57-1.자세한 내용은 Google 웹 로그 분석에 대한 도움말을 검색하십시오.
 apps/frappe/frappe/utils/password.py,Password cannot be more than 100 characters long,암호는 100 자까지 입력 할 수 없습니다
 DocType: OAuth Client,App Client ID,응용 프로그램 클라이언트 ID
@@ -2597,6 +2722,7 @@ apps/frappe/frappe/www/update-password.html,New Password Required.,새 암호가
 apps/frappe/frappe/core/doctype/docshare/docshare.py,{0} shared this document with {1},{0}이 문서를 공유 {1}
 DocType: Website Settings,Brand Image,브랜드 이미지
 DocType: Print Settings,A4,A4
+apps/frappe/frappe/core/doctype/data_import/importer_new.py,Import template should contain a Header and atleast one row.,가져 오기 템플릿은 머리글을 포함하고 하나 이상의 행을 포함해야합니다.
 apps/frappe/frappe/integrations/doctype/google_calendar/google_calendar.py,Google Calendar has been configured.,Google 캘린더가 구성되었습니다.
 apps/frappe/frappe/config/website.py,"Setup of top navigation bar, footer and logo.","위쪽 탐색 모음, 바닥 글 및 로고의 설치."
 DocType: Web Form Field,Max Value,최대 값
@@ -2606,6 +2732,8 @@ DocType: User Social Login,User Social Login,사용자 소셜 로그인
 apps/frappe/frappe/social/doctype/energy_point_log/energy_point_log.py,{0} criticized your work on {1} with {2} point,{0}이 (가) {1}에 대한 귀하의 작업을 {2} 점으로 비판했습니다
 DocType: Contact,All,모든
 DocType: Email Queue,Recipient,받는 사람
+DocType: Webhook,Webhook Security,웹 후크 보안
+DocType: Event Sync Log,Producer Document Name,생산자 문서 이름
 DocType: Communication,Has  Attachment,첨부 파일이
 DocType: Address,Sales User,판매 사용자
 apps/frappe/frappe/config/settings.py,Drag and Drop tool to build and customize Print Formats.,드래그 앤 드롭 도구를 구축하고 인쇄 형식을 사용자 정의합니다.
@@ -2641,6 +2769,7 @@ DocType: Address,Arunachal Pradesh,아루나 찰 프라데시
 DocType: DocType,Child Tables are shown as a Grid in other DocTypes,하위 테이블은 다른 DocTypes에서 모눈으로 표시됩니다.
 apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,Setup Auto Email,설정 자동 이메일
 apps/frappe/frappe/public/js/frappe/form/grid_row_form.js,Ctrl + Down,Ctrl 키를 + 다운
+apps/frappe/frappe/config/automation.py,The site you want to subscribe to for consuming events.,이벤트 이용을 위해 가입하려는 사이트입니다.
 DocType: Chat Profile,Message Preview,메시지 미리보기
 apps/frappe/frappe/utils/password_strength.py,This is a top-10 common password.,이 최고 10 공통 암호입니다.
 DocType: User,User Defaults,사용자 기본값
@@ -2672,8 +2801,8 @@ DocType: Data Migration Mapping,Migration ID Field,마이그레이션 ID 필드
 DocType: Dashboard Chart,Last Synced On,마지막으로 동기화 됨
 DocType: Comment,Comment Type,코멘트 유형
 DocType: OAuth Client,OAuth Client,OAuth 클라이언트
-apps/frappe/frappe/public/js/frappe/ui/toolbar/energy_points_notifications.js,{0} criticized your work on {1} {2},{0}이 (가) {1} {2}에 대한 귀하의 작업을 비난했습니다.
 DocType: Assignment Rule,Users,사용자
+DocType: Document Type Mapping,Local Document Type,로컬 문서 유형
 DocType: Address,Odisha,오디 샤
 DocType: Report,Report Type,보고서 유형
 DocType: DocField,Signature,서명:
@@ -2698,14 +2827,12 @@ DocType: Website Slideshow Item,Website Slideshow Item,웹 사이트 슬라이�
 apps/frappe/frappe/model/workflow.py,Self approval is not allowed,자기 승인은 허용되지 않습니다.
 DocType: GSuite Templates,Template ID,템플릿 ID
 apps/frappe/frappe/integrations/doctype/oauth_client/oauth_client.py,Combination of Grant Type (<code>{0}</code>) and Response Type (<code>{1}</code>) not allowed,허용 유형 ( <code>{0}</code> )과 응답 유형 ( <code>{1}</code> )의 조합이 허용되지 않습니다.
-apps/frappe/frappe/desk/form/assign_to.py,New Message from {0},{0}의 새 메시지
 DocType: Portal Settings,Default Role at Time of Signup,회원 가입시 기본 역할
 DocType: DocType,Title Case,제목 케이스
 apps/frappe/frappe/templates/emails/download_data.html,Click on the link below to download your data,아래 링크를 클릭하여 데이터를 다운로드하십시오.
 apps/frappe/frappe/core/doctype/user/user.py,Enabled email inbox for user {0},{0} 사용자의 이메일받은 편지함을 사용했습니다.
 DocType: Data Migration Run,Data Migration Run,데이터 마이그레이션 실행
 DocType: Blog Post,Email Sent,이메일 전송
-apps/frappe/frappe/public/js/frappe/ui/toolbar/energy_points_notifications.js,Older,더 오래된
 DocType: DocField,Ignore XSS Filter,XSS 필터를 무시
 apps/frappe/frappe/public/js/frappe/form/footer/timeline.js,removed,제거
 apps/frappe/frappe/config/integrations.py,Dropbox backup settings,보관 용 백업 설정
@@ -2718,6 +2845,7 @@ apps/frappe/frappe/templates/emails/administrator_logged_in.html,"Dear System Ma
 apps/frappe/frappe/desk/doctype/todo/todo.py,{0} self assigned this task: {1},{0}자가이 작업을 할당했습니다 : {1}
 apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js,Your Country,귀하의 국가
 DocType: Assignment Rule Day,Sunday,일요일
+apps/frappe/frappe/config/automation.py,"Maintains a Log of all inserts, updates and deletions on Event Producer site for documents that have consumers.","소비자가있는 문서에 대해 Event Producer 사이트에서 모든 삽입, 업데이트 및 삭제 로그를 유지합니다."
 apps/frappe/frappe/core/doctype/doctype/doctype.py,{0}: Fieldname cannot be one of {1},{0} : 필드 이름은 {1} 중 하나 일 수 없습니다
 apps/frappe/frappe/templates/emails/energy_points_summary.html,Standings,순위
 apps/frappe/frappe/core/doctype/doctype/doctype.js,In Grid View,격자보기에서
@@ -2760,6 +2888,7 @@ DocType: Async Task,Queued,대기 중
 DocType: Braintree Settings,Use Sandbox,사용 샌드 박스
 apps/frappe/frappe/utils/goal.py,This month,이번 달
 apps/frappe/frappe/public/js/frappe/form/print.js,New Custom Print Format,새 사용자 정의 인쇄 형식
+DocType: Server Script,Before Save (Submitted Document),저장하기 전에 (제출 된 문서)
 DocType: Custom DocPerm,Create,생성
 apps/frappe/frappe/public/js/frappe/web_form/web_form_list.js,No more items to display,표시 할 항목이 더 이상 없음
 apps/frappe/frappe/public/js/frappe/form/form.js,Go to previous record,이전 기록으로 이동
@@ -2817,6 +2946,7 @@ apps/frappe/frappe/integrations/doctype/stripe_settings/stripe_settings.py,Pleas
 apps/frappe/frappe/core/doctype/communication/communication.js,Move To Trash,휴지통으로 이동
 DocType: Web Form,Web Form Fields,웹 폼 필드
 DocType: Data Import,Amended From,개정
+DocType: Onboarding Slide,Add a help video link just in case user has no idea about what to fill in the slide.,사용자가 슬라이드를 채울 내용을 모르는 경우를 대비하여 도움말 비디오 링크를 추가하십시오.
 apps/frappe/frappe/public/js/frappe/model/meta.js,Warning: Unable to find {0} in any table related to {1},경고 : 없음은 찾을 수 {0} 관련된 테이블 {1}
 DocType: S3 Backup Settings,eu-north-1,서북 1
 apps/frappe/frappe/model/document.py,This document is currently queued for execution. Please try again,이 문서는 현재 실행을 위해 대기한다. 다시 시도하십시오
@@ -2839,6 +2969,7 @@ DocType: Blog Post,Blog Post,블로그 포스트
 DocType: Access Log,Export From,에서 내보내기
 apps/frappe/frappe/public/js/frappe/form/controls/link.js,Advanced Search,고급 검색
 apps/frappe/frappe/email/doctype/newsletter/newsletter.py,You are not permitted to view the newsletter.,뉴스 레터를 볼 수 없습니다.
+DocType: Dashboard Chart,Group By,그룹으로
 DocType: User,Interests,이해
 apps/frappe/frappe/core/doctype/user/user.py,Password reset instructions have been sent to your email,암호 재설정 지침은 전자 메일로 전송 한
 DocType: Energy Point Rule,Allot Points To Assigned Users,할당 된 사용자에게 할당 포인트
@@ -2854,6 +2985,7 @@ DocType: Assignment Rule,Assignment Rule,배정 규칙
 apps/frappe/frappe/core/doctype/user/user.py,Suggested Username: {0},추천 아이디 : {0}
 DocType: Assignment Rule Day,Day,일
 apps/frappe/frappe/public/js/frappe/desk.js,Modules,모듈
+DocType: DocField,Mandatory Depends On,필수에 따라 다름
 apps/frappe/frappe/templates/pages/integrations/payment-success.html,Payment Success,결제 성공
 apps/frappe/frappe/public/js/frappe/views/inbox/inbox_view.js,No {0} mail,없음 {0} 메일 없다
 DocType: OAuth Bearer Token,Revoked,해지
@@ -2876,13 +3008,13 @@ DocType: Currency,Fraction,분수
 apps/frappe/frappe/integrations/doctype/google_calendar/google_calendar.py,Event Synced with Google Calendar.,Google 캘린더와 이벤트가 동기화되었습니다.
 DocType: LDAP Settings,LDAP First Name Field,LDAP 이름 필드
 DocType: Contact,Middle Name,중간 이름
+DocType: DocField,Property Depends On,부동산에 따라 다름
 DocType: Custom Field,Field Description,필드 설명
 apps/frappe/frappe/model/naming.py,Name not set via Prompt,프롬프트를 통해 설정되지 않은 이름
 apps/frappe/frappe/public/js/frappe/ui/toolbar/search_utils.js,Email Inbox,이메일받은 편지함
 apps/frappe/frappe/core/doctype/data_import_beta/data_import_beta.js,"Updating {0} of {1}, {2}","{1}, {2}의 {0} 업데이트"
 DocType: Auto Email Report,Filters Display,필터 표시
 apps/frappe/frappe/public/js/frappe/form/form.js,"""amended_from"" field must be present to do an amendment.",수정하려면 &quot;amended_from&quot;필드가 있어야합니다.
-apps/frappe/frappe/public/js/frappe/ui/toolbar/energy_points_notifications.js,{0} appreciated your work on {1} {2},{0} 님의 {1} {2} 작업에 감사드립니다.
 apps/frappe/frappe/public/js/frappe/views/kanban/kanban_view.js,Save filters,필터 저장
 DocType: Address,Plant,심기
 apps/frappe/frappe/core/doctype/communication/communication.js,Reply All,모든 응답
@@ -2923,11 +3055,11 @@ DocType: Workflow State,folder-close,폴더 닫기
 apps/frappe/frappe/public/js/frappe/views/reports/report_view.js,Report:,보고서:
 DocType: Print Settings,Print taxes with zero amount,금액이없는 세금 인쇄
 apps/frappe/frappe/model/rename_doc.py,{0} not allowed to be renamed,{0} 이름을 바꿀 수 없습니다
+DocType: Server Script,Before Insert,삽입하기 전에
 DocType: Custom Script,Custom Script,사용자 정의 스크립트
 DocType: Address,Address Line 2,2 호선 주소
 DocType: Address,Reference,참고
 apps/frappe/frappe/public/js/frappe/list/list_sidebar_group_by.js,Assigned To,담당자
-apps/frappe/frappe/email/smtp.py,Please setup default Email Account from Setup &gt; Email &gt; Email Account,설정&gt; 이메일&gt; 이메일 계정에서 기본 이메일 계정을 설정하십시오
 DocType: Data Migration Mapping Detail,Data Migration Mapping Detail,데이터 마이그레이션 매핑 세부 정보
 DocType: Data Import,Action,수행
 DocType: GSuite Settings,Script URL,스크립트 URL
@@ -2939,7 +3071,6 @@ apps/frappe/frappe/core/doctype/data_export/exporter.py,Info:,정보 :
 DocType: Custom Field,Permission Level,권한 수준
 apps/frappe/frappe/core/doctype/doctype/doctype.py,"{0}: Cannot set Submit, Cancel, Amend without Write","{0} : 쓰기없이 정정, 취소, 제출 설정할 수"
 DocType: List View Setting,Disable Count,개수 비활성화
-DocType: Google Maps Settings,Client Key,클라이언트 키
 apps/frappe/frappe/public/js/frappe/form/sidebar/attachments.js,Are you sure you want to delete the attachment?,첨부 파일을 삭제 하시겠습니까?
 apps/frappe/frappe/__init__.py,Thank you,감사합니다
 apps/frappe/frappe/public/js/frappe/form/save.js,Saving,절약
@@ -2953,11 +3084,13 @@ DocType: User,Api Access,API 액세스
 DocType: DocField,In List View,목록보기
 DocType: Email Account,Use TLS,TLS에게 사용
 apps/frappe/frappe/email/smtp.py,Invalid login or password,잘못된 로그인 또는 암호
+DocType: Scheduled Job Type,Weekly Long,주간 긴
 apps/frappe/frappe/core/doctype/data_import/data_import.js,Download Template,다운로드 템플릿
 apps/frappe/frappe/config/customization.py,Add custom javascript to forms.,형태의 사용자 정의 자바 스크립트를 추가합니다.
 ,Role Permissions Manager,역할 권한 관리자
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js,Name of the new Print Format,새로운 인쇄 형식의 이름
 apps/frappe/frappe/public/js/frappe/list/list_view.js,Toggle Sidebar,사이드 바 전환
+DocType: Server Script,After Save (Submitted Document),저장 후 (제출 된 문서)
 DocType: Data Migration Run,Pull Insert,끌어 오기 삽입
 DocType: Energy Point Rule,"Maximum points allowed after multiplying points with the multiplier value
 (Note: For no limit leave this field empty or set 0)",점에 승수 값을 곱한 후 허용되는 최대 점 (참고 : 제한이 없으면이 필드를 비워 두거나 0으로 설정)
@@ -2977,6 +3110,7 @@ apps/frappe/frappe/templates/includes/blog/blog.html,Blog,블로그
 apps/frappe/frappe/integrations/doctype/ldap_settings/ldap_settings.py,LDAP Not Installed,LDAP가 설치되지 않음
 apps/frappe/frappe/core/doctype/data_import/data_import.js,Download with data,데이터 다운로드
 apps/frappe/frappe/public/js/frappe/form/footer/timeline.js,changed values for {0} {1},{0} {1}에 대한 변경된 값
+DocType: Server Script,Before Cancel,취소하기 전에
 DocType: Workflow State,hand-right,손 오른쪽
 DocType: Website Settings,Subdomain,하위 도메인
 DocType: S3 Backup Settings,Region,지방
@@ -3023,12 +3157,14 @@ apps/frappe/frappe/www/update-password.html,Old Password,이전 암호
 DocType: S3 Backup Settings,us-east-1,우리 - 동쪽 - 1
 apps/frappe/frappe/website/doctype/blog_post/blog_post.py,Posts by {0},게시물 {0}
 apps/frappe/frappe/core/doctype/report/report.js,"To format columns, give column labels in the query.",열 형식을 쿼리에 열 레이블을 제공합니다.
+DocType: Onboarding Slide,Slide Fields,슬라이드 필드
 DocType: Has Domain,Has Domain,도메인 있음
 DocType: User,Allowed In Mentions,멘션에서 허용됨
 apps/frappe/frappe/www/login.html,Don't have an account? Sign up,계정이 없으십니까? 가입
 apps/frappe/frappe/public/js/frappe/views/reports/report_view.js,Cannot remove ID field,ID 입력란을 삭제할 수 없습니다.
 apps/frappe/frappe/core/doctype/doctype/doctype.py,{0}: Cannot set Assign Amend if not Submittable,{0} : 지정을 개정 설정할 수 Submittable 아니라면
 DocType: Address,Bihar,비하르
+DocType: Notification Settings,Subscribed Documents,가입 서류
 apps/frappe/frappe/desk/page/user_profile/user_profile_sidebar.html,User Settings,사용자 설정
 DocType: Report,Reference Report,참조 보고서
 DocType: Activity Log,Link DocType,링크 DOCTYPE입니다
@@ -3046,6 +3182,7 @@ DocType: Google Calendar,Authorize Google Calendar Access,Google 캘린더 액�
 apps/frappe/frappe/www/404.html,The page you are looking for is missing. This could be because it is moved or there is a typo in the link.,당신이 찾고있는 페이지가 없습니다. 이 이동하거나 링크에 오타가 있기 때문에이 될 수 있습니다.
 apps/frappe/frappe/www/404.html,Error Code: {0},오류 코드 : {0}
 DocType: Blog Post,"Description for listing page, in plain text, only a couple of lines. (max 140 characters)","일반 텍스트로 목록 페이지에 대한 설명, 라인의 단 몇. (최대 140 자)"
+DocType: Server Script,DocType Event,독 타입 이벤트
 apps/frappe/frappe/core/doctype/data_import/importer_new.py,{0} are mandatory fields,{0}은 필수 필드입니다
 DocType: Workflow,Allow Self Approval,자체 승인 허용
 DocType: Event,Event Category,이벤트 카테고리
@@ -3060,8 +3197,10 @@ DocType: Workflow Document State,Only Allow Edit For,만 편집을 위해이 허
 apps/frappe/frappe/integrations/doctype/google_drive/google_drive.js,Backing up to Google Drive.,Google 드라이브에 백업
 apps/frappe/frappe/core/doctype/role_permission_for_page_and_report/role_permission_for_page_and_report.js,Mandatory field: {0},필수 필드 : {0}
 apps/frappe/frappe/templates/includes/comments/comments.html,Your Name,당신의 이름
+DocType: Event Producer Document Type,Event Producer Document Type,이벤트 프로듀서 문서 유형
 apps/frappe/frappe/templates/pages/integrations/gcalendar-success.html,Connection Success,연결 성공
 DocType: DocType,InnoDB,InnoDB의
+apps/frappe/frappe/desk/doctype/onboarding_slide/onboarding_slide.py,An Onboarding Slide of Slide Type Continue already exists.,슬라이드 유형 계속의 온 보딩 슬라이드가 이미 존재합니다.
 DocType: DocType,Default Sort Field,기본 정렬 필드
 DocType: File,Is Folder,폴더입니다
 DocType: Document Follow,DocType,문서 종류
@@ -3100,8 +3239,10 @@ apps/frappe/frappe/core/doctype/version/version_view.html,Values Changed,값 변
 DocType: Workflow State,arrow-up,화살표까지
 DocType: Dynamic Link,Link Document Type,링크 문서 유형
 apps/frappe/frappe/core/doctype/data_import/importer_new.py,There should be atleast one row for {0} table,{0} 테이블에 대해 최소한 하나의 행이 있어야합니다
+DocType: Server Script,Server Script,서버 스크립트
 apps/frappe/frappe/automation/doctype/auto_repeat/auto_repeat.js,"To configure Auto Repeat, enable ""Allow Auto Repeat"" from {0}.",자동 반복을 구성하려면 {0}에서 &quot;자동 반복 허용&quot;을 활성화하십시오.
 DocType: OAuth Bearer Token,Expires In,에 만료
+DocType: Onboarding Slide,"The amount of times you want to repeat the set of fields (eg: if you want 3 customers in the slide, set this field to 3. Only the first set of fields is shown as mandatory in the slide)",필드 세트를 반복하려는 횟수 (예 : 슬라이드에 고객 3 명을 원하는 경우이 필드를 3으로 설정하십시오. 첫 번째 필드 세트 만 슬라이드에 필수로 표시됨)
 DocType: DocField,Allow on Submit,제출에 허용
 DocType: DocField,HTML,HTML
 DocType: Error Snapshot,Exception Type,예외 유형
@@ -3111,6 +3252,7 @@ apps/frappe/frappe/core/doctype/user_permission/user_permission_list.js,Clear Us
 DocType: Webhook,Headers,헤더
 apps/frappe/frappe/public/js/frappe/social/components/ActivitySidebar.vue,Upcoming Events,다가오는 이벤트
 apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.js,Please enter values for App Access Key and App Secret Key,앱 액세스 키 및 응용 프로그램 비밀 키 값을 입력하세요
+DocType: Email Account,Append Emails to Sent Folder,보낸 폴더에 이메일 추가
 DocType: Web Form,Accept Payment,지불을 수락
 apps/frappe/frappe/public/js/frappe/list/list_view.js,Select list item,목록 항목 선택
 apps/frappe/frappe/config/core.py,A log of request errors,요청 오류 로그
@@ -3127,9 +3269,10 @@ DocType: Address,Postal Code,우편 번호
 apps/frappe/frappe/core/doctype/communication/communication.js,Relink Communication,다시 연결 통신
 DocType: Translation,Contributed,기여한
 apps/frappe/frappe/config/customization.py,Form Customization,양식 사용자 정의
+DocType: Event Update Log,Event Update Log,이벤트 업데이트 로그
 apps/frappe/frappe/www/third_party_apps.html,No Active Sessions,활성 세션 없음
 DocType: Web Form,Route to Success Link,성공 링크로 연결
-DocType: Top Bar Item,Right,오른쪽
+DocType: Onboarding Slide Field,Right,오른쪽
 apps/frappe/frappe/public/js/frappe/social/components/ActivitySidebar.vue,No Upcoming Events,예정된 행사가 없습니다
 DocType: User,User Type,사용자 유형
 DocType: Prepared Report,Ref Report DocType,참조 보고서 DocType
@@ -3147,18 +3290,18 @@ apps/frappe/frappe/public/js/frappe/request.js,Please try again,다시 시도하
 apps/frappe/frappe/core/doctype/file/file.py,URL must start with 'http://' or 'https://',URL은 &#39;http : //&#39;또는 &#39;https : //&#39;로 시작해야합니다.
 apps/frappe/frappe/custom/doctype/custom_field/custom_field.js,Option 3,옵션 3
 DocType: Communication,uid,UID
+apps/frappe/frappe/public/js/frappe/model/model.js,This cannot be undone,이 취소 할 수 없습니다
 DocType: Workflow State,Edit,편집
 DocType: Website Settings,Chat Operators,채팅 연산자
 DocType: S3 Backup Settings,ca-central-1,중부 표준시 - 1
 DocType: Contact Us Settings,Pincode,PIN 코드
 apps/frappe/frappe/core/doctype/data_import/importer.py,Please make sure that there are no empty columns in the file.,빈 열이 파일이 있는지 확인하십시오.
-apps/frappe/frappe/config/settings.py,Tracks milestones on the lifecycle of a document if it undergoes multiple stages.,여러 단계를 거친 문서의 라이프 사이클에서 이정표를 추적합니다.
+apps/frappe/frappe/config/automation.py,Tracks milestones on the lifecycle of a document if it undergoes multiple stages.,여러 단계를 거친 문서의 라이프 사이클에서 이정표를 추적합니다.
 apps/frappe/frappe/core/doctype/doctype/doctype.py,"Renamed files and replaced code in controllers, please check!",컨트롤러의 파일 이름이 바뀌었고 코드가 바뀌 었습니다. 확인하십시오!
 apps/frappe/frappe/utils/oauth.py,Please ensure that your profile has an email address,당신의 프로필에 이메일 주소가 있는지 확인하십시오
 apps/frappe/frappe/public/js/frappe/model/create_new.js,You have unsaved changes in this form. Please save before you continue.,이 형태로 저장되지 않은 변경 사항이 있습니다.계속하기 전에 저장하십시오.
 DocType: Address,Telangana,텔란가나
 apps/frappe/frappe/core/doctype/doctype/doctype.py,Default for {0} must be an option,{0} 옵션이 있어야합니다의 기본
-DocType: Tag Doc Category,Tag Doc Category,태그 문서 카테고리
 apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,Report with more than 10 columns looks better in Landscape mode.,10 열 이상인 보고서는 가로 모드에서 더 잘 나타납니다.
 apps/frappe/frappe/database/database.py,Invalid field name: {0},잘못된 필드 이름 : {0}
 DocType: Milestone,Milestone,마일스톤
@@ -3167,7 +3310,7 @@ apps/frappe/frappe/core/doctype/doctype/doctype.js,Go to {0},{0} (으)로 이동
 apps/frappe/frappe/email/queue.py,Emails are muted,이메일은 음소거
 apps/frappe/frappe/config/integrations.py,Google Services,Google 서비스
 apps/frappe/frappe/public/js/frappe/form/grid_row_form.js,Ctrl + Up,Ctrl 키 + 위쪽
-apps/frappe/frappe/utils/data.py,1 weeks ago,일주 전
+DocType: Onboarding Slide,Slide Description,슬라이드 설명
 DocType: Communication,Error,오류
 apps/frappe/frappe/automation/doctype/auto_repeat/auto_repeat.js,Please setup a message first,먼저 메시지를 설정하십시오.
 DocType: Auto Repeat,End Date,끝 날짜
@@ -3180,7 +3323,6 @@ apps/frappe/frappe/utils/response.py,You don't have permission to access this fi
 apps/frappe/frappe/core/doctype/user/user.js,Save API Secret: ,API 비밀번호 저장 :
 apps/frappe/frappe/model/document.py,Cannot link cancelled document: {0},취소 문서를 링크 할 수 없습니다 : {0}
 apps/frappe/frappe/core/doctype/report/report.py,Cannot edit a standard report. Please duplicate and create a new report,표준 보고서를 편집 할 수 없습니다. 복제하고 새 보고서를 작성하시기 바랍니다
-apps/frappe/frappe/contacts/doctype/address/address.py,"Company is mandatory, as it is your company address",이 회사 주소로 회사는 필수입니다
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js,"For example: If you want to include the document ID, use {0}","예를 들어 문서 ID를 포함 할 경우, 사용 {0}"
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js,Select Table Columns for {0},를 선택 테이블 열 {0}
 DocType: Custom Field,Options Help,옵션 도움말
@@ -3192,6 +3334,7 @@ DocType: DocField,Report Hide,보고서 숨기기
 apps/frappe/frappe/public/js/frappe/views/treeview.js,Tree view not available for {0},사용할 수 없습니다 트리보기 {0}
 DocType: DocType,Restrict To Domain,도메인으로 제한
 DocType: Domain,Domain,도메인
+apps/frappe/frappe/core/doctype/file/file.py,Invalid file URL. Please contact System Administrator.,잘못된 파일 URL입니다. 시스템 관리자에게 문의하십시오.
 DocType: Custom Field,Label Help,라벨 도움말
 DocType: Workflow State,star-empty,스타 빈
 apps/frappe/frappe/utils/password_strength.py,Dates are often easy to guess.,날짜는 종종 추측하기 쉽다.
@@ -3216,6 +3359,7 @@ DocType: Workflow State,hand-left,손으로 왼쪽
 DocType: Data Import,If you are updating/overwriting already created records.,이미 생성 된 레코드를 업데이트하거나 덮어 쓰는 경우.
 apps/frappe/frappe/public/js/frappe/list/list_filter.js,Is Global,글로벌인가?
 DocType: Email Account,Use SSL,SSL을 사용하여
+DocType: Webhook,HOOK-.####,훅-.####
 DocType: Workflow State,play-circle,재생 원
 apps/frappe/frappe/public/js/frappe/views/interaction.js,The document could not be correctly assigned,문서를 올바르게 할당 할 수 없습니다.
 apps/frappe/frappe/public/js/frappe/form/layout.js,"Invalid ""depends_on"" expression",잘못된 &quot;depends_on&quot;표현식
@@ -3232,6 +3376,7 @@ apps/frappe/frappe/templates/includes/comments/comments.html,Please enter a vali
 apps/frappe/frappe/core/page/background_jobs/background_jobs.html,Last refreshed,마지막 새로 고침
 apps/frappe/frappe/core/doctype/user_permission/user_permission_list.js,For Document Type,문서 유형
 DocType: Workflow State,arrow-right,화살표 오른쪽
+DocType: Server Script,API Method,API 방법
 DocType: Workflow State,Workflow state represents the current state of a document.,플로 상태는 문서의 현재 상태를 나타낸다.
 DocType: Letter Head,Letter Head Based On,편지 머리 기준
 apps/frappe/frappe/utils/oauth.py,Token is missing,토큰이 없습니다
@@ -3250,7 +3395,9 @@ apps/frappe/frappe/printing/doctype/print_format/print_format.py,Standard Print 
 apps/frappe/frappe/core/doctype/doctype/doctype.py,{0}: Field {1} of type {2} cannot be mandatory,{0} : {2} 유형의 {1} 필드는 필수 항목 일 수 없습니다.
 DocType: System Settings,In Days,일 중
 apps/frappe/frappe/desk/page/setup_wizard/install_fixtures.py,Miss,미스
+DocType: Event Producer Document Type,Has Mapping,매핑 있음
 apps/frappe/frappe/public/js/frappe/model/model.js,Please specify,지정하십시오
+apps/frappe/frappe/core/page/dashboard/dashboard.py,Invalid Filter Value,잘못된 필터 값
 DocType: Comment,Bot,봇
 DocType: Help Article,Help Article,도움말
 DocType: Page,Page Name,페이지 이름
@@ -3271,6 +3418,7 @@ DocType: Comment,Relinked,다시 연결
 DocType: Print Settings,Compact Item Print,컴팩트 항목 인쇄
 DocType: Email Account,uidnext,uidnext
 DocType: User,Redirect URL,URL 리디렉션
+DocType: Onboarding Slide Field,Placeholder,자리 표시 자
 DocType: SMS Settings,Enter url parameter for receiver nos,수신기 NOS에 대한 URL 매개 변수를 입력
 DocType: Chat Profile,Online,온라인으로
 DocType: Email Account,Always use Account's Name as Sender's Name,계정 이름을 항상 발신자 이름으로 사용하십시오.
@@ -3280,7 +3428,6 @@ DocType: Workflow State,Home,홈
 DocType: OAuth Provider Settings,Auto,자동
 DocType: System Settings,User can login using Email id or User Name,사용자는 이메일 ID 또는 사용자 이름을 사용하여 로그인 할 수 있습니다.
 DocType: Workflow State,question-sign,질문 서명
-apps/frappe/frappe/model/base_document.py,{0} is disabled,{0}이 비활성화되었습니다
 apps/frappe/frappe/core/doctype/doctype/doctype.py,"Field ""route"" is mandatory for Web Views",웹 조회에는 &#39;경로&#39;입력란이 필수 항목입니다.
 apps/frappe/frappe/public/js/frappe/views/reports/report_view.js,Insert Column Before {0},{0} 앞에 열 삽입
 DocType: Energy Point Rule,The user from this field will be rewarded points,이 필드의 사용자는 보상 포인트가됩니다.
@@ -3305,6 +3452,7 @@ apps/frappe/frappe/core/doctype/doctype/doctype.py,If Owner,사용하는 경우
 DocType: Data Migration Mapping,Push,푸시
 apps/frappe/frappe/public/js/frappe/file_uploader/FileUploader.vue,Drop files here,여기에 파일을 놓으십시오
 DocType: OAuth Authorization Code,Expiration time,만료 시간
+apps/frappe/frappe/public/js/frappe/ui/notifications/notifications.js,Open Documents,열린 문서
 DocType: Web Page,Website Sidebar,웹 사이트 사이드 바
 DocType: Web Form,Show Sidebar,보기 사이드 바
 apps/frappe/frappe/website/doctype/web_form/web_form.py,You need to be logged in to access this {0}.,이 액세스하려면 로그인 할 필요가 {0}.
@@ -3320,6 +3468,7 @@ apps/frappe/frappe/public/js/frappe/ui/keyboard.js,Global Shortcuts,글로벌 �
 DocType: Desktop Icon,Page,페이지
 apps/frappe/frappe/utils/bot.py,Could not find {0} in {1},찾을 수 없습니다 {0}에서 {1}
 apps/frappe/frappe/utils/password_strength.py,Names and surnames by themselves are easy to guess.,스스로 이름 및 성씨는 추측하기 쉽습니다.
+apps/frappe/frappe/model/rename_doc.py,Document renamed from {0} to {1},{0}에서 {1} (으)로 이름이 변경된 문서
 apps/frappe/frappe/config/website.py,Knowledge Base,기술 자료
 DocType: Workflow State,briefcase,서류 가방
 apps/frappe/frappe/model/document.py,Value cannot be changed for {0},값은 변경할 수 없습니다 {0}
@@ -3356,6 +3505,7 @@ apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,"Pe
 DocType: Auto Repeat,Print Format,인쇄 형식
 apps/frappe/frappe/public/js/frappe/views/file/file_view.js,Toggle Grid View,그리드보기 토글
 apps/frappe/frappe/public/js/frappe/form/form.js,Go to next record,다음 레코드로 이동
+DocType: Country,Time Format,시간 형식
 apps/frappe/frappe/integrations/doctype/paypal_settings/paypal_settings.py,Invalid payment gateway credentials,잘못된 지불 게이트웨이 인증
 DocType: Data Import,This is the template file generated with only the rows having some error. You should use this file for correction and import.,이것은 일부 오류가있는 행으로 생성 된 템플리트 파일입니다. 수정 및 가져 오기에는이 파일을 사용해야합니다.
 apps/frappe/frappe/config/users_and_permissions.py,Set Permissions on Document Types and Roles,문서의 종류와 역할에 대한 권한 설정
@@ -3399,12 +3549,14 @@ apps/frappe/frappe/core/doctype/communication/communication.js,Reply,대답
 apps/frappe/frappe/config/core.py,Pages in Desk (place holders),데스크 페이지 (장소 소지자)
 DocType: DocField,Collapsible Depends On,접이식에 따라 달라집니다
 DocType: Print Style,Print Style Name,인쇄 스타일 이름
+apps/frappe/frappe/desk/doctype/dashboard_chart/dashboard_chart.py,Group By field is required to create a dashboard chart,대시 보드 차트를 작성하려면 그룹화 기준 필드가 필요합니다
 DocType: Print Settings,Allow page break inside tables,테이블 내부 페이지 나누기 허용
 DocType: Email Account,SMTP Server,SMTP 서버
 DocType: Print Format,Print Format Help,인쇄 형식 도움말
 apps/frappe/frappe/chat/doctype/chat_room/chat_room.py,{0} room must have atmost one user.,{0} 회의실에는 최대 1 명의 사용자가 있어야합니다.
 DocType: DocType,Beta,베타
 DocType: Dashboard Chart,Count,카운트
+DocType: Dashboard Chart,Group By Type,유형별 그룹
 apps/frappe/frappe/templates/includes/comments/comments.py,New Comment on {0}: {1},{0}에 대한 새로운 댓글 : {1}
 apps/frappe/frappe/core/doctype/deleted_document/deleted_document.py,restored {0} as {1},복원 {0}로 {1}
 apps/frappe/frappe/core/doctype/data_export/exporter.py,"If you are updating, please select ""Overwrite"" else existing rows will not be deleted.","당신이 업데이트하는 경우, ""덮어 쓰기""를 선택하십시오 다른 기존 행은 삭제되지 않습니다."
@@ -3415,8 +3567,10 @@ apps/frappe/frappe/desk/page/user_profile/user_profile.js,User Profile,유저 �
 DocType: Web Form,Web Form,웹 폼
 apps/frappe/frappe/public/js/frappe/form/controls/date.js,Date {0} must be in format: {1},{0} 날짜는 {1} 형식이어야합니다.
 DocType: About Us Settings,Org History Heading,조직의 역사 제목
+DocType: Scheduled Job Type,Scheduled Job Type,예약 된 작업 유형
 DocType: Print Settings,Allow Print for Cancelled,취소에 대한 인쇄 허용
 DocType: Communication,Integrations can use this field to set email delivery status,통합 전자 메일 배달 상태를 설정하려면이 필드를 사용 할 수 있습니다
+apps/frappe/frappe/public/js/frappe/form/form.js,You do not have permissions to cancel all linked documents.,링크 된 모든 문서를 취소 할 권한이 없습니다.
 DocType: Web Form,Web Page Link Text,웹 페이지의 링크 텍스트
 DocType: Page,System Page,시스템 페이지
 DocType: Page,System Page,시스템 페이지
@@ -3424,6 +3578,7 @@ apps/frappe/frappe/config/settings.py,"Set default format, page size, print styl
 apps/frappe/frappe/public/js/frappe/form/grid_row_form.js,ESC,ESC
 apps/frappe/frappe/modules/utils.py,Customizations for <b>{0}</b> exported to:<br>{1},<b>{0}의</b> 사용자 정의를 내 보낸 사용자 : <br> {1}
 DocType: Website Settings,Include Search in Top Bar,상단 바의 검색 포함
+DocType: Scheduled Job Type,Daily Long,매일 긴
 DocType: GSuite Settings,Allow GSuite access,GSuite 액세스 허용
 DocType: DocType,DESC,DESC
 DocType: DocType,Naming,Naming
@@ -3527,6 +3682,7 @@ DocType: Notification,Send days before or after the reference date,전이나 기
 DocType: User,Allow user to login only after this hour (0-24),사용자는이 시간 이후 (0-24)에 로그인 할 수 있도록 허용
 apps/frappe/frappe/automation/doctype/assignment_rule/assignment_rule.js,"Assign one by one, in sequence",순서대로 하나씩 지정하십시오.
 DocType: Integration Request,Subscription Notification,구독 알림
+DocType: Customize Form Field, Allow in Quick Entry ,빠른 입장 허용
 apps/frappe/frappe/public/js/frappe/file_uploader/FileUploader.vue,or attach a,또는 첨부
 DocType: Auto Repeat,Start Date,시작 날짜
 apps/frappe/frappe/public/js/frappe/form/link_selector.js,Value,가치
@@ -3541,6 +3697,7 @@ DocType: Google Drive,Backup Folder ID,백업 폴더 ID
 apps/frappe/frappe/core/doctype/doctype/doctype.py,Not in Developer Mode! Set in site_config.json or make 'Custom' DocType.,아니 개발자 모드에서!site_config.json에 설정하거나 '사용자 정의'에 doctype합니다.
 DocType: Workflow State,globe,지구
 DocType: System Settings,dd.mm.yyyy,DD.MM.YYYY
+DocType: Onboarding Slide Help Link,Video,비디오
 DocType: Assignment Rule,Priority,우선순위
 DocType: Email Queue,Unsubscribe Param,탈퇴 파람
 DocType: DocType,Hide Sidebar and Menu,사이드 바 및 메뉴 숨기기
@@ -3552,6 +3709,7 @@ DocType: DocType,Allow Import (via Data Import Tool),가져 오기를 허용 (�
 apps/frappe/frappe/public/js/frappe/web_form/web_form_list.js,Sr,시니어
 DocType: DocField,Float,Float
 DocType: Print Settings,Page Settings,페이지 설정
+DocType: Notification Settings,Notification Settings,알림 설정
 apps/frappe/frappe/public/js/frappe/form/quick_entry.js,Saving...,절약...
 apps/frappe/frappe/www/update-password.html,Invalid Password,유효하지 않은 비밀번호
 apps/frappe/frappe/core/doctype/data_import_beta/data_import_beta.js,Successfully imported {0} record out of {1}.,{1}에서 {0} 레코드를 가져 왔습니다.
@@ -3567,6 +3725,7 @@ apps/frappe/frappe/automation/doctype/auto_repeat/auto_repeat.py,Auto Repeat Doc
 DocType: Email Account,GMail,Gmail
 DocType: Letter Head,Letter Head Image,레터 헤드 이미지
 DocType: Address,Party GSTIN,파티 GSTIN
+DocType: Scheduled Job Type,Cron Format,크론 형식
 apps/frappe/frappe/public/js/frappe/utils/utils.js,{0} Report,{0} 보고서
 DocType: SMS Settings,Use POST,POST 사용
 DocType: Communication,SMS,SMS
@@ -3612,18 +3771,20 @@ DocType: Workflow,Allow approval for creator of the document,문서 작성자에
 apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,Save Report,보고서 저장
 DocType: Webhook,on_cancel,on_cancel
 DocType: Social Login Key,API Endpoint Args,API 끝점 인수
+DocType: DocType Action,Server Action,서버 액션
 apps/frappe/frappe/core/doctype/user/user.py,Administrator accessed {0} on {1} via IP Address {2}.,관리자 액세스 {0}에 {1} IP 주소를 통해 {2}.
 apps/frappe/frappe/core/doctype/doctype/doctype.py,Parent Field must be a valid fieldname,부모 필드는 유효한 필드 이름이어야합니다
 apps/frappe/frappe/integrations/doctype/paypal_settings/paypal_settings.py,Failed while amending subscription,구독 수정 중 오류가 발생했습니다.
 DocType: LDAP Settings,LDAP Group Field,LDAP 그룹 필드
+DocType: Notification Subscribed Document,Notification Subscribed Document,알림 가입 문서
 apps/frappe/frappe/public/js/frappe/ui/filters/filter.js,Equals,같음
 apps/frappe/frappe/core/doctype/doctype/doctype.py,Options 'Dynamic Link' type of field must point to another Link Field with options as 'DocType',필드의 옵션 '동적 링크'형식이 '문서 종류'등의 옵션이 다른 링크 필드를 지정해야합니다
 DocType: About Us Settings,Team Members Heading,제목 팀원
 apps/frappe/frappe/utils/csvutils.py,Invalid CSV Format,잘못된 CSV 형식
-apps/frappe/frappe/public/js/frappe/form/print.js,"Error connecting to QZ Tray Application...<br><br> You need to have QZ Tray application installed and running, to use the Raw Print feature.<br><br><a href=""https://qz.io/download/"" target=""_blank"">Click here to Download and install QZ Tray</a>.<br> <a href=""https://erpnext.com/docs/user/manual/en/setting-up/print/raw-printing"" target=""_blank"">Click here to learn more about Raw Printing</a>.","QZ 트레이 응용 프로그램에 연결하는 중 오류가 발생했습니다 ... <br><br> Raw Print 기능을 사용하려면 QZ Tray 응용 프로그램이 설치되어 실행 중이어야합니다. <br><br> <a href=""https://qz.io/download/"" target=""_blank"">QZ 트레이를 다운로드하여 설치하려면 여기를 클릭하십시오</a> . <br> <a href=""https://erpnext.com/docs/user/manual/en/setting-up/print/raw-printing"" target=""_blank"">Raw Printing에 대한 자세한 내용을 보려면 여기를 클릭하십시오</a> ."
 apps/frappe/frappe/desk/page/backups/backups.js,Set Number of Backups,백업의 설정 번호
 DocType: DocField,Do not allow user to change after set the first time,사용자가 변경할 수 없음 후 처음으로 설정
 apps/frappe/frappe/utils/data.py,1 year ago,1 년 전
+DocType: DocType,Links Section,링크 섹션
 apps/frappe/frappe/config/users_and_permissions.py,"View Log of all print, download and export events","모든 인쇄, 다운로드 및 내보내기 이벤트 로그보기"
 apps/frappe/frappe/public/js/frappe/ui/filters/filter.js,1 month,1 개월
 DocType: Contact,Contact,연락처
@@ -3650,16 +3811,19 @@ DocType: Email Account,UIDVALIDITY,UIDVALIDITY
 apps/frappe/frappe/public/js/frappe/views/communication.js,New Email,새 이메일
 DocType: Custom DocPerm,Export,내보내기
 apps/frappe/frappe/integrations/doctype/google_calendar/google_calendar.js,"To use Google Calendar, enable {0}.",Google 캘린더를 사용하려면 {0}을 사용하십시오.
+apps/frappe/frappe/public/js/frappe/views/reports/report_view.js,Also adding the status dependency field {0},상태 종속성 필드 {0} 추가
+apps/frappe/frappe/core/doctype/data_import_beta/data_import_beta.js,Successfully updated {0},{0}을 (를) 성공적으로 업데이트했습니다
 apps/frappe/frappe/public/js/frappe/form/print.js,QZ Tray Failed: ,QZ 트레이 실패 :
 DocType: Dropbox Settings,Dropbox Settings,드롭 박스 설정
 DocType: About Us Settings,More content for the bottom of the page.,페이지 하단에 대한 더 많은 내용.
 apps/frappe/frappe/social/doctype/energy_point_log/energy_point_log.js,This document has been reverted,이 문서가 되돌려졌습니다.
 apps/frappe/frappe/integrations/doctype/google_drive/google_drive.py,Google Drive Backup Successful.,Google 드라이브 백업에 성공했습니다.
+DocType: Webhook,Naming Series,시리즈 이름 지정
 DocType: Workflow,DocType on which this Workflow is applicable.,문서 종류가있는이 워크 플로는 적용 할 수 있습니다.
 DocType: User,Enabled,사용
 apps/frappe/frappe/desk/page/setup_wizard/setup_wizard.js,Failed to complete setup,설치를 완료하지 못했습니다.
 apps/frappe/frappe/automation/doctype/auto_repeat/auto_repeat.py,New {0}: {1},새 {0} : {1}
-DocType: Tag Category,Category Name,카테고리 이름
+DocType: Blog Category,Category Name,카테고리 이름
 apps/frappe/frappe/model/db_query.py,Parent is required to get child table data,부모는 자식 테이블 데이터를 가져와야합니다.
 apps/frappe/frappe/email/doctype/email_group/email_group.js,Import Subscribers,가져 오기 구독자
 DocType: Print Settings,PDF Settings,PDF 설정
@@ -3678,6 +3842,7 @@ DocType: Webhook,on_update_after_submit,on_update_after_submit
 DocType: System Settings,Allow Login using User Name,사용자 이름을 사용하여 로그인 허용
 apps/frappe/frappe/core/doctype/report/report.js,Enable Report,보고서 사용
 DocType: DocField,Display Depends On,디스플레이에 따라 달라집니다
+apps/frappe/frappe/public/js/frappe/utils/pretty_date.js,&gt; {0} year(s) ago,&gt; {0} 년 전
 DocType: Social Login Key,API Endpoint,API 엔드 포인트
 DocType: Web Page,Insert Code,코드에게 삽입
 DocType: Data Migration Run,Current Mapping Type,현재 매핑 유형
@@ -3695,6 +3860,7 @@ apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js,No
 DocType: Workflow State,Calendar,캘린더
 apps/frappe/frappe/client.py,No document found for given filters,주어진 필터에 대한 문서를 찾을 수 없습니다
 apps/frappe/frappe/config/website.py,A user who posts blogs.,블로그를 게시하는 사용자.
+DocType: DocType Action,DocType Action,독 타입 액션
 apps/frappe/frappe/model/rename_doc.py,"Another {0} with name {1} exists, select another name","또 다른 {0} 이름이 {1} 존재, 다른 이름을 선택"
 DocType: DocType,Custom?,사용자 지정?
 DocType: Website Settings,Website Theme Image,웹 사이트 테마 이미지
@@ -3704,6 +3870,7 @@ apps/frappe/frappe/public/js/frappe/model/model.js,Unable to load: {0},로드 �
 apps/frappe/frappe/config/integrations.py,Backup,지원
 apps/frappe/frappe/desk/doctype/dashboard_chart/dashboard_chart.py,Document type is required to create a dashboard chart,대시 보드 차트를 만들려면 문서 유형이 필요합니다.
 DocType: DocField,Read Only,읽기 전용
+apps/frappe/frappe/integrations/doctype/razorpay_settings/razorpay_settings.py,Could not create razorpay order,면도기 주문을 만들 수 없습니다
 apps/frappe/frappe/email/doctype/email_group/email_group.js,New Newsletter,새로운 뉴스
 DocType: Energy Point Log,Energy Point Log,에너지 포인트 로그
 DocType: Print Settings,Send Print as PDF,로 보내기 프린트 PDF
@@ -3729,16 +3896,19 @@ apps/frappe/frappe/email/doctype/newsletter/newsletter.py,Confirm Your Email,이
 apps/frappe/frappe/www/login.html,Or login with,또는 로그인
 DocType: Error Snapshot,Locals,지역 주민
 apps/frappe/frappe/desk/page/activity/activity_row.html,Communicated via {0} on {1}: {2},를 통해 통신 {0}에 {1} {2}
-apps/frappe/frappe/core/doctype/comment/comment.py,{0} mentioned you in a comment in {1},{0}에 대한 댓글에서 언급 한 {1}
+DocType: Event Producer,Event Producer Document Types,이벤트 프로듀서 문서 유형
+apps/frappe/frappe/email/smtp.py,Please setup default Email Account from Setup &gt; Email &gt; Email Account,설정&gt; 이메일&gt; 이메일 계정에서 기본 이메일 계정을 설정하십시오
 apps/frappe/frappe/public/js/frappe/ui/group_by/group_by.html,Select Group By...,Group By ...를 선택하십시오.
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js,e.g. (55 + 434) / 4 or =Math.sin(Math.PI/2)...,예를 들어 (55 + 434) / 4 = Math.sin (Math.PI로 / 2) ...
 apps/frappe/frappe/utils/csvutils.py,{0} is required,{0}이 필요합니다
 DocType: Integration Request,Integration Type,일체형
 DocType: Newsletter,Send Attachements,Attachements 보내기
+apps/frappe/frappe/public/js/frappe/list/list_sidebar_group_by.js,No filters found,필터를 찾을 수 없습니다
 apps/frappe/frappe/config/integrations.py,Google Contacts Integration.,Google 주소록 통합.
 DocType: Transaction Log,Transaction Log,트랜잭션 로그
 apps/frappe/frappe/social/doctype/energy_point_log/energy_point_log.py,Stats based on last month's performance (from {0} to {1}),지난 달의 실적을 기반으로 한 통계 ({0}에서 {1}까지)
 DocType: Contact Us Settings,City,시
+apps/frappe/frappe/public/js/frappe/views/components/Desktop.vue,Hide cards for all users,모든 사용자를위한 카드 숨기기
 apps/frappe/frappe/automation/doctype/auto_repeat/auto_repeat.py,Enable Allow Auto Repeat for the doctype {0} in Customize Form,사용자 정의 양식에서 doctype {0}에 대해 자동 반복 허용
 DocType: DocField,Perm Level,파마 수준
 apps/frappe/frappe/www/confirm_workflow_action.html,View document,문서보기
@@ -3750,6 +3920,7 @@ DocType: DocType,"If enabled, changes to the document are tracked and shown in t
 apps/frappe/frappe/core/doctype/doctype/doctype.py,'In Global Search' not allowed for type {0} in row {1},{1} 행의 {0} 유형에는 &#39;전체 검색에서&#39;가 허용되지 않습니다.
 apps/frappe/frappe/core/doctype/doctype/doctype.py,'In Global Search' not allowed for type {0} in row {1},{1} 행의 {0} 유형에는 &#39;전체 검색에서&#39;가 허용되지 않습니다.
 DocType: Energy Point Log,Appreciation,감사
+DocType: Dashboard Chart,Number of Groups,그룹 수
 apps/frappe/frappe/public/js/frappe/views/treeview.js,View List,목록보기
 DocType: Workflow,Don't Override Status,상태를 무시하지 마십시오
 apps/frappe/frappe/public/js/frappe/form/multi_select_dialog.js,Search term,검색어
@@ -3759,9 +3930,11 @@ apps/frappe/frappe/public/js/frappe/file_uploader/FileUploader.vue,Upload {0} fi
 DocType: Deleted Document,GCalendar Sync ID,GCalendar 동기화 ID
 DocType: Prepared Report,Report Start Time,보고서 시작 시간
 apps/frappe/frappe/public/js/frappe/data_import/data_exporter.js,Export Data,데이터 내보내기
+apps/frappe/frappe/config/automation.py,Maintains a log of every event consumed along with the status of the sync and a Resync button in case sync fails.,동기화 상태와 함께 소비 된 모든 이벤트 및 동기화 실패시 재 동기화 버튼을 기록합니다.
 apps/frappe/frappe/core/doctype/data_import/data_import.js,Select Columns,열 선택
 DocType: Translation,Source Text,원본 텍스트
 apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,This is a background report. Please set the appropriate filters and then generate a new one.,이것은 배경 보고서입니다. 적절한 필터를 설정 한 다음 새 필터를 생성하십시오.
+apps/frappe/frappe/email/smtp.py,Email Account not setup. Please create a new Email Account from Setup &gt; Email &gt; Email Account,이메일 계정이 설정되지 않았습니다. 설정&gt; 이메일&gt; 이메일 계정에서 새 이메일 계정을 만드십시오
 apps/frappe/frappe/www/login.py,Missing parameters for login,로그인에 대한 누락 된 매개 변수
 DocType: Workflow State,folder-open,폴더 오픈
 DocType: DocType,"Once submitted, submittable documents cannot be changed. They can only be Cancelled and Amended.",일단 제출되면 제출할 수있는 문서는 변경할 수 없습니다. 취소 및 수정 만 가능합니다.
@@ -3791,7 +3964,6 @@ apps/frappe/frappe/public/js/frappe/form/sidebar/review.js,{0} appreciation poin
 DocType: S3 Backup Settings,cn-northwest-1,CN- 노스 웨스트 -1
 DocType: Dropbox Settings,Limit Number of DB Backups,DB 백업 수 제한
 DocType: Custom DocPerm,Level,레벨
-apps/frappe/frappe/public/js/frappe/ui/toolbar/energy_points_notifications.js,Last 30 days,지난 30 일
 DocType: Custom DocPerm,Report,보고서
 apps/frappe/frappe/website/doctype/web_form/web_form.py,Amount must be greater than 0.,금액은 0보다 커야합니다.
 apps/frappe/frappe/public/js/frappe/form/print.js,Connected to QZ Tray!,QZ 트레이에 연결되었습니다!
@@ -3808,6 +3980,7 @@ DocType: S3 Backup Settings,us-west-2,우리 - 서쪽 -2
 apps/frappe/frappe/custom/doctype/custom_script/custom_script.js,Select Child Table,하위 테이블 선택
 apps/frappe/frappe/public/js/frappe/ui/keyboard.js,Trigger Primary Action,트리거 기본 동작
 apps/frappe/frappe/public/js/frappe/form/templates/form_sidebar.html,Change,변경
+DocType: Social Login Key,User ID Property,사용자 ID 속성
 DocType: Email Domain,domain name,도메인 이름
 DocType: Contact Email,Contact Email,담당자 이메일
 DocType: Kanban Board Column,Order,주문
@@ -3830,7 +4003,7 @@ DocType: Contact,Last Name,성
 DocType: Event,Private,개인
 apps/frappe/frappe/email/doctype/notification/notification.js,No alerts for today,오늘에 대한 경고 없음
 DocType: Print Settings,Send Email Print Attachments as PDF (Recommended),PDF로 이메일 프린트 첨부 파일 보내기 (권장)
-DocType: Web Page,Left,왼쪽
+DocType: Onboarding Slide Field,Left,왼쪽
 DocType: Event,All Day,하루 종일
 apps/frappe/frappe/integrations/utils.py,Looks like something is wrong with this site's payment gateway configuration. No payment has been made.,뭔가처럼 보이는 것은이 사이트의 지불 게이트웨이 구성에 문제가 있습니다. 어떤 지불을하지 않은.
 DocType: GCalendar Settings,State,도
@@ -3841,6 +4014,7 @@ DocType: Blog Post,Published On,에 게시
 DocType: Contact,Gender,성별
 apps/frappe/frappe/website/doctype/web_form/web_form.py,Mandatory Information missing:,누락 된 필수 정보 :
 apps/frappe/frappe/social/doctype/energy_point_log/energy_point_log.py,{0} reverted your points on {1},{0}이 (가) {1}에 점수를 되돌 렸습니다.
+DocType: Event Consumer,Event Subscriber,이벤트 가입자
 apps/frappe/frappe/integrations/doctype/webhook/webhook.py,Check Request URL,요청 URL 확인
 apps/frappe/frappe/client.py,Only 200 inserts allowed in one request,200 인서트는 하나의 요청에 허용
 DocType: Footer Item,URL,URL
@@ -3853,6 +4027,7 @@ DocType: Auto Email Report,Half Yearly,반년
 DocType: Communication,Marked As Spam,스팸으로 표시
 apps/frappe/frappe/utils/file_manager.py,There is some problem with the file url: {0},파일 URL 몇 가지 문제가 있습니다 : {0}
 apps/frappe/frappe/public/js/frappe/list/list_sidebar.html,Tree,나무
+DocType: Event Producer Document Type,Use Same Name,같은 이름을 사용하십시오
 apps/frappe/frappe/public/js/frappe/views/treeview.js,You are not allowed to print this report,이 보고서를 인쇄 할 수 없습니다
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,User Permissions,사용자 권한
 DocType: Workflow State,warning-sign,경고 기호
@@ -3862,7 +4037,7 @@ DocType: Workflow State,User,사용자
 DocType: Website Settings,"Show title in browser window as ""Prefix - title""",같은 브라우저 창에 표시 제목 &quot;접두어 - 제목&quot;
 DocType: Payment Gateway,Gateway Settings,게이트웨이 설정
 apps/frappe/frappe/public/js/frappe/ui/toolbar/awesome_bar.js,text in document type,문서 형식의 텍스트
-apps/frappe/frappe/core/doctype/test_runner/test_runner.js,Run Tests,테스트 실행
+DocType: Event Sync Log,Event Sync Log,이벤트 동기화 로그
 apps/frappe/frappe/handler.py,Logged Out,로그 아웃
 apps/frappe/frappe/public/js/frappe/ui/toolbar/search.js,More...,더...
 DocType: System Settings,User can login using Email id or Mobile number,사용자는 이메일 ID 또는 휴대 전화 번호를 사용하여 로그인 할 수 있습니다.
@@ -3879,6 +4054,7 @@ apps/frappe/frappe/core/doctype/data_import_beta/data_import_beta.js,Successfull
 apps/frappe/frappe/public/js/frappe/views/interaction.js,Summary,개요
 DocType: Event,Event Participants,이벤트 참가자
 DocType: Auto Repeat,Frequency,회수
+DocType: Onboarding Slide,Slide Order,슬라이드 주문
 DocType: Custom Field,Insert After,후 삽입
 DocType: Event,Sync with Google Calendar,Google 캘린더와 동기화
 DocType: Access Log,Report Name,보고서 이름
@@ -3902,10 +4078,14 @@ apps/frappe/frappe/email/doctype/email_group/email_group.py,{0} subscribers adde
 apps/frappe/frappe/public/js/frappe/ui/filters/filter.js,Not In,하지에서
 DocType: Workflow State,star,별
 apps/frappe/frappe/public/js/frappe/ui/toolbar/search_utils.js,Hub,허브
+DocType: Event Producer Document Type,If this is checked the documents will have the same name as they have on the Event Producer's site,이것이 체크되면 문서는 이벤트 프로듀서 사이트에서와 같은 이름을 갖습니다.
 apps/frappe/frappe/public/js/frappe/ui/filters/filters.js,values separated by commas,쉼표로 구분 된 값
 apps/frappe/frappe/core/doctype/doctype/doctype.py,Max width for type Currency is 100px in row {0},유형의 통화에 대한 최대 폭은 행에있는 100 픽셀 {0}
 apps/frappe/frappe/config/website.py,Content web page.,콘텐츠 웹 페이지.
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,Add a New Role,새 역할 추가
+apps/frappe/frappe/website/doctype/website_route_meta/website_route_meta.js,Visit Web Page,웹 페이지 방문
+apps/frappe/frappe/desk/doctype/notification_log/notification_log.py,New Assignment,새로운 과제
+DocType: Event Consumer Document Type,Approved,인가 된
 DocType: Google Contacts,Last Sync On,마지막 동기화
 DocType: Deleted Document,Deleted Document,삭제 된 문서
 apps/frappe/frappe/templates/includes/login/login.js,Oops! Something went wrong,죄송합니다. 문제가 발생했습니다
@@ -3916,7 +4096,7 @@ apps/frappe/frappe/public/js/frappe/form/print.js,Landscape,경치
 apps/frappe/frappe/config/core.py,Client side script extensions in Javascript,자바 스크립트에서 클라이언트 측 스크립트 확장
 DocType: Webhook,on_trash,on_trash
 apps/frappe/frappe/core/doctype/user_permission/user_permission_help.html,Records for following doctypes will be filtered,다음 doctypes에 대한 레코드가 필터링됩니다.
-apps/frappe/frappe/public/js/frappe/desk.js,Scheduler Inactive,스케줄러 비활성
+apps/frappe/frappe/core/doctype/data_import_beta/data_import_beta.py,Scheduler Inactive,스케줄러 비활성
 DocType: Blog Settings,Blog Introduction,블로그 소개
 DocType: Global Search Settings,Search Priorities,검색 우선 순위
 DocType: Address,Office,사무실
@@ -3926,13 +4106,13 @@ DocType: Dashboard Chart Link,Dashboard Chart Link,대시 보드 차트 링크
 DocType: User,Email Settings,이메일 설정
 apps/frappe/frappe/public/js/frappe/ui/dropzone.js,Drop Here,여기에 드롭
 DocType: User,"If enabled,  user can login from any IP Address using Two Factor Auth, this can also be set for all users in System Settings",활성화 된 경우 Two Factor Auth를 사용하여 모든 IP 주소에서 로그인 할 수 있으며 시스템 설정의 모든 사용자에 대해 설정할 수도 있습니다
-apps/frappe/frappe/public/js/frappe/form/templates/print_layout.html,Printer Settings...,프린터 설정 ...
 apps/frappe/frappe/public/js/frappe/desk.js,Please Enter Your Password to Continue,계속하려면 비밀번호를 입력하십시오.
 apps/frappe/frappe/public/js/frappe/desk.js,Please Enter Your Password to Continue,계속하려면 비밀번호를 입력하십시오.
 apps/frappe/frappe/public/js/frappe/list/list_sidebar_group_by.js,Me,나를
 apps/frappe/frappe/workflow/doctype/workflow/workflow.py,{0} not a valid State,{0}은 유효한 상태
 apps/frappe/frappe/core/doctype/user_permission/user_permission_list.js,Apply to all Documents Types,모든 문서 유형에 적용
-apps/frappe/frappe/social/doctype/energy_point_log/energy_point_log.py,Energy point update,에너지 포인트 업데이트
+apps/frappe/frappe/desk/doctype/notification_log/notification_log.py,Energy point update,에너지 포인트 업데이트
+DocType: System Settings,Run Jobs only Daily if Inactive For (Days),비활성 상태 인 경우에만 매일 작업 실행 (일)
 apps/frappe/frappe/integrations/doctype/paypal_settings/paypal_settings.py,Please select another payment method. PayPal does not support transactions in currency '{0}',다른 지불 방법을 선택하세요. 페이팔은 &#39;{0}&#39;통화 트랜잭션을 지원하지 않습니다
 DocType: Chat Message,Room Type,객실 유형
 DocType: Data Import Beta,Import Log Preview,가져 오기 로그 미리보기
@@ -3941,6 +4121,7 @@ apps/frappe/frappe/public/js/frappe/file_uploader/FileUploader.vue,uploaded file
 DocType: Workflow State,ok-circle,OK-원
 DocType: LDAP Settings,LDAP User Creation and Mapping,LDAP 사용자 생성 및 매핑
 apps/frappe/frappe/utils/bot.py,You can find things by asking 'find orange in customers',당신은 &#39;고객에 오렌지를 찾아&#39;요구에 의해 물건을 찾을 수 있습니다
+apps/frappe/frappe/public/js/frappe/ui/notifications/notifications.js,Today's Events,오늘의 이벤트
 apps/frappe/frappe/core/doctype/user/user.py,Sorry! User should have complete access to their own record.,죄송합니다!사용자는 자신의 기록에 대한 완전한 액세스 권한이 있어야합니다.
 ,Usage Info,사용 정보
 apps/frappe/frappe/public/js/frappe/ui/keyboard.js,Show Keyboard Shortcuts,키보드 단축키 표시
@@ -3968,10 +4149,10 @@ DocType: Calendar View,Calendar View,캘린더보기
 apps/frappe/frappe/printing/doctype/print_format/print_format.js,Edit Format,형식 편집
 apps/frappe/frappe/templates/emails/new_user.html,Complete Registration,등록 완료
 DocType: GCalendar Settings,Enable,사용
-DocType: Google Maps Settings,Home Address,집 주소
 apps/frappe/frappe/core/doctype/data_export/exporter.py,You can only upload upto 5000 records in one go. (may be less in some cases),당신은 한 번에 5000 개까지 기록을 업로드 할 수 있습니다. (경우에 따라 적을 수 있습니다)
+DocType: Report,"output in the form of `data = [columns, result]`","`data = [columns, result]`형식으로 출력"
 apps/frappe/frappe/core/doctype/user_permission/user_permission_list.js,Applicable Document Types,적용 가능한 문서 유형
-apps/frappe/frappe/config/settings.py,Set up rules for user assignments.,사용자 할당에 대한 규칙을 설정합니다.
+apps/frappe/frappe/config/automation.py,Set up rules for user assignments.,사용자 할당에 대한 규칙을 설정합니다.
 apps/frappe/frappe/model/document.py,Insufficient Permission for {0},{0}에 대한 권한이 충분하지 않습니다.
 apps/frappe/frappe/model/document.py,Insufficient Permission for {0},{0}에 대한 권한이 충분하지 않습니다.
 apps/frappe/frappe/public/js/frappe/views/reports/report_view.js,Report was not saved (there were errors),보고서는 (오류가 있었다) 저장되지 않았습니다
@@ -3987,7 +4168,6 @@ DocType: Communication,To and CC,및 CC
 DocType: SMS Settings,Static Parameters,정적 매개 변수
 DocType: Chat Message,Room,방
 apps/frappe/frappe/public/js/frappe/change_log.html,updated to {0},업데이트 {0}
-apps/frappe/frappe/public/js/frappe/desk.js,Background jobs are not running. Please contact Administrator,백그라운드 작업이 실행되고 있지 않습니다. 관리자에게 문의하십시오
 DocType: Portal Settings,Custom Menu Items,사용자 정의 메뉴 항목
 apps/frappe/frappe/website/doctype/website_slideshow/website_slideshow.py,All Images attached to Website Slideshow should be public,웹 사이트 슬라이드 쇼에 첨부 된 모든 이미지는 공개되어야합니다.
 DocType: Workflow State,chevron-right,갈매기 오른쪽
@@ -4002,11 +4182,13 @@ apps/frappe/frappe/integrations/doctype/google_drive/google_drive.js,Take Backup
 apps/frappe/frappe/public/js/frappe/form/controls/multiselect_list.js,{0} values selected,{0} 값이 선택되었습니다.
 DocType: DocType,Allow Auto Repeat,자동 반복 허용
 apps/frappe/frappe/public/js/frappe/form/controls/multiselect_list.js,No values to show,표시 할 값이 없습니다.
+DocType: DocType,URL for documentation or help,설명서 또는 도움말의 URL
 DocType: Desktop Icon,_doctype,_doctype
 DocType: Communication,Email Template,이메일 템플릿
 apps/frappe/frappe/core/doctype/data_import_beta/data_import_beta.js,Successfully updated {0} record.,{0} 레코드를 성공적으로 업데이트했습니다.
 apps/frappe/frappe/permissions.py,User {0} does not have doctype access via role permission for document {1},사용자 {0}에게는 {1} 문서에 대한 역할 사용 권한을 통한 Doctype 액세스 권한이 없습니다.
 apps/frappe/frappe/templates/includes/login/login.js,Both login and password required,필요한 로그인과 암호가 모두
+apps/frappe/frappe/public/js/frappe/ui/onboarding_dialog.js,Let\,허락하다\
 apps/frappe/frappe/model/document.py,Please refresh to get the latest document.,최신 문서를 가져 오려면 새로 고침하십시오.
 DocType: User,Security Settings,보안 설정
 apps/frappe/frappe/public/js/frappe/views/reports/query_report.js,Add Column,열 추가
@@ -4016,6 +4198,7 @@ apps/frappe/frappe/public/js/frappe/views/reports/report_view.js,Export Report: 
 DocType: Auto Email Report,Filter Meta,메타 필터
 apps/frappe/frappe/automation/doctype/auto_repeat/auto_repeat.py,Please find attached {0}: {1},첨부 된 {0}을 찾으십시오 : {1}
 DocType: Web Page,Set Meta Tags,메타 태그 설정
+DocType: Email Account,Use SSL for Outgoing,발신에 SSL 사용
 DocType: Web Form,Text to be displayed for Link to Web Page if this form has a web page. Link route will be automatically generated based on `page_name` and `parent_website_route`,이 양식은 웹 페이지가있는 경우 텍스트는 웹 페이지에 링크 표시합니다.링크 경로는 자동으로 page_name`와`parent_website_route``를 기반으로 생성됩니다
 DocType: S3 Backup Settings,Backup Limit,백업 한도
 DocType: Dashboard Chart,Line,선
@@ -4048,4 +4231,3 @@ DocType: DocField,Ignore User Permissions,사용자 권한을 무시
 apps/frappe/frappe/public/js/frappe/web_form/web_form.js,Saved Successfully,성공적으로 저장되었다
 apps/frappe/frappe/core/doctype/user/user.py,Please ask your administrator to verify your sign-up,당신의 가입을 확인하기 위해 관리자에게 문의하시기 바랍니다
 DocType: Domain Settings,Active Domains,활성 도메인
-apps/frappe/frappe/public/js/integrations/razorpay.js,Show Log,로그보기

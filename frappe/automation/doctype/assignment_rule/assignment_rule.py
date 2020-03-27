@@ -16,7 +16,7 @@ class AssignmentRule(Document):
 		assignment_days = self.get_assignment_days()
 		if not len(set(assignment_days)) == len(assignment_days):
 			repeated_days = get_repeated(assignment_days)
-			frappe.throw(_("Assignment Day {0} has been repeated.".format(frappe.bold(repeated_days))))
+			frappe.throw(_("Assignment Day {0} has been repeated.").format(frappe.bold(repeated_days)))
 
 	def on_update(self): # pylint: disable=no-self-use
 		frappe.cache_manager.clear_doctype_map('Assignment Rule', self.name)
@@ -165,7 +165,7 @@ def reopen_closed_assignment(doc):
 	return True
 
 def apply(doc, method=None, doctype=None, name=None):
-	if frappe.flags.in_patch or frappe.flags.in_install:
+	if frappe.flags.in_patch or frappe.flags.in_install or frappe.flags.in_setup_wizard:
 		return
 
 	if not doc and doctype and name:

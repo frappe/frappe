@@ -37,6 +37,7 @@
   "allow_login_using_user_name",
   "allow_error_traceback",
   "password_settings",
+  "logout_on_password_reset",
   "force_user_to_reset_password",
   "column_break_31",
   "enable_password_policy",
@@ -149,7 +150,7 @@
    "fieldname": "currency_precision",
    "fieldtype": "Select",
    "label": "Currency Precision",
-   "options": "\n1\n2\n3\n4\n5\n6\n7\n8\n9"
+   "options": "\n0\n1\n2\n3\n4\n5\n6\n7\n8\n9"
   },
   {
    "collapsible": 1,
@@ -407,11 +408,18 @@
    "fieldname": "dormant_days",
    "fieldtype": "Int",
    "label": "Run Jobs only Daily if Inactive For (Days)"
+  },
+  {
+   "default": "1",
+   "fieldname": "logout_on_password_reset",
+   "fieldtype": "Check",
+   "label": "Logout All Sessions on Password Reset"
   }
  ],
  "icon": "fa fa-cog",
  "issingle": 1,
- "modified": "2019-09-24 10:04:28.807388",
+ "links": [],
+ "modified": "2020-03-16 14:50:40.914532",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",

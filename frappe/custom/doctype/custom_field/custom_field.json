@@ -44,6 +44,7 @@
   "bold",
   "report_hide",
   "search_index",
+  "allow_in_quick_entry",
   "ignore_xss_filter",
   "translatable",
   "description",
@@ -123,7 +124,7 @@
    "fieldname": "precision",
    "fieldtype": "Select",
    "label": "Precision",
-   "options": "\n1\n2\n3\n4\n5\n6\n7\n8\n9"
+   "options": "\n0\n1\n2\n3\n4\n5\n6\n7\n8\n9"
   },
   {
    "fieldname": "options",
@@ -364,12 +365,18 @@
    "fieldtype": "Code",
    "label": "Read Only Depends On",
    "length": 255
+  },
+  {
+   "default": "0",
+   "fieldname": "allow_in_quick_entry",
+   "fieldtype": "Check",
+   "label": "Allow in Quick Entry"
   }
  ],
  "icon": "fa fa-glass",
  "idx": 1,
  "links": [],
- "modified": "2019-12-12 21:31:08.209996",
+ "modified": "2020-03-16 14:52:43.954709",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Custom Field",
