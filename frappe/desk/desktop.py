@@ -338,9 +338,9 @@ def save_customization(page, config):
 	page_doc.label = page + '-' + frappe.session.user
 
 	if page_doc.is_new():
-		page_doc.insert()
+		page_doc.insert(ignore_permissions=True)
 	else:
-		page_doc.save()
+		page_doc.save(ignore_permissions=True)
 
 def prepare_widget(config, doctype, parentfield):
 	if not config:
