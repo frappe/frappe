@@ -144,6 +144,7 @@ class DesktopPage {
 		this.in_customize_mode = false;
 		this.container.empty();
 		this.make();
+		window.page = this;
 	}
 
 	show() {
@@ -194,10 +195,14 @@ class DesktopPage {
 			this.allow_customization && this.make_customization_link();
 
 			!this.sections["onboarding"] &&
-				this.data.charts.items.length &&
+				this.data.charts.items &&
 				this.make_charts();
-			this.data.shortcuts.items.length && this.make_shortcuts();
-			this.data.cards.items.length && this.make_cards();
+			this.data.shortcuts.items && this.make_shortcuts();
+			this.data.cards.items && this.make_cards();
+			if (this.allow_customization) {
+				// Move the widget group up to align with labels if customization is allowed
+				$('.desk-page .widget-group:visible:first').css('margin-top', '-25px');
+			}
 		});
 	}
 
@@ -256,6 +261,11 @@ class DesktopPage {
 			return
 		}
 
+		// It may be possible the chart area is hidden since it has no widgets
+		// So the margin-top: -25px would be applied to the shortcut group
+		// We need to remove this as the  chart group will be visible during customization
+		$('.desk-page .widget-group:visible:first').css('margin-top', '0px');
+
 		this.customize_link.hide();
 		this.save_or_discard_link.show();
 
@@ -263,6 +273,9 @@ class DesktopPage {
 			this.sections[section].customize();
 		})
 		this.in_customize_mode = true;
+
+		// Move the widget group up to align with labels if customization is allowed
+		$('.desk-page .widget-group:visible:first').css('margin-top', '-25px');
 	}
 
 	save_customization() {

@@ -27,10 +27,6 @@ export default class WidgetGroup {
 
 	make() {
 		this.make_container();
-		this.refresh();
-	}
-
-	refresh() {
 		this.title && this.set_title(this.title);
 		this.widgets && this.make_widgets();
 	}
@@ -48,6 +44,7 @@ export default class WidgetGroup {
 		this.title_area = widget_area.find(".widget-group-title");
 		this.control_area = widget_area.find(".widget-group-control");
 		this.body = widget_area.find(".widget-group-body");
+		!this.widgets.length && this.widget_area.hide();
 		widget_area.appendTo(this.container);
 	}
 
@@ -79,6 +76,7 @@ export default class WidgetGroup {
 	}
 
 	customize() {
+		this.widget_area.show();
 		this.widgets_list.forEach(wid => {
 			wid.customize(this.options);
 		})
