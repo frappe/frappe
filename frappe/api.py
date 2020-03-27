@@ -9,7 +9,6 @@ import frappe.client
 from frappe.utils.response import build_response
 from frappe import _
 from six.moves.urllib.parse import urlparse, urlencode
-from six import string_types
 import base64
 
 def handle():
@@ -140,13 +139,11 @@ def handle():
 
 def get_request_form_data():
 	if frappe.local.form_dict.data is None:
-		data = json.loads(frappe.safe_decode(frappe.local.request.get_data()))
+		data = frappe.safe_decode(frappe.local.request.get_data())
 	else:
 		data = frappe.local.form_dict.data
-		if isinstance(data, string_types):
-			data = json.loads(frappe.local.form_dict.data)
 
-	return data
+	return frappe.parse_json(data)
 
 def validate_oauth():
 	""" authentication using oauth """
