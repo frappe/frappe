@@ -1,13 +1,8 @@
-// moment strings for translation
+function prettyDate(date, mini) {
+	if (!date) return '';
 
-function prettyDate(time, mini) {
-	if (!time) {
-		time = new Date();
-	}	
-	if (!time) return '';
-	var date = time;
-	if (typeof (time) == "string")
-		date = new Date((time || "").replace(/-/g, "/").replace(/[TZ]/g, " ").replace(/\.[0-9]*/, ""));
+	if (typeof (date) == "string")
+		date = new Date((date || "").replace(/-/g, "/").replace(/[TZ]/g, " ").replace(/\.[0-9]*/, ""));
 
 	let diff = (((new Date()).getTime() - date.getTime()) / 1000);
 	let day_diff = Math.floor(diff / 86400);
