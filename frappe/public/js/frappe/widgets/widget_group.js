@@ -4,6 +4,8 @@ import ShortcutWidget from "../widgets/shortcut_widget";
 import LinksWidget from "../widgets/links_widget";
 import OnboardingWidget from "../widgets/onboarding_widget";
 
+frappe.provide('frappe.widget')
+
 const widget_factory = {
 	chart: ChartWidget,
 	base: BaseWidget,
@@ -87,3 +89,5 @@ export default class WidgetGroup {
 		});
 	}
 }
+
+frappe.widget.WidgetGroup = WidgetGroup;

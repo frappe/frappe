@@ -76,31 +76,6 @@
 		position: relative;
 		min-height: 1px;
 		padding-right: 15px;
-
-		.dashboard-summary {
-			font-size: 32px !important;
-			margin-top: 0px !important;
-			margin-bottom: 8px !important;
-			font-weight: 500;
-		}
-
-		.grid-col-3 {
-			display: grid;
-			grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-			// grid-auto-rows: minmax(62px, 1fr);
-			column-gap: 15px;
-			row-gap: 15px;
-			align-items: center;
-		}
-
-		.grid-col-1 {
-			display: grid;
-			grid-template-columns: repeat(1fr);
-			// grid-auto-rows: minmax(62px, 1fr);
-			column-gap: 15px;
-			row-gap: 15px;
-			align-items: center;
-		}
 	}
 
 	@media (max-width: 768px) {
@@ -138,6 +113,38 @@
 		}
 	}
 
+	.grid-col-3 {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+		// grid-auto-rows: minmax(62px, 1fr);
+		column-gap: 15px;
+		row-gap: 15px;
+		align-items: center;
+	}
+
+	.grid-col-2 {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		// grid-auto-rows: minmax(62px, 1fr);
+		column-gap: 15px;
+		row-gap: 15px;
+		align-items: center;
+
+		.full-width {
+			grid-column-start: 1;
+			grid-column-end: 3;
+		}
+	}
+
+	.grid-col-1 {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(550px, 1fr));
+		// grid-auto-rows: minmax(62px, 1fr);
+		column-gap: 15px;
+		row-gap: 15px;
+		align-items: center;
+	}
+
 	@media (max-width: 768px) {
 		.legend {
 			display: flex;
@@ -146,6 +153,18 @@
 			.legend-item {
 				margin-right: 20px;
 			}
+		}
+
+		.grid-col-2 {
+			grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+			.full-width {
+				grid-column-start: 1;
+				grid-column-end: 2;
+			}
+		}
+
+		.grid-col-1 {
+			grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
 		}
 	}
 }
@@ -173,6 +192,26 @@
 		}
 		.widget-control {
 			align-self: center;
+			display: flex;
+			flex-direction: row-reverse;
+
+			// Any immidiate child
+			>* {
+				align-self: center;
+				margin-left: 5px;
+			}
+
+			.dashboard-date-field {
+				.clearfix,
+				.help-box {
+					display: none;
+				}
+
+				.frappe-control,
+				.form-group {
+					margin-bottom: 0px !important;
+				}
+			}
 		}
 	}
 
@@ -183,15 +222,32 @@
 
 	// Overrides for each widgets
 	&.dashboard-widget-box {
-		padding-bottom: 10px !important;
+		padding: 10px 15px !important;
+		min-height: 260px;
 
 		.chart-column-container {
 			padding-right: 0px !important;
 			padding-left: 0px !important;
 		}
 
-		.chart-wrapper {
-			border-bottom: none !important;
+		.widget-footer {
+			font-size: 85%;
+			color: @text-muted;
+		}
+
+		.chart-loading-state {
+			display: flex;
+			justify-content: center;
+			align-items: center;
+		}
+
+		.report-summary {
+			grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+			border: none;
+
+			.summary-value {
+				font-size: 20px;
+			}
 		}
 	}
 
@@ -320,81 +376,4 @@
 
 .pill-orange {
 	background:	@orange;
-}
-
-// .pill-green {
-// 	background:	@green-light;
-// 	color: @green-dark;
-// }
-
-// .pill-red {
-// 	background:	@red-light;
-// 	color: @red-dark;
-// }
-
-// .pill-blue {
-// 	background:	@blue-light;
-// 	color: @blue-dark;
-// }
-
-// .pill-yellow {
-// 	background:	@yellow-light;
-// 	color: @yellow-dark;
-// }
-
-// .pill-orange {
-// 	background:	@orange-light;
-// 	color: @orange-dark;
-// }
-
-.skeleton {
-	width: 100%;
-	background-image: linear-gradient(90deg, @btn-bg, @panel-bg, @btn-bg);
-	// background-image: linear-gradient(90deg, black, white, black);
-	animation: shine-lines 0.8s infinite cubic-bezier(.65,.05,.36,1)
-}
-
-.skeleton.skeleton-full {
-	flex: 1 1 auto;
-}
-
-// .skeleton.skeleton-100 {
-// 	height: 90%;
-// }
-
-// .skeleton.skeleton-50 {
-// 	height: 50%;
-// }
-
-// .skeleton.skeleton-40 {
-// 	height: 40%;
-// }
-
-// .skeleton.skeleton-30 {
-// 	height: 30%;
-// }
-
-// .skeleton.skeleton-20 {
-// 	height: 20%;
-// }
-
-// .skeleton.skeleton-10 {
-// 	height: 10%;
-// }
-
-// .skeleton.skeleton-8 {
-// 	height: 8%;
-// }
-
-// .skeleton.skeleton-3 {
-// 	height: 3%;
-// }
-
-@keyframes shine-lines {
-	0% {
-		background-position: -100px;
-	}
-	100% {
-		background-position: 100px;
-	}
 }
