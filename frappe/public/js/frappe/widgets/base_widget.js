@@ -87,6 +87,7 @@ export default class Widget {
 		this.set_title();
 		this.set_actions();
 		this.set_body();
+		this.setup_events();
 	}
 
 	set_title() {
@@ -132,6 +133,10 @@ export default class Widget {
 		$(`<i class="${classname}" aria-hidden="true"></i>`).appendTo(
 			this.show_or_hide_button
 		);
+	}
+
+	setup_events() {
+		//
 	}
 
 	set_actions() {
