@@ -14,8 +14,8 @@ export default class Widget {
 		return {
 			name: this.name,
 			docname: this.docname,
-			label: this.label,
-		}
+			label: this.label
+		};
 	}
 
 	customize(options) {
@@ -36,7 +36,7 @@ export default class Widget {
 
 		if (options.allow_hiding) {
 			if (this.hidden) {
-				this.widget.removeClass('hidden')
+				this.widget.removeClass("hidden");
 				this.body.css("opacity", 0.5);
 				this.title_field.css("opacity", 0.5);
 				this.footer.css("opacity", 0.5);
@@ -44,7 +44,12 @@ export default class Widget {
 
 			this.add_custom_button(
 				'<i class="fa fa-eye-slash" aria-hidden="true"></i>',
-				() => this.hide_or_show()
+				() => this.hide_or_show(),
+				"show-or-hide-button"
+			);
+
+			this.show_or_hide_button = this.action_area.find(
+				".show-or-hide-button"
 			);
 		}
 
@@ -61,9 +66,9 @@ export default class Widget {
 	}
 
 	make_widget() {
-		this.widget = $(`<div class="widget ${this.hidden ? 'hidden' : ''}" data-widget-name=${
-			this.docname ? this.docname : this.name
-		}>
+		this.widget = $(`<div class="widget ${
+			this.hidden ? "hidden" : ""
+		}" data-widget-name=${this.docname ? this.docname : this.name}>
 			<div class="widget-head">
 				<div class="widget-title"></div>
 				<div class="widget-control"></div>
@@ -101,8 +106,7 @@ export default class Widget {
 		// wait for animation
 		setTimeout(() => {
 			this.widget.remove();
-			this.options.on_delete
-				&& this.options.on_delete(this.name);
+			this.options.on_delete && this.options.on_delete(this.name);
 		}, 300);
 	}
 
