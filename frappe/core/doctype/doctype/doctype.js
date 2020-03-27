@@ -53,14 +53,6 @@ frappe.ui.form.on('DocType', {
 		frm.events.autoname(frm);
 	},
 
-	email_append_to: function (frm) {
-		frm.set_df_property("sender_field", "reqd", 0);
-
-		if (frm.doc.email_append_to) {
-			frm.set_df_property("sender_field", "reqd", 1);
-		}
-	},
-
 	autoname: function(frm) {
 		frm.set_df_property('fields', 'reqd', frm.doc.autoname !== 'Prompt');
 	}

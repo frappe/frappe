@@ -56,8 +56,8 @@
   "show_name_in_global_search",
   "email_settings_sb",
   "email_append_to",
-  "subject_field",
   "sender_field",
+  "subject_field",
   "sb2",
   "permissions",
   "restrict_to_domain",
@@ -503,7 +503,8 @@
    "depends_on": "email_append_to",
    "fieldname": "sender_field",
    "fieldtype": "Data",
-   "label": "Sender Field"
+   "label": "Sender Field",
+   "mandatory_depends_on": "email_append_to"
   },
   {
    "default": "0",
@@ -521,7 +522,7 @@
  "icon": "fa fa-bolt",
  "idx": 6,
  "links": [],
- "modified": "2019-12-27 13:28:06.201814",
+ "modified": "2020-03-27 14:51:44.581128",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocType",

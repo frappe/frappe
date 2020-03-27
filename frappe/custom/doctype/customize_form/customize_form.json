@@ -31,9 +31,8 @@
   "sort_order",
   "section_break_23",
   "email_append_to",
-  "subject_field",
-  "cb_01",
   "sender_field",
+  "subject_field",
   "fields_section_break",
   "fields"
  ],
@@ -204,10 +203,6 @@
    "depends_on": "doc_type",
    "fieldname": "section_break_23",
    "fieldtype": "Section Break"
-  },
-  {
-   "fieldname": "cb_01",
-   "fieldtype": "Column Break"
   }
  ],
  "hide_toolbar": 1,
@@ -215,7 +210,7 @@
  "idx": 1,
  "issingle": 1,
  "links": [],
- "modified": "2020-03-13 19:54:39.652134",
+ "modified": "2020-03-27 15:06:35.443861",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Customize Form",
