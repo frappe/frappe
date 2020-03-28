@@ -946,11 +946,11 @@ def validate_fields(meta):
 	def validate_data_field_type(docfield):
 		if docfield.fieldtype == "Data":
 			if docfield.options and (docfield.options not in data_field_options):
-				docfield_label = frappe.bold(docfield.label)
-				data_field_str = "<br><ul><li>" + "</li><li>".join(data_field_options) + "</ul>"
-				text = "{0} is an Invalid Data field.{1} Only Options allowed for Data field are: {2}"
-				message = _(text).format(docfield_label, "<br><br>", data_field_str)
-				frappe.msgprint(message, raise_exception=True)
+				df_str = frappe.bold(_(docfield.label))
+				text_str = _("{0} is an invalid Data field.").format(df_str) + "<br>" * 2 + _("Only Options allowed for Data field are:") + "<br>"
+				df_options_str = "<ul><li>" + "</li><li>".join([_(x) for x in data_field_options]) + "</ul>"
+
+				frappe.msgprint(text_str + df_options_str, raise_exception=True)
 
 
 	fields = meta.get("fields")
