@@ -2,6 +2,8 @@ import frappe
 import json
 
 def execute():
+	if not frappe.db.table_exists('Dashboard Chart'):
+		return
 
 	charts_to_modify = frappe.db.get_all('Dashboard Chart',
 		fields = ['name', 'filters_json', 'document_type'],

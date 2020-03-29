@@ -124,7 +124,7 @@
    "fieldname": "precision",
    "fieldtype": "Select",
    "label": "Precision",
-   "options": "\n1\n2\n3\n4\n5\n6\n7\n8\n9"
+   "options": "\n0\n1\n2\n3\n4\n5\n6\n7\n8\n9"
   },
   {
    "fieldname": "options",
@@ -376,7 +376,7 @@
  "icon": "fa fa-glass",
  "idx": 1,
  "links": [],
- "modified": "2020-02-01 11:50:09.222967",
+ "modified": "2020-03-16 14:52:43.954709",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Custom Field",
