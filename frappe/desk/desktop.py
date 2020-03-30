@@ -166,7 +166,8 @@ class Workspace:
 
 		for item in shortcuts:
 			new_item = item.as_dict().copy()
-			new_item['name'] = _(item.link_to)
+			new_item['name'] = item.link_to
+			new_item['label'] = _(item.link_to)
 			if self.is_item_allowed(item.link_to, item.type) and _in_active_domains(item):
 				if item.type == "Page":
 					page = self.allowed_pages[item.link_to]
@@ -229,7 +230,7 @@ def get_desk_sidebar_items():
 
 	for page in pages:
 		# The order will be maintained while categorizing
-		sidebar_items[page["category"]].append(page)
+		sidebar_items[page["category"]].append(_(page))
 	return sidebar_items
 
 def get_table_with_counts():
