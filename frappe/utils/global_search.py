@@ -501,7 +501,7 @@ def web_search(text, scope=None, start=0, limit=20):
 			WHERE {conditions}
 			LIMIT %(limit)s OFFSET %(start)s'''
 
-		scope_condition = '`route` like "%(scope)s" AND ' if scope else ''
+		scope_condition = '`route` like %(scope)s AND ' if scope else ''
 		published_condition = '`published` = 1 AND '
 		mariadb_conditions = postgres_conditions = ' '.join([published_condition, scope_condition])
 
@@ -514,7 +514,7 @@ def web_search(text, scope=None, start=0, limit=20):
 			"scope": "".join([scope, "%"]) if scope else '',
 			"limit": limit,
 			"start": start,
-			"text": frappe.db.escape(text)
+			"text": text
 		}
 
 		result = frappe.db.multisql({
