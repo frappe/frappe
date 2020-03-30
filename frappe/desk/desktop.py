@@ -61,17 +61,17 @@ class Workspace:
 
 	def build_workspace(self):
 		self.cards = {
-			'label': self.doc.cards_label,
+			'label': _(self.doc.cards_label),
 			'items': self.get_cards()
 		}
 
 		self.charts = {
-			'label': self.doc.charts_label,
+			'label': _(self.doc.charts_label),
 			'items': self.get_charts()
 		}
 
 		self.shortcuts = {
-			'label': self.doc.shortcuts_label,
+			'label': _(self.doc.shortcuts_label),
 			'items': self.get_shortcuts()
 		}
 
@@ -133,7 +133,7 @@ class Workspace:
 				else:
 					new_section = section.as_dict().copy()
 				new_section["links"] = new_items
-				new_section["label"] = section.title
+				new_section["label"] = _(section.title)
 				new_data.append(new_section)
 
 		return new_data
@@ -146,7 +146,7 @@ class Workspace:
 				charts = charts + self.extended_charts
 
 			for chart in charts:
-				chart.label = chart.label if chart.label else chart.chart_name
+				chart.label = _(chart.label) if chart.label else _(chart.chart_name)
 				all_charts.append(chart)
 
 		return all_charts
@@ -335,7 +335,7 @@ def make_them_cards(page_name, from_module=None, to_module=None, icon=None):
 		print("--- Got Page: {0}".format(page.name))
 	else:
 		page = frappe.new_doc("Desk Page")
-		page.label = page_name
+		page.label = _(page_name)
 		page.cards = []
 		page.icon = icon
 		print("--- New Page: {0}".format(page.name))
@@ -362,7 +362,7 @@ def make_them_cards(page_name, from_module=None, to_module=None, icon=None):
 				pass
 
 		# Set Child doc values
-		card.title = data['label']
+		card.title = _(data['label'])
 		card.icon = data.get('icon')
 		# Pretty dump JSON
 		card.links = json.dumps(data['items'], indent=4, sort_keys=True)

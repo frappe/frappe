@@ -83,6 +83,7 @@ def get_data(module, build=True):
 					# Mark Spotlights for initial
 					if item.get("type") == "doctype":
 						name = item.get("name")
+						label = _(item.get("label") or item.get("name"))
 						count = doctype_contains_a_record(name)
 
 						item["count"] = count
@@ -143,7 +144,7 @@ def add_section(data, label, icon, items):
 	"""Adds a section to the module data."""
 	if not items: return
 	data.append({
-		"label": label,
+		"label": _(label),
 		"icon": icon,
 		"items": items
 	})
@@ -272,7 +273,7 @@ def get_setup_section(app, module, label, icon):
 	for section in config:
 		if section.get("label")==_("Setup"):
 			return {
-				"label": label,
+				"label": _(label),
 				"icon": icon,
 				"items": section["items"]
 			}
@@ -306,7 +307,7 @@ def get_onboard_items(app, module):
 
 @frappe.whitelist()
 def get_links_for_module(app, module):
-	return [{'value': l.get('name'), 'label': l.get('label')} for l in get_links(app, module)]
+	return [{'value': l.get('name'), 'label': _(l.get('label'))} for l in get_links(app, module)]
 
 def get_links(app, module):
 	try:
@@ -330,7 +331,7 @@ def get_desktop_settings():
 	for m in all_modules:
 		modules_by_name[m['module_name']] = m
 
-	module_categories = ['Modules', 'Domains', 'Places', 'Administration']
+	module_categories = [_('Modules'), _('Domains'), _('Places'), _('Administration')]
 	user_modules_by_category = {}
 
 	user_saved_modules_by_category = home_settings.modules_by_category or {}
@@ -452,7 +453,7 @@ def get_options_for_global_modules():
 		module = frappe._dict(module)
 		options.append({
 			'category': module.category,
-			'label': module.label,
+			'label': _(module.label),
 			'value': module.module_name,
 			'checked': module.module_name not in blocked_modules
 		})
@@ -472,7 +473,7 @@ def get_options_for_user_blocked_modules():
 		module = frappe._dict(module)
 		options.append({
 			'category': module.category,
-			'label': module.label,
+			'label': _(module.label),
 			'value': module.module_name,
 			'checked': module.module_name not in hidden_modules
 		})
