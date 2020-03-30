@@ -45,13 +45,46 @@ frappe.views.InboxView = class InboxView extends frappe.views.ListView {
 		this.filters = this.get_inbox_filters();
 	}
 
+	setup_columns() {
+		// setup columns for list view
+		this.columns = [];
+		this.columns.push({
+			type: 'Subject',
+			df: {
+				label: __('Subject'),
+				fieldname: 'subject'
+			}
+		});
+		this.columns.push({
+			type: 'Field',
+			df: {
+				label: this.is_sent_emails ? __("To") : __("From"),
+				fieldname: this.is_sent_emails ? 'recipients' : 'sender'
+			}
+		});
+	}
+
 	get is_sent_emails() {
 		const f = this.filter_area.get()
 			.find(filter => filter[1] === 'sent_or_received');
 		return f && f[3] === 'Sent';
 	}
 
+	render_header() {
+		this.$result.find('.list-row-head').remove()
+		this.$result.prepend(this.get_header_html());		
+	}
+
 	render() {
+		this.setup_columns();
+		this.render_header();
+		this.render_list();
+		this.on_row_checked();
+		this.render_count();
+		this.render_tags();
+	}
+
+	/* render() {
 		this.emails = this.data;
 		this.render_inbox_view();
 	}
@@ -90,13 +123,13 @@ frappe.views.InboxView = class InboxView extends frappe.views.ListView {
 					</a>
 				</span>
 			</div>
-			<div class="list-row-col hidden-xs">
+			<div class="list-row-col ellipsis hidden-xs">
 				<span>${this.is_sent_emails ? email.recipients : email.sender }</span>
 			</div>
 		`;
 
 		return this.get_list_row_html_skeleton(columns_html, this.get_meta_html(email));
-	}
+	}*/
 
 	get_meta_html(email) {
 		const attachment = email.has_attachment ?
@@ -109,13 +142,17 @@ frappe.views.InboxView = class InboxView extends frappe.views.ListView {
 				<i class="fa fa-link fa-large"></i>
 			</a>` : '';
 
-		const modified = comment_when(email.modified, true);
+		const communication_date = comment_when(email.communication_date, true);
+		const status = email.status == "Closed" ? `<span class="fa fa-check fa-large" title="${__(email.status)}"></span>`
+		: email.status == "Replied" ? `<span class="fa fa-mail-reply fa-large" title="${__(email.status)}"></span>`
+		: "";		 
 
 		return `
 			<div class="level-item hidden-xs list-row-activity">
 				${link}
 				${attachment}
-				${modified}
+				${status}
+				${communication_date}
 			</div>
 		`;
 	}
@@ -146,6 +183,7 @@ frappe.views.InboxView = class InboxView extends frappe.views.ListView {
 
 			filters = default_filters.concat([
 				["Communication", "sent_or_received", "=", "Received", true],
+				["Communication", "status", "=", "Open", true],
 				["Communication", "email_account", op, email_account, true],
 				["Communication", "email_status", "not in", "Spam,Trash", true],
 			]);
