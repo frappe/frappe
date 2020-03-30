@@ -896,7 +896,7 @@ def validate_fields(meta):
 				text_str = _("{0} is an invalid Data field.").format(df_str) + "<br>" * 2 + _("Only Options allowed for Data field are:") + "<br>"
 				df_options_str = "<ul><li>" + "</li><li>".join([_(x) for x in data_field_options]) + "</ul>"
 
-				frappe.msgprint(text_str + df_options_str, raise_exception=True)
+				frappe.msgprint(text_str + df_options_str, title="Invalid Data Field", raise_exception=True)
 
 
 	fields = meta.get("fields")
