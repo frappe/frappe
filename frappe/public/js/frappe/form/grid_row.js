@@ -550,6 +550,7 @@ export default class GridRow {
 	hide_form() {
 		frappe.dom.unfreeze();
 		this.row.toggle(true);
+		frappe.utils.scroll_to(this.row);
 		this.refresh();
 		if(cur_frm) cur_frm.cur_grid = null;
 		this.wrapper.removeClass("grid-row-open");
