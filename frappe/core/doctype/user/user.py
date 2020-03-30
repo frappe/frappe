@@ -1116,7 +1116,7 @@ UPDATE `tabUser`
 SET
 	reset_password_key=""
 WHERE
-	datediff(hh, reset_key_created_on, getdate()) >= 2
+	datediff(hh, reset_key_created_on, now()) >= 2
 AND
 	reset_password_key IS NOT NULL
 """)
