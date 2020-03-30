@@ -77,9 +77,9 @@ def generate_report_result(report, filters=None, user=None):
 		if len(res) > 5:
 			skip_total_row = cint(res[5])
 
-		if report.custom_columns:
-			columns = json.loads(report.custom_columns)
-			result = add_data_to_custom_columns(columns, result)
+	if report.custom_columns:
+		columns = json.loads(report.custom_columns)
+		result = add_data_to_custom_columns(columns, result)
 
 	if result:
 		result = get_filtered_data(report.ref_doctype, columns, result, user)
