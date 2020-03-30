@@ -1866,7 +1866,7 @@ DocType: Tag Link,Tag Link,Tag-Link
 apps/frappe/frappe/core/report/transaction_log_report/transaction_log_report.py,Chain Integrity,Kettenintegrität
 DocType: Data Export,CSV,CSV
 DocType: Currency,"1 Currency = [?] Fraction
-For e.g. 1 USD = 100 Cent","1 Währungseinheit = [?] Teilbetrag 
+For e.g. 1 USD = 100 Cent","1 Währungseinheit = [?] Teilbetrag
  für z. B. 1 Euro = 100 Cent"
 DocType: Data Import,Partially Successful,Teilweise erfolgreich
 apps/frappe/frappe/core/doctype/user/user.py,"Too many users signed up recently, so the registration is disabled. Please try back in an hour","Zu viele Benutzer unterzeichnete vor kurzem, also die Registrierung ist deaktiviert. Bitte versuchen Sie es in einer Stunde zurück"
@@ -2102,7 +2102,7 @@ apps/frappe/frappe/desk/page/user_profile/user_profile.js,Edit Profile,Profil be
 DocType: Kanban Board Column,Archived,Archiviert
 DocType: Milestone Tracker,Document Type to Track,Dokumenttyp zu verfolgen
 DocType: System Settings,Session Expiry in Hours e.g. 06:00,"Sitzungsende in Stunden, z. B. 06:00"
-DocType: Customize Form Field,"This field will appear only if the fieldname defined here has value OR the rules are true (examples): 
+DocType: Customize Form Field,"This field will appear only if the fieldname defined here has value OR the rules are true (examples):
 myfield
 eval:doc.myfield=='My Value'
 eval:doc.age&gt;18","Dieses Feld wird nur angezeigt, wenn der Feldname hier definierten Wert hat oder die Regeln erfüllt sind (Beispiele): myfield eval: doc.myfield == &#39;My Value&#39; eval: doc.age&gt; 18"
@@ -3445,17 +3445,17 @@ DocType: Address Template,"<h4>Default Template</h4>
 {% if phone %}Phone: {{ phone }}&lt;br&gt;{% endif -%}
 {% if fax %}Fax: {{ fax }}&lt;br&gt;{% endif -%}
 {% if email_id %}Email: {{ email_id }}&lt;br&gt;{% endif -%}
-</code></pre>","<H4> Default Template </ h4> 
- <p> Verwendet <a href=""http://jinja.pocoo.org/docs/templates/""> Jinja Templating </a> und alle Felder der Adresse ( einschließlich Custom Fields falls vorhanden) zur Verfügung </ p> 
- <pre> <code> {{ADDRESS_LINE1}} & lt; br & gt; 
- {% if ADDRESS_LINE2%} {{ADDRESS_LINE2}} & lt; br & gt; { % endif -%} 
- {{city}} & lt; br & gt; 
- {% if Zustand%} {{Zustand}} & lt; br & gt; {% endif -%} {% 
- wenn PIN-Code%} PIN: {{Pincode}} & lt; br & gt; {% endif -%} 
- {{country}} & lt; br & gt; 
- {% if Telefon%} Telefon: {{Telefon}} & lt; br & gt; { % endif -%} 
- {% if Fax%} Fax: {{Fax}} & lt; br & gt; {% endif -%} 
- {% if email_id%} E-Mail: {{email_id}} & lt; br & gt ; {% endif -%} 
+</code></pre>","<H4> Default Template </ h4>
+ <p> Verwendet <a href=""http://jinja.pocoo.org/docs/templates/""> Jinja Templating </a> und alle Felder der Adresse ( einschließlich Custom Fields falls vorhanden) zur Verfügung </ p>
+ <pre> <code> {{ADDRESS_LINE1}} & lt; br & gt;
+ {% if ADDRESS_LINE2%} {{ADDRESS_LINE2}} & lt; br & gt; { % endif -%}
+ {{city}} & lt; br & gt;
+ {% if Zustand%} {{Zustand}} & lt; br & gt; {% endif -%} {%
+ wenn PIN-Code%} PIN: {{Pincode}} & lt; br & gt; {% endif -%}
+ {{country}} & lt; br & gt;
+ {% if Telefon%} Telefon: {{Telefon}} & lt; br & gt; { % endif -%}
+ {% if Fax%} Fax: {{Fax}} & lt; br & gt; {% endif -%}
+ {% if email_id%} E-Mail: {{email_id}} & lt; br & gt ; {% endif -%}
  </ code> </ pre>"
 DocType: Calendar View,Start Date Field,Startdatum Feld
 DocType: Role,Role Name,Rollenname
@@ -3818,7 +3818,6 @@ apps/frappe/frappe/handler.py,Logged Out,Abgemeldet
 apps/frappe/frappe/public/js/frappe/ui/toolbar/search.js,More...,Mehr...
 DocType: System Settings,User can login using Email id or Mobile number,Benutzer können sich entweder mit Email-Adresse oder Handynummer anmelden
 DocType: Bulk Update,Update Value,Wert aktualisieren
-apps/frappe/frappe/core/doctype/communication/communication.js,Mark as {0},als {0} markieren
 apps/frappe/frappe/model/rename_doc.py,Please select a new name to rename,Bitte wählen Sie einen neuen Namen umbenennen
 apps/frappe/frappe/public/js/frappe/views/reports/report_view.js,Invalid column,Ungültige Spalte
 DocType: Data Migration Connector,Data Migration,Datenmigration
@@ -4015,4 +4014,6 @@ apps/frappe/frappe/public/js/frappe/utils/pretty_date.js,{0} weeks ago,Vor {0} W
 apps/frappe/frappe/public/js/frappe/utils/pretty_date.js,1 month ago,Vor einem Monat
 apps/frappe/frappe/public/js/frappe/utils/pretty_date.js,{0} months ago,Vor {0} Monaten
 apps/frappe/frappe/public/js/frappe/utils/pretty_date.js,1 year ago,Vor einem Jahr
-apps/frappe/frappe/public/js/frappe/utils/pretty_date.js,{0} years ago,Vor {0} Jahren 
+apps/frappe/frappe/public/js/frappe/utils/pretty_date.js,{0} years ago,Vor {0} Jahren
+DocType: Assignment Rule,Inbox User,Posteingangsnutzer
+apps/frappe/frappe/core/doctype/communication/communication.js,Forward,Weiterleiten
