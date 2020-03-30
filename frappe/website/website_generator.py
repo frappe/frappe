@@ -122,7 +122,7 @@ class WebsiteGenerator(Document):
 		return route
 
 	def send_indexing_request(self, operation_type='URL_UPDATED'):
-		''' Send indexing request on update/trash operation. '''
+		"""Send indexing request on update/trash operation."""
 
 		if frappe.db.get_single_value('Website Settings', 'enable_google_indexing') \
 			and self.is_website_published() and self.meta.allow_guest_to_view:

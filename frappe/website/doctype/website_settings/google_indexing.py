@@ -19,7 +19,7 @@ SCOPES = "https://www.googleapis.com/auth/indexing"
 
 @frappe.whitelist()
 def authorize_access(reauthorize=None):
-	""" If no Authorization code get it from Google and then request for Refresh Token. """
+	"""If no Authorization code get it from Google and then request for Refresh Token."""
 
 	google_settings = frappe.get_doc("Google Settings")
 	website_settings = frappe.get_doc("Website Settings")
@@ -52,7 +52,7 @@ def authorize_access(reauthorize=None):
 
 
 def get_authentication_url(client_id, redirect_uri):
-	""" Return authentication url with the client id and redirect uri. """
+	"""Return authentication url with the client id and redirect uri."""
 	return {
 		"url": "https://accounts.google.com/o/oauth2/v2/auth?access_type=offline&response_type=code&prompt=consent&client_id={}&include_granted_scopes=true&scope={}&redirect_uri={}".format(client_id, SCOPES, redirect_uri)
 	}
@@ -60,7 +60,7 @@ def get_authentication_url(client_id, redirect_uri):
 
 @frappe.whitelist()
 def google_callback(code=None):
-	""" Authorization code is sent to callback as per the API configuration. """
+	"""Authorization code is sent to callback as per the API configuration."""
 	frappe.db.set_value("Website Settings", None, "indexing_authorization_code", code)
 	frappe.db.commit()
 
@@ -68,7 +68,7 @@ def google_callback(code=None):
 
 
 def get_google_indexing_object():
-	""" Returns an object of Google Indexing object. """
+	"""Returns an object of Google Indexing object."""
 	google_settings = frappe.get_doc("Google Settings")
 	account = frappe.get_doc("Website Settings")
 
@@ -88,7 +88,7 @@ def get_google_indexing_object():
 
 
 def publish_site(url, operation_type="URL_UPDATED"):
-	""" Send an update/remove url request. """
+	"""Send an update/remove url request."""
 
 	google_indexing = get_google_indexing_object()
 	body = {
