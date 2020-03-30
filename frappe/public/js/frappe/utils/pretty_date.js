@@ -22,9 +22,9 @@ function prettyDate(date, mini) {
 		} else {
 			if (day_diff < 7) {
 				return __("{0} D", [day_diff]);
-			} else if (diff < 31) {
+			} else if (day_diff < 31) {
 				return __("{0} W", [Math.ceil(day_diff / 7)]);
-			} else if (diff < 365) {
+			} else if (day_diff < 365) {
 				return __("{0} M", [Math.ceil(day_diff / 30)]);
 			} else {
 				return __("{0} Y", [Math.ceil(day_diff / 365)]);
