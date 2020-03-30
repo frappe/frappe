@@ -227,6 +227,7 @@ class User(Document):
 
 		key = random_string(32)
 		self.db_set("reset_password_key", key)
+		self.db_set("reset_key_created_on", frappe.utils.now())
 
 		url = "/update-password?key=" + key
 		if password_expired:
@@ -1107,3 +1108,15 @@ def generate_keys(user):
 
 		return {"api_secret": api_secret}
 	frappe.throw(frappe._("Not Permitted"), frappe.PermissionError)
+
+
+def expire_reset_password_key():
+	frappe.db.sql("""
+UPDATE `tabUser`
+SET
+	reset_password_key=""
+WHERE
+	datediff(hh, reset_key_created_on, getdate()) >= 2
+AND
+	reset_password_key IS NOT NULL
+""")

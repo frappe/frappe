@@ -176,6 +176,7 @@ scheduler_events = {
 		"frappe.integrations.doctype.razorpay_settings.razorpay_settings.capture_payment",
 		'frappe.utils.global_search.sync_global_search',
 		"frappe.monitor.flush",
+		"frappe.core.doctype.user.user.expire_reset_password_key"
 	],
 	"hourly": [
 		"frappe.model.utils.link_count.update_link_count",

@@ -41,6 +41,7 @@
   "new_password",
   "logout_all_sessions",
   "reset_password_key",
+  "reset_key_created_on",
   "last_password_reset_date",
   "redirect_url",
   "document_follow_notifications_section",
@@ -581,6 +582,13 @@
    "fieldtype": "Password",
    "label": "API Secret",
    "read_only": 1
+  },
+  {
+   "fieldname": "reset_key_created_on",
+   "fieldtype": "Datetime",
+   "hidden": 1,
+   "label": "Reset Password Key Created On",
+   "read_only": 1
   }
  ],
  "icon": "fa fa-user",
@@ -588,7 +596,7 @@
  "image_field": "user_image",
  "links": [],
  "max_attachments": 5,
- "modified": "2020-03-23 22:59:26.154985",
+ "modified": "2020-03-30 11:33:07.247447",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "User",
