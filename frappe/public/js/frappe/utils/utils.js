@@ -122,9 +122,11 @@ Object.assign(frappe.utils, {
 				</a></p>');
 		return content.html();
 	},
-	scroll_to: function(element, animate, additional_offset) {
+	scroll_to: function(element, animate, additional_offset, element_to_be_scrolled) {
+		element_to_be_scrolled = element_to_be_scrolled || $("html, body");
+
 		var y = 0;
-		if(element && typeof element==='number') {
+		if (element && typeof element==="number") {
 			y = element;
 		} else if(element) {
 			var header_offset = $(".navbar").height() + $(".page-head").height();
@@ -136,14 +138,14 @@ Object.assign(frappe.utils, {
 		}
 
 		// already there
-		if(y==$('html, body').scrollTop()) {
+		if (y == element_to_be_scrolled.scrollTop()) {
 			return;
 		}
 
-		if (animate!==false) {
-			$("html, body").animate({ scrollTop: y });
+		if (animate !== false) {
+			element_to_be_scrolled.animate({ scrollTop: y });
 		} else {
-			$(window).scrollTop(y);
+			element_to_be_scrolled.scrollTop(y);
 		}
 
 	},
