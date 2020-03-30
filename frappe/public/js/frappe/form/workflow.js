@@ -85,7 +85,7 @@ frappe.ui.form.States = Class.extend({
 		frappe.workflow.get_transitions(this.frm.doc).then(transitions => {
 			this.frm.page.clear_actions_menu();
 			transitions.forEach(d => {
-				if(frappe.user_roles.includes(d.allowed) && has_approval_access(d)) {
+				if (frappe.user_roles.includes(d.allowed) && has_approval_access(d)) {
 					added = true;
 					me.frm.page.add_action_item(__(d.action), function() {
 						// set the workflow_action for use in form scripts
@@ -103,6 +103,7 @@ frappe.ui.form.States = Class.extend({
 					});
 				}
 			});
+<<<<<<< HEAD
 			if (!added) {
 				//call function and clear cancel button if Cancel doc state is defined in the workfloe
 				frappe.xcall('frappe.model.workflow.can_cancel_document', {doc: this.frm.doc}).then((can_cancel) => {
@@ -114,6 +115,10 @@ frappe.ui.form.States = Class.extend({
 				this.setup_btn(added);
 			}
 
+=======
+
+			this.setup_btn(added);
+>>>>>>> 74f5434219... fix: check if cancel button can be added before adding button instead of hiding button
 		});
 
 	},
