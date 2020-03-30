@@ -980,7 +980,7 @@ class Document(BaseDocument):
 	def reset_seen(self):
 		"""Clear _seen property and set current user as seen"""
 		if getattr(self.meta, 'track_seen', False):
-			self.db_set('_seen', json.dumps([frappe.session.user]), update_modified=False)
+			frappe.db.set_value(self.doctype, self.name, "_seen", json.dumps([frappe.session.user]), update_modified=False)
 
 	def notify_update(self):
 		"""Publish realtime that the current document is modified"""

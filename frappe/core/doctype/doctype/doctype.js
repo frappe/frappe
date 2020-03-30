@@ -53,7 +53,7 @@ frappe.ui.form.on('DocType', {
 		frm.events.autoname(frm);
 	},
 
-	autoname(frm) {
+	autoname: function(frm) {
 		frm.set_df_property('fields', 'reqd', frm.doc.autoname !== 'Prompt');
 	}
 })

@@ -28,14 +28,14 @@ frappe.ui.form.on('Dashboard Chart', {
 						'frappe.desk.doctype.dashboard_chart.dashboard_chart.add_chart_to_dashboard',
 						{args: values}
 					).then(()=> {
-						let dashboard_route_html = 
+						let dashboard_route_html =
 							`<a href = "#dashboard/${values.dashboard}">${values.dashboard}</a>`;
-						let message = 
+						let message =
 							__(`Dashboard Chart ${values.chart_name} add to Dashboard ` + dashboard_route_html);
 
 						frappe.msgprint(message);
 					});
-					
+
 					d.hide();
 				}
 			});
@@ -119,15 +119,13 @@ frappe.ui.form.on('Dashboard Chart', {
 				frm.trigger('set_chart_field_options');
 			} else {
 				frappe.report_utils.get_report_filters(report_name).then(filters => {
-					frappe.after_ajax(()=> {
-						if (filters) {
-							frm.chart_filters = filters;
-							let filter_values = frappe.report_utils.get_filter_values(filters);
-							frm.set_value('filters_json', JSON.stringify(filter_values));
-						}
-						frm.trigger('show_filters');
-						frm.trigger('set_chart_field_options');
-					});
+					if (filters) {
+						frm.chart_filters = filters;
+						let filter_values = frappe.report_utils.get_filter_values(filters);
+						frm.set_value('filters_json', JSON.stringify(filter_values));
+					}
+					frm.trigger('show_filters');
+					frm.trigger('set_chart_field_options');
 				});
 			}
 
@@ -140,7 +138,8 @@ frappe.ui.form.on('Dashboard Chart', {
 			'frappe.desk.query_report.run',
 			{
 				report_name: frm.doc.report_name,
-				filters: filters
+				filters: filters,
+				ignore_prepared_report: 1
 			}
 		).then(data => {
 			frm.report_data = data;
@@ -228,13 +227,11 @@ frappe.ui.form.on('Dashboard Chart', {
 	show_filters: function(frm) {
 		frm.chart_filters = [];
 		frappe.dashboard_utils.get_filters_for_chart_type(frm.doc).then(filters => {
-			frappe.after_ajax(() => {
 				if (filters) {
 					frm.chart_filters = filters;
 				}
 
 				frm.trigger('render_filters_table');
-			});
 		});
 	},
 
@@ -269,7 +266,7 @@ frappe.ui.form.on('Dashboard Chart', {
 
 			if (filters.length > 0) {
 				filters.forEach( filter => {
-					const filter_row = 
+					const filter_row =
 						$(`<tr>
 							<td>${filter[1]}</td>
 							<td>${filter[2] || ""}</td>
@@ -295,7 +292,7 @@ frappe.ui.form.on('Dashboard Chart', {
 			fields.map( f => {
 				if (filters[f.fieldname]) {
 					let condition = '=';
-					const filter_row = 
+					const filter_row =
 						$(`<tr>
 							<td>${f.label}</td>
 							<td>${condition}</td>
