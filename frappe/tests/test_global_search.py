@@ -194,3 +194,5 @@ class TestGlobalSearch(unittest.TestCase):
 		results = global_search.web_search(text='manufacturing',
 					scope="manufacturing\" UNION ALL SELECT 1,2,3,4,doctype from __global_search")
 		self.assetTrue(results == [])
+		results = global_search.web_search('manufacturing')
+		self.assertTrue('Manufacturing' in results[0].content)
