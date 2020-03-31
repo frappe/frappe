@@ -231,7 +231,7 @@ def get_desk_sidebar_items():
 
 	for page in pages:
 		# The order will be maintained while categorizing
-		sidebar_items[page["category"]].append(_(page))
+		sidebar_items[page["category"]].append(page)
 	return sidebar_items
 
 def get_table_with_counts():
