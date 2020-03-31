@@ -18,7 +18,8 @@ export default class ChartWidget extends Widget {
 	}
 
 	refresh() {
-		super.refresh();
+		this.set_title();
+		this.set_body();
 		this.make_chart();
 	}
 
@@ -69,17 +70,18 @@ export default class ChartWidget extends Widget {
 		this.get_settings().then(() => {
 			this.setup_container();
 			this.prepare_chart_object();
-			this.action_area.empty();
-			this.prepare_chart_actions();
-			this.setup_filter_button();
+			if (!this.in_customize_mode) {
+				this.action_area.empty();
+				this.prepare_chart_actions();
+				this.setup_filter_button();
 
-			if (
-				this.chart_doc.timeseries &&
-				this.chart_doc.chart_type !== "Custom"
-			) {
-				this.render_time_series_filters();
+				if (
+					this.chart_doc.timeseries &&
+					this.chart_doc.chart_type !== "Custom"
+				) {
+					this.render_time_series_filters();
+				}
 			}
-
 			this.fetch_and_update_chart();
 		});
 	}
