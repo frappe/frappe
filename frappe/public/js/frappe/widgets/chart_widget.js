@@ -18,6 +18,7 @@ export default class ChartWidget extends Widget {
 	}
 
 	refresh() {
+		delete this.dashboard_chart;
 		this.set_title();
 		this.set_body();
 		this.make_chart();
