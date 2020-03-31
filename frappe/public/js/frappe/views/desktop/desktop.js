@@ -1,7 +1,6 @@
 export default class Desktop {
 	constructor({ wrapper }) {
 		this.wrapper = wrapper;
-		window.desk = this;
 		this.pages = {};
 		this.sidebar_items = {};
 		this.sidebar_categories = [
@@ -131,8 +130,6 @@ export default class Desktop {
 		this.pages[page] = $page;
 		return $page;
 	}
-
-	setup_events() {}
 }
 
 class DesktopPage {
@@ -141,10 +138,7 @@ class DesktopPage {
 		this.page_name = page_name;
 		this.sections = {};
 		this.allow_customization = false;
-		this.in_customize_mode = false;
-		this.container.empty();
-		this.make();
-		window.page = this;
+		this.reload();
 	}
 
 	show() {
@@ -159,6 +153,7 @@ class DesktopPage {
 		this.in_customize_mode = false;
 		this.container.empty();
 		this.make();
+		this.setup_events();
 	}
 
 	make_customization_link() {
@@ -181,7 +176,9 @@ class DesktopPage {
 	}
 
 	make() {
-		this.make_page();
+		this.page = $(`<div class="desk-page" data-page-name=${this.page_name}></div>`);
+		this.page.appendTo(this.container);
+
 		this.get_data().then(res => {
 			this.data = res.message;
 			// this.make_onboarding();
@@ -191,26 +188,24 @@ class DesktopPage {
 				return;
 			}
 
-			this.allow_customization = this.data.allow_customization || false;
-			this.allow_customization && this.make_customization_link();
-
-			!this.sections["onboarding"] &&
-				this.data.charts.items &&
-				this.make_charts();
-			this.data.shortcuts.items && this.make_shortcuts();
-			this.data.cards.items && this.make_cards();
-			if (this.allow_customization) {
-				// Move the widget group up to align with labels if customization is allowed
-				$('.desk-page .widget-group:visible:first').css('margin-top', '-25px');
-			}
+			this.refresh();
 		});
 	}
 
-	make_page() {
-		this.page = $(
-			`<div class="desk-page" data-page-name=${this.page_name}></div>`
-		);
-		this.page.appendTo(this.container);
+	refresh() {
+		this.page.empty();
+		this.allow_customization = this.data.allow_customization || false;
+		this.allow_customization && this.make_customization_link();
+
+		!this.sections["onboarding"] &&
+			this.data.charts.items &&
+			this.make_charts();
+		this.data.shortcuts.items && this.make_shortcuts();
+		this.data.cards.items && this.make_cards();
+		if (this.allow_customization) {
+			// Move the widget group up to align with labels if customization is allowed
+			$('.desk-page .widget-group:visible:first').css('margin-top', '-25px');
+		}
 	}
 
 	get_data() {
@@ -219,41 +214,8 @@ class DesktopPage {
 		});
 	}
 
-	make_onboarding() {
-		this.sections["onboarding"] = new frappe.widget.WidgetGroup({
-			title: `Getting Started`,
-			container: this.page,
-			type: "onboarding",
-			columns: 1,
-			widgets: [
-				{
-					label: "Unlock Great Customer Experience",
-					subtitle: "Just a few steps, and you’re good to go.",
-					steps: [
-						{
-							label: "Configure Lead Sources",
-							completed: true
-						},
-						{
-							label: "Add Your Leads",
-							completed: false
-						},
-						{
-							label: "Create Your First Opportunity",
-							completed: false
-						},
-						{
-							label: "Onboard your Sales Team",
-							completed: false
-						},
-						{
-							label: "Assign Territories",
-							completed: false
-						}
-					]
-				}
-			]
-		});
+	setup_events() {
+		$(document.body).on('toggleFullWidth', () => this.refresh());
 	}
 
 	customize() {
@@ -289,6 +251,7 @@ class DesktopPage {
 			page: this.page_name,
 			config: config
 		}).then(res => {
+			frappe.msgprint(__("Customizations Saved Successfully"))
 			this.reload();
 		})
 	}
