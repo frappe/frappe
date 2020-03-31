@@ -58,11 +58,11 @@ export default class NewWidget {
 						data.label = data.chart_name;
 					}
 
-					if (this.type == 'shortcut') {
+					if (this.type == 'shortcut' && !data.label) {
 						data.label = data.link_to;
 					}
 
-					data.docname = frappe.utils.get_random(20);
+					data.name = `${this.type}-${this.label}-${frappe.utils.get_random(20)}`;
 
 					new_dialog.hide();
 					this.on_create(data);
