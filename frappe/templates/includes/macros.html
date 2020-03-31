@@ -17,3 +17,9 @@
 <div class="no-image bg-light {{ class }} " {% if size %}style="width: {{size}}; height: {{size}};"{% endif %}></div>
 {% endif %}
 {% endmacro %}
+
+{%- macro inspect(var, render=True) -%}
+{%- if render -%}
+<pre>{{ var | pprint | e }}</pre>
+{%- endif -%}
+{%- endmacro %}

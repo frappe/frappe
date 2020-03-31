@@ -250,7 +250,7 @@ def print_workflow_log(messages, title, doctype, indicator):
 				html = "<div>{0}</div>".format(doc)
 			msg += html
 
-		frappe.msgprint(msg, title=_("Workflow Status"), indicator=indicator)
+		frappe.msgprint(msg, title=_("Workflow Status"), indicator=indicator, is_minimizable=True)
 
 @frappe.whitelist()
 def get_common_transition_actions(docs, doctype):
