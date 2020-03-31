@@ -313,15 +313,16 @@ def save_customization(page, config):
 	page_doc = get_custom_workspace_for_user(page)
 
 	# Update field values
-	page_doc.charts_label = original_page.charts_label
-	page_doc.cards_label = original_page.cards_label
-	page_doc.shortcuts_label = original_page.shortcuts_label
-	page_doc.charts_label = original_page.charts_label
-	page_doc.icon = original_page.icon
-	page_doc.module = original_page.module
-	page_doc.developer_mode_only = original_page.developer_mode_only
-	page_doc.category = original_page.category
-
+	page_doc.update({
+		"charts_label": original_page.charts_label,
+		"cards_label": original_page.cards_label,
+		"shortcuts_label": original_page.shortcuts_label,
+		"charts_label": original_page.charts_label,
+		"icon": original_page.icon,
+		"module": original_page.module,
+		"developer_mode_only": original_page.developer_mode_only,
+		"category": original_page.category
+	})
 
 	config = frappe._dict(loads(config))
 
