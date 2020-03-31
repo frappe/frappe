@@ -14,7 +14,6 @@ export default class Widget {
 	get_config() {
 		return {
 			name: this.name,
-			docname: this.docname,
 			label: this.label
 		};
 	}
@@ -69,7 +68,7 @@ export default class Widget {
 	make_widget() {
 		this.widget = $(`<div class="widget ${
 			this.hidden ? "hidden" : ""
-		}" data-widget-name=${this.docname ? this.docname : this.name}>
+		}" data-widget-name=${this.name}>
 			<div class="widget-head">
 				<div class="widget-title"></div>
 				<div class="widget-control"></div>
@@ -127,12 +126,8 @@ export default class Widget {
 					}
 
 					new_dialog.hide();
-					console.log("DATA", data)
 					Object.assign(this, data);
-					this.set_title();
-					this.set_actions();
-					this.set_body();
-					this.setup_events();
+					this.refresh();
 				},
 				primary_action_label: __("Save"),
 			});

@@ -17,7 +17,6 @@ export default class ShortcutWidget extends Widget {
 	get_config() {
 		return {
 			name: this.name,
-			docname: this.docname,
 			icon: this.icon,
 			label: this.label,
 			format: this.format,
@@ -30,7 +29,12 @@ export default class ShortcutWidget extends Widget {
 
 	setup_events() {
 		this.widget.click(() => {
-			let route = generate_route(this)
+			let route = generate_route({
+				route: this.route,
+				name: this.link_to,
+				type: this.type
+			})
+
   			frappe.set_route(route)
 		})
 	}

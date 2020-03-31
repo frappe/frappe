@@ -12,7 +12,6 @@ export default class ChartWidget extends Widget {
 	get_config() {
 		return {
 			name: this.name,
-			docname: this.docname,
 			chart_name: this.chart_name,
 			label: this.label,
 		}

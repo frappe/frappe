@@ -9,10 +9,8 @@ export default class LinksWidget extends Widget {
 	get_config() {
 		return {
 			name: this.name,
-			docname: this.docname,
 			links: JSON.stringify(this.links),
 			label: this.label,
-			title: this.title,
 			hidden: this.hidden,
 		}
 	}

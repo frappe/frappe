@@ -145,8 +145,6 @@ class Workspace:
 				else:
 					new_section = section.as_dict().copy()
 				new_section["links"] = new_items
-				new_section["label"] = section.title
-				new_section["docname"] = section.name
 				new_data.append(new_section)
 
 		return new_data
@@ -160,7 +158,6 @@ class Workspace:
 
 			for chart in charts:
 				chart.label = chart.label if chart.label else chart.chart_name
-				chart.docname = chart.name
 				all_charts.append(chart)
 
 		return all_charts
@@ -180,8 +177,6 @@ class Workspace:
 
 		for item in shortcuts:
 			new_item = item.as_dict().copy()
-			new_item['docname'] = item.name
-			new_item['name'] = _(item.link_to)
 			if self.is_item_allowed(item.link_to, item.type) and _in_active_domains(item):
 				if item.type == "Page":
 					page = self.allowed_pages[item.link_to]
@@ -352,7 +347,6 @@ def prepare_widget(config, doctype, parentfield):
 		wid_config = widgets[name].copy()
 		# Some cleanup
 		wid_config.pop("name", None)
-		wid_config.pop("docname", None)
 
 		# New Doc
 		doc = frappe.new_doc(doctype)
