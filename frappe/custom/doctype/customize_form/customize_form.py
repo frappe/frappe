@@ -12,7 +12,7 @@ from frappe import _
 from frappe.utils import cint
 from frappe.model.document import Document
 from frappe.model import no_value_fields, core_doctypes_list
-from frappe.core.doctype.doctype.doctype import validate_fields_for_doctype
+from frappe.core.doctype.doctype.doctype import validate_fields_for_doctype, check_email_append_to
 from frappe.custom.doctype.custom_field.custom_field import create_custom_field
 from frappe.model.docfield import supports_translation
 
@@ -31,7 +31,10 @@ doctype_properties = {
 	'track_changes': 'Check',
 	'track_views': 'Check',
 	'allow_auto_repeat': 'Check',
-	'allow_import': 'Check'
+	'allow_import': 'Check',
+	'email_append_to': 'Check',
+	'subject_field': 'Data',
+	'sender_field': 'Data'
 }
 
 docfield_properties = {
@@ -170,6 +173,7 @@ class CustomizeForm(Document):
 		self.update_custom_fields()
 		self.set_name_translation()
 		validate_fields_for_doctype(self.doc_type)
+		check_email_append_to(self)
 
 		if self.flags.update_db:
 			frappe.db.updatedb(self.doc_type)

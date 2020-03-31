@@ -68,7 +68,7 @@ def load_doctype_from_file(doctype):
 class Meta(Document):
 	_metaclass = True
 	default_fields = list(default_fields)[1:]
-	special_doctypes = ("DocField", "DocPerm", "Role", "DocType", "Module Def")
+	special_doctypes = ("DocField", "DocPerm", "Role", "DocType", "Module Def", 'DocType Action', 'DocType Link')
 
 	def __init__(self, doctype):
 		self._fields = {}
@@ -165,7 +165,8 @@ class Meta(Document):
 
 	def get_valid_columns(self):
 		if not hasattr(self, "_valid_columns"):
-			if self.name in ("DocType", "DocField", "DocPerm", 'DocType Action', 'DocType Link'):
+			table_exists = frappe.db.table_exists(self.name)
+			if self.name in self.special_doctypes and table_exists:
 				self._valid_columns = get_table_columns(self.name)
 			else:
 				self._valid_columns = self.default_fields + \
