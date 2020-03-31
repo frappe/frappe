@@ -81,7 +81,11 @@ export default class WidgetGroup {
 			wid.customize(this.options);
 		})
 
-		if (this.options.allow_create) {
+		const max = this.options
+					? this.options.max_widget_count || Number.POSITIVE_INFINITY
+					: Number.POSITIVE_INFINITY;
+
+		if (this.options.allow_create && this.widgets_list.length < max) {
 			this.new_widget = new NewWidget({
 				container: this.body,
 				type: this.type,
