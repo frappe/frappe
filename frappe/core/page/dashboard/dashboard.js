@@ -77,6 +77,9 @@ class Dashboard {
 
 	refresh() {
 		this.get_permitted_dashboard_charts().then(charts => {
+			if (!charts.length) {
+				frappe.msgprint(__('No Permitted Charts on this Dashboard'), __('No Permitted Charts'))
+			}
 			this.charts = charts
 							.map(chart => {
 								return {
