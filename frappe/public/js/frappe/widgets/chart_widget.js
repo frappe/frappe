@@ -19,6 +19,7 @@ export default class ChartWidget extends Widget {
 	}
 
 	refresh() {
+		super.refresh();
 		this.make_chart();
 	}
 

@@ -300,11 +300,11 @@ class DesktopPage {
 			type: "chart",
 			columns: 1,
 			options: {
-				allow_sorting: false,
+				allow_sorting: this.allow_customization && !frappe.is_mobile(),
 				allow_create: this.allow_customization,
 				allow_delete: this.allow_customization,
 				allow_hiding: false,
-				allow_edit: false,
+				allow_edit: true,
 			},
 			widgets: this.data.charts.items
 		});
@@ -321,7 +321,7 @@ class DesktopPage {
 				allow_create: this.allow_customization,
 				allow_delete: this.allow_customization,
 				allow_hiding: false,
-				allow_edit: false,
+				allow_edit: true,
 			},
 			widgets: this.data.shortcuts.items
 		});

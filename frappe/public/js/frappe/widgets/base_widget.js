@@ -8,6 +8,7 @@ export default class Widget {
 		this.set_title();
 		this.set_actions();
 		this.set_body();
+		this.setup_events();
 	}
 
 	get_config() {
@@ -84,10 +85,7 @@ export default class Widget {
 		this.action_area = this.widget.find(".widget-control");
 		this.head = this.widget.find(".widget-head");
 		this.footer = this.widget.find(".widget-footer");
-		this.set_title();
-		this.set_actions();
-		this.set_body();
-		this.setup_events();
+		this.refresh();
 	}
 
 	set_title() {
@@ -98,7 +96,10 @@ export default class Widget {
 		let button = $(
 			`<button class="btn btn-default btn-xs ${class_name}">${html}</button>`
 		);
-		action && button.on("click", () => action());
+		button.click(event => {
+			event.stopPropagation();
+			action && action();
+		});
 		button.appendTo(this.action_area);
 	}
 
@@ -112,7 +113,33 @@ export default class Widget {
 	}
 
 	edit() {
-		this.on_edit && this.on_edit(this.name);
+		frappe.model.with_doctype(this.doctype, () => {
+			let new_dialog = new frappe.ui.Dialog({
+				title: __("Edit"),
+				fields: frappe.get_meta(this.doctype).fields,
+				primary_action: (data) => {
+					if (this.doctype == 'Desk Chart' && !data.label) {
+						data.label = data.chart_name;
+					}
+
+					if (this.doctype == 'Desk Shortcut') {
+						data.label = data.link_to;
+					}
+
+					new_dialog.hide();
+					console.log("DATA", data)
+					Object.assign(this, data);
+					this.set_title();
+					this.set_actions();
+					this.set_body();
+					this.setup_events();
+				},
+				primary_action_label: __("Save"),
+			});
+
+			new_dialog.show();
+			new_dialog.set_values(this.get_config());
+		});
 	}
 
 	hide_or_show() {

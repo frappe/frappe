@@ -14,10 +14,6 @@ export default class ShortcutWidget extends Widget {
 		super(opts);
 	}
 
-	refresh() {
-		//
-	}
-
 	get_config() {
 		return {
 			name: this.name,
