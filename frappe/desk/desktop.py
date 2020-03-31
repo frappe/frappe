@@ -255,7 +255,7 @@ def get_table_with_counts():
 def get_custom_reports_and_doctypes(module):
 	return [
 		frappe._dict({
-			"title": "Custom",
+			"label": "Custom",
 			"links": get_custom_doctype_list(module) + get_custom_report_list(module)
 		})
 	]
