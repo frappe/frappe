@@ -19,6 +19,7 @@ export default class Widget {
 	}
 
 	customize(options) {
+		this.in_customize_mode = true;
 		this.action_area.empty();
 
 		options.allow_delete &&
@@ -58,9 +59,11 @@ export default class Widget {
 				'<i class="fa fa-pencil" aria-hidden="true"></i>',
 				() => this.edit()
 			);
+
 	}
 
 	make() {
+		this.in_customize_mode = false;
 		this.make_widget();
 		this.widget.appendTo(this.container);
 	}
