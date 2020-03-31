@@ -62,6 +62,9 @@ export default class ChartWidget extends Widget {
 
 	make_chart() {
 		this.get_settings().then(() => {
+			if (!this.chart_settings) {
+				this.chart_settings = {};
+			}
 			this.setup_container();
 			this.prepare_chart_object();
 			this.action_area.empty();
@@ -89,7 +92,7 @@ export default class ChartWidget extends Widget {
 	render_time_series_filters() {
 		let filters = [
 			{
-				label: this.chart_doc.timespan,
+				label: this.chart_settings.timespan || this.chart_doc.timespan,
 				options: [
 					"Select Date Range",
 					"Last Year",
@@ -116,13 +119,16 @@ export default class ChartWidget extends Widget {
 
 						this.fetch_and_update_chart();
 					}
+					this.save_chart_config_for_user({'timespan': this.selected_timespan})
 				}
 			},
 			{
-				label: this.chart_doc.time_interval,
+				label: this.chart_settings.time_interval || this.chart_doc.time_interval,
 				options: ["Yearly", "Quarterly", "Monthly", "Weekly", "Daily"],
 				action: selected_item => {
 					this.selected_time_interval = selected_item;
+
+					this.save_chart_config_for_user({'time_interval': this.selected_time_interval})
 					this.fetch_and_update_chart();
 				}
 			}
@@ -138,10 +144,10 @@ export default class ChartWidget extends Widget {
 
 	fetch_and_update_chart() {
 		this.args = {
-			timespan: this.selected_timespan,
-			time_interval: this.selected_time_interval,
-			from_date: this.selected_from_date,
-			to_date: this.selected_to_date
+			timespan: this.selected_timespan || this.chart_settings.timespan,
+			time_interval: this.selected_time_interval || this.chart_settings.time_interval,
+			from_date: this.selected_from_date || this.chart_settings.from_date,
+			to_date: this.selected_to_date || this.chart_settings.to_date
 		};
 
 		this.fetch(this.filters, true, this.args).then(data => {
@@ -176,16 +182,18 @@ export default class ChartWidget extends Widget {
 					fieldname: "from_date",
 					placeholder: "Date Range",
 					input_class: "input-xs",
+					default: [this.chart_settings.from_date, this.chart_settings.to_date],
 					reqd: 1,
 					change: () => {
 						let selected_date_range = this.date_range_field.get_value();
 						this.selected_from_date = selected_date_range[0];
 						this.selected_to_date = selected_date_range[1];
 
-						if (
-							selected_date_range &&
-							selected_date_range.length == 2
-						) {
+						if (selected_date_range && selected_date_range.length == 2) {
+							this.save_chart_config_for_user({
+								'from_date': this.selected_from_date,
+								'to_date': this.selected_to_date,
+							});
 							this.fetch_and_update_chart();
 						}
 					}
@@ -334,6 +342,7 @@ export default class ChartWidget extends Widget {
 					} else {
 						me.filters = values;
 					}
+					me.save_chart_config_for_user({'filters': me.filters});
 					me.fetch_and_update_chart();
 				}
 			},
@@ -348,6 +357,15 @@ export default class ChartWidget extends Widget {
 
 		dialog.show();
 		dialog.set_values(this.filters);
+	}
+
+	save_chart_config_for_user(config) {
+		Object.assign(this.chart_settings, config);
+		frappe.xcall('frappe.desk.doctype.dashboard_settings.dashboard_settings.save_chart_config',
+		{
+			'config': this.chart_settings,
+			'chart_name': this.chart_doc.chart_name
+		});
 	}
 
 	create_filter_group_and_add_filters(parent) {
@@ -406,10 +424,10 @@ export default class ChartWidget extends Widget {
 				filters: filters,
 				refresh: refresh ? 1 : 0,
 				time_interval:
-					args && args.time_interval ? args.time_interval : null,
-				timespan: args && args.timespan ? args.timespan : null,
-				from_date: args && args.from_date ? args.from_date : null,
-				to_date: args && args.to_date ? args.to_date : null
+					args && args.time_interval? args.time_interval: null,
+				timespan: args && args.timespan? args.timespan: null,
+				from_date: args && args.from_date? args.from_date: null,
+				to_date: args && args.to_date? args.to_date: null
 			};
 		}
 		return frappe.xcall(method, args);
@@ -481,8 +499,9 @@ export default class ChartWidget extends Widget {
 	}
 
 	prepare_chart_object() {
+		let saved_filters = this.chart_settings.filters || null;
 		this.filters =
-			this.filters || JSON.parse(this.chart_doc.filters_json || "[]");
+			saved_filters || this.filters || JSON.parse(this.chart_doc.filters_json || "[]");
 	}
 
 	get_settings() {
