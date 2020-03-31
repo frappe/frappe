@@ -215,7 +215,7 @@
   }
  ],
  "links": [],
- "modified": "2020-03-26 13:41:11.126000",
+ "modified": "2020-03-31 16:00:01.987059",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Dashboard Chart",
@@ -244,15 +244,6 @@
    "role": "Dashboard Manager",
    "share": 1,
    "write": 1
-  },
-  {
-   "email": 1,
-   "export": 1,
-   "print": 1,
-   "read": 1,
-   "report": 1,
-   "role": "Dashboard User",
-   "share": 1
   },
   {
    "email": 1,

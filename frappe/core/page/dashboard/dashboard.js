@@ -59,7 +59,7 @@ class Dashboard {
 	}
 
 	show_dashboard(current_dashboard_name) {
-		if(this.dashboard_name !== current_dashboard_name) {
+		if (this.dashboard_name !== current_dashboard_name) {
 			this.dashboard_name = current_dashboard_name;
 			let title = this.dashboard_name;
 			if (!this.dashboard_name.toLowerCase().includes(__('dashboard'))) {
@@ -76,9 +76,8 @@ class Dashboard {
 	}
 
 	refresh() {
-		this.get_dashboard_doc().then((doc) => {
-			this.dashboard_doc = doc;
-			this.charts = this.dashboard_doc.charts
+		this.get_permitted_dashboard_charts().then(charts => {
+			this.charts = charts
 							.map(chart => {
 								return {
 									chart_name: chart.chart,
@@ -98,8 +97,14 @@ class Dashboard {
 		});
 	}
 
-	get_dashboard_doc() {
-		return frappe.model.with_doc('Dashboard', this.dashboard_name);
+	get_permitted_dashboard_charts() {
+		return frappe.xcall(
+			'frappe.desk.doctype.dashboard.dashboard.get_permitted_charts',
+			{
+				dashboard_name: this.dashboard_name
+			}).then(charts => {
+				return charts;
+			});
 	}
 
 	set_dropdown() {
