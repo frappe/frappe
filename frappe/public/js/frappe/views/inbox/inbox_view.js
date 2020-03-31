@@ -40,6 +40,11 @@ frappe.views.InboxView = class InboxView extends frappe.views.ListView {
 
 	setup_defaults() {
 		super.setup_defaults();
+
+		// initialize with saved order by
+		this.sort_by = this.view_user_settings.sort_by || 'communication_date';
+		this.sort_order = this.view_user_settings.sort_order || 'desc';
+
 		this.email_account = frappe.get_route()[3];
 		this.page_title = this.email_account;
 		this.filters = this.get_inbox_filters();
@@ -84,53 +89,6 @@ frappe.views.InboxView = class InboxView extends frappe.views.ListView {
 		this.render_tags();
 	}
 
-	/* render() {
-		this.emails = this.data;
-		this.render_inbox_view();
-	}
-
-	render_inbox_view() {
-		let html = this.emails.map(this.render_email_row.bind(this)).join("");
-
-		this.$result.html(`
-			${this.get_header_html()}
-			${html}
-		`);
-	}
-
-	get_header_html() {
-		return this.get_header_html_skeleton(`
-			<div class="list-row-col list-subject level">
-				<input class="level-item list-check-all hidden-xs" type="checkbox" title="Select All">
-				<span class="level-item">${__('Subject')}</span>
-			</div>
-			<div class="list-row-col hidden-xs">
-				<span>${this.is_sent_emails ? __("To") : __("From")}</span>
-			</div>
-		`);
-	}
-
-	render_email_row(email) {
-		if (!email.css_seen && email.seen)
-			email.css_seen = "seen";
-
-		const columns_html = `
-			<div class="list-row-col list-subject level ellipsis">
-				<input class="level-item list-row-checkbox hidden-xs" type="checkbox" data-name="${email.name}">
-				<span class="level-item">
-					<a class="${ email.seen ? '' : 'bold'} ellipsis" href="${this.get_form_link(email)}">
-						${email.subject}
-					</a>
-				</span>
-			</div>
-			<div class="list-row-col ellipsis hidden-xs">
-				<span>${this.is_sent_emails ? email.recipients : email.sender }</span>
-			</div>
-		`;
-
-		return this.get_list_row_html_skeleton(columns_html, this.get_meta_html(email));
-	}*/
-
 	get_meta_html(email) {
 		const attachment = email.has_attachment ?
 			`<span class="fa fa-paperclip fa-large" title="${__('Has Attachments')}"></span>` : '';
@@ -145,7 +103,7 @@ frappe.views.InboxView = class InboxView extends frappe.views.ListView {
 		const communication_date = comment_when(email.communication_date, true);
 		const status = email.status == "Closed" ? `<span class="fa fa-check fa-large" title="${__(email.status)}"></span>`
 		: email.status == "Replied" ? `<span class="fa fa-mail-reply fa-large" title="${__(email.status)}"></span>`
-		: "";		 
+		: "";
 
 		return `
 			<div class="level-item hidden-xs list-row-activity">

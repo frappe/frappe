@@ -176,8 +176,7 @@ frappe.ui.form.on("Communication", {
 					},
 					freeze: true,
 					callback: function(r) {
-						frappe.msgprint(__("Email has been moved to Account {0}", [values.email_account]));
-						frm.reload_doc();
+						window.history.back();
 					}
 				});
             }
