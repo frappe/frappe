@@ -253,7 +253,7 @@ $.extend(frappe.meta, {
 
 	get_field_precision: function(df, doc) {
 		var precision = null;
-		if (df && cint(df.precision)) {
+		if (df && df.precision) {
 			precision = cint(df.precision);
 		} else if(df && df.fieldtype === "Currency") {
 			precision = cint(frappe.defaults.get_default("currency_precision"));

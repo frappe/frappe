@@ -69,23 +69,25 @@ class Contact(Document):
 				return True
 
 	def add_email(self, email_id, is_primary=0, autosave=False):
-		self.append("email_ids", {
-			"email_id": email_id,
-			"is_primary": is_primary
-		})
+		if not frappe.db.exists("Contact Email", {"email_id": email_id, "parent": self.name}):
+			self.append("email_ids", {
+				"email_id": email_id,
+				"is_primary": is_primary
+			})
 
-		if autosave:
-			self.save(ignore_permissions=True)
+			if autosave:
+				self.save(ignore_permissions=True)
 
 	def add_phone(self, phone, is_primary_phone=0, is_primary_mobile_no=0, autosave=False):
-		self.append("phone_nos", {
-			"phone": phone,
-			"is_primary_phone": is_primary_phone,
-			"is_primary_mobile_no": is_primary_mobile_no
-		})
+		if not frappe.db.exists("Contact Phone", {"phone": phone, "parent": self.name}):
+			self.append("phone_nos", {
+				"phone": phone,
+				"is_primary_phone": is_primary_phone,
+				"is_primary_mobile_no": is_primary_mobile_no
+			})
 
-		if autosave:
-			self.save(ignore_permissions=True)
+			if autosave:
+				self.save(ignore_permissions=True)
 
 	def set_primary_email(self):
 		if not self.email_ids:

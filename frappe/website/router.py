@@ -237,7 +237,7 @@ def setup_source(page_info):
 	source = jenv.loader.get_source(jenv, page_info.template)[0]
 	html = ''
 
-	if page_info.template.endswith('.md'):
+	if page_info.template.endswith(('.md', '.html')):
 		# extract frontmatter block if exists
 		try:
 			# values will be used to update page_info
@@ -248,10 +248,11 @@ def setup_source(page_info):
 		except Exception as e:
 			pass
 
-		source = frappe.utils.md_to_html(source)
+		if page_info.template.endswith('.md'):
+			source = frappe.utils.md_to_html(source)
 
-		if not page_info.show_sidebar:
-			source = '<div class="from-markdown">' + source + '</div>'
+			if not page_info.show_sidebar:
+				source = '<div class="from-markdown">' + source + '</div>'
 
 	# if only content
 	if page_info.template.endswith('.html') or page_info.template.endswith('.md'):
