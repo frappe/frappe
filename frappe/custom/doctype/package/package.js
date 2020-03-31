@@ -15,7 +15,7 @@ frappe.ui.form.on('Package', {
 					"istable": 0,
 				}
 			};
-		})
+		});
 	},
 	import: function(frm) {
 		frm.call("import_from_package");
