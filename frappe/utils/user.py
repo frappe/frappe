@@ -160,7 +160,7 @@ class UserPermissions:
 			docs = frappe.get_all("DocType", {'allow_import': 1})
 			self.can_import += [doc.name for doc in docs]
 
-			customizations = frappe.get_all("Property Setter", fields=['doc_type'], filters={'property': 'allow_import', 'value': 1})
+			customizations = frappe.get_all("Property Setter", fields=['doc_type'], filters={'property': 'allow_import', 'value': "1"})
 			self.can_import += [custom.doc_type for custom in customizations]
 
 		frappe.cache().hset("can_import", frappe.session.user, self.can_import)

@@ -101,10 +101,15 @@ def is_continue_slide_required(first_slide):
 def create_onboarding_docs(values, doctype=None, app=None, slide_type=None):
 	data = json.loads(values)
 	doc = frappe.new_doc(doctype)
-	if hasattr(doc, 'create_onboarding_docs'):
-		doc.create_onboarding_docs(data)
-	else:
-		create_generic_onboarding_doc(data, doctype, slide_type)
+	try:
+		if hasattr(doc, 'create_onboarding_docs'):
+			doc.flags.ignore_validate = True
+			doc.flags.ignore_mandatory = True
+			doc.create_onboarding_docs(data)
+		else:
+			create_generic_onboarding_doc(data, doctype, slide_type)
+	except Exception:
+		pass
 
 def create_generic_onboarding_doc(data, doctype, slide_type):
 	if slide_type == 'Settings':
@@ -117,8 +122,8 @@ def create_generic_onboarding_doc(data, doctype, slide_type):
 		doc = frappe.new_doc(doctype)
 		for entry in data:
 			doc.set(entry, data.get(entry))
+		doc.flags.ignore_validate = True
 		doc.flags.ignore_mandatory = True
-		doc.flags.ignore_links = True
 		doc.insert()
 
 @frappe.whitelist()

@@ -1,0 +1,216 @@
+{
+ "actions": [],
+ "autoname": "field:label",
+ "beta": 1,
+ "creation": "2020-01-23 13:45:59.470592",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "label",
+  "extends",
+  "module",
+  "category",
+  "restrict_to_domain",
+  "onboarding",
+  "icon",
+  "column_break_3",
+  "extends_another_page",
+  "is_standard",
+  "developer_mode_only",
+  "disable_user_customization",
+  "pin_to_top",
+  "pin_to_bottom",
+  "section_break_2",
+  "charts_label",
+  "charts",
+  "section_break_15",
+  "shortcuts_label",
+  "shortcuts",
+  "section_break_18",
+  "cards_label",
+  "cards"
+ ],
+ "fields": [
+  {
+   "fieldname": "label",
+   "fieldtype": "Data",
+   "label": "Name",
+   "length": 22,
+   "unique": 1
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "section_break_2",
+   "fieldtype": "Section Break",
+   "label": "Dashboards"
+  },
+  {
+   "fieldname": "charts",
+   "fieldtype": "Table",
+   "label": "Charts",
+   "options": "Desk Chart"
+  },
+  {
+   "fieldname": "shortcuts",
+   "fieldtype": "Table",
+   "label": "Shortcuts",
+   "options": "Desk Shortcut"
+  },
+  {
+   "depends_on": "eval:doc.extends_another_page == 0",
+   "fieldname": "onboarding",
+   "fieldtype": "Data",
+   "label": "Onboarding"
+  },
+  {
+   "fieldname": "restrict_to_domain",
+   "fieldtype": "Link",
+   "label": "Restrict to Domain",
+   "options": "Domain",
+   "read_only_depends_on": "eval:doc.extends_another_page == 0",
+   "search_index": 1
+  },
+  {
+   "fieldname": "module",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Module",
+   "options": "Module Def"
+  },
+  {
+   "depends_on": "eval:doc.extends_another_page == 0",
+   "fieldname": "icon",
+   "fieldtype": "Data",
+   "label": "Icon"
+  },
+  {
+   "fieldname": "column_break_3",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "cards",
+   "fieldtype": "Table",
+   "label": "Cards",
+   "options": "Desk Card"
+  },
+  {
+   "fieldname": "category",
+   "fieldtype": "Select",
+   "label": "Category",
+   "options": "Modules\nDomains\nPlaces\nAdministration",
+   "read_only_depends_on": "eval:doc.extends_another_page == 1",
+   "search_index": 1
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:doc.extends_another_page == 0",
+   "fieldname": "developer_mode_only",
+   "fieldtype": "Check",
+   "label": "Developer Mode Only",
+   "search_index": 1
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:doc.pin_to_bottom!=1 && doc.extends_another_page == 0",
+   "fieldname": "pin_to_top",
+   "fieldtype": "Check",
+   "label": "Pin To Top",
+   "search_index": 1
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:doc.extends_another_page == 0",
+   "fieldname": "disable_user_customization",
+   "fieldtype": "Check",
+   "label": "Disable User Customization",
+   "search_index": 1
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:doc.pin_to_top!=1 && doc.extends_another_page == 0",
+   "fieldname": "pin_to_bottom",
+   "fieldtype": "Check",
+   "label": "Pin To Bottom",
+   "search_index": 1
+  },
+  {
+   "fieldname": "charts_label",
+   "fieldtype": "Data",
+   "label": "Label"
+  },
+  {
+   "fieldname": "shortcuts_label",
+   "fieldtype": "Data",
+   "label": "Label"
+  },
+  {
+   "fieldname": "cards_label",
+   "fieldtype": "Data",
+   "label": "Label"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "section_break_15",
+   "fieldtype": "Section Break",
+   "label": "Shortcuts"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "section_break_18",
+   "fieldtype": "Section Break",
+   "label": "Link Cards"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_standard",
+   "fieldtype": "Check",
+   "label": "Is Standard"
+  },
+  {
+   "default": "0",
+   "fieldname": "extends_another_page",
+   "fieldtype": "Check",
+   "label": "Extends Another Page"
+  },
+  {
+   "depends_on": "eval:doc.extends_another_page == 1",
+   "fieldname": "extends",
+   "fieldtype": "Link",
+   "label": "Extends",
+   "options": "Desk Page"
+  }
+ ],
+ "links": [],
+ "modified": "2020-03-12 16:38:16.206732",
+ "modified_by": "Administrator",
+ "module": "Desk",
+ "name": "Desk Page",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "All",
+   "share": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC"
+}

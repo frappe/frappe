@@ -98,7 +98,12 @@ class User(Document):
 		clear_notifications(user=self.name)
 		frappe.clear_cache(user=self.name)
 		self.send_password_notification(self.__new_password)
-		create_contact(self, ignore_mandatory=True)
+		frappe.enqueue(
+			'frappe.core.doctype.user.user.create_contact',
+			user=self,
+			ignore_mandatory=True,
+			now=frappe.flags.in_test
+		)
 		if self.name not in ('Administrator', 'Guest') and not self.user_image:
 			frappe.enqueue('frappe.core.doctype.user.user.update_gravatar', name=self.name)
 
@@ -550,7 +555,8 @@ def update_password(new_password, logout_all_sessions=0, key=None, old_password=
 	else:
 		user = res['user']
 
-	_update_password(user, new_password, logout_all_sessions=int(logout_all_sessions))
+	logout_all_sessions = cint(logout_all_sessions) or frappe.db.get_single_value("System Settings", "logout_on_password_reset")
+	_update_password(user, new_password, logout_all_sessions=cint(logout_all_sessions))
 
 	user_doc, redirect_url = reset_user_data(user)
 
@@ -1034,7 +1040,8 @@ def create_contact(user, ignore_links=False, ignore_mandatory=False):
 	from frappe.contacts.doctype.contact.contact import get_contact_name
 	if user.name in ["Administrator", "Guest"]: return
 
-	if not get_contact_name(user.email):
+	contact_name = get_contact_name(user.email)
+	if not contact_name:
 		contact = frappe.get_doc({
 			"doctype": "Contact",
 			"first_name": user.first_name,
@@ -1052,6 +1059,34 @@ def create_contact(user, ignore_links=False, ignore_mandatory=False):
 		if user.mobile_no:
 			contact.add_phone(user.mobile_no, is_primary_mobile_no=True)
 		contact.insert(ignore_permissions=True, ignore_links=ignore_links, ignore_mandatory=ignore_mandatory)
+	else:
+		contact = frappe.get_doc("Contact", contact_name)
+		contact.first_name = user.first_name
+		contact.last_name = user.last_name
+		contact.gender = user.gender
+
+		# Add mobile number if phone does not exists in contact
+		if user.phone and not any(new_contact.phone == user.phone for new_contact in contact.phone_nos):
+			# Set primary phone if there is no primary phone number
+			contact.add_phone(
+				user.phone,
+				is_primary_phone=not any(
+					new_contact.is_primary_phone == 1 for new_contact in contact.phone_nos
+				)
+			)
+
+		# Add mobile number if mobile does not exists in contact
+		if user.mobile_no and not any(new_contact.phone == user.mobile_no for new_contact in contact.phone_nos):
+			# Set primary mobile if there is no primary mobile number
+			contact.add_phone(
+				user.mobile_no,
+				is_primary_mobile_no=not any(
+					new_contact.is_primary_mobile_no == 1 for new_contact in contact.phone_nos
+				)
+			)
+
+		contact.save(ignore_permissions=True)
+
 
 @frappe.whitelist()
 def generate_keys(user):

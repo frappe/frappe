@@ -72,6 +72,10 @@
 	overflow: auto;
 }
 
+.chart-wrapper {
+	border-bottom: 1px solid @border-color;
+}
+
 .groupby-box {
 	border-bottom: 1px solid #d1d8dd;
 	padding: 10px 15px 3px;
@@ -87,6 +91,40 @@
 
 		.frappe-control {
 			position: relative;
+		}
+	}
+}
+
+.report-summary {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+	grid-auto-rows: minmax(62px, 1fr);
+	column-gap: 15px;
+	row-gap: 20px;
+	align-items: center;
+
+	padding: 15px 15px;
+	border-bottom: 1px solid @border-color;
+	margin-right: 0px;
+	margin-left: 0px;
+
+	.summary-label {
+		font-weight: normal !important;
+	}
+
+	.summary-value {
+		margin-top: 8px;
+		margin-bottom: 5px;
+		overflow: hidden !important;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+		font-feature-settings: "tnum";
+
+		div {
+			text-align: left !important;
+			overflow: hidden !important;
+			text-overflow: ellipsis;
+			white-space: nowrap;
 		}
 	}
 }

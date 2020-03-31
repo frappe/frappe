@@ -30,6 +30,10 @@
   "sort_field",
   "column_break_10",
   "sort_order",
+  "section_break_23",
+  "email_append_to",
+  "sender_field",
+  "subject_field",
   "fields_section_break",
   "fields"
  ],
@@ -178,6 +182,30 @@
    "label": "Allow Import (via Data Import Tool)"
   },
   {
+   "depends_on": "email_append_to",
+   "fieldname": "subject_field",
+   "fieldtype": "Data",
+   "label": "Subject Field"
+  },
+  {
+   "depends_on": "email_append_to",
+   "fieldname": "sender_field",
+   "fieldtype": "Data",
+   "label": "Sender Field",
+   "mandatory_depends_on": "email_append_to"
+  },
+  {
+   "default": "0",
+   "fieldname": "email_append_to",
+   "fieldtype": "Check",
+   "label": "Allow document creation via Email"
+  },
+  {
+   "depends_on": "doc_type",
+   "fieldname": "section_break_23",
+   "fieldtype": "Section Break"
+  },
+  {
    "default": "0",
    "depends_on": "title_field",
    "fieldname": "show_title_field_in_link",
@@ -190,7 +218,7 @@
  "idx": 1,
  "issingle": 1,
  "links": [],
- "modified": "2020-01-13 10:21:32.042167",
+ "modified": "2020-03-27 15:06:35.443861",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Customize Form",

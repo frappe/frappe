@@ -1,4 +1,5 @@
 {
+ "actions": [],
  "allow_rename": 1,
  "autoname": "field:chart_name",
  "creation": "2019-01-10 12:28:06.282875",
@@ -8,6 +9,10 @@
  "field_order": [
   "chart_name",
   "chart_type",
+  "report_name",
+  "is_custom",
+  "x_field",
+  "y_axis",
   "source",
   "document_type",
   "based_on",
@@ -26,7 +31,6 @@
   "filters_json",
   "chart_options_section",
   "type",
-  "width",
   "column_break_2",
   "color",
   "section_break_10",
@@ -45,7 +49,7 @@
    "fieldname": "chart_type",
    "fieldtype": "Select",
    "label": "Chart Type",
-   "options": "Count\nSum\nAverage\nCustom\nGroup By"
+   "options": "Count\nSum\nAverage\nGroup By\nCustom\nReport"
   },
   {
    "depends_on": "eval:doc.chart_type === 'Custom'",
@@ -55,14 +59,14 @@
    "options": "Dashboard Chart Source"
   },
   {
-   "depends_on": "eval: doc.chart_type !== 'Custom'",
+   "depends_on": "eval: doc.chart_type !== 'Custom' && doc.chart_type !== 'Report'",
    "fieldname": "document_type",
    "fieldtype": "Link",
    "label": "Document Type",
    "options": "DocType"
   },
   {
-   "depends_on": "eval: ['Count', 'Sum', 'Average'].includes(doc.chart_type)",
+   "depends_on": "eval: doc.timeseries && ['Count', 'Sum', 'Average'].includes(doc.chart_type)",
    "fieldname": "based_on",
    "fieldtype": "Select",
    "label": "Time Series Based On"
@@ -82,7 +86,7 @@
    "fieldname": "timespan",
    "fieldtype": "Select",
    "label": "Timespan",
-   "options": "All Time\nLast Year\nLast Quarter\nLast Month\nLast Week\nSelect Date Range"
+   "options": "Last Year\nLast Quarter\nLast Month\nLast Week\nSelect Date Range"
   },
   {
    "depends_on": "timeseries",
@@ -119,14 +123,7 @@
    "fieldname": "type",
    "fieldtype": "Select",
    "label": "Type",
-   "options": "Line\nBar",
-   "reqd": 1
-  },
-  {
-   "fieldname": "width",
-   "fieldtype": "Select",
-   "label": "Width",
-   "options": "Half\nFull",
+   "options": "Line\nBar\nPercentage\nPie",
    "reqd": 1
   },
   {
@@ -134,6 +131,7 @@
    "fieldtype": "Column Break"
   },
   {
+   "depends_on": "eval:doc.chart_type !== 'Report'",
    "fieldname": "color",
    "fieldtype": "Color",
    "label": "Color"
@@ -185,9 +183,39 @@
    "fieldname": "to_date",
    "fieldtype": "Date",
    "label": "To Date"
+  },
+  {
+   "depends_on": "eval:doc.chart_type == 'Report' && doc.report_name && !doc.is_custom",
+   "fieldname": "x_field",
+   "fieldtype": "Select",
+   "label": "X Field",
+   "mandatory_depends_on": "eval: doc.report_name && !doc.is_custom"
+  },
+  {
+   "depends_on": "eval:doc.chart_type === 'Report'",
+   "fieldname": "report_name",
+   "fieldtype": "Link",
+   "label": "Report Name",
+   "options": "Report"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval: doc.report_name",
+   "fieldname": "is_custom",
+   "fieldtype": "Check",
+   "label": "Is Custom"
+  },
+  {
+   "depends_on": "eval:doc.chart_type == 'Report' && doc.report_name && !doc.is_custom",
+   "fieldname": "y_axis",
+   "fieldtype": "Table",
+   "label": "Y Axis",
+   "mandatory_depends_on": "eval:doc.report_name && !doc.is_custom",
+   "options": "Dashboard Chart Field"
   }
  ],
- "modified": "2019-11-18 16:20:11.529496",
+ "links": [],
+ "modified": "2020-03-13 19:19:37.162771",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Dashboard Chart",

@@ -262,7 +262,6 @@ DocType: Custom DocPerm,Import,Uvoz
 DocType: User,Security Settings,Bezbjedonosna podešavanja
 apps/frappe/frappe/public/js/frappe/form/multi_select_dialog.js,Search term,Pretraga
 apps/frappe/frappe/www/login.py,Email Address,Email adresa
-DocType: Google Maps Settings,Home Address,Kućna adresa
 apps/frappe/frappe/public/js/frappe/form/grid_row_form.js,Ctrl + Up,Ctrl + up
 DocType: Comment,Assigned,Dodijeljeno
 DocType: Desktop Icon,_report,_izvještaj
