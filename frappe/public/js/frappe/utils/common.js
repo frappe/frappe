@@ -260,6 +260,44 @@ frappe.utils.xss_sanitise = function (string, options) {
 	return sanitised;
 }
 
+frappe.utils.sanitise_redirect = (url) => {
+	const is_absolute = ((url) => {
+		// https://github.com/sindresorhus/is-absolute-url
+		// Don't match Windows paths `c:\`
+		if (/^[a-zA-Z]:\\/.test(url)) {
+			return false;
+		}
+
+		// Scheme: https://tools.ietf.org/html/rfc3986#section-3.1
+		// Absolute URL: https://tools.ietf.org/html/rfc3986#section-4.3
+		return /^[a-zA-Z][a-zA-Z\d+\-.]*:/.test(url);
+	});
+
+	const is_external = (() => {
+		return (url) => {
+			function domain(url) {
+				let base_domain = /https?:\/\/((?:[\w\d]+\.)+[\w\d]{2,})/i.exec(url);
+				return base_domain == null ? "" : base_domain[1];
+			}
+
+			return domain(location.href) !== domain(url);
+		}
+	})();
+
+	const sanitise_javascript = ((url) => {
+		// please do not ask how or why
+		const REGEX_SCRIPT = /j[\s]*(&#x.{1,7})?a[\s]*(&#x.{1,7})?v[\s]*(&#x.{1,7})?a[\s]*(&#x.{1,7})?s[\s]*(&#x.{1,7})?c[\s]*(&#x.{1,7})?r[\s]*(&#x.{1,7})?i[\s]*(&#x.{1,7})?p[\s]*(&#x.{1,7})?t/gi;
+
+		return url.replace(REGEX_SCRIPT, "");
+	});
+
+	if (is_absolute(url) && is_external(url)) {
+		return '';
+	}
+
+	return sanitise_javascript(frappe.utils.xss_sanitise(url, {strategies: ["js"]}));
+}
+
 frappe.utils.new_auto_repeat_prompt = function(frm) {
 	const fields = [
 		{

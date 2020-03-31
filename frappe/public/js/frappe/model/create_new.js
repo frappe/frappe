@@ -161,6 +161,10 @@ $.extend(frappe.model, {
 				user_default = frappe.boot.user.last_selected_values[df.options];
 			}
 
+			if (!user_default && default_doc) {
+				user_default = default_doc;
+			}
+
 			var is_allowed_user_default = user_default &&
 				(!has_user_permissions || allowed_records.includes(user_default));
 
