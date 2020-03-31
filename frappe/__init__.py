@@ -289,7 +289,8 @@ def log(msg):
 
 	debug_log.append(as_unicode(msg))
 
-def msgprint(msg, title=None, raise_exception=0, as_table=False, indicator=None, alert=False, primary_action=None, is_minimizable=None):
+def msgprint(msg, title=None, raise_exception=0, as_table=False, indicator=None, alert=False,
+	primary_action=None, is_minimizable=None, scroll_to_field=None):
 	"""Print a message to the user (via HTTP response).
 	Messages are sent in the `__server_messages` property in the
 	response JSON and shown in a pop-up / modal.
@@ -299,6 +300,7 @@ def msgprint(msg, title=None, raise_exception=0, as_table=False, indicator=None,
 	:param raise_exception: [optional] Raise given exception and show message.
 	:param as_table: [optional] If `msg` is a list of lists, render as HTML table.
 	:param primary_action: [optional] Bind a primary server/client side action.
+	:param scroll_to_field: [optional] Scroll to the field in the currently open client-side form
 	"""
 	from frappe.utils import encode
 
@@ -356,6 +358,8 @@ def msgprint(msg, title=None, raise_exception=0, as_table=False, indicator=None,
 	if primary_action:
 		out.primary_action = primary_action
 
+	out.scroll_to_field = scroll_to_field
+
 	message_log.append(json.dumps(out))
 
 	if raise_exception and hasattr(raise_exception, '__name__'):
@@ -377,12 +381,13 @@ def clear_last_message():
 	if len(local.message_log) > 0:
 		local.message_log = local.message_log[:-1]
 
-def throw(msg, exc=ValidationError, title=None, is_minimizable=None):
-	"""Throw execption and show message (`msgprint`).
+def throw(msg, exc=ValidationError, title=None, is_minimizable=None, scroll_to_field=None):
+	"""Throw exception and show message (`msgprint`).
 
 	:param msg: Message.
 	:param exc: Exception class. Default `frappe.ValidationError`"""
-	msgprint(msg, raise_exception=exc, title=title, indicator='red', is_minimizable=is_minimizable)
+	msgprint(msg, raise_exception=exc, title=title, indicator='red', is_minimizable=is_minimizable,
+		scroll_to_field=scroll_to_field)
 
 def emit_js(js, user=False, **kwargs):
 	if user == False:

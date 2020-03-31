@@ -79,7 +79,7 @@ frappe.prompt = function(fields, callback, title, primary_label) {
 	return d;
 }
 
-frappe.msgprint = function(msg, title, is_minimizable) {
+frappe.msgprint = function(msg, title, is_minimizable, scroll_to_field=null) {
 	if(!msg) return;
 
 	if($.isPlainObject(msg)) {
@@ -227,6 +227,12 @@ frappe.msgprint = function(msg, title, is_minimizable) {
 
 	// make msgprint always appear on top
 	frappe.msg_dialog.$wrapper.css("z-index", 2000);
+
+	scroll_to_field = scroll_to_field || data.scroll_to_field;
+	if (scroll_to_field) {
+		cur_frm && cur_frm.scroll_to_field(scroll_to_field);
+	}
+
 	frappe.msg_dialog.show();
 
 	return frappe.msg_dialog;
