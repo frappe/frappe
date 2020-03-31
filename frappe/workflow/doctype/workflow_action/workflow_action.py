@@ -9,8 +9,8 @@ from frappe.utils import get_url, get_datetime
 from frappe.desk.form.utils import get_pdf_link
 from frappe.utils.verified_command import get_signed_params, verify_request
 from frappe import _
-from frappe.model.workflow import apply_workflow, get_workflow_name, \
-	has_approval_access, get_workflow_state_field, send_email_alert, get_workflow_field_value
+from frappe.model.workflow import apply_workflow, get_workflow_name, has_approval_access, \
+	get_workflow_state_field, send_email_alert, get_workflow_field_value, is_transition_condition_satisfied
 from frappe.desk.notifications import clear_doctype_notifications
 from frappe.utils.user import get_users_with_role
 
@@ -155,9 +155,9 @@ def get_next_possible_transitions(workflow_name, state, doc=None):
 	for transition in transitions:
 		is_next_state_optional = get_state_optional_field_value(workflow_name, transition.next_state)
 		# skip transition if next state of the transition is optional
-		if transition.condition and not frappe.safe_eval(transition.condition, None, {'doc': doc.as_dict()}):
-			continue
 		if is_next_state_optional:
+			continue
+		if not is_transition_condition_satisfied(transition, doc):
 			continue
 		transitions_to_return.append(transition)
 
@@ -200,7 +200,7 @@ def send_workflow_action_email(users_data, doc):
 		email_args = {
 			'recipients': [d.get('email')],
 			'args': {
-				'actions': deduplicate_actions(d.get('possible_actions')),
+				'actions': list(deduplicate_actions(d.get('possible_actions'))),
 				'message': message
 			},
 			'reference_name': doc.name,

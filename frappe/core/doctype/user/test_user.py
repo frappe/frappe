@@ -224,3 +224,4 @@ class TestUser(unittest.TestCase):
 
 def delete_contact(user):
 	frappe.db.sql("DELETE FROM `tabContact` WHERE `email_id`= %s", user)
+	frappe.db.sql("DELETE FROM `tabContact Email` WHERE `email_id`= %s", user)

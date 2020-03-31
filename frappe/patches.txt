@@ -267,3 +267,8 @@ execute:frappe.delete_doc("Test Runner")
 execute:frappe.delete_doc_if_exists('DocType', 'Google Maps Settings')
 execute:frappe.db.set_default('desktop:home_page', 'workspace')
 frappe.patches.v13.migrate_translation_column_data
+execute:frappe.delete_doc_if_exists('DocType', 'GSuite Settings')
+execute:frappe.delete_doc_if_exists('DocType', 'GSuite Templates')
+execute:frappe.delete_doc_if_exists('DocType', 'GCalendar Account')
+execute:frappe.delete_doc_if_exists('DocType', 'GCalendar Settings')
+frappe.patches.v12_0.remove_parent_and_parenttype_from_print_formats

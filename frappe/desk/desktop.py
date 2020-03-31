@@ -7,6 +7,7 @@ import frappe
 import json
 from frappe import _, DoesNotExistError
 from frappe.boot import get_allowed_pages, get_allowed_reports
+from six import string_types
 from frappe.cache_manager import build_domain_restriced_doctype_cache, build_domain_restriced_page_cache, build_table_count_cache
 
 class Workspace:
@@ -15,6 +16,7 @@ class Workspace:
 
 	def build_cache(self):
 		self.doc = frappe.get_doc("Desk Page", self.page_name)
+		self.get_pages_to_extend()
 
 		user = frappe.get_user()
 		user.build_permissions()
@@ -23,9 +25,25 @@ class Workspace:
 		self.allowed_pages = get_allowed_pages()
 		self.allowed_reports = get_allowed_reports()
 
-		self.table_counts = build_table_count_cache()
+		self.table_counts = get_table_with_counts()
 		self.restricted_doctypes = build_domain_restriced_doctype_cache()
 		self.restricted_pages = build_domain_restriced_page_cache()
+
+	def get_pages_to_extend(self):
+		pages = frappe.get_all("Desk Page", filters={
+			"extends": self.page_name,
+			'restrict_to_domain': ['in', frappe.get_active_domains()]
+		})
+
+		pages = [frappe.get_doc("Desk Page", page['name']) for page in pages]
+		self.extended_cards = []
+		self.extended_charts = []
+		self.extended_shortcuts = []
+
+		for page in pages:
+			self.extended_cards = self.extended_cards + page.cards
+			self.extended_charts = self.extended_charts + page.charts
+			self.extended_shortcuts = self.extended_shortcuts + page.shortcuts
 
 	def is_item_allowed(self, name, item_type):
 		item_type = item_type.lower()
@@ -43,12 +61,12 @@ class Workspace:
 
 	def build_workspace(self):
 		self.cards = {
-			'label': self.doc.charts_label,
+			'label': self.doc.cards_label,
 			'items': self.get_cards()
 		}
 
 		self.charts = {
-			'label': self.doc.shortcuts_label,
+			'label': self.doc.charts_label,
 			'items': self.get_charts()
 		}
 
@@ -59,6 +77,8 @@ class Workspace:
 
 	def get_cards(self):
 		cards = self.doc.cards + get_custom_reports_and_doctypes(self.doc.module)
+		if len(self.extended_cards):
+			cards = cards + self.extended_cards
 		default_country = frappe.db.get_default("country")
 
 		def _doctype_contains_a_record(name):
@@ -90,7 +110,7 @@ class Workspace:
 		new_data = []
 		for section in cards:
 			new_items = []
-			if isinstance(section.links, str):
+			if isinstance(section.links, string_types):
 				links = json.loads(section.links)
 			else:
 				links = section.links
@@ -119,16 +139,35 @@ class Workspace:
 		return new_data
 
 	def get_charts(self):
+		all_charts = []
 		if frappe.has_permission("Dashboard Chart", throw=False):
-			return [chart for chart in self.doc.charts]
-		return []
+			charts = self.doc.charts
+			if len(self.extended_charts):
+				charts = charts + self.extended_charts
+
+			for chart in charts:
+				chart.label = chart.label if chart.label else chart.chart_name
+				all_charts.append(chart)
+
+		return all_charts
 
 	def get_shortcuts(self):
+
+		def _in_active_domains(item):
+			if not item.restrict_to_domain:
+				return True
+			else:
+				return item.restrict_to_domain in frappe.get_active_domains()
+
 		items = []
-		for item in self.doc.shortcuts:
+		shortcuts = self.doc.shortcuts
+		if len(self.extended_shortcuts):
+			shortcuts = shortcuts + self.extended_shortcuts
+
+		for item in shortcuts:
 			new_item = item.as_dict().copy()
 			new_item['name'] = _(item.link_to)
-			if self.is_item_allowed(item.link_to, item.type):
+			if self.is_item_allowed(item.link_to, item.type) and _in_active_domains(item):
 				if item.type == "Page":
 					page = self.allowed_pages[item.link_to]
 					new_item['label'] = _(page.get("title", frappe.unscrub(item.link_to)))
@@ -173,7 +212,10 @@ def get_desk_sidebar_items():
 	"""Get list of sidebar items for desk
 	"""
 	# don't get domain restricted pages
-	filters = {'restrict_to_domain': ['in', frappe.get_active_domains()]}
+	filters = {
+		'restrict_to_domain': ['in', frappe.get_active_domains()],
+		'extends_another_page': False
+	}
 
 	if not frappe.local.conf.developer_mode:
 		filters['developer_mode_only'] = '0'
@@ -200,12 +242,8 @@ def get_table_with_counts():
 def get_custom_reports_and_doctypes(module):
 	return [
 		frappe._dict({
-			"title": "Custom Reports",
-			"links": get_custom_report_list(module)
-		}),
-		frappe._dict({
-			"title": "Custom DocTypes",
-			"links": get_custom_doctype_list(module)
+			"title": "Custom",
+			"links": get_custom_doctype_list(module) + get_custom_report_list(module)
 		})
 	]
 
