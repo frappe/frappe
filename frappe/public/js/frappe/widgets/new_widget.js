@@ -46,7 +46,7 @@ export default class NewWidget {
 		let doctype = WIDGET_DOCTYPE_MAP[this.type]
 
 		if (!doctype) {
-			console.log(`Could not find ${this.type}`)
+			console.warn(`Could not find ${this.type}`)
 		}
 
 		frappe.model.with_doctype(doctype, () => {
