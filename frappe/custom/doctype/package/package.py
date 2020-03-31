@@ -30,7 +30,6 @@ class Package(Document):
 @frappe.whitelist()
 def export_package():
 	"""Export package as JSON."""
-
 	package_doc = frappe.get_single("Package")
 	package = []
 
@@ -68,7 +67,6 @@ def export_package():
 @frappe.whitelist()
 def import_package(package=None):
 	"""Import package from JSON."""
-
 	if isinstance(package, string_types):
 		package = json.loads(package)
 
@@ -97,7 +95,6 @@ def add_attachment(attachments, doc):
 
 def post_process(package):
 	"""Remove the keys from Document and Child Document. Convert datetime, date, time to str."""
-
 	del_keys = ('modified_by', 'creation', 'owner', 'idx', 'docstatus')
 	child_del_keys = ('modified_by', 'creation', 'owner', 'idx', 'docstatus', 'name')
 
