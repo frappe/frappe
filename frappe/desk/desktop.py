@@ -101,6 +101,7 @@ class Workspace:
 				# Mark Spotlights for initial
 				if item.get("type") == "doctype":
 					name = item.get("name")
+					label = _(item.get("label"))
 					count = _doctype_contains_a_record(name)
 
 					item["count"] = count

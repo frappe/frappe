@@ -51,7 +51,7 @@ export default class LinksWidget extends Widget {
 						${item.label ? item.label : item.name}</span>`;
 
 			return `<a data-route="${generate_route(item)}" class="link-content ellipsis">
-					${item.label ? item.label : item.name}</a>`;
+					${__(item.label ? item.label : item.name)}</a>`;
 		};
 
 		this.link_list = this.links.map(item => {

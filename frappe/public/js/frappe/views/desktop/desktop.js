@@ -5,10 +5,10 @@ export default class Desktop {
 		this.pages = {};
 		this.sidebar_items = {};
 		this.sidebar_categories = [
-			"Modules",
-			"Domains",
-			"Places",
-			"Administration"
+			__("Modules"),
+			__("Domains"),
+			__("Places"),
+			__("Administration")
 		];
 		this.make();
 	}
@@ -64,7 +64,7 @@ export default class Desktop {
 				item.name}" class="sidebar-item ${
 				item.selected ? "selected" : ""
 			}">
-					<span>${item.name}</span>
+					<span>${__(item.name)}</span>
 				</div>`);
 		};
 
@@ -225,7 +225,7 @@ class DesktopPage {
 
 	make_charts() {
 		this.sections["charts"] = new frappe.widget.WidgetGroup({
-			title: this.data.charts.label || `${this.page_name} Dashboard`,
+			title: __(this.data.charts.label) || __(`${this.page_name} Dashboard`),
 			container: this.page,
 			type: "chart",
 			columns: 1,
@@ -236,7 +236,7 @@ class DesktopPage {
 
 	make_shortcuts() {
 		this.sections["shortcuts"] = new frappe.widget.WidgetGroup({
-			title: this.data.shortcuts.label || `Your Shortcuts`,
+			title: __(this.data.shortcuts.label) || __(`Your Shortcuts`),
 			container: this.page,
 			type: "bookmark",
 			columns: 3,
@@ -247,7 +247,7 @@ class DesktopPage {
 
 	make_cards() {
 		let cards = new frappe.widget.WidgetGroup({
-			title: this.data.cards.label || `Reports & Masters`,
+			title: __(this.data.cards.label) || __(`Reports & Masters`),
 			container: this.page,
 			type: "links",
 			columns: 3,
@@ -273,7 +273,7 @@ class DesktopPage {
 		].map(item => {
 			return `<div class="legend-item small text-muted justify-flex-start">
 				<span class="indicator ${item.color}"></span>
-				<span class="link-content ellipsis" draggable="false">${item.description}</span>
+				<span class="link-content ellipsis" draggable="false">${__(item.description)}</span>
 			</div>`;
 		});
 
