@@ -120,14 +120,14 @@ class TestDocType(unittest.TestCase):
 
 		for field_option in (valid_data_field_options + invalid_data_field_options):
 			test_doctype = frappe.get_doc({
-			"doctype": "DocType",
-			"name": doctype_name,
-			"module": "Core",
-			"custom": 1,
-			"fields": [{
-				"fieldname": "{0}_field".format(field_option),
-				"fieldtype": "Data",
-				"options": field_option
+				"doctype": "DocType",
+				"name": doctype_name,
+				"module": "Core",
+				"custom": 1,
+				"fields": [{
+					"fieldname": "{0}_field".format(field_option),
+					"fieldtype": "Data",
+					"options": field_option
 				}]
 			})
 
