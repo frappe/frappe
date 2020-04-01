@@ -544,6 +544,23 @@ class BaseDocument(object):
 				frappe.throw(_('{0} {1} cannot be "{2}". It should be one of "{3}"').format(prefix, label,
 					value, comma_options))
 
+	def _validate_data_fields(self):
+		from frappe.core.doctype.user.user import STANDARD_USERS
+
+		# data_field options defined in frappe.model.data_field_options
+		for data_field in self.meta.get_data_fields():
+			data = self.get(data_field.fieldname)
+			data_field_options = data_field.get("options")
+
+			if data_field_options == "Email":
+				if (self.owner in STANDARD_USERS) and (data in STANDARD_USERS):
+					return
+				for email_address in frappe.utils.split_emails(data):
+					frappe.utils.validate_email_address(email_address, throw=True)
+
+			if data_field_options == "Phone":
+				frappe.utils.validate_phone_number(data, throw=True)
+
 	def _validate_constants(self):
 		if frappe.flags.in_import or self.is_new() or self.flags.ignore_validate_constants:
 			return
