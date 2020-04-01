@@ -45,19 +45,28 @@ def get_transitions(doc, workflow = None, raise_exception=False):
 	transitions = []
 	for transition in workflow.transitions:
 		if transition.state == current_state and transition.allowed in roles:
-			if transition.condition:
-				# if condition, evaluate
-				# access to frappe.db.get_value and frappe.db.get_list
-				success = frappe.safe_eval(transition.condition,
-					dict(frappe = frappe._dict(
-						db = frappe._dict(get_value = frappe.db.get_value, get_list=frappe.db.get_list),
-						session = frappe.session
-					)),
-					dict(doc = doc))
-				if not success:
-					continue
+			if not is_transition_condition_satisfied(transition, doc):
+				continue
 			transitions.append(transition.as_dict())
 	return transitions
+
+def get_workflow_safe_globals():
+	# access to frappe.db.get_value and frappe.db.get_list
+	return dict(
+		frappe=frappe._dict(
+			db=frappe._dict(
+				get_value=frappe.db.get_value,
+				get_list=frappe.db.get_list
+			),
+			session=frappe.session
+		)
+	)
+
+def is_transition_condition_satisfied(transition, doc):
+	if not transition.condition:
+		return True
+	else:
+		return frappe.safe_eval(transition.condition, get_workflow_safe_globals(), dict(doc=doc.as_dict()))
 
 @frappe.whitelist()
 def apply_workflow(doc, action):
