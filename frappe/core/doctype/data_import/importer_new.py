@@ -821,7 +821,11 @@ class Importer:
 		id_fieldname = self.get_id_fieldname(self.doctype)
 		id_value = doc[id_fieldname]
 		existing_doc = frappe.get_doc(self.doctype, id_value)
-		existing_doc.flags.via_data_import = self.data_import.name
+		existing_doc.flags.updater_reference = {
+			'doctype': self.data_import.doctype,
+			'docname': self.data_import.name,
+			'label': _('via Data Import')
+		}
 		existing_doc.update(doc)
 		existing_doc.save()
 		return existing_doc
