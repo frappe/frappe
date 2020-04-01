@@ -15,7 +15,7 @@ def get_context(context):
 	if (frappe.session.user == "Guest"):												#show message if user is logged out
 		frappe.throw(_("Log in to access this page."), frappe.PermissionError)
 
-	elif (frappe.db.get_value("User", frappe.session.user, "user_type")=="Website User")): 		#show message if user is website user
+	elif (frappe.db.get_value("User", frappe.session.user, "user_type")=="Website User"): 		#show message if user is website user
 		frappe.throw(_("You are not permitted to access this page."), frappe.PermissionError)
 
 	hooks = frappe.get_hooks()
