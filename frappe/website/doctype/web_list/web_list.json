@@ -1,0 +1,138 @@
+{
+ "actions": [],
+ "creation": "2020-03-28 14:30:02.523080",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "title",
+  "reference_doctype",
+  "list_style",
+  "css_class",
+  "column_break_3",
+  "route",
+  "is_published",
+  "section_break_6",
+  "filters",
+  "section_break_8",
+  "columns",
+  "template_section",
+  "template"
+ ],
+ "fields": [
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Title",
+   "reqd": 1
+  },
+  {
+   "fieldname": "reference_doctype",
+   "fieldtype": "Link",
+   "label": "Reference DocType",
+   "options": "DocType",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_3",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "route",
+   "fieldtype": "Data",
+   "label": "Route"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_published",
+   "fieldtype": "Check",
+   "label": "Is Published"
+  },
+  {
+   "fieldname": "section_break_6",
+   "fieldtype": "Section Break",
+   "label": "Filters"
+  },
+  {
+   "fieldname": "filters",
+   "fieldtype": "Table",
+   "label": "Filters",
+   "options": "Web List Filter"
+  },
+  {
+   "description": "For Blog and Card style, first column is the title, second is the content, the rest are badges.",
+   "fieldname": "section_break_8",
+   "fieldtype": "Section Break",
+   "label": "Columns"
+  },
+  {
+   "fieldname": "columns",
+   "fieldtype": "Table",
+   "label": "Columns",
+   "options": "Web List Column",
+   "reqd": 1
+  },
+  {
+   "depends_on": "eval:doc.list_style===\"Template\"",
+   "fieldname": "template_section",
+   "fieldtype": "Section Break",
+   "label": "Template"
+  },
+  {
+   "fieldname": "template",
+   "fieldtype": "Code",
+   "label": "Template"
+  },
+  {
+   "fieldname": "list_style",
+   "fieldtype": "Select",
+   "label": "List Style",
+   "options": "Table\nBlog\nCard\nTemplate",
+   "reqd": 1
+  },
+  {
+   "fieldname": "css_class",
+   "fieldtype": "Link",
+   "label": "CSS Class",
+   "options": "CSS Class"
+  }
+ ],
+ "has_web_view": 1,
+ "links": [],
+ "modified": "2020-03-29 12:20:57.747810",
+ "modified_by": "Administrator",
+ "module": "Website",
+ "name": "Web List",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Website Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "quick_entry": 1,
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "track_changes": 1
+}
