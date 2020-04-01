@@ -114,20 +114,29 @@ class TestDocType(unittest.TestCase):
 					self.assertFalse(re.match(pattern, condition))
 
 	def test_data_field_options(self):
-		for field in frappe.model.data_field_options:
-			test_doctype = frappe.get_doc({
-				"doctype": "DocType",
-				"name": "Test Data Fields",
-				"module": "Core",
-				"custom": 1,
-				"fields": [{
-					"fieldname": "{0}_field".format(field),
-					"fieldtype": "Data",
-					"options": field + ".invalid"
-				}]
-			})
-			# assert that only data options in frappe.model.data_field_options are valid
-			self.assertRaises(frappe.ValidationError, test_doctype.insert)
+		valid_data_field_options = frappe.model.data_field_options + ("",)
+		invalid_data_field_options = ("Invalid Option 1", "Invalid Option 2", frappe.utils.random_string(5))
+
+		for options_set in [valid_data_field_options, invalid_data_field_options]:
+			for field in options_set:
+				test_doctype = frappe.get_doc({
+					"doctype": "DocType",
+					"name": "Test Data Fields",
+					"module": "Core",
+					"custom": 1,
+					"fields": [{
+						"fieldname": "{0}_field".format(field),
+						"fieldtype": "Data",
+						"options": field
+					}]
+				})
+				if options_set == invalid_data_field_options:
+					# assert that only data options in frappe.model.data_field_options are valid
+					self.assertRaises(frappe.ValidationError, test_doctype.insert)
+				else:
+					test_doctype.insert()
+					self.assertEqual(test_doctype.name, doctype_name)
+					test_doctype.delete()
 
 	def test_sync_field_order(self):
 		from frappe.modules.import_file import get_file_path
