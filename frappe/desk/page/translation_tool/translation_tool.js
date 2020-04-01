@@ -134,16 +134,17 @@ class TranslationTool {
 		if (this.form) {
 			this.form.set_values({});
 		}
-		this.get_additional_info(translation.id).then(data =>
-			this.make_edit_form(translation, data)
-		);
+		this.get_additional_info(translation.id).then(data => {
+			this.make_edit_form(translation, data);
+		});
 	}
 
 	get_additional_info(source_id) {
+		frappe.dom.freeze('Fetching...');
 		return frappe.xcall('frappe.translate.get_source_additional_info', {
 			source: source_id,
 			language: this.page.fields_dict['language'].get_value()
-		});
+		}).finally(frappe.dom.unfreeze);
 	}
 
 	make_edit_form(translation, { contributions, positions }) {
@@ -168,10 +169,6 @@ class TranslationTool {
 						enable_copy_button: 1
 					},
 					{
-						fieldtype: 'HTML',
-						fieldname: 'positions'
-					},
-					{
 						label: 'Context',
 						fieldtype: 'Code',
 						fieldname: 'context',
@@ -184,14 +181,14 @@ class TranslationTool {
 						read_only: 1
 					},
 					{
-						fieldtype: 'HTML',
-						fieldname: 'contributed_translations'
-					},
-					{
 						label: 'Translated Text',
 						fieldtype: 'Small Text',
 						fieldname: 'translated_text',
-						change: () => {
+					},
+					{
+						label: 'Suggest',
+						fieldtype: 'Button',
+						click: () => {
 							let { id, translated_text, source_text } = this.form.get_values();
 							let existing_value = this.form.translation_dict.translated_text;
 							if (
@@ -210,9 +207,17 @@ class TranslationTool {
 						}
 					},
 					{
-						label: 'Suggest',
-						fieldtype: 'Button',
-						click() {}
+						fieldtype: 'Section Break',
+						collapsible: '1',
+						label: 'Additional'
+					},
+					{
+						fieldtype: 'HTML',
+						fieldname: 'positions'
+					},
+					{
+						fieldtype: 'HTML',
+						fieldname: 'contributed_translations'
 					}
 				],
 				body: this.wrapper.find('.translation-edit-form')
@@ -228,30 +233,8 @@ class TranslationTool {
 		this.form.set_df_property('context', 'hidden', !translation.context);
 		this.set_status(translation);
 
-		let contributions_html = contributions.map(c => {
-			return `
-			<div class="attached-file flex justify-between align-center" style="display: flex;">
-				<div class="ellipsis">${JSON.stringify(c)}</div>
-				<div>
-					<button class="btn btn-xs btn-default" data-action="reload_attachment">Upvote</button>
-					<button class="btn btn-xs btn-default" data-action="clear_attachment">Report</button>
-				</div>
-			</div>
-			`;
-		});
-		this.form.get_field('contributed_translations').html(contributions_html);
-	}
-
-	setup_additional_info(source_id) {
-		frappe
-			.xcall('frappe.translate.get_source_additional_info', {
-				source: source_id,
-				language: this.page.fields_dict['language'].get_value()
-			})
-			.then(data => {
-				this.setup_positions(data.positions);
-				// this.setup_contributions(data.contributions);
-			});
+		this.setup_contributions(contributions);
+		this.setup_positions(positions);
 	}
 
 	setup_header() {
@@ -312,11 +295,12 @@ class TranslationTool {
 					</div>`;
 				} else {
 					position_dom += `<div>
-						<a class="text-muted" target="_blank" href="${this.get_code_url(
-							position.path,
-							position.line_no,
-							position.app
-						)}">${position.path}</a>
+						<a
+							class="text-muted"
+							target="_blank"
+							href="${this.get_code_url(position.path, position.line_no, position.app)}">
+							${position.path}
+						</a>
 					</div>`;
 				}
 			});
@@ -325,23 +309,18 @@ class TranslationTool {
 	}
 
 	setup_contributions(contributions) {
-		let contributions_dom = ``;
-		if (contributions && contributions.length) {
-			contributions_dom += `
-				<h4>Other Contributions</h4>
+		let contributions_html = contributions.map(c => {
+			return `
+			<div class="attached-file flex justify-between align-center" style="display: flex;">
+				<div class="ellipsis">${c.translated}</div>
+				<div>
+					<button class="btn btn-xs btn-default" data-action="reload_attachment">${__('Upvote')}</button>
+					<button class="btn btn-xs btn-default" data-action="clear_attachment">${__('Report')}</button>
+				</div>
+			</div>
 			`;
-
-			contributions.forEach(contribution => {
-				contributions_dom += `<div>
-					<span class="pull-right text-muted">${frappe.datetime.comment_when(
-						contribution.creation
-					)}</span>
-					<div class="text-muted">By ${contribution.contributor_name} </div>
-					<span> ${contribution.translated} </span>
-				</div>`;
-			});
-		}
-		this.wrapper.find('.other-contributions').html(contributions_dom);
+		});
+		this.form.get_field('contributed_translations').html(contributions_html);
 	}
 	show_confirmation_dialog() {
 		this.confirmation_dialog = new frappe.ui.Dialog({

@@ -12,16 +12,20 @@
 	background-color: #fffce7;
 }
 
-.translation-item-container {
-	height: calc(100vh - 320px);
-	overflow: auto;
-}
-
 .translation-edit-section {
-	height: calc(100vh - 240px);
-	overflow: auto;
+	height: 100%;
+	overflow-y: scroll;
+	padding: 0px;
 }
 
-.translation-edit-form .ace-editor-target {
-	height: 180px !important;
+.translation-tool {
+	border: 0px 1px 1px 1px solid #d1d8dd;
+	width: 100%;
+	height: 72vh;
+}
+
+.left-side {
+	padding: 0px;
+	height: 100%;
+	overflow-y: scroll;
 }
