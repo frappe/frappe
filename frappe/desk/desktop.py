@@ -216,7 +216,7 @@ def get_desktop_page(page):
 	except DoesNotExistError:
 		if frappe.message_log:
 			frappe.message_log.pop()
-		return Nonee
+		return None
 
 @frappe.whitelist()
 def get_desk_sidebar_items():
