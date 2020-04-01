@@ -4,9 +4,11 @@
 
 from __future__ import unicode_literals
 import frappe
+import json
 from frappe.model.document import Document
 from frappe import _
 from frappe.utils import cint
+from frappe.utils import get_url
 
 class BulkUpdate(Document):
 	pass
@@ -71,3 +73,63 @@ def show_progress(docnames, message, i, description):
 			title = message,
 			description = description
 		)
+
+@frappe.whitelist()
+def get_contact(name, doctype):
+	out = frappe._dict()
+
+	if doctype == "Purchase Order":
+		name = frappe.db.get_value("Purchase Order", name, ["supplier"])
+		doctype = "Supplier"
+	elif doctype == "Purchase Invoice":
+		name = frappe.db.get_value("Purchase Invoice", name, ["supplier"])
+		doctype = "Supplier"
+	elif doctype == "Sales Order":
+		name = frappe.db.get_value("Sales Order", name, ["customer"])
+		doctype = "Customer"
+	elif doctype == "Sales Invoice":
+		name = frappe.db.get_value("Sales Invoice", name, ["customer"])
+		doctype = "Customer"
+	get_default_contact(out, name, doctype)
+
+	return out
+
+def get_default_contact(out, name, doctype):
+	contact_persons = frappe.db.sql(
+		"""
+			SELECT parent,
+				(SELECT is_primary_contact FROM tabContact c WHERE c.name = dl.parent) AS is_primary_contact
+			FROM
+				`tabDynamic Link` dl
+			WHERE
+				dl.link_doctype=%s
+				AND dl.link_name=%s
+				AND dl.parenttype = "Contact"
+		""", (doctype,name), as_dict=1)
+
+	if contact_persons:
+		for out.contact_person in contact_persons:
+			out.contact_person.email_id = frappe.db.get_value("Contact", out.contact_person.parent, ["email_id"])
+			if out.contact_person.is_primary_contact:
+				return out.contact_person
+
+		out.contact_person = contact_persons[0]
+
+		return out.contact_person
+
+@frappe.whitelist()
+def get_attach_link(docs, doctype):
+	docs = json.loads(docs)
+	print_format = "print_format"
+	links = []
+	for doc in docs:
+		link = frappe.get_template("templates/emails/print_link.html").render({
+			"url": get_url(),
+			"doctype": doctype,
+			"name": doc.get("name"),
+			"print_format": print_format,
+			"key": frappe.get_doc(doctype, doc.get("name")).get_signature()
+		})
+		links.append(link)
+	return links
+

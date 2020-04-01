@@ -64,6 +64,44 @@ export default class BulkOperations {
 		}
 	}
 
+	email(selected_docs) {
+		const doctype = this.doctype;
+		if (selected_docs.length > 0) {
+			let title = selected_docs[0].title;
+			for (let doc of selected_docs) {
+				if (doc.docstatus !== 1) {
+					frappe.throw(__("Cannot Email Draft or cancelled documents"));
+				}
+				if (doc.title !== title) {
+					frappe.throw(__("Select only one customer's sales orders"))
+				}
+			};
+			frappe.call({
+				method: "frappe.desk.doctype.bulk_update.bulk_update.get_contact",
+				args: { "name": selected_docs[0].name, doctype: doctype },
+				callback: function (r) {
+					if (r.message) {
+						frappe.call({
+							method: "frappe.desk.doctype.bulk_update.bulk_update.get_attach_link",
+							args: { docs: selected_docs, doctype: doctype },
+							callback: function (res) {
+								new frappe.views.CommunicationComposer({
+									subject: frappe.sys_defaults.company + " " + doctype + " links",
+									recipients: r.message.contact_person ? r.message.contact_person.email_id : null,
+									message: res.message,
+									doc: {
+										doctype: doctype,
+										name: frappe.session.user
+									}
+								})
+							}
+						})
+					}
+				}
+			})
+		}
+	}
+
 	delete(docnames, done = null) {
 		frappe
 			.call({
