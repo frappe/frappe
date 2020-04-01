@@ -92,17 +92,18 @@ frappe.ui.GroupBy = class {
 	}
 
 	apply_settings(settings) {
+		if (settings && settings.group_by) {
+			// Extract fieldname from `tabdoctype`.`fieldname`
+			let group_by_fieldname = settings.group_by.split('.')[1].replace(/`/g, '');
 
-		// Extract fieldname from `tabdoctype`.`fieldname`
-		let group_by_fieldname = settings.group_by.split('.')[1].replace(/`/g, '');
+			this.groupby_select.val(group_by_fieldname);
+			this.aggregate_function_select.val(settings.aggregate_function);
+			this.show_hide_aggregate_on();
+			this.aggregate_on_select.val(settings.aggregate_on);
+			this.groupby_edit_area.show();
 
-		this.groupby_select.val(group_by_fieldname);
-		this.aggregate_function_select.val(settings.aggregate_function);
-		this.show_hide_aggregate_on();
-		this.aggregate_on_select.val(settings.aggregate_on);
-		this.groupby_edit_area.show();
-
-		this.apply_group_by();
+			this.apply_group_by();
+		}
 	}
 
 	make_group_by_button() {
@@ -160,7 +161,7 @@ frappe.ui.GroupBy = class {
 			if (this.aggregate_function === 'count') {
 				aggregate_column = 'count(`tab'+ this.doctype + '`.`name`)';
 			} else {
-				aggregate_column = 
+				aggregate_column =
 					`${this.aggregate_function}(\`tab${this.aggregate_on_doctype}\`.\`${this.aggregate_on}\`)`;
 				aggregate_on_field = '`tab' + this.aggregate_on_doctype + '`.`' + this.aggregate_on + '`';
 			}
