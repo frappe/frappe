@@ -1,0 +1,30 @@
+# Each line is a file pattern followed by one or more owners.
+
+# These owners will be the default owners for everything in
+# the repo. Unless a later match takes precedence,
+# @global-owner1 and @global-owner2 will be requested for
+# review when someone opens a pull request.
+*       @surajshetty3416, @netchampfaris
+
+# Website
+website/  @scmmishra
+templates/  @scmmishra
+www/ @scmmishra
+
+integrations/ @Mangesh-Khairnar
+
+patches/ @surajshetty3416 @sahil28297
+
+dashboard/ @prssanna
+
+email/ @Thunderbottom
+
+event_streaming/ @ruchamahabal
+
+data_import* @netchampfaris
+
+core/ @surajshetty3416
+
+requirements.txt @gavindsouza
+
+chat/ @god
