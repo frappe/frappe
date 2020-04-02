@@ -168,7 +168,7 @@ class DesktopPage {
 			let create_shortcuts_and_cards = () => {
 				this.data.shortcuts.items.length && this.make_shortcuts();
 				this.data.cards.items.length && this.make_cards();
-			}
+			};
 
 			if (!this.sections["onboarding"] && this.data.charts.items.length) {
 				this.make_charts().then(() => {
@@ -235,7 +235,7 @@ class DesktopPage {
 			let chart_config = settings.chart_config? JSON.parse(settings.chart_config): {};
 			if (this.data.charts.items) {
 				this.data.charts.items.map(chart => {
-					chart.chart_settings = chart_config[chart.chart_name] || {}
+					chart.chart_settings = chart_config[chart.chart_name] || {};
 				});
 			}
 

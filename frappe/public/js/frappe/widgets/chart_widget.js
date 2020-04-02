@@ -132,8 +132,7 @@ export default class ChartWidget extends Widget {
 				options: ["Yearly", "Quarterly", "Monthly", "Weekly", "Daily"],
 				action: selected_item => {
 					this.selected_time_interval = selected_item;
-
-					this.save_chart_config_for_user({'time_interval': this.selected_time_interval})
+					this.save_chart_config_for_user({'time_interval': this.selected_time_interval});
 					this.fetch_and_update_chart();
 				}
 			}
@@ -382,8 +381,7 @@ export default class ChartWidget extends Widget {
 
 	save_chart_config_for_user(config, reset=0) {
 		Object.assign(this.chart_settings, config);
-		frappe.xcall('frappe.desk.doctype.dashboard_settings.dashboard_settings.save_chart_config',
-		{
+		frappe.xcall('frappe.desk.doctype.dashboard_settings.dashboard_settings.save_chart_config', {
 			'reset': reset,
 			'config': this.chart_settings,
 			'chart_name': this.chart_doc.chart_name
