@@ -243,7 +243,7 @@ export default class ChartWidget extends Widget {
 				}
 			},
 			{
-				label: __("Edit..."),
+				label: __("Edit"),
 				action: "action-edit",
 				handler: () => {
 					frappe.set_route(
@@ -251,6 +251,15 @@ export default class ChartWidget extends Widget {
 						"Dashboard Chart",
 						this.chart_doc.name
 					);
+				}
+			},
+			{
+				label: __("Reset Chart"),
+				action: "action-list",
+				handler: () => {
+					this.reset_chart();
+					delete this.dashboard_chart;
+					this.make_chart();
 				}
 			}
 		];
@@ -359,10 +368,17 @@ export default class ChartWidget extends Widget {
 		dialog.set_values(this.filters);
 	}
 
-	save_chart_config_for_user(config) {
+	reset_chart() {
+		this.save_chart_config_for_user(null, 1);
+		this.chart_settings = {};
+		this.filters = null;
+	}
+
+	save_chart_config_for_user(config, reset=0) {
 		Object.assign(this.chart_settings, config);
 		frappe.xcall('frappe.desk.doctype.dashboard_settings.dashboard_settings.save_chart_config',
 		{
+			'reset': reset,
 			'config': this.chart_settings,
 			'chart_name': this.chart_doc.chart_name
 		});

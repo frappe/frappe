@@ -27,13 +27,17 @@ def get_permission_query_conditions(user):
 	return '''(`tabDashboard Settings`.name = '{user}')'''.format(user=user)
 
 @frappe.whitelist()
-def save_chart_config(config, chart_name):
-	config = frappe.parse_json(config)
+def save_chart_config(reset, config, chart_name):
+	reset = frappe.parse_json(reset)
 	doc = frappe.get_doc('Dashboard Settings', frappe.session.user)
 	chart_config = frappe.parse_json(doc.chart_config) or {}
 
-	if not chart_name in chart_config:
+	if reset:
 		chart_config[chart_name] = {}
+	else:
+		config = frappe.parse_json(config)
+		if not chart_name in chart_config:
+			chart_config[chart_name] = {}
+		chart_config[chart_name].update(config)
 
-	chart_config[chart_name].update(config)
 	frappe.db.set_value('Dashboard Settings', frappe.session.user, 'chart_config', json.dumps(chart_config))
