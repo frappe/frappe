@@ -73,6 +73,8 @@ export default class WidgetGroup {
 
 		this.widgets_list.push(widget_object);
 		this.widgets_dict[widget.name] = widget_object;
+
+		return widget_object
 	}
 
 	customize() {
@@ -81,29 +83,43 @@ export default class WidgetGroup {
 			wid.customize(this.options);
 		})
 
+		this.options.allow_create && this.setup_new_widget();
+		this.options.allow_sorting && this.setup_sortable();
+	}
+
+	setup_new_widget() {
 		const max = this.options
 					? this.options.max_widget_count || Number.POSITIVE_INFINITY
 					: Number.POSITIVE_INFINITY;
 
-		if (this.options.allow_create && this.widgets_list.length < max) {
+		if (this.widgets_list.length < max) {
 			this.new_widget = new NewWidget({
 				container: this.body,
 				type: this.type,
 				on_create: (config) => {
+					// Remove new widget
 					this.new_widget.delete();
-					this.add_widget(config);
-					this.customize();
+					delete this.new_widget;
+
+					// Add new widget and customize it
+					let wid = this.add_widget(config);
+					wid.customize(this.options);
+
+					// Put back the new widget if required
+					if (this.widgets_list.length < max) {
+						this.setup_new_widget();
+					}
 				}
 			})
 		}
-
-		this.options.allow_sorting && this.setup_sortable();
 	}
 
 	on_delete(name) {
 		this.widgets_list = this.widgets_list.filter(wid => name != wid.name);
 		delete this.widgets_dict[name];
 		this.update_widget_order();
+
+		if (!this.new_widget) this.setup_new_widget();
 	}
 
 	update_widget_order() {
