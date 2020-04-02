@@ -194,7 +194,7 @@ def bulk_workflow_approval(docnames, doctype, action):
 	from collections import defaultdict
 
 	# dictionaries for logging
-	errored_transactions = defaultdict(list)
+	failed_transactions = defaultdict(list)
 	successful_transactions = defaultdict(list)
 
 	# WARN: message log is cleared
@@ -215,7 +215,7 @@ def bulk_workflow_approval(docnames, doctype, action):
 				if e.args:
 					message +=  " : {0}".format(e.args[0])
 				message_dict = {"docname": docname, "message": message}
-				errored_transactions[docname].append(message_dict)
+				failed_transactions[docname].append(message_dict)
 
 			frappe.db.rollback()
 			frappe.log_error(frappe.get_traceback(), "Workflow {0} threw an error for {1} {2}".format(action, doctype, docname))
@@ -228,20 +228,20 @@ def bulk_workflow_approval(docnames, doctype, action):
 						message_dict = {"docname": docname, "message": message.get("message")}
 
 						if message.get("raise_exception", False):
-							errored_transactions[docname].append(message_dict)
+							failed_transactions[docname].append(message_dict)
 						else:
 							successful_transactions[docname].append(message_dict)
 				else:
 					successful_transactions[docname].append({"docname": docname, "message": None})
 
-	if errored_transactions and successful_transactions:
+	if failed_transactions and successful_transactions:
 		indicator = "orange"
-	elif errored_transactions:
+	elif failed_transactions:
 		indicator  = "red"
 	else:
 		indicator = "green"
 
-	print_workflow_log(errored_transactions, _("Errored Transactions"), doctype, indicator)
+	print_workflow_log(failed_transactions, _("Failed Transactions"), doctype, indicator)
 	print_workflow_log(successful_transactions, _("Successful Transactions"), doctype, indicator)
 
 def print_workflow_log(messages, title, doctype, indicator):
