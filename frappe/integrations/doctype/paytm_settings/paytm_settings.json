@@ -1,0 +1,46 @@
+{
+ "actions": [],
+ "creation": "2020-04-02 00:11:22.846697",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "merchant_id",
+  "merchant_key"
+ ],
+ "fields": [
+  {
+   "fieldname": "merchant_id",
+   "fieldtype": "Data",
+   "label": "Merchant ID"
+  },
+  {
+   "fieldname": "merchant_key",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Merchant Key"
+  }
+ ],
+ "issingle": 1,
+ "links": [],
+ "modified": "2020-04-02 00:11:22.846697",
+ "modified_by": "Administrator",
+ "module": "Integrations",
+ "name": "Paytm Settings",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}
