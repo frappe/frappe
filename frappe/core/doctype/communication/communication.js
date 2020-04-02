@@ -147,7 +147,7 @@ frappe.ui.form.on("Communication", {
 		d.show();
 	},
 
-	show_move_dialog: function(frm){
+	show_move_dialog: function(frm) {
 		var lib = "frappe.email";
 		var d = new frappe.ui.Dialog ({
 			title: __("Move"),
@@ -161,12 +161,13 @@ frappe.ui.form.on("Communication", {
 					return {
 						"filters": {
 							"name": ["!=", frm.doc.email_account],
+							"enable_incoming": ["=", 1]
 						}
 					}
 				}
 			}],
-            primary_action_label: __("Move"),
-            primary_action(values) {
+			primary_action_label: __("Move"),
+			primary_action(values) {
 				d.hide();
 				frappe.call({
 					method: "frappe.email.inbox.move_email",
@@ -179,7 +180,7 @@ frappe.ui.form.on("Communication", {
 						window.history.back();
 					}
 				});
-            }
+			}
 		});
 		d.show();
 	},

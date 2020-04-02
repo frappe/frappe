@@ -76,7 +76,7 @@ frappe.views.InboxView = class InboxView extends frappe.views.ListView {
 	}
 
 	render_header() {
-		this.$result.find('.list-row-head').remove()
+		this.$result.find('.list-row-head').remove();
 		this.$result.prepend(this.get_header_html());		
 	}
 
@@ -102,8 +102,8 @@ frappe.views.InboxView = class InboxView extends frappe.views.ListView {
 
 		const communication_date = comment_when(email.communication_date, true);
 		const status = email.status == "Closed" ? `<span class="fa fa-check fa-large" title="${__(email.status)}"></span>`
-		: email.status == "Replied" ? `<span class="fa fa-mail-reply fa-large" title="${__(email.status)}"></span>`
-		: "";
+			: email.status == "Replied" ? `<span class="fa fa-mail-reply fa-large" title="${__(email.status)}"></span>`
+			: "";
 
 		return `
 			<div class="level-item hidden-xs list-row-activity">
