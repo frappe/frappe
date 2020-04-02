@@ -117,9 +117,14 @@ export default class ChartWidget extends Widget {
 							this.head.css('flex-direction', "row");
 						}
 
+						this.save_chart_config_for_user({
+							'timespan': this.selected_timespan,
+							'from_date': null,
+							'to_date': null
+
+						});
 						this.fetch_and_update_chart();
 					}
-					this.save_chart_config_for_user({'timespan': this.selected_timespan})
 				}
 			},
 			{
@@ -191,6 +196,7 @@ export default class ChartWidget extends Widget {
 
 						if (selected_date_range && selected_date_range.length == 2) {
 							this.save_chart_config_for_user({
+								'timespan': this.selected_timespan,
 								'from_date': this.selected_from_date,
 								'to_date': this.selected_to_date,
 							});
