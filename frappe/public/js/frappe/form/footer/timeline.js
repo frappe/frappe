@@ -561,10 +561,9 @@ frappe.ui.form.Timeline = class Timeline {
 			}
 
 			let updater_reference_link = null;
-
-			if (!$.isEmptyObject(data.updater_reference)) {
+			let updater_reference = data.updater_reference;
+			if (!$.isEmptyObject(updater_reference)) {
 				let label = updater_reference.label || __('via {0}', [updater_reference.doctype]);
-				let updater_reference = data.updater_reference;
 				updater_reference_link = frappe.utils.get_form_link(
 					updater_reference.doctype,
 					updater_reference.docname,
