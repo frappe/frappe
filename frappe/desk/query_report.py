@@ -8,7 +8,7 @@ import os, json
 
 from frappe import _
 from frappe.modules import scrub, get_module_path
-from frappe.utils import flt, cint, get_html_format, cstr, get_url_to_form
+from frappe.utils import flt, cint, get_html_format, get_url_to_form
 from frappe.model.utils import render_include
 from frappe.translate import send_translations
 import frappe.desk.reportview
@@ -16,6 +16,7 @@ from frappe.permissions import get_role_permissions
 from six import string_types, iteritems
 from datetime import timedelta
 from frappe.utils import gzip_decompress
+from frappe.core.utils import ljust_list
 
 def get_report_doc(report_name):
 	doc = frappe.get_doc("Report", report_name)
@@ -43,44 +44,27 @@ def get_report_doc(report_name):
 
 
 def generate_report_result(report, filters=None, user=None, custom_columns=None):
-	status = None
-	if not user:
-		user = frappe.session.user
-	if not filters:
-		filters = []
+	user = user or frappe.session.user
+	filters = filters or []
 
 	if filters and isinstance(filters, string_types):
 		filters = json.loads(filters)
-	columns, result, message, chart, data_to_be_printed, skip_total_row = [], [], None, None, None, 0
+
+	res = []
+
 	if report.report_type == "Query Report":
-		if not report.query:
-			status = "error"
-			frappe.msgprint(_("Must specify a Query to run"), raise_exception=True)
-
-		if not report.query.lower().startswith("select"):
-			status = "error"
-			frappe.msgprint(_("Query must be a SELECT"), raise_exception=True)
-
-		result = [list(t) for t in frappe.db.sql(report.query, filters)]
-		columns = [cstr(c[0]) for c in frappe.db.get_description()]
+		res = report.execute_query_report(filters)
 
 	elif report.report_type == 'Script Report':
 		res = report.execute_script_report(filters)
 
-		columns, result = res[0], res[1]
-		if len(res) > 2:
-			message = res[2]
-		if len(res) > 3:
-			chart = res[3]
-		if len(res) > 4:
-			data_to_be_printed = res[4]
-		if len(res) > 5:
-			skip_total_row = cint(res[5])
+	columns, result, message, chart, data_to_be_printed, skip_total_row = \
+		ljust_list(res, 6)
 
 	if report.custom_columns:
 		columns = json.loads(report.custom_columns)
 		result = add_data_to_custom_columns(columns, result)
-	elif custom_columns:
+	if custom_columns:
 		result = add_data_to_custom_columns(custom_columns, result)
 
 		for custom_column in custom_columns:
@@ -98,8 +82,8 @@ def generate_report_result(report, filters=None, user=None, custom_columns=None)
 		"message": message,
 		"chart": chart,
 		"data_to_be_printed": data_to_be_printed,
-		"skip_total_row": skip_total_row,
-		"status": status,
+		"skip_total_row": skip_total_row or 0,
+		"status": None,
 		"execution_time": frappe.cache().hget('report_execution_time', report.name) or 0
 	}
 
