@@ -295,14 +295,15 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 		}, 500));
 
 		this.$input.on("blur", function() {
-			if(me.selected) {
+			if (me.selected) {
 				me.selected = false;
 				return;
 			}
-			var value = me.get_input_value();
-			var label = me.get_label_value();
+			let value = me.get_input_value();
+			let label = me.get_label_value();
+			let last_label = me.label;
 
-			if (value !== me.last_value) {
+			if (value !== me.last_value || last_label !== label) {
 				me.parse_validate_and_set_in_model(value, label);
 			}
 		});
@@ -501,8 +502,7 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 			return value;
 		}
 
-		return this.validate_link_and_fetch(this.df, this.get_options(),
-			this.docname, value);
+		return this.validate_link_and_fetch(this.df, this.get_options(), this.docname, value);
 	},
 	validate_link_and_fetch: function(df, doctype, docname, value) {
 		var me = this;
@@ -525,7 +525,7 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 					},
 					no_spinner: true,
 					callback: function(r) {
-						if(r.message=='Ok') {
+						if (r.message=='Ok') {
 							if(r.fetch_values && docname) {
 								me.set_fetch_values(df, docname, r.fetch_values);
 							}
@@ -537,6 +537,8 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 					}
 				});
 			});
+		} else {
+			me.reset_value();
 		}
 	},
 	set_fetch_values: function(df, docname, fetch_values) {
