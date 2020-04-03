@@ -64,7 +64,6 @@ apps/frappe/frappe/templates/emails/download_data.html,We have received a reques
 DocType: System Settings,"If enabled, the password strength will be enforced based on the Minimum Password Score value. A value of 2 being medium strong and 4 being very strong.","Falls diese Option aktiviert ist, wird die Passwortstärke auf der Grundlage des Minimum Password Score Wertes erzwungen. Ein Wert von 2 ist mittelstark und 4 sehr stark."
 DocType: About Us Settings,"""Team Members"" or ""Management""",„Teammitglieder“ oder „Management“
 apps/frappe/frappe/core/doctype/doctype/doctype.py,Default for 'Check' type of field must be either '0' or '1',Standard für 'Prüfen'-Feldtyp muss entweder '0' oder '1' sein
-apps/frappe/frappe/public/js/frappe/utils/pretty_date.js,Yesterday,Gestern
 DocType: Contact,Designation,Bezeichnung
 apps/frappe/frappe/email/doctype/email_account/email_account.py,Automatic Linking can be activated only for one Email Account.,Die automatische Verknüpfung kann nur für ein E-Mail-Konto aktiviert werden.
 DocType: Test Runner,Test Runner,Tester
@@ -116,7 +115,6 @@ apps/frappe/frappe/core/doctype/doctype/doctype.py,{0}:Fieldtype {1} for {2} can
 DocType: Dashboard Chart,Timespan,Zeitspanne
 apps/frappe/frappe/public/js/frappe/file_uploader/FileUploader.vue,Web Link,Weblink
 DocType: Deleted Document,Restored,Restauriert
-apps/frappe/frappe/public/js/frappe/utils/pretty_date.js,1 minute ago,Vor 1 Minute
 apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html,"Apart from System Manager, roles with Set User Permissions right can set permissions for other users for that Document Type.",Zusätzlich zum System-Manager können Rollen mit der Erlaubnis Benutzer anzulegen Berechtigungen für andere Nutzer für diesen Dokumententyp setzen.
 apps/frappe/frappe/website/doctype/website_theme/website_theme.js,Configure Theme,Thema konfigurieren
 DocType: Company History,Company History,Unternehmensgeschichte
@@ -743,7 +741,6 @@ apps/frappe/frappe/desk/page/backups/backups.py,File backup is ready,Dateisicher
 DocType: DocField,In Global Search,In globaler Suche
 DocType: System Settings,Brute Force Security,Brute-Force-Sicherheit
 DocType: Workflow State,indent-left,Einzug links
-apps/frappe/frappe/public/js/frappe/utils/pretty_date.js,&gt; {0} year(s) ago,Vor&gt; {0} Jahr (en)
 apps/frappe/frappe/utils/file_manager.py,It is risky to delete this file: {0}. Please contact your System Manager.,"Es ist riskant, diese Datei zu löschen: {0}. Bitte kontaktieren Sie Ihren System-Manager."
 DocType: Currency,Currency Name,Währungsbezeichnung
 apps/frappe/frappe/public/js/frappe/views/inbox/inbox_view.js,No Emails,Keine E-Mails
@@ -911,7 +908,6 @@ apps/frappe/frappe/core/doctype/doctype/doctype.py,Report cannot be set for Sing
 apps/frappe/frappe/public/js/frappe/list/list_view.js,Share URL,URL teilen
 DocType: System Settings,Allow Consecutive Login Attempts ,Erlaube aufeinanderfolgende Login-Versuche
 apps/frappe/frappe/templates/pages/integrations/stripe_checkout.html,An error occured during the payment process. Please contact us.,Während des Bezahlvorgangs ist ein Fehler aufgetreten. Bitte kontaktieren Sie uns.
-apps/frappe/frappe/public/js/frappe/utils/pretty_date.js,{0} days ago,vor {0} Tag(en)
 DocType: Email Account,Awaiting Password,Warte auf Passwort
 DocType: Address,Address Line 1,Adresse Zeile 1
 apps/frappe/frappe/public/js/frappe/ui/filters/filter.js,Not Descendants Of,Nicht Nachkommen von
@@ -1292,7 +1288,6 @@ apps/frappe/frappe/social/doctype/energy_point_rule/energy_point_rule.py,Referen
 DocType: PayPal Settings,PayPal Settings,PayPal-Einstellungen
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js,Select Document Type,Dokumenttyp auswählen
 apps/frappe/frappe/utils/nestedset.py,Cannot delete {0} as it has child nodes,"{0} kann nicht gelöscht werden, da es Unterknoten gibt"
-apps/frappe/frappe/public/js/frappe/utils/pretty_date.js,{0} minutes ago,vor {0} Minute(n)
 apps/frappe/frappe/automation/doctype/assignment_rule/assignment_rule.py,Assignment Day {0} has been repeated.,Der Zuordnungstag {0} wurde wiederholt.
 DocType: Kanban Board Column,lightblue,hellblau
 apps/frappe/frappe/integrations/doctype/webhook/webhook.py,Same Field is entered more than once,Gleiches Feld wird mehrmals eingegeben
@@ -1696,7 +1691,6 @@ apps/frappe/frappe/patches/v6_19/comment_feed_communication.py,Assignment,Zuordn
 DocType: Notification,Slack Channel,Slack-Kanal
 DocType: About Us Team Member,Image Link,Bildverknüpfung
 DocType: Auto Email Report,Report Filters,Berichtsfilter
-apps/frappe/frappe/public/js/frappe/utils/pretty_date.js,now,jetzt
 DocType: Workflow State,step-backward,Schritt zurück
 apps/frappe/frappe/utils/boilerplate.py,{app_title},{app_title}
 apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py,Please set Dropbox access keys in your site config,Bitte Dropbox-Zugriffsdaten in den Einstellungen der Seite setzen
@@ -2408,7 +2402,6 @@ DocType: Notification,Days After,Tage nach
 apps/frappe/frappe/public/js/frappe/form/print.js,QZ Tray Connection Active!,QZ-Tray-Verbindung aktiv!
 DocType: Contact Us Settings,Settings for Contact Us Page,Einstellungen Kontakt
 DocType: Print Settings,Enable Print Server,Aktivieren Sie den Druckserver
-apps/frappe/frappe/public/js/frappe/utils/pretty_date.js,{0} weeks ago,vor {0} Woche(n)
 DocType: Email Account,Footer,Fußzeile
 apps/frappe/frappe/config/integrations.py,Authentication,Authentifizierung
 apps/frappe/frappe/utils/verified_command.py,Invalid Link,Ungültige Verknüpfung
@@ -3295,7 +3288,6 @@ apps/frappe/frappe/integrations/doctype/ldap_settings/ldap_settings.py,Please In
 apps/frappe/frappe/core/doctype/data_import/log_details.html,Row Status,Zeilenstatus
 DocType: S3 Backup Settings,sa-east-1,sa-east-1
 DocType: Workflow Transition,Workflow Transition,Workflow-Übergang
-apps/frappe/frappe/public/js/frappe/utils/pretty_date.js,{0} months ago,vor {0} Monate(n)
 apps/frappe/frappe/custom/doctype/custom_field/custom_field.py,Custom Fields can only be added to a standard DocType.,Benutzerdefinierte Felder können nur zu einem Standard-DocType hinzugefügt werden.
 apps/frappe/frappe/public/js/frappe/list/list_sidebar_group_by.js,Created By,Erstellt von
 apps/frappe/frappe/integrations/doctype/dropbox_settings/dropbox_settings.py,Dropbox Setup,Dropbox-Setup
@@ -3350,7 +3342,6 @@ apps/frappe/frappe/website/doctype/website_theme/website_theme.js,Theme Colors,T
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js,Select a DocType to make a new format,"DocType auswählen, um ein neues Format zu erstellen"
 apps/frappe/frappe/desk/page/user_profile/user_profile.js,User does not exist,Benutzer existiert nicht
 apps/frappe/frappe/automation/doctype/auto_repeat/auto_repeat.py,'Recipients' not specified,"Keine ""Empfänger"" angegeben"
-apps/frappe/frappe/public/js/frappe/utils/pretty_date.js,just now,gerade eben
 apps/frappe/frappe/public/js/frappe/ui/filters/edit_filter.html,Apply,Anwenden
 DocType: Footer Item,Policy,Politik
 apps/frappe/frappe/integrations/utils.py,{0} Settings not found,{0} Einstellungen nicht gefunden
@@ -3437,7 +3428,6 @@ DocType: Auto Email Report,Period,Periode
 apps/frappe/frappe/core/doctype/data_import_beta/data_import_beta.js,About {0} minute remaining,Noch ungefähr {0} Minuten
 apps/frappe/frappe/www/login.py,Invalid Login Token,Invalid Login Token
 apps/frappe/frappe/public/js/frappe/chat.js,Discard,Verwerfen
-apps/frappe/frappe/public/js/frappe/utils/pretty_date.js,1 hour ago,vor 1 Stunde
 DocType: Website Settings,Home Page,Startseite
 DocType: Error Snapshot,Parent Error Snapshot,Momentaufnahme des übergeordneten Fehlers
 apps/frappe/frappe/public/js/frappe/data_import/import_preview.js,Map columns from {0} to fields in {1},Ordnen Sie Spalten von {0} Feldern in {1} zu.
@@ -4006,3 +3996,23 @@ apps/frappe/frappe/public/js/frappe/web_form/web_form.js,Saved Successfully,Erfo
 apps/frappe/frappe/core/doctype/user/user.py,Please ask your administrator to verify your sign-up,Bitte fragen Sie Ihren Administrator Ihre Anmeldung bis zum überprüfen
 DocType: Domain Settings,Active Domains,Aktive Domains
 apps/frappe/frappe/public/js/integrations/razorpay.js,Show Log,Zeige Log
+apps/frappe/frappe/public/js/frappe/utils/pretty_date.js,Now,Jetzt
+apps/frappe/frappe/public/js/frappe/utils/pretty_date.js,{0} m,{0} m
+apps/frappe/frappe/public/js/frappe/utils/pretty_date.js,{0} h,{0} h
+apps/frappe/frappe/public/js/frappe/utils/pretty_date.js,{0} D,{0} T
+apps/frappe/frappe/public/js/frappe/utils/pretty_date.js,{0} W,{0} W
+apps/frappe/frappe/public/js/frappe/utils/pretty_date.js,{0} M,{0} M
+apps/frappe/frappe/public/js/frappe/utils/pretty_date.js,{0} Y,{0} J
+apps/frappe/frappe/public/js/frappe/utils/pretty_date.js,Just now,Gerade eben
+apps/frappe/frappe/public/js/frappe/utils/pretty_date.js,1 minute ago,Vor einer Minute
+apps/frappe/frappe/public/js/frappe/utils/pretty_date.js,{0} minutes ago,Vor {0} Minuten
+apps/frappe/frappe/public/js/frappe/utils/pretty_date.js,1 hour ago,Vor einer Stunde
+apps/frappe/frappe/public/js/frappe/utils/pretty_date.js,{0} hours ago,Vor {0} Stunden
+apps/frappe/frappe/public/js/frappe/utils/pretty_date.js,Yesterday,Gestern
+apps/frappe/frappe/public/js/frappe/utils/pretty_date.js,{0} days ago,Vor {0} Tagen
+apps/frappe/frappe/public/js/frappe/utils/pretty_date.js,1 week ago,Vor einer Woche
+apps/frappe/frappe/public/js/frappe/utils/pretty_date.js,{0} weeks ago,Vor {0} Wochen
+apps/frappe/frappe/public/js/frappe/utils/pretty_date.js,1 month ago,Vor einem Monat
+apps/frappe/frappe/public/js/frappe/utils/pretty_date.js,{0} months ago,Vor {0} Monaten
+apps/frappe/frappe/public/js/frappe/utils/pretty_date.js,1 year ago,Vor einem Jahr
+apps/frappe/frappe/public/js/frappe/utils/pretty_date.js,{0} years ago,Vor {0} Jahren 
