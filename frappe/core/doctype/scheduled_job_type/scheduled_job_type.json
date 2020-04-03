@@ -12,6 +12,7 @@
  "engine": "InnoDB",
  "field_order": [
   "stopped",
+  "execute_via_server_script",
   "method",
   "frequency",
   "cron_format",
@@ -63,6 +64,12 @@
    "options": "All\nHourly\nHourly Long\nDaily\nDaily Long\nWeekly\nWeekly Long\nMonthly\nMonthly Long\nCron\nYearly\nAnnual",
    "read_only": 1,
    "reqd": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "execute_via_server_script",
+   "fieldtype": "Check",
+   "label": "Execute Via Server Script"
   }
  ],
  "in_create": 1,
@@ -72,7 +79,7 @@
    "link_fieldname": "scheduled_job_type"
   }
  ],
- "modified": "2019-12-09 11:10:21.259929",
+ "modified": "2020-04-03 17:14:13.899031",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Scheduled Job Type",

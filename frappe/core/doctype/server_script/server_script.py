@@ -8,6 +8,7 @@ import frappe
 from frappe.model.document import Document
 from frappe.utils.safe_exec import safe_exec
 
+
 class ServerScript(Document):
 	@staticmethod
 	def validate():
@@ -15,6 +16,7 @@ class ServerScript(Document):
 
 	@staticmethod
 	def on_update():
+		setup_scheduler_events()
 		frappe.cache().delete_value('server_script_map')
 
 	def execute_method(self):
@@ -31,3 +33,23 @@ class ServerScript(Document):
 		# execute event
 		safe_exec(self.script, None, dict(doc = doc))
 
+	def execute_scheduled_method(self):
+		if self.script_type == 'Scheduler Event':
+			safe_exec(self.script)
+		else:
+			# wrong report type!
+			raise frappe.DoesNotExistError
+
+def setup_scheduler_events():
+	enabled_server_scripts = frappe.get_all('Server Script',
+			fields=('name', 'doctype_event','api_method', 'scheduler_event'),
+			filters={'disabled': 0, 'script_type': 'Scheduler Event'})
+
+	for script in enabled_server_scripts:
+		if not frappe.db.exists('Scheduled Job Type', dict(method=script.api_method)):
+			frappe.get_doc(dict(
+				doctype = 'Scheduled Job Type',
+				method = script.api_method,
+				frequency = script.scheduler_event,
+				has_server_script=1
+			)).insert()

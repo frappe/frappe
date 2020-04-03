@@ -11,6 +11,7 @@
   "column_break_3",
   "reference_doctype",
   "doctype_event",
+  "scheduler_event",
   "api_method",
   "allow_guest",
   "section_break_8",
@@ -22,7 +23,7 @@
    "fieldtype": "Select",
    "in_list_view": 1,
    "label": "Script Type",
-   "options": "DocType Event\nAPI",
+   "options": "DocType Event\nScheduler Event\nAPI",
    "reqd": 1
   },
   {
@@ -47,7 +48,7 @@
    "options": "Before Insert\nBefore Save\nAfter Save\nBefore Submit\nAfter Submit\nBefore Cancel\nAfter Cancel\nBefore Delete\nAfter Delete\nBefore Save (Submitted Document)\nAfter Save (Submitted Document)"
   },
   {
-   "depends_on": "eval:doc.script_type==='API'",
+   "depends_on": "eval:doc.script_type==='API' || doc.script_type==='Scheduler Event'",
    "fieldname": "api_method",
    "fieldtype": "Data",
    "label": "API Method"
@@ -72,10 +73,17 @@
   {
    "fieldname": "section_break_8",
    "fieldtype": "Section Break"
+  },
+  {
+   "depends_on": "eval:doc.script_type==='Scheduler Event'",
+   "fieldname": "scheduler_event",
+   "fieldtype": "Select",
+   "label": "Scheduler Event",
+   "options": "All\nHourly\nHourly Long\nDaily\nDaily Long\nWeekly\nWeekly Long\nMonthly\nMonthly Long\nCron\nYearly\nAnnual"
   }
  ],
  "links": [],
- "modified": "2019-12-17 12:55:07.389775",
+ "modified": "2020-04-03 16:33:08.765621",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Server Script",
