@@ -9,8 +9,7 @@ frappe.ui.form.on('Newsletter', {
 			frm.add_custom_button(__('Send Now'), function() {
 				frappe.confirm(__("Do you really want to send this email newsletter?"), function() {
 					frm.call('send_emails').then(() => {
-						frm.set_value('schedule_send', new Date());
-						frm.save();
+						frm.refresh();
 					});
 				});
 			}, "fa fa-play", "btn-success");
@@ -39,7 +38,7 @@ frappe.ui.form.on('Newsletter', {
 		frm.get_field('schedule_send').$input.datepicker({
 			maxMinutes: 0,
 			minDate: today,
-			timeFormat: 'hh',
+			timeFormat: 'hh:00:00',
 			onSelect: function (fd, d, picker) {
 				if (!d) return;
 				var date = d.toDateString();

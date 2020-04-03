@@ -42,7 +42,6 @@ class Newsletter(WebsiteGenerator):
 		if self.recipients:
 			if getattr(frappe.local, "is_ajax", False):
 				self.validate_send()
-
 				# using default queue with a longer timeout as this isn't a scheduled task
 				enqueue(send_newsletter, queue='default', timeout=6000, event='send_newsletter',
 					newsletter=self.name)
@@ -53,6 +52,7 @@ class Newsletter(WebsiteGenerator):
 			frappe.msgprint(_("Scheduled to send to {0} recipients").format(len(self.recipients)))
 
 			frappe.db.set(self, "email_sent", 1)
+			frappe.db.set(self, "schedule_send", now_datetime())
 			frappe.db.set(self, 'scheduled_to_send', len(self.recipients))
 		else:
 			frappe.msgprint(_("Newsletter should have atleast one recipient"))
@@ -225,7 +225,7 @@ def send_newsletter(newsletter):
 		doc.db_set("email_sent", 0)
 		frappe.db.commit()
 
-		frappe.log_error("send_newsletter")
+		frappe.log_error(title='Send Newsletter')
 
 		raise
 
