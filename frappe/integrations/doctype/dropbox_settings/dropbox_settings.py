@@ -3,22 +3,24 @@
 # For license information, please see license.txt
 
 from __future__ import unicode_literals
+import dropbox
+import json
 import frappe
 import os
 from frappe import _
 from frappe.model.document import Document
-import dropbox, json
+from frappe.integrations.offsite_backup_utils import get_latest_backup_file, send_email, validate_file_size
+from frappe.integrations.utils import make_post_request
+from frappe.utils import (cint, get_request_site_address,
+	get_files_path, get_backups_path, get_url, encode)
 from frappe.utils.backups import new_backup
 from frappe.utils.background_jobs import enqueue
 from six.moves.urllib.parse import urlparse, parse_qs
-from frappe.integrations.utils import make_post_request
 from rq.timeouts import JobTimeoutException
-from frappe.utils import (cint, get_request_site_address,
-	get_files_path, get_backups_path, get_url, encode)
 from six import text_type
-from frappe.integrations.offsite_backup_utils import get_latest_backup_file, send_email, validate_file_size
 
 ignore_list = [".DS_Store"]
+
 
 class DropboxSettings(Document):
 	def onload(self):
