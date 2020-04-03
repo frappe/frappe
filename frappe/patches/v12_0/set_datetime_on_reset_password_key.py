@@ -7,7 +7,7 @@ def execute():
 	frappe.db.sql("""
 UPDATE `tabUser`
 SET
-	expire_reset_password_key = getdate()
+	reset_key_created_on = now()
 WHERE
 	reset_password_key IS NOT NULL
 """)
