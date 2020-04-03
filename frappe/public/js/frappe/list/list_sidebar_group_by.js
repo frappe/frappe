@@ -69,7 +69,7 @@ frappe.views.ListGroupBy = class ListGroupBy {
 					<a class = "dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
 					data-label="${label}" data-fieldname="${fieldname}" data-fieldtype="${fieldtype}"
 					href="#" onclick="return false;">
-						${__(label)}<span class="caret"></span>
+						${__(label)} <span class="caret"></span>
 					</a>
 					<ul class="dropdown-menu group-by-dropdown" role="menu">
 						<li><div class="list-loading text-center group-by-loading text-muted">
