@@ -325,7 +325,7 @@ def get_automatic_email_link():
 	return frappe.db.get_value("Email Account", {"enable_incoming": 1, "enable_automatic_linking": 1}, "email_id")
 
 def send_link_titles(link_titles):
-	"""Append link titles dict in `frappe.local.response`"""
+	"""Append link titles dict in `frappe.local.response`."""
 	if "_link_titles" not in frappe.local.response:
 		frappe.local.response["_link_titles"] = {}
 
