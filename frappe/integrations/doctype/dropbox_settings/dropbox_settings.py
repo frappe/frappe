@@ -54,7 +54,7 @@ def take_backup_to_dropbox(retry_count=0, upload_db_backup=True):
 			did_not_upload, error_log = backup_to_dropbox(upload_db_backup)
 			if did_not_upload: raise Exception
 
-			send_email(True, "Dropbox", "Drobox Settings", "send_notifications_to")
+			send_email(True, "Dropbox", "Dropbox Settings", "send_notifications_to")
 	except JobTimeoutException:
 		if retry_count < 2:
 			args = {
