@@ -1111,12 +1111,10 @@ def generate_keys(user):
 
 
 def expire_reset_password_key():
-	frappe.db.sql("""
-UPDATE `tabUser`
-SET
-	reset_password_key=""
-WHERE
-	datediff(hh, reset_key_created_on, now()) >= 2
-AND
-	reset_password_key IS NOT NULL
-""")
+	common_query = "UPDATE `tabUser` SET reset_password_key = '' WHERE {} AND reset_password_key IS NOT NULL"
+	mariadb_query = common_query.format("datediff(hh, reset_key_created_on, now())")
+	postgres_query = common_query.format("DATE_PART('day', reset_key_created_on::timestamp - now()::timestamp)")
+	frappe.db.sql({
+		'mariadb': mariadb_query,
+		'postgres': postgres_query
+	})
