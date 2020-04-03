@@ -50,7 +50,7 @@ class S3BackupSettings(Document):
 
 @frappe.whitelist()
 def take_backup():
-	"Enqueue longjob for taking backup to s3"
+	"""Enqueue longjob for taking backup to s3"""
 	enqueue("frappe.integrations.doctype.s3_backup_settings.s3_backup_settings.take_backups_s3", queue='long', timeout=1500)
 	frappe.msgprint(_("Queued for backup. It may take a few minutes to an hour."))
 
@@ -80,7 +80,7 @@ def take_backups_s3(retry_count=0):
 	except JobTimeoutException:
 		if retry_count < 2:
 			args = {
-				"retry_count" :retry_count + 1
+				"retry_count": retry_count + 1
 			}
 			enqueue("frappe.integrations.doctype.s3_backup_settings.s3_backup_settings.take_backups_s3",
 				queue='long', timeout=1500, **args)
@@ -89,9 +89,11 @@ def take_backups_s3(retry_count=0):
 	except Exception:
 		notify()
 
+
 def notify():
 	error_message = frappe.get_traceback()
 	send_email(False, 'Amazon S3', "S3 Backup Settings", "notify_email", error_message)
+
 
 def backup_to_s3():
 	from frappe.utils.backups import new_backup
@@ -124,8 +126,8 @@ def backup_to_s3():
 	upload_file_to_s3(files_filename, folder, conn, bucket)
 	delete_old_backups(doc.backup_limit, bucket)
 
-def upload_file_to_s3(filename, folder, conn, bucket):
 
+def upload_file_to_s3(filename, folder, conn, bucket):
 	destpath = os.path.join(folder, os.path.basename(filename))
 	try:
 		print("Uploading file:", filename)
@@ -137,7 +139,7 @@ def upload_file_to_s3(filename, folder, conn, bucket):
 
 
 def delete_old_backups(limit, bucket):
-	all_backups = list()
+	all_backups = []
 	doc = frappe.get_single("S3 Backup Settings")
 	backup_limit = int(limit)
 
