@@ -86,6 +86,7 @@ permission_query_conditions = {
 	"Event": "frappe.desk.doctype.event.event.get_permission_query_conditions",
 	"ToDo": "frappe.desk.doctype.todo.todo.get_permission_query_conditions",
 	"User": "frappe.core.doctype.user.user.get_permission_query_conditions",
+	"Dashboard Settings": "frappe.desk.doctype.dashboard_settings.dashboard_settings.get_permission_query_conditions",
 	"Notification Log": "frappe.desk.doctype.notification_log.notification_log.get_permission_query_conditions",
 	"Dashboard Chart": "frappe.desk.doctype.dashboard_chart.dashboard_chart.get_permission_query_conditions",
 	"Notification Settings": "frappe.desk.doctype.notification_settings.notification_settings.get_permission_query_conditions",

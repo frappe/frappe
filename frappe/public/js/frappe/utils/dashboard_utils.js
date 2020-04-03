@@ -54,5 +54,26 @@ frappe.dashboard_utils = {
 		} else {
 			return Promise.resolve();
 		}
+	},
+
+	get_dashboard_settings() {
+		return frappe.model.with_doc('Dashboard Settings', frappe.session.user).then(settings => {
+			if (!settings) {
+				return this.create_dashboard_settings().then(settings => {
+					return settings;
+				});
+			} else {
+				return settings;
+			}
+		});
+	},
+
+	create_dashboard_settings() {
+		return frappe.xcall(
+			'frappe.desk.doctype.dashboard_settings.dashboard_settings.create_dashboard_settings',
+			{user: frappe.session.user}
+		).then(settings => {
+			return settings;
+		});
 	}
 };
