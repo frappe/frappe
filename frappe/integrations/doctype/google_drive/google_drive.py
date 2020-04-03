@@ -187,7 +187,7 @@ def upload_system_backup_to_google_drive():
 
 	validate_file_size()
 	if frappe.flags.create_new_backup:
-		progress(1, "Backing up Data.")
+		set_progress(1, "Backing up Data.")
 		backup = new_backup()
 
 		fileurl_backup = os.path.basename(backup.backup_path_db)
@@ -208,12 +208,12 @@ def upload_system_backup_to_google_drive():
 			frappe.throw(_("Google Drive - Could not locate locate - {0}").format(e))
 
 		try:
-			progress(2, "Uploading backup to Google Drive.")
+			set_progress(2, "Uploading backup to Google Drive.")
 			google_drive.files().create(body=file_metadata, media_body=media, fields="id").execute()
 		except HttpError as e:
 			send_email(False, "Google Drive", "Google Drive", "email", error_status=e)
 
-	progress(3, "Uploading successful.")
+	set_progress(3, "Uploading successful.")
 	frappe.db.set_value("Google Drive", None, "last_backup_on", frappe.utils.now_datetime())
 	send_email(True, "Google Drive", "Google Drive", "email")
 	return _("Google Drive Backup Successful.")
@@ -230,5 +230,5 @@ def get_absolute_path(filename):
 	file_path = os.path.join(get_backups_path()[2:], filename)
 	return "{0}/sites/{1}".format(get_bench_path(), file_path)
 
-def progress(progress, message):
+def set_progress(progress, message):
 	frappe.publish_realtime("upload_to_google_drive", dict(progress=progress, total=3, message=message), user=frappe.session.user)
