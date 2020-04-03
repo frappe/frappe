@@ -131,7 +131,7 @@ frappe.ui.form.on('User', {
 										user: frm.doc.email,
 										password: values.new_password,
 										logout: values.logout_sessions
-									}).then(() => done());
+									});
 							}
 						});
 						d.show();
