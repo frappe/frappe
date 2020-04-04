@@ -116,6 +116,7 @@ export default class WebForm extends frappe.ui.FieldGroup {
 		if (window.saving) return;
 		let for_payment = Boolean(this.accept_payment && !this.doc.paid);
 
+		this.doc = isvalid;
 		this.doc.doctype = this.doc_type;
 		this.doc.web_form_name = this.name;
 
