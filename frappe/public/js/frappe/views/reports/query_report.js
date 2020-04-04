@@ -242,7 +242,6 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			() => this.setup_filters(),
 			() => this.set_route_filters(),
 			() => this.report_settings.onload && this.report_settings.onload(this),
-			() => this.get_user_settings(),
 			() => this.refresh()
 		]);
 	}
@@ -848,13 +847,6 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 		// load preview after dialog animation
 		setTimeout(preview_chart, 500);
-	}
-
-	get_user_settings() {
-		return frappe.model.user_settings.get(this.report_name)
-			.then(user_settings => {
-				this.user_settings = user_settings;
-			});
 	}
 
 	prepare_columns(columns) {
