@@ -11,7 +11,7 @@ pytz==2019.3
 six==1.14.0
 werkzeug==0.16.1
 semantic-version==2.8.4
-rauth>=0.6.2
+rauth==0.7.3
 requests-oauthlib==1.3.0
 redis==2.10.6
 selenium==3.141.0
