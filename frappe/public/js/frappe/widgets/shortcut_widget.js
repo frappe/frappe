@@ -29,6 +29,8 @@ export default class ShortcutWidget extends Widget {
 
 	setup_events() {
 		this.widget.click(() => {
+			if (this.in_customize_mode) return
+
 			let route = generate_route({
 				route: this.route,
 				name: this.link_to,
