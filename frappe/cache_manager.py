@@ -121,22 +121,13 @@ def clear_doctype_map(doctype, name):
 	cache_key = frappe.scrub(doctype) + '_map'
 	frappe.cache().hdel(cache_key, name)
 
-def build_table_count_cache(doc=None, method=None, *args, **kwargs):
+def build_table_count_cache():
 	if (frappe.flags.in_patch
 		or frappe.flags.in_install
 		or frappe.flags.in_migrate
 		or frappe.flags.in_import
 		or frappe.flags.in_setup_wizard):
 		return
-
-	if doc and isinstance(doc, Document):
-		doctype = doc.doctype
-
-		if doc.meta.istable:
-			return
-
-		if doctype in count_cache_blacklist:
-			return
 
 	_cache = frappe.cache()
 	data = frappe.db.multisql({
