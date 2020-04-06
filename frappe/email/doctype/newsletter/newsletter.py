@@ -216,7 +216,7 @@ def send_newsletter(newsletter):
 		doc.queue_all()
 		doc.db_set("email_sent", 1)
 		doc.db_set("schedule_send", now_datetime())
-		doc.db_set("scheduled_to_send", len(self.recipients))
+		doc.db_set("scheduled_to_send", len(doc.recipients))
 
 	except:
 		frappe.db.rollback()
