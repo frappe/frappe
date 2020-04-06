@@ -3,7 +3,7 @@
 
 frappe.ui.form.on('Package', {
 	refresh: function(frm) {
-		if (frm.doc.export_package) {
+		if (frm.doc.package_details) {
 			frm.add_custom_button(__("Go to Release"), function() {
 				frappe.set_route("Form", "Release", "Release");
 			});
@@ -22,7 +22,7 @@ frappe.ui.form.on('Package', {
 	}
 });
 
-frappe.ui.form.on('Package DocType', {
+frappe.ui.form.on('Package Details', {
 	form_render: function (frm, cdt, cdn) {
 		function _show_filters(filters, table) {
 			table.find('tbody').empty();

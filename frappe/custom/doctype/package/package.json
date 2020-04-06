@@ -5,19 +5,12 @@
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
-  "export_package",
+  "package_details",
   "import_section",
   "attach",
   "import"
  ],
  "fields": [
-  {
-   "description": "Click on the row for accessing filters.",
-   "fieldname": "export_package",
-   "fieldtype": "Table",
-   "label": "Package",
-   "options": "Package DocType"
-  },
   {
    "collapsible": 1,
    "collapsible_depends_on": "attach",
@@ -34,11 +27,18 @@
    "fieldname": "attach",
    "fieldtype": "Attach",
    "label": "Attach Package"
+  },
+  {
+   "description": "Click on the row for accessing filters.",
+   "fieldname": "package_details",
+   "fieldtype": "Table",
+   "label": "Package Details",
+   "options": "Package Detail"
   }
  ],
  "issingle": 1,
  "links": [],
- "modified": "2020-03-19 22:03:06.012473",
+ "modified": "2020-04-06 14:32:42.202640",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Package",

@@ -33,7 +33,7 @@ def export_package():
 	package_doc = frappe.get_single("Package")
 	package = []
 
-	for doctype in package_doc.export_package:
+	for doctype in package_doc.package_details:
 		filters = []
 
 		if doctype.get("filters_json"):
@@ -43,17 +43,28 @@ def export_package():
 		length = len(docs)
 
 		for idx, doc in enumerate(docs):
-			frappe.publish_realtime("package", {"progress":idx, "total":length, "message":doctype.get("document_type"), "prefix": _("Exporting")},
+			frappe.publish_realtime("package", {
+					"progress":idx, "total":length,
+					"message":doctype.get("document_type"),
+					"prefix": _("Exporting")
+				},
 				user=frappe.session.user)
 
 			document = frappe.get_doc(doctype.get("document_type"), doc.name).as_dict()
 			attachments = []
 
 			if doctype.attachments:
-				filters = {"attached_to_doctype": document.get("doctype"), "attached_to_name": document.get("name")}
+				filters = {
+					"attached_to_doctype": document.get("doctype"),
+					"attached_to_name": document.get("name")
+				}
+
 				for f in frappe.get_list("File", filters=filters):
 					fname, fcontents = get_file(f.name)
-					attachments.append({"fname": fname, "content": base64.b64encode(fcontents).decode('ascii')})
+					attachments.append({
+						"fname": fname,
+						"content": base64.b64encode(fcontents).decode('ascii')
+					})
 
 			document.update({
 				"attachments": attachments,
