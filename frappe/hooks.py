@@ -155,9 +155,11 @@ doc_events = {
 		"on_update": "frappe.integrations.doctype.google_contacts.google_contacts.update_contacts_to_google_contacts",
 	},
 	"DocType": {
+		"after_insert": "frappe.cache_manager.build_domain_restriced_doctype_cache",
 		"after_save": "frappe.cache_manager.build_domain_restriced_doctype_cache",
 	},
 	"Page": {
+		"after_insert": "frappe.cache_manager.build_domain_restriced_page_cache",
 		"after_save": "frappe.cache_manager.build_domain_restriced_page_cache",
 	},
 	"Event Update Log": {
