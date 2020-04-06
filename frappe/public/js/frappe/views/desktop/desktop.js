@@ -105,8 +105,6 @@ export default class Desktop {
 		}
 		this.current_page = page;
 		localStorage.current_desk_page = page;
-		frappe.set_route("workspace", page);
-
 		this.pages[page] ? this.pages[page].show() : this.make_page(page);
 	}
 
@@ -134,6 +132,7 @@ export default class Desktop {
 
 class DesktopPage {
 	constructor({ container, page_name }) {
+		frappe.desk_page = this;
 		this.container = container;
 		this.page_name = page_name;
 		this.sections = {};
@@ -142,6 +141,8 @@ class DesktopPage {
 	}
 
 	show() {
+		console.log("Showing ", this.page_name)
+		frappe.desk_page = this;
 		this.page.show();
 	}
 
@@ -151,7 +152,7 @@ class DesktopPage {
 
 	reload() {
 		this.in_customize_mode = false;
-		this.container.empty();
+		this.page && this.page.remove();
 		this.make();
 		this.setup_events();
 	}
