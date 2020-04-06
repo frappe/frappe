@@ -30,14 +30,19 @@ class Workspace:
 			return frappe.get_doc("Desk Page", self.page_name)
 
 	def init(self):
-		self.doc = self.get_page_for_user()
-
 		user = frappe.get_user()
 		user.build_permissions()
-		self.user = user
 
+		self.blocked_modules = frappe.get_doc('User', frappe.session.user).get_blocked_modules()
+		self.doc = self.get_page_for_user()
+
+		if self.doc.module in self.blocked_modules:
+			raise frappe.PermissionError
+
+		self.user = user
 		self.allowed_pages = get_allowed_pages()
 		self.allowed_reports = get_allowed_reports()
+
 
 		self.table_counts = get_table_with_counts()
 		self.restricted_doctypes = build_domain_restriced_doctype_cache()
@@ -47,7 +52,8 @@ class Workspace:
 		pages = frappe.get_all("Desk Page", filters={
 			"extends": self.page_name,
 			'restrict_to_domain': ['in', frappe.get_active_domains()],
-			'for_user': ''
+			'for_user': '',
+			'module': ['not in', self.blocked_modules]
 		})
 
 		pages = [frappe.get_doc("Desk Page", page['name']) for page in pages]
@@ -223,11 +229,14 @@ def get_desk_sidebar_items():
 	"""Get list of sidebar items for desk
 	"""
 	# don't get domain restricted pages
+	blocked_modules = frappe.get_doc('User', frappe.session.user).get_blocked_modules()
+
 	filters = {
 		'restrict_to_domain': ['in', frappe.get_active_domains()],
 		'extends_another_page': 0,
 		'is_standard': 1,
-		'for_user': ''
+		'for_user': '',
+		'module': ['not in', blocked_modules]
 	}
 
 	if not frappe.local.conf.developer_mode:
