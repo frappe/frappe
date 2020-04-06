@@ -91,14 +91,22 @@ def import_package(package=None):
 			d = frappe.get_doc(doc).insert(ignore_permissions=True, ignore_if_duplicate=True)
 			if attachments:
 				add_attachment(attachments, d)
-		elif exists:
+		else:
 			docname = doc.pop("name")
 			document = frappe.get_doc(doc.get("doctype"), docname)
-			if frappe.utils.get_datetime(document.modified) < frappe.utils.get_datetime(modified) and not overwrite:
-				document.update(doc)
-				document.save()
-				if attachments:
-					add_attachment(attachments, document)
+
+			if overwrite:
+				update_document(document, doc, attachments)
+
+			else:
+				if frappe.utils.get_datetime(document.modified) < frappe.utils.get_datetime(modified):
+					update_document(document, doc, attachments)
+
+def update_document(document, doc, attachments):
+	document.update(doc)
+	document.save()
+	if attachments:
+		add_attachment(attachments, document)
 
 def add_attachment(attachments, doc):
 	for attachment in attachments:
