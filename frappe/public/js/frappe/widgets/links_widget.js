@@ -80,21 +80,22 @@ export default class LinksWidget extends Widget {
 				const popover = link.find(".module-link-popover");
 
 				link_label.mouseover(() => {
+					if (this.in_customize_mode) return
 					popover.show();
 				});
 				link_label.mouseout(() => popover.hide());
 			} else {
-				if (link_label.hasClass("help-video-link")) {
-					link_label.click(event => {
+				link_label.click(event => {
+					if (this.in_customize_mode) return
+
+					if (link_label.hasClass("help-video-link")) {
 						let yt_id = event.target.dataset.youtubeid;
 						frappe.help.show_video(yt_id);
-					});
-				} else {
-					link_label.click(event => {
+					} else {
 						let route = event.target.dataset.route;
 						frappe.set_route(route);
-					});
-				}
+					}
+				});
 			}
 		});
 	}
