@@ -8,6 +8,8 @@ import frappe
 import os, socket, time
 from frappe import _
 from six import string_types
+from uuid import uuid4
+import frappe.monitor
 
 # imports - third-party imports
 
@@ -95,6 +97,7 @@ def execute_job(site, method, event, job_name, kwargs, user=None, is_async=True,
 	else:
 		method_name = cstr(method.__name__)
 
+	frappe.monitor.start("job", method_name, kwargs)
 	try:
 		method(**kwargs)
 
@@ -127,6 +130,7 @@ def execute_job(site, method, event, job_name, kwargs, user=None, is_async=True,
 		frappe.db.commit()
 
 	finally:
+		frappe.monitor.stop()
 		if is_async:
 			frappe.destroy()
 
@@ -152,7 +156,8 @@ def get_worker_name(queue):
 
 	if queue:
 		# hostname.pid is the default worker name
-		name = '{hostname}.{pid}.{queue}'.format(
+		name = '{uuid}.{hostname}.{pid}.{queue}'.format(
+			uuid=uuid4().hex,
 			hostname=socket.gethostname(),
 			pid=os.getpid(),
 			queue=queue)

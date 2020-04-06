@@ -2,7 +2,7 @@
 // For license information, please see license.txt
 
 frappe.ui.form.on('Role Profile', {
-	setup: function(frm) {
+	refresh: function(frm) {
 		if(has_common(frappe.user_roles, ["Administrator", "System Manager"])) {
 			if(!frm.roles_editor) {
 				var role_area = $('<div style="min-height: 300px">')

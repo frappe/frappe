@@ -264,7 +264,7 @@ class Document(BaseDocument):
 		if hasattr(self, "__islocal"):
 			delattr(self, "__islocal")
 
-		if not (frappe.flags.in_migrate or frappe.local.flags.in_install):
+		if not (frappe.flags.in_migrate or frappe.local.flags.in_install or frappe.flags.in_setup_wizard):
 			follow_document(self.doctype, self.name, frappe.session.user)
 		return self
 
@@ -574,7 +574,7 @@ class Document(BaseDocument):
 
 		# check for child tables
 		for df in self.meta.get_table_fields():
-			high_permlevel_fields = frappe.get_meta(df.options).meta.get_high_permlevel_fields()
+			high_permlevel_fields = frappe.get_meta(df.options).get_high_permlevel_fields()
 			if high_permlevel_fields:
 				for d in self.get(df.fieldname):
 					d.reset_values_if_no_permlevel_access(has_access_to, high_permlevel_fields)
@@ -837,9 +837,7 @@ class Document(BaseDocument):
 
 		if not self.flags.in_insert:
 			# value change is not applicable in insert
-			event_map['validate'] = 'Value Change'
-			event_map['before_change'] = 'Value Change'
-			event_map['before_update_after_submit'] = 'Value Change'
+			event_map['on_change'] = 'Value Change'
 
 		for alert in self.flags.notifications:
 			event = event_map.get(method, None)
@@ -933,7 +931,6 @@ class Document(BaseDocument):
 		elif self._action=="update_after_submit":
 			self.run_method("on_update_after_submit")
 
-		self.run_method('on_change')
 
 		self.clear_cache()
 		self.notify_update()
@@ -942,6 +939,8 @@ class Document(BaseDocument):
 
 		if getattr(self.meta, 'track_changes', False) and self._doc_before_save and not self.flags.ignore_version:
 			self.save_version()
+
+		self.run_method('on_change')
 
 		if (self.doctype, self.name) in frappe.flags.currently_saving:
 			frappe.flags.currently_saving.remove((self.doctype, self.name))
@@ -954,7 +953,7 @@ class Document(BaseDocument):
 	def reset_seen(self):
 		'''Clear _seen property and set current user as seen'''
 		if getattr(self.meta, 'track_seen', False):
-			self._seen = json.dumps([frappe.session.user])
+			frappe.db.set_value(self.doctype, self.name, "_seen", json.dumps([frappe.session.user]), update_modified=False)
 
 	def notify_update(self):
 		"""Publish realtime that the current document is modified"""
