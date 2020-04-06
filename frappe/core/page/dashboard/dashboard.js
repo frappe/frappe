@@ -98,7 +98,7 @@ class Dashboard {
 					allow_delete: false,
 					allow_hiding: false,
 					allow_edit: false,
-				}
+				},
 				widgets: this.charts,
 			});
 		});
