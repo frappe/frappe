@@ -91,3 +91,6 @@ class InvalidColumnName(ValidationError): pass
 class IncompatibleApp(ValidationError): pass
 class InvalidDates(ValidationError): pass
 class DataTooLongException(ValidationError): pass
+class InvalidAuthorizationHeader(CSRFTokenError): pass
+class InvalidAuthorizationPrefix(CSRFTokenError): pass
+class InvalidAuthorizationToken(CSRFTokenError): pass
