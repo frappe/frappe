@@ -9,7 +9,7 @@ frappe.ui.form.on('Package', {
 			});
 		}
 
-		frm.set_query("document_type", "export_package", function () {
+		frm.set_query("document_type", "package_details", function () {
 			return {
 				filters: {
 					"istable": 0,

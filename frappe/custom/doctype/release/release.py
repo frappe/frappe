@@ -32,7 +32,7 @@ class Release(Document):
 			self.install_package_to_remote(package, instance)
 
 	def install_package_to_remote(self, package, instance):
-		remote = frappe.get_doc("Release Instance", instance.instance)
+		remote = frappe.get_doc("Instance", instance.instance)
 
 		try:
 			connection = FrappeClient(remote.instance, remote.user, get_decrypted_password(remote.doctype, remote.name))
