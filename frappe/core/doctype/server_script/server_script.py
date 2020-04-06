@@ -7,6 +7,7 @@ from __future__ import unicode_literals
 import frappe
 from frappe.model.document import Document
 from frappe.utils.safe_exec import safe_exec
+from frappe import _
 
 
 class ServerScript(Document):
@@ -16,7 +17,6 @@ class ServerScript(Document):
 
 	@staticmethod
 	def on_update():
-		setup_scheduler_events()
 		frappe.cache().delete_value('server_script_map')
 
 	def execute_method(self):
@@ -40,16 +40,32 @@ class ServerScript(Document):
 			# wrong report type!
 			raise frappe.DoesNotExistError
 
-def setup_scheduler_events():
-	enabled_server_scripts = frappe.get_all('Server Script',
-			fields=('name', 'doctype_event','api_method', 'scheduler_event'),
-			filters={'disabled': 0, 'script_type': 'Scheduler Event'})
+@frappe.whitelist()
+def setup_scheduler_events(script_name, frequency):
+	method = frappe.scrub(script_name) + '_' + frequency.lower()
+	scheduled_script = frappe.db.get_value('Scheduled Job Type',
+		dict(method=method))
 
-	for script in enabled_server_scripts:
-		if not frappe.db.exists('Scheduled Job Type', dict(method=script.api_method)):
-			frappe.get_doc(dict(
-				doctype = 'Scheduled Job Type',
-				method = script.api_method,
-				frequency = script.scheduler_event,
-				has_server_script=1
-			)).insert()
+	if not scheduled_script:
+		doc = frappe.get_doc(dict(
+			doctype = 'Scheduled Job Type',
+			method = method,
+			frequency = frequency,
+			server_script = script_name
+		))
+
+		doc.insert()
+
+		frappe.msgprint(_('Enabled scheduled execution for script {0}').format(script_name))
+
+	else:
+		doc = frappe.get_doc('Scheduled Job Type', scheduled_script)
+		doc.update(dict(
+			doctype = 'Scheduled Job Type',
+			method = method,
+			frequency = frequency,
+			server_script = script_name
+		))
+		doc.save()
+
+		frappe.msgprint(_('Scheduled execution for script {0} has updated').format(script_name))

@@ -70,8 +70,8 @@ class ScheduledJobType(Document):
 		self.scheduler_log = None
 		try:
 			self.log_status('Start')
-			if self.execute_via_server_script:
-				script_name = frappe.db.get_value("Server Script", {'api_method': self.method})
+			if self.server_script:
+				script_name = frappe.db.get_value("Server Script", self.server_script)
 				if script_name:
 					frappe.get_doc('Server Script', script_name).execute_scheduled_method()
 			else:
