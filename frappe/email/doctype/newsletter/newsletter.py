@@ -51,9 +51,6 @@ class Newsletter(WebsiteGenerator):
 
 			frappe.msgprint(_("Scheduled to send to {0} recipients").format(len(self.recipients)))
 
-			frappe.db.set(self, "email_sent", 1)
-			frappe.db.set(self, "schedule_send", now_datetime())
-			frappe.db.set(self, 'scheduled_to_send', len(self.recipients))
 		else:
 			frappe.msgprint(_("Newsletter should have atleast one recipient"))
 
@@ -217,6 +214,9 @@ def send_newsletter(newsletter):
 	try:
 		doc = frappe.get_doc("Newsletter", newsletter)
 		doc.queue_all()
+		doc.db_set("email_sent", 1)
+		doc.db_set("schedule_send", now_datetime())
+		doc.db_set("scheduled_to_send", len(self.recipients))
 
 	except:
 		frappe.db.rollback()
@@ -265,9 +265,10 @@ def get_newsletter_list(doctype, txt, filters, limit_start, limit_page_length=20
 
 def send_scheduled_email():
 	"""Send scheduled newsletter to the recipients."""
-	scheduled_newsletter = frappe.get_all('Newsletter', filters = {
-		'schedule_send': ('<=', now_datetime()),
-		'email_sent': 0
-	}, fields = ['name'])
+	scheduled_newsletter = frappe.db.sql("""
+SELECT name from `tabNewsletter`
+WHERE schedule_send <= %s
+AND email_sent = 0
+""", now_datetime(), as_dict=1)
 	for newsletter in scheduled_newsletter:
 		send_newsletter(newsletter.name)
