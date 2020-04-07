@@ -499,6 +499,14 @@ def get_messages_from_file(path):
 
 	:param path: path of the code file
 	"""
+	frappe.flags.setdefault('scanned_files', [])
+	# TODO: Find better alternative
+	# To avoid duplicate scan
+	if path in set(frappe.flags.scanned_files):
+		return []
+	else:
+		frappe.flags.scanned_files.append(path)
+
 	apps_path = get_bench_dir()
 	if os.path.exists(path):
 		with open(path, 'r') as sourcefile:
