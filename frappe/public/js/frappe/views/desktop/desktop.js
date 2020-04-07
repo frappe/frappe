@@ -141,7 +141,6 @@ class DesktopPage {
 	}
 
 	show() {
-		console.log("Showing ", this.page_name)
 		frappe.desk_page = this;
 		this.page.show();
 	}
