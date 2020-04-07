@@ -326,7 +326,6 @@ def save_customization(page, config):
 		"charts_label": original_page.charts_label,
 		"cards_label": original_page.cards_label,
 		"shortcuts_label": original_page.shortcuts_label,
-		"charts_label": original_page.charts_label,
 		"icon": original_page.icon,
 		"module": original_page.module,
 		"developer_mode_only": original_page.developer_mode_only,
@@ -334,7 +333,6 @@ def save_customization(page, config):
 	})
 
 	config = frappe._dict(loads(config))
-
 	page_doc.charts = prepare_widget(config.charts, "Desk Chart", "charts")
 	page_doc.shortcuts = prepare_widget(config.shortcuts, "Desk Shortcut", "shortcuts")
 	page_doc.cards = prepare_widget(config.cards, "Desk Card", "cards")
