@@ -3,7 +3,7 @@ import BaseWidget from "../widgets/base_widget";
 import ShortcutWidget from "../widgets/shortcut_widget";
 import LinksWidget from "../widgets/links_widget";
 import OnboardingWidget from "../widgets/onboarding_widget";
-import NewWidget from "../widgets/new_widget";
+import { get_new_widget_class } from "../widgets/new_widget";
 
 frappe.provide('frappe.widget')
 
@@ -13,7 +13,6 @@ const widget_factory = {
 	shortcut: ShortcutWidget,
 	links: LinksWidget,
 	onboarding: OnboardingWidget,
-	new: NewWidget
 };
 
 export default class WidgetGroup {
@@ -93,7 +92,8 @@ export default class WidgetGroup {
 					: Number.POSITIVE_INFINITY;
 
 		if (this.widgets_list.length < max) {
-			this.new_widget = new NewWidget({
+			const new_widget_class = get_new_widget_class(this.type)
+			this.new_widget = new new_widget_class({
 				container: this.body,
 				type: this.type,
 				on_create: (config) => {
