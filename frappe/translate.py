@@ -771,7 +771,7 @@ def get_translations(source_text):
 @frappe.whitelist()
 def get_messages(language, start=0, page_length=100, search_text=''):
 	from frappe.frappeclient import FrappeClient
-	translator = FrappeClient(frappe.conf.translator_url)
+	translator = FrappeClient(get_translator_url())
 	translated_dict = translator.post_api('translator.api.get_strings_for_translation', params=locals())
 
 	return translated_dict
@@ -780,7 +780,7 @@ def get_messages(language, start=0, page_length=100, search_text=''):
 @frappe.whitelist()
 def get_source_additional_info(source, language=''):
 	from frappe.frappeclient import FrappeClient
-	translator = FrappeClient(frappe.conf.translator_url)
+	translator = FrappeClient(get_translator_url())
 	return translator.post_api('translator.api.get_source_additional_info', params=locals())
 
 @frappe.whitelist()
@@ -788,3 +788,6 @@ def get_contributions(language):
 	return frappe.get_all('Translation', fields=['*'], filters={
 		'contributed': 1,
 	})
+
+def get_translator_url():
+	return frappe.get_hooks()['translator_url'][0]
