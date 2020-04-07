@@ -161,7 +161,7 @@ def make_dict_from_messages(messages, full_dict=None):
 		# check if msg with context as key exist eg. msg:context
 		if len(m) > 2 and m[2]:
 			key = m[1] + ':' + m[2]
-			if full_dict[key]:
+			if full_dict.get(key):
 				out[key] = full_dict[key]
 
 	return out
