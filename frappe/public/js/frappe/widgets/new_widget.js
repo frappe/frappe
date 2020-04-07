@@ -136,9 +136,17 @@ export class NewShortcutWidget extends NewWidget {
 				onchange: () => {
 					let dg = this.dialog;
 					if (this.dialog.get_value("type") == "DocType") {
-						this.show_field('count_section_break');
-						this.show_field('filters_section_break');
-						this.setup_filter();
+						let doctype = this.dialog.get_value("link_to")
+						frappe.db.get_value("DocType", doctype, "issingle").then(res => {
+							if (res.message.issingle) {
+								this.hide_field('count_section_break');
+								this.hide_field('filters_section_break');
+							} else {
+								this.setup_filter(doctype);
+								this.show_field('count_section_break');
+								this.show_field('filters_section_break');
+							}
+						})
 					} else {
 						this.hide_field('count_section_break');
 						this.hide_field('filters_section_break');
@@ -179,20 +187,34 @@ export class NewShortcutWidget extends NewWidget {
 	}
 
 	process_data(data) {
+		let stats_filter = {};
+		let filters = this.filter_group.get_filters();
+		filters.forEach(arr => {
+			stats_filter[arr[1]] = [arr[2], arr[3]]
+		});
+
+		data.stats_filter = JSON.stringify(stats_filter);
 		data.label = data.link_to;
 
 		return data
 	}
 
-	setup_filter() {
+	setup_filter(doctype) {
 		if (this.filter_group) {
 			this.filter_group.wrapper.empty();
 			delete this.filter_group;
 		}
+
+		this.filters = []
+
 		this.filter_group = new frappe.ui.FilterGroup({
 			parent: this.dialog.get_field('filter_area').$wrapper,
-			doctype: this.dialog.get_value('link_to'),
+			doctype: doctype,
 			on_change: () => {},
+		});
+
+		frappe.model.with_doctype(doctype, () => {
+			this.filter_group.add_filters_to_filter_group(this.filters);
 		});
 	}
 }
