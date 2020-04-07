@@ -161,7 +161,12 @@ frappe.ui.form.ControlInput = frappe.ui.form.Control.extend({
 		this.$wrapper.toggleClass("has-error", (this.df.reqd && is_null(value)) ? true : false);
 	},
 	set_invalid: function () {
-		this.$wrapper.toggleClass("has-error", (this.df.invalid ? true : false));
+		if(this.$input) {
+			this.$wrapper.toggleClass("has-error", (this.df.invalid ? true : false));
+		}
+		if(this.disp_area) {
+			$(this.disp_area).toggleClass("has-error", (this.df.invalid ? true : false));
+		}
 	},
 	set_bold: function() {
 		if(this.$input) {
