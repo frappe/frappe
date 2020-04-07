@@ -63,7 +63,6 @@ export default class Widget {
 	}
 
 	make() {
-		this.in_customize_mode = false;
 		this.make_widget();
 		this.widget.appendTo(this.container);
 	}

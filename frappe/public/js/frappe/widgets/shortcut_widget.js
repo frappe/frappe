@@ -42,6 +42,8 @@ export default class ShortcutWidget extends Widget {
 	}
 
 	set_actions() {
+		if (this.in_customize_mode) return
+
 		this.widget.addClass('shortcut-widget-box');
 		const get_filter = new Function(`return ${this.stats_filter}`)
 		if (this.type == "DocType" && this.stats_filter) {

@@ -101,6 +101,8 @@ export default class WidgetGroup {
 					this.new_widget.delete();
 					delete this.new_widget;
 
+					config.in_customize_mode = 1;
+
 					// Add new widget and customize it
 					let wid = this.add_widget(config);
 					wid.customize(this.options);
