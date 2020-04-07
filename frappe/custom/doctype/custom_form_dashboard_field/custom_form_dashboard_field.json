@@ -1,0 +1,40 @@
+{
+ "actions": [],
+ "creation": "2020-04-06 11:55:15.221284",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "label",
+  "document_type"
+ ],
+ "fields": [
+  {
+   "fieldname": "label",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Label",
+   "reqd": 1
+  },
+  {
+   "fieldname": "document_type",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Document Type",
+   "options": "DocType",
+   "reqd": 1
+  }
+ ],
+ "istable": 1,
+ "links": [],
+ "modified": "2020-04-07 20:58:26.680398",
+ "modified_by": "Administrator",
+ "module": "Custom",
+ "name": "Custom Form Dashboard Field",
+ "owner": "Administrator",
+ "permissions": [],
+ "quick_entry": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

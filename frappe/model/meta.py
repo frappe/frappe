@@ -26,6 +26,7 @@ from frappe.model.base_document import BaseDocument
 from frappe.modules import load_doctype_module
 from frappe.model.workflow import get_workflow_name
 from frappe import _
+from frappe.custom.doctype.custom_form_dashboard.custom_form_dashboard import get_custom_dashboard
 
 def get_meta(doctype, cached=True):
 	if cached:
@@ -425,13 +426,15 @@ class Meta(Document):
 		implemented in other Frappe applications via hooks.
 		'''
 		data = frappe._dict()
-		try:
-			module = load_doctype_module(self.name, suffix='_dashboard')
-			if hasattr(module, 'get_data'):
-				data = frappe._dict(module.get_data())
-		except ImportError:
-			pass
+		if not self.custom:
+			try:
+				module = load_doctype_module(self.name, suffix='_dashboard')
+				if hasattr(module, 'get_data'):
+					data = frappe._dict(module.get_data())
+			except ImportError:
+				pass
 
+		data = get_custom_dashboard(self.name, data)
 		self.add_doctype_links(data)
 
 		for hook in frappe.get_hooks("override_doctype_dashboards", {}).get(self.name, []):
