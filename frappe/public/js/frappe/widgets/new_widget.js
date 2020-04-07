@@ -1,7 +1,7 @@
 const WIDGET_DOCTYPE_MAP = {
 	chart: "Desk Chart",
 	shortcut: "Desk Shortcut",
-}
+};
 
 export default class NewWidget {
 	constructor(opts) {
@@ -14,7 +14,7 @@ export default class NewWidget {
 	}
 
 	customize() {
-		return
+		return;
 	}
 
 	make() {
@@ -24,18 +24,18 @@ export default class NewWidget {
 	}
 
 	get_title() {
-		return __(`New ${frappe.utils.to_title_case(this.type)}`)
+		return __(`New ${frappe.utils.to_title_case(this.type)}`);
 	}
 
 	make_widget() {
 		this.widget = $(`<div class="widget new-widget">
 				+ ${this.get_title()}
 			</div>`);
-		this.body = this.widget
+		this.body = this.widget;
 	}
 
 	setup_events() {
-		this.widget.on('click', () => this.open_dialog())
+		this.widget.on("click", () => this.open_dialog());
 	}
 
 	delete() {
@@ -43,26 +43,37 @@ export default class NewWidget {
 	}
 
 	open_dialog() {
-		let doctype = WIDGET_DOCTYPE_MAP[this.type]
+		let doctype = WIDGET_DOCTYPE_MAP[this.type];
 
 		if (!doctype) {
-			console.warn(`Could not find ${this.type}`)
+			console.warn(`Could not find ${this.type}`);
 		}
 
 		frappe.model.with_doctype(doctype, () => {
+			let fields = frappe.get_meta(doctype).fields;
+
+			if (this.type == "shortcut") {
+				let fields_to_remove = ["label"];
+				fields = fields.filter(
+					(df) => !fields_to_remove.includes(df.fieldname)
+				);
+			}
+
 			let new_dialog = new frappe.ui.Dialog({
 				title: this.get_title(),
-				fields: frappe.get_meta(doctype).fields,
+				fields: fields,
 				primary_action: (data) => {
-					if (this.type == 'chart' && !data.label) {
+					if (this.type == "chart" && !data.label) {
 						data.label = data.chart_name;
 					}
 
-					if (this.type == 'shortcut' && !data.label) {
+					if (this.type == "shortcut" && !data.label) {
 						data.label = data.link_to;
 					}
 
-					data.name = `${this.type}-${this.label}-${frappe.utils.get_random(20)}`;
+					data.name = `${this.type}-${
+						this.label
+					}-${frappe.utils.get_random(20)}`;
 
 					new_dialog.hide();
 					this.on_create(data);
@@ -70,7 +81,7 @@ export default class NewWidget {
 				primary_action_label: __("Add"),
 			});
 
-			new_dialog.show()
+			new_dialog.show();
 		});
 	}
 }
