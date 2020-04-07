@@ -51,6 +51,8 @@ export class NewWidget {
 			fields: this.get_fields(),
 			primary_action: (data) => {
 				data = this.process_data(data);
+				data.name = `${this.type}-${this.label}-${frappe.utils.get_random(20)}`;
+
 				this.dialog.hide();
 				this.on_create(data);
 			},
