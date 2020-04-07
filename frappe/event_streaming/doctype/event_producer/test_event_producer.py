@@ -5,7 +5,6 @@ from __future__ import unicode_literals
 
 import frappe
 import unittest
-import time
 import json
 from frappe.frappeclient import FrappeClient
 from frappe.event_streaming.doctype.event_producer.event_producer import pull_from_node
@@ -33,7 +32,6 @@ class TestEventProducer(unittest.TestCase):
 	def setUp(self):
 		self.producer_url = 'http://test_site_producer:8000'
 		create_event_producer(self.producer_url)
-		time.sleep(2)
 		frappe.db.sql('delete from tabToDo')
 		frappe.db.sql('delete from tabNote')
 
@@ -175,7 +173,6 @@ class TestEventProducer(unittest.TestCase):
 
 	def pull_producer_data(self):
 		pull_from_node(self.producer_url)
-		time.sleep(1)
 
 	def get_remote_site(self):
 		producer_doc = frappe.get_doc('Event Producer', self.producer_url)
@@ -213,7 +210,7 @@ class TestEventProducer(unittest.TestCase):
 		producer_note['content'] = 'test mapped doc update sync'
 		producer_note = producer.update(producer_note)
 		self.pull_producer_data()
-		time.sleep(5)
+
 		# check updated
 		self.assertTrue(frappe.db.exists('ToDo', {'description': producer_note['content']}))
 
@@ -257,7 +254,6 @@ class TestEventProducer(unittest.TestCase):
 		delete_on_remote_if_exists(producer, 'Note', {'title': producer_note.title})
 		producer_note = producer.insert(producer_note)
 		self.pull_producer_data()
-		time.sleep(5)
 
 		#check dependency inserted
 		self.assertTrue(frappe.db.exists('Role', {'role_name': producer_note.title}))
