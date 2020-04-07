@@ -101,12 +101,13 @@ frappe.views.InboxView = class InboxView extends frappe.views.ListView {
 			</a>` : '';
 
 		const communication_date = comment_when(email.communication_date, true);
-		const status = email.status == "Closed" ? `<span class="fa fa-check fa-large" title="${__(email.status)}"></span>`
-			: email.status == "Replied" ? `<span class="fa fa-mail-reply fa-large" title="${__(email.status)}"></span>`
-			: "";
+		const status =
+			email.status ==	"Closed" ? `<span class="fa fa-check fa-large" title="${__(email.status)}"></span>` :
+			email.status == "Replied" ? `<span class="fa fa-mail-reply fa-large" title="${__(email.status)}"></span>` :
+			"";
 
 		return `
-			<div class="level-item hidden-xs list-row-activity">
+			<div class="level-item list-row-activity">
 				${link}
 				${attachment}
 				${status}
