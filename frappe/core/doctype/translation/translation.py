@@ -7,6 +7,7 @@ import frappe
 from frappe.model.document import Document
 from frappe.utils import strip_html_tags, is_html
 from frappe.integrations.utils import make_post_request
+from frappe.translate import get_translator_url
 import json
 
 class Translation(Document):
@@ -72,7 +73,7 @@ def create_translations(translation_map, language):
 		'translation_map': json.dumps(translation_map_to_send)
 	}
 
-	translator = FrappeClient(frappe.conf.translator_url)
+	translator = FrappeClient(get_translator_url())
 	return translator.post_api('translator.api.add_translations', params=params)
 
 def clear_user_translation_cache(lang):
