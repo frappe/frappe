@@ -33,11 +33,12 @@ export default class NewWidget {
 
 	open_dialog() {
 		const dialog_class = get_dialog_constructor(this.type)
+
 		this.dialog = new dialog_class({
 			label: this.label,
 			type: this.type,
 			values: false,
-			on_create: this.on_create,
+			primary_action: this.on_create,
 		})
 
 		this.dialog.make();

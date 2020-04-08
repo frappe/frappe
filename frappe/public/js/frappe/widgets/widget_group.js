@@ -63,6 +63,7 @@ export default class WidgetGroup {
 
 		let widget_object = new widget_class({
 			...widget,
+			widget_type: this.type,
 			container: this.body,
 			options: {
 				...this.options,

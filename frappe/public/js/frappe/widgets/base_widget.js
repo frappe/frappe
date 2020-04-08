@@ -1,3 +1,5 @@
+import get_dialog_constructor from './widget_dialog.js'
+
 export default class Widget {
 	constructor(opts) {
 		Object.assign(this, opts);
@@ -114,29 +116,21 @@ export default class Widget {
 	}
 
 	edit() {
-		frappe.model.with_doctype(this.doctype, () => {
-			let new_dialog = new frappe.ui.Dialog({
-				title: __("Edit"),
-				fields: frappe.get_meta(this.doctype).fields,
-				primary_action: (data) => {
-					if (this.doctype == 'Desk Chart' && !data.label) {
-						data.label = data.chart_name;
-					}
+		const dialog_class = get_dialog_constructor(this.widget_type)
 
-					if (this.doctype == 'Desk Shortcut') {
-						data.label = data.link_to;
-					}
+		this.edit_dialog = new dialog_class({
+			label: this.label,
+			type: this.widget_type,
+			values: this.get_config(),
+			primary_action: (data) => {
+				Object.assign(this, data);
+				data.name = this.name;
 
-					new_dialog.hide();
-					Object.assign(this, data);
-					this.refresh();
-				},
-				primary_action_label: __("Save"),
-			});
+				this.refresh();
+			},
+		})
 
-			new_dialog.show();
-			new_dialog.set_values(this.get_config());
-		});
+		this.edit_dialog.make();
 	}
 
 	hide_or_show() {

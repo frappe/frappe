@@ -1,13 +1,5 @@
 import Widget from "./base_widget.js";
 import { generate_route } from "./utils";
-// import { get_luminosity, shadeColor } from "./utils";
-
-String.prototype.format = function () {
-  var i = 0, args = arguments;
-  return this.replace(/{}/g, function () {
-    return typeof args[i] != 'undefined' ? args[i++] : '';
-  });
-};
 
 export default class ShortcutWidget extends Widget {
 	constructor(opts) {
@@ -69,7 +61,7 @@ export default class ShortcutWidget extends Widget {
 	set_count(count) {
 		const get_label = () => {
 			if (this.format) {
-				return this.format.format(count);
+				return this.format.replace(/{}/g, count);
 			}
 			return count
 		}
