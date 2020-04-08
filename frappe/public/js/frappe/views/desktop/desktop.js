@@ -197,11 +197,19 @@ class DesktopPage {
 		this.allow_customization = this.data.allow_customization || false;
 		this.allow_customization && this.make_customization_link();
 
-		!this.sections["onboarding"] &&
-			this.data.charts.items &&
-			this.make_charts();
-		this.data.shortcuts.items && this.make_shortcuts();
-		this.data.cards.items && this.make_cards();
+		let create_shortcuts_and_cards = () => {
+			this.data.shortcuts.items.length && this.make_shortcuts();
+			this.data.cards.items.length && this.make_cards();
+		};
+
+		if (!this.sections["onboarding"] && this.data.charts.items.length) {
+			this.make_charts().then(() => {
+				create_shortcuts_and_cards();
+			});
+		} else {
+			create_shortcuts_and_cards();
+		}
+
 		if (this.allow_customization) {
 			// Move the widget group up to align with labels if customization is allowed
 			$('.desk-page .widget-group:visible:first').css('margin-top', '-25px');
@@ -257,20 +265,29 @@ class DesktopPage {
 	}
 
 	make_charts() {
-		this.sections["charts"] = new frappe.widget.WidgetGroup({
-			title: this.data.charts.label || `${this.page_name} Dashboard`,
-			container: this.page,
-			type: "chart",
-			columns: 1,
-			options: {
-				allow_sorting: this.allow_customization && !frappe.is_mobile(),
-				allow_create: this.allow_customization,
-				allow_delete: this.allow_customization,
-				allow_hiding: false,
-				allow_edit: true,
-				max_widget_count: 2,
-			},
-			widgets: this.data.charts.items
+		return frappe.dashboard_utils.get_dashboard_settings().then(settings => {
+			let chart_config = settings.chart_config? JSON.parse(settings.chart_config): {};
+			if (this.data.charts.items) {
+				this.data.charts.items.map(chart => {
+					chart.chart_settings = chart_config[chart.chart_name] || {};
+				});
+			}
+
+			this.sections["charts"] = new frappe.widget.WidgetGroup({
+				title: this.data.charts.label || `${this.page_name} Dashboard`,
+				container: this.page,
+				type: "chart",
+				columns: 1,
+				options: {
+					allow_sorting: this.allow_customization && !frappe.is_mobile(),
+					allow_create: this.allow_customization,
+					allow_delete: this.allow_customization,
+					allow_hiding: false,
+					allow_edit: true,
+					max_widget_count: 2,
+				},
+				widgets: this.data.charts.items
+			});
 		});
 	}
 

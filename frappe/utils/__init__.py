@@ -75,11 +75,18 @@ def extract_email_id(email):
 		email_id = email_id.decode("utf-8", "ignore")
 	return email_id
 
-def validate_email_add(email_str, throw=False):
-	"""
-	validate_email_add will be renamed to the validate_email_address in v12
-	"""
-	return validate_email_address(email_str, throw=False)
+def validate_phone_number(phone_number, throw=False):
+	"""Returns True if valid phone number"""
+	if not phone_number:
+		return False
+
+	phone_number = phone_number.strip()
+	match = re.match("([0-9\ \+\_\-\,\.\*\#\(\)]){1,20}$", phone_number)
+
+	if not match and throw:
+		frappe.throw(frappe._("{0} is not a valid Phone Number").format(phone_number), frappe.InvalidPhoneNumberError)
+
+	return bool(match)
 
 def validate_email_address(email_str, throw=False):
 	"""Validates the email string"""
@@ -98,15 +105,15 @@ def validate_email_address(email_str, throw=False):
 			_valid = False
 
 		else:
-			e = extract_email_id(e)
-			match = re.match("[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?", e.lower()) if e else None
+			email_id = extract_email_id(e)
+			match = re.match("[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?", email_id.lower()) if email_id else None
 
 			if not match:
 				_valid = False
 			else:
 				matched = match.group(0)
 				if match:
-					match = matched==e.lower()
+					match = matched==email_id.lower()
 
 		if not _valid:
 			if throw:

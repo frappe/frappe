@@ -2,18 +2,23 @@
 # For license information, please see license.txt
 
 from __future__ import unicode_literals
-import frappe, json, os
-from frappe.website.website_generator import WebsiteGenerator
+
+import json
+import os
+
+from six import iteritems
+from six.moves.urllib.parse import urlencode
+
+import frappe
 from frappe import _, scrub
+from frappe.core.doctype.file.file import get_max_file_size, remove_file_by_url
+from frappe.custom.doctype.customize_form.customize_form import docfield_properties
+from frappe.desk.form.meta import get_code_files_via_hooks
+from frappe.integrations.utils import get_payment_gateway_controller
+from frappe.modules.utils import export_module_json, get_doc_module
 from frappe.utils import cstr
 from frappe.website.utils import get_comment_list
-from frappe.custom.doctype.customize_form.customize_form import docfield_properties
-from frappe.core.doctype.file.file import get_max_file_size
-from frappe.core.doctype.file.file import remove_file_by_url
-from frappe.modules.utils import export_module_json, get_doc_module
-from six.moves.urllib.parse import urlencode
-from frappe.integrations.utils import get_payment_gateway_controller
-from six import iteritems
+from frappe.website.website_generator import WebsiteGenerator
 
 
 class WebForm(WebsiteGenerator):
@@ -237,11 +242,23 @@ def get_context(context):
 
 			js_path = os.path.join(os.path.dirname(self.web_form_module.__file__), scrub(self.name) + '.js')
 			if os.path.exists(js_path):
-				context.script = frappe.render_template(open(js_path, 'r').read(), context)
+				script = frappe.render_template(open(js_path, 'r').read(), context)
+
+				for path in get_code_files_via_hooks("webform_include_js", context.doc_type):
+					custom_js = frappe.render_template(open(path, 'r').read(), context)
+					script = "\n\n".join([script, custom_js])
+
+				context.script = script
 
 			css_path = os.path.join(os.path.dirname(self.web_form_module.__file__), scrub(self.name) + '.css')
 			if os.path.exists(css_path):
-				context.style = open(css_path, 'r').read()
+				style = open(css_path, 'r').read()
+
+				for path in get_code_files_via_hooks("webform_include_css", context.doc_type):
+					custom_css = open(path, 'r').read()
+					style = "\n\n".join([style, custom_css])
+
+				context.style = style
 
 	def get_layout(self):
 		layout = []
@@ -589,4 +606,3 @@ def get_link_options(web_form_name, doctype, allow_read_on_all_link_options=Fals
 
 	else:
 		raise frappe.PermissionError('Not Allowed, {0}'.format(doctype))
-

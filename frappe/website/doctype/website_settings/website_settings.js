@@ -35,6 +35,27 @@ frappe.ui.form.on('Website Settings', {
 		}
 	},
 
+	authorize_api_indexing_access: function(frm) {
+		let reauthorize = 0;
+		if (frm.doc.authorization_code) {
+			reauthorize = 1;
+		}
+
+		frappe.call({
+			method: "frappe.website.doctype.website_settings.google_indexing.authorize_access",
+			args: {
+				"g_indexing": frm.doc.name,
+				"reauthorize": reauthorize
+			},
+			callback: function(r) {
+				if (!r.exc) {
+					frm.save();
+					window.open(r.message.url);
+				}
+			}
+		});
+	},
+
 	set_parent_options: function(frm, doctype, name) {
 		var item = frappe.get_doc(doctype, name);
 		if(item.parentfield === "top_bar_items") {
