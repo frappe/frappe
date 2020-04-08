@@ -6,7 +6,7 @@ frappe.views.calendar["ToDo"] = {
 		"start": "date",
 		"end": "date",
 		"id": "name",
-		"title": "owner",
+		"title": "description",
 		"allDay": "allDay",
 		"progress": "progress"
 	},
