@@ -155,8 +155,18 @@ export class NewShortcutWidget extends NewWidget {
 			},
 			{
 				fieldtype: "Section Break",
-				fieldname: "count_section_break",
+				fieldname: "filters_section_break",
 				label: "Count Filter",
+				hidden: 1,
+			},
+			{
+				fieldtype: "HTML",
+				fieldname: "filter_area",
+			},
+			{
+				fieldtype: "Section Break",
+				fieldname: "count_section_break",
+				label: "Count Customizations",
 				hidden: 1,
 			},
 			{
@@ -173,15 +183,6 @@ export class NewShortcutWidget extends NewWidget {
 				fieldname: "format",
 				label: "Format",
 				description: "For Example: {} Open",
-			},
-			{
-				fieldtype: "Section Break",
-				fieldname: "filters_section_break",
-				hidden: 1,
-			},
-			{
-				fieldtype: "HTML",
-				fieldname: "filter_area",
 			},
 		];
 	}
