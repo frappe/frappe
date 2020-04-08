@@ -29,7 +29,7 @@ class WidgetDialog {
 				this.dialog.hide();
 				this.primary_action(data);
 			},
-			primary_action_label: __("Add"),
+			primary_action_label: this.primary_action_label || __("Add"),
 		});
 	}
 

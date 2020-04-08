@@ -128,6 +128,7 @@ export default class Widget {
 
 				this.refresh();
 			},
+			primary_action_label: __("Save")
 		})
 
 		this.edit_dialog.make();
