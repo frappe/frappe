@@ -26,6 +26,7 @@ from frappe.model.base_document import BaseDocument
 from frappe.modules import load_doctype_module
 from frappe.model.workflow import get_workflow_name
 from frappe import _
+from frappe.custom.doctype.custom_link.custom_link import get_custom_doctype_links
 
 def get_meta(doctype, cached=True):
 	if cached:
@@ -429,6 +430,7 @@ class Meta(Document):
 			pass
 
 		self.add_doctype_links(data)
+		get_custom_doctype_links(self.name, data)
 
 		for hook in frappe.get_hooks("override_doctype_dashboards", {}).get(self.name, []):
 			data = frappe.get_attr(hook)(data=data)
@@ -447,7 +449,7 @@ class Meta(Document):
 				link.added = False
 				for group in data.transactions:
 					# group found
-					if group.label == link.label:
+					if group.label == link.group:
 						if not link.link_doctype in group.items:
 							group.items.append(link.link_doctype)
 						link.added = True
