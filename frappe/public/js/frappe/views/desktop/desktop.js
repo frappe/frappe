@@ -200,6 +200,11 @@ class DesktopPage {
 		let create_shortcuts_and_cards = () => {
 			this.data.shortcuts.items.length && this.make_shortcuts();
 			this.data.cards.items.length && this.make_cards();
+
+			if (this.allow_customization) {
+				// Move the widget group up to align with labels if customization is allowed
+				$('.desk-page .widget-group:visible:first').css('margin-top', '-25px');
+			}
 		};
 
 		if (!this.sections["onboarding"] && this.data.charts.items.length) {
@@ -208,11 +213,6 @@ class DesktopPage {
 			});
 		} else {
 			create_shortcuts_and_cards();
-		}
-
-		if (this.allow_customization) {
-			// Move the widget group up to align with labels if customization is allowed
-			$('.desk-page .widget-group:visible:first').css('margin-top', '-25px');
 		}
 	}
 
