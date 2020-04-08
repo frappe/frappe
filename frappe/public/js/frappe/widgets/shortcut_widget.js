@@ -43,7 +43,6 @@ export default class ShortcutWidget extends Widget {
 	}
 
 	set_actions() {
-		console.log(this.in_customize_mode);
 		if (this.in_customize_mode) return
 
 		this.widget.addClass('shortcut-widget-box');
