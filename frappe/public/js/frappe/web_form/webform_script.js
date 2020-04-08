@@ -115,7 +115,11 @@ frappe.ready(function() {
 				if (["Attach", "Attach Image"].includes(df.fieldtype)) {
 					if (!df.options)
 						df.options = {};
-					df.options.disable_file_browser = true;
+					try{
+						df.options.disable_file_browser = true;
+					}catch(e){
+						console.log(e)
+					}
 				}
 			});
 
