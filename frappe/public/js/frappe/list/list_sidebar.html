@@ -10,6 +10,7 @@
 </ul>
 <ul class="list-unstyled sidebar-menu standard-actions">
 	{% if frappe.model.can_get_report(doctype) %}
+	<li class="list-sidebar-label">Views</li>
 	<li class="divider visible-sm visible-xs"></li>
 	<li class="list-link">
 		<div class="btn-group">
@@ -64,7 +65,7 @@
 	<li class="list-stats list-link">
 		<div class="btn-group">
 			<a class = "dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" href="#" onclick="return false;">
-				{{ __("Tags") }}<span class="caret"></span>
+				{{ __("Tags") }} <span class="caret"></span>
 			</a>
 			<ul class="dropdown-menu list-stats-dropdown" role="menu">
 				<div class="dropdown-search">
@@ -74,7 +75,7 @@
 		</div>
 	</li>
 	<li class="list-link" style="margin-top: 10px;">
-		<a class="list-tag-preview hidden-xs text-muted">{{ __("Show tags") }}</a>
+		<a class="list-tag-preview hidden-xs text-muted">{{ __("Show Tags") }}</a>
 	</li>
 </ul>
 <ul class="list-unstyled sidebar-menu charts-menu hide">

@@ -1,7 +1,7 @@
 context('Control Link', () => {
 	beforeEach(() => {
 		cy.login();
-		cy.visit('/desk');
+		cy.visit('/desk#workspace/Website');
 		cy.create_records({
 			doctype: 'ToDo',
 			description: 'this is a test todo for link'

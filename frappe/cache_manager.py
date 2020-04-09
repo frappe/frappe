@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 
 import frappe, json
 import frappe.defaults
+from frappe.model.document import Document
 from frappe.desk.notifications import (delete_notification_count_for,
 	clear_notifications)
 
@@ -21,6 +22,10 @@ user_cache_keys = ("bootinfo", "user_recent", "roles", "user_doc", "lang",
 
 doctype_cache_keys = ("meta", "form_meta", "table_columns", "last_modified",
 		"linked_doctypes", 'notifications', 'workflow' ,'energy_point_rule_map')
+
+count_cache_blacklist = ["Version", "Tag", "ToDo", "List Filter", "Note Seen By", "Notification Log",
+		"Document Follow", "Communication", "Email Queue", "Deleted Document", "File", "Email Queue Recipient"
+		"Comment", "Has Role", "Attendance", "Route History"]
 
 
 def clear_user_cache(user=None):
@@ -116,9 +121,23 @@ def clear_doctype_map(doctype, name):
 	cache_key = frappe.scrub(doctype) + '_map'
 	frappe.cache().hdel(cache_key, name)
 
-def build_table_count_cache():
-	if frappe.flags.in_patch or frappe.flags.in_install or frappe.flags.in_import:
+def build_table_count_cache(doc=None, method=None, *args, **kwargs):
+	if (frappe.flags.in_patch
+		or frappe.flags.in_install
+		or frappe.flags.in_migrate
+		or frappe.flags.in_import
+		or frappe.flags.in_setup_wizard):
 		return
+
+	if doc and isinstance(doc, Document):
+		doctype = doc.doctype
+
+		if doc.meta.istable:
+			return
+
+		if doctype in count_cache_blacklist:
+			return
+
 	_cache = frappe.cache()
 	data = frappe.db.multisql({
 		"mariadb": """
@@ -137,8 +156,12 @@ def build_table_count_cache():
 
 	return counts
 
-def build_domain_restriced_doctype_cache():
-	if frappe.flags.in_patch or frappe.flags.in_install or frappe.flags.in_import:
+def build_domain_restriced_doctype_cache(*args, **kwargs):
+	if (frappe.flags.in_patch
+		or frappe.flags.in_install
+		or frappe.flags.in_migrate
+		or frappe.flags.in_import
+		or frappe.flags.in_setup_wizard):
 		return
 	_cache = frappe.cache()
 	active_domains = frappe.get_active_domains()
@@ -148,8 +171,12 @@ def build_domain_restriced_doctype_cache():
 
 	return doctypes
 
-def build_domain_restriced_page_cache():
-	if frappe.flags.in_patch or frappe.flags.in_install or frappe.flags.in_import:
+def build_domain_restriced_page_cache(*args, **kwargs):
+	if (frappe.flags.in_patch
+		or frappe.flags.in_install
+		or frappe.flags.in_migrate
+		or frappe.flags.in_import
+		or frappe.flags.in_setup_wizard):
 		return
 	_cache = frappe.cache()
 	active_domains = frappe.get_active_domains()

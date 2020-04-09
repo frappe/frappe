@@ -26,6 +26,16 @@ def get_data():
 			"description": "Data import, printing, email and workflows."
 		},
 		{
+			"module_name": "Automation",
+			"category": "Administration",
+			"label": _("Automation"),
+			"color": "#bdc3c7",
+			"reverse": 1,
+			"icon": "octicon octicon-gist",
+			"type": "module",
+			"description": "Auto Repeat, Assignment Rule, Milestone Tracking and Event Streaming."
+		},
+		{
 			"module_name": "Users and Permissions",
 			"category": "Administration",
 			"label": _("Users and Permissions"),

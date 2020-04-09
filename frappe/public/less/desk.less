@@ -35,6 +35,10 @@ a[disabled="disabled"] {
 	background-color: @light-bg;
 	padding: 7px;
 	border-radius: 3px;
+
+	&:hover {
+		background-color: #cfdce5;
+	}
 }
 
 .alert-badge {
@@ -713,6 +717,7 @@ li.user-progress {
 			height: 60px;
 			width: 60px;
 			background-color: #fafbfc;
+			overflow: hidden;
 
 			.flex-text {
 				display: flex;
@@ -965,9 +970,13 @@ input[type="checkbox"] {
 .onboarding-dialog {
 
 	.slide-body {
-		width: 65%;
 		margin-right: auto;
 		margin-left: auto;
+	}
+
+	.slides-wrapper {
+		padding-left: 10px;
+		padding-right: 10px;
 	}
 
 	.modal-content {
@@ -1008,6 +1017,9 @@ input[type="checkbox"] {
 		margin-top: 15px;
 	}
 
+	.skip-btn {
+		padding: 5px 0px 5px 0px;
+	}
 }
 
 /* broken image styling */
@@ -1136,6 +1148,9 @@ body.no-sidebar {
 		bottom: 0;
 		margin: 0;
 		max-width: 500px;
+		.modal-content {
+			min-height: 0;
+		}
 	}
 	.modal-body {
 		display: none;

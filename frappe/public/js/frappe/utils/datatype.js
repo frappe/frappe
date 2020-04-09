@@ -44,6 +44,10 @@ window.validate_email = function(txt) {
 	return frappe.utils.validate_type(txt, "email");
 };
 
+window.validate_phone = function(txt) {
+	return frappe.utils.validate_type(txt, "phone");
+};
+
 window.nth = function(number) {
 	number = cint(number);
 	var s = 'th';

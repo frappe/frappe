@@ -307,7 +307,7 @@ def has_controller_permissions(doc, ptype, user=None):
 	return None
 
 def get_doctypes_with_read():
-	return list(set([p.parent for p in get_valid_perms()]))
+	return list(set([p.parent if type(p.parent) == str else p.parent.encode('UTF8') for p in get_valid_perms()]))
 
 def get_valid_perms(doctype=None, user=None):
 	'''Get valid permissions for the current user from DocPerm and Custom DocPerm'''

@@ -81,10 +81,8 @@ def handle():
 					frappe.local.response.update({"data": doc})
 
 				if frappe.local.request.method=="PUT":
-					if frappe.local.form_dict.data is None:
-						data = json.loads(frappe.safe_decode(frappe.local.request.get_data()))
-					else:
-						data = json.loads(frappe.local.form_dict.data)
+					data = get_request_form_data()
+
 					doc = frappe.get_doc(doctype, name)
 
 					if "flags" in data:
@@ -96,30 +94,34 @@ def handle():
 					frappe.local.response.update({
 						"data": doc.save().as_dict()
 					})
+
+					if doc.parenttype and doc.parent:
+						frappe.get_doc(doc.parenttype, doc.parent).save()
+
 					frappe.db.commit()
 
-				if frappe.local.request.method=="DELETE":
+				if frappe.local.request.method == "DELETE":
 					# Not checking permissions here because it's checked in delete_doc
 					frappe.delete_doc(doctype, name, ignore_missing=False)
 					frappe.local.response.http_status_code = 202
 					frappe.local.response.message = "ok"
 					frappe.db.commit()
 
-
 			elif doctype:
-				if frappe.local.request.method=="GET":
+				if frappe.local.request.method == "GET":
 					if frappe.local.form_dict.get('fields'):
 						frappe.local.form_dict['fields'] = json.loads(frappe.local.form_dict['fields'])
 					frappe.local.form_dict.setdefault('limit_page_length', 20)
 					frappe.local.response.update({
-						"data":  frappe.call(frappe.client.get_list,
-							doctype, **frappe.local.form_dict)})
+						"data":  frappe.call(
+							frappe.client.get_list,
+							doctype,
+							**frappe.local.form_dict
+						)
+					})
 
-				if frappe.local.request.method=="POST":
-					if frappe.local.form_dict.data is None:
-						data = json.loads(frappe.safe_decode(frappe.local.request.get_data()))
-					else:
-						data = json.loads(frappe.local.form_dict.data)
+				if frappe.local.request.method == "POST":
+					data = get_request_form_data()
 					data.update({
 						"doctype": doctype
 					})
@@ -135,24 +137,33 @@ def handle():
 
 	return build_response("json")
 
+def get_request_form_data():
+	if frappe.local.form_dict.data is None:
+		data = frappe.safe_decode(frappe.local.request.get_data())
+	else:
+		data = frappe.local.form_dict.data
+
+	return frappe.parse_json(data)
+
 def validate_oauth():
+	""" authentication using oauth """
 	from frappe.oauth import get_url_delimiter
 	form_dict = frappe.local.form_dict
-	authorization_header = frappe.get_request_header("Authorization").split(" ") if frappe.get_request_header("Authorization") else None
+	authorization_header = frappe.get_request_header("Authorization", "").split(" ")
 	if authorization_header and authorization_header[0].lower() == "bearer":
 		from frappe.integrations.oauth2 import get_oauth_server
 		token = authorization_header[1]
-		r = frappe.request
-		parsed_url = urlparse(r.url)
-		access_token = { "access_token": token}
+		req = frappe.request
+		parsed_url = urlparse(req.url)
+		access_token = {"access_token": token}
 		uri = parsed_url.scheme + "://" + parsed_url.netloc + parsed_url.path + "?" + urlencode(access_token)
-		http_method = r.method
-		body = r.get_data()
-		headers = r.headers
+		http_method = req.method
+		body = req.get_data()
+		headers = req.headers
 
 		required_scopes = frappe.db.get_value("OAuth Bearer Token", token, "scopes").split(get_url_delimiter())
 
-		valid, oauthlib_request = get_oauth_server().verify_request(uri, http_method, body, headers, required_scopes)
+		valid, _oauthlib_request = get_oauth_server().verify_request(uri, http_method, body, headers, required_scopes)
 
 		if valid:
 			frappe.set_user(frappe.db.get_value("OAuth Bearer Token", token, "user"))
@@ -166,24 +177,36 @@ def validate_auth_via_api_keys():
 	set user
 	"""
 	try:
-		authorization_header = frappe.get_request_header("Authorization", None).split(" ") if frappe.get_request_header("Authorization") else None
+		authorization_header = frappe.get_request_header("Authorization", "").split(" ")
+		authorization_source = frappe.get_request_header("Frappe-Authorization-Source")
 		if authorization_header and authorization_header[0] == 'Basic':
 			token = frappe.safe_decode(base64.b64decode(authorization_header[1])).split(":")
-			validate_api_key_secret(token[0], token[1])
+			validate_api_key_secret(token[0], token[1], authorization_source)
 		elif authorization_header and authorization_header[0] == 'token':
 			token = authorization_header[1].split(":")
-			validate_api_key_secret(token[0], token[1])
+			validate_api_key_secret(token[0], token[1], authorization_source)
 	except Exception as e:
 		raise e
 
-def validate_api_key_secret(api_key, api_secret):
-	user = frappe.db.get_value(
-		doctype="User",
+
+def validate_api_key_secret(api_key, api_secret, frappe_authorization_source=None):
+	"""frappe_authorization_source to provide api key and secret for a doctype apart from User"""
+	doctype = frappe_authorization_source or 'User'
+	doc = frappe.db.get_value(
+		doctype=doctype,
 		filters={"api_key": api_key},
-		fieldname=['name']
+		fieldname=["name"]
 	)
 	form_dict = frappe.local.form_dict
-	user_secret = frappe.utils.password.get_decrypted_password ("User", user, fieldname='api_secret')
-	if api_secret == user_secret:
+	doc_secret = frappe.utils.password.get_decrypted_password(doctype, doc, fieldname='api_secret')
+	if api_secret == doc_secret:
+		if doctype == 'User':
+			user = frappe.db.get_value(
+				doctype="User",
+				filters={"api_key": api_key},
+				fieldname=["name"]
+			)
+		else:
+			user = frappe.db.get_value(doctype, doc, 'user')
 		frappe.set_user(user)
 		frappe.local.form_dict = form_dict

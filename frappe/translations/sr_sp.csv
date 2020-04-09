@@ -44,6 +44,7 @@ apps/frappe/frappe/public/js/frappe/views/treeview.js,Add Child,Dodaj podređeni
 apps/frappe/frappe/core/doctype/user/user.py,Invalid Password: ,Pogrešna lozinka:
 DocType: System Settings,System Settings,Sistemska podešavanja
 apps/frappe/frappe/printing/page/print_format_builder/print_format_builder.js,You can add dynamic properties from the document by using Jinja templating.,Можете да додате динамичке вредности из документа помоћу Jinja шаблона.
+DocType: Dashboard Chart,To Date,Do datuma
 DocType: Chat Profile,Offline,Van mreže (offline)
 DocType: Assignment Rule,System Manager,Menadžer sistema
 apps/frappe/frappe/www/update-password.html,New Password,Nova lozinka
@@ -59,7 +60,7 @@ DocType: Chat Profile,Online,Na mreži
 DocType: Auto Repeat,Subject,Naslov
 apps/frappe/frappe/public/js/frappe/views/file/file_view.js,Enter folder name,Unesi naziv foldera
 DocType: Workflow State,Tags,Tagovi
-apps/frappe/frappe/patches/v6_19/comment_feed_communication.py,Assignment,Dodjeljivanje
+DocType: Notification Log,Assignment,Dodjeljivanje
 DocType: Workflow State,move,Kretanje
 DocType: Language,Language,Jezik
 apps/frappe/frappe/public/js/frappe/form/form.js,Permanently Submit {0}?,Trajno potvrdi {0} ?
@@ -69,6 +70,7 @@ apps/frappe/frappe/public/js/frappe/model/model.js,Rename {0},Preimenuj {0}
 apps/frappe/frappe/public/js/frappe/socketio_client.js,File Upload,Dodavanje fajla
 DocType: Report,Add Total Row,Dodaj red ukupno bez PDV-a
 ,Setup Wizard,Čarobnjak za postavke
+DocType: Dashboard Chart,From Date,Od datuma
 DocType: Data Import,Amended From,Izmijenjena iz
 apps/frappe/frappe/desk/doctype/desktop_icon/desktop_icon.py,Desktop Icon already exists,Ikona na radnoj površini već postoji
 DocType: Comment,Attachment Removed,Prilog uklonjen
@@ -151,7 +153,6 @@ DocType: User,Enabled,Aktivan
 DocType: ToDo,ToDo,To Do
 apps/frappe/frappe/public/js/frappe/ui/toolbar/search_utils.js,Report {0},Izvještaj {0}
 apps/frappe/frappe/public/js/frappe/views/communication.js,New Email,Novi email
-apps/frappe/frappe/public/js/frappe/ui/slides.js,Add More,Dodaj još
 apps/frappe/frappe/public/js/frappe/views/reports/report_view.js,Pick Columns,Odaberi kolone
 DocType: Footer Item,Company,Preduzeće
 DocType: Address,Purchase User,Korisnik u nabavci
@@ -260,8 +261,7 @@ apps/frappe/frappe/public/js/frappe/form/grid.js,Add Multiple,Dodaj više
 DocType: Custom DocPerm,Import,Uvoz
 DocType: User,Security Settings,Bezbjedonosna podešavanja
 apps/frappe/frappe/public/js/frappe/form/multi_select_dialog.js,Search term,Pretraga
-DocType: Address,Email Address,Email adresa
-DocType: Google Maps Settings,Home Address,Kućna adresa
+apps/frappe/frappe/www/login.py,Email Address,Email adresa
 apps/frappe/frappe/public/js/frappe/form/grid_row_form.js,Ctrl + Up,Ctrl + up
 DocType: Comment,Assigned,Dodijeljeno
 DocType: Desktop Icon,_report,_izvještaj
@@ -450,6 +450,7 @@ DocType: ToDo,Medium,Srednji
 DocType: Workflow State,barcode,barkod
 DocType: Address,Reference,Vezni dokumenti
 DocType: Custom Role,Custom Role,Prilagođjena rola
+DocType: Webhook,Naming Series,Vrste dokumenta
 apps/frappe/frappe/public/js/frappe/form/footer/timeline.js,{0} from {1} to {2} in row #{3},{0} od {1} do {2} na poziciji # {3}
 DocType: Workflow State,User,Korisnik
 apps/frappe/frappe/public/js/frappe/desk.js,Please Enter Your Password to Continue,Za nastavak unesite lozinku

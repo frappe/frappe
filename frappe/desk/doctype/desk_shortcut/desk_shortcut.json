@@ -1,0 +1,98 @@
+{
+ "actions": [],
+ "creation": "2020-01-23 13:44:59.248426",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "type",
+  "icon",
+  "column_break_4",
+  "link_to",
+  "restrict_to_domain",
+  "is_query_report",
+  "section_break_5",
+  "stats_filter",
+  "column_break_3",
+  "color",
+  "format"
+ ],
+ "fields": [
+  {
+   "fieldname": "type",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Type",
+   "options": "DocType\nReport\nPage",
+   "reqd": 1
+  },
+  {
+   "fieldname": "link_to",
+   "fieldtype": "Dynamic Link",
+   "in_list_view": 1,
+   "label": "Link To",
+   "options": "type",
+   "reqd": 1
+  },
+  {
+   "fieldname": "stats_filter",
+   "fieldtype": "Code",
+   "label": "Count Filter",
+   "options": "JSON"
+  },
+  {
+   "fieldname": "column_break_3",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "For example: {} Open",
+   "fieldname": "format",
+   "fieldtype": "Data",
+   "label": "Format"
+  },
+  {
+   "fieldname": "section_break_5",
+   "fieldtype": "Section Break",
+   "label": "Count Filter"
+  },
+  {
+   "fieldname": "color",
+   "fieldtype": "Color",
+   "label": "Color"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:doc.type === \"Report\"",
+   "fieldname": "is_query_report",
+   "fieldtype": "Check",
+   "label": "Is Query Report"
+  },
+  {
+   "fieldname": "icon",
+   "fieldtype": "Data",
+   "label": "Icon"
+  },
+  {
+   "fieldname": "column_break_4",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "restrict_to_domain",
+   "fieldtype": "Link",
+   "label": "Restrict to Domain",
+   "options": "Domain"
+  }
+ ],
+ "istable": 1,
+ "links": [],
+ "modified": "2020-03-11 13:09:00.180528",
+ "modified_by": "Administrator",
+ "module": "Desk",
+ "name": "Desk Shortcut",
+ "owner": "Administrator",
+ "permissions": [],
+ "quick_entry": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

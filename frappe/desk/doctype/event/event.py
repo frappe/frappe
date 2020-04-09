@@ -73,6 +73,8 @@ class Event(Document):
 		communication.subject = self.subject
 		communication.content = self.description if self.description else self.subject
 		communication.communication_date = self.starts_on
+		communication.sender = self.owner
+		communication.sender_full_name = frappe.utils.get_fullname(self.owner)
 		communication.reference_doctype = self.doctype
 		communication.reference_name = self.name
 		communication.communication_medium = communication_mapping.get(self.event_category) if self.event_category else ""
