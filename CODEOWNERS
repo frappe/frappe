@@ -3,8 +3,9 @@
 # These owners will be the default owners for everything in
 # the repo. Unless a later match takes precedence,
 
-*					@surajshetty3416 @netchampfaris
+*					@surajshetty3416
 website/			@scmmishra
+web_form/			@scmmishra
 templates/			@scmmishra
 www/ 				@scmmishra
 integrations/		@Mangesh-Khairnar
