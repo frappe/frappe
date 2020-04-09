@@ -782,7 +782,7 @@ def sign_up(email, full_name, redirect_to):
 		user = frappe.get_doc("User", email)
 		if not user.enabled:
 			site_url = get_url()
-			subject = _("ERPNext User Account Disabled")
+			subject = _("User Account Disabled")
 			if site_url:
 				subject = ": ".join([subject, site_url.rsplit('//', 1)[-1]])
 
