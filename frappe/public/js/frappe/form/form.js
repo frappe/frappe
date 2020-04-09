@@ -616,8 +616,12 @@ frappe.ui.form.Form = class FrappeForm {
 			// validate
 			frappe.validated = true;
 			frappe.run_serially([
-				() => this.script_manager.trigger("validate"),
-				() => this.script_manager.trigger("before_save"),
+				() => {
+					return this.script_manager.trigger("validate")
+				},
+				() => {
+					return this.script_manager.trigger("before_save")
+				},
 				() => {
 					if(!frappe.validated) {
 						fail();
