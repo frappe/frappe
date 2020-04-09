@@ -25,9 +25,9 @@ class Workspace:
 		pages = frappe.get_list("Desk Page", filters=filters)
 		if pages:
 			return frappe.get_doc("Desk Page", pages[0])
-		else:
-			self.get_pages_to_extend()
-			return frappe.get_doc("Desk Page", self.page_name)
+
+		self.get_pages_to_extend()
+		return frappe.get_doc("Desk Page", self.page_name)
 
 	def init(self):
 		user = frappe.get_user()
@@ -310,11 +310,10 @@ def get_custom_workspace_for_user(page):
 	pages = frappe.get_list("Desk Page", filters=filters)
 	if pages:
 		return frappe.get_doc("Desk Page", pages[0])
-	else:
-		doc = frappe.new_doc("Desk Page")
-		doc.extends = page
-		doc.for_user = frappe.session.user
-		return doc
+	doc = frappe.new_doc("Desk Page")
+	doc.extends = page
+	doc.for_user = frappe.session.user
+	return doc
 
 
 @frappe.whitelist()
