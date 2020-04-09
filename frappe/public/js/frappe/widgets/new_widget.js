@@ -17,6 +17,8 @@ export default class NewWidget {
 	}
 
 	get_title() {
+		// DO NOT REMOVE: Comment to load translation
+		// __("New Chart") __("New Shortcut")
 		return __(`New ${frappe.utils.to_title_case(this.type)}`);
 	}
 

@@ -44,12 +44,12 @@ export default class Desktop {
 					this.desktop_settings = response.message;
 				} else {
 					frappe.throw({
-						title: "Couldn't Load Desk",
+						title: __("Couldn't Load Desk"),
 						message:
-							"Something went wrong while loading Desk. <b>Please relaod the page</b>. If the problem persists, contact the Administrator",
+							__("Something went wrong while loading Desk. <b>Please relaod the page</b>. If the problem persists, contact the Administrator"),
 						indicator: "red",
 						primary_action: {
-							label: "Reload",
+							label: __("Reload"),
 							action: () => location.reload()
 						}
 					});
@@ -63,7 +63,7 @@ export default class Desktop {
 				item.name}" class="sidebar-item ${
 				item.selected ? "selected" : ""
 			}">
-					<span>${item.name}</span>
+					<span>${item.label || item.name}</span>
 				</div>`);
 		};
 
@@ -78,8 +78,10 @@ export default class Desktop {
 		};
 
 		const make_category_title = name => {
+			// DO NOT REMOVE: Comment to load translation
+			// __("Modules") __("Domains") __("Places") __("Administration")
 			let $title = $(
-				`<div class="sidebar-group-title h6 uppercase">${name}</div>`
+				`<div class="sidebar-group-title h6 uppercase">${__(name)}</div>`
 			);
 			$title.appendTo(this.sidebar);
 		};
@@ -157,14 +159,14 @@ class DesktopPage {
 	}
 
 	make_customization_link() {
-		this.customize_link = $(`<div class="small customize-options" style="cursor: pointer;">Customize Workspace</div>`);
+		this.customize_link = $(`<div class="small customize-options" style="cursor: pointer;">${__('Customize Workspace')}</div>`);
 		this.customize_link.appendTo(this.page);
 		this.customize_link.on('click', () => {
 			this.customize();
 		})
 
 		this.save_or_discard_link = $(`<div class="small customize-options small-bounce">
-			<span class="save-customization">Save</span> / <span class="discard-customization">Discard</span>
+			<span class="save-customization">${__('Save')}</span> / <span class="discard-customization">${__('Discard')}</span>
 			</div>`).hide();
 
 		this.save_or_discard_link.appendTo(this.page);
@@ -272,7 +274,7 @@ class DesktopPage {
 			}
 
 			this.sections["charts"] = new frappe.widget.WidgetGroup({
-				title: this.data.charts.label || `${this.page_name} Dashboard`,
+				title: this.data.charts.label || __('{} Dashboard', [__(this.page_name)]),
 				container: this.page,
 				type: "chart",
 				columns: 1,
@@ -291,7 +293,7 @@ class DesktopPage {
 
 	make_shortcuts() {
 		this.sections["shortcuts"] = new frappe.widget.WidgetGroup({
-			title: this.data.shortcuts.label || `Your Shortcuts`,
+			title: this.data.shortcuts.label || __(`Your Shortcuts`),
 			container: this.page,
 			type: "shortcut",
 			columns: 3,
@@ -308,7 +310,7 @@ class DesktopPage {
 
 	make_cards() {
 		let cards = new frappe.widget.WidgetGroup({
-			title: this.data.cards.label || `Reports & Masters`,
+			title: this.data.cards.label || __(`Reports & Masters`),
 			container: this.page,
 			type: "links",
 			columns: 3,
