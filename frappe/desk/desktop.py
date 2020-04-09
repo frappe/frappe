@@ -4,7 +4,7 @@
 
 from __future__ import unicode_literals
 import frappe
-from json import loads, dumps
+from json import loads
 from frappe import _, DoesNotExistError
 from frappe.boot import get_allowed_pages, get_allowed_reports
 from six import string_types
