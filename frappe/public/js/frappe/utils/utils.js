@@ -232,6 +232,9 @@ Object.assign(frappe.utils, {
 		var regExp;
 
 		switch ( type ) {
+			case "phone":
+				regExp = /^([0-9\ \+\_\-\,\.\*\#\(\)]){1,20}$/;
+				break;
 			case "number":
 				regExp = /^-?(?:\d+|\d{1,3}(?:,\d{3})+)?(?:\.\d+)?$/;
 				break;
@@ -264,7 +267,7 @@ Object.assign(frappe.utils, {
 			if(has_words(["Pending", "Review", "Medium", "Not Approved"], text)) {
 				style = "warning";
 				colour = "orange";
-			} else if(has_words(["Open", "Urgent", "High", "Failed", "Rejected"], text)) {
+			} else if(has_words(["Open", "Urgent", "High", "Failed", "Rejected", "Error"], text)) {
 				style = "danger";
 				colour = "red";
 			} else if(has_words(["Closed", "Finished", "Converted", "Completed", "Complete", "Confirmed",

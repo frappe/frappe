@@ -222,6 +222,8 @@
 		"public/js/frappe/views/communication.js",
 		"public/js/frappe/views/translation_manager.js",
 
+		"public/js/frappe/widgets/widget_group.js",
+
 		"public/js/frappe/ui/sort_selector.html",
 		"public/js/frappe/ui/sort_selector.js",
 
@@ -235,11 +237,9 @@
 		"public/js/frappe/chat.js",
 		"public/js/frappe/social/social_factory.js",
 		"public/js/frappe/utils/energy_point_utils.js",
+		"public/js/frappe/utils/dashboard_utils.js",
 		"public/js/frappe/ui/chart.js",
 		"public/js/frappe/barcode_scanner/index.js"
-	],
-	"css/module.min.css": [
-		"public/less/module.less"
 	],
 	"css/form.min.css": [
 		"public/less/form_grid.less"
@@ -324,7 +324,8 @@
 		"public/js/frappe/views/reports/print_grid.html",
 		"public/js/frappe/views/reports/print_tree.html",
 		"public/js/frappe/ui/group_by/group_by.html",
-		"public/js/frappe/ui/group_by/group_by.js"
+		"public/js/frappe/ui/group_by/group_by.js",
+		"public/js/frappe/views/reports/report_utils.js"
 	],
 	"js/web_form.min.js": [
 		"public/js/frappe/utils/datetime.js",
@@ -343,9 +344,6 @@
 	],
 	"js/social.min.js": [
 		"public/js/frappe/social/social_home.js"
-	],
-	"js/modules.min.js": [
-		"public/js/frappe/views/modules_home.js"
 	],
 	"js/barcode_scanner.min.js": [
 		"public/js/frappe/barcode_scanner/quagga.js"

@@ -33,11 +33,11 @@
 					<div class="row {% if _login_required %} hidden {% endif %}"
 						style="margin-bottom: 15px;">
 						<div class="col-sm-6">
-							<input class="form-control" name="comment_by"
+							<input class="form-control comment_by" name="comment_by"
 								placeholder="{{ _("Your Name") }}" type="text">
 						</div>
 						<div class="col-sm-6">
-							<input class="form-control" name="comment_email"
+							<input class="form-control comment_email" name="comment_email"
 								placeholder="{{ _("Your Email Address") }}" type="email">
 						</div>
 					</div>
@@ -57,6 +57,11 @@
 
 		if (login_required && !frappe.is_user_logged_in()) {
 			$(".login-required, .comment-form-wrapper").toggleClass("hidden");
+		}
+
+		if(frappe.is_user_logged_in()) {
+			$('input.comment_by').prop("disabled", true);
+			$('input.comment_email').prop("disabled", true);
 		}
 
 		var n_comments = $(".comment-row").length;

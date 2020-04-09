@@ -155,10 +155,10 @@ export default class WebForm extends frappe.ui.FieldGroup {
 	}
 
 	print() {
-		window.location.href = `/printview?
+		window.open(`/printview?
 			doctype=${this.doc_type}
 			&name=${this.doc.name}
-			&format=${this.print_format || "Standard"}`;
+			&format=${this.print_format || "Standard"}`, '_blank');
 	}
 
 	cancel() {
@@ -174,7 +174,7 @@ export default class WebForm extends frappe.ui.FieldGroup {
 			title: __("Saved Successfully"),
 			secondary_action: () => {
 				if (this.success_url) {
-					window.location.pathname = this.success_url;
+					window.location.href = this.success_url;
 				} else if(this.login_required) {
 					window.location.href =
 						window.location.pathname + "?name=" + data.name;

@@ -352,6 +352,7 @@ DocType: Workflow State,share-alt,partes-alt
 apps/frappe/frappe/desk/reportview.py,{0} is saved,{0} foi salvo
 apps/frappe/frappe/core/page/permission_manager/permission_manager.js,Did not remove,Não removido
 apps/frappe/frappe/public/js/frappe/data_import/data_exporter.js,Select Mandatory,Selecionar Campos Obrigatórios
+DocType: Event Consumer Document Type,Approval Status,Estado da Aprovação
 apps/frappe/frappe/email/doctype/email_queue/email_queue_list.js,Suspend Sending,Suspender Envio
 DocType: DocType,DocType is a Table / Form in the application.,DocType é uma Tabela / Form na aplicação.
 DocType: Workflow,"Different ""States"" this document can exist in. Like ""Open"", ""Pending Approval"" etc.","""Status"" diferentes em que esse documento pode existir. Como ""Aberto"", ""Aprovação Pendente"", etc"
@@ -996,7 +997,6 @@ DocType: Bulk Update,Max 500 records at a time,Máximo de  500 registros por vez
 DocType: About Us Settings,More content for the bottom of the page.,Mais conteúdo na parte de baixo da página.
 apps/frappe/frappe/core/doctype/user/user.py,User {0} cannot be disabled,O usuário {0} não pode ser desativado
 DocType: Customize Form,"Customize Label, Print Hide, Default etc.","Personalizar Etiquetas, Cabeçalhos, Padrões, etc."
-apps/frappe/frappe/public/js/frappe/desk.js,Email Account setup please enter your password for: ,"Configuração de email, por favor informe sua senha para:"
 DocType: Address,Billing,Faturamento
 apps/frappe/frappe/utils/data.py,Cent,Centavo
 apps/frappe/frappe/config/users_and_permissions.py,System and Website Users,Usuários do sistema e do site
@@ -1012,8 +1012,6 @@ apps/frappe/frappe/desk/query_report.py,Must specify a Query to run,Deve especif
 DocType: DocField,Text,Texto
 DocType: Email Domain,Email Domain,Domínio de Email
 DocType: Workflow Document State,Only Allow Edit For,Somente permite edição para
-apps/frappe/frappe/email/doctype/auto_email_report/auto_email_report.py,"%s is not a valid report format. Report format should \
-				one of the following %s",%s não é um formato válido de relatório. O formato do relatório deve ser um dos seguintes %s
 DocType: Web Page,Text Align,Alinhar Texto
 DocType: System Settings,Setup Complete,Instalação Concluída
 apps/frappe/frappe/model/base_document.py,Not allowed to change {0} after submission,Não é permitido alterar {0} após a apresentação
@@ -1137,7 +1135,6 @@ DocType: Notification,Optional: The alert will be sent if this expression is tru
 DocType: Auto Repeat,Repeat on Day,Repetir no dia
 DocType: Communication,Communication Type,Tipo de comunicação
 DocType: ToDo,High,Alta
-apps/frappe/frappe/contacts/doctype/address/address.py,"Company is mandatory, as it is your company address","Empresa é obrigatório, como é o seu endereço de empresa"
 apps/frappe/frappe/core/doctype/data_export/exporter.py,"If you are updating, please select ""Overwrite"" else existing rows will not be deleted.","Se você estiver atualizando, por favor selecione ""Substituir"" linhas outra existentes não serão excluídos."
 apps/frappe/frappe/config/users_and_permissions.py,Check which Documents are readable by a User,Confira quais os documentos são lidos por um Usuário
 apps/frappe/frappe/core/page/dashboard/dashboard.js,{0} List,{0} Lista(s)

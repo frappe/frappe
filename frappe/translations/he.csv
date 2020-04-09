@@ -841,7 +841,6 @@ apps/frappe/frappe/core/doctype/doctype/doctype.py,Title field must be a valid f
 apps/frappe/frappe/public/js/frappe/ui/toolbar/about.js,Open Source Applications for the Web,יישומי קוד פתוחים לאינטרנט
 DocType: Workflow State,Home,בית
 apps/frappe/frappe/public/js/frappe/ui/filters/filter.js,Not In,לא ב
-apps/frappe/frappe/contacts/doctype/address/address.py,"Company is mandatory, as it is your company address","החברה היא חובה, כפי שהוא כתובת החברה שלך"
 apps/frappe/frappe/config/website.py,User editable form on Website.,טופס הניתן לעריכה למשתמש באתר.
 DocType: System Settings,Allow only one session per user,אפשר רק פגישה אחת לכל משתמש
 apps/frappe/frappe/public/js/frappe/form/form.js,This form has been modified after you have loaded it,טופס זה השתנה לאחר שהעמסת אותו
@@ -1163,6 +1162,7 @@ DocType: Report,JavaScript Format: frappe.query_reports['REPORTNAME'] = {},פו�
 apps/frappe/frappe/__init__.py,No permission for {0},אין הרשאה {0}
 DocType: Print Format,Helvetica,Helvetica
 apps/frappe/frappe/email/doctype/newsletter/newsletter.py,Scheduled to send to {0} recipients,מתוכנן לשלוח {0} מקבלים
+DocType: Event Consumer Document Type,Approved,אושר
 DocType: Contact,All,כל
 apps/frappe/frappe/core/doctype/user/user.py,There should remain at least one System Manager,לא צריך להישאר מנהל מערכת אחת לפחות
 apps/frappe/frappe/config/settings.py,"Language, Date and Time settings","הגדרות שפה, תאריך ושעה"
@@ -1464,7 +1464,7 @@ DocType: Notification,Optional: The alert will be sent if this expression is tru
 DocType: User,User Image,תמונת משתמש
 DocType: Contact,Salutation,שְׁאֵילָה
 DocType: Event,Leave blank to repeat always,שאר ריק כדי לחזור תמיד
-apps/frappe/frappe/public/js/frappe/ui/onboarding_dialog.js,Complete,לְהַשְׁלִים
+DocType: Scheduled Job Log,Complete,לְהַשְׁלִים
 DocType: Comment,Attachment Removed,הוסר Attachment
 apps/frappe/frappe/core/doctype/user/user.py,Administrator accessed {0} on {1} via IP Address {2}.,מנהל נצפה {0} על {1} באמצעות כתובת IP {2}.
 DocType: Email Account,Ignore attachments over this size,התעלם קבצים מצורפים מעל הגודל הזה
@@ -1868,6 +1868,7 @@ DocType: Auto Repeat,Reference Document Type,התייחסות סוג המסמך
 apps/frappe/frappe/public/js/frappe/form/link_selector.js,Select {0},בחר {0}
 apps/frappe/frappe/public/js/frappe/model/model.js,Rename,שינוי שם
 apps/frappe/frappe/database/schema.py,Fieldname {0} cannot have special characters like {1},Fieldname {0} לא יכול להיות תווים מיוחדים כמו {1}
+DocType: Event Consumer Document Type,Approval Status,סטטוס אישור
 DocType: Data Migration Run,End Time,שעת סיום
 DocType: Website Settings,Set Banner from Image,באנר להגדיר מתמונה
 DocType: Workflow State,plane,מטוס
