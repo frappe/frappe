@@ -40,6 +40,7 @@ pyasn1==0.4.4
 zxcvbn-python==4.4.24
 unittest-xml-reporting==2.2.0
 oauthlib==2.1.0
+pdfkit==0.6.1
 PyJWT==1.6.4
 PyPDF2==1.26.0
 openpyxl==2.5.10
