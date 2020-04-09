@@ -7,17 +7,21 @@ frappe.ui.form.on("Workflow", {
 	refresh: function(frm) {
 		frm.events.update_field_options(frm);
 		frm.ignore_warning = false;
-	},
-	onload_post_render: function(frm) {
+		frm.states = null;
+		frm.trigger('make_state_table');
 		frm.trigger('get_orphaned_states_and_count').then(()=> {
 			frm.trigger('render_state_table');
 		});
 	},
 	validate: (frm) => {
-		if (frm.ignore_warning) return;
+		if (frm.ignore_warning) {
+			return;
+		}
 		return frm.trigger('get_orphaned_states_and_count').then(()=> {
+			if (frm.states && frm.states.length) {
 				frappe.validated = false;
 				frm.trigger('create_warning_dialog');
+			}
 		});
 	},
 	document_type: function(frm) {
@@ -51,23 +55,25 @@ frappe.ui.form.on("Workflow", {
 		frappe.warn(__(`Worflow States Don't Exist`), message_html, proceed_action, __(`Save Anyway`));
 	},
 	set_table_html: function(frm) {
+
 		let rows = frm.states.map(r => {
 			let indicator_color_map = {
 				'0': 'red',
 				'1': 'green',
 				'2': 'darkgrey'
-			}
+			};
+
 			return `<tr>
 				<td>
 					<div class="indicator ${indicator_color_map[r.docstatus]}">
-						${r[frm.doc.workflow_state_field]}
+						<a class="text-muted orphaned-state">${r[frm.doc.workflow_state_field]}</a>
 					</div>
 				</td>
 				<td>${r.count}</td></tr>
 			`;
 		}).join('');
 
-		frm.state_table_html = (`<table class="table table-bordered" style="margin:0px; width: 50%">
+		frm.state_table_html = (`<table class="table state-table table-bordered" style="margin:0px; width: 50%">
 			<thead>
 				<tr class="text-muted">
 					<th>${__('State')}</th>
@@ -78,11 +84,12 @@ frappe.ui.form.on("Workflow", {
 				${rows}
 			</tbody>
 		</table>`);
+
 	},
 	get_orphaned_states_and_count: function(frm) {
 		let states_list = [];
 		frm.doc.states.map(state=> states_list.push(state.state));
-		return frappe.xcall('frappe.workflow.doctype.workflow.workflow.get_workflow_state_count',{
+		return frappe.xcall('frappe.workflow.doctype.workflow.workflow.get_workflow_state_count', {
 			doctype: frm.doc.document_type,
 			workflow_state_field: frm.doc.workflow_state_field,
 			states: states_list
@@ -93,13 +100,39 @@ frappe.ui.form.on("Workflow", {
 			}
 		});
 	},
+	make_state_table: function(frm) {
+		const wrapper = frm.get_field('states').$wrapper;
+		if (frm.state_table) {
+			frm.state_table.empty();
+		}
+		frm.state_table = $(`<div class="state-table"><div>`).insertAfter(wrapper);
+	},
 	render_state_table: function(frm) {
-		const $wrapper = frm.get_field('states').$wrapper;
-		const label_html =
-			`<p class="text-muted small" style="margin-top: 30px">
-				${'Document States that do not exist in your Workflow'}
-			</p>`;
-		$(label_html + frm.state_table_html).insertAfter($wrapper);
+		if (frm.states && frm.states.length) {
+			const form_state_table_html =
+				`<p class="text-muted small" style="margin-top: 30px">
+					${'Document States that do not exist in your Workflow'}
+				</p>
+				${frm.state_table_html}
+				</div>`;
+			frm.state_table.html(form_state_table_html);
+
+			$(frm.state_table).find('a.orphaned-state').on('click', (e) => {
+				const state = $(e.currentTarget).text();
+				let filters = {};
+				filters[frm.workflow_state_field] = state;
+				frappe.set_route('List', frm.doc.document_type, filters);
+			})
+		}
+	}
+
+});
+
+frappe.ui.form.on("Workflow Document State", {
+	states_remove: function(frm) {
+		frm.trigger('get_orphaned_states_and_count').then(()=> {
+			frm.trigger('render_state_table');
+		});
 	}
 });
 

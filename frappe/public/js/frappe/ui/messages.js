@@ -59,7 +59,7 @@ frappe.warn = function(title, message_html, proceed_action, primary_label) {
 		indicator: 'red',
 		fields: [
 			{
-				fieldtype:"HTML",
+				fieldtype: 'HTML',
 				fieldname: 'warning_message',
 				options: `<div class="frappe-warning-message">${message_html}</div>`
 			}
