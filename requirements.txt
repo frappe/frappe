@@ -43,7 +43,7 @@ oauthlib==2.1.0
 pdfkit==0.6.1
 PyJWT==1.6.4
 PyPDF2==1.26.0
-openpyxl==2.5.10
+openpyxl==2.5.15
 pyotp==2.2.7
 pyqrcode==1.2.1
 pypng==0.0.18
