@@ -64,7 +64,7 @@ frappe.views.ListGroupBy = class ListGroupBy {
 				if (!docfield) {
 					return;
 				}
-				fieldtype = frappe.meta.get_docfield(this.doctype, fieldname).fieldtype;
+				fieldtype = docfield.fieldtype;
 			}
 
 			return `<li class="group-by-field list-link">
