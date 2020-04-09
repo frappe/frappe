@@ -6,10 +6,11 @@ def get_jenv():
 	import frappe
 
 	if not getattr(frappe.local, 'jenv', None):
-		from jinja2 import Environment, DebugUndefined
+		from jinja2 import DebugUndefined
+		from jinja2.sandbox import SandboxedEnvironment
 
 		# frappe will be loaded last, so app templates will get precedence
-		jenv = Environment(loader = get_jloader(),
+		jenv = SandboxedEnvironment(loader = get_jloader(),
 			undefined=DebugUndefined)
 		set_filters(jenv)
 
