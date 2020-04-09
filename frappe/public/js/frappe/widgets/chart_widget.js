@@ -429,9 +429,7 @@ export default class ChartWidget extends Widget {
 	}
 
 	fetch(filters, refresh = false, args) {
-		let method = this.settings
-			? this.settings.method
-			: "frappe.desk.doctype.dashboard_chart.dashboard_chart.get";
+		let method = this.settings.method;
 
 		if (this.chart_doc.chart_type == "Report") {
 			args = {
@@ -559,6 +557,9 @@ export default class ChartWidget extends Widget {
 					};
 					return Promise.resolve();
 				} else {
+					this.settings = {
+						method: "frappe.desk.doctype.dashboard_chart.dashboard_chart.get"
+					};
 					return Promise.resolve();
 				}
 			});
