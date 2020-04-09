@@ -1,4 +1,4 @@
-import get_dialog_constructor from './widget_dialog.js'
+import get_dialog_constructor from "./widget_dialog.js";
 
 export default class NewWidget {
 	constructor(opts) {
@@ -32,14 +32,14 @@ export default class NewWidget {
 	}
 
 	open_dialog() {
-		const dialog_class = get_dialog_constructor(this.type)
+		const dialog_class = get_dialog_constructor(this.type);
 
 		this.dialog = new dialog_class({
 			label: this.label,
 			type: this.type,
 			values: false,
 			primary_action: this.on_create,
-		})
+		});
 
 		this.dialog.make();
 	}

@@ -14,7 +14,7 @@ export default class ChartWidget extends Widget {
 			name: this.name,
 			chart_name: this.chart_name,
 			label: this.label,
-		}
+		};
 	}
 
 	refresh() {

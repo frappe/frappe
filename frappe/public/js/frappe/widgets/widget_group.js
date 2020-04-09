@@ -5,7 +5,7 @@ import LinksWidget from "../widgets/links_widget";
 import OnboardingWidget from "../widgets/onboarding_widget";
 import NewWidget from "../widgets/new_widget";
 
-frappe.provide('frappe.widget')
+frappe.provide("frappe.widget");
 
 const widget_factory = {
 	chart: ChartWidget,
@@ -52,9 +52,9 @@ export default class WidgetGroup {
 	}
 
 	make_widgets() {
-		this.body.empty()
-		this.widgets.forEach(widget => {
-			this.add_widget(widget)
+		this.body.empty();
+		this.widgets.forEach((widget) => {
+			this.add_widget(widget);
 		});
 	}
 
@@ -67,21 +67,21 @@ export default class WidgetGroup {
 			container: this.body,
 			options: {
 				...this.options,
-				on_delete: (name) => this.on_delete(name)
-			}
+				on_delete: (name) => this.on_delete(name),
+			},
 		});
 
 		this.widgets_list.push(widget_object);
 		this.widgets_dict[widget.name] = widget_object;
 
-		return widget_object
+		return widget_object;
 	}
 
 	customize() {
 		this.widget_area.show();
-		this.widgets_list.forEach(wid => {
+		this.widgets_list.forEach((wid) => {
 			wid.customize(this.options);
-		})
+		});
 
 		this.options.allow_create && this.setup_new_widget();
 		this.options.allow_sorting && this.setup_sortable();
@@ -89,8 +89,8 @@ export default class WidgetGroup {
 
 	setup_new_widget() {
 		const max = this.options
-					? this.options.max_widget_count || Number.POSITIVE_INFINITY
-					: Number.POSITIVE_INFINITY;
+			? this.options.max_widget_count || Number.POSITIVE_INFINITY
+			: Number.POSITIVE_INFINITY;
 
 		if (this.widgets_list.length < max) {
 			this.new_widget = new NewWidget({
@@ -111,13 +111,13 @@ export default class WidgetGroup {
 					if (this.widgets_list.length < max) {
 						this.setup_new_widget();
 					}
-				}
-			})
+				},
+			});
 		}
 	}
 
 	on_delete(name) {
-		this.widgets_list = this.widgets_list.filter(wid => name != wid.name);
+		this.widgets_list = this.widgets_list.filter((wid) => name != wid.name);
 		delete this.widgets_dict[name];
 		this.update_widget_order();
 
@@ -131,7 +131,7 @@ export default class WidgetGroup {
 			if (name) {
 				this.widget_order.push(name);
 			}
-		})
+		});
 	}
 
 	setup_sortable() {
@@ -147,16 +147,16 @@ export default class WidgetGroup {
 		this.update_widget_order();
 		let prepared_dict = {};
 
-		this.widgets_list.forEach(wid => {
-			let config = wid.get_config()
-			let name = config.docname ? config.docname : config.name
-			prepared_dict[name] = config
+		this.widgets_list.forEach((wid) => {
+			let config = wid.get_config();
+			let name = config.docname ? config.docname : config.name;
+			prepared_dict[name] = config;
 		});
 
 		return {
 			order: this.widget_order,
-			widgets: prepared_dict
-		}
+			widgets: prepared_dict,
+		};
 	}
 }
 

@@ -1,4 +1,4 @@
-import get_dialog_constructor from './widget_dialog.js'
+import get_dialog_constructor from './widget_dialog.js';
 
 export default class Widget {
 	constructor(opts) {
@@ -116,7 +116,7 @@ export default class Widget {
 	}
 
 	edit() {
-		const dialog_class = get_dialog_constructor(this.widget_type)
+		const dialog_class = get_dialog_constructor(this.widget_type);
 
 		this.edit_dialog = new dialog_class({
 			label: this.label,
@@ -129,7 +129,7 @@ export default class Widget {
 				this.refresh();
 			},
 			primary_action_label: __("Save")
-		})
+		});
 
 		this.edit_dialog.make();
 	}

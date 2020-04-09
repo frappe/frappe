@@ -12,7 +12,7 @@ export default class LinksWidget extends Widget {
 			links: JSON.stringify(this.links),
 			label: this.label,
 			hidden: this.hidden,
-		}
+		};
 	}
 
 	set_body() {
@@ -80,13 +80,13 @@ export default class LinksWidget extends Widget {
 				const popover = link.find(".module-link-popover");
 
 				link_label.mouseover(() => {
-					if (this.in_customize_mode) return
+					if (this.in_customize_mode) return;
 					popover.show();
 				});
 				link_label.mouseout(() => popover.hide());
 			} else {
 				link_label.click(event => {
-					if (this.in_customize_mode) return
+					if (this.in_customize_mode) return;
 
 					if (link_label.hasClass("help-video-link")) {
 						let yt_id = event.target.dataset.youtubeid;

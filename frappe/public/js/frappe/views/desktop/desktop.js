@@ -169,9 +169,7 @@ class DesktopPage {
 
 		this.save_or_discard_link.appendTo(this.page);
 		this.save_or_discard_link.find(".save-customization").on("click", () => this.save_customization());
-
-		this.save_or_discard_link.find(".discard-customization").on("click", () => this.reload())
-
+		this.save_or_discard_link.find(".discard-customization").on("click", () => this.reload());
 		this.page.addClass('allow-customization');
 	}
 
@@ -228,7 +226,7 @@ class DesktopPage {
 
 	customize() {
 		if (this.in_customize_mode) {
-			return
+			return;
 		}
 
 		// It may be possible the chart area is hidden since it has no widgets
@@ -259,9 +257,9 @@ class DesktopPage {
 			page: this.page_name,
 			config: config
 		}).then(res => {
-			frappe.msgprint(__("Customizations Saved Successfully"))
+			frappe.msgprint(__("Customizations Saved Successfully"));
 			this.reload();
-		})
+		});
 	}
 
 	make_charts() {
