@@ -266,10 +266,9 @@ def get_newsletter_list(doctype, txt, filters, limit_start, limit_page_length=20
 
 def send_scheduled_email():
 	"""Send scheduled newsletter to the recipients."""
-	scheduled_newsletter = frappe.db.sql("""
-SELECT name from `tabNewsletter`
-WHERE schedule_send <= %s
-AND email_sent = 0
-""", now_datetime(), as_dict=1)
+	scheduled_newsletter = frappe.get_all('Newsletter', filters = {
+		'schedule_send': ('<=', now_datetime()),
+		'email_sent': 0
+	}, fields = ['name'], ignore_ifnull=True)
 	for newsletter in scheduled_newsletter:
 		send_newsletter(newsletter.name)
