@@ -48,6 +48,7 @@ croniter==0.3.31
 googlemaps==4.2.0
 braintree==3.59.0;python_version<"3.6"
 braintree==4.0.0;python_version>="3.6"
+future==0.18.2
 futures==3.3.0;python_version<"3"
 passlib==1.7.2
 google-api-python-client==1.8.0
