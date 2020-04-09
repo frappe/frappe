@@ -116,10 +116,11 @@ def get_fieldnames_for(doctype):
 @frappe.whitelist()
 def get_workflow_state_count(doctype, workflow_state_field, states):
 	states = frappe.parse_json(states)
-	return frappe.get_all(
+	result = frappe.get_all(
 		doctype,
 		fields=[workflow_state_field, 'count(*) as count', 'docstatus'],
 		filters = {'workflow_state': ['not in', states]},
 		group_by = workflow_state_field
 	)
+	return [r for r in result if r[workflow_state_field]]
 
