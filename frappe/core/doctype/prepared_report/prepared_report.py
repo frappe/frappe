@@ -98,3 +98,34 @@ def download_attachment(dn):
 	attached_file = frappe.get_doc("File", attachment.name)
 	frappe.local.response.filecontent = gzip_decompress(attached_file.get_content())
 	frappe.local.response.type = "binary"
+
+
+def get_permission_query_condition(user):
+	if not user: user = frappe.session.user
+	if user == "Administrator":
+		return None
+
+	from frappe.utils.user import UserPermissions
+	user = UserPermissions(user)
+
+	if "System Manager" in user.roles:
+		return None
+
+	reports = [frappe.db.escape(report) for report in user.get_all_reports().keys()]
+
+	return """`tabPrepared Report`.ref_report_doctype in ({reports})"""\
+			.format(reports=','.join(reports))
+
+
+def has_permission(doc, user):
+	if not user: user = frappe.session.user
+	if user == "Administrator":
+		return True
+
+	from frappe.utils.user import UserPermissions
+	user = UserPermissions(user)
+
+	if "System Manager" in user.roles:
+		return True
+
+	return doc.ref_report_doctype in user.get_all_reports().keys()
