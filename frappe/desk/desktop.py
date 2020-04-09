@@ -17,19 +17,6 @@ class Workspace:
 		self.extended_charts = []
 		self.extended_shortcuts = []
 
-	def get_page_for_user(self):
-		filters = {
-			'extends': self.page_name,
-			'for_user': frappe.session.user
-		}
-		pages = frappe.get_list("Desk Page", filters=filters)
-		if pages:
-			return frappe.get_doc("Desk Page", pages[0])
-
-		self.get_pages_to_extend()
-		return frappe.get_doc("Desk Page", self.page_name)
-
-	def init(self):
 		user = frappe.get_user()
 		user.build_permissions()
 
@@ -43,10 +30,21 @@ class Workspace:
 		self.allowed_pages = get_allowed_pages()
 		self.allowed_reports = get_allowed_reports()
 
-
 		self.table_counts = get_table_with_counts()
 		self.restricted_doctypes = build_domain_restriced_doctype_cache()
 		self.restricted_pages = build_domain_restriced_page_cache()
+
+	def get_page_for_user(self):
+		filters = {
+			'extends': self.page_name,
+			'for_user': frappe.session.user
+		}
+		pages = frappe.get_list("Desk Page", filters=filters)
+		if pages:
+			return frappe.get_doc("Desk Page", pages[0])
+
+		self.get_pages_to_extend()
+		return frappe.get_doc("Desk Page", self.page_name)
 
 	def get_pages_to_extend(self):
 		pages = frappe.get_all("Desk Page", filters={
@@ -209,9 +207,8 @@ def get_desktop_page(page):
 	Returns:
 		dict: dictionary of cards, charts and shortcuts to be displayed on website
 	"""
-	wspace = Workspace(page)
 	try:
-		wspace.init()
+		wspace = Workspace(page)
 		wspace.build_workspace()
 		return {
 			'charts': wspace.charts,
