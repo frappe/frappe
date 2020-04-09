@@ -16,7 +16,7 @@ six==1.11.0
 termcolor==1.1.0
 werkzeug==0.14.1
 semantic_version==2.6.0
-rauth>=0.6.2
+rauth==0.7.3
 requests==2.20.1
 redis==2.10.6
 selenium==3.141.0
@@ -50,4 +50,4 @@ premailer==3.2.0
 croniter==0.3.29
 googlemaps==3.0.2
 urllib3==1.23
-GitPython==2.1.11
+GitPython==2.1.15
