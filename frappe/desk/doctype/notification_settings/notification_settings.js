@@ -13,7 +13,7 @@ frappe.ui.form.on('Notification Settings', {
 	refresh: (frm) => {
 		if (frappe.user.has_role('System Manager')) {
 			frm.add_custom_button('Go to Notification Settings List', () => {
-					frappe.set_route('List', 'Notification Settings');
+				frappe.set_route('List', 'Notification Settings');
 			});
 		}
 	}
