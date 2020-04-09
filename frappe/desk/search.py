@@ -58,7 +58,7 @@ def search_widget(doctype, txt, query=None, searchfield=None, start=0,
 	page_length=10, filters=None, filter_fields=None, as_dict=False):
 	if isinstance(filters, string_types):
 		filters = json.loads(filters)
-	
+
 	if searchfield:
 		sanitize_searchfield(searchfield)
 
@@ -139,7 +139,8 @@ def search_widget(doctype, txt, query=None, searchfield=None, start=0,
 				limit_page_length=page_length,
 				order_by=order_by,
 				ignore_permissions = True if doctype == "DocType" else False, # for dynamic links
-				as_list=not as_dict)
+				as_list=not as_dict,
+				strict=False)
 
 			# remove _relevance from results
 			if as_dict:

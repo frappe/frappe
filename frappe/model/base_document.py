@@ -461,21 +461,22 @@ class BaseDocument(object):
 				if frappe.get_meta(doctype).issingle:
 					values.name = doctype
 
-				setattr(self, df.fieldname, values.name)
+				if values:
+					setattr(self, df.fieldname, values.name)
 
-				for _df in fields_to_fetch:
-					setattr(self, _df.fieldname, values[_df.options.split('.')[-1]])
+					for _df in fields_to_fetch:
+						setattr(self, _df.fieldname, values[_df.options.split('.')[-1]])
 
-				notify_link_count(doctype, docname)
+					notify_link_count(doctype, docname)
 
-				if not values.name:
-					invalid_links.append((df.fieldname, docname, get_msg(df, docname)))
+					if not values.name:
+						invalid_links.append((df.fieldname, docname, get_msg(df, docname)))
 
-				elif (df.fieldname != "amended_from"
-					and (is_submittable or self.meta.is_submittable) and frappe.get_meta(doctype).is_submittable
-					and cint(frappe.db.get_value(doctype, docname, "docstatus"))==2):
+					elif (df.fieldname != "amended_from"
+						and (is_submittable or self.meta.is_submittable) and frappe.get_meta(doctype).is_submittable
+						and cint(frappe.db.get_value(doctype, docname, "docstatus"))==2):
 
-					cancelled_links.append((df.fieldname, docname, get_msg(df, docname)))
+						cancelled_links.append((df.fieldname, docname, get_msg(df, docname)))
 
 		return invalid_links, cancelled_links
 
