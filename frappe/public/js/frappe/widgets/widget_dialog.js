@@ -1,6 +1,7 @@
 class WidgetDialog {
 	constructor(opts) {
 		Object.assign(this, opts);
+		this.editing = Boolean(this.values && Object.keys(this.values).length)
 	}
 
 	make() {
@@ -8,9 +9,7 @@ class WidgetDialog {
 		this.setup_dialog_events();
 		this.dialog.show();
 
-		if (this.values && Object.keys(this.values).length) {
-			this.set_default_values();
-		}
+		this.editing && this.set_default_values();
 	}
 
 	make_dialog() {
@@ -93,7 +92,6 @@ class ChartDialog extends WidgetDialog {
 class ShortcutDialog extends WidgetDialog {
 	constructor(opts) {
 		super(opts);
-		window.neww = this;
 	}
 
 	get_fields() {
