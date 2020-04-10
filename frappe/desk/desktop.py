@@ -5,7 +5,7 @@
 from __future__ import unicode_literals
 import frappe
 from json import loads, dumps
-from frappe import _, DoesNotExistError, _dict
+from frappe import _, DoesNotExistError, ValidationError, _dict
 from frappe.boot import get_allowed_pages, get_allowed_reports
 from six import string_types
 from frappe.cache_manager import (
@@ -374,7 +374,7 @@ def save_customization(page, config):
 			page_doc.insert(ignore_permissions=True)
 		else:
 			page_doc.save(ignore_permissions=True)
-	except Exception as e:
+	except (ValidationError, TypeError) as e:
 		log = \
 			"""
 		 page: {0}
