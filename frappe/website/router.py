@@ -248,7 +248,7 @@ def get_frontmatter(string):
 		body = result.group(2)
 
 	return {
-		"attributes": yaml.load(fmatter),
+		"attributes": yaml.safe_load(fmatter),
 		"body": body,
 	}
 
