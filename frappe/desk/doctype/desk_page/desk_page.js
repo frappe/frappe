@@ -6,7 +6,7 @@ frappe.ui.form.on('Desk Page', {
 		frm.get_field("is_standard").toggle(frappe.boot.developer_mode);
 		frm.get_field("extends_another_page").toggle(frappe.boot.developer_mode);
 		if (!frappe.boot.developer_mode || frm.doc.for_user) {
-			frm.trigger('disable_form')
+			frm.trigger('disable_form');
 		}
 	},
 

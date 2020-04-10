@@ -163,7 +163,7 @@ class DesktopPage {
 		this.customize_link.appendTo(this.page);
 		this.customize_link.on('click', () => {
 			this.customize();
-		})
+		});
 
 		this.save_or_discard_link = $(`<div class="small customize-options small-bounce">
 			<span class="save-customization">${__('Save')}</span> / <span class="discard-customization">${__('Discard')}</span>
@@ -241,7 +241,7 @@ class DesktopPage {
 
 		Object.keys(this.sections).forEach(section => {
 			this.sections[section].customize();
-		})
+		});
 		this.in_customize_mode = true;
 
 		// Move the widget group up to align with labels if customization is allowed

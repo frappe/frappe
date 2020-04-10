@@ -49,7 +49,7 @@ class WidgetDialog {
 	}
 
 	process_data(data) {
-		return data
+		return data;
 	}
 
 	setup_dialog_events() {
@@ -88,14 +88,24 @@ class ChartDialog extends WidgetDialog {
 	}
 
 	process_data(data) {
-		data.label = data.label ? data.label : data.chart_name
-		return data
+		data.label = data.label ? data.label : data.chart_name;
+		return data;
 	}
 }
 
 class ShortcutDialog extends WidgetDialog {
 	constructor(opts) {
 		super(opts);
+	}
+
+	hide_fitlers() {
+		this.hide_field('count_section_break');
+		this.hide_field('filters_section_break');
+	}
+
+	show_filters() {
+		this.show_field('count_section_break');
+		this.show_field('filters_section_break');
 	}
 
 	get_fields() {
@@ -109,8 +119,8 @@ class ShortcutDialog extends WidgetDialog {
 				onchange: () => {
 					if (this.dialog.get_value("type") == "DocType") {
 						this.dialog.fields_dict.link_to.get_query = () => {
-							return { filters: { "istable": false }}
-						}
+							return { filters: { "istable": false }};
+						};
 					} else {
 						this.dialog.fields_dict.link_to.get_query = null;
 					}
@@ -127,22 +137,19 @@ class ShortcutDialog extends WidgetDialog {
 				reqd: 1,
 				options: "type",
 				onchange: () => {
-					let dg = this.dialog;
 					if (this.dialog.get_value("type") == "DocType") {
 						let doctype = this.dialog.get_value("link_to");
+
 						doctype &&frappe.db.get_value("DocType", doctype, "issingle").then(res => {
 							if (res.message && res.message.issingle) {
-								this.hide_field('count_section_break');
-								this.hide_field('filters_section_break');
+								this.hide_fitlers();
 							} else {
 								this.setup_filter(doctype);
-								this.show_field('count_section_break');
-								this.show_field('filters_section_break');
+								this.show_filters();
 							}
-						})
+						});
 					} else {
-						this.hide_field('count_section_break');
-						this.hide_field('filters_section_break');
+						this.hide_fitlers();
 					}
 				},
 			},
@@ -197,15 +204,15 @@ class ShortcutDialog extends WidgetDialog {
 		if (this.dialog.get_value("type") == "DocType" && this.filter_group) {
 			let filters = this.filter_group.get_filters();
 			filters.forEach(arr => {
-				stats_filter[arr[1]] = [arr[2], arr[3]]
+				stats_filter[arr[1]] = [arr[2], arr[3]];
 			});
 
 			data.stats_filter = JSON.stringify(stats_filter);
 		}
 
-		data.label = data.link_to
+		data.label = data.link_to;
 
-		return data
+		return data;
 	}
 
 	setup_filter(doctype) {
@@ -214,17 +221,17 @@ class ShortcutDialog extends WidgetDialog {
 			delete this.filter_group;
 		}
 
-		let $loading = this.dialog.get_field('filter_area_loading').$wrapper
-		$(`<span class="text-muted">Loading Filters...</span>`).appendTo($loading)
+		let $loading = this.dialog.get_field('filter_area_loading').$wrapper;
+		$(`<span class="text-muted">Loading Filters...</span>`).appendTo($loading);
 
-		this.filters = []
+		this.filters = [];
 
 		if (this.values && this.values.stats_filter) {
 			const filters_json = JSON.parse(this.values.stats_filter);
 			this.filters = Object.keys(filters_json).map(filter => {
 				let val = filters_json[filter];
-				return [this.values.link_to, filter, val[0], val[1], false]
-			})
+				return [this.values.link_to, filter, val[0], val[1], false];
+			});
 		}
 
 		this.filter_group = new frappe.ui.FilterGroup({
