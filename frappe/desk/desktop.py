@@ -318,10 +318,10 @@ def get_custom_workspace_for_user(page):
 	"""Get custom page from desk_page if exists or create one
 
 	Args:
-	    page (stirng): Page name
+		page (stirng): Page name
 
 	Returns:
-	    Object: Document object
+		Object: Document object
 	"""
 	filters = {
 		'extends': page,
@@ -341,8 +341,8 @@ def save_customization(page, config):
 	"""Save customizations as a separate doctype in Desk page per user
 
 	Args:
-	    page (string): Name of the page to be edited
-	    config (dict): Dictionary config of al widgets
+		page (string): Name of the page to be edited
+		config (dict): Dictionary config of al widgets
 
 	Returns:
 		Boolean: Customization saving status
@@ -392,12 +392,12 @@ def prepare_widget(config, doctype, parentfield):
 	"""Create widget child table entries with parent details
 
 	Args:
-	    config (dict): Dictionary containing widget config
-	    doctype (string): Doctype name of the child table
-	    parentfield (string): Parent field for the child table
+		config (dict): Dictionary containing widget config
+		doctype (string): Doctype name of the child table
+		parentfield (string): Parent field for the child table
 
 	Returns:
-	    TYPE: List of Document objects
+		TYPE: List of Document objects
 	"""
 	order = config.get('order')
 	widgets = config.get('widgets')
