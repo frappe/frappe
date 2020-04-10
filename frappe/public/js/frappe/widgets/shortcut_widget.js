@@ -28,6 +28,7 @@ export default class ShortcutWidget extends Widget {
 				route: this.route,
 				name: this.link_to,
 				type: this.type,
+				is_query_report: this.is_query_report,
 			});
 
 			frappe.set_route(route);
