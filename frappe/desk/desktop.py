@@ -92,7 +92,7 @@ class Workspace:
 		}
 
 		self.shortcuts = {
-			'label': _(self.doc.charts_label),
+			'label': _(self.doc.shortcuts_label),
 			'items': self.get_shortcuts()
 		}
 
@@ -261,7 +261,6 @@ def get_desk_sidebar_items():
 	for page in pages:
 		# Translate label
 		page['label'] = _(page.get('name'))
-		print(page)
 		sidebar_items[page["category"]].append(page)
 	return sidebar_items
 
