@@ -114,6 +114,8 @@ class ShortcutDialog extends WidgetDialog {
 						this.dialog.fields_dict.link_to.get_query = () => {
 							return { filters: { "istable": false }}
 						}
+					} else {
+						this.dialog.fields_dict.link_to.get_query = null;
 					}
 				},
 			},
@@ -194,12 +196,15 @@ class ShortcutDialog extends WidgetDialog {
 
 	process_data(data) {
 		let stats_filter = {};
-		let filters = this.filter_group.get_filters();
-		filters.forEach(arr => {
-			stats_filter[arr[1]] = [arr[2], arr[3]]
-		});
 
-		data.stats_filter = JSON.stringify(stats_filter);
+		if (this.dialog.get_value("type") == "DocType" && this.filter_group) {
+			let filters = this.filter_group.get_filters();
+			filters.forEach(arr => {
+				stats_filter[arr[1]] = [arr[2], arr[3]]
+			});
+
+			data.stats_filter = JSON.stringify(stats_filter);
+		}
 
 		if (this.values && this.values.label) {
 			data.label = this.values.label;
