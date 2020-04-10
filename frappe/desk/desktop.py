@@ -375,13 +375,16 @@ def save_customization(page, config):
 		else:
 			page_doc.save(ignore_permissions=True)
 	except (ValidationError, TypeError) as e:
+		# Create a json string to log
+		json_config = dumps(config, sort_keys=True, indent=4)
+
+		# Error log body
 		log = \
 			"""
 		 page: {0}
 		 config: {1}
 		 exception: {2}
-		""".format(page,
-				dumps(config, sort_keys=True, indent=4), e)
+		""".format(page, json_config, e)
 		frappe.log_error(log, _("Could not save customization"))
 		return False
 
