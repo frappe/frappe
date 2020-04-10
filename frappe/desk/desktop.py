@@ -381,9 +381,9 @@ def save_customization(page, config):
 		# Error log body
 		log = \
 			"""
-		 page: {0}
-		 config: {1}
-		 exception: {2}
+		page: {0}
+		config: {1}
+		exception: {2}
 		""".format(page, json_config, e)
 		frappe.log_error(log, _("Could not save customization"))
 		return False
