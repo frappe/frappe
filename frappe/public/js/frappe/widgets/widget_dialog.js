@@ -85,12 +85,7 @@ class ChartDialog extends WidgetDialog {
 	}
 
 	process_data(data) {
-		if (this.values && this.values.label) {
-			data.label = this.values.label;
-		} else {
-			data.label = data.chart_name;
-		}
-
+		data.label = data.label ? data.label : data.chart_name
 		return data
 	}
 }
@@ -206,11 +201,7 @@ class ShortcutDialog extends WidgetDialog {
 			data.stats_filter = JSON.stringify(stats_filter);
 		}
 
-		if (this.values && this.values.label) {
-			data.label = this.values.label;
-		} else {
-			data.label = data.link_to;
-		}
+		data.label = data.link_to
 
 		return data
 	}
