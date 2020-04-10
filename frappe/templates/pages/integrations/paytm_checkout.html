@@ -1,0 +1,26 @@
+{% extends "templates/web.html" %} {% block title %} Payment {% endblock %} {%-
+block header -%}{% endblock %} {% block script %}
+<script defer
+	type="application/javascript"
+	crossorigin="anonymous"
+	src="{{ host }}/merchantpgpui/checkoutjs/merchants/{{ mid }}.js"
+	onload="onScriptLoad();"
+></script>
+<script>
+	{% include "/templates/includes/integrations/paytm_checkout.js" %}
+</script>
+{% endblock %} {%- block page_content -%}
+<div id="paytm-checkoutjs"></div>
+<p class="lead text-center centered">
+	<span class="paytm-loading">Loading Payment System</span>
+	<span class="paytm-confirming hidden">Confirming Payment</span>
+</p>
+
+{% endblock %} {% block style %}
+<style>
+	/* header,
+	footer {
+		display: none;
+	} */
+</style>
+{% endblock %}
