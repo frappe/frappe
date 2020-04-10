@@ -1,7 +1,7 @@
 class WidgetDialog {
 	constructor(opts) {
 		Object.assign(this, opts);
-		this.editing = Boolean(this.values && Object.keys(this.values).length)
+		this.editing = Boolean(this.values && Object.keys(this.values).length);
 	}
 
 	make() {
@@ -36,11 +36,8 @@ class WidgetDialog {
 		// DO NOT REMOVE: Comment to load translation
 		// __("New Chart") __("New Shortcut") __("Edit Chart") __("Edit Shortcut")
 
-		if (this.values && Object.keys(this.values).length) {
-			return __(`Edit ${frappe.utils.to_title_case(this.type)}`);
-		} else {
-			return __(`Add ${frappe.utils.to_title_case(this.type)}`);
-		}
+		let action = this.editing ? 'Edit' : 'Add';
+		return __(`${action} ${frappe.utils.to_title_case(this.type)}`);
 	}
 
 	get_fields() {
