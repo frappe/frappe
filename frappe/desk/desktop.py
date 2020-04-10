@@ -197,6 +197,8 @@ class Workspace:
 					report = self.allowed_reports.get(item.link_to, {})
 					if report.get("report_type") in ["Query Report", "Script Report"]:
 						new_item['is_query_report'] = 1
+					else:
+						new_item['ref_doctype'] = report.get('ref_doctype')
 
 				# Translate label
 				new_item["label"] = _(item.label) if item.label else _(item.link_to)
