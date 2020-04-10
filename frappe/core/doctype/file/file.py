@@ -608,8 +608,7 @@ def get_local_image(file_url):
 	try:
 		image = Image.open(file_path)
 	except IOError:
-		frappe.msgprint(_("Unable to read file format for {0}").format(file_url))
-		raise
+		frappe.msgprint(_("Unable to read file format for {0}").format(file_url), raise_exception=True)
 
 	content = None
 
