@@ -93,6 +93,10 @@ frappe.ui.GroupBy = class {
 
 	apply_settings(settings) {
 
+		if (!settings.group_by.startsWith('`tab')) {
+			settings.group_by = '`tab' + this.doctype + '`.`' + settings.group_by + '`';
+		}
+
 		// Extract fieldname from `tabdoctype`.`fieldname`
 		let group_by_fieldname = settings.group_by.split('.')[1].replace(/`/g, '');
 
@@ -160,7 +164,7 @@ frappe.ui.GroupBy = class {
 			if (this.aggregate_function === 'count') {
 				aggregate_column = 'count(`tab'+ this.doctype + '`.`name`)';
 			} else {
-				aggregate_column = 
+				aggregate_column =
 					`${this.aggregate_function}(\`tab${this.aggregate_on_doctype}\`.\`${this.aggregate_on}\`)`;
 				aggregate_on_field = '`tab' + this.aggregate_on_doctype + '`.`' + this.aggregate_on + '`';
 			}
