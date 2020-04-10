@@ -33,7 +33,14 @@ class WidgetDialog {
 	}
 
 	get_title() {
-		return __(`New ${frappe.utils.to_title_case(this.type)}`);
+		// DO NOT REMOVE: Comment to load translation
+		// __("New Chart") __("New Shortcut") __("Edit Chart") __("Edit Shortcut")
+
+		if (this.values && Object.keys(this.values).length) {
+			return __(`Edit ${frappe.utils.to_title_case(this.type)}`);
+		} else {
+			return __(`Add ${frappe.utils.to_title_case(this.type)}`);
+		}
 	}
 
 	get_fields() {

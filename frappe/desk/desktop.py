@@ -77,17 +77,17 @@ class Workspace:
 
 	def build_workspace(self):
 		self.cards = {
-			'label': self.doc.cards_label,
+			'label': _(self.doc.cards_label),
 			'items': self.get_cards()
 		}
 
 		self.charts = {
-			'label': self.doc.charts_label,
+			'label': _(self.doc.charts_label),
 			'items': self.get_charts()
 		}
 
 		self.shortcuts = {
-			'label': self.doc.shortcuts_label,
+			'label': _(self.doc.charts_label),
 			'items': self.get_shortcuts()
 		}
 
@@ -121,6 +121,9 @@ class Workspace:
 
 					item["count"] = count
 
+			# Translate label
+			item["label"] = _(item.label) if item.label else _(item.name)
+
 			return item
 
 		new_data = []
@@ -141,7 +144,7 @@ class Workspace:
 				# Check if user is allowed to view
 				if self.is_item_allowed(item.name, item.type):
 					prepared_item = _prepare_item(item)
-					new_items.append(item)
+					new_items.append(prepared_item)
 
 			if new_items:
 				if isinstance(section, frappe._dict):
@@ -149,6 +152,7 @@ class Workspace:
 				else:
 					new_section = section.as_dict().copy()
 				new_section["links"] = new_items
+				new_section["label"] = _(new_section["label"])
 				new_data.append(new_section)
 
 		return new_data
@@ -162,7 +166,8 @@ class Workspace:
 
 			for chart in charts:
 				if frappe.has_permission('Dashboard Chart', doc=chart.chart_name):
-					chart.label = chart.label if chart.label else chart.chart_name
+					# Translate label
+					chart.label = _(chart.label) if chart.label else _(chart.chart_name)
 					all_charts.append(chart)
 
 		return all_charts
@@ -185,11 +190,13 @@ class Workspace:
 			if self.is_item_allowed(item.link_to, item.type) and _in_active_domains(item):
 				if item.type == "Page":
 					page = self.allowed_pages[item.link_to]
-					new_item['label'] = _(page.get("title", frappe.unscrub(item.link_to)))
 				if item.type == "Report":
 					report = self.allowed_reports.get(item.link_to, {})
 					if report.get("report_type") in ["Query Report", "Script Report"]:
 						new_item['is_query_report'] = 1
+
+				# Translate label
+				new_item["label"] = _(item.label) if item.label else _(item.link_to)
 
 				items.append(new_item)
 
@@ -247,8 +254,11 @@ def get_desk_sidebar_items():
 	from collections import defaultdict
 	sidebar_items = defaultdict(list)
 
+	# The order will be maintained while categorizing
 	for page in pages:
-		# The order will be maintained while categorizing
+		# Translate label
+		page['label'] = _(page.get('name'))
+		print(page)
 		sidebar_items[page["category"]].append(page)
 	return sidebar_items
 
