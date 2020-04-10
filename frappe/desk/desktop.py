@@ -193,8 +193,6 @@ class Workspace:
 		for item in shortcuts:
 			new_item = item.as_dict().copy()
 			if self.is_item_allowed(item.link_to, item.type) and _in_active_domains(item):
-				if item.type == "Page":
-					page = self.allowed_pages[item.link_to]
 				if item.type == "Report":
 					report = self.allowed_reports.get(item.link_to, {})
 					if report.get("report_type") in ["Query Report", "Script Report"]:
