@@ -1568,7 +1568,7 @@ class extends Component {
 				<span data-action="show-message" class="cursor-pointer">
 					<span class="indicator yellow"/>
 						<span class="avatar avatar-small">
-							<span class="avatar-frame" style="background-image: url(&quot;${frappe.user.image(r.user)}&quot;)"></span>
+							<span class="avatar-frame" style="background-image: url(${frappe.user.image(r.user)})"></span>
 						</span>
 						<b>${frappe.user.first_name(r.user)}</b>: ${r.content}
 				</span>
