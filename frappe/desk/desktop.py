@@ -355,9 +355,9 @@ def save_customization(page, config):
 	except Exception as e:
 		log = \
 			"""
- page: {0}
- config: {1}
- exception: {2}
+		 page: {0}
+		 config: {1}
+		 exception: {2}
 		""".format(page,
 				dumps(config, sort_keys=True, indent=4), e)
 		frappe.log_error(log, _("Could not save customization"))
