@@ -577,7 +577,7 @@ def update_password(new_password, logout_all_sessions=0, key=None, old_password=
 		return redirect_url if redirect_url else "/"
 
 @frappe.whitelist(allow_guest=True)
-def test_password_strength(new_password, key=None, old_password=None, user_data=[]):
+def test_password_strength(new_password, key=None, old_password=None, user_data=None):
 	from frappe.utils.password_strength import test_password_strength as _test_password_strength
 
 	password_policy = frappe.db.get_value("System Settings", None,
