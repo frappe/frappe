@@ -98,7 +98,7 @@ class ShortcutDialog extends WidgetDialog {
 		super(opts);
 	}
 
-	hide_fitlers() {
+	hide_filters() {
 		this.hide_field('count_section_break');
 		this.hide_field('filters_section_break');
 	}
@@ -142,14 +142,14 @@ class ShortcutDialog extends WidgetDialog {
 
 						doctype &&frappe.db.get_value("DocType", doctype, "issingle").then(res => {
 							if (res.message && res.message.issingle) {
-								this.hide_fitlers();
+								this.hide_filters();
 							} else {
 								this.setup_filter(doctype);
 								this.show_filters();
 							}
 						});
 					} else {
-						this.hide_fitlers();
+						this.hide_filters();
 					}
 				},
 			},
