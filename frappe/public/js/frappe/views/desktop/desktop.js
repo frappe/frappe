@@ -263,7 +263,7 @@ class DesktopPage {
 				frappe.msgprint({ message: __("Customizations Saved Successfully"), title: __("Success")});
 				this.reload();
 			} else {
-				frappe.throw({message: __("Something went wrong while saving customizations"), title:__("Failed")});
+				frappe.throw({message: __("Something went wrong while saving customizations"), title: __("Failed")});
 				this.reload();
 			}
 		});
