@@ -26,7 +26,7 @@ export default class WidgetGroup {
 
 	make() {
 		this.make_container();
-		this.title && this.set_title(this.title);
+		this.title && this.set_title();
 		this.widgets && this.make_widgets();
 	}
 
@@ -47,7 +47,7 @@ export default class WidgetGroup {
 		widget_area.appendTo(this.container);
 	}
 
-	set_title(title) {
+	set_title() {
 		this.title_area[0].innerText = this.title;
 	}
 
