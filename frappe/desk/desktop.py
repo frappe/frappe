@@ -4,7 +4,7 @@
 
 from __future__ import unicode_literals
 import frappe
-from json import loads
+from json import loads, dumps
 from frappe import _, DoesNotExistError
 from frappe.boot import get_allowed_pages, get_allowed_reports
 from six import string_types
@@ -347,14 +347,27 @@ def save_customization(page, config):
 	# Set label
 	page_doc.label = page + '-' + frappe.session.user
 
-	if page_doc.is_new():
-		page_doc.insert(ignore_permissions=True)
-	else:
-		page_doc.save(ignore_permissions=True)
+	try:
+		raise TypeError
+		if page_doc.is_new():
+			page_doc.insert(ignore_permissions=True)
+		else:
+			page_doc.save(ignore_permissions=True)
+	except Exception as e:
+		log = \
+            """
+ page: {0}
+ config: {1}
+ exception: {2}
+		""".format(page,
+                dumps(config, sort_keys=True, indent=4), e)
+
+		frappe.log_error(log, _("Could not save customization"))
+		return False
+
+	return True
 
 def prepare_widget(config, doctype, parentfield):
-	if not config:
-		return
 	order = config.get('order')
 	widgets = config.get('widgets')
 	prepare_widget_list = []

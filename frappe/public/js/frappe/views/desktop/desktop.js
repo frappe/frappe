@@ -259,8 +259,13 @@ class DesktopPage {
 			page: this.page_name,
 			config: config
 		}).then(res => {
-			frappe.msgprint(__("Customizations Saved Successfully"));
-			this.reload();
+			if (res.message) {
+				frappe.msgprint({ message: __("Customizations Saved Successfully"), title: __("Success")});
+				this.reload();
+			} else {
+				frappe.throw({message: __("Something went wrong while saving customizations"), title:__("Failed")});
+				this.reload();
+			}
 		});
 	}
 
