@@ -348,7 +348,6 @@ def save_customization(page, config):
 	page_doc.label = page + '-' + frappe.session.user
 
 	try:
-		raise TypeError
 		if page_doc.is_new():
 			page_doc.insert(ignore_permissions=True)
 		else:
