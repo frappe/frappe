@@ -74,7 +74,7 @@ export default class Widget {
 			this.hidden ? "hidden" : ""
 		}" data-widget-name=${this.name ? this.name : ''}>
 			<div class="widget-head">
-				<div class="widget-title"></div>
+				<div class="widget-title ellipsis"></div>
 				<div class="widget-control"></div>
 			</div>
 		    <div class="widget-body">
