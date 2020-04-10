@@ -8,7 +8,6 @@ import os
 import re
 
 import yaml
-from six import text_type
 
 import frappe
 from frappe.model.document import get_controller
