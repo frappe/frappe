@@ -5,10 +5,14 @@
 from __future__ import unicode_literals
 import frappe
 from json import loads, dumps
-from frappe import _, DoesNotExistError
+from frappe import _, DoesNotExistError, _dict
 from frappe.boot import get_allowed_pages, get_allowed_reports
 from six import string_types
-from frappe.cache_manager import build_domain_restriced_doctype_cache, build_domain_restriced_page_cache, build_table_count_cache
+from frappe.cache_manager import (
+	build_domain_restriced_doctype_cache,
+	build_domain_restriced_page_cache,
+	build_table_count_cache
+)
 
 class Workspace:
 	def __init__(self, page_name):
@@ -20,7 +24,8 @@ class Workspace:
 		user = frappe.get_user()
 		user.build_permissions()
 
-		self.blocked_modules = frappe.get_doc('User', frappe.session.user).get_blocked_modules()
+		user_doc = frappe.get_doc('User', frappe.session.user)
+		self.blocked_modules = user_doc.get_blocked_modules()
 		self.doc = self.get_page_for_user()
 
 		if self.doc.module in self.blocked_modules:
@@ -135,7 +140,7 @@ class Workspace:
 				links = section.links
 
 			for item in links:
-				item = frappe._dict(item)
+				item = _dict(item)
 
 				# Condition: based on country
 				if item.country and item.country != default_country:
@@ -147,7 +152,7 @@ class Workspace:
 					new_items.append(prepared_item)
 
 			if new_items:
-				if isinstance(section, frappe._dict):
+				if isinstance(section, _dict):
 					new_section = section.copy()
 				else:
 					new_section = section.as_dict().copy()
@@ -271,7 +276,7 @@ def get_table_with_counts():
 
 def get_custom_reports_and_doctypes(module):
 	return [
-		frappe._dict({
+		_dict({
 			"label": "Custom",
 			"links": get_custom_doctype_list(module) + get_custom_report_list(module)
 		})
@@ -310,6 +315,14 @@ def get_custom_report_list(module):
 	return out
 
 def get_custom_workspace_for_user(page):
+	"""Get custom page from desk_page if exists or create one
+
+	Args:
+	    page (stirng): Page name
+
+	Returns:
+	    Object: Document object
+	"""
 	filters = {
 		'extends': page,
 		'for_user': frappe.session.user
@@ -325,6 +338,15 @@ def get_custom_workspace_for_user(page):
 
 @frappe.whitelist()
 def save_customization(page, config):
+	"""Save customizations as a separate doctype in Desk page per user
+
+	Args:
+	    page (string): Name of the page to be edited
+	    config (dict): Dicitonary config
+
+	Returns:
+		Boolean: Customization saving status
+	"""
 	original_page = frappe.get_doc("Desk Page", page)
 	page_doc = get_custom_workspace_for_user(page)
 
@@ -339,7 +361,7 @@ def save_customization(page, config):
 		"category": original_page.category
 	})
 
-	config = frappe._dict(loads(config))
+	config = _dict(loads(config))
 	page_doc.charts = prepare_widget(config.charts, "Desk Chart", "charts")
 	page_doc.shortcuts = prepare_widget(config.shortcuts, "Desk Shortcut", "shortcuts")
 	page_doc.cards = prepare_widget(config.cards, "Desk Card", "cards")
@@ -365,7 +387,18 @@ def save_customization(page, config):
 
 	return True
 
+
 def prepare_widget(config, doctype, parentfield):
+	"""Create widget child table entries with parent details
+
+	Args:
+	    config (dict): dicitonary containing widget config
+	    doctype (string): Doctype name of the child table
+	    parentfield (string): Parent field for the child table
+
+	Returns:
+	    TYPE: List of Document objects
+	"""
 	order = config.get('order')
 	widgets = config.get('widgets')
 	prepare_widget_list = []
