@@ -195,6 +195,11 @@ class DesktopPage {
 	refresh() {
 		this.page.empty();
 		this.allow_customization = this.data.allow_customization || false;
+
+		 if (frappe.is_mobile()) {
+			this.allow_customization = false;
+		 }
+
 		this.allow_customization && this.make_customization_link();
 
 		let create_shortcuts_and_cards = () => {
@@ -284,7 +289,7 @@ class DesktopPage {
 				type: "chart",
 				columns: 1,
 				options: {
-					allow_sorting: this.allow_customization && !frappe.is_mobile(),
+					allow_sorting: this.allow_customization,
 					allow_create: this.allow_customization,
 					allow_delete: this.allow_customization,
 					allow_hiding: false,
@@ -303,7 +308,7 @@ class DesktopPage {
 			type: "shortcut",
 			columns: 3,
 			options: {
-				allow_sorting: this.allow_customization && !frappe.is_mobile(),
+				allow_sorting: this.allow_customization,
 				allow_create: this.allow_customization,
 				allow_delete: this.allow_customization,
 				allow_hiding: false,
@@ -320,7 +325,7 @@ class DesktopPage {
 			type: "links",
 			columns: 3,
 			options: {
-				allow_sorting: this.allow_customization && !frappe.is_mobile(),
+				allow_sorting: this.allow_customization,
 				allow_create: false,
 				allow_delete: false,
 				allow_hiding: this.allow_customization,
