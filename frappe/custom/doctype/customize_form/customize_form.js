@@ -17,6 +17,15 @@ frappe.ui.form.on("Customize Form", {
 			};
 		});
 
+		frm.set_query("default_print_format", function() {
+			return {
+				filters: {
+					'print_format_type': ['!=', 'JS'],
+					'doc_type': ['=', frm.doc.doc_type]
+				}
+			}
+		});
+
 		$(frm.wrapper).on("grid-row-render", function(e, grid_row) {
 			if(grid_row.doc && grid_row.doc.fieldtype=="Section Break") {
 				$(grid_row.row).css({"font-weight": "bold"});
@@ -76,6 +85,10 @@ frappe.ui.form.on("Customize Form", {
 		if(frm.doc.doc_type) {
 			frappe.customize_form.set_primary_action(frm);
 
+			frm.add_custom_button(__('Go to {0} List', [frm.doc.doc_type]), function() {
+				frappe.set_route('List', frm.doc.doc_type);
+			});
+
 			frm.add_custom_button(__('Refresh Form'), function() {
 				frm.script_manager.trigger("doc_type");
 			}, "fa fa-refresh", "btn-default");
@@ -130,8 +143,7 @@ frappe.ui.form.on("Customize Form", {
 			}, 1000);
 		}
 
-	},
-
+	}
 });
 
 frappe.ui.form.on("Customize Form Field", {

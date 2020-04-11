@@ -18,10 +18,10 @@ from frappe.model.naming import revert_series_if_last
 from frappe.utils.global_search import delete_for_document
 from frappe.desk.doctype.tag.tag import delete_tags_for_document
 from frappe.exceptions import FileNotFoundError
-
+from frappe.model.document import make_event_update_log, check_doctype_has_consumers
 
 doctypes_to_skip = ("Communication", "ToDo", "DocShare", "Email Unsubscribe", "Activity Log", "File",
-	"Version", "Document Follow", "Comment" , "View Log", "Tag Link", "Notification Log")
+	"Version", "Document Follow", "Comment" , "View Log", "Tag Link", "Notification Log", "Email Queue")
 
 def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reload=False,
 	ignore_permissions=False, flags=None, ignore_on_trash=False, ignore_missing=True):
@@ -80,8 +80,8 @@ def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reloa
 			if not (for_reload or frappe.flags.in_migrate or frappe.flags.in_install or frappe.flags.in_test):
 				try:
 					delete_controllers(name, doc.module)
-				except (FileNotFoundError, OSError):
-					# in case a doctype doesnt have any controller code
+				except (FileNotFoundError, OSError, KeyError):
+					# in case a doctype doesnt have any controller code  nor any app and module
 					pass
 
 		else:
@@ -120,6 +120,10 @@ def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reloa
 		delete_for_document(doc)
 		# delete tag link entry
 		delete_tags_for_document(doc)
+
+		# update log if doctype has event consumers
+		if not frappe.flags.in_install and not frappe.flags.in_migrate and check_doctype_has_consumers(doc.doctype):
+			make_event_update_log(doc, update_type='Delete')
 
 		if doc and not for_reload:
 			add_to_deleted_document(doc)
@@ -332,8 +336,8 @@ def clear_references(doctype, reference_doctype, reference_name,
 		(reference_doctype, reference_name))
 
 def clear_timeline_references(link_doctype, link_name):
-	frappe.db.sql("""delete from `tabCommunication Link`
-		where `tabCommunication Link`.link_doctype='{0}' and `tabCommunication Link`.link_name='{1}'""".format(link_doctype, link_name)) # nosec
+	frappe.db.sql("""DELETE FROM `tabCommunication Link`
+		WHERE `tabCommunication Link`.link_doctype=%s AND `tabCommunication Link`.link_name=%s""", (link_doctype, link_name))
 
 def insert_feed(doc):
 	from frappe.utils import get_fullname

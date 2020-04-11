@@ -79,7 +79,7 @@ frappe.prompt = function(fields, callback, title, primary_label) {
 	return d;
 }
 
-frappe.msgprint = function(msg, title) {
+frappe.msgprint = function(msg, title, is_minimizable) {
 	if(!msg) return;
 
 	if($.isPlainObject(msg)) {
@@ -117,14 +117,9 @@ frappe.msgprint = function(msg, title) {
 					frappe.msg_dialog.custom_onhide();
 				}
 				frappe.msg_dialog.msg_area.empty();
-			}
+			},
+			minimizable: data.is_minimizable || is_minimizable
 		});
-
-		// setup and bind an action to the primary button
-		if (data.primary_action) {
-			frappe.msg_dialog.set_primary_action(__(data.primary_action.label || "Done"),
-				data.primary_action.action);
-		}
 
 		// class "msgprint" is used in tests
 		frappe.msg_dialog.msg_area = $('<div class="msgprint">')
@@ -135,6 +130,43 @@ frappe.msgprint = function(msg, title) {
 		}
 
 		frappe.msg_dialog.indicator = frappe.msg_dialog.header.find('.indicator');
+	}
+
+	// setup and bind an action to the primary button
+	if (data.primary_action) {
+		if (data.primary_action.server_action && typeof data.primary_action.server_action === 'string') {
+			data.primary_action.action = () => {
+				frappe.call({
+					method: data.primary_action.server_action,
+					args: {
+						args: data.primary_action.args
+					}
+				});
+			}
+		}
+
+		if (data.primary_action.client_action && typeof data.primary_action.client_action === 'string') {
+			let parts = data.primary_action.client_action.split('.');
+			let obj = window;
+			for (let part of parts) {
+				obj = obj[part];
+			}
+			data.primary_action.action = () => {
+				if (typeof obj === 'function') {
+					obj(data.primary_action.args);
+				}
+			}
+		}
+
+		frappe.msg_dialog.set_primary_action(
+			__(data.primary_action.label || "Done"),
+			data.primary_action.action
+		);
+	} else {
+		if (frappe.msg_dialog.has_primary_action) {
+			frappe.msg_dialog.get_primary_btn().addClass('hide');
+			frappe.msg_dialog.has_primary_action = false;
+		}
 	}
 
 	if(data.message==null) {
@@ -174,6 +206,15 @@ frappe.msgprint = function(msg, title) {
 	} else {
 		// msgprint should be narrower than the usual dialog
 		frappe.msg_dialog.wrapper.classList.add('msgprint-dialog');
+	}
+
+	if (data.scroll) {
+		// limit modal height and allow scrolling instead
+		frappe.msg_dialog.body.classList.add('msgprint-scroll');
+	} else {
+		if (frappe.msg_dialog.body.classList.contains('msgprint-scroll')) {
+			frappe.msg_dialog.body.classList.remove('msgprint-scroll');
+		}
 	}
 
 

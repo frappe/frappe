@@ -30,6 +30,7 @@ frappe.ui.form.QuickEntryForm = Class.extend({
 		let me = this;
 		return new Promise(resolve => {
 			frappe.model.with_doctype(this.doctype, function() {
+				me.check_quick_entry_doc();
 				me.set_meta_and_mandatory_fields();
 				if(me.is_quick_entry()) {
 					me.render_dialog();
@@ -44,16 +45,16 @@ frappe.ui.form.QuickEntryForm = Class.extend({
 	},
 
 	set_meta_and_mandatory_fields: function(){
-		let fields = frappe.get_meta(this.doctype).fields;
-		if (fields.length < 7) {
-			// if less than 7 fields, then show everything
-			this.mandatory = fields;
-		} else {
-			// prepare a list of mandatory and bold fields
-			this.mandatory = $.map(fields,
-				function(d) { return ((d.reqd || d.bold || d.allow_in_quick_entry) && !d.read_only) ? $.extend({}, d) : null; });
-		}
 		this.meta = frappe.get_meta(this.doctype);
+		let fields = this.meta.fields;
+
+		// prepare a list of mandatory, bold and allow in quick entry fields
+		this.mandatory = $.map(fields, function(d) {
+			return ((d.reqd || d.bold || d.allow_in_quick_entry) && !d.read_only) ? $.extend({}, d) : null;
+		});
+	},
+
+	check_quick_entry_doc: function() {
 		if (!this.doc) {
 			this.doc = frappe.model.get_new_doc(this.doctype, null, null, true);
 		}
@@ -66,8 +67,7 @@ frappe.ui.form.QuickEntryForm = Class.extend({
 
 		this.validate_for_prompt_autoname();
 
-		if (this.has_child_table()
-			|| !this.mandatory.length) {
+		if (this.has_child_table() || !this.mandatory.length) {
 			return false;
 		}
 
@@ -103,8 +103,8 @@ frappe.ui.form.QuickEntryForm = Class.extend({
 		this.dialog = new frappe.ui.Dialog({
 			title: __("New {0}", [__(this.doctype)]),
 			fields: this.mandatory,
+			doc: this.doc
 		});
-		this.dialog.doc = this.doc;
 
 		this.register_primary_action();
 		this.render_edit_in_full_page_link();

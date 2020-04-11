@@ -80,7 +80,7 @@ class TestGlobalSearch(unittest.TestCase):
 		make_property_setter(doctype, "repeat_on", "in_global_search", 1, "Int")
 		global_search.rebuild_for_doctype(doctype)
 		results = global_search.search('Monthly')
-		self.assertEqual(len(results), 2)
+		self.assertEqual(len(results), 3)
 
 	def test_delete_doc(self):
 		self.insert_test_events()
@@ -191,3 +191,6 @@ class TestGlobalSearch(unittest.TestCase):
 		frappe.db.commit()
 		results = global_search.web_search('unsubscribe')
 		self.assertTrue('Unsubscribe' in results[0].content)
+		results = global_search.web_search(text='unsubscribe',
+					scope="manufacturing\" UNION ALL SELECT 1,2,3,4,doctype from __global_search")
+		self.assertTrue(results == [])

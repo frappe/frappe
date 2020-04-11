@@ -718,7 +718,7 @@ frappe.chat.room.create = function (kind, owner, users, name, fn) {
 
 	return new Promise(resolve => {
 		frappe.call("frappe.chat.doctype.chat_room.chat_room.create",
-			{ kind: kind, owner: owner || frappe.session.user, users: users, name: name },
+			{ kind: kind, token: owner || frappe.session.user, users: users, name: name },
 			r => {
 				let room = r.message
 				room     = { ...room, creation: new frappe.datetime.datetime(room.creation) }
@@ -1569,7 +1569,7 @@ class extends Component {
 					<span class="indicator yellow"/> <b>${frappe.user.first_name(r.user)}</b>: ${r.content}
 				</span>
 				`
-				frappe.show_alert(alert, 3, {
+				frappe.show_alert(alert, 15, {
 					"show-message": function (r) {
 						this.room.select(r.room)
 						this.base.firstChild._component.toggle()

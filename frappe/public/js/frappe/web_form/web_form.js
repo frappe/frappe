@@ -86,7 +86,11 @@ export default class WebForm extends frappe.ui.FieldGroup {
 	}
 
 	setup_delete_button() {
-		this.add_button_to_header("Delete", "danger", () => this.delete());
+		this.add_button_to_header(
+			'<i class="fa fa-trash" aria-hidden="true"></i>',
+			"light",
+			() => this.delete()
+		);
 	}
 
 	setup_print_button() {
@@ -101,7 +105,9 @@ export default class WebForm extends frappe.ui.FieldGroup {
 		this.validate && this.validate();
 
 		// validation hack: get_values will check for missing data
-		super.get_values(this.allow_incomplete);
+		let isvalid = super.get_values(this.allow_incomplete);
+
+		if (!isvalid) return;
 
 		if (window.saving) return;
 		let for_payment = Boolean(this.accept_payment && !this.doc.paid);
@@ -149,10 +155,10 @@ export default class WebForm extends frappe.ui.FieldGroup {
 	}
 
 	print() {
-		window.location.href = `/printview?
+		window.open(`/printview?
 			doctype=${this.doc_type}
 			&name=${this.doc.name}
-			&format=${this.print_format || "Standard"}`;
+			&format=${this.print_format || "Standard"}`, '_blank');
 	}
 
 	cancel() {
@@ -168,7 +174,7 @@ export default class WebForm extends frappe.ui.FieldGroup {
 			title: __("Saved Successfully"),
 			secondary_action: () => {
 				if (this.success_url) {
-					window.location.pathname = this.success_url;
+					window.location.href = this.success_url;
 				} else if(this.login_required) {
 					window.location.href =
 						window.location.pathname + "?name=" + data.name;

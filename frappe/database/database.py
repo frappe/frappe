@@ -15,7 +15,7 @@ import frappe.model.meta
 
 from frappe import _
 from time import time
-from frappe.utils import now, getdate, cast_fieldtype
+from frappe.utils import now, getdate, cast_fieldtype, get_datetime
 from frappe.utils.background_jobs import execute_job, get_queue
 from frappe.model.utils.link_count import flush_local_link_count
 from frappe.utils import cint
@@ -48,7 +48,7 @@ class Database(object):
 
 	def __init__(self, host=None, user=None, password=None, ac_name=None, use_default=0, port=None):
 		self.setup_type_map()
-		self.host = host or frappe.conf.db_host or 'localhost'
+		self.host = host or frappe.conf.db_host or '127.0.0.1'
 		self.port = port or frappe.conf.db_port or ''
 		self.user = user or frappe.conf.db_name
 		self.db_name = frappe.conf.db_name
@@ -940,6 +940,16 @@ class Database(object):
 			), values)
 		else:
 			frappe.throw(_('No conditions provided'))
+
+	def get_last_created(self, doctype):
+		last_record = self.get_all(doctype, ('creation'), limit=1, order_by='creation desc')
+		if last_record:
+			return get_datetime(last_record[0].creation)
+		else:
+			return None
+
+	def clear_table(self, doctype):
+		self.sql('truncate `tab{}`'.format(doctype))
 
 	def log_touched_tables(self, query, values=None):
 		if values:

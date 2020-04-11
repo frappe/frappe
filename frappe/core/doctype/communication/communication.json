@@ -1,9 +1,11 @@
 {
+ "actions": [],
  "allow_import": 1,
  "creation": "2013-01-29 10:47:14",
  "description": "Keeps track of all communications",
  "doctype": "DocType",
  "document_type": "Setup",
+ "email_append_to": 1,
  "engine": "InnoDB",
  "field_order": [
   "subject",
@@ -383,7 +385,8 @@
  ],
  "icon": "fa fa-comment",
  "idx": 1,
- "modified": "2019-10-09 14:22:27.664645",
+ "links": [],
+ "modified": "2019-12-27 14:44:04.880373",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Communication",
@@ -430,8 +433,10 @@
   }
  ],
  "search_fields": "subject",
+ "sender_field": "sender",
  "sort_field": "modified",
  "sort_order": "DESC",
+ "subject_field": "subject",
  "title_field": "subject",
  "track_changes": 1,
  "track_seen": 1
