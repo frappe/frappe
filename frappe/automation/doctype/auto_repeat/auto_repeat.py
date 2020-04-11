@@ -336,7 +336,8 @@ def create_repeated_entries(data):
 			doc.create_documents()
 			schedule_date = get_next_schedule_date(schedule_date, doc.frequency, doc.start_date, doc.repeat_on_day, doc.repeat_on_last_day, doc.end_date)
 			if schedule_date and not doc.disabled:
-				frappe.db.set_value('Auto Repeat', doc.name, 'next_schedule_date', schedule_date)
+				doc.next_schedule_date = schedule_date
+				doc.save()
 
 def get_auto_repeat_entries(date=None):
 	if not date:
