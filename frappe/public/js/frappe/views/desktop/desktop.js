@@ -196,9 +196,9 @@ class DesktopPage {
 		this.page.empty();
 		this.allow_customization = this.data.allow_customization || false;
 
-		 if (frappe.is_mobile()) {
+		if (frappe.is_mobile()) {
 			this.allow_customization = false;
-		 }
+		}
 
 		this.allow_customization && this.make_customization_link();
 
