@@ -76,8 +76,8 @@ jobs:
       - name: run test
         run: |
           cd $HOME/frappe-bench
-          systemctl status mysql.service
-          sudo systemctl start mysql
+          sudo systemctl status mysql.service
+          sudo service mysql start
           bench --site test_site reinstall --force --yes
           bench setup requirements --node;
           bench build --app frappe
