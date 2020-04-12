@@ -34,6 +34,7 @@ jobs:
         with:
           mariadb version: '10.4.10' # Optional, default value is "latest". The version of the MariaDB
           mysql root password: 'travis' # Required if "mysql user" is empty, default is empty.
+          collation server: 'utf8mb4_unicode_ci'
 
       - name: before_install
         run: |
