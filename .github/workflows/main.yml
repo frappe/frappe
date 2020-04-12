@@ -77,9 +77,6 @@ jobs:
         run: |
           cd $HOME/frappe-bench
           sudo service mysql start
-          sudo journalctl > journal.log
-          cat journal.log
-          sudo systemctl status mysql.service
           bench --site test_site reinstall --force --yes
           bench setup requirements --node;
           bench build --app frappe
