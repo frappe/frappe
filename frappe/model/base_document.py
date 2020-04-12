@@ -275,7 +275,7 @@ class BaseDocument(object):
 		doc["doctype"] = self.doctype
 		for df in self.meta.get_table_fields():
 			children = self.get(df.fieldname) or []
-			doc[df.fieldname] = [d.as_dict(no_nulls=no_nulls) for d in children]
+			doc[df.fieldname] = [d.as_dict(convert_dates_to_str=convert_dates_to_str, no_nulls=no_nulls) for d in children]
 
 		if no_nulls:
 			for k in list(doc):
@@ -369,6 +369,14 @@ class BaseDocument(object):
 			else:
 				raise
 
+	def db_update_all(self):
+		"""Raw update parent + children
+		DOES NOT VALIDATE AND CALL TRIGGERS"""
+		self.db_update()
+		for df in self.meta.get_table_fields():
+			for doc in self.get(df.fieldname):
+				doc.db_update()
+
 	def show_unique_validation_message(self, e):
 		# TODO: Find a better way to extract fieldname
 		if frappe.db.db_type != 'postgres':
@@ -384,13 +392,13 @@ class BaseDocument(object):
 			if df:
 				label = df.label
 
-			frappe.msgprint(_("{0} must be unique".format(label or fieldname)))
+			frappe.msgprint(_("{0} must be unique").format(label or fieldname))
 
 		# this is used to preserve traceback
 		raise frappe.UniqueValidationError(self.doctype, self.name, e)
 
 	def update_modified(self):
-		'''Update modified timestamp'''
+		"""Update modified timestamp"""
 		self.set("modified", now())
 		frappe.db.set_value(self.doctype, self.name, 'modified', self.modified, update_modified=False)
 
@@ -437,7 +445,7 @@ class BaseDocument(object):
 		return missing
 
 	def get_invalid_links(self, is_submittable=False):
-		'''Returns list of invalid links and also updates fetch values if not set'''
+		"""Returns list of invalid links and also updates fetch values if not set"""
 		def get_msg(df, docname):
 			if self.parentfield:
 				return "{} #{}: {}: {}".format(_("Row"), self.idx, _(df.label), docname)
@@ -535,6 +543,23 @@ class BaseDocument(object):
 
 				frappe.throw(_('{0} {1} cannot be "{2}". It should be one of "{3}"').format(prefix, label,
 					value, comma_options))
+
+	def _validate_data_fields(self):
+		from frappe.core.doctype.user.user import STANDARD_USERS
+
+		# data_field options defined in frappe.model.data_field_options
+		for data_field in self.meta.get_data_fields():
+			data = self.get(data_field.fieldname)
+			data_field_options = data_field.get("options")
+
+			if data_field_options == "Email":
+				if (self.owner in STANDARD_USERS) and (data in STANDARD_USERS):
+					return
+				for email_address in frappe.utils.split_emails(data):
+					frappe.utils.validate_email_address(email_address, throw=True)
+
+			if data_field_options == "Phone":
+				frappe.utils.validate_phone_number(data, throw=True)
 
 	def _validate_constants(self):
 		if frappe.flags.in_import or self.is_new() or self.flags.ignore_validate_constants:
@@ -665,7 +690,7 @@ class BaseDocument(object):
 			self.set(fieldname, sanitized_value)
 
 	def _save_passwords(self):
-		'''Save password field values in __Auth table'''
+		"""Save password field values in __Auth table"""
 		if self.flags.ignore_save_passwords is True:
 			return
 
@@ -793,8 +818,8 @@ class BaseDocument(object):
 			else:
 				# get values from old doc
 				if self.get('parent_doc'):
-					self.parent_doc.get_latest()
-					ref_doc = [d for d in self.parent_doc.get(self.parentfield) if d.name == self.name][0]
+					parent_doc = self.parent_doc.get_latest()
+					ref_doc = [d for d in parent_doc.get(self.parentfield) if d.name == self.name][0]
 				else:
 					ref_doc = self.get_latest()
 

@@ -25,6 +25,9 @@ def is_email_notifications_enabled(user):
 	return enabled
 
 def is_email_notifications_enabled_for_type(user, notification_type):
+	if not is_email_notifications_enabled(user):
+		return False
+
 	fieldname = 'enable_email_' + frappe.scrub(notification_type)
 	enabled = frappe.db.get_value('Notification Settings', user, fieldname)
 	if enabled is None:
@@ -59,7 +62,14 @@ def get_subscribed_documents():
 def get_permission_query_conditions(user):
 	if not user: user = frappe.session.user
 
-	return '''(`tabNotification Settings`.user = '{user}')'''.format(user=user)
+	if user == 'Administrator':
+		return
+
+	roles = frappe.get_roles(user)
+	if "System Manager" in roles:
+		return '''(`tabNotification Settings`.name != 'Administrator')'''
+
+	return '''(`tabNotification Settings`.name = '{user}')'''.format(user=user)
 
 @frappe.whitelist()
 def set_seen_value(value, user):

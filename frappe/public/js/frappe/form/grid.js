@@ -65,26 +65,22 @@ export default class Grid {
 			<div class="small form-clickable-section grid-footer">
 				<div class="row">
 					<div class="col-sm-5 grid-buttons">
-						<button type="reset"
-							class="btn btn-xs btn-danger grid-remove-rows hidden"
+						<button class="btn btn-xs btn-danger grid-remove-rows hidden"
 							style="margin-right: 4px;"
 							data-action="delete_rows">
 							${__("Delete")}
 						</button>
-						<button type="reset"
-							class="btn btn-xs btn-danger grid-remove-all-rows hidden"
+						<button class="btn btn-xs btn-danger grid-remove-all-rows hidden"
 							style="margin-right: 4px;"
 							data-action="delete_all_rows">
 							${__("Delete All")}
 						</button>
-						<button type="reset"
-							class="grid-add-multiple-rows btn btn-xs btn-default hidden"
+						<button class="grid-add-multiple-rows btn btn-xs btn-default hidden"
 							style="margin-right: 4px;">
 							${__("Add Multiple")}</a>
 						</button>
 						<!-- hack to allow firefox include this in tabs -->
-						<button type="reset"
-							class="btn btn-xs btn-default grid-add-row">
+						<button class="btn btn-xs btn-default grid-add-row">
 							${__("Add Row")}
 						</button>
 					</div>
@@ -189,17 +185,23 @@ export default class Grid {
 
 		frappe.run_serially(tasks);
 
+		this.wrapper.find('.grid-heading-row .grid-row-check:checked:first').prop('checked', 0);
 		if (selected_children.length == this.grid_pagination.page_length) {
 			frappe.utils.scroll_to(this.wrapper);
 		}
 	}
 
 	delete_all_rows() {
-		this.frm.doc[this.df.fieldname] = [];
-		$(this.parent).find('.rows').empty();
-		this.grid_rows = [];
-		this.refresh();
-		frappe.utils.scroll_to(this.wrapper);
+		frappe.confirm(__("Are you sure you want to delete all rows?"), () => {
+			this.frm.doc[this.df.fieldname] = [];
+			$(this.parent).find('.rows').empty();
+			this.grid_rows = [];
+
+			this.wrapper.find('.grid-heading-row .grid-row-check:checked:first').prop('checked', 0);
+			this.refresh();
+			frappe.utils.scroll_to(this.wrapper);
+		});
+
 	}
 
 	select_row(name) {
@@ -216,14 +218,14 @@ export default class Grid {
 		this.remove_rows_button.toggleClass('hidden',
 			this.wrapper.find('.grid-body .grid-row-check:checked:first').length ? false : true);
 		this.remove_all_rows_button.toggleClass('hidden',
-			this.wrapper.find('.grid-body .grid-row-check:checked:first').length ? false : true);
+			this.wrapper.find('.grid-heading-row .grid-row-check:checked:first').length ? false : true);
 	}
 
 	get_selected() {
 		return (this.grid_rows || []).map(row => {
 			return row.doc.__checked ? row.doc.name : null;
 		}).filter(d => {
-			return d; 
+			return d;
 		});
 	}
 
@@ -304,11 +306,12 @@ export default class Grid {
 
 
 	render_result_rows($rows, append_row) {
-
 		let result_length = this.grid_pagination.get_result_length();
 		let page_index = this.grid_pagination.page_index;
 		let page_length = this.grid_pagination.page_length;
-
+		if (!this.grid_rows) {
+			return;
+		}
 		for (var ri = (page_index-1)*page_length; ri < result_length; ri++) {
 			var d = this.data[ri];
 			if (!d) {
@@ -364,9 +367,9 @@ export default class Grid {
 	truncate_rows() {
 		if (this.grid_rows.length > this.data.length) {
 			// remove extra rows
-			for (var i=this.data.length; i < this.grid_rows.length; i++) {
+			for (var i = this.data.length; i < this.grid_rows.length; i++) {
 				var grid_row = this.grid_rows[i];
-				grid_row.wrapper.remove();
+				if (grid_row) grid_row.wrapper.remove();
 			}
 			this.grid_rows.splice(this.data.length);
 		}
@@ -422,7 +425,7 @@ export default class Grid {
 				}
 			},
 			onUpdate: (event) => {
-				let idx = $(event.item).closest('.grid-row').attr('data-idx');
+				let idx = $(event.item).closest('.grid-row').attr('data-idx') - 1;
 				let doc = this.data[idx%this.grid_pagination.page_length];
 				this.renumber_based_on_dom();
 				this.frm.script_manager.trigger(this.df.fieldname + "_move", this.df.options, doc.name);
@@ -443,7 +446,7 @@ export default class Grid {
 	}
 
 	get_modal_data() {
-		return this.df.get_data() ? this.df.get_data().filter(data => {
+		return this.df.get_data ? this.df.get_data().filter(data => {
 			if (!this.deleted_docs || !in_list(this.deleted_docs, data.name)) {
 				return data;
 			}
@@ -667,7 +670,7 @@ export default class Grid {
 				} else {
 					var colsize = 2;
 					switch (df.fieldtype) {
-						case "Text":
+						case "Text": break;
 						case "Small Text": colsize = 3; break;
 						case "Check": colsize = 1;
 					}
@@ -755,6 +758,7 @@ export default class Grid {
 	}
 
 	setup_allow_bulk_edit() {
+		let me = this;
 		if (this.frm && this.frm.get_docfield(this.df.fieldname).allow_bulk_edit) {
 			// download
 			this.setup_download();
@@ -769,8 +773,7 @@ export default class Grid {
 						var data = frappe.utils.csv_to_array(frappe.utils.get_decoded_string(file.dataurl));
 						// row #2 contains fieldnames;
 						var fieldnames = data[2];
-
-						this.frm.clear_table(this.df.fieldname);
+						me.frm.clear_table(me.df.fieldname);
 						$.each(data, (i, row) => {
 							if (i > 6) {
 								var blank_row = true;
@@ -782,10 +785,10 @@ export default class Grid {
 								});
 
 								if (!blank_row) {
-									var d = this.frm.add_child(this.df.fieldname);
+									var d = me.frm.add_child(me.df.fieldname);
 									$.each(row, (ci, value) => {
 										var fieldname = fieldnames[ci];
-										var df = frappe.meta.get_docfield(this.df.options, fieldname);
+										var df = frappe.meta.get_docfield(me.df.options, fieldname);
 
 										// convert date formatting
 										if (df.fieldtype==="Date" && value) {
@@ -802,7 +805,7 @@ export default class Grid {
 							}
 						});
 
-						this.frm.refresh_field(this.df.fieldname);
+						me.frm.refresh_field(me.df.fieldname);
 						frappe.msgprint({message: __('Table updated'), title: __('Success'), indicator: 'green'});
 					}
 				});

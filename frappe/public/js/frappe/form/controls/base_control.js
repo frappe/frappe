@@ -152,6 +152,7 @@ frappe.ui.form.Control = Class.extend({
 				() => me.set_model_value(value),
 				() => {
 					me.set_mandatory && me.set_mandatory(value);
+					me.set_invalid && me.set_invalid();
 
 					if(me.df.change || me.df.onchange) {
 						// onchange event specified in df

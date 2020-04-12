@@ -19,7 +19,8 @@ frappe.listview_settings['Data Import Beta'] = {
 			'Pending': 'orange',
 			'Partial Success': 'orange',
 			'Success': 'green',
-			'In Progress': 'orange'
+			'In Progress': 'orange',
+			'Error': 'red'
 		};
 		let status = doc.status;
 		if (imports_in_progress.includes(doc.name)) {

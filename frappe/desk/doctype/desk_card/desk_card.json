@@ -1,0 +1,57 @@
+{
+ "actions": [],
+ "creation": "2020-01-29 14:45:54.383089",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "label",
+  "column_break_2",
+  "hidden",
+  "section_break_3",
+  "links"
+ ],
+ "fields": [
+  {
+   "fieldname": "links",
+   "fieldtype": "Code",
+   "label": "Links",
+   "options": "JSON",
+   "reqd": 1
+  },
+  {
+   "fieldname": "section_break_3",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "hidden",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Hidden"
+  },
+  {
+   "fieldname": "label",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Label",
+   "reqd": 1
+  }
+ ],
+ "istable": 1,
+ "links": [],
+ "modified": "2020-03-31 14:38:06.303847",
+ "modified_by": "Administrator",
+ "module": "Desk",
+ "name": "Desk Card",
+ "owner": "Administrator",
+ "permissions": [],
+ "quick_entry": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

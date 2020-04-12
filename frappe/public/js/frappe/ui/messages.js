@@ -79,7 +79,7 @@ frappe.prompt = function(fields, callback, title, primary_label) {
 	return d;
 }
 
-frappe.msgprint = function(msg, title) {
+frappe.msgprint = function(msg, title, is_minimizable) {
 	if(!msg) return;
 
 	if($.isPlainObject(msg)) {
@@ -117,7 +117,8 @@ frappe.msgprint = function(msg, title) {
 					frappe.msg_dialog.custom_onhide();
 				}
 				frappe.msg_dialog.msg_area.empty();
-			}
+			},
+			minimizable: data.is_minimizable || is_minimizable
 		});
 
 		// class "msgprint" is used in tests
@@ -205,6 +206,15 @@ frappe.msgprint = function(msg, title) {
 	} else {
 		// msgprint should be narrower than the usual dialog
 		frappe.msg_dialog.wrapper.classList.add('msgprint-dialog');
+	}
+
+	if (data.scroll) {
+		// limit modal height and allow scrolling instead
+		frappe.msg_dialog.body.classList.add('msgprint-scroll');
+	} else {
+		if (frappe.msg_dialog.body.classList.contains('msgprint-scroll')) {
+			frappe.msg_dialog.body.classList.remove('msgprint-scroll');
+		}
 	}
 
 

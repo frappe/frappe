@@ -81,6 +81,10 @@ def rebuild_for_doctype(doctype):
 		return filters
 
 	meta = frappe.get_meta(doctype)
+	
+	if cint(meta.issingle) == 1:
+		return
+	
 	if cint(meta.istable) == 1:
 		parent_doctypes = frappe.get_all("DocField", fields="parent", filters={
 			"fieldtype": ["in", frappe.model.table_fields],
@@ -137,8 +141,8 @@ def rebuild_for_doctype(doctype):
 				"name": frappe.db.escape(doc.name),
 				"content": frappe.db.escape(' ||| '.join(content or '')),
 				"published": published,
-				"title": frappe.db.escape(title or '')[:int(frappe.db.VARCHAR_LEN)],
-				"route": frappe.db.escape(route or '')[:int(frappe.db.VARCHAR_LEN)]
+				"title": frappe.db.escape((title or '')[:int(frappe.db.VARCHAR_LEN)]),
+				"route": frappe.db.escape((route or '')[:int(frappe.db.VARCHAR_LEN)])
 			})
 	if all_contents:
 		insert_values_for_multiple_docs(all_contents)
@@ -495,22 +499,29 @@ def web_search(text, scope=None, start=0, limit=20):
 		common_query = ''' SELECT `doctype`, `name`, `content`, `title`, `route`
 			FROM `__global_search`
 			WHERE {conditions}
-			LIMIT {limit} OFFSET {start}'''
+			LIMIT %(limit)s OFFSET %(start)s'''
 
-		scope_condition = '`route` like "{}%" AND '.format(scope) if scope else ''
+		scope_condition = '`route` like %(scope)s AND ' if scope else ''
 		published_condition = '`published` = 1 AND '
 		mariadb_conditions = postgres_conditions = ' '.join([published_condition, scope_condition])
 
 		# https://mariadb.com/kb/en/library/full-text-index-overview/#in-boolean-mode
 		text = '"{}"'.format(text)
-		mariadb_conditions += 'MATCH(`content`) AGAINST ({} IN BOOLEAN MODE)'.format(frappe.db.escape(text))
-		postgres_conditions += 'TO_TSVECTOR("content") @@ PLAINTO_TSQUERY({})'.format(frappe.db.escape(text))
+		mariadb_conditions += 'MATCH(`content`) AGAINST (%(text)s IN BOOLEAN MODE)'
+		postgres_conditions += 'TO_TSVECTOR("content") @@ PLAINTO_TSQUERY(%(text)s)'
+
+		values = {
+			"scope": "".join([scope, "%"]) if scope else '',
+			"limit": limit,
+			"start": start,
+			"text": text
+		}
 
 		result = frappe.db.multisql({
-			'mariadb': common_query.format(conditions=mariadb_conditions, limit=limit, start=start),
-			'postgres': common_query.format(conditions=postgres_conditions, limit=limit, start=start)
-		}, as_dict=True)
-		tmp_result=[]
+			'mariadb': common_query.format(conditions=mariadb_conditions),
+			'postgres': common_query.format(conditions=postgres_conditions)
+		}, values=values, as_dict=True)
+		tmp_result = []
 		for i in result:
 			if i in results or not results:
 				tmp_result.append(i)

@@ -79,29 +79,14 @@ class Exporter:
 		return children_fields
 
 	def get_exportable_fields(self, doctype):
-		fields = []
-
-		def is_exportable(df):
-			return (
-				df.fieldtype not in display_fieldtypes
-				and df.fieldtype not in no_value_fields
-			)
-
 		meta = frappe.get_meta(doctype)
 
-		# filter out layout fields
-		fields = [df for df in meta.fields if is_exportable(df)]
+		def is_exportable(df):
+			return df and df.fieldtype not in (display_fieldtypes + no_value_fields)
 
-		if self.export_fields == "Mandatory":
-			fields = [df for df in fields if df.reqd]
-
-		if self.export_fields == "All":
-			fields = list(fields)
-
-		elif isinstance(self.export_fields, dict):
-			whitelist = self.export_fields.get(doctype, [])
-			fields = [df for df in fields if df.fieldname in whitelist]
-
+		# filter out invalid fieldtypes
+		all_fields = [df for df in meta.fields if is_exportable(df)]
+		# add name field
 		name_field = frappe._dict(
 			{
 				"fieldtype": "Data",
@@ -111,11 +96,22 @@ class Exporter:
 				"parent": doctype,
 			}
 		)
+		all_fields = [name_field] + all_fields
 
-		if fields:
-			return [name_field] + fields
-		else:
-			return []
+		if self.export_fields == "Mandatory":
+			fields = [df for df in all_fields if df.reqd]
+
+		if self.export_fields == "All":
+			fields = list(all_fields)
+
+		elif isinstance(self.export_fields, dict):
+			fields_to_export = self.export_fields.get(doctype, [])
+			fields = [meta.get_field(fieldname) for fieldname in fields_to_export]
+			fields = [df for df in fields if is_exportable(df)]
+			if 'name' in fields_to_export:
+				fields = [name_field] + fields
+
+		return fields or []
 
 	def get_data_to_export(self):
 		frappe.permissions.can_export(self.doctype, raise_exception=True)

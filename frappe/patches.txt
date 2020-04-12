@@ -260,4 +260,15 @@ frappe.patches.v12_0.update_auto_repeat_status_and_not_submittable
 frappe.patches.v12_0.copy_to_parent_for_tags
 frappe.patches.v12_0.create_notification_settings_for_user
 frappe.patches.v11_0.make_all_prepared_report_attachments_private #2019-11-26
+frappe.patches.v12_0.setup_email_linking
+frappe.patches.v12_0.fix_home_settings_for_all_users
+frappe.patches.v12_0.change_existing_dashboard_chart_filters
 execute:frappe.delete_doc("Test Runner")
+execute:frappe.delete_doc_if_exists('DocType', 'Google Maps Settings')
+execute:frappe.db.set_default('desktop:home_page', 'workspace')
+execute:frappe.delete_doc_if_exists('DocType', 'GSuite Settings')
+execute:frappe.delete_doc_if_exists('DocType', 'GSuite Templates')
+execute:frappe.delete_doc_if_exists('DocType', 'GCalendar Account')
+execute:frappe.delete_doc_if_exists('DocType', 'GCalendar Settings')
+frappe.patches.v12_0.remove_parent_and_parenttype_from_print_formats
+execute:from frappe.desk.page.setup_wizard.install_fixtures import update_genders;update_genders()

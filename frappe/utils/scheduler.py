@@ -14,6 +14,7 @@ import frappe, os, time
 import schedule
 from frappe.utils import now_datetime, get_datetime
 from frappe.utils import get_sites
+from frappe.installer import update_site_config
 from frappe.core.doctype.user.user import STANDARD_USERS
 from frappe.utils.background_jobs import get_jobs
 
@@ -23,7 +24,7 @@ def start_scheduler():
 	'''Run enqueue_events_for_all_sites every 2 minutes (default).
 	Specify scheduler_interval in seconds in common_site_config.json'''
 
-	schedule.every(60).seconds.do(enqueue_events_for_all_sites)
+	schedule.every(frappe.get_conf().scheduler_tick_interval or 60).seconds.do(enqueue_events_for_all_sites)
 
 	while True:
 		schedule.run_pending()

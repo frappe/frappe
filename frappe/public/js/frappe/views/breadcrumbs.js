@@ -17,8 +17,9 @@ frappe.breadcrumbs = {
 		'Custom': 'Settings',
 		'Workflow': 'Settings',
 		'Printing': 'Settings',
-		'Automation': 'Settings',
 		'Setup': 'Settings',
+		'Event Streaming': 'Tools',
+		'Automation': 'Tools',
 	},
 
 	set_doctype_module: function(doctype, module) {
@@ -95,7 +96,7 @@ frappe.breadcrumbs = {
 
 
 				if(module_info && !module_info.blocked && frappe.visible_modules.includes(module_info.module_name)) {
-					$(repl('<li><a href="#modules/%(module)s">%(label)s</a></li>',
+					$(repl('<li><a href="#workspace/%(module)s">%(label)s</a></li>',
 						{ module: breadcrumbs.module, label: __(label) }))
 						.appendTo($breadcrumbs);
 				}

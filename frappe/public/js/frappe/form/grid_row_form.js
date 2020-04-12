@@ -9,6 +9,7 @@ export default class GridRowForm {
 		var me = this;
 		this.make_form();
 		this.form_area.empty();
+		frappe.utils.scroll_to(0, false, 0, this.wrapper.find('.grid-form-body'));
 
 		this.layout = new frappe.ui.form.Layout({
 			fields: this.row.docfields,
