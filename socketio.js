@@ -73,6 +73,7 @@ io.on('connection', function (socket) {
 	});
 	// end frappe.chat
 
+	let retries = 0;
 	let join_chat_room = () => {
 		request.get(get_url(socket, '/api/method/frappe.realtime.get_user_info'))
 			.type('form')
@@ -85,11 +86,12 @@ io.on('connection', function (socket) {
 				socket.join(get_site_room(socket));
 			})
 			.catch(e => {
-				if (e.code === 'ECONNREFUSED') {
+				if (e.code === 'ECONNREFUSED' && retries < 5) {
 					// retry after 1s
+					retries += 1;
 					return setTimeout(join_chat_room, 1000);
 				}
-				log(e.code);
+				log(`Unable to join chat room. ${e}`);
 			});
 	};
 
