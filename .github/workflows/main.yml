@@ -28,9 +28,6 @@ jobs:
 
       - name: Install Redis
         uses: shogo82148/actions-setup-redis@v1
-        with:
-          redis-version: '5.x'
-        run: redis-cli ping
 
       - name: before_install
         run: |
