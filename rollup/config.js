@@ -10,6 +10,7 @@ const postcss = require('rollup-plugin-postcss');
 const buble = require('rollup-plugin-buble');
 const { terser } = require('rollup-plugin-terser');
 const vue = require('rollup-plugin-vue');
+const livereload = require('rollup-plugin-livereload');
 const frappe_html = require('./frappe-html-plugin');
 
 const production = process.env.FRAPPE_ENV === 'production';
@@ -27,7 +28,7 @@ const {
 function get_rollup_options(output_file, input_files) {
 	if (output_file.endsWith('.js')) {
 		return get_rollup_options_for_js(output_file, input_files);
-	} else if(output_file.endsWith('.css')) {
+	} else if (output_file.endsWith('.css')) {
 		return get_rollup_options_for_css(output_file, input_files);
 	}
 }
@@ -64,6 +65,9 @@ function get_rollup_options_for_js(output_file, input_files) {
 			customResolveOptions: {
 				paths: node_resolve_paths
 			}
+		}),
+		livereload({
+			verbose: false
 		}),
 		production && terser()
 	];
@@ -191,7 +195,7 @@ function ignore_css() {
 			`;
 		}
 	};
-};
+}
 
 module.exports = {
 	get_options_for
