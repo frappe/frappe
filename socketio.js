@@ -72,22 +72,27 @@ io.on('connection', function (socket) {
 	});
 	// end frappe.chat
 
-	request.get(get_url(socket, '/api/method/frappe.realtime.get_user_info'))
-		.type('form')
-		.query({
-			sid: sid
-		})
-		.end(function (err, res) {
-			if (err) {
-				console.log(err);
-				return;
-			}
-			if (res.status == 200) {
-				var room = get_user_room(socket, res.body.message.user);
+	let join_chat_room = () => {
+		request.get(get_url(socket, '/api/method/frappe.realtime.get_user_info'))
+			.type('form')
+			.query({
+				sid: sid
+			})
+			.then(res => {
+				const room = get_user_room(socket, res.body.message.user);
 				socket.join(room);
 				socket.join(get_site_room(socket));
-			}
-		});
+			})
+			.catch(e => {
+				if (e.code === 'ECONNREFUSED') {
+					// retry after 1s
+					return setTimeout(join_chat_room, 1000);
+				}
+				log(e.code);
+			});
+	};
+
+	join_chat_room();
 
 	socket.on('disconnect', function () {
 		delete socket.files;
