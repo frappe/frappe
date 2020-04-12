@@ -57,6 +57,7 @@ jobs:
 
       - name: setup database
         run: |
+          /etc/init.d/mysql start
           mysql -u root -e "SET GLOBAL character_set_server = 'utf8mb4'";
           mysql -u root -e "SET GLOBAL collation_server = 'utf8mb4_unicode_ci'";
 
