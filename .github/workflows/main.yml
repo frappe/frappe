@@ -29,6 +29,9 @@ jobs:
       - name: Install Redis
         uses: shogo82148/actions-setup-redis@v1
 
+      - name: Shutdown MySQL
+        run: sudo service mysql stop
+
       - name: Install Mariadb
         uses: getong/mariadb-action@v1.1
         with:
