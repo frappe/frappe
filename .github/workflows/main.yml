@@ -29,6 +29,9 @@ jobs:
       - name: Install Redis
         uses: shogo82148/actions-setup-redis@v1
 
+      - name: Install Mariadb
+        uses: getong/mariadb-action@v1.1
+
       - name: before_install
         run: |
           wget -O /tmp/wkhtmltox.tar.xz https://github.com/frappe/wkhtmltopdf/raw/master/wkhtmltox-0.12.3_linux-generic-amd64.tar.xz
