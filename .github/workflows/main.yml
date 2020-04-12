@@ -45,14 +45,12 @@ jobs:
       - name: init bench
         run: |
           echo $HOME
+          cd $HOME
           ls -l $GITHUB_WORKSPACE
           bench init frappe-bench --skip-assets --python $(which python) --frappe-path $GITHUB_WORKSPACE
 
           mkdir $HOME/frappe-bench/sites/test_site
           cp $GITHUB_WORKSPACE/.travis/consumer_db/mariadb.json $HOME/frappe-bench/sites/test_site/site_config.json
-
-          mkdir $HOME/frappe-bench/sites/test_site_producer
-          cp $GITHUB_WORKSPACE/.travis/producer_db/mariadb.json $HOME/frappe-bench/sites/test_site_producer/site_config.json
 
       - name: setup database
         run: |
@@ -75,15 +73,15 @@ jobs:
           cd $HOME/frappe-bench
           sed -i 's/watch:/# watch:/g' Procfile
           sed -i 's/schedule:/# schedule:/g' Procfile
-          sed -i 's/socketio:/# socketio:/g' Procfile; fi
-          sed -i 's/redis_socketio:/# redis_socketio:/g' Procfile; fi
+          sed -i 's/socketio:/# socketio:/g' Procfile;
+          sed -i 's/redis_socketio:/# redis_socketio:/g' Procfile;
           bench start &
 
       - name: run test
         run: |
           cd $HOME/frappe-bench
           bench --site test_site reinstall --yes
-          bench --site test_site_producer reinstall --yes
+          bench setup requirements --node;
           bench build --app frappe
           bench --site test_site execute frappe.utils.install.complete_setup_wizard
           bench --site test_site run-ui-tests frappe --headless --parallel
