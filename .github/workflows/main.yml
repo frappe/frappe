@@ -26,6 +26,12 @@ jobs:
         with:
           python-version: 3.7
 
+      - name: Install Redis
+        uses: shogo82148/actions-setup-redis@v1
+        with:
+          redis-version: '5.x'
+        run: redis-cli ping
+
       - name: before_install
         run: |
           wget -O /tmp/wkhtmltox.tar.xz https://github.com/frappe/wkhtmltopdf/raw/master/wkhtmltox-0.12.3_linux-generic-amd64.tar.xz
@@ -46,10 +52,10 @@ jobs:
           bench init frappe-bench --skip-assets --python $(which python) --frappe-path $GITHUB_WORKSPACE
 
           mkdir $HOME/frappe-bench/sites/test_site
-          cp $GITHUB_WORKSPACE/.travis/consumer_db/$DB.json $HOME/frappe-bench/sites/test_site/site_config.json
+          cp $GITHUB_WORKSPACE/.travis/consumer_db/mariadb.json $HOME/frappe-bench/sites/test_site/site_config.json
 
           mkdir $HOME/frappe-bench/sites/test_site_producer
-          cp $GITHUB_WORKSPACE/.travis/producer_db/$DB.json $HOME/frappe-bench/sites/test_site_producer/site_config.json
+          cp $GITHUB_WORKSPACE/.travis/producer_db/mariadb.json $HOME/frappe-bench/sites/test_site_producer/site_config.json
 
       - name: setup database
         run: |
@@ -69,7 +75,7 @@ jobs:
 
       - name: start bench
         run: |
-          cd $GITHUB_WORKSPACE/frappe-bench
+          cd $HOME/frappe-bench
           sed -i 's/watch:/# watch:/g' Procfile
           sed -i 's/schedule:/# schedule:/g' Procfile
           sed -i 's/socketio:/# socketio:/g' Procfile; fi
@@ -78,7 +84,7 @@ jobs:
 
       - name: run test
         run: |
-          cd $GITHUB_WORKSPACE/frappe-bench
+          cd $HOME/frappe-bench
           bench --site test_site reinstall --yes
           bench --site test_site_producer reinstall --yes
           bench build --app frappe
