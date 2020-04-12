@@ -32,25 +32,24 @@ jobs:
           tar -xf /tmp/wkhtmltox.tar.xz -C /tmp
           sudo mv /tmp/wkhtmltox/bin/wkhtmltopdf /usr/local/bin/wkhtmltopdf
           sudo chmod o+x /usr/local/bin/wkhtmltopdf
-          # install cups
           sudo apt-get install libcups2-dev
 
       - name: install bench
         run: |
-          cd $GITHUB_WORKSPACE
+          cd $HOME
           pip install frappe-bench
 
       - name: init bench
         run: |
-          echo $GITHUB_WORKSPACE
-          ls $GITHUB_WORKSPACE
+          echo $HOME
+          ls -l $GITHUB_WORKSPACE
           bench init frappe-bench --skip-assets --python $(which python) --frappe-path $GITHUB_WORKSPACE
 
-          mkdir $GITHUB_WORKSPACE/frappe-bench/sites/test_site
-          cp $GITHUB_WORKSPACE/.travis/consumer_db/$DB.json ~/frappe-bench/sites/test_site/site_config.json
+          mkdir $HOME/frappe-bench/sites/test_site
+          cp $GITHUB_WORKSPACE/.travis/consumer_db/$DB.json $HOME/frappe-bench/sites/test_site/site_config.json
 
-          mkdir $GITHUB_WORKSPACE/frappe-bench/sites/test_site_producer
-          cp $GITHUB_WORKSPACE/.travis/producer_db/$DB.json ~/frappe-bench/sites/test_site_producer/site_config.json
+          mkdir $HOME/frappe-bench/sites/test_site_producer
+          cp $GITHUB_WORKSPACE/.travis/producer_db/$DB.json $HOME/frappe-bench/sites/test_site_producer/site_config.json
 
       - name: setup database
         run: |
