@@ -11,6 +11,17 @@ jobs:
   test:
     name: Cypress run
     runs-on: ubuntu-16.04
+    services:
+      mariadb:
+        image: mariadb:latest
+        ports:
+          - 3306
+        env:
+          MYSQL_USER: test_frappe_consumer
+          MYSQL_PASSWORD: test_frappe
+          MYSQL_DATABASE: test_frappe_consumer
+          MYSQL_ROOT_PASSWORD: 'travis'
+        options: --health-cmd="mysqladmin ping" --health-interval=5s --health-timeout=2s --health-retries=3
     strategy:
       matrix:
         # run 3 copies of the current job in parallel
@@ -47,15 +58,8 @@ jobs:
 
       - name: Setup Database
         run: |
-          mysql --help
           mysql -u root -e "SET GLOBAL character_set_server = 'utf8mb4'";
           mysql -u root -e "SET GLOBAL collation_server = 'utf8mb4_unicode_ci'";
-
-          mysql -u root -e "CREATE DATABASE test_frappe_consumer";
-          mysql -u root -e "CREATE USER 'test_frappe_consumer'@'localhost' IDENTIFIED BY 'test_frappe_consumer'";
-          mysql -u root -e "GRANT ALL PRIVILEGES ON \`test_frappe_consumer\`.* TO 'test_frappe_consumer'@'localhost'";
-          mysql -u root -e "UPDATE mysql.user SET Password=PASSWORD('travis') WHERE User='root'";
-          mysql -u root -e "FLUSH PRIVILEGES";
 
       - name: install bench
         run: |
