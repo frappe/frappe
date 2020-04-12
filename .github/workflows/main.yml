@@ -35,6 +35,8 @@ jobs:
           mariadb version: '10.4.10' # Optional, default value is "latest". The version of the MariaDB
           mysql root password: 'travis' # Required if "mysql user" is empty, default is empty.
           collation server: 'utf8mb4_unicode_ci'
+          mysql user: 'test_frappe_consumer' # Required if "mysql root password" is empty, default is empty. The superuser for the specified database. Can use secrets, too
+          mysql password: test_frappe
 
       - name: before_install
         run: |
