@@ -37,17 +37,14 @@ jobs:
 
       - name: install bench
         run: |
-          cd ~
-          source ./.nvm/nvm.sh
-          nvm install v8.10.0
-          git clone https://github.com/frappe/bench --depth 1
-          pip install -e ./bench
+          cd $GITHUB_WORKSPACE
+          pip install frappe-bench
 
       - name: init bench
         run: |
           echo $GITHUB_WORKSPACE
           ls $GITHUB_WORKSPACE
-          bench init frappe-bench --skip-assets --python $(which python) --frappe-path $GITHUB_WORKSPACE
+          bench init frappe-bench --skip-assets --python $(which python) --frappe-path $GITHUB_WORKSPACE/frappe
 
           mkdir $GITHUB_WORKSPACE/frappe-bench/sites/test_site
           cp $GITHUB_WORKSPACE/.travis/consumer_db/$DB.json ~/frappe-bench/sites/test_site/site_config.json
