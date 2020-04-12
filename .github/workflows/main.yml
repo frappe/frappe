@@ -76,6 +76,9 @@ jobs:
       - name: run test
         run: |
           cd $HOME/frappe-bench
+          sudo systemctl status mysqld
+          journalctl > journal.log
+          cat journal.log
           sudo systemctl status mysql.service
           sudo service mysql start
           bench --site test_site reinstall --force --yes
