@@ -44,7 +44,7 @@ jobs:
         run: |
           echo $GITHUB_WORKSPACE
           ls $GITHUB_WORKSPACE
-          bench init frappe-bench --skip-assets --python $(which python) --frappe-path $GITHUB_WORKSPACE/frappe
+          bench init frappe-bench --skip-assets --python $(which python) --frappe-path $GITHUB_WORKSPACE
 
           mkdir $GITHUB_WORKSPACE/frappe-bench/sites/test_site
           cp $GITHUB_WORKSPACE/.travis/consumer_db/$DB.json ~/frappe-bench/sites/test_site/site_config.json
