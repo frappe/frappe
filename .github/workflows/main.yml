@@ -37,6 +37,12 @@ jobs:
           sudo chmod o+x /usr/local/bin/wkhtmltopdf
           sudo apt-get install libcups2-dev
 
+      - name: Shutdown Ubuntu MySQL (SUDO)
+        run: sudo service mysql stop # Shutdown the Default MySQL, "sudo" is necessary, please not remove it
+
+      - name: Set up MySQL
+        uses: mirromutth/mysql-action@v1.1
+
       - name: Setup Database
         run: |
           mysql --help
