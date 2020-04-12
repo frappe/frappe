@@ -29,7 +29,7 @@ export default class WebForm extends frappe.ui.FieldGroup {
 
 		// webform client script
 		frappe.init_client_script && frappe.init_client_script();
-		frappe.web_form.events.trigger('after_load');
+		frappe.web_form.events.trigger('after_load', this);
 	}
 
 	on(fieldname, handler) {
