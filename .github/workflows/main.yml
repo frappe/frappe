@@ -76,8 +76,6 @@ jobs:
       - name: run test
         run: |
           cd $HOME/frappe-bench
-          sudo service mysql stop
-          sudo service mysql start
           bench --site test_site reinstall --force --yes
           bench setup requirements --node;
           bench build --app frappe
