@@ -29,18 +29,6 @@ jobs:
       - name: Install Redis
         uses: shogo82148/actions-setup-redis@v1
 
-      - name: Shutdown MySQL
-        run: sudo service mysql stop
-
-      - name: Install Mariadb
-        uses: getong/mariadb-action@v1.1
-        with:
-          mariadb version: '10.4.10' # Optional, default value is "latest". The version of the MariaDB
-          mysql root password: 'travis' # Required if "mysql user" is empty, default is empty.
-          collation server: 'utf8mb4_unicode_ci'
-          mysql user: 'test_frappe_consumer' # Required if "mysql root password" is empty, default is empty. The superuser for the specified database. Can use secrets, too
-          mysql password: test_frappe
-
       - name: before_install
         run: |
           wget -O /tmp/wkhtmltox.tar.xz https://github.com/frappe/wkhtmltopdf/raw/master/wkhtmltox-0.12.3_linux-generic-amd64.tar.xz
@@ -64,6 +52,11 @@ jobs:
           mkdir $HOME/frappe-bench/sites/test_site
           cp $GITHUB_WORKSPACE/.travis/consumer_db/mariadb.json $HOME/frappe-bench/sites/test_site/site_config.json
 
+      - name: Setup Database
+        run: |
+          mysql --help
+
+
       - name: start bench
         run: |
           cd $HOME/frappe-bench
@@ -76,9 +69,6 @@ jobs:
       - name: run test
         run: |
           cd $HOME/frappe-bench
-          sudo mkdir /var/run/mysqld
-          sudo touch /var/run/mysqld/mysqld.sock
-          sudo service mysql restart
           bench --site test_site --force reinstall --yes
           bench setup requirements --node;
           bench build --app frappe
