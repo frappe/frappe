@@ -76,9 +76,8 @@ jobs:
       - name: run test
         run: |
           cd $HOME/frappe-bench
-          mkdir /var/run/mysqld
-          touch /var/run/mysqld/mysqld.sock
-          chown mysql /var/run/mysqld/mysqld.sock
+          sudo mkdir /var/run/mysqld
+          sudo touch /var/run/mysqld/mysqld.sock
           sudo service mysql restart
           bench --site test_site --force reinstall --yes
           bench setup requirements --node;
