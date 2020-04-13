@@ -670,7 +670,7 @@ Object.assign(frappe.utils, {
 		return __(frappe.utils.to_title_case(route[0], true));
 	},
 	report_column_total: function(values, column, type) {
-		if(column.column.disable_total){
+		if (column.column.disable_total){
 			return '';
 		}
 		else if (values.length > 0) {
