@@ -6,7 +6,7 @@ import frappe
 import sys
 from six.moves import html_parser as HTMLParser
 import smtplib, quopri, json
-from frappe import msgprint, _, safe_decode, safe_encode
+from frappe import msgprint, _, safe_decode, safe_encode, enqueue
 from frappe.email.smtp import SMTPServer, get_outgoing_email_account
 from frappe.email.email_body import get_email, get_formatted_html, add_attachment
 from frappe.utils.verified_command import get_signed_params, verify_request
@@ -347,8 +347,7 @@ def flush(from_test=False):
 			if not smtpserver:
 				smtpserver = SMTPServer()
 				smtpserver_dict[email.sender] = smtpserver
-
-			from frappe import enqueue
+				
 			send_one_args = {
 				'email': email.name,
 				'smtpserver': smtpserver,
