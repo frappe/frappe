@@ -235,7 +235,7 @@ def get_desktop_page(page):
 		return None
 
 @frappe.whitelist()
-def get_desk_sidebar_items():
+def get_desk_sidebar_items(flatten=False):
 	"""Get list of sidebar items for desk
 	"""
 	# don't get domain restricted pages
@@ -255,6 +255,8 @@ def get_desk_sidebar_items():
 	# pages sorted based on pinned to top and then by name
 	order_by = "pin_to_top desc, pin_to_bottom asc, name asc"
 	pages = frappe.get_all("Desk Page", fields=["name", "category"], filters=filters, order_by=order_by, ignore_permissions=True)
+	if flatten:
+		return pages
 
 	from collections import defaultdict
 	sidebar_items = defaultdict(list)
