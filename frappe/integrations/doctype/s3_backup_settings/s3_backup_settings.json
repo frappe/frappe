@@ -137,7 +137,7 @@
    "label": "Backup Details"
   },
   {
-   "default": "0",
+   "default": "1",
    "description": "Backup public and private files along with the database.",
    "fieldname": "backup_files",
    "fieldtype": "Check",
@@ -151,7 +151,7 @@
  "hide_toolbar": 1,
  "issingle": 1,
  "links": [],
- "modified": "2020-04-13 20:50:12.956162",
+ "modified": "2020-04-13 20:57:24.432183",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "S3 Backup Settings",
