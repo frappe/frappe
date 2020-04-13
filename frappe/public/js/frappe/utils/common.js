@@ -264,7 +264,7 @@ frappe.utils.sanitise_redirect = (url) => {
 	const is_external = (() => {
 		return (url) => {
 			function domain(url) {
-				let base_domain = /^(?:https?://)?(?:[^@\n]+@)?(?:www\.)?([^:\/\n?]+)/img.exec(url);
+				let base_domain = /^(?:https?:\/\/)?(?:[^@\n]+@)?(?:www\.)?([^:\/\n?]+)/img.exec(url);
 				return base_domain == null ? "" : base_domain[1];
 			}
 
