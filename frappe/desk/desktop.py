@@ -276,9 +276,13 @@ def get_table_with_counts():
 def get_custom_reports_and_doctypes(module):
 	return [
 		_dict({
-			"label": "Custom",
-			"links": get_custom_doctype_list(module) + get_custom_report_list(module)
-		})
+			"label": _("Custom Documents"),
+			"links": get_custom_doctype_list(module)
+		}),
+		_dict({
+			"label": _("Custom Reports"),
+			"links": get_custom_report_list(module)
+		}),
 	]
 
 def get_custom_doctype_list(module):
