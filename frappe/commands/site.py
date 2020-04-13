@@ -9,8 +9,6 @@ import sys
 
 # imports - third party imports
 import click
-from pymysql.err import OperationalError
-from six import text_type
 
 # imports - module imports
 import frappe
