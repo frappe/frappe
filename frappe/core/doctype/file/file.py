@@ -517,7 +517,7 @@ class File(Document):
 			delete_file(self.thumbnail_url)
 
 	def is_downloadable(self):
-		return self.is_private and has_permission(self, 'read')
+		return has_permission(self, 'read')
 
 	def get_extension(self):
 		'''returns split filename and extension'''
@@ -712,7 +712,7 @@ def remove_all(dt, dn, from_delete=False):
 
 
 def has_permission(doc, ptype=None, user=None):
-	permission = True
+	permission = False if doc.is_private else True
 
 	if doc.attached_to_doctype and doc.attached_to_name:
 		attached_to_doctype = doc.attached_to_doctype
