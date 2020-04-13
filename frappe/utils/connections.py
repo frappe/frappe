@@ -22,12 +22,8 @@ def is_open(ip, port, timeout=10):
 
 def check_database():
 	db_type = config.get("db_type", "mariadb")
-	if db_type == "mariadb":
-		db_host = config.get("db_host", "localhost")
-		db_port = config.get("db_port", 3306)
-	else:
-		db_host = "localhost"
-		db_port = 5342
+	db_host = config.get("db_host", "localhost")
+	db_port = config.get("db_port", 3306 if db_type == "mariadb" else 5342)
 	return {db_type: is_open(db_host, db_port)}
 
 
