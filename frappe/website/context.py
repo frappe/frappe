@@ -31,6 +31,11 @@ def get_context(path, args=None):
 	if hasattr(frappe.local, 'response') and frappe.local.response.get('context'):
 		context.update(frappe.local.response.context)
 
+	# to be able to inspect the context in development
+	# Use the macro "inspect" from macros.html
+	if frappe.conf.developer_mode:
+		context._context_dict = context
+
 	return context
 
 def update_controller_context(context, controller):

@@ -101,7 +101,8 @@ class User(Document):
 		frappe.enqueue(
 			'frappe.core.doctype.user.user.create_contact',
 			user=self,
-			ignore_mandatory=True
+			ignore_mandatory=True,
+			now=frappe.flags.in_test
 		)
 		if self.name not in ('Administrator', 'Guest') and not self.user_image:
 			frappe.enqueue('frappe.core.doctype.user.user.update_gravatar', name=self.name)
@@ -204,7 +205,7 @@ class User(Document):
 						_update_password(user=self.name, pwd=new_password,
 							logout_all_sessions=self.logout_all_sessions)
 
-					if not self.flags.no_welcome_mail and self.send_welcome_email:
+					if not self.flags.no_welcome_mail and cint(self.send_welcome_email):
 						self.send_welcome_mail_to_user()
 						self.flags.email_sent = 1
 						if frappe.session.user != 'Guest':
@@ -554,7 +555,8 @@ def update_password(new_password, logout_all_sessions=0, key=None, old_password=
 	else:
 		user = res['user']
 
-	_update_password(user, new_password, logout_all_sessions=int(logout_all_sessions))
+	logout_all_sessions = cint(logout_all_sessions) or frappe.db.get_single_value("System Settings", "logout_on_password_reset")
+	_update_password(user, new_password, logout_all_sessions=cint(logout_all_sessions))
 
 	user_doc, redirect_url = reset_user_data(user)
 
@@ -575,7 +577,7 @@ def update_password(new_password, logout_all_sessions=0, key=None, old_password=
 		return redirect_url if redirect_url else "/"
 
 @frappe.whitelist(allow_guest=True)
-def test_password_strength(new_password, key=None, old_password=None, user_data=[]):
+def test_password_strength(new_password, key=None, old_password=None, user_data=None):
 	from frappe.utils.password_strength import test_password_strength as _test_password_strength
 
 	password_policy = frappe.db.get_value("System Settings", None,
@@ -1038,8 +1040,8 @@ def create_contact(user, ignore_links=False, ignore_mandatory=False):
 	from frappe.contacts.doctype.contact.contact import get_contact_name
 	if user.name in ["Administrator", "Guest"]: return
 
-	contact_exists = get_contact_name(user.email)
-	if not contact_exists:
+	contact_name = get_contact_name(user.email)
+	if not contact_name:
 		contact = frappe.get_doc({
 			"doctype": "Contact",
 			"first_name": user.first_name,
@@ -1058,7 +1060,7 @@ def create_contact(user, ignore_links=False, ignore_mandatory=False):
 			contact.add_phone(user.mobile_no, is_primary_mobile_no=True)
 		contact.insert(ignore_permissions=True, ignore_links=ignore_links, ignore_mandatory=ignore_mandatory)
 	else:
-		contact = frappe.get_doc("Contact", contact_exists)
+		contact = frappe.get_doc("Contact", contact_name)
 		contact.first_name = user.first_name
 		contact.last_name = user.last_name
 		contact.gender = user.gender

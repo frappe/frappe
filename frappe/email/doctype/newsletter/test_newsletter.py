@@ -3,8 +3,9 @@
 from __future__ import unicode_literals
 
 import frappe, unittest
+from frappe.utils import getdate, add_days
 
-from frappe.email.doctype.newsletter.newsletter import confirmed_unsubscribe
+from frappe.email.doctype.newsletter.newsletter import confirmed_unsubscribe, send_scheduled_email
 from six.moves.urllib.parse import unquote
 
 test_dependencies = ["Email Group"]
@@ -58,7 +59,7 @@ class TestNewsletter(unittest.TestCase):
 				self.assertTrue(email in recipients)
 
 	@staticmethod
-	def send_newsletter(published=0):
+	def send_newsletter(published=0, schedule_send=None):
 		frappe.db.sql("delete from `tabEmail Queue`")
 		frappe.db.sql("delete from `tabEmail Queue Recipient`")
 		frappe.db.sql("delete from `tabNewsletter`")
@@ -67,11 +68,16 @@ class TestNewsletter(unittest.TestCase):
 			"subject": "_Test Newsletter",
 			"send_from": "Test Sender <test_sender@example.com>",
 			"message": "Testing my news.",
-			"published": published
+			"published": published,
+			"schedule_send": schedule_send
 		}).insert(ignore_permissions=True)
 
 		newsletter.append("email_group", {"email_group": "_Test Email Group"})
 		newsletter.save()
+		if schedule_send:
+			send_scheduled_email()
+			return
+
 		newsletter.send_emails()
 		return newsletter.name
 
@@ -90,3 +96,12 @@ class TestNewsletter(unittest.TestCase):
 		doc.get_context(context)
 		self.assertEqual(context.no_cache, 1)
 		self.assertTrue("attachments" not in list(context))
+
+	def test_schedule_send(self):
+		self.send_newsletter(schedule_send=add_days(getdate(), -1))
+
+		email_queue_list = [frappe.get_doc('Email Queue', e.name) for e in frappe.get_all("Email Queue")]
+		self.assertEqual(len(email_queue_list), 4)
+		recipients = [e.recipients[0].recipient for e in email_queue_list]
+		for email in emails:
+			self.assertTrue(email in recipients)
