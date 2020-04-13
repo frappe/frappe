@@ -356,8 +356,8 @@ def flush(from_test=False):
 				'from_test': from_test
 			}
 			enqueue(
-				method='frappe.email.queue.send_one',
-				queue='short',
+				method = 'frappe.email.queue.send_one',
+				queue = 'short',
 				**send_one_args
 			)
 
