@@ -21,9 +21,6 @@ class Workspace:
 		self.extended_charts = []
 		self.extended_shortcuts = []
 
-		user = frappe.get_user()
-		user.build_permissions()
-
 		user_doc = frappe.get_doc('User', frappe.session.user)
 		self.blocked_modules = user_doc.get_blocked_modules()
 		self.doc = self.get_page_for_user()
@@ -31,9 +28,10 @@ class Workspace:
 		if self.doc.module in self.blocked_modules:
 			raise frappe.PermissionError
 
-		self.user = user
-		self.allowed_pages = get_allowed_pages()
-		self.allowed_reports = get_allowed_reports()
+		self.can_read = get_can_read_items_for_user(cache=True)
+
+		self.allowed_pages = get_allowed_pages(cache=True)
+		self.allowed_reports = get_allowed_reports(cache=True)
 
 		self.table_counts = get_table_with_counts()
 		self.restricted_doctypes = frappe.cache().get_value("domain_restricted_doctypes") or build_domain_restriced_doctype_cache()
@@ -70,7 +68,7 @@ class Workspace:
 		item_type = item_type.lower()
 
 		if item_type == "doctype":
-			return (name in self.user.can_read and name in self.restricted_doctypes)
+			return (name in self.can_read and name in self.restricted_doctypes)
 		if item_type == "page":
 			return (name in self.allowed_pages and name in self.restricted_pages)
 		if item_type == "report":
@@ -206,6 +204,26 @@ class Workspace:
 				items.append(new_item)
 
 		return items
+
+
+def get_can_read_items_for_user(cache=False):
+	_cache = frappe.cache()
+
+	if cache:
+		can_read = _cache.get_value('user_perm_can_read', user=frappe.session.user)
+		if can_read:
+			return can_read
+
+
+	user = frappe.get_user()
+	user.build_permissions()
+	can_read = user.can_read
+
+	# Expire every hour
+	_cache.set_value('user_perm_can_read', can_read, frappe.session.user, 3600)
+
+	return can_read
+
 
 @frappe.whitelist()
 @frappe.read_only()
