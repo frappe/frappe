@@ -264,14 +264,14 @@ frappe.utils.sanitise_redirect = (url) => {
 	const is_external = (() => {
 		return (url) => {
 			function domain(url) {
-				let base_domain = /^(?:https?:\/\/)?(?:[^@\n]+@)?(?:www\.)?([^:\/\n?]+)/img.exec(url);
+				let base_domain = /^(?:https?://)?(?:[^@\n]+@)?(?:www\.)?([^:\/\n?]+)/img.exec(url);
 				return base_domain == null ? "" : base_domain[1];
 			}
 
 			function is_absolute(url) {
 				// returns true for url that have a defined scheme
 				// anything else, eg. internal urls return false
-				return /^(?:[a-z]+:)?\/\//i.test(url)
+				return /^(?:[a-z]+:)?\/\//i.test(url);
 			}
 
 			// check for base domain only if the url is absolute
@@ -287,7 +287,7 @@ frappe.utils.sanitise_redirect = (url) => {
 		return url.replace(REGEX_SCRIPT, "");
 	});
 
-	url = strip_url(url);
+	url = frappe.utils.strip_url(url);
 
 	return is_external(url) ? "" : sanitise_javascript(frappe.utils.xss_sanitise(url, {strategies: ["js"]}));
 }
