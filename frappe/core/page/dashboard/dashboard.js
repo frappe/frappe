@@ -80,23 +80,33 @@ class Dashboard {
 			if (!charts.length) {
 				frappe.msgprint(__('No Permitted Charts on this Dashboard'), __('No Permitted Charts'))
 			}
-			this.charts = charts
-							.map(chart => {
-								return {
-									chart_name: chart.chart,
-									label: chart.chart,
-									...chart
-								}
-							});
 
-			this.chart_group = new frappe.widget.WidgetGroup({
-				title: null,
-				container: this.container,
-				type: "chart",
-				columns: 2,
-				allow_sorting: false,
-				widgets: this.charts,
-			});
+			frappe.dashboard_utils.get_dashboard_settings().then((settings) => {
+				let chart_config = settings.chart_config? JSON.parse(settings.chart_config): {};
+				this.charts =
+					charts.map(chart => {
+						return {
+							chart_name: chart.chart,
+							label: chart.chart,
+							chart_settings: chart_config[chart.chart] || {},
+							...chart
+						}
+					});
+				this.chart_group = new frappe.widget.WidgetGroup({
+					title: null,
+					container: this.container,
+					type: "chart",
+					columns: 2,
+					options: {
+						allow_sorting: false,
+						allow_create: false,
+						allow_delete: false,
+						allow_hiding: false,
+						allow_edit: false,
+					},
+					widgets: this.charts,
+				});
+			})
 		});
 	}
 
