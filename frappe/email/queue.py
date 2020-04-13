@@ -348,7 +348,19 @@ def flush(from_test=False):
 				smtpserver = SMTPServer()
 				smtpserver_dict[email.sender] = smtpserver
 
-			send_one(email.name, smtpserver, auto_commit, from_test=from_test)
+			# send_one(email.name, smtpserver, auto_commit, from_test=from_test)
+			from frappe import enqueue
+			send_one_args = {
+				'email': email.name,
+				'smtpserver':smtpserver,
+				'auto_commit': auto_commit,
+				'from_test':from_test
+			}
+			enqueue(
+				method='frappe.email.queue.send_one',
+				queue='short',
+				**send_one_args
+			)
 
 		# NOTE: removing commit here because we pass auto_commit
 		# finally:
