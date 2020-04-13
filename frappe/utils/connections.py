@@ -28,7 +28,7 @@ def check_database():
 	else:
 		db_host = "localhost"
 		db_port = 5342
-	return {"db_type": is_open(db_host, db_port)}
+	return {db_type: is_open(db_host, db_port)}
 
 
 def check_redis(redis_services=None):
