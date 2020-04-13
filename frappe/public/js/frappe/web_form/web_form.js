@@ -82,7 +82,7 @@ export default class WebForm extends frappe.ui.FieldGroup {
 	}
 
 	setup_cancel_button() {
-		this.add_button_to_header("Cancel", "light", () => this.cancel());
+		this.add_button_to_header(__("Cancel"), "light", () => this.cancel());
 	}
 
 	setup_delete_button() {
