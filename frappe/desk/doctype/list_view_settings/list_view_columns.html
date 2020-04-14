@@ -1,9 +1,0 @@
-<div class="form-group listview-column-group">
-	{% for (var i=0, l=fields.length; i < l; i++) { var field = fields[i]; %}
-		<div class="form-control listview-column-field" data-fieldname="{%= field.fieldname %}" data-label="{{ __(field.label) }}" style="margin-bottom: 5px; width: 50%;">
-			<span class="control-input flex align-center" style="cursor: grab; display: inline-block">
-				{%= field.label %}
-			</span>
-		</div>
-	{% } %}
-</div>
