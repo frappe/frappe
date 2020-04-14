@@ -235,7 +235,7 @@ def get_desktop_page(page):
 		return None
 
 @frappe.whitelist()
-def get_desk_sidebar_items():
+def get_desk_sidebar_items(flatten=False):
 	"""Get list of sidebar items for desk
 	"""
 	# don't get domain restricted pages
@@ -255,6 +255,8 @@ def get_desk_sidebar_items():
 	# pages sorted based on pinned to top and then by name
 	order_by = "pin_to_top desc, pin_to_bottom asc, name asc"
 	pages = frappe.get_all("Desk Page", fields=["name", "category"], filters=filters, order_by=order_by, ignore_permissions=True)
+	if flatten:
+		return pages
 
 	from collections import defaultdict
 	sidebar_items = defaultdict(list)
@@ -276,9 +278,13 @@ def get_table_with_counts():
 def get_custom_reports_and_doctypes(module):
 	return [
 		_dict({
-			"label": "Custom",
-			"links": get_custom_doctype_list(module) + get_custom_report_list(module)
-		})
+			"label": _("Custom Documents"),
+			"links": get_custom_doctype_list(module)
+		}),
+		_dict({
+			"label": _("Custom Reports"),
+			"links": get_custom_report_list(module)
+		}),
 	]
 
 def get_custom_doctype_list(module):
@@ -361,9 +367,12 @@ def save_customization(page, config):
 	})
 
 	config = _dict(loads(config))
-	page_doc.charts = prepare_widget(config.charts, "Desk Chart", "charts")
-	page_doc.shortcuts = prepare_widget(config.shortcuts, "Desk Shortcut", "shortcuts")
-	page_doc.cards = prepare_widget(config.cards, "Desk Card", "cards")
+	if config.charts:
+		page_doc.charts = prepare_widget(config.charts, "Desk Chart", "charts")
+	if config.shortcuts:
+		page_doc.shortcuts = prepare_widget(config.shortcuts, "Desk Shortcut", "shortcuts")
+	if config.cards:
+		page_doc.cards = prepare_widget(config.cards, "Desk Card", "cards")
 
 	# Set label
 	page_doc.label = page + '-' + frappe.session.user
@@ -401,6 +410,8 @@ def prepare_widget(config, doctype, parentfield):
 	Returns:
 		TYPE: List of Document objects
 	"""
+	if not config:
+		return []
 	order = config.get('order')
 	widgets = config.get('widgets')
 	prepare_widget_list = []
