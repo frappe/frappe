@@ -580,6 +580,7 @@ def clear_cache(user=None, doctype=None):
 	else: # everything
 		from frappe import translate
 		frappe.cache_manager.clear_user_cache()
+		frappe.cache_manager.clear_domain_cache()
 		translate.clear_cache()
 		reset_metadata_version()
 		local.cache = {}
