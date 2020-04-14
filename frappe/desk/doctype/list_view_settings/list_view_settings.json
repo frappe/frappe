@@ -1,4 +1,5 @@
 {
+ "actions": [],
  "autoname": "Prompt",
  "creation": "2019-10-23 15:00:48.392374",
  "doctype": "DocType",
@@ -8,9 +9,9 @@
   "disable_count",
   "disable_sidebar_stats",
   "disable_auto_refresh",
-  "column_count",
-  "columns",
-  "column_order"
+  "total_fields",
+  "fields_html",
+  "fields"
  ],
  "fields": [
   {
@@ -32,23 +33,26 @@
    "label": "Disable Auto Refresh"
   },
   {
-   "fieldname": "column_count",
+   "fieldname": "total_fields",
    "fieldtype": "Select",
-   "label": "Column Count",
+   "label": "Total Fields",
    "options": "\n4\n5\n6\n7\n8\n9\n10"
   },
   {
-   "fieldname": "column_order",
-   "fieldtype": "Data",
-   "label": "Column Order"
+   "fieldname": "fields_html",
+   "fieldtype": "HTML",
+   "label": "Fields"
   },
   {
-   "fieldname": "columns",
-   "fieldtype": "HTML",
-   "label": "Columns"
+   "fieldname": "fields",
+   "fieldtype": "Code",
+   "hidden": 1,
+   "label": "Fields",
+   "read_only": 1
   }
  ],
- "modified": "2019-11-18 10:05:11.859157",
+ "links": [],
+ "modified": "2020-04-13 23:31:15.411147",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "List View Settings",
@@ -63,8 +67,21 @@
    "role": "System Manager",
    "share": 1,
    "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "All",
+   "share": 1,
+   "write": 1
   }
  ],
+ "read_only": 1,
  "sort_field": "modified",
  "sort_order": "DESC",
  "track_changes": 1

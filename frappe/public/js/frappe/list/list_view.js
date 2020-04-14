@@ -1,4 +1,5 @@
 import BulkOperations from "./bulk_operations";
+import ListSettings from "./list_settings";
 
 frappe.provide('frappe.views');
 
@@ -287,41 +288,47 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				}))
 		);
 
-		if (this.list_view_settings.column_order && this.list_view_settings.column_order.length > 0 &&
-			this.list_view_settings.column_order.length === this.list_view_settings.column_count) {
-			let custom_column_order = [];
+		if (this.list_view_settings.fields) {
+			let fields_order = [];
+			let fields = JSON.parse(this.list_view_settings.fields);
+			let is_status_field_set = false;
 
 			//title_field is fixed
-			custom_column_order.push(this.columns[0]);
+			fields_order.push(this.columns[0]);
 			this.columns.splice(0, 1);
 
-			for (let i in this.list_view_settings.column_order) {
-				let fieldname = this.list_view_settings.column_order[i].fieldname;
-				for (let j in this.columns) {
-					let df = this.columns[j].df.fieldname;
-					if (fieldname === df) {
-						custom_column_order.push(this.columns[j]);
+			for (let fld in fields) {
+				for (let col in this.columns) {
+					let field = fields[fld];
+					let column = this.columns[col];
+
+					if (column.type == "Status" && !is_status_field_set) {
+						fields_order.push(column);
+						is_status_field_set = true;
+						break;
+					} else if (column.type == "Field" && field.fieldname === column.df.fieldname) {
+						fields_order.push(column);
 						break;
 					}
 				}
 			}
 
-			this.columns = custom_column_order;
+			this.columns = fields_order;
 		}
 
-		// limit max to 8 columns if no column_count is set in List View Settings
+		// limit max to 8 columns if no total_fields is set in List View Settings
 		// Screen with low density no of columns 4
 		// Screen with medium density no of columns 6
 		// Screen with high density no of columns 8
-		let column_count = 6;
+		let total_fields = 6;
 
 		if (window.innerWidth <= 1366) {
-			column_count = 4;
+			total_fields = 4;
 		} else if (window.innerWidth >= 1920) {
-			column_count = 8;
+			total_fields = 8;
 		}
 
-		this.columns = this.columns.slice(0, this.list_view_settings.column_count || column_count);
+		this.columns = this.columns.slice(0, this.list_view_settings.total_fields || total_fields);
 	}
 
 	get_documentation_link() {
@@ -1300,26 +1307,11 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 
 	show_list_settings() {
-		frappe.model.with_doctype("List View Settings", () => {
-			let list_view_settings = frappe.get_meta("List View Settings");
-
-			let d = new frappe.ui.Dialog({
-				title: __("Settings"),
-				fields: [
-					list_view_settings.fields[0],
-					list_view_settings.fields[1],
-					list_view_settings.fields[2],
-					list_view_settings.fields[3],
-				]
-			});
-			d.set_values(this.list_view_settings);
-			d.show();
-			d.set_primary_action(__('Save'), () => {
-				let values = d.get_values();
-				frappe.call("frappe.desk.listview.set_list_settings", {doctype: this.doctype, values: values});
-				Object.assign(this.list_view_settings, values);
-				d.hide();
-				frappe.ui.toolbar.clear_cache();
+		frappe.model.with_doctype(this.doctype, () => {
+			new ListSettings({
+				doctype: this.doctype,
+				settings: this.list_view_settings,
+				meta: frappe.get_meta(this.doctype)
 			});
 		});
 	}
