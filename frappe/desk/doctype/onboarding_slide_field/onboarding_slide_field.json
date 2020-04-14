@@ -1,12 +1,13 @@
 {
+ "actions": [],
  "creation": "2019-11-13 13:35:08.617909",
  "doctype": "DocType",
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
+  "fieldname",
   "label",
   "fieldtype",
-  "fieldname",
   "align",
   "placeholder",
   "reqd",
@@ -29,7 +30,7 @@
   },
   {
    "fieldname": "fieldname",
-   "fieldtype": "Data",
+   "fieldtype": "Select",
    "in_list_view": 1,
    "label": "Fieldname"
   },
@@ -58,12 +59,12 @@
   {
    "fieldname": "options",
    "fieldtype": "Text",
-   "in_list_view": 1,
    "label": "Options"
   }
  ],
  "istable": 1,
- "modified": "2019-12-02 16:43:51.930018",
+ "links": [],
+ "modified": "2020-04-14 15:47:59.295428",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Onboarding Slide Field",
