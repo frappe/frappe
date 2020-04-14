@@ -30,7 +30,10 @@
   "shortcuts",
   "section_break_18",
   "cards_label",
-  "cards"
+  "cards",
+  "onboarding_section",
+  "onboarding_label",
+  "slides"
  ],
  "fields": [
   {
@@ -196,10 +199,27 @@
    "fieldtype": "Data",
    "label": "For User",
    "read_only": 1
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "onboarding_section",
+   "fieldtype": "Section Break",
+   "label": "Onboarding"
+  },
+  {
+   "fieldname": "onboarding_label",
+   "fieldtype": "Data",
+   "label": "Label"
+  },
+  {
+   "fieldname": "slides",
+   "fieldtype": "Table",
+   "label": "Slides",
+   "options": "Desk Onboarding"
   }
  ],
  "links": [],
- "modified": "2020-03-26 12:35:41.981432",
+ "modified": "2020-04-14 15:56:14.536947",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Desk Page",
