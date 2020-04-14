@@ -203,8 +203,8 @@ class DesktopPage {
 		this.allow_customization && this.make_customization_link();
 
 		let create_shortcuts_and_cards = () => {
-			this.data.shortcuts.items.length && this.make_shortcuts();
-			this.data.cards.items.length && this.make_cards();
+			this.make_shortcuts();
+			this.make_cards();
 
 			if (this.allow_customization) {
 				// Move the widget group up to align with labels if customization is allowed
@@ -212,7 +212,7 @@ class DesktopPage {
 			}
 		};
 
-		if (!this.sections["onboarding"] && this.data.charts.items.length) {
+		if (!this.sections["onboarding"]) {
 			this.make_charts().then(() => {
 				create_shortcuts_and_cards();
 			});
