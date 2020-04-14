@@ -5,10 +5,6 @@ export default class OnboardingWidget extends Widget {
 		super(opts);
 	}
 
-	refresh() { }
-
-	customize() { }
-
 	make_body() {
 		this.steps.forEach(step => {
 			this.add_step(step);
@@ -34,10 +30,4 @@ export default class OnboardingWidget extends Widget {
 		let subtitle = $(`<div class="widget-subtitle">${this.subtitle}</div>`)
 		subtitle.appendTo(this.head);
 	}
-
-	setup_events() { }
-
-	setup_customize_actions() { }
-
-	set_actions() { }
 }

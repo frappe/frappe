@@ -181,7 +181,6 @@ class DesktopPage {
 
 		this.get_data().then(res => {
 			this.data = res.message;
-			// this.make_onboarding();
 			if (!this.data) {
 				delete localStorage.current_desk_page;
 				frappe.set_route("workspace");
@@ -201,24 +200,16 @@ class DesktopPage {
 		}
 
 		this.allow_customization && this.make_customization_link();
-
-		let create_shortcuts_and_cards = () => {
-			this.data.shortcuts.items.length && this.make_shortcuts();
-			this.data.cards.items.length && this.make_cards();
+		this.make_onboarding();
+		this.make_charts().then(() => {
+			this.make_shortcuts();
+			this.make_cards();
 
 			if (this.allow_customization) {
 				// Move the widget group up to align with labels if customization is allowed
 				$('.desk-page .widget-group:visible:first').css('margin-top', '-25px');
 			}
-		};
-
-		if (!this.sections["onboarding"] && this.data.charts.items.length) {
-			this.make_charts().then(() => {
-				create_shortcuts_and_cards();
-			});
-		} else {
-			create_shortcuts_and_cards();
-		}
+		});
 	}
 
 	get_data() {
@@ -271,6 +262,57 @@ class DesktopPage {
 				frappe.throw({message: __("Something went wrong while saving customizations"), title: __("Failed")});
 				this.reload();
 			}
+		});
+	}
+
+	make_onboarding() {
+		this.sections["onboarding"] = new frappe.widget.WidgetGroup({
+			title: `Getting Started`,
+			container: this.page,
+			type: "onboarding",
+			columns: 1,
+			options: {
+					allow_sorting: false,
+					allow_create: false,
+					allow_delete: false,
+					allow_hiding: false,
+					allow_edit: false,
+					max_widget_count: 2,
+			},
+			widgets: [
+				{
+					label: "Unlock Great Customer Experience",
+					subtitle: "Just a few steps, and you’re good to go.",
+					steps: [
+						{
+							label: "Configure Lead Sources",
+							type: "Create",
+							completed: true
+
+						},
+						{
+							label: "Add Your Leads",
+							type: "Visit Page",
+							completed: false
+						},
+						{
+							label: "Create Your First Opportunity",
+							type: "Create",
+							completed: false
+						},
+						{
+							label: "Onboard your Sales Team",
+							type: "Create",
+							completed: false
+						},
+						{
+							label: "Assign Territories",
+							type: "Create",
+							completed: false
+						}
+					]
+				}
+			]
 		});
 	}
 
