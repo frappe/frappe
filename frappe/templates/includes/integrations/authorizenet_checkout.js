@@ -29,7 +29,6 @@ $('#submit').on("click", function (e) {
 			"data": data
 		},
 		callback: function (r) {
-			console.log(r.message)
 			if (r.message === "Completed") {
 				window.location.href = "/integrations/payment-success"
 			}

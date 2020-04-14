@@ -55,17 +55,41 @@ def charge_credit_card(data, cardNumber, expirationDate, cardCode):
 	payment = apicontractsv1.paymentType()
 	payment.creditCard = creditCard
 
-	# Update it in future with sales invoice
+
+	docData = frappe.get_doc("Payment Request", data.reference_docname)
+	sales_order = frappe.get_doc("Sales Order", docData.reference_name).as_dict()
+
+	customerAddress = apicontractsv1.customerAddressType()
+	customerAddress.firstName = data.payer_name
+	customerAddress.address = sales_order.customer_address
+
 	# Create order information 
-	# order = apicontractsv1.orderType()
-	# order.invoiceNumber = "10101"
-	# order.description = "Golf Shirts"
+	order = apicontractsv1.orderType()
+	order.invoiceNumber = sales_order.name
+
+	for item in sales_order.get("items"):
+		for i in range(len(sales_order.get("items"))):
+
+			# setup individual line items
+			item[i] = apicontractsv1.lineItemType()
+			item[i].itemId = item.item_code
+			item[i].name = item.item_name
+			item[i].description = item.item_name
+			item[i].quantity = item.qty
+			item[i].unitPrice = item.amount
+
+			# build the array of line items
+			line_items = apicontractsv1.ArrayOfLineItem()
+			line_items.lineItem.append(item[i])
 
 	# Create a transactionRequestType object and add the previous objects to it.
 	transactionrequest = apicontractsv1.transactionRequestType()
 	transactionrequest.transactionType = "authCaptureTransaction"
 	transactionrequest.amount = data.amount
 	transactionrequest.payment = payment
+	transactionrequest.order = order
+	transactionrequest.billTo = customerAddress
+	transactionrequest.lineItems = line_items
 
 	# Assemble the complete transaction request
 	createtransactionrequest = apicontractsv1.createTransactionRequest()
