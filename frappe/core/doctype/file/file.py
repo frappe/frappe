@@ -517,11 +517,7 @@ class File(Document):
 			delete_file(self.thumbnail_url)
 
 	def is_downloadable(self):
-		if self.is_private:
-			if has_permission(self, 'read'):
-				return True
-
-			return False
+		return has_permission(self, 'read')
 
 	def get_extension(self):
 		'''returns split filename and extension'''
@@ -715,7 +711,11 @@ def remove_all(dt, dn, from_delete=False):
 
 
 def has_permission(doc, ptype=None, user=None):
-	permission = True
+	has_access = False
+	user = user or frappe.session.user
+
+	if not doc.is_private or doc.owner == user or user == 'Administrator':
+		has_access = True
 
 	if doc.attached_to_doctype and doc.attached_to_name:
 		attached_to_doctype = doc.attached_to_doctype
@@ -725,20 +725,20 @@ def has_permission(doc, ptype=None, user=None):
 			ref_doc = frappe.get_doc(attached_to_doctype, attached_to_name)
 
 			if ptype in ['write', 'create', 'delete']:
-				permission = ref_doc.has_permission('write')
+				has_access = ref_doc.has_permission('write')
 
-				if ptype == 'delete' and permission == False:
+				if ptype == 'delete' and not has_access:
 					frappe.throw(_("Cannot delete file as it belongs to {0} {1} for which you do not have permissions").format(
 						doc.attached_to_doctype, doc.attached_to_name),
 						frappe.PermissionError)
 			else:
-				permission = ref_doc.has_permission('read')
+				has_access = ref_doc.has_permission('read')
 		except frappe.DoesNotExistError:
 			# if parent doc is not created before file is created
-			# we cannot check its permission so allow the file
-			permission = True
+			# we cannot check its permission so we will use file's permission
+			pass
 
-	return permission
+	return has_access
 
 
 def remove_file_by_url(file_url, doctype=None, name=None):
