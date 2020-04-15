@@ -60,8 +60,13 @@ class WebsiteTheme(Document):
 	def generate_bootstrap_theme(self):
 		from subprocess import Popen, PIPE
 
+		folder_path = join_path(frappe.utils.get_bench_path(), 'sites', 'assets', 'css')
+		self.delete_old_theme_files(folder_path)
+
+		# add a random suffix
 		file_name = frappe.scrub(self.name) + '_' + frappe.generate_hash('Website Theme', 8) + '.css'
-		output_path = join_path(frappe.utils.get_bench_path(), 'sites', 'assets', 'css', file_name)
+		output_path = join_path(folder_path, file_name)
+
 		content = get_scss(self)
 		content = content.replace('\n', '\\n')
 		command = ['node', 'generate_bootstrap_theme.js', output_path, content]
@@ -78,6 +83,12 @@ class WebsiteTheme(Document):
 			self.theme_url = '/assets/css/' + file_name
 
 		frappe.msgprint(_('Compiled Successfully'), alert=True)
+
+	def delete_old_theme_files(self, folder_path):
+		import os
+		for fname in os.listdir(folder_path):
+			if fname.startswith(frappe.scrub(self.name) + '_') and fname.endswith('.css'):
+				os.remove(os.path.join(folder_path, fname))
 
 	def generate_theme_if_not_exist(self):
 		bench_path = frappe.utils.get_bench_path()
@@ -121,5 +132,5 @@ def generate_theme_files_if_not_exist():
 			frappe.log_error(frappe.get_traceback(), "Theme File Generation Failed")
 
 def get_scss(doc):
-	return doc.theme_scss + '\n' + doc.custom_scss
+	return (doc.theme_scss or '') + '\n' + (doc.custom_scss or '')
 

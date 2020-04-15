@@ -66,7 +66,7 @@ class WebView(WebsiteGenerator):
 
 	def add_default_section(self, context):
 		# add a default section if not added
-		context.section.append(dict(
+		context.sections.append(frappe._dict(
 			element_type='Section',
 			section_type='List',
 			title='Default Section',
