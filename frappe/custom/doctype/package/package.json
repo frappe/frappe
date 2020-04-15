@@ -6,6 +6,8 @@
  "engine": "InnoDB",
  "field_order": [
   "package_details",
+  "section_break_2",
+  "instances",
   "import_section",
   "attach",
   "import"
@@ -34,11 +36,21 @@
    "fieldtype": "Table",
    "label": "Package Details",
    "options": "Package Detail"
+  },
+  {
+   "fieldname": "section_break_2",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "instances",
+   "fieldtype": "Table",
+   "label": "Instances",
+   "options": "Deploy Instance"
   }
  ],
  "issingle": 1,
  "links": [],
- "modified": "2020-04-06 14:32:42.202640",
+ "modified": "2020-04-14 13:50:50.779396",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Package",

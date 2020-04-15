@@ -3,12 +3,6 @@
 
 frappe.ui.form.on('Package', {
 	refresh: function(frm) {
-		if (frm.doc.package_details) {
-			frm.add_custom_button(__("Go to Release"), function() {
-				frappe.set_route("Form", "Release", "Release");
-			});
-		}
-
 		frm.set_query("document_type", "package_details", function () {
 			return {
 				filters: {
@@ -16,13 +10,29 @@ frappe.ui.form.on('Package', {
 				}
 			};
 		});
+
+		frappe.realtime.on("package", (data) => {
+			frm.dashboard.show_progress(data.prefix, data.progress / data.total * 100, __("{0}", [data.message]));
+			if ((data.progress+1) != data.total) {
+				frm.dashboard.show_progress(data.prefix, data.progress / data.total * 100, __("{0}", [data.message]));
+			} else {
+				frm.dashboard.hide_progress();
+			}
+		});
+
+		if(frm.doc.instances){
+			frm.add_custom_button(__("Deploy"), function() {
+				frm.call("deploy_package");
+			});
+		}
+
 	},
 	import: function(frm) {
 		frm.call("import_from_package");
 	}
 });
 
-frappe.ui.form.on('Package Details', {
+frappe.ui.form.on('Package Detail', {
 	form_render: function (frm, cdt, cdn) {
 		function _show_filters(filters, table) {
 			table.find('tbody').empty();

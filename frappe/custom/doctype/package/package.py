@@ -11,9 +11,11 @@ from frappe.model.document import Document
 from frappe.utils.file_manager import save_file, get_file
 from frappe import _
 from six import string_types
+from frappe.frappeclient import FrappeClient
+from frappe.model.naming import make_autoname
+from frappe.utils.password import get_decrypted_password
 
 class Package(Document):
-
 	def import_from_package(self):
 		filters = {"attached_to_doctype": "Package", "attached_to_name": "Package"}
 		files = frappe.get_list("File", filters=filters, limit=1, order_by="creation desc")
@@ -26,6 +28,39 @@ class Package(Document):
 			import_package(fcontents)
 
 		frappe.msgprint(_("Package Imported."))
+
+	def deploy_package(self):
+		package = export_package()
+
+		for dt_file in frappe.get_list("File", filters={"attached_to_doctype": "Release", "attached_to_name": "Release"}):
+			frappe.delete_doc_if_exists("File", dt_file.name)
+
+		file_name = make_autoname("Package")
+		save_file(file_name, json.dumps(package), "Package", "Package")
+
+		length = len(self.instances)
+		for idx, instance in enumerate(self.instances):
+			frappe.publish_realtime("package",  {"progress": idx, "total": length, "message": instance.instance_url, "prefix": _("Deploying")},
+				user=frappe.session.user)
+
+			self.install_package_to_remote(package, instance)
+
+	def install_package_to_remote(self, package, instance):
+		print((instance.doctype, instance.name))
+		try:
+			connection = FrappeClient(instance.instance_url, instance.username, get_decrypted_password(instance.doctype, instance.name))
+		except Exception:
+			frappe.log_error(frappe.get_traceback())
+			frappe.throw(_("Couldn't connect to site {0}. Please check Error Logs.").format(instance.instance_url))
+
+		try:
+			connection.post_request({
+				"cmd": "frappe.custom.doctype.package.package.import_package",
+				"package": json.dumps(package)
+			})
+		except Exception:
+			frappe.log_error(frappe.get_traceback())
+			frappe.throw(_("Error while installing package to site {0}. Please check Error Logs.").format(instance.instance_url))
 
 @frappe.whitelist()
 def export_package():
