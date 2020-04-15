@@ -2,6 +2,57 @@
 # Copyright (c) 2020, Frappe Technologies Pvt. Ltd. and contributors
 # For license information, please see license.txt
 
+"""
+# Integrating PayPal
+
+### 1. Validate Currency Support
+
+Example:
+
+	controller().validate_transaction_currency(currency)
+
+### 2. Redirect for payment
+
+Example:
+
+	payment_details = {
+		"createTransactionRequest": {
+			"merchantAuthentication": {
+				"name": "xxxxxxxxxx",
+				"transactionKey": "xxxxxxxxxxxx"
+			},
+			"refId": "123456",
+			"transactionRequest": {
+				"transactionType": "authCaptureTransaction",
+				"amount": "5",
+				"payment": {
+					"credit_card": {
+						"card_number": "XXXX-XXXX-XXXX-XXXX",
+						"expiration_date": "YYYY-MM",
+						"card_code": "XXX"
+					}
+				},
+				"lineItems": {
+					"lineItem": {
+						"itemId": "1",
+						"name": "vase",
+						"description": "Cannes logo",
+						"quantity": "18",
+						"unitPrice": "45.00"
+					}
+				}
+			}
+		}
+	}
+
+	# redirect the user to this url
+	url = controller().get_payment_url(**payment_details)
+
+### 3. On Completion of Payment
+
+Return payment status after processing the payment
+
+"""
 from __future__ import unicode_literals
 import frappe
 import imp
@@ -18,11 +69,11 @@ from authorizenet import apicontractsv1
 from authorizenet.apicontrollers import createTransactionController
 
 class AuthorizenetSettings(Document):
-	supported_currencies = ["USD"]
+	supported_currencies = ["USD","CAD"]
 
 	def validate_transaction_currency(self, currency):
 		if currency not in self.supported_currencies:
-			frappe.throw(_("Please select another payment method. AuthozieNet does not support transactions in currency '{0}'").format(currency))
+			frappe.throw(_("Please select another payment method. AuthorizeNet does not support transactions in currency '{0}'").format(currency))
 	
 	def validate(self):
 		create_payment_gateway('Authorizenet')
@@ -33,7 +84,7 @@ class AuthorizenetSettings(Document):
 
 
 @frappe.whitelist()
-def charge_credit_card(data, cardNumber, expirationDate, cardCode):
+def charge_credit_card(data, card_number, expiration_date, card_code):
 	"""
 	Charge a credit card
 	"""
@@ -41,27 +92,28 @@ def charge_credit_card(data, cardNumber, expirationDate, cardCode):
 	data = frappe._dict(data)
 	# Create a merchantAuthenticationType object with authentication details
 	# retrieved from the constants file
-	merchantAuth = apicontractsv1.merchantAuthenticationType()
-	merchantAuth.name = frappe.db.get_value("Authorizenet Settings", "Authorizenet Settings", ["api_login_id"])
-	merchantAuth.transactionKey = get_decrypted_password('Authorizenet Settings', 'Authorizenet Settings',fieldname='api_transaction_key', raise_exception=False)
+	merchant_auth = apicontractsv1.merchantAuthenticationType()
+	merchant_auth.name = frappe.db.get_value("Authorizenet Settings", "Authorizenet Settings", ["api_login_id"])
+	merchant_auth.transactionKey = get_decrypted_password('Authorizenet Settings', 'Authorizenet Settings',fieldname='api_transaction_key', raise_exception=False)
 	
 	# Create the payment data for a credit card
-	creditCard = apicontractsv1.creditCardType()
-	creditCard.cardNumber = cardNumber
-	creditCard.expirationDate = expirationDate
-	creditCard.cardCode = cardCode
+	credit_card = apicontractsv1.creditCardType()
+	credit_card.cardNumber = card_number
+	credit_card.expirationDate = expiration_date
+	credit_card.cardCode = card_code
 
 	# Add the payment data to a paymentType object
 	payment = apicontractsv1.paymentType()
-	payment.creditCard = creditCard
+	payment.creditCard = credit_card
 
+	# print("+++++++++++++++++++++++++++++++++++++++++",payment.credit_card)
 
-	docData = frappe.get_doc("Payment Request", data.reference_docname)
-	sales_order = frappe.get_doc("Sales Order", docData.reference_name).as_dict()
+	pr = frappe.get_doc("Payment Request", data.reference_docname)
+	sales_order = frappe.get_doc("Sales Order", pr.reference_name).as_dict()
 
-	customerAddress = apicontractsv1.customerAddressType()
-	customerAddress.firstName = data.payer_name
-	customerAddress.address = sales_order.customer_address
+	customer_address = apicontractsv1.customerAddressType()
+	customer_address.firstName = data.payer_name
+	customer_address.address = sales_order.customer_address
 
 	# Create order information 
 	order = apicontractsv1.orderType()
@@ -83,22 +135,22 @@ def charge_credit_card(data, cardNumber, expirationDate, cardCode):
 			line_items.lineItem.append(item[i])
 
 	# Create a transactionRequestType object and add the previous objects to it.
-	transactionrequest = apicontractsv1.transactionRequestType()
-	transactionrequest.transactionType = "authCaptureTransaction"
-	transactionrequest.amount = data.amount
-	transactionrequest.payment = payment
-	transactionrequest.order = order
-	transactionrequest.billTo = customerAddress
-	transactionrequest.lineItems = line_items
+	transaction_request = apicontractsv1.transactionRequestType()
+	transaction_request.transactionType = "authCaptureTransaction"
+	transaction_request.amount = data.amount
+	transaction_request.payment = payment
+	transaction_request.order = order
+	transaction_request.billTo = customer_address
+	transaction_request.lineItems = line_items
 
 	# Assemble the complete transaction request
-	createtransactionrequest = apicontractsv1.createTransactionRequest()
-	createtransactionrequest.merchantAuthentication = merchantAuth
-	createtransactionrequest.refId = "MerchantID-0001"
-	createtransactionrequest.transactionRequest = transactionrequest
+	create_transaction_request = apicontractsv1.createTransactionRequest()
+	create_transaction_request.merchantAuthentication = merchant_auth
+	create_transaction_request.refId = "MerchantID-0001"
+	create_transaction_request.transactionRequest = transaction_request
 	# Create the controller
 	createtransactioncontroller = createTransactionController(
-		createtransactionrequest)
+		create_transaction_request)
 	createtransactioncontroller.execute()
 
 	response = createtransactioncontroller.getresponse()

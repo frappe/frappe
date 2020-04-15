@@ -5,3 +5,4 @@ import frappe
 
 def get_context(context):
 	payment_context = dict(frappe.local.request.args)
+	context.payment_context = payment_context

@@ -1,27 +1,18 @@
-
-
-
 {% extends "templates/web.html" %}
 
 {% block title %} Payment {% endblock %}
 
-
 {% block script %}
 <script>{% include "templates/includes/integrations/authorizenet_checkout.js" %}</script>
 <script>
-  window.doc_info = {
-    context: '{{ payment_context }}',
-  }
+    context= "{{payment_context}}"
 </script>
 {% endblock %}
 
 {%- block page_content -%}
 
-<div class="stripe" style="min-height: 400px; padding-bottom: 50px; margin-top:100px;margin-left:250px;">
+<div class="authorizenet" style="min-height: 400px; padding-bottom: 50px; margin-top:100px;margin-left:250px;">
   <div class="col-sm-10 col-sm-offset-2">
-    {% if image %}
-      <img src={{image}}>
-    {% endif %}
     <h2 class="text-center">Payment</h2>
     <form id="payment-form">
       <div class="form-row row">
@@ -30,10 +21,9 @@
         <div class="group col-12">
           <label>
           <span>{{ _("Card Number") }}</span>
-          <input type="number" id="cardholder-cardNumber" name="cardholder-cardNumber" class="field" placeholder="{{ _('XXXX-XXXX-XXXX-XXXX') }}"  />
-
-          <div id="card-element" name="card-element" class="field"></div>
-          <div id="card-errors" role="alert"></div>
+            <input type="number" id="cardholder-cardNumber" name="cardholder-cardNumber" class="field" placeholder="{{ _('XXXX-XXXX-XXXX-XXXX') }}"  />
+            <div id="card-element" name="card-element" class="field"></div>
+            <div id="card-errors" role="alert"></div>
           </label>
           <label>
           <span>{{ _("Card Expiration Date") }}</span>
@@ -41,11 +31,9 @@
           </label>
           <label>
           <span>{{ _("Card Code") }}</span>
-
-          <input  type="password" id="cardholder-cardCode" name="cardholder-cardCode" class="field" placeholder="{{ _('123') }}"  />
+            <input  type="password" id="cardholder-cardCode" name="cardholder-cardCode" class="field" placeholder="{{ _('123') }}"  />
           </label>
       </div>
-
 	  </div>
       <button type="submit" class="submit" id="submit">Pay</button>
       <div class="outcome text-center">
