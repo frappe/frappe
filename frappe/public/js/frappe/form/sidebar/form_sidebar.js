@@ -81,6 +81,15 @@ frappe.ui.form.Sidebar = Class.extend({
 			}
 			this.frm.viewers.refresh();
 			this.frm.tags && this.frm.tags.refresh(this.frm.get_docinfo().tags);
+
+			if (this.frm.doc.route && frappe.boot.website_tracking_enabled) {
+				let route = this.frm.doc.route;
+				frappe.utils.get_page_view_count(route).then(res => {
+					this.sidebar.find(".pageview-count").html(__("{0} Page Views",
+						["<strong>" +  res.message + "</strong>"]));
+				})
+			}
+
 			this.sidebar.find(".modified-by").html(__("{0} edited this {1}",
 				["<strong>" + frappe.user.full_name(this.frm.doc.modified_by) + "</strong>",
 					"<br>" + comment_when(this.frm.doc.modified)]));
