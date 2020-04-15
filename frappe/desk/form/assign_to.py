@@ -20,11 +20,11 @@ def get(args=None):
 	if not args:
 		args = frappe.local.form_dict
 
-	return frappe.get_all('ToDo', fields = ['owner', 'name'], filters = dict(
+	return frappe.get_all('ToDo', fields=['owner', 'name'], filters=dict(
 		reference_type = args.get('doctype'),
 		reference_name = args.get('name'),
 		status = ('!=', 'Cancelled')
-	), limit = 5)
+	), limit=5)
 
 @frappe.whitelist()
 def add(args=None):
@@ -59,7 +59,7 @@ def add(args=None):
 				args['description'] = _('Assignment for {0} {1}').format(args['doctype'], args['name'])
 
 			d = frappe.get_doc({
-				"doctype":"ToDo",
+				"doctype": "ToDo",
 				"owner": assign_to,
 				"reference_type": args['doctype'],
 				"reference_name": args['name'],
@@ -86,15 +86,13 @@ def add(args=None):
 			follow_document(args['doctype'], args['name'], assign_to)
 
 			# notify
-			notify_assignment(d.assigned_by, d.owner, d.reference_type, d.reference_name, action='ASSIGN',\
+			notify_assignment(d.assigned_by, d.owner, d.reference_type, d.reference_name, action='ASSIGN',
 				description=args.get("description"))
 
 	return get(args)
 
 @frappe.whitelist()
 def add_multiple(args=None):
-	import json
-
 	if not args:
 		args = frappe.local.form_dict
 
