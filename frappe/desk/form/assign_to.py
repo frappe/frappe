@@ -85,8 +85,8 @@ def add(args=None):
 			# make this document followed by assigned user
 			follow_document(args['doctype'], args['name'], assign_to)
 
-		# notify
-		notify_assignment(d.assigned_by, d.owner, d.reference_type, d.reference_name, action='ASSIGN',\
+			# notify
+			notify_assignment(d.assigned_by, d.owner, d.reference_type, d.reference_name, action='ASSIGN',\
 				description=args.get("description"))
 
 	return get(args)

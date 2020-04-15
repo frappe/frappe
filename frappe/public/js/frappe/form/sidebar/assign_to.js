@@ -124,7 +124,7 @@ frappe.ui.form.AssignTo = Class.extend({
 
 frappe.ui.form.AssignToDialog = Class.extend({
 	init: function(opts){
-		$.extend(this, opts)
+		$.extend(this, opts);
 
 		this.make();
 		this.set_description_from_doc();
@@ -148,7 +148,7 @@ frappe.ui.form.AssignToDialog = Class.extend({
 							doctype: me.doctype,
 							name: me.docname,
 							assign_to: args.assign_to,
-							bulk_assign:  me.bulk_assign || false,
+							bulk_assign: me.bulk_assign || false,
 							re_assign: me.re_assign || false
 						}),
 						btn: me.dialog.get_primary_btn(),
@@ -171,7 +171,7 @@ frappe.ui.form.AssignToDialog = Class.extend({
 		let me = this;
 		let assign_to = [];
 
-		if(me.dialog.get_value("assign_to_me")) {
+		if (me.dialog.get_value("assign_to_me")) {
 			assign_to.push(frappe.session.user);
 		}
 
@@ -249,6 +249,6 @@ frappe.ui.form.AssignToDialog = Class.extend({
 				// Pick up priority from the source document, if it exists and is available in ToDo
 				default: ["Low", "Medium", "High"].includes(me.frm && me.frm.doc.priority ? me.frm.doc.priority : 'Medium')
 			}
-		]
+		];
 	}
 });
