@@ -148,12 +148,14 @@ def uploadfile():
 
 @frappe.whitelist(allow_guest=True)
 def upload_file():
+	user = None
 	if frappe.session.user == 'Guest':
 		if frappe.get_system_settings('allow_guests_to_upload_files'):
 			ignore_permissions = True
 		else:
 			return
 	else:
+		user = frappe.get_doc("User", frappe.session.user)
 		ignore_permissions = False
 
 	files = frappe.request.files
@@ -175,7 +177,7 @@ def upload_file():
 	frappe.local.uploaded_file = content
 	frappe.local.uploaded_filename = filename
 
-	if frappe.session.user == 'Guest':
+	if frappe.session.user == 'Guest' or (user and not user.has_desk_access()):
 		import mimetypes
 		filetype = mimetypes.guess_type(filename)[0]
 		if filetype not in ['image/png', 'image/jpeg', 'application/pdf']:
