@@ -11,7 +11,8 @@ from frappe.website.doctype.web_page.test_web_page import get_page_content
 test_dependencies = ['Web Page'] # for test
 
 class TestWebView(unittest.TestCase):
-	def setUpClass():
+	@classmethod
+	def setUpClass(cls):
 		frappe.delete_doc_if_exists('Web View', 'test-web-view')
 		frappe.delete_doc_if_exists('CSS Class', 'test-css-class')
 
