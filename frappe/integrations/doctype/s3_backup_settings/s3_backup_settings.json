@@ -5,14 +5,23 @@
  "engine": "InnoDB",
  "field_order": [
   "enabled",
-  "notify_email",
-  "send_email_for_successful_backup",
-  "frequency",
+  "api_access_section",
   "access_key_id",
+  "column_break_4",
   "secret_access_key",
-  "region",
-  "endpoint_url",
+  "notification_section",
+  "notify_email",
+  "column_break_8",
+  "send_email_for_successful_backup",
+  "s3_bucket_details_section",
   "bucket",
+  "endpoint_url",
+  "column_break_13",
+  "region",
+  "backup_details_section",
+  "frequency",
+  "backup_files",
+  "column_break_18",
   "backup_limit"
  ],
  "fields": [
@@ -55,7 +64,7 @@
    "fieldname": "secret_access_key",
    "fieldtype": "Password",
    "in_list_view": 1,
-   "label": "Secret Access Key",
+   "label": "Access Key Secret",
    "reqd": 1
   },
   {
@@ -74,19 +83,67 @@
   {
    "fieldname": "bucket",
    "fieldtype": "Data",
-   "label": "Bucket",
+   "label": "Bucket Name",
    "reqd": 1
   },
   {
+   "description": "Set to 0 for no limit on the number of backups taken.",
    "fieldname": "backup_limit",
    "fieldtype": "Int",
    "label": "Backup Limit",
    "reqd": 1
+  },
+  {
+   "depends_on": "enabled",
+   "fieldname": "api_access_section",
+   "fieldtype": "Section Break",
+   "label": "API Access"
+  },
+  {
+   "fieldname": "column_break_4",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "enabled",
+   "fieldname": "notification_section",
+   "fieldtype": "Section Break",
+   "label": "Notification"
+  },
+  {
+   "fieldname": "column_break_8",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "enabled",
+   "fieldname": "s3_bucket_details_section",
+   "fieldtype": "Section Break",
+   "label": "S3 Bucket Details"
+  },
+  {
+   "fieldname": "column_break_13",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "enabled",
+   "fieldname": "backup_details_section",
+   "fieldtype": "Section Break",
+   "label": "Backup Details"
+  },
+  {
+   "default": "1",
+   "description": "Backup public and private files along with the database.",
+   "fieldname": "backup_files",
+   "fieldtype": "Check",
+   "label": "Backup Files"
+  },
+  {
+   "fieldname": "column_break_18",
+   "fieldtype": "Column Break"
   }
  ],
  "hide_toolbar": 1,
  "issingle": 1,
- "modified": "2020-04-03 11:24:13.042648",
+ "modified": "2020-04-13 21:15:35.197420",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "S3 Backup Settings",
