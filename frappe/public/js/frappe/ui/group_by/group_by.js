@@ -92,7 +92,6 @@ frappe.ui.GroupBy = class {
 	}
 
 	apply_settings(settings) {
-
 		if (!settings.group_by.startsWith('`tab')) {
 			settings.group_by = '`tab' + this.doctype + '`.`' + settings.group_by + '`';
 		}

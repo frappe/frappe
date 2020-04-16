@@ -506,9 +506,13 @@ class BaseDocument(object):
 							fetch_from_fieldname = _df.fetch_from.split('.')[-1]
 							value = values[fetch_from_fieldname]
 							if _df.fieldtype == 'Small Text' or _df.fieldtype == 'Text' or _df.fieldtype == 'Data':
-								fetch_from_df = frappe.get_meta(doctype).get_field(fetch_from_fieldname)
-								fetch_from_ft = fetch_from_df.get('fieldtype')
+								if fetch_from_fieldname in default_fields:
+									from frappe.model.meta import get_default_df
+									fetch_from_df = get_default_df(fetch_from_fieldname)
+								else:
+									fetch_from_df = frappe.get_meta(doctype).get_field(fetch_from_fieldname)
 
+								fetch_from_ft = fetch_from_df.get('fieldtype')
 								if fetch_from_ft == 'Text Editor' and value:
 									value = unescape_html(strip_html(value))
 							setattr(self, _df.fieldname, value)
