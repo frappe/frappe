@@ -3,16 +3,18 @@
 # For license information, please see license.txt
 
 from __future__ import unicode_literals
+import json
+import requests
+from six.moves.urllib.parse import urlencode
+
 import frappe
 from frappe.model.document import Document
 from frappe import _
-from six.moves.urllib.parse import urlencode
-from frappe.utils import get_url, call_hook_method, cint, flt
+from frappe.utils import get_url, call_hook_method, cint, flt, cstr
 from frappe.integrations.utils import make_get_request, make_post_request, create_request_log, create_payment_gateway
 from frappe.utils import get_request_site_address
-
-import json
-import requests
+from frappe.integrations.doctype.paytm_settings.checksum import generate_checksum, verify_checksum
+from frappe.utils.password import get_decrypted_password
 
 class PaytmSettings(Document):
 	supported_currencies = ["INR"]
@@ -44,110 +46,126 @@ class PaytmSettings(Document):
 
 		return get_url("./integrations/paytm_checkout?{0}".format(urlencode(kwargs)))
 
-	def create_request(self, data):
-		self.data = frappe._dict(data)
+def get_paytm_config():
+	''' Returns paytm config '''
 
-		try:
-			self.integration_request = create_request_log(self.data, "Host", "Paytm")
-			return self.generate_transaction_token()
+	paytm_config = frappe.db.get_singles_dict('Paytm Settings')
+	paytm_config.update(dict(merchant_key=get_decrypted_password('Paytm Settings', 'Paytm Settings', 'merchant_key')))
 
-		except Exception:
-			frappe.log_error(frappe.get_traceback())
-			return{
-				"redirect_to": frappe.redirect_to_message(_('Server Error'), _("It seems that there is an issue with the server's stripe configuration. In case of failure, the amount will get refunded to your account.")),
-				"status": 401
-			}
+	if cint(paytm_config.staging):
+		paytm_config.update(dict(
+			website="WEBSTAGING",
+			url='https://securegw-stage.paytm.in/order/process',
+			transaction_status_url='https://securegw-stage.paytm.in/order/status',
+			industry_type_id='RETAIL'
+		))
+	else:
+		paytm_config.update(dict(
+			url='https://securegw.paytm.in/order/process',
+			transaction_status_url='https://securegw.paytm.in/order/status',
+		))
+	return paytm_config
 
-	def generate_transaction_token(self):
-		import stripe
-		try:
-			charge = stripe.Charge.create(amount=cint(flt(self.data.amount)*100), currency=self.data.currency, source=self.data.stripe_token_id, description=self.data.description, receipt_email=self.data.payer_email)
-
-			if charge.captured == True:
-				self.integration_request.db_set('status', 'Completed', update_modified=False)
-				self.flags.status_changed_to = "Completed"
-
-			else:
-				frappe.log_error(charge.failure_message, 'Stripe Payment not completed')
-
-		except Exception:
-			frappe.log_error(frappe.get_traceback())
-
-		return self.finalize_request()
-
-
-	def finalize_request(self):
-		redirect_to = self.data.get('redirect_to') or None
-		redirect_message = self.data.get('redirect_message') or None
-		status = self.integration_request.status
-
-		if self.flags.status_changed_to == "Completed":
-			if self.data.reference_doctype and self.data.reference_docname:
-				custom_redirect_to = None
-				try:
-					custom_redirect_to = frappe.get_doc(self.data.reference_doctype,
-						self.data.reference_docname).run_method("on_payment_authorized", self.flags.status_changed_to)
-				except Exception:
-					frappe.log_error(frappe.get_traceback())
-
-				if custom_redirect_to:
-					redirect_to = custom_redirect_to
-
-				redirect_url = 'payment-success'
-
-			if self.redirect_url:
-				redirect_url = self.redirect_url
-				redirect_to = None
-		else:
-			redirect_url = 'payment-failed'
-
-		if redirect_to:
-			redirect_url += '?' + urlencode({'redirect_to': redirect_to})
-		if redirect_message:
-			redirect_url += '&' + urlencode({'redirect_message': redirect_message})
-
-		return {
-			"redirect_to": redirect_url,
-			"status": status
-		}
-
-def generate_transaction_token(payment_details, order_id, merchant_id, merchant_key):
+def get_paytm_params(payment_details, order_id, paytm_config):
 
 	# initialize a dictionary
-	paytmParams = dict()
+	paytm_params = dict()
+	
+	# redirect_uri = get_request_site_address(True) + "/api/method/frappe.integrations.doctype.paytm_settings.paytm_settings.get_transaction_status"
+	redirect_uri = "http://cf9b2bb1.ngrok.io/api/method/frappe.integrations.doctype.paytm_settings.paytm_settings.get_transaction_status"
 
-	redirect_uri = get_request_site_address(True) + "?cmd=frappe.templates.pages.integrations.paytm_checkout.get_transaction_status"
+	paytm_params.update({
+		"MID" : paytm_config.merchant_id,
+		"WEBSITE" : paytm_config.website,
+		"INDUSTRY_TYPE_ID" : paytm_config.industry_type_id,
+		"CHANNEL_ID" : "WEB",
+		"ORDER_ID" : order_id,
+		"CUST_ID" : payment_details['payer_email'],
+		"EMAIL" : payment_details['payer_email'],
+		"TXN_AMOUNT" : cstr(flt(payment_details['amount'], 2)),
+		"CALLBACK_URL" : redirect_uri,
+	})
 
-	# body parameters
-	paytmParams["body"] = get_paytm_params(payment_details, order_id, merchant_id, merchant_key)
+	checksum = generate_checksum(paytm_params, paytm_config.merchant_key)
 
-	checksum = generate_checksum_by_str(json.dumps(paytmParams["body"]), merchant_key)
+	paytm_params.update({
+		"CHECKSUMHASH" : checksum
+	})
 
-	paytmParams["head"] = {
-		"signature"  : checksum
-	}
+	return paytm_params
 
-	post_data = json.dumps(paytmParams)
+@frappe.whitelist(allow_guest=True)
+def verify_transaction(**kwargs):
+	'''Verify checksum for received data in the callback and then verify the transaction'''
+	paytm_config = get_paytm_config()
+	received_data = frappe._dict(kwargs)
 
-	url = "https://securegw-stage.paytm.in/theia/api/v1/initiateTransaction?mid={0}&orderId={1}".format(merchant_id, order_id)
+	print(received_data)
+	paytm_params = {}
+	for key, value in received_data.items(): 
+		if key == 'CHECKSUMHASH':
+			paytm_checksum = value
+		else:
+			paytm_params[key] = value
+
+	# Verify checksum
+	is_valid_checksum = verify_checksum(paytm_params, paytm_config.merchant_key, paytm_checksum)
+
+	if is_valid_checksum and received_data['RESPCODE'] == '01':
+		verify_transaction_status(paytm_config, received_data['ORDERID'])
+	else:
+		frappe.respond_as_web_page("Payment Failed",
+			"Transaction failed to complete. Don't worry, in case of failure amount will get refunded to your account.",
+			http_status_code=401, indicator_color='red')
+		frappe.log_error("Order unsuccessful, received data:"+received_data, 'Paytm Payment Failed')
+
+def verify_transaction_status(paytm_config, order_id):
+	'''Verify transaction completion after checksum has been verified'''
+	paytm_params=dict(
+		MID=paytm_config.merchant_id,
+		ORDERID= order_id
+	)
+
+	checksum = generate_checksum(paytm_params, paytm_config.merchant_key)
+	paytm_params["CHECKSUMHASH"] = checksum
+
+	post_data = json.dumps(paytm_params)
+	url = paytm_config.transaction_status_url
 
 	response = requests.post(url, data = post_data, headers = {"Content-type": "application/json"}).json()
-	return response['body'].get('txnToken')
+	print('transaction status response')
+	print(response)
+	finalize_request(order_id, response)
 
-def get_paytm_params(payment_details, order_id, merchant_id, merchant_key):
+def finalize_request(order_id, response):
+	request = frappe.db.get_value('Integration Request', order_id)
+	redirect_to = request.data.get('redirect_to') or None
+	redirect_message = request.data.get('redirect_message') or None
+
+	if request.flags.status_changed_to == "Completed":
+		if request.data.reference_doctype and request.data.reference_docname:
+			custom_redirect_to = None
+			try:
+				custom_redirect_to = frappe.get_doc(request.data.reference_doctype,
+					request.data.reference_docname).run_method("on_payment_authorized", request.flags.status_changed_to)
+			except Exception:
+				frappe.log_error(frappe.get_traceback())
+
+			if custom_redirect_to:
+				redirect_to = custom_redirect_to
+
+			redirect_url = 'payment-success'
+	else:
+		redirect_url = 'payment-failed'
+
+	if redirect_to:
+		redirect_url += '?' + urlencode({'redirect_to': redirect_to})
+	if redirect_message:
+		redirect_url += '&' + urlencode({'redirect_message': redirect_message})
+
 	return {
-		"requestType" : "Payment",
-		"mid" : merchant_id,
-		"websiteName" : "WEBSTAGING",
-		"orderId" : order_id,
-		"callbackUrl" : redirect_uri,
-		"txnAmount" : {
-			"value" : flt(payment_details['amount'], 2),
-			"currency" : "INR",
-		},
-		"userInfo" : {
-			"custId" : payment_details['payer_email'],
-		},
+		"redirect_to": redirect_url,
+		"status": status
 	}
 
 def get_gateway_controller(doctype, docname):

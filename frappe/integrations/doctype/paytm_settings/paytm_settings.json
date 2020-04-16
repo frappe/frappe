@@ -6,23 +6,55 @@
  "engine": "InnoDB",
  "field_order": [
   "merchant_id",
-  "merchant_key"
+  "merchant_key",
+  "staging",
+  "column_break_4",
+  "industry_type",
+  "website"
  ],
  "fields": [
   {
    "fieldname": "merchant_id",
    "fieldtype": "Data",
-   "label": "Merchant ID"
+   "in_list_view": 1,
+   "label": "Merchant ID",
+   "reqd": 1
   },
   {
    "fieldname": "merchant_key",
+   "fieldtype": "Password",
+   "in_list_view": 1,
+   "label": "Merchant Key",
+   "reqd": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "staging",
+   "fieldtype": "Check",
+   "label": "Staging"
+  },
+  {
+   "depends_on": "eval: !doc.staging",
+   "fieldname": "industry_type",
    "fieldtype": "Data",
-   "label": "Merchant Key"
+   "label": "Industry Type",
+   "mandatory_depends_on": "eval: !doc.staging"
+  },
+  {
+   "depends_on": "eval: !doc.staging",
+   "fieldname": "website",
+   "fieldtype": "Data",
+   "label": "Website",
+   "mandatory_depends_on": "eval: !doc.staging"
+  },
+  {
+   "fieldname": "column_break_4",
+   "fieldtype": "Column Break"
   }
  ],
  "issingle": 1,
  "links": [],
- "modified": "2020-04-07 19:57:24.126640",
+ "modified": "2020-04-16 14:16:19.687449",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Paytm Settings",
