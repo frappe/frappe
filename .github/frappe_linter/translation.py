@@ -5,7 +5,8 @@ errors_encounter = 0
 pattern = re.compile(r"_\(([\"']{,3})(?P<message>((?!\1).)*)\1(\s*,\s*context\s*=\s*([\"'])(?P<py_context>((?!\5).)*)\5)*(\s*,\s*(.)*?\s*(,\s*([\"'])(?P<js_context>((?!\11).)*)\11)*)*\)")
 start_pattern = re.compile(r"_{1,2}\([\"']{1,3}")
 
-files = sys.argv
+# skip first 2 arguments
+files = sys.argv[2:]
 for _file in files:
 	if not _file.endswith(('.py', '.js')):
 		continue
@@ -18,9 +19,10 @@ for _file in files:
 					verify = pattern.search(line)
 					if not verify:
 						errors_encounter += 1
-						num_str = str(num)
 						print(f'A syntax error has been discovered at line number: {num}')
 						print(f'Syntax error occurred with: {line}')
-if errors_encounter > 0 :
+if errors_encounter > 0:
 	print('You can visit "https://frappe.io/docs/user/en/translations" to resolve this error.')
 	assert 1+1 == 3
+else:
+	print('Good To Go!')
