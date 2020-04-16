@@ -294,8 +294,11 @@
 	}
 
 	&.onboarding-widget-box {
+		margin-bottom: 50px;
+		margin-top: 10px;
+
 		.widget-head {
-			display: block;
+			display: flex;
 
 			.widget-title {
 				font-size: 20px;
@@ -304,6 +307,12 @@
 			.widget-subtitle {
 				font-size: 16px;
 				margin-top: 5px;
+				color: @text-muted;
+			}
+
+			.widget-control {
+				align-self: flex-start;
+				margin-top: -5px;
 				color: @text-muted;
 			}
 		}

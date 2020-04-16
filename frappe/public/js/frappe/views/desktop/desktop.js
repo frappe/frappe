@@ -200,7 +200,7 @@ class DesktopPage {
 		}
 
 		this.allow_customization && this.make_customization_link();
-		this.make_onboarding();
+		this.data.onboarding.items.length && this.make_onboarding();
 		this.make_charts().then(() => {
 			this.make_shortcuts();
 			this.make_cards();
@@ -230,6 +230,7 @@ class DesktopPage {
 		// It may be possible the chart area is hidden since it has no widgets
 		// So the margin-top: -25px would be applied to the shortcut group
 		// We need to remove this as the  chart group will be visible during customization
+		$('.widget.onboarding-widget-box').hide();
 		$('.desk-page .widget-group:visible:first').css('margin-top', '0px');
 
 		this.customize_link.hide();
@@ -266,53 +267,20 @@ class DesktopPage {
 	}
 
 	make_onboarding() {
-		this.sections["onboarding"] = new frappe.widget.WidgetGroup({
-			title: `Getting Started`,
+		this.onboarding_widget = frappe.widget.make_widget({
+			label: this.data.onboarding.label || __(`Let's Get Started`),
+			subtitle: this.data.onboarding.subtitle,
+			steps: this.data.onboarding.items,
+			widget_type: 'onboarding',
 			container: this.page,
-			type: "onboarding",
-			columns: 1,
 			options: {
-					allow_sorting: false,
-					allow_create: false,
-					allow_delete: false,
-					allow_hiding: false,
-					allow_edit: false,
-					max_widget_count: 2,
-			},
-			widgets: [
-				{
-					label: "Unlock Great Customer Experience",
-					subtitle: "Just a few steps, and you’re good to go.",
-					steps: [
-						{
-							label: "Configure Lead Sources",
-							type: "Create",
-							completed: true
-
-						},
-						{
-							label: "Add Your Leads",
-							type: "Visit Page",
-							completed: false
-						},
-						{
-							label: "Create Your First Opportunity",
-							type: "Create",
-							completed: false
-						},
-						{
-							label: "Onboard your Sales Team",
-							type: "Create",
-							completed: false
-						},
-						{
-							label: "Assign Territories",
-							type: "Create",
-							completed: false
-						}
-					]
-				}
-			]
+				allow_sorting: false,
+				allow_create: false,
+				allow_delete: false,
+				allow_hiding: false,
+				allow_edit: false,
+				max_widget_count: 2,
+			}
 		});
 	}
 
