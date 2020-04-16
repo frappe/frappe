@@ -2,13 +2,17 @@
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
-import frappe, os
 
-from frappe.website.utils import (can_cache, delete_page_cache, extract_title,
-	extract_comment_tag)
-from frappe.model.document import get_controller
-from six import text_type
 import io
+import os
+import re
+
+import yaml
+
+import frappe
+from frappe.model.document import get_controller
+from frappe.website.utils import can_cache, delete_page_cache, extract_comment_tag, extract_title
+
 
 def resolve_route(path):
 	"""Returns the page route object based on searching in pages and generators.
@@ -229,10 +233,26 @@ def get_page_info(path, app, start, basepath=None, app_path=None, fname=None):
 
 	return page_info
 
+def get_frontmatter(string):
+	"""
+	Reference: https://github.com/jonbeebe/frontmatter
+	"""
+
+	fmatter = ""
+	body = ""
+	result = re.compile(r'^\s*(?:---|\+\+\+)(.*?)(?:---|\+\+\+)\s*(.+)$', re.S | re.M).search(string)
+
+	if result:
+		fmatter = result.group(1)
+		body = result.group(2)
+
+	return {
+		"attributes": yaml.safe_load(fmatter),
+		"body": body,
+	}
+
 def setup_source(page_info):
 	'''Get the HTML source of the template'''
-	from frontmatter import Frontmatter
-
 	jenv = frappe.get_jenv()
 	source = jenv.loader.get_source(jenv, page_info.template)[0]
 	html = ''
@@ -241,11 +261,11 @@ def setup_source(page_info):
 		# extract frontmatter block if exists
 		try:
 			# values will be used to update page_info
-			res = Frontmatter.read(source)
+			res = get_frontmatter(source)
 			if res['attributes']:
 				page_info.update(res['attributes'])
 				source = res['body']
-		except Exception as e:
+		except Exception:
 			pass
 
 		source = frappe.utils.md_to_html(source)

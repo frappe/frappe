@@ -66,9 +66,8 @@ def enqueue_events_for_all_sites():
 	for site in sites:
 		try:
 			enqueue_events_for_site(site=site, queued_jobs=jobs_per_site[site])
-		except:
-			# it should try to enqueue other sites
-			print(frappe.get_traceback())
+		except Exception as e:
+			print(e.__class__, 'Failed to enqueue events for site: {}'.format(site))
 
 def enqueue_events_for_site(site, queued_jobs):
 	def log_and_raise():

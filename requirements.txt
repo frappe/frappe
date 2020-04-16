@@ -12,7 +12,6 @@ cryptography==2.8
 dropbox==9.1.0
 email-reply-parser==0.5.9
 Faker==2.0.4
-frontmatter==3.0.6
 future==0.18.2
 GitPython==2.1.15
 gitdb2==2.0.6;python_version<'3.4'
@@ -48,7 +47,7 @@ pypng==0.0.20
 PyQRCode==1.2.1
 python-dateutil==2.8.1
 pytz==2019.3
-PyYAML==5.1
+PyYAML==5.3.1
 rauth==0.7.3
 redis==2.10.6
 requests-oauthlib==1.3.0
