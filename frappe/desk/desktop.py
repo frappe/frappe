@@ -96,6 +96,12 @@ class Workspace:
 			'items': self.get_shortcuts()
 		}
 
+		self.onboarding = {
+			'label': _(self.doc.onboarding_label),
+			'subtitle': _(self.doc.onboarding_subtitle),
+			'items': self.get_onboarding_slides()
+		}
+
 	def get_cards(self):
 		cards = self.doc.cards + get_custom_reports_and_doctypes(self.doc.module)
 		if len(self.extended_cards):
@@ -207,6 +213,18 @@ class Workspace:
 
 		return items
 
+	def get_onboarding_slides(self):
+		# TODO: Onboarding Slides empty up on customization
+		slides = self.doc.slides
+		items = []
+		for slide_doc in slides:
+			slide = slide_doc.as_dict().copy()
+			# TODO: Handle permissions here
+			slide.label = _(slide_doc.slide)
+			items.append(slide)
+
+		return items
+
 @frappe.whitelist()
 @frappe.read_only()
 def get_desktop_page(page):
@@ -226,6 +244,7 @@ def get_desktop_page(page):
 			'charts': wspace.charts,
 			'shortcuts': wspace.shortcuts,
 			'cards': wspace.cards,
+			'onboarding': wspace.onboarding,
 			'allow_customization': not wspace.doc.disable_user_customization
 		}
 
