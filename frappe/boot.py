@@ -41,7 +41,7 @@ def get_bootinfo():
 
 	bootinfo.modules = {}
 	bootinfo.module_list = []
-	load_desktop_icons(bootinfo)
+	load_desktop_data(bootinfo)
 	bootinfo.letter_heads = get_letter_heads()
 	bootinfo.active_domains = frappe.get_active_domains()
 	bootinfo.all_domains = [d.get("name") for d in frappe.get_all("Domain")]
@@ -99,9 +99,11 @@ def load_conf_settings(bootinfo):
 	for key in ('developer_mode', 'socketio_port', 'file_watcher_port'):
 		if key in conf: bootinfo[key] = conf.get(key)
 
-def load_desktop_icons(bootinfo):
+def load_desktop_data(bootinfo):
 	from frappe.config import get_modules_from_all_apps_for_user
+	from frappe.desk.desktop import get_desk_sidebar_items
 	bootinfo.allowed_modules = get_modules_from_all_apps_for_user()
+	bootinfo.allowed_workspaces = get_desk_sidebar_items(True)
 
 def get_allowed_pages():
 	return get_user_pages_or_reports('Page')
