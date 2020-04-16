@@ -9,12 +9,19 @@ export default class ChartWidget extends Widget {
 		this.height = 240;
 	}
 
-	refresh() {
-		this.make_chart();
+	get_config() {
+		return {
+			name: this.name,
+			chart_name: this.chart_name,
+			label: this.label,
+		};
 	}
 
-	customize() {
-		this.setup_customize_actions();
+	refresh() {
+		delete this.dashboard_chart;
+		this.set_title();
+		this.set_body();
+		this.make_chart();
 	}
 
 	set_body() {
@@ -67,26 +74,20 @@ export default class ChartWidget extends Widget {
 			}
 			this.setup_container();
 			this.prepare_chart_object();
-			this.action_area.empty();
-			this.prepare_chart_actions();
-			this.setup_filter_button();
+			if (!this.in_customize_mode) {
+				this.action_area.empty();
+				this.prepare_chart_actions();
+				this.setup_filter_button();
 
-			if (
-				this.chart_doc.timeseries &&
-				this.chart_doc.chart_type !== "Custom"
-			) {
-				this.render_time_series_filters();
+				if (
+					this.chart_doc.timeseries &&
+					this.chart_doc.chart_type !== "Custom"
+				) {
+					this.render_time_series_filters();
+				}
 			}
-
 			this.fetch_and_update_chart();
 		});
-	}
-
-	setup_customize_actions() {
-		this.action_area.empty();
-		const buttons = $(`<button type="button" class="btn btn-xs btn-secondary btn-default selected">Resize</button>
-					<button class="btn btn-secondary btn-light btn-danger btn-xs"><i class="fa fa-trash" aria-hidden="true"></i></button>`);
-		buttons.appendTo(this.action_area);
 	}
 
 	render_time_series_filters() {
@@ -428,9 +429,7 @@ export default class ChartWidget extends Widget {
 	}
 
 	fetch(filters, refresh = false, args) {
-		let method = this.settings
-			? this.settings.method
-			: "frappe.desk.doctype.dashboard_chart.dashboard_chart.get";
+		let method = this.settings.method;
 
 		if (this.chart_doc.chart_type == "Report") {
 			args = {
@@ -558,6 +557,9 @@ export default class ChartWidget extends Widget {
 					};
 					return Promise.resolve();
 				} else {
+					this.settings = {
+						method: "frappe.desk.doctype.dashboard_chart.dashboard_chart.get"
+					};
 					return Promise.resolve();
 				}
 			});
