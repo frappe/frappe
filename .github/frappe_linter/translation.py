@@ -5,8 +5,8 @@ errors_encounter = 0
 pattern = re.compile(r"_\(([\"']{,3})(?P<message>((?!\1).)*)\1(\s*,\s*context\s*=\s*([\"'])(?P<py_context>((?!\5).)*)\5)*(\s*,\s*(.)*?\s*(,\s*([\"'])(?P<js_context>((?!\11).)*)\11)*)*\)")
 start_pattern = re.compile(r"_{1,2}\([\"']{1,3}")
 
-# skip first 2 arguments
-files = sys.argv[2:]
+# skip first argument
+files = sys.argv[1:]
 for _file in files:
 	if not _file.endswith(('.py', '.js')):
 		continue
