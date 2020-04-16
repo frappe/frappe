@@ -10,15 +10,6 @@ from frappe.model.document import Document
 from frappe.modules.export_file import export_to_files
 
 class OnboardingSlide(Document):
-	def validate(self):
-		if self.slide_type == 'Continue' and frappe.db.exists('Onboarding Slide', {'slide_type': 'Continue', 'name': ('!=', self.name)}):
-			frappe.throw(_('An Onboarding Slide of Slide Type Continue already exists.'))
-
-		if self.slide_order:
-			same_order_slide = frappe.db.exists('Onboarding Slide', {'slide_order': self.slide_order, 'name': ('!=', self.name)})
-			if same_order_slide:
-				frappe.throw(_('An Onboarding Slide <b>{0}</b> with the same slide order already exists').format(same_order_slide))
-
 	def on_update(self):
 		if self.ref_doctype:
 			module = frappe.db.get_value('DocType', self.ref_doctype, 'module')
@@ -30,8 +21,7 @@ def get_onboarding_slides_as_list():
 	slides = []
 	slide_docs = frappe.db.get_all('Onboarding Slide',
 		filters={'is_completed': 0},
-		or_filters={'slide_order': ('!=', 0), 'slide_type': 'Continue'},
-		order_by='slide_order')
+		or_filters={'slide_type': 'Continue'})
 
 	# to check if continue slide is required
 	first_slide = get_first_slide()
@@ -93,7 +83,6 @@ def is_continue_slide_required(first_slide):
 	# check if there is any active slide which is not completed
 	return frappe.db.exists('Onboarding Slide', {
 		'is_completed': 0,
-		'slide_order': ('!=', 0),
 		'slide_type': ('!=', 'Continue')
 	})
 
@@ -132,8 +121,7 @@ def mark_slide_as_completed(slide_title):
 
 def get_first_slide():
 	slides = frappe.db.get_all('Onboarding Slide',
-		filters={'slide_order': ('!=', 0), 'slide_type': ('!=', 'Continue')},
-		order_by='slide_order',
+		filters={'slide_type': ('!=', 'Continue')},
 		fields=['name', 'is_completed']
 	)
 	return slides[0]

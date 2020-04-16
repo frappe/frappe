@@ -1,4 +1,5 @@
 {
+ "actions": [],
  "autoname": "field:slide_title",
  "creation": "2019-11-13 14:39:56.834658",
  "doctype": "DocType",
@@ -7,7 +8,6 @@
  "field_order": [
   "slide_title",
   "app",
-  "slide_order",
   "column_break_4",
   "image_src",
   "slide_module",
@@ -24,8 +24,7 @@
   "section_break_10",
   "domains",
   "column_break_12",
-  "help_links",
-  "is_completed"
+  "help_links"
  ],
  "fields": [
   {
@@ -131,13 +130,6 @@
    "options": "DocType"
   },
   {
-   "default": "0",
-   "description": "Determines the order of the slide in the wizard. If the slide is not to be displayed, priority should be set to 0.",
-   "fieldname": "slide_order",
-   "fieldtype": "Int",
-   "label": "Slide Order"
-  },
-  {
    "depends_on": "eval:doc.slide_type=='Information' || doc.slide_type=='Continue'",
    "fieldname": "slide_module",
    "fieldtype": "Link",
@@ -149,17 +141,10 @@
    "fieldname": "section_break_18",
    "fieldtype": "Section Break",
    "label": "Fields"
-  },
-  {
-   "default": "0",
-   "fieldname": "is_completed",
-   "fieldtype": "Check",
-   "hidden": 1,
-   "label": "Is Completed",
-   "print_hide": 1
   }
  ],
- "modified": "2019-12-04 10:50:43.528901",
+ "links": [],
+ "modified": "2020-04-14 17:50:54.458942",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Onboarding Slide",
