@@ -1,7 +1,7 @@
 pull_request_rules:
   - name: Automatic merge on CI success and review
     conditions:
-      - status-success=Codacy/PR Quality Review
+      - status-success=Sider
       - status-success=Semantic Pull Request
       - status-success=continuous-integration/travis-ci/pr
       - status-success=security/snyk - package.json (frappe)
@@ -14,7 +14,7 @@ pull_request_rules:
         method: merge
   - name: Automatic squash on CI success and review
     conditions:
-      - status-success=Codacy/PR Quality Review
+      - status-success=Sider
       - status-success=Semantic Pull Request
       - status-success=continuous-integration/travis-ci/pr
       - status-success=security/snyk - package.json (frappe)
