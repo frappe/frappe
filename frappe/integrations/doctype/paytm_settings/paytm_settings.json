@@ -17,13 +17,12 @@
   {
    "fieldname": "merchant_key",
    "fieldtype": "Data",
-   "hidden": 1,
    "label": "Merchant Key"
   }
  ],
  "issingle": 1,
  "links": [],
- "modified": "2020-04-02 00:11:22.846697",
+ "modified": "2020-04-07 19:57:24.126640",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Paytm Settings",
