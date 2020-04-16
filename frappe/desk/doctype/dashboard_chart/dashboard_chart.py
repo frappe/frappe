@@ -49,7 +49,7 @@ def get_chart_config(chart, filters, timespan, timegrain, from_date, to_date):
 	# query will return year, unit and aggregate value
 	data = frappe.db.sql('''
 		select
-			{unit_function} as _unit,
+			{unit} as _unit,
 			{aggregate_function}({value_field})
 		from `tab{doctype}`
 		where
@@ -58,7 +58,7 @@ def get_chart_config(chart, filters, timespan, timegrain, from_date, to_date):
 		group by _unit
 		order by _unit asc
 	'''.format(
-		unit_function = chart.based_on,
+		unit = chart.based_on,
 		datefield = chart.based_on,
 		aggregate_function = get_aggregate_function(chart.chart_type),
 		value_field = chart.value_based_on or '1',
@@ -144,26 +144,11 @@ def convert_to_dates(data, timegrain):
 
 	return result
 
-def get_unit_function(datefield, timegrain):
-	unit_function = ''
-	if timegrain=='Daily':
-		if frappe.db.db_type == 'mariadb':
-			unit_function = 'dayofyear({})'.format(datefield)
-		else:
-			unit_function = 'extract(doy from {datefield})'.format(
-				datefield=datefield)
-
-	else:
-		unit_function = 'extract({unit} from {datefield})'.format(
-			unit = timegrain[:-2].lower(), datefield=datefield)
-
-	return unit_function
-
-
 def get_result(data, timegrain, from_date, to_date):
 	start_date = getdate(from_date)
 	end_date = getdate(to_date)
 	result = []
+
 	while start_date <= end_date:
 		next_date = get_next_expected_date(start_date, timegrain)
 		result.append([next_date, 0.0])
