@@ -148,6 +148,7 @@ class WebPage(WebsiteGenerator):
 
 
 def check_publish_status():
+	# called via daily scheduler
 	web_pages = frappe.get_all("Web Page", fields=["name", "published", "start_date", "end_date"])
 	now_date = get_datetime(now())
 
