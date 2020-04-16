@@ -13,7 +13,6 @@
   "module",
   "category",
   "restrict_to_domain",
-  "onboarding",
   "icon",
   "column_break_3",
   "extends_another_page",
@@ -33,6 +32,7 @@
   "cards",
   "onboarding_section",
   "onboarding_label",
+  "onboarding_subtitle",
   "slides"
  ],
  "fields": [
@@ -60,12 +60,6 @@
    "fieldtype": "Table",
    "label": "Shortcuts",
    "options": "Desk Shortcut"
-  },
-  {
-   "depends_on": "eval:doc.extends_another_page == 0",
-   "fieldname": "onboarding",
-   "fieldtype": "Data",
-   "label": "Onboarding"
   },
   {
    "fieldname": "restrict_to_domain",
@@ -209,17 +203,22 @@
   {
    "fieldname": "onboarding_label",
    "fieldtype": "Data",
-   "label": "Label"
+   "label": "Title"
   },
   {
    "fieldname": "slides",
    "fieldtype": "Table",
    "label": "Slides",
    "options": "Desk Onboarding"
+  },
+  {
+   "fieldname": "onboarding_subtitle",
+   "fieldtype": "Data",
+   "label": "Subtitle"
   }
  ],
  "links": [],
- "modified": "2020-04-14 15:56:14.536947",
+ "modified": "2020-04-16 13:19:32.460177",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Desk Page",
