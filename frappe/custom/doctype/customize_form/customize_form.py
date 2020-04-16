@@ -208,9 +208,11 @@ class CustomizeForm(Document):
 						self.validate_fieldtype_change(df, meta_df[0].get(property), df.get(property))
 
 					elif property == "allow_on_submit" and df.get(property):
-						frappe.msgprint(_("Row {0}: Not allowed to enable Allow on Submit for standard fields")\
-							.format(df.idx))
-						continue
+						if not frappe.db.get_value("DocField",
+							{"parent": self.doc_type, "fieldname": df.fieldname}, "allow_on_submit"):
+							frappe.msgprint(_("Row {0}: Not allowed to enable Allow on Submit for standard fields")\
+								.format(df.idx))
+							continue
 
 					elif property == "reqd" and \
 						((frappe.db.get_value("DocField",
