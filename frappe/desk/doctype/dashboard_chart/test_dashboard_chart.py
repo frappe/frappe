@@ -17,10 +17,9 @@ class TestDashboardChart(unittest.TestCase):
 		self.assertEqual(get_period_ending('2019-04-10', 'Daily'),
 			getdate('2019-04-10'))
 
-		# fun fact: week ends on the day before 1st Jan of the year.
-		# for 2019 it is Monday
+		# week starts on monday
 		self.assertEqual(get_period_ending('2019-04-10', 'Weekly'),
-			getdate('2019-04-15'))
+			getdate('2019-04-14'))
 
 		self.assertEqual(get_period_ending('2019-04-10', 'Monthly'),
 			getdate('2019-04-30'))

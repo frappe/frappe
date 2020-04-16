@@ -171,6 +171,7 @@ def get_period_ending(date, timegrain):
 	return getdate(date)
 
 def get_week_ending(date):
+	# week starts on monday
 	from datetime import datetime, timedelta
 	start = date - timedelta(days = date.weekday())
 	end = start + timedelta(days=6)
