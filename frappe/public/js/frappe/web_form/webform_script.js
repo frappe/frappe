@@ -2,13 +2,13 @@ import WebFormList from './web_form_list'
 import WebForm from './web_form'
 
 frappe.ready(function() {
+	let query_params = frappe.utils.get_query_params();
 	let wrapper = $(".web-form-wrapper");
-	let is_list = parseInt(wrapper.data('is-list'));
+	let is_list = parseInt(wrapper.data('is-list')) || query_params.is_list;
 	let webform_doctype = wrapper.data('web-form-doctype');
 	let webform_name = wrapper.data('web-form');
 	let login_required = parseInt(wrapper.data('login-required'));
 	let allow_delete = parseInt(wrapper.data('allow-delete'));
-	let query_params = frappe.utils.get_query_params();
 	let doc_name = query_params.name || '';
 	let is_new = query_params.new;
 
@@ -38,7 +38,7 @@ frappe.ready(function() {
 			settings: {
 				allow_delete
 			}
-		})
+		});
 	}
 
 	function show_form() {
