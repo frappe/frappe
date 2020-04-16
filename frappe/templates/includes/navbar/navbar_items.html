@@ -65,7 +65,7 @@
 		{% block navbar_right_extension %}{% endblock %}
 	{% endif %}
 
-	{% if show_sidebar %}
+	{% if show_sidebar and sidebar_items %}
 	<div class="d-block d-sm-none">
 		<hr>
 		{% for item in sidebar_items -%}
