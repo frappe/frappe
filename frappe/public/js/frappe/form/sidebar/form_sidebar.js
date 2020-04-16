@@ -87,7 +87,7 @@ frappe.ui.form.Sidebar = Class.extend({
 				frappe.utils.get_page_view_count(route).then(res => {
 					this.sidebar.find(".pageview-count").html(__("{0} Page Views",
 						["<strong>" +  res.message + "</strong>"]));
-				})
+				});
 			}
 
 			this.sidebar.find(".modified-by").html(__("{0} edited this {1}",
