@@ -7,6 +7,8 @@ import frappe
 from frappe import _
 from frappe.model.document import Document
 
+from frappe.twofactor import (should_run_2fa, authenticate_for_2factor,
+	confirm_otp_token, get_cached_user_pass)
 
 class LDAPSettings(Document):
 	def validate(self):
@@ -205,6 +207,12 @@ def login():
 	ldap = frappe.get_doc("LDAP Settings")
 
 	user = ldap.authenticate(frappe.as_unicode(args.usr), frappe.as_unicode(args.pwd))
+
+
+	if should_run_2fa(user.name):
+		authenticate_for_2factor(user.name)
+		if not confirm_otp_token(user):
+			return False
 
 	frappe.local.login_manager.user = user.name
 	frappe.local.login_manager.post_login()
