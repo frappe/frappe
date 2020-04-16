@@ -48,6 +48,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	setup_defaults() {
 		super.setup_defaults();
 
+		this.view = 'List';
 		// initialize with saved order by
 		this.sort_by = this.view_user_settings.sort_by || 'modified';
 		this.sort_order = this.view_user_settings.sort_order || 'desc';
@@ -447,7 +448,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 			tag_editor.wrapper.on('click', '.tagit-label', (e) => {
 				const $this = $(e.currentTarget);
-				this.filter_area.add('Tag Link', 'tag', '=', $this.text());
+				this.filter_area.add(this.doctype, '_user_tags', '=', $this.text());
 			});
 		});
 	}
@@ -1021,7 +1022,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 
 	setup_realtime_updates() {
-		if (this.list_view_settings.disable_auto_refresh) {
+		if (this.list_view_settings && this.list_view_settings.disable_auto_refresh) {
 			return;
 		}
 		frappe.realtime.on('list_update', data => {

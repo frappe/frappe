@@ -290,7 +290,7 @@ def log(msg):
 
 	debug_log.append(as_unicode(msg))
 
-def msgprint(msg, title=None, raise_exception=0, as_table=False, indicator=None, alert=False, primary_action=None):
+def msgprint(msg, title=None, raise_exception=0, as_table=False, indicator=None, alert=False, primary_action=None, is_minimizable=None):
 	"""Print a message to the user (via HTTP response).
 	Messages are sent in the `__server_messages` property in the
 	response JSON and shown in a pop-up / modal.
@@ -336,8 +336,14 @@ def msgprint(msg, title=None, raise_exception=0, as_table=False, indicator=None,
 	if indicator:
 		out.indicator = indicator
 
+	if is_minimizable:
+		out.is_minimizable = is_minimizable
+
 	if alert:
 		out.alert = 1
+
+	if raise_exception:
+		out.raise_exception = 1
 
 	if primary_action:
 		out.primary_action = primary_action
@@ -352,16 +358,23 @@ def msgprint(msg, title=None, raise_exception=0, as_table=False, indicator=None,
 def clear_messages():
 	local.message_log = []
 
+def get_message_log():
+	log = []
+	for msg_out in local.message_log:
+		log.append(json.loads(msg_out))
+
+	return log
+
 def clear_last_message():
 	if len(local.message_log) > 0:
 		local.message_log = local.message_log[:-1]
 
-def throw(msg, exc=ValidationError, title=None):
+def throw(msg, exc=ValidationError, title=None, is_minimizable=None):
 	"""Throw execption and show message (`msgprint`).
 
 	:param msg: Message.
 	:param exc: Exception class. Default `frappe.ValidationError`"""
-	msgprint(msg, raise_exception=exc, title=title, indicator='red')
+	msgprint(msg, raise_exception=exc, title=title, indicator='red', is_minimizable=is_minimizable)
 
 def emit_js(js, user=False, **kwargs):
 	from frappe.realtime import publish_realtime
@@ -430,7 +443,7 @@ def sendmail(recipients=[], sender="", subject="No Subject", message="No Message
 
 
 	:param recipients: List of recipients.
-	:param sender: Email sender. Default is current user.
+	:param sender: Email sender. Default is current user or default outgoing account.
 	:param subject: Email Subject.
 	:param message: (or `content`) Email Content.
 	:param as_markdown: Convert content markdown to HTML.
@@ -452,7 +465,6 @@ def sendmail(recipients=[], sender="", subject="No Subject", message="No Message
 	:param args: Arguments for rendering the template
 	:param header: Append header in email
 	"""
-
 	text_content = None
 	if template:
 		message, text_content = get_email_from_template(template, args)
@@ -568,6 +580,7 @@ def clear_cache(user=None, doctype=None):
 	else: # everything
 		from frappe import translate
 		frappe.cache_manager.clear_user_cache()
+		frappe.cache_manager.clear_domain_cache()
 		translate.clear_cache()
 		reset_metadata_version()
 		local.cache = {}

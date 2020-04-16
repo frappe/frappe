@@ -94,8 +94,7 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 			})
 			.on('scroll', function() {
 				var $input = $('input:focus');
-				if($input.length && ['Date', 'Datetime',
-					'Time'].includes($input.attr('data-fieldtype'))) {
+				if($input.length && ['Date', 'Datetime', 'Time'].includes($input.attr('data-fieldtype'))) {
 					$input.blur();
 				}
 			});
@@ -197,5 +196,3 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 		this.header.find('.modal-title').toggleClass('cursor-pointer');
 	}
 };
-
-

@@ -15,7 +15,7 @@ frappe.ui.form.Timeline = class Timeline {
 		var me = this;
 		this.wrapper = $(frappe.render_template("timeline",{doctype: me.frm.doctype,allow_events_in_timeline: me.frm.meta.allow_events_in_timeline})).appendTo(me.parent);
 
-		this.set_automatic_link_email();
+		this.display_automatic_link_email();
 		this.list = this.wrapper.find(".timeline-items");
 		this.email_link = this.wrapper.find(".timeline-email-import");
 
@@ -117,31 +117,12 @@ frappe.ui.form.Timeline = class Timeline {
 			});
 	}
 
-	set_automatic_link_email() {
-		if (!frappe.email.automatic_link_email){
-			frappe.call("frappe.email.doctype.email_account.email_account.get_automatic_email_link").then((r) => {
-				if (r && r.message) {
-					frappe.email.automatic_link_email = r.message;
-				} else {
-					frappe.email.automatic_link_email = null;
-				}
-				this.display_automatic_link_email();
-			});
-		} else {
-			this.display_automatic_link_email();
-		}
-	}
-
 	display_automatic_link_email() {
-		var me = this;
-		if (frappe.email.automatic_link_email){
-			let email_id = frappe.email.automatic_link_email;
-			email_id =  email_id.split("@")[0] +"+"+ encodeURIComponent(me.frm.doctype) +"+"+ encodeURIComponent(me.frm.docname)
-				+"@"+ email_id.split("@")[1];
+		let docinfo = this.frm.get_docinfo();
 
-			$(".timeline-email-import-link").text(email_id);
-		} else {
-			$('.timeline-email-import').addClass("hide");
+		if (docinfo.document_email){
+			let link = __("Send an email to {0} to link it here", [`<b><a class="timeline-email-import-link copy-to-clipboard">${docinfo.document_email}</a></b>`]);
+			$('.timeline-email-import').html(link);
 		}
 	}
 
@@ -211,7 +192,7 @@ frappe.ui.form.Timeline = class Timeline {
 				me.render_timeline_item(d);
 			});
 
-
+		me.display_automatic_link_email();
 
 		// more btn
 		if (this.more===undefined && timeline.length===20) {
@@ -369,6 +350,10 @@ frappe.ui.form.Timeline = class Timeline {
 
 		if(c.sender && c.sender.indexOf("<")!==-1) {
 			c.sender = c.sender.split("<")[1].split(">")[0];
+		}
+
+		if (!c.doctype && ['Comment', 'Communication'].includes(c.communication_type)) {
+			c.doctype = c.communication_type;
 		}
 
 		c.user_info = frappe.user_info(c.sender);
@@ -575,12 +560,17 @@ frappe.ui.form.Timeline = class Timeline {
 				return;
 			}
 
-			let data_import_link = frappe.utils.get_form_link(
-				'Data Import Beta',
-				data.data_import,
-				true,
-				__('via Data Import')
-			);
+			let updater_reference_link = null;
+			let updater_reference = data.updater_reference;
+			if (!$.isEmptyObject(updater_reference)) {
+				let label = updater_reference.label || __('via {0}', [updater_reference.doctype]);
+				updater_reference_link = frappe.utils.get_form_link(
+					updater_reference.doctype,
+					updater_reference.docname,
+					true,
+					label
+				);
+			}
 
 			// value changed in parent
 			if (data.changed && data.changed.length) {
@@ -588,13 +578,13 @@ frappe.ui.form.Timeline = class Timeline {
 				data.changed.every(function(p) {
 					if (p[0]==='docstatus') {
 						if (p[2]==1) {
-							let message = data.data_import
-								? __('submitted this document {0}', [data_import_link])
+							let message = updater_reference_link
+								? __('submitted this document {0}', [updater_reference_link])
 								: __('submitted this document');
 							out.push(me.get_version_comment(version, message));
 						} else if (p[2]==2) {
-							let message = data.data_import
-								? __('cancelled this document {0}', [data_import_link])
+							let message = updater_reference_link
+								? __('cancelled this document {0}', [updater_reference_link])
 								: __('cancelled this document');
 							out.push(me.get_version_comment(version, message));
 						}
@@ -615,10 +605,10 @@ frappe.ui.form.Timeline = class Timeline {
 					}
 					return parts.length < 3;
 				});
-				if(parts.length) {
+				if (parts.length) {
 					let message;
-					if (data.data_import) {
-						message = __("changed value of {0} {1}", [parts.join(', ').bold(), data_import_link]);
+					if (updater_reference_link) {
+						message = __("changed value of {0} {1}", [parts.join(', ').bold(), updater_reference_link]);
 					} else {
 						message = __("changed value of {0}", [parts.join(', ').bold()]);
 					}
@@ -653,10 +643,10 @@ frappe.ui.form.Timeline = class Timeline {
 					});
 					return parts.length < 3;
 				});
-				if(parts.length) {
+				if (parts.length) {
 					let message;
-					if (data.data_import) {
-						message = __("changed values for {0} {1}", [parts.join(', '), data_import_link]);
+					if (updater_reference_link) {
+						message = __("changed values for {0} {1}", [parts.join(', '), updater_reference_link]);
 					} else {
 						message = __("changed values for {0}", [parts.join(', ')]);
 					}

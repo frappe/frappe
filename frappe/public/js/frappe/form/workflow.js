@@ -87,7 +87,7 @@ frappe.ui.form.States = Class.extend({
 		frappe.workflow.get_transitions(this.frm.doc).then(transitions => {
 			this.frm.page.clear_actions_menu();
 			transitions.forEach(d => {
-				if(frappe.user_roles.includes(d.allowed) && has_approval_access(d)) {
+				if (frappe.user_roles.includes(d.allowed) && has_approval_access(d)) {
 					added = true;
 					me.frm.page.add_action_item(__(d.action), function() {
 						// set the workflow_action for use in form scripts
@@ -105,6 +105,7 @@ frappe.ui.form.States = Class.extend({
 					});
 				}
 			});
+
 			this.setup_btn(added);
 		});
 

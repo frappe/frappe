@@ -14,6 +14,7 @@ from werkzeug.exceptions import NotFound, Forbidden
 import hashlib, json
 from frappe.model import optional_fields, table_fields
 from frappe.model.workflow import validate_workflow
+from frappe.model.workflow import set_workflow_state_on_action
 from frappe.utils.global_search import update_global_search
 from frappe.integrations.doctype.webhook import run_webhooks
 from frappe.desk.form.document_follow import follow_document
@@ -263,7 +264,7 @@ class Document(BaseDocument):
 		if hasattr(self, "__islocal"):
 			delattr(self, "__islocal")
 
-		if not (frappe.flags.in_migrate or frappe.local.flags.in_install):
+		if not (frappe.flags.in_migrate or frappe.local.flags.in_install or frappe.flags.in_setup_wizard):
 			follow_document(self.doctype, self.name, frappe.session.user)
 		return self
 
@@ -482,8 +483,11 @@ class Document(BaseDocument):
 	def validate_workflow(self):
 		'''Validate if the workflow transition is valid'''
 		if frappe.flags.in_install == 'frappe': return
-		if self.meta.get_workflow():
+		workflow = self.meta.get_workflow()
+		if workflow:
 			validate_workflow(self)
+			if not self._action == 'save':
+				set_workflow_state_on_action(self, workflow, self._action)
 
 	def validate_set_only_once(self):
 		'''Validate that fields are not changed if not in insert'''
@@ -570,21 +574,24 @@ class Document(BaseDocument):
 
 		# check for child tables
 		for df in self.meta.get_table_fields():
-			high_permlevel_fields = frappe.get_meta(df.options).meta.get_high_permlevel_fields()
+			high_permlevel_fields = frappe.get_meta(df.options).get_high_permlevel_fields()
 			if high_permlevel_fields:
 				for d in self.get(df.fieldname):
 					d.reset_values_if_no_permlevel_access(has_access_to, high_permlevel_fields)
 
 	def get_permlevel_access(self, permission_type='write'):
 		if not hasattr(self, "_has_access_to"):
+			self._has_access_to = {}
+
+		if not self._has_access_to.get(permission_type):
+			self._has_access_to[permission_type] = []
 			roles = frappe.get_roles()
-			self._has_access_to = []
 			for perm in self.get_permissions():
 				if perm.role in roles and perm.permlevel > 0 and perm.get(permission_type):
-					if perm.permlevel not in self._has_access_to:
-						self._has_access_to.append(perm.permlevel)
+					if perm.permlevel not in self._has_access_to[permission_type]:
+						self._has_access_to[permission_type].append(perm.permlevel)
 
-		return self._has_access_to
+		return self._has_access_to[permission_type]
 
 	def has_permlevel_access_to(self, fieldname, df=None, permission_type='read'):
 		if not df:
@@ -830,9 +837,7 @@ class Document(BaseDocument):
 
 		if not self.flags.in_insert:
 			# value change is not applicable in insert
-			event_map['validate'] = 'Value Change'
-			event_map['before_change'] = 'Value Change'
-			event_map['before_update_after_submit'] = 'Value Change'
+			event_map['on_change'] = 'Value Change'
 
 		for alert in self.flags.notifications:
 			event = event_map.get(method, None)
@@ -926,7 +931,6 @@ class Document(BaseDocument):
 		elif self._action=="update_after_submit":
 			self.run_method("on_update_after_submit")
 
-		self.run_method('on_change')
 
 		self.clear_cache()
 		self.notify_update()
@@ -935,6 +939,8 @@ class Document(BaseDocument):
 
 		if getattr(self.meta, 'track_changes', False) and self._doc_before_save and not self.flags.ignore_version:
 			self.save_version()
+
+		self.run_method('on_change')
 
 		if (self.doctype, self.name) in frappe.flags.currently_saving:
 			frappe.flags.currently_saving.remove((self.doctype, self.name))
@@ -947,7 +953,7 @@ class Document(BaseDocument):
 	def reset_seen(self):
 		'''Clear _seen property and set current user as seen'''
 		if getattr(self.meta, 'track_seen', False):
-			self._seen = json.dumps([frappe.session.user])
+			frappe.db.set_value(self.doctype, self.name, "_seen", json.dumps([frappe.session.user]), update_modified=False)
 
 	def notify_update(self):
 		"""Publish realtime that the current document is modified"""

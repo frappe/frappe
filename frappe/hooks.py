@@ -139,7 +139,7 @@ doc_events = {
 		],
 		"on_change": [
 			"frappe.social.doctype.energy_point_rule.energy_point_rule.process_energy_points"
-		],
+		]
 	},
 	"Event": {
 		"after_insert": "frappe.integrations.doctype.google_calendar.google_calendar.insert_event_in_google_calendar",
@@ -149,6 +149,14 @@ doc_events = {
 	"Contact": {
 		"after_insert": "frappe.integrations.doctype.google_contacts.google_contacts.insert_contacts_to_google_contacts",
 		"on_update": "frappe.integrations.doctype.google_contacts.google_contacts.update_contacts_to_google_contacts",
+	},
+	"DocType": {
+		"after_insert": "frappe.cache_manager.build_domain_restriced_doctype_cache",
+		"after_save": "frappe.cache_manager.build_domain_restriced_doctype_cache",
+	},
+	"Page": {
+		"after_insert": "frappe.cache_manager.build_domain_restriced_page_cache",
+		"after_save": "frappe.cache_manager.build_domain_restriced_page_cache",
 	}
 }
 
@@ -161,7 +169,8 @@ scheduler_events = {
 		"frappe.integrations.doctype.razorpay_settings.razorpay_settings.capture_payment",
 		"frappe.twofactor.delete_all_barcodes_for_users",
 		"frappe.website.doctype.web_page.web_page.check_publish_status",
-		'frappe.utils.global_search.sync_global_search'
+		'frappe.utils.global_search.sync_global_search',
+		"frappe.monitor.flush",
 	],
 	"hourly": [
 		"frappe.model.utils.link_count.update_link_count",
@@ -243,7 +252,10 @@ bot_parsers = [
 	'frappe.utils.bot.CountBot'
 ]
 
-setup_wizard_exception = "frappe.desk.page.setup_wizard.setup_wizard.email_setup_wizard_exception"
+setup_wizard_exception = [
+	"frappe.desk.page.setup_wizard.setup_wizard.email_setup_wizard_exception",
+	"frappe.desk.page.setup_wizard.setup_wizard.log_setup_wizard_exception"
+]
 
 before_migrate = ['frappe.patches.v11_0.sync_user_permission_doctype_before_migrate.execute']
 after_migrate = ['frappe.website.doctype.website_theme.website_theme.generate_theme_files_if_not_exist']

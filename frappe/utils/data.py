@@ -54,8 +54,8 @@ def get_datetime(datetime_str=None):
 	elif isinstance(datetime_str, datetime.date):
 		return datetime.datetime.combine(datetime_str, datetime.time())
 
-	# dateutil parser does not agree with dates like 0001-01-01
-	if not datetime_str or (datetime_str or "").startswith("0001-01-01"):
+	# dateutil parser does not agree with dates like "0001-01-01" or "0000-00-00"
+	if not datetime_str or (datetime_str or "").startswith(("0001-01-01", "0000-00-00")):
 		return None
 
 	try:
@@ -986,8 +986,7 @@ def expand_relative_urls(html):
 	html = re.sub('(href|src){1}([\s]*=[\s]*[\'"]?)((?!http)[^\'" >]+)([\'"]?)', _expand_relative_urls, html)
 
 	# background-image: url('/assets/...')
-	html = re.sub('(:[\s]?url)(\([\'"]?)([^\)]*)([\'"]?\))', _expand_relative_urls, html)
-
+	html = re.sub('(:[\s]?url)(\([\'"]?)((?!http)[^\'" >]+)([\'"]?\))', _expand_relative_urls, html)
 	return html
 
 def quoted(url):

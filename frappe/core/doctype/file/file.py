@@ -197,9 +197,9 @@ class File(Document):
 	def generate_content_hash(self):
 		if self.content_hash or not self.file_url or self.file_url.startswith('http'):
 			return
-
+		file_name = self.file_url.split('/')[-1]
 		try:
-			with open(get_files_path(self.file_name.lstrip("/"), is_private=self.is_private), "rb") as f:
+			with open(get_files_path(file_name, is_private=self.is_private), "rb") as f:
 				self.content_hash = get_content_hash(f.read())
 		except IOError:
 			frappe.msgprint(_("File {0} does not exist").format(self.file_url))
@@ -311,39 +311,6 @@ class File(Document):
 		exists = os.path.exists(self.get_full_path())
 		return exists
 
-	def upload(self):
-		# get record details
-		self.attached_to_doctype = frappe.form_dict.doctype
-		self.attached_to_name = frappe.form_dict.docname
-		self.attached_to_field = frappe.form_dict.docfield
-		self.file_url = frappe.form_dict.file_url
-		self.file_name = frappe.form_dict.filename
-		frappe.form_dict.is_private = cint(frappe.form_dict.is_private)
-
-		if not self.file_name and not self.file_url:
-			frappe.msgprint(_("Please select a file or url"),
-				raise_exception=True)
-
-		file_doc = self.get_file_doc()
-
-		comment = {}
-		if self.attached_to_doctype and self.attached_to_name:
-			comment = frappe.get_doc(self.attached_to_doctype, self.attached_to_name).add_comment("Attachment",
-			_	("added {0}").format("<a href='{file_url}' target='_blank'>{file_name}</a>{icon}".format(**{
-					"icon": ' <i class="fa fa-lock text-warning"></i>' \
-						if file_doc.is_private else "",
-					"file_url": file_doc.file_url.replace("#", "%23") \
-						if file_doc.file_name else file_doc.file_url,
-					"file_name": file_doc.file_name or file_doc.file_url
-				})))
-
-		return {
-			"name": file_doc.name,
-			"file_name": file_doc.file_name,
-			"file_url": file_doc.file_url,
-			"is_private": file_doc.is_private,
-			"comment": comment.as_dict() if comment else {}
-		}
 
 	def get_content(self):
 		"""Returns [`file_name`, `content`] for given file name `fname`"""
@@ -550,11 +517,7 @@ class File(Document):
 			delete_file(self.thumbnail_url)
 
 	def is_downloadable(self):
-		if self.is_private:
-			if has_permission(self, 'read'):
-				return True
-
-			return False
+		return has_permission(self, 'read')
 
 	def get_extension(self):
 		'''returns split filename and extension'''
@@ -748,7 +711,11 @@ def remove_all(dt, dn, from_delete=False):
 
 
 def has_permission(doc, ptype=None, user=None):
-	permission = True
+	has_access = False
+	user = user or frappe.session.user
+
+	if not doc.is_private or doc.owner == user or user == 'Administrator':
+		has_access = True
 
 	if doc.attached_to_doctype and doc.attached_to_name:
 		attached_to_doctype = doc.attached_to_doctype
@@ -758,20 +725,20 @@ def has_permission(doc, ptype=None, user=None):
 			ref_doc = frappe.get_doc(attached_to_doctype, attached_to_name)
 
 			if ptype in ['write', 'create', 'delete']:
-				permission = ref_doc.has_permission('write')
+				has_access = ref_doc.has_permission('write')
 
-				if ptype == 'delete' and permission == False:
+				if ptype == 'delete' and not has_access:
 					frappe.throw(_("Cannot delete file as it belongs to {0} {1} for which you do not have permissions").format(
 						doc.attached_to_doctype, doc.attached_to_name),
 						frappe.PermissionError)
 			else:
-				permission = ref_doc.has_permission('read')
+				has_access = ref_doc.has_permission('read')
 		except frappe.DoesNotExistError:
 			# if parent doc is not created before file is created
-			# we cannot check its permission so allow the file
-			permission = True
+			# we cannot check its permission so we will use file's permission
+			pass
 
-	return permission
+	return has_access
 
 
 def remove_file_by_url(file_url, doctype=None, name=None):

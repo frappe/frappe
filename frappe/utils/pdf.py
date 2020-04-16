@@ -2,13 +2,23 @@
 # MIT License. See license.txt
 from __future__ import unicode_literals
 
-import pdfkit, os, frappe
+import io
+import os
+import re
 from distutils.version import LooseVersion
-from frappe.utils import scrub_urls, get_wkhtmltopdf_version
-from frappe import _
-import six, re, io
+
+import pdfkit
+import six
 from bs4 import BeautifulSoup
 from PyPDF2 import PdfFileReader, PdfFileWriter
+
+import frappe
+from frappe import _
+from frappe.utils import get_wkhtmltopdf_version, scrub_urls
+
+PDF_CONTENT_ERRORS = ["ContentNotFoundError", "ContentOperationNotPermittedError",
+	"UnknownContentError", "RemoteHostClosedError"]
+
 
 def get_pdf(html, options=None, output=None):
 	html = scrub_urls(html)
@@ -30,20 +40,14 @@ def get_pdf(html, options=None, output=None):
 		# https://pythonhosted.org/PyPDF2/PdfFileReader.html
 		# create in-memory binary streams from filedata and create a PdfFileReader object
 		reader = PdfFileReader(io.BytesIO(filedata))
-
-	except IOError as e:
-		if ("ContentNotFoundError" in e.message
-			or "ContentOperationNotPermittedError" in e.message
-			or "UnknownContentError" in e.message
-			or "RemoteHostClosedError" in e.message):
+	except OSError as e:
+		if any([error in str(e) for error in PDF_CONTENT_ERRORS]):
+			if not filedata:
+				frappe.throw(_("PDF generation failed because of broken image links"))
 
 			# allow pdfs with missing images if file got created
-			if filedata:
-				if output: # output is a PdfFileWriter object
-					output.appendPagesFromReader(reader)
-
-			else:
-				frappe.throw(_("PDF generation failed because of broken image links"))
+			if output:  # output is a PdfFileWriter object
+				output.appendPagesFromReader(reader)
 		else:
 			raise
 
@@ -65,6 +69,7 @@ def get_pdf(html, options=None, output=None):
 	filedata = get_file_data_from_writer(writer)
 
 	return filedata
+
 
 def get_file_data_from_writer(writer_obj):
 
@@ -112,6 +117,7 @@ def prepare_options(html, options):
 
 	return html, options
 
+
 def read_options_from_html(html):
 	options = {}
 	soup = BeautifulSoup(html, "html5lib")
@@ -131,6 +137,7 @@ def read_options_from_html(html):
 			pass
 
 	return soup.prettify(), options
+
 
 def prepare_header_footer(soup):
 	options = {}
@@ -174,6 +181,7 @@ def prepare_header_footer(soup):
 
 	return options
 
+
 def cleanup(fname, options):
 	if os.path.exists(fname):
 		os.remove(fname)
@@ -181,6 +189,7 @@ def cleanup(fname, options):
 	for key in ("header-html", "footer-html"):
 		if options.get(key) and os.path.exists(options[key]):
 			os.remove(options[key])
+
 
 def toggle_visible_pdf(soup):
 	for tag in soup.find_all(attrs={"class": "visible-pdf"}):

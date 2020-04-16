@@ -9,8 +9,8 @@ from frappe.utils import get_url, get_datetime
 from frappe.desk.form.utils import get_pdf_link
 from frappe.utils.verified_command import get_signed_params, verify_request
 from frappe import _
-from frappe.model.workflow import apply_workflow, get_workflow_name, \
-	has_approval_access, get_workflow_state_field, send_email_alert, get_workflow_field_value
+from frappe.model.workflow import apply_workflow, get_workflow_name, has_approval_access, \
+	get_workflow_state_field, send_email_alert, get_workflow_field_value, is_transition_condition_satisfied
 from frappe.desk.notifications import clear_doctype_notifications
 from frappe.utils.user import get_users_with_role
 
@@ -46,7 +46,7 @@ def process_workflow_actions(doc, state):
 	update_completed_workflow_actions(doc)
 	clear_doctype_notifications('Workflow Action')
 
-	next_possible_transitions = get_next_possible_transitions(workflow, get_doc_workflow_state(doc))
+	next_possible_transitions = get_next_possible_transitions(workflow, get_doc_workflow_state(doc), doc)
 
 	if not next_possible_transitions: return
 
@@ -144,9 +144,9 @@ def update_completed_workflow_actions(doc, user=None):
 		WHERE `reference_doctype`=%s AND `reference_name`=%s AND `user`=%s AND `status`='Open'""",
 		(user, doc.get('doctype'), doc.get('name'), user))
 
-def get_next_possible_transitions(workflow_name, state):
+def get_next_possible_transitions(workflow_name, state, doc=None):
 	transitions = frappe.get_all('Workflow Transition',
-		fields=['allowed', 'action', 'state', 'allow_self_approval', 'next_state'],
+		fields=['allowed', 'action', 'state', 'allow_self_approval', 'next_state', '`condition`'],
 		filters=[['parent', '=', workflow_name],
 		['state', '=', state]])
 
@@ -156,6 +156,8 @@ def get_next_possible_transitions(workflow_name, state):
 		is_next_state_optional = get_state_optional_field_value(workflow_name, transition.next_state)
 		# skip transition if next state of the transition is optional
 		if is_next_state_optional:
+			continue
+		if not is_transition_condition_satisfied(transition, doc):
 			continue
 		transitions_to_return.append(transition)
 
@@ -168,15 +170,15 @@ def get_users_next_action_data(transitions, doc):
 		filtered_users = filter_allowed_users(users, doc, transition)
 		for user in filtered_users:
 			if not user_data_map.get(user):
-				user_data_map[user] = {
+				user_data_map[user] = frappe._dict({
 					'possible_actions': [],
 					'email': frappe.db.get_value('User', user, 'email'),
-				}
+				})
 
-			user_data_map[user].get('possible_actions').append({
+			user_data_map[user].get('possible_actions').append(frappe._dict({
 				'action_name': transition.action,
 				'action_link': get_workflow_action_url(transition.action, doc, user)
-			})
+			}))
 	return user_data_map
 
 
@@ -198,7 +200,7 @@ def send_workflow_action_email(users_data, doc):
 		email_args = {
 			'recipients': [d.get('email')],
 			'args': {
-				'actions': d.get('possible_actions'),
+				'actions': list(deduplicate_actions(d.get('possible_actions'))),
 				'message': message
 			},
 			'reference_name': doc.name,
@@ -206,6 +208,14 @@ def send_workflow_action_email(users_data, doc):
 		}
 		email_args.update(common_args)
 		enqueue(method=frappe.sendmail, queue='short', **email_args)
+
+def deduplicate_actions(action_list):
+	action_map = {}
+	for action_data in action_list:
+		if not action_map.get(action_data.action_name):
+			action_map[action_data.action_name] = action_data
+
+	return action_map.values()
 
 def get_workflow_action_url(action, doc, user):
 	apply_action_method = "/api/method/frappe.workflow.doctype.workflow_action.workflow_action.apply_action"

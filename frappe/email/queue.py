@@ -6,7 +6,7 @@ import frappe
 import sys
 from six.moves import html_parser as HTMLParser
 import smtplib, quopri, json
-from frappe import msgprint, _, safe_decode
+from frappe import msgprint, _, safe_decode, safe_encode
 from frappe.email.smtp import SMTPServer, get_outgoing_email_account
 from frappe.email.email_body import get_email, get_formatted_html, add_attachment
 from frappe.utils.verified_command import get_signed_params, verify_request
@@ -257,7 +257,7 @@ def get_emails_sent_this_month():
 
 def get_emails_sent_today():
 	return frappe.db.sql("""SELECT COUNT(`name`) FROM `tabEmail Queue` WHERE
-		`status`='Sent' AND `creation` > (NOW() - INTERVAL '24' HOUR)""")[0][0]
+		`status` in ('Sent', 'Not Sent', 'Sending') AND `creation` > (NOW() - INTERVAL '24' HOUR)""")[0][0]
 
 def get_unsubscribe_message(unsubscribe_message, expose_recipients):
 	if unsubscribe_message:
@@ -551,7 +551,7 @@ def prepare_message(email, recipient, recipients_list):
 				print_format_file.update({"parent": message})
 				add_attachment(**print_format_file)
 
-	return message.as_string()
+	return safe_encode(message.as_string())
 
 def clear_outbox():
 	"""Remove low priority older than 31 days in Outbox and expire mails not sent for 7 days.
