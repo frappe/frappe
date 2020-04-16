@@ -1,0 +1,21 @@
+{% if google_font %}
+@import url('https://fonts.googleapis.com/css?family={{ google_font.replace(' ', '+') }}:{{ font_properties }}&display=swap');
+$font-family-sans-serif: "{{ google_font }}", -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+{% endif %}
+
+{% if primary_color %}$primary: {{ primary_color }};{% endif %}
+{% if dark_color %}$dark: {{ dark_color }};{% endif %}
+{% if text_color %}$body-color: {{ text_color }};{% endif %}
+{% if background_color %}$body-bg: {{ background_color }};{% endif %}
+
+$enable-shadows: {{ enable_shadows and "true" or "false" }};
+$enable-gradients: {{ enable_gradients and "true" or "false" }};
+$enable-rounded: {{ enable_rounded and "true" or "false" }};
+
+@import "frappe/public/scss/website";
+
+body {
+    {% if font_size %}
+    font-size: {{ font_size }};
+    {% endif %}
+}
