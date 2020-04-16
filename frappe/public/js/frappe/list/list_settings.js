@@ -1,9 +1,10 @@
 export default class ListSettings {
-	constructor({ doctype, meta, settings }) {
+	constructor({ listview, doctype, meta, settings }) {
 		if (!doctype) {
 			frappe.throw(__('Doctype required'));
 		}
 
+		this.listview = listview;
 		this.doctype = doctype;
 		this.meta = meta;
 		this.settings = settings;
@@ -33,13 +34,24 @@ export default class ListSettings {
 		me.dialog.set_values(me.settings);
 		me.dialog.set_primary_action(__('Save'), () => {
 			let values = me.dialog.get_values();
-			frappe.call("frappe.desk.doctype.list_view_settings.list_view_settings.save_listview_settings", {
-				doctype: me.doctype,
-				listview_settings: values,
-				removed_listview_fields: me.removed_fields || []
+
+			frappe.show_alert({
+				message: __("Saving"),
+				indicator: "green"
 			});
-			me.dialog.hide();
-			frappe.ui.toolbar.clear_cache();
+
+			frappe.call({
+				method: "frappe.desk.doctype.list_view_settings.list_view_settings.save_listview_settings",
+				args: {
+					doctype: me.doctype,
+					listview_settings: values,
+					removed_listview_fields: me.removed_fields || []
+				},
+				callback: function (r) {
+					me.listview.refresh_columns(r.message.meta, r.message.listview_settings);
+					me.dialog.hide();
+				}
+			});
 		});
 
 		me.dialog.fields_dict["total_fields"].df.onchange = () => me.refresh();
@@ -49,7 +61,6 @@ export default class ListSettings {
 		let me = this;
 
 		me.setup_fields();
-		me.update_fields();
 		me.add_new_fields();
 		me.setup_remove_fields();
 	}
@@ -115,6 +126,7 @@ export default class ListSettings {
 			handle: '.sortable-handle',
 			draggable: '.sortable',
 			onUpdate: () => {
+				me.update_fields();
 				me.refresh();
 			}
 		});
@@ -141,18 +153,19 @@ export default class ListSettings {
 
 	remove_fields(fieldname) {
 		let me = this;
+		let existing_fields = me.fields.map(f => f.fieldname);
 
 		for (let idx in me.fields) {
 			let field = me.fields[idx];
 
 			if (field.fieldname == fieldname) {
-				console.log(idx);
 				me.fields.splice(idx, 1);
 				break;
 			}
 		}
-
+		me.set_removed_fields(me.get_removed_listview_fields(me.fields.map(f => f.fieldname), existing_fields));
 		me.refresh();
+		me.update_fields();
 	}
 
 	update_fields() {
@@ -197,8 +210,8 @@ export default class ListSettings {
 		});
 		d.set_primary_action(__('Save'), () => {
 			let values = d.get_values().fields;
-			me.removed_fields = me.get_removed_listview_fields(values)
-			me.new_fields = values
+
+			me.set_removed_fields(me.get_removed_listview_fields(values, me.fields.map(f => f.fieldname)));
 
 			me.fields = [];
 			me.set_subject_field(me.meta);
@@ -303,11 +316,9 @@ export default class ListSettings {
 		return multiselect_fields
 	}
 
-	get_removed_listview_fields(new_fields) {
+	get_removed_listview_fields(new_fields, existing_fields) {
 		let me = this;
-
 		let removed_fields = []
-		let existing_fields = me.fields.map(f => f.fieldname);
 
 		existing_fields.forEach(column => {
 			if (!in_list(new_fields, column)) {
@@ -316,5 +327,15 @@ export default class ListSettings {
 		});
 
 		return removed_fields;
+	}
+
+	set_removed_fields(fields) {
+		let me = this;
+
+		if (me.removed_fields) {
+			me.removed_fields.concat(fields);
+		} else {
+			me.removed_fields = fields;
+		}
 	}
 }

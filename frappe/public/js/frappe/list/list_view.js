@@ -232,6 +232,32 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 	}
 
+	refresh_columns(meta, list_view_settings) {
+		this.meta = meta;
+		this.list_view_settings = list_view_settings;
+
+		this.setup_columns();
+		this.refresh(true);
+	}
+
+	refresh(refresh_header=false) {
+		this.freeze(true);
+		// fetch data from server
+		return frappe.call(this.get_call_args()).then(r => {
+			// render
+			this.prepare_data(r);
+			this.toggle_result_area();
+			this.before_render();
+			this.render_header(refresh_header);
+			this.render();
+			this.after_render();
+			this.freeze(false);
+			if (this.settings.refresh) {
+				this.settings.refresh(this);
+			}
+		});
+	}
+
 	setup_freeze_area() {
 		this.$freeze =
 			$(`<div class="freeze flex justify-center align-center text-muted">${__('Loading')}...</div>`)
@@ -329,6 +355,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		}
 
 		this.columns = this.columns.slice(0, this.list_view_settings.total_fields || total_fields);
+		console.log(this.columns);
 	}
 
 	get_documentation_link() {
@@ -415,7 +442,11 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		}
 	}
 
-	render_header() {
+	render_header(refresh_header=false) {
+		if (refresh_header) {
+			this.$result.find('.list-row-head').remove();
+		}
+
 		if (this.$result.find('.list-row-head').length === 0) {
 			// append header once
 			this.$result.prepend(this.get_header_html());
@@ -1315,6 +1346,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	show_list_settings() {
 		frappe.model.with_doctype(this.doctype, () => {
 			new ListSettings({
+				listview: this,
 				doctype: this.doctype,
 				settings: this.list_view_settings,
 				meta: frappe.get_meta(this.doctype)

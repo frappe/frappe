@@ -35,17 +35,22 @@ def save_listview_settings(doctype, listview_settings, removed_listview_fields):
 
 	set_listview_fields(doctype, listview_settings.get("fields"), removed_listview_fields)
 
+	return {
+		"meta": frappe.get_meta(doctype, False),
+		"listview_settings": doc
+	}
+
 def set_listview_fields(doctype, listview_fields, removed_listview_fields):
 	meta = frappe.get_meta(doctype)
 
 	if isinstance(listview_fields, string_types):
 		listview_fields = [f.get("fieldname") for f in json.loads(listview_fields)]
 
-	for field in listview_fields:
-		set_in_list_view_property(doctype, meta.get_field(field), "1")
-
 	for field in removed_listview_fields:
 		set_in_list_view_property(doctype, meta.get_field(field), "0")
+
+	for field in listview_fields:
+		set_in_list_view_property(doctype, meta.get_field(field), "1")
 
 def set_in_list_view_property(doctype, field, value):
 	property_setter = frappe.db.get_value("Property Setter", {"doc_type": doctype, "field_name": field.fieldname, "property": "in_list_view"})
