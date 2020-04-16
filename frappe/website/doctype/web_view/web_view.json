@@ -52,8 +52,9 @@
   }
  ],
  "has_web_view": 1,
+ "is_published_field": "published",
  "links": [],
- "modified": "2020-04-15 14:26:10.619893",
+ "modified": "2020-04-15 23:58:12.208049",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Web View",
@@ -84,6 +85,7 @@
    "write": 1
   }
  ],
+ "route": "route",
  "sort_field": "creation",
  "sort_order": "DESC",
  "track_changes": 1
