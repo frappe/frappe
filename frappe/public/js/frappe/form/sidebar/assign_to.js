@@ -184,32 +184,18 @@ frappe.ui.form.AssignToDialog = Class.extend({
 			me.dialog.set_value("description", me.frm.doc[me.frm.meta.title_field]);
 		}
 	},
-	set_assign_to_field_description: function() {
-		let me = this;
-
-		let assignees = me.dialog.get_value("assign_to");
-		let field = me.dialog.get_field("assign_to");
-		let description = "";
-
-		if (assignees.length > 0) {
-			description = "Assign To: " + assignees.join(", ");
-		}
-
-		field.set_description(description);
-	},
 	get_fields: function() {
 		let me = this;
 
 		return [
 			{
-				fieldtype: 'MultiSelectList',
+				fieldtype: 'MultiSelectPills',
 				fieldname: 'assign_to',
 				label: __("Assign To"),
 				reqd: true,
 				get_data: function(txt) {
 					return frappe.db.get_link_options("User", txt, {user_type: "System User", enabled: 1});
-				},
-				onchange: () => me.set_assign_to_field_description()
+				}
 			},
 			{
 				label: __("Assign to me"),
@@ -242,9 +228,18 @@ frappe.ui.form.AssignToDialog = Class.extend({
 				fieldtype: 'Select',
 				fieldname: 'priority',
 				options: [
-					{ value: 'Low', label: __('Low') },
-					{ value: 'Medium', label: __('Medium') },
-					{ value: 'High', label: __('High') }
+					{
+						value: 'Low',
+						label: __('Low')
+					},
+					{
+						value: 'Medium',
+						label: __('Medium')
+					},
+					{
+						value: 'High',
+						label: __('High')
+					}
 				],
 				// Pick up priority from the source document, if it exists and is available in ToDo
 				default: ["Low", "Medium", "High"].includes(me.frm && me.frm.doc.priority ? me.frm.doc.priority : 'Medium')
