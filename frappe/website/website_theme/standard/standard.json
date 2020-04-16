@@ -5,12 +5,12 @@
  "doctype": "Website Theme",
  "font_properties": "300,600",
  "idx": 26,
- "modified": "2020-04-16 11:23:03.707474",
+ "modified": "2020-04-16 18:23:34.573404",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Standard",
  "owner": "Administrator",
  "theme": "Standard",
  "theme_scss": "\n\n\n\n\n\n\n$enable-shadows: false;\n$enable-gradients: false;\n$enable-rounded: false;\n\n@import \"frappe/public/scss/website\";\n\nbody {\n    \n}",
- "theme_url": "/assets/css/standard_25d87270.css"
+ "theme_url": "/assets/css/standard_a9402c50.css"
 }

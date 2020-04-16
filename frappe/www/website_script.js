@@ -17,7 +17,7 @@ ga('send', 'pageview');
 	if (navigator.doNotTrack != 1) {
 		frappe.ready(() => {
 			let browser = frappe.utils.get_browser();
-			frappe.call("frappe.website.doctype.page_view.page_view.make_view_log", {
+			frappe.call("frappe.website.doctype.web_page_view.web_page_view.make_view_log", {
 				path: location.pathname,
 				referrer: document.referrer,
 				browser: browser.name,

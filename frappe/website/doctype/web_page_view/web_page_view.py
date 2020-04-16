@@ -6,7 +6,7 @@ from __future__ import unicode_literals
 import frappe
 from frappe.model.document import Document
 
-class PageView(Document):
+class WebPageView(Document):
 	pass
 
 
@@ -16,7 +16,7 @@ def make_view_log(path, referrer=None, browser=None, version=None):
 		path = path[1:]
 
 	if is_tracking_enabled():
-		view = frappe.new_doc("Page View")
+		view = frappe.new_doc("Web Page View")
 		view.path = path
 		view.referrer = referrer
 		view.browser = browser
@@ -28,7 +28,7 @@ def make_view_log(path, referrer=None, browser=None, version=None):
 
 @frappe.whitelist()
 def get_page_view_count(path):
-	return frappe.db.count("Page View", filters={'path': path})
+	return frappe.db.count("Web Page View", filters={'path': path})
 
 def is_tracking_enabled():
 	return frappe.db.get_value("Website Settings", "Website Settings", "enable_view_tracking")
