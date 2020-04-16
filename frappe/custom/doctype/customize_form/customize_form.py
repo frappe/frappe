@@ -371,7 +371,12 @@ class CustomizeForm(Document):
 		for allowed_changes in allowed_fieldtype_change:
 			if (old_value in allowed_changes and new_value in allowed_changes):
 				allowed = True
-				if frappe.db.type_map.get(old_value)[1] > frappe.db.type_map.get(new_value)[1]:
+				old_value_length = cint(frappe.db.type_map.get(old_value)[1])
+				new_value_length = cint(frappe.db.type_map.get(new_value)[1])
+
+				# Ignore fieldtype check validation if new field type has unspecified maxlength
+				# Changes like DATA to TEXT, where new_value_lenth equals 0 will not be validated
+				if new_value_length and (old_value_length > new_value_length):
 					self.check_length_for_fieldtypes.append({'df': df, 'old_value': old_value})
 					self.validate_fieldtype_length()
 				else:
@@ -383,7 +388,7 @@ class CustomizeForm(Document):
 	def validate_fieldtype_length(self):
 		for field in self.check_length_for_fieldtypes:
 			df = field.get('df')
-			max_length = frappe.db.type_map.get(df.fieldtype)[1]
+			max_length = cint(frappe.db.type_map.get(df.fieldtype)[1])
 			fieldname = df.fieldname
 			docs = frappe.db.sql('''
 				SELECT name, {fieldname}, LENGTH({fieldname}) AS len
