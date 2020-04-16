@@ -128,22 +128,6 @@ def get_aggregate_function(chart_type):
 		"Average": "AVG",
 	}[chart_type]
 
-def convert_to_dates(data, timegrain):
-	result = []
-	for d in data:
-		if timegrain == 'Daily':
-			result.append([add_to_date('{:d}-01-01'.format(int(d[0])), days = d[1] - 1), d[2]])
-		elif timegrain == 'Weekly':
-			result.append([add_to_date(add_to_date('{:d}-01-01'.format(int(d[0])), weeks = d[1] + 1), days = -1), d[2]])
-		elif timegrain == 'Monthly':
-			result.append([add_to_date(add_to_date('{:d}-01-01'.format(int(d[0])), months = d[1]), days = -1), d[2]])
-		elif timegrain == 'Quarterly':
-			result.append([add_to_date(add_to_date('{:d}-01-01'.format(int(d[0])), months = d[1] * 3), days = -1), d[2]])
-
-		result[-1][0] = getdate(result[-1][0])
-
-	return result
-
 def get_result(data, timegrain, from_date, to_date):
 	start_date = getdate(from_date)
 	end_date = getdate(to_date)
