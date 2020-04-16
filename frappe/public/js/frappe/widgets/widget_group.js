@@ -7,13 +7,23 @@ import NewWidget from "../widgets/new_widget";
 
 frappe.provide("frappe.widget");
 
-const widget_factory = {
+frappe.widget.widget_factory = {
 	chart: ChartWidget,
 	base: BaseWidget,
 	shortcut: ShortcutWidget,
 	links: LinksWidget,
 	onboarding: OnboardingWidget,
 };
+
+frappe.widget.make_widget = (opts) => {
+	const widget_class = frappe.widget.widget_factory[opts.widget_type];
+	if (widget_class) {
+		return new widget_class(opts)
+	} else {
+		// eslint-disable-next-line
+		console.warn("Invalid Widget Name: " + opts.widget_type);
+	}
+}
 
 export default class WidgetGroup {
 	constructor(opts) {
@@ -59,9 +69,7 @@ export default class WidgetGroup {
 	}
 
 	add_widget(widget) {
-		const widget_class = widget_factory[this.type];
-
-		let widget_object = new widget_class({
+		let widget_object = frappe.widget.make_widget({
 			...widget,
 			widget_type: this.type,
 			container: this.body,
