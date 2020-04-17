@@ -135,7 +135,7 @@ def verify_transaction_status(paytm_config, order_id):
 	finalize_request(order_id, response)
 
 def finalize_request(order_id, transaction_response):
-	request = frappe.db.get_value('Integration Request', order_id)
+	request = frappe.get_doc('Integration Request', order_id)
 	redirect_to = request.data.get('redirect_to') or None
 	redirect_message = request.data.get('redirect_message') or None
 
@@ -144,8 +144,10 @@ def finalize_request(order_id, transaction_response):
 			custom_redirect_to = None
 			try:
 				custom_redirect_to = frappe.get_doc(request.data.reference_doctype,
-					request.data.reference_docname).run_method("on_payment_authorized", request.flags.status_changed_to)
+					request.data.reference_docname).run_method("on_payment_authorized", 'Completed')
+				request.db_set('status', 'Completed')
 			except Exception:
+				request.db_set('status', 'Failed')
 				frappe.log_error(frappe.get_traceback())
 
 			if custom_redirect_to:
@@ -153,6 +155,7 @@ def finalize_request(order_id, transaction_response):
 
 			redirect_url = 'payment-success'
 	else:
+		request.db_set('status', 'Failed')
 		redirect_url = 'payment-failed'
 
 	if redirect_to:
