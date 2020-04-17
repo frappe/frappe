@@ -1,3 +1,6 @@
+# imports - compatibility imports
+from __future__ import unicode_literals, absolute_import, print_function
+
 # imports - standard imports
 import atexit
 import compileall
