@@ -11,7 +11,15 @@ class WebPageView(Document):
 
 
 @frappe.whitelist(allow_guest=True)
-def make_view_log(path, referrer=None, browser=None, version=None):
+def make_view_log(path, referrer=None, browser=None, version=None, url=None, user_tz=None):
+	from pprint import pprint
+	request_dict = frappe.request.__dict__
+	user_agent = request_dict.get('environ', {}).get('HTTP_USER_AGENT')
+
+	is_unique = True
+	if referrer.startswith(url):
+		is_unique = False
+
 	if path.startswith('/'):
 		path = path[1:]
 
@@ -21,7 +29,9 @@ def make_view_log(path, referrer=None, browser=None, version=None):
 		view.referrer = referrer
 		view.browser = browser
 		view.browser_version = version
-		view.date = frappe.utils.now_datetime()
+		view.time_zone = user_tz
+		view.user_agent = user_agent
+		view.is_unique = is_unique
 		view.insert(ignore_permissions=True)
 
 	return

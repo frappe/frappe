@@ -21,7 +21,9 @@ ga('send', 'pageview');
 				path: location.pathname,
 				referrer: document.referrer,
 				browser: browser.name,
-				version: browser.version
+				version: browser.version,
+				url: location.origin,
+				user_tz: Intl.DateTimeFormat().resolvedOptions().timeZone
 			})
 		})
 	}
