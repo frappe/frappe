@@ -91,8 +91,8 @@ export default class Widget {
 		this.refresh();
 	}
 
-	set_title() {
-		this.title_field[0].innerHTML = this.label;
+	set_title(title) {
+		this.title_field[0].innerHTML = title || this.label;
 	}
 
 	add_custom_button(html, action, class_name = "") {

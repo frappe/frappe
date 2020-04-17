@@ -42,8 +42,8 @@ export default class OnboardingWidget extends Widget {
 		return false
 	}
 
-	set_title() {
-		super.set_title();
+	set_title(title) {
+		super.set_title(title);
 		let subtitle = $(`<div class="widget-subtitle">${this.subtitle}</div>`);
 		subtitle.appendTo(this.title_field);
 	}
