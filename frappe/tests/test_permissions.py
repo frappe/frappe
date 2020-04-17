@@ -314,6 +314,8 @@ class TestPermissions(unittest.TestCase):
 
 		frappe.set_user('Administrator')
 		frappe.db.sql('DELETE FROM `tabContact`')
+		frappe.db.sql('DELETE FROM `tabContact Email`')
+		frappe.db.sql('DELETE FROM `tabContact Phone`')
 
 		reset('Salutation')
 		reset('Contact')

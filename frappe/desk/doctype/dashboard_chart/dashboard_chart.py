@@ -10,7 +10,50 @@ import json
 from frappe.core.page.dashboard.dashboard import cache_source, get_from_date_from_timespan
 from frappe.utils import nowdate, add_to_date, getdate, get_last_day, formatdate, get_datetime
 from frappe.model.naming import append_number_if_name_exists
+from frappe.boot import get_allowed_reports
 from frappe.model.document import Document
+
+
+def get_permission_query_conditions(user):
+
+	if not user:
+		user = frappe.session.user
+
+	if user == 'Administrator':
+		return
+
+	roles = frappe.get_roles(user)
+	if "System Manager" in roles:
+		return None
+
+	allowed_doctypes = tuple(frappe.permissions.get_doctypes_with_read())
+	allowed_reports = tuple([key.encode('UTF8') for key in get_allowed_reports()])
+
+	return '''
+			`tabDashboard Chart`.`document_type` in {allowed_doctypes}
+			or `tabDashboard Chart`.`report_name` in {allowed_reports}
+		'''.format(
+			allowed_doctypes=allowed_doctypes,
+			allowed_reports=allowed_reports
+		)
+
+
+def has_permission(doc, ptype, user):
+	roles = frappe.get_roles(user)
+	if "System Manager" in roles:
+		return True
+
+
+	if doc.chart_type == 'Report':
+		allowed_reports = tuple([key.encode('UTF8') for key in get_allowed_reports()])
+		if doc.report_name in allowed_reports:
+			return True
+	else:
+		allowed_doctypes = tuple(frappe.permissions.get_doctypes_with_read())
+		if doc.document_type in allowed_doctypes:
+			return True
+
+	return False
 
 @frappe.whitelist()
 @cache_source
@@ -274,7 +317,7 @@ def get_week_ending(date):
 	if week_of_the_year == 52:
 		date = add_to_date(date, years=1)
 	# first day of next week
-	date = add_to_date('{}-01-01'.format(date.year), weeks = (week_of_the_year + 1)%52)
+	date = add_to_date('{}-01-01'.format(date.year), weeks = (week_of_the_year%52) + 1)
 	# last day of this week
 	return add_to_date(date, days=-1)
 

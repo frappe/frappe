@@ -12,7 +12,7 @@ from frappe import _
 from frappe.utils import cint
 from frappe.model.document import Document
 from frappe.model import no_value_fields, core_doctypes_list
-from frappe.core.doctype.doctype.doctype import validate_fields_for_doctype
+from frappe.core.doctype.doctype.doctype import validate_fields_for_doctype, check_email_append_to
 from frappe.custom.doctype.custom_field.custom_field import create_custom_field
 from frappe.model.docfield import supports_translation
 
@@ -31,7 +31,10 @@ doctype_properties = {
 	'track_changes': 'Check',
 	'track_views': 'Check',
 	'allow_auto_repeat': 'Check',
-	'allow_import': 'Check'
+	'allow_import': 'Check',
+	'email_append_to': 'Check',
+	'subject_field': 'Data',
+	'sender_field': 'Data'
 }
 
 docfield_properties = {
@@ -166,11 +169,11 @@ class CustomizeForm(Document):
 
 		self.flags.update_db = False
 		self.flags.rebuild_doctype_for_global_search = False
-
 		self.set_property_setters()
 		self.update_custom_fields()
 		self.set_name_translation()
 		validate_fields_for_doctype(self.doc_type)
+		check_email_append_to(self)
 
 		if self.flags.update_db:
 			frappe.db.updatedb(self.doc_type)
@@ -205,9 +208,11 @@ class CustomizeForm(Document):
 						self.validate_fieldtype_change(df, meta_df[0].get(property), df.get(property))
 
 					elif property == "allow_on_submit" and df.get(property):
-						frappe.msgprint(_("Row {0}: Not allowed to enable Allow on Submit for standard fields")\
-							.format(df.idx))
-						continue
+						if not frappe.db.get_value("DocField",
+							{"parent": self.doc_type, "fieldname": df.fieldname}, "allow_on_submit"):
+							frappe.msgprint(_("Row {0}: Not allowed to enable Allow on Submit for standard fields")\
+								.format(df.idx))
+							continue
 
 					elif property == "reqd" and \
 						((frappe.db.get_value("DocField",
@@ -362,12 +367,53 @@ class CustomizeForm(Document):
 
 	def validate_fieldtype_change(self, df, old_value, new_value):
 		allowed = False
+		self.check_length_for_fieldtypes = []
 		for allowed_changes in allowed_fieldtype_change:
 			if (old_value in allowed_changes and new_value in allowed_changes):
 				allowed = True
+				old_value_length = cint(frappe.db.type_map.get(old_value)[1])
+				new_value_length = cint(frappe.db.type_map.get(new_value)[1])
+
+				# Ignore fieldtype check validation if new field type has unspecified maxlength
+				# Changes like DATA to TEXT, where new_value_lenth equals 0 will not be validated
+				if new_value_length and (old_value_length > new_value_length):
+					self.check_length_for_fieldtypes.append({'df': df, 'old_value': old_value})
+					self.validate_fieldtype_length()
+				else:
+					self.flags.update_db = True
 				break
 		if not allowed:
 			frappe.throw(_("Fieldtype cannot be changed from {0} to {1} in row {2}").format(old_value, new_value, df.idx))
+
+	def validate_fieldtype_length(self):
+		for field in self.check_length_for_fieldtypes:
+			df = field.get('df')
+			max_length = cint(frappe.db.type_map.get(df.fieldtype)[1])
+			fieldname = df.fieldname
+			docs = frappe.db.sql('''
+				SELECT name, {fieldname}, LENGTH({fieldname}) AS len
+				FROM `tab{doctype}`
+				WHERE LENGTH({fieldname}) > {max_length}
+			'''.format(
+				fieldname=fieldname,
+				doctype=self.doc_type,
+				max_length=max_length
+			), as_dict=True)
+			links = []
+			label = df.label
+			for doc in docs:
+				links.append(frappe.utils.get_link_to_form(self.doc_type, doc.name))
+			links_str = ', '.join(links)
+
+			if docs:
+				frappe.throw(_('Value for field {0} is too long in {1}. Length should be lesser than {2} characters')
+					.format(
+						frappe.bold(label),
+						links_str,
+						frappe.bold(max_length)
+					), title=_('Data Too Long'), is_minimizable=len(docs) > 1)
+
+		self.flags.update_db = True
 
 	def reset_to_defaults(self):
 		if not self.doc_type:

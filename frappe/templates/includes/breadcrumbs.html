@@ -4,9 +4,10 @@
 		<ol class="breadcrumb" itemscope itemtype="http://schema.org/BreadcrumbList">
 			{%- set parents = parents[-3:] %}
 			{% for parent in parents %}
-				<li class="breadcrumb-item">
-					<a href="{{ url_prefix }}{{ parent.route | abs_url }}" itemprop="url">
-						{{ parent.title or parent.label or parent.name or "" }}
+				<li itemprop="itemListElement" itemscope itemtype="http://schema.org/ListItem" class="breadcrumb-item">
+					<a itemprop="item" href="{{ url_prefix }}{{ parent.route | abs_url }}" itemprop="url">
+						<span itemprop="name">{{ parent.title or parent.label or parent.name or "" }}</span>
+						<meta itemprop="position" content="{{ loop.index }}" />
 					</a>
 				</li>
 			{% endfor %}

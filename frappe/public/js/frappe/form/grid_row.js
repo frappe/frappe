@@ -22,6 +22,9 @@ export default class GridRow {
 				if(me.grid.allow_on_grid_editing() && me.grid.is_editable()) {
 					// pass
 				} else {
+					if (!me.grid.is_editable()) {
+						me.docfields.map(df => df.read_only = 1);
+					}
 					me.toggle_view();
 					return false;
 				}
@@ -547,6 +550,7 @@ export default class GridRow {
 	hide_form() {
 		frappe.dom.unfreeze();
 		this.row.toggle(true);
+		frappe.utils.scroll_to(this.row, true, 15);
 		this.refresh();
 		if(cur_frm) cur_frm.cur_grid = null;
 		this.wrapper.removeClass("grid-row-open");

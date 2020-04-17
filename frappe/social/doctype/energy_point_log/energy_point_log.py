@@ -9,6 +9,8 @@ import json
 from frappe.model.document import Document
 from frappe.desk.doctype.notification_log.notification_log import enqueue_create_notification,\
 	get_title, get_title_html
+from frappe.desk.doctype.notification_settings.notification_settings\
+	import is_email_notifications_enabled_for_type, is_email_notifications_enabled
 from frappe.utils import cint, get_fullname, getdate, get_link_to_form
 
 class EnergyPointLog(Document):
@@ -300,6 +302,10 @@ def send_summary(timespan):
 
 	if not is_energy_point_enabled():
 		return
+
+	if not is_email_notifications_enabled_for_type(frappe.session.user, 'Energy Point'):
+		return
+
 	from_date = frappe.utils.add_to_date(None, weeks=-1)
 	if timespan == 'Monthly':
 		from_date = frappe.utils.add_to_date(None, months=-1)

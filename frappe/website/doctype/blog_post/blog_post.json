@@ -1,4 +1,5 @@
 {
+ "actions": [],
  "allow_guest_to_view": 1,
  "allow_import": 1,
  "creation": "2013-03-28 10:35:30",
@@ -9,6 +10,7 @@
   "title",
   "published_on",
   "published",
+  "disable_comments",
   "column_break_3",
   "blog_category",
   "blogger",
@@ -114,14 +116,22 @@
    "fieldtype": "Check",
    "hidden": 1,
    "label": "Email Sent"
+  },
+  {
+   "default": "0",
+   "description": "Comments on this blog post will be disabled if checked.",
+   "fieldname": "disable_comments",
+   "fieldtype": "Check",
+   "label": "Disable Comments"
   }
  ],
  "has_web_view": 1,
  "icon": "fa fa-quote-left",
  "idx": 1,
  "is_published_field": "published",
+ "links": [],
  "max_attachments": 5,
- "modified": "2019-11-18 11:14:56.402471",
+ "modified": "2020-04-08 19:58:13.672332",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Blog Post",

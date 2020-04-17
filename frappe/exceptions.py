@@ -78,6 +78,7 @@ class TimestampMismatchError(ValidationError): pass
 class EmptyTableError(ValidationError): pass
 class LinkExistsError(ValidationError): pass
 class InvalidEmailAddressError(ValidationError): pass
+class InvalidPhoneNumberError(ValidationError): pass
 class TemplateNotFoundError(ValidationError): pass
 class UniqueValidationError(ValidationError): pass
 class AppNotInstalledError(ValidationError): pass
@@ -91,3 +92,7 @@ class InvalidColumnName(ValidationError): pass
 class IncompatibleApp(ValidationError): pass
 class InvalidDates(ValidationError): pass
 class DataTooLongException(ValidationError): pass
+# OAuth exceptions
+class InvalidAuthorizationHeader(CSRFTokenError): pass
+class InvalidAuthorizationPrefix(CSRFTokenError): pass
+class InvalidAuthorizationToken(CSRFTokenError): pass
