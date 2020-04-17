@@ -80,10 +80,11 @@ def get_user_default_value(df, defaults, doctype_user_permissions, allowed_recor
 			and not df.ignore_user_permissions and default_doc):
 				return default_doc
 
+		user_default = None
 		# 2 - Look in field defaults before setting value from user defaults
 		if df.get("default"):
 			user_default = df.get("default")
-		else if df.get("default") and df.get("default").startswith(":"):
+		elif df.get("default") and df.get("default").startswith(":"):
 			default_value = get_default_based_on_another_field(df, user_permissions, parent_doc)
 			if default_value is not None and not doc.get(df.fieldname):
 				user_default = default_value
