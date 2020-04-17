@@ -53,20 +53,26 @@ frappe.views.ListGroupBy = class ListGroupBy {
 
 	render_group_by_items() {
 		let get_item_html = (fieldname) => {
-			let label;
+			let label, fieldtype;
 			if (fieldname === 'assigned_to') {
 				label = __('Assigned To');
 			} else if (fieldname === 'owner') {
 				label = __('Created By');
 			} else {
 				label = frappe.meta.get_label(this.doctype, fieldname);
+				let docfield = frappe.meta.get_docfield(this.doctype, fieldname);
+				if (!docfield) {
+					return;
+				}
+				fieldtype = docfield.fieldtype;
 			}
 
 			return `<li class="group-by-field list-link">
 				<div class="btn-group">
 					<a class = "dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
-					data-label="${label}" data-fieldname="${fieldname}" href="#" onclick="return false;">
-						${__(label)}<span class="caret"></span>
+					data-label="${label}" data-fieldname="${fieldname}" data-fieldtype="${fieldtype}"
+					href="#" onclick="return false;">
+						${__(label)} <span class="caret"></span>
 					</a>
 					<ul class="dropdown-menu group-by-dropdown" role="menu">
 						<li><div class="list-loading text-center group-by-loading text-muted">
@@ -85,9 +91,10 @@ frappe.views.ListGroupBy = class ListGroupBy {
 		this.$wrapper.on('click', '.group-by-field', (e)=> {
 			let dropdown = $(e.currentTarget).find('.group-by-dropdown');
 			let fieldname = $(e.currentTarget).find('a').attr('data-fieldname');
+			let fieldtype = $(e.currentTarget).find('a').attr('data-fieldtype');
 			this.get_group_by_count(fieldname).then(field_count_list => {
 				if (field_count_list.length) {
-					this.render_dropdown_items(field_count_list, dropdown);
+					this.render_dropdown_items(field_count_list, fieldtype, dropdown);
 					this.sidebar.setup_dropdown_search(dropdown, '.group-by-value');
 				} else {
 					dropdown.find('.group-by-loading').html(`${__("No filters found")}`);
@@ -98,7 +105,7 @@ frappe.views.ListGroupBy = class ListGroupBy {
 
 	get_group_by_dropdown_fields() {
 		let group_by_fields = [];
-		let fields = this.list_view.meta.fields.filter((f)=> ["Select", "Link"].includes(f.fieldtype));
+		let fields = this.list_view.meta.fields.filter((f)=> ["Select", "Link", "Data", "Int", "Check"].includes(f.fieldtype));
 		group_by_fields.push({
 			label: __(this.doctype),
 			fieldname: 'group_by_fields',
@@ -118,7 +125,8 @@ frappe.views.ListGroupBy = class ListGroupBy {
 		let current_filters = this.list_view.get_filters_for_args();
 
 		// remove filter of the current field
-		current_filters = current_filters.filter((f_arr) => !f_arr.includes(field === 'assigned_to' ? '_assign': field));
+		current_filters =
+			current_filters.filter((f_arr) => !f_arr.includes(field === 'assigned_to' ? '_assign': field));
 
 		let args =  {
 			doctype: this.doctype,
@@ -138,11 +146,13 @@ frappe.views.ListGroupBy = class ListGroupBy {
 		});
 	}
 
-	render_dropdown_items(fields, dropdown) {
+	render_dropdown_items(fields, fieldtype, dropdown) {
 		let get_dropdown_html = (field) => {
 			let label = field.name == null ? __('Not Specified') : field.name;
 			if (label === frappe.session.user) {
 				label = __('Me');
+			} else if (fieldtype && fieldtype == 'Check') {
+				label = label == '0'? __('No'): __('Yes');
 			}
 			let value = field.name == null ? '' : encodeURIComponent(field.name);
 
@@ -167,7 +177,9 @@ frappe.views.ListGroupBy = class ListGroupBy {
 		this.$wrapper.on('click', '.group-by-item', (e) => {
 			let $target = $(e.currentTarget);
 			let fieldname = $target.parents('.group-by-field').find('a').data('fieldname');
-			let value = decodeURIComponent($target.data('value').trim());
+			let value = typeof $target.data('value') === 'string'
+				? decodeURIComponent($target.data('value').trim())
+				: $target.data('value');
 			fieldname = fieldname === 'assigned_to' ? '_assign': fieldname;
 
 			return this.list_view.filter_area.remove(fieldname)

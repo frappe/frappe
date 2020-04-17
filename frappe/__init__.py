@@ -23,7 +23,7 @@ if sys.version[0] == '2':
 	reload(sys)
 	sys.setdefaultencoding("utf-8")
 
-__version__ = '12.4.1'
+__version__ = '12.5.0'
 __title__ = "Frappe Framework"
 
 local = Local()
@@ -580,6 +580,7 @@ def clear_cache(user=None, doctype=None):
 	else: # everything
 		from frappe import translate
 		frappe.cache_manager.clear_user_cache()
+		frappe.cache_manager.clear_domain_cache()
 		translate.clear_cache()
 		reset_metadata_version()
 		local.cache = {}
