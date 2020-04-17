@@ -1,6 +1,7 @@
 import frappe
 
 def execute():
+	frappe.reload_doctype('Website Theme')
 	for theme in frappe.get_all('Website Theme'):
 		doc = frappe.get_doc('Website Theme', theme.name)
 		if not doc.custom_scss and doc.theme_scss:
