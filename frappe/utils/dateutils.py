@@ -73,3 +73,9 @@ def datetime_in_user_format(date_time):
 		date_time = get_datetime(date_time)
 	from frappe.utils import formatdate
 	return formatdate(date_time.date()) + " " + date_time.strftime("%H:%M")
+
+def get_date_range(from_date, to_date, frequency="M", normalize=True):
+	from pandas import date_range
+	date_range = date_range(start=from_date, end=to_date, freq=frequency, normalize=normalize).to_pydatetime().tolist()
+
+	return date_range
