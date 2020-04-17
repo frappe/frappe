@@ -11,6 +11,7 @@ class TestDBUpdate(unittest.TestCase):
 		frappe.reload_doctype('User', force=True)
 		frappe.model.meta.trim_tables('User')
 		make_property_setter(doctype, 'bio', 'fieldtype', 'Text', 'Data')
+		make_property_setter(doctype, 'middle_name', 'fieldtype', 'Data', 'Text')
 		make_property_setter(doctype, 'enabled', 'default', '1', 'Int')
 
 		frappe.db.updatedb(doctype)

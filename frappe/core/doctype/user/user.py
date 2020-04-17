@@ -205,7 +205,7 @@ class User(Document):
 						_update_password(user=self.name, pwd=new_password,
 							logout_all_sessions=self.logout_all_sessions)
 
-					if not self.flags.no_welcome_mail and self.send_welcome_email:
+					if not self.flags.no_welcome_mail and cint(self.send_welcome_email):
 						self.send_welcome_mail_to_user()
 						self.flags.email_sent = 1
 						if frappe.session.user != 'Guest':
@@ -577,7 +577,7 @@ def update_password(new_password, logout_all_sessions=0, key=None, old_password=
 		return redirect_url if redirect_url else "/"
 
 @frappe.whitelist(allow_guest=True)
-def test_password_strength(new_password, key=None, old_password=None, user_data=[]):
+def test_password_strength(new_password, key=None, old_password=None, user_data=None):
 	from frappe.utils.password_strength import test_password_strength as _test_password_strength
 
 	password_policy = frappe.db.get_value("System Settings", None,
