@@ -32,7 +32,7 @@ export default class OnboardingWidget extends Widget {
 	}
 
 	is_dismissed() {
-		let dismissed = JSON.parse(localStorage.getItem("dismissed-onboarding")) || {};
+		let dismissed = JSON.parse(localStorage.getItem("dismissed-onboarding") || '{}');
 		if (Object.keys(dismissed).includes(this.label)) {
 			let last_hidden = new Date(dismissed[this.label]);
 			let today = new Date();
@@ -54,7 +54,7 @@ export default class OnboardingWidget extends Widget {
 			`<div class="small" style="cursor:pointer;">Dismiss</div>`
 		);
 		dismiss.on("click", () => {
-			let dismissed = JSON.parse(localStorage.getItem("dismissed-onboarding")) || {};
+			let dismissed = JSON.parse(localStorage.getItem("dismissed-onboarding") || '{}');
 			dismissed[this.label] = frappe.datetime.now_datetime();
 
 			localStorage.setItem(
