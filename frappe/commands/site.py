@@ -81,9 +81,9 @@ def _new_site(db_name, site, mariadb_root_username=None, mariadb_root_password=N
 	installing = touch_file(get_site_path('locks', 'installing.lock'))
 	atexit.register(_new_site_cleanup, site, mariadb_root_username, mariadb_root_password)
 
-	install_db(root_login=mariadb_root_username, root_password=mariadb_root_password,
-				db_name=db_name, admin_password=admin_password, verbose=verbose,
-				source_sql=source_sql, force=force, reinstall=reinstall, db_password=db_password, db_type=db_type, db_host=db_host, db_port=db_port, no_mariadb_socket=no_mariadb_socket)
+	install_db(root_login=mariadb_root_username, root_password=mariadb_root_password, db_name=db_name, 
+		admin_password=admin_password, verbose=verbose, source_sql=source_sql, force=force, reinstall=reinstall,
+		db_password=db_password, db_type=db_type, db_host=db_host, db_port=db_port, no_mariadb_socket=no_mariadb_socket)
 	apps_to_install = ['frappe'] + (frappe.conf.get("install_apps") or []) + (list(install_apps) or [])
 	for app in apps_to_install:
 		_install_app(app, verbose=verbose, set_as_patched=not source_sql)
