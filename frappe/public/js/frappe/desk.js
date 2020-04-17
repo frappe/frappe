@@ -87,7 +87,7 @@ frappe.Application = Class.extend({
 		}
 
 		if (!frappe.boot.developer_mode) {
-			let console_security_message = __("Using this console may allow attackers to impersonate you and steal your information. Do not enter or paste code that you do not understand.")
+			let console_security_message = __("Using this console may allow attackers to impersonate you and steal your information. Do not enter or paste code that you do not understand.");
 			console.log(
 				`%c${console_security_message}`,
 				"font-size: large"
