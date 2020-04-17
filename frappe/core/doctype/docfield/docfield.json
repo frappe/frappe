@@ -102,6 +102,7 @@
   },
   {
    "default": "0",
+   "depends_on": "eval:!in_list([\"Section Break\", \"Column Break\", \"Button\", \"HTML\"], doc.fieldtype)",
    "fieldname": "reqd",
    "fieldtype": "Check",
    "in_list_view": 1,
@@ -452,7 +453,7 @@
  "idx": 1,
  "istable": 1,
  "links": [],
- "modified": "2020-03-16 14:49:49.672099",
+ "modified": "2020-04-15 02:26:03.310781",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocField",

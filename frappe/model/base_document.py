@@ -15,6 +15,7 @@ from frappe.model import display_fieldtypes, data_fieldtypes
 from frappe.utils.password import get_decrypted_password, set_encrypted_password
 from frappe.utils import (cint, flt, now, cstr, strip_html, getdate, get_datetime, to_timedelta,
 	sanitize_html, sanitize_email, cast_fieldtype)
+from frappe.utils.html_utils import unescape_html
 
 max_positive_value = {
 	'smallint': 2 ** 15,
@@ -502,7 +503,19 @@ class BaseDocument(object):
 
 					for _df in fields_to_fetch:
 						if self.is_new() or self.docstatus != 1 or _df.allow_on_submit:
-							setattr(self, _df.fieldname, values[_df.fetch_from.split('.')[-1]])
+							fetch_from_fieldname = _df.fetch_from.split('.')[-1]
+							value = values[fetch_from_fieldname]
+							if _df.fieldtype == 'Small Text' or _df.fieldtype == 'Text' or _df.fieldtype == 'Data':
+								if fetch_from_fieldname in default_fields:
+									from frappe.model.meta import get_default_df
+									fetch_from_df = get_default_df(fetch_from_fieldname)
+								else:
+									fetch_from_df = frappe.get_meta(doctype).get_field(fetch_from_fieldname)
+
+								fetch_from_ft = fetch_from_df.get('fieldtype')
+								if fetch_from_ft == 'Text Editor' and value:
+									value = unescape_html(strip_html(value))
+							setattr(self, _df.fieldname, value)
 
 					notify_link_count(doctype, docname)
 
@@ -543,6 +556,23 @@ class BaseDocument(object):
 
 				frappe.throw(_('{0} {1} cannot be "{2}". It should be one of "{3}"').format(prefix, label,
 					value, comma_options))
+
+	def _validate_data_fields(self):
+		from frappe.core.doctype.user.user import STANDARD_USERS
+
+		# data_field options defined in frappe.model.data_field_options
+		for data_field in self.meta.get_data_fields():
+			data = self.get(data_field.fieldname)
+			data_field_options = data_field.get("options")
+
+			if data_field_options == "Email":
+				if (self.owner in STANDARD_USERS) and (data in STANDARD_USERS):
+					return
+				for email_address in frappe.utils.split_emails(data):
+					frappe.utils.validate_email_address(email_address, throw=True)
+
+			if data_field_options == "Phone":
+				frappe.utils.validate_phone_number(data, throw=True)
 
 	def _validate_constants(self):
 		if frappe.flags.in_import or self.is_new() or self.flags.ignore_validate_constants:

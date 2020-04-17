@@ -461,6 +461,7 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 			});
 		}
 	},
+
 	set_fetch_values: function(df, docname, fetch_values) {
 		var fl = this.frm.fetch_dict[df.fieldname].fields;
 		for(var i=0; i < fl.length; i++) {

@@ -4,8 +4,23 @@
 @import "multilevel-dropdown";
 @import "website-image";
 
+html {
+  height: 100%;
+}
+
 body {
+	min-height: 100%;
+	display: flex;
+	flex-direction: column;
 	font-size: 16px;
+
+	> div {
+		flex: 1 0 auto;
+	}
+}
+
+footer {
+	flex-shrink: 0;
 }
 
 .navbar.bg-dark {
