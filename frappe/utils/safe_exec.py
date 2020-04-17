@@ -11,6 +11,7 @@ from frappe.website.utils import (get_shade, get_toc, get_next_link)
 from frappe.modules import scrub
 from frappe.www.printview import get_visible_columns
 import frappe.exceptions
+import frappe.integrations.utils
 
 class ServerScriptNotEnabled(frappe.PermissionError): pass
 
@@ -79,6 +80,8 @@ def get_safe_globals():
 				user=user,
 				csrf_token=frappe.local.session.data.csrf_token if getattr(frappe.local, "session", None) else ''
 			),
+			make_get_request = frappe.integrations.utils.make_get_request,
+			make_post_request = frappe.integrations.utils.make_post_request,
 			socketio_port=frappe.conf.socketio_port,
 			get_hooks=frappe.get_hooks,
 		),
