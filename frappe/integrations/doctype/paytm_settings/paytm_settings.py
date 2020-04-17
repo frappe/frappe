@@ -100,7 +100,6 @@ def verify_transaction(**kwargs):
 	paytm_config = get_paytm_config()
 	received_data = frappe._dict(kwargs)
 
-	print(received_data)
 	paytm_params = {}
 	for key, value in received_data.items(): 
 		if key == 'CHECKSUMHASH':
@@ -133,16 +132,14 @@ def verify_transaction_status(paytm_config, order_id):
 	url = paytm_config.transaction_status_url
 
 	response = requests.post(url, data = post_data, headers = {"Content-type": "application/json"}).json()
-	print('transaction status response')
-	print(response)
 	finalize_request(order_id, response)
 
-def finalize_request(order_id, response):
+def finalize_request(order_id, transaction_response):
 	request = frappe.db.get_value('Integration Request', order_id)
 	redirect_to = request.data.get('redirect_to') or None
 	redirect_message = request.data.get('redirect_message') or None
 
-	if request.flags.status_changed_to == "Completed":
+	if transaction_response['STATUS'] == "TXN_SUCCESS":
 		if request.data.reference_doctype and request.data.reference_docname:
 			custom_redirect_to = None
 			try:
@@ -163,10 +160,8 @@ def finalize_request(order_id, response):
 	if redirect_message:
 		redirect_url += '&' + urlencode({'redirect_message': redirect_message})
 
-	return {
-		"redirect_to": redirect_url,
-		"status": status
-	}
+	frappe.local.response['type'] = 'redirect'
+	frappe.local.response['location'] = 'redirect_url'
 
 def get_gateway_controller(doctype, docname):
 	reference_doc = frappe.get_doc(doctype, docname)

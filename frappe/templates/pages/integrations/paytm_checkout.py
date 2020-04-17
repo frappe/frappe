@@ -21,7 +21,6 @@ def get_context(context):
 
 	try:
 		doc = frappe.get_doc("Integration Request", frappe.form_dict['order_id'])
-		payment_details = json.loads(doc.data)
 
 		context.payment_details = get_paytm_params(json.loads(doc.data), doc.name, paytm_config)
 
