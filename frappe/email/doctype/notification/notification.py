@@ -129,11 +129,19 @@ def get_context(context):
 			allow_update = True
 			if doc.docstatus == 1 and not doc.meta.get_field(self.set_property_after_alert).allow_on_submit:
 				allow_update = False
-
-			if allow_update:
-				frappe.db.set_value(doc.doctype, doc.name, self.set_property_after_alert,
-					self.property_value, update_modified = False)
-				doc.set(self.set_property_after_alert, self.property_value)
+			try:
+				if allow_update and not doc.flags.in_notification_update:
+					doc.set(self.set_property_after_alert, self.property_value)
+					doc.flags.updater_reference = {
+						'doctype': self.doctype,
+						'docname': self.name,
+						'label': _('via Notification')
+					}
+					doc.flags.in_notification_update = True
+					doc.save(ignore_permissions=True)
+					doc.flags.in_notification_update = False
+			except Exception:
+				frappe.log_error(title='Document update failed', message=frappe.get_traceback())
 
 	def send_an_email(self, doc, context):
 		from email.utils import formataddr
@@ -301,23 +309,23 @@ def evaluate_alert(doc, alert, event):
 				return
 
 		if event=="Value Change" and not doc.is_new():
-			try:
-				db_value = frappe.db.get_value(doc.doctype, doc.name, alert.value_changed)
-			except Exception as e:
-				if frappe.db.is_missing_column(e):
-					alert.db_set('enabled', 0)
-					frappe.log_error('Notification {0} has been disabled due to missing field'.format(alert.name))
-					return
-				else:
-					raise
-			db_value = parse_val(db_value)
-			if (doc.get(alert.value_changed) == db_value) or (not db_value and not doc.get(alert.value_changed)):
-				return # value not changed
+			if not frappe.db.has_column(doc.doctype, alert.value_changed):
+				alert.db_set('enabled', 0)
+				frappe.log_error('Notification {0} has been disabled due to missing field'.format(alert.name))
+				return
+
+			doc_before_save = doc.get_doc_before_save()
+			field_value_before_save = doc_before_save.get(alert.value_changed) if doc_before_save else None
+
+			field_value_before_save = parse_val(field_value_before_save)
+			if (doc.get(alert.value_changed) == field_value_before_save):
+				# value not changed
+				return
 
 		if event != "Value Change" and not doc.is_new():
 			# reload the doc for the latest values & comments,
 			# except for validate type event.
-			doc = frappe.get_doc(doc.doctype, doc.name)
+			doc.reload()
 		alert.send(doc)
 	except TemplateError:
 		frappe.throw(_("Error while evaluating Notification {0}. Please fix your template.").format(alert))
@@ -327,4 +335,4 @@ def evaluate_alert(doc, alert, event):
 			frappe.utils.get_link_to_form('Error Log', error_log.name))))
 
 def get_context(doc):
-	return {"doc": doc, "nowdate": nowdate, "frappe.utils": frappe.utils}
+	return {"doc": doc, "nowdate": nowdate, "frappe": frappe._dict(utils=frappe.utils)}

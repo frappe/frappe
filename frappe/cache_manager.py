@@ -13,7 +13,8 @@ common_default_keys = ["__default", "__global"]
 global_cache_keys = ("app_hooks", "installed_apps",
 		"app_modules", "module_app", "system_settings",
 		'scheduler_events', 'time_zone', 'webhooks', 'active_domains',
-		'active_modules', 'assignment_rule', 'server_script_map', 'wkhtmltopdf_version')
+		'active_modules', 'assignment_rule', 'server_script_map', 'wkhtmltopdf_version',
+		'domain_restricted_doctypes', 'domain_restricted_pages', 'information_schema:counts')
 
 user_cache_keys = ("bootinfo", "user_recent", "roles", "user_doc", "lang",
 		"defaults", "user_permissions", "home_page", "linked_with",
@@ -40,6 +41,11 @@ def clear_user_cache(user=None):
 			cache.delete_key(name)
 		clear_defaults_cache()
 		clear_global_cache()
+
+def clear_domain_cache(user=None):
+	cache = frappe.cache()
+	domain_cache_keys = ('domain_restricted_doctypes', 'domain_restricted_pages')
+	cache.delete_value(domain_cache_keys)
 
 def clear_global_cache():
 	from frappe.website.render import clear_cache as clear_website_cache
@@ -117,7 +123,11 @@ def clear_doctype_map(doctype, name):
 	frappe.cache().hdel(cache_key, name)
 
 def build_table_count_cache(*args, **kwargs):
-	if frappe.flags.in_patch or frappe.flags.in_install or frappe.flags.in_import:
+	if (frappe.flags.in_patch
+		or frappe.flags.in_install
+		or frappe.flags.in_migrate
+		or frappe.flags.in_import
+		or frappe.flags.in_setup_wizard):
 		return
 	_cache = frappe.cache()
 	data = frappe.db.multisql({
@@ -138,7 +148,11 @@ def build_table_count_cache(*args, **kwargs):
 	return counts
 
 def build_domain_restriced_doctype_cache(*args, **kwargs):
-	if frappe.flags.in_patch or frappe.flags.in_install or frappe.flags.in_import:
+	if (frappe.flags.in_patch
+		or frappe.flags.in_install
+		or frappe.flags.in_migrate
+		or frappe.flags.in_import
+		or frappe.flags.in_setup_wizard):
 		return
 	_cache = frappe.cache()
 	active_domains = frappe.get_active_domains()
@@ -149,7 +163,11 @@ def build_domain_restriced_doctype_cache(*args, **kwargs):
 	return doctypes
 
 def build_domain_restriced_page_cache(*args, **kwargs):
-	if frappe.flags.in_patch or frappe.flags.in_install or frappe.flags.in_import:
+	if (frappe.flags.in_patch
+		or frappe.flags.in_install
+		or frappe.flags.in_migrate
+		or frappe.flags.in_import
+		or frappe.flags.in_setup_wizard):
 		return
 	_cache = frappe.cache()
 	active_domains = frappe.get_active_domains()
