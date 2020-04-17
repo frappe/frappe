@@ -141,6 +141,14 @@ login.set_indicator = function(message, color) {
 		.removeClass().addClass('indicator').addClass(color).text(message)
 }
 
+login.set_invalid = function(message) {
+	$(".login-content.page-card").addClass('invalid-login');
+	setTimeout(() => {
+		$(".login-content.page-card").removeClass('invalid-login');
+	}, 500)
+	login.set_indicator(message, 'red');
+}
+
 login.login_handlers = (function() {
 	var get_error_handler = function(default_message) {
 		return function(xhr, data) {
@@ -161,7 +169,7 @@ login.login_handlers = (function() {
 			}
 
 			if(message===default_message) {
-				login.set_indicator(message, 'red');
+				login.set_invalid(message);
 			} else {
 				login.reset_sections(false);
 			}

@@ -179,6 +179,9 @@ frappe.ui.form.ControlInput = frappe.ui.form.Control.extend({
 	set_mandatory: function(value) {
 		this.$wrapper.toggleClass("has-error", (this.df.reqd && is_null(value)) ? true : false);
 	},
+	set_invalid: function () {
+		this.$wrapper.toggleClass("has-error", (this.df.invalid ? true : false));
+	},
 	set_bold: function() {
 		if(this.$input) {
 			this.$input.toggleClass("bold", !!(this.df.bold || this.df.reqd));

@@ -28,6 +28,12 @@ class WebPage(WebsiteGenerator):
 	def get_feed(self):
 		return self.title
 
+	def on_update(self):
+		super(WebPage, self).on_update()
+
+	def on_trash(self):
+		super(WebPage, self).on_trash()
+
 	def get_context(self, context):
 		context.main_section = get_html_content_based_on_type(self, 'main_section', self.content_type)
 		self.render_dynamic(context)
@@ -142,6 +148,7 @@ class WebPage(WebsiteGenerator):
 
 
 def check_publish_status():
+	# called via daily scheduler
 	web_pages = frappe.get_all("Web Page", fields=["name", "published", "start_date", "end_date"])
 	now_date = get_datetime(now())
 
