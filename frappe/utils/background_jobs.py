@@ -73,7 +73,7 @@ def enqueue(method, queue='default', timeout=None, event=None,
 def enqueue_doc(doctype, name=None, method=None, queue='default', timeout=300,
 	now=False, **kwargs):
 	'''Enqueue a method to be run on a document'''
-	enqueue('frappe.utils.background_jobs.run_doc_method', doctype=doctype, name=name,
+	return enqueue('frappe.utils.background_jobs.run_doc_method', doctype=doctype, name=name,
 		doc_method=method, queue=queue, timeout=timeout, now=now, **kwargs)
 
 def run_doc_method(doctype, name, doc_method, **kwargs):
