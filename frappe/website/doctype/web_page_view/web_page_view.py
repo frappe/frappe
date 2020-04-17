@@ -12,7 +12,6 @@ class WebPageView(Document):
 
 @frappe.whitelist(allow_guest=True)
 def make_view_log(path, referrer=None, browser=None, version=None, url=None, user_tz=None):
-	from pprint import pprint
 	request_dict = frappe.request.__dict__
 	user_agent = request_dict.get('environ', {}).get('HTTP_USER_AGENT')
 
