@@ -1,4 +1,5 @@
 {
+ "actions": [],
  "allow_rename": 1,
  "autoname": "field:language_code",
  "creation": "2014-08-22 16:12:17.249590",
@@ -41,7 +42,9 @@
   }
  ],
  "icon": "fa fa-globe",
- "modified": "2019-07-19 16:32:12.652550",
+ "in_create": 1,
+ "links": [],
+ "modified": "2020-04-16 22:11:33.066852",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Language",

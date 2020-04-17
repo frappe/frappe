@@ -595,6 +595,7 @@ def clear_cache(user=None, doctype=None):
 	else: # everything
 		from frappe import translate
 		frappe.cache_manager.clear_user_cache()
+		frappe.cache_manager.clear_domain_cache()
 		translate.clear_cache()
 		reset_metadata_version()
 		local.cache = {}
@@ -839,6 +840,8 @@ def rename_doc(*args, **kwargs):
 		Calls `frappe.model.rename_doc.rename_doc`
 	"""
 	kwargs.pop('ignore_permissions', None)
+	kwargs.pop('cmd', None)
+
 	from frappe.model.rename_doc import rename_doc
 	return rename_doc(*args, **kwargs)
 
