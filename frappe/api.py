@@ -9,6 +9,7 @@ import frappe.client
 from frappe.utils.response import build_response
 from frappe import _
 from six.moves.urllib.parse import urlparse, urlencode
+from six import string_types
 import base64
 
 def handle():
@@ -81,10 +82,8 @@ def handle():
 					frappe.local.response.update({"data": doc})
 
 				if frappe.local.request.method=="PUT":
-					if frappe.local.form_dict.data is None:
-						data = json.loads(frappe.safe_decode(frappe.local.request.get_data()))
-					else:
-						data = json.loads(frappe.local.form_dict.data)
+					data = get_request_form_data()
+
 					doc = frappe.get_doc(doctype, name)
 
 					if "flags" in data:
@@ -119,11 +118,8 @@ def handle():
 						"data":  frappe.call(frappe.client.get_list,
 							doctype, **frappe.local.form_dict)})
 
-				if frappe.local.request.method=="POST":
-					if frappe.local.form_dict.data is None:
-						data = json.loads(frappe.safe_decode(frappe.local.request.get_data()))
-					else:
-						data = json.loads(frappe.local.form_dict.data)
+				if frappe.local.request.method == "POST":
+					data = get_request_form_data()
 					data.update({
 						"doctype": doctype
 					})
@@ -138,6 +134,16 @@ def handle():
 		raise frappe.DoesNotExistError
 
 	return build_response("json")
+
+def get_request_form_data():
+	if frappe.local.form_dict.data is None:
+		data = json.loads(frappe.safe_decode(frappe.local.request.get_data()))
+	else:
+		data = frappe.local.form_dict.data
+		if isinstance(data, string_types):
+			data = json.loads(frappe.local.form_dict.data)
+
+	return data
 
 def validate_oauth():
 	from frappe.oauth import get_url_delimiter

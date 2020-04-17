@@ -329,10 +329,18 @@ def backup(context, with_files=False, backup_path_db=None, backup_path_files=Non
 	"Backup"
 	from frappe.utils.backups import scheduled_backup
 	verbose = context.verbose
+	exit_code = 0
 	for site in context.sites:
-		frappe.init(site=site)
-		frappe.connect()
-		odb = scheduled_backup(ignore_files=not with_files, backup_path_db=backup_path_db, backup_path_files=backup_path_files, backup_path_private_files=backup_path_private_files, force=True)
+		try:
+			frappe.init(site=site)
+			frappe.connect()
+			odb = scheduled_backup(ignore_files=not with_files, backup_path_db=backup_path_db, backup_path_files=backup_path_files, backup_path_private_files=backup_path_private_files, force=True)
+		except Exception as e:
+			if verbose:
+				print("Backup failed for {0}. Database or site_config.json may be corrupted".format(site))
+			exit_code = 1
+			continue
+
 		if verbose:
 			from frappe.utils import now
 			print("database backup taken -", odb.backup_path_db, "- on", now())
@@ -341,6 +349,7 @@ def backup(context, with_files=False, backup_path_db=None, backup_path_files=Non
 				print("private files backup taken -", odb.backup_path_private_files, "- on", now())
 
 		frappe.destroy()
+	sys.exit(exit_code)
 
 @click.command('remove-from-installed-apps')
 @click.argument('app')
