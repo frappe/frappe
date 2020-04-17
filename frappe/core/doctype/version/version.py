@@ -45,7 +45,11 @@ def get_diff(old, new, for_child=False):
 
 	# capture data import if set
 	data_import = new.flags.via_data_import
-	out = frappe._dict(changed = [], added = [], removed = [], row_changed = [], data_import=data_import)
+	updater_reference = new.flags.updater_reference
+
+	out = frappe._dict(changed = [], added = [], removed = [],
+		row_changed = [], data_import=data_import, updater_reference=updater_reference)
+
 	for df in new.meta.fields:
 		if df.fieldtype in no_value_fields and df.fieldtype not in table_fields:
 			continue
