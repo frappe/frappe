@@ -21,7 +21,7 @@ frappe.ui.form.save = function (frm, action, callback, btn) {
 		remove_empty_rows();
 
 		$(frm.wrapper).addClass('validated-form');
-		if (frm.is_dirty() && check_mandatory()) {
+		if ((action !== 'Save' || frm.is_dirty()) && check_mandatory()) {
 			_call({
 				method: "frappe.desk.form.save.savedocs",
 				args: { doc: frm.doc, action: action },
