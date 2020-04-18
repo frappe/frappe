@@ -277,9 +277,9 @@ class NumberCardDialog extends WidgetDialog {
 					options: 'Number Card',
 					get_query: () => {
 						return {
+							'query': 'frappe.desk.doctype.number_card.number_card.get_cards_for_user',
 							filters: {
-							document_type: this.document_type,
-							is_standard: 1
+								document_type: this.document_type,
 							}
 						};
 					},
@@ -360,16 +360,16 @@ class NumberCardDialog extends WidgetDialog {
 			if (this.default_values['doctype']) {
 				this.document_type = this.default_values['doctype'];
 				this.setup_filter(this.default_values['doctype']);
-				this.set_aggregate_function_fields(this.dialog.get_values());
+				this.set_aggregate_function_fields();
 			} else {
 				this.show_field('document_type');
 			}
 		}
 	}
 
-	set_aggregate_function_fields(values) {
+	set_aggregate_function_fields() {
 		let aggregate_function_fields = [];
-		if (values.function !== 'Count' && this.document_type) {
+		if (this.document_type) {
 			frappe.get_meta(this.document_type).fields.map(df => {
 				if (frappe.model.numeric_fieldtypes.includes(df.fieldtype)) {
 					aggregate_function_fields.push({label: df.label, value: df.fieldname});
