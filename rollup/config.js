@@ -108,29 +108,34 @@ function get_rollup_options_for_js(output_file, input_files) {
 
 function get_rollup_options_for_css(output_file, input_files) {
 	const output_path = path.resolve(assets_path, output_file);
-	const minimize_css = output_path.startsWith('css/') && production;
+    const minimize_css = output_path.includes('/assets/css/') && production;
 
 	const plugins = [
 		// enables array of inputs
 		multi_entry(),
 		// less -> css
 		postcss({
+			plugins: [
+				require('tailwindcss'),
+				require('autoprefixer'),
+				minimize_css ? require('cssnano')({ preset: 'default' }) : null
+			].filter(Boolean),
 			extract: output_path,
 			use: [
-				['less', {
-					// import other less/css files starting from these folders
-					paths: [
-						path.resolve(get_public_path('frappe'), 'less')
-					]
-				}],
+				[
+					'less',
+					{
+						// import other less/css files starting from these folders
+						paths: [path.resolve(get_public_path('frappe'), 'less')]
+					}
+				],
 				['sass', get_options_for_scss()]
 			],
 			include: [
 				path.resolve(bench_path, '**/*.less'),
 				path.resolve(bench_path, '**/*.scss'),
 				path.resolve(bench_path, '**/*.css')
-			],
-			minimize: minimize_css
+			]
 		})
 	];
 
@@ -138,11 +143,12 @@ function get_rollup_options_for_css(output_file, input_files) {
 		inputOptions: {
 			input: input_files,
 			plugins: plugins,
-			onwarn(warning) {
+			onwarn(warning, warn) {
 				// skip warnings
 				if (['EMPTY_BUNDLE'].includes(warning.code)) return;
 
-				// console.warn everything else
+                // console.warn everything else
+                log(warning)
 				log(chalk.yellow.underline(warning.code), ':', warning.message);
 			}
 		},

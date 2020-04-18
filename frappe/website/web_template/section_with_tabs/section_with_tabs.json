@@ -1,0 +1,83 @@
+{
+ "creation": "2020-04-17 16:34:09.726205",
+ "docstatus": 0,
+ "doctype": "Web Template",
+ "fields": [
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "label": "Title"
+  },
+  {
+   "fieldname": "subtitle",
+   "fieldtype": "Data",
+   "label": "Subtitle"
+  },
+  {
+   "fieldname": "tab_1_title",
+   "fieldtype": "Data",
+   "label": "Tab 1 Title"
+  },
+  {
+   "fieldname": "tab_1_content",
+   "fieldtype": "Text",
+   "label": "Tab 1 Content"
+  },
+  {
+   "fieldname": "tab_2_title",
+   "fieldtype": "Data",
+   "label": "Tab 2 Title"
+  },
+  {
+   "fieldname": "tab_2_content",
+   "fieldtype": "Text",
+   "label": "Tab 2 Content"
+  },
+  {
+   "fieldname": "tab_3_title",
+   "fieldtype": "Data",
+   "label": "Tab 3 Title"
+  },
+  {
+   "fieldname": "tab_3_content",
+   "fieldtype": "Text",
+   "label": "Tab 3 Content"
+  },
+  {
+   "fieldname": "tab_4_title",
+   "fieldtype": "Data",
+   "label": "Tab 4 Title"
+  },
+  {
+   "fieldname": "tab_4_content",
+   "fieldtype": "Text",
+   "label": "Tab 4 Content"
+  },
+  {
+   "fieldname": "tab_5_title",
+   "fieldtype": "Data",
+   "label": "Tab 5 Title"
+  },
+  {
+   "fieldname": "tab_5_content",
+   "fieldtype": "Text",
+   "label": "Tab 5 Content"
+  },
+  {
+   "fieldname": "tab_6_title",
+   "fieldtype": "Data",
+   "label": "Tab 6 Title"
+  },
+  {
+   "fieldname": "tab_6_content",
+   "fieldtype": "Text",
+   "label": "Tab 6 Content"
+  }
+ ],
+ "idx": 0,
+ "modified": "2020-04-17 16:46:54.719420",
+ "modified_by": "Administrator",
+ "name": "Section with Tabs",
+ "owner": "Administrator",
+ "standard": 1
+}

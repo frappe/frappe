@@ -11,12 +11,19 @@ def get_jenv():
 		from jinja2.sandbox import SandboxedEnvironment
 
 		# frappe will be loaded last, so app templates will get precedence
-		jenv = SandboxedEnvironment(loader = get_jloader(),
-			undefined=DebugUndefined)
+		jenv = SandboxedEnvironment(
+			loader=get_jloader(),
+			undefined=DebugUndefined
+		)
 		set_filters(jenv)
 
 		jenv.globals.update(get_safe_globals())
 		jenv.globals.update(get_jenv_customization('methods'))
+		jenv.globals.update({
+			'component': component,
+			'c': component,
+			'inspect': inspect
+		})
 
 		frappe.local.jenv = jenv
 
@@ -149,3 +156,69 @@ def get_jenv_customization(customization_type):
 		out[fn_name] = frappe.get_attr(fn_string)
 
 	return out
+
+
+def component(name, **kwargs):
+	from jinja2 import TemplateNotFound
+
+	template_name = 'templates/components/' + name + '.html'
+	jenv = get_jenv()
+
+	try:
+		source = jenv.loader.get_source(jenv, template_name)[0]
+	except TemplateNotFound:
+		return '<pre>Component "{0}" not found</pre>'.format(name)
+
+	attributes, html = parse_front_matter_attrs_and_html(source)
+	context = {}
+	context.update(attributes)
+	context.update(kwargs)
+
+	if 'class' in context:
+		context['class'] = resolve_class(context['class'])
+	else:
+		context['class'] = ''
+	context['resolve_class'] = resolve_class
+
+	return get_jenv().from_string(html).render(context)
+
+def resolve_class(classes):
+	import frappe
+
+	if isinstance(classes, frappe.string_types):
+		return classes
+
+	if isinstance(classes, (list, tuple)):
+		return ' '.join([resolve_class(c) for c in classes])
+
+	if isinstance(classes, dict):
+		return ' '.join([classname for classname in classes if classes[classname]])
+
+	return classes
+
+def parse_front_matter_attrs_and_html(source):
+	from frontmatter import Frontmatter
+
+	html = source
+	attributes = {}
+
+	if not source.startswith('---'):
+		return attributes, html
+
+	try:
+		res = Frontmatter.read(source)
+		if res['attributes']:
+			attributes = res['attributes']
+			html = res['body']
+	except Exception as e:
+		print('Error parsing Frontmatter in template: ' + e)
+
+	return attributes, html
+
+def inspect(var, render=True):
+	context = { "var": var }
+	if render:
+		html = "<pre>{{ var | pprint | e }}</pre>"
+	else:
+		html = ""
+	return get_jenv().from_string(html).render(context)

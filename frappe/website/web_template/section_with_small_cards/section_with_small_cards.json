@@ -1,0 +1,103 @@
+{
+ "creation": "2020-04-17 19:47:33.378013",
+ "docstatus": 0,
+ "doctype": "Web Template",
+ "fields": [
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "label": "Title"
+  },
+  {
+   "fieldname": "subtitle",
+   "fieldtype": "Data",
+   "label": "Subtitle"
+  },
+  {
+   "fieldname": "card_1_title",
+   "fieldtype": "Data",
+   "label": "Card 1 Title"
+  },
+  {
+   "fieldname": "card_1_content",
+   "fieldtype": "Small Text",
+   "label": "Card 1 Content"
+  },
+  {
+   "fieldname": "card_2_title",
+   "fieldtype": "Data",
+   "label": "Card 2 Title"
+  },
+  {
+   "fieldname": "card_2_content",
+   "fieldtype": "Small Text",
+   "label": "Card 2 Content"
+  },
+  {
+   "fieldname": "card_3_title",
+   "fieldtype": "Data",
+   "label": "Card 3 Title"
+  },
+  {
+   "fieldname": "card_3_content",
+   "fieldtype": "Small Text",
+   "label": "Card 3 Content"
+  },
+  {
+   "fieldname": "card_4_title",
+   "fieldtype": "Data",
+   "label": "Card 4 Title"
+  },
+  {
+   "fieldname": "card_4_content",
+   "fieldtype": "Small Text",
+   "label": "Card 4 Content"
+  },
+  {
+   "fieldname": "card_5_title",
+   "fieldtype": "Data",
+   "label": "Card 5 Title"
+  },
+  {
+   "fieldname": "card_5_content",
+   "fieldtype": "Small Text",
+   "label": "Card 5 Content"
+  },
+  {
+   "fieldname": "card_6_title",
+   "fieldtype": "Data",
+   "label": "Card 6 Title"
+  },
+  {
+   "fieldname": "card_6_content",
+   "fieldtype": "Small Text",
+   "label": "Card 6 Content"
+  },
+  {
+   "fieldname": "card_7_title",
+   "fieldtype": "Data",
+   "label": "Card 7 Title"
+  },
+  {
+   "fieldname": "card_7_content",
+   "fieldtype": "Small Text",
+   "label": "Card 7 Content"
+  },
+  {
+   "fieldname": "card_8_title",
+   "fieldtype": "Data",
+   "label": "Card 8 Title"
+  },
+  {
+   "fieldname": "card_8_content",
+   "fieldtype": "Small Text",
+   "label": "Card 8 Content"
+  }
+ ],
+ "idx": 0,
+ "modified": "2020-04-17 19:47:33.378013",
+ "modified_by": "Administrator",
+ "name": "Section with Small Cards",
+ "owner": "Administrator",
+ "standard": 1
+}

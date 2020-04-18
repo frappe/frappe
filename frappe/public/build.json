@@ -350,5 +350,8 @@
 	],
 	"js/data_import_tools.min.js": [
 		"public/js/frappe/data_import/index.js"
+	],
+	"css/tailwind.css": [
+		"public/tailwind.css"
 	]
 }

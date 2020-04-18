@@ -830,6 +830,7 @@ def rename_doc(*args, **kwargs):
 
 		Calls `frappe.model.rename_doc.rename_doc`
 	"""
+	kwargs.pop('cmd', None)
 	kwargs.pop('ignore_permissions', None)
 	from frappe.model.rename_doc import rename_doc
 	return rename_doc(*args, **kwargs)

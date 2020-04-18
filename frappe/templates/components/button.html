@@ -1,0 +1,27 @@
+---
+name: "button"
+variant: "secondary"
+disabled: 0
+url: null
+---
+
+{%- set static_classes = "px-4 py-2 border rounded-md inline-flex justify-center items-center focus:outline-none leading-5 font-medium text-sm" -%}
+{%- set dynamic_classes = {
+	"opacity-50 cursor-not-allowed pointer-events-none": disabled,
+	"bg-blue-500 border-transparent hover:bg-blue-400 text-white focus:shadow-outline-blue focus:border-blue-700":
+	  variant == "primary",
+	"bg-white border-gray-400 hover:text-gray-800 text-gray-900 focus:shadow-outline-blue focus:border-blue-300":
+	  variant == "secondary",
+	"bg-red-500 border-transparent hover:bg-red-400 text-white focus:shadow-outline-red focus:border-red-700":
+	  variant == "danger"
+  }
+-%}
+{%- set html_tag = "a" if url else "button" -%}
+
+<{{html_tag}}
+	class="{{ resolve_class([static_classes, dynamic_classes, class]) }}"
+	{{ 'disabled' if disabled else '' }}
+	{{ ('href="' + url + '"') if url else '' }}
+>
+	{{ label }}
+</{{html_tag}}>

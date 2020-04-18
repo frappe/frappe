@@ -1,0 +1,33 @@
+{
+ "creation": "2020-04-17 19:29:21.186193",
+ "docstatus": 0,
+ "doctype": "Web Template",
+ "fields": [
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "label": "Title"
+  },
+  {
+   "fieldname": "subtitle",
+   "fieldtype": "Small Text",
+   "label": "Subtitle"
+  },
+  {
+   "fieldname": "image",
+   "fieldtype": "Attach Image",
+   "label": "Image"
+  },
+  {
+   "fieldname": "image_description",
+   "fieldtype": "Data",
+   "label": "Image Description"
+  }
+ ],
+ "idx": 0,
+ "modified": "2020-04-17 19:31:33.474017",
+ "modified_by": "Administrator",
+ "name": "Section with Image",
+ "owner": "Administrator",
+ "standard": 1
+}

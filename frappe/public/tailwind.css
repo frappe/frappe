@@ -1,0 +1,8 @@
+@tailwind base;
+@tailwind components;
+
+details.dropdown summary::-webkit-details-marker {
+	display: none;
+}
+
+@tailwind utilities;

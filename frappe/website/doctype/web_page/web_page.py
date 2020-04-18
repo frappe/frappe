@@ -18,6 +18,7 @@ from frappe.website.router import resolve_route
 from frappe.website.utils import (extract_title, find_first_image, get_comment_list,
 	get_html_content_based_on_type)
 from frappe.website.website_generator import WebsiteGenerator
+from frappe.website.doctype.web_template.web_template import get_rendered_template
 
 
 class WebPage(WebsiteGenerator):
@@ -53,6 +54,7 @@ class WebPage(WebsiteGenerator):
 		self.set_metatags(context)
 		self.set_breadcrumbs(context)
 		self.set_title_and_header(context)
+		self.build_page_blocks(context)
 
 		return context
 
@@ -102,6 +104,23 @@ class WebPage(WebsiteGenerator):
 		# if title not set, set title from header
 		if not context.title and context.header:
 			context.title = strip_html(context.header)
+
+	def build_page_blocks(self, context):
+		if self.content_type != 'Page Builder':
+			return
+
+		sections = []
+
+		for block in self.page_blocks:
+			values = frappe.parse_json(block.web_template_values)
+			rendered_html = get_rendered_template(block.web_template, values)
+			section = frappe._dict()
+			section.title = block.title
+			section.css_class = block.css_class
+			section.rendered_html = rendered_html
+			sections.append(section)
+
+		context.page_builder_sections = sections
 
 	def add_hero(self, context):
 		"""Add a hero element if specified in content or hooks.

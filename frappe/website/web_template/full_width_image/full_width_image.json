@@ -1,0 +1,24 @@
+{
+ "creation": "2020-04-17 16:03:35.676241",
+ "docstatus": 0,
+ "doctype": "Web Template",
+ "fields": [
+  {
+   "fieldname": "url",
+   "fieldtype": "Data",
+   "label": "URL"
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Data",
+   "label": "Description"
+  }
+ ],
+ "idx": 0,
+ "modified": "2020-04-17 16:03:35.676241",
+ "modified_by": "Administrator",
+ "name": "Full Width Image",
+ "owner": "Administrator",
+ "standard": 1,
+ "template": ""
+}

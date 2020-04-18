@@ -36,6 +36,8 @@ def get_context(path, args=None):
 	if frappe.conf.developer_mode:
 		context._context_dict = context
 
+	context.developer_mode = frappe.conf.developer_mode
+
 	return context
 
 def update_controller_context(context, controller):

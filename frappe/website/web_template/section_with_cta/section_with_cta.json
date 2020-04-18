@@ -1,0 +1,33 @@
+{
+ "creation": "2020-04-17 19:57:40.534914",
+ "docstatus": 0,
+ "doctype": "Web Template",
+ "fields": [
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "label": "Title"
+  },
+  {
+   "fieldname": "subtitle",
+   "fieldtype": "Small Text",
+   "label": "Subtitle"
+  },
+  {
+   "fieldname": "cta_label",
+   "fieldtype": "Data",
+   "label": "CTA Label"
+  },
+  {
+   "fieldname": "cta_url",
+   "fieldtype": "Data",
+   "label": "CTA URL"
+  }
+ ],
+ "idx": 0,
+ "modified": "2020-04-17 19:57:40.534914",
+ "modified_by": "Administrator",
+ "name": "Section with CTA",
+ "owner": "Administrator",
+ "standard": 1
+}

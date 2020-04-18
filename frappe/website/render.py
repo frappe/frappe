@@ -202,6 +202,9 @@ def build_page(path):
 	if '{next}' in html:
 		html = html.replace('{next}', get_next_link(context.route))
 
+	if '<!-- tailwind-styles -->' in html and not frappe.conf.developer_mode:
+		html = add_processed_tailwind_css(context, html)
+
 	# html = frappe.get_template(context.base_template_path).render(context)
 
 	if can_cache(context.no_cache):
@@ -350,3 +353,27 @@ def raise_if_disabled(path):
 		_path = r.route.lstrip('/')
 		if path == _path and not r.enabled:
 			raise frappe.PermissionError
+
+def add_processed_tailwind_css(context, html):
+	from subprocess import Popen, PIPE
+
+	print('asdfasdf')
+
+	# theme_file = 'css/frappe-web-b4.css'
+	# if context.theme.theme_url:
+	# 	theme_file = context.theme.theme_url.lstrip('/assets/')
+
+	# css_files = ','.join(['css/tailwind.css', theme_file])
+	replace_string = '<!-- tailwind-styles -->'
+	command = ['node', 'purgecss.js', 'css/tailwind.css', html]
+	process = Popen(command, cwd=frappe.get_app_path('frappe', '..'), stdout=PIPE, stderr=PIPE)
+
+	stdout, stderr = process.communicate()
+	if stderr:
+		stderr = frappe.safe_decode(stderr)
+		print(stderr)
+	else:
+		css = frappe.safe_decode(stdout)
+		html = html.replace(replace_string, '<style data-tailwind>{0}</style>'.format(css))
+
+	return html

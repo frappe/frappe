@@ -15,6 +15,11 @@
 {% endblock %}
 
 {% block page_content %}
+{%- if content_type == 'Page Builder' -%}
+{%- for section in page_builder_sections -%}
+{{ c('web_page_section', section=section) }}
+{%- endfor -%}
+{%- else -%}
 <div class="webpage-content">
 	{% include "templates/includes/slideshow.html" %}
 	<article class="web-page-content" id="{{ name }}" {% if text_align -%}style="text-align: {{ text_align }}"{%- endif %}>
@@ -26,6 +31,7 @@
 	{% include 'templates/includes/comments/comments.html' %}
 	{%- endif %}
 </div>
+{%- endif -%}
 {% endblock %}
 
 {% block style %}

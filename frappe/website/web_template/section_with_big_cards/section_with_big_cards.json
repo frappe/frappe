@@ -1,0 +1,58 @@
+{
+ "creation": "2020-04-17 16:09:37.340176",
+ "docstatus": 0,
+ "doctype": "Web Template",
+ "fields": [
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "label": "Title"
+  },
+  {
+   "fieldname": "card_1_title",
+   "fieldtype": "Data",
+   "label": "Card 1 Title"
+  },
+  {
+   "fieldname": "card_1_content",
+   "fieldtype": "Text",
+   "label": "Card 1 Content"
+  },
+  {
+   "fieldname": "card_2_title",
+   "fieldtype": "Data",
+   "label": "Card 2 Title"
+  },
+  {
+   "fieldname": "card_2_content",
+   "fieldtype": "Text",
+   "label": "Card 2 Content"
+  },
+  {
+   "fieldname": "card_3_title",
+   "fieldtype": "Data",
+   "label": "Card 3 Title"
+  },
+  {
+   "fieldname": "card_3_content",
+   "fieldtype": "Text",
+   "label": "Card 3 Content"
+  },
+  {
+   "fieldname": "card_4_title",
+   "fieldtype": "Data",
+   "label": "Card 4 Title"
+  },
+  {
+   "fieldname": "card_4_content",
+   "fieldtype": "Text",
+   "label": "Card 4 Content"
+  }
+ ],
+ "idx": 0,
+ "modified": "2020-04-17 19:42:19.712813",
+ "modified_by": "Administrator",
+ "name": "Section with Big Cards",
+ "owner": "Administrator",
+ "standard": 1
+}

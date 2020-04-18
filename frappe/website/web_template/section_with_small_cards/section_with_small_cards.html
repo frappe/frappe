@@ -1,0 +1,19 @@
+{%- macro card(title, content) -%}
+<div class="p-6 bg-white border border-gray-200 cursor-pointer rounded-xl hover:shadow-xl">
+	<h3 class="text-xl font-semibold">{{ title }}</h3>
+	<p class="mt-4 text-base text-gray-800">{{ content }}</p>
+</div>
+{%- endmacro -%}
+
+
+{%- if title -%}
+<h2 class="mb-6 text-3xl font-bold">{{ title }}</h2>
+{%- endif -%}
+<div class="grid grid-cols-4 gap-8">
+	{%- for index in ['1', '2', '3', '4', '5', '6', '7', '8'] -%}
+	{%- if values['card_' + index + '_title'] -%}
+	{{ card(values['card_' + index + '_title'], values['card_' + index + '_content']) }}
+	{%- endif -%}
+	{%- endfor -%}
+</div>
+

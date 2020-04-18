@@ -1,4 +1,5 @@
 {
+ "actions": [],
  "allow_import": 1,
  "autoname": "field:theme",
  "creation": "2015-02-18 12:46:38.168929",
@@ -7,11 +8,21 @@
  "engine": "InnoDB",
  "field_order": [
   "theme",
+  "based_on",
   "module",
   "custom",
+  "tailwind_theme_section",
+  "brand_color",
+  "bootstrap_theme_section",
   "theme_scss",
   "theme_json",
   "theme_url",
+  "navbar_section",
+  "navbar_items",
+  "primary_action_label",
+  "primary_action_url",
+  "footer_section",
+  "footer_items",
   "custom_js_section",
   "js"
  ],
@@ -68,9 +79,66 @@
    "hidden": 1,
    "label": "Theme JSON",
    "options": "JSON"
+  },
+  {
+   "default": "Bootstrap 4",
+   "fieldname": "based_on",
+   "fieldtype": "Select",
+   "label": "Theme Based On",
+   "options": "Bootstrap 4\nTailwind"
+  },
+  {
+   "fieldname": "navbar_section",
+   "fieldtype": "Section Break",
+   "label": "Navbar"
+  },
+  {
+   "fieldname": "navbar_items",
+   "fieldtype": "Table",
+   "label": "Navbar Items",
+   "options": "Top Bar Item"
+  },
+  {
+   "depends_on": "eval:doc.based_on=='Tailwind'",
+   "fieldname": "tailwind_theme_section",
+   "fieldtype": "Section Break",
+   "label": "Tailwind Theme"
+  },
+  {
+   "depends_on": "eval:doc.based_on == 'Bootstrap 4'",
+   "fieldname": "bootstrap_theme_section",
+   "fieldtype": "Section Break",
+   "label": "Bootstrap Theme"
+  },
+  {
+   "fieldname": "brand_color",
+   "fieldtype": "Color",
+   "label": "Brand Color"
+  },
+  {
+   "fieldname": "primary_action_label",
+   "fieldtype": "Data",
+   "label": "Primary Action Label"
+  },
+  {
+   "fieldname": "primary_action_url",
+   "fieldtype": "Data",
+   "label": "Primary Action URL"
+  },
+  {
+   "fieldname": "footer_section",
+   "fieldtype": "Section Break",
+   "label": "Footer"
+  },
+  {
+   "fieldname": "footer_items",
+   "fieldtype": "Table",
+   "label": "Footer Items",
+   "options": "Top Bar Item"
   }
  ],
- "modified": "2019-06-14 18:36:21.283390",
+ "links": [],
+ "modified": "2020-04-17 21:23:13.735307",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Website Theme",
