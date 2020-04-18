@@ -937,7 +937,11 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		], ({ file_format, include_indentation }) => {
 			this.make_access_log('Export', file_format);
 			if (file_format === 'CSV') {
-				const column_row = this.columns.map(col => col.label);
+				const column_row = this.columns.map(col => {
+					if (!col.hidden) {
+						return col.label;
+					}
+				});
 				const data = this.get_data_for_csv(include_indentation);
 				const out = [column_row].concat(data);
 
