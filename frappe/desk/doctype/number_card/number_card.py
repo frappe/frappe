@@ -48,5 +48,9 @@ def create_number_card(args):
 	return doc
 
 def get_cards_for_user(doctype, txt, searchfield, start, page_len, filters):
-	or_filters = {'creation': frappe.session.user, 'is_standard': 1}
-	return frappe.db.get_list('Number Card', fields=['name', 'label'], or_filters=or_filters, as_list = 1)
+	or_filters = {'owner': frappe.session.user, 'is_standard': 1}
+	return frappe.db.get_list('Number Card',
+		fields=['name', 'label'],
+		filters=filters,
+		or_filters=or_filters,
+		as_list = 1)

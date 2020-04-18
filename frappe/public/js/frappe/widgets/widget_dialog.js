@@ -329,7 +329,7 @@ class NumberCardDialog extends WidgetDialog {
 					fieldname: 'aggregate_function_based_on',
 					fieldtype: 'Select',
 					depends_on: "eval: doc.function !== 'Count'",
-					mandatory_depends_on: "eval: doc.function !== 'Count'"
+					mandatory_depends_on: 'eval: doc.function !== "Count" && doc.new_or_existing == "New Card"'
 				},
 				{
 					fieldtype: "Section Break",
