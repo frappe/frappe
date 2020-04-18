@@ -6,7 +6,7 @@ frappe.provide("frappe.dashboards.chart_sources");
 export default class ChartWidget extends Widget {
 	constructor(opts) {
 		super(opts);
-		this.height = 240;
+		this.height = this.height || 240;
 	}
 
 	get_config() {
@@ -14,12 +14,13 @@ export default class ChartWidget extends Widget {
 			name: this.name,
 			chart_name: this.chart_name,
 			label: this.label,
+			hidden: this.hidden
 		};
 	}
 
 	refresh() {
 		delete this.dashboard_chart;
-		this.set_title();
+		this.set_title(15);
 		this.set_body();
 		this.make_chart();
 	}
@@ -29,7 +30,6 @@ export default class ChartWidget extends Widget {
 		if (this.width == "Full") {
 			this.widget.addClass("full-width");
 		}
-		this.make_chart();
 	}
 
 	setup_container() {
@@ -40,7 +40,7 @@ export default class ChartWidget extends Widget {
 				"Loading..."
 			)}</div>`
 		);
-		this.loading.hide().appendTo(this.body);
+		this.loading.appendTo(this.body);
 
 		this.empty = $(
 			`<div class="chart-loading-state text-muted" style="height: ${this.height}px;">${__(
@@ -69,6 +69,12 @@ export default class ChartWidget extends Widget {
 
 	make_chart() {
 		this.get_settings().then(() => {
+			if (!this.settings) {
+				this.deleted = true;
+				this.widget.remove();
+				return;
+			}
+
 			if (!this.chart_settings) {
 				this.chart_settings = {};
 			}
@@ -536,40 +542,42 @@ export default class ChartWidget extends Widget {
 		return frappe.model
 			.with_doc("Dashboard Chart", this.chart_name)
 			.then(chart_doc => {
-				this.chart_doc = chart_doc;
-				if (this.chart_doc.chart_type == "Custom") {
-					// custom source
-					if (
-						frappe.dashboards.chart_sources[this.chart_doc.source]
-					) {
-						this.settings =
-							frappe.dashboards.chart_sources[
-								this.chart_doc.source
-							];
+				if (chart_doc) {
+					this.chart_doc = chart_doc;
+					if (this.chart_doc.chart_type == "Custom") {
+						// custom source
+						if (
+							frappe.dashboards.chart_sources[this.chart_doc.source]
+						) {
+							this.settings =
+								frappe.dashboards.chart_sources[
+									this.chart_doc.source
+								];
+							return Promise.resolve();
+						} else {
+							const method =
+								"frappe.desk.doctype.dashboard_chart_source.dashboard_chart_source.get_config";
+							return frappe
+								.xcall(method, { name: this.chart_doc.source })
+								.then(config => {
+									frappe.dom.eval(config);
+									this.settings =
+										frappe.dashboards.chart_sources[
+											this.chart_doc.source
+										];
+								});
+						}
+					} else if (this.chart_doc.chart_type == "Report") {
+						this.settings = {
+							method: "frappe.desk.query_report.run"
+						};
 						return Promise.resolve();
 					} else {
-						const method =
-							"frappe.desk.doctype.dashboard_chart_source.dashboard_chart_source.get_config";
-						return frappe
-							.xcall(method, { name: this.chart_doc.source })
-							.then(config => {
-								frappe.dom.eval(config);
-								this.settings =
-									frappe.dashboards.chart_sources[
-										this.chart_doc.source
-									];
-							});
+						this.settings = {
+							method: "frappe.desk.doctype.dashboard_chart.dashboard_chart.get"
+						};
+						return Promise.resolve();
 					}
-				} else if (this.chart_doc.chart_type == "Report") {
-					this.settings = {
-						method: "frappe.desk.query_report.run"
-					};
-					return Promise.resolve();
-				} else {
-					this.settings = {
-						method: "frappe.desk.doctype.dashboard_chart.dashboard_chart.get"
-					};
-					return Promise.resolve();
 				}
 			});
 	}

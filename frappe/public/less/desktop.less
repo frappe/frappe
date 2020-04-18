@@ -392,6 +392,56 @@
 			}
 		}
 	}
+
+	&.number-widget-box {
+		cursor: pointer;
+		height: 110px;
+
+		&:hover {
+			border-color: @text-muted;
+		}
+
+		.widget-head {
+			position: relative;
+
+			.widget-title {
+				display: none;
+			}
+
+			.widget-control {
+				position: absolute;
+				right: -10px;
+				top: -10px;
+			}
+		}
+
+		.widget-body {
+			text-align: center;
+
+			.number-card-loading {
+				display: flex;
+				height: 80px;
+				align-items: center;
+				justify-content: center;
+			}
+
+			.widget-content {
+				padding: 5px;
+
+				.number {
+					font-size: 30px;
+					font-weight: bold;
+				}
+
+				.number-text {
+					color: @text-muted;
+					padding: 5px;
+					font-size: 14px;
+				}
+			}
+		}
+	}
+
 }
 
 .pill {

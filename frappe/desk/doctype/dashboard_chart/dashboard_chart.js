@@ -9,6 +9,12 @@ frappe.ui.form.on('Dashboard Chart', {
 		frm.add_fetch('source', 'timeseries', 'timeseries');
 	},
 
+	before_save: function(frm) {
+		if (frm.is_new() && (frappe.user.has_role('System Manager') || frappe.user.has_role('Dashboard Manager'))) {
+			frm.doc.is_standard = 1;
+		}
+	},
+
 	refresh: function(frm) {
 		frm.chart_filters = null;
 		frm.add_custom_button('Add Chart to Dashboard', () => {
@@ -348,6 +354,7 @@ frappe.ui.form.on('Dashboard Chart', {
 					on_change: () => {},
 				});
 
+				console.log('filters', filters);
 				frm.filter_group.add_filters_to_filter_group(filters);
 			}
 

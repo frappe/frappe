@@ -35,7 +35,8 @@
   "color",
   "custom_options",
   "section_break_10",
-  "last_synced_on"
+  "last_synced_on",
+  "is_standard"
  ],
  "fields": [
   {
@@ -220,10 +221,18 @@
    "fieldname": "custom_options",
    "fieldtype": "Code",
    "label": "Custom Options"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_standard",
+   "fieldtype": "Check",
+   "hidden": 1,
+   "label": "Is Standard",
+   "permlevel": 1
   }
  ],
  "links": [],
- "modified": "2020-04-20 23:49:11.389909",
+ "modified": "2020-04-17 18:11:33.486037",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Dashboard Chart",

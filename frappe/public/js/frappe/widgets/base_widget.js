@@ -72,12 +72,12 @@ export default class Widget {
 	make_widget() {
 		this.widget = $(`<div class="widget ${
 			this.hidden ? "hidden" : ""
-		}" data-widget-name=${this.name ? this.name : ''}>
+		}" data-widget-name="${this.name ? this.name : ''}">
 			<div class="widget-head">
 				<div class="widget-title ellipsis"></div>
 				<div class="widget-control"></div>
 			</div>
-		    <div class="widget-body">
+			<div class="widget-body">
 		    </div>
 		    <div class="widget-footer">
 		    </div>
@@ -91,8 +91,11 @@ export default class Widget {
 		this.refresh();
 	}
 
-	set_title() {
-		this.title_field[0].innerHTML = this.label;
+	set_title(max_chars) {
+		this.title_field[0].innerHTML = max_chars? frappe.ellipsis(this.label, max_chars): this.label;
+		if (max_chars) {
+			this.title_field[0].setAttribute('title', this.label);
+		}
 	}
 
 	add_custom_button(html, action, class_name = "") {
@@ -106,13 +109,20 @@ export default class Widget {
 		button.appendTo(this.action_area);
 	}
 
-	delete() {
-		this.widget.addClass("zoomOutDelete");
-		// wait for animation
-		setTimeout(() => {
+	delete(animate=true) {
+		let remove_widget = () => {
 			this.widget.remove();
 			this.options.on_delete && this.options.on_delete(this.name);
-		}, 300);
+		}
+		if (animate) {
+			this.widget.addClass("zoomOutDelete");
+			// wait for animation
+			setTimeout(() => {
+				remove_widget();
+			}, 300);
+		} else {
+			remove_widget();
+		}
 	}
 
 	edit() {
