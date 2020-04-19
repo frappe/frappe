@@ -264,93 +264,93 @@ class NumberCardDialog extends WidgetDialog {
 	get_fields() {
 		let fields;
 		fields = [
-				{
-					fieldtype: 'Select',
-					label: 'Choose Existing Card or create New Card',
-					fieldname: 'new_or_existing',
-					options: ['New Card', 'Existing Card']
+			{
+				fieldtype: 'Select',
+				label: 'Choose Existing Card or create New Card',
+				fieldname: 'new_or_existing',
+				options: ['New Card', 'Existing Card']
+			},
+			{
+				fieldtype: 'Link',
+				fieldname: 'card',
+				label: 'Number Cards',
+				options: 'Number Card',
+				get_query: () => {
+					return {
+						'query': 'frappe.desk.doctype.number_card.number_card.get_cards_for_user',
+						filters: {
+							document_type: this.document_type,
+						}
+					};
 				},
-				{
-					fieldtype: 'Link',
-					fieldname: 'card',
-					label: 'Number Cards',
-					options: 'Number Card',
-					get_query: () => {
-						return {
-							'query': 'frappe.desk.doctype.number_card.number_card.get_cards_for_user',
-							filters: {
-								document_type: this.document_type,
-							}
-						};
-					},
-					depends_on: 'eval: doc.new_or_existing == "Existing Card"'
+				depends_on: 'eval: doc.new_or_existing == "Existing Card"'
+			},
+			{
+				fieldtype: 'Section Break',
+				fieldname: 'sb_1',
+				depends_on: 'eval: doc.new_or_existing == "New Card"'
+			},
+			{
+				label: 'Label',
+				fieldname: 'label',
+				fieldtype: 'Data',
+				mandatory_depends_on: 'eval: doc.new_or_existing == "New Card"'
+			},
+			{
+				label: 'Doctype',
+				fieldname: 'document_type',
+				fieldtype: 'Link',
+				options: 'DocType',
+				onchange: () => {
+					this.document_type = this.dialog.get_value("document_type");
+					this.set_aggregate_function_fields(this.dialog.get_values());
+					this.setup_filter(doctype);
 				},
-				{
-					fieldtype: 'Section Break',
-					fieldname: 'sb_1',
-					depends_on: 'eval: doc.new_or_existing == "New Card"'
-				},
-				{
-					label: 'Label',
-					fieldname: 'label',
-					fieldtype: 'Data',
-					mandatory_depends_on: 'eval: doc.new_or_existing == "New Card"'
-				},
-				{
-					label: 'Doctype',
-					fieldname: 'document_type',
-					fieldtype: 'Link',
-					options: 'DocType',
-					onchange: () => {
-						this.document_type = this.dialog.get_value("document_type");
-						this.set_aggregate_function_fields(this.dialog.get_values());
-						this.setup_filter(doctype);
-					},
-					hidden: 1
-				},
-				{
-					label: 'Color',
-					fieldname: 'color',
-					fieldtype: 'Color'
-				},
-				{
-					fieldtype: "Column Break",
-					fieldname: "cb_1",
-				},
-				{
-					label: 'Function',
-					fieldname: 'function',
-					fieldtype: 'Select',
-					options: ['Count', 'Sum', 'Average', 'Minimum', 'Maximum'],
-					mandatory_depends_on: 'eval: doc.new_or_existing == "New Card"'
-				},
-				{
-					label: 'Function Based On',
-					fieldname: 'aggregate_function_based_on',
-					fieldtype: 'Select',
-					depends_on: "eval: doc.function !== 'Count'",
-					mandatory_depends_on: 'eval: doc.function !== "Count" && doc.new_or_existing == "New Card"'
-				},
-				{
-					fieldtype: "Section Break",
-					fieldname: "sb_1",
-					label: 'Add Filters',
-					depends_on: 'eval: doc.new_or_existing == "New Card"'
-				},
-				{
-					fieldtype: "HTML",
-					fieldname: "filter_area_loading",
-				},
-				{
-					fieldtype: "HTML",
-					fieldname: "filter_area",
-					hidden: 1,
-				},
-				{
-					fieldtype: "Section Break",
-					fieldname: "sb_1",
-				},
-			];
+				hidden: 1
+			},
+			{
+				label: 'Color',
+				fieldname: 'color',
+				fieldtype: 'Color'
+			},
+			{
+				fieldtype: "Column Break",
+				fieldname: "cb_1",
+			},
+			{
+				label: 'Function',
+				fieldname: 'function',
+				fieldtype: 'Select',
+				options: ['Count', 'Sum', 'Average', 'Minimum', 'Maximum'],
+				mandatory_depends_on: 'eval: doc.new_or_existing == "New Card"'
+			},
+			{
+				label: 'Function Based On',
+				fieldname: 'aggregate_function_based_on',
+				fieldtype: 'Select',
+				depends_on: "eval: doc.function !== 'Count'",
+				mandatory_depends_on: 'eval: doc.function !== "Count" && doc.new_or_existing == "New Card"'
+			},
+			{
+				fieldtype: "Section Break",
+				fieldname: "sb_1",
+				label: 'Add Filters',
+				depends_on: 'eval: doc.new_or_existing == "New Card"'
+			},
+			{
+				fieldtype: "HTML",
+				fieldname: "filter_area_loading",
+			},
+			{
+				fieldtype: "HTML",
+				fieldname: "filter_area",
+				hidden: 1,
+			},
+			{
+				fieldtype: "Section Break",
+				fieldname: "sb_1",
+			},
+		];
 
 		return fields;
 	}
