@@ -117,6 +117,7 @@ function get_rollup_options_for_css(output_file, input_files) {
 		postcss({
 			plugins: [
 				require('tailwindcss'),
+				require('postcss-nested'),
 				require('autoprefixer'),
 				minimize_css ? require('cssnano')({ preset: 'default' }) : null
 			].filter(Boolean),
