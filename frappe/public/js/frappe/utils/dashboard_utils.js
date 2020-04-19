@@ -57,13 +57,17 @@ frappe.dashboard_utils = {
 	},
 
 	get_dashboard_settings() {
-		return frappe.model.with_doc('Dashboard Settings', frappe.session.user).then(settings => {
-			if (!settings) {
+		return frappe.db.get_list('Dashboard Settings',
+		{
+			filters: {name: frappe.session.user},
+			fields: ['*']
+		}).then(settings => {
+			if (!settings.length) {
 				return this.create_dashboard_settings().then(settings => {
 					return settings;
 				});
 			} else {
-				return settings;
+				return settings[0];
 			}
 		});
 	},

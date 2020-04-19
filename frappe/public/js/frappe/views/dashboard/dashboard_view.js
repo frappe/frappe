@@ -148,6 +148,7 @@ frappe.views.DashboardView = class DashboardView extends frappe.views.ListView {
 
     render_dashboard() {
         this.$dashboard_wrapper.empty();
+
         frappe.dashboard_utils.get_dashboard_settings().then(settings => {
             this.dashboard_chart_settings = settings.chart_config? JSON.parse(settings.chart_config): {};
             this.charts.map(chart => {
@@ -156,6 +157,7 @@ frappe.views.DashboardView = class DashboardView extends frappe.views.ListView {
             });
             this.render_dashboard_charts();
         });
+
         this.render_number_cards();
 
         if (!this.charts.length && !this.number_cards.length) {
