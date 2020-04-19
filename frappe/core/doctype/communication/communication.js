@@ -204,13 +204,13 @@ frappe.ui.form.on("Communication", {
 	},
 
 	mark_as_closed_open: function(frm) {
-		var action = frm.doc.status == "Open" ? "Close" : "Open";
+		var status = frm.doc.status == "Open" ? "Closed" : "Open";
 
 		return frappe.call({
 			method: "frappe.email.inbox.mark_as_closed_open",
 			args: {
 				communication: frm.doc.name,
-				action: action
+				status: status
 			},
 			freeze: true,
 			callback: function(r) {
