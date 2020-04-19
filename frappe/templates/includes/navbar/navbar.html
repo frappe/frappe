@@ -19,5 +19,5 @@
 	</div>
 </nav>
 {%- else -%}
-{{ c('navbar', theme=theme) }}
+{{ c('web_blocks', web_blocks=theme.navbar, htmltag='nav') }}
 {%- endif -%}

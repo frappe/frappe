@@ -1,0 +1,13 @@
+{%- set htmltag = htmltag or 'section' -%}
+{%- set classes = resolve_class([
+	{
+		'py-32': web_block.add_padding,
+		'bg-gray-100': web_block.add_shade,
+	},
+	web_block.css_class
+]) -%}
+<{{htmltag}} class="{{ classes }}" data-section-idx="{{ web_block.idx | e }}" data-section-template="{{ web_block.web_template | e }}">
+	<div class="{{ resolve_class({'container': web_block.add_container}) }}">
+		{{ web_block.render() }}
+	</div>
+</{{htmltag}}>

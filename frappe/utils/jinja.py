@@ -22,6 +22,7 @@ def get_jenv():
 		jenv.globals.update({
 			'component': component,
 			'c': component,
+			'resolve_class': resolve_class,
 			'inspect': inspect
 		})
 
@@ -178,21 +179,23 @@ def component(name, **kwargs):
 		context['class'] = resolve_class(context['class'])
 	else:
 		context['class'] = ''
-	context['resolve_class'] = resolve_class
 
 	return get_jenv().from_string(html).render(context)
 
 def resolve_class(classes):
 	import frappe
 
+	if classes is None:
+		return ''
+
 	if isinstance(classes, frappe.string_types):
 		return classes
 
 	if isinstance(classes, (list, tuple)):
-		return ' '.join([resolve_class(c) for c in classes])
+		return ' '.join([resolve_class(c) for c in classes]).strip()
 
 	if isinstance(classes, dict):
-		return ' '.join([classname for classname in classes if classes[classname]])
+		return ' '.join([classname for classname in classes if classes[classname]]).strip()
 
 	return classes
 

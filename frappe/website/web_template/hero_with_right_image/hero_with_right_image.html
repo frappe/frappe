@@ -1,16 +1,18 @@
-<div class="relative flex overflow-hidden bg-white">
+<div class="relative flex overflow-hidden">
 	<div class="mx-auto">
-		<div class="relative z-10 pb-8 bg-white sm:pb-16 md:pb-20 lg:max-w-2xl lg:w-full lg:pb-28 xl:pb-32">
+		<div class="relative z-10 pb-8 sm:pb-16 md:pb-20 lg:max-w-2xl lg:w-full lg:pb-28 xl:pb-32">
 			<div class="pt-10 mx-auto sm:pt-12 md:pt-16 lg:pt-20 xl:pt-28">
 				<div class="sm:text-center lg:text-left">
 					<h2
 						class="text-4xl font-extrabold leading-10 tracking-tight text-black sm:text-5xl sm:leading-none md:text-5xl">
 						{{ title }}
 					</h2>
+					{%- if subtitle -%}
 					<p
 						class="mt-3 text-base text-gray-700 sm:mt-5 sm:text-lg sm:max-w-xl sm:mx-auto md:mt-5 md:text-xl lg:mx-0">
 						{{ subtitle }}
 					</p>
+					{%- endif -%}
 					<div class="mt-5 sm:mt-8 sm:flex sm:justify-center lg:justify-start">
 						{%- if primary_action -%}
 						<div class="rounded-md shadow">
@@ -32,8 +34,10 @@
 				</div>
 			</div>
 		</div>
-    </div>
-    <div class="lg:w-1/2">
+	</div>
+	{%- if image -%}
+	<div class="lg:w-1/2">
 		<img class="object-cover w-full h-56 lg:h-full lg:w-full md:h-96 sm:h-72" src="{{ image }}" alt="">
 	</div>
+	{%- endif -%}
 </div>

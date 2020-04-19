@@ -1,8 +1,8 @@
-{%- macro card(title, content) -%}
-<div class="p-8 bg-white border border-gray-100 rounded-xl">
+{%- macro card(title, content, url) -%}
+<a href="{{ url or '#' }}" class="block p-8 bg-white border rounded-xl">
 	<h3 class="text-2xl font-semibold">{{ title }}</h3>
 	<p class="mt-4 text-xl text-gray-800">{{ content }}</p>
-</div>
+</a>
 {%- endmacro -%}
 
 
@@ -11,8 +11,11 @@
 {%- endif -%}
 <div class="grid grid-cols-2 gap-8">
 	{%- for index in ['1', '2', '3', '4'] -%}
-	{%- if values['card_' + index + '_title'] -%}
-	{{ card(values['card_' + index + '_title'], values['card_' + index + '_content']) }}
+	{%- set title = values['card_' + index + '_title'] -%}
+	{%- set content = values['card_' + index + '_content'] -%}
+	{%- set url = values['card_' + index + '_url'] -%}
+	{%- if title -%}
+	{{ card(title, content, url) }}
 	{%- endif -%}
 	{%- endfor -%}
 </div>

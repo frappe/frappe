@@ -18,11 +18,9 @@
   "theme_json",
   "theme_url",
   "navbar_section",
-  "navbar_items",
-  "primary_action_label",
-  "primary_action_url",
+  "navbar",
   "footer_section",
-  "footer_items",
+  "footer",
   "custom_js_section",
   "js"
  ],
@@ -93,12 +91,6 @@
    "label": "Navbar"
   },
   {
-   "fieldname": "navbar_items",
-   "fieldtype": "Table",
-   "label": "Navbar Items",
-   "options": "Top Bar Item"
-  },
-  {
    "depends_on": "eval:doc.based_on=='Tailwind'",
    "fieldname": "tailwind_theme_section",
    "fieldtype": "Section Break",
@@ -116,29 +108,25 @@
    "label": "Brand Color"
   },
   {
-   "fieldname": "primary_action_label",
-   "fieldtype": "Data",
-   "label": "Primary Action Label"
-  },
-  {
-   "fieldname": "primary_action_url",
-   "fieldtype": "Data",
-   "label": "Primary Action URL"
-  },
-  {
    "fieldname": "footer_section",
    "fieldtype": "Section Break",
    "label": "Footer"
   },
   {
-   "fieldname": "footer_items",
+   "fieldname": "navbar",
    "fieldtype": "Table",
-   "label": "Footer Items",
-   "options": "Top Bar Item"
+   "label": "Navbar",
+   "options": "Web Page Block"
+  },
+  {
+   "fieldname": "footer",
+   "fieldtype": "Table",
+   "label": "Footer",
+   "options": "Web Page Block"
   }
  ],
  "links": [],
- "modified": "2020-04-17 21:23:13.735307",
+ "modified": "2020-04-19 13:43:18.722297",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Website Theme",

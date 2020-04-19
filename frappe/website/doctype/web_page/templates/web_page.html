@@ -16,9 +16,7 @@
 
 {% block page_content %}
 {%- if content_type == 'Page Builder' -%}
-{%- for section in page_builder_sections -%}
-{{ c('web_page_section', section=section) }}
-{%- endfor -%}
+{{ c('web_blocks', web_blocks=doc.page_blocks) }}
 {%- else -%}
 <div class="webpage-content">
 	{% include "templates/includes/slideshow.html" %}

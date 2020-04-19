@@ -1,0 +1,25 @@
+<div class="py-16">
+	<div class="w-20">
+		<img class="w-auto h-8 sm:h-10" src="{{ brand_image }}" alt="Brand Logo">
+	</div>
+	<div class="flex items-center my-4 space-x-8">
+		{%- for index in ['1', '2', '3', '4', '5'] -%}
+
+		{%- set label = values['item_' + index + '_label'] -%}
+		{%- set url = values['item_' + index + '_url'] -%}
+
+		{%- if label and url -%}
+		{{ c('navbar_link', label=label, url=url) }}
+		{%- endif -%}
+
+		{%- endfor -%}
+	</div>
+	<div class="flex items-start justify-between pt-4 text-xs text-gray-700 border-t-2">
+		<div>
+			{{ address }}
+		</div>
+		<div>
+			{{ copyright }}
+		</div>
+	</div>
+</div>

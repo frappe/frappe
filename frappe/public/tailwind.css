@@ -5,4 +5,92 @@ details.dropdown summary::-webkit-details-marker {
 	display: none;
 }
 
+.from-markdown {
+	@apply text-xl;
+	@apply text-gray-900;
+	@apply leading-relaxed;
+	@apply py-20;
+
+	> * + * {
+		@apply mt-6;
+	}
+
+	> :first-child {
+		margin-top: 0;
+	}
+
+	ul,
+	ol {
+		@apply pl-10;
+	}
+
+	ul {
+		@apply list-disc;
+	}
+
+	ol {
+		@apply list-decimal;
+	}
+
+	li > * + * {
+		@apply mt-4;
+	}
+
+	> ul > * + *,
+	> ol > * + * {
+		@apply mt-4;
+	}
+
+	> blockquote {
+		@apply px-6 py-4 text-lg text-gray-900 border border-l-4 border-gray-800;
+	}
+
+	> h1 {
+		@apply text-4xl;
+		@apply mt-16;
+		@apply mb-4;
+		@apply leading-none;
+		@apply font-bold;
+	}
+
+	> h2 {
+		@apply mt-16;
+		@apply mb-4;
+		@apply leading-none;
+		@apply font-bold;
+		@apply text-3xl;
+	}
+
+	> h3 {
+		@apply mt-16;
+		@apply mb-4;
+		@apply leading-none;
+		@apply font-bold;
+		@apply text-2xl;
+	}
+
+	> a,
+	> p a,
+	> ul li a,
+	> ol li a {
+		@apply border-b border-gray-800;
+		&:hover {
+			@apply text-gray-700;
+		}
+	}
+
+	tr > td,
+	tr > th {
+		@apply px-4 py-2 border border-gray-800;
+	}
+
+	th:empty {
+		display: none;
+	}
+
+	img {
+		@apply border border-gray-800;
+	}
+}
+
 @tailwind utilities;

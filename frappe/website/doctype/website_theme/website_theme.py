@@ -96,7 +96,7 @@ def add_website_theme(context):
 
 	if not context.disable_website_theme:
 		website_theme = get_active_theme()
-		context.theme = website_theme and website_theme.as_dict() or frappe._dict()
+		context.theme = website_theme or frappe._dict()
 
 def get_active_theme():
 	website_theme = frappe.db.get_value("Website Settings", "Website Settings", "website_theme")
