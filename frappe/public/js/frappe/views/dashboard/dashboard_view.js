@@ -77,34 +77,48 @@ frappe.views.DashboardView = class DashboardView extends frappe.views.ListView {
         }
     }
 
+    render_dashboard() {
+        this.$dashboard_wrapper.empty();
 
-    get_field_options() {
-        let date_fields = [
-			{label: __('Created On'), value: 'creation'},
-			{label: __('Last Modified On'), value: 'modified'}
-		];
-		let value_fields = [];
-		let group_by_fields = [];
-        let aggregate_function_fields = [];
-
-        frappe.get_meta(this.doctype).fields.map(df => {
-            if (['Date', 'Datetime'].includes(df.fieldtype)) {
-                date_fields.push({label: df.label, value: df.fieldname});
-            }
-            if (frappe.model.numeric_fieldtypes.includes(df.fieldtype)) {
-                value_fields.push({label: df.label, value: df.fieldname});
-                aggregate_function_fields.push({label: df.label, value: df.fieldname});
-            }
-            if (['Link', 'Select'].includes(df.fieldtype)) {
-                group_by_fields.push({label: df.label, value: df.fieldname});
-            }
+        frappe.dashboard_utils.get_dashboard_settings().then(settings => {
+            this.dashboard_chart_settings = settings.chart_config? JSON.parse(settings.chart_config): {};
+            this.charts.map(chart => {
+                chart.label = chart.chart_name;
+                chart.chart_settings = this.dashboard_chart_settings[chart.chart_name] || {};
+            });
+            this.render_dashboard_charts();
         });
-        return {
-            date_fields: date_fields,
-            value_fields: value_fields,
-            group_by_fields: group_by_fields,
-            aggregate_function_fields: aggregate_function_fields
+
+        this.render_number_cards();
+
+        if (!this.charts.length && !this.number_cards.length) {
+            this.render_empty_state();
         }
+    }
+
+    fetch_doctype_charts() {
+        return frappe.db.get_list('Dashboard Chart', {
+			filters: {
+				chart_type: ['in', ['Count', 'Sum', 'Group By']],
+                document_type: this.doctype,
+                is_standard: true
+            },
+            fields: ['*']
+		}).then(charts => {
+            return charts;
+        });
+    }
+
+    fetch_doctype_number_cards() {
+        return frappe.db.get_list('Number Card', {
+			filters: {
+                document_type: this.doctype,
+                is_standard: true
+            },
+            fields: ['*']
+		}).then(cards => {
+            return cards;
+        });
     }
 
     render_number_cards() {
@@ -146,25 +160,6 @@ frappe.views.DashboardView = class DashboardView extends frappe.views.ListView {
         this.chart_group.container.find('.widget-group-head').hide();
     }
 
-    render_dashboard() {
-        this.$dashboard_wrapper.empty();
-
-        frappe.dashboard_utils.get_dashboard_settings().then(settings => {
-            this.dashboard_chart_settings = settings.chart_config? JSON.parse(settings.chart_config): {};
-            this.charts.map(chart => {
-                chart.label = chart.name;
-                chart.chart_settings = this.dashboard_chart_settings[chart.chart_name] || {};
-            });
-            this.render_dashboard_charts();
-        });
-
-        this.render_number_cards();
-
-        if (!this.charts.length && !this.number_cards.length) {
-            this.render_empty_state();
-        }
-    }
-
     render_empty_state() {
         const no_result_message_html =
             `<p>${__("You haven't added any Dashboard Charts or Number Cards yet.")}
@@ -190,31 +185,6 @@ frappe.views.DashboardView = class DashboardView extends frappe.views.ListView {
         this.$empty_state = this.$dashboard_wrapper.find('.empty-dashboard');
     }
 
-    fetch_doctype_charts() {
-        return frappe.db.get_list('Dashboard Chart', {
-			filters: {
-				chart_type: ['in', ['Count', 'Sum', 'Group By']],
-                document_type: this.doctype,
-                is_standard: true
-            },
-            fields: ['*']
-		}).then(charts => {
-            return charts;
-        });
-    }
-
-    fetch_doctype_number_cards() {
-        return frappe.db.get_list('Number Card', {
-			filters: {
-                document_type: this.doctype,
-                is_standard: true
-            },
-            fields: ['*']
-		}).then(cards => {
-            return cards;
-        });
-    }
-
     customize() {
         if (this.in_customize_mode) {
             return;
@@ -236,16 +206,20 @@ frappe.views.DashboardView = class DashboardView extends frappe.views.ListView {
         this.toggle_customize(false);
 
         const number_card_config = this.number_card_group.get_widget_config();
-        const number_cards = [];
+        let number_cards = [];
         number_card_config.order.map(card_name => {
             number_cards.push(number_card_config.widgets[card_name]);
         });
 
         const chart_config = this.chart_group.get_widget_config();
-        const charts = [];
+        let charts = [];
         chart_config.order.map(chart_name => {
             charts.push(chart_config.widgets[chart_name]);
         });
+
+        // Don't allow duplicates of the same card or chart
+        charts = this.remove_duplicates(charts);
+        number_cards = this.remove_duplicates(number_cards);
 
         this.dashboard_settings = {
             charts: charts,
@@ -450,6 +424,39 @@ frappe.views.DashboardView = class DashboardView extends frappe.views.ListView {
             }
         });
         dialog.show();
+    }
+
+    get_field_options() {
+        let date_fields = [
+			{label: __('Created On'), value: 'creation'},
+			{label: __('Last Modified On'), value: 'modified'}
+		];
+		let value_fields = [];
+		let group_by_fields = [];
+        let aggregate_function_fields = [];
+
+        frappe.get_meta(this.doctype).fields.map(df => {
+            if (['Date', 'Datetime'].includes(df.fieldtype)) {
+                date_fields.push({label: df.label, value: df.fieldname});
+            }
+            if (frappe.model.numeric_fieldtypes.includes(df.fieldtype)) {
+                value_fields.push({label: df.label, value: df.fieldname});
+                aggregate_function_fields.push({label: df.label, value: df.fieldname});
+            }
+            if (['Link', 'Select'].includes(df.fieldtype)) {
+                group_by_fields.push({label: df.label, value: df.fieldname});
+            }
+        });
+        return {
+            date_fields: date_fields,
+            value_fields: value_fields,
+            group_by_fields: group_by_fields,
+            aggregate_function_fields: aggregate_function_fields
+        }
+    }
+
+    remove_duplicates(items) {
+        return items.filter((item, index) => items.indexOf(item) === index);
     }
 
 }
