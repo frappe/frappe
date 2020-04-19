@@ -354,7 +354,6 @@ frappe.ui.form.on('Dashboard Chart', {
 					on_change: () => {},
 				});
 
-				console.log('filters', filters);
 				frm.filter_group.add_filters_to_filter_group(filters);
 			}
 

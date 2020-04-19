@@ -11,6 +11,38 @@ class NumberCard(Document):
 	pass
 
 
+def get_permission_query_conditions(user):
+
+	if not user:
+		user = frappe.session.user
+
+	if user == 'Administrator':
+		return
+
+	roles = frappe.get_roles(user)
+	if "System Manager" in roles:
+		return None
+
+	allowed_doctypes = tuple(frappe.permissions.get_doctypes_with_read())
+	print('allowed doctypes', allowed_doctypes)
+
+	return '''
+			`tabNumber Card`.`document_type` in {allowed_doctypes}
+		'''.format(
+			allowed_doctypes=allowed_doctypes,
+		)
+
+def has_permission(doc, ptype, user):
+	roles = frappe.get_roles(user)
+	if "System Manager" in roles:
+		return True
+
+	allowed_doctypes = tuple(frappe.permissions.get_doctypes_with_read())
+	if doc.document_type in allowed_doctypes:
+		return True
+
+	return False
+
 @frappe.whitelist()
 def get_result(doc):
 	doc = frappe.parse_json(doc)

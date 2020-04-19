@@ -76,7 +76,16 @@ class Dashboard {
 	}
 
 	refresh() {
-		this.get_permitted_dashboard_charts().then(charts => {
+		frappe.run_serially([
+			() => this.render_cards(),
+			() => this.render_charts()
+		]);
+	}
+
+	render_charts() {
+		return this.get_permitted_items(
+			'frappe.desk.doctype.dashboard.dashboard.get_permitted_charts'
+		).then(charts => {
 			if (!charts.length) {
 				frappe.msgprint(__('No Permitted Charts on this Dashboard'), __('No Permitted Charts'))
 			}
@@ -92,6 +101,7 @@ class Dashboard {
 							...chart
 						}
 					});
+
 				this.chart_group = new frappe.widget.WidgetGroup({
 					title: null,
 					container: this.container,
@@ -110,14 +120,46 @@ class Dashboard {
 		});
 	}
 
-	get_permitted_dashboard_charts() {
+	render_cards() {
+		return this.get_permitted_items(
+			'frappe.desk.doctype.dashboard.dashboard.get_permitted_cards'
+		).then(cards => {
+			if (!cards.length) {
+				frappe.msgprint(__('No Permitted Cards on this Dashboard'), __('No Permitted Cards'))
+			}
+
+			this.number_cards =
+                cards.map(card => {
+                    return {
+                        name: card.card,
+                    }
+				});
+
+			this.number_card_group = new frappe.widget.WidgetGroup({
+				container: this.container,
+				type: "number_card",
+				columns: 3,
+				options: {
+					allow_sorting: false,
+					allow_create: false,
+					allow_delete: false,
+					allow_hiding: false,
+					allow_edit: false,
+				},
+				widgets: this.number_cards,
+			});
+		});
+	}
+
+	get_permitted_items(method) {
 		return frappe.xcall(
-			'frappe.desk.doctype.dashboard.dashboard.get_permitted_charts',
+			method,
 			{
 				dashboard_name: this.dashboard_name
-			}).then(charts => {
-				return charts;
-			});
+			}).then(items => {
+				return items;
+			}
+		);
 	}
 
 	set_dropdown() {

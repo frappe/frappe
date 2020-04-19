@@ -128,7 +128,7 @@ frappe.views.DashboardView = class DashboardView extends frappe.views.ListView {
 			},
 			default_values: {doctype: this.doctype},
 			widgets: this.number_cards || [],
-			in_customize_mode: true,
+			in_customize_mode: this.in_customize_mode || false,
 		});
 
 		this.in_customize_mode && this.number_card_group.customize();
