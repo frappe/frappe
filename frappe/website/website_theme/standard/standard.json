@@ -8,13 +8,13 @@
  "doctype": "Website Theme",
  "font_properties": "300,600",
  "idx": 27,
- "modified": "2020-04-19 05:00:20.668017",
+ "modified": "2020-04-19 05:34:56.086984",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Standard",
  "owner": "Administrator",
- "primary_color": "#7575ff",
+ "primary_color": "Blue",
  "theme": "Standard",
- "theme_scss": "\n\n$primary: #7575ff;\n\n\n\n\n$enable-shadows: false;\n$enable-gradients: false;\n$enable-rounded: true;\n\n@import \"frappe/public/scss/website\";\n\nbody {\n    \n}",
- "theme_url": "/assets/css/standard_55b00b4f.css"
+ "theme_scss": "\n\n$primary: #5e3aa8;\n\n\n\n\n$enable-shadows: false;\n$enable-gradients: false;\n$enable-rounded: true;\n\n@import \"frappe/public/scss/website\";\n\nbody {\n    \n}",
+ "theme_url": "/assets/css/standard_999ef15b.css"
 }
