@@ -66,12 +66,22 @@ frappe.views.DashboardView = class DashboardView extends frappe.views.ListView {
 			this.render_dashboard();
 		} else {
 			frappe.run_serially([
-				() => this.fetch_doctype_number_cards().then(cards => {
-					this.number_cards = cards;
-				}),
-				() => this.fetch_doctype_charts().then(charts => {
-					this.charts = charts;
-				}),
+				() => this.fetch_dashboard_items(
+					'Dashboard Chart',
+					{
+						chart_type: ['in', ['Count', 'Sum', 'Group By']],
+						document_type: this.doctype,
+						is_standard: true
+					},
+					'charts'
+				),
+				() => this.fetch_dashboard_items('Number Card',
+					{
+						document_type: this.doctype,
+						is_standard: true
+					},
+					'number_cards'
+				),
 				() => this.render_dashboard()
 			]);
 		}
@@ -96,28 +106,12 @@ frappe.views.DashboardView = class DashboardView extends frappe.views.ListView {
 		}
 	}
 
-	fetch_doctype_charts() {
-		return frappe.db.get_list('Dashboard Chart', {
-			filters: {
-				chart_type: ['in', ['Count', 'Sum', 'Group By']],
-				document_type: this.doctype,
-				is_standard: true
-			},
+	fetch_dashboard_items(doctype, filters, obj_name) {
+		return frappe.db.get_list(doctype, {
+			filters: filters,
 			fields: ['*']
-		}).then(charts => {
-			return charts;
-		});
-	}
-
-	fetch_doctype_number_cards() {
-		return frappe.db.get_list('Number Card', {
-			filters: {
-				document_type: this.doctype,
-				is_standard: true
-			},
-			fields: ['*']
-		}).then(cards => {
-			return cards;
+		}).then(items => {
+			this[obj_name] = items;
 		});
 	}
 
@@ -202,24 +196,20 @@ frappe.views.DashboardView = class DashboardView extends frappe.views.ListView {
 		this.number_card_group.customize();
 	}
 
+	get_widgets_to_save(widget_group) {
+		const config = widget_group.get_widget_config();
+		let widgets = [];
+		config.order.map(widget_name => {
+			widgets.push(config.widgets[widget_name]);
+		});
+		return this.remove_duplicates(widgets);
+	}
+
 	save_dashboard_customization() {
 		this.toggle_customize(false);
 
-		const number_card_config = this.number_card_group.get_widget_config();
-		let number_cards = [];
-		number_card_config.order.map(card_name => {
-			number_cards.push(number_card_config.widgets[card_name]);
-		});
-
-		const chart_config = this.chart_group.get_widget_config();
-		let charts = [];
-		chart_config.order.map(chart_name => {
-			charts.push(chart_config.widgets[chart_name]);
-		});
-
-		// Don't allow duplicates of the same card or chart
-		charts = this.remove_duplicates(charts);
-		number_cards = this.remove_duplicates(number_cards);
+		const charts = this.get_widgets_to_save(this.chart_group);
+		const number_cards = this.get_widgets_to_save(this.number_card_group);
 
 		this.dashboard_settings = {
 			charts: charts,
