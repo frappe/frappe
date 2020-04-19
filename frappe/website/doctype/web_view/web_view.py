@@ -14,6 +14,7 @@ class WebView(WebsiteGenerator):
 		if self.content_type=='Components':
 			self.build_components(context)
 
+		self.set_metatags(context)
 		return context
 
 	def build_components(self, context):
@@ -93,3 +94,11 @@ class WebView(WebsiteGenerator):
 			title='Default Section',
 			elements=[]
 		))
+
+	def set_metatags(self, context):
+		context.metatags = {
+			"name": self.meta_title or context.title,
+			"description": self.meta_description,
+			"image": self.meta_image
+		}
+

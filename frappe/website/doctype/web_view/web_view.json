@@ -20,7 +20,11 @@
   "content_html",
   "components",
   "style_section",
-  "css"
+  "css",
+  "metatags_section",
+  "meta_title",
+  "meta_description",
+  "meta_image"
  ],
  "fields": [
   {
@@ -88,12 +92,32 @@
    "fieldname": "style_section",
    "fieldtype": "Section Break",
    "label": "Style"
+  },
+  {
+   "fieldname": "metatags_section",
+   "fieldtype": "Section Break",
+   "label": "Meta Tags"
+  },
+  {
+   "fieldname": "meta_title",
+   "fieldtype": "Data",
+   "label": "Title"
+  },
+  {
+   "fieldname": "meta_description",
+   "fieldtype": "Small Text",
+   "label": "Description"
+  },
+  {
+   "fieldname": "meta_image",
+   "fieldtype": "Attach Image",
+   "label": "Image"
   }
  ],
  "has_web_view": 1,
  "is_published_field": "published",
  "links": [],
- "modified": "2020-04-19 05:05:43.620000",
+ "modified": "2020-04-19 12:25:48.014935",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Web View",

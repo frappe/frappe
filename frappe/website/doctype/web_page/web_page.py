@@ -128,12 +128,10 @@ class WebPage(WebsiteGenerator):
 
 	def set_metatags(self, context):
 		context.metatags = {
-			"name": context.title
+			"name": self.meta_title or self.title,
+			"description": self.meta_description,
+			"image": self.meta_image or find_first_image(context.main_section or "")
 		}
-
-		image = find_first_image(context.main_section or "")
-		if image:
-			context.metatags["image"] = image
 
 	def validate_dates(self):
 		if self.end_date:
