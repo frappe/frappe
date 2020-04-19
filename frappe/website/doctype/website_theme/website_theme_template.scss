@@ -8,9 +8,9 @@ $font-family-sans-serif: "{{ google_font }}", -apple-system, BlinkMacSystemFont,
 {% if text_color %}$body-color: {{ text_color }};{% endif %}
 {% if background_color %}$body-bg: {{ background_color }};{% endif %}
 
-$enable-shadows: {{ enable_shadows and "true" or "false" }};
-$enable-gradients: {{ enable_gradients and "true" or "false" }};
-$enable-rounded: {{ enable_rounded and "true" or "false" }};
+$enable-shadows: {{ button_shadows and "true" or "false" }};
+$enable-gradients: {{ button_gradients and "true" or "false" }};
+$enable-rounded: {{ button_rounded_corners and "true" or "false" }};
 
 @import "frappe/public/scss/website";
 

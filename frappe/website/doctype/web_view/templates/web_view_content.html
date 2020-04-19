@@ -9,7 +9,7 @@
 {%- endif -%}
 
 {%- macro render_element(element) -%}
-	{%- if element.element_type=='Content' -%}
+	{%- if element.element_type in ('Content', 'Web View') -%}
 		<div class="web-content {{ element_class(element) }}" {{ element_style(element) }}>
 		{{ element.web_content_html }}
 		</div>
@@ -25,17 +25,16 @@
 {%- endmacro -%}
 
 {%- macro element_style(element) -%}
-	{%- if element.element_style -%}
-	style = "{{ element.element_style }}"
+	{%- if element.element_style or element.background_color -%}
+	style = "{{ element.element_style or '' }} {%if element.background_color %}background-color: {{ element.background_color }};{% endif %}"
 	{%- endif -%}
 {%- endmacro -%}
 
-
+{%- macro render_sections(sections) -%}
 {%- for section in sections -%}
-<section class='section {{ section.element_class or "" }} {{ section.hide and "hidden" or "" }}'>
-	<div class='section-body container'>
+<section class='section {{ section.element_class or "" }} {{ section.hide and "hidden" or "" }}' {{ element_style(section) }}>
+	<div class='section-body {% if section.contain_section_width %}container{% endif %}'>
 	{%- if section.section_intro -%}
-
 		<div class='section-intro'>{{ section.section_intro }}</div>
 	{%- endif -%}
 
@@ -75,3 +74,10 @@
 	</div>
 </section>
 {%- endfor -%}
+{%- endmacro -%}
+
+{% if content_type == 'HTML' -%}
+{{ content_html }}
+{%- else -%}
+{{ render_sections(sections) }}
+{%- endif -%}

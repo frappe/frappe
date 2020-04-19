@@ -12,18 +12,17 @@
  "field_order": [
   "title",
   "route",
+  "column_break_4",
+  "full_width",
   "published",
-  "items",
+  "section_break_6",
+  "content_type",
+  "content_html",
+  "components",
+  "style_section",
   "css"
  ],
  "fields": [
-  {
-   "fieldname": "items",
-   "fieldtype": "Table",
-   "label": "Items",
-   "options": "Web View Item",
-   "reqd": 1
-  },
   {
    "fieldname": "title",
    "fieldtype": "Data",
@@ -36,8 +35,7 @@
    "fieldname": "route",
    "fieldtype": "Data",
    "in_list_view": 1,
-   "label": "Route",
-   "reqd": 1
+   "label": "Route"
   },
   {
    "default": "0",
@@ -49,12 +47,53 @@
    "fieldname": "css",
    "fieldtype": "Code",
    "label": "CSS"
+  },
+  {
+   "fieldname": "column_break_4",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "full_width",
+   "fieldtype": "Check",
+   "label": "Full Width"
+  },
+  {
+   "fieldname": "section_break_6",
+   "fieldtype": "Section Break",
+   "label": "Content"
+  },
+  {
+   "default": "Components",
+   "fieldname": "content_type",
+   "fieldtype": "Select",
+   "label": "Content Type",
+   "options": "Components\nHTML",
+   "reqd": 1
+  },
+  {
+   "depends_on": "eval:doc.content_type==='Components'",
+   "fieldname": "components",
+   "fieldtype": "Table",
+   "label": "Components",
+   "options": "Web View Component"
+  },
+  {
+   "depends_on": "eval:doc.content_type===\"HTML\"",
+   "fieldname": "content_html",
+   "fieldtype": "HTML Editor",
+   "label": "Content HTML"
+  },
+  {
+   "fieldname": "style_section",
+   "fieldtype": "Section Break",
+   "label": "Style"
   }
  ],
  "has_web_view": 1,
  "is_published_field": "published",
  "links": [],
- "modified": "2020-04-15 23:58:12.208049",
+ "modified": "2020-04-19 05:05:43.620000",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Web View",

@@ -1,4 +1,5 @@
 {
+ "actions": [],
  "allow_guest_to_view": 1,
  "allow_import": 1,
  "creation": "2013-03-28 10:35:30",
@@ -13,6 +14,7 @@
   "slideshow",
   "cb1",
   "published",
+  "full_width",
   "show_title",
   "start_date",
   "end_date",
@@ -242,14 +244,21 @@
    "fieldname": "dynamic_template",
    "fieldtype": "Check",
    "label": "Dynamic Template"
+  },
+  {
+   "default": "0",
+   "fieldname": "full_width",
+   "fieldtype": "Check",
+   "label": "Full Width"
   }
  ],
  "has_web_view": 1,
  "icon": "fa fa-file-alt",
  "idx": 1,
  "is_published_field": "published",
+ "links": [],
  "max_attachments": 20,
- "modified": "2019-10-02 13:58:50.825481",
+ "modified": "2020-04-19 01:55:48.363008",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Web Page",

@@ -36,6 +36,7 @@ class WebPage(WebsiteGenerator):
 
 	def get_context(self, context):
 		context.main_section = get_html_content_based_on_type(self, 'main_section', self.content_type)
+		context.source_content_type = self.content_type
 		self.render_dynamic(context)
 
 		# if static page, get static content
