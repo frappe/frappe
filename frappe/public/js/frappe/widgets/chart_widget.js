@@ -20,9 +20,13 @@ export default class ChartWidget extends Widget {
 
 	refresh() {
 		delete this.dashboard_chart;
-		this.set_title(15);
 		this.set_body();
 		this.make_chart();
+	}
+
+	set_chart_title() {
+		const max_chars = this.widget.width() < 500? 30: 60;
+		this.set_title(max_chars);
 	}
 
 	set_body() {
@@ -51,6 +55,8 @@ export default class ChartWidget extends Widget {
 
 		this.chart_wrapper = $(`<div></div>`);
 		this.chart_wrapper.appendTo(this.body);
+
+		this.set_chart_title();
 	}
 
 	set_summary() {
