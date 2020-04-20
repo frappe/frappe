@@ -224,7 +224,6 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			);
 		}
 
-		debugger
 		frappe.xcall(
 			'frappe.desk.doctype.dashboard_chart.dashboard_chart.create_report_chart',
 			{args: args}

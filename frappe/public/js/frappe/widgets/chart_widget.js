@@ -457,7 +457,8 @@ export default class ChartWidget extends Widget {
 			Line: "line",
 			Bar: "bar",
 			Percentage: "percentage",
-			Pie: "pie"
+			Pie: "pie",
+			Donut: "donut"
 		};
 
 		let colors = [];

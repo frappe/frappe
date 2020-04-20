@@ -125,7 +125,7 @@
    "fieldname": "type",
    "fieldtype": "Select",
    "label": "Type",
-   "options": "Line\nBar\nPercentage\nPie",
+   "options": "Line\nBar\nPercentage\nPie\nDonut",
    "reqd": 1
   },
   {
@@ -223,7 +223,7 @@
   }
  ],
  "links": [],
- "modified": "2020-04-16 03:15:51.455196",
+ "modified": "2020-04-20 23:49:11.389909",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Dashboard Chart",
