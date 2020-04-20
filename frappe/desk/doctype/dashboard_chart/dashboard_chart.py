@@ -97,6 +97,10 @@ def create_report_chart(args):
 	_doc = frappe.new_doc('Dashboard Chart')
 
 	_doc.update(args)
+
+	if (args.get("custom_options")):
+		_doc.custom_options = json.dumps(args.get("custom_options"))
+
 	if frappe.db.exists('Dashboard Chart', args.chart_name):
 		args.chart_name = append_number_if_name_exists('Dashboard Chart', args.chart_name)
 		_doc.chart_name = args.chart_name
@@ -108,6 +112,7 @@ def create_report_chart(args):
 @frappe.whitelist()
 def add_chart_to_dashboard(args):
 	args = frappe.parse_json(args)
+
 	dashboard = frappe.get_doc('Dashboard', args.dashboard)
 	dashboard_link = frappe.new_doc('Dashboard Chart Link')
 	dashboard_link.chart = args.chart_name
@@ -362,6 +367,8 @@ class DashboardChart(Document):
 			self.check_required_field()
 			self.check_document_type()
 
+		self.validate_custom_options()
+
 	def check_required_field(self):
 		if not self.document_type:
 				frappe.throw(_("Document type is required to create a dashboard chart"))
@@ -378,3 +385,10 @@ class DashboardChart(Document):
 	def check_document_type(self):
 		if frappe.get_meta(self.document_type).issingle:
 			frappe.throw("You cannot create a dashboard chart from single DocTypes")
+
+	def validate_custom_options(self):
+		if self.custom_options:
+			try:
+				json.loads(self.custom_options)
+			except ValueError as error:
+				frappe.throw("Invalid json added in the custom options: %s" % error)

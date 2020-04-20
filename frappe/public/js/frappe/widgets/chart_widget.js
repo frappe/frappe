@@ -490,6 +490,14 @@ export default class ChartWidget extends Widget {
 					shortenYAxisNumbers: 1
 				}
 			};
+
+			if (this.chart_doc.custom_options) {
+				let custom_options = JSON.parse(this.chart_doc.custom_options);
+				for (let key in custom_options) {
+					chart_args[key] = custom_options[key];
+				}
+			}
+
 			if (!this.dashboard_chart) {
 				this.dashboard_chart = new frappe.Chart(
 					this.chart_wrapper[0],
