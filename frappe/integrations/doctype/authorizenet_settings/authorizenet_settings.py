@@ -3,7 +3,7 @@
 # For license information, please see license.txt
 
 """
-# Integrating PayPal
+# Integrating AuthorizeNet
 
 ### 1. Validate Currency Support
 
