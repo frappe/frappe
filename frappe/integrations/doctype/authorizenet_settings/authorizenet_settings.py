@@ -59,6 +59,7 @@ import imp
 import json
 import os
 import sys
+import re
 from six.moves.urllib.parse import urlencode
 from frappe.model.document import Document
 from frappe.integrations.utils import create_payment_gateway
@@ -90,8 +91,8 @@ def charge_credit_card(data, card_number, expiration_date, card_code):
 	"""
 	data = json.loads(data)
 	data = frappe._dict(data)
+
 	# Create a merchantAuthenticationType object with authentication details
-	# retrieved from the constants file
 	merchant_auth = apicontractsv1.merchantAuthenticationType()
 	merchant_auth.name = frappe.db.get_value("Authorizenet Settings", "Authorizenet Settings", ["api_login_id"])
 	merchant_auth.transactionKey = get_decrypted_password('Authorizenet Settings', 'Authorizenet Settings',fieldname='api_transaction_key', raise_exception=False)
@@ -105,8 +106,6 @@ def charge_credit_card(data, card_number, expiration_date, card_code):
 	# Add the payment data to a paymentType object
 	payment = apicontractsv1.paymentType()
 	payment.creditCard = credit_card
-
-	# print("+++++++++++++++++++++++++++++++++++++++++",payment.credit_card)
 
 	pr = frappe.get_doc("Payment Request", data.reference_docname)
 	sales_order = frappe.get_doc("Sales Order", pr.reference_name).as_dict()
@@ -146,8 +145,8 @@ def charge_credit_card(data, card_number, expiration_date, card_code):
 	# Assemble the complete transaction request
 	create_transaction_request = apicontractsv1.createTransactionRequest()
 	create_transaction_request.merchantAuthentication = merchant_auth
-	create_transaction_request.refId = "MerchantID-0001"
 	create_transaction_request.transactionRequest = transaction_request
+
 	# Create the controller
 	createtransactioncontroller = createTransactionController(
 		create_transaction_request)
@@ -162,50 +161,56 @@ def charge_credit_card(data, card_number, expiration_date, card_code):
 			# and parse it to display the results of authorizing the card
 			if hasattr(response.transactionResponse, 'messages') is True:
 				status = "Completed"
-				print(
-					'Successfully created transaction with Transaction ID: %s'
-					% response.transactionResponse.transId)
-				print('Transaction Response Code: %s' %
-					  response.transactionResponse.responseCode)
-				print('Message Code: %s' %
-					  response.transactionResponse.messages.message[0].code)
-				print('Description: %s' % response.transactionResponse.
-					  messages.message[0].description)
 			else:
 				status = "Failed"
-				print('Failed Transaction.')
 				if hasattr(response.transactionResponse, 'errors') is True:
-					print('Error Code:  %s' % str(response.transactionResponse.
-												  errors.error[0].errorCode))
-					print(
-						'Error message: %s' %
-						response.transactionResponse.errors.error[0].errorText)
-					
+					status = "Failed"
+
 		# Or, print errors if the API request wasn't successful
 		else:
 			status = "Failed"
-			print('Failed Transaction.')
 			if hasattr(response, 'transactionResponse') is True and hasattr(
 					response.transactionResponse, 'errors') is True:
-				print('Error Code: %s' % str(
-					response.transactionResponse.errors.error[0].errorCode))
-				print('Error message: %s' %
-					  response.transactionResponse.errors.error[0].errorText)
-				
+				status = "Failed"
+
 			else:
 				status = "Failed"
-				print('Error Code: %s' %
-					  response.messages.message[0]['code'].text)
-				print('Error message: %s' %
-					  response.messages.message[0]['text'].text)
-				
-	else:
-		print('Null Response.')
+
 	custom_redirect_to = None
+
 	if status != "Failed":
 		try:
 			custom_redirect_to = frappe.get_doc(data.reference_doctype, data.reference_docname).run_method("on_payment_authorized",
 				status)
 		except Exception as ex:
 			raise ex
-	return status
+
+	response = to_dict(response)
+	if status == "Completed":
+		transId = response.get("transactionResponse").get("transId")
+		responseCode = response.get("transactionResponse").get("responseCode")
+		code = response.get("transactionResponse").get("messages").get("message").get("code")
+		description = response.get("transactionResponse").get("messages").get("message").get("description")
+	elif status == "Failed":
+		transId = response.get("transactionResponse").get("transId")
+		responseCode = response.get("transactionResponse").get("responseCode")
+		code = response.get("transactionResponse").get("errors").get("error").get("errorCode")
+		description = response.get("transactionResponse").get("errors").get("error").get("errorText")
+
+	return frappe._dict({
+		"status": status,
+		"transId" : transId,
+		"responseCode" : responseCode,
+		"code" : code,
+		"description" : description
+	})
+
+def to_dict(response):
+	response_dict = {}
+	if response.getchildren() == []:
+		return response.text
+	else:
+		for elem in response.getchildren():
+			subdict = to_dict(elem)
+			response_dict[re.sub('{.*}', '', elem.tag)] = subdict
+	return response_dict

@@ -15,11 +15,11 @@ $('#submit').on("click", function (e) {
 			"data": data
 		},
 		callback: function (r) {
-			if (r.message === "Completed") {
+			if (r.message.status === "Completed") {
 				window.location.href = "/integrations/payment-success"
 			}
 			else {
-				window.location.href = "/integrations/payment-failed"
+				frappe.throw(__(`${r.message.description}`));
 			}
 		}
 	})
