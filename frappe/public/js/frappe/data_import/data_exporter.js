@@ -268,12 +268,6 @@ frappe.data_import.DataExporter = class DataExporter {
 		}
 
 		return this.column_map[doctype]
-			.filter(df => {
-				if (autoname_field && df.fieldname === autoname_field.fieldname) {
-					return false;
-				}
-				return true;
-			})
 			.map(df => {
 				let label = __(df.label);
 				if (autoname_field && df.fieldname === 'name') {
