@@ -1318,14 +1318,14 @@ def make_event_update_log(doc, update_type):
 
 def check_doctype_has_consumers(doctype):
 	"""Check if doctype has event consumers for event streaming"""
-  if not frappe.db.exists('DocType', 'Event Consumer'):
+	if not frappe.db.exists('DocType', 'Event Consumer'):
 		return False
 
 	event_consumers = frappe.get_all('Event Consumer Document Type', {
 		'ref_doctype': doctype,
 		'status': 'Approved'
 	}, limit=1)
-  
+
 	if len(event_consumers) and event_consumers[0]:
 		return True
-  return False
+	return False
