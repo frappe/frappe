@@ -14,10 +14,7 @@ class WebsiteTheme(Document):
 		self.validate_theme()
 
 	def on_update(self):
-		if (not self.custom
-			and frappe.local.conf.get('developer_mode')
-			and not (frappe.flags.in_import or frappe.flags.in_test)):
-
+		if self.is_standard_and_not_valid_user():
 			self.export_doc()
 
 		self.clear_cache_if_current_theme()
@@ -63,8 +60,10 @@ class WebsiteTheme(Document):
 		folder_path = join_path(frappe.utils.get_bench_path(), 'sites', 'assets', 'css')
 		self.delete_old_theme_files(folder_path)
 
-		# add a random suffix
-		file_name = frappe.scrub(self.name) + '_' + frappe.generate_hash('Website Theme', 8) + '.css'
+		if not self.custom:
+			file_name = ''.join([frappe.scrub(self.name), '_website_theme.css'])
+		else:
+			file_name = frappe.scrub(self.name) + '_' + frappe.generate_hash('Website Theme', 8) + '.css'
 		output_path = join_path(folder_path, file_name)
 
 		content = get_scss(self)
@@ -133,4 +132,3 @@ def generate_theme_files_if_not_exist():
 
 def get_scss(doc):
 	return (doc.theme_scss or '') + '\n' + (doc.custom_scss or '')
-
