@@ -25,7 +25,7 @@ class WebsiteTheme(Document):
 	def is_standard_and_not_valid_user(self):
 		return (not self.custom
 			and not frappe.local.conf.get('developer_mode')
-			and not (frappe.flags.in_import or frappe.flags.in_test))
+			and not (frappe.flags.in_import or frappe.flags.in_test or frappe.flags.in_migrate))
 
 	def on_trash(self):
 		if self.is_standard_and_not_valid_user():
