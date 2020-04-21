@@ -32,6 +32,8 @@ class HelpArticle(WebsiteGenerator):
 	def get_context(self, context):
 		if is_markdown(context.content):
 			context.content = markdown(context.content)
+		if not self.meta.allow_guest_to_view and frappe.session.user == 'Guest':
+			frappe.throw(_("Help Article"), frappe.PermissionError)
 		context.login_required = True
 		context.category = frappe.get_doc('Help Category', self.category)
 		context.level_class = get_level_class(self.level)
