@@ -1,0 +1,14 @@
+{% if google_font %}
+@import url('https://fonts.googleapis.com/css2?family={{ google_font }}:wght@400;500;600;700;900&display=swap');
+{% endif -%}
+
+:root {
+	{%- if google_font %}
+	--font-family: {{ google_font }};
+	{% endif -%}
+	{% if brand_color %}
+	--primary-500: {{ brand_color }};
+	{% endif -%}
+}
+
+{{ custom_css or '' }}

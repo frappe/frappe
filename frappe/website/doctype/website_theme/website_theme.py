@@ -42,6 +42,9 @@ class WebsiteTheme(Document):
 			if doc_before_save is None or self.theme_scss != doc_before_save.theme_scss:
 				self.generate_bootstrap_theme()
 
+		if self.based_on == 'Tailwind':
+			self.theme_css = frappe.render_template('frappe/website/doctype/website_theme/custom_theme.css', self.as_dict(), is_path=True)
+
 	def export_doc(self):
 		"""Export to standard folder `[module]/website_theme/[name]/[name].json`."""
 		from frappe.modules.export_file import export_to_files

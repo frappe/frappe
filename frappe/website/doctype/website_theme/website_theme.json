@@ -13,6 +13,9 @@
   "custom",
   "tailwind_theme_section",
   "brand_color",
+  "google_font",
+  "custom_css",
+  "theme_css",
   "bootstrap_theme_section",
   "theme_scss",
   "theme_json",
@@ -123,10 +126,28 @@
    "fieldtype": "Table",
    "label": "Footer",
    "options": "Web Page Block"
+  },
+  {
+   "fieldname": "google_font",
+   "fieldtype": "Data",
+   "label": "Google Font"
+  },
+  {
+   "fieldname": "custom_css",
+   "fieldtype": "Code",
+   "label": "Custom CSS",
+   "options": "CSS"
+  },
+  {
+   "fieldname": "theme_css",
+   "fieldtype": "Code",
+   "label": "Theme CSS",
+   "options": "CSS",
+   "read_only": 1
   }
  ],
  "links": [],
- "modified": "2020-04-19 13:43:18.722297",
+ "modified": "2020-04-19 20:44:22.916580",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Website Theme",
