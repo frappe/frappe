@@ -27,6 +27,9 @@ class WebTemplate(Document):
 			if not os.path.exists(path):
 				open(path, 'w').close()
 
+	def render(self, values):
+		return get_rendered_template(self.name, values)
+
 
 def get_rendered_template(web_template, values):
 	standard = frappe.db.get_value("Web Template", web_template, "standard")

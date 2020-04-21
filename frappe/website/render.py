@@ -357,13 +357,6 @@ def raise_if_disabled(path):
 def add_processed_tailwind_css(context, html):
 	from subprocess import Popen, PIPE
 
-	print('asdfasdf')
-
-	# theme_file = 'css/frappe-web-b4.css'
-	# if context.theme.theme_url:
-	# 	theme_file = context.theme.theme_url.lstrip('/assets/')
-
-	# css_files = ','.join(['css/tailwind.css', theme_file])
 	replace_string = '<!-- tailwind-styles -->'
 	command = ['node', 'purgecss.js', 'css/tailwind.css', html]
 	process = Popen(command, cwd=frappe.get_app_path('frappe', '..'), stdout=PIPE, stderr=PIPE)
