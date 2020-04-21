@@ -1,7 +1,9 @@
 <div class="py-16">
+	{%- if brand_image -%}
 	<div class="w-20">
 		<img class="w-auto h-8 sm:h-10" src="{{ brand_image }}" alt="Brand Logo">
 	</div>
+	{%- endif -%}
 	<div class="grid items-center grid-cols-2 gap-4 my-4 sm:flex sm:space-x-4">
 		{%- for index in ['1', '2', '3', '4', '5'] -%}
 
