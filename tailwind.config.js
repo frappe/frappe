@@ -1,37 +1,39 @@
 const defaultTheme = require('tailwindcss/defaultTheme');
-const plugin = require('tailwindcss/plugin');
+const colors = require('@tailwindcss/ui/colors');
+const rgba = require('hex-to-rgba');
 
 module.exports = {
 	theme: {
 		extend: {
 			fontFamily: {
-				sans: ['Inter var', ...defaultTheme.fontFamily.sans]
+				sans: ['var(--font-family, Inter)', ...defaultTheme.fontFamily.sans]
 			},
 			colors: {
-				black: '#112B42',
-				blue: {
-					'50': '#f4f9ff',
-					'100': '#E8F4FD',
-					'200': '#BDDDFA',
-					'300': '#88C3F6',
-					'400': '#54A8F2',
-					'500': '#2490EF',
-					'600': '#107CDB',
-					'700': '#0D66B5',
-					'800': '#0A518F',
-					'900': '#083B69'
+				primary: {
+					'50': `var(--primary-50, ${colors.blue[50]})`,
+					'100': `var(--primary-100, ${colors.blue[100]})`,
+					'200': `var(--primary-200, ${colors.blue[200]})`,
+					'300': `var(--primary-300, ${colors.blue[300]})`,
+					'400': `var(--primary-400, ${colors.blue[400]})`,
+					'500': `var(--primary-500, ${colors.blue[500]})`,
+					'600': `var(--primary-600, ${colors.blue[600]})`,
+					'700': `var(--primary-700, ${colors.blue[700]})`,
+					'800': `var(--primary-800, ${colors.blue[800]})`,
+					'900': `var(--primary-900, ${colors.blue[900]})`
 				},
 				gray: {
-					'100': '#f4f4f6',
-					'200': '#e9ebed',
-					'300': '#dfe1e2',
-					'400': '#cccfd1',
-					'500': '#b7bfc6',
-					'600': '#a1abb4',
-					'700': '#9fa5a8',
-					'800': '#7f878a',
-					'900': '#415668'
+					'50': `var(--gray-50, ${colors.gray[50]})`,
+					'100': `var(--gray-100, ${colors.gray[100]})`,
+					'200': `var(--gray-200, ${colors.gray[200]})`,
+					'300': `var(--gray-300, ${colors.gray[300]})`,
+					'400': `var(--gray-400, ${colors.gray[400]})`,
+					'500': `var(--gray-500, ${colors.gray[500]})`,
+					'600': `var(--gray-600, ${colors.gray[600]})`,
+					'700': `var(--gray-700, ${colors.gray[700]})`,
+					'800': `var(--gray-800, ${colors.gray[800]})`,
+					'900': `var(--gray-900, ${colors.gray[900]})`
 				},
+				black: '#112B42',
 				code: {
 					green: '#b5f4a5',
 					yellow: '#ffe484',
@@ -42,34 +44,21 @@ module.exports = {
 				}
 			},
 			borderRadius: {
-				'xl': '0.75rem'
+				xl: '0.75rem'
 			},
+			boxShadow: theme => ({
+				'outline-primary': `0 0 0 3px ${rgba(theme('colors.blue.300'), 0.45)}`
+			}),
 			container: {
 				center: true,
 				padding: '1.25rem'
 			},
 			screens: {
-				'xl': '1120px',
+				xl: '1120px'
 			},
 			important: true
 		}
 	},
 	variants: {},
-	plugins: [
-		require('@tailwindcss/ui'),
-		plugin(function({ addUtilities, e, theme, variants }) {
-			let utilities = {};
-			Object.entries(theme('padding')).map(([modifier, size]) => {
-				utilities[`.${e(`space-y-${modifier}`)} > * + *`] = {
-					marginTop: `${size}`
-				};
-				utilities[`.${e(`space-x-${modifier}`)} > * + *`] = {
-					marginLeft: `${size}`
-				};
-			});
-			addUtilities(utilities, {
-				variants: variants('padding')
-			});
-		})
-	]
+	plugins: [require('@tailwindcss/ui')]
 };
