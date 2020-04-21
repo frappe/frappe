@@ -1,7 +1,7 @@
 @tailwind base;
 @tailwind components;
 
-details.dropdown summary::-webkit-details-marker {
+details.hide-summary-arrow summary::-webkit-details-marker {
 	display: none;
 }
 
@@ -9,7 +9,6 @@ details.dropdown summary::-webkit-details-marker {
 	@apply text-xl;
 	@apply text-gray-900;
 	@apply leading-relaxed;
-	@apply py-20;
 
 	> * + * {
 		@apply mt-6;
