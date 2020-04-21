@@ -1,5 +1,5 @@
-<h2 class="font-bold text-3xl">{{ title }}</h2>
-<p class="text-xl text-gray-800 mt-2">{{ subtitle }}</p>
+<h2 class="text-3xl font-bold">{{ title }}</h2>
+<p class="mt-2 text-lg text-gray-800 sm:text-xl">{{ subtitle }}</p>
 
 <div class="mt-8">
 	<div class="tabs">
@@ -22,10 +22,10 @@
 		{%- endif -%}
 
 		{%- endfor -%}
-		<div class="space-x-10" role="tablist" aria-label="{{ title or '' }}">
+		<div class="flex py-2 overflow-x-auto space-x-10" role="tablist" aria-label="{{ title or '' }}">
 			{%- for tab in ns.tabs -%}
 			{%- set first_tab = true if loop.index0 == 0 else false -%}
-			<button class="py-4 font-medium focus:outline-none focus:shadow-outline text-gray-800" role="tab" aria-selected="false" aria-controls="{{ tab.panelid }}" id="{{ tab.buttonid }}"
+			<button class="py-4 font-medium text-gray-800 focus:outline-none focus:shadow-outline" role="tab" aria-selected="false" aria-controls="{{ tab.panelid }}" id="{{ tab.buttonid }}"
 				tabindex="{{ 0 if first_tab else -1 }}">
 				{{ tab.title }}
 			</button>
@@ -84,7 +84,7 @@
 		const target = $(e.target);
 		const parent = target.parent();
 		const grandparent = $(parent.parent());
-		const activeClass = 'border-b-2 border-blue-500 text-blue-600';
+		const activeClass = 'border-b-2 border-primary-500 text-primary-600';
 
 		// Remove all current selected tabs
 		parent

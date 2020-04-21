@@ -9,7 +9,7 @@
 {%- if title -%}
 <h2 class="mb-6 text-3xl font-bold">{{ title }}</h2>
 {%- endif -%}
-<div class="grid grid-cols-4 gap-8">
+<div class="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
 	{%- for index in ['1', '2', '3', '4', '5', '6', '7', '8'] -%}
 	{%- if values['card_' + index + '_title'] -%}
 	{{ card(values['card_' + index + '_title'], values['card_' + index + '_content']) }}
