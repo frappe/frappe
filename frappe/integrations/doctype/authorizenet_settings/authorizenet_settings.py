@@ -112,7 +112,7 @@ def charge_credit_card(data, card_number, expiration_date, card_code):
 
 	customer_address = apicontractsv1.customerAddressType()
 	customer_address.firstName = data.payer_name
-	customer_address.address = sales_order.customer_address
+	customer_address.address = sales_order.customer_address[:60]
 
 	# Create order information 
 	order = apicontractsv1.orderType()
@@ -124,7 +124,7 @@ def charge_credit_card(data, card_number, expiration_date, card_code):
 			# setup individual line items
 			item[i] = apicontractsv1.lineItemType()
 			item[i].itemId = item.item_code
-			item[i].name = item.item_name
+			item[i].name = item.item_name[:30]
 			item[i].description = item.item_name
 			item[i].quantity = item.qty
 			item[i].unitPrice = item.amount
