@@ -299,6 +299,7 @@ def export_query():
 			_("You can try changing the filters of your report."))
 			return
 
+		data.columns = [col for col in data.columns if isinstance(col, dict) and not col.get('hidden')]
 		columns = get_columns_dict(data.columns)
 
 		from frappe.utils.xlsxutils import make_xlsx
@@ -310,7 +311,7 @@ def export_query():
 		frappe.response['type'] = 'binary'
 
 
-def build_xlsx_data(columns, data, visible_idx,include_indentation):
+def build_xlsx_data(columns, data, visible_idx, include_indentation):
 	result = [[]]
 
 	# add column headings

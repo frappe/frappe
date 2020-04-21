@@ -221,24 +221,24 @@ def add_metatags(context):
 	tags = frappe._dict(context.get("metatags") or {})
 
 	if tags:
-		if not "twitter:card" in tags:
-			tags["twitter:card"] = "summary_large_image"
-
 		if not "og:type" in tags:
 			tags["og:type"] = "article"
 
-		if tags.get("name"):
-			tags["og:title"] = tags["twitter:title"] = tags["name"]
+		name = tags.get('name') or tags.get('title')
+		if name:
+			tags["og:title"] = tags["twitter:title"] = name
 
-		if tags.get("title"):
-			tags["og:title"] = tags["twitter:title"] = tags["title"]
-
-		if tags.get("description"):
-			tags["og:description"] = tags["twitter:description"] = tags["description"]
+		description = tags.get("description") or context.description
+		if description:
+			tags['description'] = tags["og:description"] = tags["twitter:description"] = description
 
 		image = tags.get('image', context.image or None)
 		if image:
 			tags["og:image"] = tags["twitter:image:src"] = tags["image"] = frappe.utils.get_url(image)
+			tags['twitter:card'] = "summary_large_image"
+
+		if context.author or tags.get('author'):
+			tags['author'] = context.author or tags.get('author')
 
 		if context.path:
 			tags['og:url'] = tags['url'] = frappe.utils.get_url(context.path)
@@ -246,11 +246,6 @@ def add_metatags(context):
 		if context.published_on:
 			tags['datePublished'] = context.published_on
 
-		if context.author:
-			tags['author'] = context.author
-
-		if context.description:
-			tags['description'] = context.description
 
 		tags['language'] = frappe.local.lang or 'en'
 
