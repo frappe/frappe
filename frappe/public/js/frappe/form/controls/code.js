@@ -9,6 +9,12 @@ frappe.ui.form.ControlCode = frappe.ui.form.ControlText.extend({
 		this.ace_editor_target = $('<div class="ace-editor-target"></div>')
 			.appendTo(this.input_area);
 
+		this.expanded = false;
+		this.$expand_button = $(`<button class="margin-top btn btn-xs btn-default">${__('Expand / Collapse')}</button>`).click(() => {
+			this.expanded = !this.expanded;
+			this.refresh_height();
+		}).insertAfter(this.ace_editor_target);
+
 		// styling
 		this.ace_editor_target.addClass('border rounded');
 		this.ace_editor_target.css('height', 300);
@@ -24,6 +30,11 @@ frappe.ui.form.ControlCode = frappe.ui.form.ControlText.extend({
 			const input_value = this.get_input_value();
 			this.parse_validate_and_set_in_model(input_value);
 		}, 300));
+	},
+
+	refresh_height() {
+		this.ace_editor_target.css('height', this.expanded ? 600 : 300);
+		this.editor.resize();
 	},
 
 	set_language() {

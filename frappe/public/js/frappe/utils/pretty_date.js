@@ -1,63 +1,70 @@
-// moment strings for translation
+function prettyDate(date, mini) {
+	if (!date) return '';
 
-function prettyDate(time, mini) {
-	if (!time) {
-		time = new Date();
-	}
-	if ('moment' in window) { // use frappe.ImportError ;)
-		let ret;
-		if (frappe.sys_defaults && frappe.sys_defaults.time_zone) {
-			ret = moment.tz(time, frappe.sys_defaults.time_zone).locale(frappe.boot.lang).fromNow(mini);
-		} else {
-			ret = moment(time).locale(frappe.boot.lang).fromNow(mini);
-		}
-		if (mini) {
-			if (ret === moment().locale(frappe.boot.lang).fromNow(mini)) {
-				ret = __("now");
-			} else {
-				var parts = ret.split(" ");
-				if (parts.length > 1) {
-					if (parts[0] === "a" || parts[0] === "an") {
-						parts[0] = 1;
-					}
-					if (parts[1].substr(0, 2) === "mo") {
-						ret = parts[0] + " M";
-					} else {
-						ret = parts[0] + " " + parts[1].substr(0, 1);
-					}
-				}
+	if (typeof (date) == "string")
+		date = new Date((date || "").replace(/-/g, "/").replace(/[TZ]/g, " ").replace(/\.[0-9]*/, ""));
+
+	let diff = (((new Date()).getTime() - date.getTime()) / 1000);
+	let day_diff = Math.floor(diff / 86400);
+
+	if (isNaN(day_diff) || day_diff < 0) return '';
+
+	if (mini) {
+		// Return short format of time difference
+		if (day_diff == 0) {
+			if (diff < 60) {
+				return __("Now");
+			} else if (diff < 3600) {
+				return __("{0} m", [Math.floor(diff / 60)]);
+			} else if (diff < 86400) {
+				return __("{0} h", [Math.floor(diff / 3600)]);
 			}
-			ret = ret.substr(0, 5);
+		} else {
+			if (day_diff < 7) {
+				return __("{0} D", [day_diff]);
+			} else if (day_diff < 31) {
+				return __("{0} W", [Math.ceil(day_diff / 7)]);
+			} else if (day_diff < 365) {
+				return __("{0} M", [Math.ceil(day_diff / 30)]);
+			} else {
+				return __("{0} Y", [Math.ceil(day_diff / 365)]);
+			}
 		}
-		return ret;
 	} else {
-		if (!time) return '';
-		var date = time;
-		if (typeof (time) == "string")
-			date = new Date((time || "").replace(/-/g, "/").replace(/[TZ]/g, " ").replace(/\.[0-9]*/, ""));
-
-		var diff = (((new Date()).getTime() - date.getTime()) / 1000),
-			day_diff = Math.floor(diff / 86400);
-
-		if (isNaN(day_diff) || day_diff < 0)
-			return '';
-
-		var when = day_diff == 0 && (
-			diff < 60 && __("just now") ||
-			diff < 120 && __("1 minute ago") ||
-			diff < 3600 && __("{0} minutes ago", [Math.floor(diff / 60)]) ||
-			diff < 7200 && __("1 hour ago") ||
-			diff < 86400 && ("{0} hours ago", [Math.floor(diff / 3600)])) ||
-			day_diff == 1 && __("Yesterday") ||
-			day_diff < 7 && __("{0} days ago", day_diff) ||
-			day_diff < 31 && __("{0} weeks ago", [Math.ceil(day_diff / 7)]) ||
-			day_diff < 365 && __("{0} months ago", [Math.ceil(day_diff / 30)]) ||
-			__("> {0} year(s) ago", [Math.floor(day_diff / 365)]);
-
-		return when;
+		// Return long format of time difference
+		if (day_diff == 0) {
+			if (diff < 60) {
+				return __("Just now");
+			} else if (diff < 120) {
+				return __("1 minute ago");
+			} else if (diff < 3600) {
+				return __("{0} minutes ago", [Math.floor(diff / 60)]);
+			} else if (diff < 7200) {
+				return __("1 hour ago");
+			} else if (diff < 86400) {
+				return __("{0} hours ago", [Math.floor(diff / 3600)]);
+			}
+		} else {
+			if (day_diff == 1) {
+				return __("Yesterday");
+			} else if (day_diff < 7) {
+				return __("{0} days ago", [day_diff]);
+			} else if (day_diff < 14) {
+				return __("1 week ago");
+			} else if (day_diff < 31) {
+				return __("{0} weeks ago", [Math.ceil(day_diff / 7)]);
+			} else if (day_diff < 62) {
+				return __("1 month ago");
+			} else if (day_diff < 365) {
+				return __("{0} months ago", [Math.ceil(day_diff / 30)]);
+			} else if (day_diff < 730) {
+				return __("1 year ago");
+			} else {
+				return __("{0} years ago", [Math.ceil(day_diff / 365)]);
+			}
+		}
 	}
 }
-
 
 frappe.provide("frappe.datetime");
 window.comment_when = function(datetime, mini) {

@@ -86,6 +86,14 @@ frappe.Application = Class.extend({
 			this.show_update_available();
 		}
 
+		if (!frappe.boot.developer_mode) {
+			let console_security_message = __("Using this console may allow attackers to impersonate you and steal your information. Do not enter or paste code that you do not understand.");
+			console.log(
+				`%c${console_security_message}`,
+				"font-size: large"
+			);
+		}
+
 		this.show_notes();
 
 		if (frappe.boot.is_first_startup) {

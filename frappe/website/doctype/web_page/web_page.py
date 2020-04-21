@@ -28,8 +28,15 @@ class WebPage(WebsiteGenerator):
 	def get_feed(self):
 		return self.title
 
+	def on_update(self):
+		super(WebPage, self).on_update()
+
+	def on_trash(self):
+		super(WebPage, self).on_trash()
+
 	def get_context(self, context):
 		context.main_section = get_html_content_based_on_type(self, 'main_section', self.content_type)
+		context.source_content_type = self.content_type
 		self.render_dynamic(context)
 
 		# if static page, get static content
@@ -121,12 +128,10 @@ class WebPage(WebsiteGenerator):
 
 	def set_metatags(self, context):
 		context.metatags = {
-			"name": context.title
+			"name": self.meta_title or self.title,
+			"description": self.meta_description,
+			"image": self.meta_image or find_first_image(context.main_section or "")
 		}
-
-		image = find_first_image(context.main_section or "")
-		if image:
-			context.metatags["image"] = image
 
 	def validate_dates(self):
 		if self.end_date:
@@ -142,6 +147,7 @@ class WebPage(WebsiteGenerator):
 
 
 def check_publish_status():
+	# called via daily scheduler
 	web_pages = frappe.get_all("Web Page", fields=["name", "published", "start_date", "end_date"])
 	now_date = get_datetime(now())
 

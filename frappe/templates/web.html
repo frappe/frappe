@@ -13,7 +13,7 @@
 	</div>
 
 	{% block page_container %}
-	<main class="container my-5">
+	<main class="{% if not full_width %}container my-5{% endif %}">
 		<div class="d-flex justify-content-between align-items-center">
 			<div class="page-header">
 				{% block header %}{% endblock %}
@@ -38,9 +38,11 @@
 </div>
 {% endmacro %}
 
-{% macro container_attributes() %}
-id="page-{{ name or route | e }}" data-path="{{ pathname | e }}" {%- if page_or_generator=="Generator" %}source-type="Generator" data-doctype="{{ doctype }}"{% endif %}
-{% endmacro %}
+{% macro container_attributes() -%}
+id="page-{{ name or route | e }}" data-path="{{ pathname | e }}"
+	{%- if page_or_generator=="Generator" %}source-type="Generator" data-doctype="{{ doctype }}"{%- endif %}
+	{%- if source_content_type %}source-content-type="{{ source_content_type }}"{%- endif %}
+{%- endmacro %}
 
 {% if show_sidebar %}
 <div class="container">

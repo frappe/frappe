@@ -29,3 +29,10 @@
 .page-card p {
 	font-size: 14px;
 }
+
+.ellipsis {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	max-width: 100%;
+	vertical-align: middle;
+}

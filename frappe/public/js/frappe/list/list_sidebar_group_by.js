@@ -53,15 +53,18 @@ frappe.views.ListGroupBy = class ListGroupBy {
 
 	render_group_by_items() {
 		let get_item_html = (fieldname) => {
-			let label;
-			let fieldtype;
+			let label, fieldtype;
 			if (fieldname === 'assigned_to') {
 				label = __('Assigned To');
 			} else if (fieldname === 'owner') {
 				label = __('Created By');
 			} else {
 				label = frappe.meta.get_label(this.doctype, fieldname);
-				fieldtype = frappe.meta.get_docfield(this.doctype, fieldname).fieldtype;
+				let docfield = frappe.meta.get_docfield(this.doctype, fieldname);
+				if (!docfield) {
+					return;
+				}
+				fieldtype = docfield.fieldtype;
 			}
 
 			return `<li class="group-by-field list-link">
@@ -69,7 +72,7 @@ frappe.views.ListGroupBy = class ListGroupBy {
 					<a class = "dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
 					data-label="${label}" data-fieldname="${fieldname}" data-fieldtype="${fieldtype}"
 					href="#" onclick="return false;">
-						${__(label)}<span class="caret"></span>
+						${__(label)} <span class="caret"></span>
 					</a>
 					<ul class="dropdown-menu group-by-dropdown" role="menu">
 						<li><div class="list-loading text-center group-by-loading text-muted">
