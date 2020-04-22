@@ -21,22 +21,23 @@ from frappe.exceptions import SQLError
 @click.option('--db-name', help='Database name')
 @click.option('--mariadb-root-username', default='root', help='Root username for MariaDB')
 @click.option('--mariadb-root-password', help='Root password for MariaDB')
+@click.option('--no-mariadb-socket', is_flag=True, default=False, help='Set MariaDB host to % and use TCP/IP Socket instead of using the UNIX Socket')
 @click.option('--admin-password', help='Administrator password for new site', default=None)
 @click.option('--verbose', is_flag=True, default=False, help='Verbose')
 @click.option('--force', help='Force restore if site/database already exists', is_flag=True, default=False)
 @click.option('--source_sql', help='Initiate database with a SQL file')
 @click.option('--install-app', multiple=True, help='Install app after installation')
-def new_site(site, mariadb_root_username=None, mariadb_root_password=None, admin_password=None, verbose=False, install_apps=None, source_sql=None, force=None, install_app=None, db_name=None):
+def new_site(site, mariadb_root_username=None, mariadb_root_password=None, no_mariadb_socket=False, admin_password=None, verbose=False, install_apps=None, source_sql=None, force=None, install_app=None, db_name=None):
 	"Create a new site"
 	frappe.init(site=site, new_site=True)
 
 	_new_site(db_name, site, mariadb_root_username=mariadb_root_username, mariadb_root_password=mariadb_root_password, admin_password=admin_password,
-			verbose=verbose, install_apps=install_app, source_sql=source_sql, force=force)
+	no_mariadb_socket=no_mariadb_socket, verbose=verbose, install_apps=install_app, source_sql=source_sql, force=force)
 
 	if len(frappe.utils.get_sites()) == 1:
 		use(site)
 
-def _new_site(db_name, site, mariadb_root_username=None, mariadb_root_password=None, admin_password=None,
+def _new_site(db_name, site, mariadb_root_username=None, mariadb_root_password=None, no_mariadb_socket=False, admin_password=None,
 	verbose=False, install_apps=None, source_sql=None,force=False, reinstall=False):
 	"""Install a new Frappe site"""
 
@@ -62,7 +63,7 @@ def _new_site(db_name, site, mariadb_root_username=None, mariadb_root_password=N
 		installing = touch_file(get_site_path('locks', 'installing.lock'))
 
 		install_db(root_login=mariadb_root_username, root_password=mariadb_root_password, db_name=db_name,
-			admin_password=admin_password, verbose=verbose, source_sql=source_sql,force=force, reinstall=reinstall)
+			admin_password=admin_password, verbose=verbose, source_sql=source_sql,force=force, reinstall=reinstall, no_mariadb_socket=no_mariadb_socket)
 
 		apps_to_install = ['frappe'] + (frappe.conf.get("install_apps") or []) + (list(install_apps) or [])
 		for app in apps_to_install:
@@ -378,6 +379,7 @@ def _drop_site(site, root_login='root', root_password=None, archived_sites_path=
 	db_name = frappe.local.conf.db_name
 	frappe.local.db = get_root_connection(root_login, root_password)
 	dbman = DbManager(frappe.local.db)
+	dbman.delete_user(db_name, host="%")
 	dbman.delete_user(db_name)
 	dbman.drop_database(db_name)
 
