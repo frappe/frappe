@@ -319,23 +319,46 @@
 
 		.widget-body {
 			margin-top: 20px;
+			display: grid;
+			grid-template-rows: 1fr 1fr 1fr 1fr 1fr;
+			grid-template-columns: 1fr 1fr 1fr;
+			grid-auto-flow: column;
 
 			.onboarding-step {
 				margin-bottom: 8px;
 				font-size: 16px;
 				letter-spacing: 0.015em;
-			}
 
-			i {
-				padding-left: 5px;
-				padding-right: 12px;
+				i {
+					padding-left: 5px;
+					padding-right: 12px;
+				}
 
 				&.complete {
-					color: @brand-primary;
+					i {
+						color: @brand-primary;
+					}
+
+					span {
+						color: @text-color;
+					}
 				}
 
 				&.incomplete {
-					color: @text-muted;
+					i {
+						color: @text-muted;
+					}
+
+					span {
+						color: @text-muted;
+						cursor: pointer;
+					}
+
+					&:hover {
+						span {
+							color: @text-color;
+						}
+					}
 				}
 			}
 		}

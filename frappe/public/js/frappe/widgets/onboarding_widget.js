@@ -12,14 +12,36 @@ export default class OnboardingWidget extends Widget {
 	}
 
 	add_step(step) {
-		let $step = $(`<div class="onboarding-step">
-				<i class="fa fa-check-circle ${
-					step.is_complete ? "complete" : "incomplete"
-				}" aria-hidden="true"></i>${step.label}
+		let $step = $(`<div class="onboarding-step ${
+					step.is_complete ? 'complete' : 'incomplete'
+				}" data-step-name=${step.name}>
+				<i class="fa fa-check-circle" aria-hidden="true"></i>
+				<span>${step.title}</span>
 			</div>`);
+		if (!step.is_complete) {
+			if (step.action == "Watch Video") {
+				$step.on('click', () => {
+					frappe.help.show_video(step.video_url, step.title);
+					this.mark_complete(step.name, $step);
+				});
+			} else {
+				$step.on('click', () => {
+					frappe.ui.form.make_quick_entry(step.reference_document)
+				});
+			}
+		}
 
 		$step.appendTo(this.body);
 		return $step;
+	}
+
+	mark_complete(name, $step) {
+		frappe.call("frappe.desk.desktop.complete_onboarding_step", {
+			name: name
+		}).then(() => {
+			$step.removeClass('incomplete')
+			$step.addClass('complete')
+		})
 	}
 
 	set_body() {
@@ -32,14 +54,16 @@ export default class OnboardingWidget extends Widget {
 	}
 
 	is_dismissed() {
-		let dismissed = JSON.parse(localStorage.getItem("dismissed-onboarding") || '{}');
+		let dismissed = JSON.parse(
+			localStorage.getItem("dismissed-onboarding") || "{}"
+		);
 		if (Object.keys(dismissed).includes(this.label)) {
 			let last_hidden = new Date(dismissed[this.label]);
 			let today = new Date();
-			let diff = frappe.datetime.get_hour_diff(today, last_hidden)
+			let diff = frappe.datetime.get_hour_diff(today, last_hidden);
 			return diff < 24;
 		}
-		return false
+		return false;
 	}
 
 	set_title(title) {
@@ -54,7 +78,9 @@ export default class OnboardingWidget extends Widget {
 			`<div class="small" style="cursor:pointer;">Dismiss</div>`
 		);
 		dismiss.on("click", () => {
-			let dismissed = JSON.parse(localStorage.getItem("dismissed-onboarding") || '{}');
+			let dismissed = JSON.parse(
+				localStorage.getItem("dismissed-onboarding") || "{}"
+			);
 			dismissed[this.label] = frappe.datetime.now_datetime();
 
 			localStorage.setItem(
