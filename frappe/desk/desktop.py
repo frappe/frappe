@@ -451,3 +451,8 @@ def prepare_widget(config, doctype, parentfield):
 
 		prepare_widget_list.append(doc)
 	return prepare_widget_list
+
+@frappe.whitelist()
+def complete_onboarding_step(name):
+	frappe.db.set_value("Desk Onboarding", name, 'is_complete', 1)
+	return
