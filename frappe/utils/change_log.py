@@ -174,9 +174,12 @@ def parse_latest_non_beta_release(response):
 	Returns
 	json   : json object pertaining to the latest non-beta release
 	"""
-	for release in response:
-		if release['prerelease'] == True: continue
-		return release
+	version_list = [release.get('tag_name').strip('v') for release in response if not release.get('prerelease')]
+
+	if version_list:
+		return sorted(version_list, key=Version, reverse=True)[0]
+
+	return None
 
 def check_release_on_github(app):
 	# Check if repo remote is on github
@@ -199,12 +202,11 @@ def check_release_on_github(app):
 
 	org_name = remote_url.split('/')[3]
 	r = requests.get('https://api.github.com/repos/{}/{}/releases'.format(org_name, app))
-	if r.status_code == 200 and r.json():
+	if r.ok:
 		lastest_non_beta_release = parse_latest_non_beta_release(r.json())
-		return Version(lastest_non_beta_release['tag_name'].strip('v')), org_name
-	else:
-		# In case of an improper response or if there are no releases
-		return None
+		return Version(lastest_non_beta_release), org_name
+	# In case of an improper response or if there are no releases
+	return None
 
 def add_message_to_redis(update_json):
 	# "update-message" will store the update message string
