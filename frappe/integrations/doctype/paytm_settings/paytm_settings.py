@@ -71,8 +71,8 @@ def get_paytm_params(payment_details, order_id, paytm_config):
 	# initialize a dictionary
 	paytm_params = dict()
 	
-	# redirect_uri = get_request_site_address(True) + "/api/method/frappe.integrations.doctype.paytm_settings.paytm_settings.get_transaction_status"
-	redirect_uri = "http://cf9b2bb1.ngrok.io/api/method/frappe.integrations.doctype.paytm_settings.paytm_settings.get_transaction_status"
+	redirect_uri = get_request_site_address(True) + "/api/method/frappe.integrations.doctype.paytm_settings.paytm_settings.verify_transaction"
+
 
 	paytm_params.update({
 		"MID" : paytm_config.merchant_id,
@@ -99,24 +99,28 @@ def verify_transaction(**kwargs):
 	'''Verify checksum for received data in the callback and then verify the transaction'''
 	paytm_config = get_paytm_config()
 	received_data = frappe._dict(kwargs)
+	is_valid_checksum = False
 
 	paytm_params = {}
 	for key, value in received_data.items(): 
 		if key == 'CHECKSUMHASH':
 			paytm_checksum = value
+		elif key == 'cmd':
+			continue
 		else:
 			paytm_params[key] = value
 
-	# Verify checksum
-	is_valid_checksum = verify_checksum(paytm_params, paytm_config.merchant_key, paytm_checksum)
+	if paytm_params and paytm_config and paytm_checksum:
+		# Verify checksum
+		is_valid_checksum = verify_checksum(paytm_params, paytm_config.merchant_key, paytm_checksum)
 
 	if is_valid_checksum and received_data['RESPCODE'] == '01':
 		verify_transaction_status(paytm_config, received_data['ORDERID'])
 	else:
 		frappe.respond_as_web_page("Payment Failed",
-			"Transaction failed to complete. Don't worry, in case of failure amount will get refunded to your account.",
+			"Transaction failed to complete. In case of any deductions, deducted amount will get refunded to your account.",
 			http_status_code=401, indicator_color='red')
-		frappe.log_error("Order unsuccessful, received data:"+received_data, 'Paytm Payment Failed')
+		frappe.log_error("Order unsuccessful. Failed Response:"+cstr(received_data), 'Paytm Payment Failed')
 
 def verify_transaction_status(paytm_config, order_id):
 	'''Verify transaction completion after checksum has been verified'''
@@ -136,15 +140,16 @@ def verify_transaction_status(paytm_config, order_id):
 
 def finalize_request(order_id, transaction_response):
 	request = frappe.get_doc('Integration Request', order_id)
-	redirect_to = request.data.get('redirect_to') or None
-	redirect_message = request.data.get('redirect_message') or None
+	transaction_data = frappe._dict(json.loads(request.data))
+	redirect_to = transaction_data.get('redirect_to') or None
+	redirect_message = transaction_data.get('redirect_message') or None
 
 	if transaction_response['STATUS'] == "TXN_SUCCESS":
-		if request.data.reference_doctype and request.data.reference_docname:
+		if transaction_data.reference_doctype and transaction_data.reference_docname:
 			custom_redirect_to = None
 			try:
-				custom_redirect_to = frappe.get_doc(request.data.reference_doctype,
-					request.data.reference_docname).run_method("on_payment_authorized", 'Completed')
+				custom_redirect_to = frappe.get_doc(transaction_data.reference_doctype,
+					transaction_data.reference_docname).run_method("on_payment_authorized", 'Completed')
 				request.db_set('status', 'Completed')
 			except Exception:
 				request.db_set('status', 'Failed')
@@ -153,10 +158,10 @@ def finalize_request(order_id, transaction_response):
 			if custom_redirect_to:
 				redirect_to = custom_redirect_to
 
-			redirect_url = 'payment-success'
+			redirect_url = '/integrations/payment-success'
 	else:
 		request.db_set('status', 'Failed')
-		redirect_url = 'payment-failed'
+		redirect_url = '/integrations/payment-failed'
 
 	if redirect_to:
 		redirect_url += '?' + urlencode({'redirect_to': redirect_to})
@@ -164,7 +169,7 @@ def finalize_request(order_id, transaction_response):
 		redirect_url += '&' + urlencode({'redirect_message': redirect_message})
 
 	frappe.local.response['type'] = 'redirect'
-	frappe.local.response['location'] = 'redirect_url'
+	frappe.local.response['location'] = redirect_url
 
 def get_gateway_controller(doctype, docname):
 	reference_doc = frappe.get_doc(doctype, docname)

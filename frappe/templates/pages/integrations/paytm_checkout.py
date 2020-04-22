@@ -12,9 +12,6 @@ import requests
 
 no_cache = 1
 
-expected_keys = ('amount', 'title', 'description', 'reference_doctype', 'reference_docname',
-	'payer_name', 'payer_email')
-
 def get_context(context):
 	context.no_cache = 1
 	paytm_config = get_paytm_config()

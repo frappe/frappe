@@ -16,12 +16,14 @@
 
 {%- block page_content -%}
 <body>
-		<center><h1>Please do not refresh this page...</h1></center>
+	<div style="margin: 30vh;">
+		<center><h2>Please do not refresh this page...</h2></center>
 		<form method="post" action="{{ url }}" name="paytm_form">
 			{% for name, value in payment_details.items() %}
 				<input type="hidden" name="{{ name }}" value="{{ value }}">
 			{% endfor %}
 		</form>
+	</div>
 </body>
 {% endblock %}
 
