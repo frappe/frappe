@@ -237,6 +237,9 @@ Object.assign(frappe.utils, {
 			case "phone":
 				regExp = /^([0-9\ \+\_\-\,\.\*\#\(\)]){1,20}$/;
 				break;
+			case "name":
+				regExp = /^[\w][\w'-]*([ \w][\w'-]+)*$/;
+				break;
 			case "number":
 				regExp = /^-?(?:\d+|\d{1,3}(?:,\d{3})+)?(?:\.\d+)?$/;
 				break;

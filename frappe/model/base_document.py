@@ -572,6 +572,9 @@ class BaseDocument(object):
 				for email_address in frappe.utils.split_emails(data):
 					frappe.utils.validate_email_address(email_address, throw=True)
 
+			if data_field_options == "Name":
+				frappe.utils.validate_name(data, throw=True)
+
 			if data_field_options == "Phone":
 				frappe.utils.validate_phone_number(data, throw=True)
 
