@@ -2,21 +2,24 @@
  "actions": [],
  "creation": "2020-04-14 15:50:25.782387",
  "doctype": "DocType",
+ "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
-  "slide",
+  "title",
+  "column_break_2",
   "is_mandatory",
-  "is_complete"
+  "is_complete",
+  "section_break_5",
+  "action",
+  "column_break_7",
+  "reference_document",
+  "reference_report",
+  "report_type",
+  "video_url",
+  "section_break_11",
+  "restrict_to_domain"
  ],
  "fields": [
-  {
-   "fieldname": "slide",
-   "fieldtype": "Link",
-   "in_list_view": 1,
-   "label": "Slide",
-   "options": "Onboarding Slide",
-   "reqd": 1
-  },
   {
    "default": "0",
    "fieldname": "is_mandatory",
@@ -30,11 +33,75 @@
    "fieldtype": "Check",
    "in_list_view": 1,
    "label": "Is Complete"
+  },
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Title",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_5",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "action",
+   "fieldtype": "Select",
+   "label": "Action",
+   "options": "Create Entry\nView Settings\nView Report\nWatch Video",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_7",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "eval:doc.action == \"Create Entry\" || doc.action == \"View Settings\"",
+   "fieldname": "reference_document",
+   "fieldtype": "Link",
+   "label": "Reference Document",
+   "options": "DocType"
+  },
+  {
+   "depends_on": "eval:doc.action == \"View Report\"",
+   "fieldname": "reference_report",
+   "fieldtype": "Link",
+   "label": "Reference Report",
+   "options": "Report"
+  },
+  {
+   "depends_on": "eval:doc.action == \"Watch Video\"",
+   "fieldname": "video_url",
+   "fieldtype": "Data",
+   "label": "Video URL"
+  },
+  {
+   "fieldname": "section_break_11",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "restrict_to_domain",
+   "fieldtype": "Link",
+   "label": "Restrict To Domain",
+   "options": "Domain"
+  },
+  {
+   "depends_on": "eval:doc.action == \"View Report\"",
+   "fetch_from": "reference_report.report_type",
+   "fieldname": "report_type",
+   "fieldtype": "Data",
+   "label": "Report Type",
+   "read_only": 1
   }
  ],
  "istable": 1,
  "links": [],
- "modified": "2020-04-16 13:20:12.435803",
+ "modified": "2020-04-22 15:55:01.796126",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Desk Onboarding",
