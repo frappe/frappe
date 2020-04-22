@@ -37,6 +37,8 @@ class BlogPost(WebsiteGenerator):
 
 		if self.published and not self.published_on:
 			self.published_on = today()
+		
+		# self.goog_preview = render_seo_section(doc)
 
 		# update posts
 		frappe.db.sql("""UPDATE `tabBlogger` SET `posts`=(SELECT COUNT(*) FROM `tabBlog Post`
@@ -65,7 +67,11 @@ class BlogPost(WebsiteGenerator):
 
 
 		context.content = get_html_content_based_on_type(self, 'content', self.content_type)
-		context.description = self.blog_intro or strip_html_tags(context.content[:140])
+		
+		if self.meta_description:
+			context.description = self.meta_description
+		else:	
+			context.description = self.blog_intro or strip_html_tags(context.content[:140])
 
 		context.metatags = {
 			"name": self.title,
@@ -73,8 +79,11 @@ class BlogPost(WebsiteGenerator):
 		}
 
 		image = find_first_image(context.content)
-		if image:
+		if self.meta_image:
+			context.metatags["image"] = self.meta_image
+		else:
 			context.metatags["image"] = image
+
 
 		self.load_comments(context)
 
@@ -94,6 +103,18 @@ class BlogPost(WebsiteGenerator):
 				context.comment_text = _('1 comment')
 			else:
 				context.comment_text = _('{0} comments').format(len(context.comment_list))
+	
+	#render google SERP preview
+
+	'''def render_seo_section(doc):
+	return frappe.render_template("""
+	<h3>doc.title<h3>
+	<p> {{ url }} </p>
+	{% if doc.meta_description %}
+	<p>{{ doc.meta_description }} </p>
+	{%- else %}<p>{{ doc.description }}</p>	
+	{% endif %}
+	""") '''
 
 
 def get_list_context(context=None):
