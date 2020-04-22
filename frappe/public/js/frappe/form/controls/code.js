@@ -10,11 +10,11 @@ frappe.ui.form.ControlCode = frappe.ui.form.ControlText.extend({
 			.appendTo(this.input_area);
 
 		this.expanded = false;
-		this.$expand_button = $(`<button class="margin-top btn btn-xs btn-default">${__('Expand / Collapse')}</button>`).click(() => {
+		this.$expand_button = $(`<button class="btn btn-xs btn-default">${__('Expand')}</button>`).click(() => {
 			this.expanded = !this.expanded;
 			this.refresh_height();
-		}).insertAfter(this.ace_editor_target);
-
+			this.toggle_label();
+		}).appendTo(this.$input_wrapper);
 		// styling
 		this.ace_editor_target.addClass('border rounded');
 		this.ace_editor_target.css('height', 300);
@@ -35,6 +35,11 @@ frappe.ui.form.ControlCode = frappe.ui.form.ControlText.extend({
 	refresh_height() {
 		this.ace_editor_target.css('height', this.expanded ? 600 : 300);
 		this.editor.resize();
+	},
+
+	toggle_label() {
+		const button_label = this.expanded? __('Collapse'): __('Expand');
+		this.$expand_button.text(button_label);
 	},
 
 	set_language() {
