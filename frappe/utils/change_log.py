@@ -161,6 +161,23 @@ def check_for_update():
 
 	add_message_to_redis(updates)
 
+def parse_latest_non_beta_release(response):
+	"""
+	Pasrses the response JSON for all the releases and returns the latest non prerelease
+
+	Parameters
+	response (list): response object returned by github
+
+	Returns
+	json   : json object pertaining to the latest non-beta release
+	"""
+	version_list = [release.get('tag_name').strip('v') for release in response if not release.get('prerelease')]
+
+	if version_list:
+		return sorted(version_list, key=Version, reverse=True)[0]
+
+	return None
+
 def check_release_on_github(app):
 	# Check if repo remote is on github
 	from subprocess import CalledProcessError
@@ -179,12 +196,12 @@ def check_release_on_github(app):
 
 	org_name = remote_url.split('/')[3]
 	r = requests.get('https://api.github.com/repos/{}/{}/releases'.format(org_name, app))
-	if r.status_code == 200 and r.json():
-		# 0 => latest release
-		return Version(r.json()[0]['tag_name'].strip('v')), org_name
-	else:
-		# In case of an improper response or if there are no releases
-		return None
+
+	if r.ok:
+		lastest_non_beta_release = parse_latest_non_beta_release(r.json())
+		return Version(lastest_non_beta_release), org_name
+	# In case of an improper response or if there are no releases
+	return None
 
 def add_message_to_redis(update_json):
 	# "update-message" will store the update message string
