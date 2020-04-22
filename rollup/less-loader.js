@@ -7,13 +7,13 @@ const getFileName = filepath => path.basename(filepath);
 function loadModule(moduleId) {
 	// Trying to load module normally (relative to plugin directory)
 	try {
-		return require(moduleId)
+		return require(moduleId);
 	} catch (_) {
 		// Ignore error
 	}
 
 	// Then, trying to load it relative to CWD
-	return importCwd.silent(moduleId)
+	return importCwd.silent(moduleId);
 }
 
 module.exports = {
@@ -22,9 +22,9 @@ module.exports = {
 	async process({
 		code
 	}) {
-		const less = loadModule('less')
+		const less = loadModule('less');
 		if (!less) {
-			throw new Error('You need to install "less" packages in order to process Less files')
+			throw new Error('You need to install "less" packages in order to process Less files');
 		}
 
 		let {
@@ -35,20 +35,20 @@ module.exports = {
 			...this.options,
 			sourceMap: this.sourceMap && { outputSourceFiles: true },
 			filename: this.id
-		})
+		});
 
 		for (const dep of imports) {
-			this.dependencies.add(dep)
+			this.dependencies.add(dep);
 		}
 
 		if (map) {
-			map = JSON.parse(map)
-			map.sources = map.sources.map(source => getFileName(source))
+			map = JSON.parse(map);
+			map.sources = map.sources.map(source => getFileName(source));
 		}
 
 		return {
 			code: css,
 			map
-		}
+		};
 	}
-}
+};
