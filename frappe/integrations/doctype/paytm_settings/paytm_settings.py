@@ -11,7 +11,7 @@ import frappe
 from frappe.model.document import Document
 from frappe import _
 from frappe.utils import get_url, call_hook_method, cint, flt, cstr
-from frappe.integrations.utils import make_get_request, make_post_request, create_request_log, create_payment_gateway
+from frappe.integrations.utils import create_request_log, create_payment_gateway
 from frappe.utils import get_request_site_address
 from frappe.integrations.doctype.paytm_settings.checksum import generate_checksum, verify_checksum
 from frappe.utils.password import get_decrypted_password
@@ -22,17 +22,6 @@ class PaytmSettings(Document):
 	def validate(self):
 		create_payment_gateway('Paytm')
 		call_hook_method('payment_gateway_enabled', gateway='Paytm')
-		if not self.flags.ignore_mandatory:
-			self.validate_paytm_credentails()
-
-	def validate_paytm_credentails(self):
-		if self.merchant_id and self.merchant_key:
-			pass
-			# header = {"Authorization": "Bearer {0}".format(self.get_password(fieldname="secret_key", raise_exception=False))}
-			# try:
-			# 	make_get_request(url="https://api.stripe.com/v1/charges", headers=header)
-			# except Exception:
-			# 	frappe.throw(_("Seems Publishable Key or Secret Key is wrong !!!"))
 
 	def validate_transaction_currency(self, currency):
 		if currency not in self.supported_currencies:

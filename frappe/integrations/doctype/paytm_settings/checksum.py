@@ -87,7 +87,6 @@ def __get_param_string__(params):
 	params_string = []
 	for key in sorted(params.keys()):
 		if("REFUND" in params[key] or "|" in params[key]):
-			respons_dict = {}
 			exit()
 		value = params[key]
 		params_string.append('' if value == 'null' else str(value))

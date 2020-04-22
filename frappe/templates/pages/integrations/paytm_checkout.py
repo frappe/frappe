@@ -3,12 +3,8 @@
 from __future__ import unicode_literals
 import frappe
 from frappe import _
-from frappe.utils import flt, cint
 import json
-from six import string_types
-from frappe.utils import get_request_site_address
 from frappe.integrations.doctype.paytm_settings.paytm_settings import get_paytm_params, get_paytm_config
-import requests
 
 no_cache = 1
 
@@ -23,7 +19,7 @@ def get_context(context):
 
 		context.url = paytm_config.url
 
-	except Exception as e:
+	except Exception:
 		frappe.log_error()
 		frappe.redirect_to_message(_('Invalid Token'),
 			_('Seems token you are using is invalid!'),
