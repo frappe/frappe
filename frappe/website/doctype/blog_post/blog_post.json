@@ -154,6 +154,7 @@
    "fieldtype": "Section Break"
   },
   {
+   "description": "This is an example Google SERP Preview.",
    "fieldname": "google_preview",
    "fieldtype": "HTML",
    "label": "Google Snippet Preview",
@@ -166,7 +167,7 @@
  "is_published_field": "published",
  "links": [],
  "max_attachments": 5,
- "modified": "2020-04-22 12:27:40.724507",
+ "modified": "2020-04-22 20:07:37.324345",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Blog Post",
