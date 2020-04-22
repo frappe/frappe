@@ -57,6 +57,6 @@ google-auth-httplib2==0.0.3
 google-auth-oauthlib==0.4.1
 Faker==3.0.1
 stripe==2.43.0
-coverage==5.0.4
+coverage==4.5.4
 urllib3==1.23
 GitPython==2.1.15
