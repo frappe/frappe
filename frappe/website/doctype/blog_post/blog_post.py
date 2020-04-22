@@ -38,8 +38,6 @@ class BlogPost(WebsiteGenerator):
 		if self.published and not self.published_on:
 			self.published_on = today()
 		
-		# self.goog_preview = render_seo_section(doc)
-
 		# update posts
 		frappe.db.sql("""UPDATE `tabBlogger` SET `posts`=(SELECT COUNT(*) FROM `tabBlog Post`
 			WHERE IFNULL(`blogger`,'')=`tabBlogger`.`name`)
@@ -104,18 +102,8 @@ class BlogPost(WebsiteGenerator):
 			else:
 				context.comment_text = _('{0} comments').format(len(context.comment_list))
 	
-	#render google SERP preview
-
-	'''def render_seo_section(doc):
-	return frappe.render_template("""
-	<h3>doc.title<h3>
-	<p> {{ url }} </p>
-	{% if doc.meta_description %}
-	<p>{{ doc.meta_description }} </p>
-	{%- else %}<p>{{ doc.description }}</p>	
-	{% endif %}
-	""") '''
-
+	def get_url(self):
+		return frappe.utils.get_url()
 
 def get_list_context(context=None):
 	list_context = frappe._dict(

@@ -21,7 +21,13 @@
   "content",
   "content_md",
   "content_html",
-  "email_sent"
+  "email_sent",
+  "seo_section",
+  "meta_description",
+  "column_break_18",
+  "meta_image",
+  "section_break_20",
+  "google_preview"
  ],
  "fields": [
   {
@@ -123,6 +129,35 @@
    "fieldname": "disable_comments",
    "fieldtype": "Check",
    "label": "Disable Comments"
+  },
+  {
+   "fieldname": "seo_section",
+   "fieldtype": "Section Break",
+   "label": "SEO Section"
+  },
+  {
+   "fieldname": "meta_description",
+   "fieldtype": "Small Text",
+   "label": "Meta Description"
+  },
+  {
+   "fieldname": "column_break_18",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "meta_image",
+   "fieldtype": "Attach Image",
+   "label": "Meta Image"
+  },
+  {
+   "fieldname": "section_break_20",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "google_preview",
+   "fieldtype": "HTML",
+   "label": "Google Snippet Preview",
+   "read_only": 1
   }
  ],
  "has_web_view": 1,
@@ -131,7 +166,7 @@
  "is_published_field": "published",
  "links": [],
  "max_attachments": 5,
- "modified": "2020-04-08 19:58:13.672332",
+ "modified": "2020-04-22 12:27:40.724507",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Blog Post",
