@@ -1,4 +1,5 @@
 import Widget from "./base_widget.js";
+import { generate_route } from "./utils";
 
 export default class OnboardingWidget extends Widget {
 	constructor(opts) {
@@ -18,17 +19,41 @@ export default class OnboardingWidget extends Widget {
 				<i class="fa fa-check-circle" aria-hidden="true"></i>
 				<span>${step.title}</span>
 			</div>`);
+
 		if (!step.is_complete) {
 			if (step.action == "Watch Video") {
-				$step.on('click', () => {
+				let action = () => {
 					frappe.help.show_video(step.video_url, step.title);
 					this.mark_complete(step.name, $step);
-				});
-			} else {
-				$step.on('click', () => {
-					frappe.ui.form.make_quick_entry(step.reference_document)
-				});
+				}
 			}
+
+			else if (step.action == "Create Entry") {
+				let action = () => {
+					frappe.ui.form.make_quick_entry(step.reference_document, null, null, null, true)
+				}
+			}
+
+			else if (step.action == "View Settings") {
+				let action = () => {
+					frappe.set_route("Form", step.reference_document)
+				}
+			}
+
+			else if (step.action == "View Report") {
+				let action = () => {
+					let route = generate_route({
+						name: step.reference_report,
+						type: 'report',
+						is_query_report: ["Query Report", "Script Report"].includes(step.report_type)
+					});
+
+					frappe.set_route(route);
+					this.mark_complete(step.name, $step);
+				}
+			}
+
+			$step.on('click', action)
 		}
 
 		$step.appendTo(this.body);
