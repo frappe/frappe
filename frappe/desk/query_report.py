@@ -242,7 +242,7 @@ def get_prepared_report_result(report, filters, dn="", user=None):
 				columns = json.loads(doc.columns) if doc.columns else data[0]
 
 				for column in columns:
-					if isinstance(column, dict):
+					if isinstance(column, dict) and column.get("label"):
 						column["label"] = _(column["label"])
 
 				latest_report_data = {
