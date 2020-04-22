@@ -184,7 +184,9 @@ frappe.ui.form.Form = class FrappeForm {
 		frappe.model.on(me.doctype, "*", function(fieldname, value, doc) {
 			// set input
 			if(doc.name===me.docname) {
-				me.dirty();
+				if (!me.doc.__ignore_dirty) {
+					me.dirty();
+				}
 
 				let field = me.fields_dict[fieldname];
 				field && field.refresh(fieldname);

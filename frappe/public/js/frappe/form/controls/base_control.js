@@ -131,8 +131,8 @@ frappe.ui.form.Control = Class.extend({
 			return this.doc[this.df.fieldname];
 		}
 	},
-	set_value: function(value) {
-		return this.validate_and_set_in_model(value);
+	set_value: function(value, ignore_dirty) {
+		return this.validate_and_set_in_model(value, null, ignore_dirty);
 	},
 	parse_validate_and_set_in_model: function(value, e) {
 		if(this.parse) {
@@ -140,7 +140,7 @@ frappe.ui.form.Control = Class.extend({
 		}
 		return this.validate_and_set_in_model(value, e);
 	},
-	validate_and_set_in_model: function(value, e) {
+	validate_and_set_in_model: function(value, e, ignore_dirty) {
 		var me = this;
 		if(this.inside_change_event) {
 			return Promise.resolve();
@@ -149,7 +149,7 @@ frappe.ui.form.Control = Class.extend({
 		var set = function(value) {
 			me.inside_change_event = false;
 			return frappe.run_serially([
-				() => me.set_model_value(value),
+				() => me.set_model_value(value, ignore_dirty),
 				() => {
 					me.set_mandatory && me.set_mandatory(value);
 					me.set_invalid && me.set_invalid();
@@ -168,7 +168,7 @@ frappe.ui.form.Control = Class.extend({
 			return value.then((value) => set(value));
 		} else {
 			// all clear
-			return set(value);
+			return set(value, ignore_dirty);
 		}
 	},
 	get_value: function() {
@@ -180,11 +180,11 @@ frappe.ui.form.Control = Class.extend({
 			return this.value || undefined;
 		}
 	},
-	set_model_value: function(value) {
+	set_model_value: function(value, ignore_dirty=false) {
 		if(this.frm) {
 			this.last_value = value;
 			return frappe.model.set_value(this.doctype, this.docname, this.df.fieldname,
-				value, this.df.fieldtype);
+				value, this.df.fieldtype, ignore_dirty);
 		} else {
 			if(this.doc) {
 				this.doc[this.df.fieldname] = value;

@@ -360,7 +360,7 @@ $.extend(frappe.model, {
 		}
 	},
 
-	set_value: function(doctype, docname, fieldname, value, fieldtype) {
+	set_value: function(doctype, docname, fieldname, value, fieldtype, ignore_dirty) {
 		/* help: Set a value locally (if changed) and execute triggers */
 
 		var doc;
@@ -377,6 +377,8 @@ $.extend(frappe.model, {
 			to_update = {};
 			to_update[fieldname] = value;
 		}
+
+		doc.__ignore_dirty = ignore_dirty;
 
 		$.each(to_update, (key, value) => {
 			if (doc && doc[key] !== value) {
