@@ -21,27 +21,28 @@ export default class OnboardingWidget extends Widget {
 			</div>`);
 
 		if (!step.is_complete) {
+			let action = () => {};
 			if (step.action == "Watch Video") {
-				let action = () => {
+				action = () => {
 					frappe.help.show_video(step.video_url, step.title);
 					this.mark_complete(step.name, $step);
 				}
 			}
 
 			else if (step.action == "Create Entry") {
-				let action = () => {
+				action = () => {
 					frappe.ui.form.make_quick_entry(step.reference_document, null, null, null, true)
 				}
 			}
 
 			else if (step.action == "View Settings") {
-				let action = () => {
+				action = () => {
 					frappe.set_route("Form", step.reference_document)
 				}
 			}
 
 			else if (step.action == "View Report") {
-				let action = () => {
+				action = () => {
 					let route = generate_route({
 						name: step.reference_report,
 						type: 'report',
