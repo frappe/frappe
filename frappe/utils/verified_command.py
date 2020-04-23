@@ -35,7 +35,7 @@ def verify_request():
 	if signature_string in query_string:
 		params, signature = query_string.split(signature_string)
 
-		given_signature = hmac.new(params.encode('utf-8'))
+		given_signature = hmac.new(params.encode('utf-8'), digestmod='MD5')
 
 		given_signature.update(get_secret().encode())
 		valid = signature == given_signature.hexdigest()
@@ -58,7 +58,7 @@ def get_signature(params, nonce, secret=None):
 	if not secret:
 		secret = frappe.local.conf.get("secret") or "secret"
 
-	signature = hmac.new(str(nonce))
+	signature = hmac.new(str(nonce), digestmod='MD5')
 	signature.update(secret)
 	signature.update(params)
 	return signature.hexdigest()
