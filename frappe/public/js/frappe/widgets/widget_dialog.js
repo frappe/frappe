@@ -304,7 +304,7 @@ class NumberCardDialog extends WidgetDialog {
 				onchange: () => {
 					this.document_type = this.dialog.get_value("document_type");
 					this.set_aggregate_function_fields(this.dialog.get_values());
-					this.setup_filter(doctype);
+					this.setup_filter(this.document_type);
 				},
 				hidden: 1
 			},

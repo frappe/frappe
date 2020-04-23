@@ -25,7 +25,7 @@ export default class ChartWidget extends Widget {
 	}
 
 	set_chart_title() {
-		const max_chars = this.widget.width() < 500? 30: 60;
+		const max_chars = this.widget.width() < 500? 20: 60;
 		this.set_title(max_chars);
 	}
 
