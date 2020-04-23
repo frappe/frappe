@@ -17,7 +17,7 @@ def get_signed_params(params):
 	if not isinstance(params, string_types):
 		params = urlencode(params)
 
-	signature = hmac.new(params.encode())
+	signature = hmac.new(params.encode(), digestmod='MD5')
 	signature.update(get_secret().encode())
 	return params + "&_signature=" + signature.hexdigest()
 
