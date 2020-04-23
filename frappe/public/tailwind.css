@@ -1,4 +1,10 @@
 @tailwind base;
+
+html, body {
+	@apply antialiased;
+	@apply text-black;
+}
+
 @tailwind components;
 
 details.hide-summary-arrow summary::-webkit-details-marker {

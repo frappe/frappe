@@ -51,12 +51,17 @@ module.exports = {
 			}),
 			container: {
 				center: true,
-				padding: '1.25rem'
+				padding: {
+					default: '1.25rem',
+					sm: '2rem',
+					lg: '3rem',
+					xl: '12rem',
+					xxl: '11rem'
+				}
 			},
 			screens: {
-				xl: '1120px'
-			},
-			important: true
+				xxl: '1440px'
+			}
 		}
 	},
 	variants: {},

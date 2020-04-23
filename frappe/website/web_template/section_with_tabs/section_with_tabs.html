@@ -1,5 +1,5 @@
-<h2 class="text-3xl font-bold">{{ title }}</h2>
-<p class="mt-2 text-lg text-gray-800 sm:text-xl">{{ subtitle }}</p>
+<h2 class="text-xl font-bold sm:text-2xl md:text-3xl">{{ title }}</h2>
+<p class="max-w-4xl mt-2 text-base text-gray-900 sm:text-lg">{{ subtitle }}</p>
 
 <div class="mt-8">
 	<div class="tabs">
@@ -22,10 +22,10 @@
 		{%- endif -%}
 
 		{%- endfor -%}
-		<div class="flex py-2 overflow-x-auto space-x-10" role="tablist" aria-label="{{ title or '' }}">
+		<div class="flex py-2 overflow-x-auto space-x-8" role="tablist" aria-label="{{ title or '' }}">
 			{%- for tab in ns.tabs -%}
 			{%- set first_tab = true if loop.index0 == 0 else false -%}
-			<button class="py-4 font-medium text-gray-800 focus:outline-none focus:shadow-outline" role="tab" aria-selected="false" aria-controls="{{ tab.panelid }}" id="{{ tab.buttonid }}"
+			<button class="px-2 py-4 font-medium text-gray-800 border-b-2 border-transparent rounded-t-lg hover:text-blue-400 focus:outline-none focus:bg-blue-50" role="tab" aria-selected="false" aria-controls="{{ tab.panelid }}" id="{{ tab.buttonid }}"
 				tabindex="{{ 0 if first_tab else -1 }}">
 				{{ tab.title }}
 			</button>
@@ -33,8 +33,10 @@
 		</div>
 		{%- for tab in ns.tabs -%}
 		{%- set first_tab = true if loop.index0 == 0 else false -%}
-		<div class="py-4" id="{{ tab.panelid }}" role="tabpanel" tabindex="0" aria-labelledby="{{ tab.buttonid }}" {{ 'hidden' if not first_tab else '' }}>
-			{{ tab.content }}
+		<div class="mt-4 focus:outline-none focus:shadow-outline" id="{{ tab.panelid }}" role="tabpanel" tabindex="0" aria-labelledby="{{ tab.buttonid }}" {{ 'hidden' if not first_tab else '' }}>
+			<div class="from-markdown">
+				{{ frappe.utils.md_to_html(tab.content) }}
+			</div>
 		</div>
 		{%- endfor -%}
 	</div>
@@ -84,7 +86,7 @@
 		const target = $(e.target);
 		const parent = target.parent();
 		const grandparent = $(parent.parent());
-		const activeClass = 'border-b-2 border-primary-500 text-primary-600';
+		const activeClass = 'border-primary-500 text-primary-600';
 
 		// Remove all current selected tabs
 		parent

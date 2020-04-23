@@ -1,4 +1,7 @@
 {
+	"css/tailwind.css": [
+		"public/tailwind.css"
+	],
 	"css/frappe-web-b4.css": [
 		"public/scss/website.scss",
 		"public/less/indicator.less"
@@ -350,8 +353,5 @@
 	],
 	"js/data_import_tools.min.js": [
 		"public/js/frappe/data_import/index.js"
-	],
-	"css/tailwind.css": [
-		"public/tailwind.css"
 	]
 }

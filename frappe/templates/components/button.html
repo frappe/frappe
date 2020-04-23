@@ -6,10 +6,10 @@ disabled: 0
 url: null
 ---
 
-{%- set static_classes = "border rounded-md inline-flex justify-center items-center focus:outline-none font-medium transition duration-150 ease-in-out" -%}
+{%- set static_classes = "border inline-flex justify-center items-center focus:outline-none font-medium transition duration-150 ease-in-out" -%}
 {%- set dynamic_classes = {
-	"px-4 py-2 text-sm leading-5": size == "small",
-	"px-8 py-3 sm:px-10 sm:py-4 text-base sm:text-lg leading-6": size == "large",
+	"px-4 py-2 text-sm leading-5 rounded-md": size == "small",
+	"px-8 py-3 sm:px-10 sm:py-4 text-base sm:text-lg leading-6 rounded-lg": size == "large",
 	"opacity-50 cursor-not-allowed pointer-events-none": disabled,
 	"bg-primary-500 border-transparent hover:bg-primary-400 text-white focus:shadow-outline-primary focus:border-primary-600":
 	  variant == "primary",
