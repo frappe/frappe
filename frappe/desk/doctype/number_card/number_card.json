@@ -9,12 +9,12 @@
   "label",
   "function",
   "column_break_2",
+  "is_public",
   "document_type",
   "aggregate_function_based_on",
   "filters_section",
   "filters_json",
-  "color",
-  "is_standard"
+  "color"
  ],
  "fields": [
   {
@@ -59,14 +59,6 @@
    "label": "Color"
   },
   {
-   "default": "0",
-   "fieldname": "is_standard",
-   "fieldtype": "Check",
-   "hidden": 1,
-   "label": "Is Standard",
-   "permlevel": 1
-  },
-  {
    "fieldname": "column_break_2",
    "fieldtype": "Column Break"
   },
@@ -74,10 +66,18 @@
    "fieldname": "filters_section",
    "fieldtype": "Section Break",
    "label": "Filters Section"
+  },
+  {
+   "default": "0",
+   "description": "This card will be public to all Users if this is set",
+   "fieldname": "is_public",
+   "fieldtype": "Check",
+   "label": "Is Public",
+   "permlevel": 1
   }
  ],
  "links": [],
- "modified": "2020-04-18 14:12:06.949445",
+ "modified": "2020-04-23 13:03:57.103284",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Number Card",

@@ -8,12 +8,6 @@ frappe.ui.form.on('Number Card', {
 		frm.trigger('render_filters_table');
 	},
 
-	before_save: function(frm) {
-		if (frm.is_new() && (frappe.user.has_role('System Manager') || frappe.user.has_role('Dashboard Manager'))) {
-			frm.doc.is_standard = 1;
-		}
-	},
-
 	document_type: function(frm) {
 		frm.set_query('document_type', function() {
 			return {

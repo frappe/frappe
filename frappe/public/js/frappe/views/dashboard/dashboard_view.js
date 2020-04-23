@@ -71,14 +71,12 @@ frappe.views.DashboardView = class DashboardView extends frappe.views.ListView {
 					{
 						chart_type: ['in', ['Count', 'Sum', 'Group By']],
 						document_type: this.doctype,
-						is_standard: true
 					},
 					'charts'
 				),
 				() => this.fetch_dashboard_items('Number Card',
 					{
 						document_type: this.doctype,
-						is_standard: true
 					},
 					'number_cards'
 				),
@@ -258,9 +256,9 @@ frappe.views.DashboardView = class DashboardView extends frappe.views.ListView {
 					fieldtype: 'Link',
 					get_query: () => {
 						return {
+							'query': 'frappe.desk.doctype.dashboard_chart.dashboard_chart.get_charts_for_user',
 							filters: {
-							document_type: this.doctype,
-							is_standard: 1,
+								document_type: this.doctype,
 							}
 						};
 					},

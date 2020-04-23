@@ -20,7 +20,7 @@ def execute():
 		UPDATE
 			`tabDashboard Chart`
 		SET
-			`tabDashboard Chart`.`is_standard`=1
+			`tabDashboard Chart`.`is_public`=1
 		WHERE
 			`tabDashboard Chart`.owner in {users}
 		""".format(users=users)

@@ -22,6 +22,7 @@
   "aggregate_function_based_on",
   "number_of_groups",
   "column_break_6",
+  "is_public",
   "timespan",
   "from_date",
   "to_date",
@@ -35,8 +36,7 @@
   "color",
   "custom_options",
   "section_break_10",
-  "last_synced_on",
-  "is_standard"
+  "last_synced_on"
  ],
  "fields": [
   {
@@ -100,7 +100,7 @@
   },
   {
    "default": "0",
-   "depends_on": "eval:doc.chart_type !== 'Group By'",
+   "depends_on": "eval: ['Count', 'Sum', 'Average'].includes(doc.chart_type)",
    "fieldname": "timeseries",
    "fieldtype": "Check",
    "label": "Time Series"
@@ -224,15 +224,15 @@
   },
   {
    "default": "0",
-   "fieldname": "is_standard",
+   "description": "This chart will be public to all Users if this is set",
+   "fieldname": "is_public",
    "fieldtype": "Check",
-   "hidden": 1,
-   "label": "Is Standard",
+   "label": "Is Public",
    "permlevel": 1
   }
  ],
  "links": [],
- "modified": "2020-04-17 18:11:33.486037",
+ "modified": "2020-04-23 13:01:07.178866",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Dashboard Chart",
@@ -263,6 +263,7 @@
    "write": 1
   },
   {
+   "create": 1,
    "email": 1,
    "export": 1,
    "print": 1,

@@ -96,8 +96,6 @@ def create_dashboard_chart(args):
 	args = frappe.parse_json(args)
 	doc = frappe.new_doc('Dashboard Chart')
 	roles = frappe.get_roles(frappe.session.user)
-	if 'Sytem Manager' in roles or 'Dashboard Manager' in roles:
-		doc.is_standard = 1
 
 	doc.update(args)
 
@@ -364,6 +362,13 @@ def get_year_ending(date):
 	# last day of this month
 	return add_to_date(date, days=-1)
 
+def get_charts_for_user(doctype, txt, searchfield, start, page_len, filters):
+	or_filters = {'owner': frappe.session.user, 'is_public': 1}
+	return frappe.db.get_list('Dashboard Chart',
+		fields=['name'],
+		filters=filters,
+		or_filters=or_filters,
+		as_list = 1)
 
 class DashboardChart(Document):
 

@@ -73,14 +73,13 @@ def create_number_card(args):
 	args = frappe.parse_json(args)
 	doc = frappe.new_doc('Number Card')
 	roles = frappe.get_roles(frappe.session.user)
-	if 'Sytem Manager' in roles or 'Dashboard Manager' in roles:
-		doc.is_standard = 1
+
 	doc.update(args)
 	doc.insert(ignore_permissions=True)
 	return doc
 
 def get_cards_for_user(doctype, txt, searchfield, start, page_len, filters):
-	or_filters = {'owner': frappe.session.user, 'is_standard': 1}
+	or_filters = {'owner': frappe.session.user, 'is_public': 1}
 	return frappe.db.get_list('Number Card',
 		fields=['name', 'label'],
 		filters=filters,

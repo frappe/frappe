@@ -8,7 +8,7 @@ frappe.ui.form.on('Dashboard', {
 		frm.set_query("chart", "charts", function() {
 			return {
 				filters: {
-					is_standard: 1
+					is_public: 1
 				}
 			};
 		});
@@ -16,7 +16,7 @@ frappe.ui.form.on('Dashboard', {
 		frm.set_query("card", "cards", function() {
 			return {
 				filters: {
-					is_standard: 1
+					is_public: 1
 				}
 			};
 		});
