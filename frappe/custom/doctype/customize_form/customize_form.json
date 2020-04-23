@@ -20,8 +20,6 @@
   "track_views",
   "allow_auto_repeat",
   "allow_import",
-  "show_preview_popup",
-  "image_view",
   "column_break_5",
   "title_field",
   "image_field",
@@ -98,13 +96,6 @@
    "fieldname": "track_changes",
    "fieldtype": "Check",
    "label": "Track Changes"
-  },
-  {
-   "default": "0",
-   "depends_on": "eval: doc.image_field",
-   "fieldname": "image_view",
-   "fieldtype": "Check",
-   "label": "Image View"
   },
   {
    "fieldname": "column_break_5",
@@ -204,12 +195,6 @@
    "depends_on": "doc_type",
    "fieldname": "section_break_23",
    "fieldtype": "Section Break"
-  },
-  {
-   "default": "0",
-   "fieldname": "show_preview_popup",
-   "fieldtype": "Check",
-   "label": "Show Preview Popup"
   }
  ],
  "hide_toolbar": 1,
@@ -217,7 +202,7 @@
  "idx": 1,
  "issingle": 1,
  "links": [],
- "modified": "2020-04-10 12:16:01.320411",
+ "modified": "2020-04-23 15:36:59.872517",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Customize Form",
