@@ -148,7 +148,7 @@ class DesktopPage {
 		if (this.sections.shortcuts) {
 			this.sections.shortcuts.widgets_list.forEach(wid => {
 				wid.set_actions();
-			})
+			});
 		}
 	}
 
