@@ -41,17 +41,17 @@
     "qz-tray": "^2.0.8",
     "redis": "^2.8.0",
     "showdown": "^1.9.1",
+    "snyk": "^1.297.4",
     "socket.io": "^2.3.0",
     "superagent": "^3.8.2",
     "touch": "^3.1.0",
     "vue": "^2.6.11",
-    "vue-router": "^2.0.0",
-    "snyk": "^1.297.4"
+    "vue-router": "^2.0.0"
   },
   "devDependencies": {
     "babel-runtime": "^6.26.0",
     "chalk": "^2.3.2",
-    "cypress": "^3.1.1",
+    "cypress": "3",
     "cypress-file-upload": "^3.1.0",
     "less": "^3.11.1",
     "node-sass": "^4.13.1",
