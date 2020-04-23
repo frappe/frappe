@@ -97,7 +97,7 @@ frappe.ui.form.on('User', {
 				});
 			}, __("Password"));
 
-			if (frappe.user.has_role(["Administrator", "System Manager"]) {
+			if (frappe.user.has_role("System Manager") {
 				frappe.db.get_single_value("LDAP Settings", "enabled").then((value) => {
 					if (value === 1 && frm.doc.name != "Administrator") {
 						frm.add_custom_button(__("Reset LDAP Password"), function() {
