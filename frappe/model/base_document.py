@@ -289,7 +289,7 @@ class BaseDocument(object):
 				if k in default_fields:
 					del doc[k]
 
-		for key in ("_user_tags", "__islocal", "__onload", "_liked_by", "__run_link_triggers"):
+		for key in ("_user_tags", "__islocal", "__onload", "_liked_by", "__run_link_triggers", "__unsaved"):
 			if self.get(key):
 				doc[key] = self.get(key)
 
