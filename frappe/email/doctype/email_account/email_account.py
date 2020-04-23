@@ -9,7 +9,7 @@ import json
 import socket
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils import validate_email_address, cint, get_datetime, DATE_FORMAT, strip, comma_or, sanitize_html
+from frappe.utils import validate_email_address, cint, get_datetime, DATE_FORMAT, strip, comma_or, sanitize_html, add_days
 from frappe.utils.user import is_system_user
 from frappe.utils.jinja import render_template
 from frappe.email.smtp import SMTPServer
@@ -555,7 +555,11 @@ class EmailAccount(Document):
 							parent = frappe.get_doc(parent.reference_doctype,
 								parent.reference_name)
 			else:
-				comm = frappe.db.get_value('Communication', dict(message_id=in_reply_to), ['reference_doctype', 'reference_name'], as_dict=1)
+				comm = frappe.db.get_value('Communication',
+						dict(
+							message_id=in_reply_to,
+							creation=['>=', add_days(get_datetime(), -30)]),
+						['reference_doctype', 'reference_name'], as_dict=1)
 				if comm:
 					parent = frappe._dict(doctype=comm.reference_doctype, name=comm.reference_name)
 
