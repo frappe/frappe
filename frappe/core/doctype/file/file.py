@@ -30,7 +30,6 @@ import frappe
 from frappe import _, conf
 from frappe.model.document import Document
 from frappe.utils import call_hook_method, cint, cstr, encode, get_files_path, get_hook_method, random_string, strip
-from frappe.utils.nestedset import NestedSet
 
 
 class MaxFileSizeReachedError(frappe.ValidationError):
