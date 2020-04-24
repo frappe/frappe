@@ -78,6 +78,7 @@
 		"has_common": true,
 		"has_words": true,
 		"validate_email": true,
+		"validate_name": true,
 		"validate_phone": true,
 		"get_number_format": true,
 		"format_number": true,

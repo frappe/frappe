@@ -90,6 +90,7 @@
 		"public/css/font-awesome.css",
 		"public/css/octicons/octicons.css",
 		"public/less/desk.less",
+		"public/less/module.less",
 		"public/less/flex.less",
 		"public/less/indicator.less",
 		"public/less/avatar.less",

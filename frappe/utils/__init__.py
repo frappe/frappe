@@ -81,10 +81,26 @@ def validate_phone_number(phone_number, throw=False):
 		return False
 
 	phone_number = phone_number.strip()
-	match = re.match("([0-9\ \+\_\-\,\.\*\#\(\)]){1,20}$", phone_number)
+	match = re.match(r"([0-9\ \+\_\-\,\.\*\#\(\)]){1,20}$", phone_number)
 
 	if not match and throw:
 		frappe.throw(frappe._("{0} is not a valid Phone Number").format(phone_number), frappe.InvalidPhoneNumberError)
+
+	return bool(match)
+
+def validate_name(name, throw=False):
+	"""Returns True if the name is valid
+	valid names may have unicode and ascii characters, dash, quotes, numbers
+	anything else is considered invalid
+	"""
+	if not name:
+		return False
+
+	name = name.strip()
+	match = re.match(r"^[\w][\w\'\-]*([ \w][\w\'\-]+)*$", name)
+
+	if not match and throw:
+		frappe.throw(frappe._("{0} is not a valid Name").format(name), frappe.InvalidNameError)
 
 	return bool(match)
 

@@ -11,11 +11,12 @@ from frappe.model import default_fields, table_fields
 from frappe.model.naming import set_new_name
 from frappe.model.utils.link_count import notify_link_count
 from frappe.modules import load_doctype_module
-from frappe.model import display_fieldtypes, data_fieldtypes
+from frappe.model import display_fieldtypes
 from frappe.utils.password import get_decrypted_password, set_encrypted_password
-from frappe.utils import (cint, flt, now, cstr, strip_html, getdate, get_datetime, to_timedelta,
+from frappe.utils import (cint, flt, now, cstr, strip_html,
 	sanitize_html, sanitize_email, cast_fieldtype)
 from frappe.utils.html_utils import unescape_html
+from bs4 import BeautifulSoup
 
 max_positive_value = {
 	'smallint': 2 ** 15,
@@ -288,7 +289,7 @@ class BaseDocument(object):
 				if k in default_fields:
 					del doc[k]
 
-		for key in ("_user_tags", "__islocal", "__onload", "_liked_by", "__run_link_triggers"):
+		for key in ("_user_tags", "__islocal", "__onload", "_liked_by", "__run_link_triggers", "__unsaved"):
 			if self.get(key):
 				doc[key] = self.get(key)
 
@@ -571,6 +572,9 @@ class BaseDocument(object):
 				for email_address in frappe.utils.split_emails(data):
 					frappe.utils.validate_email_address(email_address, throw=True)
 
+			if data_field_options == "Name":
+				frappe.utils.validate_name(data, throw=True)
+
 			if data_field_options == "Phone":
 				frappe.utils.validate_phone_number(data, throw=True)
 
@@ -678,7 +682,7 @@ class BaseDocument(object):
 				# doesn't look like html so no need
 				continue
 
-			elif "<!-- markdown -->" in value and not ("<script" in value or "javascript:" in value):
+			elif "<!-- markdown -->" in value and not bool(BeautifulSoup(value, "html.parser").find()):
 				# should be handled separately via the markdown converter function
 				continue
 
