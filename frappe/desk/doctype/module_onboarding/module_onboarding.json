@@ -1,0 +1,87 @@
+{
+ "actions": [],
+ "autoname": "Prompt",
+ "creation": "2020-04-24 13:58:14.948024",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "title",
+  "module",
+  "column_break_4",
+  "subtitle",
+  "success_message",
+  "user_can_dismiss",
+  "section_break_6",
+  "items"
+ ],
+ "fields": [
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Title",
+   "reqd": 1
+  },
+  {
+   "fieldname": "subtitle",
+   "fieldtype": "Data",
+   "label": "Subtitle"
+  },
+  {
+   "fieldname": "items",
+   "fieldtype": "Table",
+   "label": "Items",
+   "options": "Desk Onboarding"
+  },
+  {
+   "fieldname": "module",
+   "fieldtype": "Link",
+   "label": "Module",
+   "options": "Module Def",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_4",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_6",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "success_message",
+   "fieldtype": "Small Text",
+   "label": "Success Message"
+  },
+  {
+   "default": "0",
+   "fieldname": "user_can_dismiss",
+   "fieldtype": "Check",
+   "label": "User Can Dismiss "
+  }
+ ],
+ "links": [],
+ "modified": "2020-04-24 14:04:07.658176",
+ "modified_by": "Administrator",
+ "module": "Desk",
+ "name": "Module Onboarding",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}
