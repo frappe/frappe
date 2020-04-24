@@ -49,7 +49,7 @@ function generate_google_search_preview(frm){
 						</div>
 						<br>
 						<p class="help-box small text-muted hidden-xs">
-							Google currently displays 155-160 characters of the meta description in the search result. You can also check the previews for <a href="https://developers.facebook.com/tools/debug/" target="_blank">Facebook</a> and <a href="https://cards-dev.twitter.com/validator" target="_blank">Twitter</a> using their debugger tools. 
+							This is a test preview based on the meta description generated for this blog. The description can be of any length but Google will truncate it to 155 - 160 characters. You can also check the previews for <a href="https://developers.facebook.com/tools/debug/" target="_blank">Facebook</a> and <a href="https://cards-dev.twitter.com/validator" target="_blank">Twitter</a> using their debugger tools. 
 						</p>
 					</div>
 				</div>
