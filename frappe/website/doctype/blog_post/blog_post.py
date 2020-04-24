@@ -97,7 +97,7 @@ class BlogPost(WebsiteGenerator):
 			else:
 				context.comment_text = _('{0} comments').format(len(context.comment_list))
 	
-	def get_url(self):
+	def get_site_url(self):
 		return frappe.utils.get_url()
 
 def get_list_context(context=None):

@@ -16,7 +16,7 @@ frappe.ui.form.on('Blog Post', {
 	}
 });
 function generate_google_search_preview(frm){
-	frm.call('get_url').then((r)=>{
+	frm.call('get_site_url').then((r)=>{
 		let google_preview = frm.get_field("google_preview");
 		let seo_title = (frm.doc.title).slice(0, 60);
 		let seo_description =  (frm.doc.meta_description || frm.doc.blog_intro || "").slice(0, 160);
