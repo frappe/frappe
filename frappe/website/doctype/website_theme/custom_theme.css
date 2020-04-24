@@ -1,13 +1,16 @@
 {% if google_font %}
-@import url('https://fonts.googleapis.com/css2?family={{ google_font }}:wght@400;500;600;700;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family={{ google_font.replace(' ', '+') }}:wght@400;500;600;700;900&display=swap');
 {% endif -%}
 
 :root {
 	{%- if google_font %}
-	--font-family: {{ google_font }};
+	--font-family: "{{ google_font }}";
 	{% endif -%}
-	{% if brand_color %}
-	--primary-500: {{ brand_color }};
+}
+
+html, body {
+	{%- if font_size %}
+	font-size: {{ font_size }};
 	{% endif -%}
 }
 

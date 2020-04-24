@@ -11,12 +11,7 @@
   "based_on",
   "module",
   "custom",
-  "tailwind_theme_section",
-  "brand_color",
-  "custom_css",
-  "theme_css",
   "bootstrap_theme_section",
-  "configuration_section",
   "google_font",
   "font_size",
   "font_properties",
@@ -32,8 +27,10 @@
   "stylesheet_section",
   "theme_scss",
   "custom_scss",
-  "theme_json",
   "theme_url",
+  "tailwind_theme_section",
+  "custom_css",
+  "theme_css",
   "navbar_section",
   "navbar",
   "footer_section",
@@ -90,13 +87,6 @@
    "options": "JS"
   },
   {
-   "fieldname": "theme_json",
-   "fieldtype": "Code",
-   "hidden": 1,
-   "label": "Theme JSON",
-   "options": "JSON"
-  },
-  {
    "default": "Bootstrap 4",
    "fieldname": "based_on",
    "fieldtype": "Select",
@@ -104,6 +94,7 @@
    "options": "Bootstrap 4\nTailwind"
   },
   {
+   "depends_on": "eval:doc.based_on == 'Tailwind'",
    "fieldname": "navbar_section",
    "fieldtype": "Section Break",
    "label": "Navbar"
@@ -115,17 +106,12 @@
    "label": "Tailwind Theme"
   },
   {
-   "depends_on": "eval:doc.based_on == 'Bootstrap 4'",
    "fieldname": "bootstrap_theme_section",
    "fieldtype": "Section Break",
-   "label": "Bootstrap Theme"
+   "label": "Theme Configuration"
   },
   {
-   "fieldname": "brand_color",
-   "fieldtype": "Color",
-   "label": "Brand Color"
-  },
-  {
+   "depends_on": "eval:doc.based_on == 'Tailwind'",
    "fieldname": "footer_section",
    "fieldtype": "Section Break",
    "label": "Footer"
@@ -151,14 +137,10 @@
   {
    "fieldname": "theme_css",
    "fieldtype": "Code",
+   "hidden": 1,
    "label": "Theme CSS",
    "options": "CSS",
    "read_only": 1
-  },
-  {
-   "fieldname": "configuration_section",
-   "fieldtype": "Section Break",
-   "label": "Configuration"
   },
   {
    "fieldname": "google_font",
@@ -195,6 +177,7 @@
    "options": "Color"
   },
   {
+   "depends_on": "eval:doc.based_on == 'Bootstrap 4'",
    "fieldname": "stylesheet_section",
    "fieldtype": "Section Break",
    "label": "Stylesheet"
@@ -240,7 +223,7 @@
   }
  ],
  "links": [],
- "modified": "2020-04-19 20:44:22.916580",
+ "modified": "2020-04-25 00:00:23.347879",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Website Theme",
