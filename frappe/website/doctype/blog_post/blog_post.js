@@ -27,7 +27,7 @@ function generate_google_search_preview(frm){
 			<div class="frappe-control">
 				<div class="form-group">
 					<div class="clearfix">
-						<label class="control-label" style="padding-right: 0px;">Google SEO</label>
+						<label class="control-label" style="padding-right: 0px;">Google Search Listing Preview</label>
 					</div>
 					<div class="control-input-wrapper">
 						<div class="control-input">
@@ -47,6 +47,7 @@ function generate_google_search_preview(frm){
 							</p>
 							</div>
 						</div>
+						<br>
 						<p class="help-box small text-muted hidden-xs">
 							Google currently displays 155-160 characters of the meta description in the search result. You can also check the previews for <a href="https://developers.facebook.com/tools/debug/" target="_blank">Facebook</a> and <a href="https://cards-dev.twitter.com/validator" target="_blank">Twitter</a> using their debugger tools. 
 						</p>
