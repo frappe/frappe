@@ -28,9 +28,12 @@
 	{% include "templates/includes/blog/blogger.html" %}
 	{% endif %}
 
-	<div class="blog-comments my-5">
-		{% include 'templates/includes/comments/comments.html' %}
-	</div>
+	{% if not disable_comments %}
+		<div class="blog-comments my-5">
+			{% include 'templates/includes/comments/comments.html' %}
+		</div>
+	{% endif %}
+
 </div>
 <script>
 	frappe.ready(() => frappe.set_search_path("/blog"))

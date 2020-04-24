@@ -22,7 +22,7 @@
    "fieldtype": "Select",
    "in_list_view": 1,
    "label": "Script Type",
-   "options": "DocType Event\nAPI",
+   "options": "DocType Event\nScheduler Event\nAPI",
    "reqd": 1
   },
   {
@@ -75,7 +75,7 @@
   }
  ],
  "links": [],
- "modified": "2019-12-17 12:55:07.389775",
+ "modified": "2020-04-06 11:24:38.161555",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Server Script",

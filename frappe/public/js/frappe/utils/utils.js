@@ -122,9 +122,11 @@ Object.assign(frappe.utils, {
 				</a></p>');
 		return content.html();
 	},
-	scroll_to: function(element, animate, additional_offset) {
+	scroll_to: function(element, animate, additional_offset, element_to_be_scrolled) {
+		element_to_be_scrolled = element_to_be_scrolled || $("html, body");
+
 		var y = 0;
-		if(element && typeof element==='number') {
+		if (element && typeof element==="number") {
 			y = element;
 		} else if(element) {
 			var header_offset = $(".navbar").height() + $(".page-head").height();
@@ -136,14 +138,14 @@ Object.assign(frappe.utils, {
 		}
 
 		// already there
-		if(y==$('html, body').scrollTop()) {
+		if (y == element_to_be_scrolled.scrollTop()) {
 			return;
 		}
 
-		if (animate!==false) {
-			$("html, body").animate({ scrollTop: y });
+		if (animate !== false) {
+			element_to_be_scrolled.animate({ scrollTop: y });
 		} else {
-			$(window).scrollTop(y);
+			element_to_be_scrolled.scrollTop(y);
 		}
 
 	},
@@ -232,6 +234,12 @@ Object.assign(frappe.utils, {
 		var regExp;
 
 		switch ( type ) {
+			case "phone":
+				regExp = /^([0-9\ \+\_\-\,\.\*\#\(\)]){1,20}$/;
+				break;
+			case "name":
+				regExp = /^[\w][\w'-]*([ \w][\w'-]+)*$/;
+				break;
 			case "number":
 				regExp = /^-?(?:\d+|\d{1,3}(?:,\d{3})+)?(?:\.\d+)?$/;
 				break;
@@ -670,7 +678,9 @@ Object.assign(frappe.utils, {
 		return __(frappe.utils.to_title_case(route[0], true));
 	},
 	report_column_total: function(values, column, type) {
-		if (values.length > 0) {
+		if (column.column.disable_total) {
+			return '';
+		} else if (values.length > 0) {
 			if (column.column.fieldtype == "Percent" || type === "mean") {
 				return values.reduce((a, b) => a + flt(b)) / values.length;
 			} else if (column.column.fieldtype == "Int") {
@@ -738,7 +748,36 @@ Object.assign(frappe.utils, {
 		});
 
 		return $el;
-	}
+	},
+
+	get_browser() {
+		var ua = navigator.userAgent,
+			tem,
+			M =
+				ua.match(
+					/(opera|chrome|safari|firefox|msie|trident(?=\/))\/?\s*(\d+)/i
+				) || [];
+		if (/trident/i.test(M[1])) {
+			tem = /\brv[ :]+(\d+)/g.exec(ua) || [];
+			return { name: "IE", version: tem[1] || "" };
+		}
+		if (M[1] === "Chrome") {
+			tem = ua.match(/\bOPR|Edge\/(\d+)/);
+			if (tem != null) {
+				return { name: "Opera", version: tem[1] };
+			}
+		}
+		M = M[2]
+			? [M[1], M[2]]
+			: [navigator.appName, navigator.appVersion, "-?"];
+		if ((tem = ua.match(/version\/(\d+)/i)) != null) {
+			M.splice(1, 1, tem[1]);
+		}
+		return {
+			name: M[0],
+			version: M[1],
+		};
+	},
 });
 
 // Array de duplicate

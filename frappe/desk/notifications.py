@@ -268,8 +268,9 @@ def get_open_count(doctype, name, items=[]):
 		"count": out,
 	}
 
-	module = frappe.get_meta_module(doctype)
-	if hasattr(module, "get_timeline_data"):
-		out["timeline_data"] = module.get_timeline_data(doctype, name)
+	if not meta.custom:
+		module = frappe.get_meta_module(doctype)
+		if hasattr(module, "get_timeline_data"):
+			out["timeline_data"] = module.get_timeline_data(doctype, name)
 
 	return out

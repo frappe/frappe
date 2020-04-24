@@ -13,11 +13,25 @@
   "custom",
   "tailwind_theme_section",
   "brand_color",
-  "google_font",
   "custom_css",
   "theme_css",
   "bootstrap_theme_section",
+  "configuration_section",
+  "google_font",
+  "font_size",
+  "font_properties",
+  "button_rounded_corners",
+  "button_shadows",
+  "button_gradients",
+  "column_break_11",
+  "primary_color",
+  "text_color",
+  "light_color",
+  "dark_color",
+  "background_color",
+  "stylesheet_section",
   "theme_scss",
+  "custom_scss",
   "theme_json",
   "theme_url",
   "navbar_section",
@@ -55,7 +69,8 @@
    "fieldname": "theme_scss",
    "fieldtype": "Code",
    "label": "Theme",
-   "options": "SCSS"
+   "options": "SCSS",
+   "read_only": 1
   },
   {
    "fieldname": "theme_url",
@@ -128,11 +143,6 @@
    "options": "Web Page Block"
   },
   {
-   "fieldname": "google_font",
-   "fieldtype": "Data",
-   "label": "Google Font"
-  },
-  {
    "fieldname": "custom_css",
    "fieldtype": "Code",
    "label": "Custom CSS",
@@ -144,6 +154,89 @@
    "label": "Theme CSS",
    "options": "CSS",
    "read_only": 1
+  },
+  {
+   "fieldname": "configuration_section",
+   "fieldtype": "Section Break",
+   "label": "Configuration"
+  },
+  {
+   "fieldname": "google_font",
+   "fieldtype": "Data",
+   "label": "Google Font"
+  },
+  {
+   "fieldname": "font_size",
+   "fieldtype": "Data",
+   "label": "Font Size"
+  },
+  {
+   "fieldname": "primary_color",
+   "fieldtype": "Link",
+   "label": "Primary Color",
+   "options": "Color"
+  },
+  {
+   "fieldname": "text_color",
+   "fieldtype": "Link",
+   "label": "Text Color",
+   "options": "Color"
+  },
+  {
+   "fieldname": "dark_color",
+   "fieldtype": "Link",
+   "label": "Dark Color",
+   "options": "Color"
+  },
+  {
+   "fieldname": "background_color",
+   "fieldtype": "Link",
+   "label": "Background Color",
+   "options": "Color"
+  },
+  {
+   "fieldname": "stylesheet_section",
+   "fieldtype": "Section Break",
+   "label": "Stylesheet"
+  },
+  {
+   "fieldname": "custom_scss",
+   "fieldtype": "Code",
+   "label": "Custom SCSS"
+  },
+  {
+   "fieldname": "light_color",
+   "fieldtype": "Link",
+   "label": "Light Color",
+   "options": "Color"
+  },
+  {
+   "default": "300,600",
+   "fieldname": "font_properties",
+   "fieldtype": "Data",
+   "label": "Font Properties"
+  },
+  {
+   "default": "1",
+   "fieldname": "button_rounded_corners",
+   "fieldtype": "Check",
+   "label": "Button Rounded Corners"
+  },
+  {
+   "default": "0",
+   "fieldname": "button_shadows",
+   "fieldtype": "Check",
+   "label": "Button Shadows"
+  },
+  {
+   "default": "0",
+   "fieldname": "button_gradients",
+   "fieldtype": "Check",
+   "label": "Button Gradients"
+  },
+  {
+   "fieldname": "column_break_11",
+   "fieldtype": "Column Break"
   }
  ],
  "links": [],

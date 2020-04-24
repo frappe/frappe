@@ -329,6 +329,10 @@ class Document(BaseDocument):
 		self.update_children()
 		self.run_post_save_methods()
 
+		# clear unsaved flag
+		if hasattr(self, "__unsaved"):
+			delattr(self, "__unsaved")
+
 		return self
 
 	def copy_attachments_from_amended_from(self):
@@ -468,6 +472,7 @@ class Document(BaseDocument):
 
 	def _validate(self):
 		self._validate_mandatory()
+		self._validate_data_fields()
 		self._validate_selects()
 		self._validate_length()
 		self._extract_images_from_text_editor()
@@ -477,6 +482,7 @@ class Document(BaseDocument):
 
 		children = self.get_all_children()
 		for d in children:
+			d._validate_data_fields()
 			d._validate_selects()
 			d._validate_length()
 			d._extract_images_from_text_editor()
@@ -1316,6 +1322,9 @@ def make_event_update_log(doc, update_type):
 
 def check_doctype_has_consumers(doctype):
 	"""Check if doctype has event consumers for event streaming"""
+	if not frappe.db.exists("DocType", "Event Consumer"):
+		return False
+
 	event_consumers = frappe.get_all('Event Consumer')
 	for event_consumer in event_consumers:
 		consumer = frappe.get_doc('Event Consumer', event_consumer.name)
