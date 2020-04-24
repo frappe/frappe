@@ -572,6 +572,9 @@ class Document(BaseDocument):
 		if high_permlevel_fields:
 			self.reset_values_if_no_permlevel_access(has_access_to, high_permlevel_fields)
 
+		# If new record then don't reset the values for child table
+		if self.is_new(): return
+
 		# check for child tables
 		for df in self.meta.get_table_fields():
 			high_permlevel_fields = frappe.get_meta(df.options).get_high_permlevel_fields()
