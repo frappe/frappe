@@ -28,7 +28,7 @@ from frappe import conf
 from frappe.utils.nestedset import NestedSet
 from frappe.model.document import Document
 from frappe.utils import strip
-from PIL import Image, ImageOps
+from PIL import Image, ImageFile, ImageOps
 from six import StringIO, string_types
 from six.moves.urllib.parse import unquote, quote
 from six import text_type, PY2
@@ -38,9 +38,11 @@ class MaxFileSizeReachedError(frappe.ValidationError):
 	pass
 
 
-class FolderNotEmpty(frappe.ValidationError): pass
+class FolderNotEmpty(frappe.ValidationError):
+	pass
 
 exclude_from_linked_with = True
+ImageFile.LOAD_TRUNCATED_IMAGES = True
 
 
 class File(Document):
