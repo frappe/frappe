@@ -16,7 +16,7 @@
 
 {% block page_content %}
 {%- if content_type == 'Page Builder' -%}
-{{ c('web_blocks', web_blocks=doc.page_blocks) }}
+	{{ page_builder_html }}
 {%- else -%}
 <div class="webpage-content">
 	{% include "templates/includes/slideshow.html" %}
@@ -39,5 +39,11 @@
 {% endblock %}
 
 {% block script %}
-    <script>{{ script or "" }}</script>
+	{%- if script -%}
+	<script>{{ script }}</script>
+	{%- endif -%}
+
+	{%- for script in page_builder_scripts -%}
+	<script>{{ script }}</script>
+	{%- endfor -%}
 {% endblock %}

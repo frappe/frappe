@@ -6,8 +6,14 @@
 	},
 	web_block.css_class
 ]) -%}
-<{{htmltag}} class="{{ classes }}" data-section-idx="{{ web_block.idx | e }}" data-section-template="{{ web_block.web_template | e }}">
-	<div class="{{ resolve_class({'container': web_block.add_container}) }}">
+
+<{{htmltag}} class="{{ classes }}" data-section-idx="{{ web_block.idx | e }}"
+	data-section-template="{{ web_block.web_template | e }}">
+	{%- if web_block.add_container -%}
+	<div class="container">
+	{%- endif -%}
 		{{ web_block.render() }}
+	{%- if web_block.add_container -%}
 	</div>
+	{%- endif -%}
 </{{htmltag}}>
