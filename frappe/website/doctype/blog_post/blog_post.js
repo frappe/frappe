@@ -11,14 +11,14 @@ frappe.ui.form.on('Blog Post', {
 	meta_description: function(frm) {
 		generate_google_search_preview(frm);
 	},
-	title: function(frm) {
+	blog_intro: function(frm) {
 		generate_google_search_preview(frm);
 	}
 });
 function generate_google_search_preview(frm){
 	frm.call('get_url').then((r)=>{
 		let google_preview = frm.get_field("google_preview");
-		let seo_title = (frm.doc.title || "").slice(0, 60);
+		let seo_title = (frm.doc.title).slice(0, 60);
 		let seo_description =  (frm.doc.meta_description || frm.doc.blog_intro || "").slice(0, 160);
 
 		google_preview.html(`
@@ -48,7 +48,7 @@ function generate_google_search_preview(frm){
 							</div>
 						</div>
 						<p class="help-box small text-muted hidden-xs">
-							Description for listing page, in plain text, only a couple of lines. (max 140 characters)
+							Google currently displays 155-160 characters of the meta description in the search result. You can also check the previews for <a href="https://developers.facebook.com/tools/debug/" target="_blank">Facebook</a> and <a href="https://cards-dev.twitter.com/validator" target="_blank">Twitter</a> using their debugger tools. 
 						</p>
 					</div>
 				</div>

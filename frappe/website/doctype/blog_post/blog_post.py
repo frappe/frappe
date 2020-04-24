@@ -66,22 +66,17 @@ class BlogPost(WebsiteGenerator):
 
 		context.content = get_html_content_based_on_type(self, 'content', self.content_type)
 		
-		if self.meta_description:
-			context.description = self.meta_description
-		else:	
-			context.description = self.blog_intro or strip_html_tags(context.content[:140])
-
+		#if meta description is not present, then blog intro or first 140 characters of the blog will be set as description
+		context.description["description"] = self.meta_description or self.blog_intro or strip_html_tags(context.content[:140])
+		
 		context.metatags = {
 			"name": self.title,
 			"description": context.description,
 		}
 
+		#if meta image is not present, then first image inside the blog will be set as so
 		image = find_first_image(context.content)
-		if self.meta_image:
-			context.metatags["image"] = self.meta_image
-		else:
-			context.metatags["image"] = image
-
+		context.metatags["image"] = self.meta_image or image 
 
 		self.load_comments(context)
 
