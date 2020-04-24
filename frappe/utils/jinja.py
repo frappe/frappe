@@ -207,7 +207,7 @@ def resolve_class(classes):
 	return classes
 
 def parse_front_matter_attrs_and_html(source):
-	from frontmatter import Frontmatter
+	from frappe.website.router import get_frontmatter
 
 	html = source
 	attributes = {}
@@ -216,7 +216,7 @@ def parse_front_matter_attrs_and_html(source):
 		return attributes, html
 
 	try:
-		res = Frontmatter.read(source)
+		res = get_frontmatter(source)
 		if res['attributes']:
 			attributes = res['attributes']
 			html = res['body']
