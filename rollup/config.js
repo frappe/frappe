@@ -147,7 +147,7 @@ function get_rollup_options_for_css(output_file, input_files) {
 		inputOptions: {
 			input: input_files,
 			plugins: plugins,
-			onwarn(warning, warn) {
+			onwarn(warning) {
 				// skip warnings
 				if (['EMPTY_BUNDLE'].includes(warning.code)) return;
 

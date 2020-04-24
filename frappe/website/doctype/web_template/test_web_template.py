@@ -33,11 +33,8 @@ class TestWebTemplate(unittest.TestCase):
 		self.assertTrue("/test" == button.attrs["href"])
 
 	def test_web_page_with_page_builder(self):
-		if frappe.db.exists("Web Page", "test-page"):
-			frappe.delete_doc("Web Page", "test-page")
-
 		if not frappe.db.exists("Web Page", "test-page"):
-			webpage = frappe.get_doc(
+			frappe.get_doc(
 				{
 					"doctype": "Web Page",
 					"title": "test-page",
@@ -89,6 +86,8 @@ class TestWebTemplate(unittest.TestCase):
 		self.assertEqual(sections[0].find("h2").text, "Test Title")
 		self.assertEqual(sections[0].find("p").text, "test lorem ipsum")
 		self.assertEqual(len(sections[1].find_all("a")), 3)
+
+		frappe.db.delete_doc("Web Page", "test-page")
 
 	def test_tailwind_styles_in_developer_mode(self):
 		self.create_tailwind_theme()

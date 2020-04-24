@@ -18,7 +18,6 @@ from frappe.website.router import resolve_route
 from frappe.website.utils import (extract_title, find_first_image, get_comment_list,
 	get_html_content_based_on_type)
 from frappe.website.website_generator import WebsiteGenerator
-from frappe.website.doctype.web_template.web_template import get_rendered_template
 
 
 class WebPage(WebsiteGenerator):

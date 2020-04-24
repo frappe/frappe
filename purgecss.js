@@ -15,9 +15,9 @@ new PurgeCSS()
 				extension: 'html'
 			}
 		],
-        css: css_file_paths,
-        defaultExtractor: content => content.match(/[\w-/:]+(?<!:)/g) || []
+		css: css_file_paths,
+		defaultExtractor: content => content.match(/[\w-/:]+(?<!:)/g) || []
 	})
 	.then(result => {
-		console.log(result[0].css);
+		console.log(result[0].css); // eslint-disable-line
 	});
