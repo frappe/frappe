@@ -1,42 +1,40 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
-from __future__ import unicode_literals
-from frappe import _
 """
 record of files
 
 naming for same name files: file.gif, file-1.gif, file-2.gif etc
 """
 
-import frappe
-import json
-import os
+from __future__ import unicode_literals
+
 import base64
-import re
 import hashlib
-import mimetypes
+import imghdr
 import io
+import json
+import mimetypes
+import os
+import re
 import shutil
+import zipfile
+
 import requests
 import requests.exceptions
-import imghdr
-
-from frappe.utils import get_hook_method, get_files_path, random_string, encode, cstr, call_hook_method, cint
-from frappe import _
-from frappe import conf
-from frappe.utils.nestedset import NestedSet
-from frappe.model.document import Document
-from frappe.utils import strip
 from PIL import Image, ImageFile, ImageOps
-from six import StringIO, string_types
-from six.moves.urllib.parse import unquote, quote
-from six import text_type, PY2
-import zipfile
+from six import PY2, StringIO, string_types, text_type
+from six.moves.urllib.parse import quote, unquote
+
+import frappe
+from frappe import _, conf
+from frappe.model.document import Document
+from frappe.utils import call_hook_method, cint, cstr, encode, get_files_path, get_hook_method, random_string, strip
+from frappe.utils.nestedset import NestedSet
+
 
 class MaxFileSizeReachedError(frappe.ValidationError):
 	pass
-
 
 class FolderNotEmpty(frappe.ValidationError):
 	pass
