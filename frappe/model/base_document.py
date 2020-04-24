@@ -565,10 +565,14 @@ class BaseDocument(object):
 		for data_field in self.meta.get_data_fields():
 			data = self.get(data_field.fieldname)
 			data_field_options = data_field.get("options")
+			old_fieldtype = data_field.get("oldfieldtype")
+
+			if old_fieldtype and old_fieldtype != "Data":
+				continue
 
 			if data_field_options == "Email":
 				if (self.owner in STANDARD_USERS) and (data in STANDARD_USERS):
-					return
+					continue
 				for email_address in frappe.utils.split_emails(data):
 					frappe.utils.validate_email_address(email_address, throw=True)
 
