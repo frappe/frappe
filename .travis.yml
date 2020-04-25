@@ -43,7 +43,6 @@ matrix:
     env: DB=mariadb TYPE=ui
     before_script:
     - bench --site test_site execute frappe.utils.install.complete_setup_wizard
-    - bench --site test_site_producer execute frappe.utils.install.complete_setup_wizard
     script: bench --site test_site run-ui-tests frappe --headless
 
   - name: "Python 2.7 MariaDB"
@@ -110,10 +109,8 @@ install:
       sed -i 's/redis_socketio:/# redis_socketio:/g' Procfile;
     fi
 
-  - if [ $TYPE == "ui" ]; then
-      bench setup requirements --node;
-      bench build --app frappe;
-    fi
+  - if [ $TYPE == "ui" ]; then bench setup requirements --node; fi
+  - bench build --app frappe;
 
   - bench start &
   - bench --site test_site reinstall --yes
