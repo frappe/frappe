@@ -298,6 +298,10 @@ export default class GridRow {
 				setTimeout(function() {
 					$(col).find('input[type="Text"]:first').focus();
 				}, 500);
+				
+				var evt_name = me.parent_df.fieldname+"_grid_row_after_click";
+				frappe.web_form.events.trigger(evt_name, me);
+				
 				return out;
 			});
 
