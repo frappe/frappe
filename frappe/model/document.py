@@ -268,6 +268,10 @@ class Document(BaseDocument):
 		if hasattr(self, "__islocal"):
 			delattr(self, "__islocal")
 
+		# clear unsaved flag
+		if hasattr(self, "__unsaved"):
+			delattr(self, "__unsaved")
+
 		if not (frappe.flags.in_migrate or frappe.local.flags.in_install or frappe.flags.in_setup_wizard):
 			follow_document(self.doctype, self.name, frappe.session.user)
 		return self
@@ -586,6 +590,9 @@ class Document(BaseDocument):
 
 		if high_permlevel_fields:
 			self.reset_values_if_no_permlevel_access(has_access_to, high_permlevel_fields)
+
+		# If new record then don't reset the values for child table
+		if self.is_new(): return
 
 		# check for child tables
 		for df in self.meta.get_table_fields():
