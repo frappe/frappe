@@ -33,14 +33,70 @@ class TestWebTemplate(unittest.TestCase):
 		self.assertTrue("/test" == button.attrs["href"])
 
 	def test_web_page_with_page_builder(self):
-		if not frappe.db.exists("Web Page", "test-page"):
+		self.create_web_page()
+
+		set_request(method="GET", path="test-web-template")
+		response = render()
+
+		self.assertEquals(response.status_code, 200)
+
+		html = frappe.safe_decode(response.get_data())
+
+		soup = BeautifulSoup(html, "html.parser")
+		sections = soup.find("main").find_all("section")
+
+		self.assertEqual(len(sections), 2)
+		self.assertEqual(sections[0].find("h2").text, "Test Title")
+		self.assertEqual(sections[0].find("p").text, "test lorem ipsum")
+		self.assertEqual(len(sections[1].find_all("a")), 3)
+
+	def test_tailwind_styles_in_developer_mode(self):
+		self.create_web_page()
+		theme = self.create_tailwind_theme()
+		theme.set_as_default()
+
+		set_request(method="GET", path="test-web-template")
+		response = render()
+		self.assertEquals(response.status_code, 200)
+		html = frappe.safe_decode(response.get_data())
+
+		soup = BeautifulSoup(html, "html.parser")
+		stylesheet = soup.select_one('link[rel="stylesheet"]')
+
+		self.assertEqual(stylesheet.attrs['href'], '/assets/css/tailwind.css')
+
+		frappe.get_doc('Website Theme', 'Standard').set_as_default()
+
+	def test_tailwind_styles_in_production(self):
+		self.create_web_page()
+		theme = self.create_tailwind_theme()
+		theme.set_as_default()
+
+		frappe.conf.developer_mode = 0
+
+		set_request(method="GET", path="test-web-template")
+		response = render()
+		self.assertEquals(response.status_code, 200)
+		html = frappe.safe_decode(response.get_data())
+
+		soup = BeautifulSoup(html, "html.parser")
+		style = soup.select_one("style[data-tailwind]")
+
+		self.assertTrue(style)
+		self.assertTrue('py-20' in style.text)
+		self.assertTrue('text-gray-900' in style.text)
+
+		frappe.get_doc('Website Theme', 'Standard').set_as_default()
+
+	def create_web_page(self):
+		if not frappe.db.exists("Web Page", "test-web-template"):
 			frappe.get_doc(
 				{
 					"doctype": "Web Page",
-					"title": "test-page",
-					"name": "test-page",
+					"title": "test-web-template",
+					"name": "test-web-template",
 					"published": 1,
-					"route": "testpage",
+					"route": "test-web-template",
 					"content_type": "Page Builder",
 					"page_blocks": [
 						{
@@ -71,57 +127,6 @@ class TestWebTemplate(unittest.TestCase):
 					],
 				}
 			).insert()
-
-		set_request(method="GET", path="testpage")
-		response = render()
-
-		self.assertEquals(response.status_code, 200)
-
-		html = frappe.safe_decode(response.get_data())
-
-		soup = BeautifulSoup(html, "html.parser")
-		sections = soup.find("main").find_all("section")
-
-		self.assertEqual(len(sections), 2)
-		self.assertEqual(sections[0].find("h2").text, "Test Title")
-		self.assertEqual(sections[0].find("p").text, "test lorem ipsum")
-		self.assertEqual(len(sections[1].find_all("a")), 3)
-
-	def test_tailwind_styles_in_developer_mode(self):
-		theme = self.create_tailwind_theme()
-		theme.set_as_default()
-
-		set_request(method="GET", path="testpage")
-		response = render()
-		self.assertEquals(response.status_code, 200)
-		html = frappe.safe_decode(response.get_data())
-
-		soup = BeautifulSoup(html, "html.parser")
-		stylesheet = soup.select_one('link[rel="stylesheet"]')
-
-		self.assertEqual(stylesheet.attrs['href'], '/assets/css/tailwind.css')
-
-		frappe.get_doc('Website Theme', 'Standard').set_as_default()
-
-	def test_tailwind_styles_in_production(self):
-		theme = self.create_tailwind_theme()
-		theme.set_as_default()
-
-		frappe.conf.developer_mode = 0
-
-		set_request(method="GET", path="testpage")
-		response = render()
-		self.assertEquals(response.status_code, 200)
-		html = frappe.safe_decode(response.get_data())
-
-		soup = BeautifulSoup(html, "html.parser")
-		style = soup.select_one("style[data-tailwind]")
-
-		self.assertTrue(style)
-		self.assertTrue('py-20' in style.text)
-		self.assertTrue('text-gray-900' in style.text)
-
-		frappe.get_doc('Website Theme', 'Standard').set_as_default()
 
 	def create_tailwind_theme(self):
 		if not frappe.db.exists('Website Theme', 'Tailwind'):

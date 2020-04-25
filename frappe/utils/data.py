@@ -658,6 +658,9 @@ def get_thumbnail_base64_for_image(src):
 	from frappe.core.doctype.file.file import get_local_image
 	from frappe import safe_decode, cache
 
+	if not src:
+		frappe.throw('Invalid source for image: {0}'.format(src))
+
 	if not src.startswith('/files'):
 		return
 
