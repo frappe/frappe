@@ -14,8 +14,10 @@
   "google_font",
   "font_size",
   "font_properties",
-  "use_full_width",
-  "column_break_7",
+  "button_rounded_corners",
+  "button_shadows",
+  "button_gradients",
+  "column_break_11",
   "primary_color",
   "text_color",
   "light_color",
@@ -100,28 +102,28 @@
    "label": "Font Size"
   },
   {
-   "fieldname": "column_break_7",
-   "fieldtype": "Column Break"
-  },
-  {
    "fieldname": "primary_color",
-   "fieldtype": "Color",
-   "label": "Primary Color"
+   "fieldtype": "Link",
+   "label": "Primary Color",
+   "options": "Color"
   },
   {
    "fieldname": "text_color",
-   "fieldtype": "Color",
-   "label": "Text Color"
+   "fieldtype": "Link",
+   "label": "Text Color",
+   "options": "Color"
   },
   {
    "fieldname": "dark_color",
-   "fieldtype": "Color",
-   "label": "Dark Color"
+   "fieldtype": "Link",
+   "label": "Dark Color",
+   "options": "Color"
   },
   {
    "fieldname": "background_color",
-   "fieldtype": "Color",
-   "label": "Background Color"
+   "fieldtype": "Link",
+   "label": "Background Color",
+   "options": "Color"
   },
   {
    "fieldname": "stylesheet_section",
@@ -135,8 +137,9 @@
   },
   {
    "fieldname": "light_color",
-   "fieldtype": "Color",
-   "label": "Light Color"
+   "fieldtype": "Link",
+   "label": "Light Color",
+   "options": "Color"
   },
   {
    "default": "300,600",
@@ -145,14 +148,30 @@
    "label": "Font Properties"
   },
   {
-   "description": "Content will not be inside a \"container\" class, you will have to add your own containers for different sections.",
-   "fieldname": "use_full_width",
-   "fieldtype": "Data",
-   "label": "Use Full Width"
+   "default": "1",
+   "fieldname": "button_rounded_corners",
+   "fieldtype": "Check",
+   "label": "Button Rounded Corners"
+  },
+  {
+   "default": "0",
+   "fieldname": "button_shadows",
+   "fieldtype": "Check",
+   "label": "Button Shadows"
+  },
+  {
+   "default": "0",
+   "fieldname": "button_gradients",
+   "fieldtype": "Check",
+   "label": "Button Gradients"
+  },
+  {
+   "fieldname": "column_break_11",
+   "fieldtype": "Column Break"
   }
  ],
  "links": [],
- "modified": "2020-03-19 09:46:48.750150",
+ "modified": "2020-04-19 05:18:49.820803",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Website Theme",

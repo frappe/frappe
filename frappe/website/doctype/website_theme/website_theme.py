@@ -25,7 +25,7 @@ class WebsiteTheme(Document):
 	def is_standard_and_not_valid_user(self):
 		return (not self.custom
 			and not frappe.local.conf.get('developer_mode')
-			and not (frappe.flags.in_import or frappe.flags.in_test))
+			and not (frappe.flags.in_import or frappe.flags.in_test or frappe.flags.in_migrate))
 
 	def on_trash(self):
 		if self.is_standard_and_not_valid_user():
@@ -61,10 +61,13 @@ class WebsiteTheme(Document):
 		from subprocess import Popen, PIPE
 
 		folder_path = join_path(frappe.utils.get_bench_path(), 'sites', 'assets', 'css')
-		self.delete_old_theme_files(folder_path)
+
+		if not self.custom:
+			self.delete_old_theme_files(folder_path)
 
 		# add a random suffix
-		file_name = frappe.scrub(self.name) + '_' + frappe.generate_hash('Website Theme', 8) + '.css'
+		suffix = frappe.generate_hash('Website Theme', 8) if self.custom else 'style'
+		file_name = frappe.scrub(self.name) + '_' + suffix + '.css'
 		output_path = join_path(folder_path, file_name)
 
 		content = get_scss(self)

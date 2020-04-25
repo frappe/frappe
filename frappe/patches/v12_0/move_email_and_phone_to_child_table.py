@@ -1,6 +1,10 @@
 import frappe
 
 def execute():
+	frappe.reload_doc("contacts", "doctype", "contact_email")
+	frappe.reload_doc("contacts", "doctype", "contact_phone")
+	frappe.reload_doc("contacts", "doctype", "contact")
+
 	contact_details = frappe.db.sql("""
 		SELECT
 			`name`, `email_id`, `phone`, `mobile_no`, `modified_by`, `creation`, `modified`
@@ -9,10 +13,6 @@ def execute():
 			where `tabContact Email`.parent=`tabContact`.name
 			and `tabContact Email`.email_id=`tabContact`.email_id)
 	""", as_dict=True)
-
-	frappe.reload_doc("contacts", "doctype", "contact_email")
-	frappe.reload_doc("contacts", "doctype", "contact_phone")
-	frappe.reload_doc("contacts", "doctype", "contact")
 
 	email_values = []
 	phone_values = []
