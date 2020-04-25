@@ -69,7 +69,7 @@ frappe.ui.form.Sidebar = Class.extend({
 	},
 
 	refresh: function() {
-		if(this.frm.doc.__islocal) {
+		if (this.frm.doc.__islocal) {
 			this.sidebar.toggle(false);
 		} else {
 			this.sidebar.toggle(true);
@@ -81,12 +81,34 @@ frappe.ui.form.Sidebar = Class.extend({
 			}
 			this.frm.viewers.refresh();
 			this.frm.tags && this.frm.tags.refresh(this.frm.get_docinfo().tags);
-			this.sidebar.find(".modified-by").html(__("{0} edited this {1}",
-				["<strong>" + frappe.user.full_name(this.frm.doc.modified_by) + "</strong>",
-					"<br>" + comment_when(this.frm.doc.modified)]));
-			this.sidebar.find(".created-by").html(__("{0} created this {1}",
-				["<strong>" + frappe.user.full_name(this.frm.doc.owner) + "</strong>",
-					"<br>" + comment_when(this.frm.doc.creation)]));
+
+			if (this.frm.doc.route && cint(frappe.boot.website_tracking_enabled)) {
+				let route = this.frm.doc.route;
+				frappe.utils.get_page_view_count(route).then((res) => {
+					this.sidebar
+						.find(".pageview-count")
+						.html(
+							__("{0} Page Views", [String(res.message).bold()])
+						);
+				});
+			}
+
+			this.sidebar
+				.find(".modified-by")
+				.html(
+					__("{0} edited this {1}", [
+						frappe.user.full_name(this.frm.doc.modified_by).bold(),
+						"<br>" + comment_when(this.frm.doc.modified),
+					])
+				);
+			this.sidebar
+				.find(".created-by")
+				.html(
+					__("{0} created this {1}", [
+						frappe.user.full_name(this.frm.doc.owner).bold(),
+						"<br>" + comment_when(this.frm.doc.creation),
+					])
+				);
 
 			this.refresh_like();
 			frappe.ui.form.set_user_image(this.frm);

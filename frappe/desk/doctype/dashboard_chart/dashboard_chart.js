@@ -59,6 +59,10 @@ frappe.ui.form.on('Dashboard Chart', {
 		if (frm.doc.report_name) {
 			frm.trigger('set_chart_report_filters');
 		}
+
+		if (!frappe.boot.developer_mode) {
+			frm.set_df_property("custom_options", "hidden", 1);
+		}
 	},
 
 	source: function(frm) {

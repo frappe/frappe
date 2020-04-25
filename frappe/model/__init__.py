@@ -48,7 +48,7 @@ table_fields = ('Table', 'Table MultiSelect')
 core_doctypes_list = ('DocType', 'DocField', 'DocPerm', 'DocType Action', 'DocType Link', 'User', 'Role', 'Has Role',
 	'Page', 'Module Def', 'Print Format', 'Report', 'Customize Form',
 	'Customize Form Field', 'Property Setter', 'Custom Field', 'Custom Script')
-data_field_options = ('Email', 'Phone')
+data_field_options = ('Email', 'Name', 'Phone')
 
 def copytables(srctype, src, srcfield, tartype, tar, tarfield, srcfields, tarfields=[]):
 	if not tarfields:

@@ -9,6 +9,12 @@ frappe.ui.form.ControlCode = frappe.ui.form.ControlText.extend({
 		this.ace_editor_target = $('<div class="ace-editor-target"></div>')
 			.appendTo(this.input_area);
 
+		this.expanded = false;
+		this.$expand_button = $(`<button class="btn btn-xs btn-default">${__('Expand')}</button>`).click(() => {
+			this.expanded = !this.expanded;
+			this.refresh_height();
+			this.toggle_label();
+		}).appendTo(this.$input_wrapper);
 		// styling
 		this.ace_editor_target.addClass('border rounded');
 		this.ace_editor_target.css('height', 300);
@@ -26,6 +32,16 @@ frappe.ui.form.ControlCode = frappe.ui.form.ControlText.extend({
 		}, 300));
 	},
 
+	refresh_height() {
+		this.ace_editor_target.css('height', this.expanded ? 600 : 300);
+		this.editor.resize();
+	},
+
+	toggle_label() {
+		const button_label = this.expanded ? __('Collapse') : __('Expand');
+		this.$expand_button.text(button_label);
+	},
+
 	set_language() {
 		const language_map = {
 			'Javascript': 'ace/mode/javascript',
@@ -34,7 +50,9 @@ frappe.ui.form.ControlCode = frappe.ui.form.ControlText.extend({
 			'CSS': 'ace/mode/css',
 			'Markdown': 'ace/mode/markdown',
 			'SCSS': 'ace/mode/scss',
-			'JSON': 'ace/mode/json'
+			'JSON': 'ace/mode/json',
+			'Golang': 'ace/mode/golang',
+			'Go': 'ace/mode/golang'
 		};
 		const language = this.df.options;
 

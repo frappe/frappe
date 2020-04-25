@@ -7,14 +7,19 @@ addons:
     - test_site_producer
   mariadb: 10.3
   postgresql: 9.5
+  chrome: stable
 
 git:
   depth: 1
 
 cache:
-  - pip
-  - npm
-  - yarn
+  pip: true
+  npm: true
+  yarn: true
+  directories:
+    # we also need to cache folder with Cypress binary
+    # https://docs.cypress.io/guides/guides/continuous-integration.html#Caching
+    - ~/.cache
 
 matrix:
   include:
