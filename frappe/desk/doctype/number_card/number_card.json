@@ -100,7 +100,7 @@
   }
  ],
  "links": [],
- "modified": "2020-04-25 15:59:57.004756",
+ "modified": "2020-04-25 17:31:34.204607",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Number Card",
@@ -140,6 +140,7 @@
    "share": 1
   }
  ],
+ "search_fields": "label, document_type",
  "sort_field": "modified",
  "sort_order": "DESC",
  "title_field": "label",
