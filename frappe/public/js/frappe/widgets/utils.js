@@ -123,4 +123,19 @@ function go_to_list_with_filters(doctype, filters) {
 	})
 }
 
-export { generate_route, generate_grid, build_summary_item, go_to_list_with_filters };
+function shorten_number(number) {
+	let x = Math.abs(Math.round(number))
+
+	switch(true) {
+		case x >= 1.0e+12:
+			return Math.round(number/1.0e+12) + " T";
+		case x >= 1.0e+9:
+			return Math.round(number/1.0e+9) + " B";
+		case x >= 1.0e+6:
+			return Math.round(number/1.0e+6) + " M";
+		default:
+			return number.toFixed();
+	}
+}
+
+export { generate_route, generate_grid, build_summary_item, go_to_list_with_filters, shorten_number };

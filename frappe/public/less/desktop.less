@@ -395,38 +395,42 @@
 
 	&.number-widget-box {
 		cursor: pointer;
-		height: 110px;
+		height: 100px;
+		padding: 10px;
 
 		&:hover {
 			border-color: @text-muted;
 		}
 
 		.widget-head {
-			position: relative;
 
 			.widget-title {
-				display: none;
+				font-weight: normal;
+				color: @text-muted;
+				font-size: 14px;
+				margin-top: -5px;
 			}
 
 			.widget-control {
-				position: absolute;
 				right: -10px;
 				top: -10px;
 			}
 		}
 
 		.widget-body {
-			text-align: center;
+			text-align: left;
 
 			.number-card-loading {
 				display: flex;
-				height: 80px;
+				height: 50px;
 				align-items: center;
 				justify-content: center;
 			}
 
 			.widget-content {
-				padding: 5px;
+				padding-top: 15px;
+				display: flex;
+				justify-content: space-between;
 
 				.number {
 					font-size: 30px;
@@ -437,6 +441,22 @@
 					color: @text-muted;
 					padding: 5px;
 					font-size: 14px;
+				}
+
+				.card-stats {
+					padding-top: 20px;
+				}
+
+				.green-stat {
+					color: green;
+				}
+
+				.red-stat {
+					color: @red;
+				}
+
+				.grey-stat {
+					color: @text-muted;
 				}
 			}
 		}

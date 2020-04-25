@@ -1,5 +1,5 @@
 import Widget from "./base_widget.js";
-import { go_to_list_with_filters } from "./utils";
+import { go_to_list_with_filters, shorten_number } from "./utils";
 
 export default class NumberCardWidget extends Widget {
 	constructor(opts) {
@@ -21,25 +21,19 @@ export default class NumberCardWidget extends Widget {
 
     set_body() {
 		this.widget.addClass("number-widget-box");
-		$(this.body).html(`<div class="number-card-loading text-muted">
-			${__('Loading...')}
-		</div>`);
 		this.make_card();
+	}
+
+	set_title() {
+		$(this.title_field).html(`<div class="number-label">${this.card_doc.label}</div>`);
 	}
 
 	make_card() {
 		frappe.model.with_doc("Number Card", this.name).then(card => {
 			if (!card) {
 				if (this.document_type) {
-					this.set_doc_args();
-					frappe.xcall(
-						'frappe.desk.doctype.number_card.number_card.create_number_card',
-						{'args': this.card_doc}
-					).then(doc => {
-						this.name = doc.name;
-						this.widget.attr('data-widget-name', this.name);
-						this.render_card();
-					});
+					this.create_number_card();
+					this.render_card();
 				} else {
 					// widget doesn't exist so delete
 					this.delete(false);
@@ -49,7 +43,19 @@ export default class NumberCardWidget extends Widget {
 				this.card_doc = card;
 				this.render_card();
 			}
+
 			this.set_events();
+		});
+	}
+
+	create_number_card() {
+		this.set_doc_args();
+		frappe.xcall(
+			'frappe.desk.doctype.number_card.number_card.create_number_card',
+			{'args': this.card_doc}
+		).then(doc => {
+			this.name = doc.name;
+			this.widget.attr('data-widget-name', this.name);
 		});
 	}
 
@@ -74,22 +80,88 @@ export default class NumberCardWidget extends Widget {
 
 	render_card() {
 		this.prepare_actions();
-		this.get_number().then(() => {
-			$(this.body).html(`<div class="widget-content">
-				<div class="number" style="color:${this.card_doc.color}">${this.number_html}</div>
-				<div class="number-text">${this.card_doc.label}</div>
-				</div>`);
-		});
+		this.set_title();
+		this.set_loading_state();
+
+		frappe.run_serially([
+			() => this.render_number(),
+			() => this.render_stats(),
+		]);
+	}
+
+	set_loading_state() {
+		$(this.body).html(`<div class="number-card-loading text-muted">
+			${__('Loading...')}
+		</div>`);
 	}
 
 	get_number() {
 		return frappe.xcall('frappe.desk.doctype.number_card.number_card.get_result', {doc: this.card_doc}).then(res => {
-			const number_order = res.toFixed().length - 1;
-			if (number_order > 12) {
-				this.number_html = `&asymp; 10<sup>${number_order}</sup>`;
+			this.number = res;
+			if (this.card_doc.function !== 'Count') {
+				this.get_formatted_number(res);
 			} else {
 				this.number_html = res;
 			}
+		});
+	}
+
+	get_formatted_number(number) {
+		frappe.model.with_doctype(this.card_doc.document_type, () => {
+			const based_on_df =
+				frappe.meta.get_docfield(this.card_doc.document_type, this.card_doc.aggregate_function_based_on);
+			const shortened_number = shorten_number(number);
+			let number_parts = shortened_number.split(' ');
+
+			const symbol = number_parts[1] || '';
+			const formatted_number = $(frappe.format(number_parts[0], based_on_df)).text();
+
+			this.number_html = formatted_number + ' ' + symbol;
+		});
+
+	}
+
+	render_number() {
+		return this.get_number().then(() => {
+			$(this.body).html(`<div class="widget-content">
+				<div class="number" style="color:${this.card_doc.color}">${this.number_html}</div>
+				</div>`);
+		});
+	}
+
+	render_stats() {
+		let caret_html ='';
+		let color_class = '';
+
+		return this.get_percentage_stats().then(() => {
+			if (this.percentage_stat == undefined) return;
+
+			if (this.percentage_stat == 0) {
+				color_class = 'grey-stat';
+			} else if (this.percentage_stat > 0) {
+				caret_html = '<i class="fa fa-caret-up"></i>';
+				color_class = 'green-stat';
+			} else {
+				caret_html = '<i class="fa fa-caret-down"></i>';
+				color_class = 'red-stat';
+			}
+
+			$(this.body).find('.widget-content').append(`<div class="card-stats ${color_class}">
+				${caret_html}
+				<span class="percentage-stat">${Math.abs(this.percentage_stat)} %</span>
+			</div>`)
+		});
+	}
+
+	get_percentage_stats() {
+		return frappe.xcall('frappe.desk.doctype.number_card.number_card.get_percentage_difference',
+			{
+				doc: this.card_doc,
+				result: this.number
+			}).then(res => {
+				if (res !== undefined) {
+					this.percentage_stat = +res.toFixed(2);
+				}
 		});
 	}
 

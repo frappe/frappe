@@ -24,7 +24,6 @@ def get_permission_query_conditions(user):
 		return None
 
 	allowed_doctypes = tuple(frappe.permissions.get_doctypes_with_read())
-	print('allowed doctypes', allowed_doctypes)
 
 	return '''
 			`tabNumber Card`.`document_type` in {allowed_doctypes}
@@ -44,7 +43,7 @@ def has_permission(doc, ptype, user):
 	return False
 
 @frappe.whitelist()
-def get_result(doc):
+def get_result(doc, to_date=None):
 	doc = frappe.parse_json(doc)
 	fields = []
 	sql_function_map = {
@@ -63,16 +62,51 @@ def get_result(doc):
 		fields = ['{function}({based_on}) as result'.format(function=function, based_on=doc.aggregate_function_based_on)]
 
 	filters = frappe.parse_json(doc.filters_json)
-	number = frappe.db.get_all(doc.document_type, fields = fields, filters = filters)[0]['result']
-	number = round(number, 2) if isinstance(number, float) else number
 
+	if to_date:
+		filters.append([doc.document_type, 'creation', '<', to_date, False])
+
+	number = frappe.db.get_all(doc.document_type, fields = fields, filters = filters)[0]['result']
+
+	frappe.db.set_value('Number Card', doc.name, 'previous_result', number)
+	return number
+
+@frappe.whitelist()
+def get_percentage_difference(doc, result):
+	doc = frappe.parse_json(doc)
+	result = frappe.parse_json(result)
+
+	doc = frappe.get_doc('Number Card', doc.name)
+
+	if not doc.get('show_percentage_stats'):
+		return
+
+	previous_result = calculate_previous_result(doc)
+	difference = (result - previous_result)/100.0
+
+	return difference
+
+
+def calculate_previous_result(doc):
+	from frappe.utils import add_to_date
+
+	current_date = frappe.utils.now()
+	if doc.stats_time_interval == 'Daily':
+		previous_date = frappe.utils.add_to_date(current_date, days=-1)
+	elif doc.stats_time_interval == 'Weekly':
+		previous_date = frappe.utils.add_to_date(current_date, weeks=-1)
+	elif doc.stats_time_interval == 'Monthly':
+		previous_date = frappe.utils.add_to_date(current_date, months=-1)
+	else:
+		previous_date = frappe.utils.add_to_date(current_date, years=-1)
+
+	number = get_result(doc, previous_date)
 	return number
 
 @frappe.whitelist()
 def create_number_card(args):
 	args = frappe.parse_json(args)
 	doc = frappe.new_doc('Number Card')
-	roles = frappe.get_roles(frappe.session.user)
 
 	doc.update(args)
 	doc.insert(ignore_permissions=True)
