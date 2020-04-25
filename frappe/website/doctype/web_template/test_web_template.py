@@ -55,6 +55,8 @@ class TestWebTemplate(unittest.TestCase):
 		theme = self.create_tailwind_theme()
 		theme.set_as_default()
 
+		frappe.conf.developer_mode = 1
+
 		set_request(method="GET", path="test-web-template")
 		response = render()
 		self.assertEquals(response.status_code, 200)
