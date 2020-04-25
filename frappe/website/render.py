@@ -203,7 +203,7 @@ def build_page(path):
 		html = html.replace('{next}', get_next_link(context.route))
 
 	if '<!-- tailwind-styles -->' in html and not frappe.conf.developer_mode:
-		html = add_processed_tailwind_css(context, html)
+		html = add_processed_tailwind_css(html)
 
 	# html = frappe.get_template(context.base_template_path).render(context)
 
@@ -354,7 +354,7 @@ def raise_if_disabled(path):
 		if path == _path and not r.enabled:
 			raise frappe.PermissionError
 
-def add_processed_tailwind_css(context, html):
+def add_processed_tailwind_css(html):
 	from subprocess import Popen, PIPE
 
 	replace_string = '<!-- tailwind-styles -->'

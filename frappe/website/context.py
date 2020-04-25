@@ -223,7 +223,7 @@ def add_metatags(context):
 	tags = frappe._dict(context.get("metatags") or {})
 
 	if tags:
-		if not "og:type" in tags:
+		if "og:type" not in tags:
 			tags["og:type"] = "article"
 
 		name = tags.get('name') or tags.get('title')

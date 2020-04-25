@@ -69,8 +69,7 @@ class WebPage(WebsiteGenerator):
 		is_jinja = context.dynamic_template or "<!-- jinja -->" in context.main_section
 		if is_jinja or ("{{" in context.main_section):
 			try:
-				context["main_section"] = render_template(context.main_section,
-					context)
+				context["main_section"] = render_template(context.main_section, context)
 				if not "<!-- static -->" in context.main_section:
 					context["no_cache"] = 1
 			except TemplateSyntaxError:
