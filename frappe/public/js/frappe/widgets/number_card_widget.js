@@ -99,26 +99,25 @@ export default class NumberCardWidget extends Widget {
 		return frappe.xcall('frappe.desk.doctype.number_card.number_card.get_result', {doc: this.card_doc}).then(res => {
 			this.number = res;
 			if (this.card_doc.function !== 'Count') {
-				this.get_formatted_number(res);
+				return frappe.model.with_doctype(this.card_doc.document_type, () => {
+					this.get_formatted_number();
+				});
 			} else {
 				this.number_html = res;
 			}
 		});
 	}
 
-	get_formatted_number(number) {
-		frappe.model.with_doctype(this.card_doc.document_type, () => {
-			const based_on_df =
-				frappe.meta.get_docfield(this.card_doc.document_type, this.card_doc.aggregate_function_based_on);
-			const shortened_number = shorten_number(number);
-			let number_parts = shortened_number.split(' ');
+	get_formatted_number() {
+		const based_on_df =
+			frappe.meta.get_docfield(this.card_doc.document_type, this.card_doc.aggregate_function_based_on);
+		const shortened_number = shorten_number(this.number);
+		let number_parts = shortened_number.split(' ');
 
-			const symbol = number_parts[1] || '';
-			const formatted_number = $(frappe.format(number_parts[0], based_on_df)).text();
+		const symbol = number_parts[1] || '';
+		const formatted_number = $(frappe.format(number_parts[0], based_on_df)).text();
 
-			this.number_html = formatted_number + ' ' + symbol;
-		});
-
+		this.number_html = formatted_number + ' ' + symbol;
 	}
 
 	render_number() {
