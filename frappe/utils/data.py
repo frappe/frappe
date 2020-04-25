@@ -665,7 +665,7 @@ def get_thumbnail_base64_for_image(src):
 		try:
 			image, filename, extn = get_local_image(src)
 		except IOError:
-			pass
+			return
 
 		original_size = image.size
 		size = 50, 50
