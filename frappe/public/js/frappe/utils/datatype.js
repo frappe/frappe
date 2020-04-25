@@ -48,6 +48,10 @@ window.validate_phone = function(txt) {
 	return frappe.utils.validate_type(txt, "phone");
 };
 
+window.validate_name = function(txt) {
+	return frappe.utils.validate_type(txt, "name");
+};
+
 window.nth = function(number) {
 	number = cint(number);
 	var s = 'th';

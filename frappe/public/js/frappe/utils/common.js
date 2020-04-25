@@ -352,3 +352,9 @@ frappe.utils.new_auto_repeat_prompt = function(frm) {
 	__('Save')
 	);
 }
+
+frappe.utils.get_page_view_count = function(route) {
+	return frappe.call("frappe.website.doctype.web_page_view.web_page_view.get_page_view_count", {
+		path: route
+	});
+};
