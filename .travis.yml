@@ -8,9 +8,6 @@ addons:
   mariadb: 10.3
   postgresql: 9.5
 
-node_js:
-  - 12
-
 git:
   depth: 1
 
@@ -57,7 +54,7 @@ before_install:
 install:
   - cd ~
   - source ./.nvm/nvm.sh
-  - nvm install v8.10.0
+  - nvm install 12
 
   - git clone https://github.com/frappe/bench --depth 1
   - pip install -e ./bench
