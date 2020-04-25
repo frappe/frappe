@@ -76,7 +76,7 @@ install:
   - mkdir ~/frappe-bench/sites/test_site_producer
   - cp $TRAVIS_BUILD_DIR/.travis/producer_db/$DB.json ~/frappe-bench/sites/test_site_producer/site_config.json
 
-  - if [ $DB == "mariadb" ];then
+  - if [ $DB == "mariadb" ]; then
       mysql -u root -e "SET GLOBAL character_set_server = 'utf8mb4'";
       mysql -u root -e "SET GLOBAL collation_server = 'utf8mb4_unicode_ci'";
 
@@ -92,7 +92,7 @@ install:
       mysql -u root -e "FLUSH PRIVILEGES";
     fi
 
-  - if [ $DB == "postgres" ];then
+  - if [ $DB == "postgres" ]; then
       psql -c "CREATE DATABASE test_frappe_consumer" -U postgres;
       psql -c "CREATE USER test_frappe_consumer WITH PASSWORD 'test_frappe'" -U postgres;
 
@@ -112,19 +112,19 @@ install:
 
   - if [ $TYPE == "ui" ]; then
       bench setup requirements --node;
-      bench build --app frappe
+      bench build --app frappe;
     fi
 
   - bench start &
   - bench --site test_site reinstall --yes
 
-  - if [ $TYPE == "server" ];
-      bench --site test_site_producer reinstall --yes
+  - if [ $TYPE == "server" ]; then
+      bench --site test_site_producer reinstall --yes;
     fi
 
 after_script:
   - if [ $TYPE == "server" ]; then
-      pip install coverage==4.5.4
-      pip install python-coveralls
-      coveralls -b apps/frappe -d ../../sites/.coverage
+      pip install coverage==4.5.4;
+      pip install python-coveralls;
+      coveralls -b apps/frappe -d ../../sites/.coverage;
     fi
