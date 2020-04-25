@@ -15,6 +15,9 @@ cache:
   - pip
   - npm
   - yarn
+  directories:
+    # we also need to cache folder with Cypress binary
+    - ~/.cache
 
 matrix:
   include:
