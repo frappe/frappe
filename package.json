@@ -4,8 +4,8 @@
     "build": "node rollup/build.js",
     "production": "FRAPPE_ENV=production node rollup/build.js",
     "watch": "node rollup/watch.js",
-    "cypress:run": "cypress run --record --key 4a48f41c-11b3-425b-aa88-c58048fa69eb",
-    "cypress:open": "cypress open"
+    "cypress:open": "cypress open",
+    "snyk-protect": "snyk protect"
   },
   "repository": {
     "type": "git",
@@ -53,7 +53,7 @@
   "devDependencies": {
     "babel-runtime": "^6.26.0",
     "chalk": "^2.3.2",
-    "cypress": "^3.1.1",
+    "cypress": "3",
     "cypress-file-upload": "^3.1.0",
     "less": "^3.11.1",
     "node-sass": "^4.13.1",

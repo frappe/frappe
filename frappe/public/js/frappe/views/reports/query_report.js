@@ -183,7 +183,6 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	}
 
 	create_dashboard_chart(chart_args, dashboard_name, chart_name) {
-
 		let args = {
 			'dashboard': dashboard_name || null,
 			'chart_type': 'Report',
@@ -191,7 +190,14 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			'type': chart_args.chart_type || frappe.model.unscrub(chart_args.type),
 			'color': chart_args.color,
 			'filters_json': JSON.stringify(this.get_filter_values()),
+			'custom_options': {}
 		};
+
+		for (let key in chart_args) {
+			if (key != "data") {
+				args['custom_options'][key] = chart_args[key];
+			}
+		}
 
 		if (this.chart_fields) {
 			let x_field_title = toTitle(chart_args.x_field);

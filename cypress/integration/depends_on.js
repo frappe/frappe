@@ -1,8 +1,4 @@
 context('Depends On', () => {
-	beforeEach(() => {
-		cy.login();
-		return cy.new_form('Test Depends On');
-	});
 	before(() => {
 		cy.login();
 		cy.visit('/desk#workspace/Website');
