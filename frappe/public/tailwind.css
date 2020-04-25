@@ -1,6 +1,7 @@
 @tailwind base;
 
-html, body {
+html,
+body {
 	@apply antialiased;
 	@apply text-black;
 }
@@ -99,3 +100,19 @@ details.hide-summary-arrow summary::-webkit-details-marker {
 }
 
 @tailwind utilities;
+
+.blur-none {
+	filter: blur(0rem);
+}
+
+.blur-sm {
+	filter: blur(1rem);
+}
+
+.blur-md {
+	filter: blur(1.5rem);
+}
+
+.blur-lg {
+	filter: blur(2rem);
+}

@@ -212,6 +212,9 @@ def get_web_blocks_html(blocks):
 		if block.web_template not in extracted_scripts:
 			out.scripts += scripts
 			extracted_scripts.append(block.web_template)
+
+	# de-duplicate scripts
+	out.scripts = list(set(out.scripts))
 	return out
 
 def extract_script_tags(html):
