@@ -8,6 +8,9 @@ addons:
   mariadb: 10.3
   postgresql: 9.5
 
+node_js:
+  - 12
+
 git:
   depth: 1
 
