@@ -215,13 +215,10 @@ def parse_front_matter_attrs_and_html(source):
 	if not source.startswith('---'):
 		return attributes, html
 
-	try:
-		res = get_frontmatter(source)
-		if res['attributes']:
-			attributes = res['attributes']
-			html = res['body']
-	except Exception as e:
-		print('Error parsing Frontmatter in template: ' + e)
+	res = get_frontmatter(source)
+	if res['attributes']:
+		attributes = res['attributes']
+		html = res['body']
 
 	return attributes, html
 
