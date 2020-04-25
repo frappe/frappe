@@ -7,6 +7,7 @@ addons:
     - test_site_producer
   mariadb: 10.3
   postgresql: 9.5
+  chrome: stable
 
 git:
   depth: 1
