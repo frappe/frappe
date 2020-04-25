@@ -268,6 +268,10 @@ class Document(BaseDocument):
 		if hasattr(self, "__islocal"):
 			delattr(self, "__islocal")
 
+		# clear unsaved flag
+		if hasattr(self, "__unsaved"):
+			delattr(self, "__unsaved")
+
 		if not (frappe.flags.in_migrate or frappe.local.flags.in_install or frappe.flags.in_setup_wizard):
 			follow_document(self.doctype, self.name, frappe.session.user)
 		return self
