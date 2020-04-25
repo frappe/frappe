@@ -666,7 +666,7 @@ def get_thumbnail_base64_for_image(src):
 
 	def _get_base64():
 		try:
-			image, filename, extn = get_local_image(src)
+			image, unused_filename, extn = get_local_image(src)
 		except IOError:
 			return
 
