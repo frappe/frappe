@@ -4,9 +4,11 @@ import { generate_route } from "./utils";
 export default class OnboardingWidget extends Widget {
 	constructor(opts) {
 		super(opts);
+		window.onb = this;
 	}
 
 	make_body() {
+		this.body.addClass('grid')
 		if (this.steps.length < 5) {
 			this.body.addClass(`grid-rows-${this.steps.length}`)
 		} else if (this.steps.length >= 5) {
@@ -89,6 +91,14 @@ export default class OnboardingWidget extends Widget {
 			step.is_complete = true;
 			$step.addClass('complete');
 		})
+
+		let pending = onb.steps.filter(step => {
+			return !(step.is_complete || step.is_skipped)
+		})
+
+		if (pending.length) {
+			this.show_success()
+		}
 	}
 
 	skip_step(step, $step) {
@@ -100,10 +110,31 @@ export default class OnboardingWidget extends Widget {
 			step.is_skipped = true;
 			$step.addClass('skipped');
 		})
+
+		let pending = onb.steps.filter(step => {
+			return !(step.is_complete || step.is_skipped)
+		})
+
+		if (pending.length) {
+			this.show_success()
+		}
 	}
 
 	show_success() {
-		// this.body.empty();
+		let height = this.widget.height();
+		this.widget.empty();
+		this.widget.height(height);
+		this.widget.addClass('flex');
+		this.widget.addClass('align-center');
+		this.widget.addClass('justify-center');
+
+		let success = $(`<div class="success">
+					<h1>Hooray 🎉</h1>
+					<div class="text-muted">Your website seems good to go!</div>
+			</div>
+		`);
+		success.appendTo(this.widget);
+
 	};
 
 	set_body() {
