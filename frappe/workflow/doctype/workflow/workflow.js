@@ -56,35 +56,34 @@ frappe.ui.form.on("Workflow", {
 	},
 	set_table_html: function(frm) {
 
-		let rows = frm.states.map(r => {
-			let indicator_color_map = {
-				'0': 'red',
-				'1': 'green',
-				'2': 'darkgrey'
-			};
-
-			return `<tr>
+		const promises = frm.states.map(r => {
+			const state = r[frm.doc.workflow_state_field];
+			return frappe.utils.get_indicator_color(state).then(color => {
+				return `<tr>
 				<td>
-					<div class="indicator ${indicator_color_map[r.docstatus]}">
+					<div class="indicator ${color}">
 						<a class="text-muted orphaned-state">${r[frm.doc.workflow_state_field]}</a>
 					</div>
 				</td>
 				<td>${r.count}</td></tr>
 			`;
-		}).join('');
+			})
+		});
 
-		frm.state_table_html = (`<table class="table state-table table-bordered" style="margin:0px; width: 50%">
-			<thead>
-				<tr class="text-muted">
-					<th>${__('State')}</th>
-					<th>${__('Count')}</th>
-				</tr>
-			</thead>
-			<tbody>
-				${rows}
-			</tbody>
-		</table>`);
-
+		Promise.all(promises).then(rows => {
+			const rows_html = rows.join('');
+			frm.state_table_html = (`<table class="table state-table table-bordered" style="margin:0px; width: 50%">
+				<thead>
+					<tr class="text-muted">
+						<th>${__('State')}</th>
+						<th>${__('Count')}</th>
+					</tr>
+				</thead>
+				<tbody>
+					${rows_html}
+				</tbody>
+			</table>`);
+		});
 	},
 	get_orphaned_states_and_count: function(frm) {
 		let states_list = [];
@@ -96,7 +95,7 @@ frappe.ui.form.on("Workflow", {
 		}).then(result => {
 			if (result && result.length) {
 				frm.states = result;
-				frm.trigger('set_table_html');
+				return frm.trigger('set_table_html');
 			}
 		});
 	},
