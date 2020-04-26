@@ -44,6 +44,8 @@ def sync_for(app_name, force=0, sync_everything = False, verbose=False, reset_pe
 			("data_migration", "data_migration_mapping"),
 			("data_migration", "data_migration_plan_mapping"),
 			("data_migration", "data_migration_plan"),
+			("desk", "onboarding_step"),
+			("desk", "onboarding"),
 			("desk", "desk_card"),
 			("desk", "desk_chart"),
 			("desk", "desk_shortcut"),
