@@ -13,7 +13,6 @@ details.hide-summary-arrow summary::-webkit-details-marker {
 }
 
 .from-markdown {
-	@apply text-xl;
 	@apply text-gray-900;
 	@apply leading-relaxed;
 
@@ -48,7 +47,7 @@ details.hide-summary-arrow summary::-webkit-details-marker {
 	}
 
 	> blockquote {
-		@apply px-6 py-4 text-lg text-gray-900 border border-l-4 border-gray-800;
+		@apply px-4 py-3 text-sm font-medium text-gray-900 border border-gray-400 rounded-md bg-gray-50;
 	}
 
 	> h1 {
@@ -87,15 +86,15 @@ details.hide-summary-arrow summary::-webkit-details-marker {
 
 	tr > td,
 	tr > th {
-		@apply px-4 py-2 border border-gray-800;
+		@apply px-4 py-2 border border-gray-400;
 	}
 
 	th:empty {
 		display: none;
 	}
 
-	img {
-		@apply border border-gray-800;
+	.screenshot {
+		@apply border border-gray-400 rounded-md;
 	}
 }
 
