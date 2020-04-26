@@ -5,17 +5,19 @@
  "fields": [
   {
    "fieldname": "url",
-   "fieldtype": "Data",
-   "label": "URL"
+   "fieldtype": "Attach Image",
+   "label": "Image",
+   "reqd": 0
   },
   {
    "fieldname": "description",
    "fieldtype": "Data",
-   "label": "Description"
+   "label": "Description",
+   "reqd": 0
   }
  ],
  "idx": 0,
- "modified": "2020-04-17 16:03:35.676241",
+ "modified": "2020-04-26 15:09:18.173851",
  "modified_by": "Administrator",
  "name": "Full Width Image",
  "owner": "Administrator",
