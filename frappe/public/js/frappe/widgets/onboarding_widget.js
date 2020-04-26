@@ -7,6 +7,11 @@ export default class OnboardingWidget extends Widget {
 	}
 
 	make_body() {
+		if (this.steps.length < 5) {
+			this.body.addClass(`grid-rows-${this.steps.length}`)
+		} else if (this.steps.length >= 5) {
+			this.body.addClass('grid-rows-5')
+		}
 		this.steps.forEach((step) => {
 			this.add_step(step);
 		});
