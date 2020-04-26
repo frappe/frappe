@@ -72,8 +72,8 @@ frappe.ui.form.on("Workflow", {
 
 		Promise.all(promises).then(rows => {
 			const rows_html = rows.join('');
-			frm.state_table_html = (`<table class="table state-table table-bordered" style="margin:0px; width: 50%">
-				<thead>
+			frm.state_table_html = (`<table class="table state-table table-bordered" style="margin:0px; width: 65%">
+				<thead style="font-size: 12px">
 					<tr class="text-muted">
 						<th>${__('State')}</th>
 						<th>${__('Count')}</th>
