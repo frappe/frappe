@@ -64,6 +64,24 @@
 	{% if not only_static %}
 		{% block navbar_right_extension %}{% endblock %}
 	{% endif %}
+
+	{% if show_sidebar and sidebar_items %}
+	<div class="d-block d-sm-none">
+		<hr>
+		{% for item in sidebar_items -%}
+		<li class="nav-item">
+			{% if item.type != 'input' %}
+				<a href="{{ item.route }}" class="nav-link {{ 'text-dark' if pathname==item.route else 'text-muted'}}"
+					{% if item.target %}target="{{ item.target }}"{% endif %}>
+					{{ _(item.title or item.label) }}
+				</a>
+			{% endif %}
+		</li>
+		{%- endfor %}
+		<hr>
+	</div>
+	{% endif %}
+
 	{% include "templates/includes/navbar/navbar_search.html" %}
 	{% include "templates/includes/navbar/navbar_login.html" %}
 </ul>

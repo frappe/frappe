@@ -837,6 +837,9 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 			fieldtype: 'MultiCheck',
 			columns: 2,
 			options: columns[this.doctype]
+				.filter(df => {
+					return !df.hidden;
+				})
 				.map(df => ({
 					label: __(df.label),
 					value: df.fieldname,
@@ -858,6 +861,9 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 				fieldtype: 'MultiCheck',
 				columns: 2,
 				options: columns[cdt]
+					.filter(df => {
+						return !df.hidden;
+					})
 					.map(df => ({
 						label: __(df.label),
 						value: df.fieldname,
