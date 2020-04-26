@@ -125,7 +125,7 @@ class Dashboard {
 			'frappe.desk.doctype.dashboard.dashboard.get_permitted_cards'
 		).then(cards => {
 			if (!cards.length) {
-				frappe.msgprint(__('No Permitted Cards on this Dashboard'), __('No Permitted Cards'))
+				return;
 			}
 
 			this.number_cards =
