@@ -212,6 +212,6 @@ def login():
 		if not confirm_otp_token(frappe.local.login_manager):
 			return False
 	frappe.local.login_manager.post_login()
-	
+
 	# because of a GET request!
 	frappe.db.commit()
