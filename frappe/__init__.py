@@ -831,7 +831,6 @@ def rename_doc(*args, **kwargs):
 
 		Calls `frappe.model.rename_doc.rename_doc`
 	"""
-	kwargs.pop('cmd', None)
 	kwargs.pop('ignore_permissions', None)
 	kwargs.pop('cmd', None)
 
