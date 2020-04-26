@@ -10,6 +10,7 @@
   "title",
   "published_on",
   "published",
+  "read_time",
   "disable_comments",
   "column_break_3",
   "blog_category",
@@ -123,6 +124,13 @@
    "fieldname": "disable_comments",
    "fieldtype": "Check",
    "label": "Disable Comments"
+  },
+  {
+   "description": "in minutes",
+   "fieldname": "read_time",
+   "fieldtype": "Int",
+   "label": "Read Time",
+   "read_only": 1
   }
  ],
  "has_web_view": 1,
@@ -131,7 +139,7 @@
  "is_published_field": "published",
  "links": [],
  "max_attachments": 5,
- "modified": "2020-04-08 19:58:13.672332",
+ "modified": "2020-04-26 18:46:18.941310",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Blog Post",
