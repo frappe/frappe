@@ -36,7 +36,9 @@ export default class OnboardingWidget extends Widget {
 
 			else if (step.action == "Create Entry") {
 				action = () => {
-					frappe.ui.form.make_quick_entry(step.reference_document, null, null, null, true)
+					frappe.ui.form.make_quick_entry(step.reference_document, () => {
+						this.mark_complete(step.name, $step);
+					}, null, null, true)
 				}
 			}
 
@@ -99,8 +101,10 @@ export default class OnboardingWidget extends Widget {
 
 	set_title(title) {
 		super.set_title(title);
-		let subtitle = $(`<div class="widget-subtitle">${this.subtitle}</div>`);
-		subtitle.appendTo(this.title_field);
+		if (this.subtitle) {
+			let subtitle = $(`<div class="widget-subtitle">${this.subtitle}</div>`);
+			subtitle.appendTo(this.title_field);
+		}
 	}
 
 	set_actions() {
