@@ -304,7 +304,7 @@ Object.assign(frappe.utils, {
 				"Warning": "orange",
 				"Danger": "red",
 				"Primary": "blue",
-			}
+			};
 
 			return colour_map[style];
 		});

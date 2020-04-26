@@ -50,7 +50,7 @@ frappe.ui.form.on("Workflow", {
 		let proceed_action = () => {
 			frm.ignore_warning = true;
 			frm.save();
-		}
+		};
 
 		frappe.warn(__(`Worflow States Don't Exist`), message_html, proceed_action, __(`Save Anyway`));
 	},
@@ -65,9 +65,8 @@ frappe.ui.form.on("Workflow", {
 						<a class="text-muted orphaned-state">${r[frm.doc.workflow_state_field]}</a>
 					</div>
 				</td>
-				<td>${r.count}</td></tr>
-			`;
-			})
+				<td>${r.count}</td></tr>`;
+			});
 		});
 
 		Promise.all(promises).then(rows => {
@@ -121,7 +120,7 @@ frappe.ui.form.on("Workflow", {
 				let filters = {};
 				filters[frm.workflow_state_field] = state;
 				frappe.set_route('List', frm.doc.document_type, filters);
-			})
+			});
 		}
 	}
 
