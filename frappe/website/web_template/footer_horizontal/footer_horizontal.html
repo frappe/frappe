@@ -4,17 +4,22 @@
 		<img class="w-auto h-8 sm:h-10" src="{{ brand_image }}" alt="Brand Logo">
 	</div>
 	{%- endif -%}
-	<div class="grid items-center grid-cols-2 gap-4 my-4 sm:flex sm:space-x-4">
-		{%- for index in ['1', '2', '3', '4', '5'] -%}
+	<div class="flex flex-col md:flex-row md:items-center md:justify-between">
+		<div class="grid items-center grid-cols-2 gap-4 my-4 sm:flex sm:space-x-4">
+			{%- for index in ['1', '2', '3', '4', '5', '6', '7', '8'] -%}
 
-		{%- set label = values['item_' + index + '_label'] -%}
-		{%- set url = values['item_' + index + '_url'] -%}
+			{%- set label = values['item_' + index + '_label'] -%}
+			{%- set url = values['item_' + index + '_url'] -%}
 
-		{%- if label and url -%}
-		{{ c('navbar_link', label=label, url=url) }}
-		{%- endif -%}
+			{%- if label and url -%}
+			{{ c('navbar_link', label=label, url=url) }}
+			{%- endif -%}
 
-		{%- endfor -%}
+			{%- endfor -%}
+		</div>
+		<div class="my-4">
+			{{ content }}
+		</div>
 	</div>
 	<div class="flex flex-col items-start justify-between pt-4 text-xs text-gray-700 border-t-2 sm:flex-row">
 		<div>

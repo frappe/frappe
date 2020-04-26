@@ -86,10 +86,16 @@
    "fieldtype": "Data",
    "label": "Item 5 URL",
    "reqd": 0
+  },
+  {
+   "fieldname": "content",
+   "fieldtype": "Markdown Editor",
+   "label": "Content",
+   "reqd": 0
   }
  ],
  "idx": 0,
- "modified": "2020-04-19 15:11:42.097670",
+ "modified": "2020-04-26 15:14:15.892042",
  "modified_by": "Administrator",
  "name": "Footer Horizontal",
  "owner": "Administrator",
