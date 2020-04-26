@@ -184,13 +184,7 @@ frappe.ui.form.Form = class FrappeForm {
 		frappe.model.on(me.doctype, "*", function(fieldname, value, doc) {
 			// set input
 			if(doc.name===me.docname) {
-				if ((value==='' || value===null) && !doc[fieldname]) {
-					// both the incoming and outgoing values are falsy
-					// the texteditor, summernote, changes nulls to empty strings on render,
-					// so ignore those changes
-				} else {
-					me.dirty();
-				}
+				me.dirty();
 
 				let field = me.fields_dict[fieldname];
 				field && field.refresh(fieldname);
@@ -1052,7 +1046,7 @@ frappe.ui.form.Form = class FrappeForm {
 	}
 
 	is_dirty() {
-		return this.doc.__unsaved;
+		return !!this.doc.__unsaved;
 	}
 
 	is_new() {

@@ -3,7 +3,6 @@ import Widget from "./base_widget.js";
 export default class OnboardingWidget extends Widget {
 	constructor(opts) {
 		super(opts);
-		window.onb = this;
 	}
 
 	refresh() { }

@@ -68,7 +68,7 @@ def load_doctype_from_file(doctype):
 class Meta(Document):
 	_metaclass = True
 	default_fields = list(default_fields)[1:]
-	special_doctypes = ("DocField", "DocPerm", "Role", "DocType", "Module Def")
+	special_doctypes = ("DocField", "DocPerm", "Role", "DocType", "Module Def", 'DocType Action', 'DocType Link')
 
 	def __init__(self, doctype):
 		self._fields = {}
@@ -128,6 +128,9 @@ class Meta(Document):
 	def get_link_fields(self):
 		return self.get("fields", {"fieldtype": "Link", "options":["!=", "[Select]"]})
 
+	def get_data_fields(self):
+		return self.get("fields", {"fieldtype": "Data"})
+
 	def get_dynamic_link_fields(self):
 		if not hasattr(self, '_dynamic_link_fields'):
 			self._dynamic_link_fields = self.get("fields", {"fieldtype": "Dynamic Link"})
@@ -165,7 +168,8 @@ class Meta(Document):
 
 	def get_valid_columns(self):
 		if not hasattr(self, "_valid_columns"):
-			if self.name in ("DocType", "DocField", "DocPerm", 'DocType Action', 'DocType Link'):
+			table_exists = frappe.db.table_exists(self.name)
+			if self.name in self.special_doctypes and table_exists:
 				self._valid_columns = get_table_columns(self.name)
 			else:
 				self._valid_columns = self.default_fields + \
@@ -421,17 +425,19 @@ class Meta(Document):
 		implemented in other Frappe applications via hooks.
 		'''
 		data = frappe._dict()
-		try:
-			module = load_doctype_module(self.name, suffix='_dashboard')
-			if hasattr(module, 'get_data'):
-				data = frappe._dict(module.get_data())
-		except ImportError:
-			pass
+		if not self.custom:
+			try:
+				module = load_doctype_module(self.name, suffix='_dashboard')
+				if hasattr(module, 'get_data'):
+					data = frappe._dict(module.get_data())
+			except ImportError:
+				pass
 
 		self.add_doctype_links(data)
 
-		for hook in frappe.get_hooks("override_doctype_dashboards", {}).get(self.name, []):
-			data = frappe.get_attr(hook)(data=data)
+		if not self.custom:
+			for hook in frappe.get_hooks("override_doctype_dashboards", {}).get(self.name, []):
+				data = frappe.get_attr(hook)(data=data)
 
 		return data
 

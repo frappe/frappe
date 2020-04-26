@@ -44,7 +44,11 @@ class BlogPost(WebsiteGenerator):
 			WHERE `name`=%s""", (self.blogger,))
 
 	def on_update(self):
+		super(BlogPost, self).on_update()
 		clear_cache("writers")
+
+	def on_trash(self):
+		super(BlogPost, self).on_trash()
 
 	def get_context(self, context):
 		# this is for double precaution. usually it wont reach this code if not published

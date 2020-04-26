@@ -59,7 +59,7 @@ class Dashboard {
 	}
 
 	show_dashboard(current_dashboard_name) {
-		if(this.dashboard_name !== current_dashboard_name) {
+		if (this.dashboard_name !== current_dashboard_name) {
 			this.dashboard_name = current_dashboard_name;
 			let title = this.dashboard_name;
 			if (!this.dashboard_name.toLowerCase().includes(__('dashboard'))) {
@@ -76,30 +76,48 @@ class Dashboard {
 	}
 
 	refresh() {
-		this.get_dashboard_doc().then((doc) => {
-			this.dashboard_doc = doc;
-			this.charts = this.dashboard_doc.charts
-							.map(chart => {
-								return {
-									chart_name: chart.chart,
-									label: chart.chart,
-									...chart
-								}
-							});
+		this.get_permitted_dashboard_charts().then(charts => {
+			if (!charts.length) {
+				frappe.msgprint(__('No Permitted Charts on this Dashboard'), __('No Permitted Charts'))
+			}
 
-			this.chart_group = new frappe.widget.WidgetGroup({
-				title: null,
-				container: this.container,
-				type: "chart",
-				columns: 2,
-				allow_sorting: false,
-				widgets: this.charts,
-			});
+			frappe.dashboard_utils.get_dashboard_settings().then((settings) => {
+				let chart_config = settings.chart_config? JSON.parse(settings.chart_config): {};
+				this.charts =
+					charts.map(chart => {
+						return {
+							chart_name: chart.chart,
+							label: chart.chart,
+							chart_settings: chart_config[chart.chart] || {},
+							...chart
+						}
+					});
+				this.chart_group = new frappe.widget.WidgetGroup({
+					title: null,
+					container: this.container,
+					type: "chart",
+					columns: 2,
+					options: {
+						allow_sorting: false,
+						allow_create: false,
+						allow_delete: false,
+						allow_hiding: false,
+						allow_edit: false,
+					},
+					widgets: this.charts,
+				});
+			})
 		});
 	}
 
-	get_dashboard_doc() {
-		return frappe.model.with_doc('Dashboard', this.dashboard_name);
+	get_permitted_dashboard_charts() {
+		return frappe.xcall(
+			'frappe.desk.doctype.dashboard.dashboard.get_permitted_charts',
+			{
+				dashboard_name: this.dashboard_name
+			}).then(charts => {
+				return charts;
+			});
 	}
 
 	set_dropdown() {

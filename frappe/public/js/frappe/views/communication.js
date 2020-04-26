@@ -20,7 +20,8 @@ frappe.views.CommunicationComposer = Class.extend({
 			primary_action: function() {
 				me.delete_saved_draft();
 				me.send_action();
-			}
+			},
+			minimizable: true
 		});
 
 		['recipients', 'cc', 'bcc'].forEach(field => {

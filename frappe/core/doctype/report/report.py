@@ -6,7 +6,7 @@ import frappe
 import json, datetime
 from frappe import _, scrub
 import frappe.desk.query_report
-from frappe.utils import cint
+from frappe.utils import cint, cstr
 from frappe.model.document import Document
 from frappe.modules.export_file import export_to_files
 from frappe.modules import make_boilerplate
@@ -91,6 +91,18 @@ class Report(Document):
 		if self.report_type == "Script Report":
 			make_boilerplate("controller.py", self, {"name": self.name})
 			make_boilerplate("controller.js", self, {"name": self.name})
+
+	def execute_query_report(self, filters):
+		if not self.query:
+			frappe.throw(_("Must specify a Query to run"), title=_('Report Document Error'))
+
+		if not self.query.lower().startswith("select"):
+			frappe.throw(_("Query must be a SELECT"), title=_('Report Document Error'))
+
+		result = [list(t) for t in frappe.db.sql(self.query, filters)]
+		columns = [cstr(c[0]) for c in frappe.db.get_description()]
+
+		return [columns, result]
 
 	def execute_script_report(self, filters):
 		# save the timestamp to automatically set to prepared

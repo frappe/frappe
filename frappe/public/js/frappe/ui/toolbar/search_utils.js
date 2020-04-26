@@ -283,31 +283,20 @@ frappe.search.utils = {
 		return out;
 	},
 
-	get_modules: function(keywords) {
+	get_workspaces: function(keywords) {
 		var me = this;
 		var out = [];
-		Object.keys(frappe.modules).forEach(function(item) {
-			var level = me.fuzzy_search(keywords, item);
+		frappe.boot.allowed_workspaces.forEach(function(item) {
+			var level = me.fuzzy_search(keywords, item.name);
 			if(level > 0) {
-				var module = frappe.modules[item];
-				if (module._doctype) return;
-
-				// disallow restricted modules
-				if (frappe.boot.user.allow_modules &&
-					!frappe.boot.user.allow_modules.includes(module.module_name)) {
-					return;
-				}
 				var ret = {
-					type: "Module",
-					label: __("Open {0}", [me.bolden_match_part(__(item), keywords)]),
-					value: __("Open {0}", [__(item)]),
+					type: "Workspace",
+					label: __("Open {0}", [me.bolden_match_part(__(item.name), keywords)]),
+					value: __("Open {0}", [__(item.name)]),
 					index: level,
+					route: ["workspace", item.name]
 				};
-				if(module.link) {
-					ret.route = [module.link];
-				} else {
-					ret.route = ["Module", item];
-				}
+
 				out.push(ret);
 			}
 		});
@@ -497,9 +486,9 @@ frappe.search.utils = {
 			results: sort_uniques(this.get_pages(keywords))
 		},
 		{
-			title: "Modules",
+			title: "Workspace",
 			fetch_type: "Nav",
-			results: sort_uniques(this.get_modules(keywords))
+			results: sort_uniques(this.get_workspaces(keywords))
 		},
 		{
 			title: "Setup",

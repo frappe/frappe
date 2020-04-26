@@ -239,12 +239,14 @@
   {
    "fieldname": "phone",
    "fieldtype": "Data",
-   "label": "Phone"
+   "label": "Phone",
+   "options": "Phone"
   },
   {
    "fieldname": "mobile_no",
    "fieldtype": "Data",
    "label": "Mobile No",
+   "options": "Phone",
    "unique": 1
   },
   {
@@ -596,7 +598,7 @@
  "image_field": "user_image",
  "links": [],
  "max_attachments": 5,
- "modified": "2020-03-30 11:33:07.247447",
+ "modified": "2020-04-26 17:47:36.716490",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "User",

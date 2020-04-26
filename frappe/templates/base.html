@@ -62,7 +62,11 @@
 	{%- endblock -%}
 
 	{%- block navbar -%}
-		{% include "templates/includes/navbar/navbar.html" %}
+		{%- if navbar_content -%}
+			{{ navbar_content }}
+		{%- else -%}
+			{% include "templates/includes/navbar/navbar.html" %}
+		{%- endif -%}
 	{%- endblock -%}
 
 	{% block content %}
@@ -70,7 +74,11 @@
 	{% endblock %}
 
 	{%- block footer -%}
-		{% include "templates/includes/footer/footer.html" %}
+		{%- if footer_content -%}
+			{{ footer_content }}
+		{%- else -%}
+			{% include "templates/includes/footer/footer.html" %}
+		{%- endif -%}
 	{%- endblock -%}
 
 	{% block base_scripts %}

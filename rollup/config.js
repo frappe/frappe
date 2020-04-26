@@ -11,6 +11,7 @@ const buble = require('rollup-plugin-buble');
 const { terser } = require('rollup-plugin-terser');
 const vue = require('rollup-plugin-vue');
 const frappe_html = require('./frappe-html-plugin');
+const less_loader = require('./less-loader');
 
 const production = process.env.FRAPPE_ENV === 'production';
 
@@ -116,6 +117,7 @@ function get_rollup_options_for_css(output_file, input_files) {
 		// less -> css
 		postcss({
 			extract: output_path,
+			loaders: [less_loader],
 			use: [
 				['less', {
 					// import other less/css files starting from these folders
@@ -130,7 +132,8 @@ function get_rollup_options_for_css(output_file, input_files) {
 				path.resolve(bench_path, '**/*.scss'),
 				path.resolve(bench_path, '**/*.css')
 			],
-			minimize: minimize_css
+			minimize: minimize_css,
+			sourceMap: output_file.startsWith('css/') && !production
 		})
 	];
 

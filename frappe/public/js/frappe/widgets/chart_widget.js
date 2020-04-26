@@ -9,12 +9,19 @@ export default class ChartWidget extends Widget {
 		this.height = 240;
 	}
 
-	refresh() {
-		this.make_chart();
+	get_config() {
+		return {
+			name: this.name,
+			chart_name: this.chart_name,
+			label: this.label,
+		};
 	}
 
-	customize() {
-		this.setup_customize_actions();
+	refresh() {
+		delete this.dashboard_chart;
+		this.set_title();
+		this.set_body();
+		this.make_chart();
 	}
 
 	set_body() {
@@ -62,34 +69,31 @@ export default class ChartWidget extends Widget {
 
 	make_chart() {
 		this.get_settings().then(() => {
+			if (!this.chart_settings) {
+				this.chart_settings = {};
+			}
 			this.setup_container();
 			this.prepare_chart_object();
-			this.action_area.empty();
-			this.prepare_chart_actions();
-			this.setup_filter_button();
+			if (!this.in_customize_mode) {
+				this.action_area.empty();
+				this.prepare_chart_actions();
+				this.setup_filter_button();
 
-			if (
-				this.chart_doc.timeseries &&
-				this.chart_doc.chart_type !== "Custom"
-			) {
-				this.render_time_series_filters();
+				if (
+					this.chart_doc.timeseries &&
+					this.chart_doc.chart_type !== "Custom"
+				) {
+					this.render_time_series_filters();
+				}
 			}
-
 			this.fetch_and_update_chart();
 		});
-	}
-
-	setup_customize_actions() {
-		this.action_area.empty();
-		const buttons = $(`<button type="button" class="btn btn-xs btn-secondary btn-default selected">Resize</button>
-					<button class="btn btn-secondary btn-light btn-danger btn-xs"><i class="fa fa-trash" aria-hidden="true"></i></button>`);
-		buttons.appendTo(this.action_area);
 	}
 
 	render_time_series_filters() {
 		let filters = [
 			{
-				label: this.chart_doc.timespan,
+				label: this.chart_settings.timespan || this.chart_doc.timespan,
 				options: [
 					"Select Date Range",
 					"Last Year",
@@ -114,15 +118,22 @@ export default class ChartWidget extends Widget {
 							this.head.css('flex-direction', "row");
 						}
 
+						this.save_chart_config_for_user({
+							'timespan': this.selected_timespan,
+							'from_date': null,
+							'to_date': null
+
+						});
 						this.fetch_and_update_chart();
 					}
 				}
 			},
 			{
-				label: this.chart_doc.time_interval,
+				label: this.chart_settings.time_interval || this.chart_doc.time_interval,
 				options: ["Yearly", "Quarterly", "Monthly", "Weekly", "Daily"],
 				action: selected_item => {
 					this.selected_time_interval = selected_item;
+					this.save_chart_config_for_user({'time_interval': this.selected_time_interval});
 					this.fetch_and_update_chart();
 				}
 			}
@@ -138,10 +149,10 @@ export default class ChartWidget extends Widget {
 
 	fetch_and_update_chart() {
 		this.args = {
-			timespan: this.selected_timespan,
-			time_interval: this.selected_time_interval,
-			from_date: this.selected_from_date,
-			to_date: this.selected_to_date
+			timespan: this.selected_timespan || this.chart_settings.timespan,
+			time_interval: this.selected_time_interval || this.chart_settings.time_interval,
+			from_date: this.selected_from_date || this.chart_settings.from_date,
+			to_date: this.selected_to_date || this.chart_settings.to_date
 		};
 
 		this.fetch(this.filters, true, this.args).then(data => {
@@ -176,16 +187,19 @@ export default class ChartWidget extends Widget {
 					fieldname: "from_date",
 					placeholder: "Date Range",
 					input_class: "input-xs",
+					default: [this.chart_settings.from_date, this.chart_settings.to_date],
 					reqd: 1,
 					change: () => {
 						let selected_date_range = this.date_range_field.get_value();
 						this.selected_from_date = selected_date_range[0];
 						this.selected_to_date = selected_date_range[1];
 
-						if (
-							selected_date_range &&
-							selected_date_range.length == 2
-						) {
+						if (selected_date_range && selected_date_range.length == 2) {
+							this.save_chart_config_for_user({
+								'timespan': this.selected_timespan,
+								'from_date': this.selected_from_date,
+								'to_date': this.selected_to_date,
+							});
 							this.fetch_and_update_chart();
 						}
 					}
@@ -235,7 +249,7 @@ export default class ChartWidget extends Widget {
 				}
 			},
 			{
-				label: __("Edit..."),
+				label: __("Edit"),
 				action: "action-edit",
 				handler: () => {
 					frappe.set_route(
@@ -243,6 +257,15 @@ export default class ChartWidget extends Widget {
 						"Dashboard Chart",
 						this.chart_doc.name
 					);
+				}
+			},
+			{
+				label: __("Reset Chart"),
+				action: "action-list",
+				handler: () => {
+					this.reset_chart();
+					delete this.dashboard_chart;
+					this.make_chart();
 				}
 			}
 		];
@@ -334,6 +357,7 @@ export default class ChartWidget extends Widget {
 					} else {
 						me.filters = values;
 					}
+					me.save_chart_config_for_user({'filters': me.filters});
 					me.fetch_and_update_chart();
 				}
 			},
@@ -348,6 +372,21 @@ export default class ChartWidget extends Widget {
 
 		dialog.show();
 		dialog.set_values(this.filters);
+	}
+
+	reset_chart() {
+		this.save_chart_config_for_user(null, 1);
+		this.chart_settings = {};
+		this.filters = null;
+	}
+
+	save_chart_config_for_user(config, reset=0) {
+		Object.assign(this.chart_settings, config);
+		frappe.xcall('frappe.desk.doctype.dashboard_settings.dashboard_settings.save_chart_config', {
+			'reset': reset,
+			'config': this.chart_settings,
+			'chart_name': this.chart_doc.chart_name
+		});
 	}
 
 	create_filter_group_and_add_filters(parent) {
@@ -390,9 +429,7 @@ export default class ChartWidget extends Widget {
 	}
 
 	fetch(filters, refresh = false, args) {
-		let method = this.settings
-			? this.settings.method
-			: "frappe.desk.doctype.dashboard_chart.dashboard_chart.get";
+		let method = this.settings.method;
 
 		if (this.chart_doc.chart_type == "Report") {
 			args = {
@@ -406,10 +443,10 @@ export default class ChartWidget extends Widget {
 				filters: filters,
 				refresh: refresh ? 1 : 0,
 				time_interval:
-					args && args.time_interval ? args.time_interval : null,
-				timespan: args && args.timespan ? args.timespan : null,
-				from_date: args && args.from_date ? args.from_date : null,
-				to_date: args && args.to_date ? args.to_date : null
+					args && args.time_interval? args.time_interval: null,
+				timespan: args && args.timespan? args.timespan: null,
+				from_date: args && args.from_date? args.from_date: null,
+				to_date: args && args.to_date? args.to_date: null
 			};
 		}
 		return frappe.xcall(method, args);
@@ -420,7 +457,8 @@ export default class ChartWidget extends Widget {
 			Line: "line",
 			Bar: "bar",
 			Percentage: "percentage",
-			Pie: "pie"
+			Pie: "pie",
+			Donut: "donut"
 		};
 
 		let colors = [];
@@ -453,6 +491,14 @@ export default class ChartWidget extends Widget {
 					shortenYAxisNumbers: 1
 				}
 			};
+
+			if (this.chart_doc.custom_options) {
+				let custom_options = JSON.parse(this.chart_doc.custom_options);
+				for (let key in custom_options) {
+					chart_args[key] = custom_options[key];
+				}
+			}
+
 			if (!this.dashboard_chart) {
 				this.dashboard_chart = new frappe.Chart(
 					this.chart_wrapper[0],
@@ -481,8 +527,9 @@ export default class ChartWidget extends Widget {
 	}
 
 	prepare_chart_object() {
+		let saved_filters = this.chart_settings.filters || null;
 		this.filters =
-			this.filters || JSON.parse(this.chart_doc.filters_json || "[]");
+			saved_filters || this.filters || JSON.parse(this.chart_doc.filters_json || "[]");
 	}
 
 	get_settings() {
@@ -519,6 +566,9 @@ export default class ChartWidget extends Widget {
 					};
 					return Promise.resolve();
 				} else {
+					this.settings = {
+						method: "frappe.desk.doctype.dashboard_chart.dashboard_chart.get"
+					};
 					return Promise.resolve();
 				}
 			});
