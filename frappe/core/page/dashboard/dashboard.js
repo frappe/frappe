@@ -129,10 +129,10 @@ class Dashboard {
 			}
 
 			this.number_cards =
-                cards.map(card => {
-                    return {
-                        name: card.card,
-                    }
+				cards.map(card => {
+					return {
+						name: card.card,
+					};
 				});
 
 			this.number_card_group = new frappe.widget.WidgetGroup({
