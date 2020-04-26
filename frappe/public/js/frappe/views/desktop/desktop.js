@@ -200,7 +200,7 @@ class DesktopPage {
 		}
 
 		this.allow_customization && this.make_customization_link();
-		this.data.onboarding.items.length && this.make_onboarding();
+		this.data.onboarding && this.data.onboarding.items.length && this.make_onboarding();
 		this.make_charts().then(() => {
 			this.make_shortcuts();
 			this.make_cards();

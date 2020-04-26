@@ -7,13 +7,15 @@
  "engine": "InnoDB",
  "field_order": [
   "title",
+  "subtitle",
   "module",
   "column_break_4",
-  "subtitle",
   "success_message",
+  "documentation_url",
   "user_can_dismiss",
+  "is_complete",
   "section_break_6",
-  "items"
+  "steps"
  ],
  "fields": [
   {
@@ -27,12 +29,6 @@
    "fieldname": "subtitle",
    "fieldtype": "Data",
    "label": "Subtitle"
-  },
-  {
-   "fieldname": "items",
-   "fieldtype": "Table",
-   "label": "Items",
-   "options": "Desk Onboarding"
   },
   {
    "fieldname": "module",
@@ -51,7 +47,7 @@
   },
   {
    "fieldname": "success_message",
-   "fieldtype": "Small Text",
+   "fieldtype": "Data",
    "label": "Success Message"
   },
   {
@@ -59,13 +55,31 @@
    "fieldname": "user_can_dismiss",
    "fieldtype": "Check",
    "label": "User Can Dismiss "
+  },
+  {
+   "fieldname": "documentation_url",
+   "fieldtype": "Data",
+   "label": "Documentation URL"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_complete",
+   "fieldtype": "Check",
+   "label": "Is Complete",
+   "read_only": 1
+  },
+  {
+   "fieldname": "steps",
+   "fieldtype": "Table",
+   "label": "Steps",
+   "options": "Onboarding Step"
   }
  ],
  "links": [],
- "modified": "2020-04-24 14:04:07.658176",
+ "modified": "2020-04-26 12:49:24.723846",
  "modified_by": "Administrator",
  "module": "Desk",
- "name": "Module Onboarding",
+ "name": "Onboarding",
  "owner": "Administrator",
  "permissions": [
   {

@@ -34,6 +34,7 @@ class Workspace:
 		self.user = user
 		self.allowed_pages = get_allowed_pages()
 		self.allowed_reports = get_allowed_reports()
+		self.onboarding_doc = self.get_onboarding_doc()
 
 		self.table_counts = get_table_with_counts()
 		self.restricted_doctypes = frappe.cache().get_value("domain_restricted_doctypes") or build_domain_restriced_doctype_cache()
@@ -50,6 +51,16 @@ class Workspace:
 
 		self.get_pages_to_extend()
 		return frappe.get_doc("Desk Page", self.page_name)
+
+	def get_onboarding_doc(self):
+		if not self.doc.onboarding:
+			return
+
+		if frappe.db.get_value("Onboarding", self.doc.onboarding, "is_complete"):
+			return
+
+		return frappe.get_doc("Onboarding", self.doc.onboarding)
+
 
 	def get_pages_to_extend(self):
 		pages = frappe.get_all("Desk Page", filters={
@@ -96,11 +107,13 @@ class Workspace:
 			'items': self.get_shortcuts()
 		}
 
-		self.onboarding = {
-			'label': _(self.doc.onboarding_label),
-			'subtitle': _(self.doc.onboarding_subtitle),
-			'items': self.get_onboarding_slides()
-		}
+		self.onboarding = None
+		if self.onboarding_doc:
+			self.onboarding = {
+				'label': _(self.onboarding_doc.title),
+				'subtitle': _(self.onboarding_doc.subtitle),
+				'items': self.get_onboarding_slides()
+			}
 
 	def get_cards(self):
 		cards = self.doc.cards + get_custom_reports_and_doctypes(self.doc.module)
@@ -215,15 +228,14 @@ class Workspace:
 
 	def get_onboarding_slides(self):
 		# TODO: Onboarding Slides empty up on customization
-		slides = self.doc.slides
-		items = []
-		for slide_doc in slides:
-			slide = slide_doc.as_dict().copy()
+		steps = []
+		for doc in self.onboarding_doc.steps:
+			step = doc.as_dict().copy()
 			# TODO: Handle permissions here
-			slide.label = _(slide_doc.slide)
-			items.append(slide)
+			step.label = _(doc.title)
+			steps.append(step)
 
-		return items
+		return steps
 
 @frappe.whitelist()
 @frappe.read_only()
@@ -454,5 +466,5 @@ def prepare_widget(config, doctype, parentfield):
 
 @frappe.whitelist()
 def complete_onboarding_step(name):
-	frappe.db.set_value("Desk Onboarding", name, 'is_complete', 1)
+	frappe.db.set_value("Onboarding Step", name, 'is_complete', 1)
 	return
