@@ -1115,7 +1115,7 @@ def expire_reset_password_key():
 	common_query = "UPDATE `tabUser` SET reset_password_key = '' WHERE {} AND reset_password_key IS NOT NULL"
 	mariadb_query = common_query.format("datediff(hh, reset_key_created_on, now())")
 	postgres_query = common_query.format("DATE_PART('day', reset_key_created_on::timestamp - now()::timestamp)")
-	frappe.db.sql({
+	frappe.db.multisql({
 		'mariadb': mariadb_query,
 		'postgres': postgres_query
 	})
