@@ -57,9 +57,10 @@ frappe.dashboard_utils = {
 	},
 
 	get_dashboard_settings() {
-		return frappe.db.get_list('Dashboard Settings',
-		{
-			filters: {name: frappe.session.user},
+		return frappe.db.get_list('Dashboard Settings', {
+			filters: {
+				name: frappe.session.user
+			},
 			fields: ['*']
 		}).then(settings => {
 			if (!settings.length) {
@@ -75,7 +76,9 @@ frappe.dashboard_utils = {
 	create_dashboard_settings() {
 		return frappe.xcall(
 			'frappe.desk.doctype.dashboard_settings.dashboard_settings.create_dashboard_settings',
-			{user: frappe.session.user}
+			{
+				user: frappe.session.user
+			}
 		).then(settings => {
 			return settings;
 		});

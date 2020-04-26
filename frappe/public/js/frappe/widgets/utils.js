@@ -124,9 +124,9 @@ function go_to_list_with_filters(doctype, filters) {
 }
 
 function shorten_number(number) {
-	let x = Math.abs(Math.round(number))
+	let x = Math.abs(Math.round(number));
 
-	switch(true) {
+	switch (true) {
 		case x >= 1.0e+12:
 			return Math.round(number/1.0e+12) + " T";
 		case x >= 1.0e+9:

@@ -19,7 +19,7 @@ export default class NumberCardWidget extends Widget {
 		this.set_body();
 	}
 
-    set_body() {
+	set_body() {
 		this.widget.addClass("number-widget-box");
 		this.make_card();
 	}
@@ -29,7 +29,7 @@ export default class NumberCardWidget extends Widget {
 	}
 
 	make_card() {
-		frappe.model.with_doc("Number Card", this.name).then(card => {
+		frappe.model.with_doc('Number Card', this.name).then(card => {
 			if (!card) {
 				if (this.document_type) {
 					this.create_number_card();
@@ -52,7 +52,9 @@ export default class NumberCardWidget extends Widget {
 		this.set_doc_args();
 		frappe.xcall(
 			'frappe.desk.doctype.number_card.number_card.create_number_card',
-			{'args': this.card_doc}
+			{
+				'args': this.card_doc
+			}
 		).then(doc => {
 			this.name = doc.name;
 			this.widget.attr('data-widget-name', this.name);
@@ -96,7 +98,9 @@ export default class NumberCardWidget extends Widget {
 	}
 
 	get_number() {
-		return frappe.xcall('frappe.desk.doctype.number_card.number_card.get_result', {doc: this.card_doc}).then(res => {
+		return frappe.xcall('frappe.desk.doctype.number_card.number_card.get_result', {
+			doc: this.card_doc
+		}).then(res => {
 			this.number = res;
 			if (this.card_doc.function !== 'Count') {
 				return frappe.model.with_doctype(this.card_doc.document_type, () => {
@@ -148,43 +152,43 @@ export default class NumberCardWidget extends Widget {
 			$(this.body).find('.widget-content').append(`<div class="card-stats ${color_class}">
 				${caret_html}
 				<span class="percentage-stat">${Math.abs(this.percentage_stat)} %</span>
-			</div>`)
+			</div>`);
 		});
 	}
 
 	get_percentage_stats() {
-		return frappe.xcall('frappe.desk.doctype.number_card.number_card.get_percentage_difference',
-			{
-				doc: this.card_doc,
-				result: this.number
-			}).then(res => {
-				if (res !== undefined) {
-					this.percentage_stat = +res.toFixed(2);
-				}
+		return frappe.xcall('frappe.desk.doctype.number_card.number_card.get_percentage_difference', {
+			doc: this.card_doc,
+			result: this.number
+		}).then(res => {
+			if (res !== undefined) {
+				this.percentage_stat = +res.toFixed(2);
+			}
 		});
 	}
 
 	prepare_actions() {
 		let actions = [
 			{
-				label: __("Refresh"),
-				action: "action-refresh",
+				label: __('Refresh'),
+				action: 'action-refresh',
 				handler: () => {
 					this.render_card();
 				}
 			},
 			{
-				label: __("Edit"),
-				action: "action-edit",
+				label: __('Edit'),
+				action: 'action-edit',
 				handler: () => {
 					frappe.set_route(
-						"Form",
-						"Number Card",
+						'Form',
+						'Number Card',
 						this.name
 					);
 				}
 			},
 		];
+
 		this.set_card_actions(actions);
 	}
 
@@ -196,11 +200,11 @@ export default class NumberCardWidget extends Widget {
 			<ul class="dropdown-menu" style="max-height: 300px; overflow-y: auto;">
 				${actions.map(
 					action =>
-						`<li><a data-action="${action.action}">${
-							action.label
-						}</a></li>`
+					`<li>
+						<a data-action="${action.action}">${action.label}</a>
+					</li>`
 				)
-				.join("")}
+				.join('')}
 			</ul>
 		</div>
 		`);
@@ -209,6 +213,7 @@ export default class NumberCardWidget extends Widget {
 			const action = o.dataset.action;
 			$(o).click(actions.find(a => a.action === action));
 		});
+
 		this.action_area.html(this.card_actions);
 	}
 }

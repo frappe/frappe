@@ -14,7 +14,7 @@ frappe.ui.form.on('Number Card', {
 				filters: {
 					'issingle': false
 				}
-			}
+			};
 		});
 		frm.set_value('filters_json', '[]');
 		frm.set_value('aggregate_function_based_on', '');

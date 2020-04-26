@@ -96,7 +96,6 @@ frappe.views.DashboardView = class DashboardView extends frappe.views.ListView {
 			});
 			this.render_dashboard_charts();
 		});
-
 		this.render_number_cards();
 
 		if (!this.charts.length && !this.number_cards.length) {
@@ -173,7 +172,6 @@ frappe.views.DashboardView = class DashboardView extends frappe.views.ListView {
 		</div>`;
 
 		this.$dashboard_wrapper.append(empty_state_html);
-
 		this.$empty_state = this.$dashboard_wrapper.find('.empty-dashboard');
 	}
 
@@ -181,7 +179,6 @@ frappe.views.DashboardView = class DashboardView extends frappe.views.ListView {
 		if (this.in_customize_mode) {
 			return;
 		}
-
 
 		if (this.$empty_state) {
 			this.$empty_state.remove();
@@ -228,7 +225,8 @@ frappe.views.DashboardView = class DashboardView extends frappe.views.ListView {
 		this.dashboard_settings = null;
 		frappe.model.user_settings.save(
 			this.doctype, 'dashboard_settings', this.dashboard_settings
-		).then(()=> this.make_dashboard());
+		).then(() => this.make_dashboard());
+
 		this.toggle_customize(false);
 	}
 
@@ -435,16 +433,17 @@ frappe.views.DashboardView = class DashboardView extends frappe.views.ListView {
 				group_by_fields.push({label: df.label, value: df.fieldname});
 			}
 		});
+
 		return {
 			date_fields: date_fields,
 			value_fields: value_fields,
 			group_by_fields: group_by_fields,
 			aggregate_function_fields: aggregate_function_fields
-		}
+		};
 	}
 
 	remove_duplicates(items) {
 		return items.filter((item, index) => items.indexOf(item) === index);
 	}
 
-}
+};
