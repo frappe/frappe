@@ -463,6 +463,6 @@ def prepare_widget(config, doctype, parentfield):
 	return prepare_widget_list
 
 @frappe.whitelist()
-def complete_onboarding_step(name):
-	frappe.db.set_value("Onboarding Step", name, 'is_complete', 1)
+def update_onboarding_step(name, field, value):
+	frappe.db.set_value("Onboarding Step", name, field, value)
 	return

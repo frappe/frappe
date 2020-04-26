@@ -5,7 +5,7 @@
  "idx": 0,
  "is_complete": 0,
  "is_skipped": 0,
- "modified": "2020-04-26 13:34:28.141743",
+ "modified": "2020-04-26 15:58:05.438200",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Website",
@@ -15,6 +15,7 @@
    "action": "Watch Video",
    "is_complete": 0,
    "is_mandatory": 1,
+   "is_skipped": 0,
    "title": "Introduction to Website",
    "video_url": "https://www.youtube.com/watch?v=lyW6mfFBSNw"
   },
@@ -22,6 +23,7 @@
    "action": "Create Entry",
    "is_complete": 0,
    "is_mandatory": 0,
+   "is_skipped": 0,
    "reference_document": "Blogger",
    "title": "Create Blogger"
   },
@@ -29,6 +31,7 @@
    "action": "Create Entry",
    "is_complete": 0,
    "is_mandatory": 0,
+   "is_skipped": 0,
    "reference_document": "Blog Category",
    "title": "Add Blog Category"
   },
@@ -36,6 +39,7 @@
    "action": "Create Entry",
    "is_complete": 0,
    "is_mandatory": 0,
+   "is_skipped": 0,
    "reference_document": "Website Theme",
    "title": "Set Website Theme"
   },
@@ -43,10 +47,12 @@
    "action": "View Settings",
    "is_complete": 0,
    "is_mandatory": 0,
+   "is_skipped": 0,
    "reference_document": "Website Settings",
    "title": "Enable Website Tracking"
   }
  ],
+ "subtitle": "Blogs, website view tracking, and more.",
  "success_message": "Yayy! Your website is all setup!",
  "title": "Let's Setup Your Website",
  "user_can_dismiss": 1,

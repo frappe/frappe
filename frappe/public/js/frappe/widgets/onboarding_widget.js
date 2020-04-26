@@ -18,64 +18,93 @@ export default class OnboardingWidget extends Widget {
 	}
 
 	add_step(step) {
-		let $step = $(`<div class="onboarding-step ${
-					step.is_complete ? 'complete' : 'incomplete'
-				}" data-step-name=${step.name}>
-				<i class="fa fa-check-circle" aria-hidden="true"></i>
+		let status = step.is_complete
+			? "complete"
+			: step.is_skipped
+				? "skipped"
+				: "";
+		let $step = $(`<div class="onboarding-step ${status}" data-step-name=${step.name}>
+				<i class="fa fa-check-circle" aria-hidden="true" title="${status}"></i>
 				<span>${step.title}</span>
 			</div>`);
 
-		if (!step.is_complete) {
-			let action = () => {};
-			if (step.action == "Watch Video") {
-				action = () => {
-					frappe.help.show_video(step.video_url, step.title);
-					this.mark_complete(step.name, $step);
-				}
-			}
-
-			else if (step.action == "Create Entry") {
-				action = () => {
-					frappe.ui.form.make_quick_entry(step.reference_document, () => {
-						this.mark_complete(step.name, $step);
-					}, null, null, true)
-				}
-			}
-
-			else if (step.action == "View Settings") {
-				action = () => {
-					frappe.set_route("Form", step.reference_document)
-				}
-			}
-
-			else if (step.action == "View Report") {
-				action = () => {
-					let route = generate_route({
-						name: step.reference_report,
-						type: 'report',
-						is_query_report: ["Query Report", "Script Report"].includes(step.report_type)
-					});
-
-					frappe.set_route(route);
-					this.mark_complete(step.name, $step);
-				}
-			}
-
-			$step.on('click', action)
+		if (!step.is_mandatory && !step.is_complete) {
+			// let skip_html = $(`<i class="fa fa-check text-extra-muted step-skip" title="Mark as Complete" aria-hidden="true"></i>`);
+			let skip_html = $(`<span class="ml-5 small text-muted step-skip">Skip</span>`);
+			skip_html.appendTo($step);
+			skip_html.on('click', () => {
+				this.skip_step(step, $step);
+				event.stopPropagation();
+			})
 		}
+
+		let action = () => {};
+		if (step.action == "Watch Video") {
+			action = () => {
+				frappe.help.show_video(step.video_url, step.title);
+				this.mark_complete(step, $step);
+			}
+		}
+
+		else if (step.action == "Create Entry") {
+			action = () => {
+				frappe.ui.form.make_quick_entry(step.reference_document, () => {
+					this.mark_complete(step, $step);
+				}, null, null, true)
+			}
+		}
+
+		else if (step.action == "View Settings") {
+			action = () => {
+				frappe.set_route("Form", step.reference_document)
+			}
+		}
+
+		else if (step.action == "View Report") {
+			action = () => {
+				let route = generate_route({
+					name: step.reference_report,
+					type: 'report',
+					is_query_report: ["Query Report", "Script Report"].includes(step.report_type)
+				});
+
+				frappe.set_route(route);
+				this.mark_complete(step, $step);
+			}
+		}
+
+		$step.on('click', action)
+
 
 		$step.appendTo(this.body);
 		return $step;
 	}
 
-	mark_complete(name, $step) {
-		frappe.call("frappe.desk.desktop.complete_onboarding_step", {
-			name: name
+	mark_complete(step, $step) {
+		frappe.call("frappe.desk.desktop.update_onboarding_step", {
+			name: step.name,
+			field: 'is_complete',
+			value: 1
 		}).then(() => {
-			$step.removeClass('incomplete')
-			$step.addClass('complete')
+			step.is_complete = true;
+			$step.addClass('complete');
 		})
 	}
+
+	skip_step(step, $step) {
+		frappe.call("frappe.desk.desktop.update_onboarding_step", {
+			name: step.name,
+			field: 'is_skipped',
+			value: 1
+		}).then(() => {
+			step.is_skipped = true;
+			$step.addClass('skipped');
+		})
+	}
+
+	show_success() {
+		// this.body.empty();
+	};
 
 	set_body() {
 		this.widget.addClass("onboarding-widget-box");
