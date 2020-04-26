@@ -227,11 +227,9 @@ class Workspace:
 		return items
 
 	def get_onboarding_slides(self):
-		# TODO: Onboarding Slides empty up on customization
 		steps = []
 		for doc in self.onboarding_doc.steps:
 			step = doc.as_dict().copy()
-			# TODO: Handle permissions here
 			step.label = _(doc.title)
 			steps.append(step)
 
@@ -391,8 +389,8 @@ def save_customization(page, config):
 		"charts_label": original_page.charts_label,
 		"cards_label": original_page.cards_label,
 		"shortcuts_label": original_page.shortcuts_label,
-		"icon": original_page.icon,
 		"module": original_page.module,
+		"onboarding": original_page.onboarding,
 		"developer_mode_only": original_page.developer_mode_only,
 		"category": original_page.category
 	})
