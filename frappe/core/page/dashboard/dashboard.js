@@ -156,10 +156,10 @@ class Dashboard {
 			method,
 			{
 				dashboard_name: this.dashboard_name
-			}).then(items => {
-				return items;
 			}
-		);
+		).then(items => {
+			return items;
+		});
 	}
 
 	set_dropdown() {

@@ -120,7 +120,7 @@ function go_to_list_with_filters(doctype, filters) {
 		let filter_area = list_view.filter_area;
 		filter_area.clear();
 		filter_area.filter_list.add_filters_to_filter_group(filters);
-	})
+	});
 }
 
 function shorten_number(number) {
