@@ -95,7 +95,6 @@ def get(chart_name = None, chart = None, no_cache = None, filters = None, from_d
 def create_dashboard_chart(args):
 	args = frappe.parse_json(args)
 	doc = frappe.new_doc('Dashboard Chart')
-	roles = frappe.get_roles(frappe.session.user)
 
 	doc.update(args)
 

@@ -5,7 +5,6 @@
 from __future__ import unicode_literals
 import frappe
 from frappe.model.document import Document
-from frappe.model.naming import append_number_if_name_exists
 
 class NumberCard(Document):
 	pass
@@ -92,13 +91,13 @@ def calculate_previous_result(doc):
 
 	current_date = frappe.utils.now()
 	if doc.stats_time_interval == 'Daily':
-		previous_date = frappe.utils.add_to_date(current_date, days=-1)
+		previous_date = add_to_date(current_date, days=-1)
 	elif doc.stats_time_interval == 'Weekly':
-		previous_date = frappe.utils.add_to_date(current_date, weeks=-1)
+		previous_date = add_to_date(current_date, weeks=-1)
 	elif doc.stats_time_interval == 'Monthly':
-		previous_date = frappe.utils.add_to_date(current_date, months=-1)
+		previous_date = add_to_date(current_date, months=-1)
 	else:
-		previous_date = frappe.utils.add_to_date(current_date, years=-1)
+		previous_date = add_to_date(current_date, years=-1)
 
 	number = get_result(doc, previous_date)
 	return number
