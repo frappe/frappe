@@ -208,22 +208,28 @@ class TranslationTool {
 					},
 					{
 						fieldtype: 'Section Break',
-						collapsible: '1',
-						label: 'Additional'
+						fieldname: 'contributed_translations_section',
+						label: 'Contributed Translations'
+					},
+					{
+						fieldtype: 'HTML',
+						fieldname: 'contributed_translations'
+					},
+					{
+						fieldtype: 'Section Break',
+						collapsible: 1,
+						label: 'Occurences in source code'
 					},
 					{
 						fieldtype: 'HTML',
 						fieldname: 'positions'
 					},
-					{
-						fieldtype: 'HTML',
-						fieldname: 'contributed_translations'
-					}
 				],
 				body: this.wrapper.find('.translation-edit-form')
 			});
 
 			this.form.make();
+			// this.form.get_field('contributed_translations_section').wrapper.addClass('border-bottom');
 			this.setup_header();
 		}
 
@@ -240,16 +246,7 @@ class TranslationTool {
 	setup_header() {
 		this.form.get_field('header').$wrapper.html(`<div>
 			<span class="translation-status"></span>
-			<span class="pull-right">
-				<a class="text-muted no-decoration">
-					<i class="fa fa-chevron-left prev-item"></i>
-				</a>
-				<a class="text-muted no-decoration">
-					<i class="fa fa-chevron-right next-item"></i>
-				</a>
-			</span>
 		</div>`);
-		this.setup_navigation_control();
 	}
 
 	set_status(translation) {
@@ -260,41 +257,16 @@ class TranslationTool {
 		`);
 	}
 
-	setup_navigation_control() {
-		const prev_item_btn = this.form
-			.get_field('header')
-			.$wrapper.find('.prev-item');
-		const next_item_btn = this.form
-			.get_field('header')
-			.$wrapper.find('.next-item');
-		prev_item_btn.click(() => {
-			this.wrapper
-				.find('.translation-item.active')
-				.prev()
-				.trigger('click');
-		});
-		next_item_btn.click(() => {
-			this.wrapper
-				.find('.translation-item.active')
-				.next()
-				.trigger('click');
-		});
-	}
-
 	setup_positions(positions) {
-		let position_dom = ``;
+		let position_dom = '';
 		if (positions && positions.length) {
-			position_dom += `
-				<div class="control-label">Positions</div>
-			`;
-
-			positions.forEach(position => {
+			position_dom = positions.map(position => {
 				if (position.path.startsWith('DocType: ')) {
-					position_dom += `<div>
+					return `<div>
 						<span class="text-muted">${position.path}</span>
 					</div>`;
 				} else {
-					position_dom += `<div>
+					return `<div>
 						<a
 							class="text-muted"
 							target="_blank"
@@ -303,7 +275,7 @@ class TranslationTool {
 						</a>
 					</div>`;
 				}
-			});
+			}).join('');
 		}
 		this.form.get_field('positions').$wrapper.html(position_dom);
 	}
@@ -311,11 +283,10 @@ class TranslationTool {
 	setup_contributions(contributions) {
 		let contributions_html = contributions.map(c => {
 			return `
-			<div class="attached-file flex justify-between align-center" style="display: flex;">
+			<div class="contributed-translation flex justify-between align-center">
 				<div class="ellipsis">${c.translated}</div>
-				<div>
-					<button class="btn btn-xs btn-default" data-action="reload_attachment">${__('Upvote')}</button>
-					<button class="btn btn-xs btn-default" data-action="clear_attachment">${__('Report')}</button>
+				<div class="text-muted small">
+					${comment_when(c.creation)}
 				</div>
 			</div>
 			`;

@@ -29,3 +29,7 @@
 	height: 100%;
 	overflow-y: scroll;
 }
+
+.contributed-translation {
+	padding: 0.5rem 0;
+}
