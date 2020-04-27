@@ -109,7 +109,7 @@ function get_rollup_options_for_js(output_file, input_files) {
 
 function get_rollup_options_for_css(output_file, input_files) {
 	const output_path = path.resolve(assets_path, output_file);
-	const minimize_css = output_path.includes('/assets/css/') && production;
+	const starts_with_css = output_file.startsWith('css/');
 
 	const plugins = [
 		// enables array of inputs
@@ -120,26 +120,29 @@ function get_rollup_options_for_css(output_file, input_files) {
 				require('tailwindcss'),
 				require('postcss-nested'),
 				require('autoprefixer'),
-				minimize_css ? require('cssnano')({ preset: 'default' }) : null
+				starts_with_css && production ? require('cssnano')({ preset: 'default' }) : null
 			].filter(Boolean),
 			extract: output_path,
 			loaders: [less_loader],
 			use: [
-				[
-					'less',
-					{
-						// import other less/css files starting from these folders
-						paths: [path.resolve(get_public_path('frappe'), 'less')]
-					}
-				],
-				['sass', get_options_for_scss()]
+				['less', {
+					// import other less/css files starting from these folders
+					paths: [
+						path.resolve(get_public_path('frappe'), 'less')
+					]
+				}],
+				['sass', {
+					...get_options_for_scss(),
+					outFile: output_path,
+					sourceMapContents: true
+				}]
 			],
 			include: [
 				path.resolve(bench_path, '**/*.less'),
 				path.resolve(bench_path, '**/*.scss'),
 				path.resolve(bench_path, '**/*.css')
 			],
-			sourceMap: output_file.startsWith('css/') && !production
+			sourceMap: starts_with_css && !production
 		})
 	];
 
