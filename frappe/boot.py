@@ -17,6 +17,7 @@ from frappe.utils.change_log import get_versions
 from frappe.translate import get_lang_dict
 from frappe.email.inbox import get_email_accounts
 from frappe.social.doctype.energy_point_settings.energy_point_settings import is_energy_point_enabled
+from frappe.website.doctype.web_page_view.web_page_view import is_tracking_enabled
 from frappe.social.doctype.energy_point_log.energy_point_log import get_energy_points
 from frappe.social.doctype.post.post import frequently_visited_links
 
@@ -79,6 +80,7 @@ def get_bootinfo():
 	bootinfo.success_action = get_success_action()
 	bootinfo.update(get_email_accounts(user=frappe.session.user))
 	bootinfo.energy_points_enabled = is_energy_point_enabled()
+	bootinfo.website_tracking_enabled = is_tracking_enabled()
 	bootinfo.points = get_energy_points(frappe.session.user)
 	bootinfo.frequently_visited_links = frequently_visited_links()
 	bootinfo.link_preview_doctypes = get_link_preview_doctypes()
@@ -268,4 +270,18 @@ def get_success_action():
 	return frappe.get_all("Success Action", fields=["*"])
 
 def get_link_preview_doctypes():
-	return [d.name for d in frappe.db.get_all('DocType', {'show_preview_popup': 1})]
+	from frappe.utils import cint
+
+	link_preview_doctypes = [d.name for d in frappe.db.get_all('DocType', {'show_preview_popup': 1})]
+	customizations = frappe.get_all("Property Setter",
+		fields=['doc_type', 'value'],
+		filters={'property': 'show_preview_popup'}
+	)
+
+	for custom in customizations:
+		if not cint(custom.value) and custom.doc_type in link_preview_doctypes:
+			link_preview_doctypes.remove(custom.doc_type)
+		else:
+			link_preview_doctypes.append(custom.doc_type)
+
+	return link_preview_doctypes

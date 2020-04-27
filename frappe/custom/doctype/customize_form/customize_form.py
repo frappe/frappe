@@ -32,6 +32,7 @@ doctype_properties = {
 	'track_views': 'Check',
 	'allow_auto_repeat': 'Check',
 	'allow_import': 'Check',
+	'show_preview_popup': 'Check',
 	'email_append_to': 'Check',
 	'subject_field': 'Data',
 	'sender_field': 'Data'
@@ -53,6 +54,7 @@ docfield_properties = {
 	'in_list_view': 'Check',
 	'in_standard_filter': 'Check',
 	'in_global_search': 'Check',
+	'in_preview': 'Check',
 	'bold': 'Check',
 	'hidden': 'Check',
 	'collapsible': 'Check',

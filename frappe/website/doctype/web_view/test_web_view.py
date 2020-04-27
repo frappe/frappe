@@ -14,6 +14,7 @@ class TestWebView(unittest.TestCase):
 	@classmethod
 	def setUpClass(cls):
 		frappe.delete_doc_if_exists('Web View', 'test-web-view')
+		frappe.delete_doc_if_exists('Web View', 'html-web-view')
 		frappe.delete_doc_if_exists('CSS Class', 'test-css-class')
 
 		frappe.get_doc(dict(
@@ -22,12 +23,25 @@ class TestWebView(unittest.TestCase):
 			css = '.test-class { color: red; }'
 		)).insert()
 
+		# simple html webview
+		frappe.get_doc(dict(
+			doctype = 'Web View',
+			title = 'HTML Web View',
+			route = 'html-web-view',
+			published = 1,
+			content_type = 'HTML',
+			content_html = '<h1>Hello HTML</h1>'
+		)).insert()
+
+		# simple web view with components
+
 		frappe.get_doc(dict(
 			doctype = 'Web View',
 			title = 'Test Web View',
 			route = 'test-web-view',
 			published = 1,
-			items = [
+			content_type = 'Components',
+			components = [
 				dict(
 					element_type = 'Section',
 					section_type = 'List'
@@ -57,19 +71,27 @@ class TestWebView(unittest.TestCase):
 					web_content_type = 'Markdown',
 					web_content_markdown = 'Column 2'
 				),
+				dict(
+					element_type = 'Web View',
+					web_view = 'html-web-view',
+				),
 			]
 		)).insert()
 
 	def test_web_view(self):
 		html = get_page_content('test-web-view')
-		#print(html)
 		self.assert_web_view_in_html(html)
+
+	def test_html_web_view(self):
+		html = get_page_content('html-web-view')
+		self.assertTrue('Hello HTML' in html)
 
 	def assert_web_view_in_html(self, html):
 		self.assertTrue('<h2 id="heading">Heading</h2>' in html)
 		self.assertTrue('<div>Here is some HTML</div>' in html)
 		self.assertTrue('Column 1' in html)
 		self.assertTrue('Column 2' in html)
+		self.assertTrue('Hello HTML' in html)
 		self.assertTrue('.test-class { color: red; }' in html)
 
 	def test_web_view_in_footer(self):
