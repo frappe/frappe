@@ -692,7 +692,7 @@ Object.assign(frappe.utils, {
 		$search_input.focus().val('');
 		const $elements = $wrapper.find(el_class).show();
 
-		$wrapper.off('keyup').on('keyup', () => {
+		$search_input.off('keyup').on('keyup', () => {
 			let text_filter = $search_input.val().toLowerCase();
 			// Replace trailing and leading spaces
 			text_filter = text_filter.replace(/^\s+|\s+$/g, '');
