@@ -181,7 +181,6 @@ frappe.views.ListGroupBy = class ListGroupBy {
 
 	setup_filter_by() {
 		this.$wrapper.on('click', '.group-by-item', (e) => {
-			console.log('clickedd');
 			let $target = $(e.currentTarget);
 			let fieldname = $target.parents('.group-by-field').find('a').data('fieldname');
 			let value = typeof $target.data('value') === 'string'
