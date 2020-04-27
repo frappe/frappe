@@ -351,11 +351,12 @@ class TranslationTool {
 					<th>${__('Source Text')}</th>
 					<th>${__('Translated Text')}</th>
 				</tr>
-				${Object.values(this.edited_translations)
-					.map(t => `<tr>
+				${Object.values(this.edited_translations).map(t => `
+					<tr>
 						<td>${t.source_text}</td>
 						<td>${t.translated_text}</td>
-					</tr>`).join('')}
+					</tr>
+				`).join('')}
 			</table>
 		`);
 		this.confirmation_dialog.show();
@@ -420,19 +421,17 @@ class TranslationTool {
 	}
 
 	get_indicator_color(message_obj) {
-		return !message_obj.translated
-			? 'red'
-			: message_obj.translated_by_google
-			? 'orange'
-			: 'blue';
+		return !message_obj.translated ? 'red' : message_obj.translated_by_google ? 'orange' : 'blue';
 	}
 
 	get_indicator_status_text(message_obj) {
-		return !message_obj.translated
-			? __('Untranslated')
-			: message_obj.translated_by_google
-			? __('Google Translation')
-			: __('Community Contribution');
+		if (message_obj.translated) {
+			return __('Untranslated');
+		} else if (message_obj.translated_by_google) {
+			return __('Google Translation');
+		} else {
+			return __('Community Contribution');
+		}
 	}
 
 	get_contribution_indicator_color(message_obj) {
