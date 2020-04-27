@@ -255,7 +255,7 @@ class Leaderboard {
 		if (res && res.message.length) {
 			me.message = null;
 			me.$container.find(".leaderboard-list").html(me.render_list_view(res.message));
-			frappe.utils.setup_search($(me.parent), ".list-item-container", ".list-id")
+			frappe.utils.setup_search($(me.parent), ".list-item-container", ".list-id");
 		} else {
 			me.$graph_area.hide();
 			me.message = __("No items found.");
