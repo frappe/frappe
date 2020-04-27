@@ -76,7 +76,7 @@ class BlogPost(WebsiteGenerator):
 
 		#if meta image is not present, then first image inside the blog will be set as the meta image
 		image = find_first_image(context.content)
-		context.metatags["image"] = self.meta_image or image
+		context.metatags["image"] = self.meta_image or image or None
 
 		self.load_comments(context)
 
