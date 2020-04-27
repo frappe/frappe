@@ -112,9 +112,34 @@ def create_number_card(args):
 	return doc
 
 def get_cards_for_user(doctype, txt, searchfield, start, page_len, filters):
-	or_filters = {'owner': frappe.session.user, 'is_public': 1}
-	return frappe.db.get_list('Number Card',
-		fields=['name', 'label'],
+	meta = frappe.get_meta(doctype)
+	searchfields = meta.get_search_fields()
+	search_conditions = []
+
+	if txt:
+		for field in searchfields:
+			search_conditions.append('`tab{doctype}`.`{field}` like %(txt)s'.format(field=field, doctype=doctype, txt=txt))
+
+		search_conditions = ' or '.join(search_conditions)
+
+	search_conditions = 'and (' + search_conditions +')' if search_conditions else ''
+	conditions, values = frappe.db.build_conditions(filters)
+	values['txt'] = '%' + txt + '%'
+
+	return frappe.db.sql(
+		'''select
+			`tabNumber Card`.name, `tabNumber Card`.label, `tabNumber Card`.document_type
+		from
+			`tabNumber Card`
+		where
+			{conditions} and
+			(`tabNumber Card`.owner = '{user}' or
+			`tabNumber Card`.is_public = 1)
+			{search_conditions}
+	'''.format(
 		filters=filters,
-		or_filters=or_filters,
-		as_list = 1)
+		user = frappe.session.user,
+		search_conditions = search_conditions,
+		conditions=conditions
+	), values)
+
