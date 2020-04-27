@@ -1,0 +1,31 @@
+<div>
+	<h1 class="text-3xl font-extrabold leading-tight tracking-tight sm:leading-10 sm:text-4xl xl:leading-none xl:text-5xl">
+		{{ title }}
+	</h1>
+	{%- if subtitle -%}
+	<p
+		class="max-w-2xl mt-3 text-base text-gray-900 sm:mt-5 sm:text-lg md:mt-5 md:text-xl lg:mx-0">
+		{{ subtitle }}
+	</p>
+	{%- endif -%}
+	{%- if primary_action or secondary_action -%}
+	<div class="mt-5 sm:mt-8 sm:flex sm:justify-center lg:justify-start">
+		{%- if primary_action -%}
+		<div class="rounded-md shadow">
+			<a href="{{ primary_action }}"
+				class="flex items-center justify-center w-full px-8 py-3 text-base font-medium leading-6 text-white transition duration-150 ease-in-out border border-transparent rounded-md bg-primary-500 hover:bg-primary-400 focus:outline-none focus:shadow-outline md:py-4 md:text-lg md:px-10">
+				{{ primary_action_label }}
+			</a>
+		</div>
+		{%- endif -%}
+		{%- if secondary_action -%}
+		<div class="mt-3 sm:mt-0 sm:ml-3">
+			<a href="{{ secondary_action }}"
+				class="flex items-center justify-center w-full px-8 py-3 text-base font-medium leading-6 transition duration-150 ease-in-out border border-transparent rounded-md text-primary-700 bg-primary-100 hover:text-primary-600 hover:bg-primary-50 focus:outline-none focus:shadow-outline focus:border-primary-300 md:py-4 md:text-lg md:px-10">
+				{{ secondary_action_label }}
+			</a>
+		</div>
+		{%- endif -%}
+	</div>
+	{%- endif -%}
+</div>

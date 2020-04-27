@@ -1,0 +1,29 @@
+<div class="relative flex">
+	<div class="relative flex items-center flex-shrink-0 w-full sm:w-7/12">
+		<div>
+			<h1
+				class="text-3xl font-extrabold leading-tight tracking-tight sm:leading-10 sm:text-4xl xl:leading-none xl:text-5xl">
+				{{ title }}
+			</h1>
+			{%- if subtitle -%}
+			<p
+				class="mt-3 text-base text-gray-900 sm:mt-5 sm:text-lg sm:max-w-xl sm:mx-auto md:mt-5 md:text-xl lg:mx-0">
+				{{ subtitle }}
+			</p>
+			{%- endif -%}
+			<div class="mt-5 sm:mt-8">
+				{%- if primary_action -%}
+				{{ c('button', label=primary_action_label, url=primary_action, variant="primary", size="large") }}
+				{%- endif -%}
+				{%- if secondary_action -%}
+				{{ c('button', label=secondary_action_label, url=secondary_action, variant="secondary", size="large", class="ml-4") }}
+				{%- endif -%}
+			</div>
+		</div>
+	</div>
+	{%- if image -%}
+	<div class="hidden sm:block lg:w-5/12">
+		<img class="object-cover w-full h-56 lg:h-full lg:w-full md:h-96 sm:h-72" src="{{ image }}" alt="">
+	</div>
+	{%- endif -%}
+</div>
