@@ -17,10 +17,9 @@ class TestDashboardChart(unittest.TestCase):
 		self.assertEqual(get_period_ending('2019-04-10', 'Daily'),
 			getdate('2019-04-10'))
 
-		# fun fact: week ends on the day before 1st Jan of the year.
-		# for 2019 it is Monday
+		# week starts on monday
 		self.assertEqual(get_period_ending('2019-04-10', 'Weekly'),
-			getdate('2019-04-15'))
+			getdate('2019-04-14'))
 
 		self.assertEqual(get_period_ending('2019-04-10', 'Monthly'),
 			getdate('2019-04-30'))
@@ -133,6 +132,34 @@ class TestDashboardChart(unittest.TestCase):
 
 		frappe.db.rollback()
 
+	def test_weekly_dashboard_chart(self):
+		insert_test_records()
+
+		if frappe.db.exists('Dashboard Chart', 'Test Weekly Dashboard Chart'):
+			frappe.delete_doc('Dashboard Chart', 'Test Weekly Dashboard Chart')
+
+		frappe.get_doc(dict(
+			doctype = 'Dashboard Chart',
+			chart_name = 'Test Weekly Dashboard Chart',
+			chart_type = 'Sum',
+			document_type = 'Communication',
+			based_on = 'communication_date',
+			value_based_on = 'rating',
+			timespan = 'Select Date Range',
+			time_interval = 'Weekly',
+			from_date = datetime(2018, 12, 30),
+			to_date = datetime(2019, 1, 15),
+			filters_json = '[]',
+			timeseries = 1
+		)).insert()
+
+		result = get(chart_name ='Test Weekly Dashboard Chart', refresh = 1)
+
+		self.assertEqual(result.get('datasets')[0].get('values'), [200.0, 400.0, 0.0])
+		self.assertEqual(result.get('labels'), [formatdate('2019-01-06'), formatdate('2019-01-13'), formatdate('2019-01-20')])
+
+		frappe.db.rollback()
+
 	def test_group_by_chart_type(self):
 		if frappe.db.exists('Dashboard Chart', 'Test Group By Dashboard Chart'):
 			frappe.delete_doc('Dashboard Chart', 'Test Group By Dashboard Chart')
@@ -155,17 +182,16 @@ class TestDashboardChart(unittest.TestCase):
 
 		frappe.db.rollback()
 
-	def test_dashboard_with_single_doctype(self):
-		if frappe.db.exists('Dashboard Chart', 'Test Single DocType In Dashboard Chart'):
-			frappe.delete_doc('Dashboard Chart', 'Test Single DocType In Dashboard Chart')
+def insert_test_records():
+	create_new_communication(datetime(2019, 1, 10), 100)
+	create_new_communication(datetime(2019, 1, 6), 200)
+	create_new_communication(datetime(2019, 1, 8), 300)
 
-		chart_doc = frappe.get_doc(dict(
-			doctype = 'Dashboard Chart',
-			chart_name = 'Test Single DocType In Dashboard Chart',
-			chart_type = 'Count',
-			document_type = 'System Settings',
-			group_by_based_on = 'Created On',
-			filters_json = '{}',
-		))
-
-		self.assertRaises(frappe.ValidationError, chart_doc.insert)
+def create_new_communication(date, rating):
+	communication = {
+		'doctype': 'Communication',
+		'subject': 'Test Communication',
+		'rating': rating,
+		'communication_date': date
+	}
+	frappe.get_doc(communication).insert()
