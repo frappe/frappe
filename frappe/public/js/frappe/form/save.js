@@ -21,7 +21,7 @@ frappe.ui.form.save = function (frm, action, callback, btn) {
 		remove_empty_rows();
 
 		$(frm.wrapper).addClass('validated-form');
-		if (check_mandatory()) {
+		if ((action !== 'Save' || frm.is_dirty()) && check_mandatory()) {
 			_call({
 				method: "frappe.desk.form.save.savedocs",
 				args: { doc: frm.doc, action: action },
@@ -36,6 +36,7 @@ frappe.ui.form.save = function (frm, action, callback, btn) {
 				freeze_message: freeze_message
 			});
 		} else {
+			frappe.show_alert({message: __("Document not updated"), indicator: "yellow"});
 			$(btn).prop("disabled", false);
 		}
 	};

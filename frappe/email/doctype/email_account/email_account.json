@@ -66,6 +66,7 @@
    "fieldtype": "Data",
    "in_global_search": 1,
    "label": "Email Address",
+   "options": "Email",
    "reqd": 1
   },
   {
@@ -410,7 +411,7 @@
  ],
  "icon": "fa fa-inbox",
  "links": [],
- "modified": "2019-12-18 15:56:39.744520",
+ "modified": "2020-04-06 19:20:50.491146",
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Email Account",

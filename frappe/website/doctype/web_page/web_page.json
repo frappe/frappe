@@ -1,4 +1,5 @@
 {
+ "actions": [],
  "allow_guest_to_view": 1,
  "allow_import": 1,
  "creation": "2013-03-28 10:35:30",
@@ -13,6 +14,7 @@
   "slideshow",
   "cb1",
   "published",
+  "full_width",
   "show_title",
   "start_date",
   "end_date",
@@ -39,6 +41,10 @@
   "sb2",
   "header",
   "breadcrumbs",
+  "metatags_section",
+  "meta_title",
+  "meta_description",
+  "meta_image",
   "set_meta_tags"
  ],
  "fields": [
@@ -217,7 +223,7 @@
    "depends_on": "eval:!doc.__islocal",
    "fieldname": "sb2",
    "fieldtype": "Section Break",
-   "label": "Header, Breadcrumbs and Meta Tags"
+   "label": "Header and Breadcrumbs"
   },
   {
    "description": "HTML for header section. Optional",
@@ -235,21 +241,49 @@
   {
    "fieldname": "set_meta_tags",
    "fieldtype": "Button",
-   "label": "Set Meta Tags"
+   "label": "Add Custom Tags"
   },
   {
    "default": "0",
    "fieldname": "dynamic_template",
    "fieldtype": "Check",
    "label": "Dynamic Template"
+  },
+  {
+   "default": "0",
+   "fieldname": "full_width",
+   "fieldtype": "Check",
+   "label": "Full Width"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "metatags_section",
+   "fieldtype": "Section Break",
+   "label": "Meta Tags"
+  },
+  {
+   "fieldname": "meta_title",
+   "fieldtype": "Data",
+   "label": "Title"
+  },
+  {
+   "fieldname": "meta_description",
+   "fieldtype": "Small Text",
+   "label": "Description"
+  },
+  {
+   "fieldname": "meta_image",
+   "fieldtype": "Attach Image",
+   "label": "Image"
   }
  ],
  "has_web_view": 1,
  "icon": "fa fa-file-alt",
  "idx": 1,
  "is_published_field": "published",
+ "links": [],
  "max_attachments": 20,
- "modified": "2019-10-02 13:58:50.825481",
+ "modified": "2020-04-19 12:26:21.546908",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Web Page",

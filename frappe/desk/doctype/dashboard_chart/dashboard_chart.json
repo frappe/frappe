@@ -33,6 +33,7 @@
   "type",
   "column_break_2",
   "color",
+  "custom_options",
   "section_break_10",
   "last_synced_on"
  ],
@@ -49,7 +50,8 @@
    "fieldname": "chart_type",
    "fieldtype": "Select",
    "label": "Chart Type",
-   "options": "Count\nSum\nAverage\nGroup By\nCustom\nReport"
+   "options": "Count\nSum\nAverage\nGroup By\nCustom\nReport",
+   "set_only_once": 1
   },
   {
    "depends_on": "eval:doc.chart_type === 'Custom'",
@@ -123,7 +125,7 @@
    "fieldname": "type",
    "fieldtype": "Select",
    "label": "Type",
-   "options": "Line\nBar\nPercentage\nPie",
+   "options": "Line\nBar\nPercentage\nPie\nDonut",
    "reqd": 1
   },
   {
@@ -212,10 +214,16 @@
    "label": "Y Axis",
    "mandatory_depends_on": "eval:doc.report_name && !doc.is_custom",
    "options": "Dashboard Chart Field"
+  },
+  {
+   "description": "Ex: \"colors\": [\"#d1d8dd\", \"#ff5858\"]",
+   "fieldname": "custom_options",
+   "fieldtype": "Code",
+   "label": "Custom Options"
   }
  ],
  "links": [],
- "modified": "2020-03-13 19:19:37.162771",
+ "modified": "2020-04-20 23:49:11.389909",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Dashboard Chart",
@@ -232,6 +240,27 @@
    "role": "System Manager",
    "share": 1,
    "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Dashboard Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "All",
+   "share": 1
   }
  ],
  "sort_field": "modified",

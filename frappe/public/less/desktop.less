@@ -76,6 +76,24 @@
 		position: relative;
 		min-height: 1px;
 		padding-right: 15px;
+
+		.desk-page.allow-customization {
+			.customize-options {
+				text-align: right;
+				margin-top: 7px;
+				color: @text-muted;
+				z-index: 99;
+
+				.save-customization {
+					cursor: pointer;
+					color: @text-color;
+				}
+
+				.discard-customization {
+					cursor: pointer;
+				}
+			}
+		}
 	}
 
 	@media (max-width: 768px) {
@@ -90,6 +108,9 @@
 
 .widget-group {
 	margin-bottom: 25px;
+	// -webkit-animation-name: slideInUp;
+	// animation-name: slideInUp;
+	// animation-duration: 0.4s;
 
 	.widget-group-head {
 		display: flex;
@@ -201,6 +222,17 @@
 				margin-left: 5px;
 			}
 
+			.drag-handle {
+				cursor: all-scroll;
+				cursor: -webkit-grabbing;
+
+				&:active {
+				    cursor: grabbing;
+				    cursor: -moz-grabbing;
+				    cursor: -webkit-grabbing;
+				}
+			}
+
 			.dashboard-date-field {
 				.clearfix,
 				.help-box {
@@ -218,6 +250,16 @@
 	&.sortable-ghost {
 		background-color: @disabled-background;
 		border-color: @disabled-background
+	}
+
+	&.new-widget {
+		min-height: 65px;
+		background-color: @disabled-background;
+		color: @text-muted;
+		display: flex;
+		align-content: center;
+		justify-content: center;
+		cursor: pointer;
 	}
 
 	// Overrides for each widgets
@@ -300,6 +342,14 @@
 		.widget-head {
 			margin-top: 5px;
 			margin-bottom: 5px;
+
+			.widget-title {
+				i {
+					color: @text-muted;
+					font-size: 18px;
+					margin-right: 6px;
+				}
+			}
 		}
 	}
 
@@ -357,23 +407,153 @@
 	border-radius: 10px;
 }
 
-.pill-green {
-	background:	#71b92c;
-	// color: #000;
+@-webkit-keyframes smallBounce {
+  from,
+  20%,
+  53%,
+  80%,
+  to {
+    -webkit-animation-timing-function: cubic-bezier(0.215, 0.61, 0.355, 1);
+    animation-timing-function: cubic-bezier(0.215, 0.61, 0.355, 1);
+    -webkit-transform: translate3d(0, 0, 0);
+    transform: translate3d(0, 0, 0);
+  }
+
+  40%,
+  43% {
+    -webkit-animation-timing-function: cubic-bezier(0.755, 0.05, 0.855, 0.06);
+    animation-timing-function: cubic-bezier(0.755, 0.05, 0.855, 0.06);
+    -webkit-transform: translate3d(0, -12px, 0);
+    transform: translate3d(0, -12px, 0);
+  }
+
+  70% {
+    -webkit-animation-timing-function: cubic-bezier(0.755, 0.05, 0.855, 0.06);
+    animation-timing-function: cubic-bezier(0.755, 0.05, 0.855, 0.06);
+    -webkit-transform: translate3d(0, -6px, 0);
+    transform: translate3d(0, -6px, 0);
+  }
+
+  90% {
+    -webkit-transform: translate3d(0, -4px, 0);
+    transform: translate3d(0, -4px, 0);
+  }
 }
 
-.pill-red {
-	background:	@red;
+@keyframes smallBounce {
+  from,
+  20%,
+  53%,
+  80%,
+  to {
+    -webkit-animation-timing-function: cubic-bezier(0.215, 0.61, 0.355, 1);
+    animation-timing-function: cubic-bezier(0.215, 0.61, 0.355, 1);
+    -webkit-transform: translate3d(0, 0, 0);
+    transform: translate3d(0, 0, 0);
+  }
+
+  40%,
+  43% {
+    -webkit-animation-timing-function: cubic-bezier(0.755, 0.05, 0.855, 0.06);
+    animation-timing-function: cubic-bezier(0.755, 0.05, 0.855, 0.06);
+    -webkit-transform: translate3d(0, -12px, 0);
+    transform: translate3d(0, -12px, 0);
+  }
+
+  70% {
+    -webkit-animation-timing-function: cubic-bezier(0.755, 0.05, 0.855, 0.06);
+    animation-timing-function: cubic-bezier(0.755, 0.05, 0.855, 0.06);
+    -webkit-transform: translate3d(0, -6px, 0);
+    transform: translate3d(0, -6px, 0);
+  }
+
+  90% {
+    -webkit-transform: translate3d(0, -4px, 0);
+    transform: translate3d(0, -4px, 0);
+  }
 }
 
-.pill-blue {
-	background:	@blue;
+.small-bounce {
+  -webkit-animation-name: smallBounce;
+  animation-name: smallBounce;
+  -webkit-transform-origin: center bottom;
+  transform-origin: center bottom;
+  animation-duration: 1s;
 }
 
-.pill-yellow {
-	background:	@yellow;
+@-webkit-keyframes slideInUp {
+  from {
+    -webkit-transform: translate3d(0, 100%, 0);
+    transform: translate3d(0, 100%, 0);
+    visibility: visible;
+  }
+
+  to {
+    -webkit-transform: translate3d(0, 0, 0);
+    transform: translate3d(0, 0, 0);
+  }
 }
 
-.pill-orange {
-	background:	@orange;
+@keyframes slideInUp {
+  from {
+    -webkit-transform: translate3d(0, 100%, 0);
+    transform: translate3d(0, 100%, 0);
+    visibility: visible;
+  }
+
+  to {
+    -webkit-transform: translate3d(0, 0, 0);
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+.slide-in-up {
+  -webkit-animation-name: slideInUp;
+  animation-name: slideInUp;
+  animation-duration: 1s;
+}
+
+
+@-webkit-keyframes pulse {
+  from {
+    -webkit-transform: scale3d(1, 1, 1);
+    transform: scale3d(1, 1, 1);
+  }
+
+  50% {
+    -webkit-transform: scale3d(1.05, 1.05, 1.05);
+    transform: scale3d(1.05, 1.05, 1.05);
+  }
+
+  to {
+    -webkit-transform: scale3d(1, 1, 1);
+    transform: scale3d(1, 1, 1);
+  }
+}
+
+@keyframes pulse {
+  from {
+    -webkit-transform: scale3d(1, 1, 1);
+    transform: scale3d(1, 1, 1);
+  }
+
+  50% {
+    -webkit-transform: scale3d(1.05, 1.05, 1.05);
+    transform: scale3d(1.05, 1.05, 1.05);
+  }
+
+  to {
+    -webkit-transform: scale3d(1, 1, 1);
+    transform: scale3d(1, 1, 1);
+  }
+}
+
+.zoomOutDelete {
+  // -webkit-animation-name: zoomOut;
+  // animation-name: zoomOut;
+  // animation-duration: 1s;
+  transition: opacity 0.2s, visibility 0.2s, transform 0.2s;
+  transform: scale3d(0.5, 0.5, 0.5);
+  opacity: 0;
+  visibility: hidden;
 }

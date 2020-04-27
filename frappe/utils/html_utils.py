@@ -105,6 +105,11 @@ def get_icon_html(icon, small=False):
 	else:
 		return "<i class='{icon}'></i>".format(icon=icon)
 
+def unescape_html(value):
+	from six.moves.html_parser import HTMLParser
+	h = HTMLParser()
+	return h.unescape(value)
+
 # adapted from https://raw.githubusercontent.com/html5lib/html5lib-python/4aa79f113e7486c7ec5d15a6e1777bfe546d3259/html5lib/sanitizer.py
 acceptable_elements = [
 	'a', 'abbr', 'acronym', 'address', 'area',

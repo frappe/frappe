@@ -19,7 +19,7 @@ import frappe.auth
 import frappe.api
 import frappe.utils.response
 import frappe.website.render
-from frappe.utils import get_site_name
+from frappe.utils import get_site_name, sanitize_html
 from frappe.middlewares import StaticDataMiddleware
 from frappe.utils.error import make_error_snapshot
 from frappe.core.doctype.comment.comment import update_comments_in_parent_after_request
@@ -172,7 +172,7 @@ def handle_exception(e):
 		return_as_message = True
 
 	else:
-		traceback = "<pre>"+frappe.get_traceback()+"</pre>"
+		traceback = "<pre>" + sanitize_html(frappe.get_traceback()) + "</pre>"
 		if frappe.local.flags.disable_traceback:
 			traceback = ""
 

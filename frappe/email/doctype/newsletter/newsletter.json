@@ -1,4 +1,5 @@
 {
+ "actions": [],
  "allow_rename": 1,
  "creation": "2013-01-10 16:34:31",
  "description": "Create and Send Newsletters",
@@ -6,9 +7,11 @@
  "document_type": "Other",
  "engine": "InnoDB",
  "field_order": [
+  "send_from",
+  "column_break_2",
+  "schedule_send",
   "recipients",
   "email_group",
-  "send_from",
   "email_sent",
   "newsletter_content",
   "subject",
@@ -41,7 +44,7 @@
    "default": "0",
    "fieldname": "email_sent",
    "fieldtype": "Check",
-   "label": "Email Sent?",
+   "label": "Email Sent",
    "no_copy": 1,
    "read_only": 1
   },
@@ -115,14 +118,24 @@
    "fieldname": "recipients",
    "fieldtype": "Section Break",
    "label": "Recipients"
+  },
+  {
+   "fieldname": "schedule_send",
+   "fieldtype": "Datetime",
+   "label": "Schedule Send"
+  },
+  {
+   "fieldname": "column_break_2",
+   "fieldtype": "Column Break"
   }
  ],
  "has_web_view": 1,
  "icon": "fa fa-envelope",
  "idx": 1,
  "is_published_field": "published",
+ "links": [],
  "max_attachments": 3,
- "modified": "2019-09-06 22:15:55.471254",
+ "modified": "2020-03-02 06:26:51.622521",
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Newsletter",

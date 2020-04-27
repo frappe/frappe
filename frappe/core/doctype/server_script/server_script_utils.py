@@ -66,6 +66,7 @@ def get_server_script_map():
 				script_map.setdefault(script.reference_doctype, {}).setdefault(script.doctype_event, []).append(script.name)
 			else:
 				script_map.setdefault('_api', {})[script.api_method] = script.name
+
 		frappe.cache().set_value('server_script_map', script_map)
 
 	return script_map

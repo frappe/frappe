@@ -66,6 +66,10 @@ def import_from(name, doctype):
 def add_subscribers(name, email_list):
 	if not isinstance(email_list, (list, tuple)):
 		email_list = email_list.replace(",", "\n").split("\n")
+
+	template = frappe.db.get_value('Email Group', name, 'welcome_email_template')
+	welcome_email = frappe.get_doc("Email Template", template) if template else None
+
 	count = 0
 	for email in email_list:
 		email = email.strip()
@@ -78,7 +82,9 @@ def add_subscribers(name, email_list):
 					"doctype": "Email Group Member",
 					"email_group": name,
 					"email": parsed_email
-				}).insert(ignore_permissions = frappe.flags.ignore_permissions)
+				}).insert(ignore_permissions=frappe.flags.ignore_permissions)
+
+				send_welcome_email(welcome_email, parsed_email, name)
 
 				count += 1
 			else:
@@ -90,3 +96,15 @@ def add_subscribers(name, email_list):
 
 	return frappe.get_doc("Email Group", name).update_total_subscribers()
 
+def send_welcome_email(welcome_email, email, email_group):
+	"""Send welcome email for the subscribers of a given email group."""
+	if not welcome_email:
+		return
+
+	args = dict(
+		email=email,
+		email_group=email_group
+	)
+
+	message = frappe.render_template(welcome_email.response, args)
+	frappe.sendmail(email, subject=welcome_email.subject, message=message)
