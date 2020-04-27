@@ -733,9 +733,9 @@ def validate_fields(meta):
 			frappe.throw(_("Default for 'Check' type of field must be either '0' or '1'"))
 		if d.fieldtype == "Select" and d.default:
 			if not d.options:
-				frappe.throw(_("Options for '{0}' must be set before Default.").format(d.fieldname))
+				frappe.throw(_("Options for {0} must be set before setting the default value.").format(d.fieldname.bold()))
 			elif d.default not in d.options.split("\n"):
-				frappe.throw(_("Default for '{0}' must be an Option").format(d.fieldname))
+				frappe.throw(_("Default value for {0} must be in the list of options").format(d.fieldname.bold()))
 
 	def check_precision(d):
 		if d.fieldtype in ("Currency", "Float", "Percent") and d.precision is not None and not (1 <= cint(d.precision) <= 6):
