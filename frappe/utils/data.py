@@ -701,7 +701,7 @@ def strip_html(text):
 
 def escape_html(text):
 	if not isinstance(text, string_types):
-		return
+		return text
 
 	html_escape_table = {
 		"&": "&amp;",
