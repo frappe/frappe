@@ -797,5 +797,15 @@ def get_contributions(language):
 		'contributed': 1,
 	})
 
+@frappe.whitelist()
+def get_contribution_status(message_id):
+	from frappe.frappeclient import FrappeClient
+	doc = frappe.get_doc('Translation', message_id)
+	translator = FrappeClient(get_translator_url())
+	contributed_translation = translator.get_api('translator.api.get_contribution_status', params={
+		'translation_id': doc.contribution_docname
+	})
+	return contributed_translation
+
 def get_translator_url():
 	return frappe.get_hooks()['translator_url'][0]

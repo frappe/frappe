@@ -74,7 +74,10 @@ def create_translations(translation_map, language):
 	}
 
 	translator = FrappeClient(get_translator_url())
-	return translator.post_api('translator.api.add_translations', params=params)
+	added_translations = translator.post_api('translator.api.add_translations', params=params)
+
+	for local_docname, remote_docname in added_translations.items():
+		frappe.db.set_value('Translation', local_docname, 'contribution_docname', remote_docname)
 
 def clear_user_translation_cache(lang):
 	frappe.cache().hdel('lang_user_translations', lang)

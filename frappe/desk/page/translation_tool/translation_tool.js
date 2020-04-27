@@ -391,8 +391,8 @@ class TranslationTool {
 				let template = message => `
 					<div
 						class="translation-item"
-						data-message-id="${encodeURIComponent(message.id)}"
-						data-action="on_translation_click">
+						data-message-id="${encodeURIComponent(message.name)}"
+						data-action="show_translation_status_modal">
 						<div class="bold ellipsis">
 							<span class="indicator ${this.get_contribution_indicator_color(message)}">
 								<span>${frappe.utils.escape_html(message.source_text)}</span>
@@ -403,6 +403,48 @@ class TranslationTool {
 
 				let html = messages.map(template).join('');
 				this.wrapper.find('.translation-item-tr').html(html);
+			});
+	}
+
+	show_translation_status_modal(e, $el) {
+		let message_id = decodeURIComponent($el.data('message-id'));
+
+		frappe.xcall('frappe.translate.get_contribution_status', { message_id })
+			.then(doc => {
+				let d = new frappe.ui.Dialog({
+					title: __('Contribution Status'),
+					fields: [
+						{
+							fieldname: 'source_message',
+							label: __('Source Message'),
+							fieldtype: 'Data',
+							read_only: 1
+						},
+						{
+							fieldname: 'translated',
+							label: __('Translated Message'),
+							fieldtype: 'Data',
+							read_only: 1
+						},
+						{
+							fieldname: 'contribution_status',
+							label: __('Contribution Status'),
+							fieldtype: 'Data',
+							read_only: 1
+						},
+						{
+							fieldname: 'modified_by',
+							label: __('Verified By'),
+							fieldtype: 'Data',
+							read_only: 1,
+							depends_on: doc => {
+								return doc.contribution_status == 'Verified';
+							}
+						},
+					]
+				});
+				d.set_values(doc);
+				d.show();
 			});
 	}
 
