@@ -16,44 +16,26 @@ frappe.ui.form.on('Blog Post', {
 	}
 });
 function generate_google_search_preview(frm){
-	frm.call('get_site_url').then((r)=>{
-		let google_preview = frm.get_field("google_preview");
-		let seo_title = (frm.doc.title).slice(0, 60);
-		let seo_description =  (frm.doc.meta_description || frm.doc.blog_intro || "").slice(0, 160);
+	let google_preview = frm.get_field("google_preview");
+	let seo_title = (frm.doc.title).slice(0, 60);
+	let seo_description =  (frm.doc.meta_description || frm.doc.blog_intro || "").slice(0, 160);
+	let date = frm.doc.published_on ? new frappe.datetime.datetime(frm.doc.published_on).moment.format('ll') + ' - ' : '';
+	let route_array = frm.doc.route.split('/');
+	route_array.pop();
 
-		google_preview.html(`
-			<link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400&display=swap" rel="stylesheet">
-
-			<div class="frappe-control">
-				<div class="form-group">
-					<div class="clearfix">
-						<label class="control-label" style="padding-right: 0px;">Google Search Listing Preview</label>
-					</div>
-					<div class="control-input-wrapper">
-						<div class="control-input">
-							<div>
-							<cite style="color: #006621; font-style: normal; font-size: 14px; display: inline-block;
-								font-family: 'Open Sans'; font-size: 14px; line-height: 1.3; margin: 0 0">
-								${ r.message + '/' + frm.doc.route }
-							</cite>
-							<h3 style="color: #1a0dab; font-family: 'Open Sans'; font-size: 20px; line-height: 1.3; hover: underline; margin: 0 0">
-								<a style="color:#1a0dab;">
-									${ seo_title }
-								</a>
-							</h3>
-							<p style="color: #545454; font-size: small; line-height: 1.4; font-family: 'Open Sans'; font-size:14px;
-								line-height:1.3; margin: 0 0">
-								${ frm.doc.published_on } - ${ seo_description }
-							</p>
-							</div>
-						</div>
-						<br>
-						<p class="help-box small text-muted hidden-xs">
-							This is a test preview based on the meta description generated for this blog. The description can be of any length but Google will truncate it to 155 - 160 characters. You can also check the previews for <a href="https://developers.facebook.com/tools/debug/" target="_blank">Facebook</a> and <a href="https://cards-dev.twitter.com/validator" target="_blank">Twitter</a> using their debugger tools. 
-						</p>
-					</div>
+	google_preview.html(`
+		<link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400&display=swap" rel="stylesheet">
+			<div style="font-family: Open Sans; padding: 15px; border: 1px solid #d1d8dd !important; border-radius: 6px;">
+				<cite style="font-size: 14px; padding-top: 1px; line-height: 1.3; color: #202124; font-style: normal;">
+					${frappe.boot.sitename}
+					<span style="color: #5f6368;"> › ${route_array.join(' › ')}</span>
+				</cite>
+				<div style="font-size: 20px; line-height: 1.3; color: #1a0dab; padding-top: 4px; margin-bottom: 3px;">
+						${ seo_title }
 				</div>
+				<p style="color: #545454; max-width: 48em; line-height: 1.58; font-size:14px;">
+					<span style="color: #70757a;">${ date }</span> ${ seo_description }
+				</p>
 			</div>
-		`)
-	});
+	`);
 }
