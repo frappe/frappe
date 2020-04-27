@@ -236,6 +236,7 @@ frappe.ui.form.Layout = Class.extend({
 		// collapse sections
 		if(this.frm) {
 			this.refresh_section_collapse();
+			this.refresh_section_border();
 		}
 	},
 
@@ -305,6 +306,16 @@ frappe.ui.form.Layout = Class.extend({
 				section.collapse(collapse);
 			}
 		}
+	},
+
+	refresh_section_border: function() {
+		if(!this.doc) return;
+		this.sections.forEach(section => {
+			const df = section.df;
+			if (df && cint(df.hide_border)) {
+				section.hide_border(true);
+			}
+		})
 	},
 
 	attach_doc_and_docfields: function(refresh) {
@@ -662,6 +673,9 @@ frappe.ui.form.Section = Class.extend({
 				f.refresh();
 			}
 		});
+	},
+	hide_border(hide) {
+		this.body.parent().toggleClass("hide-border", hide);
 	},
 	is_collapsed() {
 		return this.body.hasClass('hide');

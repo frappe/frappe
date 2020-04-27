@@ -314,10 +314,19 @@ h6.uppercase, .h6.uppercase {
 	}
 }
 
-.form-section:not(:last-child),
+.hide-border {
+	border-top: none !important;
+	padding-top: 0px;
+}
+
+.form-section:not(:first-child) {
+	border-top: 1px solid @border-color;
+}
+
 .form-inner-toolbar {
 	border-bottom: 1px solid @border-color;
 }
+
 
 .empty-section {
 	display: none !important;
