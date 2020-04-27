@@ -610,7 +610,7 @@ class Importer:
 							"message": msg,
 						}
 					)
-					return False
+					return
 
 			elif df.fieldtype == "Link":
 				d = self.get_missing_link_field_values(df.options)
@@ -643,8 +643,10 @@ class Importer:
 				if value in INVALID_VALUES:
 					value = None
 
-				value = validate_value(value, df)
-				if value:
+				if value is not None:
+					value = validate_value(value, df)
+
+				if value is not None:
 					doc[df.fieldname] = self.parse_value(value, df)
 
 			is_table = frappe.get_meta(doctype).istable
