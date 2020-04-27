@@ -687,7 +687,32 @@ Object.assign(frappe.utils, {
 			return null;
 		}
 	},
+	setup_search($wrapper, el_class, text_class) {
+		const $search_input = $wrapper.find('[data-element="search"]').show();
+		$search_input.focus().val('');
+		const $elements = $wrapper.find(el_class).show();
 
+		$wrapper.off('keyup').on('keyup', () => {
+			let text_filter = $search_input.val().toLowerCase();
+			// Replace trailing and leading spaces
+			text_filter = text_filter.replace(/^\s+|\s+$/g, '');
+			for (let i = 0; i < $elements.length; i++) {
+				const text_element = $elements.eq(i).find(text_class);
+
+				const text = text_element.text().toLowerCase();
+				// Search data-name since label for current user is 'Me'
+				let name = '';
+				if (text_element.data('name')) {
+					name = text_element.data('name').toLowerCase();
+				}
+				if (text.includes(text_filter) || name.includes(text_filter)) {
+					$elements.eq(i).css('display', '');
+				} else {
+					$elements.eq(i).css('display', 'none');
+				}
+			}
+		});
+	},
 	deep_equal(a, b) {
 		return deep_equal(a, b);
 	},
