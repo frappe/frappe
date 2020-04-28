@@ -17,6 +17,8 @@ ignore_values = {
 	"Onboarding Step": ['is_complete', 'is_skipped']
 }
 
+ignore_doctypes = [""]
+
 def import_files(module, dt=None, dn=None, force=False, pre_process=None, reset_permissions=False):
 	if type(module) is list:
 		out = []
