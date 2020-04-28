@@ -163,6 +163,38 @@ def get_rendered_template(doc, name=None, print_format=None, meta=None,
 
 	return html
 
+def set_link_titles(doc):
+	# Replaces name with title of link field doctype
+
+	meta = frappe.get_meta(doc.doctype)
+	set_title_values_for_link_and_dynamic_link_fields(meta, doc)
+	set_title_values_for_table_and_multiselect_fields(meta, doc)
+
+def set_title_values_for_link_and_dynamic_link_fields(meta, doc):
+	for field in meta.get_link_fields() + meta.get_dynamic_link_fields():
+		if not doc.get(field.fieldname):
+			continue
+
+		# If link field, then get doctype from options
+		# If dynamic link field, then get doctype from dependent field
+		doctype = field.options if field.fieldtype == "Link" else doc.get(field.options)
+
+		meta = frappe.get_meta(doctype)
+		if not meta or not (meta.title_field and meta.show_title_field_in_link):
+			continue
+
+		link_title = frappe.get_cached_value(doctype, doc.get(field.fieldname), meta.title_field)
+		setattr(doc, field.fieldname, link_title)
+
+def set_title_values_for_table_and_multiselect_fields(meta, doc):
+	for field in meta.get_table_fields():
+		if not doc.get(field.fieldname):
+			continue
+
+		_meta = frappe.get_meta(field.options)
+		for value in doc.get(field.fieldname):
+			set_title_values_for_link_and_dynamic_link_fields(_meta, value)
+
 def convert_markdown(doc, meta):
 	'''Convert text field values to markdown if necessary'''
 	for field in meta.fields:
@@ -183,6 +215,8 @@ def get_html_and_style(doc, name=None, print_format=None, meta=None,
 		doc = frappe.get_doc(json.loads(doc))
 
 	print_format = get_print_format_doc(print_format, meta=meta or frappe.get_meta(doc.doctype))
+
+	set_link_titles(doc)
 
 	try:
 		html = get_rendered_template(doc, name=name, print_format=print_format, meta=meta,

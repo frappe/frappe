@@ -133,7 +133,7 @@ def search_widget(doctype, txt, query=None, searchfield=None, start=0,
 				fields = list(set(fields + json.loads(filter_fields)))
 			formatted_fields = ['`tab%s`.`%s`' % (meta.name, f.strip()) for f in fields]
 
-			title_field_query = get_title_field_query(meta, formatted_fields)
+			title_field_query = get_title_field_query(meta)
 
 			# Insert title field query after name
 			formatted_fields.insert(1, title_field_query)
@@ -198,7 +198,7 @@ def get_title_field_query(meta):
 	if title_field and show_title_field_in_link:
 		field = "`tab{0}`.{1} as `label`".format(meta.name, title_field)
 
-	return formatted_fields
+	return field
 
 def build_for_autosuggest(res, doctype, is_query):
 	results = []
