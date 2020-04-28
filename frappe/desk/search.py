@@ -133,7 +133,10 @@ def search_widget(doctype, txt, query=None, searchfield=None, start=0,
 				fields = list(set(fields + json.loads(filter_fields)))
 			formatted_fields = ['`tab%s`.`%s`' % (meta.name, f.strip()) for f in fields]
 
-			formatted_fields = get_title_field(meta, formatted_fields)
+			title_field_query = get_title_field_query(meta, formatted_fields)
+
+			# Insert title field query after name
+			formatted_fields.insert(1, title_field_query)
 
 			# find relevance as location of search term from the beginning of string `name`. used for sorting results.
 			formatted_fields.append("""locate({_txt}, `tab{doctype}`.`name`) as `_relevance`""".format(
@@ -187,16 +190,13 @@ def get_std_fields_list(meta, key):
 
 	return sflist
 
-def get_title_field(meta, formatted_fields):
+def get_title_field_query(meta):
 	title_field = meta.title_field if meta.title_field else None
 	show_title_field_in_link = meta.show_title_field_in_link if meta.show_title_field_in_link else None
+	field = "NULL as `label`"
 
 	if title_field and show_title_field_in_link:
 		field = "`tab{0}`.{1} as `label`".format(meta.name, title_field)
-	else:
-		field = "NULL as `label`"
-
-	formatted_fields.insert(1, field)
 
 	return formatted_fields
 

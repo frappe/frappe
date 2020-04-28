@@ -48,6 +48,7 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 		this.input = this.$input.get(0);
 		this.has_input = true;
 		this.translate_values = true;
+		this.data_value = null;
 		this.setup_buttons();
 		this.setup_awesomeplete();
 	},
@@ -67,6 +68,7 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 		}
 	},
 	set_formatted_input: function (value) {
+		this._super()
 		let doctype = this.get_options();
 		if (value) {
 			if (this.label) {
@@ -80,8 +82,11 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 		}
 	},
 	set_data_value: function(link_display, value) {
-		this.$input && this.$input.val(__(link_display));
-		this.$input && this.$input.attr("data-value", encodeURIComponent(value));
+		if (!this.$input) {
+			return;
+		}
+		this.$input.val(__(link_display));
+		this.data_value = value;
 	},
 	parse_validate_and_set_in_model: function(value, label, e) {
 		if (this.parse) {
@@ -122,8 +127,7 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 		}
 	},
 	get_input_value: function () {
-		return (this.$input && this.$input.attr("data-value") && this.$input.val()) ?
-			decodeURIComponent(this.$input.attr("data-value")) : "";
+		return (this.$input && this.data_value && this.$input.val()) ? this.data_value : "";
 	},
 	get_label_value: function () {
 		return this.$input ? this.$input.val() : "";
@@ -132,8 +136,11 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 		this.$input && this.$input.val(__(label));
 	},
 	reset_value: function () {
-		this.$input && this.$input.val("");
-		this.$input && this.$input.removeAttr("data-value");
+		if (!this.$input) {
+			return;
+		}
+		this.$input.val("");
+		this.data_value = null;
 	},
 	open_advanced_search: function() {
 		var doctype = this.get_options();
