@@ -27,14 +27,16 @@ export default class Widget {
 		options.allow_delete &&
 			this.add_custom_button(
 				'<i class="fa fa-trash" aria-hidden="true"></i>',
-				() => this.delete()
+				() => this.delete(),
+				"",
+				`${__('Delete')}`
 			);
 
 		options.allow_sorting &&
 			this.add_custom_button(
 				'<i class="fa fa-arrows" aria-hidden="true"></i>',
 				null,
-				"drag-handle"
+				"drag-handle",
 			);
 
 		if (options.allow_hiding) {
@@ -45,10 +47,12 @@ export default class Widget {
 				this.footer.css("opacity", 0.5);
 			}
 			const classname = this.hidden ? 'fa fa-eye' : 'fa fa-eye-slash';
+			const title = this.hidden ? `${__('Show')}` : `${__('Hide')}`;
 			this.add_custom_button(
 				`<i class="${classname}" aria-hidden="true"></i>`,
 				() => this.hide_or_show(),
-				"show-or-hide-button"
+				"show-or-hide-button",
+				title
 			);
 
 			this.show_or_hide_button = this.action_area.find(
@@ -62,6 +66,13 @@ export default class Widget {
 				() => this.edit()
 			);
 
+		options.allow_resize &&
+			this.add_custom_button(
+				'<i class="fa fa-expand" aria-hidden="true"></i>',
+				() => this.toggle_width(),
+				"",
+				`${__('Resize')}`
+			);
 	}
 
 	make() {
@@ -98,9 +109,9 @@ export default class Widget {
 		}
 	}
 
-	add_custom_button(html, action, class_name = "") {
+	add_custom_button(html, action, class_name = "", title="") {
 		let button = $(
-			`<button class="btn btn-default btn-xs ${class_name}">${html}</button>`
+			`<button class="btn btn-default btn-xs ${class_name}" title="${title}">${html}</button>`
 		);
 		button.click(event => {
 			event.stopPropagation();
@@ -145,6 +156,18 @@ export default class Widget {
 		this.edit_dialog.make();
 	}
 
+	toggle_width() {
+		if (!this.width) {
+			this.widget.addClass("full-width");
+			this.width = 'Full';
+			this.refresh();
+		} else {
+			this.widget.removeClass("full-width");
+			this.width = null;
+			this.refresh();
+		}
+	}
+
 	hide_or_show() {
 		if (!this.hidden) {
 			this.body.css("opacity", 0.5);
@@ -160,7 +183,9 @@ export default class Widget {
 		this.show_or_hide_button.empty();
 
 		const classname = this.hidden ? 'fa fa-eye' : 'fa fa-eye-slash';
-		$(`<i class="${classname}" aria-hidden="true"></i>`).appendTo(
+		const title = this.hidden ? `${__('Show')}` : `${__('Hide')}`;
+
+		$(`<i class="${classname}" aria-hidden="true" title="${title}"></i>`).appendTo(
 			this.show_or_hide_button
 		);
 	}

@@ -14,7 +14,8 @@ export default class ChartWidget extends Widget {
 			name: this.name,
 			chart_name: this.chart_name,
 			label: this.label,
-			hidden: this.hidden
+			hidden: this.hidden,
+			width: this.width,
 		};
 	}
 
@@ -33,6 +34,8 @@ export default class ChartWidget extends Widget {
 		this.widget.addClass("dashboard-widget-box");
 		if (this.width == "Full") {
 			this.widget.addClass("full-width");
+		} else {
+			this.widget.removeClass("full-width");
 		}
 	}
 

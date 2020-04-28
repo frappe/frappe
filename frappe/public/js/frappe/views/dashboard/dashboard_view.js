@@ -141,6 +141,7 @@ frappe.views.DashboardView = class DashboardView extends frappe.views.ListView {
 				allow_create: true,
 				allow_delete: true,
 				allow_hiding: true,
+				allow_resize: true,
 			},
 			custom_dialog: () => this.show_add_chart_dialog(),
 			widgets: this.charts,
