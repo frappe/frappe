@@ -66,13 +66,19 @@ export default class Widget {
 				() => this.edit()
 			);
 
-		options.allow_resize &&
+		if (options.allow_resize) {
+			const title = this.width == 'Full'? `${__('Collapse')}` : `${__('Expand')}`;
 			this.add_custom_button(
 				'<i class="fa fa-expand" aria-hidden="true"></i>',
 				() => this.toggle_width(),
-				"",
-				`${__('Resize')}`
+				"resize-button",
+				title
 			);
+
+			this.resize_button = this.action_area.find(
+				".resize-button"
+			);
+		}
 	}
 
 	make() {
@@ -157,15 +163,18 @@ export default class Widget {
 	}
 
 	toggle_width() {
-		if (!this.width) {
-			this.widget.addClass("full-width");
-			this.width = 'Full';
-			this.refresh();
-		} else {
+		if (this.width == 'Full') {
 			this.widget.removeClass("full-width");
 			this.width = null;
 			this.refresh();
+		} else {
+			this.widget.addClass("full-width");
+			this.width = 'Full';
+			this.refresh();
 		}
+
+		const title = this.width == 'Full' ? `${__('Collapse')}` : `${__('Expand')}`;
+		this.resize_button.attr('title', title);
 	}
 
 	hide_or_show() {

@@ -34,8 +34,6 @@ export default class ChartWidget extends Widget {
 		this.widget.addClass("dashboard-widget-box");
 		if (this.width == "Full") {
 			this.widget.addClass("full-width");
-		} else {
-			this.widget.removeClass("full-width");
 		}
 	}
 
