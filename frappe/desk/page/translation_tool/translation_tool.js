@@ -229,7 +229,6 @@ class TranslationTool {
 			});
 
 			this.form.make();
-			// this.form.get_field('contributed_translations_section').wrapper.addClass('border-bottom');
 			this.setup_header();
 		}
 
@@ -281,17 +280,21 @@ class TranslationTool {
 	}
 
 	setup_contributions(contributions) {
-		let contributions_html = contributions.map(c => {
-			return `
-			<div class="contributed-translation flex justify-between align-center">
+		const contributions_exists = contributions && contributions.length;
+		if (contributions_exists) {
+			let contributions_html = contributions.map(c => {
+				return `
+				<div class="contributed-translation flex justify-between align-center">
 				<div class="ellipsis">${c.translated}</div>
 				<div class="text-muted small">
-					${comment_when(c.creation)}
+				${comment_when(c.creation)}
 				</div>
-			</div>
-			`;
-		});
-		this.form.get_field('contributed_translations').html(contributions_html);
+				</div>
+				`;
+			});
+			this.form.get_field('contributed_translations').html(contributions_html);
+		}
+		this.form.set_df_property('contributed_translations_section', 'hidden', !contributions_exists);
 	}
 	show_confirmation_dialog() {
 		this.confirmation_dialog = new frappe.ui.Dialog({
@@ -438,7 +441,7 @@ class TranslationTool {
 	}
 
 	get_indicator_status_text(message_obj) {
-		if (message_obj.translated) {
+		if (!message_obj.translated) {
 			return __('Untranslated');
 		} else if (message_obj.translated_by_google) {
 			return __('Google Translation');
