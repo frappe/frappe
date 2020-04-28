@@ -207,7 +207,7 @@ def update_space_usage():
 	files_size = get_folder_size(frappe.get_site_path("public", "files"))
 	files_size += get_folder_size(frappe.get_site_path("private", "files"))
 
-	backup_size = get_folder_size(frappe.get_site_path("private", "backups"))
+	backup_size = get_backup_size(frappe.get_site_path("private", "backups"))
 	database_size = get_database_size()
 
 	usage = {
@@ -221,20 +221,23 @@ def update_space_usage():
 
 	return usage
 
+def get_backup_size(path):
+	'''Returns total size of database backups for number mentioned in system settings'''
+	if os.path.exists(path):
+		backup_limit = cint(frappe.db.get_singles_value('System Settings', 'backup_limit'))
+		backups = []
+		for backup in os.listdir(path):
+			if backup.endswith("sql.gz"):
+				backups.append(os.path.abspath(os.path.join(path, backup)))
+		backups = sorted(backups, key=os.path.getsize, reverse=1)
+		total_size = 0.0
+		for idx in range(0, backup_limit):
+			total_size += flt(subprocess.check_output(['du', '-ms', backups[idx]]).split()[0], 2)
+		return total_size
+
 def get_folder_size(path):
 	'''Returns folder size in MB if it exists'''
 	if os.path.exists(path):
-		if path.endswith("backups"):
-			backup_limit = cint(frappe.db.get_singles_value('System Settings', 'backup_limit'))
-			backups = []
-			for backup in os.listdir(path):
-				if backup.endswith("sql.gz"):
-					backups.append(os.path.abspath(os.path.join(path, backup)))
-			backups = sorted(backups, key=os.path.getsize, reverse=1)
-			total_size = 0.0
-			for idx in range(0, backup_limit):
-				total_size += flt(subprocess.check_output(['du', '-ms', backups[idx]]).split()[0], 2)
-			return total_size
 		return flt(subprocess.check_output(['du', '-ms', path]).split()[0], 2)
 
 def get_database_size():
