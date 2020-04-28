@@ -224,6 +224,17 @@ def update_space_usage():
 def get_folder_size(path):
 	'''Returns folder size in MB if it exists'''
 	if os.path.exists(path):
+		if path.endswith("backups"):
+			backup_limit = cint(frappe.db.get_singles_value('System Settings', 'backup_limit'))
+			backups = []
+			for backup in os.listdir(path):
+				if backup.endswith("sql.gz"):
+					backups.append(os.path.abspath(os.path.join(path, backup)))
+			backups = sorted(backups, key=os.path.getsize, reverse=1)
+			total_size = 0.0
+			for idx in range(0, backup_limit):
+				total_size += flt(subprocess.check_output(['du', '-ms', backups[idx]]).split()[0], 2)
+			return total_size
 		return flt(subprocess.check_output(['du', '-ms', path]).split()[0], 2)
 
 def get_database_size():
