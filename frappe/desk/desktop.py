@@ -228,7 +228,7 @@ class Workspace:
 
 	def get_onboarding_slides(self):
 		steps = []
-		for doc in self.onboarding_doc.steps:
+		for doc in self.onboarding_doc.get_steps():
 			step = doc.as_dict().copy()
 			step.label = _(doc.title)
 			steps.append(step)

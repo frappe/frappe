@@ -14,3 +14,6 @@ class Onboarding(Document):
 
 			for step in self.steps:
 				export_to_files(record_list=[['Onboarding Step', step.step]], record_module=self.module)
+
+	def get_steps(self):
+		return [frappe.get_doc("Onboarding Step", step.step) for step in self.steps]
