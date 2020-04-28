@@ -1,0 +1,16 @@
+{
+ "action": "View Settings",
+ "creation": "2020-04-28 22:09:12.089238",
+ "docstatus": 0,
+ "doctype": "Onboarding Step",
+ "idx": 0,
+ "is_complete": 0,
+ "is_mandatory": 0,
+ "is_skipped": 0,
+ "modified": "2020-04-28 22:09:12.089238",
+ "modified_by": "Administrator",
+ "name": "Enable Website Tracking",
+ "owner": "Administrator",
+ "reference_document": "Website Settings",
+ "title": "Enable Website Tracking"
+}

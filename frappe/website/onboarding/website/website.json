@@ -3,53 +3,28 @@
  "docstatus": 0,
  "doctype": "Onboarding",
  "idx": 0,
- "is_complete": 0,
+ "is_complete": 1,
  "is_skipped": 0,
- "modified": "2020-04-26 15:58:05.438200",
+ "modified": "2020-04-28 22:14:32.081565",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Website",
  "owner": "Administrator",
  "steps": [
   {
-   "action": "Watch Video",
-   "is_complete": 0,
-   "is_mandatory": 1,
-   "is_skipped": 0,
-   "title": "Introduction to Website",
-   "video_url": "https://www.youtube.com/watch?v=lyW6mfFBSNw"
+   "step": "Introduction to Website"
   },
   {
-   "action": "Create Entry",
-   "is_complete": 0,
-   "is_mandatory": 0,
-   "is_skipped": 0,
-   "reference_document": "Blogger",
-   "title": "Create Blogger"
+   "step": "Create Blogger"
   },
   {
-   "action": "Create Entry",
-   "is_complete": 0,
-   "is_mandatory": 0,
-   "is_skipped": 0,
-   "reference_document": "Blog Category",
-   "title": "Add Blog Category"
+   "step": "Add Blog Category"
   },
   {
-   "action": "Create Entry",
-   "is_complete": 0,
-   "is_mandatory": 0,
-   "is_skipped": 0,
-   "reference_document": "Website Theme",
-   "title": "Set Website Theme"
+   "step": "Set Website Theme"
   },
   {
-   "action": "View Settings",
-   "is_complete": 0,
-   "is_mandatory": 0,
-   "is_skipped": 0,
-   "reference_document": "Website Settings",
-   "title": "Enable Website Tracking"
+   "step": "Enable Website Tracking"
   }
  ],
  "subtitle": "Blogs, website view tracking, and more.",
