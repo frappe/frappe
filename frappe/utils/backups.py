@@ -25,7 +25,7 @@ class BackupGenerator:
 	def __init__(self, db_name, user, password, backup_path_db=None, backup_path_files=None,
 		backup_path_private_files=None, db_host="localhost", db_port=3306):
 		self.db_host = db_host
-		self.db_port = db_port
+		self.db_port = db_port or 3306
 		self.db_name = db_name
 		self.user = user
 		self.password = password
