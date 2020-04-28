@@ -593,6 +593,59 @@ export default class ChartWidget extends Widget {
 		}
 	}
 
+	get_chart_args() {
+		let colors = this.get_chart_colors();
+
+		const chart_type_map = {
+			Line: "line",
+			Bar: "bar",
+			Percentage: "percentage",
+			Pie: "pie",
+			Donut: "donut"
+		};
+
+		let chart_args = {
+			data: this.data,
+			type: chart_type_map[this.chart_doc.type],
+			colors: colors,
+			height: this.height,
+			axisOptions: {
+				xIsSeries: this.chart_doc.timeseries,
+				shortenYAxisNumbers: 1
+			}
+		};
+
+		let set_options = (options) => {
+			let custom_options = JSON.parse(options);
+			for (let key in custom_options) {
+				chart_args[key] = custom_options[key];
+			}
+		};
+
+		if (this.custom_options) {
+			set_options(this.custom_options);
+		}
+
+		if (this.chart_doc.custom_options) {
+			set_options(this.chart_doc.custom_options);
+		}
+
+		return chart_args;
+	}
+
+	get_chart_colors() {
+		let colors = [];
+		if (this.chart_doc.y_axis.length) {
+			this.chart_doc.y_axis.map(field => {
+				colors.push(field.color);
+			});
+		} else if (["Line", "Bar"].includes(this.chart_doc.type)) {
+			colors = [this.chart_doc.color || "light-blue"];
+		}
+
+		return colors;
+	}
+
 	update_last_synced() {
 		let last_synced_text = __("Last synced {0}", [
 			comment_when(this.chart_doc.last_synced_on)
