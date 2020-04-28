@@ -75,7 +75,7 @@
    "fieldname": "steps",
    "fieldtype": "Table",
    "label": "Steps",
-   "options": "Onboarding Step"
+   "options": "Onboarding Step Map"
   },
   {
    "default": "0",
@@ -94,7 +94,7 @@
   }
  ],
  "links": [],
- "modified": "2020-04-26 13:27:11.835073",
+ "modified": "2020-04-28 22:06:20.407800",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Onboarding",
@@ -108,9 +108,18 @@
    "print": 1,
    "read": 1,
    "report": 1,
-   "role": "System Manager",
+   "role": "Administrator",
    "share": 1,
    "write": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "All",
+   "share": 1
   }
  ],
  "sort_field": "modified",
