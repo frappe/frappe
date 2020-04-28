@@ -102,7 +102,9 @@ export default class WebForm extends frappe.ui.FieldGroup {
 	}
 
 	save() {
-		this.validate && this.validate();
+		if (this.validate && !this.validate()) {
+			frappe.throw(__("Couldn't save, please check the data you have entered"), __("Validation"))
+		}
 
 		// validation hack: get_values will check for missing data
 		let doc_values = super.get_values(this.allow_incomplete);
