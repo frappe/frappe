@@ -38,7 +38,7 @@ def get_scheduled_backup_limit():
 
 def cleanup_old_backups(site_path, files, limit):
 	backup_paths = []
-	minimum_site_backups = frappe.conf.minimum_site_backups or 3
+	minimum_site_backups = frappe.conf.minimum_site_backups or limit
 	for f in files:
 		if f.endswith('sql.gz'):
 			_path = os.path.abspath(os.path.join(site_path, f))
