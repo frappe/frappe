@@ -107,7 +107,6 @@ export default class WidgetGroup {
 				container: this.body,
 				type: this.type,
 				custom_dialog: this.custom_dialog,
-				custom_dialog_function: this.custom_dialog_function,
 				default_values: this.default_values,
 				on_create: (config) => {
 					// Remove new widget
