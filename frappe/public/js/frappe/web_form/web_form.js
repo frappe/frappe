@@ -29,7 +29,7 @@ export default class WebForm extends frappe.ui.FieldGroup {
 
 		// webform client script
 		frappe.init_client_script && frappe.init_client_script();
-		frappe.web_form.events.trigger('after_load');
+		this.after_load && this.after_load();
 	}
 
 	on(fieldname, handler) {
@@ -134,7 +134,7 @@ export default class WebForm extends frappe.ui.FieldGroup {
 				if (!response.exc) {
 					// Success
 					this.handle_success(response.message);
-					frappe.web_form.events.trigger('after_save');
+					this.after_save && this.after_save();
 				}
 			},
 			always: function() {
