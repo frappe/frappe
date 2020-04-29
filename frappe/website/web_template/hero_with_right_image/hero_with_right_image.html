@@ -23,7 +23,7 @@
 	</div>
 	{%- if image -%}
 	{{ c('image_with_blur',
-		class=["hidden md:block", "w-full md:w-6/12" if contain_image else "md:max-w-md lg:max-w-lg xl:max-w-xl xxl:max-w-2xl"],
+		class=["hidden md:block max-h-144", "w-full md:w-6/12" if contain_image else "md:max-w-md lg:max-w-lg xl:max-w-xl xxl:max-w-2xl"],
 		src=image,
 		alt="")
 	}}
