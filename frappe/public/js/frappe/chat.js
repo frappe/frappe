@@ -2511,7 +2511,7 @@ class extends Component {
 					h("div",{class:"input-group input-group-lg"},
 						!frappe._.is_empty(props.actions) ?
 							h("div",{class:"input-group-btn dropup"},
-								h(frappe.components.Button,{ class: (frappe.user_id === "Guest" ? "disabled" : "dropdown-toggle"), "data-toggle": "dropdown"},
+								h(frappe.components.Button,{ class: (frappe.session.user === "Guest" ? "disabled" : "dropdown-toggle"), "data-toggle": "dropdown"},
 									h(frappe.components.FontAwesome, { class: "text-muted", type: "paperclip", fixed: true })
 								),
 								h("div",{ class:"dropdown-menu dropdown-menu-left", onclick: e => e.stopPropagation() },
