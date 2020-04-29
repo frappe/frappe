@@ -22,6 +22,12 @@
    "reqd": 0
   },
   {
+   "fieldname": "contain_image",
+   "fieldtype": "Check",
+   "label": "Restrict Image inside Container",
+   "reqd": 0
+  },
+  {
    "fieldname": "primary_action_label",
    "fieldtype": "Data",
    "label": "Primary Action Label",
@@ -47,7 +53,7 @@
   }
  ],
  "idx": 0,
- "modified": "2020-04-26 15:08:26.937576",
+ "modified": "2020-04-29 14:12:31.613545",
  "modified_by": "Administrator",
  "name": "Hero with Right Image",
  "owner": "Administrator",
