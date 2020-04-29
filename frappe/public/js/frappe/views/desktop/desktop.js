@@ -271,6 +271,10 @@ class DesktopPage {
 			label: this.data.onboarding.label || __(`Let's Get Started`),
 			subtitle: this.data.onboarding.subtitle,
 			steps: this.data.onboarding.items,
+			success: this.data.onboarding.success,
+			docs_url: this.data.onboarding.docs_url,
+			user_can_dismiss: this.data.onboarding.user_can_dismiss,
+			user_can_skip: this.data.onboarding.user_can_skip,
 			widget_type: 'onboarding',
 			container: this.page,
 			options: {
