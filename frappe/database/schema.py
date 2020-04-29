@@ -137,8 +137,7 @@ class DBTable:
 						if frappe.db.is_missing_column(e):
 							# Unknown column 'column_name' in 'field list'
 							continue
-						else:
-							raise
+						raise
 
 					if max_length and max_length[0][0] and max_length[0][0] > new_length:
 						if col.fieldname in self.columns:
