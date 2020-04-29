@@ -5,6 +5,7 @@
 from __future__ import unicode_literals
 from frappe.model.document import Document
 import frappe
+import json
 
 class Dashboard(Document):
 	def on_update(self):
@@ -12,6 +13,16 @@ class Dashboard(Document):
 			# make all other dashboards non-default
 			frappe.db.sql('''update
 				tabDashboard set is_default = 0 where name != %s''', self.name)
+
+	def validate(self):
+		self.validate_custom_options()
+
+	def validate_custom_options(self):
+		if self.chart_options:
+			try:
+				json.loads(self.chart_options)
+			except ValueError as error:
+				frappe.throw("Invalid json added in the custom options: %s" % error)
 
 @frappe.whitelist()
 def get_permitted_charts(dashboard_name):
