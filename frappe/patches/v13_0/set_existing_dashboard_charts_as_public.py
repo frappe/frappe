@@ -1,7 +1,7 @@
 import frappe
 
 def execute():
-	frappe.reload_doctype('Dashboard Chart')
+	frappe.reload_doc('desk', 'doctype', 'dashboard_chart')
 
 	if not frappe.db.table_exists('Dashboard Chart'):
 		return
