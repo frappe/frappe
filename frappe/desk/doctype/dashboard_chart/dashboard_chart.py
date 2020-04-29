@@ -198,7 +198,7 @@ def get_heatmap_chart_config(chart, filters):
 	))
 
 	chart_config = {
-		'labels': '',
+		'labels': [],
 		'dataPoints': data,
 	}
 	return chart_config
