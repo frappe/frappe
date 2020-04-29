@@ -349,13 +349,12 @@ def flush(from_test=False):
 				smtpserver_dict[email.sender] = smtpserver
 				
 			if from_test:
-				send_one(email.name, smtpserver, auto_commit, from_test=from_test)
+				send_one(email.name, smtpserver, auto_commit)
 			else:
 				send_one_args = {
 					'email': email.name,
 					'smtpserver': smtpserver,
 					'auto_commit': auto_commit,
-					'from_test': from_test
 				}
 				enqueue(
 					method = 'frappe.email.queue.send_one',
@@ -379,7 +378,7 @@ def get_queue():
 		limit 500''', { 'now': now_datetime() }, as_dict=True)
 
 
-def send_one(email, smtpserver=None, auto_commit=True, now=False, from_test=False):
+def send_one(email, smtpserver=None, auto_commit=True, now=False):
 	'''Send Email Queue with given smtpserver'''
 
 	email = frappe.db.sql('''select
