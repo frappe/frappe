@@ -67,7 +67,6 @@ def get_result(doc, to_date=None):
 	res = frappe.db.get_all(doc.document_type, fields=fields, filters=filters)
 	number = res[0]['result'] if res else 0
 
-	frappe.db.set_value('Number Card', doc.name, 'previous_result', number)
 	return number
 
 @frappe.whitelist()
