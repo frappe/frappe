@@ -17,6 +17,8 @@
   "reference_document",
   "reference_report",
   "report_type",
+  "field",
+  "value_to_validate",
   "video_url",
   "section_break_11",
   "restrict_to_domain"
@@ -55,7 +57,7 @@
    "fieldname": "action",
    "fieldtype": "Select",
    "label": "Action",
-   "options": "Create Entry\nView Settings\nView Report\nWatch Video",
+   "options": "Create Entry\nUpdate Settings\nView Report\nWatch Video",
    "reqd": 1
   },
   {
@@ -63,7 +65,7 @@
    "fieldtype": "Column Break"
   },
   {
-   "depends_on": "eval:doc.action == \"Create Entry\" || doc.action == \"View Settings\"",
+   "depends_on": "eval:doc.action == \"Create Entry\" || doc.action == \"Update Settings\"",
    "fieldname": "reference_document",
    "fieldtype": "Link",
    "label": "Reference Document",
@@ -106,10 +108,23 @@
    "fieldtype": "Check",
    "in_list_view": 1,
    "label": "Is Skipped"
+  },
+  {
+   "depends_on": "eval:doc.action == \"Update Settings\"",
+   "fieldname": "field",
+   "fieldtype": "Select",
+   "label": "Field"
+  },
+  {
+   "depends_on": "eval:doc.action == \"Update Settings\"",
+   "description": "Use % for any non empty value.",
+   "fieldname": "value_to_validate",
+   "fieldtype": "Data",
+   "label": "Value to Validate"
   }
  ],
  "links": [],
- "modified": "2020-04-28 22:06:59.625109",
+ "modified": "2020-04-29 16:57:30.292782",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Onboarding Step",
