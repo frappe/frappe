@@ -26,7 +26,7 @@ export default class ChartWidget extends Widget {
 	}
 
 	set_chart_title() {
-		const max_chars = this.widget.width() < 500? 20: 60;
+		const max_chars = this.widget.width() < 500 ? 20 : 60;
 		this.set_title(max_chars);
 	}
 
@@ -455,11 +455,10 @@ export default class ChartWidget extends Widget {
 				chart_name: this.chart_doc.name,
 				filters: filters,
 				refresh: refresh ? 1 : 0,
-				time_interval:
-					args && args.time_interval? args.time_interval: null,
-				timespan: args && args.timespan? args.timespan: null,
-				from_date: args && args.from_date? args.from_date: null,
-				to_date: args && args.to_date? args.to_date: null
+				time_interval: args && args.time_interval ? args.time_interval : null,
+				timespan: args && args.timespan ? args.timespan : null,
+				from_date: args && args.from_date ? args.from_date : null,
+				to_date: args && args.to_date ? args.to_date : null
 			};
 		}
 		return frappe.xcall(method, args);

@@ -109,7 +109,7 @@ export default class Widget {
 	}
 
 	set_title(max_chars) {
-		this.title_field[0].innerHTML = max_chars? frappe.ellipsis(this.label, max_chars): this.label;
+		this.title_field[0].innerHTML = max_chars ? frappe.ellipsis(this.label, max_chars) : this.label;
 		if (max_chars) {
 			this.title_field[0].setAttribute('title', this.label);
 		}

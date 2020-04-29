@@ -89,7 +89,7 @@ frappe.views.DashboardView = class DashboardView extends frappe.views.ListView {
 		this.$dashboard_wrapper.empty();
 
 		frappe.dashboard_utils.get_dashboard_settings().then(settings => {
-			this.dashboard_chart_settings = settings.chart_config? JSON.parse(settings.chart_config): {};
+			this.dashboard_chart_settings = settings.chart_config ? JSON.parse(settings.chart_config) : {};
 			this.charts.map(chart => {
 				chart.label = chart.chart_name;
 				chart.chart_settings = this.dashboard_chart_settings[chart.chart_name] || {};
@@ -398,7 +398,7 @@ frappe.views.DashboardView = class DashboardView extends frappe.views.ListView {
 				let chart = values;
 				if (chart.new_or_existing == 'New Chart') {
 					chart.chart_name = chart.label;
-					chart.chart_type = chart.chart_type == 'Time Series'? chart.chart_function: chart.chart_type;
+					chart.chart_type = chart.chart_type == 'Time Series' ? chart.chart_function : chart.chart_type;
 					chart.document_type = this.doctype;
 					chart.filters_json = '[]';
 					frappe.xcall('frappe.desk.doctype.dashboard_chart.dashboard_chart.create_dashboard_chart', {'args': chart}).then((doc)=> {
