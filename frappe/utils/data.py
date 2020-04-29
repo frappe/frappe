@@ -1134,12 +1134,16 @@ def is_subset(list_a, list_b):
 def generate_hash(*args, **kwargs):
 	return frappe.generate_hash(*args, **kwargs)
 
+
 def is_date_between(date, start_date, end_date):
+	''' Checks whether date is between start_date and end_date '''
 	if getdate(start_date) <= getdate(date) <= getdate(end_date):
 		return True
-	else:
-		return False
+
+	return False
+
 
 def chunk(l, n):
+	''' Creates list of elements split into groups of n. '''
 	for i in range(0, len(l), n):
 		yield l[i:i+n]
