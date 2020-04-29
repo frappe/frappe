@@ -6,14 +6,17 @@ context('Form', () => {
 			return frappe.call("frappe.tests.ui_test_helpers.create_contact_records");
 		});
 	});
-	beforeEach(() => {
-		cy.visit('/desk#workspace/Website');
-	});
 	it('create a new form', () => {
 		cy.visit('/desk#Form/ToDo/New ToDo 1');
 		cy.fill_field('description', 'this is a test todo', 'Text Editor').blur();
 		cy.get('.page-title').should('contain', 'Not Saved');
+		cy.server();
+		cy.route({
+			method: 'POST',
+			url: 'api/method/frappe.desk.form.save.savedocs'
+		}).as('form_save');
 		cy.get('.primary-action').click();
+		cy.wait('@form_save').its('status').should('eq', 200);
 		cy.visit('/desk#List/ToDo');
 		cy.location('hash').should('eq', '#List/ToDo/List');
 		cy.get('h1').should('be.visible').and('contain', 'To Do');

@@ -733,8 +733,11 @@ def validate_fields(meta):
 			d.default = '0'
 		if d.fieldtype == "Check" and d.default not in ('0', '1'):
 			frappe.throw(_("Default for 'Check' type of field must be either '0' or '1'"))
-		if d.fieldtype == "Select" and d.default and (d.default not in d.options.split("\n")):
-			frappe.throw(_("Default for {0} must be an option").format(d.fieldname))
+		if d.fieldtype == "Select" and d.default:
+			if not d.options:
+				frappe.throw(_("Options for {0} must be set before setting the default value.").format(frappe.bold(d.fieldname)))
+			elif d.default not in d.options.split("\n"):
+				frappe.throw(_("Default value for {0} must be in the list of options.").format(frappe.bold(d.fieldname)))
 
 	def check_precision(d):
 		if d.fieldtype in ("Currency", "Float", "Percent") and d.precision is not None and not (1 <= cint(d.precision) <= 6):
@@ -895,7 +898,7 @@ def validate_fields(meta):
 			field.fetch_from = field.fetch_from.strip('\n').strip()
 
 	def validate_data_field_type(docfield):
-		if docfield.fieldtype == "Data":
+		if docfield.fieldtype == "Data" and not (docfield.oldfieldtype and docfield.oldfieldtype != "Data"):
 			if docfield.options and (docfield.options not in data_field_options):
 				df_str = frappe.bold(_(docfield.label))
 				text_str = _("{0} is an invalid Data field.").format(df_str) + "<br>" * 2 + _("Only Options allowed for Data field are:") + "<br>"

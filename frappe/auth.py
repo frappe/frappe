@@ -219,7 +219,10 @@ class LoginManager:
 			user = frappe.db.get_value("User", filters={"username": user}, fieldname="name") or user
 
 		self.check_if_enabled(user)
-		self.user = self.check_password(user, pwd)
+		if not frappe.form_dict.get('tmp_id'):
+			self.user = self.check_password(user, pwd)
+		else:
+			self.user = user
 
 	def force_user_to_reset_password(self):
 		if not self.user:
