@@ -59,7 +59,11 @@ class Workspace:
 		if frappe.db.get_value("Onboarding", self.doc.onboarding, "is_complete"):
 			return
 
-		return frappe.get_doc("Onboarding", self.doc.onboarding)
+		doc = frappe.get_doc("Onboarding", self.doc.onboarding)
+		if doc.check_completion():
+			return
+
+		return doc
 
 
 	def get_pages_to_extend(self):

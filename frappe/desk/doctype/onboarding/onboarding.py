@@ -17,3 +17,17 @@ class Onboarding(Document):
 
 	def get_steps(self):
 		return [frappe.get_doc("Onboarding Step", step.step) for step in self.steps]
+
+	def check_completion(self):
+		if self.is_complete:
+			return True
+
+		steps = self.get_steps()
+		is_complete = [True if (step.is_complete or step.is_skipped) else False for step in steps]
+		if (all(is_complete)):
+			self.is_complete = True
+			self.save()
+			return True
+
+		return False
+
