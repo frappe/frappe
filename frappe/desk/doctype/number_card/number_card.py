@@ -10,8 +10,7 @@ class NumberCard(Document):
 	pass
 
 
-def get_permission_query_conditions(user):
-
+def get_permission_query_conditions(user=None):
 	if not user:
 		user = frappe.session.user
 
@@ -65,7 +64,7 @@ def get_result(doc, to_date=None):
 	if to_date:
 		filters.append([doc.document_type, 'creation', '<', to_date, False])
 
-	number = frappe.db.get_all(doc.document_type, fields = fields, filters = filters)[0]['result']
+	number = frappe.db.get_all(doc.document_type, fields=fields, filters=filters)[0]['result']
 
 	frappe.db.set_value('Number Card', doc.name, 'previous_result', number)
 	return number
@@ -138,8 +137,8 @@ def get_cards_for_user(doctype, txt, searchfield, start, page_len, filters):
 			{search_conditions}
 	'''.format(
 		filters=filters,
-		user = frappe.session.user,
-		search_conditions = search_conditions,
+		user=frappe.session.user,
+		search_conditions=search_conditions,
 		conditions=conditions
 	), values)
 
