@@ -31,6 +31,7 @@ class DBTable:
 
 	def sync(self):
 		if self.is_new():
+			frappe.cache().delete_key('db_tables')
 			self.create()
 		else:
 			frappe.cache().hdel('table_columns', self.table_name)
