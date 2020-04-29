@@ -22,7 +22,7 @@
   "content_md",
   "content_html",
   "email_sent",
-  "seo_section",
+  "meta_tags",
   "meta_description",
   "column_break_18",
   "meta_image",
@@ -131,11 +131,6 @@
    "label": "Disable Comments"
   },
   {
-   "fieldname": "seo_section",
-   "fieldtype": "Section Break",
-   "label": "SEO"
-  },
-  {
    "fieldname": "meta_description",
    "fieldtype": "Small Text",
    "label": "Meta Description"
@@ -150,16 +145,20 @@
    "label": "Meta Image"
   },
   {
-   "description": "This is a test preview based on the meta description generated for this blog. The description can be of any length but Google will truncate it to 155 - 160 characters. You can also check the previews for <a href=\"https://developers.facebook.com/tools/debug/\" target=\"_blank\">Facebook</a> and <a href=\"https://cards-dev.twitter.com/validator\" target=\"_blank\">Twitter</a> using their debugger tools. ",
    "fieldname": "section_break_20",
-   "fieldtype": "Section Break",
-   "label": "Google Search Preview"
+   "fieldtype": "Section Break"
   },
   {
+   "description": "This is an example Google SERP Preview.",
    "fieldname": "google_preview",
    "fieldtype": "HTML",
    "label": "Google Snippet Preview",
    "read_only": 1
+  },
+  {
+   "fieldname": "meta_tags",
+   "fieldtype": "Section Break",
+   "label": "Meta Tags"
   }
  ],
  "has_web_view": 1,
@@ -168,7 +167,7 @@
  "is_published_field": "published",
  "links": [],
  "max_attachments": 5,
- "modified": "2020-04-27 15:12:02.179731",
+ "modified": "2020-04-29 17:32:41.055883",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Blog Post",
