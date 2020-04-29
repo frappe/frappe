@@ -777,7 +777,7 @@ class Database(object):
 				WHERE table_schema NOT IN ('pg_catalog', 'information_schema')
 			""")
 			tables = set(d[0] for d in table_rows)
-		frappe.cache().set_value('db_tables', tables)
+			frappe.cache().set_value('db_tables', tables)
 		return tables
 
 	def a_row_exists(self, doctype):
