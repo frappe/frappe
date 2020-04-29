@@ -9,6 +9,7 @@ frappe.ui.form.on('Dashboard Chart', {
 		frm.add_fetch('source', 'timeseries', 'timeseries');
 	},
 
+
 	refresh: function(frm) {
 		frm.chart_filters = null;
 		frm.add_custom_button('Add Chart to Dashboard', () => {
