@@ -297,14 +297,6 @@
 		margin-bottom: 50px;
 		margin-top: 10px;
 
-		.success {
-			font-size: 16px;
-			text-align: center;
-			-webkit-animation-name: zoomIn;
-			animation-name: zoomIn;
-			animation-duration: 200ms;
-		}
-
 		.widget-head {
 			display: flex;
 
@@ -406,7 +398,7 @@
 
 				&.complete {
 					i {
-						color: @brand-primary;
+						color: @green;
 					}
 
 					span {
@@ -476,6 +468,17 @@
 				font-weight: inherit;
 			}
 		}
+	}
+}
+
+.onboarding-success {
+	margin: 50px auto;
+	max-width: 75%;
+
+	.success-state {
+		height: 15rem !important;
+		max-height: 150px;
+		width: auto;
 	}
 }
 
@@ -634,9 +637,6 @@
 }
 
 .zoomOutDelete {
-  // -webkit-animation-name: zoomOut;
-  // animation-name: zoomOut;
-  // animation-duration: 1s;
   transition: opacity 0.2s, visibility 0.2s, transform 0.2s;
   transform: scale3d(0.5, 0.5, 0.5);
   opacity: 0;
@@ -665,4 +665,10 @@
   50% {
     opacity: 1;
   }
+}
+
+.zoomIn {
+	-webkit-animation-name: zoomIn;
+	animation-name: zoomIn;
+	animation-duration: 400ms;
 }
