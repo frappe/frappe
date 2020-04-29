@@ -108,9 +108,7 @@ export default class OnboardingWidget extends Widget {
 				args.primary_action = {
 					action: () => {
 						frappe.set_route(current_route).then(() => {
-							setTimeout(() => {
-								this.mark_complete(step);
-							}, 300);
+							this.mark_complete(step);
 						});
 					},
 					label: __("Continue")
