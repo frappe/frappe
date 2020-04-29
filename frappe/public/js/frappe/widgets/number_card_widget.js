@@ -193,19 +193,23 @@ export default class NumberCardWidget extends Widget {
 	}
 
 	set_card_actions(actions) {
+		/* eslint-disable indent */
 		this.card_actions =
 			$(`<div class="card-actions dropdown pull-right">
 				<a class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
 					<button class="btn btn-default btn-xs"><span class="caret"></span></button>
 				</a>
 				<ul class="dropdown-menu" style="max-height: 300px; overflow-y: auto;">
-					${actions.map( action =>
-						`<li>
-							<a data-action="${action.action}">${action.label}</a>
-						</li>`
-					).join('')}
+					${actions
+						.map(
+							action =>
+								`<li>
+									<a data-action="${action.action}">${action.label}</a>
+								</li>`
+						).join('')}
 				</ul>
 			</div>`);
+		/* eslint-disable indent */
 
 		this.card_actions.find("a[data-action]").each((i, o) => {
 			const action = o.dataset.action;
