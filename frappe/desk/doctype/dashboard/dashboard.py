@@ -22,8 +22,8 @@ def get_permitted_charts(dashboard_name):
 			chart_dict = frappe._dict()
 			chart_dict.update(chart.as_dict())
 
-			if dashboard.get('default_chart_custom_options'):
-				chart_dict.custom_options = dashboard.get('default_chart_custom_options')
+			if dashboard.get('chart_options'):
+				chart_dict.custom_options = dashboard.get('chart_options')
 			permitted_charts.append(chart_dict)
 
 	return permitted_charts

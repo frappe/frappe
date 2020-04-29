@@ -9,8 +9,12 @@
   "dashboard_name",
   "is_default",
   "charts",
+<<<<<<< HEAD
   "default_chart_custom_options",
   "cards"
+=======
+  "chart_options"
+>>>>>>> fix: better naming
  ],
  "fields": [
   {
@@ -49,7 +53,7 @@
   }
  ],
  "links": [],
- "modified": "2020-04-28 14:17:02.391084",
+ "modified": "2020-04-29 13:26:37.362482",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Dashboard",
