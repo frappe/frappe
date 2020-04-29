@@ -990,16 +990,19 @@ class Database(object):
 		insert_list = []
 		fields = ", ".join(["`"+field+"`" for field in fields])
 
-		for idx, value in enumerate(values):
+		if len(values) > 10000:
+			return
+
+		for value in values:
 			insert_list.append(tuple(value))
-			if idx and (idx%10000 == 0 or idx < len(values)-1):
-				self.sql("""INSERT {ignore_duplicates} INTO `tab{doctype}` ({fields}) VALUES {values}""".format(
-						ignore_duplicates="IGNORE" if ignore_duplicates else "",
-						doctype=doctype,
-						fields=fields,
-						values=", ".join(['%s'] * len(insert_list))
-					), tuple(insert_list))
-				insert_list = []
+
+		self.sql("""INSERT {ignore_duplicates} INTO `tab{doctype}` ({fields}) VALUES {values}""".format(
+				ignore_duplicates="IGNORE" if ignore_duplicates else "",
+				doctype=doctype,
+				fields=fields,
+				values=", ".join(['%s'] * len(insert_list))
+			), tuple(insert_list))
+			
 
 def enqueue_jobs_after_commit():
 	if frappe.flags.enqueue_after_commit and len(frappe.flags.enqueue_after_commit) > 0:
