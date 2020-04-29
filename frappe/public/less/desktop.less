@@ -293,6 +293,54 @@
 		}
 	}
 
+	&.dashboard-widget-box.heatmap-chart {
+		min-height: 0px;
+		height: 180px;
+
+		.widget-footer {
+			display: none;
+		}
+
+		.frappe-chart .chart-legend {
+			display: none;
+		}
+
+		.widget-body {
+			display: flex;
+			max-height: 100%;
+
+			.chart-container {
+				margin-left: 65px;
+				margin-top: -15px;
+			}
+
+			.heatmap-legend {
+				display: flex;
+    			height: 100%;
+				margin-top: 30px;
+
+				.legend-colors {
+					padding-left: 1;
+					padding-left: 15px;
+					list-style: none;
+				}
+
+				li {
+					width: 10px;
+					height: 10px;
+					margin: 5px;
+				}
+
+				.legend-label {
+					color: #555b51;
+					font-size: 11px;
+					margin-left: 15px;
+					line-height: 1.6em;
+				}
+			}
+		}
+	}
+
 	&.onboarding-widget-box {
 		margin-bottom: 50px;
 		margin-top: 10px;

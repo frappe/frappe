@@ -40,6 +40,10 @@ export default class ChartWidget extends Widget {
 	setup_container() {
 		this.body.empty();
 
+		if (this.chart_doc.type == 'Heatmap') {
+			this.setup_heatmap_container();
+		}
+
 		this.loading = $(
 			`<div class="chart-loading-state text-muted" style="height: ${this.height}px;">${__(
 				"Loading..."
@@ -58,6 +62,12 @@ export default class ChartWidget extends Widget {
 		this.chart_wrapper.appendTo(this.body);
 
 		this.set_chart_title();
+	}
+
+	setup_heatmap_container() {
+		this.widget.addClass('heatmap-chart');
+		this.widget.removeClass('full-width').addClass('full-width');
+		this.width = 'Full';
 	}
 
 	set_summary() {
@@ -104,6 +114,10 @@ export default class ChartWidget extends Widget {
 	}
 
 	render_time_series_filters() {
+		if (this.chart_doc.type == 'Heatmap') {
+			return;
+		}
+
 		let filters = [
 			{
 				label: this.chart_settings.timespan || this.chart_doc.timespan,
@@ -465,51 +479,17 @@ export default class ChartWidget extends Widget {
 	}
 
 	render() {
-		const chart_type_map = {
-			Line: "line",
-			Bar: "bar",
-			Percentage: "percentage",
-			Pie: "pie",
-			Donut: "donut"
-		};
-
-		let colors = [];
-
-		if (this.chart_doc.y_axis.length) {
-			this.chart_doc.y_axis.map(field => {
-				colors.push(field.color);
-			});
-		} else if (["Line", "Bar"].includes(this.chart_doc.type)) {
-			colors = [this.chart_doc.color || []];
-		}
-
-		if (!this.data || !this.data.labels.length || !Object.keys(this.data).length) {
+		if (!this.data || !this.data.labels || !Object.keys(this.data).length) {
 			this.chart_wrapper.hide();
 			this.loading.hide();
-			this.$summary.hide();
+			this.$summary && this.$summary.hide();
 			this.empty.show();
 		} else {
 			this.loading.hide();
 			this.empty.hide();
 			this.chart_wrapper.show();
 
-			let chart_args = {
-				data: this.data,
-				type: chart_type_map[this.chart_doc.type],
-				colors: colors,
-				height: this.height,
-				axisOptions: {
-					xIsSeries: this.chart_doc.timeseries,
-					shortenYAxisNumbers: 1
-				}
-			};
-
-			if (this.chart_doc.custom_options) {
-				let custom_options = JSON.parse(this.chart_doc.custom_options);
-				for (let key in custom_options) {
-					chart_args[key] = custom_options[key];
-				}
-			}
+			const chart_args = this.get_chart_args();
 
 			if (!this.dashboard_chart) {
 				this.dashboard_chart = new frappe.Chart(
@@ -519,7 +499,73 @@ export default class ChartWidget extends Widget {
 			} else {
 				this.dashboard_chart.update(this.data);
 			}
+
 			this.width == "Full" && this.summary && this.set_summary();
+			this.chart_doc.type == 'Heatmap' && this.render_heatmap_legend();
+		}
+	}
+
+
+	get_chart_args() {
+		let colors = this.get_chart_colors();
+
+		const chart_type_map = {
+			Line: "line",
+			Bar: "bar",
+			Percentage: "percentage",
+			Pie: "pie",
+			Donut: "donut",
+			Heatmap: "heatmap"
+		};
+
+		let chart_args = {
+			data: this.data,
+			type: chart_type_map[this.chart_doc.type],
+			colors: colors,
+			height: this.height,
+			axisOptions: {
+				xIsSeries: this.chart_doc.timeseries,
+				shortenYAxisNumbers: 1
+			}
+		};
+
+		return chart_args;
+	}
+
+	get_chart_colors() {
+		let colors = [];
+		if (this.chart_doc.y_axis.length) {
+			this.chart_doc.y_axis.map(field => {
+				colors.push(field.color);
+			});
+		} else if (["Line", "Bar"].includes(this.chart_doc.type)) {
+			colors = [this.chart_doc.color || "light-blue"];
+		}  else if (this.chart_doc.type == "Heatmap") {
+			colors = [];
+		}
+
+		return colors;
+	}
+
+	render_heatmap_legend() {
+		if (!this.$heatmap_legend) {
+			this.$heatmap_legend =
+				$(`
+				<div class="heatmap-legend">
+					<ul class="legend-colors">
+						<li style="background-color: #ebedf0"></li>
+						<li style="background-color: #c6e48b"></li>
+						<li style="background-color: #7bc96f"></li>
+						<li style="background-color: #239a3b"></li>
+						<li style="background-color: #196127"></li>
+					</ul>
+					<div class="legend-label">
+						<div style="margin-bottom: 45px">${__("Less")}</div>
+						<div>${__("More")}</div>
+					</div>
+				</div>
+				`);
+			this.body.append(this.$heatmap_legend);
 		}
 	}
 

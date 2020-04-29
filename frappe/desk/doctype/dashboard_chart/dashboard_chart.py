@@ -87,7 +87,10 @@ def get(chart_name = None, chart = None, no_cache = None, filters = None, from_d
 	if chart.chart_type == 'Group By':
 		chart_config = get_group_by_chart_config(chart, filters)
 	else:
-		chart_config =  get_chart_config(chart, filters, timespan, timegrain, from_date, to_date)
+		if chart.type == 'Heatmap':
+			chart_config = get_heatmap_chart_config(chart, filters)
+		else:
+			chart_config =  get_chart_config(chart, filters, timespan, timegrain, from_date, to_date)
 
 	return chart_config
 
@@ -174,6 +177,31 @@ def get_chart_config(chart, filters, timespan, timegrain, from_date, to_date):
 
 	return chart_config
 
+def get_heatmap_chart_config(chart, filters):
+	aggregate_function = get_aggregate_function(chart.chart_type)
+	value_field = chart.value_based_on or '1'
+	doctype = chart.document_type
+	datefield = chart.based_on
+	filters.append([doctype, datefield, '>', 'subdate(curdate(), interval 1 year)', False])
+
+	data = dict(frappe.db.get_all(
+		doctype,
+		fields = [
+			'unix_timestamp(date({datefield}))'.format(datefield=datefield),
+			'{aggregate_function}({value_field})'.format(aggregate_function=aggregate_function, value_field=value_field),
+		],
+		filters = filters,
+		group_by = 'date(creation)',
+		as_list = 1,
+		order_by = 'creation asc',
+		ignore_ifnull = True
+	))
+
+	chart_config = {
+		'labels': '',
+		'dataPoints': data,
+	}
+	return chart_config
 
 def get_group_by_chart_config(chart, filters):
 

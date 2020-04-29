@@ -28,12 +28,12 @@
   "to_date",
   "time_interval",
   "timeseries",
+  "type",
   "filters_section",
   "filters_json",
   "chart_options_section",
-  "type",
-  "column_break_2",
   "color",
+  "column_break_2",
   "custom_options",
   "section_break_10",
   "last_synced_on"
@@ -85,22 +85,22 @@
    "fieldtype": "Column Break"
   },
   {
-   "depends_on": "timeseries",
+   "depends_on": "eval: doc.timeseries && doc.type !== 'Heatmap'",
    "fieldname": "timespan",
    "fieldtype": "Select",
    "label": "Timespan",
    "options": "Last Year\nLast Quarter\nLast Month\nLast Week\nSelect Date Range"
   },
   {
-   "depends_on": "timeseries",
+   "depends_on": "eval: doc.timeseries && doc.type !== 'Heatmap'",
    "fieldname": "time_interval",
    "fieldtype": "Select",
    "label": "Time Interval",
    "options": "Yearly\nQuarterly\nMonthly\nWeekly\nDaily"
   },
   {
-   "default": "0",
-   "depends_on": "eval: ['Count', 'Sum', 'Average'].includes(doc.chart_type)",
+   "default": "1",
+   "depends_on": "eval: doc.chart_type !== 'Group By'",
    "fieldname": "timeseries",
    "fieldtype": "Check",
    "label": "Time Series"
@@ -123,10 +123,11 @@
    "label": "Chart Options"
   },
   {
+   "default": "Line",
    "fieldname": "type",
    "fieldtype": "Select",
    "label": "Type",
-   "options": "Line\nBar\nPercentage\nPie\nDonut",
+   "options": "Line\nBar\nHeatmap",
    "reqd": 1
   },
   {
@@ -134,7 +135,7 @@
    "fieldtype": "Column Break"
   },
   {
-   "depends_on": "eval:doc.chart_type !== 'Report'",
+   "depends_on": "eval: doc.chart_type !== 'Report' && doc.type !== 'Heatmap'",
    "fieldname": "color",
    "fieldtype": "Color",
    "label": "Color"
@@ -231,7 +232,7 @@
   }
  ],
  "links": [],
- "modified": "2020-05-01 15:22:59.119341",
+ "modified": "2020-04-29 17:50:59.867496",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Dashboard Chart",
