@@ -18,7 +18,7 @@ export default class NewWidget {
 
 	get_title() {
 		// DO NOT REMOVE: Comment to load translation
-		// __("New Chart") __("New Shortcut")
+		// __("New Chart") __("New Shortcut") __("New Number Card")
 		return __(`New ${frappe.model.unscrub(this.type)}`);
 	}
 
