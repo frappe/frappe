@@ -132,11 +132,12 @@ p {
 }
 
 .toggle-password {
-  right: 20px;
+  right: 9px;
   top: 9px;
   position: absolute;
   z-index: 2;
   cursor: pointer;
+  font-size: 14px;
 }
 
 .invalid-login {
