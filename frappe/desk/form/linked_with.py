@@ -43,6 +43,9 @@ def get_submitted_linked_docs(doctype, name, docs=None, linked=None):
 			linked[link_doctype] = []
 
 		for link in link_names:
+			if link['name'] == name:
+				continue
+
 			if linked and name in linked[link_doctype]:
 				continue
 
