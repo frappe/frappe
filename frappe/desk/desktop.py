@@ -60,6 +60,14 @@ class Workspace:
 			return
 
 		doc = frappe.get_doc("Onboarding", self.doc.onboarding)
+
+		# Check if user is allowed
+		allowed_roles = set(doc.get_allowed_roles())
+		user_roles = set(self.user.get_roles())
+		if not (allowed_roles & user_roles):
+			return
+
+		# Check if already complete
 		if doc.check_completion():
 			return
 
