@@ -71,12 +71,14 @@ frappe.views.DashboardView = class DashboardView extends frappe.views.ListView {
 					{
 						chart_type: ['in', ['Count', 'Sum', 'Group By']],
 						document_type: this.doctype,
+						is_public: 1,
 					},
 					'charts'
 				),
 				() => this.fetch_dashboard_items('Number Card',
 					{
 						document_type: this.doctype,
+						is_public: 1,
 					},
 					'number_cards'
 				),
