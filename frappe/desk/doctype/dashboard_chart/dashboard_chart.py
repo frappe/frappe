@@ -92,20 +92,25 @@ def get(chart_name = None, chart = None, no_cache = None, filters = None, from_d
 	return chart_config
 
 @frappe.whitelist()
-def create_report_chart(args):
+def create_dashboard_chart(args):
 	args = frappe.parse_json(args)
-	_doc = frappe.new_doc('Dashboard Chart')
+	doc = frappe.new_doc('Dashboard Chart')
 
-	_doc.update(args)
+	doc.update(args)
 
-	if (args.get("custom_options")):
-		_doc.custom_options = json.dumps(args.get("custom_options"))
+	if args.get('custom_options'):
+		doc.custom_options = json.dumps(args.get('custom_options'))
 
 	if frappe.db.exists('Dashboard Chart', args.chart_name):
 		args.chart_name = append_number_if_name_exists('Dashboard Chart', args.chart_name)
-		_doc.chart_name = args.chart_name
-	_doc.insert(ignore_permissions=True)
+		doc.chart_name = args.chart_name
+	doc.insert(ignore_permissions=True)
+	return doc
 
+
+@frappe.whitelist()
+def create_report_chart(args):
+	create_dashboard_chart()
 	if args.dashboard:
 		add_chart_to_dashboard(json.dumps(args))
 
@@ -292,6 +297,13 @@ def get_year_ending(date):
 	# last day of this month
 	return add_to_date(date, days=-1)
 
+def get_charts_for_user(doctype, txt, searchfield, start, page_len, filters):
+	or_filters = {'owner': frappe.session.user, 'is_public': 1}
+	return frappe.db.get_list('Dashboard Chart',
+		fields=['name'],
+		filters=filters,
+		or_filters=or_filters,
+		as_list = 1)
 
 class DashboardChart(Document):
 

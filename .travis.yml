@@ -59,10 +59,9 @@ before_install:
 install:
   - cd ~
   - source ./.nvm/nvm.sh
-  - nvm install v8.10.0
+  - nvm install 12
 
-  - git clone https://github.com/frappe/bench --depth 1
-  - pip install -e ./bench
+  - pip install frappe-bench
 
   - bench init frappe-bench --skip-assets --python $(which python) --frappe-path $TRAVIS_BUILD_DIR
 
@@ -104,8 +103,7 @@ install:
   - if [ $TYPE == "server" ]; then sed -i 's/socketio:/# socketio:/g' Procfile; fi
   - if [ $TYPE == "server" ]; then sed -i 's/redis_socketio:/# redis_socketio:/g' Procfile; fi
 
-  - if [ $TYPE == "ui" ]; then bench setup requirements --node; fi
-
+  - bench setup requirements --node
   - bench start &
   - bench --site test_site reinstall --yes
   - bench --site test_site_producer reinstall --yes

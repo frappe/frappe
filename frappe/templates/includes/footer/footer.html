@@ -1,8 +1,9 @@
+{%- if theme.based_on == 'Bootstrap 4' or doctype != 'Web Page' -%}
 <footer class="web-footer">
 	<section class="footer-links">
 		<div class="container">
 			<div class="row">
-				<div class="col-sm-6 text-left">
+				<div class="text-left col-sm-6">
 					{% if footer_items -%}
 					<div class="row">
 						{% include "templates/includes/footer/footer_items.html" %}
@@ -10,13 +11,13 @@
 					{% endif %}
 				</div>
 
-				<div class="col-sm-6 text-right">
+				<div class="text-right col-sm-6">
 					{% block extension %}
 						{% include "templates/includes/footer/footer_extension.html" %}
 					{% endblock %}
 				</div>
 			</div>
-			<div class="row footer-bottom-line mt-5">
+			<div class="mt-5 row footer-bottom-line">
 				<div class="text-muted small col-sm-6 col-12">
 					{% if copyright %}
 						&copy; {{ copyright }}
@@ -27,8 +28,7 @@
 					{% endif %}
 				</div>
 				{# powered #}
-				<div class="text-muted small col-sm-6 col-12
-					text-right footer-powered">
+				<div class="text-right text-muted small col-sm-6 col-12 footer-powered">
 					{% block powered %}
 						{% include "templates/includes/footer/footer_powered.html" %}
 					{% endblock %}
@@ -37,3 +37,9 @@
 		</div>
 	</section>
 </footer>
+
+{%- else -%}
+<footer>
+{{ c('web_blocks', web_blocks=theme.footer) }}
+</footer>
+{%- endif -%}
