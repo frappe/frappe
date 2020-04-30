@@ -1,7 +1,13 @@
 {% extends base_template_path %}
 {% block hero %}{% endblock %}
 
+{% macro page_content() %}
+{%- block page_content -%}{%- endblock -%}
+{% endmacro %}
+
 {% block content %}
+
+{%- if theme.based_on == 'Bootstrap 4' or doctype != 'Web Page' -%}
 
 {% macro main_content() %}
 <div class="page-content-wrapper">
@@ -27,7 +33,7 @@
 		</div>
 
 		<div class="page_content">
-			{%- block page_content -%}{%- endblock -%}
+			{{ page_content() }}
 		</div>
 
 		<div class="page-footer">
@@ -62,4 +68,11 @@ id="page-{{ name or route | e }}" data-path="{{ pathname | e }}"
 	{{ main_content() }}
 </div>
 {% endif %}
+
+{%- else -%}
+<main>
+	{{ page_content() }}
+</main>
+{%- endif -%}
+
 {% endblock %}
