@@ -31,7 +31,6 @@ class DBTable:
 
 	def sync(self):
 		if self.is_new():
-			frappe.cache().delete_key('db_tables')
 			self.create()
 		else:
 			frappe.cache().hdel('table_columns', self.table_name)
@@ -138,8 +137,7 @@ class DBTable:
 						if frappe.db.is_missing_column(e):
 							# Unknown column 'column_name' in 'field list'
 							continue
-						else:
-							raise
+						raise
 
 					if max_length and max_length[0][0] and max_length[0][0] > new_length:
 						if col.fieldname in self.columns:
