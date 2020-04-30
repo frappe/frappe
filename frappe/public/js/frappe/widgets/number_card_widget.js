@@ -32,8 +32,10 @@ export default class NumberCardWidget extends Widget {
 		frappe.model.with_doc('Number Card', this.name).then(card => {
 			if (!card) {
 				if (this.document_type) {
-					this.create_number_card();
-					this.render_card();
+					frappe.run_serially([
+						() => this.create_number_card(),
+						() => this.render_card(),
+					]);
 				} else {
 					// widget doesn't exist so delete
 					this.delete(false);
@@ -50,13 +52,14 @@ export default class NumberCardWidget extends Widget {
 
 	create_number_card() {
 		this.set_doc_args();
-		frappe.xcall(
+		return frappe.xcall(
 			'frappe.desk.doctype.number_card.number_card.create_number_card',
 			{
 				'args': this.card_doc
 			}
 		).then(doc => {
 			this.name = doc.name;
+			this.card_doc.name = this.name;
 			this.widget.attr('data-widget-name', this.name);
 		});
 	}
