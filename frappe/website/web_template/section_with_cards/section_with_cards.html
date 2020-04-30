@@ -16,7 +16,7 @@
 }) -%}
 
 <a href="{{ url or '#' }}"
-	class="block bg-white border rounded-xl hover:shadow-lg {{ card_classes }}">
+	class="block bg-white border rounded-xl hover:border-gray-600 {{ card_classes }}">
 	<h3 class="leading-none {{ title_classes }}">{{ title }}</h3>
 	<p class="mt-4 text-gray-900 {{ content_classes }}">{{ content or '' }}</p>
 </a>
