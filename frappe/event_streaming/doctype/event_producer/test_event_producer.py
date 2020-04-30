@@ -26,8 +26,8 @@ def create_event_producer(producer_url):
 		'use_same_name': 1
 	})
 	event_producer.user = 'Administrator'
-	event_producer.save()
 	event_producer.reload()
+	event_producer.save()
 
 class TestEventProducer(unittest.TestCase):
 	def setUp(self):
