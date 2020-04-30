@@ -3,8 +3,13 @@
 
 frappe.ui.form.on('Onboarding Step', {
 	refresh: function(frm) {
+		frappe.boot.developer_mode && frm.set_intro(__("To export this step as JSON, link it in a Onboarding document and save the document."), true);
 		if (frm.doc.reference_document && frm.doc.action == "Update Settings") {
 			setup_fields(frm);
+		}
+
+		if (!frappe.boot.developer_mode) {
+			frm.trigger('disable_form');
 		}
 	},
 
@@ -12,6 +17,16 @@ frappe.ui.form.on('Onboarding Step', {
 		if (frm.doc.reference_document && frm.doc.action == "Update Settings") {
 			setup_fields(frm);
 		}
+	},
+
+	disable_form: function(frm) {
+		frm.set_read_only();
+		frm.fields
+			.filter(field => field.has_input)
+			.forEach(field => {
+				frm.set_df_property(field.df.fieldname, "read_only", "1");
+			});
+		frm.disable_save();
 	}
 });
 
