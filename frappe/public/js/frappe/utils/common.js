@@ -264,7 +264,7 @@ frappe.utils.sanitise_redirect = (url) => {
 	const is_external = (() => {
 		return (url) => {
 			function domain(url) {
-				let base_domain = /^(?:https?:\/\/)?(?:[^@\n]+@)?(?:www\.)?([^:\/\n?]+)/img.exec(url);
+				let base_domain = /^(?:https?:\/\/)?(?:[^@\n]+@)?(?:www\.)?([^:/\n?]+)/img.exec(url);
 				return base_domain == null ? "" : base_domain[1];
 			}
 
@@ -290,7 +290,7 @@ frappe.utils.sanitise_redirect = (url) => {
 	url = frappe.utils.strip_url(url);
 
 	return is_external(url) ? "" : sanitise_javascript(frappe.utils.xss_sanitise(url, {strategies: ["js"]}));
-}
+};
 
 frappe.utils.strip_url = (url) => {
 	// strips invalid characters from the beginning of the URL
