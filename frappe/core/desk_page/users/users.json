@@ -27,7 +27,7 @@
  "idx": 0,
  "is_standard": 1,
  "label": "Users",
- "modified": "2020-04-01 11:24:40.767676",
+ "modified": "2020-04-26 22:36:14.311554",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Users",
@@ -46,12 +46,12 @@
    "type": "DocType"
   },
   {
-   "label": "permission-manager",
+   "label": "Permission Manager",
    "link_to": "permission-manager",
    "type": "Page"
   },
   {
-   "label": "user-profile",
+   "label": "User Profile",
    "link_to": "user-profile",
    "type": "Page"
   }
