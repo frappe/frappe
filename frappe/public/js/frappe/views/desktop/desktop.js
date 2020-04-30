@@ -344,10 +344,6 @@ class DesktopPage {
 			{
 				color: "orange",
 				description: __("No Records Created")
-			},
-			{
-				color: "red",
-				description: __("Has Open Entries")
 			}
 		].map(item => {
 			return `<div class="legend-item small text-muted justify-flex-start">

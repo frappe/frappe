@@ -33,6 +33,7 @@
   "footer_items",
   "hide_footer_signup",
   "integrations",
+  "enable_view_tracking",
   "enable_google_indexing",
   "authorize_api_indexing_access",
   "indexing_refresh_token",
@@ -196,7 +197,7 @@
    "collapsible": 1,
    "fieldname": "integrations",
    "fieldtype": "Section Break",
-   "label": "Google Integrations"
+   "label": "Integrations"
   },
   {
    "description": "Add Google Analytics ID: eg. UA-89XXX57-1. Please search help on Google Analytics for more information.",
@@ -331,6 +332,12 @@
    "label": "Authorize API Indexing  Access"
   },
   {
+   "default": "0",
+   "fieldname": "enable_view_tracking",
+   "fieldtype": "Check",
+   "label": "Enable In App Website Tracking"
+  },
+  {
    "default": "Standard",
    "fieldname": "footer_type",
    "fieldtype": "Select",
@@ -364,7 +371,7 @@
  "issingle": 1,
  "links": [],
  "max_attachments": 10,
- "modified": "2020-04-21 16:46:59.947403",
+ "modified": "2020-04-21 12:37:44.070662",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Website Settings",

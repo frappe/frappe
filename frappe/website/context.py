@@ -36,6 +36,8 @@ def get_context(path, args=None):
 	if frappe.conf.developer_mode:
 		context._context_dict = context
 
+	context.developer_mode = frappe.conf.developer_mode
+
 	return context
 
 def update_controller_context(context, controller):
@@ -221,7 +223,7 @@ def add_metatags(context):
 	tags = frappe._dict(context.get("metatags") or {})
 
 	if tags:
-		if not "og:type" in tags:
+		if "og:type" not in tags:
 			tags["og:type"] = "article"
 
 		name = tags.get('name') or tags.get('title')

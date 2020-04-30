@@ -4,6 +4,7 @@ import ShortcutWidget from "../widgets/shortcut_widget";
 import LinksWidget from "../widgets/links_widget";
 import OnboardingWidget from "../widgets/onboarding_widget";
 import NewWidget from "../widgets/new_widget";
+import NumberCardWidget from "../widgets/number_card_widget";
 
 frappe.provide("frappe.widget");
 
@@ -13,6 +14,7 @@ const widget_factory = {
 	shortcut: ShortcutWidget,
 	links: LinksWidget,
 	onboarding: OnboardingWidget,
+	number_card: NumberCardWidget,
 };
 
 export default class WidgetGroup {
@@ -77,6 +79,14 @@ export default class WidgetGroup {
 		return widget_object;
 	}
 
+	remove_widget(widget_obj) {
+		widget_obj.widget.remove();
+		this.widgets_list.filter((widget) => {
+			if (widget.name == widget_obj.name) return false;
+		});
+		delete this.widgets_dict[widget_obj.name];
+	}
+
 	customize() {
 		this.widget_area.show();
 		this.widgets_list.forEach((wid) => {
@@ -96,6 +106,8 @@ export default class WidgetGroup {
 			this.new_widget = new NewWidget({
 				container: this.body,
 				type: this.type,
+				custom_dialog: this.custom_dialog,
+				default_values: this.default_values,
 				on_create: (config) => {
 					// Remove new widget
 					this.new_widget.delete();

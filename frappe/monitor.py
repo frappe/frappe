@@ -23,7 +23,7 @@ def start(transaction_type="request", method=None, kwargs=None):
 
 
 def stop(response=None):
-	if frappe.conf.monitor and hasattr(frappe.local, "monitor"):
+	if hasattr(frappe.local, "monitor"):
 		frappe.local.monitor.dump(response)
 
 

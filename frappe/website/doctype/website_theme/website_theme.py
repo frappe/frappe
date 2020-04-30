@@ -41,9 +41,13 @@ class WebsiteTheme(Document):
 
 	def validate_theme(self):
 		'''Generate theme css if theme_scss has changed'''
-		doc_before_save = self.get_doc_before_save()
-		if doc_before_save is None or get_scss(self) != get_scss(doc_before_save):
-			self.generate_bootstrap_theme()
+		if self.based_on == 'Bootstrap 4':
+			doc_before_save = self.get_doc_before_save()
+			if doc_before_save is None or get_scss(self) != get_scss(doc_before_save):
+				self.generate_bootstrap_theme()
+
+		if self.based_on == 'Tailwind':
+			self.theme_css = frappe.render_template('frappe/website/doctype/website_theme/custom_theme.css', self.as_dict(), is_path=True)
 
 	def export_doc(self):
 		"""Export to standard folder `[module]/website_theme/[name]/[name].json`."""
@@ -61,10 +65,13 @@ class WebsiteTheme(Document):
 		from subprocess import Popen, PIPE
 
 		folder_path = join_path(frappe.utils.get_bench_path(), 'sites', 'assets', 'css')
-		self.delete_old_theme_files(folder_path)
+
+		if not self.custom:
+			self.delete_old_theme_files(folder_path)
 
 		# add a random suffix
-		file_name = frappe.scrub(self.name) + '_' + frappe.generate_hash('Website Theme', 8) + '.css'
+		suffix = frappe.generate_hash('Website Theme', 8) if self.custom else 'style'
+		file_name = frappe.scrub(self.name) + '_' + suffix + '.css'
 		output_path = join_path(folder_path, file_name)
 
 		content = get_scss(self)
@@ -110,7 +117,7 @@ def add_website_theme(context):
 
 	if not context.disable_website_theme:
 		website_theme = get_active_theme()
-		context.theme = website_theme and website_theme.as_dict() or frappe._dict()
+		context.theme = website_theme or frappe._dict()
 
 def get_active_theme():
 	website_theme = frappe.db.get_value("Website Settings", "Website Settings", "website_theme")

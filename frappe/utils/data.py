@@ -653,6 +653,45 @@ def is_image(filepath):
 	filepath = filepath.split('?')[0]
 	return (guess_type(filepath)[0] or "").startswith("image/")
 
+def get_thumbnail_base64_for_image(src):
+	from PIL import Image
+	from frappe.core.doctype.file.file import get_local_image
+	from frappe import safe_decode, cache
+
+	if not src:
+		frappe.throw('Invalid source for image: {0}'.format(src))
+
+	if not src.startswith('/files'):
+		return
+
+	def _get_base64():
+		try:
+			image, unused_filename, extn = get_local_image(src)
+		except IOError:
+			return
+
+		original_size = image.size
+		size = 50, 50
+		image.thumbnail(size, Image.ANTIALIAS)
+
+		base64_string = image_to_base64(image, extn)
+		return {
+			'base64': 'data:image/{0};base64,{1}'.format(extn, safe_decode(base64_string)),
+			'width': original_size[0],
+			'height': original_size[1]
+		}
+
+	return cache().hget('thumbnail_base64', src, generator=_get_base64)
+
+def image_to_base64(image, extn):
+	import base64
+	from io import BytesIO
+
+	buffered = BytesIO()
+	image.save(buffered, extn)
+	img_str = base64.b64encode(buffered.getvalue())
+	return img_str
+
 
 # from Jinja2 code
 _striptags_re = re.compile(r'(<!--.*?-->|<[^>]*>)')
@@ -1091,3 +1130,6 @@ def get_source_value(source, key):
 def is_subset(list_a, list_b):
 	'''Returns whether list_a is a subset of list_b'''
 	return len(list(set(list_a) & set(list_b))) == len(list_a)
+
+def generate_hash(*args, **kwargs):
+	return frappe.generate_hash(*args, **kwargs)
