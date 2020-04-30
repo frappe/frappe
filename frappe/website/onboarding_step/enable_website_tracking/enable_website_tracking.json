@@ -1,16 +1,18 @@
 {
- "action": "View Settings",
+ "action": "Update Settings",
  "creation": "2020-04-28 22:09:12.089238",
  "docstatus": 0,
  "doctype": "Onboarding Step",
+ "field": "google_analytics_id",
  "idx": 0,
  "is_complete": 0,
  "is_mandatory": 0,
  "is_skipped": 0,
- "modified": "2020-04-28 22:09:12.089238",
+ "modified": "2020-04-30 18:51:31.982495",
  "modified_by": "Administrator",
  "name": "Enable Website Tracking",
  "owner": "Administrator",
  "reference_document": "Website Settings",
- "title": "Enable Website Tracking"
+ "title": "Enable Website Tracking",
+ "value_to_validate": "%"
 }
