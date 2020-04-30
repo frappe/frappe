@@ -9,6 +9,7 @@
   "title",
   "subtitle",
   "module",
+  "allow_roles",
   "column_break_4",
   "success_message",
   "documentation_url",
@@ -30,7 +31,8 @@
   {
    "fieldname": "subtitle",
    "fieldtype": "Data",
-   "label": "Subtitle"
+   "label": "Subtitle",
+   "reqd": 1
   },
   {
    "fieldname": "module",
@@ -50,7 +52,8 @@
   {
    "fieldname": "success_message",
    "fieldtype": "Data",
-   "label": "Success Message"
+   "label": "Success Message",
+   "reqd": 1
   },
   {
    "default": "0",
@@ -62,7 +65,8 @@
   {
    "fieldname": "documentation_url",
    "fieldtype": "Data",
-   "label": "Documentation URL"
+   "label": "Documentation URL",
+   "reqd": 1
   },
   {
    "default": "0",
@@ -75,7 +79,8 @@
    "fieldname": "steps",
    "fieldtype": "Table",
    "label": "Steps",
-   "options": "Onboarding Step Map"
+   "options": "Onboarding Step Map",
+   "reqd": 1
   },
   {
    "default": "0",
@@ -91,10 +96,18 @@
    "fieldtype": "Check",
    "label": "Is Skipped",
    "read_only": 1
+  },
+  {
+   "description": "System managers are allowed by default",
+   "fieldname": "allow_roles",
+   "fieldtype": "Table MultiSelect",
+   "label": "Allow Roles",
+   "options": "Onboarding Permission",
+   "reqd": 1
   }
  ],
  "links": [],
- "modified": "2020-04-28 22:06:20.407800",
+ "modified": "2020-04-30 18:30:41.910160",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Onboarding",

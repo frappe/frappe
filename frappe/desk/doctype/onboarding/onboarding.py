@@ -18,6 +18,13 @@ class Onboarding(Document):
 	def get_steps(self):
 		return [frappe.get_doc("Onboarding Step", step.step) for step in self.steps]
 
+	def get_allowed_roles(self):
+		all_roles = [role.role for role in self.allow_roles]
+		if not "System Manager" in all_roles:
+			all_roles.append("System Manager")
+
+		return all_roles
+
 	def check_completion(self):
 		if self.is_complete:
 			return True
