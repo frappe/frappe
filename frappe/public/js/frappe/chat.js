@@ -2259,7 +2259,10 @@ class extends Component {
 						) : null,
 					h("div","",
 						h("div", { class: "panel-title" },
-							h("div", { class: "cursor-pointer", onclick: () => { frappe.set_route(item.route) }},
+							h("div", { class: "cursor-pointer", onclick: () => {
+								frappe.session.user !== "Guest" ?
+									this.set_state({ toggle: false }) : frappe.set_route(item.route)
+							}},
 								h(frappe.Chat.Widget.MediaProfile, { ...item })
 							)
 						)
