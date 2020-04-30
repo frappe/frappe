@@ -378,16 +378,8 @@ class Importer:
 		value = cstr(value)
 
 		# convert boolean values to 0 or 1
-		if df.fieldtype == "Check" and value.lower().strip() in [
-			"t",
-			"f",
-			"true",
-			"false",
-			"yes",
-			"no",
-			"y",
-			"n",
-		]:
+		valid_check_values = ["t", "f", "true", "false", "yes", "no", "y", "n"]
+		if df.fieldtype == "Check" and value.lower().strip() in valid_check_values:
 			value = value.lower().strip()
 			value = 1 if value in ["t", "true", "y", "yes"] else 0
 
