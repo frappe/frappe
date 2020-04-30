@@ -237,6 +237,9 @@ Object.assign(frappe.utils, {
 			case "phone":
 				regExp = /^([0-9\ \+\_\-\,\.\*\#\(\)]){1,20}$/;
 				break;
+			case "name":
+				regExp = /^[\w][\w'-]*([ \w][\w'-]+)*$/;
+				break;
 			case "number":
 				regExp = /^-?(?:\d+|\d{1,3}(?:,\d{3})+)?(?:\.\d+)?$/;
 				break;
@@ -675,7 +678,9 @@ Object.assign(frappe.utils, {
 		return __(frappe.utils.to_title_case(route[0], true));
 	},
 	report_column_total: function(values, column, type) {
-		if (values.length > 0) {
+		if (column.column.disable_total) {
+			return '';
+		} else if (values.length > 0) {
 			if (column.column.fieldtype == "Percent" || type === "mean") {
 				return values.reduce((a, b) => a + flt(b)) / values.length;
 			} else if (column.column.fieldtype == "Int") {
@@ -744,6 +749,36 @@ Object.assign(frappe.utils, {
 
 		return $el;
 	},
+
+	get_browser() {
+		var ua = navigator.userAgent,
+			tem,
+			M =
+				ua.match(
+					/(opera|chrome|safari|firefox|msie|trident(?=\/))\/?\s*(\d+)/i
+				) || [];
+		if (/trident/i.test(M[1])) {
+			tem = /\brv[ :]+(\d+)/g.exec(ua) || [];
+			return { name: "IE", version: tem[1] || "" };
+		}
+		if (M[1] === "Chrome") {
+			tem = ua.match(/\bOPR|Edge\/(\d+)/);
+			if (tem != null) {
+				return { name: "Opera", version: tem[1] };
+			}
+		}
+		M = M[2]
+			? [M[1], M[2]]
+			: [navigator.appName, navigator.appVersion, "-?"];
+		if ((tem = ua.match(/version\/(\d+)/i)) != null) {
+			M.splice(1, 1, tem[1]);
+		}
+		return {
+			name: M[0],
+			version: M[1],
+		};
+	},
+
 	is_url(string) {
 		const url_regex = new RegExp(/https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)/gi);
 		return Boolean(string.match(url_regex));

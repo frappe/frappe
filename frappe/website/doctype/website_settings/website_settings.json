@@ -19,16 +19,21 @@
   "set_banner_from_image",
   "favicon",
   "top_bar",
+  "top_bar_type",
+  "top_bar_web_view",
   "navbar_search",
   "top_bar_items",
   "banner",
   "banner_html",
   "footer",
+  "footer_type",
+  "footer_web_view",
   "copyright",
   "address",
   "footer_items",
   "hide_footer_signup",
   "integrations",
+  "enable_view_tracking",
   "enable_google_indexing",
   "authorize_api_indexing_access",
   "indexing_refresh_token",
@@ -130,11 +135,13 @@
   },
   {
    "default": "0",
+   "depends_on": "eval:doc.top_bar_type==='Standard'",
    "fieldname": "navbar_search",
    "fieldtype": "Check",
    "label": "Include Search in Top Bar"
   },
   {
+   "depends_on": "eval:doc.top_bar_type==='Standard'",
    "fieldname": "top_bar_items",
    "fieldtype": "Table",
    "label": "Top Bar Items",
@@ -160,17 +167,20 @@
    "label": "Footer"
   },
   {
+   "depends_on": "eval:doc.footer_type==='Standard'",
    "fieldname": "copyright",
    "fieldtype": "Data",
    "label": "Copyright"
   },
   {
+   "depends_on": "eval:doc.footer_type==='Standard'",
    "description": "Address and other legal information you may want to put in the footer.",
    "fieldname": "address",
    "fieldtype": "Text Editor",
    "label": "Address"
   },
   {
+   "depends_on": "eval:doc.footer_type==='Standard'",
    "fieldname": "footer_items",
    "fieldtype": "Table",
    "label": "Footer Items",
@@ -178,6 +188,7 @@
   },
   {
    "default": "0",
+   "depends_on": "eval:doc.footer_type==='Standard'",
    "fieldname": "hide_footer_signup",
    "fieldtype": "Check",
    "label": "Hide Footer Signup"
@@ -186,7 +197,7 @@
    "collapsible": 1,
    "fieldname": "integrations",
    "fieldtype": "Section Break",
-   "label": "Google Integrations"
+   "label": "Integrations"
   },
   {
    "description": "Add Google Analytics ID: eg. UA-89XXX57-1. Please search help on Google Analytics for more information.",
@@ -319,6 +330,40 @@
    "fieldname": "authorize_api_indexing_access",
    "fieldtype": "Button",
    "label": "Authorize API Indexing  Access"
+  },
+  {
+   "default": "0",
+   "fieldname": "enable_view_tracking",
+   "fieldtype": "Check",
+   "label": "Enable In App Website Tracking"
+  },
+  {
+   "default": "Standard",
+   "fieldname": "footer_type",
+   "fieldtype": "Select",
+   "label": "Footer Type",
+   "options": "Standard\nWeb View"
+  },
+  {
+   "depends_on": "eval:doc.footer_type==='Web View'",
+   "fieldname": "footer_web_view",
+   "fieldtype": "Link",
+   "label": "Footer Web View",
+   "options": "Web View"
+  },
+  {
+   "default": "Standard",
+   "fieldname": "top_bar_type",
+   "fieldtype": "Select",
+   "label": "Top Bar Type",
+   "options": "Standard\nWeb View"
+  },
+  {
+   "depends_on": "eval:doc.top_bar_type==='Web View'",
+   "fieldname": "top_bar_web_view",
+   "fieldtype": "Link",
+   "label": "Top Bar Web View",
+   "options": "Web View"
   }
  ],
  "icon": "fa fa-cog",
@@ -326,7 +371,7 @@
  "issingle": 1,
  "links": [],
  "max_attachments": 10,
- "modified": "2020-02-21 16:46:59.947403",
+ "modified": "2020-04-21 12:37:44.070662",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Website Settings",

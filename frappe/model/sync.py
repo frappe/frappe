@@ -38,6 +38,7 @@ def sync_for(app_name, force=0, sync_everything = False, verbose=False, reset_pe
 			("custom", "custom_field"),
 			("custom", "property_setter"),
 			("website", "web_form"),
+			("website", "web_template"),
 			("website", "web_form_field"),
 			("website", "portal_menu_item"),
 			("data_migration", "data_migration_mapping_detail"),
@@ -79,7 +80,7 @@ def get_doc_files(files, start_path, force=0, sync_everything = False, verbose=F
 
 	# load in sequence - warning for devs
 	document_types = ['doctype', 'page', 'report', 'dashboard_chart_source', 'print_format',
-		'website_theme', 'web_form', 'notification', 'print_style',
+		'website_theme', 'web_form', 'web_template', 'notification', 'print_style',
 		'data_migration_mapping', 'data_migration_plan', 'desk_page', 'onboarding_step','onboarding']
 	for doctype in document_types:
 		doctype_path = os.path.join(start_path, doctype)

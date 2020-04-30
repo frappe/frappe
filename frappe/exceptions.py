@@ -78,6 +78,7 @@ class TimestampMismatchError(ValidationError): pass
 class EmptyTableError(ValidationError): pass
 class LinkExistsError(ValidationError): pass
 class InvalidEmailAddressError(ValidationError): pass
+class InvalidNameError(ValidationError): pass
 class InvalidPhoneNumberError(ValidationError): pass
 class TemplateNotFoundError(ValidationError): pass
 class UniqueValidationError(ValidationError): pass
