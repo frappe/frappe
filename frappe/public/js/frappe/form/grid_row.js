@@ -265,7 +265,9 @@ export default class GridRow {
 				if(df.reqd && !txt) {
 					column.addClass('error');
 				}
-				if (df.reqd || df.bold) {
+				if (column.is_invalid) {
+					column.addClass('invalid');
+				} else if (df.reqd || df.bold) {
 					column.addClass('bold');
 				}
 			}

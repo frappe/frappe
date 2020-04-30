@@ -46,6 +46,9 @@ module.exports = {
 			borderRadius: {
 				xl: '0.75rem'
 			},
+			maxHeight: {
+				'144': '36rem'
+			},
 			boxShadow: theme => ({
 				'outline-primary': `0 0 0 3px ${rgba(theme('colors.blue.300'), 0.45)}`
 			}),
