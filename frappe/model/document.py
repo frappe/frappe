@@ -333,6 +333,10 @@ class Document(BaseDocument):
 		self.update_children()
 		self.run_post_save_methods()
 
+		# clear unsaved flag
+		if hasattr(self, "__unsaved"):
+			delattr(self, "__unsaved")
+
 		return self
 
 	def copy_attachments_from_amended_from(self):
