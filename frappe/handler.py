@@ -187,7 +187,7 @@ def upload_file():
 		import mimetypes
 		filetype = mimetypes.guess_type(filename)[0]
 		if filetype not in ALLOWED_MIMETYPES:
-			frappe.throw("You can only upload JPG, PNG, PDF, or Microsoft documents.")
+			frappe.throw(_("You can only upload JPG, PNG, PDF, or Microsoft documents."))
 
 	if method:
 		method = frappe.get_attr(method)
