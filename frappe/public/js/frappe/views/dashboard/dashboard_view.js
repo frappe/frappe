@@ -427,6 +427,11 @@ frappe.views.DashboardView = class DashboardView extends frappe.views.ListView {
 				date_fields.push({label: df.label, value: df.fieldname});
 			}
 			if (frappe.model.numeric_fieldtypes.includes(df.fieldtype)) {
+				if (df.fieldtype == 'Currency') {
+					if (!df.options || df.options !== 'Company:company:default_currency') {
+						return;
+					}
+				}
 				value_fields.push({label: df.label, value: df.fieldname});
 				aggregate_function_fields.push({label: df.label, value: df.fieldname});
 			}
