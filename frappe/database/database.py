@@ -991,7 +991,7 @@ class Database(object):
 		fields = ", ".join(["`"+field+"`" for field in fields])
 
 		if len(values) > 10000:
-			frappe.throw("Values to be inserted cannot be greater than 10000.")
+			frappe.throw(_("No. of records cannot be greater than 10000."))
 
 		for value in values:
 			insert_list.append(tuple(value))
