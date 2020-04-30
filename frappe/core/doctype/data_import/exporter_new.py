@@ -230,13 +230,25 @@ class Exporter:
 		return [i for i, df in enumerate(self.fields) if df.parent == doctype]
 
 	def add_header(self):
-		def get_label(df):
-			if df.parent == self.doctype:
-				return df.label
-			else:
-				return "{0} ({1})".format(df.label, df.parent)
 
-		header = [get_label(df) for df in self.fields]
+		header = []
+		for df in self.fields:
+			is_parent = df.parent == self.doctype
+			if is_parent:
+				label = df.label
+			else:
+				label = "{0} ({1})".format(df.label, df.parent)
+
+			if label in header:
+				# this label is already in the header,
+				# which means two fields with the same label
+				# add the fieldname to avoid clash
+				if is_parent:
+					label = '{0} ({1})'.format(df.label, df.fieldname)
+				else:
+					label = '{0} ({1}) ({2})'.format(df.label, df.fieldname, df.parent)
+			header.append(label)
+
 		self.csv_array.append(header)
 
 	def add_data(self):

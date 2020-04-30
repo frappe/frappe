@@ -175,6 +175,7 @@ class Importer:
 	def parse_columns_from_header_row(self):
 		remap_column = self.template_options.remap_column
 		columns = []
+		seen = []
 
 		df_by_labels_and_fieldnames = self.build_fields_dict_for_column_matching()
 
@@ -203,7 +204,17 @@ class Importer:
 			else:
 				skip_import = False
 
-			if fieldname == "Don't Import":
+			if header_title in seen:
+				self.warnings.append(
+					{
+						"col": column_number,
+						"message": _("Skipping Duplicate Column {0}").format(frappe.bold(header_title)),
+						"type": "info",
+					}
+				)
+				df = None
+				skip_import = True
+			elif fieldname == "Don't Import":
 				skip_import = True
 				self.warnings.append(
 					{
@@ -236,6 +247,7 @@ class Importer:
 					index=i,
 				)
 			)
+			seen.append(header_title)
 
 		return columns
 
@@ -278,17 +290,32 @@ class Importer:
 				fieldtype = df.fieldtype or "Data"
 				parent = df.parent or self.doctype
 				if fieldtype not in no_value_fields:
-					# label as key
-					label = (
-						df.label if self.doctype == doctype else "{0} ({1})".format(df.label, parent)
-					)
-					out[label] = df
-					# fieldname as key
 					if self.doctype == doctype:
+						# for parent doctypes keys will be
+						# Label
+						# label
+						# Label (label)
+						if not out.get(df.label):
+							# if Label is already set, don't set it again
+							# in case of duplicate column headers
+							out[df.label] = df
 						out[df.fieldname] = df
+						label_with_fieldname = "{0} ({1})".format(df.label, df.fieldname)
+						out[label_with_fieldname] = df
 					else:
-						key = "{0}:{1}".format(doctype, df.fieldname)
-						out[key] = df
+						# for child doctypes keys will be
+						# Label (Child DocType)
+						# Child DocType:label
+						# Label (label) (Child DocType)
+						label = "{0} ({1})".format(df.label, parent)
+						fieldname = "{0}:{1}".format(doctype, df.fieldname)
+						label_with_fieldname = "{0} ({1}) ({2})".format(df.label, df.fieldname, parent)
+						if not out.get(label):
+							# if Label is already set, don't set it again
+							# in case of duplicate column headers
+							out[label] = df
+						out[fieldname] = df
+						out[label_with_fieldname] = df
 
 		# if autoname is based on field
 		# add an entry for "ID (Autoname Field)"
