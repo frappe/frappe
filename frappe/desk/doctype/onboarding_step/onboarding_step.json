@@ -17,6 +17,7 @@
   "reference_document",
   "reference_report",
   "report_type",
+  "report_description",
   "field",
   "value_to_validate",
   "video_url",
@@ -76,6 +77,7 @@
    "fieldname": "reference_report",
    "fieldtype": "Link",
    "label": "Reference Report",
+   "mandatory_depends_on": "eval:doc.action == \"View Report\"",
    "options": "Report"
   },
   {
@@ -121,10 +123,18 @@
    "fieldname": "value_to_validate",
    "fieldtype": "Data",
    "label": "Value to Validate"
+  },
+  {
+   "depends_on": "eval:doc.action == \"View Report\"",
+   "description": "This will be shown to the user in a dialog after routing to the report",
+   "fieldname": "report_description",
+   "fieldtype": "Data",
+   "label": "Report Description",
+   "mandatory_depends_on": "eval:doc.action == \"View Report\""
   }
  ],
  "links": [],
- "modified": "2020-04-29 16:57:30.292782",
+ "modified": "2020-05-01 11:48:33.606503",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Onboarding Step",
