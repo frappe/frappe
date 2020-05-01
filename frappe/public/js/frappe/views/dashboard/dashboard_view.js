@@ -24,6 +24,7 @@ frappe.views.DashboardView = class DashboardView extends frappe.views.ListView {
 		this.setup_dashboard_page();
 		this.setup_dashboard_customization();
 		this.make_dashboard();
+		this.setup_events();
 	}
 
 	setup_dashboard_customization() {
@@ -103,13 +104,11 @@ frappe.views.DashboardView = class DashboardView extends frappe.views.ListView {
 		if (!this.charts.length && !this.number_cards.length) {
 			this.render_empty_state();
 		}
-
-		this.setup_events();
 	}
 
 	setup_events() {
-		$(document.body).on('toggleFullWidth', () => this.make_dashboard());
-		$(document.body).on('toggleListSidebar', () => this.make_dashboard());
+		$(document.body).on('toggleFullWidth', () => this.render_dashboard());
+		$(document.body).on('toggleListSidebar', () => this.render_dashboard());
 	}
 
 	fetch_dashboard_items(doctype, filters, obj_name) {
