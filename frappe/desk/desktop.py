@@ -54,6 +54,10 @@ class Workspace:
 		return frappe.get_doc("Desk Page", self.page_name)
 
 	def get_onboarding_doc(self):
+		# Check if onboarding is enabled
+		if not frappe.get_system_settings("enable_onboarding"):
+			return None
+
 		if not self.doc.onboarding:
 			return None
 
