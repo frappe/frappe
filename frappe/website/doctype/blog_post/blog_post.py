@@ -65,16 +65,18 @@ class BlogPost(WebsiteGenerator):
 
 
 		context.content = get_html_content_based_on_type(self, 'content', self.content_type)
-		context.description = self.blog_intro or strip_html_tags(context.content[:140])
+
+		#if meta description is not present, then blog intro or first 140 characters of the blog will be set as description
+		context.description = self.meta_description or self.blog_intro or strip_html_tags(context.content[:140])
 
 		context.metatags = {
 			"name": self.title,
 			"description": context.description,
 		}
 
+		#if meta image is not present, then first image inside the blog will be set as the meta image
 		image = find_first_image(context.content)
-		if image:
-			context.metatags["image"] = image
+		context.metatags["image"] = self.meta_image or image or None
 
 		self.load_comments(context)
 
@@ -95,7 +97,6 @@ class BlogPost(WebsiteGenerator):
 			else:
 				context.comment_text = _('{0} comments').format(len(context.comment_list))
 
-
 def get_list_context(context=None):
 	list_context = frappe._dict(
 		template = "templates/includes/blog/blog.html",
@@ -106,7 +107,7 @@ def get_list_context(context=None):
 		title = _('Blog')
 	)
 
-	category = sanitize_html(frappe.local.form_dict.blog_category or frappe.local.form_dict.category)
+	category = frappe.utils.escape_html(frappe.local.form_dict.blog_category or frappe.local.form_dict.category)
 	if category:
 		category_title = get_blog_category(category)
 		list_context.sub_title = _("Posts filed under {0}").format(category_title)
@@ -149,7 +150,7 @@ def get_blog_category(route):
 
 def get_blog_list(doctype, txt=None, filters=None, limit_start=0, limit_page_length=20, order_by=None):
 	conditions = []
-	category = filters.blog_category or sanitize_html(frappe.local.form_dict.blog_category or frappe.local.form_dict.category)
+	category = filters.blog_category or frappe.utils.escape_html(frappe.local.form_dict.blog_category or frappe.local.form_dict.category)
 	if filters:
 		if filters.blogger:
 			conditions.append('t1.blogger=%s' % frappe.db.escape(filters.blogger))
