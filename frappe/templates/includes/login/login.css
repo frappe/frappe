@@ -137,7 +137,7 @@ p {
   position: absolute;
   z-index: 2;
   cursor: pointer;
-  font-size: 14px;
+  font-size: 12px;
 }
 
 .invalid-login {
