@@ -11,19 +11,11 @@ def execute():
 		fields=["parent"],
 		filters={"role": ['in', ['System Manager', 'Dashboard Manager']], "parenttype": "User"},
 		distinct=True,
-		as_list=True
 	)
 
-	users = tuple(
-		[item if type(item) == str else item.encode('utf8') for sublist in users_with_permission for item in sublist]
-	)
+	users = [item.parent for item in users_with_permission]
+	charts = frappe.db.get_all('Dashboard Chart', filters={'owner': ['in', users]})
 
-	frappe.db.sql("""
-		UPDATE
-			`tabDashboard Chart`
-		SET
-			`tabDashboard Chart`.`is_public`=1
-		WHERE
-			`tabDashboard Chart`.owner in {users}
-		""".format(users=users)
-	)
+	for chart in charts:
+		frappe.db.set_value('Dashboard Chart', chart.name, 'is_public', 1)
+
