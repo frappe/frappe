@@ -372,6 +372,11 @@ class NumberCardDialog extends WidgetDialog {
 		if (this.document_type) {
 			frappe.get_meta(this.document_type).fields.map(df => {
 				if (frappe.model.numeric_fieldtypes.includes(df.fieldtype)) {
+					if (df.fieldtype == 'Currency') {
+						if (!df.options || df.options !== 'Company:company:default_currency') {
+							return;
+						}
+					}
 					aggregate_function_fields.push({label: df.label, value: df.fieldname});
 				}
 			});

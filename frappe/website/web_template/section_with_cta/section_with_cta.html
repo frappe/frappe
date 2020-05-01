@@ -1,12 +1,12 @@
 <div class="relative">
 	<div class="px-8 py-12 text-center sm:px-12 md:py-20 bg-primary-100 rounded-xl">
-		<h2 class="max-w-xl mx-auto text-2xl font-bold leading-tight md:text-3xl xl:text-4xl">{{ title }}</h2>
-		<p class="max-w-xl mx-auto mt-2 text-base text-gray-900 sm:text-lg">{{ subtitle }}</p>
+		<h2 class="max-w-xl mx-auto text-2xl font-extrabold leading-tight md:text-4xl">{{ title }}</h2>
+		<p class="max-w-xl mx-auto mt-2 text-base text-gray-900 md:text-lg">{{ subtitle }}</p>
 		<p class="mt-8">
 			{{ c('button', label=cta_label, url=cta_url, variant="primary", size="large") }}
 		</p>
 		{%- if cta_description -%}
-		<div class="max-w-xl mx-auto mt-2 text-sm text-gray-900">
+		<div class="max-w-xl mx-auto mt-2 text-xs text-gray-900">
 			{{ cta_description }}
 		</div>
 		{%- endif -%}

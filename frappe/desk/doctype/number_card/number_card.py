@@ -5,6 +5,7 @@
 from __future__ import unicode_literals
 import frappe
 from frappe.model.document import Document
+from frappe.utils import cint
 
 class NumberCard(Document):
 	pass
@@ -67,7 +68,7 @@ def get_result(doc, to_date=None):
 	res = frappe.db.get_all(doc.document_type, fields=fields, filters=filters)
 	number = res[0]['result'] if res else 0
 
-	return number
+	return cint(number)
 
 @frappe.whitelist()
 def get_percentage_difference(doc, result):
@@ -141,4 +142,3 @@ def get_cards_for_user(doctype, txt, searchfield, start, page_len, filters):
 		search_conditions=search_conditions,
 		conditions=conditions
 	), values)
-

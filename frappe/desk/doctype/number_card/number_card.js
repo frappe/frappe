@@ -18,24 +18,29 @@ frappe.ui.form.on('Number Card', {
 		});
 		frm.set_value('filters_json', '[]');
 		frm.set_value('aggregate_function_based_on', '');
-		if (frm.doc.document_type) {
-			frm.trigger('set_options');
-		}
+		frm.trigger('set_options');
 	},
 
 	set_options: function(frm) {
 		let aggregate_based_on_fields = [];
 		const doctype = frm.doc.document_type;
 
-		frappe.model.with_doctype(doctype, () => {
-			frappe.get_meta(doctype).fields.map(df => {
-				if (frappe.model.numeric_fieldtypes.includes(df.fieldtype)) {
-					aggregate_based_on_fields.push({label: df.label, value: df.fieldname});
-				}
-			});
+		if (doctype) {
+			frappe.model.with_doctype(doctype, () => {
+				frappe.get_meta(doctype).fields.map(df => {
+					if (frappe.model.numeric_fieldtypes.includes(df.fieldtype)) {
+						if (df.fieldtype == 'Currency') {
+							if (!df.options || df.options !== 'Company:company:default_currency') {
+								return;
+							}
+						}
+						aggregate_based_on_fields.push({label: df.label, value: df.fieldname});
+					}
+				});
 
-			frm.set_df_property('aggregate_function_based_on', 'options', aggregate_based_on_fields);
-		});
+				frm.set_df_property('aggregate_function_based_on', 'options', aggregate_based_on_fields);
+			});
+		}
 	},
 
 	render_filters_table: function(frm) {

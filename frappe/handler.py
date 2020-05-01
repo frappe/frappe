@@ -14,6 +14,12 @@ from frappe.core.doctype.server_script.server_script_utils import run_server_scr
 from werkzeug.wrappers import Response
 from six import string_types
 
+ALLOWED_MIMETYPES = ('image/png', 'image/jpeg', 'application/pdf', 'application/msword',
+			'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+			'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+			'application/vnd.oasis.opendocument.text', 'application/vnd.oasis.opendocument.spreadsheet')
+
+
 def handle():
 	"""handle request"""
 	validate_auth()
@@ -148,12 +154,14 @@ def uploadfile():
 
 @frappe.whitelist(allow_guest=True)
 def upload_file():
+	user = None
 	if frappe.session.user == 'Guest':
 		if frappe.get_system_settings('allow_guests_to_upload_files'):
 			ignore_permissions = True
 		else:
 			return
 	else:
+		user = frappe.get_doc("User", frappe.session.user)
 		ignore_permissions = False
 
 	files = frappe.request.files
@@ -175,11 +183,11 @@ def upload_file():
 	frappe.local.uploaded_file = content
 	frappe.local.uploaded_filename = filename
 
-	if frappe.session.user == 'Guest':
+	if frappe.session.user == 'Guest' or (user and not user.has_desk_access()):
 		import mimetypes
 		filetype = mimetypes.guess_type(filename)[0]
-		if filetype not in ['image/png', 'image/jpeg', 'application/pdf']:
-			frappe.throw("You can only upload JPG, PNG or PDF files.")
+		if filetype not in ALLOWED_MIMETYPES:
+			frappe.throw(_("You can only upload JPG, PNG, PDF, or Microsoft documents."))
 
 	if method:
 		method = frappe.get_attr(method)
