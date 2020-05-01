@@ -25,8 +25,8 @@ export default class OnboardingWidget extends Widget {
 		let icon_class = "fa-circle-o";
 
 		if (step.is_skipped) {
-			status = "skipped"
-			icon_class = "fa-times-circle-o"
+			status = "skipped";
+			icon_class = "fa-times-circle-o";
 		}
 
 		if (step.is_complete) {
@@ -58,9 +58,9 @@ export default class OnboardingWidget extends Widget {
 		let actions = {
 			"Watch Video": () => this.show_video(step),
 			"Create Entry": () => this.show_quick_entry(step),
-			"Update Settings":  () => this.update_settings(step),
-			"View Report": () => this.open_report(step)
-		}
+			"Update Settings": () => this.update_settings(step),
+			"View Report": () => this.open_report(step),
+		};
 
 		$step.on("click", actions[step.action]);
 
@@ -79,8 +79,32 @@ export default class OnboardingWidget extends Widget {
 			),
 		});
 
-		frappe.set_route(route);
-		this.mark_complete(step);
+		let current_route = frappe.get_route();
+
+		frappe.set_route(route).then(() => {
+			let msg_dialog = frappe.msgprint({
+				message: __(step.report_description),
+				title: __(step.reference_report),
+				primary_action: {
+					action: () => {
+						msg_dialog.hide();
+						this.mark_complete(step);
+					},
+					label: () => __("Continue"),
+				},
+				secondary_action: {
+					action: () => {
+						msg_dialog.hide();
+						frappe.set_route(current_route).then(() => {
+							this.mark_complete(step);
+						});
+					},
+					label: __("Go Back"),
+				},
+			});
+
+			frappe.msg_dialog.custom_onhide = () => this.mark_complete(step);
+		});
 	}
 
 	update_settings(step) {
@@ -103,23 +127,23 @@ export default class OnboardingWidget extends Widget {
 			if (cstr(value) == cstr(step.value_to_validate)) success = true;
 
 			if (success) {
-				args.message = "Let's take you back to onboarding"
-				args.title = "Looks Great"
+				args.message = __("Let's take you back to onboarding");
+				args.title = __("Looks Great");
 				args.primary_action = {
 					action: () => {
 						frappe.set_route(current_route).then(() => {
 							this.mark_complete(step);
 						});
 					},
-					label: __("Continue")
-				}
+					label: __("Continue"),
+				};
 			} else {
-				args.message = "Looks like you didn't change the value"
-				args.title = "Oops"
+				args.message = __("Looks like you didn't change the value");
+				args.title = __("Oops");
 				args.secondary_action = {
 					action: () => frappe.set_route(current_route),
-					label: __("Go Back")
-				}
+					label: __("Go Back"),
+				};
 
 				if (!step.is_mandatory) {
 					args.primary_action = {
@@ -130,15 +154,15 @@ export default class OnboardingWidget extends Widget {
 								}, 300);
 							});
 						},
-						label: __("Skip Step")
-					}
+						label: __("Skip Step"),
+					};
 				}
 			}
 
-			frappe.msgprint(args)
-		}
+			frappe.msgprint(args);
+		};
 
-		frappe.set_route("Form", step.reference_document)
+		frappe.set_route("Form", step.reference_document);
 	}
 
 	show_quick_entry(step) {
@@ -166,10 +190,10 @@ export default class OnboardingWidget extends Widget {
 		let $step = step.$step;
 
 		let callback = () => {
-				step.is_complete = true;
-				$step.removeClass("skipped");
-				$step.addClass("complete");
-		}
+			step.is_complete = true;
+			$step.removeClass("skipped");
+			$step.addClass("complete");
+		};
 
 		this.update_step_status(step, "is_complete", 1, callback);
 	}
@@ -181,28 +205,29 @@ export default class OnboardingWidget extends Widget {
 			step.is_skipped = true;
 			$step.removeClass("complete");
 			$step.addClass("skipped");
-		}
+		};
 
 		this.update_step_status(step, "is_skipped", 1, callback);
 	}
 
 	update_step_status(step, status, value, callback) {
 		let icon_class = {
-			is_complete: 'fa-check-circle-o',
-			is_skipped: 'fa-times-circle-o',
-		}
+			is_complete: "fa-check-circle-o",
+			is_skipped: "fa-times-circle-o",
+		};
 
 		frappe
 			.call("frappe.desk.desktop.update_onboarding_step", {
 				name: step.name,
 				field: status,
 				value: value,
-			}).then(() => {
+			})
+			.then(() => {
 				callback();
 
 				let icon = step.$step.find("i.fa");
 				icon.removeClass();
-				icon.addClass('fa');
+				icon.addClass("fa");
 				icon.addClass(icon_class[status]);
 
 				let pending = this.steps.filter((step) => {
@@ -212,15 +237,20 @@ export default class OnboardingWidget extends Widget {
 				if (pending.length == 0) {
 					this.show_success();
 				}
-			})
+			});
 	}
 
 	show_success() {
-		let success_message = this.success || __('You seem good to go!');
-		let success_state_image = this.success_state_image || '/assets/frappe/images/ui-states/success-color.png';
-		let documentation = ''
+		let success_message = this.success || __("You seem good to go!");
+		let success_state_image =
+			this.success_state_image ||
+			"/assets/frappe/images/ui-states/success-color.png";
+		let documentation = "";
 		if (this.docs_url) {
-			documentation = __('Congratulations on completing the module setup. If you want to learn more you can refer to the documentation <a href="{0}">here</a>.', [this.docs_url])
+			documentation = __(
+				'Congratulations on completing the module setup. If you want to learn more you can refer to the documentation <a href="{0}">here</a>.',
+				[this.docs_url]
+			);
 		}
 
 		let success = $(`<div class="text-center onboarding-success">
@@ -238,11 +268,14 @@ export default class OnboardingWidget extends Widget {
 					this.delete();
 				}, 300);
 			},
-			primary_action_label: __("Continue")
+			primary_action_label: __("Continue"),
 		});
 
 		success_dialog.set_title(__("Onboarding Complete"));
-		success_dialog.header.find('.indicator').removeClass('hidden').addClass('green');
+		success_dialog.header
+			.find(".indicator")
+			.removeClass("hidden")
+			.addClass("green");
 
 		success.appendTo(success_dialog.$body);
 		success_dialog.show();
