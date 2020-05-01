@@ -32,7 +32,7 @@ frappe.ui.form.QuickEntryForm = Class.extend({
 			frappe.model.with_doctype(this.doctype, () => {
 				this.check_quick_entry_doc();
 				this.set_meta_and_mandatory_fields();
-				if(this.is_quick_entry() || this.force) {
+				if (this.is_quick_entry() || this.force) {
 					this.render_dialog();
 					resolve(this);
 				} else {
@@ -50,7 +50,7 @@ frappe.ui.form.QuickEntryForm = Class.extend({
 
 		// prepare a list of mandatory, bold and allow in quick entry fields
 		this.mandatory = fields.filter(df => {
-			return ((df.reqd || df.bold || df.allow_in_quick_entry) && !df.read_only)
+			return ((df.reqd || df.bold || df.allow_in_quick_entry) && !df.read_only);
 		});
 	},
 

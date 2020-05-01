@@ -20,7 +20,7 @@ class Onboarding(Document):
 
 	def get_allowed_roles(self):
 		all_roles = [role.role for role in self.allow_roles]
-		if not "System Manager" in all_roles:
+		if "System Manager" not in all_roles:
 			all_roles.append("System Manager")
 
 		return all_roles
