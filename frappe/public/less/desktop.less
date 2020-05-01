@@ -471,7 +471,7 @@
 
 	&.number-widget-box {
 		cursor: pointer;
-		height: 100px;
+		height: 110px;
 		padding: 10px;
 
 		&:hover {
@@ -504,13 +504,14 @@
 			}
 
 			.widget-content {
-				padding-top: 20px;
+				padding-top: 30px;
 				display: flex;
 				justify-content: space-between;
 
 				.number {
+					font-weight: 600;
 					font-size: 26px;
-					font-weight: bold;
+					line-height: 1.8em;
 				}
 
 				.number-text {
@@ -520,7 +521,19 @@
 				}
 
 				.card-stats {
-					padding-top: 15px;
+					padding-top: 5px;
+				}
+
+				.percentage-stat {
+					float: right;
+					clear: right;
+					font-size: 12px;
+				}
+
+				.stat-period {
+					float: right;
+					clear: right;
+					font-size: 11px;
 				}
 
 				.green-stat {

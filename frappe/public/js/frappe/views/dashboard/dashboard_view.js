@@ -24,6 +24,7 @@ frappe.views.DashboardView = class DashboardView extends frappe.views.ListView {
 		this.setup_dashboard_page();
 		this.setup_dashboard_customization();
 		this.make_dashboard();
+		this.setup_events();
 	}
 
 	setup_dashboard_customization() {
@@ -43,13 +44,11 @@ frappe.views.DashboardView = class DashboardView extends frappe.views.ListView {
 				<div class="text-muted uppercase">${dashboard_name}</div>
 				<div class="text-muted customize-dashboard" data-action="customize">${__('Customize')}</div>
 				<div class="small text-muted customize-options small-bounce">
-					<span class="reset-customization" data-action="reset_dashboard_customization">
-						${__('Reset')}
-					</span> / <span class="save-customization" data-action="save_dashboard_customization">
-						${__('Save')}
-					</span> / <span class="discard-customization" data-action="discard_dashboard_customization">
-						${__('Discard')}
-					</span>
+					<span class="reset-customization customize-option" data-action="reset_dashboard_customization">${__('Reset')}</span>
+					<span> / </span>
+					<span class="save-customization customize-option" data-action="save_dashboard_customization">${__('Save')}</span>
+					<span> / </span>
+					<span class="discard-customization customize-option" data-action="discard_dashboard_customization">${__('Discard')}</span>
 				</div>
 			</div>`);
 
@@ -71,12 +70,14 @@ frappe.views.DashboardView = class DashboardView extends frappe.views.ListView {
 					{
 						chart_type: ['in', ['Count', 'Sum', 'Group By']],
 						document_type: this.doctype,
+						is_public: 1,
 					},
 					'charts'
 				),
 				() => this.fetch_dashboard_items('Number Card',
 					{
 						document_type: this.doctype,
+						is_public: 1,
 					},
 					'number_cards'
 				),
@@ -101,6 +102,11 @@ frappe.views.DashboardView = class DashboardView extends frappe.views.ListView {
 		if (!this.charts.length && !this.number_cards.length) {
 			this.render_empty_state();
 		}
+	}
+
+	setup_events() {
+		$(document.body).on('toggleFullWidth', () => this.render_dashboard());
+		$(document.body).on('toggleListSidebar', () => this.render_dashboard());
 	}
 
 	fetch_dashboard_items(doctype, filters, obj_name) {
@@ -186,9 +192,8 @@ frappe.views.DashboardView = class DashboardView extends frappe.views.ListView {
 		}
 
 		this.toggle_customize(true);
-		this.chart_group.in_customize_mode = true;
+		this.in_customize_mode = true;
 		this.chart_group.customize();
-		this.number_cards.in_customize_mode = true;
 		this.number_card_group.customize();
 	}
 
@@ -223,12 +228,14 @@ frappe.views.DashboardView = class DashboardView extends frappe.views.ListView {
 	}
 
 	reset_dashboard_customization() {
-		this.dashboard_settings = null;
-		frappe.model.user_settings.save(
-			this.doctype, 'dashboard_settings', this.dashboard_settings
-		).then(() => this.make_dashboard());
+		frappe.confirm(__("Are you sure you want to reset all customizations?"), () => {
+			this.dashboard_settings = null;
+			frappe.model.user_settings.save(
+				this.doctype, 'dashboard_settings', this.dashboard_settings
+			).then(() => this.make_dashboard());
 
-		this.toggle_customize(false);
+			this.toggle_customize(false);
+		});
 	}
 
 	toggle_customize(show) {
