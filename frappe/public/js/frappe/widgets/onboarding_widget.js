@@ -4,7 +4,6 @@ import { generate_route } from "./utils";
 export default class OnboardingWidget extends Widget {
 	constructor(opts) {
 		super(opts);
-		window.onb = this;
 	}
 
 	make_body() {
