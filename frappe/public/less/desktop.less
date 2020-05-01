@@ -301,6 +301,10 @@
 			display: none;
 		}
 
+		.widget-control {
+            z-index: 1;
+        }
+
 		.frappe-chart .chart-legend {
 			display: none;
 		}
@@ -308,16 +312,19 @@
 		.widget-body {
 			display: flex;
 			max-height: 100%;
+			margin: auto;
+			margin-top: -15px;
 
 			.chart-container {
-				margin-left: 65px;
-				margin-top: -15px;
+				height: 100%;
+				.frappe-chart {
+					height: 100%;
+				}
 			}
 
 			.heatmap-legend {
 				display: flex;
-    			height: 100%;
-				margin-top: 30px;
+				margin: 45px 20px 0 20px;
 
 				.legend-colors {
 					padding-left: 1;
@@ -337,13 +344,17 @@
 					margin-left: 15px;
 					line-height: 1.6em;
 				}
+
+				@media (max-width: 991px) {
+					display: none;
+				}
 			}
 		}
-	}
 
-	@media (max-width: 768px) {
-		&.dashboard-widget-box.heatmap-chart {
-			display: none;
+		@media (max-width: 768px) {
+			.heatmap-chart {
+				display: none;
+			}
 		}
 	}
 

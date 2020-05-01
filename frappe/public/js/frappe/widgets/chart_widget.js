@@ -548,7 +548,7 @@ export default class ChartWidget extends Widget {
 	}
 
 	render_heatmap_legend() {
-		if (!this.$heatmap_legend) {
+		if (!this.$heatmap_legend && this.widget.width() > 991) {
 			this.$heatmap_legend =
 				$(`
 				<div class="heatmap-legend">
