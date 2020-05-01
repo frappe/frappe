@@ -7,6 +7,7 @@ import frappe
 from frappe.model.document import Document
 from frappe.modules.export_file import export_to_files
 
+
 class Onboarding(Document):
 	def on_update(self):
 		if frappe.conf.developer_mode:
@@ -30,8 +31,8 @@ class Onboarding(Document):
 			return True
 
 		steps = self.get_steps()
-		is_complete = [True if (step.is_complete or step.is_skipped) else False for step in steps]
-		if (all(is_complete)):
+		is_complete = [bool(step.is_complete or step.is_skipped) for step in steps]
+		if all(is_complete):
 			self.is_complete = True
 			self.save()
 			return True

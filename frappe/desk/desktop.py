@@ -35,6 +35,7 @@ class Workspace:
 		self.allowed_pages = get_allowed_pages()
 		self.allowed_reports = get_allowed_reports()
 		self.onboarding_doc = self.get_onboarding_doc()
+		self.onboarding = None
 
 		self.table_counts = get_table_with_counts()
 		self.restricted_doctypes = frappe.cache().get_value("domain_restricted_doctypes") or build_domain_restriced_doctype_cache()
@@ -54,25 +55,24 @@ class Workspace:
 
 	def get_onboarding_doc(self):
 		if not self.doc.onboarding:
-			return
+			return None
 
 		if frappe.db.get_value("Onboarding", self.doc.onboarding, "is_complete"):
-			return
+			return None
 
 		doc = frappe.get_doc("Onboarding", self.doc.onboarding)
 
 		# Check if user is allowed
 		allowed_roles = set(doc.get_allowed_roles())
 		user_roles = set(self.user.get_roles())
-		if not (allowed_roles & user_roles):
-			return
+		if not allowed_roles & user_roles:
+			return None
 
 		# Check if already complete
 		if doc.check_completion():
-			return
+			return None
 
 		return doc
-
 
 	def get_pages_to_extend(self):
 		pages = frappe.get_all("Desk Page", filters={
@@ -119,7 +119,6 @@ class Workspace:
 			'items': self.get_shortcuts()
 		}
 
-		self.onboarding = None
 		if self.onboarding_doc:
 			self.onboarding = {
 				'label': _(self.onboarding_doc.title),
@@ -250,6 +249,7 @@ class Workspace:
 			steps.append(step)
 
 		return steps
+
 
 @frappe.whitelist()
 @frappe.read_only()
@@ -478,7 +478,15 @@ def prepare_widget(config, doctype, parentfield):
 		prepare_widget_list.append(doc)
 	return prepare_widget_list
 
+
 @frappe.whitelist()
 def update_onboarding_step(name, field, value):
+	"""Update status of onboaridng step
+
+	Args:
+	    name (string): Name of the doc
+	    field (string): field to be updated
+	    value: Value to be updated
+
+	"""
 	frappe.db.set_value("Onboarding Step", name, field, value)
-	return
