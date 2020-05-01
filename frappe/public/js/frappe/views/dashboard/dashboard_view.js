@@ -44,13 +44,11 @@ frappe.views.DashboardView = class DashboardView extends frappe.views.ListView {
 				<div class="text-muted uppercase">${dashboard_name}</div>
 				<div class="text-muted customize-dashboard" data-action="customize">${__('Customize')}</div>
 				<div class="small text-muted customize-options small-bounce">
-					<span class="reset-customization" data-action="reset_dashboard_customization">
-						${__('Reset')}
-					</span> / <span class="save-customization" data-action="save_dashboard_customization">
-						${__('Save')}
-					</span> / <span class="discard-customization" data-action="discard_dashboard_customization">
-						${__('Discard')}
-					</span>
+					<span class="reset-customization customize-option" data-action="reset_dashboard_customization">${__('Reset')}</span>
+					<span> / </span>
+					<span class="save-customization customize-option" data-action="save_dashboard_customization">${__('Save')}</span>
+					<span> / </span>
+					<span class="discard-customization customize-option" data-action="discard_dashboard_customization">${__('Discard')}</span>
 				</div>
 			</div>`);
 
