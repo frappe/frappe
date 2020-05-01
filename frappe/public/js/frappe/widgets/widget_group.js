@@ -128,12 +128,12 @@ export default class WidgetGroup {
 		}
 	}
 
-	on_delete(name) {
+	on_delete(name, setup_new) {
 		this.widgets_list = this.widgets_list.filter((wid) => name != wid.name);
 		delete this.widgets_dict[name];
 		this.update_widget_order();
 
-		if (!this.new_widget) this.setup_new_widget();
+		if (!this.new_widget && setup_new) this.setup_new_widget();
 	}
 
 	update_widget_order() {

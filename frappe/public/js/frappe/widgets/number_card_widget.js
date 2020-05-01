@@ -59,6 +59,7 @@ export default class NumberCardWidget extends Widget {
 			}
 		).then(doc => {
 			this.name = doc.name;
+			this.card_doc.stats_time_interval = doc.stats_time_interval;
 			this.card_doc.name = this.name;
 			this.widget.attr('data-widget-name', this.name);
 		});
@@ -152,9 +153,22 @@ export default class NumberCardWidget extends Widget {
 				color_class = 'red-stat';
 			}
 
+			const stats_qualifier_map = {
+				'Daily': __('since yesterday'),
+				'Weekly': __('since last week'),
+				'Monthly': __('since last month'),
+				'Yearly': __('since last year')
+			};
+			const stats_qualifier = stats_qualifier_map[this.card_doc.stats_time_interval];
+
 			$(this.body).find('.widget-content').append(`<div class="card-stats ${color_class}">
-				${caret_html}
-				<span class="percentage-stat">${Math.abs(this.percentage_stat)} %</span>
+				<span class="percentage-stat">
+					${caret_html}
+					${Math.abs(this.percentage_stat)} %
+				</span>
+				<span class="stat-period text-muted">
+					${stats_qualifier}
+				</span>
 			</div>`);
 		});
 	}

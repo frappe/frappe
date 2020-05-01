@@ -145,6 +145,11 @@ class DesktopPage {
 	show() {
 		frappe.desk_page = this;
 		this.page.show();
+		if (this.sections.shortcuts) {
+			this.sections.shortcuts.widgets_list.forEach(wid => {
+				wid.set_actions();
+			});
+		}
 	}
 
 	hide() {
