@@ -126,7 +126,6 @@ class Workspace:
 				'success': _(self.onboarding_doc.success_message),
 				'docs_url': self.onboarding_doc.documentation_url,
 				'user_can_dismiss': self.onboarding_doc.user_can_dismiss,
-				'user_can_skip': self.onboarding_doc.user_can_skip,
 				'items': self.get_onboarding_slides()
 			}
 
