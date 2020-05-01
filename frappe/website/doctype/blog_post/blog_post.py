@@ -107,7 +107,7 @@ def get_list_context(context=None):
 		title = _('Blog')
 	)
 
-	category = sanitize_html(frappe.local.form_dict.blog_category or frappe.local.form_dict.category)
+	category = frappe.utils.escape_html(frappe.local.form_dict.blog_category or frappe.local.form_dict.category)
 	if category:
 		category_title = get_blog_category(category)
 		list_context.sub_title = _("Posts filed under {0}").format(category_title)
@@ -150,7 +150,7 @@ def get_blog_category(route):
 
 def get_blog_list(doctype, txt=None, filters=None, limit_start=0, limit_page_length=20, order_by=None):
 	conditions = []
-	category = filters.blog_category or sanitize_html(frappe.local.form_dict.blog_category or frappe.local.form_dict.category)
+	category = filters.blog_category or frappe.utils.escape_html(frappe.local.form_dict.blog_category or frappe.local.form_dict.category)
 	if filters:
 		if filters.blogger:
 			conditions.append('t1.blogger=%s' % frappe.db.escape(filters.blogger))
