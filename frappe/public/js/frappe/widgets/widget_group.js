@@ -133,7 +133,6 @@ export default class WidgetGroup {
 		delete this.widgets_dict[name];
 		this.update_widget_order();
 
-		console.log('THIS', this);
 		if (!this.new_widget && setup_new) this.setup_new_widget();
 	}
 

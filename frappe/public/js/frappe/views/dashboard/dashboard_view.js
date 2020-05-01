@@ -103,6 +103,13 @@ frappe.views.DashboardView = class DashboardView extends frappe.views.ListView {
 		if (!this.charts.length && !this.number_cards.length) {
 			this.render_empty_state();
 		}
+
+		this.setup_events();
+	}
+
+	setup_events() {
+		$(document.body).on('toggleFullWidth', () => this.make_dashboard());
+		$(document.body).on('toggleListSidebar', () => this.make_dashboard());
 	}
 
 	fetch_dashboard_items(doctype, filters, obj_name) {
