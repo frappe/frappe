@@ -54,7 +54,7 @@
    "reqd": 1
   },
   {
-   "default": "0",
+   "default": "1",
    "description": "Allow users to dismiss onboarding temporarily for a day",
    "fieldname": "user_can_dismiss",
    "fieldtype": "Check",
@@ -90,7 +90,7 @@
   }
  ],
  "links": [],
- "modified": "2020-04-30 19:16:16.082713",
+ "modified": "2020-05-01 19:37:21.492405",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Onboarding",
