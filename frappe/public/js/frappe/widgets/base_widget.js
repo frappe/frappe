@@ -127,19 +127,19 @@ export default class Widget {
 	}
 
 	delete(animate=true) {
-		let remove_widget = () => {
+		let remove_widget = (setup_new) => {
 			this.widget.remove();
-			this.options.on_delete && this.options.on_delete(this.name);
+			this.options.on_delete && this.options.on_delete(this.name, setup_new);
 		};
 
 		if (animate) {
 			this.widget.addClass("zoomOutDelete");
 			// wait for animation
 			setTimeout(() => {
-				remove_widget();
+				remove_widget(true);
 			}, 300);
 		} else {
-			remove_widget();
+			remove_widget(false);
 		}
 	}
 
