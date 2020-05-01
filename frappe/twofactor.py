@@ -30,7 +30,7 @@ def two_factor_is_enabled(user=None):
 		if bypass_two_factor_auth and user:
 			user_doc = frappe.get_doc("User", user)
 			restrict_ip_list = user_doc.get_restricted_ip_list() #can be None or one or more than one ip address
-			if restrict_ip_list:
+			if restrict_ip_list and frappe.local.request_ip:
 				for ip in restrict_ip_list:
 					if frappe.local.request_ip.startswith(ip):
 						enabled = False

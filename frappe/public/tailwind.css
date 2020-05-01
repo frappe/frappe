@@ -13,11 +13,10 @@ details.hide-summary-arrow summary::-webkit-details-marker {
 }
 
 .from-markdown {
-	@apply text-gray-900;
 	@apply leading-relaxed;
 
 	> * + * {
-		@apply mt-6;
+		@apply mt-4;
 	}
 
 	> :first-child {
@@ -50,28 +49,45 @@ details.hide-summary-arrow summary::-webkit-details-marker {
 		@apply px-4 py-3 text-sm font-medium text-gray-900 border border-gray-400 rounded-md bg-gray-50;
 	}
 
-	> h1 {
-		@apply text-4xl;
-		@apply mt-16;
-		@apply mb-4;
-		@apply leading-none;
-		@apply font-bold;
+	h1 {
+		@apply mt-16 mb-4 text-3xl font-extrabold leading-tight tracking-tight;
+		@screen sm {
+			@apply text-4xl leading-10;
+		}
+		@screen xl {
+			@apply text-5xl leading-none;
+		}
 	}
 
-	> h2 {
-		@apply mt-16;
-		@apply mb-4;
-		@apply leading-none;
-		@apply font-bold;
-		@apply text-3xl;
+	h1 + p {
+		@apply max-w-2xl mt-3 text-base text-gray-900;
+
+		@screen sm {
+			@apply mt-5 text-lg;
+		}
+		@screen md {
+			@apply mt-5 text-xl;
+		}
 	}
 
-	> h3 {
-		@apply mt-16;
-		@apply mb-4;
-		@apply leading-none;
-		@apply font-bold;
-		@apply text-2xl;
+	h2 {
+		@apply mb-4 text-2xl font-bold leading-tight mt-14;
+	}
+
+	h3 {
+		@apply mt-12 mb-4 text-xl font-semibold leading-tight;
+	}
+
+	h4 {
+		@apply mt-10 mb-4 text-lg font-semibold leading-tight;
+	}
+
+	h5 {
+		@apply mt-8 mb-4 text-base font-semibold leading-tight;
+	}
+
+	h6 {
+		@apply mt-6 mb-4 text-sm font-semibold leading-tight;
 	}
 
 	> a,
@@ -84,9 +100,17 @@ details.hide-summary-arrow summary::-webkit-details-marker {
 		}
 	}
 
+	table {
+		@apply w-full my-8 border-t;
+	}
+
+	tbody {
+		@apply border-t;
+	}
+
 	tr > td,
 	tr > th {
-		@apply px-4 py-2 border border-gray-400;
+		@apply py-4 pr-6 text-sm leading-6 text-left border-b;
 	}
 
 	th:empty {

@@ -12,7 +12,8 @@
   "column_break_5",
   "add_container",
   "add_padding",
-  "add_shade"
+  "add_shade",
+  "hide_block"
  ],
  "fields": [
   {
@@ -54,18 +55,24 @@
    "default": "0",
    "fieldname": "add_shade",
    "fieldtype": "Check",
-   "label": "Shaded Section"
+   "label": "Add Gray Background"
   },
   {
    "default": "1",
    "fieldname": "add_container",
    "fieldtype": "Check",
    "label": "Add Container"
+  },
+  {
+   "default": "0",
+   "fieldname": "hide_block",
+   "fieldtype": "Check",
+   "label": "Hide Block"
   }
  ],
  "istable": 1,
  "links": [],
- "modified": "2020-04-19 16:16:44.524042",
+ "modified": "2020-04-29 15:08:25.976179",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Web Page Block",
