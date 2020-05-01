@@ -228,12 +228,14 @@ frappe.views.DashboardView = class DashboardView extends frappe.views.ListView {
 	}
 
 	reset_dashboard_customization() {
-		this.dashboard_settings = null;
-		frappe.model.user_settings.save(
-			this.doctype, 'dashboard_settings', this.dashboard_settings
-		).then(() => this.make_dashboard());
+		frappe.confirm(__("Are you sure you want to reset all customizations?"), () => {
+			this.dashboard_settings = null;
+			frappe.model.user_settings.save(
+				this.doctype, 'dashboard_settings', this.dashboard_settings
+			).then(() => this.make_dashboard());
 
-		this.toggle_customize(false);
+			this.toggle_customize(false);
+		});
 	}
 
 	toggle_customize(show) {
