@@ -20,12 +20,12 @@ frappe.widget.widget_factory = {
 frappe.widget.make_widget = (opts) => {
 	const widget_class = frappe.widget.widget_factory[opts.widget_type];
 	if (widget_class) {
-		return new widget_class(opts)
+		return new widget_class(opts);
 	} else {
 		// eslint-disable-next-line
 		console.warn("Invalid Widget Name: " + opts.widget_type);
 	}
-}
+};
 
 export default class WidgetGroup {
 	constructor(opts) {

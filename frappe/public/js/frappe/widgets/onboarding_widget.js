@@ -69,8 +69,6 @@ export default class OnboardingWidget extends Widget {
 	}
 
 	open_report(step) {
-		let $step = step.$step;
-
 		let route = generate_route({
 			name: step.reference_report,
 			type: "report",
@@ -108,7 +106,6 @@ export default class OnboardingWidget extends Widget {
 	}
 
 	update_settings(step) {
-		let $step = step.$step;
 		let current_route = frappe.get_route();
 
 		frappe.route_options = {};
@@ -166,8 +163,6 @@ export default class OnboardingWidget extends Widget {
 	}
 
 	show_quick_entry(step) {
-		let $step = step.$step;
-
 		frappe.ui.form.make_quick_entry(
 			step.reference_document,
 			() => {
@@ -180,8 +175,6 @@ export default class OnboardingWidget extends Widget {
 	}
 
 	show_video(step) {
-		let $step = step.$step;
-
 		frappe.help.show_video(step.video_url, step.title);
 		this.mark_complete(step);
 	}
