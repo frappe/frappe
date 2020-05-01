@@ -158,7 +158,7 @@ export default class NumberCardWidget extends Widget {
 				'Weekly': __('since last week'),
 				'Monthly': __('since last month'),
 				'Yearly': __('since last year')
-			}
+			};
 			const stats_qualifier = stats_qualifier_map[this.card_doc.stats_time_interval];
 
 			$(this.body).find('.widget-content').append(`<div class="card-stats ${color_class}">
