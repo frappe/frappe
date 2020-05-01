@@ -110,7 +110,8 @@ def create_dashboard_chart(args):
 
 @frappe.whitelist()
 def create_report_chart(args):
-	create_dashboard_chart()
+	create_dashboard_chart(args)
+	args = frappe.parse_json(args)
 	if args.dashboard:
 		add_chart_to_dashboard(json.dumps(args))
 
