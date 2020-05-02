@@ -136,5 +136,5 @@ def get_webhook_data(doc, webhook):
 def validate_json(string):
 	try:
 		json.loads(string)
-	except:
-		frappe.throw(_("Request Body consists of an invalid JSON structure"))
+	except (TypeError, ValueError):
+		frappe.throw(_("Request Body consists of an invalid JSON structure"), title=_("Invalid JSON"))
