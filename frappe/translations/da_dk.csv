@@ -1,6 +1,5 @@
 Half Day,Half Day,
 Half Yearly,Halvdelen Årlig,
- by Role ,af rolle,
 """Company History""",'Virksomhedshistorie',
 1 Currency = [?] Fraction\nFor e.g. 1 USD = 100 Cent,1 Valuta = [?] Fraktion For eksempel 1 USD = 100 Cent,
 "Unknown file encoding. Tried utf-8, windows-1250, windows-1252.","Ukendt fil kodning. Prøvede utf-8, vinduer-1250, vinduer-1252.",
