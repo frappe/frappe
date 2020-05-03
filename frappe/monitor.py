@@ -79,7 +79,7 @@ class Monitor:
 
 			if self.data.transaction_type == "request":
 				self.data.request.status_code = response.status_code
-				self.data.request.response_length = int(response.headers["Content-Length"])
+				self.data.request.response_length = int(response.headers.get("Content-Length", 0))
 
 			self.store()
 		except Exception:
