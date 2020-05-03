@@ -193,32 +193,15 @@ frappe.ui.form.on('Data Import Beta', {
 			frm.data_exporter &&
 			frm.data_exporter.doctype === frm.doc.reference_doctype
 		) {
+			frm.data_exporter.exporting_for = frm.doc.import_type;
 			frm.data_exporter.dialog.show();
-			set_export_records();
 		} else {
 			frappe.require('/assets/js/data_import_tools.min.js', () => {
 				frm.data_exporter = new frappe.data_import.DataExporter(
-					frm.doc.reference_doctype
+					frm.doc.reference_doctype,
+					frm.doc.import_type
 				);
-				set_export_records();
 			});
-		}
-
-		function set_export_records() {
-			if (frm.doc.import_type === 'Insert New Records') {
-				frm.data_exporter.dialog.set_value('export_records', 'blank_template');
-			} else {
-				frm.data_exporter.dialog.set_value('export_records', 'all');
-			}
-			// Force ID field to be exported when updating existing records
-			let id_field = frm.data_exporter.dialog.get_field(
-				frm.doc.reference_doctype
-			).options[0];
-			if (id_field.value === 'name' && id_field.$checkbox) {
-				id_field.$checkbox
-					.find('input')
-					.prop('disabled', frm.doc.import_type === 'Update Existing Records');
-			}
 		}
 	},
 
