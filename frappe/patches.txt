@@ -266,7 +266,6 @@ frappe.patches.v12_0.change_existing_dashboard_chart_filters
 execute:frappe.delete_doc("Test Runner")
 execute:frappe.delete_doc_if_exists('DocType', 'Google Maps Settings')
 execute:frappe.db.set_default('desktop:home_page', 'workspace')
-frappe.patches.v13.migrate_translation_column_data
 execute:frappe.delete_doc_if_exists('DocType', 'GSuite Settings')
 execute:frappe.delete_doc_if_exists('DocType', 'GSuite Templates')
 execute:frappe.delete_doc_if_exists('DocType', 'GCalendar Account')
@@ -276,3 +275,4 @@ execute:from frappe.desk.page.setup_wizard.install_fixtures import update_gender
 frappe.patches.v13_0.website_theme_custom_scss
 frappe.patches.v13_0.set_existing_dashboard_charts_as_public
 frappe.patches.v13_0.set_path_for_homepage_in_web_page_view
+frappe.patches.v13_0.migrate_translation_column_data

@@ -9,13 +9,8 @@ def execute():
 				source_text=source_name,
 				contribution_docname=contributed_translation_doctype_name,
 				contribution_status=(CASE status
-					WHEN 'Saved' THEN ''
-					WHEN 'Contributed' THEN 'Pending'
 					WHEN 'Deleted' THEN 'Rejected'
-					ELSE 'Verified'
+					ELSE ''
 					END),
-				contributed=(CASE status
-					WHEN 'Saved' THEN 0
-					ELSE 1
-					END)
+				contributed=0
 	""")
