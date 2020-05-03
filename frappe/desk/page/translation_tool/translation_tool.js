@@ -284,12 +284,12 @@ class TranslationTool {
 		if (contributions_exists) {
 			let contributions_html = contributions.map(c => {
 				return `
-				<div class="contributed-translation flex justify-between align-center">
-				<div class="ellipsis">${c.translated}</div>
-				<div class="text-muted small">
-				${comment_when(c.creation)}
-				</div>
-				</div>
+					<div class="contributed-translation flex justify-between align-center">
+						<div class="ellipsis">${c.translated}</div>
+						<div class="text-muted small">
+							${comment_when(c.creation)}
+						</div>
+					</div>
 				`;
 			});
 			this.form.get_field('contributed_translations').html(contributions_html);
