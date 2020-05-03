@@ -244,8 +244,8 @@ Summary,خلاصه,
 Sunday,یکشنبه,
 System Manager,سیستم مدیریت,
 Target,هدف,
+Task,وظیفه,
 Tax Category,دسته مالیات,
-Template Name,نام الگو,
 Test,تست,
 Thank you,متشکرم,
 The page you are looking for is missing. This could be because it is moved or there is a typo in the link.,صفحه مورد نظر شما به دنبال از دست رفته است. این می تواند دلیل آن است که نقل مکان کرد و یا یک خطای تایپی در لینک وجود دارد.,
@@ -274,9 +274,6 @@ Workflow,گردش کار,
 You need to be logged in to access this page,شما نیاز به ورود برای دسترسی به این صفحه,
 old_parent,old_parent,
 {0} is mandatory,{0} الزامی است,
- Advanced Settings,تنظیمات پیشرفته,
- by Role ,توسط نقش,
- for {0},برای {0},
  to your browser,به مرورگر شما,
 """Company History""",&quot;تاریخچه شرکت&quot;,
 """Parent"" signifies the parent table in which this row must be added",&quot;پدر و مادر&quot; به معنای جدول پدر و مادر است که در آن این ردیف باید اضافه شده,
@@ -358,7 +355,6 @@ Add custom javascript to forms.,اضافه کردن سفارشی جاوا اسک
 Add fields to forms.,اضافه کردن زمینه های به اشکال.,
 Add meta tags to your web pages,برچسب های متا را به صفحات وب خود اضافه کنید,
 Add script for Child Table,اسکریپت را برای جدول کودک اضافه کنید,
-"Add the name of a ""Google Web Font"" e.g. ""Open Sans""",اضافه کردن نام یک &quot;Google وب قلم&quot; به عنوان مثال &quot;باز کردن بدون&quot;,
 Add to To Do,اضافه کردن به برای انجام,
 Add to table,اضافه کردن به جدول,
 Add your own Tag Categories,اضافه کردن دسته بندی ها برچسب خود را,
@@ -393,8 +389,6 @@ Allow Comments,اجازه ارسال نظر,
 Allow Consecutive Login Attempts ,اجازه ورود تلاشهای پی در پی,
 Allow Dropbox Access,اجازه دسترسی Dropbox به,
 Allow Edit,اجازه ویرایش,
-Allow GCalendar Access,اجازه دسترسی GCalendar را داشته باشید,
-Allow GSuite access,اجازه دسترسی GSuite,
 Allow Guest to View,اجازه مهمان نمایش,
 Allow Import (via Data Import Tool),اجازه واردات (از طریق وارد کردن داده ها ابزار),
 Allow Incomplete Forms,اجازه می دهد فرم های ناقص,
@@ -497,7 +491,7 @@ Attach Print,ضمیمه چاپ,
 Attach Your Picture,ضمیمه تصویر شما,
 Attach file for Import,ضمیمه فایل برای وارد کردن,
 Attach files / urls and add in table.,فایل ها / URL ها را ضمیمه کنید و در جدول اضافه کنید.,
-Attached To DocType,متصل به DocType,
+Attached To DocType,متصل به DOCTYPE,
 Attached To Field,پیوست به میدان,
 Attached To Name,فایل های پیوست شده به نام,
 Attachment Limit (MB),مجاز برای پیوست (MB),
@@ -606,7 +600,6 @@ Cancelled Document restored as Draft,سند لغو شده به عنوان پیش
 Cancelling,در حال لغو,
 Cancelling {0},لغو {0},
 Cannot Remove,نمی تواند حذف,
-Cannot Update: Incorrect / Expired Link.,نمی توانید به روز رسانی: نادرست / لینک منقضی شده است.,
 Cannot cancel before submitting. See Transition {0},می توانید قبل از ارسال لغو کنید. مشاهده انتقالی {0},
 Cannot change docstatus from 0 to 2,آیا می docstatus از 0 تا 2 تغییر نمی,
 Cannot change docstatus from 1 to 0,آیا می docstatus 1-0 تغییر نمی,
@@ -727,7 +720,6 @@ Condition Detail,جزئیات وضعیت,
 Conditions,شرایط,
 Configure Chart,پیکربندی نمودار,
 Configure Charts,پیکربندی نمودارها,
-Configure Theme,پیکربندی موضوع,
 Confirm,تایید,
 Confirm Deletion of Data,حذف داده را تأیید کنید,
 Confirm Request,درخواست را تأیید کنید,
@@ -747,7 +739,6 @@ Content (Markdown),محتوا (Markdown),
 Content Hash,هش محتوا,
 Content web page.,صفحه وب محتوا.,
 Conversation Tones,تن مکالمه,
-Copy and paste this code into and empty Code.gs in your project at script.google.com,کپی و این کد را در و خالی Code.gs در پروژه های خود را در script.google.com رب,
 Copyright,حق طبع و نشر,
 Core,هسته,
 Core DocTypes cannot be customized.,DocType های اصلی قابل تنظیم نیستند.,
@@ -859,7 +850,6 @@ Default Sort Field,زمینه مرتب سازی پیش فرض,
 Default Sort Order,ترتیب مرتب سازی پیش فرض,
 Default Value,مقدار پیش فرض,
 Default for 'Check' type of field must be either '0' or '1',به طور پیش فرض برای چک &#39;نوع درست یا باید به صورت&#39; 0 &#39;یا&#39; 1 &#39;است,
-Default for {0} must be an option,به طور پیش فرض برای {0} باید گزینه باشد,
 "Default: ""Contact Us""",به طور پیش فرض: &quot;تماس با ما&quot;,
 DefaultValue,مقدار پیش فرض,
 Define workflows for forms.,تعریف گردش کار برای فرم.,
@@ -883,7 +873,6 @@ Desk,میز,
 Desk Access,میز دسترسی,
 Desktop Icon,آیکون دسکتاپ,
 Desktop Icon already exists,دسکتاپ آیکون قبلا وجود داشته,
-Destination ID,ID مقصد,
 Developer,توسعه دهنده,
 Did not add,آیا اضافه کنید,
 Did not cancel,آیا لغو,
@@ -932,9 +921,7 @@ Document States,ایالات سند,
 Document Type is not importable,نوع سند قابل وارد نیست,
 Document Type is not submittable,نوع سند قابل ارسال نیست,
 Document Type to Track,نوع سند برای ردیابی,
-Document Types,انواع سند,
 Document can't saved.,سند نمی تواند ذخیره شود,
-Document is only editable by users of role,سند تنها توسط کاربران از نقش قابل ویرایش است,
 Document {0} has been set to state {1} by {2},سند {0} به حالت {1} توسط {2} تنظیم شده است,
 Documents,اسناد,
 Documents assigned to you and by you.,اسناد به شما اختصاص داده و توسط شما.,
@@ -968,7 +955,7 @@ Dynamic Report Filters,فیلترهای گزارش پویا,
 ESC,خروج,
 Edit Auto Email Report Settings,ویرایش خودکار تنظیمات گزارش ایمیل,
 Edit Custom HTML,ویرایش سفارشی HTML,
-Edit DocType,ویرایش DocType,
+Edit DocType,ویرایش DOCTYPE,
 Edit Filter,ویرایش فیلتر,
 Edit Format,ویرایش قالب,
 Edit HTML,ویرایش HTML,
@@ -976,7 +963,6 @@ Edit Heading,ویرایش سرنویس,
 Edit Properties,ویرایش ویژگیها,
 Edit to add content,ویرایش برای اضافه کردن مطالب,
 Edit {0},ویرایش {0},
-Edit...,ویرایش ...,
 Editable Grid,قابل ویرایش شبکه,
 Editing Row,در حال ویرایش ردیف,
 Eg. smsgateway.com/api/send_sms.cgi,به عنوان مثال. smsgateway.com/api/send_sms.cgi,
@@ -998,7 +984,6 @@ Email Queue Recipient,ایمیل گیرنده صف,
 Email Queue records.,سوابق ایمیل صف.,
 Email Reply Help,ایمیل پاسخ کمک,
 Email Rule,قانون ایمیل,
-Email Sent?,ایمیل فرستاده شده است؟,
 Email Server,ایمیل سرور,
 Email Settings,تنظیمات ایمیل,
 Email Signature,ایمیل امضاء,
@@ -1019,7 +1004,6 @@ Enable Auto Reply,خودکار را فعال پاسخ,
 Enable Automatic Backup,فعال کردن پشتیبان گیری خودکار,
 Enable Chat,فعال کردن چت,
 Enable Comments,فعال نظرات,
-Enable Gradients,گرادیان را فعال کنید,
 Enable Incoming,فعال ورودی,
 Enable Outgoing,فعال خروجی,
 Enable Password Policy,فعال کردن سیاست رمز عبور,
@@ -1027,7 +1011,6 @@ Enable Print Server,سرور چاپ را فعال کنید,
 Enable Raw Printing,چاپ خام را فعال کنید,
 Enable Report,فعال گزارش,
 Enable Scheduled Jobs,فعال کردن شغل برنامه ریزی,
-Enable Shadows,سایه ها را فعال کنید,
 Enable Social Login,فعال کردن ورود به سیستم اجتماعی,
 Enable Two Factor Auth,فعال کردن دو فاکتور Auth,
 Enabled email inbox for user {0},صندوق ورودی ایمیل فعال برای کاربر {0},
@@ -1046,7 +1029,7 @@ Enter folder name,نام پوشه را وارد کنید,
 "Enter keys to enable login via Facebook, Google, GitHub.",کلید را وارد کنید برای فعال کردن ورود از طریق فیس بوک، گوگل، گیتهاب.,
 Enter python module or select connector type,ماژول پایتون را وارد کنید یا نوع اتصال را انتخاب کنید,
 "Enter static url parameters here (Eg. sender=ERPNext, username=ERPNext, password=1234 etc.)",پارامترهای URL شخص را اینجا وارد کنید (به عنوان مثال فرستنده = ERPNext، نام کاربری = ERPNext و رمز = 1234 و غیره),
-Enter url parameter for message,پارامتر url برای پیام را وارد کنید,
+Enter url parameter for message,پارامتر URL برای پیام را وارد کنید,
 Enter url parameter for receiver nos,پارامتر آدرس را وارد کنید برای گیرنده NOS,
 Enter your password,رمز عبور خود را وارد کنید,
 Entity Name,نام شخصیت,
@@ -1168,8 +1151,6 @@ Following fields are missing:,زمینه های زیر را از دست رفته
 Following fields have missing values:,زمینه زیر را داشته باشد ارزش از دست رفته:,
 Font,فونت,
 Font Size,اندازه فونت,
-Font Size (px),اندازه قلم (px),
-Font Styles,قلم سبک,
 Fonts,فونت ها,
 Footer,پاورقی,
 Footer HTML,پاورقی HTML,
@@ -1206,13 +1187,9 @@ From Date Field,از قسمت Field,
 From Document Type,از نوع سند,
 From Full Name,از نام و نام خانوادگی,
 Full Page,صفحه کامل,
-Fw: {0},Fw: {0},
-GCalendar Account,حساب GCalendar,
-GCalendar Settings,تنظیمات GCalendar,
+Fw: {0},FW: {0},
 GCalendar Sync ID,GCalendar Sync ID,
 GMail,جی میل,
-GSuite Settings,تنظیمات GSuite,
-GSuite Templates,GSuite قالب,
 Gantt,گانت,
 Gateway,دروازه,
 Gateway Controller,کنترل دروازه,
@@ -1235,11 +1212,8 @@ Go to {0},برو به {0},
 Go to {0} List,به {0} لیست بروید,
 Go to {0} Page,برو به {0} صفحه,
 Google,گوگل,
-Google API Credentials,اعتبار گوگل API,
 Google Analytics ID,شناسه Google Analytics,
-Google Apps Script,اسکریپت برنامه گوگل,
 Google Calendar ID,شناسه تقویم گوگل,
-Google Credentials,اعتبار گوگل,
 Google Font,قلم گوگل,
 Google Services,خدمات Google,
 Grant Type,نوع گرانت,
@@ -1295,7 +1269,7 @@ ID,شناسه,
 ID (name) of the entity whose property is to be set,ID (نام) نهاد که دارایی است به تنظیم شود,
 Icon will appear on the button,نماد بر روی دکمه ظاهر خواهد شد,
 Identity Details,جزئیات هویت,
-Idx,Idx,
+Idx,IDX,
 "If Apply Strict User Permission is checked and User Permission is defined for a DocType for a User, then all the documents where value of the link is blank, will not be shown to that User",اگر درخواست اکید اجازه کاربر چک می شود و اجازه کاربر برای یک DOCTYPE برای یک کاربر تعریف شده است، پس از آن همه اسناد که در آن ارزش از لینک خالی است، خواهد شد که کاربر نمایش داده نمی شود,
 If Checked workflow status will not override status in list view,اگر وضعیت گردش کار بررسی خواهد شد وضعیت در نمای لیست باطل نیست,
 If Owner,اگر مالک,
@@ -1324,7 +1298,6 @@ If user is the owner,اگر کاربر مالک است,
 If you are updating/overwriting already created records.,اگر شما به روزرسانی / رونویسی ثبت قبلا ایجاد شده است.,
 "If you are uploading new records, ""Naming Series"" becomes mandatory, if present.",اگر شما در حال آپلود رکورد جدید &quot;نامگذاری سری&quot; اجباری می شود، در صورت وجود.,
 "If you are uploading new records, leave the ""name"" (ID) column blank.",اگر شما در حال آپلود رکورد جدید، ترک &quot;نام&quot; (ID) ستون خالی.,
-If you aren't using own publish Google Apps Script webapp you can use the default https://script.google.com/macros/s/AKfycbxIFOx3301xwtF2IFPJ4pUQGqkNF3hBiBebppWkeKn6fKZRQvk/exec ,اگر شما با استفاده از خود منتشر اسکریپت Google Apps، برنامه کاربردی وب نیست شما می توانید به طور پیش فرض https://script.google.com/macros/s/AKfycbxIFOx3301xwtF2IFPJ4pUQGqkNF3hBiBebppWkeKn6fKZRQvk/exec استفاده,
 If you don't want to create any new records while updating the older records.,اگر نمیخواهید در هنگام به روز رسانی سوابق قدیمی، سوابق جدیدی ایجاد کنید.,
 "If you set this, this Item will come in a drop-down under the selected parent.",اگر شما این مجموعه، این آیتم را در یک منوی کشویی زیر انتخاب پدر و مادر آمده است.,
 "If you think this is unauthorized, please change the Administrator password.",اگر شما فکر می کنم این غیر مجاز است، لطفا رمز عبور Administrator را تغییر دهید.,
@@ -1397,7 +1370,6 @@ Invalid,بی اعتبار,
 "Invalid ""depends_on"" expression",بیان &quot;depend_on&quot; نامعتبر است,
 Invalid Access Key ID or Secret Access Key.,شناسه کلید دسترسی نامعتبر یا کلید دسترسی راز.,
 Invalid CSV Format,فرمت CSV نامعتبر,
-Invalid Email: {0},ایمیل نامعتبر است: {0},
 Invalid Home Page,صفحه اصلی وب سایت نامعتبر,
 Invalid Link,لینک های نامعتبر,
 Invalid Login Token,ورود رمز نامعتبر,
@@ -1495,7 +1467,6 @@ Last Updated On,آخرین بروز رسانی در,
 Last User,آخرین کاربر,
 Last Week,هفته گذشته,
 Last Year,سال گذشته,
-Last synced {0},آخرین همگام سازی شده {0},
 Leave a Comment,پیام بگذارید,
 Leave blank to repeat always,فیلد را خالی بگذارید به تکرار همیشه,
 Leave this conversation,ترک این گفتگو,
@@ -1559,7 +1530,6 @@ Login to comment,ورود به اظهار نظر,
 Login token required,ورود به سیستم مورد نیاز,
 Login with LDAP,ورود LDAP,
 Logout,خارج شدن,
-Logout from all devices while changing Password,خروج از همه دستگاه ها هنگام تغییر رمز عبور,
 Long Text,متن طولانی,
 Looks like something is wrong with this site's Paypal configuration.,به نظر می رسد مانند چیزی اشتباه است با پیکربندی پی پال این سایت است.,
 Looks like something is wrong with this site's payment gateway configuration. No payment has been made.,به نظر می رسد مانند چیزی اشتباه است با پیکربندی دروازه پرداخت این سایت است. بدون پرداخت شده است.,
@@ -1613,7 +1583,6 @@ Migration ID Field,فیلد مهاجرت فیلد,
 Milestone,نقطه عطف,
 Milestone Tracker,ردیاب نقطه عطف,
 Minimum Password Score,حداقل کلمه عبور,
-Misc,متفرقه,
 Miss,از دست دادن,
 Missing Fields,زمینه های از دست رفته,
 Missing parameter Kanban Board Name,نام پاراگراف Kanban نامعتبر است,
@@ -1655,7 +1624,6 @@ Names and surnames by themselves are easy to guess.,نام و نام خانوا�
 Naming,نامگذاری,
 "Naming Options:\n<ol><li><b>field:[fieldname]</b> - By Field</li><li><b>naming_series:</b> - By Naming Series (field called naming_series must be present</li><li><b>Prompt</b> - Prompt user for a name</li><li><b>[series]</b> - Series by prefix (separated by a dot); for example PRE.#####</li>\n<li><b>format:EXAMPLE-{MM}morewords{fieldname1}-{fieldname2}-{#####}</b> - Replace all braced words (fieldnames, date words (DD, MM, YY), series) with their value. Outside braces, any characters can be used.</li></ol>","گزینه های نامگذاری: <ol style=""""><li style=""""> <b>فیلد: [نام فیلد]</b> - توسط فیلد </li><li style=""""> <b>naming_series:</b> - با نام سری (فیلد به نام naming_series باید حضور داشته باشد </li><li style=""""> <b>اعلان</b> - کاربر سریع برای یک نام </li><li style=""""> <b>[سری]</b> - سری توسط پیشوند (با یک نقطه جداگانه)؛ برای مثال PRE. ##### </li><li style=""""> <b>فرمت: EXAMPLE- {MM} بیشترwords {fieldname1} - {fieldname2} - {#####}</b> - همه کلمات با نام <b>مستعار (نامهای فیلدی</b> ، کلمات تاریخی (DD، MM، YY، سری) را با ارزش خود جایگزین کنید. بیس بال، هر شخصیت می تواند مورد استفاده قرار گیرد. </li></ol>",
 Naming Series mandatory,نامگذاری سری اجباری,
-Navbar Style,سبک نوار,
 Nested set error. Please contact the Administrator.,خطا مجموعه ای تو در تو. لطفا با مدیر تماس بگیرید.,
 New Activity,فعالیت جدید,
 New Chat,گپ جدید,
@@ -1762,7 +1730,6 @@ Note: By default emails for failed backups are sent.,توجه: به طور پی�
 Note: Changing the Page Name will break previous URL to this page.,توجه: تغییر نام صفحه خواهد URL قبلی به این صفحه را بشکند.,
 "Note: For best results,  images must be of the same size and width must be greater than height.",توجه: برای بهترین نتیجه ، تصاویر باید با یک اندازه باشند و عرض باید بیشتر از ارتفاع باشد.,
 Note: Multiple sessions will be allowed in case of mobile device,توجه داشته باشید: جلسات متعدد خواهد شد در صورت از دستگاه تلفن همراه اجازه,
-Note: Other permission rules may also apply,توجه: دیگر قوانین اجازه نیز ممکن است اعمال شوند,
 Nothing to show,هیچ چیز برای نشان دادن,
 Nothing to update,هیچ چیز برای به روزرسانی نیست,
 Notification,اطلاع,
@@ -1865,7 +1832,6 @@ Participants,شرکت کنندگان,
 Passive,غیر فعال,
 Password Reset,تنظیم مجدد رمز عبور,
 Password Updated,رمز عبور به روز رسانی,
-Password cannot be more than 100 characters long,رمز عبور نمی تواند بیش از 100 کاراکتر,
 Password for Base DN,رمز عبور برای پایه DN,
 Password is required or select Awaiting Password,رمز عبور لازم است و یا در انتظار رمز عبور را انتخاب کنید,
 Password not found,رمز عبور یافت نشد,
@@ -2086,7 +2052,6 @@ Register OAuth Client App,ثبت نام OAuth حفظ Client نرم افزار,
 Registered but disabled,ثبت نام اما غیر فعال,
 Relapsed,دچار عود,
 Relapses,عود,
-Related DocType,DOCTYPE های مرتبط,
 Relink,پیوند دهید,
 Relink Communication,ارتباطات پیوند دهید,
 Relinked,Relinked,
@@ -2177,7 +2142,6 @@ Roles Assigned,نقش واگذار شده,
 Roles can be set for users from their User page.,نقش می تواند برای کاربران از صفحه کاربری خود را تنظیم کنید.,
 Root {0} cannot be deleted,ریشه {0} نمی تواند حذف شود,
 Round Robin,درخواست کتبی,
-Rounded Corners,گوشه های گرد,
 Route History,تاریخ مسیر,
 Route Redirects,مسیرهای تغییر مسیر,
 Route to Success Link,مسیر پیوند موفق,
@@ -2196,7 +2160,6 @@ Rule Name,نام قانون,
 Rules defining transition of state in the workflow.,مشاهده قوانین تعریف انتقال دولت در کاری می باشد.,
 "Rules for how states are transitions, like next state and which role is allowed to change state etc.",مشاهده قوانین برای چه ایالات انتقال، مانند حالت بعدی و نقش هستند مجاز به تغییر دولت و غیره,
 Run,اجرا کن,
-Run Script Test,تست اسکریپت اجرا,
 Run scheduled jobs only if checked,اجرای شغل برنامه ریزی شده تنها در صورتی چک,
 S3 Backup Settings,S3 تنظیمات پشتیبان گیری,
 S3 Backup complete!,S3 پشتیبان گیری کامل,
@@ -2224,9 +2187,7 @@ Scheduled to send to {0},برنامه ریزی برای ارسال به {0},
 Scheduled to send to {0} recipients,برنامه ریزی برای ارسال به {0} دریافت کنندگان,
 Scopes,حوزه,
 Script,خط,
-Script Code,کد اسکریپت,
 Script Report,گزارش اسکریپت,
-Script URL,URL اسکریپت,
 Script or Query reports,اسکریپت یا پرس و جو گزارش,
 Script to attach to all web pages.,اسکریپت به ضمیمه به تمام صفحات وب است.,
 Search Fields,زمینه جستجو,
@@ -2297,8 +2258,6 @@ Send Email for Successful Backup,ارسال ایمیل برای پشتیبان �
 Send Me A Copy of Outgoing Emails,ارسال یک کپی از ایمیل های خروجی,
 Send Notification to,ارسال هشدار به,
 Send Notifications To,ارسال اعلانها به,
-Send Notifications for Email threads,اعلان ها را برای موضوعات ایمیل ارسال کنید,
-Send Notifications for documents followed by me,اعلان هایی را برای اسناد به دنبال من ارسال کنید,
 Send Print as PDF,ارسال چاپ به عنوان PDF,
 Send Read Receipt,ارسال رسید خواندن,
 Send Unsubscribe Link,ارسال پیوند لغو اشتراک,
@@ -2314,7 +2273,7 @@ Send only if there is any data,ارسال تنها در صورت هر گونه �
 Send unsubscribe message in email,ارسال پیام لغو اشتراک در ایمیل,
 Sender,فرستنده,
 Sender Email,ایمیل فرستنده,
-Sendgrid,sendgrid,
+Sendgrid,Sendgrid,
 Sent Read Receipt,ارسال رسید خواندن,
 Sent or Received,ارسال یا دریافت,
 Sent/Received Email,ارسال / دریافت ایمیل,
@@ -2325,7 +2284,6 @@ Session Expiry Mobile,جلسه انقضاء موبایل,
 Session Expiry in Hours e.g. 06:00,جلسه انقضاء در ساعت 06:00 به عنوان مثال,
 Session Expiry must be in format {0},جلسه انقضاء باید در فرمت {0},
 Session Start Failed,جلسه شروع نشد,
-Session Token,نشانه نشست,
 Set Banner from Image,تنظیم بنر از تصویر,
 Set Chart,تنظیم نمودار,
 Set Filters,فیلترها را تنظیم کنید,
@@ -2391,7 +2349,6 @@ Show in Module Section,نمایش در بخش ماژول,
 Show in filter,نمایش در فیلتر,
 Show more details,نمایش جزئیات بیشتر,
 Show only errors,فقط خطاها را نمایش دهید,
-Show tags,نمایش برچسب ها,
 "Show title in browser window as ""Prefix - title""",نمایش عنوان در پنجره مرورگر به عنوان &quot;پیشوند - عنوان&quot;,
 Showing only Numeric fields from Report,نمایش فقط فیلدهای عددی از گزارش,
 Sidebar Items,موارد نوار کناری,
@@ -2520,7 +2477,6 @@ Take Photo,عکس گرفتن,
 Take Video,نگاهی به فیلم,
 Team Members,اعضای تیم,
 Team Members Heading,تیم سرنویس کاربران,
-Template ID,ID الگو,
 Temporarily Disabled,موقتا غیر فعال می باشد,
 Test Email Address,تست آدرس ایمیل,
 Test Runner,تست دونده,
@@ -2549,7 +2505,6 @@ The resource you are looking for is not available,منابع شما به دنب�
 The system provides many pre-defined roles. You can add new roles to set finer permissions.,سیستم بسیاری از نقش های از پیش تعریف شده را فراهم می کند. شما می توانید نقش های جدید اضافه برای تنظیم دسترسی ظریف.,
 The user from this field will be rewarded points,کاربر از این زمینه امتیازات دریافت می کند,
 Theme,موضوع,
-Theme Colors,رنگ های تم,
 Theme URL,آدرس URL تم,
 There can be only one Fold in a form,می تواند تنها یک در یک فرم ریختن (فولد) وجود دارد,
 There is an error in your Address Template {0},یک خطا در آدرس الگو شما وجود دارد {0},
@@ -2615,7 +2570,6 @@ Timeline field must be a Link or Dynamic Link,درست گاهشمار باید �
 Timeline field must be a valid fieldname,درست گاهشمار باید یک FIELDNAME معتبر باشد,
 Timeseries,سری زمانی,
 Timestamp,برچسب زمان,
-Timezone,منطقه زمانی,
 Title Case,عنوان مورد,
 Title Field,عنوان درست,
 Title Prefix,عنوان پیشوند,
@@ -2686,7 +2640,6 @@ UNSEEN,غیب,
 UPPER CASE,حروف,
 "URIs for receiving authorization code once the user allows access, as well as failure responses. Typically a REST endpoint exposed by the Client App.\n<br>e.g. http://hostname//api/method/frappe.www.login.login_via_facebook",URI ها برای دریافت کد مجوز یک بار که کاربر اجازه می دهد تا دسترسی، و همچنین پاسخ شکست. به طور معمول یک نقطه پایانی REST در معرض توسط برنامه مشتری. <br> به عنوان مثال HTTP: //hostname//api/method/frappe.www.login.login_via_facebook,
 URLs,URL ها,
-Unable to create bucket: {0}. Change it to a more unique name.,قادر به ایجاد سطل نیست: {0}. آن را به یک نام منحصر به فرد تغییر دهید.,
 Unable to find attachment {0},قادر به پیدا کردن پیوست {0},
 Unable to load camera.,بارگیری دوربین امکان پذیر نیست,
 Unable to load: {0},قادر به بارگیری: {0},
@@ -2857,7 +2810,6 @@ Workflow State Field,فیلد وضعیت گردش کار,
 Workflow State not set,وضعیت کارکرد تنظیم نشده است,
 Workflow Transition,انتقال گردش کار,
 Workflow state represents the current state of a document.,وضعیت گردش کار نشان دهنده وضعیت جاری یک سند است.,
-Workflow will start after saving.,گردش کار پس از ذخیره آغاز خواهد شد.,
 Write,نوشتن,
 Write a Python file in the same folder where this is saved and return column and result.,ارسال فایل پایتون در همان پوشه که در آن ذخیره شده است و این بازگشت ستون و نتیجه.,
 Write a SELECT query. Note result is not paged (all data is sent in one go).,یک پرس و جو SELECT ارسال. توجه داشته باشید نتیجه مش ود و نه (تمام دادهها در یک فرستاده).,
@@ -2927,7 +2879,6 @@ Your payment is cancelled.,پرداخت شما لغو می شود.,
 Your payment was successfully accepted,پرداخت شما با موفقیت پذیرفته شد,
 "Your query has been received. We will reply back shortly. If you have any additional information, please reply to this mail.",بنا به درخواست شما دریافت شده است. ما به زودی پاسخ خواهیم داد اگر شما هر گونه اطلاعات بیشتر میخواهید، لطفا به این ایمیل پاسخ دهید,
 "Your session has expired, please login again to continue.",جلسه شما منقضی شده است، لطفا دوباره وارد به ادامه.,
-Your system is being updated. Please refresh again after a few moments,سیستم شما در حال بروز رسانی. لطفا پس از چند لحظه دکمه بروز آوری را فشار دهید,
 Zero,صفر,
 Zero means send records updated at anytime,صفر به معنای ارسال سوابق به روز شده در هر زمان,
 [Label]:[Field Type]/[Options]:[Width],[برچسب]: [نوع درست] / [گزینه]: [عرض],
@@ -2969,13 +2920,13 @@ circle-arrow-down,دایره-فلش به پایین,
 circle-arrow-left,دایره-پیکان سمت چپ,
 circle-arrow-right,دایره-فلش-راست,
 circle-arrow-up,دایره-فلش-تا,
-cn-north-1,cn-north-1,
-cn-northwest-1,cn-northwest-1,
+cn-north-1,cn-North-1,
+cn-northwest-1,cn-Northwest-1,
 cog,دندانه دار کردن,
 darkgrey,خاکستری تیره,
-dd-mm-yyyy,dd-mm-yyyy,
+dd-mm-yyyy,DD-MM-YYYY,
 dd.mm.yyyy,dd.mm.yyyy,
-dd/mm/yyyy,dd / mm / yyyy,
+dd/mm/yyyy,DD / MM / YYYY,
 "document type..., e.g. customer",نوع سند ...، به عنوان مثال مشتری,
 domain name,نام دامنه,
 download-alt,دانلود-ALT,
@@ -2988,7 +2939,7 @@ e.g.:,مانند:,
 eject,بیرون انداختن,
 envelope,پاکت,
 eu-central-1,eu-central-1,
-eu-north-1,eu-north-1,
+eu-north-1,eu-North-1,
 eu-west-1,eu-west-1,
 eu-west-2,eu-west-2,
 eu-west-3,eu-west-3,
@@ -3032,8 +2983,8 @@ map-marker,نقشه نشانگر,
 merged {0} into {1},{0} ادغام {1},
 minus,منهای,
 minus-sign,منهای نشانه,
-mm-dd-yyyy,mm-dd-yyyy,
-mm/dd/yyyy,mm / dd / yyyy,
+mm-dd-yyyy,MM-DD-YYYY,
+mm/dd/yyyy,MM / DD / YYYY,
 module name...,نام ماژول ...,
 new type of document,نوع جدیدی از سند,
 no failed attempts,تلاش بدون شکست خورده,
@@ -3060,7 +3011,6 @@ plus-sign,به علاوه نشانه,
 qrcode,qrcode,
 query-report,جستجوهای گزارش,
 question-sign,پرسش علامت,
-refresh_token,refresh_token,
 remove-circle,حذف دایره,
 remove-sign,حذف نشانه,
 removed,حذف شده,
@@ -3136,7 +3086,6 @@ zoom-out,کوچک نمایی,
 {0} cannot be set for Single types,{0} نمی تواند برای انوع تکی یا مجردی تنظیم شود,
 {0} comments,{0} نظرات,
 {0} created successfully,{0} با موفقیت ایجاد شد,
-{0} created this {1},{0} ایجاد این {1},
 {0} criticism point for {1} {2},{0} انتقاد برای {1} {2},
 {0} criticism points for {1} {2},{0} نقد برای {1} {2},
 {0} criticized on {1},{0} در {1} انتقاد کرد,
@@ -3145,7 +3094,6 @@ zoom-out,کوچک نمایی,
 {0} criticized {1},{0} انتقاد شد {1},
 {0} days ago,{0} روز پیش,
 {0} does not exist in row {1},{0} در ردیف وجود ندارد {1},
-{0} edited this {1},{0} ویرایش این {1},
 "{0} field cannot be set as unique in {1}, as there are non-unique existing values",{0} درست است نه می تواند تنظیم شود که در {1} منحصر به فرد، به عنوان مقادیر غیر منحصر به فرد موجود وجود دارد,
 {0} has already assigned default value for {1}.,{0} مقدار پیش فرض برای {1} را تعیین کرده است.,
 {0} has been successfully added to the Email Group.,{0} با موفقیت به ایمیل گروه اضافه شده است.,
@@ -3197,7 +3145,6 @@ zoom-out,کوچک نمایی,
 "{0} {1} does not exist, select a new target to merge",{0} {1} وجود ندارد، انتخاب یک هدف جدید برای ادغام,
 {0} {1} not found,{0} {1} یافت نشد,
 {0} {1} to {2},{0} {1} به {2},
-{0} {1}: Submitted Record cannot be deleted.,{0} {1}: رکورد ثبت شده نمی تواند حذف شود.,
 "{0}, Row {1}",{0}، ردیف {1},
 "{0}: '{1}' ({3}) will get truncated, as max characters allowed is {2}",{0}: &#39;{1}&#39; ({3}) کوتاه خواهد شد، به عنوان شخصیت های حداکثر مجاز {2},
 {0}: Cannot set Amend without Cancel,{0}: آیا می توانم تنظیم نشده اصلاح بدون لغو,
@@ -3234,13 +3181,11 @@ Make {0},{0} را ایجاد کنید,
 A user who posts blogs.,کاربری که وبلاگ ها را ارسال می کند.,
 Applying: {0},اعمال: {0},
 Fieldname {0} is restricted,نام زمینه {0} محدود شده است,
-"Header, Breadcrumbs and Meta Tags",هدر ، Breadcrumbs و Meta Tag,
 Is Optional State,دولت اختیاری است,
 No values to show,هیچ مقداری برای نشان دادن وجود ندارد,
 View Ref,مشاهده Ref,
 Workflow Action is not created for optional states,Actionflow Action برای حالتهای اختیاری ایجاد نمی شود,
 {0} values selected,{0} ارزش انتخاب شده است,
- Allow in Quick Entry ,اجازه ورود سریع,
 """amended_from"" field must be present to do an amendment.",قسمت &quot;amified_from&quot; باید انجام شود تا یک اصلاحیه انجام شود.,
 (Mandatory),(اجباری، الزامی),
 1 Google Calendar Event synced.,1 رویداد تقویم Google همگام شد.,
@@ -3342,10 +3287,8 @@ Contact Numbers,شماره تماس,
 Contact Phone,تماس با تلفن,
 Contact Synced with Google Contacts.,با همگام سازی Google مخاطبین تماس بگیرید.,
 Context,متن نوشته,
-Contribute Translation,کمک به ترجمه,
 Contribute Translations,به ترجمه ها کمک کنید,
 Contributed,مشارکت کرد,
-Contributed Translation Doctype Name,نام مستند ترجمه,
 Controller method get_razorpay_order missing,روش کنترل get_razorpay_order وجود ندارد,
 Copied to clipboard.,در کلیپ بورد کپی شد.,
 Core Modules {0} cannot be searched in Global Search.,ماژول های اصلی {0} در جستجوی جهانی قابل جستجو نیست.,
@@ -3401,7 +3344,6 @@ Energy Point,نقطه انرژی,
 Energy Points: ,نقاط انرژی:,
 Enter Client Id and Client Secret in Google Settings.,شناسه Client و Client Secret را در تنظیمات Google وارد کنید.,
 Enter Code displayed in OTP App.,کد نمایش داده شده در برنامه OTP را وارد کنید.,
-Errored Transactions,معاملات معیوب,
 Event Configurations,تنظیمات رویداد,
 Event Consumer,مصرف کننده رویداد,
 Event Consumer Document Type,نوع سند مصرف کننده رویداد,
@@ -3469,7 +3411,6 @@ Google Drive,درایو گوگل,
 Google Drive - Could not create folder in Google Drive - Error Code {0},Google Drive - پوشه ای در Google Drive ایجاد نشد - کد خطا {0,
 Google Drive - Could not find folder in Google Drive - Error Code {0},Google Drive - پوشه در Google Drive یافت نشد - کد خطا {0},
 Google Drive - Could not locate locate - {0},Google Drive - مکان یابی یافت نشد - {0,
-Google Drive - Could not upload backup - Error {0},Google Drive - بارگیری نسخه پشتیبان انجام نشد - خطا {0},
 Google Drive Backup Successful.,پشتیبان گیری از Google Drive با موفقیت انجام شد.,
 Google Drive Backup.,پشتیبان گیری از Google Drive.,
 Google Drive Integration.,ادغام Google Drive.,
@@ -3613,20 +3554,18 @@ Open Help,راهنما را باز کنید,
 Open Settings,تنظیمات را باز کنید,
 Open list item,باز کردن مورد لیست,
 Organizational Unit for Users,واحد سازمانی برای کاربران,
-PR sent,روابط عمومی ارسال شد,
 Page Shortcuts,میانبرهای صفحه,
 Parent Field (Tree),زمینه والدین (درخت),
 Parent Field must be a valid fieldname,زمینه والدین باید یک نام فیلد معتبر باشد,
 Pin Globally,پین در سطح جهان,
 Placeholder,مکان نگهدار,
 Places,اماکن,
-Please check the filter values set for Dashboard Chart: {},لطفاً مقادیر فیلتر تعیین شده برای نمودار داشبورد را بررسی کنید: {},
+Please check the filter values set for Dashboard Chart: {},لطفا مقادیر فیلتر تعیین شده برای نمودار داشبورد را بررسی کنید: {},
 Please enable pop-ups in your browser,لطفاً پنجره های بازشو را در مرورگر خود فعال کنید,
 Please find attached {0}: {1},لطفا پیوست {0} پیدا کنید: {1,
 Please select applicable Doctypes,لطفا Doctypes قابل اجرا را انتخاب کنید,
 Portrait,پرتره,
 Press Alt Key to trigger additional shortcuts in Menu and Sidebar,کلید کلید Alt را فشار دهید تا میانبرهای اضافی در منو و نوار کناری ایجاد شود,
-Print Heading,چاپ سرنویس,
 Print Settings...,چاپ تنظیمات ...,
 Producer Document Name,نام سند سازنده,
 Producer URL,URL تولید کننده,
@@ -3746,7 +3685,6 @@ The site which is consuming your events.,سایتی که رویدادهای شم
 The site you want to subscribe to for consuming events.,سایتی که می خواهید برای مصرف رویدادها در آن مشترک شوید.,
 The webhook will be triggered if this expression is true,اگر این عبارت صحیح باشد ، webhook فعال خواهد شد,
 The {0} is already on auto repeat {1},{0 در حال تکرار خودکار {1 است,
-Theme JSON,تم JSON,
 There are some linked records which needs to be created before we can import your file. Do you want to create the following missing records automatically?,برخی از پرونده های مرتبط وجود دارد که باید قبل از وارد کردن پرونده شما ایجاد شوند. آیا می خواهید سوابق گمشده زیر را بطور خودکار ایجاد کنید؟,
 There should be atleast one row for the following tables: {0},برای جداول زیر باید یک ردیف حداقل وجود داشته باشد: {0,
 There should be atleast one row for {0} table,برای یک جدول 0 {باید حداقل یک ردیف وجود داشته باشد,
@@ -3886,7 +3824,7 @@ Delete,حذف کردن,
 Description,شرح,
 Designation,تعیین,
 Disabled,غیر فعال,
-Doctype,DocType,
+Doctype,DOCTYPE,
 Download Template,دانلود الگو,
 Dr,دکتر,
 Due Date,تاریخ,
@@ -3957,11 +3895,10 @@ Send,ارسال,
 Sending,ارسال,
 Server Error,خطای سرور,
 Set,تنظیم,
-Set Meta Tags,برچسب های متا را تنظیم کنید,
 Setup,برپایی,
 Setup Wizard,راه اندازی جادوگر,
 Size,اندازه,
-Sr,Sr,
+Sr,SR,
 Start,شروع,
 Start Time,زمان شروع,
 Status,وضعیت,
@@ -4140,7 +4077,6 @@ response,واکنش,
 right,درست,
 search,جستجو کردن,
 share,سهم,
-state,دولت,
 stop,متوقف کردن,
 success,موفقیت,
 tag,برچسب,
@@ -4156,8 +4092,6 @@ yellow,رنگ زرد,
 Not permitted,غیر مجاز,
 Add Chart to Dashboard,نمودار را به داشبورد اضافه کنید,
 Add to Dashboard,به داشبورد اضافه کنید,
-Attach file,پیوست پرونده,Data Import
-DocType has Open Entries,DocType دارای ورودی های باز است,
 Google Translation,ترجمه گوگل,
 Important,مهم,
 New Chart Created,نمودار جدید ایجاد شده است,
@@ -4181,7 +4115,6 @@ Developer Mode Only,فقط حالت برنامه نویس,
 Disable User Customization,سفارشی سازی کاربر را غیرفعال کنید,
 For example: {} Open,به عنوان مثال: {} باز کنید,
 Is Custom,سفارشی است,
-Is Query Report,گزارش پرس و جو است,
 Link Cards,کارتهای پیوند,
 Link To,پیوند به,
 Onboarding,شبانه روزی,
@@ -4198,9 +4131,13 @@ Setup > User,تنظیم&gt; کاربر,
 Setup > Customize Form,تنظیم&gt; سفارشی کردن فرم,
 Setup > User Permissions,تنظیم&gt; مجوزهای کاربر,
 "Error connecting to QZ Tray Application...<br><br> You need to have QZ Tray application installed and running, to use the Raw Print feature.<br><br><a target=""_blank"" href=""https://qz.io/download/"">Click here to Download and install QZ Tray</a>.<br> <a target=""_blank"" href=""https://erpnext.com/docs/user/manual/en/setting-up/print/raw-printing"">Click here to learn more about Raw Printing</a>.","خطایی در اتصال به برنامه سینی QZ Tray ... <br><br> برای استفاده از ویژگی خام چاپ ، باید برنامه QT Tray را نصب و اجرا کنید. <br><br> <a href=""https://qz.io/download/"" target=""_blank"">برای بارگیری و نصب QZ Tray اینجا کلیک کنید</a> . <br> <a href=""https://erpnext.com/docs/user/manual/en/setting-up/print/raw-printing"" target=""_blank"">برای کسب اطلاعات بیشتر در مورد چاپ خام اینجا کلیک کنید</a> .",
-> {0} year(s) ago,&gt; {0} سال پیش,
 No email account associated with the User. Please add an account under User > Email Inbox.,هیچ حساب ایمیل مرتبط با کاربر نیست. لطفاً یک حساب کاربری در زیر کاربر&gt; صندوق ورودی ایمیل اضافه کنید.,
 "For comparison, use >5, <10 or =324. For ranges, use 5:10 (for values between 5 & 10).",برای مقایسه ، از&gt; 5 ، &lt;10 یا 324 استفاده کنید. برای محدوده ها ، از 5:10 (برای مقادیر بین 5 تا 10) استفاده کنید.,
 No default Address Template found. Please create a new one from Setup > Printing and Branding > Address Template.,هیچ الگوی پیش فرض آدرس یافت نشد. لطفاً یک مورد جدید از Setup&gt; چاپ و برندسازی&gt; الگوی آدرس ایجاد کنید.,
 Please setup default Email Account from Setup > Email > Email Account,لطفاً حساب پیش فرض پست الکترونیکی را از تنظیم&gt; ایمیل&gt; حساب ایمیل تنظیم کنید,
 Email Account not setup. Please create a new Email Account from Setup > Email > Email Account,حساب ایمیل تنظیم نشده است. لطفاً یک حساب کاربری جدید از طریق تنظیم&gt; ایمیل&gt; حساب ایمیل ایجاد کنید,
+Advanced Settings,تنظیمات پیشرفته,
+Path,مسیر,
+Components,اجزاء,
+Verified By,تایید شده توسط,
+Lead Conversion Time,زمان تبدیل سرب,

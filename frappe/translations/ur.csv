@@ -244,8 +244,8 @@ Summary,خلاصہ,
 Sunday,اتوار,
 System Manager,سسٹم مینیجر,
 Target,ہدف,
+Task,ٹاسک,
 Tax Category,ٹیکس کیٹیگری۔,
-Template Name,سانچہ نام,
 Test,ٹیسٹ,
 Thank you,آپ کا شکریہ,
 The page you are looking for is missing. This could be because it is moved or there is a typo in the link.,صفحہ آپ کے لئے تلاش کر رہے ہیں لاپتہ ہے. یہ ہو سکتا ہے کہ یہ منتقل یا لنک میں ٹائپنگ میں کوئی غلطی نہیں ہے.,
@@ -274,9 +274,6 @@ Workflow,کام کے فلو کو,
 You need to be logged in to access this page,آپ کو اس صفحہ تک رسائی کے لئے لاگ ان کرنے کی ضرورت ہے,
 old_parent,old_parent,
 {0} is mandatory,{0} لازمی ہے,
- Advanced Settings,اعلی درجے کی ترتیبات,
- by Role ,کردار کی طرف سے,
- for {0},کے لئے {0},
  to your browser,اپنے براؤزر پر۔,
 """Company History""",&quot;کمپنی کی تاریخ&quot;,
 """Parent"" signifies the parent table in which this row must be added",&quot;والدین&quot; اس صف میں شامل ہونا ضروری ہے جس میں والدین کی میز ابیوینجک,
@@ -358,7 +355,6 @@ Add custom javascript to forms.,فارم کے لئے اپنی مرضی کے مط
 Add fields to forms.,فارم پر شعبوں میں شامل کریں.,
 Add meta tags to your web pages,اپنے ویب صفحات میں میٹا ٹیگ شامل کریں۔,
 Add script for Child Table,چائلڈ ٹیبل کے لئے اسکرپٹ شامل کریں۔,
-"Add the name of a ""Google Web Font"" e.g. ""Open Sans""",ایک &quot;گوگل کی ویب فونٹ&quot; کے نام میں شامل مثال کے طور پر &quot;اوپن سینز&quot;,
 Add to To Do,ایسا کرنے کے لئے میں شامل کریں,
 Add to table,میز میں شامل کریں,
 Add your own Tag Categories,آپ کے اپنے ٹیگ شامل کریں زمرہ جات,
@@ -393,8 +389,6 @@ Allow Comments,تبصرے کی اجازت دیں,
 Allow Consecutive Login Attempts ,مسلسل لاگ ان کی کوششوں کی اجازت دیں,
 Allow Dropbox Access,ڈراپ باکس رسائی کی اجازت دیں,
 Allow Edit,میں ترمیم کریں کرنے کی اجازت دیں,
-Allow GCalendar Access,GCalendar رسائی کی اجازت دیں,
-Allow GSuite access,GSuite رسائی کی اجازت دیں,
 Allow Guest to View,مہمان دیکھنے کے لئے اجازت,
 Allow Import (via Data Import Tool),درآمد کی اجازت دیں (ڈیٹا درآمد کے آلے کے ذریعے),
 Allow Incomplete Forms,نامکمل فارم کی اجازت دیں,
@@ -606,7 +600,6 @@ Cancelled Document restored as Draft,ڈرافٹ کے طور پر منسوخ دس
 Cancelling,منسوخ,
 Cancelling {0},منسوخ کرنا {0},
 Cannot Remove,نہیں ہٹا سکتے ہیں,
-Cannot Update: Incorrect / Expired Link.,تازہ کاری نہیں ہوسکتی: غلط / ختم لنک.,
 Cannot cancel before submitting. See Transition {0},پیش کرنے سے پہلے منسوخ نہیں کر سکتے. ملاحظہ کریں منتقلی {0},
 Cannot change docstatus from 0 to 2,0 سے 2 docstatus تبدیل نہیں کر سکتے,
 Cannot change docstatus from 1 to 0,1 سے 0 docstatus تبدیل نہیں کر سکتے,
@@ -727,7 +720,6 @@ Condition Detail,حالت کی تفصیل,
 Conditions,شرائط,
 Configure Chart,چارٹ ترتیب دیں,
 Configure Charts,چارٹ تشکیل دیں,
-Configure Theme,تھیم تشکیل دیں۔,
 Confirm,کی توثیق,
 Confirm Deletion of Data,ڈیٹا کے حذف ہونے کی تصدیق کریں۔,
 Confirm Request,درخواست کی تصدیق کریں۔,
@@ -747,7 +739,6 @@ Content (Markdown),مواد (مارک ڈاون),
 Content Hash,مواد ہیش,
 Content web page.,مواد ویب کے صفحے.,
 Conversation Tones,گفتگو ٹونز,
-Copy and paste this code into and empty Code.gs in your project at script.google.com,کاپی کریں اور script.google.com اوپر میں اس کوڈ کو اور اپنے منصوبے میں خالی Code.gs چسپاں,
 Copyright,کاپی رائٹ,
 Core,کور,
 Core DocTypes cannot be customized.,بنیادی دستاویزات کو اپنی مرضی کے مطابق نہیں کیا جاسکتا ہے۔,
@@ -859,7 +850,6 @@ Default Sort Field,پہلے سے طے شدہ ترتیب کا فیلڈ۔,
 Default Sort Order,پہلے سے طے شدہ ترتیب ترتیب,
 Default Value,ڈیفالٹ قدر,
 Default for 'Check' type of field must be either '0' or '1',میدان کے چیک &#39;قسم کے لئے پہلے سے طے شدہ یا تو&#39; 0 &#39;یا&#39; 1 &#39;ہونا ضروری ہے,
-Default for {0} must be an option,{0} ایک آپشن ہونا ضروری ہے کے لئے پہلے سے طے شدہ,
 "Default: ""Contact Us""",پہلے سے طے شدہ &quot;سے رابطہ کریں&quot;,
 DefaultValue,DefaultValue,
 Define workflows for forms.,فارم کے لئے workflows کے وضاحت.,
@@ -883,7 +873,6 @@ Desk,ڈیسک,
 Desk Access,ڈیسک رسائی,
 Desktop Icon,ڈیسک ٹاپ شبیہ,
 Desktop Icon already exists,ڈیسک ٹاپ شبیہ پہلے سے موجود ہے,
-Destination ID,مقصود ID,
 Developer,ڈیولپر,
 Did not add,شامل نہیں,
 Did not cancel,منسوخ نہیں کیا,
@@ -932,9 +921,7 @@ Document States,دستاویز امریکہ,
 Document Type is not importable,دستاویز کی قسم قابل درآمد نہیں ہے۔,
 Document Type is not submittable,دستاویز کی قسم جمع نہیں ہے۔,
 Document Type to Track,ٹریک کرنے کے لئے دستاویز کی قسم,
-Document Types,دستاویز کی اقسام,
 Document can't saved.,دستاویز محفوظ نہیں ہوسکتی ہے.,
-Document is only editable by users of role,دستاویز کے کردار کے صارفین کی طرف سے صرف قابل تدوین ہے,
 Document {0} has been set to state {1} by {2},دستاویز {0} کو {1} کی حیثیت سے {2} مقرر کیا گیا ہے.,
 Documents,دستاویزات,
 Documents assigned to you and by you.,آپ کے لئے اور آپ کی طرف سے تفویض کردہ دستاویزات.,
@@ -976,7 +963,6 @@ Edit Heading,ترمیم سرخی,
 Edit Properties,ترمیم پراپرٹیز,
 Edit to add content,مواد شامل کرنے کے ترمیم,
 Edit {0},ترمیم کریں {0},
-Edit...,ترمیم...,
 Editable Grid,قابل تدوین گرڈ,
 Editing Row,ترمیم صف,
 Eg. smsgateway.com/api/send_sms.cgi,مثال کے طور پر. smsgateway.com/api/send_sms.cgi,
@@ -998,7 +984,6 @@ Email Queue Recipient,ای میل کی قطار وصول کنندہ,
 Email Queue records.,ای میل کی قطار ریکارڈز.,
 Email Reply Help,ای میل جواب دیں مدد,
 Email Rule,ای میل اصول,
-Email Sent?,ای میل بھیجا ہے؟,
 Email Server,ای میل سرور,
 Email Settings,ای میل کی ترتیبات,
 Email Signature,ای میل دستخط,
@@ -1019,7 +1004,6 @@ Enable Auto Reply,آٹو جواب فعال,
 Enable Automatic Backup,خود بخود بیک اپ کو فعال کریں,
 Enable Chat,چیٹ کو فعال کریں,
 Enable Comments,تبصرے فعال کریں,
-Enable Gradients,درجات کو فعال کریں۔,
 Enable Incoming,موصولہ فعال,
 Enable Outgoing,سبکدوش ہونے والے فعال,
 Enable Password Policy,پاس ورڈ کی پالیسی کو فعال کریں,
@@ -1027,7 +1011,6 @@ Enable Print Server,پرنٹ سرور کو فعال کریں,
 Enable Raw Printing,خام طباعت کو فعال کریں۔,
 Enable Report,رپورٹ فعال,
 Enable Scheduled Jobs,شیڈول کے مطابق روزگار فعال,
-Enable Shadows,سائے کو فعال کریں۔,
 Enable Social Login,سوشل لاگ ان کو فعال کریں,
 Enable Two Factor Auth,دو فیکٹر مصنف کو فعال کریں,
 Enabled email inbox for user {0},صارف کے لئے فعال ای میل ان باکس {0},
@@ -1168,8 +1151,6 @@ Following fields are missing:,مندرجہ ذیل شعبوں کو یاد کر ر
 Following fields have missing values:,مندرجہ ذیل شعبوں اقدار غائب ہے:,
 Font,فونٹ,
 Font Size,حرف کا سائز,
-Font Size (px),فونٹ سائز (px),
-Font Styles,فونٹ طرزیں,
 Fonts,فانٹ,
 Footer,فوٹر,
 Footer HTML,فوٹر HTML,
@@ -1207,12 +1188,8 @@ From Document Type,دستاویز کی قسم سے,
 From Full Name,فل نام سے,
 Full Page,مکمل پیج,
 Fw: {0},Fw: {0},
-GCalendar Account,GCalendar اکاؤنٹ,
-GCalendar Settings,GCalendar ترتیبات,
 GCalendar Sync ID,GCalendar Sync ID,
 GMail,جی میل,
-GSuite Settings,GSuite ترتیبات,
-GSuite Templates,GSuite سانچے,
 Gantt,Gantt کے,
 Gateway,گیٹ وے,
 Gateway Controller,گیٹ وے کنٹرولر,
@@ -1235,11 +1212,8 @@ Go to {0},{0} پر جائیں,
 Go to {0} List,{0} فہرست پر جائیں۔,
 Go to {0} Page,{0} صفحہ پر جائیں۔,
 Google,گوگل,
-Google API Credentials,Google API کریڈٹیزس,
 Google Analytics ID,گوگل کے تجزیات ID,
-Google Apps Script,Google Apps اسکرپٹ,
 Google Calendar ID,Google کیلنڈر ID,
-Google Credentials,Google اسناد,
 Google Font,گوگل فونٹ,
 Google Services,گوگل سروسز,
 Grant Type,گرانٹ کی قسم,
@@ -1324,7 +1298,6 @@ If user is the owner,صارف مالک ہے تو,
 If you are updating/overwriting already created records.,اگر آپ اپ ڈیٹ / زیادہ لکھنا پہلے سے ہی تشکیل شدہ ریکارڈز ہیں.,
 "If you are uploading new records, ""Naming Series"" becomes mandatory, if present.",آپ نئے ریکارڈ کو اپ لوڈ کر رہے ہیں تو موجود ہے، &quot;سیریز کا نام&quot;، لازمی ہو جاتا ہے.,
 "If you are uploading new records, leave the ""name"" (ID) column blank.",آپ نئے ریکارڈ کو اپ لوڈ کر رہے ہیں تو، &quot;کا نام&quot; (ID) کالم خالی چھوڑ دیں.,
-If you aren't using own publish Google Apps Script webapp you can use the default https://script.google.com/macros/s/AKfycbxIFOx3301xwtF2IFPJ4pUQGqkNF3hBiBebppWkeKn6fKZRQvk/exec ,آپ کی اپنی شائع Google Apps اسکرپٹ webapp کے استعمال نہیں کر رہے ہیں تو آپ کو پہلے سے طے شدہ https://script.google.com/macros/s/AKfycbxIFOx3301xwtF2IFPJ4pUQGqkNF3hBiBebppWkeKn6fKZRQvk/exec استعمال کر سکتے ہیں,
 If you don't want to create any new records while updating the older records.,اگر آپ پرانے ریکارڈ کو اپ ڈیٹ کرتے وقت کوئی نیا ریکارڈ نہیں بنانا چاہتے ہیں.,
 "If you set this, this Item will come in a drop-down under the selected parent.",آپ کو اس مقرر کیا ہے تو، اس آئٹم کو منتخب والدین کے تحت ایک ڈراپ ڈاؤن میں آ جائے گا.,
 "If you think this is unauthorized, please change the Administrator password.",آپ کو اس کی اجازت نہیں ہے لگتا ہے، ایڈمنسٹریٹر پاس ورڈ تبدیل کریں.,
@@ -1397,7 +1370,6 @@ Invalid,غلط,
 "Invalid ""depends_on"" expression",غلط &quot;depends_on&quot; اظہار,
 Invalid Access Key ID or Secret Access Key.,غلط رسائی کلیدی شناخت یا خفیہ رسائی کی چابی.,
 Invalid CSV Format,غلط CSV شکل,
-Invalid Email: {0},غلط ای میل: {0},
 Invalid Home Page,غلط ہوم پیج,
 Invalid Link,غلط لنک,
 Invalid Login Token,غلط لاگ ان ٹوکن,
@@ -1495,7 +1467,6 @@ Last Updated On,آخری بار اپ ڈیٹ,
 Last User,آخری صارف,
 Last Week,پچھلا ہفتہ,
 Last Year,پچھلے سال,
-Last synced {0},آخری بار مطابقت پذیر {0},
 Leave a Comment,ایک تبصرہ چھوڑ دو,
 Leave blank to repeat always,ہمیشہ دہرانے کی خالی چھوڑ دیں,
 Leave this conversation,اس گفتگو کو چھوڑنا,
@@ -1559,7 +1530,6 @@ Login to comment,تبصرہ کرنے سے لاگ ان کریں,
 Login token required,لاگ ان ٹوکن کی ضرورت ہے,
 Login with LDAP,LDAP ساتھ لاگ ان کریں,
 Logout,لاگ آوٹ,
-Logout from all devices while changing Password,پاس ورڈ تبدیل کرنے کے دوران تمام آلات سے لاگ ان کریں,
 Long Text,طویل متن,
 Looks like something is wrong with this site's Paypal configuration.,کچھ کی طرح لگتا ہے اس سائٹ کے پے پال کی ترتیب کے ساتھ غلط ہے.,
 Looks like something is wrong with this site's payment gateway configuration. No payment has been made.,کچھ کی طرح لگتا ہے اس سائٹ کے ادائیگی کے گیٹ وے ترتیب کے ساتھ غلط ہے. کوئی ادائیگی بنا دیا گیا ہے.,
@@ -1613,7 +1583,6 @@ Migration ID Field,منتقلی ID فیلڈ,
 Milestone,سنگ میل,
 Milestone Tracker,سنگ میل ٹریکر,
 Minimum Password Score,کم از کم پاس ورڈ اسکور,
-Misc,متفرق,
 Miss,مس,
 Missing Fields,لاپتہ قطعات,
 Missing parameter Kanban Board Name,لاپتہ پیرامیٹر Kanban بورڈ کا نام,
@@ -1655,7 +1624,6 @@ Names and surnames by themselves are easy to guess.,خود کی طرف سے نا
 Naming,نام,
 "Naming Options:\n<ol><li><b>field:[fieldname]</b> - By Field</li><li><b>naming_series:</b> - By Naming Series (field called naming_series must be present</li><li><b>Prompt</b> - Prompt user for a name</li><li><b>[series]</b> - Series by prefix (separated by a dot); for example PRE.#####</li>\n<li><b>format:EXAMPLE-{MM}morewords{fieldname1}-{fieldname2}-{#####}</b> - Replace all braced words (fieldnames, date words (DD, MM, YY), series) with their value. Outside braces, any characters can be used.</li></ol>","نام کے اختیارات: <ol style=""""><li style=""""> <b>فیلڈ: [fieldname]</b> - فیلڈ کے ذریعہ </li><li style=""""> <b>naming_series:</b> - <b>نامنگی</b> سیریز کی طرف سے (naming_series نامی فیلڈ موجود ہونا ضروری ہے </li><li style=""""> <b>فوری طور پر</b> - ایک نام کے لئے صارف کو فوری طور پر </li><li style=""""> <b>[سلسلہ]</b> - پہلے سے پہلے سیریز (ڈاٹ کی طرف سے علیحدہ)؛ مثال کے طور پر PRE. ##### </li><li style=""""> <b>شکل: نمائش- {ایم ایم} اخلاقیات {fieldname1} - {fieldname2} - {#####}</b> - ان کی قدر کے ساتھ تمام بہادر الفاظ (فیلڈ نام، تاریخی الفاظ (ڈی ڈی، ایم ایم، یو آر)، سیریز) کو تبدیل کریں. باہر بہادر، کسی بھی حروف کا استعمال کیا جا سکتا ہے. </li></ol>",
 Naming Series mandatory,سیریز لازمی نام,
-Navbar Style,نوبار اسٹائل,
 Nested set error. Please contact the Administrator.,اندر در اندر سیٹ غلطی. منتظم سے رابطہ کریں.,
 New Activity,نئی سرگرمی,
 New Chat,نئی بات چیت,
@@ -1762,7 +1730,6 @@ Note: By default emails for failed backups are sent.,نوٹ: ناکام بیک �
 Note: Changing the Page Name will break previous URL to this page.,نوٹ: تبدیل کرنے سے پیج کا نام اس صفحے کو سابقہ URL ٹوٹ جائے گا.,
 "Note: For best results,  images must be of the same size and width must be greater than height.",نوٹ: بہترین نتائج کے ل images ، تصاویر ایک ہی سائز کی ہونی چاہئے اور چوڑائی اونچائی سے زیادہ ہونی چاہئے۔,
 Note: Multiple sessions will be allowed in case of mobile device,نوٹ: ایک سے زیادہ سیشن کے موبائل آلہ کی صورت میں اجازت دی جائے گی,
-Note: Other permission rules may also apply,نوٹ: دیگر کی اجازت قوانین بھی درخواست دے سکتے ہیں,
 Nothing to show,کچھ بھی نہیں ظاہر کرنے کے لئے,
 Nothing to update,اپ ڈیٹ کرنے کیلئے کچھ نہیں۔,
 Notification,بارے میں اہم اطلاع,
@@ -1865,7 +1832,6 @@ Participants,شرکاء,
 Passive,غیر فعال,
 Password Reset,پاس ورڈ ری سیٹ,
 Password Updated,پاس ورڈ کو اپ ڈیٹ,
-Password cannot be more than 100 characters long,پاس ورڈ 100 حروف سے زیادہ طویل نہیں ہو سکتا,
 Password for Base DN,بیس DN کے لیے پاس ورڈ,
 Password is required or select Awaiting Password,پاس ورڈ مطلوب یا انتظارہے پاس ورڈ منتخب کیا جاتا ہے,
 Password not found,پاس ورڈ نہیں ملا,
@@ -2086,7 +2052,6 @@ Register OAuth Client App,OAuth کلائنٹ اپلی رجسٹر,
 Registered but disabled,رجسٹرڈ لیکن غیر فعال,
 Relapsed,Relapsed,
 Relapses,رجعت,
-Related DocType,متعلقہ DOCTYPE,
 Relink,دوبارہ لنک,
 Relink Communication,دوبارہ لنک مواصلات,
 Relinked,Relinked,
@@ -2177,7 +2142,6 @@ Roles Assigned,کردار تفویض,
 Roles can be set for users from their User page.,کردار ان کے صارف صفحے سے صارفین کے لئے مقرر کئے جا سکتے.,
 Root {0} cannot be deleted,{0} روٹ خارج نہیں کیا جا سکتا,
 Round Robin,راؤنڈ رابن,
-Rounded Corners,گول کنارے,
 Route History,راستہ کی تاریخ,
 Route Redirects,روٹ ری ڈائریکٹس۔,
 Route to Success Link,کامیابی کے لنک پر روٹ,
@@ -2196,7 +2160,6 @@ Rule Name,اصول نام۔,
 Rules defining transition of state in the workflow.,کام کے فلو کو میں ریاست کی منتقلی کی وضاحت قواعد.,
 "Rules for how states are transitions, like next state and which role is allowed to change state etc.",امریکہ اگلے ریاست اور جس کردار کی طرح ٹرانزیشن، ہیں کہ کس طرح کے لئے قوانین وغیرہ ریاست کو تبدیل کرنے کی اجازت ہے,
 Run,رن,
-Run Script Test,چلائیں اسکرپٹ ٹیسٹ,
 Run scheduled jobs only if checked,جانچ پڑتال کی تو صرف شیڈول کے مطابق روزگار چلائیں,
 S3 Backup Settings,S3 بیک اپ ترتیبات,
 S3 Backup complete!,S3 بیک اپ مکمل!,
@@ -2224,9 +2187,7 @@ Scheduled to send to {0},کو بھیجنے کے لئے تخسوچت {0},
 Scheduled to send to {0} recipients,{0} وصول کنندگان کو بھیجنے کے لئے تخسوچت,
 Scopes,اسکوپ,
 Script,سکرپٹ,
-Script Code,سکرپٹ کے کوڈ,
 Script Report,سکرپٹ رپورٹ,
-Script URL,اسکرپٹ URL,
 Script or Query reports,سکرپٹ یا استفسار رپورٹ,
 Script to attach to all web pages.,سکرپٹ تمام ویب صفحات سے منسلک کرنے.,
 Search Fields,تلاش قطعات,
@@ -2297,8 +2258,6 @@ Send Email for Successful Backup,کامیاب بیک اپ کے لئے ای می�
 Send Me A Copy of Outgoing Emails,مجھے جانے والے ای میلز کی ایک کاپی بھیجیں,
 Send Notification to,اطلاع بھیجیں,
 Send Notifications To,کو اطلاعات بھیجیں,
-Send Notifications for Email threads,ای میل کے دھاگوں کے لئے اطلاعات بھیجیں۔,
-Send Notifications for documents followed by me,میرے بعد دستاویزات کے لئے اطلاعات بھیجیں۔,
 Send Print as PDF,پی ڈی ایف کے طور پر پرنٹ بھیجیں,
 Send Read Receipt,پڑھیں رسید ارسال کریں,
 Send Unsubscribe Link,رکنیت ختم لنک بھیجیں,
@@ -2325,7 +2284,6 @@ Session Expiry Mobile,سیشن ختم ہونے موبائل,
 Session Expiry in Hours e.g. 06:00,گھنٹے مثال کے طور پر 06:00 میں سیشن ختم ہونے کی,
 Session Expiry must be in format {0},سیشن ختم ہونے کی شکل میں ہونا چاہیے {0},
 Session Start Failed,سیشن شروع ناکام ہوگیا,
-Session Token,سیشن ٹوکن,
 Set Banner from Image,تصویر سے سیٹ بینر,
 Set Chart,چارٹ سیٹ کریں,
 Set Filters,فلٹرز سیٹ کریں۔,
@@ -2391,7 +2349,6 @@ Show in Module Section,ماڈیول سیکشن میں دکھائیں,
 Show in filter,فلٹر میں دکھائیں,
 Show more details,مزید دکھائیں تفصیلات,
 Show only errors,صرف غلطیاں دکھائیں,
-Show tags,دکھائیں ٹیگز,
 "Show title in browser window as ""Prefix - title""",براؤزر ونڈو میں شو عنوان &quot;اپسرگ - عنوان&quot;,
 Showing only Numeric fields from Report,رپورٹ سے صرف تعداد کے شعبوں کو دکھا رہا ہے,
 Sidebar Items,سائڈبار اشیا,
@@ -2520,7 +2477,6 @@ Take Photo,تصویر لو,
 Take Video,ویڈیو لے لو,
 Team Members,ٹیم کے ارکان,
 Team Members Heading,سرخی ٹیم کے ارکان,
-Template ID,سانچہ ID,
 Temporarily Disabled,عارضی طور پر غیر فعال۔,
 Test Email Address,ٹیسٹ ای میل ایڈریس,
 Test Runner,ٹیسٹ رنر,
@@ -2549,7 +2505,6 @@ The resource you are looking for is not available,آپ کے لئے تلاش کر
 The system provides many pre-defined roles. You can add new roles to set finer permissions.,نظام بہت پہلے سے مقرر کردار فراہم کرتا ہے. آپ finer کی اجازت مقرر کرنے کے لئے نئے کردار شامل کر سکتے ہیں.,
 The user from this field will be rewarded points,اس فیلڈ سے استعمال کنندہ کو انعامات کے پوائنٹس ملیں گے۔,
 Theme,موضوع,
-Theme Colors,تھیم رنگ,
 Theme URL,تھیم یو آر ایل,
 There can be only one Fold in a form,ایک فارم میں صرف ایک ہی گلہ نہیں ہو سکتا,
 There is an error in your Address Template {0},آپ کے ایڈریس سانچے میں ایک غلطی ہے {0},
@@ -2615,7 +2570,6 @@ Timeline field must be a Link or Dynamic Link,ٹائم لائن میدان ای�
 Timeline field must be a valid fieldname,ٹائم لائن میدان میں ایک درست FIELDNAME ہونا ضروری ہے,
 Timeseries,وقت کا سلسلہ,
 Timestamp,ٹائمسٹیمپ,
-Timezone,ٹائم زون,
 Title Case,عنوان کیس,
 Title Field,عنوان کے خانے,
 Title Prefix,عنوان اپسرگ,
@@ -2686,7 +2640,6 @@ UNSEEN,غیب,
 UPPER CASE,اوپری کیس,
 "URIs for receiving authorization code once the user allows access, as well as failure responses. Typically a REST endpoint exposed by the Client App.\n<br>e.g. http://hostname//api/method/frappe.www.login.login_via_facebook",ناکامی کے جوابات صارف کی رسائی کی اجازت دیتا ہے ایک بار اجازت کوڈ حاصل کرنے والے، کے ساتھ ساتھ کے لئے کے URIs. عام طور پر کلائنٹ اے پی پی کی طرف سے بے نقاب آرام نقطہ اختتام. <br> مثلا HTTP: //hostname//api/method/frappe.www.login.login_via_facebook,
 URLs,یو آر ایل,
-Unable to create bucket: {0}. Change it to a more unique name.,بالٹی بنانے کے قابل نہیں: {0}. اسے مزید منفرد نام میں تبدیل کریں.,
 Unable to find attachment {0},منسلکہ تلاش کرنے سے قاصر {0},
 Unable to load camera.,کیمرے لوڈ کرنے میں ناکام,
 Unable to load: {0},لوڈ کرنے سے قاصر: {0},
@@ -2857,7 +2810,6 @@ Workflow State Field,کام کے فلو کو ریاست کا میدان,
 Workflow State not set,ورک فلو ریاست سیٹ نہیں کیا,
 Workflow Transition,کام کے فلو کو منتقلی,
 Workflow state represents the current state of a document.,کام کے فلو کو ریاست ایک دستاویز کی موجودہ حالت کی نمائندگی کرتا ہے.,
-Workflow will start after saving.,کام کے فلو کو بچانے کے بعد شروع ہو جائے گا.,
 Write,لکھیں,
 Write a Python file in the same folder where this is saved and return column and result.,اس کو بچایا اور کالم اور نتیجہ واپس کیا جاتا ہے جہاں ایک ہی فولڈر میں ایک ازگر فائل لکھنے.,
 Write a SELECT query. Note result is not paged (all data is sent in one go).,ایک منتخب استفسار لکھیں. نوٹ نتیجہ (تمام ڈیٹا ایک بار میں بھیجا جاتا ہے) رابطہ نہیں ہے.,
@@ -2927,7 +2879,6 @@ Your payment is cancelled.,آپ کی ادائیگی کو منسوخ کر دیا 
 Your payment was successfully accepted,آپ کی ادائیگی کو کامیابی سے قبول کر لیا گیا,
 "Your query has been received. We will reply back shortly. If you have any additional information, please reply to this mail.",آپ کا استفسار حاصل کیا گیا ہے. ہم جلد ہی واپس جواب دیں گے. آپ کو کسی بھی اضافی معلومات ہے تو، اس میل کا جواب دیں.,
 "Your session has expired, please login again to continue.",آپ کا سیشن ختم ہو گیا ہے، جاری رکھنے کیلئے دوبارہ لاگ ان کریں.,
-Your system is being updated. Please refresh again after a few moments,آپ کے سسٹم کو اپ ڈیٹ کیا جا رہا ہے. چند لمحوں کے بعد ایک بار پھر براہ کرم ریفریش کریں,
 Zero,زیرو,
 Zero means send records updated at anytime,زیرو ریکارڈز کسی بھی وقت اپ ڈیٹ بھیجنے کا مطلب,
 [Label]:[Field Type]/[Options]:[Width],[لیبل] [فیلڈ کی قسم] / [اختیارات]: [چوڑائی],
@@ -2975,7 +2926,7 @@ cog,دانتا,
 darkgrey,گہرا بھورا,
 dd-mm-yyyy,DD-MM-YYYY,
 dd.mm.yyyy,dd.mm.yyyy,
-dd/mm/yyyy,dd / mm / yyyy,
+dd/mm/yyyy,DD / MM / YYYY,
 "document type..., e.g. customer",دستاویز کی قسم ...، مثال کے طور پر گاہک,
 domain name,ڈومین نام,
 download-alt,ڈاؤن لوڈ، اتارنا-ALT,
@@ -3060,7 +3011,6 @@ plus-sign,پلس نشانی,
 qrcode,qrCode دائر تحت:,
 query-report,استفسار رپورٹ,
 question-sign,سوال نشانی,
-refresh_token,refresh_token,
 remove-circle,دور دائرے,
 remove-sign,دور سائن ان کریں,
 removed,ہٹا دیا,
@@ -3136,7 +3086,6 @@ zoom-out,دور کرنا,
 {0} cannot be set for Single types,{0}ایک اقسام کے لئے مقرر نہیں کیا جا سکتا,
 {0} comments,{0} تبصرے,
 {0} created successfully,کامیابی کے ساتھ {0},
-{0} created this {1},{0} بنا یا {1},
 {0} criticism point for {1} {2},{1} تنقید کا اشارہ {1} {2},
 {0} criticism points for {1} {2},{1} تنقید پوائنٹس {1} {2} کے لئے,
 {0} criticized on {1},{1} {1},
@@ -3145,7 +3094,6 @@ zoom-out,دور کرنا,
 {0} criticized {1},{0} تنقید {1},
 {0} days ago,{0} دن پھلے,
 {0} does not exist in row {1},{0} صف میں موجود نہیں ہے {1},
-{0} edited this {1},{0} اسے سودھارا {1},
 "{0} field cannot be set as unique in {1}, as there are non-unique existing values",غیر منفرد موجودہ اقدار موجود ہیں کے طور {0} میدان، {1} میں کے طور پر منفرد مقرر نہیں کیا جا سکتا,
 {0} has already assigned default value for {1}.,{0} نے پہلے ہی {1} کے لئے پہلے سے طے شدہ قیمت مقرر کردی ہے.,
 {0} has been successfully added to the Email Group.,{0} کامیابی ای میل گروپ میں شامل کر لیا گیا ہے.,
@@ -3197,7 +3145,6 @@ zoom-out,دور کرنا,
 "{0} {1} does not exist, select a new target to merge",{0} {1} موجود نہیں ہے، ضم کرنے کے لئے ایک نیا ہدف کا انتخاب,
 {0} {1} not found,{0} {1} نہیں ملا,
 {0} {1} to {2},{0} {1} کو {2},
-{0} {1}: Submitted Record cannot be deleted.,{0} {1}: پیش ریکارڈ خارج نہیں کیا جا سکتا.,
 "{0}, Row {1}",{0}، صف {1},
 "{0}: '{1}' ({3}) will get truncated, as max characters allowed is {2}",{0}: &#39;{1}&#39; ({3}) ٹونٹ ہو جائے گا، کیونکہ زیادہ سے زیادہ حروف کی اجازت دی گئی ہے {2},
 {0}: Cannot set Amend without Cancel,{0}: بغیر منسوخ ترمیم مقرر نہیں کر سکتے ہیں,
@@ -3234,13 +3181,11 @@ Make {0},{0} بنائیں,
 A user who posts blogs.,ایسا صارف جو بلاگ شائع کرتا ہے۔,
 Applying: {0},درخواست: {0},
 Fieldname {0} is restricted,فیلڈ نام {0} محدود ہے۔,
-"Header, Breadcrumbs and Meta Tags",ہیڈر ، بریڈ کرمبس اور میٹا ٹیگز۔,
 Is Optional State,اختیاری ریاست ہے۔,
 No values to show,کوئی قدر نہیں ظاہر کرنے کے لئے۔,
 View Ref,ریفری دیکھیں,
 Workflow Action is not created for optional states,ورک فلو ایکشن اختیاری ریاستوں کے لئے تشکیل نہیں دیا گیا ہے۔,
 {0} values selected,{0} اقدار منتخب کیے گئے ہیں,
- Allow in Quick Entry ,فوری اندراج میں اجازت دیں,
 """amended_from"" field must be present to do an amendment.",ترمیم کرنے کے لئے &quot;ترمیم شدہ_تعلیم&quot; فیلڈ موجود ہونا چاہئے۔,
 (Mandatory),(لازمی),
 1 Google Calendar Event synced.,1 گوگل کیلنڈر ایونٹ مطابقت پذیر ہوگیا۔,
@@ -3342,10 +3287,8 @@ Contact Numbers,رابطہ نمبر,
 Contact Phone,رابطے کا فون,
 Contact Synced with Google Contacts.,گوگل رابطوں کے ساتھ رابطہ ہم آہنگ ہوا۔,
 Context,خیال، سیاق,
-Contribute Translation,تعاون کریں ترجمہ,
 Contribute Translations,تعاون کریں,
 Contributed,تعاون کیا۔,
-Contributed Translation Doctype Name,تعاون یافتہ ترجمہ دستاویز نام۔,
 Controller method get_razorpay_order missing,کنٹرولر کا طریقہ get_razorpay_order غائب ہے,
 Copied to clipboard.,کلپ بورڈ میں کاپی۔,
 Core Modules {0} cannot be searched in Global Search.,بنیادی ماڈیولز {0 Global کو گلوبل سرچ میں تلاش نہیں کیا جاسکتا۔,
@@ -3401,7 +3344,6 @@ Energy Point,انرجی پوائنٹ,
 Energy Points: ,توانائی کے نکات:,
 Enter Client Id and Client Secret in Google Settings.,گوگل کی ترتیبات میں کلائنٹ کی شناخت اور کلائنٹ کا خفیہ داخل کریں۔,
 Enter Code displayed in OTP App.,OTP ایپ میں ظاہر کردہ کوڈ درج کریں۔,
-Errored Transactions,غلط معاملات,
 Event Configurations,واقعہ کی تشکیلات,
 Event Consumer,واقعہ صارف,
 Event Consumer Document Type,واقعہ صارفین کی دستاویز کی قسم,
@@ -3469,7 +3411,6 @@ Google Drive,گوگل ڈرائیو,
 Google Drive - Could not create folder in Google Drive - Error Code {0},گوگل ڈرائیو - گوگل ڈرائیو میں فولڈر تشکیل نہیں دے سکا - غلطی کا کوڈ {0},
 Google Drive - Could not find folder in Google Drive - Error Code {0},گوگل ڈرائیو - گوگل ڈرائیو میں فولڈر نہیں مل سکا - غلطی کا کوڈ {0},
 Google Drive - Could not locate locate - {0},گوگل ڈرائیو - تلاش نہیں کرسکا - - 0,
-Google Drive - Could not upload backup - Error {0},گوگل ڈرائیو - بیک اپ اپ لوڈ نہیں ہوسکا - غلطی {0},
 Google Drive Backup Successful.,گوگل ڈرائیو کا بیک اپ کامیاب۔,
 Google Drive Backup.,گوگل ڈرائیو بیک اپ۔,
 Google Drive Integration.,گوگل ڈرائیو انٹیگریشن,
@@ -3613,7 +3554,6 @@ Open Help,کھلی مدد,
 Open Settings,سیٹنگیں کھولیں۔,
 Open list item,فہرست شے کو کھولیں۔,
 Organizational Unit for Users,صارفین کے لئے تنظیمی اکائی۔,
-PR sent,PR بھیج دیا گیا۔,
 Page Shortcuts,صفحہ شارٹ کٹس,
 Parent Field (Tree),پیرنٹ فیلڈ (درخت),
 Parent Field must be a valid fieldname,پیرنٹ فیلڈ ایک درست فیلڈ نام ہونا چاہئے۔,
@@ -3626,7 +3566,6 @@ Please find attached {0}: {1},براہ کرم منسلک ڈھونڈیں {0}: fin
 Please select applicable Doctypes,براہ کرم قابل اطلاق دستاویزات منتخب کریں۔,
 Portrait,پورٹریٹ,
 Press Alt Key to trigger additional shortcuts in Menu and Sidebar,مینو اور سائڈبار میں اضافی شارٹ کٹ کو متحرک کرنے کے لئے Alt کلید دبائیں۔,
-Print Heading,پرنٹ سرخی,
 Print Settings...,پرنٹ کی ترتیبات ...,
 Producer Document Name,پروڈیوسر دستاویز کا نام,
 Producer URL,پروڈیوسر یو آر ایل,
@@ -3746,7 +3685,6 @@ The site which is consuming your events.,وہ سائٹ جو آپ کے واقعا
 The site you want to subscribe to for consuming events.,وہ سائٹ جس کی خریداری کے واقعات کے ل subs آپ سبسکرائب کرنا چاہتے ہیں۔,
 The webhook will be triggered if this expression is true,اگر یہ اظہار درست ہے تو ویب ہک کو متحرک کیا جائے گا۔,
 The {0} is already on auto repeat {1},{0 already پہلے ہی آٹو ریپیٹ on 1} پر ہے,
-Theme JSON,تھیم JSON۔,
 There are some linked records which needs to be created before we can import your file. Do you want to create the following missing records automatically?,کچھ منسلک ریکارڈ موجود ہیں جن کو تیار کرنے کی ضرورت ہے اس سے پہلے کہ ہم آپ کی فائل درآمد کرسکیں۔ کیا آپ درج ذیل گمشدہ ریکارڈز خود بخود بنانا چاہتے ہیں؟,
 There should be atleast one row for the following tables: {0},مندرجہ ذیل جدولوں کے لئے کم از کم ایک قطار ہونی چاہئے: {0},
 There should be atleast one row for {0} table,{0} ٹیبل کے ل at کم از کم ایک قطار ہونی چاہئے۔,
@@ -3957,7 +3895,6 @@ Send,بھیجیں,
 Sending,بھیجنا,
 Server Error,سرور کی خرابی,
 Set,مقرر,
-Set Meta Tags,میٹا ٹیگز مرتب کریں۔,
 Setup,سیٹ اپ,
 Setup Wizard,سیٹ اپ مددگار,
 Size,سائز,
@@ -4140,7 +4077,6 @@ response,جواب,
 right,ٹھیک ہے,
 search,تلاش کریں,
 share,حصہ,
-state,ریاست,
 stop,بند کرو,
 success,کامیابی,
 tag,ٹیگ,
@@ -4156,8 +4092,6 @@ yellow,پیلے رنگ,
 Not permitted,اجازت نہیں,
 Add Chart to Dashboard,ڈیش بورڈ میں چارٹ شامل کریں,
 Add to Dashboard,ڈیش بورڈ میں شامل کریں,
-Attach file,فائل منسلک,Data Import
-DocType has Open Entries,ڈاک ٹائپ کی کھلی اندراجات ہیں,
 Google Translation,گوگل ترجمہ,
 Important,اہم,
 New Chart Created,نیا چارٹ تشکیل دیا گیا,
@@ -4181,7 +4115,6 @@ Developer Mode Only,صرف ڈویلپر وضع,
 Disable User Customization,صارف کی حسب ضرورت کو غیر فعال کریں,
 For example: {} Open,مثال کے طور پر: {} کھولیں,
 Is Custom,کسٹم ہے,
-Is Query Report,سوالات کی رپورٹ ہے,
 Link Cards,لنک کارڈز,
 Link To,لنک کریں,
 Onboarding,جہاز,
@@ -4198,9 +4131,13 @@ Setup > User,سیٹ اپ&gt; صارف,
 Setup > Customize Form,سیٹ اپ&gt; فارم کو کسٹمائز کریں,
 Setup > User Permissions,سیٹ اپ&gt; صارف کی اجازت,
 "Error connecting to QZ Tray Application...<br><br> You need to have QZ Tray application installed and running, to use the Raw Print feature.<br><br><a target=""_blank"" href=""https://qz.io/download/"">Click here to Download and install QZ Tray</a>.<br> <a target=""_blank"" href=""https://erpnext.com/docs/user/manual/en/setting-up/print/raw-printing"">Click here to learn more about Raw Printing</a>.","کیو زیڈ ٹرے ایپلیکیشن سے رابطہ کرنے میں خرابی… <br><br> آپ کو را پرنٹ کی خصوصیت استعمال کرنے کے ل Q ، QZ ٹرے ایپلی کیشن انسٹال اور چلانے کی ضرورت ہے۔ <br><br> <a href=""https://qz.io/download/"" target=""_blank"">کیو زیڈ ٹرے کو ڈاؤن لوڈ اور انسٹال کرنے کے لئے یہاں کلک کریں</a> ۔ <br> <a href=""https://erpnext.com/docs/user/manual/en/setting-up/print/raw-printing"" target=""_blank"">را پرنٹنگ کے بارے میں مزید معلومات کے لئے یہاں کلک کریں</a> ۔",
-> {0} year(s) ago,&gt; {0} سال پہلے,
 No email account associated with the User. Please add an account under User > Email Inbox.,صارف کے ساتھ کوئی ای میل اکاؤنٹ منسلک نہیں ہے۔ براہ کرم صارف&gt; ای میل ان باکس کے تحت ایک اکاؤنٹ شامل کریں۔,
 "For comparison, use >5, <10 or =324. For ranges, use 5:10 (for values between 5 & 10).",موازنہ کے لئے ،&gt; 5 ، &lt;10 یا = 324 استعمال کریں۔ حدود کے ل 5 ، 5:10 (5 اور 10 کے درمیان اقدار کے لئے) استعمال کریں۔,
 No default Address Template found. Please create a new one from Setup > Printing and Branding > Address Template.,پتہ کا کوئی طے شدہ سانچہ نہیں ملا۔ براہ کرم سیٹ اپ&gt; پرنٹنگ اور برانڈنگ&gt; ایڈریس ٹیمپلیٹ سے ایک نیا بنائیں۔,
 Please setup default Email Account from Setup > Email > Email Account,براہ کرم سیٹ اپ&gt; ای میل&gt; ای میل اکاؤنٹ سے پہلے سے طے شدہ ای میل اکاؤنٹ مرتب کریں,
 Email Account not setup. Please create a new Email Account from Setup > Email > Email Account,ای میل اکاؤنٹ سیٹ اپ نہیں ہے۔ براہ کرم سیٹ اپ&gt; ای میل&gt; ای میل اکاؤنٹ سے نیا ای میل اکاؤنٹ بنائیں,
+Advanced Settings,اعلی درجے کی ترتیبات,
+Path,راستہ,
+Components,اجزاء,
+Verified By,کی طرف سے تصدیق,
+Lead Conversion Time,لیڈر تبادلوں کے وقت,
