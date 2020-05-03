@@ -3993,7 +3993,6 @@ apps/frappe/frappe/handler.py,Logged Out,Abgemeldet
 apps/frappe/frappe/public/js/frappe/ui/toolbar/search.js,More...,Mehr...
 DocType: System Settings,User can login using Email id or Mobile number,Benutzer können sich entweder mit Email-Adresse oder Handynummer anmelden
 DocType: Bulk Update,Update Value,Wert aktualisieren
-apps/frappe/frappe/core/doctype/communication/communication.js,Mark as {0},als {0} markieren
 apps/frappe/frappe/model/rename_doc.py,Please select a new name to rename,Bitte wählen Sie einen neuen Namen umbenennen
 apps/frappe/frappe/public/js/frappe/views/reports/report_view.js,Invalid column,Ungültige Spalte
 DocType: Data Migration Connector,Data Migration,Datenmigration
@@ -4178,6 +4177,8 @@ DocType: DocField,Ignore User Permissions,Ignorieren von Benutzerberechtigungen
 apps/frappe/frappe/public/js/frappe/web_form/web_form.js,Saved Successfully,Erfolgreich gespeichert
 apps/frappe/frappe/core/doctype/user/user.py,Please ask your administrator to verify your sign-up,Bitte fragen Sie Ihren Administrator Ihre Anmeldung bis zum überprüfen
 DocType: Domain Settings,Active Domains,Aktive Domains
+DocType: Assignment Rule,Inbox User,Posteingangsnutzer
+apps/frappe/frappe/core/doctype/communication/communication.js,Forward,Weiterleiten
 apps/frappe/frappe/public/js/frappe/utils/pretty_date.js,Now,Jetzt
 apps/frappe/frappe/public/js/frappe/utils/pretty_date.js,{0} m,{0} m
 apps/frappe/frappe/public/js/frappe/utils/pretty_date.js,{0} h,{0} h
