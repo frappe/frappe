@@ -13,7 +13,7 @@ function prettyDate(date, mini) {
 		// Return short format of time difference
 		if (day_diff == 0) {
 			if (diff < 60) {
-				return __("Now");
+				return __("now");
 			} else if (diff < 3600) {
 				return __("{0} m", [Math.floor(diff / 60)]);
 			} else if (diff < 86400) {
