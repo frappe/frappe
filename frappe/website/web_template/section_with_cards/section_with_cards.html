@@ -5,9 +5,9 @@
 	'p-8': card_size == 'Large'
 }) -%}
 {%- set title_classes = resolve_class({
-	'text-base': card_size == 'Small',
-	'text-lg md:text-xl': card_size == 'Medium',
-	'text-xl md:text-2xl': card_size == 'Large'
+	'text-base font-semibold': card_size == 'Small',
+	'text-lg md:text-xl font-semibold': card_size == 'Medium',
+	'text-xl md:text-2xl font-bold': card_size == 'Large'
 }) -%}
 {%- set content_classes = resolve_class({
 	'text-sm': card_size == 'Small',
@@ -16,8 +16,8 @@
 }) -%}
 
 <a href="{{ url or '#' }}"
-	class="block bg-white border rounded-xl hover:shadow-lg {{ card_classes }}">
-	<h3 class="font-semibold {{ title_classes }}">{{ title }}</h3>
+	class="block bg-white border rounded-xl hover:border-gray-600 {{ card_classes }}">
+	<h3 class="leading-none {{ title_classes }}">{{ title }}</h3>
 	<p class="mt-4 text-gray-900 {{ content_classes }}">{{ content or '' }}</p>
 </a>
 {%- endmacro -%}

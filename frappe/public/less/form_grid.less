@@ -80,6 +80,10 @@
 	background-color: @extra-light-yellow;
 }
 
+.editable-form .grid-static-col.invalid {
+	background-color: @label-danger-bg;
+}
+
 .validated-form .grid-static-col.error {
 	background-color: @label-danger-bg;
 }
@@ -148,6 +152,10 @@
 			&:focus {
 				border-color: @indicator-red;
 			}
+		}
+
+		input.form-control.invalid {
+			background-color: @label-danger-bg;
 		}
 
 		input[data-fieldtype="Int"], input[data-fieldtype="Float"], input[data-fieldtype="Currency"] {

@@ -7,6 +7,7 @@
 	web_block.css_class
 ]) -%}
 
+{%- if not web_block.hide_block -%}
 <{{htmltag}} class="{{ classes }}" data-section-idx="{{ web_block.idx | e }}"
 	data-section-template="{{ web_block.web_template | e }}">
 	{%- if web_block.add_container -%}
@@ -17,3 +18,4 @@
 	</div>
 	{%- endif -%}
 </{{htmltag}}>
+{%- endif -%}

@@ -392,6 +392,88 @@
 			}
 		}
 	}
+
+	&.number-widget-box {
+		cursor: pointer;
+		height: 110px;
+		padding: 10px;
+
+		&:hover {
+			border-color: @text-muted;
+		}
+
+		.widget-head {
+
+			.widget-title {
+				font-weight: normal;
+				color: @text-muted;
+				font-size: 14px;
+				margin-top: -5px;
+			}
+
+			.widget-control {
+				right: -10px;
+				top: -10px;
+			}
+		}
+
+		.widget-body {
+			text-align: left;
+
+			.number-card-loading {
+				display: flex;
+				height: 50px;
+				align-items: center;
+				justify-content: center;
+			}
+
+			.widget-content {
+				padding-top: 30px;
+				display: flex;
+				justify-content: space-between;
+
+				.number {
+					font-size: 25px;
+					line-height: 2em;
+				}
+
+				.number-text {
+					color: @text-muted;
+					padding: 5px;
+					font-size: 14px;
+				}
+
+				.card-stats {
+					padding-top: 5px;
+				}
+
+				.percentage-stat {
+					float: right;
+					clear: right;
+					font-size: 12px;
+				}
+
+				.stat-period {
+					float: right;
+					clear: right;
+					font-size: 11px;
+				}
+
+				.green-stat {
+					color: green;
+				}
+
+				.red-stat {
+					color: @red;
+				}
+
+				.grey-stat {
+					color: @text-muted;
+				}
+			}
+		}
+	}
+
 }
 
 .pill {

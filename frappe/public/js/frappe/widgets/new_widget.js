@@ -18,19 +18,26 @@ export default class NewWidget {
 
 	get_title() {
 		// DO NOT REMOVE: Comment to load translation
-		// __("New Chart") __("New Shortcut")
-		return __(`New ${frappe.utils.to_title_case(this.type)}`);
+		// __("New Chart") __("New Shortcut") __("New Number Card")
+		return __(`New ${frappe.model.unscrub(this.type)}`);
 	}
 
 	make_widget() {
-		this.widget = $(`<div class="widget new-widget">
+		const new_widget_class = `new-${frappe.scrub(frappe.model.unscrub(this.type), '-')}-widget`;
+		this.widget = $(`<div class="widget new-widget ${new_widget_class}">
 				+ ${this.get_title()}
 			</div>`);
 		this.body = this.widget;
 	}
 
 	setup_events() {
-		this.widget.on("click", () => this.open_dialog());
+		this.widget.on("click", () => {
+			if (!this.custom_dialog) {
+				this.open_dialog();
+			} else {
+				this.custom_dialog();
+			}
+		});
 	}
 
 	open_dialog() {
@@ -40,6 +47,7 @@ export default class NewWidget {
 			label: this.label,
 			type: this.type,
 			values: false,
+			default_values: this.default_values,
 			primary_action: this.on_create,
 		});
 

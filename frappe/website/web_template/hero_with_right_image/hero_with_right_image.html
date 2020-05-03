@@ -1,5 +1,5 @@
 <div class="relative flex">
-	<div class="relative flex items-center flex-shrink-0 w-full sm:w-7/12">
+	<div class="relative flex items-center flex-shrink-0 w-full md:w-6/12">
 		<div>
 			<h1
 				class="text-3xl font-extrabold leading-tight tracking-tight sm:leading-10 sm:text-4xl xl:leading-none xl:text-5xl">
@@ -22,8 +22,16 @@
 		</div>
 	</div>
 	{%- if image -%}
-	<div class="hidden sm:block lg:w-5/12">
-		<img class="object-cover w-full h-56 lg:h-full lg:w-full md:h-96 sm:h-72" src="{{ image }}" alt="">
-	</div>
+	{{ c('image_with_blur',
+		class=["hidden md:block max-h-144 object-contain", "w-full md:w-6/12" if contain_image else "md:max-w-md lg:max-w-lg xl:max-w-xl xxl:max-w-2xl"],
+		src=image,
+		alt="")
+	}}
 	{%- endif -%}
 </div>
+
+{%- if not contain_image -%}
+<script>
+	document.addEventListener('DOMContentLoaded', () => document.body.classList.add('overflow-x-hidden'));
+</script>
+{%- endif -%}
