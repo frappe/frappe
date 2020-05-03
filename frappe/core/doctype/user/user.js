@@ -97,47 +97,49 @@ frappe.ui.form.on('User', {
 				});
 			}, __("Password"));
 
-			frappe.db.get_single_value("LDAP Settings", "enabled").then((value) => {
-				if (value === 1 && frm.doc.name != "Administrator") {
-					frm.add_custom_button(__("Reset LDAP Password"), function() {
-						const d = new frappe.ui.Dialog({
-							title: __("Reset LDAP Password"),
-							fields: [
-								{
-									label: __("New Password"),
-									fieldtype: "Password",
-									fieldname: "new_password",
-									reqd: 1
-								},
-								{
-									label: __("Confirm New Password"),
-									fieldtype: "Password",
-									fieldname: "confirm_password",
-									reqd: 1
-								},
-								{
-									label: __("Logout All Sessions"),
-									fieldtype: "Check",
-									fieldname: "logout_sessions"
+			if (frappe.user.has_role("System Manager")) {
+				frappe.db.get_single_value("LDAP Settings", "enabled").then((value) => {
+					if (value === 1 && frm.doc.name != "Administrator") {
+						frm.add_custom_button(__("Reset LDAP Password"), function() {
+							const d = new frappe.ui.Dialog({
+								title: __("Reset LDAP Password"),
+								fields: [
+									{
+										label: __("New Password"),
+										fieldtype: "Password",
+										fieldname: "new_password",
+										reqd: 1
+									},
+									{
+										label: __("Confirm New Password"),
+										fieldtype: "Password",
+										fieldname: "confirm_password",
+										reqd: 1
+									},
+									{
+										label: __("Logout All Sessions"),
+										fieldtype: "Check",
+										fieldname: "logout_sessions"
+									}
+								],
+								primary_action: (values) => {
+									d.hide();
+									if (values.new_password !== values.confirm_password) {
+										frappe.throw(__("Passwords do not match!"));
+									}
+									frappe.call(
+										"frappe.integrations.doctype.ldap_settings.ldap_settings.reset_password", {
+											user: frm.doc.email,
+											password: values.new_password,
+											logout: values.logout_sessions
+										});
 								}
-							],
-							primary_action: (values) => {
-								d.hide();
-								if (values.new_password !== values.confirm_password) {
-									frappe.throw(__("Passwords do not match!"));
-								}
-								frappe.call(
-									"frappe.integrations.doctype.ldap_settings.ldap_settings.reset_password", {
-										user: frm.doc.email,
-										password: values.new_password,
-										logout: values.logout_sessions
-									});
-							}
-						});
-						d.show();
-					}, __("Password"));
-				}
-			});
+							});
+							d.show();
+						}, __("Password"));
+					}
+				});
+			}
 
 			frm.add_custom_button(__("Reset OTP Secret"), function() {
 				frappe.call({

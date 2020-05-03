@@ -425,17 +425,19 @@ class Meta(Document):
 		implemented in other Frappe applications via hooks.
 		'''
 		data = frappe._dict()
-		try:
-			module = load_doctype_module(self.name, suffix='_dashboard')
-			if hasattr(module, 'get_data'):
-				data = frappe._dict(module.get_data())
-		except ImportError:
-			pass
+		if not self.custom:
+			try:
+				module = load_doctype_module(self.name, suffix='_dashboard')
+				if hasattr(module, 'get_data'):
+					data = frappe._dict(module.get_data())
+			except ImportError:
+				pass
 
 		self.add_doctype_links(data)
 
-		for hook in frappe.get_hooks("override_doctype_dashboards", {}).get(self.name, []):
-			data = frappe.get_attr(hook)(data=data)
+		if not self.custom:
+			for hook in frappe.get_hooks("override_doctype_dashboards", {}).get(self.name, []):
+				data = frappe.get_attr(hook)(data=data)
 
 		return data
 

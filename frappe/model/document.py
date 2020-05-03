@@ -268,6 +268,10 @@ class Document(BaseDocument):
 		if hasattr(self, "__islocal"):
 			delattr(self, "__islocal")
 
+		# clear unsaved flag
+		if hasattr(self, "__unsaved"):
+			delattr(self, "__unsaved")
+
 		if not (frappe.flags.in_migrate or frappe.local.flags.in_install or frappe.flags.in_setup_wizard):
 			follow_document(self.doctype, self.name, frappe.session.user)
 		return self
@@ -328,6 +332,10 @@ class Document(BaseDocument):
 
 		self.update_children()
 		self.run_post_save_methods()
+
+		# clear unsaved flag
+		if hasattr(self, "__unsaved"):
+			delattr(self, "__unsaved")
 
 		return self
 
@@ -582,6 +590,9 @@ class Document(BaseDocument):
 
 		if high_permlevel_fields:
 			self.reset_values_if_no_permlevel_access(has_access_to, high_permlevel_fields)
+
+		# If new record then don't reset the values for child table
+		if self.is_new(): return
 
 		# check for child tables
 		for df in self.meta.get_table_fields():
@@ -1318,6 +1329,9 @@ def make_event_update_log(doc, update_type):
 
 def check_doctype_has_consumers(doctype):
 	"""Check if doctype has event consumers for event streaming"""
+	if not frappe.db.exists("DocType", "Event Consumer"):
+		return False
+
 	event_consumers = frappe.get_all('Event Consumer')
 	for event_consumer in event_consumers:
 		consumer = frappe.get_doc('Event Consumer', event_consumer.name)

@@ -56,6 +56,10 @@ frappe.ui.form.on('Website Settings', {
 		});
 	},
 
+	enable_view_tracking: function(frm) {
+		frappe.boot.website_tracking_enabled = frm.doc.enable_view_tracking;
+	},
+
 	set_parent_options: function(frm, doctype, name) {
 		var item = frappe.get_doc(doctype, name);
 		if(item.parentfield === "top_bar_items") {
