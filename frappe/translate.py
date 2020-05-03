@@ -255,7 +255,7 @@ def get_user_translations(lang):
 			key = translation.source_text
 			value = translation.translated_text
 			if translation.context:
-				key+= ':' + translation.context
+				key += ':' + translation.context
 			out[key] = value
 
 		frappe.cache().hset('lang_user_translations', lang, out)
@@ -504,14 +504,14 @@ def get_messages_from_file(path):
 	# To avoid duplicate scan
 	if path in set(frappe.flags.scanned_files):
 		return []
-	else:
-		frappe.flags.scanned_files.append(path)
+
+	frappe.flags.scanned_files.append(path)
 
 	apps_path = get_bench_dir()
 	if os.path.exists(path):
 		with open(path, 'r') as sourcefile:
-			data = [(os.path.relpath(path, apps_path),
-					message, context, line) for line, message, context in  extract_messages_from_code(sourcefile.read())]
+			data = [(os.path.relpath(path, apps_path), message, context, line) \
+				for line, message, context in  extract_messages_from_code(sourcefile.read())]
 			return data
 	else:
 		# print "Translate: {0} missing".format(os.path.abspath(path))

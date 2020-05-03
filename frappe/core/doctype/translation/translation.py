@@ -6,7 +6,6 @@ from __future__ import unicode_literals
 import frappe
 from frappe.model.document import Document
 from frappe.utils import strip_html_tags, is_html
-from frappe.integrations.utils import make_post_request
 from frappe.translate import get_translator_url
 import json
 
@@ -64,7 +63,6 @@ def create_translations(translation_map, language):
 			})
 			doc.insert()
 			translation_map_to_send[source_id].name = doc.name
-
 
 	params = {
 		'language': language,
