@@ -76,7 +76,7 @@ def get(chart_name = None, chart = None, no_cache = None, filters = None, from_d
 		if to_date and len(to_date):
 			to_date = get_datetime(to_date)
 		else:
-			to_date = chart.to_date
+			to_date = get_datetime(chart.to_date)
 
 	timegrain = time_interval or chart.time_interval
 	filters = frappe.parse_json(filters) or frappe.parse_json(chart.filters_json) or []
@@ -110,7 +110,8 @@ def create_dashboard_chart(args):
 
 @frappe.whitelist()
 def create_report_chart(args):
-	create_dashboard_chart()
+	create_dashboard_chart(args)
+	args = frappe.parse_json(args)
 	if args.dashboard:
 		add_chart_to_dashboard(json.dumps(args))
 
