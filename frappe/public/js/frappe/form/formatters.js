@@ -188,6 +188,13 @@ frappe.form.formatters = {
 
 		return value || "";
 	},
+	Duration: function(value) {
+		if (value) {
+			value = frappe.utils.get_formatted_duration(value);
+		}
+
+		return value || "";
+	},
 	LikedBy: function(value) {
 		var html = "";
 		$.each(JSON.parse(value || "[]"), function(i, v) {

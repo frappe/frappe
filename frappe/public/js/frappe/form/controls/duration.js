@@ -63,7 +63,7 @@ frappe.ui.form.ControlDuration = frappe.ui.form.ControlData.extend({
 	},
 
 	set_duration_picker() {
-		let total_duration = this.seconds_to_duration(this.value);
+		let total_duration = frappe.utils.seconds_to_duration(this.value);
 		if (total_duration.days) {
 			this.$picker.find(`[data-duration='days']`).prop('value', total_duration.days);
 		}
@@ -111,38 +111,7 @@ frappe.ui.form.ControlDuration = frappe.ui.form.ControlData.extend({
 	},
 
 	format_for_input: function(value) {
-		let input_string = '';
-		if (value) {
-			let total_duration = this.seconds_to_duration(value);
-
-			if (total_duration.days) {
-				input_string += total_duration.days + 'd';
-			}
-			if (total_duration.hours) {
-				input_string += (input_string.length ? " " : "");
-				input_string += total_duration.hours + 'h';
-			}
-			if (total_duration.minutes) {
-				input_string += (input_string.length ? " " : "");
-				input_string += total_duration.minutes + 'm';
-			}
-			if (total_duration.seconds) {
-				input_string += (input_string.length ? " " : "");
-				input_string += total_duration.seconds + 's';
-			}
-		}
-		return input_string;
-	},
-
-	seconds_to_duration(value) {
-		let secs = value;
-		let total_duration = {
-			days: Math.floor(secs / (3600 * 24)),
-			hours: Math.floor(secs % (3600 * 24) / 3600),
-			minutes: Math.floor(secs % 3600 / 60),
-			seconds : Math.floor(secs % 60)
-		};
-		return total_duration;
+		return frappe.utils.get_formatted_duration(value);
 	},
 
 	duration_to_seconds() {

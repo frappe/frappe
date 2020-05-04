@@ -778,6 +778,40 @@ Object.assign(frappe.utils, {
 			version: M[1],
 		};
 	},
+
+	get_formatted_duration(value) {
+		let duration = '';
+		if (value) {
+			let total_duration = frappe.utils.seconds_to_duration(value);
+
+			if (total_duration.days) {
+				duration += total_duration.days + 'd';
+			}
+			if (total_duration.hours) {
+				duration += (duration.length ? " " : "");
+				duration += total_duration.hours + 'h';
+			}
+			if (total_duration.minutes) {
+				duration += (duration.length ? " " : "");
+				duration += total_duration.minutes + 'm';
+			}
+			if (total_duration.seconds) {
+				duration += (duration.length ? " " : "");
+				duration += total_duration.seconds + 's';
+			}
+		}
+		return duration;
+	},
+	seconds_to_duration(value) {
+		let secs = value;
+		let total_duration = {
+			days: Math.floor(secs / (3600 * 24)),
+			hours: Math.floor(secs % (3600 * 24) / 3600),
+			minutes: Math.floor(secs % 3600 / 60),
+			seconds : Math.floor(secs % 60)
+		};
+		return total_duration;
+	},
 });
 
 // Array de duplicate
