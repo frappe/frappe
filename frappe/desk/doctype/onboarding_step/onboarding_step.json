@@ -20,9 +20,7 @@
   "report_description",
   "field",
   "value_to_validate",
-  "video_url",
-  "section_break_11",
-  "restrict_to_domain"
+  "video_url"
  ],
  "fields": [
   {
@@ -87,16 +85,6 @@
    "label": "Video URL"
   },
   {
-   "fieldname": "section_break_11",
-   "fieldtype": "Section Break"
-  },
-  {
-   "fieldname": "restrict_to_domain",
-   "fieldtype": "Link",
-   "label": "Restrict To Domain",
-   "options": "Domain"
-  },
-  {
    "depends_on": "eval:doc.action == \"View Report\"",
    "fetch_from": "reference_report.report_type",
    "fieldname": "report_type",
@@ -134,7 +122,7 @@
   }
  ],
  "links": [],
- "modified": "2020-05-01 11:48:33.606503",
+ "modified": "2020-05-04 12:51:11.716592",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Onboarding Step",
