@@ -69,7 +69,8 @@
 		"node_modules/air-datepicker/dist/js/i18n/datepicker.sk.js",
 		"node_modules/air-datepicker/dist/js/i18n/datepicker.zh.js",
 		"public/js/frappe/ui/capture.js",
-		"public/js/frappe/form/controls/control.js"
+		"public/js/frappe/form/controls/control.js",
+		"public/js/frappe/form/controls/duration.js"
 	],
 	"js/dialog.min.js": [
 		"public/js/frappe/dom.js",
@@ -259,6 +260,7 @@
 		"public/js/frappe/form/templates/timeline.html",
 		"public/js/frappe/form/templates/timeline_item.html",
 		"public/js/frappe/form/controls/control.js",
+		"public/js/frappe/form/controls/duration.js",
 		"public/js/frappe/views/formview.js",
 		"public/js/frappe/form/form.js",
 		"public/js/frappe/meta_tag.js"

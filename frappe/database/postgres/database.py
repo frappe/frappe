@@ -60,7 +60,8 @@ class PostgresDatabase(Database):
 			'Signature':	('text', ''),
 			'Color':		('varchar', self.VARCHAR_LEN),
 			'Barcode':		('text', ''),
-			'Geolocation':	('text', '')
+			'Geolocation':	('text', ''),
+			'Duration':		('bigint', '20')
 		}
 
 	def get_connection(self):
