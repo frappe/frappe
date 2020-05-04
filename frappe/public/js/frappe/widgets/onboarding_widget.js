@@ -117,6 +117,7 @@ export default class OnboardingWidget extends Widget {
 			let args = {};
 
 			let value = frm.doc[step.field];
+			let custom_onhide = null;
 
 			if (value && step.value_to_validate == "%") success = true;
 			if (value == step.value_to_validate) success = true;
@@ -133,6 +134,8 @@ export default class OnboardingWidget extends Widget {
 					},
 					label: __("Continue"),
 				};
+
+				custom_onhide = () => args.primary_action.action();
 			} else {
 				args.message = __("Looks like you didn't change the value");
 				args.title = __("Oops");
@@ -153,19 +156,40 @@ export default class OnboardingWidget extends Widget {
 						label: __("Skip Step"),
 					};
 				}
+
+				custom_onhide = () => args.secondary_action.action();
 			}
 
 			frappe.msgprint(args);
+			frappe.msg_dialog.custom_onhide = () => custom_onhide();
 		};
 
 		frappe.set_route("Form", step.reference_document);
 	}
 
 	show_quick_entry(step) {
+		let current_route = frappe.get_route_str();
 		frappe.ui.form.make_quick_entry(
 			step.reference_document,
 			() => {
-				this.mark_complete(step);
+				if (frappe.get_route_str != current_route) {
+					let args = {}
+					args.message = __("Let's take you back to onboarding");
+					args.title = __("Looks Great");
+					args.primary_action = {
+						action: () => {
+							frappe.set_route(current_route).then(() => {
+								this.mark_complete(step);
+							});
+						},
+						label: __("Continue"),
+					};
+
+					frappe.msgprint(args);
+					frappe.msg_dialog.custom_onhide = () => args.primary_action.action();
+				} else {
+					this.mark_complete(step);
+				}
 			},
 			null,
 			null,
