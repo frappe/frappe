@@ -7,7 +7,6 @@ def execute():
 			SET
 				translated_text=target_name,
 				source_text=source_name,
-				contribution_docname=contributed_translation_doctype_name,
 				contribution_status=(CASE status
 					WHEN 'Deleted' THEN 'Rejected'
 					ELSE ''
