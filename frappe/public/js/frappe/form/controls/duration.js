@@ -25,7 +25,7 @@ frappe.ui.form.ControlDuration = frappe.ui.form.ControlData.extend({
 
 	build_numeric_input: function(label, hidden, max) {
 		let $duration_input = $(`
-			<input class="form-control input-sm duration-input" data-duration="${label}" type="number" min="0" value="0">
+			<input class="input-sm duration-input" data-duration="${label}" type="number" min="0" value="0">
 		`)
 
 		let $input = $(`<div class="row duration-row"></div>`).prepend($duration_input);
@@ -46,7 +46,7 @@ frappe.ui.form.ControlDuration = frappe.ui.form.ControlData.extend({
 			$control.addClass('hidden');
 		}
 		$control.prepend($input);
-		$control.appendTo($('.picker-row'));
+		$control.appendTo(this.$picker.find('.picker-row'));
 	},
 
 	set_duration_options() {
