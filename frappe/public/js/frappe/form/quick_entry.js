@@ -187,7 +187,7 @@ frappe.ui.form.QuickEntryForm = Class.extend({
 				},
 				error: function() {
 					if (!me.skip_redirect_on_error) {
-						me.open_doc();
+						me.open_doc(true);
 					}
 				},
 				always: function() {
@@ -245,9 +245,15 @@ frappe.ui.form.QuickEntryForm = Class.extend({
 		return this.dialog.doc;
 	},
 
-	open_doc: function(){
+	open_doc: function(set_hooks) {
 		this.dialog.hide();
 		this.update_doc();
+		if(set_hooks && this.after_insert) {
+			frappe.route_options = frappe.route_options || {};
+			frappe.route_options.after_save = (frm) => {
+				this.after_insert(this.dialog.doc);
+			}
+		}
 		frappe.set_route('Form', this.doctype, this.doc.name);
 	},
 
@@ -258,7 +264,7 @@ frappe.ui.form.QuickEntryForm = Class.extend({
 
 		$link.find('.edit-full').on('click', function() {
 			// edit in form
-			me.open_doc();
+			me.open_doc(true);
 		});
 	},
 
