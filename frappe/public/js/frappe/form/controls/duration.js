@@ -64,17 +64,17 @@ frappe.ui.form.ControlDuration = frappe.ui.form.ControlData.extend({
 
 	set_duration_picker() {
 		let total_duration = this.seconds_to_duration(this.value);
-		if (total_duration.days()) {
-			this.$picker.find(`[data-duration='days']`).prop('value', total_duration.days());
+		if (total_duration.days) {
+			this.$picker.find(`[data-duration='days']`).prop('value', total_duration.days);
 		}
-		if (total_duration.hours()) {
-			this.$picker.find(`[data-duration='hrs']`).prop('value', total_duration.hours());
+		if (total_duration.hours) {
+			this.$picker.find(`[data-duration='hrs']`).prop('value', total_duration.hours);
 		}
-		if (total_duration.minutes()) {
-			this.$picker.find(`[data-duration='mins']`).prop('value', total_duration.minutes());
+		if (total_duration.minutes) {
+			this.$picker.find(`[data-duration='mins']`).prop('value', total_duration.minutes);
 		}
-		if (total_duration.seconds()) {
-			this.$picker.find(`[data-duration='secs']`).prop('value', total_duration.seconds());
+		if (total_duration.seconds) {
+			this.$picker.find(`[data-duration='secs']`).prop('value', total_duration.seconds);
 		}
 	},
 
@@ -115,20 +115,20 @@ frappe.ui.form.ControlDuration = frappe.ui.form.ControlData.extend({
 		if (value) {
 			let total_duration = this.seconds_to_duration(value);
 
-			if (total_duration.days()) {
-				input_string += total_duration.days() + 'd';
+			if (total_duration.days) {
+				input_string += total_duration.days + 'd';
 			}
-			if (total_duration.hours()) {
+			if (total_duration.hours) {
 				input_string += (input_string.length ? " " : "");
-				input_string += total_duration.hours() + 'h';
+				input_string += total_duration.hours + 'h';
 			}
-			if (total_duration.minutes()) {
+			if (total_duration.minutes) {
 				input_string += (input_string.length ? " " : "");
-				input_string += total_duration.minutes() + 'm';
+				input_string += total_duration.minutes + 'm';
 			}
-			if (total_duration.seconds()) {
+			if (total_duration.seconds) {
 				input_string += (input_string.length ? " " : "");
-				input_string += total_duration.seconds() + 's';
+				input_string += total_duration.seconds + 's';
 			}
 		}
 		return input_string;
@@ -136,36 +136,36 @@ frappe.ui.form.ControlDuration = frappe.ui.form.ControlData.extend({
 
 	seconds_to_duration(value) {
 		let secs = value;
-		let total_duration = moment.duration({
+		let total_duration = {
 			days: Math.floor(secs / (3600 * 24)),
 			hours: Math.floor(secs % (3600 * 24) / 3600),
 			minutes: Math.floor(secs % 3600 / 60),
 			seconds : Math.floor(secs % 60)
-		});
+		};
 		return total_duration;
 	},
 
 	duration_to_seconds() {
 		let value = 0;
 		if (this.inputs) {
-			let total_duration = moment.duration({
+			let total_duration = {
 				seconds : parseInt(this.inputs.secs.val()),
 				minutes : parseInt(this.inputs.mins.val()),
 				hours : parseInt(this.inputs.hrs.val()),
 				days :  parseInt(this.inputs.days.val())
-			});
+			};
 
-			if (total_duration.days()) {
-				value += total_duration.days() * 24 * 60 * 60;
+			if (total_duration.days) {
+				value += total_duration.days * 24 * 60 * 60;
 			}
-			if (total_duration.hours()) {
-				value += total_duration.hours() * 60 * 60;
+			if (total_duration.hours) {
+				value += total_duration.hours * 60 * 60;
 			}
-			if (total_duration.minutes()) {
-				value += total_duration.minutes() * 60;
+			if (total_duration.minutes) {
+				value += total_duration.minutes * 60;
 			}
-			if (total_duration.seconds()) {
-				value += total_duration.seconds();
+			if (total_duration.seconds) {
+				value += total_duration.seconds;
 			}
 		}
 		return value;
