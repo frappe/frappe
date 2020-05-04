@@ -10,6 +10,7 @@
   "title",
   "published_on",
   "published",
+  "read_time",
   "disable_comments",
   "column_break_3",
   "blog_category",
@@ -159,6 +160,13 @@
    "fieldname": "meta_tags",
    "fieldtype": "Section Break",
    "label": "Meta Tags"
+  },
+  {
+   "description": "in minutes",
+   "fieldname": "read_time",
+   "fieldtype": "Int",
+   "label": "Read Time",
+   "read_only": 1
   }
  ],
  "has_web_view": 1,
@@ -167,7 +175,7 @@
  "is_published_field": "published",
  "links": [],
  "max_attachments": 5,
- "modified": "2020-04-29 17:32:41.055883",
+ "modified": "2020-04-30 17:32:41.055883",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Blog Post",
