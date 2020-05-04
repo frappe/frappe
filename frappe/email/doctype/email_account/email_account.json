@@ -65,6 +65,7 @@
    "fieldname": "email_id",
    "fieldtype": "Data",
    "in_global_search": 1,
+   "in_list_view": 1,
    "label": "Email Address",
    "options": "Email",
    "reqd": 1
@@ -90,14 +91,12 @@
    "default": "0",
    "fieldname": "awaiting_password",
    "fieldtype": "Check",
-   "in_list_view": 1,
    "label": "Awaiting password"
   },
   {
    "default": "0",
    "fieldname": "ascii_encode_password",
    "fieldtype": "Check",
-   "in_list_view": 1,
    "label": "Use ASCII encoding for password"
   },
   {
@@ -116,6 +115,8 @@
    "fieldname": "domain",
    "fieldtype": "Link",
    "label": "Domain",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
    "options": "Email Domain"
   },
   {
@@ -424,6 +425,10 @@
    "role": "System Manager",
    "set_user_permissions": 1,
    "write": 1
+  },
+  {
+    "read": 1,
+    "role": "Inbox User"
   }
  ],
  "sort_field": "modified",

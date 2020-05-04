@@ -18,8 +18,7 @@ app_email = "info@frappe.io"
 
 docs_app = "frappe_io"
 
-translation_contribution_url = "https://translate.erpnext.com/api/method/translator.api.add_translation"
-translation_contribution_status = "https://translate.erpnext.com/api/method/translator.api.translation_status"
+translator_url = "https://translatev2.erpnext.com"
 
 before_install = "frappe.utils.install.before_install"
 after_install = "frappe.utils.install.after_install"
@@ -89,6 +88,7 @@ permission_query_conditions = {
 	"Dashboard Settings": "frappe.desk.doctype.dashboard_settings.dashboard_settings.get_permission_query_conditions",
 	"Notification Log": "frappe.desk.doctype.notification_log.notification_log.get_permission_query_conditions",
 	"Dashboard Chart": "frappe.desk.doctype.dashboard_chart.dashboard_chart.get_permission_query_conditions",
+	"Number Card": "frappe.desk.doctype.number_card.number_card.get_permission_query_conditions",
 	"Notification Settings": "frappe.desk.doctype.notification_settings.notification_settings.get_permission_query_conditions",
 	"Note": "frappe.desk.doctype.note.note.get_permission_query_conditions",
 	"Kanban Board": "frappe.desk.doctype.kanban_board.kanban_board.get_permission_query_conditions",
@@ -105,6 +105,7 @@ has_permission = {
 	"User": "frappe.core.doctype.user.user.has_permission",
 	"Note": "frappe.desk.doctype.note.note.has_permission",
 	"Dashboard Chart": "frappe.desk.doctype.dashboard_chart.dashboard_chart.has_permission",
+	"Number Card": "frappe.desk.doctype.number_card.number_card.has_permission",
 	"Kanban Board": "frappe.desk.doctype.kanban_board.kanban_board.has_permission",
 	"Contact": "frappe.contacts.address_and_contact.has_permission",
 	"Address": "frappe.contacts.address_and_contact.has_permission",

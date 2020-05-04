@@ -180,7 +180,14 @@ frappe.ui.form.ControlInput = frappe.ui.form.Control.extend({
 		this.$wrapper.toggleClass("has-error", (this.df.reqd && is_null(value)) ? true : false);
 	},
 	set_invalid: function () {
-		this.$wrapper.toggleClass("has-error", (this.df.invalid ? true : false));
+		let invalid = !!this.df.invalid;
+		if (this.grid) {
+			this.$wrapper.parents('.grid-static-col').toggleClass('invalid', invalid);
+			this.$input.toggleClass('invalid', invalid);
+			this.grid_row.columns[this.df.fieldname].is_invalid = invalid;
+		} else {
+			this.$wrapper.toggleClass('has-error', invalid);
+		}
 	},
 	set_bold: function() {
 		if(this.$input) {

@@ -37,13 +37,11 @@ frappe.ui.form.on("Communication", {
 
 		if(frm.doc.status==="Open") {
 			frm.add_custom_button(__("Close"), function() {
-				frm.set_value("status", "Closed");
-				frm.save();
+				frm.trigger('mark_as_closed_open');
 			});
 		} else if (frm.doc.status !== "Linked") {
 			frm.add_custom_button(__("Reopen"), function() {
-				frm.set_value("status", "Open");
-				frm.save();
+				frm.trigger('mark_as_closed_open');
 			});
 		}
 
@@ -61,30 +59,34 @@ frappe.ui.form.on("Communication", {
 
 			frm.add_custom_button(__("Reply All"), function() {
 				frm.trigger('reply_all');
-			}, "Actions");
+			}, __("Actions"));
 
 			frm.add_custom_button(__("Forward"), function() {
 				frm.trigger('forward_mail');
-			}, "Actions");
+			}, __("Actions"));
 
-			frm.add_custom_button(__("Mark as {0}", [frm.doc.seen? "Unread": "Read"]), function() {
+			frm.add_custom_button(frm.doc.seen ? __("Mark as Unread") : __("Mark as Read"), function() {
 				frm.trigger('mark_as_read_unread');
-			}, "Actions");
+			}, __("Actions"));
 
-			frm.add_custom_button(__("Add Contact"), function() {
-				frm.trigger('add_to_contact');
-			}, "Actions");
+			frm.add_custom_button(__("Move"), function() {
+				frm.trigger('show_move_dialog');
+			}, __("Actions"));
 
 			if(frm.doc.email_status != "Spam")
 				frm.add_custom_button(__("Mark as Spam"), function() {
 					frm.trigger('mark_as_spam');
-				}, "Actions");
+				}, __("Actions"));
 
 			if(frm.doc.email_status != "Trash") {
 				frm.add_custom_button(__("Move To Trash"), function() {
 					frm.trigger('move_to_trash');
-				}, "Actions");
+				}, __("Actions"));
 			}
+
+			frm.add_custom_button(__("Contact"), function() {
+				frm.trigger('add_to_contact');
+			}, __('Create'));
 		}
 
 		if(frm.doc.communication_type=="Communication"
@@ -93,7 +95,7 @@ frappe.ui.form.on("Communication", {
 
 			frm.add_custom_button(__("Add Contact"), function() {
 				frm.trigger('add_to_contact');
-			}, "Actions");
+			}, __("Actions"));
 		}
 	},
 
@@ -145,6 +147,43 @@ frappe.ui.form.on("Communication", {
 		d.show();
 	},
 
+	show_move_dialog: function(frm) {
+		var d = new frappe.ui.Dialog ({
+			title: __("Move"),
+			fields: [{
+				"fieldtype": "Link",
+				"options": "Email Account",
+				"label": __("Email Account"),
+				"fieldname": "email_account",
+				"reqd": 1,
+				"get_query": function() {
+					return {
+						"filters": {
+							"name": ["!=", frm.doc.email_account],
+							"enable_incoming": ["=", 1]
+						}
+					};
+				}
+			}],
+			primary_action_label: __("Move"),
+			primary_action(values) {
+				d.hide();
+				frappe.call({
+					method: "frappe.email.inbox.move_email",
+					args: {
+						communication: frm.doc.name,
+						email_account: values.email_account
+					},
+					freeze: true,
+					callback: function() {
+						window.history.back();
+					}
+				});
+			}
+		});
+		d.show();
+	},
+
 	mark_as_read_unread: function(frm) {
 		var action = frm.doc.seen? "Unread": "Read";
 		var flag = "(\\SEEN)";
@@ -156,7 +195,26 @@ frappe.ui.form.on("Communication", {
 				'action': action,
 				'flag': flag
 			},
-			freeze: true
+			freeze: true,
+			callback: function() {
+				frm.reload_doc();
+			}
+		});
+	},
+
+	mark_as_closed_open: function(frm) {
+		var status = frm.doc.status == "Open" ? "Closed" : "Open";
+
+		return frappe.call({
+			method: "frappe.email.inbox.mark_as_closed_open",
+			args: {
+				communication: frm.doc.name,
+				status: status
+			},
+			freeze: true,
+			callback: function() {
+				frm.reload_doc();
+			}
 		});
 	},
 
