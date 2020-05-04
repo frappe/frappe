@@ -103,14 +103,11 @@ class BlogPost(WebsiteGenerator):
 
 	def set_read_time(self):
 		content = self.content or self.content_html
-
 		if self.content_type == "Markdown":
 			content = markdown(self.content_md)
 
-		content = getWords(strip_html_tags(content))
-
-		self.read_time = ceil(len(content)/250)
-
+		total_words = len(strip_html_tags(content).split())
+		self.read_time = ceil(total_words/250)
 
 def get_list_context(context=None):
 	list_context = frappe._dict(
@@ -227,6 +224,3 @@ def get_blog_list(doctype, txt=None, filters=None, limit_start=0, limit_page_len
 			post.avatar = "/" + post.avatar
 
 	return posts
-
-def getWords(content):
-	return re.compile('\w+').findall(content)
