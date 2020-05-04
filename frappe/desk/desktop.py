@@ -130,7 +130,7 @@ class Workspace:
 				'success': _(self.onboarding_doc.success_message),
 				'docs_url': self.onboarding_doc.documentation_url,
 				'user_can_dismiss': self.onboarding_doc.user_can_dismiss,
-				'items': self.get_onboarding_slides()
+				'items': self.get_onboarding_steps()
 			}
 
 	def get_cards(self):
@@ -244,7 +244,7 @@ class Workspace:
 
 		return items
 
-	def get_onboarding_slides(self):
+	def get_onboarding_steps(self):
 		steps = []
 		for doc in self.onboarding_doc.get_steps():
 			step = doc.as_dict().copy()
