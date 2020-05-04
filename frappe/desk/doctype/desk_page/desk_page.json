@@ -14,7 +14,6 @@
   "category",
   "restrict_to_domain",
   "onboarding",
-  "icon",
   "column_break_3",
   "extends_another_page",
   "is_standard",
@@ -59,12 +58,6 @@
    "options": "Desk Shortcut"
   },
   {
-   "depends_on": "eval:doc.extends_another_page == 0",
-   "fieldname": "onboarding",
-   "fieldtype": "Data",
-   "label": "Onboarding"
-  },
-  {
    "fieldname": "restrict_to_domain",
    "fieldtype": "Link",
    "label": "Restrict to Domain",
@@ -79,12 +72,6 @@
    "in_standard_filter": 1,
    "label": "Module",
    "options": "Module Def"
-  },
-  {
-   "depends_on": "eval:doc.extends_another_page == 0",
-   "fieldname": "icon",
-   "fieldtype": "Data",
-   "label": "Icon"
   },
   {
    "fieldname": "column_break_3",
@@ -196,10 +183,16 @@
    "fieldtype": "Data",
    "label": "For User",
    "read_only": 1
+  },
+  {
+   "fieldname": "onboarding",
+   "fieldtype": "Link",
+   "label": "Onboarding",
+   "options": "Onboarding"
   }
  ],
  "links": [],
- "modified": "2020-03-26 12:35:41.981432",
+ "modified": "2020-04-26 12:21:46.205079",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Desk Page",
