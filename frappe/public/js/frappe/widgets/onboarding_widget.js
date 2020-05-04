@@ -174,7 +174,7 @@ export default class OnboardingWidget extends Widget {
 			step.reference_document,
 			() => {
 				if (frappe.get_route_str != current_route) {
-					let args = {}
+					let args = {};
 					args.message = __("Let's take you back to onboarding");
 					args.title = __("Looks Great");
 					args.primary_action = {
@@ -332,7 +332,7 @@ export default class OnboardingWidget extends Widget {
 
 	set_actions() {
 		this.action_area.empty();
-		if (!this.user_can_dismiss) return
+		if (!this.user_can_dismiss) return;
 
 		const dismiss = $(
 			`<div class="small" style="cursor:pointer;">Dismiss</div>`

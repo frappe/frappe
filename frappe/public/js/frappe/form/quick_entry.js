@@ -248,11 +248,11 @@ frappe.ui.form.QuickEntryForm = Class.extend({
 	open_doc: function(set_hooks) {
 		this.dialog.hide();
 		this.update_doc();
-		if(set_hooks && this.after_insert) {
+		if (set_hooks && this.after_insert) {
 			frappe.route_options = frappe.route_options || {};
 			frappe.route_options.after_save = (frm) => {
-				this.after_insert(this.dialog.doc);
-			}
+				this.after_insert(frm);
+			};
 		}
 		frappe.set_route('Form', this.doctype, this.doc.name);
 	},
