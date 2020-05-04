@@ -35,7 +35,7 @@ export default class OnboardingWidget extends Widget {
 
 		let $step = $(`<div class="onboarding-step ${status}">
 				<i class="fa ${icon_class}" aria-hidden="true" title="${status}"></i>
-				<span>${step.title}</span>
+				<span id="title">${step.title}</span>
 			</div>`);
 
 		step.$step = $step;
@@ -61,7 +61,7 @@ export default class OnboardingWidget extends Widget {
 			"View Report": () => this.open_report(step),
 		};
 
-		$step.on("click", actions[step.action]);
+		$step.find("#title").on("click", actions[step.action]);
 
 		$step.appendTo(this.body);
 		return $step;
