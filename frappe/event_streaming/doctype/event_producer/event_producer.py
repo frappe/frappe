@@ -93,6 +93,7 @@ class EventProducer(Document):
 		if self.is_producer_online():
 			producer_site = get_producer_site(self.producer_url)
 			event_consumer = producer_site.get_doc('Event Consumer', get_url())
+			event_consumer = frappe._dict(event_consumer)
 			if event_consumer:
 				config = event_consumer.consumer_doctypes
 				event_consumer.consumer_doctypes = []
@@ -172,7 +173,7 @@ def pull_from_node(event_producer):
 		mapping = mapping_config.get(update.ref_doctype)
 		if mapping:
 			update.mapping = mapping
-			update = get_mapped_update(update)
+			update = get_mapped_update(update, producer_site)
 		if not update.update_type == 'Delete':
 			update.data = json.loads(update.data)
 
@@ -215,6 +216,7 @@ def sync(update, producer_site, event_producer, in_retry=False):
 		log_event_sync(update, event_producer.name, 'Failed', frappe.get_traceback())
 
 	frappe.db.set_value('Event Producer', event_producer.name, 'last_update', update.creation)
+	event_producer.reload()
 	frappe.db.commit()
 
 
@@ -224,7 +226,15 @@ def set_insert(update, producer_site, event_producer):
 		# doc already created
 		return
 	doc = frappe.get_doc(update.data)
-	sync_dependencies(doc, producer_site)
+
+	if update.mapping:
+		if update.get('dependencies'):
+			dependencies_created = sync_mapped_dependencies(update.dependencies, producer_site)
+			for fieldname, value in iteritems(dependencies_created):
+				doc.update({ fieldname : value })
+	else:
+		sync_dependencies(doc, producer_site)
+
 	if update.use_same_name:
 		doc.insert(set_name=update.docname, set_child_names=False)
 	else:
@@ -237,24 +247,28 @@ def set_insert(update, producer_site, event_producer):
 def set_update(update, producer_site):
 	"""Sync update type update"""
 	local_doc = get_local_doc(update)
-	try:
-		if local_doc:
-			data = frappe._dict(update.data)
+	if local_doc:
+		data = frappe._dict(update.data)
 
-			if data.changed:
-				local_doc.update(data.changed)
-			if data.removed:
-				update_row_removed(local_doc, data.removed)
-			if data.row_changed:
-				update_row_changed(local_doc, data.row_changed)
-			if data.added:
-				local_doc = update_row_added(local_doc, data.added)
+		if data.changed:
+			local_doc.update(data.changed)
+		if data.removed:
+			update_row_removed(local_doc, data.removed)
+		if data.row_changed:
+			update_row_changed(local_doc, data.row_changed)
+		if data.added:
+			local_doc = update_row_added(local_doc, data.added)
 
-			local_doc.save()
-			local_doc.db_update_all()
+		if update.mapping:
+			if update.get('dependencies'):
+				dependencies_created = sync_mapped_dependencies(update.dependencies, producer_site)
+				for fieldname, value in iteritems(dependencies_created):
+					local_doc.update({ fieldname : value })
+		else:
+			sync_dependencies(local_doc, producer_site)
 
-	except frappe.DoesNotExistError:
-		sync_dependencies(local_doc, producer_site)
+		local_doc.save()
+		local_doc.db_update_all()
 
 
 def update_row_removed(local_doc, removed):
@@ -343,6 +357,7 @@ def sync_dependencies(document, producer_site):
 			child_table = doc.get(df.fieldname)
 			for entry in child_table:
 				child_doc = producer_site.get_doc(entry.doctype, entry.name)
+				child_doc = frappe._dict(child_doc)
 				set_dependencies(child_doc, frappe.get_meta(entry.doctype).get_link_fields(), producer_site)
 
 	def sync_link_dependencies(doc, link_fields, producer_site):
@@ -394,6 +409,19 @@ def sync_dependencies(document, producer_site):
 			dependencies[document] = False
 
 
+def sync_mapped_dependencies(dependencies, producer_site):
+	dependencies_created = {}
+	for entry in dependencies:
+		doc = frappe._dict(json.loads(entry[1]))
+		docname = frappe.db.exists(doc.doctype, doc.name)
+		if not docname:
+			doc = frappe.get_doc(doc).insert(set_child_names=False)
+			dependencies_created[entry[0]] = doc.name
+		else:
+			dependencies_created[entry[0]] = docname
+
+	return dependencies_created
+
 def log_event_sync(update, event_producer, sync_status, error=None):
 	"""Log event update received with the sync_status as Synced or Failed"""
 	doc = frappe.new_doc('Event Sync Log')
@@ -414,12 +442,20 @@ def log_event_sync(update, event_producer, sync_status, error=None):
 	doc.insert()
 
 
-def get_mapped_update(update):
+def get_mapped_update(update, producer_site):
 	"""get the new update document with mapped fields"""
 	mapping = frappe.get_doc('Document Type Mapping', update.mapping)
-	if update.update_type != 'Delete':
-		update.data = mapping.get_mapped_doc(update.data)
-	update.ref_doctype = mapping.local_doctype
+	if update.update_type == 'Create':
+		doc = frappe._dict(json.loads(update.data))
+		mapped_update = mapping.get_mapping(doc, producer_site, update.update_type)
+		update.data = mapped_update.get('doc')
+		update.dependencies = mapped_update.get('dependencies', None)
+	elif update.update_type == 'Update':
+		mapped_update = mapping.get_mapped_update(update, producer_site)
+		update.data = mapped_update.get('doc')
+		update.dependencies = mapped_update.get('dependencies', None)
+
+	update['ref_doctype'] = mapping.local_doctype
 	return update
 
 
@@ -436,11 +472,11 @@ def new_event_notification(producer_url):
 def resync(update):
 	"""Retry syncing update if failed"""
 	update = frappe._dict(json.loads(update))
-	if update.mapping:
-		update = get_mapped_update(update)
-		update.data = json.loads(update.data)
 	producer_site = get_producer_site(update.event_producer)
 	event_producer = frappe.get_doc('Event Producer', update.event_producer)
+	if update.mapping:
+		update = get_mapped_update(update, producer_site)
+		update.data = json.loads(update.data)
 	return sync(update, producer_site, event_producer, in_retry=True)
 
 

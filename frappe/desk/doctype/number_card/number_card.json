@@ -72,11 +72,10 @@
   },
   {
    "default": "0",
-   "description": "This card will be public to all Users if this is set",
+   "description": "This card will be available to all Users if this is set",
    "fieldname": "is_public",
    "fieldtype": "Check",
-   "label": "Is Public",
-   "permlevel": 1
+   "label": "Is Public"
   },
   {
    "default": "1",
@@ -100,7 +99,7 @@
   }
  ],
  "links": [],
- "modified": "2020-04-25 17:31:34.204607",
+ "modified": "2020-05-01 15:23:29.550243",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Number Card",

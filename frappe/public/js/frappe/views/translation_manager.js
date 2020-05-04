@@ -42,7 +42,7 @@ frappe.views.TranslationManager = class TranslationManager {
 				fieldtype: 'Data',
 				read_only: 1,
 				bold: 1,
-				default: this.source_name
+				default: this.source_text
 			},
 			{
 				label: __('Translations'),
@@ -76,9 +76,9 @@ frappe.views.TranslationManager = class TranslationManager {
 
 	get_translations_data() {
 		return frappe.db.get_list('Translation', {
-			fields: ['name', 'language', 'target_name as translation'],
+			fields: ['name', 'language', 'translated_text as translation'],
 			filters: {
-				source_name: strip_html(this.source_name)
+				source_text: strip_html(this.source_text)
 			}
 		});
 	}

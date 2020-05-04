@@ -145,6 +145,11 @@ class DesktopPage {
 	show() {
 		frappe.desk_page = this;
 		this.page.show();
+		if (this.sections.shortcuts) {
+			this.sections.shortcuts.widgets_list.forEach(wid => {
+				wid.set_actions();
+			});
+		}
 	}
 
 	hide() {
@@ -303,7 +308,7 @@ class DesktopPage {
 
 	make_shortcuts() {
 		this.sections["shortcuts"] = new frappe.widget.WidgetGroup({
-			title: this.data.shortcuts.label || __(`Your Shortcuts`),
+			title: this.data.shortcuts.label || __('Your Shortcuts'),
 			container: this.page,
 			type: "shortcut",
 			columns: 3,

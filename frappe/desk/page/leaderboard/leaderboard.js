@@ -41,6 +41,11 @@ class Leaderboard {
 					return field;
 				});
 			}
+
+			// For translation. Do not remove this
+			// __("This Week"), __("This Month"), __("This Quarter"), __("This Year"),
+			//	__("Last Week"), __("Last Month"), __("Last Quarter"), __("Last Year"),
+			//	__("All Time"), __("Select From Date")
 			this.timespans = [
 				"This Week", "This Month", "This Quarter", "This Year",
 				"Last Week", "Last Month", "Last Quarter", "Last Year",
@@ -107,7 +112,7 @@ class Leaderboard {
 			this.timespans.map(d => {
 				return {"label": __(d), value: d };
 			})
-		);		
+		);
 		this.create_from_date_field();
 
 		this.type_select = this.page.add_select(__("Field"),
