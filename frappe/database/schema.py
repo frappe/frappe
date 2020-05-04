@@ -137,16 +137,14 @@ class DBTable:
 						if frappe.db.is_missing_column(e):
 							# Unknown column 'column_name' in 'field list'
 							continue
-						else:
-							raise
+						raise
 
 					if max_length and max_length[0][0] and max_length[0][0] > new_length:
 						if col.fieldname in self.columns:
 							self.columns[col.fieldname].length = current_length
-
-						frappe.msgprint(_("""Reverting length to {0} for '{1}' in '{2}';
-							Setting the length as {3} will cause truncation of data.""")
-							.format(current_length, col.fieldname, self.doctype, new_length))
+						info_message = _("Reverting length to {0} for '{1}' in '{2}'. Setting the length as {3} will cause truncation of data.") \
+							.format(current_length, col.fieldname, self.doctype, new_length)
+						frappe.msgprint(info_message)
 
 	def is_new(self):
 		return self.table_name not in frappe.db.get_tables()

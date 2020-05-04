@@ -1,0 +1,57 @@
+{
+ "creation": "2020-04-19 15:26:23.140620",
+ "docstatus": 0,
+ "doctype": "Web Template",
+ "fields": [
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "label": "Title",
+   "reqd": 0
+  },
+  {
+   "fieldname": "subtitle",
+   "fieldtype": "Text",
+   "label": "Subtitle",
+   "reqd": 0
+  },
+  {
+   "fieldname": "primary_action_label",
+   "fieldtype": "Data",
+   "label": "Primary Action Label",
+   "reqd": 0
+  },
+  {
+   "fieldname": "primary_action",
+   "fieldtype": "Data",
+   "label": "Primary Action",
+   "reqd": 0
+  },
+  {
+   "fieldname": "secondary_action_label",
+   "fieldtype": "Data",
+   "label": "Secondary Action Label",
+   "reqd": 0
+  },
+  {
+   "fieldname": "secondary_action",
+   "fieldtype": "Data",
+   "label": "Secondary Action",
+   "reqd": 0
+  },
+  {
+   "fieldname": "align",
+   "fieldtype": "Select",
+   "label": "Align",
+   "options": "Left\nCenter",
+   "reqd": 0
+  }
+ ],
+ "idx": 0,
+ "modified": "2020-04-20 12:27:45.760391",
+ "modified_by": "Administrator",
+ "name": "Hero",
+ "owner": "Administrator",
+ "standard": 1,
+ "template": ""
+}

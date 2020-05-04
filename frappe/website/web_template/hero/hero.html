@@ -1,0 +1,21 @@
+<div>
+	<h1 class="text-3xl font-extrabold leading-tight tracking-tight sm:leading-10 sm:text-4xl xl:leading-none xl:text-5xl">
+		{{ title }}
+	</h1>
+	{%- if subtitle -%}
+	<p
+		class="max-w-2xl mt-3 text-base text-gray-900 sm:mt-5 sm:text-lg md:mt-5 md:text-xl lg:mx-0">
+		{{ subtitle }}
+	</p>
+	{%- endif -%}
+	{%- if primary_action or secondary_action -%}
+	<div class="mt-5 sm:mt-8">
+		{%- if primary_action -%}
+		{{ c('button', label=primary_action_label, url=primary_action, variant="primary", size="large") }}
+		{%- endif -%}
+		{%- if secondary_action -%}
+		{{ c('button', label=secondary_action_label, url=secondary_action, variant="secondary", size="large", class="ml-4") }}
+		{%- endif -%}
+	</div>
+	{%- endif -%}
+</div>
