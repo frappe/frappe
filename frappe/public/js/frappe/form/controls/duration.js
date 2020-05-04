@@ -105,6 +105,10 @@ frappe.ui.form.ControlDuration = frappe.ui.form.ControlData.extend({
 		});
 	},
 
+	get_value() {
+		return cint(this.value);
+	},
+
 	refresh_input: function() {
 		this._super();
 		this.set_duration_picker();
