@@ -308,7 +308,7 @@ class DesktopPage {
 
 	make_shortcuts() {
 		this.sections["shortcuts"] = new frappe.widget.WidgetGroup({
-			title: this.data.shortcuts.label || __(`Your Shortcuts`),
+			title: this.data.shortcuts.label || __('Your Shortcuts'),
 			container: this.page,
 			type: "shortcut",
 			columns: 3,
