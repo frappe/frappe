@@ -39,3 +39,5 @@ class Onboarding(Document):
 
 		return False
 
+	def before_export(self, doc):
+		doc.is_complete = 0

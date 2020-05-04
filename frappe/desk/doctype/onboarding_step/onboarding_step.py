@@ -7,4 +7,6 @@ from __future__ import unicode_literals
 from frappe.model.document import Document
 
 class OnboardingStep(Document):
-	pass
+	def before_export(self, doc):
+		doc.is_complete = 0
+		doc.is_skipped = 0
