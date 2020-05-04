@@ -6,16 +6,17 @@ frappe.ui.form.ControlDuration = frappe.ui.form.ControlData.extend({
 
 	make_picker: function() {
 		this.inputs = [];
+		this.set_duration_options();
 		this.$picker = $(
 			`<div class="duration-picker">
 				<div class="picker-row row"></div>
 			</div>`
 		);
 		this.$wrapper.append(this.$picker);
-		this.build_numeric_input('days', false);
-		this.build_numeric_input('hrs', false, 23);
-		this.build_numeric_input('mins', false, 59);
-		this.build_numeric_input('secs', false, 59);
+		this.build_numeric_input('days', !this.duration_options.showDays);
+		this.build_numeric_input('hrs', false);
+		this.build_numeric_input('mins', false);
+		this.build_numeric_input('secs', !this.duration_options.showSeconds);
 		this.set_duration_picker();
 		this.$picker.hide();
 		this.bind_events();
@@ -46,6 +47,19 @@ frappe.ui.form.ControlDuration = frappe.ui.form.ControlData.extend({
 		}
 		$control.prepend($input);
 		$control.appendTo($('.picker-row'));
+	},
+
+	set_duration_options() {
+		let lang = 'en';
+		frappe.boot.user && (lang = frappe.boot.user.language);
+
+		this.duration_options = {
+			lang: lang,
+			max: 59,
+			checkRanges: false,
+			showSeconds: true,
+			showDays: true,
+		};
 	},
 
 	set_duration_picker() {
