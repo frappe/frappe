@@ -74,6 +74,7 @@ export default class OnboardingWidget extends Widget {
 			is_query_report: ["Query Report", "Script Report"].includes(
 				step.report_type
 			),
+			doctype: step.report_reference_doctype
 		});
 
 		let current_route = frappe.get_route();

@@ -16,6 +16,7 @@
   "column_break_7",
   "reference_document",
   "reference_report",
+  "report_reference_doctype",
   "report_type",
   "report_description",
   "field",
@@ -119,10 +120,17 @@
    "fieldtype": "Data",
    "label": "Report Description",
    "mandatory_depends_on": "eval:doc.action == \"View Report\""
+  },
+  {
+   "fetch_from": "reference_report.ref_doctype",
+   "fieldname": "report_reference_doctype",
+   "fieldtype": "Data",
+   "label": "Report Reference Doctype",
+   "read_only": 1
   }
  ],
  "links": [],
- "modified": "2020-05-04 12:51:11.716592",
+ "modified": "2020-05-04 12:53:19.276952",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Onboarding Step",
