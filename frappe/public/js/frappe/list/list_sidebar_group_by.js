@@ -101,7 +101,7 @@ frappe.views.ListGroupBy = class ListGroupBy {
 			this.get_group_by_count(fieldname).then(field_count_list => {
 				if (field_count_list.length) {
 					this.render_dropdown_items(field_count_list, fieldtype, dropdown);
-					frappe.utils.setup_search(dropdown, '.group-by-item', '.group-by-value');
+					frappe.utils.setup_search(dropdown, '.group-by-item', '.group-by-value', 'data-name');
 				} else {
 					dropdown.find('.group-by-loading').html(`${__("No filters found")}`);
 				}
