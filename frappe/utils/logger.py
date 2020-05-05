@@ -1,22 +1,41 @@
+# imports - compatibility imports
 from __future__ import unicode_literals
-import frappe
+
+# imports - standard imports
 import logging
+import os
 from logging.handlers import RotatingFileHandler
+
+# imports - third party imports
 from six import text_type
 
+# imports - module imports
+import frappe
+
+
 default_log_level = logging.DEBUG
-LOG_FILENAME = '../logs/{}-frappe.log'.format(frappe.local.site)
+site = getattr(frappe.local, 'site', None)
+LOG_FILENAME = os.path.join('..', 'logs', 'frappe.log')
+
 
 def get_logger(module, with_more_info=True):
 	if module in frappe.loggers:
 		return frappe.loggers[module]
 
 	formatter = logging.Formatter('[%(levelname)s] %(asctime)s | %(pathname)s:\n%(message)s')
-	# handler = logging.StreamHandler()
 
-	handler = RotatingFileHandler(
-		LOG_FILENAME, maxBytes=100000, backupCount=20)
+	handler = RotatingFileHandler(LOG_FILENAME, maxBytes=100_000, backupCount=20)
 	handler.setFormatter(formatter)
+
+	if site:
+		SITELOG_FOLDER = os.path.join(site, 'logs')
+		SITELOG_FILENAME = os.path.join(SITELOG_FOLDER, 'frappe.log')
+
+		if not os.path.exists(SITELOG_FOLDER):
+			os.mkdir(SITELOG_FOLDER)
+
+		handler = RotatingFileHandler(SITELOG_FILENAME, maxBytes=100_000, backupCount=20)
+		handler.setFormatter(formatter)
 
 	if with_more_info:
 		handler.addFilter(SiteContextFilter())
@@ -39,7 +58,7 @@ class SiteContextFilter(logging.Filter):
 def get_more_info_for_log():
 	'''Adds Site, Form Dict into log entry'''
 	more_info = []
-	site = getattr(frappe.local, 'site', None)
+
 	if site:
 		more_info.append('Site: {0}'.format(site))
 
