@@ -435,11 +435,11 @@ class DashboardChart(Document):
 
 	def check_document_type(self):
 		if frappe.get_meta(self.document_type).issingle:
-			frappe.throw("You cannot create a dashboard chart from single DocTypes")
+			frappe.throw(_("You cannot create a dashboard chart from single DocTypes"))
 
 	def validate_custom_options(self):
 		if self.custom_options:
 			try:
 				json.loads(self.custom_options)
 			except ValueError as error:
-				frappe.throw("Invalid json added in the custom options: %s" % error)
+				frappe.throw(_("Invalid json added in the custom options: %s" % error))

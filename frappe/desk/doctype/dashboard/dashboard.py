@@ -22,7 +22,7 @@ class Dashboard(Document):
 			try:
 				json.loads(self.chart_options)
 			except ValueError as error:
-				frappe.throw("Invalid json added in the custom options: %s" % error)
+				frappe.throw(_("Invalid json added in the custom options: %s" % error))
 
 @frappe.whitelist()
 def get_permitted_charts(dashboard_name):
