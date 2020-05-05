@@ -8,14 +8,17 @@
  "engine": "InnoDB",
  "field_order": [
   "theme",
+  "based_on",
   "module",
   "custom",
-  "configuration_section",
+  "bootstrap_theme_section",
   "google_font",
   "font_size",
   "font_properties",
-  "use_full_width",
-  "column_break_7",
+  "button_rounded_corners",
+  "button_shadows",
+  "button_gradients",
+  "column_break_11",
   "primary_color",
   "text_color",
   "light_color",
@@ -24,8 +27,14 @@
   "stylesheet_section",
   "theme_scss",
   "custom_scss",
-  "theme_json",
   "theme_url",
+  "tailwind_theme_section",
+  "custom_css",
+  "theme_css",
+  "navbar_section",
+  "navbar",
+  "footer_section",
+  "footer",
   "custom_js_section",
   "js"
  ],
@@ -78,16 +87,60 @@
    "options": "JS"
   },
   {
-   "fieldname": "theme_json",
-   "fieldtype": "Code",
-   "hidden": 1,
-   "label": "Theme JSON",
-   "options": "JSON"
+   "default": "Bootstrap 4",
+   "fieldname": "based_on",
+   "fieldtype": "Select",
+   "label": "Theme Based On",
+   "options": "Bootstrap 4\nTailwind"
   },
   {
-   "fieldname": "configuration_section",
+   "depends_on": "eval:doc.based_on == 'Tailwind'",
+   "fieldname": "navbar_section",
    "fieldtype": "Section Break",
-   "label": "Configuration"
+   "label": "Navbar"
+  },
+  {
+   "depends_on": "eval:doc.based_on=='Tailwind'",
+   "fieldname": "tailwind_theme_section",
+   "fieldtype": "Section Break",
+   "label": "Tailwind Theme"
+  },
+  {
+   "fieldname": "bootstrap_theme_section",
+   "fieldtype": "Section Break",
+   "label": "Theme Configuration"
+  },
+  {
+   "depends_on": "eval:doc.based_on == 'Tailwind'",
+   "fieldname": "footer_section",
+   "fieldtype": "Section Break",
+   "label": "Footer"
+  },
+  {
+   "fieldname": "navbar",
+   "fieldtype": "Table",
+   "label": "Navbar",
+   "options": "Web Page Block"
+  },
+  {
+   "fieldname": "footer",
+   "fieldtype": "Table",
+   "label": "Footer",
+   "options": "Web Page Block"
+  },
+  {
+   "fieldname": "custom_css",
+   "fieldtype": "Code",
+   "label": "Custom CSS",
+   "options": "CSS"
+  },
+  {
+   "fieldname": "theme_css",
+   "fieldtype": "Code",
+   "hidden": 1,
+   "label": "Theme CSS",
+   "options": "CSS",
+   "read_only": 1
   },
   {
    "fieldname": "google_font",
@@ -100,30 +153,31 @@
    "label": "Font Size"
   },
   {
-   "fieldname": "column_break_7",
-   "fieldtype": "Column Break"
-  },
-  {
    "fieldname": "primary_color",
-   "fieldtype": "Color",
-   "label": "Primary Color"
+   "fieldtype": "Link",
+   "label": "Primary Color",
+   "options": "Color"
   },
   {
    "fieldname": "text_color",
-   "fieldtype": "Color",
-   "label": "Text Color"
+   "fieldtype": "Link",
+   "label": "Text Color",
+   "options": "Color"
   },
   {
    "fieldname": "dark_color",
-   "fieldtype": "Color",
-   "label": "Dark Color"
+   "fieldtype": "Link",
+   "label": "Dark Color",
+   "options": "Color"
   },
   {
    "fieldname": "background_color",
-   "fieldtype": "Color",
-   "label": "Background Color"
+   "fieldtype": "Link",
+   "label": "Background Color",
+   "options": "Color"
   },
   {
+   "depends_on": "eval:doc.based_on == 'Bootstrap 4'",
    "fieldname": "stylesheet_section",
    "fieldtype": "Section Break",
    "label": "Stylesheet"
@@ -135,8 +189,9 @@
   },
   {
    "fieldname": "light_color",
-   "fieldtype": "Color",
-   "label": "Light Color"
+   "fieldtype": "Link",
+   "label": "Light Color",
+   "options": "Color"
   },
   {
    "default": "300,600",
@@ -145,14 +200,30 @@
    "label": "Font Properties"
   },
   {
-   "description": "Content will not be inside a \"container\" class, you will have to add your own containers for different sections.",
-   "fieldname": "use_full_width",
-   "fieldtype": "Data",
-   "label": "Use Full Width"
+   "default": "1",
+   "fieldname": "button_rounded_corners",
+   "fieldtype": "Check",
+   "label": "Button Rounded Corners"
+  },
+  {
+   "default": "0",
+   "fieldname": "button_shadows",
+   "fieldtype": "Check",
+   "label": "Button Shadows"
+  },
+  {
+   "default": "0",
+   "fieldname": "button_gradients",
+   "fieldtype": "Check",
+   "label": "Button Gradients"
+  },
+  {
+   "fieldname": "column_break_11",
+   "fieldtype": "Column Break"
   }
  ],
  "links": [],
- "modified": "2020-03-19 09:46:48.750150",
+ "modified": "2020-04-25 00:00:23.347879",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Website Theme",
