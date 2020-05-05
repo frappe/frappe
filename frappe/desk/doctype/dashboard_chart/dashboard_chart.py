@@ -27,7 +27,7 @@ def get_permission_query_conditions(user):
 		return None
 
 	allowed_doctypes = tuple(frappe.permissions.get_doctypes_with_read())
-	allowed_reports = tuple([key.encode('UTF8') for key in get_allowed_reports()])
+	allowed_reports = tuple([key if type(key) == str else key.encode('UTF8') for key in get_allowed_reports()])
 
 	return '''
 			`tabDashboard Chart`.`document_type` in {allowed_doctypes}
