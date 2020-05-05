@@ -9,12 +9,8 @@
   "dashboard_name",
   "is_default",
   "charts",
-<<<<<<< HEAD
-  "default_chart_custom_options",
+  "chart_options",
   "cards"
-=======
-  "chart_options"
->>>>>>> fix: better naming
  ],
  "fields": [
   {
@@ -40,9 +36,9 @@
   },
   {
     "description": "Set Default Options for all charts on this Dashboard (Ex: \"colors\": [\"#d1d8dd\", \"#ff5858\"])",
-    "fieldname": "default_chart_custom_options",
+    "fieldname": "chart_options",
     "fieldtype": "Code",
-    "label": "Default Chart Custom Options",
+    "label": "Chart Options",
     "options": "JSON"
   },
   {
