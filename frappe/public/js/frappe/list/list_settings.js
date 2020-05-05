@@ -9,7 +9,7 @@ export default class ListSettings {
 		this.meta = meta;
 		this.settings = settings;
 		this.dialog = null;
-		this.fields = [];
+		this.fields = this.settings && this.settings.fields ? JSON.parse(this.settings.fields) : [];
 		this.subject_field = null;
 
 		frappe.model.with_doctype("List View Settings", () => {
@@ -28,7 +28,7 @@ export default class ListSettings {
 		let list_view_settings = frappe.get_meta("List View Settings");
 
 		me.dialog = new frappe.ui.Dialog({
-			title: __("{0} List View Settings", [__(me.doctype)]),
+			title: __("{0} Settings", [__(me.doctype)]),
 			fields: list_view_settings.fields
 		});
 		me.dialog.set_values(me.settings);
@@ -67,14 +67,35 @@ export default class ListSettings {
 
 	show_dialog() {
 		let me = this;
+
+		if (!this.settings.fields) {
+			me.update_fields();
+		}
+
+		if (!me.dialog.get_value("total_fields")) {
+			let field_count = me.fields.length;
+
+			if (field_count < 4) {
+				field_count = 4;
+			} else if (field_count > 10) {
+				field_count = 4;
+			}
+
+			me.dialog.set_value("total_fields", field_count);
+		}
+
 		me.dialog.show();
 	}
 
 	setup_fields() {
+		function is_status_field(field) {
+			return field.fieldname === "status_field";
+		}
+
 		let me = this;
 
 		let fields_html = me.dialog.get_field("fields_html");
-		let $wrapper = fields_html.$wrapper[0];
+		let wrapper = fields_html.$wrapper[0];
 		let fields = ``;
 		let total_fields = me.dialog.get_values().total_fields ? me.dialog.get_values().total_fields : me.settings.total_fields;
 
@@ -83,16 +104,17 @@ export default class ListSettings {
 				break;
 			}
 			let is_sortable = (idx == 0) ? `` : `sortable`;
-			let can_remove = (idx == 0) ? `hide` : ``;
+			let show_sortable_handle = (idx == 0) ? `hide` : ``;
+			let can_remove = (idx == 0 || is_status_field(me.fields[idx])) ? `hide` : ``;
 
 			fields += `
 				<div class="control-input flex align-center form-control fields_order ${is_sortable}"
 					style="display: block; margin-bottom: 5px;" data-fieldname="${me.fields[idx].fieldname}"
-					data-label="${me.fields[idx].label}">
+					data-label="${me.fields[idx].label}" data-type="${me.fields[idx].type}">
 
 					<div class="row">
 						<div class="col-md-1">
-							<i class="fa fa-bars text-muted sortable-handle" aria-hidden="true"></i>
+							<i class="fa fa-bars text-muted sortable-handle ${show_sortable_handle}" aria-hidden="true"></i>
 						</div>
 						<div class="col-md-10" style="padding-left:0px;">
 							${me.fields[idx].label}
@@ -122,7 +144,7 @@ export default class ListSettings {
 			</div>
 		`);
 
-		new Sortable($wrapper.getElementsByClassName("control-input-wrapper")[0], {
+		new Sortable(wrapper.getElementsByClassName("control-input-wrapper")[0], {
 			handle: '.sortable-handle',
 			draggable: '.sortable',
 			onUpdate: () => {
@@ -172,9 +194,9 @@ export default class ListSettings {
 		let me = this;
 
 		let fields_html = me.dialog.get_field("fields_html");
-		let $wrapper = fields_html.$wrapper[0];
+		let wrapper = fields_html.$wrapper[0];
 
-		let fields_order = $wrapper.getElementsByClassName("fields_order");
+		let fields_order = wrapper.getElementsByClassName("fields_order");
 		me.fields = [];
 
 		for (let idx = 0; idx < fields_order.length; idx++) {
@@ -185,6 +207,7 @@ export default class ListSettings {
 		}
 
 		me.dialog.set_value("fields", JSON.stringify(me.fields));
+		me.dialog.get_value("fields");
 	}
 
 	column_selector() {
@@ -215,6 +238,7 @@ export default class ListSettings {
 
 			me.fields = [];
 			me.set_subject_field(me.meta);
+			me.set_status_field();
 
 			for (let idx in values) {
 				let value = values[idx];
@@ -266,6 +290,7 @@ export default class ListSettings {
 		let me = this;
 
 		me.set_subject_field(meta);
+		me.set_status_field();
 
 		meta.fields.forEach(field => {
 			if (field.in_list_view && !in_list(frappe.model.no_value_type, field.fieldtype) &&
@@ -299,6 +324,18 @@ export default class ListSettings {
 		me.fields.push(me.subject_field);
 	}
 
+	set_status_field() {
+		let me = this;
+
+		if (frappe.has_indicator(me.doctype)) {
+			me.fields.push({
+				type: "Status",
+				label: "Status",
+				fieldname: "status_field"
+			})
+		}
+	}
+
 	get_doctype_fields(meta, fields) {
 		let me = this;
 		let multiselect_fields = []
@@ -319,6 +356,10 @@ export default class ListSettings {
 	get_removed_listview_fields(new_fields, existing_fields) {
 		let me = this;
 		let removed_fields = []
+
+		if (frappe.has_indicator(me.doctype)) {
+			new_fields.push("status_field");
+		}
 
 		existing_fields.forEach(column => {
 			if (!in_list(new_fields, column)) {
