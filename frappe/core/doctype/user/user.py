@@ -102,7 +102,7 @@ class User(Document):
 			'frappe.core.doctype.user.user.create_contact',
 			user=self,
 			ignore_mandatory=True,
-			now=frappe.flags.in_test
+			now=frappe.flags.in_test or frappe.flags.in_install
 		)
 		if self.name not in ('Administrator', 'Guest') and not self.user_image:
 			frappe.enqueue('frappe.core.doctype.user.user.update_gravatar', name=self.name)
