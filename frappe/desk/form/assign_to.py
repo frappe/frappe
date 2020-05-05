@@ -41,6 +41,9 @@ def add(args=None):
 	if not args:
 		args = frappe.local.form_dict
 
+	users_with_duplicate_todo = []
+	shared_with_users = []
+
 	for assign_to in json.loads(args.get("assign_to")):
 		filters = {
 			"reference_type": args['doctype'],
@@ -50,8 +53,7 @@ def add(args=None):
 		}
 
 		if frappe.get_all("ToDo", filters=filters):
-			if not args.get("bulk_assign"):
-				frappe.throw(_("Already in user's ToDo list"), DuplicateToDoError)
+			users_with_duplicate_todo.append(assign_to)
 		else:
 			from frappe.utils import nowdate
 
@@ -80,7 +82,7 @@ def add(args=None):
 			# if assignee does not have permissions, share
 			if not frappe.has_permission(doc=doc, user=assign_to):
 				frappe.share.add(doc.doctype, doc.name, assign_to)
-				frappe.msgprint(_('Shared with user {0} with read access').format(assign_to, alert=True))
+				shared_with_users.append(assign_to)
 
 			# make this document followed by assigned user
 			follow_document(args['doctype'], args['name'], assign_to)
@@ -88,6 +90,14 @@ def add(args=None):
 			# notify
 			notify_assignment(d.assigned_by, d.owner, d.reference_type, d.reference_name, action='ASSIGN',
 				description=args.get("description"))
+
+	if shared_with_users:
+		user_list = format_message_for_assign_to(shared_with_users)
+		frappe.msgprint(_("Shared with the following Users with Read access:{0}").format(user_list, alert=True))
+
+	if users_with_duplicate_todo:
+		user_list = format_message_for_assign_to(users_with_duplicate_todo)
+		frappe.msgprint(_("Already in the following Users ToDo list:{0}").format(user_list, alert=True))
 
 	return get(args)
 
@@ -186,3 +196,5 @@ def notify_assignment(assigned_by, owner, doc_type, doc_name, action='CLOSE',
 
 	enqueue_create_notification(owner, notification_doc)
 
+def format_message_for_assign_to(users):
+	return "<br><br>" + "<br>".join(users)
