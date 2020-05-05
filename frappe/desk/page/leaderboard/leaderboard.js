@@ -104,7 +104,6 @@ class Leaderboard {
 				return {"label": __(d), value: d };
 			})
 		);
-		this.create_from_date_field();
 
 		this.type_select = this.page.add_select(__("Field"),
 			this.options.selected_filter.map(d => {
