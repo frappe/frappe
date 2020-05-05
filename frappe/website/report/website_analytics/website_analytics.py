@@ -17,8 +17,8 @@ class WebsiteAnalytics(object):
 	def run(self):
 		columns = self.get_columns()
 		data = self.get_data()
-		summary = self.get_report_summary()
 		chart = self.get_chart_data()
+		summary = self.get_report_summary()
 		return columns, data, None, chart, summary
 
 	def get_columns(self):
@@ -56,7 +56,7 @@ class WebsiteAnalytics(object):
 
 		field, date_format = _get_field_for_chart(self.filters.range)
 
-		data = frappe.db.sql("""
+		self.chart_data = frappe.db.sql("""
 				SELECT
 					DATE_FORMAT({0}, %s) as date,
 					COUNT(*) as count,
@@ -65,9 +65,9 @@ class WebsiteAnalytics(object):
 				WHERE creation BETWEEN %s AND %s
 				GROUP BY DATE_FORMAT({0}, %s)
 				ORDER BY creation
-			""".format(field), (date_format, self.filters.from_date, self.filters.to_date, date_format), as_dict=1, debug=1)
+			""".format(field), (date_format, self.filters.from_date, self.filters.to_date, date_format), as_dict=1)
 
-		return self.prepare_chart_data(data)
+		return self.prepare_chart_data(self.chart_data)
 
 	def prepare_chart_data(self, data):
 		date_range = get_date_range(self.filters.from_date, self.filters.to_date, self.filters.range)
@@ -121,14 +121,12 @@ class WebsiteAnalytics(object):
 
 
 	def get_report_summary(self):
-		summary_data = frappe.get_all("Web Page View", fields=['is_unique', 'count(*) as count'], filters=self.query_filters, group_by="is_unique")
-
 		total_count = 0
 		unique_count = 0
-		for data in summary_data:
-			if data.get('is_unique'):
-				unique_count = data.get('count')
+		for data in self.chart_data:
+			unique_count += data.get('unique_count')
 			total_count += data.get('count')
+
 		report_summary = [
 			{
 				"value": total_count,
