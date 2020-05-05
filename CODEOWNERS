@@ -3,16 +3,17 @@
 # These owners will be the default owners for everything in
 # the repo. Unless a later match takes precedence,
 
-*					@frappe/frappe-review-team
-website/			@scmmishra
-web_form/			@scmmishra
-templates/			@scmmishra
-www/ 				@scmmishra
-integrations/		@Mangesh-Khairnar
-patches/			@sahil28297
-dashboard/			@prssanna
-email/				@Thunderbottom
-event_streaming/ 	@ruchamahabal
-data_import* 		@netchampfaris
-core/				@surajshetty3416
+*									@frappe/frappe-review-team
+website/					@scmmishra
+web_form/					@scmmishra
+templates/				@scmmishra
+www/							@scmmishra
+integrations/			@Mangesh-Khairnar
+patches/					@sahil28297
+dashboard/				@prssanna
+email/						@Thunderbottom
+event_streaming/	@ruchamahabal
+data_import*			@netchampfaris
+core/							@surajshetty3416
 requirements.txt	@gavindsouza
+commands/					@gavindsouza

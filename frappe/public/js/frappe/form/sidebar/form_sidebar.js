@@ -82,7 +82,7 @@ frappe.ui.form.Sidebar = Class.extend({
 			this.frm.viewers.refresh();
 			this.frm.tags && this.frm.tags.refresh(this.frm.get_docinfo().tags);
 
-			if (this.frm.doc.route && frappe.boot.website_tracking_enabled) {
+			if (this.frm.doc.route && cint(frappe.boot.website_tracking_enabled)) {
 				let route = this.frm.doc.route;
 				frappe.utils.get_page_view_count(route).then((res) => {
 					this.sidebar

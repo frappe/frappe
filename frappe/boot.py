@@ -270,4 +270,18 @@ def get_success_action():
 	return frappe.get_all("Success Action", fields=["*"])
 
 def get_link_preview_doctypes():
-	return [d.name for d in frappe.db.get_all('DocType', {'show_preview_popup': 1})]
+	from frappe.utils import cint
+
+	link_preview_doctypes = [d.name for d in frappe.db.get_all('DocType', {'show_preview_popup': 1})]
+	customizations = frappe.get_all("Property Setter",
+		fields=['doc_type', 'value'],
+		filters={'property': 'show_preview_popup'}
+	)
+
+	for custom in customizations:
+		if not cint(custom.value) and custom.doc_type in link_preview_doctypes:
+			link_preview_doctypes.remove(custom.doc_type)
+		else:
+			link_preview_doctypes.append(custom.doc_type)
+
+	return link_preview_doctypes

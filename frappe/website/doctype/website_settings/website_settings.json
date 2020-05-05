@@ -19,15 +19,11 @@
   "set_banner_from_image",
   "favicon",
   "top_bar",
-  "top_bar_type",
-  "top_bar_web_view",
   "navbar_search",
   "top_bar_items",
   "banner",
   "banner_html",
   "footer",
-  "footer_type",
-  "footer_web_view",
   "copyright",
   "address",
   "footer_items",
@@ -135,13 +131,11 @@
   },
   {
    "default": "0",
-   "depends_on": "eval:doc.top_bar_type==='Standard'",
    "fieldname": "navbar_search",
    "fieldtype": "Check",
    "label": "Include Search in Top Bar"
   },
   {
-   "depends_on": "eval:doc.top_bar_type==='Standard'",
    "fieldname": "top_bar_items",
    "fieldtype": "Table",
    "label": "Top Bar Items",
@@ -336,34 +330,6 @@
    "fieldname": "enable_view_tracking",
    "fieldtype": "Check",
    "label": "Enable In App Website Tracking"
-  },
-  {
-   "default": "Standard",
-   "fieldname": "footer_type",
-   "fieldtype": "Select",
-   "label": "Footer Type",
-   "options": "Standard\nWeb View"
-  },
-  {
-   "depends_on": "eval:doc.footer_type==='Web View'",
-   "fieldname": "footer_web_view",
-   "fieldtype": "Link",
-   "label": "Footer Web View",
-   "options": "Web View"
-  },
-  {
-   "default": "Standard",
-   "fieldname": "top_bar_type",
-   "fieldtype": "Select",
-   "label": "Top Bar Type",
-   "options": "Standard\nWeb View"
-  },
-  {
-   "depends_on": "eval:doc.top_bar_type==='Web View'",
-   "fieldname": "top_bar_web_view",
-   "fieldtype": "Link",
-   "label": "Top Bar Web View",
-   "options": "Web View"
   }
  ],
  "icon": "fa fa-cog",
@@ -371,7 +337,7 @@
  "issingle": 1,
  "links": [],
  "max_attachments": 10,
- "modified": "2020-04-21 16:46:59.947403",
+ "modified": "2020-04-30 12:37:44.070662",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Website Settings",

@@ -1,16 +1,22 @@
 {
+ "based_on": "Bootstrap 4",
+ "button_gradients": 0,
+ "button_rounded_corners": 1,
+ "button_shadows": 0,
  "creation": "2015-02-19 13:37:33.925909",
  "custom": 0,
  "docstatus": 0,
  "doctype": "Website Theme",
  "font_properties": "300,600",
+ "footer": [],
  "idx": 26,
- "modified": "2020-04-16 18:23:34.573404",
+ "modified": "2020-04-29 12:26:48.399125",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Standard",
+ "navbar": [],
  "owner": "Administrator",
  "theme": "Standard",
- "theme_scss": "\n\n\n\n\n\n\n$enable-shadows: false;\n$enable-gradients: false;\n$enable-rounded: false;\n\n@import \"frappe/public/scss/website\";\n\nbody {\n    \n}",
- "theme_url": "/assets/css/standard_a9402c50.css"
+ "theme_scss": "$enable-shadows: false;\n$enable-gradients: false;\n$enable-rounded: true;\n\n@import \"frappe/public/scss/website\";\n\n",
+ "theme_url": "/assets/css/standard_style.css"
 }
