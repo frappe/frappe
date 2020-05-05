@@ -9,14 +9,12 @@ frappe.query_reports["Website Analytics"] = {
 			label: __("From Date"),
 			fieldtype: "Date",
 			default: frappe.datetime.add_days(frappe.datetime.now_date(true), -7),
-			reqd: 1
 		},
 		{
 			fieldname:"to_date",
 			label: __("To Date"),
 			fieldtype: "Date",
 			default: frappe.datetime.now_date(true),
-			reqd: 1
 		},
 		{
 			fieldname: "range",
