@@ -549,9 +549,6 @@ export default class ChartWidget extends Widget {
 		};
 
 		if (this.chart_doc.type == "Heatmap") {
-			if (!this.chart_doc.heatmap_year) {
-				this.chart_doc.heatmap_year = frappe.dashboard_utils.get_year(frappe.datetime.now_date());
-			}
 			const heatmap_year = parseInt(this.selected_heatmap_year || this.chart_settings.heatmap_year || this.chart_doc.heatmap_year);
 			chart_args.data.start = new Date(`${heatmap_year}-01-01`);
 			chart_args.data.end = new Date(`${heatmap_year+1}-01-01`);
@@ -616,6 +613,10 @@ export default class ChartWidget extends Widget {
 		let saved_filters = this.chart_settings.filters || null;
 		this.filters =
 			saved_filters || this.filters || JSON.parse(this.chart_doc.filters_json || "[]");
+
+		if (this.chart_doc.type == 'Heatmap' && !this.chart_doc.heatmap_year) {
+			this.chart_doc.heatmap_year = frappe.dashboard_utils.get_year(frappe.datetime.now_date());
+		}
 	}
 
 	get_settings() {
