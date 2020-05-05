@@ -78,7 +78,7 @@ frappe.warn = function(title, message_html, proceed_action, primary_label) {
 
 	d.show();
 	return d;
-}
+};
 
 frappe.prompt = function(fields, callback, title, primary_label) {
 	if (typeof fields === "string") {
