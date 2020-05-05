@@ -85,6 +85,10 @@ frappe.dom = {
 		);
 	},
 
+	is_element_in_modal(element) {
+		return Boolean($(element).parents('.modal').length);
+	},
+
 	set_style: function(txt, id) {
 		if(!txt) return;
 

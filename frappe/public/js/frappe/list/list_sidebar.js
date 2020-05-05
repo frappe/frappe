@@ -209,11 +209,13 @@ frappe.views.ListSidebar = class ListSidebar {
 		accounts.forEach((account) => {
 			let email_account = (account.email_id == "All Accounts") ? "All Accounts" : account.email_account;
 			let route = ["List", "Communication", "Inbox", email_account].join('/');
+			let display_name = ["All Accounts", "Sent Mail", "Spam", "Trash"].includes(account.email_id) ? __(account.email_id) : account.email_id;
+			
 			if (!divider) {
 				this.get_divider().appendTo($dropdown);
 				divider = true;
 			}
-			$(`<li><a href="#${route}">${account.email_id}</a></li>`).appendTo($dropdown);
+			$(`<li><a href="#${route}">${display_name}</a></li>`).appendTo($dropdown);
 			if (account.email_id === "Sent Mail")
 				divider = false;
 		});

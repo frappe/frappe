@@ -8,7 +8,8 @@
  "field_order": [
   "dashboard_name",
   "is_default",
-  "charts"
+  "charts",
+  "cards"
  ],
  "fields": [
   {
@@ -31,10 +32,16 @@
    "label": "Charts",
    "options": "Dashboard Chart Link",
    "reqd": 1
+  },
+  {
+   "fieldname": "cards",
+   "fieldtype": "Table",
+   "label": "Cards",
+   "options": "Number Card Link"
   }
  ],
  "links": [],
- "modified": "2020-03-25 21:09:37.080132",
+ "modified": "2020-04-19 17:44:36.237163",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Dashboard",

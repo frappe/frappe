@@ -802,7 +802,7 @@ Object.assign(frappe.utils, {
 			name: M[0],
 			version: M[1],
 		};
-	},
+	}
 });
 
 // Array de duplicate

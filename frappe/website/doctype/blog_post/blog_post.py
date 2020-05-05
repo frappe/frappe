@@ -8,6 +8,7 @@ from frappe import _
 from frappe.website.website_generator import WebsiteGenerator
 from frappe.website.render import clear_cache
 from frappe.utils import today, cint, global_date_format, get_fullname, strip_html_tags, markdown, sanitize_html
+from math import ceil
 from frappe.website.utils import (find_first_image, get_html_content_based_on_type,
 	get_comment_list)
 
@@ -43,6 +44,8 @@ class BlogPost(WebsiteGenerator):
 			WHERE IFNULL(`blogger`,'')=`tabBlogger`.`name`)
 			WHERE `name`=%s""", (self.blogger,))
 
+		self.set_read_time()
+
 	def on_update(self):
 		super(BlogPost, self).on_update()
 		clear_cache("writers")
@@ -65,16 +68,18 @@ class BlogPost(WebsiteGenerator):
 
 
 		context.content = get_html_content_based_on_type(self, 'content', self.content_type)
-		context.description = self.blog_intro or strip_html_tags(context.content[:140])
+
+		#if meta description is not present, then blog intro or first 140 characters of the blog will be set as description
+		context.description = self.meta_description or self.blog_intro or strip_html_tags(context.content[:140])
 
 		context.metatags = {
 			"name": self.title,
 			"description": context.description,
 		}
 
+		#if meta image is not present, then first image inside the blog will be set as the meta image
 		image = find_first_image(context.content)
-		if image:
-			context.metatags["image"] = image
+		context.metatags["image"] = self.meta_image or image or None
 
 		self.load_comments(context)
 
@@ -95,6 +100,13 @@ class BlogPost(WebsiteGenerator):
 			else:
 				context.comment_text = _('{0} comments').format(len(context.comment_list))
 
+	def set_read_time(self):
+		content = self.content or self.content_html
+		if self.content_type == "Markdown":
+			content = markdown(self.content_md)
+
+		total_words = len(strip_html_tags(content).split())
+		self.read_time = ceil(total_words/250)
 
 def get_list_context(context=None):
 	list_context = frappe._dict(
@@ -106,7 +118,7 @@ def get_list_context(context=None):
 		title = _('Blog')
 	)
 
-	category = sanitize_html(frappe.local.form_dict.blog_category or frappe.local.form_dict.category)
+	category = frappe.utils.escape_html(frappe.local.form_dict.blog_category or frappe.local.form_dict.category)
 	if category:
 		category_title = get_blog_category(category)
 		list_context.sub_title = _("Posts filed under {0}").format(category_title)
@@ -149,7 +161,7 @@ def get_blog_category(route):
 
 def get_blog_list(doctype, txt=None, filters=None, limit_start=0, limit_page_length=20, order_by=None):
 	conditions = []
-	category = filters.blog_category or sanitize_html(frappe.local.form_dict.blog_category or frappe.local.form_dict.category)
+	category = filters.blog_category or frappe.utils.escape_html(frappe.local.form_dict.blog_category or frappe.local.form_dict.category)
 	if filters:
 		if filters.blogger:
 			conditions.append('t1.blogger=%s' % frappe.db.escape(filters.blogger))
@@ -164,7 +176,7 @@ def get_blog_list(doctype, txt=None, filters=None, limit_start=0, limit_page_len
 
 	query = """\
 		select
-			t1.title, t1.name, t1.blog_category, t1.route, t1.published_on,
+			t1.title, t1.name, t1.blog_category, t1.route, t1.published_on, t1.read_time,
 				t1.published_on as creation,
 				t1.content as content,
 				t1.content_type as content_type,

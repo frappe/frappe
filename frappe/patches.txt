@@ -273,3 +273,8 @@ execute:frappe.delete_doc_if_exists('DocType', 'GCalendar Settings')
 frappe.patches.v12_0.remove_parent_and_parenttype_from_print_formats
 execute:from frappe.desk.page.setup_wizard.install_fixtures import update_genders;update_genders()
 frappe.patches.v13_0.website_theme_custom_scss
+frappe.patches.v13_0.set_existing_dashboard_charts_as_public
+frappe.patches.v13_0.set_path_for_homepage_in_web_page_view
+frappe.patches.v13_0.migrate_translation_column_data
+frappe.patches.v13_0.set_read_times
+frappe.patches.v13_0.remove_web_view
