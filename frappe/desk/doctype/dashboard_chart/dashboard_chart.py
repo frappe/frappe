@@ -8,7 +8,7 @@ from frappe import _
 import datetime
 import json
 from frappe.utils.dashboard import cache_source, get_from_date_from_timespan
-from frappe.utils import nowdate, add_to_date, getdate, get_last_day, formatdate, get_datetime
+from frappe.utils import nowdate, add_to_date, getdate, get_last_day, formatdate, get_datetime, cint
 from frappe.model.naming import append_number_if_name_exists
 from frappe.boot import get_allowed_reports
 from frappe.model.document import Document
@@ -182,18 +182,28 @@ def get_heatmap_chart_config(chart, filters):
 	value_field = chart.value_based_on or '1'
 	doctype = chart.document_type
 	datefield = chart.based_on
-	filters.append([doctype, datefield, '>', 'subdate(curdate(), interval 1 year)', False])
+	year = cint(chart.heatmap_year) if chart.heatmap_year else getdate(nowdate()).year
+	year_start_date = datetime.date(year, 1, 1).strftime('%Y-%m-%d')
+	next_year_start_date = datetime.date(year + 1, 1, 1).strftime('%Y-%m-%d')
+
+	filters.append([doctype, datefield, '>', "{date}".format(date=year_start_date), False])
+	filters.append([doctype, datefield, '<', "{date}".format(date=next_year_start_date), False])
+
+	if frappe.db.db_type == 'mariadb':
+		timestamp_field = 'unix_timestamp({datefield})'.format(datefield=datefield)
+	else:
+		timestamp_field = 'extract(epoch from timestamp {datefield})'.format(datefield=datefield)
 
 	data = dict(frappe.db.get_all(
 		doctype,
 		fields = [
-			'unix_timestamp(date({datefield}))'.format(datefield=datefield),
+			timestamp_field,
 			'{aggregate_function}({value_field})'.format(aggregate_function=aggregate_function, value_field=value_field),
 		],
 		filters = filters,
-		group_by = 'date(creation)',
+		group_by = 'date({datefield})'.format(datefield=datefield),
 		as_list = 1,
-		order_by = 'creation asc',
+		order_by = '{datefield} asc'.format(datefield=datefield),
 		ignore_ifnull = True
 	))
 

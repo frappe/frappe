@@ -61,6 +61,7 @@ export default class ChartWidget extends Widget {
 		this.chart_wrapper = $(`<div></div>`);
 		this.chart_wrapper.appendTo(this.body);
 
+		this.$heatmap_legend = null;
 		this.set_chart_title();
 	}
 
@@ -288,7 +289,7 @@ export default class ChartWidget extends Widget {
 			},
 			{
 				label: __("Reset Chart"),
-				action: "action-list",
+				action: "action-reset",
 				handler: () => {
 					this.reset_chart();
 					delete this.dashboard_chart;
@@ -528,6 +529,12 @@ export default class ChartWidget extends Widget {
 				shortenYAxisNumbers: 1
 			}
 		};
+
+		if (this.chart_doc.type == "Heatmap") {
+			const heatmap_year = parseInt(this.chart_doc.heatmap_year || "2020");
+			chart_args.data.start = new Date(`${heatmap_year}-01-01`);
+			chart_args.data.end = new Date(`${heatmap_year+1}-01-01`);
+		}
 
 		return chart_args;
 	}

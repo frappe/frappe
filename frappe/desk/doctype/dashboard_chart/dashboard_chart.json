@@ -23,6 +23,7 @@
   "number_of_groups",
   "column_break_6",
   "is_public",
+  "heatmap_year",
   "timespan",
   "from_date",
   "to_date",
@@ -229,10 +230,16 @@
    "fieldname": "is_public",
    "fieldtype": "Check",
    "label": "Is Public"
+  },
+  {
+   "depends_on": "eval: doc.type == 'Heatmap'",
+   "fieldname": "heatmap_year",
+   "fieldtype": "Select",
+   "label": "Year"
   }
  ],
  "links": [],
- "modified": "2020-04-23 13:01:07.178866",
+ "modified": "2020-05-01 19:45:01.669384",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Dashboard Chart",

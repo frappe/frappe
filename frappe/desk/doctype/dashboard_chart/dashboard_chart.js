@@ -58,6 +58,7 @@ frappe.ui.form.on('Dashboard Chart', {
 			}
 		});
 		frm.trigger('update_options');
+		frm.trigger('set_heatmap_year_options');
 		if (frm.doc.report_name) {
 			frm.trigger('set_chart_report_filters');
 		}
@@ -69,6 +70,15 @@ frappe.ui.form.on('Dashboard Chart', {
 
 	source: function(frm) {
 		frm.trigger("show_filters");
+	},
+
+	set_heatmap_year_options: function(frm) {
+		if (frm.doc.type == 'Heatmap') {
+			frappe.db.get_doc('System Settings').then(doc => {
+				const creation_date = doc.creation;
+				frm.set_df_property('heatmap_year', 'options', frappe.dashboard_utils.get_years_since_creation(creation_date));
+			});
+		}
 	},
 
 	chart_type: function(frm) {
