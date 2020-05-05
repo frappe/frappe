@@ -50,20 +50,16 @@ frappe.ui.form.ControlDuration = frappe.ui.form.ControlData.extend({
 	},
 
 	set_duration_options() {
-		let lang = 'en';
-		frappe.boot.user && (lang = frappe.boot.user.language);
-
 		this.duration_options = {
-			lang: lang,
-			max: 59,
-			checkRanges: false,
 			showSeconds: true,
 			showDays: true,
 		};
 	},
 
 	set_duration_picker() {
-		let total_duration = frappe.utils.seconds_to_duration(this.value);
+		let total_duration = frappe.utils.seconds_to_duration(this.value,
+			this.duration_options.showDays, this.set_duration_options.showSeconds);
+
 		if (total_duration.days) {
 			this.$picker.find(`[data-duration='days']`).prop('value', total_duration.days);
 		}
@@ -115,18 +111,23 @@ frappe.ui.form.ControlDuration = frappe.ui.form.ControlData.extend({
 	},
 
 	format_for_input: function(value) {
-		return frappe.utils.get_formatted_duration(value);
+		return frappe.utils.get_formatted_duration(value,
+			this.duration_options.showDays, this.duration_options.showSeconds);
 	},
 
 	duration_to_seconds() {
 		let value = 0;
 		if (this.inputs) {
 			let total_duration = {
-				seconds : parseInt(this.inputs.secs.val()),
 				minutes : parseInt(this.inputs.mins.val()),
 				hours : parseInt(this.inputs.hrs.val()),
-				days :  parseInt(this.inputs.days.val())
 			};
+			if (this.duration_options.showDays) {
+				total_duration.days = parseInt(this.inputs.days.val());
+			}
+			if (this.duration_options.showSeconds) {
+				total_duration.seconds = parseInt(this.inputs.secs.val());
+			}
 
 			if (total_duration.days) {
 				value += total_duration.days * 24 * 60 * 60;
