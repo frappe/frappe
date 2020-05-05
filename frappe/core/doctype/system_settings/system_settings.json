@@ -11,6 +11,7 @@
   "column_break_3",
   "time_zone",
   "is_first_startup",
+  "enable_onboarding",
   "setup_complete",
   "date_and_number_format",
   "date_format",
@@ -375,6 +376,7 @@
    "label": "Hide footer in auto email reports"
   },
   {
+   "collapsible": 1,
    "fieldname": "chat",
    "fieldtype": "Section Break",
    "label": "Chat"
@@ -414,12 +416,18 @@
    "fieldname": "logout_on_password_reset",
    "fieldtype": "Check",
    "label": "Logout All Sessions on Password Reset"
+  },
+  {
+   "default": "0",
+   "fieldname": "enable_onboarding",
+   "fieldtype": "Check",
+   "label": "Enable Onboarding"
   }
  ],
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
- "modified": "2020-03-16 14:50:40.914532",
+ "modified": "2020-05-01 19:21:15.496065",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",

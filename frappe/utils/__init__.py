@@ -81,10 +81,26 @@ def validate_phone_number(phone_number, throw=False):
 		return False
 
 	phone_number = phone_number.strip()
-	match = re.match("([0-9\ \+\_\-\,\.\*\#\(\)]){1,20}$", phone_number)
+	match = re.match(r"([0-9\ \+\_\-\,\.\*\#\(\)]){1,20}$", phone_number)
 
 	if not match and throw:
 		frappe.throw(frappe._("{0} is not a valid Phone Number").format(phone_number), frappe.InvalidPhoneNumberError)
+
+	return bool(match)
+
+def validate_name(name, throw=False):
+	"""Returns True if the name is valid
+	valid names may have unicode and ascii characters, dash, quotes, numbers
+	anything else is considered invalid
+	"""
+	if not name:
+		return False
+
+	name = name.strip()
+	match = re.match(r"^[\w][\w\'\-]*([ \w][\w\'\-]+)*$", name)
+
+	if not match and throw:
+		frappe.throw(frappe._("{0} is not a valid Name").format(name), frappe.InvalidNameError)
 
 	return bool(match)
 
@@ -385,7 +401,9 @@ def update_progress_bar(txt, i, l):
 		if lt < 36:
 			txt = txt + " "*(36-lt)
 		complete = int(float(i+1) / l * 40)
-		sys.stdout.write("\r{0}: [{1}{2}]".format(txt, "="*complete, " "*(40-complete)))
+		completion_bar = ("=" * complete).ljust(40, ' ')
+		percent_complete = str(int(float(i+1) / l * 100))
+		sys.stdout.write("\r{0}: [{1}] {2}%".format(txt, completion_bar, percent_complete))
 		sys.stdout.flush()
 
 def get_html_format(print_path):

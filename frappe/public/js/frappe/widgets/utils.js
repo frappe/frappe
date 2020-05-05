@@ -113,4 +113,29 @@ const build_summary_item = (summary) => {
 	</div>`);
 };
 
-export { generate_route, generate_grid, build_summary_item };
+function go_to_list_with_filters(doctype, filters) {
+	const route = `List/${doctype}/List`;
+	frappe.set_route(route).then(()=> {
+		let list_view = frappe.views.list_view[route];
+		let filter_area = list_view.filter_area;
+		filter_area.clear();
+		filter_area.filter_list.add_filters_to_filter_group(filters);
+	});
+}
+
+function shorten_number(number) {
+	let x = Math.abs(Math.round(number));
+
+	switch (true) {
+		case x >= 1.0e+12:
+			return Math.round(number/1.0e+12) + " T";
+		case x >= 1.0e+9:
+			return Math.round(number/1.0e+9) + " B";
+		case x >= 1.0e+6:
+			return Math.round(number/1.0e+6) + " M";
+		default:
+			return number.toFixed();
+	}
+}
+
+export { generate_route, generate_grid, build_summary_item, go_to_list_with_filters, shorten_number };

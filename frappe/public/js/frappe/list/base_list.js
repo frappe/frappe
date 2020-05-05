@@ -203,6 +203,7 @@ frappe.views.BaseList = class BaseList {
 		show_sidebar = !show_sidebar;
 		localStorage.show_sidebar = show_sidebar;
 		this.show_or_hide_sidebar();
+		$(document.body).trigger('toggleListSidebar');
 	}
 
 	show_or_hide_sidebar() {
@@ -686,5 +687,5 @@ class FilterArea {
 }
 
 // utility function to validate view modes
-frappe.views.view_modes = ['List', 'Gantt', 'Kanban', 'Calendar', 'Image', 'Inbox', 'Report'];
+frappe.views.view_modes = ['List', 'Gantt', 'Kanban', 'Calendar', 'Image', 'Inbox', 'Report', 'Dashboard'];
 frappe.views.is_valid = view_mode => frappe.views.view_modes.includes(view_mode);
