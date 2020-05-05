@@ -58,13 +58,13 @@ def has_permission(doc, ptype, user):
 @frappe.whitelist()
 @cache_source
 def get(chart_name = None, chart = None, no_cache = None, filters = None, from_date = None,
-	to_date = None, timespan = None, time_interval = None, refresh = None):
+	to_date = None, timespan = None, time_interval = None, heatmap_year=None, refresh = None):
 	if chart_name:
 		chart = frappe.get_doc('Dashboard Chart', chart_name)
 	else:
 		chart = frappe._dict(frappe.parse_json(chart))
 
-
+	heatmap_year = heatmap_year or chart.heatmap_year
 	timespan = timespan or chart.timespan
 
 	if timespan == 'Select Date Range':
@@ -88,7 +88,7 @@ def get(chart_name = None, chart = None, no_cache = None, filters = None, from_d
 		chart_config = get_group_by_chart_config(chart, filters)
 	else:
 		if chart.type == 'Heatmap':
-			chart_config = get_heatmap_chart_config(chart, filters)
+			chart_config = get_heatmap_chart_config(chart, filters, heatmap_year)
 		else:
 			chart_config =  get_chart_config(chart, filters, timespan, timegrain, from_date, to_date)
 
@@ -177,12 +177,12 @@ def get_chart_config(chart, filters, timespan, timegrain, from_date, to_date):
 
 	return chart_config
 
-def get_heatmap_chart_config(chart, filters):
+def get_heatmap_chart_config(chart, filters, heatmap_year):
 	aggregate_function = get_aggregate_function(chart.chart_type)
 	value_field = chart.value_based_on or '1'
 	doctype = chart.document_type
 	datefield = chart.based_on
-	year = cint(chart.heatmap_year) if chart.heatmap_year else getdate(nowdate()).year
+	year = cint(heatmap_year) if heatmap_year else getdate(nowdate()).year
 	year_start_date = datetime.date(year, 1, 1).strftime('%Y-%m-%d')
 	next_year_start_date = datetime.date(year + 1, 1, 1).strftime('%Y-%m-%d')
 

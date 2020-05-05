@@ -41,6 +41,7 @@ def generate_and_cache_results(args, function, cache_key, chart):
 			to_date = args.to_date or None,
 			time_interval = args.time_interval or None,
 			timespan = args.timespan or None,
+			heatmap_year = args.heatmap_year or None
 		)
 	except TypeError as e:
 		if str(e) == "'NoneType' object is not iterable":

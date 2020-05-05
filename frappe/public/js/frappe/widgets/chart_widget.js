@@ -115,58 +115,7 @@ export default class ChartWidget extends Widget {
 	}
 
 	render_time_series_filters() {
-		if (this.chart_doc.type == 'Heatmap') {
-			return;
-		}
-
-		let filters = [
-			{
-				label: this.chart_settings.timespan || this.chart_doc.timespan,
-				options: [
-					"Select Date Range",
-					"Last Year",
-					"Last Quarter",
-					"Last Month",
-					"Last Week"
-				],
-				action: selected_item => {
-					this.selected_timespan = selected_item;
-
-					if (this.selected_timespan === "Select Date Range") {
-						this.render_date_range_fields();
-					} else {
-						this.selected_from_date = null;
-						this.selected_to_date = null;
-						if (this.date_field_wrapper) {
-							this.date_field_wrapper.hide();
-
-							// Title maybe hidden becuase of date range fields
-							// in half width chart
-							this.title_field.show();
-							this.head.css('flex-direction', "row");
-						}
-
-						this.save_chart_config_for_user({
-							'timespan': this.selected_timespan,
-							'from_date': null,
-							'to_date': null
-
-						});
-						this.fetch_and_update_chart();
-					}
-				}
-			},
-			{
-				label: this.chart_settings.time_interval || this.chart_doc.time_interval,
-				options: ["Yearly", "Quarterly", "Monthly", "Weekly", "Daily"],
-				action: selected_item => {
-					this.selected_time_interval = selected_item;
-					this.save_chart_config_for_user({'time_interval': this.selected_time_interval});
-					this.fetch_and_update_chart();
-				}
-			}
-		];
-
+		let filters = this.get_time_series_filters();
 		frappe.dashboard_utils.render_chart_filters(
 			filters,
 			"chart-actions",
@@ -175,12 +124,77 @@ export default class ChartWidget extends Widget {
 		);
 	}
 
+	get_time_series_filters() {
+		let filters;
+		if (this.chart_doc.type == 'Heatmap') {
+			filters = [{
+				label: this.chart_settings.heatmap_year || this.chart_doc.heatmap_year,
+				options: frappe.dashboard_utils.get_years_since_creation(frappe.boot.user.creation),
+				action: selected_item => {
+					this.selected_heatmap_year = selected_item;
+					this.save_chart_config_for_user({'heatmap_year': this.selected_heatmap_year});
+					this.fetch_and_update_chart();
+				}
+			}];
+		} else {
+			filters = [
+				{
+					label: this.chart_settings.timespan || this.chart_doc.timespan,
+					options: [
+						"Select Date Range",
+						"Last Year",
+						"Last Quarter",
+						"Last Month",
+						"Last Week"
+					],
+					action: selected_item => {
+						this.selected_timespan = selected_item;
+
+						if (this.selected_timespan === "Select Date Range") {
+							this.render_date_range_fields();
+						} else {
+							this.selected_from_date = null;
+							this.selected_to_date = null;
+							if (this.date_field_wrapper) {
+								this.date_field_wrapper.hide();
+
+								// Title maybe hidden becuase of date range fields
+								// in half width chart
+								this.title_field.show();
+								this.head.css('flex-direction', "row");
+							}
+
+							this.save_chart_config_for_user({
+								'timespan': this.selected_timespan,
+								'from_date': null,
+								'to_date': null
+
+							});
+							this.fetch_and_update_chart();
+						}
+					}
+				},
+				{
+					label: this.chart_settings.time_interval || this.chart_doc.time_interval,
+					options: ["Yearly", "Quarterly", "Monthly", "Weekly", "Daily"],
+					action: selected_item => {
+						this.selected_time_interval = selected_item;
+						this.save_chart_config_for_user({'time_interval': this.selected_time_interval});
+						this.fetch_and_update_chart();
+					}
+				}
+			];
+		}
+		return filters;
+	}
+
 	fetch_and_update_chart() {
 		this.args = {
 			timespan: this.selected_timespan || this.chart_settings.timespan,
 			time_interval: this.selected_time_interval || this.chart_settings.time_interval,
 			from_date: this.selected_from_date || this.chart_settings.from_date,
-			to_date: this.selected_to_date || this.chart_settings.to_date
+			to_date: this.selected_to_date || this.chart_settings.to_date,
+			heatmap_year: this.selected_heatmap_year || this.chart_settings.heatmap_year,
 		};
 
 		this.fetch(this.filters, true, this.args).then(data => {
@@ -406,6 +420,9 @@ export default class ChartWidget extends Widget {
 		this.save_chart_config_for_user(null, 1);
 		this.chart_settings = {};
 		this.filters = null;
+		this.selected_time_interval = null;
+		this.selected_timespan = null;
+		this.selected_heatmap_year = null;
 	}
 
 	save_chart_config_for_user(config, reset=0) {
@@ -473,7 +490,8 @@ export default class ChartWidget extends Widget {
 				time_interval: args && args.time_interval ? args.time_interval : null,
 				timespan: args && args.timespan ? args.timespan : null,
 				from_date: args && args.from_date ? args.from_date : null,
-				to_date: args && args.to_date ? args.to_date : null
+				to_date: args && args.to_date ? args.to_date : null,
+				heatmap_year: args && args.heatmap_year ?  args.heatmap_year : null,
 			};
 		}
 		return frappe.xcall(method, args);
@@ -531,7 +549,10 @@ export default class ChartWidget extends Widget {
 		};
 
 		if (this.chart_doc.type == "Heatmap") {
-			const heatmap_year = parseInt(this.chart_doc.heatmap_year || "2020");
+			if (!this.chart_doc.heatmap_year) {
+				this.chart_doc.heatmap_year = frappe.dashboard_utils.get_year(frappe.datetime.now_date());
+			}
+			const heatmap_year = parseInt(this.selected_heatmap_year || this.chart_settings.heatmap_year || this.chart_doc.heatmap_year);
 			chart_args.data.start = new Date(`${heatmap_year}-01-01`);
 			chart_args.data.end = new Date(`${heatmap_year+1}-01-01`);
 		}
