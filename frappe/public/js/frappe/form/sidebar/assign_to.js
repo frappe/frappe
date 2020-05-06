@@ -130,7 +130,7 @@ frappe.ui.form.AssignToDialog = Class.extend({
 		this.set_description_from_doc();
 	},
 	make: function() {
-		let me = this
+		let me = this;
 
 		me.dialog = new frappe.ui.Dialog({
 			title: __('Add to ToDo'),

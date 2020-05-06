@@ -44,7 +44,7 @@ def add(args=None):
 	users_with_duplicate_todo = []
 	shared_with_users = []
 
-	for assign_to in json.loads(args.get("assign_to")):
+	for assign_to in frappe.parse_json(args.get("assign_to")):
 		filters = {
 			"reference_type": args['doctype'],
 			"reference_name": args['name'],
