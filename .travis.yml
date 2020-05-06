@@ -1,5 +1,5 @@
 language: python
-dist: trusty
+dist: xenial
 
 addons:
   hosts:
@@ -8,6 +8,10 @@ addons:
   mariadb: 10.3
   postgresql: 9.5
   chrome: stable
+
+services:
+  - xvfb
+  - mysql
 
 git:
   depth: 1
