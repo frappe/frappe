@@ -173,21 +173,26 @@ export default class OnboardingWidget extends Widget {
 		frappe.ui.form.make_quick_entry(
 			step.reference_document,
 			() => {
-				if (frappe.get_route_str != current_route) {
-					let args = {};
-					args.message = __("Let's take you back to onboarding");
-					args.title = __("Looks Great");
-					args.primary_action = {
-						action: () => {
-							frappe.set_route(current_route).then(() => {
-								this.mark_complete(step);
-							});
-						},
-						label: __("Continue"),
-					};
+				if (frappe.get_route_str() != current_route) {
+					let success_dialog = frappe.msgprint({
+						message: __("Let's take you back to onboarding"),
+						title: __("Looks Great"),
+						primary_action: {
+							action: () => {
+								success_dialog.hide();
+								frappe.set_route(current_route).then(() => {
+									this.mark_complete(step);
+								});
+							},
+							label: __("Continue"),
+						}
+					});
 
-					frappe.msgprint(args);
-					frappe.msg_dialog.custom_onhide = () => args.primary_action.action();
+					frappe.msg_dialog.custom_onhide = () => {
+						frappe.set_route(current_route).then(() => {
+							this.mark_complete(step);
+						});
+					};
 				} else {
 					this.mark_complete(step);
 				}
@@ -277,25 +282,27 @@ export default class OnboardingWidget extends Widget {
 			</div>
 		`);
 
-		let success_dialog = new frappe.ui.Dialog({
-			primary_action: () => {
-				success_dialog.hide();
-				// Wait for modal to close before removing widget
-				setTimeout(() => {
-					this.delete();
-				}, 300);
-			},
-			primary_action_label: __("Continue"),
-		});
+		if (!this.success_dialog) {
+			this.success_dialog = new frappe.ui.Dialog({
+				primary_action: () => {
+					this.success_dialog.hide();
+					// Wait for modal to close before removing widget
+					setTimeout(() => {
+						this.delete();
+					}, 300);
+				},
+				primary_action_label: __("Continue"),
+			});
 
-		success_dialog.set_title(__("Onboarding Complete"));
-		success_dialog.header
-			.find(".indicator")
-			.removeClass("hidden")
-			.addClass("green");
+			this.success_dialog.set_title(__("Onboarding Complete"));
+			this.success_dialog.header
+				.find(".indicator")
+				.removeClass("hidden")
+				.addClass("green");
 
-		success.appendTo(success_dialog.$body);
-		success_dialog.show();
+			success.appendTo(this.success_dialog.$body);
+			this.success_dialog.show();
+		}
 	}
 
 	set_body() {
