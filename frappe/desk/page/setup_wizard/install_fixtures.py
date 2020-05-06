@@ -44,4 +44,7 @@ def add_unsubscribe():
 	]
 
 	for unsubscribe in email_unsubscribe:
-		frappe.get_doc(unsubscribe).insert()
+		if not frappe.get_all("Email Unsubscribe", filters=unsubscribe):
+			doc = frappe.new_doc("Email Unsubscribe")
+			doc.update(unsubscribe)
+			doc.insert(ignore_permissions=True)
