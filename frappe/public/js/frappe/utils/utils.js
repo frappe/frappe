@@ -779,10 +779,10 @@ Object.assign(frappe.utils, {
 		};
 	},
 
-	get_formatted_duration(value, showDays=true, showSeconds=true) {
+	get_formatted_duration(value, duration_options) {
 		let duration = '';
 		if (value) {
-			let total_duration = frappe.utils.seconds_to_duration(value, showDays, showSeconds);
+			let total_duration = frappe.utils.seconds_to_duration(value, duration_options);
 
 			if (total_duration.days) {
 				duration += total_duration.days + 'd';
@@ -802,7 +802,7 @@ Object.assign(frappe.utils, {
 		}
 		return duration;
 	},
-	seconds_to_duration(value, showDays=true, showSeconds=true) {
+	seconds_to_duration(value, duration_options) {
 		let secs = value;
 		let total_duration = {
 			days: Math.floor(secs / (3600 * 24)),
@@ -810,7 +810,7 @@ Object.assign(frappe.utils, {
 			minutes: Math.floor(secs % 3600 / 60),
 			seconds : Math.floor(secs % 60)
 		};
-		if (!showDays) {
+		if (!duration_options.showDays) {
 			total_duration.hours = Math.floor(secs / 3600)
 			total_duration.days = 0
 		}

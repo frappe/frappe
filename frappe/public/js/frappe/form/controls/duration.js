@@ -50,15 +50,11 @@ frappe.ui.form.ControlDuration = frappe.ui.form.ControlData.extend({
 	},
 
 	set_duration_options() {
-		this.duration_options = {
-			showSeconds: true,
-			showDays: true,
-		};
+		this.duration_options = frappe.meta.get_duration_options(this.df, this.get_doc());
 	},
 
 	set_duration_picker() {
-		let total_duration = frappe.utils.seconds_to_duration(this.value,
-			this.duration_options.showDays, this.set_duration_options.showSeconds);
+		let total_duration = frappe.utils.seconds_to_duration(this.value, this.duration_options);
 
 		if (total_duration.days) {
 			this.$picker.find(`[data-duration='days']`).prop('value', total_duration.days);
@@ -111,8 +107,7 @@ frappe.ui.form.ControlDuration = frappe.ui.form.ControlData.extend({
 	},
 
 	format_for_input: function(value) {
-		return frappe.utils.get_formatted_duration(value,
-			this.duration_options.showDays, this.duration_options.showSeconds);
+		return frappe.utils.get_formatted_duration(value, this.duration_options);
 	},
 
 	duration_to_seconds() {

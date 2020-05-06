@@ -267,4 +267,12 @@ $.extend(frappe.meta, {
 		}
 		return precision;
 	},
+
+	get_duration_options: function(df, doc) {
+		let duration_options = {
+			showDays: df.show_days,
+			showSeconds: df.show_seconds
+		};
+		return duration_options;
+	}
 });

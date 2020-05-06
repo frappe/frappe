@@ -188,9 +188,10 @@ frappe.form.formatters = {
 
 		return value || "";
 	},
-	Duration: function(value) {
+	Duration: function(value, docfield, doc) {
 		if (value) {
-			value = frappe.utils.get_formatted_duration(value);
+			let duration_options = frappe.meta.get_duration_options(docfield, doc);
+			value = frappe.utils.get_formatted_duration(value, duration_options);
 		}
 
 		return value || "";
