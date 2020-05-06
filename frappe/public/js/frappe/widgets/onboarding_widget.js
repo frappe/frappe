@@ -181,7 +181,6 @@ export default class OnboardingWidget extends Widget {
 							action: () => {
 								success_dialog.hide();
 								frappe.set_route(current_route).then(() => {
-									console.log("primary action");
 									this.mark_complete(step);
 								});
 							},
@@ -191,7 +190,6 @@ export default class OnboardingWidget extends Widget {
 
 					frappe.msg_dialog.custom_onhide = () => {
 						frappe.set_route(current_route).then(() => {
-							console.log("on hide");
 							this.mark_complete(step);
 						});
 					};
