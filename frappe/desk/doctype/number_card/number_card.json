@@ -1,6 +1,6 @@
 {
  "actions": [],
- "autoname": "CARD.#####",
+ "autoname": "Prompt",
  "creation": "2020-04-15 18:06:39.444683",
  "doctype": "DocType",
  "editable_grid": 1,
@@ -99,7 +99,7 @@
   }
  ],
  "links": [],
- "modified": "2020-05-01 15:23:29.550243",
+ "modified": "2020-05-06 19:01:38.401035",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Number Card",
