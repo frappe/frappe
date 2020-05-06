@@ -315,31 +315,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		);
 
 		if (this.list_view_settings.fields) {
-			let fields_order = [];
-			let fields = JSON.parse(this.list_view_settings.fields);
-			let is_status_field_set = false;
-
-			//title_field is fixed
-			fields_order.push(this.columns[0]);
-			this.columns.splice(0, 1);
-
-			for (let fld in fields) {
-				for (let col in this.columns) {
-					let field = fields[fld];
-					let column = this.columns[col];
-
-					if (column.type == "Status" && !is_status_field_set) {
-						fields_order.push(column);
-						is_status_field_set = true;
-						break;
-					} else if (column.type == "Field" && field.fieldname === column.df.fieldname) {
-						fields_order.push(column);
-						break;
-					}
-				}
-			}
-
-			this.columns = fields_order;
+			this.columns = this.reorder_listview_fields();
 		}
 
 		// limit max to 8 columns if no total_fields is set in List View Settings
@@ -355,7 +331,32 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		}
 
 		this.columns = this.columns.slice(0, this.list_view_settings.total_fields || total_fields);
-		console.log(this.columns);
+	}
+
+	reorder_listview_fields() {
+		let fields_order = [];
+		let fields = JSON.parse(this.list_view_settings.fields);
+
+		//title_field is fixed
+		fields_order.push(this.columns[0]);
+		this.columns.splice(0, 1);
+
+		for (let fld in fields) {
+			for (let col in this.columns) {
+				let field = fields[fld];
+				let column = this.columns[col];
+
+				if (column.type == "Status" && field.fieldname == "status_field") {
+					fields_order.push(column);
+					break;
+				} else if (column.type == "Field" && field.fieldname === column.df.fieldname) {
+					fields_order.push(column);
+					break;
+				}
+			}
+		}
+
+		return fields_order;
 	}
 
 	get_documentation_link() {

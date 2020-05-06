@@ -57,12 +57,13 @@ login.bind_events = function() {
 	});
 
 	$(".toggle-password").click(function() {
-		$(this).toggleClass("fa-eye fa-eye-slash");
 		var input = $($(this).attr("toggle"));
 		if (input.attr("type") == "password") {
 			input.attr("type", "text");
+			$(this).text('{{ _("Hide") }}')
 		} else {
 			input.attr("type", "password");
+			$(this).text('{{ _("Show") }}')
 		}
 	});
 
@@ -183,7 +184,7 @@ login.login_handlers = (function() {
 				login.set_indicator('{{ _("Success") }}', 'green');
 				window.location.href = frappe.utils.sanitise_redirect(frappe.utils.get_url_arg("redirect-to")) || data.home_page;
 			} else if(data.message == 'Password Reset'){
-				window.location.href = data.redirect_to;
+				window.location.href = frappe.utils.sanitise_redirect(data.redirect_to);
 			} else if(data.message=="No App") {
 				login.set_indicator("{{ _("Success") }}", 'green');
 				if(localStorage) {
@@ -194,7 +195,7 @@ login.login_handlers = (function() {
 				}
 
 				if(data.redirect_to) {
-					window.location.href = data.redirect_to;
+					window.location.href = frappe.utils.sanitise_redirect(data.redirect_to);
 				}
 
 				if(last_visited && last_visited != "/login") {

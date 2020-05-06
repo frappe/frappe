@@ -10,7 +10,7 @@ import socket
 import time
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils import validate_email_address, cint, get_datetime, DATE_FORMAT, strip, comma_or, sanitize_html
+from frappe.utils import validate_email_address, cint, get_datetime, DATE_FORMAT, strip, comma_or, sanitize_html, add_days
 from frappe.utils.user import is_system_user
 from frappe.utils.jinja import render_template
 from frappe.email.smtp import SMTPServer
@@ -533,28 +533,37 @@ class EmailAccount(Document):
 		parent = None
 		in_reply_to = (email.mail.get("In-Reply-To") or "").strip(" <>")
 
-		if in_reply_to and "@{0}".format(frappe.local.site) in in_reply_to:
-			# reply to a communication sent from the system
-			email_queue = frappe.db.get_value('Email Queue', dict(message_id=in_reply_to), ['communication','reference_doctype', 'reference_name'])
-			if email_queue:
-				parent_communication, parent_doctype, parent_name = email_queue
-				if parent_communication:
-					communication.in_reply_to = parent_communication
+		if in_reply_to:
+			if "@{0}".format(frappe.local.site) in in_reply_to:
+				# reply to a communication sent from the system
+				email_queue = frappe.db.get_value('Email Queue', dict(message_id=in_reply_to), ['communication','reference_doctype', 'reference_name'])
+				if email_queue:
+					parent_communication, parent_doctype, parent_name = email_queue
+					if parent_communication:
+						communication.in_reply_to = parent_communication
+				else:
+					reference, domain = in_reply_to.split("@", 1)
+					parent_doctype, parent_name = 'Communication', reference
+
+				if frappe.db.exists(parent_doctype, parent_name):
+					parent = frappe._dict(doctype=parent_doctype, name=parent_name)
+
+					# set in_reply_to of current communication
+					if parent_doctype=='Communication':
+						# communication.in_reply_to = email_queue.communication
+
+						if parent.reference_name:
+							# the true parent is the communication parent
+							parent = frappe.get_doc(parent.reference_doctype,
+								parent.reference_name)
 			else:
-				reference, domain = in_reply_to.split("@", 1)
-				parent_doctype, parent_name = 'Communication', reference
-
-			if frappe.db.exists(parent_doctype, parent_name):
-				parent = frappe._dict(doctype=parent_doctype, name=parent_name)
-
-				# set in_reply_to of current communication
-				if parent_doctype=='Communication':
-					# communication.in_reply_to = email_queue.communication
-
-					if parent.reference_name:
-						# the true parent is the communication parent
-						parent = frappe.get_doc(parent.reference_doctype,
-							parent.reference_name)
+				comm = frappe.db.get_value('Communication',
+						dict(
+							message_id=in_reply_to,
+							creation=['>=', add_days(get_datetime(), -30)]),
+						['reference_doctype', 'reference_name'], as_dict=1)
+				if comm:
+					parent = frappe._dict(doctype=comm.reference_doctype, name=comm.reference_name)
 
 		return parent
 

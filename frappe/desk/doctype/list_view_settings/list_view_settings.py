@@ -17,17 +17,14 @@ class ListViewSettings(Document):
 @frappe.whitelist()
 def save_listview_settings(doctype, listview_settings, removed_listview_fields):
 
-	if isinstance(listview_settings, string_types):
-		listview_settings = json.loads(listview_settings)
+	listview_settings = frappe.parse_json(listview_settings)
+	removed_listview_fields = frappe.parse_json(removed_listview_fields)
 
-	if isinstance(removed_listview_fields, string_types):
-		removed_listview_fields = json.loads(removed_listview_fields)
-
-	try:
+	if frappe.get_all("List View Settings", filters={"name": doctype}):
 		doc = frappe.get_doc("List View Settings", doctype)
 		doc.update(listview_settings)
 		doc.save()
-	except DoesNotExistError:
+	else:
 		doc = frappe.new_doc("List View Settings")
 		doc.name = doctype
 		doc.update(listview_settings)
@@ -43,8 +40,7 @@ def save_listview_settings(doctype, listview_settings, removed_listview_fields):
 def set_listview_fields(doctype, listview_fields, removed_listview_fields):
 	meta = frappe.get_meta(doctype)
 
-	if isinstance(listview_fields, string_types):
-		listview_fields = [f.get("fieldname") for f in json.loads(listview_fields)]
+	listview_fields = [f.get("fieldname") for f in frappe.parse_json(listview_fields) if f.get("fieldname")]
 
 	for field in removed_listview_fields:
 		set_in_list_view_property(doctype, meta.get_field(field), "0")
@@ -53,6 +49,9 @@ def set_listview_fields(doctype, listview_fields, removed_listview_fields):
 		set_in_list_view_property(doctype, meta.get_field(field), "1")
 
 def set_in_list_view_property(doctype, field, value):
+	if not field or field.fieldname == "status_field":
+		return
+
 	property_setter = frappe.db.get_value("Property Setter", {"doc_type": doctype, "field_name": field.fieldname, "property": "in_list_view"})
 	if property_setter:
 		doc = frappe.get_doc("Property Setter", property_setter)
