@@ -90,6 +90,7 @@ def sync_dashboards(app=None):
 				frappe.flags.in_import = True
 				make_records(config.charts, "Dashboard Chart")
 				make_records(config.dashboards, "Dashboard")
+				make_records(config.number_cards, "Number Cards")
 				frappe.flags.in_import = False
 
 def make_records(config, doctype):
