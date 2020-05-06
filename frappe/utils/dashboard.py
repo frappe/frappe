@@ -1,10 +1,8 @@
 # Copyright (c) 2019, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 from __future__ import unicode_literals
-import json
 import frappe
 from frappe import _
-import os
 from functools import wraps
 from frappe.utils import add_to_date, get_link_to_form
 from frappe.modules.import_file import import_doc
