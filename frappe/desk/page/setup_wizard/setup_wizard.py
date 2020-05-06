@@ -232,6 +232,9 @@ def disable_future_access():
 	frappe.db.set_value('System Settings', 'System Settings', 'setup_complete', 1)
 	frappe.db.set_value('System Settings', 'System Settings', 'is_first_startup', 1)
 
+	# Enable onboarding after install
+	frappe.db.set_value('System Settings', 'System Settings', 'enable_onboarding', 1)
+
 	if not frappe.flags.in_test:
 		# remove all roles and add 'Administrator' to prevent future access
 		page = frappe.get_doc('Page', 'setup-wizard')
