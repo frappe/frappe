@@ -13,23 +13,16 @@ frappe.ui.form.MultiSelectDialog = Class.extend({
 	},
 	make: function () {
 		let me = this;
-
 		this.page_length = 20;
 		this.start = 0;
-
-		let fields = [];
-
-		let header_fields = this.make_dialog_header();
-
-		fields = fields.concat(header_fields);
-
+		let fields = this.get_fields_for_header();
 		if (this.add_filters_group) {
-			fields = fields.concat([
+			fields.push(
 				{
 					fieldtype: 'HTML',
 					fieldname: 'filter_area',
-				},
-			]);
+				}
+			);
 		}
 
 		fields = fields.concat([
@@ -45,13 +38,11 @@ frappe.ui.form.MultiSelectDialog = Class.extend({
 		]);
 
 		if (this.data_fields) {
-			fields = fields.concat([{ fieldtype: "Section Break" }]);
+			fields.push({ fieldtype: "Section Break" });
 			fields = fields.concat(this.data_fields);
-
 		}
 
-		let doctype_plural = !this.doctype.endsWith('y') ? this.doctype + 's'
-			: this.doctype.slice(0, -1) + 'ies';
+		let doctype_plural =frappe.utils.get_doctype_plural(this.doctype);
 		this.dialog = new frappe.ui.Dialog({
 			title: __("Select {0}", [(this.doctype == '[Select]') ? __("value") : __(doctype_plural)]),
 			fields: fields,
@@ -65,7 +56,7 @@ frappe.ui.form.MultiSelectDialog = Class.extend({
 				// If user wants to close the modal
 				if (e) {
 					frappe.route_options = {};
-					if ($.isArray(me.setters)) {
+					if (Array.isArray(me.setters)) {
 						for (let df of me.setters) {
 							frappe.route_options[df.fieldname] = me.dialog.fields_dict[df.fieldname].get_value() || undefined;
 						}
@@ -98,18 +89,19 @@ frappe.ui.form.MultiSelectDialog = Class.extend({
 		this.dialog.show();
 	},
 
-	make_dialog_header: function () {
+	get_fields_for_header: function () {
 		let fields = [];
 		let me = this;
-		this.col_0 = [
+		let columns = {};
+		columns['col_0'] = [
 			{
 				fieldtype: "Data",
 				label: __("Search Term"),
 				fieldname: "search_term"
 			}
 		];
-		this.col_1 = [];
-		this.col_2 = [];
+		columns['col_1'] = [];
+		columns['col_2'] = [];
 
 		// setters can be defined as a dict or a list of fields
 		// setters define the additional filters that get applied
@@ -124,16 +116,14 @@ frappe.ui.form.MultiSelectDialog = Class.extend({
 		// CASE 2: if the fieldname of the target is different,
 		// then pass a list of fields with appropriate
 
-		if ($.isArray(this.setters)) {  // need to figure out
+		if (Array.isArray(this.setters)) {
 			for (let df of this.setters) {
 				fields.push(df, { fieldtype: "Column Break" });
 			}
 		} else {
 			Object.keys(this.setters).forEach(function (setter, index) {
-				// x['group_' + cstr((index+1)%4)].push(setter);
 				let df_prop = frappe.meta.docfield_map[me.doctype][setter];
-				// this[]push({fieldtype: "Column Break"});
-				me['col_' + cstr((index + 1) % 3)].push({
+				columns['col_' + cstr((index + 1) % 3)].push({
 					fieldtype: df_prop.fieldtype,
 					label: df_prop.label,
 					fieldname: setter,
@@ -143,12 +133,12 @@ frappe.ui.form.MultiSelectDialog = Class.extend({
 			});
 		}
 
-		fields = fields.concat(this.col_0);
-		fields = fields.concat({ fieldtype: "Column Break" });
-		fields = fields.concat(this.col_1);
-		fields = fields.concat({ fieldtype: "Column Break" });
-		fields = fields.concat(this.col_2);
-
+		for (let i = 0; i < 3; i++) {
+			fields = fields.concat(columns['col_' + cstr(i)]);
+			if (i != 2) {
+				fields = fields.concat({ fieldtype: "Column Break" });
+			}
+		}
 		fields = fields.concat({ fieldtype: "Section Break" });
 		return fields;
 	},
@@ -222,7 +212,7 @@ frappe.ui.form.MultiSelectDialog = Class.extend({
 		let contents = ``;
 		let columns = ["name"];
 
-		if ($.isArray(this.setters)) {
+		if (Array.isArray(this.setters)) {
 			for (let df of this.setters) {
 				columns.push(df.fieldname);
 			}
@@ -298,7 +288,7 @@ frappe.ui.form.MultiSelectDialog = Class.extend({
 		let filters = this.get_query ? this.get_query().filters : {} || {};
 		// let filter_fields = [me.date_field];
 		let filter_fields = [];
-		if ($.isArray(this.setters)) {
+		if (Array.isArray(this.setters)) {
 			for (let df of this.setters) {
 				filters[df.fieldname] = me.dialog.fields_dict[df.fieldname].get_value() || undefined;
 				me.args[df.fieldname] = filters[df.fieldname];

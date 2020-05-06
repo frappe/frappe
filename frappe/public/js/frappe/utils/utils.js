@@ -803,7 +803,11 @@ Object.assign(frappe.utils, {
 			name: M[0],
 			version: M[1],
 		};
+	},
+	get_doctype_plural(doctype) {
+		return !doctype.endsWith('y') ? doctype + 's': doctype.slice(0, -1) + 'ies';
 	}
+
 });
 
 // Array de duplicate
