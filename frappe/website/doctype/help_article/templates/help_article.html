@@ -19,6 +19,9 @@
 	<p><br><a href="/{{ category.route }}" class='text-muted small'>
 		{{ _("More articles on {0}").format(category.name) }}</a></p>
 </article>
+<div class="help-article-feedback">
+	{% include 'templates/includes/feedback.html' %}
+</div>
 <div class="help-article-comments">
 	<hr>
 	<h4>Comments</h4>
@@ -26,7 +29,7 @@
 </div>
 <script>
 frappe.ready(function() {
-    frappe.set_search_path("/kb");
+	frappe.set_search_path("/kb");
 });
 </script>
 {% endblock %}

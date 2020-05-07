@@ -1,0 +1,29 @@
+<div class="feedback-view mb-4">
+	<hr />
+	<span class="text-muted small">{{ _("Helpful?") }}</span>
+	<span class="small">
+		<a class="feedback btn btn-light btn-sm" data-value="Yes">{{ _("Yes") }}</a>
+		<a class="feedback btn btn-light btn-sm" data-value="No">{{ _("No") }}</a>
+	</span>
+</div>
+
+<script>
+	frappe.ready(function() {
+		$(".feedback").click(function() {
+			let args = {
+				reference_doctype: "{{ reference_doctype or doctype }}",
+				reference_name: "{{ reference_name or name }}",
+				helpful: this.getAttribute("data-value"),
+			}
+
+			frappe.call({
+				btn: this,
+				method: "frappe.website.doctype.feedback.feedback.add_feedback",
+				args: args,
+				callback: function(r) {
+					console.log(r);
+				}
+			})
+		})
+	});
+</script>

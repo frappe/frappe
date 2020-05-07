@@ -106,11 +106,15 @@
 </ul>
 <ul class="list-unstyled sidebar-menu text-muted">
 	<li class="pageview-count"></li>
+	<li class="feedback">
+		<p class="helpful"></p>
+		<p class="not-helpful"></p>
+	</li>
 	<li class="modified-by"></li>
 	<li class="created-by"></li>
 </ul>
 {% if(frappe.get_form_sidebar_extension) { %}
-    {{ frappe.get_form_sidebar_extension() }}
+	{{ frappe.get_form_sidebar_extension() }}
 {% } %}
 <ul class="list-unstyled visible-xs visible-sm">
 
