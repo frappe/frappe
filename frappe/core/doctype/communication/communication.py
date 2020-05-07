@@ -337,6 +337,9 @@ def get_permission_query_conditions_for_communication(user):
 			.format(email_accounts=','.join(email_accounts))
 
 def get_contacts(email_strings):
+	if (not self.email_account) or (self.email_account and not frappe.db.get_value("Email Account", self.email_account, "create_contact")):
+		return []
+
 	email_addrs = []
 
 	for email_string in email_strings:
