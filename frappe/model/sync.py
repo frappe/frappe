@@ -55,8 +55,7 @@ def sync_for(app_name, force=0, sync_everything = False, verbose=False, reset_pe
 			("desk", "desk_card"),
 			("desk", "desk_chart"),
 			("desk", "desk_shortcut"),
-			("desk", "desk_page"),
-			("desk", "dashboard_chart")):
+			("desk", "desk_page")):
 			files.append(os.path.join(frappe.get_app_path("frappe"), d[0],
 				"doctype", d[1], d[1] + ".json"))
 
@@ -86,7 +85,7 @@ def get_doc_files(files, start_path, force=0, sync_everything = False, verbose=F
 	document_types = ['doctype', 'page', 'report', 'dashboard_chart_source', 'print_format',
 		'website_theme', 'web_form', 'web_template', 'notification', 'print_style',
 		'data_migration_mapping', 'data_migration_plan', 'desk_page',
-		'onboarding_step', 'onboarding', 'dashboard_chart']
+		'onboarding_step', 'onboarding']
 
 	for doctype in document_types:
 		doctype_path = os.path.join(start_path, doctype)
