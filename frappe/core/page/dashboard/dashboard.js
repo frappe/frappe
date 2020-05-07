@@ -32,7 +32,7 @@ class Dashboard {
 				<span class="octicon octicon-lock"></span>
 				<span>${__('Restricted')}</span>
 			</button>`)
-		)
+		);
 	}
 
 	show() {
