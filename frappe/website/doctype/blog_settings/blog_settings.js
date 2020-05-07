@@ -5,4 +5,4 @@ frappe.ui.form.on('Blog Settings', {
 	refresh: function(frm) {
 
 	}
-});
+})
