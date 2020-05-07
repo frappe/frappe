@@ -45,6 +45,7 @@ def make_new_doc(doctype):
 	doc = doc.get_valid_dict(sanitize=False)
 	doc["doctype"] = doctype
 	doc["__islocal"] = 1
+	doc["__unsaved"] = 1
 
 	return doc
 

@@ -54,6 +54,22 @@ Quill.register(FontStyle, true);
 Quill.register(AlignStyle, true);
 Quill.register(DirectionStyle, true);
 
+// replace font tag with span
+const Inline = Quill.import('blots/inline');
+
+class CustomColor extends Inline {
+	constructor(domNode, value) {
+		super(domNode, value);
+		this.domNode.style.color = this.domNode.color;
+		domNode.outerHTML = this.domNode.outerHTML.replace(/<font/g, '<span').replace(/<\/font>/g, '</span>');
+	}
+}
+
+CustomColor.blotName = "customColor";
+CustomColor.tagName = "font";
+
+Quill.register(CustomColor, true);
+
 frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 	make_wrapper() {
 		this._super();

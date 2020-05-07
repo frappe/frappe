@@ -21,6 +21,10 @@
 						{{ _('{0} comments').format(post.comments) }}
 						{% endif %}
 						{% endif %}
+						{% if post.read_time %}
+							&middot;
+							{{ _('{0} min read').format(post.read_time) }}
+						{% endif %}
 					</div>
 				</div>
 				<div class="col-3">

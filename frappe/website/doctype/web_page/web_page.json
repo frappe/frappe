@@ -24,6 +24,7 @@
   "main_section",
   "main_section_md",
   "main_section_html",
+  "page_blocks",
   "custom_javascript",
   "insert_code",
   "javascript",
@@ -111,7 +112,7 @@
    "fieldname": "content_type",
    "fieldtype": "Select",
    "label": "Content Type",
-   "options": "Rich Text\nMarkdown\nHTML"
+   "options": "Rich Text\nMarkdown\nHTML\nPage Builder"
   },
   {
    "depends_on": "eval:doc.content_type==='Rich Text'",
@@ -250,6 +251,13 @@
    "label": "Dynamic Template"
   },
   {
+   "depends_on": "eval:doc.content_type=='Page Builder'",
+   "fieldname": "page_blocks",
+   "fieldtype": "Table",
+   "label": "Page Building Blocks",
+   "options": "Web Page Block"
+  },
+  {
    "default": "0",
    "fieldname": "full_width",
    "fieldtype": "Check",
@@ -283,7 +291,7 @@
  "is_published_field": "published",
  "links": [],
  "max_attachments": 20,
- "modified": "2020-04-19 12:26:21.546908",
+ "modified": "2020-04-25 20:40:39.253548",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Web Page",
