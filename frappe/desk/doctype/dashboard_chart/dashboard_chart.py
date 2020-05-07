@@ -7,7 +7,7 @@ import frappe
 from frappe import _
 import datetime
 import json
-from frappe.core.page.dashboard.dashboard import cache_source, get_from_date_from_timespan
+from frappe.utils.dashboard import cache_source, get_from_date_from_timespan
 from frappe.utils import nowdate, add_to_date, getdate, get_last_day, formatdate, get_datetime
 from frappe.model.naming import append_number_if_name_exists
 from frappe.boot import get_allowed_reports
