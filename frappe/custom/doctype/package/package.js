@@ -20,7 +20,7 @@ frappe.ui.form.on('Package', {
 			}
 		});
 
-		if(frm.doc.instances){
+		if (frm.doc.instances) {
 			frm.add_custom_button(__("Deploy"), function() {
 				frm.call("deploy_package");
 			});
