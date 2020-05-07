@@ -130,7 +130,7 @@
 		"public/js/lib/Sortable.min.js",
 		"public/js/lib/jquery/jquery.hotkeys.js",
 		"node_modules/popper.js/dist/umd/popper.min.js",
-		"node_modules/bootstrap/dist/js/bootstrap.min.js",
+		"node_modules/bootstrap/dist/js/bootstrap.bundle.min.js",
 		"node_modules/vue/dist/vue.js",
 		"node_modules/moment/min/moment-with-locales.min.js",
 		"node_modules/moment-timezone/builds/moment-timezone-with-data.min.js",

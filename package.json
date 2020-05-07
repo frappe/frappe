@@ -36,7 +36,6 @@
     "jsbarcode": "^3.9.0",
     "moment": "^2.20.1",
     "moment-timezone": "^0.5.28",
-    "popper.js": "^1.16.1",
     "purgecss": "^2.1.0",
     "quagga": "^0.12.1",
     "quill": "2.0.0-dev.2",
