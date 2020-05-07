@@ -258,7 +258,10 @@ class Communication(Document):
 
 	# Timeline Links
 	def set_timeline_links(self):
-		contacts = get_contacts([self.sender, self.recipients, self.cc, self.bcc])
+		if self.email_account and frappe.db.get_value("Email Account", self.email_account, "create_contact"):
+			contacts = get_contacts([self.sender, self.recipients, self.cc, self.bcc])
+		else:
+			contacts = []
 		for contact_name in contacts:
 			self.add_link('Contact', contact_name)
 
@@ -337,9 +340,6 @@ def get_permission_query_conditions_for_communication(user):
 			.format(email_accounts=','.join(email_accounts))
 
 def get_contacts(email_strings):
-	if (not self.email_account) or (self.email_account and not frappe.db.get_value("Email Account", self.email_account, "create_contact")):
-		return []
-
 	email_addrs = []
 
 	for email_string in email_strings:
