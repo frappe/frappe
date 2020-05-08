@@ -12,6 +12,10 @@
 			<h1 itemprop="headline" class="blog-header">{{ title }}</h1>
 			<p class="text-muted small">
 			{{ frappe.format_date(published_on) }}
+			{% if read_time %}
+				&middot;
+				{{ read_time }} min read
+			{% endif %}
 			</p>
 		</div>
 		<p class="lead">

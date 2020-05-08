@@ -224,15 +224,14 @@
   },
   {
    "default": "0",
-   "description": "This chart will be public to all Users if this is set",
+   "description": "This chart will be available to all Users if this is set",
    "fieldname": "is_public",
    "fieldtype": "Check",
-   "label": "Is Public",
-   "permlevel": 1
+   "label": "Is Public"
   }
  ],
  "links": [],
- "modified": "2020-04-23 13:01:07.178866",
+ "modified": "2020-05-01 15:22:59.119341",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Dashboard Chart",

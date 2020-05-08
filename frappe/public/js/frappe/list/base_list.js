@@ -203,6 +203,7 @@ frappe.views.BaseList = class BaseList {
 		show_sidebar = !show_sidebar;
 		localStorage.show_sidebar = show_sidebar;
 		this.show_or_hide_sidebar();
+		$(document.body).trigger('toggleListSidebar');
 	}
 
 	show_or_hide_sidebar() {

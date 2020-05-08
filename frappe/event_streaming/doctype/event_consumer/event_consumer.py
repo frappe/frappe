@@ -28,11 +28,12 @@ class EventConsumer(Document):
 	def update_consumer_status(self):
 		consumer_site = get_consumer_site(self.callback_url)
 		event_producer = consumer_site.get_doc('Event Producer', get_url())
+		event_producer = frappe._dict(event_producer)
 		config = event_producer.producer_doctypes
 		event_producer.producer_doctypes = []
 		for entry in config:
 			if entry.get('has_mapping'):
-				ref_doctype = consumer_site.get_value('Document Type Mapping', entry.get('mapping'), 'remote_doctype')
+				ref_doctype = consumer_site.get_value('Document Type Mapping', 'remote_doctype',  entry.get('mapping')).get('remote_doctype')
 			else:
 				ref_doctype = entry.get('ref_doctype')
 
