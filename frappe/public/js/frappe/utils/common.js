@@ -359,9 +359,3 @@ frappe.utils.get_page_view_count = function(route) {
 		path: route
 	});
 };
-
-frappe.utils.get_feedback = function(reference_name) {
-	return frappe.call("frappe.website.doctype.feedback.feedback.get_feedback_count", {
-		reference_name: reference_name
-	});
-};

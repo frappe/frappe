@@ -19,8 +19,13 @@
 	<p><br><a href="/{{ category.route }}" class='text-muted small'>
 		{{ _("More articles on {0}").format(category.name) }}</a></p>
 </article>
-<div class="help-article-feedback">
-	{% include 'templates/includes/feedback.html' %}
+<div class="help-article-feedback mb-4">
+	<hr />
+	<div class="feedback-view ">
+		<span class="text-muted small" style="margin-right: 15px;">{{ _("Was this helpful?") }}</span>
+		<button class="feedback btn btn-light btn-sm" data-value="Yes" style="width: 50px;">{{ _("Yes") }}</button>
+		<button class="feedback btn btn-light btn-sm" data-value="No" style="width: 50px;">{{ _("No") }}</button>
+	</div>
 </div>
 <div class="help-article-comments">
 	<hr>
@@ -30,6 +35,23 @@
 <script>
 frappe.ready(function() {
 	frappe.set_search_path("/kb");
+	$(".feedback").click(function() {
+		let args = {
+			article: "{{ reference_name or name }}",
+			helpful: this.getAttribute("data-value"),
+		}
+
+		frappe.call({
+			btn: this,
+			method: "frappe.website.doctype.help_article.help_article.add_feedback",
+			args: args,
+			callback: function(r) {
+				$(".feedback")[0].disabled = true;
+				$(".feedback")[1].disabled = true;
+				frappe.msgprint(__("Feedback Submitted."));
+			}
+		})
+	});
 });
 </script>
 {% endblock %}

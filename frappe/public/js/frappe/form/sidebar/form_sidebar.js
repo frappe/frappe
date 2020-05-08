@@ -93,19 +93,6 @@ frappe.ui.form.Sidebar = Class.extend({
 				});
 			}
 
-			frappe.utils.get_feedback(this.frm.doc.name).then((res) => {
-				this.sidebar
-					.find(".helpful")
-					.html(
-						__("Helpful {0}", [String(res.message.helpful).bold()])
-					);
-				this.sidebar
-					.find(".not-helpful")
-					.html(
-						__("Not Helpful {0}", [String(res.message.not_helpful).bold()])
-					);
-			});
-
 			this.sidebar
 				.find(".modified-by")
 				.html(
