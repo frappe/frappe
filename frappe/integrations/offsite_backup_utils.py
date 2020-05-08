@@ -10,7 +10,7 @@ from frappe.utils import split_emails, get_backups_path
 
 
 def send_email(success, service_name, doctype, email_field, error_status=None):
-	recipients = get_recipients(service_name, email_field)
+	recipients = get_recipients(doctype, email_field)
 	if not recipients:
 		frappe.log_error("No Email Recipient found for {0}".format(service_name),
 				"{0}: Failed to send backup status email".format(service_name))
@@ -36,11 +36,11 @@ def send_email(success, service_name, doctype, email_field, error_status=None):
 	frappe.sendmail(recipients=recipients, subject=subject, message=message)
 
 
-def get_recipients(service_name, email_field):
+def get_recipients(doctype, email_field):
 	if not frappe.db:
 		frappe.connect()
 
-	return split_emails(frappe.db.get_value(service_name, None, email_field))
+	return split_emails(frappe.db.get_value(doctype, None, email_field))
 
 
 def get_latest_backup_file(with_files=False):
