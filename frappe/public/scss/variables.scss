@@ -16,6 +16,119 @@ $body-color: $gray-800 !default;
 $text-muted: $gray-600 !default;
 $border-color: $gray-200 !default;
 
+$border-color: #ECEEF0;
+$brand-primary: #2996F1;
+$erpnext-blue: #2996F1;
+$brand-gradient: linear-gradient(180deg, #2C9AF1 0%, #2490EF 100%);
+$control-bg: #F4F5F6;
+$border-radius: 6px;
+$text-color: #12283A;
+$text-light: #70818F;
+
+:root {
+	--primary: #2490EF;
+	--text-color: #12283A;
+
+	--pink-900: #5B1E34;
+	--pink-800: #702440;
+	--pink-700: #97264F;
+	--pink-600: #D2326D;
+	--pink-500: #F2508B;
+	--pink-400: #F46B9E;
+	--pink-300: #F584AE;
+	--pink-200: #FAB9D1;
+	--pink-100: #FCDCE8;
+	--pink-50 : #FEEDF3;
+
+	--blue-900: #1A4469;
+	--blue-800: #154875;
+	--blue-700: #1366AE;
+	--blue-600: #1579D0;
+	--blue-500: #2490EF;
+	--blue-400: #50A6F2;
+	--blue-300: #7CBCF5;
+	--blue-200: #A7D3F9;
+	--blue-100: #D3E9FC;
+	--blue-50 : #F0F8FE;
+
+	--green-900: #2D401D;
+	--green-800: #44622A;
+	--green-700: #518B21;
+	--green-600: #68AB30;
+	--green-500: #8CCF54;
+	--green-400: #A5D97A;
+	--green-300: #BCE39B;
+	--green-200: #D2ECBD;
+	--green-100: #E9F6DE;
+	--green-50 : #F4FAEE;
+
+	--dark-green-900: #1F3E2B;
+	--dark-green-800: #29593B;
+	--dark-green-700: #286840;
+	--dark-green-600: #2E844E;
+	--dark-green-500: #2F9D58;
+	--dark-green-400: #59B179;
+	--dark-green-300: #82C49B;
+	--dark-green-200: #ACD8BC;
+	--dark-green-100: #DFEEE5;
+	--dark-green-50: #EAF5EE;
+
+	--grey-900: #12283A;
+	--grey-600: #9FA9B2;
+	--grey-700: #70818F;
+	--grey-800: #495D6F;
+	--grey-500: #ACB5BD;
+	--grey-400: #B7BFC6;
+	--grey-300: #CDD2D7;
+	--grey-200: #DDE1E4;
+	--grey-100: #ECEEF0;
+	--grey-50: #F4F5F6;
+
+	--red-900: #631D1D;
+	--red-800: #802121;
+	--red-700: #9B2C2C;
+	--red-600: #C53030;
+	--red-500: #E24C4C;
+	--red-400: #EC645E;
+	--red-300: #FCA4A4;
+	--red-200: #FCC8C8;
+	--red-100: #FFECEC;
+	--red-50 : #FFF5F5;
+
+	--yellow-900: #5F370E;
+	--yellow-800: #744210;
+	--yellow-700: #975A16;
+	--yellow-600: #B7791F;
+	--yellow-500: #D69E2E;
+	--yellow-400: #ECB64B;
+	--yellow-300: #F6C35E;
+	--yellow-200: #FAD489;
+	--yellow-100: #FEE9BF;
+	--yellow-50: #FEF4E2;
+
+	--purple-900: #343360;
+	--purple-800: #45438F;
+	--purple-700: #4946BF;
+	--purple-600: #6461D6;
+	--purple-500: #8684FF;
+	--purple-400: #9897F7;
+	--purple-300: #B9B8FA;
+	--purple-200: #DAD9F7;
+	--purple-100: #EAEAFB;
+	--purple-50: #F2F2FD;
+
+	--grey-2-900: #12283A;
+	--grey-2-800: #344350;
+	--grey-2-700: #4C5D6B;
+	--grey-2-600: #5F7486;
+	--grey-2-500: #8C9AA6;
+	--grey-2-400: #9FA9B2;
+	--grey-2-300: #B7BFC6;
+	--grey-2-200: #CDD2D7;
+	--grey-2-100: #ECEEF0;
+	--grey-2-50: #F4F5F6;
+}
+
 @import "~bootstrap/scss/functions";
 @import "~bootstrap/scss/variables";
 
