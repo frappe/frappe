@@ -87,7 +87,7 @@ def sync_dashboards(app=None):
 			if config:
 				frappe.flags.in_import = True
 				make_records(config.charts, "Dashboard Chart")
-				make_records(config.number_cards, "Number Cards")
+				make_records(config.number_cards, "Number Card")
 				make_records(config.dashboards, "Dashboard")
 				frappe.flags.in_import = False
 
@@ -95,10 +95,13 @@ def make_records(config, doctype):
 	if not config:
 		return
 
-	for item in config:
-		item["doctype"] = doctype
-		import_doc(item)
-		frappe.db.commit()
+	try:
+		for item in config:
+			item["doctype"] = doctype
+			import_doc(item)
+			frappe.db.commit()
+	except frappe.DuplicateEntryError:
+		pass
 
 def get_config(app, module):
 	try:
