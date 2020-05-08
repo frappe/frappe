@@ -36,9 +36,10 @@ def getdate(string_date=None):
 	elif isinstance(string_date, datetime.date):
 		return string_date
 
-	# dateutil parser does not agree with dates like 0001-01-01
-	if not string_date or string_date=="0001-01-01":
+	# dateutil parser does not agree with dates like "0001-01-01" or "0000-00-00"
+	if not string_date or (string_date or "").startswith(("0001-01-01", "0000-00-00")):
 		return None
+
 	return parser.parse(string_date).date()
 
 def get_datetime(datetime_str=None):
