@@ -442,4 +442,4 @@ class DashboardChart(Document):
 			try:
 				json.loads(self.custom_options)
 			except ValueError as error:
-				frappe.throw(_("Invalid json added in the custom options: %s" % error))
+				frappe.throw(_("Invalid json added in the custom options: {0}").format(error))
