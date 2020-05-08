@@ -1,4 +1,5 @@
 {
+ "actions": [],
  "allow_rename": 1,
  "autoname": "Prompt",
  "creation": "2014-07-11 17:18:09.923399",
@@ -23,6 +24,7 @@
   "value_changed",
   "sender",
   "sender_email",
+  "show_in_notifications_dropdown",
   "section_break_9",
   "condition",
   "column_break_6",
@@ -260,10 +262,18 @@
    "fieldtype": "Link",
    "label": "Print Format",
    "options": "Print Format"
+  },
+  {
+   "default": "0",
+   "description": "If enabled, the notification will also show up in the notifications dropdown on the top right corner of the navigation bar.",
+   "fieldname": "show_in_notifications_dropdown",
+   "fieldtype": "Check",
+   "label": "Show in Notifications Dropdown"
   }
  ],
  "icon": "fa fa-envelope",
- "modified": "2019-07-15 13:17:02.585013",
+ "links": [],
+ "modified": "2020-05-06 13:46:21.155535",
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Notification",

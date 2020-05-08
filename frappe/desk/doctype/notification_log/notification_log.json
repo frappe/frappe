@@ -1,4 +1,5 @@
 {
+ "actions": [],
  "creation": "2019-08-26 13:37:34.165254",
  "doctype": "DocType",
  "editable_grid": 1,
@@ -35,7 +36,7 @@
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Type",
-   "options": "Mention\nEnergy Point\nAssignment\nShare",
+   "options": "Mention\nEnergy Point\nAssignment\nShare\nAlert",
    "read_only": 1,
    "search_index": 1
   },
@@ -82,8 +83,9 @@
   }
  ],
  "in_create": 1,
- "modified": "2019-11-12 15:22:35.283678",
- "modified_by": "umair@erpnext.com",
+ "links": [],
+ "modified": "2020-05-08 15:16:36.365285",
+ "modified_by": "Administrator",
  "module": "Desk",
  "name": "Notification Log",
  "owner": "Administrator",

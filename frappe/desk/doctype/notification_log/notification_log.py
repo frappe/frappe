@@ -68,7 +68,7 @@ def make_notification_logs(doc, users):
 				_doc.update(doc)
 				_doc.for_user = user
 				_doc.subject = _doc.subject.replace('<div>', '').replace('</div>', '')
-				if _doc.for_user != _doc.from_user or doc.type == 'Energy Point':
+				if _doc.for_user != _doc.from_user or doc.type == 'Energy Point' or doc.type == 'Alert':
 					_doc.insert(ignore_permissions=True)
 
 def send_notification_email(doc):

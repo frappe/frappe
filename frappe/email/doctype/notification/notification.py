@@ -13,6 +13,7 @@ from frappe.utils.jinja import validate_template
 from frappe.modules.utils import export_module_json, get_doc_module
 from six import string_types
 from frappe.integrations.doctype.slack_webhook_url.slack_webhook_url import send_slack_message
+from frappe.desk.doctype.notification_log.notification_log import enqueue_create_notification
 
 class Notification(Document):
 	def onload(self):
@@ -125,6 +126,9 @@ def get_context(context):
 		if self.channel == 'Slack':
 			self.send_a_slack_msg(doc, context)
 
+		if self.show_in_notifications_dropdown:
+			self.create_drodown_notification(doc, context)
+
 		if self.set_property_after_alert:
 			allow_update = True
 			if doc.docstatus == 1 and not doc.meta.get_field(self.set_property_after_alert).allow_on_submit:
@@ -142,6 +146,23 @@ def get_context(context):
 					doc.flags.in_notification_update = False
 			except Exception:
 				frappe.log_error(title='Document update failed', message=frappe.get_traceback())
+
+	def create_drodown_notification(self, doc, context):
+		subject = self.subject
+		if "{" in subject:
+			subject = frappe.render_template(self.subject, context)
+		subject = '<b>[Alert] </b>' + subject
+
+		recipients, cc, bcc = self.get_list_of_recipients(doc, context)
+		users = recipients + cc + bcc
+
+		notification_doc = {
+			'type': 'Alert',
+			'document_type': doc.doctype,
+			'document_name': doc.name,
+			'subject': subject,
+		}
+		enqueue_create_notification(recipients, notification_doc)
 
 	def send_an_email(self, doc, context):
 		from email.utils import formataddr
