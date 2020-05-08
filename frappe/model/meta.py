@@ -453,9 +453,9 @@ class Meta(Document):
 				link.added = False
 				for group in data.transactions:
 					# group found
-					if group.label == link.label:
-						if not link.link_doctype in group.items:
-							group.items.append(link.link_doctype)
+					if link.get('group') and group.get('label') == link.get('group'):
+						if not link.get('link_doctype') in group.get('items'):
+							group.get('items').append(link.get('link_doctype'))
 						link.added = True
 
 				if not link.added:
