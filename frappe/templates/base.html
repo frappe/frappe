@@ -32,7 +32,7 @@
 			frappe.ready_events.push(fn);
 		}
 		window.dev_server = {{ dev_server }};
-		window.socketio_port = {{ (frappe.socketio_port or (3000 if dev_server else 80)) }};
+		window.socketio_port = {{ (frappe.socketio_port or 'null') }};
     </script>
 </head>
 {% block body %}
