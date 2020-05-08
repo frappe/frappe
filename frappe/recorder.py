@@ -9,12 +9,8 @@ import inspect
 import json
 import re
 import time
-import traceback
 import frappe
 import sqlparse
-from pygments import highlight
-from pygments.lexers import PythonLexer
-from pygments.formatters import HtmlFormatter
 
 from frappe import _
 
@@ -30,7 +26,7 @@ def sql(*args, **kwargs):
 
 	stack = list(get_current_stack_frames())
 
-	if frappe.db.db_type == 'postgres':
+	if frappe.db.db_type == "postgres":
 		query = frappe.db._cursor.query
 	else:
 		query = frappe.db._cursor._executed
@@ -80,7 +76,7 @@ def dump():
 			frappe.local._recorder.dump()
 
 
-class Recorder():
+class Recorder:
 	def __init__(self):
 		self.uuid = frappe.generate_hash(length=10)
 		self.time = datetime.datetime.now()
@@ -102,12 +98,18 @@ class Recorder():
 			"cmd": self.cmd,
 			"time": self.time,
 			"queries": len(self.calls),
-			"time_queries": float("{:0.3f}".format(sum(call["duration"] for call in self.calls))),
-			"duration": float("{:0.3f}".format((datetime.datetime.now() - self.time).total_seconds() * 1000)),
+			"time_queries": float(
+				"{:0.3f}".format(sum(call["duration"] for call in self.calls))
+			),
+			"duration": float(
+				"{:0.3f}".format((datetime.datetime.now() - self.time).total_seconds() * 1000)
+			),
 			"method": self.method,
 		}
 		frappe.cache().hset(RECORDER_REQUEST_SPARSE_HASH, self.uuid, request_data)
-		frappe.publish_realtime(event="recorder-dump-event", message=json.dumps(request_data, default=str))
+		frappe.publish_realtime(
+			event="recorder-dump-event", message=json.dumps(request_data, default=str)
+		)
 
 		self.mark_duplicates()
 
@@ -134,6 +136,7 @@ def do_not_record(function):
 			del frappe.local._recorder
 			frappe.db.sql = frappe.db._sql
 		return function(*args, **kwargs)
+
 	return wrapper
 
 
@@ -142,6 +145,7 @@ def administrator_only(function):
 		if frappe.session.user != "Administrator":
 			frappe.throw(_("Only Administrator is allowed to use Recorder"))
 		return function(*args, **kwargs)
+
 	return wrapper
 
 
