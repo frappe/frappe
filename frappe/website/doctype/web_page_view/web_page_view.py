@@ -19,7 +19,7 @@ def make_view_log(path, referrer=None, browser=None, version=None, url=None, use
 	if referrer.startswith(url):
 		is_unique = False
 
-	if path.startswith('/'):
+	if path != "/" and path.startswith('/'):
 		path = path[1:]
 
 	if is_tracking_enabled():

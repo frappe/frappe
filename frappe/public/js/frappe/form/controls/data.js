@@ -96,6 +96,9 @@ frappe.ui.form.ControlData = frappe.ui.form.ControlInput.extend({
 		if(this.df.options == 'Phone') {
 			this.df.invalid = !validate_phone(v);
 			return v;
+		} else if (this.df.options == 'Name') {
+			this.df.invalid = !validate_name(v);
+			return v;
 		} else if(this.df.options == 'Email') {
 			var email_list = frappe.utils.split_emails(v);
 			if (!email_list) {
