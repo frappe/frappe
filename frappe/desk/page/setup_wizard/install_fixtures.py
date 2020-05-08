@@ -6,12 +6,14 @@ from __future__ import unicode_literals
 import frappe
 from frappe import _
 from frappe.desk.doctype.global_search_settings.global_search_settings import update_global_search_doctypes
+from frappe.utils.dashboard import sync_dashboards
 
 def install():
 	update_genders()
 	update_salutations()
 	update_global_search_doctypes()
 	setup_email_linking()
+	sync_dashboards()
 
 @frappe.whitelist()
 def update_genders():
@@ -35,4 +37,3 @@ def setup_email_linking():
 		"email_id": "email_linking@example.com",
 	})
 	doc.insert(ignore_permissions=True, ignore_if_duplicate=True)
-  
