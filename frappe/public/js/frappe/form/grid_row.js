@@ -299,7 +299,7 @@ export default class GridRow {
 					$(col).find('input[type="Text"]:first').focus();
 				}, 500);
 				
-				var evt_name = me.parent_df.fieldname+"_grid_row_after_click";
+				var evt_name = me.parent_df.fieldname + "_grid_row_after_click";
 				frappe.web_form.events.trigger(evt_name, me);
 				
 				return out;
