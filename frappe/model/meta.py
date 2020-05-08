@@ -460,7 +460,7 @@ class Meta(Document):
 
 				if not link.added:
 					# group not found, make a new group
-					data.transactions.append(dict(
+					data.transactions.append(frappe._dict(
 						label = link.group,
 						items = [link.link_doctype]
 					))
