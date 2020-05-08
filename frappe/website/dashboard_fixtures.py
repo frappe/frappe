@@ -4,7 +4,7 @@ def get_data():
 	return frappe._dict({
 		"dashboards": get_dashboards(),
 		"charts": get_charts(),
-		"number_cards": get_number_cards(),
+		"number_cards": None,
 	})
 
 def get_dashboards():
