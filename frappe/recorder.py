@@ -65,9 +65,6 @@ def get_current_stack_frames():
 				"filename": re.sub(".*/apps/", "", filename),
 				"lineno": lineno,
 				"function": function,
-				"context": "".join(context),
-				"index": index,
-				"locals": json.dumps(frame.f_locals, skipkeys=True, default=str)
 			}
 
 
@@ -175,11 +172,6 @@ def stop(*args, **kwargs):
 def get(uuid=None, *args, **kwargs):
 	if uuid:
 		result = frappe.cache().hget(RECORDER_REQUEST_HASH, uuid)
-		lexer = PythonLexer(tabsize=4)
-		for call in result["calls"]:
-			for stack in call["stack"]:
-				formatter = HtmlFormatter(noclasses=True, hl_lines=[stack["index"] + 1])
-				stack["context"] = highlight(stack["context"], lexer, formatter)
 	else:
 		result = list(frappe.cache().hgetall(RECORDER_REQUEST_SPARSE_HASH).values())
 	return result
