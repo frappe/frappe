@@ -62,8 +62,13 @@ def generate_report_result(report, filters=None, user=None, custom_columns=None)
 		ljust_list(res, 6)
 
 	if report.custom_columns:
+		# Original query columns, needed to reorder data as per custom columns
+		query_columns = columns
+		# Reordered columns
 		columns = json.loads(report.custom_columns)
+		result = reorder_data_for_custom_columns(columns, query_columns, result)
 		result = add_data_to_custom_columns(columns, result)
+
 	if custom_columns:
 		result = add_data_to_custom_columns(custom_columns, result)
 
@@ -207,6 +212,20 @@ def add_data_to_custom_columns(columns, result):
 				row[fieldname] = custom_fields_data.get(key, {}).get(row.get(link_field))
 
 	return data
+
+def reorder_data_for_custom_columns(custom_columns, columns, result):
+	reordered_result = []
+	columns = [col.split(":")[0] for col in columns]
+
+	for res in result:
+		r = []
+		for col in custom_columns:
+			idx = columns.index(col.get("label"))
+			r.append(res[idx])
+
+		reordered_result.append(r)
+
+	return reordered_result
 
 def get_prepared_report_result(report, filters, dn="", user=None):
 	latest_report_data = {}
