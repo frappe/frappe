@@ -1,6 +1,5 @@
 {
  "actions": [],
- "autoname": "CARD.#####",
  "creation": "2020-04-15 18:06:39.444683",
  "doctype": "DocType",
  "editable_grid": 1,
@@ -99,7 +98,7 @@
   }
  ],
  "links": [],
- "modified": "2020-05-01 15:23:29.550243",
+ "modified": "2020-05-06 19:47:57.753574",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Number Card",
