@@ -161,20 +161,17 @@
    "label": "Footer"
   },
   {
-   "depends_on": "eval:doc.footer_type==='Standard'",
    "fieldname": "copyright",
    "fieldtype": "Data",
    "label": "Copyright"
   },
   {
-   "depends_on": "eval:doc.footer_type==='Standard'",
    "description": "Address and other legal information you may want to put in the footer.",
    "fieldname": "address",
    "fieldtype": "Text Editor",
    "label": "Address"
   },
   {
-   "depends_on": "eval:doc.footer_type==='Standard'",
    "fieldname": "footer_items",
    "fieldtype": "Table",
    "label": "Footer Items",
@@ -182,7 +179,6 @@
   },
   {
    "default": "0",
-   "depends_on": "eval:doc.footer_type==='Standard'",
    "fieldname": "hide_footer_signup",
    "fieldtype": "Check",
    "label": "Hide Footer Signup"
@@ -337,7 +333,7 @@
  "issingle": 1,
  "links": [],
  "max_attachments": 10,
- "modified": "2020-04-30 12:37:44.070662",
+ "modified": "2020-05-09 14:17:23.271806",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Website Settings",
