@@ -1020,7 +1020,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 					name: __('Totals Row'),
 					content: totals[col.id],
 					format: value => {
-						return frappe.format(value, col.docfield, { always_show_decimals: true });
+						return frappe.format(value, col.docfield, { always_show_decimals: true }, data[0]);
 					}
 				}
 			})
