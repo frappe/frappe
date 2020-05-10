@@ -452,6 +452,7 @@ class Meta(Document):
 			for link in self.links:
 				link.added = False
 				for group in data.transactions:
+					group = frappe._dict(group)
 					# group found
 					if link.group and group.label == link.group:
 						if link.link_doctype not in group.get('items'):
@@ -460,7 +461,7 @@ class Meta(Document):
 
 				if not link.added:
 					# group not found, make a new group
-					data.transactions.append(frappe._dict(
+					data.transactions.append(dict(
 						label = link.group,
 						items = [link.link_doctype]
 					))
