@@ -184,13 +184,7 @@ frappe.ui.form.Form = class FrappeForm {
 		frappe.model.on(me.doctype, "*", function(fieldname, value, doc) {
 			// set input
 			if(doc.name===me.docname) {
-				if ((value==='' || value===null) && !doc[fieldname]) {
-					// both the incoming and outgoing values are falsy
-					// the texteditor, summernote, changes nulls to empty strings on render,
-					// so ignore those changes
-				} else {
-					me.dirty();
-				}
+				me.dirty();
 
 				let field = me.fields_dict[fieldname];
 				field && field.refresh(fieldname);
@@ -445,6 +439,7 @@ frappe.ui.form.Form = class FrappeForm {
 						return this.script_manager.trigger("onload_post_render");
 					}
 				},
+				() => this.run_after_load_hook(),
 				() => this.dashboard.after_refresh()
 			]);
 			// focus on first input
@@ -466,6 +461,15 @@ frappe.ui.form.Form = class FrappeForm {
 		}
 
 		this.scroll_to_element();
+	}
+
+	run_after_load_hook() {
+		if (frappe.route_options.after_load) {
+			let route_callback = frappe.route_options.after_load;
+			delete frappe.route_options.after_load;
+
+			route_callback(this);
+		}
 	}
 
 	refresh_fields() {
@@ -575,6 +579,13 @@ frappe.ui.form.Form = class FrappeForm {
 				}
 
 				me.script_manager.trigger("after_save");
+
+				if (frappe.route_options.after_save) {
+					let route_callback = frappe.route_options.after_save;
+					delete frappe.route_options.after_save;
+
+					route_callback(me);
+				}
 				// submit comment if entered
 				if (me.timeline) {
 					me.timeline.comment_area.submit();
@@ -1052,7 +1063,7 @@ frappe.ui.form.Form = class FrappeForm {
 	}
 
 	is_dirty() {
-		return this.doc.__unsaved;
+		return !!this.doc.__unsaved;
 	}
 
 	is_new() {
@@ -1536,7 +1547,7 @@ frappe.ui.form.Form = class FrappeForm {
 		}
 
 		// scroll to input
-		frappe.utils.scroll_to($el);
+		frappe.utils.scroll_to($el, true, 15);
 
 		// highlight input
 		$el.addClass('has-error');

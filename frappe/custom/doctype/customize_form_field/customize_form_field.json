@@ -16,6 +16,7 @@
   "in_list_view",
   "in_standard_filter",
   "in_global_search",
+  "in_preview",
   "bold",
   "allow_in_quick_entry",
   "translatable",
@@ -93,6 +94,7 @@
   },
   {
    "default": "0",
+   "depends_on": "eval:!in_list([\"Section Break\", \"Column Break\", \"Button\", \"HTML\"], doc.fieldtype)",
    "fieldname": "reqd",
    "fieldtype": "Check",
    "label": "Mandatory",
@@ -380,12 +382,18 @@
    "fieldtype": "Code",
    "label": "Read Only Depends On",
    "options": "JS"
+  },
+  {
+   "default": "0",
+   "fieldname": "in_preview",
+   "fieldtype": "Check",
+   "label": "In Preview"
   }
  ],
  "idx": 1,
  "istable": 1,
  "links": [],
- "modified": "2020-04-07 14:53:40.619043",
+ "modified": "2020-04-10 11:58:44.573537",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Customize Form Field",

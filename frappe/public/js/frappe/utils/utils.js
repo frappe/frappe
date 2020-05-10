@@ -237,6 +237,9 @@ Object.assign(frappe.utils, {
 			case "phone":
 				regExp = /^([0-9\ \+\_\-\,\.\*\#\(\)]){1,20}$/;
 				break;
+			case "name":
+				regExp = /^[\w][\w'-]*([ \w][\w'-]+)*$/;
+				break;
 			case "number":
 				regExp = /^-?(?:\d+|\d{1,3}(?:,\d{3})+)?(?:\.\d+)?$/;
 				break;
@@ -675,7 +678,9 @@ Object.assign(frappe.utils, {
 		return __(frappe.utils.to_title_case(route[0], true));
 	},
 	report_column_total: function(values, column, type) {
-		if (values.length > 0) {
+		if (column.column.disable_total) {
+			return '';
+		} else if (values.length > 0) {
 			if (column.column.fieldtype == "Percent" || type === "mean") {
 				return values.reduce((a, b) => a + flt(b)) / values.length;
 			} else if (column.column.fieldtype == "Int") {
@@ -690,7 +695,32 @@ Object.assign(frappe.utils, {
 			return null;
 		}
 	},
+	setup_search($wrapper, el_class, text_class, data_attr) {
+		const $search_input = $wrapper.find('[data-element="search"]').show();
+		$search_input.focus().val('');
+		const $elements = $wrapper.find(el_class).show();
 
+		$search_input.off('keyup').on('keyup', () => {
+			let text_filter = $search_input.val().toLowerCase();
+			// Replace trailing and leading spaces
+			text_filter = text_filter.replace(/^\s+|\s+$/g, '');
+			for (let i = 0; i < $elements.length; i++) {
+				const text_element = $elements.eq(i).find(text_class);
+				const text = text_element.text().toLowerCase();
+
+				let name = '';
+				if (data_attr && text_element.attr(data_attr)) {
+					name = text_element.attr(data_attr).toLowerCase();
+				}
+
+				if (text.includes(text_filter) || name.includes(text_filter)) {
+					$elements.eq(i).css('display', '');
+				} else {
+					$elements.eq(i).css('display', 'none');
+				}
+			}
+		});
+	},
 	deep_equal(a, b) {
 		return deep_equal(a, b);
 	},
@@ -743,6 +773,35 @@ Object.assign(frappe.utils, {
 		});
 
 		return $el;
+	},
+
+	get_browser() {
+		var ua = navigator.userAgent,
+			tem,
+			M =
+				ua.match(
+					/(opera|chrome|safari|firefox|msie|trident(?=\/))\/?\s*(\d+)/i
+				) || [];
+		if (/trident/i.test(M[1])) {
+			tem = /\brv[ :]+(\d+)/g.exec(ua) || [];
+			return { name: "IE", version: tem[1] || "" };
+		}
+		if (M[1] === "Chrome") {
+			tem = ua.match(/\bOPR|Edge\/(\d+)/);
+			if (tem != null) {
+				return { name: "Opera", version: tem[1] };
+			}
+		}
+		M = M[2]
+			? [M[1], M[2]]
+			: [navigator.appName, navigator.appVersion, "-?"];
+		if ((tem = ua.match(/version\/(\d+)/i)) != null) {
+			M.splice(1, 1, tem[1]);
+		}
+		return {
+			name: M[0],
+			version: M[1],
+		};
 	}
 });
 

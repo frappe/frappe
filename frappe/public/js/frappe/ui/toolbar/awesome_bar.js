@@ -176,7 +176,7 @@ frappe.search.AwesomeBar = Class.extend({
 			frappe.search.utils.get_doctypes(txt),
 			frappe.search.utils.get_reports(txt),
 			frappe.search.utils.get_pages(txt),
-			frappe.search.utils.get_modules(txt),
+			frappe.search.utils.get_workspaces(txt),
 			frappe.search.utils.get_recent_pages(txt || ""),
 			frappe.search.utils.get_executables(txt)
 		);

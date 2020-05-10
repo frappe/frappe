@@ -41,6 +41,7 @@
   "in_list_view",
   "in_standard_filter",
   "in_global_search",
+  "in_preview",
   "bold",
   "report_hide",
   "search_index",
@@ -371,12 +372,18 @@
    "fieldname": "allow_in_quick_entry",
    "fieldtype": "Check",
    "label": "Allow in Quick Entry"
+  },
+  {
+   "default": "0",
+   "fieldname": "in_preview",
+   "fieldtype": "Check",
+   "label": "In Preview"
   }
  ],
  "icon": "fa fa-glass",
  "idx": 1,
  "links": [],
- "modified": "2020-03-16 14:52:43.954709",
+ "modified": "2020-04-10 11:57:10.392218",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Custom Field",

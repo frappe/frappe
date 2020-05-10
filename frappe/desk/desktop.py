@@ -34,6 +34,8 @@ class Workspace:
 		self.user = user
 		self.allowed_pages = get_allowed_pages()
 		self.allowed_reports = get_allowed_reports()
+		self.onboarding_doc = self.get_onboarding_doc()
+		self.onboarding = None
 
 		self.table_counts = get_table_with_counts()
 		self.restricted_doctypes = frappe.cache().get_value("domain_restricted_doctypes") or build_domain_restriced_doctype_cache()
@@ -50,6 +52,31 @@ class Workspace:
 
 		self.get_pages_to_extend()
 		return frappe.get_doc("Desk Page", self.page_name)
+
+	def get_onboarding_doc(self):
+		# Check if onboarding is enabled
+		if not frappe.get_system_settings("enable_onboarding"):
+			return None
+
+		if not self.doc.onboarding:
+			return None
+
+		if frappe.db.get_value("Onboarding", self.doc.onboarding, "is_complete"):
+			return None
+
+		doc = frappe.get_doc("Onboarding", self.doc.onboarding)
+
+		# Check if user is allowed
+		allowed_roles = set(doc.get_allowed_roles())
+		user_roles = set(self.user.get_roles())
+		if not allowed_roles & user_roles:
+			return None
+
+		# Check if already complete
+		if doc.check_completion():
+			return None
+
+		return doc
 
 	def get_pages_to_extend(self):
 		pages = frappe.get_all("Desk Page", filters={
@@ -95,6 +122,16 @@ class Workspace:
 			'label': _(self.doc.shortcuts_label),
 			'items': self.get_shortcuts()
 		}
+
+		if self.onboarding_doc:
+			self.onboarding = {
+				'label': _(self.onboarding_doc.title),
+				'subtitle': _(self.onboarding_doc.subtitle),
+				'success': _(self.onboarding_doc.success_message),
+				'docs_url': self.onboarding_doc.documentation_url,
+				'user_can_dismiss': self.onboarding_doc.user_can_dismiss,
+				'items': self.get_onboarding_steps()
+			}
 
 	def get_cards(self):
 		cards = self.doc.cards + get_custom_reports_and_doctypes(self.doc.module)
@@ -207,6 +244,16 @@ class Workspace:
 
 		return items
 
+	def get_onboarding_steps(self):
+		steps = []
+		for doc in self.onboarding_doc.get_steps():
+			step = doc.as_dict().copy()
+			step.label = _(doc.title)
+			steps.append(step)
+
+		return steps
+
+
 @frappe.whitelist()
 @frappe.read_only()
 def get_desktop_page(page):
@@ -226,6 +273,7 @@ def get_desktop_page(page):
 			'charts': wspace.charts,
 			'shortcuts': wspace.shortcuts,
 			'cards': wspace.cards,
+			'onboarding': wspace.onboarding,
 			'allow_customization': not wspace.doc.disable_user_customization
 		}
 
@@ -235,7 +283,7 @@ def get_desktop_page(page):
 		return None
 
 @frappe.whitelist()
-def get_desk_sidebar_items():
+def get_desk_sidebar_items(flatten=False):
 	"""Get list of sidebar items for desk
 	"""
 	# don't get domain restricted pages
@@ -255,6 +303,8 @@ def get_desk_sidebar_items():
 	# pages sorted based on pinned to top and then by name
 	order_by = "pin_to_top desc, pin_to_bottom asc, name asc"
 	pages = frappe.get_all("Desk Page", fields=["name", "category"], filters=filters, order_by=order_by, ignore_permissions=True)
+	if flatten:
+		return pages
 
 	from collections import defaultdict
 	sidebar_items = defaultdict(list)
@@ -276,9 +326,13 @@ def get_table_with_counts():
 def get_custom_reports_and_doctypes(module):
 	return [
 		_dict({
-			"label": "Custom",
-			"links": get_custom_doctype_list(module) + get_custom_report_list(module)
-		})
+			"label": _("Custom Documents"),
+			"links": get_custom_doctype_list(module)
+		}),
+		_dict({
+			"label": _("Custom Reports"),
+			"links": get_custom_report_list(module)
+		}),
 	]
 
 def get_custom_doctype_list(module):
@@ -354,16 +408,19 @@ def save_customization(page, config):
 		"charts_label": original_page.charts_label,
 		"cards_label": original_page.cards_label,
 		"shortcuts_label": original_page.shortcuts_label,
-		"icon": original_page.icon,
 		"module": original_page.module,
+		"onboarding": original_page.onboarding,
 		"developer_mode_only": original_page.developer_mode_only,
 		"category": original_page.category
 	})
 
 	config = _dict(loads(config))
-	page_doc.charts = prepare_widget(config.charts, "Desk Chart", "charts")
-	page_doc.shortcuts = prepare_widget(config.shortcuts, "Desk Shortcut", "shortcuts")
-	page_doc.cards = prepare_widget(config.cards, "Desk Card", "cards")
+	if config.charts:
+		page_doc.charts = prepare_widget(config.charts, "Desk Chart", "charts")
+	if config.shortcuts:
+		page_doc.shortcuts = prepare_widget(config.shortcuts, "Desk Shortcut", "shortcuts")
+	if config.cards:
+		page_doc.cards = prepare_widget(config.cards, "Desk Card", "cards")
 
 	# Set label
 	page_doc.label = page + '-' + frappe.session.user
@@ -401,6 +458,8 @@ def prepare_widget(config, doctype, parentfield):
 	Returns:
 		TYPE: List of Document objects
 	"""
+	if not config:
+		return []
 	order = config.get('order')
 	widgets = config.get('widgets')
 	prepare_widget_list = []
@@ -421,3 +480,16 @@ def prepare_widget(config, doctype, parentfield):
 
 		prepare_widget_list.append(doc)
 	return prepare_widget_list
+
+
+@frappe.whitelist()
+def update_onboarding_step(name, field, value):
+	"""Update status of onboaridng step
+
+	Args:
+	    name (string): Name of the doc
+	    field (string): field to be updated
+	    value: Value to be updated
+
+	"""
+	frappe.db.set_value("Onboarding Step", name, field, value)

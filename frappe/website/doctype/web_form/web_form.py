@@ -156,6 +156,9 @@ def get_context(context):
 						# only a single doc allowed and no existing doc, hence new
 						frappe.form_dict.new = 1
 
+		if frappe.form_dict.is_list:
+			context.is_list = True
+
 		# always render new form if login is not required or doesn't allow editing existing ones
 		if not self.login_required or not self.allow_edit:
 			frappe.form_dict.new = 1
