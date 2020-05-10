@@ -8,6 +8,7 @@ from frappe import _
 from frappe.website.website_generator import WebsiteGenerator
 from frappe.website.render import clear_cache
 from frappe.utils import today, cint, global_date_format, get_fullname, strip_html_tags, markdown, sanitize_html
+from math import ceil
 from frappe.website.utils import (find_first_image, get_html_content_based_on_type,
 	get_comment_list)
 
@@ -42,6 +43,8 @@ class BlogPost(WebsiteGenerator):
 		frappe.db.sql("""UPDATE `tabBlogger` SET `posts`=(SELECT COUNT(*) FROM `tabBlog Post`
 			WHERE IFNULL(`blogger`,'')=`tabBlogger`.`name`)
 			WHERE `name`=%s""", (self.blogger,))
+
+		self.set_read_time()
 
 	def on_update(self):
 		super(BlogPost, self).on_update()
@@ -96,6 +99,14 @@ class BlogPost(WebsiteGenerator):
 				context.comment_text = _('1 comment')
 			else:
 				context.comment_text = _('{0} comments').format(len(context.comment_list))
+
+	def set_read_time(self):
+		content = self.content or self.content_html
+		if self.content_type == "Markdown":
+			content = markdown(self.content_md)
+
+		total_words = len(strip_html_tags(content).split())
+		self.read_time = ceil(total_words/250)
 
 def get_list_context(context=None):
 	list_context = frappe._dict(
@@ -165,7 +176,7 @@ def get_blog_list(doctype, txt=None, filters=None, limit_start=0, limit_page_len
 
 	query = """\
 		select
-			t1.title, t1.name, t1.blog_category, t1.route, t1.published_on,
+			t1.title, t1.name, t1.blog_category, t1.route, t1.published_on, t1.read_time,
 				t1.published_on as creation,
 				t1.content as content,
 				t1.content_type as content_type,

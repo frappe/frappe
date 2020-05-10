@@ -232,7 +232,7 @@ def get_translation_dict_from_file(path, lang, app):
 
 		for item in csv_content:
 			if len(item)==3 and item[2]:
-				key = item[1] + ':' + item[2]
+				key = item[0] + ':' + item[2]
 				translation_map[key] = strip(item[1])
 			elif len(item) in [2, 3]:
 				translation_map[item[0]] = strip(item[1])
