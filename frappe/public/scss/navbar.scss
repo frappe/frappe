@@ -1,0 +1,42 @@
+.navbar {
+	padding-left: 0;
+	padding-right: 0;
+
+	background: white;
+	box-shadow: $box-shadow;
+
+	.container {
+		padding-left: 15px;
+		padding-right: 15px;
+	}
+}
+
+.navbar.bg-dark {
+	.dropdown-menu {
+		font-size: .75rem;
+		background-color: $dark;
+		border-radius: 0;
+	}
+
+	.nav-link {
+		white-space: nowrap;
+		color: $light;
+
+		&:hover {
+			color: $primary;
+		}
+	}
+
+	.nav-item {
+		padding: 0rem 1rem;
+	}
+
+	.dropdown-item {
+		color: $light;
+
+		&:hover {
+			background-color: $dark;
+			color: $primary;
+		}
+	}
+}

@@ -1,0 +1,17 @@
+.form-section {
+	margin-right: -45px;
+}
+
+.form-control {
+	border: none;
+	background-color: $control-bg;
+	color: $text-light;
+	box-shadow: none;
+	border-radius: $border-radius;
+}
+
+.form-section .section-body {
+	width: 100%;
+	padding: 15px;
+	@extend .row;
+}
