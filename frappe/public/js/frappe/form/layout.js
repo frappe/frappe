@@ -309,13 +309,13 @@ frappe.ui.form.Layout = Class.extend({
 	},
 
 	refresh_section_border: function() {
-		if(!this.doc) return;
+		if (!this.doc) return;
 		this.sections.forEach(section => {
 			const df = section.df;
 			if (df && cint(df.hide_border)) {
 				section.hide_border(true);
 			}
-		})
+		});
 	},
 
 	attach_doc_and_docfields: function(refresh) {
