@@ -83,6 +83,7 @@ def get_safe_globals():
 			make_post_request = frappe.integrations.utils.make_post_request,
 			socketio_port=frappe.conf.socketio_port,
 			get_hooks=frappe.get_hooks,
+			sanitize_html=frappe.utils.sanitize_html
 		),
 		style=frappe._dict(
 			border_color='#d1d8dd'
