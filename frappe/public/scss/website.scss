@@ -55,6 +55,14 @@
 	}
 }
 
+.dropdown-menu {
+	padding: 0.25rem;
+}
+
+.dropdown-item {
+	border-radius: $dropdown-border-radius;
+}
+
 .navbar.bg-dark {
 	.dropdown-menu {
 		font-size: 0.75rem;
@@ -83,14 +91,6 @@
 			color: $primary;
 		}
 	}
-}
-
-.dropdown-menu {
-	padding: 0.25rem;
-}
-
-.dropdown-item {
-	border-radius: $dropdown-border-radius;
 }
 
 .input-dark {
@@ -137,6 +137,16 @@ a.card {
 	height: 2rem;
 }
 
+.footer-link, .footer-child-item a {
+	font-weight: 500;
+	color: $gray-900;
+
+	&:hover {
+		color: $primary;
+		text-decoration: none;
+	}
+}
+
 .footer-col-left, .footer-col-right {
 	padding-top: 1rem;
 	padding-bottom: 1rem;
@@ -157,16 +167,6 @@ a.card {
 	@include media-breakpoint-up(sm) {
 		margin-right: 0;
 		margin-left: 1rem;
-	}
-}
-
-.footer-link, .footer-child-item a {
-	font-weight: 500;
-	color: $gray-900;
-
-	&:hover {
-		color: $primary;
-		text-decoration: none;
 	}
 }
 

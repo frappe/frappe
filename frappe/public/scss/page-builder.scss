@@ -156,13 +156,6 @@
 }
 
 .nav-tabs {
-	.nav-link.active,
-	.nav-item.show .nav-link {
-		color: darken($primary, 5%);
-		background-color: #fff;
-		border-bottom: 2px solid $primary;
-	}
-
 	.nav-link {
 		color: $gray-700;
 		font-weight: 500;
@@ -173,6 +166,13 @@
 		&:hover {
 			color: $primary;
 		}
+	}
+
+	.nav-link.active,
+	.nav-item.show .nav-link {
+		color: darken($primary, 5%);
+		background-color: #fff;
+		border-bottom: 2px solid $primary;
 	}
 }
 
