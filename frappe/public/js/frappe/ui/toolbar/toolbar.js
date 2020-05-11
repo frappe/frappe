@@ -12,7 +12,7 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 		$('.dropdown-toggle').dropdown();
 
 		let awesome_bar = new frappe.search.AwesomeBar();
-		awesome_bar.setup("#navbar-search");
+		// awesome_bar.setup("#navbar-search");
 		awesome_bar.setup("#modal-search");
 
 		this.setup_notifications();
