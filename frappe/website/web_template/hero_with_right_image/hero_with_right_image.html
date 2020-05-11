@@ -24,10 +24,10 @@
 		</div>
 	</div>
 	{%- if image -%}
-	{{ c('image_with_blur',
-		class=["hero-image", "contain-image" if contain_image else ""],
-		src=image,
-		alt="")
-	}}
+	{{ frappe.render_template('templates/includes/image_with_blur.html', {
+		"src": image,
+		"alt": "",
+		"class": ["hero-image", "contain-image" if contain_image else ""]
+	}) }}
 	{%- endif -%}
 </div>
