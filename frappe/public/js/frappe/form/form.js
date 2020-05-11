@@ -1556,6 +1556,35 @@ frappe.ui.form.Form = class FrappeForm {
 			$el.find('input, select, textarea').focus();
 		}, 1000);
 	}
+
+	show_tour() {
+		if (!frappe.tour.hasOwnProperty(this.doctype) || !Array.isArray(frappe.tour[this.doctype])) {
+			return
+		}
+
+		const driver = new frappe.Driver({
+			overlayClickNext: true,
+			keyboardControl: true,
+			nextBtnText: 'Next',              // Next button text for this step
+  			prevBtnText: 'Previous',
+		});
+
+		let steps = frappe.tour[this.doctype].map(step => {
+			let field = this.get_docfield(step.fieldname);
+			return {
+				element: `.frappe-control[title='${step.fieldname}']`,
+				popover: {
+					title: step.title || field.label,
+					description: step.description
+				}
+			}
+		});
+
+		console.log(steps);
+
+		driver.defineSteps(steps);
+		driver.start();
+	}
 };
 
 frappe.validated = 0;
