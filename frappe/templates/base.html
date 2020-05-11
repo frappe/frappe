@@ -25,7 +25,7 @@
 		{{ head_html or "" }}
 		{%- endif %}
 
-		{%- if theme.theme_url -%}
+		{%- if theme.name != 'Standard' -%}
 		<link type="text/css" rel="stylesheet" href="{{ theme.theme_url }}">
 		{%- else -%}
 		<link type="text/css" rel="stylesheet" href="/assets/css/frappe-web-b4.css">
@@ -62,11 +62,7 @@
 	{%- endblock -%}
 
 	{%- block navbar -%}
-		{%- if navbar_content -%}
-			{{ navbar_content }}
-		{%- else -%}
-			{% include "templates/includes/navbar/navbar.html" %}
-		{%- endif -%}
+		{% include "templates/includes/navbar/navbar.html" %}
 	{%- endblock -%}
 
 	{% block content %}
@@ -74,11 +70,7 @@
 	{% endblock %}
 
 	{%- block footer -%}
-		{%- if footer_content -%}
-			{{ footer_content }}
-		{%- else -%}
-			{% include "templates/includes/footer/footer.html" %}
-		{%- endif -%}
+		{% include "templates/includes/footer/footer.html" %}
 	{%- endblock -%}
 
 	{% block base_scripts %}
