@@ -1557,7 +1557,7 @@ frappe.ui.form.Form = class FrappeForm {
 		}, 1000);
 	}
 
-	show_tour() {
+	show_tour(on_finish) {
 		if (!frappe.tour.hasOwnProperty(this.doctype) || !Array.isArray(frappe.tour[this.doctype])) {
 			return
 		}
@@ -1567,6 +1567,12 @@ frappe.ui.form.Form = class FrappeForm {
 			keyboardControl: true,
 			nextBtnText: 'Next',              // Next button text for this step
   			prevBtnText: 'Previous',
+  			opacity: 0.25,
+  			onNext: (el) => {
+  				if (!driver.hasNextStep()) {
+  					on_finish && on_finish();
+  				}
+  			}
 		});
 
 		this.layout.sections.forEach(section => section.collapse(false))

@@ -57,6 +57,7 @@ export default class OnboardingWidget extends Widget {
 		let actions = {
 			"Watch Video": () => this.show_video(step),
 			"Create Entry": () => this.show_quick_entry(step),
+			"Show Form Tour": () => this.show_form_tour(step),
 			"Update Settings": () => this.update_settings(step),
 			"View Report": () => this.open_report(step),
 		};
@@ -86,7 +87,9 @@ export default class OnboardingWidget extends Widget {
 				primary_action: {
 					action: () => {
 						msg_dialog.hide();
-						this.mark_complete(step);
+						frappe.set_route(current_route).then(() => {
+							this.mark_complete(step);
+						});
 					},
 					label: () => __("Continue"),
 				},
@@ -103,6 +106,36 @@ export default class OnboardingWidget extends Widget {
 
 			frappe.msg_dialog.custom_onhide = () => this.mark_complete(step);
 		});
+	}
+
+	show_form_tour(step) {
+		let route;
+		if (step.is_single) {
+			route = `Form/${step.reference_document}`
+		} else {
+			route = `Form/${step.reference_document}/New ${step.reference_document}`
+		}
+
+		frappe.route_options = {};
+		frappe.route_options.after_load = (frm) => {
+			frm.show_tour(() => {
+				let msg_dialog = frappe.msgprint({
+					message: __("Let's take you back to onboarding"),
+					title: __("Great Job"),
+					primary_action: {
+						action: () => {
+							frappe.set_route(current_route).then(() => {
+								this.mark_complete(step);
+							});
+							msg_dialog.hide();
+						},
+						label: () => __("Continue"),
+					}
+				});
+			});
+		};
+
+		frappe.set_route(route)
 	}
 
 	update_settings(step) {
