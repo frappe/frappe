@@ -1,47 +1,41 @@
 {%- macro card(title, content, url) -%}
+{%- set col_classes = resolve_class({
+	'col-12 col-sm-6 col-lg-3': card_size == 'Small',
+	'col-12 col-sm-6 col-lg-4': card_size == 'Medium',
+	'col-12 col-md-6': card_size == 'Large',
+}) -%}
 {%- set card_classes = resolve_class({
-	'p-6': card_size == 'Small',
-	'p-7': card_size == 'Medium',
-	'p-8': card_size == 'Large'
+	'card-sm': card_size == 'Small',
+	'card-md': card_size == 'Medium',
+	'card-lg': card_size == 'Large'
 }) -%}
-{%- set title_classes = resolve_class({
-	'text-base font-semibold': card_size == 'Small',
-	'text-lg md:text-xl font-semibold': card_size == 'Medium',
-	'text-xl md:text-2xl font-bold': card_size == 'Large'
-}) -%}
-{%- set content_classes = resolve_class({
-	'text-sm': card_size == 'Small',
-	'text-base': card_size == 'Medium',
-	'text-base xxl:text-lg': card_size == 'Large'
-}) -%}
-
-<a href="{{ url or '#' }}"
-	class="block bg-white border rounded-xl hover:border-gray-600 {{ card_classes }}">
-	<h3 class="leading-none {{ title_classes }}">{{ title }}</h3>
-	<p class="mt-4 text-gray-900 {{ content_classes }}">{{ content or '' }}</p>
-</a>
+<div class="mt-4 {{ col_classes }}">
+	<div class="card {{ card_classes }} h-100">
+		<div class="card-body">
+			<h3 class="card-title">{{ title or '' }}</h3>
+			<p class="card-text">{{ content or '' }}</p>
+		</div>
+		<a href="{{ url or '#' }}" class="stretched-link"></a>
+	</div>
+</div>
 {%- endmacro -%}
 
 {%- if title -%}
-<h2 class="text-xl font-bold sm:text-2xl md:text-3xl">{{ title }}</h2>
+<h2 class="section-title">{{ title }}</h2>
 {%- endif -%}
 {%- if subtitle -%}
-<p class="mt-2 text-base text-gray-900 sm:text-lg max-x-4xl">{{ subtitle }}</p>
+<p class="section-description">{{ subtitle }}</p>
 {%- endif -%}
 {%- set card_size = card_size or 'Small' -%}
-{%- set classes = resolve_class({
-	'mt-8': title,
-	'sm:grid-cols-2 lg:grid-cols-4': card_size == 'Small',
-	'sm:grid-cols-2 lg:grid-cols-3': card_size == 'Medium',
-	'sm:grid-cols-2': card_size == 'Large',
-}) -%}
-<div class="grid grid-cols-1 gap-4 md:gap-6 xl:gap-8 {{ classes }}">
-	{%- for index in ['1', '2', '3', '4', '5', '6', '7', '8'] -%}
-	{%- set title = values['card_' + index + '_title'] -%}
-	{%- set content = values['card_' + index + '_content'] -%}
-	{%- set url = values['card_' + index + '_url'] -%}
-	{%- if title -%}
-	{{ card(title, content, url) }}
-	{%- endif -%}
-	{%- endfor -%}
+<div class="{{ resolve_class({'mt-4': title}) }}">
+	<div class="row mt-n4">
+		{%- for index in ['1', '2', '3', '4', '5', '6', '7', '8'] -%}
+		{%- set title = values['card_' + index + '_title'] -%}
+		{%- set content = values['card_' + index + '_content'] -%}
+		{%- set url = values['card_' + index + '_url'] -%}
+		{%- if title -%}
+		{{ card(title, content, url) }}
+		{%- endif -%}
+		{%- endfor -%}
+	</div>
 </div>

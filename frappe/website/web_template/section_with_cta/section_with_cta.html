@@ -1,21 +1,19 @@
-<div class="relative">
-	<div class="px-8 py-12 text-center sm:px-12 md:py-20 bg-primary-100 rounded-xl">
-		<h2 class="max-w-xl mx-auto text-2xl font-extrabold leading-tight md:text-4xl">{{ title }}</h2>
-		<p class="max-w-xl mx-auto mt-2 text-base text-gray-900 md:text-lg">{{ subtitle }}</p>
-		<p class="mt-8">
-			{{ c('button', label=cta_label, url=cta_url, variant="primary", size="large") }}
-		</p>
+<div class="section-cta-container">
+	<div class="section-cta">
+		<h2 class="title">{{ title }}</h2>
+		<p class="subtitle">{{ subtitle }}</p>
+		<div class="mt-4">
+			<a href="{{ cta_url }}" class="btn btn-lg btn-primary">{{ cta_label }}</a>
+		</div>
 		{%- if cta_description -%}
-		<div class="max-w-xl mx-auto mt-2 text-xs text-gray-900">
+		<div class="description">
 			{{ cta_description }}
 		</div>
 		{%- endif -%}
 	</div>
 	{%- if show_confetti -%}
-	<div>
-		<div class="absolute top-0 w-5 h-5 -mt-2 bg-green-300 rounded-full left-1/4"></div>
-		<div class="absolute w-4 h-4 bg-orange-300 rounded-full top-2/3 right-1/6"></div>
-		<div class="absolute bottom-0 w-4 h-4 -mb-2 bg-red-300 rounded-full left-1/6"></div>
-	</div>
+		<div class="confetti confetti-1"></div>
+		<div class="confetti confetti-2"></div>
+		<div class="confetti confetti-3"></div>
 	{%- endif -%}
 </div>
