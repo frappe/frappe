@@ -25,6 +25,7 @@
   "sender",
   "sender_email",
   "show_in_notifications_dropdown",
+  "disable_channel",
   "section_break_9",
   "condition",
   "column_break_6",
@@ -265,15 +266,23 @@
   },
   {
    "default": "0",
-   "description": "If enabled, the notification will also show up in the notifications dropdown on the top right corner of the navigation bar.",
+   "description": "If enabled, the notification will show up in the notifications dropdown on the top right corner of the navigation bar.",
    "fieldname": "show_in_notifications_dropdown",
    "fieldtype": "Check",
    "label": "Show in Notifications Dropdown"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval: doc.show_in_notifications_dropdown",
+   "description": "If enabled, the channel set for the Notification will be disabled. The Notification will only be received in the Notifications Dropdown.",
+   "fieldname": "disable_channel",
+   "fieldtype": "Check",
+   "label": "Disable Channel"
   }
  ],
  "icon": "fa fa-envelope",
  "links": [],
- "modified": "2020-05-06 13:46:21.155535",
+ "modified": "2020-05-11 15:33:28.904019",
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Notification",

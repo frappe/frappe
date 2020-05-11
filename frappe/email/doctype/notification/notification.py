@@ -120,10 +120,12 @@ def get_context(context):
 		if self.is_standard:
 			self.load_standard_properties(context)
 
-		if self.channel == 'Email':
+		channel_disabled = self.disable_channel
+
+		if self.channel == 'Email' and not channel_disabled:
 			self.send_an_email(doc, context)
 
-		if self.channel == 'Slack':
+		if self.channel == 'Slack' and not channel_disabled:
 			self.send_a_slack_msg(doc, context)
 
 		if self.show_in_notifications_dropdown:
