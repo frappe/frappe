@@ -9,7 +9,6 @@
   "for_user",
   "type",
   "email_content",
-  "column_break_4",
   "document_type",
   "read",
   "document_name",
@@ -26,6 +25,7 @@
   {
    "fieldname": "for_user",
    "fieldtype": "Link",
+   "hidden": 1,
    "label": "For User",
    "options": "User",
    "read_only": 1
@@ -33,6 +33,7 @@
   {
    "fieldname": "type",
    "fieldtype": "Select",
+   "hidden": 1,
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Type",
@@ -42,17 +43,14 @@
   },
   {
    "fieldname": "email_content",
-   "fieldtype": "Text",
-   "label": "Email Content",
+   "fieldtype": "Text Editor",
+   "label": "Message",
    "read_only": 1
-  },
-  {
-   "fieldname": "column_break_4",
-   "fieldtype": "Column Break"
   },
   {
    "fieldname": "document_type",
    "fieldtype": "Link",
+   "hidden": 1,
    "label": "Document Type",
    "options": "DocType",
    "read_only": 1,
@@ -61,13 +59,14 @@
   {
    "fieldname": "document_name",
    "fieldtype": "Data",
-   "label": "Document Name",
+   "label": "Document Link",
    "read_only": 1,
    "search_index": 1
   },
   {
    "fieldname": "from_user",
    "fieldtype": "Link",
+   "hidden": 1,
    "label": "From User",
    "options": "User",
    "read_only": 1,
@@ -84,8 +83,8 @@
  ],
  "in_create": 1,
  "links": [],
- "modified": "2020-05-08 15:16:36.365285",
- "modified_by": "Administrator",
+ "modified": "2020-05-11 15:18:20.893718",
+ "modified_by": "umair@erpnext.com",
  "module": "Desk",
  "name": "Notification Log",
  "owner": "Administrator",

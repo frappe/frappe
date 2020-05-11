@@ -151,8 +151,8 @@ def get_context(context):
 		subject = self.subject
 		if "{" in subject:
 			subject = frappe.render_template(self.subject, context)
-		subject = '<b>[Alert] </b>' + subject
 
+		attachments = self.get_attachment(doc)
 		recipients, cc, bcc = self.get_list_of_recipients(doc, context)
 		users = recipients + cc + bcc
 
@@ -161,6 +161,8 @@ def get_context(context):
 			'document_type': doc.doctype,
 			'document_name': doc.name,
 			'subject': subject,
+			'email_content': frappe.render_template(self.message, context),
+			'attachments': attachments
 		}
 		enqueue_create_notification(recipients, notification_doc)
 

@@ -65,11 +65,26 @@ def make_notification_logs(doc, users):
 					return
 
 				_doc = frappe.new_doc('Notification Log')
+
+				attachments = None
+				if doc.attachments:
+					attachments = doc.pop('attachments')
+
 				_doc.update(doc)
 				_doc.for_user = user
 				_doc.subject = _doc.subject.replace('<div>', '').replace('</div>', '')
 				if _doc.for_user != _doc.from_user or doc.type == 'Energy Point' or doc.type == 'Alert':
 					_doc.insert(ignore_permissions=True)
+					if attachments:
+						attach_file_to_doc(attachments, _doc.name)
+
+
+def attach_file_to_doc(attachments, docname):
+	from frappe.utils.file_manager import save_file
+	for attachment in attachments:
+		attachment.pop("print_format_attachment", None)
+		print_format_file = frappe._dict(frappe.attach_print(**attachment))
+		save_file(print_format_file.fname, print_format_file.fcontent, 'Notification Log', docname)
 
 def send_notification_email(doc):
 
