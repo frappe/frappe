@@ -12,7 +12,6 @@ body {
 	min-height: 100%;
 	display: flex;
 	flex-direction: column;
-	font-size: 16px;
 
 	> div {
 		flex: 1 0 auto;
@@ -67,7 +66,7 @@ footer {
 
 .input-dark {
 	background-color: $dark;
-	border-color: darken($primary, 40%);
+	border-color: $border-color;
 	color: $light;
 }
 

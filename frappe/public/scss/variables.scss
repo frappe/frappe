@@ -1,33 +1,20 @@
-$gray-100: #fafbfc !default;
-$gray-150: #f5f7fa !default;
-$gray-200: #ebecf1 !default;
-$gray-300: #d1d8dd !default;
-$gray-400: #ced4da !default;
-$gray-500: #adb5bd !default;
-$gray-600: #8d99a6 !default;
-$gray-700: #495057 !default;
-$gray-800: #36414c !default;
-$gray-900: #2e3338 !default;
-$primary: #5e64ff !default;
+$gray-900: #12283A;
+$gray-800: #495D6F;
+$gray-700: #70818F;
+$gray-600: #9FA9B2;
+$gray-500: #ACB5BD;
+$gray-400: #B7BFC6;
+$gray-300: #CDD2D7;
+$gray-200: #DDE1E4;
+$gray-100: #ECEEF0;
+$gray-50: #F4F5F6;
 
-$black: #000 !default;
+$primary: #2490EF;
 
-$body-color: $gray-800 !default;
-$text-muted: $gray-600 !default;
-$border-color: $gray-200 !default;
-
-$border-color: #ECEEF0;
-$brand-primary: #2996F1;
-$erpnext-blue: #2996F1;
-$brand-gradient: linear-gradient(180deg, #2C9AF1 0%, #2490EF 100%);
-$control-bg: #F4F5F6;
-$border-radius: 6px;
-$text-color: #12283A;
-$text-light: #70818F;
+$black: #000;
 
 :root {
-	--primary: #2490EF;
-	--text-color: #12283A;
+	--border-radius: 6px;
 
 	--pink-900: #5B1E34;
 	--pink-800: #702440;
@@ -73,16 +60,16 @@ $text-light: #70818F;
 	--dark-green-100: #DFEEE5;
 	--dark-green-50: #EAF5EE;
 
-	--grey-900: #12283A;
-	--grey-600: #9FA9B2;
-	--grey-700: #70818F;
-	--grey-800: #495D6F;
-	--grey-500: #ACB5BD;
-	--grey-400: #B7BFC6;
-	--grey-300: #CDD2D7;
-	--grey-200: #DDE1E4;
-	--grey-100: #ECEEF0;
-	--grey-50: #F4F5F6;
+	--grey-900: #{$gray-900};
+	--grey-800: #{$gray-800};
+	--grey-700: #{$gray-700};
+	--grey-600: #{$gray-600};
+	--grey-500: #{$gray-500};
+	--grey-400: #{$gray-400};
+	--grey-300: #{$gray-300};
+	--grey-200: #{$gray-200};
+	--grey-100: #{$gray-100};
+	--grey-50: #{$gray-50};
 
 	--red-900: #631D1D;
 	--red-800: #802121;
@@ -129,6 +116,18 @@ $text-light: #70818F;
 	--grey-2-50: #F4F5F6;
 }
 
-@import "~bootstrap/scss/functions";
-@import "~bootstrap/scss/variables";
+$text-light: var(--grey-700);
+$text-muted: var(--grey-700);
+$border-color: var(--grey-100);
+$control-bg: var(--grey-50);
+$border-radius: var(--border-radius);
+$text-color: $gray-900;
+$body-color: $gray-800;
 
+$brand-gradient: linear-gradient(180deg, #2C9AF1 0%, var(--blue-500) 100%);
+
+$box-shadow: inset 0px -1px 0px var(--grey-2-100);
+$font-size-base: 0.8rem;
+$font-family-base: Inter;
+
+@import "~bootstrap/scss/bootstrap";

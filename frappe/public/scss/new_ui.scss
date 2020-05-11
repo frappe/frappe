@@ -1,9 +1,5 @@
 @import "variables";
 
-body {
-	font-family: Inter;
-}
-
 a {
 	color: $text-color;
 }
@@ -29,9 +25,9 @@ a {
 	border-radius: $border-radius;
 }
 
-.navbar-default {
+.navbar {
 	background: white;
-	border-bottom: 1px solid $border-color;
+	box-shadow: $box-shadow;
 }
 
 h1, h2, h3 {
