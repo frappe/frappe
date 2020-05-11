@@ -21,9 +21,12 @@
   "top_bar",
   "navbar_search",
   "top_bar_items",
+  "call_to_action",
+  "call_to_action_url",
   "banner",
   "banner_html",
   "footer",
+  "footer_logo",
   "copyright",
   "address",
   "footer_items",
@@ -326,6 +329,21 @@
    "fieldname": "enable_view_tracking",
    "fieldtype": "Check",
    "label": "Enable In App Website Tracking"
+  },
+  {
+   "fieldname": "footer_logo",
+   "fieldtype": "Attach Image",
+   "label": "Footer Logo"
+  },
+  {
+   "fieldname": "call_to_action",
+   "fieldtype": "Data",
+   "label": "Call To Action"
+  },
+  {
+   "fieldname": "call_to_action_url",
+   "fieldtype": "Data",
+   "label": "Call To Action URL"
   }
  ],
  "icon": "fa fa-cog",
@@ -333,7 +351,7 @@
  "issingle": 1,
  "links": [],
  "max_attachments": 10,
- "modified": "2020-05-09 14:17:23.271806",
+ "modified": "2020-05-11 07:14:37.302357",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Website Settings",
