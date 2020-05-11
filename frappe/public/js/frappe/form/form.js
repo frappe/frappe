@@ -1569,6 +1569,8 @@ frappe.ui.form.Form = class FrappeForm {
   			prevBtnText: 'Previous',
 		});
 
+		this.layout.sections.forEach(section => section.collapse(false))
+
 		let steps = frappe.tour[this.doctype].map(step => {
 			let field = this.get_docfield(step.fieldname);
 			return {
@@ -1579,8 +1581,6 @@ frappe.ui.form.Form = class FrappeForm {
 				}
 			}
 		});
-
-		console.log(steps);
 
 		driver.defineSteps(steps);
 		driver.start();
