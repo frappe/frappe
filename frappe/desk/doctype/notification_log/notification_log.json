@@ -12,6 +12,7 @@
   "document_type",
   "read",
   "document_name",
+  "open_reference_document",
   "from_user"
  ],
  "fields": [
@@ -59,6 +60,7 @@
   {
    "fieldname": "document_name",
    "fieldtype": "Data",
+   "hidden": 1,
    "label": "Document Link",
    "read_only": 1,
    "search_index": 1
@@ -79,11 +81,16 @@
    "hidden": 1,
    "ignore_user_permissions": 1,
    "label": "Read"
+  },
+  {
+   "fieldname": "open_reference_document",
+   "fieldtype": "Button",
+   "label": "Open Reference Document"
   }
  ],
  "in_create": 1,
  "links": [],
- "modified": "2020-05-11 15:18:20.893718",
+ "modified": "2020-05-11 19:19:58.578245",
  "modified_by": "umair@erpnext.com",
  "module": "Desk",
  "name": "Notification Log",
