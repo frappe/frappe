@@ -78,6 +78,7 @@ export default class OnboardingWidget extends Widget {
 			doctype: step.report_reference_doctype
 		});
 
+
 		let current_route = frappe.get_route();
 
 		frappe.set_route(route).then(() => {
@@ -86,10 +87,10 @@ export default class OnboardingWidget extends Widget {
 				title: __(step.reference_report),
 				primary_action: {
 					action: () => {
-						msg_dialog.hide();
 						frappe.set_route(current_route).then(() => {
 							this.mark_complete(step);
 						});
+						msg_dialog.hide();
 					},
 					label: () => __("Continue"),
 				},
@@ -115,6 +116,8 @@ export default class OnboardingWidget extends Widget {
 		} else {
 			route = `Form/${step.reference_document}/New ${step.reference_document}`
 		}
+
+		let current_route = frappe.get_route();
 
 		frappe.route_options = {};
 		frappe.route_options.after_load = (frm) => {
