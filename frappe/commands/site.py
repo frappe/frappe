@@ -263,70 +263,9 @@ def migrate(context, rebuild_website=False, skip_failing=False):
 @click.argument('site_url')
 @pass_context
 def migrate_to(context, site_url):
-	'''
-	>>> import requests
-	>>> session = requests.Session()
-	>>> session.post("http://cloud:8002/api/method/login", {"usr":"gavin18d@gmail.com", "pwd":"bfdiljn;jnd"})
-	<Response [200]>
-	>>> session.headers.update({"X-Press-Team": "gavin18d@gmail.com"})
-	>>> session.post("http://cloud:8002/api/method/press.api.site.options_for_new").json()
-	'''
-
-	if site_url in ("frappe.cloud", "frappecloud.com"):
-		site_url = "frappe.cloud"
-
-		login_url = "https://{site_url}/api/method/login"
-		upload_url = "https://{site_url}/api/method/press.api.site.new_from_existing_account"
-		options_url = "https://{site_url}/api/method/press.api.site.options_for_new"
-
-	else:
-		print(f"{site_url} is not supported yet")
-		sys.exit(1)
-
-	for site in context.site:
-		username = input()
-		password = getpass.unix_getpass()
-		auth_credentials = {"usr": username, "pwd": password}
-
-		# create frapp_cloud session
-		session = requests.Session()
-		login_sc = session.post(login_url, auth_credentials)
-
-		if login_sc.ok:
-			print(f"Auth Successful w {site_url}")
-
-			# get options
-			session.headers.update({"X-Press-Team": username})
-			site_options_sc = session.post(options_url)
-
-			if site_options_sc.ok:
-				site_options = site_options_sc.json()
-
-			else:
-				print(f"Request failed with Status Code: {site_options_sc.status_code}")
-				sys.exit(1)
-
-			# set preferences from options
-
-			# take backup
-			import frappe.utils.backups
-			print(f"Taking backup for site {site}")
-			odb = frappe.utils.backups.new_backup(ignore_files=False, force=True)
-
-			# relative paths here
-			odb.backup_path_db
-			odb.backup_path_files
-			odb.backup_path_private_files
-
-			site_files = {
-				"files": []
-			}
-
-			# push to frappe_cloud
-			session.post(upload_url, files=site_files)
-
-		else:
-			print(f"Request failed with Status Code: {login_sc.status_code}")
+	from frappe.utils.remote_migrations import migrate_to
+	for site in context.sites:
+		migrate_to(site, site_url)
 
 
 @click.command('run-patch')
