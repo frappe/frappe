@@ -247,10 +247,12 @@ export default class ListSettings {
 					break;
 				} else if (value != me.subject_field.fieldname) {
 					let field = frappe.meta.get_docfield(me.doctype, value);
-					me.fields.push({
-						label: field.label,
-						fieldname: field.fieldname
-					})
+					if (field) {
+						me.fields.push({
+							label: field.label,
+							fieldname: field.fieldname
+						})
+					}
 				}
 			}
 
