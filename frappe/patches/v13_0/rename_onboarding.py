@@ -6,5 +6,5 @@ import frappe
 
 def execute():
 	if frappe.db.exists("DocType", "Onboarding"):
-		execute:frappe.rename_doc("DocType", "Onboarding", "Module Onboarding", ignore_if_exists=True)
+		frappe.rename_doc("DocType", "Onboarding", "Module Onboarding", ignore_if_exists=True)
 
