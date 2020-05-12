@@ -1,4 +1,5 @@
-<nav class="navbar navbar-light bg-white navbar-expand-lg sticky-top shadow-sm">
+{%- if theme.based_on == 'Bootstrap 4' or doctype != 'Web Page' -%}
+<nav class="bg-white shadow-sm navbar navbar-light navbar-expand-lg sticky-top">
 	<div class="container">
 		<a class="navbar-brand" href="{{ url_prefix }}{{ home_page or "/" }}">
 			<span>{{ brand_html or (frappe.get_hooks("brand_html") or [_("Home")])[0] }}</span>
@@ -8,8 +9,7 @@
 			data-target="#navbarSupportedContent"
 			aria-controls="navbarSupportedContent"
 			aria-expanded="false"
-			aria-label="Toggle navigation"
-		>
+			aria-label="Toggle navigation">
 			<span class="navbar-toggler-icon"></span>
 		</button>
 
@@ -18,3 +18,8 @@
 		</div>
 	</div>
 </nav>
+{%- else -%}
+<header>
+{{ c('web_blocks', web_blocks=theme.navbar, htmltag='div') }}
+</header>
+{%- endif -%}

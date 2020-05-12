@@ -96,10 +96,6 @@ frappe.Application = Class.extend({
 
 		this.show_notes();
 
-		if (frappe.boot.is_first_startup) {
-			this.setup_onboarding_wizard();
-		}
-
 		if (frappe.ui.startup_setup_dialog && !frappe.boot.setup_complete) {
 			frappe.ui.startup_setup_dialog.pre_show();
 			frappe.ui.startup_setup_dialog.show();
@@ -509,20 +505,6 @@ frappe.Application = Class.extend({
 	show_update_available: () => {
 		frappe.call({
 			"method": "frappe.utils.change_log.show_update_popup"
-		});
-	},
-
-	setup_onboarding_wizard: () => {
-		frappe.call('frappe.desk.doctype.onboarding_slide.onboarding_slide.get_onboarding_slides').then(res => {
-			if (res.message) {
-				let slides = res.message;
-				if (slides.length) {
-					this.progress_dialog = new frappe.setup.OnboardingDialog({
-						slides: slides
-					});
-					this.progress_dialog.show();
-				}
-			}
 		});
 	},
 

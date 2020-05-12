@@ -351,9 +351,9 @@ class Importer:
 		value = cstr(value)
 
 		# convert boolean values to 0 or 1
-		if df.fieldtype == "Check" and value.lower().strip() in ["t", "f", "true", "false"]:
+		if df.fieldtype == "Check" and value.lower().strip() in ["t", "f", "true", "false", "yes", "no", "y", "n"]:
 			value = value.lower().strip()
-			value = 1 if value in ["t", "true"] else 0
+			value = 1 if value in ["t", "true", "y", "yes"] else 0
 
 		if df.fieldtype in ["Int", "Check"]:
 			value = cint(value)
@@ -610,7 +610,7 @@ class Importer:
 							"message": msg,
 						}
 					)
-					return False
+					return
 
 			elif df.fieldtype == "Link":
 				d = self.get_missing_link_field_values(df.options)
@@ -643,8 +643,10 @@ class Importer:
 				if value in INVALID_VALUES:
 					value = None
 
-				value = validate_value(value, df)
-				if value:
+				if value is not None:
+					value = validate_value(value, df)
+
+				if value is not None:
 					doc[df.fieldname] = self.parse_value(value, df)
 
 			is_table = frappe.get_meta(doctype).istable

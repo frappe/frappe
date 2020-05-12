@@ -124,6 +124,8 @@ class Database(object):
 		# in transaction validations
 		self.check_transaction_status(query)
 
+		self.clear_db_table_cache(query)
+
 		# autocommit
 		if auto_commit: self.commit()
 
@@ -276,6 +278,11 @@ class Database(object):
 
 			ret.append(frappe._dict(zip(keys, values)))
 		return ret
+
+	@staticmethod
+	def clear_db_table_cache(query):
+		if query and query.strip().split()[0].lower() in {'drop', 'create'}:
+			frappe.cache().delete_key('db_tables')
 
 	@staticmethod
 	def needs_formatting(result, formatted):
@@ -769,7 +776,16 @@ class Database(object):
 		return ("tab" + doctype) in self.get_tables()
 
 	def get_tables(self):
-		return [d[0] for d in self.sql("select table_name from information_schema.tables where table_schema not in ('pg_catalog', 'information_schema')")]
+		tables = frappe.cache().get_value('db_tables')
+		if not tables:
+			table_rows = self.sql("""
+				SELECT table_name
+				FROM information_schema.tables
+				WHERE table_schema NOT IN ('pg_catalog', 'information_schema')
+			""")
+			tables = {d[0] for d in table_rows}
+			frappe.cache().set_value('db_tables', tables)
+		return tables
 
 	def a_row_exists(self, doctype):
 		"""Returns True if atleast one row exists."""
