@@ -297,7 +297,7 @@ class Document(BaseDocument):
 		if ignore_permissions!=None:
 			self.flags.ignore_permissions = ignore_permissions
 
-		self.flags.ignore_version = frappe.flags.in_test if ignore_version == None else ignore_version
+		self.flags.ignore_version = frappe.flags.in_test if ignore_version is None else ignore_version
 
 		if self.get("__islocal") or not self.get("name"):
 			self.insert()
