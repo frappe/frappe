@@ -155,7 +155,7 @@ export default class ListSettings {
 	}
 
 	add_new_fields() {
-		let me = this
+		let me = this;
 
 		let fields_html = me.dialog.get_field("fields_html");
 		let add_new_fields = fields_html.$wrapper[0].getElementsByClassName("add-new-fields")[0];
@@ -301,9 +301,9 @@ export default class ListSettings {
 				me.fields.push({
 					label: field.label,
 					fieldname: field.fieldname
-				})
+				});
 			}
-		})
+		});
 	}
 
 	set_subject_field(meta) {
@@ -312,15 +312,15 @@ export default class ListSettings {
 		me.subject_field = {
 			label: "Name",
 			fieldname: "name"
-		}
+		};
 
 		if (meta.title_field) {
-			let field = frappe.meta.get_docfield(me.doctype, meta.title_field.trim())
+			let field = frappe.meta.get_docfield(me.doctype, meta.title_field.trim());
 
 			me.subject_field = {
 				label: field.label,
 				fieldname: field.fieldname
-			}
+			};
 		}
 
 		me.fields.push(me.subject_field);
@@ -334,13 +334,13 @@ export default class ListSettings {
 				type: "Status",
 				label: "Status",
 				fieldname: "status_field"
-			})
+			});
 		}
 	}
 
 	get_doctype_fields(meta, fields) {
 		let me = this;
-		let multiselect_fields = []
+		let multiselect_fields = [];
 
 		meta.fields.forEach(field => {
 			if (!in_list(frappe.model.no_value_type, field.fieldtype)) {
@@ -348,16 +348,16 @@ export default class ListSettings {
 					label: field.label,
 					value: field.fieldname,
 					checked: in_list(fields, field.fieldname)
-				})
+				});
 			}
-		})
+		});
 
-		return multiselect_fields
+		return multiselect_fields;
 	}
 
 	get_removed_listview_fields(new_fields, existing_fields) {
 		let me = this;
-		let removed_fields = []
+		let removed_fields = [];
 
 		if (frappe.has_indicator(me.doctype)) {
 			new_fields.push("status_field");

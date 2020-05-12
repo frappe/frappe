@@ -5,9 +5,6 @@
 from __future__ import unicode_literals
 import frappe
 from frappe.model.document import Document
-from six import string_types
-from frappe.exceptions import DoesNotExistError
-import json
 
 class ListViewSettings(Document):
 
@@ -71,9 +68,9 @@ def set_in_list_view_property(doctype, field, value):
 def get_default_listview_fields(doctype):
 	meta = frappe.get_meta(doctype)
 	path = frappe.get_module_path(frappe.scrub(meta.module), "doctype", frappe.scrub(meta.name), frappe.scrub(meta.name) + ".json")
-	json = frappe.get_file_json(path)
+	doctype_json = frappe.get_file_json(path)
 
-	fields = [f.get("fieldname") for f in json.get("fields") if f.get("in_list_view")]
+	fields = [f.get("fieldname") for f in doctype_json.get("fields") if f.get("in_list_view")]
 
 	if meta.title_field:
 		if not meta.title_field.strip() in fields:
