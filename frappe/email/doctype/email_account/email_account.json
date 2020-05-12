@@ -411,7 +411,7 @@
    "label": "Use SSL for Outgoing"
   },
   {
-   "default": "0",
+   "default": "1",
    "fieldname": "create_contact",
    "fieldtype": "Check",
    "label": "Create Contacts from Incoming Emails"
