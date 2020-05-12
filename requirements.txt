@@ -23,7 +23,7 @@ googlemaps==3.1.1
 gunicorn==19.10.0
 html2text==2016.9.19
 html5lib==1.0.1
-ipython==5.9.0
+ipython==7.14.0
 Jinja2==2.11.1
 ldap3==2.7
 markdown2==2.3.8
@@ -38,7 +38,6 @@ Pillow==6.2.2
 premailer==3.6.1
 psycopg2-binary==2.8.4
 pyasn1==0.4.8
-Pygments==2.5.2
 PyJWT==1.7.1
 PyMySQL==0.9.3
 pyOpenSSL==19.1.0

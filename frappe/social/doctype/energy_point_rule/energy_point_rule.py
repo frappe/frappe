@@ -110,7 +110,7 @@ def revert_points_for_cancelled_doc(doc):
 	})
 	for log in energy_point_logs:
 		reference_log = frappe.get_doc('Energy Point Log', log.name)
-		reference_log.revert(_('Reference document has been cancelled'))
+		reference_log.revert(_('Reference document has been cancelled'), ignore_permissions=True)
 
 
 def get_energy_point_doctypes():
