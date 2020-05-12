@@ -87,6 +87,9 @@ frappe.ui.form.ControlData = frappe.ui.form.ControlInput.extend({
 		return val==null ? "" : val;
 	},
 	validate: function(v) {
+		if (this.df.fieldtype !== "Data") {
+			return v;
+		}
 		if (!v) {
 			return '';
 		}
