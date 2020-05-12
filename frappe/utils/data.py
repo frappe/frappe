@@ -22,6 +22,11 @@ DATE_FORMAT = "%Y-%m-%d"
 TIME_FORMAT = "%H:%M:%S.%f"
 DATETIME_FORMAT = DATE_FORMAT + " " + TIME_FORMAT
 
+
+def is_invalid_date_string(date_string):
+	# dateutil parser does not agree with dates like "0001-01-01" or "0000-00-00"
+	return (not date_string) or (date_string or "").startswith(("0001-01-01", "0000-00-00"))
+
 # datetime functions
 def getdate(string_date=None):
 	"""
@@ -36,9 +41,9 @@ def getdate(string_date=None):
 	elif isinstance(string_date, datetime.date):
 		return string_date
 
-	# dateutil parser does not agree with dates like 0001-01-01
-	if not string_date or string_date=="0001-01-01":
+	if is_invalid_date_string(string_date):
 		return None
+
 	return parser.parse(string_date).date()
 
 def get_datetime(datetime_str=None):
@@ -54,8 +59,7 @@ def get_datetime(datetime_str=None):
 	elif isinstance(datetime_str, datetime.date):
 		return datetime.datetime.combine(datetime_str, datetime.time())
 
-	# dateutil parser does not agree with dates like "0001-01-01" or "0000-00-00"
-	if not datetime_str or (datetime_str or "").startswith(("0001-01-01", "0000-00-00")):
+	if is_invalid_date_string(datetime_str):
 		return None
 
 	try:
