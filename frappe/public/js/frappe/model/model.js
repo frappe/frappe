@@ -269,7 +269,7 @@ $.extend(frappe.model, {
 	},
 
 	is_tree: function(doctype) {
-		if(!doctype) return false;
+		if (!doctype) return false;
 		return frappe.boot.treeviews.indexOf(doctype) != -1;
 	},
 
