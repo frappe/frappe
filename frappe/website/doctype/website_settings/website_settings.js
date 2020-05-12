@@ -1,6 +1,6 @@
 frappe.ui.form.on('Website Settings', {
 	refresh: function(frm) {
-		frm.add_custom_button(__('View Website'), () => {
+		frm.add_custom_button(__('View My Website'), () => {
 			window.open('/', '_blank');
 		});
 	},
