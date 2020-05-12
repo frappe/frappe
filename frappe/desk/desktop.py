@@ -28,7 +28,6 @@ class Workspace:
 		if self.doc.module in self.blocked_modules:
 			raise frappe.PermissionError
 
-		self.user = user
 		self.can_read = get_can_read_items_for_user(cache=True)
 
 		self.allowed_pages = get_allowed_pages(cache=True)
@@ -67,7 +66,7 @@ class Workspace:
 
 		# Check if user is allowed
 		allowed_roles = set(doc.get_allowed_roles())
-		user_roles = set(self.user.get_roles())
+		user_roles = set(frappe.get_roles())
 		if not allowed_roles & user_roles:
 			return None
 
