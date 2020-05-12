@@ -29,12 +29,6 @@ div#driver-popover-item {
 			border: 1px solid transparent;
 		}
 
-		button.driver-disabled {
-			color: grey;
-			cursor: default;
-			pointer-events: none;
-		}
-
 		.driver-close-btn {
 			// Edited
 			float: left;
@@ -77,104 +71,6 @@ div#driver-popover-item {
 		font-weight: 400;
 		zoom: 1;
 	}
-}
-
-.driver-clearfix {
-	&:after {
-		content: "";
-		display: table;
-		clear: both;
-	}
-	&:before {
-		content: "";
-		display: table;
-	}
-}
-
-.driver-stage-no-animation {
-	-webkit-transition: none !important;
-	-moz-transition: none !important;
-	-ms-transition: none !important;
-	-o-transition: none !important;
-	transition: none !important;
-	background: transparent !important;
-	outline: 5000px solid rgba(0,0,0,.75);
-}
-
-div#driver-page-overlay {
-	background: @modal-backdrop-bg;
-	position: fixed;
-	bottom: 0;
-	right: 0;
-	display: block;
-	width: 100%;
-	height: 100%;
-	zoom: 1;
-	filter: alpha(opacity=25);
-	opacity: .25;
-	z-index: 100002 !important;
-	top: 0;
-	left: 0;
-	-webkit-transition: all .3s;
-	-moz-transition: all .3s;
-	-ms-transition: all .3s;
-	-o-transition: all .3s;
-	transition: all .3s;
-}
-
-div#driver-highlighted-element-stage {
-	top: 0;
-	left: 0;
-	-webkit-transition: all .3s;
-	-moz-transition: all .3s;
-	-ms-transition: all .3s;
-	-o-transition: all .3s;
-	transition: all .3s;
-	position: absolute;
-	height: 50px;
-	width: 300px;
-	background: #fff;
-	z-index: 100003 !important;
-	display: none;
-	border-radius: 2px;
-}
-
-.driver-highlighted-element {
-	z-index: 100004 !important;
-}
-
-.driver-position-relative {
-	position: relative !important;
-}
-
-.driver-fix-stacking {
-	z-index: auto !important;
-	opacity: 1 !important;
-	-webkit-transform: none !important;
-	-moz-transform: none !important;
-	-ms-transform: none !important;
-	-o-transform: none !important;
-	transform: none !important;
-	-webkit-filter: none !important;
-	-moz-filter: none !important;
-	-ms-filter: none !important;
-	-o-filter: none !important;
-	filter: none !important;
-	-webkit-perspective: none !important;
-	-moz-perspective: none !important;
-	-ms-perspective: none !important;
-	-o-perspective: none !important;
-	perspective: none !important;
-	-webkit-transform-style: flat !important;
-	-moz-transform-style: flat !important;
-	-ms-transform-style: flat !important;
-	transform-style: flat !important;
-	-webkit-transform-box: border-box !important;
-	-moz-transform-box: border-box !important;
-	-ms-transform-box: border-box !important;
-	-o-transform-box: border-box !important;
-	transform-box: border-box !important;
-	will-change: unset !important;
 }
 
 
