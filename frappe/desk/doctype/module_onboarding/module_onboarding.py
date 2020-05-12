@@ -11,13 +11,13 @@ from frappe.modules.export_file import export_to_files
 class ModuleOnboarding(Document):
 	def on_update(self):
 		if frappe.conf.developer_mode:
-			export_to_files(record_list=[['ModuleOnboarding', self.name]], record_module=self.module)
+			export_to_files(record_list=[['Module Onboarding', self.name]], record_module=self.module)
 
 			for step in self.steps:
-				export_to_files(record_list=[['ModuleOnboarding Step', step.step]], record_module=self.module)
+				export_to_files(record_list=[['Onboarding Step', step.step]], record_module=self.module)
 
 	def get_steps(self):
-		return [frappe.get_doc("ModuleOnboarding Step", step.step) for step in self.steps]
+		return [frappe.get_doc("Onboarding Step", step.step) for step in self.steps]
 
 	def get_allowed_roles(self):
 		all_roles = [role.role for role in self.allow_roles]
