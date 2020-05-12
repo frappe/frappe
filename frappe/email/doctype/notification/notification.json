@@ -57,6 +57,7 @@
   },
   {
    "default": "Email",
+   "depends_on": "eval: !doc.disable_channel",
    "fieldname": "channel",
    "fieldtype": "Select",
    "label": "Channel",
@@ -282,7 +283,7 @@
  ],
  "icon": "fa fa-envelope",
  "links": [],
- "modified": "2020-05-11 15:33:28.904019",
+ "modified": "2020-05-12 19:20:50.304928",
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Notification",
