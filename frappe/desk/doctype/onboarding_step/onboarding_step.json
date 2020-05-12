@@ -15,6 +15,7 @@
   "action",
   "column_break_7",
   "reference_document",
+  "is_single",
   "reference_report",
   "report_reference_doctype",
   "report_type",
@@ -57,7 +58,7 @@
    "fieldname": "action",
    "fieldtype": "Select",
    "label": "Action",
-   "options": "Create Entry\nUpdate Settings\nView Report\nWatch Video",
+   "options": "Create Entry\nUpdate Settings\nShow Form Tour\nView Report\nWatch Video",
    "reqd": 1
   },
   {
@@ -65,7 +66,7 @@
    "fieldtype": "Column Break"
   },
   {
-   "depends_on": "eval:doc.action == \"Create Entry\" || doc.action == \"Update Settings\"",
+   "depends_on": "eval:doc.action == \"Create Entry\" || doc.action == \"Update Settings\" || doc.action == \"Create Entry\" || doc.action == \"Show Form Tour\"",
    "fieldname": "reference_document",
    "fieldtype": "Link",
    "label": "Reference Document",
@@ -127,10 +128,18 @@
    "fieldtype": "Data",
    "label": "Report Reference Doctype",
    "read_only": 1
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:doc.action == \"Create Entry\" || doc.action == \"Update Settings\" || doc.action == \"Create Entry\" || doc.action == \"Show Form Tour\"",
+   "fetch_from": "reference_document.issingle",
+   "fieldname": "is_single",
+   "fieldtype": "Check",
+   "label": "Is Single"
   }
  ],
  "links": [],
- "modified": "2020-05-04 12:53:19.276952",
+ "modified": "2020-05-11 13:24:05.457160",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Onboarding Step",

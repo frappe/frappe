@@ -57,6 +57,7 @@ export default class OnboardingWidget extends Widget {
 		let actions = {
 			"Watch Video": () => this.show_video(step),
 			"Create Entry": () => this.show_quick_entry(step),
+			"Show Form Tour": () => this.show_form_tour(step),
 			"Update Settings": () => this.update_settings(step),
 			"View Report": () => this.open_report(step),
 		};
@@ -77,6 +78,7 @@ export default class OnboardingWidget extends Widget {
 			doctype: step.report_reference_doctype
 		});
 
+
 		let current_route = frappe.get_route();
 
 		frappe.set_route(route).then(() => {
@@ -85,8 +87,10 @@ export default class OnboardingWidget extends Widget {
 				title: __(step.reference_report),
 				primary_action: {
 					action: () => {
+						frappe.set_route(current_route).then(() => {
+							this.mark_complete(step);
+						});
 						msg_dialog.hide();
-						this.mark_complete(step);
 					},
 					label: () => __("Continue"),
 				},
@@ -105,15 +109,47 @@ export default class OnboardingWidget extends Widget {
 		});
 	}
 
+	show_form_tour(step) {
+		let route;
+		if (step.is_single) {
+			route = `Form/${step.reference_document}`;
+		} else {
+			route = `Form/${step.reference_document}/New ${step.reference_document}`;
+		}
+
+		let current_route = frappe.get_route();
+
+		frappe.route_hooks = {};
+		frappe.route_hooks.after_load = (frm) => {
+			frm.show_tour(() => {
+				let msg_dialog = frappe.msgprint({
+					message: __("Let's take you back to onboarding"),
+					title: __("Great Job"),
+					primary_action: {
+						action: () => {
+							frappe.set_route(current_route).then(() => {
+								this.mark_complete(step);
+							});
+							msg_dialog.hide();
+						},
+						label: () => __("Continue"),
+					}
+				});
+			});
+		};
+
+		frappe.set_route(route);
+	}
+
 	update_settings(step) {
 		let current_route = frappe.get_route();
 
-		frappe.route_options = {};
-		frappe.route_options.after_load = (frm) => {
+		frappe.route_hooks = {};
+		frappe.route_hooks.after_load = (frm) => {
 			frm.scroll_to_field(step.field);
 		};
 
-		frappe.route_options.after_save = (frm) => {
+		frappe.route_hooks.after_save = (frm) => {
 			let success = false;
 			let args = {};
 
