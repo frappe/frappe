@@ -425,17 +425,19 @@ class Meta(Document):
 		implemented in other Frappe applications via hooks.
 		'''
 		data = frappe._dict()
-		try:
-			module = load_doctype_module(self.name, suffix='_dashboard')
-			if hasattr(module, 'get_data'):
-				data = frappe._dict(module.get_data())
-		except ImportError:
-			pass
+		if not self.custom:
+			try:
+				module = load_doctype_module(self.name, suffix='_dashboard')
+				if hasattr(module, 'get_data'):
+					data = frappe._dict(module.get_data())
+			except ImportError:
+				pass
 
 		self.add_doctype_links(data)
 
-		for hook in frappe.get_hooks("override_doctype_dashboards", {}).get(self.name, []):
-			data = frappe.get_attr(hook)(data=data)
+		if not self.custom:
+			for hook in frappe.get_hooks("override_doctype_dashboards", {}).get(self.name, []):
+				data = frappe.get_attr(hook)(data=data)
 
 		return data
 
@@ -450,10 +452,11 @@ class Meta(Document):
 			for link in self.links:
 				link.added = False
 				for group in data.transactions:
+					group = frappe._dict(group)
 					# group found
-					if group.label == link.label:
-						if not link.link_doctype in group.items:
-							group.items.append(link.link_doctype)
+					if link.group and group.label == link.group:
+						if link.link_doctype not in group.get('items'):
+							group.get('items').append(link.link_doctype)
 						link.added = True
 
 				if not link.added:

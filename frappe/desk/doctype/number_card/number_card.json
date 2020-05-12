@@ -1,0 +1,146 @@
+{
+ "actions": [],
+ "creation": "2020-04-15 18:06:39.444683",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "label",
+  "function",
+  "aggregate_function_based_on",
+  "column_break_2",
+  "document_type",
+  "is_public",
+  "stats_section",
+  "show_percentage_stats",
+  "stats_time_interval",
+  "filters_section",
+  "filters_json",
+  "color"
+ ],
+ "fields": [
+  {
+   "fieldname": "document_type",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Document Type",
+   "options": "DocType",
+   "reqd": 1
+  },
+  {
+   "depends_on": "eval: doc.document_type",
+   "fieldname": "function",
+   "fieldtype": "Select",
+   "label": "Function",
+   "options": "Count\nSum\nAverage\nMinimum\nMaximum",
+   "reqd": 1
+  },
+  {
+   "depends_on": "eval: doc.function !== 'Count'",
+   "fieldname": "aggregate_function_based_on",
+   "fieldtype": "Select",
+   "label": "Aggregate Function Based On",
+   "mandatory_depends_on": "eval: doc.function !== 'Count'"
+  },
+  {
+   "fieldname": "filters_json",
+   "fieldtype": "Code",
+   "label": "Filters JSON",
+   "options": "JSON"
+  },
+  {
+   "fieldname": "label",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Label",
+   "reqd": 1
+  },
+  {
+   "fieldname": "color",
+   "fieldtype": "Color",
+   "label": "Color"
+  },
+  {
+   "fieldname": "column_break_2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "filters_section",
+   "fieldtype": "Section Break",
+   "label": "Filters Section"
+  },
+  {
+   "default": "0",
+   "description": "This card will be available to all Users if this is set",
+   "fieldname": "is_public",
+   "fieldtype": "Check",
+   "label": "Is Public"
+  },
+  {
+   "default": "1",
+   "fieldname": "show_percentage_stats",
+   "fieldtype": "Check",
+   "label": "Show Percentage Stats"
+  },
+  {
+   "default": "Daily",
+   "depends_on": "eval: doc.show_percentage_stats",
+   "description": "Show percentage difference according to this time interval",
+   "fieldname": "stats_time_interval",
+   "fieldtype": "Select",
+   "label": "Stats Time Interval",
+   "options": "Daily\nWeekly\nMonthly\nYearly"
+  },
+  {
+   "fieldname": "stats_section",
+   "fieldtype": "Section Break",
+   "label": "Stats"
+  }
+ ],
+ "links": [],
+ "modified": "2020-05-06 19:47:57.753574",
+ "modified_by": "Administrator",
+ "module": "Desk",
+ "name": "Number Card",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Dashboard Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "All",
+   "share": 1
+  }
+ ],
+ "search_fields": "label, document_type",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "title_field": "label",
+ "track_changes": 1
+}

@@ -10,6 +10,7 @@ import frappe.translate
 import frappe.modules.patch_handler
 import frappe.model.sync
 from frappe.utils.fixtures import sync_fixtures
+from frappe.utils.dashboard import sync_dashboards
 from frappe.cache_manager import clear_global_cache
 from frappe.desk.notifications import clear_notifications
 from frappe.website import render
@@ -23,6 +24,7 @@ def migrate(verbose=True, rebuild_website=False, skip_failing=False):
 	- run before migrate hooks
 	- run patches
 	- sync doctypes (schema)
+	- sync dashboards
 	- sync fixtures
 	- sync desktop icons
 	- sync web pages (from /www)
@@ -53,6 +55,7 @@ def migrate(verbose=True, rebuild_website=False, skip_failing=False):
 		frappe.translate.clear_cache()
 		sync_jobs()
 		sync_fixtures()
+		sync_dashboards()
 		sync_customizations()
 		sync_languages()
 

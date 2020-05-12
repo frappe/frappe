@@ -102,7 +102,7 @@ class User(Document):
 			'frappe.core.doctype.user.user.create_contact',
 			user=self,
 			ignore_mandatory=True,
-			now=frappe.flags.in_test
+			now=frappe.flags.in_test or frappe.flags.in_install
 		)
 		if self.name not in ('Administrator', 'Guest') and not self.user_image:
 			frappe.enqueue('frappe.core.doctype.user.user.update_gravatar', name=self.name)
@@ -551,6 +551,7 @@ def update_password(new_password, logout_all_sessions=0, key=None, old_password=
 
 	res = _get_user_for_update_password(key, old_password)
 	if res.get('message'):
+		frappe.local.response.http_status_code = 410
 		return res['message']
 	else:
 		user = res['user']
@@ -718,7 +719,7 @@ def _get_user_for_update_password(key, old_password):
 		user = frappe.db.get_value("User", {"reset_password_key": key})
 		if not user:
 			return {
-				'message': _("Cannot Update: Incorrect / Expired Link.")
+				'message': _("The Link specified has either been used before or Invalid")
 			}
 
 	elif old_password:

@@ -21,14 +21,18 @@
   "top_bar",
   "navbar_search",
   "top_bar_items",
+  "call_to_action",
+  "call_to_action_url",
   "banner",
   "banner_html",
   "footer",
+  "footer_logo",
   "copyright",
   "address",
   "footer_items",
   "hide_footer_signup",
   "integrations",
+  "enable_view_tracking",
   "enable_google_indexing",
   "authorize_api_indexing_access",
   "indexing_refresh_token",
@@ -186,7 +190,7 @@
    "collapsible": 1,
    "fieldname": "integrations",
    "fieldtype": "Section Break",
-   "label": "Google Integrations"
+   "label": "Integrations"
   },
   {
    "description": "Add Google Analytics ID: eg. UA-89XXX57-1. Please search help on Google Analytics for more information.",
@@ -319,6 +323,27 @@
    "fieldname": "authorize_api_indexing_access",
    "fieldtype": "Button",
    "label": "Authorize API Indexing  Access"
+  },
+  {
+   "default": "0",
+   "fieldname": "enable_view_tracking",
+   "fieldtype": "Check",
+   "label": "Enable In App Website Tracking"
+  },
+  {
+   "fieldname": "footer_logo",
+   "fieldtype": "Attach Image",
+   "label": "Footer Logo"
+  },
+  {
+   "fieldname": "call_to_action",
+   "fieldtype": "Data",
+   "label": "Call To Action"
+  },
+  {
+   "fieldname": "call_to_action_url",
+   "fieldtype": "Data",
+   "label": "Call To Action URL"
   }
  ],
  "icon": "fa fa-cog",
@@ -326,7 +351,7 @@
  "issingle": 1,
  "links": [],
  "max_attachments": 10,
- "modified": "2020-02-21 16:46:59.947403",
+ "modified": "2020-05-11 07:14:37.302357",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Website Settings",
