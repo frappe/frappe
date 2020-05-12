@@ -166,7 +166,7 @@ def get_context(context):
 			'email_content': frappe.render_template(self.message, context),
 			'attachment': attachments[0]
 		}
-		enqueue_create_notification(recipients, notification_doc)
+		enqueue_create_notification(users, notification_doc)
 
 	def send_an_email(self, doc, context):
 		from email.utils import formataddr

@@ -49,6 +49,7 @@ def enqueue_create_notification(users, doc):
 
 	if isinstance(users, frappe.string_types):
 		users = [user.strip() for user in users.split(',') if user.strip()]
+	users = list(set(users))
 
 	frappe.enqueue(
 		'frappe.desk.doctype.notification_log.notification_log.make_notification_logs',
