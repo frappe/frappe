@@ -1,11 +1,11 @@
 # Copyright (c) 2019, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 from __future__ import unicode_literals
-import json
 import frappe
 from frappe import _
 from functools import wraps
-from frappe.utils import add_to_date, get_link_to_form
+from frappe.utils import add_to_date, cint, get_link_to_form
+from frappe.modules.import_file import import_doc
 
 
 def cache_source(function):
@@ -72,3 +72,44 @@ def get_from_date_from_timespan(to_date, timespan):
 		years = -50
 	return add_to_date(to_date, years=years, months=months, days=days,
 		as_datetime=True)
+
+def sync_dashboards(app=None):
+	"""Import, overwrite fixtures from `[app]/fixtures`"""
+	if not cint(frappe.db.get_single_value('System Settings', 'setup_complete')):
+		return
+	if app:
+		apps = [app]
+	else:
+		apps = frappe.get_installed_apps()
+
+	for app_name in apps:
+		print("Updating Dashboard for {app}".format(app=app_name))
+		for module_name in frappe.local.app_modules.get(app_name) or []:
+			config = get_config(app_name, module_name)
+			if config:
+				frappe.flags.in_import = True
+				make_records(config.charts, "Dashboard Chart")
+				make_records(config.number_cards, "Number Card")
+				make_records(config.dashboards, "Dashboard")
+				frappe.flags.in_import = False
+
+def make_records(config, doctype):
+	if not config:
+		return
+
+	try:
+		for item in config:
+			item["doctype"] = doctype
+			import_doc(item)
+			frappe.db.commit()
+	except frappe.DuplicateEntryError:
+		pass
+
+def get_config(app, module):
+	try:
+		module_dashboards = frappe.get_module('{app}.{module}.dashboard_fixtures'.format(app=app, module=module))
+		if hasattr(module_dashboards, 'get_data'):
+			return frappe._dict(module_dashboards.get_data())
+		return None
+	except ImportError:
+		return None

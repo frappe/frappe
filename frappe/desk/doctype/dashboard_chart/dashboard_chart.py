@@ -7,7 +7,7 @@ import frappe
 from frappe import _
 import datetime
 import json
-from frappe.core.page.dashboard.dashboard import cache_source, get_from_date_from_timespan
+from frappe.utils.dashboard import cache_source, get_from_date_from_timespan
 from frappe.utils import nowdate, add_to_date, getdate, get_last_day, formatdate, get_datetime
 from frappe.model.naming import append_number_if_name_exists
 from frappe.boot import get_allowed_reports
@@ -27,7 +27,7 @@ def get_permission_query_conditions(user):
 		return None
 
 	allowed_doctypes = tuple(frappe.permissions.get_doctypes_with_read())
-	allowed_reports = tuple([key.encode('UTF8') for key in get_allowed_reports()])
+	allowed_reports = tuple([key if type(key) == str else key.encode('UTF8') for key in get_allowed_reports()])
 
 	return '''
 			`tabDashboard Chart`.`document_type` in {allowed_doctypes}
