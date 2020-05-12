@@ -1558,24 +1558,24 @@ frappe.ui.form.Form = class FrappeForm {
 	}
 
 	show_tour(on_finish) {
-		if (!frappe.tour.hasOwnProperty(this.doctype) || !Array.isArray(frappe.tour[this.doctype])) {
-			return
+		if (!Array.isArray(frappe.tour[this.doctype])) {
+			return;
 		}
 
 		const driver = new frappe.Driver({
 			overlayClickNext: true,
 			keyboardControl: true,
-			nextBtnText: 'Next',              // Next button text for this step
-  			prevBtnText: 'Previous',
-  			opacity: 0.25,
-  			onNext: (el) => {
-  				if (!driver.hasNextStep()) {
-  					on_finish && on_finish();
-  				}
-  			}
+			nextBtnText: 'Next',
+			prevBtnText: 'Previous',
+			opacity: 0.25,
+			onNext: () => {
+				if (!driver.hasNextStep()) {
+					on_finish && on_finish();
+				}
+			}
 		});
 
-		this.layout.sections.forEach(section => section.collapse(false))
+		this.layout.sections.forEach(section => section.collapse(false));
 
 		let steps = frappe.tour[this.doctype].map(step => {
 			let field = this.get_docfield(step.fieldname);
@@ -1585,7 +1585,7 @@ frappe.ui.form.Form = class FrappeForm {
 					title: step.title || field.label,
 					description: step.description
 				}
-			}
+			};
 		});
 
 		driver.defineSteps(steps);

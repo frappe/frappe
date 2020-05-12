@@ -112,9 +112,9 @@ export default class OnboardingWidget extends Widget {
 	show_form_tour(step) {
 		let route;
 		if (step.is_single) {
-			route = `Form/${step.reference_document}`
+			route = `Form/${step.reference_document}`;
 		} else {
-			route = `Form/${step.reference_document}/New ${step.reference_document}`
+			route = `Form/${step.reference_document}/New ${step.reference_document}`;
 		}
 
 		let current_route = frappe.get_route();
@@ -138,7 +138,7 @@ export default class OnboardingWidget extends Widget {
 			});
 		};
 
-		frappe.set_route(route)
+		frappe.set_route(route);
 	}
 
 	update_settings(step) {
