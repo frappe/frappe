@@ -102,7 +102,13 @@ install:
   - if [ $TYPE == "server" ]; then sed -i 's/socketio:/# socketio:/g' Procfile; fi
   - if [ $TYPE == "server" ]; then sed -i 's/redis_socketio:/# redis_socketio:/g' Procfile; fi
 
-  - bench setup requirements --node
+  - if [ $TYPE == "ui" ]; then bench setup requirements --node; fi
+
+  # install node-sass which is required for website theme test
+  - cd ./apps/frappe
+  - yarn add node-sass@4.13.1
+  - cd ../..
+
   - bench start &
   - bench --site test_site reinstall --yes
   - bench --site test_site_producer reinstall --yes

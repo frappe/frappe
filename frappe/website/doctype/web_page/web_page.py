@@ -12,7 +12,7 @@ from jinja2.exceptions import TemplateSyntaxError
 import frappe
 from frappe import _
 from frappe.utils import get_datetime, now, strip_html
-from frappe.utils.jinja import render_template, component
+from frappe.utils.jinja import render_template
 from frappe.website.doctype.website_slideshow.website_slideshow import get_slideshow
 from frappe.website.router import resolve_route
 from frappe.website.utils import (extract_title, find_first_image, get_comment_list,
@@ -205,7 +205,8 @@ def get_web_blocks_html(blocks):
 	out = frappe._dict(html='', scripts=[])
 	extracted_scripts = []
 	for block in blocks:
-		rendered_html = component('web_block', web_block=block)
+		rendered_html = frappe.render_template('templates/includes/web_block.html',
+			context={'web_block': block})
 		html, scripts = extract_script_tags(rendered_html)
 		out.html += html
 		if block.web_template not in extracted_scripts:
