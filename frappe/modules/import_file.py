@@ -13,7 +13,7 @@ ignore_values = {
 	"Print Format": ["disabled"],
 	"Notification": ["enabled"],
 	"Print Style": ["disabled"],
-	"Onboarding": ['is_complete'],
+	"Module Onboarding": ['is_complete'],
 	"Onboarding Step": ['is_complete', 'is_skipped']
 }
 
