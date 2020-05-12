@@ -392,14 +392,14 @@
    "label": "Port"
   },
   {
-   "default": "0",
+   "default": "1",
    "fieldname": "create_contact",
    "fieldtype": "Check",
    "label": "Create Contacts from Incoming Emails"
   }
  ],
  "icon": "fa fa-inbox",
- "modified": "2020-05-07 15:28:00.529049",
+ "modified": "2020-05-11 15:28:00.529049",
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Email Account",
