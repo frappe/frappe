@@ -38,6 +38,7 @@ def create_notification_settings(user):
 	if not frappe.db.exists("Notification Settings", user):
 		_doc = frappe.new_doc('Notification Settings')
 		_doc.name = user
+		_doc.user = user
 		_doc.insert(ignore_permissions=True)
 		frappe.db.commit()
 
