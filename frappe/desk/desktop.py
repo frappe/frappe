@@ -138,8 +138,8 @@ class Workspace:
 		default_country = frappe.db.get_default("country")
 
 		def _doctype_contains_a_record(name):
-			exists = self.table_counts.get(name)
-			if not exists:
+			exists = self.table_counts.get(name, None)
+			if exists == None:
 				if not frappe.db.get_value('DocType', name, 'issingle'):
 					exists = frappe.db.count(name)
 				else:
