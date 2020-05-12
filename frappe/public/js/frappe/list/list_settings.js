@@ -251,7 +251,7 @@ export default class ListSettings {
 						me.fields.push({
 							label: field.label,
 							fieldname: field.fieldname
-						})
+						});
 					}
 				}
 			}
@@ -339,7 +339,6 @@ export default class ListSettings {
 	}
 
 	get_doctype_fields(meta, fields) {
-		let me = this;
 		let multiselect_fields = [];
 
 		meta.fields.forEach(field => {
