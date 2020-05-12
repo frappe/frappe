@@ -21,14 +21,14 @@ class Workspace:
 		self.extended_charts = []
 		self.extended_shortcuts = []
 
-		user_doc = frappe.get_doc('User', frappe.session.user)
-		self.blocked_modules = user_doc.get_blocked_modules()
+		self.user = frappe.get_user()
+		self.allowed_modules = self.get_cached_value('user_allowed_modules', self.get_allowed_modules)
 		self.doc = self.get_page_for_user()
 
-		if self.doc.module in self.blocked_modules:
+		if self.doc.module not in self.allowed_modules:
 			raise frappe.PermissionError
 
-		self.can_read = get_can_read_items_for_user(cache=True)
+		self.can_read = self.get_cached_value('user_perm_can_read', self.get_can_read_items)
 
 		self.allowed_pages = get_allowed_pages(cache=True)
 		self.allowed_reports = get_allowed_reports(cache=True)
@@ -38,6 +38,31 @@ class Workspace:
 		self.table_counts = get_table_with_counts()
 		self.restricted_doctypes = frappe.cache().get_value("domain_restricted_doctypes") or build_domain_restriced_doctype_cache()
 		self.restricted_pages = frappe.cache().get_value("domain_restricted_pages") or build_domain_restriced_page_cache()
+
+	def get_cached_value(self, cache_key, fallback_fn):
+		_cache = frappe.cache()
+
+		value = _cache.get_value(cache_key, user=frappe.session.user)
+		if value:
+			return value
+
+		value = fallback_fn()
+
+		# Expire every six hour
+		_cache.set_value(cache_key, value, frappe.session.user, 21600)
+		return value
+
+	def get_can_read_items(self):
+		if not self.user.can_read:
+			self.user.build_permissions()
+
+		return self.user.can_read
+
+	def get_allowed_modules(self):
+		if not self.user.allow_modules:
+			self.user.build_permissions()
+
+		return self.user.allow_modules
 
 	def get_page_for_user(self):
 		filters = {
@@ -81,7 +106,7 @@ class Workspace:
 			"extends": self.page_name,
 			'restrict_to_domain': ['in', frappe.get_active_domains()],
 			'for_user': '',
-			'module': ['not in', self.blocked_modules]
+			'module': ['in', self.allowed_modules]
 		})
 
 		pages = [frappe.get_doc("Desk Page", page['name']) for page in pages]
@@ -250,24 +275,6 @@ class Workspace:
 			steps.append(step)
 
 		return steps
-
-def get_can_read_items_for_user(cache=False):
-	_cache = frappe.cache()
-
-	if cache:
-		can_read = _cache.get_value('user_perm_can_read', user=frappe.session.user)
-		if can_read:
-			return can_read
-
-
-	user = frappe.get_user()
-	user.build_permissions()
-	can_read = user.can_read
-
-	# Expire every hour
-	_cache.set_value('user_perm_can_read', can_read, frappe.session.user, 3600)
-
-	return can_read
 
 
 @frappe.whitelist()
