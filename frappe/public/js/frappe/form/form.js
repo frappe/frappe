@@ -464,9 +464,9 @@ frappe.ui.form.Form = class FrappeForm {
 	}
 
 	run_after_load_hook() {
-		if (frappe.route_options.after_load) {
-			let route_callback = frappe.route_options.after_load;
-			delete frappe.route_options.after_load;
+		if (frappe.route_hooks.after_load) {
+			let route_callback = frappe.route_hooks.after_load;
+			delete frappe.route_hooks.after_load;
 
 			route_callback(this);
 		}
@@ -580,9 +580,9 @@ frappe.ui.form.Form = class FrappeForm {
 
 				me.script_manager.trigger("after_save");
 
-				if (frappe.route_options.after_save) {
-					let route_callback = frappe.route_options.after_save;
-					delete frappe.route_options.after_save;
+				if (frappe.route_hooks.after_save) {
+					let route_callback = frappe.route_hooks.after_save;
+					delete frappe.route_hooks.after_save;
 
 					route_callback(me);
 				}

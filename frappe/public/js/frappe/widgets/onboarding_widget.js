@@ -119,8 +119,8 @@ export default class OnboardingWidget extends Widget {
 
 		let current_route = frappe.get_route();
 
-		frappe.route_options = {};
-		frappe.route_options.after_load = (frm) => {
+		frappe.route_hooks = {};
+		frappe.route_hooks.after_load = (frm) => {
 			frm.show_tour(() => {
 				let msg_dialog = frappe.msgprint({
 					message: __("Let's take you back to onboarding"),
@@ -144,12 +144,12 @@ export default class OnboardingWidget extends Widget {
 	update_settings(step) {
 		let current_route = frappe.get_route();
 
-		frappe.route_options = {};
-		frappe.route_options.after_load = (frm) => {
+		frappe.route_hooks = {};
+		frappe.route_hooks.after_load = (frm) => {
 			frm.scroll_to_field(step.field);
 		};
 
-		frappe.route_options.after_save = (frm) => {
+		frappe.route_hooks.after_save = (frm) => {
 			let success = false;
 			let args = {};
 
