@@ -164,7 +164,7 @@ def get_context(context):
 			'document_name': doc.name,
 			'subject': subject,
 			'email_content': frappe.render_template(self.message, context),
-			'attachments': attachments
+			'attachment': attachments[0]
 		}
 		enqueue_create_notification(recipients, notification_doc)
 

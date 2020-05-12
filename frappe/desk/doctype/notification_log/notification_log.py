@@ -5,6 +5,7 @@
 from __future__ import unicode_literals
 import frappe
 from frappe import _
+import json
 from frappe.model.document import Document
 from frappe.desk.doctype.notification_settings.notification_settings import (is_notifications_enabled, is_email_notifications_enabled_for_type, set_seen_value)
 
@@ -58,6 +59,11 @@ def enqueue_create_notification(users, doc):
 
 def make_notification_logs(doc, users):
 	from frappe.social.doctype.energy_point_settings.energy_point_settings import is_energy_point_enabled
+
+	attachment = None
+	if doc.attachment:
+		attachment = doc.pop('attachment')
+
 	for user in users:
 		if frappe.db.exists('User', user):
 			if is_notifications_enabled(user):
@@ -65,26 +71,13 @@ def make_notification_logs(doc, users):
 					return
 
 				_doc = frappe.new_doc('Notification Log')
-
-				attachments = None
-				if doc.attachments:
-					attachments = doc.pop('attachments')
-
 				_doc.update(doc)
 				_doc.for_user = user
 				_doc.subject = _doc.subject.replace('<div>', '').replace('</div>', '')
 				if _doc.for_user != _doc.from_user or doc.type == 'Energy Point' or doc.type == 'Alert':
+					if attachment:
+						_doc.attached_file = json.dumps(attachment)
 					_doc.insert(ignore_permissions=True)
-					if attachments:
-						attach_file_to_doc(attachments, _doc.name)
-
-
-def attach_file_to_doc(attachments, docname):
-	from frappe.utils.file_manager import save_file
-	for attachment in attachments:
-		attachment.pop("print_format_attachment", None)
-		print_format_file = frappe._dict(frappe.attach_print(**attachment))
-		save_file(print_format_file.fname, print_format_file.fcontent, 'Notification Log', docname)
 
 def send_notification_email(doc):
 
