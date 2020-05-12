@@ -97,7 +97,7 @@ export default class ListSettings {
 		let fields_html = me.dialog.get_field("fields_html");
 		let wrapper = fields_html.$wrapper[0];
 		let fields = ``;
-		let total_fields = me.dialog.get_values().total_fields ? me.dialog.get_values().total_fields : me.settings.total_fields;
+		let total_fields = me.dialog.get_values().total_fields || me.settings.total_fields;
 
 		for (let idx in me.fields) {
 			if (idx == parseInt(total_fields)) {
