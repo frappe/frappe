@@ -2,24 +2,27 @@
 {% if item.child_items %}
 
 {% if parent %}
+
+{%- set dropdown_id = 'id-' + frappe.utils.generate_hash('Dropdown', 12) -%}
 <li class="nav-item dropdown {% if submenu %} dropdown-submenu {% endif %}">
-	<a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button"
+	<a class="nav-link dropdown-toggle" href="#" id="{{ dropdown_id }}" role="button"
 		data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
 		{{ item.label }}
 	</a>
-  	<ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+  	<ul class="dropdown-menu" aria-labelledby="{{ dropdown_id }}">
 		{% for child in item.child_items %}
 			{{ render_item(child, True) }}
 	  {% endfor %}
 	</ul>
 </li>
 {% else %}
+{%- set dropdown_id = 'id-' + frappe.utils.generate_hash('Dropdown', 12) -%}
 <li class="dropdown {% if submenu %} dropdown-submenu {% endif %}">
-	<a class="dropdown-item dropdown-toggle" href="#" id="navbarDropdown" role="button"
+	<a class="dropdown-item dropdown-toggle" href="#" id="{{ dropdown_id }}" role="button"
 		data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
 		{{ item.label }}
 	</a>
-	<ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+	<ul class="dropdown-menu" aria-labelledby="{{ dropdown_id }}">
 		{% for child in item.child_items %}
 			{{ render_item(child, True) }}
 	{% endfor %}
@@ -47,7 +50,7 @@
 {% endmacro %}
 
 {% if top_bar_items -%}
-<ul class="navbar-nav mr-auto">
+<ul class="mr-auto navbar-nav">
 	{%- for item in top_bar_items -%}
 		{% if not item.parent_label and not item.right -%}
 			{{ render_item(item, parent=True) }}
@@ -55,7 +58,7 @@
 	{%- endfor %}
 </ul>
 {%- endif %}
-<ul class="navbar-nav ml-auto">
+<ul class="ml-auto navbar-nav">
 	{%- for item in top_bar_items -%}
 		{% if not item.parent_label and item.right -%}
 			{{ render_item(item, parent=True) }}
@@ -84,4 +87,10 @@
 
 	{% include "templates/includes/navbar/navbar_search.html" %}
 	{% include "templates/includes/navbar/navbar_login.html" %}
+
 </ul>
+{%- if call_to_action -%}
+<a class="btn btn-primary" href="{{ call_to_action_url | abs_url }}">
+	{{ call_to_action }}
+</a>
+{%- endif -%}

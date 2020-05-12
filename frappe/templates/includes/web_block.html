@@ -1,14 +1,14 @@
-{%- set htmltag = htmltag or 'section' -%}
 {%- set classes = resolve_class([
 	{
-		'py-12 sm:py-20 xl:py-32': web_block.add_padding,
-		'bg-gray-100': web_block.add_shade,
+		'section-padding-top': web_block.add_top_padding,
+		'section-padding-bottom': web_block.add_bottom_padding,
+		'bg-light': web_block.add_shade,
 	},
 	web_block.css_class
 ]) -%}
 
 {%- if not web_block.hide_block -%}
-<{{htmltag}} class="{{ classes }}" data-section-idx="{{ web_block.idx | e }}"
+<section class="section {{ classes }}" data-section-idx="{{ web_block.idx | e }}"
 	data-section-template="{{ web_block.web_template | e }}">
 	{%- if web_block.add_container -%}
 	<div class="container">
@@ -17,5 +17,5 @@
 	{%- if web_block.add_container -%}
 	</div>
 	{%- endif -%}
-</{{htmltag}}>
+</section>
 {%- endif -%}
