@@ -12,13 +12,13 @@
    "fieldname": "installed_applications",
    "fieldtype": "Table",
    "label": "Installed Applications",
-   "options": "Installed Application Details",
+   "options": "Installed Application",
    "read_only": 1
   }
  ],
  "issingle": 1,
  "links": [],
- "modified": "2020-05-11 19:52:47.775562",
+ "modified": "2020-05-12 10:09:14.310622",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Installed Applications",
