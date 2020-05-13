@@ -49,6 +49,11 @@ class Redirect(Exception):
 class CSRFTokenError(Exception):
 	http_status_code = 400
 
+
+class TooManyRequestsError(Exception):
+	http_status_code = 429
+
+
 class ImproperDBConfigurationError(Exception):
 	"""
 	Used when frappe detects that database or tables are not properly
