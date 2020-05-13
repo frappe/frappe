@@ -61,10 +61,10 @@ class Workspace:
 		if not self.doc.onboarding:
 			return None
 
-		if frappe.db.get_value("Onboarding", self.doc.onboarding, "is_complete"):
+		if frappe.db.get_value("Module Onboarding", self.doc.onboarding, "is_complete"):
 			return None
 
-		doc = frappe.get_doc("Onboarding", self.doc.onboarding)
+		doc = frappe.get_doc("Module Onboarding", self.doc.onboarding)
 
 		# Check if user is allowed
 		allowed_roles = set(doc.get_allowed_roles())
