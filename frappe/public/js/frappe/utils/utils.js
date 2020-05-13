@@ -833,11 +833,11 @@ Object.assign(frappe.utils, {
 			days: Math.floor(secs / (3600 * 24)),
 			hours: Math.floor(secs % (3600 * 24) / 3600),
 			minutes: Math.floor(secs % 3600 / 60),
-			seconds : Math.floor(secs % 60)
+			seconds: Math.floor(secs % 60)
 		};
 		if (!duration_options.showDays) {
-			total_duration.hours = Math.floor(secs / 3600)
-			total_duration.days = 0
+			total_duration.hours = Math.floor(secs / 3600);
+			total_duration.days = 0;
 		}
 		return total_duration;
 	},

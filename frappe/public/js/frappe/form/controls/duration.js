@@ -26,7 +26,7 @@ frappe.ui.form.ControlDuration = frappe.ui.form.ControlData.extend({
 	build_numeric_input: function(label, hidden, max) {
 		let $duration_input = $(`
 			<input class="input-sm duration-input" data-duration="${label}" type="number" min="0" value="0">
-		`)
+		`);
 
 		let $input = $(`<div class="row duration-row"></div>`).prepend($duration_input);
 
@@ -40,7 +40,7 @@ frappe.ui.form.ControlDuration = frappe.ui.form.ControlData.extend({
 			<div class="col duration-col">
 				<div class="row duration-row duration-label">${__(label)}</div>
 			</div>`
-		)
+		);
 
 		if (hidden) {
 			$control.addClass("hidden");
@@ -50,7 +50,7 @@ frappe.ui.form.ControlDuration = frappe.ui.form.ControlData.extend({
 	},
 
 	set_duration_options() {
-		this.duration_options = frappe.meta.get_duration_options(this.df, this.get_doc());
+		this.duration_options = frappe.meta.get_duration_options(this.df);
 	},
 
 	set_duration_picker() {
@@ -64,16 +64,19 @@ frappe.ui.form.ControlDuration = frappe.ui.form.ControlData.extend({
 	},
 
 	bind_events: function() {
+		// flag to handle the display property of the picker
 		let clicked = false;
 
+		this.$wrapper.find(".duration-input").mousedown(() => {
+			// input in individual duration boxes
+			clicked = true;
+		});
+
 		this.$picker.on("change", ".duration-input", () => {
+			// duration changed in individual boxes
 			clicked = false;
 			this.set_value(this.duration_to_seconds());
 			this.set_focus();
-		});
-
-		this.$wrapper.find(".duration-input").mousedown(() => {
-			clicked = true;
 		});
 
 		this.$input.on("focus", () => {
@@ -81,9 +84,11 @@ frappe.ui.form.ControlDuration = frappe.ui.form.ControlData.extend({
 		});
 
 		this.$input.on("blur", () => {
+			// input in duration boxes, don't close the picker
 			if (clicked) {
 				clicked = false;
 			} else {
+				// blur event was not due to duration inputs
 				this.$picker.hide();
 			}
 		});
@@ -107,8 +112,8 @@ frappe.ui.form.ControlDuration = frappe.ui.form.ControlData.extend({
 		let value = 0;
 		if (this.inputs) {
 			let total_duration = {
-				minutes : parseInt(this.inputs.minutes.val()),
-				hours : parseInt(this.inputs.hours.val()),
+				minutes: parseInt(this.inputs.minutes.val()),
+				hours: parseInt(this.inputs.hours.val()),
 			};
 			if (this.duration_options.showDays) {
 				total_duration.days = parseInt(this.inputs.days.val());

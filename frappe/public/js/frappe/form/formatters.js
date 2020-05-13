@@ -190,7 +190,7 @@ frappe.form.formatters = {
 	},
 	Duration: function(value, docfield, doc) {
 		if (value) {
-			let duration_options = frappe.meta.get_duration_options(docfield, doc);
+			let duration_options = frappe.meta.get_duration_options(docfield);
 			value = frappe.utils.get_formatted_duration(value, duration_options);
 		}
 
