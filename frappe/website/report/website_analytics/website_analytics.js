@@ -8,7 +8,7 @@ frappe.query_reports["Website Analytics"] = {
 			fieldname: "from_date",
 			label: __("From Date"),
 			fieldtype: "Date",
-			default: frappe.datetime.add_days(frappe.datetime.now_date(true), -7),
+			default: frappe.datetime.add_days(frappe.datetime.now_date(true), -100),
 		},
 		{
 			fieldname:"to_date",
@@ -21,11 +21,11 @@ frappe.query_reports["Website Analytics"] = {
 			label: __("Range"),
 			fieldtype: "Select",
 			options: [
-				{ "value": "D", "label": __("Daily") },
-				{ "value": "W", "label": __("Weekly") },
-				{ "value": "M", "label": __("Monthly") },
+				{ "value": "Daily", "label": __("Daily") },
+				{ "value": "Weekly", "label": __("Weekly") },
+				{ "value": "Monthly", "label": __("Monthly") },
 			],
-			default: "D",
+			default: "Daily",
 			reqd: 1
 		}
 	]
