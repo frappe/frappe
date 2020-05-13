@@ -20,7 +20,7 @@ def get_charts():
 	return [{
 		"chart_name": "Website Analytics",
 		"chart_type": "Report",
-		"custom_options": "{\"type\": \"line\", \"lineOptions\": {\"regionFill\": 1}, \"axisOptions\": {\"shortenYAxisNumbers\": 1}, \"colors\": [\"#7cd6fd\", \"#5e64ff\"], \"tooltipOptions\": {}}",
+		"custom_options": "{\"type\": \"line\", \"lineOptions\": {\"regionFill\": 1}, \"axisOptions\": {\"shortenYAxisNumbers\": 1}, \"tooltipOptions\": {}}",
 		"doctype": "Dashboard Chart",
 		"filters_json": "{}",
 		"group_by_type": "Count",
