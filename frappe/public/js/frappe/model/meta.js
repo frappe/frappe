@@ -161,8 +161,7 @@ $.extend(frappe.meta, {
 
 			if(!out) {
 				// eslint-disable-next-line
-				console.log(__('Warning: Unable to find {0} in any table related to {1}', [
-					key, __(doctype)]));
+				console.log(__('Warning: Unable to find {0} in any table related to {1}', [key, __(doctype)]));
 			}
 		}
 		return out;

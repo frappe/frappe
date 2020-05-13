@@ -17,7 +17,7 @@ context('Control Duration', () => {
 	}
 
 	it('should set duration', () => {
-		get_dialog_with_duration().as('dialog')
+		get_dialog_with_duration().as('dialog');
 		cy.get('.frappe-control[data-fieldname=duration] input')
 			.first()
 			.click();
