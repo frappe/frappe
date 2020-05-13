@@ -6,6 +6,9 @@ import frappe
 import frappe.defaults
 import datetime
 from frappe.utils import get_datetime
+from frappe.utils import nowdate, add_to_date, getdate, get_datetime
+from frappe.utils.data import get_last_day_of_week
+from frappe.desk.doctype.dashboard_chart.dashboard_chart import get_period_ending
 from six import string_types
 
 # global values -- used for caching
@@ -74,8 +77,29 @@ def datetime_in_user_format(date_time):
 	from frappe.utils import formatdate
 	return formatdate(date_time.date()) + " " + date_time.strftime("%H:%M")
 
-def get_date_range(from_date, to_date, frequency="M", normalize=True):
-	from pandas import date_range
-	date_range = date_range(start=from_date, end=to_date, freq=frequency, normalize=normalize).to_pydatetime().tolist()
+def get_dates_from_timegrain(from_date, to_date, timegrain="Daily"):
+	from_date = getdate(from_date)
+	to_date = getdate(to_date)
 
-	return date_range
+	days = months = years = 0
+	if "Daily" == timegrain:
+		days = 1
+	elif "Weekly" == timegrain:
+		days = 7
+	elif "Monthly" == timegrain:
+		months = 1
+	elif "Quarterly" == timegrain:
+		months = 3
+
+	if "Weekly" == timegrain:
+		dates = [get_last_day_of_week(from_date)]
+	else:
+		dates = [get_period_ending(from_date, timegrain)]
+
+	while getdate(dates[-1]) < getdate(to_date):
+		if "Weekly" == timegrain:
+			date = get_last_day_of_week(add_to_date(dates[-1], years=years, months=months, days=days))
+		else:
+			date = get_period_ending(add_to_date(dates[-1], years=years, months=months, days=days), timegrain)
+		dates.append(date)
+	return dates
