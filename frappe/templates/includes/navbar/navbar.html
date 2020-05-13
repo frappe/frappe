@@ -1,5 +1,4 @@
-{%- if theme.based_on == 'Bootstrap 4' or doctype != 'Web Page' -%}
-<nav class="bg-white shadow-sm navbar navbar-light navbar-expand-lg sticky-top">
+<nav class="navbar navbar-light navbar-expand-lg">
 	<div class="container">
 		<a class="navbar-brand" href="{{ url_prefix }}{{ home_page or "/" }}">
 			<span>{{ brand_html or (frappe.get_hooks("brand_html") or [_("Home")])[0] }}</span>
@@ -18,8 +17,3 @@
 		</div>
 	</div>
 </nav>
-{%- else -%}
-<header>
-{{ c('web_blocks', web_blocks=theme.navbar, htmltag='div') }}
-</header>
-{%- endif -%}

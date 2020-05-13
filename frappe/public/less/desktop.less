@@ -294,8 +294,11 @@
 	}
 
 	&.onboarding-widget-box {
+		margin-bottom: 50px;
+		margin-top: 10px;
+
 		.widget-head {
-			display: block;
+			display: flex;
 
 			.widget-title {
 				font-size: 20px;
@@ -306,27 +309,100 @@
 				margin-top: 5px;
 				color: @text-muted;
 			}
+
+			.widget-control {
+				align-self: flex-start;
+				margin-top: -5px;
+				color: @text-muted;
+			}
 		}
 
 		.widget-body {
 			margin-top: 20px;
 
+			&.grid {
+				display: grid;
+				grid-template-columns: 1fr 1fr 1fr;
+				grid-auto-flow: column;
+
+				&.grid-rows-2 {
+					grid-template-rows: repeat(3, 1fr);
+				}
+
+				&.grid-rows-3 {
+					grid-template-rows: repeat(3, 1fr);
+				}
+
+				&.grid-rows-4 {
+					grid-template-rows: repeat(4, 1fr);
+				}
+
+				&.grid-rows-5 {
+					grid-template-rows: repeat(5, 1fr);
+				}
+			}
+
 			.onboarding-step {
 				margin-bottom: 8px;
 				font-size: 16px;
 				letter-spacing: 0.015em;
-			}
 
-			i {
-				padding-left: 5px;
-				padding-right: 12px;
-
-				&.complete {
-					color: @brand-primary;
+				i {
+					color: @text-muted;
+					padding-left: 5px;
+					padding-right: 2px;
 				}
 
-				&.incomplete {
+				.step-skip {
+					visibility: hidden;
+					cursor: pointer;
+					font-size: 12px;
+					padding-left: 5px;
+				}
+
+				span {
 					color: @text-muted;
+					cursor: pointer;
+				}
+
+				&:hover {
+					span {
+						color: @text-color;
+					}
+
+					.step-skip {
+						visibility: visible;
+					}
+				}
+
+				&.skipped {
+					i {
+						color: @text-muted;
+					}
+
+					span {
+						color: @text-muted;
+					}
+
+					&:hover {
+						span {
+							color: @text-muted;
+						}
+
+						.step-skip {
+							visibility: hidden;
+						}
+					}
+				}
+
+				&.complete {
+					i {
+						color: @green;
+					}
+
+					span {
+						color: @text-color;
+					}
 				}
 			}
 		}
@@ -395,7 +471,7 @@
 
 	&.number-widget-box {
 		cursor: pointer;
-		height: 100px;
+		height: 110px;
 		padding: 10px;
 
 		&:hover {
@@ -428,13 +504,14 @@
 			}
 
 			.widget-content {
-				padding-top: 20px;
+				padding-top: 30px;
 				display: flex;
 				justify-content: space-between;
 
 				.number {
+					font-weight: 600;
 					font-size: 26px;
-					font-weight: bold;
+					line-height: 1.8em;
 				}
 
 				.number-text {
@@ -444,7 +521,19 @@
 				}
 
 				.card-stats {
-					padding-top: 15px;
+					padding-top: 5px;
+				}
+
+				.percentage-stat {
+					float: right;
+					clear: right;
+					font-size: 12px;
+				}
+
+				.stat-period {
+					float: right;
+					clear: right;
+					font-size: 11px;
 				}
 
 				.green-stat {
@@ -462,6 +551,17 @@
 		}
 	}
 
+}
+
+.onboarding-success {
+	margin: 50px auto;
+	max-width: 75%;
+
+	.success-state {
+		height: 15rem !important;
+		max-height: 150px;
+		width: auto;
+	}
 }
 
 .pill {
@@ -619,11 +719,38 @@
 }
 
 .zoomOutDelete {
-  // -webkit-animation-name: zoomOut;
-  // animation-name: zoomOut;
-  // animation-duration: 1s;
   transition: opacity 0.2s, visibility 0.2s, transform 0.2s;
   transform: scale3d(0.5, 0.5, 0.5);
   opacity: 0;
   visibility: hidden;
+}
+
+@-webkit-keyframes zoomIn {
+  from {
+    opacity: 0;
+    -webkit-transform: scale3d(0.7, 0.7, 0.7);
+    transform: scale3d(0.7, 0.7, 0.7);
+  }
+
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes zoomIn {
+  from {
+    opacity: 0;
+    -webkit-transform: scale3d(0.7, 0.7, 0.7);
+    transform: scale3d(0.7, 0.7, 0.7);
+  }
+
+  50% {
+    opacity: 1;
+  }
+}
+
+.zoomIn {
+	-webkit-animation-name: zoomIn;
+	animation-name: zoomIn;
+	animation-duration: 400ms;
 }

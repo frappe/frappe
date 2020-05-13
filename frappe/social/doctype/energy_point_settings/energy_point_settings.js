@@ -3,7 +3,9 @@
 
 frappe.ui.form.on('Energy Point Settings', {
 	refresh: function(frm) {
-		frm.add_custom_button(__('Give Review Points'), show_review_points_dialog);
+		if (frm.doc.enabled) {
+			frm.add_custom_button(__('Give Review Points'), show_review_points_dialog);
+		}
 	}
 });
 

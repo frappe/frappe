@@ -209,11 +209,13 @@ frappe.views.ListSidebar = class ListSidebar {
 		accounts.forEach((account) => {
 			let email_account = (account.email_id == "All Accounts") ? "All Accounts" : account.email_account;
 			let route = ["List", "Communication", "Inbox", email_account].join('/');
+			let display_name = ["All Accounts", "Sent Mail", "Spam", "Trash"].includes(account.email_id) ? __(account.email_id) : account.email_id;
+			
 			if (!divider) {
 				this.get_divider().appendTo($dropdown);
 				divider = true;
 			}
-			$(`<li><a href="#${route}">${account.email_id}</a></li>`).appendTo($dropdown);
+			$(`<li><a href="#${route}">${display_name}</a></li>`).appendTo($dropdown);
 			if (account.email_id === "Sent Mail")
 				divider = false;
 		});
@@ -240,40 +242,6 @@ frappe.views.ListSidebar = class ListSidebar {
 		});
 	}
 
-	setup_dropdown_search(dropdown, text_class) {
-		let $dropdown_search = dropdown.find('.dropdown-search').show();
-		let $search_input = $dropdown_search.find('.dropdown-search-input');
-		$search_input.focus();
-		$dropdown_search.on('click',(e)=>{
-			e.stopPropagation();
-		});
-		let $elements = dropdown.find('li');
-		$dropdown_search.on('keyup',()=> {
-			let text_filter = $search_input.val().toLowerCase();
-			// Replace trailing and leading spaces
-			text_filter = text_filter.replace(/^\s+|\s+$/g, '');
-			for (var i = 0; i < $elements.length; i++) {
-				let text_element = $elements.eq(i).find(text_class);
-
-				let text = text_element.text().toLowerCase();
-				// Search data-name since label for current user is 'Me'
-				let name = '';
-				if (text_element.data('name')) {
-					name = text_element.data('name').toLowerCase();
-				}
-				if (text.includes(text_filter) || name.includes(text_filter)) {
-					$elements.eq(i).css('display','');
-				} else {
-					$elements.eq(i).css('display','none');
-				}
-			}
-		});
-		dropdown.parent().on('hide.bs.dropdown',()=> {
-			$dropdown_search.val('');
-		});
-	}
-
-
 	get_cat_tags() {
 		return this.cat_tags;
 	}
@@ -292,7 +260,7 @@ frappe.views.ListSidebar = class ListSidebar {
 			callback: function(r) {
 				me.render_stat("_user_tags", (r.message.stats || {})["_user_tags"]);
 				let stats_dropdown = me.sidebar.find('.list-stats-dropdown');
-				me.setup_dropdown_search(stats_dropdown,'.stat-label');
+				frappe.utils.setup_search(stats_dropdown, '.stat-link', '.stat-label');
 			}
 		});
 	}

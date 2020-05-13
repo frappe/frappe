@@ -1,5 +1,5 @@
 language: python
-dist: trusty
+dist: bionic
 
 addons:
   hosts:
@@ -8,6 +8,10 @@ addons:
   mariadb: 10.3
   postgresql: 9.5
   chrome: stable
+
+services:
+  - xvfb
+  - mysql
 
 git:
   depth: 1
@@ -23,28 +27,23 @@ cache:
 
 matrix:
   include:
-  - name: "Python 3.6 MariaDB"
-    python: 3.6
+  - name: "Python 3.7 MariaDB"
+    python: 3.7
     env: DB=mariadb TYPE=server
     script: bench --site test_site run-tests --coverage
 
-  - name: "Python 3.6 PostgreSQL"
-    python: 3.6
+  - name: "Python 3.7 PostgreSQL"
+    python: 3.7
     env: DB=postgres TYPE=server
     script: bench --site test_site run-tests --coverage
 
   - name: "Cypress"
-    python: 3.6
+    python: 3.7
     env: DB=mariadb TYPE=ui
     before_script:
     - bench --site test_site execute frappe.utils.install.complete_setup_wizard
     - bench --site test_site_producer execute frappe.utils.install.complete_setup_wizard
     script: bench --site test_site run-ui-tests frappe --headless
-
-  - name: "Python 2.7 MariaDB"
-    python: 2.7
-    env: DB=mariadb TYPE=server
-    script: bench --site test_site run-tests --coverage
 
 before_install:
   # install wkhtmltopdf
@@ -103,7 +102,13 @@ install:
   - if [ $TYPE == "server" ]; then sed -i 's/socketio:/# socketio:/g' Procfile; fi
   - if [ $TYPE == "server" ]; then sed -i 's/redis_socketio:/# redis_socketio:/g' Procfile; fi
 
-  - bench setup requirements --node
+  - if [ $TYPE == "ui" ]; then bench setup requirements --node; fi
+
+  # install node-sass which is required for website theme test
+  - cd ./apps/frappe
+  - yarn add node-sass@4.13.1
+  - cd ../..
+
   - bench start &
   - bench --site test_site reinstall --yes
   - bench --site test_site_producer reinstall --yes

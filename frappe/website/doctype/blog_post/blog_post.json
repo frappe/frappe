@@ -10,6 +10,7 @@
   "title",
   "published_on",
   "published",
+  "read_time",
   "disable_comments",
   "column_break_3",
   "blog_category",
@@ -21,7 +22,13 @@
   "content",
   "content_md",
   "content_html",
-  "email_sent"
+  "email_sent",
+  "meta_tags",
+  "meta_description",
+  "column_break_18",
+  "meta_image",
+  "section_break_20",
+  "google_preview"
  ],
  "fields": [
   {
@@ -123,6 +130,43 @@
    "fieldname": "disable_comments",
    "fieldtype": "Check",
    "label": "Disable Comments"
+  },
+  {
+   "fieldname": "meta_description",
+   "fieldtype": "Small Text",
+   "label": "Meta Description"
+  },
+  {
+   "fieldname": "column_break_18",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "meta_image",
+   "fieldtype": "Attach Image",
+   "label": "Meta Image"
+  },
+  {
+   "fieldname": "section_break_20",
+   "fieldtype": "Section Break"
+  },
+  {
+   "description": "This is an example Google SERP Preview.",
+   "fieldname": "google_preview",
+   "fieldtype": "HTML",
+   "label": "Google Snippet Preview",
+   "read_only": 1
+  },
+  {
+   "fieldname": "meta_tags",
+   "fieldtype": "Section Break",
+   "label": "Meta Tags"
+  },
+  {
+   "description": "in minutes",
+   "fieldname": "read_time",
+   "fieldtype": "Int",
+   "label": "Read Time",
+   "read_only": 1
   }
  ],
  "has_web_view": 1,
@@ -131,7 +175,7 @@
  "is_published_field": "published",
  "links": [],
  "max_attachments": 5,
- "modified": "2020-04-08 19:58:13.672332",
+ "modified": "2020-04-30 17:32:41.055883",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Blog Post",

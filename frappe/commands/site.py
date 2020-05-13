@@ -81,7 +81,7 @@ def _new_site(db_name, site, mariadb_root_username=None, mariadb_root_password=N
 	installing = touch_file(get_site_path('locks', 'installing.lock'))
 	atexit.register(_new_site_cleanup, site, mariadb_root_username, mariadb_root_password)
 
-	install_db(root_login=mariadb_root_username, root_password=mariadb_root_password, db_name=db_name, 
+	install_db(root_login=mariadb_root_username, root_password=mariadb_root_password, db_name=db_name,
 		admin_password=admin_password, verbose=verbose, source_sql=source_sql, force=force, reinstall=reinstall,
 		db_password=db_password, db_type=db_type, db_host=db_host, db_port=db_port, no_mariadb_socket=no_mariadb_socket)
 	apps_to_install = ['frappe'] + (frappe.conf.get("install_apps") or []) + (list(install_apps) or [])
@@ -101,7 +101,7 @@ def _new_site_cleanup(site, mariadb_root_username, mariadb_root_password):
 
 	if installing and os.path.exists(installing):
 		if mariadb_root_password:
-			_drop_site(site, mariadb_root_username, mariadb_root_password, force=True)
+			_drop_site(site, mariadb_root_username, mariadb_root_password, force=True, no_backup=True)
 		shutil.rmtree(site)
 
 	frappe.destroy()

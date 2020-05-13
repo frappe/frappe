@@ -443,7 +443,7 @@ def console(context):
 	for app in all_apps:
 		locals()[app] = __import__(app)
 	print("Apps in this namespace:\n{}".format(", ".join(all_apps)))
-	IPython.embed(display_banner="", header="")
+	IPython.embed(display_banner="", header="", colors="neutral")
 
 
 @click.command('run-tests')

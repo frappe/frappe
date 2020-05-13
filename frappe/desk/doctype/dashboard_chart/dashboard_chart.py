@@ -7,7 +7,7 @@ import frappe
 from frappe import _
 import datetime
 import json
-from frappe.core.page.dashboard.dashboard import cache_source, get_from_date_from_timespan
+from frappe.utils.dashboard import cache_source, get_from_date_from_timespan
 from frappe.utils import nowdate, add_to_date, getdate, get_last_day, formatdate, get_datetime
 from frappe.model.naming import append_number_if_name_exists
 from frappe.boot import get_allowed_reports
@@ -27,7 +27,7 @@ def get_permission_query_conditions(user):
 		return None
 
 	allowed_doctypes = tuple(frappe.permissions.get_doctypes_with_read())
-	allowed_reports = tuple([key.encode('UTF8') for key in get_allowed_reports()])
+	allowed_reports = tuple([key if type(key) == str else key.encode('UTF8') for key in get_allowed_reports()])
 
 	return '''
 			`tabDashboard Chart`.`document_type` in {allowed_doctypes}
@@ -76,7 +76,7 @@ def get(chart_name = None, chart = None, no_cache = None, filters = None, from_d
 		if to_date and len(to_date):
 			to_date = get_datetime(to_date)
 		else:
-			to_date = chart.to_date
+			to_date = get_datetime(chart.to_date)
 
 	timegrain = time_interval or chart.time_interval
 	filters = frappe.parse_json(filters) or frappe.parse_json(chart.filters_json) or []
@@ -110,7 +110,8 @@ def create_dashboard_chart(args):
 
 @frappe.whitelist()
 def create_report_chart(args):
-	create_dashboard_chart()
+	create_dashboard_chart(args)
+	args = frappe.parse_json(args)
 	if args.dashboard:
 		add_chart_to_dashboard(json.dumps(args))
 

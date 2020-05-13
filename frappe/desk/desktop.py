@@ -34,6 +34,8 @@ class Workspace:
 		self.user = user
 		self.allowed_pages = get_allowed_pages()
 		self.allowed_reports = get_allowed_reports()
+		self.onboarding_doc = self.get_onboarding_doc()
+		self.onboarding = None
 
 		self.table_counts = get_table_with_counts()
 		self.restricted_doctypes = frappe.cache().get_value("domain_restricted_doctypes") or build_domain_restriced_doctype_cache()
@@ -50,6 +52,31 @@ class Workspace:
 
 		self.get_pages_to_extend()
 		return frappe.get_doc("Desk Page", self.page_name)
+
+	def get_onboarding_doc(self):
+		# Check if onboarding is enabled
+		if not frappe.get_system_settings("enable_onboarding"):
+			return None
+
+		if not self.doc.onboarding:
+			return None
+
+		if frappe.db.get_value("Module Onboarding", self.doc.onboarding, "is_complete"):
+			return None
+
+		doc = frappe.get_doc("Module Onboarding", self.doc.onboarding)
+
+		# Check if user is allowed
+		allowed_roles = set(doc.get_allowed_roles())
+		user_roles = set(self.user.get_roles())
+		if not allowed_roles & user_roles:
+			return None
+
+		# Check if already complete
+		if doc.check_completion():
+			return None
+
+		return doc
 
 	def get_pages_to_extend(self):
 		pages = frappe.get_all("Desk Page", filters={
@@ -95,6 +122,16 @@ class Workspace:
 			'label': _(self.doc.shortcuts_label),
 			'items': self.get_shortcuts()
 		}
+
+		if self.onboarding_doc:
+			self.onboarding = {
+				'label': _(self.onboarding_doc.title),
+				'subtitle': _(self.onboarding_doc.subtitle),
+				'success': _(self.onboarding_doc.success_message),
+				'docs_url': self.onboarding_doc.documentation_url,
+				'user_can_dismiss': self.onboarding_doc.user_can_dismiss,
+				'items': self.get_onboarding_steps()
+			}
 
 	def get_cards(self):
 		cards = self.doc.cards + get_custom_reports_and_doctypes(self.doc.module)
@@ -207,6 +244,16 @@ class Workspace:
 
 		return items
 
+	def get_onboarding_steps(self):
+		steps = []
+		for doc in self.onboarding_doc.get_steps():
+			step = doc.as_dict().copy()
+			step.label = _(doc.title)
+			steps.append(step)
+
+		return steps
+
+
 @frappe.whitelist()
 @frappe.read_only()
 def get_desktop_page(page):
@@ -226,6 +273,7 @@ def get_desktop_page(page):
 			'charts': wspace.charts,
 			'shortcuts': wspace.shortcuts,
 			'cards': wspace.cards,
+			'onboarding': wspace.onboarding,
 			'allow_customization': not wspace.doc.disable_user_customization
 		}
 
@@ -360,8 +408,8 @@ def save_customization(page, config):
 		"charts_label": original_page.charts_label,
 		"cards_label": original_page.cards_label,
 		"shortcuts_label": original_page.shortcuts_label,
-		"icon": original_page.icon,
 		"module": original_page.module,
+		"onboarding": original_page.onboarding,
 		"developer_mode_only": original_page.developer_mode_only,
 		"category": original_page.category
 	})
@@ -432,3 +480,16 @@ def prepare_widget(config, doctype, parentfield):
 
 		prepare_widget_list.append(doc)
 	return prepare_widget_list
+
+
+@frappe.whitelist()
+def update_onboarding_step(name, field, value):
+	"""Update status of onboaridng step
+
+	Args:
+	    name (string): Name of the doc
+	    field (string): field to be updated
+	    value: Value to be updated
+
+	"""
+	frappe.db.set_value("Onboarding Step", name, field, value)

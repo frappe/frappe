@@ -59,6 +59,9 @@ def sanitize_html(html, linkify=False):
 	elif is_json(html):
 		return html
 
+	if not bool(BeautifulSoup(html, 'html.parser').find()):
+		return html
+
 	tags = (acceptable_elements + svg_elements + mathml_elements
 		+ ["html", "head", "meta", "link", "body", "style", "o:p"])
 	attributes = {"*": acceptable_attributes, 'svg': svg_attributes}
