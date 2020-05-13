@@ -4,7 +4,8 @@
 from __future__ import unicode_literals
 import frappe
 from datetime import datetime
-from frappe.utils.dateutils import get_date_range
+from frappe.utils import getdate
+from frappe.utils.dateutils import get_dates_from_timegrain
 
 def execute(filters=None):
 	return WebsiteAnalytics(filters).run()
@@ -20,7 +21,7 @@ class WebsiteAnalytics(object):
 			self.filters.from_date = frappe.utils.add_days(self.filters.to_date, -7)
 
 		if not self.filters.range:
-			self.filters.range = "D"
+			self.filters.range = "Daily"
 
 		self.filters.to_date = frappe.utils.add_days(self.filters.to_date, 1)
 		self.query_filters = {'creation': ['between', [self.filters.from_date, self.filters.to_date]]}
@@ -89,10 +90,10 @@ class WebsiteAnalytics(object):
 		field = 'creation'
 		date_format = '%Y-%m-%d'
 
-		if filters_range == "W":
+		if filters_range == "Weekly":
 			field = 'ADDDATE(creation, INTERVAL 1-DAYOFWEEK(creation) DAY)'
 
-		elif filters_range == "M":
+		elif filters_range == "Monthly":
 			date_format = '%Y-%m-01'
 
 		query = """
@@ -115,10 +116,10 @@ class WebsiteAnalytics(object):
 		field = 'creation'
 		granularity = 'day'
 
-		if filters_range == "W":
+		if filters_range == "Weekly":
 			granularity = 'week'
 
-		elif filters_range == "M":
+		elif filters_range == "Monthly":
 			granularity = 'day'
 
 		query = """
@@ -149,8 +150,8 @@ class WebsiteAnalytics(object):
 		return self.prepare_chart_data(self.chart_data)
 
 	def prepare_chart_data(self, data):
-		date_range = get_date_range(self.filters.from_date, self.filters.to_date, self.filters.range)
-		if self.filters.range == "M":
+		date_range = get_dates_from_timegrain(self.filters.from_date, self.filters.to_date, self.filters.range)
+		if self.filters.range == "Monthly":
 			date_range = [frappe.utils.add_days(dd, 1) for dd in date_range]
 
 		labels = []
@@ -159,8 +160,8 @@ class WebsiteAnalytics(object):
 
 		def get_data_for_date(date):
 			for item in data:
-				item_date = frappe.utils.get_datetime(item.get("date")).date()
-				if item_date == date.date():
+				item_date = getdate(item.get("date"))
+				if item_date == date:
 					return item
 			return {'count': 0, 'unique_count': 0}
 
