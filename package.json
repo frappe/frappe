@@ -28,7 +28,7 @@
     "moment": "^2.20.1",
     "moment-timezone": "^0.5.21",
     "quill": "2.0.0-dev.2",
-    "redis": "^2.8.0",
+    "redis": "^3.0.2",
     "showdown": "^1.8.6",
     "socket.io": "^2.0.4",
     "superagent": "^3.8.2",
