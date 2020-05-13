@@ -14,21 +14,72 @@
 		</button>
 		<div class="collapse navbar-collapse justify-content-lg-end" id="navbar-items">
 			<form class="form-inline" role="search" onsubmit="return false;">
-				<div class="input-group" style="width: 100%">
-					<input id="modal-search" type="text" class="form-control" placeholder="{%= __("Search or type a command") %}" aria-haspopup="true">
-					<!-- <button type="reset" class="close" data-dismiss="modal">
-						<i class="octicon octicon-x"></i>
-					</button> -->
+				<div class="input-group search-bar text-muted">
+					<input
+					id="navbar-search"
+					type="text"
+					class="form-control"
+					placeholder="{%= __("Search or type a command (Ctrl + G)") %}"
+					aria-haspopup="true"
+					>
+					<span>
+						<svg class="icon icon-sm"><use xlink:href="#search"></use></svg>
+					</span>
 				</div>
 			</form>
-			<ul class="navbar-nav">
-				<li class="nav-item dropdown dropdown-navbar-user dropdown-mobile">
+			<ul class="navbar-nav ml-lg-4">
+				<li class="nav-item dropdown dropdown-notifications dropdown-mobile">
+					<span class="notifications-indicator"><i class="fa fa-circle"></i></span>
+					<a
+						class="nav-link notifications-icon text-muted"
+						data-toggle="dropdown"
+						aria-haspopup="true"
+						aria-expanded="true"
+						href="#"
+						onclick="return false;">
+						<span>
+							<svg class="icon"><use xlink:href="#notification"></use></svg>
+						</span>
+					</a>
+					<div class="dropdown-menu notifications-list dropdown-menu-right" role="menu"></div>
+				</li>
+				<li class="nav-item dropdown dropdown-notifications dropdown-mobile">
+					<a
+						class="nav-link notifications-icon text-muted"
+						data-toggle="dropdown"
+						aria-haspopup="true"
+						aria-expanded="true"
+						href="#"
+						onclick="return false;">
+						<span>
+							<svg class="icon"><use xlink:href="#small-message"></use></svg>
+						</span>
+					</a>
+					<!-- <div class="dropdown-menu notifications-list dropdown-menu-right" role="menu"></div> -->
+				</li>
+				<li class="vertical-bar ml-lg-2"></li>
+				<li class="nav-item dropdown dropdown-help dropdown-mobile ml-lg-2">
 					<a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#" onclick="return false;">
-						<!-- {{ avatar }} -->
-						{%= __("Settings") %}
+						{{ __("Help") }}
+						<span class="d-block d-sm-block d-md-none standard-image help-icon">?</span>
+					</a>
+					<div class="dropdown-menu dropdown-menu-right" id="toolbar-help" role="menu">
+						<div class="divider documentation-links"></div>
+						<a class="dropdown-item" href="#" onclick="return frappe.ui.toolbar.show_about();">
+							{%= __("About") %}
+						</a>
+						<a class="dropdown-item" href="#" onclick="return frappe.ui.toolbar.show_shortcuts(event);">
+							{%= __("Keyboard Shortcuts") %}
+						</a>
+					</div>
+				</li>
+				<li class="nav-item dropdown dropdown-navbar-user dropdown-mobile ml-lg-2">
+					<a class="nav-link" data-toggle="dropdown" href="#" onclick="return false;">
+						{{ avatar }}
+						<!-- {%= __("Settings") %} -->
 						<!-- <span class="ellipsis toolbar-user-fullname d-none d-sm-none d-md-block navbar-text"></span> -->
 					</a>
-					<div class="dropdown-menu" id="toolbar-user" role="menu">
+					<div class="dropdown-menu dropdown-menu-right" id="toolbar-user" role="menu">
 						<a class="dropdown-item" href="#user-profile">
 							{%= __("My Profile") %}
 						</a>
@@ -55,34 +106,6 @@
 							{%= __("Logout") %}
 						</a>
 					</div>
-				</li>
-				<li class="nav-item dropdown dropdown-help dropdown-mobile">
-					<a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#" onclick="return false;">
-						{{ __("Help") }}
-						<span class="d-block d-sm-block d-md-none standard-image help-icon">?</span>
-					</a>
-					<div class="dropdown-menu" id="toolbar-help" role="menu">
-						<div class="divider documentation-links"></div>
-						<a class="dropdown-item" href="#" onclick="return frappe.ui.toolbar.show_about();">
-							{%= __("About") %}
-						</a>
-						<a class="dropdown-item" href="#" onclick="return frappe.ui.toolbar.show_shortcuts(event);">
-							{%= __("Keyboard Shortcuts") %}
-						</a>
-					</div>
-				</li>
-				<li class="nav-item dropdown dropdown-notifications dropdown-mobile">
-					<span class="notifications-indicator"><i class="fa fa-circle"></i></span>
-					<a
-						class="nav-link dropdown-toggle notifications-icon"
-						data-toggle="dropdown"
-						aria-haspopup="true"
-						aria-expanded="true"
-						href="#"
-						onclick="return false;">
-						<span><i class="fa fa-bell" aria-hidden="true"></i></span>
-					</a>
-					<div class="dropdown-menu notifications-list" role="menu"></div>
 				</li>
 			</ul>
 		</div>

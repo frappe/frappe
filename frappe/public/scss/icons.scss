@@ -1,0 +1,22 @@
+@import "variables";
+.icon {
+	display: inline-block;
+	font-size: 0;
+	width: 24px;
+	height: 24px;
+	margin: 0 auto;
+	background-size: cover;
+	background-repeat: no-repeat;
+	background-position: 50% 50%;
+	fill: $border-color;
+}
+
+.icon-sm {
+	width: 16px;
+	height: 16px;
+}
+
+.icon-lg {
+	width: 75px;
+	height: 75px;
+}
