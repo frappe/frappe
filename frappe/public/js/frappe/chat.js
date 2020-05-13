@@ -2269,7 +2269,7 @@ class extends Component {
 					),
 					h("div", { class: popper ? "col-xs-2"  : "col-xs-3" },
 						h("div", { class: "text-right" },
-							frappe._.is_mobile() && h(frappe.components.Button,{class:"frappe-chat-close",onclick:props.toggle},
+							frappe._.is_mobile() && h(frappe.components.Button, {class:"frappe-chat-close", onclick:props.toggle},
 								h(frappe.components.Octicon, { type: "x" })
 							)
 						)
