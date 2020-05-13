@@ -78,4 +78,4 @@ class RateLimiter:
 
 	def respond(self):
 		if self.rejected:
-			return Response(_("Too Many Requests"), status=429, headers=self.headers())
+			return Response(_("Too Many Requests"), status=429)
