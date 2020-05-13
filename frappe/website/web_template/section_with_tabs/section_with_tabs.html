@@ -1,39 +1,43 @@
-<h2 class="text-xl font-bold sm:text-2xl md:text-3xl">{{ title }}</h2>
-<p class="max-w-4xl mt-2 text-base text-gray-900 sm:text-lg">{{ subtitle }}</p>
+<h2 class="section-title">{{ title }}</h2>
+<p class="section-description">{{ subtitle }}</p>
 
-<div class="mt-8">
-	<div class="tabs">
-		{% set ns = namespace(tabs=[]) %}
+<div class="mt-5">
+	{% set ns = namespace(tabs=[]) %}
 
-		{%- for index in ['1', '2', '3', '4', '5', '6'] -%}
+	{%- for index in ['1', '2', '3', '4', '5', '6'] -%}
 
-		{%- set buttonid = 'id-' + frappe.utils.generate_hash('TabButton', 12) -%}
-		{%- set panelid = 'id-' + frappe.utils.generate_hash('TabPanel', 12) -%}
+	{%- set buttonid = 'id-' + frappe.utils.generate_hash('TabButton', 12) -%}
+	{%- set panelid = 'id-' + frappe.utils.generate_hash('TabPanel', 12) -%}
 
-		{%- set tab = {
-			'title': values['tab_' + index + '_title'],
-			'content': values['tab_' + index + '_content'],
-			'buttonid': buttonid,
-			'panelid': panelid, }
-		-%}
+	{%- set tab = {
+		'title': values['tab_' + index + '_title'],
+		'content': values['tab_' + index + '_content'],
+		'buttonid': buttonid,
+		'panelid': panelid, }
+	-%}
 
-		{%- if tab.title and tab.content -%}
-		{%- set ns.tabs = ns.tabs + [tab] -%}
-		{%- endif -%}
+	{%- if tab.title and tab.content -%}
+	{%- set ns.tabs = ns.tabs + [tab] -%}
+	{%- endif -%}
 
-		{%- endfor -%}
-		<div class="flex py-2 overflow-x-auto space-x-8" role="tablist" aria-label="{{ title or '' }}">
-			{%- for tab in ns.tabs -%}
-			{%- set first_tab = true if loop.index0 == 0 else false -%}
-			<button class="px-2 py-4 font-medium text-gray-800 border-b-2 border-transparent rounded-t-lg hover:text-blue-400 focus:outline-none focus:bg-blue-50" role="tab" aria-selected="false" aria-controls="{{ tab.panelid }}" id="{{ tab.buttonid }}"
-				tabindex="{{ 0 if first_tab else -1 }}">
-				{{ tab.title }}
-			</button>
-			{%- endfor -%}
-		</div>
+	{%- endfor -%}
+	<ul class="nav nav-tabs flex-nowrap overflow-auto" role="tablist" aria-label="{{ title or '' }}">
 		{%- for tab in ns.tabs -%}
 		{%- set first_tab = true if loop.index0 == 0 else false -%}
-		<div class="mt-4 focus:outline-none focus:shadow-outline" id="{{ tab.panelid }}" role="tabpanel" tabindex="0" aria-labelledby="{{ tab.buttonid }}" {{ 'hidden' if not first_tab else '' }}>
+		<li class="nav-item">
+			<a class="nav-link {{ 'active' if first_tab else '' }}" id="{{ tab.buttonid }}" data-toggle="tab"
+				href="#{{ tab.panelid }}"
+				role="tab" aria-controls="{{ tab.panelid }}" aria-selected="{{ 'true' if first_tab else 'false' }}">
+				{{ tab.title }}
+			</a>
+		</li>
+		{%- endfor -%}
+	</ul>
+	<div class="mt-4 tab-content">
+		{%- for tab in ns.tabs -%}
+		{%- set first_tab = true if loop.index0 == 0 else false -%}
+		<div class="tab-pane fade {{ 'show active' if first_tab else '' }}" id="{{ tab.panelid }}" role="tabpanel"
+			aria-labelledby="{{ tab.buttonid }}">
 			<div class="from-markdown">
 				{{ frappe.utils.md_to_html(tab.content) }}
 			</div>
@@ -41,71 +45,3 @@
 		{%- endfor -%}
 	</div>
 </div>
-
-<script>
-	window.addEventListener("DOMContentLoaded", () => {
-		const tabs = document.querySelectorAll('[role="tab"]');
-		const tabList = document.querySelector('[role="tablist"]');
-
-		// Add a click event handler to each tab
-		tabs.forEach(tab => {
-			tab.addEventListener("click", changeTabs);
-		});
-
-		$(tabs[0]).click();
-
-		// Enable arrow navigation between tabs in the tab list
-		let tabFocus = 0;
-
-		tabList.addEventListener("keydown", e => {
-			// Move right
-			if (e.keyCode === 39 || e.keyCode === 37) {
-				tabs[tabFocus].setAttribute("tabindex", -1);
-				if (e.keyCode === 39) {
-					tabFocus++;
-					// If we're at the end, go to the start
-					if (tabFocus >= tabs.length) {
-						tabFocus = 0;
-					}
-					// Move left
-				} else if (e.keyCode === 37) {
-					tabFocus--;
-					// If we're at the start, move to the end
-					if (tabFocus < 0) {
-						tabFocus = tabs.length - 1;
-					}
-				}
-
-				tabs[tabFocus].setAttribute("tabindex", 0);
-				tabs[tabFocus].focus();
-			}
-		});
-	});
-
-	function changeTabs(e) {
-		const target = $(e.target);
-		const parent = target.parent();
-		const grandparent = $(parent.parent());
-		const activeClass = 'border-primary-500 text-primary-600';
-
-		// Remove all current selected tabs
-		parent
-			.find('[aria-selected="true"]')
-			.attr("aria-selected", false)
-			.removeClass(activeClass);
-
-		// Set this tab as selected
-		target.attr('aria-selected', true);
-		target.addClass(activeClass);
-
-		// Hide all tab panels
-		grandparent
-			.find('[role="tabpanel"]')
-			.attr("hidden", true);
-
-		// Show the selected panel
-		grandparent.parent()
-			.find(`#${target.attr("aria-controls")}`)
-			.removeAttr("hidden");
-	}
-</script>
