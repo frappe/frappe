@@ -184,13 +184,7 @@ frappe.ui.form.Form = class FrappeForm {
 		frappe.model.on(me.doctype, "*", function(fieldname, value, doc) {
 			// set input
 			if(doc.name===me.docname) {
-				if ((value==='' || value===null) && !doc[fieldname]) {
-					// both the incoming and outgoing values are falsy
-					// the texteditor, summernote, changes nulls to empty strings on render,
-					// so ignore those changes
-				} else {
-					me.dirty();
-				}
+				me.dirty();
 
 				let field = me.fields_dict[fieldname];
 				field && field.refresh(fieldname);
@@ -445,6 +439,7 @@ frappe.ui.form.Form = class FrappeForm {
 						return this.script_manager.trigger("onload_post_render");
 					}
 				},
+				() => this.run_after_load_hook(),
 				() => this.dashboard.after_refresh()
 			]);
 			// focus on first input
@@ -466,6 +461,15 @@ frappe.ui.form.Form = class FrappeForm {
 		}
 
 		this.scroll_to_element();
+	}
+
+	run_after_load_hook() {
+		if (frappe.route_hooks.after_load) {
+			let route_callback = frappe.route_hooks.after_load;
+			delete frappe.route_hooks.after_load;
+
+			route_callback(this);
+		}
 	}
 
 	refresh_fields() {
@@ -575,6 +579,13 @@ frappe.ui.form.Form = class FrappeForm {
 				}
 
 				me.script_manager.trigger("after_save");
+
+				if (frappe.route_hooks.after_save) {
+					let route_callback = frappe.route_hooks.after_save;
+					delete frappe.route_hooks.after_save;
+
+					route_callback(me);
+				}
 				// submit comment if entered
 				if (me.timeline) {
 					me.timeline.comment_area.submit();
@@ -1052,7 +1063,7 @@ frappe.ui.form.Form = class FrappeForm {
 	}
 
 	is_dirty() {
-		return this.doc.__unsaved;
+		return !!this.doc.__unsaved;
 	}
 
 	is_new() {
@@ -1536,7 +1547,7 @@ frappe.ui.form.Form = class FrappeForm {
 		}
 
 		// scroll to input
-		frappe.utils.scroll_to($el);
+		frappe.utils.scroll_to($el, true, 15);
 
 		// highlight input
 		$el.addClass('has-error');
@@ -1544,6 +1555,41 @@ frappe.ui.form.Form = class FrappeForm {
 			$el.removeClass('has-error');
 			$el.find('input, select, textarea').focus();
 		}, 1000);
+	}
+
+	show_tour(on_finish) {
+		if (!Array.isArray(frappe.tour[this.doctype])) {
+			return;
+		}
+
+		const driver = new frappe.Driver({
+			overlayClickNext: true,
+			keyboardControl: true,
+			nextBtnText: 'Next',
+			prevBtnText: 'Previous',
+			opacity: 0.25,
+			onNext: () => {
+				if (!driver.hasNextStep()) {
+					on_finish && on_finish();
+				}
+			}
+		});
+
+		this.layout.sections.forEach(section => section.collapse(false));
+
+		let steps = frappe.tour[this.doctype].map(step => {
+			let field = this.get_docfield(step.fieldname);
+			return {
+				element: `.frappe-control[title='${step.fieldname}']`,
+				popover: {
+					title: step.title || field.label,
+					description: step.description
+				}
+			};
+		});
+
+		driver.defineSteps(steps);
+		driver.start();
 	}
 };
 

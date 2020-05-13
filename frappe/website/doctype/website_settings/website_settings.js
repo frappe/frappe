@@ -56,6 +56,10 @@ frappe.ui.form.on('Website Settings', {
 		});
 	},
 
+	enable_view_tracking: function(frm) {
+		frappe.boot.website_tracking_enabled = frm.doc.enable_view_tracking;
+	},
+
 	set_parent_options: function(frm, doctype, name) {
 		var item = frappe.get_doc(doctype, name);
 		if(item.parentfield === "top_bar_items") {
@@ -92,3 +96,16 @@ frappe.ui.form.on('Top Bar Item', {
 		frm.events.set_parent_options(frm, doctype, name);
 	},
 });
+
+frappe.tour['Website Settings'] = [
+	{
+		fieldname: "enable_view_tracking",
+		title: __("Enable Tracking Page Views"),
+		description: __("Checking this will enable tracking page views for blogs, web pages, etc."),
+	},
+	{
+		fieldname: "disable_signup",
+		title: __("Disable Signup for your site"),
+		description: __("Check this if you don't want users to sign up for an account on your site. Users won't get desk access unless you explicitly provide it."),
+	}
+];

@@ -68,8 +68,7 @@ def add_subscribers(name, email_list):
 		email_list = email_list.replace(",", "\n").split("\n")
 
 	template = frappe.db.get_value('Email Group', name, 'welcome_email_template')
-	if template:
-		welcome_email = frappe.get_doc("Email Template", template)
+	welcome_email = frappe.get_doc("Email Template", template) if template else None
 
 	count = 0
 	for email in email_list:

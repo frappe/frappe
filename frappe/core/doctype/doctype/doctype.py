@@ -206,7 +206,7 @@ class DocType(Document):
 			if d.fieldtype:
 				if (not getattr(d, "fieldname", None)):
 					if d.label:
-						d.fieldname = d.label.strip().lower().replace(' ','_')
+						d.fieldname = d.label.strip().lower().replace(' ','_').strip('?')
 						if d.fieldname in restricted:
 							d.fieldname = d.fieldname + '1'
 						if d.fieldtype=='Section Break':
@@ -477,7 +477,8 @@ class DocType(Document):
 						field_dict = list(filter(lambda d: d['fieldname'] == fieldname, docdict['fields']))
 						if field_dict:
 							new_field_dicts.append(field_dict[0])
-							remaining_field_names.remove(fieldname)
+							if fieldname in remaining_field_names:
+								remaining_field_names.remove(fieldname)
 
 					for fieldname in remaining_field_names:
 						field_dict = list(filter(lambda d: d['fieldname'] == fieldname, docdict['fields']))
@@ -498,7 +499,8 @@ class DocType(Document):
 				field_dict = list(filter(lambda d: d['fieldname'] == fieldname, docdict.get('fields', [])))
 				if field_dict:
 					new_field_dicts.append(field_dict[0])
-					remaining_field_names.remove(fieldname)
+					if fieldname in remaining_field_names:
+						remaining_field_names.remove(fieldname)
 
 			for fieldname in remaining_field_names:
 				field_dict = list(filter(lambda d: d['fieldname'] == fieldname, docdict.get('fields', [])))
@@ -710,9 +712,10 @@ def validate_fields(meta):
 		if d.fieldtype == "Currency" and cint(d.width) < 100:
 			frappe.throw(_("Max width for type Currency is 100px in row {0}").format(d.idx))
 
-	def check_in_list_view(d):
+	def check_in_list_view(is_table, d):
 		if d.in_list_view and (d.fieldtype in not_allowed_in_list_view):
-			frappe.throw(_("'In List View' not allowed for type {0} in row {1}").format(d.fieldtype, d.idx))
+			property_label = 'In Grid View' if is_table else 'In List View'
+			frappe.throw(_("'{0}' not allowed for type {1} in row {2}").format(property_label, d.fieldtype, d.idx))
 
 	def check_in_global_search(d):
 		if d.in_global_search and d.fieldtype in no_value_fields:
@@ -731,8 +734,11 @@ def validate_fields(meta):
 			d.default = '0'
 		if d.fieldtype == "Check" and d.default not in ('0', '1'):
 			frappe.throw(_("Default for 'Check' type of field must be either '0' or '1'"))
-		if d.fieldtype == "Select" and d.default and (d.default not in d.options.split("\n")):
-			frappe.throw(_("Default for {0} must be an option").format(d.fieldname))
+		if d.fieldtype == "Select" and d.default:
+			if not d.options:
+				frappe.throw(_("Options for {0} must be set before setting the default value.").format(frappe.bold(d.fieldname)))
+			elif d.default not in d.options.split("\n"):
+				frappe.throw(_("Default value for {0} must be in the list of options.").format(frappe.bold(d.fieldname)))
 
 	def check_precision(d):
 		if d.fieldtype in ("Currency", "Float", "Percent") and d.precision is not None and not (1 <= cint(d.precision) <= 6):
@@ -893,13 +899,23 @@ def validate_fields(meta):
 			field.fetch_from = field.fetch_from.strip('\n').strip()
 
 	def validate_data_field_type(docfield):
-		if docfield.fieldtype == "Data":
+		if docfield.fieldtype == "Data" and not (docfield.oldfieldtype and docfield.oldfieldtype != "Data"):
 			if docfield.options and (docfield.options not in data_field_options):
 				df_str = frappe.bold(_(docfield.label))
 				text_str = _("{0} is an invalid Data field.").format(df_str) + "<br>" * 2 + _("Only Options allowed for Data field are:") + "<br>"
 				df_options_str = "<ul><li>" + "</li><li>".join([_(x) for x in data_field_options]) + "</ul>"
 
 				frappe.msgprint(text_str + df_options_str, title="Invalid Data Field", raise_exception=True)
+
+	def check_child_table_option(docfield):
+		if docfield.fieldtype not in ['Table MultiSelect', 'Table']: return
+
+		doctype = docfield.options
+		meta = frappe.get_meta(doctype)
+
+		if not meta.istable:
+			frappe.throw(_('Option {0} for field {1} is not a child table')
+				.format(frappe.bold(doctype), frappe.bold(docfield.fieldname)), title=_("Invalid Option"))
 
 
 	fields = meta.get("fields")
@@ -914,7 +930,7 @@ def validate_fields(meta):
 		if not d.permlevel: d.permlevel = 0
 		if d.fieldtype not in table_fields: d.allow_bulk_edit = 0
 		if not d.fieldname:
-			d.fieldname = d.fieldname.lower()
+			d.fieldname = d.fieldname.lower().strip('?')
 
 		check_illegal_characters(d.fieldname)
 		check_invalid_fieldnames(meta.get("name"), d.fieldname)
@@ -924,11 +940,12 @@ def validate_fields(meta):
 		check_link_table_options(meta.get("name"), d)
 		check_dynamic_link_options(d)
 		check_hidden_and_mandatory(meta.get("name"), d)
-		check_in_list_view(d)
+		check_in_list_view(meta.get('istable'), d)
 		check_in_global_search(d)
 		check_illegal_default(d)
 		check_unique_and_text(meta.get("name"), d)
 		check_illegal_depends_on_conditions(d)
+		check_child_table_option(d)
 		check_table_multiselect_option(d)
 		scrub_options_in_select(d)
 		scrub_fetch_from(d)

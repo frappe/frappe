@@ -203,6 +203,7 @@ $.extend(frappe.ui.toolbar, {
 		fullwidth = !fullwidth;
 		localStorage.container_fullwidth = fullwidth;
 		frappe.ui.toolbar.set_fullwidth_if_enabled();
+		$(document.body).trigger('toggleFullWidth');
 	},
 	set_fullwidth_if_enabled() {
 		let fullwidth = JSON.parse(localStorage.container_fullwidth || 'false');

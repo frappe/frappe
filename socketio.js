@@ -1,14 +1,15 @@
 var app = require('express')();
 var server = require('http').Server(app);
 var io = require('socket.io')(server);
-var cookie = require('cookie')
+var cookie = require('cookie');
 var fs = require('fs');
 var path = require('path');
 var request = require('superagent');
 var { get_conf, get_redis_subscriber } = require('./node_utils');
 
+const log = console.log; // eslint-disable-line
+
 var conf = get_conf();
-var flags = {};
 var files_struct = {
 	name: null,
 	type: null,
@@ -23,7 +24,7 @@ var subscriber = get_redis_subscriber();
 
 // serve socketio
 server.listen(conf.socketio_port, function () {
-	console.log('listening on *:', conf.socketio_port); //eslint-disable-line
+	log('listening on *:', conf.socketio_port); //eslint-disable-line
 });
 
 // on socket connection
@@ -36,7 +37,7 @@ io.on('connection', function (socket) {
 		return;
 	}
 
-	var sid = cookie.parse(socket.request.headers.cookie).sid
+	const sid = cookie.parse(socket.request.headers.cookie).sid;
 	if (!sid) {
 		return;
 	}
@@ -51,10 +52,10 @@ io.on('connection', function (socket) {
 		}
 
 		for (var room of rooms) {
-			console.log('frappe.chat: Subscribing ' + socket.user + ' to room ' + room);
+			log('frappe.chat: Subscribing ' + socket.user + ' to room ' + room);
 			room = get_chat_room(socket, room);
 
-			console.log('frappe.chat: Subscribing ' + socket.user + ' to event ' + room);
+			log('frappe.chat: Subscribing ' + socket.user + ' to event ' + room);
 			socket.join(room);
 		}
 	});
@@ -63,7 +64,7 @@ io.on('connection', function (socket) {
 		const user = data.user;
 		const room = get_chat_room(socket, data.room);
 
-		console.log('frappe.chat: Dispatching ' + user + ' typing to room ' + room);
+		log('frappe.chat: Dispatching ' + user + ' typing to room ' + room);
 
 		io.to(room).emit('frappe.chat.room:typing', {
 			room: data.room,
@@ -72,26 +73,33 @@ io.on('connection', function (socket) {
 	});
 	// end frappe.chat
 
-	request.get(get_url(socket, '/api/method/frappe.realtime.get_user_info'))
-		.type('form')
-		.query({
-			sid: sid
-		})
-		.end(function (err, res) {
-			if (err) {
-				console.log(err);
-				return;
-			}
-			if (res.status == 200) {
-				var room = get_user_room(socket, res.body.message.user);
+	let retries = 0;
+	let join_chat_room = () => {
+		request.get(get_url(socket, '/api/method/frappe.realtime.get_user_info'))
+			.type('form')
+			.query({
+				sid: sid
+			})
+			.then(res => {
+				const room = get_user_room(socket, res.body.message.user);
 				socket.join(room);
 				socket.join(get_site_room(socket));
-			}
-		});
+			})
+			.catch(e => {
+				if (e.code === 'ECONNREFUSED' && retries < 5) {
+					// retry after 1s
+					retries += 1;
+					return setTimeout(join_chat_room, 1000);
+				}
+				log(`Unable to join chat room. ${e}`);
+			});
+	};
+
+	join_chat_room();
 
 	socket.on('disconnect', function () {
 		delete socket.files;
-	})
+	});
 
 	socket.on('task_subscribe', function (task_id) {
 		var room = get_task_room(socket, task_id);
@@ -111,11 +119,11 @@ io.on('connection', function (socket) {
 
 	socket.on('doc_subscribe', function (doctype, docname) {
 		can_subscribe_doc({
-			socket: socket,
-			sid: sid,
-			doctype: doctype,
-			docname: docname,
-			callback: function (err, res) {
+			socket,
+			sid,
+			doctype,
+			docname,
+			callback: () => {
 				var room = get_doc_room(socket, doctype, docname);
 				socket.join(room);
 			}
@@ -139,7 +147,7 @@ io.on('connection', function (socket) {
 			sid: sid,
 			doctype: doctype,
 			docname: docname,
-			callback: function (err, res) {
+			callback: () => {
 				var room = get_open_doc_room(socket, doctype, docname);
 				socket.join(room);
 
@@ -197,7 +205,7 @@ io.on('connection', function (socket) {
 				});
 			}
 		} catch (e) {
-			console.log(e);
+			log(e);
 			socket.emit('upload-error', {
 				error: e.message
 			});
@@ -205,7 +213,7 @@ io.on('connection', function (socket) {
 	});
 });
 
-subscriber.on("message", function (channel, message, room) {
+subscriber.on("message", function (_channel, message) {
 	message = JSON.parse(message);
 
 	if (message.room) {
@@ -220,7 +228,7 @@ subscriber.subscribe("events");
 
 function send_existing_lines(task_id, socket) {
 	var room = get_task_room(socket, task_id);
-	subscriber.hgetall('task_log:' + task_id, function (err, lines) {
+	subscriber.hgetall('task_log:' + task_id, function (_err, lines) {
 		io.to(room).emit('task_progress', {
 			"task_id": task_id,
 			"message": {
@@ -300,19 +308,19 @@ function can_subscribe_doc(args) {
 		})
 		.end(function (err, res) {
 			if (!res) {
-				console.log("No response for doc_subscribe");
+				log("No response for doc_subscribe");
 
 			} else if (res.status == 403) {
 				return;
 
 			} else if (err) {
-				console.log(err);
+				log(err);
 
 			} else if (res.status == 200) {
 				args.callback(err, res);
 
 			} else {
-				console.log("Something went wrong", err, res);
+				log("Something went wrong", err, res);
 			}
 		});
 }

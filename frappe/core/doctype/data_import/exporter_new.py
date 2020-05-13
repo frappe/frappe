@@ -71,7 +71,11 @@ class Exporter:
 		return parent_fields
 
 	def get_exportable_children_fields(self):
-		children = [df.options for df in self.meta.fields if df.fieldtype in table_fields]
+		child_table_fields = [df for df in self.meta.fields if df.fieldtype in table_fields]
+		if self.export_fields == "Mandatory":
+			child_table_fields = [df for df in child_table_fields if df.reqd]
+
+		children = [df.options for df in child_table_fields]
 		children_fields = []
 		for child in children:
 			children_fields += self.get_exportable_fields(child)

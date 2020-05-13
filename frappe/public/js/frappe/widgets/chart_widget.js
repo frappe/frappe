@@ -6,15 +6,28 @@ frappe.provide("frappe.dashboards.chart_sources");
 export default class ChartWidget extends Widget {
 	constructor(opts) {
 		super(opts);
-		this.height = 240;
+		this.height = this.height || 240;
+	}
+
+	get_config() {
+		return {
+			name: this.name,
+			chart_name: this.chart_name,
+			label: this.label,
+			hidden: this.hidden,
+			width: this.width,
+		};
 	}
 
 	refresh() {
+		delete this.dashboard_chart;
+		this.set_body();
 		this.make_chart();
 	}
 
-	customize() {
-		this.setup_customize_actions();
+	set_chart_title() {
+		const max_chars = this.widget.width() < 500 ? 20 : 60;
+		this.set_title(max_chars);
 	}
 
 	set_body() {
@@ -22,7 +35,6 @@ export default class ChartWidget extends Widget {
 		if (this.width == "Full") {
 			this.widget.addClass("full-width");
 		}
-		this.make_chart();
 	}
 
 	setup_container() {
@@ -33,7 +45,7 @@ export default class ChartWidget extends Widget {
 				"Loading..."
 			)}</div>`
 		);
-		this.loading.hide().appendTo(this.body);
+		this.loading.appendTo(this.body);
 
 		this.empty = $(
 			`<div class="chart-loading-state text-muted" style="height: ${this.height}px;">${__(
@@ -44,6 +56,8 @@ export default class ChartWidget extends Widget {
 
 		this.chart_wrapper = $(`<div></div>`);
 		this.chart_wrapper.appendTo(this.body);
+
+		this.set_chart_title();
 	}
 
 	set_summary() {
@@ -62,31 +76,31 @@ export default class ChartWidget extends Widget {
 
 	make_chart() {
 		this.get_settings().then(() => {
+			if (!this.settings) {
+				this.deleted = true;
+				this.widget.remove();
+				return;
+			}
+
 			if (!this.chart_settings) {
 				this.chart_settings = {};
 			}
 			this.setup_container();
 			this.prepare_chart_object();
-			this.action_area.empty();
-			this.prepare_chart_actions();
-			this.setup_filter_button();
+			if (!this.in_customize_mode) {
+				this.action_area.empty();
+				this.prepare_chart_actions();
+				this.setup_filter_button();
 
-			if (
-				this.chart_doc.timeseries &&
-				this.chart_doc.chart_type !== "Custom"
-			) {
-				this.render_time_series_filters();
+				if (
+					this.chart_doc.timeseries &&
+					this.chart_doc.chart_type !== "Custom"
+				) {
+					this.render_time_series_filters();
+				}
 			}
-
 			this.fetch_and_update_chart();
 		});
-	}
-
-	setup_customize_actions() {
-		this.action_area.empty();
-		const buttons = $(`<button type="button" class="btn btn-xs btn-secondary btn-default selected">Resize</button>
-					<button class="btn btn-secondary btn-light btn-danger btn-xs"><i class="fa fa-trash" aria-hidden="true"></i></button>`);
-		buttons.appendTo(this.action_area);
 	}
 
 	render_time_series_filters() {
@@ -428,9 +442,7 @@ export default class ChartWidget extends Widget {
 	}
 
 	fetch(filters, refresh = false, args) {
-		let method = this.settings
-			? this.settings.method
-			: "frappe.desk.doctype.dashboard_chart.dashboard_chart.get";
+		let method = this.settings.method;
 
 		if (this.chart_doc.chart_type == "Report") {
 			args = {
@@ -443,11 +455,10 @@ export default class ChartWidget extends Widget {
 				chart_name: this.chart_doc.name,
 				filters: filters,
 				refresh: refresh ? 1 : 0,
-				time_interval:
-					args && args.time_interval? args.time_interval: null,
-				timespan: args && args.timespan? args.timespan: null,
-				from_date: args && args.from_date? args.from_date: null,
-				to_date: args && args.to_date? args.to_date: null
+				time_interval: args && args.time_interval ? args.time_interval : null,
+				timespan: args && args.timespan ? args.timespan : null,
+				from_date: args && args.from_date ? args.from_date : null,
+				to_date: args && args.to_date ? args.to_date : null
 			};
 		}
 		return frappe.xcall(method, args);
@@ -458,7 +469,8 @@ export default class ChartWidget extends Widget {
 			Line: "line",
 			Bar: "bar",
 			Percentage: "percentage",
-			Pie: "pie"
+			Pie: "pie",
+			Donut: "donut"
 		};
 
 		let colors = [];
@@ -468,7 +480,7 @@ export default class ChartWidget extends Widget {
 				colors.push(field.color);
 			});
 		} else if (["Line", "Bar"].includes(this.chart_doc.type)) {
-			colors = [this.chart_doc.color || "light-blue"];
+			colors = [this.chart_doc.color || []];
 		}
 
 		if (!this.data || !this.data.labels.length || !Object.keys(this.data).length) {
@@ -491,6 +503,14 @@ export default class ChartWidget extends Widget {
 					shortenYAxisNumbers: 1
 				}
 			};
+
+			if (this.chart_doc.custom_options) {
+				let custom_options = JSON.parse(this.chart_doc.custom_options);
+				for (let key in custom_options) {
+					chart_args[key] = custom_options[key];
+				}
+			}
+
 			if (!this.dashboard_chart) {
 				this.dashboard_chart = new frappe.Chart(
 					this.chart_wrapper[0],
@@ -528,37 +548,42 @@ export default class ChartWidget extends Widget {
 		return frappe.model
 			.with_doc("Dashboard Chart", this.chart_name)
 			.then(chart_doc => {
-				this.chart_doc = chart_doc;
-				if (this.chart_doc.chart_type == "Custom") {
-					// custom source
-					if (
-						frappe.dashboards.chart_sources[this.chart_doc.source]
-					) {
-						this.settings =
-							frappe.dashboards.chart_sources[
-								this.chart_doc.source
-							];
+				if (chart_doc) {
+					this.chart_doc = chart_doc;
+					if (this.chart_doc.chart_type == "Custom") {
+						// custom source
+						if (
+							frappe.dashboards.chart_sources[this.chart_doc.source]
+						) {
+							this.settings =
+								frappe.dashboards.chart_sources[
+									this.chart_doc.source
+								];
+							return Promise.resolve();
+						} else {
+							const method =
+								"frappe.desk.doctype.dashboard_chart_source.dashboard_chart_source.get_config";
+							return frappe
+								.xcall(method, { name: this.chart_doc.source })
+								.then(config => {
+									frappe.dom.eval(config);
+									this.settings =
+										frappe.dashboards.chart_sources[
+											this.chart_doc.source
+										];
+								});
+						}
+					} else if (this.chart_doc.chart_type == "Report") {
+						this.settings = {
+							method: "frappe.desk.query_report.run"
+						};
 						return Promise.resolve();
 					} else {
-						const method =
-							"frappe.desk.doctype.dashboard_chart_source.dashboard_chart_source.get_config";
-						return frappe
-							.xcall(method, { name: this.chart_doc.source })
-							.then(config => {
-								frappe.dom.eval(config);
-								this.settings =
-									frappe.dashboards.chart_sources[
-										this.chart_doc.source
-									];
-							});
+						this.settings = {
+							method: "frappe.desk.doctype.dashboard_chart.dashboard_chart.get"
+						};
+						return Promise.resolve();
 					}
-				} else if (this.chart_doc.chart_type == "Report") {
-					this.settings = {
-						method: "frappe.desk.query_report.run"
-					};
-					return Promise.resolve();
-				} else {
-					return Promise.resolve();
 				}
 			});
 	}

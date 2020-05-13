@@ -34,6 +34,7 @@ Full-stack web application framework that uses Python and MariaDB on the server 
 
 ### Table of Contents
 * [Installation](#installation)
+* [Documentation](https://frappe.io/docs)
 * [License](#license)
 
 ### Installation

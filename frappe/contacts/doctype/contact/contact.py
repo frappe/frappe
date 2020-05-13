@@ -123,7 +123,7 @@ class Contact(Document):
 def get_default_contact(doctype, name):
 	'''Returns default contact for the given doctype, name'''
 	out = frappe.db.sql('''select parent,
-			(select is_primary_contact from tabContact c where c.name = dl.parent)
+			IFNULL((select is_primary_contact from tabContact c where c.name = dl.parent), 0)
 				as is_primary_contact
 		from
 			`tabDynamic Link` dl

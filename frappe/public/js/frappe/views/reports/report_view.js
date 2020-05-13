@@ -837,6 +837,9 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 			fieldtype: 'MultiCheck',
 			columns: 2,
 			options: columns[this.doctype]
+				.filter(df => {
+					return !df.hidden;
+				})
 				.map(df => ({
 					label: __(df.label),
 					value: df.fieldname,
@@ -858,6 +861,9 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 				fieldtype: 'MultiCheck',
 				columns: 2,
 				options: columns[cdt]
+					.filter(df => {
+						return !df.hidden;
+					})
 					.map(df => ({
 						label: __(df.label),
 						value: df.fieldname,
@@ -1280,6 +1286,11 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 						}
 					});
 
+					d.$body.prepend(`<div class="columns-search">
+						<input type="text" placeholder="${__('Search')}" data-element="search" class="form-control input-xs">
+					</div>`);
+
+					frappe.utils.setup_search(d.$body, '.unit-checkbox', '.label-area');
 					d.show();
 				}
 			}

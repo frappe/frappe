@@ -443,7 +443,7 @@ def console(context):
 	for app in all_apps:
 		locals()[app] = __import__(app)
 	print("Apps in this namespace:\n{}".format(", ".join(all_apps)))
-	IPython.embed(display_banner="", header="")
+	IPython.embed(display_banner="", header="", colors="neutral")
 
 
 @click.command('run-tests')
@@ -522,7 +522,7 @@ def run_ui_tests(context, app, headless=False):
 	password_env = 'CYPRESS_adminPassword={}'.format(admin_password) if admin_password else ''
 
 	# run for headless mode
-	run_or_open = 'run --record --key 4a48f41c-11b3-425b-aa88-c58048fa69eb' if headless else 'open'
+	run_or_open = 'run --browser chrome --record --key 4a48f41c-11b3-425b-aa88-c58048fa69eb' if headless else 'open'
 	command = '{site_env} {password_env} yarn run cypress {run_or_open}'
 	formatted_command = command.format(site_env=site_env, password_env=password_env, run_or_open=run_or_open)
 	frappe.commands.popen(formatted_command, cwd=app_base_path, raise_err=True)

@@ -1566,7 +1566,11 @@ class extends Component {
 				const  alert   = // TODO: ellipses content
 				`
 				<span data-action="show-message" class="cursor-pointer">
-					<span class="indicator yellow"/> <b>${frappe.user.first_name(r.user)}</b>: ${r.content}
+					<span class="indicator yellow"/>
+						<span class="avatar avatar-small">
+							<span class="avatar-frame" style="background-image: url(${frappe.user.image(r.user)})"></span>
+						</span>
+						<b>${frappe.user.first_name(r.user)}</b>: ${r.content}
 				</span>
 				`
 				frappe.show_alert(alert, 15, {
@@ -1574,6 +1578,11 @@ class extends Component {
 						this.room.select(r.room)
 						this.base.firstChild._component.toggle()
 					}.bind(this, r)
+				})
+				frappe.notify(`${frappe.user.first_name(r.user)}`, {
+					body: r.content,
+					icon: frappe.user.image(r.user),
+					tag: r.user
 				})
 			}
 
@@ -2514,7 +2523,7 @@ class extends Component {
 					h("div",{class:"input-group input-group-lg"},
 						!frappe._.is_empty(props.actions) ?
 							h("div",{class:"input-group-btn dropup"},
-								h(frappe.components.Button,{ class: "dropdown-toggle", "data-toggle": "dropdown"},
+								h(frappe.components.Button,{ class: (frappe.session.user === "Guest" ? "disabled" : "dropdown-toggle"), "data-toggle": "dropdown"},
 									h(frappe.components.FontAwesome, { class: "text-muted", type: "paperclip", fixed: true })
 								),
 								h("div",{ class:"dropdown-menu dropdown-menu-left", onclick: e => e.stopPropagation() },

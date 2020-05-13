@@ -22,6 +22,7 @@
   "aggregate_function_based_on",
   "number_of_groups",
   "column_break_6",
+  "is_public",
   "timespan",
   "from_date",
   "to_date",
@@ -33,6 +34,7 @@
   "type",
   "column_break_2",
   "color",
+  "custom_options",
   "section_break_10",
   "last_synced_on"
  ],
@@ -49,7 +51,8 @@
    "fieldname": "chart_type",
    "fieldtype": "Select",
    "label": "Chart Type",
-   "options": "Count\nSum\nAverage\nGroup By\nCustom\nReport"
+   "options": "Count\nSum\nAverage\nGroup By\nCustom\nReport",
+   "set_only_once": 1
   },
   {
    "depends_on": "eval:doc.chart_type === 'Custom'",
@@ -97,7 +100,7 @@
   },
   {
    "default": "0",
-   "depends_on": "eval:doc.chart_type !== 'Group By'",
+   "depends_on": "eval: ['Count', 'Sum', 'Average'].includes(doc.chart_type)",
    "fieldname": "timeseries",
    "fieldtype": "Check",
    "label": "Time Series"
@@ -123,7 +126,7 @@
    "fieldname": "type",
    "fieldtype": "Select",
    "label": "Type",
-   "options": "Line\nBar\nPercentage\nPie",
+   "options": "Line\nBar\nPercentage\nPie\nDonut",
    "reqd": 1
   },
   {
@@ -212,10 +215,23 @@
    "label": "Y Axis",
    "mandatory_depends_on": "eval:doc.report_name && !doc.is_custom",
    "options": "Dashboard Chart Field"
+  },
+  {
+   "description": "Ex: \"colors\": [\"#d1d8dd\", \"#ff5858\"]",
+   "fieldname": "custom_options",
+   "fieldtype": "Code",
+   "label": "Custom Options"
+  },
+  {
+   "default": "0",
+   "description": "This chart will be available to all Users if this is set",
+   "fieldname": "is_public",
+   "fieldtype": "Check",
+   "label": "Is Public"
   }
  ],
  "links": [],
- "modified": "2020-03-31 16:00:01.987059",
+ "modified": "2020-05-01 15:22:59.119341",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Dashboard Chart",
@@ -246,6 +262,7 @@
    "write": 1
   },
   {
+   "create": 1,
    "email": 1,
    "export": 1,
    "print": 1,

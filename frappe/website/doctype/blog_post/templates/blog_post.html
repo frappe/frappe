@@ -12,10 +12,14 @@
 			<h1 itemprop="headline" class="blog-header">{{ title }}</h1>
 			<p class="text-muted small">
 			{{ frappe.format_date(published_on) }}
+			{% if read_time %}
+				&middot;
+				{{ read_time }} min read
+			{% endif %}
 			</p>
 		</div>
 		<p class="lead">
-			{{ description }}
+			{{ blog_intro }}
 		</p>
 		<div itemprop="articleBody" class="longform blog-text mt-5">
 		{{ content }}
@@ -28,9 +32,12 @@
 	{% include "templates/includes/blog/blogger.html" %}
 	{% endif %}
 
-	<div class="blog-comments my-5">
-		{% include 'templates/includes/comments/comments.html' %}
-	</div>
+	{% if not disable_comments %}
+		<div class="blog-comments my-5">
+			{% include 'templates/includes/comments/comments.html' %}
+		</div>
+	{% endif %}
+
 </div>
 <script>
 	frappe.ready(() => frappe.set_search_path("/blog"))

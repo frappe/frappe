@@ -350,3 +350,4 @@ def raise_if_disabled(path):
 		_path = r.route.lstrip('/')
 		if path == _path and not r.enabled:
 			raise frappe.PermissionError
+
