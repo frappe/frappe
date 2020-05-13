@@ -180,6 +180,8 @@ def build(path):
 			return build_page(path)
 		else:
 			raise
+	except Exception:
+		raise
 
 def build_page(path):
 	if not getattr(frappe.local, "path", None):
