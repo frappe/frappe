@@ -3,6 +3,7 @@
 
 frappe.ui.form.on('Desk Page', {
 	refresh: function(frm) {
+		frm.enable_save();
 		frm.get_field("is_standard").toggle(frappe.boot.developer_mode);
 		frm.get_field("extends_another_page").toggle(frappe.boot.developer_mode);
 		frm.get_field("developer_mode_only").toggle(frappe.boot.developer_mode);
@@ -17,7 +18,6 @@ frappe.ui.form.on('Desk Page', {
 	},
 
 	disable_form: function(frm) {
-		frm.set_read_only();
 		frm.fields
 			.filter(field => field.has_input)
 			.forEach(field => {
