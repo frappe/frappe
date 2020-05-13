@@ -1148,10 +1148,12 @@ cwise-compiler@^1.1.2:
   dependencies:
     uniq "^1.0.0"
 
-cypress-file-upload@^3.1.0:
-  version "3.1.0"
-  resolved "https://registry.yarnpkg.com/cypress-file-upload/-/cypress-file-upload-3.1.0.tgz#9da7ed60619631231bd2caaf9844874e7cec6f69"
-  integrity sha512-zJh6Qwh+BZz6j3oCxMgRmfSsHJ+vSm2FrsZ1j/hG3s1O+6UPhOCDGeJucMUGBivWb1IsHrLKJP4LfgHSooPZHw==
+cypress-file-upload@^4.0.6:
+  version "4.0.6"
+  resolved "https://registry.yarnpkg.com/cypress-file-upload/-/cypress-file-upload-4.0.6.tgz#dc1d160b85b4b6ea4af97e5e9138331465740cd2"
+  integrity sha512-CltcHrspJtGjuwpF/Kgs2gVmJMWlSvZFFW9i6w1kpQIcm7q76/XDuoOBqTKJztrSHOgRT9Vq9g0jpoUBoty+HQ==
+  dependencies:
+    mime "^2.4.4"
 
 cypress@^3.1.1:
   version "3.1.5"
@@ -2995,6 +2997,11 @@ mime@^1.4.1:
   version "1.6.0"
   resolved "https://registry.yarnpkg.com/mime/-/mime-1.6.0.tgz#32cd9e5c64553bd58d19a568af452acff04981b1"
   integrity sha512-x0Vn8spI+wuJ1O6S7gnbaQg8Pxh4NNHb7KSINmEWKiPE4RKOplvijn+NkmYmmRgP68mc70j2EbeTFRsrswaQeg==
+
+mime@^2.4.4:
+  version "2.4.5"
+  resolved "https://registry.yarnpkg.com/mime/-/mime-2.4.5.tgz#d8de2ecb92982dedbb6541c9b6841d7f218ea009"
+  integrity sha512-3hQhEUF027BuxZjQA3s7rIv/7VCQPa27hN9u9g87sEkWaKwQPuXOkVKtOeiyUrnWqTDiOs8Ed2rwg733mB0R5w==
 
 minimatch@^3.0.4, minimatch@~3.0.2:
   version "3.0.4"
