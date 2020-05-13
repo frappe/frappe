@@ -292,7 +292,6 @@ def get_desk_sidebar_items(flatten=False):
 	filters = {
 		'restrict_to_domain': ['in', frappe.get_active_domains()],
 		'extends_another_page': 0,
-		'is_standard': 1,
 		'for_user': '',
 		'module': ['not in', blocked_modules]
 	}
