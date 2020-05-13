@@ -26,7 +26,7 @@ bleach==2.1.4
 bleach-whitelist==0.0.10
 Pillow==6.2.2
 beautifulsoup4==4.8.2
-rq==0.12.0
+rq==1.4.0
 schedule==0.6.0
 cryptography==2.8
 pyOpenSSL==19.1.0
