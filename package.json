@@ -26,7 +26,7 @@
     "highlight.js": "^9.12.0",
     "jsbarcode": "^3.9.0",
     "moment": "^2.20.1",
-    "moment-timezone": "^0.5.21",
+    "moment-timezone": "^0.5.28",
     "quill": "2.0.0-dev.2",
     "redis": "^2.8.0",
     "showdown": "^1.8.6",
