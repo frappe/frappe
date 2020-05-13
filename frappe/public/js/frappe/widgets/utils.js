@@ -8,7 +8,9 @@ function generate_route(item) {
 		if (item.link) {
 			route = strip(item.link, "#");
 		} else if (type === "doctype") {
-			if (frappe.model.is_single(item.doctype)) {
+			if (frappe.model.is_tree(item.doctype)) {
+				route = "Tree/" + item.doctype;
+			} else if (frappe.model.is_single(item.doctype)) {
 				route = "Form/" + item.doctype;
 			} else {
 				if (item.filters) {
