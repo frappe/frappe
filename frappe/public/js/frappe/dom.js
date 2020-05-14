@@ -142,7 +142,7 @@ frappe.dom = {
 	},
 	freeze: function(msg, css_class) {
 		// blur
-		if(!$('#freeze').length) {
+		if (!$('#freeze').length) {
 			var freeze = $('<div id="freeze" class="modal-backdrop fade"></div>')
 				.on("click", function() {
 					if (cur_frm && cur_frm.cur_grid) {
@@ -150,7 +150,7 @@ frappe.dom = {
 						return false;
 					}
 				})
-				.appendTo("#body_div");
+				.appendTo("#body");
 
 			freeze.html(repl('<div class="freeze-message-container"><div class="freeze-message"><p class="lead">%(msg)s</p></div></div>',
 				{msg: msg || ""}));

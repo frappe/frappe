@@ -6,7 +6,7 @@ frappe.provide('frappe.search');
 
 frappe.ui.toolbar.Toolbar = Class.extend({
 	init: function() {
-		$('header').append(frappe.render_template("navbar", {
+		$('header').replaceWith(frappe.render_template("navbar", {
 			avatar: frappe.avatar(frappe.session.user)
 		}));
 		$('.dropdown-toggle').dropdown();
