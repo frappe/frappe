@@ -24,6 +24,8 @@ function generate_route(item) {
 			route = "List/" + item.doctype + "/Report/" + item.name;
 		} else if (type === "page") {
 			route = item.name;
+		} else if (type === "dashboard") {
+			route = "dashboard/" + item.name;
 		}
 
 		route = "#" + route;
