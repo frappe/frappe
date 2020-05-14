@@ -332,15 +332,7 @@ export default class ChartWidget extends Widget {
 								}
 							];
 						} else {
-							fields = filters.filter(f => {
-								if (f.on_change && !f.reqd) {
-									return false;
-								}
-								if (f.get_query || f.get_data) {
-									f.read_only = 1;
-								}
-								return f.fieldname;
-							});
+							fields = filters.filter(f => f.fieldname);
 						}
 					} else {
 						fields = [
@@ -384,6 +376,8 @@ export default class ChartWidget extends Widget {
 		}
 
 		dialog.show();
+		//Set query report object so that it can be used while fetching filter values in the report
+		frappe.query_report = new frappe.views.QueryReport({'filters': dialog.fields_list});
 		dialog.set_values(this.filters);
 	}
 
