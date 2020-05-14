@@ -107,7 +107,7 @@ frappe.ui.form.QuickEntryForm = Class.extend({
 		});
 
 		this.register_primary_action();
-		this.render_edit_in_full_page_link();
+		!this.force && this.render_edit_in_full_page_link();
 		// ctrl+enter to save
 		this.dialog.wrapper.keydown(function(e) {
 			if((e.ctrlKey || e.metaKey) && e.which==13) {
