@@ -86,7 +86,6 @@ export default class ChartWidget extends Widget {
 				this.chart_settings = {};
 			}
 			this.setup_container();
-			this.prepare_chart_object();
 			if (!this.in_customize_mode) {
 				this.action_area.empty();
 				this.prepare_chart_actions();
@@ -99,7 +98,10 @@ export default class ChartWidget extends Widget {
 					this.render_time_series_filters();
 				}
 			}
-			this.fetch_and_update_chart();
+			frappe.run_serially([
+				() => this.prepare_chart_object(),
+				() => this.fetch_and_update_chart(),
+			]);
 		});
 	}
 
@@ -486,7 +488,7 @@ export default class ChartWidget extends Widget {
 		if (!this.data || !this.data.labels.length || !Object.keys(this.data).length) {
 			this.chart_wrapper.hide();
 			this.loading.hide();
-			this.$summary.hide();
+			this.$summary && this.$summary.hide();
 			this.empty.show();
 		} else {
 			this.loading.hide();
@@ -539,9 +541,35 @@ export default class ChartWidget extends Widget {
 	}
 
 	prepare_chart_object() {
+		let chart_filters = JSON.parse(this.chart_doc.filters_json || "[]");
 		let saved_filters = this.chart_settings.filters || null;
-		this.filters =
-			saved_filters || this.filters || JSON.parse(this.chart_doc.filters_json || "[]");
+
+		// For report charts if default date is set, update the saved filters with that value
+		if (this.chart_doc.chart_type == 'Report') {
+			return frappe.dashboard_utils
+				.get_filters_for_chart_type(this.chart_doc).then(filters => {
+					chart_filters = this.update_default_date_filters(filters, chart_filters);
+					saved_filters = saved_filters && this.update_default_date_filters(filters, saved_filters);
+					this.filters =
+						saved_filters || this.filters || chart_filters;
+				});
+		} else {
+			this.filters =
+				saved_filters || this.filters || chart_filters;
+				return Promise.resolve();
+		}
+	}
+
+	update_default_date_filters(report_filters, chart_filters) {
+		report_filters.map(f => {
+			if (['Date', 'Date Range'].includes(f.fieldtype) && f.default) {
+				if (chart_filters[f.fieldname]) {
+					chart_filters[f.fieldname] = f.default;
+				}
+			}
+		});
+
+		return chart_filters;
 	}
 
 	get_settings() {
