@@ -12,7 +12,7 @@ frappe.ui.form.on('Desk Page', {
 			frm.set_df_property("extends", "read_only", true);
 		}
 
-		if (frm.doc.for_user || frm.doc.is_standard) {
+		if (frm.doc.for_user || (frm.doc.is_standard && !frappe.boot.developer_mode)) {
 			frm.trigger('disable_form');
 		}
 	},
