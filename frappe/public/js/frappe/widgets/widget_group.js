@@ -52,7 +52,7 @@ export default class WidgetGroup {
 				</div>
 			</div>`);
 		this.widget_area = widget_area;
-		if (this.hidden) this.widget_area.hide()
+		if (this.hidden) this.widget_area.hide();
 		this.title_area = widget_area.find(".widget-group-title");
 		this.control_area = widget_area.find(".widget-group-control");
 		this.body = widget_area.find(".widget-group-body");
