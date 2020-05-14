@@ -238,7 +238,7 @@ export default class OnboardingWidget extends Widget {
 		frappe.route_hooks.after_save = () => {
 			frappe.msgprint({
 				message: __("You're doing great, let's take you back to the onboarding page."),
-				title: __("Good Work  🎉"),
+				title: __("Good Work 🎉"),
 				primary_action: {
 					action: () => {
 						frappe.set_route(current_route).then(() => {
