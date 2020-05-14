@@ -14,8 +14,7 @@ import requests
 import frappe
 import frappe.utils.backups
 from frappe.utils import get_installed_apps_info
-from frappe.utils.commands import get_first_party_apps, render_table, padme
-
+from frappe.utils.commands import render_table, padme
 
 
 def get_new_site_options():
@@ -69,12 +68,12 @@ def choose_plan(plans_list):
 	render_plan_table(plans_list)
 
 	while True:
-		input_plan = input("Send plan?: ").strip()
+		input_plan = click.prompt("Select Plan").strip()
 		if input_plan in available_plans:
 			print("{} Plan selected ✅".format(input_plan))
 			return input_plan
 		else:
-			print("Invalid selection...try again ❌")
+			print("Invalid Selection ❌")
 
 
 @padme
@@ -133,15 +132,17 @@ def filter_apps(app_groups):
 	render_group_table(app_groups)
 
 	while True:
+		app_group_index = click.prompt("Select App Group #", type=int) - 1
 		try:
-			app_group_index = int(input("Select App Group #: ").strip()) - 1
 			selected_group = app_groups[app_group_index]
-			is_compat, filtered_apps = check_app_compat(selected_group)
 		except:
-			print("Invalid Selection")
-			sys.exit(1)
+			print("Invalid Selection ❌")
+			break
+
+		is_compat, filtered_apps = check_app_compat(selected_group)
 
 		if is_compat or click.confirm("Continue anyway?"):
+			print("App Group {} selected! ✅".format(selected_group["name"]))
 			break
 
 	return selected_group["name"], filtered_apps
@@ -149,7 +150,7 @@ def filter_apps(app_groups):
 @padme
 def create_session():
 	# take user input from STDIN
-	username = input("Username: ").strip()
+	username = click.prompt("Username").strip()
 	password = getpass.unix_getpass()
 
 	auth_credentials = {"usr": username, "pwd": password}
@@ -168,7 +169,7 @@ def create_session():
 @padme
 def get_subdomain(domain):
 	while True:
-		subdomain = input("Enter subdomain: ").strip()
+		subdomain = click.prompt("Enter subdomain: ").strip()
 		if is_valid_subdomain(subdomain) and is_subdomain_available(subdomain):
 			print("Site Domain: {}.{}".format(subdomain, domain))
 			return subdomain
