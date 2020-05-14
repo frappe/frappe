@@ -25,7 +25,7 @@ export default class OnboardingWidget extends Widget {
 
 		if (step.is_skipped) {
 			status = "skipped";
-			icon_class = "fa-times-circle-o";
+			icon_class = "fa-check-circle-o";
 		}
 
 		if (step.is_complete) {
@@ -324,7 +324,7 @@ export default class OnboardingWidget extends Widget {
 	update_step_status(step, status, value, callback) {
 		let icon_class = {
 			is_complete: "fa-check-circle-o",
-			is_skipped: "fa-times-circle-o",
+			is_skipped: "fa-check-circle-o",
 		};
 
 		frappe
