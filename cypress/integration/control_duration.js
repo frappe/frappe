@@ -23,11 +23,11 @@ context('Control Duration', () => {
 			.click();
 		cy.get('.duration-input[data-duration=days]')
 			.type(45)
-			.blur();
+			.blur({force: true});
 		cy.get('.duration-input[data-duration=minutes]')
 			.type(30)
-			.blur();
-		cy.get('.frappe-control[data-fieldname=duration] input').should('have.value', '45d 30m');
+			.blur({force: true});
+		cy.get('.frappe-control[data-fieldname=duration] input').first().should('have.value', '45d 30m');
 		cy.get('.frappe-control[data-fieldname=duration] input').first().blur();
 		cy.get('.duration-picker').should('not.be.visible');
 		cy.get('@dialog').then(dialog => {
