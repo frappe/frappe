@@ -117,6 +117,14 @@ $black: #000;
 	--grey-2-50: #F4F5F6;
 }
 
+html {
+	font-size: 10px;
+}
+
+body {
+	font-size: 1.4rem;
+}
+
 $text-light: var(--grey-700);
 $text-muted: var(--grey-700);
 $border-color: var(--grey-100);
@@ -137,5 +145,5 @@ $brand-gradient: linear-gradient(180deg, #2C9AF1 0%, var(--blue-500) 100%);
 $navbar-height: 60px;
 
 $box-shadow: inset 0px -1px 0px var(--grey-2-100);
-$font-size-base: 0.8rem;
+$font-size-base: 1.2rem;
 $font-family-base: Inter;
