@@ -1,7 +1,7 @@
 // Copyright (c) 2020, Frappe Technologies and contributors
 // For license information, please see license.txt
 
-frappe.ui.form.on('Package', {
+frappe.ui.form.on('Package Publish Tool', {
 	refresh: function(frm) {
 		frm.set_query("document_type", "package_details", function () {
 			return {
@@ -20,15 +20,46 @@ frappe.ui.form.on('Package', {
 			}
 		});
 
-		if (frm.doc.instances) {
-			frm.add_custom_button(__("Deploy"), function() {
-				frm.call("deploy_package");
+		frm.trigger("show_instructions");
+		frm.trigger("last_deployed_on");
+		frm.trigger("set_dirty_trigger");
+		frm.trigger("set_deploy_primary_action");
+	},
+	last_deployed_on: function(frm) {
+		if (frm.doc.last_deployed_on) {
+			frm.trigger("show_indicator");
+		}
+	},
+	show_indicator: function(frm) {
+		let pretty_date = frappe.datetime.prettyDate(frm.doc.last_deployed_on);
+		frm.page.set_indicator(__("Last deployed {0}", [pretty_date]), "blue");
+	},
+	set_dirty_trigger: function(frm) {
+		$(frm.wrapper).on("dirty", function() {
+			frm.page.set_primary_action(__('Save'), () => frm.save());
+		})
+	},
+	set_deploy_primary_action: function(frm) {
+		if (frm.doc.package_details.length && frm.doc.instances.length){
+			frm.page.set_primary_action(__("Deploy"), function () {
+				frappe.call({
+					method: "frappe.custom.doctype.package_publish_tool.package_publish_tool.deploy_package",
+					callback: function(r) {
+						frappe.msgprint(__("Package has been published."));
+					}
+				});
 			});
 		}
-
 	},
-	import: function(frm) {
-		frm.call("import_from_package");
+	show_instructions: function(frm) {
+		let field = frm.get_field("html_info");
+		field.html(`
+			<p class="text-muted small">
+				- Create a Package by selecting the Documents and filters in the Package table.<br>
+				- Add the Remote Instance's URL, Username and Password to the Instances table.<br>
+				- Once the above details are filled, Deploy button will be visible and the Package will be deployed on click.<br>
+			</p>
+		`);
 	}
 });
 

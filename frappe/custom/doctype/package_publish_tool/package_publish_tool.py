@@ -15,57 +15,46 @@ from frappe.frappeclient import FrappeClient
 from frappe.model.naming import make_autoname
 from frappe.utils.password import get_decrypted_password
 
-class Package(Document):
-	def import_from_package(self):
-		filters = {"attached_to_doctype": "Package", "attached_to_name": "Package"}
-		files = frappe.get_list("File", filters=filters, limit=1, order_by="creation desc")
-		if not files:
-			frappe.msgprint(_("No file attach for Importing."))
-			return
+class PackagePublishTool(Document):
+	pass
 
-		for f in files:
-			fname, fcontents = get_file(f.name)
-			import_package(fcontents)
+@frappe.whitelist()
+def deploy_package():
+	package, doc = export_package()
 
-		frappe.msgprint(_("Package Imported."))
+	file_name = make_autoname("Package.####")
+	save_file(file_name, json.dumps(package), "Package Publish Tool", "Package Publish Tool")
 
-	def deploy_package(self):
-		package = export_package()
+	length = len(doc.instances)
+	for idx, instance in enumerate(doc.instances):
+		frappe.publish_realtime("package",  {"progress": idx, "total": length, "message": instance.instance_url, "prefix": _("Deploying")},
+			user=frappe.session.user)
 
-		for dt_file in frappe.get_list("File", filters={"attached_to_doctype": "Release", "attached_to_name": "Release"}):
-			frappe.delete_doc_if_exists("File", dt_file.name)
+		install_package_to_remote(package, instance)
 
-		file_name = make_autoname("Package")
-		save_file(file_name, json.dumps(package), "Package", "Package")
+	frappe.db.set_value("Package Publish Tool", "Package Publish Tool", "last_deployed_on", frappe.utils.now_datetime())
 
-		length = len(self.instances)
-		for idx, instance in enumerate(self.instances):
-			frappe.publish_realtime("package",  {"progress": idx, "total": length, "message": instance.instance_url, "prefix": _("Deploying")},
-				user=frappe.session.user)
+def install_package_to_remote(package, instance):
+	return
+	try:
+		connection = FrappeClient(instance.instance_url, instance.username, get_decrypted_password(instance.doctype, instance.name))
+	except Exception:
+		frappe.log_error(frappe.get_traceback())
+		frappe.throw(_("Couldn't connect to site {0}. Please check Error Logs.").format(instance.instance_url))
 
-			self.install_package_to_remote(package, instance)
-
-	def install_package_to_remote(self, package, instance):
-		print((instance.doctype, instance.name))
-		try:
-			connection = FrappeClient(instance.instance_url, instance.username, get_decrypted_password(instance.doctype, instance.name))
-		except Exception:
-			frappe.log_error(frappe.get_traceback())
-			frappe.throw(_("Couldn't connect to site {0}. Please check Error Logs.").format(instance.instance_url))
-
-		try:
-			connection.post_request({
-				"cmd": "frappe.custom.doctype.package.package.import_package",
-				"package": json.dumps(package)
-			})
-		except Exception:
-			frappe.log_error(frappe.get_traceback())
-			frappe.throw(_("Error while installing package to site {0}. Please check Error Logs.").format(instance.instance_url))
+	try:
+		connection.post_request({
+			"cmd": "frappe.custom.doctype.package_publish_tool.package_publish_tool.import_package",
+			"package": json.dumps(package)
+		})
+	except Exception:
+		frappe.log_error(frappe.get_traceback())
+		frappe.throw(_("Error while installing package to site {0}. Please check Error Logs.").format(instance.instance_url))
 
 @frappe.whitelist()
 def export_package():
 	"""Export package as JSON."""
-	package_doc = frappe.get_single("Package")
+	package_doc = frappe.get_single("Package Publish Tool")
 	package = []
 
 	for doctype in package_doc.package_details:
@@ -108,7 +97,7 @@ def export_package():
 
 			package.append(document)
 
-	return post_process(package)
+	return post_process(package), package_doc
 
 @frappe.whitelist()
 def import_package(package=None):
