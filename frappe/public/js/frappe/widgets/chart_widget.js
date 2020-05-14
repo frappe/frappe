@@ -562,8 +562,12 @@ export default class ChartWidget extends Widget {
 			this.chart_doc.y_axis.map(field => {
 				colors.push(field.color);
 			});
+		}
+		else if (this.chart_doc.custom_options){
+			let custom_options = JSON.parse(this.chart_doc.custom_options);
+			colors = custom_options.colors;
 		} else if (["Line", "Bar"].includes(this.chart_doc.type)) {
-			colors = [this.chart_doc.color || "light-blue"];
+			colors = [this.chart_doc.color || []];
 		}  else if (this.chart_doc.type == "Heatmap") {
 			colors = [];
 		}
