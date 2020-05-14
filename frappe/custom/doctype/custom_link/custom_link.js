@@ -12,5 +12,9 @@ frappe.ui.form.on('Custom Link', {
 				}
 			}
 		});
+
+		frm.add_custom_button(__('Go to {0} List', [frm.doc.document_type]), function() {
+			frappe.set_route('List', frm.doc.document_type);
+		});
 	}
 });
