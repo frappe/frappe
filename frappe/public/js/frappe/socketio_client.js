@@ -169,6 +169,9 @@ frappe.socketio = {
 	doc_close: function(doctype, docname) {
 		// notify that the user has closed this doc
 		frappe.socketio.socket.emit('doc_close', doctype, docname);
+
+		// if the doc is closed the user has also stopped typing
+		frappe.socketio.socket.emit('doc_typing_stopped', doctype, docname);
 	},
 	form_typing: function(doctype, docname) {
 		// notifiy that the user is typing on the doc
