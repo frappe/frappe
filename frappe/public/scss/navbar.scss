@@ -9,7 +9,7 @@
 	}
 	.nav-item {
 		@extend .my-auto;
-		font-size: var(--text-small);
+		font-size: var(--text-medium);
 		line-height: 1rem;
 	}
 }
@@ -22,7 +22,7 @@
 }
 
 .search-bar {
-	span {
+	.search-icon {
 		position: absolute;
 		margin-left: 12px;
 		display: flex;
@@ -33,6 +33,7 @@
 		padding-left: 36px;
 		width: 400px !important;
 		height: 32px;
+		font-size: var(--text-medium);
 	}
 	input:focus {
 		background: white;
@@ -71,9 +72,6 @@
 		}
 	}
 }
-
-// @import "variables.less";
-// @import "mixins.less";
 
 // .navbar {
 

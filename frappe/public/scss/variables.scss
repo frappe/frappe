@@ -15,7 +15,12 @@ $black: #000;
 
 :root {
 	--border-radius: 6px;
-	--text-small: 12px;
+	--padding: 10px;
+
+	--text-small: 10px;
+	--text-medium: 12px;
+	--text-regular: 14px;
+	--text-large: 16px;
 
 	--pink-900: #5B1E34;
 	--pink-800: #702440;
@@ -140,9 +145,19 @@ $container-max-widths: (
   xl: 1290px
 );
 
+// $font-size-base: 0.875rem;
+
 $brand-gradient: linear-gradient(180deg, #2C9AF1 0%, var(--blue-500) 100%);
 
 $navbar-height: 60px;
+
+
+// $h1-font-size: $font-size-base * 2.5 !default;
+// $h2-font-size: $font-size-base * 2 !default;
+// $h3-font-size: $font-size-base * 1.4285;
+// $h4-font-size: $font-size-base * 1.5 !default;
+// $h5-font-size: $font-size-base * 1.25 !default;
+// $h6-font-size: $font-size-base !default;
 
 $box-shadow: inset 0px -1px 0px var(--grey-2-100);
 $font-size-base: 1.2rem;

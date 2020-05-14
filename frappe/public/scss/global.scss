@@ -92,6 +92,6 @@ h1, h2, h3 {
 	font-weight: bold;
 }
 
-h1 {
-	font-size: 20px;
+.small {
+	font-size: var(--text-medium);
 }
