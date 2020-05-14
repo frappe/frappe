@@ -1,5 +1,4 @@
 # imports - standard imports
-import functools
 import getpass
 import json
 import re
@@ -78,7 +77,6 @@ def choose_plan(plans_list):
 
 @padme
 def check_app_compat(available_group):
-	frappe_upgrade_msg = ""
 	is_compat = True
 	incompatible_apps, filtered_apps, branch_msgs = [], [], []
 	existing_group = [(app["app_name"], app["branch"]) for app in get_installed_apps_info()]
@@ -135,7 +133,7 @@ def filter_apps(app_groups):
 		app_group_index = click.prompt("Select App Group #", type=int) - 1
 		try:
 			selected_group = app_groups[app_group_index]
-		except:
+		except IndexError:
 			print("Invalid Selection ❌")
 			break
 
@@ -169,7 +167,7 @@ def create_session():
 @padme
 def get_subdomain(domain):
 	while True:
-		subdomain = click.prompt("Enter subdomain: ").strip()
+		subdomain = click.prompt("Enter subdomain").strip()
 		if is_valid_subdomain(subdomain) and is_subdomain_available(subdomain):
 			print("Site Domain: {}.{}".format(subdomain, domain))
 			return subdomain
