@@ -218,7 +218,7 @@ def insert_contacts_to_google_contacts(doc, method=None):
 	emailAddresses = [{"value": email_id.email_id} for email_id in doc.email_ids]
 
 	try:
-		contact = google_contacts.people().createContact(parent='people/me', body={"names": [names],"phoneNumbers": phoneNumbers,
+		contact = google_contacts.people().createContact(body={"names": [names],"phoneNumbers": phoneNumbers,
 			"emailAddresses": emailAddresses}).execute()
 		frappe.db.set_value("Contact", doc.name, "google_contacts_id", contact.get("resourceName"))
 	except HttpError as err:
