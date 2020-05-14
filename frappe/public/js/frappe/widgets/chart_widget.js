@@ -558,13 +558,13 @@ export default class ChartWidget extends Widget {
 
 	get_chart_colors() {
 		let colors = [];
+		let custom_options = JSON.parse(this.chart_doc.custom_options || '{}');
+
 		if (this.chart_doc.y_axis.length) {
 			this.chart_doc.y_axis.map(field => {
 				colors.push(field.color);
 			});
-		}
-		else if (this.chart_doc.custom_options){
-			let custom_options = JSON.parse(this.chart_doc.custom_options);
+		} else if (custom_options.colors && custom_options.colors.length) {
 			colors = custom_options.colors;
 		} else if (["Line", "Bar"].includes(this.chart_doc.type)) {
 			colors = [this.chart_doc.color || []];
