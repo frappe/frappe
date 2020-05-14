@@ -56,7 +56,13 @@ export default class OnboardingWidget extends Widget {
 		// Setup actions
 		let actions = {
 			"Watch Video": () => this.show_video(step),
-			"Create Entry": () => this.show_quick_entry(step),
+			"Create Entry": () => {
+				if (step.show_full_form) {
+					this.create_entry(step);
+				} else {
+					this.show_quick_entry(step);
+				}
+			},
 			"Show Form Tour": () => this.show_form_tour(step),
 			"Update Settings": () => this.update_settings(step),
 			"View Report": () => this.open_report(step),
@@ -108,9 +114,8 @@ export default class OnboardingWidget extends Widget {
 			is_query_report: ["Query Report", "Script Report"].includes(
 				step.report_type
 			),
-			doctype: step.report_reference_doctype
+			doctype: step.report_reference_doctype,
 		});
-
 
 		let current_route = frappe.get_route();
 
@@ -166,7 +171,7 @@ export default class OnboardingWidget extends Widget {
 							msg_dialog.hide();
 						},
 						label: () => __("Continue"),
-					}
+					},
 				});
 			});
 		};
@@ -237,6 +242,33 @@ export default class OnboardingWidget extends Widget {
 		frappe.set_route("Form", step.reference_document);
 	}
 
+	create_entry(step) {
+		let current_route = frappe.get_route();
+
+		frappe.route_hooks = {};
+
+		frappe.route_hooks.after_save = () => {
+			frappe.msgprint({
+				message: __("You're doing great, let's take you back to the onboarding page."),
+				title: __("Good Work  🎉"),
+				primary_action: {
+					action: () => {
+						frappe.set_route(current_route).then(() => {
+							this.mark_complete(step);
+						});
+					},
+					label: __("Continue"),
+				},
+			});
+
+			frappe.msg_dialog.custom_onhide = () => {
+				this.mark_complete(step);
+			};
+		};
+
+		frappe.set_route(`Form/${step.reference_document}/New ${step.reference_document} 1`);
+	}
+
 	show_quick_entry(step) {
 		let current_route = frappe.get_route_str();
 		frappe.ui.form.make_quick_entry(
@@ -254,7 +286,7 @@ export default class OnboardingWidget extends Widget {
 								});
 							},
 							label: __("Continue"),
-						}
+						},
 					});
 
 					frappe.msg_dialog.custom_onhide = () => {
