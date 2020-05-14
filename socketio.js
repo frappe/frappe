@@ -168,7 +168,7 @@ io.on('connection', function (socket) {
 						docname: docname,
 					},
 					'type'
-				)
+				);
 			}
 		});
 	});
