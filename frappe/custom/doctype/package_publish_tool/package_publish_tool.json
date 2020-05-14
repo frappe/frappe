@@ -18,13 +18,15 @@
    "fieldname": "package_details",
    "fieldtype": "Table",
    "label": "Package",
-   "options": "Package Detail"
+   "options": "Package Detail",
+   "reqd": 1
   },
   {
    "fieldname": "instances",
    "fieldtype": "Table",
    "label": "Instances",
-   "options": "Package Publish Target"
+   "options": "Package Publish Target",
+   "reqd": 1
   },
   {
    "fieldname": "html_info",
@@ -48,7 +50,7 @@
  ],
  "issingle": 1,
  "links": [],
- "modified": "2020-05-14 15:09:38.092918",
+ "modified": "2020-05-14 16:06:19.714596",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Package Publish Tool",

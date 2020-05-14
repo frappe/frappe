@@ -35,7 +35,6 @@ def deploy_package():
 	frappe.db.set_value("Package Publish Tool", "Package Publish Tool", "last_deployed_on", frappe.utils.now_datetime())
 
 def install_package_to_remote(package, instance):
-	return
 	try:
 		connection = FrappeClient(instance.instance_url, instance.username, get_decrypted_password(instance.doctype, instance.name))
 	except Exception:

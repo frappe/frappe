@@ -42,6 +42,11 @@ frappe.ui.form.on('Package Publish Tool', {
 	set_deploy_primary_action: function(frm) {
 		if (frm.doc.package_details.length && frm.doc.instances.length){
 			frm.page.set_primary_action(__("Deploy"), function () {
+				frappe.show_alert({
+					message: __("Deploying Package"),
+					indicator: "green"
+				});
+
 				frappe.call({
 					method: "frappe.custom.doctype.package_publish_tool.package_publish_tool.deploy_package",
 					callback: function(r) {
