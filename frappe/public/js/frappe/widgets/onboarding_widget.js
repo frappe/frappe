@@ -233,8 +233,7 @@ export default class OnboardingWidget extends Widget {
 		let current_route = frappe.get_route();
 
 		frappe.route_hooks = {};
-
-		frappe.route_hooks.after_save = () => {
+		let callback = () => {
 			frappe.msgprint({
 				message: __("You're doing great, let's take you back to the onboarding page."),
 				title: __("Good Work 🎉"),
@@ -252,6 +251,18 @@ export default class OnboardingWidget extends Widget {
 				this.mark_complete(step);
 			};
 		};
+
+		if (step.is_submittable) {
+			frappe.route_hooks.after_save = () => {
+				frappe.msgprint({
+					message: __("Submit this document to complete this step."),
+					title: __("Great")
+				});
+			};
+			frappe.route_hooks.after_submit = callback;
+		} else {
+			frappe.route_hooks.after_save = callback;
+		}
 
 		frappe.set_route(`Form/${step.reference_document}/New ${step.reference_document} 1`);
 	}
@@ -325,6 +336,8 @@ export default class OnboardingWidget extends Widget {
 			is_complete: "fa-check-circle-o",
 			is_skipped: "fa-check-circle-o",
 		};
+		//  Clear any hooks
+		frappe.route_hooks = {};
 
 		frappe
 			.call("frappe.desk.desktop.update_onboarding_step", {
