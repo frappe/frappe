@@ -6,7 +6,7 @@ import './share';
 import './review';
 import './document_follow';
 import './user_image';
-import './form_viewers';
+import './form_sidebar_users';
 
 frappe.ui.form.Sidebar = Class.extend({
 	init: function(opts) {
@@ -28,7 +28,7 @@ frappe.ui.form.Sidebar = Class.extend({
 		this.make_attachments();
 		this.make_review();
 		this.make_shared();
-		this.make_viewers();
+		this.make_sidebar_users();
 
 		this.make_tags();
 		this.make_like();
@@ -177,10 +177,10 @@ frappe.ui.form.Sidebar = Class.extend({
 			parent: this.sidebar.find(".form-shared")
 		});
 	},
-	make_viewers: function() {
-		this.frm.viewers = new frappe.ui.form.Viewers({
+	make_sidebar_users: function() {
+		this.frm.viewers = new frappe.ui.form.SidebarUsers({
 			frm: this.frm,
-			parent: this.sidebar.find(".form-viewers")
+			$wrapper: this.sidebar,
 		});
 	},
 	add_user_action: function(label, click) {
