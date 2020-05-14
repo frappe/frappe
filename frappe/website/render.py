@@ -180,6 +180,8 @@ def build(path):
 			return build_page(path)
 		else:
 			raise
+	except Exception:
+		raise
 
 def build_page(path):
 	if not getattr(frappe.local, "path", None):
@@ -201,9 +203,6 @@ def build_page(path):
 
 	if '{next}' in html:
 		html = html.replace('{next}', get_next_link(context.route))
-
-	if '<!-- tailwind-styles -->' in html and not frappe.conf.developer_mode:
-		html = add_processed_tailwind_css(html)
 
 	# html = frappe.get_template(context.base_template_path).render(context)
 
@@ -354,19 +353,3 @@ def raise_if_disabled(path):
 		if path == _path and not r.enabled:
 			raise frappe.PermissionError
 
-def add_processed_tailwind_css(html):
-	from subprocess import Popen, PIPE
-
-	replace_string = '<!-- tailwind-styles -->'
-	command = ['node', 'purgecss.js', 'css/tailwind.css', html]
-	process = Popen(command, cwd=frappe.get_app_path('frappe', '..'), stdout=PIPE, stderr=PIPE)
-
-	stdout, stderr = process.communicate()
-	if stderr:
-		stderr = frappe.safe_decode(stderr)
-		print(stderr)
-	else:
-		css = frappe.safe_decode(stdout)
-		html = html.replace(replace_string, '<style data-tailwind>{0}</style>'.format(css))
-
-	return html

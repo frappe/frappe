@@ -4,7 +4,7 @@ from __future__ import unicode_literals
 import frappe
 from frappe import _
 from functools import wraps
-from frappe.utils import add_to_date, get_link_to_form
+from frappe.utils import add_to_date, cint, get_link_to_form
 from frappe.modules.import_file import import_doc
 
 
@@ -75,6 +75,8 @@ def get_from_date_from_timespan(to_date, timespan):
 
 def sync_dashboards(app=None):
 	"""Import, overwrite fixtures from `[app]/fixtures`"""
+	if not cint(frappe.db.get_single_value('System Settings', 'setup_complete')):
+		return
 	if app:
 		apps = [app]
 	else:
@@ -87,7 +89,7 @@ def sync_dashboards(app=None):
 			if config:
 				frappe.flags.in_import = True
 				make_records(config.charts, "Dashboard Chart")
-				make_records(config.number_cards, "Number Cards")
+				make_records(config.number_cards, "Number Card")
 				make_records(config.dashboards, "Dashboard")
 				frappe.flags.in_import = False
 
@@ -95,10 +97,13 @@ def make_records(config, doctype):
 	if not config:
 		return
 
-	for item in config:
-		item["doctype"] = doctype
-		import_doc(item)
-		frappe.db.commit()
+	try:
+		for item in config:
+			item["doctype"] = doctype
+			import_doc(item)
+			frappe.db.commit()
+	except frappe.DuplicateEntryError:
+		pass
 
 def get_config(app, module):
 	try:
