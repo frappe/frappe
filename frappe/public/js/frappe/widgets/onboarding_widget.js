@@ -60,12 +60,45 @@ export default class OnboardingWidget extends Widget {
 			"Show Form Tour": () => this.show_form_tour(step),
 			"Update Settings": () => this.update_settings(step),
 			"View Report": () => this.open_report(step),
+			"Go to Page": () => this.go_to_page(step),
 		};
 
 		$step.find("#title").on("click", actions[step.action]);
 
 		$step.appendTo(this.body);
 		return $step;
+	}
+
+	go_to_page(step) {
+		let current_route = frappe.get_route();
+
+		frappe.set_route(step.path).then(() => {
+			let msg_dialog = frappe.msgprint({
+				message: __(step.callback_message),
+				title: __(step.callback_title),
+				primary_action: {
+					action: () => {
+						frappe.set_route(current_route).then(() => {
+							this.mark_complete(step);
+						});
+						msg_dialog.hide();
+					},
+					label: () => __("Continue"),
+				},
+				secondary_action: {
+					action: () => {
+						msg_dialog.hide();
+						frappe.set_route(current_route).then(() => {
+							this.mark_complete(step);
+						});
+					},
+					label: __("Go Back"),
+				},
+				wide: true,
+			});
+
+			frappe.msg_dialog.custom_onhide = () => this.mark_complete(step);
+		});
 	}
 
 	open_report(step) {

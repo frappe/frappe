@@ -20,6 +20,9 @@
   "report_reference_doctype",
   "report_type",
   "report_description",
+  "path",
+  "callback_title",
+  "callback_message",
   "field",
   "value_to_validate",
   "video_url"
@@ -58,7 +61,7 @@
    "fieldname": "action",
    "fieldtype": "Select",
    "label": "Action",
-   "options": "Create Entry\nUpdate Settings\nShow Form Tour\nView Report\nWatch Video",
+   "options": "Create Entry\nUpdate Settings\nShow Form Tour\nView Report\nGo to Page\nWatch Video",
    "reqd": 1
   },
   {
@@ -136,10 +139,30 @@
    "fieldname": "is_single",
    "fieldtype": "Check",
    "label": "Is Single"
+  },
+  {
+   "depends_on": "eval:doc.action == \"Go to Page\"",
+   "description": "Example: #Tree/Account",
+   "fieldname": "path",
+   "fieldtype": "Data",
+   "label": "Path"
+  },
+  {
+   "depends_on": "eval:doc.action == \"Go to Page\"",
+   "fieldname": "callback_title",
+   "fieldtype": "Data",
+   "label": "Callback Title"
+  },
+  {
+   "depends_on": "eval:doc.action == \"Go to Page\"",
+   "description": "This will be shown in a modal after routing",
+   "fieldname": "callback_message",
+   "fieldtype": "Small Text",
+   "label": "Callback Message"
   }
  ],
  "links": [],
- "modified": "2020-05-11 13:24:05.457160",
+ "modified": "2020-05-14 13:53:11.977368",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Onboarding Step",
