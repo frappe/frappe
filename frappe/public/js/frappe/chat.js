@@ -2259,14 +2259,19 @@ class extends Component {
 						) : null,
 					h("div","",
 						h("div", { class: "panel-title" },
-							h("div", { class: "cursor-pointer", onclick: () => { frappe.set_route(item.route) }},
+							h("div", { class: "cursor-pointer", onclick: () => {
+								frappe.session.user !== "Guest" ?
+									frappe.set_route(item.route) : null;
+							}},
 								h(frappe.Chat.Widget.MediaProfile, { ...item })
 							)
 						)
 					),
-					h("div", { class: popper ? "col-xs-1"  : "col-xs-3" },
+					h("div", { class: popper ? "col-xs-2"  : "col-xs-3" },
 						h("div", { class: "text-right" },
-
+							frappe._.is_mobile() && h(frappe.components.Button, { class: "frappe-chat-close", onclick: props.toggle },
+								h(frappe.components.Octicon, { type: "x" })
+							)
 						)
 					)
 				)
