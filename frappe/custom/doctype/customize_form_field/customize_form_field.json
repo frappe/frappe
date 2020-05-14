@@ -11,6 +11,8 @@
   "label",
   "fieldtype",
   "fieldname",
+  "show_seconds",
+  "show_days",
   "reqd",
   "unique",
   "in_list_view",
@@ -388,12 +390,30 @@
    "fieldname": "in_preview",
    "fieldtype": "Check",
    "label": "In Preview"
+  },
+  {
+   "default": "1",
+   "depends_on": "eval:doc.fieldtype === \"Duration\";",
+   "fieldname": "show_seconds",
+   "fieldtype": "Check",
+   "label": "Show Seconds",
+   "show_days": 1,
+   "show_seconds": 1
+  },
+  {
+   "default": "1",
+   "depends_on": "eval:doc.fieldtype === \"Duration\";",
+   "fieldname": "show_days",
+   "fieldtype": "Check",
+   "label": "Show Days",
+   "show_days": 1,
+   "show_seconds": 1
   }
  ],
  "idx": 1,
  "istable": 1,
  "links": [],
- "modified": "2020-04-30 09:15:51.094586",
+ "modified": "2020-05-14 23:45:46.810869",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Customize Form Field",
