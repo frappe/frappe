@@ -13,7 +13,6 @@ frappe.breadcrumbs = {
 	},
 
 	module_map: {
-		'Core': 'Settings',
 		'Email': 'Settings',
 		'Custom': 'Settings',
 		'Workflow': 'Settings',
@@ -21,6 +20,11 @@ frappe.breadcrumbs = {
 		'Setup': 'Settings',
 		'Event Streaming': 'Tools',
 		'Automation': 'Tools',
+	},
+
+	workspace_map: {
+		'Automation': 'Tools',
+		'Core': 'User'
 	},
 
 	set_doctype_module: function(doctype, module) {
@@ -95,10 +99,9 @@ frappe.breadcrumbs = {
 					icon = module_info && module_info.icon,
 					label = module_info ? module_info.label : breadcrumbs.module;
 
-
 				if(module_info && !module_info.blocked && frappe.visible_modules.includes(module_info.module_name)) {
 					$(repl('<li><a href="#workspace/%(module)s">%(label)s</a></li>',
-						{ module: breadcrumbs.module, label: __(label) }))
+						{ module: frappe.breadcrumbs.workspace_map[breadcrumbs.module] || breadcrumbs.module, label: __(label) }))
 						.appendTo($breadcrumbs);
 				}
 			}
