@@ -79,31 +79,19 @@ export default class OnboardingWidget extends Widget {
 		let current_route = frappe.get_route();
 
 		frappe.set_route(step.path).then(() => {
-			let msg_dialog = frappe.msgprint({
-				message: __(step.callback_message),
-				title: __(step.callback_title),
-				primary_action: {
-					action: () => {
-						frappe.set_route(current_route).then(() => {
-							this.mark_complete(step);
-						});
-						msg_dialog.hide();
+			if (step.callback_message) {
+				let msg_dialog = frappe.msgprint({
+					message: __(step.callback_message),
+					title: __(step.callback_title),
+					primary_action: {
+						action: () => {
+							msg_dialog.hide();
+						},
+						label: () => __("Continue"),
 					},
-					label: () => __("Continue"),
-				},
-				secondary_action: {
-					action: () => {
-						msg_dialog.hide();
-						frappe.set_route(current_route).then(() => {
-							this.mark_complete(step);
-						});
-					},
-					label: __("Go Back"),
-				},
-				wide: true,
-			});
-
-			frappe.msg_dialog.custom_onhide = () => this.mark_complete(step);
+					wide: true,
+				});
+			}
 		});
 	}
 
