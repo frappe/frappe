@@ -1,37 +1,33 @@
-<div class="relative flex">
-	<div class="relative flex items-center flex-shrink-0 w-full md:w-6/12">
+<div class="hero-with-right-image row no-gutters flex-nowrap">
+	<div class="hero-content col-12 col-md-6">
 		<div>
-			<h1
-				class="text-3xl font-extrabold leading-tight tracking-tight sm:leading-10 sm:text-4xl xl:leading-none xl:text-5xl">
+			<h1>
 				{{ title }}
 			</h1>
 			{%- if subtitle -%}
-			<p
-				class="mt-3 text-base text-gray-900 sm:mt-5 sm:text-lg sm:max-w-xl sm:mx-auto md:mt-5 md:text-xl lg:mx-0">
+			<p class="hero-subtitle">
 				{{ subtitle }}
 			</p>
 			{%- endif -%}
-			<div class="mt-5 sm:mt-8">
+			<div class="mt-4">
 				{%- if primary_action -%}
-				{{ c('button', label=primary_action_label, url=primary_action, variant="primary", size="large") }}
+				<a class="btn btn-lg btn-primary" href="{{ primary_action }}">
+					{{ primary_action_label }}
+				</a>
 				{%- endif -%}
 				{%- if secondary_action -%}
-				{{ c('button', label=secondary_action_label, url=secondary_action, variant="secondary", size="large", class="ml-4") }}
+				<a class="ml-3 btn btn-lg btn-primary-light" href="{{ secondary_action }}">
+					{{ secondary_action_label }}
+				</a>
 				{%- endif -%}
 			</div>
 		</div>
 	</div>
 	{%- if image -%}
-	{{ c('image_with_blur',
-		class=["hidden md:block max-h-144 object-contain", "w-full md:w-6/12" if contain_image else "md:max-w-md lg:max-w-lg xl:max-w-xl xxl:max-w-2xl"],
-		src=image,
-		alt="")
-	}}
+	{{ frappe.render_template('templates/includes/image_with_blur.html', {
+		"src": image,
+		"alt": "",
+		"class": ["hero-image", "contain-image" if contain_image else ""]
+	}) }}
 	{%- endif -%}
 </div>
-
-{%- if not contain_image -%}
-<script>
-	document.addEventListener('DOMContentLoaded', () => document.body.classList.add('overflow-x-hidden'));
-</script>
-{%- endif -%}

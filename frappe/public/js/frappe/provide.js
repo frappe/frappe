@@ -35,6 +35,7 @@ frappe.provide('locals.DocType');
 
 // for listviews
 frappe.provide("frappe.listview_settings");
+frappe.provide("frappe.tour");
 frappe.provide("frappe.listview_parent_route");
 
 // constants

@@ -50,9 +50,9 @@ class TestWebTemplate(unittest.TestCase):
 		self.assertEqual(sections[0].find("p").text, "test lorem ipsum")
 		self.assertEqual(len(sections[1].find_all("a")), 3)
 
-	def test_tailwind_styles_in_developer_mode(self):
+	def test_custom_stylesheet(self):
 		self.create_web_page()
-		theme = self.create_tailwind_theme()
+		theme = self.create_website_theme()
 		theme.set_as_default()
 
 		frappe.conf.developer_mode = 1
@@ -65,30 +65,9 @@ class TestWebTemplate(unittest.TestCase):
 		soup = BeautifulSoup(html, "html.parser")
 		stylesheet = soup.select_one('link[rel="stylesheet"]')
 
-		self.assertEqual(stylesheet.attrs['href'], '/assets/css/tailwind.css')
+		self.assertEqual(stylesheet.attrs["href"], theme.theme_url)
 
-		frappe.get_doc('Website Theme', 'Standard').set_as_default()
-
-	def test_tailwind_styles_in_production(self):
-		self.create_web_page()
-		theme = self.create_tailwind_theme()
-		theme.set_as_default()
-
-		frappe.conf.developer_mode = 0
-
-		set_request(method="GET", path="test-web-template")
-		response = render()
-		self.assertEqual(response.status_code, 200)
-		html = frappe.safe_decode(response.get_data())
-
-		soup = BeautifulSoup(html, "html.parser")
-		style = soup.select_one("style[data-tailwind]")
-
-		self.assertTrue(style)
-		self.assertTrue('py-20' in style.text)
-		self.assertTrue('text-gray-900' in style.text)
-
-		frappe.get_doc('Website Theme', 'Standard').set_as_default()
+		frappe.get_doc("Website Theme", "Standard").set_as_default()
 
 	def create_web_page(self):
 		if not frappe.db.exists("Web Page", "test-web-template"):
@@ -130,13 +109,9 @@ class TestWebTemplate(unittest.TestCase):
 				}
 			).insert()
 
-	def create_tailwind_theme(self):
-		if not frappe.db.exists('Website Theme', 'Tailwind'):
-			theme = frappe.get_doc({
-				'doctype': 'Website Theme',
-				'theme': 'Tailwind',
-				'based_on': 'Tailwind'
-			}).insert()
+	def create_website_theme(self):
+		if not frappe.db.exists("Website Theme", "Custom"):
+			theme = frappe.get_doc({"doctype": "Website Theme", "theme": "Custom"}).insert()
 		else:
-			theme = frappe.get_doc('Website Theme', 'Tailwind')
+			theme = frappe.get_doc("Website Theme", "Custom")
 		return theme
