@@ -361,7 +361,12 @@ export default class ChartWidget extends Widget {
 								}
 							];
 						} else {
-							fields = filters.filter(f => f.fieldname);
+							fields = filters
+								.filter(df => df.fieldname)
+								.map(df => {
+									Object.assign(df, df.dashboard_config || {});
+									return df;
+								});
 						}
 					} else {
 						fields = [
