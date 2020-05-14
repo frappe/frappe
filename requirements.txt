@@ -18,11 +18,12 @@ selenium==3.141.0
 babel==2.6.0
 ipython==5.9.0
 html2text==2016.9.19
+html5lib==1.0.1
 email-reply-parser==0.5.9
 click==7.1.1
 num2words==0.5.5
 watchdog==0.8.0
-bleach==2.1.4
+bleach==3.1.4
 bleach-whitelist==0.0.10
 Pillow==6.2.2
 beautifulsoup4==4.8.2
