@@ -22,7 +22,7 @@ context('Control Duration', () => {
 			.first()
 			.click();
 		cy.get('.duration-input[data-duration=days]')
-			.type(45)
+			.type(45, {force: true})
 			.blur({force: true});
 		cy.get('.duration-input[data-duration=minutes]')
 			.type(30)
