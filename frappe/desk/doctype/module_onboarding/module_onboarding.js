@@ -1,7 +1,7 @@
 // Copyright (c) 2020, Frappe Technologies and contributors
 // For license information, please see license.txt
 
-frappe.ui.form.on("Onboarding", {
+frappe.ui.form.on("Module Onboarding", {
 	refresh: function(frm) {
 		frappe.boot.developer_mode &&
 			frm.set_intro(
