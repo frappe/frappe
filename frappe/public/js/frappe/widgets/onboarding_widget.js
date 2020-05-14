@@ -173,6 +173,7 @@ export default class OnboardingWidget extends Widget {
 		frappe.route_hooks = {};
 		frappe.route_hooks.after_load = (frm) => {
 			frm.scroll_to_field(step.field);
+			frm.doc.__unsaved = true;
 		};
 
 		frappe.route_hooks.after_save = (frm) => {
