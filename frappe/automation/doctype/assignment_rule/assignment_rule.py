@@ -224,10 +224,6 @@ def apply(doc, method=None, doctype=None, name=None):
 			if assignment_rule.is_rule_not_applicable_today():
 				continue
 
-			if not new_apply:
-				reopen =  reopen_closed_assignment(doc)
-				if reopen:
-					break
 			close = assignment_rule.apply_close(doc, assignments)
 			if close:
 				break
