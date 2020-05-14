@@ -76,8 +76,6 @@ export default class OnboardingWidget extends Widget {
 	}
 
 	go_to_page(step) {
-		let current_route = frappe.get_route();
-
 		frappe.set_route(step.path).then(() => {
 			if (step.callback_message) {
 				let msg_dialog = frappe.msgprint({
