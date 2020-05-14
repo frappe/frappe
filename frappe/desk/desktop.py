@@ -127,6 +127,8 @@ class Workspace:
 			return name in self.allowed_reports
 		if item_type == "help":
 			return True
+		if item_type == "dashboard":
+			return True
 
 		return False
 
