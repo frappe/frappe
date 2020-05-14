@@ -18,7 +18,7 @@
    "fieldname": "package_details",
    "fieldtype": "Table",
    "label": "Package",
-   "options": "Package Detail",
+   "options": "Package Document Type",
    "reqd": 1
   },
   {
@@ -50,7 +50,7 @@
  ],
  "issingle": 1,
  "links": [],
- "modified": "2020-05-14 16:06:19.714596",
+ "modified": "2020-05-14 16:46:20.374773",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Package Publish Tool",

@@ -12,7 +12,7 @@ from frappe.utils.file_manager import save_file, get_file
 from frappe import _
 from six import string_types
 from frappe.frappeclient import FrappeClient
-from frappe.model.naming import make_autoname
+from frappe.utils import get_datetime_str, get_datetime
 from frappe.utils.password import get_decrypted_password
 
 class PackagePublishTool(Document):
@@ -22,7 +22,7 @@ class PackagePublishTool(Document):
 def deploy_package():
 	package, doc = export_package()
 
-	file_name = make_autoname("Package.####")
+	file_name = "Package-" + get_datetime_str(get_datetime())
 	save_file(file_name, json.dumps(package), "Package Publish Tool", "Package Publish Tool")
 
 	length = len(doc.instances)
@@ -90,8 +90,8 @@ def export_package():
 					})
 
 			document.update({
-				"attachments": attachments,
-				"overwrite": True if doctype.overwrite else False
+				"__attachments": attachments,
+				"__overwrite": True if doctype.overwrite else False
 			})
 
 			package.append(document)
@@ -106,8 +106,8 @@ def import_package(package=None):
 
 	for doc in package:
 		modified = doc.pop("modified")
-		overwrite = doc.pop("overwrite")
-		attachments = doc.pop("attachments")
+		overwrite = doc.pop("__overwrite")
+		attachments = doc.pop("__attachments")
 		exists = frappe.db.exists(doc.get("doctype"), doc.get("name"))
 
 		if not exists:
