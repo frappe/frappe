@@ -518,5 +518,4 @@ def update_onboarding_step(name, field, value):
 	    value: Value to be updated
 
 	"""
-	return
 	frappe.db.set_value("Onboarding Step", name, field, value)
