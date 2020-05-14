@@ -623,7 +623,7 @@ def get_custom_doctype_links(doctype, data):
 			for group in data.transactions:
 				# group found
 				if group.get("label") == link.group:
-					if not link.link_doctype in group.get("items"):
+					if link.link_doctype not in group.get("items"):
 						group.get("items").append(link.link_doctype)
 					link.added = True
 

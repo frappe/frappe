@@ -10,7 +10,7 @@ frappe.ui.form.on('Custom Link', {
 					istable: 0,
 					module: ['not in', ["Email", "Core", "Custom", "Event Streaming", "Social", "Data Migration", "Geo", "Desk"]]
 				}
-			}
+			};
 		});
 
 		frm.add_custom_button(__('Go to {0} List', [frm.doc.document_type]), function() {
