@@ -15,12 +15,12 @@ $black: #000;
 
 :root {
 	--border-radius: 6px;
-	--padding: 10px;
 
-	--text-small: 10px;
-	--text-medium: 12px;
-	--text-regular: 14px;
-	--text-large: 16px;
+	--text-xs: 11px;
+	--text-sm: 12px;
+	--text-md: 13px;
+	--text-base: 14px;
+	--text-lg: 16px;
 
 	--pink-900: #5B1E34;
 	--pink-800: #702440;
@@ -122,12 +122,8 @@ $black: #000;
 	--grey-2-50: #F4F5F6;
 }
 
-html {
-	font-size: 10px;
-}
-
-body {
-	font-size: 1.4rem;
+html, body {
+	font-size: 14px;
 }
 
 $text-light: var(--grey-700);
@@ -158,5 +154,4 @@ $navbar-height: 60px;
 // $h6-font-size: $font-size-base !default;
 
 $box-shadow: inset 0px -1px 0px var(--grey-2-100);
-$font-size-base: 1.2rem;
 $font-family-base: Inter;

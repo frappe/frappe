@@ -9,7 +9,7 @@
 	}
 	.nav-item {
 		@extend .my-auto;
-		font-size: var(--text-medium);
+		font-size: var(--text-md);
 		line-height: 1rem;
 	}
 }
@@ -33,7 +33,7 @@
 		padding-left: 36px;
 		width: 400px !important;
 		height: 32px;
-		font-size: var(--text-medium);
+		font-size: var(--text-md);
 	}
 	input:focus {
 		background: white;
