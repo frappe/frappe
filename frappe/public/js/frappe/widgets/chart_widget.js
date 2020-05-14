@@ -556,7 +556,7 @@ export default class ChartWidget extends Widget {
 		} else {
 			this.filters =
 				saved_filters || this.filters || chart_filters;
-				return Promise.resolve();
+			return Promise.resolve();
 		}
 	}
 
