@@ -60,7 +60,7 @@ export default class LinksWidget extends Widget {
 		};
 
 		this.link_list = this.links.map(item => {
-			return $(`<div class="link-item flush-top small ${
+			return $(`<div class="link-item flush-top text-medium ${
 				item.onboard ? "onboard-spotlight" : ""
 			} ${disabled_dependent(item)}" type="${item.type}">
 					<span class="indicator ${get_indicator_color(item)}"></span>
