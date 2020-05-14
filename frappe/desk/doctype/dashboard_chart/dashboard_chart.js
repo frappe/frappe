@@ -291,7 +291,7 @@ frappe.ui.form.on('Dashboard Chart', {
 					f.read_only = 1;
 				}
 				// Filter out date filters that have default values set
-				if (['Date', 'Date Range'].includes(f.fieldtype) && f.default) {
+				if (['Date', 'DateRange'].includes(f.fieldtype) && f.default) {
 					return false;
 				}
 				return f.fieldname;
