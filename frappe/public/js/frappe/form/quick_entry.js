@@ -213,8 +213,15 @@ frappe.ui.form.QuickEntryForm = Class.extend({
 				me.dialog.doc = r.message;
 				if (frappe._from_link) {
 					frappe.ui.form.update_calling_link(me.dialog.doc);
+				} else {
+					if(me.after_insert) {
+						me.after_insert(me.dialog.doc);
+					} else {
+						me.open_form_if_not_list();
+					}
 				}
-				cur_frm.reload_doc();
+
+				cur_frm && cur_frm.reload_doc();
 			}
 		});
 	},
