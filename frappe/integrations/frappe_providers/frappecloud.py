@@ -255,7 +255,8 @@ def frappecloud_migrator(local_site, remote_site):
 
 		if site_creation_request.ok:
 			site_url = site_creation_request.json()["message"]
-			print("View your site dashboard at {}/dashboard/#/sites/{} ✨".format(remote_site, site_url))
+			print("Your site {} is being migrated ✨".format(local_site))
+			print("View your site dashboard at {}/dashboard/#/sites/{}".format(remote_site, site_url))
 			print("Your site URL: {}".format(site_url))
 		else:
 			print("Request failed with error code {}".format(site_creation_request.status_code))
