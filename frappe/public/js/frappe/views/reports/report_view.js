@@ -1020,7 +1020,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 					name: __('Totals Row'),
 					content: totals[col.id],
 					format: value => {
-						return frappe.format(value, col.docfield, { always_show_decimals: true });
+						return frappe.format(value, col.docfield, { always_show_decimals: true }, data[0]);
 					}
 				}
 			})
@@ -1286,6 +1286,11 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 						}
 					});
 
+					d.$body.prepend(`<div class="columns-search">
+						<input type="text" placeholder="${__('Search')}" data-element="search" class="form-control input-xs">
+					</div>`);
+
+					frappe.utils.setup_search(d.$body, '.unit-checkbox', '.label-area');
 					d.show();
 				}
 			}

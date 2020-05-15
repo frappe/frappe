@@ -23,17 +23,18 @@
   "number_of_groups",
   "column_break_6",
   "is_public",
+  "heatmap_year",
   "timespan",
   "from_date",
   "to_date",
   "time_interval",
   "timeseries",
+  "type",
   "filters_section",
   "filters_json",
   "chart_options_section",
-  "type",
-  "column_break_2",
   "color",
+  "column_break_2",
   "custom_options",
   "section_break_10",
   "last_synced_on"
@@ -85,14 +86,14 @@
    "fieldtype": "Column Break"
   },
   {
-   "depends_on": "timeseries",
+   "depends_on": "eval: doc.timeseries && doc.type !== 'Heatmap'",
    "fieldname": "timespan",
    "fieldtype": "Select",
    "label": "Timespan",
    "options": "Last Year\nLast Quarter\nLast Month\nLast Week\nSelect Date Range"
   },
   {
-   "depends_on": "timeseries",
+   "depends_on": "eval: doc.timeseries && doc.type !== 'Heatmap'",
    "fieldname": "time_interval",
    "fieldtype": "Select",
    "label": "Time Interval",
@@ -100,7 +101,7 @@
   },
   {
    "default": "0",
-   "depends_on": "eval: ['Count', 'Sum', 'Average'].includes(doc.chart_type)",
+   "depends_on": "eval: !['Group By', 'Report'].includes(doc.chart_type)\n",
    "fieldname": "timeseries",
    "fieldtype": "Check",
    "label": "Time Series"
@@ -123,10 +124,11 @@
    "label": "Chart Options"
   },
   {
+   "default": "Line",
    "fieldname": "type",
    "fieldtype": "Select",
    "label": "Type",
-   "options": "Line\nBar\nPercentage\nPie\nDonut",
+   "options": "Line\nBar\nHeatmap",
    "reqd": 1
   },
   {
@@ -134,7 +136,7 @@
    "fieldtype": "Column Break"
   },
   {
-   "depends_on": "eval:doc.chart_type !== 'Report'",
+   "depends_on": "eval: doc.chart_type !== 'Report' && doc.type !== 'Heatmap'",
    "fieldname": "color",
    "fieldtype": "Color",
    "label": "Color"
@@ -217,7 +219,7 @@
    "options": "Dashboard Chart Field"
   },
   {
-   "description": "Ex: \"colors\": [\"#d1d8dd\", \"#ff5858\"]",
+   "description": "Ex: \"colors\": [\"#d1d8dd\", \"#ff5858\"] (the options set here will override the chart options set in the Dashboard)",
    "fieldname": "custom_options",
    "fieldtype": "Code",
    "label": "Custom Options"
@@ -228,10 +230,16 @@
    "fieldname": "is_public",
    "fieldtype": "Check",
    "label": "Is Public"
+  },
+  {
+   "depends_on": "eval: doc.type == 'Heatmap'",
+   "fieldname": "heatmap_year",
+   "fieldtype": "Select",
+   "label": "Year"
   }
  ],
  "links": [],
- "modified": "2020-05-01 15:22:59.119341",
+ "modified": "2020-05-01 19:45:01.669384",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Dashboard Chart",
