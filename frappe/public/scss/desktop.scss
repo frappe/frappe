@@ -3,7 +3,7 @@ $panel-bg: var(--gray-50);
 
 .desk-container {
 	.desk-sidebar {
-		width: 24rem;
+		width: 20rem;
 		display: block;
 		position: fixed;
 		z-index: 1;
@@ -21,7 +21,7 @@ $panel-bg: var(--gray-50);
 		}
 
 		.sidebar-item {
-			font-size: 1.2rem;
+			font-size: var(--text-sm);
 			font-weight: bold;
 			margin-bottom: 1px;
 			display: flex;
@@ -68,10 +68,10 @@ $panel-bg: var(--gray-50);
 	}
 
 	.desk-body {
-		padding-left: calc(24rem + 15px);
+		padding-left: calc(20rem + 15px);
 		display: flex;
 		flex-direction: column;
-  		height: 100%;
+		height: 100%;
 		position: relative;
 		min-height: 1px;
 		padding-right: 15px;
@@ -206,7 +206,7 @@ $panel-bg: var(--gray-50);
 
 		.widget-title {
 			align-self: center;
-			font-size: 1.6rem;
+			font-size: var(--text-lg);
 			font-family: inherit;
 			font-weight: 500;
 			line-height: 1.3em;
