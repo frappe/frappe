@@ -43,6 +43,7 @@
   "report_hide",
   "remember_last_selected_value",
   "ignore_xss_filter",
+  "hide_border",
   "property_depends_on_section",
   "mandatory_depends_on",
   "column_break_38",
@@ -448,12 +449,19 @@
   {
    "fieldname": "column_break_38",
    "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:doc.fieldtype=='Section Break'",
+   "fieldname": "hide_border",
+   "fieldtype": "Check",
+   "label": "Hide Border"
   }
  ],
  "idx": 1,
  "istable": 1,
  "links": [],
- "modified": "2020-04-19 21:54:13.783908",
+ "modified": "2020-04-27 11:38:21.223185",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocField",

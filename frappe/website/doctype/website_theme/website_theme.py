@@ -41,13 +41,9 @@ class WebsiteTheme(Document):
 
 	def validate_theme(self):
 		'''Generate theme css if theme_scss has changed'''
-		if self.based_on == 'Bootstrap 4':
-			doc_before_save = self.get_doc_before_save()
-			if doc_before_save is None or get_scss(self) != get_scss(doc_before_save):
-				self.generate_bootstrap_theme()
-
-		if self.based_on == 'Tailwind':
-			self.theme_css = frappe.render_template('frappe/website/doctype/website_theme/custom_theme.css', self.as_dict(), is_path=True)
+		doc_before_save = self.get_doc_before_save()
+		if doc_before_save is None or get_scss(self) != get_scss(doc_before_save):
+			self.generate_bootstrap_theme()
 
 	def export_doc(self):
 		"""Export to standard folder `[module]/website_theme/[name]/[name].json`."""
@@ -139,5 +135,5 @@ def generate_theme_files_if_not_exist():
 			frappe.log_error(frappe.get_traceback(), "Theme File Generation Failed")
 
 def get_scss(doc):
-	return (doc.theme_scss or '') + '\n' + (doc.custom_scss or '')
+	return frappe.render_template('frappe/website/doctype/website_theme/website_theme_template.scss', doc.as_dict())
 

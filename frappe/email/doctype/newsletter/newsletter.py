@@ -67,7 +67,7 @@ class Newsletter(WebsiteGenerator):
 			frappe.db.auto_commit_on_many_writes = True
 
 		attachments = []
-		if self.send_attachements:
+		if self.send_attachments:
 			files = frappe.get_all("File", fields=["name"], filters={"attached_to_doctype": "Newsletter",
 				"attached_to_name": self.name}, order_by="creation desc")
 

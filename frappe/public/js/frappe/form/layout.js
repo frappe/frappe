@@ -599,12 +599,15 @@ frappe.ui.form.Section = Class.extend({
 			if(this.df.cssClass) {
 				this.wrapper.addClass(this.df.cssClass);
 			}
+			if (this.df.hide_border) {
+				this.wrapper.toggleClass("hide-border", true);
+			}
 		}
-
 
 		// for bc
 		this.body = $('<div class="section-body">').appendTo(this.wrapper);
 	},
+
 	make_head: function() {
 		var me = this;
 		if(!this.df.collapsible) {
@@ -663,9 +666,11 @@ frappe.ui.form.Section = Class.extend({
 			}
 		});
 	},
+
 	is_collapsed() {
 		return this.body.hasClass('hide');
 	},
+
 	has_missing_mandatory: function() {
 		var missing_mandatory = false;
 		for (var j=0, l=this.fields_list.length; j < l; j++) {

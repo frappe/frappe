@@ -278,3 +278,6 @@ frappe.patches.v13_0.set_path_for_homepage_in_web_page_view
 frappe.patches.v13_0.migrate_translation_column_data
 frappe.patches.v13_0.set_read_times
 frappe.patches.v13_0.remove_web_view
+frappe.patches.v13_0.remove_tailwind_from_page_builder
+frappe.patches.v13_0.rename_onboarding
+frappe.patches.v13_0.email_unsubscribe

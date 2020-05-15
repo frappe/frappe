@@ -25,6 +25,24 @@ frappe.ui.form.on("Onboarding Step", {
 		}
 	},
 
+	action: function(frm) {
+		if (frm.doc.action == "Show Form Tour") {
+			frm.fields_dict.reference_document.set_description(`You need to add the steps in the contoller JS file. For example: <code>note.js</code>
+<pre class="small text-muted"><code>
+frappe.tour['Note'] = [
+	{
+		fieldname: "title",
+		title: "Title of the Note",
+		description: "...",
+	}
+];
+</code></pre>
+				`);
+		} else {
+			frm.fields_dict.reference_document.set_description(null);
+		}
+	},
+
 	disable_form: function(frm) {
 		frm.set_read_only();
 		frm.fields

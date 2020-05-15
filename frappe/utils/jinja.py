@@ -20,8 +20,6 @@ def get_jenv():
 		jenv.globals.update(get_safe_globals())
 		jenv.globals.update(get_jenv_customization('methods'))
 		jenv.globals.update({
-			'component': component,
-			'c': component,
 			'resolve_class': resolve_class,
 			'inspect': inspect
 		})
@@ -166,29 +164,6 @@ def get_jenv_customization(customization_type):
 	return out
 
 
-def component(name, **kwargs):
-	from jinja2 import TemplateNotFound
-
-	template_name = 'templates/components/' + name + '.html'
-	jenv = get_jenv()
-
-	try:
-		source = jenv.loader.get_source(jenv, template_name)[0]
-	except TemplateNotFound:
-		return '<pre>Component "{0}" not found</pre>'.format(name)
-
-	attributes, html = parse_front_matter_attrs_and_html(source)
-	context = {}
-	context.update(attributes)
-	context.update(kwargs)
-
-	if 'class' in context:
-		context['class'] = resolve_class(context['class'])
-	else:
-		context['class'] = ''
-
-	return get_jenv().from_string(html).render(context)
-
 def resolve_class(classes):
 	import frappe
 
@@ -206,21 +181,6 @@ def resolve_class(classes):
 
 	return classes
 
-def parse_front_matter_attrs_and_html(source):
-	from frappe.website.router import get_frontmatter
-
-	html = source
-	attributes = {}
-
-	if not source.startswith('---'):
-		return attributes, html
-
-	res = get_frontmatter(source)
-	if res['attributes']:
-		attributes = res['attributes']
-		html = res['body']
-
-	return attributes, html
 
 def inspect(var, render=True):
 	context = { "var": var }
