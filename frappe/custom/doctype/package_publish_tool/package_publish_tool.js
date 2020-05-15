@@ -68,7 +68,7 @@ frappe.ui.form.on('Package Publish Tool', {
 	}
 });
 
-frappe.ui.form.on('Package Detail', {
+frappe.ui.form.on('Package Document Type', {
 	form_render: function (frm, cdt, cdn) {
 		function _show_filters(filters, table) {
 			table.find('tbody').empty();
