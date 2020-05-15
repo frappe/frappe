@@ -156,6 +156,8 @@ def get_website_settings():
 	if settings.favicon and settings.favicon != "attach_files:":
 		context["favicon"] = settings.favicon
 
+	context["hide_login"] = settings.hide_login
+
 	return context
 
 def get_items(parentfield):
