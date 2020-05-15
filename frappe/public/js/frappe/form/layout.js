@@ -236,7 +236,6 @@ frappe.ui.form.Layout = Class.extend({
 		// collapse sections
 		if(this.frm) {
 			this.refresh_section_collapse();
-			this.refresh_section_border();
 		}
 	},
 
@@ -306,16 +305,6 @@ frappe.ui.form.Layout = Class.extend({
 				section.collapse(collapse);
 			}
 		}
-	},
-
-	refresh_section_border: function() {
-		if (!this.doc) return;
-		this.sections.forEach(section => {
-			const df = section.df;
-			if (df && cint(df.hide_border)) {
-				section.hide_border(true);
-			}
-		});
 	},
 
 	attach_doc_and_docfields: function(refresh) {
@@ -610,12 +599,15 @@ frappe.ui.form.Section = Class.extend({
 			if(this.df.cssClass) {
 				this.wrapper.addClass(this.df.cssClass);
 			}
+			if (this.df.hide_border) {
+				this.wrapper.toggleClass("hide-border", true);
+			}
 		}
-
 
 		// for bc
 		this.body = $('<div class="section-body">').appendTo(this.wrapper);
 	},
+
 	make_head: function() {
 		var me = this;
 		if(!this.df.collapsible) {
@@ -674,12 +666,11 @@ frappe.ui.form.Section = Class.extend({
 			}
 		});
 	},
-	hide_border(hide) {
-		this.body.parent().toggleClass("hide-border", hide);
-	},
+
 	is_collapsed() {
 		return this.body.hasClass('hide');
 	},
+
 	has_missing_mandatory: function() {
 		var missing_mandatory = false;
 		for (var j=0, l=this.fields_list.length; j < l; j++) {
