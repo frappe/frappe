@@ -326,6 +326,7 @@ def use(site, sites_path='.'):
 	if os.path.exists(os.path.join(sites_path, site)):
 		with open(os.path.join(sites_path,  "currentsite.txt"), "w") as sitefile:
 			sitefile.write(site)
+		print("Current Site set to {}".format(site))
 	else:
 		print("{} does not exist".format(site))
 
