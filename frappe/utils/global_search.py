@@ -81,10 +81,10 @@ def rebuild_for_doctype(doctype):
 		return filters
 
 	meta = frappe.get_meta(doctype)
-	
+
 	if cint(meta.issingle) == 1:
 		return
-	
+
 	if cint(meta.istable) == 1:
 		parent_doctypes = frappe.get_all("DocField", fields="parent", filters={
 			"fieldtype": ["in", frappe.model.table_fields],
@@ -506,15 +506,13 @@ def web_search(text, scope=None, start=0, limit=20):
 		mariadb_conditions = postgres_conditions = ' '.join([published_condition, scope_condition])
 
 		# https://mariadb.com/kb/en/library/full-text-index-overview/#in-boolean-mode
-		text = '"{}"'.format(text)
-		mariadb_conditions += 'MATCH(`content`) AGAINST (%(text)s IN BOOLEAN MODE)'
-		postgres_conditions += 'TO_TSVECTOR("content") @@ PLAINTO_TSQUERY(%(text)s)'
+		mariadb_conditions += 'MATCH(`content`) AGAINST ({} IN BOOLEAN MODE)'.format(frappe.db.escape('+' + text + '*'))
+		postgres_conditions += 'TO_TSVECTOR("content") @@ PLAINTO_TSQUERY({})'.format(frappe.db.escape(text))
 
 		values = {
 			"scope": "".join([scope, "%"]) if scope else '',
 			"limit": limit,
-			"start": start,
-			"text": text
+			"start": start
 		}
 
 		result = frappe.db.multisql({
