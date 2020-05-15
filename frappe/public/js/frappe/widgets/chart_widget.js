@@ -523,7 +523,6 @@ export default class ChartWidget extends Widget {
 		}
 	}
 
-
 	get_chart_args() {
 		let colors = this.get_chart_colors();
 
@@ -551,6 +550,21 @@ export default class ChartWidget extends Widget {
 			const heatmap_year = parseInt(this.selected_heatmap_year || this.chart_settings.heatmap_year || this.chart_doc.heatmap_year);
 			chart_args.data.start = new Date(`${heatmap_year}-01-01`);
 			chart_args.data.end = new Date(`${heatmap_year+1}-01-01`);
+		}
+
+		let set_options = (options) => {
+			let custom_options = JSON.parse(options);
+			for (let key in custom_options) {
+				chart_args[key] = custom_options[key];
+			}
+		};
+
+		if (this.custom_options) {
+			set_options(this.custom_options);
+		}
+
+		if (this.chart_doc.custom_options) {
+			set_options(this.chart_doc.custom_options);
 		}
 
 		return chart_args;

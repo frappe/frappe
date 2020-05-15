@@ -9,6 +9,7 @@
   "dashboard_name",
   "is_default",
   "charts",
+  "chart_options",
   "cards"
  ],
  "fields": [
@@ -34,6 +35,13 @@
    "reqd": 1
   },
   {
+    "description": "Set Default Options for all charts on this Dashboard (Ex: \"colors\": [\"#d1d8dd\", \"#ff5858\"])",
+    "fieldname": "chart_options",
+    "fieldtype": "Code",
+    "label": "Chart Options",
+    "options": "JSON"
+  },
+  {
    "fieldname": "cards",
    "fieldtype": "Table",
    "label": "Cards",
@@ -41,7 +49,7 @@
   }
  ],
  "links": [],
- "modified": "2020-04-19 17:44:36.237163",
+ "modified": "2020-04-29 13:26:37.362482",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Dashboard",
