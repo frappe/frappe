@@ -257,12 +257,12 @@ def migrate(context, rebuild_website=False, skip_failing=False):
 	compileall.compile_dir('../apps', quiet=1, rx=re.compile('.*node_modules.*'))
 
 @click.command('migrate-to')
-@click.argument('site_url')
+@click.argument('frappe_provider')
 @pass_context
-def migrate_to(context, site_url):
-	from frappe.utils.remote_migrations import migrate_to
+def migrate_to(context, frappe_provider):
+	from frappe.integrations.frappe_providers import migrate_to
 	for site in context.sites:
-		migrate_to(site, site_url)
+		migrate_to(site, frappe_provider)
 
 @click.command('run-patch')
 @click.argument('module')
