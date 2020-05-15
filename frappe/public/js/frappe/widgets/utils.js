@@ -135,7 +135,7 @@ function shorten_number(number, country) {
 		if (x >= map.divisor) {
 			return Math.round(number/map.divisor) +  ' ' + map.symbol;
 		}
-	};
+	}
 	return number.toFixed();
 }
 
@@ -163,7 +163,7 @@ function get_number_system(country) {
 				divisor: 1.0e+6,
 				symbol: 'M'
 			}]
-	}
+	};
 	return number_system_map[country];
 }
 
