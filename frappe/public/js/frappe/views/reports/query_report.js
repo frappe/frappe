@@ -330,8 +330,8 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 	evaluate_depends_on_value(expression, filter_label) {
 		let out = null;
-		let filters = this.get_filter_values();
-		if (filters) {
+		let doc = this.get_filter_values();
+		if (doc) {
 			if (typeof expression === 'boolean') {
 				out = expression;
 			} else if (expression.substr(0, 5) == 'eval:') {
@@ -341,7 +341,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 					frappe.throw(__(`Invalid "depends_on" expression set in filter ${filter_label}`));
 				}
 			} else {
-				var value = filters[expression];
+				var value = doc[expression];
 				if ($.isArray(value)) {
 					out = !!value.length;
 				} else {
