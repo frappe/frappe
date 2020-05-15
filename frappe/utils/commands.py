@@ -5,6 +5,7 @@ from terminaltables import AsciiTable
 
 @functools.lru_cache(maxsize=1024)
 def get_first_party_apps():
+	"""Get list of all apps under orgs: frappe. erpnext from GitHub"""
 	apps = []
 	for org in ["frappe", "erpnext"]:
 		req = requests.get(f"https://api.github.com/users/{org}/repos", {"type": "sources", "per_page": 200})
@@ -17,15 +18,17 @@ def render_table(data):
 	print(AsciiTable(data).table)
 
 
-def padme(me):
+def add_line_after(function):
+	"""Adds an extra line to STDOUT after the execution of a function this decorates"""
 	def empty_line(*args, **kwargs):
-		result = me(*args, **kwargs)
+		result = function(*args, **kwargs)
 		print()
 		return result
 	return empty_line
 
 
 def log(message, colour=''):
+	"""Coloured log outputs to STDOUT"""
 	colours = {
 		"nc": '\033[0m',
 		"blue": '\033[94m',
