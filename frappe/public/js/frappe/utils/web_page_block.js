@@ -4,7 +4,12 @@ frappe.ui.form.on('Web Page Block', {
 		frappe.model.with_doc('Web Template', row.web_template).then(doc => {
 			let d = new frappe.ui.Dialog({
 				title: __('Edit Values'),
-				fields: doc.fields,
+				fields: doc.fields.map(df => {
+					if (df.fieldtype == "Section Break") {
+						df.collapsible = 1;
+					}
+					return df
+				}),
 				primary_action(values) {
 					frappe.model.set_value(
 						cdt,
