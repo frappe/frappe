@@ -202,14 +202,25 @@ frappe.ui.form.Toolbar = Class.extend({
 		var allow_print_for_draft = cint(print_settings.allow_print_for_draft);
 		var allow_print_for_cancelled = cint(print_settings.allow_print_for_cancelled);
 
+		// Navigate
+		if (!this.frm.is_new() && !issingle) {
+			this.page.add_action_icon("left", function() {
+				me.frm.navigate_records(1);
+			}, 'prev-doc');
+			this.page.add_action_icon("right", function() {
+				me.frm.navigate_records(0);
+			}, 'next-doc');
+		}
+
 		// Print
-		if(!is_submittable || docstatus == 1  ||
+		if (!is_submittable || docstatus == 1  ||
 			(allow_print_for_cancelled && docstatus == 2)||
 			(allow_print_for_draft && docstatus == 0)) {
-			if(frappe.model.can_print(null, me.frm) && !issingle) {
+			if (frappe.model.can_print(null, me.frm) && !issingle) {
 				this.page.add_menu_item(__("Print"), function() {
-					me.frm.print_doc();}, true);
-				this.print_icon = this.page.add_action_icon("fa fa-print", function() {
+					me.frm.print_doc();
+				}, true);
+				this.print_icon = this.page.add_action_icon("printer", function() {
 					me.frm.print_doc();
 				});
 			}
@@ -306,16 +317,6 @@ frappe.ui.form.Toolbar = Class.extend({
 			}, true, {
 				shortcut: 'Ctrl+B',
 				condition: () => !this.frm.is_new()
-			});
-		}
-
-		// Navigate
-		if(!this.frm.is_new() && !issingle) {
-			this.page.add_action_icon("fa fa-chevron-left prev-doc", function() {
-				me.frm.navigate_records(1);
-			});
-			this.page.add_action_icon("fa fa-chevron-right next-doc", function() {
-				me.frm.navigate_records(0);
 			});
 		}
 	},

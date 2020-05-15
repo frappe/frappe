@@ -95,3 +95,7 @@ h1, h2, h3 {
 .small {
 	font-size: var(--text-xs);
 }
+
+.fill-width {
+	flex: 1
+}
