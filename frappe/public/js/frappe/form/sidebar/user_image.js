@@ -21,7 +21,7 @@ frappe.ui.form.set_user_image = function(frm) {
 
 		image_section
 			.find(".sidebar-image")
-			.css("background-image", 'url("' + image + '")')
+			.attr("src", image)
 			.removeClass("hide");
 
 		image_section
@@ -38,7 +38,7 @@ frappe.ui.form.set_user_image = function(frm) {
 	} else {
 		image_section
 			.find(".sidebar-image")
-			.css("background-image", null)
+			.attr("src", null)
 			.addClass("hide");
 
 		var title = frm.get_title();
