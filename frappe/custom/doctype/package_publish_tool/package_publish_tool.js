@@ -37,10 +37,10 @@ frappe.ui.form.on('Package Publish Tool', {
 	set_dirty_trigger: function(frm) {
 		$(frm.wrapper).on("dirty", function() {
 			frm.page.set_primary_action(__('Save'), () => frm.save());
-		})
+		});
 	},
 	set_deploy_primary_action: function(frm) {
-		if (frm.doc.package_details.length && frm.doc.instances.length){
+		if (frm.doc.package_details.length && frm.doc.instances.length) {
 			frm.page.set_primary_action(__("Deploy"), function () {
 				frappe.show_alert({
 					message: __("Deploying Package"),
@@ -49,7 +49,7 @@ frappe.ui.form.on('Package Publish Tool', {
 
 				frappe.call({
 					method: "frappe.custom.doctype.package_publish_tool.package_publish_tool.deploy_package",
-					callback: function(r) {
+					callback: function() {
 						frappe.msgprint(__("Package has been published."));
 					}
 				});
