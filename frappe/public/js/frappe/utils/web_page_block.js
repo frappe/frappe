@@ -8,7 +8,7 @@ frappe.ui.form.on('Web Page Block', {
 					if (df.fieldtype == "Section Break") {
 						df.collapsible = 1;
 					}
-					return df
+					return df;
 				}),
 				primary_action(values) {
 					frappe.model.set_value(
