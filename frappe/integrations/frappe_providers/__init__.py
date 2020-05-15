@@ -1,3 +1,6 @@
+# imports - standard imports
+import sys
+
 # imports - module imports
 from frappe.integrations.frappe_providers.frappecloud import frappecloud_migrator
 
