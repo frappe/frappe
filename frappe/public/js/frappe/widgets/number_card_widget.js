@@ -119,7 +119,8 @@ export default class NumberCardWidget extends Widget {
 	get_formatted_number() {
 		const based_on_df =
 			frappe.meta.get_docfield(this.card_doc.document_type, this.card_doc.aggregate_function_based_on);
-		const shortened_number = shorten_number(this.number);
+		const default_country = frappe.sys_defaults.country;
+		const shortened_number = shorten_number(this.number, default_country);
 		let number_parts = shortened_number.split(' ');
 
 		const symbol = number_parts[1] || '';
