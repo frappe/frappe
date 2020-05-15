@@ -32,7 +32,7 @@ frappe.ui.form.on('Package Publish Tool', {
 	},
 	show_indicator: function(frm) {
 		let pretty_date = frappe.datetime.prettyDate(frm.doc.last_deployed_on);
-		frm.page.set_indicator(__("Last deployed {0}", [pretty_date]), "blue");
+		frm.page.set_indicator(__("Last published {0}", [pretty_date]), "blue");
 	},
 	set_dirty_trigger: function(frm) {
 		$(frm.wrapper).on("dirty", function() {
@@ -41,9 +41,9 @@ frappe.ui.form.on('Package Publish Tool', {
 	},
 	set_deploy_primary_action: function(frm) {
 		if (frm.doc.package_details.length && frm.doc.instances.length) {
-			frm.page.set_primary_action(__("Deploy"), function () {
+			frm.page.set_primary_action(__("Publish"), function () {
 				frappe.show_alert({
-					message: __("Deploying Package"),
+					message: __("Publishing documents..."),
 					indicator: "green"
 				});
 
@@ -51,7 +51,7 @@ frappe.ui.form.on('Package Publish Tool', {
 					method: "frappe.custom.doctype.package_publish_tool.package_publish_tool.deploy_package",
 					callback: function() {
 						frm.reload_doc();
-						frappe.msgprint(__("Package has been published."));
+						frappe.msgprint(__("Documents have been published."));
 					}
 				});
 			});
@@ -60,11 +60,15 @@ frappe.ui.form.on('Package Publish Tool', {
 	show_instructions: function(frm) {
 		let field = frm.get_field("html_info");
 		field.html(`
-			<p class="text-muted small">
-				- Create a Package by selecting the Documents and filters in the Package table.<br>
-				- Add the Remote Instance's URL, Username and Password to the Instances table.<br>
-				- Once the above details are filled, Deploy button will be visible and the Package will be deployed on click.<br>
+			<p class="text-muted text-medium">
+				Package Publish Tool let's you copy documents from your site to any other remote site.
+				Follow the steps below to publish.
 			</p>
+			<ol class="text-muted small">
+				<li>Add Document Types that you want to copy from the table below. You can also add filters by expanding the row.</li>
+				<li>Add the Sites URL where you want to copy these documents, and enter the Username and Password.</li>
+				<li>Click on Save. Now, you can click on Publish and the documents will be copied.</li>
+			</ol>
 		`);
 	}
 });

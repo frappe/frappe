@@ -17,14 +17,14 @@
    "description": "Click on the row for accessing filters.",
    "fieldname": "package_details",
    "fieldtype": "Table",
-   "label": "Package",
+   "label": "Document Types",
    "options": "Package Document Type",
    "reqd": 1
   },
   {
    "fieldname": "instances",
    "fieldtype": "Table",
-   "label": "Instances",
+   "label": "Sites",
    "options": "Package Publish Target",
    "reqd": 1
   },
@@ -50,7 +50,7 @@
  ],
  "issingle": 1,
  "links": [],
- "modified": "2020-05-14 16:46:20.374773",
+ "modified": "2020-05-15 17:31:37.060199",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Package Publish Tool",
