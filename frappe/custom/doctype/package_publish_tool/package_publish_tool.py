@@ -23,7 +23,6 @@ def deploy_package():
 	package, doc = export_package()
 
 	file_name = "Package-" + get_datetime_str(get_datetime())
-	save_file(file_name, json.dumps(package), "Package Publish Tool", "Package Publish Tool")
 
 	length = len(doc.instances)
 	for idx, instance in enumerate(doc.instances):

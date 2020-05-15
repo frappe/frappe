@@ -50,6 +50,7 @@ frappe.ui.form.on('Package Publish Tool', {
 				frappe.call({
 					method: "frappe.custom.doctype.package_publish_tool.package_publish_tool.deploy_package",
 					callback: function() {
+						frm.reload_doc();
 						frappe.msgprint(__("Package has been published."));
 					}
 				});
