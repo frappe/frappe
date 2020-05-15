@@ -213,6 +213,19 @@ def get_datetime_str(datetime_obj):
 		datetime_obj = get_datetime(datetime_obj)
 	return datetime_obj.strftime(DATETIME_FORMAT)
 
+def get_date_str(date_obj):
+	if isinstance(date_obj, string_types):
+		date_obj = get_datetime(date_obj)
+	return date_obj.strftime(DATE_FORMAT)
+
+def get_time_str(timedelta_obj):
+	if isinstance(timedelta_obj, string_types):
+		timedelta_obj = to_timedelta(timedelta_obj)
+
+	hours, remainder = divmod(timedelta_obj.seconds, 3600)
+	minutes, seconds = divmod(remainder, 60)
+	return "{0}:{1}:{2}".format(hours, minutes, seconds)
+
 def get_user_date_format():
 	"""Get the current user date format. The result will be cached."""
 	if getattr(frappe.local, "user_date_format", None) is None:
