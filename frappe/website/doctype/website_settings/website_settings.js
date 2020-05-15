@@ -10,7 +10,7 @@ frappe.ui.form.on('Website Settings', {
 			frappe.msgprint(__("Select a Brand Image first."));
 		}
 		frm.set_value("brand_html", "<img src='"+ frm.doc.banner_image
-			+"' style='max-width: 150px;'>");
+			+"' style='max-width: 150px; max-height: 25px;'>");
 	},
 
 	onload_post_render: function(frm) {
