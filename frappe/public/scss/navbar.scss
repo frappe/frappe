@@ -9,7 +9,7 @@
 	}
 	.nav-item {
 		@extend .my-auto;
-		font-size: var(--text-md);
+		font-size: var(--text-sm);
 		line-height: 1rem;
 	}
 }
