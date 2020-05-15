@@ -14,6 +14,7 @@ def install():
 	update_global_search_doctypes()
 	setup_email_linking()
 	sync_dashboards()
+	add_unsubscribe()
 
 @frappe.whitelist()
 def update_genders():
@@ -37,3 +38,15 @@ def setup_email_linking():
 		"email_id": "email_linking@example.com",
 	})
 	doc.insert(ignore_permissions=True, ignore_if_duplicate=True)
+
+def add_unsubscribe():
+	email_unsubscribe = [
+		{"email": "admin@example.com", "global_unsubscribe": 1},
+		{"email": "guest@example.com", "global_unsubscribe": 1}
+	]
+
+	for unsubscribe in email_unsubscribe:
+		if not frappe.get_all("Email Unsubscribe", filters=unsubscribe):
+			doc = frappe.new_doc("Email Unsubscribe")
+			doc.update(unsubscribe)
+			doc.insert(ignore_permissions=True)

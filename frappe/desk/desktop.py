@@ -127,6 +127,8 @@ class Workspace:
 			return name in self.allowed_reports
 		if item_type == "help":
 			return True
+		if item_type == "dashboard":
+			return True
 
 		return False
 
@@ -272,6 +274,8 @@ class Workspace:
 		for doc in self.onboarding_doc.get_steps():
 			step = doc.as_dict().copy()
 			step.label = _(doc.title)
+			if step.action == "Create Entry":
+				step.is_submittable = frappe.db.get_value("DocType", step.reference_document, 'is_submittable', cache=True)
 			steps.append(step)
 
 		return steps
