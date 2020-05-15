@@ -50,12 +50,13 @@ def render_plan_table(plans_list):
 	plans_table = []
 
 	# title row
-	visible_headers = ["name", "concurrent_users", "cpu_time_per_day"]
-	plans_table.append(visible_headers)
+	visible_headers = ["name", "cpu_time_per_day"]
+	plans_table.append(["Plan", "CPU Time"])
 
 	# all rows
 	for plan in plans_list:
-		plans_table.append([plan[header] for header in visible_headers])
+		plan, cpu_time = [plan[header] for header in visible_headers]
+		plans_table.append([plan, "{} hour{}/day".format(cpu_time, "" if cpu_time < 2 else "s")])
 
 	render_table(plans_table)
 
@@ -83,13 +84,13 @@ def check_app_compat(available_group):
 	print("Checking availability of existing app group")
 
 	for (app, branch) in existing_group:
-		info = [ (a["name"], a["branch"]) for a in available_group["apps"] if a["scrubbed"] == app]
+		info = [ (a["name"], a["branch"]) for a in available_group["apps"] if a["scrubbed"] == app ]
 		if info:
 			app_title, available_branch = info[0]
 
 			if branch != available_branch:
-				print("⚠️  {}:{} => {}".format(app, branch, available_branch))
-				branch_msgs.append([app.title(), branch, available_branch])
+				print("⚠️  App {}:{} => {}".format(app, branch, available_branch))
+				branch_msgs.append([app, branch, available_branch])
 				filtered_apps.append(app_title)
 				is_compat = False
 
@@ -103,8 +104,8 @@ def check_app_compat(available_group):
 			is_compat = False
 
 	start_msg = "\nSelecting this group will "
-	incompatible_apps = "drop {} apps: ".format(len(incompatible_apps)) + ", ".join(incompatible_apps) + " and " if incompatible_apps else ""
-	branch_change = "upgrade:\n" + "\n".join(["{}: {} => {}".format(*x) for x in branch_msgs]) if branch_msgs else ""
+	incompatible_apps = ("\n\nDrop the following apps:\n" + "\n".join(incompatible_apps)) if incompatible_apps else ""
+	branch_change = ("\n\nUpgrade the following apps:\n" + "\n".join(["{}: {} => {}".format(*x) for x in branch_msgs])) if branch_msgs else ""
 	changes = (incompatible_apps + branch_change) or "be perfect for you :)"
 	warning_message = start_msg + changes
 	print(warning_message)
@@ -130,12 +131,14 @@ def filter_apps(app_groups):
 	render_group_table(app_groups)
 
 	while True:
-		app_group_index = click.prompt("Select App Group #", type=int) - 1
+		app_group_index = click.prompt("Select App Group Number", type=int) - 1
 		try:
+			if app_group_index == -1:
+				raise IndexError
 			selected_group = app_groups[app_group_index]
 		except IndexError:
 			print("Invalid Selection ❌")
-			break
+			continue
 
 		is_compat, filtered_apps = check_app_compat(selected_group)
 
@@ -251,7 +254,9 @@ def frappecloud_migrator(local_site, remote_site):
 		frappe.destroy()
 
 		if site_creation_request.ok:
-			print("Site creation started at {}".format(site_creation_request.json()["message"]))
+			site_url = site_creation_request.json()["message"]
+			print("View your site dashboard at {}/dashboard/#/sites/{} ✨".format(remote_site, site_url))
+			print("Your site URL: {}".format(site_url))
 		else:
 			print("Request failed with error code {}".format(site_creation_request.status_code))
 			reason = html2text(site_creation_request.text)
