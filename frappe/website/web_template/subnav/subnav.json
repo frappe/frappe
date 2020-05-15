@@ -1,0 +1,74 @@
+{
+ "creation": "2020-05-15 17:53:36.526784",
+ "docstatus": 0,
+ "doctype": "Web Template",
+ "fields": [
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "label": "Title",
+   "reqd": 0
+  },
+  {
+   "fieldname": "logo",
+   "fieldtype": "Attach Image",
+   "label": "Logo",
+   "reqd": 0
+  },
+  {
+   "fieldname": "label_1",
+   "fieldtype": "Data",
+   "label": "Label 1",
+   "reqd": 0
+  },
+  {
+   "fieldname": "url_1",
+   "fieldtype": "Data",
+   "label": "URL 1",
+   "reqd": 0
+  },
+  {
+   "fieldname": "label_2",
+   "fieldtype": "Data",
+   "label": "Label 2",
+   "reqd": 0
+  },
+  {
+   "fieldname": "url_2",
+   "fieldtype": "Data",
+   "label": "URL 2",
+   "reqd": 0
+  },
+  {
+   "fieldname": "label_3",
+   "fieldtype": "Data",
+   "label": "Label 3",
+   "reqd": 0
+  },
+  {
+   "fieldname": "url_3",
+   "fieldtype": "Data",
+   "label": "URL 3",
+   "reqd": 0
+  },
+  {
+   "fieldname": "label_4",
+   "fieldtype": "Data",
+   "label": "Label 4",
+   "reqd": 0
+  },
+  {
+   "fieldname": "url_4",
+   "fieldtype": "Data",
+   "label": "URL 4",
+   "reqd": 0
+  }
+ ],
+ "idx": 0,
+ "modified": "2020-05-15 17:54:52.253976",
+ "modified_by": "Administrator",
+ "name": "Subnav",
+ "owner": "Administrator",
+ "standard": 1,
+ "template": "<nav class=\"navbar navbar-expand-lg navbar-light subnav\">\n\t<div class=\"container\">\n\t\t<a class=\"navbar-brand d-none d-sm-block\" href=\"{{ path }}\">\n\t\t\t{% if logo %}\n\t\t\t<img class=\"d-inline-block align-top\" src=\"{{ logo }}\" />\n\t\t\t{% endif %}\n\t\t\t<span class=\"subnav-title\">{{ title }}</span>\n\t\t</a>\n\t\t<ul class=\"navbar-nav justify-content-sm-end\">\n\t\t\t{% for item in items %}\n\t\t\t<li class=\"navbar-item\">\n\t\t\t\t<a\n\t\t\t\t\tclass=\"nav-link\"\n\t\t\t\t\thref=\"{{ item.path }}\"\n\t\t\t\t\t{% if item.new %}\n\t\t\t\t\ttarget=\"_blank\"\n\t\t\t\t\t{% endif %}>{{ item.label }}\n\t\t\t\t</a>\n\t\t\t</li>\n\t\t\t{% endfor %}\n\t\t</ul>\n\t</div>\n</nav>"
+}
