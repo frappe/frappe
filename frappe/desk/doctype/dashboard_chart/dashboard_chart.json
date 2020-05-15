@@ -219,7 +219,7 @@
    "options": "Dashboard Chart Field"
   },
   {
-   "description": "Ex: \"colors\": [\"#d1d8dd\", \"#ff5858\"]",
+   "description": "Ex: \"colors\": [\"#d1d8dd\", \"#ff5858\"] (the options set here will override the chart options set in the Dashboard)",
    "fieldname": "custom_options",
    "fieldtype": "Code",
    "label": "Custom Options"
