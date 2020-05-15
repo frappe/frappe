@@ -261,6 +261,7 @@ def migrate(context, rebuild_website=False, skip_failing=False):
 @click.argument('frappe_provider')
 @pass_context
 def migrate_to(context, frappe_provider):
+	"Migrates site to the specified provider"
 	from frappe.integrations.frappe_providers import migrate_to
 	for site in context.sites:
 		migrate_to(site, frappe_provider)
