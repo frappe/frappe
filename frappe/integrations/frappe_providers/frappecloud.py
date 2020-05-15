@@ -13,7 +13,7 @@ import requests
 import frappe
 import frappe.utils.backups
 from frappe.utils import get_installed_apps_info
-from frappe.utils.commands import render_table, padme
+from frappe.utils.commands import render_table, add_line_after
 
 
 def get_new_site_options():
@@ -27,7 +27,7 @@ def get_new_site_options():
 
 
 def is_valid_subdomain(subdomain):
-	if len(subdomain) < 6:
+	if len(subdomain) < 5:
 		print("Subdomain too short. Use 5 or more characters")
 		return False
 	matched = re.match("^[a-z0-9][a-z0-9-]*[a-z0-9]$", subdomain)
@@ -60,7 +60,7 @@ def render_plan_table(plans_list):
 	render_table(plans_table)
 
 
-@padme
+@add_line_after
 def choose_plan(plans_list):
 	print("{} plans available".format(len(plans_list)))
 	available_plans = [plan["name"] for plan in plans_list]
@@ -75,7 +75,7 @@ def choose_plan(plans_list):
 			print("Invalid Selection ❌")
 
 
-@padme
+@add_line_after
 def check_app_compat(available_group):
 	is_compat = True
 	incompatible_apps, filtered_apps, branch_msgs = [], [], []
@@ -125,7 +125,7 @@ def render_group_table(app_groups):
 	render_table(app_groups_table)
 
 
-@padme
+@add_line_after
 def filter_apps(app_groups):
 	render_group_table(app_groups)
 
@@ -145,7 +145,7 @@ def filter_apps(app_groups):
 
 	return selected_group["name"], filtered_apps
 
-@padme
+@add_line_after
 def create_session():
 	# take user input from STDIN
 	username = click.prompt("Username").strip()
@@ -164,7 +164,7 @@ def create_session():
 		print("Authorization Failed with Error Code {}".format(login_sc.status_code))
 
 
-@padme
+@add_line_after
 def get_subdomain(domain):
 	while True:
 		subdomain = click.prompt("Enter subdomain").strip()
@@ -173,7 +173,7 @@ def get_subdomain(domain):
 			return subdomain
 
 
-@padme
+@add_line_after
 def upload_backup(local_site):
 	# take backup
 	files_session = {}
@@ -256,12 +256,7 @@ def frappecloud_migrator(local_site, remote_site):
 			print("Request failed with error code {}".format(site_creation_request.status_code))
 			reason = html2text(site_creation_request.text)
 			print(reason)
+			sys.exit(1)
 
-
-def migrate_to(local_site, remote_site):
-	if remote_site in ("frappe.cloud", "frappecloud.com"):
-		remote_site = "frappecloud.com"
-		return frappecloud_migrator(local_site, remote_site)
 	else:
-		print("{} is not supported yet".format(remote_site))
 		sys.exit(1)
