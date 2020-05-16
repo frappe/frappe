@@ -39,11 +39,9 @@ def make_view_log(path, referrer=None, browser=None, version=None, url=None, use
 
 	try:
 		view.insert(ignore_permissions=True)
-	except:
+	except Exception:
 		if frappe.message_log:
 			frappe.message_log.pop()
-
-	return
 
 @frappe.whitelist()
 def get_page_view_count(path):
