@@ -180,11 +180,11 @@ class File(Document):
 			if duplicate_file:
 				duplicate_file_doc = frappe.get_cached_doc('File', duplicate_file.name)
 				if duplicate_file_doc.exists_on_disk():
-					# if it is attached to a document then throw DuplicateEntryError
+					# if it is attached to a document then throw FileAlreadyAttachedException
 					if self.attached_to_doctype and self.attached_to_name:
 						self.duplicate_entry = duplicate_file.name
 						frappe.throw(_("Same file has already been attached to the record"),
-							frappe.DuplicateEntryError)
+							frappe.FileAlreadyAttachedException)
 					# else just use the url, to avoid uploading a duplicate
 					else:
 						self.file_url = duplicate_file.file_url
