@@ -704,7 +704,12 @@ def remove_all(dt, dn, from_delete=False):
 	try:
 		for fid in frappe.db.sql_list("""select name from `tabFile` where
 			attached_to_doctype=%s and attached_to_name=%s""", (dt, dn)):
-			remove_file(fid=fid, attached_to_doctype=dt, attached_to_name=dn, from_delete=from_delete)
+			if from_delete:
+				# If deleting a doc, directly delete files
+				frappe.delete_doc("File", fid, ignore_permissions=True)
+			else:
+				# Removes file and adds a comment in the document it is attached to
+				remove_file(fid=fid, attached_to_doctype=dt, attached_to_name=dn, from_delete=from_delete)
 	except Exception as e:
 		if e.args[0]!=1054: raise # (temp till for patched)
 
