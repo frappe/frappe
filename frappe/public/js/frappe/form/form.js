@@ -663,13 +663,13 @@ frappe.ui.form.Form = class FrappeForm {
 			'docname': this.doc.name
 		}).then(is_amended => {
 			if (is_amended) {
-				frappe.throw(__('This document is already amended, you cannot ammend it again'))
-			};
+				frappe.throw(__('This document is already amended, you cannot ammend it again'));
+			}
 			this.validate_form_action("Amend");
 			var me = this;
 			var fn = function(newdoc) {
 				newdoc.amended_from = me.docname;
-				if(me.fields_dict && me.fields_dict['amendment_date'])
+				if (me.fields_dict && me.fields_dict['amendment_date'])
 					newdoc.amendment_date = frappe.datetime.obj_to_str(new Date());
 			};
 			this.copy_doc(fn, 1);
