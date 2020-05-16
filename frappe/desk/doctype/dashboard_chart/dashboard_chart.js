@@ -26,8 +26,11 @@ frappe.ui.form.on('Dashboard Chart', {
 				primary_action: (values) => {
 					values.chart_name = frm.doc.chart_name;
 					frappe.xcall(
-						'frappe.desk.doctype.dashboard_chart.dashboard_chart.add_chart_to_dashboard',
-						{args: values}
+						'frappe.desk.doctype.dashboard.dashboard.add_to_dashboard',
+						{
+							field: 'charts',
+							args: values
+						}
 					).then(()=> {
 						let dashboard_route_html =
 							`<a href = "#dashboard/${values.dashboard}">${values.dashboard}</a>`;

@@ -13,6 +13,49 @@ frappe.ui.form.on('Number Card', {
 			}
 			frm.trigger('set_filters_description');
 		}
+
+		frm.trigger('create_add_to_dashboard_button');
+	},
+
+	create_add_to_dashboard_button: function(frm) {
+		frm.add_custom_button('Add Card to Dashboard', () => {
+			const d = new frappe.ui.Dialog({
+				title: __('Add to Dashboard'),
+				fields: [
+					{
+						label: __('Select Dashboard'),
+						fieldtype: 'Link',
+						fieldname: 'dashboard',
+						options: 'Dashboard',
+					}
+				],
+				primary_action: (values) => {
+					values.card_name = frm.doc.name;
+					frappe.xcall(
+						'frappe.desk.doctype.dashboard.dashboard.add_to_dashboard',
+						{
+							field: 'cards',
+							args: values
+						}
+					).then(()=> {
+						let dashboard_route_html =
+							`<a href = "#dashboard/${values.dashboard}">${values.dashboard}</a>`;
+						let message =
+							__(`Dashboard Chart ${values.card_name} add to Dashboard ` + dashboard_route_html);
+
+						frappe.msgprint(message);
+					});
+
+					d.hide();
+				}
+			});
+
+			if (!frm.doc.name) {
+				frappe.msgprint(__('Please create Card first'));
+			} else {
+				d.show();
+			}
+		});
 	},
 
 	set_filters_description: function(frm) {

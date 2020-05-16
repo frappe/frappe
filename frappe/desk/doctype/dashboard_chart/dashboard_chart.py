@@ -113,22 +113,11 @@ def create_dashboard_chart(args):
 
 @frappe.whitelist()
 def create_report_chart(args):
+	from frappe.desk.doctype.dashboard.dashboard import add_to_dashboard
 	create_dashboard_chart(args)
 	args = frappe.parse_json(args)
 	if args.dashboard:
-		add_chart_to_dashboard(json.dumps(args))
-
-@frappe.whitelist()
-def add_chart_to_dashboard(args):
-	args = frappe.parse_json(args)
-
-	dashboard = frappe.get_doc('Dashboard', args.dashboard)
-	dashboard_link = frappe.new_doc('Dashboard Chart Link')
-	dashboard_link.chart = args.chart_name
-
-	dashboard.append('charts', dashboard_link)
-	dashboard.save()
-	frappe.db.commit()
+		add_to_dashboard('charts', json.dumps(args))
 
 def get_chart_config(chart, filters, timespan, timegrain, from_date, to_date):
 	if not from_date:
