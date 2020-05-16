@@ -408,6 +408,15 @@ frappe.ui.form.Form = class FrappeForm {
 		}
 	}
 
+	disable_form() {
+		this.set_read_only();
+		this.fields
+			.forEach((field) => {
+				this.set_df_property(field.df.fieldname, "read_only", "1");
+			});
+		this.disable_save();
+	}
+
 	render_form(switched) {
 		if(!this.meta.istable) {
 			this.layout.doc = this.doc;
@@ -1384,6 +1393,7 @@ frappe.ui.form.Form = class FrappeForm {
 			var p = docperms[i];
 			perm[p.permlevel || 0] = {read:1, print:1, cancel:1, email:1};
 		}
+		console.log('heree', docperms);
 		this.perm = perm;
 	}
 

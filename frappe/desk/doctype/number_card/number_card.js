@@ -6,6 +6,44 @@ frappe.ui.form.on('Number Card', {
 		frm.set_df_property("filters_section", "hidden", 1);
 		frm.trigger('set_options');
 		frm.trigger('render_filters_table');
+
+		if (frm.doc.type == 'Custom') {
+			if (!frappe.boot.developer_mode) {
+				frm.disable_form();
+			}
+			frm.trigger('set_filters_description');
+		}
+	},
+
+	set_filters_description: function(frm) {
+		frm.fields_dict.filters_config.set_description(`
+		Set the filters here. For example:
+<pre class="small text-muted">
+<code>
+[{
+	fieldname: "company",
+	label: __("Company"),
+	fieldtype: "Link",
+	options: "Company",
+	default: frappe.defaults.get_user_default("Company"),
+	reqd: 1
+},
+{
+	fieldname: "account",
+	label: __("Account"),
+	fieldtype: "Link",
+	options: "Account",
+	reqd: 1
+}]
+</code></pre>`);
+	},
+
+	type: function(frm) {
+		frm.trigger('render_filters_table');
+	},
+
+	filters_config: function(frm) {
+		frm.trigger('render_filters_table');
 	},
 
 	document_type: function(frm) {
@@ -46,6 +84,19 @@ frappe.ui.form.on('Number Card', {
 	render_filters_table: function(frm) {
 		frm.set_df_property("filters_section", "hidden", 0);
 
+		const is_custom = frm.doc.type == 'Custom';
+		let fields;
+		if (!is_custom) {
+			fields = [{
+				fieldtype: 'HTML',
+				fieldname: 'filter_area',
+			}];
+			frm.filters = JSON.parse(frm.doc.filters_json || 'null');
+		} else {
+			fields = eval(frm.doc.filters_config);
+			frm.filters = JSON.parse(frm.doc.filters_json || '{}');
+		}
+
 		let wrapper = $(frm.get_field('filters_json').wrapper).empty();
 		frm.filter_table = $(`<table class="table table-bordered" style="cursor:pointer; margin:0px;">
 			<thead>
@@ -58,22 +109,17 @@ frappe.ui.form.on('Number Card', {
 			<tbody></tbody>
 		</table>`).appendTo(wrapper);
 
-		frm.filters = JSON.parse(frm.doc.filters_json || '[]');
-
 		frm.trigger('set_filters_in_table');
 
 		frm.filter_table.on('click', () => {
 			let dialog = new frappe.ui.Dialog({
 				title: __('Set Filters'),
-				fields: [{
-					fieldtype: 'HTML',
-					fieldname: 'filter_area',
-				}],
+				fields: fields,
 				primary_action: function() {
 					let values = this.get_values();
 					if (values) {
 						this.hide();
-						frm.filters = frm.filter_group.get_filters();
+						frm.filters = is_custom ? values: frm.filter_group.get_filters();
 						frm.set_value('filters_json', JSON.stringify(frm.filters));
 						frm.trigger('set_filters_in_table');
 					}
@@ -81,15 +127,10 @@ frappe.ui.form.on('Number Card', {
 				primary_action_label: "Set"
 			});
 
-			frappe.dashboards.filters_dialog = dialog;
-
-			frm.filter_group = new frappe.ui.FilterGroup({
-				parent: dialog.get_field('filter_area').$wrapper,
-				doctype: frm.doc.document_type,
-				on_change: () => {},
-			});
-
-			frm.filter_group.add_filters_to_filter_group(frm.filters);
+			frm.filters_dialog = dialog;
+			if (!is_custom) {
+				frm.trigger('create_filter_group');
+			}
 
 			dialog.show();
 			dialog.set_values(frm.filters);
@@ -97,22 +138,47 @@ frappe.ui.form.on('Number Card', {
 
 	},
 
+	create_filter_group: function(frm) {
+		frm.filter_group = new frappe.ui.FilterGroup({
+			parent: frm.filters_dialog.get_field('filter_area').$wrapper,
+			doctype: frm.doc.document_type,
+			on_change: () => {},
+		});
+
+		frm.filters && frm.filter_group.add_filters_to_filter_group(frm.filters);
+	},
+
 	set_filters_in_table: function(frm) {
-		if (!frm.filters.length) {
+		if (!frm.filters) {
 			const filter_row = $(`<tr><td colspan="3" class="text-muted text-center">
 				${__("Click to Set Filters")}</td></tr>`);
 			frm.filter_table.find('tbody').html(filter_row);
 		} else {
 			let filter_rows = '';
-			frm.filters.forEach(filter => {
-				filter_rows +=
-					`<tr>
-						<td>${filter[1]}</td>
-						<td>${filter[2] || ""}</td>
-						<td>${filter[3]}</td>
-					</tr>`;
 
-			});
+			if (frm.doc.type !== 'Custom') {
+				frm.filters.forEach(filter => {
+					filter_rows +=
+						`<tr>
+							<td>${filter[1]}</td>
+							<td>${filter[2] || ""}</td>
+							<td>${filter[3]}</td>
+						</tr>`;
+				});
+			} else {
+				let fields = eval(frm.doc.filters_config);
+				fields.map(f => {
+					if (frm.filters[f.fieldname]) {
+						let condition = '=';
+						filter_rows +=
+							`<tr>
+								<td>${f.label}</td>
+								<td>${condition}</td>
+								<td>${frm.filters[f.fieldname] || ""}</td>
+							</tr>`;
+					}
+				});
+			}
 			frm.filter_table.find('tbody').html(filter_rows);
 		}
 	}

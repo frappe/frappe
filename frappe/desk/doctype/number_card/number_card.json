@@ -6,11 +6,15 @@
  "engine": "InnoDB",
  "field_order": [
   "label",
+  "type",
+  "method",
   "function",
   "aggregate_function_based_on",
   "column_break_2",
   "document_type",
   "is_public",
+  "custom_configuration_section",
+  "filters_config",
   "stats_section",
   "show_percentage_stats",
   "stats_time_interval",
@@ -20,12 +24,13 @@
  ],
  "fields": [
   {
+   "depends_on": "eval: doc.type !== 'Custom'",
    "fieldname": "document_type",
    "fieldtype": "Link",
    "in_list_view": 1,
    "label": "Document Type",
-   "options": "DocType",
-   "reqd": 1
+   "mandatory_depends_on": "eval: doc.type !== 'Custom'",
+   "options": "DocType"
   },
   {
    "depends_on": "eval: doc.document_type",
@@ -92,13 +97,40 @@
    "options": "Daily\nWeekly\nMonthly\nYearly"
   },
   {
+   "depends_on": "eval: doc.type !== 'Cust'",
    "fieldname": "stats_section",
    "fieldtype": "Section Break",
    "label": "Stats"
+  },
+  {
+   "fieldname": "type",
+   "fieldtype": "Select",
+   "label": "Type",
+   "options": "Document Type\nCustom"
+  },
+  {
+   "depends_on": "eval: doc.type == 'Custom'",
+   "fieldname": "custom_configuration_section",
+   "fieldtype": "Section Break",
+   "label": "Custom Configuration"
+  },
+  {
+   "depends_on": "eval: doc.type == 'Custom'",
+   "description": "This should contain the path to a whitelisted function that will calculate the number on the card",
+   "fieldname": "method",
+   "fieldtype": "Data",
+   "label": "Method",
+   "mandatory_depends_on": "eval: doc.type == 'Custom'"
+  },
+  {
+   "fieldname": "filters_config",
+   "fieldtype": "Code",
+   "label": "Filters Configuration",
+   "options": "JS"
   }
  ],
  "links": [],
- "modified": "2020-05-06 19:47:57.753574",
+ "modified": "2020-05-15 19:46:20.204656",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Number Card",

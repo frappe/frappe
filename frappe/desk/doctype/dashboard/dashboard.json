@@ -31,15 +31,14 @@
    "fieldname": "charts",
    "fieldtype": "Table",
    "label": "Charts",
-   "options": "Dashboard Chart Link",
-   "reqd": 1
+   "options": "Dashboard Chart Link"
   },
   {
-    "description": "Set Default Options for all charts on this Dashboard (Ex: \"colors\": [\"#d1d8dd\", \"#ff5858\"])",
-    "fieldname": "chart_options",
-    "fieldtype": "Code",
-    "label": "Chart Options",
-    "options": "JSON"
+   "description": "Set Default Options for all charts on this Dashboard (Ex: \"colors\": [\"#d1d8dd\", \"#ff5858\"])",
+   "fieldname": "chart_options",
+   "fieldtype": "Code",
+   "label": "Chart Options",
+   "options": "JSON"
   },
   {
    "fieldname": "cards",
@@ -49,7 +48,7 @@
   }
  ],
  "links": [],
- "modified": "2020-04-29 13:26:37.362482",
+ "modified": "2020-05-15 18:11:55.658168",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Dashboard",

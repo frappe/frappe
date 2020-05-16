@@ -59,15 +59,14 @@ export default class NumberCardWidget extends Widget {
 			}
 		).then(doc => {
 			this.name = doc.name;
-			this.card_doc.stats_time_interval = doc.stats_time_interval;
-			this.card_doc.name = this.name;
+			this.card_doc.type = doc;
 			this.widget.attr('data-widget-name', this.name);
 		});
 	}
 
 	set_events() {
 		$(this.body).click(() => {
-			if (this.in_customize_mode) return;
+			if (this.in_customize_mode || this.card_doc.type == 'Custom') return;
 			let filters = JSON.parse(this.card_doc.filters_json);
 			go_to_list_with_filters(this.card_doc.document_type, filters);
 		});
@@ -102,9 +101,19 @@ export default class NumberCardWidget extends Widget {
 	}
 
 	get_number() {
-		return frappe.xcall('frappe.desk.doctype.number_card.number_card.get_result', {
-			doc: this.card_doc
-		}).then(res => {
+		let method, args;
+		if (this.card_doc.type == 'Custom') {
+			method = this.card_doc.method;
+			args = {
+				filters: JSON.parse(this.card_doc.filters || '{}'),
+			};
+		} else {
+			args = {
+				doc: this.card_doc
+			};
+			method = 'frappe.desk.doctype.number_card.number_card.get_result';
+		}
+		return frappe.xcall(method, args).then(res => {
 			this.number = res;
 			if (this.card_doc.function !== 'Count') {
 				return frappe.model.with_doctype(this.card_doc.document_type, () => {
@@ -138,6 +147,9 @@ export default class NumberCardWidget extends Widget {
 	}
 
 	render_stats() {
+		if (this.card_doc.type == 'Custom') {
+			return;
+		}
 		let caret_html ='';
 		let color_class = '';
 
