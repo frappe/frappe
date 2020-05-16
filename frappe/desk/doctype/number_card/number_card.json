@@ -97,7 +97,7 @@
    "options": "Daily\nWeekly\nMonthly\nYearly"
   },
   {
-   "depends_on": "eval: doc.type !== 'Cust'",
+   "depends_on": "eval: doc.type !== 'Custom'",
    "fieldname": "stats_section",
    "fieldtype": "Section Break",
    "label": "Stats"
@@ -130,7 +130,7 @@
   }
  ],
  "links": [],
- "modified": "2020-05-15 19:46:20.204656",
+ "modified": "2020-05-16 15:54:12.829079",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Number Card",
