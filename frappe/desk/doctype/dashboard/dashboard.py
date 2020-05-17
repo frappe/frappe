@@ -48,16 +48,3 @@ def get_permitted_cards(dashboard_name):
 		if frappe.has_permission('Number Card', doc=card.card):
 			permitted_cards.append(card)
 	return permitted_cards
-
-
-@frappe.whitelist()
-def add_to_dashboard(field, args):
-	args = frappe.parse_json(args)
-
-	dashboard = frappe.get_doc('Dashboard', args.dashboard)
-	dashboard_link = frappe.new_doc('Dashboard Chart Link')
-	dashboard_link.chart = args.chart_name
-
-	dashboard.append(field, dashboard_link)
-	dashboard.save()
-	frappe.db.commit()

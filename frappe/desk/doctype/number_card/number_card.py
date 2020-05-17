@@ -147,3 +147,15 @@ def get_cards_for_user(doctype, txt, searchfield, start, page_len, filters):
 		search_conditions=search_conditions,
 		conditions=conditions
 	), values)
+
+@frappe.whitelist()
+def add_card_to_dashboard(args):
+	args = frappe.parse_json(args)
+
+	dashboard = frappe.get_doc('Dashboard', args.dashboard)
+	dashboard_link = frappe.new_doc('Number Card Link')
+	dashboard_link.card = args.name
+
+	dashboard.append('cards', dashboard_link)
+	dashboard.save()
+	frappe.db.commit()

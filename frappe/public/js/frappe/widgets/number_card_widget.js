@@ -105,7 +105,7 @@ export default class NumberCardWidget extends Widget {
 		if (this.card_doc.type == 'Custom') {
 			method = this.card_doc.method;
 			args = {
-				filters: JSON.parse(this.card_doc.filters || '{}'),
+				filters: JSON.parse(this.card_doc.filters_json || '{}'),
 			};
 		} else {
 			args = {

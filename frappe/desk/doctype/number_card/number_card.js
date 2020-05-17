@@ -30,18 +30,17 @@ frappe.ui.form.on('Number Card', {
 					}
 				],
 				primary_action: (values) => {
-					values.card_name = frm.doc.name;
+					values.name = frm.doc.name;
 					frappe.xcall(
-						'frappe.desk.doctype.dashboard.dashboard.add_to_dashboard',
+						'frappe.desk.doctype.number_card.number_card.add_card_to_dashboard',
 						{
-							field: 'cards',
 							args: values
 						}
 					).then(()=> {
 						let dashboard_route_html =
 							`<a href = "#dashboard/${values.dashboard}">${values.dashboard}</a>`;
 						let message =
-							__(`Dashboard Chart ${values.card_name} add to Dashboard ` + dashboard_route_html);
+							__(`Number Card ${values.name} add to Dashboard ` + dashboard_route_html);
 
 						frappe.msgprint(message);
 					});
@@ -59,7 +58,8 @@ frappe.ui.form.on('Number Card', {
 	},
 
 	set_filters_description: function(frm) {
-		frm.fields_dict.filters_config.set_description(`
+		if (frm.doc.type == 'Custom') {
+			frm.fields_dict.filters_config.set_description(`
 		Set the filters here. For example:
 <pre class="small text-muted">
 <code>
@@ -79,10 +79,12 @@ frappe.ui.form.on('Number Card', {
 	reqd: 1
 }]
 </code></pre>`);
+}
 	},
 
 	type: function(frm) {
 		frm.trigger('render_filters_table');
+		frm.trigger('set_filters_description');
 	},
 
 	filters_config: function(frm) {
@@ -137,7 +139,7 @@ frappe.ui.form.on('Number Card', {
 			frm.filters = JSON.parse(frm.doc.filters_json || 'null');
 		} else {
 			fields = eval(frm.doc.filters_config);
-			frm.filters = JSON.parse(frm.doc.filters_json || '{}');
+			frm.filters = JSON.parse(frm.doc.filters_json || 'null');
 		}
 
 		let wrapper = $(frm.get_field('filters_json').wrapper).empty();
