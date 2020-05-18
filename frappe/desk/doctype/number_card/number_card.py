@@ -4,6 +4,7 @@
 
 from __future__ import unicode_literals
 import frappe
+import json
 from frappe.model.document import Document
 from frappe.utils import cint
 from frappe.model.naming import append_number_if_name_exists
@@ -147,6 +148,14 @@ def get_cards_for_user(doctype, txt, searchfield, start, page_len, filters):
 		search_conditions=search_conditions,
 		conditions=conditions
 	), values)
+
+@frappe.whitelist()
+def create_report_number_card(args):
+	card = create_number_card(args)
+	args = frappe.parse_json(args)
+	args.name = card.name
+	if args.dashboard:
+		add_card_to_dashboard(json.dumps(args))
 
 @frappe.whitelist()
 def add_card_to_dashboard(args):
