@@ -4,11 +4,15 @@
 	background-color: white;
 }
 
-#navbar-breadcrumbs > li > a {
-	margin-right: 10px;
-	&:before {
-		content: '/';
-		display: inline-block;
+#navbar-breadcrumbs {
+	font-size: var(--text-sm);
+	a {
+		font-size: var(--text-md);
 		margin-right: 10px;
+		&:before {
+			content: '/';
+			display: inline-block;
+			margin-right: 10px;
+		}
 	}
 }

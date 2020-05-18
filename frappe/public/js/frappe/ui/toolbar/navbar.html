@@ -3,9 +3,9 @@
 		<a class="navbar-brand navbar-home" href="#">
 			<img class="d-inline-block align-top app-logo" src="{{ frappe.app.logo_url }}">
 		</a>
-		<ul class="nav navbar-nav" id="navbar-breadcrumbs"></ul>
+		<ul class="nav navbar-nav d-none d-sm-flex" id="navbar-breadcrumbs"></ul>
 		<div class="collapse navbar-collapse justify-content-end">
-			<form class="form-inline" role="search" onsubmit="return false;">
+			<form class="form-inline fill-width justify-content-end" role="search" onsubmit="return false;">
 				<div class="input-group search-bar text-muted">
 					<input
 					id="navbar-search"
@@ -49,7 +49,7 @@
 					</a>
 					<!-- <div class="dropdown-menu notifications-list dropdown-menu-right" role="menu"></div> -->
 				</li>
-				<li class="vertical-bar ml-lg-2"></li>
+				<li class="vertical-bar ml-lg-2 d-none d-sm-block"></li>
 				<li class="nav-item dropdown dropdown-help dropdown-mobile ml-lg-2">
 					<a class="nav-link dropdown-toggle d-none d-lg-block" data-toggle="dropdown" href="#" onclick="return false;">
 						{{ __("Help") }}

@@ -22,6 +22,8 @@
 }
 
 .search-bar {
+	flex: 1;
+	max-width: 400px;
 	.search-icon {
 		position: absolute;
 		margin-left: 12px;
@@ -29,9 +31,12 @@
 		align-items: center;
 		height: 100%;
 	}
+	.awesomplete {
+		width: 100%;
+	}
 	input {
+		width: 100% !important;
 		padding-left: 36px;
-		width: 400px !important;
 		height: 32px;
 		font-size: var(--text-md);
 	}
