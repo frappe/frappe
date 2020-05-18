@@ -123,7 +123,7 @@ export default class NumberCardWidget extends Widget {
 					doc: this.card_doc
 				}
 			}
-		}
+		};
 		return settings_map[type];
 	}
 

@@ -94,7 +94,7 @@ frappe.ui.form.on('Number Card', {
 					filters: {
 						'report_type': ['!=', 'Report Builder']
 					}
-				}
+				};
 			});
 			frm.trigger('set_report_filters');
 		}
