@@ -30,7 +30,7 @@ def get(args=None):
 def add(args=None):
 	"""add in someone's to do list
 		args = {
-			"assign_to": ,
+			"assign_to": [],
 			"doctype": ,
 			"name": ,
 			"description": ,
