@@ -6,6 +6,7 @@
 @import 'website-image';
 @import 'page-builder';
 @import 'markdown';
+@import 'sidebar';
 
 .container {
 	padding-left: 1.25rem;
@@ -142,7 +143,8 @@ a.card {
 
 .footer-logo {
 	width: 5rem;
-	max-height: 2rem;
+	height: 2rem;
+	object-fit: contain;
 }
 
 .footer-link, .footer-child-item a {
