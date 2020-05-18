@@ -105,7 +105,7 @@ frappe.ui.Page = Class.extend({
 		this.body = this.main = this.wrapper.find(".layout-main-section");
 		this.sidebar = this.wrapper.find(".layout-side-section");
 		this.footer = this.wrapper.find(".layout-footer");
-		this.indicator = this.wrapper.find(".indicator");
+		this.indicator = this.wrapper.find(".indicator-pill");
 
 		this.page_actions = this.wrapper.find(".page-actions");
 
@@ -153,7 +153,7 @@ frappe.ui.Page = Class.extend({
 	},
 
 	clear_indicator: function() {
-		return this.indicator.removeClass().addClass("indicator whitespace-nowrap hide");
+		return this.indicator.removeClass().addClass("indicator-pill whitespace-nowrap hide ml-2");
 	},
 
 	get_icon_label: function(icon, label) {

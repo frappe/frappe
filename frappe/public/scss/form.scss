@@ -15,19 +15,24 @@
 
 .form-section {
 	margin: 0px;
-	padding: 15px;
-
+	// padding: 15px;
 
 	.form-section-description {
 		margin-bottom: 10px;
 	}
 
-	.form-section-heading {
-		margin: 10px 0px;
-	}
-
 	.section-head {
-		margin: 0px 0px 15px 15px;
+		// margin: 0px 0px 15px 15px;
+		position: sticky;
+		top: calc(#{$navbar-height} + 79px);
+		background: $white;
+		z-index: 1;
+		width: 100%;
+		padding: 15px;
+		margin: 0;
+		font-size: var(--text-lg);
+		font-weight: bold;
+		color: var(--grey-900);
 		cursor: pointer;
 
 		.collapse-indicator {

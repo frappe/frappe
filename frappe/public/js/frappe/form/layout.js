@@ -606,21 +606,15 @@ frappe.ui.form.Section = Class.extend({
 		this.body = $('<div class="section-body">').appendTo(this.wrapper);
 	},
 	make_head: function() {
-		var me = this;
-		if(!this.df.collapsible) {
-			$('<div class="col-sm-12"><h6 class="form-section-heading uppercase">'
-				+ __(this.df.label) + '</h6></div>')
-				.appendTo(this.wrapper);
-		} else {
-			this.head = $('<div class="section-head"><a class="h6 uppercase">'
-				+__(this.df.label)+'</a><span class="octicon octicon-chevron-down collapse-indicator"></span></div>').appendTo(this.wrapper);
-
+		this.head = $(`<div class="section-head">${__(this.df.label)}</div>`);
+		this.head.appendTo(this.wrapper);
+		if (this.df.collapsible) {
 			// show / hide based on status
-			this.collapse_link = this.head.on("click", function() {
-				me.collapse();
+			this.collapse_link = this.head.on("click", () => {
+				this.collapse();
 			});
 
-			this.indicator = this.head.find(".collapse-indicator");
+			this.indicator = this.head.find('.collapse-indicator');
 		}
 	},
 	refresh: function() {

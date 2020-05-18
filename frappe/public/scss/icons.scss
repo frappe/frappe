@@ -7,7 +7,8 @@
 	background-size: cover;
 	background-repeat: no-repeat;
 	background-position: 50% 50%;
-	fill: $border-color;
+	fill: var(--grey-900);
+	stroke: var(--grey-900);
 }
 
 .icon-sm {

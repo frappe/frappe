@@ -1,7 +1,3 @@
-.page-container {
-	padding-top: 2rem;
-}
-
 .title-text {
 	max-width: 75%;
 	display: inline-block;
@@ -36,20 +32,16 @@
 
 .layout-main-section {
 	// border-left: 1px solid $border-color;
-	padding-left: 30px;
+	// padding-left: 30px;
 }
 
-// .page-head {
-// 	border-bottom:1px solid @border-color;
-// 	height: 70px;
-// 	position: fixed;
-// 	left: 0;
-// 	right: 0;
-// 	top: 41px;
-// 	margin: auto;
-// 	background-color: #fff;
-// 	z-index: 101;
-// }
+.page-head {
+	padding-top: 2rem;
+	position: sticky;
+	top: $navbar-height;
+	background-color: $white;
+	z-index: 2;
+}
 
 // .sub-heading {
 // 	display: inline-block;

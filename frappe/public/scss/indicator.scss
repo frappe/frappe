@@ -1,3 +1,95 @@
-.indicator {
-	font-size: inherit;
+.indicator-pill,
+.indicator-pill-right {
+	padding: 3px 10px;
+	font-size: var(--text-sm);
+	border-radius: var( --border-radius);
+	vertical-align: middle;
+	margin: auto;
+	height: 24px;
+}
+
+.indicator-pill::before,
+.indicator-pill-right::after {
+	content:'';
+	display:inline-block;
+	height: 4px;
+	width: 4px;
+	border-radius: 100%;
+	margin-right: 6px;
+	vertical-align: middle;
+}
+
+.indicator-pill-right::after {
+	margin:0 0 0 4px;
+}
+
+.indicator-pill.green,
+.indicator-pill-right.green {
+	background: var(--dark-green-50);
+	color: var(--dark-green-500);
+	&::before, &::after {
+		background: var(--dark-green-500);
+	}
+}
+
+// .indicator.grey::before,
+// .indicator-pill-right.grey::after {
+//     background: @btn-bg;
+// }
+// .indicator.blue::before,
+// .indicator-pill-right.blue::after {
+//     background: @indicator-blue;
+// }
+// .indicator.red::before,
+// .indicator-pill-right.red::after {
+//     background: @indicator-red;
+// }
+// .indicator.green::before,
+// .indicator-pill-right.green::after {
+//     background: @indicator-green;
+// }
+// .indicator.orange::before,
+// .indicator-pill-right.orange::after {
+//     background: @indicator-orange;
+// }
+// .indicator.purple::before,
+// .indicator-pill-right.purple::after {
+//     background: @indicator-purple;
+// }
+// .indicator.darkgrey::before,
+// .indicator-pill-right.darkgrey::after {
+//     background: @indicator-darkgrey;
+// }
+
+// .indicator.black::before,
+// .indicator-pill-right.black::after {
+//     background: @text-color;
+// }
+
+// .indicator.yellow::before,
+// .indicator-pill-right.yellow::after {
+//     background: @indicator-yellow;
+// }
+
+// .indicator.light-blue::before,
+// .indicator-pill-right.light-blue::after {
+//     background: @indicator-light-blue;
+// }
+
+// .indicator.lightblue::before,
+// .indicator-pill-right.lightblue::after {
+//     background: @indicator-light-blue;
+// }
+
+.modal-header .indicator {
+	margin: auto 0;
+	margin-right: 3px;
+}
+
+.indicator.blink {
+	animation: blink 1s linear infinite;
+}
+
+@keyframes blink {
+	50% { opacity: 0.5; }
 }
