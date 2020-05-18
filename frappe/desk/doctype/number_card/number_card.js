@@ -83,7 +83,7 @@ frappe.ui.form.on('Number Card', {
 	reqd: 1
 }]
 </code></pre>`);
-}
+		}
 	},
 
 	type: function(frm) {
