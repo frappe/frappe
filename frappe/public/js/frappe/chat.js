@@ -2259,14 +2259,19 @@ class extends Component {
 						) : null,
 					h("div","",
 						h("div", { class: "panel-title" },
-							h("div", { class: "cursor-pointer", onclick: () => { frappe.set_route(item.route) }},
+							h("div", { class: "cursor-pointer", onclick: () => {
+								frappe.session.user !== "Guest" ?
+									frappe.set_route(item.route) : null;
+							}},
 								h(frappe.Chat.Widget.MediaProfile, { ...item })
 							)
 						)
 					),
-					h("div", { class: popper ? "col-xs-1"  : "col-xs-3" },
+					h("div", { class: popper ? "col-xs-2"  : "col-xs-3" },
 						h("div", { class: "text-right" },
-
+							frappe._.is_mobile() && h(frappe.components.Button, { class: "frappe-chat-close", onclick: props.toggle },
+								h(frappe.components.Octicon, { type: "x" })
+							)
 						)
 					)
 				)
@@ -2523,7 +2528,7 @@ class extends Component {
 					h("div",{class:"input-group input-group-lg"},
 						!frappe._.is_empty(props.actions) ?
 							h("div",{class:"input-group-btn dropup"},
-								h(frappe.components.Button,{ class: "dropdown-toggle", "data-toggle": "dropdown"},
+								h(frappe.components.Button,{ class: (frappe.session.user === "Guest" ? "disabled" : "dropdown-toggle"), "data-toggle": "dropdown"},
 									h(frappe.components.FontAwesome, { class: "text-muted", type: "paperclip", fixed: true })
 								),
 								h("div",{ class:"dropdown-menu dropdown-menu-left", onclick: e => e.stopPropagation() },

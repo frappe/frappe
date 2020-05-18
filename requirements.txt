@@ -1,7 +1,7 @@
 Babel==2.6.0
 beautifulsoup4==4.8.1
 bleach-whitelist==0.0.10
-bleach==2.1.4
+bleach==3.1.4
 boto3==1.10.18
 braintree==3.57.1
 chardet==3.0.4
@@ -22,10 +22,11 @@ google-auth==1.7.1
 googlemaps==3.1.1
 gunicorn==19.10.0
 html2text==2016.9.19
+html5lib==1.0.1
 ipython==5.8.0
 Jinja2==2.10.3
 ldap3==2.7
-markdown2==2.3.7
+markdown2==2.3.9
 maxminddb-geolite2==2018.703
 ndg-httpsclient==0.5.1
 num2words==0.5.5
@@ -37,7 +38,6 @@ Pillow==6.2.2
 premailer==3.6.1
 psycopg2-binary==2.8.4
 pyasn1==0.4.7
-Pygments==2.2.0
 PyJWT==1.7.1
 PyMySQL==0.9.3
 pyOpenSSL==19.0.0
@@ -60,6 +60,7 @@ semantic-version==2.8.2
 six==1.13.0
 sqlparse==0.2.4
 stripe==2.40.0
+terminaltables==3.1.0
 unittest-xml-reporting==2.5.2
 urllib3==1.25.7
 watchdog==0.8.0

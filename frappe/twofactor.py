@@ -30,7 +30,7 @@ def two_factor_is_enabled(user=None):
 		if bypass_two_factor_auth and user:
 			user_doc = frappe.get_doc("User", user)
 			restrict_ip_list = user_doc.get_restricted_ip_list() #can be None or one or more than one ip address
-			if restrict_ip_list:
+			if restrict_ip_list and frappe.local.request_ip:
 				for ip in restrict_ip_list:
 					if frappe.local.request_ip.startswith(ip):
 						enabled = False
@@ -376,11 +376,11 @@ def delete_qrimage(user, check_expiry=False):
 
 def delete_all_barcodes_for_users():
 	'''Task to delete all barcodes for user.'''
-	if not two_factor_is_enabled():
-		return
 
 	users = frappe.get_all('User', {'enabled':1})
 	for user in users:
+		if not two_factor_is_enabled(user=user.name):
+			continue
 		delete_qrimage(user.name, check_expiry=True)
 
 def should_remove_barcode_image(barcode):
