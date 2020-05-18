@@ -24,7 +24,7 @@
 	.section-head {
 		// margin: 0px 0px 15px 15px;
 		position: sticky;
-		top: calc(#{$navbar-height} + 79px);
+		top: calc(#{$navbar-height} + #{$page-head-height});
 		background: $white;
 		z-index: 1;
 		width: 100%;

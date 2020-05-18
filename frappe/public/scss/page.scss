@@ -15,7 +15,7 @@
 		margin-left: 10px;
 		border-radius: var(--border-radius);
 	}
-	.menu-btn-group > .btn, .btn-primary, .btn-secondary {
+	.btn-primary, .btn-secondary {
 		padding: 4px 20px;
 		font-size: var(--text-md);
 	}
@@ -36,11 +36,13 @@
 }
 
 .page-head {
-	padding-top: 2rem;
 	position: sticky;
 	top: $navbar-height;
 	background-color: $white;
 	z-index: 2;
+	.page-head-content {
+		height: $page-head-height;
+	}
 }
 
 // .sub-heading {
