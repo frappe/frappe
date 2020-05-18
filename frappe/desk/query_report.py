@@ -66,7 +66,10 @@ def generate_report_result(report, filters=None, user=None, custom_columns=None)
 		query_columns = columns
 		# Reordered columns
 		columns = json.loads(report.custom_columns)
-		result = reorder_data_for_custom_columns(columns, query_columns, result)
+
+		if report.report_type == 'Query Report':
+			result = reorder_data_for_custom_columns(columns, query_columns, result)
+
 		result = add_data_to_custom_columns(columns, result)
 
 	if custom_columns:
@@ -220,8 +223,11 @@ def reorder_data_for_custom_columns(custom_columns, columns, result):
 	for res in result:
 		r = []
 		for col in custom_columns:
-			idx = columns.index(col.get("label"))
-			r.append(res[idx])
+			try:
+				idx = columns.index(col.get("label"))
+				r.append(res[idx])
+			except ValueError:
+				pass
 
 		reordered_result.append(r)
 
