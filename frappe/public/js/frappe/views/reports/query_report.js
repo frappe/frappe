@@ -173,7 +173,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				{
 					fieldname: 'report_function',
 					label: __('Function'),
-					options: ['Sum', 'Average', 'Minimum', 'MAximum'],
+					options: ['Sum', 'Average', 'Minimum', 'Maximum'],
 					fieldtype: 'Select'
 				},
 				{
