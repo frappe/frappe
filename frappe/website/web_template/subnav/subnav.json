@@ -69,6 +69,5 @@
  "modified_by": "Administrator",
  "name": "Subnav",
  "owner": "Administrator",
- "standard": 1,
- "template": "<nav class=\"navbar navbar-expand-lg navbar-light subnav\">\n\t<div class=\"container\">\n\t\t<a class=\"navbar-brand d-none d-sm-block\" href=\"{{ path }}\">\n\t\t\t{% if logo %}\n\t\t\t<img class=\"d-inline-block align-top\" src=\"{{ logo }}\" />\n\t\t\t{% endif %}\n\t\t\t<span class=\"subnav-title\">{{ title }}</span>\n\t\t</a>\n\t\t<ul class=\"navbar-nav justify-content-sm-end\">\n\t\t\t{% for item in items %}\n\t\t\t<li class=\"navbar-item\">\n\t\t\t\t<a\n\t\t\t\t\tclass=\"nav-link\"\n\t\t\t\t\thref=\"{{ item.path }}\"\n\t\t\t\t\t{% if item.new %}\n\t\t\t\t\ttarget=\"_blank\"\n\t\t\t\t\t{% endif %}>{{ item.label }}\n\t\t\t\t</a>\n\t\t\t</li>\n\t\t\t{% endfor %}\n\t\t</ul>\n\t</div>\n</nav>"
+ "standard": 1
 }
