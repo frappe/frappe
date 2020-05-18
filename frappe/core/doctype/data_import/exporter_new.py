@@ -3,7 +3,11 @@
 # MIT License. See license.txt
 
 import frappe
-from frappe.model import display_fieldtypes, no_value_fields, table_fields
+from frappe.model import (
+	display_fieldtypes,
+	no_value_fields,
+	table_fields as table_fieldtypes,
+)
 from frappe.utils.csvutils import build_csv_response
 from frappe.utils.xlsxutils import build_xlsx_response
 from .importer_new import INVALID_VALUES
@@ -38,8 +42,8 @@ class Exporter:
 		self.csv_array = []
 
 		# fields that get exported
-		# can be All, Mandatory or User Selected Fields
-		self.fields = self.get_all_exportable_fields()
+		self.exportable_fields = self.get_all_exportable_fields()
+		self.fields = self.serialize_exportable_fields()
 		self.add_header()
 
 		if export_data:
@@ -49,43 +53,51 @@ class Exporter:
 		self.add_data()
 
 	def get_all_exportable_fields(self):
-		return self.get_exportable_parent_fields() + self.get_exportable_children_fields()
+		child_table_fields = [
+			df.fieldname for df in self.meta.fields if df.fieldtype in table_fieldtypes
+		]
 
-	def get_exportable_parent_fields(self):
-		parent_fields = self.get_exportable_fields(self.doctype)
+		def is_exportable(df):
+			return df and df.fieldtype not in (display_fieldtypes + no_value_fields)
 
-		# if autoname is based on field
-		# then merge ID and the field column title as "ID (Autoname Field)"
-		autoname = self.meta.autoname
-		if autoname and autoname.startswith("field:"):
-			fieldname = autoname[len("field:") :]
-			autoname_field = self.meta.get_field(fieldname)
-			if autoname_field:
-				name_field = parent_fields[0]
-				name_field.label = "ID ({})".format(autoname_field.label)
-				# remove the autoname field as it is a duplicate of ID field
-				parent_fields = [
-					df for df in parent_fields if df.fieldname != autoname_field.fieldname
-				]
+		meta = frappe.get_meta(self.doctype)
+		exportable_fields = frappe._dict({})
 
-		return parent_fields
+		for key, fieldnames in self.export_fields.items():
+			if key == self.doctype:
+				# parent fields
+				exportable_fields[key] = self.get_exportable_fields(key, fieldnames)
 
-	def get_exportable_children_fields(self):
-		children = [df.options for df in self.meta.fields if df.fieldtype in table_fields]
-		children_fields = []
-		for child in children:
-			children_fields += self.get_exportable_fields(child)
+			elif key in child_table_fields:
+				# child fields
+				child_df = meta.get_field(key)
+				child_doctype = child_df.options
+				exportable_fields[key] = self.get_exportable_fields(child_doctype, fieldnames)
 
-		return children_fields
+		return exportable_fields
 
-	def get_exportable_fields(self, doctype):
+	def serialize_exportable_fields(self):
+		fields = []
+		for key, exportable_fields in self.exportable_fields.items():
+			for _df in exportable_fields:
+				# make a copy of df dict to avoid reference mutation
+				if isinstance(_df, frappe.core.doctype.docfield.docfield.DocField):
+					df = _df.as_dict()
+				else:
+					df = _df.copy()
+
+				df.is_child_table_field = key != self.doctype
+				if df.is_child_table_field:
+					df.child_table_df = self.meta.get_field(key)
+				fields.append(df)
+		return fields
+
+	def get_exportable_fields(self, doctype, fieldnames):
 		meta = frappe.get_meta(doctype)
 
 		def is_exportable(df):
 			return df and df.fieldtype not in (display_fieldtypes + no_value_fields)
 
-		# filter out invalid fieldtypes
-		all_fields = [df for df in meta.fields if is_exportable(df)]
 		# add name field
 		name_field = frappe._dict(
 			{
@@ -96,30 +108,55 @@ class Exporter:
 				"parent": doctype,
 			}
 		)
-		all_fields = [name_field] + all_fields
 
-		if self.export_fields == "Mandatory":
-			fields = [df for df in all_fields if df.reqd]
+		fields = [meta.get_field(fieldname) for fieldname in fieldnames]
+		fields = [df for df in fields if is_exportable(df)]
 
-		if self.export_fields == "All":
-			fields = list(all_fields)
-
-		elif isinstance(self.export_fields, dict):
-			fields_to_export = self.export_fields.get(doctype, [])
-			fields = [meta.get_field(fieldname) for fieldname in fields_to_export]
-			fields = [df for df in fields if is_exportable(df)]
-			if 'name' in fields_to_export:
-				fields = [name_field] + fields
+		if "name" in fieldnames:
+			fields = [name_field] + fields
 
 		return fields or []
 
 	def get_data_to_export(self):
 		frappe.permissions.can_export(self.doctype, raise_exception=True)
+		data_to_export = []
 
-		def get_column_name(df):
-			return "`tab{0}`.`{1}`".format(df.parent, df.fieldname)
+		table_fields = [f for f in self.exportable_fields if f != self.doctype]
+		data = self.get_data_as_docs()
 
-		fields = [get_column_name(df) for df in self.fields]
+		for doc in data:
+			rows = []
+			rows = self.add_data_row(self.doctype, None, doc, rows, 0)
+
+			if table_fields:
+				# add child table data
+				for f in table_fields:
+					for i, child_row in enumerate(doc[f]):
+						table_df = self.meta.get_field(f)
+						child_doctype = table_df.options
+						rows = self.add_data_row(child_doctype, child_row.parentfield, child_row, rows, i)
+
+			data_to_export += rows
+
+		return data_to_export
+
+	def add_data_row(self, doctype, parentfield, doc, rows, row_idx):
+		if len(rows) < row_idx + 1:
+			rows.append([""] * len(self.fields))
+
+		row = rows[row_idx]
+
+		for i, df in enumerate(self.fields):
+			if df.parent == doctype:
+				if df.is_child_table_field and df.child_table_df.fieldname != parentfield:
+					continue
+				row[i] = doc.get(df.fieldname, "")
+
+		return rows
+
+	def get_data_as_docs(self):
+		format_column_name = lambda df: "`tab{0}`.`{1}`".format(df.parent, df.fieldname)
+		fields = [format_column_name(df) for df in self.fields]
 		filters = self.export_filters
 
 		if self.meta.is_nested_set():
@@ -127,94 +164,51 @@ class Exporter:
 		else:
 			order_by = "`tab{0}`.`creation` DESC".format(self.doctype)
 
-		data = frappe.db.get_list(
+		parent_fields = [
+			format_column_name(df) for df in self.fields if df.parent == self.doctype
+		]
+		parent_data = frappe.db.get_list(
 			self.doctype,
 			filters=filters,
-			fields=fields,
+			fields=["name"] + parent_fields,
 			limit_page_length=self.export_page_length,
 			order_by=order_by,
-			as_list=1,
+			as_list=0,
 		)
+		parent_names = [p.name for p in parent_data]
 
-		data = self.remove_duplicate_values(data)
-		data = self.remove_row_gaps(data)
-		data = self.remove_empty_rows(data)
-		# data = self.remove_values_from_name_column(data)
-
-		return data
-
-	def remove_duplicate_values(self, data):
-		out = []
-
-		doctypes = set([df.parent for df in self.fields])
-
-		def name_exists_in_column_before_row(name, column_index, row_index):
-			column_values = [row[column_index] for i, row in enumerate(data) if i < row_index]
-			return name in column_values
-
-		for i, row in enumerate(data):
-			# first row is fine
-			if i == 0:
-				out.append(row)
+		child_data = {}
+		for key in self.exportable_fields:
+			if key == self.doctype:
 				continue
+			child_table_df = self.meta.get_field(key)
+			child_table_doctype = child_table_df.options
+			child_fields = ["name", "idx", "parent", "parentfield"] + list(
+				set(
+					[format_column_name(df) for df in self.fields if df.parent == child_table_doctype]
+				)
+			)
+			data = frappe.db.get_list(
+				child_table_doctype,
+				filters={
+					"parent": ("in", parent_names),
+					"parentfield": child_table_df.fieldname,
+					"parenttype": self.doctype,
+				},
+				fields=child_fields,
+				order_by="idx asc",
+				as_list=0,
+			)
+			child_data[key] = data
 
-			row = list(row)
-			for doctype in doctypes:
-				name_index = self.get_name_column_index(doctype)
-				name = row[name_index]
-				column_indexes = self.get_column_indexes(doctype)
+		return self.merge_data(parent_data, child_data)
 
-				if name_exists_in_column_before_row(name, name_index, i):
-					# remove the values from the row
-					row = [None if i in column_indexes else d for i, d in enumerate(row)]
+	def merge_data(self, parent_data, child_data):
+		for doc in parent_data:
+			for table_field, table_rows in child_data.items():
+				doc[table_field] = [row for row in table_rows if row.parent == doc.name]
 
-			out.append(row)
-
-		return out
-
-	def remove_row_gaps(self, data):
-		doctypes = set([df.parent for df in self.fields if df.parent != self.doctype])
-
-		def get_nearest_empty_row_index(col_index, row_index):
-			col_values = [row[col_index] for row in data]
-			i = row_index - 1
-			while not col_values[i]:
-				i = i - 1
-			out = i + 1
-			if row_index != out:
-				return out
-
-		for i, row in enumerate(data):
-			# if this is the row that contains parent values then skip
-			if row[0]:
-				continue
-
-			for doctype in doctypes:
-				name_index = self.get_name_column_index(doctype)
-				name = row[name_index]
-				column_indexes = self.get_column_indexes(doctype)
-
-				if not name:
-					continue
-
-				row_index = get_nearest_empty_row_index(name_index, i)
-				if row_index:
-					for col_index in column_indexes:
-						data[row_index][col_index] = row[col_index]
-						row[col_index] = None
-
-		return data
-
-	# pylint: disable=R0201
-	def remove_empty_rows(self, data):
-		return [row for row in data if any(v not in INVALID_VALUES for v in row)]
-
-	def remove_values_from_name_column(self, data):
-		out = []
-		name_columns = [i for i, df in enumerate(self.fields) if df.fieldname == "name"]
-		for row in data:
-			out.append(["" if i in name_columns else value for i, value in enumerate(row)])
-		return out
+		return parent_data
 
 	def get_name_column_index(self, doctype):
 		for i, df in enumerate(self.fields):
@@ -229,20 +223,20 @@ class Exporter:
 
 		header = []
 		for df in self.fields:
-			is_parent = df.parent == self.doctype
+			is_parent = not df.is_child_table_field
 			if is_parent:
 				label = df.label
 			else:
-				label = "{0} ({1})".format(df.label, df.parent)
+				label = "{0} ({1})".format(df.label, df.child_table_df.label)
 
 			if label in header:
 				# this label is already in the header,
 				# which means two fields with the same label
 				# add the fieldname to avoid clash
 				if is_parent:
-					label = '{0} ({1})'.format(df.label, df.fieldname)
+					label = "{0}".format(df.fieldname)
 				else:
-					label = '{0} ({1}) ({2})'.format(df.label, df.fieldname, df.parent)
+					label = "{0}.{1}".format(df.child_table_df.fieldname, df.fieldname)
 			header.append(label)
 
 		self.csv_array.append(header)
@@ -263,9 +257,9 @@ class Exporter:
 		return csv_array
 
 	def build_response(self):
-		if self.file_type == 'CSV':
+		if self.file_type == "CSV":
 			self.build_csv_response()
-		elif self.file_type == 'Excel':
+		elif self.file_type == "Excel":
 			self.build_xlsx_response()
 
 	def build_csv_response(self):
