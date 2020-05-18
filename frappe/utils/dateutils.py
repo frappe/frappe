@@ -6,7 +6,7 @@ import frappe
 import frappe.defaults
 import datetime
 from frappe.utils import get_datetime
-from frappe.utils import nowdate, add_to_date, getdate, get_datetime
+from frappe.utils import add_to_date, getdate
 from frappe.utils.data import get_last_day_of_week
 from frappe.desk.doctype.dashboard_chart.dashboard_chart import get_period_ending
 from six import string_types
