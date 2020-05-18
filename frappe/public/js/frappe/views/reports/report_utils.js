@@ -143,8 +143,8 @@ frappe.report_utils = {
 			'Minimum': values => values.reduce((min, val) => Math.min(min, val), values[0]),
 			'Maximum': values => values.reduce((min, val) => Math.max(min, val), values[0]),
 			'Average': values => values.reduce((a,b) => a + b, 0) / values.length,
-		    'Sum': values => values.reduce((a,b) => a + b, 0)
-        }
+			'Sum': values => values.reduce((a,b) => a + b, 0)
+		}
 		return get_result[fn](values);
 	},
 };
