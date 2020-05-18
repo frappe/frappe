@@ -17,7 +17,7 @@
   "subject",
   "message",
   "send_unsubscribe_link",
-  "send_attachements",
+  "send_attachments",
   "published",
   "route",
   "test_the_newsletter",
@@ -75,12 +75,6 @@
   },
   {
    "default": "0",
-   "fieldname": "send_attachements",
-   "fieldtype": "Check",
-   "label": "Send Attachements"
-  },
-  {
-   "default": "0",
    "fieldname": "published",
    "fieldtype": "Check",
    "label": "Published"
@@ -127,6 +121,12 @@
   {
    "fieldname": "column_break_2",
    "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "send_attachments",
+   "fieldtype": "Check",
+   "label": "Send Attachments"
   }
  ],
  "has_web_view": 1,
@@ -135,7 +135,7 @@
  "is_published_field": "published",
  "links": [],
  "max_attachments": 3,
- "modified": "2020-03-02 06:26:51.622521",
+ "modified": "2020-05-12 18:09:40.137138",
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Newsletter",

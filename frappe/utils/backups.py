@@ -103,7 +103,8 @@ class BackupGenerator:
 			cmd_string = """tar -cf %s %s""" % (backup_path, files_path)
 			err, out = frappe.utils.execute_in_shell(cmd_string)
 
-			print('Backed up files', os.path.abspath(backup_path))
+			if verbose:
+				print('Backed up files', os.path.abspath(backup_path))
 
 	def take_dump(self):
 		import frappe.utils
@@ -151,7 +152,6 @@ def get_backup():
 		This function is executed when the user clicks on
 		Toos > Download Backup
 	"""
-	#if verbose: print frappe.db.cur_db_name + " " + conf.db_password
 	delete_temp_backups()
 	odb = BackupGenerator(frappe.conf.db_name, frappe.conf.db_name,\
 						  frappe.conf.db_password, db_host = frappe.db.host)
