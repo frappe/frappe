@@ -8,8 +8,8 @@
  "engine": "InnoDB",
  "field_order": [
   "label",
-  "extends",
   "for_user",
+  "extends",
   "module",
   "category",
   "restrict_to_domain",
@@ -170,7 +170,7 @@
    "search_index": 1
   },
   {
-   "depends_on": "eval:doc.extends_another_page == 1",
+   "depends_on": "eval:doc.extends_another_page == 1 || doc.for_user",
    "fieldname": "extends",
    "fieldtype": "Link",
    "in_standard_filter": 1,
@@ -188,11 +188,11 @@
    "fieldname": "onboarding",
    "fieldtype": "Link",
    "label": "Onboarding",
-   "options": "Onboarding"
+   "options": "Module Onboarding"
   }
  ],
  "links": [],
- "modified": "2020-04-26 12:21:46.205079",
+ "modified": "2020-05-13 19:01:42.041524",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Desk Page",

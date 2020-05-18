@@ -107,13 +107,20 @@ def load_desktop_data(bootinfo):
 	bootinfo.allowed_modules = get_modules_from_all_apps_for_user()
 	bootinfo.allowed_workspaces = get_desk_sidebar_items(True)
 
-def get_allowed_pages():
-	return get_user_pages_or_reports('Page')
+def get_allowed_pages(cache=False):
+	return get_user_pages_or_reports('Page', cache=cache)
 
-def get_allowed_reports():
-	return get_user_pages_or_reports('Report')
+def get_allowed_reports(cache=False):
+	return get_user_pages_or_reports('Report', cache=cache)
 
-def get_user_pages_or_reports(parent):
+def get_user_pages_or_reports(parent, cache=False):
+	_cache = frappe.cache()
+
+	if cache:
+		has_role = _cache.get_value('has_role:' + parent, user=frappe.session.user)
+		if has_role:
+			return has_role
+
 	roles = frappe.get_roles()
 	has_role = {}
 	column = get_column(parent)
@@ -184,6 +191,8 @@ def get_user_pages_or_reports(parent):
 		for report in reports:
 			has_role[report.name]["report_type"] = report.report_type
 
+	# Expire every six hours
+	_cache.set_value('has_role:' + parent, has_role, frappe.session.user, 21600)
 	return has_role
 
 def get_column(doctype):
