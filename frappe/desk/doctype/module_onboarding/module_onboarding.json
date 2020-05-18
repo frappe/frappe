@@ -90,7 +90,7 @@
   }
  ],
  "links": [],
- "modified": "2020-05-01 19:37:21.492405",
+ "modified": "2020-05-18 19:42:39.738869",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Module Onboarding",
@@ -118,6 +118,7 @@
    "share": 1
   }
  ],
+ "read_only": 1,
  "sort_field": "modified",
  "sort_order": "DESC",
  "track_changes": 1
