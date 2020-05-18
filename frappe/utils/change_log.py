@@ -242,7 +242,7 @@ def show_update_popup():
 					title             = app.title
 				)
 			if release_links:
-				message = _("New {} releases for the following apps are available".format(update_type))
+				message = _("New {} releases for the following apps are available").format(_(update_type))
 				update_message += "<div class='new-version-log'>{0}<div class='new-version-links'>{1}</div></div>".format(message, release_links)
 
 	if update_message:
