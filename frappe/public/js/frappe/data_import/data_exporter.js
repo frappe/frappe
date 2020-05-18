@@ -1,4 +1,3 @@
-import ColumnPickerFields from './column_picker_fields';
 frappe.provide('frappe.data_import');
 
 frappe.data_import.DataExporter = class DataExporter {
@@ -100,16 +99,20 @@ frappe.data_import.DataExporter = class DataExporter {
 				},
 				...frappe.meta.get_table_fields(this.doctype).map(df => {
 					let doctype = df.options;
+					let child_fieldname = df.fieldname;
 					let label = df.reqd
-						? __('{0} (1 row mandatory)', [doctype])
-						: __(doctype);
+						? __('{0} ({1}) (1 row mandatory)', [
+								df.label || df.fieldname,
+								doctype
+						  ])
+						: __('{0} ({1})', [df.label || df.fieldname, doctype]);
 					return {
 						label,
-						fieldname: doctype,
+						fieldname: child_fieldname,
 						fieldtype: 'MultiCheck',
 						columns: 2,
 						on_change: () => this.update_primary_action(),
-						options: this.get_multicheck_options(doctype)
+						options: this.get_multicheck_options(doctype, child_fieldname)
 					};
 				})
 			],
@@ -291,11 +294,9 @@ frappe.data_import.DataExporter = class DataExporter {
 		}, {});
 	}
 
-	get_multicheck_options(doctype) {
+	get_multicheck_options(doctype, child_fieldname = null) {
 		if (!this.column_map) {
-			this.column_map = new ColumnPickerFields({
-				doctype: this.doctype
-			}).get_columns_for_picker();
+			this.column_map = get_columns_for_picker(this.doctype);
 		}
 
 		let autoname_field = null;
@@ -305,7 +306,11 @@ frappe.data_import.DataExporter = class DataExporter {
 			autoname_field = frappe.meta.get_field(doctype, fieldname);
 		}
 
-		return this.column_map[doctype]
+		let fields = child_fieldname
+			? this.column_map[child_fieldname]
+			: this.column_map[doctype];
+
+		return fields
 			.filter(df => {
 				if (autoname_field && df.fieldname === autoname_field.fieldname) {
 					return false;
@@ -327,3 +332,44 @@ frappe.data_import.DataExporter = class DataExporter {
 			});
 	}
 };
+
+function get_columns_for_picker(doctype) {
+	let out = {};
+
+	const standard_fields_filter = df =>
+		!in_list(frappe.model.no_value_type, df.fieldtype);
+
+	// parent
+	let doctype_fields = frappe.meta
+		.get_docfields(doctype)
+		.filter(standard_fields_filter);
+
+	out[doctype] = [
+		{
+			label: __('ID'),
+			fieldname: 'name',
+			fieldtype: 'Data',
+			reqd: 1
+		}
+	].concat(doctype_fields);
+
+	// children
+	const table_fields = frappe.meta.get_table_fields(doctype);
+	table_fields.forEach(df => {
+		const cdt = df.options;
+		const child_table_fields = frappe.meta
+			.get_docfields(cdt)
+			.filter(standard_fields_filter);
+
+		out[df.fieldname] = [
+			{
+				label: __('ID'),
+				fieldname: 'name',
+				fieldtype: 'Data',
+				reqd: 1
+			}
+		].concat(child_table_fields);
+	});
+
+	return out;
+}
