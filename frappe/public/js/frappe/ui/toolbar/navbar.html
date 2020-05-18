@@ -1,18 +1,10 @@
-<header class="navbar navbar-expand-lg sticky-top" role="navigation">
+<header class="navbar navbar-expand sticky-top" role="navigation">
 	<div class="container">
-		<a class="navbar-brand navbar-home hidden-xs hidden-sm" href="#">
+		<a class="navbar-brand navbar-home" href="#">
 			<img class="d-inline-block align-top app-logo" src="{{ frappe.app.logo_url }}">
 		</a>
-		<button
-			class="navbar-toggler"
-			data-toggle="collapse"
-			data-target="#navbar-items"
-			aria-controls="navbar-items"
-			aria-expanded="false"
-			aria-label="Toggle navigation">
-			<span class="navbar-toggler-icon octicon octicon-three-bars"></span>
-		</button>
-		<div class="collapse navbar-collapse justify-content-lg-end" id="navbar-items">
+		<ul class="nav navbar-nav" id="navbar-breadcrumbs"></ul>
+		<div class="collapse navbar-collapse justify-content-end">
 			<form class="form-inline" role="search" onsubmit="return false;">
 				<div class="input-group search-bar text-muted">
 					<input
@@ -59,9 +51,8 @@
 				</li>
 				<li class="vertical-bar ml-lg-2"></li>
 				<li class="nav-item dropdown dropdown-help dropdown-mobile ml-lg-2">
-					<a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#" onclick="return false;">
+					<a class="nav-link dropdown-toggle d-none d-lg-block" data-toggle="dropdown" href="#" onclick="return false;">
 						{{ __("Help") }}
-						<span class="d-block d-sm-block d-md-none standard-image help-icon">?</span>
 					</a>
 					<div class="dropdown-menu dropdown-menu-right" id="toolbar-help" role="menu">
 						<div class="divider documentation-links"></div>

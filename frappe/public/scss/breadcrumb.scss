@@ -3,3 +3,12 @@
 	padding-right: 0;
 	background-color: white;
 }
+
+#navbar-breadcrumbs > li > a {
+	margin-right: 10px;
+	&:before {
+		content: '/';
+		display: inline-block;
+		margin-right: 10px;
+	}
+}
