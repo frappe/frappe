@@ -96,7 +96,7 @@ frappe.ui.form.MultiSelectDialog = Class.extend({
 		columns['col_0'] = [
 			{
 				fieldtype: "Data",
-				label: __("Search Term"),
+				label: __("Search"),
 				fieldname: "search_term"
 			}
 		];
@@ -133,7 +133,7 @@ frappe.ui.form.MultiSelectDialog = Class.extend({
 				fields = fields.concat({ fieldtype: "Column Break" });
 			}
 		}
-		fields = fields.concat({ fieldtype: "Section Break" });
+		fields = fields.concat({ fieldtype: "Section Break", fieldname: "hello" });
 		return fields;
 	},
 
@@ -148,11 +148,15 @@ frappe.ui.form.MultiSelectDialog = Class.extend({
 	},
 
 	get_filters: function () {
-		return this.filter_group.get_filters().reduce((acc, filter) => {
-			return Object.assign(acc, {
-				[filter[1]]: [filter[2], filter[3]]
-			});
-		}, {});
+		if (this.add_filters_group) {
+			return this.filter_group.get_filters().reduce((acc, filter) => {
+				return Object.assign(acc, {
+					[filter[1]]: [filter[2], filter[3]]
+				});
+			}, {});
+		} else {
+			return [];
+		}
 	},
 
 	bind_events: function () {
@@ -163,16 +167,25 @@ frappe.ui.form.MultiSelectDialog = Class.extend({
 				$(this).find(':checkbox').trigger('click');
 			}
 		});
+
 		this.$results.on('click', '.list-item--head :checkbox', (e) => {
 			this.$results.find('.list-item-container .list-row-check')
 				.prop("checked", ($(e.target).is(':checked')));
 		});
 
 		this.$parent.find('.input-with-feedback').on('change', (e) => {
+			// debugger;
 			frappe.flags.auto_scroll = false;
 			this.get_results();
 		});
-		this.$parent.find('[data-fieldname="search_term"]').on('input', (e) => {
+		// this.$parent.find('[data-fieldtype="Link"]').on('change', (e) => {
+		// 	// debugger;
+		// 	frappe.flags.auto_scroll = false;
+		// 	console.log("cool");
+		// 	this.get_results();
+		// });
+
+		this.$parent.find('[data-fieldtype="Data"]').on('input', (e) => {
 			var $this = $(this);
 			clearTimeout($this.data('timeout'));
 			$this.data('timeout', setTimeout(function () {
@@ -211,10 +224,10 @@ frappe.ui.form.MultiSelectDialog = Class.extend({
 		columns.forEach(function (column) {
 			contents += `<div class="list-item__content ellipsis">
 				${
-				head ? `<span class="ellipsis">${__(frappe.model.unscrub(column))}</span>`
-					: (column !== "name" ? `<span class="ellipsis">${__(result[column])}</span>`
-						: `<a href="${"#Form/" + me.doctype + "/" + result[column]}" class="list-id ellipsis">
-							${__(result[column])}</a>`)
+				head ? `<span class="ellipsis text-muted" title="${__(frappe.model.unscrub(column))}">${__(frappe.model.unscrub(column))}</span>`
+					: (column !== "name" ? `<span class="ellipsis result-row" title="${__(result[column] || '')}">${__(result[column] || '')}</span>`
+						: `<a href="${"#Form/" + me.doctype + "/" + result[column] || ''}" class="list-id ellipsis" title="${__(result[column] || '')}">
+							${__(result[column] || '')}</a>`)
 				}
 			</div>`;
 		});
@@ -272,16 +285,18 @@ frappe.ui.form.MultiSelectDialog = Class.extend({
 
 	get_results: function () {
 		let me = this;
-
 		let filters = this.get_query ? this.get_query().filters : {} || {};
-		// let filter_fields = [me.date_field];
 		let filter_fields = [];
 		Object.keys(this.setters).forEach(function (setter) {
-			filters[setter] = me.dialog.fields_dict[setter].get_value() || undefined;
-			me.args[setter] = filters[setter];
-			filter_fields.push(setter);
+			var value = me.dialog.fields_dict[setter].get_value();
+			if (me.dialog.fields_dict[setter].df.fieldtype == "Data" && value) {
+				filters[setter] = ["like", "%"+value+"%"];
+			} else {
+				filters[setter] = value || undefined;
+				me.args[setter] = filters[setter];
+				filter_fields.push(setter);
+			}
 		});
-
 		let filter_group = this.get_filters();
 		$.extend(filters, filter_group);
 
