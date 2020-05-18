@@ -7,11 +7,14 @@
  "field_order": [
   "label",
   "type",
+  "report_name",
   "method",
   "function",
   "aggregate_function_based_on",
   "column_break_2",
   "document_type",
+  "report_field",
+  "report_function",
   "is_public",
   "custom_configuration_section",
   "filters_config",
@@ -24,24 +27,38 @@
  ],
  "fields": [
   {
-   "depends_on": "eval: doc.type !== 'Custom'",
+   "depends_on": "eval: doc.type == 'Document Type'",
    "fieldname": "document_type",
    "fieldtype": "Link",
    "in_list_view": 1,
    "label": "Document Type",
-   "mandatory_depends_on": "eval: doc.type !== 'Custom'",
+   "mandatory_depends_on": "eval: doc.type == 'Document Type'",
    "options": "DocType"
   },
   {
-   "depends_on": "eval: doc.document_type",
+   "depends_on": "eval: doc.type == 'Report'",
+   "fieldname": "report_function",
+   "fieldtype": "Select",
+   "label": "Function",
+   "options": "Sum\nAverage\nMinimum\nMaximum"
+  },
+  {
+   "depends_on": "eval: doc.type == 'Report'",
+   "fieldname": "report_field",
+   "fieldtype": "Select",
+   "label": "Field",
+   "mandatory_depends_on": "eval: doc.type == 'Report'"
+  },
+  {
+   "depends_on": "eval: doc.type == 'Document Type'",
    "fieldname": "function",
    "fieldtype": "Select",
    "label": "Function",
-   "options": "Count\nSum\nAverage\nMinimum\nMaximum",
-   "reqd": 1
+   "mandatory_depends_on": "eval: doc.type == 'Document Type'",
+   "options": "Count\nSum\nAverage\nMinimum\nMaximum"
   },
   {
-   "depends_on": "eval: doc.function !== 'Count'",
+   "depends_on": "eval: doc.type == 'Document Type' && doc.function !== 'Count'",
    "fieldname": "aggregate_function_based_on",
    "fieldtype": "Select",
    "label": "Aggregate Function Based On",
@@ -97,7 +114,7 @@
    "options": "Daily\nWeekly\nMonthly\nYearly"
   },
   {
-   "depends_on": "eval: doc.type !== 'Custom'",
+   "depends_on": "eval: doc.type == 'Document Type'",
    "fieldname": "stats_section",
    "fieldtype": "Section Break",
    "label": "Stats"
@@ -106,7 +123,7 @@
    "fieldname": "type",
    "fieldtype": "Select",
    "label": "Type",
-   "options": "Document Type\nCustom"
+   "options": "Document Type\nReport\nCustom"
   },
   {
    "depends_on": "eval: doc.type == 'Custom'",
@@ -127,10 +144,18 @@
    "fieldtype": "Code",
    "label": "Filters Configuration",
    "options": "JS"
+  },
+  {
+   "depends_on": "eval: doc.type == 'Report'",
+   "fieldname": "report_name",
+   "fieldtype": "Link",
+   "label": "Report Name",
+   "mandatory_depends_on": "eval: doc.type == 'Report'",
+   "options": "Report"
   }
  ],
  "links": [],
- "modified": "2020-05-16 15:54:12.829079",
+ "modified": "2020-05-18 13:51:14.455760",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Number Card",

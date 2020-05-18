@@ -59,7 +59,7 @@ export default class NumberCardWidget extends Widget {
 			}
 		).then(doc => {
 			this.name = doc.name;
-			this.card_doc.type = doc;
+			this.card_doc = doc;
 			this.widget.attr('data-widget-name', this.name);
 		});
 	}
@@ -87,6 +87,7 @@ export default class NumberCardWidget extends Widget {
 		this.prepare_actions();
 		this.set_title();
 		this.set_loading_state();
+		this.settings = this.get_settings(this.card_doc.type);
 
 		frappe.run_serially([
 			() => this.render_number(),
@@ -100,40 +101,69 @@ export default class NumberCardWidget extends Widget {
 		</div>`);
 	}
 
-	get_number() {
-		let method, args;
-		if (this.card_doc.type == 'Custom') {
-			method = this.card_doc.method;
-			args = {
-				filters: JSON.parse(this.card_doc.filters_json || '{}'),
-			};
-		} else {
-			args = {
-				doc: this.card_doc
-			};
-			method = 'frappe.desk.doctype.number_card.number_card.get_result';
+	get_settings(type) {
+		const settings_map = {
+			'Custom': {
+				method: this.card_doc.method,
+				args: {
+					filters: JSON.parse(this.card_doc.filters_json || '{}')
+				}
+			},
+			'Report': {
+				method: 'frappe.desk.query_report.run',
+				args: {
+					report_name: this.card_doc.report_name,
+					filters: JSON.parse(this.card_doc.filters_json || '{}'),
+					ignore_prepared_report: 1
+				}
+			},
+			'Document Type': {
+				method: 'frappe.desk.doctype.number_card.number_card.get_result',
+				args: {
+					doc: this.card_doc
+				}
+			}
 		}
-		return frappe.xcall(method, args).then(res => {
-			this.number = res;
-			if (this.card_doc.function !== 'Count') {
-				return frappe.model.with_doctype(this.card_doc.document_type, () => {
-					this.get_formatted_number();
-				});
+		return settings_map[type];
+	}
+
+	get_number() {
+		return frappe.xcall(this.settings.method, this.settings.args).then(res => {
+			if (this.card_doc.type == 'Report') {
+				this.get_number_for_report(res);
 			} else {
-				this.number_html = res;
+				this.number = res;
+				if (this.card_doc.function !== 'Count') {
+					return frappe.model.with_doctype(this.card_doc.document_type, () => {
+						const based_on_df =
+							frappe.meta.get_docfield(this.card_doc.document_type, this.card_doc.aggregate_function_based_on);
+						this.get_formatted_number(based_on_df);
+					});
+				} else {
+					this.number_html = res;
+				}
 			}
 		});
 	}
 
-	get_formatted_number() {
-		const based_on_df =
-			frappe.meta.get_docfield(this.card_doc.document_type, this.card_doc.aggregate_function_based_on);
+	get_number_for_report(res) {
+		const field = this.card_doc.report_field;
+		const vals = res.result.reduce((acc, col) => {
+			col[field] && acc.push(col[field]);
+			return acc;
+		}, []);
+		const col = res.columns.find(col => col.fieldname == field);
+		this.number = frappe.report_utils.get_result_of_fn(this.card_doc.report_function, vals);
+		this.get_formatted_number(col);
+	}
+
+	get_formatted_number(df) {
 		const default_country = frappe.sys_defaults.country;
 		const shortened_number = shorten_number(this.number, default_country);
 		let number_parts = shortened_number.split(' ');
 
 		const symbol = number_parts[1] || '';
-		const formatted_number = $(frappe.format(number_parts[0], based_on_df)).text();
+		const formatted_number = $(frappe.format(number_parts[0], df)).text();
 
 		this.number_html = formatted_number + ' ' + symbol;
 	}
@@ -147,7 +177,7 @@ export default class NumberCardWidget extends Widget {
 	}
 
 	render_stats() {
-		if (this.card_doc.type == 'Custom') {
+		if (this.card_doc.type !== 'Document Type') {
 			return;
 		}
 		let caret_html ='';

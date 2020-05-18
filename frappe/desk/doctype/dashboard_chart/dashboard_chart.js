@@ -143,7 +143,7 @@ frappe.ui.form.on('Dashboard Chart', {
 						let filter_values = frappe.report_utils.get_filter_values(filters);
 						frm.set_value('filters_json', JSON.stringify(filter_values));
 					}
-					frm.trigger('show_filters');
+					frm.trigger('render_filters_table');
 					frm.trigger('set_chart_field_options');
 				});
 			}
@@ -171,7 +171,7 @@ frappe.ui.form.on('Dashboard Chart', {
 
 			if (!frm.doc.is_custom) {
 				if (data.result.length) {
-					frm.field_options = frappe.report_utils.get_possible_chart_options(data.columns, data);
+					frm.field_options = frappe.report_utils.get_field_options_from_report(data.columns, data);
 					frm.set_df_property('x_field', 'options', frm.field_options.non_numeric_fields);
 					if (!frm.field_options.numeric_fields.length) {
 						frappe.msgprint(__(`Report has no numeric fields, please change the Report Name`));

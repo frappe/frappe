@@ -5,12 +5,16 @@ frappe.ui.form.on('Number Card', {
 	refresh: function(frm) {
 		frm.set_df_property("filters_section", "hidden", 1);
 		frm.trigger('set_options');
-		frm.trigger('render_filters_table');
+
+		if (frm.doc.type == 'Report') {
+			frm.trigger('set_report_filters');
+		}
 
 		if (frm.doc.type == 'Custom') {
 			if (!frappe.boot.developer_mode) {
 				frm.disable_form();
 			}
+			frm.filters = eval(frm.doc.filters_config);
 			frm.trigger('set_filters_description');
 		}
 
@@ -83,11 +87,32 @@ frappe.ui.form.on('Number Card', {
 	},
 
 	type: function(frm) {
-		frm.trigger('render_filters_table');
 		frm.trigger('set_filters_description');
+		if (frm.doc.type == 'Report') {
+			frm.set_query('report_name', () => {
+				return {
+					filters: {
+						'report_type': ['!=', 'Report Builder']
+					}
+				}
+			});
+			frm.trigger('set_report_filters');
+		}
+		frm.set_value('filters_json', 'null');
+		frm.filters = null;
+		frm.trigger('render_filters_table');
+	},
+
+	report_name: function(frm) {
+		frm.trigger('set_report_filters');
+		frm.set_value('filters_json', 'null');
+		frm.filters = null;
 	},
 
 	filters_config: function(frm) {
+		frm.filters = eval(frm.doc.filters_config);
+		const filter_values = frappe.report_utils.get_filter_values(frm.filters);
+		frm.set_value('filters_json', JSON.stringify(filter_values));
 		frm.trigger('render_filters_table');
 	},
 
@@ -99,12 +124,16 @@ frappe.ui.form.on('Number Card', {
 				}
 			};
 		});
-		frm.set_value('filters_json', '[]');
+		frm.set_value('filters_json', 'null');
 		frm.set_value('aggregate_function_based_on', '');
 		frm.trigger('set_options');
 	},
 
 	set_options: function(frm) {
+		if (!frm.doc.type == 'Document Type') {
+			return;
+		}
+
 		let aggregate_based_on_fields = [];
 		const doctype = frm.doc.document_type;
 
@@ -123,27 +152,57 @@ frappe.ui.form.on('Number Card', {
 
 				frm.set_df_property('aggregate_function_based_on', 'options', aggregate_based_on_fields);
 			});
+			frm.trigger('render_filters_table');
 		}
+	},
+
+	set_report_filters: function(frm) {
+		const report_name = frm.doc.report_name;
+		if (report_name) {
+			frappe.report_utils.get_report_filters(report_name).then(filters => {
+				if (filters) {
+					frm.filters = filters;
+					const filter_values = frappe.report_utils.get_filter_values(filters);
+					if (!JSON.parse(frm.doc.filters_json)) {
+						frm.set_value('filters_json', JSON.stringify(filter_values));
+					}
+				}
+				frm.trigger('render_filters_table');
+				frm.trigger('set_report_field_options');
+			});
+		}
+	},
+
+
+	set_report_field_options: function(frm) {
+		let filters = JSON.parse(frm.doc.filters_json);
+		frappe.xcall(
+			'frappe.desk.query_report.run',
+			{
+				report_name: frm.doc.report_name,
+				filters: filters,
+				ignore_prepared_report: 1
+			}
+		).then(data => {
+			frm.report_data = data;
+			if (data.result.length) {
+				frm.field_options = frappe.report_utils.get_field_options_from_report(data.columns, data);
+				frm.set_df_property('report_field', 'options', frm.field_options.numeric_fields);
+				if (!frm.field_options.numeric_fields.length) {
+					frappe.msgprint(__(`Report has no numeric fields, please change the Report Name`));
+				}
+			} else {
+				frappe.msgprint(__('Report has no data, please modify the filters or change the Report Name'));
+			}
+		});
 	},
 
 	render_filters_table: function(frm) {
 		frm.set_df_property("filters_section", "hidden", 0);
-
-		const is_custom = frm.doc.type == 'Custom';
-		let fields;
-		if (!is_custom) {
-			fields = [{
-				fieldtype: 'HTML',
-				fieldname: 'filter_area',
-			}];
-			frm.filters = JSON.parse(frm.doc.filters_json || 'null');
-		} else {
-			fields = eval(frm.doc.filters_config);
-			frm.filters = JSON.parse(frm.doc.filters_json || 'null');
-		}
+		let is_document_type = frm.doc.type == 'Document Type';
 
 		let wrapper = $(frm.get_field('filters_json').wrapper).empty();
-		frm.filter_table = $(`<table class="table table-bordered" style="cursor:pointer; margin:0px;">
+		let table = $(`<table class="table table-bordered" style="cursor:pointer; margin:0px;">
 			<thead>
 				<tr>
 					<th style="width: 33%">${__('Filter')}</th>
@@ -153,10 +212,59 @@ frappe.ui.form.on('Number Card', {
 			</thead>
 			<tbody></tbody>
 		</table>`).appendTo(wrapper);
+		$(`<p class="text-muted small">${__("Click table to edit")}</p>`).appendTo(wrapper);
 
-		frm.trigger('set_filters_in_table');
+		let filters = JSON.parse(frm.doc.filters_json || 'null');
+		let filters_set = false;
 
-		frm.filter_table.on('click', () => {
+		let fields;
+		if (is_document_type) {
+			fields = [
+				{
+					fieldtype: 'HTML',
+					fieldname: 'filter_area',
+				}
+			];
+
+			if (filters) {
+				filters.forEach( filter => {
+					const filter_row =
+						$(`<tr>
+							<td>${filter[1]}</td>
+							<td>${filter[2] || ""}</td>
+							<td>${filter[3]}</td>
+						</tr>`);
+
+					table.find('tbody').append(filter_row);
+				});
+				filters_set = true;
+			}
+		} else if (frm.filters) {
+			filters_set = true;
+			fields = frm.filters.filter(f => f.fieldname);
+			fields.map( f => {
+				if (filters[f.fieldname]) {
+					let condition = '=';
+					const filter_row =
+						$(`<tr>
+							<td>${f.label}</td>
+							<td>${condition}</td>
+							<td>${filters[f.fieldname] || ""}</td>
+						</tr>`);
+
+					table.find('tbody').append(filter_row);
+				}
+			});
+		}
+
+		if (!filters_set) {
+			const filter_row = $(`<tr><td colspan="3" class="text-muted text-center">
+				${__("Click to Set Filters")}</td></tr>`);
+			table.find('tbody').append(filter_row);
+		}
+
+		table.on('click', () => {
+
 			let dialog = new frappe.ui.Dialog({
 				title: __('Set Filters'),
 				fields: fields,
@@ -164,67 +272,37 @@ frappe.ui.form.on('Number Card', {
 					let values = this.get_values();
 					if (values) {
 						this.hide();
-						frm.filters = is_custom ? values: frm.filter_group.get_filters();
-						frm.set_value('filters_json', JSON.stringify(frm.filters));
-						frm.trigger('set_filters_in_table');
+						if (is_document_type) {
+							let filters = frm.filter_group.get_filters();
+							frm.set_value('filters_json', JSON.stringify(filters));
+						} else {
+							frm.set_value('filters_json', JSON.stringify(values));
+						}
+
+						frm.trigger('render_filters_table');
+						// if (frm.doc.type == 'Report') {
+						// 	frm.trigger('set_report_filtres');
+						// }
 					}
 				},
 				primary_action_label: "Set"
 			});
+			frappe.dashboards.filters_dialog = dialog;
 
-			frm.filters_dialog = dialog;
-			if (!is_custom) {
-				frm.trigger('create_filter_group');
+			if (is_document_type) {
+				frm.filter_group = new frappe.ui.FilterGroup({
+					parent: dialog.get_field('filter_area').$wrapper,
+					doctype: frm.doc.document_type,
+					on_change: () => {},
+				});
+
+				filters && frm.filter_group.add_filters_to_filter_group(filters);
 			}
 
 			dialog.show();
-			dialog.set_values(frm.filters);
+			//Set query report object so that it can be used while fetching filter values in the report
+			frappe.query_report = new frappe.views.QueryReport({'filters': dialog.fields_list});
+			dialog.set_values(filters);
 		});
-
-	},
-
-	create_filter_group: function(frm) {
-		frm.filter_group = new frappe.ui.FilterGroup({
-			parent: frm.filters_dialog.get_field('filter_area').$wrapper,
-			doctype: frm.doc.document_type,
-			on_change: () => {},
-		});
-
-		frm.filters && frm.filter_group.add_filters_to_filter_group(frm.filters);
-	},
-
-	set_filters_in_table: function(frm) {
-		if (!frm.filters) {
-			const filter_row = $(`<tr><td colspan="3" class="text-muted text-center">
-				${__("Click to Set Filters")}</td></tr>`);
-			frm.filter_table.find('tbody').html(filter_row);
-		} else {
-			let filter_rows = '';
-
-			if (frm.doc.type !== 'Custom') {
-				frm.filters.forEach(filter => {
-					filter_rows +=
-						`<tr>
-							<td>${filter[1]}</td>
-							<td>${filter[2] || ""}</td>
-							<td>${filter[3]}</td>
-						</tr>`;
-				});
-			} else {
-				let fields = eval(frm.doc.filters_config);
-				fields.map(f => {
-					if (frm.filters[f.fieldname]) {
-						let condition = '=';
-						filter_rows +=
-							`<tr>
-								<td>${f.label}</td>
-								<td>${condition}</td>
-								<td>${frm.filters[f.fieldname] || ""}</td>
-							</tr>`;
-					}
-				});
-			}
-			frm.filter_table.find('tbody').html(filter_rows);
-		}
 	}
 });

@@ -702,7 +702,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 	open_create_chart_dialog() {
 		const me = this;
-		let field_options = frappe.report_utils.get_possible_chart_options(this.columns, this.raw_data);
+		let field_options = frappe.report_utils.get_field_options_from_report(this.columns, this.raw_data);
 
 		function set_chart_values(values) {
 			values.y_fields = [];
