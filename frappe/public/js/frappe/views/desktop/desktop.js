@@ -294,7 +294,7 @@ class DesktopPage {
 
 	make_charts() {
 		return frappe.dashboard_utils.get_dashboard_settings().then(settings => {
-			let chart_config = settings.chart_config? JSON.parse(settings.chart_config): {};
+			let chart_config = settings.chart_config ? JSON.parse(settings.chart_config): {};
 			if (this.data.charts.items) {
 				this.data.charts.items.map(chart => {
 					chart.chart_settings = chart_config[chart.chart_name] || {};
@@ -306,6 +306,7 @@ class DesktopPage {
 				container: this.page,
 				type: "chart",
 				columns: 1,
+				hidden: Boolean(this.onboarding_widget),
 				options: {
 					allow_sorting: this.allow_customization,
 					allow_create: this.allow_customization,

@@ -25,26 +25,10 @@
 		{{ head_html or "" }}
 		{%- endif %}
 
-		{%- if theme.based_on == 'Bootstrap 4' or doctype != 'Web Page' -%}
-			{%- if theme.theme_url -%}
-			<link type="text/css" rel="stylesheet" href="{{ theme.theme_url }}">
-			{%- else -%}
-			<link type="text/css" rel="stylesheet" href="/assets/css/frappe-web-b4.css">
-			{%- endif -%}
-		{% else %}
-			{%- if developer_mode -%}
-			<!-- load the full list of tailwind classes in development -->
-			<link type="text/css" rel="stylesheet" href="/assets/css/tailwind.css">
-			{%- else -%}
-			<!-- load tree-shaken classes in production -->
-			<!-- container for processed tailwind styles -->
-			<!-- tailwind-styles -->
-			{% endif %}
-			{%- if theme.theme_css -%}
-			<style>
-				{{ theme.theme_css }}
-			</style>
-			{%- endif -%}
+		{%- if theme.name != 'Standard' -%}
+		<link type="text/css" rel="stylesheet" href="{{ theme.theme_url }}">
+		{%- else -%}
+		<link type="text/css" rel="stylesheet" href="/assets/css/frappe-web-b4.css">
 		{%- endif -%}
 
 		{%- for link in web_include_css %}
@@ -65,7 +49,7 @@
 			frappe.ready_events.push(fn);
 		}
 		window.dev_server = {{ dev_server }};
-		window.socketio_port = {{ frappe.socketio_port }};
+		window.socketio_port = {{ (frappe.socketio_port or 'null') }};
 	</script>
 </head>
 <body frappe-session-status="{{ 'logged-in' if frappe.session.user != 'Guest' else 'logged-out'}}" data-path="{{ path | e }}" {%- if template and template.endswith('.md') %} frappe-content-type="markdown" {% endif -%}>
@@ -78,11 +62,7 @@
 	{%- endblock -%}
 
 	{%- block navbar -%}
-		{%- if navbar_content -%}
-			{{ navbar_content }}
-		{%- else -%}
-			{% include "templates/includes/navbar/navbar.html" %}
-		{%- endif -%}
+		{% include "templates/includes/navbar/navbar.html" %}
 	{%- endblock -%}
 
 	{% block content %}
@@ -90,11 +70,7 @@
 	{% endblock %}
 
 	{%- block footer -%}
-		{%- if footer_content -%}
-			{{ footer_content }}
-		{%- else -%}
-			{% include "templates/includes/footer/footer.html" %}
-		{%- endif -%}
+		{% include "templates/includes/footer/footer.html" %}
 	{%- endblock -%}
 
 	{% block base_scripts %}
