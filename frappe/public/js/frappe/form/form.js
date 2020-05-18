@@ -1393,7 +1393,6 @@ frappe.ui.form.Form = class FrappeForm {
 			var p = docperms[i];
 			perm[p.permlevel || 0] = {read:1, print:1, cancel:1, email:1};
 		}
-		console.log('heree', docperms);
 		this.perm = perm;
 	}
 
