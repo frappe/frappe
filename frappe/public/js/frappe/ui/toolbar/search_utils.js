@@ -288,7 +288,7 @@ frappe.search.utils = {
 		var out = [];
 		frappe.boot.allowed_workspaces.forEach(function(item) {
 			var level = me.fuzzy_search(keywords, item.name);
-			if(level > 0) {
+			if (level > 0) {
 				var ret = {
 					type: "Workspace",
 					label: __("Open {0}", [me.bolden_match_part(__(item.name), keywords)]),
@@ -307,9 +307,8 @@ frappe.search.utils = {
 		var me = this;
 		var out = [];
 		frappe.boot.dashboards.forEach(function(item) {
-			console.log(item)
 			var level = me.fuzzy_search(keywords, item.name);
-			if(level > 0) {
+			if (level > 0) {
 				var ret = {
 					type: "Dashboard",
 					label: __("{0} Dashboard", [me.bolden_match_part(__(item.name), keywords)]),
