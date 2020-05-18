@@ -116,22 +116,16 @@ frappe.ui.form.MultiSelectDialog = Class.extend({
 		// CASE 2: if the fieldname of the target is different,
 		// then pass a list of fields with appropriate
 
-		if (Array.isArray(this.setters)) {
-			for (let df of this.setters) {
-				fields.push(df, { fieldtype: "Column Break" });
-			}
-		} else {
-			Object.keys(this.setters).forEach(function (setter, index) {
-				let df_prop = frappe.meta.docfield_map[me.doctype][setter];
-				columns['col_' + cstr((index + 1) % 3)].push({
-					fieldtype: df_prop.fieldtype,
-					label: df_prop.label,
-					fieldname: setter,
-					options: df_prop.options,
-					default: me.setters[setter]
-				});
+		Object.keys(this.setters).forEach(function (setter, index) {
+			let df_prop = frappe.meta.docfield_map[me.doctype][setter];
+			columns['col_' + cstr((index + 1) % 3)].push({
+				fieldtype: df_prop.fieldtype,
+				label: df_prop.label,
+				fieldname: setter,
+				options: df_prop.options,
+				default: me.setters[setter]
 			});
-		}
+		});
 
 		for (let i = 0; i < 3; i++) {
 			fields = fields.concat(columns['col_' + cstr(i)]);
@@ -212,13 +206,7 @@ frappe.ui.form.MultiSelectDialog = Class.extend({
 		let contents = ``;
 		let columns = ["name"];
 
-		if (Array.isArray(this.setters)) {
-			for (let df of this.setters) {
-				columns.push(df.fieldname);
-			}
-		} else {
-			columns = columns.concat(Object.keys(this.setters));
-		}
+		columns = columns.concat(Object.keys(this.setters));
 
 		columns.forEach(function (column) {
 			contents += `<div class="list-item__content ellipsis">
@@ -288,19 +276,11 @@ frappe.ui.form.MultiSelectDialog = Class.extend({
 		let filters = this.get_query ? this.get_query().filters : {} || {};
 		// let filter_fields = [me.date_field];
 		let filter_fields = [];
-		if (Array.isArray(this.setters)) {
-			for (let df of this.setters) {
-				filters[df.fieldname] = me.dialog.fields_dict[df.fieldname].get_value() || undefined;
-				me.args[df.fieldname] = filters[df.fieldname];
-				filter_fields.push(df.fieldname);
-			}
-		} else {
-			Object.keys(this.setters).forEach(function (setter) {
-				filters[setter] = me.dialog.fields_dict[setter].get_value() || undefined;
-				me.args[setter] = filters[setter];
-				filter_fields.push(setter);
-			});
-		}
+		Object.keys(this.setters).forEach(function (setter) {
+			filters[setter] = me.dialog.fields_dict[setter].get_value() || undefined;
+			me.args[setter] = filters[setter];
+			filter_fields.push(setter);
+		});
 
 		let filter_group = this.get_filters();
 		$.extend(filters, filter_group);
