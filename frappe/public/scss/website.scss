@@ -55,6 +55,14 @@
 	}
 }
 
+.navbar-brand {
+	img {
+		display: inline-block;
+		max-width: 150px;
+		max-height: 25px;
+	}
+}
+
 .dropdown-menu {
 	padding: 0.25rem;
 }

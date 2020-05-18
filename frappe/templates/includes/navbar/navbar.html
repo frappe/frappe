@@ -1,15 +1,13 @@
 <nav class="navbar navbar-light navbar-expand-lg">
 	<div class="container">
 		<a class="navbar-brand" href="{{ url_prefix }}{{ home_page or "/" }}">
-			<span>
 			{% if brand_html %}
 				{{ brand_html }}
 			{% elif banner_image %}
-				<img src='{{ banner_image }}' style='max-width: 150px;max-height: 25px;'>
+				<img src='{{ banner_image }}'>
 			{% else %}
-				{{ (frappe.get_hooks("brand_html") or [_("Home")])[0] }}
+				<span>{{ (frappe.get_hooks("brand_html") or [_("Home")])[0] }}</span>
 			{% endif %}
-			</span>
 		</a>
 		<button class="navbar-toggler" type="button"
 			data-toggle="collapse"
