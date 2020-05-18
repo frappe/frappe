@@ -49,7 +49,7 @@
 			frappe.ready_events.push(fn);
 		}
 		window.dev_server = {{ dev_server }};
-		window.socketio_port = {{ frappe.socketio_port }};
+		window.socketio_port = {{ (frappe.socketio_port or 'null') }};
     </script>
 </head>
 <body frappe-session-status="{{ 'logged-in' if frappe.session.user != 'Guest' else 'logged-out'}}" data-path="{{ path | e }}" {%- if template and template.endswith('.md') %} frappe-content-type="markdown" {% endif -%}>

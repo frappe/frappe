@@ -299,16 +299,19 @@ def get_next_schedule_date(schedule_date, frequency, start_date, repeat_on_day=N
 		next_date = get_next_date(start_date, month_count)
 	else:
 		days = 7 if frequency == 'Weekly' else 1
-		next_date = add_days(start_date, days)
+		next_date = add_days(schedule_date, days)
 
 	# next schedule date should be after or on current date
 	if not for_full_schedule:
 		while getdate(next_date) < getdate(today()):
 			if month_count:
 				month_count += month_map.get(frequency)
-			next_date = get_next_date(start_date, month_count, day_count)
+				next_date = get_next_date(start_date, month_count, day_count)
+			elif days:
+				next_date = add_days(next_date, days)
 
 	return next_date
+
 
 def get_next_date(dt, mcount, day=None):
 	dt = getdate(dt)

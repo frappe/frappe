@@ -113,8 +113,9 @@ frappe.ready(function() {
 					df.only_select = true;
 				}
 				if (["Attach", "Attach Image"].includes(df.fieldtype)) {
-					if (!df.options)
+					if (typeof df.options !== "object") {
 						df.options = {};
+					}
 					df.options.disable_file_browser = true;
 				}
 			});

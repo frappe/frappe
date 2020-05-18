@@ -55,6 +55,7 @@ class Webhook(Document):
 			if self.request_structure == "Form URL-Encoded":
 				self.webhook_json = None
 			elif self.request_structure == "JSON":
+				validate_json(self.webhook_json)
 				validate_template(self.webhook_json)
 				self.webhook_data = []
 
@@ -112,3 +113,10 @@ def get_webhook_data(doc, webhook):
 		data = json.loads(data)
 
 	return data
+
+
+def validate_json(string):
+	try:
+		json.loads(string)
+	except (TypeError, ValueError):
+		frappe.throw(_("Request Body consists of an invalid JSON structure"), title=_("Invalid JSON"))
