@@ -44,7 +44,6 @@ def get_site(context):
 		site = context.sites[0]
 		return site
 	except (IndexError, TypeError):
-		print('Please specify --site sitename')
 		sys.exit(1)
 
 def popen(command, *args, **kwargs):
