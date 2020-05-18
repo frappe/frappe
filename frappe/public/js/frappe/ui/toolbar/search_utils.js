@@ -303,6 +303,27 @@ frappe.search.utils = {
 		return out;
 	},
 
+	get_dashboards: function(keywords) {
+		var me = this;
+		var out = [];
+		frappe.boot.dashboards.forEach(function(item) {
+			console.log(item)
+			var level = me.fuzzy_search(keywords, item.name);
+			if(level > 0) {
+				var ret = {
+					type: "Dashboard",
+					label: __("{0} Dashboard", [me.bolden_match_part(__(item.name), keywords)]),
+					value: __("{0} Dashboard", [__(item.name)]),
+					index: level,
+					route: ["dashboard", item.name]
+				};
+
+				out.push(ret);
+			}
+		});
+		return out;
+	},
+
 	get_global_results: function(keywords, start, limit, doctype = "") {
 		var me = this;
 		function get_results_sets(data) {
@@ -489,6 +510,11 @@ frappe.search.utils = {
 			title: "Workspace",
 			fetch_type: "Nav",
 			results: sort_uniques(this.get_workspaces(keywords))
+		},
+		{
+			title: "Dashboard",
+			fetch_type: "Nav",
+			results: sort_uniques(this.get_dashboards(keywords))
 		},
 		{
 			title: "Setup",
