@@ -66,3 +66,4 @@ watchdog==0.8.0
 Werkzeug==0.16.1
 xlrd==1.2.0
 zxcvbn-python==4.4.24
+Whoosh==2.7.4
