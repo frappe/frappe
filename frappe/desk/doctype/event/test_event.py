@@ -83,7 +83,7 @@ class TestEvent(unittest.TestCase):
 
 		# add another one
 		add({
-			"assign_to": self.test_user,
+			"assign_to": [self.test_user],
 			"doctype": "Event",
 			"name": ev.name,
 			"description": "Test Assignment"
