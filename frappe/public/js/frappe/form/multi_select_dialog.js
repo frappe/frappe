@@ -45,7 +45,7 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 			primary_action_label: this.primary_action_label || __("Get Items"),
 			secondary_action_label: __("Make {0}", [me.doctype]),
 			primary_action: function () {
-				let filters_data = me.get_filters();
+				let filters_data = me.get_custom_filters();
 				me.action(me.get_checked_values(), cur_dialog.get_values(), me.args, filters_data);
 			},
 			secondary_action: function (e) {
@@ -154,8 +154,8 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 		});
 	}
 
-	get_filters() {
-		if (this.add_filters_group) {
+	get_custom_filters() {
+		if (this.add_filters_group && this.filter_group) {
 			return this.filter_group.get_filters().reduce((acc, filter) => {
 				return Object.assign(acc, {
 					[filter[1]]: [filter[2], filter[3]]
@@ -294,6 +294,7 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 		let me = this;
 		let filters = this.get_query ? this.get_query().filters : {} || {};
 		let filter_fields = [];
+
 		Object.keys(this.setters).forEach(function (setter) {
 			var value = me.dialog.fields_dict[setter].get_value();
 			if (me.dialog.fields_dict[setter].df.fieldtype == "Data" && value) {
@@ -304,7 +305,8 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 				filter_fields.push(setter);
 			}
 		});
-		let filter_group = this.get_filters();
+
+		let filter_group = this.get_custom_filters();
 		Object.assign(filters, filter_group);
 
 		let args = {
