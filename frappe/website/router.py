@@ -271,6 +271,9 @@ def setup_source(page_info):
 		if page_info.template.endswith('.md'):
 			source = frappe.utils.md_to_html(source)
 
+			if page_info.page_toc:
+				page_info.page_toc_html = source.toc_html
+
 			if not page_info.show_sidebar:
 				source = '<div class="from-markdown">' + source + '</div>'
 

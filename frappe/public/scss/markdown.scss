@@ -122,3 +122,41 @@ main:not(.my-5) .from-markdown {
 		margin-top: 5rem;
 	}
 }
+
+.page-toc {
+	font-size: $font-size-sm;
+
+	h5 {
+		font-size: $font-size-sm;
+		margin-bottom: 0.5rem;
+		color: $gray-500;
+	}
+
+	> div {
+		padding-top: 2rem;
+		position: sticky;
+		top: 0;
+	}
+
+	ul {
+		padding-left: 0;
+		list-style-type: none;
+	}
+
+	li > ul {
+		padding-left: 0.5rem;
+	}
+
+	a {
+		display: block;
+		padding: 0.25rem 0;
+
+		color: $gray-600;
+		text-decoration: none;
+		font-weight: 500;
+
+		&:hover {
+			color: $gray-700;
+		}
+	}
+}

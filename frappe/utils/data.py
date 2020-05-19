@@ -1129,6 +1129,7 @@ def md_to_html(markdown_text):
 		'fenced-code-blocks': None,
 		'tables': None,
 		'header-ids': None,
+		'toc': None,
 		'highlightjs-lang': None,
 		'html-classes': {
 			'table': 'table table-bordered',
