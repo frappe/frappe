@@ -1258,7 +1258,8 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 			},
 			{
 				label: __('Toggle Sidebar'),
-				action: () => this.toggle_side_bar()
+				action: () => this.toggle_side_bar(),
+				shortcut: 'Ctrl+K',
 			},
 			{
 				label: __('Pick Columns'),
