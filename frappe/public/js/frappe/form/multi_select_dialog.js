@@ -337,14 +337,11 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 						result.parsed_date = Date.parse(result["Date"]);
 						me.results.push(result);
 					});
+
 					me.results.sort((a, b) => {
 						return a.parsed_date - b.parsed_date;
 					});
 
-					// Preselect oldest entry
-					if (me.start < 1 && r.values.length === 1) {
-						me.results[0].checked = 1;
-					}
 				}
 				me.render_result_list(me.results, more);
 			}
