@@ -110,11 +110,11 @@ def create_dashboard_chart(args):
 	doc.insert(ignore_permissions=True)
 	return doc
 
-
 @frappe.whitelist()
 def create_report_chart(args):
-	create_dashboard_chart(args)
+	doc = create_dashboard_chart(args)
 	args = frappe.parse_json(args)
+	args.chart_name = doc.chart_name
 	if args.dashboard:
 		add_chart_to_dashboard(json.dumps(args))
 
