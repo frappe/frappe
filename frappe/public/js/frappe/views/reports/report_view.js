@@ -113,7 +113,9 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		} else {
 			this.save_report_settings();
 		}
-		this.init_chart();
+		if (!this.group_by) {
+			this.init_chart();
+		}
 	}
 
 	set_dirty_state_for_custom_report() {
@@ -177,9 +179,13 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		this.render_count();
 		this.setup_columns();
 
-		if (this.chart) {
+		if (this.group_by) {
+			this.$charts_wrapper.addClass('hidden');
+		} else if (this.chart) {
+			this.$charts_wrapper.removeClass('hidden');
 			this.refresh_charts();
 		}
+
 		if (this.datatable && !force) {
 			this.datatable.refresh(this.get_data(this.data), this.columns);
 			return;
