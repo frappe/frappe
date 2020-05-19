@@ -181,16 +181,9 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 		});
 
 		this.$parent.find('.input-with-feedback').on('change', (e) => {
-			// debugger;
 			frappe.flags.auto_scroll = false;
 			this.get_results();
 		});
-		// this.$parent.find('[data-fieldtype="Link"]').on('change', (e) => {
-		// 	// debugger;
-		// 	frappe.flags.auto_scroll = false;
-		// 	console.log("cool");
-		// 	this.get_results();
-		// });
 
 		this.$parent.find('[data-fieldtype="Data"]').on('input', (e) => {
 			var $this = $(this);
