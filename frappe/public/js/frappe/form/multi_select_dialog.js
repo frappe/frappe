@@ -273,13 +273,18 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 	}
 
 	empty_list() {
+		// Store all checked items
 		let checked = this.get_checked_items().map(item => {
 			return {
 				...item,
 				checked: true
 			};
 		});
+
+		// Remove **all** items
 		this.$results.find('.list-item-container').remove();
+
+		// Rerender checked items
 		this.render_result_list(checked, 0, false);
 	}
 
