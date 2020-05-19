@@ -18,24 +18,27 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 		this.start = 0;
 		let fields = this.get_primary_filters();
 
+		// Make results area
 		fields = fields.concat([
 			{ fieldtype: "HTML", fieldname: "results_area" },
 			{
 				fieldtype: "Button", fieldname: "more_btn", label: __("More"),
-				click: function () {
-					me.start += 20;
+				click: () => {
+					this.start += 20;
 					frappe.flags.auto_scroll = true;
-					me.get_results();
+					this.get_results();
 				}
 			}
 		]);
 
+		// Custom Data Fields
 		if (this.data_fields) {
 			fields.push({ fieldtype: "Section Break" });
 			fields = fields.concat(this.data_fields);
 		}
 
-		let doctype_plural =frappe.utils.get_doctype_plural(this.doctype);
+		let doctype_plural = frappe.utils.get_doctype_plural(this.doctype);
+
 		this.dialog = new frappe.ui.Dialog({
 			title: __("Select {0}", [(this.doctype == '[Select]') ? __("value") : __(doctype_plural)]),
 			fields: fields,
