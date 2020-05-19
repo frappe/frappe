@@ -1,7 +1,7 @@
-frappe.ui.form.MultiSelectDialog = Class.extend({
-	init: function (opts) {
+frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
+	constructor(opts) {
 		/* Options: doctype, target, setters, get_query, action, add_filters_group, data_fields, primary_action_label */
-		$.extend(this, opts);
+		Object.assign(this, opts);
 		var me = this;
 		if (this.doctype != "[Select]") {
 			frappe.model.with_doctype(this.doctype, function () {
@@ -10,8 +10,9 @@ frappe.ui.form.MultiSelectDialog = Class.extend({
 		} else {
 			this.make();
 		}
-	},
-	make: function () {
+	}
+
+	make() {
 		let me = this;
 		this.page_length = 20;
 		this.start = 0;
@@ -87,9 +88,9 @@ frappe.ui.form.MultiSelectDialog = Class.extend({
 		this.bind_events();
 		this.get_results();
 		this.dialog.show();
-	},
+	}
 
-	get_fields_for_header: function () {
+	get_fields_for_header() {
 		let fields = [];
 		let me = this;
 		let columns = {};
@@ -135,9 +136,9 @@ frappe.ui.form.MultiSelectDialog = Class.extend({
 		}
 		fields = fields.concat({ fieldtype: "Section Break", fieldname: "hello" });
 		return fields;
-	},
+	}
 
-	make_filter_area: function () {
+	make_filter_area() {
 		this.filter_group = new frappe.ui.FilterGroup({
 			parent: this.dialog.get_field('filter_area').$wrapper,
 			doctype: this.doctype,
@@ -145,9 +146,9 @@ frappe.ui.form.MultiSelectDialog = Class.extend({
 				this.get_results();
 			}
 		});
-	},
+	}
 
-	get_filters: function () {
+	get_filters() {
 		if (this.add_filters_group) {
 			return this.filter_group.get_filters().reduce((acc, filter) => {
 				return Object.assign(acc, {
@@ -157,9 +158,9 @@ frappe.ui.form.MultiSelectDialog = Class.extend({
 		} else {
 			return [];
 		}
-	},
+	}
 
-	bind_events: function () {
+	bind_events() {
 		let me = this;
 
 		this.$results.on('click', '.list-item-container', function (e) {
@@ -194,24 +195,24 @@ frappe.ui.form.MultiSelectDialog = Class.extend({
 				me.get_results();
 			}, 300));
 		});
-	},
+	}
 
-	get_checked_values: function () {
+	get_checked_values() {
 		// Return name of checked value.
 		return this.$results.find('.list-item-container').map(function () {
 			if ($(this).find('.list-row-check:checkbox:checked').length > 0) {
 				return $(this).attr('data-item-name');
 			}
 		}).get();
-	},
+	}
 
-	get_checked_items: function () {
+	get_checked_items() {
 		// Return checked items with all the column values.
 		let checked_values = this.get_checked_values();
 		return this.results.filter(res => checked_values.includes(res.name));
-	},
+	}
 
-	make_list_row: function (result = {}) {
+	make_list_row(result = {}) {
 		var me = this;
 		// Make a head row by default (if result not passed)
 		let head = Object.keys(result).length === 0;
@@ -244,9 +245,9 @@ frappe.ui.form.MultiSelectDialog = Class.extend({
 
 		$(".modal-dialog .list-item--head").css("z-index", 0);
 		return $row;
-	},
+	}
 
-	render_result_list: function (results, more = 0, empty = true) {
+	render_result_list(results, more = 0, empty = true) {
 		var me = this;
 		var more_btn = me.dialog.fields_dict.more_btn.$wrapper;
 
@@ -270,9 +271,9 @@ frappe.ui.form.MultiSelectDialog = Class.extend({
 		if (frappe.flags.auto_scroll) {
 			this.$results.animate({ scrollTop: me.$results.prop('scrollHeight') }, 500);
 		}
-	},
+	}
 
-	empty_list: function () {
+	empty_list() {
 		let checked = this.get_checked_items().map(item => {
 			return {
 				...item,
@@ -281,9 +282,9 @@ frappe.ui.form.MultiSelectDialog = Class.extend({
 		});
 		this.$results.find('.list-item-container').remove();
 		this.render_result_list(checked, 0, false);
-	},
+	}
 
-	get_results: function () {
+	get_results() {
 		let me = this;
 		let filters = this.get_query ? this.get_query().filters : {} || {};
 		let filter_fields = [];
@@ -298,7 +299,7 @@ frappe.ui.form.MultiSelectDialog = Class.extend({
 			}
 		});
 		let filter_group = this.get_filters();
-		$.extend(filters, filter_group);
+		Object.assign(filters, filter_group);
 
 		let args = {
 			doctype: me.doctype,
@@ -340,6 +341,5 @@ frappe.ui.form.MultiSelectDialog = Class.extend({
 				me.render_result_list(me.results, more);
 			}
 		});
-	},
-
-});
+	}
+};
