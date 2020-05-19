@@ -16,15 +16,7 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 		let me = this;
 		this.page_length = 20;
 		this.start = 0;
-		let fields = this.get_fields_for_header();
-		if (this.add_filters_group) {
-			fields.push(
-				{
-					fieldtype: 'HTML',
-					fieldname: 'filter_area',
-				}
-			);
-		}
+		let fields = this.get_primary_filters();
 
 		fields = fields.concat([
 			{ fieldtype: "HTML", fieldname: "results_area" },
@@ -90,51 +82,62 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 		this.dialog.show();
 	}
 
-	get_fields_for_header() {
+	get_primary_filters() {
 		let fields = [];
 		let me = this;
-		let columns = {};
-		columns['col_0'] = [
+
+		let columns = new Array(3);
+
+		// Hack for three column layout
+		// To add column break
+		columns[0] = [
 			{
 				fieldtype: "Data",
 				label: __("Search"),
 				fieldname: "search_term"
 			}
 		];
-		columns['col_1'] = [];
-		columns['col_2'] = [];
+		columns[1] = [];
+		columns[2] = [];
 
-		// setters can be defined as a dict or a list of fields
-		// setters define the additional filters that get applied
-		// for selection
+		Object.keys(this.setters).forEach((setter, index) => {
+			let df_prop = frappe.meta.docfield_map[this.doctype][setter];
 
-		// CASE 1: DocType name and fieldname is the same, example "customer" and "customer"
-		// setters define the filters applied in the modal
-		// if the fieldnames and doctypes are consistently named,
-		// pass a dict with the setter key and value, for example
-		// {customer: [customer_name]}
-
-		// CASE 2: if the fieldname of the target is different,
-		// then pass a list of fields with appropriate
-
-		Object.keys(this.setters).forEach(function (setter, index) {
-			let df_prop = frappe.meta.docfield_map[me.doctype][setter];
-			columns['col_' + cstr((index + 1) % 3)].push({
+			// Index + 1 to start filling from index 1
+			// Since Search is a standrd field already pushed
+			columns[(index + 1) % 3].push({
 				fieldtype: df_prop.fieldtype,
 				label: df_prop.label,
 				fieldname: setter,
 				options: df_prop.options,
-				default: me.setters[setter]
+				default: this.setters[setter]
 			});
 		});
 
-		for (let i = 0; i < 3; i++) {
-			fields = fields.concat(columns['col_' + cstr(i)]);
-			if (i != 2) {
-				fields = fields.concat({ fieldtype: "Column Break" });
-			}
+		// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/seal
+		if(Object.seal) {
+			Object.seal(columns);
+			// now a is a fixed-size array with mutable entries
 		}
-		fields = fields.concat({ fieldtype: "Section Break", fieldname: "hello" });
+
+		fields = [
+			...columns[0],
+			{ fieldtype: "Column Break" },
+			...columns[1],
+			{ fieldtype: "Column Break" },
+			...columns[2],
+			{ fieldtype: "Section Break", fieldname: "primary_filters_sb" }
+		]
+
+		if (this.add_filters_group) {
+			fields.push(
+				{
+					fieldtype: 'HTML',
+					fieldname: 'filter_area',
+				}
+			);
+		}
+
 		return fields;
 	}
 
