@@ -1,5 +1,5 @@
 <div class="web-sidebar">
-	<div class="sidebar-items small">
+	<div class="sidebar-items">
 		<ul class="list-unstyled">
 			{% if sidebar_title %}
 			<li class="title">
@@ -7,9 +7,10 @@
 			</li>
 			{% endif %}
 			{% for item in sidebar_items -%}
-			<li class="sidebar-item my-2">
+			<li class="sidebar-item">
 				{% if item.type != 'input' %}
-					<a href="{{ item.route }}" class="{{ 'text-dark' if pathname==item.route else 'text-muted' }}"
+					{%- set item_route = item.route[1:] if item.route[0] == '/' else item.route -%}
+					<a href="{{ item.route }}" class="{{ 'active' if pathname == item_route else '' }}"
 						{% if item.target %}target="{{ item.target }}"{% endif %}>
 						{{ _(item.title or item.label) }}
 					</a>
@@ -23,7 +24,7 @@
 			{%- endfor %}
 			{% if frappe.user != 'Guest' %}
 			<li class="sidebar-item">
-				<a href="/me" class="text-muted">{{ _("My Account") }}</a>
+				<a href="/me">{{ _("My Account") }}</a>
 			</li>
 			{% endif %}
 		</ul>
@@ -33,8 +34,8 @@
 <script>
 frappe.ready(function() {
 	$('.sidebar-item a').each(function(index) {
-        const active_class = 'text-dark font-weight-bold'
-        const non_active_class = 'text-muted'
+        const active_class = 'active'
+        const non_active_class = ''
             if(this.href.trim() == window.location) {
                 $(this).removeClass(non_active_class).addClass(active_class);
             } else {

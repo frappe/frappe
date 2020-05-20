@@ -29,7 +29,7 @@
 {%- set card_size = card_size or 'Small' -%}
 <div class="{{ resolve_class({'mt-4': title}) }}">
 	<div class="row mt-n4">
-		{%- for index in ['1', '2', '3', '4', '5', '6', '7', '8'] -%}
+		{%- for index in ['1', '2', '3', '4', '5', '6', '7', '8', '9'] -%}
 		{%- set title = values['card_' + index + '_title'] -%}
 		{%- set content = values['card_' + index + '_content'] -%}
 		{%- set url = values['card_' + index + '_url'] -%}

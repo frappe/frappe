@@ -9,8 +9,7 @@ frappe.ui.form.on('Website Settings', {
 		if (!frm.doc.banner_image) {
 			frappe.msgprint(__("Select a Brand Image first."));
 		}
-		frm.set_value("brand_html", "<img src='"+ frm.doc.banner_image
-			+"' style='max-width: 150px;'>");
+		frm.set_value("brand_html", "<img src='"+ frm.doc.banner_image + "'>");
 	},
 
 	onload_post_render: function(frm) {

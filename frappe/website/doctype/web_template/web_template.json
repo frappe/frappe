@@ -16,7 +16,6 @@
    "depends_on": "eval:!doc.standard",
    "fieldname": "template",
    "fieldtype": "Code",
-   "in_list_view": 1,
    "label": "Template",
    "options": "HTML"
   },
@@ -35,7 +34,7 @@
   }
  ],
  "links": [],
- "modified": "2020-04-17 14:05:28.499020",
+ "modified": "2020-05-15 17:50:51.856135",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Web Template",
