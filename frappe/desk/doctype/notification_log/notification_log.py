@@ -83,13 +83,14 @@ def send_notification_email(doc):
 	doc_link = get_url_to_form(doc.document_type, doc.document_name)
 	header = get_email_header(doc)
 	email_subject = strip_html(doc.subject)
+	body_content = get_email_body_content(doc)
 
 	frappe.sendmail(
 		recipients = doc.for_user,
 		subject = email_subject,
 		template = "new_notification",
 		args = {
-			'body_content': doc.subject,
+			'body_content': body_content,
 			'description': doc.email_content,
 			'document_type': doc.document_type,
 			'document_name': doc.document_name,
@@ -98,6 +99,13 @@ def send_notification_email(doc):
 		header = [header, 'orange'],
 		now=frappe.flags.in_test
 	)
+
+def get_email_body_content(doc):
+	#include document name in email content
+	title_html = get_title_html(get_title(doc.document_type, doc.document_name))
+	subject_parts = doc.subject.partition(title_html)
+	body_content = "{0}{1} ({2}){3}".format(subject_parts[0], subject_parts[1], doc.document_name, subject_parts[2])
+	return body_content
 
 def get_email_header(doc):
 	return {
