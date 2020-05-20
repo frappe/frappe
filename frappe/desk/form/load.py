@@ -133,6 +133,11 @@ def get_comments(doctype, name):
 		reference_name = name
 	))
 
+	# convert to markdown (legacy ?)
+	for c in comments:
+		if c.comment_type == 'Comment':
+			c.content = frappe.utils.markdown(c.content)
+
 	return comments
 
 def get_point_logs(doctype, docname):
