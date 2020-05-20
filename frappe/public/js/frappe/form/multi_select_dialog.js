@@ -331,14 +331,8 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 					}
 					r.values.forEach(function (result) {
 						result.checked = 0;
-						result.parsed_date = Date.parse(result["Date"]);
 						me.results.push(result);
 					});
-
-					me.results.sort((a, b) => {
-						return a.parsed_date - b.parsed_date;
-					});
-
 				}
 				me.render_result_list(me.results, more);
 			}
