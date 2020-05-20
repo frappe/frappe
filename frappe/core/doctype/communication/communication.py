@@ -258,7 +258,12 @@ class Communication(Document):
 
 	# Timeline Links
 	def set_timeline_links(self):
-		contacts = get_contacts([self.sender, self.recipients, self.cc, self.bcc])
+		contacts = []
+		if (self.email_account and frappe.db.get_value("Email Account", self.email_account, "create_contact")) or \
+			frappe.flags.in_test:
+
+			contacts = get_contacts([self.sender, self.recipients, self.cc, self.bcc])
+
 		for contact_name in contacts:
 			self.add_link('Contact', contact_name)
 
