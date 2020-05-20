@@ -16,7 +16,8 @@ import frappe, json, copy, re
 from frappe.model import optional_fields
 from frappe.client import check_parent_permission
 from frappe.model.utils.user_settings import get_user_settings, update_user_settings
-from frappe.utils import flt, cint, get_time, make_filter_tuple, get_filter, add_to_date, cstr, nowdate
+from frappe.utils import flt, cint, get_time, make_filter_tuple, get_filter, add_to_date, cstr, nowdate,\
+	get_first_day, get_first_day_of_week, get_quarter_start, get_year_start
 from frappe.model.meta import get_table_columns
 
 class DatabaseQuery(object):
@@ -426,7 +427,7 @@ class DatabaseQuery(object):
 			if df and df.fieldtype in ("Check", "Float", "Int", "Currency", "Percent"):
 				can_be_null = False
 
-			if f.operator.lower() in ('previous', 'next'):
+			if f.operator.lower() in ('previous', 'next', 'current'):
 				if f.operator.lower() == "previous":
 					if f.value == "1 week":
 						date_range = [add_to_date(nowdate(), days=-7), nowdate()]
@@ -438,6 +439,15 @@ class DatabaseQuery(object):
 						date_range = [add_to_date(nowdate(), months=-6), nowdate()]
 					elif f.value == "1 year":
 						date_range = [add_to_date(nowdate(), years=-1), nowdate()]
+				elif f.operator.lower() == "current":
+					if f.value == "1 week":
+						date_range = [get_first_day_of_week(nowdate(), as_str=True), nowdate()]
+					elif f.value == "1 month":
+						date_range = [get_first_day(nowdate(), as_str=True), nowdate()]
+					elif f.value == "3 months":
+						date_range = [get_quarter_start(nowdate(), as_str=True), nowdate()]
+					elif f.value == "1 year":
+						date_range = [get_year_start(nowdate(), as_str=True), nowdate()]
 				elif f.operator.lower() == "next":
 					if f.value == "1 week":
 						date_range = [nowdate(), add_to_date(nowdate(), days=7)]

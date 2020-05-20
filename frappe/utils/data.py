@@ -174,7 +174,7 @@ def nowtime():
 	"""return current time in hh:mm"""
 	return now_datetime().strftime(TIME_FORMAT)
 
-def get_first_day(dt, d_years=0, d_months=0):
+def get_first_day(dt, d_years=0, d_months=0, as_str=False):
 	"""
 	 Returns the first day of the month for the date specified by date object
 	 Also adds `d_years` and `d_months` if specified
@@ -185,10 +185,23 @@ def get_first_day(dt, d_years=0, d_months=0):
 	overflow_years, month = divmod(dt.month + d_months - 1, 12)
 	year = dt.year + d_years + overflow_years
 
-	return datetime.date(year, month + 1, 1)
+	return datetime.date(year, month + 1, 1).strftime(DATE_FORMAT) if as_str else datetime.date(year, month + 1, 1)
 
-def get_first_day_of_week(dt):
-	return dt - datetime.timedelta(days=dt.weekday())
+def get_quarter_start(dt, as_str=False):
+	date = getdate(dt)
+	quarter = (date.month - 1) // 3 + 1
+	first_date_of_quarter = datetime.date(date.year, ((quarter - 1) * 3) + 1, 1)
+	return first_date_of_quarter.strftime(DATE_FORMAT) if as_str else first_date_of_quarter
+
+def get_first_day_of_week(dt, as_str=False):
+	dt = getdate(dt)
+	date = dt - datetime.timedelta(days=dt.weekday())
+	return date.strftime(DATE_FORMAT) if as_str else date
+
+def get_year_start(dt, as_str=False):
+	dt = getdate(dt)
+	date = datetime.date(dt.year, 1, 1)
+	return date.strftime(DATE_FORMAT) if as_str else date
 
 def get_last_day_of_week(dt):
 	dt = get_first_day_of_week(dt)
@@ -1033,7 +1046,7 @@ def get_filter(doctype, f):
 		f.operator = "="
 
 	valid_operators = ("=", "!=", ">", "<", ">=", "<=", "like", "not like", "in", "not in", "is",
-		"between", "descendants of", "ancestors of", "not descendants of", "not ancestors of", "previous", "next")
+		"between", "descendants of", "ancestors of", "not descendants of", "not ancestors of", "previous", "current", "next")
 	if f.operator.lower() not in valid_operators:
 		frappe.throw(frappe._("Operator must be one of {0}").format(", ".join(valid_operators)))
 

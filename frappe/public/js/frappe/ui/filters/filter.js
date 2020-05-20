@@ -20,6 +20,7 @@ frappe.ui.Filter = class {
 			["<=", "<="],
 			["Between", __("Between")],
 			["Previous", __("Previous")],
+			["Current", __("Current")],
 			["Next", __("Next")]
 		];
 
@@ -35,11 +36,11 @@ frappe.ui.Filter = class {
 		this.invalid_condition_map = {
 			Date: ['like', 'not like'],
 			Datetime: ['like', 'not like'],
-			Data: ['Between', 'Previous', 'Next'],
-			Select: ['like', 'not like', 'Between', 'Previous', 'Next'],
-			Link: ["Between", 'Previous', 'Next', '>', '<', '>=', '<='],
-			Currency: ["Between", 'Previous', 'Next'],
-			Color: ["Between", 'Previous', 'Next'],
+			Data: ['Between', 'Previous', 'Current', 'Next'],
+			Select: ['like', 'not like', 'Between', 'Previous', 'Current', 'Next'],
+			Link: ["Between", 'Previous', 'Current', 'Next', '>', '<', '>=', '<='],
+			Currency: ["Between", 'Previous', 'Current', 'Next'],
+			Color: ["Between", 'Previous', 'Current', 'Next'],
 			Check: this.conditions.map(c => c[0]).filter(c => c !== '=')
 		};
 		this.make();
@@ -203,7 +204,7 @@ frappe.ui.Filter = class {
 		this.fieldselect.selected_doctype = doctype;
 		this.fieldselect.selected_fieldname = fieldname;
 
-		if(["Previous", "Next"].includes(condition) && ['Date', 'Datetime', 'DateRange', 'Select'].includes(this.field.df.fieldtype)) {
+		if(["Previous", "Current", "Next"].includes(condition) && ['Date', 'Datetime', 'DateRange', 'Select'].includes(this.field.df.fieldtype)) {
 			df.fieldtype = 'Select';
 			df.options = [
 				{
