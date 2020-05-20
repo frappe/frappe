@@ -3,7 +3,6 @@
 
 frappe.ui.form.on('Auto Email Report', {
 	refresh: function(frm) {
-		console.log('refreshing')
 		if(frm.doc.report_type !== 'Report Builder') {
 			if(frm.script_setup_for !== frm.doc.report && !frm.doc.__islocal) {
 				frappe.call({
@@ -14,7 +13,6 @@ frappe.ui.form.on('Auto Email Report', {
 					callback: function(r) {
 						frappe.dom.eval(r.message.script || "");
 						frm.script_setup_for = frm.doc.report;
-						console.log(frappe.query_reports[frm.doc.report]);
 						frm.trigger('show_filters');
 					}
 				});
@@ -68,14 +66,16 @@ frappe.ui.form.on('Auto Email Report', {
 
 			var filters = JSON.parse(frm.doc.filters || '{}');
 
-			let report_filters;
+			let report_filters, report_name;
 
 			if (frm.doc.report_type === 'Custom Report'
 				&& frappe.query_reports[frm.doc.reference_report]
 				&& frappe.query_reports[frm.doc.reference_report].filters) {
 				report_filters = frappe.query_reports[frm.doc.reference_report].filters;
+				report_name = frm.doc.reference_report;
 			} else {
 				report_filters = frappe.query_reports[frm.doc.report].filters;
+				report_name = frm.doc.report;
 			}
 
 			if(report_filters && report_filters.length > 0) {
@@ -100,7 +100,6 @@ frappe.ui.form.on('Auto Email Report', {
 			});
 
 			table.on('click', function() {
-				console.log('clicked');
 				var dialog = new frappe.ui.Dialog({
 					fields: report_filters,
 					primary_action: function() {
@@ -116,7 +115,7 @@ frappe.ui.form.on('Auto Email Report', {
 
 				//Set query report object so that it can be used while fetching filter values in the report
 				frappe.query_report = new frappe.views.QueryReport({'filters': dialog.fields_list});
-				frappe.query_reports[frm.doc.report].onload && frappe.query_reports[frm.doc.report].onload(frappe.query_report);
+				frappe.query_reports[report_name].onload && frappe.query_reports[report_name].onload(frappe.query_report);
 				dialog.set_values(filters);
 			})
 
