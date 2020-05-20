@@ -269,8 +269,8 @@ $.extend(frappe.meta, {
 
 	get_duration_options: function(df) {
 		let duration_options = {
-			showDays: df.show_days,
-			showSeconds: df.show_seconds
+			show_days: df.show_days,
+			show_seconds: df.show_seconds
 		};
 		return duration_options;
 	}

@@ -202,8 +202,8 @@ frappe.ui.FilterList = Class.extend({
 			value = {0:"No", 1:"Yes"}[cint(value)];
 		} else if (field.df.original_type === "Duration") {
 			let duration_options = {
-				showDays: field.df.show_days,
-				showSeconds: field.df.show_seconds
+				show_days: field.df.show_days,
+				show_seconds: field.df.show_seconds
 			};
 			value = frappe.utils.get_formatted_duration(value, duration_options);
 		}
