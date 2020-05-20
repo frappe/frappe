@@ -86,7 +86,6 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 
 	get_primary_filters() {
 		let fields = [];
-		let me = this;
 
 		let columns = new Array(3);
 
@@ -117,7 +116,7 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 		});
 
 		// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/seal
-		if(Object.seal) {
+		if (Object.seal) {
 			Object.seal(columns);
 			// now a is a fixed-size array with mutable entries
 		}
@@ -129,7 +128,7 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 			{ fieldtype: "Column Break" },
 			...columns[2],
 			{ fieldtype: "Section Break", fieldname: "primary_filters_sb" }
-		]
+		];
 
 		if (this.add_filters_group) {
 			fields.push(
@@ -179,12 +178,12 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 				.prop("checked", ($(e.target).is(':checked')));
 		});
 
-		this.$parent.find('.input-with-feedback').on('change', (e) => {
+		this.$parent.find('.input-with-feedback').on('change', () => {
 			frappe.flags.auto_scroll = false;
 			this.get_results();
 		});
 
-		this.$parent.find('[data-fieldtype="Data"]').on('input', (e) => {
+		this.$parent.find('[data-fieldtype="Data"]').on('input', () => {
 			var $this = $(this);
 			clearTimeout($this.data('timeout'));
 			$this.data('timeout', setTimeout(function () {
@@ -223,11 +222,10 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 		columns.forEach(function (column) {
 			contents += `<div class="list-item__content ellipsis">
 				${
-				head ? `<span class="ellipsis text-muted" title="${__(frappe.model.unscrub(column))}">${__(frappe.model.unscrub(column))}</span>`
-					: (column !== "name" ? `<span class="ellipsis result-row" title="${__(result[column] || '')}">${__(result[column] || '')}</span>`
-						: `<a href="${"#Form/" + me.doctype + "/" + result[column] || ''}" class="list-id ellipsis" title="${__(result[column] || '')}">
-							${__(result[column] || '')}</a>`)
-				}
+	head ? `<span class="ellipsis text-muted" title="${__(frappe.model.unscrub(column))}">${__(frappe.model.unscrub(column))}</span>`
+		: (column !== "name" ? `<span class="ellipsis result-row" title="${__(result[column] || '')}">${__(result[column] || '')}</span>`
+			: `<a href="${"#Form/" + me.doctype + "/" + result[column] || ''}" class="list-id ellipsis" title="${__(result[column] || '')}">
+							${__(result[column] || '')}</a>`)}
 			</div>`;
 		});
 
@@ -295,7 +293,7 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 		Object.keys(this.setters).forEach(function (setter) {
 			var value = me.dialog.fields_dict[setter].get_value();
 			if (me.dialog.fields_dict[setter].df.fieldtype == "Data" && value) {
-				filters[setter] = ["like", "%"+value+"%"];
+				filters[setter] = ["like", "%" + value + "%"];
 			} else {
 				filters[setter] = value || undefined;
 				me.args[setter] = filters[setter];
