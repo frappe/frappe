@@ -1,12 +1,16 @@
 context('Control Link', () => {
-	beforeEach(() => {
+	before(() => {
 		cy.login();
+		cy.visit('/desk#workspace/Website');
+	});
+
+	beforeEach(() => {
 		cy.visit('/desk#workspace/Website');
 		cy.create_records({
 			doctype: 'ToDo',
 			description: 'this is a test todo for link'
 		}).as('todos');
-	});
+	})
 
 	function get_dialog_with_link() {
 		return cy.dialog({
