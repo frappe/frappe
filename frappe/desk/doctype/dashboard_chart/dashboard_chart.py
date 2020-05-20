@@ -7,8 +7,8 @@ import frappe
 from frappe import _
 import datetime
 import json
-from frappe.core.page.dashboard.dashboard import cache_source, get_from_date_from_timespan
-from frappe.utils import nowdate, add_to_date, getdate, get_last_day, formatdate, get_datetime
+from frappe.utils.dashboard import cache_source, get_from_date_from_timespan
+from frappe.utils import nowdate, add_to_date, getdate, get_last_day, formatdate, get_datetime, cint
 from frappe.model.naming import append_number_if_name_exists
 from frappe.boot import get_allowed_reports
 from frappe.model.document import Document
@@ -27,7 +27,7 @@ def get_permission_query_conditions(user):
 		return None
 
 	allowed_doctypes = tuple(frappe.permissions.get_doctypes_with_read())
-	allowed_reports = tuple([key.encode('UTF8') for key in get_allowed_reports()])
+	allowed_reports = tuple([key if type(key) == str else key.encode('UTF8') for key in get_allowed_reports()])
 
 	return '''
 			`tabDashboard Chart`.`document_type` in {allowed_doctypes}
@@ -58,13 +58,13 @@ def has_permission(doc, ptype, user):
 @frappe.whitelist()
 @cache_source
 def get(chart_name = None, chart = None, no_cache = None, filters = None, from_date = None,
-	to_date = None, timespan = None, time_interval = None, refresh = None):
+	to_date = None, timespan = None, time_interval = None, heatmap_year=None, refresh = None):
 	if chart_name:
 		chart = frappe.get_doc('Dashboard Chart', chart_name)
 	else:
 		chart = frappe._dict(frappe.parse_json(chart))
 
-
+	heatmap_year = heatmap_year or chart.heatmap_year
 	timespan = timespan or chart.timespan
 
 	if timespan == 'Select Date Range':
@@ -76,7 +76,7 @@ def get(chart_name = None, chart = None, no_cache = None, filters = None, from_d
 		if to_date and len(to_date):
 			to_date = get_datetime(to_date)
 		else:
-			to_date = chart.to_date
+			to_date = get_datetime(chart.to_date)
 
 	timegrain = time_interval or chart.time_interval
 	filters = frappe.parse_json(filters) or frappe.parse_json(chart.filters_json) or []
@@ -87,27 +87,41 @@ def get(chart_name = None, chart = None, no_cache = None, filters = None, from_d
 	if chart.chart_type == 'Group By':
 		chart_config = get_group_by_chart_config(chart, filters)
 	else:
-		chart_config =  get_chart_config(chart, filters, timespan, timegrain, from_date, to_date)
+		if chart.type == 'Heatmap':
+			chart_config = get_heatmap_chart_config(chart, filters, heatmap_year)
+		else:
+			chart_config =  get_chart_config(chart, filters, timespan, timegrain, from_date, to_date)
 
 	return chart_config
 
 @frappe.whitelist()
-def create_report_chart(args):
+def create_dashboard_chart(args):
 	args = frappe.parse_json(args)
-	_doc = frappe.new_doc('Dashboard Chart')
+	doc = frappe.new_doc('Dashboard Chart')
 
-	_doc.update(args)
+	doc.update(args)
+
+	if args.get('custom_options'):
+		doc.custom_options = json.dumps(args.get('custom_options'))
+
 	if frappe.db.exists('Dashboard Chart', args.chart_name):
 		args.chart_name = append_number_if_name_exists('Dashboard Chart', args.chart_name)
-		_doc.chart_name = args.chart_name
-	_doc.insert(ignore_permissions=True)
+		doc.chart_name = args.chart_name
+	doc.insert(ignore_permissions=True)
+	return doc
 
+@frappe.whitelist()
+def create_report_chart(args):
+	doc = create_dashboard_chart(args)
+	args = frappe.parse_json(args)
+	args.chart_name = doc.chart_name
 	if args.dashboard:
 		add_chart_to_dashboard(json.dumps(args))
 
 @frappe.whitelist()
 def add_chart_to_dashboard(args):
 	args = frappe.parse_json(args)
+
 	dashboard = frappe.get_doc('Dashboard', args.dashboard)
 	dashboard_link = frappe.new_doc('Dashboard Chart Link')
 	dashboard_link.chart = args.chart_name
@@ -133,7 +147,7 @@ def get_chart_config(chart, filters, timespan, timegrain, from_date, to_date):
 	filters.append([doctype, datefield, '>=', from_date, False])
 	filters.append([doctype, datefield, '<=', to_date, False])
 
-	data = frappe.db.get_all(
+	data = frappe.db.get_list(
 		doctype,
 		fields = [
 			'extract(year from `tab{doctype}`.{datefield}) as _year'.format(doctype=doctype, datefield=datefield),
@@ -163,6 +177,41 @@ def get_chart_config(chart, filters, timespan, timegrain, from_date, to_date):
 
 	return chart_config
 
+def get_heatmap_chart_config(chart, filters, heatmap_year):
+	aggregate_function = get_aggregate_function(chart.chart_type)
+	value_field = chart.value_based_on or '1'
+	doctype = chart.document_type
+	datefield = chart.based_on
+	year = cint(heatmap_year) if heatmap_year else getdate(nowdate()).year
+	year_start_date = datetime.date(year, 1, 1).strftime('%Y-%m-%d')
+	next_year_start_date = datetime.date(year + 1, 1, 1).strftime('%Y-%m-%d')
+
+	filters.append([doctype, datefield, '>', "{date}".format(date=year_start_date), False])
+	filters.append([doctype, datefield, '<', "{date}".format(date=next_year_start_date), False])
+
+	if frappe.db.db_type == 'mariadb':
+		timestamp_field = 'unix_timestamp({datefield})'.format(datefield=datefield)
+	else:
+		timestamp_field = 'extract(epoch from timestamp {datefield})'.format(datefield=datefield)
+
+	data = dict(frappe.db.get_all(
+		doctype,
+		fields = [
+			timestamp_field,
+			'{aggregate_function}({value_field})'.format(aggregate_function=aggregate_function, value_field=value_field),
+		],
+		filters = filters,
+		group_by = 'date({datefield})'.format(datefield=datefield),
+		as_list = 1,
+		order_by = '{datefield} asc'.format(datefield=datefield),
+		ignore_ifnull = True
+	))
+
+	chart_config = {
+		'labels': [],
+		'dataPoints': data,
+	}
+	return chart_config
 
 def get_group_by_chart_config(chart, filters):
 
@@ -171,7 +220,7 @@ def get_group_by_chart_config(chart, filters):
 	group_by_field = chart.group_by_based_on
 	doctype = chart.document_type
 
-	data = frappe.db.get_all(
+	data = frappe.db.get_list(
 		doctype,
 		fields = [
 			'{} as name'.format(group_by_field),
@@ -351,6 +400,13 @@ def get_year_ending(date):
 	# last day of this month
 	return add_to_date(date, days=-1)
 
+def get_charts_for_user(doctype, txt, searchfield, start, page_len, filters):
+	or_filters = {'owner': frappe.session.user, 'is_public': 1}
+	return frappe.db.get_list('Dashboard Chart',
+		fields=['name'],
+		filters=filters,
+		or_filters=or_filters,
+		as_list = 1)
 
 class DashboardChart(Document):
 
@@ -361,6 +417,8 @@ class DashboardChart(Document):
 		if self.chart_type != 'Custom' and self.chart_type != 'Report':
 			self.check_required_field()
 			self.check_document_type()
+
+		self.validate_custom_options()
 
 	def check_required_field(self):
 		if not self.document_type:
@@ -377,4 +435,11 @@ class DashboardChart(Document):
 
 	def check_document_type(self):
 		if frappe.get_meta(self.document_type).issingle:
-			frappe.throw("You cannot create a dashboard chart from single DocTypes")
+			frappe.throw(_("You cannot create a dashboard chart from single DocTypes"))
+
+	def validate_custom_options(self):
+		if self.custom_options:
+			try:
+				json.loads(self.custom_options)
+			except ValueError as error:
+				frappe.throw(_("Invalid json added in the custom options: {0}").format(error))

@@ -30,6 +30,7 @@ export default class WebForm extends frappe.ui.FieldGroup {
 		// webform client script
 		frappe.init_client_script && frappe.init_client_script();
 		frappe.web_form.events.trigger('after_load');
+		this.after_load && this.after_load();
 	}
 
 	on(fieldname, handler) {
@@ -102,7 +103,9 @@ export default class WebForm extends frappe.ui.FieldGroup {
 	}
 
 	save() {
-		this.validate && this.validate();
+		if (this.validate && !this.validate()) {
+			frappe.throw(__("Couldn't save, please check the data you have entered"), __("Validation Error"));
+		}
 
 		// validation hack: get_values will check for missing data
 		let doc_values = super.get_values(this.allow_incomplete);
@@ -135,6 +138,7 @@ export default class WebForm extends frappe.ui.FieldGroup {
 					// Success
 					this.handle_success(response.message);
 					frappe.web_form.events.trigger('after_save');
+					this.after_save && this.after_save();
 				}
 			},
 			always: function() {

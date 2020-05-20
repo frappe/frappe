@@ -62,7 +62,7 @@ class UserProfile {
 	}
 
 	setup_user_search() {
-		this.$user_search_button = this.page.set_secondary_action('Change User', () => {
+		this.$user_search_button = this.page.set_secondary_action(__('Change User'), () => {
 			this.show_user_search_dialog();
 		});
 	}
@@ -108,21 +108,6 @@ class UserProfile {
 		});
 	}
 
-	get_years_since_creation() {
-		//Get years since user account created
-		this.user_creation = frappe.boot.user.creation;
-		let creation_year = this.get_year(this.user_creation);
-		let current_year = this.get_year(frappe.datetime.now_date());
-		let years_list = [];
-		for (var year = current_year; year >= creation_year; year--) {
-			years_list.push(year);
-		}
-		return years_list;
-	}
-
-	get_year(date_str) {
-		return date_str.substring(0, date_str.indexOf('-'));
-	}
 
 	render_line_chart() {
 		this.line_chart_filters = [['Energy Point Log', 'user', '=', this.user_id, false]];
@@ -246,8 +231,8 @@ class UserProfile {
 	create_heatmap_chart_filters() {
 		let filters = [
 			{
-				label: this.get_year(frappe.datetime.now_date()),
-				options: this.get_years_since_creation(),
+				label: frappe.dashboard_utils.get_year(frappe.datetime.now_date()),
+				options: frappe.dashboard_utils.get_years_since_creation(frappe.boot.user.creation),
 				action: (selected_item) => {
 					this.update_heatmap_data(frappe.datetime.obj_to_str(selected_item));
 				}

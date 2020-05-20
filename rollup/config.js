@@ -109,13 +109,16 @@ function get_rollup_options_for_js(output_file, input_files) {
 
 function get_rollup_options_for_css(output_file, input_files) {
 	const output_path = path.resolve(assets_path, output_file);
-	const minimize_css = output_path.startsWith('css/') && production;
+	const starts_with_css = output_file.startsWith('css/');
 
 	const plugins = [
 		// enables array of inputs
 		multi_entry(),
 		// less -> css
 		postcss({
+			plugins: [
+				starts_with_css && production ? require('cssnano')({ preset: 'default' }) : null
+			].filter(Boolean),
 			extract: output_path,
 			loaders: [less_loader],
 			use: [
@@ -125,15 +128,18 @@ function get_rollup_options_for_css(output_file, input_files) {
 						path.resolve(get_public_path('frappe'), 'less')
 					]
 				}],
-				['sass', get_options_for_scss()]
+				['sass', {
+					...get_options_for_scss(),
+					outFile: output_path,
+					sourceMapContents: true
+				}]
 			],
 			include: [
 				path.resolve(bench_path, '**/*.less'),
 				path.resolve(bench_path, '**/*.scss'),
 				path.resolve(bench_path, '**/*.css')
 			],
-			minimize: minimize_css,
-			sourceMap: output_file.startsWith('css/') && !production
+			sourceMap: starts_with_css && !production
 		})
 	];
 
@@ -147,6 +153,7 @@ function get_rollup_options_for_css(output_file, input_files) {
 
 				// console.warn everything else
 				log(chalk.yellow.underline(warning.code), ':', warning.message);
+				log(warning);
 			}
 		},
 		outputOptions: {

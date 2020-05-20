@@ -9,7 +9,8 @@ import unittest
 
 class TestUserPermission(unittest.TestCase):
 	def setUp(self):
-		frappe.db.sql("DELETE FROM `tabUser Permission` WHERE `user`='test_bulk_creation_update@example.com'")
+		frappe.db.sql("""DELETE FROM `tabUser Permission`
+			WHERE `user` in ('test_bulk_creation_update@example.com', 'test_user_perm1@example.com')""")
 
 	def test_default_user_permission_validation(self):
 		user = create_user('test_default_permission@example.com')
@@ -19,6 +20,26 @@ class TestUserPermission(unittest.TestCase):
 		perm_user = create_user('test_user_perm@example.com')
 		param = get_params(user, 'User', perm_user.name, is_default=1)
 		self.assertRaises(frappe.ValidationError, add_user_permissions, param)
+
+	def test_default_user_permission(self):
+		frappe.set_user('Administrator')
+		user = create_user('test_user_perm1@example.com', 'Website Manager')
+		for category in ['general', 'public']:
+			if not frappe.db.exists('Blog Category', category):
+				frappe.get_doc({'doctype': 'Blog Category',
+					'category_name': category, 'title': category}).insert()
+
+		param = get_params(user, 'Blog Category', 'general', is_default=1)
+		add_user_permissions(param)
+
+		param = get_params(user, 'Blog Category', 'public')
+		add_user_permissions(param)
+
+		frappe.set_user('test_user_perm1@example.com')
+		doc = frappe.new_doc("Blog Post")
+
+		self.assertEquals(doc.blog_category, 'general')
+		frappe.set_user('Administrator')
 
 	def test_apply_to_all(self):
 		''' Create User permission for User having access to all applicable Doctypes'''
@@ -88,7 +109,7 @@ class TestUserPermission(unittest.TestCase):
 		self.assertIsNone(removed_applicable_second)
 		self.assertEquals(is_created, 1)
 
-def create_user(email):
+def create_user(email, role="System Manager"):
 	''' create user with role system manager '''
 	if frappe.db.exists('User', email):
 		return frappe.get_doc('User', email)
@@ -96,7 +117,7 @@ def create_user(email):
 		user = frappe.new_doc('User')
 		user.email = email
 		user.first_name = email.split("@")[0]
-		user.add_roles("System Manager")
+		user.add_roles(role)
 		return user
 
 def get_params(user, doctype, docname, is_default=0, applicable=None):

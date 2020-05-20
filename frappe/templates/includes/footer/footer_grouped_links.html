@@ -1,0 +1,28 @@
+{% for page in footer_items if page.child_items %}
+<div class="col footer-group">
+	<div data-label="{{ page.label }}">
+		<span>
+			<div class="footer-group-label footer-parent-item">
+				{%- if page.icon -%}
+				<img src="{{ page.icon }}" alt="{{ page.label }}">
+				{%- else -%}
+				{{ page.label }}
+				{%- endif -%}
+			</div>
+		</span>
+		<ul class="list-unstyled">
+			{%- for child in page.child_items -%}
+			<li class="mt-2 footer-child-item" data-label='{{ child.label }}'>
+				<a href="{{ child.url | abs_url }}" {% if child.target %} target="_blank" {% endif %}>
+					{%- if child.icon -%}
+					<img src="{{ child.icon }}" alt="{{ child.label }}">
+					{%- else -%}
+					{{ child.label }}
+					{%- endif -%}
+				</a>
+			</li>
+			{%- endfor -%}
+		</ul>
+	</div>
+</div>
+{% endfor %}

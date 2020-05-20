@@ -81,7 +81,7 @@ def _new_site(db_name, site, mariadb_root_username=None, mariadb_root_password=N
 	installing = touch_file(get_site_path('locks', 'installing.lock'))
 	atexit.register(_new_site_cleanup, site, mariadb_root_username, mariadb_root_password)
 
-	install_db(root_login=mariadb_root_username, root_password=mariadb_root_password, db_name=db_name, 
+	install_db(root_login=mariadb_root_username, root_password=mariadb_root_password, db_name=db_name,
 		admin_password=admin_password, verbose=verbose, source_sql=source_sql, force=force, reinstall=reinstall,
 		db_password=db_password, db_type=db_type, db_host=db_host, db_port=db_port, no_mariadb_socket=no_mariadb_socket)
 	apps_to_install = ['frappe'] + (frappe.conf.get("install_apps") or []) + (list(install_apps) or [])
@@ -101,7 +101,7 @@ def _new_site_cleanup(site, mariadb_root_username, mariadb_root_password):
 
 	if installing and os.path.exists(installing):
 		if mariadb_root_password:
-			_drop_site(site, mariadb_root_username, mariadb_root_password, force=True)
+			_drop_site(site, mariadb_root_username, mariadb_root_password, force=True, no_backup=True)
 		shutil.rmtree(site)
 
 	frappe.destroy()
@@ -256,6 +256,15 @@ def migrate(context, rebuild_website=False, skip_failing=False):
 	print("Compiling Python Files...")
 	compileall.compile_dir('../apps', quiet=1, rx=re.compile('.*node_modules.*'))
 
+@click.command('migrate-to')
+@click.argument('frappe_provider')
+@pass_context
+def migrate_to(context, frappe_provider):
+	"Migrates site to the specified provider"
+	from frappe.integrations.frappe_providers import migrate_to
+	for site in context.sites:
+		migrate_to(site, frappe_provider)
+
 @click.command('run-patch')
 @click.argument('module')
 @pass_context
@@ -317,23 +326,25 @@ def use(site, sites_path='.'):
 	if os.path.exists(os.path.join(sites_path, site)):
 		with open(os.path.join(sites_path,  "currentsite.txt"), "w") as sitefile:
 			sitefile.write(site)
+		print("Current Site set to {}".format(site))
 	else:
 		print("{} does not exist".format(site))
 
 @click.command('backup')
 @click.option('--with-files', default=False, is_flag=True, help="Take backup with files")
+@click.option('--verbose', default=False, is_flag=True)
 @pass_context
 def backup(context, with_files=False, backup_path_db=None, backup_path_files=None,
-	backup_path_private_files=None, quiet=False):
+	backup_path_private_files=None, quiet=False, verbose=False):
 	"Backup"
 	from frappe.utils.backups import scheduled_backup
-	verbose = context.verbose
+	verbose = verbose or context.verbose
 	exit_code = 0
 	for site in context.sites:
 		try:
 			frappe.init(site=site)
 			frappe.connect()
-			odb = scheduled_backup(ignore_files=not with_files, backup_path_db=backup_path_db, backup_path_files=backup_path_files, backup_path_private_files=backup_path_private_files, force=True)
+			odb = scheduled_backup(ignore_files=not with_files, backup_path_db=backup_path_db, backup_path_files=backup_path_files, backup_path_private_files=backup_path_private_files, force=True, verbose=verbose)
 		except Exception as e:
 			if verbose:
 				print("Backup failed for {0}. Database or site_config.json may be corrupted".format(site))
@@ -342,10 +353,12 @@ def backup(context, with_files=False, backup_path_db=None, backup_path_files=Non
 
 		if verbose:
 			from frappe.utils import now
-			print("database backup taken -", odb.backup_path_db, "- on", now())
+			summary_title = "Backup Summary at {0}".format(now())
+			print(summary_title + "\n" + "-" * len(summary_title))
+			print("Database backup:", odb.backup_path_db)
 			if with_files:
-				print("files backup taken -", odb.backup_path_files, "- on", now())
-				print("private files backup taken -", odb.backup_path_private_files, "- on", now())
+				print("Public files:   ", odb.backup_path_files)
+				print("Private files:  ", odb.backup_path_private_files)
 
 		frappe.destroy()
 	sys.exit(exit_code)
@@ -559,6 +572,7 @@ commands = [
 	install_app,
 	list_apps,
 	migrate,
+	migrate_to,
 	new_site,
 	reinstall,
 	reload_doc,

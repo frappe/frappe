@@ -508,20 +508,6 @@ frappe.Application = Class.extend({
 		});
 	},
 
-	setup_onboarding_wizard: () => {
-		frappe.call('frappe.desk.doctype.onboarding_slide.onboarding_slide.get_onboarding_slides').then(res => {
-			if (res.message) {
-				let slides = res.message;
-				if (slides.length) {
-					this.progress_dialog = new frappe.setup.OnboardingDialog({
-						slides: slides
-					});
-					this.progress_dialog.show();
-				}
-			}
-		});
-	},
-
 	setup_analytics: function() {
 		if(window.mixpanel) {
 			window.mixpanel.identify(frappe.session.user);

@@ -212,7 +212,10 @@ def get_notification_config():
 def get_filters_for(doctype):
 	'''get open filters for doctype'''
 	config = get_notification_config()
-	return config.get("for_doctype").get(doctype, {})
+	doctype_config = config.get("for_doctype").get(doctype, {})
+	filters = doctype_config if not isinstance(doctype_config, string_types) else None
+
+	return filters
 
 @frappe.whitelist()
 @frappe.read_only()
@@ -268,8 +271,9 @@ def get_open_count(doctype, name, items=[]):
 		"count": out,
 	}
 
-	module = frappe.get_meta_module(doctype)
-	if hasattr(module, "get_timeline_data"):
-		out["timeline_data"] = module.get_timeline_data(doctype, name)
+	if not meta.custom:
+		module = frappe.get_meta_module(doctype)
+		if hasattr(module, "get_timeline_data"):
+			out["timeline_data"] = module.get_timeline_data(doctype, name)
 
 	return out

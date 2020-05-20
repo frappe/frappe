@@ -11,12 +11,18 @@ def get_jenv():
 		from jinja2.sandbox import SandboxedEnvironment
 
 		# frappe will be loaded last, so app templates will get precedence
-		jenv = SandboxedEnvironment(loader = get_jloader(),
-			undefined=DebugUndefined)
+		jenv = SandboxedEnvironment(
+			loader=get_jloader(),
+			undefined=DebugUndefined
+		)
 		set_filters(jenv)
 
 		jenv.globals.update(get_safe_globals())
 		jenv.globals.update(get_jenv_customization('methods'))
+		jenv.globals.update({
+			'resolve_class': resolve_class,
+			'inspect': inspect
+		})
 
 		frappe.local.jenv = jenv
 
@@ -156,3 +162,30 @@ def get_jenv_customization(customization_type):
 		out[fn_name] = frappe.get_attr(fn_string)
 
 	return out
+
+
+def resolve_class(classes):
+	import frappe
+
+	if classes is None:
+		return ''
+
+	if isinstance(classes, frappe.string_types):
+		return classes
+
+	if isinstance(classes, (list, tuple)):
+		return ' '.join([resolve_class(c) for c in classes]).strip()
+
+	if isinstance(classes, dict):
+		return ' '.join([classname for classname in classes if classes[classname]]).strip()
+
+	return classes
+
+
+def inspect(var, render=True):
+	context = { "var": var }
+	if render:
+		html = "<pre>{{ var | pprint | e }}</pre>"
+	else:
+		html = ""
+	return get_jenv().from_string(html).render(context)

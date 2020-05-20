@@ -71,7 +71,7 @@ class TestEvent(unittest.TestCase):
 		ev = frappe.get_doc(self.test_records[0]).insert()
 
 		add({
-			"assign_to": "test@example.com",
+			"assign_to": ["test@example.com"],
 			"doctype": "Event",
 			"name": ev.name,
 			"description": "Test Assignment"
@@ -83,7 +83,7 @@ class TestEvent(unittest.TestCase):
 
 		# add another one
 		add({
-			"assign_to": self.test_user,
+			"assign_to": [self.test_user],
 			"doctype": "Event",
 			"name": ev.name,
 			"description": "Test Assignment"

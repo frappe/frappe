@@ -76,7 +76,8 @@ docfield_properties = {
 	'remember_last_selected_value': 'Check',
 	'allow_bulk_edit': 'Check',
 	'auto_repeat': 'Link',
-	'allow_in_quick_entry': 'Check'
+	'allow_in_quick_entry': 'Check',
+	'hide_border': 'Check'
 }
 
 allowed_fieldtype_change = (('Currency', 'Float', 'Percent'), ('Small Text', 'Data'),
@@ -118,7 +119,7 @@ class CustomizeForm(Document):
 
 		# load custom translation
 		translation = self.get_name_translation()
-		self.label = translation.target_name if translation else ''
+		self.label = translation.translated_text if translation else ''
 
 		#If allow_auto_repeat is set, add auto_repeat custom field.
 		if self.allow_auto_repeat:
@@ -131,16 +132,17 @@ class CustomizeForm(Document):
 
 	def get_name_translation(self):
 		'''Get translation object if exists of current doctype name in the default language'''
-		return frappe.get_value('Translation',
-			{'source_name': self.doc_type, 'language': frappe.local.lang or 'en'},
-			['name', 'target_name'], as_dict=True)
+		return frappe.get_value('Translation', {
+				'source_text': self.doc_type,
+				'language': frappe.local.lang or 'en'
+			}, ['name', 'translated_text'], as_dict=True)
 
 	def set_name_translation(self):
 		'''Create, update custom translation for this doctype'''
 		current = self.get_name_translation()
 		if current:
-			if self.label and current.target_name != self.label:
-				frappe.db.set_value('Translation', current.name, 'target_name', self.label)
+			if self.label and current.translated_text != self.label:
+				frappe.db.set_value('Translation', current.name, 'translated_text', self.label)
 				frappe.translate.clear_cache()
 			else:
 				# clear translation
@@ -149,8 +151,8 @@ class CustomizeForm(Document):
 		else:
 			if self.label:
 				frappe.get_doc(dict(doctype='Translation',
-					source_name=self.doc_type,
-					target_name=self.label,
+					source_text=self.doc_type,
+					translated_text=self.label,
 					language_code=frappe.local.lang or 'en')).insert()
 
 	def clear_existing_doc(self):

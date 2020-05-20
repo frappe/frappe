@@ -306,7 +306,7 @@ def get_points(user, point_type='energy_points'):
 def assign_users_to_todo(todo_name, users):
 	for user in users:
 		assign_to({
-			'assign_to': user,
+			'assign_to': [user],
 			'doctype': 'ToDo',
 			'name': todo_name
 		})

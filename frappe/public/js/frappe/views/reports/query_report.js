@@ -183,7 +183,6 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	}
 
 	create_dashboard_chart(chart_args, dashboard_name, chart_name) {
-
 		let args = {
 			'dashboard': dashboard_name || null,
 			'chart_type': 'Report',
@@ -191,7 +190,14 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			'type': chart_args.chart_type || frappe.model.unscrub(chart_args.type),
 			'color': chart_args.color,
 			'filters_json': JSON.stringify(this.get_filter_values()),
+			'custom_options': {}
 		};
+
+		for (let key in chart_args) {
+			if (key != "data") {
+				args['custom_options'][key] = chart_args[key];
+			}
+		}
 
 		if (this.chart_fields) {
 			let x_field_title = toTitle(chart_args.x_field);
@@ -324,8 +330,8 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 	evaluate_depends_on_value(expression, filter_label) {
 		let out = null;
-		let filters = this.get_filter_values();
-		if (filters) {
+		let doc = this.get_filter_values();
+		if (doc) {
 			if (typeof expression === 'boolean') {
 				out = expression;
 			} else if (expression.substr(0, 5) == 'eval:') {
@@ -335,7 +341,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 					frappe.throw(__(`Invalid "depends_on" expression set in filter ${filter_label}`));
 				}
 			} else {
-				var value = filters[expression];
+				var value = doc[expression];
 				if ($.isArray(value)) {
 					out = !!value.length;
 				} else {
