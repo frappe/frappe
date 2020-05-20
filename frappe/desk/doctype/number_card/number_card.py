@@ -70,7 +70,7 @@ def get_result(doc, to_date=None):
 	if to_date:
 		filters.append([doc.document_type, 'creation', '<', to_date, False])
 
-	res = frappe.db.get_all(doc.document_type, fields=fields, filters=filters)
+	res = frappe.db.get_list(doc.document_type, fields=fields, filters=filters)
 	number = res[0]['result'] if res else 0
 
 	return cint(number)

@@ -147,7 +147,7 @@ def get_chart_config(chart, filters, timespan, timegrain, from_date, to_date):
 	filters.append([doctype, datefield, '>=', from_date, False])
 	filters.append([doctype, datefield, '<=', to_date, False])
 
-	data = frappe.db.get_all(
+	data = frappe.db.get_list(
 		doctype,
 		fields = [
 			'extract(year from `tab{doctype}`.{datefield}) as _year'.format(doctype=doctype, datefield=datefield),
@@ -220,7 +220,7 @@ def get_group_by_chart_config(chart, filters):
 	group_by_field = chart.group_by_based_on
 	doctype = chart.document_type
 
-	data = frappe.db.get_all(
+	data = frappe.db.get_list(
 		doctype,
 		fields = [
 			'{} as name'.format(group_by_field),
