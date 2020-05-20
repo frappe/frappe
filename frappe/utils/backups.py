@@ -3,17 +3,18 @@
 
 """This module handles the On Demand Backup utility"""
 
-from __future__ import unicode_literals, print_function
+from __future__ import print_function, unicode_literals
 
-#Imports
-from frappe import _
-import os, frappe
+import os
 from datetime import datetime
+
+import frappe
+from frappe import _, conf
 from frappe.utils import cstr, get_url, now_datetime
-from frappe import conf
 
 _verbose = False
-#-------------------------------------------------------------------------------
+
+
 class BackupGenerator:
 	"""
 		This class contains methods to perform On Demand Backup
@@ -221,7 +222,6 @@ def get_backup_path():
 	backup_path = frappe.utils.get_site_path(conf.get("backup_path", "private/backups"))
 	return backup_path
 
-#-------------------------------------------------------------------------------
 def backup(with_files=False, backup_path_db=None, backup_path_files=None, quiet=False):
 	"Backup"
 	odb = scheduled_backup(ignore_files=not with_files, backup_path_db=backup_path_db, backup_path_files=backup_path_files, force=True)
@@ -230,6 +230,7 @@ def backup(with_files=False, backup_path_db=None, backup_path_files=None, quiet=
 		"backup_path_files": odb.backup_path_files,
 		"backup_path_private_files": odb.backup_path_private_files
 	}
+
 
 if __name__ == "__main__":
 	"""
