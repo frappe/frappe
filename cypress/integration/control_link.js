@@ -10,7 +10,7 @@ context('Control Link', () => {
 			doctype: 'ToDo',
 			description: 'this is a test todo for link'
 		}).as('todos');
-	})
+	});
 
 	function get_dialog_with_link() {
 		return cy.dialog({
