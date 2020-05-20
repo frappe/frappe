@@ -247,14 +247,23 @@
 	}
 }
 
-.form-in-grid {
+.base-grid() {
 	background-color: white;
-	z-index: 1021;
 	position: relative;
+	.transition(opacity .2s ease)
+}
+
+.form-in-grid {
 	overflow: hidden;
 	height: 0;
 	opacity: 0;
-	.transition(opacity .2s ease)
+	z-index: 1021;
+	.base-grid();
+}
+
+.recorder-form-in-grid {
+	z-index: 0;
+	.base-grid();
 }
 
 .grid-row-open .form-in-grid {
