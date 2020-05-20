@@ -10,10 +10,9 @@ from frappe import _
 import os, frappe
 from datetime import datetime
 from frappe.utils import cstr, get_url, now_datetime
-
-#Global constants
-verbose = 0
 from frappe import conf
+
+_verbose = False
 #-------------------------------------------------------------------------------
 class BackupGenerator:
 	"""
@@ -23,7 +22,8 @@ class BackupGenerator:
 		If specifying db_file_name, also append ".sql.gz"
 	"""
 	def __init__(self, db_name, user, password, backup_path_db=None, backup_path_files=None,
-		backup_path_private_files=None, db_host="localhost", db_port=3306):
+		backup_path_private_files=None, db_host="localhost", db_port=3306, verbose=False):
+		global _verbose
 		self.db_host = db_host
 		self.db_port = db_port or 3306
 		self.db_name = db_name
@@ -32,6 +32,8 @@ class BackupGenerator:
 		self.backup_path_files = backup_path_files
 		self.backup_path_db = backup_path_db
 		self.backup_path_private_files = backup_path_private_files
+		self.verbose = verbose
+		_verbose = verbose
 
 	def get_backup(self, older_than=24, ignore_files=False, force=False):
 		"""
@@ -103,7 +105,7 @@ class BackupGenerator:
 			cmd_string = """tar -cf %s %s""" % (backup_path, files_path)
 			err, out = frappe.utils.execute_in_shell(cmd_string)
 
-			if verbose:
+			if self.verbose:
 				print('Backed up files', os.path.abspath(backup_path))
 
 	def take_dump(self):
@@ -159,21 +161,22 @@ def get_backup():
 	recipient_list = odb.send_email()
 	frappe.msgprint(_("Download link for your backup will be emailed on the following email address: {0}").format(', '.join(recipient_list)))
 
-def scheduled_backup(older_than=6, ignore_files=False, backup_path_db=None, backup_path_files=None, backup_path_private_files=None, force=False):
+def scheduled_backup(older_than=6, ignore_files=False, backup_path_db=None, backup_path_files=None, backup_path_private_files=None, force=False, verbose=False):
 	"""this function is called from scheduler
 		deletes backups older than 7 days
 		takes backup"""
-	odb = new_backup(older_than, ignore_files, backup_path_db=backup_path_db, backup_path_files=backup_path_files, force=force)
+	odb = new_backup(older_than, ignore_files, backup_path_db=backup_path_db, backup_path_files=backup_path_files, force=force, verbose=verbose)
 	return odb
 
-def new_backup(older_than=6, ignore_files=False, backup_path_db=None, backup_path_files=None, backup_path_private_files=None, force=False):
+def new_backup(older_than=6, ignore_files=False, backup_path_db=None, backup_path_files=None, backup_path_private_files=None, force=False, verbose=False):
 	delete_temp_backups(older_than = frappe.conf.keep_backups_for_hours or 24)
 	odb = BackupGenerator(frappe.conf.db_name, frappe.conf.db_name,\
 						  frappe.conf.db_password,
 						  backup_path_db=backup_path_db, backup_path_files=backup_path_files,
 						  backup_path_private_files=backup_path_private_files,
 						  db_host = frappe.db.host,
-						  db_port = frappe.db.port)
+						  db_port = frappe.db.port,
+						  verbose=verbose)
 	odb.get_backup(older_than, ignore_files, force=force)
 	return odb
 
@@ -202,13 +205,16 @@ def is_file_old(db_file_name, older_than=24):
 			file_datetime = datetime.fromtimestamp\
 						(os.stat(db_file_name).st_ctime)
 			if datetime.today() - file_datetime >= timedelta(hours = older_than):
-				if verbose: print("File is old")
+				if _verbose:
+					print("File is old")
 				return True
 			else:
-				if verbose: print("File is recent")
+				if _verbose:
+					print("File is recent")
 				return False
 		else:
-			if verbose: print("File does not exist")
+			if _verbose:
+				print("File does not exist")
 			return True
 
 def get_backup_path():
