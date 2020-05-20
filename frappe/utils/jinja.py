@@ -192,7 +192,7 @@ def inspect(var, render=True):
 	return get_jenv().from_string(html).render(context)
 
 def web_blocks(blocks):
-	from frappe import _dict, get_doc
+	from frappe import get_doc
 	from frappe.website.doctype.web_page.web_page import get_web_blocks_html
 
 	web_blocks = []
