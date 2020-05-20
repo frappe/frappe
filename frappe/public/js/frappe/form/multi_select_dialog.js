@@ -25,7 +25,6 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 				fieldtype: "Button", fieldname: "more_btn", label: __("More"),
 				click: () => {
 					this.start += 20;
-					frappe.flags.auto_scroll = true;
 					this.get_results();
 				}
 			}
