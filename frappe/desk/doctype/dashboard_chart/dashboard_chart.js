@@ -92,12 +92,6 @@ frappe.ui.form.on('Dashboard Chart', {
 				}
 			});
 		} else {
-			if (frm.doc.chart_type == 'Group By') {
-				frm.set_df_property('type', 'options', ['Line', 'Bar', 'Percentage', 'Pie', 'Donut']);
-			} else {
-				frm.set_df_property('type', 'options', ['Line', 'Bar', 'Heatmap']);
-			}
-
 			frm.set_value('document_type', '');
 		}
 	},

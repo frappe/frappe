@@ -61,6 +61,16 @@ class DataImportBeta(Document):
 		return Importer(self.reference_doctype, data_import=self)
 
 
+@frappe.whitelist()
+def get_preview_from_template(data_import):
+	return frappe.get_doc("Data Import Beta", data_import).get_preview_from_template()
+
+
+@frappe.whitelist()
+def form_start_import(data_import):
+	return frappe.get_doc("Data Import Beta", data_import).start_import()
+
+
 def start_import(data_import):
 	"""This method runs in background job"""
 	data_import = frappe.get_doc("Data Import Beta", data_import)
@@ -69,12 +79,11 @@ def start_import(data_import):
 		i.import_data()
 	except:
 		frappe.db.rollback()
-		data_import.db_set('status', 'Error')
+		data_import.db_set("status", "Error")
 		frappe.log_error(title=data_import.name)
 		frappe.db.commit()
-		frappe.publish_realtime(
-			"data_import_refresh", {"data_import": data_import.name}
-		)
+		frappe.publish_realtime("data_import_refresh", {"data_import": data_import.name})
+
 
 @frappe.whitelist()
 def download_template(

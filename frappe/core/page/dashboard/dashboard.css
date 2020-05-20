@@ -1,0 +1,5 @@
+.restricted-button {
+	cursor: default;
+	position: relative;
+	right: -5px;
+}
