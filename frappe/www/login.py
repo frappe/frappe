@@ -20,7 +20,7 @@ def get_context(context):
 
 	if frappe.session.user != "Guest":
 		if not redirect_to:
-			redirect_to = "/" if frappe.session.data.user_type=="Website User" else "/desk"
+			redirect_to = "/me" if frappe.session.data.user_type=="Website User" else "/desk"
 		frappe.local.flags.redirect_location = redirect_to
 		raise frappe.Redirect
 

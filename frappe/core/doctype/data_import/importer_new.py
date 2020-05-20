@@ -74,7 +74,6 @@ class Importer:
 			self.read_content(content, extension)
 
 		self.validate_template_content()
-		self.remove_empty_rows_and_columns()
 
 	def read_file(self, file_path):
 		extn = file_path.split(".")[1]
@@ -99,6 +98,8 @@ class Importer:
 		elif extension == "xls":
 			data = read_xls_file_from_attached_file(content)
 
+		data = self.remove_empty_rows_and_columns(data)
+
 		if len(data) <= 1:
 			frappe.throw(
 				_("Import template should contain a Header and atleast one row."), title=error_title
@@ -114,42 +115,41 @@ class Importer:
 				_("Number of columns does not match with data"), title=_("Invalid Template")
 			)
 
-	def remove_empty_rows_and_columns(self):
+	def remove_empty_rows_and_columns(self, raw_data):
 		self.row_index_map = []
 		removed_rows = []
 		removed_columns = []
 
 		# remove empty rows
-		data = []
-		for i, row in enumerate(self.data):
+		data_without_empty_rows = []
+		for i, row in enumerate(raw_data):
 			if all(v in INVALID_VALUES for v in row):
 				# empty row
 				removed_rows.append(i)
 			else:
-				data.append(row)
+				data_without_empty_rows.append(row)
 				self.row_index_map.append(i)
 
 		# remove empty columns
 		# a column with a header and no data is a valid column
 		# a column with no header and no data will be removed
-		header_row = []
-		for i, column in enumerate(self.header_row):
-			column_values = [row[i] for row in data]
-			values = [column] + column_values
-			if all(v in INVALID_VALUES for v in values):
+		first_row = data_without_empty_rows[0]
+		for i, column in enumerate(first_row):
+			column_values = [row[i] for row in data_without_empty_rows]
+			if all(v in INVALID_VALUES for v in column_values):
 				# empty column
 				removed_columns.append(i)
-			else:
-				header_row.append(column)
 
-		data_without_empty_columns = []
-		# remove empty columns from data
-		for i, row in enumerate(data):
-			new_row = [v for j, v in enumerate(row) if j not in removed_columns]
-			data_without_empty_columns.append(new_row)
+		if removed_columns:
+			data_without_empty_rows_and_columns = []
+			# remove empty columns from data
+			for i, row in enumerate(data_without_empty_rows):
+				new_row = [v for j, v in enumerate(row) if j not in removed_columns]
+				data_without_empty_rows_and_columns.append(new_row)
+		else:
+			data_without_empty_rows_and_columns = data_without_empty_rows
 
-		self.data = data_without_empty_columns
-		self.header_row = header_row
+		return data_without_empty_rows_and_columns
 
 	def get_data_for_import_preview(self):
 		out = frappe._dict()
@@ -325,7 +325,7 @@ class Importer:
 
 	def detect_date_formats(self, columns):
 		for col in columns:
-			if col.df and col.df.fieldtype in ['Date', 'Time', 'Datetime']:
+			if col.df and col.df.fieldtype in ["Date", "Time", "Datetime"]:
 				col.date_format = self.guess_date_format_for_column(col, columns)
 		return columns
 
@@ -351,7 +351,16 @@ class Importer:
 		value = cstr(value)
 
 		# convert boolean values to 0 or 1
-		if df.fieldtype == "Check" and value.lower().strip() in ["t", "f", "true", "false", "yes", "no", "y", "n"]:
+		if df.fieldtype == "Check" and value.lower().strip() in [
+			"t",
+			"f",
+			"true",
+			"false",
+			"yes",
+			"no",
+			"y",
+			"n",
+		]:
 			value = value.lower().strip()
 			value = 1 if value in ["t", "true", "y", "yes"] else 0
 
@@ -398,8 +407,9 @@ class Importer:
 			date_values = [
 				row[column_index] for row in self.data[:PARSE_ROW_COUNT] if row[column_index]
 			]
-			date_formats = [guess_date_format(d) if isinstance(d, str) else None
-							for d in date_values]
+			date_formats = [
+				guess_date_format(d) if isinstance(d, str) else None for d in date_values
+			]
 			if not date_formats:
 				return
 			max_occurred_date_format = max(set(date_formats), key=date_formats.count)
@@ -827,9 +837,9 @@ class Importer:
 		id_value = doc[id_fieldname]
 		existing_doc = frappe.get_doc(self.doctype, id_value)
 		existing_doc.flags.updater_reference = {
-			'doctype': self.data_import.doctype,
-			'docname': self.data_import.name,
-			'label': _('via Data Import')
+			"doctype": self.data_import.doctype,
+			"docname": self.data_import.name,
+			"label": _("via Data Import"),
 		}
 		existing_doc.update(doc)
 		existing_doc.save()

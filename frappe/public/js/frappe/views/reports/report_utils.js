@@ -20,7 +20,7 @@ frappe.report_utils = {
 
 		return {
 			data: {
-				labels: labels,
+				labels: labels.length? labels: null,
 				datasets: datasets
 			},
 			truncateLegends: 1,

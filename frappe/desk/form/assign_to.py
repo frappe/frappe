@@ -11,6 +11,7 @@ from frappe.desk.doctype.notification_log.notification_log import enqueue_create
 	get_title, get_title_html
 import frappe.utils
 import frappe.share
+import json
 
 class DuplicateToDoError(frappe.ValidationError): pass
 
@@ -19,17 +20,17 @@ def get(args=None):
 	if not args:
 		args = frappe.local.form_dict
 
-	return frappe.get_all('ToDo', fields = ['owner', 'description'], filters = dict(
+	return frappe.get_all('ToDo', fields=['owner', 'name'], filters=dict(
 		reference_type = args.get('doctype'),
 		reference_name = args.get('name'),
 		status = ('!=', 'Cancelled')
-	), limit = 5)
+	), limit=5)
 
 @frappe.whitelist()
 def add(args=None):
 	"""add in someone's to do list
 		args = {
-			"assign_to": ,
+			"assign_to": [],
 			"doctype": ,
 			"name": ,
 			"description": ,
@@ -40,56 +41,68 @@ def add(args=None):
 	if not args:
 		args = frappe.local.form_dict
 
-	if frappe.db.sql("""SELECT `owner`
-		FROM `tabToDo`
-		WHERE `reference_type`=%(doctype)s
-		AND `reference_name`=%(name)s
-		AND `status`='Open'
-		AND `owner`=%(assign_to)s""", args):
-		frappe.throw(_("Already in user's To Do list"), DuplicateToDoError)
-	else:
-		from frappe.utils import nowdate
+	users_with_duplicate_todo = []
+	shared_with_users = []
 
-		if not args.get('description'):
-			args['description'] = _('Assignment for {0} {1}').format(args['doctype'], args['name'])
-
-		d = frappe.get_doc({
-			"doctype":"ToDo",
-			"owner": args['assign_to'],
+	for assign_to in frappe.parse_json(args.get("assign_to")):
+		filters = {
 			"reference_type": args['doctype'],
 			"reference_name": args['name'],
-			"description": args.get('description'),
-			"priority": args.get("priority", "Medium"),
 			"status": "Open",
-			"date": args.get('date', nowdate()),
-			"assigned_by": args.get('assigned_by', frappe.session.user),
-			'assignment_rule': args.get('assignment_rule')
-		}).insert(ignore_permissions=True)
+			"owner": assign_to
+		}
 
-		# set assigned_to if field exists
-		if frappe.get_meta(args['doctype']).get_field("assigned_to"):
-			frappe.db.set_value(args['doctype'], args['name'], "assigned_to", args['assign_to'])
+		if frappe.get_all("ToDo", filters=filters):
+			users_with_duplicate_todo.append(assign_to)
+		else:
+			from frappe.utils import nowdate
 
-		doc = frappe.get_doc(args['doctype'], args['name'])
+			if not args.get('description'):
+				args['description'] = _('Assignment for {0} {1}').format(args['doctype'], args['name'])
 
-		# if assignee does not have permissions, share
-		if not frappe.has_permission(doc=doc, user=args['assign_to']):
-			frappe.share.add(doc.doctype, doc.name, args['assign_to'])
-			frappe.msgprint(_('Shared with user {0} with read access').format(args['assign_to']), alert=True)
+			d = frappe.get_doc({
+				"doctype": "ToDo",
+				"owner": assign_to,
+				"reference_type": args['doctype'],
+				"reference_name": args['name'],
+				"description": args.get('description'),
+				"priority": args.get("priority", "Medium"),
+				"status": "Open",
+				"date": args.get('date', nowdate()),
+				"assigned_by": args.get('assigned_by', frappe.session.user),
+				'assignment_rule': args.get('assignment_rule')
+			}).insert(ignore_permissions=True)
 
-		# make this document followed by assigned user
-		follow_document(args['doctype'], args['name'], args['assign_to'])
+			# set assigned_to if field exists
+			if frappe.get_meta(args['doctype']).get_field("assigned_to"):
+				frappe.db.set_value(args['doctype'], args['name'], "assigned_to", assign_to)
 
-	# notify
-	notify_assignment(d.assigned_by, d.owner, d.reference_type, d.reference_name, action='ASSIGN',\
-			description=args.get("description"))
+			doc = frappe.get_doc(args['doctype'], args['name'])
+
+			# if assignee does not have permissions, share
+			if not frappe.has_permission(doc=doc, user=assign_to):
+				frappe.share.add(doc.doctype, doc.name, assign_to)
+				shared_with_users.append(assign_to)
+
+			# make this document followed by assigned user
+			follow_document(args['doctype'], args['name'], assign_to)
+
+			# notify
+			notify_assignment(d.assigned_by, d.owner, d.reference_type, d.reference_name, action='ASSIGN',
+				description=args.get("description"))
+
+	if shared_with_users:
+		user_list = format_message_for_assign_to(shared_with_users)
+		frappe.msgprint(_("Shared with the following Users with Read access:{0}").format(user_list, alert=True))
+
+	if users_with_duplicate_todo:
+		user_list = format_message_for_assign_to(users_with_duplicate_todo)
+		frappe.msgprint(_("Already in the following Users ToDo list:{0}").format(user_list, alert=True))
 
 	return get(args)
 
 @frappe.whitelist()
 def add_multiple(args=None):
-	import json
-
 	if not args:
 		args = frappe.local.form_dict
 
@@ -183,3 +196,5 @@ def notify_assignment(assigned_by, owner, doc_type, doc_name, action='CLOSE',
 
 	enqueue_create_notification(owner, notification_doc)
 
+def format_message_for_assign_to(users):
+	return "<br><br>" + "<br>".join(users)

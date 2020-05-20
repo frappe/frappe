@@ -21,7 +21,7 @@ function generate_google_search_preview(frm) {
 	let seo_title = (frm.doc.title).slice(0, 60);
 	let seo_description =  (frm.doc.meta_description || frm.doc.blog_intro || "").slice(0, 160);
 	let date = frm.doc.published_on ? new frappe.datetime.datetime(frm.doc.published_on).moment.format('ll') + ' - ' : '';
-	let route_array = frm.doc.route.split('/');
+	let route_array = frm.doc.route ? frm.doc.route.split('/') : [];
 	route_array.pop();
 
 	google_preview.html(`
