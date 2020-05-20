@@ -124,7 +124,7 @@ class BlogPost(WebsiteGenerator):
 				context.comment_text = _('{0} comments').format(len(context.comment_list))
 
 	def set_read_time(self):
-		content = self.content or self.content_html
+		content = self.content or self.content_html or ''
 		if self.content_type == "Markdown":
 			content = markdown(self.content_md)
 
