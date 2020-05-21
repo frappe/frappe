@@ -175,7 +175,7 @@ class TestDocument(unittest.TestCase):
 
 		# css attributes
 		xss = '<div style="something: doesn\'t work; color: red;">Test</div>'
-		escaped_xss = '<div style="color: red;">Test</div>'
+		escaped_xss = '<div style="">Test</div>'
 		d.subject += xss
 		d.save()
 		d.reload()
