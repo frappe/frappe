@@ -216,8 +216,8 @@ export default {
 				{label: "Exact Copies", slug: "exact_copies", sortable: true},
 			],
 			query: {
-				sort: "index",
-				order: "asc",
+				sort: "duration",
+				order: "desc",
 				pagination: {
 					limit: 20,
 					page: 1,
