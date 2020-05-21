@@ -20,6 +20,7 @@
   "favicon",
   "top_bar",
   "navbar_search",
+  "hide_login",
   "top_bar_items",
   "call_to_action",
   "call_to_action_url",
@@ -344,6 +345,12 @@
    "fieldname": "call_to_action_url",
    "fieldtype": "Data",
    "label": "Call To Action URL"
+  },
+  {
+   "default": "0",
+   "fieldname": "hide_login",
+   "fieldtype": "Check",
+   "label": "Hide Login"
   }
  ],
  "icon": "fa fa-cog",
@@ -351,7 +358,7 @@
  "issingle": 1,
  "links": [],
  "max_attachments": 10,
- "modified": "2020-05-11 07:14:37.302357",
+ "modified": "2020-05-15 14:12:32.907352",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Website Settings",
