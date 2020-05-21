@@ -106,7 +106,7 @@ def load_desktop_data(bootinfo):
 	from frappe.desk.desktop import get_desk_sidebar_items
 	bootinfo.allowed_modules = get_modules_from_all_apps_for_user()
 	bootinfo.allowed_workspaces = get_desk_sidebar_items(True)
-	bootinfo.dashboards = frappe.get_list("Dashboard")
+	bootinfo.dashboards = frappe.get_all("Dashboard")
 
 def get_allowed_pages(cache=False):
 	return get_user_pages_or_reports('Page', cache=cache)
