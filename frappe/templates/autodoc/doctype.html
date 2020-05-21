@@ -4,7 +4,6 @@
 {% from "templates/autodoc/macros.html" import automodule, version,
   source_link, doctype_link %}
 {% set doc = frappe.get_doc("DocType", doctype) %}
-{% set controller = autodoc.get_controller(doctype) %}
 
 <h1>{{ doctype }}</h1>
 <div class="dev-header">
@@ -59,9 +58,9 @@
 {% if not doc.istable %}
     <hr>
     <h3>Controller</h3>
-    <h4>{{ controller.__module__ }}</h4>
+    <h4>{{ controller_name }}</h4>
 
-    {{ automodule(controller.__module__) }}
+    {{ automodule(controller_name) }}
     {% set parents = frappe.get_list("DocField",
         filters = {"options": doctype, "fieldtype": "Link"}, fields = ["distinct parent"], order_by="parent asc") %}
     {% if parents %}

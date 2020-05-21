@@ -8,7 +8,7 @@ Call from command line:
 from __future__ import unicode_literals, print_function
 
 import os, json, frappe, shutil
-from frappe.utils import markdown
+from frappe.utils import markdown, autodoc
 
 class setup_docs(object):
 	def __init__(self, app, target_app):
@@ -108,8 +108,8 @@ class setup_docs(object):
 					{"title": "Search Docs ...", "type": "input", "route": "/search_docs"},
 					{"title": "Docs Home", "route": "/docs"},
 					{"title": "User Guide", "route": "/docs/user"},
-					{"title": "Server API", "route": "/docs/current/api"},
-					{"title": "Models (Reference)", "route": "/docs/current/models"},
+					{"title": "Server API", "route": "/docs/" + self.app_context["app"]["docs_version"] + "/api"},
+					{"title": "Models (Reference)", "route": "/docs/" + self.app_context["app"]["docs_version"] + "/models"},
 					{"title": "Improve Docs", "route":
 						"{0}/tree/develop/{1}/docs".format(self.docs_config.source_link, self.app)}
 				]))
@@ -122,14 +122,24 @@ class setup_docs(object):
 			ignore_errors=True)
 		shutil.rmtree(os.path.join(self.docs_path, 'assets'),
 			ignore_errors=True)
-		shutil.copytree(os.path.join(self.app_path, 'docs', 'user'),
-			os.path.join(self.docs_path, 'user'))
-		shutil.copytree(os.path.join(self.app_path, 'docs', 'assets'),
-			frappe.get_app_path(self.target_app, 'www', 'docs', 'assets'))
+
+		# copy user guide
+		app_user_docs = os.path.join(self.app_path, 'docs', 'user')
+		if os.path.exists(app_user_docs):
+			shutil.copytree(app_user_docs,
+				os.path.join(self.docs_path, 'user'))
+
+		# copy assets
+		app_assets_docs = os.path.join(self.app_path, 'docs', 'assets')
+		if os.path.exists(app_assets_docs):
+			shutil.copytree(app_assets_docs,
+				frappe.get_app_path(self.target_app, 'www', 'docs', 'assets'))
 
 		# copy index
-		shutil.copy(os.path.join(self.app_path, 'docs', 'index.md'),
-			frappe.get_app_path(self.target_app, 'www', 'docs'))
+		app_index_docs = os.path.join(self.app_path, 'docs', 'index.md')
+		if os.path.exists(app_index_docs):
+			shutil.copy(app_index_docs,
+				frappe.get_app_path(self.target_app, 'www', 'docs'))
 
 	def make_home_pages(self):
 		"""Make standard home pages for docs, developer docs, api and models
@@ -278,7 +288,9 @@ class setup_docs(object):
 				print("Writing " + model_path)
 
 				with open(model_path, "wb") as f:
-					context = {"doctype": doctype_real_name}
+					controller = autodoc.get_controller(doctype_real_name)
+					controller_name = controller.__module__
+					context = {"doctype": doctype_real_name, "controller_name": controller_name}
 					context.update(self.app_context)
 					f.write(frappe.render_template("templates/autodoc/doctype.html",
 						context).encode("utf-8"))
