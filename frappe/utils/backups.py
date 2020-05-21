@@ -24,6 +24,7 @@ class BackupGenerator:
 	"""
 	def __init__(self, db_name, user, password, backup_path_db=None, backup_path_files=None,
 		backup_path_private_files=None, db_host="localhost", db_port=3306, verbose=False):
+		global _verbose
 		self.db_host = db_host
 		self.db_port = db_port or 3306
 		self.db_name = db_name
@@ -176,7 +177,7 @@ def new_backup(older_than=6, ignore_files=False, backup_path_db=None, backup_pat
 						  backup_path_private_files=backup_path_private_files,
 						  db_host = frappe.db.host,
 						  db_port = frappe.db.port,
-              verbose = verbose)
+						  verbose = verbose)
 	odb.get_backup(older_than, ignore_files, force=force)
 	return odb
 
