@@ -1,7 +1,6 @@
 context('Relative Timeframe', () => {
 	beforeEach(() => {
 		cy.login();
-		cy.visit('/desk#workspace/Website');
 	});
 	before(() => {
 		cy.login();
