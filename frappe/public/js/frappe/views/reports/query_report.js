@@ -454,6 +454,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 	render_datatable() {
 		let data = this.data;
+		let columns = this.columns.filter((col) => !col.hidden);
 
 		if (this.raw_data.add_total_row) {
 			data = data.slice();
@@ -463,10 +464,10 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		if (this.datatable && this.datatable.options
 			&& (this.datatable.options.showTotalRow ===this.raw_data.add_total_row)) {
 			this.datatable.options.treeView = this.tree_report;
-			this.datatable.refresh(data, this.columns);
+			this.datatable.refresh(data, columns);
 		} else {
 			let datatable_options = {
-				columns: this.columns.filter((col) => !col.hidden),
+				columns: columns,
 				data: data,
 				inlineFilters: true,
 				treeView: this.tree_report,
@@ -937,7 +938,12 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		], ({ file_format, include_indentation }) => {
 			this.make_access_log('Export', file_format);
 			if (file_format === 'CSV') {
-				const column_row = this.columns.map(col => col.label);
+				const column_row = this.columns.reduce((acc, col) => {
+					if (!col.hidden) {
+						acc.push(col.label);
+					}
+					return acc;
+				}, []);
 				const data = this.get_data_for_csv(include_indentation);
 				const out = [column_row].concat(data);
 

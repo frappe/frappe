@@ -242,7 +242,7 @@ def get_prepared_report_result(report, filters, dn="", user=None):
 				columns = json.loads(doc.columns) if doc.columns else data[0]
 
 				for column in columns:
-					if isinstance(column, dict):
+					if isinstance(column, dict) and column.get("label"):
 						column["label"] = _(column["label"])
 
 				latest_report_data = {
@@ -310,12 +310,13 @@ def export_query():
 		frappe.response['type'] = 'binary'
 
 
-def build_xlsx_data(columns, data, visible_idx,include_indentation):
+def build_xlsx_data(columns, data, visible_idx, include_indentation):
 	result = [[]]
 
 	# add column headings
 	for idx in range(len(data.columns)):
-		result[0].append(columns[idx]["label"])
+		if not columns[idx].get("hidden"):
+			result[0].append(columns[idx]["label"])
 
 	# build table from result
 	for i, row in enumerate(data.result):

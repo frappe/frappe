@@ -9,7 +9,7 @@ import timeit
 import frappe
 from datetime import datetime
 from frappe import _
-from frappe.utils import cint, flt, update_progress_bar, cstr
+from frappe.utils import cint, flt, update_progress_bar, cstr, DATETIME_FORMAT
 from frappe.utils.csvutils import read_csv_content
 from frappe.utils.xlsxutils import (
 	read_xlsx_file_from_attached_file,
@@ -345,6 +345,9 @@ class Importer:
 		return columns_with_serial_no, data_with_serial_no
 
 	def parse_value(self, value, df):
+		if isinstance(value, datetime) and df.fieldtype in ["Date", "Datetime"]:
+			return value
+
 		value = cstr(value)
 
 		# convert boolean values to 0 or 1
@@ -362,14 +365,13 @@ class Importer:
 		return value
 
 	def parse_date_format(self, value, df):
-		date_format = self.get_date_format_for_df(df)
-		if date_format:
-			try:
-				return datetime.strptime(value, date_format)
-			except:
-				# ignore date values that dont match the format
-				# import will break for these values later
-				pass
+		date_format = self.get_date_format_for_df(df) or DATETIME_FORMAT
+		try:
+			return datetime.strptime(value, date_format)
+		except ValueError:
+			# ignore date values that dont match the format
+			# import will break for these values later
+			pass
 		return value
 
 	def get_date_format_for_df(self, df):
@@ -396,7 +398,8 @@ class Importer:
 			date_values = [
 				row[column_index] for row in self.data[:PARSE_ROW_COUNT] if row[column_index]
 			]
-			date_formats = [guess_date_format(d) for d in date_values]
+			date_formats = [guess_date_format(d) if isinstance(d, str) else None
+							for d in date_values]
 			if not date_formats:
 				return
 			max_occurred_date_format = max(set(date_formats), key=date_formats.count)

@@ -38,6 +38,7 @@ def get_scheduled_backup_limit():
 
 def cleanup_old_backups(site_path, files, limit):
 	backup_paths = []
+	minimum_site_backups = frappe.conf.minimum_site_backups or limit
 	for f in files:
 		if f.endswith('sql.gz'):
 			_path = os.path.abspath(os.path.join(site_path, f))
@@ -45,6 +46,11 @@ def cleanup_old_backups(site_path, files, limit):
 
 	backup_paths = sorted(backup_paths, key=os.path.getctime)
 	files_to_delete = len(backup_paths) - limit
+	remaining_backups = len(backup_paths) - files_to_delete
+
+	# keep atleast specified number of backups
+	if remaining_backups <= minimum_site_backups:
+		files_to_delete = len(backup_paths) - minimum_site_backups
 
 	for idx in range(0, files_to_delete):
 		f = os.path.basename(backup_paths[idx])
@@ -54,7 +60,7 @@ def cleanup_old_backups(site_path, files, limit):
 
 def delete_downloadable_backups():
 	path = get_site_path('private', 'backups')
-	files = [x for x in os.listdir(path) if os.path.isfile(os.path.join(path, x))]
+	files = [x for x in os.listdir(path) if (os.path.isfile(os.path.join(path, x)) and x.endswith('sql.gz'))]
 	backup_limit = get_scheduled_backup_limit()
 
 	if len(files) > backup_limit:
