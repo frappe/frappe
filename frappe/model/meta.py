@@ -437,7 +437,7 @@ class Meta(Document):
 
 		if not self.custom:
 			for hook in frappe.get_hooks("override_doctype_dashboards", {}).get(self.name, []):
-				data = frappe.get_attr(hook)(data=data)
+				data = frappe._dict(frappe.get_attr(hook)(data=data))
 
 		return data
 
