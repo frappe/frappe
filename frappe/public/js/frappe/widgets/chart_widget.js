@@ -577,7 +577,7 @@ export default class ChartWidget extends Widget {
 				colors.push(field.color);
 			});
 		} else if (["Line", "Bar"].includes(this.chart_doc.type)) {
-			colors = [this.chart_doc.color || "light-blue"];
+			colors = [this.chart_doc.color || []];
 		}  else if (this.chart_doc.type == "Heatmap") {
 			colors = [];
 		}
