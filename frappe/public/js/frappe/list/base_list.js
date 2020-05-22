@@ -53,10 +53,7 @@ frappe.views.BaseList = class BaseList {
 
 		// Setup buttons
 		this.primary_action = null;
-		this.secondary_action = {
-			label: __("Refresh"),
-			action: () => this.refresh(),
-		};
+		this.secondary_action = null;
 
 		this.menu_items = [
 			{
@@ -168,15 +165,21 @@ frappe.views.BaseList = class BaseList {
 	}
 
 	set_menu_items() {
-		const $secondary_action = this.page.set_secondary_action(
-			this.secondary_action.label,
-			this.secondary_action.action,
-			this.secondary_action.icon
-		);
-		if (!this.secondary_action.icon) {
-			$secondary_action.addClass("hidden-xs");
+		if (this.secondary_action) {
+				const $secondary_action = this.page.set_secondary_action(
+				this.secondary_action.label,
+				this.secondary_action.action,
+				this.secondary_action.icon
+			);
+			if (!this.secondary_action.icon) {
+				$secondary_action.addClass("hidden-xs");
+			} else {
+				$secondary_action.addClass("visible-xs");
+			}
 		} else {
-			$secondary_action.addClass("visible-xs");
+			this.refresh_button = this.page.add_action_icon("refresh", () => {
+				this.refresh()
+			});
 		}
 
 		this.menu_items.map((item) => {

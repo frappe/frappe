@@ -142,7 +142,7 @@ frappe.ui.Page = Class.extend({
 		this.clear_indicator().removeClass("hide").html(`<span>${label}</span>`).addClass(color);
 	},
 
-	add_action_icon: function(icon, click, css_class=null) {
+	add_action_icon: function(icon, click, css_class='') {
 		return $(`
 			<button class="text-muted btn btn-default ${css_class}">
 				<svg class="icon icon-sm">
