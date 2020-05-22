@@ -16,8 +16,7 @@ import frappe, json, copy, re
 from frappe.model import optional_fields
 from frappe.client import check_parent_permission
 from frappe.model.utils.user_settings import get_user_settings, update_user_settings
-from frappe.utils import flt, cint, get_time, make_filter_tuple, get_filter, add_to_date, cstr, nowdate,\
-	get_first_day, get_first_day_of_week, get_quarter_start, get_year_start
+from frappe.utils import flt, cint, get_time, make_filter_tuple, get_filter, add_to_date, cstr, nowdate, get_timespan_date_range
 from frappe.model.meta import get_table_columns
 
 class DatabaseQuery(object):
@@ -374,6 +373,7 @@ class DatabaseQuery(object):
 		if f.operator.lower() in additional_filters_config:
 			f.update(get_additional_filter_field(additional_filters_config, f, f.value))
 
+		# prepare in condition
 		if f.operator.lower() in ('ancestors of', 'descendants of', 'not ancestors of', 'not descendants of'):
 			values = f.value or ''
 
@@ -838,35 +838,3 @@ def get_additional_filter_field(additional_filters_config, f, value):
 			if option.value == value:
 				f.value = option.query_value
 	return f
-
-def get_timespan_date_range(period):
-	if period == "last week":
-		date_range = [add_to_date(nowdate(), days=-7), nowdate()]
-	elif period == "last month":
-		date_range = [add_to_date(nowdate(), months=-1), nowdate()]
-	elif period == "last quarter":
-		date_range = [add_to_date(nowdate(), months=-3), nowdate()]
-	elif period == "last 6 months":
-		date_range = [add_to_date(nowdate(), months=-6), nowdate()]
-	elif period == "last year":
-		date_range = [add_to_date(nowdate(), years=-1), nowdate()]
-	elif period == "this week":
-		date_range = [get_first_day_of_week(nowdate(), as_str=True), nowdate()]
-	elif period == "this month":
-		date_range = [get_first_day(nowdate(), as_str=True), nowdate()]
-	elif period == "this quarter":
-		date_range = [get_quarter_start(nowdate(), as_str=True), nowdate()]
-	elif period == "this year":
-		date_range = [get_year_start(nowdate(), as_str=True), nowdate()]
-	elif period == "next week":
-		date_range = [nowdate(), add_to_date(nowdate(), days=7)]
-	elif period == "next month":
-		date_range = [nowdate(), add_to_date(nowdate(), months=1)]
-	elif period == "next quarter":
-		date_range = [nowdate(), add_to_date(nowdate(), months=3)]
-	elif period == "next 6 months":
-		date_range = [nowdate(), add_to_date(nowdate(), months=6)]
-	elif period == "next year":
-		date_range = [nowdate(), add_to_date(nowdate(), years=1)]
-
-	return date_range
