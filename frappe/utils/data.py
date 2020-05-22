@@ -190,6 +190,10 @@ def get_first_day(dt, d_years=0, d_months=0):
 def get_first_day_of_week(dt):
 	return dt - datetime.timedelta(days=dt.weekday())
 
+def get_last_day_of_week(dt):
+	dt = get_first_day_of_week(dt)
+	return dt + datetime.timedelta(days=6)
+
 def get_last_day(dt):
 	"""
 	 Returns last day of the month using:
@@ -348,7 +352,7 @@ def flt(s, precision=None):
 		if precision is not None:
 			num = rounded(num, precision)
 	except Exception:
-		num = 0
+		num = 0.0
 
 	return num
 
