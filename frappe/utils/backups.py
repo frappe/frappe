@@ -12,7 +12,9 @@ import frappe
 from frappe import _, conf
 from frappe.utils import cstr, get_url, now_datetime
 
-_verbose = False
+# backup variable for backwards compatibility
+verbose = False
+_verbose = verbose
 
 
 class BackupGenerator:
@@ -23,9 +25,10 @@ class BackupGenerator:
 		If specifying db_file_name, also append ".sql.gz"
 	"""
 	def __init__(self, db_name, user, password, backup_path_db=None, backup_path_files=None,
-		backup_path_private_files=None, db_host="localhost", verbose=False):
+		backup_path_private_files=None, db_host="localhost", db_port=3306, verbose=False):
 		global _verbose
 		self.db_host = db_host
+		self.db_port = db_port or 3306
 		self.db_name = db_name
 		self.user = user
 		self.password = password
@@ -112,10 +115,10 @@ class BackupGenerator:
 		import frappe.utils
 
 		# escape reserved characters
-		args = dict([item[0], frappe.utils.esc(item[1], '$ ')]
+		args = dict([item[0], frappe.utils.esc(str(item[1]), '$ ')]
 			for item in self.__dict__.copy().items())
 
-		cmd_string = """mysqldump --single-transaction --quick --lock-tables=false -u %(user)s -p%(password)s %(db_name)s -h %(db_host)s | gzip > %(backup_path_db)s """ % args
+		cmd_string = """mysqldump --single-transaction --quick --lock-tables=false -u %(user)s -p%(password)s %(db_name)s -h %(db_host)s -P %(db_port)s | gzip > %(backup_path_db)s """ % args
 		err, out = frappe.utils.execute_in_shell(cmd_string)
 
 	def send_email(self):
@@ -175,7 +178,8 @@ def new_backup(older_than=6, ignore_files=False, backup_path_db=None, backup_pat
 						  backup_path_db=backup_path_db, backup_path_files=backup_path_files,
 						  backup_path_private_files=backup_path_private_files,
 						  db_host = frappe.db.host,
-						  verbose=verbose)
+						  db_port = frappe.db.port,
+						  verbose = verbose)
 	odb.get_backup(older_than, ignore_files, force=force)
 	return odb
 
