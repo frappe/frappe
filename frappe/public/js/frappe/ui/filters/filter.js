@@ -140,7 +140,6 @@ frappe.ui.Filter = class {
 	}
 
 	freeze() {
-		console.log('freeze here')
 		this.update_filter_tag();
 	}
 
@@ -224,9 +223,9 @@ frappe.ui.Filter = class {
 		this.fieldselect.selected_doctype = doctype;
 		this.fieldselect.selected_fieldname = fieldname;
 
-		if(condition == 'Timespan' && ['Date', 'Datetime', 'DateRange', 'Select'].includes(this.field.df.fieldtype)) {
+		if (condition == 'Timespan' && ['Date', 'Datetime', 'DateRange', 'Select'].includes(this.field.df.fieldtype)) {
 			df.fieldtype = 'Select';
-			df.options = this.utils.get_timespan_options(['Last', 'This', 'Next']);c
+			df.options = this.utils.get_timespan_options(['Last', 'This', 'Next']);
 		}
 
 		if (this.filters_config[condition] && this.filters_config[condition].fieldtypes.includes(this.field.df.fieldtype)) {
@@ -469,7 +468,7 @@ frappe.ui.filter_utils = {
 			'Last': ['Week', 'Month', 'Quarter', '6 months', 'Year'],
 			'This': ['Week', 'Month', 'Quarter', 'Year'],
 			'Next': ['Week', 'Month', 'Quarter', '6 months', 'Year']
-		}
+		};
 		let options = [];
 		periods.forEach(period => {
 			period_map[period].forEach(p => {
