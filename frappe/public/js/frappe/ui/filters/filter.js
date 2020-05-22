@@ -6,6 +6,12 @@ frappe.ui.Filter = class {
 		}
 
 		this.utils = frappe.ui.filter_utils;
+		this.set_conditions();
+		this.set_conditions_from_config();
+		this.make();
+	}
+
+	set_conditions() {
 		this.conditions = [
 			["=", __("Equals")],
 			["!=", __("Not Equals")],
@@ -43,10 +49,21 @@ frappe.ui.Filter = class {
 			Color: ["Between", 'Previous', 'Current', 'Next'],
 			Check: this.conditions.map(c => c[0]).filter(c => c !== '=')
 		};
-		this.make();
-		this.make_select();
-		this.set_events();
-		this.setup();
+	}
+
+	set_conditions_from_config() {
+		if (frappe.boot.filters_config) {
+			this.filters_config = frappe.boot.filters_config;
+			for (let key of Object.keys(this.filters_config)) {
+				const filter = this.filters_config[key];
+				this.conditions.push([key, __(`{0}`, [filter.label])]);
+				for (let fieldtype of Object.keys(this.invalid_condition_map)) {
+					if (!filter.fieldtypes.includes(fieldtype)) {
+						this.invalid_condition_map[fieldtype].push(filter.label);
+					}
+				}
+			}
+		}
 	}
 
 	make() {
@@ -54,6 +71,10 @@ frappe.ui.Filter = class {
 			conditions: this.conditions
 		}))
 			.appendTo(this.parent.find('.filter-edit-area'));
+
+		this.make_select();
+		this.set_events();
+		this.setup();
 	}
 
 	make_select() {
@@ -121,6 +142,7 @@ frappe.ui.Filter = class {
 	}
 
 	freeze() {
+		console.log('freeze here')
 		this.update_filter_tag();
 	}
 
@@ -230,7 +252,22 @@ frappe.ui.Filter = class {
 			];
 		}
 
-		this.make_field(df, cur.fieldtype);
+		if (this.filters_config[condition] && this.filters_config[condition].fieldtypes.includes(this.field.df.fieldtype)) {
+			let args = {};
+			if (this.filters_config[condition].depends_on) {
+				const field_name = this.filters_config[condition].depends_on;
+				const filter_value = this.base_list.get_filter_value(field_name);
+				args[field_name] = filter_value;
+			}
+			frappe.xcall(this.filters_config[condition].get_field, args).then(field => {
+				df.fieldtype = field.fieldtype;
+				df.options = field.options;
+				df.fieldname = fieldname;
+				this.make_field(df, cur.fieldtype);
+			});
+		} else {
+			this.make_field(df, cur.fieldtype);
+		}
 	}
 
 	make_field(df, old_fieldtype) {

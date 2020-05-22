@@ -355,7 +355,9 @@ class DatabaseQuery(object):
 				ifnull(`tabDocType`.`fieldname`, fallback) operator "value"
 		"""
 
-		f = get_filter(self.doctype, f)
+		from frappe.boot import get_filters_config
+		additional_filters_config = get_filters_config()
+		f = get_filter(self.doctype, f, additional_filters_config)
 
 		tname = ('`tab' + f.doctype + '`')
 		if not tname in self.tables:
@@ -369,7 +371,9 @@ class DatabaseQuery(object):
 
 		can_be_null = True
 
-		# prepare in condition
+		if f.operator.lower() in additional_filters_config:
+			f.update(get_additional_filter_field(additional_filters_config, f, f.value))
+
 		if f.operator.lower() in ('ancestors of', 'descendants of', 'not ancestors of', 'not descendants of'):
 			values = f.value or ''
 
@@ -854,3 +858,13 @@ def get_between_date_filter(value, df=None):
 			frappe.db.format_date(to_date))
 
 	return data
+
+def get_additional_filter_field(additional_filters_config, f, value):
+	additional_filter = additional_filters_config[f.operator.lower()]
+	f = frappe._dict(frappe.get_attr(additional_filter['get_field'])())
+	if f.query_value:
+		for option in f.options:
+			option = frappe._dict(option)
+			if option.value == value:
+				f.value = option.query_value
+	return f
