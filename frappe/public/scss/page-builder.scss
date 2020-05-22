@@ -250,3 +250,35 @@
 		left: 16.67%;
 	}
 }
+
+.testimonial {
+	text-align: center;
+}
+
+.testimonial-logo img {
+	display: inline-block;
+	max-width: 10rem;
+	max-height: 2.5rem;
+}
+
+.testimonial-content {
+	margin-left: auto;
+	margin-right: auto;
+	margin-top: 2rem;
+	max-width: 52rem;
+	font-size: $font-size-2xl;
+	font-weight: 500;
+}
+
+.testimonial-by {
+	font-size: $font-size-lg;
+	margin-top: 2rem;
+
+	&:before {
+		content: '—'
+	}
+}
+
+.split-section-content {
+	margin-top: 2rem;
+}

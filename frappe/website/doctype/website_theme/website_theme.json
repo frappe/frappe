@@ -135,7 +135,7 @@
    "options": "Color"
   },
   {
-   "default": "300,600",
+   "default": "wght@300;400;500;600;700;800",
    "fieldname": "font_properties",
    "fieldtype": "Data",
    "label": "Font Properties"
@@ -170,7 +170,7 @@
   }
  ],
  "links": [],
- "modified": "2020-05-11 16:01:04.654990",
+ "modified": "2020-05-16 18:36:22.203519",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Website Theme",

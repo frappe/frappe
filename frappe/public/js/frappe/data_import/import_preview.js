@@ -81,7 +81,7 @@ frappe.data_import.ImportPreview = class ImportPreview {
 				</span>`;
 				return {
 					id: frappe.utils.get_random(6),
-					name: col.header_title || df.label,
+					name: col.header_title || (df ? df.label : 'Untitled Column'),
 					content: column_title,
 					skip_import: true,
 					editable: false,

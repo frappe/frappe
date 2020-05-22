@@ -6,6 +6,7 @@
 @import 'website-image';
 @import 'page-builder';
 @import 'markdown';
+@import 'sidebar';
 
 .container {
 	padding-left: 1.25rem;
@@ -52,6 +53,14 @@
 	&:hover,
 	&:focus, &.active {
 		color: $primary;
+	}
+}
+
+.navbar-brand {
+	img {
+		display: inline-block;
+		max-width: 150px;
+		max-height: 25px;
 	}
 }
 
@@ -135,6 +144,7 @@ a.card {
 .footer-logo {
 	width: 5rem;
 	height: 2rem;
+	object-fit: contain;
 }
 
 .footer-link, .footer-child-item a {

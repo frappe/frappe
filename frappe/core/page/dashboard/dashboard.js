@@ -6,7 +6,7 @@ frappe.provide('frappe.dashboards.chart_sources');
 
 
 frappe.pages['dashboard'].on_page_load = function(wrapper) {
-	var page = frappe.ui.make_app_page({
+	frappe.ui.make_app_page({
 		parent: wrapper,
 		title: __("Dashboard"),
 		single_column: true
@@ -21,11 +21,18 @@ frappe.pages['dashboard'].on_page_load = function(wrapper) {
 class Dashboard {
 	constructor(wrapper) {
 		this.wrapper = $(wrapper);
-		$(`<div class="dashboard">
+		$(`<div class="dashboard" style="overflow-y: hidden">
 			<div class="dashboard-graph"></div>
 		</div>`).appendTo(this.wrapper.find(".page-content").empty());
 		this.container = this.wrapper.find(".dashboard-graph");
 		this.page = wrapper.page;
+
+		this.page.set_title_sub(
+			$(`<button class="restricted-button">
+				<span class="octicon octicon-lock"></span>
+				<span>${__('Restricted')}</span>
+			</button>`)
+		);
 	}
 
 	show() {

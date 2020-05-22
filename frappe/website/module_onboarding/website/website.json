@@ -6,11 +6,11 @@
  ],
  "creation": "2020-04-26 13:03:30.405135",
  "docstatus": 0,
- "doctype": "Onboarding",
+ "doctype": "Module Onboarding",
  "documentation_url": "https://docs.erpnext.com/docs/user/manual/en/website",
  "idx": 0,
  "is_complete": 0,
- "modified": "2020-04-30 20:23:06.438314",
+ "modified": "2020-05-13 12:32:35.269025",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Website",
@@ -27,6 +27,9 @@
   },
   {
    "step": "Enable Website Tracking"
+  },
+  {
+   "step": "Web Page Tour"
   }
  ],
  "subtitle": "Blogs, website view tracking, and more.",

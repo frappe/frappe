@@ -25,7 +25,7 @@ export default class OnboardingWidget extends Widget {
 
 		if (step.is_skipped) {
 			status = "skipped";
-			icon_class = "fa-times-circle-o";
+			icon_class = "fa-check-circle-o";
 		}
 
 		if (step.is_complete) {
@@ -56,15 +56,41 @@ export default class OnboardingWidget extends Widget {
 		// Setup actions
 		let actions = {
 			"Watch Video": () => this.show_video(step),
-			"Create Entry": () => this.show_quick_entry(step),
+			"Create Entry": () => {
+				if (step.show_full_form) {
+					this.create_entry(step);
+				} else {
+					this.show_quick_entry(step);
+				}
+			},
+			"Show Form Tour": () => this.show_form_tour(step),
 			"Update Settings": () => this.update_settings(step),
 			"View Report": () => this.open_report(step),
+			"Go to Page": () => this.go_to_page(step),
 		};
 
 		$step.find("#title").on("click", actions[step.action]);
 
 		$step.appendTo(this.body);
 		return $step;
+	}
+
+	go_to_page(step) {
+		frappe.set_route(step.path).then(() => {
+			if (step.callback_message) {
+				let msg_dialog = frappe.msgprint({
+					message: __(step.callback_message),
+					title: __(step.callback_title),
+					primary_action: {
+						action: () => {
+							msg_dialog.hide();
+						},
+						label: () => __("Continue"),
+					},
+					wide: true,
+				});
+			}
+		});
 	}
 
 	open_report(step) {
@@ -74,7 +100,7 @@ export default class OnboardingWidget extends Widget {
 			is_query_report: ["Query Report", "Script Report"].includes(
 				step.report_type
 			),
-			doctype: step.report_reference_doctype
+			doctype: step.report_reference_doctype,
 		});
 
 		let current_route = frappe.get_route();
@@ -85,8 +111,10 @@ export default class OnboardingWidget extends Widget {
 				title: __(step.reference_report),
 				primary_action: {
 					action: () => {
+						frappe.set_route(current_route).then(() => {
+							this.mark_complete(step);
+						});
 						msg_dialog.hide();
-						this.mark_complete(step);
 					},
 					label: () => __("Continue"),
 				},
@@ -105,15 +133,48 @@ export default class OnboardingWidget extends Widget {
 		});
 	}
 
+	show_form_tour(step) {
+		let route;
+		if (step.is_single) {
+			route = `Form/${step.reference_document}`;
+		} else {
+			route = `Form/${step.reference_document}/New ${step.reference_document}`;
+		}
+
+		let current_route = frappe.get_route();
+
+		frappe.route_hooks = {};
+		frappe.route_hooks.after_load = (frm) => {
+			frm.show_tour(() => {
+				let msg_dialog = frappe.msgprint({
+					message: __("Let's take you back to onboarding"),
+					title: __("Great Job"),
+					primary_action: {
+						action: () => {
+							frappe.set_route(current_route).then(() => {
+								this.mark_complete(step);
+							});
+							msg_dialog.hide();
+						},
+						label: () => __("Continue"),
+					},
+				});
+			});
+		};
+
+		frappe.set_route(route);
+	}
+
 	update_settings(step) {
 		let current_route = frappe.get_route();
 
-		frappe.route_options = {};
-		frappe.route_options.after_load = (frm) => {
+		frappe.route_hooks = {};
+		frappe.route_hooks.after_load = (frm) => {
 			frm.scroll_to_field(step.field);
+			frm.doc.__unsaved = true;
 		};
 
-		frappe.route_options.after_save = (frm) => {
+		frappe.route_hooks.after_save = (frm) => {
 			let success = false;
 			let args = {};
 
@@ -168,6 +229,44 @@ export default class OnboardingWidget extends Widget {
 		frappe.set_route("Form", step.reference_document);
 	}
 
+	create_entry(step) {
+		let current_route = frappe.get_route();
+
+		frappe.route_hooks = {};
+		let callback = () => {
+			frappe.msgprint({
+				message: __("You're doing great, let's take you back to the onboarding page."),
+				title: __("Good Work 🎉"),
+				primary_action: {
+					action: () => {
+						frappe.set_route(current_route).then(() => {
+							this.mark_complete(step);
+						});
+					},
+					label: __("Continue"),
+				},
+			});
+
+			frappe.msg_dialog.custom_onhide = () => {
+				this.mark_complete(step);
+			};
+		};
+
+		if (step.is_submittable) {
+			frappe.route_hooks.after_save = () => {
+				frappe.msgprint({
+					message: __("Submit this document to complete this step."),
+					title: __("Great")
+				});
+			};
+			frappe.route_hooks.after_submit = callback;
+		} else {
+			frappe.route_hooks.after_save = callback;
+		}
+
+		frappe.set_route(`Form/${step.reference_document}/New ${step.reference_document} 1`);
+	}
+
 	show_quick_entry(step) {
 		let current_route = frappe.get_route_str();
 		frappe.ui.form.make_quick_entry(
@@ -185,7 +284,7 @@ export default class OnboardingWidget extends Widget {
 								});
 							},
 							label: __("Continue"),
-						}
+						},
 					});
 
 					frappe.msg_dialog.custom_onhide = () => {
@@ -235,8 +334,10 @@ export default class OnboardingWidget extends Widget {
 	update_step_status(step, status, value, callback) {
 		let icon_class = {
 			is_complete: "fa-check-circle-o",
-			is_skipped: "fa-times-circle-o",
+			is_skipped: "fa-check-circle-o",
 		};
+		//  Clear any hooks
+		frappe.route_hooks = {};
 
 		frappe
 			.call("frappe.desk.desktop.update_onboarding_step", {

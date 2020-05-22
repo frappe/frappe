@@ -6,6 +6,7 @@
  "idx": 0,
  "is_complete": 0,
  "is_mandatory": 0,
+ "is_single": 0,
  "is_skipped": 0,
  "modified": "2020-04-30 19:06:10.750976",
  "modified_by": "Administrator",

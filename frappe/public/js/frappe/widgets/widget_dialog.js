@@ -145,7 +145,7 @@ class ShortcutDialog extends WidgetDialog {
 				fieldname: "type",
 				label: "Type",
 				reqd: 1,
-				options: "DocType\nReport\nPage",
+				options: "DocType\nReport\nPage\nDashboard",
 				onchange: () => {
 					if (this.dialog.get_value("type") == "DocType") {
 						this.dialog.fields_dict.link_to.get_query = () => {
