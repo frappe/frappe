@@ -117,9 +117,6 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 					value: item.value
 				};
 			},
-			filter: function() {
-				return true;
-			},
 			item: function (item) {
 				var d = this.get_item(item.value);
 				if(!d.label) {	d.label = d.value; }
@@ -139,6 +136,8 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 				return 0;
 			}
 		});
+
+		this.filter_awesomplete(this.awesomplete);
 
 		this.$input.on("input", frappe.utils.debounce(function(e) {
 			var doctype = me.get_options();
@@ -467,10 +466,16 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 		for(var i=0; i < fl.length; i++) {
 			frappe.model.set_value(df.parent, docname, fl[i], fetch_values[i], df.fieldtype);
 		}
+	},
+
+	filter_awesomplete: function(awesomplete) {
+		awesomplete.filter = function() {
+			return true;
+		}
 	}
 });
 
-if(Awesomplete) {
+if (Awesomplete) {
 	Awesomplete.prototype.get_item = function(value) {
 		return this._list.find(function(item) {
 			return item.value === value;
