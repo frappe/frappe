@@ -201,9 +201,10 @@ def web_blocks(blocks):
 			'doctype': 'Web Page Block',
 			'web_template': block['template'],
 			'web_template_values': block['values'],
-			'add_top_padding': 1,
-			'add_bottom_padding': 1,
-			'add_container': 1,
+			'add_top_padding': block.get("add_top_padding", 1),
+			'add_bottom_padding': block.get("add_bottom_padding", 1),
+			'add_container': block.get("add_container", 1),
+			'add_shade': block.get("add_shade", 0),
 			'hide_block': 0,
 			'css_class': ''
 		}
