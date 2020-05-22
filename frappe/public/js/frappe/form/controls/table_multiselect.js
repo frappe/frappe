@@ -12,7 +12,7 @@ frappe.ui.form.ControlTableMultiSelect = frappe.ui.form.ControlLink.extend({
 		// used as an internal model to store values
 		this.rows = [];
 		// used as an internal model to filter awesomplete values
-		this._rows_list = []
+		this._rows_list = [];
 
 		this.$input_area.on('click', (e) => {
 			if (e.target === this.$input_area.get(0)) {
@@ -148,10 +148,10 @@ frappe.ui.form.ControlTableMultiSelect = frappe.ui.form.ControlLink.extend({
 
 		awesomplete.filter = function(item) {
 			if (in_list(me._rows_list, item.value)) {
-				return false
+				return false;
 			}
 
-			return true
-		}
+			return true;
+		};
 	}
 });

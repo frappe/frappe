@@ -471,7 +471,7 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 	filter_awesomplete: function(awesomplete) {
 		awesomplete.filter = function() {
 			return true;
-		}
+		};
 	}
 });
 
