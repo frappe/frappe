@@ -25,9 +25,7 @@ frappe.ui.Filter = class {
 			[">=", ">="],
 			["<=", "<="],
 			["Between", __("Between")],
-			["Previous", __("Previous")],
-			["Current", __("Current")],
-			["Next", __("Next")]
+			["Timespan", __("Timespan")],
 		];
 
 		this.nested_set_conditions = [
@@ -42,11 +40,11 @@ frappe.ui.Filter = class {
 		this.invalid_condition_map = {
 			Date: ['like', 'not like'],
 			Datetime: ['like', 'not like'],
-			Data: ['Between', 'Previous', 'Current', 'Next'],
-			Select: ['like', 'not like', 'Between', 'Previous', 'Current', 'Next'],
-			Link: ["Between", 'Previous', 'Current', 'Next', '>', '<', '>=', '<='],
-			Currency: ["Between", 'Previous', 'Current', 'Next'],
-			Color: ["Between", 'Previous', 'Current', 'Next'],
+			Data: ['Between', 'Timespan'],
+			Select: ['like', 'not like', 'Between', 'Timespan'],
+			Link: ["Between", 'Timespan', '>', '<', '>=', '<='],
+			Currency: ["Between", 'Timespan'],
+			Color: ["Between", 'Timespan'],
 			Check: this.conditions.map(c => c[0]).filter(c => c !== '=')
 		};
 	}
@@ -226,30 +224,9 @@ frappe.ui.Filter = class {
 		this.fieldselect.selected_doctype = doctype;
 		this.fieldselect.selected_fieldname = fieldname;
 
-		if(["Previous", "Current", "Next"].includes(condition) && ['Date', 'Datetime', 'DateRange', 'Select'].includes(this.field.df.fieldtype)) {
+		if(condition == 'Timespan' && ['Date', 'Datetime', 'DateRange', 'Select'].includes(this.field.df.fieldtype)) {
 			df.fieldtype = 'Select';
-			df.options = [
-				{
-					label: __('1 week'),
-					value: '1 week'
-				},
-				{
-					label: __('1 month'),
-					value: '1 month'
-				},
-				{
-					label: __('3 months'),
-					value: '3 months'
-				},
-				{
-					label: __('6 months'),
-					value: '6 months'
-				},
-				{
-					label: __('1 year'),
-					value: '1 year'
-				}
-			];
+			df.options = this.utils.get_timespan_options(['Last', 'This', 'Next']);c
 		}
 
 		if (this.filters_config[condition] && this.filters_config[condition].fieldtypes.includes(this.field.df.fieldtype)) {
@@ -485,5 +462,23 @@ frappe.ui.filter_utils = {
 				{ label: __('Not Set'), value: 'not set' },
 			];
 		}
+	},
+
+	get_timespan_options(periods) {
+		const period_map = {
+			'Last': ['Week', 'Month', 'Quarter', '6 months', 'Year'],
+			'This': ['Week', 'Month', 'Quarter', 'Year'],
+			'Next': ['Week', 'Month', 'Quarter', '6 months', 'Year']
+		}
+		let options = [];
+		periods.forEach(period => {
+			period_map[period].forEach(p => {
+				options.push({
+					label: __(`{0} {1}`, [period, p]),
+					value: `${period.toLowerCase()} ${p.toLowerCase()}`,
+				});
+			});
+		});
+		return options;
 	}
 };

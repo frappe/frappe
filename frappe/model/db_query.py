@@ -431,38 +431,8 @@ class DatabaseQuery(object):
 			if df and df.fieldtype in ("Check", "Float", "Int", "Currency", "Percent"):
 				can_be_null = False
 
-			if f.operator.lower() in ('previous', 'next', 'current'):
-				if f.operator.lower() == "previous":
-					if f.value == "1 week":
-						date_range = [add_to_date(nowdate(), days=-7), nowdate()]
-					elif f.value == "1 month":
-						date_range = [add_to_date(nowdate(), months=-1), nowdate()]
-					elif f.value == "3 months":
-						date_range = [add_to_date(nowdate(), months=-3), nowdate()]
-					elif f.value == "6 months":
-						date_range = [add_to_date(nowdate(), months=-6), nowdate()]
-					elif f.value == "1 year":
-						date_range = [add_to_date(nowdate(), years=-1), nowdate()]
-				elif f.operator.lower() == "current":
-					if f.value == "1 week":
-						date_range = [get_first_day_of_week(nowdate(), as_str=True), nowdate()]
-					elif f.value == "1 month":
-						date_range = [get_first_day(nowdate(), as_str=True), nowdate()]
-					elif f.value == "3 months":
-						date_range = [get_quarter_start(nowdate(), as_str=True), nowdate()]
-					elif f.value == "1 year":
-						date_range = [get_year_start(nowdate(), as_str=True), nowdate()]
-				elif f.operator.lower() == "next":
-					if f.value == "1 week":
-						date_range = [nowdate(), add_to_date(nowdate(), days=7)]
-					elif f.value == "1 month":
-						date_range = [nowdate(), add_to_date(nowdate(), months=1)]
-					elif f.value == "3 months":
-						date_range = [nowdate(), add_to_date(nowdate(), months=3)]
-					elif f.value == "6 months":
-						date_range = [nowdate(), add_to_date(nowdate(), months=6)]
-					elif f.value == "1 year":
-						date_range = [nowdate(), add_to_date(nowdate(), years=1)]
+			if f.operator.lower() == 'timespan':
+				date_range = get_timespan_date_range(f.value)
 				f.operator = "Between"
 				f.value = date_range
 				fallback = "'0001-01-01 00:00:00'"
@@ -868,3 +838,35 @@ def get_additional_filter_field(additional_filters_config, f, value):
 			if option.value == value:
 				f.value = option.query_value
 	return f
+
+def get_timespan_date_range(period):
+	if period == "last week":
+		date_range = [add_to_date(nowdate(), days=-7), nowdate()]
+	elif period == "last month":
+		date_range = [add_to_date(nowdate(), months=-1), nowdate()]
+	elif period == "last quarter":
+		date_range = [add_to_date(nowdate(), months=-3), nowdate()]
+	elif period == "last 6 months":
+		date_range = [add_to_date(nowdate(), months=-6), nowdate()]
+	elif period == "last year":
+		date_range = [add_to_date(nowdate(), years=-1), nowdate()]
+	elif period == "this week":
+		date_range = [get_first_day_of_week(nowdate(), as_str=True), nowdate()]
+	elif period == "this month":
+		date_range = [get_first_day(nowdate(), as_str=True), nowdate()]
+	elif period == "this quarter":
+		date_range = [get_quarter_start(nowdate(), as_str=True), nowdate()]
+	elif period == "this year":
+		date_range = [get_year_start(nowdate(), as_str=True), nowdate()]
+	elif period == "next week":
+		date_range = [nowdate(), add_to_date(nowdate(), days=7)]
+	elif period == "next month":
+		date_range = [nowdate(), add_to_date(nowdate(), months=1)]
+	elif period == "next quarter":
+		date_range = [nowdate(), add_to_date(nowdate(), months=3)]
+	elif period == "next 6 months":
+		date_range = [nowdate(), add_to_date(nowdate(), months=6)]
+	elif period == "next year":
+		date_range = [nowdate(), add_to_date(nowdate(), years=1)]
+
+	return date_range
