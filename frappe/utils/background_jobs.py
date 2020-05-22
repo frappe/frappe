@@ -116,12 +116,12 @@ def execute_job(site, method, event, job_name, kwargs, user=None, is_async=True,
 				is_async=is_async, retry=retry+1)
 
 		else:
-			frappe.log_error(method_name)
+			frappe.log_error(title=method_name)
 			raise
 
 	except:
 		frappe.db.rollback()
-		frappe.log_error(method_name)
+		frappe.log_error(title=method_name)
 		frappe.db.commit()
 		print(frappe.get_traceback())
 		raise
