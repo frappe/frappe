@@ -1293,6 +1293,11 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 						}
 					});
 
+					d.$body.prepend(`<div class="columns-search">
+						<input type="text" placeholder="${__('Search')}" data-element="search" class="form-control input-xs">
+					</div>`);
+
+					frappe.utils.setup_search(d.$body, '.unit-checkbox', '.label-area');
 					d.show();
 				}
 			}
