@@ -12,7 +12,9 @@ import frappe
 from frappe import _, conf
 from frappe.utils import cstr, get_url, now_datetime
 
-_verbose = False
+# backup variable for backwards compatibility
+verbose = False
+_verbose = verbose
 
 
 class BackupGenerator:
