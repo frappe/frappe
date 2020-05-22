@@ -59,7 +59,7 @@ class WebsiteTheme(Document):
 
 		file_name = frappe.scrub(self.name) + '_' + frappe.generate_hash('Website Theme', 8) + '.css'
 		output_path = join_path(frappe.utils.get_bench_path(), 'sites', 'assets', 'css', file_name)
-		content = self.theme_scss
+		content = self.theme_scss or ''
 		content = content.replace('\n', '\\n')
 		command = ['node', 'generate_bootstrap_theme.js', output_path, content]
 
