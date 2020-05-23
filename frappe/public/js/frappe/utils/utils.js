@@ -828,6 +828,7 @@ Object.assign(frappe.utils, {
 		}
 		return duration;
 	},
+
 	seconds_to_duration(value, duration_options) {
 		let secs = value;
 		let total_duration = {

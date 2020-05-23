@@ -319,6 +319,34 @@ def format_datetime(datetime_string, format_string=None):
 		formatted_datetime = datetime.strftime('%Y-%m-%d %H:%M:%S')
 	return formatted_datetime
 
+def format_duration(seconds, show_days=True):
+	total_duration = {
+		'days': math.floor(seconds / (3600 * 24)),
+		'hours': math.floor(seconds % (3600 * 24) / 3600),
+		'minutes': math.floor(seconds % 3600 / 60),
+		'seconds': math.floor(seconds % 60)
+	}
+
+	if not show_days:
+		total_duration['hours'] = math.floor(seconds / 3600)
+		total_duration['days'] = 0
+
+	duration = ''
+	if total_duration:
+		if total_duration.get('days'):
+			duration += str(total_duration.get('days')) + 'd'
+		if total_duration.get('hours'):
+			duration += ' ' if len(duration) else ''
+			duration += str(total_duration.get('hours')) + 'h'
+		if total_duration.get('minutes'):
+			duration += ' ' if len(duration) else ''
+			duration += str(total_duration.get('minutes')) + 'm'
+		if total_duration.get('seconds'):
+			duration += ' ' if len(duration) else ''
+			duration += str(total_duration.get('seconds')) + 's'
+
+	return duration
+
 def get_weekdays():
 	return ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
 
