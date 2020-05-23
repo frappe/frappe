@@ -844,6 +844,23 @@ Object.assign(frappe.utils, {
 		return total_duration;
 	},
 
+	duration_to_seconds(days=0, hours=0, minutes=0, seconds=0) {
+		let value = 0;
+		if (days) {
+			value += days * 24 * 60 * 60;
+		}
+		if (hours) {
+			value += hours * 60 * 60;
+		}
+		if (minutes) {
+			value += minutes * 60;
+		}
+		if (seconds) {
+			value += seconds;
+		}
+		return value;
+	},
+
 	get_duration_options: function(docfield) {
 		let duration_options = {
 			show_days: docfield.show_days,
