@@ -190,7 +190,7 @@ def update_parent_mins_to_first_response(doc):
 
 		# if status has a "Replied" option, then update the status for received communication
 		if ('Replied' in options) and doc.sent_or_received=="Received":
-			parent.db_set("status", "Open")
+			update_document_status_on_received_communication(parent)
 		else:
 			# update the modified date for document
 			parent.update_modified()
@@ -198,6 +198,11 @@ def update_parent_mins_to_first_response(doc):
 	update_mins_to_first_communication(parent, doc)
 	parent.run_method('notify_communication', doc)
 	parent.notify_update()
+
+def update_document_status_on_received_communication(doc):
+	from frappe.automation.doctype.assignment_rule.assignment_rule import apply
+	doc.db_set("status", "Open")
+	apply(doc)
 
 def get_recipients_cc_and_bcc(doc, recipients, cc, bcc, fetched_from_email_account=False):
 	doc.all_email_addresses = []
