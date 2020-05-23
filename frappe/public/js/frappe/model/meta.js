@@ -265,13 +265,5 @@ $.extend(frappe.meta, {
 			precision = cint(frappe.defaults.get_default("float_precision")) || 3;
 		}
 		return precision;
-	},
-
-	get_duration_options: function(df) {
-		let duration_options = {
-			show_days: df.show_days,
-			show_seconds: df.show_seconds
-		};
-		return duration_options;
 	}
 });

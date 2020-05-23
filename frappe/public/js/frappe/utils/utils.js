@@ -843,6 +843,14 @@ Object.assign(frappe.utils, {
 		}
 		return total_duration;
 	},
+
+	get_duration_options: function(docfield) {
+		let duration_options = {
+			show_days: docfield.show_days,
+			show_seconds: docfield.show_seconds
+		};
+		return duration_options;
+	}
 });
 
 // Array de duplicate

@@ -50,7 +50,7 @@ frappe.ui.form.ControlDuration = frappe.ui.form.ControlData.extend({
 	},
 
 	set_duration_options() {
-		this.duration_options = frappe.meta.get_duration_options(this.df);
+		this.duration_options = frappe.utils.get_duration_options(this.df);
 	},
 
 	set_duration_picker_value: function(value) {
