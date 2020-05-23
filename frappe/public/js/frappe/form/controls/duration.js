@@ -17,7 +17,7 @@ frappe.ui.form.ControlDuration = frappe.ui.form.ControlData.extend({
 		this.build_numeric_input("hours", false);
 		this.build_numeric_input("minutes", false);
 		this.build_numeric_input("seconds", !this.duration_options.show_seconds);
-		this.set_duration_picker();
+		this.set_duration_picker_value(this.value);
 		this.$picker.hide();
 		this.bind_events();
 		this.refresh();
@@ -53,8 +53,8 @@ frappe.ui.form.ControlDuration = frappe.ui.form.ControlData.extend({
 		this.duration_options = frappe.meta.get_duration_options(this.df);
 	},
 
-	set_duration_picker() {
-		let total_duration = frappe.utils.seconds_to_duration(this.value, this.duration_options);
+	set_duration_picker_value: function(value) {
+		let total_duration = frappe.utils.seconds_to_duration(value, this.duration_options);
 
 		if (this.$picker) {
 			Object.keys(total_duration).forEach(duration => {
@@ -75,12 +75,17 @@ frappe.ui.form.ControlDuration = frappe.ui.form.ControlData.extend({
 		this.$picker.on("change", ".duration-input", () => {
 			// duration changed in individual boxes
 			clicked = false;
-			this.set_value(this.duration_to_seconds());
+			let value = this.duration_to_seconds();
+			this.set_value(value);
 			this.set_focus();
 		});
 
 		this.$input.on("focus", () => {
 			this.$picker.show();
+			let is_picker_set = this.is_duration_picker_set(this.inputs);
+			if (!is_picker_set) {
+				this.set_duration_picker_value(this.value);
+			}
 		});
 
 		this.$input.on("blur", () => {
@@ -101,7 +106,7 @@ frappe.ui.form.ControlDuration = frappe.ui.form.ControlData.extend({
 	refresh_input: function() {
 		this._super();
 		this.set_duration_options();
-		this.set_duration_picker();
+		this.set_duration_picker_value(this.value);
 	},
 
 	format_for_input: function(value) {
@@ -136,5 +141,15 @@ frappe.ui.form.ControlDuration = frappe.ui.form.ControlData.extend({
 			}
 		}
 		return value;
+	},
+
+	is_duration_picker_set(inputs) {
+		let is_set = false;
+		Object.values(inputs).forEach(duration => {
+			if (duration.prop("value") != 0) {
+				is_set = true;
+			}
+		});
+		return is_set;
 	}
 });
