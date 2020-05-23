@@ -226,7 +226,7 @@ def get_assignments(dt, dn):
 			filters={
 				'reference_type': dt,
 				'reference_name': dn,
-				'status': ('!=', 'Cancelled'),
+				'status': ('not in', ['Closed', 'Cancelled']),
 			})
 
 	return cl
