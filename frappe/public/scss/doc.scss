@@ -1,0 +1,105 @@
+.doc-layout {
+	padding-left: 0;
+	padding-right: 0;
+	border-bottom: 1px solid $gray-200;
+}
+
+.doc-layout .sidebar-column {
+	background-color: $light;
+}
+
+.doc-search {
+	position: relative;
+
+	.search-icon {
+		position: absolute;
+		left: 0;
+		top: 0;
+		width: 2.5rem;
+		height: 100%;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+	}
+
+	svg {
+		color: $gray-600;
+	}
+
+	input {
+		padding-left: 2.5rem;
+	}
+}
+
+.doc-sidebar {
+	position: sticky;
+	top: 0;
+	padding-left: 4rem;
+	padding-right: 2rem;
+	padding-bottom: 4rem;
+	height: 100vh;
+	overflow: hidden;
+
+	.web-sidebar {
+		height: 100%;
+		overflow: auto;
+		padding-top: 0;
+		padding-bottom: 4rem;
+	}
+}
+
+.doc-main .page-content-wrapper {
+	padding: 2rem 4rem 4rem 4rem;
+}
+
+.doc-sidebar-logo {
+	padding-top: 2.5rem;
+	padding-bottom: 2rem;
+}
+
+.sidebar-group {
+	padding-top: 1rem;
+	padding-bottom: 1rem;
+
+	> ul {
+		padding-left: 1rem;
+	}
+}
+
+.page-toc {
+	font-size: $font-size-sm;
+
+	h5 {
+		font-size: $font-size-sm;
+		margin-bottom: 0.5rem;
+		color: $gray-500;
+	}
+
+	> div {
+		padding-top: 8rem;
+		position: sticky;
+		top: 0;
+	}
+
+	ul {
+		padding-left: 0;
+		list-style-type: none;
+	}
+
+	li > ul {
+		padding-left: 0.5rem;
+	}
+
+	a {
+		display: block;
+		padding: 0.25rem 0;
+
+		color: $gray-600;
+		text-decoration: none;
+		font-weight: 500;
+
+		&:hover {
+			color: $gray-700;
+		}
+	}
+}

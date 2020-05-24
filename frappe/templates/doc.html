@@ -1,49 +1,33 @@
-{% extends base_template_path %}
+{% extends "templates/base.html" %}
 
 {% macro page_content() %}
 {%- block page_content -%}{%- endblock -%}
 {% endmacro %}
 
+{%- block head_include %}
+	<link rel="stylesheet" href="/assets/frappe/css/hljs-night-owl.css">
+{% endblock -%}
+
+{%- block navbar -%}{%- endblock -%}
+
 {% block content %}
 
 {% macro main_content() %}
 <div class="page-content-wrapper">
-	<!-- breadcrumbs -->
-	<div class="page-breadcrumbs">
-		{%- block breadcrumbs -%}
-		{%- include 'templates/includes/breadcrumbs.html' -%}
-		{%- endblock -%}
-	</div>
-
-	asdfasdf
-
 	{% block page_container %}
-	<main class="row">
-		<div class="page_content page-content {{ 'col-sm-9' if page_toc else 'col-sm-12' }}">
+	<main>
+		<div class="page_content page-content">
+			<div class="doc-search">
+				<div class="search-icon">
+					<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-search"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+				</div>
+				<input type="search" class="form-control" placeholder="Search" />
+			</div>
 			{{ page_content() }}
 		</div>
-		{%- if page_toc -%}
-		<div class="page-toc col-sm-3">
-			<div>
-				<h5>On this page</h5>
-				{{ page_toc_html }}
-			</div>
-			{% include "templates/includes/web_sidebar.html" %}
-		</div>
-		{%- endif -%}
 	</main>
 	{% endblock %}
 </div>
-{% endmacro %}
-
-{% macro sidebar() %}
-{%- if show_sidebar -%}
-<div class="sidebar-column col-sm-{{ columns }}">
-	{% block page_sidebar %}
-	{% include "templates/includes/web_sidebar.html" %}
-	{% endblock %}
-</div>
-{%- endif -%}
 {% endmacro %}
 
 {% macro container_attributes() -%}
@@ -52,18 +36,33 @@ id="page-{{ name or route | e }}" data-path="{{ pathname | e }}"
 {%- if source_content_type %}source-content-type="{{ source_content_type }}"{%- endif %}
 {%- endmacro %}
 
-<div class="container">
-	<div class="row" {{ container_attributes() }}>
-		{%- set columns = (sidebar_columns or 2) if show_sidebar else 0 -%}
-		{%- if not sidebar_right -%}
-		{{ sidebar() }}
+<div class="container-fluid doc-layout">
+	<div class="row no-gutters" {{ container_attributes() }}>
+		{%- if show_sidebar -%}
+		<div class="sidebar-column col-sm-3">
+			<aside class="doc-sidebar">
+				<div class="doc-sidebar-logo">
+					<a href="/">
+						<img src="/files/Frappe Framework No Padding.svg" style="height: 16px; width: auto;">
+					</a>
+				</div>
+				{% block page_sidebar %}
+				{% include "templates/includes/web_sidebar.html" %}
+				{% endblock %}
+			</aside>
+		</div>
 		{%- endif -%}
-		<div class="main-column col-sm-{{ 12 - columns }}">
+		<div class="main-column doc-main col-sm-6">
 			{{ main_content() }}
 		</div>
-		{%- if sidebar_right -%}
-		{{ sidebar() }}
-		{%- endif -%}
+		<div class="page-toc col-sm-3">
+			{%- if page_toc -%}
+			<div>
+				<h5>On this page</h5>
+				{{ page_toc_html }}
+			</div>
+			{%- endif -%}
+		</div>
 	</div>
 </div>
 
