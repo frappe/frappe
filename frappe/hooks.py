@@ -56,6 +56,12 @@ website_route_rules = [
 	{"from_route": "/profile", "to_route": "me"},
 ]
 
+base_template = "templates/base.html"
+
+base_template_map = {
+	r".*": "templates/web.html"
+}
+
 write_file_keys = ["file_url", "file_name"]
 
 notification_config = "frappe.core.notifications.get_notification_config"
