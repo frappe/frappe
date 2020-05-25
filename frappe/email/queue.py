@@ -261,10 +261,10 @@ def get_emails_sent_today():
 def get_unsubscribe_message(unsubscribe_message, expose_recipients):
 	if unsubscribe_message:
 		unsubscribe_html = '''<a href="<!--unsubscribe url-->"
-			target="_blank">{0}</a>'''.format(unsubscribe_message)
+			target="_blank" rel="noopener noreferrer">{0}</a>'''.format(unsubscribe_message)
 	else:
 		unsubscribe_link = '''<a href="<!--unsubscribe url-->"
-			target="_blank">{0}</a>'''.format(_('Unsubscribe'))
+			target="_blank" rel="noopener noreferrer">{0}</a>'''.format(_('Unsubscribe'))
 		unsubscribe_html = _("{0} to stop receiving emails of this type").format(unsubscribe_link)
 
 	html = """<div class="email-unsubscribe">

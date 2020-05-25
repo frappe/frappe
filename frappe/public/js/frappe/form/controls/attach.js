@@ -11,7 +11,7 @@ frappe.ui.form.ControlAttach = frappe.ui.form.ControlData.extend({
 			`<div class="attached-file flex justify-between align-center">
 				<div class="ellipsis">
 					<i class="fa fa-paperclip"></i>
-					<a class="attached-file-link" target="_blank"></a>
+					<a class="attached-file-link" target="_blank" rel="noopener noreferrer"></a>
 				</div>
 				<div>
 					<a class="btn btn-xs btn-default" data-action="reload_attachment">${__('Reload File')}</a>

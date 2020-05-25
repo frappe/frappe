@@ -6,15 +6,15 @@ frappe.ui.misc.about = function() {
 		$(d.body).html(repl("<div>\
 		<p>"+__("Open Source Applications for the Web")+"</p>  \
 		<p><i class='fa fa-globe fa-fw'></i>\
-			Website: <a href='https://frappe.io' target='_blank'>https://frappe.io</a></p>\
+			Website: <a href='https://frappe.io' target='_blank' rel='noopener noreferrer'>https://frappe.io</a></p>\
 		<p><i class='fa fa-github fa-fw'></i>\
-			Source: <a href='https://github.com/frappe' target='_blank'>https://github.com/frappe</a></p>\
+			Source: <a href='https://github.com/frappe' target='_blank' rel='noopener noreferrer'>https://github.com/frappe</a></p>\
 		<p><i class='fa fa-linkedin fa-fw'></i>\
-			Linkedin: <a href='https://linkedin.com/company/frappe-tech' target='_blank'>https://linkedin.com/company/frappe-tech</a></p>\
+			Linkedin: <a href='https://linkedin.com/company/frappe-tech' target='_blank' rel='noopener noreferrer'>https://linkedin.com/company/frappe-tech</a></p>\
 		<p><i class='fa fa-facebook fa-fw'></i>\
-			Facebook: <a href='https://facebook.com/erpnext' target='_blank'>https://facebook.com/erpnext</a></p>\
+			Facebook: <a href='https://facebook.com/erpnext' target='_blank' rel='noopener noreferrer'>https://facebook.com/erpnext</a></p>\
 		<p><i class='fa fa-twitter fa-fw'></i>\
-			Twitter: <a href='https://twitter.com/erpnext' target='_blank'>https://twitter.com/erpnext</a></p>\
+			Twitter: <a href='https://twitter.com/erpnext' target='_blank' rel='noopener noreferrer'>https://twitter.com/erpnext</a></p>\
 		<hr>\
 		<h4>Installed Apps</h4>\
 		<div id='about-app-versions'>Loading versions...</div>\

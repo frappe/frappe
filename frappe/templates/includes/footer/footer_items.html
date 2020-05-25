@@ -13,7 +13,7 @@
                 {%- for child in page.child_items -%}
                     <li class="footer-child-item mt-2" data-label='{{ child.label }}'>
                         <a href="{{ child.url | abs_url }}"
-                            {% if child.target %}target="_blank"{% endif %}>{{ child.label }}</a>
+                            {% if child.target %}target="_blank" rel="noopener noreferrer"{% endif %}>{{ child.label }}</a>
                     </li>
                 {%- endfor -%}
                 </ul>

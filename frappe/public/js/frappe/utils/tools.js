@@ -26,6 +26,7 @@ frappe.tools.downloadify = function(data, roles, title) {
 		a.href = 'data:attachment/csv,' + encodeURIComponent(csv_data);
 		a.download = filename;
 		a.target = "_blank";
+		a.rel = "noopener noreferrer";
 	}
 
 	document.body.appendChild(a);

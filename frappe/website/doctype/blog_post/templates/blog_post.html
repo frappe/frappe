@@ -27,7 +27,7 @@
 					{% for link in social_links %}
 						<a href="{{ link.url }}" class="fa fa-{{ link.icon }}" 
 							style='color:{{ link.color }}; background-color: {{ link.background }};' 
-							target="_blank"></a>
+							target="_blank" rel="noopener noreferrer"></a>
 					{% endfor %}
 				</div>
 				{% endif %}

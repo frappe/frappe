@@ -2412,7 +2412,7 @@ class extends Component {
 				h("div",{class:"chat-bubble-content"},
 						h("small","",
 							props.type === "File" ?
-								h("a", { class: "no-decoration", href: content.path, target: "_blank" },
+							h("a", { class: "no-decoration", href: content.path, target: "_blank", rel: "noopner noreferrer" },
 									h(frappe.components.FontAwesome, { type: "file", fixed: true }), ` ${content.name}`
 								)
 								:

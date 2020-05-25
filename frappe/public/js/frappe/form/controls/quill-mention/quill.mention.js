@@ -146,7 +146,7 @@ class Mention {
     return {
       id: this.mentionList.childNodes[this.itemIndex].dataset.id,
       value: itemLink ?
-        `<a href="${itemLink}" target="_blank">${this.mentionList.childNodes[this.itemIndex].dataset.value}` :
+        `<a href="${itemLink}" target="_blank" rel="noopener noreferrer">${this.mentionList.childNodes[this.itemIndex].dataset.value}` :
         this.mentionList.childNodes[this.itemIndex].dataset.value,
       link: itemLink || null,
       denotationChar: this.mentionList.childNodes[this.itemIndex].dataset.denotationChar,

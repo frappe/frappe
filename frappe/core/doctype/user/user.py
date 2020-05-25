@@ -901,7 +901,7 @@ def notify_admin_access_to_system_manager(login_manager=None):
 		and login_manager.user == "Administrator"
 		and frappe.local.conf.notify_admin_access_to_system_manager):
 
-		site = '<a href="{0}" target="_blank">{0}</a>'.format(frappe.local.request.host_url)
+		site = '<a href="{0}" target="_blank" rel="noopener noreferrer">{0}</a>'.format(frappe.local.request.host_url)
 		date_and_time = '<b>{0}</b>'.format(format_datetime(now_datetime(), format_string="medium"))
 		ip_address = frappe.local.request_ip
 

@@ -13,7 +13,7 @@
 		<ul class="list-unstyled">
 			{%- for child in page.child_items -%}
 			<li class="mt-2 footer-child-item" data-label='{{ child.label }}'>
-				<a href="{{ child.url | abs_url }}" {% if child.target %} target="_blank" {% endif %}>
+				<a href="{{ child.url | abs_url }}" {% if child.target %}target="_blank" rel="noopener noreferrer"{% endif %}>
 					{%- if child.icon -%}
 					<img src="{{ child.icon }}" alt="{{ child.label }}">
 					{%- else -%}

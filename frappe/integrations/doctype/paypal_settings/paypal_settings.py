@@ -59,7 +59,7 @@ For paypal payment status parameter is one from: [Completed, Cancelled, Failed]
 
 
 More Details:
-<div class="small">For details on how to get your API credentials, follow this link: <a href="https://developer.paypal.com/docs/classic/api/apiCredentials/" target="_blank">https://developer.paypal.com/docs/classic/api/apiCredentials/</a></div>
+<div class="small">For details on how to get your API credentials, follow this link: <a href="https://developer.paypal.com/docs/classic/api/apiCredentials/" target="_blank" rel="noopener noreferrer">https://developer.paypal.com/docs/classic/api/apiCredentials/</a></div>
 
 """
 

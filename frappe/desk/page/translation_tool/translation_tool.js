@@ -269,6 +269,7 @@ class TranslationTool {
 						<a
 							class="text-muted"
 							target="_blank"
+							rel="noopener noreferrer"
 							href="${this.get_code_url(position.path, position.line_no, position.app)}">
 							${position.path}
 						</a>

@@ -131,7 +131,8 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 				$("<a>", {
 					href: link.url,
 					text: link.label,
-					target: "_blank"
+					target: "_blank",
+					rel: "noopener noreferrer"
 				}).appendTo($help_links);
 			}
 

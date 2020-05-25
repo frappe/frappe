@@ -59,6 +59,7 @@ window.open_url_post = function open_url_post(URL, PARAMS, new_window) {
 		temp.style.display="none";
 		if(new_window){
 			temp.target = '_blank';
+			temp.rel = 'noopener noreferrer';
 		}
 		PARAMS["csrf_token"] = frappe.csrf_token;
 		for(var x in PARAMS) {
