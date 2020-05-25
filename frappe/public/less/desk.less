@@ -316,6 +316,23 @@ li.user-progress {
 	}
 }
 
+.restricted-button {
+	padding: 0px 10px;
+	border: 1px solid @yellow;
+	height: 25px;
+	font-weight: 600;
+	border-radius:  5px;
+	background: lightyellow;
+	color: @text-light;
+	margin: auto 5px auto auto;
+	font-size: @text-small;
+	outline: 0;
+	.octicon-lock {
+		padding-right: 5px;
+		font-size: 12px;
+	}
+}
+
 /* on small screens, show only icons on top */
 @media (max-width: 767px) {
 	.module-view-layout .nav-stacked > li {
@@ -1168,5 +1185,15 @@ body.no-sidebar {
 .app-change-log-body {
 	h1 {
 		font-size: 20px;
+	}
+}
+
+.new-version-log {
+	.new-version-links {
+		padding: 5px 0px;
+	}
+
+	&:not(:last-child) {
+		margin-bottom: 1em;
 	}
 }

@@ -268,6 +268,11 @@ $.extend(frappe.model, {
 		return frappe.boot.single_types.indexOf(doctype) != -1;
 	},
 
+	is_tree: function(doctype) {
+		if (!doctype) return false;
+		return frappe.boot.treeviews.indexOf(doctype) != -1;
+	},
+
 	can_import: function(doctype, frm) {
 		// system manager can always import
 		if(frappe.user_roles.includes("System Manager")) return true;

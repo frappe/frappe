@@ -250,7 +250,8 @@ Object.assign(frappe.utils, {
 				regExp = /^\w+$/;
 				break;
 			case "email":
-				regExp = /^((([a-z]|\d|[!#\$%&'\*\+\-\/=\?\^_`{\|}~]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])+(\.([a-z]|\d|[!#\$%&'\*\+\-\/=\?\^_`{\|}~]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])+)*)|((\x22)((((\x20|\x09)*(\x0d\x0a))?(\x20|\x09)+)?(([\x01-\x08\x0b\x0c\x0e-\x1f\x7f]|\x21|[\x23-\x5b]|[\x5d-\x7e]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(\\([\x01-\x09\x0b\x0c\x0d-\x7f]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]))))*(((\x20|\x09)*(\x0d\x0a))?(\x20|\x09)+)?(\x22)))@((([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.)+(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))$/i;
+				// from https://emailregex.com/
+				regExp = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
 				break;
 			case "url":
 				regExp = /^(https?|s?ftp):\/\/(((([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+,;=]|:)*@)?(((\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.(\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.(\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.(\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5]))|((([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.)+(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.?)(:\d*)?)(\/((([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+,;=]|:|@)+(\/(([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+,;=]|:|@)*)*)?)?(\?((([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+,;=]|:|@)|[\uE000-\uF8FF]|\/|\?)*)?(#((([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+,;=]|:|@)|\/|\?)*)?$/i;
@@ -822,3 +823,115 @@ if (!Array.prototype.uniqBy) {
 		}
 	});
 }
+
+// Pluralize
+String.prototype.plural = function(revert) {
+	const plural = {
+		"(quiz)$": "$1zes",
+		"^(ox)$": "$1en",
+		"([m|l])ouse$": "$1ice",
+		"(matr|vert|ind)ix|ex$": "$1ices",
+		"(x|ch|ss|sh)$": "$1es",
+		"([^aeiouy]|qu)y$": "$1ies",
+		"(hive)$": "$1s",
+		"(?:([^f])fe|([lr])f)$": "$1$2ves",
+		"(shea|lea|loa|thie)f$": "$1ves",
+		sis$: "ses",
+		"([ti])um$": "$1a",
+		"(tomat|potat|ech|her|vet)o$": "$1oes",
+		"(bu)s$": "$1ses",
+		"(alias)$": "$1es",
+		"(octop)us$": "$1i",
+		"(ax|test)is$": "$1es",
+		"(us)$": "$1es",
+		"([^s]+)$": "$1s",
+	};
+
+	const singular = {
+		"(quiz)zes$": "$1",
+		"(matr)ices$": "$1ix",
+		"(vert|ind)ices$": "$1ex",
+		"^(ox)en$": "$1",
+		"(alias)es$": "$1",
+		"(octop|vir)i$": "$1us",
+		"(cris|ax|test)es$": "$1is",
+		"(shoe)s$": "$1",
+		"(o)es$": "$1",
+		"(bus)es$": "$1",
+		"([m|l])ice$": "$1ouse",
+		"(x|ch|ss|sh)es$": "$1",
+		"(m)ovies$": "$1ovie",
+		"(s)eries$": "$1eries",
+		"([^aeiouy]|qu)ies$": "$1y",
+		"([lr])ves$": "$1f",
+		"(tive)s$": "$1",
+		"(hive)s$": "$1",
+		"(li|wi|kni)ves$": "$1fe",
+		"(shea|loa|lea|thie)ves$": "$1f",
+		"(^analy)ses$": "$1sis",
+		"((a)naly|(b)a|(d)iagno|(p)arenthe|(p)rogno|(s)ynop|(t)he)ses$":
+			"$1$2sis",
+		"([ti])a$": "$1um",
+		"(n)ews$": "$1ews",
+		"(h|bl)ouses$": "$1ouse",
+		"(corpse)s$": "$1",
+		"(us)es$": "$1",
+		s$: "",
+	};
+
+	const irregular = {
+		move: "moves",
+		foot: "feet",
+		goose: "geese",
+		sex: "sexes",
+		child: "children",
+		man: "men",
+		tooth: "teeth",
+		person: "people",
+	};
+
+	const uncountable = [
+		"sheep",
+		"fish",
+		"deer",
+		"moose",
+		"series",
+		"species",
+		"money",
+		"rice",
+		"information",
+		"equipment",
+	];
+
+	// save some time in the case that singular and plural are the same
+	if (uncountable.indexOf(this.toLowerCase()) >= 0) return this;
+
+	// check for irregular forms
+	let word;
+	let pattern;
+	let replace;
+	for (word in irregular) {
+		if (revert) {
+			pattern = new RegExp(irregular[word] + "$", "i");
+			replace = word;
+		} else {
+			pattern = new RegExp(word + "$", "i");
+			replace = irregular[word];
+		}
+		if (pattern.test(this)) return this.replace(pattern, replace);
+	}
+
+	let array;
+	if (revert) array = singular;
+	else array = plural;
+
+	// check for matches using regular expressions
+	let reg;
+	for (reg in array) {
+		pattern = new RegExp(reg, "i");
+
+		if (pattern.test(this)) return this.replace(pattern, array[reg]);
+	}
+
+	return this;
+};

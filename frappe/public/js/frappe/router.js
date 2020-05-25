@@ -12,6 +12,7 @@ frappe.route_history = [];
 frappe.view_factory = {};
 frappe.view_factories = [];
 frappe.route_options = null;
+frappe.route_hooks = {};
 
 frappe.route = function() {
 

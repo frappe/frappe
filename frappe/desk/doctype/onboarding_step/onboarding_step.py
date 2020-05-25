@@ -10,3 +10,7 @@ class OnboardingStep(Document):
 	def before_export(self, doc):
 		doc.is_complete = 0
 		doc.is_skipped = 0
+
+	def validate(self):
+		if self.action == "Go to Page":
+			self.is_mandatory = 0

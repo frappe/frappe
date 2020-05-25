@@ -4,7 +4,7 @@ from __future__ import unicode_literals
 import frappe
 from frappe import _
 from functools import wraps
-from frappe.utils import add_to_date, get_link_to_form
+from frappe.utils import add_to_date, cint, get_link_to_form
 from frappe.modules.import_file import import_doc
 
 
@@ -41,6 +41,7 @@ def generate_and_cache_results(args, function, cache_key, chart):
 			to_date = args.to_date or None,
 			time_interval = args.time_interval or None,
 			timespan = args.timespan or None,
+			heatmap_year = args.heatmap_year or None
 		)
 	except TypeError as e:
 		if str(e) == "'NoneType' object is not iterable":
@@ -75,6 +76,8 @@ def get_from_date_from_timespan(to_date, timespan):
 
 def sync_dashboards(app=None):
 	"""Import, overwrite fixtures from `[app]/fixtures`"""
+	if not cint(frappe.db.get_single_value('System Settings', 'setup_complete')):
+		return
 	if app:
 		apps = [app]
 	else:

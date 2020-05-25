@@ -276,7 +276,7 @@ frappe.utils.sanitise_redirect = (url) => {
 
 			// check for base domain only if the url is absolute
 			// return true for relative url (except protocol-relative urls)
-			return is_absolute(url) ? domain(location.href) !== domain(url) : true;
+			return is_absolute(url) ? domain(location.href) !== domain(url) : false;
 		}
 	})();
 
