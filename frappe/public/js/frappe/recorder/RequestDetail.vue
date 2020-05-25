@@ -79,7 +79,7 @@
 														<span class="octicon octicon-triangle-down"></span></a>
 													</div>
 												</div>
-												<div class="form-in-grid" v-if="showing == call.index">
+												<div class="recorder-form-in-grid" v-if="showing == call.index">
 													<div class="grid-form-heading" @click="showing = null">
 														<div class="toolbar grid-header-toolbar">
 															<span class="panel-title">SQL Query #<span class="grid-form-row-index">{{ call.index }}</span></span>
@@ -126,26 +126,8 @@
 																									</thead>
 																									<tbody>
 																										<template v-for="(row, index) in call.stack">
-																											<tr :key="index" @click="showing_traceback = showing_traceback == index ? null : index">
+																											<tr :key="index">
 																												<td v-for="key in ['filename', 'lineno', 'function']" :key="key">{{ row[key] }}</td>
-																											</tr>
-																											<tr v-if="showing_traceback == index">
-																												<td colspan="4" v-html="row.context"></td>
-																											</tr>
-																											<tr v-if="showing_traceback == index">
-																												<td colspan="4">
-																													<table class="table table-striped">
-																														<thead>
-																															<tr><th>Variable</th><th>Value</th></tr>
-																														</thead>
-																														<tbody>
-																															<tr v-for="(variable, index) in Object.entries(JSON.parse(row.locals))" :key="index">
-																																<td>{{ variable[0] }}</td>
-																																<td>{{ variable[1] }}</td>
-																															</tr>
-																														</tbody>
-																													</table>
-																												</td>
 																											</tr>
 																										</template>
 																									</tbody>
@@ -234,8 +216,8 @@ export default {
 				{label: "Exact Copies", slug: "exact_copies", sortable: true},
 			],
 			query: {
-				sort: "index",
-				order: "asc",
+				sort: "duration",
+				order: "desc",
 				pagination: {
 					limit: 20,
 					page: 1,
@@ -244,7 +226,6 @@ export default {
 			},
 			group_duplicates: false,
 			showing: null,
-			showing_traceback: null,
 			request: {
 				calls: [],
 			},

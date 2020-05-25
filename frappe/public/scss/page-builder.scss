@@ -1,0 +1,284 @@
+.hero-subtitle {
+	@extend .lead;
+	max-width: 42rem;
+}
+
+.section-description {
+	max-width: 56rem;
+	margin-top: 0.5rem;
+	font-size: $font-size-base;
+	color: $gray-900;
+
+	@include media-breakpoint-up(lg) {
+		font-size: $font-size-lg;
+	}
+}
+
+.section-image {
+	margin-top: 2rem;
+	border-radius: 0.75rem;
+	width: 100%;
+}
+
+.section-padding {
+	padding-top: 3rem;
+	padding-bottom: 3rem;
+
+	@include media-breakpoint-up(sm) {
+		padding-top: 5rem;
+		padding-bottom: 5rem;
+	}
+	@include media-breakpoint-up(xl) {
+		padding-top: 8rem;
+		padding-bottom: 8rem;
+	}
+}
+
+.section-padding-top {
+	padding-top: 3rem;
+
+	@include media-breakpoint-up(sm) {
+		padding-top: 5rem;
+	}
+	@include media-breakpoint-up(xl) {
+		padding-top: 8rem;
+	}
+}
+
+.section-padding-bottom {
+	padding-bottom: 3rem;
+
+	@include media-breakpoint-up(sm) {
+		padding-bottom: 5rem;
+	}
+	@include media-breakpoint-up(xl) {
+		padding-bottom: 8rem;
+	}
+}
+
+.hero-with-right-image {
+	position: relative;
+
+	.hero-content {
+		display: flex;
+		align-items: center;
+	}
+
+	.hero-image {
+		width: auto;
+		display: none;
+		object-fit: contain;
+		max-height: 36rem;
+
+		&.contain-image {
+			right: 0;
+		}
+
+		@include media-breakpoint-up(md) {
+			display: block;
+			max-width: 28rem;
+		}
+		@include media-breakpoint-up(lg) {
+			max-width: 32rem;
+		}
+		@include media-breakpoint-up(xl) {
+			max-width: 42rem;
+		}
+	}
+}
+
+.card {
+	.card-title {
+		color: $black;
+	}
+
+	.card-body {
+		color: $gray-900;
+	}
+
+	&:hover {
+		border-color: $gray-600;
+	}
+
+	&.card-sm {
+		.card-body {
+			padding: 1.5rem;
+		}
+
+		.card-title {
+			font-size: $font-size-base;
+			font-weight: 600;
+		}
+
+		.card-text {
+			font-size: $font-size-sm;
+		}
+	}
+	&.card-md {
+		.card-body {
+			padding: 1.75rem;
+		}
+
+		.card-title {
+			font-size: $font-size-lg;
+			font-weight: 600;
+
+			@include media-breakpoint-up(md) {
+				font-size: $font-size-xl;
+			}
+		}
+		.card-text {
+			font-size: $font-size-base;
+		}
+	}
+	&.card-lg {
+		.card-body {
+			padding: 2rem;
+		}
+
+		.card-title {
+			font-size: $font-size-xl;
+			font-weight: bold;
+
+			@include media-breakpoint-up(md) {
+				font-size: $font-size-2xl;
+			}
+		}
+
+		.card-text {
+			font-size: $font-size-base;
+
+			@include media-breakpoint-up(xl) {
+				font-size: $font-size-lg;
+			}
+		}
+	}
+}
+
+.nav-tabs {
+	.nav-link {
+		color: $gray-700;
+		font-weight: 500;
+		border: none;
+		padding: 1rem 0.5rem;
+		margin-right: 2rem;
+
+		&:hover {
+			color: $primary;
+		}
+	}
+
+	.nav-link.active,
+	.nav-item.show .nav-link {
+		color: darken($primary, 5%);
+		background-color: #fff;
+		border-bottom: 2px solid $primary;
+	}
+}
+
+.section-markdown > .from-markdown {
+	max-width: 42rem;
+}
+
+.section-cta {
+	padding: 3rem 2rem;
+	text-align: center;
+	background-color: lighten($primary, 42%);
+	border-radius: 0.75rem;
+
+	@include media-breakpoint-up(sm) {
+		padding-left: 3rem;
+		padding-right: 3rem;
+	}
+	@include media-breakpoint-up(md) {
+		padding-top: 5rem;
+		padding-bottom: 5rem;
+	}
+
+	.title {
+		margin: 0 auto;
+		max-width: 36rem;
+		font-size: $font-size-2xl;
+		font-weight: 800;
+		line-height: 1.25;
+		@include media-breakpoint-up(md) {
+			font-size: $font-size-4xl;
+		}
+	}
+	.subtitle {
+		max-width: 36rem;
+		margin: 0 auto;
+		margin-top: 0.5rem;
+		font-size: $font-size-base;
+		color: $gray-900;
+		@include media-breakpoint-up(md) {
+			font-size: $font-size-lg;
+		}
+	}
+	.description {
+		max-width: 36rem;
+		margin: 0 auto;
+		margin-top: 0.5rem;
+		font-size: $font-size-xs;
+		color: $gray-900;
+	}
+}
+
+.section-cta-container {
+	position: relative;
+	.confetti {
+		position: absolute;
+		width: 1rem;
+		height: 1rem;
+		border-radius: 99999px;
+	}
+	.confetti-1 {
+		top: 0;
+		margin-top: -0.5rem;
+		background-color: #84e1bc;
+		left: 25%;
+	}
+	.confetti-2 {
+		background-color: #fdba8c;
+		top: 66.67%;
+		right: 16.67%;
+	}
+	.confetti-3 {
+		bottom: 0;
+		margin-bottom: -0.5rem;
+		background-color: #f8b4b4;
+		left: 16.67%;
+	}
+}
+
+.testimonial {
+	text-align: center;
+}
+
+.testimonial-logo img {
+	display: inline-block;
+	max-width: 10rem;
+	max-height: 2.5rem;
+}
+
+.testimonial-content {
+	margin-left: auto;
+	margin-right: auto;
+	margin-top: 2rem;
+	max-width: 52rem;
+	font-size: $font-size-2xl;
+	font-weight: 500;
+}
+
+.testimonial-by {
+	font-size: $font-size-lg;
+	margin-top: 2rem;
+
+	&:before {
+		content: '—'
+	}
+}
+
+.split-section-content {
+	margin-top: 2rem;
+}

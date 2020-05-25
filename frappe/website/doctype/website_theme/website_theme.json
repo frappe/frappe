@@ -8,7 +8,6 @@
  "engine": "InnoDB",
  "field_order": [
   "theme",
-  "based_on",
   "module",
   "custom",
   "bootstrap_theme_section",
@@ -25,16 +24,10 @@
   "dark_color",
   "background_color",
   "stylesheet_section",
-  "theme_scss",
+  "custom_overrides",
   "custom_scss",
+  "theme_scss",
   "theme_url",
-  "tailwind_theme_section",
-  "custom_css",
-  "theme_css",
-  "navbar_section",
-  "navbar",
-  "footer_section",
-  "footer",
   "custom_js_section",
   "js"
  ],
@@ -87,60 +80,9 @@
    "options": "JS"
   },
   {
-   "default": "Bootstrap 4",
-   "fieldname": "based_on",
-   "fieldtype": "Select",
-   "label": "Theme Based On",
-   "options": "Bootstrap 4\nTailwind"
-  },
-  {
-   "depends_on": "eval:doc.based_on == 'Tailwind'",
-   "fieldname": "navbar_section",
-   "fieldtype": "Section Break",
-   "label": "Navbar"
-  },
-  {
-   "depends_on": "eval:doc.based_on=='Tailwind'",
-   "fieldname": "tailwind_theme_section",
-   "fieldtype": "Section Break",
-   "label": "Tailwind Theme"
-  },
-  {
    "fieldname": "bootstrap_theme_section",
    "fieldtype": "Section Break",
    "label": "Theme Configuration"
-  },
-  {
-   "depends_on": "eval:doc.based_on == 'Tailwind'",
-   "fieldname": "footer_section",
-   "fieldtype": "Section Break",
-   "label": "Footer"
-  },
-  {
-   "fieldname": "navbar",
-   "fieldtype": "Table",
-   "label": "Navbar",
-   "options": "Web Page Block"
-  },
-  {
-   "fieldname": "footer",
-   "fieldtype": "Table",
-   "label": "Footer",
-   "options": "Web Page Block"
-  },
-  {
-   "fieldname": "custom_css",
-   "fieldtype": "Code",
-   "label": "Custom CSS",
-   "options": "CSS"
-  },
-  {
-   "fieldname": "theme_css",
-   "fieldtype": "Code",
-   "hidden": 1,
-   "label": "Theme CSS",
-   "options": "CSS",
-   "read_only": 1
   },
   {
    "fieldname": "google_font",
@@ -177,7 +119,6 @@
    "options": "Color"
   },
   {
-   "depends_on": "eval:doc.based_on == 'Bootstrap 4'",
    "fieldname": "stylesheet_section",
    "fieldtype": "Section Break",
    "label": "Stylesheet"
@@ -194,7 +135,7 @@
    "options": "Color"
   },
   {
-   "default": "300,600",
+   "default": "wght@300;400;500;600;700;800",
    "fieldname": "font_properties",
    "fieldtype": "Data",
    "label": "Font Properties"
@@ -220,10 +161,16 @@
   {
    "fieldname": "column_break_11",
    "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "custom_overrides",
+   "fieldtype": "Code",
+   "label": "Custom Overrides",
+   "options": "SCSS"
   }
  ],
  "links": [],
- "modified": "2020-04-25 00:00:23.347879",
+ "modified": "2020-05-16 18:36:22.203519",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Website Theme",

@@ -23,7 +23,7 @@ if PY2:
 	reload(sys)
 	sys.setdefaultencoding("utf-8")
 
-__version__ = '12.0.0-dev'
+__version__ = '13.0.0-dev'
 __title__ = "Frappe Framework"
 
 local = Local()
@@ -345,7 +345,7 @@ def msgprint(msg, title=None, raise_exception=0, as_table=False, indicator=None,
 			style="margin: 0;">{}</table>'''.format(table_rows)
 
 	if flags.print_messages and out.message:
-		print("Message: " + repr(out.message).encode("utf-8"))
+		print(f"Message: {repr(out.message).encode('utf-8')}")
 
 	if title:
 		out.title = title

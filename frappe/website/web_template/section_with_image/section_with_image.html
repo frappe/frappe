@@ -1,5 +1,8 @@
-<h2 class="text-xl font-bold sm:text-2xl md:text-3xl">{{ title }}</h2>
-<p class="max-w-4xl mt-2 text-base text-gray-900 sm:text-lg">{{ subtitle }}</p>
+<h2 class="section-title">{{ title }}</h2>
+<p class="section-description">{{ subtitle }}</p>
 
-{{ c('image_with_blur', src=image, alt=image_description, class="w-full mt-8 rounded-xl") }}
-
+{{ frappe.render_template('templates/includes/image_with_blur.html', {
+	"src": image,
+	"alt": image_description,
+	"class": "section-image"
+}) }}

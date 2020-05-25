@@ -48,3 +48,58 @@ frappe.ui.form.on('Web Page', {
 		frappe.utils.set_meta_tag(frm.doc.route);
 	}
 });
+
+frappe.tour['Web Page'] = [
+	{
+		fieldname: "title",
+		title: __("Title of the page"),
+		description: __("This title will be used as the title of the webpage as well as in meta tags"),
+	},
+	{
+		fieldname: "published",
+		title: __("Makes the page public"),
+		description: __("Checking this will publish the page on your website and it'll be visible to everyone."),
+	},
+	{
+		fieldname: "route",
+		title: __("URL of the page"),
+		description: __("This will be automatically generated when you publish the page, you can also enter a route yourself if you wish"),
+	},
+	{
+		fieldname: "content_type",
+		title: __("Content type for building the page"),
+		description: `${__('You can select one from the following,')} <br>
+					<ul>
+						<li><b>${__('Rich Text')}</b>: ${__('Standard rich text editor with controls')}</li>
+						<li><b>${__('Markdown')}</b>: ${__('Github flavoured markdown syntax')}</li>
+						<li><b>${__('HTML')}</b>: ${__('HTML with jinja support')}</li>
+						<li><b>${__('Page Builder')}</b>: ${__('Frappe page builder using components')}</li>
+					</ul>
+					`
+	},
+	{
+		fieldname: "insert_code",
+		title: __("Client Script"),
+		description: __("Checking this will show a text area where you can write custom javascript that will run on this page."),
+	},
+	{
+		fieldname: "meta_title",
+		title: __("Meta title for SEO"),
+		description: __("By default the title is used as meta title, adding a value here will override it."),
+	},
+	{
+		fieldname: "meta_title",
+		title: __("Meta Title"),
+		description: __("By default the title is used as meta title, adding a value here will override it."),
+	},
+	{
+		fieldname: "meta_description",
+		title: __("Meta Description"),
+		description: __("The meta description is an HTML attribute that provides a brief summary of a web page. Search engines such as Google often display the meta description in search results, which can influence click-through rates.")
+	},
+	{
+		fieldname: "meta_image",
+		title: __("Meta Image"),
+		description: __("The meta image is unique image representing the content of the page. Images for this Card should be at least 280px in width, and at least 150px in height.")
+	},
+];

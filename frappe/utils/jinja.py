@@ -20,10 +20,9 @@ def get_jenv():
 		jenv.globals.update(get_safe_globals())
 		jenv.globals.update(get_jenv_customization('methods'))
 		jenv.globals.update({
-			'component': component,
-			'c': component,
 			'resolve_class': resolve_class,
-			'inspect': inspect
+			'inspect': inspect,
+			'web_blocks': web_blocks
 		})
 
 		frappe.local.jenv = jenv
@@ -166,29 +165,6 @@ def get_jenv_customization(customization_type):
 	return out
 
 
-def component(name, **kwargs):
-	from jinja2 import TemplateNotFound
-
-	template_name = 'templates/components/' + name + '.html'
-	jenv = get_jenv()
-
-	try:
-		source = jenv.loader.get_source(jenv, template_name)[0]
-	except TemplateNotFound:
-		return '<pre>Component "{0}" not found</pre>'.format(name)
-
-	attributes, html = parse_front_matter_attrs_and_html(source)
-	context = {}
-	context.update(attributes)
-	context.update(kwargs)
-
-	if 'class' in context:
-		context['class'] = resolve_class(context['class'])
-	else:
-		context['class'] = ''
-
-	return get_jenv().from_string(html).render(context)
-
 def resolve_class(classes):
 	import frappe
 
@@ -206,21 +182,6 @@ def resolve_class(classes):
 
 	return classes
 
-def parse_front_matter_attrs_and_html(source):
-	from frappe.website.router import get_frontmatter
-
-	html = source
-	attributes = {}
-
-	if not source.startswith('---'):
-		return attributes, html
-
-	res = get_frontmatter(source)
-	if res['attributes']:
-		attributes = res['attributes']
-		html = res['body']
-
-	return attributes, html
 
 def inspect(var, render=True):
 	context = { "var": var }
@@ -229,3 +190,30 @@ def inspect(var, render=True):
 	else:
 		html = ""
 	return get_jenv().from_string(html).render(context)
+
+def web_blocks(blocks):
+	from frappe import get_doc
+	from frappe.website.doctype.web_page.web_page import get_web_blocks_html
+
+	web_blocks = []
+	for block in blocks:
+		doc = {
+			'doctype': 'Web Page Block',
+			'web_template': block['template'],
+			'web_template_values': block['values'],
+			'add_top_padding': 1,
+			'add_bottom_padding': 1,
+			'add_container': 1,
+			'hide_block': 0,
+			'css_class': ''
+		}
+		doc.update(block)
+		web_blocks.append(get_doc(doc))
+
+	out = get_web_blocks_html(web_blocks)
+
+	html = out.html
+	for script in out.scripts:
+		html += '<script>{}</script>'.format(script)
+
+	return html
