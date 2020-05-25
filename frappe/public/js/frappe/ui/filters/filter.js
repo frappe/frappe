@@ -50,13 +50,13 @@ frappe.ui.Filter = class {
 	}
 
 	set_conditions_from_config() {
-		if (frappe.boot.filters_config) {
-			this.filters_config = frappe.boot.filters_config;
+		if (frappe.boot.additional_filters_config) {
+			this.filters_config = frappe.boot.additional_filters_config;
 			for (let key of Object.keys(this.filters_config)) {
 				const filter = this.filters_config[key];
 				this.conditions.push([key, __(`{0}`, [filter.label])]);
 				for (let fieldtype of Object.keys(this.invalid_condition_map)) {
-					if (!filter.fieldtypes.includes(fieldtype)) {
+					if (!filter.valid_for_fieldtypes.includes(fieldtype)) {
 						this.invalid_condition_map[fieldtype].push(filter.label);
 					}
 				}
@@ -228,7 +228,8 @@ frappe.ui.Filter = class {
 			df.options = this.utils.get_timespan_options(['Last', 'This', 'Next']);
 		}
 
-		if (this.filters_config[condition] && this.filters_config[condition].fieldtypes.includes(this.field.df.fieldtype)) {
+		if (this.filters_config[condition]
+				&& this.filters_config[condition].valid_for_fieldtypes.includes(this.field.df.fieldtype)) {
 			let args = {};
 			if (this.filters_config[condition].depends_on) {
 				const field_name = this.filters_config[condition].depends_on;

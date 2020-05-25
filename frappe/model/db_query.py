@@ -354,8 +354,8 @@ class DatabaseQuery(object):
 				ifnull(`tabDocType`.`fieldname`, fallback) operator "value"
 		"""
 
-		from frappe.boot import get_filters_config
-		additional_filters_config = get_filters_config()
+		from frappe.boot import get_additional_filters_config
+		additional_filters_config = get_additional_filters_config()
 		f = get_filter(self.doctype, f, additional_filters_config)
 
 		tname = ('`tab' + f.doctype + '`')
