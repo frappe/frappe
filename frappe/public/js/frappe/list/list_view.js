@@ -101,7 +101,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 
 	validate_filters(filters) {
-		const valid_fields = this.meta.fields.map(df => df.fieldname);
+		let valid_fields = this.meta.fields.map(df => df.fieldname);
+		valid_fields = valid_fields.concat(frappe.model.std_fields_list);
 		return filters
 			.filter(f => valid_fields.includes(f[1]))
 			.uniqBy(f => f[1]);
