@@ -223,13 +223,8 @@ frappe.ui.Filter = class {
 		this.fieldselect.selected_doctype = doctype;
 		this.fieldselect.selected_fieldname = fieldname;
 
-		if (condition == 'Timespan' && ['Date', 'Datetime', 'DateRange', 'Select'].includes(this.field.df.fieldtype)) {
-			df.fieldtype = 'Select';
-			df.options = this.utils.get_timespan_options(['Last', 'This', 'Next']);
-		}
-
 		if (this.filters_config[condition]
-				&& this.filters_config[condition].valid_for_fieldtypes.includes(this.field.df.fieldtype)) {
+				&& this.filters_config[condition].valid_for_fieldtypes.includes(df.fieldtype)) {
 			let args = {};
 			if (this.filters_config[condition].depends_on) {
 				const field_name = this.filters_config[condition].depends_on;
@@ -455,6 +450,10 @@ frappe.ui.filter_utils = {
 		if(condition == "Between" && (df.fieldtype == 'Date' || df.fieldtype == 'Datetime')){
 			df.fieldtype = 'DateRange';
 		}
+		if (condition == 'Timespan' && ['Date', 'Datetime', 'DateRange', 'Select'].includes(df.fieldtype)) {
+			df.fieldtype = 'Select';
+			df.options = this.get_timespan_options(['Last', 'This', 'Next']);
+		}
 		if (condition === 'is') {
 			df.fieldtype = 'Select';
 			df.options = [
@@ -462,6 +461,7 @@ frappe.ui.filter_utils = {
 				{ label: __('Not Set'), value: 'not set' },
 			];
 		}
+		return;
 	},
 
 	get_timespan_options(periods) {
