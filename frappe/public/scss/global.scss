@@ -3,7 +3,8 @@ html {
 }
 
 body {
-	font-family: Inter;
+	-webkit-font-smoothing: antialiased;
+	color: $body-color;
 }
 
 a {
@@ -51,6 +52,7 @@ footer {
 
 img {
 	max-width: 100%;
+	height: auto;
 }
 
 .hidden {
@@ -99,3 +101,32 @@ h1, h2, h3 {
 .fill-width {
 	flex: 1
 }
+
+h1 {
+	font-size: $font-size-3xl;
+	font-weight: 800;
+	line-height: 1.25;
+	letter-spacing: -0.025em;
+
+	@include media-breakpoint-up(sm) {
+		line-height: 2.5rem;
+		font-size: $font-size-4xl;
+	}
+	@include media-breakpoint-up(xl) {
+		line-height: 1;
+		font-size: $font-size-5xl;
+	}
+}
+
+h2 {
+	font-size: $font-size-xl;
+	font-weight: bold;
+
+	@include media-breakpoint-up(sm) {
+		font-size: $font-size-2xl;
+	}
+	@include media-breakpoint-up(md) {
+		font-size: $font-size-3xl;
+	}
+}
+

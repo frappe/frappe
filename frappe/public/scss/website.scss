@@ -1,12 +1,10 @@
 @import "variables";
 @import 'frappe/public/css/font-awesome';
-@import 'base';
+@import "~bootstrap/scss/bootstrap";
 @import 'multilevel-dropdown';
 @import 'website-image';
 @import 'page-builder';
 @import 'markdown';
-@import 'sidebar';
-@import "~bootstrap/scss/bootstrap";
 
 .container {
 	padding-left: 1.25rem;
