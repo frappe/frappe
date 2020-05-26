@@ -223,7 +223,7 @@ frappe.ui.Filter = class {
 		this.fieldselect.selected_doctype = doctype;
 		this.fieldselect.selected_fieldname = fieldname;
 
-		if (this.filters_config[condition]
+		if (this.filters_config && this.filters_config[condition]
 				&& this.filters_config[condition].valid_for_fieldtypes.includes(df.fieldtype)) {
 			let args = {};
 			if (this.filters_config[condition].depends_on) {
