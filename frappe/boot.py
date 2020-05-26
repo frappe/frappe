@@ -85,7 +85,7 @@ def get_bootinfo():
 	bootinfo.points = get_energy_points(frappe.session.user)
 	bootinfo.frequently_visited_links = frequently_visited_links()
 	bootinfo.link_preview_doctypes = get_link_preview_doctypes()
-	bootinfo.additional_filters_config = get_additional_filters_config()
+	bootinfo.additional_filters_config = get_additional_filters_from_hooks()
 
 	return bootinfo
 
@@ -299,7 +299,7 @@ def get_link_preview_doctypes():
 
 	return link_preview_doctypes
 
-def get_additional_filters_config():
+def get_additional_filters_from_hooks():
 	filter_config = frappe._dict()
 	filter_hooks = frappe.get_hooks('filters_config')
 	for hook in filter_hooks:
