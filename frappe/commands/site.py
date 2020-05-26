@@ -44,14 +44,16 @@ def new_site(site, mariadb_root_username=None, mariadb_root_password=None, admin
 	_new_site(db_name, site, mariadb_root_username=mariadb_root_username,
 			  mariadb_root_password=mariadb_root_password, admin_password=admin_password,
 			  verbose=verbose, install_apps=install_app, source_sql=source_sql, force=force,
-			  no_mariadb_socket=no_mariadb_socket, db_type=db_type, db_host=db_host, db_password=db_password, db_port=db_port)
+			  no_mariadb_socket=no_mariadb_socket, db_password=db_password, db_type=db_type, db_host=db_host,
+			  db_port=db_port, new_site=True)
 
 	if len(frappe.utils.get_sites()) == 1:
 		use(site)
 
 def _new_site(db_name, site, mariadb_root_username=None, mariadb_root_password=None,
 			  admin_password=None, verbose=False, install_apps=None, source_sql=None, force=False,
-			  no_mariadb_socket=False, reinstall=False, db_type=None, db_host=None, db_password=None, db_port=None):
+			  no_mariadb_socket=False, reinstall=False,  db_password=None, db_type=None, db_host=None,
+			  db_port=None, new_site=False):
 	"""Install a new Frappe site"""
 
 	if not force and os.path.exists(site):
@@ -80,9 +82,12 @@ def _new_site(db_name, site, mariadb_root_username=None, mariadb_root_password=N
 	make_site_dirs()
 
 	installing = touch_file(get_site_path('locks', 'installing.lock'))
-	atexit.register(_new_site_cleanup, site, mariadb_root_username, mariadb_root_password)
 
-	install_db(root_login=mariadb_root_username, root_password=mariadb_root_password, db_name=db_name, 
+	if new_site:
+		# run cleanup only if new-site is called
+		atexit.register(_new_site_cleanup, site, mariadb_root_username, mariadb_root_password)
+
+	install_db(root_login=mariadb_root_username, root_password=mariadb_root_password, db_name=db_name,
 		admin_password=admin_password, verbose=verbose, source_sql=source_sql, force=force, reinstall=reinstall,
 		db_password=db_password, db_type=db_type, db_host=db_host, db_port=db_port, no_mariadb_socket=no_mariadb_socket)
 	apps_to_install = ['frappe'] + (frappe.conf.get("install_apps") or []) + (list(install_apps) or [])
@@ -98,7 +103,10 @@ def _new_site(db_name, site, mariadb_root_username=None, mariadb_root_password=N
 	print("*** Scheduler is", scheduler_status, "***")
 
 def _new_site_cleanup(site, mariadb_root_username, mariadb_root_password):
-	installing = get_site_path('locks', 'installing.lock')
+	try:
+		installing = get_site_path('locks', 'installing.lock')
+	except AttributeError:
+		installing = os.path.join(site, 'locks', 'installing.lock')
 
 	if installing and os.path.exists(installing):
 		if mariadb_root_password:
