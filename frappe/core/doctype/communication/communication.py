@@ -2,20 +2,21 @@
 # MIT License. See license.txt
 
 from __future__ import unicode_literals, absolute_import
+from collections import Counter
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils import validate_email_address, get_fullname, strip_html, cstr
-from frappe.core.doctype.communication.email import (validate_email,
-	notify, _notify, update_parent_mins_to_first_response)
+from frappe.utils import validate_email_address, strip_html, cstr, time_diff_in_seconds
+from frappe.core.doctype.communication.email import validate_email, notify, _notify
 from frappe.core.utils import get_parent_doc
 from frappe.utils.bot import BotReply
 from frappe.utils import parse_addr
 from frappe.core.doctype.comment.comment import update_comment_in_doc
 from email.utils import parseaddr
 from six.moves.urllib.parse import unquote
-from collections import Counter
+from frappe.utils.user import is_system_user
 from frappe.contacts.doctype.contact.contact import get_contact_name
+from frappe.automation.doctype.assignment_rule.assignment_rule import apply as apply_assignment_rule
 
 exclude_from_linked_with = True
 
@@ -119,7 +120,7 @@ class Communication(Document):
 		update_comment_in_doc(self)
 
 		if self.comment_type != 'Updated':
-			update_parent_mins_to_first_response(self)
+			update_parent_document_on_communication(self)
 			self.bot_reply()
 
 	def on_trash(self):
@@ -423,3 +424,39 @@ def get_email_without_link(email):
 	email_host = email.split("@")[1]
 
 	return "{0}@{1}".format(email_id, email_host)
+
+def update_parent_document_on_communication(doc):
+	"""Update mins_to_first_communication of parent document based on who is replying."""
+
+	parent = get_parent_doc(doc)
+	if not parent:
+		return
+
+	# update parent mins_to_first_communication only if we create the Email communication
+	# ignore in case of only Comment is added
+	if doc.communication_type == "Comment":
+		return
+
+	status_field = parent.meta.get_field("status")
+	if status_field:
+		options = (status_field.options or '').splitlines()
+
+		# if status has a "Replied" option, then update the status for received communication
+		if ('Replied' in options) and doc.sent_or_received=="Received":
+			parent.db_set("status", "Open")
+			apply_assignment_rule(parent)
+		else:
+			# update the modified date for document
+			parent.update_modified()
+
+	update_mins_to_first_communication(parent, doc)
+	parent.run_method('notify_communication', doc)
+	parent.notify_update()
+
+def update_mins_to_first_communication(parent, communication):
+	if parent.meta.has_field('mins_to_first_response') and not parent.get('mins_to_first_response'):
+		if is_system_user(communication.sender):
+			first_responded_on = communication.creation
+			if parent.meta.has_field('first_responded_on') and communication.sent_or_received == "Sent":
+				parent.db_set('first_responded_on', first_responded_on)
+			parent.db_set('mins_to_first_response', round(time_diff_in_seconds(first_responded_on, parent.creation) / 60), 2)
