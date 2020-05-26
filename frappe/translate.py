@@ -126,14 +126,17 @@ def get_dict(fortype, name=None):
 		# remove untranslated
 		message_dict = {k:v for k, v in iteritems(message_dict) if k!=v}
 
-		if fortype=="boot":
-			message_dict.update(get_user_translations(frappe.local.lang))
-
 		translation_assets[asset_key] = message_dict
 
 		cache.hset("translation_assets", frappe.local.lang, translation_assets, shared=True)
 
+		if fortype=="boot":
+			message_dict.update(get_user_translations(frappe.local.lang))
+
+		return message_dict
+
 	return translation_assets[asset_key]
+
 
 def get_dict_from_hooks(fortype, name):
 	translated_dict = {}

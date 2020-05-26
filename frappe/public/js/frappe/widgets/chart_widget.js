@@ -412,6 +412,8 @@ export default class ChartWidget extends Widget {
 		dialog.show();
 		//Set query report object so that it can be used while fetching filter values in the report
 		frappe.query_report = new frappe.views.QueryReport({'filters': dialog.fields_list});
+		frappe.query_reports[this.chart_doc.report_name].onload
+				&& frappe.query_reports[this.chart_doc.report_name].onload(frappe.query_report);
 		dialog.set_values(this.filters);
 	}
 
@@ -577,7 +579,7 @@ export default class ChartWidget extends Widget {
 				colors.push(field.color);
 			});
 		} else if (["Line", "Bar"].includes(this.chart_doc.type)) {
-			colors = [this.chart_doc.color || "light-blue"];
+			colors = [this.chart_doc.color || []];
 		}  else if (this.chart_doc.type == "Heatmap") {
 			colors = [];
 		}

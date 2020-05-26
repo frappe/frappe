@@ -27,7 +27,11 @@
   }
  ],
  "category": "Modules",
- "charts": [],
+ "charts": [
+  {
+   "chart_name": "Website Analytics"
+  }
+ ],
  "creation": "2020-03-02 14:13:51.089373",
  "developer_mode_only": 0,
  "disable_user_customization": 0,
@@ -37,7 +41,7 @@
  "idx": 0,
  "is_standard": 1,
  "label": "Website",
- "modified": "2020-04-26 13:03:49.094728",
+ "modified": "2020-05-05 18:17:13.232473",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Website",
