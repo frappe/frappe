@@ -2,19 +2,19 @@
 # MIT License. See license.txt
 
 from __future__ import unicode_literals, absolute_import
+from collections import Counter
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils import validate_email_address, get_fullname, strip_html, cstr, time_diff_in_seconds
-from frappe.core.doctype.communication.email import (validate_email,
-	notify, _notify)
+from frappe.utils import validate_email_address, strip_html, cstr, time_diff_in_seconds
+from frappe.core.doctype.communication.email import validate_email, notify, _notify
 from frappe.core.utils import get_parent_doc
 from frappe.utils.bot import BotReply
 from frappe.utils import parse_addr
 from frappe.core.doctype.comment.comment import update_comment_in_doc
 from email.utils import parseaddr
 from six.moves.urllib.parse import unquote
-from collections import Counter
+from frappe.utils.user import is_system_user
 from frappe.contacts.doctype.contact.contact import get_contact_name
 from frappe.automation.doctype.assignment_rule.assignment_rule import apply as apply_assignment_rule
 
@@ -455,8 +455,7 @@ def update_parent_document_on_communication(doc):
 
 def update_mins_to_first_communication(parent, communication):
 	if parent.meta.has_field('mins_to_first_response') and not parent.get('mins_to_first_response'):
-		if frappe.db.get_all('User', filters={'email': communication.sender,
-			'user_type': 'System User', 'enabled': 1}, limit=1):
+		if is_system_user(communication.sender):
 			first_responded_on = communication.creation
 			if parent.meta.has_field('first_responded_on') and communication.sent_or_received == "Sent":
 				parent.db_set('first_responded_on', first_responded_on)
