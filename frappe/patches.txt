@@ -283,3 +283,6 @@ frappe.patches.v13_0.remove_tailwind_from_page_builder
 frappe.patches.v13_0.rename_onboarding
 frappe.patches.v13_0.email_unsubscribe
 execute:frappe.delete_doc("Web Template", "Section with Left Image", force=1)
+execute:frappe.delete_doc("DocType", "Onboarding Slide")
+execute:frappe.delete_doc("DocType", "Onboarding Slide Field")
+execute:frappe.delete_doc("DocType", "Onboarding Slide Help Link")
