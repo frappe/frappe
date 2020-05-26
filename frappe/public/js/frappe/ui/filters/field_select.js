@@ -123,9 +123,8 @@ frappe.ui.FieldSelect = Class.extend({
 
 				if (table_df.fieldtype === "Table MultiSelect") {
 					const link_field = frappe.meta.get_docfields(table_df.options)
-						.find(df => df.fieldtype === 'Link')
+						.find(df => df.fieldtype === 'Link');
 					child_table_fields = link_field ? [link_field] : [];
-					
 				}
 
 				$.each(frappe.utils.sort(child_table_fields, "label", "string"), function(i, df) {
