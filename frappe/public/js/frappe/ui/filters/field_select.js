@@ -122,16 +122,10 @@ frappe.ui.FieldSelect = Class.extend({
 				let child_table_fields = [].concat(frappe.meta.docfield_list[table_df.options]);
 
 				if (table_df.fieldtype === "Table MultiSelect") {
-					child_table_fields = [];
-					for (let i in frappe.meta.docfield_list[table_df.options]) {
-						let field = frappe.meta.docfield_list[table_df.options][i];
-
-						if (field.fieldtype === "Link") {
-							child_table_fields.push(field);
-							break;
-						}
-					}
-				}
+					const link_field = frappe.meta.get_docfields(table_df.options)
+						.find(df => df.fieldtype === 'Link');
+					child_table_fields = link_field ? [link_field] : [];
+				}				
 
 				$.each(frappe.utils.sort(child_table_fields, "label", "string"), function(i, df) {
 					// show fields where user has read access and if report hide flag is not set
