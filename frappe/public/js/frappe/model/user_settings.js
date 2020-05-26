@@ -31,12 +31,14 @@ $.extend(frappe.model.user_settings, {
 		return this.update(doctype, user_settings);
 	},
 	update: function(doctype, user_settings) {
-		frappe.model.user_settings[doctype] = user_settings;
 		return frappe.call({
 			method: 'frappe.model.utils.user_settings.save',
 			args: {
 				doctype: doctype,
 				user_settings: user_settings
+			},
+			callback: function(r) {
+				frappe.model.user_settings[doctype] = r.message;
 			}
 		});
 	}
