@@ -245,6 +245,6 @@ def validate_api_key_secret(api_key, api_secret, frappe_authorization_source=Non
 			)
 		else:
 			user = frappe.db.get_value(doctype, doc, 'user')
-		if not frappe.get_user():
+		if frappe.local.login_manager.user in ('', 'Guest')::
 			frappe.set_user(user)
 		frappe.local.form_dict = form_dict
