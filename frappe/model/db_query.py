@@ -431,6 +431,8 @@ class DatabaseQuery(object):
 			if df and df.fieldtype in ("Check", "Float", "Int", "Currency", "Percent"):
 				can_be_null = False
 
+			if f.operator.lower() == 'previous' or f.operator.lower() == 'next':
+				f = replace_old_date_filters(f)
 			if f.operator.lower() == 'timespan':
 				date_range = get_timespan_date_range(f.value)
 				f.operator = "Between"
@@ -837,4 +839,23 @@ def get_additional_filter_field(additional_filters_config, f, value):
 			option = frappe._dict(option)
 			if option.value == value:
 				f.value = option.query_value
+	return f
+
+def replace_old_date_filters(f):
+	timespan_map = {
+		'1 week': 'week',
+		'1 month': 'month',
+		'3 months': 'quarter',
+		'6 months': '6 months',
+		'1 year': 'year',
+	}
+
+	period_map = {
+		'Previous': 'last',
+		'Next': 'next'
+	}
+
+	f.value = period_map[f.operator] + ' ' + timespan_map[f.value]
+	f.operator = 'Timespan'
+
 	return f
