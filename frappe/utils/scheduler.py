@@ -21,7 +21,7 @@ import schedule
 import frappe
 from frappe.core.doctype.user.user import STANDARD_USERS
 from frappe.installer import update_site_config
-from frappe.utils import get_datetime, get_sites, now_datetime
+from frappe.utils import get_sites, now_datetime
 from frappe.utils.background_jobs import get_jobs
 
 
@@ -56,15 +56,7 @@ def enqueue_events_for_all_sites():
 def enqueue_events_for_site(site):
 	def log_and_raise():
 		error_message = 'Exception in Enqueue Events for Site {0}\n{1}'.format(site, frappe.get_traceback())
-		error_message = json.dumps({
-			"type": "Exception",
-			"event": "Enqueue Events",
-			"site": site,
-			"traceback": frappe.get_traceback()
-		})
-
 		frappe.logger("scheduler").error(error_message)
-		SITELOG_FILENAME = os.path.join(site or "..", 'logs', 'schedule.log')
 
 	try:
 		frappe.init(site=site)
