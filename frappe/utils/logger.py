@@ -15,35 +15,37 @@ import frappe
 
 default_log_level = logging.DEBUG
 site = getattr(frappe.local, 'site', None)
-LOG_FILENAME = os.path.join('..', 'logs', 'frappe.log')
+form_dict = getattr(frappe.local, 'form_dict', None)
 
 
 def get_logger(module, with_more_info=True):
 	if module in frappe.loggers:
 		return frappe.loggers[module]
 
-	formatter = logging.Formatter('[%(levelname)s] %(asctime)s | %(pathname)s:\n%(message)s')
+	if not module:
+		module = "frappe"
 
+	logfile = module + '.log'
+	LOG_FILENAME = os.path.join('..', 'logs', logfile)
+
+	logger = logging.getLogger(module)
+	logger.setLevel(frappe.log_level or default_log_level)
+	logger.propagate = False
+
+	formatter = logging.Formatter('%(asctime)s %(levelname)s %(name)s %(message)s')
 	handler = RotatingFileHandler(LOG_FILENAME, maxBytes=100_000, backupCount=20)
-	handler.setFormatter(formatter)
-
+	logger.addHandler(handler)
+#
 	if site:
-		SITELOG_FOLDER = os.path.join(site, 'logs')
-		SITELOG_FILENAME = os.path.join(SITELOG_FOLDER, 'frappe.log')
-
-		if not os.path.exists(SITELOG_FOLDER):
-			os.mkdir(SITELOG_FOLDER)
-
-		handler = RotatingFileHandler(SITELOG_FILENAME, maxBytes=100_000, backupCount=20)
-		handler.setFormatter(formatter)
+		SITELOG_FILENAME = os.path.join(site, 'logs', logfile)
+		site_handler = RotatingFileHandler(SITELOG_FILENAME, maxBytes=100_000, backupCount=20)
+		site_handler.setFormatter(formatter)
+		logger.addHandler(site_handler)
 
 	if with_more_info:
 		handler.addFilter(SiteContextFilter())
 
-	logger = logging.getLogger(module)
-	logger.setLevel(frappe.log_level or default_log_level)
-	logger.addHandler(handler)
-	logger.propagate = False
+	handler.setFormatter(formatter)
 
 	frappe.loggers[module] = logger
 
