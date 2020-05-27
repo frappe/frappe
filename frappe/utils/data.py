@@ -392,6 +392,7 @@ def get_timespan_date_range(period):
 	}
 
 	return date_range_map.get("period");
+
 def global_date_format(date, format="long"):
 	"""returns localized date in the form of January 1, 2012"""
 	date = getdate(date)
