@@ -14,7 +14,7 @@ frappe.ui.form.on("Workflow", {
 
 		frm.states = null;
 		frm.trigger('make_state_table');
-		frm.trigger('get_orphaned_states_and_count').then(()=> {
+		frm.trigger('get_orphaned_states_and_count').then(() => {
 			frm.trigger('render_state_table');
 		});
 	},
@@ -22,7 +22,7 @@ frappe.ui.form.on("Workflow", {
 		if (frm.ignore_warning) {
 			return;
 		}
-		return frm.trigger('get_orphaned_states_and_count').then(()=> {
+		return frm.trigger('get_orphaned_states_and_count').then(() => {
 			if (frm.states && frm.states.length) {
 				frappe.validated = false;
 				frm.trigger('create_warning_dialog');
@@ -91,7 +91,7 @@ frappe.ui.form.on("Workflow", {
 	},
 	get_orphaned_states_and_count: function(frm) {
 		let states_list = [];
-		frm.doc.states.map(state=> states_list.push(state.state));
+		frm.doc.states.map(state => states_list.push(state.state));
 		return frappe.xcall('frappe.workflow.doctype.workflow.workflow.get_workflow_state_count', {
 			doctype: frm.doc.document_type,
 			workflow_state_field: frm.doc.workflow_state_field,
@@ -133,7 +133,7 @@ frappe.ui.form.on("Workflow", {
 
 frappe.ui.form.on("Workflow Document State", {
 	states_remove: function(frm) {
-		frm.trigger('get_orphaned_states_and_count').then(()=> {
+		frm.trigger('get_orphaned_states_and_count').then(() => {
 			frm.trigger('render_state_table');
 		});
 	}
