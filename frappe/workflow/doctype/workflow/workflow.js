@@ -123,7 +123,7 @@ frappe.ui.form.on("Workflow", {
 			$(frm.state_table).find('a.orphaned-state').on('click', (e) => {
 				const state = $(e.currentTarget).text();
 				let filters = {};
-				filters[frm.workflow_state_field] = state;
+				filters[frm.doc.workflow_state_field] = state;
 				frappe.set_route('List', frm.doc.document_type, filters);
 			});
 		}
