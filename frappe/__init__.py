@@ -77,7 +77,10 @@ def as_unicode(text, encoding='utf-8'):
 	elif text==None:
 		return ''
 	elif isinstance(text, binary_type):
-		return text_type(text, encoding)
+		try:
+			return text_type(text, encoding)
+		except:
+			return text.decode(encoding, "ignore")
 	else:
 		return text_type(text)
 

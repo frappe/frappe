@@ -503,9 +503,16 @@ class Email:
 			if fname:
 				try:
 					fname = fname.replace('\n', ' ').replace('\r', '')
-					fname = cstr(decode_header(fname)[0][0])
-				except:
+					# tmp_fname = decode_header(fname)[0][0]
+					# fname = cstr(tmp_fname)
+					try:
+						tmp_fname = ''.join((item[0].decode(item[1] or 'utf-8', 'ignore') for item in email.header.decode_header(fname)))
+					except:
+						tmp_fname = decode_header(fname)[0][0]
+					fname = cstr(tmp_fname)
+				except Exception as e:
 					fname = get_random_filename(content_type=content_type)
+				# pass
 			else:
 				fname = get_random_filename(content_type=content_type)
 
