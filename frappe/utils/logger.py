@@ -15,17 +15,19 @@ import frappe
 
 default_log_level = logging.DEBUG
 site = getattr(frappe.local, 'site', None)
-form_dict = getattr(frappe.local, 'form_dict', None)
 
 
-def get_logger(module, with_more_info=True):
+def get_logger(module, with_more_info=False):
+	global site
 	if module in frappe.loggers:
 		return frappe.loggers[module]
 
 	if not module:
 		module = "frappe"
+		with_more_info = True
 
 	logfile = module + '.log'
+	site = getattr(frappe.local, 'site', None)
 	LOG_FILENAME = os.path.join('..', 'logs', logfile)
 
 	logger = logging.getLogger(module)
@@ -54,25 +56,9 @@ def get_logger(module, with_more_info=True):
 class SiteContextFilter(logging.Filter):
 	"""This is a filter which injects request information (if available) into the log."""
 	def filter(self, record):
-		record.msg = get_more_info_for_log() + text_type(record.msg)
-		return True
-
-def get_more_info_for_log():
-	'''Adds Site, Form Dict into log entry'''
-	more_info = []
-
-	if site:
-		more_info.append('Site: {0}'.format(site))
-
-	form_dict = getattr(frappe.local, 'form_dict', None)
-	if form_dict:
-		more_info.append('Form Dict: {0}'.format(frappe.as_json(form_dict)))
-
-	if more_info:
-		# to append a \n
-		more_info = more_info + ['']
-
-	return '\n'.join(more_info)
+		if "Form Dict" not in text_type(record.msg):
+			record.msg = text_type(record.msg) + "\nSite: {0}\nForm Dict: {1}".format(site, getattr(frappe.local, 'form_dict', None))
+			return True
 
 def set_log_level(level):
 	'''Use this method to set log level to something other than the default DEBUG'''

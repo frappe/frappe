@@ -1559,7 +1559,7 @@ def get_doctype_app(doctype):
 
 loggers = {}
 log_level = None
-def logger(module=None, with_more_info=True):
+def logger(module=None, with_more_info=False):
 	'''Returns a python logger that uses StreamHandler'''
 	from frappe.utils.logger import get_logger
 	return get_logger(module=module, with_more_info=with_more_info)

@@ -96,6 +96,16 @@ def application(request):
 		frappe.monitor.stop(response)
 		frappe.recorder.dump()
 
+		frappe.logger("web").info({
+			"site": get_site_name(request.host),
+			"remote_addr": request.remote_addr,
+			"base_url": request.base_url,
+			"full_path": request.full_path,
+			"method": request.method,
+			"scheme": request.scheme,
+			"http_status_code": response.status_code
+		})
+
 		frappe.destroy()
 
 	return response
@@ -186,7 +196,6 @@ def handle_exception(e):
 			frappe.local.login_manager.clear_cookies()
 
 	if http_status_code >= 500:
-		frappe.logger().error('Request Error', exc_info=True)
 		make_error_snapshot(e)
 
 	if return_as_message:
