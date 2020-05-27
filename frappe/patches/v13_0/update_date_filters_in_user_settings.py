@@ -3,7 +3,6 @@ import frappe, json
 from frappe.model.utils.user_settings import update_user_settings, sync_user_settings
 
 def execute():
-	from frappe.model.utils.user_settings import update_user_settings, sync_user_settings
 	users = frappe.db.sql("select distinct(user) from `__UserSettings`", as_dict=True)
 
 	for user in users:
