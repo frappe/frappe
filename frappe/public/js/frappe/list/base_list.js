@@ -467,6 +467,7 @@ class FilterArea {
 	constructor(list_view) {
 		this.list_view = list_view;
 		this.standard_filters_wrapper = this.list_view.page.page_form;
+		this.standard_filters_wrapper.hide();
 		this.$filter_list_wrapper = $('<div class="filter-list">').appendTo(
 			this.list_view.$frappe_list
 		);
