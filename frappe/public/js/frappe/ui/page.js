@@ -147,9 +147,7 @@ frappe.ui.Page = Class.extend({
 	add_action_icon: function(icon, click, css_class='') {
 		return $(`
 			<button class="text-muted btn btn-default ${css_class}">
-				<svg class="icon icon-sm">
-					<use xlink:href="#${icon}"></use>
-				</svg>
+				${frappe.utils.icon(icon)}
 			</button>
 		`).appendTo(this.icon_group.removeClass("hide")).click(click);
 	},
