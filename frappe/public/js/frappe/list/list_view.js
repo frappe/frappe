@@ -226,7 +226,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	set_primary_action() {
 		if (this.can_create) {
 			this.page.set_primary_action(
-				__("New"),
+				`+ ${__("Add")} ${__(this.doctype)}`,
 				() => {
 					if (this.settings.primary_action) {
 						this.settings.primary_action();
