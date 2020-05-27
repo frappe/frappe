@@ -6,7 +6,12 @@ frappe.ui.form.on("Workflow", {
 	},
 	refresh: function(frm) {
 		frm.events.update_field_options(frm);
-		frm.ignore_warning = false;
+		frm.ignore_warning = frm.is_new() ? true : false;
+
+		if (frm.is_new()) {
+			return;
+		}
+
 		frm.states = null;
 		frm.trigger('make_state_table');
 		frm.trigger('get_orphaned_states_and_count').then(()=> {
