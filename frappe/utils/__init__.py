@@ -6,6 +6,7 @@
 from __future__ import unicode_literals, print_function
 from werkzeug.test import Client
 import os, re, sys, json, hashlib, requests, traceback
+import functools
 from .html_utils import sanitize_html
 import frappe
 from frappe.utils.identicon import Identicon
@@ -360,6 +361,7 @@ def decode_dict(d, encoding="utf-8"):
 
 	return d
 
+@functools.lru_cache()
 def get_site_name(hostname):
 	return hostname.split(':')[0]
 
