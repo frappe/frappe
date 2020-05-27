@@ -374,37 +374,24 @@ def get_weekday(datetime=None):
 	return weekdays[datetime.weekday()]
 
 def get_timespan_date_range(period):
-	if period == "last week":
-		date_range = [add_to_date(nowdate(), days=-7), nowdate()]
-	elif period == "last month":
-		date_range = [add_to_date(nowdate(), months=-1), nowdate()]
-	elif period == "last quarter":
-		date_range = [add_to_date(nowdate(), months=-3), nowdate()]
-	elif period == "last 6 months":
-		date_range = [add_to_date(nowdate(), months=-6), nowdate()]
-	elif period == "last year":
-		date_range = [add_to_date(nowdate(), years=-1), nowdate()]
-	elif period == "this week":
-		date_range = [get_first_day_of_week(nowdate(), as_str=True), nowdate()]
-	elif period == "this month":
-		date_range = [get_first_day(nowdate(), as_str=True), nowdate()]
-	elif period == "this quarter":
-		date_range = [get_quarter_start(nowdate(), as_str=True), nowdate()]
-	elif period == "this year":
-		date_range = [get_year_start(nowdate(), as_str=True), nowdate()]
-	elif period == "next week":
-		date_range = [nowdate(), add_to_date(nowdate(), days=7)]
-	elif period == "next month":
-		date_range = [nowdate(), add_to_date(nowdate(), months=1)]
-	elif period == "next quarter":
-		date_range = [nowdate(), add_to_date(nowdate(), months=3)]
-	elif period == "next 6 months":
-		date_range = [nowdate(), add_to_date(nowdate(), months=6)]
-	elif period == "next year":
-		date_range = [nowdate(), add_to_date(nowdate(), years=1)]
+	date_range_map = {
+		"last week": [add_to_date(nowdate(), days=-7), nowdate()],
+		"last month": [add_to_date(nowdate(), months=-1), nowdate()],
+		"last quarter": [add_to_date(nowdate(), months=-3), nowdate()],
+		"last 6 months": [add_to_date(nowdate(), months=-6), nowdate()],
+		"last year": [add_to_date(nowdate(), years=-1), nowdate()],
+		"this week": [get_first_day_of_week(nowdate(), as_str=True), nowdate()],
+		"this month": [get_first_day(nowdate(), as_str=True), nowdate()],
+		"this quarter": [get_quarter_start(nowdate(), as_str=True), nowdate()],
+		"this year": [get_year_start(nowdate(), as_str=True), nowdate()],
+		"next week": [nowdate(), add_to_date(nowdate(), days=7)],
+		"next month": [nowdate(), add_to_date(nowdate(), months=1)],
+		"next quarter": [nowdate(), add_to_date(nowdate(), months=3)],
+		"next 6 months": [nowdate(), add_to_date(nowdate(), months=6)],
+		"next year": [nowdate(), add_to_date(nowdate(), years=1)],
+	}
 
-	return date_range
-
+	return date_range_map.get("period");
 def global_date_format(date, format="long"):
 	"""returns localized date in the form of January 1, 2012"""
 	date = getdate(date)
