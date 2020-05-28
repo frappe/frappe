@@ -7,7 +7,6 @@
  "field_order": [
   "blog_title",
   "blog_introduction",
-  "writers_introduction",
   "section_break_4",
   "social_share_settings"
  ],
@@ -21,11 +20,6 @@
    "fieldname": "blog_introduction",
    "fieldtype": "Small Text",
    "label": "Blog Introduction"
-  },
-  {
-   "fieldname": "writers_introduction",
-   "fieldtype": "Small Text",
-   "label": "Writers Introduction"
   },
   {
    "collapsible": 1,
@@ -43,7 +37,7 @@
  "idx": 1,
  "issingle": 1,
  "links": [],
- "modified": "2020-05-04 09:10:41.815238",
+ "modified": "2020-05-28 18:49:08.356608",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Blog Settings",
