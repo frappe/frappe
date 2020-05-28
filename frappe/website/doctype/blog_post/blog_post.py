@@ -39,11 +39,6 @@ class BlogPost(WebsiteGenerator):
 		if self.published and not self.published_on:
 			self.published_on = today()
 
-		# update posts
-		frappe.db.sql("""UPDATE `tabBlogger` SET `posts`=(SELECT COUNT(*) FROM `tabBlog Post`
-			WHERE IFNULL(`blogger`,'')=`tabBlogger`.`name`)
-			WHERE `name`=%s""", (self.blogger,))
-
 		self.set_read_time()
 
 	def on_update(self):
@@ -133,8 +128,9 @@ class BlogPost(WebsiteGenerator):
 
 def get_list_context(context=None):
 	list_context = frappe._dict(
-		template = "templates/includes/blog/blog.html",
+		template = "/templates/includes/blog/blog.html",
 		get_list = get_blog_list,
+		no_breadcrumbs = True,
 		hide_filters = True,
 		children = get_children(),
 		# show_search = True,
@@ -161,7 +157,8 @@ def get_list_context(context=None):
 	else:
 		list_context.parents = [{"name": _("Home"), "route": "/"}]
 
-	list_context.update(frappe.get_doc("Blog Settings", "Blog Settings").as_dict(no_default_fields=True))
+	list_context.update(frappe.get_doc("Blog Settings").as_dict(no_default_fields=True))
+
 	return list_context
 
 def get_children():
