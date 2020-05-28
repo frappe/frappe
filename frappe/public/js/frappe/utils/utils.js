@@ -803,6 +803,70 @@ Object.assign(frappe.utils, {
 			name: M[0],
 			version: M[1],
 		};
+	},
+
+	get_formatted_duration(value, duration_options) {
+		let duration = '';
+		if (value) {
+			let total_duration = frappe.utils.seconds_to_duration(value, duration_options);
+
+			if (total_duration.days) {
+				duration += total_duration.days + 'd';
+			}
+			if (total_duration.hours) {
+				duration += (duration.length ? " " : "");
+				duration += total_duration.hours + 'h';
+			}
+			if (total_duration.minutes) {
+				duration += (duration.length ? " " : "");
+				duration += total_duration.minutes + 'm';
+			}
+			if (total_duration.seconds) {
+				duration += (duration.length ? " " : "");
+				duration += total_duration.seconds + 's';
+			}
+		}
+		return duration;
+	},
+
+	seconds_to_duration(value, duration_options) {
+		let secs = value;
+		let total_duration = {
+			days: Math.floor(secs / (3600 * 24)),
+			hours: Math.floor(secs % (3600 * 24) / 3600),
+			minutes: Math.floor(secs % 3600 / 60),
+			seconds: Math.floor(secs % 60)
+		};
+		if (!duration_options.show_days) {
+			total_duration.hours = Math.floor(secs / 3600);
+			total_duration.days = 0;
+		}
+		return total_duration;
+	},
+
+	duration_to_seconds(days=0, hours=0, minutes=0, seconds=0) {
+		let value = 0;
+		if (days) {
+			value += days * 24 * 60 * 60;
+		}
+		if (hours) {
+			value += hours * 60 * 60;
+		}
+		if (minutes) {
+			value += minutes * 60;
+		}
+		if (seconds) {
+			value += seconds;
+		}
+		return value;
+	},
+
+	get_duration_options: function(docfield) {
+		let duration_options = {
+			show_days: docfield.show_days,
+			show_seconds: docfield.show_seconds
+		};
+		return duration_options;
 	}
 });
 
