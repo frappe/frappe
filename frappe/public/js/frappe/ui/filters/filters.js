@@ -200,6 +200,12 @@ frappe.ui.FilterList = Class.extend({
 			value = {0:"Draft", 1:"Submitted", 2:"Cancelled"}[value] || value;
 		} else if(field.df.original_type==="Check") {
 			value = {0:"No", 1:"Yes"}[cint(value)];
+		} else if (field.df.original_type === "Duration") {
+			let duration_options = {
+				show_days: field.df.show_days,
+				show_seconds: field.df.show_seconds
+			};
+			value = frappe.utils.get_formatted_duration(value, duration_options);
 		}
 
 		value = frappe.format(value, field.df, {only_value: 1});
