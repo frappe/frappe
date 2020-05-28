@@ -57,7 +57,7 @@ frappe.ui.form.on('Data Import Beta', {
 		frm.set_query('reference_doctype', () => {
 			return {
 				filters: {
-					allow_import: 1
+					name: ['in', frappe.boot.user.can_import]
 				}
 			};
 		});
@@ -237,6 +237,7 @@ frappe.ui.form.on('Data Import Beta', {
 			.call({
 				doc: frm.doc,
 				method: 'get_preview_from_template',
+				args: { data_import: frm.doc.name, import_file: frm.doc.import_file },
 				error_handlers: {
 					TimestampMismatchError() {
 						// ignore this error
@@ -326,8 +327,8 @@ frappe.ui.form.on('Data Import Beta', {
 					})
 					.join('');
 				return `
-				<div class="alert border" data-row="${row_number}">
-					<div class="uppercase">${__('Row {0}', [row_number])}</div>
+				<div class="warning" data-row="${row_number}">
+					<h5 class="text-uppercase">${__('Row {0}', [row_number])}</h5>
 					<div class="body"><ul>${message}</ul></div>
 				</div>
 			`;
@@ -341,8 +342,8 @@ frappe.ui.form.on('Data Import Beta', {
 					header = __('Column {0}', [warning.col]);
 				}
 				return `
-					<div class="alert border" data-col="${warning.col}">
-						<div class="uppercase">${header}</div>
+					<div class="warning" data-col="${warning.col}">
+						<h5 class="text-uppercase">${header}</h5>
 						<div class="body">${warning.message}</div>
 					</div>
 				`;
@@ -350,7 +351,7 @@ frappe.ui.form.on('Data Import Beta', {
 			.join('');
 		frm.get_field('import_warnings').$wrapper.html(`
 			<div class="row">
-				<div class="col-sm-6 warnings text-muted">${html}</div>
+				<div class="col-sm-10 warnings">${html}</div>
 			</div>
 		`);
 	},

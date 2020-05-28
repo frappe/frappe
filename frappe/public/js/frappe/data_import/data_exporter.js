@@ -202,16 +202,16 @@ frappe.data_import.DataExporter = class DataExporter {
 	}
 
 	select_mandatory() {
-		let mandatory_table_doctypes = frappe.meta
+		let mandatory_table_fields = frappe.meta
 			.get_table_fields(this.doctype)
 			.filter(df => df.reqd)
-			.map(df => df.options);
-		mandatory_table_doctypes.push(this.doctype);
+			.map(df => df.fieldname);
+		mandatory_table_fields.push(this.doctype);
 
 		let multicheck_fields = this.dialog.fields
 			.filter(df => df.fieldtype === 'MultiCheck')
 			.map(df => df.fieldname)
-			.filter(doctype => mandatory_table_doctypes.includes(doctype));
+			.filter(doctype => mandatory_table_fields.includes(doctype));
 
 		let checkboxes = [].concat(
 			...multicheck_fields.map(fieldname => {
@@ -333,16 +333,24 @@ frappe.data_import.DataExporter = class DataExporter {
 	}
 };
 
-function get_columns_for_picker(doctype) {
+export function get_columns_for_picker(doctype) {
 	let out = {};
 
-	const standard_fields_filter = df =>
-		!in_list(frappe.model.no_value_type, df.fieldtype);
+	const exportable_fields = df => {
+		let keep = true;
+		if (frappe.model.no_value_type.includes(df.fieldtype)) {
+			keep = false;
+		}
+		if (['lft', 'rgt'].includes(df.fieldname)) {
+			keep = false;
+		}
+		return keep;
+	};
 
 	// parent
 	let doctype_fields = frappe.meta
 		.get_docfields(doctype)
-		.filter(standard_fields_filter);
+		.filter(exportable_fields);
 
 	out[doctype] = [
 		{
@@ -359,7 +367,7 @@ function get_columns_for_picker(doctype) {
 		const cdt = df.options;
 		const child_table_fields = frappe.meta
 			.get_docfields(cdt)
-			.filter(standard_fields_filter);
+			.filter(exportable_fields);
 
 		out[df.fieldname] = [
 			{
