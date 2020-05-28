@@ -458,7 +458,7 @@ def _set_limits(context, site, limits):
 			if limit not in ('daily_emails', 'emails', 'space', 'users', 'email_group', 'currency',
 				'expiry', 'support_email', 'support_chat', 'upgrade_url', 'subscription_id',
 				'subscription_type', 'current_plan', 'subscription_base_price', 'upgrade_plan',
-				'upgrade_base_price', 'cancellation_url', 'subscription_status'):
+				'upgrade_base_price', 'cancellation_url', 'subscription_status', 'support_tickets_limit'):
 				frappe.throw(_('Invalid limit {0}').format(limit))
 
 			if limit=='expiry' and value:
