@@ -102,6 +102,7 @@ def backup_to_s3():
 
 	doc = frappe.get_single("S3 Backup Settings")
 	bucket = doc.bucket
+	backup_files = cint(doc.backup_files)
 
 	conn = boto3.client(
 			's3',
@@ -114,17 +115,22 @@ def backup_to_s3():
 		backup = new_backup(ignore_files=False, backup_path_db=None,
 						backup_path_files=None, backup_path_private_files=None, force=True)
 		db_filename = os.path.join(get_backups_path(), os.path.basename(backup.backup_path_db))
-		files_filename = os.path.join(get_backups_path(), os.path.basename(backup.backup_path_files))
-		private_files = os.path.join(get_backups_path(), os.path.basename(backup.backup_path_private_files))
+		if backup_files:
+			files_filename = os.path.join(get_backups_path(), os.path.basename(backup.backup_path_files))
+			private_files = os.path.join(get_backups_path(), os.path.basename(backup.backup_path_private_files))
 	else:
-		db_filename, files_filename, private_files = get_latest_backup_file(with_files=True)
+		if backup_files:
+			db_filename, files_filename, private_files = get_latest_backup_file(with_files=backup_files)
+		else:
+			db_filename = get_latest_backup_file()
 
 	folder = os.path.basename(db_filename)[:15] + '/'
 	# for adding datetime to folder name
 
 	upload_file_to_s3(db_filename, folder, conn, bucket)
-	upload_file_to_s3(private_files, folder, conn, bucket)
-	upload_file_to_s3(files_filename, folder, conn, bucket)
+	if backup_files:
+		upload_file_to_s3(private_files, folder, conn, bucket)
+		upload_file_to_s3(files_filename, folder, conn, bucket)
 	delete_old_backups(doc.backup_limit, bucket)
 
 

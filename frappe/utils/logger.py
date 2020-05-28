@@ -5,7 +5,7 @@ from logging.handlers import RotatingFileHandler
 from six import text_type
 
 default_log_level = logging.DEBUG
-LOG_FILENAME = '../logs/frappe.log'
+LOG_FILENAME = '../logs/{}-frappe.log'.format(frappe.local.site)
 
 def get_logger(module, with_more_info=True):
 	if module in frappe.loggers:
@@ -57,4 +57,3 @@ def set_log_level(level):
 	'''Use this method to set log level to something other than the default DEBUG'''
 	frappe.log_level = getattr(logging, (level or '').upper(), None) or default_log_level
 	frappe.loggers = {}
-

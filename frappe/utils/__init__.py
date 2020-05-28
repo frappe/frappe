@@ -401,7 +401,9 @@ def update_progress_bar(txt, i, l):
 		if lt < 36:
 			txt = txt + " "*(36-lt)
 		complete = int(float(i+1) / l * 40)
-		sys.stdout.write("\r{0}: [{1}{2}]".format(txt, "="*complete, " "*(40-complete)))
+		completion_bar = ("=" * complete).ljust(40, ' ')
+		percent_complete = str(int(float(i+1) / l * 100))
+		sys.stdout.write("\r{0}: [{1}] {2}%".format(txt, completion_bar, percent_complete))
 		sys.stdout.flush()
 
 def get_html_format(print_path):
@@ -479,7 +481,7 @@ def watch(path, handler=None, debug=True):
 	observer.join()
 
 def markdown(text, sanitize=True, linkify=True):
-	html = frappe.utils.md_to_html(text)
+	html = text if is_html(text) else frappe.utils.md_to_html(text)
 
 	if sanitize:
 		html = html.replace("<!-- markdown -->", "")

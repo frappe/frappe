@@ -1,0 +1,8 @@
+<h2 class="section-title">{{ title }}</h2>
+<p class="section-description">{{ subtitle }}</p>
+
+{{ frappe.render_template('templates/includes/image_with_blur.html', {
+	"src": image,
+	"alt": image_description,
+	"class": "section-image"
+}) }}

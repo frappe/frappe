@@ -8,7 +8,9 @@ function generate_route(item) {
 		if (item.link) {
 			route = strip(item.link, "#");
 		} else if (type === "doctype") {
-			if (frappe.model.is_single(item.doctype)) {
+			if (frappe.model.is_tree(item.doctype)) {
+				route = "Tree/" + item.doctype;
+			} else if (frappe.model.is_single(item.doctype)) {
 				route = "Form/" + item.doctype;
 			} else {
 				if (item.filters) {
@@ -22,6 +24,8 @@ function generate_route(item) {
 			route = "List/" + item.doctype + "/Report/" + item.name;
 		} else if (type === "page") {
 			route = item.name;
+		} else if (type === "dashboard") {
+			route = "dashboard/" + item.name;
 		}
 
 		route = "#" + route;
@@ -113,4 +117,54 @@ const build_summary_item = (summary) => {
 	</div>`);
 };
 
-export { generate_route, generate_grid, build_summary_item };
+function go_to_list_with_filters(doctype, filters) {
+	const route = `List/${doctype}/List`;
+	frappe.set_route(route).then(()=> {
+		let list_view = frappe.views.list_view[route];
+		let filter_area = list_view.filter_area;
+		filter_area.clear();
+		filter_area.filter_list.add_filters_to_filter_group(filters);
+	});
+}
+
+function shorten_number(number, country) {
+	country = country || '';
+	const number_system = get_number_system(country);
+	let x = Math.abs(Math.round(number));
+	for (const map of number_system) {
+		if (x >= map.divisor) {
+			return Math.round(number/map.divisor) +  ' ' + map.symbol;
+		}
+	}
+	return number.toFixed();
+}
+
+function get_number_system(country) {
+	let number_system_map = {
+		'India':
+			[{
+				divisor: 1.0e+7,
+				symbol: 'Cr'
+			},
+			{
+				divisor: 1.0e+5,
+				symbol: 'Lakh'
+			}],
+		'':
+			[{
+				divisor: 1.0e+12,
+				symbol: 'T'
+			},
+			{
+				divisor: 1.0e+9,
+				symbol: 'B'
+			},
+			{
+				divisor: 1.0e+6,
+				symbol: 'M'
+			}]
+	};
+	return number_system_map[country];
+}
+
+export { generate_route, generate_grid, build_summary_item, go_to_list_with_filters, shorten_number };

@@ -1,0 +1,92 @@
+{
+ "actions": [],
+ "creation": "2020-04-16 22:57:13.729460",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "web_template",
+  "edit_values",
+  "web_template_values",
+  "css_class",
+  "column_break_5",
+  "add_container",
+  "add_top_padding",
+  "add_bottom_padding",
+  "add_shade",
+  "hide_block"
+ ],
+ "fields": [
+  {
+   "fieldname": "web_template",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Web Template",
+   "options": "Web Template"
+  },
+  {
+   "fieldname": "edit_values",
+   "fieldtype": "Button",
+   "in_list_view": 1,
+   "label": "Edit Values"
+  },
+  {
+   "fieldname": "web_template_values",
+   "fieldtype": "Code",
+   "hidden": 1,
+   "label": "Web Template Values",
+   "options": "JSON"
+  },
+  {
+   "fieldname": "css_class",
+   "fieldtype": "Small Text",
+   "label": "CSS Class"
+  },
+  {
+   "fieldname": "column_break_5",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "add_shade",
+   "fieldtype": "Check",
+   "label": "Add Gray Background"
+  },
+  {
+   "default": "1",
+   "fieldname": "add_container",
+   "fieldtype": "Check",
+   "label": "Add Container"
+  },
+  {
+   "default": "0",
+   "fieldname": "hide_block",
+   "fieldtype": "Check",
+   "label": "Hide Block"
+  },
+  {
+   "default": "1",
+   "fieldname": "add_top_padding",
+   "fieldtype": "Check",
+   "label": "Add Space on Top"
+  },
+  {
+   "default": "1",
+   "fieldname": "add_bottom_padding",
+   "fieldtype": "Check",
+   "label": "Add Space on Bottom"
+  }
+ ],
+ "istable": 1,
+ "links": [],
+ "modified": "2020-05-11 15:21:54.247652",
+ "modified_by": "Administrator",
+ "module": "Website",
+ "name": "Web Page Block",
+ "owner": "Administrator",
+ "permissions": [],
+ "quick_entry": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}
