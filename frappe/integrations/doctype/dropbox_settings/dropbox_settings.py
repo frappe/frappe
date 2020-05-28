@@ -90,7 +90,7 @@ def backup_to_dropbox(upload_db_backup=True):
 		dropbox_settings['access_token'] = access_token['oauth2_token']
 		set_dropbox_access_token(access_token['oauth2_token'])
 
-	dropbox_client = dropbox.Dropbox(dropbox_settings['access_token'])
+	dropbox_client = dropbox.Dropbox(dropbox_settings['access_token'], timeout=None)
 
 	if upload_db_backup:
 		if frappe.flags.create_new_backup:
