@@ -13,7 +13,28 @@ import requests
 import frappe
 import frappe.utils.backups
 from frappe.utils import get_installed_apps_info
-from frappe.utils.commands import render_table, add_line_after
+from frappe.utils.commands import render_table, add_line_after, add_line_before
+
+
+@add_line_before
+def select_team(session):
+	# get team options
+	account_details_sc = session.post(account_details_url)
+	if account_details_sc.ok:
+		account_details = account_details_sc.json()["message"]
+		available_teams = account_details["teams"]
+
+	# ask if they want to select, go ahead with if only one exists
+	if len(available_teams) == 1:
+		team = available_teams[0]
+	else:
+		render_teams_table(available_teams)
+		idx = click.prompt("Select Team", type=click.IntRange(1, len(available_teams))) - 1
+		team = available_teams[idx]
+
+	print("Team '{}' set for current session".format(team))
+
+	return team
 
 
 def get_new_site_options():
@@ -148,24 +169,6 @@ def filter_apps(app_groups):
 
 	return selected_group["name"], filtered_apps
 
-@add_line_after
-def create_session():
-	# take user input from STDIN
-	username = click.prompt("Username").strip()
-	password = getpass.unix_getpass()
-
-	auth_credentials = {"usr": username, "pwd": password}
-
-	session = requests.Session()
-	login_sc = session.post(login_url, auth_credentials)
-
-	if login_sc.ok:
-		print("Authorization Successful! ✅")
-		session.headers.update({"X-Press-Team": username})
-		return session
-	else:
-		print("Authorization Failed with Error Code {}".format(login_sc.status_code))
-
 
 @add_line_after
 def get_subdomain(domain):
@@ -208,61 +211,23 @@ def upload_backup(local_site):
 	return files_uploaded
 
 
-def frappecloud_migrator(local_site, remote_site):
-	global login_url, upload_url, files_url, options_url, site_exists_url, session
-
-	login_url = "https://{}/api/method/login".format(remote_site)
-	upload_url = "https://{}/api/method/press.api.site.new".format(remote_site)
-	files_url = "https://{}/api/method/upload_file".format(remote_site)
-	options_url = "https://{}/api/method/press.api.site.options_for_new".format(remote_site)
-	site_exists_url = "https://{}/api/method/press.api.site.exists".format(remote_site)
-
+@add_line_after
+def create_session():
 	print("Frappe Cloud credentials @ {}".format(remote_site))
 
-	# get credentials + auth user + start session
-	session = create_session()
+	# take user input from STDIN
+	username = click.prompt("Username").strip()
+	password = getpass.unix_getpass()
 
-	if session:
-		# connect to site db
-		frappe.init(site=local_site)
-		frappe.connect()
+	auth_credentials = {"usr": username, "pwd": password}
 
-		# get new site options
-		site_options = get_new_site_options()
+	session = requests.Session()
+	login_sc = session.post(login_url, auth_credentials)
 
-		# set preferences from site options
-		subdomain = get_subdomain(site_options["domain"])
-		plan = choose_plan(site_options["plans"])
-
-		app_groups = site_options["groups"]
-		selected_group, filtered_apps = filter_apps(app_groups)
-		files_uploaded = upload_backup(local_site)
-
-		# push to frappe_cloud
-		payload = json.dumps({
-			"site": {
-				"apps": filtered_apps,
-				"files": files_uploaded,
-				"group": selected_group,
-				"name": subdomain,
-				"plan": plan
-			}
-		})
-
-		session.headers.update({"Content-Type": "application/json; charset=utf-8"})
-		site_creation_request = session.post(upload_url, payload)
-		frappe.destroy()
-
-		if site_creation_request.ok:
-			site_url = site_creation_request.json()["message"]
-			print("Your site {} is being migrated ✨".format(local_site))
-			print("View your site dashboard at {}/dashboard/#/sites/{}".format(remote_site, site_url))
-			print("Your site URL: {}".format(site_url))
-		else:
-			print("Request failed with error code {}".format(site_creation_request.status_code))
-			reason = html2text(site_creation_request.text)
-			print(reason)
-			sys.exit(1)
-
+	if login_sc.ok:
+		print("Authorization Successful! ✅")
+		team = select_team(session)
+		session.headers.update({"X-Press-Team": team })
+		return session
 	else:
-		sys.exit(1)
+		handle_request_failure(message="Authorization Failed with Error Code {}".format(login_sc.status_code), traceback=False)
