@@ -231,7 +231,7 @@ def get_backup_size(path):
 				backups.append(os.path.abspath(os.path.join(path, backup)))
 		backups = sorted(backups, key=os.path.getsize, reverse=1)
 		total_size = 0.0
-		for idx in range(0, backup_limit):
+		for idx in range(0, min(len(backups), backup_limit)):
 			total_size += flt(subprocess.check_output(['du', '-ms', backups[idx]]).split()[0], 2)
 		return total_size
 
