@@ -10,12 +10,13 @@
   "title",
   "published_on",
   "published",
-  "read_time",
+  "featured",
   "disable_comments",
   "column_break_3",
   "blog_category",
   "blogger",
   "route",
+  "read_time",
   "section_break_5",
   "blog_intro",
   "content_type",
@@ -143,7 +144,8 @@
   {
    "fieldname": "meta_image",
    "fieldtype": "Attach Image",
-   "label": "Meta Image"
+   "label": "Meta Image",
+   "mandatory_depends_on": "eval:doc.featured"
   },
   {
    "fieldname": "section_break_20",
@@ -167,6 +169,12 @@
    "fieldtype": "Int",
    "label": "Read Time",
    "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "featured",
+   "fieldtype": "Check",
+   "label": "Featured"
   }
  ],
  "has_web_view": 1,
@@ -175,7 +183,7 @@
  "is_published_field": "published",
  "links": [],
  "max_attachments": 5,
- "modified": "2020-04-30 17:32:41.055883",
+ "modified": "2020-05-28 21:40:26.068480",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Blog Post",

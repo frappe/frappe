@@ -39,7 +39,17 @@ class BlogPost(WebsiteGenerator):
 		if self.published and not self.published_on:
 			self.published_on = today()
 
+		if self.featured:
+			if not self.meta_image:
+				frappe.throw(_("A featured post must have a cover image"))
+			self.reset_featured_for_other_blogs()
+
 		self.set_read_time()
+
+	def reset_featured_for_other_blogs(self):
+		all_posts = frappe.get_all("Blog Post", {"featured": 1})
+		for post in all_posts:
+			frappe.db.set_value("Blog Post", post.name, "featured", 0)
 
 	def on_update(self):
 		super(BlogPost, self).on_update()
