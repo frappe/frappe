@@ -97,7 +97,6 @@ export default class ChartWidget extends Widget {
 				this.chart_settings = {};
 			}
 			this.setup_container();
-			this.prepare_chart_object();
 			if (!this.in_customize_mode) {
 				this.action_area.empty();
 				this.prepare_chart_actions();
@@ -110,7 +109,10 @@ export default class ChartWidget extends Widget {
 					this.render_time_series_filters();
 				}
 			}
-			this.fetch_and_update_chart();
+			frappe.run_serially([
+				() => this.prepare_chart_object(),
+				() => this.fetch_and_update_chart(),
+			]);
 		});
 	}
 
@@ -625,13 +627,41 @@ export default class ChartWidget extends Widget {
 	}
 
 	prepare_chart_object() {
-		let saved_filters = this.chart_settings.filters || null;
-		this.filters =
-			saved_filters || this.filters || JSON.parse(this.chart_doc.filters_json || "[]");
-
 		if (this.chart_doc.type == 'Heatmap' && !this.chart_doc.heatmap_year) {
 			this.chart_doc.heatmap_year = frappe.dashboard_utils.get_year(frappe.datetime.now_date());
 		}
+
+		return this.set_chart_filters();
+	}
+
+	set_chart_filters() {
+		let user_saved_filters = this.chart_settings.filters || null;
+		let chart_saved_filters = JSON.parse(this.chart_doc.filters_json || "null");
+
+		if (this.chart_doc.chart_type == 'Report') {
+			return frappe.dashboard_utils
+				.get_filters_for_chart_type(this.chart_doc).then(filters => {
+					chart_saved_filters = this.update_default_date_filters(filters, chart_saved_filters);
+					this.filters =
+						user_saved_filters || this.filters || chart_saved_filters;
+				});
+		} else {
+			this.filters =
+				user_saved_filters || this.filters || chart_saved_filters;
+			return Promise.resolve();
+		}
+	}
+
+	update_default_date_filters(report_filters, chart_filters) {
+		report_filters.map(f => {
+			if (['Date', 'DateRange'].includes(f.fieldtype) && f.default) {
+				if (f.reqd || chart_filters[f.fieldname]) {
+					chart_filters[f.fieldname] = f.default;
+				}
+			}
+		});
+
+		return chart_filters;
 	}
 
 	get_settings() {
