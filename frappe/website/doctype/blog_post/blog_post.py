@@ -208,6 +208,9 @@ def get_blog_list(doctype, txt=None, filters=None, limit_start=0, limit_page_len
 		select
 			t1.title, t1.name, t1.blog_category, t1.route, t1.published_on, t1.read_time,
 				t1.published_on as creation,
+				t1.read_time as read_time,
+				t1.featured as featured,
+				t1.meta_image as cover_image,
 				t1.content as content,
 				t1.content_type as content_type,
 				t1.content_html as content_html,
@@ -223,7 +226,7 @@ def get_blog_list(doctype, txt=None, filters=None, limit_start=0, limit_page_len
 		where ifnull(t1.published,0)=1
 		and t1.blogger = t2.name
 		%(condition)s
-		order by published_on desc, name asc
+		order by featured desc, published_on desc, name asc
 		limit %(start)s, %(page_len)s""" % {
 			"start": limit_start, "page_len": limit_page_length,
 				"condition": (" and " + " and ".join(conditions)) if conditions else ""
@@ -232,9 +235,9 @@ def get_blog_list(doctype, txt=None, filters=None, limit_start=0, limit_page_len
 	posts = frappe.db.sql(query, as_dict=1)
 
 	for post in posts:
-
 		post.content = get_html_content_based_on_type(post, 'content', post.content_type)
-		post.cover_image = find_first_image(post.content)
+		if not post.cover_image:
+			post.cover_image = find_first_image(post.content)
 		post.published = global_date_format(post.creation)
 		post.content = strip_html_tags(post.content)
 
@@ -247,7 +250,7 @@ def get_blog_list(doctype, txt=None, filters=None, limit_start=0, limit_page_len
 
 		post.avatar = post.avatar or ""
 		post.category = frappe.db.get_value('Blog Category', post.blog_category,
-			['route', 'title'], as_dict=True)
+			['name', 'route', 'title'], as_dict=True)
 
 		if post.avatar and (not "http:" in post.avatar and not "https:" in post.avatar) and not post.avatar.startswith("/"):
 			post.avatar = "/" + post.avatar
