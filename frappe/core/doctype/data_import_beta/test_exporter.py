@@ -5,7 +5,7 @@ from __future__ import unicode_literals
 
 import unittest
 import frappe
-from frappe.core.doctype.data_import.exporter_new import Exporter
+from frappe.core.doctype.data_import_beta.exporter import Exporter
 
 
 class TestExporter(unittest.TestCase):
