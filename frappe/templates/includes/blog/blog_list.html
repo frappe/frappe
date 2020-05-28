@@ -1,0 +1,25 @@
+{% if sub_title %}
+<h4 class="text-muted">{{ sub_title }}</h4>
+{% endif %}
+{% if not result -%}
+	<div class="text-muted" style="min-height: 300px;">
+		{{ no_result_message or _("Nothing to show") }}
+	</div>
+{% else %}
+	<div class="website-list" data-doctype="{{ doctype }}"
+		data-txt="{{ txt or '[notxt]' | e }}">
+		<!-- {% if not hide_filters -%}
+			{% include "templates/includes/list/filters.html" %}
+		{%- endif %} -->
+		{% if result_heading_template %}{% include result_heading_template %}{% endif %}
+
+		<div class="result">
+			{% for item in result %}
+				{{ item }}
+			{% endfor %}
+		</div>
+		<div class="more-block {% if not show_more -%} hidden {%- endif %}">
+			<button class="btn btn-light btn-more btn-sm">{{ _("More") }}</button>
+		</div>
+	</div>
+{%- endif %}
