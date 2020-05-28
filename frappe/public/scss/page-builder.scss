@@ -88,6 +88,8 @@
 }
 
 .card {
+	transition: border-color 0.25s;
+
 	.card-title {
 		color: $black;
 	}
