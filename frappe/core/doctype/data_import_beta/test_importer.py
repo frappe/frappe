@@ -6,7 +6,7 @@ from __future__ import unicode_literals
 import datetime
 import unittest
 import frappe
-from frappe.core.doctype.data_import.importer_new import Importer
+from frappe.core.doctype.data_import_beta.importer import Importer
 
 content_empty_rows = '''title,start_date,idx,show_title
 ,,,
