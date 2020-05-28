@@ -13,5 +13,7 @@
  "name": "Create Blogger",
  "owner": "Administrator",
  "reference_document": "Blogger",
- "title": "Create Blogger"
+ "show_full_form": 0,
+ "title": "Create Blogger",
+ "validate_action": 0
 }
