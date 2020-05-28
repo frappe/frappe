@@ -304,15 +304,8 @@ frappe.ui.form.on('Dashboard Chart', {
 				});
 			}
 		} else if (frm.chart_filters.length) {
-			fields = frm.chart_filters.filter(f => {
-				// Set dynamic filters as read only
-				if (is_dynamic_filter(f)) {
-					f.read_only = 1;
-				}
-				if (f.fieldname) {
-					return true;
-				}
-			});
+			fields = frm.chart_filters.filter(f => f.fieldname);
+
 			fields.map( f => {
 				if (filters[f.fieldname]) {
 					let condition = '=';
@@ -339,7 +332,7 @@ frappe.ui.form.on('Dashboard Chart', {
 
 			let dialog = new frappe.ui.Dialog({
 				title: __('Set Filters'),
-				fields: fields,
+				fields: fields.filter(f => !is_dynamic_filter(f)),
 				primary_action: function() {
 					let values = this.get_values();
 					if (values) {
