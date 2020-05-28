@@ -5,6 +5,12 @@ frappe.ui.form.on("Workflow", {
 		frm.set_query("document_type", {"issingle": 0, "istable": 0});
 	},
 	refresh: function(frm) {
+		if (frm.doc.document_type) {
+			frm.add_custom_button(__('Go to {0} List', [frm.doc.document_type]), () => {
+				frappe.set_route('List', frm.doc.document_type);
+			});
+		}
+
 		frm.events.update_field_options(frm);
 		frm.ignore_warning = frm.is_new() ? true : false;
 
