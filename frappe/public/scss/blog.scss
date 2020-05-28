@@ -1,0 +1,48 @@
+.blog-list-item {
+	@extend .col-12;
+
+	&:not(.featured) {
+		@extend .col-md-4;
+
+		.blog-list-body {
+			min-height: 14rem;
+		}
+	}
+
+	.blog-list-cover {
+		@extend .col-12;
+	}
+
+	.blog-list-body {
+		@extend .col-12;
+		@extend .mt-3;
+	}
+
+	.post-cover-container {
+		min-height: 12rem;
+		overflow: hidden;
+		border-radius: $border-radius;
+
+		img {
+			min-height: 12rem;
+			width: 100%;
+		}
+	}
+
+	&.featured {
+		.blog-list-cover {
+			@extend .col-12;
+			@extend .col-md-8;
+		}
+
+		.blog-list-body {
+			@extend .col-12;
+			@extend .col-md-4;
+			@extend .mt-0;
+		}
+
+		.post-cover-container {
+			max-height: 22rem;
+		}
+	}
+}
