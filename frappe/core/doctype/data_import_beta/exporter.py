@@ -10,7 +10,6 @@ from frappe.model import (
 )
 from frappe.utils.csvutils import build_csv_response
 from frappe.utils.xlsxutils import build_xlsx_response
-from frappe.core.doctype.data_import_beta.importer import INVALID_VALUES
 
 
 class Exporter:
@@ -152,8 +151,9 @@ class Exporter:
 		return rows
 
 	def get_data_as_docs(self):
-		format_column_name = lambda df: "`tab{0}`.`{1}`".format(df.parent, df.fieldname)
-		fields = [format_column_name(df) for df in self.fields]
+		def format_column_name(df):
+			return "`tab{0}`.`{1}`".format(df.parent, df.fieldname)
+
 		filters = self.export_filters
 
 		if self.meta.is_nested_set():
