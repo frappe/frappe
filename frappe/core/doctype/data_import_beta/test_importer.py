@@ -3,10 +3,8 @@
 # See license.txt
 from __future__ import unicode_literals
 
-import datetime
 import unittest
 import frappe
-from frappe.core.doctype.data_import_beta.importer import Importer
 from frappe.utils import getdate
 
 doctype_name = 'DocType for Import'
@@ -40,6 +38,9 @@ class TestImporter(unittest.TestCase):
 		self.assertEqual(doc1.table_field_1_again[0].child_title, 'child title again')
 		self.assertEqual(doc1.table_field_1_again[1].child_title, 'child title again 2')
 		self.assertEqual(doc1.table_field_1_again[1].child_date, getdate('2021-09-22'))
+
+		self.assertEqual(doc2.description, 'test description 2')
+		self.assertEqual(doc3.another_number, 5)
 
 	def test_data_import_preview(self):
 		import_file = get_import_file('sample_import_file')

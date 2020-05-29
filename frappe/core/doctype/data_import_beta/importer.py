@@ -9,7 +9,7 @@ import timeit
 import json
 from datetime import datetime
 from frappe import _
-from frappe.utils import cint, flt, update_progress_bar, cstr, DATETIME_FORMAT
+from frappe.utils import cint, flt, update_progress_bar, cstr
 from frappe.utils.csvutils import read_csv_content
 from frappe.utils.xlsxutils import (
 	read_xlsx_file_from_attached_file,
@@ -79,7 +79,7 @@ class Importer:
 			import_log = []
 
 		# remove previous failures from import log
-		import_log = [l for l in import_log if l.get("success") == True]
+		import_log = [log for log in import_log if log.get("success")]
 
 		# get successfully imported rows
 		imported_rows = []
@@ -160,7 +160,7 @@ class Importer:
 					frappe.db.rollback()
 
 		# set status
-		failures = [l for l in import_log if l.get("success") == False]
+		failures = [log for log in import_log if not log.get("success")]
 		if len(failures) == total_payload_count:
 			status = "Pending"
 		elif len(failures) > 0:
@@ -235,7 +235,7 @@ class Importer:
 			return
 
 		import_log = frappe.parse_json(self.data_import.import_log or "[]")
-		failures = [l for l in import_log if l.get("success") == False]
+		failures = [log for log in import_log if not log.get("success")]
 		row_indexes = []
 		for f in failures:
 			row_indexes.extend(f.get("row_indexes", []))
@@ -397,7 +397,6 @@ class ImportFile:
 				# if any of those conditions dont match, it's the next doc
 				break
 
-		parsed_docs = {}
 		parent_doc = None
 		for row in rows:
 			for doctype, table_df in doctypes:
@@ -774,7 +773,6 @@ class Column:
 
 	def parse(self):
 		header_title = self.header_title
-		header_row_index = str(self.index)
 		column_number = str(self.column_number)
 		skip_import = False
 
@@ -849,10 +847,9 @@ class Column:
 			self.date_format = self.guess_date_format_for_column()
 
 	def guess_date_format_for_column(self):
-		""" Guesses date format for a column by parsing the first 100 values in the column,
+		""" Guesses date format for a column by parsing all the values in the column,
 		getting the date format and then returning the one which has the maximum frequency
 		"""
-		PARSE_ROW_COUNT = 100
 
 		date_formats = [
 			frappe.utils.guess_date_format(d) for d in self.column_values if isinstance(d, str)
