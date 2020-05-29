@@ -74,5 +74,68 @@ class TestImporter(unittest.TestCase):
 	def get_importer(self, doctype, content):
 		data_import = frappe.new_doc('Data Import Beta')
 		data_import.import_type = 'Insert New Records'
-		i = Importer(doctype, content=content, data_import=data_import)
-		return i
+
+def create_doctype_if_not_exists(doctype_name, force=False):
+	if force:
+		frappe.delete_doc_if_exists('DocType', doctype_name)
+		frappe.delete_doc_if_exists('DocType', 'Child 1 of ' + doctype_name)
+		frappe.delete_doc_if_exists('DocType', 'Child 2 of ' + doctype_name)
+
+	if frappe.db.exists('DocType', doctype_name):
+		return
+
+	# Child Table 1
+	table_1_name = 'Child 1 of ' + doctype_name
+	frappe.get_doc({
+		'doctype': 'DocType',
+		'name': table_1_name,
+		'module': 'Custom',
+		'custom': 1,
+		'istable': 1,
+		'fields': [
+			{'label': 'Child Title', 'fieldname': 'child_title', 'reqd': 1, 'fieldtype': 'Data'},
+			{'label': 'Child Description', 'fieldname': 'child_description', 'fieldtype': 'Small Text'},
+			{'label': 'Child Date', 'fieldname': 'child_date', 'fieldtype': 'Date'},
+			{'label': 'Child Number', 'fieldname': 'child_number', 'fieldtype': 'Int'},
+			{'label': 'Child Number', 'fieldname': 'child_another_number', 'fieldtype': 'Int'},
+		]
+	}).insert()
+
+	# Child Table 2
+	table_2_name = 'Child 2 of ' + doctype_name
+	frappe.get_doc({
+		'doctype': 'DocType',
+		'name': table_2_name,
+		'module': 'Custom',
+		'custom': 1,
+		'istable': 1,
+		'fields': [
+			{'label': 'Child 2 Title', 'fieldname': 'child_2_title', 'reqd': 1, 'fieldtype': 'Data'},
+			{'label': 'Child 2 Description', 'fieldname': 'child_2_description', 'fieldtype': 'Small Text'},
+			{'label': 'Child 2 Date', 'fieldname': 'child_2_date', 'fieldtype': 'Date'},
+			{'label': 'Child 2 Number', 'fieldname': 'child_2_number', 'fieldtype': 'Int'},
+			{'label': 'Child 2 Number', 'fieldname': 'child_2_another_number', 'fieldtype': 'Int'},
+		]
+	}).insert()
+
+	# Main Table
+	frappe.get_doc({
+		'doctype': 'DocType',
+		'name': doctype_name,
+		'module': 'Custom',
+		'custom': 1,
+		'autoname': 'field:title',
+		'fields': [
+			{'label': 'Title', 'fieldname': 'title', 'reqd': 1, 'fieldtype': 'Data'},
+			{'label': 'Description', 'fieldname': 'description', 'fieldtype': 'Small Text'},
+			{'label': 'Date', 'fieldname': 'date', 'fieldtype': 'Date'},
+			{'label': 'Number', 'fieldname': 'number', 'fieldtype': 'Int'},
+			{'label': 'Number', 'fieldname': 'another_number', 'fieldtype': 'Int'},
+			{'label': 'Table Field 1', 'fieldname': 'table_field_1', 'fieldtype': 'Table', 'options': table_1_name},
+			{'label': 'Table Field 2', 'fieldname': 'table_field_2', 'fieldtype': 'Table', 'options': table_2_name},
+			{'label': 'Table Field 1 Again', 'fieldname': 'table_field_1_again', 'fieldtype': 'Table', 'options': table_1_name},
+		],
+		'permissions': [
+			{'role': 'System Manager'}
+		]
+	}).insert()

@@ -57,9 +57,6 @@ class Exporter:
 			df.fieldname for df in self.meta.fields if df.fieldtype in table_fieldtypes
 		]
 
-		def is_exportable(df):
-			return df and df.fieldtype not in (display_fieldtypes + no_value_fields)
-
 		meta = frappe.get_meta(self.doctype)
 		exportable_fields = frappe._dict({})
 
@@ -209,15 +206,6 @@ class Exporter:
 				doc[table_field] = [row for row in table_rows if row.parent == doc.name]
 
 		return parent_data
-
-	def get_name_column_index(self, doctype):
-		for i, df in enumerate(self.fields):
-			if df.parent == doctype and df.fieldname == "name":
-				return i
-		return -1
-
-	def get_column_indexes(self, doctype):
-		return [i for i, df in enumerate(self.fields) if df.parent == doctype]
 
 	def add_header(self):
 
