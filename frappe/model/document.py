@@ -940,7 +940,8 @@ class Document(BaseDocument):
 
 		update_global_search(self)
 
-		if getattr(self.meta, 'track_changes', False) and not self.flags.ignore_version and not self.doctype == 'Version':
+		if getattr(self.meta, 'track_changes', False) and not self.flags.ignore_version \
+			and not self.doctype == 'Version' and not frappe.flags.in_install:
 			self.save_version()
 
 		self.run_method('on_change')
