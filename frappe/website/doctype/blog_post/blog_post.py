@@ -63,6 +63,8 @@ class BlogPost(WebsiteGenerator):
 		if not cint(self.published):
 			raise Exception("This blog has not been published yet!")
 
+		context.no_breadcrumbs = True
+
 		# temp fields
 		context.full_name = get_fullname(self.owner)
 		context.updated = global_date_format(self.published_on)
