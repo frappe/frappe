@@ -8,22 +8,30 @@
 <div class="blog-container">
 	<article class="blog-content mb-3" itemscope itemtype="http://schema.org/BlogPosting">
 		<!-- begin blog content -->
-		<div class="blog-info">
-			<span class="text-center">
-				<h1 itemprop="headline" class="blog-header">{{ title }}</h1>
-				<p class="lead">
-					{{ blog_intro }}
-				</p>
-			</span>
-			
-			<div class="text-muted small meta-info">
-				{{ frappe.format_date(published_on) }}
-				{% if read_time %}
-					&middot;
-					{{ read_time }} min read
-				{% endif %}
-				{% if social_links %}
-				<div class="social-links">
+		<div class="py-5">
+			<div>
+				<a class="mr-2" href="/blog">{{ _('Blog') }}</a>
+				<span class="text-muted">/</span>
+				<a class="ml-2" href="/blog/{{ category.title }}">{{ category.title }}</a>
+			</div>
+			<h1 itemprop="headline" class="blog-header">{{ title }}</h1>
+			<p class="blog-intro">
+				{{ blog_intro }}
+			</p>
+			{%-if featured -%}
+				<span class="mr-2 text-muted text-uppercase small">
+					<i class="fa fa-star"></i> {{ _("Featured") }}
+				</span>
+			{%- endif -%}
+			<div class="text-muted d-flex justify-content-between">
+				<div>
+					{{ frappe.format_date(published_on) }}
+					{% if read_time %}
+						&middot;
+						{{ read_time }} min read
+					{% endif %}
+				</div>
+				<div>
 					{% if social_links %}
 					{% for link in social_links %}
 						<a href="{{ link.link }}" class="text-muted ml-2 fa fa-{{ link.icon }}" target="_blank"></a>
@@ -32,7 +40,7 @@
 				</div>
 			</div>
 		</div>
-		<div itemprop="articleBody" class="longform blog-text mt-5">
+		<div itemprop="articleBody">
 		{{ content }}
 		</div>
 		<!-- end blog content -->
