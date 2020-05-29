@@ -209,7 +209,8 @@ class Importer:
 		return new_doc
 
 	def update_record(self, doc):
-		existing_doc = frappe.get_doc(self.doctype, doc["name"])
+		id_field = get_id_field(self.doctype)
+		existing_doc = frappe.get_doc(self.doctype, doc.get(id_field.fieldname))
 		existing_doc.flags.updater_reference = {
 			"doctype": self.data_import.doctype,
 			"docname": self.data_import.name,
@@ -260,9 +261,7 @@ class ImportFile:
 		self.import_type = import_type
 
 		self.file_doc = self.file_path = None
-		if isinstance(file, frappe.model.document.Document) and file.doctype == "File":
-			self.file_doc = file
-		elif isinstance(file, frappe.string_types):
+		if isinstance(file, frappe.string_types):
 			if frappe.db.exists("File", {"file_url": file}):
 				self.file_doc = frappe.get_doc("File", {"file_url": file})
 			elif os.path.exists(file):
@@ -315,7 +314,7 @@ class ImportFile:
 		self.columns = self.header.columns
 		self.data = data
 
-		if len(data) <= 1:
+		if len(data) < 1:
 			frappe.throw(
 				_("Import template should contain a Header and atleast one row."),
 				title=_("Template Error"),
@@ -326,6 +325,20 @@ class ImportFile:
 
 		columns = [frappe._dict({"header_title": "Sr. No", "skip_import": True})]
 		columns += [col.as_dict() for col in self.columns]
+		for col in columns:
+			# only pick useful fields in docfields to minimise the payload
+			if col.df:
+				col.df = {
+					'fieldtype': col.df.fieldtype,
+					'fieldname': col.df.fieldname,
+					'label': col.df.label,
+					'options': col.df.options,
+					'parent': col.df.parent,
+					'reqd': col.df.reqd,
+					'default': col.df.default,
+					'read_only': col.df.read_only
+				}
+
 		data = [[row.row_number] + row.as_list() for row in self.data]
 
 		warnings = self.get_warnings()
@@ -461,49 +474,6 @@ class ImportFile:
 
 		return data
 
-	def validate_template_content(self):
-		column_count = len(self.columns)
-		if any([len(row) != column_count and len(row) != 0 for row in self.data]):
-			frappe.throw(
-				_("Number of columns does not match with data"), title=_("Invalid Template")
-			)
-
-	def remove_empty_rows_and_columns(self, raw_data):
-		self.row_index_map = []
-		removed_rows = []
-		removed_columns = []
-
-		# remove empty rows
-		data_without_empty_rows = []
-		for i, row in enumerate(raw_data):
-			if all(v in INVALID_VALUES for v in row):
-				# empty row
-				removed_rows.append(i)
-			else:
-				data_without_empty_rows.append(row)
-				self.row_index_map.append(i)
-
-		# remove empty columns
-		# a column with a header and no data is a valid column
-		# a column with no header and no data will be removed
-		first_row = data_without_empty_rows[0]
-		for i, column in enumerate(first_row):
-			column_values = [row[i] for row in data_without_empty_rows]
-			if all(v in INVALID_VALUES for v in column_values):
-				# empty column
-				removed_columns.append(i)
-
-		if removed_columns:
-			data_without_empty_rows_and_columns = []
-			# remove empty columns from data
-			for i, row in enumerate(data_without_empty_rows):
-				new_row = [v for j, v in enumerate(row) if j not in removed_columns]
-				data_without_empty_rows_and_columns.append(new_row)
-		else:
-			data_without_empty_rows_and_columns = data_without_empty_rows
-
-		return data_without_empty_rows_and_columns
-
 
 class Row:
 	link_values_exist_map = {}
@@ -572,7 +542,7 @@ class Row:
 			new_doc.update(doc)
 			doc = new_doc
 
-		self.check_mandatory_fields(doctype, doc)
+		self.check_mandatory_fields(doctype, doc, table_df)
 		return doc
 
 	def validate_value(self, value, col):
@@ -662,7 +632,7 @@ class Row:
 				pass
 		return value
 
-	def check_mandatory_fields(self, doctype, doc):
+	def check_mandatory_fields(self, doctype, doc, table_df=None):
 		"""If import type is Insert:
 			Check for mandatory fields (except table fields) in doc
 		if import type is Update:
@@ -680,12 +650,13 @@ class Row:
 				# so we dont need to check for mandatory
 				return
 
-			id_field = self.get_id_field(doctype)
+			# for update, only ID (name) field is mandatory
+			id_field = get_id_field(doctype)
 			if doc.get(id_field.fieldname) in INVALID_VALUES:
 				self.warnings.append(
 					{
 						"row": self.row_number,
-						"message": _("{0} is a mandatory field").format(id_field.label),
+						"message": _("{0} is a mandatory field asdadsf").format(id_field.label),
 					}
 				)
 			return
@@ -701,33 +672,25 @@ class Row:
 		if not fields:
 			return
 
+		def get_field_label(df):
+			return "{0}{1}".format(df.label, " ({})".format(table_df.label) if table_df else "")
+
 		if len(fields) == 1:
+			field_label = get_field_label(fields[0])
 			self.warnings.append(
 				{
 					"row": self.row_number,
-					"message": _("{0} is a mandatory field").format(fields[0].label),
+					"message": _("{0} is a mandatory field").format(frappe.bold(field_label)),
 				}
 			)
 		else:
-			fields_string = ", ".join([df.label for df in fields])
+			fields_string = ", ".join([frappe.bold(get_field_label(df)) for df in fields])
 			self.warnings.append(
 				{
 					"row": self.row_number,
 					"message": _("{0} are mandatory fields").format(fields_string),
 				}
 			)
-
-	def get_id_field(self, doctype):
-		autoname_field = self.get_autoname_field(doctype)
-		if autoname_field:
-			return autoname_field
-		return frappe._dict({"label": "ID", "fieldname": "name", "fieldtype": "Data"})
-
-	def get_autoname_field(self, doctype):
-		meta = frappe.get_meta(doctype)
-		if meta.autoname and meta.autoname.startswith("field:"):
-			fieldname = meta.autoname[len("field:") :]
-			return meta.get_field(fieldname)
 
 	def get_values(self, indexes):
 		return [self.data[i] for i in indexes]
@@ -771,17 +734,20 @@ class Header(Row):
 		)
 
 	def get_column_indexes(self, doctype, tablefield=None):
+		def is_table_field(df):
+			if tablefield:
+				return df.child_table_df.fieldname == tablefield.fieldname
+			return True
+
 		return [
 			col.index
 			for col in self.columns
-			if not col.skip_import and col.df and col.df.parent == doctype
+			if not col.skip_import and col.df and col.df.parent == doctype and is_table_field(col.df)
 		]
 
 	def get_columns(self, indexes):
 		return [self.columns[i] for i in indexes]
 
-	def get_docfields(self, indexes):
-		return [col.df for col in self.get_columns(indexes)]
 
 
 class Column:
@@ -807,10 +773,6 @@ class Column:
 		self.parse_date_format()
 
 	def parse(self):
-		# df_by_labels_and_fieldnames = Column.build_fields_dict_for_column_matching(
-		# 	self.doctype
-		# )
-
 		header_title = self.header_title
 		header_row_index = str(self.index)
 		column_number = str(self.column_number)
@@ -818,7 +780,6 @@ class Column:
 
 		if self.map_to_field and self.map_to_field != "Don't Import":
 			df = get_df_for_column_header(self.doctype, self.map_to_field)
-			# df = df_by_labels_and_fieldnames.get(self.map_to_field)
 			if df:
 				self.warnings.append(
 					{
@@ -903,21 +864,22 @@ class Column:
 		unique_date_formats = set(date_formats)
 		max_occurred_date_format = max(unique_date_formats, key=date_formats.count)
 
-		# fmt: off
-		message = _("The column {0} has {1} different date formats. Automatically setting {2} as the default format as it is the most common. Please change other values in this column to this format.")
-		# fmt: on
-		user_date_format = get_user_format(max_occurred_date_format)
-		self.warnings.append(
-			{
-				"col": self.column_number,
-				"message": message.format(
-					frappe.bold(self.header_title),
-					len(unique_date_formats),
-					frappe.bold(user_date_format),
-				),
-				"type": "info",
-			}
-		)
+		if len(unique_date_formats) > 1:
+			# fmt: off
+			message = _("The column {0} has {1} different date formats. Automatically setting {2} as the default format as it is the most common. Please change other values in this column to this format.")
+			# fmt: on
+			user_date_format = get_user_format(max_occurred_date_format)
+			self.warnings.append(
+				{
+					"col": self.column_number,
+					"message": message.format(
+						frappe.bold(self.header_title),
+						len(unique_date_formats),
+						frappe.bold(user_date_format),
+					),
+					"type": "info",
+				}
+			)
 
 		return max_occurred_date_format
 
@@ -927,7 +889,6 @@ class Column:
 		d.column_number = self.column_number
 		d.doctype = self.doctype
 		d.header_title = self.header_title
-		d.column_values = self.column_values
 		d.map_to_field = self.map_to_field
 		d.date_format = self.date_format
 		d.df = self.df
@@ -1070,6 +1031,11 @@ def get_df_for_column_header(doctype, header):
 
 # utilities
 
+def get_id_field(doctype):
+	autoname_field = get_autoname_field(doctype)
+	if autoname_field:
+		return autoname_field
+	return frappe._dict({"label": "ID", "fieldname": "name", "fieldtype": "Data"})
 
 def get_autoname_field(doctype):
 	meta = frappe.get_meta(doctype)

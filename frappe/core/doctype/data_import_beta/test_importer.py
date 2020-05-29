@@ -7,73 +7,89 @@ import datetime
 import unittest
 import frappe
 from frappe.core.doctype.data_import_beta.importer import Importer
+from frappe.utils import getdate
 
-content_empty_rows = '''title,start_date,idx,show_title
-,,,
-est phasellus sit amet,5/20/2019,52,1
-nibh in,7/29/2019,77,1
-'''
-
-content_mandatory_missing = '''title,start_date,idx,show_title
-,5/20/2019,52,1
-'''
-
-content_convert_value = '''title,start_date,idx,show_title
-est phasellus sit amet,5/20/2019,52,True
-'''
-
-content_invalid_column = '''title,start_date,idx,show_title,invalid_column
-est phasellus sit amet,5/20/2019,52,True,invalid value
-'''
-
+doctype_name = 'DocType for Import'
 
 class TestImporter(unittest.TestCase):
-	def test_should_skip_empty_rows(self):
-		i = self.get_importer('Web Page', content=content_empty_rows)
-		payloads = i.get_payloads_for_import()
-		row_to_be_imported = []
-		for p in payloads:
-			row_to_be_imported += [row[0] for row in p.rows]
-		self.assertEqual(len(row_to_be_imported), 2)
+	def setUp(self):
+		create_doctype_if_not_exists(doctype_name)
 
-	def test_should_throw_if_mandatory_is_missing(self):
-		i = self.get_importer('Web Page', content=content_mandatory_missing)
-		i.import_data()
-		warning = i.warnings[0]
-		self.assertTrue('Title is a mandatory field' in warning['message'])
+	def test_data_import_from_file(self):
+		import_file = get_import_file('sample_import_file')
+		data_import = self.get_importer(doctype_name, import_file)
+		data_import.start_import()
 
-	def test_should_convert_value_based_on_fieldtype(self):
-		i = self.get_importer('Web Page', content=content_convert_value)
-		payloads = i.get_payloads_for_import()
-		doc = payloads[0].doc
+		doc1 = frappe.get_doc(doctype_name, 'Test')
+		doc2 = frappe.get_doc(doctype_name, 'Test 2')
+		doc3 = frappe.get_doc(doctype_name, 'Test 3')
 
-		self.assertEqual(type(doc['show_title']), int)
-		self.assertEqual(type(doc['idx']), int)
-		self.assertEqual(type(doc['start_date']), datetime.datetime)
+		self.assertEqual(doc1.description, 'test description')
+		self.assertEqual(doc1.number, 1)
 
-	def test_should_ignore_invalid_columns(self):
-		i = self.get_importer('Web Page', content=content_invalid_column)
-		payloads = i.get_payloads_for_import()
-		doc = payloads[0].doc
+		self.assertEqual(doc1.table_field_1[0].child_title, 'child title')
+		self.assertEqual(doc1.table_field_1[0].child_description, 'child description')
 
-		self.assertTrue('invalid_column' not in doc)
-		self.assertTrue('title' in doc)
+		self.assertEqual(doc1.table_field_1[1].child_title, 'child title 2')
+		self.assertEqual(doc1.table_field_1[1].child_description, 'child description 2')
 
-	def test_should_import_valid_template(self):
-		title = 'est phasellus sit amet {0}'.format(frappe.utils.random_string(8))
-		content_valid_content = '''title,start_date,idx,show_title
-{0},5/20/2019,52,1'''.format(title)
-		i = self.get_importer('Web Page', content=content_valid_content)
-		import_log = i.import_data()
-		log = import_log[0]
-		self.assertTrue(log.success)
-		doc = frappe.get_doc('Web Page', { 'title': title })
-		self.assertEqual(frappe.utils.get_datetime_str(doc.start_date),
-			frappe.utils.get_datetime_str('2019-05-20'))
+		self.assertEqual(doc1.table_field_2[1].child_2_title, 'title child')
+		self.assertEqual(doc1.table_field_2[1].child_2_date, getdate('2019-10-30'))
+		self.assertEqual(doc1.table_field_2[1].child_2_another_number, 5)
 
-	def get_importer(self, doctype, content):
+		self.assertEqual(doc1.table_field_1_again[0].child_title, 'child title again')
+		self.assertEqual(doc1.table_field_1_again[1].child_title, 'child title again 2')
+		self.assertEqual(doc1.table_field_1_again[1].child_date, getdate('2021-09-22'))
+
+	def test_data_import_preview(self):
+		import_file = get_import_file('sample_import_file')
+		data_import = self.get_importer(doctype_name, import_file)
+		preview = data_import.get_preview_from_template()
+
+		self.assertEqual(len(preview.data), 4)
+		self.assertEqual(len(preview.columns), 15)
+
+	def test_data_import_without_mandatory_values(self):
+		import_file = get_import_file('sample_import_file_without_mandatory')
+		data_import = self.get_importer(doctype_name, import_file)
+		data_import.start_import()
+		data_import.reload()
+		warnings = frappe.parse_json(data_import.template_warnings)
+
+		self.assertEqual(warnings[0]['row'], 2)
+		self.assertEqual(warnings[0]['message'], "<b>Child Title (Table Field 1)</b> is a mandatory field")
+
+		self.assertEqual(warnings[1]['row'], 3)
+		self.assertEqual(warnings[1]['message'], "<b>Child Title (Table Field 1 Again)</b> is a mandatory field")
+
+		self.assertEqual(warnings[2]['row'], 4)
+		self.assertEqual(warnings[2]['message'], "<b>Title</b> is a mandatory field")
+
+	def test_data_import_update(self):
+		if not frappe.db.exists(doctype_name, 'Test 26'):
+			frappe.get_doc(
+				doctype=doctype_name,
+				title='Test 26'
+			).insert()
+
+		import_file = get_import_file('sample_import_file_for_update')
+		data_import = self.get_importer(doctype_name, import_file, update=True)
+		data_import.start_import()
+
+		updated_doc = frappe.get_doc(doctype_name, 'Test 26')
+		self.assertEqual(updated_doc.description, 'test description')
+		self.assertEqual(updated_doc.table_field_1[0].child_title, 'child title')
+		self.assertEqual(updated_doc.table_field_1[0].child_description, 'child description')
+		self.assertEqual(updated_doc.table_field_1_again[0].child_title, 'child title again')
+
+	def get_importer(self, doctype, import_file, update=False):
 		data_import = frappe.new_doc('Data Import Beta')
-		data_import.import_type = 'Insert New Records'
+		data_import.import_type = 'Insert New Records' if not update else 'Update Existing Records'
+		data_import.reference_doctype = doctype
+		data_import.import_file = import_file.file_url
+		data_import.insert()
+
+		return data_import
 
 def create_doctype_if_not_exists(doctype_name, force=False):
 	if force:
@@ -139,3 +155,28 @@ def create_doctype_if_not_exists(doctype_name, force=False):
 			{'role': 'System Manager'}
 		]
 	}).insert()
+
+
+def get_import_file(csv_file_name, force=False):
+	file_name = csv_file_name + '.csv'
+	_file = frappe.db.exists('File', {'file_name': file_name})
+	if force and _file:
+		frappe.delete_doc_if_exists('File', _file)
+
+	if frappe.db.exists('File', {'file_name': file_name}):
+		f = frappe.get_doc('File', {'file_name': file_name})
+	else:
+		full_path = get_csv_file_path(file_name)
+		f = frappe.get_doc(
+			doctype='File',
+			content=frappe.read_file(full_path),
+			file_name=file_name,
+			is_private=1
+		)
+		f.save(ignore_permissions=True)
+
+	return f
+
+
+def get_csv_file_path(file_name):
+	return frappe.get_app_path('frappe', 'core', 'doctype', 'data_import_beta', 'fixtures', file_name)
