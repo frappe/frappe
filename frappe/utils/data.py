@@ -380,6 +380,7 @@ def get_timespan_date_range(timespan):
 		"last quarter": [add_to_date(nowdate(), months=-3), nowdate()],
 		"last 6 months": [add_to_date(nowdate(), months=-6), nowdate()],
 		"last year": [add_to_date(nowdate(), years=-1), nowdate()],
+		"today": [nowdate(), nowdate()],
 		"this week": [get_first_day_of_week(nowdate(), as_str=True), nowdate()],
 		"this month": [get_first_day(nowdate(), as_str=True), nowdate()],
 		"this quarter": [get_quarter_start(nowdate(), as_str=True), nowdate()],

@@ -452,7 +452,7 @@ frappe.ui.filter_utils = {
 		}
 		if (condition == 'Timespan' && ['Date', 'Datetime', 'DateRange', 'Select'].includes(df.fieldtype)) {
 			df.fieldtype = 'Select';
-			df.options = this.get_timespan_options(['Last', 'This', 'Next']);
+			df.options = this.get_timespan_options(['Last', 'Today', 'This', 'Next']);
 		}
 		if (condition === 'is') {
 			df.fieldtype = 'Select';
@@ -467,17 +467,25 @@ frappe.ui.filter_utils = {
 	get_timespan_options(periods) {
 		const period_map = {
 			'Last': ['Week', 'Month', 'Quarter', '6 months', 'Year'],
+			'Today': null,
 			'This': ['Week', 'Month', 'Quarter', 'Year'],
 			'Next': ['Week', 'Month', 'Quarter', '6 months', 'Year']
 		};
 		let options = [];
 		periods.forEach(period => {
-			period_map[period].forEach(p => {
-				options.push({
-					label: __(`{0} {1}`, [period, p]),
-					value: `${period.toLowerCase()} ${p.toLowerCase()}`,
+			if (period_map[period]) {
+				period_map[period].forEach(p => {
+					options.push({
+						label: __(`{0} {1}`, [period, p]),
+						value: `${period.toLowerCase()} ${p.toLowerCase()}`,
+					});
 				});
-			});
+			} else {
+				options.push({
+					label: __(`{0}`, [period]),
+					value: `${period.toLowerCase()}`,
+				});
+			}
 		});
 		return options;
 	}
