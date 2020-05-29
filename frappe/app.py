@@ -101,12 +101,12 @@ def application(request):
 
 		frappe.logger("web").info({
 			"site": get_site_name(request.host),
-			"remote_addr": request.remote_addr,
-			"base_url": request.base_url,
-			"full_path": request.full_path,
-			"method": request.method,
-			"scheme": request.scheme,
-			"http_status_code": response.status_code
+			"remote_addr": getattr(request, "remote_addr", "NOTFOUND"),
+			"base_url": getattr(request, "base_url", "NOTFOUND"),
+			"full_path": getattr(request, "full_path", "NOTFOUND"),
+			"method": getattr(request, "method", "NOTFOUND"),
+			"scheme": getattr(request, "scheme", "NOTFOUND"),
+			"http_status_code": getattr(response, "status_code", "NOTFOUND")
 		})
 
 		if response and hasattr(frappe.local, 'rate_limiter'):
