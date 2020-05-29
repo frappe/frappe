@@ -37,7 +37,7 @@ class DataImportBeta(Document):
 		return i.get_data_for_import_preview()
 
 	def start_import(self):
-		if frappe.utils.scheduler.is_scheduler_inactive():
+		if frappe.utils.scheduler.is_scheduler_inactive() and not frappe.flags.in_test:
 			frappe.throw(
 				_("Scheduler is inactive. Cannot import data."), title=_("Scheduler Inactive")
 			)

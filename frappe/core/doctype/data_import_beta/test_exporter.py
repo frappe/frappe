@@ -14,7 +14,7 @@ doctype_name = 'DocType for Export'
 
 class TestExporter(unittest.TestCase):
 	def setUp(self):
-		create_doctype_if_not_exists(doctype_name, True)
+		create_doctype_if_not_exists(doctype_name)
 
 	def test_exports_specified_fields(self):
 		if not frappe.db.exists(doctype_name, "Test"):
@@ -36,7 +36,6 @@ class TestExporter(unittest.TestCase):
 					},
 				],
 			).insert()
-			frappe.db.commit()
 		else:
 			doc = frappe.get_doc(doctype_name, "Test")
 
