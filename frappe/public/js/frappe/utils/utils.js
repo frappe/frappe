@@ -803,6 +803,12 @@ Object.assign(frappe.utils, {
 			name: M[0],
 			version: M[1],
 		};
+	},
+
+	icon(icon, size="sm") {
+		return `<svg class="icon icon-${size}">
+			<use xlink:href="#${icon}"></use>
+		</svg>`
 	}
 });
 
