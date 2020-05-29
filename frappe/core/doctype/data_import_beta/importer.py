@@ -65,8 +65,6 @@ class Importer:
 		warnings = self.import_file.get_warnings()
 		warnings = [w for w in warnings if w.get("type") != "info"]
 
-		print(warnings)
-
 		if warnings:
 			if self.console:
 				self.print_grouped_warnings(warnings)
@@ -228,6 +226,28 @@ class Importer:
 		if not self.last_eta or eta < self.last_eta:
 			self.last_eta = eta
 		return self.last_eta
+
+	def export_errored_rows(self):
+		from frappe.utils.csvutils import build_csv_response
+
+		if not self.data_import:
+			return
+
+		import_log = frappe.parse_json(self.data_import.import_log or "[]")
+		failures = [l for l in import_log if l.get("success") == False]
+		row_indexes = []
+		for f in failures:
+			row_indexes.extend(f.get("row_indexes", []))
+
+		# de duplicate
+		row_indexes = list(set(row_indexes))
+		row_indexes.sort()
+
+		header_row = [col.header_title for col in self.import_file.columns]
+		rows = [header_row]
+		rows += [row.data for row in self.import_file.data if row.row_number in row_indexes]
+
+		build_csv_response(rows, self.doctype)
 
 
 class ImportFile:
@@ -881,7 +901,6 @@ class Column:
 			return
 
 		unique_date_formats = set(date_formats)
-		print(unique_date_formats)
 		max_occurred_date_format = max(unique_date_formats, key=date_formats.count)
 
 		# fmt: off
