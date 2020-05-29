@@ -431,10 +431,8 @@ class DatabaseQuery(object):
 			if df and df.fieldtype in ("Check", "Float", "Int", "Currency", "Percent"):
 				can_be_null = False
 
-			if f.operator.lower() == 'previous' or f.operator.lower() == 'next':
-				f = replace_old_date_filters(f)
-			if f.operator.lower() == 'timespan':
-				date_range = get_timespan_date_range(f.value)
+			if f.operator.lower() in ('previous', 'next', 'timespan'):
+				date_range = get_date_range(f.operator.lower(), f.value)
 				f.operator = "Between"
 				f.value = date_range
 				fallback = "'0001-01-01 00:00:00'"
@@ -841,7 +839,7 @@ def get_additional_filter_field(additional_filters_config, f, value):
 				f.value = option.query_value
 	return f
 
-def replace_old_date_filters(f):
+def get_date_range(operator, value):
 	timespan_map = {
 		'1 week': 'week',
 		'1 month': 'month',
@@ -849,13 +847,11 @@ def replace_old_date_filters(f):
 		'6 months': '6 months',
 		'1 year': 'year',
 	}
-
 	period_map = {
-		'Previous': 'last',
-		'Next': 'next'
+		'previous': 'last',
+		'next': 'next',
 	}
 
-	f.value = period_map[f.operator] + ' ' + timespan_map[f.value]
-	f.operator = 'Timespan'
+	timespan = period_map[operator] + ' ' + timespan_map[value] if operator != 'timespan' else value
 
-	return f
+	return get_timespan_date_range(timespan)

@@ -373,7 +373,7 @@ def get_weekday(datetime=None):
 	weekdays = get_weekdays()
 	return weekdays[datetime.weekday()]
 
-def get_timespan_date_range(period):
+def get_timespan_date_range(timespan):
 	date_range_map = {
 		"last week": [add_to_date(nowdate(), days=-7), nowdate()],
 		"last month": [add_to_date(nowdate(), months=-1), nowdate()],
@@ -391,7 +391,7 @@ def get_timespan_date_range(period):
 		"next year": [nowdate(), add_to_date(nowdate(), years=1)],
 	}
 
-	return date_range_map.get("period");
+	return date_range_map.get(timespan)
 
 def global_date_format(date, format="long"):
 	"""returns localized date in the form of January 1, 2012"""
