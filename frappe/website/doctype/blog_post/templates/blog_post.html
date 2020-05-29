@@ -24,13 +24,12 @@
 				{% endif %}
 				{% if social_links %}
 				<div class="social-links">
+					{% if social_links %}
 					{% for link in social_links %}
-						<a href="{{ link.url }}" class="fa fa-{{ link.icon }}" 
-							style='color:{{ link.color }}; background-color: {{ link.background }};' 
-							target="_blank"></a>
+						<a href="{{ link.link }}" class="text-muted ml-2 fa fa-{{ link.icon }}" target="_blank"></a>
 					{% endfor %}
+					{% endif %}
 				</div>
-				{% endif %}
 			</div>
 		</div>
 		<div itemprop="articleBody" class="longform blog-text mt-5">
@@ -54,31 +53,4 @@
 <script>
 	frappe.ready(() => frappe.set_search_path("/blog"))
 </script>
-{% endblock %}
-
-{% block style %}
-<style>
-.blog-container {
-	max-width: 720px;
-	margin: 0 auto;
-	font-size: 1.2rem;
-}
-.meta-info {
-	display: flex;
-	justify-content: space-between;
-	align-items: flex-end;
-	flex-wrap: wrap;
-}
-.social-links {
-	margin-right: 0px;
-	margin-top: 1rem;
-}
-.social-links a { 
-	font-size: 1.25rem;
-	margin: 0 5px 0 0;
-	padding: 5px 0;
-	width: 2.5rem;
-	text-align: center;
-}
-</style>
 {% endblock %}

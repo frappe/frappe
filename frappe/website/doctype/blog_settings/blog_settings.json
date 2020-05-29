@@ -7,8 +7,8 @@
  "field_order": [
   "blog_title",
   "blog_introduction",
-  "section_break_4",
-  "social_share_settings"
+  "column_break",
+  "enable_social_sharing"
  ],
  "fields": [
   {
@@ -22,22 +22,22 @@
    "label": "Blog Introduction"
   },
   {
-   "collapsible": 1,
-   "fieldname": "section_break_4",
-   "fieldtype": "Section Break"
+   "default": "0",
+   "fieldname": "enable_social_sharing",
+   "fieldtype": "Check",
+   "label": "Enable Social Sharing"
   },
   {
-   "fieldname": "social_share_settings",
-   "fieldtype": "Table",
-   "label": "Social Share Settings",
-   "options": "Social Link Settings"
+   "collapsible": 1,
+   "fieldname": "column_break",
+   "fieldtype": "Column Break"
   }
  ],
  "icon": "fa fa-cog",
  "idx": 1,
  "issingle": 1,
  "links": [],
- "modified": "2020-05-28 18:49:08.356608",
+ "modified": "2020-05-28 22:34:46.679003",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Blog Settings",

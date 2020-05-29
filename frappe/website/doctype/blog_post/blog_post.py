@@ -99,25 +99,19 @@ class BlogPost(WebsiteGenerator):
 
 
 	def fetch_social_links_info(self):
+		if not frappe.db.get_single_value("Blog Settings", "enable_social_sharing", cache=True):
+			return []
+
 		url = frappe.local.site + "/" +self.route
-		social_url_map = {
-			"twitter": "https://twitter.com/intent/tweet?text=" +self.title + "&url=" + url,
-			"facebook": "https://www.facebook.com/sharer.php?u=" + url,
-			"linkedin": "https://www.linkedin.com/sharing/share-offsite/?url=" + url,
-			"email": "mailto:?subject=" + self.title + "&body=" + url,
-		}
 
-		social_link = []
-		for link in frappe.get_cached_doc("Blog Settings").social_share_settings:
-			social_media = link.social_link_type
+		social_links = [
+			{ "icon": "twitter", "link": "https://twitter.com/intent/tweet?text=" + self.title + "&url=" + url },
+			{ "icon": "facebook", "link": "https://www.facebook.com/sharer.php?u=" + url },
+			{ "icon": "linkedin", "link": "https://www.linkedin.com/sharing/share-offsite/?url=" + url },
+			{ "icon": "envelope", "link": "mailto:?subject=" + self.title + "&body=" + url }
+		]
 
-			social_link.append({
-				'icon': social_media if not social_media == 'email' else 'envelope',
-				'url': social_url_map.get(social_media),
-				'color': link.color,
-				'background': link.background_color
-			})
-		return social_link
+		return social_links
 
 	def load_comments(self, context):
 		context.comment_list = get_comment_list(self.doctype, self.name)
