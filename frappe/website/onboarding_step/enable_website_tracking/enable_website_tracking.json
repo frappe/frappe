@@ -14,6 +14,8 @@
  "name": "Enable Website Tracking",
  "owner": "Administrator",
  "reference_document": "Website Settings",
+ "show_full_form": 0,
  "title": "Enable Website Tracking",
+ "validate_action": 0,
  "value_to_validate": "1"
 }
