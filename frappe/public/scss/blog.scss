@@ -7,6 +7,10 @@
 		.blog-list-body {
 			min-height: 14rem;
 		}
+
+		.post-cover-container {
+			height: 12rem;
+		}
 	}
 
 	.blog-list-cover {
@@ -19,7 +23,6 @@
 	}
 
 	.post-cover-container {
-		min-height: 12rem;
 		overflow: hidden;
 		border-radius: $border-radius;
 
@@ -43,6 +46,44 @@
 
 		.post-cover-container {
 			max-height: 22rem;
+		}
+	}
+}
+
+.blog-container {
+	max-width: 840px;
+	font-size: 18px;
+	margin: 0px auto;
+	font-family: Inter, sans-serif;
+
+	.blog-intro {
+		font-size: 1.25rem;
+		font-weight: 300;
+	}
+
+	.blog-content {
+		p {
+			line-height: 1.8;
+			margin-bottom: 1.2rem;
+		}
+
+		h1, h2, h3 {
+			margin-top: 2rem;
+		}
+
+		h4, h5, h6 {
+			margin-top: 1.5rem;
+		}
+
+		img {
+			border-radius: $border-radius;
+		}
+
+		blockquote{
+			font-weight: 300;
+			padding: 1.2rem 1.8rem;
+			border-left: 8px solid $gray-300 ;
+			background: $gray-100;
 		}
 	}
 }
