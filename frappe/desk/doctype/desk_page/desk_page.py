@@ -20,6 +20,17 @@ class DeskPage(Document):
 		if frappe.conf.developer_mode and self.is_standard:
 			export_to_files(record_list=[['Desk Page', self.name]], record_module=self.module)
 
+	@staticmethod
+	def get_module_page_map():
+		filters = {
+			'extends_another_page': 0,
+			'for_user': '',
+		}
+
+		pages = frappe.get_all("Desk Page", fields=["name", "module"], filters=filters, as_list=1)
+
+		return { page[1]: page[0]  for page in pages }
+
 def disable_saving_as_standard():
 	return frappe.flags.in_install or \
 			frappe.flags.in_patch or \
