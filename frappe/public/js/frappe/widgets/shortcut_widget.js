@@ -29,7 +29,7 @@ export default class ShortcutWidget extends Widget {
 				name: this.link_to,
 				type: this.type,
 				is_query_report: this.is_query_report,
-				doctype: this.ref_doctype
+				doctype: this.ref_doctype,
 			});
 			if (this.stats_filter) {
 				const get_filter = new Function(`return ${this.stats_filter}`);
