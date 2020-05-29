@@ -31,7 +31,10 @@ export default class ShortcutWidget extends Widget {
 				is_query_report: this.is_query_report,
 				doctype: this.ref_doctype
 			});
-
+			if (this.stats_filter) {
+				const get_filter = new Function(`return ${this.stats_filter}`);
+				frappe.route_options = get_filter();
+			}
 			frappe.set_route(route);
 		});
 	}
