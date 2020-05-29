@@ -111,7 +111,7 @@ def select_site():
 			if selected_site in available_sites:
 				return selected_site
 			else:
-				print("Site {} does not exist. Try again ❌".format(site))
+				print("Site {} does not exist. Try again ❌".format(selected_site))
 	else:
 		print("Couldn't retrive sites list...Try again later")
 		sys.exit(1)
@@ -372,7 +372,7 @@ def frappecloud_migrator(local_site, frappecloud_site):
 	global login_url, upload_url, files_url, options_url, site_exists_url, restore_site_url, account_details_url, all_site_url
 	global session, migrator_actions, remote_site
 
-	remote_site = "staging.frappe.cloud" #frappecloud_site
+	remote_site = frappecloud_site
 
 	login_url = "https://{}/api/method/login".format(remote_site)
 	upload_url = "https://{}/api/method/press.api.site.new".format(remote_site)
