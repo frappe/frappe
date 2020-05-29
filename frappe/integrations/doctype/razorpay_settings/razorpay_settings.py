@@ -325,9 +325,7 @@ class RazorpaySettings(Document):
 			key = bytes(key, 'utf-8')
 			body = bytes(body, 'utf-8')
 
-		dig = hmac.new(key=key,
-					   msg=body,
-					   digestmod=hashlib.sha256)
+		dig = hmac.new(key=key, msg=body, digestmod=hashlib.sha256)
 
 		generated_signature = dig.hexdigest()
 
