@@ -1,13 +1,17 @@
 {%- set post = doc -%}
 <div class="blog-list-item {{ 'featured' if post.featured else '' }} row mb-5">
 	<div class="blog-list-cover">
-	{% if post.cover_image %}
 		<div class="post-cover-container">
-			<a href="/{{ post.route }}">
-				<img src="{{ post.cover_image }}" alt="{{post.title}} - Cover Image">
-			</a>
+			{% if post.cover_image %}
+				<a href="/{{ post.route }}">
+					<img src="{{ post.cover_image }}" alt="{{post.title}} - Cover Image">
+				</a>
+			{% else %}
+				<div class="default-cover">
+					<h5>{{ post.title }}</h5>
+				</div>
+			{% endif %}
 		</div>
-	{% endif %}
 	</div>
 	<div class="blog-list-body d-flex flex-column justify-content-between">
 		<div>

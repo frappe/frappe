@@ -1,18 +1,6 @@
 .blog-list-item {
 	@extend .col-12;
 
-	&:not(.featured) {
-		@extend .col-md-4;
-
-		.blog-list-body {
-			min-height: 14rem;
-		}
-
-		.post-cover-container {
-			height: 12rem;
-		}
-	}
-
 	.blog-list-cover {
 		@extend .col-12;
 	}
@@ -29,6 +17,28 @@
 		img {
 			min-height: 12rem;
 			width: 100%;
+		}
+	}
+
+	.default-cover {
+		background: $gray-300;
+		color: $gray-600;
+		display: flex;
+		flex-direction: column;
+		justify-content: end;
+		height: 100%;
+		padding: 1rem;
+	}
+
+	&:not(.featured) {
+		@extend .col-md-4;
+
+		.blog-list-body {
+			min-height: 12rem;
+		}
+
+		.post-cover-container {
+			height: 10rem;
 		}
 	}
 
