@@ -107,7 +107,7 @@ frappe.ui.form.QuickEntryForm = Class.extend({
 		});
 
 		this.register_primary_action();
-		this.render_edit_in_full_page_link();
+		!this.force && this.render_edit_in_full_page_link();
 		// ctrl+enter to save
 		this.dialog.wrapper.keydown(function(e) {
 			if((e.ctrlKey || e.metaKey) && e.which==13) {
@@ -213,8 +213,15 @@ frappe.ui.form.QuickEntryForm = Class.extend({
 				me.dialog.doc = r.message;
 				if (frappe._from_link) {
 					frappe.ui.form.update_calling_link(me.dialog.doc);
+				} else {
+					if (me.after_insert) {
+						me.after_insert(me.dialog.doc);
+					} else {
+						me.open_form_if_not_list();
+					}
 				}
-				cur_frm.reload_doc();
+
+				cur_frm && cur_frm.reload_doc();
 			}
 		});
 	},

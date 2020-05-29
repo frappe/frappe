@@ -1,0 +1,18 @@
+.web-sidebar {
+	padding-top: 2rem;
+	position: sticky;
+	top: 0;
+}
+
+.sidebar-item a {
+	display: block;
+	padding: 0.25rem 0;
+	font-size: $font-size-sm;
+	color: $gray-700;
+	text-decoration: none;
+	font-weight: 500;
+}
+
+.sidebar-item a.active {
+	color: $primary;
+}

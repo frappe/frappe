@@ -108,24 +108,13 @@ class UserProfile {
 		});
 	}
 
-	get_years_since_creation() {
-		//Get years since user account created
-		this.user_creation = frappe.boot.user.creation;
-		let creation_year = this.get_year(this.user_creation);
-		let current_year = this.get_year(frappe.datetime.now_date());
-		let years_list = [];
-		for (var year = current_year; year >= creation_year; year--) {
-			years_list.push(year);
-		}
-		return years_list;
-	}
-
-	get_year(date_str) {
-		return date_str.substring(0, date_str.indexOf('-'));
-	}
 
 	render_line_chart() {
-		this.line_chart_filters = [['Energy Point Log', 'user', '=', this.user_id, false]];
+		this.line_chart_filters = [
+			['Energy Point Log', 'user', '=', this.user_id, false],
+			['Energy Point Log', 'type', '!=', 'Review', false]
+		];
+
 		this.line_chart_config = {
 			timespan: 'Last Month',
 			time_interval: 'Daily',
@@ -201,7 +190,10 @@ class UserProfile {
 				options: ['All', 'Auto', 'Criticism', 'Appreciation', 'Revert'],
 				action: (selected_item) => {
 					if (selected_item === 'All') {
-						if (this.line_chart_filters.length > 1) this.line_chart_filters.pop();
+						this.line_chart_filters = [
+							['Energy Point Log', 'user', '=', this.user_id, false],
+							['Energy Point Log', 'type', '!=', 'Review', false]
+						];
 					} else {
 						this.line_chart_filters[1] = ['Energy Point Log', 'type', '=', selected_item, false];
 					}
@@ -246,8 +238,8 @@ class UserProfile {
 	create_heatmap_chart_filters() {
 		let filters = [
 			{
-				label: this.get_year(frappe.datetime.now_date()),
-				options: this.get_years_since_creation(),
+				label: frappe.dashboard_utils.get_year(frappe.datetime.now_date()),
+				options: frappe.dashboard_utils.get_years_since_creation(frappe.boot.user.creation),
 				action: (selected_item) => {
 					this.update_heatmap_data(frappe.datetime.obj_to_str(selected_item));
 				}

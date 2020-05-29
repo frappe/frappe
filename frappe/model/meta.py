@@ -437,39 +437,47 @@ class Meta(Document):
 
 		if not self.custom:
 			for hook in frappe.get_hooks("override_doctype_dashboards", {}).get(self.name, []):
-				data = frappe.get_attr(hook)(data=data)
+				data = frappe._dict(frappe.get_attr(hook)(data=data))
 
 		return data
 
 	def add_doctype_links(self, data):
 		'''add `links` child table in standard link dashboard format'''
+		dashboard_links = []
+
 		if hasattr(self, 'links') and self.links:
-			if not data.transactions:
-				# init groups
-				data.transactions = []
-				data.non_standard_fieldnames = {}
+			dashboard_links.extend(self.links)
 
-			for link in self.links:
-				link.added = False
-				for group in data.transactions:
-					# group found
-					if group.label == link.label:
-						if not link.link_doctype in group.items:
-							group.items.append(link.link_doctype)
-						link.added = True
+		if frappe.get_all("Custom Link", {"document_type": self.name}):
+			dashboard_links.extend(frappe.get_doc("Custom Link", self.name).links)
 
-				if not link.added:
-					# group not found, make a new group
-					data.transactions.append(dict(
-						label = link.group,
-						items = [link.link_doctype]
-					))
+		if not data.transactions:
+			# init groups
+			data.transactions = []
+			data.non_standard_fieldnames = {}
 
-				if link.link_fieldname != data.fieldname:
-					if data.fieldname:
-						data.non_standard_fieldnames[link.link_doctype] = link.link_fieldname
-					else:
-						data.fieldname = link.link_fieldname
+		for link in dashboard_links:
+			link.added = False
+			for group in data.transactions:
+				group = frappe._dict(group)
+				# group found
+				if link.group and group.label == link.group:
+					if link.link_doctype not in group.get('items'):
+						group.get('items').append(link.link_doctype)
+					link.added = True
+
+			if not link.added:
+				# group not found, make a new group
+				data.transactions.append(dict(
+					label = link.group,
+					items = [link.link_doctype]
+				))
+
+			if link.link_fieldname != data.fieldname:
+				if data.fieldname:
+					data.non_standard_fieldnames[link.link_doctype] = link.link_fieldname
+				else:
+					data.fieldname = link.link_fieldname
 
 
 	def get_row_template(self):

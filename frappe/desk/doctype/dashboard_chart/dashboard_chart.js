@@ -49,6 +49,7 @@ frappe.ui.form.on('Dashboard Chart', {
 		});
 
 		frm.set_df_property("filters_section", "hidden", 1);
+		frm.trigger('set_time_series');
 		frm.set_query('document_type', function() {
 			return {
 				filters: {
@@ -57,6 +58,7 @@ frappe.ui.form.on('Dashboard Chart', {
 			}
 		});
 		frm.trigger('update_options');
+		frm.trigger('set_heatmap_year_options');
 		if (frm.doc.report_name) {
 			frm.trigger('set_chart_report_filters');
 		}
@@ -70,7 +72,17 @@ frappe.ui.form.on('Dashboard Chart', {
 		frm.trigger("show_filters");
 	},
 
+	set_heatmap_year_options: function(frm) {
+		if (frm.doc.type == 'Heatmap') {
+			frappe.db.get_doc('System Settings').then(doc => {
+				const creation_date = doc.creation;
+				frm.set_df_property('heatmap_year', 'options', frappe.dashboard_utils.get_years_since_creation(creation_date));
+			});
+		}
+	},
+
 	chart_type: function(frm) {
+		frm.trigger('set_time_series');
 		if (frm.doc.chart_type == 'Report') {
 			frm.set_query('report_name', () => {
 				return {
@@ -80,20 +92,16 @@ frappe.ui.form.on('Dashboard Chart', {
 				}
 			});
 		} else {
-			// set timeseries based on chart type
-			if (['Count', 'Average', 'Sum'].includes(frm.doc.chart_type)) {
-				frm.set_value('timeseries', 1);
-			} else {
-				frm.set_value('timeseries', 0);
-			}
-
-			if (frm.doc.chart_type == 'Group By') {
-				frm.set_df_property('type', 'options', ['Line', 'Bar', 'Percentage', 'Pie']);
-			} else {
-				frm.set_df_property('type', 'options', ['Line', 'Bar']);
-			}
-
 			frm.set_value('document_type', '');
+		}
+	},
+
+	set_time_series: function(frm) {
+		// set timeseries based on chart type
+		if (['Count', 'Average', 'Sum'].includes(frm.doc.chart_type)) {
+			frm.set_value('timeseries', 1);
+		} else {
+			frm.set_value('timeseries', 0);
 		}
 	},
 
@@ -243,6 +251,7 @@ frappe.ui.form.on('Dashboard Chart', {
 	render_filters_table: function(frm) {
 		frm.set_df_property("filters_section", "hidden", 0);
 		let is_document_type = frm.doc.chart_type!== 'Report' && frm.doc.chart_type!=='Custom';
+		let is_dynamic_filter = f => ['Date', 'DateRange'].includes(f.fieldtype) && f.default;
 
 		let wrapper = $(frm.get_field('filters_json').wrapper).empty();
 		let table = $(`<table class="table table-bordered" style="cursor:pointer; margin:0px;">
@@ -259,6 +268,18 @@ frappe.ui.form.on('Dashboard Chart', {
 
 		let filters = JSON.parse(frm.doc.filters_json || '[]');
 		var filters_set = false;
+
+		// Set dynamic filters for reports
+		if (frm.doc.chart_type == 'Report') {
+			let set_filters = false;
+			frm.chart_filters.forEach(f => {
+				if (is_dynamic_filter(f)) {
+					filters[f.fieldname] = f.default;
+					set_filters = true;
+				}
+			});
+			set_filters && frm.set_value('filters_json', JSON.stringify(filters));
+		}
 
 		let fields;
 		if (is_document_type) {
@@ -283,16 +304,7 @@ frappe.ui.form.on('Dashboard Chart', {
 				});
 			}
 		} else if (frm.chart_filters.length) {
-			fields = frm.chart_filters.filter(f => {
-				if (f.on_change && !f.reqd) {
-					return false;
-				}
-				if (f.get_query || f.get_data) {
-					f.read_only = 1;
-				}
-
-				return f.fieldname;
-			});
+			fields = frm.chart_filters.filter(f => f.fieldname);
 
 			fields.map( f => {
 				if (filters[f.fieldname]) {
@@ -320,7 +332,7 @@ frappe.ui.form.on('Dashboard Chart', {
 
 			let dialog = new frappe.ui.Dialog({
 				title: __('Set Filters'),
-				fields: fields,
+				fields: fields.filter(f => !is_dynamic_filter(f)),
 				primary_action: function() {
 					let values = this.get_values();
 					if (values) {
@@ -353,10 +365,17 @@ frappe.ui.form.on('Dashboard Chart', {
 			}
 
 			dialog.show();
+
+			if (frm.doc.chart_type == 'Report') {
+				//Set query report object so that it can be used while fetching filter values in the report
+				frappe.query_report = new frappe.views.QueryReport({'filters': dialog.fields_list});
+				frappe.query_reports[frm.doc.report_name]
+					&& frappe.query_reports[frm.doc.report_name].onload
+						&& frappe.query_reports[frm.doc.report_name].onload(frappe.query_report);
+			}
+
 			dialog.set_values(filters);
 		});
 	},
 
 });
-
-

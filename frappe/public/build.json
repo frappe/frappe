@@ -1,7 +1,4 @@
 {
-	"css/tailwind.css": [
-		"public/tailwind.css"
-	],
 	"css/frappe-web-b4.css": [
 		"public/scss/website.scss",
 		"public/less/indicator.less"
@@ -112,7 +109,9 @@
 		"public/less/chat.less",
 		"public/less/filters.less",
 		"public/less/social.less",
-		"node_modules/frappe-charts/dist/frappe-charts.min.css"
+		"node_modules/frappe-charts/dist/frappe-charts.min.css",
+		"node_modules/driver.js/dist/driver.min.css",
+		"public/less/driver.less"
 	],
 	"css/frappe-rtl.css": [
 		"public/css/bootstrap-rtl.css",
@@ -244,12 +243,15 @@
 		"public/js/frappe/utils/energy_point_utils.js",
 		"public/js/frappe/utils/dashboard_utils.js",
 		"public/js/frappe/ui/chart.js",
+		"public/js/frappe/ui/driver.js",
 		"public/js/frappe/barcode_scanner/index.js"
 	],
 	"css/form.min.css": [
 		"public/less/form_grid.less"
 	],
 	"js/form.min.js": [
+		"public/js/frappe/form/templates/address_list.html",
+		"public/js/frappe/form/templates/contact_list.html",
 		"public/js/frappe/form/templates/print_layout.html",
 		"public/js/frappe/form/templates/users_in_sidebar.html",
 		"public/js/frappe/form/templates/set_sharing.html",

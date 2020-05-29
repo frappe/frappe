@@ -61,6 +61,7 @@ class BlogPost(WebsiteGenerator):
 		# temp fields
 		context.full_name = get_fullname(self.owner)
 		context.updated = global_date_format(self.published_on)
+		context.social_links = self.fetch_social_links_info()
 
 		if self.blogger:
 			context.blogger_info = frappe.get_doc("Blogger", self.blogger).as_dict()
@@ -89,6 +90,28 @@ class BlogPost(WebsiteGenerator):
 			{"name": "Blog", "route": "/blog"},
 			{"label": context.category.title, "route":context.category.route}]
 
+
+	def fetch_social_links_info(self):
+		url = frappe.local.site + "/" +self.route
+		social_url_map = {
+			"twitter": "https://twitter.com/intent/tweet?text=" +self.title + "&url=" + url,
+			"facebook": "https://www.facebook.com/sharer.php?u=" + url,
+			"linkedin": "https://www.linkedin.com/sharing/share-offsite/?url=" + url,
+			"email": "mailto:?subject=" + self.title + "&body=" + url,
+		}
+
+		social_link = []
+		for link in frappe.get_cached_doc("Blog Settings").social_share_settings:
+			social_media = link.social_link_type
+
+			social_link.append({
+				'icon': social_media if not social_media == 'email' else 'envelope',
+				'url': social_url_map.get(social_media),
+				'color': link.color,
+				'background': link.background_color
+			})
+		return social_link
+
 	def load_comments(self, context):
 		context.comment_list = get_comment_list(self.doctype, self.name)
 
@@ -101,7 +124,7 @@ class BlogPost(WebsiteGenerator):
 				context.comment_text = _('{0} comments').format(len(context.comment_list))
 
 	def set_read_time(self):
-		content = self.content or self.content_html
+		content = self.content or self.content_html or ''
 		if self.content_type == "Markdown":
 			content = markdown(self.content_md)
 

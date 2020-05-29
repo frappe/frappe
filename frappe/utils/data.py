@@ -22,6 +22,11 @@ DATE_FORMAT = "%Y-%m-%d"
 TIME_FORMAT = "%H:%M:%S.%f"
 DATETIME_FORMAT = DATE_FORMAT + " " + TIME_FORMAT
 
+
+def is_invalid_date_string(date_string):
+	# dateutil parser does not agree with dates like "0001-01-01" or "0000-00-00"
+	return (not date_string) or (date_string or "").startswith(("0001-01-01", "0000-00-00"))
+
 # datetime functions
 def getdate(string_date=None):
 	"""
@@ -36,9 +41,9 @@ def getdate(string_date=None):
 	elif isinstance(string_date, datetime.date):
 		return string_date
 
-	# dateutil parser does not agree with dates like 0001-01-01
-	if not string_date or string_date=="0001-01-01":
+	if is_invalid_date_string(string_date):
 		return None
+
 	return parser.parse(string_date).date()
 
 def get_datetime(datetime_str=None):
@@ -54,8 +59,7 @@ def get_datetime(datetime_str=None):
 	elif isinstance(datetime_str, datetime.date):
 		return datetime.datetime.combine(datetime_str, datetime.time())
 
-	# dateutil parser does not agree with dates like "0001-01-01" or "0000-00-00"
-	if not datetime_str or (datetime_str or "").startswith(("0001-01-01", "0000-00-00")):
+	if is_invalid_date_string(datetime_str):
 		return None
 
 	try:
@@ -186,6 +190,10 @@ def get_first_day(dt, d_years=0, d_months=0):
 def get_first_day_of_week(dt):
 	return dt - datetime.timedelta(days=dt.weekday())
 
+def get_last_day_of_week(dt):
+	dt = get_first_day_of_week(dt)
+	return dt + datetime.timedelta(days=6)
+
 def get_last_day(dt):
 	"""
 	 Returns last day of the month using:
@@ -208,6 +216,19 @@ def get_datetime_str(datetime_obj):
 	if isinstance(datetime_obj, string_types):
 		datetime_obj = get_datetime(datetime_obj)
 	return datetime_obj.strftime(DATETIME_FORMAT)
+
+def get_date_str(date_obj):
+	if isinstance(date_obj, string_types):
+		date_obj = get_datetime(date_obj)
+	return date_obj.strftime(DATE_FORMAT)
+
+def get_time_str(timedelta_obj):
+	if isinstance(timedelta_obj, string_types):
+		timedelta_obj = to_timedelta(timedelta_obj)
+
+	hours, remainder = divmod(timedelta_obj.seconds, 3600)
+	minutes, seconds = divmod(remainder, 60)
+	return "{0}:{1}:{2}".format(hours, minutes, seconds)
 
 def get_user_date_format():
 	"""Get the current user date format. The result will be cached."""
@@ -302,6 +323,34 @@ def format_datetime(datetime_string, format_string=None):
 		formatted_datetime = datetime.strftime('%Y-%m-%d %H:%M:%S')
 	return formatted_datetime
 
+def format_duration(seconds, show_days=True):
+	total_duration = {
+		'days': math.floor(seconds / (3600 * 24)),
+		'hours': math.floor(seconds % (3600 * 24) / 3600),
+		'minutes': math.floor(seconds % 3600 / 60),
+		'seconds': math.floor(seconds % 60)
+	}
+
+	if not show_days:
+		total_duration['hours'] = math.floor(seconds / 3600)
+		total_duration['days'] = 0
+
+	duration = ''
+	if total_duration:
+		if total_duration.get('days'):
+			duration += str(total_duration.get('days')) + 'd'
+		if total_duration.get('hours'):
+			duration += ' ' if len(duration) else ''
+			duration += str(total_duration.get('hours')) + 'h'
+		if total_duration.get('minutes'):
+			duration += ' ' if len(duration) else ''
+			duration += str(total_duration.get('minutes')) + 'm'
+		if total_duration.get('seconds'):
+			duration += ' ' if len(duration) else ''
+			duration += str(total_duration.get('seconds')) + 's'
+
+	return duration
+
 def get_weekdays():
 	return ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
 
@@ -331,7 +380,7 @@ def flt(s, precision=None):
 		if precision is not None:
 			num = rounded(num, precision)
 	except Exception:
-		num = 0
+		num = 0.0
 
 	return num
 

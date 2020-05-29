@@ -464,9 +464,9 @@ frappe.ui.form.Form = class FrappeForm {
 	}
 
 	run_after_load_hook() {
-		if (frappe.route_options.after_load) {
-			let route_callback = frappe.route_options.after_load;
-			delete frappe.route_options.after_load;
+		if (frappe.route_hooks.after_load) {
+			let route_callback = frappe.route_hooks.after_load;
+			delete frappe.route_hooks.after_load;
 
 			route_callback(this);
 		}
@@ -580,9 +580,9 @@ frappe.ui.form.Form = class FrappeForm {
 
 				me.script_manager.trigger("after_save");
 
-				if (frappe.route_options.after_save) {
-					let route_callback = frappe.route_options.after_save;
-					delete frappe.route_options.after_save;
+				if (frappe.route_hooks.after_save) {
+					let route_callback = frappe.route_hooks.after_save;
+					delete frappe.route_hooks.after_save;
 
 					route_callback(me);
 				}
@@ -650,7 +650,14 @@ frappe.ui.form.Form = class FrappeForm {
 							frappe.utils.play_sound("submit");
 							callback && callback();
 							me.script_manager.trigger("on_submit")
-								.then(() => resolve(me));
+								.then(() => resolve(me))
+								.then(() => {
+									if (frappe.route_hooks.after_submit) {
+										let route_callback = frappe.route_hooks.after_submit;
+										delete frappe.route_hooks.after_submit;
+										route_callback(me);
+									}
+								});
 						}
 					}, btn, () => me.handle_save_fail(btn, on_error), resolve);
 				});
@@ -1555,6 +1562,41 @@ frappe.ui.form.Form = class FrappeForm {
 			$el.removeClass('has-error');
 			$el.find('input, select, textarea').focus();
 		}, 1000);
+	}
+
+	show_tour(on_finish) {
+		if (!Array.isArray(frappe.tour[this.doctype])) {
+			return;
+		}
+
+		const driver = new frappe.Driver({
+			overlayClickNext: true,
+			keyboardControl: true,
+			nextBtnText: 'Next',
+			prevBtnText: 'Previous',
+			opacity: 0.25,
+			onNext: () => {
+				if (!driver.hasNextStep()) {
+					on_finish && on_finish();
+				}
+			}
+		});
+
+		this.layout.sections.forEach(section => section.collapse(false));
+
+		let steps = frappe.tour[this.doctype].map(step => {
+			let field = this.get_docfield(step.fieldname);
+			return {
+				element: `.frappe-control[data-fieldname='${step.fieldname}']`,
+				popover: {
+					title: step.title || field.label,
+					description: step.description
+				}
+			};
+		});
+
+		driver.defineSteps(steps);
+		driver.start();
 	}
 };
 
