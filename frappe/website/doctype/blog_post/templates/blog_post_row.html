@@ -1,12 +1,5 @@
 {%- set post = doc -%}
-
-{%- if post.featured -%}
-	{% set col_class="featured" %}
-{%- else -%}
-	{% set col_class="" %}
-{%- endif -%}
-
-<div class="blog-list-item {{ col_class }} row mb-5">
+<div class="blog-list-item {{ 'featured' if post.featured else '' }} row mb-5">
 	<div class="blog-list-cover">
 	{% if post.cover_image %}
 		<div class="post-cover-container">
