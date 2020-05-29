@@ -120,15 +120,13 @@ def get_context(context):
 		if self.is_standard:
 			self.load_standard_properties(context)
 
-		channel_disabled = self.disable_channel
-
-		if self.channel == 'Email' and not channel_disabled:
+		if self.channel == 'Email':
 			self.send_an_email(doc, context)
 
-		if self.channel == 'Slack' and not channel_disabled:
+		if self.channel == 'Slack':
 			self.send_a_slack_msg(doc, context)
 
-		if self.show_in_notifications_dropdown:
+		if self.channel == 'System Notification' or self.send_system_notification:
 			self.create_drodown_notification(doc, context)
 
 		if self.set_property_after_alert:
@@ -164,7 +162,7 @@ def get_context(context):
 			'document_name': doc.name,
 			'subject': subject,
 			'email_content': frappe.render_template(self.message, context),
-			'attachment': attachments[0]
+			'attachment': attachments and attachments[0]
 		}
 		enqueue_create_notification(users, notification_doc)
 
