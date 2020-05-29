@@ -10,7 +10,7 @@ from frappe.model import (
 )
 from frappe.utils.csvutils import build_csv_response
 from frappe.utils.xlsxutils import build_xlsx_response
-from .importer_new import INVALID_VALUES
+from frappe.core.doctype.data_import_beta.importer import INVALID_VALUES
 
 
 class Exporter:
