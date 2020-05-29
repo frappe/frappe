@@ -3,6 +3,7 @@
 
 from __future__ import unicode_literals, print_function
 import frappe
+import json
 from frappe import _, bold
 from frappe.utils import cint
 from frappe.model.naming import validate_name
@@ -56,6 +57,8 @@ def rename_doc(doctype, old, new, force=False, merge=False, ignore_permissions=F
 
 	if not merge:
 		rename_parent_and_child(doctype, old, new, meta)
+	else:
+		update_assignments(old, new, doctype)
 
 	# update link fields' values
 	link_fields = get_link_fields(doctype)
@@ -104,6 +107,27 @@ def rename_doc(doctype, old, new, force=False, merge=False, ignore_permissions=F
 
 	return new
 
+def update_assignments(old, new, doctype):
+	old_assignments = frappe.parse_json(frappe.db.get_value(doctype, old, '_assign')) or []
+	new_assignments = frappe.parse_json(frappe.db.get_value(doctype, new, '_assign')) or []
+	common_assignments = list(set(old_assignments).intersection(new_assignments))
+
+	for user in common_assignments:
+		# delete todos linked to old doc
+		todos = frappe.db.get_all('ToDo',
+			{
+				'owner': user,
+				'reference_type': doctype,
+				'reference_name': old,
+			},
+			['name', 'description']
+		)
+
+		for todo in todos:
+			frappe.delete_doc('ToDo', todo.name)
+
+	unique_assignments = list(set(old_assignments + new_assignments))
+	frappe.db.set_value(doctype, new, '_assign', json.dumps(unique_assignments))
 
 def update_user_settings(old, new, link_fields):
 	'''
