@@ -113,7 +113,7 @@ def add_website_theme(context):
 
 	if not context.disable_website_theme:
 		website_theme = get_active_theme()
-		context.theme = website_theme and website_theme.as_dict() or frappe._dict()
+		context.theme = website_theme or frappe._dict()
 
 def get_active_theme():
 	website_theme = frappe.db.get_value("Website Settings", "Website Settings", "website_theme")
@@ -135,5 +135,5 @@ def generate_theme_files_if_not_exist():
 			frappe.log_error(frappe.get_traceback(), "Theme File Generation Failed")
 
 def get_scss(doc):
-	return (doc.theme_scss or '') + '\n' + (doc.custom_scss or '')
+	return frappe.render_template('frappe/website/doctype/website_theme/website_theme_template.scss', doc.as_dict())
 

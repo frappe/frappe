@@ -23,7 +23,7 @@ if PY2:
 	reload(sys)
 	sys.setdefaultencoding("utf-8")
 
-__version__ = '12.0.0-dev'
+__version__ = '13.0.0-dev'
 __title__ = "Frappe Framework"
 
 local = Local()
@@ -48,8 +48,12 @@ class _dict(dict):
 	def copy(self):
 		return _dict(dict(self).copy())
 
-def _(msg, lang=None):
-	"""Returns translated string in current lang, if exists."""
+def _(msg, lang=None, context=None):
+	"""Returns translated string in current lang, if exists.
+		Usage:
+			_('Change')
+			_('Change', context='Coins')
+	"""
 	from frappe.translate import get_full_dict
 	from frappe.utils import strip_html_tags, is_html
 
@@ -59,7 +63,7 @@ def _(msg, lang=None):
 	if not lang:
 		lang = local.lang
 
-	non_translated_msg = msg
+	non_translated_string = msg
 
 	if is_html(msg):
 		msg = strip_html_tags(msg)
@@ -67,8 +71,16 @@ def _(msg, lang=None):
 	# msg should always be unicode
 	msg = as_unicode(msg).strip()
 
+	translated_string = ''
+	if context:
+		string_key = '{msg}:{context}'.format(msg=msg, context=context)
+		translated_string = get_full_dict(lang).get(string_key)
+
+	if not translated_string:
+		translated_string = get_full_dict(lang).get(msg)
+
 	# return lang_full_dict according to lang passed parameter
-	return get_full_dict(lang).get(msg) or non_translated_msg
+	return translated_string or non_translated_string
 
 def as_unicode(text, encoding='utf-8'):
 	'''Convert to unicode if required'''
@@ -333,7 +345,7 @@ def msgprint(msg, title=None, raise_exception=0, as_table=False, indicator=None,
 			style="margin: 0;">{}</table>'''.format(table_rows)
 
 	if flags.print_messages and out.message:
-		print("Message: " + repr(out.message).encode("utf-8"))
+		print(f"Message: {repr(out.message).encode('utf-8')}")
 
 	if title:
 		out.title = title

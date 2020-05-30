@@ -60,6 +60,7 @@ class WebPage(WebsiteGenerator):
 		self.set_metatags(context)
 		self.set_breadcrumbs(context)
 		self.set_title_and_header(context)
+		self.set_page_blocks(context)
 
 		return context
 
@@ -68,8 +69,7 @@ class WebPage(WebsiteGenerator):
 		is_jinja = context.dynamic_template or "<!-- jinja -->" in context.main_section
 		if is_jinja or ("{{" in context.main_section):
 			try:
-				context["main_section"] = render_template(context.main_section,
-					context)
+				context["main_section"] = render_template(context.main_section, context)
 				if not "<!-- static -->" in context.main_section:
 					context["no_cache"] = 1
 			except TemplateSyntaxError:
@@ -109,6 +109,13 @@ class WebPage(WebsiteGenerator):
 		# if title not set, set title from header
 		if not context.title and context.header:
 			context.title = strip_html(context.header)
+
+	def set_page_blocks(self, context):
+		if self.content_type != 'Page Builder':
+			return
+		out = get_web_blocks_html(self.page_blocks)
+		context.page_builder_html = out.html
+		context.page_builder_scripts = out.scripts
 
 	def add_hero(self, context):
 		"""Add a hero element if specified in content or hooks.
@@ -191,3 +198,30 @@ def check_broken_links():
 					cnt += 1
 
 	print("{0} links broken".format(cnt))
+
+def get_web_blocks_html(blocks):
+	'''Converts a list of blocks into Raw HTML and extracts out their scripts for deduplication'''
+
+	out = frappe._dict(html='', scripts=[])
+	extracted_scripts = []
+	for block in blocks:
+		rendered_html = frappe.render_template('templates/includes/web_block.html',
+			context={'web_block': block})
+		html, scripts = extract_script_tags(rendered_html)
+		out.html += html
+		if block.web_template not in extracted_scripts:
+			out.scripts += scripts
+			extracted_scripts.append(block.web_template)
+
+	# de-duplicate scripts
+	out.scripts = list(set(out.scripts))
+	return out
+
+def extract_script_tags(html):
+	from bs4 import BeautifulSoup
+	soup = BeautifulSoup(html, "html.parser")
+	scripts = []
+	for script in soup.find_all('script'):
+		scripts.append(script.text)
+		script.extract()
+	return str(soup), scripts

@@ -3,7 +3,7 @@
 
 from __future__ import unicode_literals
 import frappe
-from frappe.utils import cstr, has_gravatar
+from frappe.utils import cstr, has_gravatar, cint
 from frappe import _
 from frappe.model.document import Document
 from frappe.core.doctype.dynamic_link.dynamic_link import deduplicate_dynamic_links
@@ -123,7 +123,7 @@ class Contact(Document):
 def get_default_contact(doctype, name):
 	'''Returns default contact for the given doctype, name'''
 	out = frappe.db.sql('''select parent,
-			(select is_primary_contact from tabContact c where c.name = dl.parent)
+			IFNULL((select is_primary_contact from tabContact c where c.name = dl.parent), 0)
 				as is_primary_contact
 		from
 			`tabDynamic Link` dl
@@ -133,7 +133,7 @@ def get_default_contact(doctype, name):
 			dl.parenttype = "Contact"''', (doctype, name))
 
 	if out:
-		return sorted(out, key = functools.cmp_to_key(lambda x,y: cmp(y[1], x[1])))[0][0]
+		return sorted(out, key = functools.cmp_to_key(lambda x,y: cmp(cint(y[1]), cint(x[1]))))[0][0]
 	else:
 		return None
 

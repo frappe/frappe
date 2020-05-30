@@ -57,13 +57,18 @@ frappe.dashboard_utils = {
 	},
 
 	get_dashboard_settings() {
-		return frappe.model.with_doc('Dashboard Settings', frappe.session.user).then(settings => {
-			if (!settings) {
+		return frappe.db.get_list('Dashboard Settings', {
+			filters: {
+				name: frappe.session.user
+			},
+			fields: ['*']
+		}).then(settings => {
+			if (!settings.length) {
 				return this.create_dashboard_settings().then(settings => {
 					return settings;
 				});
 			} else {
-				return settings;
+				return settings[0];
 			}
 		});
 	},
@@ -71,9 +76,27 @@ frappe.dashboard_utils = {
 	create_dashboard_settings() {
 		return frappe.xcall(
 			'frappe.desk.doctype.dashboard_settings.dashboard_settings.create_dashboard_settings',
-			{user: frappe.session.user}
+			{
+				user: frappe.session.user
+			}
 		).then(settings => {
 			return settings;
 		});
+	},
+
+	get_years_since_creation(creation) {
+		//Get years since user account created
+		let creation_year = this.get_year(creation);
+		let current_year = this.get_year(frappe.datetime.now_date());
+		let years_list = [];
+		for (var year = current_year; year >= creation_year; year--) {
+			years_list.push(year);
+		}
+		return years_list;
+	},
+
+	get_year(date_str) {
+		return date_str.substring(0, date_str.indexOf('-'));
 	}
+
 };

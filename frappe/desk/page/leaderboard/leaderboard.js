@@ -41,6 +41,11 @@ class Leaderboard {
 					return field;
 				});
 			}
+
+			// For translation. Do not remove this
+			// __("This Week"), __("This Month"), __("This Quarter"), __("This Year"),
+			//	__("Last Week"), __("Last Month"), __("Last Quarter"), __("Last Year"),
+			//	__("All Time"), __("Select From Date")
 			this.timespans = [
 				"This Week", "This Month", "This Quarter", "This Year",
 				"Last Week", "Last Month", "Last Quarter", "Last Year",
@@ -107,7 +112,7 @@ class Leaderboard {
 			this.timespans.map(d => {
 				return {"label": __(d), value: d };
 			})
-		);		
+		);
 		this.create_from_date_field();
 
 		this.type_select = this.page.add_select(__("Field"),
@@ -188,28 +193,10 @@ class Leaderboard {
 
 		this.$search_box =
 			$(`<div class="leaderboard-search form-group col-md-3">
-				<input type="text" placeholder="Search" class="form-control leaderboard-search-input input-sm">
+				<input type="text" placeholder="Search" data-element="search" class="form-control leaderboard-search-input input-sm">
 			</div>`);
 
 		$(this.parent).find(".page-form").append(this.$search_box);
-	}
-
-	setup_search(list_items) {
-		let $search_input = this.$search_box.find(".leaderboard-search-input");
-
-		this.$search_box.on("keyup", ()=> {
-			let text_filter = $search_input.val().toLowerCase();
-			text_filter = text_filter.replace(/^\s+|\s+$/g, '');
-			for (var i = 0; i < list_items.length; i++) {
-				let text = list_items.eq(i).find(".list-id").text().trim().toLowerCase();
-
-				if (text.includes(text_filter)) {
-					list_items.eq(i).css("display", "");
-				} else {
-					list_items.eq(i).css("display", "none");
-				}
-			}
-		});
 	}
 
 	show_leaderboard(doctype) {
@@ -273,7 +260,7 @@ class Leaderboard {
 		if (res && res.message.length) {
 			me.message = null;
 			me.$container.find(".leaderboard-list").html(me.render_list_view(res.message));
-			me.setup_search($(me.parent).find('.list-item-container'));
+			frappe.utils.setup_search($(me.parent), ".list-item-container", ".list-id");
 		} else {
 			me.$graph_area.hide();
 			me.message = __("No items found.");

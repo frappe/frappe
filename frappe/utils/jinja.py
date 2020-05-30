@@ -11,12 +11,19 @@ def get_jenv():
 		from jinja2.sandbox import SandboxedEnvironment
 
 		# frappe will be loaded last, so app templates will get precedence
-		jenv = SandboxedEnvironment(loader = get_jloader(),
-			undefined=DebugUndefined)
+		jenv = SandboxedEnvironment(
+			loader=get_jloader(),
+			undefined=DebugUndefined
+		)
 		set_filters(jenv)
 
 		jenv.globals.update(get_safe_globals())
 		jenv.globals.update(get_jenv_customization('methods'))
+		jenv.globals.update({
+			'resolve_class': resolve_class,
+			'inspect': inspect,
+			'web_blocks': web_blocks
+		})
 
 		frappe.local.jenv = jenv
 
@@ -156,3 +163,57 @@ def get_jenv_customization(customization_type):
 		out[fn_name] = frappe.get_attr(fn_string)
 
 	return out
+
+
+def resolve_class(classes):
+	import frappe
+
+	if classes is None:
+		return ''
+
+	if isinstance(classes, frappe.string_types):
+		return classes
+
+	if isinstance(classes, (list, tuple)):
+		return ' '.join([resolve_class(c) for c in classes]).strip()
+
+	if isinstance(classes, dict):
+		return ' '.join([classname for classname in classes if classes[classname]]).strip()
+
+	return classes
+
+
+def inspect(var, render=True):
+	context = { "var": var }
+	if render:
+		html = "<pre>{{ var | pprint | e }}</pre>"
+	else:
+		html = ""
+	return get_jenv().from_string(html).render(context)
+
+def web_blocks(blocks):
+	from frappe import get_doc
+	from frappe.website.doctype.web_page.web_page import get_web_blocks_html
+
+	web_blocks = []
+	for block in blocks:
+		doc = {
+			'doctype': 'Web Page Block',
+			'web_template': block['template'],
+			'web_template_values': block['values'],
+			'add_top_padding': 1,
+			'add_bottom_padding': 1,
+			'add_container': 1,
+			'hide_block': 0,
+			'css_class': ''
+		}
+		doc.update(block)
+		web_blocks.append(get_doc(doc))
+
+	out = get_web_blocks_html(web_blocks)
+
+	html = out.html
+	for script in out.scripts:
+		html += '<script>{}</script>'.format(script)
+
+	return html

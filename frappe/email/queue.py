@@ -6,7 +6,7 @@ import frappe
 import sys
 from six.moves import html_parser as HTMLParser
 import smtplib, quopri, json
-from frappe import msgprint, _, safe_decode, safe_encode
+from frappe import msgprint, _, safe_decode, safe_encode, enqueue
 from frappe.email.smtp import SMTPServer, get_outgoing_email_account
 from frappe.email.email_body import get_email, get_formatted_html, add_attachment
 from frappe.utils.verified_command import get_signed_params, verify_request
@@ -347,8 +347,20 @@ def flush(from_test=False):
 			if not smtpserver:
 				smtpserver = SMTPServer()
 				smtpserver_dict[email.sender] = smtpserver
-
-			send_one(email.name, smtpserver, auto_commit, from_test=from_test)
+				
+			if from_test:
+				send_one(email.name, smtpserver, auto_commit)
+			else:
+				send_one_args = {
+					'email': email.name,
+					'smtpserver': smtpserver,
+					'auto_commit': auto_commit,
+				}
+				enqueue(
+					method = 'frappe.email.queue.send_one',
+					queue = 'short',
+					**send_one_args
+				)
 
 		# NOTE: removing commit here because we pass auto_commit
 		# finally:
@@ -366,7 +378,7 @@ def get_queue():
 		limit 500''', { 'now': now_datetime() }, as_dict=True)
 
 
-def send_one(email, smtpserver=None, auto_commit=True, now=False, from_test=False):
+def send_one(email, smtpserver=None, auto_commit=True, now=False):
 	'''Send Email Queue with given smtpserver'''
 
 	email = frappe.db.sql('''select
@@ -377,8 +389,13 @@ def send_one(email, smtpserver=None, auto_commit=True, now=False, from_test=Fals
 			`tabEmail Queue`
 		where
 			name=%s
-		for update''', email, as_dict=True)[0]
-
+		for update''', email, as_dict=True)
+	
+	if len(email):
+		email = email[0]
+	else:
+		return
+	
 	recipients_list = frappe.db.sql('''select name, recipient, status from
 		`tabEmail Queue Recipient` where parent=%s''', email.name, as_dict=1)
 

@@ -145,6 +145,11 @@ class DesktopPage {
 	show() {
 		frappe.desk_page = this;
 		this.page.show();
+		if (this.sections.shortcuts) {
+			this.sections.shortcuts.widgets_list.forEach(wid => {
+				wid.set_actions();
+			});
+		}
 	}
 
 	hide() {
@@ -181,7 +186,6 @@ class DesktopPage {
 
 		this.get_data().then(res => {
 			this.data = res.message;
-			// this.make_onboarding();
 			if (!this.data) {
 				delete localStorage.current_desk_page;
 				frappe.set_route("workspace");
@@ -201,8 +205,8 @@ class DesktopPage {
 		}
 
 		this.allow_customization && this.make_customization_link();
-
-		let create_shortcuts_and_cards = () => {
+		this.data.onboarding && this.data.onboarding.items.length && this.make_onboarding();
+		this.make_charts().then(() => {
 			this.make_shortcuts();
 			this.make_cards();
 
@@ -210,15 +214,7 @@ class DesktopPage {
 				// Move the widget group up to align with labels if customization is allowed
 				$('.desk-page .widget-group:visible:first').css('margin-top', '-25px');
 			}
-		};
-
-		if (!this.sections["onboarding"]) {
-			this.make_charts().then(() => {
-				create_shortcuts_and_cards();
-			});
-		} else {
-			create_shortcuts_and_cards();
-		}
+		});
 	}
 
 	get_data() {
@@ -239,6 +235,7 @@ class DesktopPage {
 		// It may be possible the chart area is hidden since it has no widgets
 		// So the margin-top: -25px would be applied to the shortcut group
 		// We need to remove this as the  chart group will be visible during customization
+		$('.widget.onboarding-widget-box').hide();
 		$('.desk-page .widget-group:visible:first').css('margin-top', '0px');
 
 		this.customize_link.hide();
@@ -274,9 +271,30 @@ class DesktopPage {
 		});
 	}
 
+	make_onboarding() {
+		this.onboarding_widget = frappe.widget.make_widget({
+			label: this.data.onboarding.label || __(`Let's Get Started`),
+			subtitle: this.data.onboarding.subtitle,
+			steps: this.data.onboarding.items,
+			success: this.data.onboarding.success,
+			docs_url: this.data.onboarding.docs_url,
+			user_can_dismiss: this.data.onboarding.user_can_dismiss,
+			widget_type: 'onboarding',
+			container: this.page,
+			options: {
+				allow_sorting: false,
+				allow_create: false,
+				allow_delete: false,
+				allow_hiding: false,
+				allow_edit: false,
+				max_widget_count: 2,
+			}
+		});
+	}
+
 	make_charts() {
 		return frappe.dashboard_utils.get_dashboard_settings().then(settings => {
-			let chart_config = settings.chart_config? JSON.parse(settings.chart_config): {};
+			let chart_config = settings.chart_config ? JSON.parse(settings.chart_config): {};
 			if (this.data.charts.items) {
 				this.data.charts.items.map(chart => {
 					chart.chart_settings = chart_config[chart.chart_name] || {};
@@ -288,6 +306,7 @@ class DesktopPage {
 				container: this.page,
 				type: "chart",
 				columns: 1,
+				hidden: Boolean(this.onboarding_widget),
 				options: {
 					allow_sorting: this.allow_customization,
 					allow_create: this.allow_customization,
@@ -303,7 +322,7 @@ class DesktopPage {
 
 	make_shortcuts() {
 		this.sections["shortcuts"] = new frappe.widget.WidgetGroup({
-			title: this.data.shortcuts.label || __(`Your Shortcuts`),
+			title: this.data.shortcuts.label || __('Your Shortcuts'),
 			container: this.page,
 			type: "shortcut",
 			columns: 3,
@@ -344,10 +363,6 @@ class DesktopPage {
 			{
 				color: "orange",
 				description: __("No Records Created")
-			},
-			{
-				color: "red",
-				description: __("Has Open Entries")
 			}
 		].map(item => {
 			return `<div class="legend-item small text-muted justify-flex-start">

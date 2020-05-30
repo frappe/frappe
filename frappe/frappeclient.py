@@ -15,6 +15,9 @@ class AuthError(Exception):
 class SiteExpiredError(Exception):
 	pass
 
+class SiteUnreachableError(Exception):
+	pass
+
 class FrappeException(Exception):
 	pass
 
@@ -53,9 +56,16 @@ class FrappeClient(object):
 
 		if r.status_code==200 and r.json().get('message') in ("Logged In", "No App"):
 			return r.json()
+		elif r.status_code == 502:
+			raise SiteUnreachableError
 		else:
-			if json.loads(r.text).get('exc_type') == "SiteExpiredError":
-				raise SiteExpiredError
+			try:
+				error = json.loads(r.text)
+				if error.get('exc_type') == "SiteExpiredError":
+					raise SiteExpiredError
+			except json.decoder.JSONDecodeError:
+				error = r.text
+				print(error)
 			raise AuthError
 
 	def setup_key_authentication_headers(self):
@@ -200,7 +210,7 @@ class FrappeClient(object):
 		res = self.session.get(self.url + "/api/resource/" + doctype + "/" + name,
 			params=params, verify=self.verify, headers=self.headers)
 
-		return frappe._dict(self.post_process(res))
+		return self.post_process(res)
 
 	def rename_doc(self, doctype, old_name, new_name):
 		'''Rename remote document

@@ -115,10 +115,10 @@ def get_website_settings():
 	})
 
 	settings = frappe.get_single("Website Settings")
-	for k in ["banner_html", "brand_html", "copyright", "twitter_share_via",
+	for k in ["banner_html", "banner_image", "brand_html", "copyright", "twitter_share_via",
 		"facebook_share", "google_plus_one", "twitter_share", "linked_in_share",
 		"disable_signup", "hide_footer_signup", "head_html", "title_prefix",
-		"navbar_search", "enable_view_tracking"]:
+		"navbar_search", "enable_view_tracking", "footer_logo", "call_to_action", "call_to_action_url"]:
 		if hasattr(settings, k):
 			context[k] = settings.get(k)
 
@@ -149,7 +149,6 @@ def get_website_settings():
 			context[key] = context[key][-1]
 
 	add_website_theme(context)
-	add_webviews(context, settings)
 
 	if not context.get("favicon"):
 		context["favicon"] = "/assets/frappe/images/favicon.png"
@@ -157,18 +156,9 @@ def get_website_settings():
 	if settings.favicon and settings.favicon != "attach_files:":
 		context["favicon"] = settings.favicon
 
+	context["hide_login"] = settings.hide_login
+
 	return context
-
-def add_webviews(context, settings):
-	# render footer as webview, not standard view
-	# see base.html for how this is handled
-	if settings.footer_type=='Web View' and settings.footer_web_view:
-		context.footer_content = frappe.get_doc('Web View',
-			settings.footer_web_view).render_content()
-
-	if settings.top_bar_type=='Web View' and settings.top_bar_web_view:
-		context.navbar_content = frappe.get_doc('Web View',
-			settings.top_bar_web_view).render_content()
 
 def get_items(parentfield):
 	all_top_items = frappe.db.sql("""\

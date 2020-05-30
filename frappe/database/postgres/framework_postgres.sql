@@ -63,6 +63,7 @@ CREATE TABLE "tabDocField" (
   "precision" varchar(255) DEFAULT NULL,
   "length" bigint NOT NULL DEFAULT 0,
   "translatable" smallint NOT NULL DEFAULT 0,
+  "hide_border" smallint NOT NULL DEFAULT 0,
   PRIMARY KEY ("name")
 ) ;
 

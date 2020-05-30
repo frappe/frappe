@@ -1,0 +1,24 @@
+<div class="split-section-with-image row">
+	{%- if not image_on_right -%}
+	<div class="col-12 col-sm-6">
+		{{ frappe.render_template('templates/includes/image_with_blur.html', {
+			"src": image,
+			"alt": title,
+			"class": "split-section-image"
+		}) }}
+	</div>
+	{%- endif -%}
+	<div class="split-section-content col-12 col-sm-6">
+		<h2>{{ title }}</h2>
+		<p>{{ content }}</p>
+	</div>
+	{%- if image_on_right -%}
+	<div class="col-12 col-sm-6">
+		{{ frappe.render_template('templates/includes/image_with_blur.html', {
+			"src": image,
+			"alt": title,
+			"class": "split-section-image"
+		}) }}
+	</div>
+	{%- endif -%}
+</div>
