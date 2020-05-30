@@ -252,7 +252,7 @@ def get_context(context):
 			# ignoring attachment as draft and cancelled documents are not allowed to print
 			status = "Draft" if doc.docstatus == 0 else "Cancelled"
 			frappe.throw(_("""Not allowed to attach {0} document,
-				please enable Allow Print For {0} in Print Settings""".format(status)),
+				please enable Allow Print For {0} in Print Settings""").format(status),
 				title=_("Error in Notification"))
 		else:
 			return [{
