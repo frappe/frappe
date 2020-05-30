@@ -103,6 +103,7 @@
 	tr > td,
 	tr > th {
 		font-size: $font-size-sm;
+		padding: 0.5rem;
 	}
 
 	th:empty {
@@ -118,12 +119,5 @@
 		padding: 0 0.25rem;
 		background: $light;
 		border-radius: 0.125rem;
-	}
-}
-
-// apply margin on first h1 if container is full width without top margin
-main:not(.my-5) .from-markdown {
-	h1:first-child {
-		margin-top: 5rem;
 	}
 }

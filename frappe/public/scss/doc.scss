@@ -1,15 +1,32 @@
 .doc-layout {
-	padding-left: 0;
-	padding-right: 0;
+	padding-left: 1.5rem;
+	padding-right: 1.5rem;
+	padding-top: 4.5rem;
 	border-bottom: 1px solid $gray-200;
 }
 
-.doc-layout .sidebar-column {
-	background-color: $light;
+.doc-layout, .doc-navbar .container-fluid {
+	max-width: 1280px;
+
+	@include media-breakpoint-up(xl) {
+		padding-left: 0;
+		padding-right: 0;
+	}
+}
+
+
+.doc-navbar {
+	background-color: white;
 }
 
 .doc-search {
 	position: relative;
+	width: 100%;
+
+	@include media-breakpoint-up(md) {
+		padding-left: 4rem;
+		padding-right: 4rem;
+	}
 
 	.search-icon {
 		position: absolute;
@@ -33,9 +50,7 @@
 
 .doc-sidebar {
 	position: sticky;
-	top: 0;
-	padding-left: 4rem;
-	padding-right: 2rem;
+	top: 4.5rem;
 	padding-bottom: 4rem;
 	height: 100vh;
 	overflow: hidden;
@@ -43,27 +58,22 @@
 	.web-sidebar {
 		height: 100%;
 		overflow: auto;
-		padding-top: 0;
+		padding-top: 3rem;
 		padding-bottom: 4rem;
 	}
 }
 
 .doc-main .page-content-wrapper {
-	padding: 2rem 4rem 4rem 4rem;
+	padding: 0 0 2rem 0;
+
+	@include media-breakpoint-up(sm) {
+		padding: 0rem 4rem 4rem 4rem;
+	}
 }
 
 .doc-sidebar-logo {
 	padding-top: 2.5rem;
 	padding-bottom: 2rem;
-}
-
-.sidebar-group {
-	padding-top: 1rem;
-	padding-bottom: 1rem;
-
-	> ul {
-		padding-left: 1rem;
-	}
 }
 
 .page-toc {
@@ -76,9 +86,10 @@
 	}
 
 	> div {
-		padding-top: 8rem;
+		padding-top: 3rem;
+		padding-bottom: 4rem;
 		position: sticky;
-		top: 0;
+		top: 4.5rem;
 	}
 
 	ul {
@@ -101,5 +112,71 @@
 		&:hover {
 			color: $gray-700;
 		}
+	}
+}
+
+// typography styles for documentation content
+.doc-content .from-markdown {
+	> :first-child {
+		margin-top: 3rem;
+	}
+
+	h1 {
+		font-size: $font-size-3xl;
+		font-weight: 500;
+	}
+
+	h1 + p {
+		font-size: $font-size-lg;
+	}
+
+	h2 {
+		font-size: $font-size-2xl;
+		font-weight: 400;
+	}
+
+	h3 {
+		font-size: $font-size-xl;
+		font-weight: 500;
+	}
+
+	h2, h3, h4, h5, h6 {
+		&::before {
+			height: 6rem;
+			margin-top: -6rem;
+			content: '';
+			display: block;
+			visibility: hidden;
+		}
+	}
+
+	h4 {
+		font-size: $font-size-lg;
+		font-weight: 500;
+	}
+
+	strong {
+		font-weight: 600;
+	}
+
+	table {
+		border-color: $gray-200;
+	}
+
+	table thead {
+		background-color: $light;
+	}
+
+	.table-bordered thead th,
+	.table-bordered thead td {
+		border-bottom-width: 1px;
+	}
+
+	.table-bordered,
+	.table-bordered th,
+	.table-bordered td {
+		border-left: none;
+		border-right: none;
+		border-color: $gray-200;
 	}
 }

@@ -1,4 +1,5 @@
 {% extends "templates/base.html" %}
+{%- from "templates/includes/navbar/navbar_items.html" import render_item -%}
 
 {% macro page_content() %}
 {%- block page_content -%}{%- endblock -%}
@@ -8,7 +9,62 @@
 <link rel="stylesheet" href="/assets/frappe/css/hljs-night-owl.css">
 {% endblock -%}
 
-{%- block navbar -%}{%- endblock -%}
+{%- block navbar -%}
+<nav class="navbar navbar-light navbar-expand-lg doc-navbar fixed-top">
+	<div class="container-fluid">
+		<div class="row no-gutters w-100">
+			<div class="col-12 col-sm-2">
+				<a class="navbar-brand" href="{{ url_prefix }}{{ home_page or "/" }}">
+					{%- if brand_html -%}
+					{{ brand_html }}
+					{%- elif banner_image -%}
+					<img src='{{ banner_image }}'>
+					{%- else -%}
+					<span>{{ (frappe.get_hooks("brand_html") or [_("Home")])[0] }}</span>
+					{%- endif -%}
+				</a>
+				<button class="navbar-toggler" type="button"
+					data-toggle="collapse"
+					data-target="#navbarSupportedContent"
+					aria-controls="navbarSupportedContent"
+					aria-expanded="false"
+					aria-label="Toggle navigation">
+					<span class="navbar-toggler-icon"></span>
+				</button>
+			</div>
+			<div class="order-1 col-12 col-sm-8 order-sm-0">
+				<div class="doc-search">
+					<div class="dropdown">
+						<div class="search-icon">
+							<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+								stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+								class="feather feather-search">
+								<circle cx="11" cy="11" r="8"></circle>
+								<line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+							</svg>
+						</div>
+						<div data-toggle="dropdown">
+							<input type="search" class="form-control" placeholder="Search" />
+						</div>
+						<div class="overflow-hidden dropdown-menu w-100">
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="col-6 col-sm-2">
+				<div class="collapse navbar-collapse" id="navbarSupportedContent">
+					<ul class="ml-auto navbar-nav">
+						{%- set items = frappe.get_hooks('doc_layout')['navbar_items'] -%}
+						{%- for item in items -%}
+						{{ render_item(item, parent=True) }}
+						{%- endfor -%}
+					</ul>
+				</div>
+			</div>
+		</div>
+	</div>
+</nav>
+{%- endblock -%}
 
 {% block content %}
 
@@ -16,22 +72,7 @@
 <div class="page-content-wrapper">
 	{% block page_container %}
 	<main>
-		<div class="page_content page-content">
-			<div class="doc-search dropdown">
-				<div class="search-icon">
-					<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
-						stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-						class="feather feather-search">
-						<circle cx="11" cy="11" r="8"></circle>
-						<line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-					</svg>
-				</div>
-				<div data-toggle="dropdown">
-					<input type="search" class="form-control" placeholder="Search" />
-				</div>
-				<div class="overflow-hidden dropdown-menu w-100">
-				</div>
-			</div>
+		<div class="page_content page-content doc-content">
 			{{ page_content() }}
 		</div>
 	</main>
@@ -48,23 +89,18 @@ id="page-{{ name or route | e }}" data-path="{{ pathname | e }}"
 <div class="container-fluid doc-layout">
 	<div class="row no-gutters" {{ container_attributes() }}>
 		{%- if show_sidebar -%}
-		<div class="sidebar-column col-sm-3">
+		<div class="sidebar-column col-sm-2 d-none d-lg-block">
 			<aside class="doc-sidebar">
-				<div class="doc-sidebar-logo">
-					<a href="/">
-						<img src="/files/Frappe Framework No Padding.svg" style="height: 16px; width: auto;">
-					</a>
-				</div>
 				{% block page_sidebar %}
 				{% include "templates/includes/web_sidebar.html" %}
 				{% endblock %}
 			</aside>
 		</div>
 		{%- endif -%}
-		<div class="main-column doc-main col-sm-6">
+		<div class="main-column doc-main col-12 col-lg-10 col-xl-8">
 			{{ main_content() }}
 		</div>
-		<div class="page-toc col-sm-3">
+		<div class="page-toc col-sm-2 d-none d-xl-block">
 			{%- if page_toc -%}
 			<div>
 				<h5>On this page</h5>

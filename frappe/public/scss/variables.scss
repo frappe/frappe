@@ -50,3 +50,6 @@ $dropdown-item-padding-x: 0.5rem !default;
 
 @import '~bootstrap/scss/functions';
 @import '~bootstrap/scss/variables';
+@import "~bootstrap/scss/mixins";
+
+$code-color: $purple;
