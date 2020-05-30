@@ -13,6 +13,7 @@ from frappe.utils.global_search import get_routes_to_index
 
 
 def build_index_for_all_routes():
+	print('Building search index for all web routes...')
 	routes = get_routes_to_index()
 	documents = [get_document_to_index(route) for route in routes]
 	build_index("web_routes", documents)
@@ -44,7 +45,6 @@ def get_document_to_index(route):
 
 
 def build_index(index_name, documents):
-	print("Building index " + index_name)
 	schema = Schema(title=TEXT(stored=True), path=ID(stored=True), content=TEXT(stored=True))
 
 	index_dir = os.path.join(frappe.utils.get_bench_path(), "indexes", index_name)
@@ -60,7 +60,6 @@ def build_index(index_name, documents):
 			)
 
 	writer.commit()
-	print("Done.")
 
 
 def search(index_name, text):
