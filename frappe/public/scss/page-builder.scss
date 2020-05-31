@@ -156,12 +156,17 @@
 }
 
 .nav-tabs {
+	flex-wrap: nowrap;
+	overflow-x: auto;
+	overflow-y: hidden;
+
 	.nav-link {
 		color: $gray-700;
 		font-weight: 500;
 		border: none;
 		padding: 1rem 0.5rem;
 		margin-right: 2rem;
+		white-space: nowrap;
 
 		&:hover {
 			color: $primary;
@@ -171,7 +176,7 @@
 	.nav-link.active,
 	.nav-item.show .nav-link {
 		color: darken($primary, 5%);
-		background-color: #fff;
+		background-color: transparent;
 		border-bottom: 2px solid $primary;
 	}
 }
