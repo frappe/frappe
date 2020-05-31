@@ -101,12 +101,10 @@ id="page-{{ name or route | e }}" data-path="{{ pathname | e }}"
 			{{ main_content() }}
 		</div>
 		<div class="page-toc col-sm-2 d-none d-xl-block">
-			{%- if page_toc -%}
 			<div>
 				<h5>On this page</h5>
 				{{ page_toc_html }}
 			</div>
-			{%- endif -%}
 		</div>
 	</div>
 </div>
