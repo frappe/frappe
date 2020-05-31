@@ -6,14 +6,15 @@ import frappe
 import os
 from whoosh.index import create_in, open_dir
 from whoosh.fields import TEXT, ID, Schema
+from whoosh.qparser import MultifieldParser, FieldsPlugin, WildcardPlugin
 from bs4 import BeautifulSoup
 from frappe.website.render import render_page
-from frappe.utils import set_request
+from frappe.utils import set_request, cint
 from frappe.utils.global_search import get_routes_to_index
 
 
 def build_index_for_all_routes():
-	print('Building search index for all web routes...')
+	print("Building search index for all web routes...")
 	routes = get_routes_to_index()
 	documents = [get_document_to_index(route) for route in routes]
 	build_index("web_routes", documents)
@@ -43,9 +44,10 @@ def get_document_to_index(route):
 		pass
 
 
-
 def build_index(index_name, documents):
-	schema = Schema(title=TEXT(stored=True), path=ID(stored=True), content=TEXT(stored=True))
+	schema = Schema(
+		title=TEXT(stored=True), path=ID(stored=True), content=TEXT(stored=True)
+	)
 
 	index_dir = os.path.join(frappe.utils.get_bench_path(), "indexes", index_name)
 	frappe.create_folder(index_dir)
@@ -62,22 +64,35 @@ def build_index(index_name, documents):
 	writer.commit()
 
 
-def search(index_name, text):
-	from whoosh.qparser import QueryParser
-
+def search(index_name, text, limit=20):
 	index_dir = os.path.join(frappe.utils.get_bench_path(), "indexes", index_name)
 	ix = open_dir(index_dir)
 
 	results = None
 	out = []
 	with ix.searcher() as searcher:
-		query = QueryParser("content", ix.schema).parse(text)
-		results = searcher.search(query)
+		parser = MultifieldParser(["title", "content"], ix.schema)
+		parser.remove_plugin_class(FieldsPlugin)
+		parser.remove_plugin_class(WildcardPlugin)
+		query = parser.parse(text)
+
+		results = searcher.search(query, limit=limit)
 		for r in results:
-			out.append(frappe._dict(title=r['title'], path=r['path'], highlights=r.highlights('content')))
+			title_highlights = r.highlights("title")
+			content_highlights = r.highlights("content")
+			out.append(
+				frappe._dict(
+					title=r["title"],
+					path=r["path"],
+					title_highlights=title_highlights,
+					content_highlights=content_highlights,
+				)
+			)
 
 	return out
 
+
 @frappe.whitelist(allow_guest=True)
-def web_search(query):
-	return search("web_routes", query)
+def web_search(query, limit=20):
+	limit = cint(limit)
+	return search("web_routes", query, limit)
