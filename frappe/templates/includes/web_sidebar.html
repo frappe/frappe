@@ -67,5 +67,8 @@
 				$(this).removeClass(active_class).addClass(non_active_class);
 			}
 		});
+
+		// scroll the active sidebar item into view
+		$('.sidebar-item a.active').get(0).scrollIntoView({behavior: "auto", block: "center", inline: "nearest"});
 	});
 </script>
