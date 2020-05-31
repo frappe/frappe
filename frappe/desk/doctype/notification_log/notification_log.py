@@ -61,10 +61,6 @@ def enqueue_create_notification(users, doc):
 def make_notification_logs(doc, users):
 	from frappe.social.doctype.energy_point_settings.energy_point_settings import is_energy_point_enabled
 
-	attachment = None
-	if doc.attachment:
-		attachment = doc.pop('attachment')
-
 	for user in users:
 		if frappe.db.exists('User', user):
 			if is_notifications_enabled(user):
@@ -76,8 +72,6 @@ def make_notification_logs(doc, users):
 				_doc.for_user = user
 				_doc.subject = _doc.subject.replace('<div>', '').replace('</div>', '')
 				if _doc.for_user != _doc.from_user or doc.type == 'Energy Point' or doc.type == 'Alert':
-					if attachment:
-						_doc.attached_file = json.dumps(attachment)
 					_doc.insert(ignore_permissions=True)
 
 def send_notification_email(doc):

@@ -127,7 +127,7 @@ def get_context(context):
 			self.send_a_slack_msg(doc, context)
 
 		if self.channel == 'System Notification' or self.send_system_notification:
-			self.create_drodown_notification(doc, context)
+			self.create_system_notification(doc, context)
 
 		if self.set_property_after_alert:
 			allow_update = True
@@ -147,7 +147,7 @@ def get_context(context):
 			except Exception:
 				frappe.log_error(title='Document update failed', message=frappe.get_traceback())
 
-	def create_drodown_notification(self, doc, context):
+	def create_system_notification(self, doc, context):
 		subject = self.subject
 		if "{" in subject:
 			subject = frappe.render_template(self.subject, context)
@@ -162,7 +162,7 @@ def get_context(context):
 			'document_name': doc.name,
 			'subject': subject,
 			'email_content': frappe.render_template(self.message, context),
-			'attachment': attachments and attachments[0]
+			'attached_file': attachments and json.dumps(attachments[0])
 		}
 		enqueue_create_notification(users, notification_doc)
 
