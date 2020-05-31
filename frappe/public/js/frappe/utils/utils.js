@@ -867,6 +867,12 @@ Object.assign(frappe.utils, {
 			show_seconds: docfield.show_seconds
 		};
 		return duration_options;
+	},
+
+	icon(icon, size="sm") {
+		return `<svg class="icon icon-${size}">
+			<use xlink:href="#${icon}"></use>
+		</svg>`;
 	}
 });
 

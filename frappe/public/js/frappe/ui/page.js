@@ -118,6 +118,8 @@ frappe.ui.Page = Class.extend({
 		this.actions = this.page_actions.find(".actions-btn-group .dropdown-menu");
 		this.actions_btn_group = this.page_actions.find(".actions-btn-group");
 
+		this.custom_actions = this.page_actions.find(".custom-actions");
+
 		this.page_form = $('<div class="page-form row hide"></div>').prependTo(this.main);
 		this.inner_toolbar = $('<div class="form-inner-toolbar hide"></div>').prependTo(this.main);
 		this.icon_group = this.page_actions.find(".page-icon-group");
@@ -142,12 +144,10 @@ frappe.ui.Page = Class.extend({
 		this.clear_indicator().removeClass("hide").html(`<span>${label}</span>`).addClass(color);
 	},
 
-	add_action_icon: function(icon, click, css_class=null) {
+	add_action_icon: function(icon, click, css_class='') {
 		return $(`
 			<button class="text-muted btn btn-default ${css_class}">
-				<svg class="icon icon-sm">
-					<use xlink:href="#${icon}"></use>
-				</svg>
+				${frappe.utils.icon(icon)}
 			</button>
 		`).appendTo(this.icon_group.removeClass("hide")).click(click);
 	},
@@ -569,8 +569,12 @@ frappe.ui.Page = Class.extend({
 		//
 	},
 
-	add_button: function(label, click, icon, is_title) {
-		//
+	add_button: function(label, click, icon) {
+		let button = $(`<button class="btn btn-secondary btn-sm">${label}</button>`)
+		button.appendTo(this.custom_actions)
+		button.onclick = click;
+
+		return button
 	},
 
 	add_dropdown_button: function(parent, label, click, icon) {
