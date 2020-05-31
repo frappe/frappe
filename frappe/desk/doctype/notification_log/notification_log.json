@@ -117,9 +117,10 @@
    "show_seconds": 1
   }
  ],
+ "hide_toolbar": 1,
  "in_create": 1,
  "links": [],
- "modified": "2020-05-31 22:30:22.330366",
+ "modified": "2020-05-31 22:31:12.886950",
  "modified_by": "umair@erpnext.com",
  "module": "Desk",
  "name": "Notification Log",
