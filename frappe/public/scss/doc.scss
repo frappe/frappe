@@ -1,11 +1,26 @@
+$navbar-height: 7.625rem;
+$navbar-height-lg: 4.5rem;
+
 .doc-layout {
 	padding-left: 1.5rem;
 	padding-right: 1.5rem;
-	padding-top: 4.5rem;
-	border-bottom: 1px solid $gray-200;
+	padding-top: $navbar-height;
+	// border-bottom: 1px solid $gray-200;
+
+	@include media-breakpoint-up(lg) {
+		padding-top: $navbar-height-lg;
+	}
 }
 
-.doc-layout, .doc-navbar .container-fluid {
+.sidebar-column {
+	display: none;
+
+	@include media-breakpoint-up(lg) {
+		display: block;
+	}
+}
+
+.doc-container {
 	max-width: 1280px;
 
 	@include media-breakpoint-up(xl) {
@@ -17,13 +32,54 @@
 
 .doc-navbar {
 	background-color: white;
+
+	.navbar-toggler {
+		margin-left: 0.75rem;
+	}
+
+	.web-sidebar {
+		display: block;
+		border-top: 1px solid $gray-200;
+
+		@include media-breakpoint-up(lg) {
+			display: none;
+		}
+	}
+
+	.navbar-collapse {
+		height: calc(100vh - #{$navbar-height-lg});
+		overflow: auto;
+
+		@include media-breakpoint-up(lg) {
+			height: auto;
+			overflow: initial;
+		}
+	}
+
+	.navbar-nav {
+		margin-top: 0.75rem;
+		margin-bottom: 1.5rem;
+
+		@include media-breakpoint-up(lg) {
+			margin: 0;
+		}
+	}
+}
+
+.doc-search-container {
+	display: flex;
+	margin-top: 0.75rem;
+
+	@include media-breakpoint-up(lg) {
+		margin-top: 0;
+	}
 }
 
 .doc-search {
 	position: relative;
 	width: 100%;
 
-	@include media-breakpoint-up(md) {
+	@include media-breakpoint-up(lg) {
 		padding-left: 4rem;
 		padding-right: 4rem;
 	}
@@ -50,7 +106,7 @@
 
 .doc-sidebar {
 	position: sticky;
-	top: 4.5rem;
+	top: $navbar-height;
 	padding-bottom: 4rem;
 	height: 100vh;
 	overflow: hidden;
@@ -61,12 +117,16 @@
 		padding-top: 3rem;
 		padding-bottom: 4rem;
 	}
+
+	@include media-breakpoint-up(lg) {
+		top: $navbar-height-lg;
+	}
 }
 
 .doc-main .page-content-wrapper {
 	padding: 0 0 2rem 0;
 
-	@include media-breakpoint-up(sm) {
+	@include media-breakpoint-up(lg) {
 		padding: 0rem 4rem 4rem 4rem;
 	}
 }
@@ -89,7 +149,11 @@
 		padding-top: 3rem;
 		padding-bottom: 4rem;
 		position: sticky;
-		top: 4.5rem;
+		top: $navbar-height;
+
+		@include media-breakpoint-up(lg) {
+			top: $navbar-height-lg;
+		}
 	}
 
 	ul {
