@@ -650,7 +650,14 @@ frappe.ui.form.Form = class FrappeForm {
 							frappe.utils.play_sound("submit");
 							callback && callback();
 							me.script_manager.trigger("on_submit")
-								.then(() => resolve(me));
+								.then(() => resolve(me))
+								.then(() => {
+									if (frappe.route_hooks.after_submit) {
+										let route_callback = frappe.route_hooks.after_submit;
+										delete frappe.route_hooks.after_submit;
+										route_callback(me);
+									}
+								});
 						}
 					}, btn, () => me.handle_save_fail(btn, on_error), resolve);
 				});
@@ -1589,7 +1596,7 @@ frappe.ui.form.Form = class FrappeForm {
 		let steps = frappe.tour[this.doctype].map(step => {
 			let field = this.get_docfield(step.fieldname);
 			return {
-				element: `.frappe-control[title='${step.fieldname}']`,
+				element: `.frappe-control[data-fieldname='${step.fieldname}']`,
 				popover: {
 					title: step.title || field.label,
 					description: step.description

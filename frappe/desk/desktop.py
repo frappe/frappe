@@ -159,7 +159,10 @@ class Workspace:
 			}
 
 	def get_cards(self):
-		cards = self.doc.cards + get_custom_reports_and_doctypes(self.doc.module)
+		cards = self.doc.cards
+		if not self.doc.hide_custom:
+			cards = cards + get_custom_reports_and_doctypes(self.doc.module)
+
 		if len(self.extended_cards):
 			cards = cards + self.extended_cards
 		default_country = frappe.db.get_default("country")
@@ -274,6 +277,8 @@ class Workspace:
 		for doc in self.onboarding_doc.get_steps():
 			step = doc.as_dict().copy()
 			step.label = _(doc.title)
+			if step.action == "Create Entry":
+				step.is_submittable = frappe.db.get_value("DocType", step.reference_document, 'is_submittable', cache=True)
 			steps.append(step)
 
 		return steps

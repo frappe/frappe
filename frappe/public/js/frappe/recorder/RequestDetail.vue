@@ -79,7 +79,7 @@
 														<span class="octicon octicon-triangle-down"></span></a>
 													</div>
 												</div>
-												<div class="form-in-grid" v-if="showing == call.index">
+												<div class="recorder-form-in-grid" v-if="showing == call.index">
 													<div class="grid-form-heading" @click="showing = null">
 														<div class="toolbar grid-header-toolbar">
 															<span class="panel-title">SQL Query #<span class="grid-form-row-index">{{ call.index }}</span></span>
@@ -216,8 +216,8 @@ export default {
 				{label: "Exact Copies", slug: "exact_copies", sortable: true},
 			],
 			query: {
-				sort: "index",
-				order: "asc",
+				sort: "duration",
+				order: "desc",
 				pagination: {
 					limit: 20,
 					page: 1,
