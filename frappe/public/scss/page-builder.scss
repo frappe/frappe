@@ -271,16 +271,24 @@
 	margin-right: auto;
 	margin-top: 2rem;
 	max-width: 52rem;
-	font-size: $font-size-2xl;
+	font-size: $font-size-lg;
 	font-weight: 500;
+
+	@include media-breakpoint-up(lg) {
+		font-size: $font-size-2xl;
+	}
 }
 
 .testimonial-by {
-	font-size: $font-size-lg;
+	font-size: $font-size-base;
 	margin-top: 2rem;
 
 	&:before {
 		content: '—'
+	}
+
+	@include media-breakpoint-up(lg) {
+		font-size: $font-size-lg;
 	}
 }
 
