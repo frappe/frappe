@@ -281,7 +281,6 @@ h5.modal-title {
 }
 
 .btn-primary-light {
-	$primary-light: lighten($primary, 42%);
 	@include button-variant(
 		$background: $primary-light,
 		$border: $primary-light,

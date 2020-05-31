@@ -188,7 +188,7 @@
 .section-cta {
 	padding: 3rem 2rem;
 	text-align: center;
-	background-color: lighten($primary, 42%);
+	background-color: $primary-light;
 	border-radius: 0.75rem;
 
 	@include media-breakpoint-up(sm) {

@@ -21,7 +21,7 @@
 
 .sidebar-item a.active {
 	color: $primary;
-	background-color: lighten($primary, 42%);
+	background-color: $primary-light;
 }
 
 .sidebar-item-icon {

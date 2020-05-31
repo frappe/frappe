@@ -8,7 +8,9 @@ $gray-600: #8d99a6 !default;
 $gray-700: #495057 !default;
 $gray-800: #36414c !default;
 $gray-900: #2e3338 !default;
+
 $primary: #2490ef !default;
+$primary-light: lighten($primary, 42%);
 
 $black: #000 !default;
 
