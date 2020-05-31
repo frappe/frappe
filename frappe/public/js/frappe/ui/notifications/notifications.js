@@ -333,9 +333,11 @@ frappe.ui.Notifications = class Notifications {
 		return item_html;
 	}
 
-	get_item_link(field) {
-		const link_doctype = field.type == 'Alert'? 'Notification Log': field.document_type;
-		const link_docname = field.type == 'Alert'? field.name: field.document_name;
+	get_item_link(notification_doc) {
+		const link_doctype =
+			notification_doc.type == 'Alert' ? 'Notification Log': notification_doc.document_type;
+		const link_docname =
+			notification_doc.type == 'Alert' ? notification_doc.name: notification_doc.document_name;
 		return frappe.utils.get_form_link(
 			link_doctype,
 			link_docname
