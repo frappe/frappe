@@ -29,6 +29,7 @@
   "default_incoming",
   "email_sync_option",
   "initial_sync_count",
+  "create_contact",
   "section_break_12",
   "enable_automatic_linking",
   "section_break_13",
@@ -114,9 +115,9 @@
    "depends_on": "eval:!doc.service",
    "fieldname": "domain",
    "fieldtype": "Link",
-   "label": "Domain",
    "in_list_view": 1,
    "in_standard_filter": 1,
+   "label": "Domain",
    "options": "Email Domain"
   },
   {
@@ -408,11 +409,17 @@
    "fieldname": "use_ssl_for_outgoing",
    "fieldtype": "Check",
    "label": "Use SSL for Outgoing"
+  },
+  {
+   "default": "1",
+   "fieldname": "create_contact",
+   "fieldtype": "Check",
+   "label": "Create Contacts from Incoming Emails"
   }
  ],
  "icon": "fa fa-inbox",
  "links": [],
- "modified": "2020-04-06 19:20:50.491146",
+ "modified": "2020-05-11 15:18:43.931499",
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Email Account",
@@ -427,8 +434,8 @@
    "write": 1
   },
   {
-    "read": 1,
-    "role": "Inbox User"
+   "read": 1,
+   "role": "Inbox User"
   }
  ],
  "sort_field": "modified",

@@ -202,6 +202,8 @@ class TestCommunication(unittest.TestCase):
 		self.assertIn(("Note", note.name), doc_links)
 
 def create_email_account():
+	frappe.delete_doc_if_exists("Email Account", "_Test Comm Account 1")
+
 	frappe.flags.mute_emails = False
 	frappe.flags.sent_mail = None
 
