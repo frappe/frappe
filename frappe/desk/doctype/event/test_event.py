@@ -93,10 +93,10 @@ class TestEvent(unittest.TestCase):
 
 		self.assertEqual(set(json.loads(ev._assign)), set(["test@example.com", self.test_user]))
 
-		# close an assignment
+		# Remove an assignment
 		todo = frappe.get_doc("ToDo", {"reference_type": ev.doctype, "reference_name": ev.name,
 			"owner": self.test_user})
-		todo.status = "Closed"
+		todo.status = "Cancelled"
 		todo.save()
 
 		ev = frappe.get_doc("Event", ev.name)
