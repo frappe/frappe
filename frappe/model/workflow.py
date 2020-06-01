@@ -299,6 +299,7 @@ def set_workflow_state_on_action(doc, workflow_name, action):
 			return
 
 	action_map = {
+		'update_after_submit': '1',
 		'submit': '1',
 		'cancel': '2'
 	}
