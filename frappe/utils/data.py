@@ -174,7 +174,7 @@ def nowtime():
 	"""return current time in hh:mm"""
 	return now_datetime().strftime(TIME_FORMAT)
 
-def get_first_day(dt, d_years=0, d_months=0):
+def get_first_day(dt, d_years=0, d_months=0, as_str=False):
 	"""
 	 Returns the first day of the month for the date specified by date object
 	 Also adds `d_years` and `d_months` if specified
@@ -185,10 +185,23 @@ def get_first_day(dt, d_years=0, d_months=0):
 	overflow_years, month = divmod(dt.month + d_months - 1, 12)
 	year = dt.year + d_years + overflow_years
 
-	return datetime.date(year, month + 1, 1)
+	return datetime.date(year, month + 1, 1).strftime(DATE_FORMAT) if as_str else datetime.date(year, month + 1, 1)
 
-def get_first_day_of_week(dt):
-	return dt - datetime.timedelta(days=dt.weekday())
+def get_quarter_start(dt, as_str=False):
+	date = getdate(dt)
+	quarter = (date.month - 1) // 3 + 1
+	first_date_of_quarter = datetime.date(date.year, ((quarter - 1) * 3) + 1, 1)
+	return first_date_of_quarter.strftime(DATE_FORMAT) if as_str else first_date_of_quarter
+
+def get_first_day_of_week(dt, as_str=False):
+	dt = getdate(dt)
+	date = dt - datetime.timedelta(days=dt.weekday())
+	return date.strftime(DATE_FORMAT) if as_str else date
+
+def get_year_start(dt, as_str=False):
+	dt = getdate(dt)
+	date = datetime.date(dt.year, 1, 1)
+	return date.strftime(DATE_FORMAT) if as_str else date
 
 def get_last_day_of_week(dt):
 	dt = get_first_day_of_week(dt)
@@ -359,6 +372,27 @@ def get_weekday(datetime=None):
 		datetime = now_datetime()
 	weekdays = get_weekdays()
 	return weekdays[datetime.weekday()]
+
+def get_timespan_date_range(timespan):
+	date_range_map = {
+		"last week": [add_to_date(nowdate(), days=-7), nowdate()],
+		"last month": [add_to_date(nowdate(), months=-1), nowdate()],
+		"last quarter": [add_to_date(nowdate(), months=-3), nowdate()],
+		"last 6 months": [add_to_date(nowdate(), months=-6), nowdate()],
+		"last year": [add_to_date(nowdate(), years=-1), nowdate()],
+		"today": [nowdate(), nowdate()],
+		"this week": [get_first_day_of_week(nowdate(), as_str=True), nowdate()],
+		"this month": [get_first_day(nowdate(), as_str=True), nowdate()],
+		"this quarter": [get_quarter_start(nowdate(), as_str=True), nowdate()],
+		"this year": [get_year_start(nowdate(), as_str=True), nowdate()],
+		"next week": [nowdate(), add_to_date(nowdate(), days=7)],
+		"next month": [nowdate(), add_to_date(nowdate(), months=1)],
+		"next quarter": [nowdate(), add_to_date(nowdate(), months=3)],
+		"next 6 months": [nowdate(), add_to_date(nowdate(), months=6)],
+		"next year": [nowdate(), add_to_date(nowdate(), years=1)],
+	}
+
+	return date_range_map.get(timespan)
 
 def global_date_format(date, format="long"):
 	"""returns localized date in the form of January 1, 2012"""
@@ -998,7 +1032,7 @@ def compare(val1, condition, val2):
 
 	return ret
 
-def get_filter(doctype, f):
+def get_filter(doctype, f, filters_config=None):
 	"""Returns a _dict like
 
 		{
@@ -1033,7 +1067,15 @@ def get_filter(doctype, f):
 		f.operator = "="
 
 	valid_operators = ("=", "!=", ">", "<", ">=", "<=", "like", "not like", "in", "not in", "is",
-		"between", "descendants of", "ancestors of", "not descendants of", "not ancestors of", "previous", "next")
+		"between", "descendants of", "ancestors of", "not descendants of", "not ancestors of",
+		"timespan", "previous", "next")
+
+	if filters_config:
+		additional_operators = []
+		for key in filters_config:
+			additional_operators.append(key.lower())
+		valid_operators = tuple(set(valid_operators + tuple(additional_operators)))
+
 	if f.operator.lower() not in valid_operators:
 		frappe.throw(frappe._("Operator must be one of {0}").format(", ".join(valid_operators)))
 
