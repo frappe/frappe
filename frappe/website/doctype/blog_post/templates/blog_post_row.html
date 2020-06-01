@@ -2,15 +2,15 @@
 <div class="blog-list-item {{ 'featured' if post.featured else '' }} row mb-5">
 	<div class="blog-list-cover">
 		<div class="post-cover-container">
-			{% if post.cover_image %}
-				<a href="/{{ post.route }}">
+			<a href="/{{ post.route }}">
+				{% if post.cover_image %}
 					<img src="{{ post.cover_image }}" alt="{{post.title}} - Cover Image">
-				</a>
-			{% else %}
-				<div class="default-cover">
-					<h5>{{ post.title }}</h5>
-				</div>
-			{% endif %}
+				{% else %}
+					<div class="default-cover">
+						<h5>{{ post.title }}</h5>
+					</div>
+				{% endif %}
+			</a>
 		</div>
 	</div>
 	<div class="blog-list-body d-flex flex-column justify-content-between">

@@ -15,13 +15,13 @@
 		border-radius: $border-radius;
 
 		img {
-			min-height: 12rem;
+			min-height: 10rem;
 			width: 100%;
 		}
 	}
 
 	.default-cover {
-		background: $gray-300;
+		background: $gray-200;
 		color: $gray-600;
 		display: flex;
 		flex-direction: column;
@@ -34,7 +34,7 @@
 		@extend .col-md-4;
 
 		.blog-list-body {
-			min-height: 12rem;
+			min-height: 14rem;
 		}
 
 		.post-cover-container {
