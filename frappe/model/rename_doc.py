@@ -3,7 +3,6 @@
 
 from __future__ import unicode_literals, print_function
 import frappe
-import json
 from frappe import _, bold
 from frappe.utils import cint
 from frappe.model.naming import validate_name
