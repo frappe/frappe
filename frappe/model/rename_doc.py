@@ -126,7 +126,7 @@ def update_assignments(old, new, doctype):
 			frappe.delete_doc('ToDo', todo.name)
 
 	unique_assignments = list(set(old_assignments + new_assignments))
-	frappe.db.set_value(doctype, new, '_assign', json.dumps(unique_assignments))
+	frappe.db.set_value(doctype, new, '_assign', frappe.as_json(unique_assignments), indent=0)
 
 def update_user_settings(old, new, link_fields):
 	'''
