@@ -13,11 +13,9 @@
   "cta_section",
   "title",
   "subtitle",
-  "cta_label",
-  "cta_url",
   "column_break_11",
-  "cta_description",
-  "show_confetti"
+  "cta_label",
+  "cta_url"
  ],
  "fields": [
   {
@@ -80,24 +78,13 @@
   {
    "fieldname": "column_break_11",
    "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "cta_description",
-   "fieldtype": "Data",
-   "label": "CTA Description"
-  },
-  {
-   "default": "0",
-   "fieldname": "show_confetti",
-   "fieldtype": "Check",
-   "label": "Show Confetti"
   }
  ],
  "icon": "fa fa-cog",
  "idx": 1,
  "issingle": 1,
  "links": [],
- "modified": "2020-06-01 13:41:44.150987",
+ "modified": "2020-06-01 15:57:21.564652",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Blog Settings",

@@ -112,9 +112,7 @@ class BlogPost(WebsiteGenerator):
 				"title": blog_settings.title,
 				"subtitle": blog_settings.subtitle,
 				"cta_label": blog_settings.cta_label,
-				"cta_url": blog_settings.cta_url,
-				"cta_description": blog_settings.cta_description,
-				"show_confetti": blog_settings.show_confetti
+				"cta_url": blog_settings.cta_url
 			}
 
 		return {}
