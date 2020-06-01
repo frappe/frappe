@@ -11,8 +11,8 @@
 }
 
 .blog-container {
-	max-width: 840px;
 	font-size: 16px;
+	max-width: 800px;
 	margin: 0px auto;
 	font-family: Inter, sans-serif;
 
@@ -22,9 +22,14 @@
 	}
 
 	.blog-content {
+		line-height: 1.8;
+
 		p {
-			line-height: 1.8;
 			margin-bottom: 1.2rem;
+		}
+
+		ul {
+			margin-top: 1rem;
 		}
 
 		h1 {
@@ -69,10 +74,15 @@
 		}
 
 		blockquote {
-			font-weight: 300;
-			padding: 1.2rem 1.8rem;
-			border-left: 8px solid $gray-300;
-			background: $gray-100;
+			margin: 2rem auto;
+			width: 90%;
+			padding-top: 2rem;
+			padding-bottom: 2rem;
+			border-top: 1px solid $gray-200;
+			border-bottom: 1px solid $gray-200;
+			text-align: center;
+			font-size: 1.2rem;
+			font-weight: 500;
 		}
 	}
 }
