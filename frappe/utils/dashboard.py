@@ -89,10 +89,14 @@ def sync_dashboards(app=None):
 			config = get_config(app_name, module_name)
 			if config:
 				frappe.flags.in_import = True
-				make_records(config.charts, "Dashboard Chart")
-				make_records(config.number_cards, "Number Card")
-				make_records(config.dashboards, "Dashboard")
-				frappe.flags.in_import = False
+				try:
+					make_records(config.charts, "Dashboard Chart")
+					make_records(config.number_cards, "Number Card")
+					make_records(config.dashboards, "Dashboard")
+				except Exception as e:
+					frappe.log_error(e, _("Dashboard Import Error"))
+				finally:
+					frappe.flags.in_import = False
 
 def make_records(config, doctype):
 	if not config:
