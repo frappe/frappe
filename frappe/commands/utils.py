@@ -6,6 +6,7 @@ import json, os, sys, subprocess
 from distutils.spawn import find_executable
 import frappe
 from frappe.commands import pass_context, get_site
+from frappe.exceptions import SiteNotSpecifiedError
 from frappe.utils import update_progress_bar, get_bench_path
 from frappe.utils.response import json_handler
 from coverage import Coverage
@@ -376,6 +377,8 @@ def mariadb(context):
 	import os
 
 	site  = get_site(context)
+	if not site:
+		raise SiteNotSpecifiedError
 	frappe.init(site=site)
 
 	# This is assuming you're within the bench instance.

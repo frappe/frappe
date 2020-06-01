@@ -15,6 +15,7 @@ import frappe
 from frappe import _
 from frappe.commands import get_site, pass_context
 from frappe.commands.scheduler import _is_scheduler_enabled
+from frappe.exceptions import SiteNotSpecifiedError
 from frappe.installer import update_site_config
 from frappe.utils import get_site_path, touch_file
 
@@ -368,7 +369,7 @@ def use(site, sites_path='.'):
 			sitefile.write(site)
 		print("Current Site set to {}".format(site))
 	else:
-		print("{} does not exist".format(site))
+		print("Site {} does not exist".format(site))
 
 @click.command('backup')
 @click.option('--with-files', default=False, is_flag=True, help="Take backup with files")

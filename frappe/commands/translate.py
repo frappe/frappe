@@ -1,6 +1,7 @@
 from __future__ import unicode_literals, absolute_import, print_function
 import click
 from frappe.commands import pass_context, get_site
+from frappe.exceptions import SiteNotSpecifiedError
 
 # translation
 @click.command('build-message-files')
