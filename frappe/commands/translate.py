@@ -16,7 +16,7 @@ def build_message_files(context):
 			frappe.translate.rebuild_all_translation_files()
 		finally:
 			frappe.destroy()
-	else:
+	if not context.sites:
 		raise SiteNotSpecifiedError
 
 @click.command('new-language') #, help="Create lang-code.csv for given app")
