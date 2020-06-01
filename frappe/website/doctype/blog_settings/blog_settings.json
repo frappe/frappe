@@ -97,7 +97,7 @@
  "idx": 1,
  "issingle": 1,
  "links": [],
- "modified": "2020-05-29 16:39:44.018100",
+ "modified": "2020-06-01 13:41:44.150987",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Blog Settings",
@@ -111,6 +111,13 @@
    "role": "Website Manager",
    "share": 1,
    "write": 1
+  },
+  {
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "Blogger",
+   "share": 1
   }
  ],
  "sort_field": "modified",
