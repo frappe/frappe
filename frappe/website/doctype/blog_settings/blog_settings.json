@@ -8,7 +8,16 @@
   "blog_title",
   "blog_introduction",
   "column_break",
-  "enable_social_sharing"
+  "enable_social_sharing",
+  "show_cta_in_blog",
+  "cta_section",
+  "title",
+  "subtitle",
+  "cta_label",
+  "cta_url",
+  "column_break_11",
+  "cta_description",
+  "show_confetti"
  ],
  "fields": [
   {
@@ -31,13 +40,64 @@
    "collapsible": 1,
    "fieldname": "column_break",
    "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "show_cta_in_blog",
+   "fieldtype": "Check",
+   "label": "Show CTA in Blog"
+  },
+  {
+   "depends_on": "eval:doc.show_cta_in_blog",
+   "fieldname": "cta_section",
+   "fieldtype": "Section Break",
+   "label": "CTA"
+  },
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "label": "Title",
+   "mandatory_depends_on": "eval:doc.show_cta_in_blog"
+  },
+  {
+   "fieldname": "subtitle",
+   "fieldtype": "Data",
+   "label": "Subtitle",
+   "mandatory_depends_on": "eval:doc.show_cta_in_blog"
+  },
+  {
+   "fieldname": "cta_label",
+   "fieldtype": "Data",
+   "label": "CTA Label",
+   "mandatory_depends_on": "eval:doc.show_cta_in_blog"
+  },
+  {
+   "fieldname": "cta_url",
+   "fieldtype": "Data",
+   "label": "CTA URL",
+   "mandatory_depends_on": "eval:doc.show_cta_in_blog"
+  },
+  {
+   "fieldname": "column_break_11",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "cta_description",
+   "fieldtype": "Data",
+   "label": "CTA Description"
+  },
+  {
+   "default": "0",
+   "fieldname": "show_confetti",
+   "fieldtype": "Check",
+   "label": "Show Confetti"
   }
  ],
  "icon": "fa fa-cog",
  "idx": 1,
  "issingle": 1,
  "links": [],
- "modified": "2020-05-28 22:34:46.679003",
+ "modified": "2020-05-29 16:39:44.018100",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Blog Settings",

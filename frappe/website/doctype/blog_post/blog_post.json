@@ -8,15 +8,16 @@
  "engine": "InnoDB",
  "field_order": [
   "title",
-  "published_on",
-  "published",
-  "featured",
-  "disable_comments",
-  "column_break_3",
   "blog_category",
   "blogger",
   "route",
   "read_time",
+  "column_break_3",
+  "published_on",
+  "published",
+  "featured",
+  "hide_cta",
+  "disable_comments",
   "section_break_5",
   "blog_intro",
   "content_type",
@@ -84,7 +85,7 @@
    "fieldtype": "Section Break"
   },
   {
-   "description": "Description for listing page, in plain text, only a couple of lines. (max 140 characters)",
+   "description": "Description for listing page, in plain text, only a couple of lines. (max 200 characters)",
    "fieldname": "blog_intro",
    "fieldtype": "Small Text",
    "label": "Blog Intro"
@@ -167,6 +168,7 @@
    "description": "in minutes",
    "fieldname": "read_time",
    "fieldtype": "Int",
+   "hidden": 1,
    "label": "Read Time",
    "read_only": 1
   },
@@ -175,6 +177,13 @@
    "fieldname": "featured",
    "fieldtype": "Check",
    "label": "Featured"
+  },
+  {
+   "default": "0",
+   "fieldname": "hide_cta",
+   "fieldtype": "Check",
+   "hidden": 1,
+   "label": "Hide CTA"
   }
  ],
  "has_web_view": 1,
@@ -183,7 +192,7 @@
  "is_published_field": "published",
  "links": [],
  "max_attachments": 5,
- "modified": "2020-05-28 21:40:26.068480",
+ "modified": "2020-06-01 13:37:57.465434",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Blog Post",

@@ -19,9 +19,9 @@
 				{{ blog_intro }}
 			</p>
 			{%-if featured -%}
-				<span class="mr-2 text-muted text-uppercase small">
+				<div class="mb-2 text-muted text-uppercase small">
 					<i class="fa fa-star"></i> {{ _("Featured") }}
-				</span>
+				</div>
 			{%- endif -%}
 			<div class="text-muted d-flex justify-content-between">
 				<div>
@@ -41,10 +41,23 @@
 			</div>
 		</div>
 		<div itemprop="articleBody">
-		{{ content }}
+			{{ content }}
 		</div>
 		<!-- end blog content -->
 	</article>
+	{% if not hide_cta %}
+		{{ web_blocks([
+				{
+					'template': "Section With CTA",
+					'values': cta,
+					'add_container': 0,
+					'add_top_padding': 0,
+					'add_bottom_padding': 0,
+					'css_class': "py-5"
+				}
+			])
+		}}
+	{% endif %}
 
 	{% if blogger_info %}
 	<hr class="my-5">

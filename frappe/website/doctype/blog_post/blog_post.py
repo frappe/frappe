@@ -30,11 +30,16 @@ class BlogPost(WebsiteGenerator):
 
 		if not self.blog_intro:
 			content = get_html_content_based_on_type(self, 'content', self.content_type)
-			self.blog_intro = content[:140]
+			self.blog_intro = content[:200]
 			self.blog_intro = strip_html_tags(self.blog_intro)
 
 		if self.blog_intro:
-			self.blog_intro = self.blog_intro[:140]
+			self.blog_intro = self.blog_intro[:200]
+
+		if not self.meta_description:
+			self.meta_description = self.blog_intro[:140]
+		else:
+			self.meta_description = self.meta_description[:140]
 
 		if self.published and not self.published_on:
 			self.published_on = today()
@@ -69,6 +74,7 @@ class BlogPost(WebsiteGenerator):
 		context.full_name = get_fullname(self.owner)
 		context.updated = global_date_format(self.published_on)
 		context.social_links = self.fetch_social_links_info()
+		context.cta = self.fetch_cta()
 
 		if self.blogger:
 			context.blogger_info = frappe.get_doc("Blogger", self.blogger).as_dict()
@@ -97,6 +103,21 @@ class BlogPost(WebsiteGenerator):
 			{"name": "Blog", "route": "/blog"},
 			{"label": context.category.title, "route":context.category.route}]
 
+	def fetch_cta(self):
+		if frappe.db.get_single_value("Blog Settings", "show_cta_in_blog", cache=True):
+			blog_settings = frappe.get_cached_doc("Blog Settings")
+
+			return {
+				"show_cta_in_blog": 1,
+				"title": blog_settings.title,
+				"subtitle": blog_settings.subtitle,
+				"cta_label": blog_settings.cta_label,
+				"cta_url": blog_settings.cta_url,
+				"cta_description": blog_settings.cta_description,
+				"show_confetti": blog_settings.show_confetti
+			}
+
+		return {}
 
 	def fetch_social_links_info(self):
 		if not frappe.db.get_single_value("Blog Settings", "enable_social_sharing", cache=True):
