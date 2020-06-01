@@ -19,6 +19,7 @@ from frappe.email.inbox import get_email_accounts
 from frappe.social.doctype.energy_point_settings.energy_point_settings import is_energy_point_enabled
 from frappe.website.doctype.web_page_view.web_page_view import is_tracking_enabled
 from frappe.social.doctype.energy_point_log.energy_point_log import get_energy_points
+from frappe.model.base_document import get_controller
 from frappe.social.doctype.post.post import frequently_visited_links
 
 def get_bootinfo():
@@ -106,6 +107,7 @@ def load_desktop_data(bootinfo):
 	from frappe.desk.desktop import get_desk_sidebar_items
 	bootinfo.allowed_modules = get_modules_from_all_apps_for_user()
 	bootinfo.allowed_workspaces = get_desk_sidebar_items(True)
+	bootinfo.module_page_map = get_controller("Desk Page").get_module_page_map()
 	bootinfo.dashboards = frappe.get_all("Dashboard")
 
 def get_allowed_pages(cache=False):
