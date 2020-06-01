@@ -299,7 +299,8 @@ def remove_missing_apps():
 
 def extract_sql_gzip(sql_gz_path):
 	try:
-		subprocess.check_call(['gzip', '-d', '-v', '-f', sql_gz_path])
+		# kdvf - keep, decompress, verbose, force
+		subprocess.check_call(['gzip', '-kdvf', sql_gz_path])
 	except:
 		raise
 
