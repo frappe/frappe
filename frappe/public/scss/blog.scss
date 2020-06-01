@@ -12,7 +12,7 @@
 
 .blog-container {
 	max-width: 840px;
-	font-size: 18px;
+	font-size: 16px;
 	margin: 0px auto;
 	font-family: Inter, sans-serif;
 
@@ -23,8 +23,32 @@
 
 	.blog-content {
 		p {
-			line-height: 1.8;
+			line-height: 1.625;
 			margin-bottom: 1.2rem;
+		}
+
+		h1 {
+			font-size: 2rem;
+		}
+
+		h1.blog-header {
+			font-size: 2.5rem;
+		}
+
+		h2 {
+			font-size: 1.75rem;
+		}
+
+		h3 {
+			font-size: 1.5rem;
+		}
+
+		h4 {
+			font-size: 1.25rem;
+		}
+
+		h5, h6 {
+			font-size: 1rem;
 		}
 
 		h1, h2, h3 {
