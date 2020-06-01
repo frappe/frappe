@@ -1,62 +1,12 @@
-.blog-list-item {
-	@extend .col-12;
+.card-img-top {
+	width: 100%;
+	overflow: hidden;
+	height: 12rem;
+	width: auto;
 
-	.blog-list-cover {
-		@extend .col-12;
-	}
-
-	.blog-list-body {
-		@extend .col-12;
-		@extend .mt-3;
-	}
-
-	.post-cover-container {
-		overflow: hidden;
-		border-radius: $border-radius;
-
-		img {
-			min-height: 10rem;
-			width: 100%;
-		}
-	}
-
-	.default-cover {
-		background: $gray-200;
-		color: $gray-600;
-		display: flex;
-		flex-direction: column;
-		justify-content: end;
-		height: 100%;
-		padding: 1rem;
-	}
-
-	&:not(.featured) {
-		@extend .col-md-4;
-
-		.blog-list-body {
-			min-height: 14rem;
-		}
-
-		.post-cover-container {
-			height: 10rem;
-		}
-	}
-
-	&.featured {
-		.blog-list-cover {
-			@extend .col-12;
-			@extend .col-md-8;
-		}
-
-		.blog-list-body {
-			@extend .col-12;
-			@extend .col-md-4;
-			@extend .mt-0;
-		}
-
-		.post-cover-container {
-			max-height: 22rem;
-		}
+	img {
+		width: 100%;
+		min-height: 100%;
 	}
 }
 
