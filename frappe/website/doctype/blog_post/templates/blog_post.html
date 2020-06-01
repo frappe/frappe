@@ -18,11 +18,6 @@
 			<p class="blog-intro">
 				{{ blog_intro }}
 			</p>
-			{%-if featured -%}
-				<div class="mb-2 text-muted text-uppercase small">
-					<i class="fa fa-star"></i> {{ _("Featured") }}
-				</div>
-			{%- endif -%}
 			<div class="text-muted d-flex justify-content-between">
 				<div>
 					{{ frappe.format_date(published_on) }}
@@ -32,11 +27,11 @@
 					{% endif %}
 				</div>
 				<div>
-					{% if social_links %}
-					{% for link in social_links %}
-						<a href="{{ link.link }}" class="text-muted ml-2 fa fa-{{ link.icon }}" target="_blank"></a>
-					{% endfor %}
-					{% endif %}
+					{%-if featured -%}
+					<div class="mb-2 text-muted text-uppercase small">
+						<i class="fa fa-star"></i> {{ _("Featured") }}
+					</div>
+					{%- endif -%}
 				</div>
 			</div>
 		</div>
@@ -45,7 +40,7 @@
 		</div>
 		<!-- end blog content -->
 	</article>
-	{% if not hide_cta %}
+	{% if enable_cta %}
 		{{ web_blocks([
 				{
 					'template': "Section With Small CTA",
@@ -53,11 +48,23 @@
 					'add_container': 0,
 					'add_top_padding': 0,
 					'add_bottom_padding': 0,
-					'css_class': "py-5"
+					'css_class': "my-5"
 				}
 			])
 		}}
 	{% endif %}
+	<div class="text-muted d-flex justify-content-between mt-5">
+		<div>
+			Published on {{ frappe.format_date(published_on) }}
+		</div>
+		<div>
+			{% if social_links %}
+				{% for link in social_links %}
+					<a href="{{ link.link }}" class="text-muted ml-2 fa fa-{{ link.icon }}" target="_blank"></a>
+				{% endfor %}
+			{% endif %}
+		</div>
+	</div>
 
 	{% if blogger_info %}
 	<hr class="my-5">

@@ -75,6 +75,7 @@ class BlogPost(WebsiteGenerator):
 		context.updated = global_date_format(self.published_on)
 		context.social_links = self.fetch_social_links_info()
 		context.cta = self.fetch_cta()
+		context.enable_cta = not self.hide_cta and frappe.db.get_single_value("Blog Settings", "show_cta_in_blog", cache=True)
 
 		if self.blogger:
 			context.blogger_info = frappe.get_doc("Blogger", self.blogger).as_dict()
