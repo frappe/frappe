@@ -46,6 +46,9 @@ class CustomField(Document):
 		if not self.fieldname:
 			frappe.throw(_("Fieldname not set for Custom Field"))
 
+		if self.fieldname in fieldnames:
+			frappe.throw(_("A field with the name '{}' already exists in doctype {}.").format(self.fieldname, self.dt))
+
 		if self.get('translatable', 0) and not supports_translation(self.fieldtype):
 			self.translatable = 0
 
