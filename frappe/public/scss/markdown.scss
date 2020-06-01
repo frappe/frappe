@@ -115,3 +115,10 @@
 		border-radius: 0.375rem;
 	}
 }
+
+// apply margin on first h1 if container is full width without top margin
+main:not(.my-5) .from-markdown {
+	h1:first-child {
+		margin-top: 5rem;
+	}
+}

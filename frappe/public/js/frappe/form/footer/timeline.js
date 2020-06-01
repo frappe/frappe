@@ -589,7 +589,6 @@ frappe.ui.form.Timeline = class Timeline {
 							out.push(me.get_version_comment(version, message));
 						}
 					} else {
-						p = p.map(frappe.utils.escape_html);
 						const df = frappe.meta.get_docfield(me.frm.doctype, p[0], me.frm.docname);
 						if (df && !df.hidden) {
 							const field_display_status = frappe.perm.get_field_display_status(df, null,
@@ -597,8 +596,8 @@ frappe.ui.form.Timeline = class Timeline {
 							if (field_display_status === 'Read' || field_display_status === 'Write') {
 								parts.push(__('{0} from {1} to {2}', [
 									__(df.label),
-									(frappe.ellipsis(frappe.utils.html2text(p[1]), 40) || '""').bold(),
-									(frappe.ellipsis(frappe.utils.html2text(p[2]), 40) || '""').bold()
+									me.format_content_for_timeline(p[1]),
+									me.format_content_for_timeline(p[2])
 								]));
 							}
 						}
@@ -608,9 +607,9 @@ frappe.ui.form.Timeline = class Timeline {
 				if (parts.length) {
 					let message;
 					if (updater_reference_link) {
-						message = __("changed value of {0} {1}", [parts.join(', ').bold(), updater_reference_link]);
+						message = __("changed value of {0} {1}", [parts.join(', '), updater_reference_link]);
 					} else {
-						message = __("changed value of {0}", [parts.join(', ').bold()]);
+						message = __("changed value of {0}", [parts.join(', ')]);
 					}
 					out.push(me.get_version_comment(version, message));
 				}
@@ -618,23 +617,23 @@ frappe.ui.form.Timeline = class Timeline {
 
 			// value changed in table field
 			if (data.row_changed && data.row_changed.length) {
-				var parts = [], count = 0;
+				let parts = [];
 				data.row_changed.every(function(row) {
 					row[3].every(function(p) {
 						var df = me.frm.fields_dict[row[0]] &&
 							frappe.meta.get_docfield(me.frm.fields_dict[row[0]].grid.doctype,
 								p[0], me.frm.docname);
 
-						if(df && !df.hidden) {
+						if (df && !df.hidden) {
 							var field_display_status = frappe.perm.get_field_display_status(df,
 								null, me.frm.perm);
 
-							if(field_display_status === 'Read' || field_display_status === 'Write') {
+							if (field_display_status === 'Read' || field_display_status === 'Write') {
 								parts.push(__('{0} from {1} to {2} in row #{3}', [
 									frappe.meta.get_label(me.frm.fields_dict[row[0]].grid.doctype,
 										p[0]),
-									(frappe.ellipsis(p[1], 40) || '""').bold(),
-									(frappe.ellipsis(p[2], 40) || '""').bold(),
+									me.format_content_for_timeline(p[1]),
+									me.format_content_for_timeline(p[2]),
 									row[1]
 								]));
 							}
@@ -657,20 +656,22 @@ frappe.ui.form.Timeline = class Timeline {
 			// rows added / removed
 			// __('added'), __('removed') # for translation, don't remove
 			['added', 'removed'].forEach(function(key) {
-				if(data[key] && data[key].length) {
-					parts = (data[key] || []).map(function(p) {
+				if (data[key] && data[key].length) {
+					let parts = (data[key] || []).map(function(p) {
 						var df = frappe.meta.get_docfield(me.frm.doctype, p[0], me.frm.docname);
-						if(df && !df.hidden) {
+						if (df && !df.hidden) {
 							var field_display_status = frappe.perm.get_field_display_status(df, null,
 								me.frm.perm);
 
-							if(field_display_status === 'Read' || field_display_status === 'Write') {
+							if (field_display_status === 'Read' || field_display_status === 'Write') {
 								return frappe.meta.get_label(me.frm.doctype, p[0])
 							}
 						}
 					});
-					parts = parts.filter(function(p) { return p; });
-					if(parts.length) {
+					parts = parts.filter(function(p) {
+						return p;
+					});
+					if (parts.length) {
 						out.push(me.get_version_comment(version, __("{0} rows for {1}",
 							[__(key), parts.join(', ')])));
 					}
@@ -715,6 +716,17 @@ frappe.ui.form.Timeline = class Timeline {
 			}
 		});
 
+	}
+
+	format_content_for_timeline(content) {
+		// text to HTML
+		// limits content to 40 characters
+		// escapes HTML
+		// and makes it bold
+		content = frappe.utils.html2text(content);
+		content = frappe.ellipsis(content, 40) || '""';
+		content = frappe.utils.escape_html(content);
+		return content.bold();
 	}
 
 	delete_comment(name) {

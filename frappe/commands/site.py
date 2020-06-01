@@ -44,14 +44,16 @@ def new_site(site, mariadb_root_username=None, mariadb_root_password=None, admin
 	_new_site(db_name, site, mariadb_root_username=mariadb_root_username,
 			  mariadb_root_password=mariadb_root_password, admin_password=admin_password,
 			  verbose=verbose, install_apps=install_app, source_sql=source_sql, force=force,
-			  no_mariadb_socket=no_mariadb_socket, db_password=db_password, db_type=db_type, db_host=db_host, db_port=db_port)
+			  no_mariadb_socket=no_mariadb_socket, db_password=db_password, db_type=db_type, db_host=db_host,
+			  db_port=db_port, new_site=True)
 
 	if len(frappe.utils.get_sites()) == 1:
 		use(site)
 
 def _new_site(db_name, site, mariadb_root_username=None, mariadb_root_password=None,
 			  admin_password=None, verbose=False, install_apps=None, source_sql=None, force=False,
-			  no_mariadb_socket=False, reinstall=False,  db_password=None, db_type=None, db_host=None, db_port=None):
+			  no_mariadb_socket=False, reinstall=False,  db_password=None, db_type=None, db_host=None,
+			  db_port=None, new_site=False):
 	"""Install a new Frappe site"""
 
 	if not force and os.path.exists(site):
@@ -80,7 +82,10 @@ def _new_site(db_name, site, mariadb_root_username=None, mariadb_root_password=N
 	make_site_dirs()
 
 	installing = touch_file(get_site_path('locks', 'installing.lock'))
-	atexit.register(_new_site_cleanup, site, mariadb_root_username, mariadb_root_password)
+
+	if new_site:
+		# run cleanup only if new-site is called
+		atexit.register(_new_site_cleanup, site, mariadb_root_username, mariadb_root_password)
 
 	install_db(root_login=mariadb_root_username, root_password=mariadb_root_password, db_name=db_name,
 		admin_password=admin_password, verbose=verbose, source_sql=source_sql, force=force, reinstall=reinstall,
@@ -98,7 +103,10 @@ def _new_site(db_name, site, mariadb_root_username=None, mariadb_root_password=N
 	print("*** Scheduler is", scheduler_status, "***")
 
 def _new_site_cleanup(site, mariadb_root_username, mariadb_root_password):
-	installing = get_site_path('locks', 'installing.lock')
+	try:
+		installing = get_site_path('locks', 'installing.lock')
+	except AttributeError:
+		installing = os.path.join(site, 'locks', 'installing.lock')
 
 	if installing and os.path.exists(installing):
 		if mariadb_root_password:
@@ -123,29 +131,46 @@ def restore(context, sql_file_path, mariadb_root_username=None, mariadb_root_pas
 	# Extract the gzip file if user has passed *.sql.gz file instead of *.sql file
 
 	if not os.path.exists(sql_file_path):
-		sql_file_path = '../' + sql_file_path
+		base_path = '..'
+		sql_file_path = os.path.join(base_path, sql_file_path)
 		if not os.path.exists(sql_file_path):
 			print('Invalid path {0}'.format(sql_file_path[3:]))
 			sys.exit(1)
+	elif sql_file_path.startswith(os.sep):
+		base_path = os.sep
+	else:
+		base_path = '.'
+
 
 	if sql_file_path.endswith('sql.gz'):
-		sql_file_path = extract_sql_gzip(os.path.abspath(sql_file_path))
+		decompressed_file_name = extract_sql_gzip(os.path.abspath(sql_file_path))
+	else:
+		decompressed_file_name = sql_file_path
 
 	site = get_site(context)
 	frappe.init(site=site)
 	_new_site(frappe.conf.db_name, site, mariadb_root_username=mariadb_root_username,
 		mariadb_root_password=mariadb_root_password, admin_password=admin_password,
-		verbose=context.verbose, install_apps=install_app, source_sql=sql_file_path,
-		force=context.force)
+		verbose=context.verbose, install_apps=install_app, source_sql=decompressed_file_name,
+		force=True)
 
 	# Extract public and/or private files to the restored site, if user has given the path
 	if with_public_files:
+		with_public_files = os.path.join(base_path, with_public_files)
 		public = extract_tar_files(site, with_public_files, 'public')
 		os.remove(public)
 
 	if with_private_files:
+		with_private_files = os.path.join(base_path, with_private_files)
 		private = extract_tar_files(site, with_private_files, 'private')
 		os.remove(private)
+
+	# Removing temporarily created file
+	if decompressed_file_name != sql_file_path:
+		os.remove(decompressed_file_name)
+
+	success_message = "Site {0} has been restored{1}".format(site, " with files" if (with_public_files or with_private_files) else "")
+	click.secho(success_message, fg="green")
 
 @click.command('reinstall')
 @click.option('--admin-password', help='Administrator Password for reinstalled site')
@@ -445,7 +470,7 @@ def _drop_site(site, root_login='root', root_password=None, archived_sites_path=
 		else:
 			click.echo("="*80)
 			click.echo("Error: The operation has stopped because backup of {s}'s database failed.".format(s=site))
-			click.echo("Reason: {reason}{sep}".format(reason=err[1], sep="\n"))
+			click.echo("Reason: {reason}{sep}".format(reason=str(err), sep="\n"))
 			click.echo("Fix the issue and try again.")
 			click.echo(
 				"Hint: Use 'bench drop-site {s} --force' to force the removal of {s}".format(sep="\n", tab="\t", s=site)

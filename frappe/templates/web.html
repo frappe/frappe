@@ -48,17 +48,27 @@ id="page-{{ name or route | e }}" data-path="{{ pathname | e }}"
 {%- if source_content_type %}source-content-type="{{ source_content_type }}"{%- endif %}
 {%- endmacro %}
 
+{% macro sidebar() %}
+<div class="sidebar-column col-sm-{{ columns }}">
+	{% block page_sidebar %}
+	{% include "templates/includes/web_sidebar.html" %}
+	{% endblock %}
+</div>
+{% endmacro %}
+
 {% if show_sidebar %}
 <div class="container">
 	<div class="row" {{ container_attributes() }}>
-		<div class="pt-4 col-sm-2 border-right sidebar-column d-none d-sm-block">
-			{% block page_sidebar %}
-			{% include "templates/includes/web_sidebar.html" %}
-			{% endblock %}
-		</div>
-		<div class="col-sm-10 main-column">
+		{%- set columns = sidebar_columns or 2 -%}
+		{%- if not sidebar_right -%}
+		{{ sidebar() }}
+		{%- endif -%}
+		<div class="main-column col-sm-{{ 12 - columns }}">
 			{{ main_content() }}
 		</div>
+		{%- if sidebar_right -%}
+		{{ sidebar() }}
+		{%- endif -%}
 	</div>
 </div>
 {% else %}
