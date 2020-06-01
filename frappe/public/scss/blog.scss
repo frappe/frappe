@@ -31,6 +31,10 @@
 			margin-top: 1rem;
 		}
 
+		hr {
+			margin: 2rem auto;
+		}
+
 		h1 {
 			margin-top: 2rem;
 			font-weight: 800;
@@ -76,9 +80,11 @@
 			margin: 2rem auto;
 			width: 90%;
 			padding-top: 2rem;
-			padding-bottom: 2rem;
+			padding-bottom: 0.8rem;
+
 			border-top: 1px solid $gray-200;
 			border-bottom: 1px solid $gray-200;
+
 			text-align: center;
 			font-size: 1.2rem;
 			font-weight: 500;
