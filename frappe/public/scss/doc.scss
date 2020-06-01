@@ -185,9 +185,10 @@ $navbar-height-lg: 4.5rem;
 		color: $gray-600;
 		text-decoration: none;
 		font-weight: 500;
+		@include transition();
 
 		&:hover {
-			color: $gray-700;
+			color: $gray-800;
 		}
 	}
 }

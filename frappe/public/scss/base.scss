@@ -25,6 +25,7 @@ h1 {
 	font-weight: 800;
 	line-height: 1.25;
 	letter-spacing: -0.025em;
+	margin-bottom: 1rem;
 
 	@include media-breakpoint-up(sm) {
 		line-height: 2.5rem;
@@ -39,6 +40,7 @@ h1 {
 h2 {
 	font-size: $font-size-xl;
 	font-weight: bold;
+	margin-bottom: 0.75rem;
 
 	@include media-breakpoint-up(sm) {
 		font-size: $font-size-2xl;
