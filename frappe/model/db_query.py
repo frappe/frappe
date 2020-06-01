@@ -16,7 +16,7 @@ import frappe, json, copy, re
 from frappe.model import optional_fields
 from frappe.client import check_parent_permission
 from frappe.model.utils.user_settings import get_user_settings, update_user_settings
-from frappe.utils import flt, cint, get_time, make_filter_tuple, get_filter, add_to_date, cstr, nowdate
+from frappe.utils import flt, cint, get_time, make_filter_tuple, get_filter, add_to_date, cstr, get_timespan_date_range
 from frappe.model.meta import get_table_columns
 
 class DatabaseQuery(object):
@@ -354,7 +354,9 @@ class DatabaseQuery(object):
 				ifnull(`tabDocType`.`fieldname`, fallback) operator "value"
 		"""
 
-		f = get_filter(self.doctype, f)
+		from frappe.boot import get_additional_filters_from_hooks
+		additional_filters_config = get_additional_filters_from_hooks()
+		f = get_filter(self.doctype, f, additional_filters_config)
 
 		tname = ('`tab' + f.doctype + '`')
 		if not tname in self.tables:
@@ -367,6 +369,9 @@ class DatabaseQuery(object):
 				fname=f.fieldname)
 
 		can_be_null = True
+
+		if f.operator.lower() in additional_filters_config:
+			f.update(get_additional_filter_field(additional_filters_config, f, f.value))
 
 		# prepare in condition
 		if f.operator.lower() in ('ancestors of', 'descendants of', 'not ancestors of', 'not descendants of'):
@@ -426,29 +431,8 @@ class DatabaseQuery(object):
 			if df and df.fieldtype in ("Check", "Float", "Int", "Currency", "Percent"):
 				can_be_null = False
 
-			if f.operator.lower() in ('previous', 'next'):
-				if f.operator.lower() == "previous":
-					if f.value == "1 week":
-						date_range = [add_to_date(nowdate(), days=-7), nowdate()]
-					elif f.value == "1 month":
-						date_range = [add_to_date(nowdate(), months=-1), nowdate()]
-					elif f.value == "3 months":
-						date_range = [add_to_date(nowdate(), months=-3), nowdate()]
-					elif f.value == "6 months":
-						date_range = [add_to_date(nowdate(), months=-6), nowdate()]
-					elif f.value == "1 year":
-						date_range = [add_to_date(nowdate(), years=-1), nowdate()]
-				elif f.operator.lower() == "next":
-					if f.value == "1 week":
-						date_range = [nowdate(), add_to_date(nowdate(), days=7)]
-					elif f.value == "1 month":
-						date_range = [nowdate(), add_to_date(nowdate(), months=1)]
-					elif f.value == "3 months":
-						date_range = [nowdate(), add_to_date(nowdate(), months=3)]
-					elif f.value == "6 months":
-						date_range = [nowdate(), add_to_date(nowdate(), months=6)]
-					elif f.value == "1 year":
-						date_range = [nowdate(), add_to_date(nowdate(), years=1)]
+			if f.operator.lower() in ('previous', 'next', 'timespan'):
+				date_range = get_date_range(f.operator.lower(), f.value)
 				f.operator = "Between"
 				f.value = date_range
 				fallback = "'0001-01-01 00:00:00'"
@@ -844,3 +828,30 @@ def get_between_date_filter(value, df=None):
 			frappe.db.format_date(to_date))
 
 	return data
+
+def get_additional_filter_field(additional_filters_config, f, value):
+	additional_filter = additional_filters_config[f.operator.lower()]
+	f = frappe._dict(frappe.get_attr(additional_filter['get_field'])())
+	if f.query_value:
+		for option in f.options:
+			option = frappe._dict(option)
+			if option.value == value:
+				f.value = option.query_value
+	return f
+
+def get_date_range(operator, value):
+	timespan_map = {
+		'1 week': 'week',
+		'1 month': 'month',
+		'3 months': 'quarter',
+		'6 months': '6 months',
+		'1 year': 'year',
+	}
+	period_map = {
+		'previous': 'last',
+		'next': 'next',
+	}
+
+	timespan = period_map[operator] + ' ' + timespan_map[value] if operator != 'timespan' else value
+
+	return get_timespan_date_range(timespan)
