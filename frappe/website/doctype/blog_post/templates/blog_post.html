@@ -18,21 +18,12 @@
 			<p class="blog-intro">
 				{{ blog_intro }}
 			</p>
-			<div class="text-muted d-flex justify-content-between">
-				<div>
-					{{ frappe.format_date(published_on) }}
-					{% if read_time %}
-						&middot;
-						{{ read_time }} min read
-					{% endif %}
-				</div>
-				<div>
-					{%-if featured -%}
-					<div class="mb-2 text-muted text-uppercase small">
-						<i class="fa fa-star"></i> {{ _("Featured") }}
-					</div>
-					{%- endif -%}
-				</div>
+			<div class="text-muted">
+				{{ frappe.format_date(published_on) }}
+				{% if read_time %}
+					&middot;
+					{{ read_time }} min read
+				{% endif %}
 			</div>
 		</div>
 		<div itemprop="articleBody">
