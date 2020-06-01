@@ -4,7 +4,7 @@
 from __future__ import unicode_literals
 import frappe
 import datetime
-from frappe.utils import formatdate, fmt_money, flt, cstr, cint, format_datetime, format_time
+from frappe.utils import formatdate, fmt_money, flt, cstr, cint, format_datetime, format_time, format_duration
 from frappe.model.meta import get_field_currency, get_field_precision
 import re
 from six import string_types
@@ -89,5 +89,9 @@ def format_value(value, df=None, doc=None, currency=None, translated=False):
 		link_field = [df for df in meta.fields if df.fieldtype == 'Link'][0]
 		values = [v.get(link_field.fieldname, 'asdf') for v in value]
 		return ', '.join(values)
+
+	elif df.get("fieldtype") == "Duration":
+		show_days = df.show_days
+		return format_duration(value, show_days)
 
 	return value
