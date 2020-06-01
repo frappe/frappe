@@ -48,7 +48,7 @@ def get_site(context):
 		site = context.sites[0]
 		return site
 	except (IndexError, TypeError):
-		sys.exit(1)
+		raise frappe.SiteNotSpecifiedError
 
 def popen(command, *args, **kwargs):
 	output    = kwargs.get('output', True)
