@@ -336,7 +336,7 @@ def format_datetime(datetime_string, format_string=None):
 		formatted_datetime = datetime.strftime('%Y-%m-%d %H:%M:%S')
 	return formatted_datetime
 
-def format_duration(seconds, show_days=True):
+def format_duration(seconds, hide_days=False):
 	total_duration = {
 		'days': math.floor(seconds / (3600 * 24)),
 		'hours': math.floor(seconds % (3600 * 24) / 3600),
@@ -344,7 +344,7 @@ def format_duration(seconds, show_days=True):
 		'seconds': math.floor(seconds % 60)
 	}
 
-	if not show_days:
+	if hide_days:
 		total_duration['hours'] = math.floor(seconds / 3600)
 		total_duration['days'] = 0
 
