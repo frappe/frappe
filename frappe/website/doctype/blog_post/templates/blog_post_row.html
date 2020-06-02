@@ -2,7 +2,13 @@
 <div class="blog-card {{ 'featured' if post.featured else '' }}">
 	<div class="card h-100">
 		<div class="card-img-top">
-			<img src="{{ post.cover_image }}" alt="{{post.title}} - Cover Image">
+			{% if post.cover_image %}
+				<img src="{{ post.cover_image }}" alt="{{post.title}} - Cover Image">
+			{% else %}
+				<div class="default-cover">
+					<span>{{ post.title }}</span>
+				</div>
+			{% endif %}
 		</div>
 		<div class="card-body">
 			<div>
