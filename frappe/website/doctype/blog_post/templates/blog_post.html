@@ -6,15 +6,15 @@
 
 {% block page_content %}
 <div class="blog-container">
-	<article class="blog-content mb-3" itemscope itemtype="http://schema.org/BlogPosting">
+	<article class="blog-content" itemscope itemtype="http://schema.org/BlogPosting">
 		<!-- begin blog content -->
-		<div class="my-5">
+		<div class="blog-header">
 			<div>
 				<a class="mr-2" href="/blog">{{ _('Blog') }}</a>
 				<span class="text-muted">/</span>
 				<a class="ml-2" href="/blog/{{ category.title }}">{{ category.title }}</a>
 			</div>
-			<h1 itemprop="headline" class="blog-header">{{ title }}</h1>
+			<h1 itemprop="headline" class="blog-title">{{ title }}</h1>
 			<p class="blog-intro">
 				{{ blog_intro }}
 			</p>
@@ -44,7 +44,7 @@
 			])
 		}}
 	{% endif %}
-	<div class="text-muted d-flex justify-content-between mt-5">
+	<div class="blog-footer">
 		<div>
 			Published on {{ frappe.format_date(published_on) }}
 		</div>

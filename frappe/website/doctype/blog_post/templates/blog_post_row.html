@@ -1,10 +1,10 @@
 {%- set post = doc -%}
-<div class="mb-5 {{ 'col-md-8' if post.featured else 'col-md-4' }}">
+<div class="blog-card {{ 'featured' if post.featured else '' }}">
 	<div class="card h-100">
 		<div class="card-img-top">
 			<img src="{{ post.cover_image }}" alt="{{post.title}} - Cover Image">
 		</div>
-		<div class="card-body d-flex flex-column justify-content-between">
+		<div class="card-body">
 			<div>
 				<div class="text-muted small text-uppercase">
 					{%- if post.featured -%}
@@ -19,8 +19,8 @@
 				{%- endif -%}
 				<p class="post-description text-muted">{{ post.intro }}</p>
 			</div>
-			<div class="d-flex align-items-center mt-2">
-				<img class="rounded-circle website-image-extra-small mr-2" src="{{ post.avatar }}">
+			<div class="blog-card-footer">
+				<img class="avatar website-image-extra-small" src="{{ post.avatar }}">
 				<div class="text-muted">
 					<a href="/blog?blogger={{ post.blogger }}">{{ post.full_name }}</a>
 					<div class="small">
