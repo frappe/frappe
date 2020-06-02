@@ -394,9 +394,4 @@ def frappecloud_migrator(local_site, frappecloud_site):
 	# available actions defined in migrator_actions
 	primary_action = select_primary_action()
 
-	frappe.init(site=local_site)
-	frappe.connect()
-
 	primary_action(local_site)
-
-	frappe.destroy()
