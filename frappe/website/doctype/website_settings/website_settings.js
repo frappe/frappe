@@ -17,8 +17,8 @@ frappe.ui.form.on('Website Settings', {
 	},
 
 	set_parent_label_options: function(frm) {
-		frappe.meta.get_docfield("Top Bar Item", "parent_label", frm.docname).options =
-			frm.events.get_parent_options(frm, "top_bar_items");
+		frm.events.get_parent_options(frm, "top_bar_items");
+
 
 		if ($(frm.fields_dict.top_bar_items.grid.wrapper).find(".grid-row-open")) {
 			frm.fields_dict.top_bar_items.grid.refresh();
@@ -26,8 +26,7 @@ frappe.ui.form.on('Website Settings', {
 	},
 
 	set_parent_label_options_footer: function(frm) {
-		frappe.meta.get_docfield("Top Bar Item", "parent_label", frm.docname).options =
-			frm.events.get_parent_options(frm, "footer_items");
+		frm.events.get_parent_options(frm, "footer_items");
 
 		if ($(frm.fields_dict.footer_items.grid.wrapper).find(".grid-row-open")) {
 			frm.fields_dict.footer_items.grid.refresh();
@@ -70,7 +69,10 @@ frappe.ui.form.on('Website Settings', {
 	},
 
 	get_parent_options: function(frm, table_field) {
+		console.log(frm);
+		console.log(table_field);
 		var items = frm.doc[table_field] || [];
+		console.log(items)
 		var main_items = [''];
 		for (var i in items) {
 			var d = items[i];
@@ -78,7 +80,8 @@ frappe.ui.form.on('Website Settings', {
 				main_items.push(d.label);
 			}
 		}
-		return main_items.join('\n');
+		frappe.meta.get_docfield("Top Bar Item", "parent_label", cur_frm.docname).options = main_items.join('\n');
+
 	},
 });
 
