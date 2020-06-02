@@ -34,6 +34,7 @@
 		{%- if data -%}
 		{%- set visible_columns = get_visible_columns(doc.get(df.fieldname),
 			table_meta, df) -%}
+		<label>{{ _(df.label) }}</label>
 		<div {{ fieldmeta(df) }}>
 			<table class="table table-bordered table-condensed">
 				<thead>
