@@ -196,7 +196,7 @@ def upload_backup(local_site):
 			"method": "press.api.site.upload_backup",
 			"type": file_type
 		})
-		print("Uploading files ({}/3)".format(x+1), end="\r")
+		print("Uploading files ({}/3)".format(x+1))
 		if file_upload_response.ok:
 			files_session[file_type] = file_upload_response.json()["message"]
 		else:
