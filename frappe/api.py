@@ -6,6 +6,7 @@ import base64
 import binascii
 import json
 
+from six import string_types
 from six.moves.urllib.parse import urlencode, urlparse
 
 import frappe
@@ -13,6 +14,7 @@ import frappe.client
 import frappe.handler
 from frappe import _
 from frappe.utils.response import build_response
+
 
 def handle():
 	"""
@@ -37,7 +39,6 @@ def handle():
 
 	`/api/resource/{doctype}/{name}?run_method={method}` will run a whitelisted controller method
 	"""
-
 
 	validate_auth()
 
@@ -211,13 +212,12 @@ def validate_auth_via_api_keys(authorization_header):
 
 	try:
 		auth_type, auth_token = authorization_header
-		authorization_source = frappe.get_request_header("Frappe-Authorization-Source")
 		if auth_type.lower() == 'basic':
 			api_key, api_secret = frappe.safe_decode(base64.b64decode(auth_token)).split(":")
-			validate_api_key_secret(api_key, api_secret, authorization_source)
+			validate_api_key_secret(api_key, api_secret)
 		elif auth_type.lower() == 'token':
 			api_key, api_secret = auth_token.split(":")
-			validate_api_key_secret(api_key, api_secret, authorization_source)
+			validate_api_key_secret(api_key, api_secret)
 	except binascii.Error:
 		frappe.throw(_("Failed to decode token, please provide a valid base64-encoded token."), frappe.InvalidAuthorizationToken)
 	except (AttributeError, TypeError, ValueError):
@@ -231,7 +231,7 @@ def validate_api_key_secret(api_key, api_secret):
 		fieldname=['name']
 	)
 	form_dict = frappe.local.form_dict
-	user_secret = frappe.utils.password.get_decrypted_password ("User", user, fieldname='api_secret')
+	user_secret = frappe.utils.password.get_decrypted_password("User", user, fieldname='api_secret')
 	if api_secret == user_secret:
 		frappe.set_user(user)
 		frappe.local.form_dict = form_dict
