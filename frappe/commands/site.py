@@ -18,6 +18,7 @@ import frappe
 from frappe import _
 from frappe.commands import get_site, pass_context
 from frappe.commands.scheduler import _is_scheduler_enabled
+from frappe.exceptions import SiteNotSpecifiedError
 from frappe.installer import update_site_config
 from frappe.utils import get_site_path, touch_file
 
@@ -218,6 +219,8 @@ def install_app(context, apps):
 				_install_app(app, verbose=context.verbose)
 		finally:
 			frappe.destroy()
+	if not context.sites:
+		raise SiteNotSpecifiedError
 
 @click.command('list-apps')
 @pass_context
@@ -247,7 +250,8 @@ def add_system_manager(context, email, first_name, last_name, send_welcome_email
 			frappe.db.commit()
 		finally:
 			frappe.destroy()
-
+	if not context.sites:
+		raise SiteNotSpecifiedError
 
 @click.command('disable-user')
 @click.argument('email')
@@ -278,6 +282,8 @@ def migrate(context, rebuild_website=False, skip_failing=False):
 			migrate(context.verbose, rebuild_website=rebuild_website, skip_failing=skip_failing)
 		finally:
 			frappe.destroy()
+	if not context.sites:
+		raise SiteNotSpecifiedError
 
 	print("Compiling Python Files...")
 	compileall.compile_dir('../apps', quiet=1, rx=re.compile('.*node_modules.*'))
@@ -290,6 +296,8 @@ def migrate_to(context, frappe_provider):
 	from frappe.integrations.frappe_providers import migrate_to
 	for site in context.sites:
 		migrate_to(site, frappe_provider)
+	if not context.sites:
+		raise SiteNotSpecifiedError
 
 @click.command('run-patch')
 @click.argument('module')
@@ -304,6 +312,8 @@ def run_patch(context, module):
 			frappe.modules.patch_handler.run_single(module, force=context.force)
 		finally:
 			frappe.destroy()
+	if not context.sites:
+		raise SiteNotSpecifiedError
 
 @click.command('reload-doc')
 @click.argument('module')
@@ -320,6 +330,8 @@ def reload_doc(context, module, doctype, docname):
 			frappe.db.commit()
 		finally:
 			frappe.destroy()
+	if not context.sites:
+		raise SiteNotSpecifiedError
 
 @click.command('reload-doctype')
 @click.argument('doctype')
@@ -334,6 +346,8 @@ def reload_doctype(context, doctype):
 			frappe.db.commit()
 		finally:
 			frappe.destroy()
+	if not context.sites:
+		raise SiteNotSpecifiedError
 
 @click.command('add-to-hosts')
 @pass_context
@@ -341,6 +355,8 @@ def add_to_hosts(context):
 	"Add site to hosts"
 	for site in context.sites:
 		frappe.commands.popen('echo 127.0.0.1\t{0} | sudo tee -a /etc/hosts'.format(site))
+	if not context.sites:
+		raise SiteNotSpecifiedError
 
 @click.command('use')
 @click.argument('site')
@@ -353,7 +369,7 @@ def use(site, sites_path='.'):
 		with open(os.path.join(sites_path,  "currentsite.txt"), "w") as sitefile:
 			sitefile.write(site)
 	else:
-		print("{} does not exist".format(site))
+		print("Site {} does not exist".format(site))
 
 @click.command('backup')
 @click.option('--with-files', default=False, is_flag=True, help="Take backup with files")
@@ -386,6 +402,9 @@ def backup(context, with_files=False, backup_path_db=None, backup_path_files=Non
 				print("Private files:  ", odb.backup_path_private_files)
 
 		frappe.destroy()
+	if not context.sites:
+		raise SiteNotSpecifiedError
+
 	sys.exit(exit_code)
 
 @click.command('remove-from-installed-apps')
@@ -401,6 +420,8 @@ def remove_from_installed_apps(context, app):
 			remove_from_installed_apps(app)
 		finally:
 			frappe.destroy()
+	if not context.sites:
+		raise SiteNotSpecifiedError
 
 @click.command('uninstall-app')
 @click.argument('app')
@@ -417,6 +438,8 @@ def uninstall(context, app, dry_run=False, yes=False):
 			remove_app(app, dry_run, yes)
 		finally:
 			frappe.destroy()
+	if not context.sites:
+		raise SiteNotSpecifiedError
 
 
 @click.command('drop-site')
@@ -508,6 +531,8 @@ def set_admin_password(context, admin_password, logout_all_sessions=False):
 			admin_password = None
 		finally:
 			frappe.destroy()
+	if not context.sites:
+		raise SiteNotSpecifiedError
 
 @click.command('set-last-active-for-user')
 @click.option('--user', help="Setup last active date for user")
@@ -553,6 +578,8 @@ def publish_realtime(context, event, message, room, user, doctype, docname, afte
 			frappe.db.commit()
 		finally:
 			frappe.destroy()
+	if not context.sites:
+		raise SiteNotSpecifiedError
 
 @click.command('browse')
 @click.argument('site', required=False)
@@ -580,6 +607,8 @@ def start_recording(context):
 	for site in context.sites:
 		frappe.init(site=site)
 		frappe.recorder.start()
+	if not context.sites:
+		raise SiteNotSpecifiedError
 
 
 @click.command('stop-recording')
@@ -588,6 +617,8 @@ def stop_recording(context):
 	for site in context.sites:
 		frappe.init(site=site)
 		frappe.recorder.stop()
+	if not context.sites:
+		raise SiteNotSpecifiedError
 
 
 commands = [

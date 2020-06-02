@@ -13,6 +13,11 @@ if sys.version_info.major == 2:
 else:
 	from builtins import FileNotFoundError
 
+class SiteNotSpecifiedError(Exception):
+	def __init__(self, *args, **kwargs):
+		self.message = "Please specify --site sitename"
+		super(Exception, self).__init__(self.message)
+
 class ValidationError(Exception):
 	http_status_code = 417
 
