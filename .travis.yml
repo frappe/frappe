@@ -1,5 +1,5 @@
 language: python
-dist: trusty
+dist: bionic
 
 addons:
   hosts:
@@ -8,6 +8,10 @@ addons:
   mariadb: 10.3
   postgresql: 9.5
   chrome: stable
+
+services:
+  - xvfb
+  - mysql
 
 git:
   depth: 1
@@ -21,20 +25,21 @@ cache:
     # https://docs.cypress.io/guides/guides/continuous-integration.html#Caching
     - ~/.cache
 
+
 matrix:
   include:
-  - name: "Python 3.6 MariaDB"
-    python: 3.6
+  - name: "Python 3.7 MariaDB"
+    python: 3.7
     env: DB=mariadb TYPE=server
     script: bench --site test_site run-tests --coverage
 
-  - name: "Python 3.6 PostgreSQL"
-    python: 3.6
+  - name: "Python 3.7 PostgreSQL"
+    python: 3.7
     env: DB=postgres TYPE=server
     script: bench --site test_site run-tests --coverage
 
   - name: "Cypress"
-    python: 3.6
+    python: 3.7
     env: DB=mariadb TYPE=ui
     before_script:
     - bench --site test_site execute frappe.utils.install.complete_setup_wizard
@@ -42,7 +47,26 @@ matrix:
     script: bench --site test_site run-ui-tests frappe --headless
 
 before_install:
-  # install wkhtmltopdf
+    # do we really want to run travis?
+  - |
+    ONLY_DOCS_CHANGES=$(git diff --name-only $TRAVIS_COMMIT_RANGE | grep -qvE '\.(md|png|jpg|jpeg)$|^.github|LICENSE' ; echo $?)
+    ONLY_JS_CHANGES=$(git diff --name-only $TRAVIS_COMMIT_RANGE | grep -qvE '\.js$' ; echo $?)
+    ONLY_PY_CHANGES=$(git diff --name-only $TRAVIS_COMMIT_RANGE | grep -qvE '\.py$' ; echo $?)
+
+    if [[ $ONLY_DOCS_CHANGES == "1" ]]; then
+        echo "Only docs were updated, stopping build process.";
+        exit;
+    fi
+    if [[ $ONLY_JS_CHANGES == "1"  && $TYPE == "server" ]]; then
+        echo "Only JavaScript code was updated; Stopping Python build process.";
+        exit;
+    fi
+    if [[ $ONLY_PY_CHANGES == "1"  && $TYPE == "ui" ]]; then
+        echo "Only Python code was updated, stopping Cypress build process.";
+        exit;
+    fi
+
+ # install wkhtmltopdf
   - wget -O /tmp/wkhtmltox.tar.xz https://github.com/frappe/wkhtmltopdf/raw/master/wkhtmltox-0.12.3_linux-generic-amd64.tar.xz
   - tar -xf /tmp/wkhtmltox.tar.xz -C /tmp
   - sudo mv /tmp/wkhtmltox/bin/wkhtmltopdf /usr/local/bin/wkhtmltopdf
@@ -98,7 +122,13 @@ install:
   - if [ $TYPE == "server" ]; then sed -i 's/socketio:/# socketio:/g' Procfile; fi
   - if [ $TYPE == "server" ]; then sed -i 's/redis_socketio:/# redis_socketio:/g' Procfile; fi
 
-  - bench setup requirements --node
+  - if [ $TYPE == "ui" ]; then bench setup requirements --node; fi
+
+  # install node-sass which is required for website theme test
+  - cd ./apps/frappe
+  - yarn add node-sass@4.13.1
+  - cd ../..
+
   - bench start &
   - bench --site test_site reinstall --yes
   - bench --site test_site_producer reinstall --yes

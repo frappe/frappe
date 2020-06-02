@@ -235,14 +235,15 @@ def show_update_popup():
 			release_links = ""
 			for app in updates[update_type]:
 				app = frappe._dict(app)
-				release_links += "<a href='https://github.com/{org_name}/{app_name}/releases/tag/v{available_version}'><b>{title}</b>: v{available_version}</a><br>".format(
+				release_links += "<b>{title}</b>: <a href='https://github.com/{org_name}/{app_name}/releases/tag/v{available_version}'>v{available_version}</a><br>".format(
 					available_version = app.available_version,
 					org_name          = app.org_name,
 					app_name          = app.app_name,
 					title             = app.title
 				)
 			if release_links:
-				update_message += _("New {} releases for the following apps are available").format(update_type) + ":<br><br>{}".format(release_links)
+				message = _("New {} releases for the following apps are available").format(_(update_type))
+				update_message += "<div class='new-version-log'>{0}<div class='new-version-links'>{1}</div></div>".format(message, release_links)
 
 	if update_message:
 		frappe.msgprint(update_message, title=_("New updates are available"), indicator='green')

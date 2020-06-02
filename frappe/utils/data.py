@@ -22,6 +22,11 @@ DATE_FORMAT = "%Y-%m-%d"
 TIME_FORMAT = "%H:%M:%S.%f"
 DATETIME_FORMAT = DATE_FORMAT + " " + TIME_FORMAT
 
+
+def is_invalid_date_string(date_string):
+	# dateutil parser does not agree with dates like "0001-01-01" or "0000-00-00"
+	return (not date_string) or (date_string or "").startswith(("0001-01-01", "0000-00-00"))
+
 # datetime functions
 def getdate(string_date=None):
 	"""
@@ -36,9 +41,9 @@ def getdate(string_date=None):
 	elif isinstance(string_date, datetime.date):
 		return string_date
 
-	# dateutil parser does not agree with dates like 0001-01-01
-	if not string_date or string_date=="0001-01-01":
+	if is_invalid_date_string(string_date):
 		return None
+
 	return parser.parse(string_date).date()
 
 def get_datetime(datetime_str=None):
@@ -54,8 +59,7 @@ def get_datetime(datetime_str=None):
 	elif isinstance(datetime_str, datetime.date):
 		return datetime.datetime.combine(datetime_str, datetime.time())
 
-	# dateutil parser does not agree with dates like "0001-01-01" or "0000-00-00"
-	if not datetime_str or (datetime_str or "").startswith(("0001-01-01", "0000-00-00")):
+	if is_invalid_date_string(datetime_str):
 		return None
 
 	try:
@@ -170,7 +174,7 @@ def nowtime():
 	"""return current time in hh:mm"""
 	return now_datetime().strftime(TIME_FORMAT)
 
-def get_first_day(dt, d_years=0, d_months=0):
+def get_first_day(dt, d_years=0, d_months=0, as_str=False):
 	"""
 	 Returns the first day of the month for the date specified by date object
 	 Also adds `d_years` and `d_months` if specified
@@ -181,10 +185,27 @@ def get_first_day(dt, d_years=0, d_months=0):
 	overflow_years, month = divmod(dt.month + d_months - 1, 12)
 	year = dt.year + d_years + overflow_years
 
-	return datetime.date(year, month + 1, 1)
+	return datetime.date(year, month + 1, 1).strftime(DATE_FORMAT) if as_str else datetime.date(year, month + 1, 1)
 
-def get_first_day_of_week(dt):
-	return dt - datetime.timedelta(days=dt.weekday())
+def get_quarter_start(dt, as_str=False):
+	date = getdate(dt)
+	quarter = (date.month - 1) // 3 + 1
+	first_date_of_quarter = datetime.date(date.year, ((quarter - 1) * 3) + 1, 1)
+	return first_date_of_quarter.strftime(DATE_FORMAT) if as_str else first_date_of_quarter
+
+def get_first_day_of_week(dt, as_str=False):
+	dt = getdate(dt)
+	date = dt - datetime.timedelta(days=dt.weekday())
+	return date.strftime(DATE_FORMAT) if as_str else date
+
+def get_year_start(dt, as_str=False):
+	dt = getdate(dt)
+	date = datetime.date(dt.year, 1, 1)
+	return date.strftime(DATE_FORMAT) if as_str else date
+
+def get_last_day_of_week(dt):
+	dt = get_first_day_of_week(dt)
+	return dt + datetime.timedelta(days=6)
 
 def get_last_day(dt):
 	"""
@@ -208,6 +229,19 @@ def get_datetime_str(datetime_obj):
 	if isinstance(datetime_obj, string_types):
 		datetime_obj = get_datetime(datetime_obj)
 	return datetime_obj.strftime(DATETIME_FORMAT)
+
+def get_date_str(date_obj):
+	if isinstance(date_obj, string_types):
+		date_obj = get_datetime(date_obj)
+	return date_obj.strftime(DATE_FORMAT)
+
+def get_time_str(timedelta_obj):
+	if isinstance(timedelta_obj, string_types):
+		timedelta_obj = to_timedelta(timedelta_obj)
+
+	hours, remainder = divmod(timedelta_obj.seconds, 3600)
+	minutes, seconds = divmod(remainder, 60)
+	return "{0}:{1}:{2}".format(hours, minutes, seconds)
 
 def get_user_date_format():
 	"""Get the current user date format. The result will be cached."""
@@ -302,6 +336,34 @@ def format_datetime(datetime_string, format_string=None):
 		formatted_datetime = datetime.strftime('%Y-%m-%d %H:%M:%S')
 	return formatted_datetime
 
+def format_duration(seconds, show_days=True):
+	total_duration = {
+		'days': math.floor(seconds / (3600 * 24)),
+		'hours': math.floor(seconds % (3600 * 24) / 3600),
+		'minutes': math.floor(seconds % 3600 / 60),
+		'seconds': math.floor(seconds % 60)
+	}
+
+	if not show_days:
+		total_duration['hours'] = math.floor(seconds / 3600)
+		total_duration['days'] = 0
+
+	duration = ''
+	if total_duration:
+		if total_duration.get('days'):
+			duration += str(total_duration.get('days')) + 'd'
+		if total_duration.get('hours'):
+			duration += ' ' if len(duration) else ''
+			duration += str(total_duration.get('hours')) + 'h'
+		if total_duration.get('minutes'):
+			duration += ' ' if len(duration) else ''
+			duration += str(total_duration.get('minutes')) + 'm'
+		if total_duration.get('seconds'):
+			duration += ' ' if len(duration) else ''
+			duration += str(total_duration.get('seconds')) + 's'
+
+	return duration
+
 def get_weekdays():
 	return ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
 
@@ -310,6 +372,27 @@ def get_weekday(datetime=None):
 		datetime = now_datetime()
 	weekdays = get_weekdays()
 	return weekdays[datetime.weekday()]
+
+def get_timespan_date_range(timespan):
+	date_range_map = {
+		"last week": [add_to_date(nowdate(), days=-7), nowdate()],
+		"last month": [add_to_date(nowdate(), months=-1), nowdate()],
+		"last quarter": [add_to_date(nowdate(), months=-3), nowdate()],
+		"last 6 months": [add_to_date(nowdate(), months=-6), nowdate()],
+		"last year": [add_to_date(nowdate(), years=-1), nowdate()],
+		"today": [nowdate(), nowdate()],
+		"this week": [get_first_day_of_week(nowdate(), as_str=True), nowdate()],
+		"this month": [get_first_day(nowdate(), as_str=True), nowdate()],
+		"this quarter": [get_quarter_start(nowdate(), as_str=True), nowdate()],
+		"this year": [get_year_start(nowdate(), as_str=True), nowdate()],
+		"next week": [nowdate(), add_to_date(nowdate(), days=7)],
+		"next month": [nowdate(), add_to_date(nowdate(), months=1)],
+		"next quarter": [nowdate(), add_to_date(nowdate(), months=3)],
+		"next 6 months": [nowdate(), add_to_date(nowdate(), months=6)],
+		"next year": [nowdate(), add_to_date(nowdate(), years=1)],
+	}
+
+	return date_range_map.get(timespan)
 
 def global_date_format(date, format="long"):
 	"""returns localized date in the form of January 1, 2012"""
@@ -331,7 +414,7 @@ def flt(s, precision=None):
 		if precision is not None:
 			num = rounded(num, precision)
 	except Exception:
-		num = 0
+		num = 0.0
 
 	return num
 
@@ -949,7 +1032,7 @@ def compare(val1, condition, val2):
 
 	return ret
 
-def get_filter(doctype, f):
+def get_filter(doctype, f, filters_config=None):
 	"""Returns a _dict like
 
 		{
@@ -984,7 +1067,15 @@ def get_filter(doctype, f):
 		f.operator = "="
 
 	valid_operators = ("=", "!=", ">", "<", ">=", "<=", "like", "not like", "in", "not in", "is",
-		"between", "descendants of", "ancestors of", "not descendants of", "not ancestors of", "previous", "next")
+		"between", "descendants of", "ancestors of", "not descendants of", "not ancestors of",
+		"timespan", "previous", "next")
+
+	if filters_config:
+		additional_operators = []
+		for key in filters_config:
+			additional_operators.append(key.lower())
+		valid_operators = tuple(set(valid_operators + tuple(additional_operators)))
+
 	if f.operator.lower() not in valid_operators:
 		frappe.throw(frappe._("Operator must be one of {0}").format(", ".join(valid_operators)))
 

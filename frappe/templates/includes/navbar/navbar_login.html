@@ -1,5 +1,5 @@
 <!-- post login tools -->
-{% if not only_static %}
+{% if not only_static and not hide_login %}
 
 	{% if frappe.session.user != 'Guest' %}
 	<li class="nav-item dropdown logged-in" id="website-post-login" data-label="website-post-login" style="display: none">

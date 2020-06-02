@@ -145,7 +145,7 @@ class ShortcutDialog extends WidgetDialog {
 				fieldname: "type",
 				label: "Type",
 				reqd: 1,
-				options: "DocType\nReport\nPage",
+				options: "DocType\nReport\nPage\nDashboard",
 				onchange: () => {
 					if (this.dialog.get_value("type") == "DocType") {
 						this.dialog.fields_dict.link_to.get_query = () => {
@@ -241,11 +241,14 @@ class ShortcutDialog extends WidgetDialog {
 
 		if (this.dialog.get_value("type") == "DocType" && this.filter_group) {
 			let filters = this.filter_group.get_filters();
-			filters.forEach((arr) => {
-				stats_filter[arr[1]] = [arr[2], arr[3]];
-			});
 
-			data.stats_filter = JSON.stringify(stats_filter);
+			if (filters.length) {
+				filters.forEach((arr) => {
+					stats_filter[arr[1]] = [arr[2], arr[3]];
+				});
+
+				data.stats_filter = JSON.stringify(stats_filter);
+			}
 		}
 
 		data.label = data.label

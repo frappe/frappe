@@ -23,7 +23,7 @@ if PY2:
 	reload(sys)
 	sys.setdefaultencoding("utf-8")
 
-__version__ = '12.0.0-dev'
+__version__ = '13.0.0-dev'
 __title__ = "Frappe Framework"
 
 local = Local()
@@ -231,9 +231,8 @@ def get_site_config(sites_path=None, site_path=None):
 		if os.path.exists(site_config):
 			config.update(get_file_json(site_config))
 		elif local.site and not local.flags.new_site:
-			print("{0} does not exist".format(local.site))
+			print("Site {0} does not exist".format(local.site))
 			sys.exit(1)
-			#raise IncorrectSitePath, "{0} does not exist".format(site_config)
 
 	return _dict(config)
 
@@ -345,7 +344,7 @@ def msgprint(msg, title=None, raise_exception=0, as_table=False, indicator=None,
 			style="margin: 0;">{}</table>'''.format(table_rows)
 
 	if flags.print_messages and out.message:
-		print("Message: " + repr(out.message).encode("utf-8"))
+		print(f"Message: {repr(out.message).encode('utf-8')}")
 
 	if title:
 		out.title = title
@@ -1559,10 +1558,10 @@ def get_doctype_app(doctype):
 
 loggers = {}
 log_level = None
-def logger(module=None, with_more_info=True):
+def logger(module=None, with_more_info=False):
 	'''Returns a python logger that uses StreamHandler'''
 	from frappe.utils.logger import get_logger
-	return get_logger(module or 'default', with_more_info=with_more_info)
+	return get_logger(module=module, with_more_info=with_more_info)
 
 def log_error(message=None, title=_("Error")):
 	'''Log error to Error Log'''

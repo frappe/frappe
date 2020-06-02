@@ -147,11 +147,14 @@ def sync_contacts_from_google_contacts(g_contact):
 	results = []
 	contacts_updated = 0
 
+	sync_token = account.get_password(fieldname="next_sync_token", raise_exception=False) or None
+	contacts = frappe._dict()
+
 	while True:
 		try:
-			sync_token = account.get_password(fieldname="next_sync_token", raise_exception=False) or None
-			contacts = google_contacts.people().connections().list(resourceName='people/me',syncToken=sync_token,
-				personFields="names,emailAddresses,organizations,phoneNumbers").execute()
+			contacts = google_contacts.people().connections().list(resourceName='people/me', pageToken=contacts.get("nextPageToken"),
+				syncToken=sync_token, pageSize=2000, requestSyncToken=True, personFields="names,emailAddresses,organizations,phoneNumbers").execute()
+
 		except HttpError as err:
 			frappe.throw(_("Google Contacts - Could not sync contacts from Google Contacts {0}, error code {1}.").format(account.name, err.resp.status))
 
@@ -218,7 +221,7 @@ def insert_contacts_to_google_contacts(doc, method=None):
 	emailAddresses = [{"value": email_id.email_id} for email_id in doc.email_ids]
 
 	try:
-		contact = google_contacts.people().createContact(parent='people/me', body={"names": [names],"phoneNumbers": phoneNumbers,
+		contact = google_contacts.people().createContact(body={"names": [names],"phoneNumbers": phoneNumbers,
 			"emailAddresses": emailAddresses}).execute()
 		frappe.db.set_value("Contact", doc.name, "google_contacts_id", contact.get("resourceName"))
 	except HttpError as err:

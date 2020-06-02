@@ -40,6 +40,10 @@ export default class ChartWidget extends Widget {
 	setup_container() {
 		this.body.empty();
 
+		if (this.chart_doc.type == 'Heatmap') {
+			this.setup_heatmap_container();
+		}
+
 		this.loading = $(
 			`<div class="chart-loading-state text-muted" style="height: ${this.height}px;">${__(
 				"Loading..."
@@ -57,7 +61,14 @@ export default class ChartWidget extends Widget {
 		this.chart_wrapper = $(`<div></div>`);
 		this.chart_wrapper.appendTo(this.body);
 
+		this.$heatmap_legend = null;
 		this.set_chart_title();
+	}
+
+	setup_heatmap_container() {
+		this.widget.addClass('heatmap-chart');
+		this.widget.removeClass('full-width').addClass('full-width');
+		this.width = 'Full';
 	}
 
 	set_summary() {
@@ -86,7 +97,6 @@ export default class ChartWidget extends Widget {
 				this.chart_settings = {};
 			}
 			this.setup_container();
-			this.prepare_chart_object();
 			if (!this.in_customize_mode) {
 				this.action_area.empty();
 				this.prepare_chart_actions();
@@ -99,59 +109,15 @@ export default class ChartWidget extends Widget {
 					this.render_time_series_filters();
 				}
 			}
-			this.fetch_and_update_chart();
+			frappe.run_serially([
+				() => this.prepare_chart_object(),
+				() => this.fetch_and_update_chart(),
+			]);
 		});
 	}
 
 	render_time_series_filters() {
-		let filters = [
-			{
-				label: this.chart_settings.timespan || this.chart_doc.timespan,
-				options: [
-					"Select Date Range",
-					"Last Year",
-					"Last Quarter",
-					"Last Month",
-					"Last Week"
-				],
-				action: selected_item => {
-					this.selected_timespan = selected_item;
-
-					if (this.selected_timespan === "Select Date Range") {
-						this.render_date_range_fields();
-					} else {
-						this.selected_from_date = null;
-						this.selected_to_date = null;
-						if (this.date_field_wrapper) {
-							this.date_field_wrapper.hide();
-
-							// Title maybe hidden becuase of date range fields
-							// in half width chart
-							this.title_field.show();
-							this.head.css('flex-direction', "row");
-						}
-
-						this.save_chart_config_for_user({
-							'timespan': this.selected_timespan,
-							'from_date': null,
-							'to_date': null
-
-						});
-						this.fetch_and_update_chart();
-					}
-				}
-			},
-			{
-				label: this.chart_settings.time_interval || this.chart_doc.time_interval,
-				options: ["Yearly", "Quarterly", "Monthly", "Weekly", "Daily"],
-				action: selected_item => {
-					this.selected_time_interval = selected_item;
-					this.save_chart_config_for_user({'time_interval': this.selected_time_interval});
-					this.fetch_and_update_chart();
-				}
-			}
-		];
-
+		let filters = this.get_time_series_filters();
 		frappe.dashboard_utils.render_chart_filters(
 			filters,
 			"chart-actions",
@@ -160,12 +126,77 @@ export default class ChartWidget extends Widget {
 		);
 	}
 
+	get_time_series_filters() {
+		let filters;
+		if (this.chart_doc.type == 'Heatmap') {
+			filters = [{
+				label: this.chart_settings.heatmap_year || this.chart_doc.heatmap_year,
+				options: frappe.dashboard_utils.get_years_since_creation(frappe.boot.user.creation),
+				action: selected_item => {
+					this.selected_heatmap_year = selected_item;
+					this.save_chart_config_for_user({'heatmap_year': this.selected_heatmap_year});
+					this.fetch_and_update_chart();
+				}
+			}];
+		} else {
+			filters = [
+				{
+					label: this.chart_settings.timespan || this.chart_doc.timespan,
+					options: [
+						"Select Date Range",
+						"Last Year",
+						"Last Quarter",
+						"Last Month",
+						"Last Week"
+					],
+					action: selected_item => {
+						this.selected_timespan = selected_item;
+
+						if (this.selected_timespan === "Select Date Range") {
+							this.render_date_range_fields();
+						} else {
+							this.selected_from_date = null;
+							this.selected_to_date = null;
+							if (this.date_field_wrapper) {
+								this.date_field_wrapper.hide();
+
+								// Title maybe hidden becuase of date range fields
+								// in half width chart
+								this.title_field.show();
+								this.head.css('flex-direction', "row");
+							}
+
+							this.save_chart_config_for_user({
+								'timespan': this.selected_timespan,
+								'from_date': null,
+								'to_date': null
+
+							});
+							this.fetch_and_update_chart();
+						}
+					}
+				},
+				{
+					label: this.chart_settings.time_interval || this.chart_doc.time_interval,
+					options: ["Yearly", "Quarterly", "Monthly", "Weekly", "Daily"],
+					action: selected_item => {
+						this.selected_time_interval = selected_item;
+						this.save_chart_config_for_user({'time_interval': this.selected_time_interval});
+						this.fetch_and_update_chart();
+					}
+				}
+			];
+		}
+		return filters;
+	}
+
 	fetch_and_update_chart() {
 		this.args = {
 			timespan: this.selected_timespan || this.chart_settings.timespan,
 			time_interval: this.selected_time_interval || this.chart_settings.time_interval,
 			from_date: this.selected_from_date || this.chart_settings.from_date,
-			to_date: this.selected_to_date || this.chart_settings.to_date
+			to_date: this.selected_to_date || this.chart_settings.to_date,
+			heatmap_year: this.selected_heatmap_year || this.chart_settings.heatmap_year,
 		};
 
 		this.fetch(this.filters, true, this.args).then(data => {
@@ -274,7 +305,7 @@ export default class ChartWidget extends Widget {
 			},
 			{
 				label: __("Reset Chart"),
-				action: "action-list",
+				action: "action-reset",
 				handler: () => {
 					this.reset_chart();
 					delete this.dashboard_chart;
@@ -332,15 +363,12 @@ export default class ChartWidget extends Widget {
 								}
 							];
 						} else {
-							fields = filters.filter(f => {
-								if (f.on_change && !f.reqd) {
-									return false;
-								}
-								if (f.get_query || f.get_data) {
-									f.read_only = 1;
-								}
-								return f.fieldname;
-							});
+							fields = filters
+								.filter(df => df.fieldname)
+								.map(df => {
+									Object.assign(df, df.dashboard_config || {});
+									return df;
+								});
 						}
 					} else {
 						fields = [
@@ -384,6 +412,10 @@ export default class ChartWidget extends Widget {
 		}
 
 		dialog.show();
+		//Set query report object so that it can be used while fetching filter values in the report
+		frappe.query_report = new frappe.views.QueryReport({'filters': dialog.fields_list});
+		frappe.query_reports[this.chart_doc.report_name].onload
+				&& frappe.query_reports[this.chart_doc.report_name].onload(frappe.query_report);
 		dialog.set_values(this.filters);
 	}
 
@@ -391,6 +423,9 @@ export default class ChartWidget extends Widget {
 		this.save_chart_config_for_user(null, 1);
 		this.chart_settings = {};
 		this.filters = null;
+		this.selected_time_interval = null;
+		this.selected_timespan = null;
+		this.selected_heatmap_year = null;
 	}
 
 	save_chart_config_for_user(config, reset=0) {
@@ -458,58 +493,25 @@ export default class ChartWidget extends Widget {
 				time_interval: args && args.time_interval ? args.time_interval : null,
 				timespan: args && args.timespan ? args.timespan : null,
 				from_date: args && args.from_date ? args.from_date : null,
-				to_date: args && args.to_date ? args.to_date : null
+				to_date: args && args.to_date ? args.to_date : null,
+				heatmap_year: args && args.heatmap_year ?  args.heatmap_year : null,
 			};
 		}
 		return frappe.xcall(method, args);
 	}
 
 	render() {
-		const chart_type_map = {
-			Line: "line",
-			Bar: "bar",
-			Percentage: "percentage",
-			Pie: "pie",
-			Donut: "donut"
-		};
-
-		let colors = [];
-
-		if (this.chart_doc.y_axis.length) {
-			this.chart_doc.y_axis.map(field => {
-				colors.push(field.color);
-			});
-		} else if (["Line", "Bar"].includes(this.chart_doc.type)) {
-			colors = [this.chart_doc.color || []];
-		}
-
-		if (!this.data || !this.data.labels.length || !Object.keys(this.data).length) {
+		if (!this.data || !this.data.labels || !Object.keys(this.data).length) {
 			this.chart_wrapper.hide();
 			this.loading.hide();
-			this.$summary.hide();
+			this.$summary && this.$summary.hide();
 			this.empty.show();
 		} else {
 			this.loading.hide();
 			this.empty.hide();
 			this.chart_wrapper.show();
 
-			let chart_args = {
-				data: this.data,
-				type: chart_type_map[this.chart_doc.type],
-				colors: colors,
-				height: this.height,
-				axisOptions: {
-					xIsSeries: this.chart_doc.timeseries,
-					shortenYAxisNumbers: 1
-				}
-			};
-
-			if (this.chart_doc.custom_options) {
-				let custom_options = JSON.parse(this.chart_doc.custom_options);
-				for (let key in custom_options) {
-					chart_args[key] = custom_options[key];
-				}
-			}
+			const chart_args = this.get_chart_args();
 
 			if (!this.dashboard_chart) {
 				this.dashboard_chart = new frappe.Chart(
@@ -519,7 +521,93 @@ export default class ChartWidget extends Widget {
 			} else {
 				this.dashboard_chart.update(this.data);
 			}
+
 			this.width == "Full" && this.summary && this.set_summary();
+			this.chart_doc.type == 'Heatmap' && this.render_heatmap_legend();
+		}
+	}
+
+	get_chart_args() {
+		let colors = this.get_chart_colors();
+
+		const chart_type_map = {
+			Line: "line",
+			Bar: "bar",
+			Percentage: "percentage",
+			Pie: "pie",
+			Donut: "donut",
+			Heatmap: "heatmap"
+		};
+
+		let chart_args = {
+			data: this.data,
+			type: chart_type_map[this.chart_doc.type],
+			colors: colors,
+			height: this.height,
+			axisOptions: {
+				xIsSeries: this.chart_doc.timeseries,
+				shortenYAxisNumbers: 1
+			}
+		};
+
+		if (this.chart_doc.type == "Heatmap") {
+			const heatmap_year = parseInt(this.selected_heatmap_year || this.chart_settings.heatmap_year || this.chart_doc.heatmap_year);
+			chart_args.data.start = new Date(`${heatmap_year}-01-01`);
+			chart_args.data.end = new Date(`${heatmap_year+1}-01-01`);
+		}
+
+		let set_options = (options) => {
+			let custom_options = JSON.parse(options);
+			for (let key in custom_options) {
+				chart_args[key] = custom_options[key];
+			}
+		};
+
+		if (this.custom_options) {
+			set_options(this.custom_options);
+		}
+
+		if (this.chart_doc.custom_options) {
+			set_options(this.chart_doc.custom_options);
+		}
+
+		return chart_args;
+	}
+
+	get_chart_colors() {
+		let colors = [];
+		if (this.chart_doc.y_axis.length) {
+			this.chart_doc.y_axis.map(field => {
+				colors.push(field.color);
+			});
+		} else if (["Line", "Bar"].includes(this.chart_doc.type)) {
+			colors = [this.chart_doc.color || []];
+		}  else if (this.chart_doc.type == "Heatmap") {
+			colors = [];
+		}
+
+		return colors;
+	}
+
+	render_heatmap_legend() {
+		if (!this.$heatmap_legend && this.widget.width() > 991) {
+			this.$heatmap_legend =
+				$(`
+				<div class="heatmap-legend">
+					<ul class="legend-colors">
+						<li style="background-color: #ebedf0"></li>
+						<li style="background-color: #c6e48b"></li>
+						<li style="background-color: #7bc96f"></li>
+						<li style="background-color: #239a3b"></li>
+						<li style="background-color: #196127"></li>
+					</ul>
+					<div class="legend-label">
+						<div style="margin-bottom: 45px">${__("Less")}</div>
+						<div>${__("More")}</div>
+					</div>
+				</div>
+				`);
+			this.body.append(this.$heatmap_legend);
 		}
 	}
 
@@ -539,9 +627,41 @@ export default class ChartWidget extends Widget {
 	}
 
 	prepare_chart_object() {
-		let saved_filters = this.chart_settings.filters || null;
-		this.filters =
-			saved_filters || this.filters || JSON.parse(this.chart_doc.filters_json || "[]");
+		if (this.chart_doc.type == 'Heatmap' && !this.chart_doc.heatmap_year) {
+			this.chart_doc.heatmap_year = frappe.dashboard_utils.get_year(frappe.datetime.now_date());
+		}
+
+		return this.set_chart_filters();
+	}
+
+	set_chart_filters() {
+		let user_saved_filters = this.chart_settings.filters || null;
+		let chart_saved_filters = JSON.parse(this.chart_doc.filters_json || "null");
+
+		if (this.chart_doc.chart_type == 'Report') {
+			return frappe.dashboard_utils
+				.get_filters_for_chart_type(this.chart_doc).then(filters => {
+					chart_saved_filters = this.update_default_date_filters(filters, chart_saved_filters);
+					this.filters =
+						user_saved_filters || this.filters || chart_saved_filters;
+				});
+		} else {
+			this.filters =
+				user_saved_filters || this.filters || chart_saved_filters;
+			return Promise.resolve();
+		}
+	}
+
+	update_default_date_filters(report_filters, chart_filters) {
+		report_filters.map(f => {
+			if (['Date', 'DateRange'].includes(f.fieldtype) && f.default) {
+				if (f.reqd || chart_filters[f.fieldname]) {
+					chart_filters[f.fieldname] = f.default;
+				}
+			}
+		});
+
+		return chart_filters;
 	}
 
 	get_settings() {

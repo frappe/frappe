@@ -21,6 +21,12 @@ frappe.ui.form.Review = class Review {
 		});
 	}
 	make_review_container() {
+		this.parent.append(`
+			<ul class="list-unstyled sidebar-menu">
+				<li class="h6 reviews-label">${__('Reviews')}</li>
+				<li class="review-list"></li>
+			</ul>
+		`);
 		this.review_list_wrapper = this.parent.find('.review-list');
 	}
 	add_review_button() {

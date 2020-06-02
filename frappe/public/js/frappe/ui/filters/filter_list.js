@@ -103,7 +103,8 @@ frappe.ui.FilterGroup = class {
 			},
 			filter_items: (doctype, fieldname) => {
 				return !this.filter_exists([doctype, fieldname]);
-			}
+			},
+			base_list: this.base_list
 		};
 		let filter = new frappe.ui.Filter(args);
 		this.filters.push(filter);
@@ -132,7 +133,6 @@ frappe.ui.FilterGroup = class {
 
 	get_filters() {
 		return this.filters.filter(f => f.field).map(f => {
-			f.freeze();
 			return f.get_value();
 		});
 		// {}: this.list.update_standard_filters(values);

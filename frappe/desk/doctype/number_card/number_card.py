@@ -6,10 +6,15 @@ from __future__ import unicode_literals
 import frappe
 from frappe.model.document import Document
 from frappe.utils import cint
+from frappe.model.naming import append_number_if_name_exists
 
 class NumberCard(Document):
-	pass
+	def autoname(self):
+		if not self.name:
+			self.name = self.label
 
+		if frappe.db.exists("Number Card", self.name):
+			self.name = append_number_if_name_exists('Number Card', self.name)
 
 def get_permission_query_conditions(user=None):
 	if not user:
@@ -65,7 +70,7 @@ def get_result(doc, to_date=None):
 	if to_date:
 		filters.append([doc.document_type, 'creation', '<', to_date, False])
 
-	res = frappe.db.get_all(doc.document_type, fields=fields, filters=filters)
+	res = frappe.db.get_list(doc.document_type, fields=fields, filters=filters)
 	number = res[0]['result'] if res else 0
 
 	return cint(number)

@@ -21,7 +21,7 @@ def make_error_snapshot(exception):
 	if frappe.conf.disable_error_snapshot:
 		return
 
-	logger = frappe.logger(__name__, with_more_info=False)
+	logger = frappe.logger(with_more_info=True)
 
 	try:
 		error_id = '{timestamp:s}-{ip:s}-{hash:s}'.format(

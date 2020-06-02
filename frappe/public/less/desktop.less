@@ -4,7 +4,7 @@
 	margin-top: 20px;
 
 	.desk-sidebar {
-		width: 24rem;
+		width: 20rem;
 		display: block;
 		position: fixed;
 		z-index: 1;
@@ -69,7 +69,7 @@
 	}
 
 	.desk-body {
-		padding-left: calc(24rem + 15px);
+		padding-left: 20rem;
 		display: flex;
 		flex-direction: column;
   		height: 100%;
@@ -293,6 +293,75 @@
 		}
 	}
 
+	&.dashboard-widget-box.heatmap-chart {
+		min-height: 0px;
+		height: 180px;
+
+		.widget-footer {
+			display: none;
+		}
+
+		.widget-control {
+            z-index: 1;
+        }
+
+		.frappe-chart .chart-legend {
+			display: none;
+		}
+
+		.chart-loading-state {
+			height: 160px !important;
+		}
+
+		.widget-body {
+			display: flex;
+			max-height: 100%;
+			margin: auto;
+			margin-top: -15px;
+
+			.chart-container {
+				height: 100%;
+				.frappe-chart {
+					height: 100%;
+				}
+			}
+
+			.heatmap-legend {
+				display: flex;
+				margin: 45px 20px 0 20px;
+
+				.legend-colors {
+					padding-left: 1;
+					padding-left: 15px;
+					list-style: none;
+				}
+
+				li {
+					width: 10px;
+					height: 10px;
+					margin: 5px;
+				}
+
+				.legend-label {
+					color: #555b51;
+					font-size: 11px;
+					margin-left: 15px;
+					line-height: 1.6em;
+				}
+
+				@media (max-width: 991px) {
+					display: none;
+				}
+			}
+		}
+	}
+
+	@media (max-width: 768px) {
+		&.dashboard-widget-box.heatmap-chart {
+			display: none;
+		}
+	}
+
 	&.onboarding-widget-box {
 		margin-bottom: 50px;
 		margin-top: 10px;
@@ -319,10 +388,11 @@
 
 		.widget-body {
 			margin-top: 20px;
+			padding-right: 200px;
 
 			&.grid {
 				display: grid;
-				grid-template-columns: 1fr 1fr 1fr;
+				grid-template-columns: 1fr 1fr;
 				grid-auto-flow: column;
 
 				&.grid-rows-2 {
