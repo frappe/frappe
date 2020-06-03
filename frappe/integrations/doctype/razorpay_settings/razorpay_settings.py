@@ -64,6 +64,8 @@ from __future__ import unicode_literals
 import frappe
 from frappe import _
 import json
+import hmac
+import hashlib
 from six.moves.urllib.parse import urlencode
 from frappe.model.document import Document
 from frappe.utils import get_url, call_hook_method, cint, get_timestamp
@@ -316,6 +318,20 @@ class RazorpaySettings(Document):
 					settings.api_secret))
 		except Exception:
 			frappe.log_error(frappe.get_traceback())
+
+	def verify_signature(self, body, signature, key):
+		key = bytes(key, 'utf-8')
+		body = bytes(body, 'utf-8')
+
+		dig = hmac.new(key=key, msg=body, digestmod=hashlib.sha256)
+
+		generated_signature = dig.hexdigest()
+		result = hmac.compare_digest(generated_signature, signature)
+
+		if not result:
+			frappe.throw(_('Razorpay Signature Verification Failed'), exc=frappe.PermissionError)
+
+		return result
 
 def capture_payment(is_sandbox=False, sanbox_response=None):
 	"""
