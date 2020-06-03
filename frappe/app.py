@@ -186,6 +186,10 @@ def handle_exception(e):
 			frappe.local.login_manager.clear_cookies()
 
 	if http_status_code >= 500:
+		if not frappe.conf.developer_mode:
+			for fn in frappe.get_hooks("exception_handlers"):
+				frappe.get_attr(fn)()
+
 		frappe.logger().error('Request Error', exc_info=True)
 		make_error_snapshot(e)
 

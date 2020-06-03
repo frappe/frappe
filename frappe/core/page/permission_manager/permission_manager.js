@@ -287,7 +287,7 @@ frappe.PermissionEngine = Class.extend({
 					},
 					callback: function(r) {
 						r.message = $.map(r.message, function(p) {
-							return $.format('<a href="#Form/User/{0}">{1}</a>', [p, p]);
+							return $.format(`${p[1]} - <a href="#Form/User/${p[0]}">${p[0]}</a>`);
 						});
 						frappe.msgprint(__("Users with role {0}:", [__(role)])
 							+ "<br>" + r.message.join("<br>"));

@@ -61,14 +61,14 @@ data-web-form="{{ name }}" data-web-form-doctype="{{ doc_type }}" data-login-req
 	</div>
 	{% endif %} {# attachments #}
 
-	{% if allow_comments and not frappe.form_dict.new and not is_list -%}
+	{% if allow_comments and not frappe.form_dict.new -%}
 	<div class="comments">
 		<h3>{{ _("Comments") }}</h3>
 		{% include 'templates/includes/comments/comments.html' %}
 	</div>
 	{%- endif %} {# comments #}
-
 	{% endif %}
+
 </div>
 {% endblock page_content %}
 
