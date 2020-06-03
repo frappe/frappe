@@ -313,21 +313,15 @@ def get_desktop_page(page):
 	Returns:
 		dict: dictionary of cards, charts and shortcuts to be displayed on website
 	"""
-	try:
-		wspace = Workspace(page)
-		wspace.build_workspace()
-		return {
-			'charts': wspace.charts,
-			'shortcuts': wspace.shortcuts,
-			'cards': wspace.cards,
-			'onboarding': wspace.onboarding,
-			'allow_customization': not wspace.doc.disable_user_customization
-		}
-
-	except DoesNotExistError:
-		if frappe.message_log:
-			frappe.message_log.pop()
-		return None
+	wspace = Workspace(page)
+	wspace.build_workspace()
+	return {
+		'charts': wspace.charts,
+		'shortcuts': wspace.shortcuts,
+		'cards': wspace.cards,
+		'onboarding': wspace.onboarding,
+		'allow_customization': not wspace.doc.disable_user_customization
+	}
 
 @frappe.whitelist()
 def get_desk_sidebar_items(flatten=False):
