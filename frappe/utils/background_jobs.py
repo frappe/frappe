@@ -17,6 +17,7 @@ default_timeout = 300
 queue_timeout = {
 	'background': 2500,
 	'firebase_long': 2500,
+	'firebase_short': 2500,
 	'long': 1500,
 	'default': 300,
 	'short': 300
