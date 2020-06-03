@@ -20,18 +20,21 @@ $navbar-height-lg: 4.5rem;
 	}
 }
 
-.doc-container {
-	max-width: 1280px;
-
-	@include media-breakpoint-up(xl) {
-		padding-left: 0;
-		padding-right: 0;
-	}
+.navbar-expand-lg .doc-container {
+	padding-left: 1.5rem;
+	padding-right: 1.5rem;
 }
 
+.doc-container {
+	max-width: 1280px;
+	padding-left: 1.5rem;
+	padding-right: 1.5rem;
+}
 
 .doc-navbar {
 	background-color: white;
+	padding-left: 0;
+	padding-right: 0;
 
 	.navbar-toggler {
 		margin-left: 0.75rem;
@@ -57,11 +60,13 @@ $navbar-height-lg: 4.5rem;
 	}
 
 	.navbar-nav {
+		margin-left: -1rem;
 		margin-top: 0.75rem;
 		margin-bottom: 1.5rem;
 
 		@include media-breakpoint-up(lg) {
-			margin: 0;
+			margin-top: 0;
+			margin-bottom: 0;
 		}
 	}
 }
@@ -218,7 +223,12 @@ $navbar-height-lg: 4.5rem;
 		font-weight: 500;
 	}
 
-	h2, h3, h4, h5, h6 {
+	h1,
+	h2,
+	h3,
+	h4,
+	h5,
+	h6 {
 		&::before {
 			height: 6rem;
 			margin-top: -6rem;
