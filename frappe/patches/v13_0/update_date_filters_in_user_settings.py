@@ -40,11 +40,12 @@ def update_user_setting_filters(data, key, user_setting):
 		update = False
 		if isinstance(data.get(key), dict):
 			filters = data.get(key).get('filters')
-			for f in filters:
-				if f[2] == 'Next' or f[2] == 'Previous':
-					update = True
-					f[3] = period_map[f[2]] + ' ' + timespan_map[f[3]]
-					f[2] = 'Timespan'
+			if filters and isinstance(filters, list):
+				for f in filters:
+					if f[2] == 'Next' or f[2] == 'Previous':
+						update = True
+						f[3] = period_map[f[2]] + ' ' + timespan_map[f[3]]
+						f[2] = 'Timespan'
 
 			if update:
 				data[key]['filters'] = filters

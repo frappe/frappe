@@ -292,6 +292,25 @@ Object.assign(frappe.utils, {
 		return frappe.utils.guess_style(text, null, true);
 	},
 
+	get_indicator_color: function(state) {
+		return frappe.db.get_list('Workflow State', {filters: {name: state}, fields: ['name', 'style']}).then(res => {
+			const state = res[0];
+			if (!state.style) {
+				return frappe.utils.guess_colour(state.name);
+			}
+			const style = state.style;
+			const colour_map = {
+				"Success": "green",
+				"Warning": "orange",
+				"Danger": "red",
+				"Primary": "blue",
+			};
+
+			return colour_map[style];
+		});
+
+	},
+
 	sort: function(list, key, compare_type, reverse) {
 		if(!list || list.length < 2)
 			return list || [];
