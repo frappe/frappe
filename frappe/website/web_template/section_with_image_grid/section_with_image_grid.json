@@ -7,25 +7,25 @@
    "fieldname": "title",
    "fieldtype": "Data",
    "label": "Title",
-   "reqd": 0
+   "reqd": 1
   },
   {
    "fieldname": "subtitle",
    "fieldtype": "Data",
    "label": "Subtitle",
-   "reqd": 0
+   "reqd": 1
   },
   {
    "fieldname": "image_1",
    "fieldtype": "Attach Image",
    "label": "Image 1",
-   "reqd": 0
+   "reqd": 1
   },
   {
    "fieldname": "image_2",
    "fieldtype": "Attach Image",
    "label": "Image 2",
-   "reqd": 0
+   "reqd": 1
   },
   {
    "fieldname": "image_3",
@@ -41,7 +41,7 @@
   }
  ],
  "idx": 0,
- "modified": "2020-06-04 14:46:21.697200",
+ "modified": "2020-06-04 16:57:43.097550",
  "modified_by": "Administrator",
  "name": "Section with Image Grid",
  "owner": "Administrator",
