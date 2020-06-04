@@ -294,27 +294,40 @@
 
 	.grid-image {
 		overflow: hidden;
-		height: 15rem;
 		border: 2px solid #fff;
 		border-radius: $border-radius;
 
-		&.wide {
-			max-width: 75%;
-			width: 75%;
+		width: 100%;
+		max-height: 8rem;
 
-			img {
-				width: 100%;
-				object-fit: cover;
-			}
+		img {
+			width: 100%;
+			object-fit: cover;
 		}
 
-		&.narrow {
-			max-width: 25%;
-			width: 25%;
+		@include media-breakpoint-up(sm) {
+			&.wide {
+				max-width: 75%;
+				width: 75%;
+				max-height: 15rem;
+				height: 15rem;
 
-			img {
-				height: 100%;
-				object-fit: cover;
+				img {
+					width: 100%;
+					object-fit: cover;
+				}
+			}
+
+			&.narrow {
+				max-width: 25%;
+				width: 25%;
+				max-height: 15rem;
+				height: 15rem;
+
+				img {
+					height: 100%;
+					object-fit: cover;
+				}
 			}
 		}
 	}
