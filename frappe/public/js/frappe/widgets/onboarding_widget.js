@@ -296,7 +296,7 @@ export default class OnboardingWidget extends Widget {
 					frappe.msgprint({
 						message: __("You may continue with onboarding"),
 						title: __("Looks Great")
-					})
+					});
 					this.mark_complete(step);
 				}
 			},
