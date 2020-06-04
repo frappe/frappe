@@ -430,7 +430,7 @@ def _drop_site(site, root_login='root', root_password=None, archived_sites_path=
 		else:
 			click.echo("="*80)
 			click.echo("Error: The operation has stopped because backup of {s}'s database failed.".format(s=site))
-			click.echo("Reason: {reason}{sep}".format(reason=err[1], sep="\n"))
+			click.echo("Reason: {reason}{sep}".format(reason=str(err), sep="\n"))
 			click.echo("Fix the issue and try again.")
 			click.echo(
 				"Hint: Use 'bench drop-site {s} --force' to force the removal of {s}".format(sep="\n", tab="\t", s=site)

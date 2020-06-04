@@ -251,6 +251,7 @@ frappe.ui.form.on('Dashboard Chart', {
 	render_filters_table: function(frm) {
 		frm.set_df_property("filters_section", "hidden", 0);
 		let is_document_type = frm.doc.chart_type!== 'Report' && frm.doc.chart_type!=='Custom';
+		let is_dynamic_filter = f => ['Date', 'DateRange'].includes(f.fieldtype) && f.default;
 
 		let wrapper = $(frm.get_field('filters_json').wrapper).empty();
 		let table = $(`<table class="table table-bordered" style="cursor:pointer; margin:0px;">
@@ -267,6 +268,18 @@ frappe.ui.form.on('Dashboard Chart', {
 
 		let filters = JSON.parse(frm.doc.filters_json || '[]');
 		var filters_set = false;
+
+		// Set dynamic filters for reports
+		if (frm.doc.chart_type == 'Report') {
+			let set_filters = false;
+			frm.chart_filters.forEach(f => {
+				if (is_dynamic_filter(f)) {
+					filters[f.fieldname] = f.default;
+					set_filters = true;
+				}
+			});
+			set_filters && frm.set_value('filters_json', JSON.stringify(filters));
+		}
 
 		let fields;
 		if (is_document_type) {
@@ -292,6 +305,7 @@ frappe.ui.form.on('Dashboard Chart', {
 			}
 		} else if (frm.chart_filters.length) {
 			fields = frm.chart_filters.filter(f => f.fieldname);
+
 			fields.map( f => {
 				if (filters[f.fieldname]) {
 					let condition = '=';
@@ -318,7 +332,7 @@ frappe.ui.form.on('Dashboard Chart', {
 
 			let dialog = new frappe.ui.Dialog({
 				title: __('Set Filters'),
-				fields: fields,
+				fields: fields.filter(f => !is_dynamic_filter(f)),
 				primary_action: function() {
 					let values = this.get_values();
 					if (values) {
@@ -351,10 +365,15 @@ frappe.ui.form.on('Dashboard Chart', {
 			}
 
 			dialog.show();
-			//Set query report object so that it can be used while fetching filter values in the report
-			frappe.query_report = new frappe.views.QueryReport({'filters': dialog.fields_list});
-			frappe.query_reports[frm.doc.report_name].onload
-				&& frappe.query_reports[frm.doc.report_name].onload(frappe.query_report);
+
+			if (frm.doc.chart_type == 'Report') {
+				//Set query report object so that it can be used while fetching filter values in the report
+				frappe.query_report = new frappe.views.QueryReport({'filters': dialog.fields_list});
+				frappe.query_reports[frm.doc.report_name]
+					&& frappe.query_reports[frm.doc.report_name].onload
+						&& frappe.query_reports[frm.doc.report_name].onload(frappe.query_report);
+			}
+
 			dialog.set_values(filters);
 		});
 	},
