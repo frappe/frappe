@@ -1,5 +1,5 @@
 {%- set post = doc -%}
-<div class="blog-card {{ 'featured' if post.featured else '' }}">
+<div class="blog-card col-sm-12 {{ 'col-md-8' if post.featured else 'col-md-4' }}">
 	<div class="card h-100">
 		<div class="card-img-top">
 			{% if post.cover_image %}

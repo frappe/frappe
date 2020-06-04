@@ -10,19 +10,9 @@
 }
 
 .blog-card {
-	margin-bottom: 3rem;
+	margin-bottom: 2rem;
 	position: relative;
 	width: 100%;
-	padding-right: 15px;
-	padding-left: 15px;
-
-	flex: 0 0 33.33333%;
-	max-width: 33.33333%;
-
-	&.featured {
-		flex: 0 0 66.66667%;
-		max-width: 66.66667%;
-	}
 
 	.card-body {
 		display: flex;
@@ -75,7 +65,7 @@
 	.blog-footer {
 		display: flex;
 		justify-content: space-between;
-		color: #8d99a6;
+		color: $text-muted;
 		margin-top: 3rem;
 	}
 
