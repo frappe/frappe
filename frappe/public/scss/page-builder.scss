@@ -282,3 +282,40 @@
 .split-section-content {
 	margin-top: 2rem;
 }
+
+.image-grid {
+	display: flex;
+	flex-wrap: wrap;
+	width: 100%;
+
+	// Offset for padding
+	margin-right: -2px;
+	margin-left: -2px;
+
+	.grid-image {
+		overflow: hidden;
+		height: 15rem;
+		border: 2px solid #fff;
+		border-radius: $border-radius;
+
+		&.wide {
+			max-width: 75%;
+			width: 75%;
+
+			img {
+				width: 100%;
+				object-fit: cover;
+			}
+		}
+
+		&.narrow {
+			max-width: 25%;
+			width: 25%;
+
+			img {
+				height: 100%;
+				object-fit: cover;
+			}
+		}
+	}
+}
