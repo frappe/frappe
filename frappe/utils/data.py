@@ -442,7 +442,7 @@ def remainder(numerator, denominator, precision=2):
 	else:
 		_remainder = numerator % denominator
 
-	return flt(_remainder, precision);
+	return flt(_remainder, precision)
 
 def safe_div(numerator, denominator, precision=2):
 	"""
@@ -524,8 +524,11 @@ def fmt_money(amount, precision=None, currency=None):
 		if precision > 2:
 			if len(decimals) < 3:
 				if currency:
-					fraction  = frappe.db.get_value("Currency", currency, "fraction_units", cache=True) or 100
-					precision = len(cstr(fraction)) - 1
+					fraction  = frappe.db.get_value("Currency", currency, "smallest_currency_fraction_value", cache=True) or 100
+					fraction_parts = cstr(fraction).split(".")
+
+					if len(fraction_parts) > 1:
+						precision = len(fraction_parts[1])
 				else:
 					precision = number_format_precision
 			elif len(decimals) < precision:

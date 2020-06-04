@@ -69,8 +69,12 @@ frappe.form.formatters = {
 			var decimals = parts.length > 1 ? parts[1] : ""; // parts.length == 2 ???
 
 			if ( decimals.length < 3 || decimals.length < precision ) {
-				const fraction = frappe.model.get_value(":Currency", currency, "fraction_units") || 100; // if not set, minimum 2.
-				precision      = cstr(fraction).length - 1;
+				const fraction = frappe.model.get_value(":Currency", currency, "smallest_currency_fraction_value") || 100; // if not set, minimum 2.
+				let fraction_parts = cstr(fraction).split(".");
+
+				if (fraction_parts.length > 1) {
+					precision = fraction_parts[1].length;
+				}
 			}
 		}
 
