@@ -3,6 +3,9 @@
 
 frappe.ui.form.on('Number Card', {
 	refresh: function(frm) {
+		if (!frappe.boot.developer_mode && frm.doc.is_standard) {
+			frm.disable_form();
+		}
 		frm.set_df_property("filters_section", "hidden", 1);
 		frm.trigger('set_options');
 		frm.trigger('render_filters_table');

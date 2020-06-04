@@ -12,6 +12,11 @@ frappe.ui.form.on('Dashboard Chart', {
 
 	refresh: function(frm) {
 		frm.chart_filters = null;
+
+		if (!frappe.boot.developer_mode && frm.doc.is_standard) {
+			frm.disable_form();
+		}
+
 		frm.add_custom_button('Add Chart to Dashboard', () => {
 			const d = new frappe.ui.Dialog({
 				title: __('Add to Dashboard'),
@@ -240,11 +245,11 @@ frappe.ui.form.on('Dashboard Chart', {
 	show_filters: function(frm) {
 		frm.chart_filters = [];
 		frappe.dashboard_utils.get_filters_for_chart_type(frm.doc).then(filters => {
-				if (filters) {
-					frm.chart_filters = filters;
-				}
+			if (filters) {
+				frm.chart_filters = filters;
+			}
 
-				frm.trigger('render_filters_table');
+			frm.trigger('render_filters_table');
 		});
 	},
 

@@ -67,6 +67,9 @@ def get_result(doc, to_date=None):
 
 	filters = frappe.parse_json(doc.filters_json)
 
+	if not filters:
+			filters = []
+
 	if to_date:
 		filters.append([doc.document_type, 'creation', '<', to_date, False])
 

@@ -10,6 +10,7 @@
   "aggregate_function_based_on",
   "column_break_2",
   "document_type",
+  "is_standard",
   "is_public",
   "stats_section",
   "show_percentage_stats",
@@ -95,10 +96,17 @@
    "fieldname": "stats_section",
    "fieldtype": "Section Break",
    "label": "Stats"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_standard",
+   "fieldtype": "Check",
+   "label": "Is Standard",
+   "read_only": 1
   }
  ],
  "links": [],
- "modified": "2020-05-06 19:47:57.753574",
+ "modified": "2020-05-26 17:30:41.248436",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Number Card",
