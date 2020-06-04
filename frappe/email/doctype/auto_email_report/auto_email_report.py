@@ -216,8 +216,10 @@ def send_daily():
 		elif auto_email_report.frequency == 'Weekly':
 			if auto_email_report.day_of_week != current_day:
 				continue
-
-		auto_email_report.send()
+		try:
+			auto_email_report.send()
+		except Exception as e:
+			frappe.log_error(e, _('Failed to send {0} Auto Email Report').format(auto_email_report.name))
 
 
 def send_monthly():

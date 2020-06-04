@@ -19,6 +19,7 @@ from frappe.email.inbox import get_email_accounts
 from frappe.social.doctype.energy_point_settings.energy_point_settings import is_energy_point_enabled
 from frappe.website.doctype.web_page_view.web_page_view import is_tracking_enabled
 from frappe.social.doctype.energy_point_log.energy_point_log import get_energy_points
+from frappe.model.base_document import get_controller
 from frappe.social.doctype.post.post import frequently_visited_links
 
 def get_bootinfo():
@@ -84,6 +85,7 @@ def get_bootinfo():
 	bootinfo.points = get_energy_points(frappe.session.user)
 	bootinfo.frequently_visited_links = frequently_visited_links()
 	bootinfo.link_preview_doctypes = get_link_preview_doctypes()
+	bootinfo.additional_filters_config = get_additional_filters_from_hooks()
 
 	return bootinfo
 
@@ -106,6 +108,7 @@ def load_desktop_data(bootinfo):
 	from frappe.desk.desktop import get_desk_sidebar_items
 	bootinfo.allowed_modules = get_modules_from_all_apps_for_user()
 	bootinfo.allowed_workspaces = get_desk_sidebar_items(True)
+	bootinfo.module_page_map = get_controller("Desk Page").get_module_page_map()
 	bootinfo.dashboards = frappe.get_all("Dashboard")
 
 def get_allowed_pages(cache=False):
@@ -295,3 +298,11 @@ def get_link_preview_doctypes():
 			link_preview_doctypes.append(custom.doc_type)
 
 	return link_preview_doctypes
+
+def get_additional_filters_from_hooks():
+	filter_config = frappe._dict()
+	filter_hooks = frappe.get_hooks('filters_config')
+	for hook in filter_hooks:
+		filter_config.update(frappe.get_attr(hook)())
+
+	return filter_config
