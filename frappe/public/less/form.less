@@ -26,10 +26,6 @@
 .form-inner-toolbar {
 	padding: 10px 15px 0px;
 	text-align: right;
-
-	.btn {
-		margin-bottom: 10px;
-	}
 }
 
 .form-clickable-section {
@@ -122,11 +118,6 @@
 		display: none;
 	}
 }
-
-.form-dashboard {
-	background-color: @light-bg;
-}
-
 .form-dashboard-wrapper {
 	margin: -15px 0px;
 }
@@ -136,9 +127,7 @@
 }
 
 .form-dashboard-section {
-	margin: 0px -15px;
 	padding: 15px 30px;
-	border-bottom: 1px solid @light-border-color;
 }
 
 .form-dashboard-section:first-child {
@@ -159,6 +148,7 @@
 		// excessive whitespace around the chart
 		.chart-container {
 			margin: 0px;
+			width: 1024px !important;
 		}
 
 		// don't show the less..more legend
@@ -322,17 +312,8 @@ h6.uppercase, .h6.uppercase {
 	border-top: 1px solid @border-color;
 }
 
-.form-inner-toolbar {
-	border-bottom: 1px solid @border-color;
-}
-
-
 .empty-section {
 	display: none !important;
-}
-
-.shaded-section {
-	//background-color: @light-bg;
 }
 
 .modal {

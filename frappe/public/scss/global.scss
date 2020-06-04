@@ -130,3 +130,7 @@ h2 {
 	}
 }
 
+.btn-group-sm > .btn, .btn-sm, .btn-xs {
+	padding: 4px 12px;
+	font-size: var(--text-md);
+}

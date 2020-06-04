@@ -110,7 +110,7 @@ frappe.ui.form.Layout = Class.extend({
 		this.fields.unshift({
 			fieldtype: 'Section Break',
 			fieldname: '_form_dashboard',
-			label: __('Dashboard'),
+			label: __('Overview'),
 			cssClass: 'form-dashboard',
 			collapsible: 1,
 			//hidden: 1
@@ -233,32 +233,26 @@ frappe.ui.form.Layout = Class.extend({
 		// refresh sections
 		this.refresh_sections();
 
-		// collapse sections
-		if(this.frm) {
+		if (this.frm) {
+			// collapse sections
 			this.refresh_section_collapse();
 		}
 	},
 
 	refresh_sections: function() {
-		var cnt = 0;
-
-		// hide invisible sections and set alternate background color
+		// hide invisible sections
 		this.wrapper.find(".form-section:not(.hide-control)").each(function() {
-			var $this = $(this).removeClass("empty-section")
-				.removeClass("visible-section")
-				.removeClass("shaded-section");
-			if(!$this.find(".frappe-control:not(.hide-control)").length
-				&& !$this.hasClass('form-dashboard')) {
-				// nothing visible, hide the section
-				$this.addClass("empty-section");
+			const section = $(this).removeClass("empty-section visible-section");
+			if (section.find(".frappe-control:not(.hide-control)").length) {
+				section.addClass("visible-section");
 			} else {
-				$this.addClass("visible-section");
-				if(cnt % 2) {
-					$this.addClass("shaded-section");
-				}
-				cnt++;
+				// nothing visible, hide the section
+				section.addClass("empty-section");
 			}
 		});
+
+		this.frm && this.frm.dashboard.refresh();
+
 	},
 
 	refresh_fields: function(fields) {

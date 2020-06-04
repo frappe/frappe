@@ -51,6 +51,11 @@
 	}
 }
 
+.form-dashboard {
+	.section-head {
+		font-size: var(--text-xl);
+	}
+}
 
 // .form-print-wrapper {
 // 	border: 1px solid $border-color;
@@ -176,9 +181,6 @@
 // 	}
 // }
 
-// .form-dashboard {
-// 	background-color: @light-bg;
-// }
 
 // .form-dashboard-wrapper {
 // 	margin: -15px 0px;

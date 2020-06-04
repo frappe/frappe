@@ -19,7 +19,7 @@ frappe.ui.form.Dashboard = Class.extend({
 
 	},
 	reset: function() {
-		this.section.addClass('hidden');
+		this.hide();
 		this.clear_headline();
 
 		// clear progress
@@ -437,7 +437,9 @@ frappe.ui.form.Dashboard = Class.extend({
 				start: new Date(moment().subtract(1, 'year').toDate()),
 				count_label: "interactions",
 				discreteDomains: 0,
-				data: {}
+				data: {},
+				width: 1024,
+				height: 250
 			});
 
 			// center the heatmap
@@ -519,10 +521,15 @@ frappe.ui.form.Dashboard = Class.extend({
 	},
 
 	show: function() {
-		this.section.removeClass('hidden');
+		this.toggle_visibility(true);
 	},
 
 	hide: function() {
-		this.section.addClass('hidden');
+		this.toggle_visibility(false);
+	},
+
+	toggle_visibility(show) {
+		this.section.toggleClass('visible-section', show);
+		this.section.toggleClass('empty-section', !show);
 	}
 });

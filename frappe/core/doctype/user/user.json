@@ -7,7 +7,6 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
-  "sb0_5",
   "enabled",
   "section_break_3",
   "email",
@@ -84,15 +83,10 @@
  ],
  "fields": [
   {
-   "fieldname": "sb0_5",
-   "fieldtype": "Section Break",
-   "show_days": 1,
-   "show_seconds": 1
-  },
-  {
    "default": "1",
    "fieldname": "enabled",
    "fieldtype": "Check",
+   "hidden": 1,
    "label": "Enabled",
    "oldfieldname": "enabled",
    "oldfieldtype": "Check",
@@ -104,6 +98,7 @@
    "depends_on": "enabled",
    "fieldname": "section_break_3",
    "fieldtype": "Section Break",
+   "label": "Basic Info",
    "show_days": 1,
    "show_seconds": 1
   },
@@ -753,7 +748,7 @@
  "image_field": "user_image",
  "links": [],
  "max_attachments": 5,
- "modified": "2020-06-04 04:51:58.935303",
+ "modified": "2020-06-04 08:48:45.355159",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "User",
