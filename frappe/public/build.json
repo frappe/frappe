@@ -93,7 +93,6 @@
 		"public/less/flex.less",
 		"public/less/indicator.less",
 		"public/less/avatar.less",
-		"public/less/navbar.less",
 		"public/less/notifications.less",
 		"public/less/sidebar.less",
 		"public/less/page.less",

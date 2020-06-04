@@ -1,3 +1,4 @@
+// TODO: Refactor - use multicheck control
 frappe.RoleEditor = Class.extend({
 	init: function(wrapper, frm, disable) {
 		var me = this;
@@ -48,7 +49,7 @@ frappe.RoleEditor = Class.extend({
 		}
 
 		$.each(this.roles, function(i, role) {
-			$(me.wrapper).append(repl('<div class="user-role" \
+			$(me.wrapper).append(repl('<div class="user-role col-md-4" \
 				data-user-role="%(role_value)s">\
 				<input type="checkbox" style="margin-top:0px;" class="box"> \
 				<a href="#" class="grey role">%(role_display)s</a>\

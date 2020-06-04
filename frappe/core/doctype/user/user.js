@@ -265,7 +265,7 @@ frappe.ModuleEditor = Class.extend({
 	make: function() {
 		var me = this;
 		this.frm.doc.__onload.all_modules.forEach(function(m) {
-			$(repl('<div class="col-sm-6"><div class="checkbox">\
+			$(repl('<div class="col-sm-4"><div class="checkbox">\
 				<label><input type="checkbox" class="block-module-check" data-module="%(module)s">\
 				%(module)s</label></div></div>', {module: m})).appendTo(me.wrapper);
 		});
