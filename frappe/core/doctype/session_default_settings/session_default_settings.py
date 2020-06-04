@@ -28,8 +28,7 @@ def get_session_default_values():
 
 @frappe.whitelist()
 def set_session_default_values(default_values):
-	if not frappe.flags.in_test:
-		default_values = json.loads(default_values)
+	default_values = frappe.parse_json(default_values)
 	for entry in default_values:
 		try:
 			frappe.defaults.set_user_default(entry, default_values.get(entry))
