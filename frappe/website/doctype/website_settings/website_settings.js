@@ -69,10 +69,7 @@ frappe.ui.form.on('Website Settings', {
 	},
 
 	get_parent_options: function(frm, table_field) {
-		console.log(frm);
-		console.log(table_field);
 		var items = frm.doc[table_field] || [];
-		console.log(items)
 		var main_items = [''];
 		for (var i in items) {
 			var d = items[i];
