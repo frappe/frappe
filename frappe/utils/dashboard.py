@@ -7,7 +7,7 @@ from functools import wraps
 from frappe.utils import add_to_date, cint, get_link_to_form
 from frappe.modules.import_file import import_doc
 import os
-from os.path import isfile, join
+from os.path import join
 import ast
 
 
@@ -183,6 +183,6 @@ def make_records(path, filters=None):
 				if filters:
 					doc_dict['filters_json'] = frappe.as_json(filters[doc_name])
 				import_doc(doc_dict)
-			except FileNotFoundError as e:
-				frappe.log_error(message=frappe.get_traceback(), title="Dashboard Import Error")
+			except FileNotFoundError:
+				frappe.log_error(message=frappe.get_traceback(), title="Dashboard Sync")
 				pass
