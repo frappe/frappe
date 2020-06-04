@@ -34,7 +34,6 @@
 		width: 100%;
 		overflow: hidden;
 		height: 12rem;
-		width: auto;
 
 		img {
 			width: 100%;
@@ -73,15 +72,6 @@
 	max-width: 800px;
 	margin: 0px auto;
 
-	.blog-content {
-		margin-bottom: 1rem;
-
-		.blog-header {
-			margin-bottom: 3rem;
-			margin-top: 3rem;
-		}
-	}
-
 	.blog-footer {
 		display: flex;
 		justify-content: space-between;
@@ -95,7 +85,13 @@
 	}
 
 	.blog-content {
+		margin-bottom: 1rem;
 		line-height: 1.8;
+
+		.blog-header {
+			margin-bottom: 3rem;
+			margin-top: 3rem;
+		}
 
 		p {
 			margin-bottom: 1.2rem;
