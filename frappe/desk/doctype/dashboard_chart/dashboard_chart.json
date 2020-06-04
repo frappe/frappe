@@ -22,6 +22,7 @@
   "aggregate_function_based_on",
   "number_of_groups",
   "column_break_6",
+  "is_standard",
   "is_public",
   "heatmap_year",
   "timespan",
@@ -33,9 +34,9 @@
   "filters_section",
   "filters_json",
   "chart_options_section",
-  "color",
-  "column_break_2",
   "custom_options",
+  "column_break_2",
+  "color",
   "section_break_10",
   "last_synced_on"
  ],
@@ -235,10 +236,18 @@
    "fieldname": "heatmap_year",
    "fieldtype": "Select",
    "label": "Year"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_standard",
+   "fieldtype": "Check",
+   "label": "Is Standard",
+   "show_days": 1,
+   "show_seconds": 1
   }
  ],
  "links": [],
- "modified": "2020-05-16 15:03:02.455395",
+ "modified": "2020-06-04 15:59:52.046492",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Dashboard Chart",

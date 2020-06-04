@@ -80,7 +80,9 @@ def get(chart_name = None, chart = None, no_cache = None, filters = None, from_d
 			to_date = get_datetime(chart.to_date)
 
 	timegrain = time_interval or chart.time_interval
-	filters = frappe.parse_json(filters) or frappe.parse_json(chart.filters_json) or []
+	filters = frappe.parse_json(filters) or frappe.parse_json(chart.filters_json)
+	if not filters:
+		filters = []
 
 	# don't include cancelled documents
 	filters.append([chart.document_type, 'docstatus', '<', 2, False])
@@ -349,6 +351,8 @@ class DashboardChart(Document):
 		frappe.cache().delete_key('chart-data:{}'.format(self.name))
 
 	def validate(self):
+		if not frappe.conf.developer_mode and self.is_standard:
+			frappe.throw('Cannot edit Standard charts')
 		if self.chart_type != 'Custom' and self.chart_type != 'Report':
 			self.check_required_field()
 			self.check_document_type()
