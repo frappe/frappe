@@ -46,7 +46,7 @@
 	{% endif %}
 	<div class="blog-footer">
 		<div>
-			Published on {{ frappe.format_date(published_on) }}
+			{{ _('Published on') }} {{ frappe.format_date(published_on) }}
 		</div>
 		<div>
 			{% if social_links %}
