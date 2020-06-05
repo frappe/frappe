@@ -47,6 +47,7 @@ matrix:
     script: bench --site test_site run-ui-tests frappe --headless
 
 before_install:
+  - echo $TRAVIS_COMMIT_RANGE
     # do we really want to run travis?
   - |
     ONLY_DOCS_CHANGES=$(git diff --name-only $TRAVIS_COMMIT_RANGE | grep -qvE '\.(md|png|jpg|jpeg)$|^.github|LICENSE' ; echo $?)
