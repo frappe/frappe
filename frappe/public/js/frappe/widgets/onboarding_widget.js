@@ -294,9 +294,9 @@ export default class OnboardingWidget extends Widget {
 					};
 				} else {
 					frappe.msgprint({
-						message: __("You can continue with onboarding"),
+						message: __("You may continue with onboarding"),
 						title: __("Looks Great")
-					})
+					});
 					this.mark_complete(step);
 				}
 			},
