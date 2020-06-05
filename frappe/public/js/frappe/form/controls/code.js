@@ -26,6 +26,16 @@ frappe.ui.form.ControlCode = frappe.ui.form.ControlText.extend({
 		}, 300));
 	},
 
+	refresh_height() {
+		this.ace_editor_target.css('height', this.expanded ? 600 : 300);
+		this.editor.resize();
+	},
+
+	toggle_label() {
+		const button_label = this.expanded ? __('Collapse') : __('Expand');
+		this.$expand_button && this.$expand_button.text(button_label);
+	},
+
 	set_language() {
 		const language_map = {
 			'Javascript': 'ace/mode/javascript',
