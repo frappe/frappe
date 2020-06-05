@@ -328,6 +328,9 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 	make_column_map()
 	total = len(data)
 
+	if total > 5000:
+    		frappe.msgprint("For optimal site performance, please upload only up to 5,000 records. To import more data, you can use smaller files to import them individually.")
+
 	if validate_template:
 		if total:
 			data_import_doc.total_rows = total
