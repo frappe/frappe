@@ -20,13 +20,13 @@ $navbar-height-lg: 4.5rem;
 	}
 }
 
-.navbar-expand-lg .doc-container {
+.doc-container {
+	max-width: 1280px;
 	padding-left: 1.5rem;
 	padding-right: 1.5rem;
 }
 
-.doc-container {
-	max-width: 1280px;
+.navbar-expand-lg .doc-container {
 	padding-left: 1.5rem;
 	padding-right: 1.5rem;
 }
@@ -255,16 +255,16 @@ $navbar-height-lg: 4.5rem;
 		background-color: $light;
 	}
 
-	.table-bordered thead th,
-	.table-bordered thead td {
-		border-bottom-width: 1px;
-	}
-
 	.table-bordered,
 	.table-bordered th,
 	.table-bordered td {
 		border-left: none;
 		border-right: none;
 		border-color: $gray-200;
+	}
+
+	.table-bordered thead th,
+	.table-bordered thead td {
+		border-bottom-width: 1px;
 	}
 }

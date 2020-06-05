@@ -3,7 +3,6 @@
 
 from __future__ import unicode_literals
 import frappe
-import os
 from whoosh.index import create_in, open_dir
 from whoosh.fields import TEXT, ID, Schema
 from whoosh.qparser import MultifieldParser, FieldsPlugin, WildcardPlugin
