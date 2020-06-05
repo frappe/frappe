@@ -80,7 +80,6 @@ frappe.ui.form.on("Notification", {
 		});
 	},
 	refresh: function(frm) {
-		frm.toggle_reqd("recipients", frm.doc.channel=="Email");
 		frappe.notification.setup_fieldname_select(frm);
 		frm.get_field("is_standard").toggle(frappe.boot.developer_mode);
 		frm.trigger('event');

@@ -22,7 +22,11 @@ def pass_context(f):
 			pr = cProfile.Profile()
 			pr.enable()
 
-		ret = f(frappe._dict(ctx.obj), *args, **kwargs)
+		try:
+			ret = f(frappe._dict(ctx.obj), *args, **kwargs)
+		except frappe.exceptions.SiteNotSpecifiedError as e:
+			click.secho(str(e), fg='yellow')
+			sys.exit(1)
 
 		if profile:
 			pr.disable()
@@ -44,8 +48,7 @@ def get_site(context):
 		site = context.sites[0]
 		return site
 	except (IndexError, TypeError):
-		print('Please specify --site sitename')
-		sys.exit(1)
+		raise frappe.SiteNotSpecifiedError
 
 def popen(command, *args, **kwargs):
 	output    = kwargs.get('output', True)

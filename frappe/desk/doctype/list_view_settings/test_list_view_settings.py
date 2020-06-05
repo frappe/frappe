@@ -3,7 +3,8 @@
 # See license.txt
 from __future__ import unicode_literals
 
+# import frappe
 import unittest
 
-class TestListViewSetting(unittest.TestCase):
+class TestListViewSettings(unittest.TestCase):
 	pass

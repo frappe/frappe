@@ -9,7 +9,7 @@ import json
 from email.utils import formataddr
 from frappe.core.utils import get_parent_doc
 from frappe.utils import (get_url, get_formatted_email, cint,
-  validate_email_address, split_emails, time_diff_in_seconds, parse_addr, get_datetime)
+  validate_email_address, split_emails, parse_addr, get_datetime)
 from frappe.email.email_body import get_message_id
 import frappe.email.smtp
 import time
@@ -171,33 +171,6 @@ def _notify(doc, print_html=None, print_format=None, attachments=None,
 		is_notification=True if doc.sent_or_received =="Received" else False,
 		print_letterhead=frappe.flags.print_letterhead
 	)
-
-def update_parent_mins_to_first_response(doc):
-	"""Update mins_to_first_communication of parent document based on who is replying."""
-
-	parent = get_parent_doc(doc)
-	if not parent:
-		return
-
-	# update parent mins_to_first_communication only if we create the Email communication
-	# ignore in case of only Comment is added
-	if doc.communication_type == "Comment":
-		return
-
-	status_field = parent.meta.get_field("status")
-	if status_field:
-		options = (status_field.options or '').splitlines()
-
-		# if status has a "Replied" option, then update the status for received communication
-		if ('Replied' in options) and doc.sent_or_received=="Received":
-			parent.db_set("status", "Open")
-		else:
-			# update the modified date for document
-			parent.update_modified()
-
-	update_mins_to_first_communication(parent, doc)
-	parent.run_method('notify_communication', doc)
-	parent.notify_update()
 
 def get_recipients_cc_and_bcc(doc, recipients, cc, bcc, fetched_from_email_account=False):
 	doc.all_email_addresses = []
@@ -498,15 +471,6 @@ def sendmail(communication_name, print_html=None, print_format=None, attachments
 	except:
 		traceback = frappe.log_error("frappe.core.doctype.communication.email.sendmail")
 		raise
-
-def update_mins_to_first_communication(parent, communication):
-	if parent.meta.has_field('mins_to_first_response') and not parent.get('mins_to_first_response'):
-		if frappe.db.get_all('User', filters={'email': communication.sender,
-			'user_type': 'System User', 'enabled': 1}, limit=1):
-			first_responded_on = communication.creation
-			if parent.meta.has_field('first_responded_on') and communication.sent_or_received == "Sent":
-				parent.db_set('first_responded_on', first_responded_on)
-			parent.db_set('mins_to_first_response', round(time_diff_in_seconds(first_responded_on, parent.creation) / 60), 2)
 
 @frappe.whitelist(allow_guest=True)
 def mark_email_as_seen(name=None):

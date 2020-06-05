@@ -29,9 +29,13 @@ export default class ShortcutWidget extends Widget {
 				name: this.link_to,
 				type: this.type,
 				is_query_report: this.is_query_report,
-				doctype: this.ref_doctype
+				doctype: this.ref_doctype,
 			});
 
+			let filters = this.get_doctype_filter();
+			if (this.type == "DocType" && filters) {
+				frappe.route_options = filters;
+			}
 			frappe.set_route(route);
 		});
 	}
@@ -40,14 +44,24 @@ export default class ShortcutWidget extends Widget {
 		if (this.in_customize_mode) return;
 
 		this.widget.addClass("shortcut-widget-box");
-		const get_filter = new Function(`return ${this.stats_filter}`);
-		if (this.type == "DocType" && this.stats_filter) {
+
+		let filters = this.get_doctype_filter();
+		if (this.type == "DocType" && filters) {
 			frappe.db
 				.count(this.link_to, {
-					filters: get_filter(),
+					filters: filters,
 				})
 				.then((count) => this.set_count(count));
 		}
+	}
+
+	get_doctype_filter() {
+		let count_filter = new Function(`return ${this.stats_filter}`)();
+		if (count_filter) {
+			return count_filter;
+		}
+
+		return null;
 	}
 
 	set_title() {
