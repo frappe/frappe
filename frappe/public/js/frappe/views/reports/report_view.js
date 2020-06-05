@@ -10,6 +10,10 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		return 'Report';
 	}
 
+	render_header() {
+		// Override List View Header
+	}
+
 	setup_defaults() {
 		super.setup_defaults();
 		this.page_title = __('Report:') + ' ' + this.page_title;
