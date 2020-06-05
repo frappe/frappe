@@ -69,6 +69,10 @@
 		});
 
 		// scroll the active sidebar item into view
-		$('.sidebar-item a.active').get(0).scrollIntoView({behavior: "auto", block: "center", inline: "nearest"});
+		let active_sidebar_item = $('.sidebar-item a.active');
+		if (active_sidebar_item.length > 0) {
+			active_sidebar_item.get(0)
+				.scrollIntoView({behavior: "auto", block: "center", inline: "nearest"});
+		}
 	});
 </script>
