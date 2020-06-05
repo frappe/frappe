@@ -85,6 +85,8 @@ def start_import(data_import):
 		frappe.db.rollback()
 		data_import.db_set("status", "Error")
 		frappe.log_error(title=data_import.name)
+	finally:
+		frappe.flags.in_import = False
 
 	frappe.publish_realtime("data_import_refresh", {"data_import": data_import.name})
 
