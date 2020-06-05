@@ -398,15 +398,21 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		this.primary_action_map = {
 			"New": {
 				label: __("Generate New Report"),
-				action: () => this.generate_background_report()
+				click: () => {
+					this.generate_background_report()
+				},
 			},
 			"Edit": {
 				label: __("Edit"),
-				action: () => frappe.set_route(frappe.get_route())
+				click: () => {
+					frappe.set_route(frappe.get_route())
+				}
 			},
 			"Rebuild": {
 				label:	__("Rebuild"),
-				action: () => this.generate_background_report()
+				click: () => {
+					this.generate_background_report()
+				}
 			}
 		}
 		let primary_action = this.primary_action_map[this.prepared_report_action];
@@ -414,7 +420,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		if (!this.primary_button || this.primary_button.text() !== primary_action.label) {
 			this.primary_button = this.page.set_primary_action(
 				primary_action.label,
-				primary_action.action
+				primary_action.click
 			);
 		}
 	}
