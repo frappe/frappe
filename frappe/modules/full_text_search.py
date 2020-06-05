@@ -7,6 +7,7 @@ import os
 from whoosh.index import create_in, open_dir
 from whoosh.fields import TEXT, ID, Schema
 from whoosh.qparser import MultifieldParser, FieldsPlugin, WildcardPlugin
+from whoosh.query import Prefix
 from bs4 import BeautifulSoup
 from frappe.website.render import render_page
 from frappe.utils import set_request, cint
@@ -18,6 +19,12 @@ def build_index_for_all_routes():
 	routes = get_routes_to_index()
 	documents = [get_document_to_index(route) for route in routes]
 	build_index("web_routes", documents)
+
+
+@frappe.whitelist(allow_guest=True)
+def web_search(index_name, query, scope=None, limit=20):
+	limit = cint(limit)
+	return search(index_name, query, scope, limit)
 
 
 def get_document_to_index(route):
@@ -49,7 +56,7 @@ def build_index(index_name, documents):
 		title=TEXT(stored=True), path=ID(stored=True), content=TEXT(stored=True)
 	)
 
-	index_dir = os.path.join(frappe.utils.get_bench_path(), "indexes", index_name)
+	index_dir = get_index_path(index_name)
 	frappe.create_folder(index_dir)
 
 	ix = create_in(index_dir, schema)
@@ -64,8 +71,8 @@ def build_index(index_name, documents):
 	writer.commit()
 
 
-def search(index_name, text, limit=20):
-	index_dir = os.path.join(frappe.utils.get_bench_path(), "indexes", index_name)
+def search(index_name, text, scope=None, limit=20):
+	index_dir = get_index_path(index_name)
 	ix = open_dir(index_dir)
 
 	results = None
@@ -76,7 +83,11 @@ def search(index_name, text, limit=20):
 		parser.remove_plugin_class(WildcardPlugin)
 		query = parser.parse(text)
 
-		results = searcher.search(query, limit=limit)
+		filter_scoped = None
+		if scope:
+			filter_scoped = Prefix("path", scope)
+		results = searcher.search(query, limit=limit, filter=filter_scoped)
+
 		for r in results:
 			title_highlights = r.highlights("title")
 			content_highlights = r.highlights("content")
@@ -92,7 +103,5 @@ def search(index_name, text, limit=20):
 	return out
 
 
-@frappe.whitelist(allow_guest=True)
-def web_search(query, limit=20):
-	limit = cint(limit)
-	return search("web_routes", query, limit)
+def get_index_path(index_name):
+	return frappe.get_site_path("indexes", index_name)
