@@ -390,6 +390,10 @@
 			margin-top: 20px;
 			padding-right: 200px;
 
+			@media (max-width: 970px) {
+				padding-right: 0;
+			}
+
 			&.grid {
 				display: grid;
 				grid-template-columns: 1fr 1fr;
@@ -409,6 +413,17 @@
 
 				&.grid-rows-5 {
 					grid-template-rows: repeat(5, 1fr);
+				}
+
+				@media (max-width: 768px) {
+					grid-template-columns: 1fr;
+					&.grid-rows-2,
+					&.grid-rows-3,
+					&.grid-rows-4,
+					&.grid-rows-5 {
+						grid-template-columns: 1fr;
+						grid-auto-flow: row;
+					}
 				}
 			}
 
