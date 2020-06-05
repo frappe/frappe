@@ -1,3 +1,4 @@
+test: travis
 <div align="center">
     <img src=".github/frappe-framework-logo.png" height="150">
     <h1>
