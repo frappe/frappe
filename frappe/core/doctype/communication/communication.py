@@ -448,13 +448,16 @@ def update_parent_document_on_communication(doc):
 
 		# if status has a "Replied" option, then update the status for received communication
 		if ('Replied' in options) and doc.sent_or_received=="Received":
-			parent.db_set("status", "Open")
+			parent.status = "Open"
+			parent.flags.ignore_mandatory = True
+			parent.save()
 			apply_assignment_rule(parent)
 		else:
 			# update the modified date for document
 			parent.update_modified()
 
 	update_mins_to_first_communication(parent, doc)
+	set_avg_response_time(parent, doc)
 	parent.run_method('notify_communication', doc)
 	parent.notify_update()
 
@@ -465,3 +468,25 @@ def update_mins_to_first_communication(parent, communication):
 			if parent.meta.has_field('first_responded_on') and communication.sent_or_received == "Sent":
 				parent.db_set('first_responded_on', first_responded_on)
 			parent.db_set('mins_to_first_response', round(time_diff_in_seconds(first_responded_on, parent.creation) / 60), 2)
+
+def set_avg_response_time(parent, communication):
+	if parent.meta.has_field("avg_response_time") and communication.sent_or_received == "Sent":
+		# avg response time for all the responses
+		communications = frappe.get_list("Communication", filters={
+				"reference_doctype": parent.doctype,
+				"reference_name": parent.name
+			},
+			fields=["sent_or_received", "name", "creation"],
+			order_by="creation"
+		)
+
+		if len(communications):
+			response_times = []
+			for i in range(len(communications)):
+				if communications[i].sent_or_received == "Sent" and communications[i-1].sent_or_received == "Received":
+					response_time = round(time_diff_in_seconds(communications[i].creation, communications[i-1].creation), 2)
+					if response_time > 0:
+						response_times.append(response_time)
+			if response_times:
+				avg_response_time = sum(response_times) / len(response_times)
+				parent.db_set("avg_response_time", avg_response_time)
