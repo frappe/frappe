@@ -313,7 +313,7 @@ def get_base_template(path=None):
 	if not path:
 		path = frappe.local.request.path
 
-	base_template_map = frappe.get_hooks("base_template_map")
+	base_template_map = frappe.get_hooks("base_template_map") or {}
 	patterns = list(base_template_map.keys())
 	patterns_desc = sorted(patterns, key=lambda x: len(x), reverse=True)
 	for pattern in patterns_desc:
