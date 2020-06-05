@@ -241,20 +241,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 
 	refresh(refresh_header=false) {
-		this.freeze(true);
-		// fetch data from server
-		return frappe.call(this.get_call_args()).then(r => {
-			// render
-			this.prepare_data(r);
-			this.toggle_result_area();
-			this.before_render();
+		super.refresh().then(() => {
 			this.render_header(refresh_header);
-			this.render();
-			this.after_render();
-			this.freeze(false);
-			if (this.settings.refresh) {
-				this.settings.refresh(this);
-			}
 		});
 	}
 
