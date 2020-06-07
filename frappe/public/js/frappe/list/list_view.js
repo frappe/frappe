@@ -29,6 +29,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 
 	show() {
+		this.parent.disable_scroll_to_top = true;
+
 		if (!this.has_permissions()) {
 			frappe.set_route('');
 			frappe.msgprint(__(`Not permitted to view ${this.doctype}`));
