@@ -12,16 +12,15 @@ frappe.ui.form.on('Dashboard Chart', {
 	before_save: function(frm) {
 		let dynamic_filters = JSON.parse(frm.doc.dynamic_filters_json || 'null');
 		let static_filters = JSON.parse(frm.doc.filters_json || 'null');
-		console.log(dynamic_filters, static_filters);
 		if (dynamic_filters) {
 			if ($.isArray(static_filters)) {
 				static_filters = static_filters.filter(static_filter => {
 					for (let dynamic_filter of dynamic_filters) {
 						if (static_filter[0] == dynamic_filter[0]
 							&& static_filter[1] == dynamic_filter[1]) {
-								return false;
+							return false;
 						}
-					};
+					}
 					return true;
 				});
 			} else {
@@ -518,7 +517,7 @@ frappe.ui.form.on('Dashboard Chart', {
 							<td>${filter[1]}</td>
 							<td>${filter[2] || ""}</td>
 							<td>${filter[3]}</td>
-						</tr>`
+						</tr>`;
 				});
 			} else {
 				let condition = '=';
