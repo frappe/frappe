@@ -268,3 +268,11 @@ $navbar-height-lg: 4.5rem;
 		border-bottom-width: 1px;
 	}
 }
+
+// next links
+.btn-next-wrapper {
+	border-top: 1px solid $gray-200;
+	margin-top: 2rem;
+	padding-top: 1rem;
+	text-align: right;
+}
