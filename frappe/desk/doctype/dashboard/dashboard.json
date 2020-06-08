@@ -53,18 +53,19 @@
    "default": "0",
    "fieldname": "is_standard",
    "fieldtype": "Check",
-   "label": "Is Standard",
-   "read_only": 1
+   "label": "Is Standard"
   },
   {
+   "depends_on": "eval: doc.is_standard",
    "fieldname": "module",
    "fieldtype": "Link",
    "label": "Module",
+   "mandatory_depends_on": "eval: doc.is_standard",
    "options": "Module Def"
   }
  ],
  "links": [],
- "modified": "2020-05-26 18:31:10.062311",
+ "modified": "2020-06-08 19:16:02.997796",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Dashboard",

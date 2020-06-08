@@ -13,6 +13,7 @@ from frappe.utils import nowdate, add_to_date, getdate, get_last_day, formatdate
 from frappe.model.naming import append_number_if_name_exists
 from frappe.boot import get_allowed_reports
 from frappe.model.document import Document
+from frappe.modules.export_file import export_to_files
 
 
 def get_permission_query_conditions(user):
@@ -349,6 +350,9 @@ class DashboardChart(Document):
 
 	def on_update(self):
 		frappe.cache().delete_key('chart-data:{}'.format(self.name))
+		if frappe.conf.developer_mode and self.is_standard:
+			export_to_files(record_list=[['Dashboard Chart', self.name]], record_module=self.module)
+
 
 	def validate(self):
 		if not frappe.conf.developer_mode and self.is_standard:
