@@ -323,7 +323,7 @@ $.extend(frappe, {
 		$('.switch-to-desk').removeClass('hidden');
 	},
 	add_link_to_headings: function() {
-		$('.from-markdown').find('h2, h3, h4, h5, h6').each((i, $heading) => {
+		$('.doc-content .from-markdown').find('h2, h3, h4, h5, h6').each((i, $heading) => {
 			let id = $heading.id;
 			let $a = $('<a class="no-underline">')
 				.prop('href', '#' + id)
