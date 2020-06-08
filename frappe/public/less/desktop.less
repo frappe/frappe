@@ -369,12 +369,7 @@
 		.widget-head {
 			display: flex;
 
-			.widget-title {
-				font-size: 20px;
-			}
-
 			.widget-subtitle {
-				font-size: 16px;
 				margin-top: 5px;
 				color: @text-muted;
 			}
@@ -388,33 +383,9 @@
 
 		.widget-body {
 			margin-top: 20px;
-			padding-right: 200px;
-
-			&.grid {
-				display: grid;
-				grid-template-columns: 1fr 1fr;
-				grid-auto-flow: column;
-
-				&.grid-rows-2 {
-					grid-template-rows: repeat(3, 1fr);
-				}
-
-				&.grid-rows-3 {
-					grid-template-rows: repeat(3, 1fr);
-				}
-
-				&.grid-rows-4 {
-					grid-template-rows: repeat(4, 1fr);
-				}
-
-				&.grid-rows-5 {
-					grid-template-rows: repeat(5, 1fr);
-				}
-			}
 
 			.onboarding-step {
 				margin-bottom: 8px;
-				font-size: 16px;
 				letter-spacing: 0.015em;
 
 				i {
