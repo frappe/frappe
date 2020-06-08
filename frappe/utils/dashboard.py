@@ -8,7 +8,6 @@ from frappe.utils import add_to_date, cint, get_link_to_form
 from frappe.modules.import_file import import_doc
 import os
 from os.path import join
-import ast
 
 
 def cache_source(function):
@@ -76,18 +75,6 @@ def get_from_date_from_timespan(to_date, timespan):
 		years = -50
 	return add_to_date(to_date, years=years, months=months, days=days,
 		as_datetime=True)
-
-def create_filters_file_after_export(module_name, dashboard_name):
-	dashboard_path = frappe.get_module_path(\
-		module_name,\
-		"{module_name}_dashboard".format(module_name=module_name),\
-		"{dashboard}".format(dashboard=dashboard_name)\
-	)
-	charts_path = frappe.get_module_path(module_name, "dashboard charts")
-	create_filters_file(charts_path, dashboard_path, 'dashboard_chart_filters')
-	cards_path = frappe.get_module_path(module_name, "number cards")
-	create_filters_file(cards_path, dashboard_path, 'number_card_filters')
-
 
 def sync_dashboards(app=None):
 	"""Import, overwrite fixtures from `[app]/fixtures`"""
