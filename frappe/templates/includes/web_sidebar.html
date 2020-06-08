@@ -61,7 +61,11 @@
 		$('.sidebar-item a').each(function (index) {
 			const active_class = 'active'
 			const non_active_class = ''
-			if (this.href.trim() == window.location) {
+			let page_href = window.location.href;
+			if (page_href.indexOf('#') !== -1) {
+				page_href = page_href.slice(0, page_href.indexOf('#'));
+			}
+			if (this.href.trim() == page_href) {
 				$(this).removeClass(non_active_class).addClass(active_class);
 			} else {
 				$(this).removeClass(active_class).addClass(non_active_class);
