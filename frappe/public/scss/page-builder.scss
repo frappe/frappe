@@ -3,6 +3,11 @@
 	font-weight: 400;
 	color: $gray-600;
 	max-width: 42rem;
+	font-size: 1rem;
+
+	@include media-breakpoint-up(sm) {
+		font-size: 1.25rem;
+	}
 }
 
 .section-description {
@@ -92,7 +97,7 @@
 	@include transition();
 
 	&:hover {
-		border-color: $gray-600;
+		border-color: $gray-500;
 	}
 
 	.card-title {
