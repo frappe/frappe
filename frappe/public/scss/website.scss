@@ -7,6 +7,7 @@
 @import 'page-builder';
 @import 'markdown';
 @import 'sidebar';
+@import 'doc';
 
 .container {
 	padding-left: 1.25rem;
@@ -281,7 +282,6 @@ h5.modal-title {
 }
 
 .btn-primary-light {
-	$primary-light: lighten($primary, 42%);
 	@include button-variant(
 		$background: $primary-light,
 		$border: $primary-light,
