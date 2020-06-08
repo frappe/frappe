@@ -278,9 +278,10 @@ def setup_source(page_info):
 	if not page_info.base_template:
 		page_info.base_template = get_base_template(page_info.route)
 
-	# if only content
 	if page_info.template.endswith('.html') or page_info.template.endswith('.md'):
-		html = source
+		# set the source only if it contains raw content
+		if '{%- extends' not in source and '{% extends' not in source:
+			html = source
 
 		# load css/js files
 		js, css = '', ''
