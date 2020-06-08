@@ -7,7 +7,7 @@
 			{%- set image = values['image_' + index ] -%}
 			{%- set class = "narrow" if index in ['1', '4'] else "wide" -%}
 			{%- if image -%}
-				<div class="grid-image {{ class }}">
+				<div class="image-container {{ class }}">
 					{{ frappe.render_template('templates/includes/image_with_blur.html', {
 						"src": image
 					}) }}
