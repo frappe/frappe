@@ -19,19 +19,19 @@
 				{{ blog_intro }}
 			</p>
 			<div class="text-muted">
-				{{ frappe.format_date(published_on) }}
-				{% if read_time %}
-					&middot;
-					{{ read_time }} min read
-				{% endif %}
+				<time datetime="{{ published_on }}">{{ frappe.format_date(published_on) }}</time>
+				{%- if read_time -%}
+				&nbsp;&middot;
+				<span>{{ read_time }} min read</span>
+				{%- endif -%}
 			</div>
 		</div>
-		<div itemprop="articleBody">
+		<div itemprop="articleBody" class="from-markdown">
 			{{ content }}
 		</div>
 		<!-- end blog content -->
 	</article>
-	{% if enable_cta %}
+	{%- if enable_cta -%}
 		{{ web_blocks([
 				{
 					'template': "Section With Small CTA",
@@ -43,10 +43,10 @@
 				}
 			])
 		}}
-	{% endif %}
+	{%- endif -%}
 	<div class="blog-footer">
 		<div>
-			{{ _('Published on') }} {{ frappe.format_date(published_on) }}
+			{{ _('Published on') }} <time datetime="{{ published_on }}">{{ frappe.format_date(published_on) }}</time>
 		</div>
 		<div>
 			{% if social_links %}
@@ -63,7 +63,7 @@
 	{% endif %}
 
 	{% if not disable_comments %}
-		<div class="blog-comments my-5">
+		<div class="my-5 blog-comments">
 			{% include 'templates/includes/comments/comments.html' %}
 		</div>
 	{% endif %}

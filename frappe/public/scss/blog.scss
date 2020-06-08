@@ -62,6 +62,11 @@
 	max-width: 800px;
 	margin: 0px auto;
 
+	.blog-title {
+		margin-top: 1rem;
+		font-size: 2.5rem;
+	}
+
 	.blog-footer {
 		display: flex;
 		justify-content: space-between;
@@ -70,84 +75,16 @@
 	}
 
 	.blog-intro {
-		font-size: 1.25rem;
-		font-weight: 300;
+		font-size: 1.125rem;
+		font-weight: 400;
 	}
 
 	.blog-content {
 		margin-bottom: 1rem;
-		line-height: 1.8;
 
 		.blog-header {
 			margin-bottom: 3rem;
 			margin-top: 3rem;
-		}
-
-		p {
-			margin-bottom: 1.2rem;
-		}
-
-		ul, ol {
-			margin-top: 1rem;
-		}
-
-		hr {
-			margin: 2rem auto;
-		}
-
-		h1 {
-			margin-top: 2rem;
-			font-weight: 800;
-			font-size: 2rem;
-		}
-
-		h1.blog-title {
-			margin-top: 2rem;
-			font-weight: 800;
-			font-size: 2.5rem;
-		}
-
-		h2 {
-			margin-top: 2rem;
-			font-weight: 700;
-			font-size: 1.75rem;
-		}
-
-		h3 {
-			margin-top: 2rem;
-			font-weight: 600;
-			font-size: 1.5rem;
-		}
-
-		h4 {
-			font-weight: 500;
-			margin-top: 1.5rem;
-			font-size: 1.25rem;
-		}
-
-		h5,
-		h6 {
-			font-weight: 500;
-			margin-top: 1.5rem;
-			font-size: 1rem;
-		}
-
-		img {
-			border-radius: $border-radius;
-		}
-
-		blockquote {
-			margin: 2rem auto;
-			width: 90%;
-			padding-top: 2rem;
-			padding-bottom: 0.8rem;
-
-			border-top: 1px solid $gray-200;
-			border-bottom: 1px solid $gray-200;
-
-			text-align: center;
-			font-size: 1.2rem;
-			font-weight: 500;
 		}
 	}
 }
