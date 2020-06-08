@@ -1,5 +1,7 @@
 .hero-subtitle {
 	@extend .lead;
+	font-weight: 400;
+	color: $gray-600;
 	max-width: 42rem;
 }
 
@@ -7,7 +9,6 @@
 	max-width: 56rem;
 	margin-top: 0.5rem;
 	font-size: $font-size-base;
-	color: $gray-900;
 
 	@include media-breakpoint-up(lg) {
 		font-size: $font-size-lg;
@@ -88,16 +89,14 @@
 }
 
 .card {
-	.card-title {
-		color: $black;
-	}
-
-	.card-body {
-		color: $gray-900;
-	}
+	@include transition();
 
 	&:hover {
 		border-color: $gray-600;
+	}
+
+	.card-title {
+		line-height: 1;
 	}
 
 	&.card-sm {
@@ -156,12 +155,20 @@
 }
 
 .nav-tabs {
+	flex-wrap: nowrap;
+	overflow-x: auto;
+	overflow-y: hidden;
+	// 1 pixel bottom padding so that the 2px active border is visible
+	padding-bottom: 1px;
+
 	.nav-link {
-		color: $gray-700;
+		color: $gray-800;
 		font-weight: 500;
 		border: none;
 		padding: 1rem 0.5rem;
 		margin-right: 2rem;
+		white-space: nowrap;
+		@include transition();
 
 		&:hover {
 			color: $primary;
@@ -171,7 +178,7 @@
 	.nav-link.active,
 	.nav-item.show .nav-link {
 		color: darken($primary, 5%);
-		background-color: #fff;
+		background-color: transparent;
 		border-bottom: 2px solid $primary;
 	}
 }
@@ -183,7 +190,7 @@
 .section-cta {
 	padding: 3rem 2rem;
 	text-align: center;
-	background-color: lighten($primary, 42%);
+	background-color: $primary-light;
 	border-radius: 0.75rem;
 
 	@include media-breakpoint-up(sm) {
@@ -210,7 +217,6 @@
 		margin: 0 auto;
 		margin-top: 0.5rem;
 		font-size: $font-size-base;
-		color: $gray-900;
 		@include media-breakpoint-up(md) {
 			font-size: $font-size-lg;
 		}
@@ -220,7 +226,6 @@
 		margin: 0 auto;
 		margin-top: 0.5rem;
 		font-size: $font-size-xs;
-		color: $gray-900;
 	}
 }
 
@@ -266,19 +271,77 @@
 	margin-right: auto;
 	margin-top: 2rem;
 	max-width: 52rem;
-	font-size: $font-size-2xl;
+	font-size: $font-size-lg;
 	font-weight: 500;
+
+	@include media-breakpoint-up(lg) {
+		font-size: $font-size-2xl;
+	}
 }
 
 .testimonial-by {
-	font-size: $font-size-lg;
+	font-size: $font-size-base;
 	margin-top: 2rem;
 
 	&:before {
 		content: '—'
 	}
+
+	@include media-breakpoint-up(lg) {
+		font-size: $font-size-lg;
+	}
 }
 
 .split-section-content {
 	margin-top: 2rem;
+}
+
+.section-image-grid {
+	display: flex;
+	flex-wrap: wrap;
+	width: 100%;
+
+	// Offset for padding
+	margin-right: -2px;
+	margin-left: -2px;
+
+	.image-container {
+		overflow: hidden;
+		border: 2px solid #fff;
+		border-radius: $border-radius;
+
+		width: 100%;
+		max-height: 8rem;
+
+		img {
+			width: 100%;
+			object-fit: cover;
+		}
+
+		@include media-breakpoint-up(sm) {
+			&.wide {
+				max-width: 75%;
+				width: 75%;
+				max-height: 15rem;
+				height: 15rem;
+
+				img {
+					width: 100%;
+					object-fit: cover;
+				}
+			}
+
+			&.narrow {
+				max-width: 25%;
+				width: 25%;
+				max-height: 15rem;
+				height: 15rem;
+
+				img {
+					height: 100%;
+					object-fit: cover;
+				}
+			}
+		}
+	}
 }

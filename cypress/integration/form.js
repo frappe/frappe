@@ -9,6 +9,7 @@ context('Form', () => {
 	it('create a new form', () => {
 		cy.visit('/desk#Form/ToDo/New ToDo 1');
 		cy.fill_field('description', 'this is a test todo', 'Text Editor').blur();
+		cy.wait(300);
 		cy.get('.page-title').should('contain', 'Not Saved');
 		cy.server();
 		cy.route({
