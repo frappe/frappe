@@ -31,30 +31,6 @@ class Dashboard(Document):
 			except ValueError as error:
 				frappe.throw(_("Invalid json added in the custom options: {0}").format(error))
 
-# @frappe.whitelist()
-# def export_dashboard(doc):
-# 	doc = frappe._dict(frappe.parse_json(doc))
-# 	card_count = 0
-# 	chart_count = 0
-
-# 	if not doc.module:
-# 		frappe.msgprint(_('Please set Module'))
-
-# 	if frappe.conf.developer_mode and doc.module:
-# 		export_to_files(record_list=[['Dashboard', doc.name, doc.module + ' Dashboard']], record_module=doc.module,)
-# 		record_list = []
-# 		for chart in doc.charts:
-# 			record_list.append(['Dashboard Chart', chart.get('chart'), 'Dashboard Charts'])
-# 			chart_count+=1
-# 		for card in doc.cards:
-# 			record_list.append(['Number Card', card.get('card'), 'Number Cards'])
-# 			card_count+=1
-
-# 		export_to_files(record_list=record_list, record_module=doc.module)
-# 		frappe.msgprint(_('Successfully exported <b>{chart_count} Charts</b> and <b>{card_count} Cards</b>').format(chart_count=chart_count, card_count=card_count))
-
-# 		create_filters_file_after_export(module_name=doc.module.lower(), dashboard_name=doc.name)
-
 @frappe.whitelist()
 def get_permitted_charts(dashboard_name):
 	permitted_charts = []
