@@ -13,7 +13,7 @@ from frappe import _
 from frappe.utils import get_url, call_hook_method, cint, flt, cstr
 from frappe.integrations.utils import create_request_log, create_payment_gateway
 from frappe.utils import get_request_site_address
-from frappe.integrations.doctype.paytm_settings.checksum import generate_checksum, verify_checksum
+from frappe.integrations.doctype.paytm_settings.checksum import generateSignature, verifySignature
 from frappe.utils.password import get_decrypted_password
 
 class PaytmSettings(Document):
@@ -75,7 +75,7 @@ def get_paytm_params(payment_details, order_id, paytm_config):
 		"CALLBACK_URL" : redirect_uri,
 	})
 
-	checksum = generate_checksum(paytm_params, paytm_config.merchant_key)
+	checksum = generateSignature(paytm_params, paytm_config.merchant_key)
 
 	paytm_params.update({
 		"CHECKSUMHASH" : checksum
@@ -101,7 +101,7 @@ def verify_transaction(**kwargs):
 
 	if paytm_params and paytm_config and paytm_checksum:
 		# Verify checksum
-		is_valid_checksum = verify_checksum(paytm_params, paytm_config.merchant_key, paytm_checksum)
+		is_valid_checksum = verifySignature(paytm_params, paytm_config.merchant_key, paytm_checksum)
 
 	if is_valid_checksum and received_data['RESPCODE'] == '01':
 		verify_transaction_status(paytm_config, received_data['ORDERID'])
@@ -118,7 +118,7 @@ def verify_transaction_status(paytm_config, order_id):
 		ORDERID= order_id
 	)
 
-	checksum = generate_checksum(paytm_params, paytm_config.merchant_key)
+	checksum = generateSignature(paytm_params, paytm_config.merchant_key)
 	paytm_params["CHECKSUMHASH"] = checksum
 
 	post_data = json.dumps(paytm_params)
