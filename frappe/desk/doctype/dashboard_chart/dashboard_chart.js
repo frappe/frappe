@@ -435,7 +435,20 @@ frappe.ui.form.on('Dashboard Chart', {
 		frm.trigger('set_dynamic_filters_in_table');
 
 		let filters = JSON.parse(frm.doc.filters_json || '[]');
-		let fields = [];
+		let fields = [
+			{
+				fieldtype: 'HTML',
+				fieldname: 'description',
+				options:
+					`<div>
+						<p>Set dynamic filter values in JavaScript for the required fields here.
+						</p>
+						<p>Ex:
+							<code>frappe.defaults.get_user_default("Company")</code>
+						</p>
+					</div>`
+			}
+		];
 
 		if (is_document_type) {
 			if (frm.dynamic_filters) {
