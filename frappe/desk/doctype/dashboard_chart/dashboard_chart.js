@@ -12,23 +12,8 @@ frappe.ui.form.on('Dashboard Chart', {
 	before_save: function(frm) {
 		let dynamic_filters = JSON.parse(frm.doc.dynamic_filters_json || 'null');
 		let static_filters = JSON.parse(frm.doc.filters_json || 'null');
-		if (dynamic_filters) {
-			if ($.isArray(static_filters)) {
-				static_filters = static_filters.filter(static_filter => {
-					for (let dynamic_filter of dynamic_filters) {
-						if (static_filter[0] == dynamic_filter[0]
-							&& static_filter[1] == dynamic_filter[1]) {
-							return false;
-						}
-					}
-					return true;
-				});
-			} else {
-				for (let key of Object.keys(dynamic_filters)) {
-					delete static_filters[key];
-				}
-			}
-		}
+		static_filters =
+			frappe.dashboard_utils.remove_common_static_filter_values(static_filters, dynamic_filters);
 
 		frm.set_value('filters_json', JSON.stringify(static_filters));
 		frm.trigger('show_filters');
@@ -499,12 +484,11 @@ frappe.ui.form.on('Dashboard Chart', {
 
 					if (is_document_type) {
 						dialog_values = values;
-						frm.set_value('dynamic_filters_json', dynamic_filters);
+						frm.set_value('dynamic_filters_json', JSON.stringify(dynamic_filters));
 					} else {
 						dialog_values = frm.dynamic_filters;
 						frm.set_value('dynamic_filters_json', JSON.stringify(values));
 					}
-					frm.set_value('filters_json', JSON.stringify(filters));
 					frm.trigger('set_dynamic_filters_in_table');
 				},
 				primary_action_label: "Set"
