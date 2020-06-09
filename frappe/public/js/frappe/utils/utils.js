@@ -147,11 +147,6 @@ Object.assign(frappe.utils, {
 		}
 
 	},
-	get_scroll_position: function(element, additional_offset) {
-		let header_offset = $(".navbar").height() + $(".page-head").height();
-		let scroll_top = $(element).offset().top - header_offset - cint(additional_offset);
-		return scroll_top;
-	},
 	filter_dict: function(dict, filters) {
 		var ret = [];
 		if(typeof filters=='string') {
