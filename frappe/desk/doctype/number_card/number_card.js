@@ -146,7 +146,20 @@ frappe.ui.form.on('Number Card', {
 		set_filters_in_table(frm.dynamic_filters, table);
 
 		let filters = JSON.parse(frm.doc.filters_json || '[]');
-		let fields = [];
+		let fields = [
+			{
+				fieldtype: 'HTML',
+				fieldname: 'description',
+				options:
+					`<div>
+						<p>Set dynamic filter values in JavaScript for the required fields here.
+						</p>
+						<p>Ex:
+							<code>frappe.defaults.get_user_default("Company")</code>
+						</p>
+					</div>`
+			}
+		];
 
 		if (frm.dynamic_filters.length) {
 			filters = [...filters, ...frm.dynamic_filters];
