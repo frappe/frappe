@@ -444,13 +444,12 @@ def update_parent_document_on_communication(doc):
 
 	status_field = parent.meta.get_field("status")
 	if status_field:
-		options = (status_field.options or '').splitlines()
+		options = (status_field.options or "").splitlines()
 
 		# if status has a "Replied" option, then update the status for received communication
-		if ('Replied' in options) and doc.sent_or_received=="Received":
-			parent.status = "Open"
-			parent.flags.ignore_mandatory = True
-			parent.save()
+		if ("Replied" in options) and doc.sent_or_received == "Received":
+			parent.db_set("status", "Open")
+			parent.run_method("handle_hold_time", "Replied")
 			apply_assignment_rule(parent)
 		else:
 			# update the modified date for document
@@ -458,16 +457,16 @@ def update_parent_document_on_communication(doc):
 
 	update_mins_to_first_communication(parent, doc)
 	set_avg_response_time(parent, doc)
-	parent.run_method('notify_communication', doc)
+	parent.run_method("notify_communication", doc)
 	parent.notify_update()
 
 def update_mins_to_first_communication(parent, communication):
-	if parent.meta.has_field('mins_to_first_response') and not parent.get('mins_to_first_response'):
+	if parent.meta.has_field("mins_to_first_response") and not parent.get("mins_to_first_response"):
 		if is_system_user(communication.sender):
 			first_responded_on = communication.creation
-			if parent.meta.has_field('first_responded_on') and communication.sent_or_received == "Sent":
-				parent.db_set('first_responded_on', first_responded_on)
-			parent.db_set('mins_to_first_response', round(time_diff_in_seconds(first_responded_on, parent.creation) / 60), 2)
+			if parent.meta.has_field("first_responded_on") and communication.sent_or_received == "Sent":
+				parent.db_set("first_responded_on", first_responded_on)
+			parent.db_set("mins_to_first_response", round(time_diff_in_seconds(first_responded_on, parent.creation) / 60), 2)
 
 def set_avg_response_time(parent, communication):
 	if parent.meta.has_field("avg_response_time") and communication.sent_or_received == "Sent":
