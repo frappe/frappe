@@ -18,6 +18,9 @@
   "stats_time_interval",
   "filters_section",
   "filters_json",
+  "dynamic_filters_section",
+  "dynamic_filters_json",
+  "section_break_16",
   "color"
  ],
  "fields": [
@@ -113,10 +116,31 @@
    "options": "Module Def",
    "show_days": 1,
    "show_seconds": 1
+  },
+  {
+   "fieldname": "dynamic_filters_json",
+   "fieldtype": "Code",
+   "label": "Dynamic Filters JSON",
+   "options": "JSON",
+   "show_days": 1,
+   "show_seconds": 1
+  },
+  {
+   "fieldname": "section_break_16",
+   "fieldtype": "Section Break",
+   "show_days": 1,
+   "show_seconds": 1
+  },
+  {
+   "fieldname": "dynamic_filters_section",
+   "fieldtype": "Section Break",
+   "label": "Dynamic Filters Section",
+   "show_days": 1,
+   "show_seconds": 1
   }
  ],
  "links": [],
- "modified": "2020-06-08 13:15:58.741945",
+ "modified": "2020-06-09 14:17:53.145201",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Number Card",

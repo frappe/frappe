@@ -97,6 +97,28 @@ frappe.dashboard_utils = {
 
 	get_year(date_str) {
 		return date_str.substring(0, date_str.indexOf('-'));
+	},
+
+	remove_common_static_filter_values(static_filters, dynamic_filters) {
+		if (dynamic_filters) {
+			if ($.isArray(static_filters)) {
+				static_filters = static_filters.filter(static_filter => {
+					for (let dynamic_filter of dynamic_filters) {
+						if (static_filter[0] == dynamic_filter[0]
+							&& static_filter[1] == dynamic_filter[1]) {
+							return false;
+						}
+					}
+					return true;
+				});
+			} else {
+				for (let key of Object.keys(dynamic_filters)) {
+					delete static_filters[key];
+				}
+			}
+		}
+
+		return static_filters;
 	}
 
 };
