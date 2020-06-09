@@ -25,6 +25,7 @@ cache:
     # https://docs.cypress.io/guides/guides/continuous-integration.html#Caching
     - ~/.cache
 
+
 matrix:
   include:
   - name: "Python 3.7 MariaDB"
@@ -46,7 +47,30 @@ matrix:
     script: bench --site test_site run-ui-tests frappe --headless
 
 before_install:
-  # install wkhtmltopdf
+ # do we really want to run travis? check which files are changed and if git doesnt face any fatal errors
+  - |
+    FILES_CHANGED=$( git diff --name-only $TRAVIS_COMMIT_RANGE 2>&1 )
+
+    if [[ $FILES_CHANGED != *"fatal"* ]]; then
+      ONLY_DOCS_CHANGES=$( echo $FILES_CHANGED | grep -qvE '\.(md|png|jpg|jpeg)$|^.github|LICENSE' ; echo $? )
+      ONLY_JS_CHANGES=$( echo $FILES_CHANGED | grep -qvE '\.js$' ; echo $? )
+      ONLY_PY_CHANGES=$( echo $FILES_CHANGED | grep -qvE '\.py$' ; echo $? )
+
+      if [[ $ONLY_DOCS_CHANGES == "1" ]]; then
+          echo "Only docs were updated, stopping build process.";
+          exit;
+      fi
+      if [[ $ONLY_JS_CHANGES == "1"  && $TYPE == "server" ]]; then
+          echo "Only JavaScript code was updated; Stopping Python build process.";
+          exit;
+      fi
+      if [[ $ONLY_PY_CHANGES == "1"  && $TYPE == "ui" ]]; then
+          echo "Only Python code was updated, stopping Cypress build process.";
+          exit;
+      fi
+    fi
+
+ # install wkhtmltopdf
   - wget -O /tmp/wkhtmltox.tar.xz https://github.com/frappe/wkhtmltopdf/raw/master/wkhtmltox-0.12.3_linux-generic-amd64.tar.xz
   - tar -xf /tmp/wkhtmltox.tar.xz -C /tmp
   - sudo mv /tmp/wkhtmltox/bin/wkhtmltopdf /usr/local/bin/wkhtmltopdf

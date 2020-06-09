@@ -6,6 +6,7 @@ import json, os, sys, subprocess
 from distutils.spawn import find_executable
 import frappe
 from frappe.commands import pass_context, get_site
+from frappe.exceptions import SiteNotSpecifiedError
 from frappe.utils import update_progress_bar, get_bench_path
 from frappe.utils.response import json_handler
 from coverage import Coverage
@@ -51,7 +52,8 @@ def clear_cache(context):
 			frappe.website.render.clear_cache()
 		finally:
 			frappe.destroy()
-
+	if not context.sites:
+		raise SiteNotSpecifiedError
 
 @click.command('clear-website-cache')
 @pass_context
@@ -65,7 +67,8 @@ def clear_website_cache(context):
 			frappe.website.render.clear_cache()
 		finally:
 			frappe.destroy()
-
+	if not context.sites:
+		raise SiteNotSpecifiedError
 
 @click.command('destroy-all-sessions')
 @click.option('--reason')
@@ -81,7 +84,8 @@ def destroy_all_sessions(context, reason=None):
 			frappe.db.commit()
 		finally:
 			frappe.destroy()
-
+	if not context.sites:
+		raise SiteNotSpecifiedError
 
 @click.command('show-config')
 @pass_context
@@ -117,7 +121,8 @@ def reset_perms(context):
 					reset_perms(d)
 		finally:
 			frappe.destroy()
-
+	if not context.sites:
+		raise SiteNotSpecifiedError
 
 @click.command('execute')
 @click.argument('method')
@@ -164,6 +169,9 @@ def execute(context, method, args=None, kwargs=None, profile=False):
 		if ret:
 			print(json.dumps(ret, default=json_handler))
 
+	if not context.sites:
+		raise SiteNotSpecifiedError
+
 
 @click.command('add-to-email-queue')
 @click.argument('email-path')
@@ -197,7 +205,8 @@ def export_doc(context, doctype, docname):
 			frappe.modules.export_doc(doctype, docname)
 		finally:
 			frappe.destroy()
-
+	if not context.sites:
+		raise SiteNotSpecifiedError
 
 @click.command('export-json')
 @click.argument('doctype')
@@ -214,7 +223,8 @@ def export_json(context, doctype, path, name=None):
 			data_import.export_json(doctype, path, name=name)
 		finally:
 			frappe.destroy()
-
+	if not context.sites:
+		raise SiteNotSpecifiedError
 
 @click.command('export-csv')
 @click.argument('doctype')
@@ -230,7 +240,8 @@ def export_csv(context, doctype, path):
 			data_import.export_csv(doctype, path)
 		finally:
 			frappe.destroy()
-
+	if not context.sites:
+		raise SiteNotSpecifiedError
 
 @click.command('export-fixtures')
 @click.option('--app', default=None, help='Export fixtures of a specific app')
@@ -245,7 +256,8 @@ def export_fixtures(context, app=None):
 			export_fixtures(app=app)
 		finally:
 			frappe.destroy()
-
+	if not context.sites:
+		raise SiteNotSpecifiedError
 
 @click.command('import-doc')
 @click.argument('path')
@@ -267,7 +279,8 @@ def import_doc(context, path, force=False):
 			data_import.import_doc(path, overwrite=context.force)
 		finally:
 			frappe.destroy()
-
+	if not context.sites:
+		raise SiteNotSpecifiedError
 
 @click.command('import-csv')
 @click.argument('path')
@@ -364,6 +377,8 @@ def mariadb(context):
 	import os
 
 	site  = get_site(context)
+	if not site:
+		raise SiteNotSpecifiedError
 	frappe.init(site=site)
 
 	# This is assuming you're within the bench instance.
@@ -487,7 +502,17 @@ def run_tests(context, app=None, module=None, doctype=None, test=(),
 	if coverage:
 		# Generate coverage report only for app that is being tested
 		source_path = os.path.join(get_bench_path(), 'apps', app or 'frappe')
-		cov = Coverage(source=[source_path], omit=['*.html', '*.js', '*.xml', '*.css', '*/doctype/*/*_dashboard.py', '*/patches/*'])
+		cov = Coverage(source=[source_path], omit=[
+			'*.html',
+			'*.js',
+			'*.xml',
+			'*.css',
+			'*.less',
+			'*.scss',
+			'*.vue',
+			'*/doctype/*/*_dashboard.py',
+			'*/patches/*'
+		])
 		cov.start()
 
 	ret = frappe.test_runner.main(app, module, doctype, context.verbose, tests=tests,
@@ -577,7 +602,8 @@ def request(context, args=None, path=None):
 			print(frappe.response)
 		finally:
 			frappe.destroy()
-
+	if not context.sites:
+		raise SiteNotSpecifiedError
 
 @click.command('make-app')
 @click.argument('destination')
@@ -658,7 +684,8 @@ def rebuild_global_search(context, static_pages=False):
 
 		finally:
 			frappe.destroy()
-
+	if not context.sites:
+		raise SiteNotSpecifiedError
 
 @click.command('auto-deploy')
 @click.argument('app')
