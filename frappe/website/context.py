@@ -120,7 +120,7 @@ def build_context(context):
 	# determine templates to be used
 	if not context.base_template_path:
 		app_base = frappe.get_hooks("base_template")
-		context.base_template_path = app_base[0] if app_base else "templates/base.html"
+		context.base_template_path = app_base[-1] if app_base else "templates/base.html"
 
 	if context.title_prefix and context.title and not context.title.startswith(context.title_prefix):
 		context.title = '{0} - {1}'.format(context.title_prefix, context.title)
