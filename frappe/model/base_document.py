@@ -522,7 +522,7 @@ class BaseDocument(object):
 	def set_fetch_from_value(self, doctype, df, values):
 		fetch_from_fieldname = df.fetch_from.split('.')[-1]
 		value = values[fetch_from_fieldname]
-		if df.fieldtype == 'Small Text' or df.fieldtype == 'Text' or df.fieldtype == 'Data':
+		if df.fieldtype in ['Small Text', 'Text', 'Data']:
 			if fetch_from_fieldname in default_fields:
 				from frappe.model.meta import get_default_df
 				fetch_from_df = get_default_df(fetch_from_fieldname)
