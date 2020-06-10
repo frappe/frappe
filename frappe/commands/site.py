@@ -83,10 +83,6 @@ def _new_site(db_name, site, mariadb_root_username=None, mariadb_root_password=N
 
 	installing = touch_file(get_site_path('locks', 'installing.lock'))
 
-	if new_site:
-		# run cleanup only if new-site is called
-		atexit.register(_new_site_cleanup, site, mariadb_root_username, mariadb_root_password)
-
 	install_db(root_login=mariadb_root_username, root_password=mariadb_root_password, db_name=db_name,
 		admin_password=admin_password, verbose=verbose, source_sql=source_sql, force=force, reinstall=reinstall,
 		db_password=db_password, db_type=db_type, db_host=db_host, db_port=db_port, no_mariadb_socket=no_mariadb_socket)
@@ -102,18 +98,6 @@ def _new_site(db_name, site, mariadb_root_username=None, mariadb_root_password=N
 	scheduler_status = "disabled" if frappe.utils.scheduler.is_scheduler_disabled() else "enabled"
 	print("*** Scheduler is", scheduler_status, "***")
 
-def _new_site_cleanup(site, mariadb_root_username, mariadb_root_password):
-	try:
-		installing = get_site_path('locks', 'installing.lock')
-	except AttributeError:
-		installing = os.path.join(site, 'locks', 'installing.lock')
-
-	if installing and os.path.exists(installing):
-		if mariadb_root_password:
-			_drop_site(site, mariadb_root_username, mariadb_root_password, force=True, no_backup=True)
-		shutil.rmtree(site)
-
-	frappe.destroy()
 
 @click.command('restore')
 @click.argument('sql-file-path')
