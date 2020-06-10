@@ -4,14 +4,14 @@ context('Control Duration', () => {
 		cy.visit('/desk#workspace/Website');
 	});
 
-	function get_dialog_with_duration(show_days=1, show_seconds=1) {
+	function get_dialog_with_duration(hide_days=0, hide_seconds=0) {
 		return cy.dialog({
 			title: 'Duration',
 			fields: [{
 				'fieldname': 'duration',
 				'fieldtype': 'Duration',
-				'show_seconds': show_days,
-				'show_days': show_seconds
+				'hide_days': hide_days,
+				'hide_seconds': hide_seconds
 			}]
 		});
 	}
@@ -37,7 +37,7 @@ context('Control Duration', () => {
 	});
 
 	it('should hide days or seconds according to duration options', () => {
-		get_dialog_with_duration(0, 0).as('dialog');
+		get_dialog_with_duration(1, 1).as('dialog');
 		cy.get('.frappe-control[data-fieldname=duration] input').first().click();
 		cy.get('.duration-input[data-duration=days]').should('not.be.visible');
 		cy.get('.duration-input[data-duration=seconds]').should('not.be.visible');
