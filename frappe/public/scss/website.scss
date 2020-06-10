@@ -5,8 +5,10 @@
 @import 'multilevel-dropdown';
 @import 'website-image';
 @import 'page-builder';
+@import 'blog';
 @import 'markdown';
 @import 'sidebar';
+@import 'doc';
 
 .container {
 	padding-left: 1.25rem;
@@ -15,26 +17,26 @@
 
 @include media-breakpoint-up(sm) {
 	.container {
-		padding-left: 1rem;
-		padding-right: 1rem;
-	}
-}
-
-@include media-breakpoint-up(md) {
-	.container {
-		padding-left: 1rem;
-		padding-right: 1rem;
+		padding-left: 0;
+		padding-right: 0;
 	}
 }
 
 @include media-breakpoint-up(lg) {
 	.container {
-		padding-left: 1rem;
-		padding-right: 1rem;
+		padding-left: 2.5rem;
+		padding-right: 2.5rem;
 	}
 }
 
 @include media-breakpoint-up(xl) {
+	.container {
+		padding-left: 5rem;
+		padding-right: 5rem;
+	}
+}
+
+@include media-breakpoint-up(2xl) {
 	.container {
 		padding-left: 1.5rem;
 		padding-right: 1.5rem;
@@ -46,7 +48,7 @@
 }
 
 .navbar-light .navbar-nav .nav-link {
-	color: $gray-900;
+	color: $gray-700;
 	font-size: $font-size-sm;
 	font-weight: 500;
 
@@ -145,11 +147,12 @@ a.card {
 	width: 5rem;
 	height: 2rem;
 	object-fit: contain;
+	object-position: left;
 }
 
 .footer-link, .footer-child-item a {
 	font-weight: 500;
-	color: $gray-900;
+	color: $gray-700;
 
 	&:hover {
 		color: $primary;
@@ -158,8 +161,9 @@ a.card {
 }
 
 .footer-col-left, .footer-col-right {
-	padding-top: 1rem;
+	padding-top: 0.8rem;
 	padding-bottom: 1rem;
+	line-height: 2;
 }
 
 .footer-col-right {
@@ -280,7 +284,6 @@ h5.modal-title {
 }
 
 .btn-primary-light {
-	$primary-light: lighten($primary, 42%);
 	@include button-variant(
 		$background: $primary-light,
 		$border: $primary-light,
