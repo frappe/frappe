@@ -531,8 +531,8 @@ class BaseDocument(object):
 
 			if not fetch_from_df:
 				frappe.throw(
-					_('Please check the value of Fetch From set in <b>{}</b>').format(df.label),
-					title = 'Wrong Fetch From Value'
+					_('Please check the value of "Fetch From" set for field {0}').format(frappe.bold(df.label)),
+					title = _('Wrong Fetch From value')
 				)
 
 			fetch_from_ft = fetch_from_df.get('fieldtype')
