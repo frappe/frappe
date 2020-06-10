@@ -856,7 +856,7 @@ Object.assign(frappe.utils, {
 			minutes: Math.floor(secs % 3600 / 60),
 			seconds: Math.floor(secs % 60)
 		};
-		if (!duration_options.show_days) {
+		if (duration_options.hide_days) {
 			total_duration.hours = Math.floor(secs / 3600);
 			total_duration.days = 0;
 		}
@@ -882,8 +882,8 @@ Object.assign(frappe.utils, {
 
 	get_duration_options: function(docfield) {
 		let duration_options = {
-			show_days: docfield.show_days,
-			show_seconds: docfield.show_seconds
+			hide_days: docfield.hide_days,
+			hide_seconds: docfield.hide_seconds
 		};
 		return duration_options;
 	}
