@@ -216,7 +216,6 @@ def build_page(path):
 
 	if context.source:
 		html = frappe.render_template(context.source, context)
-
 	elif context.template:
 		if path.endswith('min.js'):
 			html = frappe.get_jloader().get_source(frappe.get_jenv(), context.template)[0]

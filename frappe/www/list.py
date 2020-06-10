@@ -171,6 +171,9 @@ def get_list_context(context, doctype, web_form_name=None):
 	if not meta.custom and not list_context.row_template:
 		list_context.row_template = meta.get_row_template()
 
+	if not meta.custom and not list_context.list_template:
+		list_context.template = meta.get_list_template()
+
 	return list_context
 
 def get_list(doctype, txt, filters, limit_start, limit_page_length=20, ignore_permissions=False,

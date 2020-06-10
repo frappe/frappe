@@ -48,6 +48,8 @@ class File(Document):
 	def before_insert(self):
 		frappe.local.rollback_observers.append(self)
 		self.set_folder_name()
+		if self.file_name:
+			self.file_name = re.sub(r'/', '', self.file_name)
 		self.content = self.get("content", None)
 		self.decode = self.get("decode", False)
 		if self.content:
@@ -192,6 +194,8 @@ class File(Document):
 	def set_file_name(self):
 		if not self.file_name and self.file_url:
 			self.file_name = self.file_url.split('/')[-1]
+		else:
+			self.file_name = re.sub(r'/', '', self.file_name)
 
 	def generate_content_hash(self):
 		if self.content_hash or not self.file_url or self.file_url.startswith('http'):
@@ -405,6 +409,12 @@ class File(Document):
 				frappe.throw(_("URL must start with 'http://' or 'https://'"))
 				return
 
+			if not self.file_url.startswith(("http://", "https://")):
+				# local file
+				root_files_path = get_files_path(is_private=self.is_private)
+				if not os.path.commonpath([root_files_path]) == os.path.commonpath([root_files_path, self.get_full_path()]):
+					# basically the file url is skewed to not point to /files/ or /private/files
+					frappe.throw(_("{0} is not a valid file url").format(self.file_url))
 			self.file_url = unquote(self.file_url)
 			self.file_size = frappe.form_dict.file_size or self.file_size
 
