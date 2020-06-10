@@ -16,8 +16,8 @@
   "column_break_6",
   "fieldtype",
   "precision",
-  "show_seconds",
-  "show_days",
+  "hide_seconds",
+  "hide_days",
   "options",
   "fetch_from",
   "fetch_if_empty",
@@ -383,22 +383,18 @@
 	"label": "In Preview"
   },
   {
-	"default": "1",
-	"depends_on": "eval:doc.fieldtype === \"Duration\";",
-	"fieldname": "show_seconds",
+	"default": "0",
+	"depends_on": "eval:doc.fieldtype=='Duration'",
+	"fieldname": "hide_seconds",
 	"fieldtype": "Check",
-	"label": "Show Seconds",
-	"show_days": 1,
-	"show_seconds": 1
+	"label": "Hide Seconds"
   },
   {
-	"default": "1",
-	"depends_on": "eval:doc.fieldtype === \"Duration\";",
-	"fieldname": "show_days",
+	"default": "0",
+	"depends_on": "eval:doc.fieldtype=='Duration'",
+	"fieldname": "hide_days",
 	"fieldtype": "Check",
-	"label": "Show Days",
-	"show_days": 1,
-	"show_seconds": 1
+	"label": "Hide Days"
   },
   {
 	"default": "0",
@@ -411,7 +407,7 @@
  "icon": "fa fa-glass",
  "idx": 1,
  "links": [],
- "modified": "2020-05-15 23:43:00.123572",
+ "modified": "2020-02-06 23:43:00.123575",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Custom Field",

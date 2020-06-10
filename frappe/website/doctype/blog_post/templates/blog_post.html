@@ -6,38 +6,57 @@
 
 {% block page_content %}
 <div class="blog-container">
-	<article class="blog-content mb-3" itemscope itemtype="http://schema.org/BlogPosting">
+	<article class="blog-content" itemscope itemtype="http://schema.org/BlogPosting">
 		<!-- begin blog content -->
-		<div class="blog-info">
-			<span class="text-center">
-				<h1 itemprop="headline" class="blog-header">{{ title }}</h1>
-				<p class="lead">
-					{{ blog_intro }}
-				</p>
-			</span>
-			
-			<div class="text-muted small meta-info">
-				{{ frappe.format_date(published_on) }}
-				{% if read_time %}
-					&middot;
-					{{ read_time }} min read
-				{% endif %}
-				{% if social_links %}
-				<div class="social-links">
-					{% for link in social_links %}
-						<a href="{{ link.url }}" class="fa fa-{{ link.icon }}" 
-							style='color:{{ link.color }}; background-color: {{ link.background }};' 
-							target="_blank"></a>
-					{% endfor %}
-				</div>
-				{% endif %}
+		<div class="blog-header">
+			<div>
+				<a class="mr-2" href="/blog">{{ _('Blog') }}</a>
+				<span class="text-muted">/</span>
+				<a class="ml-2" href="/blog/{{ category.title }}">{{ category.title }}</a>
+			</div>
+			<h1 itemprop="headline" class="blog-title">{{ title }}</h1>
+			<p class="blog-intro">
+				{{ blog_intro }}
+			</p>
+			<div class="text-muted">
+				<time datetime="{{ published_on }}">{{ frappe.format_date(published_on) }}</time>
+				{%- if read_time -%}
+				&nbsp;&middot;
+				<span>{{ read_time }} min read</span>
+				{%- endif -%}
 			</div>
 		</div>
-		<div itemprop="articleBody" class="longform blog-text mt-5">
-		{{ content }}
+		<hr class="my-5">
+		<div itemprop="articleBody" class="from-markdown">
+			{{ content }}
 		</div>
 		<!-- end blog content -->
 	</article>
+	{%- if enable_cta -%}
+		{{ web_blocks([
+				{
+					'template': "Section With Small CTA",
+					'values': cta,
+					'add_container': 0,
+					'add_top_padding': 0,
+					'add_bottom_padding': 0,
+					'css_class': "my-5"
+				}
+			])
+		}}
+	{%- endif -%}
+	<div class="blog-footer">
+		<div>
+			{{ _('Published on') }} <time datetime="{{ published_on }}">{{ frappe.format_date(published_on) }}</time>
+		</div>
+		<div>
+			{% if social_links %}
+				{% for link in social_links %}
+					<a href="{{ link.link }}" class="text-muted ml-2 fa fa-{{ link.icon }}" target="_blank"></a>
+				{% endfor %}
+			{% endif %}
+		</div>
+	</div>
 
 	{% if blogger_info %}
 	<hr class="my-5">
@@ -45,7 +64,7 @@
 	{% endif %}
 
 	{% if not disable_comments %}
-		<div class="blog-comments my-5">
+		<div class="my-5 blog-comments">
 			{% include 'templates/includes/comments/comments.html' %}
 		</div>
 	{% endif %}
@@ -54,31 +73,4 @@
 <script>
 	frappe.ready(() => frappe.set_search_path("/blog"))
 </script>
-{% endblock %}
-
-{% block style %}
-<style>
-.blog-container {
-	max-width: 720px;
-	margin: 0 auto;
-	font-size: 1.2rem;
-}
-.meta-info {
-	display: flex;
-	justify-content: space-between;
-	align-items: flex-end;
-	flex-wrap: wrap;
-}
-.social-links {
-	margin-right: 0px;
-	margin-top: 1rem;
-}
-.social-links a { 
-	font-size: 1.25rem;
-	margin: 0 5px 0 0;
-	padding: 5px 0;
-	width: 2.5rem;
-	text-align: center;
-}
-</style>
 {% endblock %}

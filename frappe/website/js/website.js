@@ -112,13 +112,6 @@ $.extend(frappe, {
 			opts.args.cmd = opts.method;
 		}
 
-		// stringify
-		$.each(opts.args, function(key, val) {
-			if(typeof val != "string") {
-				opts.args[key] = JSON.stringify(val);
-			}
-		});
-
 		if(!opts.no_spinner) {
 			//NProgress.start();
 		}
@@ -329,6 +322,22 @@ $.extend(frappe, {
 	add_switch_to_desk: function() {
 		$('.switch-to-desk').removeClass('hidden');
 	},
+	add_link_to_headings: function() {
+		$('.doc-content .from-markdown').find('h2, h3, h4, h5, h6').each((i, $heading) => {
+			let id = $heading.id;
+			let $a = $('<a class="no-underline">')
+				.prop('href', '#' + id)
+				.attr('aria-hidden', 'true')
+				.html(`
+					<svg xmlns="http://www.w3.org/2000/svg" style="width: 0.8em; height: 0.8em;" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+						stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-link">
+						<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+						<path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+					</svg>
+				`);
+			$($heading).append($a);
+		});
+	},
 	setup_lazy_images: function() {
 		// Use IntersectionObserver to only load images that are visible in the viewport
 		// Fallback for browsers that don't support it
@@ -445,6 +454,7 @@ $(document).on("page-change", function() {
 	frappe.trigger_ready();
 	frappe.bind_filters();
 	frappe.highlight_code_blocks();
+	frappe.add_link_to_headings();
 	frappe.make_navbar_active();
 	// scroll to hash
 	if (window.location.hash) {
