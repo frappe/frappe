@@ -77,7 +77,9 @@ docfield_properties = {
 	'allow_bulk_edit': 'Check',
 	'auto_repeat': 'Link',
 	'allow_in_quick_entry': 'Check',
-	'hide_border': 'Check'
+	'hide_border': 'Check',
+	'hide_days': 'Check',
+	'hide_seconds': 'Check'
 }
 
 allowed_fieldtype_change = (('Currency', 'Float', 'Percent'), ('Small Text', 'Data'),

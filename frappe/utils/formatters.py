@@ -91,7 +91,7 @@ def format_value(value, df=None, doc=None, currency=None, translated=False):
 		return ', '.join(values)
 
 	elif df.get("fieldtype") == "Duration":
-		show_days = df.show_days
-		return format_duration(value, show_days)
+		hide_days = df.hide_days
+		return format_duration(value, hide_days)
 
 	return value
