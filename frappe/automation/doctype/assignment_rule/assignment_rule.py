@@ -225,9 +225,10 @@ def apply(doc, method=None, doctype=None, name=None):
 				continue
 
 			if not new_apply:
-				reopen =  reopen_closed_assignment(doc)
-				if reopen:
-					break
+				if not assignment_rule.safe_eval('close_condition', doc):
+					reopen = reopen_closed_assignment(doc)
+					if reopen:
+						break
 			close = assignment_rule.apply_close(doc, assignments)
 			if close:
 				break

@@ -62,8 +62,16 @@ def generate_report_result(report, filters=None, user=None, custom_columns=None)
 		ljust_list(res, 6)
 
 	if report.custom_columns:
+		# Original query columns, needed to reorder data as per custom columns
+		query_columns = columns
+		# Reordered columns
 		columns = json.loads(report.custom_columns)
+
+		if report.report_type == 'Query Report':
+			result = reorder_data_for_custom_columns(columns, query_columns, result)
+
 		result = add_data_to_custom_columns(columns, result)
+
 	if custom_columns:
 		result = add_data_to_custom_columns(custom_columns, result)
 
@@ -208,6 +216,23 @@ def add_data_to_custom_columns(columns, result):
 
 	return data
 
+def reorder_data_for_custom_columns(custom_columns, columns, result):
+	reordered_result = []
+	columns = [col.split(":")[0] for col in columns]
+
+	for res in result:
+		r = []
+		for col in custom_columns:
+			try:
+				idx = columns.index(col.get("label"))
+				r.append(res[idx])
+			except ValueError:
+				pass
+
+		reordered_result.append(r)
+
+	return reordered_result
+
 def get_prepared_report_result(report, filters, dn="", user=None):
 	latest_report_data = {}
 	doc = None
@@ -299,7 +324,6 @@ def export_query():
 			_("You can try changing the filters of your report."))
 			return
 
-		data.columns = [col for col in data.columns if isinstance(col, dict) and not col.get('hidden')]
 		columns = get_columns_dict(data.columns)
 
 		from frappe.utils.xlsxutils import make_xlsx
@@ -316,7 +340,8 @@ def build_xlsx_data(columns, data, visible_idx, include_indentation):
 
 	# add column headings
 	for idx in range(len(data.columns)):
-		result[0].append(columns[idx]["label"])
+		if not columns[idx].get("hidden"):
+			result[0].append(columns[idx]["label"])
 
 	# build table from result
 	for i, row in enumerate(data.result):

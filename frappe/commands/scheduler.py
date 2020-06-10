@@ -4,6 +4,7 @@ import sys
 import frappe
 from frappe.utils import cint
 from frappe.commands import pass_context, get_site
+from frappe.exceptions import SiteNotSpecifiedError
 
 def _is_scheduler_enabled():
 	enable_scheduler = False
@@ -30,6 +31,8 @@ def trigger_scheduler_event(context, event):
 			frappe.utils.scheduler.trigger(site, event, now=True)
 		finally:
 			frappe.destroy()
+	if not context.sites:
+		raise SiteNotSpecifiedError
 
 @click.command('enable-scheduler')
 @pass_context
@@ -45,6 +48,8 @@ def enable_scheduler(context):
 			print("Enabled for", site)
 		finally:
 			frappe.destroy()
+	if not context.sites:
+		raise SiteNotSpecifiedError
 
 @click.command('disable-scheduler')
 @pass_context
@@ -60,7 +65,8 @@ def disable_scheduler(context):
 			print("Disabled for", site)
 		finally:
 			frappe.destroy()
-
+	if not context.sites:
+		raise SiteNotSpecifiedError
 
 
 @click.command('scheduler')

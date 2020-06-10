@@ -235,6 +235,7 @@ frappe.ui.GroupBy = class {
 
 		this.order_by = '';
 		this.group_by = null;
+		this.report_view.group_by = null;
 		this.aggregate_function = null;
 		this.aggregate_on = null;
 		$(".groupby").val("");
