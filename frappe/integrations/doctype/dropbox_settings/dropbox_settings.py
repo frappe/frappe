@@ -56,7 +56,8 @@ def take_backup_to_dropbox(retry_count=0, upload_db_backup=True):
 			did_not_upload, error_log = backup_to_dropbox(upload_db_backup)
 			if did_not_upload: raise Exception
 
-			send_email(True, "Dropbox", "Dropbox Settings", "send_notifications_to")
+			if cint(frappe.db.get_value("Dropbox Settings", None, "send_email_for_successful_backup")):
+				send_email(True, "Dropbox", "Dropbox Settings", "send_notifications_to")
 	except JobTimeoutException:
 		if retry_count < 2:
 			args = {
@@ -90,7 +91,7 @@ def backup_to_dropbox(upload_db_backup=True):
 		dropbox_settings['access_token'] = access_token['oauth2_token']
 		set_dropbox_access_token(access_token['oauth2_token'])
 
-	dropbox_client = dropbox.Dropbox(dropbox_settings['access_token'])
+	dropbox_client = dropbox.Dropbox(dropbox_settings['access_token'], timeout=None)
 
 	if upload_db_backup:
 		if frappe.flags.create_new_backup:
