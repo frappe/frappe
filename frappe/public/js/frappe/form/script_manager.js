@@ -16,12 +16,22 @@ frappe.ui.form.get_event_handler_list = function(doctype, fieldname) {
 frappe.ui.form.on = frappe.ui.form.on_change = function(doctype, fieldname, handler) {
 	var add_handler = function(fieldname, handler) {
 		var handler_list = frappe.ui.form.get_event_handler_list(doctype, fieldname);
-		handler_list.push(handler);
+
+		let _handler = (...args) => {
+			try {
+				handler(...args);
+			} catch (error) {
+				console.error(handler);
+				throw error;
+			}
+		}
+
+		handler_list.push(_handler);
 
 		// add last handler to events so it can be called as
 		// frm.events.handler(frm)
 		if(cur_frm && cur_frm.doctype===doctype) {
-			cur_frm.events[fieldname] = handler;
+			cur_frm.events[fieldname] = _handler;
 		}
 	}
 

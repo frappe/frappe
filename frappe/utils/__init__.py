@@ -6,6 +6,7 @@
 from __future__ import unicode_literals, print_function
 from werkzeug.test import Client
 import os, re, sys, json, hashlib, requests, traceback
+import functools
 from .html_utils import sanitize_html
 import frappe
 from frappe.utils.identicon import Identicon
@@ -360,6 +361,7 @@ def decode_dict(d, encoding="utf-8"):
 
 	return d
 
+@functools.lru_cache()
 def get_site_name(hostname):
 	return hostname.split(':')[0]
 
@@ -481,7 +483,7 @@ def watch(path, handler=None, debug=True):
 	observer.join()
 
 def markdown(text, sanitize=True, linkify=True):
-	html = frappe.utils.md_to_html(text)
+	html = text if is_html(text) else frappe.utils.md_to_html(text)
 
 	if sanitize:
 		html = html.replace("<!-- markdown -->", "")

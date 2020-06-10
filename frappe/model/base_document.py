@@ -693,7 +693,7 @@ class BaseDocument(object):
 			df = self.meta.get_field(fieldname)
 			sanitized_value = value
 
-			if df and df.get("fieldtype") in ("Data", "Code", "Small Text") and df.get("options")=="Email":
+			if df and df.get("fieldtype") in ("Data", "Code", "Small Text", "Text") and df.get("options")=="Email":
 				sanitized_value = sanitize_email(value)
 
 			elif df and (df.get("ignore_xss_filter")

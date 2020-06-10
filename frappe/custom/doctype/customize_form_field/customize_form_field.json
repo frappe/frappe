@@ -11,6 +11,8 @@
   "label",
   "fieldtype",
   "fieldname",
+  "hide_seconds",
+  "hide_days",
   "reqd",
   "unique",
   "in_list_view",
@@ -58,350 +60,364 @@
  ],
  "fields": [
   {
-   "fieldname": "label_and_type",
-   "fieldtype": "Section Break",
-   "label": "Label and Type"
+	"fieldname": "label_and_type",
+	"fieldtype": "Section Break",
+	"label": "Label and Type"
   },
   {
-   "fieldname": "label",
-   "fieldtype": "Data",
-   "in_list_view": 1,
-   "label": "Label",
-   "oldfieldname": "label",
-   "oldfieldtype": "Data",
-   "search_index": 1
+	"fieldname": "label",
+	"fieldtype": "Data",
+	"in_list_view": 1,
+	"label": "Label",
+	"oldfieldname": "label",
+	"oldfieldtype": "Data",
+	"search_index": 1
   },
   {
-   "default": "Data",
-   "fieldname": "fieldtype",
-   "fieldtype": "Select",
-   "in_list_view": 1,
-   "label": "Type",
-   "oldfieldname": "fieldtype",
-   "oldfieldtype": "Select",
-   "options": "Attach\nAttach Image\nBarcode\nButton\nCheck\nCode\nColor\nColumn Break\nCurrency\nData\nDate\nDatetime\nDynamic Link\nFloat\nFold\nGeolocation\nHeading\nHTML\nHTML Editor\nImage\nInt\nLink\nLong Text\nMarkdown Editor\nPassword\nPercent\nRating\nRead Only\nSection Break\nSelect\nSignature\nSmall Text\nTable\nTable MultiSelect\nText\nText Editor\nTime",
-   "reqd": 1,
-   "search_index": 1
+	"default": "Data",
+	"fieldname": "fieldtype",
+	"fieldtype": "Select",
+	"in_list_view": 1,
+	"label": "Type",
+	"oldfieldname": "fieldtype",
+	"oldfieldtype": "Select",
+	"options": "Attach\nAttach Image\nBarcode\nButton\nCheck\nCode\nColor\nColumn Break\nCurrency\nData\nDate\nDatetime\nDuration\nDynamic Link\nFloat\nFold\nGeolocation\nHeading\nHTML\nHTML Editor\nImage\nInt\nLink\nLong Text\nMarkdown Editor\nPassword\nPercent\nRating\nRead Only\nSection Break\nSelect\nSignature\nSmall Text\nTable\nTable MultiSelect\nText\nText Editor\nTime",
+	"reqd": 1,
+	"search_index": 1
   },
   {
-   "fieldname": "fieldname",
-   "fieldtype": "Data",
-   "in_list_view": 1,
-   "label": "Name",
-   "oldfieldname": "fieldname",
-   "oldfieldtype": "Data",
-   "read_only": 1,
-   "search_index": 1
+	"fieldname": "fieldname",
+	"fieldtype": "Data",
+	"in_list_view": 1,
+	"label": "Name",
+	"oldfieldname": "fieldname",
+	"oldfieldtype": "Data",
+	"read_only": 1,
+	"search_index": 1
   },
   {
-   "default": "0",
-   "depends_on": "eval:!in_list([\"Section Break\", \"Column Break\", \"Button\", \"HTML\"], doc.fieldtype)",
-   "fieldname": "reqd",
-   "fieldtype": "Check",
-   "label": "Mandatory",
-   "oldfieldname": "reqd",
-   "oldfieldtype": "Check",
-   "print_width": "50px",
-   "width": "50px"
+	"default": "0",
+	"depends_on": "eval:!in_list([\"Section Break\", \"Column Break\", \"Button\", \"HTML\"], doc.fieldtype)",
+	"fieldname": "reqd",
+	"fieldtype": "Check",
+	"label": "Mandatory",
+	"oldfieldname": "reqd",
+	"oldfieldtype": "Check",
+	"print_width": "50px",
+	"width": "50px"
   },
   {
-   "default": "0",
-   "fieldname": "unique",
-   "fieldtype": "Check",
-   "label": "Unique"
+	"default": "0",
+	"fieldname": "unique",
+	"fieldtype": "Check",
+	"label": "Unique"
   },
   {
-   "default": "0",
-   "fieldname": "in_list_view",
-   "fieldtype": "Check",
-   "label": "In List View"
+	"default": "0",
+	"fieldname": "in_list_view",
+	"fieldtype": "Check",
+	"label": "In List View"
   },
   {
-   "default": "0",
-   "fieldname": "in_standard_filter",
-   "fieldtype": "Check",
-   "label": "In Standard Filter"
+	"default": "0",
+	"fieldname": "in_standard_filter",
+	"fieldtype": "Check",
+	"label": "In Standard Filter"
   },
   {
-   "default": "0",
-   "depends_on": "eval:([\"Data\", \"Select\", \"Table\", \"Text\", \"Text Editor\", \"Link\", \"Small Text\", \"Long Text\", \"Read Only\", \"Heading\", \"Dynamic Link\"].indexOf(doc.fieldtype) !== -1)",
-   "fieldname": "in_global_search",
-   "fieldtype": "Check",
-   "label": "In Global Search"
+	"default": "0",
+	"depends_on": "eval:([\"Data\", \"Select\", \"Table\", \"Text\", \"Text Editor\", \"Link\", \"Small Text\", \"Long Text\", \"Read Only\", \"Heading\", \"Dynamic Link\"].indexOf(doc.fieldtype) !== -1)",
+	"fieldname": "in_global_search",
+	"fieldtype": "Check",
+	"label": "In Global Search"
   },
   {
-   "default": "0",
-   "fieldname": "bold",
-   "fieldtype": "Check",
-   "label": "Bold"
+	"default": "0",
+	"fieldname": "bold",
+	"fieldtype": "Check",
+	"label": "Bold"
   },
   {
-   "default": "1",
-   "depends_on": "eval:['Data', 'Select', 'Text', 'Small Text', 'Text Editor'].includes(doc.fieldtype)",
-   "fieldname": "translatable",
-   "fieldtype": "Check",
-   "label": "Translatable"
+	"default": "1",
+	"depends_on": "eval:['Data', 'Select', 'Text', 'Small Text', 'Text Editor'].includes(doc.fieldtype)",
+	"fieldname": "translatable",
+	"fieldtype": "Check",
+	"label": "Translatable"
   },
   {
-   "fieldname": "column_break_7",
-   "fieldtype": "Column Break"
+	"fieldname": "column_break_7",
+	"fieldtype": "Column Break"
   },
   {
-   "depends_on": "eval:in_list([\"Float\", \"Currency\", \"Percent\"], doc.fieldtype)",
-   "description": "Set non-standard precision for a Float or Currency field",
-   "fieldname": "precision",
-   "fieldtype": "Select",
-   "label": "Precision",
-   "options": "\n0\n1\n2\n3\n4\n5\n6\n7\n8\n9"
+	"depends_on": "eval:in_list([\"Float\", \"Currency\", \"Percent\"], doc.fieldtype)",
+	"description": "Set non-standard precision for a Float or Currency field",
+	"fieldname": "precision",
+	"fieldtype": "Select",
+	"label": "Precision",
+	"options": "\n0\n1\n2\n3\n4\n5\n6\n7\n8\n9"
   },
   {
-   "depends_on": "eval:in_list(['Data', 'Link', 'Dynamic Link', 'Password', 'Select', 'Read Only', 'Attach', 'Attach Image'], doc.fieldtype)",
-   "fieldname": "length",
-   "fieldtype": "Int",
-   "label": "Length"
+	"depends_on": "eval:in_list(['Data', 'Link', 'Dynamic Link', 'Password', 'Select', 'Read Only', 'Attach', 'Attach Image'], doc.fieldtype)",
+	"fieldname": "length",
+	"fieldtype": "Int",
+	"label": "Length"
   },
   {
-   "description": "For Links, enter the DocType as range.\nFor Select, enter list of Options, each on a new line.",
-   "fieldname": "options",
-   "fieldtype": "Small Text",
-   "in_list_view": 1,
-   "label": "Options",
-   "oldfieldname": "options",
-   "oldfieldtype": "Text"
+	"description": "For Links, enter the DocType as range.\nFor Select, enter list of Options, each on a new line.",
+	"fieldname": "options",
+	"fieldtype": "Small Text",
+	"in_list_view": 1,
+	"label": "Options",
+	"oldfieldname": "options",
+	"oldfieldtype": "Text"
   },
   {
-   "fieldname": "fetch_from",
-   "fieldtype": "Small Text",
-   "label": "Fetch From"
+	"fieldname": "fetch_from",
+	"fieldtype": "Small Text",
+	"label": "Fetch From"
   },
   {
-   "default": "0",
-   "description": "If checked, this field will be not overwritten based on Fetch From if a value already exists.",
-   "fieldname": "fetch_if_empty",
-   "fieldtype": "Check",
-   "label": "Fetch If Empty"
+	"default": "0",
+	"description": "If checked, this field will be not overwritten based on Fetch From if a value already exists.",
+	"fieldname": "fetch_if_empty",
+	"fieldtype": "Check",
+	"label": "Fetch If Empty"
   },
   {
-   "fieldname": "permissions",
-   "fieldtype": "Section Break",
-   "label": "Permissions"
+	"fieldname": "permissions",
+	"fieldtype": "Section Break",
+	"label": "Permissions"
   },
   {
-   "description": "This field will appear only if the fieldname defined here has value OR the rules are true (examples): \nmyfield\neval:doc.myfield=='My Value'\neval:doc.age&gt;18",
-   "fieldname": "depends_on",
-   "fieldtype": "Code",
-   "label": "Depends On",
-   "oldfieldname": "depends_on",
-   "oldfieldtype": "Data",
-   "options": "JS"
+	"description": "This field will appear only if the fieldname defined here has value OR the rules are true (examples): \nmyfield\neval:doc.myfield=='My Value'\neval:doc.age&gt;18",
+	"fieldname": "depends_on",
+	"fieldtype": "Code",
+	"label": "Depends On",
+	"oldfieldname": "depends_on",
+	"oldfieldtype": "Data",
+	"options": "JS"
   },
   {
-   "default": "0",
-   "fieldname": "permlevel",
-   "fieldtype": "Int",
-   "in_list_view": 1,
-   "label": "Perm Level",
-   "oldfieldname": "permlevel",
-   "oldfieldtype": "Int"
+	"default": "0",
+	"fieldname": "permlevel",
+	"fieldtype": "Int",
+	"in_list_view": 1,
+	"label": "Perm Level",
+	"oldfieldname": "permlevel",
+	"oldfieldtype": "Int"
   },
   {
-   "default": "0",
-   "fieldname": "hidden",
-   "fieldtype": "Check",
-   "label": "Hidden",
-   "oldfieldname": "hidden",
-   "oldfieldtype": "Check",
-   "print_width": "50px",
-   "width": "50px"
+	"default": "0",
+	"fieldname": "hidden",
+	"fieldtype": "Check",
+	"label": "Hidden",
+	"oldfieldname": "hidden",
+	"oldfieldtype": "Check",
+	"print_width": "50px",
+	"width": "50px"
   },
   {
-   "default": "0",
-   "fieldname": "read_only",
-   "fieldtype": "Check",
-   "label": "Read Only"
+	"default": "0",
+	"fieldname": "read_only",
+	"fieldtype": "Check",
+	"label": "Read Only"
   },
   {
-   "default": "0",
-   "depends_on": "eval:doc.fieldtype==\"Section Break\"",
-   "fieldname": "collapsible",
-   "fieldtype": "Check",
-   "label": "Collapsible"
+	"default": "0",
+	"depends_on": "eval:doc.fieldtype==\"Section Break\"",
+	"fieldname": "collapsible",
+	"fieldtype": "Check",
+	"label": "Collapsible"
   },
   {
-   "default": "0",
-   "depends_on": "eval: doc.fieldtype == \"Table\"",
-   "fieldname": "allow_bulk_edit",
-   "fieldtype": "Check",
-   "label": "Allow Bulk Edit"
+	"default": "0",
+	"depends_on": "eval: doc.fieldtype == \"Table\"",
+	"fieldname": "allow_bulk_edit",
+	"fieldtype": "Check",
+	"label": "Allow Bulk Edit"
   },
   {
-   "depends_on": "eval:doc.fieldtype==\"Section Break\"",
-   "fieldname": "collapsible_depends_on",
-   "fieldtype": "Code",
-   "label": "Collapsible Depends On",
-   "options": "JS"
+	"depends_on": "eval:doc.fieldtype==\"Section Break\"",
+	"fieldname": "collapsible_depends_on",
+	"fieldtype": "Code",
+	"label": "Collapsible Depends On",
+	"options": "JS"
   },
   {
-   "fieldname": "column_break_14",
-   "fieldtype": "Column Break"
+	"fieldname": "column_break_14",
+	"fieldtype": "Column Break"
   },
   {
-   "default": "0",
-   "fieldname": "ignore_user_permissions",
-   "fieldtype": "Check",
-   "label": "Ignore User Permissions"
+	"default": "0",
+	"fieldname": "ignore_user_permissions",
+	"fieldtype": "Check",
+	"label": "Ignore User Permissions"
   },
   {
-   "default": "0",
-   "fieldname": "allow_on_submit",
-   "fieldtype": "Check",
-   "label": "Allow on Submit",
-   "oldfieldname": "allow_on_submit",
-   "oldfieldtype": "Check"
+	"default": "0",
+	"fieldname": "allow_on_submit",
+	"fieldtype": "Check",
+	"label": "Allow on Submit",
+	"oldfieldname": "allow_on_submit",
+	"oldfieldtype": "Check"
   },
   {
-   "default": "0",
-   "fieldname": "report_hide",
-   "fieldtype": "Check",
-   "label": "Report Hide",
-   "oldfieldname": "report_hide",
-   "oldfieldtype": "Check"
+	"default": "0",
+	"fieldname": "report_hide",
+	"fieldtype": "Check",
+	"label": "Report Hide",
+	"oldfieldname": "report_hide",
+	"oldfieldtype": "Check"
   },
   {
-   "default": "0",
-   "depends_on": "eval:(doc.fieldtype == 'Link')",
-   "fieldname": "remember_last_selected_value",
-   "fieldtype": "Check",
-   "label": "Remember Last Selected Value"
+	"default": "0",
+	"depends_on": "eval:(doc.fieldtype == 'Link')",
+	"fieldname": "remember_last_selected_value",
+	"fieldtype": "Check",
+	"label": "Remember Last Selected Value"
   },
   {
-   "fieldname": "display",
-   "fieldtype": "Section Break",
-   "label": "Display"
+	"fieldname": "display",
+	"fieldtype": "Section Break",
+	"label": "Display"
   },
   {
-   "fieldname": "default",
-   "fieldtype": "Text",
-   "label": "Default",
-   "oldfieldname": "default",
-   "oldfieldtype": "Text"
+	"fieldname": "default",
+	"fieldtype": "Text",
+	"label": "Default",
+	"oldfieldname": "default",
+	"oldfieldtype": "Text"
   },
   {
-   "default": "0",
-   "fieldname": "in_filter",
-   "fieldtype": "Check",
-   "label": "In Filter",
-   "oldfieldname": "in_filter",
-   "oldfieldtype": "Check",
-   "print_width": "50px",
-   "width": "50px"
+	"default": "0",
+	"fieldname": "in_filter",
+	"fieldtype": "Check",
+	"label": "In Filter",
+	"oldfieldname": "in_filter",
+	"oldfieldtype": "Check",
+	"print_width": "50px",
+	"width": "50px"
   },
   {
-   "fieldname": "column_break_21",
-   "fieldtype": "Column Break"
+	"fieldname": "column_break_21",
+	"fieldtype": "Column Break"
   },
   {
-   "fieldname": "description",
-   "fieldtype": "Text",
-   "label": "Description",
-   "oldfieldname": "description",
-   "oldfieldtype": "Text",
-   "print_width": "300px",
-   "width": "300px"
+	"fieldname": "description",
+	"fieldtype": "Text",
+	"label": "Description",
+	"oldfieldname": "description",
+	"oldfieldtype": "Text",
+	"print_width": "300px",
+	"width": "300px"
   },
   {
-   "default": "0",
-   "fieldname": "print_hide",
-   "fieldtype": "Check",
-   "label": "Print Hide",
-   "oldfieldname": "print_hide",
-   "oldfieldtype": "Check"
+	"default": "0",
+	"fieldname": "print_hide",
+	"fieldtype": "Check",
+	"label": "Print Hide",
+	"oldfieldname": "print_hide",
+	"oldfieldtype": "Check"
   },
   {
-   "default": "0",
-   "depends_on": "eval:[\"Int\", \"Float\", \"Currency\", \"Percent\"].indexOf(doc.fieldtype)!==-1",
-   "fieldname": "print_hide_if_no_value",
-   "fieldtype": "Check",
-   "label": "Print Hide If No Value"
+	"default": "0",
+	"depends_on": "eval:[\"Int\", \"Float\", \"Currency\", \"Percent\"].indexOf(doc.fieldtype)!==-1",
+	"fieldname": "print_hide_if_no_value",
+	"fieldtype": "Check",
+	"label": "Print Hide If No Value"
   },
   {
-   "description": "Print Width of the field, if the field is a column in a table",
-   "fieldname": "print_width",
-   "fieldtype": "Data",
-   "label": "Print Width",
-   "print_width": "50px",
-   "width": "50px"
+	"description": "Print Width of the field, if the field is a column in a table",
+	"fieldname": "print_width",
+	"fieldtype": "Data",
+	"label": "Print Width",
+	"print_width": "50px",
+	"width": "50px"
   },
   {
-   "depends_on": "eval:cur_frm.doc.istable",
-   "description": "Number of columns for a field in a Grid (Total Columns in a grid should be less than 11)",
-   "fieldname": "columns",
-   "fieldtype": "Int",
-   "label": "Columns"
+	"depends_on": "eval:cur_frm.doc.istable",
+	"description": "Number of columns for a field in a Grid (Total Columns in a grid should be less than 11)",
+	"fieldname": "columns",
+	"fieldtype": "Int",
+	"label": "Columns"
   },
   {
-   "fieldname": "width",
-   "fieldtype": "Data",
-   "in_list_view": 1,
-   "label": "Width",
-   "oldfieldname": "width",
-   "oldfieldtype": "Data",
-   "print_width": "50px",
-   "width": "50px"
+	"fieldname": "width",
+	"fieldtype": "Data",
+	"in_list_view": 1,
+	"label": "Width",
+	"oldfieldname": "width",
+	"oldfieldtype": "Data",
+	"print_width": "50px",
+	"width": "50px"
   },
   {
-   "default": "0",
-   "fieldname": "is_custom_field",
-   "fieldtype": "Check",
-   "hidden": 1,
-   "label": "Is Custom Field",
-   "read_only": 1
+	"default": "0",
+	"fieldname": "is_custom_field",
+	"fieldtype": "Check",
+	"hidden": 1,
+	"label": "Is Custom Field",
+	"read_only": 1
   },
   {
-   "default": "0",
-   "fieldname": "allow_in_quick_entry",
-   "fieldtype": "Check",
-   "label": "Allow in Quick Entry"
+	"default": "0",
+	"fieldname": "allow_in_quick_entry",
+	"fieldtype": "Check",
+	"label": "Allow in Quick Entry"
   },
   {
-   "fieldname": "property_depends_on_section",
-   "fieldtype": "Section Break",
-   "label": "Property Depends On"
+	"fieldname": "property_depends_on_section",
+	"fieldtype": "Section Break",
+	"label": "Property Depends On"
   },
   {
-   "fieldname": "mandatory_depends_on",
-   "fieldtype": "Code",
-   "label": "Mandatory Depends On",
-   "options": "JS"
+	"fieldname": "mandatory_depends_on",
+	"fieldtype": "Code",
+	"label": "Mandatory Depends On",
+	"options": "JS"
   },
   {
-   "fieldname": "column_break_33",
-   "fieldtype": "Column Break"
+	"fieldname": "column_break_33",
+	"fieldtype": "Column Break"
   },
   {
-   "fieldname": "read_only_depends_on",
-   "fieldtype": "Code",
-   "label": "Read Only Depends On",
-   "options": "JS"
+	"fieldname": "read_only_depends_on",
+	"fieldtype": "Code",
+	"label": "Read Only Depends On",
+	"options": "JS"
   },
   {
-   "default": "0",
-   "fieldname": "in_preview",
-   "fieldtype": "Check",
-   "label": "In Preview"
+	"default": "0",
+	"fieldname": "in_preview",
+	"fieldtype": "Check",
+	"label": "In Preview"
   },
   {
-   "default": "0",
-   "depends_on": "eval:doc.fieldtype=='Section Break'",
-   "fieldname": "hide_border",
-   "fieldtype": "Check",
-   "label": "Hide Border"
+	"default": "0",
+	"depends_on": "eval:doc.fieldtype=='Duration'",
+	"fieldname": "hide_seconds",
+	"fieldtype": "Check",
+	"label": "Hide Seconds"
+  },
+  {
+	"default": "0",
+	"depends_on": "eval:doc.fieldtype=='Duration'",
+	"fieldname": "hide_days",
+	"fieldtype": "Check",
+	"label": "Hide Days"
+  },
+  {
+	"default": "0",
+	"depends_on": "eval:doc.fieldtype=='Section Break'",
+	"fieldname": "hide_border",
+	"fieldtype": "Check",
+	"label": "Hide Border"
   }
  ],
  "idx": 1,
  "istable": 1,
  "links": [],
- "modified": "2020-04-27 11:39:26.389300",
+ "modified": "2020-06-02 23:45:46.810868",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Customize Form Field",

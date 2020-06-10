@@ -269,6 +269,7 @@ def make_site_dirs():
 			os.path.join(site_private_path, 'backups'),
 			os.path.join(site_public_path, 'files'),
 			os.path.join(site_private_path, 'files'),
+			os.path.join(frappe.local.site_path, 'logs'),
 			os.path.join(frappe.local.site_path, 'task-logs')):
 		if not os.path.exists(dir_path):
 			os.makedirs(dir_path)
@@ -298,7 +299,8 @@ def remove_missing_apps():
 
 def extract_sql_gzip(sql_gz_path):
 	try:
-		subprocess.check_call(['gzip', '-d', '-v', '-f', sql_gz_path])
+		# kdvf - keep, decompress, verbose, force
+		subprocess.check_call(['gzip', '-kdvf', sql_gz_path])
 	except:
 		raise
 
