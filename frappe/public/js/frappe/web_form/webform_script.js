@@ -95,6 +95,11 @@ frappe.ready(function() {
 					};
 
 					df.fields = form_data[df.fieldname];
+					$.each(df.fields || [], function(_i, field) {
+						if (field.fieldtype === "Link") {
+							field.only_select = true;
+						}
+					});
 
 					if (df.fieldtype === "Attach") {
 						df.is_private = true;
