@@ -186,7 +186,6 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		if (this.group_by) {
 			this.$charts_wrapper.addClass('hidden');
 		} else if (this.chart) {
-			this.$charts_wrapper.removeClass('hidden');
 			this.refresh_charts();
 		}
 
@@ -518,7 +517,8 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 	}
 
 	refresh_charts() {
-		if (!this.chart) return;
+		if (!this.chart || !this.chart_args) return;
+		this.$charts_wrapper.removeClass('hidden');
 		const { x_axis, y_axes, chart_type } = this.chart_args;
 		this.build_chart_args(x_axis, y_axes, chart_type);
 		this.chart.update(this.chart_args);
