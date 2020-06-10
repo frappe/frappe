@@ -776,6 +776,8 @@ def image_to_base64(image, extn):
 	from io import BytesIO
 
 	buffered = BytesIO()
+	if extn.lower() == 'jpg':
+		extn = 'JPEG'
 	image.save(buffered, extn)
 	img_str = base64.b64encode(buffered.getvalue())
 	return img_str
@@ -1204,6 +1206,7 @@ def md_to_html(markdown_text):
 		'fenced-code-blocks': None,
 		'tables': None,
 		'header-ids': None,
+		'toc': None,
 		'highlightjs-lang': None,
 		'html-classes': {
 			'table': 'table table-bordered',
