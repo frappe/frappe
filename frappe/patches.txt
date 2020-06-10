@@ -278,6 +278,7 @@ frappe.patches.v13_0.set_path_for_homepage_in_web_page_view
 frappe.patches.v13_0.migrate_translation_column_data
 frappe.patches.v13_0.set_read_times
 frappe.patches.v13_0.remove_web_view
+frappe.patches.v13_0.site_wise_logging
 frappe.patches.v13_0.set_unique_for_page_view
 frappe.patches.v13_0.remove_tailwind_from_page_builder
 frappe.patches.v13_0.rename_onboarding
@@ -286,3 +287,5 @@ execute:frappe.delete_doc("Web Template", "Section with Left Image", force=1)
 execute:frappe.delete_doc("DocType", "Onboarding Slide")
 execute:frappe.delete_doc("DocType", "Onboarding Slide Field")
 execute:frappe.delete_doc("DocType", "Onboarding Slide Help Link")
+frappe.patches.v13_0.update_date_filters_in_user_settings
+frappe.patches.v13_0.update_duration_options

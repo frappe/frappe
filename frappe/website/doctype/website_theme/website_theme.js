@@ -2,9 +2,6 @@
 // MIT License. See license.txt
 
 frappe.ui.form.on('Website Theme', {
-	onload: function() {
-		frappe.require('/assets/frappe/js/frappe/utils/web_page_block.js');
-	},
 	refresh(frm) {
 		frm.clear_custom_buttons();
 		frm.toggle_display(["module", "custom"], !frappe.boot.developer_mode);
