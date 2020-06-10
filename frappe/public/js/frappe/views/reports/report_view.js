@@ -1095,8 +1095,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 
 	get_checked_items(only_docnames) {
 		const indexes = this.datatable.rowmanager.getCheckedRows();
-		const items = indexes.filter(i => i != undefined)
-			.map(i => this.data[i]);
+		const items = indexes.map(i => this.data[i]).filter(i => i != undefined);
 
 		if (only_docnames) {
 			return items.map(d => d.name);
