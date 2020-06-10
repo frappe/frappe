@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 
 # IMPORTANT: only import safe functions as this module will be included in jinja environment
 import frappe
+from dateutil.parser._parser import ParserError
 import subprocess
 import operator
 import re, datetime, math, time
@@ -43,8 +44,12 @@ def getdate(string_date=None):
 
 	if is_invalid_date_string(string_date):
 		return None
-
-	return parser.parse(string_date).date()
+	try:
+		return parser.parse(string_date).date()
+	except ParserError:
+		frappe.throw(frappe._('{} is not a valid date string.').format(
+			frappe.bold(string_date)
+		), title=frappe._('Invalid Date'))
 
 def get_datetime(datetime_str=None):
 	if not datetime_str:
@@ -336,7 +341,7 @@ def format_datetime(datetime_string, format_string=None):
 		formatted_datetime = datetime.strftime('%Y-%m-%d %H:%M:%S')
 	return formatted_datetime
 
-def format_duration(seconds, show_days=True):
+def format_duration(seconds, hide_days=False):
 	total_duration = {
 		'days': math.floor(seconds / (3600 * 24)),
 		'hours': math.floor(seconds % (3600 * 24) / 3600),
@@ -344,7 +349,7 @@ def format_duration(seconds, show_days=True):
 		'seconds': math.floor(seconds % 60)
 	}
 
-	if not show_days:
+	if hide_days:
 		total_duration['hours'] = math.floor(seconds / 3600)
 		total_duration['days'] = 0
 
@@ -771,6 +776,8 @@ def image_to_base64(image, extn):
 	from io import BytesIO
 
 	buffered = BytesIO()
+	if extn.lower() == 'jpg':
+		extn = 'JPEG'
 	image.save(buffered, extn)
 	img_str = base64.b64encode(buffered.getvalue())
 	return img_str
@@ -1199,6 +1206,7 @@ def md_to_html(markdown_text):
 		'fenced-code-blocks': None,
 		'tables': None,
 		'header-ids': None,
+		'toc': None,
 		'highlightjs-lang': None,
 		'html-classes': {
 			'table': 'table table-bordered',

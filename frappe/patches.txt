@@ -288,3 +288,4 @@ execute:frappe.delete_doc("DocType", "Onboarding Slide")
 execute:frappe.delete_doc("DocType", "Onboarding Slide Field")
 execute:frappe.delete_doc("DocType", "Onboarding Slide Help Link")
 frappe.patches.v13_0.update_date_filters_in_user_settings
+frappe.patches.v13_0.update_duration_options
