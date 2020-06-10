@@ -1,46 +1,45 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
-from __future__ import unicode_literals
-from frappe import _
 """
 record of files
 
 naming for same name files: file.gif, file-1.gif, file-2.gif etc
 """
 
-import frappe
-import json
-import os
+from __future__ import unicode_literals
+
 import base64
-import re
 import hashlib
-import mimetypes
+import imghdr
 import io
+import json
+import mimetypes
+import os
+import re
 import shutil
+import zipfile
+
 import requests
 import requests.exceptions
-import imghdr
+from PIL import Image, ImageFile, ImageOps
+from six import PY2, StringIO, string_types, text_type
+from six.moves.urllib.parse import quote, unquote
 
-from frappe.utils import get_hook_method, get_files_path, random_string, encode, cstr, call_hook_method, cint
-from frappe import _
-from frappe import conf
-from frappe.utils.nestedset import NestedSet
+import frappe
+from frappe import _, conf
 from frappe.model.document import Document
-from frappe.utils import strip
-from PIL import Image, ImageOps
-from six import StringIO, string_types
-from six.moves.urllib.parse import unquote, quote
-from six import text_type, PY2
-import zipfile
+from frappe.utils import call_hook_method, cint, cstr, encode, get_files_path, get_hook_method, random_string, strip
+
 
 class MaxFileSizeReachedError(frappe.ValidationError):
 	pass
 
-
-class FolderNotEmpty(frappe.ValidationError): pass
+class FolderNotEmpty(frappe.ValidationError):
+	pass
 
 exclude_from_linked_with = True
+ImageFile.LOAD_TRUNCATED_IMAGES = True
 
 
 class File(Document):
@@ -517,11 +516,7 @@ class File(Document):
 			delete_file(self.thumbnail_url)
 
 	def is_downloadable(self):
-		if self.is_private:
-			if has_permission(self, 'read'):
-				return True
-
-			return False
+		return has_permission(self, 'read')
 
 	def get_extension(self):
 		'''returns split filename and extension'''
@@ -611,8 +606,7 @@ def get_local_image(file_url):
 	try:
 		image = Image.open(file_path)
 	except IOError:
-		frappe.msgprint(_("Unable to read file format for {0}").format(file_url))
-		raise
+		frappe.msgprint(_("Unable to read file format for {0}").format(file_url), raise_exception=True)
 
 	content = None
 
@@ -715,7 +709,14 @@ def remove_all(dt, dn, from_delete=False):
 
 
 def has_permission(doc, ptype=None, user=None):
-	permission = True
+	has_access = False
+	user = user or frappe.session.user
+
+	if ptype == 'create':
+		has_access = frappe.has_permission('File', 'create', user=user)
+
+	if not doc.is_private or doc.owner in [user, 'Guest'] or user == 'Administrator':
+		has_access = True
 
 	if doc.attached_to_doctype and doc.attached_to_name:
 		attached_to_doctype = doc.attached_to_doctype
@@ -725,20 +726,20 @@ def has_permission(doc, ptype=None, user=None):
 			ref_doc = frappe.get_doc(attached_to_doctype, attached_to_name)
 
 			if ptype in ['write', 'create', 'delete']:
-				permission = ref_doc.has_permission('write')
+				has_access = ref_doc.has_permission('write')
 
-				if ptype == 'delete' and permission == False:
+				if ptype == 'delete' and not has_access:
 					frappe.throw(_("Cannot delete file as it belongs to {0} {1} for which you do not have permissions").format(
 						doc.attached_to_doctype, doc.attached_to_name),
 						frappe.PermissionError)
 			else:
-				permission = ref_doc.has_permission('read')
+				has_access = ref_doc.has_permission('read')
 		except frappe.DoesNotExistError:
 			# if parent doc is not created before file is created
-			# we cannot check its permission so allow the file
-			permission = True
+			# we cannot check its permission so we will use file's permission
+			pass
 
-	return permission
+	return has_access
 
 
 def remove_file_by_url(file_url, doctype=None, name=None):

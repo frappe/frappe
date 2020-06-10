@@ -19,13 +19,14 @@ import frappe.auth
 import frappe.api
 import frappe.utils.response
 import frappe.website.render
-from frappe.utils import get_site_name
+from frappe.utils import get_site_name, sanitize_html
 from frappe.middlewares import StaticDataMiddleware
 from frappe.utils.error import make_error_snapshot
 from frappe.core.doctype.comment.comment import update_comments_in_parent_after_request
 from frappe import _
 import frappe.recorder
 import frappe.monitor
+import frappe.rate_limiter
 
 local_manager = LocalManager([frappe.local])
 
@@ -54,6 +55,7 @@ def application(request):
 
 		frappe.recorder.record()
 		frappe.monitor.start()
+		frappe.rate_limiter.apply()
 
 		if frappe.local.form_dict.cmd:
 			response = frappe.handler.handle()
@@ -93,8 +95,12 @@ def application(request):
 		if response and hasattr(frappe.local, 'cookie_manager'):
 			frappe.local.cookie_manager.flush_cookies(response=response)
 
+		frappe.rate_limiter.update()
 		frappe.monitor.stop(response)
 		frappe.recorder.dump()
+
+		if response and hasattr(frappe.local, 'rate_limiter'):
+			response.headers.extend(frappe.local.rate_limiter.headers())
 
 		frappe.destroy()
 
@@ -171,8 +177,11 @@ def handle_exception(e):
 			http_status_code=http_status_code,  indicator_color='red')
 		return_as_message = True
 
+	elif http_status_code == 429:
+		response = frappe.rate_limiter.respond()
+
 	else:
-		traceback = "<pre>"+frappe.get_traceback()+"</pre>"
+		traceback = "<pre>" + sanitize_html(frappe.get_traceback()) + "</pre>"
 		if frappe.local.flags.disable_traceback:
 			traceback = ""
 

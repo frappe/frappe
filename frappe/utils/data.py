@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 
 # IMPORTANT: only import safe functions as this module will be included in jinja environment
 import frappe
+from dateutil.parser._parser import ParserError
 import subprocess
 import operator
 import re, datetime, math, time
@@ -22,6 +23,11 @@ DATE_FORMAT = "%Y-%m-%d"
 TIME_FORMAT = "%H:%M:%S.%f"
 DATETIME_FORMAT = DATE_FORMAT + " " + TIME_FORMAT
 
+
+def is_invalid_date_string(date_string):
+	# dateutil parser does not agree with dates like "0001-01-01" or "0000-00-00"
+	return (not date_string) or (date_string or "").startswith(("0001-01-01", "0000-00-00"))
+
 # datetime functions
 def getdate(string_date=None):
 	"""
@@ -36,10 +42,14 @@ def getdate(string_date=None):
 	elif isinstance(string_date, datetime.date):
 		return string_date
 
-	# dateutil parser does not agree with dates like 0001-01-01
-	if not string_date or string_date=="0001-01-01":
+	if is_invalid_date_string(string_date):
 		return None
-	return parser.parse(string_date).date()
+	try:
+		return parser.parse(string_date).date()
+	except ParserError:
+		frappe.throw(frappe._('{} is not a valid date string.').format(
+			frappe.bold(string_date)
+		), title=frappe._('Invalid Date'))
 
 def get_datetime(datetime_str=None):
 	if not datetime_str:
@@ -54,8 +64,7 @@ def get_datetime(datetime_str=None):
 	elif isinstance(datetime_str, datetime.date):
 		return datetime.datetime.combine(datetime_str, datetime.time())
 
-	# dateutil parser does not agree with dates like 0001-01-01
-	if not datetime_str or (datetime_str or "").startswith("0001-01-01"):
+	if is_invalid_date_string(datetime_str):
 		return None
 
 	try:

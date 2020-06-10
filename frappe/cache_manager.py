@@ -13,7 +13,8 @@ common_default_keys = ["__default", "__global"]
 global_cache_keys = ("app_hooks", "installed_apps",
 		"app_modules", "module_app", "system_settings",
 		'scheduler_events', 'time_zone', 'webhooks', 'active_domains',
-		'active_modules', 'assignment_rule', 'server_script_map', 'wkhtmltopdf_version')
+		'active_modules', 'assignment_rule', 'server_script_map', 'wkhtmltopdf_version',
+		'domain_restricted_doctypes', 'domain_restricted_pages', 'information_schema:counts')
 
 user_cache_keys = ("bootinfo", "user_recent", "roles", "user_doc", "lang",
 		"defaults", "user_permissions", "home_page", "linked_with",
@@ -40,6 +41,11 @@ def clear_user_cache(user=None):
 			cache.delete_key(name)
 		clear_defaults_cache()
 		clear_global_cache()
+
+def clear_domain_cache(user=None):
+	cache = frappe.cache()
+	domain_cache_keys = ('domain_restricted_doctypes', 'domain_restricted_pages')
+	cache.delete_value(domain_cache_keys)
 
 def clear_global_cache():
 	from frappe.website.render import clear_cache as clear_website_cache

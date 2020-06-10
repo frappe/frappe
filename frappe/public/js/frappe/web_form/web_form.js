@@ -30,6 +30,7 @@ export default class WebForm extends frappe.ui.FieldGroup {
 		// webform client script
 		frappe.init_client_script && frappe.init_client_script();
 		frappe.web_form.events.trigger('after_load');
+		this.after_load && this.after_load();
 	}
 
 	on(fieldname, handler) {
@@ -102,7 +103,9 @@ export default class WebForm extends frappe.ui.FieldGroup {
 	}
 
 	save() {
-		this.validate && this.validate();
+		if (this.validate && !this.validate()) {
+			frappe.throw(__("Couldn't save, please check the data you have entered"), __("Validation Error"));
+		}
 
 		// validation hack: get_values will check for missing data
 		let isvalid = super.get_values(this.allow_incomplete);
@@ -134,6 +137,17 @@ export default class WebForm extends frappe.ui.FieldGroup {
 					// Success
 					this.handle_success(response.message);
 					frappe.web_form.events.trigger('after_save');
+					this.after_save && this.after_save();
+					// args doctype and docname added to link doctype in file manager
+					frappe.call({
+						type: 'POST',
+						method: "frappe.handler.upload_file",
+						args: {
+							file_url: response.message.attachment,
+							doctype: response.message.doctype,
+							docname: response.message.name
+						}
+					});
 				}
 			},
 			always: function() {
@@ -174,7 +188,7 @@ export default class WebForm extends frappe.ui.FieldGroup {
 			title: __("Saved Successfully"),
 			secondary_action: () => {
 				if (this.success_url) {
-					window.location.pathname = this.success_url;
+					window.location.href = this.success_url;
 				} else if(this.login_required) {
 					window.location.href =
 						window.location.pathname + "?name=" + data.name;

@@ -13,7 +13,7 @@ class DBTable:
 	def __init__(self, doctype, meta=None):
 		self.doctype = doctype
 		self.table_name = 'tab{}'.format(doctype)
-		self.meta = meta or frappe.get_meta(doctype)
+		self.meta = meta or frappe.get_meta(doctype, False)
 		self.columns = {}
 		self.current_columns = {}
 
@@ -65,64 +65,35 @@ class DBTable:
 		"""
 			get columns from docfields and custom fields
 		"""
-		fl = frappe.db.sql("SELECT * FROM `tabDocField` WHERE parent = %s", self.doctype, as_dict = 1)
-		lengths = {}
-		precisions = {}
-		uniques = {}
+		fields = self.meta.get_fieldnames_with_value(True)
 
 		# optional fields like _comments
-		if not self.meta.istable:
+		if not self.meta.get('istable'):
 			for fieldname in frappe.db.OPTIONAL_COLUMNS:
-				fl.append({
+				fields.append({
 					"fieldname": fieldname,
 					"fieldtype": "Text"
 				})
 
 			# add _seen column if track_seen
-			if getattr(self.meta, 'track_seen', False):
-				fl.append({
+			if self.meta.get('track_seen'):
+				fields.append({
 					'fieldname': '_seen',
 					'fieldtype': 'Text'
 				})
 
-		if (not frappe.flags.in_install_db
-			and (frappe.flags.in_install != "frappe"
-			or frappe.flags.ignore_in_install)):
-			custom_fl = frappe.db.sql("""
-				SELECT * FROM `tabCustom Field`
-				WHERE dt = %s AND docstatus < 2
-				""", (self.doctype,), as_dict=1)
-			if custom_fl: fl += custom_fl
-
-			# apply length, precision and unique from property setters
-			for ps in frappe.get_all("Property Setter",
-				fields=["field_name", "property", "value"],
-				filters={
-					"doc_type": self.doctype,
-					"doctype_or_field": "DocField",
-					"property": ["in", ["precision", "length", "unique"]]
-				}):
-
-				if ps.property=="length":
-					lengths[ps.field_name] = cint(ps.value)
-
-				elif ps.property=="precision":
-					precisions[ps.field_name] = cint(ps.value)
-
-				elif ps.property=="unique":
-					uniques[ps.field_name] = cint(ps.value)
-
-		for f in fl:
-			self.columns[f['fieldname']] = DbColumn(self,
-				f['fieldname'],
-				f['fieldtype'],
-				lengths.get(f["fieldname"]) or f.get('length'),
-				f.get('default'),
-				f.get('search_index'),
-				f.get('options'),
-				uniques.get(f["fieldname"],
-				f.get('unique')),
-				precisions.get(f['fieldname']) or f.get('precision'))
+		for field in fields:
+			self.columns[field.get('fieldname')] = DbColumn(
+				self,
+				field.get('fieldname'),
+				field.get('fieldtype'),
+				field.get('length'),
+				field.get('default'),
+				field.get('search_index'),
+				field.get('options'),
+				field.get('unique'),
+				field.get('precision')
+			)
 
 	def validate(self):
 		"""Check if change in varchar length isn't truncating the columns"""

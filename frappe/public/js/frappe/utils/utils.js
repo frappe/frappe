@@ -689,7 +689,9 @@ Object.assign(frappe.utils, {
 		return __(frappe.utils.to_title_case(route[0], true));
 	},
 	report_column_total: function(values, column, type) {
-		if (values.length > 0) {
+		if (column.column.disable_total) {
+			return '';
+		} else if (values.length > 0) {
 			if (column.column.fieldtype == "Percent" || type === "mean") {
 				return values.reduce((a, b) => a + flt(b)) / values.length;
 			} else if (column.column.fieldtype == "Int") {
@@ -704,7 +706,32 @@ Object.assign(frappe.utils, {
 			return null;
 		}
 	},
+	setup_search($wrapper, el_class, text_class, data_attr) {
+		const $search_input = $wrapper.find('[data-element="search"]').show();
+		$search_input.focus().val('');
+		const $elements = $wrapper.find(el_class).show();
 
+		$search_input.off('keyup').on('keyup', () => {
+			let text_filter = $search_input.val().toLowerCase();
+			// Replace trailing and leading spaces
+			text_filter = text_filter.replace(/^\s+|\s+$/g, '');
+			for (let i = 0; i < $elements.length; i++) {
+				const text_element = $elements.eq(i).find(text_class);
+				const text = text_element.text().toLowerCase();
+
+				let name = '';
+				if (data_attr && text_element.attr(data_attr)) {
+					name = text_element.attr(data_attr).toLowerCase();
+				}
+
+				if (text.includes(text_filter) || name.includes(text_filter)) {
+					$elements.eq(i).css('display', '');
+				} else {
+					$elements.eq(i).css('display', 'none');
+				}
+			}
+		});
+	},
 	deep_equal(a, b) {
 		return deep_equal(a, b);
 	},

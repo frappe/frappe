@@ -49,18 +49,16 @@ def get_chart_config(chart, filters, timespan, timegrain, from_date, to_date):
 	# query will return year, unit and aggregate value
 	data = frappe.db.sql('''
 		select
-			extract(year from {datefield}) as _year,
-			{unit_function} as _unit,
+			{unit} as _unit,
 			{aggregate_function}({value_field})
 		from `tab{doctype}`
 		where
 			{conditions}
-			and {datefield} >= '{from_date}'
-			and {datefield} <= '{to_date}'
-		group by _year, _unit
-		order by _year asc, _unit asc
+			and {datefield} BETWEEN '{from_date}' and '{to_date}'
+		group by _unit
+		order by _unit asc
 	'''.format(
-		unit_function = get_unit_function(chart.based_on, timegrain),
+		unit = chart.based_on,
 		datefield = chart.based_on,
 		aggregate_function = get_aggregate_function(chart.chart_type),
 		value_field = chart.value_based_on or '1',
@@ -70,11 +68,8 @@ def get_chart_config(chart, filters, timespan, timegrain, from_date, to_date):
 		to_date = to_date
 	), values)
 
-	# result given as year, unit -> convert it to end of period of that unit
-	result = convert_to_dates(data, timegrain)
-
 	# add missing data points for periods where there was no result
-	result = add_missing_values(result, timegrain, from_date, to_date)
+	result = get_result(data, timegrain, from_date, to_date)
 
 	chart_config = {
 		"labels": [formatdate(r[0].strftime('%Y-%m-%d')) for r in result],
@@ -133,73 +128,25 @@ def get_aggregate_function(chart_type):
 		"Average": "AVG",
 	}[chart_type]
 
-def convert_to_dates(data, timegrain):
+def get_result(data, timegrain, from_date, to_date):
+	start_date = getdate(from_date)
+	end_date = getdate(to_date)
 	result = []
-	for d in data:
-		if timegrain == 'Daily':
-			result.append([add_to_date('{:d}-01-01'.format(int(d[0])), days = d[1] - 1), d[2]])
-		elif timegrain == 'Weekly':
-			result.append([add_to_date(add_to_date('{:d}-01-01'.format(int(d[0])), weeks = d[1] + 1), days = -1), d[2]])
-		elif timegrain == 'Monthly':
-			result.append([add_to_date(add_to_date('{:d}-01-01'.format(int(d[0])), months = d[1]), days = -1), d[2]])
-		elif timegrain == 'Quarterly':
-			result.append([add_to_date(add_to_date('{:d}-01-01'.format(int(d[0])), months = d[1] * 3), days = -1), d[2]])
 
-		result[-1][0] = getdate(result[-1][0])
+	while start_date <= end_date:
+		next_date = get_next_expected_date(start_date, timegrain)
+		result.append([next_date, 0.0])
+		start_date = next_date
+
+	data_index = 0
+	if data:
+		for i, d in enumerate(result):
+			while data_index < len(data) and getdate(data[data_index][0]) <= d[0]:
+				d[1] += data[data_index][1]
+				data_index += 1
 
 	return result
 
-def get_unit_function(datefield, timegrain):
-	unit_function = ''
-	if timegrain=='Daily':
-		if frappe.db.db_type == 'mariadb':
-			unit_function = 'dayofyear({})'.format(datefield)
-		else:
-			unit_function = 'extract(doy from {datefield})'.format(
-				datefield=datefield)
-
-	else:
-		unit_function = 'extract({unit} from {datefield})'.format(
-			unit = timegrain[:-2].lower(), datefield=datefield)
-
-	return unit_function
-
-def add_missing_values(data, timegrain, from_date, to_date):
-	# add missing intervals
-	result = []
-
-	first_expected_date = get_period_ending(from_date, timegrain)
-
-	# fill out data before the first data point
-	first_data_point_date = data[0][0] if data else getdate(add_to_date(to_date, days=1))
-	while first_data_point_date > first_expected_date:
-		result.append([first_expected_date, 0.0])
-		first_expected_date = get_next_expected_date(first_expected_date, timegrain)
-
-	# fill data points and missing points
-	for i, d in enumerate(data):
-		result.append(d)
-
-		next_expected_date = get_next_expected_date(d[0], timegrain)
-
-		if i < len(data)-1:
-			next_date = data[i+1][0]
-		else:
-			# already reached at end of data, see if we need any more dates
-			next_date = getdate(nowdate())
-
-		# if next data point is earler than the expected date
-		# need to fill out missing data points
-		while next_date > next_expected_date:
-			# fill missing value
-			result.append([next_expected_date, 0.0])
-			next_expected_date = get_next_expected_date(next_expected_date, timegrain)
-
-	# add date for the last period (if missing)
-	if result and get_period_ending(to_date, timegrain) > result[-1][0]:
-		result.append([get_period_ending(to_date, timegrain), 0.0])
-
-	return result
 
 def get_next_expected_date(date, timegrain):
 	next_date = None
@@ -224,17 +171,12 @@ def get_period_ending(date, timegrain):
 	return getdate(date)
 
 def get_week_ending(date):
-	# fun fact: week ends on the day before 1st Jan of the year.
-	# for 2019 it is Monday
+	# week starts on monday
+	from datetime import timedelta
+	start = date - timedelta(days = date.weekday())
+	end = start + timedelta(days=6)
 
-	week_of_the_year = int(date.strftime('%U'))
-
-	if week_of_the_year == 52:
-		date = add_to_date(date, years=1)
-	# first day of next week
-	date = add_to_date('{}-01-01'.format(date.year), weeks = (week_of_the_year%52) + 1)
-	# last day of this week
-	return add_to_date(date, days = -1)
+	return end
 
 def get_month_ending(date):
 	month_of_the_year = int(date.strftime('%m'))
