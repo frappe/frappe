@@ -1,13 +1,13 @@
 // Copyright (c) 2019, Frappe Technologies and contributors
 // For license information, please see license.txt
 
-frappe.ui.form.on('Data Import Beta', {
+frappe.ui.form.on('Data Import', {
 	setup(frm) {
 		frappe.realtime.on('data_import_refresh', ({ data_import }) => {
 			frm.import_in_progress = false;
 			if (data_import !== frm.doc.name) return;
-			frappe.model.clear_doc('Data Import Beta', frm.doc.name);
-			frappe.model.with_doc('Data Import Beta', frm.doc.name).then(() => {
+			frappe.model.clear_doc('Data Import', frm.doc.name);
+			frappe.model.with_doc('Data Import', frm.doc.name).then(() => {
 				frm.refresh();
 			});
 		});
@@ -292,7 +292,7 @@ frappe.ui.form.on('Data Import Beta', {
 
 	export_errored_rows(frm) {
 		open_url_post(
-			'/api/method/frappe.core.doctype.data_import_beta.data_import_beta.download_errored_template',
+			'/api/method/frappe.core.doctype.data_import.data_import.download_errored_template',
 			{
 				data_import_name: frm.doc.name
 			}

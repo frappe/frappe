@@ -1,6 +1,6 @@
 let imports_in_progress = [];
 
-frappe.listview_settings['Data Import Beta'] = {
+frappe.listview_settings['Data Import'] = {
 	onload(listview) {
 		frappe.realtime.on('data_import_progress', data => {
 			if (!imports_in_progress.includes(data.data_import)) {
