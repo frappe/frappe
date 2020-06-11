@@ -9,7 +9,7 @@ import json
 from frappe.frappeclient import FrappeClient
 from frappe.event_streaming.doctype.event_producer.event_producer import pull_from_node
 
-producer_url = 'http://test2:8010'
+producer_url = 'http://test_site_producer:8000'
 
 class TestEventProducer(unittest.TestCase):
 	def setUp(self):
