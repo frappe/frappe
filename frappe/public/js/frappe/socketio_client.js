@@ -287,7 +287,8 @@ frappe.socketio.SocketIOUploader = class SocketIOUploader {
 		}
 
 		function fallback_required() {
-			return !frappe.boot.sysdefaults.use_socketio_to_upload_file || !frappe.socketio.socket.connected;
+			return !frappe.socketio.socket.connected
+				|| !( !frappe.boot.sysdefaults || frappe.boot.sysdefaults.use_socketio_to_upload_file );
 		}
 
 		if (fallback_required()) {

@@ -252,7 +252,7 @@ def get_open_count(doctype, name, items=[]):
 			continue
 
 		filters = get_filters_for(d)
-		fieldname = links.get("non_standard_fieldnames", {}).get(d, links.fieldname)
+		fieldname = links.get("non_standard_fieldnames", {}).get(d, links.get('fieldname'))
 		data = {"name": d}
 		if filters:
 			# get the fieldname for the current document

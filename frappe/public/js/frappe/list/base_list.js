@@ -338,6 +338,11 @@ frappe.views.BaseList = class BaseList {
 			: [];
 	}
 
+	get_filter_value(fieldname) {
+		return this.get_filters_for_args().filter(f => f[1] == fieldname)[0] &&
+			this.get_filters_for_args().filter(f => f[1] == fieldname)[0][3];
+	}
+
 	get_args() {
 		return {
 			doctype: this.doctype,
