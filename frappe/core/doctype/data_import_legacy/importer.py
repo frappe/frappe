@@ -43,7 +43,7 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 		frappe.set_user_lang(user)
 
 	if data_import_doc and isinstance(data_import_doc, string_types):
-		data_import_doc = frappe.get_doc("Data Import", data_import_doc)
+		data_import_doc = frappe.get_doc("Data Import Legacy", data_import_doc)
 	if data_import_doc and from_data_import == "Yes":
 		no_email = data_import_doc.no_email
 		ignore_encoding_errors = data_import_doc.ignore_encoding_errors
@@ -495,7 +495,7 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 			_file = frappe.get_doc({
 				"doctype": "File",
 				"file_name": file_name,
-				"attached_to_doctype": "Data Import",
+				"attached_to_doctype": "Data Import Legacy",
 				"attached_to_name": data_import_doc.name,
 				"folder": "Home/Attachments",
 				"content": file_data})
