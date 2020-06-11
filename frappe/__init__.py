@@ -1706,3 +1706,5 @@ def mock(type, size=1, locale='en'):
 
 	from frappe.chat.util import squashify
 	return squashify(results)
+
+# comment counts as a py update uk
