@@ -169,7 +169,6 @@ def get_context(context):
 		enqueue_create_notification(users, notification_doc)
 
 	def send_an_email(self, doc, context):
-		frappe.throw("Cannot send this email. You have crossed the sending limit of 5000 emails for this month.")
 		from email.utils import formataddr
 		subject = self.subject
 		if "{" in subject:
