@@ -37,12 +37,13 @@ class DataImport(Document):
 		return i.get_data_for_import_preview()
 
 	def start_import(self):
-		if frappe.utils.scheduler.is_scheduler_inactive() and not frappe.flags.in_test:
+		from frappe.core.page.background_jobs.background_jobs import get_info
+		from frappe.utils.scheduler import is_scheduler_inactive
+
+		if is_scheduler_inactive() and not frappe.flags.in_test:
 			frappe.throw(
 				_("Scheduler is inactive. Cannot import data."), title=_("Scheduler Inactive")
 			)
-
-		from frappe.core.page.background_jobs.background_jobs import get_info
 
 		enqueued_jobs = [d.get("job_name") for d in get_info()]
 
