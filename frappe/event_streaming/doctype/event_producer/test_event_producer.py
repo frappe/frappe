@@ -9,7 +9,7 @@ import json
 from frappe.frappeclient import FrappeClient
 from frappe.event_streaming.doctype.event_producer.event_producer import pull_from_node
 
-producer_url = 'http://test_site_producer:8000'
+producer_url = 'http://test2:8010'
 
 class TestEventProducer(unittest.TestCase):
 	def setUp(self):
@@ -44,11 +44,11 @@ class TestEventProducer(unittest.TestCase):
 
 		#insert todo and note in producer
 		producer_todo = insert_into_producer(producer, 'test multiple doc sync')
-		producer_note1 = dict(doctype='Note', title='test multiple doc sync 1')
+		producer_note1 = frappe._dict(doctype='Note', title='test multiple doc sync 1')
 		delete_on_remote_if_exists(producer, 'Note', {'title': producer_note1['title']})
 		frappe.db.delete('Note', {'title': producer_note1['title']})
 		producer_note1 = producer.insert(producer_note1)
-		producer_note2 = dict(doctype='Note', title='test multiple doc sync 2')
+		producer_note2 = frappe._dict(doctype='Note', title='test multiple doc sync 2')
 		delete_on_remote_if_exists(producer, 'Note', {'title': producer_note2['title']})
 		frappe.db.delete('Note', {'title': producer_note2['title']})
 		producer_note2 = producer.insert(producer_note2)
@@ -77,21 +77,18 @@ class TestEventProducer(unittest.TestCase):
 
 	def test_child_table_sync_with_dependencies(self):
 		producer = get_remote_site()
-		producer_user = frappe.get_doc(dict(doctype='User', email='test_user@sync.com', first_name='Test Sync User'))
+		producer_user = frappe._dict(doctype='User', email='test_user@sync.com',
+			first_name='Test Sync User', enabled=1, roles=[{'role': 'System Manager'}])
 		delete_on_remote_if_exists(producer, 'User', {'email': producer_user.email})
 		frappe.db.delete('User', {'email':producer_user.email})
-		producer_user.enabled = 1
-		producer_user.append('roles', {
-			'role': 'System Manager'
-		})
 		producer_user = producer.insert(producer_user)
-		producer_note = frappe.get_doc(dict(doctype='Note', title='test child table dependency sync'))
-		producer_note.append('seen_by', {
-			'user': producer_user.name
-		})
+
+		producer_note = frappe._dict(doctype='Note', title='test child table dependency sync',
+			seen_by=[{'user': producer_user.name}])
 		delete_on_remote_if_exists(producer, 'Note', {'title': producer_note.title})
 		frappe.db.delete('Note', {'title': producer_note.title})
 		producer_note = producer.insert(producer_note)
+
 		self.pull_producer_data()
 		self.assertTrue(frappe.db.exists('User', producer_user.name))
 		if self.assertTrue(frappe.db.exists('Note', producer_note.name)):
@@ -109,13 +106,13 @@ class TestEventProducer(unittest.TestCase):
 		event_producer.save()
 
 		producer = get_remote_site()
-		producer_link_doc = frappe.get_doc(dict(doctype='Note', title='Test Dynamic Link 1'))
+		producer_link_doc = frappe._dict(doctype='Note', title='Test Dynamic Link 1')
 
 		delete_on_remote_if_exists(producer, 'Note', {'title': producer_link_doc.title})
 		frappe.db.delete('Note', {'title': producer_link_doc.title})
 		producer_link_doc = producer.insert(producer_link_doc)
-		producer_doc = frappe.get_doc(dict(doctype='ToDo', description='Test Dynamic Link 2', assigned_by='Administrator',
-				reference_type='Note', reference_name=producer_link_doc.name))
+		producer_doc = frappe._dict(doctype='ToDo', description='Test Dynamic Link 2', assigned_by='Administrator',
+				reference_type='Note', reference_name=producer_link_doc.name)
 		producer_doc = producer.insert(producer_doc)
 
 		self.pull_producer_data()
@@ -123,6 +120,8 @@ class TestEventProducer(unittest.TestCase):
 		#check dynamic link dependency created
 		self.assertTrue(frappe.db.exists('Note', producer_link_doc.name))
 		self.assertEqual(producer_link_doc.name, frappe.db.get_value('ToDo', producer_doc.name, 'reference_name'))
+
+		reset_configuration(producer_url)
 
 	def test_naming_configuration(self):
 		#test with use_same_name = 0
@@ -138,6 +137,8 @@ class TestEventProducer(unittest.TestCase):
 		producer_doc = insert_into_producer(producer, 'test different name sync')
 		self.pull_producer_data()
 		self.assertTrue(frappe.db.exists('ToDo', {'remote_docname': producer_doc.name, 'remote_site_name': producer_url}))
+
+		reset_configuration(producer_url)
 
 	def test_update_log(self):
 		producer = get_remote_site()
@@ -180,7 +181,7 @@ class TestEventProducer(unittest.TestCase):
 		event_producer.save()
 
 		producer = get_remote_site()
-		producer_note = frappe.get_doc(dict(doctype='Note', title='Test Mapping', content='Test Mapping'))
+		producer_note = frappe._dict(doctype='Note', title='Test Mapping', content='Test Mapping')
 		delete_on_remote_if_exists(producer, 'Note', {'title': producer_note.title})
 		producer_note = producer.insert(producer_note)
 		self.pull_producer_data()
@@ -199,6 +200,8 @@ class TestEventProducer(unittest.TestCase):
 		self.pull_producer_data()
 		#check delete
 		self.assertFalse(frappe.db.exists('ToDo', {'description': producer_note.content}))
+
+		reset_configuration(producer_url)
 
 	def test_inner_mapping(self):
 		event_producer = frappe.get_doc('Event Producer', producer_url)
@@ -232,7 +235,7 @@ class TestEventProducer(unittest.TestCase):
 		event_producer.save()
 
 		producer = get_remote_site()
-		producer_note = frappe.get_doc(dict(doctype='Note', title='Inner Mapping Tester', content='Test Inner Mapping'))
+		producer_note = frappe._dict(doctype='Note', title='Inner Mapping Tester', content='Test Inner Mapping')
 		delete_on_remote_if_exists(producer, 'Note', {'title': producer_note.title})
 		producer_note = producer.insert(producer_note)
 		self.pull_producer_data()
@@ -242,11 +245,13 @@ class TestEventProducer(unittest.TestCase):
 		#check doc inserted
 		self.assertTrue(frappe.db.exists('ToDo', {'description': producer_note.content}))
 
+		reset_configuration(producer_url)
+
 
 def insert_into_producer(producer, description):
-		#create and insert todo on remote site
-		todo = dict(doctype='ToDo', description=description, assigned_by='Administrator')
-		return producer.insert(todo)
+	#create and insert todo on remote site
+	todo = dict(doctype='ToDo', description=description, assigned_by='Administrator')
+	return producer.insert(todo)
 
 def delete_on_remote_if_exists(producer, doctype, filters):
 	remote_doc = producer.get_value(doctype, 'name', filters)
@@ -286,6 +291,20 @@ def create_event_producer(producer_url):
 	event_producer.user = 'Administrator'
 	event_producer.save()
 
+def reset_configuration(producer_url):
+	event_producer = frappe.get_doc('Event Producer', producer_url)
+	event_producer.producer_doctypes = []
+	event_producer.producer_url = producer_url
+	event_producer.append('producer_doctypes', {
+		'ref_doctype': 'ToDo',
+		'use_same_name': 1
+	})
+	event_producer.append('producer_doctypes', {
+		'ref_doctype': 'Note',
+		'use_same_name': 1
+	})
+	event_producer.user = 'Administrator'
+	event_producer.save()
 
 def get_remote_site():
 	producer_doc = frappe.get_doc('Event Producer', producer_url)
