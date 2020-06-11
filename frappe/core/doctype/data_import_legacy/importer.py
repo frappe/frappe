@@ -7,7 +7,7 @@ from __future__ import unicode_literals, print_function
 
 from six.moves import range
 import requests
-import frappe, json, os
+import frappe, json
 import frappe.permissions
 
 from frappe import _
@@ -16,7 +16,7 @@ from frappe.utils.csvutils import getlink
 from frappe.utils.dateutils import parse_date
 
 from frappe.utils import cint, cstr, flt, getdate, get_datetime, get_url, get_absolute_url
-from six import text_type, string_types
+from six import string_types
 
 
 @frappe.whitelist()

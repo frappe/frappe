@@ -7,7 +7,7 @@ import os
 import frappe
 from frappe.model.document import Document
 
-from frappe.core.doctype.data_import.importer import Importer, ImportFile
+from frappe.core.doctype.data_import.importer import Importer
 from frappe.core.doctype.data_import.exporter import Exporter
 from frappe.utils.background_jobs import enqueue
 from frappe import _
@@ -83,7 +83,7 @@ def start_import(data_import):
 	try:
 		i = Importer(data_import.reference_doctype, data_import=data_import)
 		i.import_data()
-	except:
+	except Exception:
 		frappe.db.rollback()
 		data_import.db_set("status", "Error")
 		frappe.log_error(title=data_import.name)
