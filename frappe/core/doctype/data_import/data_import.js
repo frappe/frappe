@@ -91,7 +91,13 @@ frappe.ui.form.on('Data Import', {
 				() => frappe.set_route('List', frm.doc.reference_doctype)
 			);
 		}
+	},
 
+	onload_post_render(frm) {
+		frm.trigger('update_primary_action');
+	},
+
+	update_primary_action(frm) {
 		frm.disable_save();
 		if (frm.doc.status !== 'Success') {
 			if (!frm.is_new() && frm.doc.import_file) {
