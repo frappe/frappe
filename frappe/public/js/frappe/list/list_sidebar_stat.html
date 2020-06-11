@@ -7,9 +7,9 @@
 		var stat_count = stat[i][1];
 %}
 <li>
-	<a class="stat-link badge-hover" data-label="{{ stat_label %}" data-field="{{ field %}" href="#" onclick="return false;">
-		<span class="badge pull-right" style="position: relative">{{ stat_count }}</span>
+	<a class="stat-link dropdown-item" data-label="{{ stat_label %}" data-field="{{ field %}" href="#" onclick="return false;">
 		<span class="stat-label">{{ __(stat_label) }}</span>
+		<span>{{ stat_count }}</span>
 	</a>
 </li>
 	{% }

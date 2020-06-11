@@ -65,13 +65,13 @@ body[data-route^="Module"] .main-menu {
 }
 
 .sidebar-menu {
-	.badge {
-		position: absolute;
-		font-weight: normal;
-		right: 0px;
-		top: 0px;
-		padding-bottom: 4px;
-	}
+	// .badge {
+	// 	position: absolute;
+	// 	font-weight: normal;
+	// 	right: 0px;
+	// 	top: 0px;
+	// 	padding-bottom: 4px;
+	// }
 
 	.octicon {
 		font-size: 12px;
@@ -84,10 +84,6 @@ body[data-route^="Module"] .main-menu {
 
 	> li {
 		position: relative;
-	}
-
-	.list-link {
-		margin: 7px 0px;
 	}
 }
 
@@ -367,22 +363,54 @@ body[data-route^="Module"] .main-menu {
 
 
 .list-sidebar {
+
+	.sidebar-section {
+		margin-bottom: 30px;
+	}
+
+	.list-link {
+		margin-top: 20px;
+	}
+
 	.list-sidebar-label {
-		color: $text-muted;
+		color: var(--grey-600);
 		text-transform: uppercase;
 		margin-bottom: 0;
-		font-size: var(--text-sm);
+		font-size: var(--text-xs);
+		font-weight: 600;
+	}
+
+	.list-sidebar-button {
+		display: flex;
+		justify-content: space-between;
+		padding: 4px 8px;
 	}
 
 	.group-by-count {
 		position:relative
 	}
 
-	.group-by-dropdown, .list-stats-dropdown {
+	.group-by-value {
+		width: 90%;
+	}
+
+	.dropdown-menu {
 		max-height: 300px;
 		overflow-y: auto;
+		min-width: 180px;
 		max-width: 250px;
 		z-index: 100;
+
+		.dropdown-item {
+			display: flex;
+			justify-content: space-between;
+		}
+
+		.empty-state {
+			padding: 10px 15px;
+			text-align: center;
+			color: $text-muted;
+		}
 	}
 
 	.dropdown-search {
@@ -391,6 +419,12 @@ body[data-route^="Module"] .main-menu {
 
 	.stat-no-records {
 		margin: 5px 10px;
+	}
+
+	.sidebar-action {
+		font-size: var(--text-sm);
+		color: var(--primary);
+		margin-top: 10px;
 	}
 }
 

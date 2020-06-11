@@ -57,6 +57,12 @@
 	}
 }
 
+.control-label,
+.grid-heading-row {
+  color: var(--grey-700);
+  font-size: 12px;
+}
+
 // .form-print-wrapper {
 // 	border: 1px solid $border-color;
 // 	border-top: none;

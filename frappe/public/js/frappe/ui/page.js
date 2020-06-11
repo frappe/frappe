@@ -243,6 +243,16 @@ frappe.ui.Page = Class.extend({
 		});
 	},
 
+	add_custom_menu_item: function(parent, label, click, standard, shortcut) {
+		return this.add_dropdown_item({
+			label,
+			click,
+			standard,
+			parent: parent,
+			shortcut,
+		});
+	},
+
 	clear_menu: function() {
 		this.clear_btn_group(this.menu);
 	},
@@ -574,7 +584,28 @@ frappe.ui.Page = Class.extend({
 		button.appendTo(this.custom_actions)
 		button.onclick = click;
 
-		return button
+		return button;
+	},
+
+	add_custom_button_group: function(label, icon) {
+		let custom_btn_group = $(`
+			<div class="custom-btn-group hide">
+				<button type="button" class="btn btn-default btn-sm" data-toggle="dropdown" aria-expanded="false">
+					<span class="hidden-xs">
+						${frappe.utils.icon(icon)}
+						<span class="custom-btn-group-label">${__(label)}</span>
+						<span class="caret"></span>
+					</span>
+					<span class="visible-xs">
+						${frappe.utils.icon(icon)}
+					</span>
+				</button>
+				<ul class="dropdown-menu" role="menu"></ul>
+			</div>
+		`);
+		this.custom_actions.removeClass('hide').append(custom_btn_group);
+
+		return custom_btn_group.find('.dropdown-menu');
 	},
 
 	add_dropdown_button: function(parent, label, click, icon) {
