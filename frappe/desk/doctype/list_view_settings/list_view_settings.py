@@ -102,7 +102,7 @@ def get_default_listview_filters(doctype):
 
 	for meta in [meta] + table_fields:
 		if meta.doctype == "DocField":
-			meta = frappe.get_meta(doc.options)
+			meta = frappe.get_meta(meta.options)
 
 		path = frappe.get_module_path(frappe.scrub(meta.module), "doctype", frappe.scrub(meta.name),
 			frappe.scrub(meta.name) + ".json")

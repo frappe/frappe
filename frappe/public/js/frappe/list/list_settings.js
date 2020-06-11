@@ -101,7 +101,7 @@ export default class ListSettings {
 
 		let is_status_field = function (field) {
 			return field.fieldname === "status_field";
-		}
+		};
 
 		for (let idx in me.fields) {
 			if (idx == parseInt(total_fields)) {
@@ -169,11 +169,11 @@ export default class ListSettings {
 		// Fields selector
 		let reset_fields = "frappe.desk.doctype.list_view_settings.list_view_settings.get_default_listview_fields";
 		let active_fields = {};
-		active_fields[me.meta.name] = me.fields.map(f => f.fieldname)
+		active_fields[me.meta.name] = me.fields.map(f => f.fieldname);
 		let add_new_fields = fields_html.$wrapper[0].getElementsByClassName("add-new-fields")[0];
 		add_new_fields.onclick = () => {
 			me.fields_selector("for_list_fields", false, reset_fields, active_fields);
-		}
+		};
 	}
 
 	setup_listview_filters() {
@@ -269,7 +269,7 @@ export default class ListSettings {
 			});
 		});
 
-		return active_fields
+		return active_fields;
 	}
 
 	remove_listview_fields(fieldname) {
@@ -293,7 +293,7 @@ export default class ListSettings {
 		let me = this;
 		let existing_filters = me.filters;
 
-		me.filters = []
+		me.filters = [];
 		existing_filters.forEach(filter => {
 			if (filter.doctype === doctype && filter.fieldname === fieldname) {
 				me.removed_filters.push(filter);
@@ -327,7 +327,7 @@ export default class ListSettings {
 		let me = this;
 
 		let existing_filters = me.filters;
-		me.filters = []
+		me.filters = [];
 
 		let wrapper = me.dialog.get_field("filters_html").$wrapper[0];
 		let filters_order = wrapper.getElementsByClassName("filters_order");
@@ -445,7 +445,7 @@ export default class ListSettings {
 						default: default_value,
 						ignore_link_validation: fieldtype === 'Dynamic Link',
 						is_filter: 1
-					})
+					});
 				});
 			});
 		});
@@ -552,8 +552,8 @@ export default class ListSettings {
 			return;
 		}
 
-		let filters = {}
-		filters[me.doctype] = []
+		let filters = {};
+		filters[me.doctype] = [];
 
 		meta.fields.forEach(field => {
 			if (field.in_standard_filter && !in_list(frappe.model.no_value_type, field.fieldtype)) {
@@ -619,7 +619,7 @@ export default class ListSettings {
 		let removed = [];
 
 		let push_to_new_list = function (doctype, fieldname) {
-			if (_new_list.hasOwnProperty(doctype)) {
+			if (_new_list[doctype]) {
 				_new_list[doctype].push(fieldname);
 			} else {
 				_new_list[doctype] = [fieldname];
@@ -633,14 +633,13 @@ export default class ListSettings {
 		};
 
 		new_list.forEach(el => {
-			push_to_new_list(el.hasOwnProperty("doctype") ? el.doctype : me.doctype, el.fieldname);
-		})
-
-		existing_list.forEach(el => {
-			add_to_removed(el.hasOwnProperty("doctype") ? _new_list[el.doctype] : _new_list[me.doctype], el);
+			push_to_new_list(el.doctype ? el.doctype : me.doctype, el.fieldname);
 		});
 
-		console.log(removed)
+		existing_list.forEach(el => {
+			add_to_removed(el.doctype ? _new_list[el.doctype] : _new_list[me.doctype], el);
+		});
+
 		return removed;
 	}
 }
