@@ -4,7 +4,7 @@ from __future__ import unicode_literals
 
 import frappe
 import frappe.defaults
-from frappe.core.doctype.data_import.data_import import export_csv
+from frappe.core.doctype.data_import_legacy.data_import_legacy import export_csv
 import unittest
 import os
 

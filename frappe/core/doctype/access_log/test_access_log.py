@@ -11,7 +11,7 @@ import os
 import frappe
 from frappe.core.doctype.access_log.access_log import make_access_log
 from frappe.utils import cstr, get_site_url
-from frappe.core.doctype.data_import.data_import import export_csv
+from frappe.core.doctype.data_import_legacy.data_import_legacy import export_csv
 from frappe.core.doctype.user.user import generate_keys
 
 # imports - third party imports

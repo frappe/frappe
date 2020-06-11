@@ -8,11 +8,11 @@ from frappe import _
 import frappe.modules.import_file
 from frappe.model.document import Document
 from frappe.utils.data import format_datetime
-from frappe.core.doctype.data_import.importer import upload
+from frappe.core.doctype.data_import_legacy.importer import upload
 from frappe.utils.background_jobs import enqueue
 
 
-class DataImport(Document):
+class DataImportLegacy(Document):
 	def autoname(self):
 		if not self.name:
 			self.name = "Import on " +format_datetime(self.creation)

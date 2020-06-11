@@ -1,14 +1,14 @@
 // Copyright (c) 2017, Frappe Technologies and contributors
 // For license information, please see license.txt
 
-frappe.ui.form.on('Data Import', {
+frappe.ui.form.on('Data Import Legacy', {
 	onload: function(frm) {
 		if (frm.doc.__islocal) {
 			frm.set_value("action", "");
 		}
 
 		frappe.call({
-			method: "frappe.core.doctype.data_import.data_import.get_importable_doctypes",
+			method: "frappe.core.doctype.data_import_legacy.data_import_legacy.get_importable_doctypes",
 			callback: function (r) {
 				let importable_doctypes = r.message;
 				frm.set_query("reference_doctype", function () {
@@ -55,7 +55,7 @@ frappe.ui.form.on('Data Import', {
 			frm.page.set_indicator(__('Attach file'), 'orange');
 		} else {
 			if (frm.doc.import_status) {
-				const listview_settings = frappe.listview_settings['Data Import'];
+				const listview_settings = frappe.listview_settings['Data Import Legacy'];
 				const indicator = listview_settings.get_indicator(frm.doc);
 
 				frm.page.set_indicator(indicator[0], indicator[1]);
@@ -91,7 +91,7 @@ frappe.ui.form.on('Data Import', {
 			frm.page.set_primary_action(__("Start Import"), function() {
 				frappe.call({
 					btn: frm.page.btn_primary,
-					method: "frappe.core.doctype.data_import.data_import.import_data",
+					method: "frappe.core.doctype.data_import_legacy.data_import_legacy.import_data",
 					args: {
 						data_import: frm.doc.name
 					}
