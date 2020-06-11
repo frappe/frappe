@@ -77,7 +77,7 @@ class TestEventProducer(unittest.TestCase):
 
 	def test_child_table_sync_with_dependencies(self):
 		producer = get_remote_site()
-		producer_user = frappe._dict(doctype='User', email='test_user@sync.com',
+		producer_user = frappe._dict(doctype='User', email='test_user@sync.com', send_welcome_email=0,
 			first_name='Test Sync User', enabled=1, roles=[{'role': 'System Manager'}])
 		delete_on_remote_if_exists(producer, 'User', {'email': producer_user.email})
 		frappe.db.delete('User', {'email':producer_user.email})
@@ -96,6 +96,7 @@ class TestEventProducer(unittest.TestCase):
 			self.assertEqual(len(local_note.seen_by), 1)
 
 	def test_dynamic_link_dependencies_synced(self):
+		producer = get_remote_site()
 		#unsubscribe for Note to check whether dependency is fulfilled
 		event_producer = frappe.get_doc('Event Producer', producer_url)
 		event_producer.producer_doctypes = []
@@ -105,7 +106,6 @@ class TestEventProducer(unittest.TestCase):
 		})
 		event_producer.save()
 
-		producer = get_remote_site()
 		producer_link_doc = frappe._dict(doctype='Note', title='Test Dynamic Link 1')
 
 		delete_on_remote_if_exists(producer, 'Note', {'title': producer_link_doc.title})
@@ -125,6 +125,7 @@ class TestEventProducer(unittest.TestCase):
 
 	def test_naming_configuration(self):
 		#test with use_same_name = 0
+		producer = get_remote_site()
 		event_producer = frappe.get_doc('Event Producer', producer_url)
 		event_producer.producer_doctypes = []
 		event_producer.append('producer_doctypes', {
@@ -133,7 +134,6 @@ class TestEventProducer(unittest.TestCase):
 		})
 		event_producer.save()
 
-		producer = get_remote_site()
 		producer_doc = insert_into_producer(producer, 'test different name sync')
 		self.pull_producer_data()
 		self.assertTrue(frappe.db.exists('ToDo', {'remote_docname': producer_doc.name, 'remote_site_name': producer_url}))
@@ -166,6 +166,7 @@ class TestEventProducer(unittest.TestCase):
 		return producer_site
 
 	def test_mapping(self):
+		producer = get_remote_site()
 		event_producer = frappe.get_doc('Event Producer', producer_url)
 		event_producer.producer_doctypes = []
 		mapping = [{
@@ -180,7 +181,6 @@ class TestEventProducer(unittest.TestCase):
 		})
 		event_producer.save()
 
-		producer = get_remote_site()
 		producer_note = frappe._dict(doctype='Note', title='Test Mapping', content='Test Mapping')
 		delete_on_remote_if_exists(producer, 'Note', {'title': producer_note.title})
 		producer_note = producer.insert(producer_note)
@@ -204,6 +204,7 @@ class TestEventProducer(unittest.TestCase):
 		reset_configuration(producer_url)
 
 	def test_inner_mapping(self):
+		producer = get_remote_site()
 		event_producer = frappe.get_doc('Event Producer', producer_url)
 		event_producer.producer_doctypes = []
 		inner_mapping = [
@@ -234,7 +235,6 @@ class TestEventProducer(unittest.TestCase):
 		})
 		event_producer.save()
 
-		producer = get_remote_site()
 		producer_note = frappe._dict(doctype='Note', title='Inner Mapping Tester', content='Test Inner Mapping')
 		delete_on_remote_if_exists(producer, 'Note', {'title': producer_note.title})
 		producer_note = producer.insert(producer_note)
