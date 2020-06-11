@@ -35,7 +35,7 @@ def get_importable_doctypes():
 
 @frappe.whitelist()
 def import_data(data_import):
-	frappe.db.set_value("Data Import", data_import, "import_status", "In Progress", update_modified=False)
+	frappe.db.set_value("Data Import Legacy", data_import, "import_status", "In Progress", update_modified=False)
 	frappe.publish_realtime("data_import_progress", {"progress": "0",
 		"data_import": data_import, "reload": True}, user=frappe.session.user)
 
