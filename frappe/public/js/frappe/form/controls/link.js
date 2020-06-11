@@ -117,6 +117,9 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 					value: item.value
 				};
 			},
+			filter: function() {
+				return true;
+			},
 			item: function (item) {
 				var d = this.get_item(item.value);
 				if(!d.label) {	d.label = d.value; }
@@ -137,7 +140,7 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 			}
 		});
 
-		this.filter_awesomplete(this.awesomplete);
+		this.custom_awesomplete_filter && this.custom_awesomplete_filter(this.awesomplete);
 
 		this.$input.on("input", frappe.utils.debounce(function(e) {
 			var doctype = me.get_options();
@@ -467,12 +470,6 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 			frappe.model.set_value(df.parent, docname, fl[i], fetch_values[i], df.fieldtype);
 		}
 	},
-
-	filter_awesomplete: function(awesomplete) {
-		awesomplete.filter = function() {
-			return true;
-		};
-	}
 });
 
 if (Awesomplete) {

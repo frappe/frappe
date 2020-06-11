@@ -143,7 +143,7 @@ frappe.ui.form.ControlTableMultiSelect = frappe.ui.form.ControlLink.extend({
 		}
 		return this._link_field;
 	},
-	filter_awesomplete: function(awesomplete) {
+	custom_awesomplete_filter: function(awesomplete) {
 		let me = this;
 
 		awesomplete.filter = function(item) {
