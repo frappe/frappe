@@ -256,8 +256,8 @@ class Importer:
 		build_csv_response(rows, self.doctype)
 
 	def print_import_log(self, import_log):
-		failed_records = [l for l in import_log if not l.success]
-		successful_records = [l for l in import_log if l.success]
+		failed_records = [log for log in import_log if not log.success]
+		successful_records = [log for log in import_log if log.success]
 
 		if successful_records:
 			print()
