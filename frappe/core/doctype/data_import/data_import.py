@@ -3,12 +3,12 @@
 # For license information, please see license.txt
 
 from __future__ import unicode_literals
+import os
 import frappe
 from frappe.model.document import Document
 
-from frappe.core.doctype.data_import.importer import Importer
+from frappe.core.doctype.data_import.importer import Importer, ImportFile
 from frappe.core.doctype.data_import.exporter import Exporter
-from frappe.core.page.background_jobs.background_jobs import get_info
 from frappe.utils.background_jobs import enqueue
 from frappe import _
 
@@ -41,6 +41,8 @@ class DataImport(Document):
 			frappe.throw(
 				_("Scheduler is inactive. Cannot import data."), title=_("Scheduler Inactive")
 			)
+
+		from frappe.core.page.background_jobs.background_jobs import get_info
 
 		enqueued_jobs = [d.get("job_name") for d in get_info()]
 
@@ -123,3 +125,130 @@ def download_template(
 def download_errored_template(data_import_name):
 	data_import = frappe.get_doc("Data Import", data_import_name)
 	data_import.export_errored_rows()
+
+
+def import_file(
+	doctype, file_path, import_type, submit_after_import=False, console=False
+):
+	"""
+	Import documents in from CSV or XLSX using data import.
+
+	:param doctype: DocType to import
+	:param file_path: Path to .csv, .xls, or .xlsx file to import
+	:param import_type: One of "Insert" or "Update"
+	:param submit_after_import: Whether to submit documents after import
+	:param console: Set to true if this is to be used from command line. Will print errors or progress to stdout.
+	"""
+
+	data_import = frappe.new_doc("Data Import")
+	data_import.submit_after_import = submit_after_import
+	data_import.import_type = (
+		"Insert New Records" if import_type.lower() == "insert" else "Update Existing Records"
+	)
+
+	i = Importer(
+		doctype=doctype, file_path=file_path, data_import=data_import, console=console
+	)
+	i.import_data()
+
+
+##############
+
+
+def import_doc(
+	path,
+	overwrite=False,
+	ignore_links=False,
+	ignore_insert=False,
+	insert=False,
+	submit=False,
+	pre_process=None,
+):
+	if os.path.isdir(path):
+		files = [os.path.join(path, f) for f in os.listdir(path)]
+	else:
+		files = [path]
+
+	for f in files:
+		if f.endswith(".json"):
+			frappe.flags.mute_emails = True
+			frappe.modules.import_file.import_file_by_path(
+				f, data_import=True, force=True, pre_process=pre_process, reset_permissions=True
+			)
+			frappe.flags.mute_emails = False
+			frappe.db.commit()
+		elif f.endswith(".csv"):
+			import_file_by_path(
+				f,
+				ignore_links=ignore_links,
+				overwrite=overwrite,
+				submit=submit,
+				pre_process=pre_process,
+			)
+			frappe.db.commit()
+
+
+def import_file_by_path(
+	path,
+	ignore_links=False,
+	overwrite=False,
+	submit=False,
+	pre_process=None,
+	no_email=True,
+):
+	if path.endswith(".csv"):
+		print()
+		print("This method is deprecated.")
+		print('Import CSV files using the command "bench --site sitename data-import"')
+		print("Or use the method frappe.core.doctype.data_import.data_import.import_file")
+		print()
+		raise Exception("Method deprecated")
+
+
+def export_json(
+	doctype, path, filters=None, or_filters=None, name=None, order_by="creation asc"
+):
+	def post_process(out):
+		del_keys = ("modified_by", "creation", "owner", "idx")
+		for doc in out:
+			for key in del_keys:
+				if key in doc:
+					del doc[key]
+			for k, v in doc.items():
+				if isinstance(v, list):
+					for child in v:
+						for key in del_keys + ("docstatus", "doctype", "modified", "name"):
+							if key in child:
+								del child[key]
+
+	out = []
+	if name:
+		out.append(frappe.get_doc(doctype, name).as_dict())
+	elif frappe.db.get_value("DocType", doctype, "issingle"):
+		out.append(frappe.get_doc(doctype).as_dict())
+	else:
+		for doc in frappe.get_all(
+			doctype,
+			fields=["name"],
+			filters=filters,
+			or_filters=or_filters,
+			limit_page_length=0,
+			order_by=order_by,
+		):
+			out.append(frappe.get_doc(doctype, doc.name).as_dict())
+	post_process(out)
+
+	dirname = os.path.dirname(path)
+	if not os.path.exists(dirname):
+		path = os.path.join("..", path)
+
+	with open(path, "w") as outfile:
+		outfile.write(frappe.as_json(out))
+
+
+def export_csv(doctype, path):
+	from frappe.core.doctype.data_export.exporter import export_data
+
+	with open(path, "wb") as csvfile:
+		export_data(doctype=doctype, all_doctypes=True, template=True, with_data=True)
+		csvfile.write(frappe.response.result.encode("utf-8"))

@@ -24,13 +24,15 @@ UPDATE = "Update Existing Records"
 
 
 class Importer:
-	def __init__(self, doctype, data_import=None, import_type=None, console=False):
+	def __init__(
+		self, doctype, data_import=None, file_path=None, import_type=None, console=False
+	):
 		self.doctype = doctype
 		self.console = console
 
 		self.data_import = data_import
 		if not self.data_import:
-			self.data_import = frappe.get_doc(doctype="Data Import Beta")
+			self.data_import = frappe.get_doc(doctype="Data Import")
 			if import_type:
 				self.data_import.import_type = import_type
 
@@ -38,7 +40,10 @@ class Importer:
 		self.import_type = self.data_import.import_type
 
 		self.import_file = ImportFile(
-			doctype, data_import.import_file, self.template_options, self.import_type
+			doctype,
+			file_path or data_import.import_file,
+			self.template_options,
+			self.import_type,
 		)
 
 	def get_data_for_import_preview(self):
@@ -250,6 +255,48 @@ class Importer:
 
 		build_csv_response(rows, self.doctype)
 
+	def print_import_log(self, import_log):
+		failed_records = [l for l in import_log if not l.success]
+		successful_records = [l for l in import_log if l.success]
+
+		if successful_records:
+			print()
+			print(
+				"Successfully imported {0} records out of {1}".format(
+					len(successful_records), len(import_log)
+				)
+			)
+
+		if failed_records:
+			print("Failed to import {0} records".format(len(failed_records)))
+			file_name = "{0}_import_on_{1}.txt".format(self.doctype, frappe.utils.now())
+			print("Check {0} for errors".format(os.path.join("sites", file_name)))
+			text = ""
+			for w in failed_records:
+				text += "Row Indexes: {0}\n".format(str(w.get("row_indexes", [])))
+				text += "Messages:\n{0}\n".format("\n".join(w.get("messages", [])))
+				text += "Traceback:\n{0}\n\n".format(w.get("exception"))
+
+			with open(file_name, "w") as f:
+				f.write(text)
+
+	def print_grouped_warnings(self, warnings):
+		warnings_by_row = {}
+		other_warnings = []
+		for w in warnings:
+			if w.get("row"):
+				warnings_by_row.setdefault(w.get("row"), []).append(w)
+			else:
+				other_warnings.append(w)
+
+		for row_number, warnings in warnings_by_row.items():
+			print("Row {0}".format(row_number))
+			for w in warnings:
+				print(w.get("message"))
+
+		for w in other_warnings:
+			print(w.get("message"))
+
 
 class ImportFile:
 	def __init__(self, doctype, file, template_options=None, import_type=None):
@@ -329,14 +376,14 @@ class ImportFile:
 			# only pick useful fields in docfields to minimise the payload
 			if col.df:
 				col.df = {
-					'fieldtype': col.df.fieldtype,
-					'fieldname': col.df.fieldname,
-					'label': col.df.label,
-					'options': col.df.options,
-					'parent': col.df.parent,
-					'reqd': col.df.reqd,
-					'default': col.df.default,
-					'read_only': col.df.read_only
+					"fieldtype": col.df.fieldtype,
+					"fieldname": col.df.fieldname,
+					"label": col.df.label,
+					"options": col.df.options,
+					"parent": col.df.parent,
+					"reqd": col.df.reqd,
+					"default": col.df.default,
+					"read_only": col.df.read_only,
 				}
 
 		data = [[row.row_number] + row.as_list() for row in self.data]
@@ -741,12 +788,14 @@ class Header(Row):
 		return [
 			col.index
 			for col in self.columns
-			if not col.skip_import and col.df and col.df.parent == doctype and is_table_field(col.df)
+			if not col.skip_import
+			and col.df
+			and col.df.parent == doctype
+			and is_table_field(col.df)
 		]
 
 	def get_columns(self, indexes):
 		return [self.columns[i] for i in indexes]
-
 
 
 class Column:
@@ -1028,11 +1077,13 @@ def get_df_for_column_header(doctype, header):
 
 # utilities
 
+
 def get_id_field(doctype):
 	autoname_field = get_autoname_field(doctype)
 	if autoname_field:
 		return autoname_field
 	return frappe._dict({"label": "ID", "fieldname": "name", "fieldtype": "Data"})
+
 
 def get_autoname_field(doctype):
 	meta = frappe.get_meta(doctype)
