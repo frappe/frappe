@@ -1,3 +1,5 @@
+// wow another js file
+
 frappe.ui.form.on("File", "refresh", function(frm) {
 	if(!frm.doc.is_folder) {
 		frm.add_custom_button(__('Download'), function() {
