@@ -67,6 +67,10 @@ frappe.ui.form.on('Data Import', {
 				allowed_file_types: ['.csv', '.xls', '.xlsx']
 			}
 		};
+
+		frm.has_import_file = () => {
+			return frm.doc.import_file || frm.doc.google_sheets_url;
+		}
 	},
 
 	refresh(frm) {
@@ -100,7 +104,7 @@ frappe.ui.form.on('Data Import', {
 	update_primary_action(frm) {
 		frm.disable_save();
 		if (frm.doc.status !== 'Success') {
-			if (!frm.is_new() && frm.doc.import_file) {
+			if (!frm.is_new() && (frm.has_import_file())) {
 				let label =
 					frm.doc.status === 'Pending' ? __('Start Import') : __('Retry');
 				frm.page.set_primary_action(label, () => frm.events.start_import(frm));
@@ -226,9 +230,19 @@ frappe.ui.form.on('Data Import', {
 		}
 	},
 
+	google_sheets_url(frm) {
+		if (!frm.is_dirty()) {
+			frm.trigger('import_file');
+		}
+	},
+
+	refresh_google_sheet(frm) {
+		frm.trigger('import_file');
+	},
+
 	import_file(frm) {
-		frm.toggle_display('section_import_preview', frm.doc.import_file);
-		if (!frm.doc.import_file) {
+		frm.toggle_display('section_import_preview', frm.has_import_file());
+		if (!frm.has_import_file()) {
 			frm.get_field('import_preview').$wrapper.empty();
 			return;
 		}
@@ -242,7 +256,11 @@ frappe.ui.form.on('Data Import', {
 		frm
 			.call({
 				method: 'get_preview_from_template',
-				args: { data_import: frm.doc.name, import_file: frm.doc.import_file },
+				args: {
+					data_import: frm.doc.name,
+					import_file: frm.doc.import_file,
+					google_sheets_url: frm.doc.google_sheets_url
+				},
 				error_handlers: {
 					TimestampMismatchError() {
 						// ignore this error
