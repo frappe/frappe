@@ -253,12 +253,4 @@ frappe.views.Views = class Views {
 
 		return accounts_to_add;
 	}
-
-	setup_keyboard_shortcuts() {
-		this.sidebar.find('.list-link > a, .list-link > .btn-group > a').each((i, el) => {
-			frappe.ui.keys
-				.get_shortcut_group(this.page)
-				.add($(el));
-		});
-	}
 }
