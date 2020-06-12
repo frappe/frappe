@@ -42,9 +42,10 @@ frappe.ui.form.on("Contact", {
 		});
 		frm.refresh_field("links");
 
-		if (frm.doc.phone_nos && frappe.phone_call.handler) {
+		let numbers = frm.doc.phone_nos;
+		if (numbers && numbers.length && frappe.phone_call.handler) {
 			frm.add_custom_button(__('Call'), () => {
-				let numbers = frm.doc.phone_nos
+				numbers = frm.doc.phone_nos
 					.sort((prev, next) => next.is_primary_mobile_no - prev.is_primary_mobile_no)
 					.map(d => d.phone);
 				frappe.phone_call.handler(numbers);
