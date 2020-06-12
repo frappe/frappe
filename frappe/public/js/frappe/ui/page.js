@@ -330,7 +330,9 @@ frappe.ui.Page = Class.extend({
 			let shortcut_obj = this.prepare_shortcut_obj(shortcut, click, label);
 			$li = $(`<li><a class="grey-link dropdown-item" href="#" onClick="return false;">
 				<span class="menu-item-label">${label}</span>
-				<span class="text-muted pull-right">${shortcut_obj.shortcut_label}</span>
+				<div class="text-muted pull-right menu-shorcut">
+					<span>${shortcut_obj.shortcut_label}</span>
+				</div>
 			</a><li>`);
 			frappe.ui.keys.add_shortcut(shortcut_obj);
 		} else {
@@ -649,7 +651,7 @@ frappe.ui.Page = Class.extend({
 		var f = frappe.ui.form.make_control({
 			df: df,
 			parent: this.page_form,
-			only_input: df.fieldtype=="Check" ? false : true,
+			only_input: df.fieldtype == "Check" ? false : true,
 		})
 		f.refresh();
 		$(f.wrapper)

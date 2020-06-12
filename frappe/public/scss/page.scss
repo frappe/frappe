@@ -48,6 +48,18 @@
 	}
 }
 
+.menu-shorcut {
+	padding: 0 8px;
+	height: 20px;
+	background: var(--grey-600);
+	border-radius: 4px;
+
+	span {
+		color: $white;
+		line-height: 20px;
+	}
+}
+
 // .sub-heading {
 // 	display: inline-block;
 // 	margin-right: 10px;
