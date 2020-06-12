@@ -10,12 +10,12 @@
 	{%- if primary_action or secondary_action -%}
 	<div>
 		{%- if primary_action -%}
-		<a class="mt-4 mr-2 mr-lg-3 btn btn-lg btn-primary" href="{{ primary_action }}">
+		<a class="btn btn-lg btn-primary" href="{{ primary_action }}">
 			{{ primary_action_label }}
 		</a>
 		{%- endif -%}
 		{%- if secondary_action -%}
-		<a class="mt-4 btn btn-lg btn-primary-light" href="{{ secondary_action }}">
+		<a class="btn btn-lg btn-primary-light" href="{{ secondary_action }}">
 			{{ secondary_action_label }}
 		</a>
 		{%- endif -%}
