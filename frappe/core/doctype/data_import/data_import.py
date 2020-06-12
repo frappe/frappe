@@ -10,27 +10,42 @@ from frappe.model.document import Document
 from frappe.core.doctype.data_import.importer import Importer
 from frappe.core.doctype.data_import.exporter import Exporter
 from frappe.utils.background_jobs import enqueue
+from frappe.utils.csvutils import validate_google_sheets_url
 from frappe import _
 
 
 class DataImport(Document):
 	def validate(self):
 		doc_before_save = self.get_doc_before_save()
-		if not self.import_file or (
-			doc_before_save and doc_before_save.import_file != self.import_file
+		if (
+			not (self.import_file or self.google_sheets_url)
+			or (doc_before_save and doc_before_save.import_file != self.import_file)
+			or (doc_before_save and doc_before_save.google_sheets_url != self.google_sheets_url)
 		):
 			self.template_options = ""
 			self.template_warnings = ""
 
+		self.validate_import_file()
+		self.validate_google_sheets_url()
+
+	def validate_import_file(self):
 		if self.import_file:
 			# validate template
 			self.get_importer()
 
-	def get_preview_from_template(self, import_file=None):
+	def validate_google_sheets_url(self):
+		if not self.google_sheets_url:
+			return
+		validate_google_sheets_url(self.google_sheets_url)
+
+	def get_preview_from_template(self, import_file=None, google_sheets_url=None):
 		if import_file:
 			self.import_file = import_file
 
-		if not self.import_file:
+		if google_sheets_url:
+			self.google_sheets_url = google_sheets_url
+
+		if not (self.import_file or self.google_sheets_url):
 			return
 
 		i = self.get_importer()
@@ -69,8 +84,10 @@ class DataImport(Document):
 
 
 @frappe.whitelist()
-def get_preview_from_template(data_import, import_file):
-	return frappe.get_doc("Data Import", data_import).get_preview_from_template(import_file)
+def get_preview_from_template(data_import, import_file=None, google_sheets_url=None):
+	return frappe.get_doc("Data Import", data_import).get_preview_from_template(
+		import_file, google_sheets_url
+	)
 
 
 @frappe.whitelist()

@@ -10,7 +10,7 @@ import json
 from datetime import datetime
 from frappe import _
 from frappe.utils import cint, flt, update_progress_bar, cstr
-from frappe.utils.csvutils import read_csv_content
+from frappe.utils.csvutils import read_csv_content, get_csv_content_from_google_sheets
 from frappe.utils.xlsxutils import (
 	read_xlsx_file_from_attached_file,
 	read_xls_file_from_attached_file,
@@ -41,7 +41,7 @@ class Importer:
 
 		self.import_file = ImportFile(
 			doctype,
-			file_path or data_import.import_file,
+			file_path or data_import.google_sheets_url or data_import.import_file,
 			self.template_options,
 			self.import_type,
 		)
@@ -311,10 +311,12 @@ class ImportFile:
 		if isinstance(file, frappe.string_types):
 			if frappe.db.exists("File", {"file_url": file}):
 				self.file_doc = frappe.get_doc("File", {"file_url": file})
+			elif 'docs.google.com/spreadsheets' in file:
+				self.google_sheets_url = file
 			elif os.path.exists(file):
 				self.file_path = file
 
-		if not self.file_doc and not self.file_path:
+		if not self.file_doc and not self.file_path and not self.google_sheets_url:
 			frappe.throw(_("Invalid template file for import"))
 
 		self.raw_data = self.get_data_from_template_file()
@@ -332,6 +334,10 @@ class ImportFile:
 
 		elif self.file_path:
 			content, extension = self.read_file(self.file_path)
+
+		elif self.google_sheets_url:
+			content = get_csv_content_from_google_sheets(self.google_sheets_url)
+			extension = 'csv'
 
 		if not content:
 			frappe.throw(_("Invalid or corrupted content for import"))
