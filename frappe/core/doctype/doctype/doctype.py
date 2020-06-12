@@ -688,6 +688,9 @@ def validate_fields(meta):
 
 	def check_link_table_options(docname, d):
 		if frappe.flags.in_patch: return
+
+		if frappe.flags.in_fixtures: return
+
 		if d.fieldtype in ("Link",) + table_fields:
 			if not d.options:
 				frappe.throw(_("{0}: Options required for Link or Table type field {1} in row {2}").format(docname, d.label, d.idx), DoctypeLinkError)
@@ -908,6 +911,8 @@ def validate_fields(meta):
 				frappe.msgprint(text_str + df_options_str, title="Invalid Data Field", raise_exception=True)
 
 	def check_child_table_option(docfield):
+
+		if frappe.flags.in_fixtures: return
 		if docfield.fieldtype not in ['Table MultiSelect', 'Table']: return
 
 		doctype = docfield.options

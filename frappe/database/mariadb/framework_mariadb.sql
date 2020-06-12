@@ -64,6 +64,8 @@ CREATE TABLE `tabDocField` (
   `length` int(11) NOT NULL DEFAULT 0,
   `translatable` int(1) NOT NULL DEFAULT 0,
   `hide_border` int(1) NOT NULL DEFAULT 0,
+  `hide_days` int(1) NOT NULL DEFAULT 0,
+  `hide_seconds` int(1) NOT NULL DEFAULT 0,
   PRIMARY KEY (`name`),
   KEY `parent` (`parent`),
   KEY `label` (`label`),

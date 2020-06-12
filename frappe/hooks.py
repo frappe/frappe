@@ -56,6 +56,8 @@ website_route_rules = [
 	{"from_route": "/profile", "to_route": "me"},
 ]
 
+base_template = "templates/base.html"
+
 write_file_keys = ["file_url", "file_name"]
 
 notification_config = "frappe.core.notifications.get_notification_config"
@@ -270,7 +272,10 @@ setup_wizard_exception = [
 ]
 
 before_migrate = ['frappe.patches.v11_0.sync_user_permission_doctype_before_migrate.execute']
-after_migrate = ['frappe.website.doctype.website_theme.website_theme.generate_theme_files_if_not_exist']
+after_migrate = [
+	'frappe.website.doctype.website_theme.website_theme.generate_theme_files_if_not_exist',
+	'frappe.modules.full_text_search.build_index_for_all_routes'
+]
 
 otp_methods = ['OTP App','Email','SMS']
 user_privacy_documents = [
