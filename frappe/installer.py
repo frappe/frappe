@@ -330,7 +330,6 @@ def extract_tar_files(site_name, file_path, folder_name):
 def is_downgrade(sql_file_path):
 	"""checks if input db backup will get downgraded on current bench"""
 	from semantic_version import Version
-	from frappe.utils.change_log import get_app_branch
 	head = "INSERT INTO `tabInstalled Application` VALUES"
 
 	with open(sql_file_path) as f:
@@ -348,7 +347,7 @@ def is_downgrade(sql_file_path):
 					if app_name == "frappe":
 						try:
 							current_version = Version(frappe.__version__)
-							backup_version = Version(app_version[1:] if app_version[0] is "v" else app_version)
+							backup_version = Version(app_version[1:] if app_version[0] == "v" else app_version)
 						except ValueError:
 							return False
 
