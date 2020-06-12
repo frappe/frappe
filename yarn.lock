@@ -1767,10 +1767,10 @@ frappe-datatable@^1.14.0:
     lodash "^4.17.5"
     sortablejs "^1.7.0"
 
-frappe-gantt@^0.1.0:
-  version "0.1.1"
-  resolved "https://registry.yarnpkg.com/frappe-gantt/-/frappe-gantt-0.1.1.tgz#63b82669a89c3e92fe74dc121cb0e6578433f716"
-  integrity sha1-Y7gmaaicPpL+dNwSHLDmV4Qz9xY=
+frappe-gantt@^0.3.0:
+  version "0.3.0"
+  resolved "https://registry.yarnpkg.com/frappe-gantt/-/frappe-gantt-0.3.0.tgz#0c718be2a5b5602be4ceb35ecc2093f9af59bea2"
+  integrity sha512-19rJUJ6UfAN7LPHHhVtYjff0mdyat/mwMW+PAXp5s1211QZ4loi+TkuGgRY9n1r9xAI/VlGoYHUehHdYZge3aQ==
 
 fresh@0.5.2:
   version "0.5.2"
