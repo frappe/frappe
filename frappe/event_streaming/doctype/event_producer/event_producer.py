@@ -35,7 +35,8 @@ class EventProducer(Document):
 			self.create_custom_fields()
 		else:
 			# when producer doc is updated it updates the consumer doc, set flag to avoid deadlock
-			frappe.db.set_value(self.doctype, self.name, 'incoming_change', 0)
+			self.db_set('incoming_change', 0)
+			self.reload()
 
 	def check_url(self):
 		if not validate_url(self.producer_url):

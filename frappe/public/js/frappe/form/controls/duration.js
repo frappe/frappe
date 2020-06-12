@@ -13,10 +13,10 @@ frappe.ui.form.ControlDuration = frappe.ui.form.ControlData.extend({
 			</div>`
 		);
 		this.$wrapper.append(this.$picker);
-		this.build_numeric_input("days", !this.duration_options.show_days);
+		this.build_numeric_input("days", this.duration_options.hide_days);
 		this.build_numeric_input("hours", false);
 		this.build_numeric_input("minutes", false);
-		this.build_numeric_input("seconds", !this.duration_options.show_seconds);
+		this.build_numeric_input("seconds", this.duration_options.hide_seconds);
 		this.set_duration_picker_value(this.value);
 		this.$picker.hide();
 		this.bind_events();
@@ -130,10 +130,10 @@ frappe.ui.form.ControlDuration = frappe.ui.form.ControlData.extend({
 		if (this.inputs) {
 			total_duration.minutes = parseInt(this.inputs.minutes.val());
 			total_duration.hours = parseInt(this.inputs.hours.val());
-			if (this.duration_options.show_days) {
+			if (!this.duration_options.hide_days) {
 				total_duration.days = parseInt(this.inputs.days.val());
 			}
-			if (this.duration_options.show_seconds) {
+			if (!this.duration_options.hide_seconds) {
 				total_duration.seconds = parseInt(this.inputs.seconds.val());
 			}
 		}

@@ -238,6 +238,7 @@
 	}
 
 	.progress-message {
+		font-feature-settings: "tnum" 1;
 		margin-top: 0px;
 	}
 }
@@ -308,8 +309,10 @@ h6.uppercase, .h6.uppercase {
 	padding-top: 0px;
 }
 
-.form-section:not(:first-child) {
-	border-top: 1px solid @border-color;
+.form-page {
+	.visible-section + :not(:first-child) {
+		border-top: 1px solid @border-color;
+	}
 }
 
 .empty-section {
@@ -991,7 +994,7 @@ body[data-route^="Form/Communication"] textarea[data-fieldname="subject"] {
 
 .map-columns .form-section {
 	padding: 0 7px 7px;
-	border-bottom: none;
+	border-top: none;
 
 	.clearfix {
 		display: none;
@@ -1000,4 +1003,8 @@ body[data-route^="Form/Communication"] textarea[data-fieldname="subject"] {
 
 .map-columns .form-section:first-child {
 	padding-top: 7px;
+}
+
+.table-preview {
+	margin-top: 12px;
 }

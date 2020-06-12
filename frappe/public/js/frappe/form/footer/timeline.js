@@ -205,16 +205,18 @@ frappe.ui.form.Timeline = class Timeline {
 			</div>').appendTo(me.list);
 		}
 
-		// created
-		me.render_timeline_item({
-			content: __("created"),
-			comment_type: "Created",
-			communication_type: "Comment",
-			sender: this.frm.doc.owner,
-			communication_date: this.frm.doc.creation,
-			creation: this.frm.doc.creation,
-			frm: this.frm
-		});
+		// if a created comment is not added, add the default one
+		if (!timeline.find(comment => comment.comment_type === 'Created')) {
+			me.render_timeline_item({
+				content: __("created"),
+				comment_type: "Created",
+				communication_type: "Comment",
+				sender: this.frm.doc.owner,
+				communication_date: this.frm.doc.creation,
+				creation: this.frm.doc.creation,
+				frm: this.frm
+			});
+		}
 
 		this.wrapper.find(".is-email").prop("checked", this.last_type==="Email").change();
 
@@ -564,12 +566,17 @@ frappe.ui.form.Timeline = class Timeline {
 			let updater_reference = data.updater_reference;
 			if (!$.isEmptyObject(updater_reference)) {
 				let label = updater_reference.label || __('via {0}', [updater_reference.doctype]);
-				updater_reference_link = frappe.utils.get_form_link(
-					updater_reference.doctype,
-					updater_reference.docname,
-					true,
-					label
-				);
+				let { doctype, docname } = updater_reference;
+				if (doctype && docname) {
+					updater_reference_link = frappe.utils.get_form_link(
+						doctype,
+						docname,
+						true,
+						label
+					);
+				} else {
+					updater_reference_link = label;
+				}
 			}
 
 			// value changed in parent
@@ -677,6 +684,15 @@ frappe.ui.form.Timeline = class Timeline {
 					}
 				}
 			});
+
+			// creation by updater reference
+			if (data.creation && data.created_by) {
+				if (updater_reference_link) {
+					out.push(me.get_version_comment(version, __('created {0}', [updater_reference_link]), 'Created'));
+				} else {
+					out.push(me.get_version_comment(version, __('created'), 'Created'));
+				}
+			}
 		});
 	}
 
