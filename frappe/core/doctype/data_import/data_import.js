@@ -233,6 +233,8 @@ frappe.ui.form.on('Data Import', {
 	google_sheets_url(frm) {
 		if (!frm.is_dirty()) {
 			frm.trigger('import_file');
+		} else {
+			frm.trigger('update_primary_action');
 		}
 	},
 
