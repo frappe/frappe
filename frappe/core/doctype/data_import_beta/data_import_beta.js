@@ -57,7 +57,7 @@ frappe.ui.form.on('Data Import Beta', {
 		frm.set_query('reference_doctype', () => {
 			return {
 				filters: {
-					allow_import: 1
+					name: ['in', frappe.boot.user.can_import]
 				}
 			};
 		});
@@ -138,13 +138,13 @@ frappe.ui.form.on('Data Import Beta', {
 			if (frm.doc.import_type === 'Insert New Records') {
 				message =
 					successful_records.length > 1
-						? __('Successfully imported {0} records out of {1}.', message_args)
-						: __('Successfully imported {0} record out of {1}.', message_args);
+						? __('Successfully imported {0} records out of {1}. Click on Export Errored Rows, fix the errors and import again.', message_args)
+						: __('Successfully imported {0} record out of {1}. Click on Export Errored Rows, fix the errors and import again.', message_args);
 			} else {
 				message =
 					successful_records.length > 1
-						? __('Successfully updated {0} records out of {1}.', message_args)
-						: __('Successfully updated {0} record out of {1}.', message_args);
+						? __('Successfully updated {0} records out of {1}. Click on Export Errored Rows, fix the errors and import again.', message_args)
+						: __('Successfully updated {0} record out of {1}. Click on Export Errored Rows, fix the errors and import again.', message_args);
 			}
 		}
 		frm.dashboard.set_headline(message);
@@ -193,32 +193,15 @@ frappe.ui.form.on('Data Import Beta', {
 			frm.data_exporter &&
 			frm.data_exporter.doctype === frm.doc.reference_doctype
 		) {
+			frm.data_exporter.exporting_for = frm.doc.import_type;
 			frm.data_exporter.dialog.show();
-			set_export_records();
 		} else {
 			frappe.require('/assets/js/data_import_tools.min.js', () => {
 				frm.data_exporter = new frappe.data_import.DataExporter(
-					frm.doc.reference_doctype
+					frm.doc.reference_doctype,
+					frm.doc.import_type
 				);
-				set_export_records();
 			});
-		}
-
-		function set_export_records() {
-			if (frm.doc.import_type === 'Insert New Records') {
-				frm.data_exporter.dialog.set_value('export_records', 'blank_template');
-			} else {
-				frm.data_exporter.dialog.set_value('export_records', 'all');
-			}
-			// Force ID field to be exported when updating existing records
-			let id_field = frm.data_exporter.dialog.get_field(
-				frm.doc.reference_doctype
-			).options[0];
-			if (id_field.value === 'name' && id_field.$checkbox) {
-				id_field.$checkbox
-					.find('input')
-					.prop('disabled', frm.doc.import_type === 'Update Existing Records');
-			}
 		}
 	},
 
@@ -253,7 +236,7 @@ frappe.ui.form.on('Data Import Beta', {
 		frm
 			.call({
 				method: 'get_preview_from_template',
-				args: { data_import: frm.doc.name },
+				args: { data_import: frm.doc.name, import_file: frm.doc.import_file },
 				error_handlers: {
 					TimestampMismatchError() {
 						// ignore this error
@@ -348,8 +331,8 @@ frappe.ui.form.on('Data Import Beta', {
 					})
 					.join('');
 				return `
-				<div class="alert border" data-row="${row_number}">
-					<div class="uppercase">${__('Row {0}', [row_number])}</div>
+				<div class="warning" data-row="${row_number}">
+					<h5 class="text-uppercase">${__('Row {0}', [row_number])}</h5>
 					<div class="body"><ul>${message}</ul></div>
 				</div>
 			`;
@@ -363,8 +346,8 @@ frappe.ui.form.on('Data Import Beta', {
 					header = __('Column {0}', [warning.col]);
 				}
 				return `
-					<div class="alert border" data-col="${warning.col}">
-						<div class="uppercase">${header}</div>
+					<div class="warning" data-col="${warning.col}">
+						<h5 class="text-uppercase">${header}</h5>
 						<div class="body">${warning.message}</div>
 					</div>
 				`;
@@ -372,7 +355,7 @@ frappe.ui.form.on('Data Import Beta', {
 			.join('');
 		frm.get_field('import_warnings').$wrapper.html(`
 			<div class="row">
-				<div class="col-sm-6 warnings text-muted">${html}</div>
+				<div class="col-sm-10 warnings">${html}</div>
 			</div>
 		`);
 	},

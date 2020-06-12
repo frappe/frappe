@@ -5,8 +5,9 @@
 from __future__ import unicode_literals
 import frappe
 from frappe.model.document import Document
-from frappe.core.doctype.data_import.importer_new import Importer
-from frappe.core.doctype.data_import.exporter_new import Exporter
+
+from frappe.core.doctype.data_import_beta.importer import Importer
+from frappe.core.doctype.data_import_beta.exporter import Exporter
 from frappe.core.page.background_jobs.background_jobs import get_info
 from frappe.utils.background_jobs import enqueue
 from frappe import _
@@ -25,7 +26,10 @@ class DataImportBeta(Document):
 			# validate template
 			self.get_importer()
 
-	def get_preview_from_template(self):
+	def get_preview_from_template(self, import_file=None):
+		if import_file:
+			self.import_file = import_file
+
 		if not self.import_file:
 			return
 
@@ -33,7 +37,7 @@ class DataImportBeta(Document):
 		return i.get_data_for_import_preview()
 
 	def start_import(self):
-		if frappe.utils.scheduler.is_scheduler_inactive():
+		if frappe.utils.scheduler.is_scheduler_inactive() and not frappe.flags.in_test:
 			frappe.throw(
 				_("Scheduler is inactive. Cannot import data."), title=_("Scheduler Inactive")
 			)
@@ -62,8 +66,8 @@ class DataImportBeta(Document):
 
 
 @frappe.whitelist()
-def get_preview_from_template(data_import):
-	return frappe.get_doc("Data Import Beta", data_import).get_preview_from_template()
+def get_preview_from_template(data_import, import_file):
+	return frappe.get_doc("Data Import Beta", data_import).get_preview_from_template(import_file)
 
 
 @frappe.whitelist()
@@ -81,8 +85,10 @@ def start_import(data_import):
 		frappe.db.rollback()
 		data_import.db_set("status", "Error")
 		frappe.log_error(title=data_import.name)
-		frappe.db.commit()
-		frappe.publish_realtime("data_import_refresh", {"data_import": data_import.name})
+	finally:
+		frappe.flags.in_import = False
+
+	frappe.publish_realtime("data_import_refresh", {"data_import": data_import.name})
 
 
 @frappe.whitelist()
