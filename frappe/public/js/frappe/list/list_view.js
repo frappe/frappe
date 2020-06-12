@@ -751,7 +751,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			doc[this.meta.title_field || ""] !== doc.name
 		) {
 			html += `
-				<div class="level-item hidden-xs hidden-sm ellipsis">
+				<div class="level-item ellipsis">
 					<a class="text-muted ellipsis" href="${this.get_form_link(doc)}">
 						${doc.name}
 					</a>
@@ -784,12 +784,14 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		const comment_count = `<span class="${
 			!doc._comment_count ? "text-extra-muted" : ""
 		} comment-count">
-				<i class="octicon octicon-comment-discussion"></i>
+				<svg class="icon icon-sm">
+					<use xlink:href="#icon-small-message"></use>
+				</svg>
 				${doc._comment_count > 99 ? "99+" : doc._comment_count}
 			</span>`;
 
 		html += `
-			<div class="level-item hidden-xs list-row-activity">
+			<div class="level-item list-row-activity">
 				${modified}
 				${assigned_to}
 				${comment_count}

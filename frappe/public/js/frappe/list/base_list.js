@@ -25,6 +25,7 @@ frappe.views.BaseList = class BaseList {
 			this.setup_side_bar,
 			this.setup_main_section,
 			this.setup_view,
+			this.setup_view_menu,
 		].map((fn) => fn.bind(this));
 
 		this.init_promise = frappe.run_serially(tasks);
@@ -164,9 +165,20 @@ frappe.views.BaseList = class BaseList {
 		this.page.set_title(this.page_title);
 	}
 
+	setup_view_menu() {
+		this.views_menu = this.page.add_custom_button_group(__(`View as {0}`, [this.view_name]), 'list');
+		this.views_list = new frappe.views.Views({
+			doctype: this.doctype,
+			parent: this.views_menu,
+			page: this.page,
+			list_view: this,
+			sidebar: this.list_sidebar,
+		});
+	}
+
 	set_menu_items() {
 		if (this.secondary_action) {
-				const $secondary_action = this.page.set_secondary_action(
+			const $secondary_action = this.page.set_secondary_action(
 				this.secondary_action.label,
 				this.secondary_action.action,
 				this.secondary_action.icon
@@ -739,13 +751,13 @@ class FilterArea {
 // utility function to validate view modes
 frappe.views.view_modes = [
 	"List",
+	"Report",
+	"Dashboard",
 	"Gantt",
 	"Kanban",
 	"Calendar",
 	"Image",
 	"Inbox",
-	"Report",
-	"Dashboard",
 ];
 frappe.views.is_valid = (view_mode) =>
 	frappe.views.view_modes.includes(view_mode);
