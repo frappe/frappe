@@ -18,7 +18,7 @@ gitdb2==2.0.6;python_version<'3.4'
 google-api-python-client==1.7.11
 google-auth-httplib2==0.0.3
 google-auth-oauthlib==0.4.1
-google-auth==1.7.1
+google-auth==1.17.1
 googlemaps==3.1.1
 gunicorn==19.10.0
 html2text==2016.9.19
@@ -66,3 +66,4 @@ watchdog==0.8.0
 Werkzeug==0.16.1
 xlrd==1.2.0
 zxcvbn-python==4.4.24
+Whoosh==2.7.4
