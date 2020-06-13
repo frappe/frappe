@@ -64,7 +64,7 @@ frappe.views.MapView = class MapView extends frappe.views.ListView {
 	}
 
 	get_coords() {
-		var resultado = frappe.call({
+		var results = frappe.call({
 			method: 'frappe.geo.utils.get_coords',
 			args: {
 				doctype: this.doctype,
@@ -74,8 +74,8 @@ frappe.views.MapView = class MapView extends frappe.views.ListView {
 			this.coords_map = Object.assign(r.message);
 
 		});
-		//console.log(resultado);
-		return resultado;
+		//console.log(results);
+		return results;
 	}
 
 
