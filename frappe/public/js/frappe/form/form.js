@@ -322,7 +322,6 @@ frappe.ui.form.Form = class FrappeForm {
 	switch_doc(docname) {
 		// record switch
 		if(this.docname != docname && (!this.meta.in_dialog || this.in_form) && !this.meta.istable) {
-			frappe.utils.scroll_to(0);
 			if (this.print_preview) {
 				this.print_preview.hide();
 			}
