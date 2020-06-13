@@ -116,5 +116,7 @@ def get_config(app, module):
 		if hasattr(module_dashboards, 'get_data'):
 			return frappe._dict(module_dashboards.get_data())
 		return None
-	except ImportError:
+	except Exception as e:
+		print(_("Failed to import dashboard fixtures for module {module}").format(module=module))
+		frappe.log_error(e, _("Dashboard Fixture Import Error"))
 		return None

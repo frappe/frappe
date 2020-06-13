@@ -329,7 +329,7 @@ def import_csv(context, path, only_insert=False, submit_after_import=False, igno
 @pass_context
 def data_import(context, file_path, doctype, import_type=None, submit_after_import=False, mute_emails=True):
 	"Import documents in bulk from CSV or XLSX using data import"
-	from frappe.core.doctype.data_import.importer_new import Importer
+	from frappe.core.doctype.data_import_beta.importer import Importer
 	site = get_site(context)
 
 	frappe.init(site=site)
