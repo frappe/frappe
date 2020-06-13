@@ -786,15 +786,24 @@ frappe.ui.form.Form = class FrappeForm {
 			frappe.msgprint(__('"amended_from" field must be present to do an amendment.'));
 			return;
 		}
-		this.validate_form_action("Amend");
-		var me = this;
-		var fn = function(newdoc) {
-			newdoc.amended_from = me.docname;
-			if(me.fields_dict && me.fields_dict['amendment_date'])
-				newdoc.amendment_date = frappe.datetime.obj_to_str(new Date());
-		};
-		this.copy_doc(fn, 1);
-		frappe.utils.play_sound("click");
+
+		frappe.xcall('frappe.client.is_document_amended', {
+			'doctype': this.doc.doctype,
+			'docname': this.doc.name
+		}).then(is_amended => {
+			if (is_amended) {
+				frappe.throw(__('This document is already amended, you cannot ammend it again'));
+			}
+			this.validate_form_action("Amend");
+			var me = this;
+			var fn = function(newdoc) {
+				newdoc.amended_from = me.docname;
+				if (me.fields_dict && me.fields_dict['amendment_date'])
+					newdoc.amendment_date = frappe.datetime.obj_to_str(new Date());
+			};
+			this.copy_doc(fn, 1);
+			frappe.utils.play_sound("click");
+		});
 	}
 
 	validate_form_action(action, resolve) {

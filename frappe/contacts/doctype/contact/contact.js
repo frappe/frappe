@@ -42,6 +42,16 @@ frappe.ui.form.on("Contact", {
 		});
 		frm.refresh_field("links");
 
+		let numbers = frm.doc.phone_nos;
+		if (numbers && numbers.length && frappe.phone_call.handler) {
+			frm.add_custom_button(__('Call'), () => {
+				numbers = frm.doc.phone_nos
+					.sort((prev, next) => next.is_primary_mobile_no - prev.is_primary_mobile_no)
+					.map(d => d.phone);
+				frappe.phone_call.handler(numbers);
+			});
+		}
+
 		if (frm.doc.links) {
 			frappe.call({
 				method: "frappe.contacts.doctype.contact.contact.address_query",
