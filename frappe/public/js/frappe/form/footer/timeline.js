@@ -180,12 +180,15 @@ frappe.ui.form.Timeline = class Timeline {
 		// append energy point logs
 		timeline = timeline.concat(this.get_energy_point_logs());
 
+		// custom contents
+		timeline = timeline.concat(this.get_additional_timeline_content());
+
 		// append milestones
 		timeline = timeline.concat(this.get_milestones());
 
 		// sort
 		timeline
-			.filter(a => a.content)
+			.filter(a => a.content || a.template)
 			.sort((b, c) => me.compare_dates(b, c))
 			.forEach(d => {
 				d.frm = me.frm;
@@ -405,7 +408,10 @@ frappe.ui.form.Timeline = class Timeline {
 				c.original_content = c.content;
 				c.content = frappe.utils.toggle_blockquote(c.content);
 			}
-			if(!frappe.utils.is_html(c.content)) {
+
+			if (c.template) {
+				c.content_html = frappe.render_template(c.template, c.template_data);
+			} else if (!frappe.utils.is_html(c.content)) {
 				c.content_html = frappe.markdown(__(c.content));
 			} else {
 				c.content_html = c.content;
@@ -525,6 +531,10 @@ frappe.ui.form.Timeline = class Timeline {
 			return log;
 		});
 		return energy_point_logs;
+	}
+
+	get_additional_timeline_content() {
+		return this.frm.get_docinfo().additional_timeline_content || [];
 	}
 
 	get_milestones() {

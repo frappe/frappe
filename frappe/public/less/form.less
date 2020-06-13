@@ -572,7 +572,13 @@ h6.uppercase, .h6.uppercase {
 		margin-left: 5px;
 	}
 
-	.media-body:after, .media-body:before {
+	.media-body {
+		.left-arrow;
+	}
+}
+
+.left-arrow {
+	&::after, &::before {
 		right: 100%;
 		top: 15px;
 		border: solid transparent;
@@ -583,13 +589,13 @@ h6.uppercase, .h6.uppercase {
 		pointer-events: none;
 	}
 
-	.media-body:after {
+	&::after {
 		border-color: rgba(136, 183, 213, 0);
 		border-right-color: #fafbfc;
 		border-width: 6px;
 		margin-top: -6px;
 	}
-	.media-body:before {
+	&::before {
 		border-color: rgba(194, 225, 245, 0);
 		border-right-color: @border-color;
 		border-width: 7px;
@@ -635,6 +641,18 @@ h6.uppercase, .h6.uppercase {
 	left: 40px;
 	border-radius: 50%;
 	top: 5px;
+}
+
+.timeline-item.user-content.show-indicator {
+	position: relative;
+	.media-body {
+		margin-left: 40px;
+	}
+	&::before {
+		.timeline-indicator();
+		left: 13px;
+		top: 13px;
+	}
 }
 
 .timeline-item.notification-content::before {
