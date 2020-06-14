@@ -2,6 +2,9 @@
 # MIT License. See license.txt
 from __future__ import unicode_literals
 
+import os
+
+
 def get_jenv():
 	import frappe
 	from frappe.utils.safe_exec import get_safe_globals
@@ -75,7 +78,7 @@ def render_template(template, context, is_path=None, safe_render=True):
 	if not template:
 		return ""
 
-	if (is_path or guess_is_path(template)):
+	if is_path or os.path.exists(template):
 		return get_jenv().get_template(template).render(context)
 	else:
 		if safe_render and ".__" in template:
@@ -84,16 +87,6 @@ def render_template(template, context, is_path=None, safe_render=True):
 			return get_jenv().from_string(template).render(context)
 		except TemplateError:
 			throw(title="Jinja Template Error", msg="<pre>{template}</pre><pre>{tb}</pre>".format(template=template, tb=get_traceback()))
-
-def guess_is_path(template):
-	# template can be passed as a path or content
-	# if its single line and ends with a html, then its probably a path
-	if not '\n' in template and '.' in template:
-		extn = template.rsplit('.')[-1]
-		if extn in ('html', 'css', 'scss', 'py', 'md', 'json', 'js', 'xml'):
-			return True
-
-	return False
 
 
 def get_jloader():
