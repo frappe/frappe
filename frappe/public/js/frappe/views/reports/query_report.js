@@ -166,12 +166,12 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			} else {
 				frappe.xcall('frappe.desk.query_report.get_script', {
 					report_name: this.report_name
-				}).then(r => {
-					frappe.dom.eval(r.script || '');
+				}).then(settings => {
+					frappe.dom.eval(settings.script || '');
 					frappe.after_ajax(() => {
 						this.report_settings = this.get_local_report_settings();
-						this.report_settings.html_format = r.message.html_format;
-						this.report_settings.execution_time = r.message.execution_time || 0;
+						this.report_settings.html_format = settings.html_format;
+						this.report_settings.execution_time = settings.execution_time || 0;
 						frappe.query_reports[this.report_name] = this.report_settings;
 						resolve();
 					});
