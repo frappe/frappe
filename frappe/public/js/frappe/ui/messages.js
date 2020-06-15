@@ -167,6 +167,10 @@ frappe.msgprint = function(msg, title, is_minimizable) {
 					method: data.primary_action.server_action,
 					args: {
 						args: data.primary_action.args
+					},
+					callback: (r) => {
+						console.log("sucess")
+						frappe.hide_msgprint();
 					}
 				});
 			}
