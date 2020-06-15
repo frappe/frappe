@@ -140,6 +140,8 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 			}
 		});
 
+		this.custom_awesomplete_filter && this.custom_awesomplete_filter(this.awesomplete);
+
 		this.$input.on("input", frappe.utils.debounce(function(e) {
 			var doctype = me.get_options();
 			if(!doctype) return;
@@ -467,10 +469,10 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 		for(var i=0; i < fl.length; i++) {
 			frappe.model.set_value(df.parent, docname, fl[i], fetch_values[i], df.fieldtype);
 		}
-	}
+	},
 });
 
-if(Awesomplete) {
+if (Awesomplete) {
 	Awesomplete.prototype.get_item = function(value) {
 		return this._list.find(function(item) {
 			return item.value === value;

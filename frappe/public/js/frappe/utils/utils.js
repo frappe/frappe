@@ -292,6 +292,25 @@ Object.assign(frappe.utils, {
 		return frappe.utils.guess_style(text, null, true);
 	},
 
+	get_indicator_color: function(state) {
+		return frappe.db.get_list('Workflow State', {filters: {name: state}, fields: ['name', 'style']}).then(res => {
+			const state = res[0];
+			if (!state.style) {
+				return frappe.utils.guess_colour(state.name);
+			}
+			const style = state.style;
+			const colour_map = {
+				"Success": "green",
+				"Warning": "orange",
+				"Danger": "red",
+				"Primary": "blue",
+			};
+
+			return colour_map[style];
+		});
+
+	},
+
 	sort: function(list, key, compare_type, reverse) {
 		if(!list || list.length < 2)
 			return list || [];
@@ -837,7 +856,7 @@ Object.assign(frappe.utils, {
 			minutes: Math.floor(secs % 3600 / 60),
 			seconds: Math.floor(secs % 60)
 		};
-		if (!duration_options.show_days) {
+		if (duration_options.hide_days) {
 			total_duration.hours = Math.floor(secs / 3600);
 			total_duration.days = 0;
 		}
@@ -863,8 +882,8 @@ Object.assign(frappe.utils, {
 
 	get_duration_options: function(docfield) {
 		let duration_options = {
-			show_days: docfield.show_days,
-			show_seconds: docfield.show_seconds
+			hide_days: docfield.hide_days,
+			hide_seconds: docfield.hide_seconds
 		};
 		return duration_options;
 	}

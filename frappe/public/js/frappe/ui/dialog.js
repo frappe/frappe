@@ -42,6 +42,8 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 		this.body = this.$body.get(0);
 		this.$message = $('<div class="hide modal-message"></div>').appendTo(this.modal_body);
 		this.header = this.$wrapper.find(".modal-header");
+		this.buttons = this.header.find('.buttons');
+		this.set_indicator();
 
 		// make fields (if any)
 		super.make();
@@ -163,6 +165,11 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 	}
 	set_title(t) {
 		this.$wrapper.find(".modal-title").html(t);
+	}
+	set_indicator() {
+		if (this.indicator) {
+			this.header.find('.indicator').removeClass().addClass('indicator ' + this.indicator);
+		}
 	}
 	show() {
 		// show it
