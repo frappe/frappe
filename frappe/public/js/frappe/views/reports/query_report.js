@@ -167,7 +167,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				frappe.xcall('frappe.desk.query_report.get_script', {
 					report_name: this.report_name
 				}).then(r => {
-					frappe.dom.eval(r.message.script || '');
+					frappe.dom.eval(r.script || '');
 					frappe.after_ajax(() => {
 						this.report_settings = this.get_local_report_settings();
 						this.report_settings.html_format = r.message.html_format;
