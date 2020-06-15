@@ -282,7 +282,7 @@ def upload_backup(local_site):
 			]):
 		file_name = file_path.split(os.sep)[-1]
 
-		print("Uploading {} file: {} ({}/3)".format(file_type, file_name, x+1), end="\r")
+		print("Uploading {} file: {} ({}/3)".format(file_type, file_name, x+1))
 		file_upload_response = upload_backup_file(file_type, file_path)
 
 		if file_upload_response.ok:
