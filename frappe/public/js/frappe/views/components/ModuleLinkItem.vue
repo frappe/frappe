@@ -5,10 +5,8 @@
 	>
 		<span :class="['indicator', indicator_color]"></span>
 
-		<span v-if="disabled_dependent" class="link-content text-muted">{{ label || __(name) }}</span>
-		<a v-else class="link-content" :href="route" @click.prevent="handle_click">
-			{{ label || __(name) }}
-		</a>
+		<span v-if="disabled_dependent" class="link-content text-muted" v-html="label || __(name)"></span>
+		<a v-else class="link-content" :href="route" @click.prevent="handle_click" v-html="label || __(name)"></a>
 		<div v-if="disabled_dependent" v-show="popover_active"
 			@mouseover="popover_hover = true" @mouseleave="popover_hover = false"
 			class="module-link-popover popover fade top in" role="tooltip"
