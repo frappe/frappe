@@ -26,15 +26,15 @@ def get_permission_query_conditions(user):
 	if "System Manager" in roles:
 		return None
 
-	allowed_doctypes = tuple(frappe.permissions.get_doctypes_with_read())
-	allowed_reports = tuple([key if type(key) == str else key.encode('UTF8') for key in get_allowed_reports()])
+	allowed_doctypes = ['"%s"' % doctype for doctype in frappe.permissions.get_doctypes_with_read()]
+	allowed_reports = ['"%s"' % key if type(key) == str else key.encode('UTF8') for key in get_allowed_reports()]
 
 	return '''
-			`tabDashboard Chart`.`document_type` in {allowed_doctypes}
-			or `tabDashboard Chart`.`report_name` in {allowed_reports}
+			`tabDashboard Chart`.`document_type` in ({allowed_doctypes})
+			or `tabDashboard Chart`.`report_name` in ({allowed_reports})
 		'''.format(
-			allowed_doctypes=allowed_doctypes,
-			allowed_reports=allowed_reports
+			allowed_doctypes=','.join(allowed_doctypes),
+			allowed_reports=','.join(allowed_reports)
 		)
 
 

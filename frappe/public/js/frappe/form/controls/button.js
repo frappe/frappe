@@ -5,7 +5,8 @@ frappe.ui.form.ControlButton = frappe.ui.form.ControlData.extend({
 	},
 	make_input: function() {
 		var me = this;
-		this.$input = $('<button class="btn btn-default btn-xs">')
+		const btn_type = this.df.primary ? 'btn-primary': 'btn-default';
+		this.$input = $(`<button class="btn btn-xs ${btn_type}">`)
 			.prependTo(me.input_area)
 			.on("click", function() {
 				me.onclick();
@@ -16,16 +17,15 @@ frappe.ui.form.ControlButton = frappe.ui.form.ControlData.extend({
 		this.toggle_label(false);
 	},
 	onclick: function() {
-		if(this.frm && this.frm.doc) {
-			if(this.frm.script_manager.has_handlers(this.df.fieldname, this.doctype)) {
+		if (this.frm && this.frm.doc) {
+			if (this.frm.script_manager.has_handlers(this.df.fieldname, this.doctype)) {
 				this.frm.script_manager.trigger(this.df.fieldname, this.doctype, this.docname);
 			} else {
 				if (this.df.options) {
 					this.run_server_script();
 				}
 			}
-		}
-		else if(this.df.click) {
+		} else if (this.df.click) {
 			this.df.click();
 		}
 	},
