@@ -73,14 +73,14 @@ frappe.views.CalendarView = class CalendarView extends frappe.views.ListView {
 			} else {
 				frappe.model.with_doc('Calendar View', calendar_name, () => {
 					const doc = frappe.get_doc('Calendar View', calendar_name);
-					Object.assign(options, {
-						field_map: {
-							id: "name",
-							start: doc.start_date_field,
-							end: doc.end_date_field,
-							title: doc.subject_field
-						}
-					});
+					let field_map = {
+						id: "name",
+						start: doc.start_date_field,
+						end: doc.end_date_field,
+						title: doc.subject_field
+					}
+					field_map.allDay = doc.all_day ? 0 : 1;
+					Object.assign(options, { field_map: field_map });
 					resolve(options);
 				});
 			}
