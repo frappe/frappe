@@ -68,7 +68,7 @@ frappe.ui.form.SidebarUsers = class {
 
 		}
 	}
-}
+};
 
 frappe.ui.form.set_users = function(data, type) {
 	const doctype = data.doctype;
