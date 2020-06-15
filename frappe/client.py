@@ -267,6 +267,20 @@ def bulk_update(docs):
 	return {'failed_docs': failed_docs}
 
 @frappe.whitelist()
+def update(doc):
+	'''Updates a document. Only provided fields will be updated. Use this method if you want the same behavior as calling API (PUT Request)
+
+	:param doc: JSON list or list of dict objects to be updated'''
+	if isinstance(doc, string_types):
+		doc = json.loads(doc)
+
+    db_doc = frappe.get_doc(doc["doctype"], doc["name"])
+    db_doc.update(doc)
+    db_doc.save() # Not checking permissions before because it's checked in doc.save() method
+
+    return db_doc # Returns the updated document, assuming that if the user was able to save, its able to read all fields.
+
+@frappe.whitelist()
 def has_permission(doctype, docname, perm_type="read"):
 	'''Returns a JSON with data whether the document has the requested permission
 
