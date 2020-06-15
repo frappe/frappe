@@ -169,7 +169,7 @@ frappe.msgprint = function(msg, title, is_minimizable) {
 						args: data.primary_action.args
 					},
 					callback: (r) => {
-						console.log("sucess")
+						// close msgprint dialog box on primary action
 						frappe.hide_msgprint();
 					}
 				});
