@@ -167,6 +167,22 @@ frappe.msgprint = function(msg, title, is_minimizable) {
 					method: data.primary_action.server_action,
 					args: {
 						args: data.primary_action.args
+					},
+					freeze: true,
+					callback: (r) => {
+						frappe.run_serially([
+							() => {
+								if (data.primary_action.hide_on_success) {
+									frappe.hide_msgprint();
+								}
+							},
+							() => frappe.timeout(.1),
+							() => {
+								if (r && r.message) {
+									frappe.msgprint(r.message, title="Success");
+								}
+							}
+						]);
 					}
 				});
 			}
