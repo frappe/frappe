@@ -167,4 +167,3 @@ def add_card_to_dashboard(args):
 
 	dashboard.append('cards', dashboard_link)
 	dashboard.save()
-	frappe.db.commit()
