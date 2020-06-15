@@ -514,7 +514,8 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 	}
 
 	refresh_charts() {
-		if (!this.chart) return;
+		if (!this.chart || !this.chart_args) return;
+		this.$charts_wrapper.removeClass('hidden');
 		const { x_axis, y_axes, chart_type } = this.chart_args;
 		this.build_chart_args(x_axis, y_axes, chart_type);
 		this.chart.update(this.chart_args);
@@ -1091,8 +1092,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 
 	get_checked_items(only_docnames) {
 		const indexes = this.datatable.rowmanager.getCheckedRows();
-		const items = indexes.filter(i => i != undefined)
-			.map(i => this.data[i]);
+		const items = indexes.map(i => this.data[i]).filter(i => i != undefined);
 
 		if (only_docnames) {
 			return items.map(d => d.name);
@@ -1293,6 +1293,11 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 						}
 					});
 
+					d.$body.prepend(`<div class="columns-search">
+						<input type="text" placeholder="${__('Search')}" data-element="search" class="form-control input-xs">
+					</div>`);
+
+					frappe.utils.setup_search(d.$body, '.unit-checkbox', '.label-area');
 					d.show();
 				}
 			}
