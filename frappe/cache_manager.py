@@ -24,7 +24,7 @@ user_cache_keys = ("bootinfo", "user_recent", "roles", "user_doc", "lang",
 		"has_role:Page", "has_role:Report")
 
 doctype_cache_keys = ("meta", "form_meta", "table_columns", "last_modified",
-		"linked_doctypes", 'notifications', 'workflow' ,'energy_point_rule_map')
+		"linked_doctypes", 'notifications', 'workflow' ,'energy_point_rule_map', 'data_import_column_header_map')
 
 
 def clear_user_cache(user=None):

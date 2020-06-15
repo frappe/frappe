@@ -1,7 +1,6 @@
 context('Relative Timeframe', () => {
 	beforeEach(() => {
 		cy.login();
-		cy.visit('/desk#workspace/Website');
 	});
 	before(() => {
 		cy.login();
@@ -10,14 +9,14 @@ context('Relative Timeframe', () => {
 			frappe.call("frappe.tests.ui_test_helpers.create_todo_records");
 		});
 	});
-	it('set relative filter for Previous and check list', () => {
+	it('sets relative timespan filter for last week and filters list', () => {
 		cy.visit('/desk#List/ToDo/List');
 		cy.get('.list-row:contains("this is fourth todo")').should('exist');
 		cy.get('.tag-filters-area .btn:contains("Add Filter")').click();
 		cy.get('.fieldname-select-area').should('exist');
 		cy.get('.fieldname-select-area input').type("Due Date{enter}", { delay: 100 });
-		cy.get('select.condition.form-control').select("Previous");
-		cy.get('.filter-field select.input-with-feedback.form-control').select("1 week");
+		cy.get('select.condition.form-control').select("Timespan");
+		cy.get('.filter-field select.input-with-feedback.form-control').select("last week");
 		cy.server();
 		cy.route('POST', '/api/method/frappe.desk.reportview.get').as('list_refresh');
 		cy.get('.filter-box .btn:contains("Apply")').click();
@@ -29,13 +28,13 @@ context('Relative Timeframe', () => {
 		cy.get('.remove-filter.btn').click();
 		cy.wait('@save_user_settings');
 	});
-	it('set relative filter for Next and check list', () => {
+	it('sets relative timespan filter for next week and filters list', () => {
 		cy.visit('/desk#List/ToDo/List');
 		cy.get('.list-row:contains("this is fourth todo")').should('exist');
 		cy.get('.tag-filters-area .btn:contains("Add Filter")').click();
 		cy.get('.fieldname-select-area input').type("Due Date{enter}", { delay: 100 });
-		cy.get('select.condition.form-control').select("Next");
-		cy.get('.filter-field select.input-with-feedback.form-control').select("1 week");
+		cy.get('select.condition.form-control').select("Timespan");
+		cy.get('.filter-field select.input-with-feedback.form-control').select("next week");
 		cy.server();
 		cy.route('POST', '/api/method/frappe.desk.reportview.get').as('list_refresh');
 		cy.get('.filter-box .btn:contains("Apply")').click();

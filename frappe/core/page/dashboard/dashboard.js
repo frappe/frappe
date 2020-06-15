@@ -26,6 +26,13 @@ class Dashboard {
 		</div>`).appendTo(this.wrapper.find(".page-content").empty());
 		this.container = this.wrapper.find(".dashboard-graph");
 		this.page = wrapper.page;
+
+		this.page.set_title_sub(
+			$(`<button class="restricted-button">
+				<span class="octicon octicon-lock"></span>
+				<span>${__('Restricted')}</span>
+			</button>`)
+		);
 	}
 
 	show() {

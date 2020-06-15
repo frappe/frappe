@@ -113,7 +113,7 @@ def remove_from_installed_apps(app_name):
 	installed_apps = frappe.get_installed_apps()
 	if app_name in installed_apps:
 		installed_apps.remove(app_name)
-		frappe.db.set_global("installed_apps", json.dumps(installed_apps))
+		frappe.db.set_value("DefaultValue", {"defkey": "installed_apps"}, "defvalue", json.dumps(installed_apps))
 		frappe.db.commit()
 		if frappe.flags.in_install:
 			post_install()
@@ -269,6 +269,7 @@ def make_site_dirs():
 			os.path.join(site_private_path, 'backups'),
 			os.path.join(site_public_path, 'files'),
 			os.path.join(site_private_path, 'files'),
+			os.path.join(frappe.local.site_path, 'logs'),
 			os.path.join(frappe.local.site_path, 'task-logs')):
 		if not os.path.exists(dir_path):
 			os.makedirs(dir_path)
@@ -298,7 +299,8 @@ def remove_missing_apps():
 
 def extract_sql_gzip(sql_gz_path):
 	try:
-		subprocess.check_call(['gzip', '-d', '-v', '-f', sql_gz_path])
+		# kdvf - keep, decompress, verbose, force
+		subprocess.check_call(['gzip', '-kdvf', sql_gz_path])
 	except:
 		raise
 

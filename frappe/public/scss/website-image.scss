@@ -55,6 +55,12 @@ img:after {
 	width: 100%;
 }
 
+.website-image-extra-small {
+	@include website-image;
+	width: 2.5rem;
+	height: 2.5rem;
+}
+
 .website-image-small {
 	@include website-image;
 	width: 5rem;

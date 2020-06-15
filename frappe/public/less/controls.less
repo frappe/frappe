@@ -34,13 +34,24 @@
 	overflow-wrap: break-word;
 }
 
+.frappe-control[data-fieldtype="Data"] .control-input {
+	position: relative;
+}
+
 .link-btn {
 	position: absolute;
-	top: 3px;
+	top: 4px;
 	right: 4px;
-	border-radius: 2px;
 	padding: 3px;
 	display: none;
+	z-index: 3;
+}
+
+.phone-btn {
+	position: absolute;
+	top: 2px;
+	right: 8px;
+	padding: 3px;
 	z-index: 3;
 }
 
@@ -163,5 +174,78 @@
 		height: 15px;
 		right: 12px;
 		pointer-events: none;
+	}
+}
+
+/* duration control */
+
+.duration-picker {
+	position: absolute;
+	z-index: 999;
+
+	border-radius: 4px;
+	box-shadow: 0 4px 12px rgba(0,0,0,.15);
+	background: #fff;
+	border: 1px solid @border-color;
+	padding-top: 10px;
+	padding-left: 5px;
+
+	&:after,
+	&:before {
+		border: solid transparent;
+		content: " ";
+		height: 0;
+		width: 0;
+		pointer-events: none;
+		position: absolute;
+		bottom: 100%;
+		left: 30px;
+	}
+	&:after {
+		border-color: rgba(255, 255, 255, 0);
+		border-bottom-color: #fff;
+		border-width: 8px;
+		margin-left: -8px;
+	}
+	&:before {
+		border-color: rgba(221, 221, 221, 0);
+		border-bottom-color: @border-color;
+		border-width: 9px;
+		margin-left: -9px;
+	}
+
+	.row .col {
+		// for fixing layout in child table
+		padding-left: 0px !important;
+		padding-right: 0px !important;
+	}
+
+	.duration-row {
+		margin: 7px;
+		display: flex;
+	}
+
+	.duration-col {
+		margin-left: 2px;
+	}
+
+	.duration-input {
+		width: 60px;
+		border: 1px solid rgba(0, 0, 0, 0.25) !important;
+	}
+
+	.duration-input:focus {
+		outline: None;
+	}
+
+	.duration-label {
+		justify-content: center;
+	}
+
+	.picker-row {
+		display: flex;
+		margin-left: 5px;
+		margin-bottom: 3px;
+		margin-right: 12px;
 	}
 }

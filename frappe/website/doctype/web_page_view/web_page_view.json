@@ -1,5 +1,6 @@
 {
  "actions": [],
+ "allow_import": 1,
  "creation": "2020-04-15 22:54:46.009703",
  "doctype": "DocType",
  "editable_grid": 1,
@@ -9,7 +10,9 @@
   "referrer",
   "browser",
   "browser_version",
-  "date"
+  "is_unique",
+  "time_zone",
+  "user_agent"
  ],
  "fields": [
   {
@@ -39,15 +42,24 @@
    "set_only_once": 1
   },
   {
-   "fieldname": "date",
-   "fieldtype": "Datetime",
-   "label": "Date",
-   "set_only_once": 1
+   "fieldname": "is_unique",
+   "fieldtype": "Data",
+   "label": "Is Unique"
+  },
+  {
+   "fieldname": "time_zone",
+   "fieldtype": "Data",
+   "label": "Time Zone"
+  },
+  {
+   "fieldname": "user_agent",
+   "fieldtype": "Data",
+   "label": "User Agent"
   }
  ],
  "in_create": 1,
  "links": [],
- "modified": "2020-04-15 23:31:27.517793",
+ "modified": "2020-05-05 14:11:24.718770",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Web Page View",

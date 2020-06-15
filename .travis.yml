@@ -25,6 +25,7 @@ cache:
     # https://docs.cypress.io/guides/guides/continuous-integration.html#Caching
     - ~/.cache
 
+
 matrix:
   include:
   - name: "Python 3.7 MariaDB"
@@ -46,7 +47,14 @@ matrix:
     script: bench --site test_site run-ui-tests frappe --headless
 
 before_install:
-  # install wkhtmltopdf
+ # do we really want to run travis?
+  - |
+    python ./.travis/roulette.py
+    if [[ $? != 2 ]];then
+      exit;
+    fi
+
+ # install wkhtmltopdf
   - wget -O /tmp/wkhtmltox.tar.xz https://github.com/frappe/wkhtmltopdf/raw/master/wkhtmltox-0.12.3_linux-generic-amd64.tar.xz
   - tar -xf /tmp/wkhtmltox.tar.xz -C /tmp
   - sudo mv /tmp/wkhtmltox/bin/wkhtmltopdf /usr/local/bin/wkhtmltopdf

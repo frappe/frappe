@@ -437,7 +437,7 @@ class Meta(Document):
 
 		if not self.custom:
 			for hook in frappe.get_hooks("override_doctype_dashboards", {}).get(self.name, []):
-				data = frappe.get_attr(hook)(data=data)
+				data = frappe._dict(frappe.get_attr(hook)(data=data))
 
 		return data
 
@@ -482,6 +482,9 @@ class Meta(Document):
 
 	def get_row_template(self):
 		return self.get_web_template(suffix='_row')
+
+	def get_list_template(self):
+		return self.get_web_template(suffix='_list')
 
 	def get_web_template(self, suffix=''):
 		'''Returns the relative path of the row template for this doctype'''

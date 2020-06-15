@@ -153,12 +153,12 @@ frappe.ui.Notifications = class Notifications {
 		let title = target ? `title="${__('Your Target')}"` : '';
 		let $list_item = !target
 			? $(`<li><a class="badge-hover" data-action="route_to_document_type" data-doctype="${name}" ${title}>
-				${label}
+				${__(label)}
 				<span class="badge pull-right">${value}</span>
 			</a></li>`)
 			: $(`<li><a class="progress-small" data-action="route_to_document_type" ${title}
 				data-doctype="${doc_dt}" data-docname="${name}">
-					<span class="dropdown-item-label">${label}<span>
+					<span class="dropdown-item-label">${__(label)}<span>
 					<div class="progress-chart">
 						<div class="progress">
 							<div class="progress-bar" style="width: ${value}%"></div>
@@ -304,10 +304,7 @@ frappe.ui.Notifications = class Notifications {
 	}
 
 	get_dropdown_item_html(field) {
-		let doc_link = frappe.utils.get_form_link(
-			field.document_type,
-			field.document_name
-		);
+		let doc_link = this.get_item_link(field);
 		let read_class = field.read ? '' : 'unread';
 		let mark_read_action = field.read ? '': 'data-action="mark_as_read"';
 		let message = field.subject;
@@ -334,6 +331,17 @@ frappe.ui.Notifications = class Notifications {
 			</a>`;
 
 		return item_html;
+	}
+
+	get_item_link(notification_doc) {
+		const link_doctype =
+			notification_doc.type == 'Alert' ? 'Notification Log': notification_doc.document_type;
+		const link_docname =
+			notification_doc.type == 'Alert' ? notification_doc.name: notification_doc.document_name;
+		return frappe.utils.get_form_link(
+			link_doctype,
+			link_docname
+		);
 	}
 
 	render_dropdown_headers() {
