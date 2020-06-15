@@ -1,19 +1,22 @@
-frappe.ui.form.SidebarUsers = Class.extend({
-	init: function(opts) {
+frappe.ui.form.SidebarUsers = class {
+	constructor(opts) {
 		$.extend(this, opts);
-	},
-	get_users: function(type) {
+	}
+
+	get_users(type) {
 		let docinfo = this.frm.get_docinfo();
 		return docinfo ? docinfo[type] || null: null;
-	},
-	refresh: function(data_updated, type) {
+	}
+
+	refresh(data_updated, type) {
 		this.parent = type == 'viewers'? this.$wrapper.find('.form-viewers'): this.$wrapper.find('.form-typers');
 		this.parent.empty();
 
 		const users = this.get_users(type);
 		users && this.show_in_sidebar(users, type, data_updated);
-	},
-	show_in_sidebar: function(users, type, show_alert) {
+	}
+
+	show_in_sidebar(users, type, show_alert) {
 		let sidebar_users = [];
 		let new_users = [];
 		let current_users = [];
@@ -53,7 +56,8 @@ frappe.ui.form.SidebarUsers = Class.extend({
 		// For viewers show the alert to new user viewing this document
 		const alert_users = type == 'viewers' ? new_users : current_users;
 		show_alert && this.show_alert(alert_users, message);
-	},
+	}
+
 	show_alert(users, message) {
 		if (users.length) {
 			if (users.length===1) {
@@ -64,7 +68,7 @@ frappe.ui.form.SidebarUsers = Class.extend({
 
 		}
 	}
-});
+}
 
 frappe.ui.form.set_users = function(data, type) {
 	const doctype = data.doctype;
