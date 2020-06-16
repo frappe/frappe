@@ -351,7 +351,7 @@ def build_xlsx_data(columns, data, visible_idx, include_indentation):
 
 			if isinstance(row, dict) and row:
 				for idx in range(len(data.columns)):
-					if not data.columns[idx].get("hidden"):
+					if not columns[idx].get("hidden"):
 						label = columns[idx]["label"]
 						fieldname = columns[idx]["fieldname"]
 						cell_value = row.get(fieldname, row.get(label, ""))
