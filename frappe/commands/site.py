@@ -414,7 +414,7 @@ def remove_from_installed_apps(context, app):
 @click.argument('app')
 @click.option('--yes', '-y', help='To bypass confirmation prompt for uninstalling the app', is_flag=True, default=False, multiple=True)
 @click.option('--dry-run', help='List all doctypes that will be deleted', is_flag=True, default=False)
-@click.option('--no-backup', help='Do not backup the site DB', is_flag=True, default=False )
+@click.option('--no-backup', help='Do not backup the site', is_flag=True, default=False)
 @pass_context
 def uninstall(context, app, dry_run=False, yes=False, no_backup=False):
 	"Remove app and linked modules from site"
