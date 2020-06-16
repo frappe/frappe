@@ -268,12 +268,12 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			} else {
 				frappe.xcall('frappe.desk.query_report.get_script', {
 					report_name: this.report_name
-				}).then(r => {
-					frappe.dom.eval(r.message.script || '');
+				}).then(settings => {
+					frappe.dom.eval(settings.script || '');
 					frappe.after_ajax(() => {
 						this.report_settings = this.get_local_report_settings();
-						this.report_settings.html_format = r.message.html_format;
-						this.report_settings.execution_time = r.message.execution_time || 0;
+						this.report_settings.html_format = settings.html_format;
+						this.report_settings.execution_time = settings.execution_time || 0;
 						frappe.query_reports[this.report_name] = this.report_settings;
 						resolve();
 					});
@@ -452,8 +452,6 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		if (query_params.prepared_report_name) {
 			filters.prepared_report_name = query_params.prepared_report_name;
 		}
-
-		let possible_filters = frappe.query_report[this.report_name].filters;
 
 		return new Promise(resolve => {
 			this.last_ajax = frappe.call({
@@ -1158,6 +1156,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		if (this.raw_data.add_total_row) {
 			let totalRow = this.datatable.bodyRenderer.getTotalRow().reduce((row, cell) => {
 				row[cell.column.id] = cell.content;
+				row.is_total_row = true;
 				return row;
 			}, {});
 

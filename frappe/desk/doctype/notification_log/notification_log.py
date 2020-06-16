@@ -103,7 +103,7 @@ def get_email_header(doc):
 	return {
 		'Default': _('New Notification'),
 		'Mention': _('New Mention'),
-		'Assignment': _('New Assignment'),
+		'Assignment': _('Assignment Update'),
 		'Share': _('New Document Shared'),
 		'Energy Point': _('Energy Point Update'),
 	}[doc.type or 'Default']
