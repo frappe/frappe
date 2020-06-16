@@ -1,3 +1,18 @@
+.hero-content {
+	.btn-primary {
+		margin-top: 1rem; 
+		margin-right: 0.5rem;
+
+		@include media-breakpoint-up(lg) {
+			margin-right: 1rem;
+		}
+	}
+
+	.btn-primary-light {
+		margin-top: 1rem;
+	}
+}
+
 .hero-subtitle {
 	@extend .lead;
 	font-weight: 400;
