@@ -54,6 +54,7 @@
     "chalk": "^2.3.2",
     "cypress": "3",
     "cypress-file-upload": "^3.1.0",
+    "graphlib": "^2.1.8",
     "less": "^3.11.1",
     "node-sass": "^4.13.1",
     "rollup": "^1.2.2",
