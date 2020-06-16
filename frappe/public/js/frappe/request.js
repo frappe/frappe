@@ -101,6 +101,11 @@ frappe.call = function(opts) {
 		error_handlers: opts.error_handlers || {},
 		// show_spinner: !opts.no_spinner,
 		async: opts.async,
+		/*
+		this property is evaluated in frappe.request.cleanup, however there is not way to pass this argument, and it is very important
+		to avoid the msgprint dialog when you are calling and get an unknown exception, mostly when you are calling in batches
+        */
+		silent: opts.silent,
 		url,
 	});
 }
