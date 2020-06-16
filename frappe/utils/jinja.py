@@ -88,9 +88,9 @@ def render_template(template, context, is_path=None, safe_render=True):
 def guess_is_path(template):
 	# template can be passed as a path or content
 	# if its single line and ends with a html, then its probably a path
-	if not '\n' in template and '.' in template:
+	if '\n' not in template and '.' in template:
 		extn = template.rsplit('.')[-1]
-		if extn in ('html', 'css', 'scss', 'py'):
+		if extn in ('html', 'css', 'scss', 'py', 'md', 'json', 'js', 'xml'):
 			return True
 
 	return False
@@ -109,7 +109,7 @@ def get_jloader():
 				apps = frappe.local.flags.web_pages_apps or frappe.get_installed_apps(sort=True)
 				apps.reverse()
 
-		if not "frappe" in apps:
+		if "frappe" not in apps:
 			apps.append('frappe')
 
 		frappe.local.jloader = ChoiceLoader(
