@@ -60,6 +60,11 @@ $grid-breakpoints: (
   2xl: 1440px
 ) !default;
 
+// Breadcrumbs
+$breadcrumb-padding-y: 0.3rem;
+$breadcrumb-padding-x: 0.75rem;
+$breadcrumb-divider-color: $gray-400;
+
 @import '~bootstrap/scss/functions';
 @import '~bootstrap/scss/variables';
 @import "~bootstrap/scss/mixins";
