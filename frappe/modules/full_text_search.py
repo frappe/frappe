@@ -132,5 +132,7 @@ def remove_from_index(index_name, path):
 		# Remove the index of the particular file
 		writer.delete_by_term('path', path)
 
+		writer.commit(optimize=True)
+
 def get_index_path(index_name):
 	return frappe.get_site_path("indexes", index_name)
