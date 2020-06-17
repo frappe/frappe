@@ -67,7 +67,7 @@ def build_index(index_name, documents):
 				title=document.title, path=document.path, content=document.content
 			)
 
-	writer.commit()
+	writer.commit(optimize=True)
 
 
 def search(index_name, text, scope=None, limit=20):
