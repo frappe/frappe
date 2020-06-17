@@ -113,7 +113,7 @@ $.extend(frappe, {
 		}
 
 		$.each(opts.args, function(key, val) {
-			if(typeof val != "string" || val !== null) {
+			if (typeof val != "string" || val !== null) {
 				opts.args[key] = JSON.stringify(val);
 			}
 		});
