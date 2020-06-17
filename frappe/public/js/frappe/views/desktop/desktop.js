@@ -301,7 +301,6 @@ class DesktopPage {
 			steps: this.data.onboarding.items,
 			success: this.data.onboarding.success,
 			docs_url: this.data.onboarding.docs_url,
-			user_can_dismiss: this.data.onboarding.user_can_dismiss,
 			widget_type: 'onboarding',
 			container: this.page,
 			options: {
