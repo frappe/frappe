@@ -118,7 +118,7 @@ def remove_from_installed_apps(app_name):
 		if frappe.flags.in_install:
 			post_install()
 
-def remove_app(app_name, dry_run=False, yes=False):
+def remove_app(app_name, dry_run=False, yes=False, no_backup=False):
 	"""Delete app and all linked to the app's module with the app."""
 
 	if not dry_run and not yes:
@@ -126,9 +126,10 @@ def remove_app(app_name, dry_run=False, yes=False):
 		if confirm!="y":
 			return
 
-	from frappe.utils.backups import scheduled_backup
-	print("Backing up...")
-	scheduled_backup(ignore_files=True)
+	if not no_backup:
+		from frappe.utils.backups import scheduled_backup
+		print("Backing up...")
+		scheduled_backup(ignore_files=True)
 
 	drop_doctypes = []
 
