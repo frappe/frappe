@@ -106,16 +106,18 @@ def reindex_path(index_name, path):
 	reindex(index_name, document)
 
 def reindex(index_name, document):
+	# open index
 	index_dir = get_index_path(index_name)
 	ix = open_dir(index_dir)
 
+	# initiate search scope to find previous index
 	with ix.searcher() as searcher:
 		writer = ix.writer()
 		
 		# Remove the index of the particular file
 		writer.delete_by_term('path', document.path)
 
-		# that wasn't indexed before. So index it!
+		# re index it!
 		writer.add_document(
 			title=document.title, path=document.path, content=document.content
 		)
