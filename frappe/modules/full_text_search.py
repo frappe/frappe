@@ -101,6 +101,26 @@ def search(index_name, text, scope=None, limit=20):
 
 	return out
 
+def reindex_path(index_name, path):
+	document = get_document_to_index(path):
+	reindex(index_name, document)
+
+def reindex(index_name, document):
+	index_dir = get_index_path(index_name)
+	ix = open_dir(index_dir)
+
+	with ix.searcher() as searcher:
+		writer = ix.writer()
+		
+		# Remove the index of the particular file
+		writer.delete_by_term('path', document.path)
+
+		# that wasn't indexed before. So index it!
+		writer.add_document(
+			title=document.title, path=document.path, content=document.content
+		)
+
+		writer.commit(optimize=True)
 
 def get_index_path(index_name):
 	return frappe.get_site_path("indexes", index_name)
