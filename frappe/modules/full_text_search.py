@@ -120,5 +120,17 @@ def reindex(index_name, document):
 
 		writer.commit(optimize=True)
 
+def remove_from_index(index_name, path):
+	# open index
+	index_dir = get_index_path(index_name)
+	ix = open_dir(index_dir)
+
+	# initiate search scope to find previous index
+	with ix.searcher() as searcher:
+		writer = ix.writer()
+		
+		# Remove the index of the particular file
+		writer.delete_by_term('path', path)
+
 def get_index_path(index_name):
 	return frappe.get_site_path("indexes", index_name)
