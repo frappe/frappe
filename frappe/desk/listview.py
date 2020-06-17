@@ -35,7 +35,7 @@ def get_group_by_count(doctype, current_filters, field):
 			from
 				`tabToDo`, `tabUser`
 			where
-				`tabToDo`.status='Open' and
+				`tabToDo`.status!='Cancelled' and
 				`tabToDo`.owner = `tabUser`.name and
 				`tabUser`.user_type = 'System User'
 				{subquery_condition}
