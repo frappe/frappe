@@ -79,7 +79,7 @@ frappe.views.CalendarView = class CalendarView extends frappe.views.ListView {
 							start: doc.start_date_field,
 							end: doc.end_date_field,
 							title: doc.subject_field,
-							allDay = doc.all_day ? 1 : 0
+							allDay: doc.all_day ? 1 : 0
 						}
 					});
 					resolve(options);
