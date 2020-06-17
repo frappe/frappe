@@ -100,8 +100,12 @@ def search(index_name, text, scope=None, limit=20):
 			)
 
 	return out
+
+def update_index_for_path(index_name, path):
+	document = get_document_to_index(path)
+	update_index(index_name, document)
 	
-def reindex(index_name, document):
+def update_index(index_name, document):
 	# open index
 	index_dir = get_index_path(index_name)
 	ix = open_dir(index_dir)
@@ -120,7 +124,7 @@ def reindex(index_name, document):
 
 		writer.commit(optimize=True)
 
-def remove_from_index(index_name, path):
+def remove_document_from_index(index_name, path):
 	# open index
 	index_dir = get_index_path(index_name)
 	ix = open_dir(index_dir)
