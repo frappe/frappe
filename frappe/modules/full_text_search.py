@@ -102,7 +102,7 @@ def search(index_name, text, scope=None, limit=20):
 	return out
 
 def reindex_path(index_name, path):
-	document = get_document_to_index(path):
+	document = get_document_to_index(path)
 	reindex(index_name, document)
 
 def reindex(index_name, document):
