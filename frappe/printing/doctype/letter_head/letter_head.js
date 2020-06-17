@@ -17,7 +17,7 @@ frappe.ui.form.on('Letter Head', {
 					frm.set_value('footer', footer_html + `<img src="${file.file_url}" alt="">`);
 				}
 			};
-			let file_uploader = new frappe.ui.FileUploader(options);
-		}
+			new frappe.ui.FileUploader(options);
+		};
 	}
 });
