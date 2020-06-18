@@ -247,6 +247,8 @@ frappe.ui.form.on('Data Import', {
 		if (!frm.has_import_file()) {
 			frm.get_field('import_preview').$wrapper.empty();
 			return;
+		} else {
+			frm.trigger('update_primary_action');
 		}
 
 		// load import preview
