@@ -60,6 +60,66 @@
 	}
 }
 
+.page-form {
+	margin: 0;
+	padding: 5px 10px;
+	display: flex;
+	flex-wrap: wrap;
+	background-color: white;
+
+	.form-group {
+		padding: 0px;
+		margin: 5px;
+	}
+	.checkbox {
+		margin-top: 4px;
+		margin-bottom: 4px;
+
+		.help-box {
+			display: none;
+		}
+	}
+	// .sort-selector {
+	// 	position: absolute;
+	// 	top: 0px;
+	// 	right: 15px;
+	// 	margin: 10px;
+	// 	display: flex;
+
+	// 	.dropdown:hover {
+	// 		text-decoration: underline;
+	// 	}
+
+	// 	.dropdown-menu {
+	// 		max-height: 300px;
+	// 		overflow-y: scroll;
+	// 		right: 0;
+	// 		left: auto;
+	// 	}
+	// 	button {
+	// 		margin-left: 10px;
+	// 	}
+	// }
+}
+
+.page-actions .dropdown-menu,
+.form-inner-toolbar .dropdown-menu {
+	right: 0px;
+	left: auto;
+	z-index: 100;
+}
+
+
+.menu-btn-group, .custom-btn-group {
+	.dropdown-menu {
+		width: max-content;
+	}
+
+	.menu-item-label {
+		margin-right: 15px;
+	}
+}
+
 // .sub-heading {
 // 	display: inline-block;
 // 	margin-right: 10px;
@@ -136,12 +196,6 @@
 // }
 
 /* show menu aligned to the right border of the dropdown */
-.page-actions .dropdown-menu,
-.form-inner-toolbar .dropdown-menu {
-	right: 0px;
-	left: auto;
-	z-index: 100;
-}
 
 // .layout-footer {
 // 	border: 1px solid @border-color;
@@ -150,47 +204,7 @@
 // 	font-size: @text-medium;
 // }
 
-// .page-form {
-// 	margin: 0;
-// 	padding: 5px 10px;
-// 	display: flex;
-// 	flex-wrap: wrap;
-// 	background-color: white;
 
-// 	.form-group {
-// 		padding: 0px;
-// 		margin: 5px;
-// 	}
-// 	.checkbox {
-// 		margin-top: 4px;
-// 		margin-bottom: 4px;
-
-// 		.help-box {
-// 			display: none;
-// 		}
-// 	}
-// 	.sort-selector {
-// 		position: absolute;
-// 		top: 0px;
-// 		right: 15px;
-// 		margin: 10px;
-// 		display: flex;
-
-// 		.dropdown:hover {
-// 			text-decoration: underline;
-// 		}
-
-// 		.dropdown-menu {
-// 			max-height: 300px;
-// 			overflow-y: scroll;
-// 			right: 0;
-// 			left: auto;
-// 		}
-// 		button {
-// 			margin-left: 10px;
-// 		}
-// 	}
-// }
 
 // select.input-sm {
 // 	line-height: 1.2em !important;
@@ -434,12 +448,3 @@
 // 	align-items: center;
 // }
 
-.menu-btn-group, .custom-btn-group {
-	.dropdown-menu {
-		width: max-content;
-	}
-
-	.menu-item-label {
-		margin-right: 15px;
-	}
-}

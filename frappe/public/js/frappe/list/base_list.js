@@ -269,7 +269,7 @@ frappe.views.BaseList = class BaseList {
 
 	setup_sort_selector() {
 		this.sort_selector = new frappe.ui.SortSelector({
-			parent: this.filter_area.$filter_list_wrapper,
+			parent: this.$filter_section,
 			doctype: this.doctype,
 			args: {
 				sort_by: this.sort_by,
@@ -483,11 +483,12 @@ frappe.views.BaseList = class BaseList {
 class FilterArea {
 	constructor(list_view) {
 		this.list_view = list_view;
-		this.standard_filters_wrapper = this.list_view.page.page_form;
-		this.standard_filters_wrapper.hide();
-		this.$filter_list_wrapper = $('<div class="filter-list">').appendTo(
-			this.list_view.$frappe_list
+		this.list_view.page.page_form.append(`<div class="standard-filter-section flex"></div>`);
+		this.standard_filters_wrapper = this.list_view.page.page_form.find('.standard-filter-section');
+		this.list_view.$filter_section = $('<div class="filter-section">').appendTo(
+			this.list_view.page.page_form
 		);
+		this.$filter_list_wrapper = this.list_view.$filter_section;
 		this.trigger_refresh = true;
 		this.setup();
 	}
@@ -509,6 +510,7 @@ class FilterArea {
 		this.trigger_refresh = false;
 		return this.add(filters, false).then(() => {
 			this.trigger_refresh = true;
+			this.filter_list.update_filter_button();
 		});
 	}
 
@@ -709,7 +711,9 @@ class FilterArea {
 				})
 		);
 
-		fields.map((df) => this.list_view.page.add_field(df));
+		fields.map(df => {
+			this.list_view.page.add_field(df, this.standard_filters_wrapper);
+		});
 	}
 
 	get_standard_filters() {
@@ -735,10 +739,26 @@ class FilterArea {
 	}
 
 	make_filter_list() {
+		$(`<div class="filter-selector">
+			<button class="btn btn-default btn-xs filter-button">
+				<span class="filter-icon">
+					<svg class="icon icon-sm">
+						<use xlink:href="#icon-filter"></use>
+					</svg>
+				</span>
+				<span class="button-label">
+					${__("Filter")}
+				<span>
+			</button>
+		</div>`
+		).appendTo(this.$filter_list_wrapper);
+
+		this.filter_button = this.$filter_list_wrapper.find('.filter-button');
 		this.filter_list = new frappe.ui.FilterGroup({
 			base_list: this.list_view,
 			parent: this.$filter_list_wrapper,
 			doctype: this.list_view.doctype,
+			filter_button: this.filter_button,
 			default_filters: [],
 			on_change: () => this.refresh_list_view(),
 		});
@@ -748,6 +768,7 @@ class FilterArea {
 		// returns true if user is currently editing filters
 		return (
 			this.filter_list &&
+			this.filter_list.wrapper &&
 			this.filter_list.wrapper.find(".filter-box:visible").length > 0
 		);
 	}

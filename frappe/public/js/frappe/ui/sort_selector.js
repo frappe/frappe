@@ -23,14 +23,15 @@ frappe.ui.SortSelector = Class.extend({
 
 		// order
 		this.wrapper.find('.btn-order').on('click', function() {
-			var btn = $(this);
-			var order = $(this).attr('data-value')==='desc' ? 'asc' : 'desc';
+			let btn = $(this);
+			const order = $(this).attr('data-value') === 'desc' ? 'asc' : 'desc';
+			const title = $(this).attr('data-value' )=== 'desc' ? 'ascending' : 'descending';
 
 			btn.attr('data-value', order);
+			btn.attr('title', title);
 			me.sort_order = order;
-			btn.find('.octicon')
-				.removeClass('octicon-arrow-' + (order==='asc' ? 'down' : 'up'))
-				.addClass('octicon-arrow-' + (order==='desc' ? 'down' : 'up'));
+			const icon_name = order === 'asc'? 'sort-ascending' : 'sort-descending';
+			btn.find('.sort-order').html(frappe.utils.icon(icon_name, 'sm'));
 			(me.onchange || me.change)(me.sort_by, me.sort_order);
 		});
 

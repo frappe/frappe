@@ -123,16 +123,17 @@ frappe.views.ListSidebar = class ListSidebar {
 					label = "%,%";
 					condition = "not like";
 				}
-				me.list_view.filter_area.filter_list.add_filter(me.list_view.doctype, fieldname, condition, label)
-					.then(function() {
-						me.list_view.refresh();
-					});
+				me.list_view.filter_area.add(
+					me.doctype,
+					fieldname,
+					condition,
+					label
+				);
 			})
 			.appendTo(this.sidebar.find(".list-stats-dropdown"));
 	}
 
 	set_fieldtype(df) {
-
 		// scrub
 		if (df.fieldname == "docstatus") {
 			df.fieldtype = "Select",

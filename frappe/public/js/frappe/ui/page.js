@@ -641,7 +641,7 @@ frappe.ui.Page = Class.extend({
 		// add further fields in the next line
 		this.page_form.append('<div class="clearfix invisible-xs"></div>');
 	},
-	add_field: function(df) {
+	add_field: function(df, parent) {
 		this.show_form();
 
 		if (!df.placeholder) {
@@ -650,7 +650,7 @@ frappe.ui.Page = Class.extend({
 
 		var f = frappe.ui.form.make_control({
 			df: df,
-			parent: this.page_form,
+			parent: parent || this.page_form,
 			only_input: df.fieldtype == "Check" ? false : true,
 		})
 		f.refresh();
@@ -666,7 +666,7 @@ frappe.ui.Page = Class.extend({
 		// hidden fields dont have $input
 		if (!f.$input) f.make_input();
 
-		f.$input.addClass("input-sm").attr("placeholder", __(df.label));
+		f.$input.addClass("input-xs").attr("placeholder", __(df.label));
 
 		if(df.fieldtype==="Check") {
 			$(f.wrapper).find(":first-child")
@@ -675,7 +675,7 @@ frappe.ui.Page = Class.extend({
 
 		if(df.fieldtype=="Button") {
 			$(f.wrapper).find(".page-control-label").html("&nbsp;")
-			f.$input.addClass("btn-sm").css({"width": "100%", "margin-top": "-1px"});
+			f.$input.addClass("btn-xs").css({"width": "100%", "margin-top": "-1px"});
 		}
 
 		if(df["default"])
