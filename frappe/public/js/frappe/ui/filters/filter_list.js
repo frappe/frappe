@@ -23,7 +23,7 @@ frappe.ui.FilterGroup = class {
 			`,
 			html: true,
 			trigger: 'manual',
-			container: '.layout-main',
+			container: 'body',
 			placement: 'bottom',
 			offset: '-100px 0'
 		});
@@ -66,6 +66,10 @@ frappe.ui.FilterGroup = class {
 		this.filter_button.on('hidden.bs.popover', (e) => {
 			this.on_change();
 			this.update_filters();
+		});
+
+		$(window).on('hashchange', () => {
+			this.filter_button.popover('hide');
 		});
 	}
 
