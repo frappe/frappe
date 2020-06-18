@@ -102,10 +102,24 @@ def search(index_name, text, scope=None, limit=20):
 	return out
 
 def update_index_for_path(index_name, path):
+	"""Wraps `update_index` method, gets the document from path
+	and updates the index. This function changes the current user
+	and should only be run as administrator or in a background job.
+
+	Args:
+		index_name (str): name of the index
+		path (str): route of the page to be updated 
+	"""
 	document = get_document_to_index(path)
 	update_index(index_name, document)
 	
 def update_index(index_name, document):
+	"""Update search index for a document
+
+	Args:
+		index_name (str): Name of the index to be updated
+		document (dict): A dictionary with title, path and content
+	"""
 	# open index
 	index_dir = get_index_path(index_name)
 	ix = open_dir(index_dir)
@@ -125,6 +139,12 @@ def update_index(index_name, document):
 		writer.commit(optimize=True)
 
 def remove_document_from_index(index_name, path):
+	"""Remove document from search index
+
+	Args:
+		index_name (str): name of the index
+		path (str): route of the page to be removed 
+	"""
 	# open index
 	index_dir = get_index_path(index_name)
 	ix = open_dir(index_dir)
