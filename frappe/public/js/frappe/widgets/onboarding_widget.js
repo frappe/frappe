@@ -7,12 +7,6 @@ export default class OnboardingWidget extends Widget {
 	}
 
 	make_body() {
-		this.body.addClass("grid");
-		if (this.steps.length < 5) {
-			this.body.addClass(`grid-rows-${this.steps.length}`);
-		} else if (this.steps.length >= 5) {
-			this.body.addClass("grid-rows-5");
-		}
 		this.steps.forEach((step) => {
 			this.add_step(step);
 		});
@@ -444,8 +438,6 @@ export default class OnboardingWidget extends Widget {
 
 	set_actions() {
 		this.action_area.empty();
-		if (!this.user_can_dismiss) return;
-
 		const dismiss = $(
 			`<div class="small" style="cursor:pointer;">Dismiss</div>`
 		);

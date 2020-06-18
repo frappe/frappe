@@ -504,19 +504,7 @@ class BaseDocument(object):
 
 					for _df in fields_to_fetch:
 						if self.is_new() or self.docstatus != 1 or _df.allow_on_submit:
-							fetch_from_fieldname = _df.fetch_from.split('.')[-1]
-							value = values[fetch_from_fieldname]
-							if _df.fieldtype == 'Small Text' or _df.fieldtype == 'Text' or _df.fieldtype == 'Data':
-								if fetch_from_fieldname in default_fields:
-									from frappe.model.meta import get_default_df
-									fetch_from_df = get_default_df(fetch_from_fieldname)
-								else:
-									fetch_from_df = frappe.get_meta(doctype).get_field(fetch_from_fieldname)
-
-								fetch_from_ft = fetch_from_df.get('fieldtype')
-								if fetch_from_ft == 'Text Editor' and value:
-									value = unescape_html(strip_html(value))
-							setattr(self, _df.fieldname, value)
+							self.set_fetch_from_value(doctype, _df, values)
 
 					notify_link_count(doctype, docname)
 
@@ -530,6 +518,27 @@ class BaseDocument(object):
 						cancelled_links.append((df.fieldname, docname, get_msg(df, docname)))
 
 		return invalid_links, cancelled_links
+
+	def set_fetch_from_value(self, doctype, df, values):
+		fetch_from_fieldname = df.fetch_from.split('.')[-1]
+		value = values[fetch_from_fieldname]
+		if df.fieldtype in ['Small Text', 'Text', 'Data']:
+			if fetch_from_fieldname in default_fields:
+				from frappe.model.meta import get_default_df
+				fetch_from_df = get_default_df(fetch_from_fieldname)
+			else:
+				fetch_from_df = frappe.get_meta(doctype).get_field(fetch_from_fieldname)
+
+			if not fetch_from_df:
+				frappe.throw(
+					_('Please check the value of "Fetch From" set for field {0}').format(frappe.bold(df.label)),
+					title = _('Wrong Fetch From value')
+				)
+
+			fetch_from_ft = fetch_from_df.get('fieldtype')
+			if fetch_from_ft == 'Text Editor' and value:
+				value = unescape_html(strip_html(value))
+		setattr(self, df.fieldname, value)
 
 	def _validate_selects(self):
 		if frappe.flags.in_import:
