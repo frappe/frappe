@@ -23,7 +23,7 @@ from frappe.modules import full_text_search
 from frappe.utils import global_search
 
 
-def migrate(verbose=True, rebuild_website=False, skip_failing=False):
+def migrate(verbose=True, rebuild_website=False, skip_failing=False, skip_search_index=False):
 	'''Migrate all apps to the latest version, will:
 	- run before migrate hooks
 	- run patches
@@ -82,8 +82,9 @@ Otherwise, check the server logs and ensure that all the required services are r
 		render.clear_cache()
 
 		# add static pages to global search
-		global_search.update_global_search_for_all_web_pages()
-		full_text_search.build_index_for_all_routes()
+		if not skip_search_index:
+			global_search.update_global_search_for_all_web_pages()
+			full_text_search.build_index_for_all_routes()
 
 		# updating installed applications data
 		frappe.get_single('Installed Applications').update_versions()
