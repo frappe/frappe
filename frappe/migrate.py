@@ -19,6 +19,7 @@ from frappe.website import render
 from frappe.core.doctype.language.language import sync_languages
 from frappe.modules.utils import sync_customizations
 from frappe.core.doctype.scheduled_job_type.scheduled_job_type import sync_jobs
+from frappe.modules import full_text_search
 from frappe.utils import global_search
 
 
@@ -82,6 +83,7 @@ Otherwise, check the server logs and ensure that all the required services are r
 
 		# add static pages to global search
 		global_search.update_global_search_for_all_web_pages()
+		full_text_search.build_index_for_all_routes()
 
 		# updating installed applications data
 		frappe.get_single('Installed Applications').update_versions()
