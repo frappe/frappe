@@ -83,18 +83,20 @@ class WebsiteGenerator(Document):
 		pass
 
 	def on_update(self):
-		old_doc = self.get_doc_before_save()
-		if old_doc.route != self.route:
-			remove_document_from_index("web_routes", old_doc.route)
 		self.send_indexing_request()
+		self.remove_old_route_from_index()
 
 	def on_change(self):
+		# Update the index on change
+		# On change is triggered last in the event lifecycle
 		self.update_website_search_index()
 
 	def on_trash(self):
 		self.clear_cache()
 		self.send_indexing_request('URL_DELETED')
-		remove_document_from_index("web_routes", self.route)
+		# On deleting the doc, remove the page from the web_routes index
+		if self.enable_website_search_indexing():
+			remove_document_from_index("web_routes", self.route)
 
 	def is_website_published(self):
 		"""Return true if published in website"""
@@ -139,8 +141,30 @@ class WebsiteGenerator(Document):
 			frappe.enqueue('frappe.website.doctype.website_settings.google_indexing.publish_site', \
 				url=url, operation_type=operation_type)
 
+	# Override this method to disable indexing
+	def enable_website_search_indexing(self):
+		return True
+
+	def remove_old_route_from_index(self):
+		"""Remove page from the website index if the route has changed."""
+		if not self.enable_website_search_indexing():
+			return
+		old_doc = self.get_doc_before_save()
+		# Check if the route is changed
+		if old_doc.route != self.route:
+			# Remove the route from index if the route has changed
+			remove_document_from_index("web_routes", old_doc.route)
+
 	def update_website_search_index(self):
+		"""
+			Update the full test index executed on document change event.
+			- remove document from index if document is unpublished
+			- update index otherwise
+		"""
+		if not self.enable_website_search_indexing():
+			return
 		if not self.is_website_published():
+			# If the website is not published
 			remove_document_from_index("web_routes", self.route)
 		else:
 			frappe.enqueue(update_index_for_path, index_name="web_routes", path=self.route)
