@@ -318,7 +318,7 @@ $.extend(frappe, {
 		return $(".navbar .search, .sidebar .search");
 	},
 	is_user_logged_in: function() {
-		return frappe.session.user !== "Guest";
+		return frappe.get_cookie("user_id") !== "Guest" && frappe.session.user !== "Guest";
 	},
 	add_switch_to_desk: function() {
 		$('.switch-to-desk').removeClass('hidden');
