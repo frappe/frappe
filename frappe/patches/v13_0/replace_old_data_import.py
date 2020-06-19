@@ -11,3 +11,4 @@ def execute():
 	frappe.db.sql("DROP TABLE IF EXISTS `tabData Import`")
 	frappe.reload_doc("core", "doctype", "data_import")
 	frappe.get_doc("DocType", "Data Import").on_update()
+	frappe.delete_doc_if_exists("DocType", "Data Import Beta")
