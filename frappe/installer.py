@@ -118,7 +118,7 @@ def remove_from_installed_apps(app_name):
 			post_install()
 
 def remove_app(app_name, dry_run=False, yes=False, no_backup=False):
-	"""Delete app and all linked to the app's module with the app."""
+	"""Remove app and all linked to the app's module with the app from a site."""
 
 	if not dry_run and not yes:
 		confirm = input("All doctypes (including custom), modules related to this app will be deleted. Are you sure you want to continue (y/n) ? ")
@@ -130,6 +130,7 @@ def remove_app(app_name, dry_run=False, yes=False, no_backup=False):
 		print("Backing up...")
 		scheduled_backup(ignore_files=True)
 
+	frappe.flags.in_uninstall = True
 	drop_doctypes = []
 
 	# remove modules, doctypes, roles
@@ -163,6 +164,8 @@ def remove_app(app_name, dry_run=False, yes=False, no_backup=False):
 
 		for doctype in set(drop_doctypes):
 			frappe.db.sql("drop table `tab{0}`".format(doctype))
+
+	frappe.flags.in_uninstall = False
 
 def post_install(rebuild_website=False):
 	if rebuild_website:
