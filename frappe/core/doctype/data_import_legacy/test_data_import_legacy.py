@@ -6,5 +6,5 @@ from __future__ import unicode_literals
 # import frappe
 import unittest
 
-class TestDataImport(unittest.TestCase):
+class TestDataImportLegacy(unittest.TestCase):
 	pass
