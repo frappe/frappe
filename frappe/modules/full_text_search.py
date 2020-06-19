@@ -30,6 +30,7 @@ class FullTextSearch:
 			self (object): FullTextSearch Instance
 		"""
 		routes = get_static_pages_from_all_apps()
+		routes += get_doctype_routes_with_web_view()
 		return routes
 
 	def build(self):
@@ -170,8 +171,17 @@ class FullTextSearch:
 
 
 def get_doctype_routes_with_web_view():
-	doctype_with_web_views = frappe.get_all("DocType", { "has_web_view": 1 })
-	return []
+	all_routes = []
+	filters = { "has_web_view": 1, "allow_guest_to_view": 1 }
+	fields = ["name", "is_published_field"]
+	doctype_with_web_views = frappe.get_all("DocType", filters=filters, fields=fields)
+
+	for doctype in doctype_with_web_views:
+		if doctype.is_published_field:
+			routes = frappe.get_all(doctype.name, filters={doctype.is_published_field: 1}, fields="route")
+			all_routes += [route.route for route in routes]
+
+	return all_routes
 
 def get_static_pages_from_all_apps():
 	apps = frappe.get_installed_apps()
