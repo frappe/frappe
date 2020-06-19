@@ -95,7 +95,7 @@ class WebsiteGenerator(Document):
 		self.clear_cache()
 		self.send_indexing_request('URL_DELETED')
 		# On deleting the doc, remove the page from the web_routes index
-		if self.enable_website_search_indexing():
+		if self.allow_website_search_indexing():
 			remove_document_from_index("web_routes", self.route)
 
 	def is_website_published(self):
@@ -142,12 +142,12 @@ class WebsiteGenerator(Document):
 				url=url, operation_type=operation_type)
 
 	# Override this method to disable indexing
-	def enable_website_search_indexing(self):
+	def allow_website_search_indexing(self):
 		return True
 
 	def remove_old_route_from_index(self):
 		"""Remove page from the website index if the route has changed."""
-		if not self.enable_website_search_indexing():
+		if self.allow_website_search_indexing():
 			return
 		old_doc = self.get_doc_before_save()
 		# Check if the route is changed
@@ -161,7 +161,7 @@ class WebsiteGenerator(Document):
 			- remove document from index if document is unpublished
 			- update index otherwise
 		"""
-		if not self.enable_website_search_indexing():
+		if not self.allow_website_search_indexing():
 			return
 		if not self.is_website_published():
 			# If the website is not published
