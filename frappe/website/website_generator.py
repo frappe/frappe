@@ -143,7 +143,7 @@ class WebsiteGenerator(Document):
 
 	# Override this method to disable indexing
 	def allow_website_search_indexing(self):
-		return True
+		return bool(self.route)
 
 	def remove_old_route_from_index(self):
 		"""Remove page from the website index if the route has changed."""
@@ -151,7 +151,7 @@ class WebsiteGenerator(Document):
 			return
 		old_doc = self.get_doc_before_save()
 		# Check if the route is changed
-		if old_doc.route != self.route:
+		if old_doc and old_doc.route != self.route:
 			# Remove the route from index if the route has changed
 			remove_document_from_index("web_routes", old_doc.route)
 
@@ -163,8 +163,10 @@ class WebsiteGenerator(Document):
 		"""
 		if not self.allow_website_search_indexing():
 			return
-		if not self.is_website_published():
+		
+		if self.is_website_published():
+			frappe.enqueue(update_index_for_path, index_name="web_routes", path=self.route)
+		elif self.route:
 			# If the website is not published
 			remove_document_from_index("web_routes", self.route)
-		else:
-			frappe.enqueue(update_index_for_path, index_name="web_routes", path=self.route)
+			
