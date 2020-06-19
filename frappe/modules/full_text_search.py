@@ -13,6 +13,8 @@ from frappe.utils import set_request, cint
 import os
 
 class FullTextSearch:
+	""" Frappe Wrapper for Whoosh """
+
 	def __init__(self, index_name):
 		self.index_name = index_name
 		self.index_path = get_index_path(index_name)
@@ -21,16 +23,32 @@ class FullTextSearch:
 		)
 
 	def get_routes_to_index(self):
+		"""Get all routes to be indexed, this includes the static pages
+		in www/ and routes from published documents
+
+		Returns:
+			self (object): FullTextSearch Instance
+		"""
 		routes = get_static_pages_from_all_apps()
 		return routes
 
 	def build(self):
+		"""	Build search index for all web routes """
+
 		print("Building search index for all web routes...")
 		routes = self.get_routes_to_index()
 		self.documents = [self.get_document_to_index(route) for route in routes]
 		self.build_index()
 
 	def get_document_to_index(self, route):
+		"""Render a page and parse it using BeautifulSoup
+
+		Args:
+			path (str): route of the page to be parsed 
+
+		Returns:
+			document (_dict): A dictionary with title, path and content
+		"""
 		frappe.set_user("Guest")
 		frappe.local.no_cache = True
 
@@ -70,7 +88,7 @@ class FullTextSearch:
 
 		Args:
 			self (object): FullTextSearch Instance
-			document (dict): A dictionary with title, path and content
+			document (_dict): A dictionary with title, path and content
 		"""
 		ix = open_dir(self.index_path)
 
@@ -97,6 +115,7 @@ class FullTextSearch:
 
 	
 	def build_index(self):
+		"""Build index for all parsed documents"""
 		ix = create_in(self.index_path, self.schema)
 		writer = ix.writer()
 
@@ -109,6 +128,16 @@ class FullTextSearch:
 		writer.commit(optimize=True)
 
 	def search(self, text, scope=None, limit=20):
+		"""Search from the current index
+
+		Args:
+			text (str): String to search for
+			scope (str, optional): Scope to limit the search. Defaults to None.
+			limit (int, optional): Limit number of search results. Defaults to 20.
+
+		Returns:
+			[List(_dict)]: Search results
+		"""
 		ix = open_dir(self.index_path)
 
 		results = None
