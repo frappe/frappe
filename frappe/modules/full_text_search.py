@@ -10,153 +10,176 @@ from whoosh.query import Prefix
 from bs4 import BeautifulSoup
 from frappe.website.render import render_page
 from frappe.utils import set_request, cint
-from frappe.utils.global_search import get_routes_to_index
+import os
+
+class FullTextSearch:
+	def __init__(self, index_name):
+		self.index_name = index_name
+		self.index_path = get_index_path(index_name)
+		self.schema = Schema(
+			title=TEXT(stored=True), path=ID(stored=True), content=TEXT(stored=True)
+		)
+
+	def get_routes_to_index(self):
+		routes = get_static_pages_from_all_apps()
+		return routes
+
+	def build(self):
+		print("Building search index for all web routes...")
+		routes = self.get_routes_to_index()
+		self.documents = [self.get_document_to_index(route) for route in routes]
+		self.build_index()
+
+	def get_document_to_index(self, route):
+		frappe.set_user("Guest")
+		frappe.local.no_cache = True
+
+		try:
+			set_request(method="GET", path=route)
+			content = render_page(route)
+			soup = BeautifulSoup(content, "html.parser")
+			page_content = soup.find(class_="page_content")
+			text_content = page_content.text if page_content else ""
+			title = soup.title.text.strip() if soup.title else route
+
+			frappe.set_user("Administrator")
+
+			return frappe._dict(title=title, content=text_content, path=route)
+		except (
+			frappe.PermissionError,
+			frappe.DoesNotExistError,
+			frappe.ValidationError,
+			Exception,
+		):
+			pass
+
+	def update_index_for_path(self, path):
+		"""Wraps `update_index` method, gets the document from path
+		and updates the index. This function changes the current user
+		and should only be run as administrator or in a background job.
+
+		Args:
+			self (object): FullTextSearch Instance
+			path (str): route of the page to be updated 
+		"""
+		document = self.get_document_to_index(path)
+		self.update_index(document)
+
+	def update_index(self, document):
+		"""Update search index for a document
+
+		Args:
+			self (object): FullTextSearch Instance
+			document (dict): A dictionary with title, path and content
+		"""
+		ix = open_dir(self.index_path)
+
+		with ix.searcher() as searcher:
+			writer = ix.writer()
+			writer.delete_by_term('path', document.path)
+			writer.add_document(
+				title=document.title, path=document.path, content=document.content
+			)
+			writer.commit(optimize=True)
+
+	def remove_document_from_index(self, path):
+		"""Remove document from search index
+
+		Args:
+			self (object): FullTextSearch Instance
+			path (str): route of the page to be removed 
+		"""
+		ix = open_dir(self.index_path)
+		with ix.searcher() as searcher:
+			writer = ix.writer()
+			writer.delete_by_term('path', path)
+			writer.commit(optimize=True)
+
+	
+	def build_index(self):
+		ix = create_in(self.index_path, self.schema)
+		writer = ix.writer()
+
+		for document in self.documents:
+			if document:
+				writer.add_document(
+					title=document.title, path=document.path, content=document.content
+				)
+
+		writer.commit(optimize=True)
+
+	def search(self, text, scope=None, limit=20):
+		ix = open_dir(self.index_path)
+
+		results = None
+		out = []
+		
+		with ix.searcher() as searcher:
+			parser = MultifieldParser(["title", "content"], ix.schema)
+			parser.remove_plugin_class(FieldsPlugin)
+			parser.remove_plugin_class(WildcardPlugin)
+			query = parser.parse(text)
+
+			filter_scoped = None
+			if scope:
+				filter_scoped = Prefix("path", scope)
+			results = searcher.search(query, limit=limit, filter=filter_scoped)
+
+			for r in results:
+				title_highlights = r.highlights("title")
+				content_highlights = r.highlights("content")
+				out.append(
+					frappe._dict(
+						title=r["title"],
+						path=r["path"],
+						title_highlights=title_highlights,
+						content_highlights=content_highlights,
+					)
+				)
+
+		return out
 
 
-def build_index_for_all_routes():
-	print("Building search index for all web routes...")
-	routes = get_routes_to_index()
-	documents = [get_document_to_index(route) for route in routes]
-	build_index("web_routes", documents)
+def get_doctype_routes_with_web_view():
+	doctype_with_web_views = frappe.get_all("DocType", { "has_web_view": 1 })
+	return []
 
+def get_static_pages_from_all_apps():
+	apps = frappe.get_installed_apps()
+
+	routes_to_index = []
+	for app in apps:
+		base = frappe.get_app_path(app, 'www')
+		path_to_index = frappe.get_app_path(app, 'www')
+
+		for dirpath, _, filenames in os.walk(path_to_index, topdown=True):
+			for f in filenames:
+				if f.endswith(('.md', '.html')):
+					filepath = os.path.join(dirpath, f)
+
+					route = os.path.relpath(filepath, base)
+					route = route.split('.')[0]
+
+					if route.endswith('index'):
+						route = route.rsplit('index', 1)[0]
+
+					routes_to_index.append(route)
+
+	return routes_to_index
 
 @frappe.whitelist(allow_guest=True)
 def web_search(index_name, query, scope=None, limit=20):
 	limit = cint(limit)
-	return search(index_name, query, scope, limit)
-
-
-def get_document_to_index(route):
-	frappe.set_user("Guest")
-	frappe.local.no_cache = True
-
-	try:
-		set_request(method="GET", path=route)
-		content = render_page(route)
-		soup = BeautifulSoup(content, "html.parser")
-		page_content = soup.find(class_="page_content")
-		text_content = page_content.text if page_content else ""
-		title = soup.title.text.strip() if soup.title else route
-
-		frappe.set_user("Administrator")
-
-		return frappe._dict(title=title, content=text_content, path=route)
-	except (
-		frappe.PermissionError,
-		frappe.DoesNotExistError,
-		frappe.ValidationError,
-		Exception,
-	):
-		pass
-
-
-def build_index(index_name, documents):
-	schema = Schema(
-		title=TEXT(stored=True), path=ID(stored=True), content=TEXT(stored=True)
-	)
-
-	index_dir = get_index_path(index_name)
-	frappe.create_folder(index_dir)
-
-	ix = create_in(index_dir, schema)
-	writer = ix.writer()
-
-	for document in documents:
-		if document:
-			writer.add_document(
-				title=document.title, path=document.path, content=document.content
-			)
-
-	writer.commit(optimize=True)
-
-
-def search(index_name, text, scope=None, limit=20):
-	index_dir = get_index_path(index_name)
-	ix = open_dir(index_dir)
-
-	results = None
-	out = []
-	with ix.searcher() as searcher:
-		parser = MultifieldParser(["title", "content"], ix.schema)
-		parser.remove_plugin_class(FieldsPlugin)
-		parser.remove_plugin_class(WildcardPlugin)
-		query = parser.parse(text)
-
-		filter_scoped = None
-		if scope:
-			filter_scoped = Prefix("path", scope)
-		results = searcher.search(query, limit=limit, filter=filter_scoped)
-
-		for r in results:
-			title_highlights = r.highlights("title")
-			content_highlights = r.highlights("content")
-			out.append(
-				frappe._dict(
-					title=r["title"],
-					path=r["path"],
-					title_highlights=title_highlights,
-					content_highlights=content_highlights,
-				)
-			)
-
-	return out
-
-def update_index_for_path(index_name, path):
-	"""Wraps `update_index` method, gets the document from path
-	and updates the index. This function changes the current user
-	and should only be run as administrator or in a background job.
-
-	Args:
-		index_name (str): name of the index
-		path (str): route of the page to be updated 
-	"""
-	document = get_document_to_index(path)
-	update_index(index_name, document)
-	
-def update_index(index_name, document):
-	"""Update search index for a document
-
-	Args:
-		index_name (str): Name of the index to be updated
-		document (dict): A dictionary with title, path and content
-	"""
-	# open index
-	index_dir = get_index_path(index_name)
-	ix = open_dir(index_dir)
-
-	# initiate search scope to find previous index
-	with ix.searcher() as searcher:
-		writer = ix.writer()
-		
-		# Remove the index of the particular file
-		writer.delete_by_term('path', document.path)
-
-		# re index it!
-		writer.add_document(
-			title=document.title, path=document.path, content=document.content
-		)
-
-		writer.commit(optimize=True)
-
-def remove_document_from_index(index_name, path):
-	"""Remove document from search index
-
-	Args:
-		index_name (str): name of the index
-		path (str): route of the page to be removed 
-	"""
-	# open index
-	index_dir = get_index_path(index_name)
-	ix = open_dir(index_dir)
-
-	# initiate search scope to find previous index
-	with ix.searcher() as searcher:
-		writer = ix.writer()
-		
-		# Remove the index of the particular file
-		writer.delete_by_term('path', path)
-
-		writer.commit(optimize=True)
+	fts = FullTextSearch(index_name)
+	return fts.search(query, scope, limit)
 
 def get_index_path(index_name):
 	return frappe.get_site_path("indexes", index_name)
+
+def update_index_for_path(index_name, path):
+	fts = FullTextSearch(index_name)
+	return fts.update_index_for_path(path)
+
+def remove_document_from_index(index_name, path):
+	fts = FullTextSearch(index_name)
+	return fts.remove_document_from_index(path)
