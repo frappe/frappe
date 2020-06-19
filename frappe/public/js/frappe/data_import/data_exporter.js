@@ -132,7 +132,7 @@ frappe.data_import.DataExporter = class DataExporter {
 
 	export_records() {
 		let method =
-			'/api/method/frappe.core.doctype.data_import_beta.data_import_beta.download_template';
+			'/api/method/frappe.core.doctype.data_import.data_import.download_template';
 
 		let multicheck_fields = this.dialog.fields
 			.filter(df => df.fieldtype === 'MultiCheck')

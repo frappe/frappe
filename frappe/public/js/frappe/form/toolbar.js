@@ -36,6 +36,11 @@ frappe.ui.form.Toolbar = Class.extend({
 				this.page.set_title_sub("");
 			} else {
 				this.page.set_title_sub(this.frm.docname);
+				this.page.$sub_title_area.css("cursor", "copy");
+				this.page.$sub_title_area.on('click', (event) => {
+					event.stopImmediatePropagation();
+					frappe.utils.copy_to_clipboard(this.frm.docname);
+				});
 			}
 		} else {
 			var title = this.frm.docname;

@@ -51,10 +51,14 @@ export default class OnboardingWidget extends Widget {
 		let actions = {
 			"Watch Video": () => this.show_video(step),
 			"Create Entry": () => {
-				if (step.show_full_form) {
-					this.create_entry(step);
+				if (step.is_complete) {
+					frappe.set_route(`#List/${step.reference_document}`);
 				} else {
-					this.show_quick_entry(step);
+					if (step.show_full_form) {
+						this.create_entry(step);
+					} else {
+						this.show_quick_entry(step);
+					}
 				}
 			},
 			"Show Form Tour": () => this.show_form_tour(step),
