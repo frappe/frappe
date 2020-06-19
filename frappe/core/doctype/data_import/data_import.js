@@ -70,7 +70,7 @@ frappe.ui.form.on('Data Import', {
 
 		frm.has_import_file = () => {
 			return frm.doc.import_file || frm.doc.google_sheets_url;
-		}
+		};
 	},
 
 	refresh(frm) {
