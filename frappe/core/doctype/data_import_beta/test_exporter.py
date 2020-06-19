@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 
 import unittest
 import frappe
+import six
 from frappe.core.doctype.data_import_beta.exporter import Exporter
 from frappe.core.doctype.data_import_beta.test_importer import (
 	create_doctype_if_not_exists,
@@ -17,6 +18,10 @@ class TestExporter(unittest.TestCase):
 		create_doctype_if_not_exists(doctype_name)
 
 	def test_exports_specified_fields(self):
+		# new data import / export supports only python 3
+		if six.PY2:
+			return
+
 		if not frappe.db.exists(doctype_name, "Test"):
 			doc = frappe.get_doc(
 				doctype=doctype_name,
