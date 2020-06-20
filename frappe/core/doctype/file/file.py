@@ -522,7 +522,7 @@ class File(Document):
 		if only_thumbnail:
 			delete_file(self.thumbnail_url)
 		else:
-			delete_file(self.file_url)
+			delete_file(self.file_url, should_it_be_trashed=True)
 			delete_file(self.thumbnail_url)
 
 	def is_downloadable(self):
@@ -664,22 +664,30 @@ def get_web_image(file_url):
 	return image, filename, extn
 
 
-def delete_file(path):
-	"""Delete file from `public folder`"""
-	if path:
-		if ".." in path.split("/"):
-			frappe.msgprint(_("It is risky to delete this file: {0}. Please contact your System Manager.").format(path))
+def delete_file(path, should_it_be_trashed=False):
+    """Delete file from `public folder`"""
+    if path:
+        if ".." in path.split("/"):
+            frappe.msgprint(
+                _("It is risky to delete this file: {0}. Please contact your System Manager.").format(path))
 
-		parts = os.path.split(path.strip("/"))
-		if parts[0]=="files":
-			path = frappe.utils.get_site_path("public", "files", parts[-1])
+        parts = os.path.split(path.strip("/"))
+        if parts[0] == "files":
+            path = frappe.utils.get_site_path("public", "files", parts[-1])
 
-		else:
-			path = frappe.utils.get_site_path("private", "files", parts[-1])
+        else:
+            path = frappe.utils.get_site_path("private", "files", parts[-1])
 
-		path = encode(path)
-		if os.path.exists(path):
-			os.remove(path)
+        path = encode(path)
+        if should_it_be_trashed:
+            trash_dir = frappe.utils.get_site_path("private", ".trash")
+            if not os.path.isdir(trash_dir):
+                os.mkdir(trash_dir)
+            trash_file_path = '/'.join([trash_dir, parts[-1]])
+            if not os.path.isfile(trash_file_path):
+            	shutil.copy(path, trash_file_path)
+        if os.path.exists(path):
+            os.remove(path)
 
 
 def remove_file(fid=None, attached_to_doctype=None, attached_to_name=None, from_delete=False):
